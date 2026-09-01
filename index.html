@@ -214,28 +214,168 @@ const CFG = {
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 const FAC = {
-  zuling:{n:"祖靈",cls:"f-zuling"}, xianghuo:{n:"香火",cls:"f-xianghuo"},
-  yinqi:{n:"陰氣",cls:"f-yinqi"}, curse:{n:"詛咒",cls:"f-curse"},
+  zuling:{n:"祖靈",cls:"f-zuling",resonate:true}, xianghuo:{n:"香火",cls:"f-xianghuo",resonate:true},
+  yinqi:{n:"陰氣",cls:"f-yinqi",resonate:true}, curse:{n:"詛咒",cls:"f-curse"},
 };
-const ABTXT = {
-  bow:"戰勝時，對手額外 -2 壽命",
-  shield:"戰敗時，少失 2 壽命",
-  eye:"整夜未得標任何拍品時，夜末回 2 壽命",
-  thunder:"共鳴計算時，祖靈視為多 1 件",
-  boat:"每夜末回 1 壽命",
-  flag:"你的保守標上限提高 50%",
-  sword:"你袋中詛咒品的負值減半",
-  wangchuan:"得標時，把你袋中一件詛咒品送給戰力最高的對手",
-  bell:"明夜預告顯示兩件拍品",
-  wuying:"共鳴計算時，香火視為多 1 件",
-  tiger:"被毒標塞中時，下手的人失 2 壽命",
-  redhat:"你的毒標比價時視為 +2",
-  hairpin:"戰敗時，勝者也失 1 壽命",
-  chair:"看穿所有對手的實際壽命",
-  raincoat:"押命標落標時不再失血",
-  nail:"戰勝時回 1 壽命",
-  buoy:"共鳴計算時，陰氣視為多 1 件",
+/* 會參與共鳴計算的陣營（由 FAC 的 resonate 旗標決定，引擎不寫死名字） */
+const FACTIONS = Object.keys(FAC).filter(k=>FAC[k].resonate);
+
+/* ================= 五張資料表（加內容＝往這裡填一筆，不要改引擎） =================
+   統一形狀：
+     { id, name, desc, hooks:{ ... }, flags:[...], traits:{...} }
+   - id     唯一鍵，程式用
+   - name   顯示名
+   - desc   玩家看到的效果說明
+   - hooks  只寫用得到的，其餘省略；hook 契約見 docs/ARCH_SPEC.md §3
+   - flags  靜態布林特性，引擎用 hasFlag(p,'xxx') 查（給沒有 hook 掛點的能力用）
+   - traits 靜態數值特性，引擎用 traitMax(p,'xxx',預設) 查
+   - order  （可選，數字）同一次 applyHooks 內多個 effect 的生效優先序，數字小的先跑；省略＝預設 100
+   hook 內只准碰 ctx 與自己這一筆的資料；不要在引擎函式裡寫 if(id==='xxx')。
+================================================================================= */
+
+/* --- 1/5 ABILITIES：法寶／命格道具的能力（原 ABTXT 的文案併入 desc） --- */
+const ABILITIES = {
+  bow:{id:"bow",name:"射日神弓",desc:"戰勝時，對手額外 -2 壽命",order:10,
+    hooks:{ onBattle(ctx){ if(has(ctx.w,"bow")) ctx.dmg+=2; } }},
+  shield:{id:"shield",name:"百步蛇紋盾",desc:"戰敗時，少失 2 壽命",order:20,
+    hooks:{ onBattle(ctx){ if(has(ctx.l,"shield")) ctx.dmg=Math.max(1,ctx.dmg-2); } }},
+  eye:{id:"eye",name:"祖靈之眼",desc:"整夜未得標任何拍品時，夜末回 2 壽命",
+    hooks:{ onNightEnd(ctx){
+      if(!S.wonAny.has(ctx.p.id)){ ctx.p.life+=2; ctx.log.push(`👁 ${ctx.p.name} 靜觀整夜，祖靈之眼回 +2`); }
+    } }},
+  thunder:{id:"thunder",name:"雷女之火",desc:"共鳴計算時，祖靈視為多 1 件",
+    hooks:{ onFacCount(ctx){ if(ctx.faction==="zuling") ctx.count++; } }},
+  boat:{id:"boat",name:"拼板舟",desc:"每夜末回 1 壽命",
+    hooks:{ onNightEnd(ctx){ ctx.p.life+=1; ctx.log.push(`⛵ ${ctx.p.name} 的拼板舟渡來生息 +1`); } }},
+  flag:{id:"flag",name:"媽祖令旗",desc:"你的保守標上限提高 50%",
+    hooks:{ onBidCap(ctx){ ctx.cap=Math.floor(ctx.cap*1.5); } }},
+  sword:{id:"sword",name:"王爺劍",desc:"你袋中詛咒品的負值減半",
+    hooks:{ onItemValue(ctx){
+      if(ctx.item.curse && ctx.value<0) ctx.value=-Math.ceil(Math.abs(ctx.value)/2);
+    } }},
+  wangchuan:{id:"wangchuan",name:"送王船",desc:"得標時，把你袋中一件詛咒品送給戰力最高的對手",
+    hooks:{ onWinItem(ctx){
+      /* 現行行為＝只有「親自標下送王船並入袋」那一次才啟航（毒標塞人不算） */
+      if(ctx.item.ab!=="wangchuan" || ctx.target) return;
+      const curses=ctx.winner.bag.filter(x=>x.curse);
+      if(!curses.length) return;
+      const worst=curses.sort((a,b)=>a.p-b.p)[0];
+      const foes=S.players.filter(q=>q.alive&&q.id!==ctx.winner.id);
+      if(!foes.length) return;
+      const tgt=foes.sort((a,b)=>power(b)-power(a))[0];
+      ctx.winner.bag.splice(ctx.winner.bag.indexOf(worst),1);
+      tgt.bag.push(worst);
+      ctx.events.push({txt:`送王船啟航——「${worst.n}」被送進 ${tgt.name} 的袋子`});
+    } }},
+  bell:{id:"bell",name:"千里眼銅鈴",desc:"明夜預告顯示兩件拍品", traits:{preview:2}},
+  wuying:{id:"wuying",name:"五營旗",desc:"共鳴計算時，香火視為多 1 件",
+    hooks:{ onFacCount(ctx){ if(ctx.faction==="xianghuo") ctx.count++; } }},
+  tiger:{id:"tiger",name:"虎爺印",desc:"被毒標塞中時，下手的人失 2 壽命",
+    hooks:{ onWinItem(ctx){
+      if(!ctx.target || !has(ctx.target,"tiger")) return;
+      ctx.winner.life-=2;
+      ctx.events.push({txt:`${ctx.target.name} 的虎爺印反咬，${ctx.winner.name} -2 壽命`});
+    } }},
+  redhat:{id:"redhat",name:"魔神仔紅帽",desc:"你的毒標比價時視為 +2",
+    hooks:{ onBidEff(ctx){ if(ctx.bid.intent==="poison") ctx.eff+=2; } }},
+  hairpin:{id:"hairpin",name:"林投姐髮簪",desc:"戰敗時，勝者也失 1 壽命",order:30,
+    hooks:{ onBattle(ctx){
+      if(!has(ctx.l,"hairpin")) return;
+      ctx.w.life-=1; ctx.extra.push(`${ctx.l.name} 的髮簪回敬 ${ctx.w.name} -1`);
+    } }},
+  chair:{id:"chair",name:"椅仔姑竹椅",desc:"看穿所有對手的實際壽命", flags:["xrayLife"]},
+  raincoat:{id:"raincoat",name:"黃色小雨衣",desc:"押命標落標時不再失血",
+    hooks:{ onBidSettle(ctx){
+      if(ctx.isWinner || ctx.bid.type!=="yaming") return;
+      ctx.cost=0;
+      ctx.events.push({txt:`${ctx.p.name} 的黃色小雨衣擋下了落標失血`});
+    } }},
+  nail:{id:"nail",name:"虎姑婆指甲",desc:"戰勝時回 1 壽命",order:40,
+    hooks:{ onBattle(ctx){
+      if(!has(ctx.w,"nail")) return;
+      ctx.w.life+=1; ctx.extra.push(`${ctx.w.name} 吸食勝利 +1`);
+    } }},
+  buoy:{id:"buoy",name:"水鬼浮標",desc:"共鳴計算時，陰氣視為多 1 件",
+    hooks:{ onFacCount(ctx){ if(ctx.faction==="yinqi") ctx.count++; } }},
 };
+const abDesc = ab => (ABILITIES[ab] && ABILITIES[ab].desc) || "";
+
+/* --- 2/5 ROLES：角色（被動、AI 行為參數、台詞、頭像、起始壽命） ---
+   life0 省略＝用 CFG.LIFE；ai 為 null＝人類座位；hooks 空＝目前沒有被動。 */
+const ROLES = {
+  human:{id:"human",name:"你",av:"🧑",ai:null,lines:null,hooks:{}},
+  qingmian:{id:"qingmian",name:"青面攤主",av:"👹",ai:{aggr:0.85,spite:0.25},hooks:{},
+    lines:{win:["這件老子要定了！","嘿嘿，好貨入袋。"],lose:["嘖——誰出這麼高？","搶什麼搶！"],
+      poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
+  hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",ai:{aggr:0.6,spite:0.6},hooks:{},
+    lines:{win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
+      poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
+  duanshou:{id:"duanshou",name:"斷手書生",av:"📜",ai:{aggr:0.7,spite:0.4},hooks:{},
+    lines:{win:["此物值此價，合算。","在下失禮了。"],lose:["溢價了，不追。"],
+      poison:["非常抱歉，但棋局如此。"],poisoned:["豈有此理！"],bwin:["勝負早在標下時已定。"],blose:["失算…失算…"]}},
+};
+/* 座位表：哪個模式坐哪些角色（name/av 可就地覆寫，熱座兩個人類共用 human 角色） */
+const MODES = {
+  solo:   {seats:[{role:"human"},{role:"qingmian"},{role:"hongyi"},{role:"duanshou"}]},
+  hotseat:{seats:[{role:"human",name:"玩家一"},{role:"human",name:"玩家二",av:"🧔"},
+                  {role:"hongyi"},{role:"duanshou"}]},
+};
+
+/* --- 3/5 WISHES：今夜心願（描述、判定、獎勵）。本次只建結構，不填內容。
+   形狀：{id,name,desc,check(ctx){回傳 true 代表達成},reward(ctx){}} --- */
+const WISHES = {};
+
+/* --- 4/5 EVENTS：妖市異事。本次只建結構，不填內容。
+   形狀：{id,name,desc,input:"none"|"pick"|"bid",hooks:{...},settle(ctx){}} --- */
+const EVENTS = {};
+
+/* --- 5/5 NIGHTRULES：今夜市集規則。本次只建結構，不填內容。
+   形狀：{id,name,desc,hooks:{...}} --- */
+const NIGHTRULES = {};
+
+/* ================= Hook 分派器 =================
+   effect 來源與呼叫順序（固定，改了結果就不可重現）：
+     1. p 的角色 → 2. p.bag 內有 ab 的道具（依袋中順序）→ 3. S.nightRule → 4. S.event
+   同一個 effect 物件只收一次（袋裡兩把同名法寶＝一次效果，與舊行為一致）。
+   HOOK_ORDER 可為個別 hook 指定不同的收集順序（ARCH_SPEC §3.10 要求 onNightEnd 道具先於角色）。
+   ctx 是可變累加器：effect 直接改 ctx 的欄位，不回傳值。 */
+const HOOK_ORDER = { onNightEnd:"itemsFirst" };
+function collectEffects(p,order){
+  const out=[], seen=new Set();
+  const add=e=>{ if(e && !seen.has(e)){ seen.add(e); out.push(e); } };
+  const role=()=>{ if(p && p.roleId) add(ROLES[p.roleId]); };
+  const items=()=>{ if(p) for(const it of p.bag) if(it.ab) add(ABILITIES[it.ab]); };
+  if(order==="itemsFirst"){ items(); role(); } else { role(); items(); }
+  if(S && S.nightRule) add(S.nightRule);
+  if(S && S.event) add(S.event);
+  return out;
+}
+/* p 可為：玩家 / 玩家陣列（雙方 effect 合併去重後依序跑）/ null（只取全域 effect） */
+function applyHooks(name,ctx,p){
+  const order=HOOK_ORDER[name];
+  let list;
+  if(Array.isArray(p)){
+    list=[]; const seen=new Set();
+    for(const q of p){
+      if(!q) continue;
+      for(const e of collectEffects(q,order)) if(!seen.has(e)){ seen.add(e); list.push(e); }
+    }
+  }else{
+    list=collectEffects(p||null,order);
+  }
+  /* 依 order 數字小到大重排（未設 order 的 effect 預設 100）；同數字者維持收集順序不變——
+     Array.prototype.sort 在現代引擎已保證穩定，不需額外索引 tie-break */
+  list=list.slice().sort((a,b)=>(a.order??100)-(b.order??100));
+  for(const e of list){ const h=e.hooks && e.hooks[name]; if(h) h(ctx); }
+  return ctx;
+}
+/* 沒有 hook 掛點的靜態特性：flags（布林）與 traits（取最大值），引擎只問名字不認得內容 id */
+function hasFlag(p,flag){ return collectEffects(p).some(e=>e.flags && e.flags.indexOf(flag)>=0); }
+function traitMax(p,key,base){
+  let v=base;
+  for(const e of collectEffects(p)) if(e.traits && e.traits[key]>v) v=e.traits[key];
+  return v;
+}
 const POOL = [
   {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓"},
   {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護"},
@@ -266,14 +406,6 @@ const CURSES = [
   {n:"縛靈鎖",f:"curse",p:-6,d:"鎖魂之鏈",curse:true},
   {n:"白虎煞",f:"curse",p:-3,d:"沖煞入宅",curse:true},
 ];
-const LINES = {
-  1:{win:["這件老子要定了！","嘿嘿，好貨入袋。"],lose:["嘖——誰出這麼高？","搶什麼搶！"],
-     poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]},
-  2:{win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
-     poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]},
-  3:{win:["此物值此價，合算。","在下失禮了。"],lose:["溢價了，不追。"],
-     poison:["非常抱歉，但棋局如此。"],poisoned:["豈有此理！"],bwin:["勝負早在標下時已定。"],blose:["失算…失算…"]},
-};
 const DIRS = {0:"南",1:"北",2:"西",3:"東"};
 /* 風位輪轉：東→南→西→北（席位 pid：東=3 南=0 西=2 北=1） */
 const WIND_SEQ=[3,0,2,1], WIND_NAMES=["東風","南風","西風","北風"];
@@ -293,78 +425,118 @@ function waitMain(label){
   });
 }
 const $=id=>document.getElementById(id);
-const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+/* 種子化亂數：同一顆種子必須重現整局。S.rng = 玩法流（洗牌、AI 抖動、平標決勝、事件）；
+   S.rngUi = 純演出流（台詞挑選），與玩法分開才不會讓「有沒有播動畫」改變賽局結果。 */
+function mulberry32(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+const rnd=(a,b)=>a+Math.floor(S.rng()*(b-a+1));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(S.rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const sleep=ms=>new Promise(r=>setTimeout(r, SKIP?0:ms));
 const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 const aliveHumans=()=>S.players.filter(p=>!p.ai&&p.alive);
-const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&has(p,"chair"));
+/* 是否有活著的人類看得穿實際壽命（誰給的能力由 flags 決定，引擎不認得道具 id） */
+const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&hasFlag(p,"xrayLife"));
 /* ================= 引擎 ================= */
-function newGame(mode){
+/* 依座位表產生一位玩家。要加角色＝往 ROLES 填一筆、往 MODES 的 seats 排一格，不必動這裡。 */
+function mkPlayer(seat,i){
+  const R=ROLES[seat.role];
+  return {
+    id:i, roleId:seat.role,
+    name:seat.name||R.name, av:seat.av||R.av,
+    ai:R.ai?{...R.ai}:null,
+    life:R.life0||CFG.LIFE, bag:[], alive:true,
+    /* ARCH_SPEC §4 的玩家欄位：本次只建欄位，尚未有內容會寫入它們 */
+    wish:null, grudge:{}, spec:null, sacrificed:0, pawned:false,
+    stats:{won:0,bids:0,yaming:0,lost:0,poisonHit:{},poisonTaken:0},
+  };
+}
+/* 只建狀態、不碰 DOM——讓 headless 模擬能重用同一份初始化 */
+function makeState(mode,seed){
+  const sd=(seed===undefined||seed===null)?(Date.now()>>>0):(seed>>>0);
   S={
     mode:mode||"solo", round:1,
-    deck:shuffle([...POOL,...POOL].map(x=>({...x}))),
-    cdeck:shuffle([...CURSES,...CURSES].map(x=>({...x}))),
-    players:[
-      {id:0,name:(mode==="hotseat"?"玩家一":"你"),av:"🧑",ai:null,life:CFG.LIFE,bag:[],alive:true},
-      mode==="hotseat"
-        ?{id:1,name:"玩家二",av:"🧔",ai:null,life:CFG.LIFE,bag:[],alive:true}
-        :{id:1,name:"青面攤主",av:"👹",ai:{aggr:0.85,spite:0.25},life:CFG.LIFE,bag:[],alive:true},
-      {id:2,name:"紅衣婆婆",av:"👵",ai:{aggr:0.6,spite:0.6},life:CFG.LIFE,bag:[],alive:true},
-      {id:3,name:"斷手書生",av:"📜",ai:{aggr:0.7,spite:0.4},life:CFG.LIFE,bag:[],alive:true},
-    ],
+    seed:sd, rng:mulberry32(sd), rngUi:mulberry32((sd^0x9e3779b9)>>>0),
+    deck:null, cdeck:null,
+    players:(MODES[mode]||MODES.solo).seats.map(mkPlayer),
     wonAny:new Set(), humanBids:{},
+    /* ARCH_SPEC §4 的全域欄位：本次只建欄位，尚未有內容會寫入它們 */
+    lastWon:{}, nightRule:null, event:null,
   };
+  S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
+  S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
   S.market=drawMarket(); S.nextMarket=drawMarket();
+  return S;
+}
+function newGame(mode,seed){
+  makeState(mode,seed);
   $("titleScr").style.display="none";
   $("table").classList.add("on");
   beginRound();
 }
 function drawMarket(){
-  const m=[]; const hasCurse=Math.random()<CFG.CURSE_PROB && S.cdeck.length;
+  const m=[]; const hasCurse=S.rng()<CFG.CURSE_PROB && S.cdeck.length;
   for(let i=0;i<CFG.MARKET-(hasCurse?1:0);i++){
     if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
     m.push(S.deck.pop());
   }
   if(hasCurse) m.push(S.cdeck.pop());
-  return shuffle(m);
+  const ctx={market:shuffle(m),round:S.round};
+  applyHooks("onMarketDraw",ctx,null); /* 全域 hook：只取 nightRule 與 event */
+  return ctx.market;
 }
 function facCount(p,f){
-  let c=p.bag.filter(x=>!x.curse&&x.f===f).length;
-  if(f==="zuling"&&has(p,"thunder"))c++;
-  if(f==="xianghuo"&&has(p,"wuying"))c++;
-  if(f==="yinqi"&&has(p,"buoy"))c++;
-  return c;
+  const ctx={p,faction:f,count:p.bag.filter(x=>!x.curse&&x.f===f).length};
+  applyHooks("onFacCount",ctx,p);
+  return ctx.count;
 }
+/* 逐件跑 onItemValue 加總 → 逐陣營跑 onFacCount 算共鳴 → 跑 onPowerCalc → 回傳。
+   內部保留小數，四捨五入只在顯示層做（showPow）。 */
 function power(p){
-  let t=0;
+  let itemSum=0;
   for(const x of p.bag){
-    if(x.curse&&x.p<0&&has(p,"sword")) t+=-Math.ceil(Math.abs(x.p)/2);
-    else t+=x.p;
+    const c={p,item:x,value:x.p};
+    applyHooks("onItemValue",c,p);
+    itemSum+=c.value;
   }
-  for(const f of ["zuling","xianghuo","yinqi"]){
+  let resonance=0;
+  for(const f of FACTIONS){
     const c=facCount(p,f);
-    if(c>=CFG.SET_MIN) t+=c*c;
+    if(c>=CFG.SET_MIN) resonance+=c*c;
   }
-  return t;
+  const ctx={p,itemSum,resonance,flat:0,resonanceMul:1};
+  applyHooks("onPowerCalc",ctx,p);
+  return ctx.itemSum + ctx.resonance*ctx.resonanceMul + ctx.flat;
+}
+const showPow = p => Math.round(power(p));
+/* 一輪出價總額上限（預設＝壽命） */
+function budgetFor(p){
+  const ctx={p,budget:p.life};
+  applyHooks("onBudget",ctx,p);
+  return ctx.budget;
 }
 function consCapFor(p){
-  let cap=Math.max(1,Math.floor(p.life/CFG.CONS_CAP_DIV));
-  if(has(p,"flag")) cap=Math.floor(cap*1.5);
-  return cap;
+  const ctx={p,cap:Math.max(1,Math.floor(p.life/CFG.CONS_CAP_DIV))};
+  applyHooks("onBidCap",ctx,p);
+  return ctx.cap;
 }
 function aiBids(p){
   const bids=S.market.map(()=>null);
-  const budget=Math.floor(p.life*0.45);
+  const budget=Math.floor(budgetFor(p)*0.45);
   let spent=0;
   /* 詛咒品攻防獨立出價，不跟法寶搶「前二」名額 */
   S.market.forEach((it,i)=>{
     if(!it.curse)return;
     const strongest=[...S.players].filter(q=>q.alive).sort((a,b)=>power(b)-power(a))[0];
     let intent=null,target=null;
-    if(strongest.id===p.id && Math.random()<CFG.AI_DESTROY_P){
+    if(strongest.id===p.id && S.rng()<CFG.AI_DESTROY_P){
       intent="keep"; /* 買下銷毀自保 */
-    }else if(Math.random()<p.ai.spite){
+    }else if(S.rng()<p.ai.spite){
       const foes=S.players.filter(q=>q.alive&&q.id!==p.id);
       intent="poison"; target=foes.sort((a,b)=>power(b)-power(a))[0].id;
     }
@@ -389,7 +561,7 @@ function aiBids(p){
     amt=Math.min(amt,budget-spent,p.life-spent);
     if(amt<=0)continue;
     const cap=consCapFor(p);
-    const type=(amt>cap||(o.val>8&&Math.random()<p.ai.aggr))?"yaming":"cons";
+    const type=(amt>cap||(o.val>8&&S.rng()<p.ai.aggr))?"yaming":"cons";
     bids[o.i]={amt,type,intent:o.intent,target:o.target};
     spent+=amt;
   }
@@ -411,47 +583,40 @@ function resolveAuction(){
     S.players.forEach(p=>{const b=all[p.id][i];if(b)entries.push({p,...b});});
     let winner=null;
     if(entries.length){
-      const eff=e=>e.amt+((e.intent==="poison"&&has(e.p,"redhat"))?2:0);
-      const top=Math.max(...entries.map(eff));
-      const tops=entries.filter(e=>eff(e)===top);
-      /* 風位平標優先 */
-      winner = tops.find(e=>e.p.id===windPid(S.round)) || tops[Math.floor(Math.random()*tops.length)];
+      const effs=entries.map(e=>{
+        const c={p:e.p,bid:e,item:it,eff:e.amt};
+        applyHooks("onBidEff",c,e.p);
+        return c.eff;
+      });
+      const top=Math.max(...effs);
+      const tops=entries.filter((e,k)=>effs[k]===top);
+      /* 平標決勝：風位優先 → 仍平則 S.rng() 決 */
+      winner = tops.find(e=>e.p.id===windPid(S.round)) || tops[Math.floor(S.rng()*tops.length)];
     }
     const events=[];
     entries.forEach(e=>{
-      if(e===winner){e.p.life-=e.amt;}
-      else if(e.type==="yaming"){
-        if(has(e.p,"raincoat")) events.push({txt:`${e.p.name} 的黃色小雨衣擋下了落標失血`});
-        else e.p.life-=Math.ceil(e.amt/2);
-      }
+      const isWinner=(e===winner);
+      const c={p:e.p,bid:e,item:it,isWinner,
+        cost:isWinner?e.amt:(e.type==="yaming"?Math.ceil(e.amt/2):0), events};
+      applyHooks("onBidSettle",c,e.p);
+      e.p.life-=c.cost;
     });
     let outcome="流標";
     if(winner){
       S.wonAny.add(winner.p.id);
+      let target=null;
       if(winner.intent==="poison"){
-        const tgt=S.players[winner.target];
-        tgt.bag.push(it);
-        outcome=`${winner.p.name} 毒標得手 → 塞進 ${tgt.name} 的袋子`;
-        if(has(tgt,"tiger")){winner.p.life-=2;events.push({txt:`${tgt.name} 的虎爺印反咬，${winner.p.name} -2 壽命`});}
+        target=S.players[winner.target];
+        target.bag.push(it);
+        outcome=`${winner.p.name} 毒標得手 → 塞進 ${target.name} 的袋子`;
       }else if(it.curse){
         outcome=`${winner.p.name} 買下銷毀（自保）`;
       }else{
         winner.p.bag.push(it);
         outcome=`${winner.p.name} 入袋`;
-        if(it.ab==="wangchuan"){
-          const curses=winner.p.bag.filter(x=>x.curse);
-          if(curses.length){
-            const worst=curses.sort((a,b)=>a.p-b.p)[0];
-            const foes=S.players.filter(q=>q.alive&&q.id!==winner.p.id);
-            if(foes.length){
-              const tgt=foes.sort((a,b)=>power(b)-power(a))[0];
-              winner.p.bag.splice(winner.p.bag.indexOf(worst),1);
-              tgt.bag.push(worst);
-              events.push({txt:`送王船啟航——「${worst.n}」被送進 ${tgt.name} 的袋子`});
-            }
-          }
-        }
       }
+      /* 得標後的連鎖：得標者與被塞方的 effect 都要參與（去重後依序） */
+      applyHooks("onWinItem",{winner:winner.p,item:it,target,events},[winner.p,target]);
     }
     reveal.push({it,entries,winner,outcome,events});
   });
@@ -479,23 +644,23 @@ function resolveBattles(){
     const A=S.players[a],B=S.players[b];
     const pa=battlePower(A),pb=battlePower(B);
     if(pa===pb){fights.push({A,B,pa,pb,tie:true});return;}
-    const [w,l,pw,pl]=pa>pb?[A,B,pa,pb]:[B,A,pb,pa];
-    let dmg=CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor((pw-pl)/CFG.DMG_DIV));
-    if(has(w,"bow"))dmg+=2;
-    if(has(l,"shield"))dmg=Math.max(1,dmg-2);
-    l.life-=dmg;
+    const paRaw=power(A), pbRaw=power(B);
+    const [w,l,pw,pl,pwRaw,plRaw]=pa>pb?[A,B,pa,pb,paRaw,pbRaw]:[B,A,pb,pa,pbRaw,paRaw];
     const extra=[];
-    if(has(l,"hairpin")){w.life-=1;extra.push(`${l.name} 的髮簪回敬 ${w.name} -1`);}
-    if(has(w,"nail")){w.life+=1;extra.push(`${w.name} 吸食勝利 +1`);}
+    const ctx={w,l,pw,pl,pwRaw,plRaw,extra,
+      dmg:CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor((pw-pl)/CFG.DMG_DIV))};
+    applyHooks("onBattle",ctx,[w,l]);
+    const dmg=ctx.dmg;
+    l.life-=dmg;
     fights.push({A,B,pa,pb,w,l,dmg,extra});
   });
   const nightly=[];
   S.players.forEach(p=>{
     if(!p.alive)return;
+    /* 夜末結算順序（ARCH_SPEC §3.10）：詛咒 drain → 道具 → 角色 → 心願 → 異事後效 */
     const drain=p.bag.reduce((s,x)=>s+(x.drain||0),0);
     if(drain){p.life-=drain;nightly.push(`🩸 ${p.name} 受詛咒侵蝕 -${drain}`);}
-    if(has(p,"boat")){p.life+=1;nightly.push(`⛵ ${p.name} 的拼板舟渡來生息 +1`);}
-    if(has(p,"eye")&&!S.wonAny.has(p.id)){p.life+=2;nightly.push(`👁 ${p.name} 靜觀整夜，祖靈之眼回 +2`);}
+    applyHooks("onNightEnd",{p,log:nightly},p);
   });
   const deaths=[];
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
@@ -510,7 +675,7 @@ function seatHTML(id,hl){
     <span class="dir">${DIRS[id]}</span>${wind}
     <div class="av">${p.av}</div>
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
-    <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${power(p)}</div></div>
+    <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${showPow(p)}</div></div>
     <div class="bubble" id="bub${id}"></div>
   </div>`;
 }
@@ -524,7 +689,7 @@ function renderSeats(hlIds){
   $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
-  $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${power(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
+  $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
   $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
@@ -535,9 +700,11 @@ function say(id,txt){
   setTimeout(()=>b.classList.remove("show"), SKIP?300:2300);
 }
 function sayFrom(id,key){
-  if(!S.players[id].ai)return; /* 熱座的人類座位不說 AI 台詞 */
-  const arr=LINES[id]&&LINES[id][key]; if(!arr||!arr.length)return;
-  say(id,arr[Math.floor(Math.random()*arr.length)]);
+  const p=S.players[id];
+  if(!p.ai)return; /* 熱座的人類座位不說 AI 台詞 */
+  const R=ROLES[p.roleId];
+  const arr=R&&R.lines&&R.lines[key]; if(!arr||!arr.length)return;
+  say(id,arr[Math.floor(S.rngUi()*arr.length)]);
 }
 /* ================= 回合與出價階段 ================= */
 function beginRound(){
@@ -564,7 +731,7 @@ function showMarket(){
   SKIP=false; $("skipbtn").style.display="none";
   renderSeats();
   const ap=S.players[ACTIVE];
-  const pv=has(ap,"bell")?S.nextMarket.slice(0,2):S.nextMarket.slice(0,1);
+  const pv=S.nextMarket.slice(0,traitMax(ap,"preview",1));
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
   $("stage").innerHTML=`
     <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}　<span class="mut">點拍品出價・可同時標多件</span></div>
@@ -582,7 +749,7 @@ function mcardHTML(it,i){
     ${badge}
     <div class="nm">${it.n}</div>
     <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
-    <div class="ab">${it.ab?("✦ "+ABTXT[it.ab]):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
+    <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
   </div>`;
 }
 let sheetIdx=null;
@@ -595,7 +762,7 @@ function openSheet(i){
   const syn=(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
   $("sheetbox").innerHTML=`
     <h3>${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
-    <div class="desc">${it.ab?("✦ "+ABTXT[it.ab]+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}</div>
+    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}</div>
     <div class="bidrow">
       <div class="stepper">
         <button onclick="bump(-1)">−</button><span class="amt" id="shAmt">${b.amt}</span><button onclick="bump(1)">＋</button>
@@ -648,9 +815,10 @@ function updateBudget(){
   const ap=S.players[ACTIVE];
   const tot=myBids.reduce((s,b)=>s+b.amt,0);
   const el=$("budget");
+  const cap=budgetFor(ap);
   el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b> ／ 壽命 ${ap.life}`;
-  el.className=tot>ap.life?"over":"";
-  $("mainbtn").disabled=tot>ap.life;
+  el.className=tot>cap?"over":"";
+  $("mainbtn").disabled=tot>cap;
 }
 function submitHumanBids(){
   S.humanBids[ACTIVE]=myBids;
@@ -669,24 +837,30 @@ async function startReveal(){
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
   const reveal=resolveAuction();
+  /* 開標渲染的可視程度交給 hook 決定（預設全部看得到，維持現行行為） */
+  const rv={reveal,viewerId:0,showEntries:true,showTypes:true};
+  applyHooks("onReveal",rv,S.players[rv.viewerId]);
   const stage=$("stage");
-  for(const r of reveal){
+  for(const r of rv.reveal){
     renderSeats();
     stage.innerHTML=`<div class="stageCard">
       <div class="big">${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
-      <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+ABTXT[r.it.ab]):r.it.d}</span></div>
+      <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
       <div id="flyzone"></div><div id="outzone"></div>
     </div>`;
     await sleep(CFG.T*0.8);
     const fz=$("flyzone");
-    if(!r.entries.length){
+    if(!rv.showEntries){
+      fz.innerHTML=`<div class="bidfly"><span>出價已被遮蔽</span><span>—</span></div>`;
+      await sleep(CFG.T*0.7);
+    }else if(!r.entries.length){
       fz.innerHTML=`<div class="bidfly"><span>無人出價</span><span>—</span></div>`;
       await sleep(CFG.T*0.7);
     }else{
       const ordered=[...r.entries].sort((a,b)=>a.amt-b.amt);
       for(const e of ordered){
         fz.insertAdjacentHTML("beforeend",
-          `<div class="bidfly ${e===r.winner?"win":""}"><span>${DIRS[e.p.id]}家・${e.p.name}${e.intent==="poison"?" 🕸毒標":""}</span><span>${e.amt} 壽命${e.type==="yaming"?"・押命":""}</span></div>`);
+          `<div class="bidfly ${e===r.winner?"win":""}"><span>${DIRS[e.p.id]}家・${e.p.name}${e.intent==="poison"?" 🕸毒標":""}</span><span>${e.amt} 壽命${rv.showTypes&&e.type==="yaming"?"・押命":""}</span></div>`);
         await sleep(CFG.T*0.65);
       }
     }
@@ -703,7 +877,7 @@ async function startReveal(){
     }
     renderSeats();
     /* 手動節奏：看夠了才按下一件（跳過中不停） */
-    if(r!==reveal[reveal.length-1]) await waitMain("下一件拍品 ▸");
+    if(r!==rv.reveal[rv.reveal.length-1]) await waitMain("下一件拍品 ▸");
     else await sleep(CFG.T*0.8);
   }
   /* 本夜成交總覽 */
@@ -711,7 +885,7 @@ async function startReveal(){
   renderSeats();
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div class="big">🏮 本夜成交總覽</div>
-    ${reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}）`:""}</span></div>`).join("")}
+    ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}）`:""}</span></div>`).join("")}
   </div>`;
   $("mainbtn").textContent="開戰";
   $("mainbtn").disabled=false;
@@ -801,7 +975,7 @@ function endGame(){
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
-    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${power(p)}）</div>`).join("")}
+    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${showPow(p)}）</div>`).join("")}
   </div>`;
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
@@ -809,19 +983,72 @@ function endGame(){
 function showBag(pid){
   const p=S.players[pid];
   let bonus="";
-  for(const f of ["zuling","xianghuo","yinqi"]){
+  for(const f of FACTIONS){
     const c=facCount(p,f);
     if(c>=CFG.SET_MIN)bonus+=`<div class="bagit"><span>共鳴：${FAC[f].n}×${c}</span><b class="heal">+${c*c}</b></div>`;
   }
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}（${faceLbl(p)}）</h2>
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
-      ${x.ab?`<span class="abtxt">✦ ${ABTXT[x.ab]}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
+      ${x.ab?`<span class="abtxt">✦ ${abDesc(x.ab)}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
     ${bonus}
-    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力</b><b style="color:var(--gold)">${power(p)}${pid===windPid(S.round)?`（+${CFG.WIND_POWER} ${windName(S.round)}）`:""}</b></div>
+    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力</b><b style="color:var(--gold)">${showPow(p)}${pid===windPid(S.round)?`（+${CFG.WIND_POWER} ${windName(S.round)}）`:""}</b></div>
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }
 function closeModal(){$("modal").style.display="none";}
+/* ================= 測試出口：headless 模擬（不碰 DOM） ================= */
+/* 固定腳本策略：每夜對 market 中 p 值最高的一件出保守標，金額 = min(保守標上限, 5)，
+   不下毒標、不買銷毀。用途是把對局變成完全決定性，供重構前後逐項比對。 */
+function scriptedBids(p){
+  const bids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  if(!p.alive) return bids;
+  let bi=0;
+  for(let i=1;i<S.market.length;i++) if(S.market[i].p>S.market[bi].p) bi=i;
+  bids[bi]={amt:Math.min(consCapFor(p),5),type:"cons",intent:"keep",target:null};
+  return bids;
+}
+function snapPlayers(){
+  return S.players.map(p=>({id:p.id,life:p.life,alive:p.alive,bag:p.bag.map(x=>x.n),power:power(p)}));
+}
+function simulate(seed){
+  makeState("solo",seed);
+  const nights=[];
+  for(;;){
+    const pre=snapPlayers();
+    const market=S.market.map(x=>x.n);
+    S.humanBids={};
+    S.players.forEach(p=>{ if(!p.ai) S.humanBids[p.id]=scriptedBids(p); });
+    const reveal=resolveAuction();
+    const auction=reveal.map(r=>({
+      item:r.it.n,
+      winnerId:r.winner?r.winner.p.id:null,
+      amt:r.winner?r.winner.amt:null,
+      outcome:r.outcome,
+      events:r.events.map(e=>e.txt),
+    }));
+    const mid=snapPlayers();
+    const R=resolveBattles();
+    const battles=R.fights.map(f=>({
+      aId:f.A.id,bId:f.B.id,pa:f.pa,pb:f.pb,
+      winnerId:f.tie?null:f.w.id, dmg:f.tie?0:f.dmg,
+      extra:f.extra?[...f.extra]:[],
+    }));
+    nights.push({
+      round:S.round, market, pre, auction, mid, battles,
+      bye:R.bye, nightly:R.nightly, deaths:R.deaths.map(d=>d.id),
+      post:snapPlayers(),
+    });
+    const aliveN=S.players.filter(p=>p.alive).length;
+    const humanN=S.players.filter(p=>!p.ai&&p.alive).length;
+    if(!humanN||aliveN<=1||S.round>=CFG.ROUNDS) break;
+    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarket();
+  }
+  return {seed:S.seed, nights};
+}
+function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate(s))}; }
+window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){return S;},
+  CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
+  collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor };
 /* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走） */
 document.addEventListener("touchmove",e=>{
   if(!e.target.closest("#felt,#sheetbox,#modalbox")) e.preventDefault();
