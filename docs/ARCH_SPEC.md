@@ -252,3 +252,76 @@ event       本夜異事（可為 null）
 **教訓（值得記進制度）**：凍結條件若列舉不完整（我只列了五類欄位卻寫「唯一差異是浮點」），
 事後就會出現「這算不算違反」的解釋空間，而解釋權在自己手上時，人會傾向對自己有利的讀法。
 **訂凍結條件時，列舉要窮盡，或明寫「未列舉者一律視為不受約束」。**
+
+---
+
+## 8. AI 決策層 hook 契約（v2 追加，2026-09-01）
+
+**為什麼追加**：手冊驗收時，一個無對話史的 agent 反查程式碼後指出——設計文件描述的
+三隻 AI 行為（跟標／記仇／專精）**根本沒有實作**，程式裡只有 `ai:{aggr,spite}` 兩個數字，
+且 `aiBids()` 沒有任何讓角色覆寫出價決策的掛點。**「資料表驅動」的承諾正好在 AI 這層斷掉。**
+這是架構破洞，不補的話後續 10 個角色的行為模式全都只能改引擎硬寫。
+
+**新增 5 個 hook，全部掛在 `aiBids(p)` 內**（人類玩家不觸發）：
+
+### 8.1 `onAiValue(ctx)` — AI 對單件拍品的心中估值
+`ctx = { p, item, val }`　effect 改 `ctx.val`
+- 青面攤主：`if (item.f === S.lastWon[人類玩家]) ctx.val += 4`（斷你的共鳴）
+- 斷手書生：`ctx.val *= (item.f === p.spec) ? 1.6 : 0.7`
+- 紅衣婆婆：仇恨最高者的主力陣營 `ctx.val += 3`（阻擋）
+- 獵人：能追上第一名戰力的拍品 `ctx.val += 4`
+
+### 8.2 `onAiPlan(ctx)` — 這夜要標幾件、要不要整夜不出手
+`ctx = { p, opts, maxPicks, skipAll }`（`opts` 已依 val 排序；預設 `maxPicks=2`、`skipAll=false`）
+- 收驚婆：預告無 `p>=6` 的大貨時 `ctx.skipAll = true`
+- 斷手書生：`ctx.maxPicks = 1`
+- 大家樂組頭：`ctx.maxPicks = 3`
+
+### 8.3 `onAiAmount(ctx)` — 單筆出價金額與標書型態
+`ctx = { p, item, val, amt, type }`　effect 改 `ctx.amt`／`ctx.type`
+- 斷手書生：`ctx.amt = Math.min(ctx.amt, Math.floor(val * 0.9))`（紀律，絕不追高）
+- 斷手書生破戒：能讓 `p.spec` 湊到 4 件時 `ctx.amt = Math.floor(p.life*0.6); ctx.type='yaming'`
+- 陰間當鋪：`ctx.amt` 可超過帳面壽命（配合 `onBudget`）
+- 大家樂組頭：`ctx.amt = Math.min(ctx.amt, 4)`（小額鋪開）
+
+### 8.4 `onAiExtraBids(ctx)` — 注入計畫外的額外出價
+`ctx = { p, bids, market, spent, budget }`　effect 可直接寫 `ctx.bids[i]`
+- 青面攤主虛張標：每夜 30% 機率，對自己估值最低的一般拍品下 `floor(life*0.25)` 的押命標
+- 孝女白琴攪局：對別人明顯想要的拍品下押命標，不求得標
+> **必須用 `S.rng()`**，不得用 `Math.random()`；且不得超過 `ctx.budget`
+
+### 8.5 `onAiCurse(ctx)` — 詛咒品的意圖與目標
+`ctx = { p, item, intent, target }`（`intent` 為 `'poison'`／`'keep'`／`null`＝不出手）
+- 紅衣婆婆：`ctx.target = grudge 最高者`（取代預設的「戰力最高者」）
+- 普渡爐主：若最弱者會被打死，改 `ctx.intent='keep'`（買下銷毀，保人）
+- 閭山法師：主動 `ctx.intent='keep'` 囤詛咒品當肉盾
+
+### 8.6 狀態寫入用既有 hook，不另開
+
+`grudge` 這類跨夜狀態的累積，掛在既有 hook 上寫入即可：
+`onBidSettle`（被搶標 +1）、`onWinItem`（被毒 +2）、`onBattle`（被擊敗 +1）、
+`onNightEnd`（每夜衰減 0.5）。**不要為了寫狀態新開 hook。**
+
+### 8.7 基準檔的處理（重要，與 §5 不衝突）
+
+實作 AI 行為模式**會改變既有行為**，`tests/baseline-traces.json` 必然對不上——**這是預期的**。
+
+- **舊基準 `tests/baseline-traces.json` 永久保留、永不重錄**：它的任務是證明「地基 1 的重構
+  沒有改變行為」，這個任務已完成並鎖在 git 歷史裡，不因後續功能開發而失效
+- 實作 AI 行為時的驗收改為：**改動前先錄一份 `tests/baseline-v2-ai.json`，改動後重跑，
+  逐項檢視差異，確認每一處差異都能被「我實作的哪一條 AI 行為」解釋**——
+  無法解釋的差異即為 bug
+- 之後每次刻意改變行為都比照辦理：先錄、後改、逐項解釋差異
+
+### 8.8 本節的驗收條件（凍結）
+
+1. 五個 hook 全部就位，`aiBids()` 內**不得出現任何角色 id 的字串比對**
+2. 三隻既有 AI（青面攤主跟標虛張／紅衣婆婆記仇／斷手書生專精紀律）的行為模式
+   **全部實作完成**，且只寫在 `ROLES` 資料表內
+3. **行為可觀測**：用模擬器實測證明三隻 AI 在同一局面下的出價分布明顯不同
+   （例如同一組種子下，各自對同一件拍品的出價中位數差異顯著）
+4. **記仇可驗**：構造「玩家連續搶紅衣婆婆的標」的情境，證明她的毒標目標從戰力最高者
+   改為玩家；反面亦驗（不搶她的標則目標維持戰力最高者）
+5. **破戒可驗**：構造斷手書生能湊第 4 件的情境，證明出價從 ≤val×0.9 跳到 life×0.6
+6. `grep -c "Math.random" index.html` 仍為 0；console 0 error
+7. 差異可解釋：`baseline-v2-ai.json` 的每一處差異都有對應的行為解釋
