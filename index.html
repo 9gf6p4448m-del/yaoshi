@@ -413,6 +413,8 @@ const windPid=r=>WIND_SEQ[(r-1)%4];
 const windName=r=>WIND_NAMES[(r-1)%4];
 /* ================= 工具 ================= */
 let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
+/* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
+const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
@@ -1007,6 +1009,200 @@ function scriptedBids(p){
   bids[bi]={amt:Math.min(consCapFor(p),5),type:"cons",intent:"keep",target:null};
   return bids;
 }
+/* ================= 平衡模擬器：可插拔策略（給 runMany 用，不影響 simulate/scriptedBids 既有行為） =================
+   每個策略都是 (p)=>bids 的純函式，bids 形狀與 scriptedBids 相同：長度＝S.market.length 的陣列，
+   每格 null 或 {amt,type,intent,target}。三者只讀 S.market／consCapFor 等既有唯讀狀態，不寫入任何全域。 */
+function policyGreedy(p){ return scriptedBids(p); } /* 標 p 值最高者，複用既有腳本策略 */
+function policyHoarder(p){
+  const bids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  if(!p.alive) return bids;
+  const candidates=[];
+  S.market.forEach((it,i)=>{ if(!it.curse && it.p>=6) candidates.push(i); });
+  if(!candidates.length) return bids; /* 沒有大貨，零出價 */
+  let bi=candidates[0];
+  for(const i of candidates) if(S.market[i].p>S.market[bi].p) bi=i;
+  const cap=consCapFor(p);
+  const want=S.market[bi].p+3;
+  if(want<=cap){ bids[bi]={amt:want,type:"cons",intent:"keep",target:null}; }
+  else{ const amt=Math.min(want,Math.max(1,p.life-1)); bids[bi]={amt,type:"yaming",intent:"keep",target:null}; }
+  return bids;
+}
+function policySplitter(p){
+  const bids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  if(!p.alive) return bids;
+  const cap=consCapFor(p);
+  const amt=Math.max(1,Math.min(2,cap));
+  const order=S.market.map((_,i)=>i).sort((a,b)=>S.market[b].p-S.market[a].p);
+  order.slice(0,Math.min(3,order.length)).forEach(i=>{ bids[i]={amt,type:"cons",intent:"keep",target:null}; });
+  return bids;
+}
+const POLICIES={ greedy:policyGreedy, hoarder:policyHoarder, splitter:policySplitter };
+/* 無頭跑一整局，供 runMany 統計聚合用。不重用/不修改 simulate()，避免任何動到既有等價基準的風險——
+   完全靠 makeState/resolveAuction/resolveBattles/power 這些既有唯讀引擎函式組成，邏輯零重寫。 */
+function playPolicyGame(seed,policies){
+  makeState("solo",seed);
+  const deathRound={}; S.players.forEach(p=>deathRound[p.id]=null);
+  const factionWinCounts={}, factionOffered={};
+  Object.keys(FAC).forEach(f=>{ factionWinCounts[f]=0; factionOffered[f]=0; });
+  let poisonBids=0, totalBids=0, unsoldItems=0, drawnItems=0;
+  const lifeByRound=[];
+  for(;;){
+    S.humanBids={};
+    S.players.forEach(p=>{
+      if(!p.ai){ const pol=(policies&&policies[p.id])||scriptedBids; S.humanBids[p.id]=pol(p); }
+    });
+    S.market.forEach(it=>{ factionOffered[it.f]=(factionOffered[it.f]||0)+1; drawnItems++; });
+    const reveal=resolveAuction();
+    reveal.forEach(r=>{
+      totalBids+=r.entries.length;
+      if(r.winner){
+        factionWinCounts[r.it.f]=(factionWinCounts[r.it.f]||0)+1;
+        if(r.winner.intent==="poison") poisonBids++;
+      }else{ unsoldItems++; }
+    });
+    resolveBattles();
+    S.players.forEach(p=>{ if(!p.alive && deathRound[p.id]===null) deathRound[p.id]=S.round; });
+    lifeByRound.push(S.players.map(p=>p.life));
+    const aliveN=S.players.filter(p=>p.alive).length;
+    const humanN=S.players.filter(p=>!p.ai&&p.alive).length;
+    if(!humanN||aliveN<=1||S.round>=CFG.ROUNDS) break;
+    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarket();
+  }
+  const gameLength=S.round;
+  S.players.forEach(p=>{ if(deathRound[p.id]===null) deathRound[p.id]=gameLength; });
+  const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
+  return {
+    seed, gameLength, winnerId:rank[0].id,
+    finalLife:S.players.map(p=>p.life), finalPower:S.players.map(p=>power(p)),
+    survival:S.players.map(p=>deathRound[p.id]),
+    lifeByRound, factionWinCounts, factionOffered,
+    poisonBids, totalBids, unsoldItems, drawnItems,
+  };
+}
+/* runMany({seeds:[...] 或 n:N, policies:{playerId:policyFn}}) → 統計聚合，見 docs 交付需求。
+   policies 只覆寫非 AI 座位（solo 模式僅 id0 是人類），AI 座位一律照舊走 aiBids。 */
+function runMany(opts){
+  opts=opts||{};
+  const seeds=opts.seeds?[...opts.seeds]:Array.from({length:opts.n||200},(_,i)=>i+1);
+  const policies=opts.policies||{};
+  const results=seeds.map(sd=>playPolicyGame(sd,policies));
+  const n=results.length;
+  const nPlayers=n?results[0].finalLife.length:0;
+  const winRate=new Array(nPlayers).fill(0);
+  const survivalSum=new Array(nPlayers).fill(0);
+  const lifeSum=new Array(nPlayers).fill(0);
+  const powerSum=new Array(nPlayers).fill(0);
+  const factionWinCounts={}, factionOffered={};
+  let poisonTotal=0,bidsTotal=0,unsoldTotal=0,drawnTotal=0,lengthSum=0;
+  const lifeCurveSum=Array.from({length:CFG.ROUNDS},()=>new Array(nPlayers).fill(0));
+  const lifeCurveCount=new Array(CFG.ROUNDS).fill(0);
+  results.forEach(g=>{
+    winRate[g.winnerId]++;
+    g.survival.forEach((s,i)=>survivalSum[i]+=s);
+    g.finalLife.forEach((l,i)=>lifeSum[i]+=l);
+    g.finalPower.forEach((pw,i)=>powerSum[i]+=pw);
+    Object.keys(g.factionWinCounts).forEach(f=>{ factionWinCounts[f]=(factionWinCounts[f]||0)+g.factionWinCounts[f]; });
+    Object.keys(g.factionOffered).forEach(f=>{ factionOffered[f]=(factionOffered[f]||0)+g.factionOffered[f]; });
+    poisonTotal+=g.poisonBids; bidsTotal+=g.totalBids; unsoldTotal+=g.unsoldItems; drawnTotal+=g.drawnItems;
+    lengthSum+=g.gameLength;
+    g.lifeByRound.forEach((lifeArr,ri)=>{ lifeCurveSum[ri]=lifeCurveSum[ri].map((v,pi)=>v+lifeArr[pi]); lifeCurveCount[ri]++; });
+  });
+  return {
+    games:n,
+    winRate:winRate.map(w=>n?w/n:0),
+    avgSurvivalNights:survivalSum.map(s=>n?s/n:0),
+    avgFinalLife:lifeSum.map(s=>n?s/n:0),
+    avgFinalPower:powerSum.map(s=>n?s/n:0),
+    lifeCurve:lifeCurveSum.map((arr,ri)=>lifeCurveCount[ri]?arr.map(v=>v/lifeCurveCount[ri]):null),
+    factionWinCounts, unsoldRate:drawnTotal?unsoldTotal/drawnTotal:0,
+    poisonUsageRate:bidsTotal?poisonTotal/bidsTotal:0,
+    avgGameLength:n?lengthSum/n:0,
+  };
+}
+/* 把 runMany 的統計輸出成可直接貼進 markdown 的表格 */
+function statsToMarkdown(stats,title){
+  const seatNames=["南家(id0)","北家(id1)","西家(id2)","東家(id3)"];
+  let md=title?`#### ${title}\n\n`:"";
+  md+=`局數：${stats.games}　平均對局長度：${stats.avgGameLength.toFixed(2)} 夜　流標率：${(stats.unsoldRate*100).toFixed(1)}%　毒標使用率：${(stats.poisonUsageRate*100).toFixed(1)}%\n\n`;
+  md+="| 玩家 | 勝率 | 平均存活夜數 | 平均最終壽命 | 平均最終戰力 |\n|---|---|---|---|---|\n";
+  stats.winRate.forEach((w,i)=>{
+    md+=`| ${seatNames[i]||("玩家"+i)} | ${(w*100).toFixed(1)}% | ${stats.avgSurvivalNights[i].toFixed(2)} | ${stats.avgFinalLife[i].toFixed(2)} | ${stats.avgFinalPower[i].toFixed(2)} |\n`;
+  });
+  md+="\n| 陣營 | 得標次數 |\n|---|---|\n";
+  Object.keys(stats.factionWinCounts).forEach(f=>{ md+=`| ${f} | ${stats.factionWinCounts[f]} |\n`; });
+  return md;
+}
+/* ================= 優勢策略窮舉器（強制閘門，見 docs/GAME_DESIGN.md 六之四） =================
+   analyzeEvent({name,players,options,payoff}) → 窮舉所有玩家選擇組合，回報是否存在優勢策略／免費午餐。
+   判定定義照設計文件字面實作，不自行更動：
+   - 弱優勢：選項 A 對玩家 i 而言，在每一種對手選擇組合下收益都 ≥ 其他所有選項，且至少一種組合下嚴格 >
+   - freeLunch：存在「全員選同一項」的組合使每個人收益都 > 0
+   - verdict='FAIL' 若 dominant 非空 或 freeLunch 為真 */
+function decodeCombo(code,players,nOpts){
+  const idxs=new Array(players); let c=code;
+  for(let k=0;k<players;k++){ idxs[k]=c%nOpts; c=Math.floor(c/nOpts); }
+  return idxs;
+}
+function analyzeEvent(spec){
+  const {players,options,payoff}=spec;
+  const nOpts=options.length;
+  const total=Math.pow(nOpts,players);
+  if(total>2000000) throw new Error("analyzeEvent: 組合數過大（"+total+"），請縮小 options 或 players");
+  const payoffTable=[];
+  for(let code=0;code<total;code++){
+    const idxs=decodeCombo(code,players,nOpts);
+    const choices=idxs.map(ix=>options[ix]);
+    payoffTable.push({idxs,result:payoff(choices)});
+  }
+  const dominant=[]; const detail=[];
+  for(let i=0;i<players;i++){
+    const tables=options.map(()=>({}));
+    for(const entry of payoffTable){
+      const A=entry.idxs[i];
+      const otherKey=entry.idxs.filter((_,j)=>j!==i).join(",");
+      tables[A][otherKey]=entry.result[i];
+    }
+    for(let A=0;A<nOpts;A++){
+      let dominatesAll=true, strictSomewhere=false;
+      for(let B=0;B<nOpts && dominatesAll;B++){
+        if(B===A) continue;
+        for(const key of Object.keys(tables[A])){
+          const pa=tables[A][key], pb=tables[B][key];
+          if(pa<pb){ dominatesAll=false; break; }
+          if(pa>pb) strictSomewhere=true;
+        }
+      }
+      if(dominatesAll) dominant.push({player:i,option:options[A],strict:strictSomewhere});
+    }
+    detail.push({player:i,table:tables.map((t,idx)=>({option:options[idx],byOthers:t}))});
+  }
+  let freeLunch=false;
+  for(let a=0;a<nOpts;a++){
+    const choices=new Array(players).fill(options[a]);
+    if(payoff(choices).every(v=>v>0)){ freeLunch=true; break; }
+  }
+  const verdict=(dominant.length>0||freeLunch)?"FAIL":"PASS";
+  return {dominant,freeLunch,verdict,detail};
+}
+/* 窮舉閘門的雙向測試治具：舊版試膽大會（已知有優勢策略，必須 FAIL）／修正版（少數決，必須 PASS） */
+const EVENT_OLD_SHRINE={
+  name:"試膽大會（舊版・已知有 bug）", players:4, options:["in","out"],
+  payoff(choices){
+    const countIn=choices.filter(c=>c==="in").length;
+    if(countIn===0) return choices.map(()=>-4);
+    return choices.map(c=>c==="in"?(-2+15/countIn):0);
+  }
+};
+const EVENT_NEW_SHRINE={
+  name:"試膽大會（修正版・少數決）", players:4, options:["in","out"],
+  payoff(choices){
+    const n=choices.length, countIn=choices.filter(c=>c==="in").length, countOut=n-countIn;
+    if(countIn===0||countOut===0) return choices.map(()=>-3);
+    if(countIn===countOut) return choices.map(()=>-1);
+    const inIsMinority=countIn<countOut;
+    return choices.map(c=>c==="in"?(inIsMinority?6:-3):(inIsMinority?-3:6));
+  }
+};
 function snapPlayers(){
   return S.players.map(p=>({id:p.id,life:p.life,alive:p.alive,bag:p.bag.map(x=>x.n),power:power(p)}));
 }
@@ -1048,12 +1244,55 @@ function simulate(seed){
 function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate(s))}; }
 window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){return S;},
   CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
-  collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor };
-/* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走） */
-document.addEventListener("touchmove",e=>{
-  if(!e.target.closest("#felt,#sheetbox,#modalbox")) e.preventDefault();
-},{passive:false});
-document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
+  collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
+  /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
+  runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES,
+  scriptedBids, policyGreedy, policyHoarder, policySplitter,
+  demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE } };
+/* ================= ?sim=1 平衡模擬器／窮舉器工具頁（獨立於正常遊戲頁，不共用 DOM） ================= */
+function initSimTool(){
+  document.title="妖市・平衡模擬器";
+  document.documentElement.style.overflow="auto";
+  document.body.style.cssText="position:static;overflow:auto;height:auto;min-height:100%;"
+    +"background:#120e1d;color:#e8e2f5;font-family:inherit;padding:16px 18px 40px;font-size:13px;";
+  document.body.innerHTML=`
+    <h2 style="color:#e8b34b;margin-bottom:10px">妖市・平衡模擬器 ／ 優勢策略窮舉器</h2>
+    <section>
+      <h3 style="color:#e8b34b;font-size:14px;margin-bottom:6px">A／C. runMany（三策略對照）</h3>
+      <label>局數 n <input id="simN" type="number" value="500" style="width:80px"></label>
+      <button id="btnRunMany" class="bigbtn" style="margin-left:10px">跑 runMany</button>
+      <pre id="simOut" style="white-space:pre-wrap;background:#1f1830;padding:10px;border-radius:8px;margin-top:8px;max-height:60vh;overflow:auto"></pre>
+    </section>
+    <section style="margin-top:22px">
+      <h3 style="color:#e8b34b;font-size:14px;margin-bottom:6px">B／C. analyzeEvent 雙向測試</h3>
+      <button id="btnAnalyze" class="bigbtn alt">跑窮舉器雙向測試（舊版試膽大會／修正版）</button>
+      <pre id="analyzeOut" style="white-space:pre-wrap;background:#1f1830;padding:10px;border-radius:8px;margin-top:8px;max-height:60vh;overflow:auto"></pre>
+    </section>`;
+  $("btnRunMany").onclick=()=>{
+    const n=parseInt($("simN").value,10)||500;
+    const seeds=Array.from({length:n},(_,i)=>i+1);
+    let out="";
+    Object.keys(POLICIES).forEach(name=>{
+      const stats=runMany({seeds,policies:{0:POLICIES[name]}});
+      out+=statsToMarkdown(stats,`策略：${name}`)+"\n\n";
+    });
+    $("simOut").textContent=out;
+  };
+  $("btnAnalyze").onclick=()=>{
+    const r1=analyzeEvent(EVENT_OLD_SHRINE), r2=analyzeEvent(EVENT_NEW_SHRINE);
+    $("analyzeOut").textContent=
+      "舊版試膽大會（應 FAIL）\nverdict="+r1.verdict+"\ndominant="+JSON.stringify(r1.dominant)+"\nfreeLunch="+r1.freeLunch
+      +"\n\n修正版試膽大會（應 PASS）\nverdict="+r2.verdict+"\ndominant="+JSON.stringify(r2.dominant)+"\nfreeLunch="+r2.freeLunch;
+  };
+}
+if(SIM_MODE) initSimTool();
+/* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走）——sim 工具頁需要自由捲動，跳過 */
+if(!SIM_MODE){
+  document.addEventListener("touchmove",e=>{
+    if(!e.target.closest("#felt,#sheetbox,#modalbox")) e.preventDefault();
+  },{passive:false});
+  document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
+}
 </script>
 </body>
 </html>
