@@ -173,7 +173,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <div id="north"></div>
   <div id="west"></div>
   <div id="felt">
-    <button id="skipbtn" onclick="SKIP=true">跳過 ≫</button>
+    <button id="skipbtn" onclick="doSkip()">跳過 ≫</button>
     <div id="feltHead"></div>
     <div id="stage"></div>
   </div>
@@ -280,7 +280,18 @@ const WIND_SEQ=[3,0,2,1], WIND_NAMES=["東風","南風","西風","北風"];
 const windPid=r=>WIND_SEQ[(r-1)%4];
 const windName=r=>WIND_NAMES[(r-1)%4];
 /* ================= 工具 ================= */
-let S=null, myBids=[], SKIP=false, ACTIVE=0;
+let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
+/* 等使用者按主按鈕才繼續（跳過中則直接通過） */
+function waitMain(label){
+  return new Promise(res=>{
+    if(SKIP){res();return;}
+    const btn=$("mainbtn");
+    btn.textContent=label; btn.disabled=false;
+    PENDING=()=>{PENDING=null;btn.disabled=true;res();};
+    btn.onclick=()=>{if(PENDING)PENDING();};
+  });
+}
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -690,9 +701,18 @@ async function startReveal(){
       $("outzone").insertAdjacentHTML("beforeend",`<div class="outcome">${ev.txt}</div>`);
       await sleep(CFG.T*0.6);
     }
-    await sleep(CFG.T*1.3);
+    renderSeats();
+    /* 手動節奏：看夠了才按下一件（跳過中不停） */
+    if(r!==reveal[reveal.length-1]) await waitMain("下一件拍品 ▸");
+    else await sleep(CFG.T*0.8);
   }
+  /* 本夜成交總覽 */
+  SKIP=false;
   renderSeats();
+  $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
+    <div class="big">🏮 本夜成交總覽</div>
+    ${reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}）`:""}</span></div>`).join("")}
+  </div>`;
   $("mainbtn").textContent="開戰";
   $("mainbtn").disabled=false;
   $("mainbtn").onclick=startBattle;
