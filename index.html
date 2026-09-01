@@ -300,22 +300,127 @@ const ABILITIES = {
 };
 const abDesc = ab => (ABILITIES[ab] && ABILITIES[ab].desc) || "";
 
-/* --- 2/5 ROLES：角色（被動、AI 行為參數、台詞、頭像、起始壽命） ---
-   life0 省略＝用 CFG.LIFE；ai 為 null＝人類座位；hooks 空＝目前沒有被動。 */
+/* ===== 供 ROLES 內容使用的小工具（不是引擎的一部分，引擎不呼叫它們） =====
+   放在這裡是因為它們只服務資料表裡的角色行為；引擎函式不認得也不需要它們。 */
+/* 局初「暗中鎖定一個系別」：用 seed 衍生的獨立亂數決定，故意不消耗 S.rng()——
+   若消耗主亂數流，加一個角色就會位移整局的牌序，讓任何行為改動都無法逐項解釋。 */
+function lockedSpec(p){
+  if(!p.spec){
+    const r=mulberry32(((S.seed^0x5bf03635)+p.id*0x9e3779b1)>>>0);
+    p.spec=FACTIONS[Math.floor(r()*FACTIONS.length)];
+  }
+  return p.spec;
+}
+/* grudge 最高的活著對手；沒有任何仇恨值就回 null（同分取戰力高者，保決定性） */
+function topGrudge(p){
+  const g=p.grudge||{}; let best=null,bv=0;
+  for(const q of S.players){
+    if(!q.alive||q.id===p.id) continue;
+    const v=g[q.id]||0;
+    if(v>bv || (v===bv && v>0 && best && power(q)>power(best))){ bv=v; best=q; }
+  }
+  return bv>0?best:null;
+}
+/* 某人的主力陣營＝袋中非詛咒品最多的那一系（同數取先湊到的，保決定性） */
+function mainFaction(p){
+  const c={}; let f=null,m=0;
+  for(const x of p.bag){
+    if(x.curse) continue;
+    c[x.f]=(c[x.f]||0)+1;
+    if(c[x.f]>m){ m=c[x.f]; f=x.f; }
+  }
+  return f;
+}
+
+/* --- 2/5 ROLES：角色（被動、AI 行為模式、台詞、頭像、起始壽命） ---
+   life0 省略＝用 CFG.LIFE；ai 為 null＝人類座位；hooks 空＝目前沒有被動。
+   AI 個性一律寫在這裡的 onAi* hook（契約見 ARCH_SPEC §8），aiBids() 只提供預設決策。 */
 const ROLES = {
   human:{id:"human",name:"你",av:"🧑",ai:null,lines:null,hooks:{}},
-  qingmian:{id:"qingmian",name:"青面攤主",av:"👹",ai:{aggr:0.85,spite:0.25},hooks:{},
+  /* 干擾型：跟標（追殺人類上一夜得標的陣營）＋虛張標（推高別人的認知價） */
+  qingmian:{id:"qingmian",name:"青面攤主",av:"👹",ai:{aggr:0.85,spite:0.25},
+    hooks:{
+      /* 跟標：人類上一夜得標的那一系，我加價搶，斷他的共鳴 */
+      onAiValue(ctx){
+        for(const q of S.players){
+          if(q.ai||!q.alive||q.id===ctx.p.id) continue;
+          if(S.lastWon[q.id]===ctx.item.f){ ctx.val+=4; break; } /* 跟標加價【試玩必調】 */
+        }
+      },
+      /* 虛張標：每夜 30% 機率，對自己最不需要的一般拍品下押命標，逼別人以為那件值錢 */
+      onAiExtraBids(ctx){
+        if(S.rng()>=0.30) return;                    /* 虛張機率【試玩必調】 */
+        let bi=-1,bv=Infinity;
+        ctx.market.forEach((it,i)=>{
+          if(it.curse||ctx.bids[i]) return;          /* 詛咒品不虛張、已下標的不重複 */
+          const v=it.p+(it.ab?2:0);                  /* 不消耗亂數的粗估：自己最不需要的那件 */
+          if(v<bv){ bv=v; bi=i; }
+        });
+        if(bi<0) return;
+        const amt=Math.min(Math.floor(ctx.p.life*0.25), /* 虛張金額【試玩必調】 */
+          ctx.budget-ctx.spent, ctx.p.life-ctx.spent-1);
+        if(amt<1) return;
+        ctx.bids[bi]={amt,type:"yaming",intent:"keep",target:null};
+      },
+    },
     lines:{win:["這件老子要定了！","嘿嘿，好貨入袋。"],lose:["嘖——誰出這麼高？","搶什麼搶！"],
       poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
-  hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",ai:{aggr:0.6,spite:0.6},hooks:{},
+  /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
+  hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",ai:{aggr:0.6,spite:0.6},
+    hooks:{
+      onBidSettle(ctx){                              /* 被搶標 +1 */
+        if(ctx.isWinner) return;
+        const w=S.bidWinner;
+        if(w===null||w===undefined||w===ctx.p.id) return;
+        ctx.p.grudge[w]=(ctx.p.grudge[w]||0)+1;
+      },
+      onWinItem(ctx){                                /* 被毒標塞中 +2（跨玩家 hook，要自己認人） */
+        if(!ctx.target||ctx.target.roleId!=="hongyi") return;
+        ctx.target.grudge[ctx.winner.id]=(ctx.target.grudge[ctx.winner.id]||0)+2;
+      },
+      onBattle(ctx){                                 /* 被擊敗 +1（跨玩家 hook，要自己認人） */
+        if(ctx.l.roleId!=="hongyi") return;
+        ctx.l.grudge[ctx.w.id]=(ctx.l.grudge[ctx.w.id]||0)+1;
+      },
+      onNightEnd(ctx){                               /* 每夜衰減 0.5 */
+        const g=ctx.p.grudge;
+        for(const k in g){ g[k]=Math.max(0,g[k]-0.5); if(g[k]<=0) delete g[k]; }
+      },
+      /* 毒標鎖定仇恨最高者，取代預設的「戰力最高者」；沒仇人時維持預設 */
+      onAiCurse(ctx){
+        if(ctx.intent!=="poison") return;
+        const t=topGrudge(ctx.p);
+        if(t) ctx.target=t.id;
+      },
+      /* 順手掐斷仇人的主力陣營 */
+      onAiValue(ctx){
+        const t=topGrudge(ctx.p);
+        if(t && mainFaction(t)===ctx.item.f) ctx.val+=3; /* 阻擋加價【試玩必調】 */
+      },
+    },
     lines:{win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
-  duanshou:{id:"duanshou",name:"斷手書生",av:"📜",ai:{aggr:0.7,spite:0.4},hooks:{},
+  /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
+  duanshou:{id:"duanshou",name:"斷手書生",av:"📜",ai:{aggr:0.7,spite:0.4},
+    hooks:{
+      onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
+      onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
+      onAiAmount(ctx){
+        const spec=lockedSpec(ctx.p);
+        /* 破戒：這件能讓鎖定系湊到第 4 件（被動的門檻）→ 梭哈 */
+        if(ctx.item.f===spec && ctx.p.bag.filter(x=>!x.curse&&x.f===spec).length===3){
+          ctx.amt=Math.floor(ctx.p.life*0.6); ctx.type="yaming"; return;    /* 梭哈比例【試玩必調】 */
+        }
+        /* 紀律：絕不超過估值的九成；壓下來之後也不留沒必要的押命標風險 */
+        ctx.amt=Math.min(ctx.amt,Math.floor(ctx.val*0.9));
+        ctx.type=ctx.amt>consCapFor(ctx.p)?"yaming":"cons";
+      },
+    },
     lines:{win:["此物值此價，合算。","在下失禮了。"],lose:["溢價了，不追。"],
       poison:["非常抱歉，但棋局如此。"],poisoned:["豈有此理！"],bwin:["勝負早在標下時已定。"],blose:["失算…失算…"]}},
-  /* 蟄伏型 AI：aggr 刻意壓低，模擬「平常按兵不動、只咬大貨」——目前 aiBids() 沒有
-     「預告大貨才出手」的專屬判斷式（見 IMPLEMENTATION_GUIDE 回報：AI 行為模式僅能用
-     aggr/spite 兩個通用參數近似，qingmian/hongyi/duanshou 現況亦同，非本次新引入的簡化）。 */
+  /* 蟄伏型 AI：目前只用 aggr 壓低來近似「平常按兵不動」。
+     ARCH_SPEC §8.2 給的「預告無大貨就整夜不出手」（onAiPlan 的 skipAll）尚未實作——
+     這個角色還沒排進 MODES.seats，本輪不動它，要啟用時往它的 hooks 加 onAiPlan 即可。 */
   shoujing:{id:"shoujing",name:"收驚婆",av:"🕯️",life0:34,ai:{aggr:0.3,spite:0.1},
     hooks:{ onNightEnd(ctx){
       if(S.wonAny.has(ctx.p.id)) return; /* 本夜有得標任何法寶，不觸發 */
@@ -328,8 +433,9 @@ const ROLES = {
     } },
     lines:{win:["這件…帶得走。","收下，安心了。"],lose:["罷了，命裡沒有。"],
       poison:["別怪我，是你福薄。"],poisoned:["嚇！誰咒我！"],bwin:["妖氣退散。"],blose:["唉…著涼了。"]}},
-  /* 獵首型 AI：aggr 刻意拉高，模擬「積極出價追趕領先者」——同上，aiBids() 沒有
-     「鎖定戰力最高者」的跨玩家比較邏輯，此處僅用通用參數近似。 */
+  /* 獵首型 AI：目前只用 aggr 拉高來近似「積極追趕領先者」。
+     ARCH_SPEC §8.1 給的「能追上第一名戰力的拍品 +4」（onAiValue）尚未實作——
+     這個角色還沒排進 MODES.seats，本輪不動它，要啟用時往它的 hooks 加 onAiValue 即可。 */
   hunter:{id:"hunter",name:"獵人",av:"🏹",ai:{aggr:0.85,spite:0.5},
     hooks:{ onBattle(ctx){
       if(ctx.w.roleId!=="hunter") return;       /* 只有贏家是獵人才觸發，避免輸家也是獵人時誤發 */
@@ -497,8 +603,9 @@ function makeState(mode,seed){
     deck:null, cdeck:null,
     players:(MODES[mode]||MODES.solo).seats.map(mkPlayer),
     wonAny:new Set(), bidAny:new Set(), humanBids:{},
-    /* ARCH_SPEC §4 的全域欄位：本次只建欄位，尚未有內容會寫入它們 */
-    lastWon:{}, nightRule:null, event:null,
+    /* lastWon：上一夜各家得標的陣營（青面攤主跟標用），每夜由 resolveAuction 覆蓋
+       bidWinner：開標結算「當件」的得標者 id，只在 onBidSettle 期間有值，其餘時間 null */
+    lastWon:{}, bidWinner:null, nightRule:null, event:null,
   };
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
   S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
@@ -557,9 +664,14 @@ function consCapFor(p){
   applyHooks("onBidCap",ctx,p);
   return ctx.cap;
 }
+/* AI 出價決策：五個 AI hook 的掛點（契約見 ARCH_SPEC §8）。
+   這個函式只提供「所有 AI 共用的預設決策」與固定的呼叫順序；每隻 AI 的個性一律寫在
+   ROLES 的 onAi* hook 裡。**這裡不得出現任何角色 id 的字串比對**——要加一隻有個性的
+   AI，就往 ROLES 填一筆 hooks，不要回來改這個函式。 */
 function aiBids(p){
   const bids=S.market.map(()=>null);
-  const budget=Math.floor(budgetFor(p)*0.45);
+  const fullBudget=budgetFor(p);             /* 一輪出價總額上限（ARCH_SPEC §3.5） */
+  const budget=Math.floor(fullBudget*0.45);  /* 計畫內出價的保守節流（預設決策自我約束） */
   let spent=0;
   /* 詛咒品攻防獨立出價，不跟法寶搶「前二」名額 */
   S.market.forEach((it,i)=>{
@@ -572,6 +684,10 @@ function aiBids(p){
       const foes=S.players.filter(q=>q.alive&&q.id!==p.id);
       intent="poison"; target=foes.sort((a,b)=>power(b)-power(a))[0].id;
     }
+    /* hook 8.5：角色可改寫詛咒品的意圖與目標（紅衣婆婆改鎖仇人、爐主改買下銷毀保人…） */
+    const cc={p,item:it,intent,target};
+    applyHooks("onAiCurse",cc,p);
+    intent=cc.intent; target=cc.target;
     if(!intent)return;
     const amt=Math.min(3+rnd(0,2), budget-spent, p.life-spent-1);
     if(amt<=0)return;
@@ -584,19 +700,34 @@ function aiBids(p){
     if(it.curse)return;
     const c=p.bag.filter(x=>x.f===it.f).length;
     const marginal=(c+1>=CFG.SET_MIN)?(c+1)*(c+1)-(c>=CFG.SET_MIN?c*c:0):0;
-    const val=it.p+marginal+(it.ab?2:0)+rnd(-2,2);
-    opts.push({i,val,intent:"keep",target:null});
+    /* hook 8.1：角色可改寫「這件在我心中值多少」 */
+    const vc={p,item:it,val:it.p+marginal+(it.ab?2:0)+rnd(-2,2)};
+    applyHooks("onAiValue",vc,p);
+    opts.push({i,val:vc.val,intent:"keep",target:null});
   });
   opts.sort((a,b)=>b.val-a.val);
-  for(const o of opts.slice(0,2)){
+  /* hook 8.2：這夜要標幾件、要不要整夜不出手 */
+  const plan={p,opts,maxPicks:2,skipAll:false};
+  applyHooks("onAiPlan",plan,p);
+  if(!plan.skipAll) for(const o of plan.opts.slice(0,plan.maxPicks)){
     let amt=Math.max(0,Math.round(o.val*p.ai.aggr)+rnd(-1,1));
     amt=Math.min(amt,budget-spent,p.life-spent);
     if(amt<=0)continue;
     const cap=consCapFor(p);
     const type=(amt>cap||(o.val>8&&S.rng()<p.ai.aggr))?"yaming":"cons";
-    bids[o.i]={amt,type,intent:o.intent,target:o.target};
-    spent+=amt;
+    /* hook 8.3：角色可改寫單筆金額與標書型態（紀律壓價、破戒梭哈、當鋪超額…） */
+    const ac={p,item:S.market[o.i],val:o.val,amt,type};
+    applyHooks("onAiAmount",ac,p);
+    /* 硬底線只剩「一輪總額不得超過 budgetFor(p)」——角色可以突破 45% 節流，
+       但不能突破 onBudget 算出來的總額（陰間當鋪要超額，就從 onBudget 把它加大） */
+    const finalAmt=Math.max(0,Math.min(Math.floor(ac.amt),fullBudget-spent));
+    if(finalAmt<=0)continue;
+    bids[o.i]={amt:finalAmt,type:ac.type,intent:o.intent,target:o.target};
+    spent+=finalAmt;
   }
+  /* hook 8.4：計畫外的額外出價（虛張、攪局）。hook 自己要顧好 ctx.budget 上限。 */
+  const ec={p,bids,market:S.market,spent,budget:fullBudget};
+  applyHooks("onAiExtraBids",ec,p);
   return bids;
 }
 function resolveAuction(){
@@ -611,6 +742,8 @@ function resolveAuction(){
   const reveal=[];
   S.wonAny=new Set();
   S.bidAny=new Set(); /* 本輪（一夜）有實際出過價（amt>0）的玩家 id，供「整夜零出價」類被動查詢 */
+  /* 本夜各家得標的陣營；整夜結束後才覆蓋 S.lastWon，所以 AI 出價時看到的一定是「上一夜」（ARCH_SPEC §4） */
+  const lastWon={};
   S.market.forEach((it,i)=>{
     const entries=[];
     S.players.forEach(p=>{const b=all[p.id][i];if(b){entries.push({p,...b});S.bidAny.add(p.id);}});
@@ -627,6 +760,9 @@ function resolveAuction(){
       winner = tops.find(e=>e.p.id===windPid(S.round)) || tops[Math.floor(S.rng()*tops.length)];
     }
     const events=[];
+    /* 本件拍品的得標者 id，供 onBidSettle 期間查詢（「被誰搶走」這種狀態累積要用到，
+       而 onBidSettle 的 ctx 形狀是凍結的，不能加欄位——見 ARCH_SPEC §3.7／§8.6） */
+    S.bidWinner=winner?winner.p.id:null;
     entries.forEach(e=>{
       const isWinner=(e===winner);
       const c={p:e.p,bid:e,item:it,isWinner,
@@ -634,9 +770,11 @@ function resolveAuction(){
       applyHooks("onBidSettle",c,e.p);
       e.p.life-=c.cost;
     });
+    S.bidWinner=null;
     let outcome="流標";
     if(winner){
       S.wonAny.add(winner.p.id);
+      lastWon[winner.p.id]=it.f;
       let target=null;
       if(winner.intent==="poison"){
         target=S.players[winner.target];
@@ -653,6 +791,7 @@ function resolveAuction(){
     }
     reveal.push({it,entries,winner,outcome,events});
   });
+  S.lastWon=lastWon; /* 整夜結算完才換上，明夜的 AI 才查得到「上一夜」 */
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;}});
   return reveal;
 }
