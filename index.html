@@ -19,9 +19,12 @@
   --zuling:#5fae8f; --xianghuo:#e0a13f; --yinqi:#9b6fd4; --curse:#d45577;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
-  font-size:14px;overflow:hidden}
+  font-size:14px;position:fixed;inset:0;width:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,select,.mcard,.seat,.stepper{touch-action:manipulation}
+#felt,#sheetbox,#modalbox{touch-action:pan-y}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -31,7 +34,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .title h1{font-size:38px;color:var(--gold);letter-spacing:12px;margin-bottom:6px}
 .title p{color:var(--dim);font-size:13px;line-height:1.7}
 .title .btns{display:flex;gap:12px;justify-content:center;margin-top:14px}
-#table{display:none;height:100%;max-width:960px;margin:0 auto;
+#table{display:none;height:100%;height:100dvh;max-width:960px;margin:0 auto;
   grid-template-areas:"north north north" "west felt east" "south south south";
   grid-template-rows:56px 1fr 62px;grid-template-columns:120px 1fr 120px;gap:4px;padding:4px}
 #table.on{display:grid}
@@ -799,6 +802,11 @@ function showBag(pid){
   $("modal").style.display="flex";
 }
 function closeModal(){$("modal").style.display="none";}
+/* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走） */
+document.addEventListener("touchmove",e=>{
+  if(!e.target.closest("#felt,#sheetbox,#modalbox")) e.preventDefault();
+},{passive:false});
+document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
 </script>
 </body>
 </html>
