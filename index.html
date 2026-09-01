@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>妖市 v0.1</title>
+<meta name="theme-color" content="#14101f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+/* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 ===== */
+:root{
+  --bg:#14101f; --panel:#1f1830; --panel2:#2a2142; --line:#3d3260;
+  --ink:#e8e2f5; --dim:#9a8fc0; --gold:#e8b34b; --red:#e05555; --green:#5fbf77;
+  --zuling:#5fae8f; --xianghuo:#e0a13f; --yinqi:#9b6fd4; --curse:#d45577;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
+  max-width:480px;margin:0 auto;min-height:100vh;font-size:15px}
+#topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+#roundLbl{font-size:13px;color:var(--gold);white-space:nowrap}
+.pchip{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px 7px;
+  font-size:12px;text-align:center;cursor:pointer;line-height:1.3}
+.pchip.dead{opacity:.35;text-decoration:line-through}
+.pchip .face{font-size:15px}
+#screen{padding:10px 10px 90px}
+h2{font-size:17px;color:var(--gold);margin:6px 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card.curse{border-color:var(--curse)}
+.iname{font-weight:bold;font-size:15px}
+.fchip{display:inline-block;font-size:11px;border-radius:6px;padding:1px 6px;margin-left:6px;color:#14101f;font-weight:bold}
+.f-zuling{background:var(--zuling)} .f-xianghuo{background:var(--xianghuo)}
+.f-yinqi{background:var(--yinqi)} .f-curse{background:var(--curse)}
+.idesc{font-size:12px;color:var(--dim);margin:4px 0 8px}
+.bidrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{width:42px;height:42px;background:var(--panel2);color:var(--ink);border:none;font-size:20px}
+.stepper .amt{width:46px;text-align:center;font-size:17px;font-weight:bold;color:var(--gold)}
+.typebtn,.tgtsel{height:42px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--ink);padding:0 10px;font-size:13px}
+.typebtn.yaming{border-color:var(--red);color:var(--red)}
+.capnote{font-size:11px;color:var(--dim);width:100%}
+#footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+  background:var(--panel);border-top:1px solid var(--line);padding:10px;z-index:10}
+.bigbtn{width:100%;height:50px;border-radius:10px;border:none;background:var(--gold);color:#14101f;
+  font-size:17px;font-weight:bold}
+.bigbtn:disabled{opacity:.4}
+#budget{font-size:12px;color:var(--dim);text-align:center;margin-bottom:6px}
+#budget.over{color:var(--red);font-weight:bold}
+.revitem{border-bottom:1px dashed var(--line);padding:6px 0;font-size:13px}
+.revitem:last-child{border:none}
+.winline{color:var(--gold)}
+.bline{color:var(--dim);font-size:12px;margin-left:8px}
+.batline{padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.dmg{color:var(--red)} .heal{color:var(--green)}
+.preview{background:var(--panel2);border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;
+  font-size:13px;color:var(--gold);margin-bottom:10px}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;display:none;align-items:flex-end;justify-content:center}
+#modalbox{background:var(--panel);border-radius:16px 16px 0 0;width:100%;max-width:480px;
+  max-height:70vh;overflow-y:auto;padding:14px}
+.bagit{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.mut{color:var(--dim);font-size:12px}
+#log{font-size:12px;color:var(--dim);margin-top:12px;line-height:1.6}
+.title{text-align:center;padding:40px 20px}
+.title h1{font-size:44px;color:var(--gold);letter-spacing:8px;margin-bottom:8px}
+.title p{color:var(--dim);font-size:13px;line-height:1.8}
+.endrank{font-size:16px;padding:6px 0}
+.lifebar{height:5px;background:var(--panel2);border-radius:3px;margin-top:3px;overflow:hidden}
+.lifebar>div{height:100%;background:var(--green)}
+</style>
+</head>
+<body>
+<div id="topbar" style="display:none">
+  <span id="roundLbl"></span>
+  <div id="chips" style="display:flex;gap:5px"></div>
+</div>
+<div id="screen"></div>
+<div id="footer" style="display:none">
+  <div id="budget"></div>
+  <button class="bigbtn" id="mainbtn"></button>
+</div>
+<div id="modal" onclick="if(event.target===this)closeModal()"><div id="modalbox"></div></div>
+
+<script>
+"use strict";
+/* ================= 遊戲常數（【試玩必調】全集中此處） ================= */
+const CFG = {
+  LIFE: 40,          // 初始壽命【試玩必調】
+  ROUNDS: 12,        // 最大輪數【試玩必調】
+  MARKET: 4,         // 每輪拍品數
+  CURSE_PROB: 0.65,  // 該輪出現詛咒品機率【試玩必調】
+  SET_MIN: 2,        // 套組共鳴啟動門檻（同陣營件數）
+  DMG_BASE: 3,       // 敗戰基礎失血【試玩必調】
+  DMG_DIV: 5,        // 戰力差 ÷ 此值 = 追加失血【試玩必調】
+  DMG_MAX: 6,        // 追加失血上限【試玩必調】
+  CONS_CAP_DIV: 3,   // 保守標上限 = 壽命/3（逐筆）
+};
+const FAC = {
+  zuling:  {n:"祖靈",  cls:"f-zuling"},
+  xianghuo:{n:"香火",  cls:"f-xianghuo"},
+  yinqi:   {n:"陰氣",  cls:"f-yinqi"},
+  curse:   {n:"詛咒",  cls:"f-curse"},
+};
+/* 道具池（數值【試玩必調】；文案為佔位，正式版另審） */
+const POOL = [
+  // 祖靈（原住民神話）
+  {n:"射日神弓",   f:"zuling",  p:7, d:"射落烈日的太初之弓"},
+  {n:"百步蛇紋盾", f:"zuling",  p:6, d:"排灣祖靈的鱗紋守護"},
+  {n:"巴冷公主珠鍊",f:"zuling", p:6, d:"人蛇之戀的琉璃信物"},
+  {n:"祖靈之眼",   f:"zuling",  p:5, d:"注視子孫的山林之眼"},
+  {n:"雷女之火",   f:"zuling",  p:5, d:"雷神之女擲下的天火"},
+  {n:"拼板舟",     f:"zuling",  p:4, d:"達悟人渡海的飛魚之舟"},
+  {n:"山豬牙飾",   f:"zuling",  p:4, d:"勇士獵得的榮耀之牙"},
+  // 香火（本土信仰）
+  {n:"媽祖令旗",   f:"xianghuo",p:7, d:"海上聖母的鎮瀾令"},
+  {n:"王爺劍",     f:"xianghuo",p:6, d:"代天巡狩的斬瘟之劍"},
+  {n:"送王船",     f:"xianghuo",p:6, d:"載走瘟神的燒王船"},
+  {n:"千里眼銅鈴", f:"xianghuo",p:5, d:"望盡千里的順風耳同款"},
+  {n:"五營旗",     f:"xianghuo",p:5, d:"東南西北中五營神將"},
+  {n:"虎爺印",     f:"xianghuo",p:4, d:"咬鬼鎮煞的虎爺神印"},
+  {n:"香灰符",     f:"xianghuo",p:4, d:"廟裡求來的平安香灰"},
+  // 陰氣（台灣鬼怪）
+  {n:"魔神仔紅帽", f:"yinqi",   p:7, d:"山中牽人迷途的紅帽"},
+  {n:"林投姐髮簪", f:"yinqi",   p:6, d:"林投樹下的怨情之簪"},
+  {n:"椅仔姑竹椅", f:"yinqi",   p:6, d:"問事通靈的三姑竹椅"},
+  {n:"黃色小雨衣", f:"yinqi",   p:5, d:"雨夜裡跟在你身後"},
+  {n:"水鬼浮標",   f:"yinqi",   p:5, d:"渡不了的人留下的"},
+  {n:"虎姑婆指甲", f:"yinqi",   p:4, d:"咬手指聲從床下傳來"},
+  {n:"陰陽眼銅錢", f:"yinqi",   p:4, d:"貼上眼皮就看得見"},
+];
+const CURSES = [
+  {n:"冥婚紅包",   f:"curse", p:-5, d:"撿到就得娶。戰力 -5", curse:true},
+  {n:"魔神仔的芭樂",f:"curse", p:0,  d:"每輪結束失血 1", curse:true, drain:1},
+  {n:"抓交替水符", f:"curse", p:-4, d:"水鬼的名冊。戰力 -4", curse:true},
+  {n:"縛靈鎖",     f:"curse", p:-6, d:"鎖魂之鏈。戰力 -6", curse:true},
+  {n:"白虎煞",     f:"curse", p:-3, d:"沖煞入宅。戰力 -3", curse:true},
+];
+/* ================= 狀態 ================= */
+let S = null;
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+function newGame(){
+  const deck = shuffle([...POOL, ...POOL].map(x=>({...x})));
+  const cdeck = shuffle([...CURSES, ...CURSES].map(x=>({...x})));
+  S = {
+    round: 1, deck, cdeck, logs: [],
+    players: [
+      {id:0, name:"你",     ai:null, life:CFG.LIFE, bag:[], alive:true},
+      {id:1, name:"青面攤主", ai:{aggr:0.85, spite:0.25}, life:CFG.LIFE, bag:[], alive:true},
+      {id:2, name:"紅衣婆婆", ai:{aggr:0.6,  spite:0.6 }, life:CFG.LIFE, bag:[], alive:true},
+      {id:3, name:"斷手書生", ai:{aggr:0.7,  spite:0.4 }, life:CFG.LIFE, bag:[], alive:true},
+    ],
+    market: null, nextMarket: null, bids: null,
+  };
+  S.market = drawMarket();
+  S.nextMarket = drawMarket();
+  showMarket();
+}
+function drawMarket(){
+  const m = [];
+  const hasCurse = Math.random() < CFG.CURSE_PROB && S.cdeck.length;
+  const nNorm = CFG.MARKET - (hasCurse?1:0);
+  for(let i=0;i<nNorm;i++){ if(!S.deck.length) S.deck = shuffle([...POOL].map(x=>({...x}))); m.push(S.deck.pop()); }
+  if(hasCurse) m.push(S.cdeck.pop());
+  return shuffle(m);
+}
+/* ================= 共通 UI ================= */
+function faceOf(p){
+  const r = p.life / CFG.LIFE;
+  return !p.alive ? "💀" : r>2/3 ? "😊" : r>1/3 ? "😰" : "🥀";
+}
+function faceLbl(p){ const r=p.life/CFG.LIFE; return !p.alive?"出局":r>2/3?"紅潤":r>1/3?"蒼白":"垂危"; }
+function renderTop(){
+  $("topbar").style.display="flex";
+  $("roundLbl").textContent = `第 ${S.round}/${CFG.ROUNDS} 夜`;
+  $("chips").innerHTML = S.players.map(p=>{
+    const me = p.id===0;
+    return `<div class="pchip ${p.alive?"":"dead"}" onclick="showBag(${p.id})">
+      <span class="face">${faceOf(p)}</span> ${p.name}${me?` <b style="color:var(--gold)">${p.life}</b>`:""}
+      <div class="mut">${p.bag.length}件</div></div>`;
+  }).join("");
+}
+function power(p){
+  let t = p.bag.reduce((s,x)=>s+x.p,0);
+  const cnt = {};
+  p.bag.forEach(x=>{ if(!x.curse) cnt[x.f]=(cnt[x.f]||0)+1; });
+  for(const f in cnt) if(cnt[f]>=CFG.SET_MIN) t += cnt[f]*cnt[f];
+  return t;
+}
+function showBag(pid){
+  const p = S.players[pid];
+  const cnt = {};
+  p.bag.forEach(x=>{ if(!x.curse) cnt[x.f]=(cnt[x.f]||0)+1; });
+  let bonus = "";
+  for(const f in cnt) if(cnt[f]>=CFG.SET_MIN) bonus += `<div class="bagit"><span>共鳴：${FAC[f].n}×${cnt[f]}</span><b class="heal">+${cnt[f]*cnt[f]}</b></div>`;
+  $("modalbox").innerHTML = `<h2>${p.name} 的袋子（氣色：${faceLbl(p)}）</h2>
+    ${p.bag.length? p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每輪-${x.drain}血`:""}</b></div>`).join("") : `<p class="mut">空空如也</p>`}
+    ${bonus}
+    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力</b><b style="color:var(--gold)">${power(p)}</b></div>
+    <button class="bigbtn" style="margin-top:10px" onclick="closeModal()">關閉</button>`;
+  $("modal").style.display="flex";
+}
+function closeModal(){ $("modal").style.display="none"; }
+/* ================= 出價階段 ================= */
+let myBids = [];
+function showMarket(){
+  renderTop();
+  myBids = S.market.map(()=>({amt:0, type:"cons", intent:"keep", target:1}));
+  const aliveAI = S.players.filter(p=>p.id!==0 && p.alive);
+  $("screen").innerHTML = `
+    <h2>🏮 今夜開拍</h2>
+    <div class="preview">🔮 預告：明夜將出現「${S.nextMarket[0].n}」</div>
+    ${S.market.map((it,i)=>`
+    <div class="card ${it.curse?"curse":""}">
+      <div><span class="iname">${it.n}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span>
+        <b style="float:right;color:${it.p<0?"var(--red)":"var(--gold)"}">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</b></div>
+      <div class="idesc">${it.d}${it.curse?"":synHint(it)}</div>
+      <div class="bidrow">
+        <div class="stepper">
+          <button onclick="bump(${i},-1)">−</button><span class="amt" id="amt${i}">0</span><button onclick="bump(${i},1)">＋</button>
+        </div>
+        <button class="typebtn" id="type${i}" onclick="flipType(${i})">保守標</button>
+        ${it.curse?`<select class="tgtsel" id="tgt${i}" onchange="setTgt(${i})">
+            <option value="destroy">買下銷毀（自保）</option>
+            ${aliveAI.map(p=>`<option value="${p.id}">毒標塞給 ${p.name}</option>`).join("")}
+          </select>`:""}
+        <div class="capnote" id="cap${i}"></div>
+      </div>
+    </div>`).join("")}
+    <div id="log">${S.logs.slice(-4).join("<br>")}</div>`;
+  $("footer").style.display="block";
+  $("mainbtn").textContent="送出出價";
+  $("mainbtn").onclick=submitBids;
+  updateBudget();
+}
+function synHint(it){
+  const c = S.players[0].bag.filter(x=>x.f===it.f).length;
+  if(!c) return "";
+  const after = c+1;
+  return `<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${after>=CFG.SET_MIN?`+${after*after}`:"尚未啟動"}`;
+}
+function consCap(){ return Math.max(1, Math.floor(S.players[0].life / CFG.CONS_CAP_DIV)); }
+function bump(i,d){
+  const b = myBids[i];
+  b.amt = Math.max(0, b.amt+d);
+  if(b.type==="cons" && b.amt>consCap()){ b.type="yaming"; }
+  paintBid(i); updateBudget();
+}
+function flipType(i){
+  const b = myBids[i];
+  if(b.type==="cons"){ b.type="yaming"; }
+  else { b.type="cons"; if(b.amt>consCap()) b.amt=consCap(); }
+  paintBid(i); updateBudget();
+}
+function setTgt(i){
+  const v = $("tgt"+i).value;
+  if(v==="destroy"){ myBids[i].intent="keep"; }        // 買下銷毀＝明標，得標後銷毀
+  else { myBids[i].intent="poison"; myBids[i].target=+v; }
+}
+function paintBid(i){
+  $("amt"+i).textContent = myBids[i].amt;
+  const t = $("type"+i);
+  t.textContent = myBids[i].type==="cons"?"保守標":"押命標";
+  t.className = "typebtn"+(myBids[i].type==="yaming"?" yaming":"");
+  $("cap"+i).textContent = myBids[i].type==="cons"
+    ? `保守標：落標全退，上限 ${consCap()}`
+    : `押命標：無上限，落標仍失一半`;
+}
+function updateBudget(){
+  const tot = myBids.reduce((s,b)=>s+b.amt,0);
+  const el = $("budget");
+  el.textContent = `本輪出價合計 ${tot} / 你的壽命 ${S.players[0].life}`;
+  el.className = tot>S.players[0].life ? "over" : "";
+  $("mainbtn").disabled = tot>S.players[0].life;
+}
+/* ================= AI 出價 ================= */
+function aiBids(p){
+  const bids = S.market.map(()=>null);
+  const budget = Math.floor(p.life * 0.45);
+  const opts = [];
+  S.market.forEach((it,i)=>{
+    if(it.curse){
+      if(Math.random() < p.ai.spite){
+        const foes = S.players.filter(q=>q.alive && q.id!==p.id);
+        const tgt = foes.sort((a,b)=>power(b)-power(a))[0];
+        opts.push({i, val: 3+rnd(0,2), intent:"poison", target: tgt.id});
+      }
+      return;
+    }
+    const c = p.bag.filter(x=>x.f===it.f).length;
+    const marginal = (c+1>=CFG.SET_MIN) ? (c+1)*(c+1) - (c>=CFG.SET_MIN?c*c:0) : 0;
+    const val = it.p + marginal + rnd(-2,2);
+    opts.push({i, val, intent:"keep", target:null});
+  });
+  opts.sort((a,b)=>b.val-a.val);
+  let spent = 0;
+  for(const o of opts.slice(0,2)){                      // AI 每輪最多認真追 2 件
+    let amt = Math.max(0, Math.round(o.val * p.ai.aggr) + rnd(-1,1));
+    amt = Math.min(amt, budget - spent, p.life - spent);
+    if(amt<=0) continue;
+    const cap = Math.max(1, Math.floor(p.life/CFG.CONS_CAP_DIV));
+    const type = (amt>cap || (o.val>8 && Math.random()<p.ai.aggr)) ? "yaming" : "cons";
+    bids[o.i] = {amt, type, intent:o.intent, target:o.target};
+    spent += amt;
+  }
+  return bids;
+}
+/* ================= 開標結算 ================= */
+function submitBids(){
+  const all = S.players.map(p=>{
+    if(!p.alive) return S.market.map(()=>null);
+    if(p.id===0) return myBids.map(b=>b.amt>0?{...b}:null);
+    return aiBids(p);
+  });
+  S.reveal = [];
+  S.market.forEach((it,i)=>{
+    const entries = [];
+    S.players.forEach(p=>{ const b=all[p.id][i]; if(b) entries.push({p, ...b}); });
+    let winner = null;
+    if(entries.length){
+      const top = Math.max(...entries.map(e=>e.amt));
+      const tops = entries.filter(e=>e.amt===top);
+      winner = tops[Math.floor(Math.random()*tops.length)];
+    }
+    entries.forEach(e=>{
+      if(e===winner){ e.p.life -= e.amt; }
+      else if(e.type==="yaming"){ e.p.life -= Math.ceil(e.amt/2); }
+    });
+    let outcome = "流標";
+    if(winner){
+      if(winner.intent==="poison"){
+        const tgt = S.players[winner.target];
+        tgt.bag.push(it); outcome = `${winner.p.name} 毒標得手 → 塞進 ${tgt.name} 的袋子`;
+      } else if(it.curse){
+        outcome = `${winner.p.name} 買下銷毀（自保）`;
+      } else {
+        winner.p.bag.push(it); outcome = `${winner.p.name} 入袋`;
+      }
+    }
+    S.reveal.push({it, entries, winner, outcome});
+  });
+  S.players.forEach(p=>{ if(p.alive && p.life<=0){ p.alive=false; p.life=0; S.logs.push(`💀 ${p.name} 出價失血過度，倒在拍賣桌上`); } });
+  showReveal();
+}
+function showReveal(){
+  renderTop();
+  $("screen").innerHTML = `<h2>🔔 開標</h2>` + S.reveal.map(r=>`
+    <div class="card ${r.it.curse?"curse":""}">
+      <div class="iname">${r.it.n}</div>
+      <div class="revitem winline">${r.outcome}${r.winner?`（出價 ${r.winner.amt}）`:""}</div>
+      ${r.entries.filter(e=>e!==r.winner).map(e=>
+        `<div class="bline">${e.p.name} 出 ${e.amt}（${e.type==="cons"?"保守·全退":"押命·失"+Math.ceil(e.amt/2)}）</div>`).join("")}
+      ${r.entries.length===0?`<div class="bline">無人出價</div>`:""}
+    </div>`).join("");
+  $("mainbtn").textContent="進入結算戰";
+  $("mainbtn").disabled=false;
+  $("mainbtn").onclick=doBattles;
+}
+/* ================= 結算戰（round-robin 固定輪轉） ================= */
+function pairings(ids, round){
+  const list=[...ids]; if(list.length%2) list.push(null);
+  const m=list.length; if(m<2) return {pairs:[],bye:ids[0]??null};
+  const others=list.slice(1), r=round%(m-1);
+  const rot=[list[0], ...others.map((_,k)=>others[(k+r)%others.length])];
+  const pairs=[]; let bye=null;
+  for(let k=0;k<m/2;k++){
+    const a=rot[k], b=rot[m-1-k];
+    if(a===null) bye=b; else if(b===null) bye=a; else pairs.push([a,b]);
+  }
+  return {pairs,bye};
+}
+function doBattles(){
+  const alive = S.players.filter(p=>p.alive).map(p=>p.id);
+  const {pairs,bye} = pairings(alive, S.round-1);
+  const lines = [];
+  pairs.forEach(([a,b])=>{
+    const A=S.players[a], B=S.players[b];
+    const pa=power(A), pb=power(B);
+    if(pa===pb){ lines.push(`⚔️ ${A.name}（${pa}） 平手 ${B.name}（${pb}），互不失血`); return; }
+    const [w,l,pw,pl] = pa>pb ? [A,B,pa,pb] : [B,A,pb,pa];
+    const dmg = CFG.DMG_BASE + Math.min(CFG.DMG_MAX, Math.floor((pw-pl)/CFG.DMG_DIV));
+    l.life -= dmg;
+    lines.push(`⚔️ ${w.name}（${pw}）勝 ${l.name}（${pl}），<span class="dmg">${l.name} -${dmg} 壽命</span>`);
+  });
+  if(bye!==null) lines.push(`🌙 ${S.players[bye].name} 本夜輪空`);
+  S.players.forEach(p=>{
+    if(!p.alive) return;
+    const drain = p.bag.reduce((s,x)=>s+(x.drain||0),0);
+    if(drain){ p.life -= drain; lines.push(`🩸 ${p.name} 受詛咒侵蝕 <span class="dmg">-${drain}</span>`); }
+  });
+  S.players.forEach(p=>{ if(p.alive && p.life<=0){ p.alive=false; p.life=0; lines.push(`💀 ${p.name} 壽命耗盡，消失在妖市裡`); } });
+  S.battleLines = lines;
+  showBattle();
+}
+function showBattle(){
+  renderTop();
+  $("screen").innerHTML = `<h2>⚔️ 第 ${S.round} 夜・結算戰</h2>
+    <div class="card">${S.battleLines.map(l=>`<div class="batline">${l}</div>`).join("")}</div>
+    <div class="card"><b>目前戰力</b>${S.players.filter(p=>p.alive).map(p=>`
+      <div class="bagit"><span>${p.name}（${faceLbl(p)}）</span><b>${power(p)}</b></div>`).join("")}</div>`;
+  const aliveN = S.players.filter(p=>p.alive).length;
+  const me = S.players[0];
+  if(!me.alive || aliveN<=1 || S.round>=CFG.ROUNDS){
+    $("mainbtn").textContent="看最終結果"; $("mainbtn").onclick=endGame;
+  } else {
+    $("mainbtn").textContent="進入下一夜"; $("mainbtn").onclick=nextRound;
+  }
+}
+function nextRound(){
+  S.round++;
+  S.market = S.nextMarket;
+  S.nextMarket = drawMarket();
+  showMarket();
+}
+function endGame(){
+  const rank = [...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0) || b.life-a.life);
+  const me = S.players[0];
+  const myRank = rank.indexOf(me)+1;
+  renderTop();
+  $("screen").innerHTML = `<div class="title">
+    <h1>${myRank===1?"🏆":"🏮"}</h1>
+    <h2 style="font-size:22px">${myRank===1?"你活到了天亮":"你是第 "+myRank+" 名"}</h2>
+    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${power(p)}）</div>`).join("")}
+  </div>`;
+  $("mainbtn").textContent="再入妖市"; $("mainbtn").onclick=newGame;
+}
+/* ================= 標題畫面 ================= */
+function titleScreen(){
+  $("screen").innerHTML = `<div class="title">
+    <h1>妖　市</h1>
+    <p>深夜的妖怪市集，壽命就是你的籌碼。<br>
+    競標祖靈、香火、陰氣三系法寶，<br>
+    把詛咒塞給別人，活到天亮。</p>
+    <p style="margin-top:14px;color:var(--gold)">v0.1 原型・佔位美術<br>規則會依試玩回饋調整</p>
+  </div>`;
+  $("footer").style.display="block";
+  $("budget").textContent="";
+  $("mainbtn").textContent="踏入妖市";
+  $("mainbtn").disabled=false;
+  $("mainbtn").onclick=newGame;
+}
+titleScreen();
+</script>
+</body>
+</html>
