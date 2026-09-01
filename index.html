@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>妖市 v0.3</title>
+<title>妖市 v0.4</title>
 <meta name="theme-color" content="#14101f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E">
@@ -22,18 +22,15 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
   font-size:14px;overflow:hidden}
-/* ---- 直式提醒 ---- */
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
 @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
 @media (orientation:portrait){ #rotateHint{display:flex} }
-/* ---- 標題 ---- */
-.title{text-align:center;padding:26px 20px;height:100%;display:flex;flex-direction:column;justify-content:center}
-.title h1{font-size:40px;color:var(--gold);letter-spacing:12px;margin-bottom:8px}
-.title p{color:var(--dim);font-size:13px;line-height:1.8}
-.title .bigbtn{max-width:260px;margin:16px auto 0}
-/* ---- 牌桌（grid 佈局） ---- */
+.title{text-align:center;padding:22px 20px;height:100%;display:flex;flex-direction:column;justify-content:center}
+.title h1{font-size:38px;color:var(--gold);letter-spacing:12px;margin-bottom:6px}
+.title p{color:var(--dim);font-size:13px;line-height:1.7}
+.title .btns{display:flex;gap:12px;justify-content:center;margin-top:14px}
 #table{display:none;height:100%;max-width:960px;margin:0 auto;
   grid-template-areas:"north north north" "west felt east" "south south south";
   grid-template-rows:56px 1fr 62px;grid-template-columns:120px 1fr 120px;gap:4px;padding:4px}
@@ -41,7 +38,6 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 #north{grid-area:north;display:flex;justify-content:center}
 #west{grid-area:west} #east{grid-area:east}
 #west,#east{display:flex;align-items:center}
-/* 座位 */
 .seat{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:5px 8px;cursor:pointer;transition:box-shadow .3s;width:100%}
 .seat.hl{box-shadow:0 0 12px var(--gold);border-color:var(--gold)}
@@ -53,13 +49,14 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .seat .st{font-size:10px;color:var(--dim);line-height:1.4}
 .seat .dir{position:absolute;top:-7px;left:8px;background:var(--table2);border:1px solid var(--line);
   border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
+.windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
+  font-size:10px;padding:0 5px;font-weight:bold}
 .bubble{position:absolute;z-index:9;background:#efe8d8;color:#2a2142;border-radius:10px;padding:4px 9px;
   font-size:12px;white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;
   box-shadow:0 2px 8px rgba(0,0,0,.5);left:50%;transform:translateX(-50%);top:calc(100% + 4px)}
 #west .bubble{left:calc(100% + 6px);top:50%;transform:translateY(-50%)}
 #east .bubble{left:auto;right:calc(100% + 6px);top:50%;transform:translateY(-50%)}
 .bubble.show{opacity:1}
-/* 桌面 */
 #felt{grid-area:felt;background:radial-gradient(ellipse at 50% 35%,var(--table2),var(--table));
   border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow-y:auto}
 #feltHead{text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
@@ -81,7 +78,6 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .fchip{display:inline-block;font-size:9px;border-radius:5px;padding:0 4px;margin-left:3px;color:#14101f;font-weight:bold}
 .f-zuling{background:var(--zuling)} .f-xianghuo{background:var(--xianghuo)}
 .f-yinqi{background:var(--yinqi)} .f-curse{background:var(--curse);color:#fff}
-/* 開標演出 */
 .stageCard{background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:8px 12px;
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
@@ -91,7 +87,6 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 .bidfly.win{background:var(--gold);color:#14101f;font-weight:bold}
 .outcome{margin-top:6px;color:var(--gold);font-size:12px;animation:pop .3s}
-/* 南位（你） */
 #south{grid-area:south;display:flex;align-items:center;gap:10px;background:var(--panel);
   border:1px solid var(--line);border-radius:12px;padding:5px 12px;position:relative}
 #south .dir{color:var(--gold);font-size:11px}
@@ -105,10 +100,11 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
   background:var(--panel2);color:var(--ink);padding:0 12px;font-size:12px}
 .bigbtn{height:44px;border-radius:10px;border:none;background:var(--gold);color:#14101f;
   font-size:15px;font-weight:bold;padding:0 22px}
+.bigbtn.alt{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 .bigbtn:disabled{opacity:.4}
 #skipbtn{position:absolute;top:6px;right:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);
   color:var(--dim);border-radius:8px;padding:2px 10px;font-size:11px;display:none;z-index:5}
-/* ---- 對決動畫場景 ---- */
+/* 對決場景 */
 #duel{display:none;position:fixed;inset:0;z-index:40;background:radial-gradient(ellipse at 50% 45%,#31204f,#0d0a16);
   flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 #duelArena{display:flex;align-items:center;justify-content:center;gap:34px;width:100%}
@@ -129,7 +125,12 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 #duelResult{margin-top:14px;font-size:16px;min-height:26px;text-align:center}
 #duelResult .dmg{font-size:20px;font-weight:bold}
 #duelSub{color:var(--dim);font-size:12px;margin-top:4px;min-height:18px;text-align:center}
-/* ---- 出價抽屜 / modal ---- */
+/* 熱座交棒 */
+#handoff{display:none;position:fixed;inset:0;z-index:50;background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+#handoff .hav{font-size:64px}
+#handoff .hnm{font-size:20px;color:var(--gold);font-weight:bold}
+/* 抽屜 / modal */
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:30;display:none;align-items:center;justify-content:center}
 #sheetbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;padding:14px 14px 16px;max-height:92vh;overflow-y:auto}
 #sheetbox h3{font-size:15px;margin-bottom:2px}
@@ -157,10 +158,13 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 <div id="titleScr" class="title">
   <h1>妖　市</h1>
   <p>深夜的妖怪牌桌，壽命就是你的籌碼。<br>
-  你坐南家，北西東三席妖怪買家環伺。<br>
-  競標祖靈、香火、陰氣三系法寶，把詛咒塞給別人，活到天亮。</p>
-  <button class="bigbtn" onclick="newGame()">踏入妖市</button>
-  <p style="margin-top:10px;color:var(--gold);font-size:11px">v0.3 原型・佔位美術・橫向牌桌</p>
+  競標祖靈、香火、陰氣三系法寶，把詛咒塞給別人，活到天亮。<br>
+  每夜風位輪轉（東→南→西→北），風位玩家當夜戰力＋3、平標優先。</p>
+  <div class="btns">
+    <button class="bigbtn" onclick="newGame('solo')">單人入市</button>
+    <button class="bigbtn alt" onclick="newGame('hotseat')">雙人熱座</button>
+  </div>
+  <p style="margin-top:10px;color:var(--gold);font-size:11px">v0.4 原型・佔位美術・橫向牌桌</p>
 </div>
 <div id="table">
   <div id="north"></div>
@@ -172,8 +176,8 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   </div>
   <div id="east"></div>
   <div id="south">
-    <span class="av">🧑</span>
-    <div><div class="dir">南・你</div><div class="life" id="myLife"></div></div>
+    <span class="av" id="myAv">🧑</span>
+    <div><div class="dir" id="myDir">南・你</div><div class="life" id="myLife"></div></div>
     <div class="mut" id="myPow"></div>
     <button class="side" onclick="showBag(0)">袋子</button>
     <div id="budget"></div>
@@ -183,6 +187,12 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 <div id="duel"><div class="flashfx" id="flashfx"></div>
   <div id="duelArena"></div>
   <div id="duelResult"></div><div id="duelSub"></div>
+</div>
+<div id="handoff">
+  <div class="hav" id="hoAv"></div>
+  <div class="hnm" id="hoNm"></div>
+  <div class="mut" id="hoTxt"></div>
+  <button class="bigbtn" id="hoBtn">開始出價</button>
 </div>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div id="sheetbox"></div></div>
 <div id="modal" onclick="if(event.target===this)closeModal()"><div id="modalbox"></div></div>
@@ -196,6 +206,8 @@ const CFG = {
   SET_MIN: 2,
   DMG_BASE: 3, DMG_DIV: 5, DMG_MAX: 6,
   CONS_CAP_DIV: 3,
+  WIND_POWER: 3,     /* 風位當夜戰力加成【試玩必調】 */
+  AI_DESTROY_P: 0.5, /* 最強 AI 對詛咒品下防禦性銷毀標的機率【試玩必調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 const FAC = {
@@ -252,40 +264,47 @@ const CURSES = [
   {n:"白虎煞",f:"curse",p:-3,d:"沖煞入宅",curse:true},
 ];
 const LINES = {
-  1:{av:"👹",win:["這件老子要定了！","嘿嘿，好貨入袋。"],lose:["嘖——誰出這麼高？","搶什麼搶！"],
+  1:{win:["這件老子要定了！","嘿嘿，好貨入袋。"],lose:["嘖——誰出這麼高？","搶什麼搶！"],
      poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]},
-  2:{av:"👵",win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
+  2:{win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
      poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]},
-  3:{av:"📜",win:["此物值此價，合算。","在下失禮了。"],lose:["溢價了，不追。"],
+  3:{win:["此物值此價，合算。","在下失禮了。"],lose:["溢價了，不追。"],
      poison:["非常抱歉，但棋局如此。"],poisoned:["豈有此理！"],bwin:["勝負早在標下時已定。"],blose:["失算…失算…"]},
 };
 const DIRS = {0:"南",1:"北",2:"西",3:"東"};
-const AV = {0:"🧑",1:"👹",2:"👵",3:"📜"};
+/* 風位輪轉：東→南→西→北（席位 pid：東=3 南=0 西=2 北=1） */
+const WIND_SEQ=[3,0,2,1], WIND_NAMES=["東風","南風","西風","北風"];
+const windPid=r=>WIND_SEQ[(r-1)%4];
+const windName=r=>WIND_NAMES[(r-1)%4];
 /* ================= 工具 ================= */
-let S=null, myBids=[], SKIP=false;
+let S=null, myBids=[], SKIP=false, ACTIVE=0;
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const sleep=ms=>new Promise(r=>setTimeout(r, SKIP?0:ms));
 const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
-/* ================= 引擎（與 v0.2 相同，未動規則骨架） ================= */
-function newGame(){
+const aliveHumans=()=>S.players.filter(p=>!p.ai&&p.alive);
+const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&has(p,"chair"));
+/* ================= 引擎 ================= */
+function newGame(mode){
   S={
-    round:1,
+    mode:mode||"solo", round:1,
     deck:shuffle([...POOL,...POOL].map(x=>({...x}))),
     cdeck:shuffle([...CURSES,...CURSES].map(x=>({...x}))),
     players:[
-      {id:0,name:"你",ai:null,life:CFG.LIFE,bag:[],alive:true},
-      {id:1,name:"青面攤主",ai:{aggr:0.85,spite:0.25},life:CFG.LIFE,bag:[],alive:true},
-      {id:2,name:"紅衣婆婆",ai:{aggr:0.6,spite:0.6},life:CFG.LIFE,bag:[],alive:true},
-      {id:3,name:"斷手書生",ai:{aggr:0.7,spite:0.4},life:CFG.LIFE,bag:[],alive:true},
+      {id:0,name:(mode==="hotseat"?"玩家一":"你"),av:"🧑",ai:null,life:CFG.LIFE,bag:[],alive:true},
+      mode==="hotseat"
+        ?{id:1,name:"玩家二",av:"🧔",ai:null,life:CFG.LIFE,bag:[],alive:true}
+        :{id:1,name:"青面攤主",av:"👹",ai:{aggr:0.85,spite:0.25},life:CFG.LIFE,bag:[],alive:true},
+      {id:2,name:"紅衣婆婆",av:"👵",ai:{aggr:0.6,spite:0.6},life:CFG.LIFE,bag:[],alive:true},
+      {id:3,name:"斷手書生",av:"📜",ai:{aggr:0.7,spite:0.4},life:CFG.LIFE,bag:[],alive:true},
     ],
-    wonAny:new Set(),
+    wonAny:new Set(), humanBids:{},
   };
   S.market=drawMarket(); S.nextMarket=drawMarket();
   $("titleScr").style.display="none";
   $("table").classList.add("on");
-  showMarket();
+  beginRound();
 }
 function drawMarket(){
   const m=[]; const hasCurse=Math.random()<CFG.CURSE_PROB && S.cdeck.length;
@@ -323,23 +342,34 @@ function consCapFor(p){
 function aiBids(p){
   const bids=S.market.map(()=>null);
   const budget=Math.floor(p.life*0.45);
+  let spent=0;
+  /* 詛咒品攻防獨立出價，不跟法寶搶「前二」名額 */
+  S.market.forEach((it,i)=>{
+    if(!it.curse)return;
+    const strongest=[...S.players].filter(q=>q.alive).sort((a,b)=>power(b)-power(a))[0];
+    let intent=null,target=null;
+    if(strongest.id===p.id && Math.random()<CFG.AI_DESTROY_P){
+      intent="keep"; /* 買下銷毀自保 */
+    }else if(Math.random()<p.ai.spite){
+      const foes=S.players.filter(q=>q.alive&&q.id!==p.id);
+      intent="poison"; target=foes.sort((a,b)=>power(b)-power(a))[0].id;
+    }
+    if(!intent)return;
+    const amt=Math.min(3+rnd(0,2), budget-spent, p.life-spent-1);
+    if(amt<=0)return;
+    const type=amt>consCapFor(p)?"yaming":"cons";
+    bids[i]={amt,type,intent,target};
+    spent+=amt;
+  });
   const opts=[];
   S.market.forEach((it,i)=>{
-    if(it.curse){
-      if(Math.random()<p.ai.spite){
-        const foes=S.players.filter(q=>q.alive&&q.id!==p.id);
-        const tgt=foes.sort((a,b)=>power(b)-power(a))[0];
-        opts.push({i,val:3+rnd(0,2),intent:"poison",target:tgt.id});
-      }
-      return;
-    }
+    if(it.curse)return;
     const c=p.bag.filter(x=>x.f===it.f).length;
     const marginal=(c+1>=CFG.SET_MIN)?(c+1)*(c+1)-(c>=CFG.SET_MIN?c*c:0):0;
     const val=it.p+marginal+(it.ab?2:0)+rnd(-2,2);
     opts.push({i,val,intent:"keep",target:null});
   });
   opts.sort((a,b)=>b.val-a.val);
-  let spent=0;
   for(const o of opts.slice(0,2)){
     let amt=Math.max(0,Math.round(o.val*p.ai.aggr)+rnd(-1,1));
     amt=Math.min(amt,budget-spent,p.life-spent);
@@ -354,7 +384,10 @@ function aiBids(p){
 function resolveAuction(){
   const all=S.players.map(p=>{
     if(!p.alive)return S.market.map(()=>null);
-    if(p.id===0)return myBids.map(b=>b.amt>0?{...b}:null);
+    if(!p.ai){
+      const hb=S.humanBids[p.id]||[];
+      return S.market.map((_,i)=>(hb[i]&&hb[i].amt>0)?{...hb[i]}:null);
+    }
     return aiBids(p);
   });
   const reveal=[];
@@ -367,7 +400,8 @@ function resolveAuction(){
       const eff=e=>e.amt+((e.intent==="poison"&&has(e.p,"redhat"))?2:0);
       const top=Math.max(...entries.map(eff));
       const tops=entries.filter(e=>eff(e)===top);
-      winner=tops[Math.floor(Math.random()*tops.length)];
+      /* 風位平標優先 */
+      winner = tops.find(e=>e.p.id===windPid(S.round)) || tops[Math.floor(Math.random()*tops.length)];
     }
     const events=[];
     entries.forEach(e=>{
@@ -422,13 +456,14 @@ function pairings(ids,round){
   }
   return{pairs,bye};
 }
+function battlePower(p){ return power(p)+(p.id===windPid(S.round)?CFG.WIND_POWER:0); }
 function resolveBattles(){
   const alive=S.players.filter(p=>p.alive).map(p=>p.id);
   const {pairs,bye}=pairings(alive,S.round-1);
   const fights=[];
   pairs.forEach(([a,b])=>{
     const A=S.players[a],B=S.players[b];
-    const pa=power(A),pb=power(B);
+    const pa=battlePower(A),pb=battlePower(B);
     if(pa===pb){fights.push({A,B,pa,pb,tie:true});return;}
     const [w,l,pw,pl]=pa>pb?[A,B,pa,pb]:[B,A,pb,pa];
     let dmg=CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor((pw-pl)/CFG.DMG_DIV));
@@ -455,10 +490,11 @@ function resolveBattles(){
 /* ================= 牌桌渲染 ================= */
 function seatHTML(id,hl){
   const p=S.players[id];
-  const lifeTxt=has(S.players[0],"chair")?`壽命 ${p.life}`:faceLbl(p);
+  const lifeTxt=chairSeen()?`壽命 ${p.life}`:faceLbl(p);
+  const wind=(id===windPid(S.round))?`<span class="windb">${windName(S.round)}</span>`:"";
   return `<div class="seat ${p.alive?"":"dead"} ${hl?"hl":""}" id="seat${id}" onclick="showBag(${id})">
-    <span class="dir">${DIRS[id]}</span>
-    <div class="av">${AV[id]}</div>
+    <span class="dir">${DIRS[id]}</span>${wind}
+    <div class="av">${p.av}</div>
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
     <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${power(p)}</div></div>
     <div class="bubble" id="bub${id}"></div>
@@ -470,10 +506,12 @@ function renderSeats(hlIds){
   $("west").innerHTML=seatHTML(2,hl(2));
   $("east").innerHTML=seatHTML(3,hl(3));
   const me=S.players[0];
-  $("myLife").textContent=me.life;
+  $("myAv").textContent=me.av;
+  $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
+  $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
-  $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${power(me)}</b>・袋 ${me.bag.length} 件`;
-  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜`;
+  $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${power(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
+  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
@@ -483,20 +521,44 @@ function say(id,txt){
   setTimeout(()=>b.classList.remove("show"), SKIP?300:2300);
 }
 function sayFrom(id,key){
+  if(!S.players[id].ai)return; /* 熱座的人類座位不說 AI 台詞 */
   const arr=LINES[id]&&LINES[id][key]; if(!arr||!arr.length)return;
   say(id,arr[Math.floor(Math.random()*arr.length)]);
 }
-/* ================= 出價階段 ================= */
+/* ================= 回合與出價階段 ================= */
+function beginRound(){
+  S.humanBids={};
+  const hs=aliveHumans();
+  if(!hs.length){ startRevealDirect(); return; } /* 人類全滅仍走完（理論上不會到這） */
+  ACTIVE=hs[0].id;
+  if(S.mode==="hotseat") showHandoff(ACTIVE, startBidUI);
+  else startBidUI();
+}
+function startBidUI(){
+  myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  showMarket();
+}
+function showHandoff(pid, cont){
+  const p=S.players[pid];
+  $("hoAv").textContent=p.av;
+  $("hoNm").textContent=`${DIRS[pid]}家・${p.name}`;
+  $("hoTxt").textContent="請把手機交給這位玩家，出價內容不會被對方看到";
+  $("hoBtn").onclick=()=>{$("handoff").style.display="none";cont();};
+  $("handoff").style.display="flex";
+}
 function showMarket(){
   SKIP=false; $("skipbtn").style.display="none";
-  myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:1}));
   renderSeats();
-  const pv=has(S.players[0],"bell")?S.nextMarket.slice(0,2):S.nextMarket.slice(0,1);
+  const ap=S.players[ACTIVE];
+  const pv=has(ap,"bell")?S.nextMarket.slice(0,2):S.nextMarket.slice(0,1);
+  const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
   $("stage").innerHTML=`
-    <div class="preview">🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}　<span class="mut">點拍品出價・可同時標多件</span></div>
+    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}　<span class="mut">點拍品出價・可同時標多件</span></div>
     <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
-  $("mainbtn").textContent="蓋牌開標";
-  $("mainbtn").onclick=startReveal;
+  const hs=aliveHumans();
+  const isLast=hs[hs.length-1].id===ACTIVE;
+  $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
+  $("mainbtn").onclick=submitHumanBids;
   updateBudget();
 }
 function mcardHTML(it,i){
@@ -513,8 +575,9 @@ let sheetIdx=null;
 function openSheet(i){
   sheetIdx=i;
   const it=S.market[i],b=myBids[i];
-  const aliveAI=S.players.filter(p=>p.id!==0&&p.alive);
-  const c=S.players[0].bag.filter(x=>x.f===it.f&&!x.curse).length;
+  const ap=S.players[ACTIVE];
+  const foes=S.players.filter(p=>p.alive&&p.id!==ACTIVE);
+  const c=ap.bag.filter(x=>x.f===it.f&&!x.curse).length;
   const syn=(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
   $("sheetbox").innerHTML=`
     <h3>${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
@@ -526,7 +589,7 @@ function openSheet(i){
       <button class="typebtn" id="shType" onclick="flipType()">保守標</button>
       ${it.curse?`<select class="tgtsel" id="shTgt" onchange="setTgt()">
         <option value="destroy">買下銷毀（自保）</option>
-        ${aliveAI.map(p=>`<option value="${p.id}">毒標塞給 ${DIRS[p.id]}家・${p.name}</option>`).join("")}
+        ${foes.map(p=>`<option value="${p.id}">毒標塞給 ${DIRS[p.id]}家・${p.name}</option>`).join("")}
       </select>`:""}
     </div>
     <div class="capnote" id="shCap"></div>
@@ -538,18 +601,18 @@ function openSheet(i){
 function bump(d){
   const b=myBids[sheetIdx];
   b.amt=Math.max(0,b.amt+d);
-  if(b.type==="cons"&&b.amt>consCapFor(S.players[0]))b.type="yaming";
+  if(b.type==="cons"&&b.amt>consCapFor(S.players[ACTIVE]))b.type="yaming";
   paintSheet();updateBudget();
 }
 function flipType(){
   const b=myBids[sheetIdx];
   if(b.type==="cons")b.type="yaming";
-  else{b.type="cons";const cap=consCapFor(S.players[0]);if(b.amt>cap)b.amt=cap;}
+  else{b.type="cons";const cap=consCapFor(S.players[ACTIVE]);if(b.amt>cap)b.amt=cap;}
   paintSheet();updateBudget();
 }
 function setTgt(){
   const v=$("shTgt").value,b=myBids[sheetIdx];
-  if(v==="destroy"){b.intent="keep";}else{b.intent="poison";b.target=+v;}
+  if(v==="destroy"){b.intent="keep";b.target=null;}else{b.intent="poison";b.target=+v;}
 }
 function paintSheet(){
   const b=myBids[sheetIdx];
@@ -558,7 +621,7 @@ function paintSheet(){
   t.textContent=b.type==="cons"?"保守標":"押命標";
   t.className="typebtn"+(b.type==="yaming"?" yaming":"");
   $("shCap").textContent=b.type==="cons"
-    ?`保守標：落標全額退還，上限 ${consCapFor(S.players[0])}`
+    ?`保守標：落標全額退還，上限 ${consCapFor(S.players[ACTIVE])}`
     :`押命標：無上限，落標仍失一半出價`;
 }
 function closeSheet(){
@@ -568,13 +631,26 @@ function closeSheet(){
   updateBudget();
 }
 function updateBudget(){
+  const ap=S.players[ACTIVE];
   const tot=myBids.reduce((s,b)=>s+b.amt,0);
   const el=$("budget");
-  el.innerHTML=`出價合計 <b>${tot}</b> ／ 壽命 ${S.players[0].life}`;
-  el.className=tot>S.players[0].life?"over":"";
-  $("mainbtn").disabled=tot>S.players[0].life;
+  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b> ／ 壽命 ${ap.life}`;
+  el.className=tot>ap.life?"over":"";
+  $("mainbtn").disabled=tot>ap.life;
+}
+function submitHumanBids(){
+  S.humanBids[ACTIVE]=myBids;
+  const hs=aliveHumans();
+  const idx=hs.findIndex(p=>p.id===ACTIVE);
+  if(idx<hs.length-1){
+    ACTIVE=hs[idx+1].id;
+    showHandoff(ACTIVE, startBidUI);
+  }else{
+    startReveal();
+  }
 }
 /* ================= 開標演出 ================= */
+function startRevealDirect(){ startReveal(); }
 async function startReveal(){
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
@@ -601,13 +677,12 @@ async function startReveal(){
       }
     }
     $("outzone").innerHTML=`<div class="outcome">${r.outcome}</div>`;
-    if(r.winner&&r.winner.p.id!==0){
+    if(r.winner){
       sayFrom(r.winner.p.id, r.winner.intent==="poison"?"poison":"win");
-    }else if(r.winner&&r.winner.p.id===0){
-      const losers=r.entries.filter(e=>e!==r.winner&&e.p.id!==0);
-      if(losers.length)sayFrom(losers[0].p.id,"lose");
+      const losers=r.entries.filter(e=>e!==r.winner);
+      if(losers.length&&!r.winner.p.ai)sayFrom(losers[0].p.id,"lose");
+      if(r.winner.intent==="poison")sayFrom(r.winner.target,"poisoned");
     }
-    if(r.winner&&r.winner.intent==="poison"&&r.winner.target!==0)sayFrom(r.winner.target,"poisoned");
     for(const ev of r.events){
       $("outzone").insertAdjacentHTML("beforeend",`<div class="outcome">${ev.txt}</div>`);
       await sleep(CFG.T*0.6);
@@ -620,18 +695,18 @@ async function startReveal(){
   $("mainbtn").onclick=startBattle;
   $("skipbtn").style.display="none";
 }
-/* ================= 對決動畫（獨立場景，單獨呈現交手兩人） ================= */
+/* ================= 對決動畫 ================= */
 async function playDuel(f){
   const ov=$("duel");
   ov.style.display="flex";
+  const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
-    <div class="fighter" id="dL"><div class="fdir">${DIRS[f.A.id]}家</div>
-      <div class="fav">${AV[f.A.id]}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div></div>
+    <div class="fighter" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
+      <div class="fav">${f.A.av}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div></div>
     <div class="vsbig">VS</div>
-    <div class="fighter" id="dR"><div class="fdir">${DIRS[f.B.id]}家</div>
-      <div class="fav">${AV[f.B.id]}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div></div>`;
+    <div class="fighter" id="dR"><div class="fdir">${DIRS[f.B.id]}家${wtag(f.B.id)}</div>
+      <div class="fav">${f.B.av}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div></div>`;
   $("duelResult").innerHTML="";$("duelSub").innerHTML="";
-  /* 戰力數字跳動 */
   const steps=SKIP?1:12;
   for(let k=1;k<=steps;k++){
     $("pwL").textContent=Math.round(f.pa*k/steps);
@@ -643,7 +718,6 @@ async function playDuel(f){
     $("duelResult").innerHTML=`<span class="mut">勢均力敵，互不失血</span>`;
     await sleep(CFG.T*1.2);
   }else{
-    /* 衝撞 */
     $("dL").classList.add("charge-l");$("dR").classList.add("charge-r");
     await sleep(380);
     const fx=$("flashfx");fx.classList.remove("on");void fx.offsetWidth;fx.classList.add("on");
@@ -666,7 +740,7 @@ async function startBattle(){
     renderSeats([f.A.id,f.B.id]);
     await playDuel(f);
     renderSeats();
-    if(!f.tie){ if(f.w.id!==0)sayFrom(f.w.id,"bwin"); else if(f.l.id!==0)sayFrom(f.l.id,"blose"); }
+    if(!f.tie){ sayFrom(f.w.id,"bwin"); if(f.l.ai)sayFrom(f.l.id,"blose"); }
     await sleep(CFG.T*0.4);
   }
   const stage=$("stage");
@@ -679,8 +753,7 @@ async function startBattle(){
   renderSeats();
   $("skipbtn").style.display="none";
   const aliveN=S.players.filter(p=>p.alive).length;
-  const me=S.players[0];
-  if(!me.alive||aliveN<=1||S.round>=CFG.ROUNDS){
+  if(!aliveHumans().length||aliveN<=1||S.round>=CFG.ROUNDS){
     $("mainbtn").textContent="看最終結果";$("mainbtn").onclick=endGame;
   }else{
     $("mainbtn").textContent="進入下一夜";$("mainbtn").onclick=nextRound;
@@ -689,18 +762,25 @@ async function startBattle(){
 }
 function nextRound(){
   S.round++;S.market=S.nextMarket;S.nextMarket=drawMarket();
-  showMarket();
+  beginRound();
 }
 function endGame(){
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
-  const me=S.players[0],myRank=rank.indexOf(me)+1;
   renderSeats();
+  let head;
+  if(S.mode==="hotseat"){
+    const r1=rank.indexOf(S.players[0])+1, r2=rank.indexOf(S.players[1])+1;
+    head=`玩家一 第 ${r1} 名 ・ 玩家二 第 ${r2} 名`;
+  }else{
+    const myRank=rank.indexOf(S.players[0])+1;
+    head=myRank===1?"你活到了天亮":"你是第 "+myRank+" 名";
+  }
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
-    <div style="font-size:34px">${myRank===1?"🏆":"🏮"}</div>
-    <h2 style="font-size:18px">${myRank===1?"你活到了天亮":"你是第 "+myRank+" 名"}</h2>
+    <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
+    <h2 style="font-size:18px">${head}</h2>
     ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${power(p)}）</div>`).join("")}
   </div>`;
-  $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=newGame;$("mainbtn").disabled=false;
+  $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
 /* ================= 袋子檢視 ================= */
 function showBag(pid){
@@ -714,7 +794,7 @@ function showBag(pid){
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
       ${x.ab?`<span class="abtxt">✦ ${ABTXT[x.ab]}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
     ${bonus}
-    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力</b><b style="color:var(--gold)">${power(p)}</b></div>
+    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力</b><b style="color:var(--gold)">${power(p)}${pid===windPid(S.round)?`（+${CFG.WIND_POWER} ${windName(S.round)}）`:""}</b></div>
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }
