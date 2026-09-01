@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>妖市 v0.4</title>
+<title>妖市 v0.5</title>
 <meta name="theme-color" content="#14101f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E">
@@ -146,6 +146,11 @@ button,select,.mcard,.seat,.stepper{touch-action:manipulation}
   color:var(--ink);padding:0 12px;font-size:13px}
 .typebtn.yaming{border-color:var(--red);color:var(--red)}
 .capnote{font-size:11px;color:var(--dim);width:100%}
+.bloodbar{margin-top:7px;background:rgba(0,0,0,.25);border:1px solid var(--red);border-radius:10px;
+  padding:6px 9px;text-align:center}
+.bloodbtn{height:34px;border-radius:9px;border:1px solid var(--red);background:var(--panel2);
+  color:var(--red);padding:0 12px;font-size:12px}
+.bloodbtn:disabled{opacity:.35}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;display:none;align-items:center;justify-content:center}
 #modalbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;max-height:88vh;overflow-y:auto;padding:14px}
 .bagit{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
@@ -167,7 +172,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <button class="bigbtn" onclick="newGame('solo')">單人入市</button>
     <button class="bigbtn alt" onclick="newGame('hotseat')">雙人熱座</button>
   </div>
-  <p style="margin-top:10px;color:var(--gold);font-size:11px">v0.4 原型・佔位美術・橫向牌桌</p>
+  <p style="margin-top:10px;color:var(--gold);font-size:11px">v0.5 原型・佔位美術・命格系統</p>
 </div>
 <div id="table">
   <div id="north"></div>
@@ -211,6 +216,17 @@ const CFG = {
   CONS_CAP_DIV: 3,
   WIND_POWER: 3,     /* 風位當夜戰力加成【試玩必調】 */
   AI_DESTROY_P: 0.5, /* 最強 AI 對詛咒品下防禦性銷毀標的機率【試玩必調】 */
+  /* 命格系統（GAME_DESIGN §六之二）——係數全部【試玩必調】 */
+  BLOOD_COST: 2,     /* 獻祭刀：一次放血的壽命成本 */
+  BLOOD_GAIN: 3,     /* 獻祭刀：一次放血換得的本夜戰力 */
+  BLOOD_FLOOR: 1,    /* 放血後壽命不得低於此值（使用者裁定 2026-09-02） */
+  /* AI 放血參數＝2026-09-02 模擬器判讀結果（n=2000，座位0 splitter 基礎策略）：
+     不放血 59.4% ／ keep=15,k=1 59.2% ／ keep=8,k=3 57.3% ／ keep=1,k=∞ 48.4%
+     → 放血在現行 2:3 匯率下嚴格劣於不放血，且匯率開到 2:25 仍然不划算（根因是傷害公式
+     每 5 點戰力差才多 1 傷害、上限 +6，而壽命本身就是勝利資源）。故 AI 一律不放血。
+     ★獻祭刀的匯率／機制待使用者裁定後再開啟（K 改回 1~3 即可恢復）★ */
+  AI_BLOOD_T: 15,    /* AI 放血後願意保留的壽命下限 */
+  AI_BLOOD_K: 0,     /* AI 每夜放血次數上限；0＝不放血（模擬器判讀結果）【試玩必調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 const FAC = {
@@ -297,6 +313,43 @@ const ABILITIES = {
     } }},
   buoy:{id:"buoy",name:"水鬼浮標",desc:"共鳴計算時，陰氣視為多 1 件",
     hooks:{ onFacCount(ctx){ if(ctx.faction==="yinqi") ctx.count++; } }},
+
+  /* --- 命格道具（GAME_DESIGN §六之二）：壽命↔戰力連動，全部只掛 onPowerCalc --- */
+  /* 搏命流：壽命越低越強 */
+  pojun:{id:"pojun",name:"破軍旗",desc:"壽命每低於 20 一點，戰力 +0.6（上限 +12）",
+    hooks:{ onPowerCalc(ctx){
+      ctx.flat += Math.min(12, Math.max(0, 20-ctx.p.life) * 0.6);
+    } }},
+  sigui:{id:"sigui",name:"飼鬼甕",desc:"壽命每低於 15 一點，戰力 +1（上限 +12）",
+    hooks:{ onPowerCalc(ctx){
+      ctx.flat += Math.min(12, Math.max(0, 15-ctx.p.life) * 1);
+    } }},
+  guoyin:{id:"guoyin",name:"過陰咒",desc:"壽命低於 15 時，本夜共鳴效果加倍",
+    hooks:{ onPowerCalc(ctx){
+      if(ctx.p.life < 15) ctx.resonanceMul *= 2;
+    } }},
+  /* 守財流：壽命越高越強 */
+  fushou:{id:"fushou",name:"福壽綿長",desc:"壽命每高於 40 一點，戰力 +0.5（無上限）",
+    hooks:{ onPowerCalc(ctx){
+      ctx.flat += Math.max(0, ctx.p.life-40) * 0.5;
+    } }},
+  shanshen:{id:"shanshen",name:"山神庇佑",desc:"壽命 30 以上時，共鳴加成額外 +50%",
+    hooks:{ onPowerCalc(ctx){
+      if(ctx.p.life >= 30) ctx.resonanceMul *= 1.5;
+    } }},
+  /* 主動轉換：出價階段可主動放血（UI 掛點靠 bloodlet flag，數值靠 traits） */
+  xianji:{id:"xianji",name:"獻祭刀",
+    desc:`出價階段可放血：每 ${CFG.BLOOD_COST} 壽命換本夜戰力 +${CFG.BLOOD_GAIN}（可重複）`,
+    flags:["bloodlet"], traits:{bloodCost:CFG.BLOOD_COST, bloodGain:CFG.BLOOD_GAIN},
+    hooks:{
+      onPowerCalc(ctx){ ctx.flat += (ctx.p.sacrificed||0) * traitMax(ctx.p,"bloodGain",CFG.BLOOD_GAIN); },
+      /* AI 的放血決策寫在這裡（不寫進 aiBids，引擎不得認得道具 id）。
+         門檻與次數由 CFG.AI_BLOOD_T / AI_BLOOD_K 控制，數值來源見 docs/GAME_DESIGN.md 六之二。 */
+      onAiPlan(ctx){
+        const p=ctx.p; if(!p.ai) return;
+        bleed(p, CFG.AI_BLOOD_T, CFG.AI_BLOOD_K);
+      },
+    }},
 };
 const abDesc = ab => (ABILITIES[ab] && ABILITIES[ab].desc) || "";
 
@@ -520,6 +573,8 @@ const POOL = [
   {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火"},
   {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟"},
   {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙"},
+  {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈"},
+  {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人"},
   {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令"},
   {n:"王爺劍",f:"xianghuo",p:6,ab:"sword",d:"代天巡狩的斬瘟之劍"},
   {n:"送王船",f:"xianghuo",p:6,ab:"wangchuan",d:"載走瘟神的燒王船"},
@@ -527,6 +582,8 @@ const POOL = [
   {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗"},
   {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印"},
   {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰"},
+  {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮"},
+  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣"},
   {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽"},
   {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪"},
   {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅"},
@@ -534,6 +591,8 @@ const POOL = [
   {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的"},
   {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音"},
   {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見"},
+  {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話"},
+  {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命"},
 ];
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
@@ -577,6 +636,16 @@ const rnd=(a,b)=>a+Math.floor(S.rng()*(b-a+1));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(S.rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const sleep=ms=>new Promise(r=>setTimeout(r, SKIP?0:ms));
 const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
+/* 獻祭放血的唯一實作（玩家 UI、AI hook、模擬器策略三邊共用同一份，避免三份各自漂移）。
+   keep＝放完血後願意保留的壽命下限；k＝本夜最多放幾次。回傳實際放血次數。 */
+function bleed(p,keep,k){
+  if(!hasFlag(p,"bloodlet")) return 0;
+  const cost=traitMax(p,"bloodCost",CFG.BLOOD_COST);
+  const floor=Math.max(CFG.BLOOD_FLOOR, keep);
+  let n=0;
+  while(n<k && p.life-cost>=floor){ p.life-=cost; p.sacrificed++; n++; }
+  return n;
+}
 const aliveHumans=()=>S.players.filter(p=>!p.ai&&p.alive);
 /* 是否有活著的人類看得穿實際壽命（誰給的能力由 flags 決定，引擎不認得道具 id） */
 const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&hasFlag(p,"xrayLife"));
@@ -836,6 +905,8 @@ function resolveBattles(){
   });
   const deaths=[];
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
+  /* 獻祭放血只在本夜生效：夜末一律歸零（正常遊戲、playPolicyGame、simulate 三條迴圈共用此處） */
+  S.players.forEach(p=>{p.sacrificed=0;});
   return{fights,bye,nightly,deaths};
 }
 /* ================= 牌桌渲染 ================= */
@@ -907,12 +978,27 @@ function showMarket(){
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
   $("stage").innerHTML=`
     <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}　<span class="mut">點拍品出價・可同時標多件</span></div>
-    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
+    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>
+    ${bloodHTML(ap)}`;
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
   $("mainbtn").onclick=submitHumanBids;
   updateBudget();
+}
+/* 獻祭放血條：只有持有 bloodlet flag（目前＝獻祭刀）的出價者看得到 */
+function bloodHTML(ap){
+  if(!hasFlag(ap,"bloodlet")) return "";
+  const cost=traitMax(ap,"bloodCost",CFG.BLOOD_COST), gain=traitMax(ap,"bloodGain",CFG.BLOOD_GAIN);
+  const can=ap.life-cost>=CFG.BLOOD_FLOOR;
+  const done=ap.sacrificed?`　<span class="mut">本夜已放 ${ap.sacrificed} 次・戰力 +${ap.sacrificed*gain}</span>`:"";
+  return `<div class="bloodbar">
+    <button class="bloodbtn" onclick="doSacrifice()" ${can?"":"disabled"}>🔪 獻祭放血　−${cost} 壽命／本夜戰力 +${gain}</button>${done}
+    <div class="mut" style="margin-top:4px">${can?`放血同時壓縮你的出價預算（預算＝壽命），壽命不得低於 ${CFG.BLOOD_FLOOR}`:`壽命不足，無法再放血（下限 ${CFG.BLOOD_FLOOR}）`}</div>
+  </div>`;
+}
+function doSacrifice(){
+  if(bleed(S.players[ACTIVE], CFG.BLOOD_FLOOR, 1)) showMarket();
 }
 function mcardHTML(it,i){
   const b=myBids[i];
@@ -1206,6 +1292,13 @@ function policySplitter(p){
   order.slice(0,Math.min(3,order.length)).forEach(i=>{ bids[i]={amt,type:"cons",intent:"keep",target:null}; });
   return bids;
 }
+/* 把任一策略包成「先放血再出價」——用來窮舉獻祭刀的最佳用法（keep 越低＝越敢壓命）。
+   放血發生在出價之前，所以會同步壓縮該夜預算（預算＝壽命），代價是真的。 */
+function withBleed(baseFn,keep,k){
+  const f=p=>{ bleed(p,keep,k); return baseFn(p); };
+  f.bleedParams={keep,k};
+  return f;
+}
 const POLICIES={ greedy:policyGreedy, hoarder:policyHoarder, splitter:policySplitter };
 /* 無頭跑一整局，供 runMany 統計聚合用。不重用/不修改 simulate()，避免任何動到既有等價基準的風險——
    完全靠 makeState/resolveAuction/resolveBattles/power 這些既有唯讀引擎函式組成，邏輯零重寫。 */
@@ -1416,7 +1509,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
-  runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES,
+  runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE } };
 /* ================= ?sim=1 平衡模擬器／窮舉器工具頁（獨立於正常遊戲頁，不共用 DOM） ================= */
