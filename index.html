@@ -1462,7 +1462,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.11", VERSION_NOTE="美術與音效：版畫頭像・燈籠配色・三段動畫・合成音效";
+const VERSION="0.12", VERSION_NOTE="盯上反應只在對手卡顯示（選角與自己座位不顯示）";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2990,7 +2990,9 @@ function closeModal(){$("modal").style.display="none";}
 /* 角色被動說明的共用 HTML（選角畫面／座位卡「ⓘ」都呼叫這支，不得各自複製一份分句邏輯）：
    desc 慣例「X流（起始N）。被動：…。AI 時…」——首段做徽章、其餘按「。」各自成行，
    AI 行為是開發者資訊，一律過濾掉不顯示（2026-09-02 試玩回饋，見 IMPLEMENTATION_GUIDE §11.7／11.8）。 */
-function roleDescHTML(roleId){
+/* showMark：盯上反應型只在「這個角色是 AI 對手」時才有意義（人類操作不走 markReact）。
+   選角畫面（選自己）與自己座位的 ⓘ 不顯示；對手座位 ⓘ 顯示（§5.8 公開資訊）。2026-09-03 使用者裁定乙 */
+function roleDescHTML(roleId,showMark){
   const R=ROLES[roleId];
   if(!R||!R.desc) return "";
   const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
@@ -2999,14 +3001,14 @@ function roleDescHTML(roleId){
   return `<div class="descHead"><b><span class="avi">${roleAvHTML(R)}</span> ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${roleLife0(R)}</span></div>`
     +seg.map(t=>`<div class="descRow">${t}</div>`).join("")
     /* 盯上反應是公開資訊（§5.8）：玩家靠它決定對這個人要誠實還是虛張 */
-    +((CFG.MARK_ON&&R.ai&&R.ai.markReact)?`<div class="descRow">👁 盯上反應：${MARK_REACT_TXT[R.ai.markReact]}</div>`:"");
+    +((showMark&&CFG.MARK_ON&&R.ai&&R.ai.markReact)?`<div class="descRow">👁 盯上反應：${MARK_REACT_TXT[R.ai.markReact]}</div>`:"");
 }
 /* 座位卡「ⓘ」：牌桌上點任一席（自己或 AI）都能重看角色被動——被動是公開資訊，隨時可查（試玩回饋）。
    熱座模式下同樣只顯示角色公開資訊，不夾帶心願／袋中詛咒品／封注金額等私有內容。 */
 function showRoleInfo(pid){
   const p=S.players[pid];
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}</h2>
-    ${roleDescHTML(p.roleId)}
+    ${roleDescHTML(p.roleId,!!p.ai)}
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }
@@ -3044,7 +3046,7 @@ function renderSelect(){
   const R=SEL.cur?ROLES[SEL.cur]:null;
   /* desc 慣例「X流（起始N）。被動：…。AI 時…」的分句／過濾邏輯抽成 roleDescHTML()，
      座位卡「ⓘ」鈕重用同一支，不得各自複製一份（2026-09-02 試玩回饋） */
-  $("selDesc").innerHTML=R?roleDescHTML(SEL.cur):"點一個角色，看被動與起始壽命";
+  $("selDesc").innerHTML=R?roleDescHTML(SEL.cur,false):"點一個角色，看被動與起始壽命";
   $("selBtn").disabled=!R;
   $("selBtn").textContent=SEL.mode==="hotseat"&&SEL.picks.length===0?"確定，換玩家二":"入市";
 }
