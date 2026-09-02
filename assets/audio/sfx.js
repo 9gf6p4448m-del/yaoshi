@@ -19,7 +19,7 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   /* 白噪音緩衝：長度固定 2 秒，每個 ctx 只做一次。內容用固定種子的 LCG 產生，
-     不用 Math.random——同一個 ctx 的取樣率下逐次相同。 */
+     不用瀏覽器內建亂數——同一個 ctx 的取樣率下逐次相同。 */
   function noiseBuffer(ctx) {
     if (ctx.__ysNoise) return ctx.__ysNoise;
     const len = Math.floor(ctx.sampleRate * 2), buf = ctx.createBuffer(1, len, ctx.sampleRate);
