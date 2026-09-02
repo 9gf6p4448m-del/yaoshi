@@ -281,6 +281,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div class="mut" id="myPow"></div>
     <button class="side" onclick="showBag(0)">袋子</button>
     <button class="side roleInfoBtn" onclick="showRoleInfo(0)" title="角色資訊">ⓘ</button>
+    <button class="side" id="sfxBtn" onclick="toggleSfx()" title="音效開關">🔊</button>
     <!-- 獻祭放血：原本是牌桌上獨立的 .bloodbar 一整列，現在改掛在底部這一列（袋子／ⓘ 旁）。
          行為完全不變，點下去走的還是同一支 doSacrifice() -->
     <button class="side bloodbtn" id="bloodBtn" onclick="doSacrifice()" style="display:none"></button>
@@ -1702,6 +1703,7 @@ function newGame(mode,seed,picks){
   makeState(mode,seed,picks);
   $("titleScr").style.display="none";
   $("table").classList.add("on");
+  windStart(); /* 燈籠風聲環境音（純演出） */
   beginRound();
 }
 function drawMarket(forRound){
@@ -2251,8 +2253,36 @@ const STAMPED={};
 function markStampHTML(id){
   if(!CFG.MARK_ON||!S||!S.marks||S.marks[id]==null) return "";
   const k=S.round+":"+id, first=!STAMPED[k]; STAMPED[k]=true;
+  if(first) sfx("stamp",{rnd:S.rngUi()});
   return `<img class="mark-stamp${first?" anim-stamp-in":""}" src="assets/ui/mark-stamp.svg" alt="盯">`;
 }
+/* ===== 音效（assets/audio/sfx.js，純 Web Audio 合成；紀律見 art-integration-guide §8.3）=====
+   只在演出層呼叫；SKIP 快轉不播；rnd 一律傳 S.rngUi()（演出流），永遠不碰玩法流的那支亂數。
+   引擎函式（resolveAuction／resolveBattles／simulate）裡零呼叫——headless 載入時 YS_SFX 根本不存在。 */
+const SFX_KEY="ys_sfx";
+function sfxOn(){ return typeof YS_SFX!=="undefined"&&YS_SFX.enabled; }
+function sfx(name,opts){ if(SKIP||!sfxOn()) return false; return YS_SFX.play(name,opts); }
+function initSfx(){
+  if(typeof YS_SFX==="undefined") return;
+  try{ if(localStorage.getItem(SFX_KEY)==="off") YS_SFX.enabled=false; }catch(e){}
+  YS_SFX.unlock();
+  const b=$("sfxBtn"); if(b) b.textContent=YS_SFX.enabled?"🔊":"🔇";
+  if(!initSfx.bound){ /* 所有按鈕統一一聲木魚：委派一次，不逐顆掛 */
+    initSfx.bound=true;
+    document.addEventListener("click",e=>{ if(e.target&&e.target.closest&&e.target.closest("button")) sfx("woodfish",{rnd:S?S.rngUi():0.5}); });
+  }
+}
+function toggleSfx(){
+  if(typeof YS_SFX==="undefined") return;
+  YS_SFX.enabled=!YS_SFX.enabled; if(YS_SFX.enabled) YS_SFX.unlock();
+  try{ localStorage.setItem(SFX_KEY,YS_SFX.enabled?"on":"off"); }catch(e){}
+  $("sfxBtn").textContent=YS_SFX.enabled?"🔊":"🔇";
+  if(YS_SFX.enabled) windStart(); else windStop();
+}
+/* 燈籠風聲：唯一的持續音，8 秒淡入淡出、每 7 秒接一段；牌桌開啟時起、局末停 */
+let WIND_T=null;
+function windStart(){ windStop(); if(!sfxOn()) return; const tick=()=>{ if(!SKIP) YS_SFX.play("wind",{dur:8,rnd:S?S.rngUi():0.5}); }; tick(); WIND_T=setInterval(tick,7000); }
+function windStop(){ if(WIND_T){ clearInterval(WIND_T); WIND_T=null; } }
 function say(id,txt){
   const b=$("bub"+id); if(!b)return;
   b.textContent=txt; b.classList.add("show");
@@ -2701,6 +2731,7 @@ async function startReveal(){
     </div>`;
     await waitMain("開標 ▸");
   }
+  sfx("gong",{rnd:S.rngUi()}); /* 開市鑼 */
   for(const r of rv.reveal){
     renderSeats();
     veil(true); await sleep(450); /* 開標揭曉①：先黑幕，燈籠再亮（art-integration-guide §5.1） */
@@ -2748,6 +2779,7 @@ async function startReveal(){
       }
     }
     if(r.winner){
+      sfx("bell",{rnd:S.rngUi()});
       sayFrom(r.winner.p.id, r.winner.intent==="poison"?"poison":"win");
       const losers=r.entries.filter(e=>e!==r.winner);
       if(losers.length&&!r.winner.p.ai)sayFrom(losers[0].p.id,"lose");
@@ -2781,6 +2813,7 @@ async function startReveal(){
 async function playDuel(f){
   const ov=$("duel");
   ov.style.display="flex"; void ov.offsetWidth; ov.classList.add("on"); /* 切入：0.3s 淡入（§5.2） */
+  sfx("whoosh",{rnd:S.rngUi()});
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
     <div class="fighter anim-clash-left" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
@@ -2803,11 +2836,13 @@ async function playDuel(f){
     /* 碰撞：重新觸發入場那支 clash keyframe（45%→60% 段互推），380ms 後正好撞上、閃光 */
     for(const [id,c] of [["dL","anim-clash-left"],["dR","anim-clash-right"]]){ const el=$(id); el.classList.remove(c); void el.offsetWidth; el.classList.add(c); }
     await sleep(380);
+    sfx("cymbal",{rnd:S.rngUi()});
     const fx=$("flashfx");fx.classList.remove("on");void fx.offsetWidth;fx.classList.add("on");
     const loserEl=f.l===f.A?$("dL"):$("dR");
     loserEl.classList.remove("anim-clash-left","anim-clash-right"); /* 同一元素一次只能跑一支 animation，讓位給 shake */
     loserEl.classList.add("shake");
     loserEl.style.opacity=".55";
+    sfx("hurt",{rnd:S.rngUi()});
     $("duelResult").innerHTML=`${f.w.name} 勝！<span class="dmg anim-stamp-in">${f.l.name} −${f.dmg} 壽命</span>`;
     const dd=Math.round(Math.abs(f.pa-f.pb));
     const base=CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor(dd/CFG.DMG_DIV));
@@ -2834,7 +2869,7 @@ async function startBattle(){
   const bz=$("bz");
   if(bye!==null)bz.insertAdjacentHTML("beforeend",`<div class="mut" style="padding:2px 0">🌙 ${S.players[bye].name} 本夜輪空</div>`);
   for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
-  for(const d of deaths){bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);await sleep(CFG.T*0.7);}
+  for(const d of deaths){sfx("death");bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);await sleep(CFG.T*0.7);}
   if(bye===null&&!nightly.length&&!deaths.length)bz.innerHTML=`<div class="mut" style="padding:2px 0">本夜無其他異動</div>`;
   for(const f of fights) bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）`}</div>`);
   if(NLIFE0) S.players.filter(p=>!p.ai).forEach(p=>{
@@ -2853,10 +2888,12 @@ async function startBattle(){
   $("mainbtn").disabled=false;
 }
 function nextRound(){
+  sfx("dawn"); /* 天明 */
   S.round++;S.market=S.nextMarket;S.nextMarket=drawMarketFor(S.round+1);
   beginRound();
 }
 function endGame(){
+  windStop();
   stripEndgameItems();
   finalizeHistory();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
@@ -2969,6 +3006,7 @@ function showRoleInfo(pid){
 /* ================= 選角畫面（SELECT_ON=true 時的開局入口） ================= */
 let SEL={mode:null,picks:[],cur:null};
 async function startEntry(mode){
+  initSfx(); /* 音效：在這個使用者手勢裡解鎖 AudioContext（art-integration-guide §8.1） */
   await preloadArt(); /* 頭像 SVG 在這個使用者手勢裡一次抓齊；抓不到（file:／離線）退回 emoji，不擋開局 */
   if(SELECT_ON) openSelect(mode);
   else newGame(mode); /* kill switch：退回 v0.5 固定座位直接開局 */
@@ -3553,5 +3591,7 @@ if(!SIM_MODE){
   document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
 }
 </script>
+<!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
+<script src="assets/audio/sfx.js"></script>
 </body>
 </html>
