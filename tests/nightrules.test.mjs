@@ -65,6 +65,10 @@ const WARES=()=>[
   {n:"測試法寶丁",f:"zuling",p:2,d:"治具"},
 ];
 const bid=(amt,type,intent,target)=>({amt,type:type||'cons',intent:intent||'keep',target:target===undefined?null:target});
+/* sbid＝真人在押寶夜 UI 已經封好的一注（submitHumanBids 會給每筆蓋 stake:true）。
+   引擎靠這個記號分辨「真人的一注」與「AI／策略的多筆計畫」——後者才會被加總成一注（待辦 16）。
+   舊版（9707cac 以前）不認得這個欄位，多帶一個屬性不影響舊版行為，鑑別力不變。 */
+const sbid=(amt,type,intent,target)=>({...bid(amt,type,intent,target),stake:true});
 const row=(pairs)=>{ const r=[null,null,null,null]; Object.keys(pairs).forEach(i=>{ r[i]=pairs[i]; }); return r; };
 
 console.log(`\n今夜市集規則 行為測試　目標檔：${TARGET}\n`);
@@ -257,8 +261,8 @@ test('一注壓 3 件、其中 2 件都最高 → 只得開標順序第一件，
   const G=loadGame(TARGET), S=setup(G,'yabao');
   neutralSeats(S); S.market=WARES();
   S.humanBids={
-    0:row({0:bid(6,'cons'),1:bid(6,'cons'),2:bid(6,'cons')}), /* 甲、乙兩件是最高價 */
-    1:row({2:bid(9,'cons')}),
+    0:row({0:sbid(6,'cons'),1:sbid(6,'cons'),2:sbid(6,'cons')}), /* 甲、乙兩件是最高價 */
+    1:row({2:sbid(9,'cons')}),
   };
   G.resolveAuction();
   eq(S.players[0].bag.length,1,`得標件數（袋子：${JSON.stringify(S.players[0].bag.map(x=>x.n))}）`);
@@ -269,8 +273,8 @@ test('一注全落標，只依型態付一次落標費（買路錢也只收一�
   const G=loadGame(TARGET), S=setup(G,'yabao');
   neutralSeats(S); S.market=WARES();
   S.humanBids={
-    0:row({0:bid(4,'cons'),1:bid(4,'cons'),2:bid(4,'cons')}),
-    1:row({0:bid(9,'cons')}), 2:row({1:bid(9,'cons')}), 3:row({2:bid(9,'cons')}),
+    0:row({0:sbid(4,'cons'),1:sbid(4,'cons'),2:sbid(4,'cons')}),
+    1:row({0:sbid(9,'cons')}), 2:row({1:sbid(9,'cons')}), 3:row({2:sbid(9,'cons')}),
   };
   G.resolveAuction();
   const once=Math.ceil(4*G.CFG.CONS_LOSE_FRAC)+G.CFG.BID_FEE;
@@ -281,7 +285,7 @@ test('詛咒品本夜不開標：毒標整筆作廢、不入任何人袋',()=>{
   const G=loadGame(TARGET), S=setup(G,'yabao');
   neutralSeats(S);
   S.market=WARES(); S.market[3]={...G.CURSES[0]};
-  S.humanBids={0:row({3:bid(5,'cons','poison',1)})};
+  S.humanBids={0:row({3:sbid(5,'cons','poison',1)})};
   const reveal=G.resolveAuction();
   eq(reveal[3].winner?reveal[3].winner.p.name:null,null,'詛咒品那一件的得標者（本夜不開標＝必流標）');
   eq(S.players[1].bag.length,0,'被指定的毒標對象袋中件數');

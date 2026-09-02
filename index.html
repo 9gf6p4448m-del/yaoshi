@@ -75,17 +75,11 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
-/* 今夜市集規則：規則夜的常駐說明條＋押寶夜的「一注」輸入條 */
-.rulebar{background:rgba(0,0,0,.3);border:1px solid var(--red);border-radius:9px;padding:2px 9px;
-  font-size:11px;color:#ffd9d0;margin-bottom:5px;text-align:center;line-height:1.45}
-.rulebar b{color:var(--gold)}
+/* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
+.rulein{color:#ffd9d0;margin-left:6px}
+.rulein b{color:var(--gold)}
 .stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:9px;
   padding:3px 9px;text-align:center}
-/* 「一注」條與「放血」條同時出現時並排，不各佔一整列（844×390 的桌面沒有那麼多高度） */
-.barrow{display:flex;gap:6px;align-items:stretch}
-.barrow>*{min-width:0;margin:0 0 5px}
-/* 「一注」條只佔內容寬，剩下的寬度留給放血條——否則放血條的說明被擠成多行，反而更高 */
-.barrow>.stakebar{flex:0 1 auto} .barrow>.bloodbar{flex:1 1 auto}
 .stakerow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:nowrap}
 .stakebar .stepper{display:flex;align-items:center}
 .stakebar .stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
@@ -203,11 +197,10 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
   color:var(--ink);padding:0 12px;font-size:13px}
 .typebtn.yaming{border-color:var(--red);color:var(--red)}
 .capnote{font-size:11px;color:var(--dim);width:100%}
-.bloodbar{margin-top:7px;background:rgba(0,0,0,.25);border:1px solid var(--red);border-radius:10px;
-  padding:6px 9px;text-align:center}
-.bloodbtn{height:34px;border-radius:9px;border:1px solid var(--red);background:var(--panel2);
-  color:var(--red);padding:0 12px;font-size:12px}
-.bloodbtn:disabled{opacity:.35}
+/* 獻祭放血鈕：牌桌上不再占一列，改成 #south 底部列的一顆緊湊鈕（C2） */
+#south button.side.bloodbtn{border-color:var(--red);color:var(--red);font-size:11px;
+  padding:0 9px;white-space:nowrap;line-height:1.25}
+#south button.side.bloodbtn:disabled{opacity:.4}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;display:none;align-items:center;justify-content:center}
 #modalbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;max-height:88vh;overflow-y:auto;padding:14px}
 .bagit{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
@@ -247,6 +240,9 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div class="mut" id="myPow"></div>
     <button class="side" onclick="showBag(0)">袋子</button>
     <button class="side roleInfoBtn" onclick="showRoleInfo(0)" title="角色資訊">ⓘ</button>
+    <!-- 獻祭放血：原本是牌桌上獨立的 .bloodbar 一整列，現在改掛在底部這一列（袋子／ⓘ 旁）。
+         行為完全不變，點下去走的還是同一支 doSacrifice() -->
+    <button class="side bloodbtn" id="bloodBtn" onclick="doSacrifice()" style="display:none"></button>
     <div id="budget"></div>
     <button class="bigbtn" id="mainbtn"></button>
   </div>
@@ -1269,7 +1265,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.7", VERSION_NOTE="今夜市集規則＋買路錢＋座位ⓘ角色小卡";
+const VERSION="0.7.1", VERSION_NOTE="保守標伺服端夾＋放血鈕下移＋押寶夜 AI 一注預算";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1614,16 +1610,45 @@ function strongestFoe(pid){
   return foes.sort((a,b)=>power(b)-power(a))[0];
 }
 /* 押寶夜（singleStake）的 headless 轉換：把「多筆自由拆分的出價」壓成規則要求的「一注多押」——
-   X＝原本最大的那筆金額、勾選＝所有原本出過價的法寶、型態＝金額最大那筆的型態；
-   詛咒品與毒標本夜不開標一併去掉。寫在引擎裡，aiBids() 與 POLICIES 的策略碼一個字都不用改。 */
-function toSingleStake(row){
+   勾選＝所有原本出過價的法寶、型態＝金額最大那筆的型態；詛咒品與毒標本夜不開標一併去掉。
+   寫在引擎裡，aiBids() 與 POLICIES 的策略碼一個字都不用改。
+
+   X 怎麼定（ARCH_SPEC §9 待辦 16，2026-09-02）：
+   - **真人**在 UI 就已經封好一注（每個勾選格同一個 X），交卷時每筆帶 `stake:true` 進來——照原樣過，
+     不加總、不夾上限，真人完全不受這一段影響。
+   - **AI／策略**吐的是「多筆自由拆分的出價」，X＝原本那些出價裡「會被結算的那幾筆」的金額**總和**（不是最大那筆）。
+     舊版取最大值等於「本來想花 3 筆的錢，現在只花 1 筆的錢壓 3 件」，分散型策略在押寶夜白撿一大截；
+     改成加總才是「把原本要花的預算集中成一注」。之後過 onAiStake 讓角色可以再改寫，
+     最後由引擎依型態夾上限（保守標＝consCapFor、押命標＝壽命−1），hook 改完也要過這道。 */
+function toSingleStake(row,p){
   const act=row.map((b,i)=>({b,i}))
     .filter(x=>x.b&&x.b.amt>0&&!S.market[x.i].curse&&x.b.intent!=="poison");
   const out=S.market.map(()=>null);
   if(!act.length) return out;
   let best=act[0];
   for(const x of act) if(x.b.amt>best.b.amt) best=x; /* 同額取索引小者（穩定、不消耗亂數） */
-  act.forEach(x=>{ out[x.i]={amt:best.b.amt,type:best.b.type,intent:"keep",target:null}; });
+  if(act.some(x=>x.b.stake)){                        /* 真人封好的一注：原樣過 */
+    act.forEach(x=>{ out[x.i]={amt:best.b.amt,type:best.b.type,intent:"keep",target:null}; });
+    return out;
+  }
+  /* hook 8.6 onAiStake：押寶夜的「這一注下多少、什麼型態、壓哪幾件」。
+     ctx={p,picks,amt,type}；預設 amt＝會被結算的前 MAX_BIDS 筆總和（D1'）、type＝最大那筆、picks＝原本出過價的那幾格。
+     這裡不得出現任何角色 id 比對（鐵則 2.4）——要改就往 ROLES 填一筆 onAiStake。 */
+  /* X 的範圍（D1'，2026-09-02 使用者裁定甲）＝「在一般夜真的會進開標的那幾筆」的金額總和。
+     押寶夜刻意不套 CFG.MAX_BIDS（勾幾件本來就不受限），所以加總前先照一般夜的規則挑出會被結算的
+     前 N 筆——金額大者先、同額取索引小者（Array.sort 穩定，零亂數消耗）；MAX_BIDS=0（無上限）時全取。
+     不先挑的話，會把「一般夜本來就會被裁掉、根本不會付錢」的那幾筆也算進 X，等於憑空放大 AI 的預算。
+     **勾選集不受這一步影響**：被裁掉的那幾格仍然被這一注壓著，只是不計入 X。 */
+  const paid=CFG.MAX_BIDS>0
+    ? [...act].sort((x,y)=>y.b.amt-x.b.amt).slice(0,CFG.MAX_BIDS)
+    : act;
+  const ctx={p,picks:act.map(x=>x.i),amt:paid.reduce((n,x)=>n+x.b.amt,0),type:best.b.type};
+  applyHooks("onAiStake",ctx,p);
+  /* 型態上限夾（引擎硬底線）：保守標吃 consCapFor，押命標最多押到只剩 1 條命 */
+  const cap=ctx.type==="cons"?consCapFor(p):Math.max(0,p.life-1);
+  const amt=Math.max(0,Math.min(Math.floor(ctx.amt),cap));
+  if(amt<=0) return out;
+  ctx.picks.forEach(i=>{ if(out[i]!==undefined) out[i]={amt,type:ctx.type,intent:"keep",target:null}; });
   return out;
 }
 function resolveAuction(){
@@ -1661,7 +1686,7 @@ function resolveAuction(){
     if(!foe){ row[i]=null; return; }               /* 沒有對手可塞才作廢 */
     row[i]={...row[i],intent:"poison",target:foe.id};
   }));
-  if(single) all=all.map(row=>toSingleStake(row));
+  if(single) all=all.map((row,pid)=>toSingleStake(row,S.players[pid]));
   /* 每夜出價件數上限（CFG.MAX_BIDS）：每人只保留金額最大的前 N 筆有效標，其餘作廢。
      排序決定性：金額大者先、同額取索引小者（Array.sort 為穩定排序，不消耗亂數）。
      一注多押的規則夜不套用——那一夜「勾幾件」本來就不受此限（費用只收一次，不會超額失血）。 */
@@ -1686,7 +1711,14 @@ function resolveAuction(){
     S.players.forEach(p=>{const b=all[p.id][i];if(b){
       /* 最多得一件：本夜已得標者自動退出其餘（不比價、不收費） */
       if(single&&S.wonAny.has(p.id)){ withdrawn.push({p,...b}); return; }
-      entries.push({p,...b});S.bidAny.add(p.id);
+      const e={p,...b};
+      /* 保守標上限的伺服端夾（ARCH_SPEC §9 待辦 20）：bump／flipType／ybBump／ybFlip 只在按鍵當下比對
+         consCapFor，之後獻祭放血（doSacrifice）壓低壽命只重繪不重驗，會留下超上限的保守標——落標只付
+         CONS_LOSE_FRAC 而不是押命標的一半。這裡用「結算當下的壽命」重算上限，超過就一律以押命標結算；
+         UI 那層的夾只是提示。押寶夜的一注路徑走的是同一段（entries 由 all 展開而來），三條迴圈共用這一點。
+         型態改了之後開標演出（showTypes）與押命標落標統計自然跟著改，因為兩者都讀這個 e.type。 */
+      if(e.type==="cons"&&e.amt>consCapFor(p)) e.type="yaming";
+      entries.push(e);S.bidAny.add(p.id);
     }});
     let winner=null, effs=[], top=null;
     if(entries.length){
@@ -2032,6 +2064,7 @@ function showHandoff(pid, cont){
   /* 雙保險：交棒遮罩本身是不透明全屏，但仍先把上一位的私有心願列從 stage 撤掉，
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
   document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .mybid,#stage .pickbox").forEach(el=>el.remove());
+  hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
   $("hoAv").textContent=p.av;
   $("hoNm").textContent=`${DIRS[pid]}家・${p.name}`;
@@ -2051,29 +2084,38 @@ function showMarket(){
     ? `封一注、勾要壓的法寶${CFG.BID_FEE>0?`・買路錢只收 ${CFG.BID_FEE}`:""}`
     : `點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆買路錢 ${CFG.BID_FEE}`:""}`;
   $("stage").innerHTML=`
-    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span></div>
-    ${(rl&&!stake)?`<div class="rulebar">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></div>`:""}
+    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span>${
+      /* 今夜市集規則的說明併進這個「每夜都在」的虛線框（異事的 hint 也共用同一欄），不再另開一列——
+         #felt 的高度預算是零餘裕，多一個有邊框的區塊就是多 25~34px 的溢出。文案沒動，只換了位置。 */
+      /* 押寶夜維持原樣不併入：它本來就沒有 .rulebar 那一列（說明寫在一注條裡），
+         把規則說明再塞進預告框只會多推一行、把溢出從 33 推到 49（實測）。 */
+      (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
     ${wishBarHTML(ap)}
-    ${(()=>{const sb=stakeHTML(ap),bb=bloodHTML(ap);
-        return (sb&&bb)?`<div class="barrow">${sb}${bb}</div>`:(sb+bb);})()}
+    ${stakeHTML(ap)}
     <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
   $("mainbtn").onclick=submitHumanBids;
+  renderBloodBtn(ap);   /* 放血鈕在底部列，跟著出價畫面一起重繪 */
   updateBudget();
 }
-/* 獻祭放血條：只有持有 bloodlet flag（目前＝獻祭刀）的出價者看得到 */
-function bloodHTML(ap){
-  if(!hasFlag(ap,"bloodlet")) return "";
+/* 獻祭放血：只有持有 bloodlet flag（目前＝獻祭刀）的出價者看得到。
+   它本來是牌桌上獨立的 .bloodbar 一整列，2026-09-02 改掛到底部 #south（袋子／ⓘ 旁）——
+   #felt 在 844×390 的高度預算是零餘裕，一般夜就已經剛好用滿，多一列就是溢出。
+   成本、遞增、次數、下限的語意完全不變，長句說明改放在 title（長按／滑鼠停留看得到）。 */
+function renderBloodBtn(ap){
+  const b=$("bloodBtn"); if(!b) return;
+  if(!ap||!hasFlag(ap,"bloodlet")){ b.style.display="none"; return; }
   const cost=traitMax(ap,"bloodCost",CFG.BLOOD_COST)*((ap.sacrificed||0)+1);
   const can=ap.life-cost>=CFG.BLOOD_FLOOR;
-  const done=ap.sacrificed?`　<span class="mut">本夜已放 ${ap.sacrificed} 次</span>`:"";
-  return `<div class="bloodbar">
-    <button class="bloodbtn" onclick="doSacrifice()" ${can?"":"disabled"}>🔪 獻祭放血　自損 ${cost}／所有對手各失 ${CFG.BLOOD_DRAIN}</button>${done}
-    <div class="mut" style="margin-top:4px">${can?`成本逐次遞增，放血同時壓縮你的出價預算，壽命不得低於 ${CFG.BLOOD_FLOOR}`:`壽命不足，無法再放血（下限 ${CFG.BLOOD_FLOOR}）`}</div>
-  </div>`;
+  b.style.display="";
+  b.disabled=!can;
+  b.innerHTML=`🔪 放血 自損 ${cost}／敵 −${CFG.BLOOD_DRAIN}${ap.sacrificed?`・本夜已 ${ap.sacrificed} 次`:""}`;
+  b.title=can?`獻祭放血：自損 ${cost} 壽命（成本逐次遞增），所有對手各失 ${CFG.BLOOD_DRAIN}；放血同時壓縮你的出價預算，壽命不得低於 ${CFG.BLOOD_FLOOR}`
+             :`壽命不足，無法再放血（下限 ${CFG.BLOOD_FLOOR}）`;
 }
+function hideBloodBtn(){ const b=$("bloodBtn"); if(b) b.style.display="none"; }
 function doSacrifice(){
   if(bleed(S.players[ACTIVE], CFG.BLOOD_FLOOR, 1)) showMarket();
 }
@@ -2230,10 +2272,12 @@ function updateBudget(){
   $("mainbtn").disabled=tot>cap;
 }
 function submitHumanBids(){
+  hideBloodBtn();   /* 交卷後不再是出價階段，底部列的放血鈕收起來 */
   /* 押寶夜：交卷時才把「一注 X ＋ 勾選」展開成引擎吃的 bids 形狀（同一個 X 出現在每件勾選上） */
   if(YB) myBids=S.market.map((it,i)=>
-    (YB.pick[i]&&YB.amt>0&&!it.curse)?{amt:YB.amt,type:YB.type,intent:"keep",target:null}
-                                     :{amt:0,type:YB.type,intent:"keep",target:null});
+    /* stake:true＝「這一列是真人在 UI 已經封好的一注」，toSingleStake 看到它就不加總、不夾上限 */
+    (YB.pick[i]&&YB.amt>0&&!it.curse)?{amt:YB.amt,type:YB.type,intent:"keep",target:null,stake:true}
+                                     :{amt:0,type:YB.type,intent:"keep",target:null,stake:true});
   S.humanBids[ACTIVE]=myBids;
   const hs=aliveHumans();
   const idx=hs.findIndex(p=>p.id===ACTIVE);
