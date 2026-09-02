@@ -98,7 +98,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
-.markb{position:absolute;left:4px;top:4px;font-size:10px;background:rgba(0,0,0,.45);border:1px solid #c9a24a;border-radius:8px;padding:0 5px;color:#ffd97a}
+/* 盯上徽章掛在卡角外側左上（與右上的 .mybid 對稱），不壓品名（v0.11 修正：原本 left:4px;top:4px 蓋住 .nm） */
+.markb{position:absolute;left:-4px;top:-7px;font-size:9.5px;line-height:12px;background:var(--panel2);border:1px solid #c9a24a;border-radius:8px;padding:0 5px;color:#ffd97a;z-index:2;white-space:nowrap}
 /* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
 .rulein{color:#ffd9d0;margin-left:6px}
 .rulein b{color:var(--gold)}
