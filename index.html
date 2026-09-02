@@ -469,9 +469,16 @@ const ROLES = {
   human:{id:"human",name:"你",av:"🧑",ai:null,lines:null,hooks:{}},
   /* 干擾型：跟標（追殺人類上一夜得標的陣營）＋虛張標（推高別人的認知價） */
   qingmian:{id:"qingmian",name:"青面攤主",av:"👹",pool:true,
-    desc:"干擾流。AI 時跟標追殺你上一夜得標的陣營、偶爾下虛張押命標。玩家被動（比價 +2）尚未實作＝目前是 40 壽命白板",
+    desc:"干擾流。被動：對手上一夜得標陣營的拍品，你出價比價時視為 +2（實付不變）。AI 時跟標追殺你上一夜得標的陣營、偶爾下虛張押命標",
     ai:{aggr:0.85,spite:0.25},
     hooks:{
+      /* 玩家被動（GAME_DESIGN §六之三A）：對手上一夜得標陣營的拍品，比價 eff +2（實付照舊） */
+      onBidEff(ctx){
+        for(const q of S.players){
+          if(q.id===ctx.p.id) continue;
+          if(S.lastWon[q.id]===ctx.item.f){ ctx.eff+=2; break; }
+        }
+      },
       /* 跟標：人類上一夜得標的那一系，我加價搶，斷他的共鳴 */
       onAiValue(ctx){
         for(const q of S.players){
@@ -499,7 +506,7 @@ const ROLES = {
       poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
   /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
   hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",pool:true,
-    desc:"復仇流。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人。玩家被動（被毒時下手者 −2）尚未實作＝目前是 40 壽命白板",
+    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
     ai:{aggr:0.6,spite:0.6},
     hooks:{
       onBidSettle(ctx){                              /* 被搶標 +1 */
@@ -508,9 +515,11 @@ const ROLES = {
         if(w===null||w===undefined||w===ctx.p.id) return;
         ctx.p.grudge[w]=(ctx.p.grudge[w]||0)+1;
       },
-      onWinItem(ctx){                                /* 被毒標塞中 +2（跨玩家 hook，要自己認人） */
+      onWinItem(ctx){                                /* 被毒標塞中：記仇 +2＋玩家被動（下手者 −2，GAME_DESIGN §六之三A） */
         if(!ctx.target||ctx.target.roleId!=="hongyi") return;
         ctx.target.grudge[ctx.winner.id]=(ctx.target.grudge[ctx.winner.id]||0)+2;
+        ctx.winner.life-=2;
+        ctx.events.push({txt:`👵 ${ctx.target.name} 回瞪一眼，${ctx.winner.name} -2`});
       },
       onBattle(ctx){                                 /* 被擊敗 +1（跨玩家 hook，要自己認人） */
         if(ctx.l.roleId!=="hongyi") return;
@@ -536,9 +545,13 @@ const ROLES = {
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
-    desc:"專精流。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈。玩家被動（同系第 4 件共鳴 +4）尚未實作＝目前是 40 壽命白板",
+    desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴額外 +4。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
     ai:{aggr:0.7,spite:0.4},
     hooks:{
+      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴額外 +4 */
+      onPowerCalc(ctx){
+        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4) ctx.flat+=4; }
+      },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
       onAiAmount(ctx){
@@ -2126,7 +2139,8 @@ function renderSelect(){
      擠在一行裡自然換行會把句子斷在莫名其妙的位置（2026-09-02 試玩回饋） */
   $("selDesc").innerHTML=R
     ?(()=>{
-      const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean);
+      const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
+        .filter(t=>!t.startsWith("AI 時")); /* AI 行為是開發者資訊，選角不顯示（2026-09-02 試玩回饋） */
       const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
       return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${R.life0||CFG.LIFE}</span></div>`
         +seg.map(t=>`<div class="descRow">${t}</div>`).join("");
