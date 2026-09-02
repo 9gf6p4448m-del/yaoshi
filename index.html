@@ -284,6 +284,7 @@ const CFG = {
   /* AI 預設打法旋鈕（ARCH_SPEC 待辦 22；預設值＝改動前行為，trace 不變）：
      AI_IDLE_P＝每夜整夜按兵不動的機率（0 時不耗亂數）；AI_THROTTLE＝計畫內出價的預算節流比例 */
   AI_IDLE_P: 0, AI_THROTTLE: 0.45,
+  NIGHT_REGEN: 0, /* 節奏實驗旋鈕：每夜夜末存活者回血（0＝關，trace 不變）【待裁定，正式值未定】 */
   /* 命格系統（GAME_DESIGN §六之二）——係數全部【試玩必調】 */
   BLOOD_COST: 2,     /* 獻祭刀：第 n 次放血成本 = n×BLOOD_COST（遞增，甲′裁定）【試玩必調】 */
   BLOOD_DRAIN: 4,    /* 獻祭刀：每次放血「所有對手」各失的壽命（甲′裁定；整合版實測 −2 被心願回血稀釋到無感、−4 條件勝率 54.5% 有感不破格）【試玩必調】 */
@@ -1407,7 +1408,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.8", VERSION_NOTE="心願牌庫擴充至 24 張（新增 16 張）";
+const VERSION="0.8.1", VERSION_NOTE="開標前公告出價人數＋險勝／惜敗提示";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1999,6 +2000,7 @@ function resolveBattles(){
      「讓東家失血」這類跨玩家條件才不會因遍歷順序讀到半套結果。
      此時尚未蓋出局旗——壽命歸零者若靠心願獎勵回到正值，視同被心願救回（與拼板舟等夜末回血同一語意）。 */
   S.players.forEach(p=>{ if(p.alive) judgeWish(p,nightly); });
+  if(CFG.NIGHT_REGEN>0) S.players.forEach(p=>{ if(p.alive&&p.life>0){ p.life+=CFG.NIGHT_REGEN; } }); /* 節奏實驗旋鈕（預設 0） */
   /* 異事後效（ARCH_SPEC §3.10 順序最後）：陰間放貸每夜攤還；身故勾銷；不計入東窗 extLoss（待辦14裁定） */
   if(S.debts) S.players.forEach(p=>{
     const d=S.debts[p.id];
@@ -2467,11 +2469,23 @@ async function startReveal(){
     stage.innerHTML=`<div class="stageCard">${S.bleedLog.map(t=>`<div class="big" style="font-size:16px">${t}</div>`).join("")}</div>`;
     await sleep(CFG.T*1.4);
   }
+  /* 開標前公告（2026-09-02 使用者裁定，回應「開標沒驚喜」）：先亮各件「幾人出價」再逐件開——
+     密封標不變、金額不揭，但開之前有東西可猜可推。純呈現層，不動結算。 */
+  const nBid=r=>r.entries.length?`${r.entries.length} 人出價`:"無人出價";
+  const meIn=r=>(S.mode!=="hotseat"&&r.entries.some(e=>!e.p.ai))?`<span class="mut" style="font-size:10px">（含你）</span>`:"";
+  if(rv.showEntries){
+    renderSeats();
+    stage.innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🔔 開標前公告・各件出價人數</div>
+      ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${nBid(r)}${meIn(r)}</span></div>`).join("")}
+    </div>`;
+    await waitMain("開標 ▸");
+  }
   for(const r of rv.reveal){
     renderSeats();
     stage.innerHTML=`<div class="stageCard">
       <div class="big">${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
       <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
+      <div class="mut" style="font-size:12px">${rv.showEntries?nBid(r):""}</div>
       <div id="flyzone"></div><div id="outzone"></div>
     </div>`;
     await sleep(CFG.T*0.8);
@@ -2497,6 +2511,19 @@ async function startReveal(){
       }
     }
     $("outzone").innerHTML=`<div class="outcome">${r.outcome}</div>`;
+    /* 險勝／惜敗（真人牽涉、差距 ≤1 才打）：讓「差一點」被看見，密封標的驚喜點就在這一行 */
+    if(r.winner&&r.entries.length>=2&&rv.showEntries){
+      const byAmt=[...r.entries].sort((a,b)=>b.amt-a.amt);
+      const second=byAmt.find(e=>e!==r.winner);
+      const margin=r.winner.amt-second.amt;
+      const who=p=>(!p.ai&&S.mode!=="hotseat")?"你":p.name;
+      if(margin<=1&&(!r.winner.p.ai||!second.p.ai)){
+        const txt=margin===0?`⚖ 平標！${who(r.winner.p)}靠風位／籤運壓過 ${who(second.p)}`
+          :(!r.winner.p.ai?`⚡ 險勝！只比 ${second.p.name} 多 1 壽命`:`💢 惜敗！${who(second.p)}只差 1 壽命`);
+        $("outzone").insertAdjacentHTML("beforeend",`<div class="outcome">${txt}</div>`);
+        await sleep(CFG.T*0.5);
+      }
+    }
     if(r.winner){
       sayFrom(r.winner.p.id, r.winner.intent==="poison"?"poison":"win");
       const losers=r.entries.filter(e=>e!==r.winner);
