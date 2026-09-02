@@ -16,7 +16,7 @@
 1. [30 秒認識這個專案](#1-30-秒認識這個專案)
 2. [鐵則（違反就等於做壞了）](#2-鐵則違反就等於做壞了)
 3. [五張資料表的欄位定義](#3-五張資料表的欄位定義)
-4. [12 個 Hook 契約速查表](#4-12-個-hook-契約速查表)
+4. [13 個 Hook 契約速查表](#4-13-個-hook-契約速查表)
 5. [逐步範例（照抄可用）](#5-逐步範例照抄可用)
 6. [工具用法](#6-工具用法)
 7. [改動後的強制檢查清單](#7-改動後的強制檢查清單)
@@ -171,7 +171,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 
 ---
 
-## 4. 12 個 Hook 契約速查表
+## 4. 13 個 Hook 契約速查表
 
 **分派機制**（`index.html:532-560`）：`collectEffects(p, order)` 依序收集「p 的角色 → p 袋中每件
 有 `ab` 的道具（依袋中順序）→ `S.nightRule` → `S.event`」，去重後依 `order` 數字排序；
@@ -194,6 +194,11 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 | 10 | `onNightEnd` | `resolveBattles():904` | `{p, log}` | 直接改 `p.life`，可 push `ctx.log` | `p`（單一），且 `HOOK_ORDER.onNightEnd="itemsFirst"`——**道具先於角色**跑 |
 | 11 | `onMarketDraw` | `drawMarket():698` | `{market, round}` | `ctx.market`（可整個改寫拍品陣列） | `null`（只取全域 `nightRule`／`event`，與玩家無關） |
 | 12 | `onReveal` | `startReveal():1100` | `{reveal, viewerId, showEntries, showTypes}` | `ctx.showEntries`／`ctx.showTypes`（是否顯示出價明細/標書型態） | `S.players[viewerId]`（單一） |
+| 13 | `onNightEndGlobal` | `resolveBattles():1823` | `{log}` | 「不屬於任何一位玩家」的夜末後效，直接改 `S` 的相關欄位，可 push `ctx.log`（例：收祟夜把流標詛咒品硬塞給本夜未出手者中壽命最高者） | `null`（只取全域 `nightRule`／`event`，跟 `onMarketDraw` 同類） |
+
+**`onNightEndGlobal` 何時跑**：在 `resolveBattles()` 的最後、逐人 `onNightEnd`（第 10 個 hook）與
+異事後效都跑完之後才跑一次，**刻意不呼叫 `onWinItem`**（規格：下手者＝無，不觸發紅衣婆婆記仇、
+不算 typeLeak）。目前唯一用到它的是收祟夜的強制塞袋規則（`NIGHTRULES`）。
 
 > 平標決勝順序（`resolveAuction`，第 826-829 行）：`onBidEff` 算完所有出價的有效值 → 取最大值 →
 > 平手時**風位優先**（`windPid(S.round)`）→ 仍平則 `S.rng()` 隨機決。
@@ -534,14 +539,26 @@ console.log(JSON.stringify(result) === JSON.stringify(baseline) ? '完全相等'
 每次改完 `index.html` 都要照這份清單勾過一遍，不能只跑一部分就宣告完成：
 
 - [ ] **等價性判斷（先分類，再決定怎麼比對）**：
+
+  **正式規程（2026-09-02 定案，`ARCH_SPEC.md` §9 待辦 13 已結案）**：`tests/baseline-traces.json`
+  （錄於 `7d3bfa8`，AI 決策層上線後必然對不上）與 `tests/baseline-v2-ai.json`（`market` 欄位是
+  物件，現行 `simulate()` 只輸出名稱字串，錄製時用的 trace 函式已不在 HEAD）**兩份基準檔目前都
+  無法用現行 `trace()` 重播，只供歷史參考，不得再拿來當比對基準**。等價性驗證改用：
+  1. `git show <改動前的 commit>:index.html > old.html`，取出改動前的版本；
+  2. 用**同一支現行** `trace()`（第 6.4 節那段腳本，只把 `readFileSync` 的路徑分別指向 `old.html`
+     與改動後的 `index.html`）各自對 `seeds 1..20` 各跑一次；
+  3. 兩次輸出各自 `JSON.stringify`，逐位元組比對；
+  4. **雙向檢查，不得只驗一半**：判定用的開關／新內容關閉時必須**相等**，開啟時必須**不相等**
+     （只驗關閉的話，「新內容根本沒進牌局」這種缺陷會靜默通過）。
+
+  依上述規程分類決定拿哪個版本當「改動前」比對、以及預期相等還是不等：
   - [ ] 若改動的是**既有行為**（改了現有 hook 的實作、改了 `CFG` 裡的數值、改了現有資料表項目的
-        效果、把某個新角色排進了 `MODES.seats`）→ 用第 6.4 節的腳本重新產生 `trace(1..20)`，
-        必須跟 `tests/baseline-traces.json` **逐位元組相等**，除非你能明確指出「差在哪、為什麼」
-        且那個差異是你**有意識**要做的改動（不是意外）。
+        效果、把某個新角色排進了 `MODES.seats`）→ 新舊版必須**逐位元組相等**，除非你能明確指出
+        「差在哪、為什麼」且那個差異是你**有意識**要做的改動（不是意外）。
   - [ ] 若是**純新增**、而且新內容**沒有**被排進 `POOL`／`CURSES`／`MODES.seats`（例如：新 `ROLES`
         項目沒動 `MODES`、`WISHES`/`EVENTS`/`NIGHTRULES` 新增項目）→ 一樣跑 `trace(1..20)`，
-        **必須跟基準逐位元組相等**（因為沒有任何東西進入牌局或座位表，亂數消耗序列完全沒變）。
-  - [ ] 若新增內容進了 `POOL`／`CURSES`（新法寶、新命格道具、新詛咒品）→ `trace()` 基準比對
+        **必須跟改動前版本逐位元組相等**（因為沒有任何東西進入牌局或座位表，亂數消耗序列完全沒變）。
+  - [ ] 若新增內容進了 `POOL`／`CURSES`（新法寶、新命格道具、新詛咒品）→ 跟改動前版本比對
         **預期會出現差異，這是正常的**（牌堆陣列長度變了，`shuffle()` 消耗亂數的方式跟著變，
         跟你新加的能力邏輯對不對無關）。這種情況改用**單元測試**驗證：把新項目手動塞進一個假的
         玩家物件的 `bag`，呼叫 `power()`／`consCapFor()`／`budgetFor()` 等相關函式，核對數值符合
@@ -673,7 +690,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 ## 11. 補充：後加的重要事項（2026-09-02）
 
-### 11.1 AI 決策層有自己的 5 個 hook（第 4 節的 12 個之外）
+### 11.1 AI 決策層有自己的 5 個 hook（第 4 節的 13 個之外）
 
 `onAiValue`／`onAiPlan`／`onAiAmount`／`onAiExtraBids`／`onAiCurse`，
 全部掛在 `aiBids()` 內、只對 AI 生效。**契約在 `docs/ARCH_SPEC.md` §8，寫 AI 行為前必讀。**
@@ -861,6 +878,12 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 2. **命格系統把 splitter 從 53.5% 推到 59.4%**，與「打散分散小額標優勢」的設計目標相反
    （`ARCH_SPEC.md` §9 待辦 12）。之後再加內容時，拿來對照的基準要用 **59.4%**（09-02 版），
    不是 53.5%（09-01 版）。
+
+**已於 v0.6 結案（`ARCH_SPEC.md` §9 待辦 11／12，2026-09-02）**：上面兩點是 09-02 命格剛上線
+（v0.5 經濟）當下的量測，**已被同日稍後的 v0.6 拍賣經濟改版取代，不再是現行行為**，保留於此僅
+供沿革參考。獻祭刀已改為甲′機制（見 §11.5 第 3 點），持刀條件勝率實測 54.5%（`index.html:290`
+註解）；splitter 座位 0 基準勝率隨 v0.6 經濟回落至 **13.10%**（`n=2000`、`HEAD 9707cac` 實測），
+已不再高於均衡值 25%。完整依據見 `GAME_DESIGN.md` §六之二「v0.6 更新後現況」。
 
 **放血的唯一實作是 `bleed(p,keep,k)`**（`index.html`，`const has=` 那一行下面），玩家 UI
 （`doSacrifice`）、AI（`xianji` 的 `onAiPlan` hook）、模擬器策略（`withBleed`）三邊共用同一份，
