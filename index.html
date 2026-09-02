@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>妖市 v0.6</title>
+<title>妖市 v0.7</title>
 <meta name="theme-color" content="#14101f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E">
@@ -71,6 +71,28 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
+/* 今夜市集規則：規則夜的常駐說明條＋押寶夜的「一注」輸入條 */
+.rulebar{background:rgba(0,0,0,.3);border:1px solid var(--red);border-radius:9px;padding:2px 9px;
+  font-size:11px;color:#ffd9d0;margin-bottom:5px;text-align:center;line-height:1.45}
+.rulebar b{color:var(--gold)}
+.stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:9px;
+  padding:3px 9px;text-align:center}
+/* 「一注」條與「放血」條同時出現時並排，不各佔一整列（844×390 的桌面沒有那麼多高度） */
+.barrow{display:flex;gap:6px;align-items:stretch}
+.barrow>*{min-width:0;margin:0 0 5px}
+/* 「一注」條只佔內容寬，剩下的寬度留給放血條——否則放血條的說明被擠成多行，反而更高 */
+.barrow>.stakebar{flex:0 1 auto} .barrow>.bloodbar{flex:1 1 auto}
+.stakerow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:nowrap}
+.stakebar .stepper{display:flex;align-items:center}
+.stakebar .stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--ink);font-size:16px}
+.stakebar .amt{width:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:var(--gold)}
+.stakebar .typebtn{height:30px;font-size:12px;padding:0 10px;white-space:nowrap}
+.pickbox{position:absolute;top:-8px;right:-4px;width:22px;height:22px;border-radius:7px;z-index:2;
+  border:1px solid var(--gold);background:var(--panel2);color:var(--gold);
+  font-size:13px;font-weight:bold;line-height:20px;text-align:center}
+.pickbox.on{background:var(--gold);color:#14101f}
+.mcard.locked{opacity:.5;cursor:default}
 #market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
 .mcard{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
@@ -288,6 +310,11 @@ const CFG = {
   LOAN_AMT:10, LOAN_REPAY:{1:8,2:11,3:14,4:17}, LOAN_NIGHTS:5, /* 陰間放貸：借額／依人數總還款／攤還夜數【試玩必調】 */
   WIND_IDLE:1,                                 /* 大風吹：單人成圈空轉失血【試玩必調】 */
   POE_CAP:10, POE_CUT:0.8,                     /* 博杯：壓注上限／彩池發放比例（廟公抽二）【試玩必調】 */
+  /* 今夜市集規則（GAME_DESIGN §六之三 E）——總開關＋排程＋數值全集中此處【試玩必調】 */
+  RULE_ON: true,     /* false＝完全停用：不排程、不消耗 S.rng()，trace 與加入前逐位元組相等 */
+  RULE_NIGHTS:[3,7], /* 固定觸發夜（前一夜耳語預告）；刻意避開異事夜 4／8／11 與第 1 夜、末夜【試玩必調】 */
+  RULE_FORCE:null,   /* 測試／模擬專用：非 null 時所有規則夜都出這個 id（rng 消耗與隨機排程相同）；正常遊戲恆 null */
+  LUOPO_FRAC:1,      /* 落魄夜：落標付「出價 × 本值」（1＝全付；不含買路錢，買路錢照收）【試玩必調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
@@ -812,6 +839,9 @@ const WISHES = {
     }},
   wish_yaming:{id:"wish_yaming",name:"敗軍之志",
     desc:`本夜押命標落標至少 ${CFG.WISH_T.yamingLost} 次，＋${CFG.WISH_REWARD.yaming} 壽命`, gain:CFG.WISH_REWARD.yaming,
+    /* 恆假不發原則：一注多押的規則夜（押寶夜）「一注只算一次落標」，yamingLost 上界恆為 1，
+       門檻 ≥2 結構上不可能達成。問 flag 不問規則 id（引擎不認得內容）。 */
+    canDraw(){ return !hasFlag(null,"singleStake"); },
     check(ctx){ return (S.wishNight.yamingLost[ctx.p.id]||0)>=CFG.WISH_T.yamingLost; },
     reward(ctx){ ctx.p.life+=CFG.WISH_REWARD.yaming; },
     /* 追心願：把計畫內出價全改成小額押命標——輸了才是贏（落標只扣一半，小額成本低） */
@@ -820,8 +850,10 @@ const WISHES = {
     } }},
   wish_poison:{id:"wish_poison",name:"借刀傷人",
     desc:`本夜毒標命中任一人，＋${CFG.WISH_REWARD.poison} 壽命`, gain:CFG.WISH_REWARD.poison,
-    /* 本夜市場沒有詛咒品＝恆假，不發；也要有別的活人可塞 */
-    canDraw(p){ return S.market.some(x=>x.curse) && S.players.some(q=>q.alive&&q.id!==p.id); },
+    /* 本夜市場沒有詛咒品＝恆假，不發；也要有別的活人可塞；
+       詛咒品本夜整件不開標（押寶夜）時同樣恆假——市集有詛咒品也毒不了人 */
+    canDraw(p){ return S.market.some(x=>x.curse) && S.players.some(q=>q.alive&&q.id!==p.id)
+      && !hasFlag(null,"noCurseAuction"); },
     check(ctx){ return !!S.wishNight.poisonHit[ctx.p.id]; },
     reward(ctx){ ctx.p.life+=CFG.WISH_REWARD.poison; },
     /* 追心願：本來不想出手的詛咒品，改下毒標塞給戰力最高的對手（不動既有 keep 自保決策） */
@@ -853,6 +885,8 @@ const WISHES = {
     }},
   wish_multi:{id:"wish_multi",name:"貪多務得",
     desc:`本夜同時得標 ${CFG.WISH_T.multiWin} 件以上拍品，＋${CFG.WISH_REWARD.multi} 壽命`, gain:CFG.WISH_REWARD.multi,
+    /* 恆假不發原則：一注多押的規則夜（押寶夜）最多得一件，wonCount 上界恆為 1，門檻 ≥2 不可能達成 */
+    canDraw(){ return !hasFlag(null,"singleStake"); },
     check(ctx){ return (S.wishNight.wonCount[ctx.p.id]||0)>=CFG.WISH_T.multiWin; },
     reward(ctx){ ctx.p.life+=CFG.WISH_REWARD.multi; },
     hooks:{ onAiPlan(ctx){ ctx.maxPicks=Math.max(ctx.maxPicks,3); } }},
@@ -1039,9 +1073,104 @@ const EVENTS = {
     }},
 };
 
-/* --- 5/5 NIGHTRULES：今夜市集規則。本次只建結構，不填內容。
-   形狀：{id,name,desc,hooks:{...}} --- */
-const NIGHTRULES = {};
+/* --- 5/5 NIGHTRULES：今夜市集規則（GAME_DESIGN §六之三 E；第 CFG.RULE_NIGHTS 夜觸發，前一夜耳語預告）。
+   形狀：{id,name,icon,hint,desc(),flags?,order?,loseLabel?,report(stat),hooks:{...}}
+   - flags 是「引擎只問名字、不認得內容」的開關：noDestroy（禁買下銷毀）／singleStake（一人一注、
+     最多得一件、費用只收一次）／noCurseAuction（詛咒品本夜不開標）。引擎照 flag 行事，不寫 id 比對。
+   - onNightEndGlobal 是規則專用的全域夜末掛點（逐人的 onNightEnd 之外另跑一次、p=null），
+     用來做「不屬於任何一位玩家」的夜末後效（收祟夜的強制塞袋）。
+   - report(stat) 回傳夜末戰況那一行字（stat＝S.ruleStat，本夜的規則活性計數）。 --- */
+const NIGHTRULES = {
+  /* 落魄夜：落標全付。order 10＝比所有保命 hook 先跑，讓雨衣／孝女的 min 與當鋪的典當
+     都在「已被拉高的 cost」之上再套用一次（規則不得覆寫保命例外，見 ARCH_SPEC §9）。 */
+  luopo:{id:"luopo",name:"落魄夜",icon:"🪙",order:10,
+    hint:"落標也全額扣除，小額試探今夜不存在",
+    desc:()=>`本夜所有落標一律依出價 ${Math.round(CFG.LUOPO_FRAC*100)}% 全額扣除（保守標的 ${Math.round(CFG.CONS_LOSE_FRAC*100)}% 與押命標的一半今夜都不算數），買路錢照收。要嘛梭哈，要嘛乾脆不出手`,
+    loseLabel:"落標全付", sheetLose:()=>"落標全額扣除（今夜不退）",
+    bar:()=>`落標一律<b>全額扣除</b>（買路錢照收）`,
+    hooks:{
+      onBidSettle(ctx){
+        if(ctx.isWinner) return;
+        const before=ctx.cost;
+        ctx.cost=Math.ceil(ctx.bid.amt*CFG.LUOPO_FRAC)+CFG.BID_FEE;
+        /* 只記「本規則自己加上去的那一段」；之後跑的保命 hook 若再壓低，實付以那邊為準 */
+        if(S.ruleStat) S.ruleStat.extra+=Math.max(0,ctx.cost-before);
+      },
+    },
+    report(st){ return st.extra>0
+      ? `🪙 落魄夜：落標全額扣除——全場落標者比平常多付 ${st.extra} 壽命`
+      : `🪙 落魄夜：本夜無人落標，全付規則沒派上用場`; }},
+  /* 收祟夜：市集全詛咒＋禁買銷＋流標硬塞給「沒出手的人」裡壽命最高者（口徑 4′） */
+  shousui:{id:"shousui",name:"收祟夜",icon:"🕸",
+    hint:"四件全是詛咒品、禁止買下銷毀，流標的硬塞給沒出手的人裡壽命最高者",
+    desc:()=>`本夜市集 ${CFG.MARKET} 件全為詛咒品，且禁用「買下銷毀」自保——只能毒標塞給別人，或放著不管。夜末仍然流標（無人毒標得手）的詛咒品，強制塞給<b>本夜完全沒出手的人裡壽命最高的那位</b>；全場都出過手才落回全場壽命最高者（無人下手，不記仇）。<b>袖手旁觀不是免費的</b>`,
+    flags:["noDestroy"],
+    bar:()=>`${CFG.MARKET} 件<b>全詛咒品</b>・<b>禁買下銷毀</b>・夜末流標的硬塞給<b>沒出手的人</b>裡壽命最高者`,
+    hooks:{
+      onMarketDraw(ctx){
+        /* 被換下的法寶放回牌堆底（不浪費牌堆、不額外消耗亂數） */
+        /* 被換下的牌各自放回自己的牌堆底（法寶回 S.deck、drawMarket 可能已抽出的那張詛咒品回 S.cdeck），
+           不丟棄也不額外消耗亂數 */
+        ctx.market.forEach(x=>{ (x.curse?S.cdeck:S.deck).unshift(x); });
+        const m=[];
+        for(let i=0;i<CFG.MARKET;i++){
+          if(!S.cdeck.length) S.cdeck=shuffle([...CURSES].map(x=>({...x})));
+          m.push(S.cdeck.pop());
+        }
+        ctx.market=m;
+      },
+      onNightEndGlobal(ctx){
+        const items=S.unsoldCurses||[];
+        if(!items.length) return;
+        /* 口徑 4′（2026-09-02 使用者裁定）：先找「本夜完全沒出手的人」裡壽命最高的——
+           口徑 4 只看壽命，讓「不出手」變成零成本的支配解（棄權不付買路錢，流標詛咒品多半落在別人頭上）。
+           「出手」＝本夜有標真的進入開標——直接用引擎既有的 S.bidAny（amt>0 且沒被作廢／裁掉的那些人），
+           不另立一份判準：綁「毒標」的話，日後收祟夜若混進非詛咒品，掏錢買了法寶的人會被誤判成袖手旁觀。
+           全場都出過手才落回全場壽命最高者。
+           兩種情形的同分都取「本夜風位起算的座位順序」第一位（WIND_SEQ 就是風位輪轉序）。
+           候選要 life>0：出局旗在本 hook 之後才蓋，不排除的話「本夜已被打到 0 命」的人仍算活著，
+           會被選中而讓懲罰落空（詛咒品進了當夜出局者的袋子＝沒有人承擔 drain）。 */
+        const base=(S.round-1)%WIND_SEQ.length;
+        const acted=S.bidAny||new Set();
+        const pick=ok=>{
+          let best=null;
+          for(let k=0;k<WIND_SEQ.length;k++){
+            const q=S.players[WIND_SEQ[(base+k)%WIND_SEQ.length]];
+            if(q&&q.alive&&q.life>0&&ok(q)&&(!best||q.life>best.life)) best=q;
+          }
+          return best;
+        };
+        let tgt=pick(q=>!acted.has(q.id)), fallback=false;
+        if(!tgt){ tgt=pick(()=>true); fallback=true; }
+        if(!tgt) return;
+        if(S.ruleStat){ if(fallback) S.ruleStat.fallback++; else S.ruleStat.abstain++; }
+        /* 下手者＝無：不跑 onWinItem（不觸發紅衣婆婆記仇）、不產生 typeLeak 事件 */
+        for(const it of items){
+          tgt.bag.push(it);
+          ctx.log.push(fallback
+            ? `🕸 收祟夜：流標的「${it.n}」沒人接手，全場都出過手——硬塞給壽命最高的 ${tgt.name}`
+            : `🕸 收祟夜：流標的「${it.n}」沒人接手，硬塞給袖手旁觀又壽命最高的 ${tgt.name}`);
+          if(S.ruleStat) S.ruleStat.forced++;
+        }
+        /* 用完立即清空：這批物件只屬於「剛剛那一次開標」。不清的話，
+           任何「跑了夜末卻沒先跑拍賣」的路徑都會把同一批再塞一次（現行三條迴圈都到不了，
+           但防線要按危險效果寫、不按已知入口寫）。resolveBattles 開頭另有一道。 */
+        S.unsoldCurses=[];
+      },
+    },
+    report(st){ return st.forced>0
+      ? `🕸 收祟夜：${st.forced} 件流標詛咒品硬塞給${st.abstain>0?"本夜沒出手、壽命最高的那位":"壽命最高者（全場都出過手）"}`
+      : `🕸 收祟夜：詛咒品都有人接手，無人被硬塞`; }},
+  /* 押寶夜：一人一注 X ＋ 勾選要壓哪幾件，最多得一件；詛咒品不開標 */
+  yabao:{id:"yabao",name:"押寶夜",icon:"🎲",
+    hint:"只能封一注，勾幾件都用同一個數字，最多得一件",
+    desc:()=>`本夜每人只能封<b>一注 X</b>（型態仍受保守標上限約束），再勾選要用這一注壓哪幾件法寶——勾幾件不限。X 對每件都視為出價 X，但<b>最多得一件</b>：依開標順序第一件得標即付 X＋買路錢並自動退出其餘。全落標只依型態付<b>一次</b>落標費，買路錢也只收一次。詛咒品本夜不開標。<b>一注＝一筆標</b>：靠「落標」觸發的角色被動（如孝女白琴的抬價），本夜每人也只會觸發一次`,
+    flags:["singleStake","noCurseAuction"],
+    bar:()=>`只能封<b>一注</b>，勾幾件都同一個數字，<b>最多得一件</b>`,
+    report(st){ return st.multi>0
+      ? `🎲 押寶夜：本夜有 ${st.multi} 次「同一注壓中多件」，依開標順序只取第一件`
+      : `🎲 押寶夜：一注多押，每人最多只得一件`; }},
+};
 
 /* ================= Hook 分派器 =================
    effect 來源與呼叫順序（固定，改了結果就不可重現）：
@@ -1253,6 +1382,36 @@ function runEventPhaseHeadless(){
   settleEvent(ctx,log);
   return {ev:ev.id, choices:{...ctx.choices}, log};
 }
+/* ================= 市集規則引擎（正常頁／simulate／playPolicyGame 三條迴圈共用）=================
+   RULE_ON=false：makeState 不抽規則序、ruleForRound 恆 null、全程零 S.rng() 消耗，
+   trace 與加入前逐位元組相等（kill switch，同 WISH_ON／EVENT_ON 慣例）。 */
+/* 排程防呆（覆審 MEDIUM-2）：CFG 設錯時出聲，正常設定（RULE_NIGHTS=[3,7]）零輸出。
+   同一則訊息只講一次，免得 runMany 跑幾千局時洗版。 */
+const RULE_WARNED=new Set();
+function checkRuleSchedule(){
+  if(!CFG.RULE_ON) return;
+  const warn=m=>{ if(RULE_WARNED.has(m)) return; RULE_WARNED.add(m); console.warn(m); };
+  const clash=CFG.EVENT_ON?CFG.RULE_NIGHTS.filter(r=>CFG.EVENT_NIGHTS.indexOf(r)>=0):[];
+  if(clash.length) warn(`[妖市] CFG.RULE_NIGHTS 與 CFG.EVENT_NIGHTS 撞夜：第 ${clash.join("／")} 夜——`
+    +`那一夜會同時是異事夜與規則夜，兩則「夜市耳語」預告會擠在一起，排程請錯開`);
+  const n=Object.keys(NIGHTRULES).length;
+  if(CFG.RULE_NIGHTS.length>n) warn(`[妖市] CFG.RULE_NIGHTS 設了 ${CFG.RULE_NIGHTS.length} 夜，`
+    +`但 NIGHTRULES 只有 ${n} 條——第 ${n+1} 個規則夜起會靜默失效（ruleForRound 恆回 null）`);
+}
+function ruleForRound(r){
+  if(!CFG.RULE_ON||!S.ruleOrder) return null;
+  const i=CFG.RULE_NIGHTS.indexOf(r);
+  return (i>=0&&S.ruleOrder[i])?NIGHTRULES[S.ruleOrder[i]]:null;
+}
+/* 抽「第 r 夜」的市集：市集是前一夜就抽好的（S.nextMarket），所以 onMarketDraw 要看的是
+   目標夜的規則、不是當下的 S.nightRule——暫時把目標夜的規則掛上去再抽，抽完還原。 */
+function drawMarketFor(r){
+  const prev=S.nightRule;
+  S.nightRule=ruleForRound(r);
+  const m=drawMarket(r);
+  S.nightRule=prev;
+  return m;
+}
 function mkPlayer(seat,i){
   const R=ROLES[seat.role];
   return {
@@ -1304,7 +1463,12 @@ function makeState(mode,seed,picks){
   };
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
   S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
-  S.market=drawMarket(); S.nextMarket=drawMarket();
+  /* 市集規則排程（RULE_ON=false 零 rng 消耗——kill switch）：洗牌決定各規則夜出哪一條。
+     RULE_FORCE 只覆蓋抽到的結果、不省略洗牌，故「指定規則」與「隨機規則」的亂數流完全相同。 */
+  checkRuleSchedule();
+  S.ruleOrder=CFG.RULE_ON?shuffle(Object.keys(NIGHTRULES)).slice(0,CFG.RULE_NIGHTS.length):[];
+  if(CFG.RULE_ON&&CFG.RULE_FORCE) S.ruleOrder=S.ruleOrder.map(()=>CFG.RULE_FORCE);
+  S.market=drawMarketFor(1); S.nextMarket=drawMarketFor(2);
   /* 異事排程（EVENT_ON=false 零 rng 消耗——kill switch）：洗牌決定各觸發夜出哪樁異事 */
   S.eventOrder=CFG.EVENT_ON?shuffle(Object.keys(EVENTS)).slice(0,CFG.EVENT_NIGHTS.length):[];
   S.debts={}; /* 陰間放貸的跨夜還款排程（夜末攤還於 resolveBattles） */
@@ -1316,14 +1480,14 @@ function newGame(mode,seed,picks){
   $("table").classList.add("on");
   beginRound();
 }
-function drawMarket(){
+function drawMarket(forRound){
   const m=[]; const hasCurse=S.rng()<CFG.CURSE_PROB && S.cdeck.length;
   for(let i=0;i<CFG.MARKET-(hasCurse?1:0);i++){
     if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
     m.push(S.deck.pop());
   }
   if(hasCurse) m.push(S.cdeck.pop());
-  const ctx={market:shuffle(m),round:S.round};
+  const ctx={market:shuffle(m),round:forRound===undefined?S.round:forRound};
   applyHooks("onMarketDraw",ctx,null); /* 全域 hook：只取 nightRule 與 event */
   return ctx.market;
 }
@@ -1434,13 +1598,37 @@ function aiBids(p){
   if(!plan.skipAll) applyHooks("onAiExtraBids",ec,p);
   return bids;
 }
+/* 「戰力最高的活著對手」——收祟夜自動轉毒標與人類 UI 的預設對象共用同一份，避免兩邊漂移。
+   選法與 aiBids 既有的 foes.sort((a,b)=>power(b)-power(a))[0] 相同（穩定排序，同分取座位序，零亂數消耗）。 */
+function strongestFoe(pid){
+  const foes=S.players.filter(q=>q.alive&&q.id!==pid);
+  if(!foes.length) return null;
+  return foes.sort((a,b)=>power(b)-power(a))[0];
+}
+/* 押寶夜（singleStake）的 headless 轉換：把「多筆自由拆分的出價」壓成規則要求的「一注多押」——
+   X＝原本最大的那筆金額、勾選＝所有原本出過價的法寶、型態＝金額最大那筆的型態；
+   詛咒品與毒標本夜不開標一併去掉。寫在引擎裡，aiBids() 與 POLICIES 的策略碼一個字都不用改。 */
+function toSingleStake(row){
+  const act=row.map((b,i)=>({b,i}))
+    .filter(x=>x.b&&x.b.amt>0&&!S.market[x.i].curse&&x.b.intent!=="poison");
+  const out=S.market.map(()=>null);
+  if(!act.length) return out;
+  let best=act[0];
+  for(const x of act) if(x.b.amt>best.b.amt) best=x; /* 同額取索引小者（穩定、不消耗亂數） */
+  act.forEach(x=>{ out[x.i]={amt:best.b.amt,type:best.b.type,intent:"keep",target:null}; });
+  return out;
+}
 function resolveAuction(){
+  /* 本夜市集規則（GAME_DESIGN §六之三 E）。三條迴圈在夜初都已設過一次，這裡再設一次是保險——
+     讓「只呼叫 resolveAuction」的單元測試也走在完全相同的一條路上（A3 共用引擎）。 */
+  S.nightRule=ruleForRound(S.round);
+  S.ruleStat={extra:0,forced:0,multi:0,abstain:0,fallback:0}; /* 本夜規則活性計數（夜末 report 與模擬器統計用） */
   /* 本夜統計（心願判定用）：純記錄，不消耗亂數、不改任何結算數值。
      東窗血光改吃 extLoss（非自願失血：對決傷害＋詛咒侵蝕，2026-09-02 裁定），不再需要 startLife */
   S.wishNight={wonCount:{},wonFacs:{},
     yamingLost:{},poisonHit:{},totalBid:{},battleWin:new Set(),
     extLoss:{}}; /* 非自願失血（對決傷害＋詛咒侵蝕），東窗血光的判準 */
-  const all=S.players.map(p=>{
+  let all=S.players.map(p=>{
     if(!p.alive)return S.market.map(()=>null);
     if(!p.ai){
       const hb=S.humanBids[p.id]||[];
@@ -1448,9 +1636,28 @@ function resolveAuction(){
     }
     return aiBids(p);
   });
+  /* 市集規則的出價前置處理：引擎只認 flag、不認得是哪一條規則（鐵則 2.4）。
+     統一攔在這裡＝AI 的 aiBids()、玩家 UI 與 POLICIES 策略碼都不必改，三條迴圈自動一致。 */
+  const noDestroy=hasFlag(null,"noDestroy");
+  const noCurse=hasFlag(null,"noCurseAuction");
+  const single=hasFlag(null,"singleStake");
+  if(noDestroy||noCurse) all.forEach((row,pid)=>S.market.forEach((it,i)=>{
+    if(!it.curse||!row[i]) return;
+    if(noCurse){ row[i]=null; return; }            /* 詛咒品整件不開標（押寶夜） */
+    if(!noDestroy||row[i].intent==="poison") return; /* 毒標照舊 */
+    /* 禁買下銷毀（收祟夜）：規格是「只能毒標塞給別人，或放著不管」——
+       人類 UI 在 openSheet 就把意圖自動改成毒標，這裡對 AI／策略碼做同一件事，
+       否則同一條禁令對人和對 AI 會是兩種語意（AI 的詛咒標憑空消失）。
+       對象＝戰力最高的活著對手，與 aiBids 的既有選法一致，不消耗任何亂數。 */
+    const foe=strongestFoe(pid);
+    if(!foe){ row[i]=null; return; }               /* 沒有對手可塞才作廢 */
+    row[i]={...row[i],intent:"poison",target:foe.id};
+  }));
+  if(single) all=all.map(row=>toSingleStake(row));
   /* 每夜出價件數上限（CFG.MAX_BIDS）：每人只保留金額最大的前 N 筆有效標，其餘作廢。
-     排序決定性：金額大者先、同額取索引小者（Array.sort 為穩定排序，不消耗亂數）。 */
-  if(CFG.MAX_BIDS>0){
+     排序決定性：金額大者先、同額取索引小者（Array.sort 為穩定排序，不消耗亂數）。
+     一注多押的規則夜不套用——那一夜「勾幾件」本來就不受此限（費用只收一次，不會超額失血）。 */
+  if(CFG.MAX_BIDS>0&&!single){
     all.forEach(row=>{
       row.map((b,i)=>({b,i})).filter(x=>x.b&&x.b.amt>0)
         .sort((a,b)=>b.b.amt-a.b.amt).slice(CFG.MAX_BIDS)
@@ -1462,30 +1669,43 @@ function resolveAuction(){
   S.bidAny=new Set(); /* 本輪（一夜）有實際出過價（amt>0）的玩家 id，供「整夜零出價」類被動查詢 */
   /* 本夜各家得標的陣營；整夜結束後才覆蓋 S.lastWon，所以 AI 出價時看到的一定是「上一夜」（ARCH_SPEC §4） */
   const lastWon={};
+  /* 一注多押：同一注會出現在多件上，但費用只收一次——取「這個人最後一件押注」當唯一結算點，
+     之前那幾件只參與比價、不收費（買路錢與落標費因此都只收一次）。 */
+  const stakeLast={};
+  if(single) all.forEach((row,pid)=>row.forEach((b,i)=>{ if(b) stakeLast[pid]=i; }));
   S.market.forEach((it,i)=>{
-    const entries=[];
+    const entries=[], withdrawn=[];
     S.players.forEach(p=>{const b=all[p.id][i];if(b){
+      /* 最多得一件：本夜已得標者自動退出其餘（不比價、不收費） */
+      if(single&&S.wonAny.has(p.id)){ withdrawn.push({p,...b}); return; }
       entries.push({p,...b});S.bidAny.add(p.id);
-      S.wishNight.totalBid[p.id]=(S.wishNight.totalBid[p.id]||0)+b.amt; /* 心願統計：本夜總出價 */
     }});
-    let winner=null;
+    let winner=null, effs=[], top=null;
     if(entries.length){
-      const effs=entries.map(e=>{
+      effs=entries.map(e=>{
         const c={p:e.p,bid:e,item:it,eff:e.amt};
         applyHooks("onBidEff",c,e.p);
         return c.eff;
       });
-      const top=Math.max(...effs);
+      top=Math.max(...effs);
       const tops=entries.filter((e,k)=>effs[k]===top);
       /* 平標決勝：風位優先 → 仍平則 S.rng() 決 */
       winner = tops.find(e=>e.p.id===windPid(S.round)) || tops[Math.floor(S.rng()*tops.length)];
     }
+    if(single&&withdrawn.length&&withdrawn.some(w=>{
+      /* 活性計數（純統計，不影響結算）：這一注要是沒退出，會不會也是本件的最高價 */
+      const c={p:w.p,bid:w,item:it,eff:w.amt}; applyHooks("onBidEff",c,w.p);
+      return top===null||c.eff>=top;
+    })) S.ruleStat.multi++;
     const events=[];
     /* 本件拍品的得標者 id，供 onBidSettle 期間查詢（「被誰搶走」這種狀態累積要用到，
        而 onBidSettle 的 ctx 形狀是凍結的，不能加欄位——見 ARCH_SPEC §3.7／§8.6） */
     S.bidWinner=winner?winner.p.id:null;
     entries.forEach(e=>{
       const isWinner=(e===winner);
+      /* 一注多押：非得標者只在「最後一件」收一次費，之前那幾件只比價、實付 0 */
+      if(single&&!isWinner&&stakeLast[e.p.id]!==i){ e.cost=0; return; }
+      S.wishNight.totalBid[e.p.id]=(S.wishNight.totalBid[e.p.id]||0)+e.amt; /* 心願統計：本夜總出價 */
       /* nBids 為 additive 欄位（ARCH_SPEC §9 議題 1 核可的做法）：本件拍品的出價人數，
          供「唯一出價者」類被動查詢；既有 effect 都不讀它，行為不變。成本公式未動。 */
       const c={p:e.p,bid:e,item:it,isWinner,
@@ -1498,6 +1718,7 @@ function resolveAuction(){
     S.bidWinner=null;
     /* 心願統計：押命標落標次數（在得標者確定後、不動結算本身） */
     entries.forEach(e=>{
+      if(single&&stakeLast[e.p.id]!==i) return; /* 一注多押：一注只算一次落標 */
       if(e!==winner&&e.type==="yaming")
         S.wishNight.yamingLost[e.p.id]=(S.wishNight.yamingLost[e.p.id]||0)+1;
     });
@@ -1525,6 +1746,8 @@ function resolveAuction(){
     reveal.push({it,entries,winner,outcome,events});
   });
   S.lastWon=lastWon; /* 整夜結算完才換上，明夜的 AI 才查得到「上一夜」 */
+  /* 本夜流標的詛咒品（無人得標＝無人毒標得手）：供市集規則的夜末後效取用；沒有規則時沒有人讀它 */
+  S.unsoldCurses=reveal.filter(r=>!r.winner&&r.it.curse).map(r=>r.it);
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;}});
   return reveal;
 }
@@ -1587,6 +1810,15 @@ function resolveBattles(){
     nightly.push(`🧧 ${p.name} 攤還陰間貸款 -${pay}${d.left>0?`（餘 ${d.left}）`:"（已清償）"}`);
     if(d.left<=0||d.nights<=0) delete S.debts[p.id];
   });
+  /* 市集規則的全域夜末後效（逐人的 onNightEnd 之外另跑一次、p=null＝只取 nightRule／event）：
+     用於「不屬於任何一位玩家」的結算，例如收祟夜把流標詛咒品硬塞給「本夜沒出手的人」裡壽命最高者。 */
+  applyHooks("onNightEndGlobal",{log:nightly},null);
+  S.unsoldCurses=[]; /* 第二道：hook 沒跑到（規則沒有這個 hook）時也不留陳舊資料給下一夜 */
+  /* 本夜規則造成的差異，戰況裡明講一行（可理解性層慣例，§11.7） */
+  if(S.nightRule&&S.nightRule.report&&S.ruleStat){
+    const t=S.nightRule.report(S.ruleStat);
+    if(t) nightly.push(t);
+  }
   const deaths=[];
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
   /* 獻祭放血只在本夜生效：夜末一律歸零（正常遊戲、playPolicyGame、simulate 三條迴圈共用此處） */
@@ -1594,6 +1826,9 @@ function resolveBattles(){
   /* 異事預告（GAME_DESIGN §六之三 B：前一夜預告）；EVENT_ON=false 時 eventForRound 恆 null */
   const nxev=eventForRound(S.round+1);
   if(nxev) nightly.push(`🔮 夜市耳語——明夜「${nxev.name}」將至：${nxev.hint||""}`);
+  /* 市集規則預告（與異事共用「夜市耳語」這一欄；排程刻意錯開，同一夜不會同時出現） */
+  const nxrl=ruleForRound(S.round+1);
+  if(nxrl) nightly.push(`🔮 夜市耳語——明夜市集改規矩「${nxrl.name}」：${nxrl.hint||""}`);
   return{fights,bye,nightly,deaths};
 }
 /* ================= 牌桌渲染 ================= */
@@ -1620,7 +1855,9 @@ function renderSeats(hlIds){
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
   $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
-  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`;
+  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`
+    +`${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`
+    +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
@@ -1664,13 +1901,18 @@ function showIntro(cont){
 function openHelp(){
   if(!S) return;
   const evRows=Object.keys(EVENTS).map(k=>`<div style="padding:2px 0">${EVENTS[k].icon} <b>${EVENTS[k].name}</b>：${EVENTS[k].hint||""}</div>`).join("");
+  const rlRows=Object.keys(NIGHTRULES).map(k=>`<div style="padding:3px 0">${NIGHTRULES[k].icon} <b>${NIGHTRULES[k].name}</b>：${NIGHTRULES[k].desc()}</div>`).join("");
+  /* 顯示「本局實際生效」的規則夜，不是 CFG 原值——RULE_NIGHTS 設得比規則條數多時後面那幾夜是靜默失效的 */
+  const rlNights=(S.ruleOrder&&S.ruleOrder.length)?CFG.RULE_NIGHTS.filter((r,i)=>!!S.ruleOrder[i]):[];
   const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
     ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。`)}
     ${sec("🌙 每夜流程",`①抽今夜心願（私有）→②妖市出價→③開標→④結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還）。`)}
-    ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>掛號費 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
+    ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
     ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
+    ${(CFG.RULE_ON&&rlNights.length)?sec(`🏮 今夜市集規則（第 ${rlNights.join("／")} 夜，前夜耳語預告）`,
+      `每局從下面 ${Object.keys(NIGHTRULES).length} 條抽 ${rlNights.length} 條配夜——那一夜<b>拍賣規則本身</b>被改寫，平常算好的價目表當夜作廢。${rlRows}`):""}
     ${sec("⚔ 結算戰",`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。`)}
     ${sec("🀄 風位與共鳴",`風位每夜輪轉：風位家戰力+${CFG.WIND_POWER}、出價平手時優先。同一系法寶集滿 ${CFG.SET_MIN} 件起，共鳴加戰力＝件數²。`)}
     </div>
@@ -1683,6 +1925,7 @@ function beginRound(){
 }
 function beginRoundCore(){
   $("helpBtn").style.display="block";
+  S.nightRule=ruleForRound(S.round); /* 本夜市集規則（三條迴圈同一時機：夜初、抽心願之前） */
   NLIFE0=S.players.map(p=>p.life);
   drawWishes(); /* 每夜開始先發心願（出價階段人類不耗 S.rng()，與 headless 兩條迴圈亂數序一致） */
   S.humanBids={}; S.bleedLog=[];
@@ -1768,12 +2011,18 @@ function revealEventUI(){
 }
 function startBidUI(){
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  /* 押寶夜（singleStake）：一注 X ＋ 勾選要壓哪幾件，交卷時才展開成 myBids */
+  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   showMarket();
 }
+/* 本夜規則的三個 UI 開關（引擎與畫面問的是同一組 flag，不會各自漂移） */
+function isStakeNight(){ return hasFlag(null,"singleStake"); }
+function noDestroyNight(){ return hasFlag(null,"noDestroy"); }
+function noCurseNight(){ return hasFlag(null,"noCurseAuction"); }
 function showHandoff(pid, cont){
   /* 雙保險：交棒遮罩本身是不透明全屏，但仍先把上一位的私有心願列從 stage 撤掉，
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
-  document.querySelectorAll("#stage .wishbar").forEach(el=>el.remove());
+  document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .mybid,#stage .pickbox").forEach(el=>el.remove());
   const p=S.players[pid];
   $("hoAv").textContent=p.av;
   $("hoNm").textContent=`${DIRS[pid]}家・${p.name}`;
@@ -1787,11 +2036,18 @@ function showMarket(){
   const ap=S.players[ACTIVE];
   const pv=S.nextMarket.slice(0,traitMax(ap,"preview",1));
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
+  const rl=S.nightRule;
+  const stake=isStakeNight();
+  const howto=stake
+    ? `封一注、勾要壓的法寶${CFG.BID_FEE>0?`・買路錢只收 ${CFG.BID_FEE}`:""}`
+    : `點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆買路錢 ${CFG.BID_FEE}`:""}`;
   $("stage").innerHTML=`
-    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}　<span class="mut">點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆掛號費 ${CFG.BID_FEE}`:""}</span></div>
+    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span></div>
+    ${(rl&&!stake)?`<div class="rulebar">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></div>`:""}
     ${wishBarHTML(ap)}
-    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>
-    ${bloodHTML(ap)}`;
+    ${(()=>{const sb=stakeHTML(ap),bb=bloodHTML(ap);
+        return (sb&&bb)?`<div class="barrow">${sb}${bb}</div>`:(sb+bb);})()}
+    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
@@ -1812,8 +2068,50 @@ function bloodHTML(ap){
 function doSacrifice(){
   if(bleed(S.players[ACTIVE], CFG.BLOOD_FLOOR, 1)) showMarket();
 }
+/* 押寶夜的「一注」輸入條（非押寶夜回空字串，其餘夜的出價流程完全不變） */
+function stakeHTML(ap){
+  if(!YB) return "";
+  const cap=consCapFor(ap);
+  const n=YB.pick.filter(Boolean).length;
+  const fee=n>0?CFG.BID_FEE:0;
+  const worst=n>0?Math.ceil(YB.amt*(YB.type==="yaming"?0.5:CFG.CONS_LOSE_FRAC))+fee:0;
+  return `<div class="stakebar">
+    <div class="stakerow">
+      <span style="font-size:11px">🎲 <b style="color:var(--gold)">押寶夜</b>・今夜這一注</span>
+      <div class="stepper"><button onclick="ybBump(-1)">−</button><span class="amt" id="ybAmt">${YB.amt}</span><button onclick="ybBump(1)">＋</button></div>
+      <button class="typebtn${YB.type==="yaming"?" yaming":""}" onclick="ybFlip()">${YB.type==="cons"?"保守標":"押命標"}</button>
+      <span class="mut" style="font-size:10.5px;text-align:left;line-height:1.35">已勾 <b style="color:var(--gold)">${n}</b> 件・勾幾件都同一個數字、<b>最多得一件</b>${YB.type==="cons"?`・上限 ${cap}`:""}<br>${n>0?`全落標最多失 ${worst}（含買路錢 ${fee}）`:"未勾任何拍品＝今夜不出手"}・詛咒品不開標</span>
+    </div>
+  </div>`;
+}
+function ybBump(d){
+  YB.amt=Math.max(0,YB.amt+d);
+  if(YB.type==="cons"&&YB.amt>consCapFor(S.players[ACTIVE])) YB.type="yaming";
+  showMarket();
+}
+function ybFlip(){
+  if(YB.type==="cons") YB.type="yaming";
+  else{ YB.type="cons"; const cap=consCapFor(S.players[ACTIVE]); if(YB.amt>cap) YB.amt=cap; }
+  showMarket();
+}
+function ybToggle(i){
+  if(S.market[i].curse) return; /* 詛咒品本夜不開標 */
+  YB.pick[i]=!YB.pick[i];
+  showMarket();
+}
 function mcardHTML(it,i){
   const b=myBids[i];
+  if(YB){
+    /* 押寶夜：每件法寶一個勾選框；詛咒品該夜顯示「不開標」且點不動 */
+    const off=it.curse;
+    const box=off?"":`<span class="pickbox ${YB.pick[i]?"on":""}">${YB.pick[i]?"✓":""}</span>`;
+    return `<div class="mcard ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
+      ${box}
+      <div class="nm">${it.n}</div>
+      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div class="ab">${off?"🚫 本夜不開標":(it.ab?("✦ "+abDesc(it.ab)):it.d)}${!off&&it.drain?`・每夜 -${it.drain} 血`:""}</div>
+    </div>`;
+  }
   const badge=b.amt>0?`<span class="mybid ${b.intent==="poison"?"poison":""}">${b.intent==="poison"?"毒":"押"} ${b.amt}</span>`:"";
   return `<div class="mcard ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
     ${badge}
@@ -1822,7 +2120,7 @@ function mcardHTML(it,i){
     <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
   </div>`;
 }
-let sheetIdx=null;
+let sheetIdx=null, YB=null;
 function openSheet(i){
   sheetIdx=i;
   const it=S.market[i],b=myBids[i];
@@ -1830,16 +2128,23 @@ function openSheet(i){
   const foes=S.players.filter(p=>p.alive&&p.id!==ACTIVE);
   const c=ap.bag.filter(x=>x.f===it.f&&!x.curse).length;
   const syn=(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
+  /* 收祟夜：買下銷毀本夜禁用——選項直接不給，並把預設意圖改成毒標（避免出了標卻被引擎作廢） */
+  const noDest=it.curse&&noDestroyNight();
+  /* 預設對象與引擎的自動轉毒標同一份選法（strongestFoe），玩家仍可自己改 */
+  if(noDest&&b.intent!=="poison"&&foes.length){
+    const f=strongestFoe(ACTIVE);
+    b.intent="poison"; b.target=(f?f.id:foes[0].id);
+  }
   $("sheetbox").innerHTML=`
     <h3>${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
-    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}</div>
+    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
         <button onclick="bump(-1)">−</button><span class="amt" id="shAmt">${b.amt}</span><button onclick="bump(1)">＋</button>
       </div>
       <button class="typebtn" id="shType" onclick="flipType()">保守標</button>
       ${it.curse?`<select class="tgtsel" id="shTgt" onchange="setTgt()">
-        <option value="destroy">買下銷毀（自保）</option>
+        ${noDest?"":`<option value="destroy">買下銷毀（自保）</option>`}
         ${foes.map(p=>`<option value="${p.id}">毒標塞給 ${DIRS[p.id]}家・${p.name}</option>`).join("")}
       </select>`:""}
     </div>
@@ -1877,14 +2182,16 @@ function paintSheet(){
   t.textContent=b.type==="cons"?"保守標":"押命標";
   t.className="typebtn"+(b.type==="yaming"?" yaming":"");
   const nb=myBids.filter(x=>x.amt>0).length;
-  const feeTxt=CFG.BID_FEE>0?`每筆有效標另付掛號費 ${CFG.BID_FEE} 壽命（不論輸贏）。`:"";
+  const feeTxt=CFG.BID_FEE>0?`每筆有效標另付買路錢 ${CFG.BID_FEE} 壽命（不論輸贏）。`:"";
   const slotTxt=CFG.MAX_BIDS>0?`本夜有效標 ${nb}/${CFG.MAX_BIDS} 筆。`:"";
-  const loseTxt=CFG.CONS_LOSE_FRAC>0
+  /* 規則夜可換掉落標說明（落魄夜＝全額扣除）；沒有規則就照平常的兩句 */
+  const ruleLose=(S.nightRule&&S.nightRule.sheetLose)?S.nightRule.sheetLose():null;
+  const loseTxt=ruleLose||(CFG.CONS_LOSE_FRAC>0
     ?`落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%（付 ${Math.round(CFG.CONS_LOSE_FRAC*100)}%）`
-    :"落標全額退還";
+    :"落標全額退還");
   $("shCap").textContent=b.type==="cons"
     ?`保守標：${loseTxt}，上限 ${consCapFor(S.players[ACTIVE])}。${feeTxt}${slotTxt}`
-    :`押命標：無上限，落標仍失一半出價。${feeTxt}${slotTxt}`;
+    :`押命標：無上限，${ruleLose||"落標仍失一半出價"}。${feeTxt}${slotTxt}`;
 }
 function closeSheet(){
   $("sheet").style.display="none";
@@ -1894,16 +2201,30 @@ function closeSheet(){
 }
 function updateBudget(){
   const ap=S.players[ACTIVE];
+  if(YB){ /* 押寶夜：一注只算一次，買路錢也只收一次 */
+    const n=YB.pick.filter(Boolean).length;
+    const tot=n>0?YB.amt+CFG.BID_FEE:0;
+    const cap=budgetFor(ap);
+    const el=$("budget");
+    el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}這一注合計 <b>${tot}</b>${n>0&&CFG.BID_FEE>0?`（含買路錢 ${CFG.BID_FEE}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}　🎲 已勾 ${n} 件`;
+    el.className=tot>cap?"over":"";
+    $("mainbtn").disabled=tot>cap;
+    return;
+  }
   const nb=myBids.filter(b=>b.amt>0).length;
   const fees=nb*CFG.BID_FEE;
   const tot=myBids.reduce((s,b)=>s+b.amt,0)+fees;
   const el=$("budget");
   const cap=budgetFor(ap);
-  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含掛號費 ${fees}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}`;
+  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含買路錢 ${fees}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}`;
   el.className=tot>cap?"over":"";
   $("mainbtn").disabled=tot>cap;
 }
 function submitHumanBids(){
+  /* 押寶夜：交卷時才把「一注 X ＋ 勾選」展開成引擎吃的 bids 形狀（同一個 X 出現在每件勾選上） */
+  if(YB) myBids=S.market.map((it,i)=>
+    (YB.pick[i]&&YB.amt>0&&!it.curse)?{amt:YB.amt,type:YB.type,intent:"keep",target:null}
+                                     :{amt:0,type:YB.type,intent:"keep",target:null});
   S.humanBids[ACTIVE]=myBids;
   const hs=aliveHumans();
   const idx=hs.findIndex(p=>p.id===ACTIVE);
@@ -1926,6 +2247,8 @@ async function startReveal(){
      任一位是爐主就顯示（同機同螢幕本來就藏不住，取聯集是誠實解——限制記錄於 roles-report.md）。 */
   const rv={reveal,viewerId:0,showEntries:true,showTypes:false};
   applyHooks("onReveal",rv,aliveHumans());
+  /* 落標實付的註記文字：規則夜可用 loseLabel 換掉（如落魄夜的「落標全付」），引擎不寫規則 id */
+  const loseLbl=(S.nightRule&&S.nightRule.loseLabel)||"落標費";
   const stage=$("stage");
   if(S.bleedLog&&S.bleedLog.length){
     renderSeats();
@@ -1956,7 +2279,7 @@ async function startReveal(){
                得標者一律顯示——得標實付=出價+掛號費，兩種型態同式，不洩漏標書型態；
                落標者的實付兩型態算式不同（25% vs 50%），會被反推型態、廢掉普渡爐主的被動，
                故只在「這筆是真人自己的」或 viewer 有 showTypes 權限（爐主）時顯示。 */
-            (e.cost>0&&(e===r.winner||!e.p.ai||rv.showTypes))?`・實付 ${e.cost}${(!e.p.ai)?`<span class="mut" style="font-size:10px">（${e===r.winner?"出價":"落標費"}${CFG.BID_FEE>0?"＋掛號費":""}）</span>`:""}`:""
+            (e.cost>0&&(e===r.winner||!e.p.ai||rv.showTypes))?`・實付 ${e.cost}${(!e.p.ai)?`<span class="mut" style="font-size:10px">（${e===r.winner?"出價":loseLbl}${CFG.BID_FEE>0?"＋買路錢":""}）</span>`:""}`:""
           }</span></div>`);
         await sleep(CFG.T*0.65);
       }
@@ -2066,7 +2389,7 @@ async function startBattle(){
   $("mainbtn").disabled=false;
 }
 function nextRound(){
-  S.round++;S.market=S.nextMarket;S.nextMarket=drawMarket();
+  S.round++;S.market=S.nextMarket;S.nextMarket=drawMarketFor(S.round+1);
   beginRound();
 }
 function endGame(){
@@ -2305,8 +2628,11 @@ function playPolicyGame(seed,policies,picks){
   const factionWinCounts={}, factionOffered={};
   Object.keys(FAC).forEach(f=>{ factionWinCounts[f]=0; factionOffered[f]=0; });
   let poisonBids=0, totalBids=0, unsoldItems=0, drawnItems=0;
+  /* 市集規則活性計數（A4）：各規則觸發夜數、收祟夜強制塞袋件數、押寶夜「同一注壓中多件」次數 */
+  const ruleFired={}, ruleStat={extra:0,forced:0,multi:0,abstain:0,fallback:0};
   const lifeByRound=[];
   for(;;){
+    S.nightRule=ruleForRound(S.round); /* 本夜市集規則（與 beginRoundCore 同時機） */
     drawWishes(); /* 與 beginRound 同時機（出價前），三條迴圈亂數序一致 */
     runEventPhaseHeadless(); /* 異事夜（EVENT_ON=false 零消耗）；真人座位同走 ai 啟發式 */
     if(S.players.filter(p=>p.alive).length<=1){ /* 異事殺到剩1人：該夜不再拍賣/對決 */
@@ -2328,12 +2654,16 @@ function playPolicyGame(seed,policies,picks){
       }else{ unsoldItems++; }
     });
     resolveBattles();
+    if(S.nightRule){
+      ruleFired[S.nightRule.id]=(ruleFired[S.nightRule.id]||0)+1;
+      Object.keys(ruleStat).forEach(k=>{ ruleStat[k]+=(S.ruleStat[k]||0); });
+    }
     S.players.forEach(p=>{ if(!p.alive && deathRound[p.id]===null) deathRound[p.id]=S.round; });
     lifeByRound.push(S.players.map(p=>p.life));
     const aliveN=S.players.filter(p=>p.alive).length;
     const humanN=S.players.filter(p=>!p.ai&&p.alive).length;
     if(!humanN||aliveN<=1||S.round>=CFG.ROUNDS) break;
-    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarket();
+    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarketFor(S.round+1);
   }
   const gameLength=S.round;
   S.players.forEach(p=>{ if(deathRound[p.id]===null) deathRound[p.id]=gameLength; });
@@ -2345,6 +2675,7 @@ function playPolicyGame(seed,policies,picks){
     survival:S.players.map(p=>deathRound[p.id]),
     lifeByRound, factionWinCounts, factionOffered,
     poisonBids, totalBids, unsoldItems, drawnItems,
+    ruleFired, ruleStat,
   };
 }
 /* runMany({seeds:[...] 或 n:N, policies:{playerId:policyFn}}) → 統計聚合，見 docs 交付需求。
@@ -2361,6 +2692,7 @@ function runMany(opts){
   const lifeSum=new Array(nPlayers).fill(0);
   const powerSum=new Array(nPlayers).fill(0);
   const factionWinCounts={}, factionOffered={};
+  const ruleFired={}, ruleStat={extra:0,forced:0,multi:0,abstain:0,fallback:0}; /* 市集規則活性統計（A4） */
   let poisonTotal=0,bidsTotal=0,unsoldTotal=0,drawnTotal=0,lengthSum=0;
   const lifeCurveSum=Array.from({length:CFG.ROUNDS},()=>new Array(nPlayers).fill(0));
   const lifeCurveCount=new Array(CFG.ROUNDS).fill(0);
@@ -2373,6 +2705,8 @@ function runMany(opts){
     Object.keys(g.factionOffered).forEach(f=>{ factionOffered[f]=(factionOffered[f]||0)+g.factionOffered[f]; });
     poisonTotal+=g.poisonBids; bidsTotal+=g.totalBids; unsoldTotal+=g.unsoldItems; drawnTotal+=g.drawnItems;
     lengthSum+=g.gameLength;
+    if(g.ruleFired) Object.keys(g.ruleFired).forEach(k=>{ ruleFired[k]=(ruleFired[k]||0)+g.ruleFired[k]; });
+    if(g.ruleStat) Object.keys(ruleStat).forEach(k=>{ ruleStat[k]+=g.ruleStat[k]; });
     g.lifeByRound.forEach((lifeArr,ri)=>{ lifeCurveSum[ri]=lifeCurveSum[ri].map((v,pi)=>v+lifeArr[pi]); lifeCurveCount[ri]++; });
   });
   return {
@@ -2385,6 +2719,7 @@ function runMany(opts){
     factionWinCounts, unsoldRate:drawnTotal?unsoldTotal/drawnTotal:0,
     poisonUsageRate:bidsTotal?poisonTotal/bidsTotal:0,
     avgGameLength:n?lengthSum/n:0,
+    ruleFired, ruleStat,
   };
 }
 /* 把 runMany 的統計輸出成可直接貼進 markdown 的表格 */
@@ -2396,6 +2731,11 @@ function statsToMarkdown(stats,title){
   stats.winRate.forEach((w,i)=>{
     md+=`| ${seatNames[i]||("玩家"+i)} | ${(w*100).toFixed(1)}% | ${stats.avgSurvivalNights[i].toFixed(2)} | ${stats.avgFinalLife[i].toFixed(2)} | ${stats.avgFinalPower[i].toFixed(2)} |\n`;
   });
+  if(stats.ruleFired&&Object.keys(stats.ruleFired).length){
+    md+=`市集規則觸發：${Object.keys(stats.ruleFired).map(k=>`${(NIGHTRULES[k]||{}).name||k} ${stats.ruleFired[k]} 夜`).join("　")}`
+      +`　｜強制塞袋 ${stats.ruleStat.forced} 件（塞給沒出手者 ${stats.ruleStat.abstain} 次／全員出手落回壽命最高者 ${stats.ruleStat.fallback} 次）`
+      +`　一注壓中多件 ${stats.ruleStat.multi} 次　落標多付 ${stats.ruleStat.extra} 壽命\n`;
+  }
   md+="\n| 陣營 | 得標次數 |\n|---|---|\n";
   Object.keys(stats.factionWinCounts).forEach(f=>{ md+=`| ${f} | ${stats.factionWinCounts[f]} |\n`; });
   return md;
@@ -2574,6 +2914,7 @@ function simulate(seed){
   makeState("solo",seed);
   const nights=[];
   for(;;){
+    S.nightRule=ruleForRound(S.round); /* 本夜市集規則（與 beginRoundCore 同時機） */
     drawWishes(); /* 與 beginRound 同時機（出價前）；WISH_ON=false 時不耗亂數、trace 不變 */
     const evres=runEventPhaseHeadless(); /* 異事夜：EVENT_ON=false 恆 null、零 rng 消耗 */
     const pre=snapPlayers();
@@ -2609,7 +2950,7 @@ function simulate(seed){
     const aliveN=S.players.filter(p=>p.alive).length;
     const humanN=S.players.filter(p=>!p.ai&&p.alive).length;
     if(!humanN||aliveN<=1||S.round>=CFG.ROUNDS) break;
-    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarket();
+    S.round++; S.market=S.nextMarket; S.nextMarket=drawMarketFor(S.round+1);
   }
   stripEndgameItems();
   return {seed:S.seed, nights};
@@ -2624,6 +2965,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
+  ruleForRound, drawMarketFor, toSingleStake, /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
     plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST,
     zongzi:EVENT_SPEC_ZONGZI, guan:EVENT_SPEC_GUAN, loan:EVENT_SPEC_LOAN,
