@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-xiaonu" data-character="xiaonu" data-faction="yinqi"
+     class="ys-char state-healthy">
+  <title id="t-xiaonu">孝女白琴</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="xiaonu"]{ --skin:#e8d8c8; --skin-pale:#c0bcb4; --disc:var(--c-yinqi,#3d6e4e); --cloth:#ece6dc; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-xiaonu"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-xiaonu)">
+    <!-- 孝服：白麻，肩線垮著 -->
+    <path class="skin" d="M70 108 h20 v16 h-20 z"/>
+    <path class="cloth" d="M16 162 v-16 q4 -26 28 -32 l22 -6 h28 l22 6 q24 6 28 32 v16 z"/>
+    <path class="ln" d="M66 114 L80 134 L94 114"/>
+    <!-- 手裡一朵白花，五瓣 -->
+    <g>
+      <circle class="cloth" cx="112" cy="132" r="5"/>
+      <circle class="cloth" cx="122" cy="128" r="5"/>
+      <circle class="cloth" cx="126" cy="138" r="5"/>
+      <circle class="cloth" cx="117" cy="144" r="5"/>
+      <circle class="cloth" cx="108" cy="140" r="5"/>
+      <circle class="solid" cx="117" cy="136" r="3"/>
+    </g>
+    <!-- 低著的頭 -->
+    <path class="skin" d="M56 48 h48 v36 q0 22 -24 28 q-24 -6 -24 -28 z"/>
+    <!-- 黑髮與罩頭的孝帽 -->
+    <path class="hair" d="M54 50 q6 -20 26 -20 t26 20 q-13 -9 -26 -8 t-26 8 z"/>
+    <path class="cloth" d="M48 54 q4 -26 32 -26 t32 26 q-8 -16 -32 -16 t-32 16 z"/>
+    <!-- 垂下的眉眼，看著地上 -->
+    <path class="thin" d="M62 66 q8 4 14 5"/>
+    <path class="thin" d="M98 66 q-8 4 -14 5"/>
+    <g class="eye-live">
+      <path class="ln" d="M62 80 q7 7 14 0"/>
+      <path class="ln" d="M84 80 q7 7 14 0"/>
+      <!-- 一道淚痕 -->
+      <path class="thin" d="M69 86 v14"/>
+    </g>
+    <g class="eye-dead">
+      <path class="ln" d="M62 80 h14"/>
+      <path class="ln" d="M84 80 h14"/>
+    </g>
+    <!-- 哭得變形的嘴 -->
+    <path class="ln" d="M72 100 q8 -6 16 0"/>
+  </g>
+</svg>

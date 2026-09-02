@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-shoujing" data-character="shoujing" data-faction="xianghu"
+     class="ys-char state-healthy">
+  <title id="t-shoujing">收驚婆</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="shoujing"]{ --skin:#d9b89a; --skin-pale:#b3aca2; --disc:var(--c-xianghu,#c84040); --cloth:#5f7358; --hair:#ded8cc; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-shoujing"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-shoujing)">
+    <!-- 一炷香：舉在身側，煙自己在動 -->
+    <path class="thin" d="M124 116 q-8 -12 0 -22 q8 -10 0 -20"/>
+    <path class="ln" d="M124 158 V120"/>
+    <circle class="red" cx="124" cy="118" r="3.5"/>
+    <!-- 肩與布衫 -->
+    <path class="skin" d="M70 106 h20 v18 h-20 z"/>
+    <path class="cloth" d="M18 162 v-16 q4 -24 26 -30 l22 -6 h28 l22 6 q22 6 26 30 v16 z"/>
+    <path class="ln" d="M66 112 L80 132 L94 112"/>
+    <!-- 圓潤的老臉 -->
+    <path class="skin" d="M54 46 h52 v38 q0 24 -26 30 q-26 -6 -26 -30 z"/>
+    <!-- 包頭巾，只露一綹白髮 -->
+    <path class="cloth" d="M50 50 q6 -22 30 -22 t30 22 q-6 -12 -30 -12 t-30 12 z"/>
+    <path class="hair" d="M54 50 q8 -8 22 -8 q-14 2 -18 10 z"/>
+    <!-- 慈眉：兩道平緩的弧 -->
+    <path class="thin" d="M60 64 q8 -5 16 -2"/>
+    <path class="thin" d="M100 64 q-8 -5 -16 -2"/>
+    <!-- 閉著的眼：問事的時候不看人 -->
+    <g class="eye-live">
+      <path class="ln" d="M60 78 q8 7 16 0"/>
+      <path class="ln" d="M84 78 q8 7 16 0"/>
+      <path class="thin" d="M62 84 l-3 4"/>
+      <path class="thin" d="M98 84 l3 4"/>
+    </g>
+    <g class="eye-dead">
+      <path class="ln" d="M60 78 h16"/>
+      <path class="ln" d="M84 78 h16"/>
+    </g>
+    <!-- 唸唸有詞的嘴 -->
+    <path class="ln" d="M72 98 q8 5 16 0"/>
+    <path class="thin" d="M68 88 q-3 8 -1 13"/>
+    <path class="thin" d="M92 88 q3 8 1 13"/>
+  </g>
+</svg>

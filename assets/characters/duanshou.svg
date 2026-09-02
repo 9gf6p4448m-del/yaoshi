@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-duanshou" data-character="duanshou" data-faction="xianghu"
+     class="ys-char state-healthy">
+  <title id="t-duanshou">斷手書生</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="duanshou"]{ --skin:#e0c4a0; --skin-pale:#b7b0a4; --disc:var(--c-xianghu,#c84040); --cloth:#3f4d80; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-duanshou"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-duanshou)">
+    <!-- 長衫。他右邊（畫面左）那隻袖子是空的，垂著沒有形狀 -->
+    <path class="skin" d="M70 108 h20 v16 h-20 z"/>
+    <path class="cloth" d="M22 162 v-14 q4 -24 26 -30 l20 -6 h30 l20 6 q24 6 26 30 v14 z"/>
+    <path class="cloth" d="M40 122 q-10 14 -8 40 l18 0 q-6 -24 2 -36 z"/>
+    <!-- 空袖口：裡面什麼都沒有 -->
+    <path class="solid" d="M32 158 q8 -4 18 0 v6 h-18 z"/>
+    <path class="ln" d="M68 114 L80 130 L92 114"/>
+    <!-- 低頭讀書：臉略偏下，書捧在左手 -->
+    <path class="paper" d="M84 132 l34 -8 l4 14 l-34 8 z"/>
+    <path class="thin" d="M92 132 l24 -6"/>
+    <path class="thin" d="M94 138 l24 -6"/>
+    <path class="skin" d="M96 124 q10 2 12 8 l-14 4 q-4 -8 2 -12 z"/>
+    <!-- 臉 -->
+    <path class="skin" d="M56 46 h48 v38 q0 22 -24 28 q-24 -6 -24 -28 z"/>
+    <!-- 方巾（儒生的頭巾） -->
+    <path class="hair" d="M52 48 q6 -18 28 -18 t28 18 q-14 -8 -28 -8 t-28 8 z"/>
+    <path class="hair" d="M56 40 h48 v-8 h-48 z"/>
+    <!-- 垂下的眼與眉，視線落在書上 -->
+    <path class="thin" d="M62 64 q8 3 14 4"/>
+    <path class="thin" d="M98 64 q-8 3 -14 4"/>
+    <g class="eye-live">
+      <path class="ln" d="M62 78 q7 6 14 0"/>
+      <path class="ln" d="M84 78 q7 6 14 0"/>
+    </g>
+    <g class="eye-dead">
+      <path class="ln" d="M62 78 h14"/>
+      <path class="ln" d="M84 78 h14"/>
+    </g>
+    <!-- 抿著的嘴 -->
+    <path class="ln" d="M72 96 h16"/>
+  </g>
+</svg>

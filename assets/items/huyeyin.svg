@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-huyeyin" data-item="huyeyin" data-faction="xianghu" class="ys-icon">
+  <title id="t-huyeyin">虎爺印</title>
+  <style>
+    .ys-icon[data-faction="xianghu"] .ln{ fill:none; stroke:var(--c-xianghu-light, #f08060); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="xianghu"] .accent{ fill:var(--c-xianghu, #c84040); stroke:none; }
+  </style>
+  <!-- 印章側視：印鈕與印身 -->
+  <path class="ln" d="M26 8 L38 8 L38 16 L26 16 Z"/>
+  <path class="ln" d="M22 16 L42 16 L42 24 L22 24 Z"/>
+  <!-- 印面：方形正視 -->
+  <path class="ln" d="M18 30 L46 30 L46 56 L18 56 Z"/>
+  <!-- 印面虎頭：雙耳 -->
+  <path class="ln" d="M22 34 L26 38 M42 34 L38 38"/>
+  <!-- 雙眼 -->
+  <circle class="ln" cx="26" cy="43" r="2"/>
+  <circle class="ln" cx="38" cy="43" r="2"/>
+  <!-- 王字紋 -->
+  <path class="ln" d="M32 38 L32 52 M27 44 L37 44 M29 48 L35 48"/>
+  <!-- 點綴色塊：額心朱印 -->
+  <circle class="accent" cx="32" cy="40" r="2"/>
+</svg>

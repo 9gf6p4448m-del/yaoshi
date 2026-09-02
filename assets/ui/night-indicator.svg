@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 24" width="244" height="24"
+     role="img" aria-labelledby="t-night-indicator" data-ui="night-indicator" class="ys-icon">
+  <!--
+    用途：夜份指示器，12 格月相橫排，供 JS 動態上色。
+    掛點：
+      1) 每格圓本身帶 id（night-N，N 為 1 到 12）與 data-night（同 N）——
+         用 document.getElementById('night-'+n).setAttribute('fill', <顏色>)
+         直接改該圓的 fill，標示「當前夜」或「特殊夜」；預設 fill="none" 只留描邊。
+      2) 每格圓內疊一個 class="phase" 的半月形路徑（id="night-N-phase"），
+         預設 opacity="0"——用 document.getElementById('night-'+n+'-phase')
+         .setAttribute('opacity', 1) 表現「已過的夜」被月光照過的痕跡。
+  -->
+  <title id="t-night-indicator">夜份指示器</title>
+  <circle id="night-1" data-night="1" cx="14" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-1-phase" class="phase" d="M14 4 A8 8 0 0 1 14 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-2" data-night="2" cx="34" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-2-phase" class="phase" d="M34 4 A8 8 0 0 1 34 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-3" data-night="3" cx="54" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-3-phase" class="phase" d="M54 4 A8 8 0 0 1 54 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-4" data-night="4" cx="74" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-4-phase" class="phase" d="M74 4 A8 8 0 0 1 74 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-5" data-night="5" cx="94" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-5-phase" class="phase" d="M94 4 A8 8 0 0 1 94 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-6" data-night="6" cx="114" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-6-phase" class="phase" d="M114 4 A8 8 0 0 1 114 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-7" data-night="7" cx="134" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-7-phase" class="phase" d="M134 4 A8 8 0 0 1 134 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-8" data-night="8" cx="154" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-8-phase" class="phase" d="M154 4 A8 8 0 0 1 154 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-9" data-night="9" cx="174" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-9-phase" class="phase" d="M174 4 A8 8 0 0 1 174 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-10" data-night="10" cx="194" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-10-phase" class="phase" d="M194 4 A8 8 0 0 1 194 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-11" data-night="11" cx="214" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-11-phase" class="phase" d="M214 4 A8 8 0 0 1 214 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+
+  <circle id="night-12" data-night="12" cx="234" cy="12" r="8" fill="none" stroke="var(--c-lantern, #c07c30)" stroke-width="2"/>
+  <path id="night-12-phase" class="phase" d="M234 4 A8 8 0 0 1 234 20 Z" fill="var(--c-lantern-glow, #f0a840)" opacity="0"/>
+</svg>

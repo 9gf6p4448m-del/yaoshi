@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-lushan" data-character="lushan" data-faction="yinqi"
+     class="ys-char state-healthy">
+  <title id="t-lushan">閭山法師</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="lushan"]{ --skin:#d0a878; --skin-pale:#ada79c; --disc:var(--c-yinqi,#3d6e4e); --cloth:#2e2a44; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-lushan"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-lushan)">
+    <!-- 令牌：舉在身側，牌面刻一道符 -->
+    <path class="paper" d="M110 158 V116 q0 -8 9 -8 t9 8 v42 z"/>
+    <path class="thin" d="M119 118 v10 M114 124 h10 M119 132 q-5 6 0 12 q5 -6 0 -12"/>
+    <!-- 黑袍與交領 -->
+    <path class="skin" d="M70 106 h20 v18 h-20 z"/>
+    <path class="cloth" d="M16 162 v-16 q4 -26 28 -32 l22 -6 h28 l22 6 q24 6 28 32 v16 z"/>
+    <path class="ln" d="M64 112 L80 134 L96 112"/>
+    <!-- 臉 -->
+    <path class="skin" d="M54 46 h52 v38 q0 24 -26 30 q-26 -6 -26 -30 z"/>
+    <path class="hair" d="M52 48 q8 -18 28 -18 t28 18 q-14 -8 -28 -7 t-28 7 z"/>
+    <!-- 紅額帶，正中一枚符印 -->
+    <path class="red" d="M52 42 h56 v11 h-56 z"/>
+    <path class="thin" d="M80 44 v7 M75 47 h10"/>
+    <!-- 法師的眼：睜著，看的不是你 -->
+    <path class="ln" d="M58 66 L74 70"/>
+    <path class="ln" d="M102 66 L86 70"/>
+    <g class="eye-live">
+      <ellipse class="bone" cx="67" cy="80" rx="9" ry="7"/>
+      <ellipse class="bone" cx="93" cy="80" rx="9" ry="7"/>
+      <circle class="solid" cx="67" cy="80" r="3.8"/>
+      <circle class="solid" cx="93" cy="80" r="3.8"/>
+    </g>
+    <g class="eye-dead">
+      <path class="ln" d="M58 80 h18"/>
+      <path class="ln" d="M84 80 h18"/>
+    </g>
+    <!-- 唸咒的嘴，下巴一撮鬚 -->
+    <path class="ln" d="M72 98 h16"/>
+    <path class="hair" d="M74 106 q6 14 12 0 q-6 5 -12 0 z"/>
+  </g>
+</svg>

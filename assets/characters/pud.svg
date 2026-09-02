@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-pud" data-character="pud" data-faction="xianghu"
+     class="ys-char state-healthy">
+  <title id="t-pud">普渡爐主</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="pud"]{ --skin:#e0b888; --skin-pale:#b6b0a4; --disc:var(--c-xianghu,#c84040); --cloth:#d8a038; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-pud"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-pud)">
+    <!-- 圓滾滾的身，肩比誰都寬 -->
+    <path class="skin" d="M68 106 h24 v16 h-24 z"/>
+    <path class="cloth" d="M8 162 v-14 q4 -28 32 -34 l24 -6 h32 l24 6 q28 6 32 34 v14 z"/>
+    <path class="ln" d="M62 112 L80 134 L98 112"/>
+    <!-- 端著的那碗飯：插著一雙筷子，是給好兄弟的 -->
+    <path class="paper" d="M60 138 h40 l-8 20 h-24 z"/>
+    <path class="skin" d="M64 138 q16 -12 32 0 z"/>
+    <path class="ln" d="M74 138 V118 M84 138 V116"/>
+    <!-- 大圓臉 -->
+    <path class="skin" d="M48 48 h64 v34 q0 26 -32 32 q-32 -6 -32 -32 z"/>
+    <path class="hair" d="M46 50 q10 -20 34 -20 t34 20 q-16 -9 -34 -8 t-34 8 z"/>
+    <!-- 慈眉：往兩側垂下來 -->
+    <path class="thin" d="M56 66 q10 -7 20 -1"/>
+    <path class="thin" d="M104 66 q-10 -7 -20 -1"/>
+    <!-- 笑瞇的眼 -->
+    <g class="eye-live">
+      <path class="ln" d="M56 80 q10 -9 20 0"/>
+      <path class="ln" d="M84 80 q10 -9 20 0"/>
+    </g>
+    <g class="eye-dead">
+      <path class="ln" d="M56 80 h20"/>
+      <path class="ln" d="M84 80 h20"/>
+    </g>
+    <!-- 笑口常開，兩頰有肉 -->
+    <path class="ln" d="M64 96 q16 14 32 0"/>
+    <path class="thin" d="M58 88 q-3 7 -1 11"/>
+    <path class="thin" d="M102 88 q3 7 1 11"/>
+  </g>
+</svg>

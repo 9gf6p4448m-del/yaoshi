@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-zhuyigu" data-item="zhuyigu" data-faction="yinqi" class="ys-icon">
+  <title id="t-zhuyigu">椅仔姑竹椅</title>
+  <style>
+    .ys-icon[data-faction="yinqi"] .ln{ fill:none; stroke:var(--c-yinqi-light, #70b080); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="yinqi"] .accent{ fill:var(--c-yinqi, #3d6e4e); stroke:none; }
+  </style>
+  <!-- 椅背：竹節直條 -->
+  <path class="ln" d="M20 10 L20 26 M26 8 L26 26 M32 8 L32 26"/>
+  <path class="ln" d="M18 15 L34 15 M18 21 L34 21"/>
+  <!-- 椅面：斜四分之三視角 -->
+  <path class="ln" d="M16 26 L38 26 L46 32 L24 32 Z"/>
+  <!-- 椅腳：三腳，右前腳離地 -->
+  <path class="ln" d="M20 30 L16 50"/>
+  <path class="ln" d="M34 30 L36 50"/>
+  <path class="ln" d="M42 31 L46 42"/>
+  <!-- 點綴色塊：離地椅腳下的動勢殘影 -->
+  <circle class="accent" cx="46" cy="45" r="2"/>
+</svg>

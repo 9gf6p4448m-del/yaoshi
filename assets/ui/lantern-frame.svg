@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" preserveAspectRatio="none"
+     role="img" aria-labelledby="t-lantern-frame" data-ui="lantern-frame" class="ys-icon">
+  <!--
+    用途：本檔作為 CSS mask 使用，不直接顯示為插畫。
+    用法範例：
+      .card {
+        -webkit-mask-image: url(assets/ui/lantern-frame.svg);
+        mask-image: url(assets/ui/lantern-frame.svg);
+        -webkit-mask-size: 100% 100%;
+        mask-size: 100% 100%;
+      }
+    規則：白色（fill="#fff"）＝保留／顯示區；沒有圖形的地方＝透明＝遮除區。
+    因此本檔所有圖形一律填白，不使用 CSS 變數、不使用 fill:none 的純描邊路徑、
+    不使用漸層或 filter（僅用實心白色形狀堆疊出邊框與燈籠輪廓）。
+  -->
+  <title id="t-lantern-frame">燈籠邊框</title>
+  <defs>
+    <!-- 燈籠：橢圓燈身＋上下提樑，原點在燈身中心 -->
+    <g id="lantern">
+      <rect x="-1" y="-16" width="2" height="8" fill="#fff"/>
+      <ellipse cx="0" cy="0" rx="10" ry="13" fill="#fff"/>
+      <rect x="-1" y="13" width="2" height="8" fill="#fff"/>
+      <rect x="-7" y="-4" width="14" height="2" fill="#fff"/>
+      <rect x="-7" y="4" width="14" height="2" fill="#fff"/>
+    </g>
+  </defs>
+  <!-- 卡牌外框：上下左右四道邊條 -->
+  <rect x="10" y="10" width="180" height="6" fill="#fff"/>
+  <rect x="10" y="264" width="180" height="6" fill="#fff"/>
+  <rect x="10" y="10" width="6" height="260" fill="#fff"/>
+  <rect x="184" y="10" width="6" height="260" fill="#fff"/>
+  <!-- 四角燈籠 -->
+  <use href="#lantern" x="18" y="26"/>
+  <use href="#lantern" x="182" y="26"/>
+  <use href="#lantern" x="18" y="254"/>
+  <use href="#lantern" x="182" y="254"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-guoyin" data-item="guoyin" data-faction="yinqi" class="ys-icon">
+  <title id="t-guoyin">過陰咒</title>
+  <style>
+    .ys-icon[data-faction="yinqi"] .ln{ fill:none; stroke:var(--c-yinqi-light, #70b080); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="yinqi"] .accent{ fill:var(--c-yinqi, #3d6e4e); stroke:none; }
+  </style>
+  <!-- 符紙外框：直式長條，上緣平整 -->
+  <path class="ln" d="M24 8 L40 8 L40 32 L24 32 Z"/>
+  <!-- 上半符文：三道實線咒文 -->
+  <path class="ln" d="M28 13 L36 13 M27 18 L37 18 M28 23 L36 23"/>
+  <!-- 下半：紙條沿破口散開成三道殘條 -->
+  <path class="ln" d="M24 32 L21 44 L25 40 L26 52"/>
+  <path class="ln" d="M32 32 L32 46 L30 56"/>
+  <path class="ln" d="M40 32 L43 44 L39 40 L38 52"/>
+  <!-- 點綴色塊：符紙頂端的硃砂點 -->
+  <circle class="accent" cx="32" cy="8" r="2.5"/>
+</svg>

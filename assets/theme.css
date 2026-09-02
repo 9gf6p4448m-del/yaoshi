@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+/* ==========================================================================
+   妖市 — 視覺主題變數（廟口版畫風／深夜市集）
+   用法：<link rel="stylesheet" href="assets/theme.css"> 放在 index.html 內嵌 <style> 之前。
+   本檔只提供變數與 utility class，不覆寫 index.html 既有的任何選擇器；
+   舊變數（--zuling／--xianghuo／--yinqi 等）的對照橋接在檔尾「相容橋接」區，
+   預設註解掉，要整批換色時再打開。詳見 docs/art-integration-guide.md。
+   ========================================================================== */
+
+:root{
+  /* --- 底色系：深夜的妖市，三層由遠而近 --- */
+  --c-bg: #1a0a2e;            /* 深靛夜空（頁面底） */
+  --c-bg-surface: #2a1548;    /* 攤位背景（面板／區塊） */
+  --c-bg-card: #1e1030;       /* 卡牌底色（拍品、法寶卡） */
+
+  /* --- 光源系：整個畫面唯一的暖光來自燈籠 --- */
+  --c-lantern: #c07c30;       /* 燈籠琥珀（主光、主要邊框） */
+  --c-lantern-glow: #f0a840;  /* 燈籠光暈（高光、hover） */
+  --c-gold: #e8c860;          /* 金邊裝飾（標題、強調） */
+
+  /* --- 三系色彩 --- */
+  --c-zuli: #8b6040;          /* 祖靈：烏木棕 */
+  --c-zuli-light: #d4a870;
+  --c-xianghu: #c84040;       /* 香火：廟紅 */
+  --c-xianghu-light: #f08060;
+  --c-yinqi: #3d6e4e;         /* 陰氣：腐敗暗綠 */
+  --c-yinqi-light: #70b080;
+
+  /* --- 詛咒品 --- */
+  --c-curse: #6040a0;         /* 詛咒紫灰 */
+  --c-curse-light: #9060d0;
+
+  /* --- 危險／血量 --- */
+  --c-danger: #e04040;        /* 危急紅 */
+  --c-warn: #e0a000;          /* 警示橙 */
+  --c-safe: #60b060;          /* 安全綠 */
+
+  /* --- 文字 --- */
+  --c-text: #f0e8d8;          /* 羊皮紙白 */
+  --c-text-dim: #a09070;      /* 暗淡文字 */
+  --c-ink: #1a0a0a;           /* 墨色（版畫描邊、印章底） */
+
+  /* --- 字型 --- */
+  --font-body: 'Noto Serif TC', 'Songti TC', serif;          /* 正文、卡牌敘述、台詞 */
+  --font-display: 'Noto Sans TC', 'PingFang TC', sans-serif; /* UI 數字、按鈕、標籤 */
+
+  /* --- 圓角與陰影 --- */
+  --r-card: 8px;
+  --r-btn: 4px;
+  --shadow-lantern: 0 0 20px rgba(192,124,48,0.4);
+
+  /* --- 以下為衍生token（非規格指定，供 utility class 內部使用，可自由增刪） --- */
+  --c-line: rgba(232,200,96,0.22);      /* 分隔線：金邊的極淡版 */
+  --shadow-card: 0 2px 6px rgba(0,0,0,0.55);
+  --shadow-stamp: 0 0 10px rgba(224,64,64,0.5);
+  --dur-fast: 140ms;
+  --dur-mid: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   Utility classes — 直接套在既有 HTML 元素的 class 上即可，不需改結構
+   ========================================================================== */
+
+/* --- 三系／詛咒文字色 --- */
+.text-zuli{ color: var(--c-zuli-light); }
+.text-xianghu{ color: var(--c-xianghu-light); }
+.text-yinqi{ color: var(--c-yinqi-light); }
+.text-curse{ color: var(--c-curse-light); }
+.text-dim{ color: var(--c-text-dim); }
+.text-gold{ color: var(--c-gold); }
+
+/* --- 系別底色（低彩度，襯在卡牌上不搶字） --- */
+.bg-zuli{ background: color-mix(in srgb, var(--c-zuli) 30%, var(--c-bg-card)); }
+.bg-xianghu{ background: color-mix(in srgb, var(--c-xianghu) 26%, var(--c-bg-card)); }
+.bg-yinqi{ background: color-mix(in srgb, var(--c-yinqi) 30%, var(--c-bg-card)); }
+.bg-curse{ background: color-mix(in srgb, var(--c-curse) 30%, var(--c-bg-card)); }
+.bg-surface{ background: var(--c-bg-surface); }
+.bg-card{ background: var(--c-bg-card); }
+
+/* --- 系別左緣色條：套在卡牌上，一眼分系，不佔版面 --- */
+.edge-zuli{ border-left: 3px solid var(--c-zuli-light); }
+.edge-xianghu{ border-left: 3px solid var(--c-xianghu-light); }
+.edge-yinqi{ border-left: 3px solid var(--c-yinqi-light); }
+.edge-curse{ border-left: 3px solid var(--c-curse-light); }
+
+/* --- 燈籠光暈：得標者、當前拍品、風位玩家 --- */
+.card-glow{
+  box-shadow: var(--shadow-lantern);
+  border: 1px solid var(--c-lantern);
+  border-radius: var(--r-card);
+}
+/* 只要光不要邊框（疊在已有邊框的元件上） */
+.glow-only{ box-shadow: var(--shadow-lantern); }
+/* 落標／出局：壓暗但不隱藏 */
+.dimmed{ opacity: .42; filter: grayscale(.55); transition: opacity var(--dur-mid) var(--ease-out), filter var(--dur-mid) var(--ease-out); }
+
+/* --- 卡牌外殼 --- */
+.card-surface{
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
+  font-family: var(--font-body);
+}
+
+/* --- 按鈕：燈籠描邊，按下才亮 --- */
+.btn-lantern{
+  font-family: var(--font-display);
+  color: var(--c-lantern-glow);
+  background: transparent;
+  border: 1px solid var(--c-lantern);
+  border-radius: var(--r-btn);
+  padding: 6px 14px;
+  transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.btn-lantern:hover,
+.btn-lantern:focus-visible{ background: rgba(192,124,48,.18); box-shadow: var(--shadow-lantern); }
+.btn-lantern:active{ background: rgba(240,168,64,.3); }
+.btn-lantern:disabled{ opacity:.4; box-shadow:none; }
+
+/* --- 壽命／血量三段（配合角色氣色，見 art-integration-guide） --- */
+.life-safe{ color: var(--c-safe); }
+.life-warn{ color: var(--c-warn); }
+.life-danger{ color: var(--c-danger); }
+
+/* --- 字型指定 --- */
+.font-body{ font-family: var(--font-body); }
+.font-display{ font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+/* 出價金額、壽命等會跳動的數字一律用這個，等寬數字才不會左右抖 */
+.num{ font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+/* ==========================================================================
+   角色氣色三態 — 套在 <svg class="char state-*"> 的外層或 svg 本身皆可。
+   SVG 內部另有同名 class 的細節規則（屍青臉、死眼），兩者疊加。
+   ========================================================================== */
+.state-healthy{ filter: none; }
+.state-pale{ filter: saturate(.45) brightness(.9); }
+/* dying 不再去飽和：SVG 內部已經把臉換成屍青 #8bc4c4，再 saturate() 一次會把屍青洗成灰，
+   三態就只剩明暗差、看不出「屍青」。這裡只壓暗、加對比，讓屍青留著。 */
+.state-dying{ filter: brightness(.78) contrast(1.08); }
+
+/* ==========================================================================
+   動畫 keyframes — 規格與觸發時機見 docs/art-integration-guide.md
+   全部只動 transform／opacity／filter／box-shadow，不動版面屬性
+   ========================================================================== */
+@keyframes lantern-reveal{
+  0%{   opacity:0; transform: translateY(10px) scale(.96); box-shadow:none; }
+  40%{  opacity:1; transform: translateY(0) scale(1.02); box-shadow: 0 0 34px rgba(240,168,64,.55); }
+  100%{ opacity:1; transform: translateY(0) scale(1);    box-shadow: var(--shadow-lantern); }
+}
+@keyframes stamp-in{
+  0%{   opacity:0; transform: scale(2) rotate(-8deg); }
+  60%{  opacity:1; transform: scale(.94) rotate(2deg); }
+  100%{ opacity:1; transform: scale(1) rotate(0deg); }
+}
+@keyframes fade-dim{
+  0%{   opacity:1; filter: grayscale(0); }
+  100%{ opacity:.42; filter: grayscale(.55); }
+}
+@keyframes clash-left{  /* 對決：左方角色衝撞 */
+  0%{ transform: translateX(-120%); opacity:0; }
+  45%{ transform: translateX(0); opacity:1; }
+  60%{ transform: translateX(18%); }
+  100%{ transform: translateX(0); }
+}
+@keyframes clash-right{ /* 對決：右方角色衝撞 */
+  0%{ transform: translateX(120%); opacity:0; }
+  45%{ transform: translateX(0); opacity:1; }
+  60%{ transform: translateX(-18%); }
+  100%{ transform: translateX(0); }
+}
+@keyframes lantern-sway{ /* 燈籠邊框微擺，長時間常駐用 */
+  0%,100%{ filter: brightness(1); }
+  50%{     filter: brightness(1.14); }
+}
+
+.anim-lantern-reveal{ animation: lantern-reveal 900ms var(--ease-out) both; }
+.anim-stamp-in{ animation: stamp-in 420ms var(--ease-out) both; }
+.anim-fade-dim{ animation: fade-dim 500ms var(--ease-out) both; }
+.anim-clash-left{ animation: clash-left 700ms var(--ease-out) both; }
+.anim-clash-right{ animation: clash-right 700ms var(--ease-out) both; }
+.anim-sway{ animation: lantern-sway 3.2s ease-in-out infinite; }
+
+/* 尊重系統的減少動態設定：動畫縮到幾乎瞬間，但仍保留最終狀態 */
+@media (prefers-reduced-motion: reduce){
+  .anim-lantern-reveal,.anim-stamp-in,.anim-fade-dim,
+  .anim-clash-left,.anim-clash-right,.anim-sway{
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .dimmed{ transition: none; }
+}
+
+/* ==========================================================================
+   相容橋接（預設關閉）
+   index.html 目前用的是另一組變數名。要讓舊樣式整批吃到新配色時，
+   把下面這段的註解拿掉即可；不想一次全換就逐一改選擇器。
+   對照：--bg→--c-bg／--panel→--c-bg-surface／--table→--c-bg-card／
+        --ink→--c-text／--dim→--c-text-dim／--gold→--c-gold／
+        --zuling→--c-zuli-light／--xianghuo→--c-xianghu-light／
+        --yinqi→--c-yinqi-light／--curse→--c-curse-light／
+        --red→--c-danger／--green→--c-safe
+   注意：舊 --yinqi 是紫色 #9b6fd4、新 --c-yinqi 是暗綠，換過去陰氣系的色相會整個變，
+   這是有意的（新配色把紫色讓給詛咒品）。換之前先確認詛咒品與陰氣系在畫面上還分得開。
+   ========================================================================== */
+/*
+:root{
+  --bg: var(--c-bg);
+  --table: var(--c-bg-card);
+  --table2: var(--c-bg-surface);
+  --panel: var(--c-bg-surface);
+  --panel2: var(--c-bg-card);
+  --line: var(--c-line);
+  --ink: var(--c-text);
+  --dim: var(--c-text-dim);
+  --gold: var(--c-gold);
+  --red: var(--c-danger);
+  --green: var(--c-safe);
+  --zuling: var(--c-zuli-light);
+  --xianghuo: var(--c-xianghu-light);
+  --yinqi: var(--c-yinqi-light);
+  --curse: var(--c-curse-light);
+}
+*/

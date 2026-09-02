@@ -1,0 +1,328 @@
+# 妖市 美術素材整合指南
+
+> 寫給**接下來要把 `assets/` 這批素材嵌進 `index.html` 的人**（含 AI）。
+> 素材本身已經完成並實際渲染驗過；這份文件只講**怎麼接進去**，以及接的時候會踩到的坑。
+> 產出這批素材的 session **沒有動過 `index.html` 一個位元組**——所有整合改動都還沒發生。
+>
+> 先讀 `IMPLEMENTATION_GUIDE.md` §7（強制檢查清單）與 §11.10 第 2 點（版面預算），再動手。
+
+---
+
+## 0. 這批素材有什麼
+
+| 路徑 | 內容 | 數量 |
+|---|---|---|
+| `assets/theme.css` | 色彩／字型／圓角／陰影變數 ＋ utility class ＋ 動畫 keyframes | 1 |
+| `assets/characters/*.svg` | 角色頭像，160×160，三種氣色狀態 | 10 |
+| `assets/items/*.svg` | 法寶與命格道具圖示，64×64 | 12 |
+| `assets/ui/*.svg` | 出價籌碼／盯字印章／夜份指示器／燈籠邊框 | 4 |
+
+風格：**廟口版畫**——粗黑描邊（stroke-width 3.5）、平面色塊、五官誇張、**全程無漸層**。
+光源設定：整個畫面唯一的暖光來自燈籠（`--c-lantern` 系），底色是深靛夜空。
+
+---
+
+## 1. 掛上 theme.css
+
+```html
+<!-- index.html <head> 內，放在既有那個內嵌 <style> 之前 -->
+<link rel="stylesheet" href="assets/theme.css">
+```
+
+**順序很重要**：`theme.css` 要在既有 `<style>` **之前**，這樣既有樣式仍然贏，整合可以一塊一塊來，不會一掛上去畫面就全變。
+
+### 跟既有變數的關係（重要）
+
+`index.html:17-19` 已經有一組自己的變數（`--bg`／`--table`／`--ink`／`--zuling`…），
+和這批新變數（`--c-*`）**是兩套、目前互不影響**。要整批換色時，把 `theme.css` 檔尾
+「相容橋接」那段的註解拿掉即可，對照表也寫在那裡。
+
+**換之前先知道這件事**：舊 `--yinqi` 是紫色 `#9b6fd4`，新 `--c-yinqi` 是**暗綠**。
+新配色把紫色讓給了詛咒品（`--c-curse`）。橋接打開後陰氣系的色相會整個換掉，
+這是有意的設計，但請先確認畫面上**陰氣系與詛咒品還分得開**。
+
+---
+
+## 2. 角色頭像
+
+### 2.1 ⚠️ 檔名與 `ROLES` id 有 5 個對不上
+
+**這是最容易踩的坑。** 直接寫 `ROLES[id] + ".svg"` 會有一半的角色 404。
+檔名是本次任務指定的，`ROLES` id 是 `index.html` 既有的，兩邊得靠對照表接：
+
+| `ROLES` id（`index.html`） | 角色 | SVG 檔名 | 一致？ |
+|---|---|---|---|
+| `qingmian` | 青面攤主 | `qingmian.svg` | ✅ |
+| `hongyi` | 紅衣婆婆 | `hongyi.svg` | ✅ |
+| `duanshou` | 斷手書生 | `duanshou.svg` | ✅ |
+| `shoujing` | 收驚婆 | `shoujing.svg` | ✅ |
+| `dangpu` | 陰間當鋪 | `dangpu.svg` | ✅ |
+| **`hunter`** | 獵人 | `lieren.svg` | ❌ |
+| **`xiaonv`** | 孝女白琴 | `xiaonu.svg` | ❌ |
+| **`lvshan`** | 閭山法師 | `lushan.svg` | ❌ |
+| **`zutou`** | 大家樂組頭 | `zuhe.svg` | ❌ |
+| **`luzhu`** | 普渡爐主 | `pud.svg` | ❌ |
+| `human` | 你（真人座位） | **沒有** | ⚠️ 待補 |
+
+```js
+/* 建議做法：在 index.html 加一張對照表，不要改 ROLES 的 id
+   （id 進了 trace 與存檔語意，改它要走等價驗證；改檔名則是純美術層的事）。 */
+const CHAR_SVG = {
+  qingmian:"qingmian", hongyi:"hongyi", duanshou:"duanshou",
+  shoujing:"shoujing", dangpu:"dangpu",
+  hunter:"lieren", xiaonv:"xiaonu", lvshan:"lushan",
+  zutou:"zuhe", luzhu:"pud",
+  /* human 目前沒有頭像 SVG，退回既有的 emoji p.av */
+};
+const charSvgPath = roleId => CHAR_SVG[roleId] ? `assets/characters/${CHAR_SVG[roleId]}.svg` : null;
+```
+
+**`human` 沒有頭像**是已知缺口。`MODES.solo.seats` 第一格就是 `human`，熱座模式有兩個。
+兩個選項，請使用者裁定後再做：(a) 補一張「無臉的你」頭像；(b) 真人座位維持現在的 emoji `p.av`。
+
+### 2.2 用 inline SVG，不要用 `<img>`
+
+氣色狀態是靠 **SVG 內部的 `<style>`** 切換的。`<img src="....svg">` 載入的 SVG
+是獨立文件，外面的 class 進不去，三態會失效。要嘛 inline，要嘛用 `<object>`。
+建議 inline（fetch 一次後快取字串），順便省掉 10 個 request。
+
+```js
+const _charCache = {};
+async function charSvg(roleId){
+  const f = CHAR_SVG[roleId]; if(!f) return "";
+  if(!_charCache[f]) _charCache[f] = await fetch(`assets/characters/${f}.svg`).then(r=>r.text());
+  return _charCache[f];
+}
+```
+
+**十張頭像同時內嵌到同一頁是安全的**：每個檔的專屬顏色都收在
+`.ys-char[data-character="<name>"]` 這個帶屬性的選擇器裡，其餘規則十個檔逐字相同，
+所以彼此不會蓋掉。**新增角色時請照抄這個結構**——如果寫成沒有屬性限定的 `.ys-char{...}`，
+最後載入的那一張會把全部角色的膚色與衣色一起改掉（這個 bug 實際發生過，是靠一次渲染比對抓到的）。
+
+### 2.3 氣色三態怎麼切
+
+三態是 class：`state-healthy`／`state-pale`／`state-dying`，套在 `<svg>` 根元素上。
+
+**門檻直接沿用 `index.html:2200-2201` 既有的 `faceOf`／`faceLbl`**，不要另外發明一套，
+否則頭像的氣色會跟旁邊的文字標籤（「氣色紅潤／面色蒼白／命懸一線」）對不上：
+
+```js
+/* 與 faceOf()/faceLbl() 同一組門檻：r>2/3 紅潤、r>1/3 蒼白、其餘命懸一線 */
+function lifeState(p){
+  if(!p.alive) return "state-dying";
+  const r = p.life / CFG.LIFE;
+  return r > 2/3 ? "state-healthy" : r > 1/3 ? "state-pale" : "state-dying";
+}
+
+/* 更新某個座位的頭像氣色。純呈現，不讀寫任何賽局欄位。 */
+function applyLifeState(el, p){
+  const svg = el.querySelector("svg.ys-char"); if(!svg) return;
+  svg.classList.remove("state-healthy","state-pale","state-dying");
+  svg.classList.add(lifeState(p));
+}
+```
+
+三態的視覺差異：
+- `state-healthy`：本色。
+- `state-pale`：膚色換成該角色的 `--skin-pale`（血色褪去），衣服 `opacity:.72`，整體再去飽和。
+- `state-dying`：膚色換成**屍青 `#8bc4c4`**，眼睛從 `.eye-live` 切成 `.eye-dead`（兩道橫劃＝眼神死），衣服 `opacity:.58`。
+
+> `theme.css` 的 `.state-dying` 只做 `brightness(.78) contrast(1.08)`，**刻意不去飽和**——
+> SVG 內部已經把臉換成屍青了，外面再 `saturate()` 一次會把屍青洗成灰，三態就只剩明暗差。
+> 改這條之前請先看一眼實際畫面。
+
+---
+
+## 3. 道具圖示
+
+### 3.1 ⚠️ 系別代號兩邊不同
+
+| `POOL` 的 `f` 欄位 | SVG 的 `data-faction` | CSS 變數 |
+|---|---|---|
+| `zuling` | `zuli` | `--c-zuli` / `--c-zuli-light` |
+| `xianghuo` | `xianghu` | `--c-xianghu` / `--c-xianghu-light` |
+| `yinqi` | `yinqi` | `--c-yinqi` / `--c-yinqi-light` |
+| （`CURSES` 的 `f:"curse"`） | — | `--c-curse` / `--c-curse-light` |
+
+```js
+const FACTION_CSS = { zuling:"zuli", xianghuo:"xianghu", yinqi:"yinqi", curse:"curse" };
+```
+
+### 3.2 ⚠️ 檔名與 `POOL` 的 `ab` 有 5 個對不上，其中 2 件 `POOL` 裡根本沒有
+
+| SVG 檔名 | 對應 `POOL` 品名 | `POOL` 的 `ab` | 狀態 |
+|---|---|---|---|
+| `pojun` | 破軍旗 | `pojun` | ✅ |
+| `sigui` | 飼鬼甕 | `sigui` | ✅ |
+| `guoyin` | 過陰咒 | `guoyin` | ✅ |
+| `fushou` | 福壽綿長 | `fushou` | ✅ |
+| `shanshen` | 山神庇佑 | `shanshen` | ✅ |
+| `xianji` | 獻祭刀 | `xianji` | ✅ |
+| `wangchuan` | 送王船 | `wangchuan` | ✅ |
+| `huyeyin` | 虎爺印 | `tiger` | 檔名≠ab |
+| `yuyi` | 黃色小雨衣 | `raincoat` | 檔名≠ab |
+| `zhuyigu` | 椅仔姑竹椅 | `chair` | 檔名≠ab |
+| `rednail` | **`POOL` 沒有「紅線繡花鞋」** | — | 最接近的是「虎姑婆指甲」`nail` |
+| `leinu` | **`POOL` 沒有「雷女銅鈴」** | — | 像是「雷女之火」`thunder` 與「千里眼銅鈴」`bell` 的合稱 |
+
+`rednail` 與 `leinu` 是本次美術任務指定要畫的品名，但**設計文件與程式的 `POOL` 裡都沒有這兩件**。
+兩個選項，請使用者裁定：(a) 這兩張圖先當儲備素材，之後真的加這兩件法寶時用；
+(b) 改掛到既有的「虎姑婆指甲」與「雷女之火／千里眼銅鈴」上（`leinu` 的閃電比較貼「雷女之火」）。
+**在裁定之前不要自作主張把圖掛到別的品項上。**
+
+### 3.3 其餘 15 件法寶還沒有圖示
+
+`POOL` 共 27 件、`CURSES` 5 件，這批只做了 12 個圖示。沒有圖示的請用**系別色塊佔位**
+（`theme.css` 的 `.bg-zuli` / `.bg-xianghu` / `.bg-yinqi` / `.bg-curse`），不要留空白，
+也不要拿別件的圖頂替。
+
+```js
+const ITEM_SVG = { 破軍旗:"pojun", 飼鬼甕:"sigui", 過陰咒:"guoyin", 福壽綿長:"fushou",
+  山神庇佑:"shanshen", 獻祭刀:"xianji", 送王船:"wangchuan", 虎爺印:"huyeyin",
+  黃色小雨衣:"yuyi", 椅仔姑竹椅:"zhuyigu" };
+const itemSvgPath = it => ITEM_SVG[it.n] ? `assets/items/${ITEM_SVG[it.n]}.svg` : null;
+```
+
+---
+
+## 4. UI 元件
+
+### `bid-token.svg` — 出價籌碼
+方孔銅錢，金色描邊。用在出價按鈕、標書列表的項目符號。可直接 `<img>`（沒有狀態切換需求）。
+
+### `mark-stamp.svg` — 「盯」字印章
+紅色方印，邊緣有墨水暈開的半透明多邊形。**疊在被盯角色的頭像上**，用法見 §5.3。
+中央的「盯」是 `<text>`（帶 `data-glyph="盯"`），之後想換成路徑時可以照這個屬性找。
+
+### `night-indicator.svg` — 夜份指示器（12 格月相）
+`viewBox="0 0 244 24"`。兩個 JS 掛點：
+
+```js
+/* 標示當前夜／已過的夜。純呈現，不讀寫賽局狀態。 */
+function renderNights(cur){
+  for(let n=1;n<=CFG.ROUNDS;n++){
+    const c = document.getElementById("night-"+n);
+    const ph = document.getElementById("night-"+n+"-phase");
+    if(!c) continue;
+    c.setAttribute("fill", n===cur ? "var(--c-lantern-glow, #f0a840)" : "none");
+    ph.setAttribute("opacity", n < cur ? "1" : "0");   /* 已過的夜留月光痕 */
+  }
+}
+```
+
+> ⚠️ **放進畫面之前先量版面**。手冊 §11.10 第 2 點寫明 `#felt` 的高度預算是**零餘裕**，
+> 加任何牌桌內元件前要在 844×390 量四組溢出（一般／落魄／收祟／押寶＋持獻祭刀）。
+> 建議**不要新增一列**，併進 `#feltHead` 現有那一行（`index.html:2196`），或放進底部列 `#south`。
+
+### `lantern-frame.svg` — 燈籠邊框（給 CSS mask 用）
+`preserveAspectRatio="none"`，可拉伸成任意卡牌比例。**全部圖形都是純白**（白＝mask 保留區），
+所以它**不能直接當圖片顯示**，只能當遮罩：
+
+```css
+.card-lantern{
+  -webkit-mask-image: url(assets/ui/lantern-frame.svg);
+          mask-image: url(assets/ui/lantern-frame.svg);
+  -webkit-mask-size: 100% 100%;  mask-size: 100% 100%;
+  background: var(--c-lantern);
+}
+```
+
+---
+
+## 5. 動畫規格
+
+`theme.css` 已經備好 keyframes 與對應的 `.anim-*` class，直接加 class 就會播。
+全部只動 `transform`／`opacity`／`filter`／`box-shadow`，不動版面屬性，手機上不會觸發 reflow。
+
+### 5.1 開標揭曉（每件拍品開標前，總長約 3.4 秒）
+
+| 時間 | 動作 | 實作 |
+|---|---|---|
+| 0 – 0.5s | 黑屏 | 疊一層 `.reveal-veil`，`opacity:0→1` |
+| 0.5 – 1.4s | 燈籠光從底部打亮拍品 | 拍品卡加 `.anim-lantern-reveal`（`@keyframes lantern-reveal`，900ms） |
+| 1.4 – 2.4s | 得標者角色發光 | 得標者座位加 `.card-glow`（`box-shadow: var(--shadow-lantern)`）＋ `.anim-lantern-reveal` |
+| 2.4 – 3.4s | 落標者壓暗 | 落標者座位加 `.anim-fade-dim`（`opacity→.42`、`grayscale(.55)`） |
+
+```css
+.reveal-veil{ position:absolute; inset:0; background:#000; opacity:0; pointer-events:none;
+  transition: opacity 500ms var(--ease-out); z-index:5; }
+.reveal-veil.on{ opacity:1; }
+```
+
+**必須尊重既有的 `SKIP` 旗標**（`index.html` 全域，快轉模式）。既有的 `say()`／`playDuel()`
+都是 `SKIP?短:長` 的寫法，照抄：`SKIP` 為真時整段壓到 ~0.4 秒。
+
+### 5.2 對決場景（切進 `playDuel()`，`index.html:2724`）
+
+| 階段 | 動作 | 實作 |
+|---|---|---|
+| 切入 | 全黑 0.3s | `#duel` 的 `opacity` 由 0→1，`transition: opacity 300ms` |
+| 重燃 | 場景從市集切成廟埕深色 | `#duel` 背景改 `var(--c-bg)`，比牌桌 `--c-bg-surface` 更深 |
+| 入場 | 兩角色 SVG 由左右滑入 | 左 `.anim-clash-left`、右 `.anim-clash-right`（各 700ms） |
+| 碰撞 | 剪影衝撞 | keyframes 內建：45% 到位、60% 互推 ±18%、100% 回正 |
+| 傷害 | 數字蓋章 | 傷害數字加 `.anim-stamp-in`（`scale 2→1`、`opacity 0→1`，420ms） |
+| 退場 | 反向 | 兩側各加 `reverse` 的 animation-direction，或直接複用 `.anim-fade-dim` |
+
+對決場景裡的角色頭像**也要套氣色 class**——對決當下正好是壽命最緊張的時刻，
+垂危的那一方臉是屍青的，這是這套三態最有價值的地方。
+
+#### `playDuel()` 裡已經有的三個效果，要決定留或換
+
+`index.html:2746-2751` 目前已經在用三個 class，**新動畫和它們做的是同一件事**，
+所以請**二擇一，不要兩層疊著播**（會變成推兩次、閃兩次）：
+
+| 既有 | 它現在做什麼 | 建議 |
+|---|---|---|
+| `.charge-l` / `.charge-r` | 兩名對戰者互相衝撞的位移 | **換掉**——`.anim-clash-left/right` 是它的升級版（多了入場滑入與回正） |
+| `.shake` | 落敗那一方中招後的抖動 | **留著**，新動畫沒有對應的效果 |
+| `#flashfx`（`.on`） | 碰撞瞬間的全螢幕白光 | **留著**，新動畫沒有對應的效果 |
+
+換掉 `.charge-*` 時記得 `index.html:2750` 那行 `loserEl.classList.remove("charge-l","charge-r")`
+也要一起改成移除新的 class，否則落敗者的位移不會被清掉。
+
+### 5.3 盯上宣告（`showMarkUI()` 之後，`index.html:2361`）
+
+```js
+/* 在被盯角色的頭像上蓋一枚「盯」印，播 stamp-in，再留殘影。 */
+function stampMark(seatEl){
+  const st = document.createElement("img");
+  st.src = "assets/ui/mark-stamp.svg";
+  st.className = "mark-stamp anim-stamp-in";
+  seatEl.appendChild(st);
+}
+```
+
+```css
+.mark-stamp{ position:absolute; right:-4px; top:-4px; width:34px; height:34px;
+  pointer-events:none; z-index:3;
+  /* 殘影：印章落下之後持續留一圈紅 */
+  filter: drop-shadow(0 0 6px var(--c-danger)); }
+```
+
+---
+
+## 6. 鐵則（違反就是把美術做進了賽局）
+
+1. **動畫一律只用 `S.rngUi()`，絕對不碰 `S.rng()`。**
+   這是手冊 §2.3 的硬規則：`S.rng` 是玩法流、`S.rngUi` 是演出流，兩條分開才能保證
+   「有沒有播動畫」不改變賽局結果。既有的 `sayFrom()`（`index.html:2212`）就是正確範例。
+   **`Math.random()` 全域禁用**——`grep -c "Math.random" index.html` 必須是 `0`。
+2. **動畫的回呼裡不得讀寫 `S` 的任何賽局欄位**（`life`／`bag`／`marks`／`wishNight`…）。
+   只讀 DOM、只寫 class 與 style。
+3. **純美術改動的等價驗證**：照 §7 的規程，用同一支 `trace()` 對改動前後各跑 `seeds 1..20`，
+   兩次輸出逐位元組**必須相等**。不相等就代表動畫漏進了賽局，回去找是哪一行碰了 `S.rng` 或改了狀態。
+4. **版面預算**：手機 844×390（橫持）畫面不得溢出、不得重疊、按鈕點得到。
+   `#felt` 是零餘裕，加牌桌內元件前先量四組（一般／落魄／收祟／押寶＋持獻祭刀）。
+5. **`prefers-reduced-motion` 已經處理好了**（`theme.css` 檔尾），新增 keyframes 時記得
+   把 class 加進那個 media query 的清單裡。
+
+---
+
+## 7. 已知缺口（整合前需要使用者裁定的三件事）
+
+1. **`human` 沒有頭像 SVG**——真人座位要補一張，還是維持 emoji？（§2.1）
+2. **`rednail` / `leinu` 在 `POOL` 裡沒有對應法寶**——當儲備素材，還是改掛到既有品項？（§3.2）
+3. **其餘 15 件法寶 ＋ 5 件詛咒品沒有圖示**——要不要補齊，還是先用系別色塊佔位？（§3.3）
+
+這三件都**不該由整合的人自行決定**，因為 2 和 3 會動到玩家看得到的內容對應關係。

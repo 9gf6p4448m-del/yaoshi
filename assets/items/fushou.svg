@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-fushou" data-item="fushou" data-faction="xianghu" class="ys-icon">
+  <title id="t-fushou">福壽綿長</title>
+  <style>
+    .ys-icon[data-faction="xianghu"] .ln{ fill:none; stroke:var(--c-xianghu-light, #f08060); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="xianghu"] .accent{ fill:var(--c-xianghu, #c84040); stroke:none; }
+  </style>
+  <!-- 燈座：喇叭形底座 -->
+  <path class="ln" d="M24 56 L40 56 M28 56 L28 50 L36 50 L36 56 M26 50 L38 50 L34 44 L30 44 Z"/>
+  <!-- 油碗：淺碗，油快溢出邊緣 -->
+  <path class="ln" d="M20 38 Q32 46 44 38 L42 40 Q32 47 22 40 Z"/>
+  <!-- 碗沿與燈柱連接 -->
+  <path class="ln" d="M32 44 L32 38"/>
+  <!-- 一朵火苗 -->
+  <path class="ln" d="M32 30 C29 26 30 21 32 17 C34 21 35 26 32 30 Z"/>
+  <!-- 點綴色塊：滿溢的油光 -->
+  <circle class="accent" cx="32" cy="39" r="2.6"/>
+</svg>

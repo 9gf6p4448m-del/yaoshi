@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-mark-stamp" data-ui="mark-stamp" class="ys-icon">
+  <title id="t-mark-stamp">盯字印章</title>
+  <!-- 墨水暈開：不規則多邊形，疊在印章底下模擬暈開的墨 -->
+  <path d="M10 14 L22 8 L38 6 L52 12 L58 24 L54 38 L58 48 L44 58 L28 60 L14 52 L6 40 L8 26 Z"
+        fill="var(--c-danger, #e04040)" opacity=".35"/>
+  <!-- 印章底：紅色圓角方塊 -->
+  <rect x="14" y="14" width="36" height="36" rx="4" fill="var(--c-danger, #e04040)"/>
+  <!-- 「盯」字：白色，之後可改成路徑 -->
+  <text x="32" y="33" data-glyph="盯" font-family="var(--font-body), serif" font-size="26"
+        text-anchor="middle" dominant-baseline="central" fill="var(--c-text, #f0e8d8)">盯</text>
+</svg>

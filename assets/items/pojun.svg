@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-pojun" data-item="pojun" data-faction="xianghu" class="ys-icon">
+  <title id="t-pojun">破軍旗</title>
+  <style>
+    .ys-icon[data-faction="xianghu"] .ln{ fill:none; stroke:var(--c-xianghu-light, #f08060); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="xianghu"] .accent{ fill:var(--c-xianghu, #c84040); stroke:none; }
+  </style>
+  <!-- 旗桿：插在心口才有力氣，桿底作尖 -->
+  <path class="ln" d="M20 8 V52 l3 5 3-5"/>
+  <!-- 旗面：右緣撕裂成三道破口 -->
+  <path class="ln" d="M20 12 L50 15 L43 22 L52 27 L41 32 L48 39 L20 37 Z"/>
+  <!-- 破口下的殘布 -->
+  <path class="ln" d="M28 37 l-2 7 4-3 2 5"/>
+  <!-- 點綴色塊：桿頭的血 -->
+  <circle class="accent" cx="20" cy="8" r="3.2"/>
+</svg>

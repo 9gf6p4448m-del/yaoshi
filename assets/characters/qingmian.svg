@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-qingmian" data-character="qingmian" data-faction="none"
+     class="ys-char state-healthy">
+  <title id="t-qingmian">青面攤主</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="qingmian"]{ --skin:#4a8f7a; --skin-pale:#7d9a94; --disc:var(--c-lantern,#c07c30); --cloth:#7a3020; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-qingmian"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-qingmian)">
+    <!-- 脖子與土地公式的圓肩，坐鎮攤前 -->
+    <path class="skin" d="M68 104 h24 v20 h-24 z"/>
+    <path class="cloth" d="M14 162 v-18 q3 -26 28 -32 l22 -6 h32 l22 6 q25 6 28 32 v18 z"/>
+    <path class="ln" d="M64 110 L80 130 L96 110"/>
+    <!-- 牛角：從額角外翻上揚 -->
+    <path class="skin" d="M52 46 q-14 -14 -22 -8 q10 2 14 16 z"/>
+    <path class="skin" d="M108 46 q14 -14 22 -8 q-10 2 -14 16 z"/>
+    <!-- 方臉，攤主的臉是刻出來的 -->
+    <path class="skin" d="M50 42 h60 v42 q0 24 -30 30 q-30 -6 -30 -30 z"/>
+    <!-- 亂髮壓在額頭上 -->
+    <path class="hair" d="M48 44 q10 -12 32 -12 t32 12 q-12 -4 -32 -3 t-32 3 z"/>
+    <!-- 怒眉：兩道斜劈 -->
+    <path class="ln" d="M56 64 L72 70"/>
+    <path class="ln" d="M104 64 L88 70"/>
+    <!-- 暴凸的眼白與瞳 -->
+    <g class="eye-live">
+      <ellipse class="bone" cx="66" cy="80" rx="10" ry="8"/>
+      <ellipse class="bone" cx="94" cy="80" rx="10" ry="8"/>
+      <circle class="solid" cx="67" cy="80" r="4.5"/>
+      <circle class="solid" cx="93" cy="80" r="4.5"/>
+    </g>
+    <!-- 垂危：眼神死，只剩兩道橫劃 -->
+    <g class="eye-dead">
+      <path class="ln" d="M57 80 h18"/>
+      <path class="ln" d="M85 80 h18"/>
+    </g>
+    <!-- 咧開的嘴與兩根上翹的獠牙 -->
+    <path class="ln" d="M62 98 q18 10 36 0"/>
+    <path class="bone" d="M70 98 l4 -10 l4 10 z"/>
+    <path class="bone" d="M82 98 l4 -10 l4 10 z"/>
+  </g>
+</svg>

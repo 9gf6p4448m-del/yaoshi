@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-sigui" data-item="sigui" data-faction="yinqi" class="ys-icon">
+  <title id="t-sigui">飼鬼甕</title>
+  <style>
+    .ys-icon[data-faction="yinqi"] .ln{ fill:none; stroke:var(--c-yinqi-light, #70b080); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="yinqi"] .accent{ fill:var(--c-yinqi, #3d6e4e); stroke:none; }
+  </style>
+  <!-- 甕身：矮胖陶甕輪廓 -->
+  <path class="ln" d="M20 30 C20 21 25 16 32 16 C39 16 44 21 44 30 L44 43 C44 51 39 56 32 56 C25 56 20 51 20 43 Z"/>
+  <!-- 甕口唇緣 -->
+  <path class="ln" d="M23 18 Q32 13 41 18"/>
+  <!-- 符紙：貼在甕口，一角被頂開 -->
+  <path class="ln" d="M24 15 L38 13 L37 21 L23 22 Z"/>
+  <path class="ln" d="M37 13 L44 9 L40 19"/>
+  <!-- 點綴色塊：符紙破口下露出的一點幽光 -->
+  <circle class="accent" cx="32" cy="19" r="2.5"/>
+</svg>

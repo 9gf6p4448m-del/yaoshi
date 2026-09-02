@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-xianji" data-item="xianji" data-faction="zuli" class="ys-icon">
+  <title id="t-xianji">獻祭刀</title>
+  <style>
+    .ys-icon[data-faction="zuli"] .ln{ fill:none; stroke:var(--c-zuli-light, #d4a870); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="zuli"] .accent{ fill:var(--c-zuli, #8b6040); stroke:none; }
+  </style>
+  <!-- 刀柄 -->
+  <path class="ln" d="M14 14 L22 22"/>
+  <!-- 握柄纏繩 -->
+  <path class="ln" d="M16 12 L20 16 M18 10 L22 14"/>
+  <!-- 刀身：短刃，一側帶缺口，刃尖朝右下 -->
+  <path class="ln" d="M22 22 L44 44 L40 48 L34 40 L30 44 L20 34 Z"/>
+  <!-- 缺口 -->
+  <path class="ln" d="M32 32 L36 30 L34 35"/>
+  <!-- 點綴色塊：刃尖垂落的血滴 -->
+  <path class="accent" d="M42 46 C42 48.5 44 50.5 44 50.5 C44 50.5 46 48.5 46 46 C46 44.5 44 43.5 44 43.5 C44 43.5 42 44.5 42 46 Z"/>
+</svg>

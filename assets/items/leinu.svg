@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-leinu" data-item="leinu" data-faction="zuli" class="ys-icon">
+  <title id="t-leinu">雷女銅鈴</title>
+  <style>
+    .ys-icon[data-faction="zuli"] .ln{ fill:none; stroke:var(--c-zuli-light, #d4a870); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="zuli"] .accent{ fill:var(--c-zuli, #8b6040); stroke:none; }
+  </style>
+  <!-- 提把 -->
+  <path class="ln" d="M28 8 Q32 4 36 8 L36 14 L28 14 Z"/>
+  <!-- 鈴身：鐘形 -->
+  <path class="ln" d="M22 16 L42 16 C44 26 46 32 48 38 L16 38 C18 32 20 26 22 16 Z"/>
+  <!-- 鈴口 -->
+  <path class="ln" d="M16 38 L48 38 L46 42 L18 42 Z"/>
+  <!-- 鈴舌 -->
+  <path class="ln" d="M32 42 L32 50 L29 54"/>
+  <!-- 鈴身閃電紋 -->
+  <path class="ln" d="M34 20 L28 28 L33 28 L27 36"/>
+  <!-- 鈴口下兩道震動線 -->
+  <path class="ln" d="M14 46 Q18 48 14 50 M50 46 Q46 48 50 50"/>
+  <!-- 點綴色塊：提把上的繫繩結 -->
+  <circle class="accent" cx="32" cy="6" r="2.3"/>
+</svg>

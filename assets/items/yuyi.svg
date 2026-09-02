@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-yuyi" data-item="yuyi" data-faction="yinqi" class="ys-icon">
+  <title id="t-yuyi">黃色小雨衣</title>
+  <style>
+    .ys-icon[data-faction="yinqi"] .ln{ fill:none; stroke:var(--c-yinqi-light, #70b080); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="yinqi"] .accent{ fill:var(--c-yinqi, #3d6e4e); stroke:none; }
+  </style>
+  <!-- 帽兜：空的，沒有臉 -->
+  <path class="ln" d="M22 20 C22 12 27 8 32 8 C37 8 42 12 42 20 L42 26 L22 26 Z"/>
+  <!-- 帽兜開口：內裡空洞 -->
+  <path class="ln" d="M26 20 Q32 26 38 20"/>
+  <!-- 雨衣身：連帽下的斗篷形，兩袖外張 -->
+  <path class="ln" d="M22 26 L12 34 L16 40 L22 34 L22 50 L42 50 L42 34 L48 40 L52 34 L42 26 Z"/>
+  <!-- 衣襬滴水 -->
+  <path class="ln" d="M24 50 L23 56 M32 50 L32 57 M40 50 L41 56"/>
+  <!-- 點綴色塊：領口釦子 -->
+  <circle class="accent" cx="32" cy="32" r="2"/>
+</svg>

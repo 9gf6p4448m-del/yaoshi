@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-wangchuan" data-item="wangchuan" data-faction="xianghu" class="ys-icon">
+  <title id="t-wangchuan">送王船</title>
+  <style>
+    .ys-icon[data-faction="xianghu"] .ln{ fill:none; stroke:var(--c-xianghu-light, #f08060); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="xianghu"] .accent{ fill:var(--c-xianghu, #c84040); stroke:none; }
+  </style>
+  <!-- 船身：兩端上翹的弧形船體 -->
+  <path class="ln" d="M12 38 Q32 46 52 38 L46 44 Q32 49 18 44 Z"/>
+  <!-- 桅杆 -->
+  <path class="ln" d="M32 38 L32 12"/>
+  <!-- 帆 -->
+  <path class="ln" d="M32 14 L44 20 L32 26 Z"/>
+  <!-- 船身下方燒起的火舌 -->
+  <path class="ln" d="M20 44 C19 48 22 50 21 54 M28 46 C27 50 30 52 29 56 M36 46 C38 50 35 52 36 56 M44 44 C45 48 42 50 43 54"/>
+  <!-- 點綴色塊：帆上的火星 -->
+  <circle class="accent" cx="37" cy="19" r="2.3"/>
+</svg>

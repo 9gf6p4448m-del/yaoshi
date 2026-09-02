@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-labelledby="t-shanshen" data-item="shanshen" data-faction="zuli" class="ys-icon">
+  <title id="t-shanshen">山神庇佑</title>
+  <style>
+    .ys-icon[data-faction="zuli"] .ln{ fill:none; stroke:var(--c-zuli-light, #d4a870); stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; }
+    .ys-icon[data-faction="zuli"] .accent{ fill:var(--c-zuli, #8b6040); stroke:none; }
+  </style>
+  <!-- 雙峰山形 -->
+  <path class="ln" d="M8 50 L22 26 L29 36 L34 28 L48 50 Z"/>
+  <!-- 地平線 -->
+  <path class="ln" d="M8 50 L48 50"/>
+  <!-- 護罩弧線：罩住山脊上方 -->
+  <path class="ln" d="M10 30 Q28 12 46 30"/>
+  <!-- 點綴色塊：護罩頂端的靈光 -->
+  <circle class="accent" cx="28" cy="15" r="2.6"/>
+</svg>
