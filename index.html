@@ -156,8 +156,12 @@ button,select,.mcard,.seat,.stepper{touch-action:manipulation}
 .rcard.taken{opacity:.28;pointer-events:none}
 #selFoot{display:flex;align-items:center;gap:10px;min-height:52px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;padding:6px 10px}
-#selDesc{flex:1;font-size:11px;color:var(--dim);line-height:1.45;min-width:0}
+#selDesc{flex:1;font-size:11px;color:var(--dim);line-height:1.6;min-width:0}
 #selDesc b{color:var(--ink)}
+.descHead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.descTag{border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:0 6px;font-size:10px}
+.descRow{margin-top:2px;padding-left:10px;position:relative}
+.descRow::before{content:"‣";position:absolute;left:0;color:var(--gold)}
 /* 抽屜 / modal */
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:30;display:none;align-items:center;justify-content:center}
 #sheetbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;padding:14px 14px 16px;max-height:92vh;overflow-y:auto}
@@ -1747,8 +1751,15 @@ function renderSelect(){
     </div>`;
   }).join("");
   const R=SEL.cur?ROLES[SEL.cur]:null;
+  /* desc 慣例「X流（起始N）。被動：…。AI 時…」：首段做徽章、其餘按「。」各自成行——
+     擠在一行裡自然換行會把句子斷在莫名其妙的位置（2026-09-02 試玩回饋） */
   $("selDesc").innerHTML=R
-    ?`<b>${R.av} ${R.name}</b>（起始壽命 ${R.life0||CFG.LIFE}）<br>${R.desc}`
+    ?(()=>{
+      const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean);
+      const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
+      return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${R.life0||CFG.LIFE}</span></div>`
+        +seg.map(t=>`<div class="descRow">${t}</div>`).join("");
+    })()
     :"點一個角色，看被動與起始壽命";
   $("selBtn").disabled=!R;
   $("selBtn").textContent=SEL.mode==="hotseat"&&SEL.picks.length===0?"確定，換玩家二":"入市";
