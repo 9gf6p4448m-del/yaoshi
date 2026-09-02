@@ -718,6 +718,17 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.14 v0.11 美術與音效層（2026-09-03）——接手前先知道這六件事
+
+完整規格與掛點在 `docs/art-integration-guide.md`（§2 頭像、§5 動畫、§8 音效），這裡只放接手時最容易踩的。
+
+1. **美術層是純呈現，等價驗證只驗「相等」**：四個階段（主題與頭像／三段動畫／音效／配色橋接）每一階段都對前一 commit 跑 `trace(1..20)` 逐位元組相等（`13b685f`→`236441d`→`5212f40`→v0.11）。之後任何動美術層的改動照這條：**必須相等**，不相等＝演出漏進了賽局。
+2. **`index.html` 的 `:root` 舊變數名（`--bg`／`--gold`／`--yinqi`…）現在全部指向 `assets/theme.css` 的 `--c-*` token**，舊十六進位值留在 `:root` 註解裡備查。**`--yinqi` 從紫改成暗綠，紫讓給 `--curse`**——所有寫死的紫色（`.wishbar` 的 `#7a5ea8`）現在是「心願」語意，不是陰氣。`?sim=1` 工具頁自帶樣式，沒動。
+3. **頭像**：`CHAR_SVG` 表接 `ROLES` id↔檔名（`hunter→lieren`、`xiaonv→xiaonu`、`lvshan→lushan`、`zutou→zuhe`、`luzhu→pud`，加角色時必填），`preloadArt()` 在 `startEntry()` 的手勢裡 fetch，抓不到退回 emoji `p.av`。`lifeState(p)` 與 `faceOf`／`faceLbl` **同一組門檻**（r>2/3 紅潤／r>1/3 蒼白／其餘垂危），改門檻要三處一起。`tests/tools/load.mjs` 的 stub 沒有 `fetch` 的 DOM 環境，所以任何新演出程式碼**不得在載入期碰 DOM 或 fetch**。
+4. **動畫都是加減 class**（keyframes 在 `theme.css`）：開標 `veil()`＋`.anim-lantern-reveal`＋`revealGlow(r)`；對決 `#duel.on` 淡入淡出＋`.anim-clash-*`（`.charge-*` 已移除）；盯上 `markStampHTML(id)` 記在 UI 端 `STAMPED`，**不進 `S`**。`renderSeats()` 重畫座位卡會自然清掉演出 class，`#south` 不重建所以在 `renderSeats` 裡手動清。
+5. **音效 `assets/audio/sfx.js`**（純 Web Audio 合成，`<script>` 在主 script 之後——`load.mjs` 只抓第一個 `<script>`）：一律經 `sfx(name,{rnd:S.rngUi()})` 包裝，**`SKIP` 快轉不播、靜音不播，永遠不傳玩法流那支亂數**。引擎函式（`resolveAuction`／`resolveBattles`／`simulate`）裡零呼叫，驗法：`awk` 掃那三個函式區段 `sfx(` 命中數＝0。手機第一聲要靠使用者手勢解鎖（`initSfx()` 在 `startEntry`），**用 `element.click()` 從 script 觸發不算手勢**，AudioContext 會停在 suspended——瀏覽器自動化驗音效要用真實點擊。
+6. **量版面的方法**：844×390，`#south` 最緊情境＝放血鈕出現＋預算文字＋「蓋牌開標」，實測 `scrollWidth−clientWidth=0`、主鈕右緣 827。`#felt` 內部本來就有 2px 捲動差（v0.10 就有，A/B 對照過），不是美術層造成的。西／東座位卡因 SVG 頭像由 84→94px，側欄有餘裕。
+
 ### 11.13 v0.10 局末回顧（2026-09-02）——接手前先知道這五件事
 
 1. **資料在 `S.history`，不在 `S.wishNight`**：`S.wishNight`／`S.markStat`／`S.ruleStat` 每夜在 `resolveAuction` 開頭整包重置，跨夜資料只有 `S.history={life:[[...]],nights:[...]}`。

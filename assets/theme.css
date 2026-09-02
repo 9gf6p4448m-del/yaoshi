@@ -52,6 +52,7 @@
 
   /* --- 以下為衍生token（非規格指定，供 utility class 內部使用，可自由增刪） --- */
   --c-line: rgba(232,200,96,0.22);      /* 分隔線：金邊的極淡版 */
+  --c-bg-raised: #3a2260;               /* 浮起的控制元件（按鈕、步進器）：比攤位再亮一階 */
   --shadow-card: 0 2px 6px rgba(0,0,0,0.55);
   --shadow-stamp: 0 0 10px rgba(224,64,64,0.5);
   --dur-fast: 140ms;
@@ -195,9 +196,11 @@
 }
 
 /* ==========================================================================
-   相容橋接（預設關閉）
-   index.html 目前用的是另一組變數名。要讓舊樣式整批吃到新配色時，
-   把下面這段的註解拿掉即可；不想一次全換就逐一改選擇器。
+   相容橋接（保留作參考，index.html 不靠這段）
+   index.html 用的是另一組變數名。**這段在 index.html 裡打開也沒有效果**：theme.css 在
+   index.html 的內嵌 <style> 之前載入，後者自己的 :root 同特異度、後到者贏。
+   所以 2026-09-03 v0.11 是直接把 index.html 的 :root 改成引用 --c-* token（對照就是下表）。
+   其他頁面（?sim=1 之類自帶樣式的頁）要吃新配色，可以把這段抄過去。
    對照：--bg→--c-bg／--panel→--c-bg-surface／--table→--c-bg-card／
         --ink→--c-text／--dim→--c-text-dim／--gold→--c-gold／
         --zuling→--c-zuli-light／--xianghuo→--c-xianghu-light／

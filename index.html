@@ -17,13 +17,17 @@
          角色頭像與圖示在 assets/*.svg，掛法與紀律見 docs/art-integration-guide.md =====
    ===== 橫向牌桌版：設計基準 844x390（iPhone 橫持） ===== */
 :root{
-  --bg:#120e1d; --table:#1d1531; --table2:#2a1f45; --panel:#1f1830; --panel2:#2a2142;
-  --line:#3d3260; --ink:#e8e2f5; --dim:#9a8fc0; --gold:#e8b34b; --red:#e05555; --green:#5fbf77;
-  --zuling:#5fae8f; --xianghuo:#e0a13f; --yinqi:#9b6fd4; --curse:#d45577;
+  /* v0.11 起舊變數名全部指向 assets/theme.css 的 --c-* token（對照表在 theme.css 檔尾）。
+     舊值留作備查：--bg #120e1d --table #1d1531 --table2 #2a1f45 --panel #1f1830 --panel2 #2a2142
+     --line #3d3260 --ink #e8e2f5 --dim #9a8fc0 --gold #e8b34b --red #e05555 --green #5fbf77
+     --zuling #5fae8f --xianghuo #e0a13f --yinqi #9b6fd4（紫，現改暗綠、紫讓給詛咒品）--curse #d45577 */
+  --bg:var(--c-bg); --table:var(--c-bg-card); --table2:var(--c-bg-surface); --panel:var(--c-bg-surface); --panel2:var(--c-bg-raised);
+  --line:var(--c-line); --ink:var(--c-text); --dim:var(--c-text-dim); --gold:var(--c-gold); --red:var(--c-danger); --green:var(--c-safe);
+  --zuling:var(--c-zuli-light); --xianghuo:var(--c-xianghu-light); --yinqi:var(--c-yinqi-light); --curse:var(--c-curse-light);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsoft JhengHei","PingFang TC",sans-serif);
   font-size:14px;position:fixed;inset:0;width:100%;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 *{touch-action:manipulation} /* 連點任何位置都不觸發 double-tap zoom（試玩回饋：視窗上跳）；下行捲動容器另開 pan-y */
@@ -104,7 +108,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .stakebar .stepper{display:flex;align-items:center}
 .stakebar .stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
   background:var(--panel2);color:var(--ink);font-size:16px}
-.stakebar .amt{width:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:var(--gold)}
+.stakebar .amt{width:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:var(--gold);font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
 .stakebar .typebtn{height:30px;font-size:12px;padding:0 10px;white-space:nowrap}
 .pickbox{position:absolute;top:-8px;right:-4px;width:22px;height:22px;border-radius:7px;z-index:2;
   border:1px solid var(--gold);background:var(--panel2);color:var(--gold);
@@ -139,7 +143,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
   border:1px solid var(--line);border-radius:12px;padding:5px 12px;position:relative}
 #south .dir{color:var(--gold);font-size:11px}
 #south .av{font-size:28px}
-#south .life{font-size:21px;font-weight:bold;color:var(--green);line-height:1}
+#south .life{font-size:21px;font-weight:bold;color:var(--green);line-height:1;font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
 #south .life.low{color:var(--red)}
 #south .mut{line-height:1.35}
 #budget{font-size:11px;color:var(--dim);margin-left:auto;text-align:right}
@@ -159,7 +163,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .fighter{text-align:center;transition:transform .35s}
 .fighter .fav{font-size:74px;line-height:1.15;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
 .fighter .fnm{font-size:14px;margin-top:2px}
-.fighter .fpw{font-size:30px;font-weight:bold;color:var(--gold)}
+.fighter .fpw{font-size:30px;font-weight:bold;color:var(--gold);font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
 .fighter .fdir{font-size:11px;color:var(--gold)}
 .vsbig{font-size:26px;font-weight:bold;color:var(--dim);letter-spacing:2px}
 .shake{animation:shake .45s}
@@ -1457,7 +1461,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.10", VERSION_NOTE="局末回顧：壽命曲線・逐夜得標・心願";
+const VERSION="0.11", VERSION_NOTE="美術與音效：版畫頭像・燈籠配色・三段動畫・合成音效";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2915,7 +2919,9 @@ function endGame(){
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
 /* ================= 局末回顧場景（純呈現：只讀 S.history；局已結束故全揭露 AI 暗標與心願，2026-09-02 使用者裁定） ================= */
-const RV_COL={0:"var(--gold)",1:"var(--zuling)",2:"var(--yinqi)",3:"var(--red)"};
+/* 座位色（南金／北綠／西紫／東紅）：v0.11 改指 theme.css token——舊的 --zuling 現在是烏木棕，跟 --gold 在曲線上分不開，
+   所以北家改用陰氣亮綠、西家改用詛咒亮紫，四條線仍互相拉得開 */
+const RV_COL={0:"var(--c-gold,#e8c860)",1:"var(--c-yinqi-light,#70b080)",2:"var(--c-curse-light,#9060d0)",3:"var(--c-danger,#e04040)"};
 const RV_TYPE={cons:"保守",yaming:"押命"};
 function showReview(){
   finalizeHistory();
