@@ -2169,7 +2169,7 @@ function openHelp(){
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
     ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。${CFG.NIGHT_REGEN>0?`每夜天明，存活者回 ${CFG.NIGHT_REGEN} 壽命。`:""}`)}
     ${sec("🌙 每夜流程",`①抽今夜心願（私有）→${CFG.MARK_ON?"②盯上宣告（公開釘一件，盯了沒出價付 "+CFG.MARK_TAX+" 虛張稅）→③":"②"}妖市出價→開標→結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還${CFG.NIGHT_REGEN>0?"、天明回血":""}）。`)}
-    ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。誠實盯是驅離或誘餌、虛張盯是聲東擊西——盯了那件卻沒出價要付虛張稅。`):""}
+    ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。訣竅在盯哪一件：滿桌怯場型時盯你的小額側標，對手會讓路；滿桌搶標型時別盯側標，會被圍剿。盯了那件卻沒出價要付 1 壽命。`):""}
     ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
     ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
@@ -2287,7 +2287,7 @@ function showMarkUI(){
   const ap=S.players[ACTIVE];
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name}】`:"";
   $("stage").innerHTML=`
-    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」——可以誠實、可以虛張。盯了卻沒出價，夜末付 ${CFG.MARK_TAX} 壽命虛張稅。<span class="mut">對手怎麼反應寫在角色卡（ⓘ）</span></div>
+    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span></div>
     <div id="market">${S.market.map((it,i)=>`<div class="mcard ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
       <div class="nm">${it.n}</div>
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
