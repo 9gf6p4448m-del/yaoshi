@@ -718,6 +718,16 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.12 v0.9 節奏包＋盯上宣告（2026-09-02）——接手前先知道這六件事
+
+1. **節奏包三個值**：`CFG.LIFE=50`／`AI_THROTTLE=0.30`／`NIGHT_REGEN=5`，全設回 40／0.45／0 ＋ `MARK_ON=false` ＝ v0.8.1 行為（等價驗證就是這樣做的）。
+   角色起始壽命是 `roleLife0(R)=CFG.LIFE+life0d`，**建玩家時才算**——實驗腳本覆寫 `CFG.LIFE` 會一起平移（一度寫成 `life0:CFG.LIFE-6` 在定義時算死，實驗數據錯了一輪，勿重蹈）。
+2. **盯上宣告的資料流**：夜初 `drawMarks()`（AI 依座位序 `aiMark` 耗 rng，`MARK_ON=false` 零消耗）→ 真人 UI `showMarkUI`／headless `policyMarks(policies)`（策略物件的 `mark(p)`，沒有＝不盯）→ `S.marks={pid:索引|null}` → `aiBids` 估值段依 `p.ai.markReact`（avoid／contest／ignore）調 `vc.val` → 夜末 `resolveBattles` 虛張稅（讀 `S.wishNight.bidItems`）。
+3. **角色反應型是公開資訊**：`ROLES[*].ai.markReact`，角色卡 `roleDescHTML` 自動帶出；加角色必填。角色要改釘法用 hook `onAiMark`（ctx `{p,cands,mark}`）。
+4. **閘門腳本** `tests/tools/mark-gate.mjs`（G1 無支配解＋換桌翻盤／G2 活性／G3 稅有牙／G4 等價），n≥10000；改 `MARK_*` 任一數值都要重跑。
+5. **統計**：`playPolicyGame` 回傳 `markStat`（tax／markedItems／markedBids／unmarkedItems／unmarkedBids），`runMany` 未聚合（要就自己迭代）。
+6. **天明回血**在 `resolveBattles` 心願判定之後、貸款攤還之前，只給 `alive && life>0` 者——壽命剛好歸零的人不靠回血救（只有心願能救回），與既有語意一致。
+
 ### 11.11 心願牌庫滿 24 張（2026-09-02 v0.8）——接手前先知道這五件事
 
 1. **`WISHES` 現在 24 張**（原 8 ＋第二批 16，`grep -n "第二批 16 張" index.html`）。第二批的獎勵在 `CFG.WISH_REWARD2`、

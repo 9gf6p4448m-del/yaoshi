@@ -32,6 +32,7 @@ function ok(c,what){ if(!c) throw new Error(what); }
 /* ---------- 治具 ---------- */
 function setup(G){
   G.CFG.WISH_ON=true; G.CFG.EVENT_ON=false; G.CFG.RULE_ON=false;
+  G.CFG.NIGHT_REGEN=0; G.CFG.MARK_ON=false; /* 2026-09-02 v0.9 後加的天明回血與盯上宣告與心願判定無關，一併隔離（舊版沒有這兩個欄位，設了不影響） */
   G.makeState('solo',1);
   const S=G.S;
   S.players.forEach((p,i)=>{ p.ai=null; p.roleId='human'; p.bag=[]; p.alive=true; p.life=40;

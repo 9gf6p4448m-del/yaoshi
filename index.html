@@ -75,6 +75,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
+.markb{position:absolute;left:4px;top:4px;font-size:10px;background:rgba(0,0,0,.45);border:1px solid #c9a24a;border-radius:8px;padding:0 5px;color:#ffd97a}
 /* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
 .rulein{color:#ffd9d0;margin-left:6px}
 .rulein b{color:var(--gold)}
@@ -269,7 +270,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 "use strict";
 /* ================= 常數（【試玩必調】集中此處） ================= */
 const CFG = {
-  LIFE: 40, ROUNDS: 12, MARKET: 4,
+  LIFE: 50, ROUNDS: 12, MARKET: 4, /* LIFE 40→50：節奏包甲（2026-09-02 使用者裁定），角色起始壽命為 CFG.LIFE±n 一起平移 */
   CURSE_PROB: 0.65,
   SET_MIN: 2,
   DMG_BASE: 3, DMG_DIV: 5, DMG_MAX: 6,
@@ -283,8 +284,12 @@ const CFG = {
   AI_DESTROY_P: 0.5, /* 最強 AI 對詛咒品下防禦性銷毀標的機率【試玩必調】 */
   /* AI 預設打法旋鈕（ARCH_SPEC 待辦 22；預設值＝改動前行為，trace 不變）：
      AI_IDLE_P＝每夜整夜按兵不動的機率（0 時不耗亂數）；AI_THROTTLE＝計畫內出價的預算節流比例 */
-  AI_IDLE_P: 0, AI_THROTTLE: 0.45,
-  NIGHT_REGEN: 0, /* 節奏實驗旋鈕：每夜夜末存活者回血（0＝關，trace 不變）【待裁定，正式值未定】 */
+  AI_IDLE_P: 0, AI_THROTTLE: 0.30, /* 節流 0.45→0.30：節奏包甲 */
+  NIGHT_REGEN: 5, /* 天明回血：節奏包甲（n=10000：中位 11 夜、46% 到 12 夜、出局 1.73 人；設 0＝關）【試玩必調】 */
+  /* 盯上宣告（GAME_DESIGN §5.8，2026-09-02）：封標前每人公開釘一件。MARK_ON=false＝不宣告、不耗亂數、trace 與加入前相等。
+     MARK_TAX 虛張稅（盯了沒出價）／MARK_SCARE 怯場型每多一人盯的估值折減／MARK_CONTEST 搶標型對被盯品的加成／
+     MARK_OWN 對自己盯的加成（承諾）／MARK_BLUFF_P AI 改盯次高（虛張）機率。全【試玩必調】 */
+  MARK_ON: true, MARK_TAX: 1, MARK_SCARE: 3, MARK_CONTEST: 3, MARK_OWN: 2, MARK_BLUFF_P: 0.3,
   /* 命格系統（GAME_DESIGN §六之二）——係數全部【試玩必調】 */
   BLOOD_COST: 2,     /* 獻祭刀：第 n 次放血成本 = n×BLOOD_COST（遞增，甲′裁定）【試玩必調】 */
   BLOOD_DRAIN: 4,    /* 獻祭刀：每次放血「所有對手」各失的壽命（甲′裁定；整合版實測 −2 被心願回血稀釋到無感、−4 條件勝率 54.5% 有感不破格）【試玩必調】 */
@@ -501,14 +506,16 @@ function pawnNow(p){
 }
 
 /* --- 2/5 ROLES：角色（被動、AI 行為模式、台詞、頭像、起始壽命） ---
-   life0 省略＝用 CFG.LIFE；ai 為 null＝人類座位；hooks 空＝目前沒有被動。
+   life0d 省略＝起始壽命＝CFG.LIFE；有值＝CFG.LIFE+life0d（角色不對稱＝相對位移，建玩家時才算，改 CFG.LIFE 整體平移）；ai 為 null＝人類座位；hooks 空＝目前沒有被動。
    AI 個性一律寫在這裡的 onAi* hook（契約見 ARCH_SPEC §8），aiBids() 只提供預設決策。 */
+/* 角色起始壽命：CFG.LIFE＋位移，呼叫時才算（實驗腳本覆寫 CFG.LIFE 也會跟著平移） */
+const roleLife0=R=>CFG.LIFE+(R.life0d||0);
 const ROLES = {
   human:{id:"human",name:"你",av:"🧑",ai:null,lines:null,hooks:{}},
   /* 干擾型：跟標（追殺人類上一夜得標的陣營）＋虛張標（推高別人的認知價） */
   qingmian:{id:"qingmian",name:"青面攤主",av:"👹",pool:true,
     desc:"干擾流。被動：對手上一夜得標陣營的拍品，你出價比價時視為 +2（實付不變）。AI 時跟標追殺你上一夜得標的陣營、偶爾下虛張押命標",
-    ai:{aggr:0.85,spite:0.25},
+    ai:{aggr:0.85,spite:0.25,markReact:"contest"},
     hooks:{
       /* 玩家被動（GAME_DESIGN §六之三A）：對手上一夜得標陣營的拍品，比價 eff +2（實付照舊） */
       onBidEff(ctx){
@@ -545,7 +552,7 @@ const ROLES = {
   /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
   hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",pool:true,
     desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
-    ai:{aggr:0.6,spite:0.6},
+    ai:{aggr:0.6,spite:0.6,markReact:"contest"},
     hooks:{
       onBidSettle(ctx){                              /* 被搶標 +1 */
         if(ctx.isWinner) return;
@@ -584,7 +591,7 @@ const ROLES = {
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
     desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴額外 +4。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
-    ai:{aggr:0.7,spite:0.4},
+    ai:{aggr:0.7,spite:0.4,markReact:"ignore"},
     hooks:{
       /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴額外 +4 */
       onPowerCalc(ctx){
@@ -607,9 +614,9 @@ const ROLES = {
       poison:["非常抱歉，但棋局如此。"],poisoned:["豈有此理！"],bwin:["勝負早在標下時已定。"],blose:["失算…失算…"]}},
   /* 蟄伏型：本夜市場沒有大貨（p≥6 的法寶）就整夜不出手（ARCH_SPEC §8.2 的 skipAll，
      2026-09-02 依 §9 待辦 5 補上）。被動＝未得標回血，跟蟄伏互相成全。 */
-  shoujing:{id:"shoujing",name:"收驚婆",av:"🕯️",life0:34,pool:true,
+  shoujing:{id:"shoujing",name:"收驚婆",av:"🕯️",life0d:-6,pool:true,
     desc:"節奏流（起始 34）。被動：整夜未得標回 3；整夜完全不出價改回 5。AI 時蟄伏——沒大貨就整夜按兵不動",
-    ai:{aggr:0.3,spite:0.1},
+    ai:{aggr:0.3,spite:0.1,markReact:"avoid"},
     hooks:{
     onAiPlan(ctx){ /* 蟄伏：本夜市場沒有 p≥6 的法寶＝沒大貨，整夜不出手【試玩必調：門檻 6】 */
       if(!S.market.some(it=>!it.curse&&it.p>=6)) ctx.skipAll=true;
@@ -628,7 +635,7 @@ const ROLES = {
   /* 獵首型：優先搶「能讓自己追上第一名」的拍品（ARCH_SPEC §8.1，2026-09-02 依 §9 待辦 5 補上） */
   hunter:{id:"hunter",name:"獵人",av:"🏹",pool:true,
     desc:"掠奪流。被動：結算戰擊敗實際戰力比你高的對手時，奪走其袋中一件法寶。AI 時獵首——緊咬第一名",
-    ai:{aggr:0.85,spite:0.5},
+    ai:{aggr:0.85,spite:0.5,markReact:"contest"},
     hooks:{
     onAiValue(ctx){ /* 能追上第一名戰力的拍品 +4（ARCH_SPEC §8.1）【試玩必調】 */
       if(ctx.item.curse) return;
@@ -652,9 +659,9 @@ const ROLES = {
   /* 抬價型（GAME_DESIGN 六之三 A）：押命標落標免血債，改折磨得標者——落標比得標還開心。
      與黃色小雨衣的功能重疊（設計已載明二擇一）：兩者都把落標 cost 歸 0，數值上天然不疊加
      （0 不會再變 0），此處採「持有雨衣時被動不重複疊加」解，不改寫雨衣。 */
-  xiaonv:{id:"xiaonv",name:"孝女白琴",av:"⚰️",life0:36,pool:true,
+  xiaonv:{id:"xiaonv",name:"孝女白琴",av:"⚰️",life0d:-4,pool:true,
     desc:"抬價流（起始 36）。被動：押命標落標不失血，改讓該件得標者 −1（每夜至多 3 次）。AI 時攪局——專咬別人想要的拍品",
-    ai:{aggr:0.55,spite:0.5},
+    ai:{aggr:0.55,spite:0.5,markReact:"avoid"},
     hooks:{
       onBidSettle(ctx){
         const p=ctx.p;
@@ -691,9 +698,9 @@ const ROLES = {
   /* 免疫型（GAME_DESIGN 六之三 A）：詛咒品戰力視為 0（drain 照舊），獨力買銷詛咒品半價。
      規格的「囤詛咒品當肉盾」在現行引擎裡沒有「留在袋中」這條路（買下＝銷毀），
      故 AI 收祟＝一律買下銷毀（ARCH_SPEC §8.5 的字面實作 intent='keep'）。 */
-  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0:32,pool:true,
+  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:-8,pool:true,
     desc:"免疫流（起始 32）。被動：袋中詛咒品戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
-    ai:{aggr:0.5,spite:0.2},
+    ai:{aggr:0.5,spite:0.2,markReact:"ignore"},
     hooks:{
       onItemValue(ctx){ if(ctx.item.curse) ctx.value=0; },
       onBidSettle(ctx){
@@ -710,7 +717,7 @@ const ROLES = {
   /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改壽命 1/2；夜末得標 ≥2 件 +2、0 件 −2。 */
   zutou:{id:"zutou",name:"大家樂組頭",av:"🎲",pool:true,
     desc:"分散流。被動：保守標上限改為壽命的 1/2（原 1/3）；夜末得標 ≥2 件回 2、掛零 −2。AI 時亂槍——每夜對 3 件下小額標",
-    ai:{aggr:0.65,spite:0.3},
+    ai:{aggr:0.65,spite:0.3,markReact:"contest"},
     hooks:{
       onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/2)); }, /* 「改為」1/2，不是加成 */
       onWinItem(ctx){                                /* 跨玩家 hook，認自己（本夜得標計數） */
@@ -737,9 +744,9 @@ const ROLES = {
      典當掛在三個致死路徑上：出價實付（onBidSettle）、對決傷害（onBattle）、夜末結算（onNightEnd）。
      已知微縫：夜間結算「途中」由別的 hook 直接扣血致死（如孝女白琴的 −1 恰好補刀）不在這三個
      掛點之間，救不到——屬既有 hook 架構的邊界，接受並記錄於 roles-report.md。 */
-  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",life0:36,pool:true,order:95, /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
+  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",life0d:-4,pool:true,order:95, /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
     desc:"上限流（起始 36）。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——保住 1 壽命、袋中多一件縛靈鎖。AI 時詐術喊高價",
-    ai:{aggr:0.8,spite:0.4},
+    ai:{aggr:0.8,spite:0.4,markReact:"avoid"},
     hooks:{
       onBudget(ctx){ ctx.budget=ctx.p.life+8; },     /* 「改為」壽命+8（規格） */
       onBidSettle(ctx){
@@ -775,9 +782,9 @@ const ROLES = {
       poison:["死當品，送你。"],poisoned:["敢往當鋪塞破爛？"],bwin:["你的命，也能典。"],blose:["這筆…先掛帳上。"]}},
   /* 資訊型（GAME_DESIGN 六之三 A）：開標看得到標書型態；有人出局 −3；終局存活 ≥3 人 +6。
      依 ARCH_SPEC §9 待辦 8：onReveal 預設 showTypes 已改 false，只有爐主（viewer）打開它。 */
-  luzhu:{id:"luzhu",name:"普渡爐主",av:"🍚",life0:42,pool:true,
+  luzhu:{id:"luzhu",name:"普渡爐主",av:"🍚",life0d:+2,pool:true,
     desc:"資訊流（起始 42）。被動：開標時看得到每筆出價是保守還是押命；每有一人出局你 −3；終局存活 ≥3 人你 +6。AI 時保人擋煞",
-    ai:{aggr:0.6,spite:0.15},
+    ai:{aggr:0.6,spite:0.15,markReact:"ignore"},
     hooks:{
       onReveal(ctx){ ctx.showTypes=true; },          /* 只有爐主是 viewer 時才會被收集到 */
       onNightEnd(ctx){
@@ -1408,7 +1415,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.8.1", VERSION_NOTE="開標前公告出價人數＋險勝／惜敗提示";
+const VERSION="0.9", VERSION_NOTE="節奏包（起始 50・天明回血 5）＋盯上宣告";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1498,6 +1505,31 @@ function wishBarHTML(p){
   if(!w) return "";
   return `<div class="wishbar">🌒 今夜心願（僅你可見）：<b>${w.name}</b>｜${typeof w.desc==="function"?w.desc(p):w.desc}</div>`;
 }
+/* ================= 盯上宣告（GAME_DESIGN §5.8）=================
+   夜初（抽心願之後、異事之前）AI 依座位序各釘一件（耗 S.rng()），真人由 UI／策略的 mark() 決定；
+   S.marks={pid: 拍品索引|null}。MARK_ON=false：S.marks 空、零 rng 消耗。 */
+const MARK_REACT_TXT={avoid:"怯場——被盯的拍品少出手",contest:"搶標——被盯的拍品更想搶",ignore:"無視"};
+function aiMark(p){
+  const cands=S.market.map((it,i)=>{
+    const c=p.bag.filter(x=>x.f===it.f).length;
+    const marginal=(c+1>=CFG.SET_MIN)?(c+1)*(c+1)-(c>=CFG.SET_MIN?c*c:0):0;
+    return {i,val:it.curse?-99:it.p+marginal+(it.ab?2:0)};
+  }).sort((a,b)=>b.val-a.val);
+  const ctx={p,cands,mark:cands.length?cands[0].i:null};
+  if(cands.length>1&&S.rng()<CFG.MARK_BLUFF_P) ctx.mark=cands[1].i; /* 虛張：改盯次高 */
+  applyHooks("onAiMark",ctx,p); /* 角色可改寫（鐵則：引擎不認 id） */
+  return ctx.mark;
+}
+function drawMarks(){
+  S.marks={};
+  if(!CFG.MARK_ON) return;
+  for(const p of S.players){ if(p.alive&&p.ai) S.marks[p.id]=aiMark(p); }
+}
+/* headless 迴圈用：真人座位的盯法由策略物件的 mark(p) 決定（沒有＝不盯） */
+function policyMarks(policies){
+  if(!CFG.MARK_ON) return;
+  S.players.forEach(p=>{ if(!p.alive||p.ai) return; const pol=(policies&&policies[p.id])||scriptedBids; S.marks[p.id]=pol.mark?pol.mark(p):null; });
+}
 /* ================= 引擎 ================= */
 /* 依座位表產生一位玩家。要加角色＝往 ROLES 填一筆、往 MODES 的 seats 排一格，不必動這裡。 */
 /* ================= 異事引擎（正常頁／simulate／playPolicyGame 三條迴圈共用）=================
@@ -1570,7 +1602,7 @@ function mkPlayer(seat,i){
     /* seat.human=true ＝這一席由真人操作（選角模式下真人可用任何池角色；被動照常生效，
        onAi* hook 只在 aiBids 內觸發、真人天然不吃）。v0.5 遺留座位表沒有這個欄位＝照舊。 */
     ai:seat.human?null:(R.ai?{...R.ai}:null),
-    life:R.life0||CFG.LIFE, bag:[], alive:true,
+    life:roleLife0(R), bag:[], alive:true,
     /* ARCH_SPEC §4 的玩家欄位：本次只建欄位，尚未有內容會寫入它們 */
     wish:null, grudge:{}, spec:null, sacrificed:0, pawned:false,
     stats:{won:0,bids:0,yaming:0,lost:0,poisonHit:{},poisonTaken:0},
@@ -1715,6 +1747,14 @@ function aiBids(p){
     /* hook 8.1：角色可改寫「這件在我心中值多少」 */
     const vc={p,item:it,val:it.p+marginal+(it.ab?2:0)+rnd(-2,2)};
     applyHooks("onAiValue",vc,p);
+    /* 盯上反應（§5.8）：依角色分型對「被別人盯的拍品」調估值；自己盯的 +MARK_OWN（承諾，順便避開虛張稅） */
+    if(CFG.MARK_ON&&S.marks){
+      const k=Object.keys(S.marks).filter(id=>+id!==p.id&&S.marks[id]===i).length;
+      const mr=p.ai&&p.ai.markReact;
+      if(k&&mr==="avoid") vc.val-=k*CFG.MARK_SCARE;
+      else if(k&&mr==="contest") vc.val+=CFG.MARK_CONTEST;
+      if(S.marks[p.id]===i) vc.val+=CFG.MARK_OWN;
+    }
     opts.push({i,val:vc.val,intent:"keep",target:null});
   });
   opts.sort((a,b)=>b.val-a.val);
@@ -1810,7 +1850,9 @@ function resolveAuction(){
     extLoss:{}, /* 非自願失血（對決傷害＋詛咒侵蝕），東窗血光的判準 */
     /* 第二批 16 張（v0.8）用的純記錄欄位：出價筆數／大貨得標／低價得標／押命得標／獨家得標／
        多人搶標得標／買下銷毀／毒標塞給了誰／對決造成的傷害。不耗亂數、不改結算數值 */
-    bidCount:{},bigWin:{},cheapWin:{},yamingWon:{},soloWin:{},crowdWin:{},destroyed:{},poisonTargets:{},dmgDealt:{}};
+    bidCount:{},bigWin:{},cheapWin:{},yamingWon:{},soloWin:{},crowdWin:{},destroyed:{},poisonTargets:{},dmgDealt:{},
+    bidItems:{}}; /* 每人本夜出價過的拍品索引集合（虛張稅判定＋盯上活性統計） */
+  S.markStat={tax:0,markedItems:0,markedBids:0,unmarkedItems:0,unmarkedBids:0,hItems:0,hOthers:0}; /* hItems/hOthers＝真人出價的件數與其上他人的出價筆數（反事實活性量法） */ /* 盯上活性計數（純統計） */
   let all=S.players.map(p=>{
     if(!p.alive)return S.market.map(()=>null);
     if(!p.ai){
@@ -1859,6 +1901,7 @@ function resolveAuction(){
   S.market.forEach((it,i)=>{
     const entries=[], withdrawn=[];
     S.players.forEach(p=>{const b=all[p.id][i];if(b){
+      (S.wishNight.bidItems[p.id]=S.wishNight.bidItems[p.id]||new Set()).add(i); /* 純記錄：對第 i 件出過價 */
       /* 最多得一件：本夜已得標者自動退出其餘（不比價、不收費） */
       if(single&&S.wonAny.has(p.id)){ withdrawn.push({p,...b}); return; }
       const e={p,...b};
@@ -1870,6 +1913,10 @@ function resolveAuction(){
       if(e.type==="cons"&&e.amt>consCapFor(p)) e.type="yaming";
       entries.push(e);S.bidAny.add(p.id);
     }});
+    entries.filter(e=>!e.p.ai).forEach(h=>{ S.markStat.hItems++; S.markStat.hOthers+=entries.filter(e=>e.p.id!==h.p.id).length; }); /* 真人出價件上的他人出價數 */
+    /* 被盯件只算「不是盯它的人」的出價（盯的人自己本來就會出價，算進去量不到反應）；但仍有選樣偏差，正式閘門用 hItems/hOthers 的反事實比較 */
+    if(S.marks&&Object.keys(S.marks).some(id=>S.marks[id]===i)){ S.markStat.markedItems++; S.markStat.markedBids+=entries.filter(e=>S.marks[e.p.id]!==i).length; }
+    else{ S.markStat.unmarkedItems++; S.markStat.unmarkedBids+=entries.length; }
     let winner=null, effs=[], top=null;
     if(entries.length){
       effs=entries.map(e=>{
@@ -1999,8 +2046,20 @@ function resolveBattles(){
      獨立第二圈：等所有人的 drain／道具／角色都結完，再統一判定，
      「讓東家失血」這類跨玩家條件才不會因遍歷順序讀到半套結果。
      此時尚未蓋出局旗——壽命歸零者若靠心願獎勵回到正值，視同被心願救回（與拼板舟等夜末回血同一語意）。 */
+  /* 虛張稅（§5.8）：盯了卻對那件零出價 → 付 MARK_TAX。AI 與真人同規則；在心願判定之前 */
+  if(CFG.MARK_ON&&S.marks&&CFG.MARK_TAX>0) S.players.forEach(p=>{
+    const m=S.marks[p.id]; if(!p.alive||m==null) return;
+    const bi=S.wishNight&&S.wishNight.bidItems[p.id];
+    if(!(bi&&bi.has(m))){ p.life-=CFG.MARK_TAX; if(S.markStat) S.markStat.tax++;
+      nightly.push(`💸 ${p.name} 盯了「${S.market[m]?S.market[m].n:"？"}」卻沒出手，虛張稅 -${CFG.MARK_TAX}`); }
+  });
   S.players.forEach(p=>{ if(p.alive) judgeWish(p,nightly); });
-  if(CFG.NIGHT_REGEN>0) S.players.forEach(p=>{ if(p.alive&&p.life>0){ p.life+=CFG.NIGHT_REGEN; } }); /* 節奏實驗旋鈕（預設 0） */
+  /* 天明回血（節奏包，2026-09-02 使用者裁定甲）：存活且壽命 >0 者夜末 +NIGHT_REGEN；歸零者不救（只有心願能救回） */
+  if(CFG.NIGHT_REGEN>0){
+    const back=S.players.filter(p=>p.alive&&p.life>0);
+    back.forEach(p=>{ p.life+=CFG.NIGHT_REGEN; });
+    if(back.length) nightly.push(`🌅 天明回血：存活者各 +${CFG.NIGHT_REGEN}`);
+  }
   /* 異事後效（ARCH_SPEC §3.10 順序最後）：陰間放貸每夜攤還；身故勾銷；不計入東窗 extLoss（待辦14裁定） */
   if(S.debts) S.players.forEach(p=>{
     const d=S.debts[p.id];
@@ -2108,8 +2167,9 @@ function openHelp(){
   const rlNights=(S.ruleOrder&&S.ruleOrder.length)?CFG.RULE_NIGHTS.filter((r,i)=>!!S.ruleOrder[i]):[];
   const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
-    ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。`)}
-    ${sec("🌙 每夜流程",`①抽今夜心願（私有）→②妖市出價→③開標→④結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還）。`)}
+    ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。${CFG.NIGHT_REGEN>0?`每夜天明，存活者回 ${CFG.NIGHT_REGEN} 壽命。`:""}`)}
+    ${sec("🌙 每夜流程",`①抽今夜心願（私有）→${CFG.MARK_ON?"②盯上宣告（公開釘一件，盯了沒出價付 "+CFG.MARK_TAX+" 虛張稅）→③":"②"}妖市出價→開標→結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還${CFG.NIGHT_REGEN>0?"、天明回血":""}）。`)}
+    ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。誠實盯是驅離或誘餌、虛張盯是聲東擊西——盯了那件卻沒出價要付虛張稅。`):""}
     ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
     ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
@@ -2130,6 +2190,7 @@ function beginRoundCore(){
   S.nightRule=ruleForRound(S.round); /* 本夜市集規則（三條迴圈同一時機：夜初、抽心願之前） */
   NLIFE0=S.players.map(p=>p.life);
   drawWishes(); /* 每夜開始先發心願（出價階段人類不耗 S.rng()，與 headless 兩條迴圈亂數序一致） */
+  drawMarks();  /* 盯上宣告：AI 先釘（同時機，三條迴圈一致）；真人在出價 UI 前釘 */
   S.humanBids={}; S.bleedLog=[];
   const ev=eventForRound(S.round);
   if(ev){ startEventUI(ev); return; } /* 異事夜：密封輸入→開盅→再進拍賣 */
@@ -2212,10 +2273,39 @@ function revealEventUI(){
   $("mainbtn").disabled=false;
 }
 function startBidUI(){
+  /* 盯上宣告（§5.8）：真人先釘再出價；已釘過（熱座交棒回來）就直接進市場 */
+  if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); return; }
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   /* 押寶夜（singleStake）：一注 X ＋ 勾選要壓哪幾件，交卷時才展開成 myBids */
   YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   showMarket();
+}
+/* 盯上宣告的選擇畫面：釘一件或不釘；AI 的釘法此時尚未揭露（同時宣告版），釘完才一起公開在拍品卡上 */
+function showMarkUI(){
+  SKIP=false; $("skipbtn").style.display="none";
+  renderSeats();
+  const ap=S.players[ACTIVE];
+  const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name}】`:"";
+  $("stage").innerHTML=`
+    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」——可以誠實、可以虛張。盯了卻沒出價，夜末付 ${CFG.MARK_TAX} 壽命虛張稅。<span class="mut">對手怎麼反應寫在角色卡（ⓘ）</span></div>
+    <div id="market">${S.market.map((it,i)=>`<div class="mcard ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
+      <div class="nm">${it.n}</div>
+      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
+    </div>`).join("")}</div>`;
+  $("mainbtn").textContent="不盯任何一件"; $("mainbtn").disabled=false; $("mainbtn").onclick=()=>pickMark(null);
+}
+function pickMark(i){
+  S.marks[ACTIVE]=i;
+  myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
+  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
+  showMarket();
+}
+/* 拍品卡上的盯上徽章（公開資訊：誰盯了這件） */
+function markBadgeHTML(i){
+  if(!CFG.MARK_ON||!S.marks) return "";
+  const who=Object.keys(S.marks).filter(id=>S.marks[id]===i&&S.players[+id].alive).map(id=>DIRS[+id]);
+  return who.length?`<span class="markb">👁${who.join("")}</span>`:"";
 }
 /* 本夜規則的三個 UI 開關（引擎與畫面問的是同一組 flag，不會各自漂移） */
 function isStakeNight(){ return hasFlag(null,"singleStake"); }
@@ -2318,7 +2408,7 @@ function mcardHTML(it,i){
     const off=it.curse;
     const box=off?"":`<span class="pickbox ${YB.pick[i]?"on":""}">${YB.pick[i]?"✓":""}</span>`;
     return `<div class="mcard ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
-      ${box}
+      ${box}${markBadgeHTML(i)}
       <div class="nm">${it.n}</div>
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${off?"🚫 本夜不開標":(it.ab?("✦ "+abDesc(it.ab)):it.d)}${!off&&it.drain?`・每夜 -${it.drain} 血`:""}</div>
@@ -2326,7 +2416,7 @@ function mcardHTML(it,i){
   }
   const badge=b.amt>0?`<span class="mybid ${b.intent==="poison"?"poison":""}">${b.intent==="poison"?"毒":"押"} ${b.amt}</span>`:"";
   return `<div class="mcard ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
-    ${badge}
+    ${badge}${markBadgeHTML(i)}
     <div class="nm">${it.n}</div>
     <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
     <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
@@ -2476,7 +2566,7 @@ async function startReveal(){
   if(rv.showEntries){
     renderSeats();
     stage.innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🔔 開標前公告・各件出價人數</div>
-      ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${nBid(r)}${meIn(r)}</span></div>`).join("")}
+      ${rv.reveal.map((r,i)=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}${markBadgeHTML(i)}</span><span>${nBid(r)}${meIn(r)}</span></div>`).join("")}
     </div>`;
     await waitMain("開標 ▸");
   }
@@ -2676,8 +2766,10 @@ function roleDescHTML(roleId){
   const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
     .filter(t=>!t.startsWith("AI 時"));
   const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
-  return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${R.life0||CFG.LIFE}</span></div>`
-    +seg.map(t=>`<div class="descRow">${t}</div>`).join("");
+  return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${roleLife0(R)}</span></div>`
+    +seg.map(t=>`<div class="descRow">${t}</div>`).join("")
+    /* 盯上反應是公開資訊（§5.8）：玩家靠它決定對這個人要誠實還是虛張 */
+    +((CFG.MARK_ON&&R.ai&&R.ai.markReact)?`<div class="descRow">👁 盯上反應：${MARK_REACT_TXT[R.ai.markReact]}</div>`:"");
 }
 /* 座位卡「ⓘ」：牌桌上點任一席（自己或 AI）都能重看角色被動——被動是公開資訊，隨時可查（試玩回饋）。
    熱座模式下同樣只顯示角色公開資訊，不夾帶心願／袋中詛咒品／封注金額等私有內容。 */
@@ -2714,7 +2806,7 @@ function renderSelect(){
     return `<div class="rcard ${SEL.cur===k?"sel":""} ${taken?"taken":""}" onclick="pickRole('${k}')">
       <div class="rav">${R.av}</div>
       <div class="rnm">${R.name}</div>
-      <div class="rlf">壽命 ${R.life0||CFG.LIFE}${taken?"・已被選":""}</div>
+      <div class="rlf">壽命 ${roleLife0(R)}${taken?"・已被選":""}</div>
     </div>`;
   }).join("");
   const R=SEL.cur?ROLES[SEL.cur]:null;
@@ -2882,10 +2974,12 @@ function playPolicyGame(seed,policies,picks){
   let poisonBids=0, totalBids=0, unsoldItems=0, drawnItems=0;
   /* 市集規則活性計數（A4）：各規則觸發夜數、收祟夜強制塞袋件數、押寶夜「同一注壓中多件」次數 */
   const ruleFired={}, ruleStat={extra:0,forced:0,multi:0,abstain:0,fallback:0};
+  const markStat={tax:0,markedItems:0,markedBids:0,unmarkedItems:0,unmarkedBids:0,hItems:0,hOthers:0}; /* 盯上活性（§5.8 閘門 G2/G3） */
   const lifeByRound=[];
   for(;;){
     S.nightRule=ruleForRound(S.round); /* 本夜市集規則（與 beginRoundCore 同時機） */
     drawWishes(); /* 與 beginRound 同時機（出價前），三條迴圈亂數序一致 */
+    drawMarks(); policyMarks(policies); /* 盯上宣告（§5.8） */
     runEventPhaseHeadless(); /* 異事夜（EVENT_ON=false 零消耗）；真人座位同走 ai 啟發式 */
     if(S.players.filter(p=>p.alive).length<=1){ /* 異事殺到剩1人：該夜不再拍賣/對決 */
       S.players.forEach(p=>{ if(!p.alive&&deathRound[p.id]===null) deathRound[p.id]=S.round; });
@@ -2906,6 +3000,7 @@ function playPolicyGame(seed,policies,picks){
       }else{ unsoldItems++; }
     });
     resolveBattles();
+    if(S.markStat) Object.keys(markStat).forEach(k=>{ markStat[k]+=(S.markStat[k]||0); });
     if(S.nightRule){
       ruleFired[S.nightRule.id]=(ruleFired[S.nightRule.id]||0)+1;
       Object.keys(ruleStat).forEach(k=>{ ruleStat[k]+=(S.ruleStat[k]||0); });
@@ -2927,7 +3022,7 @@ function playPolicyGame(seed,policies,picks){
     survival:S.players.map(p=>deathRound[p.id]),
     lifeByRound, factionWinCounts, factionOffered,
     poisonBids, totalBids, unsoldItems, drawnItems,
-    ruleFired, ruleStat,
+    ruleFired, ruleStat, markStat,
   };
 }
 /* runMany({seeds:[...] 或 n:N, policies:{playerId:policyFn}}) → 統計聚合，見 docs 交付需求。
@@ -3168,6 +3263,7 @@ function simulate(seed){
   for(;;){
     S.nightRule=ruleForRound(S.round); /* 本夜市集規則（與 beginRoundCore 同時機） */
     drawWishes(); /* 與 beginRound 同時機（出價前）；WISH_ON=false 時不耗亂數、trace 不變 */
+    drawMarks(); policyMarks(null); /* 盯上宣告（§5.8）；scriptedBids 沒有 mark()＝不盯 */
     const evres=runEventPhaseHeadless(); /* 異事夜：EVENT_ON=false 恆 null、零 rng 消耗 */
     const pre=snapPlayers();
     if(S.players.filter(p=>p.alive).length<=1){ /* 異事殺到剩1人：該夜不再拍賣/對決 */
@@ -3214,6 +3310,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */
+  drawMarks, aiMark, policyMarks, MARK_REACT_TXT, /* 盯上宣告（§5.8）測試出口 */
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
