@@ -166,7 +166,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 | `ABILITIES` | `index.html:253` | 17 個法寶能力 ＋ 6 件命格道具已實作（共 23 筆） | 純資料，新增後**必須**被某個 `POOL`/`CURSES` 項目的 `ab` 欄位引用，否則永遠不會出現在遊戲裡（見範例 1） |
 | `ROLES` | `index.html:391` | 6 個角色（1 人類 + 3 AI 已排進座位；收驚婆／獵人已建但未排進 `MODES.seats`） | 新增後**必須**被 `MODES.seats`（`index.html:507`）排進某個模式的座位表，否則玩家永遠選不到、AI 也永遠不會用（見範例 3） |
 | `WISHES` | `index.html:515` | 空殼 `{}` | 目前沒有引擎程式碼會抽卡/判定——加進去只是定義資料，不會在遊戲裡出現，見範例 4 |
-| `EVENTS` | 用 `grep -n "const EVENTS" index.html` 定位 | **已上線 3 樁**（瘟王過境／試膽大會／厲鬼索命） | 串接已寫好：`CFG.EVENT_NIGHTS` 排程＋前夜預告＋密封輸入 UI＋`runEventPhaseHeadless()`，見 §11.6 |
+| `EVENTS` | 用 `grep -n "const EVENTS" index.html` 定位 | **已上線 8 樁**（第二批 5 樁為裁定修版，見 GAME_DESIGN §六之三 B） | 串接已寫好：`CFG.EVENT_NIGHTS` 排程＋前夜預告＋密封輸入 UI＋`runEventPhaseHeadless()`；跨夜還款 `S.debts`／局末移除 `endStrip`／透視 `p.seeAll`，見 §11.6 |
 | `NIGHTRULES` | `index.html:523` | 空殼 `{}` | 同上，目前沒有任何地方會把 `S.nightRule` 設成非 `null` |
 
 ---
@@ -699,8 +699,10 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 ### 11.6 異事系統已上線（2026-09-02）——接手前先知道這五件事
 
-1. **三樁異事進了 `EVENTS` 表**：瘟王過境（密封數字／公共財）、試膽大會（二選一／少數決）、
-   厲鬼索命（密封競標／趁火打劫）。排程＝`CFG.EVENT_NIGHTS=[4,8,11]` 開局洗牌各配一樁，
+1. **八樁異事進了 `EVENTS` 表**（2026-09-02 第二批補齊）：瘟王過境／試膽大會／厲鬼索命／
+   送肉粽（修A）／觀落陰（修B）／陰間放貸（修C）／大風吹（修D 風向圈）／博杯（修E 廟口擲杯）。
+   第二批五樁原版閘門全 FAIL、經使用者裁定改版後全 PASS——**改任何一樁前先讀
+   GAME_DESIGN §六之三 B 的兩段事故記錄**。排程＝`CFG.EVENT_NIGHTS=[4,8,11]` 開局洗牌抽 3/8，
    前一夜 `resolveBattles` 夜末推「夜市耳語」預告。總開關 `CFG.EVENT_ON`，false 時零 rng 消耗、
    `trace(1..20)` 與 `d9b2e22` 逐位元組相等（雙向驗證過：true 必不相等）。
 2. **三條迴圈共用同一套引擎函式**（`eventForRound`／`eventCtx`／`fillEventChoices`／`settleEvent`）：

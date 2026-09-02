@@ -23,7 +23,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
   font-size:14px;position:fixed;inset:0;width:100%;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-button,select,.mcard,.seat,.stepper{touch-action:manipulation}
+*{touch-action:manipulation} /* 連點任何位置都不觸發 double-tap zoom（試玩回饋：視窗上跳）；下行捲動容器另開 pan-y */
 #felt,#sheetbox,#modalbox{touch-action:pan-y}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
@@ -280,6 +280,11 @@ const CFG = {
   PLAGUE_NEED:12, PLAGUE_FAIL:6,            /* 瘟王過境：湊滿門檻／失敗全體失血【試玩必調】 */
   SHRINE_WIN:6, SHRINE_LOSE:3, SHRINE_TIE:1, /* 試膽大會：少數方得／多數方失／平手各失【試玩必調】 */
   GHOST_DMG:10,                              /* 厲鬼索命：無人擋煞時索走的壽命【試玩必調】 */
+  ZONGZI_FAIL:5, ZONGZI_TOUCH:1, ZONGZI_PW:-6, /* 送肉粽：無人投標全體失血／投標落選沾穢／王船煞戰力【試玩必調】 */
+  GUAN_LOSE_DIV:2,                             /* 觀落陰：落標付 ceil(出價/本值)（魂遊半程）【試玩必調】 */
+  LOAN_AMT:10, LOAN_REPAY:{1:8,2:11,3:14,4:17}, LOAN_NIGHTS:5, /* 陰間放貸：借額／依人數總還款／攤還夜數【試玩必調】 */
+  WIND_IDLE:1,                                 /* 大風吹：單人成圈空轉失血【試玩必調】 */
+  POE_CAP:10, POE_CUT:0.8,                     /* 博杯：壓注上限／彩池發放比例（廟公抽二）【試玩必調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
@@ -920,6 +925,102 @@ const EVENTS = {
         ctx.events.push({txt:`👹 ${w.name} 以 ${mx} 壽命擋煞救下 ${v.name}${loot?`，取走其「${loot.n}」作酬`:"（其袋中無寶可取）"}`});
       }
     }},
+  zongzi:{id:"zongzi",name:"送肉粽",icon:"🏮",input:"num",allowPass:true,passLabel:"不投標",
+    desc:()=>`需一人捧粽出陣送王船煞出海。每人密封寫下自己要求的報酬（可不投標）。要求最低者當選：獲得所要報酬，但袋中加入「王船煞」（戰力 ${CFG.ZONGZI_PW}，局末自動移除）；投標而落選者沾穢 -${CFG.ZONGZI_TOUCH}；無人投標全體 -${CFG.ZONGZI_FAIL}`,
+    fmt:c=>c===null||c===undefined?"不投標":`討報酬 ${c}`,
+    cap(){ return CFG.EVENT_INPUT_CAP; },
+    ai(p){ if(S.rng()<0.3) return null; return 3+Math.floor(S.rng()*4); },
+    settle(ctx){
+      const act=ctx.players.filter(p=>ctx.choices[p.id]!==null&&ctx.choices[p.id]!==undefined);
+      if(!act.length){
+        ctx.players.forEach(p=>{ p.life-=CFG.ZONGZI_FAIL; });
+        ctx.events.push({txt:`🏮 無人敢捧粽，煞氣滯留——全體 -${CFG.ZONGZI_FAIL}`});
+        return;
+      }
+      const mn=Math.min(...act.map(p=>ctx.choices[p.id]|0));
+      const tied=act.filter(p=>(ctx.choices[p.id]|0)===mn);
+      const w=tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0];
+      act.forEach(p=>{ if(p!==w) p.life-=CFG.ZONGZI_TOUCH; });
+      w.life+=mn;
+      w.bag.push({n:"王船煞",f:"curse",p:CFG.ZONGZI_PW,d:"送王船沾上的煞，局末自動送出海",curse:true,endStrip:true});
+      ctx.events.push({txt:`🏮 ${w.name} 以最低要價 ${mn} 當選捧粽——得 ${mn} 壽命、沾「王船煞」（戰力 ${CFG.ZONGZI_PW}）${act.length>1?`；其餘投標者沾穢各 -${CFG.ZONGZI_TOUCH}`:""}`});
+    }},
+  guan:{id:"guan",name:"觀落陰",icon:"🪞",input:"num",
+    desc:()=>`法師開壇帶魂遊地府。全體密封出價（0＝不出），最高者付其出價，此後**看穿所有對手的實際壽命與今夜心願**直到局末；落標的出價者付 ceil(出價/${CFG.GUAN_LOSE_DIV})（魂遊半程無所得）`,
+    fmt:c=>c>0?`出價 ${c}`:"不出價",
+    cap(p){ return Math.min(CFG.EVENT_INPUT_CAP, Math.max(0,p.life-1)); },
+    ai(p){ if(p.life<=10) return 0; const r=S.rng(); return Math.min(this.cap(p), r<0.5?0:(r<0.85?2:4)); },
+    settle(ctx){
+      const bids=ctx.players.map(p=>({p,amt:ctx.choices[p.id]|0})).filter(b=>b.amt>0);
+      if(!bids.length){ ctx.events.push({txt:"🪞 無人問陰，法師收壇"}); return; }
+      const mx=Math.max(...bids.map(b=>b.amt));
+      const tied=bids.filter(b=>b.amt===mx);
+      const w=(tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0]).p;
+      bids.forEach(b=>{ b.p.life-=(b.p===w)?mx:Math.ceil(b.amt/CFG.GUAN_LOSE_DIV); });
+      w.seeAll=true;
+      ctx.events.push({txt:`🪞 ${w.name} 以 ${mx} 壽命觀落陰——此後看穿全場壽命與心願${bids.length>1?"；落標者魂遊半程各付一半":""}`});
+    }},
+  loan:{id:"loan",name:"陰間放貸",icon:"🧧",input:"pick",
+    opts:[{v:"borrow",label:"借 10 壽命"},{v:"no",label:"不借"}],
+    desc:()=>`陰間錢莊今夜放貸：可密封借 ${CFG.LOAN_AMT} 壽命（互相看不到誰借了）。開盅才知幾人借——借的人越多利息越高：1 人共還 ${CFG.LOAN_REPAY[1]}、2 人各還 ${CFG.LOAN_REPAY[2]}、3 人各 ${CFG.LOAN_REPAY[3]}、4 人各 ${CFG.LOAN_REPAY[4]}，自下一夜起分 ${CFG.LOAN_NIGHTS} 夜攤還（身故勾銷）`,
+    ai(p){ if(p.life<=12) return S.rng()<0.7?"borrow":"no"; return S.rng()<0.15?"borrow":"no"; },
+    settle(ctx){
+      const bs=ctx.players.filter(p=>ctx.choices[p.id]==="borrow");
+      if(!bs.length){ ctx.events.push({txt:"🧧 無人開口，錢莊打烊"}); return; }
+      const repay=CFG.LOAN_REPAY[Math.min(4,bs.length)];
+      bs.forEach(p=>{ p.life+=CFG.LOAN_AMT; S.debts[p.id]={left:repay,nights:CFG.LOAN_NIGHTS}; });
+      ctx.events.push({txt:`🧧 ${bs.map(p=>p.name).join("、")} 各借 ${CFG.LOAN_AMT}——${bs.length} 人擠兌，每人共還 ${repay}（分 ${CFG.LOAN_NIGHTS} 夜）`});
+    }},
+  wind:{id:"wind",name:"大風吹",icon:"🌀",input:"pick",
+    opts:[{v:"E",label:"乘東風"},{v:"W",label:"乘西風"}],
+    desc:()=>`妖風起，法寶易主。密封選乘哪道風：同風向者結圈，圈內每人把袋中戰力最低的法寶順向傳給下一位；單人成圈＝空轉 -${CFG.WIND_IDLE}。無法寶者空手陪風，不給不收`,
+    ai(){ return S.rng()<0.5?"E":"W"; },
+    settle(ctx){
+      for(const side of ["E","W"]){
+        const label=side==="E"?"東風":"西風";
+        const circ=ctx.players.filter(p=>ctx.choices[p.id]===side&&p.bag.some(x=>!x.curse));
+        if(circ.length===1){
+          circ[0].life-=CFG.WIND_IDLE;
+          ctx.events.push({txt:`🌀 ${label}圈只有 ${circ[0].name}，空轉 -${CFG.WIND_IDLE}`});
+        }else if(circ.length>=2){
+          const gifts=circ.map(p=>{
+            const it=p.bag.filter(x=>!x.curse).sort((a,b)=>(a.p||0)-(b.p||0))[0];
+            p.bag.splice(p.bag.indexOf(it),1); return it;
+          });
+          circ.forEach((p,i)=>{
+            const gi=(i+circ.length-1)%circ.length;
+            p.bag.push(gifts[gi]);
+            ctx.events.push({txt:`🌀 ${label}：${circ[gi].name} 的「${gifts[gi].n}」吹到 ${p.name} 袋中`});
+          });
+        }
+      }
+      if(!ctx.events.length) ctx.events.push({txt:"🌀 風過無痕，無人成圈"});
+    }},
+  poe:{id:"poe",name:"博杯",icon:"🥤",input:"num",
+    desc:()=>`廟口擲杯賭局。每人密封壓注（0＝不擲，上限 ${CFG.POE_CAP}），各自擲杯——壓 X 成功率 X/(X+8)。**擲出聖杯者中壓注最高者**獨得彩池 ${Math.round(CFG.POE_CUT*100)}%（廟公抽二）＋一件法寶；無人擲出聖杯，彩池全數沒收`,
+    fmt:c=>c>0?`壓注 ${c}`:"不擲",
+    cap(p){ return Math.min(CFG.POE_CAP, Math.max(0,p.life-1)); },
+    ai(p){ const cap=this.cap(p); const r=S.rng();
+      if(p.life>=25) return r<0.35?Math.min(5,cap):0;
+      if(p.life<=10) return r<0.3?Math.min(3,cap):0;
+      return r<0.2?Math.min(5,cap):0; },
+    settle(ctx){
+      const act=ctx.players.map(p=>({p,amt:ctx.choices[p.id]|0})).filter(b=>b.amt>0);
+      if(!act.length){ ctx.events.push({txt:"🥤 無人擲杯，廟埕冷清"}); return; }
+      const pot=act.reduce((s,b)=>s+b.amt,0);
+      act.forEach(b=>{ b.p.life-=b.amt; });
+      const succ=act.filter(b=>S.rng()<b.amt/(b.amt+8)); /* 座位序擲杯，決定性 */
+      ctx.events.push({txt:`🥤 ${act.map(b=>`${b.p.name} 壓 ${b.amt}${succ.includes(b)?"（聖杯！）":"（陰杯）"}`).join("、")}`});
+      if(!succ.length){ ctx.events.push({txt:`🥤 無人得聖杯，彩池 ${pot} 全數沒收`}); return; }
+      const mx=Math.max(...succ.map(b=>b.amt));
+      const tied=succ.filter(b=>b.amt===mx);
+      const w=(tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0]).p;
+      const prize=Math.floor(CFG.POE_CUT*pot);
+      w.life+=prize;
+      if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
+      const it=S.deck.pop(); w.bag.push(it);
+      ctx.events.push({txt:`🥤 ${w.name} 聖杯奪彩——得 ${prize} 壽命＋「${it.n}」`});
+    }},
 };
 
 /* --- 5/5 NIGHTRULES：今夜市集規則。本次只建結構，不填內容。
@@ -1062,7 +1163,8 @@ function bleed(p,keep,k){
 }
 const aliveHumans=()=>S.players.filter(p=>!p.ai&&p.alive);
 /* 是否有活著的人類看得穿實際壽命（誰給的能力由 flags 決定，引擎不認得道具 id） */
-const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&hasFlag(p,"xrayLife"));
+const chairSeen=()=>S.players.some(p=>!p.ai&&p.alive&&(hasFlag(p,"xrayLife")||p.seeAll)); /* 椅仔姑或觀落陰贏家 */
+const guanSeen=()=>S.players.some(p=>!p.ai&&p.alive&&p.seeAll); /* 觀落陰限定：心願也看穿 */
 /* ================= 心願系統（GAME_DESIGN §六之三 D） =================
    引擎只做通用分派（遍歷 WISHES 表），不認得任何一張牌的 id。
    抽卡時機＝每夜出價階段開始前（三條迴圈各自呼叫：beginRound／playPolicyGame／simulate，
@@ -1125,6 +1227,8 @@ function settleEvent(ctx,log){
   ctx.events.forEach(e=>log.push(e.txt));
   S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; log.push(`💀 ${p.name} 沒能撐過「${ctx.ev.name}」，消失在妖市裡`); } });
 }
+/* 王船煞等「局末自動移除」道具：三條迴圈的終局各呼叫一次 */
+function stripEndgameItems(){ S.players.forEach(p=>{ p.bag=p.bag.filter(x=>!x.endStrip); }); }
 function runEventPhaseHeadless(){
   const ev=eventForRound(S.round); if(!ev) return null;
   const ctx=eventCtx(ev);
@@ -1187,6 +1291,7 @@ function makeState(mode,seed,picks){
   S.market=drawMarket(); S.nextMarket=drawMarket();
   /* 異事排程（EVENT_ON=false 零 rng 消耗——kill switch）：洗牌決定各觸發夜出哪樁異事 */
   S.eventOrder=CFG.EVENT_ON?shuffle(Object.keys(EVENTS)).slice(0,CFG.EVENT_NIGHTS.length):[];
+  S.debts={}; /* 陰間放貸的跨夜還款排程（夜末攤還於 resolveBattles） */
   return S;
 }
 function newGame(mode,seed,picks){
@@ -1456,6 +1561,16 @@ function resolveBattles(){
      「讓東家失血」這類跨玩家條件才不會因遍歷順序讀到半套結果。
      此時尚未蓋出局旗——壽命歸零者若靠心願獎勵回到正值，視同被心願救回（與拼板舟等夜末回血同一語意）。 */
   S.players.forEach(p=>{ if(p.alive) judgeWish(p,nightly); });
+  /* 異事後效（ARCH_SPEC §3.10 順序最後）：陰間放貸每夜攤還；身故勾銷；不計入東窗 extLoss（待辦14裁定） */
+  if(S.debts) S.players.forEach(p=>{
+    const d=S.debts[p.id];
+    if(!d) return;
+    if(!p.alive){ delete S.debts[p.id]; return; }
+    const pay=Math.ceil(d.left/d.nights);
+    p.life-=pay; d.left-=pay; d.nights--;
+    nightly.push(`🧧 ${p.name} 攤還陰間貸款 -${pay}${d.left>0?`（餘 ${d.left}）`:"（已清償）"}`);
+    if(d.left<=0||d.nights<=0) delete S.debts[p.id];
+  });
   const deaths=[];
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
   /* 獻祭放血只在本夜生效：夜末一律歸零（正常遊戲、playPolicyGame、simulate 三條迴圈共用此處） */
@@ -1474,7 +1589,7 @@ function seatHTML(id,hl){
     <span class="dir">${DIRS[id]}</span>${wind}
     <div class="av">${p.av}</div>
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
-    <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${showPow(p)}</div></div>
+    <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
   </div>`;
 }
@@ -1555,20 +1670,25 @@ function renderEventInput(p,done){
         <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(1)">＋</button>
       </div>
       <div class="mut" style="font-size:11px;margin-top:4px">可出 0～${EVCAP}（不得傾盡壽命）</div>
-      <button class="bigbtn" style="margin-top:12px" onclick="confirmEventNum(${p.id})">封籤</button></div>`;
+      <button class="bigbtn" style="margin-top:12px" onclick="confirmEventNum(${p.id})">封籤</button>
+      ${ev.allowPass?`<button class="bigbtn alt" style="margin-top:8px" onclick="passEvent(${p.id})">${ev.passLabel||"不參與"}</button>`:""}</div>`;
   }
 }
 function bumpEvent(d){ EVAMT=Math.max(0,Math.min(EVCAP,EVAMT+d)); $("evAmt").textContent=EVAMT; }
 function pickEventOpt(pid,v){ EVCTX.choices[pid]=v; const d=EVDONE; EVDONE=null; d(); }
 function confirmEventNum(pid){ EVCTX.choices[pid]=EVAMT; const d=EVDONE; EVDONE=null; d(); }
+function passEvent(pid){ EVCTX.choices[pid]=null; const d=EVDONE; EVDONE=null; d(); }
 function revealEventUI(){
   const ev=EVCTX.ev, log=[];
+  const before={}; EVCTX.players.forEach(p=>{ before[p.id]=p.life; });
+  settleEvent(EVCTX,log);
   const lines=EVCTX.players.map(p=>{
     const c=EVCTX.choices[p.id];
-    const lbl=ev.input==="pick"?((ev.opts.find(o=>o.v===c)||{}).label||"？"):(ev.fmt?ev.fmt(c|0):String(c|0));
-    return `<div style="font-size:13px;padding:2px 0">${DIRS[p.id]}家・${p.name}：<b>${lbl}</b></div>`;
+    const lbl=ev.input==="pick"?((ev.opts.find(o=>o.v===c)||{}).label||"？"):(ev.fmt?ev.fmt(c):String(c|0));
+    const d=p.life-before[p.id];
+    const dTxt=d!==0?` <b style="color:${d>0?"#8be08b":"#ff8484"}">${d>0?"+":""}${d}</b>`:` <span class="mut" style="font-size:11px">±0</span>`;
+    return `<div style="font-size:13px;padding:2px 0">${DIRS[p.id]}家・${p.name}：<b>${lbl}</b>${dTxt}</div>`;
   }).join("");
-  settleEvent(EVCTX,log);
   renderSeats();
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}・開盅</h2>
@@ -1878,6 +1998,7 @@ function nextRound(){
   beginRound();
 }
 function endGame(){
+  stripEndgameItems();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
   renderSeats();
   let head;
@@ -2143,6 +2264,7 @@ function playPolicyGame(seed,policies,picks){
   }
   const gameLength=S.round;
   S.players.forEach(p=>{ if(deathRound[p.id]===null) deathRound[p.id]=gameLength; });
+  stripEndgameItems();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
   return {
     seed, gameLength, winnerId:rank[0].id,
@@ -2299,6 +2421,79 @@ const EVENT_SPEC_GHOST={
     return out;
   }
 };
+/* 第二批五樁的閘門 spec（2026-09-02 Node 實測均 PASS；建模假設見各註解）。
+   送肉粽=修A（落選沾穢-1）、觀落陰=修B（落標付半）、放貸=修C（8/11/14/17）、
+   大風吹=修D（風向圈）、博杯=修E（廟口擲杯，彩池×0.8）——原五版均 FAIL，裁定紀錄見 GAME_DESIGN changelog。 */
+const EVENT_SPEC_ZONGZI={
+  name:"送肉粽·修A（C=4王船煞/落選沾穢-1/無人-5）", players:4, options:["pass",0,3,6],
+  payoff(ch){
+    const asks=ch.map(c=>c==="pass"?null:c);
+    const act=asks.map((a,i)=>a!==null?i:-1).filter(i=>i>=0);
+    if(!act.length) return ch.map(()=>-5);
+    const mn=Math.min(...act.map(i=>asks[i]));
+    const tied=act.filter(i=>asks[i]===mn), n=tied.length;
+    const out=ch.map(()=>0);
+    act.forEach(i=>{ out[i]-=1; });
+    tied.forEach(w=>{ out[w]+=(mn-4+1)/n; });
+    return out;
+  }};
+const EVENT_SPEC_GUAN={
+  name:"觀落陰·修B（V=3零和資訊/落標付半）", players:4, options:[0,2,4],
+  payoff(ch){
+    const mx=Math.max(...ch);
+    if(mx===0) return ch.map(()=>0);
+    const V=3;
+    const tied=ch.map((c,i)=>c===mx?i:-1).filter(i=>i>=0), n=tied.length;
+    const o=ch.map(()=>0);
+    for(const w of tied){
+      o[w]+=(-mx+V)/n;
+      for(let i=0;i<4;i++) if(i!==w) o[i]+=(-V/3-(ch[i]>0?Math.ceil(ch[i]/2):0))/n;
+    }
+    return o;
+  }};
+const EVENT_SPEC_LOAN={
+  name:"陰間放貸·修C（還8/11/14/17，獨借+2）", players:4, options:["borrow","no"],
+  payoff(ch){
+    const k=ch.filter(c=>c==="borrow").length;
+    const repay=k?({1:8,2:11,3:14,4:17})[k]:0;
+    return ch.map(c=>c==="borrow"?10-repay:0);
+  }};
+const EVENT_SPEC_WIND={
+  name:"大風吹·修D 風向圈（富袋0號值6其餘2/單人圈-1）", players:4, options:["E","W"],
+  payoff(ch){
+    const worth=[6,2,2,2];
+    const out=ch.map(()=>0);
+    for(const side of ["E","W"]){
+      const circ=ch.map((c,i)=>c===side?i:-1).filter(i=>i>=0);
+      if(circ.length===1){ out[circ[0]]-=1; continue; }
+      for(const i of circ){
+        const others=circ.filter(j=>j!==i);
+        out[i]-=worth[i];
+        out[i]+=others.reduce((s,j)=>s+worth[j],0)/others.length;
+      }
+    }
+    return out;
+  }};
+const EVENT_SPEC_POE={
+  name:"博杯·修E 廟口擲杯（彩池0.8+寶4/成功者中最高注奪彩）", players:4, options:[0,2,5,10],
+  payoff(ch){
+    const act=ch.map((x,i)=>x>0?i:-1).filter(i=>i>=0);
+    const pot=ch.reduce((a,b)=>a+b,0);
+    const out=ch.map(x=>-x);
+    if(!act.length) return out;
+    const n=act.length;
+    for(let mask=1; mask<(1<<n); mask++){
+      let pr=1; const succ=[];
+      act.forEach((pi,k)=>{
+        const p=ch[pi]/(ch[pi]+8);
+        if(mask&(1<<k)){ pr*=p; succ.push(pi); } else pr*=(1-p);
+      });
+      const mx=Math.max(...succ.map(i=>ch[i]));
+      const tied=succ.filter(i=>ch[i]===mx);
+      tied.forEach(w=>{ out[w]+=pr*(0.8*pot+4)/tied.length; });
+    }
+    return out;
+  }};
 function snapPlayers(){
   return S.players.map(p=>({id:p.id,life:p.life,alive:p.alive,bag:p.bag.map(x=>x.n),power:power(p)}));
 }
@@ -2343,6 +2538,7 @@ function simulate(seed){
     if(!humanN||aliveN<=1||S.round>=CFG.ROUNDS) break;
     S.round++; S.market=S.nextMarket; S.nextMarket=drawMarket();
   }
+  stripEndgameItems();
   return {seed:S.seed, nights};
 }
 function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate(s))}; }
@@ -2356,7 +2552,9 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
-    plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST } };
+    plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST,
+    zongzi:EVENT_SPEC_ZONGZI, guan:EVENT_SPEC_GUAN, loan:EVENT_SPEC_LOAN,
+    wind:EVENT_SPEC_WIND, poe:EVENT_SPEC_POE } };
 /* ================= ?sim=1 平衡模擬器／窮舉器工具頁（獨立於正常遊戲頁，不共用 DOM） ================= */
 function initSimTool(){
   document.title="妖市・平衡模擬器";
