@@ -562,6 +562,8 @@ console.log(JSON.stringify(result) === JSON.stringify(baseline) ? '完全相等'
 是直接從 `main` 分支的根目錄部署的（repo：`https://github.com/9gf6p4448m-del/yaoshi`，
 線上網址：`https://9gf6p4448m-del.github.io/yaoshi/`）。**push 到 `main` 就是部署**，不需要額外指令。
 
+**改版必改版本字串（2026-09-02 使用者裁定）**：`index.html` 的 `const VERSION="x.y", VERSION_NOTE="..."`（`grep -n 'const VERSION'`）是單一事實來源，`<title>` 與首頁那行都由它帶出。使用者靠首頁那行判斷有沒有推上線——**任何會推上線的改版，這一行一定要一起改**，漏改＝送達證明失效。
+
 ```bash
 git add index.html
 git commit -m "說明這次改了什麼"
@@ -573,7 +575,7 @@ git push origin main
 
 ```bash
 git log origin/main -1   # 先確認 push 真的到了遠端（不是本機以為 push 了）
-curl -s "https://9gf6p4448m-del.github.io/yaoshi/?_=$(date +%s)" | grep -o '<title>[^<]*'
+curl -s "https://9gf6p4448m-del.github.io/yaoshi/?_=$(date +%s)" | grep -o 'VERSION="[^"]*"'   # <title> 已無版本號，看 VERSION 常數
 ```
 
 用查詢字串加時間戳（`?_=...`）是為了避開瀏覽器/CDN 快取，確保拿到的是最新版本。如果改動的內容

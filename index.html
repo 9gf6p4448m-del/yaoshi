@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>妖市 v0.7</title>
+<title>妖市</title>
 <meta name="theme-color" content="#14101f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E">
@@ -229,7 +229,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <button class="bigbtn" onclick="startEntry('solo')">單人入市</button>
     <button class="bigbtn alt" onclick="startEntry('hotseat')">雙人熱座</button>
   </div>
-  <p style="margin-top:10px;color:var(--gold);font-size:11px">v0.7・今夜市集規則＋買路錢＋座位ⓘ角色小卡</p>
+  <p id="verLine" style="margin-top:10px;color:var(--gold);font-size:11px"></p>
 </div>
 <div id="table">
   <div id="north"></div>
@@ -1267,6 +1267,9 @@ const windName=r=>WIND_NAMES[(r-1)%4];
 /* ================= 工具 ================= */
 let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
+/* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
+   使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
+const VERSION="0.7", VERSION_NOTE="今夜市集規則＋買路錢＋座位ⓘ角色小卡";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -3026,6 +3029,7 @@ function initSimTool(){
   };
 }
 if(SIM_MODE) initSimTool();
+else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine"); if(vl) vl.textContent=`v${VERSION}・${VERSION_NOTE}`; }
 /* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走）——sim 工具頁需要自由捲動，跳過 */
 if(!SIM_MODE){
   document.addEventListener("touchmove",e=>{
