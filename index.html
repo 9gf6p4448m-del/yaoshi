@@ -299,6 +299,12 @@ const CFG = {
   WISH_AI_YINQI: 4,  /* AI 持「夜訪陰氣」時對陰氣拍品的估值加成【試玩必調】 */
   WISH_AI_BATTLE: 2, /* AI 持「今夜必勝」時對一般拍品的估值加成【試玩必調】 */
   WISH_AI_YAMING_CAP: 2, /* AI 持「敗軍之志」時單筆押命標的金額上限（小額送落標）【試玩必調】 */
+  /* 心願牌庫第二批 16 張（2026-09-02 v0.8，提案與凍結見 docs/experiments/2026-09-02-wish16-*.md）【試玩必調】 */
+  WISH_REWARD2:{ zuling:4, xianghuo:4, trinity:5, bigfish:4, allin:4, bargain:4, yamingwin:4, solo:3,
+    rival:4, crowd:5, poisonrival:5, bloodbath:4, unscathed:3, crush:4, comeback:5, exorcise:3 },
+  WISH_T2:{ bigfishP:6, bargainAmt:2, crowdBids:3, rivalBleed:4, bloodbathBleed:3, bloodbathN:2, crushDmg:5,
+    soloCheapP:3, crowdHotP:5 }, /* 後兩個是 AI 估值扭曲用的「冷門／熱門」判準，不是判定門檻 */
+  WISH_AI2:{ fac:4, trinity:8, bigfish:4, solo:3, crowd:3, unscathed:2, crush:3, comeback:3 }, /* AI 持牌時的估值加成（trinity 5→8：n=10000 達成率 14.6%→21.1%，進 15~80% 帶） */
   /* 異事系統（GAME_DESIGN §六之三 B）——總開關＋數值全集中此處【試玩必調】 */
   EVENT_ON: true,    /* false＝完全停用：不排程、不消耗 S.rng()，trace 與加入前逐位元組相等 */
   EVENT_NIGHTS:[4,8,11], /* 固定觸發夜（前一夜預告）【試玩必調】 */
@@ -891,7 +897,140 @@ const WISHES = {
     check(ctx){ return (S.wishNight.wonCount[ctx.p.id]||0)>=CFG.WISH_T.multiWin; },
     reward(ctx){ ctx.p.life+=CFG.WISH_REWARD.multi; },
     hooks:{ onAiPlan(ctx){ ctx.maxPicks=Math.max(ctx.maxPicks,3); } }},
+  /* ===== 第二批 16 張（2026-09-02 v0.8）。規格＝docs/experiments/2026-09-02-wish16-proposal.md。
+     同一原則：恆假情境用 canDraw 排除；判定只讀 S.wishNight＋ctx.p；獎勵在 CFG.WISH_REWARD2、門檻在 CFG.WISH_T2。
+     desc 可為函式（鎖定對手類要把對手名寫進牌面）。 ===== */
+  wish_zuling:{id:"wish_zuling",name:"祖靈召喚",
+    desc:`本夜得標任一祖靈法寶入袋，＋${CFG.WISH_REWARD2.zuling} 壽命`, gain:CFG.WISH_REWARD2.zuling,
+    canDraw(){ return S.market.some(x=>!x.curse&&x.f==="zuling"); },
+    check(ctx){ return (S.wishNight.wonFacs[ctx.p.id]||[]).indexOf("zuling")>=0; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.zuling; },
+    hooks:{ onAiValue(ctx){ if(ctx.item.f==="zuling") ctx.val+=CFG.WISH_AI2.fac; } }},
+  wish_xianghuo:{id:"wish_xianghuo",name:"香火鼎盛",
+    desc:`本夜得標任一香火法寶入袋，＋${CFG.WISH_REWARD2.xianghuo} 壽命`, gain:CFG.WISH_REWARD2.xianghuo,
+    canDraw(){ return S.market.some(x=>!x.curse&&x.f==="xianghuo"); },
+    check(ctx){ return (S.wishNight.wonFacs[ctx.p.id]||[]).indexOf("xianghuo")>=0; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.xianghuo; },
+    hooks:{ onAiValue(ctx){ if(ctx.item.f==="xianghuo") ctx.val+=CFG.WISH_AI2.fac; } }},
+  wish_trinity:{id:"wish_trinity",name:"三教歸一",
+    desc:`本夜有得標，且夜末袋中祖靈／香火／陰氣三系各至少一件，＋${CFG.WISH_REWARD2.trinity} 壽命`, gain:CFG.WISH_REWARD2.trinity,
+    /* 已三系齊＝恆真、缺的系市場上沒有＝恆假、缺的件數超過每夜出價上限＝恆假 → 都不發 */
+    canDraw(p){
+      const miss=wishMissingFacs(p);
+      return miss.length>0 && miss.length<=(CFG.MAX_BIDS||99) && miss.every(f=>S.market.some(x=>!x.curse&&x.f===f));
+    },
+    check(ctx){ return (S.wishNight.wonCount[ctx.p.id]||0)>0 && wishMissingFacs(ctx.p).length===0; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.trinity; },
+    hooks:{
+      onAiValue(ctx){ if(wishMissingFacs(ctx.p).indexOf(ctx.item.f)>=0) ctx.val+=CFG.WISH_AI2.trinity; },
+      onAiPlan(ctx){ ctx.maxPicks=Math.max(ctx.maxPicks,wishMissingFacs(ctx.p).length); },
+    }},
+  wish_bigfish:{id:"wish_bigfish",name:"一擲千金",
+    desc:`本夜得標一件戰力 ≥${CFG.WISH_T2.bigfishP} 的法寶入袋，＋${CFG.WISH_REWARD2.bigfish} 壽命`, gain:CFG.WISH_REWARD2.bigfish,
+    canDraw(){ return S.market.some(x=>!x.curse&&x.p>=CFG.WISH_T2.bigfishP); },
+    check(ctx){ return !!S.wishNight.bigWin[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.bigfish; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse&&ctx.item.p>=CFG.WISH_T2.bigfishP) ctx.val+=CFG.WISH_AI2.bigfish; } }},
+  wish_allin:{id:"wish_allin",name:"孤注一擲",
+    desc:`本夜只下一筆有效標，而且得標，＋${CFG.WISH_REWARD2.allin} 壽命`, gain:CFG.WISH_REWARD2.allin,
+    canDraw(){ return !hasFlag(null,"singleStake"); }, /* 押寶夜人人一注＝結構退化，不發 */
+    check(ctx){ return (S.wishNight.bidCount[ctx.p.id]||0)===1 && (S.wishNight.wonCount[ctx.p.id]||0)>=1; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.allin; },
+    hooks:{
+      onAiCurse(ctx){ ctx.intent=null; ctx.target=null; }, /* 詛咒標也算一筆，不碰 */
+      onAiPlan(ctx){ ctx.maxPicks=Math.min(ctx.maxPicks,1); },
+    }},
+  wish_bargain:{id:"wish_bargain",name:"撿漏",
+    desc:`本夜以出價 ≤${CFG.WISH_T2.bargainAmt} 得標任一法寶入袋，＋${CFG.WISH_REWARD2.bargain} 壽命`, gain:CFG.WISH_REWARD2.bargain,
+    check(ctx){ return !!S.wishNight.cheapWin[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.bargain; },
+    hooks:{ onAiAmount(ctx){ ctx.amt=Math.min(ctx.amt,CFG.WISH_T2.bargainAmt); } }},
+  wish_yamingwin:{id:"wish_yamingwin",name:"押命得手",
+    desc:`本夜以押命標得標至少一件，＋${CFG.WISH_REWARD2.yamingwin} 壽命`, gain:CFG.WISH_REWARD2.yamingwin,
+    check(ctx){ return !!S.wishNight.yamingWon[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.yamingwin; },
+    hooks:{ onAiAmount(ctx){ ctx.type="yaming"; } }},
+  wish_solo:{id:"wish_solo",name:"獨行俠",
+    desc:`本夜得標一件沒有任何人跟你競標的拍品，＋${CFG.WISH_REWARD2.solo} 壽命`, gain:CFG.WISH_REWARD2.solo,
+    check(ctx){ return !!S.wishNight.soloWin[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.solo; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse&&ctx.item.p<=CFG.WISH_T2.soloCheapP) ctx.val+=CFG.WISH_AI2.solo; } }}, /* 冷門貨較可能無人競標 */
+  wish_rival:{id:"wish_rival",name:"隔岸觀火",
+    desc:p=>`${wishTargetName(p)}本夜因對決或詛咒失血 ≥${CFG.WISH_T2.rivalBleed}，＋${CFG.WISH_REWARD2.rival} 壽命`, gain:CFG.WISH_REWARD2.rival,
+    target(p){ return wishTopFoe(p); },
+    canDraw(p){ return wishTopFoe(p)!==null; },
+    check(ctx){ const t=ctx.p.wish.target; return t!=null && (S.wishNight.extLoss[t]||0)>=CFG.WISH_T2.rivalBleed; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.rival; },
+    hooks:{ onAiCurse(ctx){ const t=ctx.p.wish&&ctx.p.wish.target; if(ctx.intent==="poison"&&t!=null&&S.players[t].alive) ctx.target=t; } }},
+  wish_crowd:{id:"wish_crowd",name:"虎口奪食",
+    desc:`本夜得標一件至少 ${CFG.WISH_T2.crowdBids-1} 位對手也出價的拍品，＋${CFG.WISH_REWARD2.crowd} 壽命`, gain:CFG.WISH_REWARD2.crowd,
+    canDraw(){ return S.players.filter(q=>q.alive).length>=CFG.WISH_T2.crowdBids; },
+    check(ctx){ return !!S.wishNight.crowdWin[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.crowd; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse&&ctx.item.p>=CFG.WISH_T2.crowdHotP) ctx.val+=CFG.WISH_AI2.crowd; } }}, /* 熱門貨較可能多人搶 */
+  wish_poisonrival:{id:"wish_poisonrival",name:"禍水東引",
+    desc:p=>`本夜毒標命中${wishTargetName(p)}，＋${CFG.WISH_REWARD2.poisonrival} 壽命`, gain:CFG.WISH_REWARD2.poisonrival,
+    target(p){ return wishTopFoe(p); },
+    canDraw(p){ return S.market.some(x=>x.curse) && wishTopFoe(p)!==null && !hasFlag(null,"noCurseAuction"); },
+    check(ctx){ const t=ctx.p.wish.target; return t!=null && (S.wishNight.poisonTargets[ctx.p.id]||[]).indexOf(t)>=0; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.poisonrival; },
+    hooks:{ onAiCurse(ctx){
+      const t=ctx.p.wish&&ctx.p.wish.target;
+      if(t==null||!S.players[t].alive) return;
+      ctx.intent="poison"; ctx.target=t;
+    } }},
+  wish_bloodbath:{id:"wish_bloodbath",name:"血流成河",
+    desc:`本夜至少 ${CFG.WISH_T2.bloodbathN} 位對手各因對決或詛咒失血 ≥${CFG.WISH_T2.bloodbathBleed}，＋${CFG.WISH_REWARD2.bloodbath} 壽命`, gain:CFG.WISH_REWARD2.bloodbath,
+    canDraw(p){ return S.players.filter(q=>q.alive&&q.id!==p.id).length>=CFG.WISH_T2.bloodbathN; },
+    check(ctx){ return S.players.filter(q=>q.id!==ctx.p.id&&(S.wishNight.extLoss[q.id]||0)>=CFG.WISH_T2.bloodbathBleed).length>=CFG.WISH_T2.bloodbathN; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.bloodbath; },
+    hooks:{ onAiCurse(ctx){
+      if(ctx.intent!==null) return;
+      const foes=S.players.filter(q=>q.alive&&q.id!==ctx.p.id);
+      if(!foes.length) return;
+      ctx.intent="poison"; ctx.target=foes.sort((a,b)=>power(b)-power(a))[0].id;
+    } }},
+  wish_unscathed:{id:"wish_unscathed",name:"全身而退",
+    desc:`本夜完全沒有因對決或詛咒失血，＋${CFG.WISH_REWARD2.unscathed} 壽命`, gain:CFG.WISH_REWARD2.unscathed,
+    /* 輪空者不戰＝半恆真、袋中有侵蝕品＝恆假 → 都不發 */
+    canDraw(p){
+      const alive=S.players.filter(q=>q.alive).map(q=>q.id);
+      return pairings(alive,S.round-1).bye!==p.id && !p.bag.some(x=>x.drain);
+    },
+    check(ctx){ return !(S.wishNight.extLoss[ctx.p.id]>0); },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.unscathed; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse) ctx.val+=CFG.WISH_AI2.unscathed; } }},
+  wish_crush:{id:"wish_crush",name:"大獲全勝",
+    desc:`本夜結算戰對對手造成 ≥${CFG.WISH_T2.crushDmg} 傷害，＋${CFG.WISH_REWARD2.crush} 壽命`, gain:CFG.WISH_REWARD2.crush,
+    canDraw(p){
+      const alive=S.players.filter(q=>q.alive).map(q=>q.id);
+      return pairings(alive,S.round-1).bye!==p.id;
+    },
+    check(ctx){ return (S.wishNight.dmgDealt[ctx.p.id]||0)>=CFG.WISH_T2.crushDmg; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.crush; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse) ctx.val+=CFG.WISH_AI2.crush; } }},
+  wish_comeback:{id:"wish_comeback",name:"東山再起",
+    desc:`（你此刻壽命全場最低）本夜得標任一件拍品，＋${CFG.WISH_REWARD2.comeback} 壽命`, gain:CFG.WISH_REWARD2.comeback,
+    /* 只發給抽卡當下壽命嚴格最低者（同分不發）＝追趕機制，私有 */
+    canDraw(p){ return S.players.every(q=>!q.alive||q.id===p.id||q.life>p.life); },
+    check(ctx){ return (S.wishNight.wonCount[ctx.p.id]||0)>=1; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.comeback; },
+    hooks:{ onAiValue(ctx){ if(!ctx.item.curse) ctx.val+=CFG.WISH_AI2.comeback; } }},
+  wish_exorcise:{id:"wish_exorcise",name:"驅邪",
+    desc:`本夜買下銷毀一件詛咒品，＋${CFG.WISH_REWARD2.exorcise} 壽命`, gain:CFG.WISH_REWARD2.exorcise,
+    canDraw(){ return S.market.some(x=>x.curse) && !hasFlag(null,"noDestroy") && !hasFlag(null,"noCurseAuction"); },
+    check(ctx){ return !!S.wishNight.destroyed[ctx.p.id]; },
+    reward(ctx){ ctx.p.life+=CFG.WISH_REWARD2.exorcise; },
+    hooks:{ onAiCurse(ctx){ ctx.intent="keep"; ctx.target=null; } }},
 };
+/* 第二批心願共用的小工具（純讀取、決定性、不耗亂數） */
+function wishMissingFacs(p){ return FACTIONS.filter(f=>!p.bag.some(x=>!x.curse&&x.f===f)); }
+function wishTopFoe(p){ /* 壽命最高的存活對手；同分取座位序小者 */
+  const foes=S.players.filter(q=>q.alive&&q.id!==p.id);
+  if(!foes.length) return null;
+  return foes.sort((a,b)=>b.life-a.life||a.id-b.id)[0].id;
+}
+function wishTargetName(p){ const t=p&&p.wish&&p.wish.target; return t==null?"（無對象）":`「${S.players[t].name}」`; }
 
 /* --- 4/5 EVENTS：妖市異事（GAME_DESIGN §六之三 B；第 CFG.EVENT_NIGHTS 夜觸發，前一夜預告）。
    形狀：{id,name,icon,input:"pick"|"num",opts?,desc(ctx),fmt(c)?,cap(p)?,prep(ctx)?,ai(p,ctx),settle(ctx)}
@@ -1265,7 +1404,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.7.1", VERSION_NOTE="保守標伺服端夾＋放血鈕下移＋押寶夜 AI 一注預算";
+const VERSION="0.8", VERSION_NOTE="心願牌庫擴充至 24 張（新增 16 張）";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1327,7 +1466,10 @@ function drawWishes(){
     if(!p.alive){ p.wish=null; continue; }
     const avail=all.filter(w=>!w.canDraw||w.canDraw(p));
     const pool=avail.length?avail:all;
-    p.wish={id:pool[Math.floor(S.rng()*pool.length)].id, done:false};
+    const w=pool[Math.floor(S.rng()*pool.length)];
+    p.wish={id:w.id, done:false};
+    /* 鎖定對手類（隔岸觀火／禍水東引）：抽卡當下決定對象、寫進牌面；決定性、不耗亂數（2026-09-02 使用者裁定顯示對手名） */
+    if(w.target) p.wish.target=w.target(p);
   }
 }
 function judgeWish(p,log){
@@ -1350,7 +1492,7 @@ function wishBarHTML(p){
   if(!CFG.WISH_ON||!p.wish) return "";
   const w=WISHES[p.wish.id];
   if(!w) return "";
-  return `<div class="wishbar">🌒 今夜心願（僅你可見）：<b>${w.name}</b>｜${w.desc}</div>`;
+  return `<div class="wishbar">🌒 今夜心願（僅你可見）：<b>${w.name}</b>｜${typeof w.desc==="function"?w.desc(p):w.desc}</div>`;
 }
 /* ================= 引擎 ================= */
 /* 依座位表產生一位玩家。要加角色＝往 ROLES 填一筆、往 MODES 的 seats 排一格，不必動這裡。 */
@@ -1660,7 +1802,10 @@ function resolveAuction(){
      東窗血光改吃 extLoss（非自願失血：對決傷害＋詛咒侵蝕，2026-09-02 裁定），不再需要 startLife */
   S.wishNight={wonCount:{},wonFacs:{},
     yamingLost:{},poisonHit:{},totalBid:{},battleWin:new Set(),
-    extLoss:{}}; /* 非自願失血（對決傷害＋詛咒侵蝕），東窗血光的判準 */
+    extLoss:{}, /* 非自願失血（對決傷害＋詛咒侵蝕），東窗血光的判準 */
+    /* 第二批 16 張（v0.8）用的純記錄欄位：出價筆數／大貨得標／低價得標／押命得標／獨家得標／
+       多人搶標得標／買下銷毀／毒標塞給了誰／對決造成的傷害。不耗亂數、不改結算數值 */
+    bidCount:{},bigWin:{},cheapWin:{},yamingWon:{},soloWin:{},crowdWin:{},destroyed:{},poisonTargets:{},dmgDealt:{}};
   let all=S.players.map(p=>{
     if(!p.alive)return S.market.map(()=>null);
     if(!p.ai){
@@ -1746,6 +1891,7 @@ function resolveAuction(){
       /* 一注多押：非得標者只在「最後一件」收一次費，之前那幾件只比價、實付 0 */
       if(single&&!isWinner&&stakeLast[e.p.id]!==i){ e.cost=0; return; }
       S.wishNight.totalBid[e.p.id]=(S.wishNight.totalBid[e.p.id]||0)+e.amt; /* 心願統計：本夜總出價 */
+      S.wishNight.bidCount[e.p.id]=(S.wishNight.bidCount[e.p.id]||0)+1;    /* 心願統計：本夜有效出價筆數（孤注一擲） */
       /* nBids 為 additive 欄位（ARCH_SPEC §9 議題 1 核可的做法）：本件拍品的出價人數，
          供「唯一出價者」類被動查詢；既有 effect 都不讀它，行為不變。成本公式未動。 */
       const c={p:e.p,bid:e,item:it,isWinner,
@@ -1766,18 +1912,26 @@ function resolveAuction(){
     if(winner){
       S.wonAny.add(winner.p.id);
       S.wishNight.wonCount[winner.p.id]=(S.wishNight.wonCount[winner.p.id]||0)+1; /* 心願統計 */
+      /* 心願統計（第二批）：獨家得標／多人搶標／押命標得標——只看本件的出價人數與得標標書型態 */
+      if(entries.length===1) S.wishNight.soloWin[winner.p.id]=true;
+      if(entries.length>=CFG.WISH_T2.crowdBids) S.wishNight.crowdWin[winner.p.id]=true;
+      if(winner.type==="yaming") S.wishNight.yamingWon[winner.p.id]=true;
       lastWon[winner.p.id]=it.f;
       let target=null;
       if(winner.intent==="poison"){
         target=S.players[winner.target];
         target.bag.push(it);
         S.wishNight.poisonHit[winner.p.id]=true; /* 心願統計：毒標命中 */
+        (S.wishNight.poisonTargets[winner.p.id]=S.wishNight.poisonTargets[winner.p.id]||[]).push(target.id); /* 禍水東引：塞給了誰 */
         outcome=`${winner.p.name} 毒標得手 → 塞進 ${target.name} 的袋子`;
       }else if(it.curse){
+        S.wishNight.destroyed[winner.p.id]=true; /* 心願統計：買下銷毀（驅邪） */
         outcome=`${winner.p.name} 買下銷毀（自保）`;
       }else{
         winner.p.bag.push(it);
         (S.wishNight.wonFacs[winner.p.id]=S.wishNight.wonFacs[winner.p.id]||[]).push(it.f); /* 心願統計：入袋陣營 */
+        if(it.p>=CFG.WISH_T2.bigfishP) S.wishNight.bigWin[winner.p.id]=true;      /* 一擲千金 */
+        if(winner.amt<=CFG.WISH_T2.bargainAmt) S.wishNight.cheapWin[winner.p.id]=true; /* 撿漏 */
         outcome=`${winner.p.name} 入袋`;
       }
       /* 得標後的連鎖：得標者與被塞方的 effect 都要參與（去重後依序） */
@@ -1822,6 +1976,7 @@ function resolveBattles(){
     l.life-=dmg;
     if(S.wishNight) S.wishNight.extLoss[l.id]=(S.wishNight.extLoss[l.id]||0)+dmg; /* 東窗血光：非自願失血 */
     if(S.wishNight) S.wishNight.battleWin.add(w.id); /* 心願統計：本夜結算戰勝者 */
+    if(S.wishNight) S.wishNight.dmgDealt[w.id]=(S.wishNight.dmgDealt[w.id]||0)+dmg; /* 心願統計：造成的傷害（大獲全勝） */
     fights.push({A,B,pa,pb,w,l,dmg,extra});
   });
   const nightly=[];

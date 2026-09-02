@@ -712,10 +712,26 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 - **已實作**：法寶能力 17 種、**命格道具 6 件（2026-09-02 新增，見 11.4）**、角色 5 個
   （human／青面攤主／紅衣婆婆／斷手書生／收驚婆／獵人，其中後兩者未排進 `MODES.seats`）、
   三隻 AI 的行為模式
-- **只有規格、尚未實作**：其餘 5 個角色、8 個異事、心願牌庫、3 條市集規則
+- **只有規格、尚未實作**：其餘 5 個角色、8 個異事、心願牌庫、3 條市集規則（**此行過時**：以上四項至 2026-09-02 v0.8 已全數上線，
+  見 §11.5／§11.6／§11.9／§11.11；心願牌庫 24 張滿）
 - **完整待辦清單見 `ARCH_SPEC.md` §9 末尾的總表**
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
+
+### 11.11 心願牌庫滿 24 張（2026-09-02 v0.8）——接手前先知道這五件事
+
+1. **`WISHES` 現在 24 張**（原 8 ＋第二批 16，`grep -n "第二批 16 張" index.html`）。第二批的獎勵在 `CFG.WISH_REWARD2`、
+   門檻在 `CFG.WISH_T2`、AI 估值加成在 `CFG.WISH_AI2`，與首批的 `WISH_REWARD`／`WISH_T`／`WISH_AI_*` 分開放，全數【試玩必調】。
+2. **`desc` 可以是函式** `desc(p)`：鎖定對手類（隔岸觀火／禍水東引）要把對手名寫進牌面。`wishBarHTML` 已處理兩種型態；
+   其他要顯示 desc 的地方（目前沒有）記得比照 `typeof w.desc==="function"`。
+3. **`target(p)` 選填欄位**：`drawWishes` 抽到有 `target` 的牌時，當下呼叫一次寫進 `p.wish.target`（決定性、不耗亂數）。
+   `check`／`hooks` 讀 `ctx.p.wish.target`，不要自己重算（夜中壽命變動會讓「壽命最高者」換人）。
+4. **`S.wishNight` 多了 9 個純記錄欄位**（`bidCount`／`bigWin`／`cheapWin`／`yamingWon`／`soloWin`／`crowdWin`／`destroyed`／
+   `poisonTargets`／`dmgDealt`），寫入點都在 `resolveAuction` 得標分支與 `resolveBattles` 對決段、註解「心願統計」。
+   它們只被 `check` 讀，不改結算——`WISH_ON=false` 與舊版逐位元組相等就是靠這一點。
+5. **等價驗證用兩把尺**（`tests/tools/a1-wish16.mjs`）：`WISH_ON=false` 相等（統計欄位沒漏亂數）＋執行期 `delete` 新 16 鍵後相等
+   （原 8 張行為未動）；`WISH_ON=true` 必不相等（新牌真的進了牌局）。加第三批牌照抄這支腳本。
+   平衡量測 `tests/tools/wish16-balance.mjs`（達成率、座位 0 條件勝率、三策略位移，閘門 n≥10000）。
 
 ### 11.10 v0.7.1 殘留處置（2026-09-02 傍晚）——接手前先知道這四件事
 
