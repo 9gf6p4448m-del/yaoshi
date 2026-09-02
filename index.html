@@ -54,6 +54,10 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
   border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
 .windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
   font-size:10px;padding:0 5px;font-weight:bold}
+/* 座位卡「角色資訊」ⓘ 鈕（2026-09-02 試玩回饋：進遊戲後看不到角色被動）——純呈現，見 IMPLEMENTATION_GUIDE §11.7 慣例 */
+.seat .roleInfoBtn{position:absolute;bottom:-7px;right:8px;background:var(--panel2);border:1px solid var(--gold);
+  color:var(--gold);border-radius:6px;font-size:11px;padding:0 5px;line-height:15px;z-index:3;cursor:pointer}
+#south button.side.roleInfoBtn{width:38px;padding:0;font-size:14px}
 .bubble{position:absolute;z-index:9;background:#efe8d8;color:#2a2142;border-radius:10px;padding:4px 9px;
   font-size:12px;white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;
   box-shadow:0 2px 8px rgba(0,0,0,.5);left:50%;transform:translateX(-50%);top:calc(100% + 4px)}
@@ -242,6 +246,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div><div class="dir" id="myDir">南・你</div><div class="life" id="myLife"></div></div>
     <div class="mut" id="myPow"></div>
     <button class="side" onclick="showBag(0)">袋子</button>
+    <button class="side roleInfoBtn" onclick="showRoleInfo(0)" title="角色資訊">ⓘ</button>
     <div id="budget"></div>
     <button class="bigbtn" id="mainbtn"></button>
   </div>
@@ -1842,6 +1847,7 @@ function seatHTML(id,hl){
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
     <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
+    <span class="roleInfoBtn" onclick="event.stopPropagation();showRoleInfo(${id})" title="角色資訊">ⓘ</span>
   </div>`;
 }
 function renderSeats(hlIds){
@@ -2428,6 +2434,27 @@ function showBag(pid){
   $("modal").style.display="flex";
 }
 function closeModal(){$("modal").style.display="none";}
+/* 角色被動說明的共用 HTML（選角畫面／座位卡「ⓘ」都呼叫這支，不得各自複製一份分句邏輯）：
+   desc 慣例「X流（起始N）。被動：…。AI 時…」——首段做徽章、其餘按「。」各自成行，
+   AI 行為是開發者資訊，一律過濾掉不顯示（2026-09-02 試玩回饋，見 IMPLEMENTATION_GUIDE §11.7／11.8）。 */
+function roleDescHTML(roleId){
+  const R=ROLES[roleId];
+  if(!R||!R.desc) return "";
+  const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
+    .filter(t=>!t.startsWith("AI 時"));
+  const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
+  return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${R.life0||CFG.LIFE}</span></div>`
+    +seg.map(t=>`<div class="descRow">${t}</div>`).join("");
+}
+/* 座位卡「ⓘ」：牌桌上點任一席（自己或 AI）都能重看角色被動——被動是公開資訊，隨時可查（試玩回饋）。
+   熱座模式下同樣只顯示角色公開資訊，不夾帶心願／袋中詛咒品／封注金額等私有內容。 */
+function showRoleInfo(pid){
+  const p=S.players[pid];
+  $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}</h2>
+    ${roleDescHTML(p.roleId)}
+    <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
+  $("modal").style.display="flex";
+}
 /* ================= 選角畫面（SELECT_ON=true 時的開局入口） ================= */
 let SEL={mode:null,picks:[],cur:null};
 function startEntry(mode){
@@ -2458,17 +2485,9 @@ function renderSelect(){
     </div>`;
   }).join("");
   const R=SEL.cur?ROLES[SEL.cur]:null;
-  /* desc 慣例「X流（起始N）。被動：…。AI 時…」：首段做徽章、其餘按「。」各自成行——
-     擠在一行裡自然換行會把句子斷在莫名其妙的位置（2026-09-02 試玩回饋） */
-  $("selDesc").innerHTML=R
-    ?(()=>{
-      const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
-        .filter(t=>!t.startsWith("AI 時")); /* AI 行為是開發者資訊，選角不顯示（2026-09-02 試玩回饋） */
-      const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
-      return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${R.life0||CFG.LIFE}</span></div>`
-        +seg.map(t=>`<div class="descRow">${t}</div>`).join("");
-    })()
-    :"點一個角色，看被動與起始壽命";
+  /* desc 慣例「X流（起始N）。被動：…。AI 時…」的分句／過濾邏輯抽成 roleDescHTML()，
+     座位卡「ⓘ」鈕重用同一支，不得各自複製一份（2026-09-02 試玩回饋） */
+  $("selDesc").innerHTML=R?roleDescHTML(SEL.cur):"點一個角色，看被動與起始壽命";
   $("selBtn").disabled=!R;
   $("selBtn").textContent=SEL.mode==="hotseat"&&SEL.picks.length===0?"確定，換玩家二":"入市";
 }
