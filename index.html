@@ -201,10 +201,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .rcard.taken{opacity:.28;pointer-events:none}
 #selFoot{display:flex;align-items:center;gap:10px;min-height:52px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;padding:6px 10px}
-#selDesc{flex:1;font-size:11px;color:var(--dim);line-height:1.6;min-width:0}
+/* 2026-09-03 使用者要求：被動說明要像 v0.11 手機上那樣大（v0.11 的大字是瀏覽器文字自動放大的副作用，行數變少就失效）；改成固定 clamp，844 寬≈16px */
+#selDesc{flex:1;font-size:clamp(13px,1.9vw,17px);color:var(--dim);line-height:1.5;min-width:0}
 #selDesc b{color:var(--ink)}
 .descHead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.descTag{border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:0 6px;font-size:10px}
+.descTag{border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:0 6px;font-size:.8em}
 .descRow{margin-top:2px;padding-left:10px;position:relative}
 .descRow::before{content:"‣";position:absolute;left:0;color:var(--gold)}
 /* 抽屜 / modal */
@@ -1462,7 +1463,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.12", VERSION_NOTE="盯上反應只在對手卡顯示（選角與自己座位不顯示）";
+const VERSION="0.13", VERSION_NOTE="選角被動說明字級固定放大（不再靠瀏覽器自動放大）";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
