@@ -281,6 +281,9 @@ const CFG = {
   CONS_LOSE_FRAC: 0.25, /* 保守標落標付費比例（cost=ceil(amt×frac)）；0＝全額退還 */
   WIND_POWER: 3,     /* 風位當夜戰力加成【試玩必調】 */
   AI_DESTROY_P: 0.5, /* 最強 AI 對詛咒品下防禦性銷毀標的機率【試玩必調】 */
+  /* AI 預設打法旋鈕（ARCH_SPEC 待辦 22；預設值＝改動前行為，trace 不變）：
+     AI_IDLE_P＝每夜整夜按兵不動的機率（0 時不耗亂數）；AI_THROTTLE＝計畫內出價的預算節流比例 */
+  AI_IDLE_P: 0, AI_THROTTLE: 0.45,
   /* 命格系統（GAME_DESIGN §六之二）——係數全部【試玩必調】 */
   BLOOD_COST: 2,     /* 獻祭刀：第 n 次放血成本 = n×BLOOD_COST（遞增，甲′裁定）【試玩必調】 */
   BLOOD_DRAIN: 4,    /* 獻祭刀：每次放血「所有對手」各失的壽命（甲′裁定；整合版實測 −2 被心願回血稀釋到無感、−4 條件勝率 54.5% 有感不破格）【試玩必調】 */
@@ -1679,7 +1682,7 @@ function consCapFor(p){
 function aiBids(p){
   const bids=S.market.map(()=>null);
   const fullBudget=budgetFor(p);             /* 一輪出價總額上限（ARCH_SPEC §3.5） */
-  const budget=Math.floor(fullBudget*0.45);  /* 計畫內出價的保守節流（預設決策自我約束） */
+  const budget=Math.floor(fullBudget*CFG.AI_THROTTLE);  /* 計畫內出價的保守節流（預設決策自我約束；待辦 22 旋鈕） */
   let spent=0;
   /* 詛咒品攻防獨立出價，不跟法寶搶「前二」名額 */
   S.market.forEach((it,i)=>{
@@ -1715,7 +1718,8 @@ function aiBids(p){
   });
   opts.sort((a,b)=>b.val-a.val);
   /* hook 8.2：這夜要標幾件、要不要整夜不出手 */
-  const plan={p,opts,maxPicks:2,skipAll:false};
+  /* 待辦 22：AI 預設「按兵不動」機率——AI_IDLE_P=0 時不呼叫 S.rng()，亂數序與加入前相同 */
+  const plan={p,opts,maxPicks:2,skipAll:(CFG.AI_IDLE_P>0&&S.rng()<CFG.AI_IDLE_P)};
   /* skipAll 語意（覆審 MEDIUM-1）：「整夜完全不出價」要含詛咒品攻防與計畫外出價，
      否則收驚婆蟄伏夜 13% 仍下標、兩袖清風 AI 自毀心願。清掉前面已下的詛咒標並擋掉 extra。 */
   applyHooks("onAiPlan",plan,p);
