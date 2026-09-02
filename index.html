@@ -273,6 +273,13 @@ const CFG = {
   WISH_AI_YINQI: 4,  /* AI 持「夜訪陰氣」時對陰氣拍品的估值加成【試玩必調】 */
   WISH_AI_BATTLE: 2, /* AI 持「今夜必勝」時對一般拍品的估值加成【試玩必調】 */
   WISH_AI_YAMING_CAP: 2, /* AI 持「敗軍之志」時單筆押命標的金額上限（小額送落標）【試玩必調】 */
+  /* 異事系統（GAME_DESIGN §六之三 B）——總開關＋數值全集中此處【試玩必調】 */
+  EVENT_ON: true,    /* false＝完全停用：不排程、不消耗 S.rng()，trace 與加入前逐位元組相等 */
+  EVENT_NIGHTS:[4,8,11], /* 固定觸發夜（前一夜預告）【試玩必調】 */
+  EVENT_INPUT_CAP:12, /* 密封數字輸入（投入／出價）單次上限【試玩必調】 */
+  PLAGUE_NEED:12, PLAGUE_FAIL:6,            /* 瘟王過境：湊滿門檻／失敗全體失血【試玩必調】 */
+  SHRINE_WIN:6, SHRINE_LOSE:3, SHRINE_TIE:1, /* 試膽大會：少數方得／多數方失／平手各失【試玩必調】 */
+  GHOST_DMG:10,                              /* 厲鬼索命：無人擋煞時索走的壽命【試玩必調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
@@ -830,9 +837,90 @@ const WISHES = {
     hooks:{ onAiPlan(ctx){ ctx.maxPicks=Math.max(ctx.maxPicks,3); } }},
 };
 
-/* --- 4/5 EVENTS：妖市異事。本次只建結構，不填內容。
-   形狀：{id,name,desc,input:"none"|"pick"|"bid",hooks:{...},settle(ctx){}} --- */
-const EVENTS = {};
+/* --- 4/5 EVENTS：妖市異事（GAME_DESIGN §六之三 B；第 CFG.EVENT_NIGHTS 夜觸發，前一夜預告）。
+   形狀：{id,name,icon,input:"pick"|"num",opts?,desc(ctx),fmt(c)?,cap(p)?,prep(ctx)?,ai(p,ctx),settle(ctx)}
+   input="pick"：opts 二選一；input="num"：密封數字 0..cap(p)。
+   閘門存證：三者的 analyzeEvent spec 在 demoEvents（newShrine／plague／ghost），verdict 均實測 PASS（六之四）。
+   settle 的壽命增減「不」計入 S.wishNight.extLoss——東窗血光維持「對決＋詛咒」的裁定口徑，
+   是否擴及異事待使用者裁定（ARCH_SPEC §9 待辦 14）。 --- */
+const EVENTS = {
+  plague:{id:"plague",name:"瘟王過境",icon:"🕯",input:"num",
+    desc:()=>`全場需共同湊滿 ${CFG.PLAGUE_NEED} 壽命供奉瘟王，每人密封投入（可為 0）。湊滿：全體平安，投入最多者另獲一件法寶；沒湊滿：全體 -${CFG.PLAGUE_FAIL}，且已投入的壽命不退還`,
+    fmt:c=>c>0?`投入 ${c}`:"分文不出",
+    cap(p){ return Math.min(CFG.EVENT_INPUT_CAP, Math.max(0,p.life-1)); },
+    ai(p){ const a=p.life>24?3+(S.rng()<0.3?1:0):p.life>12?2:(S.rng()<0.5?1:0);
+      return Math.min(a,this.cap(p)); },
+    settle(ctx){
+      let tot=0; ctx.players.forEach(p=>{ const a=ctx.choices[p.id]|0; tot+=a; p.life-=a; });
+      if(tot>=CFG.PLAGUE_NEED){
+        const mx=Math.max(...ctx.players.map(p=>ctx.choices[p.id]|0));
+        ctx.events.push({txt:`🕯 供奉湊得 ${tot}，瘟王平安過境`});
+        if(mx>0){
+          const tied=ctx.players.filter(p=>(ctx.choices[p.id]|0)===mx);
+          const top=tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0];
+          if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
+          const it=S.deck.pop(); top.bag.push(it);
+          ctx.events.push({txt:`🎁 投入最多的 ${top.name}（${mx}）獲瘟王賞賜「${it.n}」`});
+        }
+      }else{
+        ctx.players.forEach(p=>{ p.life-=CFG.PLAGUE_FAIL; });
+        ctx.events.push({txt:`☠️ 只湊得 ${tot}，瘟疫橫掃——全體 -${CFG.PLAGUE_FAIL}，投入不退還`});
+      }
+    }},
+  shrine:{id:"shrine",name:"試膽大會",icon:"⛩",input:"pick",
+    opts:[{v:"in",label:"進廟"},{v:"out",label:"留下"}],
+    desc:()=>`密封二選一「進廟」或「留下」。人數較少的一邊每人 +${CFG.SHRINE_WIN}，人數較多的一邊每人 -${CFG.SHRINE_LOSE}；2 比 2 平手雙方各 -${CFG.SHRINE_TIE}`,
+    ai(){ return S.rng()<0.5?"in":"out"; },
+    settle(ctx){
+      const ids=ctx.players.map(p=>p.id);
+      const countIn=ids.filter(id=>ctx.choices[id]==="in").length, countOut=ids.length-countIn;
+      if(countIn===0||countOut===0){
+        ctx.players.forEach(p=>{ p.life-=CFG.SHRINE_LOSE; });
+        ctx.events.push({txt:`⛩ 全員選了同一邊，膽氣盡失——全體 -${CFG.SHRINE_LOSE}`});
+        return;
+      }
+      if(countIn===countOut){
+        ctx.players.forEach(p=>{ p.life-=CFG.SHRINE_TIE; });
+        ctx.events.push({txt:`⛩ 兩邊人數平分，雙方各 -${CFG.SHRINE_TIE}`});
+        return;
+      }
+      const minority=countIn<countOut?"in":"out";
+      ctx.players.forEach(p=>{ p.life+=ctx.choices[p.id]===minority?CFG.SHRINE_WIN:-CFG.SHRINE_LOSE; });
+      ctx.events.push({txt:`⛩ 人少的一邊（${minority==="in"?"進廟":"留下"}）贏得膽勇——+${CFG.SHRINE_WIN}／-${CFG.SHRINE_LOSE}`});
+    }},
+  ghost:{id:"ghost",name:"厲鬼索命",icon:"👹",input:"num",
+    desc(ctx){ const v=ctx&&ctx.victim?`${DIRS[ctx.victim.id]}家・${ctx.victim.name}`:"全場壽命最低者";
+      return `厲鬼鎖定 ${v}，欲索走其 ${CFG.GHOST_DMG} 壽命。全體密封競標「擋煞權」（出 0＝不出手），最高者付其出價：被索者自保則免災；他人得標則免災、並從被索者袋中取走一件法寶作酬；無人出價，索命照常`; },
+    fmt:c=>c>0?`出價 ${c}`:"不出手",
+    cap(p){ return Math.min(CFG.EVENT_INPUT_CAP, Math.max(0,p.life-1)); },
+    prep(ctx){ ctx.victim=ctx.players.reduce((a,b)=>b.life<a.life?b:a); },
+    ai(p,ctx){
+      const loot=ctx.victim.bag.filter(x=>!x.curse);
+      if(p===ctx.victim) return Math.min(this.cap(p), p.life<=CFG.GHOST_DMG+4?5:3);
+      if(!loot.length||p.life<=12) return 0;
+      return S.rng()<0.6?2+(S.rng()<0.4?2:0):0;
+    },
+    settle(ctx){
+      const v=ctx.victim;
+      const bids=ctx.players.map(p=>({p,amt:ctx.choices[p.id]|0})).filter(b=>b.amt>0);
+      if(!bids.length){
+        v.life-=CFG.GHOST_DMG;
+        ctx.events.push({txt:`👹 無人出手，厲鬼索走 ${v.name} 的 ${CFG.GHOST_DMG} 壽命`});
+        return;
+      }
+      const mx=Math.max(...bids.map(b=>b.amt));
+      const tied=bids.filter(b=>b.amt===mx);
+      const w=(tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0]).p;
+      w.life-=mx;
+      if(w===v){
+        ctx.events.push({txt:`👹 ${v.name} 以 ${mx} 壽命自保，厲鬼悻然離去`});
+      }else{
+        const loot=v.bag.filter(x=>!x.curse).sort((a,b)=>(b.p||0)-(a.p||0))[0];
+        if(loot){ v.bag.splice(v.bag.indexOf(loot),1); w.bag.push(loot); }
+        ctx.events.push({txt:`👹 ${w.name} 以 ${mx} 壽命擋煞救下 ${v.name}${loot?`，取走其「${loot.n}」作酬`:"（其袋中無寶可取）"}`});
+      }
+    }},
+};
 
 /* --- 5/5 NIGHTRULES：今夜市集規則。本次只建結構，不填內容。
    形狀：{id,name,desc,hooks:{...}} --- */
@@ -1015,6 +1103,36 @@ function wishBarHTML(p){
 }
 /* ================= 引擎 ================= */
 /* 依座位表產生一位玩家。要加角色＝往 ROLES 填一筆、往 MODES 的 seats 排一格，不必動這裡。 */
+/* ================= 異事引擎（正常頁／simulate／playPolicyGame 三條迴圈共用）=================
+   EVENT_ON=false：makeState 不抽事件序、eventForRound 恆 null、全程零 S.rng() 消耗，
+   trace 與加入前逐位元組相等（kill switch，同 WISH_ON 慣例）。 */
+function eventForRound(r){
+  if(!CFG.EVENT_ON||!S.eventOrder) return null;
+  const i=CFG.EVENT_NIGHTS.indexOf(r);
+  return (i>=0&&S.eventOrder[i])?EVENTS[S.eventOrder[i]]:null;
+}
+function eventCtx(ev){
+  const ctx={ev, players:S.players.filter(p=>p.alive), choices:{}, events:[]};
+  if(ev.prep) ev.prep(ctx);
+  return ctx;
+}
+/* AI 依座位序消耗 S.rng()；humanToo=true（headless）時真人座位也走同一套 ai 啟發式 */
+function fillEventChoices(ctx,humanToo){
+  ctx.players.forEach(p=>{ if(p.ai||humanToo) ctx.choices[p.id]=ctx.ev.ai(p,ctx); });
+}
+function settleEvent(ctx,log){
+  ctx.ev.settle(ctx);
+  ctx.events.forEach(e=>log.push(e.txt));
+  S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; log.push(`💀 ${p.name} 沒能撐過「${ctx.ev.name}」，消失在妖市裡`); } });
+}
+function runEventPhaseHeadless(){
+  const ev=eventForRound(S.round); if(!ev) return null;
+  const ctx=eventCtx(ev);
+  fillEventChoices(ctx,true);
+  const log=[];
+  settleEvent(ctx,log);
+  return {ev:ev.id, choices:{...ctx.choices}, log};
+}
 function mkPlayer(seat,i){
   const R=ROLES[seat.role];
   return {
@@ -1067,6 +1185,8 @@ function makeState(mode,seed,picks){
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
   S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
   S.market=drawMarket(); S.nextMarket=drawMarket();
+  /* 異事排程（EVENT_ON=false 零 rng 消耗——kill switch）：洗牌決定各觸發夜出哪樁異事 */
+  S.eventOrder=CFG.EVENT_ON?shuffle(Object.keys(EVENTS)).slice(0,CFG.EVENT_NIGHTS.length):[];
   return S;
 }
 function newGame(mode,seed,picks){
@@ -1340,6 +1460,9 @@ function resolveBattles(){
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
   /* 獻祭放血只在本夜生效：夜末一律歸零（正常遊戲、playPolicyGame、simulate 三條迴圈共用此處） */
   S.players.forEach(p=>{p.sacrificed=0;});
+  /* 異事預告（GAME_DESIGN §六之三 B：前一夜預告）；EVENT_ON=false 時 eventForRound 恆 null */
+  const nxev=eventForRound(S.round+1);
+  if(nxev) nightly.push(`🔮 夜市耳語——明夜「${nxev.name}」將至`);
   return{fights,bye,nightly,deaths};
 }
 /* ================= 牌桌渲染 ================= */
@@ -1386,11 +1509,79 @@ function sayFrom(id,key){
 function beginRound(){
   drawWishes(); /* 每夜開始先發心願（出價階段人類不耗 S.rng()，與 headless 兩條迴圈亂數序一致） */
   S.humanBids={}; S.bleedLog=[];
+  const ev=eventForRound(S.round);
+  if(ev){ startEventUI(ev); return; } /* 異事夜：密封輸入→開盅→再進拍賣 */
+  proceedToBids();
+}
+function proceedToBids(){
   const hs=aliveHumans();
   if(!hs.length){ startRevealDirect(); return; } /* 人類全滅仍走完（理論上不會到這） */
   ACTIVE=hs[0].id;
   if(S.mode==="hotseat") showHandoff(ACTIVE, startBidUI);
   else startBidUI();
+}
+/* ===== 異事 UI：密封輸入（熱座逐位真人交棒）→ 開盅演出 → 進入出價 ===== */
+let EVCTX=null, EVAMT=0, EVCAP=0, EVDONE=null;
+function startEventUI(ev){
+  EVCTX=eventCtx(ev);
+  fillEventChoices(EVCTX,false); /* AI 先封籤（座位序耗 rng）；真人由下方 UI 收 */
+  renderSeats();
+  $("mainbtn").disabled=true;
+  const hs=EVCTX.players.filter(p=>!p.ai);
+  const ask=k=>{
+    if(k>=hs.length){ revealEventUI(); return; }
+    const show=()=>renderEventInput(hs[k],()=>ask(k+1));
+    if(S.mode==="hotseat") showHandoff(hs[k].id,show); else show();
+  };
+  ask(0);
+}
+function renderEventInput(p,done){
+  const ev=EVCTX.ev;
+  const head=`<div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}</h2>
+    <div class="mut" style="font-size:12px;line-height:1.7;text-align:left">${typeof ev.desc==="function"?ev.desc(EVCTX):ev.desc}</div>`;
+  const who=S.mode==="hotseat"?`<div class="mut" style="font-size:12px;margin-top:6px">【${p.name}｜壽命 ${p.life}】密封抉擇，他人不可見</div>`:"";
+  EVDONE=done;
+  if(ev.input==="pick"){
+    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+        ${ev.opts.map(o=>`<button class="bigbtn" style="flex:1" onclick="pickEventOpt(${p.id},'${o.v}')">${o.label}</button>`).join("")}
+      </div></div>`;
+  }else{
+    EVAMT=0; EVCAP=ev.cap(p);
+    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px">
+        <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(-1)">−</button>
+        <div id="evAmt" style="font-size:26px;min-width:48px">0</div>
+        <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(1)">＋</button>
+      </div>
+      <div class="mut" style="font-size:11px;margin-top:4px">可出 0～${EVCAP}（不得傾盡壽命）</div>
+      <button class="bigbtn" style="margin-top:12px" onclick="confirmEventNum(${p.id})">封籤</button></div>`;
+  }
+}
+function bumpEvent(d){ EVAMT=Math.max(0,Math.min(EVCAP,EVAMT+d)); $("evAmt").textContent=EVAMT; }
+function pickEventOpt(pid,v){ EVCTX.choices[pid]=v; const d=EVDONE; EVDONE=null; d(); }
+function confirmEventNum(pid){ EVCTX.choices[pid]=EVAMT; const d=EVDONE; EVDONE=null; d(); }
+function revealEventUI(){
+  const ev=EVCTX.ev, log=[];
+  const lines=EVCTX.players.map(p=>{
+    const c=EVCTX.choices[p.id];
+    const lbl=ev.input==="pick"?((ev.opts.find(o=>o.v===c)||{}).label||"？"):(ev.fmt?ev.fmt(c|0):String(c|0));
+    return `<div style="font-size:13px;padding:2px 0">${DIRS[p.id]}家・${p.name}：<b>${lbl}</b></div>`;
+  }).join("");
+  settleEvent(EVCTX,log);
+  renderSeats();
+  $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
+    <div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}・開盅</h2>
+    ${lines}<hr style="opacity:.2">
+    ${log.map(t=>`<div class="big" style="font-size:14px;padding:2px 0">${t}</div>`).join("")}
+  </div>`;
+  const aliveN=S.players.filter(p=>p.alive).length;
+  if(!aliveHumans().length||aliveN<=1){
+    $("mainbtn").textContent="看最終結果"; $("mainbtn").onclick=endGame;
+  }else{
+    $("mainbtn").textContent="前往拍賣"; $("mainbtn").onclick=()=>{ $("mainbtn").disabled=true; proceedToBids(); };
+  }
+  $("mainbtn").disabled=false;
 }
 function startBidUI(){
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
@@ -1923,6 +2114,12 @@ function playPolicyGame(seed,policies,picks){
   const lifeByRound=[];
   for(;;){
     drawWishes(); /* 與 beginRound 同時機（出價前），三條迴圈亂數序一致 */
+    runEventPhaseHeadless(); /* 異事夜（EVENT_ON=false 零消耗）；真人座位同走 ai 啟發式 */
+    if(S.players.filter(p=>p.alive).length<=1){ /* 異事殺到剩1人：該夜不再拍賣/對決 */
+      S.players.forEach(p=>{ if(!p.alive&&deathRound[p.id]===null) deathRound[p.id]=S.round; });
+      lifeByRound.push(S.players.map(p=>p.life));
+      break;
+    }
     S.humanBids={};
     S.players.forEach(p=>{
       if(!p.ai){ const pol=(policies&&policies[p.id])||scriptedBids; S.humanBids[p.id]=pol(p); }
@@ -2079,6 +2276,29 @@ const EVENT_NEW_SHRINE={
     return choices.map(c=>c==="in"?(inIsMinority?6:-3):(inIsMinority?-3:6));
   }
 };
+/* 三個上線異事的閘門 spec（GAME_DESIGN §六之四存證，可隨時重跑）：
+   試膽大會直接用 EVENT_NEW_SHRINE；瘟王／厲鬼為密封數字類，在離散網格上窮舉。
+   2026-09-02 Node 實測三者 verdict 均 PASS（dominant 空、freeLunch false）。 */
+const EVENT_SPEC_PLAGUE={
+  name:"瘟王過境（湊12／失敗-6／最高投入得寶≈5）", players:4, options:[0,2,3,4],
+  payoff(ch){
+    const tot=ch.reduce((a,b)=>a+b,0);
+    if(tot>=12){ const mx=Math.max(...ch); const nt=ch.filter(c=>c===mx).length;
+      return ch.map(c=>-c+(c===mx&&mx>0?5/nt:0)); }
+    return ch.map(c=>-c-6);
+  }
+};
+const EVENT_SPEC_GHOST={
+  name:"厲鬼索命（0號=被索者／無人出價-10／他人得標奪寶≈5）", players:4, options:[0,2,4,6],
+  payoff(ch){
+    const mx=Math.max(...ch);
+    if(mx===0) return ch.map((c,i)=>i===0?-10:0);
+    const tied=ch.map((c,i)=>c===mx?i:-1).filter(i=>i>=0), n=tied.length;
+    const out=ch.map(()=>0);
+    tied.forEach(w=>{ out[w]-=mx/n; if(w!==0){ out[w]+=5/n; out[0]-=5/n; } });
+    return out;
+  }
+};
 function snapPlayers(){
   return S.players.map(p=>({id:p.id,life:p.life,alive:p.alive,bag:p.bag.map(x=>x.n),power:power(p)}));
 }
@@ -2087,7 +2307,13 @@ function simulate(seed){
   const nights=[];
   for(;;){
     drawWishes(); /* 與 beginRound 同時機（出價前）；WISH_ON=false 時不耗亂數、trace 不變 */
+    const evres=runEventPhaseHeadless(); /* 異事夜：EVENT_ON=false 恆 null、零 rng 消耗 */
     const pre=snapPlayers();
+    if(S.players.filter(p=>p.alive).length<=1){ /* 異事殺到剩1人：該夜不再拍賣/對決 */
+      nights.push({round:S.round, market:S.market.map(x=>x.n), pre, auction:[], mid:pre, battles:[],
+        bye:null, nightly:[], deaths:[], ...(evres?{event:evres}:{}), post:snapPlayers()});
+      break;
+    }
     const market=S.market.map(x=>x.n);
     S.humanBids={};
     S.players.forEach(p=>{ if(!p.ai) S.humanBids[p.id]=scriptedBids(p); });
@@ -2109,6 +2335,7 @@ function simulate(seed){
     nights.push({
       round:S.round, market, pre, auction, mid, battles,
       bye:R.bye, nightly:R.nightly, deaths:R.deaths.map(d=>d.id),
+      ...(evres?{event:evres}:{}),
       post:snapPlayers(),
     });
     const aliveN=S.players.filter(p=>p.alive).length;
@@ -2128,7 +2355,8 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
-  demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE } };
+  demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
+    plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST } };
 /* ================= ?sim=1 平衡模擬器／窮舉器工具頁（獨立於正常遊戲頁，不共用 DOM） ================= */
 function initSimTool(){
   document.title="妖市・平衡模擬器";

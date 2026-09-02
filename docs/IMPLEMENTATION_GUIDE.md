@@ -37,10 +37,9 @@
 - 規則骨架（`docs/GAME_DESIGN.md`）已於 2026-09-01 由使用者拍板 v1.0 凍結。
 - 「地基 1」（架構重構：種子化亂數 + 五張資料表 + hook 分派器）已完成並通過等價驗收，commit `7d3bfa8`。
 - 「地基 2」（平衡模擬器 `runMany` + 優勢策略窮舉器 `analyzeEvent`）已完成，commit `ea3650c`。
-- **`WISHES`、`EVENTS`、`NIGHTRULES` 三張表目前是空殼**（`index.html` 第 326、330、334 行，
-  `const WISHES = {};` 這種形式）——結構已定義好，但**沒有任何 engine 程式碼會去抽卡/觸發它們**。
-  換句話說，就算你往這幾張表裡加一筆，遊戲裡也不會真的出現，因為「每夜怎麼發心願卡」「第幾夜觸發異事」
-  這段串接程式碼還沒寫（這是刻意的，見 `docs/ARCH_SPEC.md` §7 裁定 J：「沒有消費者就不寫入」）。
+- **`NIGHTRULES` 是最後一張空殼表**——結構已定義但沒有任何 engine 程式碼會把 `S.nightRule`
+  設成非 `null`，往裡面加一筆不會在遊戲裡出現（刻意的，見 `docs/ARCH_SPEC.md` §7 裁定 J）。
+  `WISHES` 已於 v0.6 上線（§11.5）、`EVENTS` 已於 2026-09-02 上線（§11.6），兩者都有完整串接。
 - `ROLES` 表已有 4 個角色（`human`／`qingmian`／`hongyi`／`duanshou`），但**沒有選角 UI**，
   座位表由 `MODES`（第 507 行）寫死決定誰坐哪一位。
 
@@ -167,7 +166,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 | `ABILITIES` | `index.html:253` | 17 個法寶能力 ＋ 6 件命格道具已實作（共 23 筆） | 純資料，新增後**必須**被某個 `POOL`/`CURSES` 項目的 `ab` 欄位引用，否則永遠不會出現在遊戲裡（見範例 1） |
 | `ROLES` | `index.html:391` | 6 個角色（1 人類 + 3 AI 已排進座位；收驚婆／獵人已建但未排進 `MODES.seats`） | 新增後**必須**被 `MODES.seats`（`index.html:507`）排進某個模式的座位表，否則玩家永遠選不到、AI 也永遠不會用（見範例 3） |
 | `WISHES` | `index.html:515` | 空殼 `{}` | 目前沒有引擎程式碼會抽卡/判定——加進去只是定義資料，不會在遊戲裡出現，見範例 4 |
-| `EVENTS` | `index.html:519` | 空殼 `{}` | 同上，沒有「第幾夜觸發哪個異事」的串接程式碼，見範例 5 |
+| `EVENTS` | 用 `grep -n "const EVENTS" index.html` 定位 | **已上線 3 樁**（瘟王過境／試膽大會／厲鬼索命） | 串接已寫好：`CFG.EVENT_NIGHTS` 排程＋前夜預告＋密封輸入 UI＋`runEventPhaseHeadless()`，見 §11.6 |
 | `NIGHTRULES` | `index.html:523` | 空殼 `{}` | 同上，目前沒有任何地方會把 `S.nightRule` 設成非 `null` |
 
 ---
@@ -395,9 +394,10 @@ console.log(analyzeEvent(spec).verdict);  // 實測：'PASS'（不存在優勢�
 『不存在優勢策略』才算通過」。
 
 **Step 2** — 通過閘門後，寫成 `EVENTS` 表項目的資料格式（`{id,name,desc,input,settle(ctx)}`）。
-跟範例 4 一樣，**`settle(ctx)` 目前沒有任何引擎程式碼會呼叫它**（沒有「第 4/8/11 夜觸發哪個異事、
-怎麼收集每人的密封選擇」這段串接），這裡只示範怎麼把驗證過的 payoff 邏輯轉成會真的改 `p.life` 的
-函式，並手動驗證：
+（2026-09-02 更新：串接已上線——`settleEvent()` 會呼叫 `settle(ctx)`，排程在 `CFG.EVENT_NIGHTS`，
+密封輸入由異事 UI／`fillEventChoices()` 收集，見 §11.6。本範例其餘內容仍有效：新異事照這個
+資料格式往 `EVENTS` 表加一筆即可，但**閘門 Step 1 仍然一步都不能省**。）以下示範怎麼把驗證過的
+payoff 邏輯轉成會真的改 `p.life` 的函式，並手動驗證：
 
 ```js
 const EVENTS = {
@@ -696,6 +696,24 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 - **完整待辦清單見 `ARCH_SPEC.md` §9 末尾的總表**
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
+
+### 11.6 異事系統已上線（2026-09-02）——接手前先知道這五件事
+
+1. **三樁異事進了 `EVENTS` 表**：瘟王過境（密封數字／公共財）、試膽大會（二選一／少數決）、
+   厲鬼索命（密封競標／趁火打劫）。排程＝`CFG.EVENT_NIGHTS=[4,8,11]` 開局洗牌各配一樁，
+   前一夜 `resolveBattles` 夜末推「夜市耳語」預告。總開關 `CFG.EVENT_ON`，false 時零 rng 消耗、
+   `trace(1..20)` 與 `d9b2e22` 逐位元組相等（雙向驗證過：true 必不相等）。
+2. **三條迴圈共用同一套引擎函式**（`eventForRound`／`eventCtx`／`fillEventChoices`／`settleEvent`）：
+   正常頁走異事 UI（`startEventUI`，熱座逐位交棒收密封輸入），simulate／playPolicyGame 走
+   `runEventPhaseHeadless()`（真人座位同用各事件的 `ai()` 啟發式）。
+3. **異事可在夜中殺人**：settle 後壽命 ≤0 立即出局（心願救不回，與夜末結算不同）；
+   若殺到只剩 1 人，該夜**不再進拍賣／對決**直接收束——這條護的是 `aiBids` 毒標選對手時
+   的空陣列 crash（實測抓到的，勿移除）。
+4. **閘門存證在 `demoEvents`**：plague／ghost 的 analyzeEvent spec 與既有 newShrine 並列，
+   2026-09-02 Node 實測三者 verdict 均 PASS。新異事上線前照範例 5 Step 1 跑閘門，不能省。
+5. **異事失血不計入 `S.wishNight.extLoss`**（東窗血光維持「對決＋詛咒」裁定口徑）；
+   是否擴及異事＝ARCH_SPEC §9 待辦 14，待使用者裁定。平衡實測（n=2000，v0.6 經濟下）：
+   事件開關對三策略勝率影響 ≤0.8pp（splitter 11.9→11.9、greedy 11.9→12.7、hoarder 0.3→0.4）。
 
 ### 11.5 v0.6 已上線（2026-09-02）——接手前先知道這五件事
 
