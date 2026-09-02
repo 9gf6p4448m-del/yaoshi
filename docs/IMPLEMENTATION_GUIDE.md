@@ -711,8 +711,9 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    的空陣列 crash（實測抓到的，勿移除）。
 4. **閘門存證在 `demoEvents`**：plague／ghost 的 analyzeEvent spec 與既有 newShrine 並列，
    2026-09-02 Node 實測三者 verdict 均 PASS。新異事上線前照範例 5 Step 1 跑閘門，不能省。
-5. **異事失血不計入 `S.wishNight.extLoss`**（東窗血光維持「對決＋詛咒」裁定口徑）；
-   是否擴及異事＝ARCH_SPEC §9 待辦 14，待使用者裁定。平衡實測（n=2000，v0.6 經濟下）：
+5. **異事失血不計入 `S.wishNight.extLoss`**——2026-09-02 使用者已裁定**維持「對決＋詛咒」口徑，
+   不擴及異事**（依據與三口徑實測數據見 ARCH_SPEC §9 待辦 14，已結案；翻案需先做
+   wishNight 初始化時機重構）。平衡實測（n=2000，v0.6 經濟下）：
    事件開關對三策略勝率影響 ≤0.8pp（splitter 11.9→11.9、greedy 11.9→12.7、hoarder 0.3→0.4）。
 
 ### 11.5 v0.6 已上線（2026-09-02）——接手前先知道這五件事
