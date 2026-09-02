@@ -10,8 +10,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
+   ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
+         角色頭像與圖示在 assets/*.svg，掛法與紀律見 docs/art-integration-guide.md =====
    ===== 橫向牌桌版：設計基準 844x390（iPhone 橫持） ===== */
 :root{
   --bg:#120e1d; --table:#1d1531; --table2:#2a1f45; --panel:#1f1830; --panel2:#2a2142;
@@ -50,6 +53,13 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .seat .av{font-size:26px;line-height:1.1}
 .seat .nm{font-size:12px;white-space:nowrap}
 .seat .st{font-size:10px;color:var(--dim);line-height:1.4}
+/* 角色頭像 SVG（assets/characters）：各處尺寸；載入失敗時 avHTML() 退回 emoji，這些規則不生效也無妨 */
+.seat .av svg{width:38px;height:38px;display:block}
+#south .av svg{width:42px;height:42px;display:block}
+.fighter .fav svg{width:104px;height:104px;display:block;margin:0 auto}
+.rav svg{width:58px;height:58px;display:block;margin:0 auto}
+#hoAv svg{width:72px;height:72px;display:block;margin:0 auto}
+.avi svg{width:24px;height:24px;vertical-align:middle}
 .seat .dir{position:absolute;top:-7px;left:8px;background:var(--table2);border:1px solid var(--line);
   border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
 .windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
@@ -2175,7 +2185,7 @@ function seatHTML(id,hl){
   const wind=(id===windPid(S.round))?`<span class="windb">${windName(S.round)}</span>`:"";
   return `<div class="seat ${p.alive?"":"dead"} ${hl?"hl":""}" id="seat${id}" onclick="showBag(${id})">
     <span class="dir">${DIRS[id]}</span>${wind}
-    <div class="av">${p.av}</div>
+    <div class="av">${avHTML(p)}</div>
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
     <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
@@ -2188,7 +2198,7 @@ function renderSeats(hlIds){
   $("west").innerHTML=seatHTML(2,hl(2));
   $("east").innerHTML=seatHTML(3,hl(3));
   const me=S.players[0];
-  $("myAv").textContent=me.av;
+  $("myAv").innerHTML=avHTML(me);
   $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
@@ -2199,6 +2209,25 @@ function renderSeats(hlIds){
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
+/* ===== 角色頭像 SVG（美術層，純呈現；規格見 docs/art-integration-guide.md §2） =====
+   ROLES id 與 SVG 檔名有 5 組對不上（hunter→lieren 等），靠這張表接，不改 ROLES id（id 進了 trace 語意）。
+   AVSVG 在 startEntry() 的使用者手勢裡預抓；抓不到就一直是空表、avHTML() 退回 emoji p.av。
+   氣色三態與 faceOf()/faceLbl() 同一組門檻（r>2/3 紅潤／r>1/3 蒼白／其餘垂危），不得另訂。
+   本段不讀寫任何賽局欄位、不耗亂數；headless 載入（tests/tools/load.mjs）時 fetch 不會被呼叫。 */
+const CHAR_SVG={qingmian:"qingmian",hongyi:"hongyi",duanshou:"duanshou",shoujing:"shoujing",dangpu:"dangpu",
+  hunter:"lieren",xiaonv:"xiaonu",lvshan:"lushan",zutou:"zuhe",luzhu:"pud",human:"human"};
+const AVSVG={};
+async function preloadArt(){
+  if(AVSVG.__done||typeof fetch!=="function") return;
+  await Promise.all(Object.entries(CHAR_SVG).map(([rid,f])=>
+    fetch(`assets/characters/${f}.svg`).then(r=>r.ok?r.text():"").then(t=>{ if(t) AVSVG[rid]=t; }).catch(()=>{})));
+  AVSVG.__done=true;
+}
+function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIFE; return r>2/3?"state-healthy":r>1/3?"state-pale":"state-dying"; }
+/* 玩家物件 → 頭像 HTML（依壽命帶氣色）；沒有 SVG 就是 emoji */
+function avHTML(p){ const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",lifeState(p)):p.av; }
+/* 角色定義 → 頭像 HTML（選角、角色卡：固定紅潤） */
+function roleAvHTML(R){ return AVSVG[R.id]||R.av; }
 function say(id,txt){
   const b=$("bub"+id); if(!b)return;
   b.textContent=txt; b.classList.add("show");
@@ -2394,7 +2423,7 @@ function showHandoff(pid, cont){
   document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .mybid,#stage .pickbox").forEach(el=>el.remove());
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
-  $("hoAv").textContent=p.av;
+  $("hoAv").innerHTML=avHTML(p);
   $("hoNm").textContent=`${DIRS[pid]}家・${p.name}`;
   $("hoTxt").textContent="請把手機交給這位玩家，出價內容不會被對方看到";
   $("hoBtn").onclick=()=>{$("handoff").style.display="none";cont();};
@@ -2727,10 +2756,10 @@ async function playDuel(f){
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
     <div class="fighter" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
-      <div class="fav">${f.A.av}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>
+      <div class="fav">${avHTML(f.A)}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>
     <div class="vsbig">VS</div>
     <div class="fighter" id="dR"><div class="fdir">${DIRS[f.B.id]}家${wtag(f.B.id)}</div>
-      <div class="fav">${f.B.av}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>`;
+      <div class="fav">${avHTML(f.B)}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>`;
   $("duelResult").innerHTML="";$("duelSub").innerHTML="";
   const steps=SKIP?1:12;
   for(let k=1;k<=steps;k++){
@@ -2894,7 +2923,7 @@ function roleDescHTML(roleId){
   const seg=R.desc.split("。").map(x=>x.trim()).filter(Boolean)
     .filter(t=>!t.startsWith("AI 時"));
   const tag=(seg.shift()||"").replace(/（起始 ?\d+）/,"");
-  return `<div class="descHead"><b>${R.av} ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${roleLife0(R)}</span></div>`
+  return `<div class="descHead"><b><span class="avi">${roleAvHTML(R)}</span> ${R.name}</b><span class="descTag">${tag}</span><span>起始壽命 ${roleLife0(R)}</span></div>`
     +seg.map(t=>`<div class="descRow">${t}</div>`).join("")
     /* 盯上反應是公開資訊（§5.8）：玩家靠它決定對這個人要誠實還是虛張 */
     +((CFG.MARK_ON&&R.ai&&R.ai.markReact)?`<div class="descRow">👁 盯上反應：${MARK_REACT_TXT[R.ai.markReact]}</div>`:"");
@@ -2910,7 +2939,8 @@ function showRoleInfo(pid){
 }
 /* ================= 選角畫面（SELECT_ON=true 時的開局入口） ================= */
 let SEL={mode:null,picks:[],cur:null};
-function startEntry(mode){
+async function startEntry(mode){
+  await preloadArt(); /* 頭像 SVG 在這個使用者手勢裡一次抓齊；抓不到（file:／離線）退回 emoji，不擋開局 */
   if(SELECT_ON) openSelect(mode);
   else newGame(mode); /* kill switch：退回 v0.5 固定座位直接開局 */
 }
@@ -2932,7 +2962,7 @@ function renderSelect(){
     const R=ROLES[k];
     const taken=SEL.picks.includes(k);
     return `<div class="rcard ${SEL.cur===k?"sel":""} ${taken?"taken":""}" onclick="pickRole('${k}')">
-      <div class="rav">${R.av}</div>
+      <div class="rav">${roleAvHTML(R)}</div>
       <div class="rnm">${R.name}</div>
       <div class="rlf">壽命 ${roleLife0(R)}${taken?"・已被選":""}</div>
     </div>`;
