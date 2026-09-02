@@ -60,6 +60,15 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .rav svg{width:58px;height:58px;display:block;margin:0 auto}
 #hoAv svg{width:72px;height:72px;display:block;margin:0 auto}
 .avi svg{width:24px;height:24px;vertical-align:middle}
+/* 演出層（art-integration-guide §5）：開標黑幕、對決淡入淡出、傷害蓋章、盯上印。keyframes 在 theme.css */
+#veil{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s;z-index:6;border-radius:16px}
+#veil.on{opacity:1}
+#duel{opacity:0;transition:opacity .3s}
+#duel.on{opacity:1}
+.dmg{display:inline-block}
+.mark-stamp{position:absolute;right:-6px;top:-9px;width:28px;height:28px;z-index:4;pointer-events:none;
+  filter:drop-shadow(0 0 6px var(--c-danger,#e04040))}
+#south .mark-stamp{right:auto;left:42px;top:-6px}
 .seat .dir{position:absolute;top:-7px;left:8px;background:var(--table2);border:1px solid var(--line);
   border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
 .windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
@@ -153,8 +162,6 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .fighter .fpw{font-size:30px;font-weight:bold;color:var(--gold)}
 .fighter .fdir{font-size:11px;color:var(--gold)}
 .vsbig{font-size:26px;font-weight:bold;color:var(--dim);letter-spacing:2px}
-.charge-l{transform:translateX(46px) scale(1.06)}
-.charge-r{transform:translateX(-46px) scale(1.06)}
 .shake{animation:shake .45s}
 @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px) rotate(-4deg)}
   50%{transform:translateX(7px) rotate(3deg)}80%{transform:translateX(-4px)}}
@@ -265,6 +272,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div id="feltHead"></div>
     <button id="helpBtn" onclick="openHelp()">？</button>
     <div id="stage"></div>
+    <div id="veil"></div>
   </div>
   <div id="east"></div>
   <div id="south">
@@ -2185,7 +2193,7 @@ function seatHTML(id,hl){
   const wind=(id===windPid(S.round))?`<span class="windb">${windName(S.round)}</span>`:"";
   return `<div class="seat ${p.alive?"":"dead"} ${hl?"hl":""}" id="seat${id}" onclick="showBag(${id})">
     <span class="dir">${DIRS[id]}</span>${wind}
-    <div class="av">${avHTML(p)}</div>
+    <div class="av">${avHTML(p)}</div>${markStampHTML(id)}
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
     <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
@@ -2198,7 +2206,8 @@ function renderSeats(hlIds){
   $("west").innerHTML=seatHTML(2,hl(2));
   $("east").innerHTML=seatHTML(3,hl(3));
   const me=S.players[0];
-  $("myAv").innerHTML=avHTML(me);
+  $("myAv").innerHTML=avHTML(me)+markStampHTML(0);
+  $("south").classList.remove("dimmed","anim-lantern-reveal"); /* #south 不重建，開標演出加上的 class 要在這裡清 */
   $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
@@ -2228,6 +2237,22 @@ function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIF
 function avHTML(p){ const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",lifeState(p)):p.av; }
 /* 角色定義 → 頭像 HTML（選角、角色卡：固定紅潤） */
 function roleAvHTML(R){ return AVSVG[R.id]||R.av; }
+/* ===== 演出層輔助（只加減 class／style，不讀寫賽局欄位、不耗亂數；規格 art-integration-guide §5） ===== */
+function veil(on){ const v=$("veil"); if(v) v.classList.toggle("on",!!on); }
+/* 開標後：得標者座位燈籠光、落標者（活著的）壓暗。座位卡由 renderSeats() 整個重畫時自然清掉；#south 在 renderSeats 裡手動清 */
+function revealGlow(r){
+  if(!r||!r.winner) return;
+  const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
+  const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
+  for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
+}
+/* 盯上落印：某席本夜第一次被畫到「有釘」時播 stamp-in，之後只留印。印過與否記在 UI 端，不進 S */
+const STAMPED={};
+function markStampHTML(id){
+  if(!CFG.MARK_ON||!S||!S.marks||S.marks[id]==null) return "";
+  const k=S.round+":"+id, first=!STAMPED[k]; STAMPED[k]=true;
+  return `<img class="mark-stamp${first?" anim-stamp-in":""}" src="assets/ui/mark-stamp.svg" alt="盯">`;
+}
 function say(id,txt){
   const b=$("bub"+id); if(!b)return;
   b.textContent=txt; b.classList.add("show");
@@ -2678,12 +2703,14 @@ async function startReveal(){
   }
   for(const r of rv.reveal){
     renderSeats();
-    stage.innerHTML=`<div class="stageCard">
+    veil(true); await sleep(450); /* 開標揭曉①：先黑幕，燈籠再亮（art-integration-guide §5.1） */
+    stage.innerHTML=`<div class="stageCard anim-lantern-reveal">
       <div class="big">${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
       <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
       <div class="mut" style="font-size:12px">${rv.showEntries?nBid(r):""}</div>
       <div id="flyzone"></div><div id="outzone"></div>
     </div>`;
+    veil(false);
     await sleep(CFG.T*0.8);
     const fz=$("flyzone");
     if(!rv.showEntries){
@@ -2733,6 +2760,7 @@ async function startReveal(){
       await sleep(CFG.T*0.6);
     }
     renderSeats();
+    revealGlow(r); /* 開標揭曉③④：得標者燈籠光、落標者壓暗（純 class，下一次 renderSeats 自然清掉） */
     /* 手動節奏：看夠了才按下一件（跳過中不停） */
     if(r!==rv.reveal[rv.reveal.length-1]) await waitMain("下一件拍品 ▸");
     else await sleep(CFG.T*0.8);
@@ -2752,13 +2780,13 @@ async function startReveal(){
 /* ================= 對決動畫 ================= */
 async function playDuel(f){
   const ov=$("duel");
-  ov.style.display="flex";
+  ov.style.display="flex"; void ov.offsetWidth; ov.classList.add("on"); /* 切入：0.3s 淡入（§5.2） */
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
-    <div class="fighter" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
+    <div class="fighter anim-clash-left" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
       <div class="fav">${avHTML(f.A)}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>
     <div class="vsbig">VS</div>
-    <div class="fighter" id="dR"><div class="fdir">${DIRS[f.B.id]}家${wtag(f.B.id)}</div>
+    <div class="fighter anim-clash-right" id="dR"><div class="fdir">${DIRS[f.B.id]}家${wtag(f.B.id)}</div>
       <div class="fav">${avHTML(f.B)}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>`;
   $("duelResult").innerHTML="";$("duelSub").innerHTML="";
   const steps=SKIP?1:12;
@@ -2772,21 +2800,22 @@ async function playDuel(f){
     $("duelResult").innerHTML=`<span class="mut">勢均力敵，互不失血</span>`;
     await sleep(CFG.T*1.2);
   }else{
-    $("dL").classList.add("charge-l");$("dR").classList.add("charge-r");
+    /* 碰撞：重新觸發入場那支 clash keyframe（45%→60% 段互推），380ms 後正好撞上、閃光 */
+    for(const [id,c] of [["dL","anim-clash-left"],["dR","anim-clash-right"]]){ const el=$(id); el.classList.remove(c); void el.offsetWidth; el.classList.add(c); }
     await sleep(380);
     const fx=$("flashfx");fx.classList.remove("on");void fx.offsetWidth;fx.classList.add("on");
     const loserEl=f.l===f.A?$("dL"):$("dR");
-    loserEl.classList.remove("charge-l","charge-r");
+    loserEl.classList.remove("anim-clash-left","anim-clash-right"); /* 同一元素一次只能跑一支 animation，讓位給 shake */
     loserEl.classList.add("shake");
     loserEl.style.opacity=".55";
-    ($("dL")===loserEl?$("dR"):$("dL")).classList.remove("charge-l","charge-r");
-    $("duelResult").innerHTML=`${f.w.name} 勝！<span class="dmg">${f.l.name} −${f.dmg} 壽命</span>`;
+    $("duelResult").innerHTML=`${f.w.name} 勝！<span class="dmg anim-stamp-in">${f.l.name} −${f.dmg} 壽命</span>`;
     const dd=Math.round(Math.abs(f.pa-f.pb));
     const base=CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor(dd/CFG.DMG_DIV));
     const fml=base===f.dmg?`戰力差 ${dd} → 傷害 ${CFG.DMG_BASE}＋${f.dmg-CFG.DMG_BASE}＝${f.dmg}`:`戰力差 ${dd} → 公式傷害 ${base}、實際 ${f.dmg}（能力調整）`;
     $("duelSub").innerHTML=fml+(f.extra.length?`　${f.extra.join("　")}`:"");
     await sleep(CFG.T*1.6);
   }
+  ov.classList.remove("on"); await sleep(300); /* 退場：反向淡出 */
   ov.style.display="none";
 }
 async function startBattle(){
