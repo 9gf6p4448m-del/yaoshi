@@ -208,6 +208,28 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 .bagit .abtxt{font-size:11px;color:var(--dim);display:block}
 .mut{color:var(--dim);font-size:12px}
 h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
+/* 局末回顧場景 */
+#review{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#reviewbox{max-width:560px;margin:0 auto;padding:8px 12px 40px}
+.rvTop{position:sticky;top:0;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:6px 0 8px;z-index:1}
+.rvTop h2{color:var(--gold);font-size:18px}
+.rvTiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 8px}
+@media(max-width:480px){.rvTiles{grid-template-columns:repeat(2,1fr)}}
+.rvTile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 6px;text-align:center;min-width:0}
+.rvTile .v{font-size:18px;font-weight:bold;color:var(--gold)} .rvTile .k{font-size:11px;color:var(--dim)} .rvTile .w{font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+.rvSec{color:var(--gold);font-size:14px;margin:12px 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.rvChart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
+.rvChart svg{width:100%;height:auto;display:block}
+.rvLegend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;margin-top:4px}
+.rvLegend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px}
+.rvNight{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;overflow-wrap:anywhere}
+.rvHead{color:var(--gold);font-weight:bold;margin-bottom:3px}
+.rvItem{padding:3px 0;border-top:1px dashed var(--line)}
+.rvBids{font-size:11px;color:var(--dim);margin-top:1px}
+.rvChip{display:inline-block;border-radius:5px;font-size:10px;padding:0 4px;margin-right:4px;color:#14101f;vertical-align:middle}
+.rvLine{font-size:12px;padding:2px 0}
+.rvWish{display:inline-block;margin:1px 8px 1px 0;font-size:12px}
+.rvWish.ok{color:var(--green)} .rvWish.no{color:var(--dim)}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
@@ -265,6 +287,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </div>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div id="sheetbox"></div></div>
 <div id="modal" onclick="if(event.target===this)closeModal()"><div id="modalbox"></div></div>
+<div id="review"><div id="reviewbox"></div></div>
 
 <script>
 "use strict";
@@ -1415,7 +1438,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.9", VERSION_NOTE="節奏包（起始 50・天明回血 5）＋盯上宣告";
+const VERSION="0.10", VERSION_NOTE="局末回顧：壽命曲線・逐夜得標・心願";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1643,6 +1666,7 @@ function makeState(mode,seed,picks){
        bidWinner：開標結算「當件」的得標者 id，只在 onBidSettle 期間有值，其餘時間 null */
     lastWon:{}, bidWinner:null, nightRule:null, event:null, bleedLog:[],
   };
+  S.history={life:[S.players.map(p=>p.life)],nights:[]}; /* 局末回顧：純記錄（不耗亂數、不改結算），見 GUIDE §11.13 */
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
   S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
   /* 市集規則排程（RULE_ON=false 零 rng 消耗——kill switch）：洗牌決定各規則夜出哪一條。
@@ -1992,6 +2016,7 @@ function resolveAuction(){
     reveal.push({it,entries,winner,outcome,events});
   });
   S.lastWon=lastWon; /* 整夜結算完才換上，明夜的 AI 才查得到「上一夜」 */
+  recordAuction(reveal); /* 局末回顧：純記錄 */
   /* 本夜流標的詛咒品（無人得標＝無人毒標得手）：供市集規則的夜末後效取用；沒有規則時沒有人讀它 */
   S.unsoldCurses=reveal.filter(r=>!r.winner&&r.it.curse).map(r=>r.it);
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;}});
@@ -2089,7 +2114,59 @@ function resolveBattles(){
   /* 市集規則預告（與異事共用「夜市耳語」這一欄；排程刻意錯開，同一夜不會同時出現） */
   const nxrl=ruleForRound(S.round+1);
   if(nxrl) nightly.push(`🔮 夜市耳語——明夜市集改規矩「${nxrl.name}」：${nxrl.hint||""}`);
+  recordNightEnd(fights,bye,deaths); /* 局末回顧：純記錄（在所有結算之後、回傳之前） */
   return{fights,bye,nightly,deaths};
+}
+/* ================= 局末回顧：純記錄層（三條迴圈共用；不耗亂數、不改任何結算；UI 只讀不寫） ================= */
+function recordAuction(reveal){
+  if(!S.history) return;
+  const ev=eventForRound(S.round);
+  S.history.nights.push({
+    round:S.round,
+    rule:S.nightRule?S.nightRule.name:null,
+    event:ev?ev.name:null,
+    marks:S.marks?S.players.filter(p=>S.marks[p.id]!=null&&S.market[S.marks[p.id]]).map(p=>({pid:p.id,item:S.market[S.marks[p.id]].n})):[],
+    auction:reveal.map(r=>({
+      item:r.it.n, fac:r.it.f, p:r.it.p, curse:!!r.it.curse,
+      winnerId:r.winner?r.winner.p.id:null,
+      amt:r.winner?r.winner.amt:0, type:r.winner?r.winner.type:null,
+      intent:r.winner?r.winner.intent:null,
+      targetId:(r.winner&&r.winner.intent==="poison"&&r.winner.target!=null)?r.winner.target:null,
+      bids:r.entries.map(e=>({pid:e.p.id,amt:e.amt,type:e.type,intent:e.intent,cost:e.cost==null?null:e.cost})),
+    })),
+    fights:[], bye:null, wishes:[], deaths:[], closed:false,
+  });
+}
+function recordNightEnd(fights,bye,deaths){
+  if(!S.history) return;
+  const H=S.history.nights[S.history.nights.length-1];
+  if(H&&H.round===S.round&&!H.closed){
+    H.fights=fights.map(f=>({a:f.A.id,b:f.B.id,pa:f.pa,pb:f.pb,tie:!!f.tie,w:f.w?f.w.id:null,dmg:f.dmg||0}));
+    H.bye=bye==null?null:bye;
+    H.wishes=S.players.filter(p=>p.wish).map(p=>({pid:p.id,id:p.wish.id,done:!!p.wish.done}));
+    H.deaths=deaths.map(p=>p.id);
+    H.closed=true;
+  }
+  S.history.life.push(S.players.map(p=>p.life));
+}
+/* 局末補快照：異事夜殺到剩一人時該夜沒有拍賣／對決，最後一段壽命變動沒被 recordNightEnd 拍到 */
+function finalizeHistory(){
+  if(!S.history) return;
+  const L=S.history.life, cur=S.players.map(p=>p.life), last=L[L.length-1];
+  if(!last||last.length!==cur.length||last.some((v,i)=>v!==cur[i])) L.push(cur);
+}
+/* 亮點摘要（UI 與測試共用）：最大單筆出價／毒標得手次數／各人對決勝場／出價總支出 */
+function reviewSummary(){
+  const H=S.history||{life:[],nights:[]};
+  let maxBid=null, poison=0, burned=0; const wins={}, poisonBy={};
+  H.nights.forEach(n=>{
+    n.auction.forEach(a=>{
+      a.bids.forEach(b=>{ burned+=b.cost||0; if(!maxBid||b.amt>maxBid.amt) maxBid={pid:b.pid,amt:b.amt,item:a.item,round:n.round}; });
+      if(a.intent==="poison"){ poison++; poisonBy[a.winnerId]=(poisonBy[a.winnerId]||0)+1; }
+    });
+    n.fights.forEach(f=>{ if(f.w!=null) wins[f.w]=(wins[f.w]||0)+1; });
+  });
+  return {maxBid,poison,poisonBy,burned,wins,nights:H.nights.length,curveLen:H.life.length};
 }
 /* ================= 牌桌渲染 ================= */
 function seatHTML(id,hl){
@@ -2723,6 +2800,7 @@ function nextRound(){
 }
 function endGame(){
   stripEndgameItems();
+  finalizeHistory();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
   renderSeats();
   let head;
@@ -2737,9 +2815,59 @@ function endGame(){
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
     ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${showPow(p)}）</div>`).join("")}
+    <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">本局回顧</button>
   </div>`;
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
+/* ================= 局末回顧場景（純呈現：只讀 S.history；局已結束故全揭露 AI 暗標與心願，2026-09-02 使用者裁定） ================= */
+const RV_COL={0:"var(--gold)",1:"var(--zuling)",2:"var(--yinqi)",3:"var(--red)"};
+const RV_TYPE={cons:"保守",yaming:"押命"};
+function showReview(){
+  finalizeHistory();
+  const H=S.history, P=S.players, sm=reviewSummary(), N=H.life.length-1;
+  const short=id=>id==null?"—":`${DIRS[id]}・${P[id].name}`;
+  /* 壽命曲線（inline SVG，viewBox 固定、寬度隨容器） */
+  const W=360,Hh=150,pl=28,pr=10,pt=10,pb=22;
+  const maxL=Math.max(1,...H.life.map(r=>Math.max(...r)));
+  const xs=i=>pl+(N?i/N:0)*(W-pl-pr), ys=v=>pt+(1-v/maxL)*(Hh-pt-pb);
+  const lines=P.map(p=>{
+    const pts=[]; let dead=null;
+    H.life.forEach((row,i)=>{ if(dead!==null) return; const v=row[p.id]; pts.push([xs(i),ys(Math.max(0,v))]); if(v<=0) dead=i; });
+    const last=pts[pts.length-1];
+    return `<polyline points="${pts.map(q=>q[0].toFixed(1)+","+q[1].toFixed(1)).join(" ")}" fill="none" stroke="${RV_COL[p.id]}" stroke-width="${p.ai?2:3}" stroke-linejoin="round"/>`
+      +(dead!==null?`<text x="${last[0].toFixed(1)}" y="${(last[1]+4).toFixed(1)}" fill="${RV_COL[p.id]}" font-size="13" text-anchor="middle">✕</text>`:"");
+  }).join("");
+  const grid=[0,Math.round(maxL/2),maxL].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${ys(v).toFixed(1)}" y2="${ys(v).toFixed(1)}" stroke="rgba(255,255,255,.12)"/><text x="${pl-4}" y="${(ys(v)+4).toFixed(1)}" fill="var(--dim)" font-size="10" text-anchor="end">${v}</text>`).join("");
+  const xl=H.life.map((_,i)=>`<text x="${xs(i).toFixed(1)}" y="${Hh-6}" fill="var(--dim)" font-size="10" text-anchor="middle">${i===0?"入市":i}</text>`).join("");
+  const legend=P.map(p=>`<span><i style="background:${RV_COL[p.id]}"></i>${short(p.id)}${p.alive?"":"（出局）"}</span>`).join("");
+  /* 亮點 */
+  const topWin=Object.keys(sm.wins).sort((a,b)=>sm.wins[b]-sm.wins[a])[0];
+  const topPoison=Object.keys(sm.poisonBy).sort((a,b)=>sm.poisonBy[b]-sm.poisonBy[a])[0];
+  const tiles=[
+    {k:"最大單筆出價",v:sm.maxBid?sm.maxBid.amt:"—",w:sm.maxBid?`${short(sm.maxBid.pid)}・第 ${sm.maxBid.round} 夜「${sm.maxBid.item}」`:"無人出價"},
+    {k:"毒標得手",v:sm.poison,w:topPoison!=null?`最多：${short(+topPoison)} ${sm.poisonBy[topPoison]} 次`:"沒有人下毒"},
+    {k:"對決勝場最多",v:topWin!=null?sm.wins[topWin]:"—",w:topWin!=null?short(+topWin):"沒有對決"},
+    {k:"出價總支出",v:sm.burned,w:"四家合計壽命"},
+  ].map(t=>`<div class="rvTile"><div class="k">${t.k}</div><div class="v">${t.v}</div><div class="w">${t.w}</div></div>`).join("");
+  /* 逐夜得標 */
+  const nights=H.nights.map(n=>`<div class="rvNight"><div class="rvHead">第 ${n.round} 夜${n.rule?` ・ 規矩「${n.rule}」`:""}${n.event?` ・ 異事「${n.event}」`:""}</div>
+    ${n.marks.length?`<div class="rvLine mut">👁 盯上：${n.marks.map(m=>`${short(m.pid)}→${m.item}`).join("　")}</div>`:""}
+    ${n.auction.map(a=>`<div class="rvItem"><span class="rvChip ${(FAC[a.fac]||{}).cls||""}">${(FAC[a.fac]||{}).n||a.fac}</span><b>${a.item}</b>${a.curse?"":`（${a.p}）`} — ${a.winnerId==null?'<span class="mut">流標</span>':`${short(a.winnerId)} ${a.amt} ${RV_TYPE[a.type]||""}${a.intent==="poison"?` 毒標→${short(a.targetId)}`:a.curse?" 買下銷毀":""}`}
+      ${a.bids.length?`<div class="rvBids">出價：${a.bids.map(b=>`${short(b.pid)} ${b.amt}${RV_TYPE[b.type]||""}${b.intent==="poison"?"毒":""}${b.cost!=null?`（付 ${b.cost}）`:""}`).join("／")}</div>`:""}</div>`).join("")}
+    ${n.fights.length?`<div class="rvLine">⚔ ${n.fights.map(f=>f.tie?`${short(f.a)} ${Math.round(f.pa)} vs ${short(f.b)} ${Math.round(f.pb)} 平手`:`${short(f.w)} 勝 ${short(f.w===f.a?f.b:f.a)} −${f.dmg}`).join("　")}${n.bye!=null?`　${short(n.bye)} 輪空`:""}</div>`:""}
+    ${n.deaths.length?`<div class="rvLine" style="color:var(--red)">☠ ${n.deaths.map(short).join("、")} 出局</div>`:""}
+  </div>`).join("")||'<div class="mut" style="font-size:12px">本局沒有完成任何一夜拍賣</div>';
+  /* 心願回顧 */
+  const wishes=H.nights.filter(n=>n.wishes.length).map(n=>`<div class="rvLine"><b>第 ${n.round} 夜</b>　${n.wishes.map(w=>{const ww=WISHES[w.id];return `<span class="rvWish ${w.done?"ok":"no"}">${short(w.pid)}「${ww?ww.name:w.id}」${w.done?"✔":"✘"}</span>`;}).join("")}</div>`).join("")||'<div class="mut" style="font-size:12px">本局沒有心願紀錄</div>';
+  $("reviewbox").innerHTML=`<div class="rvTop"><h2>本局回顧</h2><button class="bigbtn alt" style="height:34px;padding:0 14px" onclick="closeReview()">關閉</button></div>
+    <div class="rvTiles">${tiles}</div>
+    <div class="rvSec">壽命曲線（${N} 夜）</div>
+    <div class="rvChart"><svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg">${grid}${xl}${lines}</svg><div class="rvLegend">${legend}</div></div>
+    <div class="rvSec">逐夜得標</div>${nights}
+    <div class="rvSec">心願回顧</div>${wishes}`;
+  $("review").style.display="block"; $("review").scrollTop=0;
+}
+function closeReview(){ $("review").style.display="none"; }
 /* ================= 袋子檢視 ================= */
 function showBag(pid){
   const p=S.players[pid];
@@ -3314,7 +3442,8 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
-  ruleForRound, drawMarketFor, toSingleStake, /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
+  ruleForRound, drawMarketFor, toSingleStake,
+  recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
     plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST,
     zongzi:EVENT_SPEC_ZONGZI, guan:EVENT_SPEC_GUAN, loan:EVENT_SPEC_LOAN,

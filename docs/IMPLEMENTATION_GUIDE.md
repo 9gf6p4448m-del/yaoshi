@@ -718,6 +718,21 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.13 v0.10 局末回顧（2026-09-02）——接手前先知道這五件事
+
+1. **資料在 `S.history`，不在 `S.wishNight`**：`S.wishNight`／`S.markStat`／`S.ruleStat` 每夜在 `resolveAuction` 開頭整包重置，跨夜資料只有 `S.history={life:[[...]],nights:[...]}`。
+   `life[0]` 是入市時各人壽命，之後每夜 `recordNightEnd` 推一筆（索引 k＝第 k 夜結束）；`nights[k]` 由 `recordAuction`（`resolveAuction` 末尾）建立、`recordNightEnd`（`resolveBattles` 末尾）補 `fights／bye／wishes／deaths` 並標 `closed`。
+   欄位形狀直接看 `recordAuction`／`recordNightEnd` 本體（`grep -n "^function recordAuction"`），不另抄一份以免分岔。
+2. **純記錄、零亂數**：兩個 record 函式只讀既有物件，不呼叫 `S.rng()`、不改任何結算值。等價驗證＝`trace(1..20)` 與改前 commit 逐位元組相等（反面：在 record 段塞一次 `S.rng()` 必不相等）。
+   **加新記錄欄位照這條規矩**：讀現成的值、不算新東西、不耗亂數；驗證重跑 `tests/review.test.mjs` 與等價比對。
+3. **`finalizeHistory()` 只在局末呼叫**（`endGame` 與 `showReview` 開頭）：異事夜殺到剩一人時該夜沒有拍賣／對決，最後一段壽命變動沒被 `recordNightEnd` 拍到，它比對末筆快照與現值、不同才補一筆；冪等。
+   `playPolicyGame`／`simulate` 不呼叫它（它們的 `lifeByRound` 語意未動）。
+4. **UI 是 `showReview()`／`closeReview()`**，容器 `#review`（fixed 全螢幕、自己捲動，body 仍 overflow hidden）；曲線是手刻 inline SVG（`viewBox 360×150`，寬度隨容器），專案裡沒有其他 SVG／canvas。
+   顏色 `RV_COL` 依座位（南金／北祖靈綠／西陰氣紫／東紅），真人線較粗；出局者曲線停在歸零那夜並打 ✕。改版面只動這兩個函式與 `.rv*` CSS，不碰 record 層。
+5. **測試**（v0.10 上線時實跑結果：28 綠、對 c2d9362 全紅、Playwright 11 夜 0 error——見 GAME_DESIGN changelog；本條寫的是「該驗什麼」，不是驗證報告）：`node tests/review.test.mjs`（走真實 `playPolicyGame`，驗 `history` 不變量、與 `lifeByRound` 逐值相同、`reviewSummary` 加總、活性計數；對沒有 history 的舊版全紅）。
+   畫面驗收用 Playwright 844×390：`newGame('solo',7)`＋自動點主按鈕打到局末，比對 polyline 點數＝各人存活快照數、`.rvItem`＝`nights[*].auction` 加總、`.rvWish`＝`nights[*].wishes` 加總、`scrollWidth` 不超過視窗。
+   **`file:` 協定在 Playwright MCP 被擋**——用 `python -m http.server` 起本機伺服器再開。
+
 ### 11.12 v0.9 節奏包＋盯上宣告（2026-09-02）——接手前先知道這六件事
 
 1. **節奏包三個值**：`CFG.LIFE=50`／`AI_THROTTLE=0.30`／`NIGHT_REGEN=5`，全設回 40／0.45／0 ＋ `MARK_ON=false` ＝ v0.8.1 行為（等價驗證就是這樣做的）。
