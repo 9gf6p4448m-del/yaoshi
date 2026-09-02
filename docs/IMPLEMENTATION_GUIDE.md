@@ -197,7 +197,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 | 13 | `onNightEndGlobal` | `resolveBattles():1823` | `{log}` | 「不屬於任何一位玩家」的夜末後效，直接改 `S` 的相關欄位，可 push `ctx.log`（例：收祟夜把流標詛咒品硬塞給本夜未出手者中壽命最高者） | `null`（只取全域 `nightRule`／`event`，跟 `onMarketDraw` 同類） |
 
 **`onNightEndGlobal` 何時跑**：在 `resolveBattles()` 的最後、逐人 `onNightEnd`（第 10 個 hook）與
-異事後效都跑完之後才跑一次，**刻意不呼叫 `onWinItem`**（規格：下手者＝無，不觸發紅衣婆婆記仇、
+異事後效都跑完之後才跑一次（**每夜夜末一次**），**刻意不呼叫 `onWinItem`**（規格：下手者＝無，不觸發紅衣婆婆記仇、
 不算 typeLeak）。目前唯一用到它的是收祟夜的強制塞袋規則（`NIGHTRULES`）。
 
 > 平標決勝順序（`resolveAuction`，第 826-829 行）：`onBidEff` 算完所有出價的有效值 → 取最大值 →
@@ -563,6 +563,7 @@ console.log(JSON.stringify(result) === JSON.stringify(baseline) ? '完全相等'
         跟你新加的能力邏輯對不對無關）。這種情況改用**單元測試**驗證：把新項目手動塞進一個假的
         玩家物件的 `bag`，呼叫 `power()`／`consCapFor()`／`budgetFor()` 等相關函式，核對數值符合
         設計文件描述（照抄第 5 節範例 1、2 的驗證方式）。
+- **平衡宣稱一律 n≥10000（2026-09-02 使用者裁定）**：任何「三策略勝率位移 ≤Xpp」或「棄權 vs 出手」這類閘門判定，`runMany` 至少 n=10000。n=2000 的單點 SE≈0.85pp、兩點差的 SE≈1.2pp，同一份程式 splitter 位移在 n=2000 量到 −1.05、n=10000 量到 +0.30，**正負號都會翻**（實測見 ARCH_SPEC §9 待辦 15 結案依據）。n=2000 只能當快篩，不能當放行證據。
 - [ ] `grep -c "Math.random" index.html` 輸出必須是 `0`
 - [ ] 瀏覽器打開頁面，console **0 error**（正常遊戲頁跑一輪完整流程，`?sim=1` 頁面也要開一次確認）
 - [ ] 手機 844×390（瀏覽器 devtools 裝置模擬這個尺寸）畫面沒有溢出、沒有重疊、按鈕點得到
