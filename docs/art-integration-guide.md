@@ -13,9 +13,10 @@
 | 路徑 | 內容 | 數量 |
 |---|---|---|
 | `assets/theme.css` | 色彩／字型／圓角／陰影變數 ＋ utility class ＋ 動畫 keyframes | 1 |
-| `assets/characters/*.svg` | 角色頭像，160×160，三種氣色狀態 | 10 |
+| `assets/characters/*.svg` | 角色頭像，160×160，三種氣色狀態（10 角 ＋ 真人座位 `human`） | 11 |
 | `assets/items/*.svg` | 法寶與命格道具圖示，64×64 | 12 |
 | `assets/ui/*.svg` | 出價籌碼／盯字印章／夜份指示器／燈籠邊框 | 4 |
+| `assets/audio/sfx.js` | Web Audio 合成音效，10 個聲部，零音檔（§8） | 1 |
 
 風格：**廟口版畫**——粗黑描邊（stroke-width 3.5）、平面色塊、五官誇張、**全程無漸層**。
 光源設定：整個畫面唯一的暖光來自燈籠（`--c-lantern` 系），底色是深靛夜空。
@@ -62,7 +63,7 @@
 | **`lvshan`** | 閭山法師 | `lushan.svg` | ❌ |
 | **`zutou`** | 大家樂組頭 | `zuhe.svg` | ❌ |
 | **`luzhu`** | 普渡爐主 | `pud.svg` | ❌ |
-| `human` | 你（真人座位） | **沒有** | ⚠️ 待補 |
+| `human` | 你（真人座位） | `human.svg` | ✅（2026-09-02 補上：兜帽無臉、手提小燈，垂危態臉上裂紋） |
 
 ```js
 /* 建議做法：在 index.html 加一張對照表，不要改 ROLES 的 id
@@ -71,14 +72,13 @@ const CHAR_SVG = {
   qingmian:"qingmian", hongyi:"hongyi", duanshou:"duanshou",
   shoujing:"shoujing", dangpu:"dangpu",
   hunter:"lieren", xiaonv:"xiaonu", lvshan:"lushan",
-  zutou:"zuhe", luzhu:"pud",
-  /* human 目前沒有頭像 SVG，退回既有的 emoji p.av */
+  zutou:"zuhe", luzhu:"pud", human:"human",
 };
 const charSvgPath = roleId => CHAR_SVG[roleId] ? `assets/characters/${CHAR_SVG[roleId]}.svg` : null;
 ```
 
-**`human` 沒有頭像**是已知缺口。`MODES.solo.seats` 第一格就是 `human`，熱座模式有兩個。
-兩個選項，請使用者裁定後再做：(a) 補一張「無臉的你」頭像；(b) 真人座位維持現在的 emoji `p.av`。
+熱座模式的兩個真人座位（`MODES.hotseat.seats`）目前共用 `human.svg`；玩家二原本的 emoji 是 🧔，
+要區分的話之後再出第二張，先不要靠翻轉或換色硬分（版畫風的臉翻轉會讓燈換手，看起來像另一個角色）。
 
 ### 2.2 用 inline SVG，不要用 `<img>`
 
@@ -319,10 +319,58 @@ function stampMark(seatEl){
 
 ---
 
-## 7. 已知缺口（整合前需要使用者裁定的三件事）
+## 7. 三件缺口的裁定（2026-09-02 使用者裁定，整合時照這個做）
 
-1. **`human` 沒有頭像 SVG**——真人座位要補一張，還是維持 emoji？（§2.1）
-2. **`rednail` / `leinu` 在 `POOL` 裡沒有對應法寶**——當儲備素材，還是改掛到既有品項？（§3.2）
-3. **其餘 15 件法寶 ＋ 5 件詛咒品沒有圖示**——要不要補齊，還是先用系別色塊佔位？（§3.3）
+1. **`human` 頭像**——已補 `human.svg`（§2.1）。
+2. **`rednail` / `leinu`**——**當儲備素材**，不掛到任何既有品項。`ITEM_SVG` 表裡不要放這兩個。
+3. **其餘 15 件法寶 ＋ 5 件詛咒品**——整合時**先用系別色塊佔位**（`.bg-zuli` 等），圖示之後分批補。
 
-這三件都**不該由整合的人自行決定**，因為 2 和 3 會動到玩家看得到的內容對應關係。
+---
+
+## 8. 音效：`assets/audio/sfx.js`（純 Web Audio 合成，零音檔）
+
+使用者裁定音效走 **Web Audio 程式合成**：單檔遊戲不用多載任何檔案，也沒有授權問題。
+模組已寫好並離線渲染驗過（10 個聲部全部有輸出、峰值 ≤1、console 零錯誤）。
+
+### 8.1 掛法
+
+```html
+<script src="assets/audio/sfx.js"></script>   <!-- 定義全域 YS_SFX，不自動播任何聲音 -->
+```
+
+```js
+/* 手機瀏覽器規定 AudioContext 要在使用者手勢裡解鎖。標題頁的「開始」按鈕是最自然的位置： */
+startBtn.addEventListener("click", () => { YS_SFX.unlock(); /* ...原本的開局流程 */ });
+```
+
+### 8.2 觸發對照表（聲部名＝事件）
+
+| 聲部 | 事件 | 建議掛在 `index.html` 哪裡 |
+|---|---|---|
+| `gong` | 夜初開市、開標揭曉序列開始（§5.1 的 0s） | 開標流程進入點 |
+| `woodfish` | 玩家按下出價／確認 | 出價按鈕 handler |
+| `bell` | 得標（§5.1 的 1.4s，配 `.card-glow`） | `resolveAuction` 的得標分支 **之後的 UI 演出**，不是引擎內 |
+| `whoosh` | 對決兩角色滑入、換場（§5.2） | `playDuel()` 入場 |
+| `cymbal` | 對決碰撞瞬間（配 `#flashfx`） | `playDuel()` 的 `flashfx.classList.add("on")` 同一行 |
+| `hurt` | 失血：對決傷害、詛咒侵蝕、毒標得手 | `playDuel()` 顯示傷害數字時；夜末結算演出 |
+| `stamp` | 盯上宣告落印（§5.3） | `stampMark()` |
+| `dawn` | 夜末天明回血、進下一夜 | 夜末結算演出結束 |
+| `death` | 有玩家出局 | 出局演出 |
+| `wind` | 燈籠風聲環境音（唯一的持續音，8 秒淡入淡出，要 loop 就每 7 秒再叫一次） | 牌桌畫面常駐；`SKIP` 時不播 |
+
+### 8.3 鐵則（與 §6 同一套）
+
+1. **`sfx.js` 本身不含任何亂數**。要讓同一個音每次略有變化，呼叫端傳 `S.rngUi()`：
+   `YS_SFX.play("gong", { rnd: S.rngUi() })`。不傳＝`0.5`，完全決定性。**永遠不要傳 `S.rng()`**。
+2. **要不要播由呼叫端決定**：`SKIP` 快轉時跳過所有 `play()`（`wind` 也要停）；靜音設定用 `YS_SFX.enabled=false`。
+   建議包一層：`const sfx=(n,o)=>{ if(!SKIP) YS_SFX.play(n,o); }`，之後全部走這個。
+3. **`play()` 只能放在演出層**——和動畫一樣，不得放進 `resolveAuction`／`resolveBattles` 這些
+   會在 headless 模擬器（`?sim=1`、`tests/tools/*.mjs`）裡跑的引擎函式。引擎在 node 裡跑沒有 `window`，
+   而且引擎裡多一個 `play()` 呼叫就算不耗亂數，也是把演出混進了結算。
+4. **等價驗證同 §6 第 3 條**：改動前後 `trace(1..20)` 逐位元組相等。
+
+### 8.4 測試音效時的已知事實
+
+用 `YS_SFX.render(name, {rnd})` 可以離線渲染成 `AudioBuffer` 量 RMS／峰值。**不要寫「兩次渲染逐位元組相同」的測試**：
+瀏覽器混音器對 ≥3 個輸入的加總順序不保證，同一參數兩次渲染會差 float32 末位（實測最大 1.19e-7），
+這是量測本身的雜訊，不是模組的 bug。要驗決定性就驗 `maxdiff < 1e-5`。

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"
+     role="img" aria-labelledby="t-human" data-character="human" data-faction="none"
+     class="ys-char state-healthy">
+  <title id="t-human">你</title>
+  <style>
+    /* 角色專屬色全部收在下面這一行的 CSS 變數裡，其餘規則十個檔逐字相同——
+       十張頭像同時內嵌進同一頁時樣式才不會互相蓋掉。三態只切 --skin 一個變數。 */
+    .ys-char[data-character="human"]{ --skin:#d9b89a; --skin-pale:#b3aca2; --disc:var(--c-lantern,#c07c30); --cloth:#3a2a4a; --hair:#1a0a0a; }
+    .ys-char .disc{ fill:var(--disc); }
+    .ys-char .skin{ fill:var(--skin); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .cloth{ fill:var(--cloth); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .hair{ fill:var(--hair); stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linejoin:round; }
+    .ys-char .ln{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .thin{ fill:none; stroke:var(--c-ink,#1a0a0a); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .ys-char .solid{ fill:var(--c-ink,#1a0a0a); }
+    .ys-char .bone{ fill:#e8e0cc; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .paper{ fill:#ece6d6; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .red{ fill:var(--c-xianghu,#c84040); stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .metal{ fill:#b8b0a0; stroke:var(--c-ink,#1a0a0a); stroke-width:3; stroke-linejoin:round; }
+    .ys-char .eye-dead{ display:none; }
+    .ys-char[data-character].state-pale{ --skin:var(--skin-pale); }
+    .ys-char[data-character].state-pale .cloth{ opacity:.72; }
+    .ys-char[data-character].state-dying{ --skin:#8bc4c4; }
+    .ys-char[data-character].state-dying .cloth{ opacity:.58; }
+    .ys-char.state-dying .eye-live{ display:none; }
+    .ys-char.state-dying .eye-dead{ display:inline; }
+  </style>
+  <circle class="disc" cx="80" cy="80" r="74"/>
+  <clipPath id="cp-human"><circle cx="80" cy="80" r="74"/></clipPath>
+  <g clip-path="url(#cp-human)">
+    <!-- 夜行的斗篷：你是來妖市買命的人，不露身分 -->
+    <path class="skin" d="M70 106 h20 v18 h-20 z"/>
+    <path class="cloth" d="M16 162 v-16 q4 -26 28 -32 l22 -6 h28 l22 6 q24 6 28 32 v16 z"/>
+    <path class="ln" d="M66 112 L80 134 L94 112"/>
+    <!-- 兜帽罩住頭，帽緣壓到眉 -->
+    <path class="cloth" d="M44 160 q-6 -70 36 -104 q42 34 36 104 z"/>
+    <!-- 無臉：只有一塊臉的形狀，五官留給玩家自己 -->
+    <path class="skin" d="M58 60 h44 v28 q0 22 -22 28 q-22 -6 -22 -28 z"/>
+    <!-- 紅潤／蒼白：臉上什麼都沒有 -->
+    <g class="eye-live"></g>
+    <!-- 垂危：臉上裂開兩道紋 -->
+    <g class="eye-dead">
+      <path class="thin" d="M66 70 l6 10 l-4 10"/>
+      <path class="thin" d="M94 68 l-5 9 l5 12"/>
+    </g>
+    <!-- 手裡提著一盞小燈：壽命就是這盞燈 -->
+    <path class="ln" d="M122 108 v10"/>
+    <path class="red" d="M113 118 h18 q3 10 0 20 h-18 q-3 -10 0 -20 z"/>
+    <path class="bone" d="M122 124 q4 5 0 10 q-4 -5 0 -10 z"/>
+    <path class="ln" d="M113 138 h18"/>
+  </g>
+</svg>
