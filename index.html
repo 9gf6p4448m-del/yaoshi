@@ -63,6 +63,8 @@ body{background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Pin
 #felt{grid-area:felt;background:radial-gradient(ellipse at 50% 35%,var(--table2),var(--table));
   border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow-y:auto}
 #feltHead{text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
+#helpBtn{display:none;position:fixed;top:8px;right:10px;z-index:25;width:34px;height:34px;border-radius:50%;
+  background:#2a2344;color:var(--gold);border:1px solid var(--gold);font-size:16px;line-height:1}
 #stage{min-height:40px}
 .preview{background:rgba(0,0,0,.25);border:1px dashed var(--gold);border-radius:10px;padding:4px 10px;
   font-size:11px;color:var(--gold);margin-bottom:6px;text-align:center}
@@ -209,6 +211,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <div id="felt">
     <button id="skipbtn" onclick="doSkip()">跳過 ≫</button>
     <div id="feltHead"></div>
+    <button id="helpBtn" onclick="openHelp()">？</button>
     <div id="stage"></div>
   </div>
   <div id="east"></div>
@@ -849,7 +852,7 @@ const WISHES = {
    settle 的壽命增減「不」計入 S.wishNight.extLoss——東窗血光維持「對決＋詛咒」的裁定口徑，
    是否擴及異事待使用者裁定（ARCH_SPEC §9 待辦 14）。 --- */
 const EVENTS = {
-  plague:{id:"plague",name:"瘟王過境",icon:"🕯",input:"num",
+  plague:{id:"plague",name:"瘟王過境",icon:"🕯",input:"num",hint:"全場合力湊壽命供奉，湊不滿全體遭殃",
     desc:()=>`全場需共同湊滿 ${CFG.PLAGUE_NEED} 壽命供奉瘟王，每人密封投入（可為 0）。湊滿：全體平安，投入最多者另獲一件法寶；沒湊滿：全體 -${CFG.PLAGUE_FAIL}，且已投入的壽命不退還`,
     fmt:c=>c>0?`投入 ${c}`:"分文不出",
     cap(p){ return Math.min(CFG.EVENT_INPUT_CAP, Math.max(0,p.life-1)); },
@@ -872,7 +875,7 @@ const EVENTS = {
         ctx.events.push({txt:`☠️ 只湊得 ${tot}，瘟疫橫掃——全體 -${CFG.PLAGUE_FAIL}，投入不退還`});
       }
     }},
-  shrine:{id:"shrine",name:"試膽大會",icon:"⛩",input:"pick",
+  shrine:{id:"shrine",name:"試膽大會",icon:"⛩",input:"pick",hint:"二選一比膽，人少的一邊贏",
     opts:[{v:"in",label:"進廟"},{v:"out",label:"留下"}],
     desc:()=>`密封二選一「進廟」或「留下」。人數較少的一邊每人 +${CFG.SHRINE_WIN}，人數較多的一邊每人 -${CFG.SHRINE_LOSE}；2 比 2 平手雙方各 -${CFG.SHRINE_TIE}`,
     ai(){ return S.rng()<0.5?"in":"out"; },
@@ -893,7 +896,7 @@ const EVENTS = {
       ctx.players.forEach(p=>{ p.life+=ctx.choices[p.id]===minority?CFG.SHRINE_WIN:-CFG.SHRINE_LOSE; });
       ctx.events.push({txt:`⛩ 人少的一邊（${minority==="in"?"進廟":"留下"}）贏得膽勇——+${CFG.SHRINE_WIN}／-${CFG.SHRINE_LOSE}`});
     }},
-  ghost:{id:"ghost",name:"厲鬼索命",icon:"👹",input:"num",
+  ghost:{id:"ghost",name:"厲鬼索命",icon:"👹",input:"num",hint:"競標擋煞權，救壽命最低者有賞",
     desc(ctx){ const v=ctx&&ctx.victim?`${DIRS[ctx.victim.id]}家・${ctx.victim.name}`:"全場壽命最低者";
       return `厲鬼鎖定 ${v}，欲索走其 ${CFG.GHOST_DMG} 壽命。全體密封競標「擋煞權」（出 0＝不出手），最高者付其出價：被索者自保則免災；他人得標則免災、並從被索者袋中取走一件法寶作酬；無人出價，索命照常`; },
     fmt:c=>c>0?`出價 ${c}`:"不出手",
@@ -925,7 +928,7 @@ const EVENTS = {
         ctx.events.push({txt:`👹 ${w.name} 以 ${mx} 壽命擋煞救下 ${v.name}${loot?`，取走其「${loot.n}」作酬`:"（其袋中無寶可取）"}`});
       }
     }},
-  zongzi:{id:"zongzi",name:"送肉粽",icon:"🏮",input:"num",allowPass:true,passLabel:"不投標",
+  zongzi:{id:"zongzi",name:"送肉粽",icon:"🏮",input:"num",allowPass:true,passLabel:"不投標",hint:"反向喊價選捧粽人，低價者得酬帶煞",
     desc:()=>`需一人捧粽出陣送王船煞出海。每人密封寫下自己要求的報酬（可不投標）。要求最低者當選：獲得所要報酬，但袋中加入「王船煞」（戰力 ${CFG.ZONGZI_PW}，局末自動移除）；投標而落選者沾穢 -${CFG.ZONGZI_TOUCH}；無人投標全體 -${CFG.ZONGZI_FAIL}`,
     fmt:c=>c===null||c===undefined?"不投標":`討報酬 ${c}`,
     cap(){ return CFG.EVENT_INPUT_CAP; },
@@ -945,7 +948,7 @@ const EVENTS = {
       w.bag.push({n:"王船煞",f:"curse",p:CFG.ZONGZI_PW,d:"送王船沾上的煞，局末自動送出海",curse:true,endStrip:true});
       ctx.events.push({txt:`🏮 ${w.name} 以最低要價 ${mn} 當選捧粽——得 ${mn} 壽命、沾「王船煞」（戰力 ${CFG.ZONGZI_PW}）${act.length>1?`；其餘投標者沾穢各 -${CFG.ZONGZI_TOUCH}`:""}`});
     }},
-  guan:{id:"guan",name:"觀落陰",icon:"🪞",input:"num",
+  guan:{id:"guan",name:"觀落陰",icon:"🪞",input:"num",hint:"競標天眼，看穿全場壽命與心願",
     desc:()=>`法師開壇帶魂遊地府。全體密封出價（0＝不出），最高者付其出價，此後**看穿所有對手的實際壽命與今夜心願**直到局末；落標的出價者付 ceil(出價/${CFG.GUAN_LOSE_DIV})（魂遊半程無所得）`,
     fmt:c=>c>0?`出價 ${c}`:"不出價",
     cap(p){ return Math.min(CFG.EVENT_INPUT_CAP, Math.max(0,p.life-1)); },
@@ -960,7 +963,7 @@ const EVENTS = {
       w.seeAll=true;
       ctx.events.push({txt:`🪞 ${w.name} 以 ${mx} 壽命觀落陰——此後看穿全場壽命與心願${bids.length>1?"；落標者魂遊半程各付一半":""}`});
     }},
-  loan:{id:"loan",name:"陰間放貸",icon:"🧧",input:"pick",
+  loan:{id:"loan",name:"陰間放貸",icon:"🧧",input:"pick",hint:"密封借貸，人越多利息越重",
     opts:[{v:"borrow",label:"借 10 壽命"},{v:"no",label:"不借"}],
     desc:()=>`陰間錢莊今夜放貸：可密封借 ${CFG.LOAN_AMT} 壽命（互相看不到誰借了）。開盅才知幾人借——借的人越多利息越高：1 人共還 ${CFG.LOAN_REPAY[1]}、2 人各還 ${CFG.LOAN_REPAY[2]}、3 人各 ${CFG.LOAN_REPAY[3]}、4 人各 ${CFG.LOAN_REPAY[4]}，自下一夜起分 ${CFG.LOAN_NIGHTS} 夜攤還（身故勾銷）`,
     ai(p){ if(p.life<=12) return S.rng()<0.7?"borrow":"no"; return S.rng()<0.15?"borrow":"no"; },
@@ -971,7 +974,7 @@ const EVENTS = {
       bs.forEach(p=>{ p.life+=CFG.LOAN_AMT; S.debts[p.id]={left:repay,nights:CFG.LOAN_NIGHTS}; });
       ctx.events.push({txt:`🧧 ${bs.map(p=>p.name).join("、")} 各借 ${CFG.LOAN_AMT}——${bs.length} 人擠兌，每人共還 ${repay}（分 ${CFG.LOAN_NIGHTS} 夜）`});
     }},
-  wind:{id:"wind",name:"大風吹",icon:"🌀",input:"pick",
+  wind:{id:"wind",name:"大風吹",icon:"🌀",input:"pick",hint:"選風向結圈，圈內法寶輪轉易主",
     opts:[{v:"E",label:"乘東風"},{v:"W",label:"乘西風"}],
     desc:()=>`妖風起，法寶易主。密封選乘哪道風：同風向者結圈，圈內每人把袋中戰力最低的法寶順向傳給下一位；單人成圈＝空轉 -${CFG.WIND_IDLE}。無法寶者空手陪風，不給不收`,
     ai(){ return S.rng()<0.5?"E":"W"; },
@@ -996,7 +999,7 @@ const EVENTS = {
       }
       if(!ctx.events.length) ctx.events.push({txt:"🌀 風過無痕，無人成圈"});
     }},
-  poe:{id:"poe",name:"博杯",icon:"🥤",input:"num",
+  poe:{id:"poe",name:"博杯",icon:"🥤",input:"num",hint:"密封壓注擲杯，聖杯高注者奪彩池",
     desc:()=>`廟口擲杯賭局。每人密封壓注（0＝不擲，上限 ${CFG.POE_CAP}），各自擲杯——壓 X 成功率 X/(X+8)。**擲出聖杯者中壓注最高者**獨得彩池 ${Math.round(CFG.POE_CUT*100)}%（廟公抽二）＋一件法寶；無人擲出聖杯，彩池全數沒收`,
     fmt:c=>c>0?`壓注 ${c}`:"不擲",
     cap(p){ return Math.min(CFG.POE_CAP, Math.max(0,p.life-1)); },
@@ -1193,7 +1196,7 @@ function judgeWish(p,log){
     w.reward({p});
     log.push(`🌒 ${(!p.ai&&S.mode!=="hotseat")?`你的心願「${w.name}」達成`:`${p.name} 的心願達成`} +${w.gain}`);
   }else if(!p.ai){
-    log.push(`🌒 ${S.mode!=="hotseat"?"你的":p.name+" 的"}心願未能達成`);
+    log.push(S.mode!=="hotseat"?`🌒 你的心願「${w.name}」未能達成`:`🌒 ${p.name} 的心願未能達成`);
   }
 }
 /* 出價階段的私有心願列（只渲染「當前出價者」自己的心願；熱座交棒畫面隔開兩位真人） */
@@ -1577,7 +1580,7 @@ function resolveBattles(){
   S.players.forEach(p=>{p.sacrificed=0;});
   /* 異事預告（GAME_DESIGN §六之三 B：前一夜預告）；EVENT_ON=false 時 eventForRound 恆 null */
   const nxev=eventForRound(S.round+1);
-  if(nxev) nightly.push(`🔮 夜市耳語——明夜「${nxev.name}」將至`);
+  if(nxev) nightly.push(`🔮 夜市耳語——明夜「${nxev.name}」將至：${nxev.hint||""}`);
   return{fights,bye,nightly,deaths};
 }
 /* ================= 牌桌渲染 ================= */
@@ -1589,7 +1592,7 @@ function seatHTML(id,hl){
     <span class="dir">${DIRS[id]}</span>${wind}
     <div class="av">${p.av}</div>
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
-    <div class="st">${lifeTxt}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
+    <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
   </div>`;
 }
@@ -1604,7 +1607,7 @@ function renderSeats(hlIds){
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
   $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
-  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`;
+  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
@@ -1621,7 +1624,53 @@ function sayFrom(id,key){
   say(id,arr[Math.floor(S.rngUi()*arr.length)]);
 }
 /* ================= 回合與出價階段 ================= */
+/* ===== 可理解性層（2026-09-02 全遊戲審視批次）：開場三卡＋常駐規則頁，純呈現不動機制 ===== */
+let NLIFE0=null; /* 夜初壽命快照（夜末戰況總帳用，純 UI） */
+function introSeen(){ try{ return localStorage.getItem("yaoshi_intro_v1")==="1"; }catch(e){ return true; } }
+function markIntroSeen(){ try{ localStorage.setItem("yaoshi_intro_v1","1"); }catch(e){} }
+function introPages(){ return [
+  `<div style="font-size:30px">🏮</div><h2 style="font-size:17px;margin:6px 0">歡迎來到妖市</h2>
+   <div style="font-size:13px;line-height:1.9;text-align:left">你的<b style="color:var(--gold)">壽命</b>既是<b>錢包</b>也是<b>血條</b>：出價花壽命、挨打掉壽命。<br>撐過 ${CFG.ROUNDS} 夜——<b>活到最後</b>、或天亮時<b>壽命最高</b>的人贏。</div>`,
+  `<div style="font-size:30px">🌙</div><h2 style="font-size:17px;margin:6px 0">每一夜四步</h2>
+   <div style="font-size:13px;line-height:1.9;text-align:left">① 抽<b>今夜心願</b>：只有你看得到的秘密小目標，夜末達成加壽命<br>② <b>妖市出價</b>：密封出壽命搶法寶（點拍品出價）<br>③ <b>開標</b>：價高者得，法寶入袋加戰力<br>④ <b>結算戰</b>：抽對手比戰力，輸家扣壽命</div>`,
+  `<div style="font-size:30px">⛩</div><h2 style="font-size:17px;margin:6px 0">妖市異事</h2>
+   <div style="font-size:13px;line-height:1.9;text-align:left">第 ${CFG.EVENT_NIGHTS.join("／")} 夜妖市出大事（前一夜有耳語預告）：全場一起做<b>密封抉擇</b>，膽識與算計各憑本事。<br><br>看不懂任何名詞？右上角 <b style="color:var(--gold)">？</b> 隨時可查。</div>`,
+]; }
+function showIntro(cont){
+  const pages=introPages(); let k=0;
+  $("helpBtn").style.display="block";
+  $("mainbtn").disabled=true;
+  const draw=()=>{
+    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${pages[k]}
+      <button class="bigbtn" style="margin-top:14px" onclick="__introNext()">${k<pages.length-1?"下一頁 ▸":"開始入市！"}</button>
+      <div class="mut" style="font-size:10px;margin-top:6px">${k+1}／${pages.length}</div></div>`;
+  };
+  window.__introNext=()=>{ k++; if(k<pages.length){ draw(); } else { markIntroSeen(); window.__introNext=null; cont(); } };
+  renderSeats(); draw();
+}
+function openHelp(){
+  if(!S) return;
+  const evRows=Object.keys(EVENTS).map(k=>`<div style="padding:2px 0">${EVENTS[k].icon} <b>${EVENTS[k].name}</b>：${EVENTS[k].hint||""}</div>`).join("");
+  const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
+  $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
+    ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。`)}
+    ${sec("🌙 每夜流程",`①抽今夜心願（私有）→②妖市出價→③開標→④結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還）。`)}
+    ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>掛號費 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
+    ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
+    ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
+    ${sec("⚔ 結算戰",`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。`)}
+    ${sec("🀄 風位與共鳴",`風位每夜輪轉：風位家戰力+${CFG.WIND_POWER}、出價平手時優先。同一系法寶集滿 ${CFG.SET_MIN} 件起，共鳴加戰力＝件數²。`)}
+    </div>
+    <button class="bigbtn" style="margin-top:12px;width:100%" onclick="closeModal()">關閉</button>`;
+  $("modal").style.display="flex";
+}
 function beginRound(){
+  if(S.round===1&&!introSeen()){ showIntro(beginRoundCore); return; }
+  beginRoundCore();
+}
+function beginRoundCore(){
+  $("helpBtn").style.display="block";
+  NLIFE0=S.players.map(p=>p.life);
   drawWishes(); /* 每夜開始先發心願（出價階段人類不耗 S.rng()，與 headless 兩條迴圈亂數序一致） */
   S.humanBids={}; S.bleedLog=[];
   const ev=eventForRound(S.round);
@@ -1655,15 +1704,16 @@ function renderEventInput(p,done){
   const head=`<div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}</h2>
     <div class="mut" style="font-size:12px;line-height:1.7;text-align:left">${typeof ev.desc==="function"?ev.desc(EVCTX):ev.desc}</div>`;
   const who=S.mode==="hotseat"?`<div class="mut" style="font-size:12px;margin-top:6px">【${p.name}｜壽命 ${p.life}】密封抉擇，他人不可見</div>`:"";
+  const warn=(ev.id==="ghost"&&EVCTX.victim&&EVCTX.victim.id===p.id)?`<div style="color:#ff8484;font-weight:bold;font-size:14px;margin-top:6px">⚠ 厲鬼盯上的就是你——沒人擋煞你將失 ${CFG.GHOST_DMG} 壽命</div>`:"";
   EVDONE=done;
   if(ev.input==="pick"){
-    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}
+    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}${warn}
       <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
         ${ev.opts.map(o=>`<button class="bigbtn" style="flex:1" onclick="pickEventOpt(${p.id},'${o.v}')">${o.label}</button>`).join("")}
       </div></div>`;
   }else{
     EVAMT=0; EVCAP=ev.cap(p);
-    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}
+    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}${warn}
       <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px">
         <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(-1)">−</button>
         <div id="evAmt" style="font-size:26px;min-width:48px">0</div>
@@ -1725,7 +1775,7 @@ function showMarket(){
   const pv=S.nextMarket.slice(0,traitMax(ap,"preview",1));
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
   $("stage").innerHTML=`
-    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}　<span class="mut">點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆掛號費 ${CFG.BID_FEE}`:""}</span></div>
+    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}　<span class="mut">點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆掛號費 ${CFG.BID_FEE}`:""}</span></div>
     ${wishBarHTML(ap)}
     <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>
     ${bloodHTML(ap)}`;
@@ -1836,7 +1886,7 @@ function updateBudget(){
   const tot=myBids.reduce((s,b)=>s+b.amt,0)+fees;
   const el=$("budget");
   const cap=budgetFor(ap);
-  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含掛號費 ${fees}）`:""} ／ 壽命 ${ap.life}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}`;
+  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含掛號費 ${fees}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}`;
   el.className=tot>cap?"over":"";
   $("mainbtn").disabled=tot>cap;
 }
@@ -1893,7 +1943,7 @@ async function startReveal(){
                得標者一律顯示——得標實付=出價+掛號費，兩種型態同式，不洩漏標書型態；
                落標者的實付兩型態算式不同（25% vs 50%），會被反推型態、廢掉普渡爐主的被動，
                故只在「這筆是真人自己的」或 viewer 有 showTypes 權限（爐主）時顯示。 */
-            (e.cost>0&&(e===r.winner||!e.p.ai||rv.showTypes))?`・實付 ${e.cost}`:""
+            (e.cost>0&&(e===r.winner||!e.p.ai||rv.showTypes))?`・實付 ${e.cost}${(!e.p.ai)?`<span class="mut" style="font-size:10px">（${e===r.winner?"出價":"落標費"}${CFG.BID_FEE>0?"＋掛號費":""}）</span>`:""}`:""
           }</span></div>`);
         await sleep(CFG.T*0.65);
       }
@@ -1935,10 +1985,10 @@ async function playDuel(f){
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
     <div class="fighter" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
-      <div class="fav">${f.A.av}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div></div>
+      <div class="fav">${f.A.av}</div><div class="fnm">${f.A.name}</div><div class="fpw" id="pwL">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>
     <div class="vsbig">VS</div>
     <div class="fighter" id="dR"><div class="fdir">${DIRS[f.B.id]}家${wtag(f.B.id)}</div>
-      <div class="fav">${f.B.av}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div></div>`;
+      <div class="fav">${f.B.av}</div><div class="fnm">${f.B.name}</div><div class="fpw" id="pwR">0</div><div style="font-size:10px;color:var(--dim)">戰力</div></div>`;
   $("duelResult").innerHTML="";$("duelSub").innerHTML="";
   const steps=SKIP?1:12;
   for(let k=1;k<=steps;k++){
@@ -1960,7 +2010,10 @@ async function playDuel(f){
     loserEl.style.opacity=".55";
     ($("dL")===loserEl?$("dR"):$("dL")).classList.remove("charge-l","charge-r");
     $("duelResult").innerHTML=`${f.w.name} 勝！<span class="dmg">${f.l.name} −${f.dmg} 壽命</span>`;
-    if(f.extra.length)$("duelSub").innerHTML=f.extra.join("　");
+    const dd=Math.round(Math.abs(f.pa-f.pb));
+    const base=CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor(dd/CFG.DMG_DIV));
+    const fml=base===f.dmg?`戰力差 ${dd} → 傷害 ${CFG.DMG_BASE}＋${f.dmg-CFG.DMG_BASE}＝${f.dmg}`:`戰力差 ${dd} → 公式傷害 ${base}、實際 ${f.dmg}（能力調整）`;
+    $("duelSub").innerHTML=fml+(f.extra.length?`　${f.extra.join("　")}`:"");
     await sleep(CFG.T*1.6);
   }
   ov.style.display="none";
@@ -1983,6 +2036,12 @@ async function startBattle(){
   for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
   for(const d of deaths){bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);await sleep(CFG.T*0.7);}
   if(bye===null&&!nightly.length&&!deaths.length)bz.innerHTML=`<div class="mut" style="padding:2px 0">本夜無其他異動</div>`;
+  for(const f of fights) bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）`}</div>`);
+  if(NLIFE0) S.players.filter(p=>!p.ai).forEach(p=>{
+    const a=NLIFE0[p.id]; if(a===undefined) return;
+    const d=p.life-a;
+    bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:3px 0;border-top:1px solid rgba(255,255,255,.08)">❤ ${S.mode==="hotseat"?p.name:"你的"}壽命 ${a} → <b style="color:${d>=0?"#8be08b":"#ff8484"}">${p.life}</b>（${d>=0?"+":""}${d}）</div>`);
+  });
   renderSeats();
   $("skipbtn").style.display="none";
   const aliveN=S.players.filter(p=>p.alive).length;
