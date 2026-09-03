@@ -363,7 +363,8 @@ const CFG = {
   CURSE_PROB: 0.65,
   SET_MIN: 2,
   DMG_BASE: 3, DMG_DIV: 5, DMG_MAX: 6,
-  CONS_CAP_DIV: 3,
+  CONS_CAP_DIV: 6,      /* 保守標上限＝壽命÷此值。3→6（2026-09-03 使用者裁定，實驗見 docs/experiments/2026-09-03-conscap-div.md）：
+     ÷3 時上限（開局 16）是成交價中位（5）的三倍，押命標永遠用不到；÷6 讓 43% 的得標價落在上限之上【試玩必調】 */
   /* 拍賣經濟 v0.6（2026-09-02 配置A，48 組配置×9 策略×n=2000 掃描決選）
      三值全設中性（BID_FEE=0, MAX_BIDS=0, CONS_LOSE_FRAC=0）＝回到 v0.5 規則（等價驗證用） */
   BID_FEE: 1,           /* 掛號費：每下一筆有效標先付的壽命，不論輸贏【決選值勿自調】 */
@@ -823,10 +824,10 @@ const ROLES = {
       poison:["這道符，你拿著。"],poisoned:["區區小祟也敢上身？"],bwin:["妖邪退散。"],blose:["今夜法力見底…"]}},
   /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改壽命 1/2；夜末得標 ≥2 件 +2、0 件 −2。 */
   zutou:{id:"zutou",name:"大家樂組頭",av:"🎲",pool:true,
-    desc:"分散流。被動：保守標上限改為壽命的 1/2（原 1/3）；夜末得標 ≥2 件回 2、掛零 −2。AI 時亂槍——每夜對 3 件下小額標",
+    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2、掛零 −2。AI 時亂槍——每夜對 3 件下小額標`,
     ai:{aggr:0.65,spite:0.3,markReact:"contest"},
     hooks:{
-      onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/2)); }, /* 「改為」1/2，不是加成 */
+      onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/(CFG.CONS_CAP_DIV/1.5))); }, /* 「改為」一般上限的 1.5 倍（÷6 時＝壽命÷4），不與其他加成疊；跟著 CONS_CAP_DIV 走（2026-09-03 ÷3→÷6 時由寫死的 /2 改成相對比例） */
       onWinItem(ctx){                                /* 跨玩家 hook，認自己（本夜得標計數） */
         if(ctx.winner.roleId!=="zutou") return;
         const p=ctx.winner;
@@ -1522,7 +1523,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.21", VERSION_NOTE="盯上信譽上線：虛張稅拿掉，騙人改花信譽";
+const VERSION="0.22", VERSION_NOTE="押命標終於有用了：保守標上限從壽命的 1/3 壓到 1/6";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2503,7 +2504,7 @@ function openHelp(){
       <b>怎麼樣會掉</b>：①盯了卻整夜不對它出價（記 0）②只丟個零頭應付（盯行情 6 的主標只出 1，記 0.17）。便宜貨也一樣要出到它的行情才記滿分：盯行情 3 的破爛只出 1，記 0.33；出到 3 才記 1.00，但那 3 壽命也真的花掉了。<br>
       <b>掉了會怎樣</b>：AI 的盯上反應<b>乘上宣告者的信譽</b>。信譽 1.00 的人盯一件，怯場型會整份讓路、搶標型會全力來搶；信譽 0.25 的人盯同一件，效果只剩四分之一——講話沒人信了。反過來說，認真跟進換來的信譽，就是你日後那一次真虛張能騙到的本錢。<br>
       每個人的信譽在角色卡（ⓘ）看得到，自己的也印在盯上宣告那一頁。`):""}
-    ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
+    ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限＝當前壽命的 1/${CFG.CONS_CAP_DIV}（超過就得押命）。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
     ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
     ${(CFG.RULE_ON&&rlNights.length)?sec(`🏮 今夜市集規則（第 ${rlNights.join("／")} 夜，前夜耳語預告）`,

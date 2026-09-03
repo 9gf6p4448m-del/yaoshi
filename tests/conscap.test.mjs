@@ -42,6 +42,7 @@ function eq(actual,expected,what){
    出價完全由 S.humanBids 指定（沒有 AI 亂數、沒有規則干擾）。 */
 function boot(G,ruleId,seed){
   G.CFG.WISH_ON=false; G.CFG.EVENT_ON=false;
+  G.CFG.CONS_CAP_DIV=3; /* 治具釘在 ÷3：下面的情境全以「壽命 12 → 上限 4」設計；2026-09-03 正式值改 ÷6 後，這裡釘住的是情境不是門檻（驗的是伺服端夾的行為，不是 3 這個數） */
   G.CFG.RULE_ON=!!ruleId; G.CFG.RULE_NIGHTS=[1]; G.CFG.RULE_FORCE=ruleId||null;
   G.makeState('solo',seed===undefined?1:seed);
   const S=G.S;

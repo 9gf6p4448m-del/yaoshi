@@ -35,6 +35,7 @@ function eq(a,b,what){ if(a!==b) throw new Error(`${what}：預期 ${JSON.string
 function boot(G,lives){
   G.CFG.RULE_ON=true; G.CFG.RULE_NIGHTS=[1]; G.CFG.RULE_FORCE='yabao';
   G.CFG.WISH_ON=false; G.CFG.EVENT_ON=false;
+  G.CFG.CONS_CAP_DIV=3; /* 治具釘在 ÷3：情境以「壽命 12 → 保守標上限 4、X＝4 仍是保守標」設計；2026-09-03 正式值改 ÷6 後釘的是情境不是門檻 */
   G.makeState('solo',1);
   const S=G.S;
   S.players.forEach((p,i)=>{ p.ai=null; p.roleId='human'; p.bag=[]; p.alive=true;
@@ -128,7 +129,7 @@ test('真人不受影響：UI 封好的一注（stake 記號）照原樣過，�
 
 test('非押寶夜完全不走這一段：同一份計畫在一般夜仍是三筆獨立的標',()=>{
   const G=loadGame(TARGET);
-  G.CFG.RULE_ON=false; G.CFG.WISH_ON=false; G.CFG.EVENT_ON=false; G.CFG.MAX_BIDS=0;
+  G.CFG.RULE_ON=false; G.CFG.WISH_ON=false; G.CFG.EVENT_ON=false; G.CFG.MAX_BIDS=0; G.CFG.CONS_CAP_DIV=3; /* 同上，釘情境 */
   G.makeState('solo',1);
   const S=G.S;
   S.players.forEach(p=>{ p.ai=null; p.roleId='human'; p.bag=[]; p.alive=true; p.life=40;
