@@ -83,10 +83,15 @@ function runFair(setup){
   for(const name of ['mtop','msec','mnone']){
     const G=loadGame(P); if(setup) setup(G);
     const pol=fairPolicies(G)[name];
+    /* G2′ 反事實量尺（2026-09-03 使用者裁定）：真人主標那件（top2[0]）上「別人」的出價筆數。
+       mtop 與 mnone 出價完全相同、同種子，唯一差別是有沒有盯它——差值就是宣告的純效果，
+       不再混入「那件本來就最搶手」。掛 onBidSettle 純讀，不動引擎。 */
+    let topItems=0,topOthers=0;
+    const top2=()=>{ const o=G.S.market.map((it,i)=>({i,v:it.curse?-99:it.p})).sort((a,b)=>b.v-a.v); return o[0]?o[0].i:null; };
+    for(const R of Object.values(G.ROLES)){ R.hooks=R.hooks||{}; const old=R.hooks.onBidSettle;
+      R.hooks.onBidSettle=function(ctx){ if(!ctx.p.ai&&ctx.p.id===0){ const t=top2(); if(t!=null&&ctx.item===G.S.market[t]){ topItems++; topOthers+=ctx.nBids-1; } } if(old) return old.apply(this,arguments); }; }
     const st=G.runMany({n:N,policies:{0:pol}});
-    let mi=0,mb=0,ui=0,ub=0;
-    for(let s=1;s<=N;s++){ const g=G.playPolicyGame(s,{0:pol}); mi+=g.markStat.markedItems; mb+=g.markStat.markedBids; ui+=g.markStat.unmarkedItems; ub+=g.markStat.unmarkedBids; }
-    out[name]={win:st.winRate[0]*100, markedAvg:mi?mb/mi:NaN, unmarkedAvg:ui?ub/ui:NaN};
+    out[name]={win:st.winRate[0]*100, topOthersAvg:topItems?topOthers/topItems:NaN};
   }
   return out;
 }
@@ -120,6 +125,8 @@ console.log(`[G1′ 總判定] ${P1&&P2&&P3?'✅ 通過（換桌會翻盤，且�
    實測也證明它不穩——2026-09-02 的引擎版本上是怯場桌紅、搶標桌綠，
    2026-09-03（v0.19）反過來變成怯場桌綠、搶標桌紅，而中間沒有人動過盯上的邏輯。
    要修得改成「同一件在被盯與沒被盯兩次跑之間的出價人數差」（控制住『它本來多搶手』）。
-   在修好之前 G2′ 兩格都**不構成否決理由，也不得拿來宣稱通過**——放行看 G1′ 三條。 */
+   ★2026-09-03 已修成反事實量法（見 runFair 的 topOthersAvg）：同種子、同出價，只差有沒有盯主標，比較主標那件上別人的出價數。
+   上面這段保留為沿革。G2′ 仍是活性檢查（機制有沒有在動），放行仍看 G1′ 三條。 */
 console.log('');
-console.log(`[G2′ 活性] 怯場桌 被盯 ${fAvoid.mtop.markedAvg.toFixed(2)} vs 未盯 ${fAvoid.mtop.unmarkedAvg.toFixed(2)} ${fAvoid.mtop.markedAvg<=fAvoid.mtop.unmarkedAvg*0.9?'✅':'❌（見量測缺陷註，不構成否決）'}；搶標桌 ${fContest.mtop.markedAvg.toFixed(2)} vs ${fContest.mtop.unmarkedAvg.toFixed(2)} ${fContest.mtop.markedAvg>=fContest.mtop.unmarkedAvg*1.1?'✅':'❌'}`);
+{ const rA=fAvoid.mtop.topOthersAvg/fAvoid.mnone.topOthersAvg, rC=fContest.mtop.topOthersAvg/fContest.mnone.topOthersAvg;
+  console.log(`[G2′ 反事實活性] 主標那件上別人的出價數（盯 vs 不盯，同種子同出價）：怯場桌 ${fAvoid.mtop.topOthersAvg.toFixed(2)} vs ${fAvoid.mnone.topOthersAvg.toFixed(2)}（×${rA.toFixed(2)}）${rA<=0.9?'✅ 讓路':'❌'}；搶標桌 ${fContest.mtop.topOthersAvg.toFixed(2)} vs ${fContest.mnone.topOthersAvg.toFixed(2)}（×${rC.toFixed(2)}）${rC>=1.1?'✅ 撲上':'❌'}；混合桌 ${fMixed.mtop.topOthersAvg.toFixed(2)} vs ${fMixed.mnone.topOthersAvg.toFixed(2)}`); }

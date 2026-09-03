@@ -125,6 +125,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .rulein b{color:var(--gold)}
 /* 盯上信譽：跟 .rulein 一樣是併進 .preview 框內的一段，不另佔高度（#felt 高度預算是零餘裕） */
 .credin{color:#d8e8d4;margin-left:6px}
+.aihint{display:block;font-size:11px;line-height:1.35;text-align:left;color:#d8e8d4}
+.aihint .who{color:var(--gold);font-weight:600}
+.aihint .sep{color:var(--dim);margin:0 4px}
+.aihint b{color:var(--gold)}
 .credin b{color:var(--gold)}
 .stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:9px;
   padding:3px 9px;text-align:center}
@@ -1525,7 +1529,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.23", VERSION_NOTE="跳過與？不再重疊；盯上頁的信譽只留一行，解釋在？";
+const VERSION="0.24", VERSION_NOTE="盯上頁直接告訴你每隻對手會怎麼反應、對你目前有幾成效果";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2635,7 +2639,7 @@ function showMarkUI(){
   $("stage").innerHTML=`
     <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。${
       CFG.MARK_TAX>0?`盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。`:""}${
-      (CFG.MARK_CRED_ON?`<span class="credin">🤝 <b>你的信譽 ${credTxt(ap)}</b><span class="mut">（近 ${CFG.MARK_CRED_WIN} 次宣告；怎麼算看 ？）</span></span>`:"")}<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span>${
+      (CFG.MARK_CRED_ON?`<span class="credin">🤝 <b>你的信譽 ${credTxt(ap)}</b><span class="mut">（近 ${CFG.MARK_CRED_WIN} 次宣告；怎麼算看 ？）</span></span>`:"")}<span class="mut">盯主標還是誘餌？看底列每隻對手的反應。</span>${
       rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
     ${wishBarHTML(ap)}
     <div id="market">${S.market.map((it,i)=>`<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
@@ -2643,7 +2647,26 @@ function showMarkUI(){
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
     </div>`).join("")}</div>`;
+  /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
+     牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
+  const bd=$("budget"); bd.innerHTML=markHintHTML(ap); bd.className="";
   $("mainbtn").textContent="不盯任何一件"; $("mainbtn").disabled=false; $("mainbtn").onclick=()=>pickMark(null);
+}
+/* 盯上頁的對手提示（2026-09-03 試玩回饋「不知道怎麼判斷」）：把角色卡 ⓘ 裡的反應型搬到宣告當下，
+   並乘上你的信譽算成「對你目前的效果 %」；再依桌面組成給一句該盯主標還是誘餌。純顯示、不耗亂數。 */
+const MARK_REACT_WORD={avoid:"怯場",contest:"搶標",ignore:"無視"};
+function markHintHTML(ap){
+  if(!CFG.MARK_ON) return "";
+  const foes=S.players.filter(p=>p.ai&&p.alive);
+  if(!foes.length) return "";
+  const eff=CFG.MARK_CRED_ON?Math.round(credOf(ap)*100):100;
+  const rows=foes.map(p=>{ const mr=(p.ai.markReact==="avoid"||p.ai.markReact==="contest")?p.ai.markReact:"ignore";
+    return `<span class="who" title="${p.name}">${p.av}</span>${MARK_REACT_WORD[mr]}${mr!=="ignore"?`<b>${eff}%</b>`:""}`; });
+  const nA=foes.filter(p=>p.ai.markReact==="avoid").length, nC=foes.filter(p=>p.ai.markReact==="contest").length;
+  const tip=nA>nC?"怯場型多：盯你要的那件並認真出價，牠們會讓路"
+           :nC>nA?"搶標型多：盯誘餌，真目標會便宜（花信譽）"
+           :"各型都有：先看誰會跟你搶主標";
+  return `<span class="aihint">${rows.join('<span class="sep">｜</span>')}<br>💡 ${tip}</span>`;
 }
 function pickMark(i){
   S.marks[ACTIVE]=i;
