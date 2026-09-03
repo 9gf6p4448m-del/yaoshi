@@ -168,6 +168,7 @@
        ①resume ②起一個 1 取樣的無聲 BufferSource ③用 <audio> 播一段無聲 data URI 啟動 AVAudioSession
        （順帶讓靜音撥桿不再壓掉 Web Audio）。三招一起做，哪一招有效不必分辨。 */
     unlock() {
+      this._session();
       const ctx = this._ensure(); if (!ctx) return false;
       try { if (ctx.state !== "running") { this.resumeCalls = (this.resumeCalls || 0) + 1; const p = ctx.resume(); if (p && p.then) p.then(() => { this.resumed = (this.resumed || 0) + 1; }, () => { this.resumeErr = true; }); } } catch (e) {}
       try { const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); } catch (e) {}
@@ -177,8 +178,15 @@
       } catch (e) {}
       return true;
     },
+    /* Safari 17+ 的 Audio Session API：先宣告「playback」再建 ctx（2026-09-03 iPhone iOS 18.7 主畫面 PWA 實測
+       Web Audio 從頭到尾叫不醒、Safari 直接開卻正常）。playback 類別＝主畫面 App 的音訊工作階段會被啟動，
+       也不再被靜音模式壓掉。其他瀏覽器沒有這個物件，包 try 直接略過。 */
+    _session() {
+      try { const as = global.navigator && global.navigator.audioSession; if (as && as.type !== "playback") { as.type = "playback"; this.sessionSet = true; } } catch (e) {}
+    },
     _ensure() {
       if (this.ctx) return this.ctx;
+      this._session();
       const AC = global.AudioContext || global.webkitAudioContext; if (!AC) return null;
       this.ctx = new AC();
       this._master = this.ctx.createGain(); this._master.gain.value = this.volume;
