@@ -1699,7 +1699,6 @@ function mkPlayer(seat,i){
     life:roleLife0(R), bag:[], alive:true,
     /* ARCH_SPEC §4 的玩家欄位：本次只建欄位，尚未有內容會寫入它們 */
     wish:null, grudge:{}, spec:null, sacrificed:0, pawned:false,
-    stats:{won:0,bids:0,yaming:0,lost:0,poisonHit:{},poisonTaken:0},
   };
 }
 /* 選角模式的座位表：真人 humanN 席（picks 指定角色；缺的用 rng 從池中抽——headless 用），
