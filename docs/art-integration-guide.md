@@ -394,6 +394,13 @@ startBtn.addEventListener("click", () => { YS_SFX.unlock(); /* ...原本的開�
 
 ---
 
+### 8.x iOS 主畫面（PWA）沒聲音——2026-09-03 實測與解法
+
+症狀：iPhone（iOS 18.7）從主畫面開遊戲，`ctx` 永遠 `suspended`、播過 0 次、`standalone true`；在 Safari 裡開有聲音。
+原因：iOS 主畫面網頁的 Web Audio 音訊工作階段不會自己啟動，`AudioContext.resume()` 在手勢裡叫了也停在 suspended。
+解法（`sfx.js` 的 `unlock()`，每次觸控與切回前景都會再叫）：①`resume()` ②起一個 1 取樣的無聲 `BufferSource` ③用 `<audio>` 播 0.05 秒無聲 data URI（`SILENT_WAV`）啟動 AVAudioSession，順帶讓靜音撥桿不再壓掉 Web Audio。
+診斷：規則頁最上面 `audioDiag()` 一行（ctx 狀態、聲部數、播過次數、kick 次數、音樂層狀態、UA／standalone）。使用者回報沒聲音時先叫他截這一行，不要猜。
+
 ## 9. 背景音樂：`assets/audio/bgm.js`（2026-09-03 加入）
 
 使用者裁定「比照排球夢的方式」＝ Google Flow Music（flowmusic.app，Lyria 免費層）生成，

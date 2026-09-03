@@ -151,6 +151,8 @@
     },
   };
 
+  const SILENT_WAV = "data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA"; /* 0.05 秒無聲 WAV：只給 iOS 啟動音訊工作階段用 */
+
   /* ---------- 對外介面 ---------- */
   const SFX = {
     enabled: true,
@@ -160,9 +162,19 @@
     names: Object.keys(VOICES),
 
     /* 在使用者手勢裡呼叫一次；重複呼叫無害 */
+    /* 在使用者手勢裡呼叫；重複呼叫無害，每次觸控都可以再叫（沒 running 就再踢）。
+       2026-09-03 iPhone 實測（iOS 18.7、主畫面 PWA）：ctx 永遠停在 suspended、播過 0 次。
+       iOS 主畫面網頁的 Web Audio 音訊工作階段不會自己啟動，光 resume() 無效，要在同一個手勢裡：
+       ①resume ②起一個 1 取樣的無聲 BufferSource ③用 <audio> 播一段無聲 data URI 啟動 AVAudioSession
+       （順帶讓靜音撥桿不再壓掉 Web Audio）。三招一起做，哪一招有效不必分辨。 */
     unlock() {
       const ctx = this._ensure(); if (!ctx) return false;
-      if (ctx.state === "suspended") ctx.resume();
+      try { if (ctx.state !== "running") { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
+      try { const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); } catch (e) {}
+      try {
+        if (!this._kick && typeof Audio !== "undefined") { const a = new Audio(SILENT_WAV); a.setAttribute("playsinline", ""); a.preload = "auto"; a.volume = 0.01; this._kick = a; }
+        if (this._kick && ctx.state !== "running") { const p = this._kick.play(); if (p && p.then) p.then(() => { this.kicked = (this.kicked || 0) + 1; }, () => { this.kickErr = true; }); }
+      } catch (e) {}
       return true;
     },
     _ensure() {
