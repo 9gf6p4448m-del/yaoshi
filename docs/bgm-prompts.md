@@ -120,3 +120,20 @@ Instrumental only, no vocals, no singing, no chanting. Seamless loop, no fade in
 
 ★**我聽不到聲音**——好不好聽、有沒有混進人聲、環的接點順不順，只有你能判斷。
 不對就換備選那首，或告訴我哪裡不對，我改 prompt 重來。
+
+---
+
+## 生成紀錄（2026-09-03，Claude 透過 Chrome 代操作，帳號 FestiveDragonfly）
+
+每首送甲 prompt 一次，Producer 自動出兩個 take，共 8 首在 flowmusic.app「Songs」頁：
+
+| 場景 | 曲名（兩個 take） | 長度 |
+|---|---|---|
+| `title` | Lantern-Lit Night Market ／ Lantern-Lit Night Market (Take 2) | 2:59／2:47 |
+| `market` | Tense Underscore (Take 1) ／ Tense Underscore (Take 2) | 2:35／2:58 |
+| `duel` | Ritual Luogu ／ Relentless Procession | 3:01／2:55 |
+| `review` | Dawn Breaking ／ Dawn Breaking (Variation) | 3:00／2:45 |
+
+注意：Producer 改寫 Sound 描述時把 `title` 與 `market` 的「instrumental, no vocals」拿掉了（`duel` 留了 seamless loop、`review` 留了 instrumental），
+這兩首要特別聽有沒有混進人聲；有就回同一個 session 對 Producer 說「remove all vocals, instrumental only」再出一版。
+下載：Songs 頁每首右側「⋯」→ Download，**必須真人親手點**（Chrome 只認真人手勢）。WAV 落在 Downloads 後告訴 Claude 接手做節錄／無縫環／m4a。
