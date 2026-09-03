@@ -1535,7 +1535,35 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.27", VERSION_NOTE="四首背景音樂上線：選角、牌桌、對決、天明";
+const VERSION="0.27.1", VERSION_NOTE="加音訊診斷（？頁最上面）與 iOS 音訊中斷後的自動喚醒";
+/* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
+   我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
+   ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
+   音樂層 scene、playing、缺曲表。同時加防護：任何觸控或點擊、以及切回前景時，ctx 不是 running 就 resume()——
+   iOS 在來電、Siri、切 app 後常把 ctx 留在 interrupted，之前沒有任何地方會再喚醒它。 */
+function audioDiag(){
+  try{
+    const S_=typeof YS_SFX!=="undefined"?YS_SFX:null, B_=typeof YS_BGM!=="undefined"?YS_BGM:null;
+    if(!S_) return "sfx.js 沒載到";
+    const ctx=S_.ctx;
+    return [`sfx v${VERSION}`, ctx?`ctx ${ctx.state} ${ctx.sampleRate}Hz`:"ctx 無",
+      `音效 ${S_.enabled?"開":"關"} 聲部 ${S_.names.length} 播過 ${S_.plays||0} 次 最後 ${S_.lastPlay||"-"}`,
+      S_.lastError?`例外 ${S_.lastError}`:"",
+      B_?`音樂 ${B_.enabled?"開":"關"} scene ${B_.scene||"-"} playing ${B_.playing()} 缺曲 ${Object.keys(B_._miss||{}).join(",")||"無"}`:"bgm.js 沒載到",
+      `UA ${navigator.userAgent.replace(/Mozilla\/5.0 \(|\).*$/g,"").slice(0,40)} standalone ${!!navigator.standalone}`
+    ].filter(Boolean).join("　|　");
+  }catch(e){ return "診斷本身炸了："+e.message; }
+}
+function audioWake(){
+  try{ if(typeof YS_SFX!=="undefined"&&YS_SFX.ctx&&YS_SFX.ctx.state!=="running") YS_SFX.ctx.resume(); }catch(e){}
+}
+try{
+  if(typeof document!=="undefined"&&document.addEventListener){
+    document.addEventListener("touchend",audioWake,{passive:true});
+    document.addEventListener("click",audioWake,{passive:true});
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") audioWake(); });
+  }
+}catch(e){}
 /* ===== 版本探針（2026-09-03）=====
    問題：GitHub Pages 對 index.html 送 Cache-Control: max-age=600，手機 10 分鐘內重開拿到的是本機快取，
    使用者以為沒推上線。解法：開頁與從背景切回前景時，用帶時間戳的網址（快取一定沒有）抓一次線上的
@@ -2558,7 +2586,9 @@ function openHelp(){
   /* 顯示「本局實際生效」的規則夜，不是 CFG 原值——RULE_NIGHTS 設得比規則條數多時後面那幾夜是靜默失效的 */
   const rlNights=(S.ruleOrder&&S.ruleOrder.length)?CFG.RULE_NIGHTS.filter((r,i)=>!!S.ruleOrder[i]):[];
   const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
+  const diag=`<div style="font-size:11px;color:var(--dim);line-height:1.6;word-break:break-all;border:1px dashed var(--line);padding:4px 6px;border-radius:6px">🔧 音訊診斷：${audioDiag()}</div>`;
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
+    ${diag}
     ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。${CFG.NIGHT_REGEN>0?`每夜天明，存活者回 ${CFG.NIGHT_REGEN} 壽命。`:""}`)}
     ${sec("🌙 每夜流程",`①抽今夜心願（私有）→${CFG.MARK_ON?"②盯上宣告（公開釘一件"+(CFG.MARK_TAX>0?"，盯了沒出價付 "+CFG.MARK_TAX+" 虛張稅":"")+"）→③":"②"}妖市出價→開標→結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還${CFG.NIGHT_REGEN>0?"、天明回血":""}）。`)}
     ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。訣竅在盯哪一件：滿桌怯場型時盯你的小額側標，對手會讓路；滿桌搶標型時別盯側標，會被圍剿。${CFG.MARK_TAX>0?`盯了那件卻沒出價要付 ${CFG.MARK_TAX} 壽命。`:""}`):""}

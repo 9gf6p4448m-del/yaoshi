@@ -181,7 +181,8 @@
       const v = VOICES[name]; if (!v) return false;
       const ctx = this._ensure(); if (!ctx || ctx.state === "suspended") return false;
       const rnd = clamp((opts && typeof opts.rnd === "number") ? opts.rnd : 0.5, 0, 1);
-      v(ctx, this._master, ctx.currentTime, rnd, opts || {});
+      try { v(ctx, this._master, ctx.currentTime, rnd, opts || {}); this.lastPlay = name; this.plays = (this.plays || 0) + 1; }
+      catch (e) { this.lastError = name + ": " + (e && e.message || e); return false; } /* 音訊診斷用：記下最後一次例外，不讓一個聲部的錯炸掉呼叫端 */
       return true;
     },
 
