@@ -376,6 +376,10 @@ const CFG = {
      MARK_TAX 虛張稅（盯了沒出價）／MARK_SCARE 怯場型每多一人盯的估值折減／MARK_CONTEST 搶標型對被盯品的加成／
      MARK_OWN 對自己盯的加成（承諾）／MARK_BLUFF_P AI 改盯次高（虛張）機率。全【試玩必調】 */
   MARK_ON: true, MARK_TAX: 1, MARK_SCARE: 3, MARK_CONTEST: 3, MARK_OWN: 2, MARK_BLUFF_P: 0.3,
+  /* MARK_REBATE：盯了某件、而且真的對那件出價時，該筆折抵的買路錢（使用者 2026-09-03 提案）。
+     ★預設 0＝完全不改變現行行為★（0 時下面的算式與原本逐項相同）。這是量測用的旗標，
+     實驗結論出來、使用者裁定之前不得改預設值。實驗報告：docs/experiments/2026-09-03-mark-rebate.md */
+  MARK_REBATE: 0,
   /* 命格系統（GAME_DESIGN §六之二）——係數全部【試玩必調】 */
   BLOOD_COST: 2,     /* 獻祭刀：第 n 次放血成本 = n×BLOOD_COST（遞增，甲′裁定）【試玩必調】 */
   BLOOD_DRAIN: 4,    /* 獻祭刀：每次放血「所有對手」各失的壽命（甲′裁定；整合版實測 −2 被心願回血稀釋到無感、−4 條件勝率 54.5% 有感不破格）【試玩必調】 */
@@ -677,7 +681,11 @@ const ROLES = {
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
     desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴額外 +4。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
-    ai:{aggr:0.7,spite:0.4,markReact:"ignore"},
+    /* aggr 0.7→1.0（2026-09-03 使用者裁定，ARCH_SPEC §9 待辦 3）：
+       「紀律」＝算出真實價值但絕不溢價。aggr=0.7 時預設出價本來就低於上限 ×0.9，
+       上限永遠碰不到（實測只有 0.23% 的出價被壓低、總額只壓 0.03%），紀律形同虛設。
+       提到 1.0 之後預設出價＝估值本身，上限才真的咬得到。【試玩必調】 */
+    ai:{aggr:1.0,spite:0.4,markReact:"ignore"},
     hooks:{
       /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴額外 +4 */
       onPowerCalc(ctx){
@@ -1501,7 +1509,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.19", VERSION_NOTE="說明頁補法寶疊加規則、送王船文案、移除過渡全域";
+const VERSION="0.20", VERSION_NOTE="斷手書生的「紀律」真的生效了（aggr 0.7→1.0）";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2035,9 +2043,13 @@ function resolveAuction(){
       S.wishNight.bidCount[e.p.id]=(S.wishNight.bidCount[e.p.id]||0)+1;    /* 心願統計：本夜有效出價筆數（孤注一擲） */
       /* nBids 為 additive 欄位（ARCH_SPEC §9 議題 1 核可的做法）：本件拍品的出價人數，
          供「唯一出價者」類被動查詢；既有 effect 都不讀它，行為不變。成本公式未動。 */
+      /* 買路錢：盯上折抵（MARK_REBATE，預設 0＝與原本完全相同）。
+         折抵只給「盯了這一件、而且真的對這一件出價」的人——盯 A 標 B 拿不到。 */
+      const markedThis=CFG.MARK_ON&&CFG.MARK_REBATE>0&&S.marks&&S.marks[e.p.id]===i;
+      const fee=Math.max(0,CFG.BID_FEE-(markedThis?CFG.MARK_REBATE:0));
       const c={p:e.p,bid:e,item:it,isWinner,
         cost:(isWinner?e.amt
-          :(e.type==="yaming"?Math.ceil(e.amt/2):Math.ceil(e.amt*CFG.CONS_LOSE_FRAC)))+CFG.BID_FEE,
+          :(e.type==="yaming"?Math.ceil(e.amt/2):Math.ceil(e.amt*CFG.CONS_LOSE_FRAC)))+fee,
         events, nBids:entries.length, winner:bidWinnerId};
       applyHooks("onBidSettle",c,e.p);
       e.p.life-=c.cost;

@@ -1,4 +1,11 @@
-/* 盯上宣告閘門（GAME_DESIGN §5.8 G1~G4）。跑法：node mark-gate.mjs [n]（閘門 n≥10000）
+/* 盯上宣告閘門（GAME_DESIGN §5.8）。跑法：node mark-gate.mjs [n]（閘門 n≥10000）
+
+   ★★ 2026-09-03 使用者裁定：放行門檻＝ G1′／G2′；G1 降為歷史觀察值，不再擋上線 ★★
+   為什麼換軸：原版 G1 的軸是「誠實／虛張／不盯」，但三張桌實測**純虛張（盯了不出價）一律最差**，
+   連 TAX=0 都輸誠實 1.7pp——這個軸上根本不存在「換桌會翻盤」，留著它等於永遠紅燈。
+   G1′ 換成**對等對照**：三個策略出價完全一樣（主標 5＋側標 1），只差「盯哪一件」，
+   量到的位移就純粹來自宣告本身，不混入「有沒有出價」的成本差。
+
    真人座位三策略共用同一套出價（釘法不同）：honest＝盯最高並標它／bluff＝盯次高、標最高／nomark＝不盯。
    換桌：把所有角色的 markReact 改成同一型（avoid／contest），驗「換桌會翻盤」。 */
 import {loadGame} from './load.mjs';
@@ -39,6 +46,8 @@ console.log(`n=${N}`);
   console.log('[G4] MARK_ON=true 與 false 的 trace:', base===full?'相等 ❌（沒進牌局）':'不相等 ✅');
 }
 /* G1 混合桌（預設角色分型） */
+console.log('');
+console.log('===== G1 歷史軸（僅供參考，2026-09-03 起不擋上線）=====');
 const mixed=run(null);
 console.log('\n[G1 混合桌]',fmt(mixed));
 const wins=Object.values(mixed).map(x=>x.win); const spread=Math.max(...wins)-Math.min(...wins);
@@ -82,7 +91,29 @@ function runFair(setup){
 const fm=run=>Object.keys(run).map(k=>`${k} ${run[k].win.toFixed(2)}%`).join('  ');
 const fMixed=runFair(null), fAvoid=runFair(G=>Object.values(G.ROLES).forEach(R=>{ if(R.ai) R.ai.markReact='avoid'; })), fContest=runFair(G=>Object.values(G.ROLES).forEach(R=>{ if(R.ai) R.ai.markReact='contest'; }));
 const sp=o=>{ const w=Object.values(o).map(x=>x.win); return Math.max(...w)-Math.min(...w); };
-console.log('\n[G1′ 混合桌]',fm(fMixed),`  最大差 ${sp(fMixed).toFixed(2)}pp ${sp(fMixed)<=3?'✅':'❌'}`);
-console.log('[G1′ 全怯場桌]',fm(fAvoid),`  msec−mnone ${(fAvoid.msec.win-fAvoid.mnone.win).toFixed(2)}pp`);
-console.log('[G1′ 全搶標桌]',fm(fContest),`  msec−mnone ${(fContest.msec.win-fContest.mnone.win).toFixed(2)}pp`);
-console.log(`[G2′ 活性（排除盯者自己）] 怯場桌 被盯 ${fAvoid.mtop.markedAvg.toFixed(2)} vs 未盯 ${fAvoid.mtop.unmarkedAvg.toFixed(2)} ${fAvoid.mtop.markedAvg<=fAvoid.mtop.unmarkedAvg*0.9?'✅':'❌'}；搶標桌 ${fContest.mtop.markedAvg.toFixed(2)} vs ${fContest.mtop.unmarkedAvg.toFixed(2)} ${fContest.mtop.markedAvg>=fContest.mtop.unmarkedAvg*1.1?'✅':'❌'}`);
+console.log('');
+console.log('===== G1′／G2′ 放行門檻（2026-09-03 使用者裁定）=====');
+/* 判定條件（可機械判定，訂於 2026-09-03；日後要改走 02 §2.1）：
+     P1 混合桌：三者最大差 ≤3pp——預設桌上沒有一種釘法支配另外兩種
+     P2 全怯場桌：盯側標 − 不盯 ≥ +5pp——滿桌怯場時，把人從側標趕走是有利的
+     P3 全搶標桌：盯側標 − 不盯 ≤ −5pp——同一招換到滿桌搶標要變成有害（＝換桌會翻盤）
+   三條全過才算 G1′ 通過。±5pp 的來由：n=10000 時單點 SE≈0.45pp，5pp≈11σ，
+   遠大於量測雜訊；不是為了讓現況剛好過（現況實測是 +22.69／−10.68，離門檻很遠）。 */
+const P1=sp(fMixed)<=3;
+const dAvoid=fAvoid.msec.win-fAvoid.mnone.win, dContest=fContest.msec.win-fContest.mnone.win;
+const P2=dAvoid>=5, P3=dContest<=-5;
+console.log('[G1′ 混合桌]',fm(fMixed),`  最大差 ${sp(fMixed).toFixed(2)}pp　P1(≤3pp) ${P1?'✅':'❌'}`);
+console.log('[G1′ 全怯場桌]',fm(fAvoid),`  盯側標−不盯 ${dAvoid>=0?'+':''}${dAvoid.toFixed(2)}pp　P2(≥+5pp) ${P2?'✅':'❌'}`);
+console.log('[G1′ 全搶標桌]',fm(fContest),`  盯側標−不盯 ${dContest>=0?'+':''}${dContest.toFixed(2)}pp　P3(≤-5pp) ${P3?'✅':'❌'}`);
+console.log('');
+console.log(`[G1′ 總判定] ${P1&&P2&&P3?'✅ 通過（換桌會翻盤，且預設桌上沒有支配釘法）':'❌ 未通過'}`);
+/* G2′ 活性：被盯拍品的出價人數有沒有真的被推開／吸過來。
+   ★已知量測缺陷（2026-09-03 記錄，本輪不處置）★：mtop 盯的永遠是「p 值最高的那件」，
+   而那件本來就最多人搶——「被盯」與「本來就最搶手」被混在同一個數字裡。
+   所以這兩格量的不是純粹的趨避/吸引，**兩個方向都可能被污染**：
+   實測也證明它不穩——2026-09-02 的引擎版本上是怯場桌紅、搶標桌綠，
+   2026-09-03（v0.19）反過來變成怯場桌綠、搶標桌紅，而中間沒有人動過盯上的邏輯。
+   要修得改成「同一件在被盯與沒被盯兩次跑之間的出價人數差」（控制住『它本來多搶手』）。
+   在修好之前 G2′ 兩格都**不構成否決理由，也不得拿來宣稱通過**——放行看 G1′ 三條。 */
+console.log('');
+console.log(`[G2′ 活性] 怯場桌 被盯 ${fAvoid.mtop.markedAvg.toFixed(2)} vs 未盯 ${fAvoid.mtop.unmarkedAvg.toFixed(2)} ${fAvoid.mtop.markedAvg<=fAvoid.mtop.unmarkedAvg*0.9?'✅':'❌（見量測缺陷註，不構成否決）'}；搶標桌 ${fContest.mtop.markedAvg.toFixed(2)} vs ${fContest.mtop.unmarkedAvg.toFixed(2)} ${fContest.mtop.markedAvg>=fContest.mtop.unmarkedAvg*1.1?'✅':'❌'}`);
