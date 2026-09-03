@@ -1490,7 +1490,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.16", VERSION_NOTE="3D 運鏡：開標壓向桌心、對決切低角度、局末拉遠俯瞰";
+const VERSION="0.17", VERSION_NOTE="盯上那頁也看得到今夜心願與市集規則說明";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2486,8 +2486,14 @@ function showMarkUI(){
   renderSeats();
   const ap=S.players[ACTIVE];
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name}】`:"";
+  const rl=S.nightRule;
+  /* 心願與今夜市集規則原本只畫在出價階段，盯上這一頁看不到（2026-09-03 試玩回饋：
+     「沒有看到我的心願」「落魄夜也沒有解釋」）。這一頁的 #felt 下半是空的，
+     補兩行不會像出價階段那樣擠爆高度預算。文案與出價階段共用同一份，不另寫一套。 */
   $("stage").innerHTML=`
-    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span></div>
+    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span>${
+      rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
+    ${wishBarHTML(ap)}
     <div id="market">${S.market.map((it,i)=>`<div class="mcard ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
       <div class="nm">${it.n}</div>
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
