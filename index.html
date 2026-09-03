@@ -121,6 +121,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 /* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
 .rulein{color:#ffd9d0;margin-left:6px}
 .rulein b{color:var(--gold)}
+/* 盯上信譽：跟 .rulein 一樣是併進 .preview 框內的一段，不另佔高度（#felt 高度預算是零餘裕） */
+.credin{color:#d8e8d4;margin-left:6px}
+.credin b{color:var(--gold)}
 .stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:9px;
   padding:3px 9px;text-align:center}
 .stakerow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:nowrap}
@@ -374,8 +377,18 @@ const CFG = {
   NIGHT_REGEN: 5, /* 天明回血：節奏包甲（n=10000：中位 11 夜、46% 到 12 夜、出局 1.73 人；設 0＝關）【試玩必調】 */
   /* 盯上宣告（GAME_DESIGN §5.8，2026-09-02）：封標前每人公開釘一件。MARK_ON=false＝不宣告、不耗亂數、trace 與加入前相等。
      MARK_TAX 虛張稅（盯了沒出價）／MARK_SCARE 怯場型每多一人盯的估值折減／MARK_CONTEST 搶標型對被盯品的加成／
-     MARK_OWN 對自己盯的加成（承諾）／MARK_BLUFF_P AI 改盯次高（虛張）機率。全【試玩必調】 */
-  MARK_ON: true, MARK_TAX: 1, MARK_SCARE: 3, MARK_CONTEST: 3, MARK_OWN: 2, MARK_BLUFF_P: 0.3,
+     MARK_OWN 對自己盯的加成（承諾）／MARK_BLUFF_P AI 改盯次高（虛張）機率。全【試玩必調】
+     ★MARK_TAX 於 2026-09-03 由 1 改為 0（使用者裁定，見 GAME_DESIGN §5.8）★：虛張的代價改由
+     下面的「盯上信譽」承擔——騙人花掉的是別人對你的信任，不是硬收一筆看不懂的稅。
+     設回 1 即恢復舊行為（Y1 kill switch 就是這樣驗的）。 */
+  MARK_ON: true, MARK_TAX: 0, MARK_SCARE: 3, MARK_CONTEST: 3, MARK_OWN: 2, MARK_BLUFF_P: 0.3,
+  /* 盯上信譽（2026-09-03 使用者裁定五題；GAME_DESIGN §5.8「信譽」段）：
+     每夜宣告結算後給每個有宣告的人記一筆 min(1, 對那件的出價 ÷ 該件行情)，沒出價＝0；
+     信譽＝最近 MARK_CRED_WIN 筆的平均，沒有紀錄時＝1.0（沒騙過就該被信）。
+     AI 的盯上反應乘上宣告者的信譽——信譽 1.0 時與舊算式逐項相同。
+     MARK_CRED_ON=false＝kill switch：不記分、反應層走原本的算式，trace 與加入前逐位元組相等。
+     MARK_CRED_WIN（視窗長度）與「按出價占行情加權」的口徑皆【試玩必調】。 */
+  MARK_CRED_ON: true, MARK_CRED_WIN: 4,
   /* MARK_REBATE：盯了某件、而且真的對那件出價時，該筆折抵的買路錢（使用者 2026-09-03 提案）。
      ★預設 0＝完全不改變現行行為★（0 時下面的算式與原本逐項相同）。這是量測用的旗標，
      實驗結論出來、使用者裁定之前不得改預設值。實驗報告：docs/experiments/2026-09-03-mark-rebate.md */
@@ -1509,7 +1522,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.20", VERSION_NOTE="斷手書生的「紀律」真的生效了（aggr 0.7→1.0）";
+const VERSION="0.21", VERSION_NOTE="盯上信譽上線：虛張稅拿掉，騙人改花信譽";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1624,6 +1637,31 @@ function policyMarks(policies){
   if(!CFG.MARK_ON) return;
   S.players.forEach(p=>{ if(!p.alive||p.ai) return; const pol=(policies&&policies[p.id])||scriptedBids; S.marks[p.id]=pol.mark?pol.mark(p):null; });
 }
+/* ---- 盯上信譽（2026-09-03）：記錄層與計算層。兩支都是純函式式的記錄／平均，
+   **不呼叫 S.rng()／S.rngUi()、也不碰任何其他亂數源，更不改任何結算數值**（Y1 逐位元組相等的前提）。
+   （這段刻意不寫出那個全域禁用的亂數函式名，免得 GUIDE §7 的 `grep -c` 機械檢查被註解誤觸。） ---- */
+/* credOf：某人的公開信譽＝最近 MARK_CRED_WIN 筆宣告分數的平均；沒有任何紀錄＝1.0（沒騙過就該被信）。 */
+function credOf(p){
+  const a=S&&S.cred&&S.cred[p.id];
+  if(!a||!a.length) return 1;
+  return a.reduce((x,y)=>x+y,0)/a.length;
+}
+/* recordCred：夜末（宣告結算後）給每個有宣告的人記一筆
+   min(1, 對那件的出價金額 ÷ 該件行情)，沒出價＝0；行情＝max(1,|it.p|)（詛咒品 p 為負）。
+   「按占行情的比例加權」是為了堵「盯最便宜那件、出 1 塊錢養信譽」——同樣出 1，
+   盯 p=6 的主標只拿 0.17，盯 p=2 的便宜貨才拿 0.5，而主標認真出價可以拿到接近 1。 */
+function recordCred(){
+  if(!CFG.MARK_CRED_ON||!CFG.MARK_ON||!S.marks) return;
+  S.players.forEach(p=>{
+    const m=S.marks[p.id]; if(!p.alive||m==null) return;
+    const it=S.market[m]; if(!it) return;
+    const am=S.wishNight&&S.wishNight.bidAmt&&S.wishNight.bidAmt[p.id];
+    const amt=(am&&am[m])||0;
+    const arr=(S.cred[p.id]=S.cred[p.id]||[]);
+    arr.push(Math.min(1, amt/Math.max(1,Math.abs(it.p))));
+    if(arr.length>CFG.MARK_CRED_WIN) arr.splice(0, arr.length-CFG.MARK_CRED_WIN);
+  });
+}
 /* ================= 引擎 ================= */
 /* 依座位表產生一位玩家。要加角色＝往 ROLES 填一筆、往 MODES 的 seats 排一格，不必動這裡。 */
 /* ================= 異事引擎（正常頁／simulate／playPolicyGame 三條迴圈共用）=================
@@ -1737,6 +1775,9 @@ function makeState(mode,seed,picks){
     lastWon:{}, nightRule:null, event:null, bleedLog:[],
   };
   S.history={life:[S.players.map(p=>p.life)],nights:[]}; /* 局末回顧：純記錄（不耗亂數、不改結算），見 GUIDE §11.13 */
+  /* 盯上信譽（§5.8）：S.cred[pid]＝最近 CFG.MARK_CRED_WIN 筆宣告分數。純記錄、不耗亂數；
+     空陣列＝沒有紀錄＝信譽 1.0（credOf）。MARK_CRED_ON=false 時全程不會有人往裡面寫。 */
+  S.cred={}; S.players.forEach(p=>{ S.cred[p.id]=[]; });
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
   S.cdeck=shuffle([...CURSES,...CURSES].map(x=>({...x})));
   /* 市集規則排程（RULE_ON=false 零 rng 消耗——kill switch）：洗牌決定各規則夜出哪一條。
@@ -1842,12 +1883,18 @@ function aiBids(p){
     /* hook 8.1：角色可改寫「這件在我心中值多少」 */
     const vc={p,item:it,val:it.p+marginal+(it.ab?2:0)+rnd(-2,2)};
     applyHooks("onAiValue",vc,p);
-    /* 盯上反應（§5.8）：依角色分型對「被別人盯的拍品」調估值；自己盯的 +MARK_OWN（承諾，順便避開虛張稅） */
+    /* 盯上反應（§5.8）：依角色分型對「被別人盯的拍品」調估值；自己盯的 +MARK_OWN（承諾——
+       2026-09-03 虛張稅拿掉後，這一項也順便讓 AI 自己維持信譽：盯了就真的會去出價） */
+    /* 信譽加權（2026-09-03）：把「幾個人盯」換成「盯的人加起來有多可信」。
+       sum＝這些人的信譽總和；MARK_CRED_ON=false 時 sum 恆等於 k，
+       於是 k*MARK_SCARE 與 MARK_CONTEST*(k/k) 都退化回原本那兩行（Y1 逐位元組相等的前提）。 */
     if(CFG.MARK_ON&&S.marks){
-      const k=Object.keys(S.marks).filter(id=>+id!==p.id&&S.marks[id]===i).length;
+      const others=Object.keys(S.marks).filter(id=>+id!==p.id&&S.marks[id]===i);
+      const k=others.length;
+      const sum=CFG.MARK_CRED_ON?others.reduce((a,id)=>a+credOf(S.players[+id]),0):k;
       const mr=p.ai&&p.ai.markReact;
-      if(k&&mr==="avoid") vc.val-=k*CFG.MARK_SCARE;
-      else if(k&&mr==="contest") vc.val+=CFG.MARK_CONTEST;
+      if(k&&mr==="avoid") vc.val-=sum*CFG.MARK_SCARE;
+      else if(k&&mr==="contest") vc.val+=CFG.MARK_CONTEST*(sum/k);
       if(S.marks[p.id]===i) vc.val+=CFG.MARK_OWN;
     }
     opts.push({i,val:vc.val,intent:"keep",target:null});
@@ -1946,7 +1993,8 @@ function resolveAuction(){
     /* 第二批 16 張（v0.8）用的純記錄欄位：出價筆數／大貨得標／低價得標／押命得標／獨家得標／
        多人搶標得標／買下銷毀／毒標塞給了誰／對決造成的傷害。不耗亂數、不改結算數值 */
     bidCount:{},bigWin:{},cheapWin:{},yamingWon:{},soloWin:{},crowdWin:{},destroyed:{},poisonTargets:{},dmgDealt:{},
-    bidItems:{}}; /* 每人本夜出價過的拍品索引集合（虛張稅判定＋盯上活性統計） */
+    bidItems:{}, /* 每人本夜出價過的拍品索引集合（虛張稅判定＋盯上活性統計） */
+    bidAmt:{}};  /* 每人本夜對各件的出價金額 {pid:{索引:金額}}（盯上信譽記分用；純記錄、不改結算） */
   S.markStat={tax:0,markedItems:0,markedBids:0,unmarkedItems:0,unmarkedBids:0,hItems:0,hOthers:0}; /* hItems/hOthers＝真人出價的件數與其上他人的出價筆數（反事實活性量法） */ /* 盯上活性計數（純統計） */
   let all=S.players.map(p=>{
     if(!p.alive)return S.market.map(()=>null);
@@ -1997,6 +2045,7 @@ function resolveAuction(){
     const entries=[], withdrawn=[];
     S.players.forEach(p=>{const b=all[p.id][i];if(b){
       (S.wishNight.bidItems[p.id]=S.wishNight.bidItems[p.id]||new Set()).add(i); /* 純記錄：對第 i 件出過價 */
+      (S.wishNight.bidAmt[p.id]=S.wishNight.bidAmt[p.id]||{})[i]=b.amt; /* 純記錄：金額（信譽記分用），與 bidItems 同一口徑 */
       /* 最多得一件：本夜已得標者自動退出其餘（不比價、不收費） */
       if(single&&S.wonAny.has(p.id)){ withdrawn.push({p,...b}); return; }
       const e={p,...b};
@@ -2154,6 +2203,10 @@ function resolveBattles(){
     if(!(bi&&bi.has(m))){ p.life-=CFG.MARK_TAX; if(S.markStat) S.markStat.tax++;
       nightly.push(`💸 ${p.name} 盯了「${S.market[m]?S.market[m].n:"？"}」卻沒出手，虛張稅 -${CFG.MARK_TAX}`); }
   });
+  /* 盯上信譽記分（§5.8，2026-09-03）：與虛張稅同一時點（宣告結算後、心願判定之前）。
+     純記錄——不改任何人的壽命、不耗亂數；本夜的 AI 反應早在 aiBids 就讀完了，
+     所以這裡記的分數要下一夜才會影響別人怎麼看你。 */
+  recordCred();
   S.players.forEach(p=>{ if(p.alive) judgeWish(p,nightly); });
   /* 天明回血（節奏包，2026-09-02 使用者裁定甲）：存活且壽命 >0 者夜末 +NIGHT_REGEN；歸零者不救（只有心願能救回） */
   if(CFG.NIGHT_REGEN>0){
@@ -2441,8 +2494,15 @@ function openHelp(){
   const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
     ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。${CFG.NIGHT_REGEN>0?`每夜天明，存活者回 ${CFG.NIGHT_REGEN} 壽命。`:""}`)}
-    ${sec("🌙 每夜流程",`①抽今夜心願（私有）→${CFG.MARK_ON?"②盯上宣告（公開釘一件，盯了沒出價付 "+CFG.MARK_TAX+" 虛張稅）→③":"②"}妖市出價→開標→結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還${CFG.NIGHT_REGEN>0?"、天明回血":""}）。`)}
-    ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。訣竅在盯哪一件：滿桌怯場型時盯你的小額側標，對手會讓路；滿桌搶標型時別盯側標，會被圍剿。盯了那件卻沒出價要付 1 壽命。`):""}
+    ${sec("🌙 每夜流程",`①抽今夜心願（私有）→${CFG.MARK_ON?"②盯上宣告（公開釘一件"+(CFG.MARK_TAX>0?"，盯了沒出價付 "+CFG.MARK_TAX+" 虛張稅":"")+"）→③":"②"}妖市出價→開標→結算戰→夜末結算（詛咒侵蝕、心願判定、貸款攤還${CFG.NIGHT_REGEN>0?"、天明回血":""}）。`)}
+    ${CFG.MARK_ON?sec("👁 盯上宣告",`封標前每人公開釘一件拍品。它不改任何數字，只改對手的想法：怯場型的 AI 會避開被盯的拍品、搶標型的反而更想搶、無視型不理。每個角色的反應寫在角色卡（ⓘ）。訣竅在盯哪一件：滿桌怯場型時盯你的小額側標，對手會讓路；滿桌搶標型時別盯側標，會被圍剿。${CFG.MARK_TAX>0?`盯了那件卻沒出價要付 ${CFG.MARK_TAX} 壽命。`:""}`):""}
+    ${/* 盯上信譽（2026-09-03）：虛張的代價從「硬收一筆稅」改成「花掉別人對你的信任」。
+         玩家看不到記分公式就只會覺得 AI 反覆無常，所以這一節要把「怎麼掉、掉了會怎樣」寫死在規則頁。 */""}
+    ${(CFG.MARK_ON&&CFG.MARK_CRED_ON)?sec("🤝 盯上信譽",`宣告是公開的，所以<b>信譽也是公開的</b>——全場看同一份，你不能對甲老實、對乙騙。<br>
+      <b>怎麼算</b>：每夜宣告結算後，看你對「你盯的那件」實際出了多少錢——出價 ÷ 那件的行情（戰力值），封頂 1.00。完全沒出價＝0。信譽就是<b>最近 ${CFG.MARK_CRED_WIN} 次宣告</b>的平均；還沒有紀錄的人算 1.00。<br>
+      <b>怎麼樣會掉</b>：①盯了卻整夜不對它出價（記 0）②只丟個零頭應付（盯行情 6 的主標只出 1，記 0.17）。便宜貨也一樣要出到它的行情才記滿分：盯行情 3 的破爛只出 1，記 0.33；出到 3 才記 1.00，但那 3 壽命也真的花掉了。<br>
+      <b>掉了會怎樣</b>：AI 的盯上反應<b>乘上宣告者的信譽</b>。信譽 1.00 的人盯一件，怯場型會整份讓路、搶標型會全力來搶；信譽 0.25 的人盯同一件，效果只剩四分之一——講話沒人信了。反過來說，認真跟進換來的信譽，就是你日後那一次真虛張能騙到的本錢。<br>
+      每個人的信譽在角色卡（ⓘ）看得到，自己的也印在盯上宣告那一頁。`):""}
     ${sec("🪙 出價與費用",`<b>保守標</b>：落標退還 ${Math.round((1-CFG.CONS_LOSE_FRAC)*100)}%，出價上限依戰力。<br><b>押命標</b>：無上限，但落標仍失一半出價。<br><b>毒標</b>：對詛咒品出價，得標可把它硬塞給指定對手。<br><b>買下銷毀</b>：得標詛咒品直接銷掉，不入任何人袋。${CFG.BID_FEE>0?`<br>每筆有效標另付<b>買路錢 ${CFG.BID_FEE}</b>（不論輸贏）。`:""}${CFG.MAX_BIDS>0?`每夜至多 <b>${CFG.MAX_BIDS} 筆</b>有效標。`:""}`)}
     ${sec("🌒 今夜心願",`每夜私抽一張、只有自己看得到（出價畫面上方那行）。夜末條件成立加 3～6 壽命；別人只看得到你有沒有達成。這是讓你的出價無法被算死的私有理由。`)}
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
@@ -2570,7 +2630,9 @@ function showMarkUI(){
      「沒有看到我的心願」「落魄夜也沒有解釋」）。這一頁的 #felt 下半是空的，
      補兩行不會像出價階段那樣擠爆高度預算。文案與出價階段共用同一份，不另寫一套。 */
   $("stage").innerHTML=`
-    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span>${
+    <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。${
+      CFG.MARK_TAX>0?`盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。`:""}${
+      (CFG.MARK_CRED_ON?`<span class="credin">🤝 <b>你的信譽 ${credTxt(ap)}</b>——盯了卻不出價、或只丟個零頭，夜末就把它拉低；信譽低了，對手不會再把你的宣告當一回事。<span class="mut">（公開，大家都看得到；看的是最近 ${CFG.MARK_CRED_WIN} 次）</span></span>`:"")}<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span>${
       rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
     ${wishBarHTML(ap)}
     <div id="market">${S.market.map((it,i)=>`<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
@@ -2585,6 +2647,16 @@ function pickMark(i){
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   showMarket();
+}
+/* 盯上信譽的顯示（公開資訊，§5.8）：角色卡 ⓘ 與盯上宣告畫面共用同一份文案，不各自寫一套。
+   credOf 回 0~1，這裡一律顯示兩位小數；沒有紀錄時明講「還沒有紀錄」，免得 1.00 被誤讀成「已經證明可信」。 */
+function credTxt(p){
+  const n=(S&&S.cred&&S.cred[p.id])?S.cred[p.id].length:0;
+  return n?`${credOf(p).toFixed(2)}<span class="mut">（近 ${n} 次宣告）</span>`
+          :`1.00<span class="mut">（還沒有紀錄）</span>`;
+}
+function credRowHTML(p){
+  return (CFG.MARK_ON&&CFG.MARK_CRED_ON)?`<div class="descRow">🤝 盯上信譽：${credTxt(p)}</div>`:"";
 }
 /* 拍品卡上的盯上徽章（公開資訊：誰盯了這件） */
 function markBadgeHTML(i){
@@ -3141,8 +3213,11 @@ function roleDescHTML(roleId,showMark){
    熱座模式下同樣只顯示角色公開資訊，不夾帶心願／袋中詛咒品／封注金額等私有內容。 */
 function showRoleInfo(pid){
   const p=S.players[pid];
+  /* 信譽在 roleDescHTML 之外另掛一行：那支只吃 roleId（選角畫面也用它，當下還沒有玩家物件），
+     而信譽是「這一席這個人」的紀錄、不是角色屬性——公開資訊，自己與對手都照樣顯示。 */
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}</h2>
     ${roleDescHTML(p.roleId,!!p.ai)}
+    ${credRowHTML(p)}
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }
@@ -3680,6 +3755,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */
   drawMarks, aiMark, policyMarks, MARK_REACT_TXT, /* 盯上宣告（§5.8）測試出口 */
+  credOf, recordCred, /* 盯上信譽（2026-09-03）測試出口 */
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
