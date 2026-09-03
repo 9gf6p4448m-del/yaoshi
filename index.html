@@ -110,6 +110,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #nightbar svg{height:13px;width:auto;display:block}
 /* helpBtn 原本 position:fixed，但 #felt 的 backdrop-filter 會讓 fixed 子元素以 #felt 為容器，實際就是釘在牌桌右上角、
    與 #skipbtn 同一個角（2026-09-03 試玩回報重疊）。改成明確 absolute，#skipbtn 往左讓位（right:50px） */
+/* 版本探針的更新條（2026-09-03）：GitHub Pages 的 index.html 有 10 分鐘 HTTP 快取，使用者重開常拿到舊版。
+   探針發現伺服器版本比手上的新就亮這條，點了用帶版本號的網址重載（網址不同＝快取沒這份） */
+#updBar{display:none;position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:60;background:#2a2344;color:var(--gold);
+  border:1px solid var(--gold);border-radius:20px;padding:6px 14px;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.6);cursor:pointer;white-space:nowrap}
+#updBar.on{display:block;animation:pop .25s ease-out}
 #helpBtn{display:none;position:absolute;top:6px;right:8px;z-index:25;width:34px;height:34px;border-radius:50%;
   background:#2a2344;color:var(--gold);border:1px solid var(--gold);font-size:16px;line-height:1}
 #stage{min-height:40px}
@@ -342,6 +347,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <button class="bigbtn" id="mainbtn"></button>
   </div>
 </div>
+<div id="updBar" onclick="applyUpdate()"></div>
 <div id="duel"><div class="flashfx" id="flashfx"></div>
   <div id="duelArena"></div>
   <div id="duelResult"></div><div id="duelSub"></div>
@@ -1529,7 +1535,36 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.24", VERSION_NOTE="盯上頁直接告訴你每隻對手會怎麼反應、對你目前有幾成效果";
+const VERSION="0.25", VERSION_NOTE="打開就會告訴你有沒有新版，不用再等連結";
+/* ===== 版本探針（2026-09-03）=====
+   問題：GitHub Pages 對 index.html 送 Cache-Control: max-age=600，手機 10 分鐘內重開拿到的是本機快取，
+   使用者以為沒推上線。解法：開頁與從背景切回前景時，用帶時間戳的網址（快取一定沒有）抓一次線上的
+   index.html，比對裡面的 VERSION 字串；比手上新就亮 #updBar，點了用 ?v=<新版> 重載。
+   單一事實來源仍是 VERSION 常數，不另開 version.txt。
+   限制：headless（tests/tools/load.mjs）沒有 fetch 也沒有真 document，全部包在 try 與 typeof 判斷裡；
+   節流 60 秒一次；只在 http(s) 下跑（file:// 沒東西可比）。純演出層，不碰引擎、不耗 S.rng。 */
+let UPD_LAST=0, UPD_NEW=null;
+function checkForUpdate(force){
+  try{
+    if(typeof fetch!=="function"||typeof location==="undefined"||!/^https?:/.test(location.protocol)) return;
+    const now=Date.now(); if(!force&&now-UPD_LAST<60000) return; UPD_LAST=now;
+    const url=location.pathname.replace(/[^/]*$/,"")+"index.html?upd="+now;
+    fetch(url,{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
+      const m=t.match(/const VERSION="([0-9.]+)"/); if(!m) return;
+      const cmp=(a,b)=>{ const x=a.split(".").map(Number), y=b.split(".").map(Number); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; };
+      if(cmp(m[1],VERSION)>0){ UPD_NEW=m[1]; const b=document.getElementById("updBar"); if(b){ b.textContent=`🆕 有新版 v${UPD_NEW}，點這裡更新`; b.classList.add("on"); } }
+    }).catch(()=>{});
+  }catch(e){}
+}
+function applyUpdate(){ if(!UPD_NEW) return; location.replace(location.pathname+"?v="+UPD_NEW); }
+try{
+  if(typeof document!=="undefined"&&document.addEventListener){
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkForUpdate(false); });
+    if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("pageshow",()=>checkForUpdate(false));
+    setTimeout(()=>checkForUpdate(true),1500);
+  }
+}catch(e){}
+
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */

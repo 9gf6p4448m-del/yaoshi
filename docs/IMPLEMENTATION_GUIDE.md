@@ -603,6 +603,8 @@ curl -s "https://9gf6p4448m-del.github.io/yaoshi/?_=$(date +%s)" | grep -o 'VERS
 
 ---
 
+**版本探針（2026-09-03，v0.25）**：GitHub Pages 對 `index.html` 送 `Cache-Control: max-age=600`，使用者 10 分鐘內重開拿到的是本機快取，會以為沒推上線（之前都靠丟 `?v=xx` 連結解決）。`checkForUpdate()` 在開頁 1.5 秒後與每次從背景切回前景時（節流 60 秒）用 `index.html?upd=<時間戳>` 抓線上版、比對 `VERSION` 字串，較新就亮 `#updBar`，點了 `location.replace(pathname+"?v="+新版)`。**單一事實來源仍是 `VERSION` 常數，改版必改它，探針才會亮。** headless 無 fetch，全程包在 typeof／try 裡；純演出層不耗 `S.rng`。驗法：頁面載入後 `window.fetch` 換成回傳 `VERSION="9.99"` 的假函式再呼叫 `checkForUpdate(true)`，條要亮；同版不得亮。
+
 ## 9. 待辦清單
 
 以下 5 項原樣帶自 `docs/ARCH_SPEC.md` §7「由此產生的待辦」，逐項註明該在做什麼內容時處理：
