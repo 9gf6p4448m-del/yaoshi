@@ -111,6 +111,27 @@
       tone(ctx, out, t0 + 0.05, { type: "sine", f: 147, fEnd: 37, dur: 1.5, peak: 0.25, a: 0.02 });
       noise(ctx, out, t0, { dur: 0.6, peak: 0.15, filter: { type: "lowpass", f: 300 }, q: 0.5 });
     },
+    /* 妖語嘟囔（2026-09-03 使用者裁定甲）：對話框冒出來時的一串短音節，像動物森友會的村民語。
+       不放音檔、不分語言：每個音節＝一個帶下滑音的短音（母音）＋一小撮帶通噪音（子音），
+       音高由 opts.f／音色由 opts.type／語速由 opts.rate 決定——同一個角色永遠同一組，玩家聽幾局就認得出誰在講。
+       音節間的起伏用 rnd 種出的 LCG，決定性：同 rnd 同句型。opts.n＝音節數（呼叫端依台詞長度算）。 */
+    babble(ctx, out, t0, rnd, opts) {
+      const f0 = (opts && opts.f) || 240, type = (opts && opts.type) || "sine";
+      const rate = (opts && opts.rate) || 8, n = Math.max(1, Math.min(12, (opts && opts.n) || 4));
+      const gain = (opts && typeof opts.gain === "number") ? opts.gain : 0.22;
+      const breath = (opts && typeof opts.breath === "number") ? opts.breath : 0.5; /* 子音噪音比例：啞嗓高、清嗓低 */
+      let seed = Math.floor(rnd * 2147483646) + 1;
+      const next = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+      const step = 1 / rate;
+      for (let i = 0; i < n; i++) {
+        const t = t0 + i * step * (0.85 + next() * 0.3);
+        const f = f0 * Math.pow(2, (next() - 0.5) * 0.5) * (i === n - 1 ? 0.88 : 1); /* ±¼ 八度起伏，句尾下沉 */
+        const dur = step * (0.55 + next() * 0.25);
+        tone(ctx, out, t, { type, f, fEnd: f * 0.82, dur, peak: gain, a: 0.008 });
+        tone(ctx, out, t, { type: "sine", f: f * 2.02, fEnd: f * 1.7, dur: dur * 0.8, peak: gain * 0.25, a: 0.008 });
+        noise(ctx, out, Math.max(t0, t - 0.004), { dur: 0.025 + next() * 0.02, peak: gain * 0.35 * breath, filter: { type: "bandpass", f: 1800 + next() * 1600 }, q: 1.5 });
+      }
+    },
     /* 燈籠風聲：常駐環境音，loop=true。只有這一個是持續音 */
     wind(ctx, out, t0, rnd, opts) {
       const dur = (opts && opts.dur) || 8;

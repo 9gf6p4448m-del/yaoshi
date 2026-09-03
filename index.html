@@ -1535,7 +1535,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.25", VERSION_NOTE="打開就會告訴你有沒有新版，不用再等連結";
+const VERSION="0.26", VERSION_NOTE="妖怪開口了：每個角色有自己的嘟囔聲";
 /* ===== 版本探針（2026-09-03）=====
    問題：GitHub Pages 對 index.html 送 Cache-Control: max-age=600，手機 10 分鐘內重開拿到的是本機快取，
    使用者以為沒推上線。解法：開頁與從背景切回前景時，用帶時間戳的網址（快取一定沒有）抓一次線上的
@@ -2500,7 +2500,31 @@ function sayFrom(id,key){
   if(!p.ai)return; /* 熱座的人類座位不說 AI 台詞 */
   const R=ROLES[p.roleId];
   const arr=R&&R.lines&&R.lines[key]; if(!arr||!arr.length)return;
-  say(id,arr[Math.floor(S.rngUi()*arr.length)]);
+  const txt=arr[Math.floor(S.rngUi()*arr.length)];
+  say(id,txt);
+  babble(p,txt); /* 妖語嘟囔：對話框冒出來的同時播一串音節（純演出，rngUi） */
+}
+/* ===== 妖語嘟囔（2026-09-03 使用者裁定甲：要語音但不要真人聲）=====
+   每個角色一組固定音色（基頻／波形／語速／氣音比），玩家靠聲音認人。不放音檔、台詞隨便加不用補錄。
+   音節數依台詞長度：每兩個字約一個音節，2~9 個。SKIP 或音效關閉時不播。全部【試玩必調】 */
+const VOICE_PROFILES={
+  qingmian:{f:150,type:"sawtooth",rate:11,breath:0.5}, /* 青面攤主：粗、快 */
+  hongyi:  {f:200,type:"triangle",rate:6, breath:1.0}, /* 紅衣婆婆：低啞、慢 */
+  duanshou:{f:250,type:"sine",    rate:8, breath:0.3}, /* 斷手書生：平穩清亮 */
+  shoujing:{f:270,type:"triangle",rate:7, breath:0.8}, /* 收驚婆：沙啞念咒 */
+  hunter:  {f:170,type:"square",  rate:10,breath:0.4}, /* 獵人：短促有力 */
+  xiaonv:  {f:520,type:"sine",    rate:9, breath:0.6}, /* 孝女白琴：尖細哭腔 */
+  lvshan:  {f:210,type:"sawtooth",rate:7, breath:0.4}, /* 閭山法師：沉、有威 */
+  zutou:   {f:310,type:"square",  rate:12,breath:0.3}, /* 大家樂組頭：快嘴 */
+  dangpu:  {f:130,type:"sine",    rate:5, breath:0.7}, /* 陰間當鋪：極低、慢 */
+  luzhu:   {f:280,type:"triangle",rate:8, breath:0.5}, /* 普渡爐主：溫厚 */
+};
+const VOICE_DEFAULT={f:240,type:"sine",rate:8,breath:0.5};
+function babble(p,txt){
+  if(SKIP||!sfxOn()||!p||!p.ai) return false;
+  const v=VOICE_PROFILES[p.roleId]||VOICE_DEFAULT;
+  const n=Math.max(2,Math.min(9,Math.round(((txt&&txt.length)||4)/2)));
+  return YS_SFX.play("babble",{rnd:S.rngUi(),n,f:v.f,type:v.type,rate:v.rate,breath:v.breath,gain:0.2});
 }
 /* ================= 回合與出價階段 ================= */
 /* ===== 可理解性層（2026-09-02 全遊戲審視批次）：開場三卡＋常駐規則頁，純呈現不動機制 ===== */
@@ -3876,8 +3900,11 @@ if(!SIM_MODE){
 }
 </script>
 <!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
-<script src="assets/audio/sfx.js"></script>
-<script src="assets/audio/bgm.js"></script>
+<!-- 資產腳本帶 VERSION 當快取鑰匙（2026-09-03 v0.26）：GitHub Pages 對每個檔各有 10 分鐘快取，
+     版本探針把 index.html 換新之後，sfx.js／bgm.js 若仍是舊快取，新加的音效會靜默失效（實測「no voice babble」）。
+     用 document.write 同步插入，載入順序與原本的靜態 tag 完全相同。js/renderer.js 是 module，
+     它內部 import 的檔案不受這個參數影響（module 快取以各自網址為鍵），3D 層改檔後仍要等 10 分鐘或手動重整。 -->
+<script>document.write('<script src="assets/audio/sfx.js?v='+VERSION+'"><\/script><script src="assets/audio/bgm.js?v='+VERSION+'"><\/script>');</script>
 <script type="module" src="js/renderer.js"></script>
 </body>
 </html>

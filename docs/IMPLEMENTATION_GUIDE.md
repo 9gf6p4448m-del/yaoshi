@@ -605,6 +605,8 @@ curl -s "https://9gf6p4448m-del.github.io/yaoshi/?_=$(date +%s)" | grep -o 'VERS
 
 **版本探針（2026-09-03，v0.25）**：GitHub Pages 對 `index.html` 送 `Cache-Control: max-age=600`，使用者 10 分鐘內重開拿到的是本機快取，會以為沒推上線（之前都靠丟 `?v=xx` 連結解決）。`checkForUpdate()` 在開頁 1.5 秒後與每次從背景切回前景時（節流 60 秒）用 `index.html?upd=<時間戳>` 抓線上版、比對 `VERSION` 字串，較新就亮 `#updBar`，點了 `location.replace(pathname+"?v="+新版)`。**單一事實來源仍是 `VERSION` 常數，改版必改它，探針才會亮。** headless 無 fetch，全程包在 typeof／try 裡；純演出層不耗 `S.rng`。驗法：頁面載入後 `window.fetch` 換成回傳 `VERSION="9.99"` 的假函式再呼叫 `checkForUpdate(true)`，條要亮；同版不得亮。
 
+**資產腳本的快取鑰匙（2026-09-03，v0.26）**：`sfx.js`／`bgm.js` 的 script tag 由 `document.write` 帶 `?v=VERSION` 插入。原因：版本探針把 index.html 換新後，這兩個檔仍吃各自的 10 分鐘快取，新加的音效會靜默失效（實測 `no voice babble`）。所以**改了 sfx.js／bgm.js 一定要一起 bump VERSION**，否則線上 10 分鐘內仍是舊檔。`js/renderer.js` 是 module，其內部 import 不受此參數影響——改 3D 層要等快取過期或使用者手動重整。
+
 ## 9. 待辦清單
 
 以下 5 項原樣帶自 `docs/ARCH_SPEC.md` §7「由此產生的待辦」，逐項註明該在做什麼內容時處理：
@@ -758,6 +760,8 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 **v0.24 追加（2026-09-03 晚）**：
 - **盯上頁的對手提示放底列 `#budget`，不放牌桌**：`markHintHTML(ap)` 印每隻活著 AI 的「頭像＋反應詞＋對你目前效果 %（＝你的信譽×100）」與一句依桌面組成的提示。放進 `#felt` 的預告框實測會在規則夜溢出 11–28px（收祟夜的規則說明本來就把框吃滿），底列在盯上階段是空的、出價階段被 `updateBudget` 整個覆蓋，零版面成本。**牌桌 #felt 在 844×390 已無高度預算，再加東西要先量。**
 - **G2′ 改成反事實量尺**（`tests/tools/mark-gate.mjs` 的 `runFair`）：mtop 與 mnone 出價完全相同、同種子，只差有沒有盯主標；掛 `onBidSettle` 純讀主標那件上「別人」的出價數，比值 ≤0.9（怯場桌）／≥1.1（搶標桌）。舊的「被盯 vs 未盯」量法混入「那件本來就最搶手」，已保留為沿革。G2′ 仍是活性檢查，放行看 G1′。
+
+**v0.26 妖語嘟囔聲（2026-09-03，使用者裁定甲：要語音但不要真人聲）**：`sfx.js` 新增 `babble` 樂器（每音節＝帶下滑的短音＋倍頻＋一小撮帶通噪音當子音；音節起伏由 rnd 種的 LCG 決定）；`index.html` 的 `VOICE_PROFILES` 給十個角色各一組 `{f,type,rate,breath}`，`sayFrom()` 冒對話框時呼叫 `babble(p,txt)`（音節數＝台詞字數÷2，2~9；SKIP／音效關／人類席不播；用 `S.rngUi`）。驗法：`YS_SFX.render('babble',{sec:2,rnd,n,f,type,rate,breath})` 離線渲染量 RMS>0（實測 0.02~0.026、峰 0.23），包 `YS_SFX.play` 計數確認 AI 說話才叫。兩次渲染有 3e-8 的浮點差，是節點加總順序，不是亂數。音色全【試玩必調】，在 `VOICE_PROFILES` 一行改一個角色。
 
 ### 11.14 v0.11 美術與音效層（2026-09-03）——接手前先知道這六件事
 
