@@ -188,7 +188,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 | 4 | `onBidCap` | `consCapFor():733` | `{p, cap}`（預設 `floor(life/CFG.CONS_CAP_DIV)`） | `ctx.cap`（保守標上限） | `p`（單一） |
 | 5 | `onBudget` | `budgetFor():728` | `{p, budget}`（預設 `p.life`） | `ctx.budget`（一輪出價總額上限） | `p`（單一） |
 | 6 | `onBidEff` | `resolveAuction():823` | `{p, bid, item, eff}`（預設 `eff=bid.amt`） | `ctx.eff`（比價用的有效值） | 出價者 `e.p`（單一） |
-| 7 | `onBidSettle` | `resolveAuction():839` | `{p, bid, item, isWinner, cost, events}` | `ctx.cost`（實付/退款金額），可 `ctx.events.push({txt})` | 出價者 `e.p`（單一） |
+| 7 | `onBidSettle` | `resolveAuction()`（用 `grep -n "onBidSettle",c` 定位） | `{p, bid, item, isWinner, cost, events, nBids, winner}` | `ctx.cost`（實付/退款金額），可 `ctx.events.push({txt})` | 出價者 `e.p`（單一） |
 | 8 | `onWinItem` | `resolveAuction():859` | `{winner, item, target, events}`（`target` 僅毒標時有值） | 直接改 `winner`/`target` 的欄位（如 `.bag`、`.life`），可 push `events` | **陣列** `[winner.p, target]` |
 | 9 | `onBattle` | `resolveBattles():893` | `{w, l, pw, pl, pwRaw, plRaw, extra, dmg}` | `ctx.dmg`，可 push `ctx.extra` | **陣列** `[w, l]` |
 | 10 | `onNightEnd` | `resolveBattles():904` | `{p, log}` | 直接改 `p.life`，可 push `ctx.log` | `p`（單一），且 `HOOK_ORDER.onNightEnd="itemsFirst"`——**道具先於角色**跑 |
@@ -703,8 +703,11 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 - **`pw`／`pl` 與 `pwRaw`／`plRaw` 不一樣**：`onBattle` 的 `pw`／`pl` 是含風位加成的結算戰力，
   而引擎保證 `w` 一定是 `pw > pl` 的那方——**所以用 `pw > pl` 判斷「我戰力比較高」永遠成立、
   永遠是廢條件**。要判斷「實際戰力較低卻靠風位加成獲勝」這類情境，**必須用 `pwRaw`／`plRaw`**。
-- **`S.bidWinner` 是過渡全域**：`onBidSettle` 的 ctx 沒有得標者，引擎用 `S.bidWinner` 暫存
-  （只在結算該件期間有值）。這是已知的 wart，見 `ARCH_SPEC.md` §9 待辦 4。
+- **本件得標者從 `ctx.winner` 讀**（2026-09-03 起）：`onBidSettle` 的 ctx 有 `winner` 欄位＝
+  本件拍品得標者的席位 id，**流標／無人得標時是 `null`**，所以讀它一定要先判 `null`。
+  現有兩個消費者：紅衣婆婆記仇（`ROLES.hongyi`）、孝女白琴抬價（`ROLES.xiaonv`）。
+  （舊版走 `S` 上的過渡全域欄位，`ARCH_SPEC.md` §9 待辦 4 已結案，那個欄位已從 `makeState` 移除——
+  看到舊筆記提到它的，一律以本條為準。）
 
 ### 11.3 哪些內容「已實作」、哪些只是「規格」
 

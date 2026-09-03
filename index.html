@@ -464,7 +464,7 @@ const ABILITIES = {
     hooks:{ onItemValue(ctx){
       if(ctx.item.curse && ctx.value<0) ctx.value=-Math.ceil(Math.abs(ctx.value)/2);
     } }},
-  wangchuan:{id:"wangchuan",name:"送王船",desc:"得標時，把你袋中一件詛咒品送給戰力最高的對手",
+  wangchuan:{id:"wangchuan",name:"送王船",desc:"入手此物時，把你袋中一件詛咒品送給戰力最高的對手",
     hooks:{ onWinItem(ctx){
       /* 現行行為＝只有「親自標下送王船並入袋」那一次才啟航（毒標塞人不算） */
       if(ctx.item.ab!=="wangchuan" || ctx.target) return;
@@ -642,7 +642,7 @@ const ROLES = {
     hooks:{
       onBidSettle(ctx){                              /* 被搶標 +1 */
         if(ctx.isWinner) return;
-        const w=S.bidWinner;
+        const w=ctx.winner;                          /* 本件得標者 id，沒人得標＝null（ARCH_SPEC §3.7） */
         if(w===null||w===undefined||w===ctx.p.id) return;
         ctx.p.grudge[w]=(ctx.p.grudge[w]||0)+1;
       },
@@ -756,7 +756,7 @@ const ROLES = {
         if(p._xnN>=3) return;                       /* 每夜最多觸發 3 次（規格） */
         p._xnN++;
         ctx.cost=Math.min(ctx.cost,CFG.BID_FEE);    /* 免除押命標落標失血；只降不升（覆核 N1） */
-        const w=S.bidWinner;                        /* 本件得標者（過渡全域，見 §8.6） */
+        const w=ctx.winner;                         /* 本件得標者 id，沒人得標＝null（ARCH_SPEC §3.7） */
         if(w!==null&&w!==undefined&&w!==p.id){
           S.players[w].life-=1;
           ctx.events.push({txt:`⚰️ ${p.name} 一路哭喪抬價——得標者 ${S.players[w].name} −1`,pid:p.id,typeLeak:true});
@@ -1501,7 +1501,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.18", VERSION_NOTE="法寶圖示與系別底色、12 格月相夜份、得標燈籠光、背景音樂層";
+const VERSION="0.19", VERSION_NOTE="說明頁補法寶疊加規則、送王船文案、移除過渡全域";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -1725,9 +1725,9 @@ function makeState(mode,seed,picks){
     deck:null, cdeck:null,
     players:seats.map(mkPlayer),
     wonAny:new Set(), bidAny:new Set(), humanBids:{},
-    /* lastWon：上一夜各家得標的陣營（青面攤主跟標用），每夜由 resolveAuction 覆蓋
-       bidWinner：開標結算「當件」的得標者 id，只在 onBidSettle 期間有值，其餘時間 null */
-    lastWon:{}, bidWinner:null, nightRule:null, event:null, bleedLog:[],
+    /* lastWon：上一夜各家得標的陣營（青面攤主跟標用），每夜由 resolveAuction 覆蓋。
+       （原本這裡還有 bidWinner 過渡全域，2026-09-03 已改成 onBidSettle 的 ctx.winner 欄位） */
+    lastWon:{}, nightRule:null, event:null, bleedLog:[],
   };
   S.history={life:[S.players.map(p=>p.life)],nights:[]}; /* 局末回顧：純記錄（不耗亂數、不改結算），見 GUIDE §11.13 */
   S.deck=shuffle([...POOL,...POOL].map(x=>({...x})));
@@ -2023,9 +2023,10 @@ function resolveAuction(){
       return top===null||c.eff>=top;
     })) S.ruleStat.multi++;
     const events=[];
-    /* 本件拍品的得標者 id，供 onBidSettle 期間查詢（「被誰搶走」這種狀態累積要用到，
-       而 onBidSettle 的 ctx 形狀是凍結的，不能加欄位——見 ARCH_SPEC §3.7／§8.6） */
-    S.bidWinner=winner?winner.p.id:null;
+    /* 本件拍品的得標者 id（沒人得標＝null），供 onBidSettle 期間查詢「被誰搶走」。
+       2026-09-03（ARCH_SPEC §9 待辦 4）：原本走 S 上的過渡全域欄位，已改為 ctx 的
+       additive 欄位——additive 加欄位不破壞既有 effect，且不必再讓讀取者知道有個全域。 */
+    const bidWinnerId=winner?winner.p.id:null;
     entries.forEach(e=>{
       const isWinner=(e===winner);
       /* 一注多押：非得標者只在「最後一件」收一次費，之前那幾件只比價、實付 0 */
@@ -2036,12 +2037,12 @@ function resolveAuction(){
          供「唯一出價者」類被動查詢；既有 effect 都不讀它，行為不變。成本公式未動。 */
       const c={p:e.p,bid:e,item:it,isWinner,
         cost:(isWinner?e.amt
-          :(e.type==="yaming"?Math.ceil(e.amt/2):Math.ceil(e.amt*CFG.CONS_LOSE_FRAC)))+CFG.BID_FEE, events, nBids:entries.length};
+          :(e.type==="yaming"?Math.ceil(e.amt/2):Math.ceil(e.amt*CFG.CONS_LOSE_FRAC)))+CFG.BID_FEE,
+        events, nBids:entries.length, winner:bidWinnerId};
       applyHooks("onBidSettle",c,e.p);
       e.p.life-=c.cost;
       e.cost=c.cost; /* 供開標演出顯示實付（simulate 不序列化 entries，不影響 trace） */
     });
-    S.bidWinner=null;
     /* 心願統計：押命標落標次數（在得標者確定後、不動結算本身） */
     entries.forEach(e=>{
       if(single&&stakeLast[e.p.id]!==i) return; /* 一注多押：一注只算一次落標 */
@@ -2438,6 +2439,10 @@ function openHelp(){
       `每局從下面 ${Object.keys(NIGHTRULES).length} 條抽 ${rlNights.length} 條配夜——那一夜<b>拍賣規則本身</b>被改寫，平常算好的價目表當夜作廢。${rlRows}`):""}
     ${sec("⚔ 結算戰",`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。`)}
     ${sec("🀄 風位與共鳴",`風位每夜輪轉：風位家戰力+${CFG.WIND_POWER}、出價平手時優先。同一系法寶集滿 ${CFG.SET_MIN} 件起，共鳴加戰力＝件數²。`)}
+    ${/* ARCH_SPEC §9 待辦 6：袋裡兩把同名法寶只生效一次（collectEffects 用 Set 去重），
+         這件事玩家在牌面上看不出來，必須寫在規則頁，否則會有人特地去湊第二把。
+         戰力（p 值）是每一件各自算的，只有「能力」不疊加——兩者要分清楚寫。 */""}
+    ${sec("🧧 法寶疊加規則",`同一系法寶的<b>戰力</b>每一件都算（所以湊同系仍然划算），但<b>能力</b>同名只生效一次——袋裡兩把「破軍旗」的能力不會變兩倍。想變強是集<b>不同</b>的法寶，不是收集同一件。`)}
     </div>
     <button class="bigbtn" style="margin-top:12px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
