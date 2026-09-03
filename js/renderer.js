@@ -8,6 +8,7 @@ import { createSceneEnv, resizeSceneEnv } from './scene-env.js';
 import { createIncenseSmoke, createEmbers } from './particles.js';
 import { createCharacterBillboards } from './characters-billboard.js';
 import { createPlayerBridge } from './bridge-players.js';
+import { createCameraDirector } from './camera-director.js';
 
 function createCanvas() {
   const canvas = document.createElement('canvas');
@@ -42,8 +43,9 @@ function init() {
   const { group: charGroup, sprites } = createCharacterBillboards();
   scene.add(charGroup);
   const playerBridge = createPlayerBridge(sprites, camera);
+  const director = createCameraDirector(camera, lanterns);
 
-  let lastOnTable = null;
+  let lastKind = undefined;
   let lastT = performance.now();
   let elapsed = 0;
   let running = true;
@@ -54,19 +56,22 @@ function init() {
     lastT = now;
     elapsed += dt;
 
-    // 燈籠光微微閃爍，避免死板的固定光源
+    // 運鏡與燈籠強調（開標打亮得標者、對決只留交手兩人）
+    const emphasis = director.update(dt, now);
+
+    // 燈籠光微微閃爍，避免死板的固定光源；再乘上導演給的強調係數
     lanterns.forEach((light, i) => {
-      light.intensity = 3.4 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.35;
+      light.intensity = (3.4 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.35) * emphasis[i];
     });
 
     smoke.update(dt, elapsed);
     embers.update(dt, elapsed);
-    // 只有牌桌畫面讓 3D 全亮；標題頁與各全螢幕場景把它壓暗，
+    // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
-    const onTable = playerBridge.update(now);
-    if (onTable !== lastOnTable) {
-      lastOnTable = onTable;
-      canvas.style.opacity = onTable ? '1' : '0.38';
+    const kind = playerBridge.update(now);
+    if (kind !== lastKind) {
+      lastKind = kind;
+      canvas.style.opacity = kind ? '1' : '0.38';
       canvas.style.transition = 'opacity .5s';
     }
 
@@ -84,6 +89,7 @@ function init() {
     }
   });
 
+  // 轉向或視窗變形時，導演下一次補間才會用到新的長寬比，先更新投影矩陣
   window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     resizeSceneEnv(camera, window.innerWidth / window.innerHeight);

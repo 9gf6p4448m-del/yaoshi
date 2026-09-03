@@ -77,6 +77,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #veil{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s;z-index:6;border-radius:16px}
 #veil.on{opacity:1}
 #duel{opacity:0;transition:opacity .3s}
+/* 對決時把網頁牌桌整個淡掉：#duel 的背景已經半透明，底下要露出的是 3D 舞台，
+   不是被模糊的座位卡（實測 scratchpad b2-duel.png 第一版就是那樣，3D 完全沒發揮）。 */
+#table.duelfade{opacity:0;transition:opacity .28s}
 #duel.on{opacity:1}
 .dmg{display:inline-block}
 .mark-stamp{position:absolute;right:-6px;top:-9px;width:28px;height:28px;z-index:4;pointer-events:none;
@@ -170,7 +173,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #skipbtn{position:absolute;top:6px;right:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);
   color:var(--dim);border-radius:8px;padding:2px 10px;font-size:11px;display:none;z-index:5}
 /* 對決場景 */
+/* 背景半透明：對決時鏡頭已切到貼桌面的低角度，這裡讓那個畫面透出來當舞台。
+   兩層都留：不支援 color-mix 的瀏覽器退回原本的不透明漸層，不會變成看不清楚。 */
 #duel{display:none;position:fixed;inset:0;z-index:40;background:radial-gradient(ellipse at 50% 45%,#31204f,#0d0a16);
+  background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,#31204f 62%,transparent),color-mix(in srgb,#0d0a16 78%,transparent));
   flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 #duelArena{display:flex;align-items:center;justify-content:center;gap:34px;width:100%}
 .fighter{text-align:center;transition:transform .35s}
@@ -1484,7 +1490,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.15", VERSION_NOTE="3D 環境層上線：面板透出妖市攤位桌與燈籠光";
+const VERSION="0.16", VERSION_NOTE="3D 運鏡：開標壓向桌心、對決切低角度、局末拉遠俯瞰";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2267,10 +2273,15 @@ function avHTML(p){ const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",
 /* 角色定義 → 頭像 HTML（選角、角色卡：固定紅潤） */
 function roleAvHTML(R){ return AVSVG[R.id]||R.av; }
 /* ===== 演出層輔助（只加減 class／style，不讀寫賽局欄位、不耗亂數；規格 art-integration-guide §5） ===== */
+/* 3D 運鏡事件（v0.16）：只從演出層發，引擎函式一律不發——headless 測試的 document 是 stub、
+   沒有 dispatchEvent，在引擎路徑上發事件會讓 playPolicyGame 直接炸。整包 try/catch，
+   3D 層沒載入時這裡是完全的空操作。接收端＝js/camera-director.js。 */
+function fx3d(name,detail){ try{ document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
 function veil(on){ const v=$("veil"); if(v) v.classList.toggle("on",!!on); }
 /* 開標後：得標者座位燈籠光、落標者（活著的）壓暗。座位卡由 renderSeats() 整個重畫時自然清掉；#south 在 renderSeats 裡手動清 */
 function revealGlow(r){
   if(!r||!r.winner) return;
+  fx3d("ys:reveal",{winner:r.winner.p.id}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
@@ -2370,6 +2381,7 @@ function openHelp(){
   $("modal").style.display="flex";
 }
 function beginRound(){
+  fx3d("ys:table"); /* 新的一夜：鏡頭回到牌桌俯視機位（局末拉遠後也靠這裡復位） */
   if(S.round===1&&!introSeen()){ showIntro(beginRoundCore); return; }
   beginRoundCore();
 }
@@ -2840,6 +2852,8 @@ async function startReveal(){
 async function playDuel(f){
   const ov=$("duel");
   ov.style.display="flex"; void ov.offsetWidth; ov.classList.add("on"); /* 切入：0.3s 淡入（§5.2） */
+  fx3d("ys:duel",{a:f.A.id,b:f.B.id}); /* 鏡頭切到看得見交手兩人的低角度 */
+  $("table").classList.add("duelfade"); /* 讓 3D 當舞台背景 */
   sfx("whoosh",{rnd:S.rngUi()});
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
@@ -2877,7 +2891,7 @@ async function playDuel(f){
     $("duelSub").innerHTML=fml+(f.extra.length?`　${f.extra.join("　")}`:"");
     await sleep(CFG.T*1.6);
   }
-  ov.classList.remove("on"); await sleep(300); /* 退場：反向淡出 */
+  ov.classList.remove("on"); fx3d("ys:duel-end"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }
 async function startBattle(){
@@ -2920,6 +2934,7 @@ function nextRound(){
   beginRound();
 }
 function endGame(){
+  fx3d("ys:end"); /* 鏡頭拉遠俯瞰整桌 */
   windStop();
   stripEndgameItems();
   finalizeHistory();

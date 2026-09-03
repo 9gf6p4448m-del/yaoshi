@@ -93,14 +93,17 @@ function worldPerPixel(camera, viewportH) {
   return (2 * SPRITE_DEPTH * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / viewportH;
 }
 
-/** 牌桌在不在前景：牌桌顯示中，且沒有任何全螢幕場景蓋在上面。 */
-function tableVisible() {
+/**
+ * 目前是哪一種畫面：'table'＝牌桌、'duel'＝對決、null＝標題頁或其他全螢幕場景。
+ * 對決也要 3D 全亮——那時網頁牌桌會淡出，3D 就是舞台背景，壓暗等於什麼都看不到。
+ */
+function sceneKind() {
   const table = document.getElementById('table');
-  if (!table || getComputedStyle(table).display === 'none') return false;
-  return !['duel', 'selectScr', 'handoff', 'review', 'sheet', 'modal'].some((id) => {
-    const el = document.getElementById(id);
-    return el && getComputedStyle(el).display !== 'none';
-  });
+  if (!table || getComputedStyle(table).display === 'none') return null;
+  const shown = (id) => { const el = document.getElementById(id); return el && getComputedStyle(el).display !== 'none'; };
+  if (shown('duel')) return 'duel';
+  if (['selectScr', 'handoff', 'review', 'sheet', 'modal'].some(shown)) return null;
+  return 'table';
 }
 
 export function createPlayerBridge(sprites, camera, assetsBase = 'assets/characters/') {
@@ -115,13 +118,14 @@ export function createPlayerBridge(sprites, camera, assetsBase = 'assets/charact
 
   function update(now) {
     const Y = api();
-    const visible = tableVisible();
+    const kind = sceneKind();
+    const visible = kind === 'table';
 
     // 牌桌不在前景（標題頁、選角、對決、回顧）就整組收起來，
     // 不然 3D 頭像會浮在全螢幕場景後面透出來，像鬼影。
     if (!visible || !Y || !Y.S || !Y.S.players) {
       seatSprites.forEach((sp, i) => { if (sp && shown[i]) { sp.visible = false; shown[i] = false; } });
-      return false;
+      return kind;
     }
 
     const players = Y.S.players;
@@ -167,7 +171,7 @@ export function createPlayerBridge(sprites, camera, assetsBase = 'assets/charact
       sp.scale.set(size, size, 1);
       if (!shown[i]) { sp.visible = true; shown[i] = true; }
     });
-    return true;
+    return kind;
   }
 
   return { update };
