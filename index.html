@@ -257,6 +257,14 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 <div id="rotateHint"><div class="ic">📱</div><div>請把手機<b style="color:var(--gold)">轉橫</b>進入妖市<br><span class="mut">深夜牌桌需要寬一點的視野</span></div></div>
@@ -3612,5 +3620,6 @@ if(!SIM_MODE){
 </script>
 <!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
 <script src="assets/audio/sfx.js"></script>
+<script type="module" src="js/renderer.js"></script>
 </body>
 </html>
