@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   font-size:14px;position:fixed;inset:0;width:100%;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 *{touch-action:manipulation} /* 連點任何位置都不觸發 double-tap zoom（試玩回饋：視窗上跳）；下行捲動容器另開 pan-y */
-#felt,#sheetbox,#modalbox{touch-action:pan-y}
+#felt,#sheetbox,#modalbox,#review,#selGrid{touch-action:pan-y}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -243,7 +243,8 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .rvSec{color:var(--gold);font-size:14px;margin:12px 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
 .rvChart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
 .rvChart svg{width:100%;height:auto;display:block}
-.rvLegend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;margin-top:4px}
+.rvLegend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;margin:0 0 6px}
+.rvChart .rvEnd{paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
 .rvLegend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px}
 .rvNight{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;overflow-wrap:anywhere}
 .rvHead{color:var(--gold);font-weight:bold;margin-bottom:3px}
@@ -1463,7 +1464,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.13", VERSION_NOTE="選角被動說明字級固定放大（不再靠瀏覽器自動放大）";
+const VERSION="0.14", VERSION_NOTE="本局回顧可觸控捲動＋壽命曲線線尾標名";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2930,16 +2931,22 @@ function showReview(){
   const H=S.history, P=S.players, sm=reviewSummary(), N=H.life.length-1;
   const short=id=>id==null?"—":`${DIRS[id]}・${P[id].name}`;
   /* 壽命曲線（inline SVG，viewBox 固定、寬度隨容器） */
-  const W=360,Hh=150,pl=28,pr=10,pt=10,pb=22;
+  const W=360,Hh=150,pl=28,pr=44,pt=10,pb=22; /* pr 留線尾標籤位 */
   const maxL=Math.max(1,...H.life.map(r=>Math.max(...r)));
   const xs=i=>pl+(N?i/N:0)*(W-pl-pr), ys=v=>pt+(1-v/maxL)*(Hh-pt-pb);
+  const humans=P.filter(p=>!p.ai).length, tails=[]; /* 線尾標籤 {x,y,id,dead} */
   const lines=P.map(p=>{
     const pts=[]; let dead=null;
     H.life.forEach((row,i)=>{ if(dead!==null) return; const v=row[p.id]; pts.push([xs(i),ys(Math.max(0,v))]); if(v<=0) dead=i; });
-    const last=pts[pts.length-1];
+    const last=pts[pts.length-1]; tails.push({x:last[0],y:last[1],id:p.id,dead:dead!==null});
     return `<polyline points="${pts.map(q=>q[0].toFixed(1)+","+q[1].toFixed(1)).join(" ")}" fill="none" stroke="${RV_COL[p.id]}" stroke-width="${p.ai?2:3}" stroke-linejoin="round"/>`
       +(dead!==null?`<text x="${last[0].toFixed(1)}" y="${(last[1]+4).toFixed(1)}" fill="${RV_COL[p.id]}" font-size="13" text-anchor="middle">✕</text>`:"");
   }).join("");
+  /* 線尾直接標名（09-03 試玩回饋：看不出哪條線是誰的）：y 相距 <12 的往下錯開，整組超出底邊就一起上移 */
+  tails.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<tails.length;i++) if(tails[i].y-tails[i-1].y<12) tails[i].y=tails[i-1].y+12;
+  const over=tails.length?tails[tails.length-1].y-(Hh-pb-4):0; if(over>0) tails.forEach(t=>t.y-=over);
+  const ends=tails.map(t=>`<text class="rvEnd" x="${(t.x+(t.dead?7:4)).toFixed(1)}" y="${(t.y+4).toFixed(1)}" fill="${RV_COL[t.id]}" font-size="11" font-weight="bold">${DIRS[t.id]}${(!P[t.id].ai&&humans===1)?"・你":""}</text>`).join("");
   const grid=[0,Math.round(maxL/2),maxL].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${ys(v).toFixed(1)}" y2="${ys(v).toFixed(1)}" stroke="rgba(255,255,255,.12)"/><text x="${pl-4}" y="${(ys(v)+4).toFixed(1)}" fill="var(--dim)" font-size="10" text-anchor="end">${v}</text>`).join("");
   const xl=H.life.map((_,i)=>`<text x="${xs(i).toFixed(1)}" y="${Hh-6}" fill="var(--dim)" font-size="10" text-anchor="middle">${i===0?"入市":i}</text>`).join("");
   const legend=P.map(p=>`<span><i style="background:${RV_COL[p.id]}"></i>${short(p.id)}${p.alive?"":"（出局）"}</span>`).join("");
@@ -2965,7 +2972,7 @@ function showReview(){
   $("reviewbox").innerHTML=`<div class="rvTop"><h2>本局回顧</h2><button class="bigbtn alt" style="height:34px;padding:0 14px" onclick="closeReview()">關閉</button></div>
     <div class="rvTiles">${tiles}</div>
     <div class="rvSec">壽命曲線（${N} 夜）</div>
-    <div class="rvChart"><svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg">${grid}${xl}${lines}</svg><div class="rvLegend">${legend}</div></div>
+    <div class="rvChart"><div class="rvLegend">${legend}</div><svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg">${grid}${xl}${lines}${ends}</svg></div>
     <div class="rvSec">逐夜得標</div>${nights}
     <div class="rvSec">心願回顧</div>${wishes}`;
   $("review").style.display="block"; $("review").scrollTop=0;
@@ -3593,10 +3600,12 @@ function initSimTool(){
 }
 if(SIM_MODE) initSimTool();
 else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine"); if(vl) vl.textContent=`v${VERSION}・${VERSION_NOTE}`; }
-/* 固定視窗：頁面本體不許被手勢拖動，只有桌面中央/抽屜/袋子清單可捲（iOS 防拉走）——sim 工具頁需要自由捲動，跳過 */
+/* 固定視窗：頁面本體不許被手勢拖動，只有可捲容器內放行（iOS 防拉走）——sim 工具頁需要自由捲動，跳過
+   放行名單＝本檔所有 overflow-y:auto 容器（2026-09-03 grep 分母 5 個：#felt #selGrid #sheetbox #modalbox #review）；
+   新增捲動容器要一併加進這裡與上方 touch-action:pan-y 那行——v0.13 回顧場景漏加，手機上整份回顧捲不動 */
 if(!SIM_MODE){
   document.addEventListener("touchmove",e=>{
-    if(!e.target.closest("#felt,#sheetbox,#modalbox")) e.preventDefault();
+    if(!e.target.closest("#felt,#sheetbox,#modalbox,#review,#selGrid")) e.preventDefault();
   },{passive:false});
   document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
 }
