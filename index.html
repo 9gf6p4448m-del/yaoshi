@@ -477,6 +477,10 @@ const CFG = {
   RULE_NIGHTS:[3,7], /* 固定觸發夜（前一夜耳語預告）；刻意避開異事夜 4／8／11 與第 1 夜、末夜【試玩必調】 */
   RULE_FORCE:null,   /* 測試／模擬專用：非 null 時所有規則夜都出這個 id（rng 消耗與隨機排程相同）；正常遊戲恆 null */
   LUOPO_FRAC:1,      /* 落魄夜：落標付「出價 × 本值」（1＝全付；不含買路錢，買路錢照收）【試玩必調】 */
+  /* 《紙紮夜戰》三拍自動戰（卷 A，2026-09-03；驗收凍結見 scratchpad/acceptance-paperwar-A.md）
+     PAPERWAR_ON=false＝kill switch：完全走舊的「戰力比較」路徑，trace 與 fed244f 逐位元組相等。 */
+  PAPERWAR_ON: false, /* 2026-09-03 併入主線時預設關：卷 A 閘門 A4/A5/A6/A7 未過（AI 仍用舊眼睛估價），卷 D 調校完、閘門過了才開 */
+  PW_MAX: 8, PW_MIN: 2, /* 敗方扣壽命＝clamp(ceil(燒掉比例×PW_MAX), PW_MIN, PW_MAX)【使用者裁定，不得自調】 */
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
@@ -1519,35 +1523,62 @@ function traitMax(p,key,base){
   for(const e of collectEffects(p)) if(e.traits && e.traits[key]>v) v=e.traits[key];
   return v;
 }
+/* unit＝《紙紮夜戰》卷 A 的紙紮數值（body 由使用者裁定的對應表固定、不得改；count/atk/hp 是實作數值，可調）。
+   trait 只放字串 id，效果全部寫在下面的 TRAITS 一張表裡（不要把效果散進這 27 件）。
+   ward／haunt 的 count/atk/hp 規格未指定，由實作決定：它們是「站在中軍／後陣的紙紮」，
+   有身體（會被燒、算隻數）但不出手（atk 0）。詛咒品不召喚（見 buildArmy）。 */
 const POOL = [
-  {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓"},
-  {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護"},
-  {n:"巴冷公主珠鍊",f:"zuling",p:6,d:"人蛇之戀的琉璃信物"},
-  {n:"祖靈之眼",f:"zuling",p:5,ab:"eye",d:"注視子孫的山林之眼"},
-  {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火"},
-  {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟"},
-  {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙"},
-  {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈"},
-  {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人"},
-  {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令"},
-  {n:"王爺劍",f:"xianghuo",p:6,ab:"sword",d:"代天巡狩的斬瘟之劍"},
-  {n:"送王船",f:"xianghuo",p:6,ab:"wangchuan",d:"載走瘟神的燒王船"},
-  {n:"千里眼銅鈴",f:"xianghuo",p:5,ab:"bell",d:"望盡千里的預示銅鈴"},
-  {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗"},
-  {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印"},
-  {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰"},
-  {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮"},
-  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣"},
-  {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽"},
-  {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪"},
-  {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅"},
-  {n:"黃色小雨衣",f:"yinqi",p:5,ab:"raincoat",d:"雨夜裡跟在你身後"},
-  {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的"},
-  {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音"},
-  {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見"},
-  {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話"},
-  {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命"},
+  {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓",unit:{body:"elite",count:1,atk:9,hp:10}},
+  {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護",unit:{body:"ward",count:1,atk:0,hp:8,trait:"wardHpFront2"}},
+  {n:"巴冷公主珠鍊",f:"zuling",p:6,d:"人蛇之戀的琉璃信物",unit:{body:"elite",count:1,atk:8,hp:8}},
+  {n:"祖靈之眼",f:"zuling",p:5,ab:"eye",d:"注視子孫的山林之眼",unit:{body:"ward",count:1,atk:0,hp:7,trait:"wardFirst"}},
+  {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火",unit:{body:"elite",count:1,atk:7,hp:7,trait:"boltGamble"}},
+  {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟",unit:{body:"swarm",count:3,atk:1,hp:2}},
+  {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙",unit:{body:"swarm",count:2,atk:2,hp:2}},
+  {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈",unit:{body:"elite",count:1,atk:8,hp:9}},
+  {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人",unit:{body:"ward",count:1,atk:0,hp:6,trait:"wardHpAll1"}},
+  {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令",unit:{body:"ward",count:1,atk:0,hp:9,trait:"wardAtkAll1"}},
+  {n:"王爺劍",f:"xianghuo",p:6,ab:"sword",d:"代天巡狩的斬瘟之劍",unit:{body:"elite",count:1,atk:8,hp:8}},
+  {n:"送王船",f:"xianghuo",p:6,ab:"wangchuan",d:"載走瘟神的燒王船",unit:{body:"ward",count:1,atk:0,hp:8,trait:"wardAbsorb4"}},
+  {n:"千里眼銅鈴",f:"xianghuo",p:5,ab:"bell",d:"望盡千里的預示銅鈴",unit:{body:"ward",count:1,atk:0,hp:7,trait:"wardImmuneLost"}},
+  {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗",unit:{body:"swarm",count:3,atk:1,hp:2}},
+  {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印",unit:{body:"elite",count:1,atk:6,hp:6,trait:"biteGamble"}},
+  {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:1,atk:0,hp:6,trait:"wardHpFirst3"}},
+  {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮",unit:{body:"ward",count:1,atk:0,hp:5,trait:"wardRegen1"}},
+  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:1}},
+  {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽",unit:{body:"haunt",count:4,atk:0,hp:8,trait:"hauntLost"}},
+  {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntSteal"}},
+  {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntSee"}},
+  {n:"黃色小雨衣",f:"yinqi",p:5,ab:"raincoat",d:"雨夜裡跟在你身後",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntDread1"}},
+  {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntSwap"}},
+  {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音",unit:{body:"elite",count:1,atk:6,hp:6}},
+  {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見",unit:{body:"swarm",count:2,atk:1,hp:2}},
+  {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntFearX2"}},
+  {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命",unit:{body:"swarm",count:2,atk:1,hp:1}},
 ];
+/* 戰鬥特性表（單一事實來源）：引擎只讀下面這些「效果欄位」，不比對 trait id 字串（鐵則 2.4）。
+   hpFront 前鋒全體 hp＋／hpAll 全體（含護法作祟）hp＋／hpFirst 前鋒首隻 hp＋／atkAll 全體 atk＋／
+   absorb 本拍吸收傷害／regen 每拍回血／
+   first 一拍先手／immuneLost 免疫迷途／bolt 天雷賭注機率／bite,biteDmg 反咬賭注／
+   lost 迷途／steal 偷命／gang 圍毆額外／dread 恐懼對群體額外扣攻／swap 抓交替／fearMul 恐懼倍率 */
+const TRAITS = {
+  wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"一拍：前鋒全體 hp+2",hpFront:2},
+  wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"一拍：全體 hp+1（含護法、作祟）",hpAll:1},
+  wardFirst:{id:"wardFirst",name:"祖靈先手",desc:"一拍：本方前鋒先結算",first:true},
+  wardAtkAll1:{id:"wardAtkAll1",name:"令旗改陣",desc:"二拍：本方全體 atk+1",atkAll:1},
+  wardAbsorb4:{id:"wardAbsorb4",name:"送王船",desc:"二拍：吸收對面本拍首 4 點傷害",absorb:4},
+  wardImmuneLost:{id:"wardImmuneLost",name:"千里眼",desc:"本方免疫迷途",immuneLost:true},
+  wardHpFirst3:{id:"wardHpFirst3",name:"香灰符",desc:"二拍：前鋒首隻 hp+3",hpFirst:3},
+  wardRegen1:{id:"wardRegen1",name:"福壽綿長",desc:"每拍回 1 hp 給最傷的一隻",regen:1},
+  boltGamble:{id:"boltGamble",name:"天雷",desc:"一拍開始 15% 燒掉對面 1 隻小兵",bolt:0.15},
+  biteGamble:{id:"biteGamble",name:"虎爺反咬",desc:"被擊中時 15% 反咬 3 點",bite:0.15,biteDmg:3},
+  hauntLost:{id:"hauntLost",name:"迷途",desc:"三拍：對面 1 隊不出手（對精英無效）",lost:true},
+  hauntSteal:{id:"hauntSteal",name:"偷命",desc:"三拍結束時敗方另 −1 壽命",steal:1},
+  hauntSee:{id:"hauntSee",name:"看穿",desc:"本方圍毆額外 +1",gang:1},
+  hauntDread1:{id:"hauntDread1",name:"恐懼",desc:"三拍：對面群體再 −1 atk",dread:1},
+  hauntSwap:{id:"hauntSwap",name:"抓交替",desc:"三拍：燒掉對面 1 隻小兵、本方也燒 1 隻",swap:true},
+  hauntFearX2:{id:"hauntFearX2",name:"恐懼加倍",desc:"三拍：恐懼倍率 ×2",fearMul:2},
+};
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
   {n:"魔神仔的芭樂",f:"curse",p:0,d:"每輪結束失血 1",curse:true,drain:1},
@@ -1565,7 +1596,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.28.4", VERSION_NOTE="背景時徹底關閉音訊系統，回前景重建（iPhone 主畫面多次開啟後沒聲音）";
+const VERSION="0.29", VERSION_NOTE="《紙紮夜戰》三拍自動戰引擎併入（預設關閉，卷 D 調校完再開）";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1902,6 +1933,8 @@ function makeState(mode,seed,picks){
   /* 異事排程（EVENT_ON=false 零 rng 消耗——kill switch）：洗牌決定各觸發夜出哪樁異事 */
   S.eventOrder=CFG.EVENT_ON?shuffle(Object.keys(EVENTS)).slice(0,CFG.EVENT_NIGHTS.length):[];
   S.debts={}; /* 陰間放貸的跨夜還款排程（夜末攤還於 resolveBattles） */
+  /* 《紙紮夜戰》活性統計（A9）：純記錄，不耗亂數、不改任何結算；PAPERWAR_ON=false 時全程不會有人往裡面寫 */
+  S.pwStat={fights:0,burn:{},dmg:{},gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0};
   return S;
 }
 function newGame(mode,seed,picks){
@@ -2260,6 +2293,284 @@ function resolveAuction(){
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;}});
   return reveal;
 }
+/* ================= 《紙紮夜戰》三拍自動戰引擎（卷 A，2026-09-03） =================
+   規格：docs/proposals/2026-09-03-paper-war.md §2；驗收凍結 acceptance-paperwar-A.md。
+   paperWar(A,B,ctx) 是純函式：只讀兩人的 bag 與 ctx（風位、月相、rng），不寫 S、不改玩家欄位；
+   勝負與扣血算完後交回 resolveBattles 跑既有的 onBattle hooks（bow/shield/hairpin/nail…全部保留）。
+   亂數紀律：只有雷女之火（天雷 15%）與虎爺印（反咬 15%）走 ctx.rng（＝S.rng），其餘零亂數；
+   決定性：同種子同輸入同結果。CFG.PAPERWAR_ON=false 時本段一次都不會被呼叫。
+   非疊加慣例：側面效果（先手／吸收／恐懼倍率／看穿／偷命／迷途／抓交替）一律取最大值一次，
+   與 has() 的「同名法寶不疊加」同語意（GUIDE §2.5）；天雷／反咬是「每一隻紙紮自己的賭注」，逐隊擲。 */
+
+/* 月相表：12 夜 ↔ assets/ui/night-indicator.svg 的 12 格。引擎與 #feltHead 同讀這一張（單一事實來源）。 */
+const PHASES = {
+  shuo :{id:"shuo", name:"朔月",icon:"🌑",fac:"yinqi"},
+  shang:{id:"shang",name:"上弦",icon:"🌓",fac:"zuling"},
+  wang :{id:"wang", name:"望月",icon:"🌕",fac:"xianghuo"},
+  xia  :{id:"xia",  name:"下弦",icon:"🌗",fac:null},
+};
+/* 夜 1／12 朔月、2–5 上弦、6–8 望月、9–11 下弦（索引 0 不用） */
+const PHASE_NIGHTS=[null,"shuo","shang","shang","shang","shang","wang","wang","wang","xia","xia","xia","shuo"];
+function phaseFor(round){ return PHASES[PHASE_NIGHTS[(((((round|0)-1)%12)+12)%12)+1]]||PHASES.xia; }
+/* 三拍對應的系別：一拍・撞＝祖靈、二拍・護＝香火、三拍・祟＝陰氣 */
+const BEAT_FAC=["zuling","xianghuo","yinqi"];
+const BEAT_NAME=["一拍・撞","二拍・護","三拍・祟"];
+/* #feltHead 與戰報共用的月相字串（UI 與引擎不得各寫一份） */
+function phaseText(round){
+  const ph=phaseFor(round);
+  return `${ph.icon} ${ph.name}：${ph.fac?`${FAC[ph.fac].n}拍 +1`:"三拍無增幅"}`;
+}
+
+/* 袋子 → 紙紮陣。詛咒品不召喚、只記件數（每件讓本方前鋒全體 atk −1）；
+   沒有任何可上場的紙紮（空袋／全詛咒）＝肉身 1 隻 atk1 hp3。 */
+/* 沒有 unit 欄位的法寶（測試治具、卷 B 還沒配數值的新貨）：由 p 推一組預設紙紮，
+   讓引擎對任何資料都跑得動——不必每加一件內容就回頭改引擎（鐵則 2.4 的同一個理由）。
+   p≥6 推精英（貴貨＝一隻大妖），p<6 推護法身（便宜貨＝擋刀的紙人，不出手）。 */
+function pwDefaultUnit(it){
+  const p=Math.max(0,it.p|0);
+  return p>=6?{body:"elite",count:1,atk:p+2,hp:p+2}:{body:"ward",count:1,atk:0,hp:p+5};
+}
+function buildArmy(bag){
+  const teams=[]; let curses=0;
+  for(const x of (bag||[])){
+    if(x.curse){ curses++; continue; }
+    const u=x.unit||pwDefaultUnit(x); if(!u) continue;
+    const t={idx:teams.length,fac:x.f,body:u.body,tr:(u.trait&&TRAITS[u.trait])||null,units:[]};
+    for(let i=0;i<(u.count|0);i++)
+      t.units.push({t:t.idx,body:u.body,atk:u.atk|0,hp:u.hp|0,max:u.hp|0,pend:0,alive:true});
+    teams.push(t);
+  }
+  if(!teams.some(t=>t.units.length)){
+    const t={idx:teams.length,fac:null,body:"swarm",tr:null,units:[]};
+    t.units.push({t:t.idx,body:"swarm",atk:1,hp:3,max:3,pend:0,alive:true});
+    teams.push(t);
+  }
+  return {teams,curses};
+}
+function pwSide(p){
+  const a=buildArmy(p.bag);
+  const units=[]; a.teams.forEach(t=>t.units.forEach(u=>units.push(u)));
+  return {p,teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false};
+}
+/* 特性查詢：引擎只問「有沒有這個效果欄位」，不比對 trait id 字串（鐵則 2.4） */
+const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
+const pwAny=(sd,k)=>sd.teams.some(t=>t.tr&&t.tr[k]);
+const pwAliveN=sd=>sd.units.reduce((n,u)=>n+(u.alive?1:0),0);
+const pwHpSum=sd=>sd.units.reduce((s,u)=>s+(u.alive?u.hp:0),0);
+const pwSwarmN=sd=>sd.units.reduce((n,u)=>n+(u.alive&&u.body==="swarm"?1:0),0);
+const pwHasHaunt=sd=>sd.teams.some(t=>t.body==="haunt"&&t.units.some(u=>u.alive));
+/* 前鋒＝會上場交鋒的紙紮（群體／精英／肉身）；護法與作祟站中軍後陣，不吃「前鋒」加成 */
+const pwFront=u=>u.body==="swarm"||u.body==="elite";
+function pwBurn(u,sd){ if(!u.alive) return false; u.alive=false; u.hp=0; u.pend=0; sd.burned++; return true; }
+function pwLowest(sd,swarmOnly){
+  let best=null;
+  for(const u of sd.units){
+    if(!u.alive) continue;
+    if(swarmOnly&&u.body!=="swarm") continue;
+    if(!best||u.hp<best.hp) best=u;
+  }
+  return best;
+}
+function pwMostHurt(sd){
+  let best=null;
+  for(const u of sd.units){
+    if(!u.alive||u.hp>=u.max) continue;
+    if(!best||(u.max-u.hp)>(best.max-best.hp)) best=u;
+  }
+  return best;
+}
+/* 目標：hp 最高者（扣掉本拍已分配的傷害），回傳前兩名（濺射用）。同值取先出現者。 */
+function pwTopTwo(foe){
+  let a=null,ar=0,b=null,br=0;
+  for(const u of foe.units){
+    if(!u.alive) continue;
+    const rem=u.hp-u.pend; if(rem<=0) continue;
+    if(!a||rem>ar){ b=a; br=ar; a=u; ar=rem; }
+    else if(!b||rem>br){ b=u; br=rem; }
+  }
+  return [a,b];
+}
+/* 傷害入帳（送王船：吸收對面本拍首 N 點） */
+function pwDeal(tgt,foe,amt){
+  if(amt<=0) return 0;
+  if(foe.absorb>0){ const k=Math.min(foe.absorb,amt); foe.absorb-=k; amt-=k; }
+  if(amt<=0) return 0;
+  tgt.pend+=amt; return amt;
+}
+/* 一次攻擊：入帳後判定虎爺印反咬（賭注，走 rng） */
+function pwStrike(att,sd,tgt,foe,amt,env){
+  pwDeal(tgt,foe,amt);
+  const tt=foe.teams[tgt.t];
+  if(tt.tr&&tt.tr.bite&&env.rng()<tt.tr.bite){
+    pwDeal(att,sd,tt.tr.biteDmg|0);
+    env.stats.bite++; env.log.push(`🐯 虎爺印反咬 ${tt.tr.biteDmg} 點`);
+  }
+}
+/* 該拍開場：回血 → 該系 ward 的靜態加成 → 算本拍的側面 atk 修正 */
+function pwPrep(beat,fac,sd,env){
+  const rg=pwMax(sd,"regen");
+  if(rg){ const u=pwMostHurt(sd); if(u){ u.hp=Math.min(u.max,u.hp+rg); env.stats.regen++; } }
+  for(const t of sd.teams){
+    if(t.fac!==fac||!t.tr) continue;
+    if(t.tr.hpFront) for(const u of sd.units){ if(u.alive&&pwFront(u)){ u.max+=t.tr.hpFront; u.hp+=t.tr.hpFront; } }
+    if(t.tr.hpAll) for(const u of sd.units){ if(u.alive){ u.max+=t.tr.hpAll; u.hp+=t.tr.hpAll; } }
+    if(t.tr.hpFirst){ const u=sd.units.find(x=>x.alive&&pwFront(x)); if(u){ u.max+=t.tr.hpFirst; u.hp+=t.tr.hpFirst; } }
+  }
+  if(beat===2) sd.absorb=pwMax(sd,"absorb");
+  let m=0;
+  const k=sd.teams.filter(t=>t.fac===fac).length;   /* 同陣協同：同一拍出手的同系隊伍每多一隊 +1 */
+  if(k>1) m+=k-1;
+  if(beat===2) m+=pwMax(sd,"atkAll");               /* 媽祖令旗：本方全體 atk+1 */
+  if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
+  m-=sd.curses;                                     /* 詛咒纏身 */
+  sd.mod=m;
+}
+/* 一拍開場的賭注：雷女之火 15% 天雷燒掉對面 1 隻小兵 */
+function pwBolt(sd,foe,env){
+  for(const t of sd.teams){
+    if(!t.tr||!t.tr.bolt||!t.units.some(u=>u.alive)) continue;
+    if(env.rng()<t.tr.bolt){
+      const v=pwLowest(foe,true);
+      if(v&&pwBurn(v,foe)){ env.stats.bolt++; env.log.push(`⚡ 天雷燒掉 ${foe.p.name} 一隻小兵`); }
+    }
+  }
+}
+/* 三拍開場的作祟：迷途、抓交替（恐懼在 pwPass、偷命在勝負之後） */
+function pwHaunt(sd,foe,env){
+  if(pwAny(sd,"lost")&&!pwAny(foe,"immuneLost")){
+    let best=null,bn=0;
+    for(const t of foe.teams){
+      if(t.body!=="swarm") continue;                /* 迷途對精英無效 */
+      const n=t.units.reduce((c,u)=>c+(u.alive?1:0),0);
+      if(n>0&&n>bn){ best=t; bn=n; }
+    }
+    if(best){ foe.lost=best.idx; env.stats.lost++; env.log.push(`🎭 迷途：${foe.p.name} 一隊三拍不出手`); }
+  }
+  if(pwAny(sd,"swap")){
+    const e=pwLowest(foe,true);
+    if(e&&pwBurn(e,foe)){
+      const m=pwLowest(sd,false); if(m) pwBurn(m,sd);
+      env.stats.swap++; env.log.push(`💧 抓交替：兩邊各燒 1 隻`);
+    }
+  }
+}
+/* 一側出手一次（對面名冊在本拍開始時固定，傷害入 pend、拍末一起結算） */
+function pwPass(sd,foe,beat,fac,phase,env){
+  let fear=null;
+  if(beat===3&&pwHasHaunt(foe)){
+    fear={f:pwSwarmN(sd)*(pwMax(foe,"fearMul")||1),dread:pwMax(foe,"dread")};
+    if(fear.f>0||fear.dread>0) env.stats.fear++;
+  }
+  const gang=1+pwMax(sd,"gang");                    /* 圍毆（椅仔姑看穿再 +1） */
+  const hits=new Map();                             /* 集火計數：整側共用，跨隊也算同一目標 */
+  for(const t of sd.teams){
+    if(t.body==="ward"||t.body==="haunt") continue; /* haunt／ward 不攻擊 */
+    if(beat===3&&sd.lost===t.idx) continue;         /* 迷途：這一隊三拍不出手 */
+    for(const u of t.units){
+      if(!u.alive) continue;
+      let a=u.atk+sd.mod;
+      if(phase&&phase.fac===fac&&t.fac===fac) a+=1; /* 月相：該拍本方同系隊伍 atk+1 */
+      if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
+      if(a<=0) continue;
+      const tt=pwTopTwo(foe), t1=tt[0], t2=tt[1];
+      if(!t1) return;                               /* 對面已無可打的目標 */
+      let d=a;
+      if(t.body==="swarm"){
+        const k2=(hits.get(t1)||0)+1; hits.set(t1,k2);
+        if(k2===2||k2===3){ d+=gang; env.stats.gang++; }  /* 對同一目標第 2、3 次攻擊各 +1 */
+      }
+      pwStrike(u,sd,t1,foe,d,env);
+      if(t.body==="elite"&&t2){ pwStrike(u,sd,t2,foe,Math.floor(a/2),env); env.stats.splash++; }
+    }
+  }
+}
+function pwSettle(sd){
+  for(const u of sd.units){
+    if(!u.alive){ u.pend=0; continue; }
+    if(u.pend>0){ u.hp-=u.pend; u.pend=0; if(u.hp<=0){ u.alive=false; u.hp=0; sd.burned++; } }
+  }
+}
+/* 一次交鋒：雙方同時結算；祖靈之眼（一拍先手）時該側先打、對面先燒完再還手 */
+function pwClash(beat,fac,X,Y,phase,env){
+  const fx=(beat===1&&pwAny(X,"first")), fy=(beat===1&&pwAny(Y,"first"));
+  if(fx&&!fy){ pwPass(X,Y,beat,fac,phase,env); pwSettle(Y); pwPass(Y,X,beat,fac,phase,env); pwSettle(X); }
+  else if(fy&&!fx){ pwPass(Y,X,beat,fac,phase,env); pwSettle(X); pwPass(X,Y,beat,fac,phase,env); pwSettle(Y); }
+  else { pwPass(X,Y,beat,fac,phase,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X); pwSettle(Y); }
+}
+/* 主入口：ctx={rng, phase（phaseFor 的一筆或 null）, windId（風位席位 id 或 null）} */
+function paperWar(A,B,ctx){
+  ctx=ctx||{};
+  const rng=ctx.rng||(()=>0.5);
+  const phase=ctx.phase||null;
+  const windId=(ctx.windId===undefined)?null:ctx.windId;
+  const X=pwSide(A), Y=pwSide(B);
+  X.wind=(windId!=null&&A.id===windId); Y.wind=(windId!=null&&B.id===windId);
+  const env={rng,log:[],stats:{gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0}};
+  for(let beat=1;beat<=3;beat++){
+    const fac=BEAT_FAC[beat-1];
+    X.absorb=0; Y.absorb=0; X.lost=-1; Y.lost=-1;
+    pwPrep(beat,fac,X,env); pwPrep(beat,fac,Y,env);
+    if(beat===1){ pwBolt(X,Y,env); pwBolt(Y,X,env); }
+    if(beat===3){ pwHaunt(X,Y,env); pwHaunt(Y,X,env); }
+    pwClash(beat,fac,X,Y,phase,env);
+  }
+  const aX=pwAliveN(X), aY=pwAliveN(Y), hX=pwHpSum(X), hY=pwHpSum(Y);
+  /* 勝負：剩餘隻數 → 剩餘 hp 總和 → 風位優先 → 仍平＝沿用現行 tie 路徑（勢均力敵、互不失血）。
+     最後一關刻意不擲 S.rng：驗收凍結檔同時要求「除了雷女／虎爺的 15%，引擎零亂數」，
+     而 resolveBattles 現行的 tie 路徑本來就是「不分勝負、不扣血」，兩條合起來就是這裡的寫法。 */
+  let win=null;
+  if(aX!==aY) win=(aX>aY)?X:Y;
+  else if(hX!==hY) win=(hX>hY)?X:Y;
+  else if(X.wind) win=X;
+  else if(Y.wind) win=Y;
+  if(!win) return {
+    winner:null, loser:null, dmg:0, tie:true,
+    burnedA:X.burned, burnedB:Y.burned, unitsA:X.n0, unitsB:Y.n0,
+    aliveA:aX, aliveB:aY, hpA:hX, hpB:hY, phase:phase?phase.id:null,
+    log:env.log, stats:env.stats,
+  };
+  const lose=(win===X)?Y:X;
+  /* 扣血：敗方燒掉比例 × PW_MAX，夾在 [PW_MIN, PW_MAX] */
+  let dmg=Math.ceil((lose.n0?lose.burned/lose.n0:0)*CFG.PW_MAX);
+  dmg=Math.max(CFG.PW_MIN,Math.min(CFG.PW_MAX,dmg));
+  const steal=pwAny(win,"steal")?pwMax(win,"steal"):0;   /* 偷命：三拍結束時敗方另 −1 */
+  if(steal){ dmg+=steal; env.stats.steal+=steal; env.log.push(`🪡 偷命：${lose.p.name} 另 −${steal}`); }
+  return {
+    winner:win.p, loser:lose.p, dmg,
+    burnedA:X.burned, burnedB:Y.burned, unitsA:X.n0, unitsB:Y.n0,
+    aliveA:aX, aliveB:aY, hpA:hX, hpB:hY, phase:phase?phase.id:null,
+    log:env.log, stats:env.stats,
+  };
+}
+/* 閘門治具（A1／A2／A6）：用同一支引擎跑「兩個人造袋子」的一對一，回甲方勝率。
+   引擎本身是決定性的，所以每個 seed 抽一組「夜份（決定月相）＋風位」當外部條件——
+   那正是真實牌局裡這兩袋會遇到的條件空間；opt.round／opt.wind 可固定其中一項（A6 逐月相用）。
+   opt.wind：undefined＝依 seed 抽（甲／乙／無／無，對應 4 人 2 場的風位分布）、null＝無風位、0/1＝固定。 */
+function duelBags(bagA,bagB,seeds,opt){
+  opt=opt||{};
+  const list=Array.isArray(seeds)?seeds:Array.from({length:seeds||1000},(_,i)=>i+1);
+  const A={id:0,name:"甲",bag:bagA}, B={id:1,name:"乙",bag:bagB};
+  const stats={gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0};
+  const dmgs={}, burns={};
+  let winA=0, winB=0, ties=0;
+  for(const s of list){
+    const rng=mulberry32(s>>>0);
+    const round=opt.round||(1+Math.floor(rng()*CFG.ROUNDS));
+    let wid;
+    if(opt.wind===undefined){ const w=Math.floor(rng()*4); wid=(w===0)?0:(w===1?1:null); }
+    else wid=opt.wind;
+    const r=paperWar(A,B,{rng,phase:phaseFor(round),windId:wid});
+    if(r.winner===A) winA++; else if(r.winner===B) winB++; else ties++;
+    for(const k in stats) stats[k]+=r.stats[k]||0;
+    dmgs[r.dmg]=(dmgs[r.dmg]||0)+1;
+    burns[r.burnedA]=(burns[r.burnedA]||0)+1; burns[r.burnedB]=(burns[r.burnedB]||0)+1;
+  }
+  /* rateA＝甲勝／總場（平手算沒贏）；rateDecided＝甲勝／有勝負的場（不計平手，兩袋同歸於盡時用這個看三角） */
+  return {n:list.length,winA,winB,ties,
+    rateA:list.length?winA/list.length:0,
+    rateDecided:(winA+winB)?winA/(winA+winB):0,
+    stats,dmgs,burns};
+}
 function pairings(ids,round){
   const list=[...ids]; if(list.length%2)list.push(null);
   const m=list.length; if(m<2)return{pairs:[],bye:ids[0]??null};
@@ -2280,19 +2591,32 @@ function resolveBattles(){
   pairs.forEach(([a,b])=>{
     const A=S.players[a],B=S.players[b];
     const pa=battlePower(A),pb=battlePower(B);
-    if(pa===pb){fights.push({A,B,pa,pb,tie:true});return;}
+    /* 《紙紮夜戰》：PAPERWAR_ON 時改由三拍自動戰決勝負與傷害，power() 只留給 UI 當行情顯示。
+       其餘（onBattle hooks、心願統計、extLoss）全部照舊走下面同一條路。 */
+    let war=null;
+    if(CFG.PAPERWAR_ON){
+      war=paperWar(A,B,{rng:S.rng,phase:phaseFor(S.round),windId:windPid(S.round)});
+      if(S.pwStat){ /* 活性統計（A9）：純記錄 */
+        const T=S.pwStat; T.fights++;
+        T.burn[war.burnedA]=(T.burn[war.burnedA]||0)+1; T.burn[war.burnedB]=(T.burn[war.burnedB]||0)+1;
+        T.dmg[war.dmg]=(T.dmg[war.dmg]||0)+1;
+        for(const k in war.stats) T[k]=(T[k]||0)+war.stats[k];
+      }
+      if(!war.winner){ fights.push({A,B,pa,pb,tie:true,war}); return; } /* 勢均力敵：沿用現行 tie 路徑 */
+    }else if(pa===pb){ fights.push({A,B,pa,pb,tie:true}); return; }
     const paRaw=power(A), pbRaw=power(B);
-    const [w,l,pw,pl,pwRaw,plRaw]=pa>pb?[A,B,pa,pb,paRaw,pbRaw]:[B,A,pb,pa,pbRaw,paRaw];
-    const extra=[];
-    const ctx={w,l,pw,pl,pwRaw,plRaw,extra,
-      dmg:CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor((pw-pl)/CFG.DMG_DIV))};
+    const aWin=war?(war.winner===A):(pa>pb);
+    const [w,l,pw,pl,pwRaw,plRaw]=aWin?[A,B,pa,pb,paRaw,pbRaw]:[B,A,pb,pa,pbRaw,paRaw];
+    const extra=war?[...war.log]:[];
+    const ctx={w,l,pw,pl,pwRaw,plRaw,extra,war,
+      dmg:war?war.dmg:(CFG.DMG_BASE+Math.min(CFG.DMG_MAX,Math.floor((pw-pl)/CFG.DMG_DIV)))};
     applyHooks("onBattle",ctx,[w,l]);
     const dmg=ctx.dmg;
     l.life-=dmg;
     if(S.wishNight) S.wishNight.extLoss[l.id]=(S.wishNight.extLoss[l.id]||0)+dmg; /* 東窗血光：非自願失血 */
     if(S.wishNight) S.wishNight.battleWin.add(w.id); /* 心願統計：本夜結算戰勝者 */
     if(S.wishNight) S.wishNight.dmgDealt[w.id]=(S.wishNight.dmgDealt[w.id]||0)+dmg; /* 心願統計：造成的傷害（大獲全勝） */
-    fights.push({A,B,pa,pb,w,l,dmg,extra});
+    fights.push({A,B,pa,pb,w,l,dmg,extra,war});
   });
   const nightly=[];
   S.players.forEach(p=>{
@@ -2383,7 +2707,9 @@ function recordNightEnd(fights,bye,deaths){
   if(!S.history) return;
   const H=S.history.nights[S.history.nights.length-1];
   if(H&&H.round===S.round&&!H.closed){
-    H.fights=fights.map(f=>({a:f.A.id,b:f.B.id,pa:f.pa,pb:f.pb,tie:!!f.tie,w:f.w?f.w.id:null,dmg:f.dmg||0}));
+    /* war＝《紙紮夜戰》燒掉隻數（PAPERWAR_ON 才有）：局末回顧的「燒掉 x/y 隻」口徑 */
+    H.fights=fights.map(f=>({a:f.A.id,b:f.B.id,pa:f.pa,pb:f.pb,tie:!!f.tie,w:f.w?f.w.id:null,dmg:f.dmg||0,
+      ...(f.war?{war:{ba:f.war.burnedA,bb:f.war.burnedB,ua:f.war.unitsA,ub:f.war.unitsB}}:{})}));
     H.bye=bye==null?null:bye;
     H.wishes=S.players.filter(p=>p.wish).map(p=>({pid:p.id,id:p.wish.id,done:!!p.wish.done}));
     H.deaths=deaths.map(p=>p.id);
@@ -2442,6 +2768,7 @@ function renderSeats(hlIds){
   $("feltHead").innerHTML=(nb?`<span id="nightbar" title="第 ${S.round}/${CFG.ROUNDS} 夜">${nb}</span>`
                              :`<span>第 ${S.round}/${CFG.ROUNDS} 夜・</span>`)
     +`<span>${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`
+    +`${CFG.PAPERWAR_ON?`・${phaseText(S.round)}`:""}`  /* 月相增幅（公開資訊，與引擎同讀 PHASES 表） */
     +`${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`
     +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}</span>`;
   if(nb) renderNights(S.round);
@@ -3315,7 +3642,11 @@ async function startBattle(){
   for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
   for(const d of deaths){sfx("death");bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);await sleep(CFG.T*0.7);}
   if(bye===null&&!nightly.length&&!deaths.length)bz.innerHTML=`<div class="mut" style="padding:2px 0">本夜無其他異動</div>`;
-  for(const f of fights) bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）`}</div>`);
+  /* 對決結果字串：《紙紮夜戰》改成「燒掉 x/y 隻」口徑——扣幾分自帶解釋（草案 §2.6） */
+  const burnTxt=f=>{ if(!f.war) return ""; const lA=f.l===f.A;
+    return `　🔥 ${f.l.name} 燒掉 ${lA?f.war.burnedA:f.war.burnedB}/${lA?f.war.unitsA:f.war.unitsB} 隻`
+         + `・${f.w.name} 燒掉 ${lA?f.war.burnedB:f.war.burnedA}/${lA?f.war.unitsB:f.war.unitsA} 隻`; };
+  for(const f of fights) bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）${burnTxt(f)}`}</div>`);
   if(NLIFE0) S.players.filter(p=>!p.ai).forEach(p=>{
     const a=NLIFE0[p.id]; if(a===undefined) return;
     const d=p.life-a;
@@ -3404,7 +3735,7 @@ function showReview(){
     ${n.marks.length?`<div class="rvLine mut">👁 盯上：${n.marks.map(m=>`${short(m.pid)}→${m.item}`).join("　")}</div>`:""}
     ${n.auction.map(a=>`<div class="rvItem"><span class="rvChip ${(FAC[a.fac]||{}).cls||""}">${(FAC[a.fac]||{}).n||a.fac}</span><b>${a.item}</b>${a.curse?"":`（${a.p}）`} — ${a.winnerId==null?'<span class="mut">流標</span>':`${short(a.winnerId)} ${a.amt} ${RV_TYPE[a.type]||""}${a.intent==="poison"?` 毒標→${short(a.targetId)}`:a.curse?" 買下銷毀":""}`}
       ${a.bids.length?`<div class="rvBids">出價：${a.bids.map(b=>`${short(b.pid)} ${b.amt}${RV_TYPE[b.type]||""}${b.intent==="poison"?"毒":""}${b.cost!=null?`（付 ${b.cost}）`:""}`).join("／")}</div>`:""}</div>`).join("")}
-    ${n.fights.length?`<div class="rvLine">⚔ ${n.fights.map(f=>f.tie?`${short(f.a)} ${Math.round(f.pa)} vs ${short(f.b)} ${Math.round(f.pb)} 平手`:`${short(f.w)} 勝 ${short(f.w===f.a?f.b:f.a)} −${f.dmg}`).join("　")}${n.bye!=null?`　${short(n.bye)} 輪空`:""}</div>`:""}
+    ${n.fights.length?`<div class="rvLine">⚔ ${n.fights.map(f=>f.tie?`${short(f.a)} ${Math.round(f.pa)} vs ${short(f.b)} ${Math.round(f.pb)} 平手`:`${short(f.w)} 勝 ${short(f.w===f.a?f.b:f.a)} −${f.dmg}${f.war?`（燒 ${f.w===f.a?`${f.war.bb}/${f.war.ub}`:`${f.war.ba}/${f.war.ua}`} 隻）`:""}`).join("　")}${n.bye!=null?`　${short(n.bye)} 輪空`:""}</div>`:""}
     ${n.deaths.length?`<div class="rvLine" style="color:var(--red)">☠ ${n.deaths.map(short).join("、")} 出局</div>`:""}
   </div>`).join("")||'<div class="mut" style="font-size:12px">本局沒有完成任何一夜拍賣</div>';
   /* 心願回顧 */
@@ -4002,6 +4333,8 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
+  /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy,
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
