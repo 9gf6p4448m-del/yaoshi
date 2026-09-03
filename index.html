@@ -219,6 +219,36 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #duelResult{margin-top:14px;font-size:16px;min-height:26px;text-align:center}
 #duelResult .dmg{font-size:20px;font-weight:bold}
 #duelSub{color:var(--dim);font-size:12px;margin-top:4px;min-height:18px;text-align:center}
+/* 受擊停格（v0.27）：整頁的 CSS 動畫與轉場一起凍住，3D 那半邊由 ys:hitstop 事件把 dt 歸零。
+   只停「播放狀態」，不改任何版面屬性，所以解凍後動畫接著原來的進度跑完，不會跳。 */
+body.hitstop *, body.hitstop *::before, body.hitstop *::after{
+  animation-play-state:paused!important; transition:none!important}
+/* fxBurn 的燒燬（v0.27 積木庫）：焦邊→整個燒亮→縮成灰。時間由 --burn-ms 帶進來，
+   紙紮夜戰要燒紙紮人時直接對那個元素叫 fxBurn()，不必再寫一份 keyframes。 */
+.anim-burn{animation:burnAway var(--burn-ms,620ms) ease-in forwards}
+@keyframes burnAway{
+  0%{filter:none;transform:none;opacity:1}
+  28%{filter:brightness(1.5) sepia(.5) drop-shadow(0 0 10px #f0a840);transform:scale(1.03)}
+  62%{filter:brightness(2.1) sepia(.9) drop-shadow(0 0 18px #f06020);transform:scale(.98) rotate(-1.5deg);opacity:.85}
+  100%{filter:brightness(.3) sepia(1) blur(3px);transform:scale(.86) translateY(10px) rotate(-3deg);opacity:0}}
+/* 新增 keyframes 要跟著進 reduced-motion 清單（art-integration-guide §6 第 5 條）。
+   theme.css 那份清單管既有的 .anim-*，本檔新增的就寫在本檔，跟 keyframes 放同一處。 */
+@media (prefers-reduced-motion: reduce){ .anim-burn{animation-duration:1ms!important} }
+/* 對決立體站姿（v0.27）：3D 層真的跑起來時（html.ys3d，由 js/renderer.js 掛上），
+   對決場景的平貼 SVG 頭像收掉，換成 js/duel-figures.js 的加厚 billboard，
+   免得同一張臉在同一個畫面出現兩次。3D 沒載入就維持原樣（驗收 J8）。
+   .fav 不能直接 display:none——那樣兩欄會往中間塌、名字與戰力位置整個變，
+   保留它的高度當成 3D 人形的佔位框。 */
+html.ys3d #duelArena .fav{visibility:hidden;height:172px}
+html.ys3d #duel{background:radial-gradient(ellipse at 50% 45%,rgba(49,32,79,.34),rgba(13,10,22,.6))}
+/* 3D 版的碰撞閃光要收斂：原本整片 #fff 開 .85，疊上 bloom 與人形逆光之後整格泛白，
+   火星與人臉全被洗掉（實測 scratchpad duel-844-3-spark.png 第一版）。改成中央亮、
+   邊緣透的暖光，峰值降到 .5、時間縮到 .26s——閃的是「打擊點」，不是整個螢幕。 */
+html.ys3d #duel .flashfx{background:radial-gradient(ellipse at 50% 42%,#fff 0%,#ffd9a0 34%,rgba(255,170,70,0) 70%)}
+html.ys3d #duel .flashfx.on{animation:flash3d .26s}
+@keyframes flash3d{0%{opacity:.5}100%{opacity:0}}
+html.ys3d .fighter .fnm{text-shadow:0 2px 8px #000,0 0 3px #000}
+html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 /* 熱座交棒 */
 #handoff{display:none;position:fixed;inset:0;z-index:50;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
@@ -1535,7 +1565,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.27.2", VERSION_NOTE="修 iPhone 主畫面版沒聲音：音訊工作階段改用三招喚醒";
+const VERSION="0.28", VERSION_NOTE="對決大作化：受擊停格、火星四濺、鏡頭撞進去、燈籠發光的夜霧廟埕";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2461,6 +2491,83 @@ function renderNights(cur){
    沒有 dispatchEvent，在引擎路徑上發事件會讓 playPolicyGame 直接炸。整包 try/catch，
    3D 層沒載入時這裡是完全的空操作。接收端＝js/camera-director.js。 */
 function fx3d(name,detail){ try{ document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
+/* ═══════════ 演出積木（v0.27 批 1）═══════════
+   這一段是「效果的零件庫」，不是對決專用的一段時間軸——每個 fx* 都可以在任何時點
+   重複呼叫、彼此獨立、參數化力道與顏色。對決（playDuel）只是第一個組裝它們的地方；
+   下一卷《紙紮夜戰》要把對決改成三拍制時，是在每一拍各呼叫一次這些積木，
+   不必回頭改這裡。**新的演出效果請加成新的 fx* 積木，不要焊進某條時間軸裡。**
+
+   共同規矩：① SKIP 快轉一律略過（或壓到 300ms 內）② 只加減 class／發事件，
+   不讀寫任何賽局欄位、不耗亂數 ③ 3D 沒載入時 fx3d 是空操作，DOM 那半邊照樣成立。
+
+   數值全部【試玩必調】，集中在 FX 這一張表。 */
+const FX={
+  HITSTOP_MS:70,        /* 受擊停格多久（規格 50–100ms） */
+  PUNCH:1,              /* 鏡頭 punch 的預設力道倍率 */
+  IMPACT:1,             /* 命中噴發的預設力道倍率 */
+  LUNGE:1,              /* 交手者撞擊位移的預設力道倍率 */
+  BURN_MS:620,          /* fxBurn 一次燒燬的長度 */
+  POWER_MIN:0.7, POWER_MAX:1.6, POWER_DMG:6, /* 傷害值→力道倍率的換算 */
+};
+/* 三系（＋詛咒＋燈籠）的火星顏色鍵；實際色碼在 js/particles.js 的 SPARK_COLOR，
+   兩邊用同一組鍵值，顏色只有那一份（防分岔）。 */
+const FX_FAC=["zuling","xianghuo","yinqi","curse","lantern"];
+/* 傷害值→力道倍率。夾在 POWER_MIN..POWER_MAX 之間，免得 0 傷害沒感覺、爆擊震到暈。 */
+function fxPower(dmg){ return Math.max(FX.POWER_MIN,Math.min(FX.POWER_MAX,(dmg||0)/FX.POWER_DMG+FX.POWER_MIN)); }
+/* 【積木】停格：整個畫面凍住 ms 毫秒。DOM 動畫靠 body.hitstop 的 animation-play-state 停、
+   3D 靠 ys:hitstop 把那一段的 dt 歸零。用 setTimeout 排程（不是 busy-wait）。
+   回傳 Promise，呼叫端 await 完才噴後續效果。 */
+function fxHitstop(ms){
+  if(SKIP) return Promise.resolve();
+  const d=Math.max(0,(ms===undefined?FX.HITSTOP_MS:ms)|0);
+  try{ document.body.classList.add("hitstop"); }catch(e){}
+  fx3d("ys:hitstop",{ms:d});
+  return new Promise(r=>setTimeout(()=>{
+    try{ document.body.classList.remove("hitstop"); }catch(e){}
+    fx3d("ys:hitstop",{ms:0});
+    r();
+  }, d));
+}
+/* 【積木】鏡頭 punch：往前撞一下再 easeOutCubic 回位（幅度與回位時間在 camera-director）。 */
+function fxPunch(strength){ if(SKIP) return; fx3d("ys:fx-punch",{power:strength===undefined?FX.PUNCH:strength}); }
+/* 【積木】命中噴發：pos＝世界座標 [x,y,z]（不給＝畫面中央胸口高度），fac＝FX_FAC 的鍵，
+   strength＝力道倍率。粒子池在 js/particles.js，一次呼叫噴一批。 */
+function fxImpact(pos,fac,strength){
+  if(SKIP) return;
+  fx3d("ys:fx-impact",{pos:pos||null,fac:FX_FAC.indexOf(fac)>=0?fac:"lantern",power:strength===undefined?FX.IMPACT:strength});
+}
+/* 【積木】交手者撞擊位移：勝方往中央撞、敗方往外退（3D 人形）。座位 id 進、力道倍率進。 */
+function fxLunge(winnerId,loserId,strength){
+  if(SKIP) return;
+  fx3d("ys:fx-lunge",{w:winnerId,l:loserId,power:strength===undefined?FX.LUNGE:strength});
+}
+/* 【積木】全螢幕白光。sel＝要閃的那個元素 id（預設對決場的 #flashfx）。 */
+function fxFlash(id){
+  if(SKIP) return;
+  const fx=$(id||"flashfx"); if(!fx) return;
+  fx.classList.remove("on"); void fx.offsetWidth; fx.classList.add("on");
+}
+/* 【積木】燒燬：把一個 DOM 元素燒掉（焦邊→發亮→化成灰），同時在 3D 噴一批同色灰燼。
+   紙紮夜戰要燒的是紙紮人，這裡先做成「給我一個元素我就燒給你看」的通用零件。
+   回傳 Promise，燒完才 resolve；SKIP 時直接跳過（元素狀態不動）。 */
+function fxBurn(el,opts){
+  if(SKIP) return Promise.resolve();
+  const o=opts||{}, ms=Math.max(0,(o.ms===undefined?FX.BURN_MS:o.ms)|0);
+  const node=typeof el==="string"?$(el):el;
+  fxImpact(o.pos,o.fac||"xianghuo",o.power===undefined?0.75:o.power);
+  if(!node) return new Promise(r=>setTimeout(r,ms));
+  node.style.setProperty("--burn-ms",ms+"ms");
+  node.classList.remove("anim-burn"); void node.offsetWidth; node.classList.add("anim-burn");
+  return new Promise(r=>setTimeout(()=>{ node.classList.remove("anim-burn"); r(); }, ms));
+}
+/* 這一夜的哪一系在發光：取某人袋中最多的那一系（純讀，不寫回、不耗亂數），
+   命中噴發的火星就用那個顏色。袋子空的話退回燈籠色。 */
+function fxFacOf(p){
+  if(!p||!p.bag||!p.bag.length) return "lantern";
+  const c={}; let best=null;
+  for(const x of p.bag){ const f=x.curse?"curse":x.f; if(!f) continue; c[f]=(c[f]||0)+1; if(!best||c[f]>c[best])best=f; }
+  return best||"lantern";
+}
 function veil(on){ const v=$("veil"); if(v) v.classList.toggle("on",!!on); }
 /* 開標後：得標者座位燈籠光、落標者（活著的）壓暗。座位卡由 renderSeats() 整個重畫時自然清掉；#south 在 renderSeats 裡手動清 */
 function revealGlow(r){
@@ -3155,8 +3262,15 @@ async function playDuel(f){
     /* 碰撞：重新觸發入場那支 clash keyframe（45%→60% 段互推），380ms 後正好撞上、閃光 */
     for(const [id,c] of [["dL","anim-clash-left"],["dR","anim-clash-right"]]){ const el=$(id); el.classList.remove(c); void el.offsetWidth; el.classList.add(c); }
     await sleep(380);
+    /* ── 受擊那一拍：停格 → 噴效果。這裡只是「按順序叫積木」，
+       三拍制上線時就是把這五行複製成三段、各給不同力道，不必改積木本身。 ── */
+    const pw=fxPower(f.dmg);
+    await fxHitstop();                     /* 全畫面停格（3D 與 DOM 一起凍） */
+    fxPunch(pw);                           /* 鏡頭撞進去再回位 */
+    fxImpact(null,fxFacOf(f.w),pw);        /* 命中點噴火星，顏色取勝方主系 */
+    fxLunge(f.w.id,f.l.id,pw);             /* 3D 人形：勝方前撞、敗方後仰 */
     sfx("cymbal",{rnd:S.rngUi()});
-    const fx=$("flashfx");fx.classList.remove("on");void fx.offsetWidth;fx.classList.add("on");
+    fxFlash();                             /* 全螢幕白光 */
     const loserEl=f.l===f.A?$("dL"):$("dR");
     loserEl.classList.remove("anim-clash-left","anim-clash-right"); /* 同一元素一次只能跑一支 animation，讓位給 shake */
     loserEl.classList.add("shake");

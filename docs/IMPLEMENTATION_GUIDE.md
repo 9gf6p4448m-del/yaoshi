@@ -725,6 +725,39 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.16 對決大作化 批 1（2026-09-03，v0.27）——接手前先知道這七件事
+
+規格＝派工「對決場景大作化 批 1」五件（hitstop／撞擊粒子／鏡頭 punch／bloom＋夜霧／立體站姿）。
+3D 層的紀律仍以 `docs/art-integration-guide.md` §5.2、§6 為準，這裡只放接手最容易踩的。
+
+1. **演出效果是「積木」，不是對決專用的一段時間軸**（使用者 2026-09-03 追加要求）：
+   `index.html` 的 `fxHitstop(ms)`／`fxPunch(力道)`／`fxImpact(pos,系別,力道)`／`fxLunge(勝,敗,力道)`／
+   `fxFlash(id)`／`fxBurn(元素,{ms,fac,pos})` 各自獨立、可重複呼叫、參數化。`playDuel` 只是**第一個**
+   組裝它們的地方（`grep -n "await fxHitstop"`）。下一卷《紙紮夜戰》要改三拍制，就是在每一拍
+   各叫一次這幾個積木，**不要回頭把效果焊進 playDuel 的時間軸**。數值集中在 `FX` 這張表，全部【試玩必調】。
+2. **積木與 3D 之間只靠事件**：`ys:hitstop{ms}`（renderer 把該段 dt 歸零）／`ys:fx-punch{power}`（camera-director）／
+   `ys:fx-impact{pos,fac,power}`（particles 的噴發池）／`ys:fx-lunge{w,l,power}`（duel-figures）。
+   事件名刻意不含「duel」，因為它們跟對決無關。發事件的仍然只有既有那四支演出函式。
+3. **hitstop 不是 busy-wait**：`fxHitstop` 加 `body.hitstop`（CSS `animation-play-state:paused`）＋發事件，
+   用 `setTimeout` 排程。SKIP 快轉時整組略過（實測：SKIP 下 hitstop 區間數＝0、punch／噴發／lunge 事件都不發）。
+4. **人形是可換皮的**：`js/duel-figures.js` 只透過 `{group, shadow, setPortrait, setCloth, setRim, ready}`
+   這組介面操作人形。要換成別種呈現（紙紮多層剪影貼片）就寫一個新工廠回傳同樣這幾個成員，
+   用 `createDuelFigures(scene, camera, { makeFigure: 你的工廠 })` 傳進來，其餘程式碼一行不動。
+   袍子色是從角色 SVG 的 `--cloth` 讀出來的，**不要另建一張色表**。
+5. **尺寸一律用 CSS 像素換算，不要用世界單位**：`FIG.pixelH`（人形）與 renderer 的 `fxScale()`（火花）
+   都把「畫面高度」換算成世界單位。寫死世界單位的話，390px 高的手機剛好、828px 高的桌機會變成
+   兩個巨人把名字擋掉（實測 `scratchpad/duel-1268-2-hitstop.png` 第一版）。人形的水平位置也是
+   對齊 DOM 的 `#dL`／`#dR` 欄位中心算出來的，改對決版面時它會自己跟上。
+6. **bloom 是自製的，不是 UnrealBloomPass**（`js/bloom.js`）：addons 那支在 SwiftShader 上兩支 program
+   直接連結失敗、console 冒兩個 `THREE.WebGLProgram: Shader Error`（自製版換成 RawShaderMaterial 之後
+   仍在軟體 GL 上失敗，那是「把場景畫進 render target」這條路的問題，不是 shader 寫法）。
+   所以 `renderer.js` 有一道 `bloomOK` 閘門：GPU 名稱像軟體光柵（SwiftShader／llvmpipe）就整個不開 bloom，
+   退回直接 render。**驗收「console 0 error」要在真實 GPU 上跑**（headless Playwright 預設是 SwiftShader）。
+   bloom 只在對決場景開，牌桌與標題頁走原本的直接 render——這是「手機效能」與「牌桌畫面不變」兩條的作法。
+7. **霧改成 `FogExp2`，密度分兩段**（`scene-env.js` 的 `FOG_DENSITY`，renderer 每幀往目標補間）：
+   牌桌 0.055 刻意保守、對決 0.115 才是夜霧。線香煙在對決會壓到 22%（對決機位貼著桌面，
+   煙會從鏡頭前飄過去糊住兩張臉）。**牌桌那一段的數字動了就要重看 J7 的牌桌對照。**
+
 ### 11.15 盯上信譽（2026-09-03，v0.21）——接手前先知道這幾件事
 
 規格＝`docs/GAME_DESIGN.md` §5.8 規則 3（虛張稅拿掉）與規則 7（信譽），狀態欄位＝`ARCH_SPEC.md` §4 的 `S.cred`。

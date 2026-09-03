@@ -42,7 +42,7 @@ function api() {
 }
 
 /** 抓角色 SVG 原始碼，快取一份。抓不到回 null，呼叫端保留現有貼圖。 */
-async function loadSvgText(roleId, assetsBase) {
+export async function loadSvgText(roleId, assetsBase = 'assets/characters/') {
   if (svgCache.has(roleId)) return svgCache.get(roleId);
   const Y = api();
   const file = Y && Y.CHAR_SVG ? Y.CHAR_SVG[roleId] : null;
@@ -61,8 +61,9 @@ async function loadSvgText(roleId, assetsBase) {
 /**
  * 取某角色某氣色的貼圖。氣色的作法與 index.html 的 avHTML() 相同：
  * 把 SVG 根節點的 state-healthy 換成當前狀態的 class，讓 SVG 內建的三態樣式生效。
+ * 對外匯出給 duel-figures.js 共用同一份快取與同一套三態規則（防分岔）。
  */
-async function getTexture(roleId, state, assetsBase) {
+export async function getTexture(roleId, state, assetsBase = 'assets/characters/') {
   const key = `${roleId}:${state}`;
   if (texCache.has(key)) return texCache.get(key);
   const raw = await loadSvgText(roleId, assetsBase);
