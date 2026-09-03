@@ -152,6 +152,13 @@
     /* 已安裝哪幾首（給探針與回報用） */
     installed() { return Object.keys(TRACKS).filter(k => READY[k]); },
 
+    /* 音訊系統被徹底關閉時（sfx.release 走 ctx.close()）要跟著丟掉綁在舊 ctx 上的東西：bus、正在播的 source、解碼快取。
+       下次 play() 會用新的 ctx 重新 _ensure＋重新解碼（檔案有 HTTP 快取，重解一首 60 秒約幾十毫秒）。 */
+    reset() {
+      try { if (this._cur && this._cur.src) this._cur.src.stop(); } catch (e) {}
+      this._cur = null; this.scene = null; this.ctx = null; this._bus = null; this._buf = {}; this._miss = {};
+      if (this.onChange) this.onChange(false);
+    },
     stop() {
       const ctx = this.ctx; if (!ctx) { this.scene = null; return; }
       this._fadeOutCur(ctx.currentTime);

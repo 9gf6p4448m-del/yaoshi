@@ -190,7 +190,10 @@
        類別改回 auto；回到前景由 unlock() 重新取得。呼叫端：index.html 的 pagehide／visibilitychange。 */
     release() {
       try { if (this._kick) { this._kick.pause(); } } catch (e) {}
-      try { if (this.ctx && this.ctx.state === "running") { const p = this.ctx.suspend(); if (p && p.catch) p.catch(() => {}); this.released = (this.released || 0) + 1; } } catch (e) {}
+      /* v0.28.4：暫停不夠——iOS 對同時存在的 AudioContext 有硬上限，每開一次就漏一個，先擠掉音樂再擠掉全部
+         （實測：第 1、2 次有聲、第 3 次沒 BGM、第 4 次全沒）。改成 close() 徹底釋放，回前景由 _ensure 建全新的。 */
+      try { const c = this.ctx; if (c && c.state !== "closed") { const p = c.close(); if (p && p.catch) p.catch(() => {}); this.released = (this.released || 0) + 1; } } catch (e) {}
+      this.ctx = null; this._master = null;
       this._session("auto");
     },
     _ensure() {

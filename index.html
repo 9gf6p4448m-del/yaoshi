@@ -1565,7 +1565,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.28.3", VERSION_NOTE="切到背景會把音訊工作階段還給 iOS，重開才拿得回來";
+const VERSION="0.28.4", VERSION_NOTE="背景時徹底關閉音訊系統，回前景重建（iPhone 主畫面多次開啟後沒聲音）";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1603,7 +1603,7 @@ try{
 /* 切到背景／關閉：停音樂與風聲、歸還音訊工作階段（見 sfx.js release 的註解）。回前景 audioWake 會重新拿。 */
 let AUDIO_LAST_SCENE=null; /* 歸還前記住音樂場景（YS_BGM.stop 會把 scene 清空），回前景由 audioWake 接回 */
 function audioRelease(){
-  try{ if(typeof YS_BGM!=="undefined"){ if(YS_BGM.scene) AUDIO_LAST_SCENE=YS_BGM.scene; YS_BGM.stop(); } }catch(e){}
+  try{ if(typeof YS_BGM!=="undefined"){ if(YS_BGM.scene) AUDIO_LAST_SCENE=YS_BGM.scene; YS_BGM.reset(); } }catch(e){}
   try{ if(typeof windStop==="function") windStop(); }catch(e){}
   try{ if(typeof YS_SFX!=="undefined") YS_SFX.release(); }catch(e){}
 }
