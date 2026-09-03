@@ -450,6 +450,20 @@ startBtn.addEventListener("click", () => { YS_SFX.unlock(); /* ...原本的開�
 
 ---
 
+### 9.6 安裝紀錄（2026-09-03，v0.27）
+
+四首已安裝、`READY` 全 true。來源＝Flow Music 八首（曲名對應見 `docs/bgm-prompts.md` 生成紀錄），加工腳本 `docs/experiments/2026-09-03-bgm-make.sh`（ffmpeg：第 30 秒起取 60 秒、首尾 4 秒 half-sine 等功率交叉淡接、量 LUFS 後套增益＋限幅 `alimiter=limit=0.79:level=0`、AAC 80k）。
+
+| 場景 | 檔案 | 來源 take | 響度 | 峰值 |
+|---|---|---|---|---|
+| title | `bgm/title.m4a` | Lantern-Lit Night Market | −15.0 LUFS | −0.1 dBFS |
+| market | `bgm/market.m4a` | Tense Underscore (Take 1) | −18.1 LUFS | −1.8 dBFS |
+| duel | `bgm/duel.m4a` | Ritual Luogu | −14.7 LUFS | −1.1 dBFS |
+| review | `bgm/review.m4a` | Dawn Breaking | −15.1 LUFS | −2.2 dBFS |
+
+每首 60.000 秒、約 615 KB，四首合計 2.4 MB（預算 4 MB 內）。**備選 take 在 `bgm/alt/*-alt.m4a`**（同規格），換曲只改 `bgm.js` 的 `TRACKS` 路徑。
+兩個坑：①ffmpeg `alimiter` 預設 `level=1` 會把輸出自動拉到滿刻度，響度全部偏大 1 LU、峰值破 0——要 `level=0`。②接點只能量 RMS（尾 30ms 與頭 30ms 差 1～3.5 dB），順不順只有耳朵能判。
+
 ## 10. 未採用的素材（要有紀錄，才不會下次又被當成漏做）
 
 | 素材 | 狀態 | 理由 |

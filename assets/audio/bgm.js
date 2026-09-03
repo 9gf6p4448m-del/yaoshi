@@ -22,7 +22,7 @@
      為什麼要手動旗標而不是「抓抓看、失敗就算了」——瀏覽器會把 404 記成 console error，
      而「console 0 error」是這個專案的驗收條件之一（會遮住真正的錯誤）。
      旗標是 false 時這一層連 fetch 都不發，完全不碰網路。 */
-  const READY = { title: false, market: false, duel: false, review: false };
+  const READY = { title: true, market: true, duel: true, review: true }; /* 2026-09-03 四首已安裝（Flow Music 生成，節錄 60 秒無縫環；備選 take 在 bgm/alt/，換曲改 TRACKS 路徑即可） */
 
   /* 場景 → 檔名。改這張表就等於換曲，不必動任何呼叫端 */
   const TRACKS = {
