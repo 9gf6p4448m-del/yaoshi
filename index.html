@@ -481,6 +481,11 @@ const CFG = {
      PAPERWAR_ON=false＝kill switch：完全走舊的「戰力比較」路徑，trace 與 fed244f 逐位元組相等。 */
   PAPERWAR_ON: false, /* 2026-09-03 併入主線時預設關：卷 A 閘門 A4/A5/A6/A7 未過（AI 仍用舊眼睛估價），卷 D 調校完、閘門過了才開 */
   PW_MAX: 8, PW_MIN: 2, /* 敗方扣壽命＝clamp(ceil(燒掉比例×PW_MAX), PW_MIN, PW_MAX)【使用者裁定，不得自調】 */
+  /* 卷 D D1：AI 估值改讀紙紮邊際戰果後的換算尺（PAPERWAR_ON=false 時完全不讀這三個）。
+     val＝PW_AI_BASE＋PW_AI_SCALE×(這件大概幫我省下幾點壽命)＋(有異能 +2)＋rnd(-2,2)，
+     省下幾點＝PW_MAX×(σ(k·加了這件的戰果)−σ(k·現況戰果))，k＝PW_AI_LOGIT。
+     這三個數由 D-A7 實測定出（B2/S2/k0.5 時三策略比值 1.103／0.902／0.939 全過門檻）。 */
+  PW_AI_BASE: 2, PW_AI_SCALE: 2, PW_AI_LOGIT: 0.5,
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
@@ -1528,39 +1533,44 @@ function traitMax(p,key,base){
    ward／haunt 的 count/atk/hp 規格未指定，由實作決定：它們是「站在中軍／後陣的紙紮」，
    有身體（會被燒、算隻數）但不出手（atk 0）。詛咒品不召喚（見 buildArmy）。 */
 const POOL = [
-  {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓",unit:{body:"elite",count:1,atk:9,hp:10}},
-  {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護",unit:{body:"ward",count:1,atk:0,hp:8,trait:"wardHpFront2"}},
-  {n:"巴冷公主珠鍊",f:"zuling",p:6,d:"人蛇之戀的琉璃信物",unit:{body:"elite",count:1,atk:8,hp:8}},
-  {n:"祖靈之眼",f:"zuling",p:5,ab:"eye",d:"注視子孫的山林之眼",unit:{body:"ward",count:1,atk:0,hp:7,trait:"wardFirst"}},
-  {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火",unit:{body:"elite",count:1,atk:7,hp:7,trait:"boltGamble"}},
-  {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟",unit:{body:"swarm",count:3,atk:1,hp:2}},
-  {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙",unit:{body:"swarm",count:2,atk:2,hp:2}},
-  {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈",unit:{body:"elite",count:1,atk:8,hp:9}},
-  {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人",unit:{body:"ward",count:1,atk:0,hp:6,trait:"wardHpAll1"}},
-  {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令",unit:{body:"ward",count:1,atk:0,hp:9,trait:"wardAtkAll1"}},
-  {n:"王爺劍",f:"xianghuo",p:6,ab:"sword",d:"代天巡狩的斬瘟之劍",unit:{body:"elite",count:1,atk:8,hp:8}},
-  {n:"送王船",f:"xianghuo",p:6,ab:"wangchuan",d:"載走瘟神的燒王船",unit:{body:"ward",count:1,atk:0,hp:8,trait:"wardAbsorb4"}},
-  {n:"千里眼銅鈴",f:"xianghuo",p:5,ab:"bell",d:"望盡千里的預示銅鈴",unit:{body:"ward",count:1,atk:0,hp:7,trait:"wardImmuneLost"}},
-  {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗",unit:{body:"swarm",count:3,atk:1,hp:2}},
-  {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印",unit:{body:"elite",count:1,atk:6,hp:6,trait:"biteGamble"}},
-  {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:1,atk:0,hp:6,trait:"wardHpFirst3"}},
-  {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮",unit:{body:"ward",count:1,atk:0,hp:5,trait:"wardRegen1"}},
-  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:1}},
-  {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽",unit:{body:"haunt",count:4,atk:0,hp:8,trait:"hauntLost"}},
-  {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntSteal"}},
-  {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntSee"}},
-  {n:"黃色小雨衣",f:"yinqi",p:5,ab:"raincoat",d:"雨夜裡跟在你身後",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntDread1"}},
-  {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntSwap"}},
-  {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音",unit:{body:"elite",count:1,atk:6,hp:6}},
-  {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見",unit:{body:"swarm",count:2,atk:1,hp:2}},
-  {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntFearX2"}},
-  {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命",unit:{body:"swarm",count:2,atk:1,hp:1}},
+  {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓",unit:{body:"elite",count:1,atk:10,hp:8,trait:"eliteOpenShot"}},
+  {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護",unit:{body:"ward",count:2,atk:1,hp:7,trait:"wardHpFront2"}},
+  {n:"巴冷公主珠鍊",f:"zuling",p:6,d:"人蛇之戀的琉璃信物",unit:{body:"elite",count:1,atk:9,hp:6,trait:"eliteArmor"}},
+  {n:"祖靈之眼",f:"zuling",p:5,ab:"eye",d:"注視子孫的山林之眼",unit:{body:"ward",count:2,atk:1,hp:6,trait:"wardFirst"}},
+  {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火",unit:{body:"elite",count:1,atk:8,hp:5,trait:"boltGamble"}},
+  {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟",unit:{body:"swarm",count:3,atk:1,hp:2,trait:"swarmHalfSplash"}},
+  {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙",unit:{body:"swarm",count:1,atk:2,hp:2,trait:"swarmThorn"}},
+  {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈",unit:{body:"elite",count:1,atk:9,hp:7,trait:"eliteSelfCut"}},
+  {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpAll1"}},
+  {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令",unit:{body:"ward",count:2,atk:1,hp:8,trait:"wardAtkAll1"}},
+  {n:"王爺劍",f:"xianghuo",p:6,ab:"sword",d:"代天巡狩的斬瘟之劍",unit:{body:"elite",count:1,atk:9,hp:6,trait:"eliteCleave"}},
+  {n:"送王船",f:"xianghuo",p:6,ab:"wangchuan",d:"載走瘟神的燒王船",unit:{body:"ward",count:2,atk:1,hp:7,trait:"wardAbsorb4"}},
+  {n:"千里眼銅鈴",f:"xianghuo",p:5,ab:"bell",d:"望盡千里的預示銅鈴",unit:{body:"ward",count:2,atk:1,hp:6,trait:"wardImmuneLost"}},
+  {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗",unit:{body:"swarm",count:3,atk:1,hp:3,trait:"swarmRally"}},
+  {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印",unit:{body:"elite",count:1,atk:7,hp:4,trait:"biteGamble"}},
+  {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpFirst"}},
+  {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮",unit:{body:"ward",count:2,atk:1,hp:4,trait:"wardRegen1"}},
+  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:1,trait:"swarmLastStand"}},
+  {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntLost"}},
+  {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntSteal"}},
+  {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅",unit:{body:"haunt",count:3,atk:0,hp:6,trait:"hauntSee"}},
+  {n:"黃色小雨衣",f:"yinqi",p:5,ab:"raincoat",d:"雨夜裡跟在你身後",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntDread1"}},
+  {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntSwap"}},
+  {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音",unit:{body:"elite",count:1,atk:7,hp:4,trait:"eliteVsSwarm"}},
+  {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見",unit:{body:"swarm",count:2,atk:1,hp:3,trait:"swarmPierce"}},
+  {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntFearX2"}},
+  {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命",unit:{body:"swarm",count:2,atk:1,hp:1,trait:"swarmFeed1"}},
 ];
 /* 戰鬥特性表（單一事實來源）：引擎只讀下面這些「效果欄位」，不比對 trait id 字串（鐵則 2.4）。
    hpFront 前鋒全體 hp＋／hpAll 全體（含護法作祟）hp＋／hpFirst 前鋒首隻 hp＋／atkAll 全體 atk＋／
    absorb 本拍吸收傷害／regen 每拍回血／
    first 一拍先手／immuneLost 免疫迷途／bolt 天雷賭注機率／bite,biteDmg 反咬賭注／
-   lost 迷途／steal 偷命／gang 圍毆額外／dread 恐懼對群體額外扣攻／swap 抓交替／fearMul 恐懼倍率 */
+   lost 迷途／steal 偷命／gang 圍毆額外／dread 恐懼對群體額外扣攻／swap 抓交替／fearMul 恐懼倍率／
+   （卷 D 新增）openShot 一拍開場直擊／armor 本方全體受擊減傷／selfCut 一拍自傷換全場 atk／
+   cleaveFull 精英濺射改全額／vsSwarm 對群體目標額外傷害／halfSplash 受到的濺射減半／thorn 被擊中反傷／
+   rallyHp 二拍有折損則本隊全體 hp＋／lastStand 本隊只剩 1 隻時 atk＋／pierce 無視吸收／
+   feed 拍末對面有人被燒則本方全體 hp＋
+   ——群體的招一律不給「全隊 atk＋1」：群體 atk 本來就是 1，+1 是翻倍，實測 D-A1 單一件就搬動 10–38pp。 */
 const TRAITS = {
   wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"一拍：前鋒全體 hp+2",hpFront:2},
   wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"一拍：全體 hp+1（含護法、作祟）",hpAll:1},
@@ -1568,7 +1578,7 @@ const TRAITS = {
   wardAtkAll1:{id:"wardAtkAll1",name:"令旗改陣",desc:"二拍：本方全體 atk+1",atkAll:1},
   wardAbsorb4:{id:"wardAbsorb4",name:"送王船",desc:"二拍：吸收對面本拍首 4 點傷害",absorb:4},
   wardImmuneLost:{id:"wardImmuneLost",name:"千里眼",desc:"本方免疫迷途",immuneLost:true},
-  wardHpFirst3:{id:"wardHpFirst3",name:"香灰符",desc:"二拍：前鋒首隻 hp+3",hpFirst:3},
+  wardHpFirst:{id:"wardHpFirst",name:"香灰符",desc:"二拍：前鋒首隻 hp+1",hpFirst:1},
   wardRegen1:{id:"wardRegen1",name:"福壽綿長",desc:"每拍回 1 hp 給最傷的一隻",regen:1},
   boltGamble:{id:"boltGamble",name:"天雷",desc:"一拍開始 15% 燒掉對面 1 隻小兵",bolt:0.15},
   biteGamble:{id:"biteGamble",name:"虎爺反咬",desc:"被擊中時 15% 反咬 3 點",bite:0.15,biteDmg:3},
@@ -1578,6 +1588,18 @@ const TRAITS = {
   hauntDread1:{id:"hauntDread1",name:"恐懼",desc:"三拍：對面群體再 −1 atk",dread:1},
   hauntSwap:{id:"hauntSwap",name:"抓交替",desc:"三拍：燒掉對面 1 隻小兵、本方也燒 1 隻",swap:true},
   hauntFearX2:{id:"hauntFearX2",name:"恐懼加倍",desc:"三拍：恐懼倍率 ×2",fearMul:2},
+  /* 卷 D 新增：補齊「每件法寶一個招」（凍結檔 D2）。每個招觸發時都會進戰況 log（每場每招記一次） */
+  eliteOpenShot:{id:"eliteOpenShot",name:"射日",desc:"一拍開場：對面最壯的一隻 −1",openShot:1},
+  eliteArmor:{id:"eliteArmor",name:"琉璃護心",desc:"本隊每拍第一次受擊 −2（保底 1）",armor:2},
+  eliteSelfCut:{id:"eliteSelfCut",name:"割祭",desc:"一拍自傷 1，全場本隊 atk+2",selfCut:1,selfCutAtk:2},
+  eliteCleave:{id:"eliteCleave",name:"斬瘟",desc:"本隊精英的濺射改為全額",cleaveFull:true},
+  eliteVsSwarm:{id:"eliteVsSwarm",name:"咬手指",desc:"打群體目標額外 +2",vsSwarm:2},
+  swarmHalfSplash:{id:"swarmHalfSplash",name:"飛魚躍",desc:"本隊受到的濺射減半",halfSplash:true},
+  swarmThorn:{id:"swarmThorn",name:"獠牙反擊",desc:"本隊每拍第一次被擊中時反傷 2",thorn:2},
+  swarmRally:{id:"swarmRally",name:"五方調兵",desc:"二拍：本隊已有折損則全體 hp+1",rallyHp:1},
+  swarmLastStand:{id:"swarmLastStand",name:"殘旗插心",desc:"本隊只剩 1 隻時 atk+1",lastStand:1},
+  swarmPierce:{id:"swarmPierce",name:"陰陽眼",desc:"本隊攻擊無視吸收",pierce:true},
+  swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"拍末對面有紙紮被燒 → 本方全體 hp+1",feed:1},
 };
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
@@ -1596,7 +1618,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.29", VERSION_NOTE="《紙紮夜戰》三拍自動戰引擎併入（預設關閉，卷 D 調校完再開）";
+const VERSION="0.30", VERSION_NOTE="《紙紮夜戰》卷 D：AI 讀體型估值、27 件法寶各一招、月相改 hp+1、逐拍時間軸（開關仍關）";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1934,7 +1956,8 @@ function makeState(mode,seed,picks){
   S.eventOrder=CFG.EVENT_ON?shuffle(Object.keys(EVENTS)).slice(0,CFG.EVENT_NIGHTS.length):[];
   S.debts={}; /* 陰間放貸的跨夜還款排程（夜末攤還於 resolveBattles） */
   /* 《紙紮夜戰》活性統計（A9）：純記錄，不耗亂數、不改任何結算；PAPERWAR_ON=false 時全程不會有人往裡面寫 */
-  S.pwStat={fights:0,burn:{},dmg:{},gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0};
+  S.pwStat={fights:0,burn:{},dmg:{},gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0,
+    tr:{},beats:0,beatsReal:0,killed:0,burnSum:0,emptyBeats:0}; /* tr／beats 系列＝卷 D D-A9 的逐招活性與時間軸自檢 */
   return S;
 }
 function newGame(mode,seed,picks){
@@ -2022,12 +2045,26 @@ function aiBids(p){
     spent+=amt+CFG.BID_FEE; /* 掛號費一併入帳（BID_FEE=0 時與 v0.5 無差異） */
   });
   const opts=[];
+  /* 卷 D D1：PAPERWAR_ON 時先量一次「我現在這袋對桌上其他人的邊際戰果」當基準，
+     每件的估值＝加了它之後的戰果 − 這個基準（讀 unit 與對手袋子，不再只讀 it.p）。
+     一夜只算一次基準與對手快照，逐件只多掃一次自己的袋子（runMany 10000 局仍跑得完）。 */
+  let pwFoeBags=null, pwBase=0;
+  if(CFG.PAPERWAR_ON){ pwFoeBags=pwFoeBagsOf(p); pwBase=pwTrialAvg(p.bag,pwFoeBags,S.round); }
   S.market.forEach((it,i)=>{
     if(it.curse)return;
     const c=p.bag.filter(x=>x.f===it.f).length;
     const marginal=(c+1>=CFG.SET_MIN)?(c+1)*(c+1)-(c>=CFG.SET_MIN?c*c:0):0;
+    /* PAPERWAR_ON=false 走原式（A0 逐位元組相等的前提：同樣的加法、同樣的 rnd 呼叫位置） */
+    let base;
+    if(CFG.PAPERWAR_ON){
+      const sWith=pwTrialAvg(p.bag.concat([it]),pwFoeBags,S.round);
+      /* 分數差換成「這件大概幫我省下幾點壽命」：勝負是二元的，剩餘隻數差要先過一層 S 曲線，
+         否則「本來就會贏」與「本來就會輸」的局面會把估值拉得跟實際效益脫節。 */
+      const sig=x=>1/(1+Math.exp(-CFG.PW_AI_LOGIT*x));
+      base=CFG.PW_AI_BASE+CFG.PW_AI_SCALE*CFG.PW_MAX*(sig(sWith)-sig(pwBase))+(it.ab?2:0);
+    }else base=it.p+marginal+(it.ab?2:0);
     /* hook 8.1：角色可改寫「這件在我心中值多少」 */
-    const vc={p,item:it,val:it.p+marginal+(it.ab?2:0)+rnd(-2,2)};
+    const vc={p,item:it,val:base+rnd(-2,2)};
     applyHooks("onAiValue",vc,p);
     /* 盯上反應（§5.8）：依角色分型對「被別人盯的拍品」調估值；自己盯的 +MARK_OWN（承諾——
        2026-09-03 虛張稅拿掉後，這一項也順便讓 AI 自己維持信譽：盯了就真的會去出價） */
@@ -2318,7 +2355,8 @@ const BEAT_NAME=["一拍・撞","二拍・護","三拍・祟"];
 /* #feltHead 與戰報共用的月相字串（UI 與引擎不得各寫一份） */
 function phaseText(round){
   const ph=phaseFor(round);
-  return `${ph.icon} ${ph.name}：${ph.fac?`${FAC[ph.fac].n}拍 +1`:"三拍無增幅"}`;
+  /* 卷 D D3：月相改成該拍該系每隊 hp+1（原本 atk+1 對群體是乘數，A6 窮舉出現支配買法） */
+  return `${ph.icon} ${ph.name}：${ph.fac?`${FAC[ph.fac].n}拍 hp+1`:"三拍無增幅"}`;
 }
 
 /* 袋子 → 紙紮陣。詛咒品不召喚、只記件數（每件讓本方前鋒全體 atk −1）；
@@ -2347,10 +2385,11 @@ function buildArmy(bag){
   }
   return {teams,curses};
 }
-function pwSide(p){
+function pwSide(p,tag){
   const a=buildArmy(p.bag);
   const units=[]; a.teams.forEach(t=>t.units.forEach(u=>units.push(u)));
-  return {p,teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false};
+  units.forEach((u,i)=>{ u.id=i; });
+  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0};
 }
 /* 特性查詢：引擎只問「有沒有這個效果欄位」，不比對 trait id 字串（鐵則 2.4） */
 const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
@@ -2359,9 +2398,27 @@ const pwAliveN=sd=>sd.units.reduce((n,u)=>n+(u.alive?1:0),0);
 const pwHpSum=sd=>sd.units.reduce((s,u)=>s+(u.alive?u.hp:0),0);
 const pwSwarmN=sd=>sd.units.reduce((n,u)=>n+(u.alive&&u.body==="swarm"?1:0),0);
 const pwHasHaunt=sd=>sd.teams.some(t=>t.body==="haunt"&&t.units.some(u=>u.alive));
-/* 前鋒＝會上場交鋒的紙紮（群體／精英／肉身）；護法與作祟站中軍後陣，不吃「前鋒」加成 */
-const pwFront=u=>u.body==="swarm"||u.body==="elite";
-function pwBurn(u,sd){ if(!u.alive) return false; u.alive=false; u.hp=0; u.pend=0; sd.burned++; return true; }
+/* 前鋒＝會上場交鋒的紙紮（群體／精英／護法／肉身）；只有作祟站後陣不出手、不吃「前鋒」加成。
+   卷 D：護法改成 atk 1 會出手（凍結檔 D2「只買護法不得再是 0%」），所以它也算前鋒。 */
+const pwFront=u=>u.body!=="haunt";
+/* 逐拍時間軸（卷 D D4，卷 C 演出用）：加欄位不動判定——這裡只 push 紀錄，不改任何 hp／alive／亂數。
+   side＝行動方（burn 事件記的是「被燒的那一方」）；killed 只在 burn 事件為 true，
+   所以 beats 的 killed 加總恆等於 burnedA+burnedB（D-A9 的斷言）。 */
+function pwRec(env,beat,side,actor,target,kind,amount,killed){
+  if(env.beats) env.beats.push({beat,side,actor,target,kind,amount:amount|0,killed:!!killed});
+}
+/* 招式觸發：計數每次都記（活性統計），戰況 log 每場每招只印第一次（避免洗版） */
+function pwFire(env,tr,msg){
+  if(!tr) return;
+  env.stats.tr[tr.id]=(env.stats.tr[tr.id]||0)+1;
+  if(!env.seen[tr.id]){ env.seen[tr.id]=1; if(msg) env.log.push(msg); }
+}
+function pwBurn(u,sd,env){
+  if(!u.alive) return false;
+  u.alive=false; u.hp=0; u.pend=0; sd.burned++;
+  if(env) pwRec(env,env.beat,sd.tag,null,u.id,"burn",0,true);
+  return true;
+}
 function pwLowest(sd,swarmOnly){
   let best=null;
   for(const u of sd.units){
@@ -2390,112 +2447,217 @@ function pwTopTwo(foe){
   }
   return [a,b];
 }
-/* 傷害入帳（送王船：吸收對面本拍首 N 點） */
-function pwDeal(tgt,foe,amt){
+/* 傷害入帳（送王船：吸收對面本拍首 N 點；陰陽眼銅錢 pierce 無視吸收；巴冷珠鍊 armor 每次受擊減傷） */
+function pwDeal(tgt,foe,amt,env,pierce){
   if(amt<=0) return 0;
-  if(foe.absorb>0){ const k=Math.min(foe.absorb,amt); foe.absorb-=k; amt-=k; }
+  if(foe.absorb>0&&!pierce){ const k=Math.min(foe.absorb,amt); foe.absorb-=k; amt-=k; }
+  /* 琉璃護心：只護「珠鍊自己那一隊」，且每次受擊保底仍吃 1 點——
+     全側減傷＋不保底的話，armor 1 對 atk 1 的群體＝完全免疫，一件 p6 就把「群體」從克制環裡刪掉
+     （實測 D-A1 群體對精英 0%，全側版仍只回到 32.7%）。 */
+  const at=foe.teams[tgt.t];
+  if(at&&at.tr&&at.tr.armor>0&&amt>1&&at.armorBeat!==(env&&env.beat)){
+    at.armorBeat=env&&env.beat;
+    const k=Math.min(at.tr.armor,amt-1); amt-=k;
+    if(env) pwFire(env,at.tr,`📿 琉璃護心：${foe.p.name} 本拍首次受擊 −${at.tr.armor}（保底 1）`);
+  }
   if(amt<=0) return 0;
   tgt.pend+=amt; return amt;
 }
 /* 一次攻擊：入帳後判定虎爺印反咬（賭注，走 rng） */
-function pwStrike(att,sd,tgt,foe,amt,env){
-  pwDeal(tgt,foe,amt);
+function pwStrike(att,sd,tgt,foe,amt,env,kind,pierce){
+  const done=pwDeal(tgt,foe,amt,env,pierce);
+  pwRec(env,env.beat,sd.tag,att?att.id:null,tgt.id,kind||"hit",done,false);
   const tt=foe.teams[tgt.t];
+  if(tt.tr&&tt.tr.thorn&&att&&tt.thornBeat!==env.beat){ /* 獠牙反擊：每拍每隊只反一次（無亂數） */
+    tt.thornBeat=env.beat;
+    const th=pwDeal(att,sd,tt.tr.thorn|0,env,false);
+    pwRec(env,env.beat,foe.tag,tgt.id,att.id,"thorn",th,false);
+    pwFire(env,tt.tr,`🐗 獠牙反擊：反傷 ${tt.tr.thorn} 點`);
+  }
   if(tt.tr&&tt.tr.bite&&env.rng()<tt.tr.bite){
-    pwDeal(att,sd,tt.tr.biteDmg|0);
-    env.stats.bite++; env.log.push(`🐯 虎爺印反咬 ${tt.tr.biteDmg} 點`);
+    const back=pwDeal(att,sd,tt.tr.biteDmg|0,env,false);
+    pwRec(env,env.beat,foe.tag,tgt.id,att?att.id:null,"bite",back,false);
+    env.stats.bite++; pwFire(env,tt.tr,`🐯 虎爺印反咬 ${tt.tr.biteDmg} 點`);
   }
 }
-/* 該拍開場：回血 → 該系 ward 的靜態加成 → 算本拍的側面 atk 修正 */
-function pwPrep(beat,fac,sd,env){
+/* 該拍開場：回血 → 該系 ward 的靜態加成 → 月相 hp+1（卷 D D3）→ 割祭 → 算本拍的側面 atk 修正 */
+function pwPrep(beat,fac,sd,env,phase){
   const rg=pwMax(sd,"regen");
-  if(rg){ const u=pwMostHurt(sd); if(u){ u.hp=Math.min(u.max,u.hp+rg); env.stats.regen++; } }
+  if(rg){
+    const u=pwMostHurt(sd);
+    if(u){ u.hp=Math.min(u.max,u.hp+rg); env.stats.regen++;
+      pwFire(env,pwTrOf(sd,"regen"),`🕯️ 福壽綿長：${sd.p.name} 回 ${rg} hp`); }
+  }
+  /* 護法的 hp 加成逐隊套用（買兩張就疊兩次）——沿用卷 A 的寫法，改成取最大值反而讓
+     「只買護法」在 D-A6 出現支配買法（實測：非疊加版 5 夜紅、疊加版 0 夜紅）。 */
   for(const t of sd.teams){
     if(t.fac!==fac||!t.tr) continue;
-    if(t.tr.hpFront) for(const u of sd.units){ if(u.alive&&pwFront(u)){ u.max+=t.tr.hpFront; u.hp+=t.tr.hpFront; } }
-    if(t.tr.hpAll) for(const u of sd.units){ if(u.alive){ u.max+=t.tr.hpAll; u.hp+=t.tr.hpAll; } }
-    if(t.tr.hpFirst){ const u=sd.units.find(x=>x.alive&&pwFront(x)); if(u){ u.max+=t.tr.hpFirst; u.hp+=t.tr.hpFirst; } }
+    if(t.tr.hpFront){ let hit=0; for(const u of sd.units){ if(u.alive&&pwFront(u)){ u.max+=t.tr.hpFront; u.hp+=t.tr.hpFront; hit++; } }
+      if(hit) pwFire(env,t.tr,`🛡️ 鱗紋護體：${sd.p.name} 前鋒 hp+${t.tr.hpFront}`); }
+    if(t.tr.hpAll){ let hit=0; for(const u of sd.units){ if(u.alive){ u.max+=t.tr.hpAll; u.hp+=t.tr.hpAll; hit++; } }
+      if(hit) pwFire(env,t.tr,`⛰️ 山神庇佑：${sd.p.name} 全體 hp+${t.tr.hpAll}`); }
+    if(t.tr.hpFirst){ const u=sd.units.find(x=>x.alive&&pwFront(x));
+      if(u){ u.max+=t.tr.hpFirst; u.hp+=t.tr.hpFirst; pwFire(env,t.tr,`🧧 香灰符：前鋒首隻 hp+${t.tr.hpFirst}`); } }
+  }
+  /* 月相（卷 D D3，使用者裁定）：該拍該系每隊每隻 hp+1（原本是 atk+1，對群體是乘數而支配當夜） */
+  if(phase&&phase.fac===fac){
+    for(const t of sd.teams){ if(t.fac!==fac) continue; for(const u of t.units) if(u.alive){ u.max+=1; u.hp+=1; } }
+  }
+  /* 割祭（獻祭刀）：一拍自傷換全場 atk＋ */
+  if(beat===1) for(const t of sd.teams){
+    if(!t.tr||!t.tr.selfCut) continue;
+    let cut=false;
+    for(const u of t.units){ if(!u.alive) continue; u.hp=Math.max(1,u.hp-t.tr.selfCut); cut=true; }
+    if(cut){ t.bonus=(t.bonus||0)+(t.tr.selfCutAtk|0);
+      pwFire(env,t.tr,`🔪 割祭：${sd.p.name} 自傷 ${t.tr.selfCut} 換 atk+${t.tr.selfCutAtk}`); }
+  }
+  /* 五方調兵（五營旗）：二拍本隊若已有折損，全體 hp+2（神將補位） */
+  if(beat===2) for(const t of sd.teams){
+    if(!t.tr||!t.tr.rallyHp) continue;
+    if(!t.units.some(u=>!u.alive)) continue;
+    for(const u of t.units) if(u.alive){ u.max+=t.tr.rallyHp; u.hp+=t.tr.rallyHp; }
+    pwFire(env,t.tr,`🎏 五方調兵：${sd.p.name} 補位 hp+${t.tr.rallyHp}`);
   }
   if(beat===2) sd.absorb=pwMax(sd,"absorb");
+  if(beat===2&&sd.absorb) pwFire(env,pwTrOf(sd,"absorb"),`⛵ 送王船：吸收本拍首 ${sd.absorb} 點`);
   let m=0;
   const k=sd.teams.filter(t=>t.fac===fac).length;   /* 同陣協同：同一拍出手的同系隊伍每多一隊 +1 */
   if(k>1) m+=k-1;
-  if(beat===2) m+=pwMax(sd,"atkAll");               /* 媽祖令旗：本方全體 atk+1 */
+  if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa){ m+=aa;   /* 媽祖令旗：本方全體 atk+1 */
+    pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
   m-=sd.curses;                                     /* 詛咒纏身 */
   sd.mod=m;
 }
-/* 一拍開場的賭注：雷女之火 15% 天雷燒掉對面 1 隻小兵 */
+/* 取本方第一個帶某效果欄位的 trait（純查表、供 log 標名字用） */
+function pwTrOf(sd,k){ for(const t of sd.teams) if(t.tr&&t.tr[k]) return t.tr; return null; }
+/* 一拍開場的賭注與首擊：雷女之火 15% 天雷燒掉對面 1 隻小兵；射日神弓直擊對面最壯的一隻 */
 function pwBolt(sd,foe,env){
   for(const t of sd.teams){
-    if(!t.tr||!t.tr.bolt||!t.units.some(u=>u.alive)) continue;
-    if(env.rng()<t.tr.bolt){
+    if(!t.tr||!t.units.some(u=>u.alive)) continue;
+    if(t.tr.bolt&&env.rng()<t.tr.bolt){
       const v=pwLowest(foe,true);
-      if(v&&pwBurn(v,foe)){ env.stats.bolt++; env.log.push(`⚡ 天雷燒掉 ${foe.p.name} 一隻小兵`); }
+      if(v){ pwRec(env,env.beat,sd.tag,null,v.id,"bolt",v.hp,false);
+        if(pwBurn(v,foe,env)){ env.stats.bolt++; pwFire(env,t.tr,`⚡ 天雷燒掉 ${foe.p.name} 一隻小兵`); } }
+    }
+    if(t.tr.openShot){
+      const v=pwTopTwo(foe)[0];
+      if(v){
+        const n=t.tr.openShot|0;
+        v.hp-=n; pwRec(env,env.beat,sd.tag,null,v.id,"openShot",n,false);
+        pwFire(env,t.tr,`🏹 射日：${foe.p.name} 最壯的一隻 −${n}`);
+        if(v.hp<=0) pwBurn(v,foe,env);
+      }
     }
   }
 }
 /* 三拍開場的作祟：迷途、抓交替（恐懼在 pwPass、偷命在勝負之後） */
 function pwHaunt(sd,foe,env){
-  if(pwAny(sd,"lost")&&!pwAny(foe,"immuneLost")){
-    let best=null,bn=0;
-    for(const t of foe.teams){
-      if(t.body!=="swarm") continue;                /* 迷途對精英無效 */
-      const n=t.units.reduce((c,u)=>c+(u.alive?1:0),0);
-      if(n>0&&n>bn){ best=t; bn=n; }
+  if(pwAny(sd,"lost")){
+    if(pwAny(foe,"immuneLost")){
+      pwFire(env,pwTrOf(foe,"immuneLost"),`🔔 千里眼：${foe.p.name} 識破迷途`);
+    }else{
+      let best=null,bn=0;
+      for(const t of foe.teams){
+        if(t.body!=="swarm") continue;              /* 迷途對精英無效 */
+        const n=t.units.reduce((c,u)=>c+(u.alive?1:0),0);
+        if(n>0&&n>bn){ best=t; bn=n; }
+      }
+      if(best){ foe.lost=best.idx; env.stats.lost++;
+        pwFire(env,pwTrOf(sd,"lost"),`🎭 迷途：${foe.p.name} 一隊三拍不出手`); }
     }
-    if(best){ foe.lost=best.idx; env.stats.lost++; env.log.push(`🎭 迷途：${foe.p.name} 一隊三拍不出手`); }
   }
   if(pwAny(sd,"swap")){
     const e=pwLowest(foe,true);
-    if(e&&pwBurn(e,foe)){
-      const m=pwLowest(sd,false); if(m) pwBurn(m,sd);
-      env.stats.swap++; env.log.push(`💧 抓交替：兩邊各燒 1 隻`);
+    if(e&&pwBurn(e,foe,env)){
+      const m=pwLowest(sd,false); if(m) pwBurn(m,sd,env);
+      env.stats.swap++; pwFire(env,pwTrOf(sd,"swap"),`💧 抓交替：兩邊各燒 1 隻`);
     }
   }
+}
+/* 目標：hp 最低者（扣掉本拍已分配的傷害）——護法的補刀口徑（集中收割，與群體的分散、精英的濺射區隔） */
+function pwLowRem(foe){
+  let best=null,br=0;
+  for(const u of foe.units){
+    if(!u.alive) continue;
+    const rem=u.hp-u.pend; if(rem<=0) continue;
+    if(!best||rem<br){ best=u; br=rem; }
+  }
+  return best;
 }
 /* 一側出手一次（對面名冊在本拍開始時固定，傷害入 pend、拍末一起結算） */
 function pwPass(sd,foe,beat,fac,phase,env){
   let fear=null;
   if(beat===3&&pwHasHaunt(foe)){
     fear={f:pwSwarmN(sd)*(pwMax(foe,"fearMul")||1),dread:pwMax(foe,"dread")};
-    if(fear.f>0||fear.dread>0) env.stats.fear++;
+    if(fear.f>0||fear.dread>0){ env.stats.fear++;
+      if(fear.dread>0) pwFire(env,pwTrOf(foe,"dread"),`🌧️ 恐懼：${sd.p.name} 群體再 −${fear.dread} atk`);
+      if(pwMax(foe,"fearMul")>1) pwFire(env,pwTrOf(foe,"fearMul"),`🕳️ 過陰咒：恐懼加倍`);
+    }
   }
   const gang=1+pwMax(sd,"gang");                    /* 圍毆（椅仔姑看穿再 +1） */
+  const seeTr=pwMax(sd,"gang")?pwTrOf(sd,"gang"):null;
   const hits=new Map();                             /* 集火計數：整側共用，跨隊也算同一目標 */
   for(const t of sd.teams){
-    if(t.body==="ward"||t.body==="haunt") continue; /* haunt／ward 不攻擊 */
+    if(t.body==="haunt") continue;                  /* 作祟不攻擊（護法卷 D 起 atk 1，會出手） */
     if(beat===3&&sd.lost===t.idx) continue;         /* 迷途：這一隊三拍不出手 */
+    const aliveT=t.units.reduce((c,u)=>c+(u.alive?1:0),0);
     for(const u of t.units){
       if(!u.alive) continue;
-      let a=u.atk+sd.mod;
-      if(phase&&phase.fac===fac&&t.fac===fac) a+=1; /* 月相：該拍本方同系隊伍 atk+1 */
+      let a=u.atk+sd.mod+(t.bonus||0);
+      if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`); }
       if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
       if(a<=0) continue;
-      const tt=pwTopTwo(foe), t1=tt[0], t2=tt[1];
+      const pierce=!!(t.tr&&t.tr.pierce);
+      let t1,t2=null;
+      if(t.body==="ward"){ t1=pwLowRem(foe); }
+      else { const tt=pwTopTwo(foe); t1=tt[0]; t2=tt[1]; }
       if(!t1) return;                               /* 對面已無可打的目標 */
       let d=a;
+      if(t.tr&&t.tr.vsSwarm&&t1.body==="swarm"){ d+=t.tr.vsSwarm; pwFire(env,t.tr,`💅 咬手指：對群體 +${t.tr.vsSwarm}`); }
+      if(t.tr&&t.tr.vsElite&&t1.body==="elite"){ d+=t.tr.vsElite; pwFire(env,t.tr,`🐗 獠牙衝撞：對精英 +${t.tr.vsElite}`); }
       if(t.body==="swarm"){
         const k2=(hits.get(t1)||0)+1; hits.set(t1,k2);
-        if(k2===2||k2===3){ d+=gang; env.stats.gang++; }  /* 對同一目標第 2、3 次攻擊各 +1 */
+        if(k2===2||k2===3){ d+=gang; env.stats.gang++;   /* 對同一目標第 2、3 次攻擊各 +1 */
+          if(seeTr) pwFire(env,seeTr,`🪑 看穿：圍毆額外 +${pwMax(sd,"gang")}`); }
       }
-      pwStrike(u,sd,t1,foe,d,env);
-      if(t.body==="elite"&&t2){ pwStrike(u,sd,t2,foe,Math.floor(a/2),env); env.stats.splash++; }
+      if(pierce&&foe.absorb>0) pwFire(env,t.tr,`👁️ 陰陽眼：無視送王船的吸收`);
+      pwStrike(u,sd,t1,foe,d,env,t.body==="ward"?"ward":"hit",pierce);
+      if(t.body==="elite"&&t2){
+        const st=foe.teams[t2.t];
+        const full=!!(t.tr&&t.tr.cleaveFull);
+        if(full) pwFire(env,t.tr,`⚔️ 斬瘟：濺射全額`);
+        let sp=full?a:Math.floor(a/2);
+        if(st&&st.tr&&st.tr.halfSplash){ sp=Math.floor(sp/2); pwFire(env,st.tr,`🛶 飛魚躍：${foe.p.name} 濺射減半`); }
+        pwStrike(u,sd,t2,foe,sp,env,"splash",pierce); env.stats.splash++;
+      }
     }
   }
 }
-function pwSettle(sd){
+function pwSettle(sd,env){
   for(const u of sd.units){
     if(!u.alive){ u.pend=0; continue; }
-    if(u.pend>0){ u.hp-=u.pend; u.pend=0; if(u.hp<=0){ u.alive=false; u.hp=0; sd.burned++; } }
+    if(u.pend>0){ u.hp-=u.pend; u.pend=0;
+      if(u.hp<=0){ u.alive=false; u.hp=0; sd.burned++; if(env) pwRec(env,env.beat,sd.tag,null,u.id,"burn",0,true); } }
   }
+}
+/* 拍末：飼鬼甕的餓鬼進食——對面本拍有紙紮被燒掉，本方全體 hp+1 */
+function pwFeed(sd,foe,env,before){
+  const f=pwMax(sd,"feed");
+  if(!f||foe.burned<=before) return;
+  for(const u of sd.units) if(u.alive){ u.max+=f; u.hp+=f; }
+  pwFire(env,pwTrOf(sd,"feed"),`🏺 餓鬼進食：${sd.p.name} 全體 hp+${f}`);
 }
 /* 一次交鋒：雙方同時結算；祖靈之眼（一拍先手）時該側先打、對面先燒完再還手 */
 function pwClash(beat,fac,X,Y,phase,env){
+  const bx=X.burned, by=Y.burned;
   const fx=(beat===1&&pwAny(X,"first")), fy=(beat===1&&pwAny(Y,"first"));
-  if(fx&&!fy){ pwPass(X,Y,beat,fac,phase,env); pwSettle(Y); pwPass(Y,X,beat,fac,phase,env); pwSettle(X); }
-  else if(fy&&!fx){ pwPass(Y,X,beat,fac,phase,env); pwSettle(X); pwPass(X,Y,beat,fac,phase,env); pwSettle(Y); }
-  else { pwPass(X,Y,beat,fac,phase,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X); pwSettle(Y); }
+  if(fx&&!fy){ pwFire(env,pwTrOf(X,"first"),`👁️ 祖靈先手：${X.p.name} 先結算`);
+    pwPass(X,Y,beat,fac,phase,env); pwSettle(Y,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); }
+  else if(fy&&!fx){ pwFire(env,pwTrOf(Y,"first"),`👁️ 祖靈先手：${Y.p.name} 先結算`);
+    pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); pwPass(X,Y,beat,fac,phase,env); pwSettle(Y,env); }
+  else { pwPass(X,Y,beat,fac,phase,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); pwSettle(Y,env); }
+  pwFeed(X,Y,env,by); pwFeed(Y,X,env,bx);
 }
 /* 主入口：ctx={rng, phase（phaseFor 的一筆或 null）, windId（風位席位 id 或 null）} */
 function paperWar(A,B,ctx){
@@ -2503,13 +2665,18 @@ function paperWar(A,B,ctx){
   const rng=ctx.rng||(()=>0.5);
   const phase=ctx.phase||null;
   const windId=(ctx.windId===undefined)?null:ctx.windId;
-  const X=pwSide(A), Y=pwSide(B);
+  const X=pwSide(A,"A"), Y=pwSide(B,"B");
   X.wind=(windId!=null&&A.id===windId); Y.wind=(windId!=null&&B.id===windId);
-  const env={rng,log:[],stats:{gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0}};
+  X.armorV=pwMax(X,"armor"); X.armorTr=pwTrOf(X,"armor");
+  Y.armorV=pwMax(Y,"armor"); Y.armorTr=pwTrOf(Y,"armor");
+  const env={rng,log:[],beats:[],seen:{},beat:0,
+    stats:{gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0,tr:{}}};
   for(let beat=1;beat<=3;beat++){
     const fac=BEAT_FAC[beat-1];
+    env.beat=beat;
+    pwRec(env,beat,null,null,null,"beatStart",0,false); /* 拍首標記：卷 C 靠它切拍，也保證 beats 不會是空陣列 */
     X.absorb=0; Y.absorb=0; X.lost=-1; Y.lost=-1;
-    pwPrep(beat,fac,X,env); pwPrep(beat,fac,Y,env);
+    pwPrep(beat,fac,X,env,phase); pwPrep(beat,fac,Y,env,phase);
     if(beat===1){ pwBolt(X,Y,env); pwBolt(Y,X,env); }
     if(beat===3){ pwHaunt(X,Y,env); pwHaunt(Y,X,env); }
     pwClash(beat,fac,X,Y,phase,env);
@@ -2527,19 +2694,19 @@ function paperWar(A,B,ctx){
     winner:null, loser:null, dmg:0, tie:true,
     burnedA:X.burned, burnedB:Y.burned, unitsA:X.n0, unitsB:Y.n0,
     aliveA:aX, aliveB:aY, hpA:hX, hpB:hY, phase:phase?phase.id:null,
-    log:env.log, stats:env.stats,
+    log:env.log, stats:env.stats, beats:env.beats,
   };
   const lose=(win===X)?Y:X;
   /* 扣血：敗方燒掉比例 × PW_MAX，夾在 [PW_MIN, PW_MAX] */
   let dmg=Math.ceil((lose.n0?lose.burned/lose.n0:0)*CFG.PW_MAX);
   dmg=Math.max(CFG.PW_MIN,Math.min(CFG.PW_MAX,dmg));
   const steal=pwAny(win,"steal")?pwMax(win,"steal"):0;   /* 偷命：三拍結束時敗方另 −1 */
-  if(steal){ dmg+=steal; env.stats.steal+=steal; env.log.push(`🪡 偷命：${lose.p.name} 另 −${steal}`); }
+  if(steal){ dmg+=steal; env.stats.steal+=steal; pwFire(env,pwTrOf(win,"steal"),`🪡 偷命：${lose.p.name} 另 −${steal}`); }
   return {
     winner:win.p, loser:lose.p, dmg,
     burnedA:X.burned, burnedB:Y.burned, unitsA:X.n0, unitsB:Y.n0,
     aliveA:aX, aliveB:aY, hpA:hX, hpB:hY, phase:phase?phase.id:null,
-    log:env.log, stats:env.stats,
+    log:env.log, stats:env.stats, beats:env.beats,
   };
 }
 /* 閘門治具（A1／A2／A6）：用同一支引擎跑「兩個人造袋子」的一對一，回甲方勝率。
@@ -2551,8 +2718,8 @@ function duelBags(bagA,bagB,seeds,opt){
   const list=Array.isArray(seeds)?seeds:Array.from({length:seeds||1000},(_,i)=>i+1);
   const A={id:0,name:"甲",bag:bagA}, B={id:1,name:"乙",bag:bagB};
   const stats={gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0};
-  const dmgs={}, burns={};
-  let winA=0, winB=0, ties=0;
+  const dmgs={}, burns={}, trs={};
+  let winA=0, winB=0, ties=0, beatsN=0, killedN=0, burnN=0, emptyBeats=0;
   for(const s of list){
     const rng=mulberry32(s>>>0);
     const round=opt.round||(1+Math.floor(rng()*CFG.ROUNDS));
@@ -2562,6 +2729,9 @@ function duelBags(bagA,bagB,seeds,opt){
     const r=paperWar(A,B,{rng,phase:phaseFor(round),windId:wid});
     if(r.winner===A) winA++; else if(r.winner===B) winB++; else ties++;
     for(const k in stats) stats[k]+=r.stats[k]||0;
+    for(const k in r.stats.tr) trs[k]=(trs[k]||0)+r.stats.tr[k];
+    if(r.beats){ beatsN+=r.beats.length; if(!r.beats.length) emptyBeats++;
+      killedN+=r.beats.reduce((s,b)=>s+(b.killed?1:0),0); burnN+=r.burnedA+r.burnedB; }
     dmgs[r.dmg]=(dmgs[r.dmg]||0)+1;
     burns[r.burnedA]=(burns[r.burnedA]||0)+1; burns[r.burnedB]=(burns[r.burnedB]||0)+1;
   }
@@ -2569,7 +2739,27 @@ function duelBags(bagA,bagB,seeds,opt){
   return {n:list.length,winA,winB,ties,
     rateA:list.length?winA/list.length:0,
     rateDecided:(winA+winB)?winA/(winA+winB):0,
-    stats,dmgs,burns};
+    stats,dmgs,burns,trs,beatsN,killedN,burnN,emptyBeats};
+}
+/* ===== 卷 D D1：AI 估值改讀「這件的紙紮對我這桌的邊際戰果」 =====
+   為什麼要換：卷 A 閘門 A7 未過的根因是 AI 還在用 it.p 估價（舊制戰力＝Σp＋共鳴平方，件數多才強），
+   新制比的是三拍後剩下幾隻，一件 p7 精英可能比三件便宜貨還能打——AI 用舊眼睛玩新制，當然崩。
+   做法走凍結檔 D1 的「小樣本 seeds」：直接拿同一支 paperWar 跑一場「我（＋這件）vs 這位對手」，
+   rng 固定 0.5（不動 S.rng、不改任何結算、不耗亂數），分數＝剩餘隻數差（＋很小的 hp 差當第二判準），
+   與引擎的勝負判準同一把尺。試過的解析近似（把袋子壓成 n/atk/hp 三個數）會系統性高估作祟、低估精英，
+   D-A7 只到 0.817；改實跑後同樣的旋鈕掃描可以過 0.90。
+   估值與實測勝率的相關性由 tests/tools/paperwar-gate-D.mjs 的 D-A7b 量（門檻 ≥0.6）。 */
+function pwTrial(myBag,foeBag,round){
+  const A={id:0,name:"我",bag:myBag}, B={id:1,name:"敵",bag:foeBag};
+  const r=paperWar(A,B,{rng:()=>0.5,phase:phaseFor(round),windId:null});
+  return (r.aliveA-r.aliveB)+0.02*(r.hpA-r.hpB);
+}
+/* 桌上其餘活人的袋子（AI 估值要讀對手，不只讀自己） */
+function pwFoeBagsOf(p){ return S.players.filter(q=>q.alive&&q.id!==p.id).map(q=>q.bag); }
+function pwTrialAvg(myBag,foeBags,round){
+  if(!foeBags.length) return 0;
+  let s=0; for(const b of foeBags) s+=pwTrial(myBag,b,round);
+  return s/foeBags.length;
 }
 function pairings(ids,round){
   const list=[...ids]; if(list.length%2)list.push(null);
@@ -2600,7 +2790,19 @@ function resolveBattles(){
         const T=S.pwStat; T.fights++;
         T.burn[war.burnedA]=(T.burn[war.burnedA]||0)+1; T.burn[war.burnedB]=(T.burn[war.burnedB]||0)+1;
         T.dmg[war.dmg]=(T.dmg[war.dmg]||0)+1;
-        for(const k in war.stats) T[k]=(T[k]||0)+war.stats[k];
+        for(const k in war.stats){ if(k==="tr") continue; T[k]=(T[k]||0)+war.stats[k]; }
+        /* 卷 D D-A9：逐招觸發次數（27 件法寶各一個招，每件都要 >0） */
+        if(!T.tr) T.tr={};
+        for(const k in war.stats.tr) T.tr[k]=(T.tr[k]||0)+war.stats.tr[k];
+        T.beats=(T.beats||0)+(war.beats?war.beats.length:0);
+        T.killed=(T.killed||0)+(war.beats?war.beats.reduce((s,b)=>s+(b.killed?1:0),0):0);
+        T.burnSum=(T.burnSum||0)+war.burnedA+war.burnedB;
+        /* 「beats 非空」要排掉 beatStart 拍首標記才有鑑別力：拍首標記每場必有 3 筆，
+           拿它算非空＝這條在所有合法輸入下恆真（02 §6.1 第 6 條的恆真式）。
+           這裡只數「排除 beatStart 之後仍為空」的場數＝整場零傷害零燒的對決。 */
+        const real=war.beats?war.beats.filter(b=>b.kind!=="beatStart").length:0;
+        T.beatsReal=(T.beatsReal||0)+real;
+        if(war.beats&&real===0) T.emptyBeats=(T.emptyBeats||0)+1;
       }
       if(!war.winner){ fights.push({A,B,pa,pb,tie:true,war}); return; } /* 勢均力敵：沿用現行 tie 路徑 */
     }else if(pa===pb){ fights.push({A,B,pa,pb,tie:true}); return; }
@@ -4335,6 +4537,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
   paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy,
+  pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,

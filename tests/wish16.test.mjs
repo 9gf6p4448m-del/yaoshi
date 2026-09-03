@@ -33,6 +33,9 @@ function ok(c,what){ if(!c) throw new Error(what); }
 function setup(G){
   G.CFG.WISH_ON=true; G.CFG.EVENT_ON=false; G.CFG.RULE_ON=false;
   G.CFG.NIGHT_REGEN=0; G.CFG.MARK_ON=false; /* 2026-09-02 v0.9 後加的天明回血與盯上宣告與心願判定無關，一併隔離（舊版沒有這兩個欄位，設了不影響） */
+  G.CFG.PAPERWAR_ON=false; /* 卷 D D5：釘住「舊制戰力比較」這個情境，不是釘門檻——下面的案子以「戰力差 → dmg −6」設計，
+                              《紙紮夜戰》開了之後勝負與扣血改由三拍自動戰算（同一組袋子會變 −8），驗的是心願判定不是扣血公式。
+                              比照 conscap／aistake 釘 CONS_CAP_DIV 的做法（舊版沒有這個欄位，設了不影響）。 */
   G.makeState('solo',1);
   const S=G.S;
   S.players.forEach((p,i)=>{ p.ai=null; p.roleId='human'; p.bag=[]; p.alive=true; p.life=40;
