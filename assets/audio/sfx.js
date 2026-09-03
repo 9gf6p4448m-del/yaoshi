@@ -169,7 +169,7 @@
        （順帶讓靜音撥桿不再壓掉 Web Audio）。三招一起做，哪一招有效不必分辨。 */
     unlock() {
       const ctx = this._ensure(); if (!ctx) return false;
-      try { if (ctx.state !== "running") { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
+      try { if (ctx.state !== "running") { this.resumeCalls = (this.resumeCalls || 0) + 1; const p = ctx.resume(); if (p && p.then) p.then(() => { this.resumed = (this.resumed || 0) + 1; }, () => { this.resumeErr = true; }); } } catch (e) {}
       try { const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); } catch (e) {}
       try {
         if (!this._kick && typeof Audio !== "undefined") { const a = new Audio(SILENT_WAV); a.setAttribute("playsinline", ""); a.preload = "auto"; a.volume = 0.01; this._kick = a; }

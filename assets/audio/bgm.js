@@ -84,11 +84,25 @@
     /* 真的有聲音在跑（enabled、檔案在、ctx 活著）才算 */
     playing() { return !!(this.enabled && this._cur && this.ctx && this.ctx.state === "running"); },
 
+    /* 等 ctx 真的 running 才回來（2026-09-03 iPhone 主畫面實測：ctx 一直 suspended、resume 與 <audio> 都懸著）。
+       iOS 在 ctx 還 suspended 時跑 decodeAudioData 會把音訊執行緒卡住，之後連音效都不會醒——
+       所以音樂一律等 running 才 fetch＋decode；statechange 會叫醒這裡，最多等 20 秒就放棄本次（下次切場景再試）。 */
+    _whenRunning(ctx) {
+      if (ctx.state === "running") return Promise.resolve(true);
+      return new Promise((res) => {
+        let done = false;
+        const ok = () => { if (done) return; done = true; ctx.removeEventListener("statechange", h); res(ctx.state === "running"); };
+        const h = () => { if (ctx.state === "running") ok(); };
+        ctx.addEventListener("statechange", h);
+        setTimeout(ok, 20000);
+      });
+    },
     async _load(scene) {
       if (this._buf[scene]) return this._buf[scene];
       if (this._miss[scene]) return null;
       const url = TRACKS[scene];
       const ctx = this._ensure();
+      if (ctx && !(await this._whenRunning(ctx))) return null; /* 還沒醒：不記 miss、下次再試 */
       /* READY 是 false ＝曲子還沒安裝：直接記成缺曲，連 fetch 都不發（避免 404 污染 console） */
       if (!READY[scene] || !url || !ctx || typeof fetch !== "function") { this._miss[scene] = true; return null; }
       try {

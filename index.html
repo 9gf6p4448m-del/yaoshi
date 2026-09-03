@@ -1565,7 +1565,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.28", VERSION_NOTE="對決大作化：受擊停格、火星四濺、鏡頭撞進去、燈籠發光的夜霧廟埕";
+const VERSION="0.28.1", VERSION_NOTE="音樂改成等音訊系統醒了才載入（iPhone 主畫面沒聲音追查中）";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1578,7 +1578,7 @@ function audioDiag(){
     const ctx=S_.ctx;
     return [`sfx v${VERSION}`, ctx?`ctx ${ctx.state} ${ctx.sampleRate}Hz`:"ctx 無",
       `音效 ${S_.enabled?"開":"關"} 聲部 ${S_.names.length} 播過 ${S_.plays||0} 次 最後 ${S_.lastPlay||"-"}`,
-      `喚醒 kick ${S_.kicked||0}${S_.kickErr?" 失敗":""}`,
+      `喚醒 resume 叫 ${S_.resumeCalls||0} 回 ${S_.resumed||0}${S_.resumeErr?" 失敗":""}・kick ${S_.kicked||0}${S_.kickErr?" 失敗":""}`,
       S_.lastError?`例外 ${S_.lastError}`:"",
       B_?`音樂 ${B_.enabled?"開":"關"} scene ${B_.scene||"-"} playing ${B_.playing()} 缺曲 ${Object.keys(B_._miss||{}).join(",")||"無"}`:"bgm.js 沒載到",
       `UA ${navigator.userAgent.replace(/Mozilla\/5.0 \(|\).*$/g,"").slice(0,40)} standalone ${!!navigator.standalone}`
