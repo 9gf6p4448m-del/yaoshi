@@ -73,10 +73,10 @@
 .text-gold{ color: var(--c-gold); }
 
 /* --- 系別底色（低彩度，襯在卡牌上不搶字） --- */
-.bg-zuli{ background: color-mix(in srgb, var(--c-zuli) 30%, var(--c-bg-card)); }
-.bg-xianghu{ background: color-mix(in srgb, var(--c-xianghu) 26%, var(--c-bg-card)); }
-.bg-yinqi{ background: color-mix(in srgb, var(--c-yinqi) 30%, var(--c-bg-card)); }
-.bg-curse{ background: color-mix(in srgb, var(--c-curse) 30%, var(--c-bg-card)); }
+.bg-zuli{ --bg-sys: color-mix(in srgb, var(--c-zuli) 30%, var(--c-bg-card)); background: var(--bg-sys); }
+.bg-xianghu{ --bg-sys: color-mix(in srgb, var(--c-xianghu) 26%, var(--c-bg-card)); background: var(--bg-sys); }
+.bg-yinqi{ --bg-sys: color-mix(in srgb, var(--c-yinqi) 30%, var(--c-bg-card)); background: var(--bg-sys); }
+.bg-curse{ --bg-sys: color-mix(in srgb, var(--c-curse) 30%, var(--c-bg-card)); background: var(--bg-sys); }
 .bg-surface{ background: var(--c-bg-surface); }
 .bg-card{ background: var(--c-bg-card); }
 

@@ -114,14 +114,16 @@
     /* 燈籠風聲：常駐環境音，loop=true。只有這一個是持續音 */
     wind(ctx, out, t0, rnd, opts) {
       const dur = (opts && opts.dur) || 8;
+      /* 底噪音量開放給呼叫端：BGM 播放時要把環境音壓低（使用者 2026-09-03 裁定）。不傳＝原本的 0.12 */
+      const peak = (opts && typeof opts.gain === "number") ? opts.gain : 0.12;
       const src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx); src.loop = true;
       const bq = ctx.createBiquadFilter(); bq.type = "lowpass"; bq.frequency.value = 380; bq.Q.value = 0.6;
       const lfo = ctx.createOscillator(), lfoG = ctx.createGain();
       lfo.frequency.value = 0.11 + rnd * 0.05; lfoG.gain.value = 180;
       lfo.connect(lfoG).connect(bq.frequency);
       const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(0.12, t0 + 1.5);
-      g.gain.setValueAtTime(0.12, t0 + dur - 1);
+      g.gain.linearRampToValueAtTime(peak, t0 + 1.5);
+      g.gain.setValueAtTime(peak, t0 + dur - 1);
       g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
       src.connect(bq).connect(g).connect(out); src.start(t0); lfo.start(t0);
       src.stop(t0 + dur); lfo.stop(t0 + dur);

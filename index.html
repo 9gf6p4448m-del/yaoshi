@@ -103,7 +103,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   background:radial-gradient(ellipse at 50% 35%,var(--glass-felt2),var(--glass-felt));
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow-y:auto}
-#feltHead{text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
+/* 夜份列：12 格月相與風位資訊**同一列**（美術層 §4）。#felt 高度預算零餘裕，不得新增一列。 */
+#feltHead{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;
+  text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
+#nightbar{flex:0 0 auto;line-height:0}
+#nightbar svg{height:13px;width:auto;display:block}
 #helpBtn{display:none;position:fixed;top:8px;right:10px;z-index:25;width:34px;height:34px;border-radius:50%;
   background:#2a2344;color:var(--gold);border:1px solid var(--gold);font-size:16px;line-height:1}
 #stage{min-height:40px}
@@ -131,7 +135,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .pickbox.on{background:var(--gold);color:#14101f}
 .mcard.locked{opacity:.5;cursor:default}
 #market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.mcard{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
+.mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
 .mcard:active{transform:scale(.97)}
 .mcard.curse{border-color:var(--curse)}
@@ -139,6 +143,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .mcard .nm{font-weight:bold;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mcard .pw{font-size:11px;color:var(--gold)}
 .mcard .ab{font-size:10px;color:var(--dim);margin-top:2px;line-height:1.3}
+/* 法寶圖示（美術層，art-integration-guide §3）：浮水印式絕對定位，**不佔任何高度**——
+   #felt 的高度預算是零餘裕（GUIDE §11.10），加圖示不得讓卡片變高。
+   沒有圖示的法寶靠 .bg-* 系別底色識別（§7 裁定 3），不拿別件的圖頂替。 */
+.mico{position:absolute;right:2px;bottom:2px;width:30px;height:30px;opacity:.24;pointer-events:none;z-index:0}
+.mcard>div{position:relative;z-index:1}
+.iico{width:17px;height:17px;vertical-align:-3px;margin-right:4px}
+.bico{width:11px;height:11px;vertical-align:-1px;margin-right:4px;opacity:.9}
 .mybid{position:absolute;top:-8px;right:-4px;background:var(--gold);color:#14101f;border-radius:8px;
   font-size:11px;font-weight:bold;padding:1px 7px;z-index:2}
 .mybid.poison{background:var(--curse);color:#fff}
@@ -1490,7 +1501,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.17", VERSION_NOTE="盯上那頁也看得到今夜心願與市集規則說明";
+const VERSION="0.18", VERSION_NOTE="法寶圖示與系別底色、12 格月相夜份、得標燈籠光、背景音樂層";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -2247,9 +2258,15 @@ function renderSeats(hlIds){
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
   $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
-  $("feltHead").textContent=`第 ${S.round}/${CFG.ROUNDS} 夜・${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`
+  /* 夜份：有預抓到月相就用 12 格圖示取代「第 N/12 夜」文字，沒抓到退回文字（美術層 §4）。
+     兩者都與風位資訊同一列——#felt 高度預算零餘裕，不得新增一列。 */
+  const nb=NIGHTSVG.svg||"";
+  $("feltHead").innerHTML=(nb?`<span id="nightbar" title="第 ${S.round}/${CFG.ROUNDS} 夜">${nb}</span>`
+                             :`<span>第 ${S.round}/${CFG.ROUNDS} 夜・</span>`)
+    +`<span>${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`
     +`${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`
-    +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}`;
+    +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}</span>`;
+  if(nb) renderNights(S.round);
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
@@ -2261,10 +2278,15 @@ function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣�
 const CHAR_SVG={qingmian:"qingmian",hongyi:"hongyi",duanshou:"duanshou",shoujing:"shoujing",dangpu:"dangpu",
   hunter:"lieren",xiaonv:"xiaonu",lvshan:"lushan",zutou:"zuhe",luzhu:"pud",human:"human"};
 const AVSVG={};
+/* 月相指示器要用 getElementById 逐格改 fill，只能 inline 進 DOM，不能用 <img> */
+const NIGHTSVG={};
 async function preloadArt(){
   if(AVSVG.__done||typeof fetch!=="function") return;
-  await Promise.all(Object.entries(CHAR_SVG).map(([rid,f])=>
-    fetch(`assets/characters/${f}.svg`).then(r=>r.ok?r.text():"").then(t=>{ if(t) AVSVG[rid]=t; }).catch(()=>{})));
+  await Promise.all([
+    ...Object.entries(CHAR_SVG).map(([rid,f])=>
+      fetch(`assets/characters/${f}.svg`).then(r=>r.ok?r.text():"").then(t=>{ if(t) AVSVG[rid]=t; }).catch(()=>{})),
+    fetch("assets/ui/night-indicator.svg").then(r=>r.ok?r.text():"").then(t=>{ if(t) NIGHTSVG.svg=t; }).catch(()=>{}),
+  ]);
   AVSVG.__done=true;
 }
 function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIFE; return r>2/3?"state-healthy":r>1/3?"state-pale":"state-dying"; }
@@ -2272,6 +2294,31 @@ function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIF
 function avHTML(p){ const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",lifeState(p)):p.av; }
 /* 角色定義 → 頭像 HTML（選角、角色卡：固定紅潤） */
 function roleAvHTML(R){ return AVSVG[R.id]||R.av; }
+/* ===== 法寶圖示與系別底色（美術層，純呈現；規格 art-integration-guide §3、§7 裁定） =====
+   assets/items 有 12 張，其中 10 張對得上 POOL 品名；rednail（紅線繡花鞋）與 leinu（雷女銅鈴）
+   在 POOL 裡沒有對應品項，2026-09-02 裁定當**儲備素材**，不掛到任何既有法寶上。
+   其餘 17 件法寶＋5 件詛咒品沒有圖示，一律用系別底色識別（裁定 3），不拿別件的圖頂替。
+   本段不讀寫賽局欄位、不耗亂數；品名是 key，改 POOL 品名時這張表要一起改。 */
+const ITEM_SVG={破軍旗:"pojun",飼鬼甕:"sigui",過陰咒:"guoyin",福壽綿長:"fushou",
+  山神庇佑:"shanshen",獻祭刀:"xianji",送王船:"wangchuan",虎爺印:"huyeyin",
+  黃色小雨衣:"yuyi",椅仔姑竹椅:"zhuyigu"};
+/* 系別 → theme.css 的底色 class。顏色的單一事實來源在 theme.css，這裡只做對應 */
+const SYS_BG={zuling:"bg-zuli",xianghuo:"bg-xianghu",yinqi:"bg-yinqi",curse:"bg-curse"};
+function sysBg(it){ return SYS_BG[it.f]||""; }
+/* 拍品卡右下角浮水印（不佔高度） */
+function itemIcoHTML(it){ const f=ITEM_SVG[it.n]; return f?`<img class="mico" src="assets/items/${f}.svg" alt="">`:""; }
+/* 標題列前的小圖示（開標大卡、標書抬頭） */
+function itemIcoInline(it){ const f=ITEM_SVG[it.n]; return f?`<img class="iico" src="assets/items/${f}.svg" alt="">`:""; }
+/* 夜份指示器（美術層 §4）：12 格月相。當前夜整圓填燈籠金，已過的夜亮半月痕。
+   純呈現，不讀寫賽局狀態；SVG 沒預抓成功（file:／離線）就退回文字夜份，不擋開局。 */
+function renderNights(cur){
+  for(let n=1;n<=CFG.ROUNDS;n++){
+    const c=document.getElementById("night-"+n), ph=document.getElementById("night-"+n+"-phase");
+    if(!c||!ph) continue;
+    c.setAttribute("fill", n===cur?"var(--c-lantern-glow, #f0a840)":"none");
+    ph.setAttribute("opacity", n<cur?"1":"0");
+  }
+}
 /* ===== 演出層輔助（只加減 class／style，不讀寫賽局欄位、不耗亂數；規格 art-integration-guide §5） ===== */
 /* 3D 運鏡事件（v0.16）：只從演出層發，引擎函式一律不發——headless 測試的 document 是 stub、
    沒有 dispatchEvent，在引擎路徑上發事件會讓 playPolicyGame 直接炸。整包 try/catch，
@@ -2304,6 +2351,13 @@ function initSfx(){
   if(typeof YS_SFX==="undefined") return;
   try{ if(localStorage.getItem(SFX_KEY)==="off") YS_SFX.enabled=false; }catch(e){}
   YS_SFX.unlock();
+  /* BGM 與音效共用同一個開關與同一次手勢解鎖（art-integration-guide §9） */
+  if(typeof YS_BGM!=="undefined"){
+    YS_BGM.enabled=YS_SFX.enabled;
+    YS_BGM.unlock();
+    /* 音樂起停時重開風聲的循環，讓壓低／回復立刻生效（下一段 8 秒才會換音量太慢） */
+    YS_BGM.onChange=()=>{ if(WIND_T) windStart(); };
+  }
   const b=$("sfxBtn"); if(b) b.textContent=YS_SFX.enabled?"🔊":"🔇";
   if(!initSfx.bound){ /* 所有按鈕統一一聲木魚：委派一次，不逐顆掛 */
     initSfx.bound=true;
@@ -2315,11 +2369,19 @@ function toggleSfx(){
   YS_SFX.enabled=!YS_SFX.enabled; if(YS_SFX.enabled) YS_SFX.unlock();
   try{ localStorage.setItem(SFX_KEY,YS_SFX.enabled?"on":"off"); }catch(e){}
   $("sfxBtn").textContent=YS_SFX.enabled?"🔊":"🔇";
+  if(typeof YS_BGM!=="undefined") YS_BGM.setEnabled(YS_SFX.enabled); /* 一顆鈕管全部音訊：手機直式版面吃緊，不另加開關 */
   if(YS_SFX.enabled) windStart(); else windStop();
 }
-/* 燈籠風聲：唯一的持續音，8 秒淡入淡出、每 7 秒接一段；牌桌開啟時起、局末停 */
+/* ===== 背景音樂（assets/audio/bgm.js，四層：標題／牌桌／對決／局末回顧）=====
+   紀律同音效：只在演出層呼叫、引擎零呼叫、SKIP 不影響（音樂是底色不是事件）。
+   曲子檔案還沒放進 assets/audio/bgm/ 時，YS_BGM.play() 靜默失敗，遊戲照跑。 */
+function bgm(scene){ if(typeof YS_BGM==="undefined") return false; return YS_BGM.play(scene); }
+/* 燈籠風聲：唯一的持續音，8 秒淡入淡出、每 7 秒接一段；牌桌開啟時起、局末停。
+   有 BGM 在播時壓到 WIND_DUCK（使用者 2026-09-03 裁定：自動壓低而非停掉，保住夜市空氣感）。 */
 let WIND_T=null;
-function windStart(){ windStop(); if(!sfxOn()) return; const tick=()=>{ if(!SKIP) YS_SFX.play("wind",{dur:8,rnd:S?S.rngUi():0.5}); }; tick(); WIND_T=setInterval(tick,7000); }
+const WIND_GAIN=0.12, WIND_DUCK=0.035;
+function windGain(){ return (typeof YS_BGM!=="undefined"&&YS_BGM.playing())?WIND_DUCK:WIND_GAIN; }
+function windStart(){ windStop(); if(!sfxOn()) return; const tick=()=>{ if(!SKIP) YS_SFX.play("wind",{dur:8,gain:windGain(),rnd:S?S.rngUi():0.5}); }; tick(); WIND_T=setInterval(tick,7000); }
 function windStop(){ if(WIND_T){ clearInterval(WIND_T); WIND_T=null; } }
 function say(id,txt){
   const b=$("bub"+id); if(!b)return;
@@ -2382,6 +2444,7 @@ function openHelp(){
 }
 function beginRound(){
   fx3d("ys:table"); /* 新的一夜：鏡頭回到牌桌俯視機位（局末拉遠後也靠這裡復位） */
+  bgm("market");    /* 牌桌層：盯上／出價／開標全程同一首，夜與夜之間不重頭播 */
   if(S.round===1&&!introSeen()){ showIntro(beginRoundCore); return; }
   beginRoundCore();
 }
@@ -2494,8 +2557,8 @@ function showMarkUI(){
     <div class="preview">${who}👁 <b>盯上宣告</b>：封標前公開釘一件「我盯上了」。盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。<span class="mut">盯主標還是側標？看對手的反應型（角色卡 ⓘ）</span>${
       rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
     ${wishBarHTML(ap)}
-    <div id="market">${S.market.map((it,i)=>`<div class="mcard ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
-      <div class="nm">${it.n}</div>
+    <div id="market">${S.market.map((it,i)=>`<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
+      ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
     </div>`).join("")}</div>`;
@@ -2613,16 +2676,16 @@ function mcardHTML(it,i){
     /* 押寶夜：每件法寶一個勾選框；詛咒品該夜顯示「不開標」且點不動 */
     const off=it.curse;
     const box=off?"":`<span class="pickbox ${YB.pick[i]?"on":""}">${YB.pick[i]?"✓":""}</span>`;
-    return `<div class="mcard ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
-      ${box}${markBadgeHTML(i)}
+    return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
+      ${box}${markBadgeHTML(i)}${itemIcoHTML(it)}
       <div class="nm">${it.n}</div>
       <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${off?"🚫 本夜不開標":(it.ab?("✦ "+abDesc(it.ab)):it.d)}${!off&&it.drain?`・每夜 -${it.drain} 血`:""}</div>
     </div>`;
   }
   const badge=b.amt>0?`<span class="mybid ${b.intent==="poison"?"poison":""}">${b.intent==="poison"?"毒":"押"} ${b.amt}</span>`:"";
-  return `<div class="mcard ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
-    ${badge}${markBadgeHTML(i)}
+  return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
+    ${badge}${markBadgeHTML(i)}${itemIcoHTML(it)}
     <div class="nm">${it.n}</div>
     <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
     <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
@@ -2644,7 +2707,7 @@ function openSheet(i){
     b.intent="poison"; b.target=(f?f.id:foes[0].id);
   }
   $("sheetbox").innerHTML=`
-    <h3>${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
+    <h3>${itemIcoInline(it)}${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
     <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
@@ -2780,8 +2843,8 @@ async function startReveal(){
   for(const r of rv.reveal){
     renderSeats();
     veil(true); await sleep(450); /* 開標揭曉①：先黑幕，燈籠再亮（art-integration-guide §5.1） */
-    stage.innerHTML=`<div class="stageCard anim-lantern-reveal">
-      <div class="big">${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
+    stage.innerHTML=`<div class="stageCard anim-lantern-reveal" id="revealCard">
+      <div class="big">${itemIcoInline(r.it)}${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
       <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
       <div class="mut" style="font-size:12px">${rv.showEntries?nBid(r):""}</div>
       <div id="flyzone"></div><div id="outzone"></div>
@@ -2799,7 +2862,7 @@ async function startReveal(){
       const ordered=[...r.entries].sort((a,b)=>a.amt-b.amt);
       for(const e of ordered){
         fz.insertAdjacentHTML("beforeend",
-          `<div class="bidfly ${e===r.winner?"win":""}"><span>${DIRS[e.p.id]}家・${e.p.name}${e.intent==="poison"?" 🕸毒標":""}</span><span>${e.amt} 壽命${rv.showTypes&&e.type==="yaming"?"・押命":""}${
+          `<div class="bidfly ${e===r.winner?"win":""}"><span><img class="bico" src="assets/ui/bid-token.svg" alt="">${DIRS[e.p.id]}家・${e.p.name}${e.intent==="poison"?" 🕸毒標":""}</span><span>${e.amt} 壽命${rv.showTypes&&e.type==="yaming"?"・押命":""}${
             /* 實付顯示規則（2026-09-02 對抗覆審 HIGH-1/2）：
                得標者一律顯示——得標實付=出價+掛號費，兩種型態同式，不洩漏標書型態；
                落標者的實付兩型態算式不同（25% vs 50%），會被反推型態、廢掉普渡爐主的被動，
@@ -2825,6 +2888,9 @@ async function startReveal(){
     }
     if(r.winner){
       sfx("bell",{rnd:S.rngUi()});
+      /* 得標：拍品卡打燈籠光（art-integration-guide §5.1，與 bell 同一刻）。
+         純 class，下一件拍品重畫 stage 時自然清掉 */
+      const rc=$("revealCard"); if(rc) rc.classList.add("card-glow");
       sayFrom(r.winner.p.id, r.winner.intent==="poison"?"poison":"win");
       const losers=r.entries.filter(e=>e!==r.winner);
       if(losers.length&&!r.winner.p.ai)sayFrom(losers[0].p.id,"lose");
@@ -2859,6 +2925,7 @@ async function playDuel(f){
   const ov=$("duel");
   ov.style.display="flex"; void ov.offsetWidth; ov.classList.add("on"); /* 切入：0.3s 淡入（§5.2） */
   fx3d("ys:duel",{a:f.A.id,b:f.B.id}); /* 鏡頭切到看得見交手兩人的低角度 */
+  bgm("duel");                          /* 對決層：切一首緊張的，退場時回牌桌層 */
   $("table").classList.add("duelfade"); /* 讓 3D 當舞台背景 */
   sfx("whoosh",{rnd:S.rngUi()});
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
@@ -2897,7 +2964,7 @@ async function playDuel(f){
     $("duelSub").innerHTML=fml+(f.extra.length?`　${f.extra.join("　")}`:"");
     await sleep(CFG.T*1.6);
   }
-  ov.classList.remove("on"); fx3d("ys:duel-end"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
+  ov.classList.remove("on"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }
 async function startBattle(){
@@ -2941,6 +3008,7 @@ function nextRound(){
 }
 function endGame(){
   fx3d("ys:end"); /* 鏡頭拉遠俯瞰整桌 */
+  bgm("review");   /* 局末層：結果畫面與「本局回顧」同一首 */
   windStop();
   stripEndgameItems();
   finalizeHistory();
@@ -2968,6 +3036,7 @@ function endGame(){
 const RV_COL={0:"var(--c-gold,#e8c860)",1:"var(--c-yinqi-light,#70b080)",2:"var(--c-curse-light,#9060d0)",3:"var(--c-danger,#e04040)"};
 const RV_TYPE={cons:"保守",yaming:"押命"};
 function showReview(){
+  bgm("review"); /* 從結果畫面進來時已經是這一首，重複呼叫是空操作 */
   finalizeHistory();
   const H=S.history, P=S.players, sm=reviewSummary(), N=H.life.length-1;
   const short=id=>id==null?"—":`${DIRS[id]}・${P[id].name}`;
@@ -3064,7 +3133,8 @@ function showRoleInfo(pid){
 /* ================= 選角畫面（SELECT_ON=true 時的開局入口） ================= */
 let SEL={mode:null,picks:[],cur:null};
 async function startEntry(mode){
-  initSfx(); /* 音效：在這個使用者手勢裡解鎖 AudioContext（art-integration-guide §8.1） */
+  initSfx(); /* 音效與音樂：在這個使用者手勢裡解鎖 AudioContext（art-integration-guide §8.1） */
+  bgm("title"); /* 標題層：選角畫面。標題頁本身放不了——瀏覽器要先有一次手勢 */
   await preloadArt(); /* 頭像 SVG 在這個使用者手勢裡一次抓齊；抓不到（file:／離線）退回 emoji，不擋開局 */
   if(SELECT_ON) openSelect(mode);
   else newGame(mode); /* kill switch：退回 v0.5 固定座位直接開局 */
@@ -3654,6 +3724,7 @@ if(!SIM_MODE){
 </script>
 <!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
 <script src="assets/audio/sfx.js"></script>
+<script src="assets/audio/bgm.js"></script>
 <script type="module" src="js/renderer.js"></script>
 </body>
 </html>

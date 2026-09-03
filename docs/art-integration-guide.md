@@ -222,6 +222,10 @@ function renderNights(cur){
 > 建議**不要新增一列**，併進 `#feltHead` 現有那一行（`index.html:2196`），或放進底部列 `#south`。
 
 ### `lantern-frame.svg` — 燈籠邊框（給 CSS mask 用）
+
+> ⛔ **2026-09-03 起不採用，理由見 §10。** 下面這段用法留著只是備查——目前遊戲裡**沒有任何直式卡**
+> 可以套它，照抄會把燈籠拉成橢圓。哪天真的做了直式卡版面再回來看這一節。
+
 `preserveAspectRatio="none"`，可拉伸成任意卡牌比例。**全部圖形都是純白**（白＝mask 保留區），
 所以它**不能直接當圖片顯示**，只能當遮罩：
 
@@ -387,3 +391,69 @@ startBtn.addEventListener("click", () => { YS_SFX.unlock(); /* ...原本的開�
 用 `YS_SFX.render(name, {rnd})` 可以離線渲染成 `AudioBuffer` 量 RMS／峰值。**不要寫「兩次渲染逐位元組相同」的測試**：
 瀏覽器混音器對 ≥3 個輸入的加總順序不保證，同一參數兩次渲染會差 float32 末位（實測最大 1.19e-7），
 這是量測本身的雜訊，不是模組的 bug。要驗決定性就驗 `maxdiff < 1e-5`。
+
+---
+
+## 9. 背景音樂：`assets/audio/bgm.js`（2026-09-03 加入）
+
+使用者裁定「比照排球夢的方式」＝ Google Flow Music（flowmusic.app，Lyria 免費層）生成，
+**下載必須使用者親手點**（Chrome 只認真人手勢，合成點擊觸發不了下載），拿到 WAV 後再做
+節錄與無縫環。曲子是檔案不是合成——這是本專案第一次帶音檔，`sfx.js` 的「零音檔」原則
+只適用於音效。
+
+### 9.1 四層與觸發點（使用者 2026-09-03 裁定）
+
+| 場景 key | 檔案 | 什麼時候切進去 | 掛在 `index.html` 哪裡 |
+|---|---|---|---|
+| `title` | `bgm/title.m4a` | 標題頁與選角畫面 | `startEntry()`（同一個手勢裡解鎖 AudioContext） |
+| `market` | `bgm/market.m4a` | 牌桌：盯上／出價／開標，跨夜不重播 | `beginRound()`、對決退場處 |
+| `duel` | `bgm/duel.m4a` | 結算戰對決場景 | `playDuel()` 入場 |
+| `review` | `bgm/review.m4a` | 局末結果畫面與「本局回顧」 | `endGame()`、`showReview()` |
+
+標題頁本身放不了音樂——瀏覽器要先有一次使用者手勢，而那一下就已經進選角了。
+所以 `title` 實際涵蓋的是**選角畫面**。
+
+### 9.2 ★安裝旗標★（最容易漏掉的一步）
+
+`bgm.js` 檔頭有一張 `READY = { title:false, market:false, duel:false, review:false }`。
+**把曲子檔案放進 `assets/audio/bgm/` 之後，要把對應那一行改成 `true`，音樂才會播。**
+
+為什麼不做成「抓抓看、404 就算了」——瀏覽器會把 404 記成 console error，而
+「console 0 error」是本專案的驗收條件之一，一旦有常態性的 404 噪音，真正的錯誤就被蓋掉了。
+`READY` 是 `false` 時這一層連 `fetch` 都不發。
+
+### 9.3 鐵則（與 §6／§8.3 同一套）
+
+1. **不含亂數、不讀寫遊戲狀態**——和 `sfx.js` 同一條。等價驗證同樣是 `trace(1..20)` 逐位元組相等。
+2. **只能從演出層呼叫**：`startEntry`／`beginRound`／`playDuel`／`endGame`／`showReview`。
+   引擎函式（`resolveAuction`／`resolveBattles`／`simulate`）零呼叫——headless 載入時 `YS_BGM` 根本不存在。
+3. **與 `YS_SFX` 共用同一個 AudioContext**（iOS 開兩個會很吵），但音量各走各的 gain。
+4. **`SKIP` 快轉不影響音樂**：音樂是底色不是事件；要停音樂請用開關。
+5. **一顆鈕管全部音訊**：`#sfxBtn` 同時開關音效與音樂（手機直式版面吃緊，不另加開關）。
+   狀態記在 `localStorage` 的 `ys_sfx`。
+
+### 9.4 風聲會被壓低
+
+使用者裁定：BGM 播放時燈籠風聲（`wind`）自動壓低而不是停掉，保住夜市的空氣感。
+`sfx.js` 的 `wind` 聲部多收一個 `opts.gain`（不傳＝原本的 0.12），`index.html` 的
+`windGain()` 依 `YS_BGM.playing()` 在 `WIND_GAIN=0.12` 與 `WIND_DUCK=0.035` 之間切。
+`YS_BGM.onChange` 會在音樂起停時重開風聲的循環，讓音量立刻生效（不然要等下一段 8 秒）。
+
+### 9.5 曲子的規格（交給 Flow Music 之後要做的加工）
+
+- **長度**：節錄成 60 秒左右的無縫環（首尾各留 3–4 秒做 crossfade，接點聽不出來為準）。
+- **格式**：`.m4a`（iOS Safari 友善），單聲道或立體聲皆可。
+- **響度**：四首之間要對齊，不然切場景會忽大忽小。排球夢的基準是選單 −14.6 LUFS／
+  比賽層 −16.7 LUFS；妖市走同一個相對關係：`title`／`review` 稍亮，`market` 最低（要壓在人聲台詞下面），
+  `duel` 可略高於 `market`。
+- **檔案大小**：這是單檔遊戲＋PWA，四首加起來盡量壓在 4 MB 以內。
+
+---
+
+## 10. 未採用的素材（要有紀錄，才不會下次又被當成漏做）
+
+| 素材 | 狀態 | 理由 |
+|---|---|---|
+| `items/rednail.svg`（紅線繡花鞋） | 儲備 | `POOL` 裡沒有這件法寶。2026-09-02 裁定：不掛到任何既有品項 |
+| `items/leinu.svg`（雷女銅鈴） | 儲備 | 同上 |
+| `ui/lantern-frame.svg` | **不採用（2026-09-03）** | 它是 200×280 的**直式卡框** mask。妖市目前沒有任何直式卡：拍品卡是 4 欄橫排的矮卡（約 88×82），開標大卡與標書都是橫幅。`preserveAspectRatio="none"` 拉伸到這些比例會把燈籠壓成橢圓、提樑變成粗橫條。要用它得先有直式卡的版面需求 |
