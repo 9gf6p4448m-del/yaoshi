@@ -28,8 +28,22 @@ const SEAT_YAW = [0, 180, 270, 90];
 
 const REVEAL_HOLD_MS = 1500; // 開標壓進去後停多久自動回到牌桌機位
 
+// 命中 punch（v0.27）：不是第五個機位，是疊在「當下那個機位」上的一組偏移量，
+// 所以跟既有四個機位（table／reveal／end／DUEL_SHOT）不打架——punch 歸零時
+// 相機位置與沒有這段程式碼時逐項相同。全部【試玩必調】。
+const PUNCH = {
+  dist: 0.6, // 推近多少世界單位（負的 dist 偏移）
+  ms: 420, // 回位時間，easeOutCubic
+  shake: 0.05, // 橫向微震幅度（世界單位）
+  shakeHz: 9, // 微震頻率
+};
+
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 /** 把角度差收斂到 -180..180，補間時才會走短邊、不會繞一大圈。 */
@@ -56,6 +70,8 @@ export function createCameraDirector(camera, lanterns) {
   let t = 1; // 補間進度，1＝已到位
   let durMs = 1;
   let revealUntil = 0; // 開標機位的自動返回時間，0＝沒有排程
+  let punchU = 1; // 命中 punch 的進度，1＝已回位（＝沒有偏移）
+  let punchAmp = 0; // 這一次 punch 的力道倍率
   const lookAt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
@@ -97,8 +113,18 @@ export function createCameraDirector(camera, lanterns) {
 
   function onDuelEnd() {
     revealUntil = 0;
+    punchU = 1; // 對決收掉時 punch 一定要歸零，不然殘餘偏移會帶進牌桌機位
+    punchAmp = 0;
     goto(SHOTS.table);
     setEmphasis(null);
+  }
+
+  /** 【積木接收端】ys:fx-punch：往前撞一下再 easeOutCubic 回位。力道由 detail.power 給（1＝標準）。
+   *  刻意跟「對決」解耦——任何演出時間軸都能叫它，三拍制時就是一拍叫一次。 */
+  function onPunch(e) {
+    const d = (e && e.detail) || {};
+    punchAmp = Math.max(0.2, Math.min(2, d.power === undefined ? 1 : d.power));
+    punchU = 0;
   }
 
   function onEnd() {
@@ -115,6 +141,7 @@ export function createCameraDirector(camera, lanterns) {
 
   document.addEventListener('ys:reveal', onReveal);
   document.addEventListener('ys:duel', onDuel);
+  document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:duel-end', onDuelEnd);
   document.addEventListener('ys:end', onEnd);
   document.addEventListener('ys:table', onTable);
@@ -127,15 +154,23 @@ export function createCameraDirector(camera, lanterns) {
       setEmphasis(null);
     }
 
-    if (t < 1) {
-      t = Math.min(1, t + (dt * 1000) / durMs);
+    if (t < 1) t = Math.min(1, t + (dt * 1000) / durMs);
+    if (punchU < 1) punchU = Math.min(1, punchU + (dt * 1000) / PUNCH.ms);
+
+    // 機位補間與 punch 偏移每幀都算一次。punch 沒在跑時偏移恆為 0，
+    // 算出來的位置與舊版「只在 t<1 時寫」逐項相同（SHOTS.table 就是 scene-env 的初始機位）。
+    if (t < 1 || punchU < 1) {
       const k = easeInOutCubic(t);
-      const dist = from.dist + (target.dist - from.dist) * k;
       const tilt = (from.tilt + (target.tilt - from.tilt) * k) * DEG;
       const yaw = (from.yaw + (target.yaw - from.yaw) * k) * DEG;
       const lookY = from.lookY + (target.lookY - from.lookY) * k;
+      // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
+      const pk = punchAmp * (1 - easeOutCubic(punchU));
+      const dist = Math.max(0.6, from.dist + (target.dist - from.dist) * k - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
-      camera.position.set(Math.sin(yaw) * horiz, Math.sin(tilt) * dist, Math.cos(yaw) * horiz);
+      const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
+      const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
+      camera.position.set(Math.sin(yaw) * horiz + sx, Math.sin(tilt) * dist + sy, Math.cos(yaw) * horiz);
       lookAt.set(0, lookY, 0);
       camera.lookAt(lookAt);
     }

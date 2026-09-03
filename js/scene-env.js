@@ -17,6 +17,11 @@ const TABLE_RADIUS = 3.4;
 const LANTERN_HEIGHT = 1.5; // 壓低：光斑落在看得到的桌面上，不是打在空中
 const LANTERN_DIST = 2.6; // 東南西北四角方位半徑，對應 characters-billboard 的座位半徑
 
+// 夜霧（v0.27）：從 THREE.Fog（線性 6→16）換成 FogExp2，遠處才會真的化進夜色而不是硬切。
+// 兩段密度都【試玩必調】：牌桌那段刻意保守（跟舊線性霧在桌面範圍內視覺相近，
+// 才不會讓「批 1 只做對決」變成整桌變樣）；對決那段才是真正的夜霧。
+export const FOG_DENSITY = { table: 0.055, duel: 0.115 };
+
 // 四個角色方位（南＝玩家、北、西、東），供燈籠與角色共用座標系
 export const SEAT_POS = {
   south: new THREE.Vector3(0, 0, LANTERN_DIST),
@@ -28,7 +33,7 @@ export const SEAT_POS = {
 export function createSceneEnv(aspect) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG_COLOR);
-  scene.fog = new THREE.Fog(BG_COLOR, 6, 16); // 鏡頭拉近後霧也要跟著收，遠端桌沿才會化進夜色
+  scene.fog = new THREE.FogExp2(BG_COLOR, FOG_DENSITY.table); // 密度由 renderer 依場景在兩段之間補間
 
   const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 100);
   const camDist = 3.6; // 拉近：讓桌面鋪滿背景，面板四周都是木紋與燈籠光
