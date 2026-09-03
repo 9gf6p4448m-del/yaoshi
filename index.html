@@ -1565,7 +1565,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.28.2", VERSION_NOTE="主畫面版沒聲音：改用 Safari 的 audioSession=playback 啟動音訊";
+const VERSION="0.28.3", VERSION_NOTE="切到背景會把音訊工作階段還給 iOS，重開才拿得回來";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1578,7 +1578,7 @@ function audioDiag(){
     const ctx=S_.ctx;
     return [`sfx v${VERSION}`, ctx?`ctx ${ctx.state} ${ctx.sampleRate}Hz`:"ctx 無",
       `音效 ${S_.enabled?"開":"關"} 聲部 ${S_.names.length} 播過 ${S_.plays||0} 次 最後 ${S_.lastPlay||"-"}`,
-      `喚醒 resume 叫 ${S_.resumeCalls||0} 回 ${S_.resumed||0}${S_.resumeErr?" 失敗":""}・kick ${S_.kicked||0}${S_.kickErr?" 失敗":""}`,
+      `喚醒 resume 叫 ${S_.resumeCalls||0} 回 ${S_.resumed||0}${S_.resumeErr?" 失敗":""}・kick ${S_.kicked||0}${S_.kickErr?" 失敗":""}・歸還 ${S_.released||0}`,
       S_.lastError?`例外 ${S_.lastError}`:"",
       B_?`音樂 ${B_.enabled?"開":"關"} scene ${B_.scene||"-"} playing ${B_.playing()} 缺曲 ${Object.keys(B_._miss||{}).join(",")||"無"}`:"bgm.js 沒載到",
       `audioSession ${navigator.audioSession?navigator.audioSession.type+(S_.sessionSet?"(已設)":""):"無此API"}`,
@@ -1589,14 +1589,24 @@ function audioDiag(){
 function audioWake(){
   /* 沒 running 就把 unlock 的三招整套再做一次（iOS 主畫面 PWA 光 resume 不夠） */
   try{ if(typeof YS_SFX!=="undefined"&&(!YS_SFX.ctx||YS_SFX.ctx.state!=="running")) YS_SFX.unlock(); }catch(e){}
+  /* 從背景回來（audioRelease 停過音樂）：把當前場景的音樂與風聲接回來；沒進牌局就什麼都不做 */
+  try{ if(typeof YS_BGM!=="undefined"&&YS_SFX.enabled&&!YS_BGM.playing()&&AUDIO_LAST_SCENE&&S){ const sc=AUDIO_LAST_SCENE; AUDIO_LAST_SCENE=null; YS_BGM.play(sc); if(typeof windStart==="function"&&$("table")&&$("table").classList.contains("on")) windStart(); } }catch(e){}
 }
 try{
   if(typeof document!=="undefined"&&document.addEventListener){
     document.addEventListener("touchend",audioWake,{passive:true});
     document.addEventListener("click",audioWake,{passive:true});
-    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") audioWake(); });
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") audioWake(); else audioRelease(); });
+    window.addEventListener("pagehide",audioRelease);
   }
 }catch(e){}
+/* 切到背景／關閉：停音樂與風聲、歸還音訊工作階段（見 sfx.js release 的註解）。回前景 audioWake 會重新拿。 */
+let AUDIO_LAST_SCENE=null; /* 歸還前記住音樂場景（YS_BGM.stop 會把 scene 清空），回前景由 audioWake 接回 */
+function audioRelease(){
+  try{ if(typeof YS_BGM!=="undefined"){ if(YS_BGM.scene) AUDIO_LAST_SCENE=YS_BGM.scene; YS_BGM.stop(); } }catch(e){}
+  try{ if(typeof windStop==="function") windStop(); }catch(e){}
+  try{ if(typeof YS_SFX!=="undefined") YS_SFX.release(); }catch(e){}
+}
 /* ===== 版本探針（2026-09-03）=====
    問題：GitHub Pages 對 index.html 送 Cache-Control: max-age=600，手機 10 分鐘內重開拿到的是本機快取，
    使用者以為沒推上線。解法：開頁與從背景切回前景時，用帶時間戳的網址（快取一定沒有）抓一次線上的

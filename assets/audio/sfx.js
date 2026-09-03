@@ -181,8 +181,17 @@
     /* Safari 17+ 的 Audio Session API：先宣告「playback」再建 ctx（2026-09-03 iPhone iOS 18.7 主畫面 PWA 實測
        Web Audio 從頭到尾叫不醒、Safari 直接開卻正常）。playback 類別＝主畫面 App 的音訊工作階段會被啟動，
        也不再被靜音模式壓掉。其他瀏覽器沒有這個物件，包 try 直接略過。 */
-    _session() {
-      try { const as = global.navigator && global.navigator.audioSession; if (as && as.type !== "playback") { as.type = "playback"; this.sessionSet = true; } } catch (e) {}
+    _session(kind) {
+      try { const as = global.navigator && global.navigator.audioSession; const want = kind || "playback";
+        if (as && as.type !== want) { as.type = want; if (want === "playback") this.sessionSet = true; } } catch (e) {}
+    },
+    /* 歸還音訊工作階段（2026-09-03 iPhone 主畫面實測：重開機後第一次開有聲音，滑掉重開就沒有——
+       第一個程序抓著工作階段沒還，後面的程序拿不到）。切到背景／關閉時：暫停 ctx、暫停無聲 <audio>、
+       類別改回 auto；回到前景由 unlock() 重新取得。呼叫端：index.html 的 pagehide／visibilitychange。 */
+    release() {
+      try { if (this._kick) { this._kick.pause(); } } catch (e) {}
+      try { if (this.ctx && this.ctx.state === "running") { const p = this.ctx.suspend(); if (p && p.catch) p.catch(() => {}); this.released = (this.released || 0) + 1; } } catch (e) {}
+      this._session("auto");
     },
     _ensure() {
       if (this.ctx) return this.ctx;
