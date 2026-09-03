@@ -1,10 +1,13 @@
 // 妖市 3D 環境層 — 主入口
-// Layer 1：只做場景環境，不橋接遊戲邏輯。index.html 除了 importmap 與這行 module script
-// 之外不得再改動——這裡的 canvas 樣式一律用 JS inline style 設定，不寫進 index.html 的 <style>。
+// Layer 1：場景環境。Layer 2（2026-09-03 v0.15）：bridge-players.js 把角色 sprite 接上 S.players。
+// canvas 樣式一律用 JS inline style 設定，不寫進 index.html 的 <style>。
+// index.html 這一版起除了 importmap 與 module script 之外另有牌桌面板半透明的 CSS
+// （使用者裁定「甲」，讓 3D 透出來），但引擎邏輯仍然完全沒動。
 import * as THREE from 'three';
 import { createSceneEnv, resizeSceneEnv } from './scene-env.js';
 import { createIncenseSmoke, createEmbers } from './particles.js';
 import { createCharacterBillboards } from './characters-billboard.js';
+import { createPlayerBridge } from './bridge-players.js';
 
 function createCanvas() {
   const canvas = document.createElement('canvas');
@@ -36,9 +39,11 @@ function init() {
   const embers = createEmbers(20);
   scene.add(smoke.points, embers.points);
 
-  const { group: charGroup } = createCharacterBillboards();
+  const { group: charGroup, sprites } = createCharacterBillboards();
   scene.add(charGroup);
+  const playerBridge = createPlayerBridge(sprites, camera);
 
+  let lastOnTable = null;
   let lastT = performance.now();
   let elapsed = 0;
   let running = true;
@@ -51,11 +56,19 @@ function init() {
 
     // 燈籠光微微閃爍，避免死板的固定光源
     lanterns.forEach((light, i) => {
-      light.intensity = 1.5 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.15;
+      light.intensity = 3.4 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.35;
     });
 
     smoke.update(dt, elapsed);
     embers.update(dt, elapsed);
+    // 只有牌桌畫面讓 3D 全亮；標題頁與各全螢幕場景把它壓暗，
+    // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
+    const onTable = playerBridge.update(now);
+    if (onTable !== lastOnTable) {
+      lastOnTable = onTable;
+      canvas.style.opacity = onTable ? '1' : '0.38';
+      canvas.style.transition = 'opacity .5s';
+    }
 
     renderer.render(scene, camera);
     requestAnimationFrame(frame);

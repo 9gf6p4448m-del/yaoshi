@@ -2,23 +2,46 @@
 // Layer 1：純視覺演出，不消耗 S.rng()／S.rngUi()（引擎尚未橋接，這層先用 Math.random）。
 import * as THREE from 'three';
 
+/**
+ * 柔邊圓點貼圖（一次性產生，兩組粒子共用）。
+ * 沒有貼圖的 PointsMaterial 畫出來是硬邊正方形——實測在深色背景上像一堆灰色碎屑，
+ * 不像煙也不像火星（scratchpad b1-title.png）。用一張徑向漸層當 map 就成了柔邊圓點。
+ */
+let softDot = null;
+function getSoftDot() {
+  if (softDot) return softDot;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d').createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.5)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  softDot = new THREE.CanvasTexture(c);
+  softDot.colorSpace = THREE.SRGBColorSpace;
+  return softDot;
+}
+
 // 桌面四個小圓點位置（線香煙的起點），對稱分布在桌面內圈
 const INCENSE_ORIGINS = [
-  [0.8, 0.16, 0.8],
-  [-0.8, 0.16, 0.8],
-  [0.8, 0.16, -0.8],
-  [-0.8, 0.16, -0.8],
+  [1.5, 0.16, 1.5],
+  [-1.5, 0.16, 1.5],
+  [1.5, 0.16, -1.5],
+  [-1.5, 0.16, -1.5],
 ];
 
 // 燈籠附近（火星生成範圍），對應 scene-env 的四個燈籠座位半徑
+// 與 scene-env 的 LANTERN_HEIGHT／LANTERN_DIST 對齊（那裡改了這裡要跟著改）
 const EMBER_LANTERNS = [
-  [0, 2.5, -2.2],
-  [0, 2.5, 2.2],
-  [-2.2, 2.5, 0],
-  [2.2, 2.5, 0],
+  [0, 1.5, -2.6],
+  [0, 1.5, 2.6],
+  [-2.6, 1.5, 0],
+  [2.6, 1.5, 0],
 ];
 
-function makeParticleSystem({ count, color, size, spawn, sizeAttenuation = true }) {
+function makeParticleSystem({ count, color, size, spawn, opacity = 0.75, blending = THREE.NormalBlending, sizeAttenuation = true }) {
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const state = new Array(count);
@@ -44,9 +67,12 @@ function makeParticleSystem({ count, color, size, spawn, sizeAttenuation = true 
 
   const material = new THREE.PointsMaterial({
     size,
+    map: getSoftDot(),
+    alphaTest: 0.01,
     vertexColors: true,
     transparent: true,
-    opacity: 0.75,
+    opacity,
+    blending,
     sizeAttenuation,
     depthWrite: false,
   });
@@ -99,7 +125,7 @@ export function createIncenseSmoke(count = 50) {
       },
     };
   };
-  return makeParticleSystem({ count, color: 0xffffff, size: 0.12, spawn });
+  return makeParticleSystem({ count, color: 0xcfc0d8, size: 0.42, spawn, opacity: 0.3 });
 }
 
 export function createEmbers(count = 20) {
@@ -122,5 +148,5 @@ export function createEmbers(count = 20) {
       },
     };
   };
-  return makeParticleSystem({ count, color: 0xf0a040, size: 0.06, spawn });
+  return makeParticleSystem({ count, color: 0xf0a040, size: 0.14, spawn, opacity: 0.9, blending: THREE.AdditiveBlending });
 }

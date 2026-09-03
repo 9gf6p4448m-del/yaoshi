@@ -48,7 +48,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #north{grid-area:north;display:flex;justify-content:center}
 #west{grid-area:west} #east{grid-area:east}
 #west,#east{display:flex;align-items:center}
-.seat{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+/* 3D 環境層透出（v0.15，使用者裁定「甲」）：牌桌面板半透明＋毛玻璃，讓 canvas 的桌面／燈籠光／
+   線香煙從後面透出來。透明度的單一事實來源＝下面三個變數，要調就改這裡，不要各處硬寫 rgba。
+   每條都先寫不透明的舊值當 fallback：不支援 color-mix 的瀏覽器退回原樣，不會破版。 */
+:root{--glass:color-mix(in srgb,var(--panel) 60%,transparent);
+  --glass-felt:color-mix(in srgb,var(--table) 52%,transparent);
+  --glass-felt2:color-mix(in srgb,var(--table2) 52%,transparent);
+  --glass-blur:blur(7px)}
+.seat{position:relative;background:var(--panel);background:var(--glass);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line);border-radius:12px;
   padding:5px 8px;cursor:pointer;transition:box-shadow .3s;width:100%}
 .seat.hl{box-shadow:0 0 12px var(--gold);border-color:var(--gold)}
 .seat.dead{opacity:.35}
@@ -88,6 +97,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #east .bubble{left:auto;right:calc(100% + 6px);top:50%;transform:translateY(-50%)}
 .bubble.show{opacity:1}
 #felt{grid-area:felt;background:radial-gradient(ellipse at 50% 35%,var(--table2),var(--table));
+  background:radial-gradient(ellipse at 50% 35%,var(--glass-felt2),var(--glass-felt));
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow-y:auto}
 #feltHead{text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
 #helpBtn{display:none;position:fixed;top:8px;right:10px;z-index:25;width:34px;height:34px;border-radius:50%;
@@ -141,6 +152,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .bidfly.win{background:var(--gold);color:#14101f;font-weight:bold}
 .outcome{margin-top:6px;color:var(--gold);font-size:12px;animation:pop .3s}
 #south{grid-area:south;display:flex;align-items:center;gap:10px;background:var(--panel);
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:1px solid var(--line);border-radius:12px;padding:5px 12px;position:relative}
 #south .dir{color:var(--gold);font-size:11px}
 #south .av{font-size:28px}
@@ -1472,7 +1484,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.14", VERSION_NOTE="本局回顧可觸控捲動＋壽命曲線線尾標名";
+const VERSION="0.15", VERSION_NOTE="3D 環境層上線：面板透出妖市攤位桌與燈籠光";
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
 function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
@@ -3565,6 +3577,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
+  CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
     plague:EVENT_SPEC_PLAGUE, ghost:EVENT_SPEC_GHOST,
