@@ -1,0 +1,137 @@
+{
+  "name": "獻祭刀 xianji_xianjidao (zuling/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝bow.claims.json（同為祖靈 elite 四足獸），結構沿用 flag.claims.json。識別視角＝**側視**（elite 單尊、招牌剪影是一對從肘以下長成黑曜石薄刃的前肢，刃板的寬面朝 ±X，只有側視看得到「直背＋弧刃」的葉形），所以除 saturation_area 外一律 view:\"side\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 bow／shield／flag）；② 另加五條 part_visible 把真實參照鐵則機械化——`blade_gleam`（特徵②『貫穿全長的直線高光』，沒有那條直線黑板子讀不出刃）、`zuli_gold`（特徵③刃背三角連紋帶＝本隻唯一的系別色帶）、`bone_tip`（特徵④山羌短而不分叉的尖角）、`hide_face`（獸頭不得被自己的刃臂吞掉，elite 招牌部位過大的專屬風險，同 bow 的 skull_bone）、`glow_cut`（特徵⑤胸口割痕）。saturation_area 沿用凍結檔指定的 10%–60% 帶；tri_budget 依 2026-09-04 19:30 預算制上限 8000。**沒有一處放寬。**",
+  "_frozen_at": "動手建模之前寫定（凍結檔 M-A0 要求 judge 全綠；本檔門檻此後一格未動，全部靠改 xianji.json 去滿足）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "obsidian",
+      "stage": "MID",
+      "label": "招牌部位：黑曜石刃臂的刃身必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "blade_gleam",
+      "stage": "MID",
+      "label": "刃口高光必須存在——一片黑板子沒有那條貫穿全長的直線就不是刀（真實參照特徵 2）"
+    },
+    {
+      "type": "part_exists",
+      "part": "zuli_gold",
+      "stage": "MID",
+      "label": "刃背的祖靈金三角連紋帶必須存在（真實參照特徵 3，本隻唯一的系別高飽和色帶）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_cut",
+      "stage": "MID",
+      "label": "胸口的發光割痕必須存在，且材質名必須正是 glow_cut（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口中發光必須存在，且材質名必須正是 mouth_glow"
+    },
+    {
+      "type": "part_signature",
+      "part": "obsidian",
+      "view": "side",
+      "min_share": 0.07,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（黑曜刃臂）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "blade_gleam",
+      "view": "side",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 2 的機械化：刃口那條直線高光在側視必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "zuli_gold",
+      "view": "side",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：刃背三角連紋帶在側視必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "bone_tip",
+      "view": "side",
+      "min_share": 0.006,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：山羌短而不分叉的骨白尖角在側視必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "hide_face",
+      "view": "side",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "獸頭必須在識別視角看得見——被自己的刃臂吞掉就等於沒有（elite 招牌過大的專屬風險）"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_cut",
+      "view": "side",
+      "min_share": 0.002,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：胸口的割痕在側視必須量得到"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hide_body",
+      "b": "glow_cut",
+      "min_ratio": 3,
+      "view": "side",
+      "stage": "MID",
+      "label": "兩個焦點（獸身／胸口割痕的靈光）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["hide_body", "hide_neck", "hide_face", "hide_leg", "ear_hide", "hide_pedicle"],
+      "secondary": ["obsidian", "obsidian_scar", "blade_gleam", "zuli_gold", "bone_tip", "face_stripe", "hide_cut", "iris_bead"],
+      "tertiary": ["glow_cut", "mouth_glow"],
+      "view": "side",
+      "stage": "MID",
+      "label": "6:3:1 階層：獸身／刃與骨飾與紋帶／割痕與口中的靈光"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（側視）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 2500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制上限 8000）"
+    }
+  ]
+}
