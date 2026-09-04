@@ -1,0 +1,90 @@
+{
+  "name": "拼板舟 boat_pinbanzhou_ling (zuling/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json；相對於它的差異只有三處，且沒有一處放寬門檻：① 部位名換成本隻的（招牌部位＝船艏發光刃 glow_prow、白名單發光材質＝eye／glow_prow，簡報只給兩個發光部位所以少一條 part_exists）；② share_hierarchy 與 focal_contrast 的 view 從預設 side 改成 tq——船是一整塊主體，側視只看得到船舷一條線，tq 才量得到胸鰭與甲板橫樑的真實佔比（門檻 tolerance 用預設 0.15，沒有調鬆）；③ focal_contrast 的 min_ratio 從預設 2 提高到 3，並多加一條 style_dark（側視中位亮度 ≤ 90）——這兩條是加嚴。saturation_area 的帶依 2026-09-04 凍結檔為 10%–60%，與 tiger_c 同。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "hull_body",
+      "stage": "MID",
+      "label": "船身（拼板舟的殼）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_prow",
+      "stage": "MID",
+      "label": "船艏發光刃必須存在，且材質名必須正是 glow_prow（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "船首畫的眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "fin_fly",
+      "stage": "MID",
+      "label": "飛魚鰭必須存在（swarm 的招牌配件）"
+    },
+    {
+      "type": "part_signature",
+      "part": "glow_prow",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（尖翹舟艏）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hull_body",
+      "b": "fin_fly",
+      "view": "tq",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "船身必須壓過飛魚鰭至少 3 倍——兩者等重就會讀成魚而不是舟"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["hull_body"],
+      "secondary": ["fin_fly", "glow_prow"],
+      "tertiary": ["gold", "bone", "socket", "eye", "lash"],
+      "view": "tq",
+      "stage": "MID",
+      "label": "6:3:1 階層：船身／（飛魚鰭＋船艏發光刃）／（金舷條＋骨白艉飾＋眼窩＋船眼＋橫樑齒紋）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "炭黑底：側視的機體中位亮度不得超過 90/255"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}

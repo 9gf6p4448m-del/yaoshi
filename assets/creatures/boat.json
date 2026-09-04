@@ -1,0 +1,162 @@
+{
+ "name": "boat_pinbanzhou_ling",
+ "_variant": "3D 量產卷批 1 · 拼板舟（ab=boat、祖靈 zuling、swarm ×3、trait swarmHalfSplash）。模板＝assets/creatures/tiger_c.json 的『語彙』（硬轉折、炭黑底＋一條高飽和系別色帶、1–3 個發光材質、識別視角＝側視），造型不沿用。",
+ "_brief": "Tatala boat-spirit: a Tao (Yami) plank canoe that grew flying-fish wings. Charcoal plank hull, both ends wrenched upward, the bow far higher and knifed to a point; one hard gold band runs the gunwale, a bone sheer-rail caps it and three thwarts bridge the black open hull; the painted boat-eye on each bow cheek is a glowing gold pupil in a black socket ringed with bone. Two long bone pectoral fins sweep back off the flanks like a flying fish clearing the water. Feel: a drowned vessel that still hunts. Signature = the up-hooked pointed prow. Identity view = side.",
+ "_swarm_recipe": "第一隻 swarm，骨架與體積寫法給其餘 6 隻 swarm 沿用：① 主鏈水平臥（frame:up）、模型高 ≤0.85、W/H ≥1.4，橫排 3 隻時 preview 每隻只有 1.05/0.62≈1.69 模型單位的 X 額度 → 含配件的總寬務必 ≤1.2；② 左右對稱靠一對 mirror 側鏈（本檔 LFin），動畫不寫 mirror_phase，兩側同拍才讀得出『一群同款』；③ 高飽和系別色帶用 colors.arcs 的縱向分帶（角度吸附到 360/sides 的格，本檔 sides=16 → 22.5° 一格），不要用 fin 貼片做橫紋。",
+ "_glow_materials": "eye / glow_prow —— 材質名是給 three.js 接 emissive 用的（簡報指定的兩個發光部位）。這份 spec 只把它們塗成高亮高飽和色。",
+ "_traps": "① 近黑一律用中性灰（S<0.15），shading.noise 會把偏暖的近黑擾到 HSV S>0.5，飽和面積就爆掉；② fin 帶 anchor 時 offset 會被丟掉，要埋只能把 points 內緣寫成負 u；③ 鏈段長度比 >0.923 會被 proportion BLOCK，每段都刻意做長短差。",
+
+ "palette": {
+  "hull_body": {"color": "#2d2c2a", "rough": 0.92},
+  "fin_fly":   {"color": "#8f8371", "rough": 0.7},
+  "bone":      {"color": "#d6c8ac", "rough": 0.55},
+  "gold":      {"color": "#e8b73c", "rough": 0.3},
+  "socket":    {"color": "#171716", "rough": 0.6},
+  "lash":      {"color": "#232322", "rough": 0.85},
+  "eye":       {"color": "#ffd863", "rough": 0.12},
+  "glow_prow": {"color": "#ffc23a", "rough": 0.2}
+ },
+
+ "sections": {
+  "canoe": [[1.00, 0.10], [0.97, 0.72], [0.86, 1.00], [0.62, 0.10],
+            [0.00, -0.30], [-0.62, 0.10], [-0.86, 1.00], [-0.97, 0.72],
+            [-1.00, 0.10], [-0.94, -0.42], [-0.74, -0.76], [-0.42, -0.95],
+            [0.00, -1.00], [0.42, -0.95], [0.74, -0.76], [0.94, -0.42]]
+ },
+
+ "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "smooth_angle": 30,
+
+ "joints": {
+  "SternTip": [0, 0.34, -0.86],
+  "Stern":    {"from": "SternTip", "up": -0.120, "fwd": 0.235},
+  "Mid":      {"from": "Stern",    "up": -0.050, "fwd": 0.500},
+  "BowBase":  {"from": "Mid",      "up":  0.055, "fwd": 0.560},
+  "BowTip":   {"from": "BowBase",  "up":  0.335, "fwd": 0.175},
+
+  "LFinRoot": {"from": "Mid",      "side": 0.050, "up": 0.005, "fwd": 0.190},
+  "LFinMid":  {"from": "LFinRoot", "side": 0.250, "up": -0.012, "fwd": -0.085},
+  "LFinTip":  {"from": "LFinMid",  "side": 0.170, "up": -0.032, "fwd": -0.150}
+ },
+
+ "chains": {
+  "hull": ["SternTip", "Stern", "Mid", "BowBase", "BowTip"],
+  "LFin": ["LFinRoot", "LFinMid", "LFinTip"]
+ },
+ "attach": {"LFin": "Mid"},
+ "mirror": ["LFin"],
+ "touch": [["hull", "LFin"]],
+
+ "volumes": [
+  {"chain": "hull", "material": "hull_body", "frame": "up", "sides": 16, "smooth_angle": 22, "section": "canoe",
+   "profile": [
+    [0.00, 0.026, 0.050],
+    [0.11, 0.098, 0.112, {"sharp": true}],
+    [0.30, 0.170, 0.150, {"sharp": true}],
+    [0.55, 0.186, 0.160, {"sharp": true}],
+    [0.76, 0.142, 0.132, {"sharp": true}],
+    [0.89, 0.070, 0.098, {"sharp": true}],
+    [1.00, 0.018, 0.042]
+   ],
+   "caps": ["none", "none"], "ring_step": 0.055,
+   "colors": {"arcs": [
+     {"from": 0,  "to": 44, "color": "#1b1a18"},
+     {"from": 44, "to": 46, "color": "#e8b73c"}
+   ]}},
+
+  {"chain": "LFin", "material": "fin_fly", "frame": "up", "sides": 10, "smooth_angle": 22,
+   "profile": [
+    [0.00, 0.092, 0.040],
+    [0.28, 0.190, 0.024, {"exp": 2.8, "sharp": true}],
+    [0.70, 0.150, 0.014],
+    [1.00, 0.048, 0.006]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.058}
+ ],
+
+ "parts": [
+  {"type": "fin", "host": "BowBase", "material": "bone", "thickness": 0.013, "mirrored": true,
+   "anchor": {"chain": "hull", "t": 0.78, "around": 70},
+   "udir": [0, 0, 1], "vdir": [0, 1, 0],
+   "points": [[-0.030, -0.072], [0.030, -0.072], [0.072, -0.030], [0.072, 0.030],
+              [0.030, 0.072], [-0.030, 0.072], [-0.072, 0.030], [-0.072, -0.030]]},
+
+  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.024, "mirrored": true,
+   "anchor": {"chain": "hull", "t": 0.78, "around": 70},
+   "udir": [0, 0, 1], "vdir": [0, 1, 0],
+   "points": [[-0.020, -0.048], [0.020, -0.048], [0.048, -0.020], [0.048, 0.020],
+              [0.020, 0.048], [-0.020, 0.048], [-0.048, 0.020], [-0.048, -0.020]]},
+
+  {"type": "eye", "host": "BowBase", "material": "eye", "size": 0.042,
+   "anchor": {"chain": "hull", "t": 0.78, "around": 70}},
+
+  {"type": "curve", "host": "BowTip", "material": "glow_prow", "sides": 6,
+   "offset": [0, -0.034, -0.008], "dir": [0, 0.58, 0.81],
+   "segments": [{"len": 0.170, "r": 0.052}, {"len": 0.130, "r": 0.027, "rise": 28},
+                {"len": 0.104, "r": 0.008, "rise": 32, "taper": true}]},
+
+  {"type": "curve", "host": "SternTip", "material": "bone", "sides": 6,
+   "offset": [0, 0.006, -0.004], "dir": [0, 0.92, -0.39],
+   "segments": [{"len": 0.058, "r": 0.028}, {"len": 0.040, "r": 0.011, "ahead": 18, "taper": true}]},
+
+  {"type": "fin", "host": "Stern", "material": "fin_fly", "thickness": 0.018, "conform": false, "mirrored": true,
+   "anchor": {"chain": "hull", "t": 0.22, "around": 118},
+   "udir": [0.86, 0, -0.51], "vdir": [0.20, -0.94, 0],
+   "points": [[-0.040, -0.026], [0.150, -0.070], [0.124, 0.044]]},
+
+  {"type": "fin", "host": "Mid", "material": "gold", "thickness": 0.018, "conform": false, "mirrored": true,
+   "anchor": {"chain": "hull", "t": 0.50, "around": 45},
+   "udir": [0, 0, 1], "vdir": [0.707, 0.707, 0],
+   "points": [[-0.300, -0.024], [0.300, -0.024], [0.300, 0.024], [-0.300, 0.024]]},
+
+  {"type": "fin", "host": "Stern", "material": "lash", "thickness": 0.026, "conform": false,
+   "offset": [0, 0.100, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
+   "points": [[-0.111, -0.022], [-0.033, -0.027], [0.033, -0.027], [0.111, -0.022],
+              [0.111, 0.022], [0.033, 0.027], [-0.033, 0.027], [-0.111, 0.022]]},
+  {"type": "fin", "host": "Mid", "material": "lash", "thickness": 0.026, "conform": false,
+   "offset": [0, 0.136, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
+   "points": [[-0.167, -0.022], [-0.050, -0.027], [0.050, -0.027], [0.167, -0.022],
+              [0.167, 0.022], [0.050, 0.027], [-0.050, 0.027], [-0.167, 0.022]]},
+  {"type": "fin", "host": "BowBase", "material": "lash", "thickness": 0.026, "conform": false,
+   "offset": [0, 0.107, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
+   "points": [[-0.125, -0.022], [-0.038, -0.027], [0.038, -0.027], [0.125, -0.022],
+              [0.125, 0.022], [0.038, 0.027], [-0.038, 0.027], [-0.125, 0.022]]},
+
+  {"type": "curve", "host": "Mid", "material": "bone", "mirrored": true, "sides": 4,
+   "offset": [0.070, 0.140, -0.120], "dir": [0.62, -0.40, -0.68],
+   "segments": [{"len": 0.205, "r": 0.017}, {"len": 0.105, "r": 0.048},
+                {"len": 0.085, "r": 0.020, "taper": true}]},
+  {"type": "curve", "host": "BowBase", "material": "bone", "mirrored": true, "sides": 4,
+   "offset": [0.060, 0.112, -0.115], "dir": [0.62, -0.40, -0.68],
+   "segments": [{"len": 0.185, "r": 0.016}, {"len": 0.095, "r": 0.044},
+                {"len": 0.078, "r": 0.018, "taper": true}]}
+ ],
+
+ "animations": {
+  "idle": {"duration": 2.6, "loop": true,
+   "tracks": {
+    "SternTip": {"ty": [[0, 0], [0.5, 0.020], [1, 0]]},
+    "Mid": {"rx": [[0, -1.5], [0.5, 2], [1, -1.5]]},
+    "BowBase": {"rx": [[0, 1], [0.5, -1.5], [1, 1]]},
+    "LFinRoot": {"rz": [[0, -6], [0.5, 9], [1, -6]]},
+    "LFinMid": {"rz": [[0, 4], [0.5, -7], [1, 4]]}
+   }},
+  "move": {"duration": 0.9, "loop": true,
+   "tracks": {
+    "SternTip": {"ty": [[0, 0], [0.5, 0.050], [1, 0]]},
+    "Mid": {"rx": [[0, 3], [0.5, -4], [1, 3]]},
+    "LFinRoot": {"rz": [[0, -16], [0.5, 20], [1, -16]]},
+    "LFinMid": {"rz": [[0, 10], [0.5, -14], [1, 10]]},
+    "BowBase": {"rx": [[0, -2], [0.5, 3], [1, -2]]}
+   }},
+  "attack": {"duration": 0.75, "loop": false,
+   "tracks": {
+    "SternTip": {"ty": [[0, 0], [0.22, -0.035], [0.5, 0.200], [0.78, 0.050], [1, 0]],
+                 "tz": [[0, 0], [0.22, -0.080], [0.55, 0.460], [1, 0]]},
+    "Mid": {"rx": [[0, 0], [0.22, 8], [0.5, -16], [0.8, 3], [1, 0]]},
+    "BowBase": {"rx": [[0, 0], [0.22, 4], [0.5, -8], [1, 0]]},
+    "LFinRoot": {"rz": [[0, 0], [0.22, -22], [0.5, 26], [1, 0]]},
+    "LFinMid": {"rz": [[0, 0], [0.22, 14], [0.5, -18], [1, 0]]}
+   }}
+ }
+}
