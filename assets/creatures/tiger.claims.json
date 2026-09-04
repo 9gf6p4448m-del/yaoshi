@@ -1,0 +1,63 @@
+{
+  "name": "虎爺印 tiger_ye_seal (NPC/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。量產 26 隻時整份沿用，只換 part 名與 signature 那兩條。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "fur_jaw",
+      "stage": "MID",
+      "label": "招牌部位：張開的下顎必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "fur_jaw",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（張開的大口）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "fur_head",
+      "b": "sash",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（大頭／紅綬帶）不得等重competition"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["fur_body"],
+      "secondary": ["fur_head"],
+      "tertiary": ["fur_jaw"],
+      "stage": "MID",
+      "label": "6:3:1 階層：身體／頭／下顎"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.34,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-34%：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>妖市 · 紙紮夜戰 3D 生物預覽</title>
+<link rel="icon" href="data:,"><!-- 沒有 favicon.ico，不擋掉的話有頭模式會多一筆 404，違反「console 0 error」 -->
+<!--
+  《紙紮夜戰》3D 試作卷的預覽頁（2026-09-04）。
+  獨立頁面，不動 index.html、不動既有 js/*.js：只是把 js/creature-figures.js 掛進
+  js/scene-env.js 的燈籠霧氣場景，再套 js/bloom.js，用來驗「anyCreature 出的模型
+  放進我們的戲台好不好看、會不會動、會不會燒、手機跑不跑得動」。
+
+  網址參數：
+    ?n=8        擺 8 隻一起播 idle（效能量測用；預設 1 隻走 idle→attack→burn 循環）
+    ?auto=0     關掉自動循環，改由 window.__preview.setPhase() 手動驅動（截圖用）
+    ?rim=xianghu|zuli|yinqi   指定邊光的系色
+
+  量測掛勾（給 Playwright 用，不是產品介面）：
+    window.__preview.ready        Promise，GLB 載完才 resolve
+    window.__preview.loadMs       GLB 從送出到解析完成的毫秒數
+    window.__preview.fps()        最近一段 rAF 間隔的中位數 fps
+    window.__preview.drawCalls    上一幀整幀（含 bloom 四趟）的 draw call 數
+    window.__preview.setPhase(p)  'idle' | 'move' | 'attack' | 'burn' | 'reset'
+    window.__preview.setCloth(h)  換三系邊光色
+    window.__preview.burnDone()   最近一次 burn 的 Promise
+-->
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #1a0a2e; overflow: hidden; }
+  #hud {
+    position: fixed; left: 10px; top: 10px; z-index: 2;
+    font: 12px/1.5 ui-monospace, "Cascadia Mono", Menlo, monospace;
+    color: #f0a840; background: rgba(20, 10, 40, .55);
+    border: 1px solid #c07c30; border-radius: 6px; padding: 6px 9px;
+    white-space: pre; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="hud">載入中…</div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { createSceneEnv, resizeSceneEnv, FOG_DENSITY } from '../../js/scene-env.js';
+import { createBloom } from '../../js/bloom.js';
+import { makeCreatureFigure, FACTION_RIM } from '../../js/creature-figures.js';
+
+const q = new URLSearchParams(location.search);
+const N = Math.max(1, Math.min(16, parseInt(q.get('n') || '1', 10) || 1));
+const AUTO = q.get('auto') !== '0';
+const RIM_KEY = q.get('rim') || 'xianghu';
+const GLB = '../../assets/creatures/tiger.glb';
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// 對決那一段的參數（與 renderer.js 的 BLOOM 同一組數值，這頁不另外調）
+const BLOOM = { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 };
+
+const canvas = document.createElement('canvas');
+Object.assign(canvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%' });
+document.body.appendChild(canvas);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight, false);
+// 不設 outputColorSpace：跟 js/renderer.js 一樣走預設，最後的 linear→sRGB 由 bloom 的
+// 合成 shader 自己做（見 js/bloom.js 檔頭），這裡再設一次會變成轉兩次、整個畫面泛白。
+// bloom 會多跑四趟，autoReset 會讓 info 只留最後一趟；改成每幀自己歸零，貼出來的
+// draw call 才是「整幀」的數字而不是「最後一次 render」的數字。
+renderer.info.autoReset = false;
+
+const { scene, camera, lanterns } = createSceneEnv(window.innerWidth / Math.max(1, window.innerHeight));
+scene.fog.density = FOG_DENSITY.duel;
+// 燈籠比牌桌那組亮：預覽頁只有一張桌子與一隻妖，沒有座位卡擋光，
+// 3.4 的原值在近鏡頭下只照得出一團暗紅，看不出頂點色的條紋與金印。
+lanterns.forEach((l) => { l.intensity = 5.2; l.distance = 14; });
+
+const bloom = createBloom(renderer, BLOOM);
+bloom.setSize(window.innerWidth, window.innerHeight);
+
+// 鏡頭：比牌桌那組近，讓一隻虎爺撐滿畫面中央（8 隻時往後退一點）
+const camDist = N > 1 ? 4.3 : 2.35;
+const camTilt = THREE.MathUtils.degToRad(N > 1 ? 34 : 17);
+camera.position.set(N > 1 ? 0 : 0.75, Math.sin(camTilt) * camDist + 0.42, Math.cos(camTilt) * camDist);
+camera.lookAt(0, N > 1 ? 0.3 : 0.52, 0);
+
+const rimHex = FACTION_RIM[RIM_KEY] === undefined ? FACTION_RIM.xianghu : FACTION_RIM[RIM_KEY];
+const TABLE_TOP = 0.15; // scene-env 的桌面高度（CylinderGeometry 高 0.3，中心在 y=0）
+
+const figures = [];
+for (let i = 0; i < N; i++) {
+  const f = makeCreatureFigure({ glbUrl: GLB, rimColor: rimHex });
+  const s = N > 1 ? 0.62 : 1;
+  f.group.scale.setScalar(s);
+  f.shadow.scale.setScalar(s);
+  if (N > 1) {
+    const col = i % 4, row = Math.floor(i / 4);
+    f.group.position.set((col - 1.5) * 1.05, TABLE_TOP, (row - 0.5) * 1.35);
+    f.group.rotation.y = Math.PI + (col - 1.5) * 0.22;
+  } else {
+    f.group.position.set(0, TABLE_TOP, 0);
+    f.group.rotation.y = -0.55; // 3/4 側前方：看得到扭過來的頭與抬起的前掌
+  }
+  f.shadow.position.set(f.group.position.x, TABLE_TOP + 0.006, f.group.position.z);
+  scene.add(f.group, f.shadow);
+  figures.push(f);
+}
+
+// ── 量測掛勾 ──────────────────────────────────────────────────────────────
+const t0 = performance.now();
+const frames = [];
+let drawCalls = 0;
+let burnPromise = Promise.resolve();
+
+function medianFps() {
+  if (frames.length < 8) return 0;
+  const s = frames.slice().sort((a, b) => a - b);
+  const mid = s[Math.floor(s.length / 2)];
+  return mid > 0 ? 1000 / mid : 0;
+}
+
+const ready = Promise.all(figures.map((f) => f.loaded())).then(() => {
+  const ms = performance.now() - t0;
+  figures.forEach((f) => { f.group.visible = true; f.shadow.visible = true; f.play('idle'); });
+  window.__preview.loadMs = Math.round(ms);
+  window.__preview.clips = figures[0].clipNames();
+  window.__preview.bones = Object.keys(figures[0].parts).length;
+  return ms;
+});
+
+window.__preview = {
+  ready, loadMs: -1, clips: [], bones: 0, drawCalls: 0, phase: 'idle',
+  fps: medianFps,
+  rawFrames() { return frames.slice(); },
+  resetFps() { frames.length = 0; },
+  setCloth(hex) { figures.forEach((f) => f.setCloth(hex)); },
+  setRim(op) { figures.forEach((f) => f.setRim(op)); },
+  burnDone() { return burnPromise; },
+  setPhase(p, o) {
+    window.__preview.phase = p;
+    if (p === 'reset') { figures.forEach((f) => { f.reset(); f.play('idle', { fade: 0 }); }); return Promise.resolve(); }
+    if (p === 'burn') {
+      burnPromise = Promise.all(figures.map((f, i) => f.burn({ ms: (o || {}).ms, seed: i + 1, scale: N > 1 ? 0.62 : 1 })));
+      return burnPromise;
+    }
+    figures.forEach((f) => f.play(p, { fade: p === 'attack' ? 0.08 : 0.25 }));
+    return Promise.resolve();
+  },
+  allInvisible() { return figures.every((f) => f.group.visible === false); },
+};
+
+// ── 自動循環（單隻時）：idle → attack → burn → reset ─────────────────────
+// 進場慢、退場快：idle 給足時間讀姿態，attack 一拍就過去，burn 收得乾脆。
+const CYCLE = [['idle', 2600], ['attack', 900], ['burn', 1000], ['reset', 700]];
+let ci = 0, nextAt = 0;
+
+const hud = document.getElementById('hud');
+let last = performance.now();
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  frames.push((now - (frames.__t || now)) || 16.7);
+  frames.__t = now;
+  if (frames.length > 240) frames.shift();
+
+  if (AUTO && !REDUCED && N === 1) {
+    if (now >= nextAt) {
+      const [p, ms] = CYCLE[ci % CYCLE.length];
+      window.__preview.setPhase(p);
+      nextAt = now + ms;
+      ci++;
+    }
+  }
+
+  figures.forEach((f) => f.update(dt));
+
+  renderer.info.reset();
+  bloom.render(scene, camera);
+  drawCalls = renderer.info.render.calls;
+  window.__preview.drawCalls = drawCalls;
+
+  hud.textContent = `n=${N}  ${window.__preview.phase}\nfps ${medianFps().toFixed(1)}  calls ${drawCalls}\nglb ${window.__preview.loadMs}ms  bones ${window.__preview.bones}`;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
+  resizeSceneEnv(camera, window.innerWidth / Math.max(1, window.innerHeight));
+  bloom.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
