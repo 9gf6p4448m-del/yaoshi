@@ -1,0 +1,75 @@
+{
+  "name": "王爺劍 wangye_zhanwen_sword (xianghuo/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/tiger_c.claims.json，本隻只做兩類改動：① 材質名換成本隻的（tiger_c 的 fur_body／fur_head／fur_jaw／glow_mane／glow_tail 在本隻不存在，留著 judge 會直接報 part 不存在）；② 多加一條 part_exists 釘住 blade（招牌部位），共三條 part_exists 釘住 blade／eye／glow_blade（加嚴，不是放寬）。門檻（focal_contrast min_ratio 2、share_hierarchy 預設容差、part_signature min_share 0.06 / or_min_span 0.12、saturation_area 10%-60%、tri_budget 1500-5000）與 tiger_c 逐字相同，一處都沒有放寬。本檔在動手建模之前就寫定，之後只改 sword.json 去遷就它。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "blade",
+      "stage": "MID",
+      "label": "招牌部位：背脊長劍的劍身必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_blade",
+      "stage": "MID",
+      "label": "劍脊香火橘發光帶必須存在，材質名必須正是 glow_blade"
+    },
+    {
+      "type": "part_signature",
+      "part": "blade",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（背脊長劍）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "blade",
+      "b": "skin_head",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（長劍／臉）不得等重：劍必須明確壓過臉，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["armor_body", "armor_skirt"],
+      "secondary": ["blade", "glow_blade"],
+      "tertiary": ["skin_head"],
+      "stage": "MID",
+      "label": "6:3:1 階層：甲身＋戰裙／長劍／臉"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（與 tiger_c 同一條帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}

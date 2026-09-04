@@ -1,0 +1,315 @@
+{
+ "name": "wangye_zhanwen_sword",
+ "_variant": "3D 量產卷批 2・sword 王爺劍（xianghuo／elite）。模板＝assets/creatures/tiger_c.json 的語彙（硬轉折、中性深底＋一條高飽和系別色帶、發光材質名），骨架整份重寫。**走的是簡報「待主對話裁定」第 1 條的備案：純劍化的無頭甲冑**（原案的粗短肢人形已建到 r10，判定會掉進可愛區，見報告 ③）。",
+ "_brief": "A headless suit of temple armour. No head, no face: the gorget is sealed and a bundle of ghost-fire tongues burns where the head should be, with two glowing points floating low in the fire. The SPINE has grown into a straight longsword — pommel out below the torn skirt hem, cross-guard bar clear above the shoulders, tip high above the fire. Lean and tall, not squat: narrow waist, exposed rib slats, one pauldron far bigger than the other, long thin claws instead of hands, pointed hem spikes. Feel: something in the night market that will actually kill you. Signature = the back-spine longsword. Identity view = side.",
+ "_fallback_note": "★ 為什麼走備案：2026-09-04 使用者指示「妖怪有妖怪的樣子，可愛不得出現」＋主對話美術守則（每隻至少三項手段、禁圓臉圓眼／短胖圓潤／玩偶式對稱）。原案是簡報第 11 條規定的『粗短肢、寬肩、重心壓低』人形，粗短＋寬肩＝短胖圓潤剪影，正好撞在禁止清單上；且『人形的臉最容易掉進可愛區』。備案（無頭甲冑）由簡報主對話裁定第 1 條預先授權。",
+ "_devices": "美術守則八項手段本隻用了七項：①比例——無頭，甲冑段（頸甲＋火）只佔全高 20%，遠離玩偶頭身比 ②尖——領口骨刺、裙擺尖釘、爪、劍尖全部尖端外露 ③眼——沒有臉，只有陰火中兩點發光 ④不對稱——左肩甲比右肩甲大 1.7 倍、領刺左二右一、火舌五條長短不一 ⑤腰收細＋三對甲片金線（gold_trim 薄板） ⑥甲指——雙手各三根帶尖甲指，取代原案的方塊拳頭 ⑧色——中性近黑底＋劍脊一條高飽和香火橘＋神將金飾（2026-09-04 主對話補充：香火＝廟宇神將的神性威嚴，金／朱紅／火／甲冑，不用殘缺腐爛空洞眼裂嘴）。",
+ "_shape_note": "剪影分群 B（背上／肩上）裡本隻的形狀差是『一條筆直細長桿，帶橫向護手，上下兩端都出身體』——與 flag（單片斜三角）、wangchuan（方矩形帆）、shanshen（沿脊鋸齒）、ashcharm（往外疊的方片）都不同。護手做成前後向（±z）的橫桿，識別視角＝側視時整個十字看得到；護手高度壓在肩線之上、無頭之後完全不被遮。",
+ "_blade_split_note": "★ 劍身刻意拆成 blade（往上）與 hilt（往下）兩條鏈，兩條的『根』都埋在軀幹裡面。理由：root_containment 檢查鏈根環有沒有被宿主體積包住，若把整把劍寫成一條鏈、根放在劍柄末端（在身體外面），根環 100% 外露必 BLOCK（r1 實測 LLeg 就是這樣被擋）。拆成兩條之後兩個根都在 y≈0.46-0.51、z≈-0.10 的軀幹內部，各自往外長，剪影上仍是一條連續的直線。",
+ "_ring_note": "沿用 redhat 報告 ⑦-C1：compile.js:136 的 corner bevel-skip 會把距離路徑轉角 r·tan(θ/2)·1.2 以內的環全丟掉。所以 body／skirt／head／blade／hilt 五條鏈都做成近乎直線（相鄰段夾角 < 6°，軀幹的前傾是每一段同角度累積而不是折角），造型交給 profile；ring_step 也壓到能取樣到 profile 每一列（body 0.032 是 anim_integrity 逼出來的下限，skirt 0.020、head 0.010、blade 0.026、hilt 0.018）。",
+ "_glow_materials": "eye／glow_blade —— 簡報指定的兩個發光部位，js/creature-figures.js:51 的 GLOW.test 認得 eye 與 glow_ 前綴，會掛 emissive 給 bloom 吃。**火焰代頭用的就是 eye 這個材質**（頸口的五條火舌＋火中兩點），所以沒有多開第三個發光材質、也沒有偏離簡報的發光部位欄。系別色帶（香火橘紅）只落在劍脊：glow_blade 的雙面脊線 ＋ blade 體積沿劍脊的 colors.arcs。",
+ "_neutral_black_note": "沿用 tiger_a 報告 ⑤-6：shading.noise（amount 0.26）會把偏暖的近黑擾動到 HSV S>0.5，害 saturation_area 爆掉。所以所有底色與暗帶一律用中性灰黑（#191919／#2b2927／#302d2b），高飽和額度全部留給劍脊與陰火。",
+ "_arc_frame_note": "★ 實測（r1／r2 的 compiler info 行）：直立鏈的 anchor `around` 不是 SYNTAX 註解寫的那組值——本檔量到 0°=−x（左側）、90°=−z（背）、180°=+x（右側）、270°=+z（正面）。colors.arcs 吃同一個框架，所以劍身那條橘帶寫成 0-54 與 126-180（＝劍的兩個大面中央），不是寫 0（脊）。",
+ "_paw_note": "buildPaw 的預設 offset 是 [0, H*0.45 − host[1], L*0.18]，第二項把腳掌絕對 y 吸到地面——腳本來就在地上（LToe 用 ground:0.028），所以靴子不寫 offset。手已改成細長爪（curve），不用 paw。",
+ "_exaggeration_vs_anchor": "wolf anchor W/H 1.41 → 直立甲冑，側視 W/H 推到 0.5 附近（往反方向離開錨點）；leg_fraction 0.35 → silmetrics 量不到腿（戰裙罩住大腿）；招牌部位（劍全長 0.85）佔全高 73%，elite 的『招牌部位大』靠這個數字兌現。",
+
+ "palette": {
+  "armor_body":  {"color": "#45423e", "rough": 0.9},
+  "armor_skirt": {"color": "#3a3734", "rough": 0.92},
+  "armor_arm":   {"color": "#494542", "rough": 0.9},
+  "armor_leg":   {"color": "#413e3b", "rough": 0.9},
+  "pauldron":    {"color": "#524d49", "rough": 0.85},
+  "boot":        {"color": "#2c2a28", "rough": 0.9},
+  "hand":        {"color": "#5a5551", "rough": 0.7},
+  "skin_head":   {"color": "#2e2b29", "rough": 0.92},
+  "blade":       {"color": "#6e6a66", "rough": 0.3},
+  "hilt":        {"color": "#39352f", "rough": 0.8},
+  "stripe":      {"color": "#191919", "rough": 0.9},
+  "gold_trim":   {"color": "#e0a838", "rough": 0.35},
+  "eye":         {"color": "#ffb43c", "rough": 0.12},
+  "glow_blade":  {"color": "#ff8a1e", "rough": 0.2}
+ },
+
+ "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "smooth_angle": 26,
+
+ "joints": {
+  "Hips":  [0, 0.440, 0],
+  "Spine": {"from": "Hips",  "up": 0.115, "fwd": 0.030},
+  "Chest": {"from": "Spine", "up": 0.170, "fwd": 0.045},
+  "NeckB": {"from": "Chest", "up": 0.090, "fwd": 0.014},
+  "Neck2": {"from": "NeckB", "up": 0.053, "fwd": 0.008},
+
+  "SkirtRoot": {"from": "Hips",      "up": -0.022, "fwd": 0.004},
+  "Skirt1":    {"from": "SkirtRoot", "up": -0.090, "fwd": 0.008},
+  "SkirtHem":  {"from": "Skirt1",    "up": -0.064, "fwd": 0.008},
+
+  "GorgetRoot": {"from": "Neck2",      "up": 0.012, "fwd": 0.004},
+  "Gorget1":    {"from": "GorgetRoot", "up": 0.052, "fwd": 0.010},
+  "Gorget2":    {"from": "Gorget1",    "up": 0.040, "fwd": 0.006},
+
+  "BladeRoot": {"from": "Spine",     "up": -0.045, "fwd": -0.135},
+  "Blade1":    {"from": "BladeRoot", "up":  0.280, "fwd": -0.032},
+  "Blade2":    {"from": "Blade1",    "up":  0.210, "fwd": -0.025},
+  "BladeTip":  {"from": "Blade2",    "up":  0.160, "fwd": -0.019},
+
+  "HiltRoot": {"from": "Hips",     "up":  0.020, "fwd": -0.100},
+  "Hilt1":    {"from": "HiltRoot", "up": -0.160, "fwd": -0.042},
+  "HiltTip":  {"from": "Hilt1",    "up": -0.112, "fwd": -0.066},
+
+  "LArmRoot": {"from": "Chest",    "side":  0.128, "up": -0.055, "fwd": 0.000},
+  "LElbow":   {"from": "LArmRoot", "side":  0.064, "up": -0.165, "fwd": 0.010},
+  "LWrist":   {"from": "LElbow",   "side":  0.018, "up": -0.135, "fwd": 0.034},
+  "LHand":    {"from": "LWrist",   "side": -0.004, "up": -0.034, "fwd": 0.040},
+
+  "LLegRoot": {"from": "Hips",     "side": 0.076, "up":  0.012, "fwd": 0.006},
+  "LKnee":    {"from": "LLegRoot", "side": 0.010, "up": -0.185, "fwd": 0.036},
+  "LAnkle":   {"from": "LKnee",    "side": 0.002, "up": -0.148, "fwd": -0.008},
+  "LToe":     {"from": "LAnkle",   "side": 0.001, "fwd": 0.050, "ground": 0.028}
+ },
+
+ "chains": {
+  "body":  ["Hips", "Spine", "Chest", "NeckB", "Neck2"],
+  "skirt": ["SkirtRoot", "Skirt1", "SkirtHem"],
+  "head":  ["GorgetRoot", "Gorget1", "Gorget2"],
+  "blade": ["BladeRoot", "Blade1", "Blade2", "BladeTip"],
+  "hilt":  ["HiltRoot", "Hilt1", "HiltTip"],
+  "LArm":  ["LArmRoot", "LElbow", "LWrist", "LHand"],
+  "LLeg":  ["LLegRoot", "LKnee", "LAnkle", "LToe"]
+ },
+ "attach": {"skirt": "Hips", "head": "Neck2", "blade": "Spine", "hilt": "Hips",
+            "LArm": "Chest", "LLeg": "Hips"},
+ "mirror": ["LArm", "LLeg"],
+ "touch": [["body", "skirt"], ["body", "head"], ["body", "blade"], ["body", "hilt"]],
+
+ "volumes": [
+  {"chain": "body", "material": "armor_body", "sides": 10, "smooth_angle": 24,
+   "profile": [
+    [0.00, 0.160, 0.180],
+    [0.24, 0.120, 0.140, {"exp": 3.0, "sharp": true}],
+    [0.62, 0.198, 0.170, {"exp": 3.4, "sharp": true}],
+    [0.78, 0.108, 0.112, {"sharp": true}],
+    [0.92, 0.070, 0.078],
+    [1.00, 0.064, 0.072]
+   ],
+   "caps": ["dome", "none"], "ring_step": 0.032,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 28,  "color": "#2b2927"},
+     {"from": 152, "to": 180, "color": "#302d2b"}
+   ]}},
+
+  {"chain": "skirt", "material": "armor_skirt", "sides": 8, "smooth_angle": 24,
+   "profile": [
+    [0.00, 0.140, 0.158],
+    [0.24, 0.176, 0.184, {"exp": 3.2, "sharp": true}],
+    [0.66, 0.190, 0.192, {"exp": 3.4}],
+    [0.90, 0.176, 0.176, {"sharp": true}],
+    [1.00, 0.150, 0.150]
+   ],
+   "caps": ["none", "none"], "ring_step": 0.020,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 32,  "color": "#282624"},
+     {"from": 148, "to": 180, "color": "#2d2a28"}
+   ]}},
+
+  {"chain": "head", "material": "skin_head", "sides": 10, "smooth_angle": 24,
+   "profile": [
+    [0.00, 0.062, 0.064],
+    [0.22, 0.082, 0.084, {"exp": 3.0, "sharp": true}],
+    [0.58, 0.064, 0.066, {"sharp": true}],
+    [0.84, 0.094, 0.096, {"sharp": true}],
+    [1.00, 0.082, 0.084]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.010,
+   "colors": {"arcs": [{"from": 0, "to": 180, "color": "#232120"}]}},
+
+  {"chain": "blade", "material": "blade", "sides": 6, "smooth_angle": 24,
+   "profile": [
+    [0.00, 0.026, 0.054],
+    [0.10, 0.026, 0.074, {"exp": 3.6, "sharp": true}],
+    [0.55, 0.020, 0.066, {"exp": 3.4}],
+    [0.86, 0.013, 0.042, {"sharp": true}],
+    [1.00, 0.004, 0.009]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.026,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 54,  "color": "#f4600c"},
+     {"from": 126, "to": 180, "color": "#f4600c"},
+     {"from": 82,  "to": 98,  "color": "#8a8681"}
+   ]}},
+
+  {"chain": "hilt", "material": "hilt", "sides": 8, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.034, 0.038],
+    [0.30, 0.042, 0.046, {"exp": 2.8}],
+    [0.72, 0.028, 0.030, {"sharp": true}],
+    [0.86, 0.056, 0.058, {"sharp": true}],
+    [1.00, 0.028, 0.028]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.018},
+
+  {"chain": "LArm", "material": "armor_arm", "sides": 8, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.066, 0.068],
+    [0.40, 0.046, 0.048, {"exp": 2.6, "sharp": true}],
+    [0.80, 0.038, 0.040],
+    [1.00, 0.030, 0.026]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.048},
+
+  {"chain": "LLeg", "material": "armor_leg", "sides": 8, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.084, 0.090],
+    [0.30, 0.070, 0.076, {"exp": 2.6, "sharp": true}],
+    [0.58, 0.052, 0.056],
+    [0.84, 0.046, 0.048],
+    [1.00, 0.044, 0.032]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.060}
+ ],
+
+ "parts": [
+  {"type": "eye", "host": "Gorget1", "material": "eye", "size": 0.030,
+   "anchor": {"chain": "head", "t": 0.52, "around": 250}},
+
+  {"type": "curve", "host": "Gorget2", "material": "eye", "sides": 5, "smooth_angle": 26,
+   "offset": [0.004, 0.020, 0.004], "dir": [0.05, 0.99, 0.10],
+   "segments": [{"len": 0.062, "r": 0.040}, {"len": 0.052, "r": 0.024, "rise": 10}, {"len": 0.044, "r": 0.005, "rise": 16, "taper": true}]},
+  {"type": "curve", "host": "Gorget2", "material": "eye", "sides": 5, "smooth_angle": 26,
+   "offset": [0.038, 0.010, 0.006], "dir": [0.44, 0.88, 0.16],
+   "segments": [{"len": 0.054, "r": 0.030}, {"len": 0.046, "r": 0.018, "rise": 14}, {"len": 0.038, "r": 0.004, "rise": 20, "taper": true}]},
+  {"type": "curve", "host": "Gorget2", "material": "eye", "sides": 5, "smooth_angle": 26,
+   "offset": [-0.032, 0.008, -0.004], "dir": [-0.36, 0.90, -0.24],
+   "segments": [{"len": 0.042, "r": 0.026}, {"len": 0.036, "r": 0.014, "rise": 16}, {"len": 0.030, "r": 0.004, "rise": 22, "taper": true}]},
+  {"type": "curve", "host": "Gorget2", "material": "eye", "sides": 5, "smooth_angle": 26,
+   "offset": [0.006, 0.006, 0.040], "dir": [0.08, 0.86, 0.50],
+   "segments": [{"len": 0.048, "r": 0.026}, {"len": 0.040, "r": 0.015, "rise": 16}, {"len": 0.034, "r": 0.004, "rise": 22, "taper": true}]},
+  {"type": "curve", "host": "Gorget2", "material": "eye", "sides": 5, "smooth_angle": 26,
+   "offset": [-0.004, 0.004, -0.038], "dir": [-0.06, 0.88, -0.47],
+   "segments": [{"len": 0.036, "r": 0.022}, {"len": 0.030, "r": 0.012, "rise": 18}, {"len": 0.026, "r": 0.003, "rise": 24, "taper": true}]},
+
+  {"type": "curve", "host": "Gorget1", "material": "gold_trim", "sides": 5, "smooth_angle": 26,
+   "offset": [0.052, 0.006, 0.014], "dir": [0.62, 0.74, 0.26],
+   "segments": [{"len": 0.058, "r": 0.017}, {"len": 0.046, "r": 0.004, "rise": 16, "taper": true}]},
+  {"type": "curve", "host": "Gorget1", "material": "gold_trim", "sides": 5, "smooth_angle": 26,
+   "offset": [0.036, 0.002, -0.040], "dir": [0.48, 0.70, -0.53],
+   "segments": [{"len": 0.046, "r": 0.014}, {"len": 0.038, "r": 0.003, "rise": 18, "taper": true}]},
+  {"type": "curve", "host": "Gorget1", "material": "gold_trim", "sides": 5, "smooth_angle": 26,
+   "offset": [-0.048, 0.004, 0.008], "dir": [-0.60, 0.76, 0.22],
+   "segments": [{"len": 0.036, "r": 0.013}, {"len": 0.030, "r": 0.003, "rise": 18, "taper": true}]},
+
+  {"type": "fin", "host": "Chest", "material": "pauldron", "thickness": 0.038, "conform": false,
+   "anchor": {"chain": "body", "t": 0.66, "around": 180},
+   "udir": [0, 0, 1], "vdir": [0.46, 0.89, 0],
+   "points": [[-0.132, -0.040], [-0.046, -0.072], [0.056, -0.068], [0.134, -0.028],
+              [0.126, 0.064], [0.046, 0.100], [-0.052, 0.098], [-0.130, 0.056]]},
+
+  {"type": "fin", "host": "Chest", "material": "pauldron", "thickness": 0.026, "conform": false,
+   "anchor": {"chain": "body", "t": 0.64, "around": 0},
+   "udir": [0, 0, 1], "vdir": [-0.46, 0.89, 0],
+   "points": [[-0.078, -0.026], [-0.026, -0.044], [0.034, -0.042], [0.080, -0.016],
+              [0.074, 0.040], [0.026, 0.060], [-0.030, 0.058], [-0.076, 0.034]]},
+
+  {"type": "fin", "host": "Chest", "material": "stripe", "thickness": 0.016, "conform": false,
+   "anchor": {"chain": "body", "t": 0.52, "around": 270},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0.24],
+   "points": [[-0.092, -0.070], [-0.032, -0.090], [0.032, -0.090], [0.092, -0.070],
+              [0.084, 0.046], [0.028, 0.062], [-0.028, 0.062], [-0.084, 0.046]]},
+
+  {"type": "fin", "host": "Spine", "material": "gold_trim", "thickness": 0.012, "conform": false,
+   "anchor": {"chain": "body", "t": 0.32, "around": 180},
+   "udir": [0, 0, 1], "vdir": [0.20, 0.98, 0],
+   "points": [[-0.086, -0.010], [-0.020, -0.024], [0.062, -0.020], [0.088, 0.004], [0.058, 0.026], [-0.020, 0.030], [-0.084, 0.018]],
+   "mirrored": true},
+  {"type": "fin", "host": "Spine", "material": "gold_trim", "thickness": 0.012, "conform": false,
+   "anchor": {"chain": "body", "t": 0.40, "around": 180},
+   "udir": [0, 0, 1], "vdir": [0.20, 0.98, 0],
+   "points": [[-0.090, -0.010], [-0.020, -0.026], [0.066, -0.022], [0.094, 0.004], [0.062, 0.028], [-0.020, 0.032], [-0.088, 0.018]],
+   "mirrored": true},
+  {"type": "fin", "host": "Chest", "material": "gold_trim", "thickness": 0.012, "conform": false,
+   "anchor": {"chain": "body", "t": 0.48, "around": 180},
+   "udir": [0, 0, 1], "vdir": [0.20, 0.98, 0],
+   "points": [[-0.094, -0.010], [-0.020, -0.028], [0.070, -0.024], [0.100, 0.004], [0.066, 0.030], [-0.020, 0.034], [-0.092, 0.018]],
+   "mirrored": true},
+
+  {"type": "curve", "host": "Blade1", "material": "blade", "sides": 4, "smooth_angle": 24,
+   "offset": [0, 0.012, 0.016], "dir": [0, 0.05, 1],
+   "segments": [{"len": 0.094, "r": 0.036}, {"len": 0.076, "r": 0.018, "rise": 14, "taper": true}]},
+  {"type": "curve", "host": "Blade1", "material": "blade", "sides": 4, "smooth_angle": 24,
+   "offset": [0, 0.012, -0.016], "dir": [0, 0.05, -1],
+   "segments": [{"len": 0.094, "r": 0.036}, {"len": 0.076, "r": 0.018, "rise": 14, "taper": true}]},
+
+  {"type": "curve", "host": "BladeRoot", "material": "glow_blade", "mirrored": true, "sides": 4, "smooth_angle": 24,
+   "offset": [0.018, 0.150, -0.006], "dir": [0, 0.996, -0.070],
+   "segments": [{"len": 0.210, "r": 0.021}, {"len": 0.170, "r": 0.016}, {"len": 0.085, "r": 0.005, "taper": true}]},
+
+  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
+   "offset": [0.014, -0.014, 0.010], "dir": [0.26, -0.90, 0.35],
+   "segments": [{"len": 0.048, "r": 0.017}, {"len": 0.038, "r": 0.010, "ahead": 16}, {"len": 0.028, "r": 0.004, "ahead": 20, "taper": true}]},
+  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
+   "offset": [-0.010, -0.016, 0.014], "dir": [-0.14, -0.94, 0.32],
+   "segments": [{"len": 0.054, "r": 0.016}, {"len": 0.042, "r": 0.009, "ahead": 14}, {"len": 0.030, "r": 0.004, "ahead": 20, "taper": true}]},
+  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
+   "offset": [0.004, -0.016, -0.014], "dir": [0.06, -0.95, -0.30],
+   "segments": [{"len": 0.044, "r": 0.015}, {"len": 0.034, "r": 0.009, "ahead": 16}, {"len": 0.026, "r": 0.004, "ahead": 22, "taper": true}]},
+
+  {"type": "curve", "host": "SkirtHem", "material": "armor_skirt", "sides": 4, "smooth_angle": 24,
+   "offset": [0.088, -0.008, 0.112], "dir": [0.34, -1, 0.34],
+   "segments": [{"len": 0.048, "r": 0.028}, {"len": 0.040, "r": 0.005, "taper": true}]},
+  {"type": "curve", "host": "SkirtHem", "material": "armor_skirt", "sides": 4, "smooth_angle": 24,
+   "offset": [-0.126, -0.006, 0.044], "dir": [-0.52, -1, 0.16],
+   "segments": [{"len": 0.040, "r": 0.024}, {"len": 0.034, "r": 0.004, "taper": true}]},
+  {"type": "curve", "host": "SkirtHem", "material": "armor_skirt", "sides": 4, "smooth_angle": 24,
+   "offset": [0.106, -0.008, -0.086], "dir": [0.42, -1, -0.34],
+   "segments": [{"len": 0.044, "r": 0.026}, {"len": 0.036, "r": 0.005, "taper": true}]},
+
+  {"type": "paw", "host": "LToe", "material": "boot", "mirrored": true,
+   "size": [0.118, 0.100, 0.166]}
+ ],
+
+ "animations": {
+  "idle": {"duration": 2.6, "loop": true,
+   "tracks": {
+    "Hips": {"ty": [[0, 0], [0.5, 0.012], [1, 0]]},
+    "Spine": {"rx": [[0, -1.5], [0.5, 2], [1, -1.5]]},
+    "NeckB": {"rx": [[0, 2], [0.5, -2.5], [1, 2]]},
+    "GorgetRoot": {"ry": [[0, -6], [0.5, 6], [1, -6]], "rz": [[0, 2], [0.5, -2], [1, 2]]},
+    "Gorget1": {"rz": [[0, -3], [0.35, 3], [0.7, -2], [1, -3]], "rx": [[0, 2], [0.5, -3], [1, 2]]},
+    "BladeRoot": {"rz": [[0, 1.5], [0.5, -1.5], [1, 1.5]], "rx": [[0, -1], [0.5, 1.5], [1, -1]]},
+    "LArmRoot": {"rx": [[0, -3], [0.5, 3], [1, -3]]},
+    "LElbow": {"rx": [[0, 3], [0.5, -4], [1, 3]]}
+   }},
+  "move": {"duration": 0.95, "loop": true, "mirror_phase": 0.5,
+   "tracks": {
+    "Hips": {"ty": [[0, 0], [0.25, 0.022], [0.5, 0], [0.75, 0.022], [1, 0]]},
+    "LLegRoot": {"rx": [[0, -17], [0.5, 18], [1, -17]]},
+    "LKnee": {"rx": [[0, 6], [0.3, 16], [0.6, -4], [1, 6]]},
+    "LAnkle": {"rx": [[0, -5], [0.4, -12], [0.7, 4], [1, -5]]},
+    "LArmRoot": {"rx": [[0, 13], [0.5, -13], [1, 13]]},
+    "LElbow": {"rx": [[0, -5], [0.5, 7], [1, -5]]},
+    "Spine": {"rx": [[0, 2], [0.5, -2], [1, 2]]},
+    "NeckB": {"rx": [[0, -2], [0.5, 2], [1, -2]]},
+    "GorgetRoot": {"rx": [[0, -4], [0.5, 4], [1, -4]]},
+    "Gorget1": {"rz": [[0, 4], [0.5, -4], [1, 4]]},
+    "BladeRoot": {"rz": [[0, 2.5], [0.5, -2.5], [1, 2.5]]}
+   }},
+  "attack": {"duration": 0.8, "loop": false,
+   "_note": "招式「斬瘟」：劍脊橫掃。BladeRoot 先 ry 擰回去再橫掃過來（橫掃是簡報指定的部位動作），同時整個 Hips 往前撲、劍以 rx 往前壓——attack_reach 只認往前的承諾（純側向掃不算），所以橫掃與前壓一起做。位移放在 body 鏈的根關節 Hips 上，放中段會 anim_integrity 撕皮。",
+   "tracks": {
+    "Hips": {"tz": [[0, 0], [0.28, -0.060], [0.58, 0.240], [1, 0]],
+             "ty": [[0, 0], [0.28, 0.030], [0.58, -0.016], [1, 0]]},
+    "Spine": {"rx": [[0, 0], [0.28, -5], [0.58, 7], [1, 0]],
+              "ry": [[0, 0], [0.28, 6], [0.58, -8], [1, 0]]},
+    "NeckB": {"rx": [[0, 0], [0.28, -5], [0.58, 9], [1, 0]]},
+    "GorgetRoot": {"ry": [[0, 0], [0.30, 14], [0.62, -16], [1, 0]],
+                   "rx": [[0, 0], [0.30, -6], [0.62, 10], [1, 0]]},
+    "BladeRoot": {"ry": [[0, 0], [0.28, 26], [0.60, -34], [1, 0]],
+                  "rx": [[0, 0], [0.28, -12], [0.60, 22], [1, 0]]},
+    "LArmRoot": {"rx": [[0, 0], [0.28, 14], [0.55, -22], [1, 0]],
+                 "ry": [[0, 0], [0.28, -8], [0.55, 12], [1, 0]]},
+    "LElbow": {"rx": [[0, 0], [0.28, 12], [0.55, -14], [1, 0]]},
+    "LLegRoot": {"rx": [[0, 0], [0.28, -8], [0.58, 14], [1, 0]]},
+    "SkirtRoot": {"rx": [[0, 0], [0.30, 6], [0.62, -9], [1, 0]]}
+   }}
+ }
+}
