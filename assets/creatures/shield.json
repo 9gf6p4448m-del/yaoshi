@@ -1,250 +1,491 @@
 {
  "name": "shield_baibushe_dun",
- "_variant": "回修檢視卷（2026-09-04）：依真實百步蛇（Deinagkistrodon acutus）實照回修。參照 `docs/experiments/2026-09-04-ref-shield.md` ＋ `tools/anyCreature/out/ref/shield/{01,02}.jpg`（已親眼讀圖）。祖靈 zuling／ward ×2／trait wardHpFront2。美術權威 `docs/design/ART_BIBLE.md` §0.5 真實參照鐵則、§2 祖靈段；硬化守則依 2026-09-04 17:30 凍結檔修訂：build:\"rigid\" ＋ 主要體積斷面 exp ≥4.5 ＋ smooth_angle 24–30。",
- "_brief": "A real hundred-pacer viper draped over an ancestral shield wall. The snake is the hero and it has NO legs: one continuous 1.17-long body enters at the top right, arches over the crest of the wall, comes down the left edge and hangs its tapering tail down the board's face, while the neck rears in a low S and ends in a BROAD FLAT TRIANGULAR skull twice the width of the neck, hard-broken at the jaw corners, snout dipped then tipped UP at the tip, near-black crown over a cream-white lower jaw, indigo eyes with black vertical slits, a dark post-ocular plate, and a forked dark-red tongue flicking out. Eight dark-brown DIAMOND blotches run in one row down the spine and two more up the neck. Under it the ward wall survives: six uneven totem posts (bone / weathered wood) cresting a woven plinth banded in vertical earth-brown weave stripes with one blood-red centre line, three indigo glass-bead diamonds glowing on its face, standing on a plain dark plinth and footing slab instead of legs (legs made every blind reader call it a four-legged beast). The plinth diamonds and the snake's dorsal diamonds are the same lozenge — once as Paiwan bead-work, once as the animal it came from. Identity view = FRONT.",
- "_ref_features": "圖 01/02 抽出的五條一眼特徵 → 本模型的落點：① 頭寬扁三角、寬於頸 1.5–2 倍 → head profile 頸 0.076 → 顎角 0.168（2.2×），半高只有 0.068（寬:高 2.5:1 扁），t=0.30 帶 sharp 做硬顎角折線；② 吻端上翹小尖角 → Jaw(y 1.072) → Snout(y 1.024) → SnoutTip(y 1.036) 骨架先俯後翹，再加一支 `scale_head` 短 curve 向上勾 34°；③ 背部一整列菱形深褐斑 → 蛇身沿脊八片＋頸兩片 `band_dark` 菱形 fin（anchor＋conform，貼在管面上；`around` 依編譯器印出的世界法線逐片校到朝上／朝前）；④ 頭頂近黑／下頷米白強烈上下分色 → head volume arcs sym 0–68 `#1b1a18`、sym 132–180 `#c8bca2`，側面留 `scale_head` `#3a322b`；頸同法（背 `#332c26`）；⑤ 身體短粗、鱗片有稜、盤踞 → coil 鏈八節 1.17 長，從盾頂右側拱過頂再沿左緣垂下，管徑 0.09 漸縮到 0.018，`sides:8`＋`faceted`＋`build:\"rigid\"`＝八稜硬面（稜起感）。另加分岔蛇信（`tongue`）——盲讀第 1、2 輪都把它讀成獸類，蛇信＋去腿才翻過來。",
- "_ward_recipe": "ward 寫法：① 盾板主鏈『垂直站立』＋frame:\"up\" —— 垂直切線下 U=+X、W=−Z，profile 的 half-width 直接吃 X（正面寬）、half-height 吃 Z（側面厚），正面寬 ≥ 側面寬由 profile 兩欄比值建構上保證（實測 0.906 vs 0.509）；② 祖靈 ward 的寬度＝矮編織台座＋一排高低不一的垂直柱（`curve` 掛在台座上緣，offset 的 x < 台座該處 half-width）；本輪把柱高全部壓到蛇身之下，柱子才不會被讀成犄角；③ 垂直鏈的 `colors.arcs` `sym`：0=背、180=正面；藤編＝sym 上規律窄帶交替＝垂直條紋；④ 節奏：idle 幅度 ≤2°、attack 0.46s；⑤ **不要給 ward 生物做腿**——盲讀 4 位裡 4 位因為兩根短腿把整隻讀成「四腳獸背著木箱」，改成一塊 `scale_leg` 台座 fin ＋一塊 `paw_claw` 腳板 fin（材質名保留給 claims 的 share_hierarchy）之後才讀成蛇。",
- "_glow_materials": "eye / glow_scale —— 材質名是給 three.js 接 emissive 用的（簡報 shield 指定的兩個發光部位），靛藍琉璃珠語言。",
- "_traps": "① 近黑一律中性灰（S<0.15），shading.noise 會把偏暖近黑擾到 HSV S>0.5；② fin 帶 anchor 時 offset 被丟掉，要精準站在指定平面上就改 host+offset+conform:false（世界座標）；帶 anchor 時 thickness 可以拿來讓薄片穿出 eye 球（豎瞳）；③ `part_attachment` 取的是所有頂點的**最小** clearance（只要有一點碰到宿主就過），所以貼片可以放心凸出管外；④ 非鏡射鏈相鄰段長比 >0.923 會被 proportion BLOCK，但短於 0.5×平均段長的段會被略過；⑤ 鏈的相鄰段轉折超過 ~45° 會在 bind pose 翻面——蛇身每個轉折都壓在 40° 以下；⑥ **`frame:\"up\"` 在水平／繞圈的鏈上會讓 W 在 ±Y 之間翻號**（framesOf 把 U 的符號釘向 +X），相鄰兩環的滾轉差 180° → 直接折面。蛇身因此改用預設（平行移動）frame ＋圓斷面；頸與頭刻意做成**單向**（頸一路往後上、頭一路往前）才讓 U 的符號穩定，arcs 的 sym 0 才會固定落在背側；⑦ 錨定 fin 的 `around` 不是世界方向——編譯器會印出每片的世界法線，照那行調（本檔蛇背 0→180、垂下段 90→270）；⑧ 短而寬的鏈（台座）即使幾乎筆直也會 anim_integrity 折面，改用 fin 板做；⑨ 鏡射部位（獠牙／頰鱗）掛在偏離中線的頭上會飛到空中——頭一定要壓回 x≈0。",
-
+ "_variant": "回修 2（2026-09-04）：在回修 1（真百步蛇頭＋背菱斑，盲讀 2/2 讀成蛇、命中 3/5）之上補齊剩下兩條特徵、並把盾板改成讀得出來的盾。① 吻端小角：先俯後翹的骨架轉折從 32° 加到 41°（45° 翻面線以下），角本身 0.072→0.146 長、基部半徑 0.021→0.032，起手 18° 仰、累積 58° 收在 76° 仰，尖端比吻端再前突 0.090、上抬 0.090；② 頭部上下分色：顱頂 #0d0c0b（中性近黑 S=0.04）對下頷 #f2ead6（米白），交界壓在斷面最寬線（sym 88）；蛇身底色同步壓暗到 #514738，讓米白下頷成為全身最亮的一塊；③ 盾感六件：盾形外廓（下 0.290 → 上 0.428 的微收板、頂緣平直）、厚度砍半（半高 0.150→0.078）、外緣一圈比板每邊寬 0.030 的 rim 邊框板、面板中央盾臍（中間菱鱗放大加厚到 0.058）、沿盾緣一圈 10 顆骨白鉚釘、背面木握把（橫桿＋兩支撐柱）；骨刺改成立在盾頂緣的六根圖騰尖（原本在側邊外側、被讀成犄角）；靛藍菱鱗、蛇身背菱斑、台座腳、ward 正面寬一律保留。參照 `docs/experiments/2026-09-04-ref-shield.md` ＋ `tools/anyCreature/out/ref/shield/{01,02}.jpg`（本卷再次親眼讀圖）。祖靈 zuling／ward ×2／trait wardHpFront2。美術權威 `docs/design/ART_BIBLE.md` §0.5 真實參照鐵則、§2 祖靈段；硬化守則依 2026-09-04 19:30 凍結檔修訂：build:\"rigid\" ＋ 每個主要 volume faceted:true ＋ 主要體積斷面 exp ≥4.5 ＋ smooth_angle 24–30 ＋ GLB ≤1.5MB ＋ 三角形 ≤8000。",
+ "_brief": "A real hundred-pacer viper draped over an ancestral SHIELD. The board is a shield, not a chest and not a pot: a straight-topped plank that narrows slightly toward its foot, only half as deep as before, bowed forward at mid height so the face is convex, ringed by a proud rim band standing a finger past its edge, studded with ten bone rivets that follow that border, carrying a raised indigo boss at its centre, crested by six upright totem spikes on its top edge and braced by a wooden grip bar across its back, standing on a plain dark footing slab. The snake is still the hero and it has NO legs: one continuous 1.17-long body enters at the top right, arches over the crest of the shield, comes down the left edge and hangs its tapering tail down the board's face, while the neck rears in a low S and ends in a BROAD FLAT TRIANGULAR skull twice the width of the neck, hard-broken at the jaw corners, snout dipped then thrown UP into a long forward-jutting horn at the tip, a NEAR-BLACK crown over a CREAM-WHITE lower jaw split hard along the widest line of the skull, indigo eyes with black vertical slits, a dark post-ocular plate, and a forked dark-red tongue flicking out. Eight dark-brown DIAMOND blotches run in one row down the spine and two more up the neck. The board's indigo diamonds and the snake's dorsal diamonds are the same lozenge — once as Paiwan bead-work, once as the animal it came from. Identity view = FRONT.",
+ "_ref_features": "圖 01/02 抽出的五條一眼特徵 → 本模型的落點：① 頭寬扁三角、寬於頸 1.5–2 倍 → head profile 頸 0.076 → 顎角 0.168（2.2×），半高只有 0.068（寬:高 2.5:1 扁），t=0.30 帶 sharp 做硬顎角折線【回修 1 已讀出，未動】；② 吻端上翹小尖角 → Jaw(y 1.072) → Snout(y 1.014) → SnoutTip(y 1.034) 骨架先俯後翹（轉折 41°，壓在 45° 翻面線下），再掛一支 `scale_head` 三節角先前突後上勾（起手 18° 仰、累積 58° 收在 76° 仰、總長 0.146、基部半徑 0.032＝吻端本身的厚度），尖端落在 z +0.292（比吻端再前突 0.090）、y 1.124（略低於顱頂 1.140，才不會被讀成犄角）【回修 2 加大】；③ 背部一整列菱形深褐斑 → 蛇身沿脊八片＋頸兩片 `band_dark` 菱形 fin，回修 2 再放大 26%【已讀出「規律分布的深褐色斑塊」】；④ 頭頂近黑／下頷米白強烈上下分色 → head volume（sides 12 → sym 只有 {0,30,60,90,120,150,180} 七格）arcs 0–62 給 `#0d0c0b`、88–180 給 `#f2ead6`，交界正好壓在 sym 90＝斷面最寬線＝參照照片裡那條界線的位置；蛇身底色壓暗到 `#514738`、頸下側帶降到 `#ac9c80`，米白下頷才是全身最亮的一塊【回修 2 拉開】；⑤ 身體短粗、鱗片有稜、盤踞 → coil 鏈八節 1.17 長，`sides:8`＋`faceted`＋`build:\"rigid\"`＝八稜硬面【回修 1 已讀出，未動】。",
+ "_ward_recipe": "ward 寫法：① 盾板主鏈『垂直站立』＋frame:\"up\" —— 垂直切線下 U=+X、W=−Z，profile 的 half-width 直接吃 X（正面寬）、half-height 吃 Z（側面厚），正面寬 ≥ 側面寬由 profile 兩欄比值建構上保證（實測 bbox X 0.919 vs Z 0.483 ＝ 1.90×）；② 垂直鏈的 `colors.arcs` `sym`：0=背、180=正面；③ 節奏：idle 幅度 ≤2°、attack 0.46s；④ **不要給 ward 生物做腿**（盲讀 4/4 讀成四腳獸）；⑤ **盾要被讀成盾，靠的是外廓與人工物語彙，不是裝飾**——回修 2 逐輪盲讀量到的因果：(a) 上寬下窄＋圓底＋外擴台座＝『甕／缽』（2/2 讀成罐或殼）；(b) 上圓下尖＝『心形／貝殼』（1/2 讀成貝殼）；(c) 頂緣平直＋兩側近乎平行的微收板＋沿緣一圈骨白鉚釘＋中央盾臍＝『盾』（2/2 第一句就寫盾）。⑥ 骨刺立在盾『頂緣』而不是『兩側外緣』——立在側邊外側時 2/2 讀成『從殼體兩側翹起的犄角／獠牙』，把整隻拉回生物；移到頂緣、壓短、等距排列後才讀成盾上的尖刺。⑦ 蛇拱過盾頂會在盾頂與蛇身之間留一個透空的洞，那個洞讓整體被讀成『提籃把手』與『心形』——把盾頂拉高到 y 0.778、頂緣寬 0.410 把洞填掉之後就消失了。",
+ "_glow_materials": "eye / glow_scale —— 材質名是給 three.js 接 emissive 用的（簡報 shield 指定的兩個發光部位），靛藍琉璃珠語言。中央那片 glow_scale 放大加厚成盾臍（boss）。",
+ "_traps": "① 近黑一律中性灰（S<0.15），shading.noise 會把偏暖近黑擾到 HSV S>0.5；② fin 帶 anchor 時 offset 被丟掉，要精準站在指定平面上就改 host+offset+conform:false（世界座標）；帶 anchor 時 thickness 可以拿來讓薄片穿出 eye 球（豎瞳）；③ **`part_attachment` 在扁體型上是假綠燈，但一旦主鏈變細就立刻翻臉**——它取「頂點到最近 ring 圓心距離 − 該 ring 最大半徑」的最小值。盾板最寬處半徑 0.428 時，正面任何掛件都自動過關；把盾腳收窄到 0.15 的那一版，原本綠燈的台座與腳板當場 BLOCK（clear 0.045／0.073）。結論：**台座腳這種離主鏈很遠的大板子，唯一穩的做法是把它掛在一個『自己有夠大 ring』的鏈上關節**——本檔為此在盾板鏈底端加了 `Base` 關節（t=0 半寬 0.290），台座與腳板都掛它。要驗真貼合仍得自己解超橢圓 `|x/rw|^exp + |z/rh|^exp = 1`（exp 5 → x/rw=0.65 時 z 只剩 0.976×rh、x/rw=0.90 時剩 0.836×rh），本卷所有正面掛件的 z 都是這樣算出來的；④ **在鏈的『根關節』上掛旋轉軌道不會折面，掛在第二個關節上會**——加了 `Base` 之後 attack 的 `Root` rx −13° 變成在 Base→Root 之間彎折，profile 斜率 1.33 的那一段當場 anim_integrity BLOCK（4 個取樣點各 2 個翻面）。把 idle/move/attack 的 `Root` 軌道整批改掛 `Base`（＝新的鏈根）就全綠，一行不用改幾何；⑤ **`root_containment` 用的是球體近似**：子鏈根環的每個頂點要落在『最近的宿主環中心 ± 該環最大半徑×0.98』內，≥80% 才過。盾頂收成 0.150 的窄弧頂那一版，蛇身根環 38% 掉在球外直接 BLOCK；把頂緣放寬到 0.300 以上就過。窄頂＋粗子鏈的組合要先算這個；⑥ 非鏡射鏈相鄰段長比 >0.923 會被 proportion BLOCK；⑦ 鏈的相鄰段轉折超過 ~45° 會在 bind pose 翻面——頭鏈的先俯後翹壓在 41°；⑧ `frame:\"up\"` 在水平／繞圈的鏈上會讓 W 在 ±Y 之間翻號，蛇身因此用預設 frame ＋圓斷面；⑨ 錨定 fin 的 `around` 不是世界方向，照編譯器印出的世界法線調；⑩ 鏡射部位掛在偏離中線的頭上會飛到空中——頭壓回 x≈0；⑪ **fin 的 `points` 必須嚴格凸多邊形**（扇形三角化，凹角直接生翻面三角形）——rim 那片 12 邊形是逐邊叉積驗過凸的；⑫ **加邊框最貴的不是頂點是 `share_hierarchy` 額度**：bone 屬 secondary。rim 用 `plate_body` 時實測 primary 66.9%／secondary 21.3%（secondary 偏低）；改成 `bone` 之後 56.4:32.4:11.2，反而正中 6:3:1。要動邊框材質前先量，別憑印象；⑬ `colors.arcs` 的 sym 只會落在 `sides` 決定的離散格點上（sides 12 → {0,30,60,90,120,150,180}），寫 0–62／88–180 跟寫 0–60／90–180 完全同義；要讓分色界線落在「斷面最寬處」就把界線寫在 sym 90 兩側。",
  "palette": {
-  "plate_body":  {"color": "#2c2a27", "rough": 0.95},
-  "wood_post":   {"color": "#6a5b4c", "rough": 0.88},
-  "bone":        {"color": "#a39c90", "rough": 0.6},
+  "plate_body": {"color": "#2c2a27", "rough": 0.95},
+  "wood_post": {"color": "#6a5b4c", "rough": 0.88},
+  "bone": {"color": "#a39c90", "rough": 0.6},
   "scale_plate": {"color": "#2a241f", "rough": 0.55},
-  "scale_body":  {"color": "#5a4f43", "rough": 0.9},
-  "band_dark":   {"color": "#241f1a", "rough": 0.92},
-  "scale_head":  {"color": "#3a322b", "rough": 0.9},
-  "scale_leg":   {"color": "#282624", "rough": 0.94},
-  "paw_claw":    {"color": "#1f1e1c", "rough": 0.85},
-  "tongue":      {"color": "#4a2a26", "rough": 0.45},
-  "eye":         {"color": "#4668c0", "rough": 0.12},
-  "pupil":       {"color": "#101018", "rough": 0.35},
-  "glow_scale":  {"color": "#3050a0", "rough": 0.18}
+  "scale_body": {"color": "#514738", "rough": 0.9},
+  "band_dark": {"color": "#241f1a", "rough": 0.92},
+  "scale_head": {"color": "#3a322b", "rough": 0.9},
+  "scale_leg": {"color": "#282624", "rough": 0.94},
+  "paw_claw": {"color": "#1f1e1c", "rough": 0.85},
+  "tongue": {"color": "#4a2a26", "rough": 0.45},
+  "eye": {"color": "#4668c0", "rough": 0.12},
+  "pupil": {"color": "#101018", "rough": 0.35},
+  "glow_scale": {"color": "#3050a0", "rough": 0.18}
  },
-
  "build": "rigid",
- "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "shading": {"gradient": {"top": 0.3, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
  "smooth_angle": 26,
-
  "joints": {
-  "Root":  [0, 0.175, -0.028],
-  "Wall1": {"from": "Root",  "up": 0.115, "fwd":  0.016},
-  "Wall2": {"from": "Wall1", "up": 0.142, "fwd":  0.012},
-  "Wall3": {"from": "Wall2", "up": 0.096, "fwd": -0.014},
-  "Crown": {"from": "Wall3", "up": 0.062, "fwd": -0.026},
-
-  "Body0": [ 0.230, 0.700, 0.020],
-  "Body1": [ 0.120, 0.786, 0.054],
-  "Body2": [-0.060, 0.812, 0.012],
+  "Base": [0, 0.03, -0.028],
+  "Root": {"from": "Base", "up": 0.145, "fwd": 0.006},
+  "Wall1": {"from": "Root", "up": 0.185, "fwd": 0.03},
+  "Wall2": {"from": "Wall1", "up": 0.15, "fwd": 0.016},
+  "Wall3": {"from": "Wall2", "up": 0.12, "fwd": -0.022},
+  "Crown": {"from": "Wall3", "up": 0.148, "fwd": -0.04},
+  "Body0": [0.23, 0.7, 0.02],
+  "Body1": [0.12, 0.786, 0.054],
+  "Body2": [-0.06, 0.812, 0.012],
   "Body3": [-0.256, 0.734, 0.058],
-  "Body4": [-0.362, 0.606, 0.120],
+  "Body4": [-0.362, 0.606, 0.12],
   "Body5": [-0.404, 0.404, 0.128],
-  "Body6": [-0.344, 0.286, 0.150],
+  "Body6": [-0.344, 0.286, 0.15],
   "Body7": [-0.262, 0.222, 0.146],
-
-  "Neck0": [0.224, 0.694,  0.016],
+  "Neck0": [0.224, 0.694, 0.016],
   "Neck1": [0.176, 0.856, -0.022],
-  "Neck2": [0.120, 0.954, -0.050],
-  "Neck3": [0.030, 1.072, -0.078],
-
-  "Head0":    [0.026, 1.060, -0.064],
-  "Jaw":      [0.020, 1.072,  0.008],
-  "Snout":    [0.014, 1.024,  0.135],
-  "SnoutTip": [0.012, 1.036,  0.197]
+  "Neck2": [0.12, 0.954, -0.05],
+  "Neck3": [0.03, 1.072, -0.078],
+  "Head0": [0.026, 1.06, -0.064],
+  "Jaw": [0.02, 1.072, 0.008],
+  "Snout": [0.014, 1.014, 0.135],
+  "SnoutTip": [0.012, 1.034, 0.202]
  },
-
  "chains": {
-  "body": ["Root", "Wall1", "Wall2", "Wall3", "Crown"],
+  "body": ["Base", "Root", "Wall1", "Wall2", "Wall3", "Crown"],
   "coil": ["Body0", "Body1", "Body2", "Body3", "Body4", "Body5", "Body6", "Body7"],
   "neck": ["Neck0", "Neck1", "Neck2", "Neck3"],
   "head": ["Head0", "Jaw", "Snout", "SnoutTip"]
  },
  "attach": {"coil": "Crown", "neck": "Body0", "head": "Neck3"},
-  "touch": [["body", "coil"], ["coil", "neck"], ["neck", "head"]],
-
+ "touch": [["body", "coil"], ["coil", "neck"], ["neck", "head"]],
  "volumes": [
-  {"chain": "body", "material": "plate_body", "frame": "up", "sides": 20, "faceted": true,
+  {
+   "chain": "body",
+   "material": "plate_body",
+   "frame": "up",
+   "sides": 20,
+   "faceted": true,
    "profile": [
-    [0.00, 0.400, 0.150, {"exp": 5.0}],
-    [0.20, 0.436, 0.140, {"exp": 5.0, "sharp": true}],
-    [0.55, 0.446, 0.126, {"exp": 5.0, "sharp": true}],
-    [0.85, 0.438, 0.112, {"exp": 5.0, "sharp": true}],
-    [1.00, 0.412, 0.102, {"exp": 5.0}]
+    [0.0, 0.29, 0.074, {"exp": 4.6}],
+    [0.12, 0.33, 0.076, {"exp": 4.8, "sharp": true}],
+    [0.34, 0.362, 0.072, {"exp": 5.0, "sharp": true}],
+    [0.56, 0.39, 0.076, {"exp": 5.0, "sharp": true}],
+    [0.798, 0.418, 0.078, {"exp": 5.0, "sharp": true}],
+    [0.93, 0.428, 0.07, {"exp": 5.0, "sharp": true}],
+    [1.0, 0.41, 0.058, {"exp": 4.6}]
    ],
-   "caps": ["ngon", "ngon"], "ring_step": 0.058,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 10,  "color": "#221e1a"},
-     {"from": 11,  "to": 82,  "color": "#2a2825"},
-     {"from": 83,  "to": 100, "color": "#38352f"},
-     {"from": 101, "to": 118, "color": "#26241f"},
-     {"from": 119, "to": 136, "color": "#8b6040"},
-     {"from": 137, "to": 154, "color": "#26241f"},
-     {"from": 155, "to": 172, "color": "#8b6040"},
-     {"from": 173, "to": 180, "color": "#8c2b22"}
-   ]}},
-
-  {"chain": "coil", "material": "scale_body", "sides": 8, "faceted": true,
+   "caps": ["ngon", "ngon"],
+   "ring_step": 0.046,
+   "colors": {
+    "arcs": [
+     {"from": 0, "to": 10, "color": "#221e1a"},
+     {"from": 11, "to": 82, "color": "#2a2825"},
+     {"from": 83, "to": 100, "color": "#312e29"},
+     {"from": 101, "to": 180, "color": "#8b6040"}
+    ]
+   }
+  },
+  {
+   "chain": "coil",
+   "material": "scale_body",
+   "sides": 8,
+   "faceted": true,
    "profile": [
-    [0.00, 0.086, 0.086, {"exp": 4.6}],
-    [0.18, 0.090, 0.090, {"exp": 4.6, "sharp": true}],
+    [0.0, 0.086, 0.086, {"exp": 4.6}],
+    [0.18, 0.09, 0.09, {"exp": 4.6, "sharp": true}],
     [0.42, 0.086, 0.086, {"exp": 4.6, "sharp": true}],
     [0.64, 0.074, 0.074, {"exp": 4.6, "sharp": true}],
     [0.82, 0.058, 0.058, {"exp": 4.6, "sharp": true}],
     [0.93, 0.038, 0.038, {"exp": 4.5}],
-    [1.00, 0.018, 0.018, {"exp": 4.5}]
+    [1.0, 0.018, 0.018, {"exp": 4.5}]
    ],
-   "caps": ["dome", "dome"], "ring_step": 0.078},
-
-  {"chain": "neck", "material": "scale_body", "frame": "up", "sides": 8, "faceted": true,
+   "caps": ["dome", "dome"],
+   "ring_step": 0.078
+  },
+  {
+   "chain": "neck",
+   "material": "scale_body",
+   "frame": "up",
+   "sides": 8,
+   "faceted": true,
    "profile": [
-    [0.00, 0.056, 0.052, {"exp": 4.6}],
+    [0.0, 0.056, 0.052, {"exp": 4.6}],
     [0.24, 0.082, 0.076, {"exp": 4.6, "sharp": true}],
-    [0.62, 0.080, 0.074, {"exp": 4.6, "sharp": true}],
-    [1.00, 0.076, 0.070, {"exp": 4.6}]
+    [0.62, 0.08, 0.074, {"exp": 4.6, "sharp": true}],
+    [1.0, 0.076, 0.07, {"exp": 4.6}]
    ],
-   "caps": ["none", "none"], "ring_step": 0.062,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 96,  "color": "#332c26"},
-     {"from": 166, "to": 180, "color": "#a89a80"}
-   ]}},
-
-  {"chain": "head", "material": "scale_head", "frame": "up", "sides": 12, "faceted": true,
+   "caps": ["none", "none"],
+   "ring_step": 0.062,
+   "colors": {"arcs": [{"from": 0, "to": 45, "color": "#2b2620"}, {"from": 135, "to": 180, "color": "#ac9c80"}]}
+  },
+  {
+   "chain": "head",
+   "material": "scale_head",
+   "frame": "up",
+   "sides": 12,
+   "faceted": true,
    "profile": [
-    [0.00, 0.062, 0.058, {"exp": 4.6}],
-    [0.16, 0.130, 0.066, {"exp": 4.8, "sharp": true}],
-    [0.30, 0.168, 0.068, {"exp": 4.6, "sharp": true}],
+    [0.0, 0.062, 0.058, {"exp": 4.6}],
+    [0.16, 0.13, 0.066, {"exp": 4.8, "sharp": true}],
+    [0.3, 0.168, 0.068, {"exp": 4.6, "sharp": true}],
     [0.46, 0.142, 0.064, {"exp": 4.8, "sharp": true}],
     [0.66, 0.092, 0.052, {"exp": 4.6, "sharp": true}],
-    [0.86, 0.048, 0.040, {"exp": 4.6, "sharp": true}],
-    [1.00, 0.020, 0.026, {"exp": 4.6}]
+    [0.86, 0.048, 0.04, {"exp": 4.6, "sharp": true}],
+    [1.0, 0.02, 0.026, {"exp": 4.6}]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.040,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 68,  "color": "#1b1a18"},
-     {"from": 132, "to": 180, "color": "#c8bca2"}
-   ]}}
+   "caps": ["none", "dome"],
+   "ring_step": 0.04,
+   "colors": {"arcs": [{"from": 0, "to": 62, "color": "#0d0c0b"}, {"from": 88, "to": 180, "color": "#f2ead6"}]}
+  }
  ],
-
  "parts": [
-  {"type": "curve", "host": "Wall3", "material": "bone", "mirrored": true, "sides": 6,
-   "offset": [0.118, -0.034, 0.010], "dir": [0.03, 1, 0.015],
-   "segments": [{"len": 0.132, "r": 0.050}, {"len": 0.104, "r": 0.034},
-                {"len": 0.082, "r": 0.011, "taper": true}]},
-  {"type": "curve", "host": "Wall3", "material": "wood_post", "mirrored": true, "sides": 6,
-   "offset": [0.252, -0.034, 0.010], "dir": [0.045, 1, 0.015],
-   "segments": [{"len": 0.100, "r": 0.054}, {"len": 0.078, "r": 0.038},
-                {"len": 0.060, "r": 0.018, "taper": true}]},
-  {"type": "curve", "host": "Wall3", "material": "bone", "mirrored": true, "sides": 6,
-   "offset": [0.372, -0.034, 0.010], "dir": [0.07, 1, 0.015],
-   "segments": [{"len": 0.150, "r": 0.046}, {"len": 0.120, "r": 0.032},
-                {"len": 0.094, "r": 0.010, "taper": true}]},
-
-  {"type": "fin", "host": "Wall1", "material": "glow_scale", "thickness": 0.030, "conform": false,
-   "offset": [0, -0.055, 0.140],
-   "udir": [0, 1, 0], "vdir": [1, 0, 0],
-   "points": [[-0.052, 0], [0, -0.086], [0.052, 0], [0, 0.086]]},
-  {"type": "fin", "host": "Wall2", "material": "glow_scale", "thickness": 0.030, "conform": false,
-   "offset": [0, -0.030, 0.134],
-   "udir": [0, 1, 0], "vdir": [1, 0, 0],
-   "points": [[-0.062, 0], [0, -0.104], [0.062, 0], [0, 0.104]]},
-  {"type": "fin", "host": "Wall3", "material": "glow_scale", "thickness": 0.028, "conform": false,
-   "offset": [0, 0.002, 0.114],
-   "udir": [0, 1, 0], "vdir": [1, 0, 0],
-   "points": [[-0.048, 0], [0, -0.080], [0.048, 0], [0, 0.080]]},
-
-  {"type": "curve", "host": "Wall1", "material": "glow_scale", "mirrored": true, "sides": 6,
-   "offset": [0.168, -0.046, 0.108], "dir": [0.10, 0.05, 1],
-   "segments": [{"len": 0.030, "r": 0.026}, {"len": 0.016, "r": 0.010, "taper": true}]},
-  {"type": "curve", "host": "Wall2", "material": "glow_scale", "mirrored": true, "sides": 6,
-   "offset": [0.168, -0.026, 0.104], "dir": [0.10, 0.05, 1],
-   "segments": [{"len": 0.030, "r": 0.026}, {"len": 0.016, "r": 0.010, "taper": true}]},
-  {"type": "curve", "host": "Wall3", "material": "glow_scale", "mirrored": true, "sides": 6,
-   "offset": [0.168, -0.012, 0.092], "dir": [0.10, 0.05, 1],
-   "segments": [{"len": 0.028, "r": 0.024}, {"len": 0.015, "r": 0.009, "taper": true}]},
-
-  {"type": "fin", "host": "Wall2", "material": "bone", "thickness": 0.026, "conform": false, "mirrored": true,
-   "offset": [0.286, -0.006, 0.104],
-   "udir": [0, 1, 0], "vdir": [1, 0, 0],
-   "points": [[-0.176, -0.020], [-0.062, -0.034], [0.062, -0.034], [0.176, -0.020],
-              [0.176, 0.020], [0.062, 0.034], [-0.062, 0.034], [-0.176, 0.020]]},
-
-  {"type": "fin", "name": "blotch1", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+  {
+   "type": "fin",
+   "name": "rim",
+   "host": "Wall2",
+   "material": "bone",
+   "thickness": 0.09,
+   "conform": false,
+   "offset": [0, -0.51, -0.03],
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.15, 0.008],
+    [0.15, 0.008],
+    [0.32, 0.02],
+    [0.392, 0.288],
+    [0.45, 0.63],
+    [0.458, 0.726],
+    [0.44, 0.792],
+    [-0.44, 0.792],
+    [-0.458, 0.726],
+    [-0.45, 0.63],
+    [-0.392, 0.288],
+    [-0.32, 0.02]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Wall3",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.118, 0.046, 0.0],
+   "dir": [0.02, 1, 0.01],
+   "segments": [{"len": 0.072, "r": 0.036}, {"len": 0.056, "r": 0.024}, {"len": 0.044, "r": 0.008, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "Wall3",
+   "material": "wood_post",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.248, 0.046, 0.0],
+   "dir": [0.03, 1, 0.01],
+   "segments": [{"len": 0.058, "r": 0.038}, {"len": 0.046, "r": 0.026}, {"len": 0.036, "r": 0.012, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "Wall3",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.362, 0.04, 0.0],
+   "dir": [0.05, 1, 0.01],
+   "segments": [{"len": 0.086, "r": 0.034}, {"len": 0.068, "r": 0.022}, {"len": 0.054, "r": 0.008, "taper": true}]
+  },
+  {
+   "type": "fin",
+   "name": "beadA",
+   "host": "Wall1",
+   "material": "glow_scale",
+   "thickness": 0.03,
+   "conform": false,
+   "offset": [0, -0.055, 0.0718],
+   "udir": [0, 1, 0],
+   "vdir": [1, 0, 0],
+   "points": [[-0.052, 0], [0, -0.086], [0.052, 0], [0, 0.086]]
+  },
+  {
+   "type": "fin",
+   "name": "boss",
+   "host": "Wall2",
+   "material": "glow_scale",
+   "thickness": 0.058,
+   "conform": false,
+   "offset": [0, -0.03, 0.0753],
+   "udir": [0, 1, 0],
+   "vdir": [1, 0, 0],
+   "points": [[-0.072, 0], [0, -0.118], [0.072, 0], [0, 0.118]]
+  },
+  {
+   "type": "fin",
+   "name": "beadC",
+   "host": "Wall3",
+   "material": "glow_scale",
+   "thickness": 0.028,
+   "conform": false,
+   "offset": [0, 0.002, 0.078],
+   "udir": [0, 1, 0],
+   "vdir": [1, 0, 0],
+   "points": [[-0.048, 0], [0, -0.08], [0.048, 0], [0, 0.08]]
+  },
+  {
+   "type": "curve",
+   "name": "rivet1",
+   "host": "Wall2",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.225, -0.31, 0.0268],
+   "dir": [0.12, 0.04, 1],
+   "segments": [{"len": 0.026, "r": 0.025}, {"len": 0.013, "r": 0.009, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "name": "rivet2",
+   "host": "Wall2",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.266, -0.16, 0.0503],
+   "dir": [0.12, 0.04, 1],
+   "segments": [{"len": 0.026, "r": 0.025}, {"len": 0.013, "r": 0.009, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "name": "rivet3",
+   "host": "Wall2",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.302, -0.01, 0.0686],
+   "dir": [0.12, 0.04, 1],
+   "segments": [{"len": 0.026, "r": 0.025}, {"len": 0.013, "r": 0.009, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "name": "rivet4",
+   "host": "Wall2",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.33, 0.12, 0.05],
+   "dir": [0.12, 0.04, 1],
+   "segments": [{"len": 0.026, "r": 0.025}, {"len": 0.013, "r": 0.009, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "name": "rivet5",
+   "host": "Wall2",
+   "material": "bone",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.334, 0.23, 0.0133],
+   "dir": [0.12, 0.04, 1],
+   "segments": [{"len": 0.026, "r": 0.025}, {"len": 0.013, "r": 0.009, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "name": "grip_bar",
+   "host": "Wall2",
+   "material": "wood_post",
+   "sides": 6,
+   "offset": [-0.27, -0.03, -0.106],
+   "dir": [1, 0, 0],
+   "segments": [{"len": 0.54, "r": 0.026}]
+  },
+  {
+   "type": "curve",
+   "name": "grip_post",
+   "host": "Wall2",
+   "material": "wood_post",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [0.23, -0.03, -0.028],
+   "dir": [0, 0, -1],
+   "segments": [{"len": 0.085, "r": 0.022}]
+  },
+  {
+   "type": "fin",
+   "name": "blotch1",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.09, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch2", "host": "Body2", "material": "band_dark", "thickness": 0.018,
-   "anchor": {"chain": "coil", "t": 0.20, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch3", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch2",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
+   "anchor": {"chain": "coil", "t": 0.2, "around": 180},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch3",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.31, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch4", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch4",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.42, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch5", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch5",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.53, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch6", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch6",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.64, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, 0], [0, -0.064], [0.046, 0], [0, 0.064]]},
-  {"type": "fin", "name": "blotch7", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.058, 0], [0, -0.082], [0.058, 0], [0, 0.082]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch7",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.75, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.034, 0], [0, -0.047], [0.034, 0], [0, 0.047]]},
-  {"type": "fin", "name": "blotch8", "host": "Body2", "material": "band_dark", "thickness": 0.018,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.044, 0], [0, -0.06], [0.044, 0], [0, 0.06]]
+  },
+  {
+   "type": "fin",
+   "name": "blotch8",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.018,
    "anchor": {"chain": "coil", "t": 0.85, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.034, 0], [0, -0.047], [0.034, 0], [0, 0.047]]},
-  {"type": "fin", "name": "nblotch1", "host": "Neck1", "material": "band_dark", "thickness": 0.016,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.044, 0], [0, -0.06], [0.044, 0], [0, 0.06]]
+  },
+  {
+   "type": "fin",
+   "name": "nblotch1",
+   "host": "Neck1",
+   "material": "band_dark",
+   "thickness": 0.016,
    "anchor": {"chain": "neck", "t": 0.34, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.038, 0], [0, -0.051], [0.038, 0], [0, 0.051]]},
-  {"type": "fin", "name": "nblotch2", "host": "Neck1", "material": "band_dark", "thickness": 0.016,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.048, 0], [0, -0.064], [0.048, 0], [0, 0.064]]
+  },
+  {
+   "type": "fin",
+   "name": "nblotch2",
+   "host": "Neck1",
+   "material": "band_dark",
+   "thickness": 0.016,
    "anchor": {"chain": "neck", "t": 0.68, "around": 180},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.038, 0], [0, -0.051], [0.038, 0], [0, 0.051]]},
-
-  {"type": "eye", "host": "Jaw", "material": "eye", "size": 0.022,
-   "anchor": {"chain": "head", "t": 0.36, "around": 56}},
-  {"type": "fin", "host": "Jaw", "material": "pupil", "thickness": 0.050, "mirrored": true,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.048, 0], [0, -0.064], [0.048, 0], [0, 0.064]]
+  },
+  {"type": "eye", "host": "Jaw", "material": "eye", "size": 0.022, "anchor": {"chain": "head", "t": 0.36, "around": 56}},
+  {
+   "type": "fin",
+   "host": "Jaw",
+   "material": "pupil",
+   "thickness": 0.05,
+   "mirrored": true,
    "anchor": {"chain": "head", "t": 0.36, "around": 56},
-   "udir": [0, 1, 0], "vdir": [0, 0, 1],
-   "points": [[-0.019, 0], [0, -0.0050], [0.019, 0], [0, 0.0050]]},
-
-  {"type": "fin", "host": "Jaw", "material": "scale_plate", "thickness": 0.012, "mirrored": true,
+   "udir": [0, 1, 0],
+   "vdir": [0, 0, 1],
+   "points": [[-0.019, 0], [0, -0.005], [0.019, 0], [0, 0.005]]
+  },
+  {
+   "type": "fin",
+   "host": "Jaw",
+   "material": "scale_plate",
+   "thickness": 0.012,
+   "mirrored": true,
    "anchor": {"chain": "head", "t": 0.44, "around": 84},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.056, -0.006], [-0.020, -0.020], [0.048, -0.012], [0.058, 0.004],
-              [0.020, 0.020], [-0.030, 0.018]]},
-
-  {"type": "curve", "host": "SnoutTip", "material": "scale_head", "sides": 6,
-   "offset": [0, 0.002, -0.006], "dir": [0, 0.66, 0.75],
-   "segments": [{"len": 0.040, "r": 0.021}, {"len": 0.032, "r": 0.006, "rise": 34, "taper": true}]},
-
-  {"type": "curve", "host": "SnoutTip", "material": "tongue", "mirrored": true, "sides": 5,
-   "offset": [0.006, -0.020, 0.006], "dir": [0.30, -0.18, 1],
-   "segments": [{"len": 0.072, "r": 0.0075}, {"len": 0.054, "r": 0.0025, "ahead": 14, "taper": true}]},
-
-  {"type": "fin", "name": "plinth", "host": "Root", "material": "scale_leg", "thickness": 0.202, "conform": false,
-   "offset": [0, -0.093, -0.028],
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.292, -0.048], [-0.240, -0.076], [0.240, -0.076], [0.292, -0.048],
-              [0.292, 0.048], [0.240, 0.076], [-0.240, 0.076], [-0.292, 0.048]]},
-  {"type": "fin", "name": "footslab", "host": "Root", "material": "paw_claw", "thickness": 0.038, "conform": false,
-   "offset": [0, -0.156, -0.028],
-   "udir": [1, 0, 0], "vdir": [0, 0, 1],
-   "points": [[-0.324, -0.066], [-0.226, -0.128], [0.226, -0.128], [0.324, -0.066],
-              [0.324, 0.066], [0.226, 0.128], [-0.226, 0.128], [-0.324, 0.066]]}
+   "udir": [0, 0, 1],
+   "vdir": [0, 1, 0],
+   "points": [[-0.056, -0.006], [-0.02, -0.02], [0.048, -0.012], [0.058, 0.004], [0.02, 0.02], [-0.03, 0.018]]
+  },
+  {
+   "type": "curve",
+   "name": "snout_horn",
+   "host": "SnoutTip",
+   "material": "scale_head",
+   "sides": 6,
+   "offset": [0, 0.0, -0.01],
+   "dir": [0, 0.32, 1],
+   "segments": [{"len": 0.06, "r": 0.032}, {"len": 0.048, "r": 0.02, "rise": 28}, {"len": 0.038, "r": 0.006, "rise": 30, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "SnoutTip",
+   "material": "tongue",
+   "mirrored": true,
+   "sides": 5,
+   "offset": [0.006, -0.024, 0.006],
+   "dir": [0.3, -0.24, 1],
+   "segments": [{"len": 0.072, "r": 0.0075}, {"len": 0.054, "r": 0.0025, "ahead": 14, "taper": true}]
+  },
+  {
+   "type": "fin",
+   "name": "collar",
+   "host": "Root",
+   "material": "scale_leg",
+   "thickness": 0.168,
+   "conform": false,
+   "offset": [0, -0.07, 0],
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.33, -0.03], [-0.312, -0.044], [0.312, -0.044], [0.33, -0.03], [0.33, 0.03], [0.312, 0.044], [-0.312, 0.044], [-0.33, 0.03]]
+  },
+  {
+   "type": "fin",
+   "name": "footslab",
+   "host": "Base",
+   "material": "paw_claw",
+   "thickness": 0.036,
+   "conform": false,
+   "offset": [0, -0.008, 0],
+   "udir": [1, 0, 0],
+   "vdir": [0, 0, 1],
+   "points": [[-0.33, -0.052], [-0.24, -0.1], [0.24, -0.1], [0.33, -0.052], [0.33, 0.052], [0.24, 0.1], [-0.24, 0.1], [-0.33, 0.052]]
+  }
  ],
-
  "animations": {
-  "idle": {"duration": 3.0, "loop": true,
+  "idle": {
+   "duration": 3.0,
+   "loop": true,
    "tracks": {
     "Body2": {"rx": [[0, -0.4], [0.5, 0.5], [1, -0.4]]},
     "Body3": {"ry": [[0, 0.6], [0.5, -0.6], [1, 0.6]]},
@@ -252,30 +493,38 @@
     "Neck1": {"rx": [[0, -1.0], [0.5, 1.2], [1, -1.0]], "ry": [[0, 1.4], [0.5, -1.4], [1, 1.4]]},
     "Neck2": {"rx": [[0, 1.0], [0.5, -1.0], [1, 1.0]], "ry": [[0, -1.5], [0.5, 1.5], [1, -1.5]]},
     "Neck3": {"ry": [[0, 2.0], [0.5, -2.0], [1, 2.0]]},
-    "Jaw":   {"ry": [[0, -1.6], [0.5, 1.6], [1, -1.6]]},
-    "Root":  {"ty": [[0, 0], [0.5, 0.005], [1, 0]]}
-   }},
-  "move": {"duration": 0.95, "loop": true,
+    "Jaw": {"ry": [[0, -1.6], [0.5, 1.6], [1, -1.6]]},
+    "Base": {"ty": [[0, 0], [0.5, 0.005], [1, 0]]}
+   }
+  },
+  "move": {
+   "duration": 0.95,
+   "loop": true,
    "tracks": {
-    "Root": {"ty": [[0, 0], [0.25, 0.018], [0.5, 0], [0.75, 0.018], [1, 0]],
-             "rz": [[0, -2.0], [0.5, 2.0], [1, -2.0]]},
+    "Base": {"ty": [[0, 0], [0.25, 0.018], [0.5, 0], [0.75, 0.018], [1, 0]], "rz": [[0, -2.0], [0.5, 2.0], [1, -2.0]]},
     "Body2": {"rz": [[0, 1.4], [0.5, -1.4], [1, 1.4]]},
     "Neck1": {"rx": [[0, 2.5], [0.5, -2.5], [1, 2.5]]},
     "Neck3": {"rx": [[0, -2.5], [0.5, 2.5], [1, -2.5]]}
-   }},
-  "attack": {"duration": 0.46, "loop": false,
+   }
+  },
+  "attack": {
+   "duration": 0.46,
+   "loop": false,
    "tracks": {
-    "Root": {"tz": [[0, 0], [0.20, -0.090], [0.46, 0.340], [1, 0]],
-             "ty": [[0, 0], [0.20, -0.028], [0.46, 0.042], [1, 0]],
-             "rx": [[0, 0], [0.20, 7], [0.46, -13], [1, 0]]},
-    "Body1": {"rx": [[0, 0], [0.20, 4], [0.46, -7], [1, 0]]},
-    "Body2": {"rx": [[0, 0], [0.20, 4], [0.46, -7], [1, 0]]},
-    "Body3": {"rx": [[0, 0], [0.20, 5], [0.46, -8], [1, 0]]},
-    "Neck0": {"rx": [[0, 0], [0.20, -9], [0.44, 15], [0.74, -4], [1, 0]]},
-    "Neck1": {"rx": [[0, 0], [0.20, -8], [0.44, 14], [0.74, -3], [1, 0]]},
-    "Neck2": {"rx": [[0, 0], [0.20, -7], [0.44, 15], [0.74, -3], [1, 0]]},
-    "Neck3": {"rx": [[0, 0], [0.20, -6], [0.44, 16], [0.74, -3], [1, 0]]},
-    "Jaw":   {"rx": [[0, 0], [0.20, -5], [0.44, 12], [1, 0]]}
-   }}
+    "Base": {
+     "tz": [[0, 0], [0.2, -0.09], [0.46, 0.34], [1, 0]],
+     "ty": [[0, 0], [0.2, -0.028], [0.46, 0.042], [1, 0]],
+     "rx": [[0, 0], [0.2, 7], [0.46, -13], [1, 0]]
+    },
+    "Body1": {"rx": [[0, 0], [0.2, 4], [0.46, -7], [1, 0]]},
+    "Body2": {"rx": [[0, 0], [0.2, 4], [0.46, -7], [1, 0]]},
+    "Body3": {"rx": [[0, 0], [0.2, 5], [0.46, -8], [1, 0]]},
+    "Neck0": {"rx": [[0, 0], [0.2, -9], [0.44, 15], [0.74, -4], [1, 0]]},
+    "Neck1": {"rx": [[0, 0], [0.2, -8], [0.44, 14], [0.74, -3], [1, 0]]},
+    "Neck2": {"rx": [[0, 0], [0.2, -7], [0.44, 15], [0.74, -3], [1, 0]]},
+    "Neck3": {"rx": [[0, 0], [0.2, -6], [0.44, 16], [0.74, -3], [1, 0]]},
+    "Jaw": {"rx": [[0, 0], [0.2, -5], [0.44, 12], [1, 0]]}
+   }
+  }
  }
 }
