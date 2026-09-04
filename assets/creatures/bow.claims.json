@@ -1,0 +1,115 @@
+{
+  "name": "射日神弓 bow_shieri_shengong (zuling/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 flag.claims.json。識別視角＝**側視**（elite 單尊、招牌剪影是跨過頭頂的弓形巨角，側視才看得到弧與弦），所以除 saturation_area 外一律 view:\"side\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag）；② 另加三條 part_visible 把真實參照鐵則機械化——`bowstring`（特徵①『弓＝弧＋直弦』，沒有直弦就只是一對彎角，這是本隻最不能省的一條）、`bone_tip`（特徵②『角尖象牙白』的兩段色）、`skull_bone`（獸頭不得被自己的角吞掉，elite 招牌部位過大的專屬風險）。saturation_area 沿用凍結檔指定的 10%–60% 帶。**沒有一處放寬。**",
+  "_frozen_at": "動手建模之前寫定（凍結檔 M-A0 要求 judge 全綠；本檔門檻此後一格未動，全部靠改 bow.json 去滿足）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "antler_wood",
+      "stage": "MID",
+      "label": "招牌部位：弓形巨角的角身必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "bowstring",
+      "stage": "MID",
+      "label": "弓弦必須存在——弧加直弦才是弓（真實參照特徵 1）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_sun",
+      "stage": "MID",
+      "label": "弦上焦黑落日的餘燼必須存在，且材質名必須正是 glow_sun（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_signature",
+      "part": "antler_wood",
+      "view": "side",
+      "min_share": 0.07,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（弓形巨角）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "bowstring",
+      "view": "side",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 1 的機械化：弦在側視必須量得到——弦被角遮掉或根本沒張，弓就只是一對彎角"
+    },
+    {
+      "type": "part_visible",
+      "part": "bone_tip",
+      "view": "side",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 2 的機械化：象牙白角尖在側視必須量得到（水鹿角基深褐、角尖磨白的兩段色）"
+    },
+    {
+      "type": "part_visible",
+      "part": "skull_bone",
+      "view": "side",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "獸頭必須在識別視角看得見——被自己頭上的巨角吞掉就等於沒有（elite 招牌過大的專屬風險）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hide_body",
+      "b": "glow_sun",
+      "min_ratio": 3,
+      "view": "side",
+      "stage": "MID",
+      "label": "兩個焦點（獸身／落日餘燼）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["hide_body", "hide_neck", "skull_bone", "hide_leg", "hoof_dark"],
+      "secondary": ["antler_wood", "bone_tip", "sun_char", "bone_rib", "sinew", "bowstring", "weave_band", "bead_glass", "ear_hide"],
+      "tertiary": ["glow_sun", "eye"],
+      "view": "side",
+      "stage": "MID",
+      "label": "6:3:1 階層：獸身／角與日輪與骨飾／餘燼與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（側視）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
