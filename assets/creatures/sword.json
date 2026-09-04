@@ -1,341 +1,777 @@
 {
  "name": "wangye_zhanwen_sword",
- "_variant": "回修檢視卷（2026-09-04）：`sword` 王爺劍（xianghuo／elite）依真實神將參照重做。參照＝`docs/experiments/2026-09-04-ref-sword.md`（圖 `tools/anyCreature/out/ref/sword/01-02.jpg`）。**從『無頭甲冑＋火焰代頭』改成『有頭的廟宇神將』**：高聳鳳冠、深紅面容＋濃黑眉＋長垂黑鬚、腹前龍首護心鏡、肩後長紅綬帶、鎏金層疊甲。背脊長劍（招牌剪影）與 `glow_blade` 原樣保留。",
+ "_variant": "硬化批 2A（2026-09-04）：`sword` 王爺劍（xianghuo／elite）在回修版之上補齊 ref 特徵缺項。回修版盲讀命中 3/5（護心鏡被讀成甲片、紅綬帶無人點名、一位讀者嫌 Q 版，leg_fraction 0.194），缺項登記在 `docs/experiments/2026-09-04-creature-gaps.md`。本批做四件：①比例——弓箭步＋腿拉長，leg_fraction 0.194→0.335 ②護心鏡改三層立體龍首（暗襯盤→金框→glow_mirror 鏡面→龍吻＋龍眼＋龍角）③紅綬帶加長加寬、改掛正面兩側、垂過膝 ④脛甲＋faceted 硬化。全卷過程與盲讀原話見 `docs/experiments/2026-09-04-harden2A-report.md`。",
  "_brief": "A Taiwanese temple general (shen-jiang) carved for a palanquin. A tall fanned crown of gilt metal crests the head, its spikes flaring up and out. Under it a dark red face with heavy black brows, two gold-lit eyes set high, a blunt nose, and a long black beard falling over the chest. Gilt lamellar bands cross the belly above a round dragon-face breast mirror with two glowing eyes. Two long vermilion sashes hang from behind the shoulders past the skirt hem. Broad shoulders, a narrow waist, a heavy low-slung war skirt, and LONG legs — an adult warrior's proportions, not a chibi. The SPINE is a straight longsword: pommel out below the hem, cross-guard above the shoulders, tip highest of all. Feel: a temple guardian that suppresses evil, never a toy. Signature = the back-spine longsword. Identity view = side.",
- "_rework_note": "★ 回修的五條必做（ref 文件的特徵清單），對應到檔案的哪裡：①高聳冠＝`crown` 鏈（volume 半寬 0.048→0.126 扇形外張）＋5 根 `crown_gold` 冠翎＋一朵 `sash` 紅絨球（不對稱）。★ 冠不加 `gold_trim` 額帶：試過 t=0.34／0.52／0.62 三個高度，那片橫板在 3/4 視角一律變成一支往前伸的尖楔，整顆頭被讀成鳥喙，拿掉之後冠才乾淨（探針對照圖 out/swordfix/hero_r11 vs hero_probe2） ②紅臉＋濃黑眉＋長垂鬚＝`head` volume（`skin_head` #8f3d30）＋`beard` 眉 fin（mirrored，位在眼上方）＋中央垂鬚 fin＋兩綹側鬚 fin＋一根 `skin_head` 鼻樑 curve ③龍首護心鏡＝`gold_trim` 八邊形 fin ＠body t=0.16 around 270（腹部、在鬚尖下方，同 ref 01）＋兩顆 `eye` 龍眼 curve ④紅綬帶＝`sash` 長垂 fin ＠around 150 與 30（背側；避開手臂，也避開側視的劍身以免遮住招牌）×2，左長右短 ⑤鎏金層疊甲＝`armor_body` 鎏金底（arcs 只留正面）＋`gold_trim` 三排腹前橫板（around 270，t=0.30/0.38/0.46）＋兩片 `pauldron` 肩甲＋`helm_gold` 護耳。",
- "_proportion_note": "★★ 第 2 輪的主修：**比例**。第 1 輪兩位盲讀者一致讀成『頭大、身體短、腳小的 Q 版怪物公仔』（原話見 `docs/experiments/2026-09-04-review-sword-report.md` ②-r1）。當時 head＋crown 佔全高 32%、腿只佔 33%＝標準 chibi 頭身比。本輪把 `Hips` 從 0.455 抬到 0.545、大腿與小腿各拉長到 0.235／0.200（腿佔全高約 38%），同時把頭鏈從 0.176 縮到 0.145、冠從 0.208 縮到 0.125，head＋crown 降到全高約 20%。全高 1.154（初版）→1.309（r10）→約 1.39（本版）。",
- "_hardening_note": "第 2 輪的次修：**塊面硬化**。兩位讀者都點名『低多邊形圓潤＝玩具感』（與 tiger_a 報告 ⑤-3、redhat ⑧、shield ⑦-1 同一個根因）。shield 卷最後是靠 `exp` 拉到 5.0＋`build:\"rigid\"` 解決的；2026-09-04 17:30 凍結檔修訂（main `faabfc0`）把 shield 卷那組解法升成全批規則：**所有模型一律 `build:rigid`＋主要體積斷面 `exp ≥ 4.5`＋`smooth_angle` 24–30**。本檔照套：`build` 設為 rigid，軀幹 4.6/4.8、戰裙 4.6/4.8、頭 4.5/5.0/4.6、冠 4.5/4.8/5.0、劍 4.5、四肢 4.5/4.6、劍柄 4.5，全部保留 `sharp` 斷點；`smooth_angle` 全檔 24–26。",
+ "_rework_note": "★ ref 五條特徵在本檔的落點（`docs/experiments/2026-09-04-ref-sword.md`）：①高聳鳳冠＝`crown` 鏈＋6 根 `crown_gold` 冠翎＋一朵 `sash` 紅絨球（只掛一側）。冠不加 `gold_trim` 額帶——那片橫板在 3/4 視角一律變成往前伸的尖楔（回修卷三個高度都試過）。②深褐紅臉＋濃黑眉＋長垂鬚＝`head` volume（`skin_head` #a84e38，硬化批提亮並放大 1.14 倍）＋`beard` 眉 fin（head t=0.85）＋中央長條垂鬚（t=0.02、around 270）＋兩綹側鬚（t=0.10、around 248/mirror）。③龍首護心鏡＝body t=0.22 around 270 的三層 fin（`hilt` 暗襯盤 r0.124 → `gold_trim` 金框 r0.104 → `glow_mirror` 鏡面 r0.093、更厚往前凸）＋`crown_gold` 龍吻 curve ＋一對 `eye` 龍眼 ＋一對 `crown_gold` 龍角。④紅綬帶＝兩片 `sash` fin，host Chest＋offset（不用 anchor），掛在 ±0.185 的胸側前方、垂到膝下，左長右短。⑤鎏金層疊甲＝`armor_body` 正面鎏金 arcs（58–122）＋一排 `gold_trim` 腹前橫板＋兩片 `pauldron` 肩甲＋兩片 `greave` 脛甲。",
+ "_proportion_note": "★★ 比例：回修版 leg_fraction 只有 0.194（戰裙罩住整段大腿），一位盲讀者仍讀成 Q 版。硬化批 2A 的做法：①戰裙縮短（Skirt1／SkirtHem 的 up 收到 -0.078／-0.056），裙擺露出脛甲 ②腿拉長（大腿 -0.322、小腿 -0.268，都是縮放前的值）③**拆掉腿的 mirror，改成左前右後的弓箭步**（`mirror` 只剩 LArm，另寫一條 RLeg）——凍結檔明文禁「玩偶式對稱站姿」，而且側視剪影裡兩腳分開之後 silmetrics 才量得到 leg_fraction（對稱站姿時兩腳在側視重疊成一團，指標回 null）。實測 leg_fraction **0.335**。④全模型等比 ×0.86：拉長後全高 1.545，戲台鏡頭（`tests/tools/creature-preview.html` 寫死的相機）會切掉頭與劍尖；縮到 1.329 才進得了鏡頭（同 tiger_c 的『坐姿要 ×0.8』）。頭（head volume）佔全高約 10%、head＋crown 約 19%，都在『頭 ≤ 身高 1/5』之內。",
+ "_hardening_note": "塊面硬化：2026-09-04 19:10 凍結檔修訂——`build:\"rigid\"` 本身沒有作用，硬邊要靠每個主要 volume 各自的 `faceted: true`（shield 的做法）。本檔八個 volume（body／skirt／head／crown／blade／hilt／LArm／LLeg／RLeg）全部加了 `faceted: true`，`build` 仍保留 rigid，`smooth_angle` 全檔 24–26，主要斷面 `exp ≥ 4.5`。faceted 讓頂點翻倍（3,946→8,938），GLB 從 328KB 漲到 629KB——19:30 凍結檔把上限改成每隻 ≤1.5MB／三角形 ≤8,000，本檔 629KB／2,100 面在內。",
  "_headless_reversal": "舊版走的是簡報備案『無頭甲冑＋火焰代頭』（見 `docs/experiments/2026-09-04-creature-sword-report.md` ③）。回修卷的參照鐵則（ART_BIBLE §0.5）要求『一看就是廟裡的神將』，而神將的頭與鬚正是剪影上最強的辨識點——舊版的兩位盲讀者也都把火焰誤讀成『頭上的火焰王冠』，等於他們預設底下有頭。所以本輪把頭做出來，火焰從頭上撤掉（`eye` 材質改去做臉的金眼與護心鏡龍眼，`part_exists` 仍成立），火只留在劍脊 `glow_blade`。ART_BIBLE §1『不用殘缺、腐爛、空洞眼』全部遵守：實體眼、完整甲。",
- "_devices": "不可愛的手段本隻用了七項：①比例——成人武將頭身比（見 `_proportion_note`），肩台半寬 0.220 vs 腰 0.132（1.67×） ②尖——冠翎五根、肩甲折角、劍尖全部尖端外露 ③眼——細長金眼壓在濃黑眉脊下、位置抬到臉的上三分之一（第 1 輪擺太低被讀成嘴） ④不對稱——左肩甲比右肩甲大 1.6 倍、冠翎左右不等長、綬帶左長右短、冠上紅絨球只有一邊 ⑤腰收細＋三排甲片橫板 ⑥甲指——三根帶尖甲指 ⑦色——鎏金甲身＋深紅臉＋硃紅綬帶，中性暗帶只在背面與甲片分界。",
- "_shape_note": "剪影分群 B（背上／肩上）裡本隻的形狀差仍是一條筆直細長桿、帶橫向護手、上下兩端都出身體；回修把劍身斷面加厚成寬刃（半深 0.112，`exp` 4.5＝近乎平行的板刃而不是葉片；第 1 輪的 0.146 圓葉被盲讀者讀成『衝浪板』）。新增的冠是橫向外張的扇形（半寬 0.126、半深 0.050），與劍的縱向直線在剪影上分工不衝突：劍尖 y 約 1.39 仍是全身最高點，冠翎尖 y 約 1.35 次之。",
+ "_devices": "不可愛的手段本隻用了七項：①比例——成人武將頭身比、弓箭步不對稱站姿（見 `_proportion_note`）②尖——冠翎、肩甲折角、劍尖、甲指、龍角全部尖端外露 ③眼——一對金眼壓在濃黑眉脊下（用 host+face/spread/height 下座標，不用 anchor，理由見眼睛那條 `_c`）④不對稱——左肩甲比右肩甲大 1.6 倍、冠翎左右不等長、綬帶左長右短、冠上紅絨球只有一邊、弓箭步 ⑤腰收細＋腹甲橫板 ⑥甲指——三根帶尖甲指 ⑦色——鎏金甲身＋深紅臉＋硃紅綬帶，四肢與戰裙一律中性暖灰。",
+ "_shape_note": "剪影分群 B（背上／肩上）裡本隻的形狀差是一條筆直細長桿、帶橫向護手、上下兩端都出身體。劍身斷面是寬刃（`exp` 4.5＝近乎平行的板刃）。冠是橫向外張的扇形，與劍的縱向直線在剪影上分工不衝突：劍尖 y 1.329 是全身最高點，冠翎尖次之。硬化批新增的兩條垂墜綬帶把側視與正視的輪廓都往下延伸到膝下（ART_BIBLE §1『靠垂墜物製造輪廓』）。",
  "_blade_split_note": "★ 劍身仍拆成 blade（往上）與 hilt（往下）兩條鏈，兩條的『根』都埋在軀幹裡面。理由：root_containment 檢查鏈根環有沒有被宿主體積包住，整把劍寫成一條鏈、根放在劍柄末端（在身體外面）必 BLOCK。",
  "_ring_note": "沿用 redhat 報告 ⑦-C1：compile.js:136 的 corner bevel-skip 會把距離路徑轉角 r·tan(θ/2)·1.2 以內的環全丟掉。body／skirt／head／crown／blade／hilt 六條鏈全部做成近乎直線（相鄰段夾角 < 6°），造型交給 profile；ring_step 壓到能取樣到 profile 每一列。",
- "_arc_frame_note": "★★ 本卷的新發現，與舊報告 ⑥-1 訂正：**`anchor.around` 與 `colors.arcs` 吃的不是同一個框架**。anchor 的框架實測為 0°=−x、90°=−z（背）、180°=+x、270°=+z（正面）（每個 anchored part 都有 `info: fin ... faces XXX` 可核）；但 `colors.arcs` 是 0–180 左右鏡射的半圓，實測 **90°＝正面（腹）、0° 與 180°＝背面**。驗證方法（本卷實做）：把一條 arc 改成 `#ff00ff` 編一次，看 judge 的 beauty_front／_reartq 落在哪面——arcs **不會印 info 行**，不探針就只能猜。本檔因此把甲身暗帶寫 0–54 與 126–180（背與側）、鎏金留在 54–126（正面）；冠的紅飾寫 80–100（正面中央）。",
- "_saturation_note": "沿用 tiger_a 報告 ⑤-6：`shading.noise` 會把偏暖的近黑擾動到 HSV S>0.5，所以四肢／戰袍一律用飽和度 ≤0.34 的中性暖灰（#635742／#574f3e／#473834），高飽和額度全給鎏金（甲身正面、肩甲、冠、甲片）＋硃紅（綬帶）＋深紅（臉）＋劍脊橘。`saturation_area` 的上限 60% 是本隻最緊的一條：整身鎏金一定爆，所以甲身的 arcs 只讓正面 54–126 保持鎏金，背與側落到 #332e28。",
-
+ "_arc_frame_note": "★★ 與舊報告 ⑥-1 的訂正：**`anchor.around` 與 `colors.arcs` 吃的不是同一個框架**。anchor 的框架在本檔的直立鏈上實測為 0°=−x、90°=−z（背）、180°=+x、270°=+z（正面），每個 anchored part 都會印 `info: fin ... faces XXX (world normal ...)` 可核；**但逐鏈不同**——`skirt` 與 `LLeg`／`RLeg` 三條鏈實測是 90°＝正面（編一次讀 info 行才知道，不要從別隻的角度表推，nail 報告 ⑥-1）。`colors.arcs` 則是 0–180 左右鏡射的半圓、90°＝正面（腹）、0° 與 180°＝背面，而且**不印任何 info 行**，唯一查法是把一條 arc 改成 `#ff00ff` 編一次看哪一面變洋紅。本檔甲身暗帶寫 0–58 與 122–180（背與側）、鎏金留在 58–122（正面）。",
+ "_saturation_note": "沿用 tiger_a 報告 ⑤-6：`shading.noise` 會把偏暖的近黑擾動到 HSV S>0.5。硬化批把四肢／戰裙／護手全部改成**中性**暖灰（#5c574f／#4f4c47／#413d39／#7d7468），暗帶也改中性（#302e2b／#332f2c）——這一步是為了騰出飽和額度給新增的兩條大綬帶。`saturation_area`(tq) 目前 0.54，上限 0.60，餘裕不大：再加任何一塊高飽和面就會爆，要加就得同時把別處中性化。",
  "palette": {
-  "armor_body":  {"color": "#b8892f", "rough": 0.55},
-  "armor_skirt": {"color": "#473834", "rough": 0.9},
-  "armor_arm":   {"color": "#635742", "rough": 0.7},
-  "armor_leg":   {"color": "#574f3e", "rough": 0.75},
-  "pauldron":    {"color": "#c99a34", "rough": 0.45},
-  "boot":        {"color": "#2c2a28", "rough": 0.9},
-  "hand":        {"color": "#635742", "rough": 0.6},
-  "skin_head":   {"color": "#8f3d30", "rough": 0.85},
-  "crown_gold":  {"color": "#d8ab3e", "rough": 0.35},
-  "helm_gold":   {"color": "#9c7828", "rough": 0.6},
-  "sash":        {"color": "#b83a34", "rough": 0.92},
-  "beard":       {"color": "#171514", "rough": 0.95},
-  "blade":       {"color": "#6e6a66", "rough": 0.3},
-  "hilt":        {"color": "#39352f", "rough": 0.8},
-  "gold_trim":   {"color": "#e0a838", "rough": 0.35},
-  "eye":         {"color": "#ffd24a", "rough": 0.12},
-  "glow_blade":  {"color": "#ff8a1e", "rough": 0.2}
+  "armor_body": {"color": "#b8892f", "rough": 0.55},
+  "armor_skirt": {"color": "#413d39", "rough": 0.9},
+  "armor_arm": {"color": "#5c574f", "rough": 0.7},
+  "armor_leg": {"color": "#4f4c47", "rough": 0.75},
+  "pauldron": {"color": "#c99a34", "rough": 0.45},
+  "boot": {"color": "#2c2a28", "rough": 0.9},
+  "hand": {"color": "#7d7468", "rough": 0.6},
+  "skin_head": {"color": "#a84e38", "rough": 0.85},
+  "crown_gold": {"color": "#d8ab3e", "rough": 0.35},
+  "helm_gold": {"color": "#4a4238", "rough": 0.6},
+  "sash": {"color": "#b83a34", "rough": 0.92},
+  "beard": {"color": "#171514", "rough": 0.95},
+  "blade": {"color": "#6e6a66", "rough": 0.3},
+  "hilt": {"color": "#39352f", "rough": 0.8},
+  "gold_trim": {"color": "#e0a838", "rough": 0.35},
+  "greave": {"color": "#6d6558", "rough": 0.5},
+  "eye": {"color": "#ffd24a", "rough": 0.12},
+  "glow_mirror": {"color": "#a33a16", "rough": 0.28},
+  "glow_blade": {"color": "#ff8a1e", "rough": 0.2}
  },
-
  "build": "rigid",
- "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "shading": {"gradient": {"top": 0.3, "bottom": -0.88}, "noise": {"size": 0.01548, "amount": 0.26}},
  "smooth_angle": 26,
-
  "joints": {
-  "Hips":  [0, 0.545, 0],
-  "Spine": {"from": "Hips",  "up": 0.125, "fwd": 0.026},
-  "Chest": {"from": "Spine", "up": 0.180, "fwd": 0.038},
-  "NeckB": {"from": "Chest", "up": 0.088, "fwd": 0.010},
-  "Neck2": {"from": "NeckB", "up": 0.050, "fwd": 0.006},
-
-  "SkirtRoot": {"from": "Hips",      "up": -0.024, "fwd": 0.004},
-  "Skirt1":    {"from": "SkirtRoot", "up": -0.110, "fwd": 0.009},
-  "SkirtHem":  {"from": "Skirt1",    "up": -0.078, "fwd": 0.009},
-
-  "HeadRoot": {"from": "Neck2",    "up": 0.010, "fwd": 0.001},
-  "Head1":    {"from": "HeadRoot", "up": 0.080, "fwd": 0.007},
-  "HeadTop":  {"from": "Head1",    "up": 0.065, "fwd": 0.000},
-
-  "CrownRoot": {"from": "Head1",     "up": 0.044, "fwd": 0.000},
-  "Crown1":    {"from": "CrownRoot", "up": 0.070, "fwd": 0.003},
-  "CrownTip":  {"from": "Crown1",    "up": 0.055, "fwd": 0.000},
-
-  "BladeRoot": {"from": "Spine",     "up": -0.048, "fwd": -0.132},
-  "Blade1":    {"from": "BladeRoot", "up":  0.330, "fwd": -0.036},
-  "Blade2":    {"from": "Blade1",    "up":  0.250, "fwd": -0.028},
-  "BladeTip":  {"from": "Blade2",    "up":  0.190, "fwd": -0.021},
-
-  "HiltRoot": {"from": "Hips",     "up":  0.020, "fwd": -0.100},
-  "Hilt1":    {"from": "HiltRoot", "up": -0.175, "fwd": -0.046},
-  "HiltTip":  {"from": "Hilt1",    "up": -0.125, "fwd": -0.070},
-
-  "LArmRoot": {"from": "Chest",    "side":  0.126, "up": -0.072, "fwd": -0.010},
-  "LElbow":   {"from": "LArmRoot", "side":  0.056, "up": -0.202, "fwd": 0.012},
-  "LWrist":   {"from": "LElbow",   "side":  0.014, "up": -0.164, "fwd": 0.034},
-  "LHand":    {"from": "LWrist",   "side": -0.004, "up": -0.036, "fwd": 0.038},
-
-  "LLegRoot": {"from": "Hips",     "side": 0.078, "up":  0.012, "fwd": 0.006},
-  "LKnee":    {"from": "LLegRoot", "side": 0.010, "up": -0.235, "fwd": 0.040},
-  "LAnkle":   {"from": "LKnee",    "side": 0.002, "up": -0.200, "fwd": -0.010},
-  "LToe":     {"from": "LAnkle",   "side": 0.001, "fwd": 0.052, "ground": 0.028}
+  "Hips": [0.0, 0.602, 0.0],
+  "Spine": {"from": "Hips", "up": 0.1075, "fwd": 0.02236},
+  "Chest": {"from": "Spine", "up": 0.1548, "fwd": 0.03268},
+  "NeckB": {"from": "Chest", "up": 0.07568, "fwd": 0.0086},
+  "Neck2": {"from": "NeckB", "up": 0.043, "fwd": 0.00516},
+  "SkirtRoot": {"from": "Hips", "up": -0.02064, "fwd": 0.00344},
+  "Skirt1": {"from": "SkirtRoot", "up": -0.06708, "fwd": 0.00774},
+  "SkirtHem": {"from": "Skirt1", "up": -0.04816, "fwd": 0.00774},
+  "HeadRoot": {"from": "Neck2", "up": 0.0086, "fwd": 0.00086},
+  "Head1": {"from": "HeadRoot", "up": 0.0782, "fwd": 0.00602},
+  "HeadTop": {"from": "Head1", "up": 0.0624, "fwd": 0.0},
+  "CrownRoot": {"from": "Head1", "up": 0.03784, "fwd": 0.0},
+  "Crown1": {"from": "CrownRoot", "up": 0.0602, "fwd": 0.00258},
+  "CrownTip": {"from": "Crown1", "up": 0.0473, "fwd": 0.0},
+  "BladeRoot": {"from": "Spine", "up": -0.04128, "fwd": -0.11352},
+  "Blade1": {"from": "BladeRoot", "up": 0.2838, "fwd": -0.03096},
+  "Blade2": {"from": "Blade1", "up": 0.215, "fwd": -0.02408},
+  "BladeTip": {"from": "Blade2", "up": 0.1634, "fwd": -0.01806},
+  "HiltRoot": {"from": "Hips", "up": 0.0172, "fwd": -0.086},
+  "Hilt1": {"from": "HiltRoot", "up": -0.1505, "fwd": -0.03956},
+  "HiltTip": {"from": "Hilt1", "up": -0.1075, "fwd": -0.0602},
+  "LArmRoot": {"from": "Chest", "side": 0.10836, "up": -0.06192, "fwd": -0.0086},
+  "LElbow": {"from": "LArmRoot", "side": 0.04816, "up": -0.17372, "fwd": 0.01032},
+  "LWrist": {"from": "LElbow", "side": 0.01204, "up": -0.14104, "fwd": 0.02924},
+  "LHand": {"from": "LWrist", "side": -0.00344, "up": -0.03096, "fwd": 0.03268},
+  "LLegRoot": {"from": "Hips", "side": 0.0774, "up": 0.01032, "fwd": 0.01548},
+  "LKnee": {"from": "LLegRoot", "side": 0.01032, "up": -0.27692, "fwd": 0.09632},
+  "LAnkle": {"from": "LKnee", "side": 0.00172, "up": -0.23048, "fwd": 0.0086},
+  "LToe": {"from": "LAnkle", "side": 0.00086, "fwd": 0.05332, "ground": 0.02408},
+  "RLegRoot": {"from": "Hips", "side": -0.0774, "up": 0.01032, "fwd": -0.01204},
+  "RKnee": {"from": "RLegRoot", "side": -0.01204, "up": -0.27348, "fwd": -0.07052},
+  "RAnkle": {"from": "RKnee", "side": -0.00172, "up": -0.23392, "fwd": -0.0688},
+  "RToe": {"from": "RAnkle", "side": -0.00086, "fwd": 0.03096, "ground": 0.02408}
  },
-
  "chains": {
-  "body":  ["Hips", "Spine", "Chest", "NeckB", "Neck2"],
+  "body": ["Hips", "Spine", "Chest", "NeckB", "Neck2"],
   "skirt": ["SkirtRoot", "Skirt1", "SkirtHem"],
-  "head":  ["HeadRoot", "Head1", "HeadTop"],
+  "head": ["HeadRoot", "Head1", "HeadTop"],
   "crown": ["CrownRoot", "Crown1", "CrownTip"],
   "blade": ["BladeRoot", "Blade1", "Blade2", "BladeTip"],
-  "hilt":  ["HiltRoot", "Hilt1", "HiltTip"],
-  "LArm":  ["LArmRoot", "LElbow", "LWrist", "LHand"],
-  "LLeg":  ["LLegRoot", "LKnee", "LAnkle", "LToe"]
+  "hilt": ["HiltRoot", "Hilt1", "HiltTip"],
+  "LArm": ["LArmRoot", "LElbow", "LWrist", "LHand"],
+  "LLeg": ["LLegRoot", "LKnee", "LAnkle", "LToe"],
+  "RLeg": ["RLegRoot", "RKnee", "RAnkle", "RToe"]
  },
- "attach": {"skirt": "Hips", "head": "Neck2", "crown": "Head1", "blade": "Spine", "hilt": "Hips",
-            "LArm": "Chest", "LLeg": "Hips"},
- "mirror": ["LArm", "LLeg"],
+ "attach": {
+  "skirt": "Hips",
+  "head": "Neck2",
+  "crown": "Head1",
+  "blade": "Spine",
+  "hilt": "Hips",
+  "LArm": "Chest",
+  "LLeg": "Hips",
+  "RLeg": "Hips"
+ },
+ "mirror": ["LArm"],
  "touch": [["body", "skirt"], ["body", "head"], ["head", "crown"], ["body", "blade"], ["body", "hilt"]],
-
  "volumes": [
-  {"chain": "body", "material": "armor_body", "sides": 10, "smooth_angle": 24,
+  {
+   "chain": "body",
+   "material": "armor_body",
+   "sides": 10,
+   "faceted": true,
+   "smooth_angle": 24,
    "profile": [
-    [0.00, 0.175, 0.190],
-    [0.22, 0.132, 0.150, {"exp": 4.6, "sharp": true}],
-    [0.64, 0.220, 0.182, {"exp": 4.8, "sharp": true}],
-    [0.80, 0.115, 0.118, {"sharp": true}],
-    [0.93, 0.070, 0.078],
-    [1.00, 0.064, 0.072]
+    [0.0, 0.1505, 0.1634],
+    [0.22, 0.11352, 0.129, {"exp": 4.6, "sharp": true}],
+    [0.64, 0.1892, 0.15652, {"exp": 4.8, "sharp": true}],
+    [0.8, 0.0989, 0.10148, {"sharp": true}],
+    [0.93, 0.0602, 0.06708],
+    [1.0, 0.05504, 0.06192]
    ],
-   "caps": ["dome", "none"], "ring_step": 0.032,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 54,  "color": "#332e28"},
-     {"from": 126, "to": 180, "color": "#332e28"},
-     {"from": 86,  "to": 94,  "color": "#7a5f22"}
-   ]}},
-
-  {"chain": "skirt", "material": "armor_skirt", "sides": 8, "smooth_angle": 24,
+   "caps": ["dome", "none"],
+   "ring_step": 0.02752,
+   "colors": {
+    "arcs": [
+     {"from": 0, "to": 58, "color": "#302e2b"},
+     {"from": 122, "to": 180, "color": "#302e2b"},
+     {"from": 86, "to": 94, "color": "#7a5f22"}
+    ]
+   }
+  },
+  {
+   "chain": "skirt",
+   "material": "armor_skirt",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 24,
    "profile": [
-    [0.00, 0.152, 0.168],
-    [0.20, 0.196, 0.198, {"exp": 4.6, "sharp": true}],
-    [0.64, 0.210, 0.208, {"exp": 4.8}],
-    [0.90, 0.194, 0.190, {"sharp": true}],
-    [1.00, 0.162, 0.158]
+    [0.0, 0.13072, 0.14448],
+    [0.2, 0.16856, 0.17028, {"exp": 4.6, "sharp": true}],
+    [0.64, 0.1806, 0.17888, {"exp": 4.8}],
+    [0.9, 0.16684, 0.1634, {"sharp": true}],
+    [1.0, 0.13932, 0.13588]
    ],
-   "caps": ["none", "none"], "ring_step": 0.022,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 30,  "color": "#3a2723"},
-     {"from": 150, "to": 180, "color": "#3a2723"}
-   ]}},
-
-  {"chain": "head", "material": "skin_head", "sides": 8, "smooth_angle": 24,
+   "caps": ["none", "none"],
+   "ring_step": 0.01892,
+   "colors": {"arcs": [{"from": 0, "to": 30, "color": "#332f2c"}, {"from": 150, "to": 180, "color": "#332f2c"}]}
+  },
+  {
+   "chain": "head",
+   "material": "skin_head",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 24,
    "profile": [
-    [0.00, 0.054, 0.046],
-    [0.16, 0.110, 0.058, {"exp": 4.5, "sharp": true}],
-    [0.46, 0.132, 0.064, {"exp": 5.0, "sharp": true}],
-    [0.74, 0.122, 0.056, {"exp": 4.6, "sharp": true}],
-    [1.00, 0.080, 0.042]
+    [0.0, 0.05294, 0.0451],
+    [0.16, 0.10784, 0.05686, {"exp": 4.5, "sharp": true}],
+    [0.46, 0.12941, 0.06275, {"exp": 5.0, "sharp": true}],
+    [0.74, 0.11961, 0.0549, {"exp": 4.6, "sharp": true}],
+    [1.0, 0.07843, 0.04118]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.011,
-   "colors": {"arcs": [{"from": 0, "to": 40, "color": "#5c2620"}, {"from": 140, "to": 180, "color": "#5c2620"}]}},
-
-  {"chain": "crown", "material": "crown_gold", "sides": 8, "smooth_angle": 24,
+   "caps": ["none", "dome"],
+   "ring_step": 0.00946,
+   "colors": {"arcs": [{"from": 0, "to": 40, "color": "#5c2620"}, {"from": 140, "to": 180, "color": "#5c2620"}]}
+  },
+  {
+   "chain": "crown",
+   "material": "crown_gold",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 24,
    "profile": [
-    [0.00, 0.048, 0.044],
-    [0.30, 0.068, 0.046, {"exp": 4.5, "sharp": true}],
-    [0.66, 0.092, 0.048, {"exp": 4.8, "sharp": true}],
-    [0.92, 0.126, 0.050, {"exp": 5.0, "sharp": true}],
-    [1.00, 0.110, 0.038]
+    [0.0, 0.04128, 0.03784],
+    [0.3, 0.05848, 0.03956, {"exp": 4.5, "sharp": true}],
+    [0.66, 0.07912, 0.04128, {"exp": 4.8, "sharp": true}],
+    [0.92, 0.10836, 0.043, {"exp": 5.0, "sharp": true}],
+    [1.0, 0.0946, 0.03268]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.012,
-   "colors": {"arcs": [
-     {"from": 0,  "to": 56,  "color": "#6d5420"},
+   "caps": ["none", "dome"],
+   "ring_step": 0.01032,
+   "colors": {
+    "arcs": [
+     {"from": 0, "to": 56, "color": "#6d5420"},
      {"from": 124, "to": 180, "color": "#6d5420"},
      {"from": 80, "to": 100, "color": "#b83a34"}
-   ]}},
-
-  {"chain": "blade", "material": "blade", "sides": 6, "smooth_angle": 24,
+    ]
+   }
+  },
+  {
+   "chain": "blade",
+   "material": "blade",
+   "sides": 6,
+   "faceted": true,
+   "smooth_angle": 24,
    "profile": [
-    [0.00, 0.030, 0.084],
-    [0.10, 0.030, 0.112, {"exp": 4.5, "sharp": true}],
-    [0.58, 0.024, 0.106, {"exp": 4.5}],
-    [0.88, 0.015, 0.060, {"sharp": true}],
-    [1.00, 0.004, 0.010]
+    [0.0, 0.0258, 0.07224],
+    [0.1, 0.0258, 0.09632, {"exp": 4.5, "sharp": true}],
+    [0.58, 0.02064, 0.09116, {"exp": 4.5}],
+    [0.88, 0.0129, 0.0516, {"sharp": true}],
+    [1.0, 0.00344, 0.0086]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.026,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 54,  "color": "#f4600c"},
+   "caps": ["none", "dome"],
+   "ring_step": 0.02236,
+   "colors": {
+    "arcs": [
+     {"from": 0, "to": 54, "color": "#f4600c"},
      {"from": 126, "to": 180, "color": "#f4600c"},
-     {"from": 82,  "to": 98,  "color": "#8a8681"}
-   ]}},
-
-  {"chain": "hilt", "material": "hilt", "sides": 8, "smooth_angle": 26,
+     {"from": 82, "to": 98, "color": "#8a8681"}
+    ]
+   }
+  },
+  {
+   "chain": "hilt",
+   "material": "hilt",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.034, 0.038],
-    [0.30, 0.044, 0.048, {"exp": 4.5}],
-    [0.72, 0.028, 0.030, {"sharp": true}],
-    [0.86, 0.058, 0.060, {"sharp": true}],
-    [1.00, 0.028, 0.028]
+    [0.0, 0.02924, 0.03268],
+    [0.3, 0.03784, 0.04128, {"exp": 4.5}],
+    [0.72, 0.02408, 0.0258, {"sharp": true}],
+    [0.86, 0.04988, 0.0516, {"sharp": true}],
+    [1.0, 0.02408, 0.02408]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.018},
-
-  {"chain": "LArm", "material": "armor_arm", "sides": 8, "smooth_angle": 26,
+   "caps": ["none", "dome"],
+   "ring_step": 0.01548
+  },
+  {
+   "chain": "LArm",
+   "material": "armor_arm",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.062, 0.066],
-    [0.40, 0.048, 0.052, {"exp": 4.5, "sharp": true}],
-    [0.80, 0.040, 0.044],
-    [1.00, 0.032, 0.026]
+    [0.0, 0.05332, 0.05676],
+    [0.4, 0.04128, 0.04472, {"exp": 4.5, "sharp": true}],
+    [0.8, 0.0344, 0.03784],
+    [1.0, 0.02752, 0.02236]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.052},
-
-  {"chain": "LLeg", "material": "armor_leg", "sides": 8, "smooth_angle": 26,
+   "caps": ["none", "dome"],
+   "ring_step": 0.04472
+  },
+  {
+   "chain": "LLeg",
+   "material": "armor_leg",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.090, 0.096],
-    [0.30, 0.076, 0.082, {"exp": 4.6, "sharp": true}],
-    [0.58, 0.056, 0.060],
-    [0.84, 0.048, 0.050],
-    [1.00, 0.046, 0.032]
+    [0.0, 0.07052, 0.0774],
+    [0.3, 0.0602, 0.06536, {"exp": 4.6, "sharp": true}],
+    [0.58, 0.04816, 0.0516],
+    [0.84, 0.04128, 0.043],
+    [1.0, 0.03956, 0.02752]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.070}
+   "caps": ["none", "dome"],
+   "ring_step": 0.04128
+  },
+  {
+   "chain": "RLeg",
+   "material": "armor_leg",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [0.0, 0.07052, 0.0774],
+    [0.3, 0.0602, 0.06536, {"exp": 4.6, "sharp": true}],
+    [0.58, 0.04816, 0.0516],
+    [0.84, 0.04128, 0.043],
+    [1.0, 0.03956, 0.02752]
+   ],
+   "caps": ["none", "dome"],
+   "ring_step": 0.04128
+  }
  ],
-
  "parts": [
-  {"type": "eye", "host": "Head1", "material": "eye", "size": 0.027,
-   "anchor": {"chain": "head", "t": 0.60, "around": 238}},
-
-  {"type": "fin", "host": "Head1", "material": "beard", "thickness": 0.014, "conform": false,
+  {
+   "_c": "★ 臉上的一對金眼。原本用 anchor{t,around:238}，但 compile.js:288 的 buildEye 對 anchored eye 是用 `around * sx`（sx=±1）配對——在直立頭鏈上 238 的配對是 122，那不是左右對稱而是**前後**對稱，第二顆眼睛長到後腦去了，正面只看得到一顆。第 1 輪兩位盲讀者都把整顆頭讀成「頭盔的背面／黑色 V 字缺口」，這是主因之一。改用 flag 報告 ⑥-4 推薦的 host+face/spread/height（compile.js:290 的 else 分支），在宿主關節的局部座標直接下座標，forward=+z＝正面。",
+   "type": "eye",
+   "host": "Head1",
+   "material": "eye",
+   "size": 0.032,
+   "forward": [0, 0, 1],
+   "face": 0.09,
+   "spread": 0.047,
+   "height": -0.004
+  },
+  {
+   "type": "fin",
+   "host": "Head1",
+   "material": "beard",
+   "thickness": 0.01204,
+   "conform": false,
    "mirrored": true,
-   "anchor": {"chain": "head", "t": 0.76, "around": 240},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.050, -0.016], [0.002, -0.032], [0.050, 0.012], [0.043, 0.032], [-0.005, 0.024], [-0.048, 0.006]]},
-
-  {"type": "curve", "host": "Head1", "material": "skin_head", "sides": 4, "smooth_angle": 24,
-   "offset": [0, -0.012, 0.030], "dir": [0, -0.32, 0.95],
-   "segments": [{"len": 0.036, "r": 0.024}, {"len": 0.024, "r": 0.013, "fall": 12, "taper": true}]},
-
-  {"type": "fin", "host": "HeadRoot", "material": "beard", "thickness": 0.036, "conform": false,
+   "anchor": {"chain": "head", "t": 0.85, "around": 240},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.049019999999999994, -0.00684],
+    [0.00228, -0.022799999999999997],
+    [0.049019999999999994, 0.00912],
+    [0.042179999999999995, 0.029639999999999996],
+    [-0.00456, 0.022799999999999997],
+    [-0.04674, 0.00456]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Head1",
+   "material": "skin_head",
+   "sides": 4,
+   "smooth_angle": 24,
+   "offset": [0.0, -0.01032, 0.0258],
+   "dir": [0, -0.32, 0.95],
+   "segments": [{"len": 0.03096, "r": 0.02064}, {"len": 0.02064, "r": 0.01118, "fall": 12, "taper": true}]
+  },
+  {
+   "type": "fin",
+   "host": "HeadRoot",
+   "material": "beard",
+   "thickness": 0.03096,
+   "conform": false,
    "anchor": {"chain": "head", "t": 0.02, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.044, 0.020], [0.044, 0.020], [0.036, -0.100], [0.014, -0.192], [0.000, -0.234],
-              [-0.014, -0.192], [-0.036, -0.100]]},
-  {"type": "fin", "host": "HeadRoot", "material": "beard", "thickness": 0.026, "conform": false,
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.03, 0.02],
+    [0.03, 0.02],
+    [0.027, -0.09],
+    [0.022, -0.18],
+    [0.015, -0.245],
+    [-0.015, -0.245],
+    [-0.022, -0.18],
+    [-0.027, -0.09]
+   ],
+   "_c": "中央垂鬚：硬化批 2A 第 3 輪改成長條。原本上寬 ±0.038、下收成一個尖，兩側再各掛一綹＝正面剪影就是一個蝴蝶結，第 2 輪兩位盲讀者都寫「黑色蝴蝶結／領結」。改成幾乎等寬、下緣近乎平的一條，長度加到 -0.245。"
+  },
+  {
+   "type": "fin",
+   "host": "HeadRoot",
+   "material": "beard",
+   "thickness": 0.02236,
+   "conform": false,
    "mirrored": true,
-   "anchor": {"chain": "head", "t": 0.10, "around": 240},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.030, 0.020], [0.030, 0.020], [0.024, -0.078], [0.009, -0.152], [-0.009, -0.152], [-0.024, -0.078]]},
-
-  {"type": "fin", "host": "Head1", "material": "helm_gold", "thickness": 0.020, "conform": false,
+   "anchor": {"chain": "head", "t": 0.1, "around": 248},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.016, 0.014], [0.016, 0.014], [0.014, -0.1], [0.009, -0.178], [-0.009, -0.178], [-0.014, -0.1]]
+  },
+  {
+   "type": "fin",
+   "host": "Head1",
+   "material": "helm_gold",
+   "thickness": 0.02064,
+   "conform": false,
    "mirrored": true,
    "anchor": {"chain": "head", "t": 0.44, "around": 172},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.058, -0.078], [0.008, -0.092], [0.062, -0.058], [0.066, 0.018],
-              [0.018, 0.056], [-0.040, 0.054], [-0.062, 0.012]]},
-
-  {"type": "curve", "host": "CrownTip", "material": "crown_gold", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.062, -0.008, 0.004], "dir": [0.30, 0.95, 0.06],
-   "segments": [{"len": 0.058, "r": 0.023}, {"len": 0.048, "r": 0.004, "rise": 6, "taper": true}]},
-  {"type": "curve", "host": "CrownTip", "material": "crown_gold", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.026, 0.004, 0.008], "dir": [0.11, 0.99, 0.05],
-   "segments": [{"len": 0.044, "r": 0.019}, {"len": 0.036, "r": 0.004, "rise": 5, "taper": true}]},
-  {"type": "curve", "host": "Crown1", "material": "crown_gold", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.070, 0.010, -0.012], "dir": [0.70, 0.68, -0.20],
-   "segments": [{"len": 0.058, "r": 0.020}, {"len": 0.048, "r": 0.004, "rise": 6, "taper": true}]},
-  {"type": "curve", "host": "Crown1", "material": "sash", "sides": 5, "smooth_angle": 26,
-   "offset": [-0.082, 0.018, -0.014], "dir": [-0.80, 0.52, -0.30],
-   "segments": [{"len": 0.048, "r": 0.026}, {"len": 0.036, "r": 0.017, "taper": true}]},
-
-  {"type": "fin", "host": "Spine", "material": "gold_trim", "thickness": 0.022, "conform": false,
-   "anchor": {"chain": "body", "t": 0.16, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.046, -0.092], [0.046, -0.092], [0.092, -0.040], [0.092, 0.040], [0.046, 0.092],
-              [-0.046, 0.092], [-0.092, 0.040], [-0.092, -0.040]]},
-
-  {"type": "curve", "host": "Hips", "material": "eye", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.036, 0.082, 0.140], "dir": [0.20, 0.08, 0.98],
-   "segments": [{"len": 0.058, "r": 0.019}, {"len": 0.030, "r": 0.008, "taper": true}]},
-
-  {"type": "fin", "host": "Spine", "material": "gold_trim", "thickness": 0.017, "conform": false,
-   "anchor": {"chain": "body", "t": 0.30, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.108, -0.014], [-0.032, -0.032], [0.032, -0.032], [0.108, -0.014], [0.100, 0.016], [0.000, 0.032], [-0.100, 0.016]]},
-  {"type": "fin", "host": "Spine", "material": "gold_trim", "thickness": 0.017, "conform": false,
-   "anchor": {"chain": "body", "t": 0.38, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.104, -0.014], [-0.030, -0.030], [0.030, -0.030], [0.104, -0.014], [0.096, 0.016], [0.000, 0.030], [-0.096, 0.016]]},
-  {"type": "fin", "host": "Chest", "material": "gold_trim", "thickness": 0.017, "conform": false,
-   "anchor": {"chain": "body", "t": 0.46, "around": 270},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.098, -0.014], [-0.028, -0.030], [0.028, -0.030], [0.098, -0.014], [0.090, 0.016], [0.000, 0.030], [-0.090, 0.016]]},
-
-  {"type": "fin", "host": "Chest", "material": "sash", "thickness": 0.020, "conform": false,
-   "anchor": {"chain": "body", "t": 0.66, "around": 150},
-   "udir": [0.500, 0, 0.866], "vdir": [0, 1, 0],
-   "points": [[-0.066, 0.052], [0.066, 0.052], [0.060, -0.180], [0.038, -0.400], [0.000, -0.508],
-              [-0.038, -0.400], [-0.060, -0.180]]},
-  {"type": "fin", "host": "Chest", "material": "sash", "thickness": 0.020, "conform": false,
-   "anchor": {"chain": "body", "t": 0.64, "around": 30},
-   "udir": [0.500, 0, -0.866], "vdir": [0, 1, 0],
-   "points": [[-0.054, 0.048], [0.054, 0.048], [0.048, -0.158], [0.030, -0.326], [0.000, -0.414],
-              [-0.030, -0.326], [-0.048, -0.158]]},
-
-  {"type": "fin", "host": "Chest", "material": "pauldron", "thickness": 0.044, "conform": false,
+   "udir": [0, 0, 1],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.05748, -0.0773],
+    [0.00793, -0.09118],
+    [0.06145, -0.05748],
+    [0.06541, 0.01784],
+    [0.01784, 0.0555],
+    [-0.03964, 0.05352],
+    [-0.06145, 0.01189]
+   ],
+   "_c": "護耳：材質色改暗（原鎏金 #9c7828 在臉兩側被第 2 輪讀者讀成「黃色尖耳／黃色圓球」，把五官擠掉）。尺寸不減反增——它同時是 focal_contrast(blade:skin_head) 的槓桿：頭放大 1.14 倍後臉的側視 share 從 3.1% 升到 5.5%，靠這兩片把側面遮回去（review-sword-report ⑥-3 的手法）。"
+  },
+  {
+   "type": "curve",
+   "host": "CrownTip",
+   "material": "crown_gold",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.05332, -0.00688, 0.00344],
+   "dir": [0.3, 0.95, 0.06],
+   "segments": [{"len": 0.04988, "r": 0.01978}, {"len": 0.04128, "r": 0.00344, "rise": 6, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "CrownTip",
+   "material": "crown_gold",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.02236, 0.00344, 0.00688],
+   "dir": [0.11, 0.99, 0.05],
+   "segments": [{"len": 0.03784, "r": 0.01634}, {"len": 0.03096, "r": 0.00344, "rise": 5, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "Crown1",
+   "material": "crown_gold",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.0602, 0.0086, -0.01032],
+   "dir": [0.7, 0.68, -0.2],
+   "segments": [{"len": 0.04988, "r": 0.0172}, {"len": 0.04128, "r": 0.00344, "rise": 6, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "Crown1",
+   "material": "sash",
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [-0.07052, 0.01548, -0.01204],
+   "dir": [-0.8, 0.52, -0.3],
+   "segments": [{"len": 0.04128, "r": 0.02236}, {"len": 0.03096, "r": 0.01462, "taper": true}]
+  },
+  {
+   "_c": "護心鏡最底層：暗色襯盤。金框直接壓在鎏金甲身上會糊成一片，襯一圈近黑才切得出「一個圓盤」的輪廓。",
+   "type": "fin",
+   "host": "Spine",
+   "material": "hilt",
+   "thickness": 0.014,
+   "conform": false,
+   "anchor": {"chain": "body", "t": 0.22, "around": 270},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [0.11977, 0.03209],
+    [0.08768, 0.08768],
+    [0.03209, 0.11977],
+    [-0.03209, 0.11977],
+    [-0.08768, 0.08768],
+    [-0.11977, 0.03209],
+    [-0.11977, -0.03209],
+    [-0.08768, -0.08768],
+    [-0.03209, -0.11977],
+    [0.03209, -0.11977],
+    [0.08768, -0.08768],
+    [0.11977, -0.03209]
+   ]
+  },
+  {
+   "_c": "── 硬化批 2A ①：護心鏡改成立體龍首。三層疊起來：外框 gold_trim 十邊形（貼在腹前）→ 內盤 glow_mirror（更厚，往前多凸 0.028）→ 中央 helm_gold 龍吻 curve 再往前凸；兩顆 eye 龍眼與兩根 crown_gold 龍角掛在吻兩側。回修版是一片八邊形平板，兩位讀者都讀成『金色鎧甲片』（review-sword-report ⑦-3）。",
+   "type": "fin",
+   "host": "Spine",
+   "material": "gold_trim",
+   "thickness": 0.026,
+   "conform": false,
+   "anchor": {"chain": "body", "t": 0.22, "around": 270},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [0.10046, 0.02692],
+    [0.07354, 0.07354],
+    [0.02692, 0.10046],
+    [-0.02692, 0.10046],
+    [-0.07354, 0.07354],
+    [-0.10046, 0.02692],
+    [-0.10046, -0.02692],
+    [-0.07354, -0.07354],
+    [-0.02692, -0.10046],
+    [0.02692, -0.10046],
+    [0.07354, -0.07354],
+    [0.10046, -0.02692]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Spine",
+   "material": "glow_mirror",
+   "thickness": 0.05332,
+   "conform": false,
+   "anchor": {"chain": "body", "t": 0.22, "around": 270},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.03698, -0.07138],
+    [0.03698, -0.07138],
+    [0.06622, -0.04988],
+    [0.07998, -0.01634],
+    [0.07998, 0.01634],
+    [0.06622, 0.04988],
+    [0.03698, 0.07138],
+    [-0.03698, 0.07138],
+    [-0.06622, 0.04988],
+    [-0.07998, 0.01634],
+    [-0.07998, -0.01634],
+    [-0.06622, -0.04988]
+   ]
+  },
+  {
+   "_c": "龍吻：從鏡心再凸出去，護心鏡因此有三層厚度，正視是一張臉不是一片板",
+   "type": "curve",
+   "host": "Hips",
+   "material": "crown_gold",
+   "sides": 6,
+   "smooth_angle": 26,
+   "offset": [0.0, 0.11008, 0.129],
+   "dir": [0, -0.16, 0.99],
+   "segments": [{"len": 0.0602, "r": 0.0516}, {"len": 0.03956, "r": 0.02924, "fall": 10, "taper": true}]
+  },
+  {
+   "_c": "龍眼一對（材質 eye＝發光）",
+   "type": "curve",
+   "host": "Hips",
+   "material": "eye",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.05848, 0.15652, 0.11008],
+   "dir": [0.3, 0.06, 0.95],
+   "segments": [{"len": 0.06708, "r": 0.02666}, {"len": 0.0344, "r": 0.01204, "taper": true}]
+  },
+  {
+   "_c": "龍角一對：往後上方掃，把圓盤讀成獸首",
+   "type": "curve",
+   "host": "Hips",
+   "material": "crown_gold",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.07912, 0.18232, 0.086],
+   "dir": [0.58, 0.62, 0.52],
+   "segments": [{"len": 0.05332, "r": 0.0172}, {"len": 0.043, "r": 0.0043, "rise": 12, "taper": true}]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "gold_trim",
+   "thickness": 0.01462,
+   "conform": false,
+   "anchor": {"chain": "body", "t": 0.54, "around": 270},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [
+    [-0.0602, -0.01032],
+    [-0.01892, -0.02408],
+    [0.01892, -0.02408],
+    [0.0602, -0.01032],
+    [0.05504, 0.01204],
+    [0.0, 0.02408],
+    [-0.05504, 0.01204]
+   ]
+  },
+  {
+   "_c": "── 硬化批 2A ②：紅綬帶加長加寬、從肩後改掛到正面兩側（hero 相機在 +x+z，around 225 正對它），垂到膝下。回修版掛 around 150/30（背側）＋窄板，四位讀者一個都沒點名（review-sword-report ⑦-3）。不用 anchor：帶 anchor 的 fin 會丟掉 offset，只能貼在體表半徑上，走到戰裙那一段會被裙子吃掉；改成 host＋offset＋vdir 微向外張，頂邊埋進胸腔、下擺走在裙外。左長右短維持不對稱。",
+   "type": "fin",
+   "host": "Chest",
+   "material": "sash",
+   "thickness": 0.01892,
+   "conform": false,
+   "offset": [0.185, -0.0602, 0.02],
+   "udir": [1, 0, 0],
+   "vdir": [-0.06, 0.985, -0.12],
+   "points": [
+    [-0.0389064, 0.05332],
+    [0.0389064, 0.05332],
+    [0.03354, -0.2236],
+    [0.020124, -0.4558],
+    [0.0, -0.5676],
+    [-0.020124, -0.4558],
+    [-0.03354, -0.2236]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "sash",
+   "thickness": 0.01892,
+   "conform": false,
+   "offset": [-0.185, -0.07396, 0.02],
+   "udir": [1, 0, 0],
+   "vdir": [0.06, 0.985, -0.12],
+   "points": [
+    [-0.034881600000000006, 0.04988],
+    [0.034881600000000006, 0.04988],
+    [0.030186, -0.1935],
+    [0.018111600000000002, -0.3913],
+    [0.0, -0.4859],
+    [-0.018111600000000002, -0.3913],
+    [-0.030186, -0.1935]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "pauldron",
+   "thickness": 0.03784,
+   "conform": false,
    "anchor": {"chain": "body", "t": 0.66, "around": 180},
-   "udir": [0, 0, 1], "vdir": [0.46, 0.89, 0],
-   "points": [[-0.152, -0.046], [-0.052, -0.088], [0.064, -0.084], [0.154, -0.032],
-              [0.146, 0.074], [0.052, 0.118], [-0.060, 0.116], [-0.150, 0.066]]},
-
-  {"type": "fin", "host": "Chest", "material": "pauldron", "thickness": 0.032, "conform": false,
+   "udir": [0, 0, 1],
+   "vdir": [0.46, 0.89, 0],
+   "points": [
+    [-0.13072, -0.03956],
+    [-0.04472, -0.07568],
+    [0.05504, -0.07224],
+    [0.13244, -0.02752],
+    [0.12556, 0.06364],
+    [0.04472, 0.10148],
+    [-0.0516, 0.09976],
+    [-0.129, 0.05676]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "pauldron",
+   "thickness": 0.02752,
+   "conform": false,
    "anchor": {"chain": "body", "t": 0.64, "around": 0},
-   "udir": [0, 0, 1], "vdir": [-0.46, 0.89, 0],
-   "points": [[-0.096, -0.030], [-0.030, -0.056], [0.042, -0.054], [0.098, -0.018],
-              [0.092, 0.052], [0.030, 0.074], [-0.038, 0.072], [-0.094, 0.044]]},
-
-  {"type": "fin", "host": "SkirtRoot", "material": "gold_trim", "thickness": 0.018, "conform": false,
+   "udir": [0, 0, 1],
+   "vdir": [-0.46, 0.89, 0],
+   "points": [
+    [-0.08256, -0.0258],
+    [-0.0258, -0.04816],
+    [0.03612, -0.04644],
+    [0.08428, -0.01548],
+    [0.07912, 0.04472],
+    [0.0258, 0.06364],
+    [-0.03268, 0.06192],
+    [-0.08084, 0.03784]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "SkirtRoot",
+   "material": "gold_trim",
+   "thickness": 0.01548,
+   "conform": false,
    "anchor": {"chain": "skirt", "t": 0.16, "around": 90},
-   "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.118, 0.028], [0.118, 0.028], [0.106, -0.028], [0.000, -0.054], [-0.106, -0.028]]},
-
-  {"type": "curve", "host": "Blade1", "material": "blade", "sides": 4, "smooth_angle": 24,
-   "offset": [0, 0.010, 0.016], "dir": [0, 0.05, 1],
-   "segments": [{"len": 0.104, "r": 0.038}, {"len": 0.082, "r": 0.017, "rise": 14, "taper": true}]},
-  {"type": "curve", "host": "Blade1", "material": "blade", "sides": 4, "smooth_angle": 24,
-   "offset": [0, 0.010, -0.016], "dir": [0, 0.05, -1],
-   "segments": [{"len": 0.104, "r": 0.038}, {"len": 0.082, "r": 0.017, "rise": 14, "taper": true}]},
-
-  {"type": "curve", "host": "BladeRoot", "material": "glow_blade", "mirrored": true, "sides": 4, "smooth_angle": 24,
-   "offset": [0.020, 0.160, -0.006], "dir": [0, 0.996, -0.070],
-   "segments": [{"len": 0.245, "r": 0.021}, {"len": 0.200, "r": 0.016}, {"len": 0.100, "r": 0.005, "taper": true}]},
-
-  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.014, -0.014, 0.010], "dir": [0.26, -0.90, 0.35],
-   "segments": [{"len": 0.044, "r": 0.020}, {"len": 0.034, "r": 0.012, "ahead": 16}, {"len": 0.023, "r": 0.005, "ahead": 20, "taper": true}]},
-  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [-0.010, -0.016, 0.014], "dir": [-0.14, -0.94, 0.32],
-   "segments": [{"len": 0.050, "r": 0.019}, {"len": 0.038, "r": 0.011, "ahead": 14}, {"len": 0.025, "r": 0.005, "ahead": 20, "taper": true}]},
-  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
-   "offset": [0.004, -0.016, -0.014], "dir": [0.06, -0.95, -0.30],
-   "segments": [{"len": 0.040, "r": 0.018}, {"len": 0.031, "r": 0.011, "ahead": 16}, {"len": 0.021, "r": 0.005, "ahead": 22, "taper": true}]},
-
-  {"type": "paw", "host": "LToe", "material": "boot", "mirrored": true,
-   "size": [0.112, 0.092, 0.170]}
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.10148, 0.02408], [0.10148, 0.02408], [0.09116, -0.02408], [0.0, -0.04644], [-0.09116, -0.02408]]
+  },
+  {
+   "type": "curve",
+   "host": "Blade1",
+   "material": "blade",
+   "sides": 4,
+   "smooth_angle": 24,
+   "offset": [0.0, 0.0086, 0.01376],
+   "dir": [0, 0.05, 1],
+   "segments": [{"len": 0.08944, "r": 0.03268}, {"len": 0.07052, "r": 0.01462, "rise": 14, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "Blade1",
+   "material": "blade",
+   "sides": 4,
+   "smooth_angle": 24,
+   "offset": [0.0, 0.0086, -0.01376],
+   "dir": [0, 0.05, -1],
+   "segments": [{"len": 0.08944, "r": 0.03268}, {"len": 0.07052, "r": 0.01462, "rise": 14, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "BladeRoot",
+   "material": "glow_blade",
+   "mirrored": true,
+   "sides": 4,
+   "smooth_angle": 24,
+   "offset": [0.0172, 0.1376, -0.00516],
+   "dir": [0, 0.996, -0.07],
+   "segments": [{"len": 0.2107, "r": 0.01806}, {"len": 0.172, "r": 0.01376}, {"len": 0.086, "r": 0.0043, "taper": true}]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.01204, -0.01204, 0.0086],
+   "dir": [0.26, -0.9, 0.35],
+   "segments": [
+    {"len": 0.03784, "r": 0.0172},
+    {"len": 0.02924, "r": 0.01032, "ahead": 16},
+    {"len": 0.01978, "r": 0.0043, "ahead": 20, "taper": true}
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [-0.0086, -0.01376, 0.01204],
+   "dir": [-0.14, -0.94, 0.32],
+   "segments": [
+    {"len": 0.043, "r": 0.01634},
+    {"len": 0.03268, "r": 0.00946, "ahead": 14},
+    {"len": 0.0215, "r": 0.0043, "ahead": 20, "taper": true}
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [0.00344, -0.01376, -0.01204],
+   "dir": [0.06, -0.95, -0.3],
+   "segments": [
+    {"len": 0.0344, "r": 0.01548},
+    {"len": 0.02666, "r": 0.00946, "ahead": 16},
+    {"len": 0.01806, "r": 0.0043, "ahead": 22, "taper": true}
+   ]
+  },
+  {
+   "_c": "── 硬化批 2A ③：脛甲。戰裙縮短之後露出來的那一段小腿要看得出是甲不是光腿——膝上一片護膝、脛前一片長板，材質 greave（低飽和暗金，不吃 saturation 預算）。around 值先編一次讀 info 行再定（nail 報告 ⑥-1）。",
+   "type": "fin",
+   "host": "LKnee",
+   "material": "greave",
+   "thickness": 0.02064,
+   "conform": false,
+   "anchor": {"chain": "LLeg", "t": 0.52, "around": 90},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.04988, 0.04816], [0.04988, 0.04816], [0.04472, -0.0258], [0.0, -0.05332], [-0.04472, -0.0258]]
+  },
+  {
+   "type": "fin",
+   "host": "LAnkle",
+   "material": "greave",
+   "thickness": 0.0172,
+   "conform": false,
+   "anchor": {"chain": "LLeg", "t": 0.66, "around": 90},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.04128, 0.08428], [0.04128, 0.08428], [0.03612, -0.04472], [0.0, -0.0774], [-0.03612, -0.04472]]
+  },
+  {
+   "type": "fin",
+   "host": "RKnee",
+   "material": "greave",
+   "thickness": 0.02064,
+   "conform": false,
+   "anchor": {"chain": "RLeg", "t": 0.52, "around": 90},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.04988, 0.04816], [0.04988, 0.04816], [0.04472, -0.0258], [0.0, -0.05332], [-0.04472, -0.0258]]
+  },
+  {
+   "type": "fin",
+   "host": "RAnkle",
+   "material": "greave",
+   "thickness": 0.0172,
+   "conform": false,
+   "anchor": {"chain": "RLeg", "t": 0.66, "around": 90},
+   "udir": [1, 0, 0],
+   "vdir": [0, 1, 0],
+   "points": [[-0.04128, 0.08428], [0.04128, 0.08428], [0.03612, -0.04472], [0.0, -0.0774], [-0.03612, -0.04472]]
+  },
+  {"type": "paw", "host": "LToe", "material": "boot", "size": [0.09632, 0.07912, 0.1462]},
+  {"type": "paw", "host": "RToe", "material": "boot", "size": [0.09632, 0.07912, 0.1462]}
  ],
-
  "animations": {
-  "idle": {"duration": 2.8, "loop": true,
+  "idle": {
+   "duration": 2.8,
+   "loop": true,
    "_note": "香火節奏：緩慢、有拍子，像抬轎。左右擺不是等速正弦——每一端各 hold 0.15 個週期（keys 0/0.15 與 0.5/0.65 同值）再走，走的那一段就變快，拍子出得來。冠與綬帶靠 CrownRoot 的滯後相位（0.35/0.70）晃在頭之後。",
    "tracks": {
-    "Hips": {"ty": [[0, 0], [0.15, 0.002], [0.5, 0.015], [0.65, 0.014], [1, 0]]},
+    "Hips": {"ty": [[0, 0.0], [0.15, 0.00172], [0.5, 0.0129], [0.65, 0.01204], [1, 0.0]]},
     "Spine": {"rx": [[0, -1.5], [0.15, -1.5], [0.5, 2], [0.65, 2], [1, -1.5]]},
     "NeckB": {"rx": [[0, 2], [0.15, 2], [0.5, -2.5], [0.65, -2.5], [1, 2]]},
-    "HeadRoot": {"ry": [[0, -5], [0.15, -5], [0.5, 5], [0.65, 5], [1, -5]],
-                 "rx": [[0, 1.5], [0.5, -2], [1, 1.5]]},
-    "CrownRoot": {"rz": [[0, -2.5], [0.35, 2.5], [0.70, -1.5], [1, -2.5]],
-                  "rx": [[0, 1.5], [0.55, -2], [1, 1.5]]},
+    "HeadRoot": {"ry": [[0, -5], [0.15, -5], [0.5, 5], [0.65, 5], [1, -5]], "rx": [[0, 1.5], [0.5, -2], [1, 1.5]]},
+    "CrownRoot": {"rz": [[0, -2.5], [0.35, 2.5], [0.7, -1.5], [1, -2.5]], "rx": [[0, 1.5], [0.55, -2], [1, 1.5]]},
     "BladeRoot": {"rz": [[0, 1.5], [0.5, -1.5], [1, 1.5]], "rx": [[0, -1], [0.5, 1.5], [1, -1]]},
     "LArmRoot": {"rx": [[0, -3], [0.15, -3], [0.5, 3], [0.65, 3], [1, -3]]},
     "LElbow": {"rx": [[0, 3], [0.5, -4], [1, 3]]},
     "SkirtRoot": {"rx": [[0, 1], [0.55, -1.5], [1, 1]]}
-   }},
-  "move": {"duration": 0.95, "loop": true, "mirror_phase": 0.5,
+   }
+  },
+  "move": {
+   "duration": 0.95,
+   "loop": true,
+   "mirror_phase": 0.5,
    "tracks": {
-    "Hips": {"ty": [[0, 0], [0.25, 0.022], [0.5, 0], [0.75, 0.022], [1, 0]]},
+    "Hips": {"ty": [[0, 0.0], [0.25, 0.01892], [0.5, 0.0], [0.75, 0.01892], [1, 0.0]]},
     "LLegRoot": {"rx": [[0, -17], [0.5, 18], [1, -17]]},
     "LKnee": {"rx": [[0, 6], [0.3, 16], [0.6, -4], [1, 6]]},
     "LAnkle": {"rx": [[0, -5], [0.4, -12], [0.7, 4], [1, -5]]},
+    "RLegRoot": {"rx": [[0, 18], [0.5, -17], [1, 18]]},
+    "RKnee": {"rx": [[0, -4], [0.3, 6], [0.6, 16], [1, -4]]},
+    "RAnkle": {"rx": [[0, 4], [0.4, 5], [0.7, -12], [1, 4]]},
     "LArmRoot": {"rx": [[0, 13], [0.5, -13], [1, 13]]},
     "LElbow": {"rx": [[0, -5], [0.5, 7], [1, -5]]},
     "Spine": {"rx": [[0, 2], [0.5, -2], [1, 2]]},
@@ -344,25 +780,29 @@
     "CrownRoot": {"rz": [[0, 4], [0.5, -4], [1, 4]]},
     "SkirtRoot": {"rx": [[0, -3], [0.5, 3], [1, -3]]},
     "BladeRoot": {"rz": [[0, 2.5], [0.5, -2.5], [1, 2.5]]}
-   }},
-  "attack": {"duration": 0.85, "loop": false,
+   }
+  },
+  "attack": {
+   "duration": 0.85,
+   "loop": false,
    "_note": "招式「斬瘟」＝先蓄後斬。0→0.34 是蓄：整個人往後坐、劍擰回背後、頭仰起（這一段佔 40% 的時長，拍子明顯）；0.34→0.62 是斬：Hips 前撲 0.245、BladeRoot 的 ry 橫掃與 rx 前壓一起做（attack_reach 只認往前的承諾，純側向掃不算）；0.62→1 回位。Spine 的 rx/ry 壓在 7/8 度以內、body ring_step 0.032——超過會 anim_integrity 撕皮（sword 報告 ⑥-4）。",
    "tracks": {
-    "Hips": {"tz": [[0, 0], [0.34, -0.064], [0.62, 0.245], [1, 0]],
-             "ty": [[0, 0], [0.34, 0.032], [0.62, -0.018], [1, 0]]},
-    "Spine": {"rx": [[0, 0], [0.34, -5], [0.62, 7], [1, 0]],
-              "ry": [[0, 0], [0.34, 6], [0.62, -8], [1, 0]]},
+    "Hips": {
+     "tz": [[0, 0.0], [0.34, -0.05504], [0.62, 0.2107], [1, 0.0]],
+     "ty": [[0, 0.0], [0.34, 0.02752], [0.62, -0.01548], [1, 0.0]]
+    },
+    "Spine": {"rx": [[0, 0], [0.34, -5], [0.62, 7], [1, 0]], "ry": [[0, 0], [0.34, 6], [0.62, -8], [1, 0]]},
     "NeckB": {"rx": [[0, 0], [0.34, -5], [0.62, 9], [1, 0]]},
-    "HeadRoot": {"ry": [[0, 0], [0.36, 13], [0.64, -15], [1, 0]],
-                 "rx": [[0, 0], [0.36, -7], [0.64, 10], [1, 0]]},
-    "CrownRoot": {"rz": [[0, 0], [0.40, 6], [0.68, -7], [1, 0]]},
-    "BladeRoot": {"ry": [[0, 0], [0.34, 27], [0.64, -34], [1, 0]],
-                  "rx": [[0, 0], [0.34, -13], [0.64, 23], [1, 0]]},
-    "LArmRoot": {"rx": [[0, 0], [0.34, 14], [0.60, -22], [1, 0]],
-                 "ry": [[0, 0], [0.34, -8], [0.60, 12], [1, 0]]},
-    "LElbow": {"rx": [[0, 0], [0.34, 12], [0.60, -14], [1, 0]]},
+    "HeadRoot": {"ry": [[0, 0], [0.36, 13], [0.64, -15], [1, 0]], "rx": [[0, 0], [0.36, -7], [0.64, 10], [1, 0]]},
+    "CrownRoot": {"rz": [[0, 0], [0.4, 6], [0.68, -7], [1, 0]]},
+    "BladeRoot": {"ry": [[0, 0], [0.34, 27], [0.64, -34], [1, 0]], "rx": [[0, 0], [0.34, -13], [0.64, 23], [1, 0]]},
+    "LArmRoot": {"rx": [[0, 0], [0.34, 14], [0.6, -22], [1, 0]], "ry": [[0, 0], [0.34, -8], [0.6, 12], [1, 0]]},
+    "LElbow": {"rx": [[0, 0], [0.34, 12], [0.6, -14], [1, 0]]},
     "LLegRoot": {"rx": [[0, 0], [0.34, -8], [0.62, 14], [1, 0]]},
+    "RLegRoot": {"rx": [[0, 0], [0.34, 7], [0.62, -11], [1, 0]]},
+    "RKnee": {"rx": [[0, 0], [0.34, -6], [0.62, 9], [1, 0]]},
     "SkirtRoot": {"rx": [[0, 0], [0.36, 6], [0.66, -9], [1, 0]]}
-   }}
+   }
+  }
  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "王爺劍 wangye_zhanwen_sword (xianghuo/elite)",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/tiger_c.claims.json，本隻只做兩類改動：① 材質名換成本隻的（tiger_c 的 fur_body／fur_head／fur_jaw／glow_mane／glow_tail 在本隻不存在，留著 judge 會直接報 part 不存在）；② 多加一條 part_exists 釘住 blade（招牌部位），共三條 part_exists 釘住 blade／eye／glow_blade（加嚴，不是放寬）。門檻（focal_contrast min_ratio 2、share_hierarchy 預設容差、part_signature min_share 0.06 / or_min_span 0.12、saturation_area 10%-60%、tri_budget 1500-5000）與 tiger_c 逐字相同，一處都沒有放寬。本檔在動手建模之前就寫定，之後只改 sword.json 去遷就它。",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/tiger_c.claims.json，本隻只做兩類改動：① 材質名換成本隻的（tiger_c 的 fur_body／fur_head／fur_jaw／glow_mane／glow_tail 在本隻不存在，留著 judge 會直接報 part 不存在）；② 多加一條 part_exists 釘住 blade（招牌部位），共三條 part_exists 釘住 blade／eye／glow_blade（加嚴，不是放寬）。門檻（focal_contrast min_ratio 2、share_hierarchy 預設容差、part_signature min_share 0.06 / or_min_span 0.12、saturation_area 10%-60%、tri_budget 1500-5000）與 tiger_c 逐字相同，一處都沒有放寬。本檔在動手建模之前就寫定，之後只改 sword.json 去遷就它。 【硬化批 2A 追記（2026-09-04）】只**新增**兩條、既有十條的門檻／視角／群組一格未動，沒有一處放寬：① `part_exists glow_mirror`（護心鏡的鏡面材質必須存在——回修版讀者把護心鏡讀成「金色鎧甲片」，硬化批改成三層立體龍首，材質名釘住）；② `part_visible sash (view front, min_share 0.05)`（紅綬帶在正面必須量得到——回修版掛背側、四位讀者一個都沒點名）。兩條對硬化前的 GLB 都是紅的（雙向鑑別力實測見 docs/experiments/2026-09-04-harden2A-report.md ⑤）。",
   "claims": [
     {
       "type": "part_exists",
@@ -70,6 +70,20 @@
       "max": 5000,
       "stage": "LOW",
       "label": "三角形預算（npc preset）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_mirror",
+      "stage": "MID",
+      "label": "護心鏡的鏡面（立體龍首中層）必須存在，材質名必須正是 glow_mirror"
+    },
+    {
+      "type": "part_visible",
+      "part": "sash",
+      "view": "front",
+      "min_share": 0.05,
+      "stage": "MID",
+      "label": "ref 特徵④紅綬帶：正面必須露出可量測的面積（回修版掛背側、四位讀者一個都沒點名）"
     }
   ]
 }

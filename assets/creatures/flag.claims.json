@@ -1,6 +1,6 @@
 {
   "name": "媽祖令旗 flag_mazu_lingqi (xianghuo/ward)",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 shield.claims.json（第一隻 ward）。相對基底的改動只有兩類：① `saturation_area` 沿用 2026-09-04 凍結檔指定的 10%–60% 帶（沒有再放寬）；② 識別視角是**正面**不是側視（簡報 flag 列：招牌剪影＝背插三角旗，且 ward 的招牌掛正面／背面平面上），所以 `part_signature`／`share_hierarchy`／`focal_contrast`／`style_dark`／`part_visible(stone_head)` 的 view 一律 `front`——換的是量測的視角，不是門檻。加嚴之處：`focal_contrast` 的 min_ratio 從 2 提高到 3（同 shield）、另加 `part_visible`（獅頭不得被自己的旗吞掉，ward 專屬風險）與 `part_visible mane_curl`（真實參照鐵則的機械化：`docs/experiments/2026-09-04-ref-flag.md` 特徵 1 螺旋鬈鬃是石獅最不可誤讀的一件，側視必須量得到）。沒有一處放寬。",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 shield.claims.json（第一隻 ward）。相對基底的改動只有兩類：① `saturation_area` 沿用 2026-09-04 凍結檔指定的 10%–60% 帶（沒有再放寬）；② 識別視角是**正面**不是側視（簡報 flag 列：招牌剪影＝背插三角旗，且 ward 的招牌掛正面／背面平面上），所以 `part_signature`／`share_hierarchy`／`focal_contrast`／`style_dark`／`part_visible(stone_head)` 的 view 一律 `front`——換的是量測的視角，不是門檻。加嚴之處：`focal_contrast` 的 min_ratio 從 2 提高到 3（同 shield）、另加 `part_visible`（獅頭不得被自己的旗吞掉，ward 專屬風險）與 `part_visible mane_curl`（真實參照鐵則的機械化：`docs/experiments/2026-09-04-ref-flag.md` 特徵 1 螺旋鬈鬃是石獅最不可誤讀的一件，側視必須量得到）。沒有一處放寬。 【硬化批 2A 追記（2026-09-04）】只做兩件、兩件都是改名或新增，沒有一處放寬：① 耳板材質名由 `ear_plate` 改為 `ear`（硬化批指定；本檔原本沒有任何一條引用舊名，純命名）；② **新增** `part_visible ear (view front, min_share 0.02)`——量產版該部位正面 share 只有 0.5%、6/6 讀者沒讀出來，這條把「耳朵在正面必須量得到」變成機器守得住的條件。既有九條的門檻與視角一格未動。",
   "_frozen_at": "動手建模之前寫定（凍結檔 M-A0 要求 judge 全綠；本檔門檻此後一格未動，全部靠改 flag.json 去滿足）。",
   "claims": [
     {
@@ -96,6 +96,14 @@
       "max": 5000,
       "stage": "LOW",
       "label": "三角形預算（npc preset）"
+    },
+    {
+      "type": "part_visible",
+      "part": "ear",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵②垂片大耳：正面必須露出可量測的面積（量產版被鬃圈吃掉只剩 0.5%）"
     }
   ]
 }
