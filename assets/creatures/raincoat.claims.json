@@ -1,0 +1,101 @@
+{
+  "name": "黃色小雨衣 raincoat_huangyi (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/redhat.claims.json（同為陰氣 haunt），本隻只做四類改動：① 材質名換成本隻的（redhat 的 hat/skin_head/mouth_glow/ghost_wisp 在本隻不存在，留著 judge 會直接報 part 不存在）；② 招牌部位由 hat 換成 hood（設計簡報 raincoat 列：招牌剪影＝鐘形帽兜），focal_contrast 的對照組由『臉』換成 void（本隻沒有臉，帽兜開口就是那片黑）；③ share_hierarchy 依本隻的設計改寫成『雨衣本體群 primary／半透明下半身群 secondary／黑洞與那點光 tertiary』——redhat 的霧裾 primary 是因為它下半身散成一大團霧，本隻的主量體是那件鐘形雨衣，硬套 redhat 的分組會逼我把雨衣做小，與招牌剪影相衝；④ 加一條 part_visible 釘住 glow_hood 真的看得見（加嚴，不是放寬；防 nail 報告 ⑥-4『發光小件被掛件蓋掉而 judge 不擋』）。saturation_area 帶維持 10%–70%（2026-09-04 設計簡報主對話裁定第 2 條：黃雨衣是 IP 色）；part_signature min_share 0.06 / or_min_span 0.12、focal_contrast min_ratio 2、share_hierarchy tolerance 0.15 與 redhat 逐字相同；tri_budget 下限 1500 同 redhat，上限依凍結檔 2026-09-04 19:30 修訂（main 15a3a37：每隻 ≤1.5MB／三角形 ≤8000）由 5000 改為 8000。本檔在動手建模之前就寫定，之後只改 raincoat.json 去遷就它。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "hood",
+      "stage": "MID",
+      "label": "招牌部位：鐘形帽兜必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "coat",
+      "stage": "MID",
+      "label": "雨衣本體必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_hood",
+      "stage": "MID",
+      "label": "帽兜內那一點光必須存在，材質名必須正是 glow_hood（three.js 端靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "void",
+      "stage": "MID",
+      "label": "帽兜開口的那片黑必須存在（『帽兜裡沒臉』的幾何載體）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_skirt",
+      "stage": "MID",
+      "label": "haunt 的下半身虛化：濕垂拖尾必須存在，材質名必須以 ghost_ 開頭（接線卷靠這個前綴掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_drip",
+      "stage": "MID",
+      "label": "haunt 的下襬濕垂條必須存在，材質名必須以 ghost_ 開頭"
+    },
+    {
+      "type": "part_signature",
+      "part": "hood",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（鐘形帽兜）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_hood",
+      "view": "front",
+      "min_share": 0.0015,
+      "stage": "MID",
+      "label": "帽兜裡那一點光在正面必須真的看得見，不得被帽簷或黑板蓋掉（nail ⑥-4）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hood",
+      "b": "void",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（帽兜／開口的黑）不得等重：帽兜必須明確壓過那片黑，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["coat", "hood"],
+      "secondary": ["ghost_skirt", "ghost_drip"],
+      "tertiary": ["void", "glow_hood"],
+      "stage": "MID",
+      "label": "6:3:1 階層：黃雨衣本體／半透明濕垂下半身／黑洞與那點光"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.7,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-70%（IP 色裁定放寬後的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：上限由 5000 放寬為 8000，faceted 全開＋ring_step 加密後的預算制）"
+    }
+  ]
+}

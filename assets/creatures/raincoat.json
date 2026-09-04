@@ -1,0 +1,290 @@
+{
+ "name": "raincoat_huangse_xiaoyuyi",
+ "_variant": "3D 量產卷批 4。黃色小雨衣（陰氣／haunt）。依 docs/experiments/2026-09-04-ref-raincoat.md 的五條真實參照特徵建模：① 鐘形無頸輪廓 ② 前伸硬帽簷 ③ 帽兜裡空無一物 ④ 高飽和鉻黃＋硬邊反光 ⑤ 縱向垂摺與下襬長短不一的濕邊。改版史：r5 的 hero 被讀成『黑金頭盔』（帽兜太大、七道近黑摺帶把黃切成條紋、袖子整支埋在雨衣裡、頂脊 fin 讀成角）→ r6 縮小帽兜、放寬下襬成真的鐘、袖子甩出輪廓外、拿掉頂脊與肩篷、gradient 由 −0.88 改 −0.50 → r7 帽兜開口的黑板改短並蓋滿帽簷下方可見帶、六片濕垂條改成貼錐面往內傾（r6 直垂會跑出錐外被讀成腳）→ r8 摺帶由近黑／苔綠改成同色系的暖暗黃 #665538（近黑帶讀成一條黑條紋，暖暗帶才讀成同一件雨衣的摺陰）→ r9 第 1 輪盲讀 0/2（2/2 讀成「戴鴨舌帽的黃綠條紋斗篷小精靈」、主印象都是可愛）：帽簷改成往下傾的兜帽前緣（平板＝帽舌）、帽兜摺帶全拿掉、衣身摺帶減到四道且改成貼近本色的暖暗黃、整體壓暗、下襬加四片破口 → r12 第 2 輪盲讀 2/2 讀出「黃色連帽雨衣」（概念過）但 2/2 主印象仍是可愛，且把黑縫讀成「安全帽面罩的觀察窗」：帽簷改成左右不等的下垂軟緣、開口改成破洞形、帽兜歪一邊、左袖拉長到下襬以下、加一道從開口往胸前漏下來的黑痕、整體再壓暗一階。",
+ "_ref": "影像參照四張（tools/anyCreature/out/ref/raincoat/）：兒童黃雨衣帽兜放下（coat1）、帽兜戴起的黃昏濕街背影（coat2，主參照）、布列塔尼塗層雨衣掛在無臉人台上（coat3）、雨中連篷雨衣騎士（coat4）。文獻＝中文維基〈玉山小飛俠〉：「從斗笠至雨衣衣領間沒有任何東西」——本隻沒有臉、沒有眼睛、沒有下顎鏈，只有帽兜開口的一片黑與一顆冷鬼火青的小珠。",
+ "_brief": "The yellow raincoat that follows you home on a rainy night. Seen from any angle it is one unbroken BELL: the hood's crown flows into the shoulders and the shoulders flare all the way out to a hard-cut hem — there is no neck anywhere, and no waist. The hood is small on top of a very wide body: a child's proportion, badly wrong. A stiff peaked brim juts forward from it like an awning; under the brim the opening is flat BLACK — no face, no eyes, no mouth, just one cold green pinpoint hanging slightly off-centre. Two empty sleeves swing clear of the shell, badly mismatched: the left one is flung out and reaches the hem, the right is a shrivelled stub pinned to the side; each ends in a black cuff ring with nothing coming out of it. Below the hem the coat stops being a coat: a translucent wet drape tapers away and never touches the ground, shedding uneven dripping strips. The coated fabric is faceted and glossy — light jumps hard from plane to plane. Feel: a child-sized thing, standing too still, and then the hood turns toward you. Identity view = side.",
+ "_haunt_skeleton": "haunt 六隻共用（redhat 報告 ⑦-A）：body 鏈由腰往上、垂裾鏈由腰往下掛在 Waist、腰以下全部 ghost_* 材質、沒有腿鏈。飄浮三件：(a) skirt 尖底 dome 停在 y≈0.034 不落地 (b) idle/move 位移放在 chain 根關節 Waist 的 ty (c) skirt 三節各給小角度 rx/rz 讓垂裾滯後。",
+ "_no_neck": "★ 招牌剪影＝鐘形無頸（設計簡報 B-A2 凍結：這是本隻與 redhat 錐帽的唯一但足夠的差別）。做法＝coat 主鏈 profile 由下襬 0.266 單調收到肩 0.138（1.93 倍），全程沒有任何一段收成頸或腰；hood 另起一條鏈但根環 r 0.108 埋進肩裡（該高度 coat r 0.167，比值 0.647 ≤ 0.7，review-redhat ⑤-3 的 root_containment 規則）。帽兜最寬 0.136 只有下襬的 0.51 倍＝真實參照 coat2 的比例：小帽兜、大鐘身。",
+ "_ring_note": "★ compile.js:136 的 corner bevel-skip 會丟掉「距離路徑轉角 r·tan(θ/2)·1.2 以內」的環（redhat ⑦-C-1）。本檔所有主鏈的相鄰段夾角都壓在 6° 以內；兩支袖的肘折 24° 左右，skip≈0.017 < ring_step 0.024。造型全部交給 profile，不折骨架。",
+ "_around_note": "★ around 的世界方向逐鏈不同，只能量不能推（nail ⑥-1、review-redhat ⑤-2）。本檔實測（編譯輸出的 `info: fin ... faces (x,y,z)`）：hood／coat 這種無 frame 的直立鏈 around 270 = +Z 正面、180 = +X 側、90 = −Z 背、0 = −X 側；skirt 鏈的映射是**反向**的（world_angle ≈ 176 − around，六片濕垂條的內傾向量就是照這個算出來的）。改造型後要重讀那幾行。",
+ "_no_eye": "★ 本隻沒有 type:eye，這是設計，不是遺漏——文獻的恐怖點就是帽兜裡什麼都沒有。連帶避開了 review-redhat ⑤-1 的『直立鏈上 type:eye 帶 anchor 會前後鏡射、第二顆長到後腦』整個陷阱。唯一的發光體 glow_hood 是單顆、偏一側（陰氣＝不對稱）。",
+ "_asymmetry": "陰氣＝不對稱、比例錯誤（ART_BIBLE §3）。本隻的不對稱來源：① 兩支袖子各自成鏈（不用 mirror），左袖甩出去垂到下襬（落差 0.304）、右袖萎縮貼在身側（落差 0.214），比值 1.42× ② glow_hood 那顆光偏在開口的一側，不在正中 ③ 六片下襬濕垂條長短角度全異、非鏡射 ④ 帽兜 idle 時轉去一邊停住不動。比例錯誤：帽兜高度只佔全高約 0.22（≤1/4，凍結檔手段①），底下卻是一個 0.55 寬的鐘。",
+ "_glow_materials": "glow_hood —— js/creature-figures.js:51 的 GLOW.test 認得 /^glow_/ 前綴，會掛 emissive 給 bloom 吃。設計簡報 raincoat 列只指定這一個發光部位（沒有 eye、沒有 mouth_glow），本檔照辦，不多開。",
+ "_ghost_materials": "ghost_skirt／ghost_drip 是 haunt 專用的半透明材質名（腰以下）。js/creature-figures.js 已在 76f6891 接上 /^ghost_/ 分支（opacity 0.62）。claims.json 用兩條 part_exists 機械釘住這兩個名字。",
+ "_ip_colour": "黃雨衣是 IP 色，claims 的 saturation_area 帶維持 10–70%（2026-09-04 設計簡報主對話裁定第 2 條）。雨衣本體 coat #c8900e（S 0.930）／hood #dda412（S 0.919）用高飽和；系別的陰氣青落在『衣摺』——coat 的 198–216 與 hood 的同角度那道摺帶用深苔綠 #3f6353，加上腰以下整組 ghost_*（含一道鬼火青 #4fd49a）與 glow_hood #62f0a8。其餘摺帶用**同色系**暖暗黃 #8c7f5c（S 0.343 < 0.5，不吃飽和預算）——第 1 輪盲讀 2/2 把近黑／苔綠的暗帶讀成「黃綠條紋斗篷」，換成同色系之後第 2 輪 2/2 才讀成「黃色連帽雨衣」。",
+ "_arc_note": "★ colors.arcs 的實際覆蓋比寫的**寬得多**、而且對 saturation_area 極度非線性（本卷實測九個變體，數字寫在報告 ⑥-2）：sides 20＝每面 18°，帶要寫成 18 的倍數才不會被吸附掉（nail ⑥-2）；同樣是 18° 的帶，5 道 tq 0.588、6 道 0.524、7 道 0.676、10 道 0.246——不是單調的。相鄰的兩道帶還會互相吃掉（72–90 緊接 90–108 時只剩一道生效）。**唯一可靠的做法是逐個配置編出來量**，不要從覆蓋角度推。",
+ "_near_black_note": "★ tiger_a 報告 ⑤-6：shading.noise（amount 0.26）會逐頂點擾動 RGB，把偏暖的近黑擾到 HSV S>0.5，虛報 saturation_area。本檔的黑只有 void #121212（中性灰黑）；摺帶改用 S<0.5 的 #665538／#33604c。",
+ "_shading_note": "★ flag 報告 ⑥-3：『深底不等於近黑』。r5 用模板預設的 gradient.bottom −0.88，黃色被壓成黑、暗帶再切一次，hero 讀成黑金頭盔。r6 起改成 top 0.22 / bottom −0.50——側視中位亮度 75，仍遠低於 style_dark 的 90，但黃色讀得出來是黃色。",
+ "_hardening": "2026-09-04 17:30／19:10 模板規則：build:\"rigid\"＋每個 volume faceted:true（硬邊靠 faceted，build 旗標本身只是解鎖）＋斷面 exp 全檔 ≥4.6＋spec 層 smooth_angle 26。塗層布本來就該是硬的平面塊（ref §二 coat3：光跑成一條條硬邊高光）。預算依 19:30 修訂：≤1.5MB、三角形 ≤8000。",
+
+ "palette": {
+  "coat":        {"color": "#c8900e", "rough": 0.40},
+  "hood":        {"color": "#dda412", "rough": 0.32},
+  "void":        {"color": "#121212", "rough": 0.85},
+  "glow_hood":   {"color": "#62f0a8", "rough": 0.12},
+  "ghost_skirt": {"color": "#66807b", "rough": 0.55},
+  "ghost_drip":  {"color": "#5f7a72", "rough": 0.42}
+ },
+
+ "build": "rigid",
+ "shading": {"gradient": {"top": 0.16, "bottom": -0.78}, "noise": {"size": 0.018, "amount": 0.26}},
+ "smooth_angle": 26,
+
+ "joints": {
+  "Waist":       [0, 0.520, 0],
+  "Chest":       {"from": "Waist", "up": 0.180, "fwd": 0.006},
+  "Yoke":        {"from": "Chest", "up": 0.136, "fwd": 0.010},
+  "ShoulderTop": {"from": "Yoke",  "up": 0.090, "fwd": 0.008},
+
+  "MistRoot": {"from": "Waist",    "up":  0.030, "fwd": 0.004},
+  "Skirt1":   {"from": "MistRoot", "up": -0.190, "fwd": 0.006},
+  "Skirt2":   {"from": "Skirt1",   "up": -0.158, "fwd": 0.008},
+  "SkirtTip": {"from": "Skirt2",   "up": -0.132, "fwd": 0.014},
+
+  "HoodRoot": {"from": "ShoulderTop", "up": -0.062, "fwd": -0.006},
+  "Hood1":    {"from": "HoodRoot",    "up":  0.118, "fwd":  0.010},
+  "HoodTop":  {"from": "Hood1",       "up":  0.088, "side": 0.016, "fwd": -0.002},
+
+  "LSlvRoot":  {"from": "Yoke",      "side":  0.100, "up": -0.026, "fwd": 0.020},
+  "LSlvElbow": {"from": "LSlvRoot",  "side":  0.108, "up": -0.170, "fwd": 0.030},
+  "LSlvCuff":  {"from": "LSlvElbow", "side":  0.010, "up": -0.160, "fwd": 0.036},
+
+  "RSlvRoot":  {"from": "Yoke",      "side": -0.096, "up": -0.034, "fwd": 0.010},
+  "RSlvElbow": {"from": "RSlvRoot",  "side": -0.096, "up": -0.108, "fwd": 0.026},
+  "RSlvCuff":  {"from": "RSlvElbow", "side": -0.026, "up": -0.072, "fwd": 0.030}
+ },
+
+ "chains": {
+  "coat":    ["Waist", "Chest", "Yoke", "ShoulderTop"],
+  "skirt":   ["MistRoot", "Skirt1", "Skirt2", "SkirtTip"],
+  "hood":    ["HoodRoot", "Hood1", "HoodTop"],
+  "LSleeve": ["LSlvRoot", "LSlvElbow", "LSlvCuff"],
+  "RSleeve": ["RSlvRoot", "RSlvElbow", "RSlvCuff"]
+ },
+ "attach": {"skirt": "Waist", "hood": "ShoulderTop", "LSleeve": "Yoke", "RSleeve": "Yoke"},
+ "touch": [["coat", "skirt"], ["coat", "hood"], ["coat", "LSleeve"], ["coat", "RSleeve"]],
+
+ "volumes": [
+  {"chain": "coat", "material": "coat", "sides": 20, "faceted": true,
+   "_note": "鐘：由下襬 0.266 單調收到肩 0.138，中途沒有任何收窄成頸或腰的段。t=0.62 的 sharp 是 coat3 那道胸前橫向壓摺縫。底端 caps none＝開口的下襬（ngon 端蓋實測會在 bind pose 生 9 個翻面三角形，見報告 ⑥-1）。",
+   "profile": [
+    [0.00, 0.266, 0.238, {"exp": 4.8}],
+    [0.10, 0.252, 0.226, {"exp": 4.8, "sharp": true}],
+    [0.36, 0.214, 0.194, {"exp": 5.0}],
+    [0.62, 0.186, 0.170, {"exp": 5.2, "sharp": true}],
+    [0.80, 0.176, 0.161, {"exp": 5.0}],
+    [1.00, 0.138, 0.126, {"exp": 4.8}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.016,
+   "colors": {"arcs": [
+     {"from": 36,  "to": 54,  "color": "#8c7f5c"},
+     {"from": 90,  "to": 108, "color": "#8c7f5c"},
+     {"from": 144, "to": 162, "color": "#8c7f5c"},
+     {"from": 198, "to": 216, "color": "#3f6353"},
+     {"from": 252, "to": 270, "color": "#8c7f5c"},
+     {"from": 306, "to": 324, "color": "#8c7f5c"}
+   ]}},
+
+  {"chain": "hood", "material": "hood", "sides": 20, "faceted": true,
+   "_note": "帽兜：根環 0.108 埋進肩裡，最寬 0.136＝下襬的 0.51 倍（ref coat2：小帽兜大鐘身），頂端收成圓罩。高度佔全高約 0.22，落在凍結檔手段① 的『頭 ≤ 全高 1/4』那一側。摺帶與 coat 同角度同色，帽兜與衣身的摺才對得上、讀成同一件。",
+   "profile": [
+    [0.00, 0.108, 0.100, {"exp": 4.6}],
+    [0.14, 0.130, 0.122, {"exp": 5.0, "sharp": true}],
+    [0.46, 0.136, 0.128, {"exp": 5.2}],
+    [0.72, 0.120, 0.112, {"exp": 5.0, "sharp": true}],
+    [0.88, 0.084, 0.078, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.050, 0.046, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.014,
+   "colors": {"arcs": [
+     {"from": 36,  "to": 54,  "color": "#8c7f5c"},
+     {"from": 144, "to": 162, "color": "#8c7f5c"},
+     {"from": 252, "to": 270, "color": "#8c7f5c"}
+   ]}},
+
+  {"chain": "skirt", "material": "ghost_skirt", "sides": 16, "faceted": true,
+   "_note": "haunt 下半身虛化：頂端 0.164 藏在雨衣裡（該高度 coat r 0.245，比值 0.67），出下襬後 0.216 一路收到 0.036 的尖底，停在 y≈0.034 不落地（那圈也是 balance 的支撐面）。",
+   "profile": [
+    [0.00, 0.164, 0.150, {"exp": 4.8}],
+    [0.10, 0.216, 0.198, {"exp": 4.8, "sharp": true}],
+    [0.17, 0.206, 0.190, {"exp": 4.8, "sharp": true}],
+    [0.33, 0.170, 0.156, {"exp": 4.6, "sharp": true}],
+    [0.58, 0.112, 0.102, {"exp": 4.6}],
+    [0.80, 0.058, 0.053, {"exp": 4.6}],
+    [1.00, 0.036, 0.033, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.016,
+   "colors": {"arcs": [
+     {"from": 45,  "to": 67.5,  "color": "#4fd49a"},
+     {"from": 90,  "to": 135,   "color": "#35473f"},
+     {"from": 180, "to": 247.5, "color": "#35473f"}
+   ]}},
+
+  {"chain": "LSleeve", "material": "coat", "sides": 10, "faceted": true,
+   "_note": "長袖：從肩往外甩出去，肘與袖口都落在雨衣輪廓之外（r5 的袖子整支埋在鐘裡，hero 上完全看不到）。",
+   "profile": [
+    [0.00, 0.056, 0.052, {"exp": 4.6}],
+    [0.20, 0.070, 0.064, {"exp": 4.8, "sharp": true}],
+    [0.58, 0.058, 0.052, {"exp": 4.8}],
+    [0.84, 0.048, 0.043, {"exp": 4.6, "sharp": true}],
+    [1.00, 0.036, 0.033, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.024},
+
+  {"chain": "RSleeve", "material": "coat", "sides": 10, "faceted": true,
+   "_note": "萎縮的短袖：貼在身側、只垂到胸線下方，與左袖差 1.42 倍＝陰氣的比例錯誤。",
+   "profile": [
+    [0.00, 0.050, 0.047, {"exp": 4.6}],
+    [0.24, 0.060, 0.055, {"exp": 4.8, "sharp": true}],
+    [0.62, 0.046, 0.042, {"exp": 4.8}],
+    [1.00, 0.030, 0.027, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.022}
+ ],
+
+ "parts": [
+  {"type": "fin", "host": "Hood1", "material": "hood", "thickness": 0.024, "conform": false,
+   "_note": "★ 特徵 ②：兜帽前緣壓下來的硬簷。r8 把它做成近水平的平板，2/2 盲讀直接讀成『鴨舌帽／棒球帽』——平伸的板子就是帽舌。r9 改成往下傾 25°、往前只伸 0.085、左右加寬到 0.28（比帽兜寬一圈），讀起來是兜帽開口的前緣把臉罩進去。",
+   "anchor": {"chain": "hood", "t": 0.34, "around": 270},
+   "udir": [0, -0.46, 0.89], "vdir": [1, 0.03, 0],
+   "points": [[-0.030, -0.126], [0.040, -0.148], [0.086, -0.060], [0.096, 0.000], [0.070, 0.048], [0.018, 0.112], [-0.030, 0.096]],
+   "faceted": true},
+
+  {"type": "fin", "host": "Hood1", "material": "void", "thickness": 0.014, "conform": false,
+   "_note": "★ 特徵 ③：帽兜開口那片黑。沒有臉、沒有眼睛，就是一片黑板，掛在帽簷正下方、蓋滿帽兜正面那條可見帶（y 0.926→0.852）。往前伸會把那點光擋掉（r4 實測 glow front share = 0），往下太長又會被雨衣正面吃掉（r6），所以只做這一段。",
+   "anchor": {"chain": "hood", "t": 0.30, "around": 270},
+   "udir": [0, -0.98, -0.20], "vdir": [1, 0, 0],
+   "points": [[-0.026, -0.082], [0.020, -0.104], [0.074, -0.070], [0.100, 0.000], [0.062, 0.062], [0.016, 0.092], [-0.026, 0.070]]},
+
+  {"type": "curve", "host": "Hood1", "material": "glow_hood", "sides": 6, "smooth_angle": 14,
+   "_note": "★ 帽兜裡的那一點光。單顆、偏在開口的一側（x +0.024）＝陰氣的不對稱；不是眼睛。根部貼在帽兜前表面，整顆往前突出黑板之外。",
+   "offset": [0.024, -0.106, 0.109], "dir": [0.10, -0.30, 0.95],
+   "segments": [{"len": 0.034, "r": 0.026}, {"len": 0.024, "r": 0.007, "taper": true}]},
+
+  {"type": "fin", "host": "Chest", "material": "void", "thickness": 0.008, "conform": false,
+   "_note": "從帽兜開口往胸前拖下來的一道黑痕，上寬下尖、偏一側。第 2 輪盲讀 2/2 把開口讀成『面罩的觀察窗』（＝裡面有人），這道往下漏出來的黑是把那個讀法打斷的手段。",
+   "anchor": {"chain": "coat", "t": 0.72, "around": 276},
+   "udir": [0.06, -0.99, 0.10], "vdir": [0.94, 0.04, -0.34],
+   "points": [[-0.020, -0.030], [0.052, -0.024], [0.118, -0.014], [0.168, 0.000], [0.118, 0.012], [0.052, 0.022], [-0.020, 0.026]]},
+
+  {"type": "curve", "host": "LSlvCuff", "material": "void", "sides": 8, "smooth_angle": 14,
+   "_note": "★ 特徵 ⑤ 的袖口深色箍（ref §二 coat3 的黑針織箍），同時也是『手不在裡面』的那個黑洞。半徑比袖末端粗，套在袖外。",
+   "offset": [0.004, 0.020, -0.008], "dir": [0.10, -0.90, 0.42],
+   "segments": [{"len": 0.050, "r": 0.044}, {"len": 0.018, "r": 0.030, "taper": true}]},
+
+  {"type": "curve", "host": "RSlvCuff", "material": "void", "sides": 8, "smooth_angle": 14,
+   "offset": [-0.004, 0.018, -0.006], "dir": [-0.06, -0.90, 0.44],
+   "segments": [{"len": 0.044, "r": 0.038}, {"len": 0.016, "r": 0.026, "taper": true}]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.009, "conform": false,
+   "_note": "★ 特徵 ⑤：下襬長短不一的濕垂條，六片全部非鏡射、長度 0.09–0.19、寬度與角度各異。udir 都帶了 0.36 的向內分量（≈21.8°），貼著垂裾的錐面走——r6 讓它們直直往下垂，尖端跑出錐外，hero 上被讀成六隻腳。桶形凸多邊形（boat ⑥-2）才過得了 part_attachment。",
+   "anchor": {"chain": "skirt", "t": 0.13, "around": 8},
+   "udir": [0.35, -0.93, -0.09], "vdir": [0.25, 0, 0.97],
+   "points": [[-0.0149, -0.0304], [0.0486, -0.046], [0.1134, -0.0304], [0.162, 0.0], [0.1134, 0.0304], [0.0486, 0.046], [-0.0149, 0.0304]]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.009, "conform": false,
+   "anchor": {"chain": "skirt", "t": 0.17, "around": 62},
+   "udir": [0.21, -0.93, -0.30], "vdir": [0.82, 0, 0.58],
+   "points": [[-0.0117, -0.0238], [0.0336, -0.036], [0.0784, -0.0238], [0.112, 0.0], [0.0784, 0.0238], [0.0336, 0.036], [-0.0117, 0.0238]]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.009, "conform": false,
+   "anchor": {"chain": "skirt", "t": 0.11, "around": 118},
+   "udir": [-0.21, -0.93, -0.30], "vdir": [0.82, 0, -0.57],
+   "points": [[-0.0168, -0.0343], [0.0564, -0.052], [0.1316, -0.0343], [0.188, 0.0], [0.1316, 0.0343], [0.0564, 0.052], [-0.0168, 0.0343]]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "skirt", "t": 0.19, "around": 176},
+   "udir": [-0.36, -0.93, -0.05], "vdir": [0.13, 0, -0.99],
+   "points": [[-0.0097, -0.0198], [0.0276, -0.03], [0.0644, -0.0198], [0.092, 0.0], [0.0644, 0.0198], [0.0276, 0.03], [-0.0097, 0.0198]]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.009, "conform": false,
+   "anchor": {"chain": "skirt", "t": 0.14, "around": 236},
+   "udir": [-0.22, -0.93, 0.28], "vdir": [-0.79, 0, -0.61],
+   "points": [[-0.0136, -0.0277], [0.0444, -0.042], [0.1036, -0.0277], [0.148, 0.0], [0.1036, 0.0277], [0.0444, 0.042], [-0.0136, 0.0277]]},
+
+  {"type": "fin", "host": "Skirt1", "material": "ghost_drip", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "skirt", "t": 0.21, "around": 302},
+   "udir": [0.22, -0.93, 0.29], "vdir": [-0.80, 0, 0.60],
+   "points": [[-0.011, -0.0224], [0.0312, -0.034], [0.0728, -0.0224], [0.104, 0.0], [0.0728, 0.0224], [0.0312, 0.034], [-0.011, 0.0224]]},
+
+  {"type": "fin", "host": "Waist", "material": "coat", "thickness": 0.010, "conform": false,
+   "_note": "★ 下襬破口：四片雨衣本色的碎片從下襬垂下來、長短角度全異。第 1 輪盲讀 2/2 把下襬讀成整齊的斗篷下緣（『矮胖圓潤』的來源之一），破口是把它拆掉的手段，也是 ref 特徵 ⑤『下襬長短不一的濕邊』。",
+   "anchor": {"chain": "coat", "t": 0.035, "around": 22},
+   "udir": [0.10, -0.99, 0.06], "vdir": [0.30, 0.02, 0.95],
+   "points": [[-0.020, -0.038], [0.036, -0.048], [0.084, -0.030], [0.118, 0.000], [0.084, 0.030], [0.036, 0.048], [-0.020, 0.038]]},
+
+  {"type": "fin", "host": "Waist", "material": "coat", "thickness": 0.010, "conform": false,
+   "anchor": {"chain": "coat", "t": 0.05, "around": 128},
+   "udir": [-0.08, -0.99, -0.10], "vdir": [0.80, 0.02, -0.60],
+   "points": [[-0.016, -0.028], [0.026, -0.036], [0.056, -0.022], [0.078, 0.000], [0.056, 0.022], [0.026, 0.036], [-0.016, 0.028]]},
+
+  {"type": "fin", "host": "Waist", "material": "coat", "thickness": 0.010, "conform": false,
+   "anchor": {"chain": "coat", "t": 0.03, "around": 208},
+   "udir": [-0.12, -0.98, 0.10], "vdir": [0.24, 0.03, -0.97],
+   "points": [[-0.022, -0.044], [0.042, -0.056], [0.100, -0.034], [0.142, 0.000], [0.100, 0.034], [0.042, 0.056], [-0.022, 0.044]]},
+
+  {"type": "fin", "host": "Waist", "material": "coat", "thickness": 0.010, "conform": false,
+   "anchor": {"chain": "coat", "t": 0.06, "around": 300},
+   "udir": [0.10, -0.99, -0.08], "vdir": [-0.72, 0.02, -0.69],
+   "points": [[-0.014, -0.024], [0.022, -0.032], [0.048, -0.020], [0.066, 0.000], [0.048, 0.020], [0.022, 0.032], [-0.014, 0.024]]},
+
+  {"type": "curve", "host": "Skirt2", "material": "ghost_drip", "sides": 4, "smooth_angle": 18,
+   "_note": "水線：兩條細 curve 從垂裾往下滴。長度刻意壓在尖底之上——r2 實測太長會垂到 y<0，變成 balance 的支撐點而判 tip over。",
+   "offset": [0.048, 0.010, 0.036], "dir": [0.08, -0.99, 0.10],
+   "segments": [{"len": 0.058, "r": 0.008}, {"len": 0.042, "r": 0.004, "fall": 5}, {"len": 0.030, "r": 0.002, "fall": 7, "taper": true}]},
+
+  {"type": "curve", "host": "Skirt2", "material": "ghost_drip", "sides": 4, "smooth_angle": 18,
+   "offset": [-0.014, 0.008, 0.052], "dir": [-0.03, -0.99, 0.12],
+   "segments": [{"len": 0.064, "r": 0.008}, {"len": 0.046, "r": 0.004, "fall": 4}, {"len": 0.032, "r": 0.002, "fall": 6, "taper": true}]}
+ ],
+
+ "animations": {
+  "idle": {"duration": 3.2, "loop": true,
+   "_note": "陰氣的節奏＝hold＋突跳（ART_BIBLE §3）。雨衣與帽兜是『停住很久、忽然跳一格、再停住』，腰以下的濕裾則是連續平滑的漂移——兩種拍子錯開。帽兜在 idle 就會轉去一邊停住不動，那是招式『恐懼』的預告。",
+   "tracks": {
+    "Waist":     {"ty": [[0, 0], [0.30, 0.003], [0.34, 0.026], [0.60, 0.024], [0.64, 0.005], [1, 0]]},
+    "Chest":     {"rx": [[0, -1], [0.36, -1], [0.40, 2.2], [0.78, 1.8], [0.82, -1], [1, -1]]},
+    "Yoke":      {"rz": [[0, 1], [0.28, 1], [0.32, -2.6], [0.72, -2.2], [0.76, 1], [1, 1]]},
+    "HoodRoot":  {"ry": [[0, 0], [0.20, 0], [0.24, 11], [0.56, 10], [0.60, -6], [0.88, -6], [0.92, 0], [1, 0]],
+                  "rz": [[0, 1.6], [0.26, 1.6], [0.30, -3.2], [0.86, -3.2], [0.90, 1.6], [1, 1.6]]},
+    "MistRoot":  {"rz": [[0, 1.4], [0.5, -1.4], [1, 1.4]]},
+    "Skirt1":    {"rz": [[0, -2.4], [0.35, 2.4], [0.7, -1.4], [1, -2.4]], "ry": [[0, 3.2], [0.5, -3.2], [1, 3.2]]},
+    "Skirt2":    {"rz": [[0, 2.4], [0.5, -3.4], [1, 2.4]]},
+    "LSlvRoot":  {"rx": [[0, 0], [0.42, 0], [0.46, -5], [0.84, -4], [0.88, 0], [1, 0]]},
+    "LSlvElbow": {"rx": [[0, 2], [0.30, 2], [0.34, -6], [0.70, -5], [0.74, 2], [1, 2]]},
+    "RSlvRoot":  {"rx": [[0, 1], [0.55, 1], [0.59, -3.5], [0.92, -2.5], [0.96, 1], [1, 1]]}
+   }},
+  "move": {"duration": 1.15, "loop": true,
+   "_note": "飄移：位移全放在 chain 根關節 Waist 的 ty/tz（放中段會 anim_integrity 撕皮，redhat ⑦-A）；上下半身的拍子刻意不同步。",
+   "tracks": {
+    "Waist":     {"ty": [[0, 0], [0.22, 0.040], [0.48, 0.008], [0.72, 0.038], [1, 0]],
+                  "tz": [[0, 0], [0.5, 0.026], [1, 0]]},
+    "Chest":     {"rx": [[0, 2.6], [0.5, -2.6], [1, 2.6]]},
+    "Yoke":      {"rx": [[0, -2.6], [0.55, 2.6], [1, -2.6]]},
+    "HoodRoot":  {"ry": [[0, 4], [0.42, -5], [1, 4]]},
+    "MistRoot":  {"rx": [[0, -5], [0.5, 4.5], [1, -5]]},
+    "Skirt1":    {"rx": [[0, 7], [0.4, -6], [0.8, 5], [1, 7]]},
+    "Skirt2":    {"rx": [[0, -8], [0.5, 8], [1, -8]], "rz": [[0, 3.5], [0.5, -3.5], [1, 3.5]]},
+    "LSlvRoot":  {"rx": [[0, -8], [0.5, 8], [1, -8]]},
+    "LSlvElbow": {"rx": [[0, 5], [0.5, -5], [1, 5]]},
+    "RSlvRoot":  {"rx": [[0, 5], [0.5, -5], [1, 5]]}
+   }},
+  "attack": {"duration": 1.15, "loop": false,
+   "_note": "招式『恐懼』（hauntDread1）＝文獻那一句：『最後一位男士突然轉過身來……她才驚覺從斗笠至雨衣衣領間沒有任何東西』。0→0.06 帽兜猛地別開，0.06→0.30 完全靜止一拍（陰氣的 attack 前有一拍靜止），0.30→0.74 帽兜慢慢轉回來正對你，同時整件往前逼近（位移放 Waist 的 tz，attack_reach 走 REACH 路線）。",
+   "tracks": {
+    "Waist":     {"tz": [[0, 0], [0.30, 0], [0.44, -0.040], [0.74, 0.235], [1, 0]],
+                  "ty": [[0, 0], [0.30, 0], [0.44, 0.030], [0.74, -0.016], [1, 0]]},
+    "HoodRoot":  {"ry": [[0, 0], [0.06, -54], [0.30, -54], [0.74, 6], [0.88, 0], [1, 0]],
+                  "rx": [[0, 0], [0.30, 0], [0.46, -5], [0.74, 14], [1, 0]]},
+    "Chest":     {"rx": [[0, 0], [0.30, 0], [0.44, -6], [0.74, 10], [1, 0]]},
+    "Yoke":      {"rx": [[0, 0], [0.30, 0], [0.44, -7], [0.74, 13], [1, 0]]},
+    "LSlvRoot":  {"rx": [[0, 0], [0.30, 0], [0.44, 16], [0.72, -26], [1, 0]],
+                  "ry": [[0, 0], [0.44, -7], [0.72, 10], [1, 0]]},
+    "LSlvElbow": {"rx": [[0, 0], [0.30, 0], [0.44, 12], [0.72, -16], [1, 0]]},
+    "RSlvRoot":  {"rx": [[0, 0], [0.30, 0], [0.44, 9], [0.72, -12], [1, 0]]},
+    "MistRoot":  {"rx": [[0, 0], [0.44, 8], [0.76, -10], [1, 0]]},
+    "Skirt1":    {"rx": [[0, 0], [0.48, -7], [0.78, 9], [1, 0]]},
+    "Skirt2":    {"rx": [[0, 0], [0.54, 7], [0.82, -8], [1, 0]]}
+   }}
+ }
+}
