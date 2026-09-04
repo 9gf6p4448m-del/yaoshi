@@ -1,0 +1,108 @@
+{
+  "name": "祖靈之眼 eye_zuling_yan (zuling/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝shield.claims.json（同為 zuling／ward、同樣識別視角在正面）。相對基底只做三類改動：① 部位名換成本隻的（rock／gold_ring／eye／glow_iris／sclera…），門檻一格未動；② `tri_budget` 上限依 2026-09-04 19:30 凍結檔修訂由 5000 放寬到 8000（凍結檔明文，非本卷自訂），下限 1500 維持；③ `part_visible` 的受檢部位由『蛇頭』換成『祖靈金眼眶環』——ward 的專屬風險是招牌部位被自己的板子吞掉，本隻的招牌是眼，眼眶環被石體吃掉就等於沒有。`focal_contrast` 的 min_ratio 維持 shield 加嚴後的 3（未回到 preset 的 2），`saturation_area` 維持凍結檔指定的 10%–60% 帶。沒有一處放寬。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "rock",
+      "stage": "MID",
+      "label": "招牌部位：裂開的山壁石體必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光虹膜必須存在，且材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_iris",
+      "stage": "MID",
+      "label": "瞳心金光必須存在，材質名必須正是 glow_iris"
+    },
+    {
+      "type": "part_signature",
+      "part": "sclera",
+      "view": "front",
+      "min_share": 0.07,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（獨眼巨瞳的眼球）在正面視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "gold_ring",
+      "view": "front",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "祖靈金的同心眼眶環必須在正面看得見——被石體或樹根吃掉就等於沒有（ward 專屬風險）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "rock",
+      "b": "glow_iris",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（石體／瞳心金光）不得等重"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "rock"
+      ],
+      "secondary": [
+        "root_wood",
+        "root_ridge",
+        "gold_ring",
+        "bone"
+      ],
+      "tertiary": [
+        "sclera",
+        "eye",
+        "glow_iris",
+        "pupil"
+      ],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：石體／樹根與金眼眶與骨紋帶／眼球與虹膜與瞳"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "炭黑底：在識別視角（正面）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 凍結檔修訂：上限 5000→8000）"
+    }
+  ]
+}
