@@ -9,6 +9,7 @@
  "_root_note": "沿用 sword ⑥-2：每條鏈的根都埋在宿主體積裡。hood 的根不在頭頂而在頸窩內（往上長成兜帽），jaw 的根抬到 Brow 下方 0.024（不是下頜線）以免根環有 40% 露在頭外，clawarm／stubarm 的根壓到肩台以下（redhat ⑦-C4）。",
  "_asym_note": "左右臂刻意不用 mirror：兩條各自成鏈（clawarm／stubarm），joints 不用 L/R 前綴以避開自動鏡射。這是陰氣『不對稱、比例錯誤』的主要載體。",
  "_exaggeration_vs_anchor": "最長那根指甲總長 0.535（0.207+0.178+0.150），比它所在的前臂（ClawElbow→ClawWrist 0.176）還長 3.0 倍、比真虎爪誇張約 5 倍——elite『招牌部位大』靠這個數字兌現（judge 側視 share 12.40%、span 0.754）；相對的左臂（stubarm）全長只有右臂的 38%。",
+ "_tigerarm_note": "★ 硬化批 1 加件：毛茸虎前肢（ref-nail 特徵 4）。橘底＝clawarm 體積換 fur_arm，黑條紋帶＝每道 3 片 stripe fin 繞 around 110／190／270 包住可見的三個象限（arcs 只能軸向分帶、做不出橫向虎紋——見 nail 報告 ⑥-2 與 compile.js:213 的 sym 只吃環上角度）；毛茸＝上緣 7 片短 fin，橘／黑交錯，讓剪影邊緣本身就是條紋。around 的世界法線實測：110→-X（側視正面）、190→上前、270→+X。",
 
  "palette": {
   "cloth_hood": {"color": "#232323", "rough": 0.95},
@@ -18,6 +19,7 @@
   "fur_face":   {"color": "#553a16", "rough": 0.94},
   "muzzle":     {"color": "#7d7466", "rough": 0.92},
   "fur_paw":    {"color": "#4d3512", "rough": 0.94},
+  "fur_arm":    {"color": "#a8551c", "rough": 0.94},
   "stripe":     {"color": "#121212", "rough": 0.92},
   "nail":       {"color": "#ece5d4", "rough": 0.3},
   "fang":       {"color": "#ded6c2", "rough": 0.35},
@@ -27,6 +29,7 @@
   "mouth_glow": {"color": "#4fd996", "rough": 0.2}
  },
 
+ "build": "rigid",
  "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
  "smooth_angle": 25,
 
@@ -85,22 +88,22 @@
  "volumes": [
   {"chain": "body", "material": "cloth_cape", "sides": 8, "smooth_angle": 24, "frame": "up",
    "profile": [
-    [0.00, 0.128, 0.122],
-    [0.26, 0.140, 0.130, {"exp": 2.8, "sharp": true}],
-    [0.62, 0.152, 0.136, {"exp": 3.0, "sharp": true}],
-    [0.86, 0.098, 0.094, {"sharp": true}],
-    [1.00, 0.062, 0.060]
+    [0.00, 0.128, 0.122, {"exp": 4.8}],
+    [0.26, 0.140, 0.130, {"exp": 4.8, "sharp": true}],
+    [0.62, 0.152, 0.136, {"exp": 4.8, "sharp": true}],
+    [0.86, 0.098, 0.094, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.062, 0.060, {"exp": 4.8}]
    ],
    "caps": ["dome", "dome"], "ring_step": 0.034,
    "colors": {"arcs": [{"from": 0, "to": 30, "color": "#171717"}]}},
 
   {"chain": "robe", "material": "cloth_robe", "sides": 8, "smooth_angle": 24, "frame": "up",
    "profile": [
-    [0.00, 0.078, 0.074],
-    [0.14, 0.114, 0.110, {"exp": 4.0, "sharp": true}],
-    [0.42, 0.150, 0.142, {"exp": 4.4, "sharp": true}],
+    [0.00, 0.078, 0.074, {"exp": 4.8}],
+    [0.14, 0.114, 0.110, {"exp": 4.8, "sharp": true}],
+    [0.42, 0.150, 0.142, {"exp": 4.8, "sharp": true}],
     [0.78, 0.204, 0.186, {"exp": 4.8, "sharp": true}],
-    [1.00, 0.238, 0.208, {"exp": 4.4}]
+    [1.00, 0.238, 0.208, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.030,
    "colors": {"arcs": [
@@ -110,63 +113,63 @@
 
   {"chain": "cape", "material": "cloth_cape", "sides": 8, "smooth_angle": 24, "frame": "up",
    "profile": [
-    [0.00, 0.114, 0.104],
-    [0.22, 0.176, 0.164, {"exp": 4.4, "sharp": true}],
-    [0.62, 0.198, 0.146, {"exp": 4.6, "sharp": true}],
-    [0.88, 0.176, 0.124, {"exp": 4.2, "sharp": true}],
-    [1.00, 0.150, 0.104, {"exp": 3.6}]
+    [0.00, 0.114, 0.104, {"exp": 4.8}],
+    [0.22, 0.176, 0.164, {"exp": 4.8, "sharp": true}],
+    [0.62, 0.198, 0.146, {"exp": 4.8, "sharp": true}],
+    [0.88, 0.176, 0.124, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.150, 0.104, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.034,
    "colors": {"arcs": [{"from": 0, "to": 40, "color": "#171717"}]}},
 
   {"chain": "hood", "material": "cloth_hood", "sides": 7, "smooth_angle": 24, "frame": "up",
    "profile": [
-    [0.00, 0.062, 0.060],
-    [0.22, 0.140, 0.130, {"exp": 4.4, "sharp": true}],
-    [0.50, 0.168, 0.152, {"exp": 4.6, "sharp": true}],
-    [0.78, 0.146, 0.130, {"exp": 4.2, "sharp": true}],
-    [1.00, 0.070, 0.062, {"exp": 3.4}]
+    [0.00, 0.062, 0.060, {"exp": 4.8}],
+    [0.22, 0.140, 0.130, {"exp": 4.8, "sharp": true}],
+    [0.50, 0.168, 0.152, {"exp": 4.8, "sharp": true}],
+    [0.78, 0.146, 0.130, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.070, 0.062, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.032,
    "colors": {"arcs": [{"from": 0, "to": 30, "color": "#1b1b1b"}]}},
 
   {"chain": "head", "material": "fur_face", "sides": 7, "smooth_angle": 24,
    "profile": [
-    [0.00, 0.050, 0.048],
+    [0.00, 0.050, 0.048, {"exp": 4.8}],
     [0.24, 0.146, 0.132, {"exp": 4.8, "sharp": true}],
-    [0.54, 0.128, 0.112, {"exp": 4.6, "sharp": true}],
-    [0.74, 0.076, 0.058, {"exp": 4.2, "sharp": true}],
-    [1.00, 0.056, 0.040, {"exp": 3.6}]
+    [0.54, 0.128, 0.112, {"exp": 4.8, "sharp": true}],
+    [0.74, 0.076, 0.058, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.056, 0.040, {"exp": 4.8}]
    ],
    "caps": ["none", "ngon"], "ring_step": 0.020,
    "colors": {"arcs": [{"from": 0, "to": 26, "color": "#6e6759"}]}},
 
   {"chain": "jaw", "material": "muzzle", "sides": 8, "smooth_angle": 24,
    "profile": [
-    [0.00, 0.058, 0.044],
-    [0.30, 0.074, 0.054, {"exp": 3.4, "sharp": true}],
-    [0.70, 0.060, 0.042, {"exp": 3.2, "sharp": true}],
-    [1.00, 0.036, 0.024]
+    [0.00, 0.058, 0.044, {"exp": 4.8}],
+    [0.30, 0.074, 0.054, {"exp": 4.8, "sharp": true}],
+    [0.70, 0.060, 0.042, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.036, 0.024, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.018,
    "colors": {"arcs": [{"from": 0, "to": 42, "color": "#8f8878"}]}},
 
-  {"chain": "clawarm", "material": "fur_paw", "sides": 8, "smooth_angle": 25,
+  {"chain": "clawarm", "material": "fur_arm", "sides": 8, "smooth_angle": 25,
    "profile": [
-    [0.00, 0.058, 0.062],
-    [0.30, 0.046, 0.050, {"exp": 2.6, "sharp": true}],
-    [0.62, 0.038, 0.042],
-    [0.86, 0.043, 0.047, {"exp": 3.0, "sharp": true}],
-    [1.00, 0.036, 0.038]
+    [0.00, 0.058, 0.062, {"exp": 4.8}],
+    [0.30, 0.046, 0.050, {"exp": 4.8, "sharp": true}],
+    [0.62, 0.038, 0.042, {"exp": 4.8}],
+    [0.86, 0.043, 0.047, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.036, 0.038, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.034},
 
   {"chain": "stubarm", "material": "fur_paw", "sides": 8, "smooth_angle": 25,
    "profile": [
-    [0.00, 0.056, 0.058],
-    [0.34, 0.042, 0.044, {"exp": 2.6, "sharp": true}],
-    [0.72, 0.030, 0.032],
-    [1.00, 0.020, 0.022]
+    [0.00, 0.056, 0.058, {"exp": 4.8}],
+    [0.34, 0.042, 0.044, {"exp": 4.8, "sharp": true}],
+    [0.72, 0.030, 0.032, {"exp": 4.8}],
+    [1.00, 0.020, 0.022, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.028}
  ],
@@ -194,6 +197,99 @@
   {"type": "curve", "host": "StubTip", "material": "nail", "sides": 5, "smooth_angle": 24,
    "offset": [-0.004, -0.012, 0.002], "dir": [-0.10, -0.92, 0.38],
    "segments": [{"len": 0.042, "r": 0.012}, {"len": 0.032, "r": 0.006, "fall": 20, "taper": true}]},
+
+  {"type": "fin", "host": "ClawElbow", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.34, "around": 110},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.031, -0.011], [-0.011, -0.015], [0.011, -0.015], [0.031, -0.011],
+              [0.031, 0.011], [0.011, 0.015], [-0.011, 0.015], [-0.031, 0.011]]},
+  {"type": "fin", "host": "ClawElbow", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.34, "around": 190},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.031, -0.011], [-0.011, -0.015], [0.011, -0.015], [0.031, -0.011],
+              [0.031, 0.011], [0.011, 0.015], [-0.011, 0.015], [-0.031, 0.011]]},
+  {"type": "fin", "host": "ClawElbow", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.34, "around": 270},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.031, -0.011], [-0.011, -0.015], [0.011, -0.015], [0.031, -0.011],
+              [0.031, 0.011], [0.011, 0.015], [-0.011, 0.015], [-0.031, 0.011]]},
+
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.50, "around": 110},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.029, -0.010], [-0.011, -0.014], [0.011, -0.014], [0.029, -0.010],
+              [0.029, 0.010], [0.011, 0.014], [-0.011, 0.014], [-0.029, 0.010]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.50, "around": 190},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.029, -0.010], [-0.011, -0.014], [0.011, -0.014], [0.029, -0.010],
+              [0.029, 0.010], [0.011, 0.014], [-0.011, 0.014], [-0.029, 0.010]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.50, "around": 270},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.029, -0.010], [-0.011, -0.014], [0.011, -0.014], [0.029, -0.010],
+              [0.029, 0.010], [0.011, 0.014], [-0.011, 0.014], [-0.029, 0.010]]},
+
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.66, "around": 110},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.028, -0.010], [-0.010, -0.014], [0.010, -0.014], [0.028, -0.010],
+              [0.028, 0.010], [0.010, 0.014], [-0.010, 0.014], [-0.028, 0.010]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.66, "around": 190},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.028, -0.010], [-0.010, -0.014], [0.010, -0.014], [0.028, -0.010],
+              [0.028, 0.010], [0.010, 0.014], [-0.010, 0.014], [-0.028, 0.010]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.66, "around": 270},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.028, -0.010], [-0.010, -0.014], [0.010, -0.014], [0.028, -0.010],
+              [0.028, 0.010], [0.010, 0.014], [-0.010, 0.014], [-0.028, 0.010]]},
+
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.82, "around": 110},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.026, -0.009], [-0.010, -0.012], [0.010, -0.012], [0.026, -0.009],
+              [0.026, 0.009], [0.010, 0.012], [-0.010, 0.012], [-0.026, 0.009]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.82, "around": 190},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.026, -0.009], [-0.010, -0.012], [0.010, -0.012], [0.026, -0.009],
+              [0.026, 0.009], [0.010, 0.012], [-0.010, 0.012], [-0.026, 0.009]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.011,
+   "anchor": {"chain": "clawarm", "t": 0.82, "around": 270},
+   "udir": [-0.955, 0, -0.295], "vdir": [-0.251, -0.522, 0.812],
+   "points": [[-0.026, -0.009], [-0.010, -0.012], [0.010, -0.012], [0.026, -0.009],
+              [0.026, 0.009], [0.010, 0.012], [-0.010, 0.012], [-0.026, 0.009]]},
+
+  {"type": "fin", "host": "ClawElbow", "material": "fur_arm", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.26, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.015], [0.030, -0.008], [0.004, 0.015]]},
+  {"type": "fin", "host": "ClawElbow", "material": "stripe", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.36, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.012], [0.024, -0.007], [0.004, 0.012]]},
+  {"type": "fin", "host": "ClawElbow", "material": "fur_arm", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.46, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.016], [0.032, -0.009], [0.004, 0.016]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.56, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.013], [0.026, -0.007], [0.004, 0.013]]},
+  {"type": "fin", "host": "ClawWrist", "material": "fur_arm", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.66, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.015], [0.031, -0.008], [0.004, 0.015]]},
+  {"type": "fin", "host": "ClawWrist", "material": "stripe", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.76, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.012], [0.023, -0.007], [0.004, 0.012]]},
+  {"type": "fin", "host": "ClawWrist", "material": "fur_arm", "thickness": 0.008, "conform": false,
+   "anchor": {"chain": "clawarm", "t": 0.86, "around": 180},
+   "udir": [0, 0.907, 0.419], "vdir": [0, -0.540, 0.841],
+   "points": [[-0.012, 0], [0.004, -0.014], [0.027, -0.008], [0.004, 0.014]]},
 
   {"type": "eye", "host": "Brow", "material": "eye", "size": 0.032,
    "anchor": {"chain": "head", "t": 0.46, "around": 126}},
@@ -268,19 +364,19 @@
    "offset": [0.128, 0.016, 0.028], "dir": [0.74, -0.54, 0.40],
    "segments": [{"len": 0.078, "r": 0.011}, {"len": 0.064, "r": 0.004, "fall": 18, "taper": true}]},
 
-  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 20,
+  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 26,
    "offset": [0.156, -0.010, 0.132], "dir": [0.40, -1, 0.34],
    "segments": [{"len": 0.062, "r": 0.038}, {"len": 0.052, "r": 0.006, "taper": true}]},
-  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 20,
+  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 26,
    "offset": [-0.196, -0.008, 0.052], "dir": [-0.58, -1, 0.12],
    "segments": [{"len": 0.044, "r": 0.030}, {"len": 0.036, "r": 0.005, "taper": true}]},
-  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 20,
+  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 26,
    "offset": [0.132, -0.010, -0.156], "dir": [0.34, -1, -0.46],
    "segments": [{"len": 0.076, "r": 0.034}, {"len": 0.062, "r": 0.005, "taper": true}]},
-  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 20,
+  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 26,
    "offset": [-0.104, -0.010, -0.178], "dir": [-0.30, -1, -0.52],
    "segments": [{"len": 0.038, "r": 0.028}, {"len": 0.032, "r": 0.004, "taper": true}]},
-  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 20,
+  {"type": "curve", "host": "RobeHem", "material": "cloth_robe", "sides": 4, "smooth_angle": 26,
    "offset": [0.008, -0.012, 0.196], "dir": [0.04, -1, 0.56],
    "segments": [{"len": 0.058, "r": 0.032}, {"len": 0.048, "r": 0.005, "taper": true}]}
  ],

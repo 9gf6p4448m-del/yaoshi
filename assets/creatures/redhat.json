@@ -31,8 +31,9 @@
   "mouth_glow": {"color": "#8f1a12", "rough": 0.25}
  },
 
+ "build": "rigid",
  "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
- "smooth_angle": 12,
+ "smooth_angle": 26,
 
  "joints": {
   "Waist":  [0, 0.500, 0],
@@ -83,14 +84,14 @@
  "touch": [["body", "mist"], ["body", "head"], ["head", "jaw"], ["head", "hat"], ["body", "LArm"], ["body", "RArm"]],
 
  "volumes": [
-  {"chain": "body", "material": "robe", "sides": 10, "smooth_angle": 10,
+  {"chain": "body", "material": "robe", "sides": 10, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.098, 0.088],
-    [0.30, 0.112, 0.100, {"exp": 4.4}],
+    [0.00, 0.098, 0.088, {"exp": 4.8}],
+    [0.30, 0.112, 0.100, {"exp": 4.8}],
     [0.62, 0.142, 0.116, {"exp": 5.0, "sharp": true}],
-    [0.73, 0.108, 0.086, {"sharp": true}],
-    [0.86, 0.044, 0.038, {"sharp": true}],
-    [1.00, 0.038, 0.034]
+    [0.73, 0.108, 0.086, {"exp": 4.8, "sharp": true}],
+    [0.86, 0.044, 0.038, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.038, 0.034, {"exp": 4.8}]
    ],
    "caps": ["dome", "none"], "ring_step": 0.024,
    "colors": {"arcs": [
@@ -101,13 +102,13 @@
      {"from": 288, "to": 324, "color": "#272e29"}
    ]}},
 
-  {"chain": "mist", "material": "ghost_skirt", "sides": 10, "smooth_angle": 16,
+  {"chain": "mist", "material": "ghost_skirt", "sides": 10, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.086, 0.080],
-    [0.18, 0.132, 0.126, {"exp": 3.0, "sharp": true}],
-    [0.46, 0.104, 0.098, {"exp": 2.8}],
-    [0.76, 0.058, 0.054, {"sharp": true}],
-    [1.00, 0.012, 0.011]
+    [0.00, 0.086, 0.080, {"exp": 4.8}],
+    [0.18, 0.132, 0.126, {"exp": 4.8, "sharp": true}],
+    [0.46, 0.104, 0.098, {"exp": 4.8}],
+    [0.76, 0.058, 0.054, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.012, 0.011, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.017,
    "colors": {"arcs": [
@@ -115,13 +116,13 @@
      {"from": 144, "to": 180, "color": "#545d5a"}
    ]}},
 
-  {"chain": "head", "material": "skin_head", "sides": 9, "smooth_angle": 10,
+  {"chain": "head", "material": "skin_head", "sides": 9, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.032, 0.030],
-    [0.18, 0.060, 0.056, {"exp": 4.0, "sharp": true}],
-    [0.52, 0.066, 0.060, {"exp": 3.6}],
-    [0.80, 0.048, 0.044, {"sharp": true}],
-    [1.00, 0.030, 0.028]
+    [0.00, 0.032, 0.030, {"exp": 4.8}],
+    [0.18, 0.060, 0.056, {"exp": 4.8, "sharp": true}],
+    [0.52, 0.066, 0.060, {"exp": 4.8}],
+    [0.80, 0.048, 0.044, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.030, 0.028, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.013,
    "colors": {"arcs": [
@@ -129,46 +130,46 @@
      {"from": 80,  "to": 120, "color": "#33302a"}
    ]}},
 
-  {"chain": "jaw", "material": "skin_jaw", "sides": 8, "smooth_angle": 10,
+  {"chain": "jaw", "material": "skin_jaw", "sides": 8, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.046, 0.038],
-    [0.46, 0.056, 0.038, {"exp": 3.8, "sharp": true}],
-    [0.78, 0.046, 0.028, {"sharp": true}],
-    [1.00, 0.026, 0.018]
+    [0.00, 0.046, 0.038, {"exp": 4.8}],
+    [0.46, 0.056, 0.038, {"exp": 4.8, "sharp": true}],
+    [0.78, 0.046, 0.028, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.026, 0.018, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.011,
    "colors": {"arcs": [{"from": 135, "to": 225, "color": "#2c2925"}]}},
 
-  {"chain": "hat", "material": "hat", "sides": 10, "smooth_angle": 12,
+  {"chain": "hat", "material": "hat", "sides": 10, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.034, 0.032],
-    [0.15, 0.072, 0.068],
-    [0.205, 0.108, 0.103, {"sharp": true}],
-    [0.255, 0.082, 0.078, {"sharp": true}],
-    [0.40, 0.068, 0.064, {"sharp": true}],
-    [0.52, 0.048, 0.046, {"sharp": true}],
-    [0.63, 0.056, 0.053, {"sharp": true}],
-    [0.79, 0.026, 0.025, {"sharp": true}],
-    [1.00, 0.006, 0.006]
+    [0.00, 0.034, 0.032, {"exp": 4.8}],
+    [0.15, 0.072, 0.068, {"exp": 4.8}],
+    [0.205, 0.108, 0.103, {"exp": 4.8, "sharp": true}],
+    [0.255, 0.082, 0.078, {"exp": 4.8, "sharp": true}],
+    [0.40, 0.068, 0.064, {"exp": 4.8, "sharp": true}],
+    [0.52, 0.048, 0.046, {"exp": 4.8, "sharp": true}],
+    [0.63, 0.056, 0.053, {"exp": 4.8, "sharp": true}],
+    [0.79, 0.026, 0.025, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.006, 0.006, {"exp": 4.8}]
    ],
    "caps": ["dome", "dome"], "ring_step": 0.016,
    "colors": {"arcs": [{"from": 0, "to": 72, "color": "#5e070d"}]}},
 
-  {"chain": "LArm", "material": "sleeve", "sides": 7, "smooth_angle": 12,
+  {"chain": "LArm", "material": "sleeve", "sides": 7, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.050, 0.054],
-    [0.40, 0.034, 0.038],
-    [0.78, 0.026, 0.028],
-    [1.00, 0.020, 0.018]
+    [0.00, 0.050, 0.054, {"exp": 4.8}],
+    [0.40, 0.034, 0.038, {"exp": 4.8}],
+    [0.78, 0.026, 0.028, {"exp": 4.8}],
+    [1.00, 0.020, 0.018, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.040},
 
-  {"chain": "RArm", "material": "sleeve", "sides": 7, "smooth_angle": 12,
+  {"chain": "RArm", "material": "sleeve", "sides": 7, "smooth_angle": 26,
    "profile": [
-    [0.00, 0.048, 0.052],
-    [0.44, 0.034, 0.038],
-    [0.80, 0.026, 0.028],
-    [1.00, 0.022, 0.020]
+    [0.00, 0.048, 0.052, {"exp": 4.8}],
+    [0.44, 0.034, 0.038, {"exp": 4.8}],
+    [0.80, 0.026, 0.028, {"exp": 4.8}],
+    [1.00, 0.022, 0.020, {"exp": 4.8}]
    ],
    "caps": ["none", "dome"], "ring_step": 0.033}
  ],
@@ -184,17 +185,17 @@
    "points": [[-0.034, -0.004], [0.074, -0.010], [0.082, 0.014], [-0.030, 0.020]],
    "mirrored": true},
 
-  {"type": "curve", "host": "Skull", "material": "ear", "mirrored": true, "sides": 5, "smooth_angle": 14,
+  {"type": "curve", "host": "Skull", "material": "ear", "mirrored": true, "sides": 5, "smooth_angle": 26,
    "offset": [0.042, 0.010, -0.020], "dir": [0.86, 0.44, -0.26],
    "segments": [{"len": 0.040, "r": 0.024}, {"len": 0.054, "r": 0.008, "rise": 22, "taper": true}]},
 
-  {"type": "curve", "host": "Crown", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Crown", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [0.016, -0.004, 0.014], "dir": [0.42, 0.62, 0.66],
    "segments": [{"len": 0.036, "r": 0.008}, {"len": 0.030, "r": 0.002, "rise": 18, "taper": true}]},
-  {"type": "curve", "host": "Crown", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Crown", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [-0.020, -0.008, 0.006], "dir": [-0.52, 0.70, 0.48],
    "segments": [{"len": 0.028, "r": 0.007}, {"len": 0.024, "r": 0.002, "rise": 26, "taper": true}]},
-  {"type": "curve", "host": "Brow", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Brow", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [-0.010, 0.010, -0.026], "dir": [-0.24, 0.66, -0.71],
    "segments": [{"len": 0.042, "r": 0.007}, {"len": 0.032, "r": 0.002, "rise": 14, "taper": true}]},
 
@@ -235,25 +236,25 @@
    "points": [[-0.017, -0.012], [0.006, -0.019], [0.021, 0.000], [0.006, 0.017], [-0.017, 0.011]],
    "mirrored": true},
 
-  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [0.073, -0.026, 0.100], "dir": [0.24, -0.94, 0.24],
    "segments": [{"len": 0.090, "r": 0.008}, {"len": 0.070, "r": 0.003, "fall": 10, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [-0.082, -0.030, 0.089], "dir": [-0.22, -0.95, 0.22],
    "segments": [{"len": 0.074, "r": 0.009}, {"len": 0.058, "r": 0.003, "fall": 16, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [0.118, -0.010, 0.026], "dir": [0.34, -0.92, 0.18],
    "segments": [{"len": 0.112, "r": 0.008}, {"len": 0.086, "r": 0.003, "fall": 8, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [-0.089, -0.014, -0.082], "dir": [-0.24, -0.93, -0.24],
    "segments": [{"len": 0.096, "r": 0.009}, {"len": 0.074, "r": 0.003, "fall": 12, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Chest", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [0.026, -0.034, -0.119], "dir": [0.08, -0.94, -0.30],
    "segments": [{"len": 0.062, "r": 0.009}, {"len": 0.050, "r": 0.003, "fall": 18, "taper": true}]},
-  {"type": "curve", "host": "Spine", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Spine", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [0.092, -0.006, -0.074], "dir": [0.30, -0.92, -0.22],
    "segments": [{"len": 0.084, "r": 0.008}, {"len": 0.066, "r": 0.003, "fall": 14, "taper": true}]},
-  {"type": "curve", "host": "Spine", "material": "pelt", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "Spine", "material": "pelt", "sides": 4, "smooth_angle": 26,
    "offset": [-0.114, 0.010, 0.033], "dir": [-0.36, -0.90, 0.24],
    "segments": [{"len": 0.102, "r": 0.008}, {"len": 0.078, "r": 0.003, "fall": 10, "taper": true}]},
 
@@ -266,19 +267,19 @@
    "udir": [0.10, -0.10, 0.99], "vdir": [0.99, 0.06, -0.10], "offset": [0, -0.012, 0.026],
    "points": [[-0.024, -0.030], [0.048, -0.038], [0.058, 0.002], [0.046, 0.040], [-0.024, 0.032]]},
 
-  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 26,
    "offset": [0.012, -0.012, 0.018], "dir": [0.30, -0.34, 0.89],
    "segments": [{"len": 0.062, "r": 0.008}, {"len": 0.052, "r": 0.002, "fall": 22, "taper": true}]},
-  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 26,
    "offset": [-0.006, -0.014, 0.020], "dir": [-0.06, -0.40, 0.91],
    "segments": [{"len": 0.074, "r": 0.008}, {"len": 0.060, "r": 0.002, "fall": 18, "taper": true}]},
-  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "LHand", "material": "claw", "sides": 4, "smooth_angle": 26,
    "offset": [-0.020, -0.010, 0.014], "dir": [-0.38, -0.30, 0.87],
    "segments": [{"len": 0.054, "r": 0.007}, {"len": 0.044, "r": 0.002, "fall": 26, "taper": true}]},
-  {"type": "curve", "host": "RHand", "material": "claw", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "RHand", "material": "claw", "sides": 4, "smooth_angle": 26,
    "offset": [0.010, -0.010, 0.012], "dir": [0.26, -0.44, 0.86],
    "segments": [{"len": 0.048, "r": 0.007}, {"len": 0.038, "r": 0.002, "fall": 24, "taper": true}]},
-  {"type": "curve", "host": "RHand", "material": "claw", "sides": 4, "smooth_angle": 12,
+  {"type": "curve", "host": "RHand", "material": "claw", "sides": 4, "smooth_angle": 26,
    "offset": [-0.012, -0.012, 0.010], "dir": [-0.24, -0.38, 0.89],
    "segments": [{"len": 0.056, "r": 0.007}, {"len": 0.046, "r": 0.002, "fall": 20, "taper": true}]},
 
@@ -295,31 +296,31 @@
    "udir": [-0.90, -0.16, -0.40], "vdir": [-0.22, 0.18, 0.94],
    "points": [[-0.024, -0.008], [0.054, 0.004], [-0.020, 0.022]]},
 
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [0.074, 0.014, 0.032], "dir": [0.10, -0.99, 0.09],
    "segments": [{"len": 0.104, "r": 0.009}, {"len": 0.082, "r": 0.004, "fall": 5}, {"len": 0.062, "r": 0.002, "fall": 7, "taper": true}]},
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [-0.060, 0.010, -0.054], "dir": [-0.08, -0.99, -0.08],
    "segments": [{"len": 0.070, "r": 0.008}, {"len": 0.056, "r": 0.003, "fall": 7}, {"len": 0.042, "r": 0.002, "fall": 9, "taper": true}]},
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [-0.014, 0.008, 0.088], "dir": [-0.03, -0.99, 0.12],
    "segments": [{"len": 0.134, "r": 0.009}, {"len": 0.106, "r": 0.004, "fall": 4}, {"len": 0.080, "r": 0.002, "fall": 6, "taper": true}]},
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [0.052, 0.012, -0.066], "dir": [0.09, -0.99, -0.10],
    "segments": [{"len": 0.088, "r": 0.008}, {"len": 0.070, "r": 0.003, "fall": 6}, {"len": 0.052, "r": 0.002, "fall": 8, "taper": true}]},
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [-0.082, 0.006, 0.028], "dir": [-0.11, -0.99, 0.07],
    "segments": [{"len": 0.118, "r": 0.009}, {"len": 0.094, "r": 0.004, "fall": 5}, {"len": 0.070, "r": 0.002, "fall": 7, "taper": true}]},
-  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist1", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [0.030, 0.010, 0.078], "dir": [0.06, -0.99, 0.11],
    "segments": [{"len": 0.062, "r": 0.008}, {"len": 0.050, "r": 0.003, "fall": 8}, {"len": 0.038, "r": 0.002, "fall": 10, "taper": true}]},
-  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [0.044, 0.004, 0.042], "dir": [0.12, -0.98, 0.12],
    "segments": [{"len": 0.086, "r": 0.007}, {"len": 0.068, "r": 0.003, "fall": 6}, {"len": 0.050, "r": 0.002, "fall": 8, "taper": true}]},
-  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [-0.038, 0.002, -0.048], "dir": [-0.10, -0.98, -0.14],
    "segments": [{"len": 0.058, "r": 0.007}, {"len": 0.046, "r": 0.003, "fall": 8}, {"len": 0.034, "r": 0.002, "fall": 11, "taper": true}]},
-  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 18,
+  {"type": "curve", "host": "Mist2", "material": "ghost_wisp", "sides": 4, "smooth_angle": 26,
    "offset": [-0.056, 0.004, 0.022], "dir": [-0.13, -0.98, 0.06],
    "segments": [{"len": 0.108, "r": 0.007}, {"len": 0.086, "r": 0.003, "fall": 5}, {"len": 0.064, "r": 0.002, "fall": 7, "taper": true}]}
  ],
