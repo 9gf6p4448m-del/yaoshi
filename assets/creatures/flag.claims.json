@@ -1,0 +1,101 @@
+{
+  "name": "媽祖令旗 flag_mazu_lingqi (xianghuo/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 shield.claims.json（第一隻 ward）。相對基底的改動只有兩類：① `saturation_area` 沿用 2026-09-04 凍結檔指定的 10%–60% 帶（沒有再放寬）；② 識別視角是**正面**不是側視（簡報 flag 列：招牌剪影＝背插三角旗，且 ward 的招牌掛正面／背面平面上），所以 `part_signature`／`share_hierarchy`／`focal_contrast`／`style_dark`／`part_visible(stone_head)` 的 view 一律 `front`——換的是量測的視角，不是門檻。加嚴之處：`focal_contrast` 的 min_ratio 從 2 提高到 3（同 shield）、另加 `part_visible`（獅頭不得被自己的旗吞掉，ward 專屬風險）與 `part_visible mane_curl`（真實參照鐵則的機械化：`docs/experiments/2026-09-04-ref-flag.md` 特徵 1 螺旋鬈鬃是石獅最不可誤讀的一件，側視必須量得到）。沒有一處放寬。",
+  "_frozen_at": "動手建模之前寫定（凍結檔 M-A0 要求 judge 全綠；本檔門檻此後一格未動，全部靠改 flag.json 去滿足）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "flag_cloth",
+      "stage": "MID",
+      "label": "招牌部位：背插三角令旗的旗面必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_flag",
+      "stage": "MID",
+      "label": "旗面捲的火必須存在，且材質名必須正是 glow_flag（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_signature",
+      "part": "flag_cloth",
+      "view": "front",
+      "min_share": 0.07,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（背插斜三角旗）在正面視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "stone_head",
+      "view": "front",
+      "min_share": 0.04,
+      "stage": "MID",
+      "label": "石獅頭必須在正面視角看得見——被自己背上的旗遮掉就等於沒有（ward 專屬風險）"
+    },
+    {
+      "type": "part_visible",
+      "part": "mane_curl",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵 1（螺旋鬈鬃）必須在側視量得到——這是石獅最不可能被誤讀的一件，看不到就不是石獅"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "stone_body",
+      "b": "glow_flag",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（石獅身／旗上的火）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["stone_body", "stone_head", "stone_leg", "paw_stone", "stone_jaw"],
+      "secondary": ["flag_cloth", "mane_curl", "sash", "sash_knot", "pole_wood", "gold_trim", "tail_stone", "ear_plate"],
+      "tertiary": ["glow_flag", "eye"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：石獅本體／令旗與綬帶與鬈鬃／火與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "炭黑底：在識別視角（正面）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
