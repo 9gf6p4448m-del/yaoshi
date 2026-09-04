@@ -1,307 +1,2606 @@
 {
  "name": "tiger_ye_yaohuo",
- "_variant": "V-C 妖火虎（look-dev 三方案之一）。基底＝assets/creatures/tiger.json，不動原檔。",
- "_paw_note": "buildPaw 的預設 offset 會把腳掌吸到地面（sole on ground）；抬起來的右前掌必須自己給 offset，否則掌會掉到 y=0.045 跟小腿脫節（part_attachment BLOCK 0.163）。",
- "_brief": "Yaohuo Tiger Lord: a temple 虎爺 possessed by ghost-fire. Charcoal-black fur with high-saturation ember bands burning along the flanks, eyes and the inside of the maw glowing, flame tongues on the tail tip and a jagged fire ridge down the spine. Deep crouch, head low, jaw wrenched wide. Feel: ferocious AND divine — a thing you kowtow to, not a thing you hug. Signature = the wide-open glowing maw. Identity view = side.",
- "_exaggeration_vs_anchor": "wolf anchor W/H 1.41 -> ~1.9 (crouched, long and very low); leg_fraction 0.35 -> ~0.24 (folded stump legs); the fire ridge + tail flames push the silhouette's turn_count up so it never reads as a smooth toy.",
+ "_variant": "V-C 妖火虎。2026-09-04 回修檢視卷：依 docs/experiments/2026-09-04-ref-tiger.md 的真實虎爺神像五條特徵回修（橘金布罩＋黑渦漩紋＋白毛邊＋深臉白獠牙＋紅綬帶＋蹲踞低伏），妖火語彙（火鬃／尾火／eye／mouth_glow）保留為『被供奉而燃燒』。基底＝assets/creatures/tiger.json，不動原檔。",
+ "_paw_note": "buildPaw 的預設 offset 會把腳掌吸到地面（sole on ground）；抬起來的掌必須自己給 offset，否則掌會掉到 y=0.045 跟小腿脫節（part_attachment BLOCK 0.163）。本回修版四掌全部落地蹲踞，沒有抬起的掌。",
+ "_brief": "Tiger Lord (虎爺) enshrined under the altar table: a deep crouch, forelegs stretched flat on the ground, chest low. Body wrapped in an orange-gold votive cloth edged with gold braid and a shaggy white fur trim; black curled-cloud whorls painted over the cloth. Dark lacquered face, jaw wrenched wide with paired white fangs, red silk sash hanging at the throat. Ghost-fire still burns along the spine and tail tip and inside the maw — it is a god that has been fed incense until it caught fire. Feel: solemn AND fierce — a thing you kowtow to. Signature = the wide-open glowing maw. Identity view = side.",
+ "_exaggeration_vs_anchor": "wolf anchor W/H 1.41 -> ~2.0 (crouched, long and very low); leg_fraction 0.35 -> ~0.20 (folded, belly near the ground); the fur-trim tufts + fire ridge + tail flames push the silhouette's turn_count up so it never reads as a smooth toy.",
  "_glow_materials": "eye / mouth_glow / glow_tail / glow_mane —— 命名是給 three.js 端用的：L 卷會把這些材質名接成 emissive，bloom 才吃得到。這份 spec 本身只把它們塗成高亮高飽和色。",
-
+ "_ref_map": "ref 特徵 → 本檔落點：①蹲踞低伏＝Hips y 0.40＋四掌落地＋前肢前伸；②橘金布罩＋黑渦漩紋＝fur_body #d98a24＋body arcs（脊黑／金滾邊／白毛邊／腹黑）＋8 對 stripe 捲雲板（一大一小成對、逐組換傾角）；③白毛邊＝arcs 香灰白帶＋5 對 trim 毛簇 curve（剪影上蓬鬆）；④深臉白獠牙＝fur_head #2e2b2a＋fang 四支＋大張口；⑤紅綬帶＝sash 垂墜 fin 兩對（聖經 §1 垂墜物）。",
  "palette": {
-  "fur_body": {"color": "#57534f", "rough": 0.95},
-  "fur_head": {"color": "#514c4b", "rough": 0.95},
-  "fur_jaw":  {"color": "#c6bba6", "rough": 0.9},
-  "fur_tail": {"color": "#57534f", "rough": 0.95},
-  "fur_leg":  {"color": "#494543", "rough": 0.95},
-  "fur_paw":  {"color": "#343131", "rough": 0.9},
-  "seal":     {"color": "#f6cf46", "rough": 0.25},
-  "fang":     {"color": "#f4eddc", "rough": 0.3},
-  "nose":     {"color": "#171515", "rough": 0.55},
-  "ear":      {"color": "#3b3634", "rough": 0.95},
-  "stripe":   {"color": "#141212", "rough": 0.9},
-  "eye":        {"color": "#ffe27a", "rough": 0.12},
-  "mouth_glow": {"color": "#ff8a1e", "rough": 0.2},
-  "glow_tail":  {"color": "#ffa32c", "rough": 0.2},
-  "glow_mane":  {"color": "#ff7414", "rough": 0.2}
+  "fur_body": {
+   "color": "#d98a24",
+   "rough": 0.6
+  },
+  "fur_head": {
+   "color": "#2e2b2a",
+   "rough": 0.9
+  },
+  "fur_jaw": {
+   "color": "#d8cfbc",
+   "rough": 0.85
+  },
+  "fur_tail": {
+   "color": "#302d2c",
+   "rough": 0.92
+  },
+  "fur_leg": {
+   "color": "#343131",
+   "rough": 0.92
+  },
+  "fur_paw": {
+   "color": "#262424",
+   "rough": 0.9
+  },
+  "trim": {
+   "color": "#ece4d4",
+   "rough": 0.95
+  },
+  "sash": {
+   "color": "#c22a1e",
+   "rough": 0.7
+  },
+  "seal": {
+   "color": "#f6cf46",
+   "rough": 0.25
+  },
+  "fang": {
+   "color": "#f4eddc",
+   "rough": 0.3
+  },
+  "nose": {
+   "color": "#171515",
+   "rough": 0.55
+  },
+  "ear": {
+   "color": "#2b2827",
+   "rough": 0.92
+  },
+  "stripe": {
+   "color": "#161616",
+   "rough": 0.9
+  },
+  "eye": {
+   "color": "#ffe27a",
+   "rough": 0.12
+  },
+  "mouth_glow": {
+   "color": "#ff8a1e",
+   "rough": 0.2
+  },
+  "glow_tail": {
+   "color": "#ffa32c",
+   "rough": 0.2
+  },
+  "glow_mane": {
+   "color": "#ff7414",
+   "rough": 0.2
+  }
  },
-
- "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
- "smooth_angle": 30,
-
+ "shading": {
+  "gradient": {
+   "top": 0.3,
+   "bottom": -0.88
+  },
+  "noise": {
+   "size": 0.018,
+   "amount": 0.26
+  }
+ },
+ "smooth_angle": 20,
  "joints": {
-  "Hips":   [0, 0.545, -0.34],
-  "Rump":   {"from": "Hips",  "up": -0.02, "fwd": -0.22},
-  "Spine":  {"from": "Hips",  "up":  0.00, "fwd":  0.34},
-  "Chest":  {"from": "Spine", "up":  0.03, "fwd":  0.26},
-  "NeckB":  {"from": "Chest", "up":  0.01, "fwd":  0.17},
-  "Neck2":  {"from": "NeckB", "up": -0.02, "fwd":  0.13},
-
-  "HeadRoot": {"from": "Neck2",   "up": -0.020, "fwd": -0.090},
-  "Skull":    {"from": "HeadRoot","side": 0.035, "up":  0.020, "fwd":  0.155},
-  "Brow":     {"from": "Skull",   "side": 0.055, "up":  0.005, "fwd":  0.115},
-  "Muzzle":   {"from": "Brow",    "side": 0.060, "up": -0.030, "fwd":  0.080},
-  "Nose":     {"from": "Muzzle",  "side": 0.030, "up": -0.030, "fwd":  0.068},
-
-  "JawRoot": {"from": "Skull",   "side": 0.02, "up": -0.090, "fwd": 0.050},
-  "Jaw1":    {"from": "JawRoot", "side": 0.05, "up": -0.215, "fwd": 0.110},
-  "JawTip":  {"from": "Jaw1",    "side": 0.03, "up": -0.020, "fwd": 0.088},
-
-  "TailRoot": {"from": "Hips",    "up": 0.06, "fwd": -0.14},
-  "Tail1":    {"from": "TailRoot","side": 0.06, "up": 0.05, "fwd": -0.18},
-  "Tail2":    {"from": "Tail1",   "side": 0.20, "up": 0.09, "fwd": -0.13},
-  "TailTip":  {"from": "Tail2",   "side": 0.15, "up": 0.14, "fwd": 0.02},
-
-  "LFrontRoot":  {"from": "Chest",       "side": 0.145, "up": -0.02,  "fwd": 0.00},
-  "LFrontElbow": {"from": "LFrontRoot",  "side": 0.070, "up": -0.205, "fwd": 0.075},
-  "LFrontWrist": {"from": "LFrontElbow", "side": 0.015, "up": -0.195, "fwd": -0.02},
-  "LFrontToe":   {"from": "LFrontWrist", "side": 0.005, "fwd": 0.10, "ground": 0.04},
-
-  "RFrontRoot":  {"from": "Chest",      "side": -0.145, "up": -0.010, "fwd": 0.02},
-  "RFrontElbow": {"from": "RFrontRoot", "side": -0.105, "up": -0.155, "fwd": 0.13},
-  "RFrontWrist": {"from": "RFrontElbow","side": -0.080, "up": -0.055, "fwd": 0.150},
-  "RFrontToe":   {"from": "RFrontWrist","side": -0.030, "up": -0.030, "fwd": 0.10},
-
-  "LBackRoot": {"from": "Hips",      "side": 0.120, "up": 0.01,   "fwd": 0.02},
-  "LBackKnee": {"from": "LBackRoot", "side": 0.060, "up": -0.140, "fwd": 0.115},
-  "LBackHock": {"from": "LBackKnee", "side": 0.01,  "up": -0.185, "fwd": -0.17},
-  "LBackToe":  {"from": "LBackHock", "side": 0.005, "fwd": 0.13, "ground": 0.04}
+  "Hips": [
+   0,
+   0.4,
+   -0.34
+  ],
+  "Rump": {
+   "from": "Hips",
+   "up": -0.01,
+   "fwd": -0.23
+  },
+  "Spine": {
+   "from": "Hips",
+   "up": 0.0,
+   "fwd": 0.34
+  },
+  "Chest": {
+   "from": "Spine",
+   "up": 0.03,
+   "fwd": 0.26
+  },
+  "NeckB": {
+   "from": "Chest",
+   "up": 0.01,
+   "fwd": 0.17
+  },
+  "Neck2": {
+   "from": "NeckB",
+   "up": -0.02,
+   "fwd": 0.13
+  },
+  "HeadRoot": {
+   "from": "Neck2",
+   "up": -0.012,
+   "fwd": -0.118
+  },
+  "Skull": {
+   "from": "HeadRoot",
+   "up": 0.022,
+   "fwd": 0.178
+  },
+  "Brow": {
+   "from": "Skull",
+   "up": 0.005,
+   "fwd": 0.115
+  },
+  "Muzzle": {
+   "from": "Brow",
+   "up": -0.03,
+   "fwd": 0.08
+  },
+  "Nose": {
+   "from": "Muzzle",
+   "up": -0.03,
+   "fwd": 0.068
+  },
+  "JawRoot": {
+   "from": "Skull",
+   "up": -0.09,
+   "fwd": 0.05
+  },
+  "Jaw1": {
+   "from": "JawRoot",
+   "up": -0.205,
+   "fwd": 0.115
+  },
+  "JawTip": {
+   "from": "Jaw1",
+   "up": -0.02,
+   "fwd": 0.088
+  },
+  "TailRoot": {
+   "from": "Hips",
+   "up": 0.05,
+   "fwd": -0.15
+  },
+  "Tail1": {
+   "from": "TailRoot",
+   "side": 0.07,
+   "up": 0.05,
+   "fwd": -0.18
+  },
+  "Tail2": {
+   "from": "Tail1",
+   "side": 0.2,
+   "up": 0.1,
+   "fwd": -0.12
+  },
+  "TailTip": {
+   "from": "Tail2",
+   "side": 0.14,
+   "up": 0.15,
+   "fwd": 0.03
+  },
+  "LFrontRoot": {
+   "from": "Chest",
+   "side": 0.15,
+   "up": -0.02,
+   "fwd": 0.0
+  },
+  "LFrontElbow": {
+   "from": "LFrontRoot",
+   "side": 0.062,
+   "up": -0.165,
+   "fwd": 0.105
+  },
+  "LFrontWrist": {
+   "from": "LFrontElbow",
+   "side": 0.014,
+   "up": -0.17,
+   "fwd": -0.015
+  },
+  "LFrontToe": {
+   "from": "LFrontWrist",
+   "side": 0.004,
+   "fwd": 0.125,
+   "ground": 0.04
+  },
+  "RFrontRoot": {
+   "from": "Chest",
+   "side": -0.15,
+   "up": -0.02,
+   "fwd": 0.0
+  },
+  "RFrontElbow": {
+   "from": "RFrontRoot",
+   "side": -0.062,
+   "up": -0.165,
+   "fwd": 0.105
+  },
+  "RFrontWrist": {
+   "from": "RFrontElbow",
+   "side": -0.014,
+   "up": -0.17,
+   "fwd": -0.015
+  },
+  "RFrontToe": {
+   "from": "RFrontWrist",
+   "side": -0.004,
+   "fwd": 0.125,
+   "ground": 0.04
+  },
+  "LBackRoot": {
+   "from": "Hips",
+   "side": 0.125,
+   "up": 0.01,
+   "fwd": 0.02
+  },
+  "LBackKnee": {
+   "from": "LBackRoot",
+   "side": 0.058,
+   "up": -0.115,
+   "fwd": 0.132
+  },
+  "LBackHock": {
+   "from": "LBackKnee",
+   "side": 0.012,
+   "up": -0.176,
+   "fwd": -0.158
+  },
+  "LBackToe": {
+   "from": "LBackHock",
+   "side": 0.004,
+   "fwd": 0.148,
+   "ground": 0.04
+  }
  },
-
  "chains": {
-  "body":   ["Rump", "Hips", "Spine", "Chest", "NeckB", "Neck2"],
-  "head":   ["HeadRoot", "Skull", "Brow", "Muzzle", "Nose"],
-  "jaw":    ["JawRoot", "Jaw1", "JawTip"],
-  "tail":   ["TailRoot", "Tail1", "Tail2", "TailTip"],
-  "LFront": ["LFrontRoot", "LFrontElbow", "LFrontWrist", "LFrontToe"],
-  "RFront": ["RFrontRoot", "RFrontElbow", "RFrontWrist", "RFrontToe"],
-  "LBack":  ["LBackRoot", "LBackKnee", "LBackHock", "LBackToe"]
+  "body": [
+   "Rump",
+   "Hips",
+   "Spine",
+   "Chest",
+   "NeckB",
+   "Neck2"
+  ],
+  "head": [
+   "HeadRoot",
+   "Skull",
+   "Brow",
+   "Muzzle",
+   "Nose"
+  ],
+  "jaw": [
+   "JawRoot",
+   "Jaw1",
+   "JawTip"
+  ],
+  "tail": [
+   "TailRoot",
+   "Tail1",
+   "Tail2",
+   "TailTip"
+  ],
+  "LFront": [
+   "LFrontRoot",
+   "LFrontElbow",
+   "LFrontWrist",
+   "LFrontToe"
+  ],
+  "RFront": [
+   "RFrontRoot",
+   "RFrontElbow",
+   "RFrontWrist",
+   "RFrontToe"
+  ],
+  "LBack": [
+   "LBackRoot",
+   "LBackKnee",
+   "LBackHock",
+   "LBackToe"
+  ]
  },
- "attach": {"head": "Neck2", "jaw": "Skull", "tail": "Hips", "LFront": "Chest", "RFront": "Chest", "LBack": "Hips"},
- "mirror": ["LBack"],
- "touch": [["body", "head"], ["head", "jaw"], ["body", "tail"]],
-
+ "attach": {
+  "head": "Neck2",
+  "jaw": "Skull",
+  "tail": "Hips",
+  "LFront": "Chest",
+  "RFront": "Chest",
+  "LBack": "Hips"
+ },
+ "mirror": [
+  "LBack"
+ ],
+ "touch": [
+  [
+   "body",
+   "head"
+  ],
+  [
+   "head",
+   "jaw"
+  ],
+  [
+   "body",
+   "tail"
+  ]
+ ],
  "volumes": [
-  {"chain": "body", "material": "fur_body", "frame": "up", "sides": 16, "smooth_angle": 26,
+  {
+   "chain": "body",
+   "material": "fur_body",
+   "frame": "up",
+   "sides": 16,
+   "smooth_angle": 22,
    "profile": [
-    [0.00, 0.150, 0.148],
-    [0.19, 0.262, 0.258, {"bias": -0.06, "sharp": true}],
-    [0.45, 0.208, 0.202, {"bias": -0.09, "sharp": true}],
-    [0.66, 0.240, 0.262, {"bias": -0.12}],
-    [0.81, 0.278, 0.300, {"bias": -0.06, "sharp": true}],
-    [0.94, 0.208, 0.198],
-    [1.00, 0.192, 0.188]
+    [
+     0.0,
+     0.15,
+     0.146
+    ],
+    [
+     0.17,
+     0.276,
+     0.244,
+     {
+      "exp": 3.2,
+      "bias": -0.05,
+      "sharp": true
+     }
+    ],
+    [
+     0.42,
+     0.258,
+     0.21,
+     {
+      "exp": 3.2,
+      "bias": -0.1,
+      "sharp": true
+     }
+    ],
+    [
+     0.64,
+     0.288,
+     0.248,
+     {
+      "exp": 3.2,
+      "bias": -0.12
+     }
+    ],
+    [
+     0.8,
+     0.302,
+     0.286,
+     {
+      "exp": 3.2,
+      "bias": -0.06,
+      "sharp": true
+     }
+    ],
+    [
+     0.93,
+     0.206,
+     0.196
+    ],
+    [
+     1.0,
+     0.19,
+     0.186
+    ]
    ],
-   "caps": ["dome", "dome"], "ring_step": 0.06,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 26,  "color": "#151110"},
-     {"from": 50,  "to": 104, "color": "#f24a06"},
-     {"from": 150, "to": 180, "color": "#3a2a24"}
-   ]}},
-
-  {"chain": "head", "material": "fur_head", "frame": "up", "sides": 14, "smooth_angle": 24,
+   "caps": [
+    "dome",
+    "dome"
+   ],
+   "ring_step": 0.06,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 22,
+      "color": "#1d1b1a"
+     },
+     {
+      "from": 106,
+      "to": 134,
+      "color": "#e8c860"
+     },
+     {
+      "from": 134,
+      "to": 157,
+      "color": "#ece4d4"
+     },
+     {
+      "from": 157,
+      "to": 180,
+      "color": "#26241f"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "head",
+   "material": "fur_head",
+   "frame": "up",
+   "sides": 14,
+   "smooth_angle": 20,
    "profile": [
-    [0.00, 0.168, 0.170],
-    [0.24, 0.296, 0.262, {"exp": 3.4, "sharp": true}],
-    [0.56, 0.278, 0.226, {"exp": 3.4, "sharp": true}],
-    [0.68, 0.148, 0.132, {"sharp": true}],
-    [1.00, 0.116, 0.104]
+    [
+     0.0,
+     0.168,
+     0.17
+    ],
+    [
+     0.24,
+     0.296,
+     0.262,
+     {
+      "exp": 3.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.56,
+     0.278,
+     0.226,
+     {
+      "exp": 3.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.68,
+     0.148,
+     0.132,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.116,
+     0.104
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.085,
-   "colors": {"arcs": [{"from": 0, "to": 14, "color": "#e03a04"}, {"from": 146, "to": 180, "color": "#c6bba6"}]}},
-
-  {"chain": "jaw", "material": "fur_jaw", "frame": "up", "sides": 10, "smooth_angle": 24,
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.085,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 26,
+      "color": "#9c7420"
+     },
+     {
+      "from": 146,
+      "to": 180,
+      "color": "#d8cfbc"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "jaw",
+   "material": "fur_jaw",
+   "frame": "up",
+   "sides": 10,
+   "smooth_angle": 20,
    "profile": [
-    [0.00, 0.150, 0.092],
-    [0.50, 0.142, 0.078, {"exp": 2.6, "sharp": true}],
-    [1.00, 0.094, 0.046]
+    [
+     0.0,
+     0.15,
+     0.092
+    ],
+    [
+     0.5,
+     0.142,
+     0.078,
+     {
+      "exp": 2.6,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.094,
+     0.046
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.055,
-   "colors": {"arcs": [{"from": 0, "to": 40, "color": "#ff5a08"}]}},
-
-  {"chain": "tail", "material": "fur_tail", "sides": 10, "smooth_angle": 26,
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.055,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 40,
+      "color": "#ff5a08"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "tail",
+   "material": "fur_tail",
+   "sides": 10,
+   "smooth_angle": 22,
    "profile": [
-    [0.00, 0.098, 0.098],
-    [0.40, 0.108, 0.108],
-    [0.80, 0.080, 0.080],
-    [1.00, 0.050, 0.050]
+    [
+     0.0,
+     0.098,
+     0.098
+    ],
+    [
+     0.4,
+     0.108,
+     0.108
+    ],
+    [
+     0.8,
+     0.08,
+     0.08
+    ],
+    [
+     1.0,
+     0.05,
+     0.05
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.06,
-   "colors": {"arcs": [{"from": 0, "to": 52, "color": "#f24a06"}]}},
-
-  {"chain": "LFront", "material": "fur_leg", "sides": 10, "smooth_angle": 26,
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.06
+  },
+  {
+   "chain": "LFront",
+   "material": "fur_leg",
+   "sides": 10,
+   "smooth_angle": 22,
    "profile": [
-    [0.00, 0.145, 0.155],
-    [0.45, 0.118, 0.122],
-    [0.85, 0.098, 0.098],
-    [1.00, 0.092, 0.058]
+    [
+     0.0,
+     0.145,
+     0.155
+    ],
+    [
+     0.45,
+     0.118,
+     0.122
+    ],
+    [
+     0.85,
+     0.098,
+     0.098
+    ],
+    [
+     1.0,
+     0.092,
+     0.058
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.095},
-
-  {"chain": "RFront", "material": "fur_leg", "sides": 10, "smooth_angle": 26,
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.095
+  },
+  {
+   "chain": "RFront",
+   "material": "fur_leg",
+   "sides": 10,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.145, 0.155],
-    [0.45, 0.118, 0.122],
-    [0.85, 0.098, 0.098],
-    [1.00, 0.092, 0.058]
+    [
+     0.0,
+     0.145,
+     0.155
+    ],
+    [
+     0.45,
+     0.118,
+     0.122
+    ],
+    [
+     0.85,
+     0.098,
+     0.098
+    ],
+    [
+     1.0,
+     0.092,
+     0.058
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.095},
-
-  {"chain": "LBack", "material": "fur_leg", "sides": 10, "smooth_angle": 26,
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.095
+  },
+  {
+   "chain": "LBack",
+   "material": "fur_leg",
+   "sides": 10,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.140, 0.162],
-    [0.28, 0.132, 0.150, {"exp": 2.4, "sharp": true}],
-    [0.55, 0.108, 0.118],
-    [0.85, 0.092, 0.092],
-    [1.00, 0.086, 0.055]
+    [
+     0.0,
+     0.14,
+     0.162
+    ],
+    [
+     0.28,
+     0.132,
+     0.15,
+     {
+      "exp": 2.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.55,
+     0.108,
+     0.118
+    ],
+    [
+     0.85,
+     0.092,
+     0.092
+    ],
+    [
+     1.0,
+     0.086,
+     0.055
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.095}
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.095
+  }
  ],
-
  "parts": [
-  {"type": "fin", "host": "Skull", "material": "ear", "thickness": 0.034, "conform": false,
-   "anchor": {"chain": "head", "t": 0.34, "around": 42},
-   "udir": [0.66, 0, 0.75], "vdir": [0.22, 1, 0],
-   "points": [[-0.062, -0.030], [0.098, 0.006], [0.030, 0.165]],
-   "mirrored": true},
-
-  {"type": "eye", "host": "Brow", "material": "eye", "size": 0.040,
-   "anchor": {"chain": "head", "t": 0.62, "around": 58}},
-
-  {"type": "fin", "host": "Brow", "material": "stripe", "thickness": 0.020, "conform": false,
-   "anchor": {"chain": "head", "t": 0.54, "around": 50},
-   "udir": [0.28, 0, 0.96], "vdir": [0.30, 0.95, 0],
-   "points": [[-0.070, -0.018], [0.128, -0.052], [0.144, 0.022], [-0.070, 0.058]],
-   "mirrored": true},
-
-  {"type": "spike", "host": "Nose", "material": "nose", "sides": 8,
-   "offset": [0, 0.005, 0.0], "dir": [0, -0.15, 1],
-   "segments": [{"len": 0.05, "r": 0.045}]},
-
-  {"type": "spike", "host": "JawRoot", "material": "mouth_glow", "sides": 8,
-   "offset": [0.01, -0.030, 0.055], "dir": [0.04, -0.34, 1],
-   "segments": [{"len": 0.175, "r": 0.088}]},
-
-  {"type": "curve", "host": "Muzzle", "material": "fang", "mirrored": true, "sides": 6,
-   "offset": [0.078, -0.058, 0.010], "dir": [0.05, -1, 0.16],
-   "segments": [{"len": 0.082, "r": 0.032}, {"len": 0.068, "r": 0.014, "behind": 18, "taper": true}]},
-
-  {"type": "curve", "host": "Jaw1", "material": "fang", "mirrored": true, "sides": 6,
-   "offset": [0.062, 0.032, 0.000], "dir": [0.05, 1, 0.16],
-   "segments": [{"len": 0.066, "r": 0.024}, {"len": 0.052, "r": 0.011, "ahead": 16, "taper": true}]},
-
-  {"type": "fin", "host": "Brow", "material": "seal", "thickness": 0.020,
-   "anchor": {"chain": "head", "t": 0.50, "around": 0},
-   "udir": [0, 0, 1], "vdir": [1, 0, 0],
-   "points": [[-0.036, -0.086], [0.036, -0.086], [0.086, -0.036], [0.086, 0.036],
-              [0.036, 0.086], [-0.036, 0.086], [-0.086, 0.036], [-0.086, -0.036]]},
-
-
-  {"type": "curve", "host": "Neck2", "material": "glow_mane", "sides": 6,
-   "offset": [0.000, 0.150, 0.010], "dir": [0.10, 0.94, -0.32],
-   "segments": [{"len": 0.098, "r": 0.052}, {"len": 0.078, "r": 0.030, "rise": 16}, {"len": 0.066, "r": 0.010, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "NeckB", "material": "glow_mane", "sides": 6,
-   "offset": [0.055, 0.170, 0.010], "dir": [0.42, 0.86, -0.30],
-   "segments": [{"len": 0.086, "r": 0.044}, {"len": 0.070, "r": 0.026, "rise": 16}, {"len": 0.058, "r": 0.009, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "NeckB", "material": "glow_mane", "sides": 6,
-   "offset": [-0.055, 0.170, 0.010], "dir": [-0.40, 0.87, -0.30],
-   "segments": [{"len": 0.082, "r": 0.042}, {"len": 0.066, "r": 0.024, "rise": 16}, {"len": 0.056, "r": 0.009, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "glow_mane", "sides": 6,
-   "offset": [0.000, 0.230, -0.020], "dir": [0.06, 0.93, -0.36],
-   "segments": [{"len": 0.118, "r": 0.060}, {"len": 0.094, "r": 0.034, "rise": 16}, {"len": 0.080, "r": 0.011, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "glow_mane", "sides": 6,
-   "offset": [0.075, 0.215, -0.030], "dir": [0.46, 0.84, -0.30],
-   "segments": [{"len": 0.096, "r": 0.048}, {"len": 0.078, "r": 0.028, "rise": 16}, {"len": 0.066, "r": 0.010, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Chest", "material": "glow_mane", "sides": 6,
-   "offset": [-0.075, 0.215, -0.030], "dir": [-0.44, 0.85, -0.30],
-   "segments": [{"len": 0.092, "r": 0.046}, {"len": 0.074, "r": 0.027, "rise": 16}, {"len": 0.062, "r": 0.010, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Spine", "material": "glow_mane", "sides": 6,
-   "offset": [0.000, 0.205, -0.030], "dir": [0.04, 0.92, -0.38],
-   "segments": [{"len": 0.086, "r": 0.046}, {"len": 0.070, "r": 0.026, "rise": 16}, {"len": 0.058, "r": 0.009, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Spine", "material": "glow_mane", "sides": 6,
-   "offset": [0.062, 0.190, -0.040], "dir": [0.44, 0.85, -0.30],
-   "segments": [{"len": 0.074, "r": 0.038}, {"len": 0.060, "r": 0.021, "rise": 16}, {"len": 0.050, "r": 0.008, "rise": 22, "taper": true}]},
-  {"type": "curve", "host": "Spine", "material": "glow_mane", "sides": 6,
-   "offset": [-0.062, 0.190, -0.040], "dir": [-0.42, 0.86, -0.30],
-   "segments": [{"len": 0.070, "r": 0.036}, {"len": 0.056, "r": 0.020, "rise": 16}, {"len": 0.048, "r": 0.008, "rise": 22, "taper": true}]},
-
-  {"type": "curve", "host": "TailTip", "material": "glow_tail", "sides": 6,
-   "offset": [0, -0.018, -0.012], "dir": [0.06, 0.92, -0.38],
-   "segments": [{"len": 0.100, "r": 0.056}, {"len": 0.082, "r": 0.030, "rise": 16}, {"len": 0.070, "r": 0.010, "rise": 20, "taper": true}]},
-  {"type": "curve", "host": "TailTip", "material": "glow_tail", "sides": 6,
-   "offset": [0.042, -0.028, -0.022], "dir": [0.52, 0.76, -0.38],
-   "segments": [{"len": 0.078, "r": 0.040}, {"len": 0.066, "r": 0.022, "rise": 14}, {"len": 0.056, "r": 0.009, "rise": 18, "taper": true}]},
-  {"type": "curve", "host": "TailTip", "material": "glow_tail", "sides": 6,
-   "offset": [-0.038, -0.026, -0.020], "dir": [-0.46, 0.80, -0.38],
-   "segments": [{"len": 0.072, "r": 0.036}, {"len": 0.060, "r": 0.020, "rise": 14}, {"len": 0.050, "r": 0.008, "rise": 18, "taper": true}]},
-
-  {"type": "fin", "host": "Spine", "material": "stripe", "thickness": 0.014, "conform": false,
-   "anchor": {"chain": "body", "t": 0.24, "around": 92},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.042, -0.125], [0.042, -0.125], [0.030, 0.140], [-0.030, 0.140]],
-   "mirrored": true},
-  {"type": "fin", "host": "Spine", "material": "stripe", "thickness": 0.014, "conform": false,
-   "anchor": {"chain": "body", "t": 0.34, "around": 94},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.042, -0.125], [0.042, -0.125], [0.030, 0.140], [-0.030, 0.140]],
-   "mirrored": true},
-  {"type": "fin", "host": "Spine", "material": "stripe", "thickness": 0.014, "conform": false,
-   "anchor": {"chain": "body", "t": 0.45, "around": 94},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.042, -0.125], [0.042, -0.125], [0.030, 0.140], [-0.030, 0.140]],
-   "mirrored": true},
-  {"type": "fin", "host": "Spine", "material": "stripe", "thickness": 0.014, "conform": false,
-   "anchor": {"chain": "body", "t": 0.56, "around": 92},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.042, -0.125], [0.042, -0.125], [0.030, 0.140], [-0.030, 0.140]],
-   "mirrored": true},
-  {"type": "fin", "host": "Chest", "material": "stripe", "thickness": 0.014, "conform": false,
-   "anchor": {"chain": "body", "t": 0.68, "around": 92},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.040, -0.115], [0.040, -0.115], [0.028, 0.130], [-0.028, 0.130]],
-   "mirrored": true},
-
-  {"type": "paw", "host": "LFrontToe", "material": "fur_paw", "size": [0.27, 0.21, 0.10]},
-  {"type": "paw", "host": "RFrontToe", "material": "fur_paw", "size": [0.28, 0.22, 0.11],
-   "offset": [0, 0.045, 0.05]},
-  {"type": "paw", "host": "LBackToe",  "material": "fur_paw", "size": [0.26, 0.20, 0.10], "mirrored": true}
+  {
+   "type": "fin",
+   "host": "Skull",
+   "material": "ear",
+   "thickness": 0.034,
+   "conform": false,
+   "anchor": {
+    "chain": "head",
+    "t": 0.34,
+    "around": 42
+   },
+   "udir": [
+    0.66,
+    0,
+    0.75
+   ],
+   "vdir": [
+    0.22,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     -0.03
+    ],
+    [
+     0.098,
+     0.006
+    ],
+    [
+     0.03,
+     0.165
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "eye",
+   "host": "Brow",
+   "material": "eye",
+   "size": 0.029,
+   "anchor": {
+    "chain": "head",
+    "t": 0.62,
+    "around": 58
+   }
+  },
+  {
+   "type": "fin",
+   "host": "Brow",
+   "material": "stripe",
+   "thickness": 0.02,
+   "conform": false,
+   "anchor": {
+    "chain": "head",
+    "t": 0.54,
+    "around": 50
+   },
+   "udir": [
+    0.28,
+    0,
+    0.96
+   ],
+   "vdir": [
+    0.3,
+    0.95,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     -0.018
+    ],
+    [
+     0.128,
+     -0.052
+    ],
+    [
+     0.144,
+     0.022
+    ],
+    [
+     -0.07,
+     0.058
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "spike",
+   "host": "Nose",
+   "material": "nose",
+   "sides": 8,
+   "offset": [
+    0,
+    0.005,
+    0.0
+   ],
+   "dir": [
+    0,
+    -0.15,
+    1
+   ],
+   "segments": [
+    {
+     "len": 0.05,
+     "r": 0.045
+    }
+   ]
+  },
+  {
+   "type": "spike",
+   "host": "JawRoot",
+   "material": "mouth_glow",
+   "sides": 8,
+   "offset": [
+    0.01,
+    -0.03,
+    0.055
+   ],
+   "dir": [
+    0.04,
+    -0.34,
+    1
+   ],
+   "segments": [
+    {
+     "len": 0.175,
+     "r": 0.088
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Muzzle",
+   "material": "fang",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.078,
+    -0.058,
+    0.01
+   ],
+   "dir": [
+    0.05,
+    -1,
+    0.16
+   ],
+   "segments": [
+    {
+     "len": 0.082,
+     "r": 0.032
+    },
+    {
+     "len": 0.068,
+     "r": 0.014,
+     "behind": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Jaw1",
+   "material": "fang",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.062,
+    0.032,
+    0.0
+   ],
+   "dir": [
+    0.05,
+    1,
+    0.16
+   ],
+   "segments": [
+    {
+     "len": 0.066,
+     "r": 0.024
+    },
+    {
+     "len": 0.052,
+     "r": 0.011,
+     "ahead": 16,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Brow",
+   "material": "seal",
+   "thickness": 0.02,
+   "anchor": {
+    "chain": "head",
+    "t": 0.5,
+    "around": 0
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.036,
+     -0.086
+    ],
+    [
+     0.036,
+     -0.086
+    ],
+    [
+     0.086,
+     -0.036
+    ],
+    [
+     0.086,
+     0.036
+    ],
+    [
+     0.036,
+     0.086
+    ],
+    [
+     -0.036,
+     0.086
+    ],
+    [
+     -0.086,
+     0.036
+    ],
+    [
+     -0.086,
+     -0.036
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "seal",
+   "thickness": 0.022,
+   "anchor": {
+    "chain": "body",
+    "t": 0.84,
+    "around": 170
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.038,
+     -0.092
+    ],
+    [
+     0.038,
+     -0.092
+    ],
+    [
+     0.092,
+     -0.038
+    ],
+    [
+     0.092,
+     0.038
+    ],
+    [
+     0.038,
+     0.092
+    ],
+    [
+     -0.038,
+     0.092
+    ],
+    [
+     -0.092,
+     0.038
+    ],
+    [
+     -0.092,
+     -0.038
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "sash",
+   "thickness": 0.02,
+   "anchor": {
+    "chain": "body",
+    "t": 0.9,
+    "around": 30
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.072,
+     -0.032
+    ],
+    [
+     -0.02,
+     -0.08
+    ],
+    [
+     0.05,
+     -0.064
+    ],
+    [
+     0.072,
+     0.02
+    ],
+    [
+     0.014,
+     0.078
+    ],
+    [
+     -0.054,
+     0.054
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "sash",
+   "thickness": 0.02,
+   "anchor": {
+    "chain": "body",
+    "t": 0.9,
+    "around": 78
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.074,
+     -0.034
+    ],
+    [
+     -0.02,
+     -0.082
+    ],
+    [
+     0.052,
+     -0.066
+    ],
+    [
+     0.074,
+     0.02
+    ],
+    [
+     0.014,
+     0.08
+    ],
+    [
+     -0.056,
+     0.056
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "sash",
+   "thickness": 0.02,
+   "anchor": {
+    "chain": "body",
+    "t": 0.89,
+    "around": 126
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.074,
+     -0.034
+    ],
+    [
+     -0.02,
+     -0.082
+    ],
+    [
+     0.052,
+     -0.066
+    ],
+    [
+     0.074,
+     0.02
+    ],
+    [
+     0.014,
+     0.08
+    ],
+    [
+     -0.056,
+     0.056
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "sash",
+   "thickness": 0.02,
+   "anchor": {
+    "chain": "body",
+    "t": 0.88,
+    "around": 166
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     -0.03
+    ],
+    [
+     -0.018,
+     -0.076
+    ],
+    [
+     0.048,
+     -0.06
+    ],
+    [
+     0.07,
+     0.018
+    ],
+    [
+     0.013,
+     0.074
+    ],
+    [
+     -0.052,
+     0.05
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "NeckB",
+   "material": "sash",
+   "thickness": 0.018,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.86,
+    "around": 96
+   },
+   "udir": [
+    0.1,
+    -0.36,
+    -0.93
+   ],
+   "vdir": [
+    0.94,
+    0.3,
+    0.16
+   ],
+   "points": [
+    [
+     -0.03,
+     -0.056
+    ],
+    [
+     0.09,
+     -0.076
+    ],
+    [
+     0.19,
+     -0.058
+    ],
+    [
+     0.24,
+     0.0
+    ],
+    [
+     0.19,
+     0.058
+    ],
+    [
+     0.09,
+     0.076
+    ],
+    [
+     -0.03,
+     0.056
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "curve",
+   "host": "Neck2",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.0,
+    0.15,
+    0.01
+   ],
+   "dir": [
+    0.1,
+    0.94,
+    -0.32
+   ],
+   "segments": [
+    {
+     "len": 0.0923,
+     "r": 0.052
+    },
+    {
+     "len": 0.0728,
+     "r": 0.03,
+     "rise": 16
+    },
+    {
+     "len": 0.0624,
+     "r": 0.01,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "NeckB",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.055,
+    0.17,
+    0.01
+   ],
+   "dir": [
+    0.42,
+    0.86,
+    -0.3
+   ],
+   "segments": [
+    {
+     "len": 0.0806,
+     "r": 0.044
+    },
+    {
+     "len": 0.065,
+     "r": 0.026,
+     "rise": 16
+    },
+    {
+     "len": 0.0546,
+     "r": 0.009,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.0,
+    0.23,
+    -0.02
+   ],
+   "dir": [
+    0.06,
+    0.93,
+    -0.36
+   ],
+   "segments": [
+    {
+     "len": 0.1105,
+     "r": 0.06
+    },
+    {
+     "len": 0.0884,
+     "r": 0.034,
+     "rise": 16
+    },
+    {
+     "len": 0.0754,
+     "r": 0.011,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.075,
+    0.215,
+    -0.03
+   ],
+   "dir": [
+    0.46,
+    0.84,
+    -0.3
+   ],
+   "segments": [
+    {
+     "len": 0.0897,
+     "r": 0.048
+    },
+    {
+     "len": 0.0728,
+     "r": 0.028,
+     "rise": 16
+    },
+    {
+     "len": 0.0624,
+     "r": 0.01,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Spine",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.0,
+    0.205,
+    -0.03
+   ],
+   "dir": [
+    0.04,
+    0.92,
+    -0.38
+   ],
+   "segments": [
+    {
+     "len": 0.0806,
+     "r": 0.046
+    },
+    {
+     "len": 0.065,
+     "r": 0.026,
+     "rise": 16
+    },
+    {
+     "len": 0.0546,
+     "r": 0.009,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Spine",
+   "material": "glow_mane",
+   "sides": 6,
+   "offset": [
+    0.062,
+    0.19,
+    -0.04
+   ],
+   "dir": [
+    0.44,
+    0.85,
+    -0.3
+   ],
+   "segments": [
+    {
+     "len": 0.0689,
+     "r": 0.038
+    },
+    {
+     "len": 0.0559,
+     "r": 0.021,
+     "rise": 16
+    },
+    {
+     "len": 0.0468,
+     "r": 0.008,
+     "rise": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "TailTip",
+   "material": "glow_tail",
+   "sides": 6,
+   "offset": [
+    0,
+    -0.018,
+    -0.012
+   ],
+   "dir": [
+    0.06,
+    0.92,
+    -0.38
+   ],
+   "segments": [
+    {
+     "len": 0.1,
+     "r": 0.056
+    },
+    {
+     "len": 0.082,
+     "r": 0.03,
+     "rise": 16
+    },
+    {
+     "len": 0.07,
+     "r": 0.01,
+     "rise": 20,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "TailTip",
+   "material": "glow_tail",
+   "sides": 6,
+   "offset": [
+    0.042,
+    -0.028,
+    -0.022
+   ],
+   "dir": [
+    0.52,
+    0.76,
+    -0.38
+   ],
+   "segments": [
+    {
+     "len": 0.078,
+     "r": 0.04
+    },
+    {
+     "len": 0.066,
+     "r": 0.022,
+     "rise": 14
+    },
+    {
+     "len": 0.056,
+     "r": 0.009,
+     "rise": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "TailTip",
+   "material": "glow_tail",
+   "sides": 6,
+   "offset": [
+    -0.038,
+    -0.026,
+    -0.02
+   ],
+   "dir": [
+    -0.46,
+    0.8,
+    -0.38
+   ],
+   "segments": [
+    {
+     "len": 0.072,
+     "r": 0.036
+    },
+    {
+     "len": 0.06,
+     "r": 0.02,
+     "rise": 14
+    },
+    {
+     "len": 0.05,
+     "r": 0.008,
+     "rise": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Hips",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.26,
+    "around": 74
+   },
+   "udir": [
+    0,
+    0.42,
+    0.91
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.112,
+     -0.008
+    ],
+    [
+     -0.058,
+     -0.042
+    ],
+    [
+     0.008,
+     -0.052
+    ],
+    [
+     0.07,
+     -0.03
+    ],
+    [
+     0.1,
+     0.004
+    ],
+    [
+     0.062,
+     0.04
+    ],
+    [
+     -0.006,
+     0.05
+    ],
+    [
+     -0.064,
+     0.036
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Spine",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.44,
+    "around": 86
+   },
+   "udir": [
+    0,
+    -0.34,
+    0.94
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.118,
+     -0.008
+    ],
+    [
+     -0.061,
+     -0.044
+    ],
+    [
+     0.008,
+     -0.055
+    ],
+    [
+     0.074,
+     -0.032
+    ],
+    [
+     0.105,
+     0.004
+    ],
+    [
+     0.065,
+     0.042
+    ],
+    [
+     -0.006,
+     0.053
+    ],
+    [
+     -0.067,
+     0.038
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.62,
+    "around": 70
+   },
+   "udir": [
+    0,
+    0.5,
+    0.87
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.11,
+     -0.008
+    ],
+    [
+     -0.057,
+     -0.041
+    ],
+    [
+     0.008,
+     -0.051
+    ],
+    [
+     0.069,
+     -0.029
+    ],
+    [
+     0.098,
+     0.004
+    ],
+    [
+     0.061,
+     0.039
+    ],
+    [
+     -0.006,
+     0.049
+    ],
+    [
+     -0.063,
+     0.035
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.565,
+    "around": 52
+   },
+   "udir": [
+    0,
+    0.97,
+    0.26
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.072,
+     -0.006
+    ],
+    [
+     -0.037,
+     -0.027
+    ],
+    [
+     0.006,
+     -0.034
+    ],
+    [
+     0.045,
+     -0.019
+    ],
+    [
+     0.064,
+     0.003
+    ],
+    [
+     0.04,
+     0.026
+    ],
+    [
+     -0.004,
+     0.032
+    ],
+    [
+     -0.041,
+     0.023
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Spine",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.36,
+    "around": 30
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0.4,
+    0.92
+   ],
+   "points": [
+    [
+     -0.098,
+     -0.007
+    ],
+    [
+     -0.051,
+     -0.037
+    ],
+    [
+     0.007,
+     -0.046
+    ],
+    [
+     0.062,
+     -0.026
+    ],
+    [
+     0.088,
+     0.004
+    ],
+    [
+     0.055,
+     0.035
+    ],
+    [
+     -0.005,
+     0.044
+    ],
+    [
+     -0.056,
+     0.032
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "stripe",
+   "thickness": 0.013,
+   "anchor": {
+    "chain": "body",
+    "t": 0.7,
+    "around": 96
+   },
+   "udir": [
+    0,
+    -0.62,
+    0.78
+   ],
+   "vdir": [
+    1,
+    0,
+    0
+   ],
+   "points": [
+    [
+     -0.096,
+     -0.007
+    ],
+    [
+     -0.05,
+     -0.036
+    ],
+    [
+     0.007,
+     -0.045
+    ],
+    [
+     0.061,
+     -0.026
+    ],
+    [
+     0.086,
+     0.004
+    ],
+    [
+     0.054,
+     0.034
+    ],
+    [
+     -0.005,
+     0.043
+    ],
+    [
+     -0.055,
+     0.031
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "curve",
+   "host": "Rump",
+   "material": "trim",
+   "sides": 5,
+   "mirrored": true,
+   "offset": [
+    0.098,
+    -0.108,
+    0.01
+   ],
+   "dir": [
+    0.58,
+    -0.81,
+    -0.1
+   ],
+   "segments": [
+    {
+     "len": 0.07,
+     "r": 0.052
+    },
+    {
+     "len": 0.046,
+     "r": 0.018,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Hips",
+   "material": "trim",
+   "sides": 5,
+   "mirrored": true,
+   "offset": [
+    0.132,
+    -0.152,
+    0.02
+   ],
+   "dir": [
+    0.6,
+    -0.8,
+    -0.08
+   ],
+   "segments": [
+    {
+     "len": 0.076,
+     "r": 0.056
+    },
+    {
+     "len": 0.05,
+     "r": 0.02,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Spine",
+   "material": "trim",
+   "sides": 5,
+   "mirrored": true,
+   "offset": [
+    0.138,
+    -0.156,
+    -0.04
+   ],
+   "dir": [
+    0.62,
+    -0.78,
+    0.06
+   ],
+   "segments": [
+    {
+     "len": 0.078,
+     "r": 0.058
+    },
+    {
+     "len": 0.052,
+     "r": 0.021,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Spine",
+   "material": "trim",
+   "sides": 5,
+   "mirrored": true,
+   "offset": [
+    0.142,
+    -0.152,
+    0.09
+   ],
+   "dir": [
+    0.64,
+    -0.76,
+    0.08
+   ],
+   "segments": [
+    {
+     "len": 0.076,
+     "r": 0.056
+    },
+    {
+     "len": 0.05,
+     "r": 0.02,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "trim",
+   "sides": 5,
+   "mirrored": true,
+   "offset": [
+    0.144,
+    -0.15,
+    -0.01
+   ],
+   "dir": [
+    0.64,
+    -0.76,
+    0.1
+   ],
+   "segments": [
+    {
+     "len": 0.074,
+     "r": 0.054
+    },
+    {
+     "len": 0.048,
+     "r": 0.019,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "LFrontToe",
+   "material": "fur_paw",
+   "size": [
+    0.27,
+    0.21,
+    0.1
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "RFrontToe",
+   "material": "fur_paw",
+   "size": [
+    0.27,
+    0.21,
+    0.1
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "LBackToe",
+   "material": "fur_paw",
+   "size": [
+    0.26,
+    0.2,
+    0.1
+   ],
+   "mirrored": true
+  }
  ],
-
  "animations": {
-  "idle": {"duration": 2.4, "loop": true,
+  "idle": {
+   "duration": 2.8,
+   "loop": true,
    "tracks": {
-    "NeckB": {"rx": [[0, -2], [0.5, 3], [1, -2]]},
-    "Skull": {"rx": [[0, 2], [0.5, -3], [1, 2]]},
-    "JawRoot": {"rx": [[0, 0], [0.5, 5], [1, 0]]},
-    "Tail1": {"ry": [[0, 9], [0.5, -9], [1, 9]]},
-    "Tail2": {"ry": [[0, -7], [0.25, 7], [0.75, -10], [1, -7]]},
-    "RFrontRoot": {"rx": [[0, -3], [0.5, 4], [1, -3]]},
-    "RFrontWrist": {"rx": [[0, 4], [0.5, -5], [1, 4]]},
-    "Hips": {"ty": [[0, 0], [0.5, 0.013], [1, 0]]}
-   }},
-  "move": {"duration": 0.85, "loop": true, "mirror_phase": 0.5,
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       -2
+      ],
+      [
+       0.5,
+       3
+      ],
+      [
+       1,
+       -2
+      ]
+     ]
+    },
+    "Skull": {
+     "rx": [
+      [
+       0,
+       2
+      ],
+      [
+       0.5,
+       -3
+      ],
+      [
+       1,
+       2
+      ]
+     ]
+    },
+    "JawRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Tail1": {
+     "ry": [
+      [
+       0,
+       7
+      ],
+      [
+       0.5,
+       -7
+      ],
+      [
+       1,
+       7
+      ]
+     ]
+    },
+    "Tail2": {
+     "ry": [
+      [
+       0,
+       -5
+      ],
+      [
+       0.3,
+       6
+      ],
+      [
+       0.8,
+       -8
+      ],
+      [
+       1,
+       -5
+      ]
+     ]
+    },
+    "Chest": {
+     "rx": [
+      [
+       0,
+       -1
+      ],
+      [
+       0.5,
+       2
+      ],
+      [
+       1,
+       -1
+      ]
+     ]
+    },
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.011
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 0.85,
+   "loop": true,
+   "mirror_phase": 0.5,
    "tracks": {
-    "LFrontRoot": {"rx": [[0, -20], [0.5, 22], [1, -20]]},
-    "LFrontElbow": {"rx": [[0, 8], [0.25, 19], [0.5, -4], [1, 8]]},
-    "LFrontWrist": {"rx": [[0, -8], [0.35, -17], [0.6, 5], [1, -8]]},
-    "RFrontRoot": {"rx": [[0, 22], [0.5, -20], [1, 22]]},
-    "RFrontElbow": {"rx": [[0, -4], [0.25, 8], [0.5, 19], [0.75, -4], [1, -4]]},
-    "RFrontWrist": {"rx": [[0, 5], [0.35, -8], [0.6, -17], [1, 5]]},
-    "LBackRoot": {"rx": [[0, 18], [0.5, -16], [1, 18]]},
-    "LBackKnee": {"rx": [[0, -7], [0.3, -18], [0.6, 6], [1, -7]]},
-    "LBackHock": {"rx": [[0, 5], [0.4, 15], [0.7, -4], [1, 5]]},
-    "Hips": {"ty": [[0, 0], [0.25, 0.024], [0.5, 0], [0.75, 0.024], [1, 0]]},
-    "NeckB": {"rx": [[0, 3], [0.5, -3], [1, 3]]},
-    "Tail1": {"ry": [[0, 10], [0.5, -10], [1, 10]]}
-   }},
-  "attack": {"duration": 0.75, "loop": false,
+    "LFrontRoot": {
+     "rx": [
+      [
+       0,
+       -20
+      ],
+      [
+       0.5,
+       22
+      ],
+      [
+       1,
+       -20
+      ]
+     ]
+    },
+    "LFrontElbow": {
+     "rx": [
+      [
+       0,
+       8
+      ],
+      [
+       0.25,
+       19
+      ],
+      [
+       0.5,
+       -4
+      ],
+      [
+       1,
+       8
+      ]
+     ]
+    },
+    "LFrontWrist": {
+     "rx": [
+      [
+       0,
+       -8
+      ],
+      [
+       0.35,
+       -17
+      ],
+      [
+       0.6,
+       5
+      ],
+      [
+       1,
+       -8
+      ]
+     ]
+    },
+    "RFrontRoot": {
+     "rx": [
+      [
+       0,
+       22
+      ],
+      [
+       0.5,
+       -20
+      ],
+      [
+       1,
+       22
+      ]
+     ]
+    },
+    "RFrontElbow": {
+     "rx": [
+      [
+       0,
+       -4
+      ],
+      [
+       0.25,
+       8
+      ],
+      [
+       0.5,
+       19
+      ],
+      [
+       0.75,
+       -4
+      ],
+      [
+       1,
+       -4
+      ]
+     ]
+    },
+    "RFrontWrist": {
+     "rx": [
+      [
+       0,
+       5
+      ],
+      [
+       0.35,
+       -8
+      ],
+      [
+       0.6,
+       -17
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    "LBackRoot": {
+     "rx": [
+      [
+       0,
+       18
+      ],
+      [
+       0.5,
+       -16
+      ],
+      [
+       1,
+       18
+      ]
+     ]
+    },
+    "LBackKnee": {
+     "rx": [
+      [
+       0,
+       -7
+      ],
+      [
+       0.3,
+       -18
+      ],
+      [
+       0.6,
+       6
+      ],
+      [
+       1,
+       -7
+      ]
+     ]
+    },
+    "LBackHock": {
+     "rx": [
+      [
+       0,
+       5
+      ],
+      [
+       0.4,
+       15
+      ],
+      [
+       0.7,
+       -4
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.024
+      ],
+      [
+       0.5,
+       0
+      ],
+      [
+       0.75,
+       0.024
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -3
+      ],
+      [
+       1,
+       3
+      ]
+     ]
+    },
+    "Tail1": {
+     "ry": [
+      [
+       0,
+       10
+      ],
+      [
+       0.5,
+       -10
+      ],
+      [
+       1,
+       10
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.9,
+   "loop": false,
    "tracks": {
-    "Rump": {"tz": [[0, 0], [0.28, -0.10], [0.55, 0.55], [1, 0]], "ty": [[0, 0], [0.28, -0.05], [0.55, 0.10], [1, 0]]},
-    "Spine": {"rx": [[0, 0], [0.28, 9], [0.55, -11], [1, 0]]},
-    "NeckB": {"rx": [[0, 0], [0.28, 11], [0.55, -14], [1, 0]]},
-    "JawRoot": {"rx": [[0, 0], [0.28, -5], [0.5, 22], [0.72, 4], [1, 0]]},
-    "LFrontRoot": {"rx": [[0, 0], [0.28, 20], [0.55, -26], [1, 0]]},
-    "LFrontElbow": {"rx": [[0, 0], [0.28, 16], [0.55, -14], [1, 0]]},
-    "RFrontRoot": {"rx": [[0, 0], [0.28, 24], [0.52, -32], [1, 0]], "ry": [[0, 0], [0.28, -12], [0.52, 16], [1, 0]]},
-    "RFrontElbow": {"rx": [[0, 0], [0.28, 18], [0.52, -16], [1, 0]]}
-   }}
+    "Rump": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       -0.13
+      ],
+      [
+       0.64,
+       0.58
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       -0.04
+      ],
+      [
+       0.64,
+       0.11
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       10
+      ],
+      [
+       0.64,
+       -12
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       12
+      ],
+      [
+       0.64,
+       -15
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "JawRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       -5
+      ],
+      [
+       0.58,
+       22
+      ],
+      [
+       0.78,
+       4
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFrontRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       21
+      ],
+      [
+       0.64,
+       -27
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFrontElbow": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       16
+      ],
+      [
+       0.64,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "RFrontRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       24
+      ],
+      [
+       0.62,
+       -32
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       -12
+      ],
+      [
+       0.62,
+       16
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "RFrontElbow": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       18
+      ],
+      [
+       0.62,
+       -16
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Tail1": {
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       16
+      ],
+      [
+       0.64,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
  }
 }
