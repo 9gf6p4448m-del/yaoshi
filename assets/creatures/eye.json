@@ -1,11 +1,11 @@
 {
  "name": "祖靈之眼 eye_zuling_yan (zuling/ward)",
- "_variant": "3D 量產批 6（2026-09-04）。祖靈之眼 zuling／ward ×2／trait wardFirst。**兩條根鏈的『裂開』構圖**：`chains.slab`（下石塊）與 `chains.brow`（上石塊）都不在 `attach` 裡，各自是 skeleton 的一個 root，中間留 0.360 的空縫，眼球直徑 0.42 塞在縫裡、上下各被石唇切掉 0.03 → 剪影自動收成杏仁。這是 shield 回修 4『同一個 GLB 可以裝兩個互不相碰的物件』那條事實的第二次運用，差別在 shield 用它把『蛇』與『盾』兩個剪影拆開，本檔用它把『一道裂縫』做進剪影裡——色帶做不出裂縫，缺口才做得出。眼睛是 6 層共軸短 curve 疊成的同心階梯（每一階的外緣都切在同一顆球面上），前視自然疊成同心環、側視仍是圓頂。祖靈金落在眼眶（兩圈環＋上下兩條眼瞼金條），靛藍在虹膜、金光在瞳心，豎瞳是穿出金光的近黑薄片。樹根是兩股纏在一起＋會分叉＋帶根瘤的 curve，從石頂拱過去當眉、沿兩側抓到地面。硬化守則：build rigid ＋ 兩個 volume 全 faceted ＋ 所有 profile exp >=4.6 ＋ smooth_angle 26 ＋ GLB <=1.5MB ＋ 三角形 <=8000。美術權威 docs/design/ART_BIBLE.md §0.5／§2；參照 docs/experiments/2026-09-04-ref-eye.md。",
+ "_variant": "3D 量產批 6（2026-09-04）。祖靈之眼 zuling／ward ×2／trait wardFirst。**兩條根鏈的『裂開』構圖**：`chains.slab`（下石塊）與 `chains.brow`（上石塊）都不在 `attach` 裡，各自是 skeleton 的一個 root，中間留 0.360 的空縫，眼球直徑 0.42 塞在縫裡、上下各被石唇切掉 0.03 → 剪影自動收成杏仁。這是 shield 回修 4『同一個 GLB 可以裝兩個互不相碰的物件』那條事實的第二次運用，差別在 shield 用它把『蛇』與『盾』兩個剪影拆開，本檔用它把『一道裂縫』做進剪影裡——色帶做不出裂縫，缺口才做得出。眼睛是 6 層共軸短 curve 疊成的同心階梯（每一階的外緣都切在同一顆球面上），前視自然疊成同心環、側視仍是圓頂。祖靈金落在眼眶（兩圈環＋上下兩條眼瞼金條），靛藍在虹膜、金光在瞳心，豎瞳是穿出金光的近黑薄片。樹根是兩股纏在一起＋會分叉＋帶根瘤的 curve，從石頂拱過去當眉、沿兩側抓到地面。硬化守則：build rigid ＋ 兩個 volume 全 faceted ＋ 所有 profile exp >=4.6 ＋ smooth_angle 26 ＋ GLB <=1.5MB ＋ 三角形 <=8000。美術權威 docs/design/ART_BIBLE.md §0.5／§2；參照 docs/experiments/2026-09-04-ref-eye.md。 ／2026-09-04 回修卷（review-eye）：量產版樹根累計 0/6 被讀成籠／骨架／支架／捆繩，根因是 ward 的正面寬把樹根逼成「左右對稱從頂框到底」——對稱框住一個東西在讀者語彙裡就是骨架。回修改法：(甲) 不對稱——+X 側一條粗根從樹幹樁盤下、-X 側只留兩條吊在裂縫裡的短細鬚；(乙) 下半段散成四條方向各異、末端漸細、全部停在半空的鬚根（不落底框、不閉合剪影），中段再岔出兩條更細的 hair；(丙) 眉根保留（樹根當眉）但不再橫貫全寬——橫貫全寬會讀成帽簷，改成從 +X 拱到中線偏左就收尖；(丁) 眼球組整體放大 1.16 倍、眼白收成眼角、金眼瞼收到 ±0.30，讓主詞從石體回到眼；(戊) 裂縫兩端加收窄的石唇＋岩面暗色細裂線。回修後四位讀者「樹根／根／樹」4/4、「籠／骨架／支架／繩」0/4、主印象含眼 4/4。",
  "_brief": "A cliff that opened an eye. TWO stone masses, one file, one rig, no parent between them: a squat charcoal-grey CRAG on the ground and, floating a third of a body-height above it, an overhanging BROW BLOCK. The gap between them is a horizontal FISSURE, and filling that fissure is ONE ENORMOUS EYE — a bone-pale almond whose outer corners are stone wedges, carrying at its centre a bulging ball ringed by TWO CONCENTRIC RAISED GOLD BANDS around an indigo iris and a small burning gold pupil-core split by a BLACK VERTICAL SLIT. A thick gold rim lines the upper and the lower lip of the fissure like eyelids. Over the top, gnarled TREE ROOTS — two strands twisted together, knotted, forking — arch across as a brow and run down BOTH SIDES to grip the ground among angular rubble. Two rows of evenly spaced alternating TRIANGLES run as a zigzag ribbon along the top and the bottom of the stone. Identity view = FRONT.",
- "_ref_features": "docs/experiments/2026-09-04-ref-eye.md 的五條 -> 本模型的落點：(1) 巨大單眼 -> 眼球直徑 0.42（模型寬 1.18 的 35%），只有一隻，塞在 0.360 的石縫裡；(2) 兩圈同心凸環＋中央深色瞳 -> socket_out（rho 0.176）／socket_in（rho 0.098）兩圈祖靈金階梯，中間 iris 靛藍、iris_glow 金光，最前是穿出來的近黑豎瞳薄片（fin, thickness 0.062）；(3) 樹根拱眉＋兩側抓地 -> root_main＋root_twin 兩股纏繞（半徑刻意忽粗忽細＝根瘤）自石頂拱過去、落到 y~0.02，另有 root_fork／root_fork2 分叉、root_face 沿石面往下爬、root_butt 板根外八；(4) 橫向石縫 -> slab 頂 y 0.480、brow 底 y 0.840 的實體空缺（不是色帶）；(5) 三角鋸齒紋帶 -> bone 材質、上下各一列上下交錯相接的等距三角 fin。",
+ "_ref_features": "docs/experiments/2026-09-04-ref-eye.md 的五條 -> 本模型的落點：(1) 巨大單眼 -> 眼球直徑 0.42（模型寬 1.18 的 35%），只有一隻，塞在 0.360 的石縫裡；(2) 兩圈同心凸環＋中央深色瞳 -> socket_out（rho 0.176）／socket_in（rho 0.098）兩圈祖靈金階梯，中間 iris 靛藍、iris_glow 金光，最前是穿出來的近黑豎瞳薄片（fin, thickness 0.062）；(3) 樹根拱眉＋兩側抓地 -> root_main＋root_twin 兩股纏繞（半徑刻意忽粗忽細＝根瘤）自石頂拱過去、落到 y~0.02，另有 root_fork／root_fork2 分叉、root_face 沿石面往下爬、root_butt 板根外八；(4) 橫向石縫 -> slab 頂 y 0.480、brow 底 y 0.840 的實體空缺（不是色帶）；(5) 三角鋸齒紋帶 -> bone 材質、上下各一列上下交錯相接的等距三角 fin。 ／回修後 ★③ 的落點改為：root_bough（+X 粗根，半徑 0.112→0.086 忽粗忽細＝根瘤）＋root_twist（纏繞的第二股，root_ridge 材質）＋root_brow／root_brow_twin／root_brow_drip／root_brow_fork（拱過眼上當眉、分叉、末端漸細）＋rootlet_a..d（散開的鬚根，末端 y 0.17-0.25 全部懸空）＋hair_a／hair_b（中段岔出的細鬚）＋whisk_a／whisk_b（-X 側僅有的兩條短鬚，停在裂縫高度）。★④ 落點改為：slab／brow 之間 0.360 的實體空缺（主縫）＋crack_lip_up／low（兩端收窄的石唇）＋crk_up1/2、crk_dn1/2、crk_side（pupil 材質的岩面細裂線）。",
  "_ward_recipe": "ward 寫法（承 shield _ward_recipe，本檔新增／修正的部分）：(1) 主鏈垂直＋frame:'up' -> profile 的 half-width 吃 X（正面寬）、half-height 吃 Z（側面厚），ward 的正面寬 >= 側面寬由 profile 兩欄比值建構上保證（實測 bbox X 1.185 vs Z 0.727 = 1.63x）。(2) 垂直鏈的 colors.arcs sym：0=背、180=正面。(3) ★不要給 ward 生物做腿——本檔第一輪盲讀 2/2 把四個樹根落地端讀成『四隻爪足』，解法是在落地處堆角礫把末端埋掉，不是把根縮短。(4) ★招牌部位要用『缺口』而不是『色塊』做：山壁裂開這件事在低多邊形無貼圖下只有『真的挖掉一段』才讀得出來。(5) ★碎石／台座這類補件要用跟主體同一個 material：另立一個材質會讓它落在 share_hierarchy 的三組之外，primary 相對變小——本檔實測把階層打成 42:47:12 直接 BLOCK，改回 rock 就過。(6) ★ward 的掛件（樹根／垂墜物／旗）很容易把 secondary 撐破：本檔 secondary 一度到 45%（容差上緣），解法是把樹根整體收細 20%（ROOT_SCALE 0.80），不是動門檻。",
  "_glow_materials": "eye / glow_iris —— 材質名是給 three.js 接 emissive 用的（js/creature-figures.js:51 的 /^eye(_|$)|^mouth_glow(_|$)|^glow_/）。eye＝靛藍虹膜、glow_iris＝瞳心金光。★兩者的顏色都比直覺暗一階：GLOW.intensity 是 2.8、bloom threshold 0.5，#d8a63e 的瞳心在戲台上會把豎瞳整片燒掉，壓到 #8a5a12 才看得見瞳。",
- "_traps": "(1) 近黑一律中性灰（S<0.15），shading.noise 會把偏暖近黑擾到 HSV S>0.5（猛虎報告 (5)-6）；(2) fin 帶 anchor 時 offset 被丟掉，本檔所有 fin 都用 host+offset＋conform:false；(3) part_attachment 只看『所有頂點裡離宿主最近的那一個』，扁體型上是假綠燈——本檔的貼合全部自己算過；(4) root_containment 只走 attach 裡的鏈，所以兩條互不相碰的根鏈是合法且沒有貼合檢查的（shield (5)-3）；(5) 相鄰段長比 >0.923 會被 proportion BLOCK，slab 0.810/0.659、brow 0.701 都算過；(6) ★★ coil 封閉環的圓心公式：起點朝 +X、每段 coil=360/n 時，**實際圓心 C = P0 + R*(cos(270-turn/2), sin(270-turn/2))**。按『順時針多邊形』的教科書推導寫成 90+turn/2 會讓圓心整整偏掉 1.932R（本檔實測 0.3284 對 R=0.170）——coil 只轉 t、不轉 side，所以環一定落在起始的 t×side 平面上（本檔是 XY 平面、z 為常數），閉合誤差 0。**寫完一定要把 12 個頂點的重心與半徑印出來對一次**，不要相信推導；(7) ★『同心環』不要用一圈一圈的環管去堆，用**共軸短 curve 一階一階疊**（每階的外緣切在同一顆球面上）：環管必須精準落在曲面上才不會半埋半浮，階梯只要後端往裡埋就一定咬得住，而且前視自然就是同心圓；(8) ★沿著石面往下垂的掛件要跟著石面的 z 走：本檔石面的 half-height 從上緣 0.242 鼓到 y=0.12 處的 0.316，直直往下垂的氣根會在半途鑽進石頭裡，只露出上面兩截——hero 上被讀成『一對獠牙』；(9) ★『一排同向的尖三角掛在深色面上』一律讀成一口牙（r1 兩位都寫『尖齒／獠牙』）。改成上下交錯相接的 zigzag 緞帶就沒有那條水平『牙根線』了；(10) ★斜倚在側面的薄板（想做岩石斷口）在 hero 上只讀成『戳出輪廓的黑色平板』，已否證移除；(11) ★『石頭』不能做成近黑：#2a2825 被 2/2 讀成『黑箱／甲殼／棺木』，提到 #46423c（front 中位亮度 45.3，門檻是 <=90，餘裕很大）才讀成石。這條和 shield (5)-9、flag (6)-3 同族——style_dark 的空間比大家用的多很多；(12) ★剖面做進退（in-out-in）＋底部外撇，bind pose 會綠、但 idle 轉 0.5 度就翻 13 個三角形——anim_integrity 比 mesh_integrity 嚴得多，剖面的斜率要用『動起來會不會翻』來訂，不是『編得出來就好』；(13) 戲台相機沒有正規化縮放（js/creature-figures.js），全高要收在 1.2-1.25，本檔 1.2075。",
+ "_traps": "(1) 近黑一律中性灰（S<0.15），shading.noise 會把偏暖近黑擾到 HSV S>0.5（猛虎報告 (5)-6）；(2) fin 帶 anchor 時 offset 被丟掉，本檔所有 fin 都用 host+offset＋conform:false；(3) part_attachment 只看『所有頂點裡離宿主最近的那一個』，扁體型上是假綠燈——本檔的貼合全部自己算過；(4) root_containment 只走 attach 裡的鏈，所以兩條互不相碰的根鏈是合法且沒有貼合檢查的（shield (5)-3）；(5) 相鄰段長比 >0.923 會被 proportion BLOCK，slab 0.810/0.659、brow 0.701 都算過；(6) ★★ coil 封閉環的圓心公式：起點朝 +X、每段 coil=360/n 時，**實際圓心 C = P0 + R*(cos(270-turn/2), sin(270-turn/2))**。按『順時針多邊形』的教科書推導寫成 90+turn/2 會讓圓心整整偏掉 1.932R（本檔實測 0.3284 對 R=0.170）——coil 只轉 t、不轉 side，所以環一定落在起始的 t×side 平面上（本檔是 XY 平面、z 為常數），閉合誤差 0。**寫完一定要把 12 個頂點的重心與半徑印出來對一次**，不要相信推導；(7) ★『同心環』不要用一圈一圈的環管去堆，用**共軸短 curve 一階一階疊**（每階的外緣切在同一顆球面上）：環管必須精準落在曲面上才不會半埋半浮，階梯只要後端往裡埋就一定咬得住，而且前視自然就是同心圓；(8) ★沿著石面往下垂的掛件要跟著石面的 z 走：本檔石面的 half-height 從上緣 0.242 鼓到 y=0.12 處的 0.316，直直往下垂的氣根會在半途鑽進石頭裡，只露出上面兩截——hero 上被讀成『一對獠牙』；(9) ★『一排同向的尖三角掛在深色面上』一律讀成一口牙（r1 兩位都寫『尖齒／獠牙』）。改成上下交錯相接的 zigzag 緞帶就沒有那條水平『牙根線』了；(10) ★斜倚在側面的薄板（想做岩石斷口）在 hero 上只讀成『戳出輪廓的黑色平板』，已否證移除；(11) ★『石頭』不能做成近黑：#2a2825 被 2/2 讀成『黑箱／甲殼／棺木』，提到 #46423c（front 中位亮度 45.3，門檻是 <=90，餘裕很大）才讀成石。這條和 shield (5)-9、flag (6)-3 同族——style_dark 的空間比大家用的多很多；(12) ★剖面做進退（in-out-in）＋底部外撇，bind pose 會綠、但 idle 轉 0.5 度就翻 13 個三角形——anim_integrity 比 mesh_integrity 嚴得多，剖面的斜率要用『動起來會不會翻』來訂，不是『編得出來就好』；(13) 戲台相機沒有正規化縮放（js/creature-figures.js），全高要收在 1.2-1.25，本檔 1.2075。 ／【回修卷新增】(14) part_attachment 對 curve 的要求是「根的前段要埋進宿主體內」：鬚根末端可以懸空、起點不行——本卷四條 rootlet 起點落在超橢圓外（f≈1.18）就被 BLOCK（clearance 0.035 > tolerance 0.019），解法是把起點沿 (x,z) 往軸心拉到 f≈0.86；(15) ★掛件在超橢圓石面上「看不看得見」要用 f=((|x|/a)^5+(|z|/b)^5)^(1/5) 算，f<1 就是埋在石頭裡——本卷第一版整組鬚根 f 只有 0.53-0.90，渲染圖上完全消失（同 (8) 那族，但這次是曲面外緣不是 z）；(16) ★★curve 的 dir + rise/fall/ahead/behind 手算幾乎一定歪：steering 會累加，且套用順序固定為 rise→fall→ahead→behind。可靠做法是先訂世界座標航點，再對每段用整數度數網格搜尋反解 steering——本卷用這法一次命中全部航點（末端誤差 <0.001）；(17) ★fin 的 points 必須是凸多邊形：想做楔形收口而寫成凹五邊形，直接 mesh_integrity BLOCK「bind pose has 8 flipped tris」，要凹形就拆成兩片凸的；(18) ★★「左右對稱地從頂框到底」＝籠子，不是樹根（量產卷 6 位讀者 0/6）。要讀成根有四個條件：不對稱（一側粗根、另一側只有細鬚）、有分叉、末端漸細、且不得閉合剪影；回修後 4/4 讀出；(19) ★近黑細長薄板 thickness 0.05 在 3/4 視角讀成「貼上去的黑條／爪」，收到 0.022 才讀成裂線（同 (5)-5 薄板那族的反面用法）；(20) 岩面細裂線只能撐到「表面有裂縫紋理」這個層次：把上石塊沿裂縫橫移 -0.075（約全寬 6%）做斷層錯位、並把細裂線移離眼睛，第 3 輪兩位反而把細裂線讀成「插在石殼上的荊棘／小刺」，★④「石體被一道橫向裂縫裂開」仍 0/2——出貨版因此退回沒有斷層錯位的第 2 輪版。",
  "palette": {
   "rock": {
    "color": "#46423c",
@@ -161,12 +161,12 @@
      {
       "from": 0,
       "to": 72,
-      "color": "#37342f"
+      "color": "#3f3c37"
      },
      {
       "from": 73,
       "to": 100,
-      "color": "#565049"
+      "color": "#4f4a43"
      },
      {
       "from": 101,
@@ -176,12 +176,12 @@
      {
       "from": 143,
       "to": 160,
-      "color": "#7a5a34"
+      "color": "#63482c"
      },
      {
       "from": 161,
       "to": 180,
-      "color": "#4d4841"
+      "color": "#454039"
      }
     ]
    }
@@ -238,12 +238,12 @@
      {
       "from": 0,
       "to": 72,
-      "color": "#35322d"
+      "color": "#3d3a35"
      },
      {
       "from": 73,
       "to": 100,
-      "color": "#544e47"
+      "color": "#4d4841"
      },
      {
       "from": 101,
@@ -253,12 +253,12 @@
      {
       "from": 143,
       "to": 160,
-      "color": "#7a5a34"
+      "color": "#61462b"
      },
      {
       "from": 161,
       "to": 180,
-      "color": "#4b463f"
+      "color": "#434039"
      }
     ]
    }
@@ -267,16 +267,15 @@
  "parts": [
   {
    "type": "fin",
-   "name": "canthus",
+   "name": "fissure_web",
    "host": "Sl3",
    "material": "rock",
-   "mirrored": true,
-   "thickness": 0.3,
+   "thickness": 0.1,
    "conform": false,
    "offset": [
-    0.372,
+    0.0,
     0.18,
-    0.01
+    0.02
    ],
    "udir": [
     1,
@@ -290,20 +289,36 @@
    ],
    "points": [
     [
-     -0.126,
-     -0.066
+     -0.398,
+     -0.182
     ],
     [
-     0.104,
-     -0.226
+     -0.15,
+     -0.196
     ],
     [
-     0.104,
-     0.226
+     0.15,
+     -0.196
     ],
     [
-     -0.126,
-     0.066
+     0.398,
+     -0.182
+    ],
+    [
+     0.398,
+     0.182
+    ],
+    [
+     0.15,
+     0.196
+    ],
+    [
+     -0.15,
+     0.196
+    ],
+    [
+     -0.398,
+     0.182
     ]
    ]
   },
@@ -326,20 +341,20 @@
    ],
    "segments": [
     {
-     "len": 0.076,
-     "r": 0.128
+     "len": 0.08816,
+     "r": 0.14848
     },
     {
-     "len": 0.062,
-     "r": 0.176
+     "len": 0.07192,
+     "r": 0.20416
     },
     {
-     "len": 0.054,
-     "r": 0.202
+     "len": 0.06264,
+     "r": 0.23432
     },
     {
-     "len": 0.04,
-     "r": 0.206
+     "len": 0.0464,
+     "r": 0.23896
     }
    ]
   },
@@ -352,7 +367,7 @@
    "offset": [
     0.0,
     -0.18,
-    0.1328
+    0.16013
    ],
    "dir": [
     0,
@@ -361,8 +376,8 @@
    ],
    "segments": [
     {
-     "len": 0.1358,
-     "r": 0.176
+     "len": 0.15753,
+     "r": 0.20416
     }
    ]
   },
@@ -375,7 +390,7 @@
    "offset": [
     0.0,
     -0.18,
-    0.2066
+    0.24574
    ],
    "dir": [
     0,
@@ -384,8 +399,8 @@
    ],
    "segments": [
     {
-     "len": 0.104,
-     "r": 0.14
+     "len": 0.12064,
+     "r": 0.1624
     }
    ],
    "smooth_angle": 30
@@ -399,7 +414,7 @@
    "offset": [
     0.0,
     -0.18,
-    0.2485
+    0.29434
    ],
    "dir": [
     0,
@@ -408,8 +423,8 @@
    ],
    "segments": [
     {
-     "len": 0.0912,
-     "r": 0.098
+     "len": 0.10579,
+     "r": 0.11368
     }
    ]
   },
@@ -422,7 +437,7 @@
    "offset": [
     0.0,
     -0.18,
-    0.2777
+    0.32821
    ],
    "dir": [
     0,
@@ -431,8 +446,8 @@
    ],
    "segments": [
     {
-     "len": 0.0781,
-     "r": 0.058
+     "len": 0.0906,
+     "r": 0.06728
     }
    ],
    "smooth_angle": 30
@@ -442,12 +457,12 @@
    "name": "pupil",
    "host": "Br0",
    "material": "pupil",
-   "thickness": 0.062,
+   "thickness": 0.07192,
    "conform": false,
    "offset": [
     0.0,
     -0.18,
-    0.368
+    0.43296
    ],
    "udir": [
     1,
@@ -461,20 +476,20 @@
    ],
    "points": [
     [
-     -0.0255,
+     -0.02958,
      0.0
     ],
     [
      0.0,
-     0.082
+     0.09512
     ],
     [
-     0.0255,
+     0.02958,
      0.0
     ],
     [
      0.0,
-     -0.082
+     -0.09512
     ]
    ]
   },
@@ -484,12 +499,12 @@
    "host": "Br0",
    "material": "sclera",
    "mirrored": true,
-   "thickness": 0.105,
+   "thickness": 0.1218,
    "conform": false,
    "offset": [
-    0.276,
+    0.235,
     -0.18,
-    0.19
+    0.22648
    ],
    "udir": [
     1,
@@ -503,28 +518,28 @@
    ],
    "points": [
     [
-     -0.152,
-     -0.178
+     -0.15,
+     -0.15
     ],
     [
      -0.03,
-     -0.126
+     -0.106
     ],
     [
-     0.146,
-     -0.024
+     0.055,
+     -0.02
     ],
     [
-     0.146,
-     0.024
+     0.055,
+     0.02
     ],
     [
      -0.03,
-     0.13
+     0.11
     ],
     [
-     -0.152,
-     0.178
+     -0.15,
+     0.15
     ]
    ]
   },
@@ -552,7 +567,7 @@
    ],
    "points": [
     [
-     -0.43,
+     -0.301,
      0.0
     ],
     [
@@ -564,7 +579,7 @@
      -0.026
     ],
     [
-     0.43,
+     0.301,
      0.0
     ],
     [
@@ -609,7 +624,7 @@
      -0.03
     ],
     [
-     0.43,
+     0.301,
      -0.0
     ],
     [
@@ -621,209 +636,10 @@
      0.026
     ],
     [
-     -0.43,
+     -0.301,
      -0.0
     ]
    ]
-  },
-  {
-   "type": "curve",
-   "name": "root_main",
-   "host": "Br2",
-   "material": "root_wood",
-   "sides": 9,
-   "offset": [
-    0.05,
-    -0.082,
-    0.126
-   ],
-   "dir": [
-    0.56,
-    0.6,
-    0.1
-   ],
-   "segments": [
-    {
-     "len": 0.145,
-     "r": 0.0736
-    },
-    {
-     "len": 0.165,
-     "r": 0.048,
-     "fall": 44
-    },
-    {
-     "len": 0.205,
-     "r": 0.0688,
-     "fall": 42
-    },
-    {
-     "len": 0.255,
-     "r": 0.0368,
-     "fall": 34
-    },
-    {
-     "len": 0.275,
-     "r": 0.0464,
-     "fall": 16
-    },
-    {
-     "len": 0.23,
-     "r": 0.024,
-     "fall": 6
-    },
-    {
-     "len": 0.262,
-     "r": 0.0288,
-     "fall": 4
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_side",
-   "host": "Br0",
-   "material": "root_ridge",
-   "sides": 8,
-   "offset": [
-    0.238,
-    -0.02,
-    0.12
-   ],
-   "dir": [
-    0.6,
-    -0.1,
-    0.24
-   ],
-   "segments": [
-    {
-     "len": 0.12,
-     "r": 0.0336
-    },
-    {
-     "len": 0.12,
-     "r": 0.0256,
-     "fall": 30
-    },
-    {
-     "len": 0.13,
-     "r": 0.0304,
-     "fall": 28
-    },
-    {
-     "len": 0.115,
-     "r": 0.0208,
-     "fall": 20,
-     "taper": true
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_crest",
-   "host": "Br2",
-   "material": "root_wood",
-   "sides": 9,
-   "offset": [
-    0.132,
-    -0.052,
-    -0.03
-   ],
-   "dir": [
-    0.34,
-    0.86,
-    -0.38
-   ],
-   "segments": [
-    {
-     "len": 0.062,
-     "r": 0.0304
-    },
-    {
-     "len": 0.052,
-     "r": 0.0192,
-     "behind": 30
-    },
-    {
-     "len": 0.044,
-     "r": 0.0128,
-     "behind": 26,
-     "taper": true
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_butt",
-   "host": "Sl0",
-   "material": "root_wood",
-   "sides": 9,
-   "offset": [
-    0.462,
-    0.128,
-    0.15
-   ],
-   "dir": [
-    0.42,
-    -0.4,
-    0.82
-   ],
-   "segments": [
-    {
-     "len": 0.115,
-     "r": 0.032
-    },
-    {
-     "len": 0.1,
-     "r": 0.024,
-     "ahead": 26
-    },
-    {
-     "len": 0.085,
-     "r": 0.016,
-     "ahead": 18,
-     "taper": true
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_butt2",
-   "host": "Sl0",
-   "material": "root_ridge",
-   "sides": 8,
-   "offset": [
-    0.436,
-    0.14,
-    0.212
-   ],
-   "dir": [
-    0.56,
-    -0.42,
-    0.72
-   ],
-   "segments": [
-    {
-     "len": 0.086,
-     "r": 0.0288
-    },
-    {
-     "len": 0.072,
-     "r": 0.0192,
-     "behind": 26
-    },
-    {
-     "len": 0.058,
-     "r": 0.0128,
-     "behind": 20,
-     "taper": true
-    }
-   ],
-   "mirrored": true
   },
   {
    "type": "curve",
@@ -858,20 +674,576 @@
   },
   {
    "type": "curve",
+   "name": "root_bough",
+   "host": "Br2",
+   "material": "root_wood",
+   "sides": 8,
+   "offset": [
+    0.19,
+    -0.066,
+    0.124
+   ],
+   "dir": [
+    0.853,
+    -0.5074,
+    0.1225
+   ],
+   "segments": [
+    {
+     "len": 0.2286,
+     "r": 0.112
+    },
+    {
+     "len": 0.1746,
+     "r": 0.078,
+     "fall": 23,
+     "ahead": 2
+    },
+    {
+     "len": 0.1598,
+     "r": 0.098,
+     "fall": 22,
+     "ahead": 1
+    },
+    {
+     "len": 0.1534,
+     "r": 0.068,
+     "fall": 8,
+     "behind": 6
+    },
+    {
+     "len": 0.1405,
+     "r": 0.086,
+     "fall": 5,
+     "behind": 3
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_twist",
+   "host": "Br2",
+   "material": "root_ridge",
+   "sides": 7,
+   "offset": [
+    0.246,
+    -0.05,
+    0.196
+   ],
+   "dir": [
+    0.7758,
+    -0.5892,
+    0.2259
+   ],
+   "segments": [
+    {
+     "len": 0.2037,
+     "r": 0.06
+    },
+    {
+     "len": 0.1789,
+     "r": 0.04,
+     "fall": 15,
+     "behind": 22
+    },
+    {
+     "len": 0.1696,
+     "r": 0.052,
+     "fall": 23,
+     "ahead": 22
+    },
+    {
+     "len": 0.1514,
+     "r": 0.1133,
+     "fall": 13,
+     "behind": 24,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_brow",
+   "host": "Br0",
+   "material": "root_wood",
+   "sides": 8,
+   "offset": [
+    0.418,
+    0.062,
+    0.282
+   ],
+   "dir": [
+    -0.9154,
+    0.3569,
+    0.1862
+   ],
+   "segments": [
+    {
+     "len": 0.1289,
+     "r": 0.1
+    },
+    {
+     "len": 0.1309,
+     "r": 0.056,
+     "fall": 16,
+     "behind": 7
+    },
+    {
+     "len": 0.131,
+     "r": 0.086,
+     "fall": 12,
+     "behind": 5
+    },
+    {
+     "len": 0.1187,
+     "r": 0.046,
+     "fall": 15,
+     "behind": 3
+    },
+    {
+     "len": 0.0839,
+     "r": 0.0667,
+     "fall": 10,
+     "behind": 6,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_brow_twin",
+   "host": "Br0",
+   "material": "root_ridge",
+   "sides": 6,
+   "offset": [
+    0.392,
+    0.104,
+    0.314
+   ],
+   "dir": [
+    -0.9382,
+    -0.3127,
+    0.1481
+   ],
+   "segments": [
+    {
+     "len": 0.1215,
+     "r": 0.044
+    },
+    {
+     "len": 0.1288,
+     "r": 0.026,
+     "rise": 29,
+     "behind": 3
+    },
+    {
+     "len": 0.1187,
+     "r": 0.038,
+     "fall": 22,
+     "behind": 10
+    },
+    {
+     "len": 0.1043,
+     "r": 0.0533,
+     "rise": 29,
+     "behind": 5,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_brow_drip",
+   "host": "Br0",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    -0.06,
+    0.018,
+    0.282
+   ],
+   "dir": [
+    -0.4929,
+    -0.8561,
+    -0.1556
+   ],
+   "segments": [
+    {
+     "len": 0.0771,
+     "r": 0.028
+    },
+    {
+     "len": 0.0637,
+     "r": 0.019,
+     "fall": 3,
+     "ahead": 19
+    },
+    {
+     "len": 0.05,
+     "r": 0.04,
+     "rise": 1,
+     "behind": 30,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_brow_fork",
+   "host": "Br0",
+   "material": "root_ridge",
+   "sides": 6,
+   "offset": [
+    0.234,
+    0.132,
+    0.302
+   ],
+   "dir": [
+    -0.2766,
+    0.9557,
+    0.1006
+   ],
+   "segments": [
+    {
+     "len": 0.0795,
+     "r": 0.032
+    },
+    {
+     "len": 0.0829,
+     "r": 0.022,
+     "fall": 22,
+     "behind": 37
+    },
+    {
+     "len": 0.0721,
+     "r": 0.04,
+     "rise": 8,
+     "behind": 19,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "rootlet_a",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    0.4041,
+    0.06,
+    0.1166
+   ],
+   "dir": [
+    0.7889,
+    -0.2862,
+    0.5438
+   ],
+   "segments": [
+    {
+     "len": 0.2306,
+     "r": 0.048
+    },
+    {
+     "len": 0.0892,
+     "r": 0.032,
+     "fall": 50,
+     "ahead": 39
+    },
+    {
+     "len": 0.0787,
+     "r": 0.02,
+     "fall": 42,
+     "ahead": 50
+    },
+    {
+     "len": 0.0697,
+     "r": 0.0333,
+     "rise": 30,
+     "ahead": 33,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "rootlet_b",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    0.4078,
+    0.056,
+    0.0734
+   ],
+   "dir": [
+    0.9088,
+    -0.3292,
+    -0.2564
+   ],
+   "segments": [
+    {
+     "len": 0.2005,
+     "r": 0.044
+    },
+    {
+     "len": 0.1036,
+     "r": 0.028,
+     "fall": 41,
+     "behind": 50
+    },
+    {
+     "len": 0.0875,
+     "r": 0.0467,
+     "fall": 28,
+     "behind": 37,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "rootlet_c",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    0.4084,
+    0.052,
+    0.0992
+   ],
+   "dir": [
+    0.9357,
+    -0.2746,
+    0.2216
+   ],
+   "segments": [
+    {
+     "len": 0.2112,
+     "r": 0.042
+    },
+    {
+     "len": 0.0503,
+     "r": 0.0467,
+     "fall": 40,
+     "behind": 26,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "rootlet_d",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    0.4049,
+    0.06,
+    0.1085
+   ],
+   "dir": [
+    0.6525,
+    -0.4719,
+    0.5929
+   ],
+   "segments": [
+    {
+     "len": 0.1611,
+     "r": 0.046
+    },
+    {
+     "len": 0.088,
+     "r": 0.03,
+     "fall": 50,
+     "ahead": 33
+    },
+    {
+     "len": 0.0687,
+     "r": 0.05,
+     "rise": 50,
+     "ahead": 50,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "hair_a",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 5,
+   "offset": [
+    0.4296,
+    -0.016,
+    0.0104
+   ],
+   "dir": [
+    0.9709,
+    -0.1384,
+    -0.1956
+   ],
+   "segments": [
+    {
+     "len": 0.2167,
+     "r": 0.02
+    },
+    {
+     "len": 0.0669,
+     "r": 0.0233,
+     "fall": 24,
+     "behind": 50,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "hair_b",
+   "host": "Sl2",
+   "material": "root_wood",
+   "sides": 5,
+   "offset": [
+    0.4172,
+    -0.01,
+    0.1665
+   ],
+   "dir": [
+    0.6929,
+    -0.2966,
+    0.6572
+   ],
+   "segments": [
+    {
+     "len": 0.1484,
+     "r": 0.018
+    },
+    {
+     "len": 0.0629,
+     "r": 0.02,
+     "fall": 50,
+     "ahead": 50,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "root_reach",
+   "host": "Sl3",
+   "material": "root_ridge",
+   "sides": 6,
+   "offset": [
+    0.52,
+    0.132,
+    0.182
+   ],
+   "dir": [
+    -0.8171,
+    -0.1486,
+    0.5571
+   ],
+   "segments": [
+    {
+     "len": 0.1077,
+     "r": 0.03
+    },
+    {
+     "len": 0.085,
+     "r": 0.02,
+     "rise": 15,
+     "behind": 3
+    },
+    {
+     "len": 0.0626,
+     "r": 0.0333,
+     "fall": 23,
+     "behind": 5,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "whisk_a",
+   "host": "Br0",
+   "material": "root_ridge",
+   "sides": 6,
+   "offset": [
+    -0.362,
+    -0.018,
+    0.194
+   ],
+   "dir": [
+    -0.5075,
+    -0.8359,
+    -0.209
+   ],
+   "segments": [
+    {
+     "len": 0.067,
+     "r": 0.026
+    },
+    {
+     "len": 0.0575,
+     "r": 0.017,
+     "fall": 8,
+     "ahead": 28
+    },
+    {
+     "len": 0.042,
+     "r": 0.03,
+     "fall": 6,
+     "behind": 40,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "whisk_b",
+   "host": "Br0",
+   "material": "root_wood",
+   "sides": 6,
+   "offset": [
+    -0.286,
+    -0.004,
+    0.076
+   ],
+   "dir": [
+    -0.5633,
+    -0.7511,
+    -0.3443
+   ],
+   "segments": [
+    {
+     "len": 0.0639,
+     "r": 0.022
+    },
+    {
+     "len": 0.0491,
+     "r": 0.0333,
+     "fall": 8,
+     "ahead": 38,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
    "name": "stump_brk",
    "host": "Br2",
    "material": "root_ridge",
    "sides": 7,
-   "mirrored": true,
    "offset": [
     0.104,
-    0.006,
+    -0.01,
     0.044
    ],
    "dir": [
-    0.64,
-    0.66,
-    0.34
+    0.7,
+    0.52,
+    0.49
    ],
    "segments": [
     {
@@ -881,168 +1253,39 @@
     {
      "len": 0.038,
      "r": 0.026,
-     "rise": 14,
+     "rise": 8,
      "taper": true
     }
    ]
   },
   {
    "type": "curve",
-   "name": "root_mid",
+   "name": "stump_brk2",
    "host": "Br2",
    "material": "root_wood",
-   "sides": 8,
+   "sides": 6,
    "offset": [
-    0.0,
-    -0.046,
-    0.04
+    0.04,
+    -0.02,
+    -0.086
    ],
    "dir": [
-    0.0,
-    0.95,
-    0.31
-   ],
-   "segments": [
-    {
-     "len": 0.056,
-     "r": 0.0288
-    },
-    {
-     "len": 0.046,
-     "r": 0.016,
-     "ahead": 24,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "name": "root_twin",
-   "host": "Br2",
-   "material": "root_ridge",
-   "sides": 7,
-   "offset": [
-    0.028,
-    -0.128,
-    0.18
-   ],
-   "dir": [
+    0.3,
     0.5,
-    0.64,
-    0.16
+    -0.81
    ],
    "segments": [
     {
-     "len": 0.15,
-     "r": 0.0192
+     "len": 0.058,
+     "r": 0.036
     },
     {
-     "len": 0.17,
-     "r": 0.0136,
-     "fall": 46
-    },
-    {
-     "len": 0.21,
-     "r": 0.0208,
-     "fall": 40
-    },
-    {
-     "len": 0.25,
-     "r": 0.0128,
-     "fall": 32
-    },
-    {
-     "len": 0.27,
-     "r": 0.0192,
-     "fall": 18
-    },
-    {
-     "len": 0.235,
-     "r": 0.012,
-     "fall": 6
-    },
-    {
-     "len": 0.255,
-     "r": 0.0168,
-     "fall": 4
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_fork",
-   "host": "Br2",
-   "material": "root_wood",
-   "sides": 7,
-   "offset": [
-    0.286,
-    -0.03,
-    0.212
-   ],
-   "dir": [
-    0.34,
-    -0.36,
-    0.52
-   ],
-   "segments": [
-    {
-     "len": 0.096,
-     "r": 0.0208
-    },
-    {
-     "len": 0.086,
-     "r": 0.0144,
-     "fall": 34
-    },
-    {
-     "len": 0.078,
-     "r": 0.0176,
-     "fall": 30
-    },
-    {
-     "len": 0.066,
-     "r": 0.0096,
-     "fall": 22,
+     "len": 0.042,
+     "r": 0.02,
+     "rise": 10,
      "taper": true
     }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_fork2",
-   "host": "Br2",
-   "material": "root_wood",
-   "sides": 7,
-   "offset": [
-    0.402,
-    -0.386,
-    0.128
-   ],
-   "dir": [
-    0.4,
-    -0.34,
-    -0.62
-   ],
-   "segments": [
-    {
-     "len": 0.082,
-     "r": 0.0176
-    },
-    {
-     "len": 0.074,
-     "r": 0.012,
-     "behind": 30
-    },
-    {
-     "len": 0.064,
-     "r": 0.0144,
-     "behind": 26,
-     "taper": true
-    }
-   ],
-   "mirrored": true
+   ]
   },
   {
    "type": "curve",
@@ -1152,34 +1395,6 @@
     {
      "len": 0.056,
      "r": 0.062
-    }
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "chunk_e",
-   "host": "Br0",
-   "material": "rock",
-   "sides": 4,
-   "offset": [
-    0.398,
-    0.044,
-    -0.044
-   ],
-   "dir": [
-    0.84,
-    0.34,
-    -0.42
-   ],
-   "segments": [
-    {
-     "len": 0.086,
-     "r": 0.084
-    },
-    {
-     "len": 0.052,
-     "r": 0.054
     }
    ],
    "mirrored": true
@@ -1347,42 +1562,6 @@
      -0.03168,
      0.044
     ]
-   ],
-   "mirrored": true
-  },
-  {
-   "type": "curve",
-   "name": "root_face",
-   "host": "Sl3",
-   "material": "root_wood",
-   "sides": 8,
-   "offset": [
-    0.282,
-    -0.028,
-    0.322
-   ],
-   "dir": [
-    0.06,
-    -0.994,
-    0.085
-   ],
-   "segments": [
-    {
-     "len": 0.115,
-     "r": 0.0272
-    },
-    {
-     "len": 0.1,
-     "r": 0.0208
-    },
-    {
-     "len": 0.108,
-     "r": 0.0256
-    },
-    {
-     "len": 0.1,
-     "r": 0.0192
-    }
    ],
    "mirrored": true
   },
@@ -1690,15 +1869,16 @@
   },
   {
    "type": "fin",
-   "name": "shard_top",
-   "host": "Br2",
+   "name": "crack_lip_up",
+   "host": "Br0",
    "material": "rock",
-   "thickness": 0.22,
+   "mirrored": true,
+   "thickness": 0.26,
    "conform": false,
    "offset": [
-    0.0,
-    0.022,
-    0.044
+    0.33,
+    -0.086,
+    0.14
    ],
    "udir": [
     1,
@@ -1712,28 +1892,267 @@
    ],
    "points": [
     [
-     -0.226,
-     -0.058
+     -0.17,
+     0.05
     ],
     [
-     -0.088,
-     0.02
+     0.146,
+     -0.034
     ],
     [
-     0.104,
-     0.034
+     0.146,
+     0.086
     ],
     [
-     0.238,
-     -0.05
+     -0.17,
+     0.086
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crack_lip_low",
+   "host": "Sl3",
+   "material": "rock",
+   "mirrored": true,
+   "thickness": 0.26,
+   "conform": false,
+   "offset": [
+    0.33,
+    0.11,
+    0.14
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.17,
+     -0.118
     ],
     [
-     0.106,
-     -0.088
+     0.146,
+     -0.118
     ],
     [
-     -0.096,
-     -0.092
+     0.146,
+     0.028
+    ],
+    [
+     -0.17,
+     -0.082
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crk_up1",
+   "host": "Br1",
+   "material": "pupil",
+   "thickness": 0.05,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.0,
+    0.284
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.1579,
+     -0.1212
+    ],
+    [
+     -0.1421,
+     -0.1108
+    ],
+    [
+     -0.2341,
+     0.0292
+    ],
+    [
+     -0.2499,
+     0.0188
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crk_up2",
+   "host": "Br1",
+   "material": "pupil",
+   "thickness": 0.05,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.0,
+    0.284
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.2501,
+     0.029
+    ],
+    [
+     -0.2339,
+     0.019
+    ],
+    [
+     -0.1679,
+     0.127
+    ],
+    [
+     -0.1841,
+     0.137
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crk_dn1",
+   "host": "Sl1",
+   "material": "pupil",
+   "thickness": 0.05,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.0,
+    0.298
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.124,
+     0.3068
+    ],
+    [
+     -0.14,
+     0.3172
+    ],
+    [
+     -0.234,
+     0.1732
+    ],
+    [
+     -0.218,
+     0.1628
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crk_dn2",
+   "host": "Sl1",
+   "material": "pupil",
+   "thickness": 0.05,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.0,
+    0.298
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.2174,
+     0.172
+    ],
+    [
+     -0.2346,
+     0.164
+    ],
+    [
+     -0.1666,
+     0.018
+    ],
+    [
+     -0.1494,
+     0.026
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crk_side",
+   "host": "Sl1",
+   "material": "pupil",
+   "thickness": 0.05,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.0,
+    0.296
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0546,
+     0.307
+    ],
+    [
+     0.0494,
+     0.293
+    ],
+    [
+     0.1934,
+     0.239
+    ],
+    [
+     0.1986,
+     0.253
     ]
    ]
   }
