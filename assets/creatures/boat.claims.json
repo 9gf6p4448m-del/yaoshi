@@ -1,6 +1,6 @@
 {
   "name": "拼板舟 boat_pinbanzhou_ling (zuling/swarm)",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json；相對於它的差異只有三處，且沒有一處放寬門檻：① 部位名換成本隻的（招牌部位＝船艏發光刃 glow_prow、白名單發光材質＝eye／glow_prow，簡報只給兩個發光部位所以少一條 part_exists）；② share_hierarchy 與 focal_contrast 的 view 從預設 side 改成 tq——船是一整塊主體，側視只看得到船舷一條線，tq 才量得到胸鰭與甲板橫樑的真實佔比（門檻 tolerance 用預設 0.15，沒有調鬆）；③ focal_contrast 的 min_ratio 從預設 2 提高到 3，並多加一條 style_dark（側視中位亮度 ≤ 90）——這兩條是加嚴。saturation_area 的帶依 2026-09-04 凍結檔為 10%–60%，與 tiger_c 同。",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝2026-09-04 量產卷批 1 出貨的同名檔；回修檢視卷（2026-09-04）相對於它的差異只有兩處，兩處都由凍結檔 docs/experiments/2026-09-04-acceptance-creature-review.md 的『boat → 回修：配色改白紅黑』直接要求，不是為了讓實作過關而動門檻：① 材質 gold（金舷條）改名 trim_red（橘紅舷條），share_hierarchy 的 tertiary 跟著換名，門檻一格未動；② style_dark（側視中位亮度 ≤90）換成 style_light（側視中位亮度 ≥95）——舊條是為『炭黑底』寫的，白底拼板舟在定義上不可能過，留著等於自相矛盾；新條同樣是**加嚴方向**的硬門檻：回修前的炭黑版側視中位亮度 34.2/255，套上新條會直接 BLOCK。saturation_area 的帶依 2026-09-04 凍結檔仍為 10%–60%，focal_contrast 的 min_ratio 仍為 3，share_hierarchy／focal_contrast 仍用 tq 視角，tri_budget 仍 1500–5000，一格未放寬。",
   "claims": [
     {
       "type": "part_exists",
@@ -18,13 +18,19 @@
       "type": "part_exists",
       "part": "eye",
       "stage": "MID",
-      "label": "船首畫的眼必須存在，材質名必須正是 eye"
+      "label": "船眼（同心圓的橘紅圓心）必須存在，材質名必須正是 eye"
     },
     {
       "type": "part_exists",
       "part": "fin_fly",
       "stage": "MID",
       "label": "飛魚鰭必須存在（swarm 的招牌配件）"
+    },
+    {
+      "type": "part_exists",
+      "part": "trim_red",
+      "stage": "MID",
+      "label": "橘紅舷條必須存在——白／黑／橘紅三色裡的橘紅要有實體載體，不能只靠色帶"
     },
     {
       "type": "part_signature",
@@ -48,17 +54,17 @@
       "type": "share_hierarchy",
       "primary": ["hull_body"],
       "secondary": ["fin_fly", "glow_prow"],
-      "tertiary": ["gold", "bone", "socket", "eye", "lash"],
+      "tertiary": ["trim_red", "bone", "oar", "socket", "eye", "lash"],
       "view": "tq",
       "stage": "MID",
-      "label": "6:3:1 階層：船身／（飛魚鰭＋船艏發光刃）／（金舷條＋骨白艉飾＋眼窩＋船眼＋橫樑齒紋）"
+      "label": "6:3:1 階層：船身／（飛魚鰭＋船艏發光刃）／（橘紅舷條＋白棋盤菱片＋木槳＋黑眼圈＋船眼＋橫樑）"
     },
     {
-      "type": "style_dark",
+      "type": "style_light",
       "view": "side",
-      "max_median_lum": 90,
+      "min_median_lum": 95,
       "stage": "MID",
-      "label": "炭黑底：側視的機體中位亮度不得超過 90/255"
+      "label": "米白底：側視的機體中位亮度不得低於 95/255（回修前的炭黑版是 34.2，這條會直接擋下它）"
     },
     {
       "type": "rig_skinned",
