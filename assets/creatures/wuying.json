@@ -12,6 +12,7 @@
  "_glow_materials": "eye / glow_helm —— 簡報 `wuying` 列指定的兩個發光材質名，`js/creature-figures.js:51` 的 `/^eye(_|$)|^mouth_glow(_|$)|^glow_/` 會接成 emissive。沒有多開第三個發光材質。",
  "_traps": "① 近黑一律中性灰（S<0.22），`shading.noise` 會把偏暖近黑擾到 HSV S>0.5（猛虎報告 ⑤-6）——本檔的暗色全部是中性灰褐，高飽和額度全給硃紅（肩甲／腰封／旗面／胸帶）＋鎏金（腹甲片／盔額飾／寶頂／流蘇）＋橘（盔纓）＋金瞳；② `fin` 帶 `anchor` 時 `offset` 被丟掉（試作卷 ③-2），令旗全組不帶 anchor、改用 host+offset；③ `fin` 的 `points` 必須是嚴格凸多邊形（試作卷 ③-7）——旗面四邊形與所有甲片都逐一算過叉積同號；鋸齒火焰邊做不成一片凸多邊形，改用「大旗面＋一片小火舌板疊出缺口」承載；④ 相鄰鏈段長比 >0.923 會被 proportion BLOCK（試作卷 ③-5），本檔每條鏈最大相鄰比 0.849（LLeg 膝/髖）；⑤ `compile.js:136` 的 corner bevel-skip 會丟環（redhat 報告 C-1），六條鏈全部做成近乎直線（相鄰段夾角 <8°）；⑥ `ring_step` 要小到取樣得到 profile 每一列（redhat C-2），body 0.026／skirt 0.016／head 0.011／helm 0.011；⑦ `buildPaw` 預設 offset 會把腳掌吸到地面（試作卷 ③-1）——紙靴本來就在地上，沿用預設；⑧ ★ **root_containment 兩次擋在同一件事上**：helm 鏈的第一列 profile 一開始寫成盔沿寬度（0.104）＝根環整圈露在頭外面、skirt 鏈的第一列寫成裙擺寬度（0.120）＝根環 40% 露在軀幹外面。兩條都要把 t=0 那一列縮成**塞得進宿主的細環**（helm 0.044、skirt 0.093），外張留給 t=0.17～0.22 那一列。",
  "_devices": "不可愛的手段本隻用了六項（凍結檔 18:00 守則要求至少三項）：①比例——頭佔全高 12.4%、含盔 19.5%、腿 40.5%，離開玩偶區（見 `_proportion_note`）②尖——盔尖、鳳翅折角、火焰額飾、旗尖寶頂、旗面火舌、靴頭全部尖端外露③眼——**細長金瞳薄板**壓在濃黑挑眉下，不用球狀大眼（第 1 輪 `type:\"eye\"` 金球被讀成可愛）④骨感的替代——紙紮沒有肉，靠腰收細 1.54× 與硬折甲片撐出結構（香火不用殘缺／腐爛／空洞眼）⑤色——中性紙灰底＋硃紅一條帶＋鎏金點綴，禁粉嫩⑥全身 6 個 volume 一律 `faceted:true` 硬折板。左右嚴格鏡射是 swarm 的硬條件，所以刻意不用「不對稱」那一項（旗面是唯一的單側件）。",
+ "_traps_3C": "硬化批 3C（金瞳＋白粉底）新記的引擎事實：① ★ `fin` 帶 `anchor` 時預設 `conform:true`，板子的法線會被吸到宿主表面——wuying 的金瞳／眉板實測被轉 **42°**（compiler 印 `the host surface rotated this plate 42° off`），所以板面不是朝正面而是朝斜側，這就是量產版「金瞳被讀成色塊」的機制（harden2A ⑥-4「平板讀不讀得出來看法線朝哪」的續集）。修法不是加大面積，是**把亮件放進一片更大的近黑窩裡**做兩層明度對比（本檔 `brow_ink` 由「眉」改成「眼窩」，金瞳細長板疊在它上面、thickness 0.012 > 窩的 0.006 所以一定在前）。② ★ 一對 `mirrored` 的 fin，`around` 太靠正面會在鼻樑處**合體成一條橫帶**：實測 `around:160`（離正面 20°）時兩個眼窩相接，讀者只看到一條黑帶；`around:152` 才留得住鼻樑白間隙。判準＝宿主半徑×sin(180−around) 要大於板子內側 |u| 加餘裕。③ ★ `colors.arcs` 的帶會因頂點色插值**外溢約一整格**：head `sides:28`（每格 12.86°）時 `from 160 to 180` 的朱紅實際從 sym 154 就開始暈，正面看等於 ±25°、吃掉半張臉。要做「一條窄中線」用 arcs 做不到，本檔改成拿掉中線帶、另用實體 fin 做嘴。④ ★ 戲台 bloom 會把 lum ≳200 的臉整片燒白（hairpin ⑥-3 的延伸）：臉 #f4f1e6（lum 240）與 #d5cfbe（lum 206）在 `light=1&fx=1` 下**一樣糊**，壓亮度救不回五官；真正有效的是**把五官做成大塊近黑**（眼窩 #0d0d0f），黑不 bloom。⑤ 臉上的紅色小色塊（本檔第一版用 `sash` 做嘴）會讓白臉直接讀成**小丑妝**——r1 讀者原話「右臉頰有一顆紅色圓點…帶點小丑妝感」且第 4 題答「偏向玩具感、可愛」。改成近黑的橫向抿嘴之後兩位都變成「威嚴／不祥」。白底＋亮眼＋紅點＝小丑，白底＋亮眼＋黑嘴＝臉譜。",
  "palette": {
   "armor_body":  {"color": "#6b6055", "rough": 0.92},
   "armor_skirt": {"color": "#5d574e", "rough": 0.95},
@@ -19,8 +20,8 @@
   "armor_leg":   {"color": "#56504a", "rough": 0.94},
   "helm":        {"color": "#33302b", "rough": 0.7},
   "helm_ear":    {"color": "#3b3730", "rough": 0.72},
-  "skin_face":   {"color": "#e6dccb", "rough": 0.88},
-  "brow_ink":    {"color": "#1a1a1c", "rough": 0.9},
+  "skin_face":   {"color": "#e2ded1", "rough": 0.88},
+  "brow_ink":    {"color": "#0d0d0f", "rough": 0.9},
   "pauldron":    {"color": "#b0442f", "rough": 0.66},
   "gold_trim":   {"color": "#d8a63a", "rough": 0.28},
   "sash":        {"color": "#a83228", "rough": 0.7},
@@ -29,8 +30,8 @@
   "tassel":      {"color": "#d9b45a", "rough": 0.4},
   "hand":        {"color": "#6b6055", "rough": 0.9},
   "boot":        {"color": "#3a3630", "rough": 0.9},
-  "eye":         {"color": "#ffd24a", "rough": 0.12},
-  "glow_helm":   {"color": "#ff7a1e", "rough": 0.2}
+  "eye":         {"color": "#ffe066", "rough": 0.12},
+  "glow_helm":   {"color": "#ec6a14", "rough": 0.2}
  },
 
  "build": "rigid",
@@ -53,7 +54,7 @@
   "Brow":     {"from": "Skull",    "up": 0.049, "fwd":  0.004},
   "Crown":    {"from": "Brow",     "up": 0.033, "fwd": -0.002},
 
-  "HelmRoot": {"from": "Brow",     "up": -0.036, "fwd": -0.002},
+  "HelmRoot": {"from": "Brow",     "up": -0.018, "fwd": -0.002},
   "Helm1":    {"from": "HelmRoot", "up":  0.058, "fwd": -0.004},
   "HelmTip":  {"from": "Helm1",    "up":  0.093, "fwd": -0.005},
 
@@ -119,9 +120,8 @@
    ],
    "caps": ["none", "dome"], "ring_step": 0.011,
    "colors": {"arcs": [
-     {"from": 0,   "to": 92,  "color": "#3f3b35"},
-     {"from": 100, "to": 120, "color": "#2f6a52"},
-     {"from": 160, "to": 180, "color": "#b8332a"}
+     {"from": 0,   "to": 78,  "color": "#3f3b35"},
+     {"from": 88,  "to": 92,  "color": "#2f6a52"}
    ]}},
 
   {"chain": "helm", "material": "helm", "sides": 8, "frame": "up", "faceted": true, "smooth_angle": 26,
@@ -158,17 +158,22 @@
  ],
 
  "parts": [
-  {"type": "fin", "name": "eye", "host": "Skull", "material": "eye", "thickness": 0.008,
+  {"type": "fin", "name": "eye_socket", "host": "Skull", "material": "brow_ink", "thickness": 0.006,
    "mirrored": true,
-   "anchor": {"chain": "head", "t": 0.44, "around": 150},
+   "anchor": {"chain": "head", "t": 0.50, "around": 152},
    "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.034, -0.004], [0.003, -0.016], [0.036, 0.004], [0.018, 0.014], [-0.021, 0.010]]},
+   "points": [[-0.033, -0.006], [0.002, -0.023], [0.038, -0.014], [0.060, 0.026], [0.013, 0.028], [-0.029, 0.013]]},
 
-  {"type": "fin", "name": "brow", "host": "Skull", "material": "brow_ink", "thickness": 0.009,
+  {"type": "fin", "name": "eye", "host": "Skull", "material": "eye", "thickness": 0.012,
    "mirrored": true,
-   "anchor": {"chain": "head", "t": 0.56, "around": 152},
+   "anchor": {"chain": "head", "t": 0.50, "around": 152},
    "udir": [1, 0, 0], "vdir": [0, 1, 0],
-   "points": [[-0.030, -0.004], [0.004, -0.014], [0.032, 0.000], [0.026, 0.012], [-0.006, 0.014], [-0.030, 0.008]]},
+   "points": [[-0.022, 0.001], [0.002, -0.006], [0.028, -0.001], [0.044, 0.011], [0.010, 0.008], [-0.018, 0.005]]},
+
+  {"type": "fin", "name": "mouth_line", "host": "Skull", "material": "brow_ink", "thickness": 0.008,
+   "anchor": {"chain": "head", "t": 0.27, "around": 180},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.040, 0.006], [-0.012, -0.005], [0.012, -0.005], [0.040, 0.006], [0.012, 0.011], [-0.012, 0.011]]},
 
   {"type": "fin", "name": "helm_wing", "host": "HelmRoot", "material": "helm_ear", "thickness": 0.012,
    "mirrored": true, "conform": false,
