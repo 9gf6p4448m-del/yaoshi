@@ -4,13 +4,20 @@
 // index.html 這一版起除了 importmap 與 module script 之外另有牌桌面板半透明的 CSS
 // （使用者裁定「甲」，讓 3D 透出來），但引擎邏輯仍然完全沒動。
 import * as THREE from 'three';
-import { createBloom } from './bloom.js';
-import { createSceneEnv, resizeSceneEnv, FOG_DENSITY } from './scene-env.js';
-import { createIncenseSmoke, createEmbers, createImpactBurst, SPARK_COLOR } from './particles.js';
-import { createCharacterBillboards } from './characters-billboard.js';
-import { createPlayerBridge } from './bridge-players.js';
-import { createCameraDirector } from './camera-director.js';
-import { createDuelFigures } from './duel-figures.js';
+
+// 快取破除（v0.31 卷 C1）：本檔的網址由 index.html 帶上 ?v=<VERSION>。module 的快取鍵是網址，
+// 所以底下的相對 import 必須接力同一個查詢字串——否則 bridge-players.js 會被載成兩份
+// （renderer 這條帶 ?v=、duel-figures 那條沒帶），貼圖快取分岔、同一張臉抓兩次。
+// 靜態 import 的字串沒辦法拼版本，所以改成 dynamic import ＋ top-level await。
+// 'three' 是 importmap 的裸名（走 CDN），不需要也不能加查詢字串。
+const V = new URL(import.meta.url).search;
+const { createBloom } = await import('./bloom.js' + V);
+const { createSceneEnv, resizeSceneEnv, FOG_DENSITY } = await import('./scene-env.js' + V);
+const { createIncenseSmoke, createEmbers, createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
+const { createCharacterBillboards } = await import('./characters-billboard.js' + V);
+const { createPlayerBridge } = await import('./bridge-players.js' + V);
+const { createCameraDirector } = await import('./camera-director.js' + V);
+const { createDuelFigures } = await import('./duel-figures.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -112,7 +119,10 @@ function init() {
   // 量測出口（與 index.html 的 window.__yaoshi 同一個角色）：驗收要能讀 renderer.info
   // 的 geometries／textures 看有沒有累積、要能取粒子座標證明 hitstop 真的把 dt 歸零。
   // 只讀不寫，遊戲本身完全不依賴它。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, get bloomOn() { return bloomOK; } };
+  // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
+  // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
+  // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, get bloomOn() { return bloomOK; } };
 
   let lastKind = undefined;
   let lastT = performance.now();
