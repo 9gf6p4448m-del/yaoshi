@@ -1,0 +1,63 @@
+{
+  "name": "神像虎 tiger_ye_shrine V-B (NPC/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。沿用 tiger.claims.json 的共用模板，只換 part 名（招牌部位＝紅綬帶 sash）與 saturation_area 的帶（依 2026-09-04-acceptance-creature-lookdev.md 流程裁定 2，10%-60%）。本檔在第一次 build 之前寫定，之後未修改。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "sash",
+      "stage": "MID",
+      "label": "招牌部位：胸前紅綬帶必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "sash",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（紅綬帶 V 字）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "fur_head",
+      "b": "sash",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（大方頭／紅綬帶）不得等重"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["fur_body"],
+      "secondary": ["fur_head"],
+      "tertiary": ["sash"],
+      "stage": "MID",
+      "label": "6:3:1 階層：身體／頭／綬帶"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（look-dev 卷放寬帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
