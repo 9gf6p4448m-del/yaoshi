@@ -1,0 +1,143 @@
+{
+  "name": "巴冷公主珠鍊 balen_gongzhu_zhulian (zuling/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝thunder.claims.json（同為祖靈 elite），thunder 又源自 tiger_c.claims.json。**識別視角＝正視 front**——本隻的招牌剪影是『胸前珠串』，五層珠串繞著軀幹前半圈、正前方最低，正視一次看得到全部五層與正中的眼紋珠；側視只看得到珠串的一個切面（側視窄是刻意的，祖靈 W/H ≤0.7 靠的就是它）。故除 saturation_area（沿用凍結檔的 tq）、背菱斑與盤繞蛇身兩條（那兩條特徵在側視才量得到）外，一律 view:\"front\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag／bow／thunder）；② 另加五條 part_visible 把真實參照鐵則機械化——scale_head（特徵①三角頭，不得被珠串吞掉）、band_dark（特徵②背菱斑）、bead_night 與 bead_pale（特徵④眼紋珠的外圈與白環）、scale_body（特徵⑤盤繞蛇身）。saturation_area 沿用凍結檔指定的 10%–60% 帶。tri_budget 下限沿用 shield 的 1500、上限用 2026-09-04 19:30 預算制的 8000。**沒有一處放寬。**",
+  "_frozen_at": "2026-09-04，在對 balen.glb 跑第一次 judge 之前寫定（門檻不是照著出貨值倒推的）。ref 特徵清單 docs/experiments/2026-09-04-ref-balen.md 第三節更早凍結。此後全部靠改 balen.json 去滿足。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "bead_gold",
+      "stage": "MID",
+      "label": "招牌部位＋簡報指定的系別色帶（祖靈金:珠串）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_bead",
+      "stage": "MID",
+      "label": "琉璃光必須存在，且材質名必須正是 glow_bead（three.js 端 js/creature-figures.js:51 靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "scale_head",
+      "stage": "MID",
+      "label": "真實參照特徵 1：百步蛇的三角形楔狀頭必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "band_dark",
+      "stage": "MID",
+      "label": "真實參照特徵 2：背脊菱斑必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "bead_night",
+      "stage": "MID",
+      "label": "真實參照特徵 4：眼紋珠的深靛外圈必須存在（外圈沒了就只剩一顆發光點，不是眼紋）"
+    },
+    {
+      "type": "part_signature",
+      "part": "bead_gold",
+      "view": "front",
+      "min_share": 0.05,
+      "or_min_span": 0.28,
+      "stage": "MID",
+      "label": "招牌部位（胸前珠串）在識別視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "scale_head",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵 1 的機械化：蛇頭在識別視角必須量得到——被自己的珠串吞掉就等於沒有（elite 招牌過大的專屬風險，同 bow 的 skull_bone、thunder 的 feather_dark）"
+    },
+    {
+      "type": "part_visible",
+      "part": "band_dark",
+      "view": "side",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 2 的機械化：背菱斑在側視必須量得到（斑排在背脊，側視才是它的識別視角）"
+    },
+    {
+      "type": "part_visible",
+      "part": "bead_night",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：眼紋珠的深靛外圈在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "bead_pale",
+      "view": "front",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：眼紋珠的骨白中環在識別視角必須量得到（三層同心圓少一層就讀不出眼紋）"
+    },
+    {
+      "type": "part_visible",
+      "part": "scale_body",
+      "view": "side",
+      "min_share": 0.10,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：盤繞的蛇身在側視必須撐得起面積——它是把剪影壓成『下寬上細的柱』、達成祖靈 W/H ≤0.7 的那一件"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "scale_body",
+      "b": "glow_bead",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（蛇身／琉璃光）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["scale_body", "scale_trunk", "scale_head"],
+      "secondary": ["bead_gold", "bead_ochre", "bead_rust", "bead_night", "bead_pale", "band_dark", "tongue", "pupil"],
+      "tertiary": ["glow_bead", "eye"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：蛇身與頭／珠串與菱斑與舌／琉璃光與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（正視）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝琉璃護心：珠串前推）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（下限沿用 shield 的 1500，上限用 2026-09-04 19:30 預算制的 8000）"
+    }
+  ]
+}

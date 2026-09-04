@@ -1,0 +1,4578 @@
+{
+ "name": "balen_gongzhu_zhulian",
+ "_variant": "3D 量產卷批 7 — balen 巴冷公主珠鍊（祖靈 zuling、elite x1、trait eliteArmor「琉璃護心」）。造型＝直立昂起的百步蛇祖靈（全蛇、無四肢），頸與前胸纏五層琉璃珠串。美術權威 docs/design/ART_BIBLE.md 0.5/2/5；凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md。",
+ "_ref_features": "凍結於 docs/experiments/2026-09-04-ref-balen.md 第三節，寫本檔之前定案、此後一條未改：(1) 三角形楔狀蛇頭（顎角半寬 0.188 / 半高 0.076 = 2.47:1，頭寬 / 頸末端 0.083 = 2.27x，兩個數字逐字沿用 shield 回修 4 出貨版——那組是唯一被 2/2 讀成三角頭的比例）(2) 背脊一列菱斑（coil 7 片 + trunk 3 片 + neck 2 片，做法照 shield blotch）(3) 多層並排的珠串纏頸與前胸、愈往下愈寬（5 層 85 顆，跨距逐層由 +-128 度加到 +-164 度）(4) 珠串正中五顆大眼紋珠（深靛外珠 → 骨白環 → glow_bead 發光心，三層同心圓，環與心的軸徑向朝外）(5) 下半身盤繞成圈、無四肢（21 節、1.55 圈的內高外低螺旋）。",
+ "_bead_geometry": "珠串不是一片弧板，是 85 顆獨立短圓柱（sides 6，軸＝串線切線方向）。依 harden3C 陷阱：把離散的桿改成連續凹面斷面會被吞成平滑鐘形、讀成裙子——離散顆粒才讀得出珠串。依 pilot/boat/redhat 的 part_attachment 陷阱（量的是離最近 ring 圓心的距離），珠子半徑方向的離身距離壓在 0.012-0.072，最外層仍讓內側面埋進軀幹表面。宿主全掛 Trunk3，attack 轉 Trunk1/2 整片珠串就前推。",
+ "_glow_materials": "eye / glow_bead —— 簡報指定的就是這兩個名字（M-A3 檢的也是這兩個）。js/creature-figures.js:51 的 GLOW.test = /^eye(_|$)|^mouth_glow(_|$)|^glow_/i，不得改名。",
+ "_traps": "(16) 頭被讀成三角靠的是寬對長的比值不是吻端方向——任何把頭拉長的改動都吃掉那個讀法，shield 加大吻端上翹把三角頭從 2/2 打到 0/2；本檔 snout_horn 總長 0.085 逐字沿用 shield 出貨版，不得加長。(17) 頭部上下分色硬切會被讀成頭盔／兜帽；分色照做（那是百步蛇的樣子）但不列入特徵清單、不為它加對比。(18) 抬頭粗頸會被讀成眼鏡蛇；本隻接受此代價，L3 只要求「蛇」。(19) mirrored 部件的宿主關節名不得以 L 開頭（bow 卷）——本檔宿主全是 Body*/Trunk*/Neck*/Jaw/SnoutTip。(20) 左右對稱框住東西會被讀成骨架／籠子（eye 卷）——珠串是繞著身體的環不是兩根對稱的框。(21) 圓管一律被讀成吻部（thunder 卷）——頭不是圓管，是 exp 4.6-5.0 的超橢圓加 sharp 顎角折線。(22) 等弧長取樣的螺旋每段天生 1:1 會觸發 proportion BLOCK（pilot 卷）——coil 取樣時加了 +-1% 的 u 抖動。 (22) 等弧長取樣的螺旋每段天生 1:1，直接撞 proportion BLOCK；抖動要加在取樣參數上（本檔在 u 上加 +-1%），事後挪個別關節救不回來。 (23) 掛件的 part_attachment 量的是離宿主 volume 表面的距離、容差 0.019，宿主是整條鏈不是那顆關節——一串從胸口爬到頸子的珠串只掛一個關節必然有一半浮空，要依高度分派宿主到不同鏈（本檔 Trunk2/3/4 與 Neck1）；修法可機械化：讀編譯器 BLOCK 行的實測 clearance，逐件把徑向偏移減掉 clearance+0.006，兩輪收斂。 (24) 同心圓要讓外面看得到，內層必須從宿主表面穿出來，不能掛在外層的外側（掛外側時內層碰不到宿主）；探出量超過外層半徑約 20% 就從『同心圓』變成『鉚釘』。 (25) 管狀 volume 的螺旋，曲率半徑 / 管半徑 < 約 1.6 就 mesh_integrity 翻面，ring_step 加粗只救得了一部分；本檔實測 0.235/0.150=1.57 紅、0.236/0.132=1.79 綠。 (26) 陷阱 (17)（頭部上下分色被讀成頭盔／面罩）在蛇頭上一樣發作，而且會把三角頭的讀法一起吃掉；解法不是拿掉分色（那是物種特徵），是把亮側壓到與暗側只差一階（本檔 #e6dabc -> #8a7a5e），讓輪廓而不是色塊當主詞。第 1 輪盲讀 A 讀成『冷笑的嘴線』、B 讀成『眼罩狀花紋』，改完第 2 輪 D 直接寫『三角形蛇頭』。 (27) 抬頭 + 粗頸 + 頸部橫向裝飾 = 眼鏡蛇風帽，而且會把文化指向拉去古埃及；四位讀者 4/4 讀成眼鏡蛇，第 2 輪 2/2 主動說出 Uraeus／Wadjet。要讀成台灣原民祖靈得靠珠串以外的族群標記（織紋帶、木雕、羽飾）——琉璃珠的視覺語彙與埃及費昂斯串珠太近。",
+ "palette": {
+  "scale_body": {
+   "color": "#4a4034",
+   "rough": 0.9
+  },
+  "scale_trunk": {
+   "color": "#3e352c",
+   "rough": 0.9
+  },
+  "scale_head": {
+   "color": "#3a322b",
+   "rough": 0.9
+  },
+  "band_dark": {
+   "color": "#241f1a",
+   "rough": 0.92
+  },
+  "bead_gold": {
+   "color": "#d4a870",
+   "rough": 0.32
+  },
+  "bead_ochre": {
+   "color": "#a8813f",
+   "rough": 0.38
+  },
+  "bead_rust": {
+   "color": "#a8542f",
+   "rough": 0.38
+  },
+  "bead_night": {
+   "color": "#26356e",
+   "rough": 0.3
+  },
+  "bead_pale": {
+   "color": "#cdbf9c",
+   "rough": 0.42
+  },
+  "tongue": {
+   "color": "#4a2a26",
+   "rough": 0.45
+  },
+  "pupil": {
+   "color": "#101018",
+   "rough": 0.35
+  },
+  "eye": {
+   "color": "#e6ac35",
+   "rough": 0.12
+  },
+  "glow_bead": {
+   "color": "#3050a0",
+   "rough": 0.16
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.3,
+   "bottom": -0.58
+  },
+  "noise": {
+   "size": 0.018,
+   "amount": 0.24
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Body0": [
+   0.2084,
+   0.225,
+   -0.0886
+  ],
+  "Body1": [
+   0.1097,
+   0.211,
+   -0.1722
+  ],
+  "Body2": [
+   0.0355,
+   0.2037,
+   -0.1936
+  ],
+  "Body3": [
+   -0.1327,
+   0.1881,
+   -0.1706
+  ],
+  "Body4": [
+   -0.191,
+   0.1817,
+   -0.1338
+  ],
+  "Body5": [
+   -0.2603,
+   0.1665,
+   -0.0035
+  ],
+  "Body6": [
+   -0.2523,
+   0.1601,
+   0.06
+  ],
+  "Body7": [
+   -0.1477,
+   0.1454,
+   0.1805
+  ],
+  "Body8": [
+   -0.0658,
+   0.1385,
+   0.2118
+  ],
+  "Body9": [
+   0.1262,
+   0.1242,
+   0.1994
+  ],
+  "Body10": [
+   0.1994,
+   0.118,
+   0.1598
+  ],
+  "Body11": [
+   0.2874,
+   0.1046,
+   0.0218
+  ],
+  "Body12": [
+   0.2855,
+   0.099,
+   -0.0465
+  ],
+  "Body13": [
+   0.1821,
+   0.0857,
+   -0.1887
+  ],
+  "Body14": [
+   0.1009,
+   0.0799,
+   -0.2268
+  ],
+  "Body15": [
+   -0.1054,
+   0.0675,
+   -0.2309
+  ],
+  "Body16": [
+   -0.1966,
+   0.0616,
+   -0.1921
+  ],
+  "Body17": [
+   -0.3122,
+   0.0493,
+   -0.0434
+  ],
+  "Body18": [
+   -0.3166,
+   0.0439,
+   0.0366
+  ],
+  "Body19": [
+   -0.2188,
+   0.032,
+   0.1936
+  ],
+  "Body20": [
+   -0.1063,
+   0.024,
+   0.2499
+  ],
+  "Trunk0": [
+   0.206,
+   0.24,
+   -0.086
+  ],
+  "Trunk1": [
+   0.134,
+   0.444,
+   0.002
+  ],
+  "Trunk2": [
+   0.082,
+   0.566,
+   0.044
+  ],
+  "Trunk3": [
+   0.022,
+   0.736,
+   0.06
+  ],
+  "Trunk4": [
+   -0.004,
+   0.881,
+   0.046
+  ],
+  "Neck0": [
+   -0.002,
+   0.891,
+   0.046
+  ],
+  "Neck1": [
+   0.004,
+   0.993,
+   0.062
+  ],
+  "Neck2": [
+   0.0,
+   1.053,
+   0.098
+  ],
+  "Neck3": [
+   0.0,
+   1.107,
+   0.166
+  ],
+  "Head0": [
+   0.0,
+   1.113,
+   0.178
+  ],
+  "Jaw": [
+   0.0,
+   1.145,
+   0.274
+  ],
+  "Snout": [
+   0.0,
+   1.083,
+   0.39
+  ],
+  "SnoutTip": [
+   0.0,
+   1.09,
+   0.452
+  ]
+ },
+ "chains": {
+  "coil": [
+   "Body0",
+   "Body1",
+   "Body2",
+   "Body3",
+   "Body4",
+   "Body5",
+   "Body6",
+   "Body7",
+   "Body8",
+   "Body9",
+   "Body10",
+   "Body11",
+   "Body12",
+   "Body13",
+   "Body14",
+   "Body15",
+   "Body16",
+   "Body17",
+   "Body18",
+   "Body19",
+   "Body20"
+  ],
+  "trunk": [
+   "Trunk0",
+   "Trunk1",
+   "Trunk2",
+   "Trunk3",
+   "Trunk4"
+  ],
+  "neck": [
+   "Neck0",
+   "Neck1",
+   "Neck2",
+   "Neck3"
+  ],
+  "head": [
+   "Head0",
+   "Jaw",
+   "Snout",
+   "SnoutTip"
+  ]
+ },
+ "attach": {
+  "trunk": "Body0",
+  "neck": "Trunk4",
+  "head": "Neck3"
+ },
+ "touch": [
+  [
+   "coil",
+   "trunk"
+  ],
+  [
+   "trunk",
+   "neck"
+  ],
+  [
+   "neck",
+   "head"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "coil",
+   "material": "scale_body",
+   "sides": 10,
+   "faceted": true,
+   "profile": [
+    [
+     0.0,
+     0.132,
+     0.132,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.14,
+     0.118,
+     0.118,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.36,
+     0.0954,
+     0.0954,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.58,
+     0.0715,
+     0.0715,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.8,
+     0.0455,
+     0.0455,
+     {
+      "exp": 4.5,
+      "sharp": true
+     }
+    ],
+    [
+     0.93,
+     0.0281,
+     0.0281,
+     {
+      "exp": 4.5
+     }
+    ],
+    [
+     1.0,
+     0.02,
+     0.02,
+     {
+      "exp": 4.5
+     }
+    ]
+   ],
+   "caps": [
+    "dome",
+    "dome"
+   ],
+   "ring_step": 0.07,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 44,
+      "color": "#2b2620"
+     },
+     {
+      "from": 132,
+      "to": 180,
+      "color": "#9c8460"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "trunk",
+   "material": "scale_trunk",
+   "sides": 12,
+   "faceted": true,
+   "profile": [
+    [
+     0.0,
+     0.1,
+     0.096,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.22,
+     0.146,
+     0.138,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.5,
+     0.162,
+     0.148,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.78,
+     0.148,
+     0.136,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.132,
+     0.122,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.072,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 42,
+      "color": "#2b2620"
+     },
+     {
+      "from": 134,
+      "to": 180,
+      "color": "#8f7a58"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "neck",
+   "material": "scale_body",
+   "sides": 10,
+   "faceted": true,
+   "profile": [
+    [
+     0.0,
+     0.1,
+     0.094,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.34,
+     0.096,
+     0.09,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.7,
+     0.09,
+     0.084,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.083,
+     0.078,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.056,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 44,
+      "color": "#2b2620"
+     },
+     {
+      "from": 134,
+      "to": 180,
+      "color": "#9c8460"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "head",
+   "material": "scale_head",
+   "frame": "up",
+   "sides": 12,
+   "faceted": true,
+   "profile": [
+    [
+     0.0,
+     0.07,
+     0.07,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.16,
+     0.208,
+     0.084,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.42,
+     0.168,
+     0.078,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.64,
+     0.112,
+     0.064,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.84,
+     0.058,
+     0.048,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.024,
+     0.031,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.046,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 60,
+      "color": "#171512"
+     },
+     {
+      "from": 60,
+      "to": 90,
+      "color": "#4a4034"
+     },
+     {
+      "from": 90,
+      "to": 180,
+      "color": "#8a7a5e"
+     }
+    ]
+   }
+  }
+ ],
+ "parts": [
+  {
+   "type": "curve",
+   "name": "bead0_0",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0951,
+    -0.0458,
+    -0.0826
+   ],
+   "dir": [
+    -0.7295,
+    -0.4393,
+    0.5242
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_1",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1178,
+    -0.0607,
+    -0.0644
+   ],
+   "dir": [
+    -0.6186,
+    -0.4815,
+    0.6209
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_2",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1358,
+    -0.0776,
+    -0.0414
+   ],
+   "dir": [
+    -0.4387,
+    -0.5151,
+    0.7363
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_3",
+   "host": "Neck1",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1473,
+    -0.0956,
+    -0.0144
+   ],
+   "dir": [
+    -0.2186,
+    -0.5223,
+    0.8243
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_4",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1498,
+    -0.1136,
+    0.0157
+   ],
+   "dir": [
+    0.1635,
+    -0.4743,
+    0.865
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_5",
+   "host": "Trunk4",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.128,
+    -0.0186,
+    0.0646
+   ],
+   "dir": [
+    0.4501,
+    -0.406,
+    0.7954
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_6",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1063,
+    -0.0336,
+    0.0943
+   ],
+   "dir": [
+    0.6385,
+    -0.3443,
+    0.6883
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_7",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0779,
+    -0.0456,
+    0.1186
+   ],
+   "dir": [
+    0.8001,
+    -0.2649,
+    0.5382
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_8",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0444,
+    -0.0541,
+    0.1359
+   ],
+   "dir": [
+    0.9225,
+    -0.1689,
+    0.347
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_9",
+   "host": "Trunk4",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    -0.008,
+    -0.0584,
+    0.1449
+   ],
+   "dir": [
+    0.9908,
+    -0.0588,
+    0.1215
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_10",
+   "host": "Trunk4",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.0289,
+    -0.0584,
+    0.1449
+   ],
+   "dir": [
+    0.9904,
+    0.0601,
+    -0.1241
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_11",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0638,
+    -0.0541,
+    0.1359
+   ],
+   "dir": [
+    0.9127,
+    0.1789,
+    -0.3675
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_12",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0942,
+    -0.0456,
+    0.1186
+   ],
+   "dir": [
+    0.7617,
+    0.2862,
+    -0.5813
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_13",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1184,
+    -0.0336,
+    0.0943
+   ],
+   "dir": [
+    0.5562,
+    0.3718,
+    -0.7433
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_14",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1347,
+    -0.0186,
+    0.0646
+   ],
+   "dir": [
+    0.3227,
+    0.4304,
+    -0.843
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_15",
+   "host": "Neck1",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.1344,
+    -0.1136,
+    0.0157
+   ],
+   "dir": [
+    0.0932,
+    0.4787,
+    -0.873
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_16",
+   "host": "Neck1",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.1336,
+    -0.0956,
+    -0.0144
+   ],
+   "dir": [
+    -0.146,
+    0.5295,
+    -0.8356
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_17",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1247,
+    -0.0776,
+    -0.0414
+   ],
+   "dir": [
+    -0.3764,
+    0.5311,
+    -0.7591
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_18",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.1091,
+    -0.0607,
+    -0.0644
+   ],
+   "dir": [
+    -0.5733,
+    0.5021,
+    -0.6475
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead0_19",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0885,
+    -0.0458,
+    -0.0826
+   ],
+   "dir": [
+    -0.6981,
+    0.4599,
+    -0.5488
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.0262
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_0",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0913,
+    -0.0555,
+    -0.1072
+   ],
+   "dir": [
+    -0.8051,
+    -0.4403,
+    0.3974
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_1",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1185,
+    -0.0716,
+    -0.0923
+   ],
+   "dir": [
+    -0.7218,
+    -0.4941,
+    0.4846
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_2",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1427,
+    -0.0907,
+    -0.0724
+   ],
+   "dir": [
+    -0.5895,
+    -0.5437,
+    0.5973
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_3",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1622,
+    -0.1121,
+    -0.0476
+   ],
+   "dir": [
+    -0.2864,
+    -0.5668,
+    0.7725
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_4",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1564,
+    -0.0225,
+    0.0029
+   ],
+   "dir": [
+    0.0417,
+    -0.5395,
+    0.841
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_5",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1507,
+    -0.0449,
+    0.0383
+   ],
+   "dir": [
+    0.2305,
+    -0.5149,
+    0.8257
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_6",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1368,
+    -0.0661,
+    0.0728
+   ],
+   "dir": [
+    0.4138,
+    -0.4727,
+    0.778
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_7",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1413,
+    0.0598,
+    0.0906
+   ],
+   "dir": [
+    0.5877,
+    -0.4131,
+    0.6957
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_8",
+   "host": "Trunk3",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    -0.1131,
+    0.0439,
+    0.1176
+   ],
+   "dir": [
+    0.7452,
+    -0.3358,
+    0.5761
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_9",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.0795,
+    0.0319,
+    0.1383
+   ],
+   "dir": [
+    0.8762,
+    -0.2402,
+    0.4179
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_10",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0424,
+    0.0245,
+    0.1513
+   ],
+   "dir": [
+    0.9665,
+    -0.1271,
+    0.223
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_11",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0039,
+    0.022,
+    0.1557
+   ],
+   "dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_12",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0336,
+    0.0245,
+    0.1513
+   ],
+   "dir": [
+    0.9633,
+    0.1329,
+    -0.2332
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_13",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.068,
+    0.0319,
+    0.1383
+   ],
+   "dir": [
+    0.8537,
+    0.2595,
+    -0.4515
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_14",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.0973,
+    0.0439,
+    0.1176
+   ],
+   "dir": [
+    0.6837,
+    0.3674,
+    -0.6305
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_15",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1199,
+    0.0598,
+    0.0906
+   ],
+   "dir": [
+    0.4773,
+    0.4486,
+    -0.7556
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_16",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1605,
+    -0.0661,
+    0.0728
+   ],
+   "dir": [
+    0.2592,
+    0.5015,
+    -0.8254
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_17",
+   "host": "Trunk4",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    0.1668,
+    -0.0449,
+    0.0383
+   ],
+   "dir": [
+    0.0471,
+    0.5286,
+    -0.8476
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_18",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.1645,
+    -0.0225,
+    0.0029
+   ],
+   "dir": [
+    -0.1502,
+    0.5338,
+    -0.8321
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_19",
+   "host": "Neck1",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.1462,
+    -0.1121,
+    -0.0476
+   ],
+   "dir": [
+    -0.3432,
+    0.5556,
+    -0.7573
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_20",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1298,
+    -0.0907,
+    -0.0724
+   ],
+   "dir": [
+    -0.5353,
+    0.5686,
+    -0.6247
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_21",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.1083,
+    -0.0716,
+    -0.0923
+   ],
+   "dir": [
+    -0.6853,
+    0.5199,
+    -0.51
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead1_22",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0834,
+    -0.0555,
+    -0.1072
+   ],
+   "dir": [
+    -0.7812,
+    0.4634,
+    -0.4183
+   ],
+   "segments": [
+    {
+     "len": 0.0372,
+     "r": 0.0286
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_0",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0805,
+    -0.0601,
+    -0.13
+   ],
+   "dir": [
+    -0.8641,
+    -0.4121,
+    0.2888
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_1",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1122,
+    -0.0766,
+    -0.1181
+   ],
+   "dir": [
+    -0.7946,
+    -0.4822,
+    0.369
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_2",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1422,
+    -0.0976,
+    -0.1011
+   ],
+   "dir": [
+    -0.6871,
+    -0.549,
+    0.4759
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_3",
+   "host": "Trunk4",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.1563,
+    -0.01,
+    -0.0593
+   ],
+   "dir": [
+    -0.3089,
+    -0.593,
+    0.7436
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_4",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1648,
+    -0.0368,
+    -0.0243
+   ],
+   "dir": [
+    -0.1007,
+    -0.5979,
+    0.7952
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_5",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1654,
+    -0.0646,
+    0.0133
+   ],
+   "dir": [
+    0.0764,
+    -0.5867,
+    0.8062
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_6",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1835,
+    0.0529,
+    0.0378
+   ],
+   "dir": [
+    0.2513,
+    -0.558,
+    0.7909
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_7",
+   "host": "Trunk3",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    -0.1672,
+    0.0269,
+    0.0752
+   ],
+   "dir": [
+    0.4233,
+    -0.5123,
+    0.7472
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_8",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.1428,
+    0.0037,
+    0.1094
+   ],
+   "dir": [
+    0.6172,
+    -0.4505,
+    0.645
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_9",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1085,
+    -0.0155,
+    0.1352
+   ],
+   "dir": [
+    0.8014,
+    -0.3627,
+    0.4756
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_10",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0691,
+    -0.03,
+    0.1543
+   ],
+   "dir": [
+    0.9021,
+    -0.2596,
+    0.3448
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_11",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0272,
+    -0.039,
+    0.1663
+   ],
+   "dir": [
+    0.9727,
+    -0.1389,
+    0.186
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_12",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0148,
+    -0.042,
+    0.1703
+   ],
+   "dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_13",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.0547,
+    -0.039,
+    0.1663
+   ],
+   "dir": [
+    0.9665,
+    0.1535,
+    -0.2056
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_14",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0902,
+    -0.03,
+    0.1543
+   ],
+   "dir": [
+    0.8573,
+    0.3096,
+    -0.4113
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_15",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1195,
+    -0.0155,
+    0.1352
+   ],
+   "dir": [
+    0.6737,
+    0.4481,
+    -0.5876
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_16",
+   "host": "Trunk3",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    0.1415,
+    0.0037,
+    0.1094
+   ],
+   "dir": [
+    0.4606,
+    0.5083,
+    -0.7277
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_17",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1575,
+    0.0269,
+    0.0752
+   ],
+   "dir": [
+    0.2557,
+    0.5467,
+    -0.7973
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_18",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.1645,
+    0.0529,
+    0.0378
+   ],
+   "dir": [
+    0.0529,
+    0.5757,
+    -0.816
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_19",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1885,
+    -0.0646,
+    0.0133
+   ],
+   "dir": [
+    -0.1332,
+    0.5832,
+    -0.8013
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_20",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.178,
+    -0.0368,
+    -0.0243
+   ],
+   "dir": [
+    -0.302,
+    0.5729,
+    -0.762
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_21",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1599,
+    -0.01,
+    -0.0593
+   ],
+   "dir": [
+    -0.4594,
+    0.5538,
+    -0.6945
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_22",
+   "host": "Neck1",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1283,
+    -0.0976,
+    -0.1011
+   ],
+   "dir": [
+    -0.6422,
+    0.5792,
+    -0.5021
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_23",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.1013,
+    -0.0766,
+    -0.1181
+   ],
+   "dir": [
+    -0.767,
+    0.5096,
+    -0.39
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead2_24",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0719,
+    -0.0601,
+    -0.13
+   ],
+   "dir": [
+    -0.848,
+    0.434,
+    -0.3042
+   ],
+   "segments": [
+    {
+     "len": 0.0408,
+     "r": 0.0312
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_0",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0671,
+    -0.0662,
+    -0.1515
+   ],
+   "dir": [
+    -0.9107,
+    -0.3578,
+    0.2062
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_1",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1022,
+    -0.0816,
+    -0.1424
+   ],
+   "dir": [
+    -0.8502,
+    -0.446,
+    0.2798
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_2",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1157,
+    -0.1026,
+    -0.1099
+   ],
+   "dir": [
+    -0.7167,
+    -0.6017,
+    0.3525
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_3",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1537,
+    -0.0164,
+    -0.0869
+   ],
+   "dir": [
+    -0.392,
+    -0.606,
+    0.6921
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_4",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1682,
+    -0.0459,
+    -0.0527
+   ],
+   "dir": [
+    -0.2216,
+    -0.6302,
+    0.7441
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_5",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1751,
+    -0.0776,
+    -0.0146
+   ],
+   "dir": [
+    -0.0547,
+    -0.6322,
+    0.7728
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_6",
+   "host": "Trunk3",
+   "material": "bead_rust",
+   "sides": 6,
+   "offset": [
+    -0.1997,
+    0.0348,
+    0.012
+   ],
+   "dir": [
+    0.1101,
+    -0.6164,
+    0.7797
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_7",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.1895,
+    0.0028,
+    0.0531
+   ],
+   "dir": [
+    0.3278,
+    -0.5971,
+    0.7321
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_8",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1651,
+    -0.0272,
+    0.0874
+   ],
+   "dir": [
+    0.5542,
+    -0.5493,
+    0.6254
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_9",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1329,
+    -0.0538,
+    0.1181
+   ],
+   "dir": [
+    0.6865,
+    -0.4736,
+    0.5517
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_12",
+   "host": "Trunk2",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.0673,
+    0.0675,
+    0.192
+   ],
+   "dir": [
+    0.9725,
+    -0.1483,
+    0.1798
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_13",
+   "host": "Trunk2",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0226,
+    0.064,
+    0.1962
+   ],
+   "dir": [
+    1.0,
+    0.0,
+    -0.0
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_17",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.1709,
+    -0.0538,
+    0.1181
+   ],
+   "dir": [
+    0.4359,
+    0.5863,
+    -0.6828
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_18",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1843,
+    -0.0272,
+    0.0874
+   ],
+   "dir": [
+    0.1961,
+    0.647,
+    -0.7368
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_19",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1885,
+    0.0028,
+    0.0531
+   ],
+   "dir": [
+    0.0319,
+    0.6317,
+    -0.7746
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_20",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1872,
+    0.0348,
+    0.012
+   ],
+   "dir": [
+    -0.111,
+    0.6163,
+    -0.7797
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_21",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.203,
+    -0.0776,
+    -0.0146
+   ],
+   "dir": [
+    -0.2713,
+    0.6094,
+    -0.745
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_22",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.1847,
+    -0.0459,
+    -0.0527
+   ],
+   "dir": [
+    -0.4172,
+    0.5874,
+    -0.6935
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_23",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1596,
+    -0.0164,
+    -0.0869
+   ],
+   "dir": [
+    -0.5522,
+    0.5492,
+    -0.6272
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_24",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.122,
+    -0.1026,
+    -0.1283
+   ],
+   "dir": [
+    -0.7172,
+    0.5551,
+    -0.4214
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_25",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0906,
+    -0.0816,
+    -0.1424
+   ],
+   "dir": [
+    -0.831,
+    0.4712,
+    -0.2956
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead3_26",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0576,
+    -0.0662,
+    -0.1515
+   ],
+   "dir": [
+    -0.9014,
+    0.3752,
+    -0.2162
+   ],
+   "segments": [
+    {
+     "len": 0.0446,
+     "r": 0.034
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_0",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0501,
+    -0.0802,
+    -0.175
+   ],
+   "dir": [
+    -0.9537,
+    -0.2666,
+    0.1391
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_1",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.0778,
+    -0.0932,
+    -0.1458
+   ],
+   "dir": [
+    -0.8859,
+    -0.4277,
+    0.1797
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_2",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    -0.1045,
+    -0.1134,
+    -0.1274
+   ],
+   "dir": [
+    -0.6911,
+    -0.6032,
+    0.3982
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_3",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1479,
+    -0.028,
+    -0.1117
+   ],
+   "dir": [
+    -0.4882,
+    -0.5979,
+    0.6358
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_4",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.1683,
+    -0.0596,
+    -0.0775
+   ],
+   "dir": [
+    -0.3158,
+    -0.6383,
+    0.702
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_5",
+   "host": "Trunk3",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    -0.2069,
+    0.0501,
+    -0.052
+   ],
+   "dir": [
+    -0.1485,
+    -0.6521,
+    0.7435
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_6",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.2107,
+    0.0128,
+    -0.0087
+   ],
+   "dir": [
+    0.0367,
+    -0.6551,
+    0.7547
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_7",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.2,
+    -0.0248,
+    0.0318
+   ],
+   "dir": [
+    0.3212,
+    -0.6605,
+    0.6786
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_8",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.1773,
+    -0.061,
+    0.0695
+   ],
+   "dir": [
+    0.4722,
+    -0.6054,
+    0.6407
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_11",
+   "host": "Trunk2",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    -0.1222,
+    0.0247,
+    0.1778
+   ],
+   "dir": [
+    0.8496,
+    -0.3495,
+    0.3951
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_12",
+   "host": "Trunk2",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    -0.0738,
+    0.009,
+    0.1957
+   ],
+   "dir": [
+    0.9385,
+    -0.2273,
+    0.26
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_15",
+   "host": "Trunk2",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.0674,
+    0.009,
+    0.1957
+   ],
+   "dir": [
+    0.914,
+    0.267,
+    -0.3054
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_16",
+   "host": "Trunk2",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.1047,
+    0.0247,
+    0.1778
+   ],
+   "dir": [
+    0.7526,
+    0.4363,
+    -0.4932
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_19",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.2204,
+    -0.061,
+    0.0695
+   ],
+   "dir": [
+    0.0508,
+    0.6859,
+    -0.7259
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_20",
+   "host": "Trunk3",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.2175,
+    -0.0248,
+    0.0318
+   ],
+   "dir": [
+    -0.1514,
+    0.6895,
+    -0.7083
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_21",
+   "host": "Trunk3",
+   "material": "bead_ochre",
+   "sides": 6,
+   "offset": [
+    0.2061,
+    0.0128,
+    -0.0087
+   ],
+   "dir": [
+    -0.2287,
+    0.6381,
+    -0.7352
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_22",
+   "host": "Trunk3",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.189,
+    0.0501,
+    -0.052
+   ],
+   "dir": [
+    -0.3606,
+    0.615,
+    -0.7012
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_23",
+   "host": "Trunk4",
+   "material": "bead_night",
+   "sides": 6,
+   "offset": [
+    0.1897,
+    -0.0596,
+    -0.0775
+   ],
+   "dir": [
+    -0.4979,
+    0.5834,
+    -0.6416
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_24",
+   "host": "Trunk4",
+   "material": "bead_gold",
+   "sides": 6,
+   "offset": [
+    0.1579,
+    -0.028,
+    -0.1117
+   ],
+   "dir": [
+    -0.6271,
+    0.5336,
+    -0.5675
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_25",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0934,
+    -0.1134,
+    -0.1325
+   ],
+   "dir": [
+    -0.7425,
+    0.5496,
+    -0.3829
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_26",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0765,
+    -0.0932,
+    -0.1681
+   ],
+   "dir": [
+    -0.89,
+    0.3975,
+    -0.2231
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "bead4_27",
+   "host": "Neck1",
+   "material": "bead_pale",
+   "sides": 6,
+   "offset": [
+    0.0386,
+    -0.0802,
+    -0.175
+   ],
+   "dir": [
+    -0.9501,
+    0.2766,
+    -0.1443
+   ],
+   "segments": [
+    {
+     "len": 0.0488,
+     "r": 0.037
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyebead0",
+   "host": "Trunk2",
+   "material": "bead_night",
+   "sides": 10,
+   "offset": [
+    0.0,
+    0.0,
+    0.2061
+   ],
+   "dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.06
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyering0",
+   "host": "Trunk2",
+   "material": "bead_pale",
+   "sides": 10,
+   "offset": [
+    0.0,
+    -0.007,
+    0.1364
+   ],
+   "dir": [
+    0.0,
+    0.0995,
+    0.995
+   ],
+   "segments": [
+    {
+     "len": 0.134,
+     "r": 0.0444
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyecore0",
+   "host": "Trunk2",
+   "material": "glow_bead",
+   "sides": 8,
+   "offset": [
+    0.0,
+    -0.007,
+    0.1364
+   ],
+   "dir": [
+    0.0,
+    0.0995,
+    0.995
+   ],
+   "segments": [
+    {
+     "len": 0.143,
+     "r": 0.0252
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyebead1",
+   "host": "Trunk2",
+   "material": "bead_night",
+   "sides": 10,
+   "offset": [
+    -0.1871,
+    0.0608,
+    0.1375
+   ],
+   "dir": [
+    0.677,
+    -0.4952,
+    0.5445
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.06
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyering1",
+   "host": "Trunk2",
+   "material": "bead_pale",
+   "sides": 10,
+   "offset": [
+    -0.1344,
+    0.0539,
+    0.092
+   ],
+   "dir": [
+    -0.7525,
+    0.0995,
+    0.651
+   ],
+   "segments": [
+    {
+     "len": 0.134,
+     "r": 0.0444
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyecore1",
+   "host": "Trunk2",
+   "material": "glow_bead",
+   "sides": 8,
+   "offset": [
+    -0.1344,
+    0.0539,
+    0.092
+   ],
+   "dir": [
+    -0.7525,
+    0.0995,
+    0.651
+   ],
+   "segments": [
+    {
+     "len": 0.143,
+     "r": 0.0252
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyebead2",
+   "host": "Trunk2",
+   "material": "bead_night",
+   "sides": 10,
+   "offset": [
+    0.1441,
+    0.0608,
+    0.1375
+   ],
+   "dir": [
+    0.4065,
+    0.6147,
+    -0.6759
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.06
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyering2",
+   "host": "Trunk2",
+   "material": "bead_pale",
+   "sides": 10,
+   "offset": [
+    0.0915,
+    0.0539,
+    0.092
+   ],
+   "dir": [
+    0.7525,
+    0.0995,
+    0.651
+   ],
+   "segments": [
+    {
+     "len": 0.134,
+     "r": 0.0444
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyecore2",
+   "host": "Trunk2",
+   "material": "glow_bead",
+   "sides": 8,
+   "offset": [
+    0.0915,
+    0.0539,
+    0.092
+   ],
+   "dir": [
+    0.7525,
+    0.0995,
+    0.651
+   ],
+   "segments": [
+    {
+     "len": 0.143,
+     "r": 0.0252
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyebead3",
+   "host": "Trunk2",
+   "material": "bead_night",
+   "sides": 10,
+   "offset": [
+    -0.1178,
+    0.0795,
+    0.1775
+   ],
+   "dir": [
+    0.8907,
+    -0.2909,
+    0.3492
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.052
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyering3",
+   "host": "Trunk2",
+   "material": "bead_pale",
+   "sides": 10,
+   "offset": [
+    -0.0874,
+    0.0725,
+    0.1148
+   ],
+   "dir": [
+    -0.4348,
+    0.0995,
+    0.895
+   ],
+   "segments": [
+    {
+     "len": 0.126,
+     "r": 0.0385
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyecore3",
+   "host": "Trunk2",
+   "material": "glow_bead",
+   "sides": 8,
+   "offset": [
+    -0.0874,
+    0.0725,
+    0.1148
+   ],
+   "dir": [
+    -0.4348,
+    0.0995,
+    0.895
+   ],
+   "segments": [
+    {
+     "len": 0.135,
+     "r": 0.0218
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyebead4",
+   "host": "Trunk2",
+   "material": "bead_night",
+   "sides": 10,
+   "offset": [
+    0.0617,
+    0.0795,
+    0.1775
+   ],
+   "dir": [
+    0.8334,
+    0.3537,
+    -0.4246
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.052
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyering4",
+   "host": "Trunk2",
+   "material": "bead_pale",
+   "sides": 10,
+   "offset": [
+    0.0313,
+    0.0725,
+    0.1148
+   ],
+   "dir": [
+    0.4348,
+    0.0995,
+    0.895
+   ],
+   "segments": [
+    {
+     "len": 0.126,
+     "r": 0.0385
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "eyecore4",
+   "host": "Trunk2",
+   "material": "glow_bead",
+   "sides": 8,
+   "offset": [
+    0.0313,
+    0.0725,
+    0.1148
+   ],
+   "dir": [
+    0.4348,
+    0.0995,
+    0.895
+   ],
+   "segments": [
+    {
+     "len": 0.135,
+     "r": 0.0218
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch1",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.09,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.086
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.086
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch2",
+   "host": "Body4",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.2,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.086
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.086
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch3",
+   "host": "Body6",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.31,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.086
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.086
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch4",
+   "host": "Body8",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.42,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.086
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.086
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch5",
+   "host": "Body10",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.53,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     -0.07051999999999999
+    ],
+    [
+     0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     0.07051999999999999
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch6",
+   "host": "Body12",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.64,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     -0.07051999999999999
+    ],
+    [
+     0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     0.07051999999999999
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "blotch7",
+   "host": "Body14",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.75,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     -0.07051999999999999
+    ],
+    [
+     0.050839999999999996,
+     0
+    ],
+    [
+     0,
+     0.07051999999999999
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tblotch1",
+   "host": "Trunk1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.16,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.058,
+     0
+    ],
+    [
+     0,
+     -0.08
+    ],
+    [
+     0.058,
+     0
+    ],
+    [
+     0,
+     0.08
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tblotch2",
+   "host": "Trunk1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.44,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.058,
+     0
+    ],
+    [
+     0,
+     -0.08
+    ],
+    [
+     0.058,
+     0
+    ],
+    [
+     0,
+     0.08
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tblotch3",
+   "host": "Trunk1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.72,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.058,
+     0
+    ],
+    [
+     0,
+     -0.08
+    ],
+    [
+     0.058,
+     0
+    ],
+    [
+     0,
+     0.08
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "nblotch1",
+   "host": "Neck1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "neck",
+    "t": 0.24,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     0
+    ],
+    [
+     0,
+     -0.07
+    ],
+    [
+     0.05,
+     0
+    ],
+    [
+     0,
+     0.07
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "nblotch2",
+   "host": "Neck1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "neck",
+    "t": 0.62,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     0
+    ],
+    [
+     0,
+     -0.07
+    ],
+    [
+     0.05,
+     0
+    ],
+    [
+     0,
+     0.07
+    ]
+   ]
+  },
+  {
+   "type": "eye",
+   "host": "Jaw",
+   "material": "eye",
+   "size": 0.034,
+   "anchor": {
+    "chain": "head",
+    "t": 0.34,
+    "around": 82
+   }
+  },
+  {
+   "type": "fin",
+   "host": "Jaw",
+   "material": "pupil",
+   "thickness": 0.058,
+   "mirrored": true,
+   "anchor": {
+    "chain": "head",
+    "t": 0.34,
+    "around": 82
+   },
+   "udir": [
+    0,
+    1,
+    0
+   ],
+   "vdir": [
+    0,
+    0,
+    1
+   ],
+   "points": [
+    [
+     -0.027,
+     0
+    ],
+    [
+     0,
+     -0.007
+    ],
+    [
+     0.027,
+     0
+    ],
+    [
+     0,
+     0.007
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "snout_horn",
+   "host": "SnoutTip",
+   "material": "scale_head",
+   "sides": 6,
+   "offset": [
+    0,
+    0.002,
+    -0.007
+   ],
+   "dir": [
+    0,
+    0.62,
+    0.78
+   ],
+   "segments": [
+    {
+     "len": 0.047,
+     "r": 0.025
+    },
+    {
+     "len": 0.038,
+     "r": 0.007,
+     "rise": 34,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "tongue",
+   "host": "SnoutTip",
+   "material": "tongue",
+   "mirrored": true,
+   "sides": 5,
+   "offset": [
+    0.007,
+    -0.022,
+    0.007
+   ],
+   "dir": [
+    0.32,
+    -0.42,
+    1
+   ],
+   "segments": [
+    {
+     "len": 0.056,
+     "r": 0.008
+    },
+    {
+     "len": 0.043,
+     "r": 0.003,
+     "ahead": 16,
+     "taper": true
+    }
+   ]
+  }
+ ],
+ "animations": {
+  "idle": {
+   "duration": 3.0,
+   "loop": true,
+   "tracks": {
+    "Trunk1": {
+     "rx": [
+      [
+       0,
+       0.35
+      ],
+      [
+       0.5,
+       -0.35
+      ],
+      [
+       1,
+       0.35
+      ]
+     ]
+    },
+    "Trunk3": {
+     "rx": [
+      [
+       0,
+       -0.4
+      ],
+      [
+       0.5,
+       0.45
+      ],
+      [
+       1,
+       -0.4
+      ]
+     ]
+    },
+    "Neck1": {
+     "rx": [
+      [
+       0,
+       0.5
+      ],
+      [
+       0.5,
+       -0.55
+      ],
+      [
+       1,
+       0.5
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       -0.7
+      ],
+      [
+       0.5,
+       0.7
+      ],
+      [
+       1,
+       -0.7
+      ]
+     ]
+    },
+    "Neck2": {
+     "ry": [
+      [
+       0,
+       0.9
+      ],
+      [
+       0.5,
+       -0.9
+      ],
+      [
+       1,
+       0.9
+      ]
+     ]
+    },
+    "Neck3": {
+     "ry": [
+      [
+       0,
+       1.2
+      ],
+      [
+       0.5,
+       -1.2
+      ],
+      [
+       1,
+       1.2
+      ]
+     ]
+    },
+    "Jaw": {
+     "ry": [
+      [
+       0,
+       -1.0
+      ],
+      [
+       0.5,
+       1.0
+      ],
+      [
+       1,
+       -1.0
+      ]
+     ]
+    },
+    "Body0": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.005
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 0.95,
+   "loop": true,
+   "tracks": {
+    "Body0": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.014
+      ],
+      [
+       0.5,
+       0
+      ],
+      [
+       0.75,
+       0.014
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       -1.6
+      ],
+      [
+       0.5,
+       1.6
+      ],
+      [
+       1,
+       -1.6
+      ]
+     ]
+    },
+    "Trunk1": {
+     "rz": [
+      [
+       0,
+       1.8
+      ],
+      [
+       0.5,
+       -1.8
+      ],
+      [
+       1,
+       1.8
+      ]
+     ]
+    },
+    "Trunk3": {
+     "rz": [
+      [
+       0,
+       -2.0
+      ],
+      [
+       0.5,
+       2.0
+      ],
+      [
+       1,
+       -2.0
+      ]
+     ]
+    },
+    "Neck1": {
+     "rx": [
+      [
+       0,
+       1.8
+      ],
+      [
+       0.5,
+       -1.8
+      ],
+      [
+       1,
+       1.8
+      ]
+     ]
+    },
+    "Neck3": {
+     "rx": [
+      [
+       0,
+       -2.2
+      ],
+      [
+       0.5,
+       2.2
+      ],
+      [
+       1,
+       -2.2
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.46,
+   "loop": false,
+   "tracks": {
+    "Body0": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -0.035
+      ],
+      [
+       0.46,
+       0.1
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0.015
+      ],
+      [
+       0.46,
+       -0.015
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Trunk0": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -6
+      ],
+      [
+       0.44,
+       12
+      ],
+      [
+       0.74,
+       -2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Trunk1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -8
+      ],
+      [
+       0.44,
+       15
+      ],
+      [
+       0.74,
+       -3
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Trunk2": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -8
+      ],
+      [
+       0.44,
+       15
+      ],
+      [
+       0.74,
+       -3
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Trunk3": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -7
+      ],
+      [
+       0.44,
+       13
+      ],
+      [
+       0.74,
+       -2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Neck1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -5
+      ],
+      [
+       0.44,
+       8
+      ],
+      [
+       0.74,
+       -2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Neck3": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -4
+      ],
+      [
+       0.44,
+       7
+      ],
+      [
+       0.74,
+       -2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Jaw": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       -4
+      ],
+      [
+       0.44,
+       8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "_blind_read": "2 輪 4 位 context-free sonnet（只給 hero + stage-lit，遮名，四題逐字照 harden2A 報告第二節）：蛇 4/4、珠串或項鍊 4/4、祖靈氣質 4/4、可愛作主印象 0/4；ref 五條特徵第 1 輪 4/5、第 2 輪（出貨輪）5/5。詳見 docs/experiments/2026-09-04-creature-balen-report.md。"
+}
