@@ -52,6 +52,10 @@ const GLOW = {
   intensity: 2.8, // × 頂點色的線性值；要衝過 bloom 的 threshold 0.5 才會發光
   rim: 0.0, // 發光材質不再疊邊光，不然亮部糊成一團看不出瞳孔
 };
+const GHOST = {
+  test: /^ghost_/i,
+  opacity: 0.62, // 霧裾／水草／髮瀑：看得到後面的戲台但仍有形【試玩必調】
+};
 const BURN = {
   ms: 1100, // dissolve 從 0 掃到 1 的時間
   edge: 0.13, // 燒邊寬度（在雜訊值域上量）
@@ -153,6 +157,13 @@ function dressMaterial(mat, burnY) {
   if (glow) {
     mat.emissive = new THREE.Color(1, 1, 1);
     mat.emissiveIntensity = GLOW.intensity;
+  }
+  // haunt 體型的下半身：材質名 ghost_* → 半透明（接線卷前置，2026-09-04；量產凍結檔體型語彙）
+  if (GHOST.test.test(mat.name || '')) {
+    mat.transparent = true;
+    mat.depthWrite = false;
+    mat.opacity = GHOST.opacity;
+    u.ghost = true;
   }
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
