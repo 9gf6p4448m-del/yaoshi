@@ -1,0 +1,118 @@
+{
+  "name": "林投姐髮簪 hairpin_lintoujie_faszan (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，haunt 結構照 redhat.claims.json。本檔在動手建模之前就寫定，之後只改 hairpin.json 去遷就它（凍結時間＝寫檔當下，見報告 ④ 的 git 時序）。相對基底的改動全部是加嚴，沒有一處放寬：① 招牌部位換成 ghost_hair（垂地髮簾）② 加四條 part_exists 釘住 haunt 的 ghost_hair／ghost_wisp 與發光材質 eye／glow_pin ③ 加兩條 part_visible（臉與簪必須真的看得見，否則參照特徵 3／4 等於沒做）④ 加一條 style_dark（陰氣＝深底）⑤ saturation_area 用標準帶 10%–60%（redhat 的 10–70 是紅帽 IP 色的特例，本隻沒有 IP 色，不援用）⑥ tri_budget 上限依 2026-09-04 19:30 預算制修訂為 8000。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "ghost_hair",
+      "stage": "MID",
+      "label": "招牌部位：垂到地的髮簾必須存在，且材質名必須以 ghost_ 開頭（haunt 下半身虛化，接線卷靠這個前綴掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_wisp",
+      "stage": "MID",
+      "label": "髮尾／氣根細鬚必須存在，材質名必須以 ghost_ 開頭；系別苔綠色帶掛在它身上"
+    },
+    {
+      "type": "part_exists",
+      "part": "hair",
+      "stage": "MID",
+      "label": "腰以上的濕黑髮體必須存在（參照特徵 1 的上半段）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_pin",
+      "stage": "MID",
+      "label": "髮簪的發光紅珠必須存在，材質名必須正是 glow_pin（簡報指定的第二個發光部位）"
+    },
+    {
+      "type": "part_exists",
+      "part": "pin",
+      "stage": "MID",
+      "label": "髮簪本體（細長桿＋葉片簪頭）必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "ghost_hair",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌剪影（垂地髮簾）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "skin_face",
+      "view": "side",
+      "min_share": 0.015,
+      "stage": "MID",
+      "label": "參照特徵 3：蒼白的臉在側視必須看得見，不得被髮簾整個吞掉"
+    },
+    {
+      "type": "part_visible",
+      "part": "pin",
+      "view": "side",
+      "min_share": 0.015,
+      "stage": "MID",
+      "label": "參照特徵 4：手上的髮簪在側視必須看得見，不得縮成一條看不到的線"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "ghost_hair",
+      "b": "skin_face",
+      "view": "side",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（髮簾／臉）不得等重：髮簾至少要有臉的兩倍，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["ghost_hair", "ghost_wisp", "hair"],
+      "secondary": ["robe", "sleeve"],
+      "tertiary": ["skin_face", "pin", "eye"],
+      "view": "side",
+      "stage": "MID",
+      "label": "6:3:1 階層：整片頭髮／濕壽衣／臉與簪"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "陰氣＝深底：識別視角的中位亮度不得超過 90/255"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔標準帶；本隻沒有 IP 色，不援用 redhat 的 10-70）"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制：每隻 ≤8000 三角形、GLB ≤1.5MB）"
+    }
+  ]
+}
