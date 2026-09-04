@@ -1,241 +1,3737 @@
 {
  "name": "boat_pinbanzhou_ling",
- "_variant": "回修檢視卷（2026-09-04）· 拼板舟（ab=boat、祖靈 zuling、swarm ×3、trait swarmHalfSplash）。依 ART_BIBLE §0.5 真實參照鐵則，照 tools/anyCreature/out/ref/boat/02.jpg（施努來所製雅美族拼板舟船頭）回修：白／黑／橘紅三色、首尾高翹收尖、舷側黑白棋盤格窄帶、船眼同心圓、木板接縫。造型語彙不再沿用 tiger_c 的炭黑底。",
+ "_variant": "回修檢視卷（2026-09-04）· 拼板舟（ab=boat、祖靈 zuling、swarm ×3、trait swarmHalfSplash）。依 ART_BIBLE §0.5 真實參照鐵則，照 tools/anyCreature/out/ref/boat/02.jpg（施努來所製雅美族拼板舟船頭）回修：白／黑／橘紅三色、首尾高翹收尖、舷側黑白棋盤格窄帶、船眼同心圓、木板接縫。造型語彙不再沿用 tiger_c 的炭黑底。 ｜ 硬化批 2B（2026-09-04）：① 姿態壓平貼地（rv 在 t 0.30–0.76 拉平、中段龍骨水平、首尾仍翹，修『讀成飛船』）② 飛魚鰭改後掠下垂、葉面加寬 ③ 木板拼接＝四段板條色差＋三列實體疊板搭口凸條（每列 11 段）＋每側 4 條橫向對接縫，主對話簽字的「低多邊形做不出木紋」替代做法 ④ sides 24→48、ring_step 0.058、全 volume faceted:true（19:10／19:30 修訂）。",
  "_brief": "Tatala boat-spirit: a Tao (Yami) plank canoe that grew flying-fish wings. Bone-white plank hull painted in the only three colours the real boats use — white, black, ochre-red. Both ends wrench upward and knife to a point, the bow higher than the stern. An ochre rail caps the gunwale; under it a black band carries a dense row of white diamonds (the checkerboard trim), and two ochre hairlines and one dark seam run the length of the flanks like plank joints. On each bow cheek a big concentric boat-eye: white outer disc, black ring, white ring, ochre ring, glowing ochre pupil. Two long pale pectoral fins sweep back like a flying fish clearing the water. Feel: a drowned vessel that still hunts. Signature = the up-hooked pointed prow. Identity view = side.",
  "_swarm_recipe": "第一隻 swarm，骨架與體積寫法給其餘 6 隻 swarm 沿用：① 主鏈水平臥（frame:up）、模型高 ≤0.85、W/H ≥1.4，橫排 3 隻時 preview 每隻只有 1.05/0.62≈1.69 模型單位的 X 額度 → 含配件的總寬務必 ≤1.2；② 左右對稱靠一對 mirror 側鏈（本檔 LFin），動畫不寫 mirror_phase，兩側同拍才讀得出『一群同款』；③ 塗裝用 colors.arcs 的縱向分帶（角度吸附到 360/sides 的格，本檔 sides=24 → 15° 一格），橫向的棋盤格只能用一排小 fin 菱形貼片做。",
  "_glow_materials": "eye / glow_prow —— 材質名是給 three.js 接 emissive 用的（簡報指定的兩個發光部位）。這份 spec 只把它們塗成高亮高飽和色。",
  "_traps": "① 近黑一律用中性灰（S<0.15），shading.noise 會把偏暖的近黑擾到 HSV S>0.5，飽和面積就爆掉；② fin 帶 anchor 時 offset 會被丟掉，要埋只能把 points 內緣寫成負 u；③ 鏈段長度比 >0.923 會被 proportion BLOCK，每段都刻意做長短差；④ colors.arcs 只吃角度不吃 t，橫紋做不出來；sides=24 時 sym 只有 0/15/30/…/180 這 13 格，帶要含住整數格才看得到。",
- "_arc_map": "sides=24、canoe 斷面 16 點 → sym 0=艙底、15/30=艙壁、45=舷唇（船身最高線）、60/75/90/105/120/135/150/165=外舷由上而下、180=龍骨。分帶：0–37 艙內＝未上漆的風化木色；38–52 橘紅舷頂鑲邊（單環會被 gouraud 洗掉，所以另有一條實體 trim_red 舷條壓在同一圈上）；68–82 黑細帶（棋盤格的上緣線）；83–112 米白主面＝棋盤格與船眼落此；113–127 橘紅細線；158–180 龍骨深線；其餘米白。",
-
+ "_arc_map": "sym 映射：sides=48、canoe 16 點 → f=(sym+90)/22.5 是斷面多邊形的點位；sym 0=艙底、45=舷唇(v=1.00)、67.5(v=0.68)、90(v=0.10)、112.5(v=-0.42)、135(v=-0.76)、180=龍骨。分帶：0–37.5 艙內未上漆木色；37.5–52.5 赭紅舷頂；52.5–75 板條 1（底色 #fdf9f0）；75–97.5 板條 2 #efe6d2；97.5–120 板條 3 #e0d4b6；120–150 板條 4 #d2c19d；150–180 船底／龍骨 #4a463d。★接縫不用色帶：around≈90 的色帶在側視投影最寬，三條寬帶會把側視中位亮度從 96 打到 67（實測），改成 around 75/97/119 三列各 11 段的實體凸條（疊板搭口線），既是幾何又不吃亮度預算。",
  "palette": {
-  "hull_body": {"color": "#fdf9f0", "rough": 0.88},
-  "fin_fly":   {"color": "#e3d9c3", "rough": 0.88},
-  "bone":      {"color": "#fdfbf4", "rough": 0.78},
-  "oar":       {"color": "#e0d6bf", "rough": 0.92},
-  "trim_red":  {"color": "#b23f1c", "rough": 0.78},
-  "socket":    {"color": "#17181a", "rough": 0.6},
-  "lash":      {"color": "#1e1f20", "rough": 0.85},
-  "eye":       {"color": "#f2601c", "rough": 0.15},
-  "glow_prow": {"color": "#d24f1b", "rough": 0.2}
+  "hull_body": {
+   "color": "#fdf9f0",
+   "rough": 0.88
+  },
+  "fin_fly": {
+   "color": "#e3d9c3",
+   "rough": 0.88
+  },
+  "bone": {
+   "color": "#fdfbf4",
+   "rough": 0.78
+  },
+  "oar": {
+   "color": "#e0d6bf",
+   "rough": 0.92
+  },
+  "trim_red": {
+   "color": "#b23f1c",
+   "rough": 0.78
+  },
+  "socket": {
+   "color": "#17181a",
+   "rough": 0.6
+  },
+  "lash": {
+   "color": "#7a6446",
+   "rough": 0.9
+  },
+  "eye": {
+   "color": "#f2601c",
+   "rough": 0.15
+  },
+  "glow_prow": {
+   "color": "#d24f1b",
+   "rough": 0.2
+  }
  },
-
  "sections": {
-  "canoe": [[1.00, 0.10], [0.98, 0.68], [0.93, 1.00], [0.74, 0.05],
-            [0.00, -0.55], [-0.74, 0.05], [-0.93, 1.00], [-0.98, 0.68],
-            [-1.00, 0.10], [-0.94, -0.42], [-0.74, -0.76], [-0.42, -0.95],
-            [0.00, -1.00], [0.42, -0.95], [0.74, -0.76], [0.94, -0.42]]
+  "canoe": [
+   [
+    1.0,
+    0.1
+   ],
+   [
+    0.98,
+    0.68
+   ],
+   [
+    0.93,
+    1.0
+   ],
+   [
+    0.74,
+    0.05
+   ],
+   [
+    0.0,
+    -0.55
+   ],
+   [
+    -0.74,
+    0.05
+   ],
+   [
+    -0.93,
+    1.0
+   ],
+   [
+    -0.98,
+    0.68
+   ],
+   [
+    -1.0,
+    0.1
+   ],
+   [
+    -0.94,
+    -0.42
+   ],
+   [
+    -0.74,
+    -0.76
+   ],
+   [
+    -0.42,
+    -0.95
+   ],
+   [
+    0.0,
+    -1.0
+   ],
+   [
+    0.42,
+    -0.95
+   ],
+   [
+    0.74,
+    -0.76
+   ],
+   [
+    0.94,
+    -0.42
+   ]
+  ]
  },
-
- "ao": {"strength": 0.26},
- "shading": {"gradient": {"top": 0.12, "bottom": -0.03}, "noise": {"size": 0.011, "amount": 0.19}},
+ "ao": {
+  "strength": 0.32
+ },
+ "shading": {
+  "gradient": {
+   "top": 0.12,
+   "bottom": -0.03
+  },
+  "noise": {
+   "size": 0.011,
+   "amount": 0.19
+  }
+ },
  "build": "rigid",
  "smooth_angle": 26,
-
  "joints": {
-  "SternTip": [0, 0.400, -0.820],
-  "Stern":    {"from": "SternTip", "up": -0.170, "fwd": 0.260},
-  "Mid":      {"from": "Stern",    "up": -0.048, "fwd": 0.470},
-  "BowBase":  {"from": "Mid",      "up":  0.070, "fwd": 0.545},
-  "BowTip":   {"from": "BowBase",  "up":  0.245, "fwd": 0.205},
-
-  "LFinRoot": {"from": "Mid",      "side": 0.050, "up": 0.005, "fwd": 0.190},
-  "LFinMid":  {"from": "LFinRoot", "side": 0.250, "up": -0.012, "fwd": -0.085},
-  "LFinTip":  {"from": "LFinMid",  "side": 0.170, "up": -0.032, "fwd": -0.150}
+  "SternTip": [
+   0,
+   0.4,
+   -0.82
+  ],
+  "Stern": {
+   "from": "SternTip",
+   "up": -0.2,
+   "fwd": 0.26
+  },
+  "Mid": {
+   "from": "Stern",
+   "up": 0.008,
+   "fwd": 0.47
+  },
+  "BowBase": {
+   "from": "Mid",
+   "up": -0.006,
+   "fwd": 0.545
+  },
+  "BowTip": {
+   "from": "BowBase",
+   "up": 0.295,
+   "fwd": 0.205
+  },
+  "LFinRoot": {
+   "from": "Mid",
+   "side": 0.048,
+   "up": 0.006,
+   "fwd": 0.15
+  },
+  "LFinMid": {
+   "from": "LFinRoot",
+   "side": 0.28,
+   "up": -0.03,
+   "fwd": -0.13
+  },
+  "LFinTip": {
+   "from": "LFinMid",
+   "side": 0.165,
+   "up": -0.048,
+   "fwd": -0.17
+  }
  },
-
  "chains": {
-  "hull": ["SternTip", "Stern", "Mid", "BowBase", "BowTip"],
-  "LFin": ["LFinRoot", "LFinMid", "LFinTip"]
+  "hull": [
+   "SternTip",
+   "Stern",
+   "Mid",
+   "BowBase",
+   "BowTip"
+  ],
+  "LFin": [
+   "LFinRoot",
+   "LFinMid",
+   "LFinTip"
+  ]
  },
- "attach": {"LFin": "Mid"},
- "mirror": ["LFin"],
- "touch": [["hull", "LFin"]],
-
+ "attach": {
+  "LFin": "Mid"
+ },
+ "mirror": [
+  "LFin"
+ ],
+ "touch": [
+  [
+   "hull",
+   "LFin"
+  ]
+ ],
  "volumes": [
-  {"chain": "hull", "material": "hull_body", "frame": "up", "sides": 24, "smooth_angle": 26, "section": "canoe",
+  {
+   "chain": "hull",
+   "material": "hull_body",
+   "frame": "up",
+   "sides": 48,
+   "smooth_angle": 26,
+   "section": "canoe",
    "profile": [
-    [0.00, 0.030, 0.062],
-    [0.11, 0.105, 0.135, {"sharp": true}],
-    [0.30, 0.185, 0.192, {"sharp": true}],
-    [0.55, 0.202, 0.213, {"sharp": true}],
-    [0.76, 0.155, 0.176, {"sharp": true}],
-    [0.89, 0.078, 0.120, {"sharp": true}],
-    [1.00, 0.020, 0.050]
+    [
+     0.0,
+     0.03,
+     0.062
+    ],
+    [
+     0.11,
+     0.105,
+     0.15,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     0.3,
+     0.185,
+     0.205,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     0.55,
+     0.202,
+     0.205,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     0.76,
+     0.155,
+     0.205,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     0.89,
+     0.078,
+     0.12,
+     {
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.02,
+     0.05
+    ]
    ],
-   "caps": ["none", "none"], "ring_step": 0.062,
-   "colors": {"arcs": [
-     {"from": 0,   "to": 37,  "color": "#4c463c"},
-     {"from": 38,  "to": 52,  "color": "#b23f1c"},
-     {"from": 68,  "to": 82,  "color": "#17181a"},
-     {"from": 113, "to": 127, "color": "#b23f1c"},
-     {"from": 158, "to": 180, "color": "#4a463d"}
-   ]}},
-
-  {"chain": "LFin", "material": "fin_fly", "frame": "up", "sides": 10, "smooth_angle": 26,
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.058,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0.0,
+      "to": 37.5,
+      "color": "#4c463c"
+     },
+     {
+      "from": 37.5,
+      "to": 52.5,
+      "color": "#b23f1c"
+     },
+     {
+      "from": 75.0,
+      "to": 82.5,
+      "color": "#4a423a"
+     },
+     {
+      "from": 82.5,
+      "to": 97.5,
+      "color": "#efe6d2"
+     },
+     {
+      "from": 97.5,
+      "to": 105.0,
+      "color": "#4a423a"
+     },
+     {
+      "from": 105.0,
+      "to": 120.0,
+      "color": "#e0d4b6"
+     },
+     {
+      "from": 120.0,
+      "to": 127.5,
+      "color": "#4a423a"
+     },
+     {
+      "from": 127.5,
+      "to": 150.0,
+      "color": "#d2c19d"
+     },
+     {
+      "from": 150.0,
+      "to": 180.0,
+      "color": "#4a463d"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "LFin",
+   "material": "fin_fly",
+   "frame": "up",
+   "sides": 10,
+   "smooth_angle": 26,
    "profile": [
-    [0.00, 0.092, 0.040],
-    [0.28, 0.190, 0.024, {"exp": 4.6, "sharp": true}],
-    [0.70, 0.150, 0.014, {"exp": 4.6}],
-    [1.00, 0.048, 0.006]
+    [
+     0.0,
+     0.096,
+     0.038
+    ],
+    [
+     0.28,
+     0.178,
+     0.022,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.7,
+     0.14,
+     0.013,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1.0,
+     0.044,
+     0.006
+    ]
    ],
-   "caps": ["none", "dome"], "ring_step": 0.058}
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.058,
+   "faceted": true
+  }
  ],
-
  "parts": [
-  {"type": "fin", "host": "BowBase", "material": "bone", "thickness": 0.009, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.760, "around": 72},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.066, 0.000], [0.047, 0.047], [0.000, 0.066], [-0.047, 0.047],
-              [-0.066, 0.000], [-0.047, -0.047], [0.000, -0.066], [0.047, -0.047]]},
-  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.015, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.760, "around": 72},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.053, 0.000], [0.037, 0.037], [0.000, 0.053], [-0.037, 0.037],
-              [-0.053, 0.000], [-0.037, -0.037], [0.000, -0.053], [0.037, -0.037]]},
-  {"type": "fin", "host": "BowBase", "material": "bone", "thickness": 0.021, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.760, "around": 72},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.039, 0.000], [0.028, 0.028], [0.000, 0.039], [-0.028, 0.028],
-              [-0.039, 0.000], [-0.028, -0.028], [0.000, -0.039], [0.028, -0.028]]},
-  {"type": "fin", "host": "BowBase", "material": "trim_red", "thickness": 0.027, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.760, "around": 72},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.026, 0.000], [0.018, 0.018], [0.000, 0.026], [-0.018, 0.018],
-              [-0.026, 0.000], [-0.018, -0.018], [0.000, -0.026], [0.018, -0.018]]},
-  {"type": "eye", "host": "BowBase", "material": "eye", "size": 0.032,
-   "anchor": {"chain": "hull", "t": 0.760, "around": 72}},
-
-  {"type": "fin", "host": "Stern", "material": "socket", "thickness": 0.009, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.245, "around": 96},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.010, -0.052], [0.010, 0.052], [-0.010, 0.052], [-0.010, -0.052]]},
-  {"type": "fin", "host": "Stern", "material": "socket", "thickness": 0.009, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.245, "around": 96},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.052, -0.010], [0.052, 0.010], [-0.052, 0.010], [-0.052, -0.010]]},
-  {"type": "fin", "host": "Stern", "material": "trim_red", "thickness": 0.016, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.245, "around": 96},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.019, 0.000], [0.013, 0.013], [0.000, 0.019], [-0.013, 0.013],
-              [-0.019, 0.000], [-0.013, -0.013], [0.000, -0.019], [0.013, -0.013]]},
-
-  {"type": "fin", "host": "Stern", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.20, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.026, 0.000], [0.000, 0.014], [-0.026, 0.000], [0.000, -0.014]]},
-  {"type": "fin", "host": "Stern", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.27, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.032, 0.000], [0.000, 0.017], [-0.032, 0.000], [0.000, -0.017]]},
-  {"type": "fin", "host": "Mid", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.34, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.039, 0.000], [0.000, 0.021], [-0.039, 0.000], [0.000, -0.021]]},
-  {"type": "fin", "host": "Mid", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.41, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.045, 0.000], [0.000, 0.024], [-0.045, 0.000], [0.000, -0.024]]},
-  {"type": "fin", "host": "Mid", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.48, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.046, 0.000], [0.000, 0.025], [-0.046, 0.000], [0.000, -0.025]]},
-  {"type": "fin", "host": "Mid", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.55, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.046, 0.000], [0.000, 0.025], [-0.046, 0.000], [0.000, -0.025]]},
-  {"type": "fin", "host": "Mid", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.62, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.046, 0.000], [0.000, 0.025], [-0.046, 0.000], [0.000, -0.025]]},
-  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.69, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.045, 0.000], [0.000, 0.025], [-0.045, 0.000], [0.000, -0.025]]},
-  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.76, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.039, 0.000], [0.000, 0.021], [-0.039, 0.000], [0.000, -0.021]]},
-  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.83, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.032, 0.000], [0.000, 0.017], [-0.032, 0.000], [0.000, -0.017]]},
-  {"type": "fin", "host": "BowBase", "material": "socket", "thickness": 0.006, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.90, "around": 100},
-   "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.026, 0.000], [0.000, 0.014], [-0.026, 0.000], [0.000, -0.014]]},
-
-  {"type": "fin", "host": "BowBase", "material": "glow_prow", "thickness": 0.030,
-   "offset": [0, 0, 0.170], "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.150, -0.090], [0.095, -0.028], [0.135, 0.235], [0.075, 0.527], [-0.050, 0.263]]},
-  {"type": "fin", "host": "BowBase", "material": "bone", "thickness": 0.044,
-   "offset": [0, 0, 0.170], "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[-0.090, -0.035], [0.048, 0.005], [0.082, 0.230], [0.040, 0.420], [-0.030, 0.205]]},
-
-  {"type": "fin", "host": "Stern", "material": "trim_red", "thickness": 0.028,
-   "offset": [0, 0, -0.170], "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.140, -0.090], [-0.100, -0.028], [-0.135, 0.215], [-0.070, 0.440], [0.045, 0.240]]},
-  {"type": "fin", "host": "Stern", "material": "bone", "thickness": 0.042,
-   "offset": [0, 0, -0.170], "udir": [0, 0, 1], "vdir": [0, 1, 0],
-   "points": [[0.085, -0.035], [-0.052, 0.005], [-0.080, 0.205], [-0.038, 0.348], [0.028, 0.170]]},
-
-  {"type": "fin", "host": "Stern", "material": "fin_fly", "thickness": 0.018, "conform": false, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.22, "around": 118},
-   "udir": [0.86, 0, -0.51], "vdir": [0.20, -0.94, 0],
-   "points": [[-0.040, -0.026], [0.150, -0.070], [0.124, 0.044]]},
-
-  {"type": "fin", "host": "Mid", "material": "trim_red", "thickness": 0.018, "conform": false, "mirrored": true,
-   "anchor": {"chain": "hull", "t": 0.50, "around": 45},
-   "udir": [0, 0, 1], "vdir": [0.707, 0.707, 0],
-   "points": [[-0.340, -0.024], [0.340, -0.024], [0.340, 0.024], [-0.340, 0.024]]},
-
-  {"type": "fin", "host": "Stern", "material": "lash", "thickness": 0.020, "conform": false,
-   "offset": [0, 0.128, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
-   "points": [[-0.125, -0.016], [-0.037, -0.020], [0.037, -0.020], [0.125, -0.016],
-              [0.125, 0.016], [0.037, 0.020], [-0.037, 0.020], [-0.125, 0.016]]},
-  {"type": "fin", "host": "Mid", "material": "lash", "thickness": 0.020, "conform": false,
-   "offset": [0, 0.176, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
-   "points": [[-0.185, -0.016], [-0.055, -0.020], [0.055, -0.020], [0.185, -0.016],
-              [0.185, 0.016], [0.055, 0.020], [-0.055, 0.020], [-0.185, 0.016]]},
-  {"type": "fin", "host": "BowBase", "material": "lash", "thickness": 0.020, "conform": false,
-   "offset": [0, 0.140, 0], "udir": [1, 0, 0], "vdir": [0, 0, 1],
-   "points": [[-0.140, -0.016], [-0.042, -0.020], [0.042, -0.020], [0.140, -0.016],
-              [0.140, 0.016], [0.042, 0.020], [-0.042, 0.020], [-0.140, 0.016]]},
-
-  {"type": "curve", "host": "Mid", "material": "oar", "mirrored": true, "sides": 4,
-   "offset": [0.070, 0.150, -0.120], "dir": [0.60, -0.44, -0.67],
-   "segments": [{"len": 0.230, "r": 0.017}, {"len": 0.120, "r": 0.066},
-                {"len": 0.092, "r": 0.024, "taper": true}]},
-  {"type": "curve", "host": "BowBase", "material": "oar", "mirrored": true, "sides": 4,
-   "offset": [0.060, 0.126, -0.115], "dir": [0.60, -0.44, -0.67],
-   "segments": [{"len": 0.212, "r": 0.016}, {"len": 0.112, "r": 0.060},
-                {"len": 0.086, "r": 0.022, "taper": true}]}
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "bone",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.76,
+    "around": 72
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.066,
+     0.0
+    ],
+    [
+     0.047,
+     0.047
+    ],
+    [
+     0.0,
+     0.066
+    ],
+    [
+     -0.047,
+     0.047
+    ],
+    [
+     -0.066,
+     0.0
+    ],
+    [
+     -0.047,
+     -0.047
+    ],
+    [
+     0.0,
+     -0.066
+    ],
+    [
+     0.047,
+     -0.047
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "socket",
+   "thickness": 0.015,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.76,
+    "around": 72
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.053,
+     0.0
+    ],
+    [
+     0.037,
+     0.037
+    ],
+    [
+     0.0,
+     0.053
+    ],
+    [
+     -0.037,
+     0.037
+    ],
+    [
+     -0.053,
+     0.0
+    ],
+    [
+     -0.037,
+     -0.037
+    ],
+    [
+     0.0,
+     -0.053
+    ],
+    [
+     0.037,
+     -0.037
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "bone",
+   "thickness": 0.021,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.76,
+    "around": 72
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.039,
+     0.0
+    ],
+    [
+     0.028,
+     0.028
+    ],
+    [
+     0.0,
+     0.039
+    ],
+    [
+     -0.028,
+     0.028
+    ],
+    [
+     -0.039,
+     0.0
+    ],
+    [
+     -0.028,
+     -0.028
+    ],
+    [
+     0.0,
+     -0.039
+    ],
+    [
+     0.028,
+     -0.028
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "trim_red",
+   "thickness": 0.027,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.76,
+    "around": 72
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.026,
+     0.0
+    ],
+    [
+     0.018,
+     0.018
+    ],
+    [
+     0.0,
+     0.026
+    ],
+    [
+     -0.018,
+     0.018
+    ],
+    [
+     -0.026,
+     0.0
+    ],
+    [
+     -0.018,
+     -0.018
+    ],
+    [
+     0.0,
+     -0.026
+    ],
+    [
+     0.018,
+     -0.018
+    ]
+   ]
+  },
+  {
+   "type": "eye",
+   "host": "BowBase",
+   "material": "eye",
+   "size": 0.032,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.76,
+    "around": 72
+   }
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "socket",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.245,
+    "around": 96
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.01,
+     -0.052
+    ],
+    [
+     0.01,
+     0.052
+    ],
+    [
+     -0.01,
+     0.052
+    ],
+    [
+     -0.01,
+     -0.052
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "socket",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.245,
+    "around": 96
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.052,
+     -0.01
+    ],
+    [
+     0.052,
+     0.01
+    ],
+    [
+     -0.052,
+     0.01
+    ],
+    [
+     -0.052,
+     -0.01
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "trim_red",
+   "thickness": 0.016,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.245,
+    "around": 96
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.019,
+     0.0
+    ],
+    [
+     0.013,
+     0.013
+    ],
+    [
+     0.0,
+     0.019
+    ],
+    [
+     -0.013,
+     0.013
+    ],
+    [
+     -0.019,
+     0.0
+    ],
+    [
+     -0.013,
+     -0.013
+    ],
+    [
+     0.0,
+     -0.019
+    ],
+    [
+     0.013,
+     -0.013
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "glow_prow",
+   "thickness": 0.03,
+   "offset": [
+    0,
+    0,
+    0.17
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.168,
+     -0.1008
+    ],
+    [
+     0.1064,
+     -0.0314
+    ],
+    [
+     0.1512,
+     0.2632
+    ],
+    [
+     0.084,
+     0.5902
+    ],
+    [
+     -0.056,
+     0.2946
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "bone",
+   "thickness": 0.044,
+   "offset": [
+    0,
+    0,
+    0.17
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.1008,
+     -0.0392
+    ],
+    [
+     0.0538,
+     0.0056
+    ],
+    [
+     0.0918,
+     0.2576
+    ],
+    [
+     0.0448,
+     0.4704
+    ],
+    [
+     -0.0336,
+     0.2296
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "trim_red",
+   "thickness": 0.028,
+   "offset": [
+    0,
+    0,
+    -0.17
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.14,
+     -0.09
+    ],
+    [
+     -0.1,
+     -0.028
+    ],
+    [
+     -0.135,
+     0.215
+    ],
+    [
+     -0.07,
+     0.44
+    ],
+    [
+     0.045,
+     0.24
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "bone",
+   "thickness": 0.042,
+   "offset": [
+    0,
+    0,
+    -0.17
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0952,
+     -0.0392
+    ],
+    [
+     -0.0582,
+     0.0056
+    ],
+    [
+     -0.0896,
+     0.2296
+    ],
+    [
+     -0.0426,
+     0.3898
+    ],
+    [
+     0.0314,
+     0.1904
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "fin_fly",
+   "thickness": 0.018,
+   "conform": false,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.22,
+    "around": 118
+   },
+   "udir": [
+    0.86,
+    0,
+    -0.51
+   ],
+   "vdir": [
+    0.2,
+    -0.94,
+    0
+   ],
+   "points": [
+    [
+     -0.04,
+     -0.026
+    ],
+    [
+     0.15,
+     -0.07
+    ],
+    [
+     0.124,
+     0.044
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "trim_red",
+   "thickness": 0.018,
+   "conform": false,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.5,
+    "around": 45
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0.707,
+    0.707,
+    0
+   ],
+   "points": [
+    [
+     -0.34,
+     -0.024
+    ],
+    [
+     0.34,
+     -0.024
+    ],
+    [
+     0.34,
+     0.024
+    ],
+    [
+     -0.34,
+     0.024
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Stern",
+   "material": "lash",
+   "thickness": 0.022,
+   "conform": false,
+   "offset": [
+    0,
+    0.128,
+    0
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0,
+    1
+   ],
+   "points": [
+    [
+     -0.125,
+     -0.0272
+    ],
+    [
+     -0.037,
+     -0.034
+    ],
+    [
+     0.037,
+     -0.034
+    ],
+    [
+     0.125,
+     -0.0272
+    ],
+    [
+     0.125,
+     0.0272
+    ],
+    [
+     0.037,
+     0.034
+    ],
+    [
+     -0.037,
+     0.034
+    ],
+    [
+     -0.125,
+     0.0272
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "lash",
+   "thickness": 0.022,
+   "conform": false,
+   "offset": [
+    0,
+    0.176,
+    0
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0,
+    1
+   ],
+   "points": [
+    [
+     -0.185,
+     -0.0272
+    ],
+    [
+     -0.055,
+     -0.034
+    ],
+    [
+     0.055,
+     -0.034
+    ],
+    [
+     0.185,
+     -0.0272
+    ],
+    [
+     0.185,
+     0.0272
+    ],
+    [
+     0.055,
+     0.034
+    ],
+    [
+     -0.055,
+     0.034
+    ],
+    [
+     -0.185,
+     0.0272
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "BowBase",
+   "material": "lash",
+   "thickness": 0.022,
+   "conform": false,
+   "offset": [
+    0,
+    0.14,
+    0
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0,
+    1
+   ],
+   "points": [
+    [
+     -0.14,
+     -0.0272
+    ],
+    [
+     -0.042,
+     -0.034
+    ],
+    [
+     0.042,
+     -0.034
+    ],
+    [
+     0.14,
+     -0.0272
+    ],
+    [
+     0.14,
+     0.0272
+    ],
+    [
+     0.042,
+     0.034
+    ],
+    [
+     -0.042,
+     0.034
+    ],
+    [
+     -0.14,
+     0.0272
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.16,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.232,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.304,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.376,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.448,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.52,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.592,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.664,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.736,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.808,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.88,
+    "around": 75
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.16,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.232,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.304,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.376,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.448,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.52,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.592,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.664,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.736,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.808,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.88,
+    "around": 97
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.16,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.232,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.304,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.376,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.448,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.52,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.592,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.664,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.736,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.808,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.013,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.88,
+    "around": 119
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.06,
+     -0.011
+    ],
+    [
+     0.081,
+     0.0
+    ],
+    [
+     0.06,
+     0.011
+    ],
+    [
+     -0.06,
+     0.011
+    ],
+    [
+     -0.081,
+     0.0
+    ],
+    [
+     -0.06,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.28,
+    "around": 108
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.009,
+     -0.048
+    ],
+    [
+     0.01215,
+     0.0
+    ],
+    [
+     0.009,
+     0.048
+    ],
+    [
+     -0.009,
+     0.048
+    ],
+    [
+     -0.01215,
+     0.0
+    ],
+    [
+     -0.009,
+     -0.048
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.45,
+    "around": 108
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.009,
+     -0.048
+    ],
+    [
+     0.01215,
+     0.0
+    ],
+    [
+     0.009,
+     0.048
+    ],
+    [
+     -0.009,
+     0.048
+    ],
+    [
+     -0.01215,
+     0.0
+    ],
+    [
+     -0.009,
+     -0.048
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.62,
+    "around": 108
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.009,
+     -0.048
+    ],
+    [
+     0.01215,
+     0.0
+    ],
+    [
+     0.009,
+     0.048
+    ],
+    [
+     -0.009,
+     0.048
+    ],
+    [
+     -0.01215,
+     0.0
+    ],
+    [
+     -0.009,
+     -0.048
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "hull_body",
+   "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.79,
+    "around": 108
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.009,
+     -0.048
+    ],
+    [
+     0.01215,
+     0.0
+    ],
+    [
+     0.009,
+     0.048
+    ],
+    [
+     -0.009,
+     0.048
+    ],
+    [
+     -0.01215,
+     0.0
+    ],
+    [
+     -0.009,
+     -0.048
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.2,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0293,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0293,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.262,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0323,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0323,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.324,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0352,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0352,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.386,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0382,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0382,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.448,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0411,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0411,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.51,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0441,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0441,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.572,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.045,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.045,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.634,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.042,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.042,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.696,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.039,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.039,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.758,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0361,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0361,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Mid",
+   "material": "socket",
+   "thickness": 0.006,
+   "mirrored": true,
+   "anchor": {
+    "chain": "hull",
+    "t": 0.82,
+    "around": 86
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0331,
+     0.0
+    ],
+    [
+     0.0,
+     0.015
+    ],
+    [
+     -0.0331,
+     0.0
+    ],
+    [
+     0.0,
+     -0.015
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Mid",
+   "material": "oar",
+   "mirrored": true,
+   "sides": 4,
+   "offset": [
+    0.095,
+    0.12,
+    -0.03
+   ],
+   "dir": [
+    0.3,
+    0.9,
+    -0.32
+   ],
+   "segments": [
+    {
+     "len": 0.23,
+     "r": 0.017
+    },
+    {
+     "len": 0.12,
+     "r": 0.066
+    },
+    {
+     "len": 0.092,
+     "r": 0.024,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "BowBase",
+   "material": "oar",
+   "mirrored": true,
+   "sides": 4,
+   "offset": [
+    0.085,
+    0.105,
+    -0.02
+   ],
+   "dir": [
+    0.27,
+    0.9,
+    0.34
+   ],
+   "segments": [
+    {
+     "len": 0.212,
+     "r": 0.016
+    },
+    {
+     "len": 0.112,
+     "r": 0.06
+    },
+    {
+     "len": 0.086,
+     "r": 0.022,
+     "taper": true
+    }
+   ]
+  }
  ],
-
  "animations": {
-  "idle": {"duration": 2.8, "loop": true,
+  "idle": {
+   "duration": 2.8,
+   "loop": true,
    "tracks": {
-    "SternTip": {"ty": [[0, 0], [0.5, 0.018], [1, 0]]},
-    "Mid": {"rx": [[0, -1.2], [0.5, 1.6], [1, -1.2]]},
-    "BowBase": {"rx": [[0, 0.8], [0.5, -1.2], [1, 0.8]]},
-    "LFinRoot": {"rz": [[0, -5], [0.5, 7], [1, -5]]},
-    "LFinMid": {"rz": [[0, 3], [0.5, -5], [1, 3]]}
-   }},
-  "move": {"duration": 0.9, "loop": true,
+    "SternTip": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.018
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Mid": {
+     "rx": [
+      [
+       0,
+       -1.2
+      ],
+      [
+       0.5,
+       1.6
+      ],
+      [
+       1,
+       -1.2
+      ]
+     ]
+    },
+    "BowBase": {
+     "rx": [
+      [
+       0,
+       0.8
+      ],
+      [
+       0.5,
+       -1.2
+      ],
+      [
+       1,
+       0.8
+      ]
+     ]
+    },
+    "LFinRoot": {
+     "rz": [
+      [
+       0,
+       -5
+      ],
+      [
+       0.5,
+       7
+      ],
+      [
+       1,
+       -5
+      ]
+     ]
+    },
+    "LFinMid": {
+     "rz": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -5
+      ],
+      [
+       1,
+       3
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 0.9,
+   "loop": true,
    "tracks": {
-    "SternTip": {"ty": [[0, 0], [0.5, 0.050], [1, 0]]},
-    "Mid": {"rx": [[0, 3], [0.5, -4], [1, 3]]},
-    "LFinRoot": {"rz": [[0, -16], [0.5, 20], [1, -16]]},
-    "LFinMid": {"rz": [[0, 10], [0.5, -14], [1, 10]]},
-    "BowBase": {"rx": [[0, -2], [0.5, 3], [1, -2]]}
-   }},
-  "attack": {"duration": 0.46, "loop": false,
+    "SternTip": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.05
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Mid": {
+     "rx": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -4
+      ],
+      [
+       1,
+       3
+      ]
+     ]
+    },
+    "LFinRoot": {
+     "rz": [
+      [
+       0,
+       -16
+      ],
+      [
+       0.5,
+       20
+      ],
+      [
+       1,
+       -16
+      ]
+     ]
+    },
+    "LFinMid": {
+     "rz": [
+      [
+       0,
+       10
+      ],
+      [
+       0.5,
+       -14
+      ],
+      [
+       1,
+       10
+      ]
+     ]
+    },
+    "BowBase": {
+     "rx": [
+      [
+       0,
+       -2
+      ],
+      [
+       0.5,
+       3
+      ],
+      [
+       1,
+       -2
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.46,
+   "loop": false,
    "tracks": {
-    "SternTip": {"ty": [[0, 0], [0.18, -0.035], [0.48, 0.200], [0.76, 0.050], [1, 0]],
-                 "tz": [[0, 0], [0.18, -0.080], [0.52, 0.460], [1, 0]]},
-    "Mid": {"rx": [[0, 0], [0.18, 8], [0.48, -16], [0.78, 3], [1, 0]]},
-    "BowBase": {"rx": [[0, 0], [0.18, 4], [0.48, -8], [1, 0]]},
-    "LFinRoot": {"rz": [[0, 0], [0.18, -22], [0.48, 26], [1, 0]]},
-    "LFinMid": {"rz": [[0, 0], [0.18, 14], [0.48, -18], [1, 0]]}
-   }}
+    "SternTip": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       -0.035
+      ],
+      [
+       0.48,
+       0.2
+      ],
+      [
+       0.76,
+       0.05
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       -0.08
+      ],
+      [
+       0.52,
+       0.46
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Mid": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       8
+      ],
+      [
+       0.48,
+       -16
+      ],
+      [
+       0.78,
+       3
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "BowBase": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       4
+      ],
+      [
+       0.48,
+       -8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFinRoot": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       -22
+      ],
+      [
+       0.48,
+       26
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFinMid": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       14
+      ],
+      [
+       0.48,
+       -18
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
  }
 }

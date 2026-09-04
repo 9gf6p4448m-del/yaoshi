@@ -1,6 +1,6 @@
 {
   "name": "拼板舟 boat_pinbanzhou_ling (zuling/swarm)",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝2026-09-04 量產卷批 1 出貨的同名檔；回修檢視卷（2026-09-04）相對於它的差異只有兩處，兩處都由凍結檔 docs/experiments/2026-09-04-acceptance-creature-review.md 的『boat → 回修：配色改白紅黑』直接要求，不是為了讓實作過關而動門檻：① 材質 gold（金舷條）改名 trim_red（橘紅舷條），share_hierarchy 的 tertiary 跟著換名，門檻一格未動；② style_dark（側視中位亮度 ≤90）換成 style_light（側視中位亮度 ≥95）——舊條是為『炭黑底』寫的，白底拼板舟在定義上不可能過，留著等於自相矛盾；新條同樣是**加嚴方向**的硬門檻：回修前的炭黑版側視中位亮度 34.2/255，套上新條會直接 BLOCK。saturation_area 的帶依 2026-09-04 凍結檔仍為 10%–60%，focal_contrast 的 min_ratio 仍為 3，share_hierarchy／focal_contrast 仍用 tq 視角，tri_budget 仍 1500–5000，一格未放寬。",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝2026-09-04 量產卷批 1 出貨的同名檔；回修檢視卷（2026-09-04）相對於它的差異只有兩處，兩處都由凍結檔 docs/experiments/2026-09-04-acceptance-creature-review.md 的『boat → 回修：配色改白紅黑』直接要求，不是為了讓實作過關而動門檻：① 材質 gold（金舷條）改名 trim_red（橘紅舷條），share_hierarchy 的 tertiary 跟著換名，門檻一格未動；② style_dark（側視中位亮度 ≤90）換成 style_light（側視中位亮度 ≥95）——舊條是為『炭黑底』寫的，白底拼板舟在定義上不可能過，留著等於自相矛盾；新條同樣是**加嚴方向**的硬門檻：回修前的炭黑版側視中位亮度 34.2/255，套上新條會直接 BLOCK。saturation_area 的帶依 2026-09-04 凍結檔仍為 10%–60%，focal_contrast 的 min_ratio 仍為 3，share_hierarchy／focal_contrast 仍用 tq 視角，tri_budget 仍 1500–5000，一格未放寬。｜硬化批 2B（2026-09-04）：tri_budget 上限 5000→8000，唯一依據是凍結檔 2026-09-04 19:30 修訂（main 15a3a37）「GLB 上限改預算制——每隻 ≤1.5MB、三角形 ≤8,000（claims tri_budget 上限可改 8000）」。這是放寬，由凍結檔本身授權；其餘門檻一格未動。",
   "claims": [
     {
       "type": "part_exists",
@@ -52,9 +52,21 @@
     },
     {
       "type": "share_hierarchy",
-      "primary": ["hull_body"],
-      "secondary": ["fin_fly", "glow_prow"],
-      "tertiary": ["trim_red", "bone", "oar", "socket", "eye", "lash"],
+      "primary": [
+        "hull_body"
+      ],
+      "secondary": [
+        "fin_fly",
+        "glow_prow"
+      ],
+      "tertiary": [
+        "trim_red",
+        "bone",
+        "oar",
+        "socket",
+        "eye",
+        "lash"
+      ],
       "view": "tq",
       "stage": "MID",
       "label": "6:3:1 階層：船身／（飛魚鰭＋船艏發光刃）／（橘紅舷條＋白棋盤菱片＋木槳＋黑眼圈＋船眼＋橫樑）"
@@ -73,7 +85,11 @@
     },
     {
       "type": "anim_named",
-      "names": ["idle", "move", "attack"],
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
       "stage": "HIGH",
       "label": "三支動畫齊備"
     },
@@ -88,9 +104,9 @@
     {
       "type": "tri_budget",
       "min": 1500,
-      "max": 5000,
+      "max": 8000,
       "stage": "LOW",
-      "label": "三角形預算（npc preset）"
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
     }
   ]
 }

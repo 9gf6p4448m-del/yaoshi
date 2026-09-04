@@ -4,8 +4,8 @@
  "_paw_note": "buildPaw 的預設 offset 會把腳掌吸到地面（sole on ground）；抬起來的掌必須自己給 offset，否則掌會掉到 y=0.045 跟小腿脫節（part_attachment BLOCK 0.163）。本回修版四掌全部落地蹲踞，沒有抬起的掌。",
  "_brief": "Tiger Lord (虎爺) enshrined under the altar table: a deep crouch, forelegs stretched flat on the ground, chest low. Body wrapped in an orange-gold votive cloth edged with gold braid and a shaggy white fur trim; black curled-cloud whorls painted over the cloth. Dark lacquered face, jaw wrenched wide with paired white fangs, red silk sash hanging at the throat. Ghost-fire still burns along the spine and tail tip and inside the maw — it is a god that has been fed incense until it caught fire. Feel: solemn AND fierce — a thing you kowtow to. Signature = the wide-open glowing maw. Identity view = side.",
  "_exaggeration_vs_anchor": "wolf anchor W/H 1.41 -> ~2.0 (crouched, long and very low); leg_fraction 0.35 -> ~0.20 (folded, belly near the ground); the fur-trim tufts + fire ridge + tail flames push the silhouette's turn_count up so it never reads as a smooth toy.",
- "_glow_materials": "eye / mouth_glow / glow_tail / glow_mane —— 命名是給 three.js 端用的：L 卷會把這些材質名接成 emissive，bloom 才吃得到。這份 spec 本身只把它們塗成高亮高飽和色。",
- "_ref_map": "ref 特徵 → 本檔落點：①蹲踞低伏＝Hips y 0.40＋四掌落地＋前肢前伸；②橘金布罩＋黑渦漩紋＝fur_body #d98a24＋body arcs（脊黑／金滾邊／白毛邊／腹黑）＋8 對 stripe 捲雲板（一大一小成對、逐組換傾角）；③白毛邊＝arcs 香灰白帶＋5 對 trim 毛簇 curve（剪影上蓬鬆）；④深臉白獠牙＝fur_head #2e2b2a＋fang 四支＋大張口；⑤紅綬帶＝sash 垂墜 fin 兩對（聖經 §1 垂墜物）。",
+ "_glow_materials": "eye / mouth_glow / glow_tail / glow_mane / glow_seal —— 材質名是給 three.js 接 emissive 用的（js/creature-figures.js:51 的 /^eye|^mouth_glow|^glow_/）。硬化批 2B 把額心金印與胸前金牌的材質從 seal 改名 glow_seal，戲台端的「神像感」（金印發光＋香煙＋金粉）才有掛點。",
+ "_ref_map": "ref-tiger 五條特徵的實體對應：①蹲踞低伏＝Hips y 0.400／leg_fraction 0.186；②橘金布罩＋黑捲雲紋＝fur_body #d98a24 ＋ 6 對 stripe 水滴板；③布罩邊緣白毛邊＝硬化批 2B 改法：body sides 48／head sides 36，暗銅金滾邊 #6e4f10（82.5–90）→ 香灰白帶 #f6f1e6（97.5–120）→ 腹黑 #1c1a17（127.5–180），三段各佔滿整面、交界是硬邊；原本的 5 對 trim 錐叢已移除（六位讀者裡四位讀成白爪／刺）；④深色臉＋咧嘴白獠牙＝fur_head #2e2b2a ＋ 2 對 fang；⑤頸繫紅綬帶＝sash #c22a1e 5 條。",
  "palette": {
   "fur_body": {
    "color": "#d98a24",
@@ -39,10 +39,6 @@
    "color": "#c22a1e",
    "rough": 0.7
   },
-  "seal": {
-   "color": "#f6cf46",
-   "rough": 0.25
-  },
   "fang": {
    "color": "#f4eddc",
    "rough": 0.3
@@ -74,19 +70,23 @@
   "glow_mane": {
    "color": "#ff7414",
    "rough": 0.2
+  },
+  "glow_seal": {
+   "color": "#f6cf46",
+   "rough": 0.25
   }
  },
  "shading": {
   "gradient": {
    "top": 0.3,
-   "bottom": -0.88
+   "bottom": -0.68
   },
   "noise": {
    "size": 0.018,
    "amount": 0.26
   }
  },
- "smooth_angle": 20,
+ "smooth_angle": 26,
  "joints": {
   "Hips": [
    0,
@@ -330,8 +330,8 @@
    "chain": "body",
    "material": "fur_body",
    "frame": "up",
-   "sides": 16,
-   "smooth_angle": 22,
+   "sides": 48,
+   "smooth_angle": 26,
    "profile": [
     [
      0.0,
@@ -396,34 +396,35 @@
    "colors": {
     "arcs": [
      {
-      "from": 0,
-      "to": 22,
+      "from": 0.0,
+      "to": 22.5,
       "color": "#1d1b1a"
      },
      {
-      "from": 106,
-      "to": 134,
-      "color": "#e8c860"
+      "from": 82.5,
+      "to": 90.0,
+      "color": "#6e4f10"
      },
      {
-      "from": 134,
-      "to": 157,
-      "color": "#ece4d4"
+      "from": 97.5,
+      "to": 120.0,
+      "color": "#f6f1e6"
      },
      {
-      "from": 157,
-      "to": 180,
-      "color": "#26241f"
+      "from": 127.5,
+      "to": 180.0,
+      "color": "#1c1a17"
      }
     ]
-   }
+   },
+   "faceted": true
   },
   {
    "chain": "head",
    "material": "fur_head",
    "frame": "up",
-   "sides": 14,
-   "smooth_angle": 20,
+   "sides": 36,
+   "smooth_angle": 26,
    "profile": [
     [
      0.0,
@@ -470,24 +471,35 @@
    "colors": {
     "arcs": [
      {
-      "from": 0,
-      "to": 26,
+      "from": 0.0,
+      "to": 30.0,
       "color": "#9c7420"
      },
      {
-      "from": 146,
-      "to": 180,
-      "color": "#d8cfbc"
+      "from": 90.0,
+      "to": 100.0,
+      "color": "#6e4f10"
+     },
+     {
+      "from": 110.0,
+      "to": 130.0,
+      "color": "#f6f1e6"
+     },
+     {
+      "from": 140.0,
+      "to": 180.0,
+      "color": "#1c1a17"
      }
     ]
-   }
+   },
+   "faceted": true
   },
   {
    "chain": "jaw",
    "material": "fur_jaw",
    "frame": "up",
    "sides": 10,
-   "smooth_angle": 20,
+   "smooth_angle": 26,
    "profile": [
     [
      0.0,
@@ -522,13 +534,14 @@
       "color": "#ff5a08"
      }
     ]
-   }
+   },
+   "faceted": true
   },
   {
    "chain": "tail",
    "material": "fur_tail",
    "sides": 10,
-   "smooth_angle": 22,
+   "smooth_angle": 26,
    "profile": [
     [
      0.0,
@@ -555,13 +568,14 @@
     "none",
     "dome"
    ],
-   "ring_step": 0.06
+   "ring_step": 0.06,
+   "faceted": true
   },
   {
    "chain": "LFront",
    "material": "fur_leg",
    "sides": 10,
-   "smooth_angle": 22,
+   "smooth_angle": 26,
    "profile": [
     [
      0.0,
@@ -588,7 +602,8 @@
     "none",
     "dome"
    ],
-   "ring_step": 0.095
+   "ring_step": 0.095,
+   "faceted": true
   },
   {
    "chain": "RFront",
@@ -621,7 +636,8 @@
     "none",
     "dome"
    ],
-   "ring_step": 0.095
+   "ring_step": 0.095,
+   "faceted": true
   },
   {
    "chain": "LBack",
@@ -663,7 +679,8 @@
     "none",
     "dome"
    ],
-   "ring_step": 0.095
+   "ring_step": 0.095,
+   "faceted": true
   }
  ],
  "parts": [
@@ -861,7 +878,7 @@
   {
    "type": "fin",
    "host": "Brow",
-   "material": "seal",
+   "material": "glow_seal",
    "thickness": 0.02,
    "anchor": {
     "chain": "head",
@@ -916,7 +933,7 @@
   {
    "type": "fin",
    "host": "NeckB",
-   "material": "seal",
+   "material": "glow_seal",
    "thickness": 0.022,
    "anchor": {
     "chain": "body",
@@ -1847,146 +1864,6 @@
    "mirrored": true
   },
   {
-   "type": "curve",
-   "host": "Rump",
-   "material": "trim",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.098,
-    -0.108,
-    0.01
-   ],
-   "dir": [
-    0.58,
-    -0.81,
-    -0.1
-   ],
-   "segments": [
-    {
-     "len": 0.07,
-     "r": 0.052
-    },
-    {
-     "len": 0.046,
-     "r": 0.018,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Hips",
-   "material": "trim",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.132,
-    -0.152,
-    0.02
-   ],
-   "dir": [
-    0.6,
-    -0.8,
-    -0.08
-   ],
-   "segments": [
-    {
-     "len": 0.076,
-     "r": 0.056
-    },
-    {
-     "len": 0.05,
-     "r": 0.02,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Spine",
-   "material": "trim",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.138,
-    -0.156,
-    -0.04
-   ],
-   "dir": [
-    0.62,
-    -0.78,
-    0.06
-   ],
-   "segments": [
-    {
-     "len": 0.078,
-     "r": 0.058
-    },
-    {
-     "len": 0.052,
-     "r": 0.021,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Spine",
-   "material": "trim",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.142,
-    -0.152,
-    0.09
-   ],
-   "dir": [
-    0.64,
-    -0.76,
-    0.08
-   ],
-   "segments": [
-    {
-     "len": 0.076,
-     "r": 0.056
-    },
-    {
-     "len": 0.05,
-     "r": 0.02,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Chest",
-   "material": "trim",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.144,
-    -0.15,
-    -0.01
-   ],
-   "dir": [
-    0.64,
-    -0.76,
-    0.1
-   ],
-   "segments": [
-    {
-     "len": 0.074,
-     "r": 0.054
-    },
-    {
-     "len": 0.048,
-     "r": 0.019,
-     "taper": true
-    }
-   ]
-  },
-  {
    "type": "paw",
    "host": "LFrontToe",
    "material": "fur_paw",
@@ -2602,5 +2479,6 @@
     }
    }
   }
- }
+ },
+ "build": "rigid"
 }
