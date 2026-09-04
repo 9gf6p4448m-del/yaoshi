@@ -1,0 +1,98 @@
+{
+  "name": "虎姑婆指甲 nail_hugupo_zhijia (yinqi/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json；本卷的改動：① 招牌部位換成 nail（五根巨大彎鉤指甲），focal_contrast 改成『招牌件 vs 臉』（redhat ⑦-D 的建議結構）② 依 2026-09-04 凍結檔第 2 條，saturation_area 帶＝10%–60% ③ 加一條 style_dark（陰氣＝深底，識別視角側視的中位亮度 ≤90）與一條 part_visible（虎臉必須在側視看得到，否則『布開口裡是虎臉』這條參照特徵等於沒做）。其餘一律加嚴，沒有放寬。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "nail",
+      "stage": "MID",
+      "label": "招牌部位：象牙白彎鉤指甲必須存在，材質名必須正是 nail"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口內發光體必須存在，材質名必須正是 mouth_glow"
+    },
+    {
+      "type": "part_exists",
+      "part": "hood_trim",
+      "stage": "MID",
+      "label": "陰氣系別色帶的載體（頭巾邊緣的鬼火鬚）必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "nail",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（五根巨大彎鉤指甲）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "fur_face",
+      "view": "side",
+      "min_share": 0.04,
+      "stage": "MID",
+      "label": "參照特徵 2：布開口裡的虎臉在側視必須看得到，不得被兜帽整個吞掉"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "nail",
+      "b": "fur_face",
+      "view": "side",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（巨爪／虎臉）不得等重：招牌件至少要有臉的兩倍"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["cloth_robe", "cloth_cape"],
+      "secondary": ["cloth_hood", "nail"],
+      "tertiary": ["fur_face", "muzzle"],
+      "view": "side",
+      "stage": "MID",
+      "label": "6:3:1 階層：布身（袍＋披）／兜帽＋巨爪／臉"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "陰氣＝深底：識別視角的中位亮度不得超過 90/255"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔第 2 條放寬後的帶）"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
