@@ -1,0 +1,226 @@
+{
+ "name": "shield_baibushe_dun",
+ "_variant": "3D 量產卷批 2 · 百步蛇紋盾（ab=shield、祖靈 zuling、ward ×2、trait wardHpFront2）。造型依 `docs/design/ART_BIBLE.md`（權威，優先於凍結檔的美術守則）祖靈段：剪影修長／垂直線條主導、ward 的『正面寬』由**多根垂直圖騰柱排成一面牆**達成而非一整塊圓盾；主色大地褐＋靛藍次色＋極少量赤紅；材質＝風化木／獸骨／藤編／琉璃珠；節奏＝靜時如樹、動時瞬發。",
+ "_brief": "Hundred-pacer ancestral shield: a Paiwan sacred viper reared up behind a palisade of ancestral posts. The ward's width comes from SIX upright totem posts of uneven height — carved bone (tall) alternating with weathered wood (short) — standing on a low woven plinth banded in vertical earth-brown weave stripes with one thin blood-red line down the centre. Indigo glass beads and three indigo diamond scales (the hundred-pacer's lozenge) glow on the plinth face. Above the palisade the viper's neck rears in an S for over half the creature's height, ending in a narrow wedge skull with an up-turned snout, short paired fangs and indigo eyes with black vertical slits. Feel: ancient, solemn, still as a tree until it is not. Signature = the diamond-scale plinth under the post wall. Identity view = FRONT (side view is one thin wall).",
+ "_ward_recipe": "第一隻 ward，寫法給其餘 9 隻 ward 沿用：① 主鏈『垂直站立』＋frame:\"up\" —— 垂直切線下 U=+X、W=−Z，所以 profile 的 half-width 直接吃 X（正面寬）、half-height 吃 Z（側面厚），正面寬≥側面寬由 profile 兩欄比值『建構上』保證；② **ART_BIBLE 的陣營文法在體型框內實現**：祖靈 ward 的寬度不是一整塊板，而是「矮的編織台座＋一排高低不一的垂直柱」——柱子用 `curve` 掛在台座上緣（`offset` 的 x 只要 < 台座該處 half-width，`part_attachment` 就過），柱高錯開才有圖騰列的節奏；③ 垂直鏈的 `colors.arcs` `sym`：0=背、180=正面（水平鏈是 0=背脊、180=腹），藤編＝在 sym 上排規律窄帶交替，做出來就是**垂直條紋**，同時滿足『織紋抽象化』與『垂直線條主導』兩條；④ 頭頸佔全高 ≥ 1/2，離開玩偶頭身比；⑤ 矮壯＝短粗腿＋paw 踩地，balance 要求質心落在腳掌 XZ 範圍內，頭往前伸多少就要有等量的尾往後配重；⑥ 節奏：idle 幅度 ≤ 香火一半（本檔 ≤3°）、attack 0.4–0.5s。",
+ "_glow_materials": "eye / glow_scale —— 材質名是給 three.js 接 emissive 用的（簡報 shield 列指定的兩個發光部位）。兩者都改成 ART_BIBLE 祖靈段的**靛藍**（琉璃珠語言），不再用金。",
+ "_traps": "① 近黑一律中性灰（S<0.15），shading.noise 會把偏暖近黑擾到 HSV S>0.5；② fin 帶 anchor 時 offset 被丟掉，要精準站在台座面上就別用 anchor，改 host+offset+conform:false；帶 anchor 時 thickness 可以拿來讓薄片穿出 eye 球（豎瞳就是這樣做的）；③ 矩形 fin 過不了 part_attachment（四角都在最遠端），菱形／桶形（中段有靠近軸線的頂點）才過；④ 非鏡射鏈相鄰段長比 >0.923 會被 proportion BLOCK；⑤ 尾巴轉折超過 ~45° 會在 bind pose 翻面；⑥ 扁體型上 `part_attachment` 綠燈不代表有貼合（它比的是 ring 的最大半徑＝板寬），柱子與貼片要自己算超橢圓表面座標。",
+
+ "palette": {
+  "plate_body":  {"color": "#2c2a27", "rough": 0.95},
+  "wood_post":   {"color": "#6a5b4c", "rough": 0.88},
+  "bone":        {"color": "#a39c90", "rough": 0.6},
+  "scale_plate": {"color": "#8a7a62", "rough": 0.55},
+  "scale_head":  {"color": "#31302d", "rough": 0.92},
+  "scale_leg":   {"color": "#282624", "rough": 0.94},
+  "tail_coil":   {"color": "#2f2c28", "rough": 0.93},
+  "paw_claw":    {"color": "#1f1e1c", "rough": 0.85},
+  "fang":        {"color": "#e8e0cc", "rough": 0.3},
+  "eye":         {"color": "#4668c0", "rough": 0.12},
+  "pupil":       {"color": "#101018", "rough": 0.35},
+  "glow_scale":  {"color": "#3050a0", "rough": 0.18}
+ },
+
+ "build": "rigid",
+ "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "smooth_angle": 26,
+
+ "joints": {
+  "Root":  [0, 0.175, -0.028],
+  "Coil1": {"from": "Root",  "up": 0.115, "fwd":  0.016},
+  "Coil2": {"from": "Coil1", "up": 0.142, "fwd":  0.012},
+  "Coil3": {"from": "Coil2", "up": 0.096, "fwd": -0.014},
+  "Crown": {"from": "Coil3", "up": 0.062, "fwd": -0.026},
+
+  "HeadRoot": {"from": "Crown",    "up":  0.015, "fwd": -0.008},
+  "Neck1":    {"from": "HeadRoot", "up":  0.135, "fwd": -0.050},
+  "Neck2":    {"from": "Neck1",    "up":  0.165, "fwd":  0.046},
+  "Neck3":    {"from": "Neck2",    "up":  0.118, "fwd":  0.090},
+  "Skull":    {"from": "Neck3",    "up":  0.028, "fwd":  0.104},
+  "Snout":    {"from": "Skull",    "up": -0.046, "fwd":  0.078},
+  "SnoutTip": {"from": "Snout",    "up":  0.017, "fwd":  0.060},
+
+  "TailRoot": {"from": "Root",     "side": -0.055, "up": -0.046, "fwd": -0.062},
+  "Tail1":    {"from": "TailRoot", "side": -0.115, "up": -0.030, "fwd": -0.078},
+  "Tail2":    {"from": "Tail1",    "side": -0.165, "up": -0.022, "fwd": -0.040},
+  "TailTip":  {"from": "Tail2",    "side": -0.115, "up":  0.024, "fwd":  0.030},
+
+  "LLegRoot": {"from": "Root",     "side": 0.152, "up": -0.028, "fwd": 0.006},
+  "LLegKnee": {"from": "LLegRoot", "side": 0.020, "up": -0.082, "fwd": 0.004},
+  "LLegToe":  {"from": "LLegKnee", "side": 0.008, "fwd": 0.002, "ground": 0.0}
+ },
+
+ "chains": {
+  "body": ["Root", "Coil1", "Coil2", "Coil3", "Crown"],
+  "head": ["HeadRoot", "Neck1", "Neck2", "Neck3", "Skull", "Snout", "SnoutTip"],
+  "tail": ["TailRoot", "Tail1", "Tail2", "TailTip"],
+  "LLeg": ["LLegRoot", "LLegKnee", "LLegToe"]
+ },
+ "attach": {"head": "Crown", "tail": "Root", "LLeg": "Root"},
+ "mirror": ["LLeg"],
+ "touch": [["body", "head"], ["body", "tail"]],
+
+ "volumes": [
+  {"chain": "body", "material": "plate_body", "frame": "up", "sides": 20, "faceted": true,
+   "profile": [
+    [0.00, 0.400, 0.150, {"exp": 5.0}],
+    [0.20, 0.436, 0.140, {"exp": 5.0, "sharp": true}],
+    [0.55, 0.446, 0.126, {"exp": 5.0, "sharp": true}],
+    [0.85, 0.438, 0.112, {"exp": 5.0, "sharp": true}],
+    [1.00, 0.412, 0.102, {"exp": 5.0}]
+   ],
+   "caps": ["ngon", "ngon"], "ring_step": 0.045,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 10,  "color": "#221e1a"},
+     {"from": 11,  "to": 82,  "color": "#2a2825"},
+     {"from": 83,  "to": 100, "color": "#38352f"},
+     {"from": 101, "to": 118, "color": "#26241f"},
+     {"from": 119, "to": 136, "color": "#8b6040"},
+     {"from": 137, "to": 154, "color": "#26241f"},
+     {"from": 155, "to": 172, "color": "#8b6040"},
+     {"from": 173, "to": 180, "color": "#8c2b22"}
+   ]}},
+
+  {"chain": "head", "material": "scale_head", "frame": "up", "sides": 12, "faceted": true,
+   "profile": [
+    [0.00, 0.100, 0.096, {"exp": 4.0}],
+    [0.16, 0.066, 0.064, {"exp": 3.4, "sharp": true}],
+    [0.44, 0.072, 0.068, {"exp": 3.4}],
+    [0.65, 0.082, 0.072, {"exp": 3.6}],
+    [0.79, 0.156, 0.064, {"exp": 5.0, "sharp": true}],
+    [0.92, 0.086, 0.044, {"exp": 4.2, "sharp": true}],
+    [1.00, 0.028, 0.024, {"exp": 4.0}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.058,
+   "colors": {"arcs": [{"from": 0, "to": 18, "color": "#3050a0"}]}},
+
+  {"chain": "tail", "material": "tail_coil", "sides": 8, "faceted": true,
+   "profile": [
+    [0.00, 0.090, 0.090, {"exp": 3.6}],
+    [0.36, 0.076, 0.076, {"exp": 3.6}],
+    [0.72, 0.052, 0.052, {"exp": 3.6}],
+    [1.00, 0.024, 0.024, {"exp": 3.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.076},
+
+  {"chain": "LLeg", "material": "scale_leg", "sides": 6, "faceted": true,
+   "profile": [
+    [0.00, 0.108, 0.108, {"exp": 5.0}],
+    [0.50, 0.100, 0.102, {"exp": 5.0, "sharp": true}],
+    [1.00, 0.094, 0.100, {"exp": 5.0}]
+   ],
+   "caps": ["none", "ngon"], "ring_step": 0.060}
+ ],
+
+ "parts": [
+  {"type": "curve", "host": "Coil3", "material": "bone", "mirrored": true, "sides": 6,
+   "offset": [0.118, -0.034, 0.010], "dir": [0.03, 1, 0.015],
+   "segments": [{"len": 0.200, "r": 0.050}, {"len": 0.162, "r": 0.036},
+                {"len": 0.132, "r": 0.011, "taper": true}]},
+  {"type": "curve", "host": "Coil3", "material": "wood_post", "mirrored": true, "sides": 6,
+   "offset": [0.252, -0.034, 0.010], "dir": [0.045, 1, 0.015],
+   "segments": [{"len": 0.140, "r": 0.054}, {"len": 0.112, "r": 0.040},
+                {"len": 0.088, "r": 0.018, "taper": true}]},
+  {"type": "curve", "host": "Coil3", "material": "bone", "mirrored": true, "sides": 6,
+   "offset": [0.372, -0.034, 0.010], "dir": [0.07, 1, 0.015],
+   "segments": [{"len": 0.170, "r": 0.046}, {"len": 0.138, "r": 0.032},
+                {"len": 0.110, "r": 0.010, "taper": true}]},
+
+  {"type": "fin", "host": "Coil1", "material": "glow_scale", "thickness": 0.030, "conform": false,
+   "offset": [0, -0.055, 0.140],
+   "udir": [0, 1, 0], "vdir": [1, 0, 0],
+   "points": [[-0.052, 0], [0, -0.086], [0.052, 0], [0, 0.086]]},
+  {"type": "fin", "host": "Coil2", "material": "glow_scale", "thickness": 0.030, "conform": false,
+   "offset": [0, -0.030, 0.134],
+   "udir": [0, 1, 0], "vdir": [1, 0, 0],
+   "points": [[-0.062, 0], [0, -0.104], [0.062, 0], [0, 0.104]]},
+  {"type": "fin", "host": "Coil3", "material": "glow_scale", "thickness": 0.028, "conform": false,
+   "offset": [0, 0.002, 0.114],
+   "udir": [0, 1, 0], "vdir": [1, 0, 0],
+   "points": [[-0.048, 0], [0, -0.080], [0.048, 0], [0, 0.080]]},
+
+  {"type": "curve", "host": "Coil1", "material": "glow_scale", "mirrored": true, "sides": 6,
+   "offset": [0.168, -0.046, 0.108], "dir": [0.10, 0.05, 1],
+   "segments": [{"len": 0.030, "r": 0.026}, {"len": 0.016, "r": 0.010, "taper": true}]},
+  {"type": "curve", "host": "Coil2", "material": "glow_scale", "mirrored": true, "sides": 6,
+   "offset": [0.168, -0.026, 0.104], "dir": [0.10, 0.05, 1],
+   "segments": [{"len": 0.030, "r": 0.026}, {"len": 0.016, "r": 0.010, "taper": true}]},
+  {"type": "curve", "host": "Coil3", "material": "glow_scale", "mirrored": true, "sides": 6,
+   "offset": [0.168, -0.012, 0.092], "dir": [0.10, 0.05, 1],
+   "segments": [{"len": 0.028, "r": 0.024}, {"len": 0.015, "r": 0.009, "taper": true}]},
+
+  {"type": "fin", "host": "Coil2", "material": "bone", "thickness": 0.026, "conform": false, "mirrored": true,
+   "offset": [0.286, -0.006, 0.104],
+   "udir": [0, 1, 0], "vdir": [1, 0, 0],
+   "points": [[-0.176, -0.020], [-0.062, -0.034], [0.062, -0.034], [0.176, -0.020],
+              [0.176, 0.020], [0.062, 0.034], [-0.062, 0.034], [-0.176, 0.020]]},
+
+  {"type": "eye", "host": "Skull", "material": "eye", "size": 0.026,
+   "anchor": {"chain": "head", "t": 0.80, "around": 66}},
+  {"type": "fin", "host": "Skull", "material": "pupil", "thickness": 0.054, "mirrored": true,
+   "anchor": {"chain": "head", "t": 0.80, "around": 66},
+   "udir": [0, 1, 0], "vdir": [0, 0, 1],
+   "points": [[-0.020, 0], [0, -0.0055], [0.020, 0], [0, 0.0055]]},
+
+  {"type": "fin", "host": "Skull", "material": "scale_plate", "thickness": 0.016, "mirrored": true,
+   "anchor": {"chain": "head", "t": 0.74, "around": 26},
+   "udir": [0, 0, 1], "vdir": [0, 1, 0],
+   "points": [[-0.040, 0], [0, -0.022], [0.050, 0], [0, 0.022]]},
+
+  {"type": "curve", "host": "SnoutTip", "material": "bone", "sides": 6,
+   "offset": [0, 0.004, -0.008], "dir": [0, 0.60, 0.80],
+   "segments": [{"len": 0.044, "r": 0.022}, {"len": 0.032, "r": 0.008, "rise": 28, "taper": true}]},
+
+  {"type": "curve", "host": "Snout", "material": "fang", "mirrored": true, "sides": 6,
+   "offset": [0.026, -0.010, 0.026], "dir": [0.06, -1, 0.10],
+   "segments": [{"len": 0.038, "r": 0.014}, {"len": 0.030, "r": 0.005, "behind": 14, "taper": true}]},
+
+  {"type": "fin", "host": "LLegToe", "material": "paw_claw", "thickness": 0.030, "conform": false, "mirrored": true,
+   "offset": [0, 0.024, 0.020],
+   "udir": [1, 0, 0], "vdir": [0, 0, 1],
+   "points": [[-0.118, -0.048], [-0.042, -0.082], [0.042, -0.082], [0.118, -0.048],
+              [0.118, 0.048], [0.042, 0.082], [-0.042, 0.082], [-0.118, 0.048]]}
+ ],
+
+ "animations": {
+  "idle": {"duration": 3.0, "loop": true,
+   "tracks": {
+    "Coil2": {"rx": [[0, -0.8], [0.5, 1.0], [1, -0.8]]},
+    "HeadRoot": {"rx": [[0, 1.2], [0.5, -1.6], [1, 1.2]], "ry": [[0, -1.6], [0.5, 1.6], [1, -1.6]]},
+    "Neck1": {"rx": [[0, -1.2], [0.5, 1.5], [1, -1.2]], "ry": [[0, 1.5], [0.5, -1.5], [1, 1.5]]},
+    "Neck2": {"rx": [[0, 1.2], [0.5, -1.2], [1, 1.2]], "ry": [[0, -1.5], [0.5, 1.5], [1, -1.5]]},
+    "Neck3": {"rx": [[0, -1.0], [0.5, 1.2], [1, -1.0]], "ry": [[0, 2.0], [0.5, -2.0], [1, 2.0]]},
+    "Skull": {"ry": [[0, -1.5], [0.5, 1.5], [1, -1.5]]},
+    "Tail1": {"ry": [[0, 2.5], [0.5, -2.5], [1, 2.5]]},
+    "Tail2": {"ry": [[0, -2.0], [0.35, 2.0], [0.8, -2.0], [1, -2.0]]},
+    "Root": {"ty": [[0, 0], [0.5, 0.005], [1, 0]]}
+   }},
+  "move": {"duration": 0.95, "loop": true, "mirror_phase": 0.5,
+   "tracks": {
+    "LLegRoot": {"rx": [[0, -13], [0.5, 14], [1, -13]]},
+    "LLegKnee": {"rx": [[0, 6], [0.3, 14], [0.6, -5], [1, 6]]},
+    "Root": {"ty": [[0, 0], [0.25, 0.018], [0.5, 0], [0.75, 0.018], [1, 0]],
+             "rz": [[0, -2.0], [0.5, 2.0], [1, -2.0]]},
+    "Coil2": {"rz": [[0, 1.6], [0.5, -1.6], [1, 1.6]]},
+    "Neck1": {"rx": [[0, 2.5], [0.5, -2.5], [1, 2.5]]},
+    "Neck3": {"rx": [[0, -2.5], [0.5, 2.5], [1, -2.5]]},
+    "Tail1": {"ry": [[0, 5], [0.5, -5], [1, 5]]}
+   }},
+  "attack": {"duration": 0.46, "loop": false,
+   "tracks": {
+    "Root": {"tz": [[0, 0], [0.20, -0.090], [0.46, 0.340], [1, 0]],
+             "ty": [[0, 0], [0.20, -0.028], [0.46, 0.042], [1, 0]],
+             "rx": [[0, 0], [0.20, 7], [0.46, -13], [1, 0]]},
+    "Coil1": {"rx": [[0, 0], [0.20, 5], [0.46, -10], [1, 0]]},
+    "Coil2": {"rx": [[0, 0], [0.20, 6], [0.46, -12], [1, 0]]},
+    "Coil3": {"rx": [[0, 0], [0.20, 4], [0.46, -9], [1, 0]]},
+    "HeadRoot": {"rx": [[0, 0], [0.20, -9], [0.44, 16], [0.74, -4], [1, 0]]},
+    "Neck1": {"rx": [[0, 0], [0.20, -8], [0.44, 14], [0.74, -3], [1, 0]]},
+    "Neck2": {"rx": [[0, 0], [0.20, -7], [0.44, 15], [0.74, -3], [1, 0]]},
+    "Neck3": {"rx": [[0, 0], [0.20, -6], [0.44, 16], [0.74, -3], [1, 0]]},
+    "Skull": {"rx": [[0, 0], [0.20, -5], [0.44, 12], [1, 0]]},
+    "Tail1": {"ry": [[0, 0], [0.20, 7], [0.46, -8], [1, 0]]},
+    "LLegRoot": {"rx": [[0, 0], [0.20, 9], [0.46, -11], [1, 0]]}
+   }}
+ }
+}

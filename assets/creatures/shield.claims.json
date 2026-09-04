@@ -1,0 +1,92 @@
+{
+  "name": "百步蛇紋盾 shield_baibushe_dun (zuling/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json。相對基底只做兩類改動：① `saturation_area` 沿用 2026-09-04 凍結檔指定的 10%–60% 帶（沒有再放寬）；② 因為這隻的識別視角是**正面**不是側視（簡報 shield 列：招牌剪影＝菱鱗盾板，側視只是一片薄牆），`part_signature`／`share_hierarchy`／`focal_contrast`／`style_dark` 的 view 一律改成 `front`——換的是量測的視角，不是門檻。其餘一律加嚴：`focal_contrast` 的 min_ratio 從 2 提高到 3、另加一條 `style_dark`（front，最亮的那個視角）與一條 `part_visible`（蛇頭不得被盾板吞掉，這是 ward『招牌在正面、頭容易被自己的板子遮住』的專屬風險）。沒有一處放寬。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "plate_body",
+      "stage": "MID",
+      "label": "招牌部位：盾板本體必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_scale",
+      "stage": "MID",
+      "label": "菱鱗發光體必須存在，且材質名必須正是 glow_scale（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_signature",
+      "part": "glow_scale",
+      "view": "front",
+      "min_share": 0.07,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（正面立起的菱鱗盾板）在正面視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "scale_head",
+      "view": "front",
+      "min_share": 0.04,
+      "stage": "MID",
+      "label": "百步蛇頭必須高過盾板頂緣、在正面視角看得見——藏在自己的板子輪廓裡就等於沒有（ward 專屬風險）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "plate_body",
+      "b": "glow_scale",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（盾板／金菱鱗）不得等重competition"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["plate_body"],
+      "secondary": ["scale_plate", "bone", "scale_leg", "paw_claw"],
+      "tertiary": ["glow_scale", "eye"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：盾板／鱗片與骨鑲邊與腿腳／發光菱鱗與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "炭黑底：在最亮的那個視角（正面＝識別視角）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
