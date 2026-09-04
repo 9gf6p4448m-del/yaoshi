@@ -1,0 +1,137 @@
+{
+  "name": "五營旗 wuying_zhibing (xianghuo/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模看到任何數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝flag.claims.json（同為香火系），差異全部是**加嚴或換名**、沒有一格放寬：① part_exists 由 3 條加到 5 條（helm／skin_face／flag_cloth／glow_helm／eye），把 ref-wuying.md 五條特徵裡做得成機械條的四條釘住；② 多加一條 part_visible flag_cloth@side ≥2%（特徵③『側視可見』的機械化，flag 卷沒有這條）；③ saturation_area 帶仍為凍結檔的 10%–60%；④ tri_budget 上限 8000 依凍結檔 2026-09-04 19:30 修訂（預算制，每隻 ≤1.5MB／≤8000 tri）；⑤ focal_contrast 的 min_ratio 3（高於引擎預設 2）；⑥ style_dark 的 90 是凍結檔原值。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "helm",
+      "stage": "MID",
+      "label": "尖角戰盔（招牌剪影）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "skin_face",
+      "stage": "MID",
+      "label": "彩繪臉必須存在——五方顏色要有實體載體，不能只靠盔"
+    },
+    {
+      "type": "part_exists",
+      "part": "flag_cloth",
+      "stage": "MID",
+      "label": "三角令旗旗面必須存在（五營旗的身分物）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_helm",
+      "stage": "MID",
+      "label": "盔纓必須存在，且材質名必須正是 glow_helm（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "金瞳必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_signature",
+      "part": "helm",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（尖角戰盔）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "skin_face",
+      "view": "front",
+      "min_share": 0.025,
+      "stage": "MID",
+      "label": "臉在正視至少佔 2.5%——盔壓得再低也要看得見五方色（特徵②的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "flag_cloth",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "令旗在側視至少佔 2%——特徵③標了『側視可見』，這條是它的機械化"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "armor_body",
+      "b": "glow_helm",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "軀幹必須壓過盔纓至少 3 倍——盔纓是一撮火，不是一顆頭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "armor_body",
+        "armor_skirt"
+      ],
+      "secondary": [
+        "helm",
+        "armor_leg",
+        "armor_arm"
+      ],
+      "tertiary": [
+        "skin_face",
+        "flag_cloth",
+        "pauldron",
+        "gold_trim",
+        "sash",
+        "pole_wood",
+        "tassel",
+        "brow_ink",
+        "helm_ear",
+        "boot",
+        "hand",
+        "eye",
+        "glow_helm"
+      ],
+      "view": "tq",
+      "stage": "MID",
+      "label": "6:3:1 階層：（甲衣＋戰裙）／（戰盔＋腿＋臂）／（臉、旗面、肩甲、金甲片、腰封、旗桿、流蘇、黑眉、護耳、紙靴、手、金瞳、盔纓）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

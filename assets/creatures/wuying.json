@@ -1,0 +1,308 @@
+{
+ "name": "wuying_zhibing",
+ "_variant": "3D 量產卷批 5 · 五營旗（ab=wuying、香火 xianghuo、swarm ×3、trait swarmRally「五方調兵」）。造型依 `docs/design/ART_BIBLE.md` 香火段（權威）＋§0.5 真實參照鐵則；參照與五條特徵清單見 `docs/experiments/2026-09-04-ref-wuying.md`（圖 `tools/anyCreature/out/ref/wuying/01-07`）。",
+ "_brief": "A five-camp paper soldier from a Taiwanese temple, standing sentry with the camp's command banner. A winged WAR HELMET is clamped on the skull — a low lacquer-black dome, a gilt fire-shaped crest over the brow, a swept black wing-plate on each temple, and an ember-orange plume flicking back off the spike. The face under it is a painted opera mask: chalk ground, a vermilion stripe down the centre, jade-green bands on both cheeks, heavy black brows and two narrow gold eyes cut under them. Vermilion lacquer body armour with two gilt belly plates and a red sash, folded card pauldrons, a stiff creased war skirt cut above the knee, long shins in paper boots. BOTH HANDS grip an upright staff held across the belly: a slim lacquered pole, a gourd finial of gilt, and a red triangular COMMAND PENNANT with a torn flame tongue and three gold tassels. Everything is flat plate and hard crease. Feel: temple militia on parade — drilled, expressionless, not a doll. Signature = the winged war helmet. Identity view = side.",
+ "_ref_features": "真實參照必做清單（`2026-09-04-ref-wuying.md` §三，目標盲讀 5/5）：① 尖角戰盔（helm 錐頂鏈＋helm_ear 鳳翅一對＋gold_trim 火焰額飾＋glow_helm 盔纓）② 五方顏色的臉（skin_face 白粉底＋colors.arcs 朱紅中央帶／青綠頰帶／墨灰側後＋brow_ink 濃黑挑眉＋eye 細長金瞳，全部是 fin 薄板不是球，第 1 輪用 `type:\"eye\"` 的金球被讀成「發光大眼睛→可愛」）③ 三角令旗＋金流蘇（flag_cloth 旗面＋pennant_flame 火舌＋pole_wood 旗桿＋gold_trim 葫蘆寶頂＋tassel 流蘇 ×3，**雙手持在身前**，不是背插）④ 折紙硬板甲衣（pauldron 折板肩甲＋gold_trim 腹甲片 ×2＋sash 腰封＋armor_skirt 硬折戰裙，全檔 faceted:true）⑤ 一排同款並肩的矮兵（左右嚴格鏡射、雙腳外八、含配件寬 0.383，`?n=3` 橫排證據）。",
+ "_swarm_recipe": "boat 報告 ⑤ 的 swarm 寫法在直立人形上的取捨：(1) **含配件總寬務必 ≤1.2**（preview `n>1` 每隻縮 0.62、欄距 1.05）——本檔實測寬 **0.383**，縮完 0.238，相鄰淨距 0.812；(2) boat 的『主鏈水平臥、側視 W/H ≥1.8』是船的規格，直立紙兵做不到也不該做；本檔改守『左右嚴格鏡射＋比 elite 矮』兩條，**並且在第 3 輪主動放棄「極矮」**——第 1、2 輪四位讀者一致讀成「矮胖／Q 版／頭大身短」，凍結檔 18:00 的「不可愛」守則優先於體型語彙的「矮小」，所以全高由 1.049 拉到 1.161（仍比 sword 的 1.39 矮 16%）；(3) boat 的『move/idle 不要寫 mirror_phase』本檔**只沿用在 idle**——idle 是儀仗立正的對稱微晃，同拍；`move` 是行進，兩腿同拍會變成雙腳跳，所以 move 保留 `mirror_phase: 0.5`，三隻之間仍然同拍（同一支 clip、同時起算）。這兩條偏離都寫進報告 ⑦。",
+ "_proportion_note": "不落玩偶區（三輪盲讀的主要修正對象）：全高 **1.161**（含旗；本體到盔纓約 1.11）。頭鏈 HeadRoot→Crown（0.840→0.984）佔全高 **12.4%**，含盔頂（1.066）也只到 19.5%——凍結檔 18:00 守則①要求頭 ≤ 身高 1/4。髖 0.470 → 腿佔全高 **40.5%**；戰裙下襬 y 0.322 停在膝（0.288）之上，露出的小腿與紙靴佔全高 **27.7%**。肩台半寬 0.175 vs 腰 0.114 ＝ **1.54×**。r10（全高 1.049、肩寬/全高 0.33）被兩位讀者讀成矮胖，r11 起把腿與軀幹各段拉長、寬度不動，肩寬/全高降到 **0.30**，第 3 輪兩位都不再用「頭大身短」形容。",
+ "_hardening_note": "凍結檔 19:10 修訂的模板規則（`build:\"rigid\"` 只是解鎖許可證，平面感來自每個 volume 的 `faceted:true`，見 harden-batch1 報告 ②）：本檔 **6 個 volume 全部 `faceted: true`**、斷面 exp 4.6–5.2、`smooth_angle` 全檔 26。紙紮的材質語言本來就是折板，這是全批裡最該全開 faceted 的一隻。GLB 走 19:30 的預算制（≤1.5MB／≤8000 tri）。",
+ "_arc_frame_note": "★ `colors.arcs` 的 sym 是引擎折過的 0–180（`compile.js:218-223`：`sym = fromTop>180 ? 360-fromTop : fromTop`），**寫超過 180 的帶永遠不會命中**（redhat.json 的 216–324 三條就是死碼）。本檔所有帶都寫在 0–180 內。`frame:\"up\"` 的直立鏈實測 U=+X、W=−Z（`geometry.js:31` 的定號規則），所以 **sym 0＝背（−Z）、180＝正面（+Z）、90＝兩側**，與 flag/shield 的 ward 記載一致。臉的五方色因此是左右鏡射的五條縱帶：外側墨灰｜青綠｜白粉｜朱紅｜白粉｜青綠｜墨灰。head 用 `sides: 20`（每面 18°）讓 18° 一格的帶落得下——nail 報告 ⑥-2 的教訓是低 sides 會把窄帶吸成整片面。",
+ "_around_note": "`anchor.around` 與 `colors.arcs` 不是同一個框架（sword 報告的訂正、nail 報告 ⑥-1）。本檔逐一讀 compiler 的 `info: fin ... faces XXX (world normal ...)` 校過，**實測**直立 `frame:\"up\"` 鏈上：**0＝背（−Z）、90＝+X 側、180＝正面（+Z）、270＝−X 側**——與 arcs 的 sym 框架剛好差 90°。第一版把臉部件寫 270，全部長到左臉側去（r1 實測 `faces side (world normal -1.00,0.00,0.00)`），改成 180 才是正面（r2 實測 `faces fwd (world normal 0.00,0.03,1.00)`）。臉部件（眉）、腹甲兩片、腰封、盔額飾一律 180；肩甲與護耳寫 90 配 `mirrored`。",
+ "_flag_construction": "令旗是**雙手持在身前的一支直立旗桿**，分兩段掛：(a) 旗桿本身是 `curve`，host＝`Hips`（**在 body 鏈裡**），根部座標 (0,0.390,0.100) 埋在軀幹內（該高度 body 半寬 0.146、根環到 Hips 環心 0.128 < 0.146）——所以 `part_attachment` **有在守**這一段；(b) 旗面／火舌／寶頂／三條流蘇掛在**鬆散關節** `FlagTop [0,1.135,0.167]`（不屬於任何 chain，由 attach 掛在 `Hips`），好處是招式可以只甩旗不動人、且與旗桿同骨不會分家；代價是 `checks.js:306` 對 `hostChain=null` 的部位**整條略過 part_attachment**（flag 報告 ⑥-1），這五件的貼合**沒有機器在守**，只能靠肉眼看 hero／front／side 圖——報告 ⑦ 明寫這一條沒有機械證據。（第 1、2 輪的舊寫法是肩後一對 `FlagL`／`FlagR` 背旗，第 2 輪盲讀讀出來了但主印象仍是「巫師」，改成雙手持旗之後兩輪四位全部讀成士兵／衛兵／武將／旗手。）",
+ "_glow_materials": "eye / glow_helm —— 簡報 `wuying` 列指定的兩個發光材質名，`js/creature-figures.js:51` 的 `/^eye(_|$)|^mouth_glow(_|$)|^glow_/` 會接成 emissive。沒有多開第三個發光材質。",
+ "_traps": "① 近黑一律中性灰（S<0.22），`shading.noise` 會把偏暖近黑擾到 HSV S>0.5（猛虎報告 ⑤-6）——本檔的暗色全部是中性灰褐，高飽和額度全給硃紅（肩甲／腰封／旗面／胸帶）＋鎏金（腹甲片／盔額飾／寶頂／流蘇）＋橘（盔纓）＋金瞳；② `fin` 帶 `anchor` 時 `offset` 被丟掉（試作卷 ③-2），令旗全組不帶 anchor、改用 host+offset；③ `fin` 的 `points` 必須是嚴格凸多邊形（試作卷 ③-7）——旗面四邊形與所有甲片都逐一算過叉積同號；鋸齒火焰邊做不成一片凸多邊形，改用「大旗面＋一片小火舌板疊出缺口」承載；④ 相鄰鏈段長比 >0.923 會被 proportion BLOCK（試作卷 ③-5），本檔每條鏈最大相鄰比 0.849（LLeg 膝/髖）；⑤ `compile.js:136` 的 corner bevel-skip 會丟環（redhat 報告 C-1），六條鏈全部做成近乎直線（相鄰段夾角 <8°）；⑥ `ring_step` 要小到取樣得到 profile 每一列（redhat C-2），body 0.026／skirt 0.016／head 0.011／helm 0.011；⑦ `buildPaw` 預設 offset 會把腳掌吸到地面（試作卷 ③-1）——紙靴本來就在地上，沿用預設；⑧ ★ **root_containment 兩次擋在同一件事上**：helm 鏈的第一列 profile 一開始寫成盔沿寬度（0.104）＝根環整圈露在頭外面、skirt 鏈的第一列寫成裙擺寬度（0.120）＝根環 40% 露在軀幹外面。兩條都要把 t=0 那一列縮成**塞得進宿主的細環**（helm 0.044、skirt 0.093），外張留給 t=0.17～0.22 那一列。",
+ "_devices": "不可愛的手段本隻用了六項（凍結檔 18:00 守則要求至少三項）：①比例——頭佔全高 12.4%、含盔 19.5%、腿 40.5%，離開玩偶區（見 `_proportion_note`）②尖——盔尖、鳳翅折角、火焰額飾、旗尖寶頂、旗面火舌、靴頭全部尖端外露③眼——**細長金瞳薄板**壓在濃黑挑眉下，不用球狀大眼（第 1 輪 `type:\"eye\"` 金球被讀成可愛）④骨感的替代——紙紮沒有肉，靠腰收細 1.54× 與硬折甲片撐出結構（香火不用殘缺／腐爛／空洞眼）⑤色——中性紙灰底＋硃紅一條帶＋鎏金點綴，禁粉嫩⑥全身 6 個 volume 一律 `faceted:true` 硬折板。左右嚴格鏡射是 swarm 的硬條件，所以刻意不用「不對稱」那一項（旗面是唯一的單側件）。",
+ "palette": {
+  "armor_body":  {"color": "#6b6055", "rough": 0.92},
+  "armor_skirt": {"color": "#5d574e", "rough": 0.95},
+  "armor_arm":   {"color": "#5e564b", "rough": 0.93},
+  "armor_leg":   {"color": "#56504a", "rough": 0.94},
+  "helm":        {"color": "#33302b", "rough": 0.7},
+  "helm_ear":    {"color": "#3b3730", "rough": 0.72},
+  "skin_face":   {"color": "#e6dccb", "rough": 0.88},
+  "brow_ink":    {"color": "#1a1a1c", "rough": 0.9},
+  "pauldron":    {"color": "#b0442f", "rough": 0.66},
+  "gold_trim":   {"color": "#d8a63a", "rough": 0.28},
+  "sash":        {"color": "#a83228", "rough": 0.7},
+  "flag_cloth":  {"color": "#b8382c", "rough": 0.68},
+  "pole_wood":   {"color": "#4a382e", "rough": 0.85},
+  "tassel":      {"color": "#d9b45a", "rough": 0.4},
+  "hand":        {"color": "#6b6055", "rough": 0.9},
+  "boot":        {"color": "#3a3630", "rough": 0.9},
+  "eye":         {"color": "#ffd24a", "rough": 0.12},
+  "glow_helm":   {"color": "#ff7a1e", "rough": 0.2}
+ },
+
+ "build": "rigid",
+ "shading": {"gradient": {"top": 0.30, "bottom": -0.88}, "noise": {"size": 0.018, "amount": 0.26}},
+ "smooth_angle": 26,
+
+ "joints": {
+  "Hips":  [0, 0.470, 0],
+  "Spine": {"from": "Hips",  "up": 0.112, "fwd": 0.008},
+  "Chest": {"from": "Spine", "up": 0.140, "fwd": 0.012},
+  "NeckB": {"from": "Chest", "up": 0.068, "fwd": 0.004},
+  "Neck2": {"from": "NeckB", "up": 0.040, "fwd": 0.003},
+
+  "SkirtRoot": {"from": "Hips",      "up": -0.018, "fwd": 0.002},
+  "Skirt1":    {"from": "SkirtRoot", "up": -0.078, "fwd": 0.005},
+  "SkirtHem":  {"from": "Skirt1",    "up": -0.052, "fwd": 0.008},
+
+  "HeadRoot": {"from": "Neck2",    "up": 0.010, "fwd":  0.001},
+  "Skull":    {"from": "HeadRoot", "up": 0.062, "fwd":  0.006},
+  "Brow":     {"from": "Skull",    "up": 0.049, "fwd":  0.004},
+  "Crown":    {"from": "Brow",     "up": 0.033, "fwd": -0.002},
+
+  "HelmRoot": {"from": "Brow",     "up": -0.036, "fwd": -0.002},
+  "Helm1":    {"from": "HelmRoot", "up":  0.058, "fwd": -0.004},
+  "HelmTip":  {"from": "Helm1",    "up":  0.093, "fwd": -0.005},
+
+  "FlagTop": [0, 1.135, 0.167],
+
+  "LArmRoot": {"from": "Chest",    "side":  0.108, "up": -0.034, "fwd":  0.000},
+  "LElbow":   {"from": "LArmRoot", "side":  0.010, "up": -0.132, "fwd":  0.026},
+  "LWrist":   {"from": "LElbow",   "side": -0.052, "up": -0.062, "fwd":  0.060},
+  "LHand":    {"from": "LWrist",   "side": -0.028, "up": -0.014, "fwd":  0.026},
+
+  "LLegRoot": {"from": "Hips",     "side": 0.056, "up":  0.004, "fwd":  0.002},
+  "LKnee":    {"from": "LLegRoot", "side": 0.020, "up": -0.186, "fwd":  0.012},
+  "LAnkle":   {"from": "LKnee",    "side": 0.014, "up": -0.164, "fwd": -0.008},
+  "LToe":     {"from": "LAnkle",   "side": 0.002, "fwd": 0.038, "ground": 0.024}
+ },
+
+ "chains": {
+  "body":  ["Hips", "Spine", "Chest", "NeckB", "Neck2"],
+  "skirt": ["SkirtRoot", "Skirt1", "SkirtHem"],
+  "head":  ["HeadRoot", "Skull", "Brow", "Crown"],
+  "helm":  ["HelmRoot", "Helm1", "HelmTip"],
+  "LArm":  ["LArmRoot", "LElbow", "LWrist", "LHand"],
+  "LLeg":  ["LLegRoot", "LKnee", "LAnkle", "LToe"]
+ },
+ "attach": {"skirt": "Hips", "head": "Neck2", "helm": "Brow",
+            "LArm": "Chest", "LLeg": "Hips", "FlagTop": "Hips"},
+ "mirror": ["LArm", "LLeg"],
+ "touch": [["body", "skirt"], ["body", "head"], ["head", "helm"], ["body", "LArm"], ["body", "LLeg"]],
+
+ "volumes": [
+  {"chain": "body", "material": "armor_body", "sides": 14, "frame": "up", "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.146, 0.102, {"exp": 4.8}],
+    [0.22, 0.114, 0.082, {"exp": 5.0, "sharp": true}],
+    [0.60, 0.163, 0.114, {"exp": 5.2, "sharp": true}],
+    [0.78, 0.175, 0.119, {"exp": 5.2, "sharp": true}],
+    [0.88, 0.106, 0.075, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.055, 0.048, {"exp": 4.8}]
+   ],
+   "caps": ["dome", "none"], "ring_step": 0.026,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 66,  "color": "#4f4842"},
+     {"from": 110, "to": 180, "color": "#9c3a2c"}
+   ]}},
+
+  {"chain": "skirt", "material": "armor_skirt", "sides": 8, "frame": "up", "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.093, 0.069, {"exp": 4.8}],
+    [0.22, 0.146, 0.107, {"exp": 5.0, "sharp": true}],
+    [0.60, 0.156, 0.114, {"exp": 5.2, "sharp": true}],
+    [0.86, 0.150, 0.109, {"exp": 5.0, "sharp": true}],
+    [1.00, 0.128, 0.092, {"exp": 4.8}]
+   ],
+   "caps": ["none", "none"], "ring_step": 0.016},
+
+  {"chain": "head", "material": "skin_face", "sides": 28, "frame": "up", "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.039, 0.035, {"exp": 4.6}],
+    [0.20, 0.061, 0.053, {"exp": 4.8, "sharp": true}],
+    [0.52, 0.072, 0.064, {"exp": 5.0, "sharp": true}],
+    [0.80, 0.068, 0.059, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.048, 0.042, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.011,
+   "colors": {"arcs": [
+     {"from": 0,   "to": 92,  "color": "#3f3b35"},
+     {"from": 100, "to": 120, "color": "#2f6a52"},
+     {"from": 160, "to": 180, "color": "#b8332a"}
+   ]}},
+
+  {"chain": "helm", "material": "helm", "sides": 8, "frame": "up", "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.044, 0.040, {"exp": 4.8}],
+    [0.16, 0.100, 0.093, {"exp": 5.0, "sharp": true}],
+    [0.34, 0.098, 0.090, {"exp": 5.2, "sharp": true}],
+    [0.62, 0.052, 0.047, {"exp": 4.8, "sharp": true}],
+    [1.00, 0.006, 0.006, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.011,
+   "colors": {"arcs": [
+     {"from": 172, "to": 180, "color": "#c8992f"}
+   ]}},
+
+  {"chain": "LArm", "material": "armor_arm", "sides": 8, "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.044, 0.042, {"exp": 4.8}],
+    [0.36, 0.036, 0.034, {"exp": 4.8, "sharp": true}],
+    [0.76, 0.030, 0.028, {"exp": 4.6}],
+    [1.00, 0.024, 0.020, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.036},
+
+  {"chain": "LLeg", "material": "armor_leg", "sides": 8, "faceted": true, "smooth_angle": 26,
+   "profile": [
+    [0.00, 0.058, 0.056, {"exp": 4.8}],
+    [0.28, 0.048, 0.046, {"exp": 4.8, "sharp": true}],
+    [0.60, 0.036, 0.034, {"exp": 4.6, "sharp": true}],
+    [0.86, 0.032, 0.030, {"exp": 4.6}],
+    [1.00, 0.028, 0.024, {"exp": 4.6}]
+   ],
+   "caps": ["none", "dome"], "ring_step": 0.042}
+ ],
+
+ "parts": [
+  {"type": "fin", "name": "eye", "host": "Skull", "material": "eye", "thickness": 0.008,
+   "mirrored": true,
+   "anchor": {"chain": "head", "t": 0.44, "around": 150},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.034, -0.004], [0.003, -0.016], [0.036, 0.004], [0.018, 0.014], [-0.021, 0.010]]},
+
+  {"type": "fin", "name": "brow", "host": "Skull", "material": "brow_ink", "thickness": 0.009,
+   "mirrored": true,
+   "anchor": {"chain": "head", "t": 0.56, "around": 152},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.030, -0.004], [0.004, -0.014], [0.032, 0.000], [0.026, 0.012], [-0.006, 0.014], [-0.030, 0.008]]},
+
+  {"type": "fin", "name": "helm_wing", "host": "HelmRoot", "material": "helm_ear", "thickness": 0.012,
+   "mirrored": true, "conform": false,
+   "anchor": {"chain": "helm", "t": 0.22, "around": 90},
+   "udir": [0, 0, 1], "vdir": [0.52, 0.85, 0],
+   "points": [[-0.033, -0.023], [0.021, -0.032], [0.049, 0.004], [0.026, 0.062], [-0.014, 0.055], [-0.046, 0.012]]},
+
+  {"type": "fin", "name": "helm_crest", "host": "HelmRoot", "material": "gold_trim", "thickness": 0.012,
+   "conform": false,
+   "anchor": {"chain": "helm", "t": 0.30, "around": 180},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.030, -0.030], [0.000, -0.042], [0.030, -0.030], [0.022, 0.020], [0.000, 0.048], [-0.022, 0.020]]},
+
+  {"type": "curve", "host": "HelmTip", "material": "glow_helm", "sides": 5, "smooth_angle": 26,
+   "offset": [0, 0.004, -0.004], "dir": [0, 0.94, -0.34],
+   "segments": [{"len": 0.034, "r": 0.016}, {"len": 0.026, "r": 0.010, "fall": 14}, {"len": 0.020, "r": 0.004, "fall": 22, "taper": true}]},
+  {"type": "curve", "host": "HelmTip", "material": "glow_helm", "mirrored": true, "sides": 4, "smooth_angle": 26,
+   "offset": [0.012, -0.004, -0.006], "dir": [0.34, 0.86, -0.38],
+   "segments": [{"len": 0.026, "r": 0.011}, {"len": 0.020, "r": 0.004, "fall": 18, "taper": true}]},
+
+  {"type": "fin", "name": "pauldron", "host": "Chest", "material": "pauldron", "thickness": 0.020,
+   "mirrored": true, "conform": false,
+   "anchor": {"chain": "body", "t": 0.78, "around": 90},
+   "udir": [0, 0, 1], "vdir": [0.40, 0.92, 0],
+   "points": [[-0.037, -0.013], [-0.006, -0.025], [0.032, -0.020], [0.039, 0.003],
+              [0.022, 0.026], [-0.012, 0.029], [-0.036, 0.016]]},
+
+  {"type": "fin", "name": "belly_plate_1", "host": "Spine", "material": "gold_trim", "thickness": 0.010,
+   "anchor": {"chain": "body", "t": 0.34, "around": 180},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.043, -0.008], [-0.014, -0.014], [0.014, -0.014], [0.043, -0.008],
+              [0.038, 0.009], [0.000, 0.016], [-0.038, 0.009]]},
+  {"type": "fin", "name": "belly_plate_2", "host": "Spine", "material": "gold_trim", "thickness": 0.010,
+   "anchor": {"chain": "body", "t": 0.46, "around": 180},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.046, -0.008], [-0.014, -0.015], [0.014, -0.015], [0.046, -0.008],
+              [0.042, 0.009], [0.000, 0.017], [-0.042, 0.009]]},
+
+  {"type": "fin", "name": "sash", "host": "Hips", "material": "sash", "thickness": 0.014,
+   "anchor": {"chain": "body", "t": 0.16, "around": 180},
+   "udir": [1, 0, 0], "vdir": [0, 1, 0],
+   "points": [[-0.058, -0.015], [-0.019, -0.024], [0.019, -0.024], [0.058, -0.015],
+              [0.054, 0.014], [0.000, 0.021], [-0.054, 0.014]]},
+
+  {"type": "curve", "host": "Hips", "material": "pole_wood", "sides": 5, "smooth_angle": 26,
+   "offset": [0, -0.080, 0.100], "dir": [0, 0.9959, 0.0904],
+   "segments": [{"len": 0.280, "r": 0.0083}, {"len": 0.260, "r": 0.0079}, {"len": 0.210, "r": 0.0076}]},
+
+  {"type": "curve", "host": "FlagTop", "material": "gold_trim", "sides": 6, "smooth_angle": 26,
+   "offset": [0, 0.002, 0.000], "dir": [0, 0.996, 0.090],
+   "segments": [{"len": 0.021, "r": 0.0145}, {"len": 0.017, "r": 0.005, "taper": true}]},
+
+  {"type": "fin", "name": "pennant", "host": "FlagTop", "material": "flag_cloth", "thickness": 0.008,
+   "offset": [0, -0.035, 0],
+   "udir": [0, 0.996, 0.090], "vdir": [0.10, -0.20, 0.975],
+   "points": [[0.021, 0.006], [-0.014, 0.106], [-0.096, 0.061], [-0.112, 0.004]]},
+  {"type": "fin", "name": "pennant_flame", "host": "FlagTop", "material": "flag_cloth", "thickness": 0.008,
+   "offset": [0, -0.035, 0],
+   "udir": [0, 0.996, 0.090], "vdir": [0.10, -0.20, 0.975],
+   "points": [[-0.024, 0.083], [-0.005, 0.134], [-0.050, 0.104]]},
+
+  {"type": "curve", "host": "FlagTop", "material": "tassel", "sides": 4, "smooth_angle": 26,
+   "offset": [0.004, -0.140, 0.024], "dir": [0.02, -0.98, 0.19],
+   "segments": [{"len": 0.030, "r": 0.0065}, {"len": 0.022, "r": 0.003, "taper": true}]},
+  {"type": "curve", "host": "FlagTop", "material": "tassel", "sides": 4, "smooth_angle": 26,
+   "offset": [0.004, -0.112, 0.058], "dir": [0.02, -0.98, 0.16],
+   "segments": [{"len": 0.026, "r": 0.0055}, {"len": 0.019, "r": 0.003, "taper": true}]},
+  {"type": "curve", "host": "FlagTop", "material": "tassel", "sides": 4, "smooth_angle": 26,
+   "offset": [0.004, -0.084, 0.090], "dir": [0.02, -0.99, 0.12],
+   "segments": [{"len": 0.022, "r": 0.005}, {"len": 0.016, "r": 0.003, "taper": true}]},
+
+  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
+   "offset": [-0.006, 0.004, 0.004], "dir": [-0.72, -0.20, 0.66],
+   "segments": [{"len": 0.024, "r": 0.012}, {"len": 0.017, "r": 0.007, "fall": 12}, {"len": 0.011, "r": 0.003, "fall": 18, "taper": true}]},
+  {"type": "curve", "host": "LHand", "material": "hand", "mirrored": true, "sides": 5, "smooth_angle": 26,
+   "offset": [-0.004, -0.016, 0.002], "dir": [-0.66, -0.44, 0.61],
+   "segments": [{"len": 0.021, "r": 0.011}, {"len": 0.015, "r": 0.006, "fall": 14}, {"len": 0.010, "r": 0.003, "fall": 20, "taper": true}]},
+
+  {"type": "paw", "host": "LToe", "material": "boot", "mirrored": true,
+   "size": [0.048, 0.035, 0.078]}
+ ],
+
+ "animations": {
+  "idle": {"duration": 2.6, "loop": true,
+   "_note": "香火節奏：緩慢、有拍子，像抬轎。每一端各 hold 0.15 個週期（keys 0/0.15 與 0.5/0.65 同值），走的那一段就變快，拍子出得來。swarm 的 idle 刻意**不寫 mirror_phase**（boat 報告 ⑤-2）——三隻並排要同拍才讀得出「一群同款」。盔（HelmRoot）與兩面令旗（FlagL/R）給滯後相位 0.35/0.70，晃在身體之後。",
+   "tracks": {
+    "Hips":     {"ty": [[0, 0], [0.15, 0.001], [0.5, 0.010], [0.65, 0.009], [1, 0]]},
+    "Spine":    {"rx": [[0, -1.2], [0.15, -1.2], [0.5, 1.6], [0.65, 1.6], [1, -1.2]]},
+    "NeckB":    {"rx": [[0, 1.6], [0.15, 1.6], [0.5, -2.0], [0.65, -2.0], [1, 1.6]]},
+    "HeadRoot": {"ry": [[0, -3.5], [0.15, -3.5], [0.5, 3.5], [0.65, 3.5], [1, -3.5]],
+                 "rx": [[0, 1.2], [0.5, -1.6], [1, 1.2]]},
+    "HelmRoot": {"rz": [[0, -2.0], [0.35, 2.0], [0.70, -1.2], [1, -2.0]],
+                 "rx": [[0, 1.2], [0.55, -1.6], [1, 1.2]]},
+    "FlagTop":  {"rz": [[0, -3.0], [0.35, 2.6], [0.70, -1.6], [1, -3.0]],
+                 "rx": [[0, 1.8], [0.55, -2.4], [1, 1.8]]},
+    "LArmRoot": {"rx": [[0, -2.4], [0.15, -2.4], [0.5, 2.4], [0.65, 2.4], [1, -2.4]]},
+    "LElbow":   {"rx": [[0, 2.4], [0.5, -3.0], [1, 2.4]]},
+    "SkirtRoot":{"rx": [[0, 0.8], [0.55, -1.2], [1, 0.8]]}
+   }},
+  "move": {"duration": 0.95, "loop": true, "mirror_phase": 0.5,
+   "_note": "齊步行進。`mirror_phase: 0.5` 是本檔對 boat 報告 ⑤-2 的唯一偏離：那條規則寫給沒有腿的船，直立紙兵兩腿同拍會變成雙腳跳。三隻之間仍然同拍（同一支 clip、同時起算），一群同款的讀法不受影響。膝／踝角度壓在 16° 以內配 LLeg 的 ring_step 0.042，避開 anim_integrity 撕皮（試作卷 ③-6）。",
+   "tracks": {
+    "Hips":     {"ty": [[0, 0], [0.25, 0.016], [0.5, 0], [0.75, 0.016], [1, 0]]},
+    "LLegRoot": {"rx": [[0, -15], [0.5, 16], [1, -15]]},
+    "LKnee":    {"rx": [[0, 5], [0.3, 14], [0.6, -3], [1, 5]]},
+    "LAnkle":   {"rx": [[0, -4], [0.4, -10], [0.7, 3], [1, -4]]},
+    "LArmRoot": {"rx": [[0, 11], [0.5, -11], [1, 11]]},
+    "LElbow":   {"rx": [[0, -4], [0.5, 6], [1, -4]]},
+    "Spine":    {"rx": [[0, 1.6], [0.5, -1.6], [1, 1.6]]},
+    "NeckB":    {"rx": [[0, -1.6], [0.5, 1.6], [1, -1.6]]},
+    "HeadRoot": {"rx": [[0, -3], [0.5, 3], [1, -3]]},
+    "HelmRoot": {"rz": [[0, 3], [0.5, -3], [1, 3]]},
+    "FlagTop":  {"rz": [[0, 4], [0.5, -4], [1, 4]], "rx": [[0, -3], [0.5, 3], [1, -3]]},
+    "SkirtRoot":{"rx": [[0, -2.4], [0.5, 2.4], [1, -2.4]]}
+   }},
+  "attack": {"duration": 0.85, "loop": false,
+   "_note": "招式「五方調兵」＝整排轉盔。0→0.32 是蓄：整隊往後坐、盔與頭一起擰向 +ry、令旗被甩到後面（這一段佔 38% 的時長，拍子明顯）；0.32→0.62 是調兵：HelmRoot 的 ry 反甩 −34° 帶著頭轉回、同時 Hips 的 tz 推 +0.215 踏前一步（attack_reach 的 REACH 路線需要 ≥0.15×span，span＝max(z 幅寬, 模型高≈1.0)）；0.62→1 回位。Spine 的 rx/ry 壓在 6/7 度以內配 body ring_step 0.020，避開 anim_integrity 撕皮。",
+   "tracks": {
+    "Hips":     {"tz": [[0, 0], [0.32, -0.052], [0.62, 0.215], [1, 0]],
+                 "ty": [[0, 0], [0.32, 0.020], [0.62, -0.012], [1, 0]]},
+    "Spine":    {"rx": [[0, 0], [0.32, -4], [0.62, 6], [1, 0]],
+                 "ry": [[0, 0], [0.32, 5], [0.62, -7], [1, 0]]},
+    "NeckB":    {"rx": [[0, 0], [0.32, -4], [0.62, 7], [1, 0]]},
+    "HeadRoot": {"ry": [[0, 0], [0.34, 15], [0.64, -18], [1, 0]],
+                 "rx": [[0, 0], [0.34, -6], [0.64, 9], [1, 0]]},
+    "HelmRoot": {"ry": [[0, 0], [0.34, 28], [0.64, -34], [1, 0]],
+                 "rz": [[0, 0], [0.38, 6], [0.68, -8], [1, 0]]},
+    "FlagTop":  {"rz": [[0, 0], [0.36, -9], [0.66, 12], [1, 0]],
+                 "rx": [[0, 0], [0.36, 7], [0.66, -10], [1, 0]]},
+    "LArmRoot": {"rx": [[0, 0], [0.32, 12], [0.60, -18], [1, 0]],
+                 "ry": [[0, 0], [0.32, -6], [0.60, 9], [1, 0]]},
+    "LElbow":   {"rx": [[0, 0], [0.32, 10], [0.60, -12], [1, 0]]},
+    "LLegRoot": {"rx": [[0, 0], [0.32, -7], [0.62, 12], [1, 0]]},
+    "SkirtRoot":{"rx": [[0, 0], [0.36, 5], [0.66, -7], [1, 0]]}
+   }}
+ }
+}
