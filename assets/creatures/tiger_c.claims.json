@@ -1,0 +1,81 @@
+{
+  "name": "妖火虎 tiger_ye_yaohuo (V-C, NPC/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger.claims.json；本卷只做兩類改動：① saturation_area 的帶依 2026-09-04 凍結檔第 2 條放寬為 10%–60%；② 綬帶（sash）在本方案被移除，focal_contrast 的對手改成陰火鬃 glow_mane。其餘一律加嚴（多三條 part_exists 釘住 eye／mouth_glow／glow_tail 這三個給 three.js 接 emissive 的材質名），沒有放寬。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "fur_jaw",
+      "stage": "MID",
+      "label": "招牌部位：張開的下顎必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口內發光體必須存在，且材質名必須正是 mouth_glow（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_tail",
+      "stage": "MID",
+      "label": "尾尖火必須存在，材質名必須正是 glow_tail"
+    },
+    {
+      "type": "part_signature",
+      "part": "fur_jaw",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（張開的大口）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "fur_head",
+      "b": "glow_mane",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（大頭／背上陰火鬃）不得等重competition"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["fur_body"],
+      "secondary": ["fur_head"],
+      "tertiary": ["fur_jaw"],
+      "stage": "MID",
+      "label": "6:3:1 階層：身體／頭／下顎"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔第 2 條放寬後的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
