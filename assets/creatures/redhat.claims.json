@@ -1,0 +1,87 @@
+{
+  "name": "魔神仔紅帽 moshenzai_redhat (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/tiger_c.claims.json，本隻只做三類改動：① saturation_area 的帶依 2026-09-04 設計簡報「主對話裁定」第 2 條（紅帽是 IP 色）放寬為 10%–70%，其餘門檻（focal_contrast min_ratio 2、share_hierarchy tolerance 0.15、part_signature min_share 0.06 / or_min_span 0.12、tri_budget 1500–5000）與 tiger_c 逐字相同；② 材質名換成本隻的（tiger_c 的 fur_body/fur_head/fur_jaw/glow_mane/glow_tail 在本隻不存在，留著 judge 會直接報 part 不存在）；③ 加兩條 part_exists 釘住 haunt 專用的 ghost_skirt／ghost_wisp（加嚴，不是放寬）。本檔在動手建模之前就寫定，之後只改 redhat.json 去遷就它。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "hat",
+      "stage": "MID",
+      "label": "招牌部位：尖頂紅帽必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口內發光體必須存在，材質名必須正是 mouth_glow"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_skirt",
+      "stage": "MID",
+      "label": "haunt 的下半身虛化：霧裾必須存在，材質名必須以 ghost_ 開頭（接線卷靠這個前綴掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_wisp",
+      "stage": "MID",
+      "label": "haunt 的霧鬚必須存在，材質名必須以 ghost_ 開頭"
+    },
+    {
+      "type": "part_signature",
+      "part": "hat",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（尖頂紅帽）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hat",
+      "b": "skin_head",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（紅帽／臉）不得等重：帽必須明確壓過臉，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["ghost_skirt", "ghost_wisp"],
+      "secondary": ["hat"],
+      "tertiary": ["skin_head"],
+      "stage": "MID",
+      "label": "6:3:1 階層：霧裾／紅帽／臉"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.7,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-70%（IP 色裁定放寬後的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 5000,
+      "stage": "LOW",
+      "label": "三角形預算（npc preset）"
+    }
+  ]
+}
