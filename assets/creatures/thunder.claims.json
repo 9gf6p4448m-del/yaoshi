@@ -1,0 +1,143 @@
+{
+  "name": "雷女之火 thunder_leinu_zhihuo (zuling/elite)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 bow.claims.json（同為祖靈 elite）。**識別視角＝正視 front**——本隻是展翼的雷靈鳥，招牌剪影『雷紋雙翼』是兩片朝正面張開的垂直翼板，側視時兩翼是邊緣朝觀者的一條線（這是刻意的：祖靈側視 W/H ≤0.7 靠的就是側視窄），所以除 saturation_area（沿用凍結檔的 tq）與尾羽那條（長垂尾羽只有側視看得到）外一律 view:\"front\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag／bow）；② 另加五條 part_visible 把真實參照鐵則機械化——`beak_horn`（特徵①鉤喙）、`zuli_gold`（特徵③翼緣雷紋，也是簡報指定的系別色帶落點）、`ember_ash`（特徵④火種的灰殼，被喙吞掉＝沒有）、`tail_quill`（特徵⑤長垂尾羽）、`feather_dark`（鳥身不得被自己的翼吞掉——elite 招牌部位過大的專屬風險，同 bow 的 skull_bone）。saturation_area 沿用凍結檔指定的 10%–60% 帶。tri_budget 上限用 2026-09-04 19:30 預算制的 8000。**沒有一處放寬。**",
+  "_frozen_at": "動手建模之前寫定（凍結檔 M-A0 要求 judge 全綠；本檔門檻此後一格未動，全部靠改 thunder.json 去滿足）。ref 特徵清單 docs/experiments/2026-09-04-ref-thunder.md §三 更早凍結。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "wing_web",
+      "stage": "MID",
+      "label": "招牌部位：雷紋雙翼的翼板必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "zuli_gold",
+      "stage": "MID",
+      "label": "簡報指定的系別色帶（祖靈金:翼紋）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_bolt",
+      "stage": "MID",
+      "label": "雷光必須存在，且材質名必須正是 glow_bolt（three.js 端 js/creature-figures.js:51 靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "beak_horn",
+      "stage": "MID",
+      "label": "真實參照特徵 1：猛禽鉤喙必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "ember_ash",
+      "stage": "MID",
+      "label": "真實參照特徵 4：火種的灰白炭殼必須存在（火種是餘燼不是光球，殼沒了就只剩一顆發光點）"
+    },
+    {
+      "type": "part_signature",
+      "part": "wing_web",
+      "view": "front",
+      "min_share": 0.1,
+      "or_min_span": 0.3,
+      "stage": "MID",
+      "label": "招牌部位（雷紋雙翼）在識別視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "beak_horn",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 1 的機械化：鉤喙在識別視角必須量得到——喙被火種或冠羽遮掉就不是猛禽"
+    },
+    {
+      "type": "part_visible",
+      "part": "zuli_gold",
+      "view": "front",
+      "min_share": 0.01,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：翼上的銳角折線雷紋在識別視角必須量得到（也是簡報指定的系別色帶落點）"
+    },
+    {
+      "type": "part_visible",
+      "part": "ember_ash",
+      "view": "front",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：火種的灰殼在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "tail_quill",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：長垂尾羽在側視必須量得到（它是把剪影拉成垂直物、達成祖靈 W/H ≤0.7 的那一件）"
+    },
+    {
+      "type": "part_visible",
+      "part": "feather_dark",
+      "view": "front",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "鳥身必須在識別視角看得見——被自己張開的翼吞掉就等於沒有（elite 招牌過大的專屬風險，同 bow 的 skull_bone）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "feather_dark",
+      "b": "glow_bolt",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（鳥身／雷光）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["feather_dark", "wing_web", "feather_ruff", "tail_quill", "skull_wood"],
+      "secondary": ["zuli_gold", "wing_bone", "feather_quill", "crest_quill", "beak_horn", "leg_scale", "claw_bone", "weave_band", "bead_zuli", "ember_ash"],
+      "tertiary": ["glow_bolt", "eye"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：鳥身與翼板／雷紋與羽骨與飾件／雷光與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（正視）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝天雷：雙翼張開甩下）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 2500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制：每隻 tri ≤8000）"
+    }
+  ]
+}
