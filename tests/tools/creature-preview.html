@@ -15,12 +15,17 @@
     ?n=8        擺 8 隻一起播 idle（效能量測用；預設 1 隻走 idle→attack→burn 循環）
     ?auto=0     關掉自動循環，改由 window.__preview.setPhase() 手動驅動（截圖用）
     ?rim=xianghu|zuli|yinqi   指定邊光的系色
+    ?glb=…      換一顆 GLB（相對 assets/creatures/ 的檔名，或 / 開頭的絕對路徑）；預設 tiger.glb
+    ?light=0|1  戲台三燈組（createFigureLightRig）開關，預設 1；=0 退回只有四盞燈籠的舊燈光
+    ?fx=0|1     三系環境特效（attachFactionFx）開關，預設 1；系別跟著 ?rim 走
 
   量測掛勾（給 Playwright 用，不是產品介面）：
     window.__preview.ready        Promise，GLB 載完才 resolve
     window.__preview.loadMs       GLB 從送出到解析完成的毫秒數
     window.__preview.fps()        最近一段 rAF 間隔的中位數 fps
     window.__preview.drawCalls    上一幀整幀（含 bloom 四趟）的 draw call 數
+    window.__preview.particleCount 場上環境特效的粒子總數（不含 burn 的灰燼）
+    window.__preview.lightCount   場上燈的總數（四盞燈籠 ＋ 三燈組）
     window.__preview.setPhase(p)  'idle' | 'move' | 'attack' | 'burn' | 'reset'
     window.__preview.setCloth(h)  換三系邊光色
     window.__preview.burnDone()   最近一次 burn 的 Promise
@@ -51,13 +56,20 @@
 import * as THREE from 'three';
 import { createSceneEnv, resizeSceneEnv, FOG_DENSITY } from '../../js/scene-env.js';
 import { createBloom } from '../../js/bloom.js';
-import { makeCreatureFigure, FACTION_RIM } from '../../js/creature-figures.js';
+import { makeCreatureFigure, FACTION_RIM, createFigureLightRig, attachFactionFx } from '../../js/creature-figures.js';
 
 const q = new URLSearchParams(location.search);
 const N = Math.max(1, Math.min(16, parseInt(q.get('n') || '1', 10) || 1));
 const AUTO = q.get('auto') !== '0';
 const RIM_KEY = q.get('rim') || 'xianghu';
-const GLB = '../../assets/creatures/tiger.glb';
+const LIGHT = q.get('light') !== '0'; // 戲台三燈組（look-dev 卷）；?light=0 退回只有燈籠的舊燈光
+const FX = q.get('fx') !== '0'; // 三系環境特效；?fx=0 關掉
+// ?glb 只收檔名（或 / 開頭的絕對路徑），不讓它帶 ../ 跑出 assets/creatures/：
+// 這頁是本機治具，但沒必要留一條可以讀任意檔的路。
+const GLB_Q = (q.get('glb') || '').trim();
+const GLB = !GLB_Q ? '../../assets/creatures/tiger.glb'
+  : GLB_Q.startsWith('/') ? GLB_Q
+  : `../../assets/creatures/${GLB_Q.replace(/[\\/]/g, '')}`;
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // 對決那一段的參數（與 renderer.js 的 BLOOM 同一組數值，這頁不另外調）
@@ -113,6 +125,24 @@ for (let i = 0; i < N; i++) {
   figures.push(f);
 }
 
+// ── 戲台三燈組（?light=1，預設開）────────────────────────────────────────────
+// 掛在桌面中央、跟妖同一個高度基準；N>1 時把光圈放大到罩得住整排（見 rig 的 opts.scale）。
+let rig = null;
+if (LIGHT) {
+  rig = createFigureLightRig({ faction: RIM_KEY, scale: N > 1 ? 1.7 : 1 });
+  rig.position.set(0, TABLE_TOP, 0);
+  scene.add(rig);
+}
+
+// ── 三系環境特效（?fx=1，預設開）───────────────────────────────────────────
+// seed 用序號，同一組截圖每次跑長得一樣（本檔與 creature-figures 都不用 Math.random）。
+// prefers-reduced-motion 時不掛：這一層是**純裝飾性的持續動態**（燈組是靜態的，照掛不誤），
+// 關掉不影響任何要驗的東西。妖自己的 idle 是內容不是裝飾，跟既有的 REDUCED 一樣不動它。
+const auras = [];
+if (FX && !REDUCED) figures.forEach((f, i) => { const a = attachFactionFx(f, RIM_KEY, { seed: i + 7 }); if (a) auras.push(a); });
+const PARTICLE_TOTAL = auras.reduce((s, a) => s + a.count, 0);
+const LIGHT_TOTAL = lanterns.length + (rig ? 3 : 0);
+
 // ── 量測掛勾 ──────────────────────────────────────────────────────────────
 const t0 = performance.now();
 const frames = [];
@@ -137,6 +167,7 @@ const ready = Promise.all(figures.map((f) => f.loaded())).then(() => {
 
 window.__preview = {
   ready, loadMs: -1, clips: [], bones: 0, drawCalls: 0, phase: 'idle',
+  light: LIGHT, fx: FX, glb: GLB, particleCount: PARTICLE_TOTAL, lightCount: LIGHT_TOTAL,
   fps: medianFps,
   rawFrames() { return frames.slice(); },
   resetFps() { frames.length = 0; },
@@ -187,7 +218,9 @@ function frame(now) {
   drawCalls = renderer.info.render.calls;
   window.__preview.drawCalls = drawCalls;
 
-  hud.textContent = `n=${N}  ${window.__preview.phase}\nfps ${medianFps().toFixed(1)}  calls ${drawCalls}\nglb ${window.__preview.loadMs}ms  bones ${window.__preview.bones}`;
+  hud.textContent = `n=${N}  ${window.__preview.phase}  light ${LIGHT ? 1 : 0}  fx ${FX ? 1 : 0}\n`
+    + `fps ${medianFps().toFixed(1)}  calls ${drawCalls}  parts ${PARTICLE_TOTAL}\n`
+    + `glb ${window.__preview.loadMs}ms  bones ${window.__preview.bones}`;
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
