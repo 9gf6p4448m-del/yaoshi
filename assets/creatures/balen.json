@@ -1,10 +1,10 @@
 {
  "name": "balen_gongzhu_zhulian",
- "_variant": "3D 量產卷批 7 — balen 巴冷公主珠鍊（祖靈 zuling、elite x1、trait eliteArmor「琉璃護心」）。造型＝直立昂起的百步蛇祖靈（全蛇、無四肢），頸與前胸纏五層琉璃珠串。美術權威 docs/design/ART_BIBLE.md 0.5/2/5；凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md。",
+ "_variant": "3D 量產卷批 7 — balen 巴冷公主珠鍊（祖靈 zuling、elite x1、trait eliteArmor「琉璃護心」）。造型＝直立昂起的百步蛇祖靈（全蛇、無四肢），頸與前胸纏五層琉璃珠串。美術權威 docs/design/ART_BIBLE.md 0.5/2/5；凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md。 | 2026-09-05 回修（乙案）：加原民語彙——藤編織紋帶 x2、百步蛇背菱紋連續化（coil 14 + 抬起軀幹 7、明暗交替）、山豬牙一對、珠色由祖靈金主導改成鏽橘/芥黃/草綠主導。目標＝盲讀「埃及/法老/聖蛇/Uraeus/Wadjet/金字塔」0/2、「原住民/部落/圖騰/藤編/山地/台灣」>=1/2。",
  "_ref_features": "凍結於 docs/experiments/2026-09-04-ref-balen.md 第三節，寫本檔之前定案、此後一條未改：(1) 三角形楔狀蛇頭（顎角半寬 0.188 / 半高 0.076 = 2.47:1，頭寬 / 頸末端 0.083 = 2.27x，兩個數字逐字沿用 shield 回修 4 出貨版——那組是唯一被 2/2 讀成三角頭的比例）(2) 背脊一列菱斑（coil 7 片 + trunk 3 片 + neck 2 片，做法照 shield blotch）(3) 多層並排的珠串纏頸與前胸、愈往下愈寬（5 層 85 顆，跨距逐層由 +-128 度加到 +-164 度）(4) 珠串正中五顆大眼紋珠（深靛外珠 → 骨白環 → glow_bead 發光心，三層同心圓，環與心的軸徑向朝外）(5) 下半身盤繞成圈、無四肢（21 節、1.55 圈的內高外低螺旋）。",
  "_bead_geometry": "珠串不是一片弧板，是 85 顆獨立短圓柱（sides 6，軸＝串線切線方向）。依 harden3C 陷阱：把離散的桿改成連續凹面斷面會被吞成平滑鐘形、讀成裙子——離散顆粒才讀得出珠串。依 pilot/boat/redhat 的 part_attachment 陷阱（量的是離最近 ring 圓心的距離），珠子半徑方向的離身距離壓在 0.012-0.072，最外層仍讓內側面埋進軀幹表面。宿主全掛 Trunk3，attack 轉 Trunk1/2 整片珠串就前推。",
  "_glow_materials": "eye / glow_bead —— 簡報指定的就是這兩個名字（M-A3 檢的也是這兩個）。js/creature-figures.js:51 的 GLOW.test = /^eye(_|$)|^mouth_glow(_|$)|^glow_/i，不得改名。",
- "_traps": "(16) 頭被讀成三角靠的是寬對長的比值不是吻端方向——任何把頭拉長的改動都吃掉那個讀法，shield 加大吻端上翹把三角頭從 2/2 打到 0/2；本檔 snout_horn 總長 0.085 逐字沿用 shield 出貨版，不得加長。(17) 頭部上下分色硬切會被讀成頭盔／兜帽；分色照做（那是百步蛇的樣子）但不列入特徵清單、不為它加對比。(18) 抬頭粗頸會被讀成眼鏡蛇；本隻接受此代價，L3 只要求「蛇」。(19) mirrored 部件的宿主關節名不得以 L 開頭（bow 卷）——本檔宿主全是 Body*/Trunk*/Neck*/Jaw/SnoutTip。(20) 左右對稱框住東西會被讀成骨架／籠子（eye 卷）——珠串是繞著身體的環不是兩根對稱的框。(21) 圓管一律被讀成吻部（thunder 卷）——頭不是圓管，是 exp 4.6-5.0 的超橢圓加 sharp 顎角折線。(22) 等弧長取樣的螺旋每段天生 1:1 會觸發 proportion BLOCK（pilot 卷）——coil 取樣時加了 +-1% 的 u 抖動。 (22) 等弧長取樣的螺旋每段天生 1:1，直接撞 proportion BLOCK；抖動要加在取樣參數上（本檔在 u 上加 +-1%），事後挪個別關節救不回來。 (23) 掛件的 part_attachment 量的是離宿主 volume 表面的距離、容差 0.019，宿主是整條鏈不是那顆關節——一串從胸口爬到頸子的珠串只掛一個關節必然有一半浮空，要依高度分派宿主到不同鏈（本檔 Trunk2/3/4 與 Neck1）；修法可機械化：讀編譯器 BLOCK 行的實測 clearance，逐件把徑向偏移減掉 clearance+0.006，兩輪收斂。 (24) 同心圓要讓外面看得到，內層必須從宿主表面穿出來，不能掛在外層的外側（掛外側時內層碰不到宿主）；探出量超過外層半徑約 20% 就從『同心圓』變成『鉚釘』。 (25) 管狀 volume 的螺旋，曲率半徑 / 管半徑 < 約 1.6 就 mesh_integrity 翻面，ring_step 加粗只救得了一部分；本檔實測 0.235/0.150=1.57 紅、0.236/0.132=1.79 綠。 (26) 陷阱 (17)（頭部上下分色被讀成頭盔／面罩）在蛇頭上一樣發作，而且會把三角頭的讀法一起吃掉；解法不是拿掉分色（那是物種特徵），是把亮側壓到與暗側只差一階（本檔 #e6dabc -> #8a7a5e），讓輪廓而不是色塊當主詞。第 1 輪盲讀 A 讀成『冷笑的嘴線』、B 讀成『眼罩狀花紋』，改完第 2 輪 D 直接寫『三角形蛇頭』。 (27) 抬頭 + 粗頸 + 頸部橫向裝飾 = 眼鏡蛇風帽，而且會把文化指向拉去古埃及；四位讀者 4/4 讀成眼鏡蛇，第 2 輪 2/2 主動說出 Uraeus／Wadjet。要讀成台灣原民祖靈得靠珠串以外的族群標記（織紋帶、木雕、羽飾）——琉璃珠的視覺語彙與埃及費昂斯串珠太近。",
+ "_traps": "(16) 頭被讀成三角靠的是寬對長的比值不是吻端方向——任何把頭拉長的改動都吃掉那個讀法，shield 加大吻端上翹把三角頭從 2/2 打到 0/2；本檔 snout_horn 總長 0.085 逐字沿用 shield 出貨版，不得加長。(17) 頭部上下分色硬切會被讀成頭盔／兜帽；分色照做（那是百步蛇的樣子）但不列入特徵清單、不為它加對比。(18) 抬頭粗頸會被讀成眼鏡蛇；本隻接受此代價，L3 只要求「蛇」。(19) mirrored 部件的宿主關節名不得以 L 開頭（bow 卷）——本檔宿主全是 Body*/Trunk*/Neck*/Jaw/SnoutTip。(20) 左右對稱框住東西會被讀成骨架／籠子（eye 卷）——珠串是繞著身體的環不是兩根對稱的框。(21) 圓管一律被讀成吻部（thunder 卷）——頭不是圓管，是 exp 4.6-5.0 的超橢圓加 sharp 顎角折線。(22) 等弧長取樣的螺旋每段天生 1:1 會觸發 proportion BLOCK（pilot 卷）——coil 取樣時加了 +-1% 的 u 抖動。 (22) 等弧長取樣的螺旋每段天生 1:1，直接撞 proportion BLOCK；抖動要加在取樣參數上（本檔在 u 上加 +-1%），事後挪個別關節救不回來。 (23) 掛件的 part_attachment 量的是離宿主 volume 表面的距離、容差 0.019，宿主是整條鏈不是那顆關節——一串從胸口爬到頸子的珠串只掛一個關節必然有一半浮空，要依高度分派宿主到不同鏈（本檔 Trunk2/3/4 與 Neck1）；修法可機械化：讀編譯器 BLOCK 行的實測 clearance，逐件把徑向偏移減掉 clearance+0.006，兩輪收斂。 (24) 同心圓要讓外面看得到，內層必須從宿主表面穿出來，不能掛在外層的外側（掛外側時內層碰不到宿主）；探出量超過外層半徑約 20% 就從『同心圓』變成『鉚釘』。 (25) 管狀 volume 的螺旋，曲率半徑 / 管半徑 < 約 1.6 就 mesh_integrity 翻面，ring_step 加粗只救得了一部分；本檔實測 0.235/0.150=1.57 紅、0.236/0.132=1.79 綠。 (26) 陷阱 (17)（頭部上下分色被讀成頭盔／面罩）在蛇頭上一樣發作，而且會把三角頭的讀法一起吃掉；解法不是拿掉分色（那是物種特徵），是把亮側壓到與暗側只差一階（本檔 #e6dabc -> #8a7a5e），讓輪廓而不是色塊當主詞。第 1 輪盲讀 A 讀成『冷笑的嘴線』、B 讀成『眼罩狀花紋』，改完第 2 輪 D 直接寫『三角形蛇頭』。 (27) 抬頭 + 粗頸 + 頸部橫向裝飾 = 眼鏡蛇風帽，而且會把文化指向拉去古埃及；四位讀者 4/4 讀成眼鏡蛇，第 2 輪 2/2 主動說出 Uraeus／Wadjet。要讀成台灣原民祖靈得靠珠串以外的族群標記（織紋帶、木雕、羽飾）——琉璃珠的視覺語彙與埃及費昂斯串珠太近。 (28) 「金珠領 + 抬頭粗頸」是埃及讀法的兩個獨立來源，只拿掉其中一個沒用。本卷姿態一格未動，只把祖靈金從珠串的多數色（51/112）降到「只做中央紋珠區與兩端收尾」（30/112），其餘換成排灣真照裡的鏽橘/芥黃/草綠，腹側 arcs 由暖金褐 #9c8460 壓成灰褐 #8e8878——埃及讀法就從量產版的 2/2 掉到本卷六位的 0/6。草綠是關鍵：埃及費昂斯串珠沒有這個綠，它一出現就把配色帶離『金 + 青金石 + 綠松石』的三色組。 (29) around 在 exp 4.6-4.8 的超橢圓斷面上不是角度（harden3B ⑥ 的一般化）：本檔實測 trunk around 0->30 走 43 度方位角、120->150 只走 5 度。要等分一圈必須先用 5 度網格 probe fin 把 around->方位角量出來再反解，等分 around 會排出嚴重不均的帶。 (30) fin 的 udir 一律寫 normalize(Y x N)（N = 該落點實測表面法線），不要寫 [1,0,0]：conform 會把 udir 投影到切平面，當落點法線接近 +-X 時投影退化，板子整片轉成直立，同一條帶上的角度就全亂。 (31) ★★ 一圈平板 fin 排不出「一條帶」，這是零件的限制不是參數的問題。volume 只有 10-12 個稜面，超橢圓讓稜面在圓周上寬窄不一，surfacePoint 又對兩個 ring 頂點做線性內插，落在頂點之間的 around 會落在弦上、法線在稜線兩側來回跳；同一個 half_w 在平邊留大縫、在圓角互相疊起來，渲染出來是一圈東倒西歪的木板（本卷 r1 兩位盲讀讀者一致讀成「破碎尖刺／受損的鱗片」）。三種參數解全部無效（縮小單片／對齊 12 個稜面的 around／換母題形狀）。解法是換零件：改用「一圈短圓柱 curve」，位置自己用軸點 + 徑向基底算、完全不經過 around（本檔珠串已證明會動的寫法，見 _bead_geometry）；r2 兩位改讀成「編織帶／編織鎧甲」。判準：凡是要「繞著曲面排成連續一圈」的東西都用 curve，fin 只做單片或稀疏排列的斑塊。 (32) 織紋要讀成「紋樣」不能用兩色棋盤——棋盤讀成格子。本檔中列用四格一循環（赤/底/白/底）、上下軌用白/黑交錯，r2 起讀者開始在氣質段說「圖騰」。 (33) 背菱斑要讀成「連續可數的菱紋鏈」而不是「散落的斑點」，t 間距必須 <= 菱形全高。量產版盤踞段間距 0.11t（0.24 世界單位）對半高 0.086 -> 大縫；本卷改成間距 = 全高 x 1.02 並明暗交替，淺斑用 #a38c66（不是 ref 的 #c8b795）避免高對比硬切被讀成「貼上去的白瓦片」（tiger_a 陷阱同族）。 (34) 掛件的可見性要先算相機方位角。本專案 hero/stage-lit 的相機在模型座標 az 約 51 度（creature-preview.html 相機 (0.75,·,2.35) + 模型 rotation.y = -0.55）。背菱紋放模型正背面（az 180）在兩張盲讀圖上都看不見，本卷放 az 96-102。推論：模型 +-X 的對稱一對掛件一定有一根落進軀幹投影裡（r1 實測左邊那根山豬牙完全看不見）——redhat 累計 0/12 的同一個坑；山豬牙因此改成整片朝 +Z 的胸前月牙飾，兩根都看得見。 (35) 羽毛的橫斑不能做成「一段接一段」——part_attachment 是逐 part 檢查的，中段與末段那兩片碰不到宿主一定 BLOCK。改成「每片都從羽根長到不同長度、逐片往外抬 0.004」的疊片，每片都埋進宿主，視覺上仍然是深-白-深-白-深五道斑。 (36) 全高 1.2-1.25 是硬門檻而頭頂已經在 y=1.229：頭上加任何東西都會撐破 bbox。本檔的羽飾只能往「後上方」長（末端 y 壓在 1.22 以下、往 -z 走到 -0.25，而 z 最小值本來就有 -0.29），bbox 一格未動。 (37) 自由懸掛薄板長寬比 >2 會被讀成手指／觸手（harden3B ⑦）在羽毛上的解法＝同時給三個線索：深色羽軸 curve 跑在中線、羽片左右不等寬（外側 1.0 / 內側 0.62）、五道橫斑。三個一起上，出貨輪兩位都寫出「羽毛狀」，無人讀成手指或觸手。",
  "palette": {
   "scale_body": {
    "color": "#4a4034",
@@ -27,11 +27,11 @@
    "rough": 0.32
   },
   "bead_ochre": {
-   "color": "#a8813f",
+   "color": "#ab9b45",
    "rough": 0.38
   },
   "bead_rust": {
-   "color": "#a8542f",
+   "color": "#ab5227",
    "rough": 0.38
   },
   "bead_night": {
@@ -57,6 +57,46 @@
   "glow_bead": {
    "color": "#3050a0",
    "rough": 0.16
+  },
+  "bead_jade": {
+   "color": "#6f7f4a",
+   "rough": 0.4
+  },
+  "band_pale": {
+   "color": "#a38c66",
+   "rough": 0.9
+  },
+  "weave_a": {
+   "color": "#d8caa2",
+   "rough": 0.72
+  },
+  "weave_b": {
+   "color": "#7a5a33",
+   "rough": 0.78
+  },
+  "weave_d": {
+   "color": "#221a11",
+   "rough": 0.85
+  },
+  "weave_c": {
+   "color": "#a8452a",
+   "rough": 0.72
+  },
+  "tusk_bone": {
+   "color": "#cdbf9e",
+   "rough": 0.5
+  },
+  "feather_rib": {
+   "color": "#33291d",
+   "rough": 0.85
+  },
+  "feather_dark": {
+   "color": "#4c4030",
+   "rough": 0.82
+  },
+  "feather_pale": {
+   "color": "#c2b498",
+   "rough": 0.8
   }
  },
  "build": "rigid",
@@ -389,7 +429,7 @@
      {
       "from": 132,
       "to": 180,
-      "color": "#9c8460"
+      "color": "#8e8878"
      }
     ]
    }
@@ -459,7 +499,7 @@
      {
       "from": 134,
       "to": 180,
-      "color": "#8f7a58"
+      "color": "#837e72"
      }
     ]
    }
@@ -520,7 +560,7 @@
      {
       "from": 134,
       "to": 180,
-      "color": "#9c8460"
+      "color": "#8e8878"
      }
     ]
    }
@@ -616,7 +656,7 @@
    "type": "curve",
    "name": "bead0_0",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0951,
@@ -639,7 +679,7 @@
    "type": "curve",
    "name": "bead0_1",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1178,
@@ -662,7 +702,7 @@
    "type": "curve",
    "name": "bead0_2",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.1358,
@@ -685,7 +725,7 @@
    "type": "curve",
    "name": "bead0_3",
    "host": "Neck1",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1473,
@@ -708,7 +748,7 @@
    "type": "curve",
    "name": "bead0_4",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1498,
@@ -731,7 +771,7 @@
    "type": "curve",
    "name": "bead0_5",
    "host": "Trunk4",
-   "material": "bead_ochre",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.128,
@@ -754,7 +794,7 @@
    "type": "curve",
    "name": "bead0_6",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1063,
@@ -777,7 +817,7 @@
    "type": "curve",
    "name": "bead0_7",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.0779,
@@ -823,7 +863,7 @@
    "type": "curve",
    "name": "bead0_9",
    "host": "Trunk4",
-   "material": "bead_rust",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.008,
@@ -846,7 +886,7 @@
    "type": "curve",
    "name": "bead0_10",
    "host": "Trunk4",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0289,
@@ -892,7 +932,7 @@
    "type": "curve",
    "name": "bead0_12",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.0942,
@@ -915,7 +955,7 @@
    "type": "curve",
    "name": "bead0_13",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1184,
@@ -938,7 +978,7 @@
    "type": "curve",
    "name": "bead0_14",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1347,
@@ -961,7 +1001,7 @@
    "type": "curve",
    "name": "bead0_15",
    "host": "Neck1",
-   "material": "bead_ochre",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1344,
@@ -984,7 +1024,7 @@
    "type": "curve",
    "name": "bead0_16",
    "host": "Neck1",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1336,
@@ -1007,7 +1047,7 @@
    "type": "curve",
    "name": "bead0_17",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1247,
@@ -1030,7 +1070,7 @@
    "type": "curve",
    "name": "bead0_18",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1091,
@@ -1053,7 +1093,7 @@
    "type": "curve",
    "name": "bead0_19",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0885,
@@ -1076,7 +1116,7 @@
    "type": "curve",
    "name": "bead1_0",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0913,
@@ -1099,7 +1139,7 @@
    "type": "curve",
    "name": "bead1_1",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1185,
@@ -1122,7 +1162,7 @@
    "type": "curve",
    "name": "bead1_2",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.1427,
@@ -1145,7 +1185,7 @@
    "type": "curve",
    "name": "bead1_3",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1622,
@@ -1168,7 +1208,7 @@
    "type": "curve",
    "name": "bead1_4",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1564,
@@ -1191,7 +1231,7 @@
    "type": "curve",
    "name": "bead1_5",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1507,
@@ -1214,7 +1254,7 @@
    "type": "curve",
    "name": "bead1_6",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.1368,
@@ -1237,7 +1277,7 @@
    "type": "curve",
    "name": "bead1_7",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1413,
@@ -1283,7 +1323,7 @@
    "type": "curve",
    "name": "bead1_9",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0795,
@@ -1398,7 +1438,7 @@
    "type": "curve",
    "name": "bead1_14",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.0973,
@@ -1421,7 +1461,7 @@
    "type": "curve",
    "name": "bead1_15",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1199,
@@ -1444,7 +1484,7 @@
    "type": "curve",
    "name": "bead1_16",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1605,
@@ -1490,7 +1530,7 @@
    "type": "curve",
    "name": "bead1_18",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1645,
@@ -1513,7 +1553,7 @@
    "type": "curve",
    "name": "bead1_19",
    "host": "Neck1",
-   "material": "bead_ochre",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1462,
@@ -1536,7 +1576,7 @@
    "type": "curve",
    "name": "bead1_20",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1298,
@@ -1559,7 +1599,7 @@
    "type": "curve",
    "name": "bead1_21",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1083,
@@ -1582,7 +1622,7 @@
    "type": "curve",
    "name": "bead1_22",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0834,
@@ -1605,7 +1645,7 @@
    "type": "curve",
    "name": "bead2_0",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0805,
@@ -1628,7 +1668,7 @@
    "type": "curve",
    "name": "bead2_1",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     -0.1122,
@@ -1651,7 +1691,7 @@
    "type": "curve",
    "name": "bead2_2",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.1422,
@@ -1697,7 +1737,7 @@
    "type": "curve",
    "name": "bead2_4",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     -0.1648,
@@ -1720,7 +1760,7 @@
    "type": "curve",
    "name": "bead2_5",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     -0.1654,
@@ -1743,7 +1783,7 @@
    "type": "curve",
    "name": "bead2_6",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     -0.1835,
@@ -1766,7 +1806,7 @@
    "type": "curve",
    "name": "bead2_7",
    "host": "Trunk3",
-   "material": "bead_rust",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     -0.1672,
@@ -1812,7 +1852,7 @@
    "type": "curve",
    "name": "bead2_9",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_pale",
    "sides": 6,
    "offset": [
     -0.1085,
@@ -1904,7 +1944,7 @@
    "type": "curve",
    "name": "bead2_13",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0547,
@@ -1950,7 +1990,7 @@
    "type": "curve",
    "name": "bead2_15",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_pale",
    "sides": 6,
    "offset": [
     0.1195,
@@ -1973,7 +2013,7 @@
    "type": "curve",
    "name": "bead2_16",
    "host": "Trunk3",
-   "material": "bead_rust",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.1415,
@@ -1996,7 +2036,7 @@
    "type": "curve",
    "name": "bead2_17",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.1575,
@@ -2042,7 +2082,7 @@
    "type": "curve",
    "name": "bead2_19",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.1885,
@@ -2065,7 +2105,7 @@
    "type": "curve",
    "name": "bead2_20",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.178,
@@ -2088,7 +2128,7 @@
    "type": "curve",
    "name": "bead2_21",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.1599,
@@ -2111,7 +2151,7 @@
    "type": "curve",
    "name": "bead2_22",
    "host": "Neck1",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1283,
@@ -2134,7 +2174,7 @@
    "type": "curve",
    "name": "bead2_23",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_ochre",
    "sides": 6,
    "offset": [
     0.1013,
@@ -2157,7 +2197,7 @@
    "type": "curve",
    "name": "bead2_24",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0719,
@@ -2180,7 +2220,7 @@
    "type": "curve",
    "name": "bead3_0",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0671,
@@ -2203,7 +2243,7 @@
    "type": "curve",
    "name": "bead3_1",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1022,
@@ -2226,7 +2266,7 @@
    "type": "curve",
    "name": "bead3_2",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1157,
@@ -2249,7 +2289,7 @@
    "type": "curve",
    "name": "bead3_3",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1537,
@@ -2272,7 +2312,7 @@
    "type": "curve",
    "name": "bead3_4",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1682,
@@ -2295,7 +2335,7 @@
    "type": "curve",
    "name": "bead3_5",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1751,
@@ -2341,7 +2381,7 @@
    "type": "curve",
    "name": "bead3_7",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.1895,
@@ -2364,7 +2404,7 @@
    "type": "curve",
    "name": "bead3_8",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1651,
@@ -2387,7 +2427,7 @@
    "type": "curve",
    "name": "bead3_9",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     -0.1329,
@@ -2410,7 +2450,7 @@
    "type": "curve",
    "name": "bead3_12",
    "host": "Trunk2",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0673,
@@ -2456,7 +2496,7 @@
    "type": "curve",
    "name": "bead3_17",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1709,
@@ -2479,7 +2519,7 @@
    "type": "curve",
    "name": "bead3_18",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1843,
@@ -2502,7 +2542,7 @@
    "type": "curve",
    "name": "bead3_19",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.1885,
@@ -2525,7 +2565,7 @@
    "type": "curve",
    "name": "bead3_20",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1872,
@@ -2548,7 +2588,7 @@
    "type": "curve",
    "name": "bead3_21",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.203,
@@ -2571,7 +2611,7 @@
    "type": "curve",
    "name": "bead3_22",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1847,
@@ -2594,7 +2634,7 @@
    "type": "curve",
    "name": "bead3_23",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.1596,
@@ -2617,7 +2657,7 @@
    "type": "curve",
    "name": "bead3_24",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.122,
@@ -2640,7 +2680,7 @@
    "type": "curve",
    "name": "bead3_25",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_rust",
    "sides": 6,
    "offset": [
     0.0906,
@@ -2663,7 +2703,7 @@
    "type": "curve",
    "name": "bead3_26",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0576,
@@ -2686,7 +2726,7 @@
    "type": "curve",
    "name": "bead4_0",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.0501,
@@ -2709,7 +2749,7 @@
    "type": "curve",
    "name": "bead4_1",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.0778,
@@ -2732,7 +2772,7 @@
    "type": "curve",
    "name": "bead4_2",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1045,
@@ -2755,7 +2795,7 @@
    "type": "curve",
    "name": "bead4_3",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1479,
@@ -2778,7 +2818,7 @@
    "type": "curve",
    "name": "bead4_4",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1683,
@@ -2801,7 +2841,7 @@
    "type": "curve",
    "name": "bead4_5",
    "host": "Trunk3",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.2069,
@@ -2824,7 +2864,7 @@
    "type": "curve",
    "name": "bead4_6",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.2107,
@@ -2847,7 +2887,7 @@
    "type": "curve",
    "name": "bead4_7",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     -0.2,
@@ -2870,7 +2910,7 @@
    "type": "curve",
    "name": "bead4_8",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     -0.1773,
@@ -2893,7 +2933,7 @@
    "type": "curve",
    "name": "bead4_11",
    "host": "Trunk2",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     -0.1222,
@@ -2962,7 +3002,7 @@
    "type": "curve",
    "name": "bead4_16",
    "host": "Trunk2",
-   "material": "bead_ochre",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.1047,
@@ -2985,7 +3025,7 @@
    "type": "curve",
    "name": "bead4_19",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.2204,
@@ -3008,7 +3048,7 @@
    "type": "curve",
    "name": "bead4_20",
    "host": "Trunk3",
-   "material": "bead_gold",
+   "material": "bead_night",
    "sides": 6,
    "offset": [
     0.2175,
@@ -3031,7 +3071,7 @@
    "type": "curve",
    "name": "bead4_21",
    "host": "Trunk3",
-   "material": "bead_ochre",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.2061,
@@ -3054,7 +3094,7 @@
    "type": "curve",
    "name": "bead4_22",
    "host": "Trunk3",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.189,
@@ -3077,7 +3117,7 @@
    "type": "curve",
    "name": "bead4_23",
    "host": "Trunk4",
-   "material": "bead_night",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1897,
@@ -3100,7 +3140,7 @@
    "type": "curve",
    "name": "bead4_24",
    "host": "Trunk4",
-   "material": "bead_gold",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.1579,
@@ -3123,7 +3163,7 @@
    "type": "curve",
    "name": "bead4_25",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.0934,
@@ -3146,7 +3186,7 @@
    "type": "curve",
    "name": "bead4_26",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_jade",
    "sides": 6,
    "offset": [
     0.0765,
@@ -3169,7 +3209,7 @@
    "type": "curve",
    "name": "bead4_27",
    "host": "Neck1",
-   "material": "bead_pale",
+   "material": "bead_gold",
    "sides": 6,
    "offset": [
     0.0386,
@@ -3534,486 +3574,6 @@
    ]
   },
   {
-   "type": "fin",
-   "name": "blotch1",
-   "host": "Body2",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.09,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.062,
-     0
-    ],
-    [
-     0,
-     -0.086
-    ],
-    [
-     0.062,
-     0
-    ],
-    [
-     0,
-     0.086
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch2",
-   "host": "Body4",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.2,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.062,
-     0
-    ],
-    [
-     0,
-     -0.086
-    ],
-    [
-     0.062,
-     0
-    ],
-    [
-     0,
-     0.086
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch3",
-   "host": "Body6",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.31,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.062,
-     0
-    ],
-    [
-     0,
-     -0.086
-    ],
-    [
-     0.062,
-     0
-    ],
-    [
-     0,
-     0.086
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch4",
-   "host": "Body8",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.42,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.062,
-     0
-    ],
-    [
-     0,
-     -0.086
-    ],
-    [
-     0.062,
-     0
-    ],
-    [
-     0,
-     0.086
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch5",
-   "host": "Body10",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.53,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     -0.07051999999999999
-    ],
-    [
-     0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     0.07051999999999999
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch6",
-   "host": "Body12",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.64,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     -0.07051999999999999
-    ],
-    [
-     0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     0.07051999999999999
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "blotch7",
-   "host": "Body14",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "coil",
-    "t": 0.75,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     -0.07051999999999999
-    ],
-    [
-     0.050839999999999996,
-     0
-    ],
-    [
-     0,
-     0.07051999999999999
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "tblotch1",
-   "host": "Trunk1",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "trunk",
-    "t": 0.16,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.058,
-     0
-    ],
-    [
-     0,
-     -0.08
-    ],
-    [
-     0.058,
-     0
-    ],
-    [
-     0,
-     0.08
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "tblotch2",
-   "host": "Trunk1",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "trunk",
-    "t": 0.44,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.058,
-     0
-    ],
-    [
-     0,
-     -0.08
-    ],
-    [
-     0.058,
-     0
-    ],
-    [
-     0,
-     0.08
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "tblotch3",
-   "host": "Trunk1",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "trunk",
-    "t": 0.72,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.058,
-     0
-    ],
-    [
-     0,
-     -0.08
-    ],
-    [
-     0.058,
-     0
-    ],
-    [
-     0,
-     0.08
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "nblotch1",
-   "host": "Neck1",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "neck",
-    "t": 0.24,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.05,
-     0
-    ],
-    [
-     0,
-     -0.07
-    ],
-    [
-     0.05,
-     0
-    ],
-    [
-     0,
-     0.07
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "name": "nblotch2",
-   "host": "Neck1",
-   "material": "band_dark",
-   "thickness": 0.005,
-   "anchor": {
-    "chain": "neck",
-    "t": 0.62,
-    "around": 180
-   },
-   "udir": [
-    1,
-    0,
-    0
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     -0.05,
-     0
-    ],
-    [
-     0,
-     -0.07
-    ],
-    [
-     0.05,
-     0
-    ],
-    [
-     0,
-     0.07
-    ]
-   ]
-  },
-  {
    "type": "eye",
    "host": "Jaw",
    "material": "eye",
@@ -4121,6 +3681,4068 @@
      "ahead": 16,
      "taper": true
     }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c0",
+   "host": "Body2",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.09,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c1",
+   "host": "Body3",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.1458,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0459,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0459,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c2",
+   "host": "Body4",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.2016,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c3",
+   "host": "Body5",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.2574,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0459,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0459,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c4",
+   "host": "Body6",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.3132,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c5",
+   "host": "Body7",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.369,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0459,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0459,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c6",
+   "host": "Body8",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.4248,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.062,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c7",
+   "host": "Body9",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.4806,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0376,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0376,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c8",
+   "host": "Body10",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.5364,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0508,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.0508,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c9",
+   "host": "Body11",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.5922,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0376,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0376,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c10",
+   "host": "Body12",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.648,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0508,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.0508,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c11",
+   "host": "Body13",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.7038,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0376,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0376,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c12",
+   "host": "Body14",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.7596,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0508,
+     0
+    ],
+    [
+     0,
+     -0.0731
+    ],
+    [
+     0.0508,
+     0
+    ],
+    [
+     0,
+     0.0731
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_c13",
+   "host": "Body15",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "coil",
+    "t": 0.8154,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0376,
+     0
+    ],
+    [
+     0,
+     -0.0629
+    ],
+    [
+     0.0376,
+     0
+    ],
+    [
+     0,
+     0.0629
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t0",
+   "host": "Trunk1",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.42,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     0
+    ],
+    [
+     0,
+     -0.0286
+    ],
+    [
+     0.07,
+     0
+    ],
+    [
+     0,
+     0.0286
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t1",
+   "host": "Trunk1",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.5,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.052,
+     0
+    ],
+    [
+     0,
+     -0.0246
+    ],
+    [
+     0.052,
+     0
+    ],
+    [
+     0,
+     0.0246
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t2",
+   "host": "Trunk2",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.58,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     0
+    ],
+    [
+     0,
+     -0.0286
+    ],
+    [
+     0.07,
+     0
+    ],
+    [
+     0,
+     0.0286
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t3",
+   "host": "Trunk2",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.66,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.052,
+     0
+    ],
+    [
+     0,
+     -0.0246
+    ],
+    [
+     0.052,
+     0
+    ],
+    [
+     0,
+     0.0246
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t4",
+   "host": "Trunk2",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.74,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     0
+    ],
+    [
+     0,
+     -0.0286
+    ],
+    [
+     0.07,
+     0
+    ],
+    [
+     0,
+     0.0286
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t5",
+   "host": "Trunk3",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.82,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.052,
+     0
+    ],
+    [
+     0,
+     -0.0246
+    ],
+    [
+     0.052,
+     0
+    ],
+    [
+     0,
+     0.0246
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_t6",
+   "host": "Trunk3",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "trunk",
+    "t": 0.9,
+    "around": 210
+   },
+   "udir": [
+    -0.1069,
+    0.0,
+    -0.9943
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.07,
+     0
+    ],
+    [
+     0,
+     -0.0286
+    ],
+    [
+     0.07,
+     0
+    ],
+    [
+     0,
+     0.0286
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_n0",
+   "host": "Neck1",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "neck",
+    "t": 0.28,
+    "around": 198
+   },
+   "udir": [
+    0.4684,
+    0.0,
+    -0.8835
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.038,
+     0
+    ],
+    [
+     0,
+     -0.0251
+    ],
+    [
+     0.038,
+     0
+    ],
+    [
+     0,
+     0.0251
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_n1",
+   "host": "Neck2",
+   "material": "band_dark",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "neck",
+    "t": 0.5,
+    "around": 198
+   },
+   "udir": [
+    0.4684,
+    0.0,
+    -0.8835
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     0
+    ],
+    [
+     0,
+     -0.0292
+    ],
+    [
+     0.05,
+     0
+    ],
+    [
+     0,
+     0.0292
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "dia_n2",
+   "host": "Neck2",
+   "material": "band_pale",
+   "thickness": 0.005,
+   "anchor": {
+    "chain": "neck",
+    "t": 0.72,
+    "around": 198
+   },
+   "udir": [
+    0.4684,
+    0.0,
+    -0.8835
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.038,
+     0
+    ],
+    [
+     0,
+     -0.0251
+    ],
+    [
+     0.038,
+     0
+    ],
+    [
+     0,
+     0.0251
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_0",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0921,
+    -0.0681,
+    -0.1244
+   ],
+   "dir": [
+    -0.5531,
+    -0.4868,
+    0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_1",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.112,
+    -0.0907,
+    -0.0884
+   ],
+   "dir": [
+    -0.2869,
+    -0.463,
+    0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_2",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.1187,
+    -0.111,
+    -0.0466
+   ],
+   "dir": [
+    0.0074,
+    -0.3939,
+    0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_3",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.1113,
+    -0.1272,
+    -0.0032
+   ],
+   "dir": [
+    0.301,
+    -0.2862,
+    0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_4",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0907,
+    -0.1376,
+    0.0377
+   ],
+   "dir": [
+    0.5652,
+    -0.1504,
+    0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_5",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0589,
+    -0.1411,
+    0.072
+   ],
+   "dir": [
+    0.774,
+    -0.0,
+    0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_6",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.019,
+    -0.1376,
+    0.0964
+   ],
+   "dir": [
+    0.907,
+    0.1504,
+    0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_7",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0252,
+    -0.1272,
+    0.1085
+   ],
+   "dir": [
+    0.9513,
+    0.2862,
+    0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_8",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0692,
+    -0.111,
+    0.1071
+   ],
+   "dir": [
+    0.9024,
+    0.3939,
+    -0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_9",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1088,
+    -0.0907,
+    0.0923
+   ],
+   "dir": [
+    0.7652,
+    0.463,
+    -0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_10",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.1401,
+    -0.0681,
+    0.0656
+   ],
+   "dir": [
+    0.5531,
+    0.4868,
+    -0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_11",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1601,
+    -0.0455,
+    0.0296
+   ],
+   "dir": [
+    0.2869,
+    0.463,
+    -0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_12",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.1667,
+    -0.0252,
+    -0.0121
+   ],
+   "dir": [
+    -0.0074,
+    0.3939,
+    -0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_13",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1594,
+    -0.009,
+    -0.0556
+   ],
+   "dir": [
+    -0.301,
+    0.2862,
+    -0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_14",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.1388,
+    0.0013,
+    -0.0965
+   ],
+   "dir": [
+    -0.5652,
+    0.1504,
+    -0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_15",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.107,
+    0.0049,
+    -0.1308
+   ],
+   "dir": [
+    -0.774,
+    0.0,
+    -0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_16",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0671,
+    0.0013,
+    -0.1552
+   ],
+   "dir": [
+    -0.907,
+    -0.1504,
+    -0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_17",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0229,
+    -0.009,
+    -0.1673
+   ],
+   "dir": [
+    -0.9513,
+    -0.2862,
+    -0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_18",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0211,
+    -0.0252,
+    -0.1658
+   ],
+   "dir": [
+    -0.9024,
+    -0.3939,
+    0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t0_19",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0607,
+    -0.0455,
+    -0.1511
+   ],
+   "dir": [
+    -0.7652,
+    -0.463,
+    0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_0",
+   "host": "Trunk1",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    -0.1075,
+    -0.0244,
+    -0.1055
+   ],
+   "dir": [
+    -0.5531,
+    -0.4868,
+    0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_1",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.1274,
+    -0.047,
+    -0.0695
+   ],
+   "dir": [
+    -0.2869,
+    -0.463,
+    0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_2",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.1341,
+    -0.0674,
+    -0.0278
+   ],
+   "dir": [
+    0.0074,
+    -0.3939,
+    0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_3",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.1267,
+    -0.0835,
+    0.0157
+   ],
+   "dir": [
+    0.301,
+    -0.2862,
+    0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_4",
+   "host": "Trunk1",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    -0.1062,
+    -0.0939,
+    0.0566
+   ],
+   "dir": [
+    0.5652,
+    -0.1504,
+    0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_5",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0743,
+    -0.0975,
+    0.0909
+   ],
+   "dir": [
+    0.774,
+    -0.0,
+    0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_6",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0344,
+    -0.0939,
+    0.1153
+   ],
+   "dir": [
+    0.907,
+    0.1504,
+    0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_7",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0097,
+    -0.0835,
+    0.1273
+   ],
+   "dir": [
+    0.9513,
+    0.2862,
+    0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_8",
+   "host": "Trunk1",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    0.0538,
+    -0.0674,
+    0.1259
+   ],
+   "dir": [
+    0.9024,
+    0.3939,
+    -0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_9",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0934,
+    -0.047,
+    0.1111
+   ],
+   "dir": [
+    0.7652,
+    0.463,
+    -0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_10",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1247,
+    -0.0244,
+    0.0844
+   ],
+   "dir": [
+    0.5531,
+    0.4868,
+    -0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_11",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.1447,
+    -0.0019,
+    0.0485
+   ],
+   "dir": [
+    0.2869,
+    0.463,
+    -0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_12",
+   "host": "Trunk1",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    0.1513,
+    0.0185,
+    0.0067
+   ],
+   "dir": [
+    -0.0074,
+    0.3939,
+    -0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_13",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.144,
+    0.0346,
+    -0.0367
+   ],
+   "dir": [
+    -0.301,
+    0.2862,
+    -0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_14",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1234,
+    0.045,
+    -0.0776
+   ],
+   "dir": [
+    -0.5652,
+    0.1504,
+    -0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_15",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0916,
+    0.0486,
+    -0.1119
+   ],
+   "dir": [
+    -0.774,
+    0.0,
+    -0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_16",
+   "host": "Trunk1",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    0.0517,
+    0.045,
+    -0.1363
+   ],
+   "dir": [
+    -0.907,
+    -0.1504,
+    -0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_17",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0075,
+    0.0346,
+    -0.1484
+   ],
+   "dir": [
+    -0.9513,
+    -0.2862,
+    -0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_18",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0365,
+    0.0185,
+    -0.147
+   ],
+   "dir": [
+    -0.9024,
+    -0.3939,
+    0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t1_19",
+   "host": "Trunk1",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0761,
+    -0.0019,
+    -0.1322
+   ],
+   "dir": [
+    -0.7652,
+    -0.463,
+    0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_0",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.1229,
+    0.0192,
+    -0.0867
+   ],
+   "dir": [
+    -0.5531,
+    -0.4868,
+    0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_1",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.1428,
+    -0.0033,
+    -0.0507
+   ],
+   "dir": [
+    -0.2869,
+    -0.463,
+    0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_2",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.1495,
+    -0.0237,
+    -0.0089
+   ],
+   "dir": [
+    0.0074,
+    -0.3939,
+    0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_3",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.1422,
+    -0.0398,
+    0.0345
+   ],
+   "dir": [
+    0.301,
+    -0.2862,
+    0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_4",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.1216,
+    -0.0502,
+    0.0754
+   ],
+   "dir": [
+    0.5652,
+    -0.1504,
+    0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_5",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0898,
+    -0.0538,
+    0.1097
+   ],
+   "dir": [
+    0.774,
+    -0.0,
+    0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_6",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0498,
+    -0.0502,
+    0.1341
+   ],
+   "dir": [
+    0.907,
+    0.1504,
+    0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_7",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0057,
+    -0.0398,
+    0.1462
+   ],
+   "dir": [
+    0.9513,
+    0.2862,
+    0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_8",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0384,
+    -0.0237,
+    0.1448
+   ],
+   "dir": [
+    0.9024,
+    0.3939,
+    -0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_9",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.078,
+    -0.0033,
+    0.13
+   ],
+   "dir": [
+    0.7652,
+    0.463,
+    -0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_10",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.1093,
+    0.0192,
+    0.1033
+   ],
+   "dir": [
+    0.5531,
+    0.4868,
+    -0.676
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_11",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1293,
+    0.0418,
+    0.0673
+   ],
+   "dir": [
+    0.2869,
+    0.463,
+    -0.8386
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_12",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.1359,
+    0.0622,
+    0.0255
+   ],
+   "dir": [
+    -0.0074,
+    0.3939,
+    -0.9191
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_13",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.1286,
+    0.0783,
+    -0.0179
+   ],
+   "dir": [
+    -0.301,
+    0.2862,
+    -0.9097
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_14",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.108,
+    0.0887,
+    -0.0588
+   ],
+   "dir": [
+    -0.5652,
+    0.1504,
+    -0.8112
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_15",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0762,
+    0.0923,
+    -0.0931
+   ],
+   "dir": [
+    -0.774,
+    0.0,
+    -0.6332
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_16",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0362,
+    0.0887,
+    -0.1175
+   ],
+   "dir": [
+    -0.907,
+    -0.1504,
+    -0.3933
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_17",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0079,
+    0.0783,
+    -0.1296
+   ],
+   "dir": [
+    -0.9513,
+    -0.2862,
+    -0.1149
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_18",
+   "host": "Trunk1",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0519,
+    0.0622,
+    -0.1281
+   ],
+   "dir": [
+    -0.9024,
+    -0.3939,
+    0.1747
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_t2_19",
+   "host": "Trunk1",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0916,
+    0.0418,
+    -0.1134
+   ],
+   "dir": [
+    -0.7652,
+    -0.463,
+    0.4473
+   ],
+   "segments": [
+    {
+     "len": 0.0497,
+     "r": 0.024
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_0",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.085,
+    -0.0511,
+    -0.0405
+   ],
+   "dir": [
+    -0.0945,
+    -0.5168,
+    0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_1",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0799,
+    -0.0711,
+    -0.0067
+   ],
+   "dir": [
+    0.3461,
+    -0.4656,
+    0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_2",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0583,
+    -0.0871,
+    0.0224
+   ],
+   "dir": [
+    0.7181,
+    -0.3222,
+    0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_3",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0245,
+    -0.096,
+    0.041
+   ],
+   "dir": [
+    0.9479,
+    -0.115,
+    0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_4",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0149,
+    -0.096,
+    0.0453
+   ],
+   "dir": [
+    0.99,
+    0.115,
+    -0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_5",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.052,
+    -0.0871,
+    0.0347
+   ],
+   "dir": [
+    0.836,
+    0.3222,
+    -0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_6",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0795,
+    -0.0711,
+    0.011
+   ],
+   "dir": [
+    0.5164,
+    0.4656,
+    -0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_7",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0919,
+    -0.0511,
+    -0.0208
+   ],
+   "dir": [
+    0.0945,
+    0.5168,
+    -0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_8",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0868,
+    -0.0312,
+    -0.0547
+   ],
+   "dir": [
+    -0.3461,
+    0.4656,
+    -0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_9",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0651,
+    -0.0152,
+    -0.0838
+   ],
+   "dir": [
+    -0.7181,
+    0.3222,
+    -0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_10",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0313,
+    -0.0063,
+    -0.1023
+   ],
+   "dir": [
+    -0.9479,
+    0.115,
+    -0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_11",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0081,
+    -0.0063,
+    -0.1067
+   ],
+   "dir": [
+    -0.99,
+    -0.115,
+    0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_12",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0452,
+    -0.0152,
+    -0.096
+   ],
+   "dir": [
+    -0.836,
+    -0.3222,
+    0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n0_13",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0726,
+    -0.0312,
+    -0.0724
+   ],
+   "dir": [
+    -0.5164,
+    -0.4656,
+    0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_0",
+   "host": "Neck2",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    -0.0869,
+    -0.0237,
+    -0.0241
+   ],
+   "dir": [
+    -0.0945,
+    -0.5168,
+    0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_1",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0818,
+    -0.0437,
+    0.0098
+   ],
+   "dir": [
+    0.3461,
+    -0.4656,
+    0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_2",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0601,
+    -0.0597,
+    0.0388
+   ],
+   "dir": [
+    0.7181,
+    -0.3222,
+    0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_3",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0263,
+    -0.0686,
+    0.0574
+   ],
+   "dir": [
+    0.9479,
+    -0.115,
+    0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_4",
+   "host": "Neck2",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    0.0131,
+    -0.0686,
+    0.0618
+   ],
+   "dir": [
+    0.99,
+    0.115,
+    -0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_5",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0502,
+    -0.0597,
+    0.0511
+   ],
+   "dir": [
+    0.836,
+    0.3222,
+    -0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_6",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0776,
+    -0.0437,
+    0.0275
+   ],
+   "dir": [
+    0.5164,
+    0.4656,
+    -0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_7",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.09,
+    -0.0237,
+    -0.0044
+   ],
+   "dir": [
+    0.0945,
+    0.5168,
+    -0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_8",
+   "host": "Neck2",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    0.0849,
+    -0.0038,
+    -0.0382
+   ],
+   "dir": [
+    -0.3461,
+    0.4656,
+    -0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_9",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    0.0633,
+    0.0122,
+    -0.0673
+   ],
+   "dir": [
+    -0.7181,
+    0.3222,
+    -0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_10",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0295,
+    0.0211,
+    -0.0859
+   ],
+   "dir": [
+    -0.9479,
+    0.115,
+    -0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_11",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0099,
+    0.0211,
+    -0.0903
+   ],
+   "dir": [
+    -0.99,
+    -0.115,
+    0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_12",
+   "host": "Neck2",
+   "material": "weave_c",
+   "sides": 6,
+   "offset": [
+    -0.047,
+    0.0122,
+    -0.0796
+   ],
+   "dir": [
+    -0.836,
+    -0.3222,
+    0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n1_13",
+   "host": "Neck2",
+   "material": "weave_b",
+   "sides": 6,
+   "offset": [
+    -0.0745,
+    -0.0038,
+    -0.0559
+   ],
+   "dir": [
+    -0.5164,
+    -0.4656,
+    0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_0",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0887,
+    0.0037,
+    -0.0076
+   ],
+   "dir": [
+    -0.0945,
+    -0.5168,
+    0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_1",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0836,
+    -0.0163,
+    0.0262
+   ],
+   "dir": [
+    0.3461,
+    -0.4656,
+    0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_2",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.062,
+    -0.0323,
+    0.0553
+   ],
+   "dir": [
+    0.7181,
+    -0.3222,
+    0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_3",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0281,
+    -0.0412,
+    0.0738
+   ],
+   "dir": [
+    0.9479,
+    -0.115,
+    0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_4",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0112,
+    -0.0412,
+    0.0782
+   ],
+   "dir": [
+    0.99,
+    0.115,
+    -0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_5",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0483,
+    -0.0323,
+    0.0675
+   ],
+   "dir": [
+    0.836,
+    0.3222,
+    -0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_6",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0758,
+    -0.0163,
+    0.0439
+   ],
+   "dir": [
+    0.5164,
+    0.4656,
+    -0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_7",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0882,
+    0.0037,
+    0.012
+   ],
+   "dir": [
+    0.0945,
+    0.5168,
+    -0.8509
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_8",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0831,
+    0.0236,
+    -0.0218
+   ],
+   "dir": [
+    -0.3461,
+    0.4656,
+    -0.8145
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_9",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    0.0615,
+    0.0396,
+    -0.0509
+   ],
+   "dir": [
+    -0.7181,
+    0.3222,
+    -0.6168
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_10",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    0.0276,
+    0.0485,
+    -0.0694
+   ],
+   "dir": [
+    -0.9479,
+    0.115,
+    -0.297
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_11",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0117,
+    0.0485,
+    -0.0738
+   ],
+   "dir": [
+    -0.99,
+    -0.115,
+    0.0817
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_12",
+   "host": "Neck2",
+   "material": "weave_d",
+   "sides": 6,
+   "offset": [
+    -0.0488,
+    0.0396,
+    -0.0631
+   ],
+   "dir": [
+    -0.836,
+    -0.3222,
+    0.4442
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "wv_n2_13",
+   "host": "Neck2",
+   "material": "weave_a",
+   "sides": 6,
+   "offset": [
+    -0.0763,
+    0.0236,
+    -0.0395
+   ],
+   "dir": [
+    -0.5164,
+    -0.4656,
+    0.7187
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.015
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "tusk_r",
+   "host": "Neck1",
+   "material": "tusk_bone",
+   "sides": 7,
+   "offset": [
+    0.026,
+    -0.046,
+    0.026
+   ],
+   "dir": [
+    0.8119,
+    0.2186,
+    0.5413
+   ],
+   "segments": [
+    {
+     "len": 0.0961,
+     "r": 0.026
+    },
+    {
+     "len": 0.0848,
+     "r": 0.02,
+     "rise": 18,
+     "behind": 34
+    },
+    {
+     "len": 0.0802,
+     "r": 0.015,
+     "rise": 38,
+     "behind": 24,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "tusk_l",
+   "host": "Neck1",
+   "material": "tusk_bone",
+   "sides": 7,
+   "offset": [
+    -0.034,
+    -0.046,
+    0.026
+   ],
+   "dir": [
+    -0.8119,
+    0.2186,
+    0.5413
+   ],
+   "segments": [
+    {
+     "len": 0.0961,
+     "r": 0.026
+    },
+    {
+     "len": 0.0861,
+     "r": 0.02,
+     "rise": 18,
+     "behind": 40
+    },
+    {
+     "len": 0.0743,
+     "r": 0.015,
+     "rise": 50,
+     "behind": 20,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "plumeA_rib",
+   "host": "Neck2",
+   "material": "feather_rib",
+   "sides": 5,
+   "offset": [
+    0.0416,
+    -0.0707,
+    -0.0761
+   ],
+   "dir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "segments": [
+    {
+     "len": 0.1282,
+     "r": 0.01
+    },
+    {
+     "len": 0.0867,
+     "r": 0.007,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeA_v0",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.01,
+   "offset": [
+    0.0416,
+    -0.0707,
+    -0.0761
+   ],
+   "udir": [
+    0.7364,
+    -0.0,
+    0.6765
+   ],
+   "vdir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "points": [
+    [
+     0.0128,
+     0.0
+    ],
+    [
+     0.0273,
+     0.2831
+    ],
+    [
+     -0.0169,
+     0.2831
+    ],
+    [
+     -0.0079,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeA_v1",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0088,
+   "offset": [
+    0.04,
+    -0.0674,
+    -0.0744
+   ],
+   "udir": [
+    0.7364,
+    -0.0,
+    0.6765
+   ],
+   "vdir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "points": [
+    [
+     0.0128,
+     0.0
+    ],
+    [
+     0.0403,
+     0.2542
+    ],
+    [
+     -0.025,
+     0.2542
+    ],
+    [
+     -0.0079,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeA_v2",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.007600000000000001,
+   "offset": [
+    0.0384,
+    -0.0642,
+    -0.0727
+   ],
+   "udir": [
+    0.7364,
+    -0.0,
+    0.6765
+   ],
+   "vdir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "points": [
+    [
+     0.0128,
+     0.0
+    ],
+    [
+     0.056,
+     0.2022
+    ],
+    [
+     -0.0347,
+     0.2022
+    ],
+    [
+     -0.0079,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeA_v3",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0064,
+   "offset": [
+    0.0368,
+    -0.061,
+    -0.0709
+   ],
+   "udir": [
+    0.7364,
+    -0.0,
+    0.6765
+   ],
+   "vdir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "points": [
+    [
+     0.0128,
+     0.0
+    ],
+    [
+     0.058,
+     0.1444
+    ],
+    [
+     -0.036,
+     0.1444
+    ],
+    [
+     -0.0079,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeA_v4",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.005200000000000001,
+   "offset": [
+    0.0352,
+    -0.0577,
+    -0.0692
+   ],
+   "udir": [
+    0.7364,
+    -0.0,
+    0.6765
+   ],
+   "vdir": [
+    0.547,
+    0.5885,
+    -0.5954
+   ],
+   "points": [
+    [
+     0.0128,
+     0.0
+    ],
+    [
+     0.056,
+     0.0867
+    ],
+    [
+     -0.0347,
+     0.0867
+    ],
+    [
+     -0.0079,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "plumeB_rib",
+   "host": "Neck2",
+   "material": "feather_rib",
+   "sides": 5,
+   "offset": [
+    0.0176,
+    -0.0651,
+    -0.1101
+   ],
+   "dir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "segments": [
+    {
+     "len": 0.1317,
+     "r": 0.01
+    },
+    {
+     "len": 0.0897,
+     "r": 0.007,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeB_v0",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.01,
+   "offset": [
+    0.0176,
+    -0.0651,
+    -0.1101
+   ],
+   "udir": [
+    0.9802,
+    -0.0,
+    0.1978
+   ],
+   "vdir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "points": [
+    [
+     0.0145,
+     0.0
+    ],
+    [
+     0.0311,
+     0.2931
+    ],
+    [
+     -0.0193,
+     0.2931
+    ],
+    [
+     -0.009,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeB_v1",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0088,
+   "offset": [
+    0.0171,
+    -0.0621,
+    -0.1075
+   ],
+   "udir": [
+    0.9802,
+    -0.0,
+    0.1978
+   ],
+   "vdir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "points": [
+    [
+     0.0145,
+     0.0
+    ],
+    [
+     0.0458,
+     0.2632
+    ],
+    [
+     -0.0284,
+     0.2632
+    ],
+    [
+     -0.009,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeB_v2",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.007600000000000001,
+   "offset": [
+    0.0165,
+    -0.0591,
+    -0.1049
+   ],
+   "udir": [
+    0.9802,
+    -0.0,
+    0.1978
+   ],
+   "vdir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "points": [
+    [
+     0.0145,
+     0.0
+    ],
+    [
+     0.0638,
+     0.2094
+    ],
+    [
+     -0.0395,
+     0.2094
+    ],
+    [
+     -0.009,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeB_v3",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0064,
+   "offset": [
+    0.016,
+    -0.0561,
+    -0.1023
+   ],
+   "udir": [
+    0.9802,
+    -0.0,
+    0.1978
+   ],
+   "vdir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "points": [
+    [
+     0.0145,
+     0.0
+    ],
+    [
+     0.066,
+     0.1495
+    ],
+    [
+     -0.0409,
+     0.1495
+    ],
+    [
+     -0.009,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeB_v4",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.005200000000000001,
+   "offset": [
+    0.0155,
+    -0.0532,
+    -0.0996
+   ],
+   "udir": [
+    0.9802,
+    -0.0,
+    0.1978
+   ],
+   "vdir": [
+    0.1471,
+    0.6687,
+    -0.7289
+   ],
+   "points": [
+    [
+     0.0145,
+     -0.0
+    ],
+    [
+     0.0638,
+     0.0897
+    ],
+    [
+     -0.0395,
+     0.0897
+    ],
+    [
+     -0.009,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "plumeC_rib",
+   "host": "Neck2",
+   "material": "feather_rib",
+   "sides": 5,
+   "offset": [
+    -0.0192,
+    -0.0716,
+    -0.1025
+   ],
+   "dir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "segments": [
+    {
+     "len": 0.1163,
+     "r": 0.01
+    },
+    {
+     "len": 0.0761,
+     "r": 0.007,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeC_v0",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.01,
+   "offset": [
+    -0.0192,
+    -0.0716,
+    -0.1025
+   ],
+   "udir": [
+    0.86,
+    0.0,
+    -0.5103
+   ],
+   "vdir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "points": [
+    [
+     0.0108,
+     0.0
+    ],
+    [
+     0.0231,
+     0.2487
+    ],
+    [
+     -0.0143,
+     0.2487
+    ],
+    [
+     -0.0067,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeC_v1",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0088,
+   "offset": [
+    -0.0181,
+    -0.0682,
+    -0.1006
+   ],
+   "udir": [
+    0.86,
+    0.0,
+    -0.5103
+   ],
+   "vdir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "points": [
+    [
+     0.0108,
+     0.0
+    ],
+    [
+     0.034,
+     0.2233
+    ],
+    [
+     -0.0211,
+     0.2233
+    ],
+    [
+     -0.0067,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeC_v2",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.007600000000000001,
+   "offset": [
+    -0.017,
+    -0.0649,
+    -0.0987
+   ],
+   "udir": [
+    0.86,
+    0.0,
+    -0.5103
+   ],
+   "vdir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "points": [
+    [
+     0.0108,
+     0.0
+    ],
+    [
+     0.0473,
+     0.1776
+    ],
+    [
+     -0.0293,
+     0.1776
+    ],
+    [
+     -0.0067,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeC_v3",
+   "host": "Neck2",
+   "material": "feather_pale",
+   "thickness": 0.0064,
+   "offset": [
+    -0.0159,
+    -0.0615,
+    -0.0968
+   ],
+   "udir": [
+    0.86,
+    0.0,
+    -0.5103
+   ],
+   "vdir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "points": [
+    [
+     0.0108,
+     0.0
+    ],
+    [
+     0.049,
+     0.1269
+    ],
+    [
+     -0.0304,
+     0.1269
+    ],
+    [
+     -0.0067,
+     0.0
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "plumeC_v4",
+   "host": "Neck2",
+   "material": "feather_dark",
+   "thickness": 0.005200000000000001,
+   "offset": [
+    -0.0147,
+    -0.0582,
+    -0.0949
+   ],
+   "udir": [
+    0.86,
+    0.0,
+    -0.5103
+   ],
+   "vdir": [
+    -0.4256,
+    0.5517,
+    -0.7172
+   ],
+   "points": [
+    [
+     0.0108,
+     0.0
+    ],
+    [
+     0.0473,
+     0.0761
+    ],
+    [
+     -0.0293,
+     0.0761
+    ],
+    [
+     -0.0067,
+     0.0
+    ]
    ]
   }
  ],
@@ -4574,5 +8196,5 @@
    }
   }
  },
- "_blind_read": "2 輪 4 位 context-free sonnet（只給 hero + stage-lit，遮名，四題逐字照 harden2A 報告第二節）：蛇 4/4、珠串或項鍊 4/4、祖靈氣質 4/4、可愛作主印象 0/4；ref 五條特徵第 1 輪 4/5、第 2 輪（出貨輪）5/5。詳見 docs/experiments/2026-09-04-creature-balen-report.md。"
+ "_blind_read": "2026-09-05 回修卷三輪六位 context-free sonnet（只給 hero + stage-lit，遮名，問法逐字同 harden2A 第二節）：埃及／法老／聖蛇／Uraeus／Wadjet／金字塔 0/6（量產版第 2 輪是 2/2）；原住民／部落／圖騰／藤編／山地／台灣 r1 1/2、r2 1/2、r3 2/2（出貨輪達目標）；蛇 6/6、祖靈氣質 6/6、可愛作主印象 0/6；眼鏡蛇誤讀 1/6（量產版 4/4）。ref 五條特徵出貨輪 4/5——(1) 三角楔狀頭 2/2（量產版 1/2，本卷改善）、(2) 背菱斑 2/2、(4) 同心圓眼紋珠 2/2、(5) 盤繞蛇身 2/2；(3) 多層並排珠串的「多層環帶」幾何 2/2 讀出，但材質被讀成「彩鱗／鱗甲」不是「珠串」（本卷六位只有 r1 的 A 逐字說出「珠串」，量產版是 4/4）——代價來自珠色由祖靈金主導改成鏽橘／芥黃／草綠分股，詳見 docs/experiments/2026-09-04-review-balen-report.md。"
 }

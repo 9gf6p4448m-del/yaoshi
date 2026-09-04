@@ -1,0 +1,159 @@
+{
+  "name": "送王船 wangchuan_song_wangchuan (xianghuo/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 flag.claims.json（同為香火 ward）。**識別視角＝正面 front**——本隻的 hull 主鏈臥在世界 X 軸上，正面（−Z 看過來）就是整片彩繪舷側＝招牌剪影（桅杆方帆）與四條參照特徵（船眼、彩繪板排、橫紋帶、紙人列）全部落在這一面；側視只看得到船寬。所以除 saturation_area（沿用凍結檔指定的 tq）外一律 view:\"front\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag／thunder／bow）；② 另加六條 part_visible 把 §0.5 真實參照鐵則機械化——`oculus_ring`（特徵②船眼）、`panel_face`（特徵③彩繪板排）、`stripe_rose`（特徵③橫紋帶）、`paper_robe`（特徵④紙人列）、`glow_hull`（特徵⑤船腹的火）、`mast_wood`（特徵⑤桅杆），外加 `hull_wood`（船身不得被自己的帆吞掉——ward 招牌掛在正面平面上的專屬風險，同 flag 的 stone_head、thunder 的 feather_dark）。saturation_area 沿用凍結檔指定的 10%–60% 帶。tri_budget 上限用 2026-09-04 19:30 預算制的 8000。**沒有一處放寬。**",
+  "_frozen_at": "在跑第一次 judge 之前寫定（模型已編過但**尚未看過任何 judge 數字**）；此後一格未動，全部靠改 wangchuan.json 去滿足。ref 特徵清單 docs/experiments/2026-09-04-ref-wangchuan.md §三 更早凍結（寫 wangchuan.json 之前）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "sail_cloth",
+      "stage": "MID",
+      "label": "招牌部位：桅杆方帆的帆面必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_hull",
+      "stage": "MID",
+      "label": "船腹的火必須存在，且材質名必須正是 glow_hull（three.js 端 js/creature-figures.js:51 靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "艙口透出的火光必須存在，材質名必須正是 mouth_glow（簡報指定的第二個發光部位）"
+    },
+    {
+      "type": "part_exists",
+      "part": "oculus_pupil",
+      "stage": "MID",
+      "label": "真實參照特徵 2：船眼的瞳必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "paper_robe",
+      "stage": "MID",
+      "label": "真實參照特徵 4：甲板上那列紙人必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "char_plank",
+      "stage": "MID",
+      "label": "真實參照特徵 5：燒焦的破板必須存在（「燒到一半」少了焦黑就只是一艘亮船）"
+    },
+    {
+      "type": "part_signature",
+      "part": "sail_cloth",
+      "view": "front",
+      "min_share": 0.1,
+      "or_min_span": 0.3,
+      "stage": "MID",
+      "label": "招牌部位（桅杆方帆）在識別視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "hull_wood",
+      "view": "front",
+      "min_share": 0.1,
+      "stage": "MID",
+      "label": "船身必須在識別視角看得見——被自己的帆吞掉就等於沒有（ward 招牌掛在正面平面上的專屬風險，同 flag 的 stone_head）"
+    },
+    {
+      "type": "part_visible",
+      "part": "oculus_ring",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 2 的機械化：船眼的淺色眼眶在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "panel_face",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：舷側彩繪板的米白畫心在識別視角必須量得到（被紅框吃掉就只剩一條紅帶）"
+    },
+    {
+      "type": "part_visible",
+      "part": "stripe_rose",
+      "view": "front",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：三條平行橫紋帶的中間那條在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "paper_robe",
+      "view": "front",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：甲板紙人列在識別視角必須量得到（被帆與桅遮掉就讀不出來）"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_hull",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：船腹的火在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "mast_wood",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：桅杆在識別視角必須量得到（帆若整片蓋住桅，就只剩一片板子）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hull_wood",
+      "b": "glow_hull",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（船身／船腹的火）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["hull_wood", "sail_cloth", "char_plank", "mast_wood"],
+      "secondary": ["panel_frame", "panel_face", "stripe_cream", "stripe_rose", "stripe_jade", "gold_trim", "batten_wood", "paper_robe", "paper_head", "paper_hat", "pennant", "oculus_ring", "oculus_pupil"],
+      "tertiary": ["glow_hull", "mouth_glow"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：船身與帆與桅／彩繪板與橫紋與金條與紙人／船腹的火與艙口的火光"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（正面）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝送王船：帆鼓起吞火）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 2500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制：每隻 tri ≤8000）"
+    }
+  ]
+}

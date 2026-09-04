@@ -1,0 +1,173 @@
+{
+  "name": "山神庇佑 shanshen_shanshen_biyou (zuling/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 shield.claims.json（同為祖靈 ward）與 thunder.claims.json（把 ref 五條特徵機械化的那幾條 part_visible）。**識別視角＝側視 side**——招牌剪影是背上一列高低不等的岩峰，只有側視／3-4 看得出高低差（judge.mjs:81 的 VIEWS 是固定世界軸 front=[0,0.12,1]／side=[1,0.12,0]，不像 silmetrics 會依最長水平軸翻標籤，見 thunder _traps_thunder ①）。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag／bow／thunder）；② 另加六條 part_visible 把真實參照鐵則機械化（rock_seam 的橫縫＝特徵3、glow_moss＝特徵4、zuli_gold＝特徵5、claw_bone＝特徵1 的爪尖、fur_body／fur_head＝獸身不得被自己背上的岩吞掉，這是 ward「招牌大、本體容易被自己遮住」的專屬風險，同 shield 的 scale_head 與 thunder 的 feather_dark）。沒有一處放寬。_frozen_at＝跑第一次 judge 之前。",
+  "_frozen_at": "2026-09-05，寫在第一次對 shanshen.glb 跑 judge.mjs 之前；此後一格門檻未動。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "rock_slab",
+      "stage": "MID",
+      "label": "招牌部位：背上的岩峰本體必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "rock_seam",
+      "stage": "MID",
+      "label": "真實參照特徵 3：岩板之間的深色橫縫必須存在（沒有橫縫，疊板就讀不成岩層）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_moss",
+      "stage": "MID",
+      "label": "苔必須存在，且材質名必須正是 glow_moss（three.js 端 js/creature-figures.js:51 靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "zuli_gold",
+      "stage": "MID",
+      "label": "簡報指定的系別色帶（祖靈金:岩縫）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "claw_bone",
+      "stage": "MID",
+      "label": "真實參照特徵 1：淺色爪尖必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "rock_slab",
+      "view": "side",
+      "min_share": 0.1,
+      "or_min_span": 0.3,
+      "stage": "MID",
+      "label": "招牌部位（背上一列岩峰）在識別視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "fur_body",
+      "view": "side",
+      "min_share": 0.1,
+      "stage": "MID",
+      "label": "獸身必須在識別視角看得見——被自己背上的岩吞掉就等於沒有（ward 招牌過大的專屬風險，同 shield 的 scale_head）"
+    },
+    {
+      "type": "part_visible",
+      "part": "fur_head",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "真實參照特徵 1 的機械化：頭必須在識別視角量得到（頭低垂在肩線以下，最容易被岩盤前緣蓋掉）"
+    },
+    {
+      "type": "part_visible",
+      "part": "rock_seam",
+      "view": "side",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：水平層理的深色橫縫在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_moss",
+      "view": "side",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：岩縫裡的苔在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "zuli_gold",
+      "view": "side",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：岩縫裡的金礦脈在識別視角必須量得到（也是簡報指定的系別色帶落點）"
+    },
+    {
+      "type": "part_visible",
+      "part": "claw_bone",
+      "view": "side",
+      "min_share": 0.0015,
+      "stage": "MID",
+      "label": "真實參照特徵 1 的機械化：爪尖必須外露"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "fur_body",
+      "b": "glow_moss",
+      "min_ratio": 3,
+      "view": "side",
+      "stage": "MID",
+      "label": "兩個焦點（獸身／發光苔）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "rock_slab",
+        "fur_body",
+        "moss_rock"
+      ],
+      "secondary": [
+        "rock_light",
+        "fur_neck",
+        "fur_leg",
+        "fur_head",
+        "rock_seam",
+        "moss_dull",
+        "muzzle_pale",
+        "claw_bone"
+      ],
+      "tertiary": [
+        "glow_moss",
+        "zuli_gold",
+        "eye",
+        "socket_ink"
+      ],
+      "view": "side",
+      "stage": "MID",
+      "label": "6:3:1 階層：岩峰與獸身／亮岩面與毛皮分部與橫縫與苔毯／發光苔與金脈與眼"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（側視）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（move＝極慢；attack＝山神庇佑：岩稜隆起）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 2500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制：每隻 tri ≤8000）"
+    }
+  ]
+}
