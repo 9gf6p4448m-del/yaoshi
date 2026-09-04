@@ -219,6 +219,34 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #duelResult{margin-top:14px;font-size:16px;min-height:26px;text-align:center}
 #duelResult .dmg{font-size:20px;font-weight:bold}
 #duelSub{color:var(--dim);font-size:12px;margin-top:4px;min-height:18px;text-align:center}
+/* ── 《紙紮夜戰》三拍演出（v0.31 卷 C1）──────────────────────────────────
+   兩塊字幕與隻數牌只在 ON 分支（#duel.pw）現身；PAPERWAR_ON=false 時 display:none，
+   連版面高度都不佔，OFF 的對決畫面與 v0.30 完全一樣。
+   進出場動畫一律由 JS 用 WAAPI 驅動（SKIP 快轉要能立刻中斷），這裡只放靜態樣式。 */
+#duelBeat,#duelMove{display:none}
+#duel.pw #duelBeat{display:block;font-size:15px;letter-spacing:3px;color:var(--gold);
+  min-height:21px;margin-bottom:2px;text-align:center;text-shadow:0 2px 8px #000,0 0 3px #000}
+#duel.pw #duelMove{display:block;font-size:13px;min-height:18px;margin-top:2px;
+  text-align:center;color:#ffd9a0;text-shadow:0 2px 8px #000,0 0 3px #000}
+#duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
+/* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
+   （實測 scratchpad/layout.js：未收斂前 scrollHeight 396 > clientHeight 390，結尾字幕被裁）。
+   ON 模式把上下留白整排收緊，量到 scrollHeight ≤ clientHeight 才算過。 */
+#duel.pw #duelResult{margin-top:6px}
+.pwcnt{font-size:21px;font-weight:bold;color:var(--gold);line-height:1.2;
+  font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
+.pwunit{font-size:11px;color:var(--dim)}
+.pwbody{font-size:10px;color:var(--dim);margin-top:0}
+/* 隻數牌：一隻紙紮一片，燒掉哪一片就是 fxBurn 燒的那個元素（3D 的紙紮同步消失） */
+.pwchips{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin-top:3px;
+  max-width:190px;margin-left:auto;margin-right:auto}
+.pwchip{width:8px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,.6);
+  box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.pwchip.swarm{background:#d4a870}
+.pwchip.elite{background:#f08060;width:13px;height:17px}
+.pwchip.ward{background:#c8b090;height:14px}
+.pwchip.haunt{background:#70b080;opacity:.6}
+.pwchip.burnt{opacity:.1;filter:grayscale(1)}
 /* 受擊停格（v0.27）：整頁的 CSS 動畫與轉場一起凍住，3D 那半邊由 ys:hitstop 事件把 dt 歸零。
    只停「播放狀態」，不改任何版面屬性，所以解凍後動畫接著原來的進度跑完，不會跳。 */
 body.hitstop *, body.hitstop *::before, body.hitstop *::after{
@@ -379,7 +407,9 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </div>
 <div id="updBar" onclick="applyUpdate()"></div>
 <div id="duel"><div class="flashfx" id="flashfx"></div>
+  <div id="duelBeat"></div>
   <div id="duelArena"></div>
+  <div id="duelMove"></div>
   <div id="duelResult"></div><div id="duelSub"></div>
 </div>
 <div id="handoff">
@@ -488,6 +518,14 @@ const CFG = {
   PW_AI_BASE: 2, PW_AI_SCALE: 2, PW_AI_LOGIT: 0.5,
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
+/* 《紙紮夜戰》試玩開關（卷 C1，2026-09-04 使用者裁定）：?paperwar=1 開、?paperwar=0 關，
+   **只影響這一次載入**——刻意不寫 localStorage，關掉分頁就回到 CFG 的預設值（現在是 false）。
+   放在 CFG 定義的正下方，讓所有讀 CFG.PAPERWAR_ON 的程式碼（引擎與 UI）都吃到同一個值。
+   headless（tests/tools/load.mjs）的 location.search 是空字串，所以測試路徑上這段是空操作。 */
+try{
+  const pwq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("paperwar");
+  if(pwq==="1") CFG.PAPERWAR_ON=true; else if(pwq==="0") CFG.PAPERWAR_ON=false;
+}catch(e){}
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
    true ＝玩家開局先選角（10 選 1），對手由 S.rng() 從剩下 9 個抽 3 個；
          headless（simulate/trace/runMany 未指定 picks）時玩家角色也用 S.rng() 抽。
@@ -1618,7 +1656,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.30", VERSION_NOTE="《紙紮夜戰》卷 D：AI 讀體型估值、27 件法寶各一招、月相改 hp+1、逐拍時間軸（開關仍關）";
+const VERSION="0.31", VERSION_NOTE="《紙紮夜戰》卷 C1：三拍時間軸演出底座、紙紮列陣與燒毀、?paperwar=1 試玩開關";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1690,7 +1728,7 @@ try{
 }catch(e){}
 
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
-function doSkip(){ SKIP=true; if(PENDING)PENDING(); }
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
   return new Promise(res=>{
@@ -2404,13 +2442,20 @@ const pwFront=u=>u.body!=="haunt";
 /* 逐拍時間軸（卷 D D4，卷 C 演出用）：加欄位不動判定——這裡只 push 紀錄，不改任何 hp／alive／亂數。
    side＝行動方（burn 事件記的是「被燒的那一方」）；killed 只在 burn 事件為 true，
    所以 beats 的 killed 加總恆等於 burnedA+burnedB（D-A9 的斷言）。 */
-function pwRec(env,beat,side,actor,target,kind,amount,killed){
-  if(env.beats) env.beats.push({beat,side,actor,target,kind,amount:amount|0,killed:!!killed});
+function pwRec(env,beat,side,actor,target,kind,amount,killed,trId){
+  if(!env.beats) return;
+  const b={beat,side,actor,target,kind,amount:amount|0,killed:!!killed};
+  if(trId) b.trId=trId; /* 只有 kind:"trait" 會帶，其餘事件的形狀一個位元組都沒變（D-A9 的斷言照舊） */
+  env.beats.push(b);
 }
-/* 招式觸發：計數每次都記（活性統計），戰況 log 每場每招只印第一次（避免洗版） */
-function pwFire(env,tr,msg){
+/* 招式觸發：計數每次都記（活性統計），戰況 log 每場每招只印第一次（避免洗版）。
+   卷 C1：同時往 beats 記一筆 {kind:"trait", trId}——加欄位不動判定（這裡只 push，
+   不碰 hp／alive／亂數），演出層靠它把「哪件法寶出了哪一招」逐拍點名。
+   sd＝擁有這個招的那一側（有些招是被動觸發、由對面的動作引起，side 要記招的主人）。 */
+function pwFire(env,tr,msg,sd){
   if(!tr) return;
   env.stats.tr[tr.id]=(env.stats.tr[tr.id]||0)+1;
+  pwRec(env,env.beat,sd?sd.tag:null,null,null,"trait",0,false,tr.id);
   if(!env.seen[tr.id]){ env.seen[tr.id]=1; if(msg) env.log.push(msg); }
 }
 function pwBurn(u,sd,env){
@@ -2458,7 +2503,7 @@ function pwDeal(tgt,foe,amt,env,pierce){
   if(at&&at.tr&&at.tr.armor>0&&amt>1&&at.armorBeat!==(env&&env.beat)){
     at.armorBeat=env&&env.beat;
     const k=Math.min(at.tr.armor,amt-1); amt-=k;
-    if(env) pwFire(env,at.tr,`📿 琉璃護心：${foe.p.name} 本拍首次受擊 −${at.tr.armor}（保底 1）`);
+    if(env) pwFire(env,at.tr,`📿 琉璃護心：${foe.p.name} 本拍首次受擊 −${at.tr.armor}（保底 1）`,foe);
   }
   if(amt<=0) return 0;
   tgt.pend+=amt; return amt;
@@ -2472,12 +2517,12 @@ function pwStrike(att,sd,tgt,foe,amt,env,kind,pierce){
     tt.thornBeat=env.beat;
     const th=pwDeal(att,sd,tt.tr.thorn|0,env,false);
     pwRec(env,env.beat,foe.tag,tgt.id,att.id,"thorn",th,false);
-    pwFire(env,tt.tr,`🐗 獠牙反擊：反傷 ${tt.tr.thorn} 點`);
+    pwFire(env,tt.tr,`🐗 獠牙反擊：反傷 ${tt.tr.thorn} 點`,foe);
   }
   if(tt.tr&&tt.tr.bite&&env.rng()<tt.tr.bite){
     const back=pwDeal(att,sd,tt.tr.biteDmg|0,env,false);
     pwRec(env,env.beat,foe.tag,tgt.id,att?att.id:null,"bite",back,false);
-    env.stats.bite++; pwFire(env,tt.tr,`🐯 虎爺印反咬 ${tt.tr.biteDmg} 點`);
+    env.stats.bite++; pwFire(env,tt.tr,`🐯 虎爺印反咬 ${tt.tr.biteDmg} 點`,foe);
   }
 }
 /* 該拍開場：回血 → 該系 ward 的靜態加成 → 月相 hp+1（卷 D D3）→ 割祭 → 算本拍的側面 atk 修正 */
@@ -2486,18 +2531,18 @@ function pwPrep(beat,fac,sd,env,phase){
   if(rg){
     const u=pwMostHurt(sd);
     if(u){ u.hp=Math.min(u.max,u.hp+rg); env.stats.regen++;
-      pwFire(env,pwTrOf(sd,"regen"),`🕯️ 福壽綿長：${sd.p.name} 回 ${rg} hp`); }
+      pwFire(env,pwTrOf(sd,"regen"),`🕯️ 福壽綿長：${sd.p.name} 回 ${rg} hp`,sd); }
   }
   /* 護法的 hp 加成逐隊套用（買兩張就疊兩次）——沿用卷 A 的寫法，改成取最大值反而讓
      「只買護法」在 D-A6 出現支配買法（實測：非疊加版 5 夜紅、疊加版 0 夜紅）。 */
   for(const t of sd.teams){
     if(t.fac!==fac||!t.tr) continue;
     if(t.tr.hpFront){ let hit=0; for(const u of sd.units){ if(u.alive&&pwFront(u)){ u.max+=t.tr.hpFront; u.hp+=t.tr.hpFront; hit++; } }
-      if(hit) pwFire(env,t.tr,`🛡️ 鱗紋護體：${sd.p.name} 前鋒 hp+${t.tr.hpFront}`); }
+      if(hit) pwFire(env,t.tr,`🛡️ 鱗紋護體：${sd.p.name} 前鋒 hp+${t.tr.hpFront}`,sd); }
     if(t.tr.hpAll){ let hit=0; for(const u of sd.units){ if(u.alive){ u.max+=t.tr.hpAll; u.hp+=t.tr.hpAll; hit++; } }
-      if(hit) pwFire(env,t.tr,`⛰️ 山神庇佑：${sd.p.name} 全體 hp+${t.tr.hpAll}`); }
+      if(hit) pwFire(env,t.tr,`⛰️ 山神庇佑：${sd.p.name} 全體 hp+${t.tr.hpAll}`,sd); }
     if(t.tr.hpFirst){ const u=sd.units.find(x=>x.alive&&pwFront(x));
-      if(u){ u.max+=t.tr.hpFirst; u.hp+=t.tr.hpFirst; pwFire(env,t.tr,`🧧 香灰符：前鋒首隻 hp+${t.tr.hpFirst}`); } }
+      if(u){ u.max+=t.tr.hpFirst; u.hp+=t.tr.hpFirst; pwFire(env,t.tr,`🧧 香灰符：前鋒首隻 hp+${t.tr.hpFirst}`,sd); } }
   }
   /* 月相（卷 D D3，使用者裁定）：該拍該系每隊每隻 hp+1（原本是 atk+1，對群體是乘數而支配當夜） */
   if(phase&&phase.fac===fac){
@@ -2509,22 +2554,22 @@ function pwPrep(beat,fac,sd,env,phase){
     let cut=false;
     for(const u of t.units){ if(!u.alive) continue; u.hp=Math.max(1,u.hp-t.tr.selfCut); cut=true; }
     if(cut){ t.bonus=(t.bonus||0)+(t.tr.selfCutAtk|0);
-      pwFire(env,t.tr,`🔪 割祭：${sd.p.name} 自傷 ${t.tr.selfCut} 換 atk+${t.tr.selfCutAtk}`); }
+      pwFire(env,t.tr,`🔪 割祭：${sd.p.name} 自傷 ${t.tr.selfCut} 換 atk+${t.tr.selfCutAtk}`,sd); }
   }
   /* 五方調兵（五營旗）：二拍本隊若已有折損，全體 hp+2（神將補位） */
   if(beat===2) for(const t of sd.teams){
     if(!t.tr||!t.tr.rallyHp) continue;
     if(!t.units.some(u=>!u.alive)) continue;
     for(const u of t.units) if(u.alive){ u.max+=t.tr.rallyHp; u.hp+=t.tr.rallyHp; }
-    pwFire(env,t.tr,`🎏 五方調兵：${sd.p.name} 補位 hp+${t.tr.rallyHp}`);
+    pwFire(env,t.tr,`🎏 五方調兵：${sd.p.name} 補位 hp+${t.tr.rallyHp}`,sd);
   }
   if(beat===2) sd.absorb=pwMax(sd,"absorb");
-  if(beat===2&&sd.absorb) pwFire(env,pwTrOf(sd,"absorb"),`⛵ 送王船：吸收本拍首 ${sd.absorb} 點`);
+  if(beat===2&&sd.absorb) pwFire(env,pwTrOf(sd,"absorb"),`⛵ 送王船：吸收本拍首 ${sd.absorb} 點`,sd);
   let m=0;
   const k=sd.teams.filter(t=>t.fac===fac).length;   /* 同陣協同：同一拍出手的同系隊伍每多一隊 +1 */
   if(k>1) m+=k-1;
   if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa){ m+=aa;   /* 媽祖令旗：本方全體 atk+1 */
-    pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`); } }
+    pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`,sd); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
   m-=sd.curses;                                     /* 詛咒纏身 */
   sd.mod=m;
@@ -2538,14 +2583,14 @@ function pwBolt(sd,foe,env){
     if(t.tr.bolt&&env.rng()<t.tr.bolt){
       const v=pwLowest(foe,true);
       if(v){ pwRec(env,env.beat,sd.tag,null,v.id,"bolt",v.hp,false);
-        if(pwBurn(v,foe,env)){ env.stats.bolt++; pwFire(env,t.tr,`⚡ 天雷燒掉 ${foe.p.name} 一隻小兵`); } }
+        if(pwBurn(v,foe,env)){ env.stats.bolt++; pwFire(env,t.tr,`⚡ 天雷燒掉 ${foe.p.name} 一隻小兵`,sd); } }
     }
     if(t.tr.openShot){
       const v=pwTopTwo(foe)[0];
       if(v){
         const n=t.tr.openShot|0;
         v.hp-=n; pwRec(env,env.beat,sd.tag,null,v.id,"openShot",n,false);
-        pwFire(env,t.tr,`🏹 射日：${foe.p.name} 最壯的一隻 −${n}`);
+        pwFire(env,t.tr,`🏹 射日：${foe.p.name} 最壯的一隻 −${n}`,sd);
         if(v.hp<=0) pwBurn(v,foe,env);
       }
     }
@@ -2555,7 +2600,7 @@ function pwBolt(sd,foe,env){
 function pwHaunt(sd,foe,env){
   if(pwAny(sd,"lost")){
     if(pwAny(foe,"immuneLost")){
-      pwFire(env,pwTrOf(foe,"immuneLost"),`🔔 千里眼：${foe.p.name} 識破迷途`);
+      pwFire(env,pwTrOf(foe,"immuneLost"),`🔔 千里眼：${foe.p.name} 識破迷途`,foe);
     }else{
       let best=null,bn=0;
       for(const t of foe.teams){
@@ -2564,14 +2609,14 @@ function pwHaunt(sd,foe,env){
         if(n>0&&n>bn){ best=t; bn=n; }
       }
       if(best){ foe.lost=best.idx; env.stats.lost++;
-        pwFire(env,pwTrOf(sd,"lost"),`🎭 迷途：${foe.p.name} 一隊三拍不出手`); }
+        pwFire(env,pwTrOf(sd,"lost"),`🎭 迷途：${foe.p.name} 一隊三拍不出手`,sd); }
     }
   }
   if(pwAny(sd,"swap")){
     const e=pwLowest(foe,true);
     if(e&&pwBurn(e,foe,env)){
       const m=pwLowest(sd,false); if(m) pwBurn(m,sd,env);
-      env.stats.swap++; pwFire(env,pwTrOf(sd,"swap"),`💧 抓交替：兩邊各燒 1 隻`);
+      env.stats.swap++; pwFire(env,pwTrOf(sd,"swap"),`💧 抓交替：兩邊各燒 1 隻`,sd);
     }
   }
 }
@@ -2591,8 +2636,8 @@ function pwPass(sd,foe,beat,fac,phase,env){
   if(beat===3&&pwHasHaunt(foe)){
     fear={f:pwSwarmN(sd)*(pwMax(foe,"fearMul")||1),dread:pwMax(foe,"dread")};
     if(fear.f>0||fear.dread>0){ env.stats.fear++;
-      if(fear.dread>0) pwFire(env,pwTrOf(foe,"dread"),`🌧️ 恐懼：${sd.p.name} 群體再 −${fear.dread} atk`);
-      if(pwMax(foe,"fearMul")>1) pwFire(env,pwTrOf(foe,"fearMul"),`🕳️ 過陰咒：恐懼加倍`);
+      if(fear.dread>0) pwFire(env,pwTrOf(foe,"dread"),`🌧️ 恐懼：${sd.p.name} 群體再 −${fear.dread} atk`,foe);
+      if(pwMax(foe,"fearMul")>1) pwFire(env,pwTrOf(foe,"fearMul"),`🕳️ 過陰咒：恐懼加倍`,foe);
     }
   }
   const gang=1+pwMax(sd,"gang");                    /* 圍毆（椅仔姑看穿再 +1） */
@@ -2605,7 +2650,7 @@ function pwPass(sd,foe,beat,fac,phase,env){
     for(const u of t.units){
       if(!u.alive) continue;
       let a=u.atk+sd.mod+(t.bonus||0);
-      if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`); }
+      if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`,sd); }
       if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
       if(a<=0) continue;
       const pierce=!!(t.tr&&t.tr.pierce);
@@ -2614,21 +2659,21 @@ function pwPass(sd,foe,beat,fac,phase,env){
       else { const tt=pwTopTwo(foe); t1=tt[0]; t2=tt[1]; }
       if(!t1) return;                               /* 對面已無可打的目標 */
       let d=a;
-      if(t.tr&&t.tr.vsSwarm&&t1.body==="swarm"){ d+=t.tr.vsSwarm; pwFire(env,t.tr,`💅 咬手指：對群體 +${t.tr.vsSwarm}`); }
-      if(t.tr&&t.tr.vsElite&&t1.body==="elite"){ d+=t.tr.vsElite; pwFire(env,t.tr,`🐗 獠牙衝撞：對精英 +${t.tr.vsElite}`); }
+      if(t.tr&&t.tr.vsSwarm&&t1.body==="swarm"){ d+=t.tr.vsSwarm; pwFire(env,t.tr,`💅 咬手指：對群體 +${t.tr.vsSwarm}`,sd); }
+      if(t.tr&&t.tr.vsElite&&t1.body==="elite"){ d+=t.tr.vsElite; pwFire(env,t.tr,`🐗 獠牙衝撞：對精英 +${t.tr.vsElite}`,sd); }
       if(t.body==="swarm"){
         const k2=(hits.get(t1)||0)+1; hits.set(t1,k2);
         if(k2===2||k2===3){ d+=gang; env.stats.gang++;   /* 對同一目標第 2、3 次攻擊各 +1 */
-          if(seeTr) pwFire(env,seeTr,`🪑 看穿：圍毆額外 +${pwMax(sd,"gang")}`); }
+          if(seeTr) pwFire(env,seeTr,`🪑 看穿：圍毆額外 +${pwMax(sd,"gang")}`,sd); }
       }
-      if(pierce&&foe.absorb>0) pwFire(env,t.tr,`👁️ 陰陽眼：無視送王船的吸收`);
+      if(pierce&&foe.absorb>0) pwFire(env,t.tr,`👁️ 陰陽眼：無視送王船的吸收`,sd);
       pwStrike(u,sd,t1,foe,d,env,t.body==="ward"?"ward":"hit",pierce);
       if(t.body==="elite"&&t2){
         const st=foe.teams[t2.t];
         const full=!!(t.tr&&t.tr.cleaveFull);
-        if(full) pwFire(env,t.tr,`⚔️ 斬瘟：濺射全額`);
+        if(full) pwFire(env,t.tr,`⚔️ 斬瘟：濺射全額`,sd);
         let sp=full?a:Math.floor(a/2);
-        if(st&&st.tr&&st.tr.halfSplash){ sp=Math.floor(sp/2); pwFire(env,st.tr,`🛶 飛魚躍：${foe.p.name} 濺射減半`); }
+        if(st&&st.tr&&st.tr.halfSplash){ sp=Math.floor(sp/2); pwFire(env,st.tr,`🛶 飛魚躍：${foe.p.name} 濺射減半`,foe); }
         pwStrike(u,sd,t2,foe,sp,env,"splash",pierce); env.stats.splash++;
       }
     }
@@ -2646,15 +2691,15 @@ function pwFeed(sd,foe,env,before){
   const f=pwMax(sd,"feed");
   if(!f||foe.burned<=before) return;
   for(const u of sd.units) if(u.alive){ u.max+=f; u.hp+=f; }
-  pwFire(env,pwTrOf(sd,"feed"),`🏺 餓鬼進食：${sd.p.name} 全體 hp+${f}`);
+  pwFire(env,pwTrOf(sd,"feed"),`🏺 餓鬼進食：${sd.p.name} 全體 hp+${f}`,sd);
 }
 /* 一次交鋒：雙方同時結算；祖靈之眼（一拍先手）時該側先打、對面先燒完再還手 */
 function pwClash(beat,fac,X,Y,phase,env){
   const bx=X.burned, by=Y.burned;
   const fx=(beat===1&&pwAny(X,"first")), fy=(beat===1&&pwAny(Y,"first"));
-  if(fx&&!fy){ pwFire(env,pwTrOf(X,"first"),`👁️ 祖靈先手：${X.p.name} 先結算`);
+  if(fx&&!fy){ pwFire(env,pwTrOf(X,"first"),`👁️ 祖靈先手：${X.p.name} 先結算`,X);
     pwPass(X,Y,beat,fac,phase,env); pwSettle(Y,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); }
-  else if(fy&&!fx){ pwFire(env,pwTrOf(Y,"first"),`👁️ 祖靈先手：${Y.p.name} 先結算`);
+  else if(fy&&!fx){ pwFire(env,pwTrOf(Y,"first"),`👁️ 祖靈先手：${Y.p.name} 先結算`,Y);
     pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); pwPass(X,Y,beat,fac,phase,env); pwSettle(Y,env); }
   else { pwPass(X,Y,beat,fac,phase,env); pwPass(Y,X,beat,fac,phase,env); pwSettle(X,env); pwSettle(Y,env); }
   pwFeed(X,Y,env,by); pwFeed(Y,X,env,bx);
@@ -2701,7 +2746,7 @@ function paperWar(A,B,ctx){
   let dmg=Math.ceil((lose.n0?lose.burned/lose.n0:0)*CFG.PW_MAX);
   dmg=Math.max(CFG.PW_MIN,Math.min(CFG.PW_MAX,dmg));
   const steal=pwAny(win,"steal")?pwMax(win,"steal"):0;   /* 偷命：三拍結束時敗方另 −1 */
-  if(steal){ dmg+=steal; env.stats.steal+=steal; pwFire(env,pwTrOf(win,"steal"),`🪡 偷命：${lose.p.name} 另 −${steal}`); }
+  if(steal){ dmg+=steal; env.stats.steal+=steal; pwFire(env,pwTrOf(win,"steal"),`🪡 偷命：${lose.p.name} 另 −${steal}`,win); }
   return {
     winner:win.p, loser:lose.p, dmg,
     burnedA:X.burned, burnedB:Y.burned, unitsA:X.n0, unitsB:Y.n0,
@@ -3052,6 +3097,38 @@ const FX={
 /* 三系（＋詛咒＋燈籠）的火星顏色鍵；實際色碼在 js/particles.js 的 SPARK_COLOR，
    兩邊用同一組鍵值，顏色只有那一份（防分岔）。 */
 const FX_FAC=["zuling","xianghuo","yinqi","curse","lantern"];
+/* ═══════════ 《紙紮夜戰》三拍時間軸的可調參數（v0.31 卷 C1）═══════════
+   C1-3 要求「新常數集中一處」——時間軸只讀這一張表，別的地方不得再寫死毫秒數。
+   全部【試玩必調】。以 CFG.T=650 為基準，SKIP=false 每場落在 4–8 秒：
+     下限＝ENTER + 3×BEAT_MIN + END　　上限＝ENTER + 3×(BANNER + 事件上限 + BURN) + END
+   事件上限＝把每拍要演的筆數壓在 MAX_HITS 條通用交鋒＋全部招式，再用 EV_BUDGET 均分。
+   （招式與燒毀不抽樣：驗收 C-A2 要「事件數＝演出數」逐筆對得起來。） */
+const PW_FX={
+  ENTER_MS:480,       /* 開場列陣站定 */
+  STAGGER_MS:45,      /* 隻數牌逐片進場的間隔（30–80ms） */
+  BANNER_MS:360,      /* 拍首字幕停留 */
+  CAP_MS:280,         /* 字幕／隻數牌的進場動畫長度（≤300ms） */
+  EV_BUDGET_MS:1050,  /* 每一拍分給「逐筆事件」的總時間 */
+  EV_MIN_MS:45,       /* 單一事件最短 */
+  EV_MAX_MS:260,      /* 單一事件最長 */
+  MAX_HITS:5,         /* 每拍最多演幾次通用交鋒（多的抽樣；招式與燒毀不受限） */
+  HITSTOP_PER_BEAT:1, /* 每拍最多停格幾次（停格很貴，多了會撐爆時長） */
+  HITSTOP_DMG:3,      /* 傷害到這個數才值得停一格 */
+  BURN_MS:420,        /* 一拍的燒毀（同拍多隻同時燒，不逐隻排隊） */
+  BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
+  END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
+  MAXFIG:8,           /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部） */
+};
+/* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
+   只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
+/* burn＝燒毀演出被觸發的總次數（不論走 3D 人形自己的 burn() 還是退回 DOM 版 fxBurn），
+   burnDom＝其中走 DOM 那條的次數，burnFig＝走 3D 人形那條的次數；burn===burnDom+burnFig。
+   驗收 C-A2 對的是 burn（＝「每一隻被燒掉的紙紮都真的演了一次燒毀」），與走哪條無關。 */
+const FXC={burn:0,burnDom:0,burnFig:0,trait:0,beat:0,duels:0,traits:{},beats:{},fights:[]};
+try{
+  if(typeof location!=="undefined"&&new URLSearchParams(location.search||"").get("fxcount")==="1")
+    window.__ysFxCount=FXC;
+}catch(e){}
 /* 傷害值→力道倍率。夾在 POWER_MIN..POWER_MAX 之間，免得 0 傷害沒感覺、爆擊震到暈。 */
 function fxPower(dmg){ return Math.max(FX.POWER_MIN,Math.min(FX.POWER_MAX,(dmg||0)/FX.POWER_DMG+FX.POWER_MIN)); }
 /* 【積木】停格：整個畫面凍住 ms 毫秒。DOM 動畫靠 body.hitstop 的 animation-play-state 停、
@@ -3091,6 +3168,7 @@ function fxFlash(id){
    紙紮夜戰要燒的是紙紮人，這裡先做成「給我一個元素我就燒給你看」的通用零件。
    回傳 Promise，燒完才 resolve；SKIP 時直接跳過（元素狀態不動）。 */
 function fxBurn(el,opts){
+  FXC.burnDom++; /* 走 DOM 這條的次數；總數記在 FXC.burn（pwBurnOne 那個單一計數點） */
   if(SKIP) return Promise.resolve();
   const o=opts||{}, ms=Math.max(0,(o.ms===undefined?FX.BURN_MS:o.ms)|0);
   const node=typeof el==="string"?$(el):el;
@@ -3772,14 +3850,244 @@ async function startReveal(){
   $("mainbtn").onclick=startBattle;
   $("skipbtn").style.display="none";
 }
+/* ═══════════ 《紙紮夜戰》三拍時間軸（v0.31 卷 C1）═══════════
+   只有 CFG.PAPERWAR_ON 打開（＝f.war 存在）才走這一段；OFF 的時間軸在 playDuel 裡一字未動。
+   這裡不發明新效果，只是「按 war.beats 的順序把批 1 的積木叫一遍」：
+   每一拍 → 拍首字幕 → 逐筆事件（招式字幕／通用交鋒）→ 該拍的燒毀（同時燒）。
+   逐件法寶的專屬招式動畫是卷 C3 的事：往 TRAIT_FX 這張表填一個函式即可，本段一行都不用改。 */
+
+/* trait id → 法寶名。POOL 是唯一事實來源（27 件各一個招，見 TRAITS 檔頭的說明），
+   這裡只是把它反查成表，不另外維護一份對照（防分岔）。 */
+const TRAIT_ITEM=(()=>{ const m={}; for(const x of POOL) if(x.unit&&x.unit.trait) m[x.unit.trait]=x.n; return m; })();
+/* 體型的看板名。三種體型要在「一眼看得出」的層次分開：多／大／飄（草案 §2.3）。 */
+const PW_BODY={ swarm:{n:"小紙人"}, elite:{n:"大紙偶"}, ward:{n:"護法紙人"}, haunt:{n:"飄影"} };
+/* 事件種類 → 力道倍率與音色。顏色不寫在這裡——三系色由出手那一隊自己的系別決定。 */
+const PW_KIND={
+  hit:{p:1.00,s:"cymbal"}, ward:{p:0.70,s:"woodfish"}, splash:{p:1.15,s:"cymbal"},
+  thorn:{p:0.90,s:"hurt"}, bite:{p:1.25,s:"hurt"},
+  bolt:{p:1.50,s:"gong"},  openShot:{p:1.30,s:"cymbal"},
+};
+const PW_BEAT_SFX=["gong","bell","whoosh"]; /* 一拍・撞／二拍・護／三拍・祟 */
+/* 卷 C3 的掛鉤表：trId → function(ctx)。C1 全部走 fallback（通用 flash＋噴發），C3 逐件填進來。
+   填錯或炸掉一律退回 fallback，不讓一支招式動畫弄壞整局。
+   ctx 給的東西（2026-09-04 使用者裁定：人形要換成真 3D 模型，掛鉤得摸得到模型本身）：
+     trId／side（'A'|'B'）／foeSide／fac（三系色鍵）／power（力道倍率）
+     el          ＝招式字幕的 DOM 元素（#duelMove）
+     actorFigs   ＝出招方那一側的 figure 物件陣列（每個帶 .group/.parts/.unit，見 duel-figures.js）
+     targetFigs  ＝對面那一側的 figure 物件陣列
+     figureOf(side,unitId) ＝要挑特定一隻時用
+   3D 沒載入（或還沒開對決）時 actorFigs／targetFigs 是空陣列、figureOf 回 null——
+   掛鉤一律要先判空，不得假設模型一定在場（驗收 J8 的退化路徑）。 */
+const TRAIT_FX={};
+function pwDuelFigApi(){ try{ return (window.__yaoshi3d&&window.__yaoshi3d.duelFigures)||null; }catch(e){ return null; } }
+function pwFigsOf(side){ const D=pwDuelFigApi(); try{ return D&&D.figuresOf?D.figuresOf(side)||[]:[]; }catch(e){ return []; } }
+function pwFigureOf(side,unitId){ const D=pwDuelFigApi(); try{ return D&&D.figureOf?D.figureOf(side,unitId):null; }catch(e){ return null; } }
+function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
+function pwTraitFx(trId,ctx){
+  const fn=TRAIT_FX[trId];
+  if(typeof fn==="function"){ try{ return fn(ctx); }catch(e){} }
+  return pwTraitFxDefault(ctx);
+}
+/* 袋子 → 這一側的紙紮名冊。用引擎同一支 buildArmy（純函式、不耗亂數、不寫 S），
+   不另寫一份展開規則；units 的順序與 id 因此跟 pwSide 逐項一致，
+   beats 的 actor／target 才對得上 DOM 的隻數牌與 3D 的第幾尊。 */
+function pwArmyView(p){
+  const a=buildArmy(p.bag);
+  const units=[];
+  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac})));
+  units.forEach((u,i)=>{ u.id=i; });
+  const comp={};
+  units.forEach(u=>{ comp[u.body]=(comp[u.body]||0)+1; });
+  return {units,comp,curses:a.curses};
+}
+function pwCompText(v){
+  const t=Object.keys(PW_BODY).filter(b=>v.comp[b]).map(b=>`${PW_BODY[b].n}×${v.comp[b]}`).join("・");
+  return t+(v.curses?`${t?"・":""}詛咒纏身 ${v.curses}`:"");
+}
+/* 出手那一隻的系別（決定火星顏色）；作祟／賭注那類沒有 actor 的事件退回該側的主系 */
+function pwEvFac(f,b,views){
+  const v=views[b.side==="B"?1:0];
+  const u=(b.actor==null)?null:v.units[b.actor];
+  return (u&&u.fac)||fxFacOf(b.side==="B"?f.B:f.A);
+}
+/* 字幕：只動 transform／opacity，強 ease-out ≤300ms，絕不從 scale(0) 長出來。
+   刻意用 WAAPI 而不是 CSS keyframes——程式驅動的動畫要能在 SKIP 快轉時立刻不播。 */
+/* 可中斷的等待。批 1 的 sleep() 只在「呼叫的那一刻」看 SKIP，所以按下跳過時
+   已經排下去的那一段還是會等滿。OFF 只有兩三段等待，感覺不出來；三拍時間軸有十幾段，
+   不做這件事就會變成「按了跳過還在演」。doSkip() 會把目前這一段叫醒（時間軸是循序的，
+   同一時間最多只有一段在等，所以一個插槽就夠）。OFF 路徑不會設 PW_WAKE，行為完全不變。 */
+let PW_WAKE=null;
+function pwSleep(ms){
+  if(SKIP||!(ms>0)) return Promise.resolve();
+  return new Promise(res=>{
+    const done=()=>{ clearTimeout(t); if(PW_WAKE===done) PW_WAKE=null; res(); };
+    const t=setTimeout(done,ms);
+    PW_WAKE=done;
+  });
+}
+const PW_EASE="cubic-bezier(0.23,1,0.32,1)";
+function pwReduced(){ try{ return !!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ return false; } }
+function pwRise(el,delay){
+  if(SKIP||!el||typeof el.animate!=="function") return;
+  /* reduced-motion：留淡入、拿掉位移（art-integration-guide §6） */
+  const from=pwReduced()?{opacity:0}:{opacity:0,transform:"translateY(7px) scale(.96)"};
+  try{ el.animate([from,{opacity:1,transform:"none"}],
+    {duration:PW_FX.CAP_MS,delay:delay||0,easing:PW_EASE,fill:"both"}); }catch(e){}
+}
+function pwCap(id,html){ const el=$(id); if(!el) return; el.innerHTML=html; if(html) pwRise(el,0); }
+function pwArenaHTML(f,views){
+  const cell=(p,tag,v,total)=>{
+    const wind=p.id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}</span>`:"";
+    const chips=v.units.map(u=>`<i class="pwchip ${u.body}" id="pwc-${tag}-${u.id}"></i>`).join("");
+    return `<div class="fighter anim-clash-${tag==="A"?"left":"right"}" id="${tag==="A"?"dL":"dR"}">
+      <div class="fdir">${DIRS[p.id]}家${wind}</div>
+      <div class="fav">${avHTML(p)}</div><div class="fnm">${p.name}</div>
+      <div><span class="pwcnt" id="pwn-${tag}">${total}</span><span class="pwunit"> 隻</span></div>
+      <div class="pwbody">${pwCompText(v)}</div>
+      <div class="pwchips" id="pwch-${tag}">${chips}</div></div>`;
+  };
+  return cell(f.A,"A",views[0],f.war.unitsA)
+    +`<div class="vsbig">VS</div>`
+    +cell(f.B,"B",views[1],f.war.unitsB);
+}
+/* 列陣進場：隻數牌逐片亮起（stagger 45ms）。人形那一半由 js/duel-figures.js 接 ys:duel 的 armies 擺位。 */
+function pwLineUp(){
+  for(const tag of ["A","B"]){
+    const box=$("pwch-"+tag); if(!box) continue;
+    [...box.children].forEach((el,i)=>pwRise(el,i*PW_FX.STAGGER_MS));
+  }
+}
+/* 通用交鋒的抽樣：招式與燒毀一筆都不能少（驗收要對數），只有 hit 這一類多到演不完時均勻抽。 */
+function pwThin(list,k){
+  if(list.length<=k) return list;
+  const out=[];
+  for(let i=0;i<k;i++) out.push(list[Math.floor(i*list.length/k)]);
+  return out;
+}
+/* 燒掉一隻。兩條路，計數都記在 FXC.burn 這一個點上：
+   ① 3D 人形的工廠有 burn()（＝之後的真 3D 模型）→ ys:fx-burn 的接收端會把 detail.handled
+      設 true、detail.done 放它的 Promise，這裡就等那個 Promise，不再叫 DOM 版 fxBurn。
+   ② 沒有 burn()（現在的貼片版）→ 退回批 1 的 fxBurn 積木，燒 DOM 的隻數牌。
+   兩條路都會把隻數減一、把那片牌標成已燒。CustomEvent 是同步派送的，
+   所以 fx3d 回來之後立刻讀 detail 就拿得到 3D 那邊的回覆。 */
+function pwBurnOne(b){
+  FXC.burn++; /* ← 單一計數點（C-A2 對的就是這個數） */
+  const el=$(`pwc-${b.side}-${b.target}`);
+  const n=$(`pwn-${b.side}`);
+  if(n){ const v=(parseInt(n.textContent,10)||0)-1; n.textContent=Math.max(0,v); }
+  const det={side:b.side,unit:b.target,ms:PW_FX.BURN_MS,handled:false,done:null};
+  fx3d("ys:fx-burn",det);
+  let job;
+  if(det.handled&&det.done&&typeof det.done.then==="function"){ FXC.burnFig++; job=det.done; }
+  else job=fxBurn(el,{fac:"lantern",ms:PW_FX.BURN_MS});
+  return Promise.resolve(job).then(()=>{ if(el) el.classList.add("burnt"); },()=>{ if(el) el.classList.add("burnt"); });
+}
+async function pwPlayBeat(f,beat,list,views){
+  const t0=Date.now();
+  const ph=f.war.phase?PHASES[f.war.phase]:null;
+  const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
+    ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
+  pwCap("duelBeat",`${BEAT_NAME[beat-1]}${bonus}`);
+  FXC.beat++; FXC.beats[BEAT_NAME[beat-1]]=(FXC.beats[BEAT_NAME[beat-1]]||0)+1;
+  sfx(PW_BEAT_SFX[beat-1],{rnd:S.rngUi()});
+  await pwSleep(PW_FX.BANNER_MS);
+
+  const burns=list.filter(b=>b.kind==="burn");
+  const keep=new Set(pwThin(list.filter(b=>b.kind!=="burn"&&b.kind!=="trait"),PW_FX.MAX_HITS));
+  const show=list.filter(b=>b.kind==="trait"||keep.has(b)); /* 保持引擎給的原始順序 */
+  const evMs=show.length
+    ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/show.length))) : 0;
+  let stops=0;
+  for(const b of show){
+    if(b.kind==="trait"){
+      const nm=TRAIT_ITEM[b.trId]||"法寶", mv=(TRAITS[b.trId]||{}).name||b.trId;
+      pwCap("duelMove",`✦ ${nm}：${mv}`);
+      FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
+      sfx("stamp",{rnd:S.rngUi()});
+      const foeSide=b.side==="B"?"A":"B";
+      pwTraitFx(b.trId,{
+        trId:b.trId, side:b.side, foeSide, fac:pwEvFac(f,b,views), power:0.8,
+        el:$("duelMove"),
+        actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
+      });
+    }else{
+      const K=PW_KIND[b.kind]||PW_KIND.hit;
+      const pw=fxPower(b.amount*2)*K.p;
+      if(stops<PW_FX.HITSTOP_PER_BEAT&&b.amount>=PW_FX.HITSTOP_DMG){ stops++; await fxHitstop(); }
+      fxPunch(pw);
+      fxImpact(null,pwEvFac(f,b,views),pw);
+      fxLunge(b.side==="B"?f.B.id:f.A.id, b.side==="B"?f.A.id:f.B.id, pw);
+      sfx(K.s,{rnd:S.rngUi()});
+    }
+    await pwSleep(evMs);
+  }
+  if(burns.length){
+    await fxHitstop();
+    fxFlash(); sfx("hurt",{rnd:S.rngUi()});
+    await Promise.all(burns.map(pwBurnOne));
+  }
+  const spent=Date.now()-t0;
+  if(!SKIP&&spent<PW_FX.BEAT_MIN_MS) await pwSleep(PW_FX.BEAT_MIN_MS-spent);
+}
+async function playDuelWar(f,views){
+  const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
+  $("duel").classList.add("pw");
+  $("duelArena").innerHTML=pwArenaHTML(f,views);
+  $("duelBeat").innerHTML=""; $("duelMove").innerHTML="";
+  $("duelResult").innerHTML=""; $("duelSub").innerHTML="";
+  pwLineUp();
+  await pwSleep(PW_FX.ENTER_MS);
+  /* beatStart 只是拍首標記，不演；其餘依拍分堆（引擎保證 beat ∈ 1..3） */
+  const byBeat=[[],[],[]];
+  for(const b of f.war.beats){
+    if(b.kind==="beatStart") continue;
+    byBeat[Math.min(3,Math.max(1,b.beat|0))-1].push(b);
+  }
+  for(let beat=1;beat<=3;beat++) await pwPlayBeat(f,beat,byBeat[beat-1],views);
+  pwCap("duelMove","");
+  if(f.tie){
+    $("duelResult").innerHTML=`<span class="mut">勢均力敵，互不失血</span>`;
+  }else{
+    const lA=(f.l===f.A);
+    const bl=lA?f.war.burnedA:f.war.burnedB, tl=lA?f.war.unitsA:f.war.unitsB;
+    const bw=lA?f.war.burnedB:f.war.burnedA, tw=lA?f.war.unitsB:f.war.unitsA;
+    const le=lA?$("dL"):$("dR");
+    if(le){
+      le.classList.remove("anim-clash-left","anim-clash-right"); /* 同一元素一次只能跑一支 animation */
+      le.classList.add("shake"); le.style.opacity=".55";
+    }
+    sfx("hurt",{rnd:S.rngUi()});
+    $("duelResult").innerHTML=`${f.w.name} 勝！<span class="dmg anim-stamp-in">${f.l.name} −${f.dmg} 壽命</span>`;
+    /* 刻意不像 OFF 那樣把 war.log（f.extra）接在這一行後面：那些招式在三拍裡已經逐筆
+       打過字幕了，接在這裡只會多出一到兩行、把結尾那行擠出 390px 高的手機畫面。
+       完整戰況照舊在對決結束後的「第 N 夜・戰況」列表裡。 */
+    $("duelSub").innerHTML=`🔥 ${f.l.name} 燒掉 ${bl}/${tl} 隻 → −${f.dmg} 壽命・${f.w.name} 燒掉 ${bw}/${tw} 隻`;
+  }
+  await pwSleep(PW_FX.END_MS);
+  FXC.duels++;
+  FXC.fights.push({
+    round:S.round, a:f.A.id, b:f.B.id,
+    burnEv:f.war.beats.filter(x=>x.kind==="burn").length,
+    burnCalls:FXC.burn-c0, warBurn:f.war.burnedA+f.war.burnedB, burnDom:FXC.burnDom-d0, burnFig:FXC.burnFig-g0,
+    traitEv:f.war.beats.filter(x=>x.kind==="trait").length, traitCap:FXC.trait-r0,
+  });
+}
 /* ================= 對決動畫 ================= */
 async function playDuel(f){
   const ov=$("duel");
   ov.style.display="flex"; void ov.offsetWidth; ov.classList.add("on"); /* 切入：0.3s 淡入（§5.2） */
-  fx3d("ys:duel",{a:f.A.id,b:f.B.id}); /* 鏡頭切到看得見交手兩人的低角度 */
+  /* 《紙紮夜戰》ON（f.war 存在）時多帶一份名冊給 3D：每邊要擺幾尊、各是什麼體型。
+     OFF 時 detail 的形狀與 v0.30 一模一樣（只有 a／b 兩個欄位）。 */
+  const views=f.war?[pwArmyView(f.A),pwArmyView(f.B)]:null;
+  const duelDetail={a:f.A.id,b:f.B.id};
+  if(views) duelDetail.armies=views.map(v=>({units:v.units.slice(0,PW_FX.MAXFIG).map(u=>({id:u.id,body:u.body,fac:u.fac}))}));
+  fx3d("ys:duel",duelDetail); /* 鏡頭切到看得見交手兩人的低角度 */
   bgm("duel");                          /* 對決層：切一首緊張的，退場時回牌桌層 */
   $("table").classList.add("duelfade"); /* 讓 3D 當舞台背景 */
   sfx("whoosh",{rnd:S.rngUi()});
+  if(views){
+    await playDuelWar(f,views); /* ON：三拍時間軸（上一段） */
+  }else{
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";
   $("duelArena").innerHTML=`
     <div class="fighter anim-clash-left" id="dL"><div class="fdir">${DIRS[f.A.id]}家${wtag(f.A.id)}</div>
@@ -3823,7 +4131,8 @@ async function playDuel(f){
     $("duelSub").innerHTML=fml+(f.extra.length?`　${f.extra.join("　")}`:"");
     await sleep(CFG.T*1.6);
   }
-  ov.classList.remove("on"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
+  } /* ← ON／OFF 分支結束 */
+  ov.classList.remove("on"); ov.classList.remove("pw"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }
 async function startBattle(){
@@ -3848,7 +4157,13 @@ async function startBattle(){
   const burnTxt=f=>{ if(!f.war) return ""; const lA=f.l===f.A;
     return `　🔥 ${f.l.name} 燒掉 ${lA?f.war.burnedA:f.war.burnedB}/${lA?f.war.unitsA:f.war.unitsB} 隻`
          + `・${f.w.name} 燒掉 ${lA?f.war.burnedB:f.war.burnedA}/${lA?f.war.unitsB:f.war.unitsA} 隻`; };
-  for(const f of fights) bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）${burnTxt(f)}`}</div>`);
+  for(const f of fights){
+    bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）${burnTxt(f)}`}</div>`);
+    /* ON 的招式 log 改掛在這裡（卷 C1）：對決畫面已經逐拍打過字幕，結尾那行放不下第二行，
+       所以完整的 war.log 落在戰況列表，資訊一條都沒少。OFF 沒有 f.war，這一段不會執行。 */
+    if(f.war&&f.extra&&f.extra.length)
+      bz.insertAdjacentHTML("beforeend",`<div class="mut" style="font-size:11px;padding:0 0 2px 14px">${f.extra.join("　")}</div>`);
+  }
   if(NLIFE0) S.players.filter(p=>!p.ai).forEach(p=>{
     const a=NLIFE0[p.id]; if(a===undefined) return;
     const d=p.life-a;
@@ -4537,6 +4852,8 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
   paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy,
+  /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
+  PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
@@ -4581,7 +4898,9 @@ function initSimTool(){
   };
 }
 if(SIM_MODE) initSimTool();
-else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine"); if(vl) vl.textContent=`v${VERSION}・${VERSION_NOTE}`; }
+else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine");
+  /* 版本字串旁標紙紮夜戰開關（卷 C1）：試玩時 ?paperwar=1 有沒有吃到，看首頁這一行就知道 */
+  if(vl) vl.textContent=`v${VERSION}・紙紮夜戰：${CFG.PAPERWAR_ON?"開":"關"}・${VERSION_NOTE}`; }
 /* 固定視窗：頁面本體不許被手勢拖動，只有可捲容器內放行（iOS 防拉走）——sim 工具頁需要自由捲動，跳過
    放行名單＝本檔所有 overflow-y:auto 容器（2026-09-03 grep 分母 5 個：#felt #selGrid #sheetbox #modalbox #review）；
    新增捲動容器要一併加進這裡與上方 touch-action:pan-y 那行——v0.13 回顧場景漏加，手機上整份回顧捲不動 */
@@ -4595,9 +4914,13 @@ if(!SIM_MODE){
 <!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
 <!-- 資產腳本帶 VERSION 當快取鑰匙（2026-09-03 v0.26）：GitHub Pages 對每個檔各有 10 分鐘快取，
      版本探針把 index.html 換新之後，sfx.js／bgm.js 若仍是舊快取，新加的音效會靜默失效（實測「no voice babble」）。
-     用 document.write 同步插入，載入順序與原本的靜態 tag 完全相同。js/renderer.js 是 module，
-     它內部 import 的檔案不受這個參數影響（module 快取以各自網址為鍵），3D 層改檔後仍要等 10 分鐘或手動重整。 -->
+     用 document.write 同步插入，載入順序與原本的靜態 tag 完全相同。 -->
 <script>document.write('<script src="assets/audio/sfx.js?v='+VERSION+'"><\/script><script src="assets/audio/bgm.js?v='+VERSION+'"><\/script>');</script>
-<script type="module" src="js/renderer.js"></script>
+<!-- 3D 入口也帶 VERSION（卷 C1 順手修）：module 的快取鍵是「網址」，所以入口帶了還不夠——
+     js/ 內部的相對 import 也要帶同一個查詢字串，否則同一支模組會被當成兩個不同 URL 各載一份。
+     做法：入口由這裡注入 ?v=VERSION，各模組再用 import.meta.url 把查詢字串接力下去
+     （見 js/renderer.js 與 js/duel-figures.js 檔頭），版本號因此仍然只有 VERSION 這一份。
+     不用靜態 tag 是因為 tag 的 src 寫死在 HTML 裡，拼不進 VERSION。 -->
+<script>(function(){var s=document.createElement("script");s.type="module";s.src="js/renderer.js?v="+VERSION;document.body.appendChild(s);})();</script>
 </body>
 </html>
