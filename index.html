@@ -1661,7 +1661,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.32", VERSION_NOTE="《紙紮夜戰》接線卷：27 隻真 3D 妖進正式對決、召喚載入條、浮標水面";
+const VERSION="0.33", VERSION_NOTE="《紙紮夜戰》C3 招式卷：27 件法寶各自的招式演出、受招退縮";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1733,7 +1733,7 @@ try{
 }catch(e){}
 
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
-function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ }
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); /* 卷 C3：正在演的招式立刻清場 */ }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
   return new Promise(res=>{
@@ -3124,6 +3124,7 @@ const PW_FX={
   BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
   MAXFIG:8,           /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部） */
+  TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 招式演出的固定時長，不與通用交鋒攤分 EV_BUDGET；沒 3D 時退回 EV_MAX_MS */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
 };
@@ -3132,7 +3133,7 @@ const PW_FX={
 /* burn＝燒毀演出被觸發的總次數（不論走 3D 人形自己的 burn() 還是退回 DOM 版 fxBurn），
    burnDom＝其中走 DOM 那條的次數，burnFig＝走 3D 人形那條的次數；burn===burnDom+burnFig。
    驗收 C-A2 對的是 burn（＝「每一隻被燒掉的紙紮都真的演了一次燒毀」），與走哪條無關。 */
-const FXC={burn:0,burnDom:0,burnFig:0,trait:0,beat:0,duels:0,traits:{},beats:{},fights:[]};
+const FXC={burn:0,burnDom:0,burnFig:0,trait:0,traitFig:0,beat:0,duels:0,traits:{},beats:{},fights:[]}; /* traitFig＝招式走 3D 舞台（ys:fx-trait handled）的次數（卷 C3 T-5） */
 try{
   if(typeof location!=="undefined"&&new URLSearchParams(location.search||"").get("fxcount")==="1")
     window.__ysFxCount=FXC;
@@ -3862,7 +3863,8 @@ async function startReveal(){
    只有 CFG.PAPERWAR_ON 打開（＝f.war 存在）才走這一段；OFF 的時間軸在 playDuel 裡一字未動。
    這裡不發明新效果，只是「按 war.beats 的順序把批 1 的積木叫一遍」：
    每一拍 → 拍首字幕 → 逐筆事件（招式字幕／通用交鋒）→ 該拍的燒毀（同時燒）。
-   逐件法寶的專屬招式動畫是卷 C3 的事：往 TRAIT_FX 這張表填一個函式即可，本段一行都不用改。 */
+   逐件法寶的專屬招式動畫（卷 C3，2026-09-05）：pwTraitFx 先派 ys:fx-trait 給 3D 舞台（js/trait-fx.js，27 套在 js/trait-fx/*.js），
+   舞台接了就等 PW_FX.TRAIT_MS；沒接（無 3D／未就位／編舞炸掉）才退回 TRAIT_FX 表與通用 fallback。 */
 
 /* trait id → 法寶名。POOL 是唯一事實來源（27 件各一個招，見 TRAITS 檔頭的說明），
    這裡只是把它反查成表，不另外維護一份對照（防分岔）。 */
@@ -3876,8 +3878,8 @@ const PW_KIND={
   bolt:{p:1.50,s:"gong"},  openShot:{p:1.30,s:"cymbal"},
 };
 const PW_BEAT_SFX=["gong","bell","whoosh"]; /* 一拍・撞／二拍・護／三拍・祟 */
-/* 卷 C3 的掛鉤表：trId → function(ctx)。C1 全部走 fallback（通用 flash＋噴發），C3 逐件填進來。
-   填錯或炸掉一律退回 fallback，不讓一支招式動畫弄壞整局。
+/* DOM 側的掛鉤表：trId → function(ctx)。卷 C3 把 27 套做在 3D 舞台（js/trait-fx/*.js），這張表留給
+   「沒有 3D 時也想演點什麼」的日後擴充，目前是空的；填錯或炸掉一律退回 fallback，不讓一支招式動畫弄壞整局。
    ctx 給的東西（2026-09-04 使用者裁定：人形要換成真 3D 模型，掛鉤得摸得到模型本身）：
      trId／side（'A'|'B'）／foeSide／fac（三系色鍵）／power（力道倍率）
      el          ＝招式字幕的 DOM 元素（#duelMove）
@@ -3891,10 +3893,17 @@ function pwDuelFigApi(){ try{ return (window.__yaoshi3d&&window.__yaoshi3d.duelF
 function pwFigsOf(side){ const D=pwDuelFigApi(); try{ return D&&D.figuresOf?D.figuresOf(side)||[]:[]; }catch(e){ return []; } }
 function pwFigureOf(side,unitId){ const D=pwDuelFigApi(); try{ return D&&D.figureOf?D.figureOf(side,unitId):null; }catch(e){ return null; } }
 function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
+/* 回傳 true＝3D 舞台接了這一招（呼叫端等 TRAIT_MS）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
+   ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。 */
 function pwTraitFx(trId,ctx){
+  if(SKIP) return false;
+  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:PW_FX.TRAIT_MS,handled:false,done:null};
+  fx3d("ys:fx-trait",det);
+  if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];
-  if(typeof fn==="function"){ try{ return fn(ctx); }catch(e){} }
-  return pwTraitFxDefault(ctx);
+  if(typeof fn==="function"){ try{ fn(ctx); return false; }catch(e){} }
+  pwTraitFxDefault(ctx);
+  return false;
 }
 /* 袋子 → 這一側的紙紮名冊。用引擎同一支 buildArmy（純函式、不耗亂數、不寫 S），
    不另寫一份展開規則；units 的順序與 id 因此跟 pwSide 逐項一致，
@@ -4023,8 +4032,10 @@ async function pwPlayBeat(f,beat,list,views){
   const burns=list.filter(b=>b.kind==="burn");
   const keep=new Set(pwThin(list.filter(b=>b.kind!=="burn"&&b.kind!=="trait"),PW_FX.MAX_HITS));
   const show=list.filter(b=>b.kind==="trait"||keep.has(b)); /* 保持引擎給的原始順序 */
-  const evMs=show.length
-    ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/show.length))) : 0;
+  /* 卷 C3：招式有自己的固定時長（TRAIT_MS），EV_BUDGET 只在通用交鋒之間攤分 */
+  const hits=show.filter(b=>b.kind!=="trait").length;
+  const evMs=hits
+    ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/hits))) : 0;
   let stops=0;
   for(const b of show){
     if(b.kind==="trait"){
@@ -4033,11 +4044,13 @@ async function pwPlayBeat(f,beat,list,views){
       FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
-      pwTraitFx(b.trId,{
+      const staged=pwTraitFx(b.trId,{
         trId:b.trId, side:b.side, foeSide, fac:pwEvFac(f,b,views), power:0.8,
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
+      await pwSleep(staged?PW_FX.TRAIT_MS:PW_FX.EV_MAX_MS);
+      continue; /* 招式不吃 evMs（下面那段 await 是通用交鋒的） */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;

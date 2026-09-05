@@ -19,6 +19,7 @@ const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
 const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM } = await import('./creature-figures.js' + V);
+const { createTraitFx } = await import('./trait-fx.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -99,6 +100,10 @@ function init() {
   stageRig.position.y = 0.15;
   stageRig.setIntensity(0);
   scene.add(stageRig);
+  // 招式演出的舞台（卷 C3，2026-09-05）：接 ys:fx-trait，27 套手寫編舞在 js/trait-fx/*.js。
+  // 帶 renderer 進去預熱它的兩支材質 program（審查 M-3：對決中不得重編 shader）——
+  // 要排在 stageRig 進場之後：program cache key 含燈數，燈組還沒進來時編的那支到對決會再編一次。
+  const traitFx = createTraitFx(scene, camera, duelFigures, { renderer });
   let stageOn = 0;
 
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）
@@ -144,7 +149,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); } };
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); } };
 
   let lastKind = undefined;
   let lastT = performance.now();
@@ -170,6 +175,7 @@ function init() {
     embers.update(dt, elapsed);
     impact.update(dt);
     duelFigures.update(dt, now);
+    traitFx.update(dt); // 骨骼 delta 要疊在 mixer 之後（duelFigures.update 裡），所以排在它後面
     // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
     const kind = playerBridge.update(now);

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>妖市 · C3 招式治具</title>
+<link rel="icon" href="data:,">
+<!--
+  卷 C3（2026-09-05）招式演出的治具頁。獨立頁面，不動 index.html：把 duel-figures ＋ creature-figures ＋ trait-fx
+  掛進 scene-env 的戲台，用「固定 dt 逐幀步進」（不用 rAF）讓兩次跑法逐幀可比：
+    pass A：不出招，錄每一幀所有骨骼／model 的 matrixWorld
+    pass B：第 fireAt 幀派 ys:fx-trait，逐幀與 pass A 相減 → Δ>0 才算「真的動了」（活性，獨立於 trait-fx 自己的簿記）
+            演完之後 Δ 必須歸零、自訂 mesh 必須全部拆掉、包裝 figure 數必須為 0（T-2 ③）
+  網址參數：
+    ?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1     出招方（一隊；count 隻）
+    &foe=boat:swarm:zuling:3,sword:elite:xianghuo:1                對面（預設就是這兩隊）
+    &throw=1   把這一套編舞換成會 throw 的函式（驗 T-4 ③ 退回 fallback）
+    &bloom=0   關 bloom（步進更快；截圖時開）
+  量測掛勾 window.__tfx（給 tests/tools/traitfx-drive.mjs 用）：
+    ready            Promise：兩邊 GLB 都到、圖已就位
+    stepA(n)         步進 n 幀並錄快照（pass A）
+    resetB()         重新派 ys:duel（同名冊、同池位），mixer 從 0 重來
+    fire(det)        派 ys:fx-trait，回 {handled, moves:是否有這套編舞}
+    stepB(n)         步進 n 幀，回每幀 {d:對 pass A 的最大 Δ, mesh:多出來的 scene 子節點數, burst, active, wrapped}
+    cancel()         派 ys:fx-trait-cancel
+    render()         真的畫一幀（截圖前叫）
+    sig()            trait-fx 最近一套的簽章；stats()
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #1a0a2e; overflow: hidden; }
+  /* duel-figures 要對到這兩欄的水平中心才會現身（COLUMN_DOM_ID）；照正式頁對決場的大致位置擺 */
+  #dL, #dR { position: fixed; top: 38%; width: 26%; height: 24%; }
+  #dL { left: 14%; } #dR { right: 14%; }
+  #hud { position: fixed; left: 8px; top: 8px; z-index: 2; color: #f0a840; font: 12px/1.5 ui-monospace, Menlo, monospace; white-space: pre; background: rgba(20,10,40,.5); padding: 4px 8px; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="dL"></div><div id="dR"></div>
+<div id="hud">loading…</div>
+<script type="module">
+import * as THREE from 'three';
+import { createSceneEnv, FOG_DENSITY } from '../../js/scene-env.js';
+import { createBloom } from '../../js/bloom.js';
+import { createDuelFigures, makeLayeredFigure } from '../../js/duel-figures.js';
+import { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM } from '../../js/creature-figures.js';
+import { createTraitFx, TRAIT_MOVES } from '../../js/trait-fx.js';
+
+const q = new URLSearchParams(location.search);
+const TRAIT = q.get('trait') || 'eliteOpenShot';
+const AB = q.get('ab') || 'bow';
+const BODY = q.get('body') || 'elite';
+const FAC = q.get('fac') || 'zuling';
+const COUNT = Math.max(1, Math.min(8, parseInt(q.get('count') || '1', 10) || 1));
+const FOE = (q.get('foe') || 'boat:swarm:zuling:3,sword:elite:xianghuo:1').split(',').map((s) => { const [ab, body, fac, n] = s.split(':'); return { ab, body, fac, n: parseInt(n || '1', 10) || 1 }; });
+const THROW = q.get('throw') === '1';
+const BLOOM_ON = q.get('bloom') !== '0';
+const MS = parseInt(q.get('ms') || '900', 10) || 900;
+const DT = 1 / 60;
+
+const hud = document.getElementById('hud');
+const canvas = document.createElement('canvas');
+Object.assign(canvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%' });
+document.body.appendChild(canvas);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+const { scene, camera, lanterns } = createSceneEnv(window.innerWidth / Math.max(1, window.innerHeight));
+scene.fog.density = FOG_DENSITY.duel;
+// 對決機位（camera-director 的 DUEL_SHOT：dist 4.2、tilt 24°、lookY 0.35；南北兩席 → yaw 90°）
+{ const tilt = THREE.MathUtils.degToRad(24), yaw = THREE.MathUtils.degToRad(90), dist = 4.2, horiz = Math.cos(tilt) * dist;
+  camera.position.set(Math.sin(yaw) * horiz, Math.sin(tilt) * dist, Math.cos(yaw) * horiz); camera.lookAt(0, 0.35, 0); }
+// 軟體 GL（SwiftShader）不開 bloom：render target 那條路在它上面 shader 編不過（同 renderer.js 的判斷）
+function glName() { try { const gl = renderer.getContext(); const ext = gl.getExtension('WEBGL_debug_renderer_info'); return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''; } catch (e) { return ''; } }
+const SOFT_GL = /swiftshader|software|llvmpipe|basic render/i.test(glName());
+const bloom = (BLOOM_ON && !SOFT_GL) ? createBloom(renderer, { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 }) : null;
+if (bloom) bloom.setSize(window.innerWidth, window.innerHeight);
+const rig = createFigureLightRig({ scale: 1.7 }); rig.position.y = 0.15; rig.setIntensity(1); scene.add(rig);
+rig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
+
+const RIM_BY_FAC = { zuling: FACTION_RIM.zuli, xianghuo: FACTION_RIM.xianghu, yinqi: FACTION_RIM.yinqi };
+let fxSeed = 7;
+const duelFigures = createDuelFigures(scene, camera, {
+  makeFigure: (u) => {
+    if (!u || !u.ab) return makeLayeredFigure();
+    const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab, '../../assets/creatures/'), ab: u.ab, rimColor: RIM_BY_FAC[u.fac] });
+    attachFactionFx(f, u.fac, { seed: fxSeed++ });
+    return f;
+  },
+});
+const traitFx = createTraitFx(scene, camera, duelFigures, { renderer });
+if (THROW) TRAIT_MOVES[TRAIT] = () => { throw new Error('injected'); };
+
+// 名冊（同 index.html pwArmyView 的形狀）：A＝出招方、B＝對面
+const armies = [{ units: [] }, { units: [] }];
+for (let i = 0; i < COUNT; i++) armies[0].units.push({ id: i, body: BODY, fac: FAC, ab: AB });
+let id = 0;
+FOE.forEach((t) => { for (let i = 0; i < t.n; i++) armies[1].units.push({ id: id++, body: t.body, fac: t.fac, ab: t.ab }); });
+
+let now = 1000; // 合成時鐘（ms）：duel-figures 的 bob／對齊節流都吃這個，逐幀決定性
+const baseChildren = () => scene.children.length;
+let base0 = 0;
+
+function dispatchDuel() {
+  now = 1000; // 兩次 pass 的合成時鐘從同一點起算：bob／漣漪都吃 now，不歸零就逐幀都有 Δ
+  const det = { a: 0, b: 1, armies };
+  document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));
+  return det.ready || Promise.resolve(true);
+}
+function step() {
+  now += DT * 1000;
+  duelFigures.update(DT, now);
+  traitFx.update(DT);
+  scene.updateMatrixWorld(true);
+}
+function figs() { return ['A', 'B'].flatMap((s) => duelFigures.figuresOf(s)).filter((f) => f && f.skin === 'creature'); }
+/** 所有骨骼＋model 的 matrixWorld 攤平（順序固定：figure 順序 × 骨名排序） */
+function snapshot() {
+  const out = [];
+  figs().forEach((f) => {
+    const model = f.group.children.find((o) => { let hit = false; o.traverse((c) => { if (c.isBone || c.isSkinnedMesh) hit = true; }); return hit; });
+    if (model) out.push(...model.matrixWorld.elements);
+    Object.keys(f.parts).sort().forEach((k) => out.push(...f.parts[k].matrixWorld.elements));
+  });
+  return Float64Array.from(out);
+}
+const snapsA = [];
+function maxDiff(a, b) { let m = 0; const n = Math.min(a.length, b.length); for (let i = 0; i < n; i++) { const d = Math.abs(a[i] - b[i]); if (d > m) m = d; } return a.length !== b.length ? Infinity : m; }
+
+const ready = dispatchDuel().then(() => new Promise((r) => {
+  // 對齊要 DOM 欄位有寬度 → 步進幾幀直到圖現身
+  let guard = 0;
+  const tick = () => { step(); if (figs().some((f) => f.group.visible) || ++guard > 120) r(true); else setTimeout(tick, 0); };
+  tick();
+})).then(() => dispatchDuel()).then(() => { // 站穩後再重派一次：pass A 與 resetB 之後的 pass B 才從同一個 mixer 相位起算
+  step(); base0 = baseChildren(); hud.textContent = `${TRAIT} ${AB}×${COUNT} ready · figs ${figs().length} · moves ${traitFx.moves.length} · gl ${SOFT_GL ? 'soft' : 'hw'}`; return true; });
+
+function render() {
+  if (bloom) bloom.render(scene, camera); else renderer.render(scene, camera);
+}
+
+window.__tfx = {
+  ready, trait: TRAIT, moves: traitFx.moves, softGl: SOFT_GL,
+  stepA(n) { for (let i = 0; i < n; i++) { step(); snapsA.push(snapshot()); } return snapsA.length; },
+  async resetB() { await dispatchDuel(); step(); return figs().length; },
+  fire(over) {
+    const det = Object.assign({ trId: TRAIT, side: 'A', foeSide: 'B', fac: FAC, power: 0.8, ms: MS, handled: false, done: null }, over || {});
+    document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: det }));
+    if (det.done) det.done.then(() => { window.__tfx.doneAt = window.__tfx.frameB; });
+    return { handled: !!det.handled, hasMove: typeof TRAIT_MOVES[TRAIT] === 'function' };
+  },
+  frameB: 0, doneAt: -1,
+  stepB(n) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      step();
+      const idx = window.__tfx.frameB++;
+      const d = idx < snapsA.length ? maxDiff(snapsA[idx], snapshot()) : NaN;
+      out.push({ i: idx, d: +d.toFixed(5), mesh: baseChildren() - base0, burst: !!traitFx.burstPoints.visible, active: traitFx.active(), wrapped: traitFx.wrapped() });
+    }
+    return out;
+  },
+  cancel() { document.dispatchEvent(new CustomEvent('ys:fx-trait-cancel', { detail: {} })); },
+  render() { render(); return renderer.info.programs ? renderer.info.programs.length : -1; },
+  sig() { return traitFx.lastSig(); },
+  stats() { return Object.assign({}, traitFx.stats); },
+  programs() { return renderer.info.programs ? renderer.info.programs.length : -1; },
+  programList() { return (renderer.info.programs || []).map((p) => `${p.name}|${p.id}|${String(p.cacheKey || "")}`); },
+  bones() { return figs().map((f) => ({ ab: f.ab, bones: Object.keys(f.parts) })); },
+  /** 診斷：場上可見、material 是 basic 且 geometry 有 RGBA 頂點色的物件（cacheKey 的 vertexAlphas 位） */
+  suspects() { const out = []; scene.traverse((o) => { if (!o.visible || !o.material || !o.geometry) return; const c = o.geometry.attributes && o.geometry.attributes.color; out.push({ type: o.type, mat: o.material.type, vc: !!o.material.vertexColors, cItem: c ? c.itemSize : 0, name: o.name || (o.parent && o.parent.name) || '' }); }); return out; },
+};
+ready.then(() => render());
+</script>
+</body>
+</html>
