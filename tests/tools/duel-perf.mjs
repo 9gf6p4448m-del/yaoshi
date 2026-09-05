@@ -138,7 +138,61 @@ if (mode === 'bounds') {
     console.log(JSON.stringify({ out, figs: res, errors: r.errors.length }));
     await browser.close();
   } finally { srv.kill(); }
+} else if (mode === 'lineup') {
+  // 演出可讀性小卷（2026-09-05）：真實頁面第 1 場對決時派合成 ys:duel（--na／--nb 每邊隻數，預設 8v8 最重 8 隻），
+  // 等 ready 後量每一尊的世界座標：離桌心的水平距離（桌面半徑 3.4）、同側兩尊間最小距離、影子半徑；並截圖。
+  const port = Number(opt.port || 8839);
+  const na = Number(opt.na || 8), nb = Number(opt.nb || 8);
+  const srv = await serve(opt.root ? path.resolve(opt.root) : ROOT, port);
+  try {
+    const browser = await launch();
+    const page = await browser.newPage({ viewport: { width: Number(opt.w || 844), height: Number(opt.h || 390) }, deviceScaleFactor: 2 });
+    let res = null;
+    const r = await drive(page, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1`, {
+      duels: 1,
+      onDuel: async (pg, n) => {
+        if (n !== 1) return;
+        res = await pg.evaluate(async ({ heavy, fac, na, nb }) => {
+          const Y3 = window.__yaoshi3d;
+          const cur = window.__rec.duels[window.__rec.duels.length - 1];
+          const mk = (k, i) => ({ id: i, body: i % 3 === 0 ? 'elite' : i % 3 === 1 ? 'swarm' : 'ward', fac: fac[heavy[k % heavy.length]], ab: heavy[k % heavy.length] });
+          const det = { a: cur.a, b: cur.b, armies: [
+            { units: Array.from({ length: na }, (_, i) => mk(i, i)) },
+            { units: Array.from({ length: nb }, (_, i) => mk(i + 3, i)) } ] };
+          document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));
+          await det.ready;
+          await new Promise((r) => setTimeout(r, 1400));
+          // 「站在紅色區塊外」的量法：腳點（含影子半徑往外側推）投影到螢幕，要落在桌面頂（八邊形、半徑 3.4、y=0.15）
+          // 投影後的多邊形內；另量兩側沿「畫面右」方向有沒有交錯（A 的最右 vs B 的最左）
+          const cam = Y3.camera; cam.updateMatrixWorld(); const V3 = cam.position.constructor;
+          const proj = (x, y, z) => { const v = new V3(x, y, z).project(cam); return [v.x, v.y]; };
+          const poly = Array.from({ length: 8 }, (_, k) => { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; return proj(Math.cos(a) * 3.4, 0.15, Math.sin(a) * 3.4); });
+          const inPoly = ([px, py]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) c = !c; } return c; };
+          const az = Math.atan2(cam.position.x, cam.position.z); const right = [Math.cos(az), -Math.sin(az)];
+          const out = { A: [], B: [] };
+          for (const s of ['A', 'B']) {
+            const figs = Y3.duelFigures.figuresOf(s);
+            const pts = figs.map((f) => { const p = f.group.position; const foot = f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42);
+              const rr = Math.hypot(p.x, p.z) || 1e-6; const ox = p.x + p.x / rr * foot, oz = p.z + p.z / rr * foot; // 腳印最外緣
+              return { ab: f.ab, body: f.unit && f.unit.body, x: +p.x.toFixed(3), z: +p.z.toFixed(3), r: +rr.toFixed(3), foot: +foot.toFixed(3), vis: f.group.visible,
+                lat: +(p.x * right[0] + p.z * right[1]).toFixed(3), onTable: inPoly(proj(ox, 0.15, oz)) }; });
+            let minD = Infinity;
+            for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) minD = Math.min(minD, Math.hypot(pts[i].x - pts[j].x, pts[i].z - pts[j].z));
+            out[s] = { n: pts.length, maxR: Math.max(...pts.map((p) => p.r)), minPair: +minD.toFixed(3), offTable: pts.filter((p) => !p.onTable).length, lats: pts.map((p) => p.lat), pts };
+          }
+          // 交錯：A（畫面左）最右的腳印外緣 vs B（畫面右）最左的腳印外緣
+          const aMax = Math.max(...out.A.pts.map((p) => p.lat + p.foot)), bMin = Math.min(...out.B.pts.map((p) => p.lat - p.foot));
+          out.gap = +(bMin - aMax).toFixed(3);
+          return out;
+        }, { heavy: HEAVY, fac: FAC, na, nb });
+        await pg.screenshot({ path: out.replace(/\.json$/, '.png') });
+      },
+    });
+    fs.writeFileSync(out, JSON.stringify({ lineup: res, errors: r.errors }, null, 1));
+    console.log(JSON.stringify({ out, A: res && { n: res.A.n, maxR: res.A.maxR, minPair: res.A.minPair, offTable: res.A.offTable }, B: res && { n: res.B.n, maxR: res.B.maxR, minPair: res.B.minPair, offTable: res.B.offTable }, gap: res && res.gap, errors: r.errors.length }));
+    await browser.close();
+  } finally { srv.kill(); }
 } else {
-  console.error('mode must be bounds|perf|buoy');
+  console.error('mode must be bounds|perf|buoy|lineup');
   process.exit(2);
 }
