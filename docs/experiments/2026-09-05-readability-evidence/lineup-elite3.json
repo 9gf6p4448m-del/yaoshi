@@ -1,35 +1,47 @@
 {
  "lineup": {
   "A": {
-   "n": 2,
-   "maxR": 1.46,
-   "minPair": 0.795,
+   "n": 3,
+   "maxR": 1.469,
+   "minPair": 0.564,
    "offTable": 0,
    "lats": [
-    -1.411,
-    -1.149
+    -0.856,
+    -1.42,
+    -1.155
    ],
    "pts": [
     {
+     "ab": "bow",
+     "body": "elite",
+     "x": 0.34,
+     "z": -0.871,
+     "r": 0.935,
+     "foot": 0.636,
+     "vis": false,
+     "lat": -0.856,
+     "onTable": true
+    },
+    {
      "ab": "sword",
      "body": "elite",
-     "x": 0.733,
-     "z": -1.263,
-     "r": 1.46,
+     "x": 0.739,
+     "z": -1.269,
+     "r": 1.469,
      "foot": 0.25,
      "vis": true,
-     "lat": -1.411,
+     "lat": -1.42,
      "onTable": true
     },
     {
      "ab": "tiger",
      "body": "elite",
-     "x": 1.078,
-     "z": -0.547,
-     "r": 1.209,
+     "x": 1.082,
+     "z": -0.552,
+     "r": 1.215,
      "foot": 0.941,
      "vis": true,
-     "lat": -1.149,
+     "lat": -1.155,
      "onTable": true
     }
    ]
@@ -37,12 +49,12 @@
   "B": {
    "n": 3,
    "maxR": 1.469,
-   "minPair": 0.554,
+   "minPair": 0.553,
    "offTable": 0,
    "lats": [
     0.867,
-    1.421,
-    1.149
+    1.42,
+    1.155
    ],
    "pts": [
     {
@@ -59,34 +71,34 @@
     {
      "ab": "sword",
      "body": "elite",
-     "x": -1.27,
+     "x": -1.269,
      "z": 0.739,
      "r": 1.469,
      "foot": 0.25,
      "vis": true,
-     "lat": 1.421,
+     "lat": 1.42,
      "onTable": true
     },
     {
      "ab": "tiger",
      "body": "elite",
-     "x": -0.547,
-     "z": 1.078,
-     "r": 1.209,
+     "x": -0.552,
+     "z": 1.082,
+     "r": 1.215,
      "foot": 0.941,
      "vis": true,
-     "lat": 1.149,
+     "lat": 1.155,
      "onTable": true
     }
    ]
   },
-  "gap": 0.416,
+  "gap": 0.428,
   "lunge": {
    "power": 2,
    "frames": 82,
-   "maxR": 1.9,
-   "maxEdge": 2.15,
-   "minGap": -0.092
+   "maxR": 1.901,
+   "maxEdge": 2.156,
+   "minGap": -0.089
   }
  },
  "errors": []

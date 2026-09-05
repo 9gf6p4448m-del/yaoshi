@@ -84,6 +84,8 @@ const FIG = {
   rimMax: 2.15, // 最外那尊的腳印外緣離桌心不得超過（桌面 3.4、八邊形內切 3.14；R-2 上限 2.20）
   rowGap3d: 0.75, // 前後排的間距（世界單位；≥ R-3 的 0.50）。俯角 24° 下深度差＝畫面高度差，拉開後排的頭才露得出來（使用者 09-05 晚追加）
   rowSpanMax: 2.0, // 前後排總深度上限：排數多時排距自動縮（rowSpanMax/(rows−1)），免得後排深到桌緣半徑外
+  rowsMax: 4, // 排數上限：2.0/(4−1)=0.667 ≥ rowMinStep，排距才守得住 R-3（覆審第 2 輪 H-2：排數一路加到 n 時 8 精英變 0.286 的一路縱隊）
+  fitSteps: [1, 0.9, 0.8, 0.7, 0.6, 0.5], // 排數到上限仍塞不下 → 整側等比縮小（腳印跟著縮），逐級試
   rowMinStep: 0.55, // 同一排相鄰兩尊的最小中心距（塞得下才保證；step0 在 n=8 只有約 0.36）
   brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
 };
@@ -301,6 +303,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
   //   custom=true 代表這一尊的燒毀由工廠自己的 burn() 在演，本檔不插手它的透明度與位移；
   //   done=true 代表演完了，這一尊收起來不再顯示。
   const burnState = [new Map(), new Map()];
+  // 演出可讀性小卷：每側這一場的排數／等比縮小（離散選擇），onDuel 歸零、第一幀決定後沿用——鏡頭 punch 會改 pxWorld，
+  // 逐幀重選會在撞擊那幾幀翻面，活著的尊跳排、被燒凍住的尊留在原地（實測 6v6 minPair 0.152 就是這樣來的）
+  const rowsFit = [null, null];
   const indexOfUnit = (i, id) => roster[i].findIndex((u) => u && u.id === id);
 
   function eachFigure(cb) {
@@ -353,6 +358,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     nextAlign = 0;
     burnState[0].clear();
     burnState[1].clear();
+    rowsFit[0] = null; rowsFit[1] = null;
     // 回收上一場：全部標閒置、收起、燒毀狀態歸零（3D 妖的 dissolve 要 reset 才會復原）
     eachFigure((f) => {
       f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
@@ -504,19 +510,23 @@ export function createDuelFigures(scene, camera, opts = {}) {
       if (n >= 3) {
         const any3d = list.some((_, jj) => slots[i][jj] && slots[i][jj].skin === 'creature');
         const is3dRow = any3d;
-        const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
-        const footOf = (jj) => { const g = slots[i][jj]; return g ? g.shadow.scale.x * (g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42) : 0.3; };
+        // 腳印半徑從幾何與已知縮放算（影子幾何半徑 × 這尊的 sc × bodyScale × 這一側的 crowd×fit），不讀上一幀的 shadow.scale：
+        // 上一幀值在池子新建時是 1、又含上一輪的 fit，會讓首幀選錯排數（覆審第 2 輪 H-2 ③）與循環依賴
+        const footBase = (jj) => { const g = slots[i][jj]; const u0 = list[jj]; if (!g) return 0.3; const rad = g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42; const sc0 = g.skin === 'creature' ? figScale3d : figScale; return rad * sc0 * (FIG.bodyScale[u0.body] || 1); };
         const lo = FIG.centerGap, hi = FIG.rimMax, want = Math.abs(offset[i]);
         // 站位順序：小的前排、大的後排（依 bodyScale：群體 0.6 → 作祟 0.82 → 護法 0.86 → 精英 1.15），同體型保留名冊順序。
         // 只動站位不動名冊 j／unit id（beats 的 actor/target 與 DOM 隻數牌都靠 id），所以這裡是一個排列 order[slot]=j。
         const order = list.map((_, jj) => jj).sort((a, b) => ((FIG.bodyScale[list[a].body] || 1) - (FIG.bodyScale[list[b].body] || 1)) || (a - b));
         // 排數自適應（覆審 H-2）：從 n=3 一排／其餘每排 perRow 起算，哪一排塞不進 rowMinStep 就多一排重排，直到每排都 ≥ rowMinStep 或一排一尊。
         // 三件精英（腳印各 0.6）同排時 W 只剩 0.73、s 會被壓到 0.34；極端視窗 W=0 兩尊會重疊——多一排就解。
-        const layout = (rows) => {
+        const layout = (rows, fit) => {
+          const crowdEff = crowd * fit;
+          const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowdEff;
+          const footOf = (jj) => footBase(jj) * crowdEff;
           const sizes = [];
           { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
           const gap = rows > 1 ? Math.min(FIG.rowGap3d, FIG.rowSpanMax / (rows - 1)) : 0;
-          const P = { rows, sizes, gap, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true };
+          const P = { rows, sizes, gap, fit, crowd: crowdEff, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true };
           let slot = 0;
           for (let r = 0; r < rows; r++) {
             const m = sizes[r];
@@ -529,6 +539,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
             const W = Math.max(0, hiOut - lo - fIn); // 這一排兩端腳印中心能拉開的最大距離
             const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
             if (m > 1 && s < FIG.rowMinStep) P.ok = false;
+            if (lo + fIn + need * s > hiOut - need * s) P.ok = false; // 連一尊都塞不進可用區間（會壓到中線或桌緣）
             let c = Math.max(lo + fIn + need * s, Math.min(want, hiOut - need * s)); // 盡量貼欄位中心，不夠就往外滑
             if (lo + fIn + need * s > hiOut - need * s) c = (lo + fIn + hiOut) / 2;
             if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hiOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
@@ -538,9 +549,17 @@ export function createDuelFigures(scene, camera, opts = {}) {
           }
           return P;
         };
-        let rows = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
-        plan = layout(rows);
-        while (!plan.ok && rows < n) { rows++; plan = layout(rows); }
+        // 先加排（到 rowsMax），再整側等比縮小（fitSteps），第一個 ok 的就用；都不行就取最後一個（最小 fit、最多排）。
+        // 離散選擇一場只做一次（rowsFit），之後每幀只重算連續量（排中心、step 跟鏡頭距離微調）
+        if (rowsFit[i] && rowsFit[i].n === n) {
+          plan = layout(rowsFit[i].rows, rowsFit[i].fit);
+        } else {
+          const rows0 = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
+          outer: for (const fit of FIG.fitSteps) {
+            for (let rows = rows0; rows <= Math.min(FIG.rowsMax, n); rows++) { plan = layout(rows, fit); if (plan.ok) break outer; }
+          }
+          rowsFit[i] = { n, rows: plan.rows, fit: plan.fit };
+        }
       }
 
       for (let j = 0; j < n; j++) {
@@ -592,7 +611,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const sc = is3d ? figScale3d : figScale;
         const step = (is3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
         const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * sc;
-        const bs = (FIG.bodyScale[u.body] || 1) * crowd;
+        const bs = (FIG.bodyScale[u.body] || 1) * (plan ? plan.crowd : crowd); // n≥3 時 crowd 含這一側的 fit（塞不下才 <1）
         const haunt = u.body === 'haunt';
         // 一整排以自己那一欄的中心對稱排開，前後交錯避免完全重疊
         let lane, depth;
@@ -607,9 +626,11 @@ export function createDuelFigures(scene, camera, opts = {}) {
           depth = n > 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : 0;
         }
         let x = offset[i] + lane + push;
-        // 撞擊位移不得把人推出桌緣（覆審 H-3：8v8 敗方 power 2.0 時最外那尊 r 到 2.43、腳印外緣 2.94）；n≤2 不夾（R-4）
-        // 夾的是徑向距離（含這一排的深度）：四排深時橫向雖在限內、r 仍會到 2.28（覆審後實測），所以橫向上限＝sqrt((rimMax−foot)²−depth²)
-        if (plan) { const foot = f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42); const rr = Math.max(0, FIG.rimMax - foot); const lim = Math.sqrt(Math.max(0, rr * rr - depth * depth)); if (side * x > lim) x = side * lim; }
+        // 撞擊位移不得把人推出桌緣（覆審 H-3：8v8 敗方 power 2.0 時最外那尊 r 到 2.43、腳印外緣 2.94；2v2 也到 2.09）。
+        // 所有 n 都夾（第 2 輪 H-3 (a)）：靜態時 n≤2 的站位離上限很遠、夾不到，R-4 的靜態相等仍成立；只在被推出去那幾幀生效。
+        // 夾的是徑向距離（含這一排的深度）：橫向上限＝sqrt((rimMax−foot)²−depth²)，與規劃用的是同一條式子
+        // 只削「推出去的部分」：永不把人拉到靜態站位以內（n≤2 的靜態站位本來就可能超過這條線，R-4 要它逐項不變）
+        { const foot = (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42) * sc * bs; const rr = Math.max(0, FIG.rimMax - foot); const lim = Math.sqrt(Math.max(0, rr * rr - depth * depth)); const stat = side * (offset[i] + lane); if (side * x > lim && side * x > stat) x = side * Math.max(lim, stat); }
         const grounded = is3d && typeof f.groundFx === 'function' && !!f.groundFx();
         // 有腳下環境（水面）的不上下漂：水面跟著漂會沉到桌面下（實測 groupY 0.112～0.192，桌頂 0.15）
         const bobAmp = grounded ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;

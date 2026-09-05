@@ -169,7 +169,7 @@ if (mode === 'bounds') {
           const samples = [];
           if (lunge > 0) {
             const shoot = async (w, l) => { document.dispatchEvent(new CustomEvent('ys:fx-lunge', { detail: { w, l, power: lunge } })); const t0 = performance.now();
-              while (performance.now() - t0 < 700) { await new Promise((r) => requestAnimationFrame(r)); samples.push(['A', 'B'].map((s) => Y3.duelFigures.figuresOf(s).filter((f) => f.group.visible).map((f) => { const p = f.group.position; return [p.x, p.z, f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42)]; }))); } };
+              while (performance.now() - t0 < 700) { await new Promise((r) => requestAnimationFrame(r)); samples.push(['A', 'B'].map((s) => Y3.duelFigures.figuresOf(s).map((f) => { const p = f.group.position; return [p.x, p.z, f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42)]; }))); } };
             await shoot(others[0], others[1]); await shoot(others[1], others[0]);
             await new Promise((r) => setTimeout(r, 900));
           }
@@ -182,8 +182,8 @@ if (mode === 'bounds') {
           const az = Math.atan2(cam.position.x, cam.position.z); const right = [Math.cos(az), -Math.sin(az)];
           const out = { A: [], B: [] };
           for (const s of ['A', 'B']) {
-            // 只算看得見的尊：真對決的 ys:fx-burn 會打到合成名冊的同 id 單位，被燒掉隱藏的那尊位置停住不更新（實測 4v4 minPair 0.201 就是它）
-            const figs = Y3.duelFigures.figuresOf(s).filter((f) => f.group.visible);
+            // 全母體（含被真對決 ys:fx-burn 燒掉而隱藏的尊：它的位置是同一份 plan 的合法站位；第 2 輪覆審指出過濾會把母體改小）
+            const figs = Y3.duelFigures.figuresOf(s);
             const pts = figs.map((f) => { const p = f.group.position; const foot = f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42);
               const rr = Math.hypot(p.x, p.z) || 1e-6; const ox = p.x + p.x / rr * foot, oz = p.z + p.z / rr * foot; // 腳印最外緣
               return { ab: f.ab, body: f.unit && f.unit.body, x: +p.x.toFixed(3), z: +p.z.toFixed(3), r: +rr.toFixed(3), foot: +foot.toFixed(3), vis: f.group.visible,

@@ -1,11 +1,12 @@
 {
  "lineup": {
   "A": {
-   "n": 5,
+   "n": 6,
    "maxR": 1.53,
    "minPair": 0.55,
    "offTable": 0,
    "lats": [
+    -0.783,
     -0.783,
     -0.921,
     -1.333,
@@ -13,6 +14,17 @@
     -1.471
    ],
    "pts": [
+    {
+     "ab": "fushou",
+     "body": "elite",
+     "x": 1.084,
+     "z": -0.023,
+     "r": 1.084,
+     "foot": 0.555,
+     "vis": true,
+     "lat": -0.783,
+     "onTable": true
+    },
     {
      "ab": "ashcharm",
      "body": "swarm",
@@ -152,13 +164,13 @@
     }
    ]
   },
-  "gap": 0.672,
+  "gap": 0.448,
   "lunge": {
    "power": 2,
-   "frames": 80,
-   "maxR": 1.966,
-   "maxEdge": 2.194,
-   "minGap": 0.42
+   "frames": 81,
+   "maxR": 1.963,
+   "maxEdge": 2.15,
+   "minGap": 0.448
   }
  },
  "errors": []
