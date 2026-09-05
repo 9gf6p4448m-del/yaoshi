@@ -1,0 +1,154 @@
+{
+  "name": "千里眼銅鈴 bell_qianliyan (xianghuo/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模、看到任何 judge 數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝wuying.claims.json（同為香火系人形），差異全部是**換名或加嚴**、沒有一格放寬：① part_exists 5 條釘住 ref-bell.md 五條特徵裡做得成機械條的四條（bell_bronze／glow_bell／eye／robe_cape／axe_iron）；② 新增 part_visible bell_dark@front ≥1%（特徵②『暗窩＋亮瞳』的暗窩那一半的機械化，wuying 卷沒有這條）；③ 新增 part_visible robe_cape@front ≥12%（特徵④『正面寬得像一堵牆』與 ward『正面寬 ≥ 側面寬』的機械化）；④ focal_contrast 的 min_ratio 3（高於引擎預設 2，與 wuying 同）；⑤ saturation_area 帶仍為凍結檔的 10%–60%；⑥ tri_budget 上限 8000 依凍結檔 2026-09-04 19:30 修訂；⑦ style_dark 的 90 是凍結檔原值。**視角口徑**：`judge.mjs:81` 的 VIEWS 是 front=[0,0.12,1]（相機在 +Z，量的是 X 寬面）、side=[1,0.12,0]（相機在 +X，量的是 Z 窄面），與 `silmetrics.mjs` 取短水平軸的 side 不是同一件事——本檔的每一條都按 judge 的口徑寫。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "bell_bronze",
+      "stage": "MID",
+      "label": "倒扣銅鈴頭本體必須存在（招牌剪影，特徵①）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_bell",
+      "stage": "MID",
+      "label": "鈴口橘唇必須存在，且材質名必須正是 glow_bell（three.js 端靠這個名字掛 emissive；也是系別色帶的落點，特徵⑤）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "鈴舌瞳必須存在，材質名必須正是 eye（特徵②）"
+    },
+    {
+      "type": "part_exists",
+      "part": "robe_cape",
+      "stage": "MID",
+      "label": "兩肩外披的繡袍必須存在——ward 的正面寬只能由它撐（特徵④）"
+    },
+    {
+      "type": "part_exists",
+      "part": "axe_iron",
+      "stage": "MID",
+      "label": "垂在身側那隻手握的儀仗斧刃必須存在（特徵③的另一半）"
+    },
+    {
+      "type": "part_signature",
+      "part": "bell_bronze",
+      "view": "side",
+      "min_share": 0.08,
+      "or_min_span": 0.15,
+      "stage": "MID",
+      "label": "招牌部位（銅鈴頭）在 judge 側視（+X 相機、Z 窄面）要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_bell",
+      "view": "side",
+      "min_share": 0.012,
+      "stage": "MID",
+      "label": "鈴口在側視至少 1.2%——厚唇是鐘形的三段（肩／腰／唇）裡最不能少的一段"
+    },
+    {
+      "type": "part_visible",
+      "part": "eye",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "鈴舌瞳在正視至少 0.4%——它是一點光不是一顆頭，但要看得見"
+    },
+    {
+      "type": "part_visible",
+      "part": "bell_dark",
+      "view": "front",
+      "min_share": 0.01,
+      "stage": "MID",
+      "label": "鈴身正面的暗窩在正視至少 1%——沒有窩，亮瞳會被讀成色塊（harden3C ⑥-1）"
+    },
+    {
+      "type": "part_visible",
+      "part": "robe_cape",
+      "view": "front",
+      "min_share": 0.12,
+      "stage": "MID",
+      "label": "繡袍在正視至少 12%——特徵④『正面寬得像一堵牆』與 ward 體型的機械化"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "bell_bronze",
+      "b": "eye",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "銅鈴必須壓過鈴舌瞳至少 3 倍——瞳是懸在窩裡的一顆珠，不是一顆頭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "bell_bronze",
+        "robe_cape",
+        "armor_body"
+      ],
+      "secondary": [
+        "armor_skirt",
+        "armor_leg",
+        "armor_arm",
+        "pauldron"
+      ],
+      "tertiary": [
+        "glow_bell",
+        "bell_dark",
+        "eye",
+        "ash_white",
+        "gold_trim",
+        "sash",
+        "tassel",
+        "axe_iron",
+        "pole_wood",
+        "hand",
+        "boot"
+      ],
+      "view": "tq",
+      "stage": "MID",
+      "_bucket_note": "分組在**跑第一次 judge、看到任何數字之前**由紙上估算定案：ward 的正面寬只能靠繡袍撐（ref-bell.md §五-1 算出 X 必須 ≥1.121），繡袍因此是與銅鈴頭同級的視覺主體，不是配件——所以它與銅鈴頭、甲衣軀幹同列 primary。此分組寫定後即凍結。",
+      "label": "6:3:1 階層：（銅鈴頭＋繡袍＋甲衣軀幹）／（戰裙＋腿＋臂＋雲肩）／（鈴口、暗窩、鈴舌瞳、護心鏡面、鎏金件、綬帶、流蘇、斧刃、斧柄、手、戰靴）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝千里眼：鈴頭轉向）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

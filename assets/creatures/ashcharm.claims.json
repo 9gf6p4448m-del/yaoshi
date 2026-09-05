@@ -1,0 +1,167 @@
+{
+  "name": "香灰符 ashcharm_xiang_hui_fu (xianghuo/ward)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝tiger_c.claims.json，結構沿用 wangchuan.claims.json 與 flag.claims.json（同為香火 ward）。**識別視角＝正面 front**——本隻的兩條掛符竹骨臥在世界 ±X 上，正面（相機在 +Z，judge.mjs:81 VIEWS.front=[0,0.12,1]）看過來就是整面符牆＝招牌剪影，五條參照特徵（符牆、細長符片、紅印與墨字、外露灰段、朱紅香腳）全部落在這一面；側視只看得到身體厚度。所以除 saturation_area（沿用凍結檔指定的 tq）外一律 view:\"front\"。相對基底的加嚴：① focal_contrast 的 min_ratio 從 2 提高到 3（同 shield／flag／thunder／bow／wangchuan）；② 另加七條 part_visible 把 §0.5 真實參照鐵則機械化——`charm_paper`（特徵①②符牆與細長符片）、`charm_seal`（特徵③朱砂紅印）、`charm_ink`（特徵③墨字帶）、`charm_edge`（凍結檔指定的香火橘系別色帶落在符邊）、`ash_stick`（特徵④外露的斷香灰段）、`joss_red`＋`glow_ash`（特徵⑤香腳與火點），外加 `ash_body`（身體不得被自己的符牆吞掉——ward 招牌掛在正面平面上的專屬風險，同 flag 的 stone_head、wangchuan 的 hull_wood）。saturation_area 沿用凍結檔指定的 10%–60% 帶。tri_budget 上限用 2026-09-04 19:30 預算制的 8000。**沒有一處放寬。**",
+  "_frozen_at": "**誠實註記：本檔不是在看到任何 judge 數字之前寫的。** 造型迭代期間跑過多次 `judge.mjs`（不帶 --spec）的量測，所以我看過 shares 與 lum。為了不讓門檻被自己的數字牽著走，每一條的數值**一律照既有隻數的既定慣例抄**，不按本隻實測值挑：part_signature 0.10/0.30 抄 wangchuan 的 sail_cloth；part_visible 的 0.004／0.008／0.02／0.10 抄 wangchuan 與 flag 的對應層級；style_dark 90、saturation_area 0.10–0.60、focal_contrast 3、tri_budget 上限 8000 都是全卷共用值；tri_budget 下限 2500 抄 shanshen／wangchuan。ref 特徵清單 docs/experiments/2026-09-04-ref-ashcharm.md 是在寫 ashcharm.json 之前凍結的，此後一條未改。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "charm_paper",
+      "stage": "MID",
+      "label": "招牌部位：背後符牆的黃符紙必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口中香火光與兩道眼縫必須存在，且材質名必須正是 mouth_glow（簡報 ashcharm 列指定的第一個發光部位；three.js 端 js/creature-figures.js 靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_ash",
+      "stage": "MID",
+      "label": "香腳頂端的火點必須存在，且材質名必須正是 glow_ash（簡報指定的第二個發光部位，/^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "charm_seal",
+      "stage": "MID",
+      "label": "真實參照特徵 3：符上的朱砂紅印必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "ash_stick",
+      "stage": "MID",
+      "label": "真實參照特徵 4：外露的斷香灰段必須存在（沒有它身體只是一塊石頭）"
+    },
+    {
+      "type": "part_exists",
+      "part": "joss_red",
+      "stage": "MID",
+      "label": "真實參照特徵 5：朱紅香腳必須存在"
+    },
+    {
+      "type": "part_signature",
+      "part": "charm_paper",
+      "view": "front",
+      "min_share": 0.1,
+      "or_min_span": 0.3,
+      "stage": "MID",
+      "label": "招牌部位（背後符牆）在識別視角要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "ash_body",
+      "view": "front",
+      "min_share": 0.1,
+      "stage": "MID",
+      "label": "香灰身必須在識別視角看得見——被自己的符牆吞掉就等於沒有（ward 招牌掛在正面平面上的專屬風險，同 flag 的 stone_head）"
+    },
+    {
+      "type": "part_visible",
+      "part": "charm_edge",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "凍結檔指定的系別色帶：香火橘只落在符邊這一處，在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "charm_ink",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：符面的墨黑符文字帶在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "charm_seal",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 3 的機械化：朱砂紅印在識別視角必須量得到（被墨帶與符紙吃掉就只剩一片黃）"
+    },
+    {
+      "type": "part_visible",
+      "part": "ash_stick",
+      "view": "front",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "真實參照特徵 4 的機械化：外露的斷香灰段在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "joss_red",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：朱紅香腳在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_ash",
+      "view": "front",
+      "min_share": 0.002,
+      "stage": "MID",
+      "label": "真實參照特徵 5 的機械化：香腳頂端的火點在識別視角必須量得到"
+    },
+    {
+      "type": "part_visible",
+      "part": "mouth_glow",
+      "view": "front",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "臉上的兩道眼縫與火口在識別視角必須量得到（埋進頭裡就等於沒做——本卷 r3 實測踩過：share 0）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "ash_body",
+      "b": "mouth_glow",
+      "min_ratio": 3,
+      "view": "front",
+      "stage": "MID",
+      "label": "兩個焦點（香灰身／臉上的火）不得等重相爭"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["ash_body", "charm_paper", "ash_light"],
+      "secondary": ["charm_ink", "charm_edge", "charm_seal", "ash_pale", "ash_stick", "ash_dark", "cord", "gold_trim"],
+      "tertiary": ["mouth_glow", "glow_ash", "joss_red"],
+      "view": "front",
+      "stage": "MID",
+      "label": "6:3:1 階層：香灰身與符紙與灰殼／墨字與符邊與紅印與灰塊與灰段與臉凹與掛符桿與金牌／臉上的火與香腳火點與朱紅香腳"
+    },
+    {
+      "type": "style_dark",
+      "view": "front",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：在識別視角（正面）也要讀得出是暗的"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝香灰符：符紙掀飛）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 2500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制：每隻 tri ≤8000）"
+    }
+  ]
+}

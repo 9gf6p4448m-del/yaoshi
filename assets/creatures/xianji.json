@@ -6,22 +6,30 @@
  "_elite_recipe": "elite＝單尊、佔滿高度、招牌部位大。祖靈段要的『修長、垂直線條主導』在這隻身上**由招牌部位自己提供**：一對長 0.568 的刃板近乎垂直地從肘插到地面，佔全高的 47%，同時是招牌也是垂直線。軀幹刻意做小做緊（body 半寬 0.090、全長 0.396），山羌本來就是拱背垂頭的小獸——小身體吊著兩把大刀，比例落差就是壓迫感的來源。",
  "_blade_geometry": "刃的每一個座標都是算出來的：局部平面 u＝世界 +Z、v＝世界 +Y（udir/vdir 是**世界座標**，harden3B ⑤-1），法線＝cross(u,v)＝(−1,0,0)＝寬面朝 ±X。刃背 u(s)=−0.044+0.122s 是一條直線，只減去 0.0026·sin(πs) 讓多邊形嚴格凸（純共線會生退化三角形，pilot ③-7）；刃口 u(s)=刃背直線+W(s)，W 由 7 個控制點線性內插（最寬 0.140 落在 s=0.30）。所有 points 一律過 monotone-chain 凸包再輸出（harden3B ⑤-5）。",
  "_glow_materials": "mouth_glow / glow_cut —— 簡報 xianji 列指定的兩個發光材質名，three.js 端 js/creature-figures.js:51 的 /^eye(_|$)|^mouth_glow(_|$)|^glow_/i 會把它們掛成 emissive。**本隻刻意不使用 `eye` 這個材質名**，眼睛改叫 `iris_bead`（骨貝鑲嵌色），因為 `eye` 會被同一條 regex 吃掉、變成第三個未經授權的發光材質（thunder 曾為此送裁定）。兩個發光同色 **#e2a445 祖靈金**：同一道靈光從嘴和從傷口漏出來。r7 用的是祖靈靛藍 #2f4fa8，盲讀第 1 輪兩位讀者都寫「妖異的靈光／邪氣」「亮藍色尖刺」——藍白靈光在祖靈段會被讀成鬼火，換成金之後第 2 輪兩位改寫「莊嚴／祭祀／守護神獸」。",
- "_traps": "① 近黑一律中性灰（obsidian #212028 S=0.13、face_stripe #232221 S=0.06、hide_cut #171614 S=0.09），shading.noise 會把偏暖近黑擾到 HSV S>0.5 而撐爆 saturation_area（猛虎報告 ⑤-6）；② **LFront 鏈刻意不宣告 volume**（毛皮上臂改用一條 curve 掛在 LFrontRoot 上）：有 volume 時鏈上 14 片刃板要各自過 part_attachment，r1 實測 14 個 BLOCK（最遠 0.358）；沒有 volume 時 checks.js:312 取不到宿主、整條略過（thunder ⑥-7／bow ⑧-2 的同一個機制）。代價＝刃的貼合沒有機器背書，只有肉眼，已寫進報告誠實條；③ 刃臂掛在 LFrontWrist，它是 LFrontElbow 的子關節，所以轉肩／轉腕刃都跟著走；**動畫不轉 LFrontElbow**——上臂 curve 是 100% 綁在 LFrontRoot 上的剛體，轉肘只會讓刃離開手臂；④ 刃背的三角連紋一律上下交錯相接、不留水平牙根線，否則讀成一口牙（eye ⑥-6）；⑤ 刃口高光用實體板不用 emissive，emissive 會被戲台 bloom（2.8×、threshold 0.5）燒成一團（thunder ⑥-5）；⑥ mirrored 部位的宿主關節名以 L 開頭時會被字串置換成 R——LFrontWrist→RFrontWrist 是**存在的**孿生關節，所以這裡是安全的；危險的是非肢體關節取 L 開頭的名字（bow ⑧-1）；⑦ **monotone-chain 凸包的共線 epsilon 太小會製造翻面**：用 1e-9 時刃的外殼留下幾組近共線點，`fin` 的扇形三角剖分因此生出兩片薄到不成形的三角，bind pose 直接 `mesh_integrity: 2 flipped tris`。提到 4e-6（座標量級 0.1，等於容許 4e-5 的偏移）之後全綠；⑧ **反過來，已經是凸的手寫多邊形不要再送進凸包**：胸口傷口唇原本是 7 點、左緣兩點略微內凹的多邊形，編譯全綠；把它換成同一組點的嚴格凸包（5 點、最左邊是一條x 相同的垂直邊）之後每片各生 2 個翻面三角形。實測可重現，機制未完全定位，處置＝**手寫多邊形只在真的需要時才過凸包，改完一定重編一次**；⑨ **一片細長 fin 加寬會翻面，並排多片窄的不會**：胸口發光帶由單片 0.018 加寬到 0.036 時 bind pose 出現 8 個翻面三角形，改成三條各 0.018 的窄帶並排（總寬相同）就全綠。",
+ "_traps": [
+  "① 近黑一律中性灰（obsidian #212028 S=0.13、face_stripe #232221 S=0.06、hide_cut #171614 S=0.09），shading.noise 會把偏暖近黑擾到 HSV S>0.5 而撐爆 saturation_area（猛虎報告 ⑤-6）；② **LFront 鏈刻意不宣告 volume**（毛皮上臂改用一條 curve 掛在 LFrontRoot 上）：有 volume 時鏈上 14 片刃板要各自過 part_attachment，r1 實測 14 個 BLOCK（最遠 0.358）；沒有 volume 時 checks.js:312 取不到宿主、整條略過（thunder ⑥-7／bow ⑧-2 的同一個機制）。代價＝刃的貼合沒有機器背書，只有肉眼，已寫進報告誠實條；③ 刃臂掛在 LFrontWrist，它是 LFrontElbow 的子關節，所以轉肩／轉腕刃都跟著走；**動畫不轉 LFrontElbow**——上臂 curve 是 100% 綁在 LFrontRoot 上的剛體，轉肘只會讓刃離開手臂；④ 刃背的三角連紋一律上下交錯相接、不留水平牙根線，否則讀成一口牙（eye ⑥-6）；⑤ 刃口高光用實體板不用 emissive，emissive 會被戲台 bloom（2.8×、threshold 0.5）燒成一團（thunder ⑥-5）；⑥ mirrored 部位的宿主關節名以 L 開頭時會被字串置換成 R——LFrontWrist→RFrontWrist 是**存在的**孿生關節，所以這裡是安全的；危險的是非肢體關節取 L 開頭的名字（bow ⑧-1）；⑦ **monotone-chain 凸包的共線 epsilon 太小會製造翻面**：用 1e-9 時刃的外殼留下幾組近共線點，`fin` 的扇形三角剖分因此生出兩片薄到不成形的三角，bind pose 直接 `mesh_integrity: 2 flipped tris`。提到 4e-6（座標量級 0.1，等於容許 4e-5 的偏移）之後全綠；⑧ **反過來，已經是凸的手寫多邊形不要再送進凸包**：胸口傷口唇原本是 7 點、左緣兩點略微內凹的多邊形，編譯全綠；把它換成同一組點的嚴格凸包（5 點、最左邊是一條x 相同的垂直邊）之後每片各生 2 個翻面三角形。實測可重現，機制未完全定位，處置＝**手寫多邊形只在真的需要時才過凸包，改完一定重編一次**；⑨ **一片細長 fin 加寬會翻面，並排多片窄的不會**：胸口發光帶由單片 0.018 加寬到 0.036 時 bind pose 出現 8 個翻面三角形，改成三條各 0.018 的窄帶並排（總寬相同）就全綠。",
+  "★（harden4B-1）fin 的 thickness 不得大於多邊形本身的寬度。胸口裂口第一版把發光帶做成 半寬 0.0027（寬 0.0053）配 thickness 0.017，bind pose 直接 12 flipped tris；把帶寬加到 0.018（≥ thickness）就全綠。判準：擠出厚度 > 板寬 = 自交。xianji ⑥-4「一片細長 fin 加寬會翻面」是它的另一面——寬度與厚度要同量級，兩邊都不能差太多。",
+  "★★（harden4B-2）軀幹上的發光線，位置比形狀更決定它被讀成什麼。同一條發光帶：放在肩胛高度（世界 y 0.88–0.90，離背頂 0.05）→ 6/6 讀「肩甲／關節護甲」；下移到肋側（y 0.75–0.89，離背頂 0.10）仍 2/2 讀「背部中段的鋸齒尖刺」；再往後移到肋腹中段並改成鋸齒折線 → 2/2 讀「撕裂傷疤／發光裂痕」。先問「這個位置在解剖學上叫什麼」，再問形狀。",
+  "★★（harden4B-3）要讀成「裂口」而不是「鑲片」，靠的是**折線**與**近白**，不是靠唇。直的等寬亮帶＝鑲邊；一排三角唇＝拉鍊／背鰭；金色＝金屬鑲片（讀者原話「不規則金色鑲片」「黃銅碎片」）。有效組合＝① 光本身走 5 段鋸齒折線且段與段互相超出接點 0.008 連成一條 ② 色由祖靈金 #e2a445 提到近白暖 #fbf1d2（與同一隻身上的 zuli_gold 拉開，否則被歸成同一套金飾）③ 兩側各一條連續近黑裂壁把光框住 ④ 只做單側（mirrored:false）——左右對稱的一對必然讀成甲片。",
+  "★（harden4B-4）兩片對稱掛件的「內側面」在盲讀鏡頭下是一片空白。hero（dir [1,0.5,1]）與戲台相機都在 +X，掛在 mirrored fin 上的裝飾若只做 +x 面，近端那片只露沒有裝飾的 -x 面，2/2 讀成「深色扁平物／盾牌」。把裝飾各複製一份到 -x 面之後同一批讀者改口「刀刃／劍刃」「刃身呈深灰黑色分層」。",
+  "★（harden4B-5）冷色高光在祖靈段會被歸成「金屬滾邊」，暖到骨白會被歸成「盾牌米色滾邊」，中性鋼灰（#bdbcb8）才穩定讀成「刀鋒」。刃口高光的色相是「這是刀」的關鍵開關，不要為了氣質去動它——氣質改用金飾密度與體色來推（wangchuan r6 同結論）。",
+  "★（harden4B-6）「刃面剝片疤」這種表面紋在無貼圖低多邊形讀不出來（三輪六位 0/6），但把它改成**跨滿刃寬、上下縫傾斜、明度交替的 4 道分段色帶**之後，同一批鏡頭下 2/4 逐字讀出「黑色分層條紋」「刃身呈深灰／黑色分層」。判準同 shanshen ⑦-1：紋讀不出來，段讀得出來。"
+ ],
  "palette": {
   "hide_body": {
-   "color": "#4d3a26",
+   "color": "#57422b",
    "rough": 0.93
   },
   "hide_neck": {
-   "color": "#55422c",
+   "color": "#614b31",
    "rough": 0.93
   },
   "hide_face": {
-   "color": "#6a5334",
+   "color": "#745c39",
    "rough": 0.9
   },
   "hide_leg": {
-   "color": "#3b3126",
+   "color": "#443729",
    "rough": 0.94
   },
   "ear_hide": {
@@ -29,23 +37,23 @@
    "rough": 0.92
   },
   "hide_pedicle": {
-   "color": "#574733",
+   "color": "#63523a",
    "rough": 0.9
   },
   "obsidian": {
-   "color": "#212028",
+   "color": "#2a2320",
    "rough": 0.18
   },
   "obsidian_scar": {
-   "color": "#4b4a58",
+   "color": "#6b6157",
    "rough": 0.22
   },
   "blade_gleam": {
-   "color": "#b9bcc4",
+   "color": "#bdbcb8",
    "rough": 0.1
   },
   "zuli_gold": {
-   "color": "#cfa055",
+   "color": "#d8a94f",
    "rough": 0.42
   },
   "bone_tip": {
@@ -61,15 +69,15 @@
    "rough": 0.88
   },
   "iris_bead": {
-   "color": "#cdc0a2",
+   "color": "#d8ab55",
    "rough": 0.3
   },
   "glow_cut": {
-   "color": "#e2a445",
+   "color": "#fbf1d2",
    "rough": 0.2
   },
   "mouth_glow": {
-   "color": "#e2a445",
+   "color": "#fbf1d2",
    "rough": 0.2
   }
  },
@@ -118,32 +126,32 @@
   },
   "Neck2": {
    "from": "Neck1",
-   "up": 0.052,
+   "up": 0.06,
    "fwd": 0.034
   },
   "Neck3": {
    "from": "Neck2",
-   "up": 0.038,
+   "up": 0.05,
    "fwd": 0.026
   },
   "HeadRoot": {
    "from": "Neck3",
-   "up": 0.01,
+   "up": 0.02,
    "fwd": 0.02
   },
   "Skull": {
    "from": "HeadRoot",
-   "up": 0.014,
+   "up": 0.024,
    "fwd": 0.058
   },
   "Muzzle": {
    "from": "Skull",
-   "up": -0.01,
+   "up": 0.016,
    "fwd": 0.04
   },
   "Nose": {
    "from": "Muzzle",
-   "up": -0.006,
+   "up": 0.02,
    "fwd": 0.024
   },
   "TailRoot": {
@@ -694,8 +702,7 @@
    "type": "fin",
    "host": "LFrontWrist",
    "material": "obsidian_scar",
-   "thickness": 0.01,
-   "_c": "特徵 2：貝殼狀剝片疤 1/5（knap1.jpg：疤與疤之間留下銳利的稜）。不規則凸多邊形，明度比刃身高一階，疊在刃的外側面上凸出 0.006。",
+   "thickness": 0.012,
    "mirrored": true,
    "offset": [
     0.013,
@@ -714,28 +721,61 @@
    ],
    "points": [
     [
-     -0.0489,
-     0.0065
+     -0.0381,
+     0.03
     ],
     [
-     0.0056,
-     -0.0586
+     0.1026,
+     -0.012
     ],
     [
-     0.0539,
-     -0.0343
+     0.1628,
+     -0.13
     ],
     [
-     0.088,
-     -0.0132
+     -0.0129,
+     -0.082
+    ]
+   ],
+   "_c": "feature 2 redo: four value-alternating bands spanning the full blade width with slanted seams, so the flake scars become countable segments (the five small scars of r11 read 0/6)."
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "face_stripe",
+   "thickness": 0.011,
+   "mirrored": true,
+   "offset": [
+    0.0125,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0092,
+     -0.098
     ],
     [
-     0.0681,
-     0.0179
+     0.1644,
+     -0.148
     ],
     [
-     0.0126,
-     0.015
+     0.1468,
+     -0.268
+    ],
+    [
+     0.0169,
+     -0.212
     ]
    ]
   },
@@ -743,10 +783,10 @@
    "type": "fin",
    "host": "LFrontWrist",
    "material": "obsidian_scar",
-   "thickness": 0.01,
+   "thickness": 0.011,
    "mirrored": true,
    "offset": [
-    0.013,
+    0.0125,
     0,
     0
    ],
@@ -762,39 +802,31 @@
    ],
    "points": [
     [
-     0.0243,
-     -0.132
+     0.0206,
+     -0.228
     ],
     [
-     0.0766,
-     -0.1673
+     0.1441,
+     -0.286
     ],
     [
-     0.15,
-     -0.1516
+     0.1295,
+     -0.386
     ],
     [
-     0.1755,
-     -0.1002
-    ],
-    [
-     0.1074,
-     -0.074
-    ],
-    [
-     0.0323,
-     -0.0812
+     0.0462,
+     -0.336
     ]
    ]
   },
   {
    "type": "fin",
    "host": "LFrontWrist",
-   "material": "obsidian_scar",
+   "material": "face_stripe",
    "thickness": 0.01,
    "mirrored": true,
    "offset": [
-    0.013,
+    0.012,
     0,
     0
    ],
@@ -810,124 +842,20 @@
    ],
    "points": [
     [
-     0.0035,
-     -0.2376
+     0.0501,
+     -0.352
     ],
     [
-     0.0589,
-     -0.2584
+     0.1269,
+     -0.402
     ],
     [
-     0.1109,
-     -0.2725
+     0.1137,
+     -0.48
     ],
     [
-     0.1445,
-     -0.2401
-    ],
-    [
-     0.1227,
-     -0.2095
-    ],
-    [
-     0.0879,
-     -0.1729
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "LFrontWrist",
-   "material": "obsidian_scar",
-   "thickness": 0.01,
-   "mirrored": true,
-   "offset": [
-    0.013,
-    0,
-    0
-   ],
-   "udir": [
-    0,
-    0,
-    1
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     0.0359,
-     -0.3208
-    ],
-    [
-     0.082,
-     -0.3472
-    ],
-    [
-     0.1333,
-     -0.3677
-    ],
-    [
-     0.1475,
-     -0.3294
-    ],
-    [
-     0.1486,
-     -0.2887
-    ],
-    [
-     0.0905,
-     -0.3027
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "LFrontWrist",
-   "material": "obsidian_scar",
-   "thickness": 0.01,
-   "mirrored": true,
-   "offset": [
-    0.013,
-    0,
-    0
-   ],
-   "udir": [
-    0,
-    0,
-    1
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     0.0421,
-     -0.4279
-    ],
-    [
-     0.0472,
-     -0.4512
-    ],
-    [
-     0.0841,
-     -0.4601
-    ],
-    [
-     0.1092,
-     -0.4428
-    ],
-    [
-     0.129,
-     -0.4188
-    ],
-    [
-     0.0503,
-     -0.4015
+     0.0734,
+     -0.448
     ]
    ]
   },
@@ -1089,127 +1017,6 @@
     [
      0.1609,
      -0.4356
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "LFrontWrist",
-   "material": "obsidian_scar",
-   "thickness": 0.02,
-   "_c": "特徵 2：刃面中脊（菱形斷面的稜），比刃身亮一階；分三段是為了跟著中線收窄。",
-   "mirrored": true,
-   "offset": [
-    0.016,
-    0,
-    0
-   ],
-   "udir": [
-    0,
-    0,
-    1
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     0.03,
-     -0.0132
-    ],
-    [
-     0.0807,
-     -0.2218
-    ],
-    [
-     0.0917,
-     -0.2218
-    ],
-    [
-     0.052,
-     -0.0132
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "LFrontWrist",
-   "material": "obsidian_scar",
-   "thickness": 0.02,
-   "mirrored": true,
-   "offset": [
-    0.016,
-    0,
-    0
-   ],
-   "udir": [
-    0,
-    0,
-    1
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     0.0813,
-     -0.2218
-    ],
-    [
-     0.0932,
-     -0.4305
-    ],
-    [
-     0.0982,
-     -0.4305
-    ],
-    [
-     0.0912,
-     -0.2218
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "LFrontWrist",
-   "material": "obsidian_scar",
-   "thickness": 0.02,
-   "mirrored": true,
-   "offset": [
-    0.016,
-    0,
-    0
-   ],
-   "udir": [
-    0,
-    0,
-    1
-   ],
-   "vdir": [
-    0,
-    1,
-    0
-   ],
-   "points": [
-    [
-     0.0968,
-     -0.4305
-    ],
-    [
-     0.1016,
-     -0.5739
-    ],
-    [
-     0.1005,
-     -0.5739
-    ],
-    [
-     0.0946,
-     -0.4305
     ]
    ]
   },
@@ -1614,15 +1421,15 @@
    ],
    "segments": [
     {
-     "len": 0.166,
+     "len": 0.146,
      "r": 0.013
     },
     {
-     "len": 0.038,
+     "len": 0.03,
      "r": 0.0145
     },
     {
-     "len": 0.032,
+     "len": 0.024,
      "r": 0.006,
      "rise": 14,
      "taper": true
@@ -2022,12 +1829,12 @@
    ],
    "segments": [
     {
-     "len": 0.03,
-     "r": 0.0075
+     "len": 0.0186,
+     "r": 0.0054
     },
     {
-     "len": 0.018,
-     "r": 0.003,
+     "len": 0.0112,
+     "r": 0.0022,
      "taper": true
     }
    ]
@@ -2050,486 +1857,12 @@
    ],
    "segments": [
     {
-     "len": 0.024,
-     "r": 0.0075
+     "len": 0.0149,
+     "r": 0.0054
     },
     {
-     "len": 0.0144,
-     "r": 0.003,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "glow_cut",
-   "thickness": 0.017,
-   "_c": "── 特徵 5／招式落點：胸口那一道發光割痕（材質名必須正是 glow_cut）。沿 (0.12,−0.82,0.56) 由肩頂斜切到胸底，法線朝 +X＝側視量得到（claims 要 ≥0.002）。**做成三條並排的窄帶而不是一片寬板**：r9 把單片加寬到 0.036 之後 bind pose 出現 8 個翻面三角形（新陷阱，見報告 ⑥），三條各自沿用已證明綠燈的那個形狀就沒事。斜率就是 attack「割祭」刃臂掃過的那條線——傷口與招式必須落在同一條線上。 ──",
-   "mirrored": true,
-   "offset": [
-    0.1015,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     -0.012,
-     -0.098
-    ],
-    [
-     -0.003,
-     -0.034
-    ],
-    [
-     -0.002,
-     0.028
-    ],
-    [
-     -0.011,
-     0.096
-    ],
-    [
-     -0.0192,
-     0.026
-    ],
-    [
-     -0.0202,
-     -0.036
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "glow_cut",
-   "thickness": 0.017,
-   "mirrored": true,
-   "offset": [
-    0.103,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     -0.002,
-     -0.098
-    ],
-    [
-     0.007,
-     -0.034
-    ],
-    [
-     0.008,
-     0.028
-    ],
-    [
-     -0.001,
-     0.096
-    ],
-    [
-     -0.0092,
-     0.026
-    ],
-    [
-     -0.0102,
-     -0.036
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "glow_cut",
-   "thickness": 0.017,
-   "mirrored": true,
-   "offset": [
-    0.1045,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     0.008,
-     -0.098
-    ],
-    [
-     0.017,
-     -0.034
-    ],
-    [
-     0.018,
-     0.028
-    ],
-    [
-     0.009,
-     0.096
-    ],
-    [
-     0.0008,
-     0.026
-    ],
-    [
-     -0.0002,
-     -0.036
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "_c": "特徵 5：割痕的傷口唇——每側三段、寬窄不一、首尾錯開。r10 用兩條等寬平行長條，2/2 讀成「肩甲上的條紋裝飾」；等寬平行＝鑲邊，寬窄不一＋錯開＝撕裂。",
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     0.008,
-     -0.104
-    ],
-    [
-     0.009,
-     -0.03
-    ],
-    [
-     0.034,
-     -0.042
-    ],
-    [
-     0.0292,
-     -0.094
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     0.008,
-     -0.038
-    ],
-    [
-     0.009,
-     0.036
-    ],
-    [
-     0.06,
-     0.024
-    ],
-    [
-     0.0474,
-     -0.028
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     0.008,
-     0.028
-    ],
-    [
-     0.009,
-     0.1
-    ],
-    [
-     0.042,
-     0.088
-    ],
-    [
-     0.0348,
-     0.038
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     -0.008,
-     -0.104
-    ],
-    [
-     -0.009,
-     -0.03
-    ],
-    [
-     -0.034,
-     -0.042
-    ],
-    [
-     -0.0292,
-     -0.094
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     -0.008,
-     -0.038
-    ],
-    [
-     -0.009,
-     0.036
-    ],
-    [
-     -0.06,
-     0.024
-    ],
-    [
-     -0.0474,
-     -0.028
-    ]
-   ]
-  },
-  {
-   "type": "fin",
-   "host": "Chest",
-   "material": "hide_cut",
-   "thickness": 0.026,
-   "mirrored": true,
-   "offset": [
-    0.096,
-    -0.028,
-    0.058
-   ],
-   "udir": [
-    0.15,
-    0.56,
-    0.82
-   ],
-   "vdir": [
-    0.12,
-    -0.82,
-    0.56
-   ],
-   "points": [
-    [
-     -0.008,
-     0.028
-    ],
-    [
-     -0.009,
-     0.1
-    ],
-    [
-     -0.042,
-     0.088
-    ],
-    [
-     -0.0348,
-     0.038
-    ]
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Chest",
-   "material": "glow_cut",
-   "sides": 5,
-   "_c": "特徵 5：從割痕縫裡竄出來的靈光，3 條長短不一。thunder ⑥-4 實測：有殼不會讓人讀成火，**有東西在竄出來**才會——一道靜止的亮線是紋樣，會漏出來的才是傷口。",
-   "mirrored": true,
-   "offset": [
-    0.0886,
-    0.0228,
-    0.0233
-   ],
-   "dir": [
-    0.9,
-    -0.3,
-    0.32
-   ],
-   "segments": [
-    {
-     "len": 0.0211,
-     "r": 0.0072
-    },
-    {
-     "len": 0.0129,
-     "r": 0.0028,
-     "rise": 12,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Chest",
-   "material": "glow_cut",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.0955,
-    -0.0247,
-    0.0558
-   ],
-   "dir": [
-    0.92,
-    -0.2,
-    0.34
-   ],
-   "segments": [
-    {
-     "len": 0.0161,
-     "r": 0.0072
-    },
-    {
-     "len": 0.0099,
-     "r": 0.0028,
-     "rise": 18,
-     "taper": true
-    }
-   ]
-  },
-  {
-   "type": "curve",
-   "host": "Chest",
-   "material": "glow_cut",
-   "sides": 5,
-   "mirrored": true,
-   "offset": [
-    0.103,
-    -0.0756,
-    0.0905
-   ],
-   "dir": [
-    0.9,
-    -0.26,
-    0.36
-   ],
-   "segments": [
-    {
-     "len": 0.0186,
-     "r": 0.0072
-    },
-    {
-     "len": 0.0114,
-     "r": 0.0028,
-     "rise": 24,
+     "len": 0.0089,
+     "r": 0.0022,
      "taper": true
     }
    ]
@@ -2616,6 +1949,1459 @@
     0.052
    ],
    "mirrored": true
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "glow_cut",
+   "thickness": 0.012,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0582,
+     -0.0848
+    ],
+    [
+     0.0162,
+     -0.0477
+    ],
+    [
+     -0.0155,
+     -0.0065
+    ],
+    [
+     -0.0704,
+     -0.069
+    ]
+   ],
+   "_c": "feature 5 redo (harden4B r4). r11 sat at scapula height, was mirrored on both sides and had equal-width parallel lips -> 6/6 read as shoulder armour; r3 kept spiky flaps and sat too high -> 2/2 read it as a dorsal ridge. r4: the glow itself is a five-segment ZIGZAG crack (a jagged bright line reads as a split, a straight band reads as trim), it runs across the lower half of the chest flank well below the back line, only one side has it, and the lips are two blunt irregular patches instead of a row of triangles."
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "glow_cut",
+   "thickness": 0.012,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     0.018,
+     -0.0193
+    ],
+    [
+     -0.0223,
+     0.031
+    ],
+    [
+     -0.069,
+     -0.0157
+    ],
+    [
+     -0.0187,
+     -0.056
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "glow_cut",
+   "thickness": 0.012,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0333,
+     -0.0313
+    ],
+    [
+     0.0399,
+     0.0062
+    ],
+    [
+     0.0146,
+     0.0606
+    ],
+    [
+     -0.0612,
+     0.0285
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "glow_cut",
+   "thickness": 0.012,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     0.0469,
+     0.0456
+    ],
+    [
+     -0.0002,
+     0.0771
+    ],
+    [
+     -0.0271,
+     0.0502
+    ],
+    [
+     0.0044,
+     0.0031
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "glow_cut",
+   "thickness": 0.012,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0096,
+     0.0374
+    ],
+    [
+     0.0568,
+     0.069
+    ],
+    [
+     0.0504,
+     0.088
+    ],
+    [
+     -0.0216,
+     0.0735
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0675,
+     -0.0696
+    ],
+    [
+     -0.0152,
+     -0.0045
+    ],
+    [
+     -0.0264,
+     0.0045
+    ],
+    [
+     -0.0786,
+     -0.0607
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0183,
+     -0.054
+    ],
+    [
+     -0.0701,
+     -0.0154
+    ],
+    [
+     -0.0786,
+     -0.0269
+    ],
+    [
+     -0.0268,
+     -0.0655
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0614,
+     0.0281
+    ],
+    [
+     0.0147,
+     0.0595
+    ],
+    [
+     0.0092,
+     0.0727
+    ],
+    [
+     -0.0668,
+     0.0414
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     0.0044,
+     0.0007
+    ],
+    [
+     -0.0237,
+     0.0505
+    ],
+    [
+     -0.0362,
+     0.0434
+    ],
+    [
+     -0.0081,
+     -0.0063
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0228,
+     0.0738
+    ],
+    [
+     0.0498,
+     0.0859
+    ],
+    [
+     0.0475,
+     0.1
+    ],
+    [
+     -0.0251,
+     0.0879
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0508,
+     -0.0984
+    ],
+    [
+     0.0256,
+     -0.0646
+    ],
+    [
+     0.0167,
+     -0.0444
+    ],
+    [
+     -0.0597,
+     -0.0782
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     0.0306,
+     -0.0088
+    ],
+    [
+     -0.008,
+     0.0429
+    ],
+    [
+     -0.0257,
+     0.0297
+    ],
+    [
+     0.0129,
+     -0.022
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0253,
+     -0.0473
+    ],
+    [
+     0.0476,
+     -0.0092
+    ],
+    [
+     0.0374,
+     0.0104
+    ],
+    [
+     -0.0355,
+     -0.0277
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     0.0582,
+     0.0615
+    ],
+    [
+     0.0085,
+     0.0896
+    ],
+    [
+     -0.0024,
+     0.0703
+    ],
+    [
+     0.0473,
+     0.0423
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Chest",
+   "material": "hide_cut",
+   "thickness": 0.016,
+   "mirrored": false,
+   "offset": [
+    0.08549999999999999,
+    -0.005,
+    -0.03
+   ],
+   "udir": [
+    0.02,
+    0.1,
+    0.995
+   ],
+   "vdir": [
+    0.02,
+    -0.995,
+    0.1
+   ],
+   "points": [
+    [
+     -0.0019,
+     0.0203
+    ],
+    [
+     0.0634,
+     0.0542
+    ],
+    [
+     0.0532,
+     0.0738
+    ],
+    [
+     -0.0121,
+     0.0399
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_cut",
+   "sides": 5,
+   "mirrored": false,
+   "offset": [
+    0.087,
+    0.062,
+    -0.086
+   ],
+   "dir": [
+    0.93,
+    0.24,
+    0.28
+   ],
+   "segments": [
+    {
+     "len": 0.0186,
+     "r": 0.0072
+    },
+    {
+     "len": 0.0114,
+     "r": 0.0026,
+     "rise": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_cut",
+   "sides": 5,
+   "mirrored": false,
+   "offset": [
+    0.089,
+    0.026,
+    -0.052
+   ],
+   "dir": [
+    0.95,
+    0.04,
+    0.3
+   ],
+   "segments": [
+    {
+     "len": 0.0223,
+     "r": 0.0072
+    },
+    {
+     "len": 0.0137,
+     "r": 0.0026,
+     "rise": 19,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_cut",
+   "sides": 5,
+   "mirrored": false,
+   "offset": [
+    0.0885,
+    -0.02,
+    -0.018
+   ],
+   "dir": [
+    0.95,
+    -0.18,
+    0.26
+   ],
+   "segments": [
+    {
+     "len": 0.0192,
+     "r": 0.0072
+    },
+    {
+     "len": 0.0118,
+     "r": 0.0026,
+     "rise": 26,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "glow_cut",
+   "sides": 5,
+   "mirrored": false,
+   "offset": [
+    0.085,
+    -0.056,
+    0.008
+   ],
+   "dir": [
+    0.92,
+    -0.32,
+    0.23
+   ],
+   "segments": [
+    {
+     "len": 0.0155,
+     "r": 0.0072
+    },
+    {
+     "len": 0.0095,
+     "r": 0.0026,
+     "rise": 33,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Skull",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "_c": "ritual vocabulary: gilt brow crown between the pedicles.",
+   "mirrored": false,
+   "offset": [
+    0,
+    0.056,
+    0.004
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0.3,
+    0.95
+   ],
+   "points": [
+    [
+     -0.03,
+     -0.034
+    ],
+    [
+     0.03,
+     -0.034
+    ],
+    [
+     0.038,
+     0.01
+    ],
+    [
+     0,
+     0.048
+    ],
+    [
+     -0.038,
+     0.01
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Skull",
+   "material": "zuli_gold",
+   "thickness": 0.011,
+   "mirrored": true,
+   "offset": [
+    0.03,
+    0.02,
+    0.024
+   ],
+   "udir": [
+    0,
+    0.42,
+    0.91
+   ],
+   "vdir": [
+    0,
+    0.91,
+    -0.42
+   ],
+   "points": [
+    [
+     -0.03,
+     -0.008
+    ],
+    [
+     0.024,
+     -0.014
+    ],
+    [
+     0.03,
+     0.006
+    ],
+    [
+     -0.026,
+     0.012
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "NeckRoot",
+   "material": "zuli_gold",
+   "thickness": 0.013,
+   "_c": "ritual vocabulary: gilt neck-plate collar, three unequal pairs.",
+   "mirrored": true,
+   "offset": [
+    0.062,
+    0.006,
+    0.016
+   ],
+   "udir": [
+    0,
+    0.3,
+    0.95
+   ],
+   "vdir": [
+    0,
+    0.95,
+    -0.3
+   ],
+   "points": [
+    [
+     -0.042,
+     -0.034
+    ],
+    [
+     0.042,
+     -0.024
+    ],
+    [
+     0.048,
+     0.024
+    ],
+    [
+     -0.036,
+     0.034
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Neck1",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    0.054,
+    0.0,
+    0.014
+   ],
+   "udir": [
+    0,
+    0.34,
+    0.94
+   ],
+   "vdir": [
+    0,
+    0.94,
+    -0.34
+   ],
+   "points": [
+    [
+     -0.033,
+     -0.026
+    ],
+    [
+     0.033,
+     -0.019
+    ],
+    [
+     0.038,
+     0.019
+    ],
+    [
+     -0.028,
+     0.026
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Neck2",
+   "material": "zuli_gold",
+   "thickness": 0.011,
+   "mirrored": true,
+   "offset": [
+    0.045,
+    -0.002,
+    0.012
+   ],
+   "udir": [
+    0,
+    0.38,
+    0.92
+   ],
+   "vdir": [
+    0,
+    0.92,
+    -0.38
+   ],
+   "points": [
+    [
+     -0.025,
+     -0.021
+    ],
+    [
+     0.025,
+     -0.014
+    ],
+    [
+     0.028,
+     0.014
+    ],
+    [
+     -0.022,
+     0.021
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.03,
+   "_c": "ritual vocabulary: gilt cuff at the blade root, pushing 'weapon' toward 'ritual implement'.",
+   "mirrored": true,
+   "offset": [
+    0.008,
+    0.03,
+    0.006
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.044,
+     0.03
+    ],
+    [
+     0.03,
+     0.03
+    ],
+    [
+     0.034,
+     0.056
+    ],
+    [
+     -0.048,
+     0.056
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "obsidian_scar",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.013,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0381,
+     0.03
+    ],
+    [
+     0.1026,
+     -0.012
+    ],
+    [
+     0.1628,
+     -0.13
+    ],
+    [
+     -0.0129,
+     -0.082
+    ]
+   ],
+   "_c": "blade inner face copies of the segment bands and the gold triangle band: both blind-read cameras sit on +X, so the near blade only ever showed its unmarked -X face and read as a flat dark shield."
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "face_stripe",
+   "thickness": 0.011,
+   "mirrored": true,
+   "offset": [
+    -0.0125,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0092,
+     -0.098
+    ],
+    [
+     0.1644,
+     -0.148
+    ],
+    [
+     0.1468,
+     -0.268
+    ],
+    [
+     0.0169,
+     -0.212
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "obsidian_scar",
+   "thickness": 0.011,
+   "mirrored": true,
+   "offset": [
+    -0.0125,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0206,
+     -0.228
+    ],
+    [
+     0.1441,
+     -0.286
+    ],
+    [
+     0.1295,
+     -0.386
+    ],
+    [
+     0.0462,
+     -0.336
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "face_stripe",
+   "thickness": 0.01,
+   "mirrored": true,
+   "offset": [
+    -0.012,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0501,
+     -0.352
+    ],
+    [
+     0.1269,
+     -0.402
+    ],
+    [
+     0.1137,
+     -0.48
+    ],
+    [
+     0.0734,
+     -0.448
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0403,
+     -0.0002
+    ],
+    [
+     -0.0253,
+     -0.067
+    ],
+    [
+     0.0092,
+     -0.0336
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0177,
+     -0.1004
+    ],
+    [
+     0.0319,
+     -0.1338
+    ],
+    [
+     0.0167,
+     -0.067
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0101,
+     -0.1338
+    ],
+    [
+     0.0052,
+     -0.2006
+    ],
+    [
+     0.0395,
+     -0.1672
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.013,
+     -0.2341
+    ],
+    [
+     0.0629,
+     -0.2675
+    ],
+    [
+     0.0472,
+     -0.2006
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0209,
+     -0.2675
+    ],
+    [
+     0.0368,
+     -0.3343
+    ],
+    [
+     0.0708,
+     -0.3009
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0448,
+     -0.3677
+    ],
+    [
+     0.0949,
+     -0.4011
+    ],
+    [
+     0.0788,
+     -0.3343
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0529,
+     -0.4011
+    ],
+    [
+     0.0693,
+     -0.468
+    ],
+    [
+     0.1031,
+     -0.4346
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.012,
+   "mirrored": true,
+   "offset": [
+    -0.0135,
+    0,
+    0
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.0775,
+     -0.5014
+    ],
+    [
+     0.1278,
+     -0.5348
+    ],
+    [
+     0.1113,
+     -0.468
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LFrontWrist",
+   "material": "zuli_gold",
+   "thickness": 0.03,
+   "mirrored": true,
+   "offset": [
+    -0.008,
+    0.03,
+    0.006
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.044,
+     0.03
+    ],
+    [
+     0.03,
+     0.03
+    ],
+    [
+     0.034,
+     0.056
+    ],
+    [
+     -0.048,
+     0.056
+    ]
+   ]
   }
  ],
  "animations": {
