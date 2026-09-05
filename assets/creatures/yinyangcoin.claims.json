@@ -1,0 +1,156 @@
+{
+  "name": "陰陽眼銅錢 yinyangcoin_qianyan_zhiren (yinqi/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模、看到任何 judge 數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝pojun.claims.json（同為 swarm），差異全部是換名或依本隻造型重訂，沒有一格是看了數字之後放寬的：① part_exists 五條換成本隻的身分材質（coin_body／glow_coin／eye／paper_skirt／paper_base）；② part_signature 換到 glow_coin（招牌＝臉上兩枚方孔錢的青銅鏽錢緣），front 視角（本隻的識別視角是正面／3-4，錢是貼在臉上的正面物，側視只看得到錢的側邊），min_share 0.015 或 span_ratio 0.45；③ part_visible eye@front ≥0.3% ＝ 真實參照特徵①「方孔是穿透的、有光從孔裡透出來」的機械化；④ part_visible coin_body@front ≥1%＝深褐錢肉；⑤ part_visible paper_head@front ≥2%＝錢不能把整張臉蓋掉（比 pojun 的 skin_face 2.5% 寬 0.5pp，理由＝本隻的臉有兩枚大錢壓在上面、露出的臉本來就少，這是**寫定當下依造型算出來的值**，不是事後放寬）；⑥ part_visible paper_base@front ≥0.8%＝特徵⑤方形紙底座；⑦ part_visible paper_skirt@side ≥6%＝特徵④喇叭紙裙；⑧ focal_contrast glow_coin : eye@front ≥3×＝孔裡的鬼火是一點光不是一片光，錢緣必須壓過它；⑨ 其餘 share_hierarchy／style_dark／saturation_area／tri_budget／rig／anim 沿用凍結檔原值。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "coin_body",
+      "stage": "MID",
+      "label": "方孔銅錢的錢肉必須存在（招牌剪影＝臉上的方孔錢）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_coin",
+      "stage": "MID",
+      "label": "青銅鏽錢緣必須存在，材質名必須正是 glow_coin（three.js 端靠這個名字掛 emissive；陰氣色帶依簡報落在錢緣）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "方孔後面透出來的鬼火必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "paper_skirt",
+      "stage": "MID",
+      "label": "喇叭形紙裙必須存在（真實參照特徵④）"
+    },
+    {
+      "type": "part_exists",
+      "part": "paper_base",
+      "stage": "MID",
+      "label": "方形紙底座必須存在（真實參照特徵⑤）"
+    },
+    {
+      "type": "part_signature",
+      "part": "glow_coin",
+      "view": "front",
+      "min_share": 0.015,
+      "or_min_span": 0.45,
+      "stage": "MID",
+      "label": "招牌部位（兩枚方孔錢的青銅鏽錢緣）要撐得起正視面積或水平跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "eye",
+      "view": "front",
+      "min_share": 0.003,
+      "stage": "MID",
+      "label": "孔裡的鬼火在正視至少佔 0.3%——方孔必須是真的穿透、透得出光（特徵①的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "coin_body",
+      "view": "front",
+      "min_share": 0.01,
+      "stage": "MID",
+      "label": "深褐錢肉在正視至少佔 1%——錢不能只剩一圈邊（特徵②③的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "paper_head",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "紙人的臉在正視至少佔 2%——兩枚錢壓在眼上，但臉還要看得見，否則讀成面具不是貼在臉上"
+    },
+    {
+      "type": "part_visible",
+      "part": "paper_base",
+      "view": "front",
+      "min_share": 0.008,
+      "stage": "MID",
+      "label": "方形紙底座在正視至少佔 0.8%（特徵⑤的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "paper_skirt",
+      "view": "side",
+      "min_share": 0.06,
+      "stage": "MID",
+      "label": "喇叭紙裙在側視至少佔 6%——下襬要外撇得看得出來（特徵④的機械化）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "glow_coin",
+      "b": "eye",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "錢緣必須壓過孔中鬼火至少 3 倍——孔裡是一點光，不是一片光"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "paper_body",
+        "paper_skirt",
+        "paper_arm",
+        "paper_leg"
+      ],
+      "secondary": [
+        "paper_head",
+        "paper_base"
+      ],
+      "tertiary": [
+        "coin_body",
+        "coin_patina",
+        "glow_coin",
+        "eye",
+        "mouth_ink",
+        "cord_red",
+        "hand_paper"
+      ],
+      "stage": "MID",
+      "view": "tq",
+      "label": "6:3:1 階層：（紙軀幹＋紙裙＋紙臂＋紙腿＝紙人本體）／（紙頭＋紙底座）／（錢肉、銅鏽斑、錢緣、孔中鬼火、裂嘴、紅麻繩、紙手）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝陰陽眼：翻錢片）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "name": "水鬼浮標 buoy_shuigui_fubiao (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/raincoat.claims.json（同為陰氣 haunt，同樣沒有 type:eye 以外的臉）。本檔在動手建模之前寫定，之後只改 buoy.json 去遷就它。相對 raincoat 的改動：① 材質名全換成本隻的；② 招牌部位由 hood 換成 buoy（設計簡報 buoy 列：招牌剪影＝頭頂圓浮標），focal_contrast 的對照組換成 knot（系別色帶落點，兩個高飽和面不得等重）；③ share_hierarchy 改成『水鬼本體＋浮標本體 primary／半透明水草 secondary／繩與發光小件 tertiary』；④ 保留 raincoat 加嚴的那條 part_visible（釘住 glow_buoy 真的看得見，防 nail 報告 ⑥-4）；⑤ 另加一條 part_visible 釘住 rope 在側視真的看得見（F4 的垂繩是參照特徵，不能被身體遮光）。saturation_area 帶用量產卷預設 10%–60%（本隻沒有 IP 色，不走 redhat/raincoat 的 10–70 放寬）。part_signature min_share 0.06 / or_min_span 0.12、focal_contrast min_ratio 2、share_hierarchy tolerance 0.15 與 raincoat 逐字相同；tri_budget 1500–8000 同凍結檔 2026-09-04 19:30 修訂。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "buoy",
+      "stage": "MID",
+      "label": "招牌部位：頭頂那顆浮標的漆面鼓身必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "foul",
+      "stage": "MID",
+      "label": "參照特徵 F3：吃水線以下的暗污帶（同時是桅與斜撐的鏽鐵）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "flesh",
+      "stage": "MID",
+      "label": "水鬼本體（泡水的軀幹與頭）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "rope",
+      "stage": "MID",
+      "label": "參照特徵 F4：從吊環垂下的那條標繩必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "knot",
+      "stage": "MID",
+      "label": "參照特徵 F4：繩上的繩結必須存在（＝設計簡報指定的系別色帶落點）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光部位之一：材質名必須正是 eye（three.js 端靠 /^eye(_|$)/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_buoy",
+      "stage": "MID",
+      "label": "發光部位之二：標燈，材質名必須正是 glow_buoy（three.js 端靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_weed",
+      "stage": "MID",
+      "label": "haunt 下半身虛化：拖成一綹的水草主體，材質名必須以 ghost_ 開頭（js/creature-figures.js:56 的 /^ghost_/ 掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_strand",
+      "stage": "MID",
+      "label": "haunt 下半身虛化：長短不一的水草細條，材質名必須以 ghost_ 開頭"
+    },
+    {
+      "type": "part_signature",
+      "part": "buoy",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（頭頂圓浮標）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_buoy",
+      "view": "front",
+      "min_share": 0.0015,
+      "stage": "MID",
+      "label": "桅頂標燈在正面必須真的看得見，不得被吊環或斜撐蓋掉（nail ⑥-4）"
+    },
+    {
+      "type": "part_visible",
+      "part": "rope",
+      "view": "side",
+      "min_share": 0.004,
+      "stage": "MID",
+      "label": "垂繩在側視必須真的看得見，不得整條藏在身體後面（F4 是參照特徵，藏起來等於沒做）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "buoy",
+      "b": "knot",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個高飽和面（浮標鼓身／繩結）不得等重：浮標必須明確壓過繩結，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["flesh", "buoy", "foul"],
+      "secondary": ["ghost_weed", "ghost_strand"],
+      "tertiary": ["rope", "knot", "eye", "glow_buoy", "void"],
+      "stage": "MID",
+      "label": "6:3:1 階層：水鬼本體＋浮標／半透明水草下半身／繩與發光小件"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（量產卷預設帶，本隻無 IP 色不放寬）"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

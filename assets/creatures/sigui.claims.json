@@ -1,0 +1,160 @@
+{
+  "name": "飼鬼甕 sigui_egui (yinqi/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模、看到任何數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝wuying.claims.json（同為 swarm），差異全部是**加嚴或換名**、沒有一格放寬：① part_exists 由 5 條加到 7 條，把 ref-sigui.md 五條特徵裡做得成機械條的四條各自釘住一個材質載體；② 多加一條 part_visible jar_clay@side ≥3%（特徵③『釉線下段』的機械化，wuying 沒有對應條）；③ 多加一條 part_visible bone_arm@side ≥1%（特徵④『手臂扒住甕口』的機械化）；④ part_signature 的 min_share 由 0.06 提到 0.12（招牌部位是整只甕腹，不是小掛件，門檻該更高）；⑤ focal_contrast min_ratio 3（高於引擎預設 2）、style_dark 90、saturation_area 0.10–0.60、tri_budget 1500–8000 全部沿用凍結檔原值。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。judge 一律不帶 --stage（凍結檔 2026-09-05 主對話記錄）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "jar_glaze",
+      "stage": "MID",
+      "label": "上釉甕身必須存在（招牌剪影＝鼓脹甕腹的載體，特徵①）"
+    },
+    {
+      "type": "part_exists",
+      "part": "jar_clay",
+      "stage": "MID",
+      "label": "下段素坯必須存在——釉線要有實體載體，不能只靠一條頂點色帶（特徵③）"
+    },
+    {
+      "type": "part_exists",
+      "part": "lip_rim",
+      "stage": "MID",
+      "label": "外翻厚唇環必須存在（特徵②）"
+    },
+    {
+      "type": "part_exists",
+      "part": "bone_skin",
+      "stage": "MID",
+      "label": "餓鬼枯瘦軀幹必須存在（特徵④）"
+    },
+    {
+      "type": "part_exists",
+      "part": "hair",
+      "stage": "MID",
+      "label": "焦紅亂髮必須存在（特徵⑤）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "甕口內喉發光必須存在，且材質名必須正是 mouth_glow（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_jar",
+      "stage": "MID",
+      "label": "甕頸陰氣青光環必須存在，材質名必須正是 glow_jar（簡報指定的第二個發光部位）"
+    },
+    {
+      "type": "part_signature",
+      "part": "jar_glaze",
+      "view": "side",
+      "min_share": 0.12,
+      "or_min_span": 0.45,
+      "stage": "MID",
+      "label": "招牌部位（鼓脹甕腹）在側視要撐得起面積或跨距其中一項——比 wuying 的 0.06 加嚴一倍"
+    },
+    {
+      "type": "part_visible",
+      "part": "jar_clay",
+      "view": "side",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "素坯段在側視至少佔 3%——釉線要看得見才叫分色（特徵③的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "lip_rim",
+      "view": "front",
+      "min_share": 0.015,
+      "stage": "MID",
+      "label": "外翻厚唇在正視至少佔 1.5%——唇被餓鬼擋掉就不成立（特徵②的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "bone_skin",
+      "view": "front",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "餓鬼上半身在正視至少佔 3%——爬出來的東西要看得見（特徵④的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "bone_arm",
+      "view": "side",
+      "min_share": 0.01,
+      "stage": "MID",
+      "label": "手臂在側視至少佔 1%——『雙手扒住甕唇』的機械化（特徵④子項）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "jar_glaze",
+      "b": "mouth_glow",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "甕身必須壓過內喉發光至少 3 倍——甕口是一點光，不是一顆燈"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "jar_glaze",
+        "jar_clay"
+      ],
+      "secondary": [
+        "bone_skin",
+        "skull",
+        "bone_arm"
+      ],
+      "tertiary": [
+        "lip_rim",
+        "glow_jar",
+        "mouth_glow",
+        "rib",
+        "socket",
+        "orb_pale",
+        "hair",
+        "claw"
+      ],
+      "view": "tq",
+      "stage": "MID",
+      "label": "6:3:1 階層：（釉甕身＋素坯段）／（餓鬼軀幹＋顱＋雙臂）／（唇環、頸光、內喉光、肋條、眼窩、眼珠、亂髮、指爪）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝餓鬼進食／甕口張大）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

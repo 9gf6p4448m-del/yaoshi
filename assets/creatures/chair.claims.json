@@ -1,0 +1,116 @@
+{
+  "name": "椅仔姑竹椅 chair_yiziku (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/raincoat.claims.json（同為陰氣 haunt），改動：① 材質名換成本隻的；② 招牌部位＝splat（設計簡報 chair 列：招牌剪影＝方格竹椅背立在肩後，下面三支短腳），focal_contrast 的對照組取 pale（椅背頂端那顆垂頭）；③ share_hierarchy 依本隻設計＝『椅背與竹骨 primary／半透明三短腳與格柵 secondary／頭臉與兩個發光件 tertiary』；④ 兩條 part_visible 釘住 eye 與 glow_seat 真的看得見（加嚴，防 nail ⑥-4『發光小件被掛件蓋掉而 judge 不擋』）；⑤ style_dark 沿用陰氣的深底要求。saturation_area 帶用凍結檔標準 10%–60%（本隻非 IP 色，不走 raincoat 的 70% 放寬）；part_signature min_share 0.06 / or_min_span 0.12、focal_contrast min_ratio 2、share_hierarchy tolerance 0.15 與 raincoat 逐字相同；tri_budget 1500–8000（凍結檔 2026-09-04 19:30 修訂）。本檔在動手建模之前就寫定，之後只改 chair.json 去遷就它。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "splat",
+      "stage": "MID",
+      "label": "招牌部位：方格竹椅背的背板本體必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "bamboo",
+      "stage": "MID",
+      "label": "竹骨（座面、側柱、扶手、格柵桿）必須存在"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（設計簡報 chair 列的發光部位之一）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_seat",
+      "stage": "MID",
+      "label": "座面鬼火必須存在，材質名必須正是 glow_seat（three.js 端靠 /^glow_/ 掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_leg",
+      "stage": "MID",
+      "label": "haunt 的下半身虛化：三支短竹腳必須存在，材質名必須以 ghost_ 開頭（接線卷靠這個前綴掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "pale",
+      "stage": "MID",
+      "label": "椅背頂端那顆垂下的無臉頭必須存在（『靈附在椅上』的幾何載體）"
+    },
+    {
+      "type": "part_signature",
+      "part": "splat",
+      "view": "side",
+      "min_share": 0.06,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（椅背板）在側視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "eye",
+      "view": "front",
+      "min_share": 0.0015,
+      "stage": "MID",
+      "label": "發光眼在正面必須真的看得見，不得被垂頭或臉洞蓋掉（nail ⑥-4）"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_seat",
+      "view": "tq",
+      "min_share": 0.0015,
+      "stage": "MID",
+      "label": "座面鬼火在 3/4 視角必須真的看得見，不得被座面或扶手蓋掉（nail ⑥-4）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "splat",
+      "b": "pale",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（椅背板／垂頭）不得等重：椅背必須明確壓過頭，剪影才是『椅子』不是『人』"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["splat", "bamboo"],
+      "secondary": ["ghost_leg", "bamboo_lit"],
+      "tertiary": ["pale", "void", "eye", "glow_seat", "node", "ghost_cloth"],
+      "stage": "MID",
+      "label": "6:3:1 階層：椅背與竹骨／半透明短腳與格柵桿／頭臉與兩個發光件"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max": 90,
+      "stage": "MID",
+      "label": "陰氣的深底：識別視角（側視）中位亮度不得高於 90/255"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（凍結檔標準帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：≤8000）"
+    }
+  ]
+}

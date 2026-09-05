@@ -1,0 +1,3433 @@
+{
+  "name": "buoy_shuigui_fubiao",
+  "_variant": "3D 量產批 11：水鬼浮標（陰氣 haunt）。依 docs/experiments/2026-09-04-ref-buoy.md 的五條凍結參照特徵造型：F1 頭頂鼓形浮標（矮圓筒＋錐頂、寬＞高）／F2 桅頂閉合吊環／F3 吃水線硬切分色（上半高飽和、下半暗污帶）／F4 從吊環垂下的繩與繩結／F5 鼓身骨架（斜撐細桿＋腰箍）。",
+  "_ref": "影像參照五張（tools/anyCreature/out/ref/buoy/）：ref5 繫船浮標（主參照，鼓身＋頂桅＋吊環＋吃水線分色）、ref2 釣魚浮標（頂端高飽和色帽＋貫穿細桿）、ref4 漁船碰墊浮筒（單繩吊掛＋繩眼）、ref6 浮標剪影（矮圓筒＋錐頂）、ref3 中元放水燈（氛圍，非造型）。",
+  "_brief": "The drowned man who never made it across, still wearing the harbour buoy that failed to save him. Read from the side he is one leaning column: a squat painted drum sits on a head that hangs too far forward, a rusted mast and its closed lifting eye stand above it, and one rope falls from that eye all the way past his knees with a fat knot swinging halfway down. Below the waist he stops being a body and becomes one lank hank of river weed.",
+  "_haunt_skeleton": "無腿。腰（Waist y=0.435）以下全部是 ghost_ 材質的水草：一條 weed 主鏈拖到 y≈0.058，外加 7 條長短不一的 ghost_strand 細條垂到 y 0.03–0.16。地面與最低點之間留空隙＝懸空（同 raincoat r12 的做法）。",
+  "_asymmetry": "① 頭往前下方垂並偏右（Crown 落在 x+0.036 / z+0.068，不在軀幹軸上）② 浮標跟著頭歪（鼓身軸 x+0.030 / z+0.060）③ 左臂 0.376 長、右臂 0.240 長＝1.57×，左臂往前下方伸出去抓、右臂萎縮貼身 ④ 兩個眼窩 void 片大小不同 ⑤ 繩偏落在左前方，不在中線。",
+  "_glow_materials": "eye（兩支 curve 做的瞳點，見 eyeL 的 _note）與 glow_buoy（桅頂吊環裡的標燈鬼火）＝設計簡報 buoy 列指定的兩個發光部位，原樣出現在 GLB materials。void 是不發光的近黑，命名刻意不帶 glow_ 前綴，免得被 js/creature-figures.js:51 的 /^glow_/ 吃進 emissive。",
+  "_ghost_materials": "ghost_weed（水草主體）與 ghost_strand（細條）＝ js/creature-figures.js:56 的 /^ghost_/ 半透明（opacity 0.62，已接線）。兩者都只出現在腰以下。",
+  "_colour_band": "設計簡報 buoy 列寫『陰氣青:繩結』。本檔把陰氣青同時放在 knot（繩結，簡報指定的落點）與 buoy（浮標鼓身上半）——因為凍結參照 F3 明寫『浮標上半高飽和亮色、下半一圈暗污帶』，只把色帶留在繩結就兌現不了 F3。兩處同一色相家族（#4fd49a / #2fb87a），視覺上仍是一件事：浮標與它的繩。其餘部位一律中性近黑或濕灰。",
+  "_near_black_note": "近黑一律用中性灰黑（void #141414、foul #3b3a2e 的 S=0.22），不用偏暖近黑——shading.noise 會把 S 0.32–0.45 的偏暖近黑擾動到 S>0.5 而吃掉 saturation_area 預算（lookdev tiger_a ⑤-6）。",
+  "_arc_note": "colors.arcs 只吃環上角度、做不出橫向環帶（harden-batch1 ⑥-3）。所以 F3 的吃水線橫向硬切**不是**用 arcs 做的，是把浮標拆成兩條鏈：drumFoul（下半錐體，material foul）與 drumHi（上半鼓身，material buoy），drumHi 的根環埋在 drumFoul 裡、出了 drumFoul 的鈍口才張到全寬——兩個材質在 y≈0.980 交界處形成一條乾淨的水平硬邊。",
+  "_ring_note": "F2 的閉合吊環＝curve ＋ 每段 coil 45°（n=8，R=0.052）。閉合誤差實測 7.9e-18。環心不在起點上，offset 依實測重心校正，見 eyering 的 _note。",
+  "_no_gear_note": "F5 的斜撐刻意做成 3 支、方位角 20°/145°/250°、長度 0.085/0.098/0.078 各不相同——bow 卷『等長芒讀成齒輪』與 eye 卷『對稱框架讀成骨架』兩個陷阱都來自等長等角的放射陣列。腰箍則是 drumHi profile 上一圈外突的 sharp 唇（t 0.230→0.290→0.350），不是另掛一圈零件。",
+  "_hardening": "凍結檔 2026-09-04 19:10 模板規則：build rigid ＋所有主要 volume faceted:true ＋ profile exp ≥4.5 ＋ smooth_angle 24–30（本檔 26）。",
+  "palette": {
+    "flesh": {
+      "color": "#5d6864",
+      "rough": 0.88
+    },
+    "buoy": {
+      "color": "#22946a",
+      "rough": 0.62
+    },
+    "foul": {
+      "color": "#33342b",
+      "rough": 0.95
+    },
+    "rope": {
+      "color": "#6b6252",
+      "rough": 0.9
+    },
+    "knot": {
+      "color": "#4fd49a",
+      "rough": 0.5
+    },
+    "void": {
+      "color": "#141414",
+      "rough": 0.95
+    },
+    "eye": {
+      "color": "#8ef0c0",
+      "rough": 0.15
+    },
+    "glow_buoy": {
+      "color": "#57d9a2",
+      "rough": 0.14
+    },
+    "ghost_weed": {
+      "color": "#55786a",
+      "rough": 0.6
+    },
+    "ghost_strand": {
+      "color": "#628b76",
+      "rough": 0.6
+    }
+  },
+  "build": "rigid",
+  "shading": {
+    "gradient": {
+      "top": 0.14,
+      "bottom": -0.74
+    },
+    "noise": {
+      "size": 0.018,
+      "amount": 0.24
+    }
+  },
+  "smooth_angle": 26,
+  "joints": {
+    "Waist": [
+      0,
+      0.405,
+      0
+    ],
+    "Belly": {
+      "from": "Waist",
+      "up": 0.106,
+      "fwd": 0.03
+    },
+    "Chest": {
+      "from": "Belly",
+      "up": 0.15,
+      "fwd": 0.022
+    },
+    "Yoke": {
+      "from": "Chest",
+      "up": 0.115,
+      "fwd": -0.032
+    },
+    "Neck": {
+      "from": "Yoke",
+      "up": -0.044,
+      "fwd": 0.03,
+      "side": 0.008
+    },
+    "Head1": {
+      "from": "Neck",
+      "up": 0.098,
+      "fwd": 0.032,
+      "side": 0.014
+    },
+    "Crown": {
+      "from": "Head1",
+      "up": 0.074,
+      "fwd": 0.008,
+      "side": 0.014
+    },
+    "DrumBase": {
+      "from": "Crown",
+      "up": -0.026,
+      "side": -0.006,
+      "fwd": -0.008
+    },
+    "DrumWL": {
+      "from": "DrumBase",
+      "up": 0.1,
+      "side": -0.022,
+      "fwd": 0.01
+    },
+    "DrumRimA": {
+      "from": "DrumWL",
+      "up": -0.03,
+      "side": 0.006,
+      "fwd": -0.003
+    },
+    "DrumRimB": {
+      "from": "DrumRimA",
+      "up": 0.038,
+      "side": -0.008,
+      "fwd": 0.004
+    },
+    "DrumTopJ": {
+      "from": "DrumRimB",
+      "up": 0.05,
+      "side": -0.011,
+      "fwd": 0.005
+    },
+    "DrumCap": {
+      "from": "DrumTopJ",
+      "up": 0.036,
+      "side": -0.008,
+      "fwd": 0.004
+    },
+    "MastFoot": {
+      "from": "DrumCap",
+      "up": -0.011,
+      "side": 0.003,
+      "fwd": -0.001
+    },
+    "MastTop": {
+      "from": "MastFoot",
+      "up": 0.095,
+      "side": -0.02,
+      "fwd": 0.009
+    },
+    "RopeA": {
+      "from": "MastTop",
+      "up": -0.018,
+      "side": 0.008
+    },
+    "RopeB": {
+      "from": "RopeA",
+      "side": -0.13,
+      "up": -0.06,
+      "fwd": 0.07
+    },
+    "RopeC": {
+      "from": "RopeB",
+      "side": -0.02,
+      "up": -0.23,
+      "fwd": 0.01
+    },
+    "RopeD": {
+      "from": "RopeC",
+      "side": 0.026,
+      "up": -0.19,
+      "fwd": -0.02
+    },
+    "RopeE": {
+      "from": "RopeD",
+      "side": 0.01,
+      "up": -0.245,
+      "fwd": -0.01
+    },
+    "RopeF": {
+      "from": "RopeE",
+      "side": -0.014,
+      "up": -0.3,
+      "fwd": 0.02
+    },
+    "KnotTop": {
+      "from": "RopeC",
+      "up": -0.075,
+      "side": 0.0103,
+      "fwd": -0.0079
+    },
+    "KnotBot": {
+      "from": "KnotTop",
+      "up": -0.08,
+      "side": 0.0109,
+      "fwd": -0.0084
+    },
+    "WeedRoot": {
+      "from": "Waist",
+      "up": 0.018,
+      "fwd": 0.004
+    },
+    "Weed1": {
+      "from": "WeedRoot",
+      "up": -0.158,
+      "fwd": 0.014,
+      "side": -0.01
+    },
+    "Weed2": {
+      "from": "Weed1",
+      "up": -0.12,
+      "fwd": 0.02,
+      "side": -0.016
+    },
+    "WeedTip": {
+      "from": "Weed2",
+      "up": -0.092,
+      "fwd": 0.018,
+      "side": -0.014
+    },
+    "LSh": {
+      "from": "Yoke",
+      "side": 0.05,
+      "up": -0.034,
+      "fwd": -0.002
+    },
+    "LElbow": {
+      "from": "LSh",
+      "side": 0.146,
+      "up": -0.15,
+      "fwd": 0.066
+    },
+    "LWrist": {
+      "from": "LElbow",
+      "side": 0.062,
+      "up": -0.082,
+      "fwd": 0.126
+    },
+    "RSh": {
+      "from": "Yoke",
+      "side": -0.042,
+      "up": -0.044,
+      "fwd": -0.006
+    },
+    "RElbow": {
+      "from": "RSh",
+      "side": -0.064,
+      "up": -0.126,
+      "fwd": 0.03
+    },
+    "RWrist": {
+      "from": "RElbow",
+      "side": -0.022,
+      "up": -0.084,
+      "fwd": 0.04
+    }
+  },
+  "chains": {
+    "torso": [
+      "Waist",
+      "Belly",
+      "Chest",
+      "Yoke"
+    ],
+    "head": [
+      "Neck",
+      "Head1",
+      "Crown"
+    ],
+    "drumFoul": [
+      "DrumBase",
+      "DrumWL"
+    ],
+    "drumHi": [
+      "DrumRimA",
+      "DrumRimB",
+      "DrumTopJ",
+      "DrumCap"
+    ],
+    "mast": [
+      "MastFoot",
+      "MastTop"
+    ],
+    "rope": [
+      "RopeA",
+      "RopeB",
+      "RopeC",
+      "RopeD",
+      "RopeE",
+      "RopeF"
+    ],
+    "knot": [
+      "KnotTop",
+      "KnotBot"
+    ],
+    "weed": [
+      "WeedRoot",
+      "Weed1",
+      "Weed2",
+      "WeedTip"
+    ],
+    "LArm": [
+      "LSh",
+      "LElbow",
+      "LWrist"
+    ],
+    "RArm": [
+      "RSh",
+      "RElbow",
+      "RWrist"
+    ]
+  },
+  "attach": {
+    "head": "Yoke",
+    "drumFoul": "Crown",
+    "drumHi": "DrumWL",
+    "mast": "DrumCap",
+    "rope": "MastTop",
+    "knot": "RopeC",
+    "weed": "Waist",
+    "LArm": "Yoke",
+    "RArm": "Yoke"
+  },
+  "touch": [
+    [
+      "torso",
+      "head"
+    ],
+    [
+      "head",
+      "drumFoul"
+    ],
+    [
+      "drumFoul",
+      "drumHi"
+    ],
+    [
+      "drumHi",
+      "mast"
+    ],
+    [
+      "mast",
+      "rope"
+    ],
+    [
+      "rope",
+      "knot"
+    ],
+    [
+      "torso",
+      "weed"
+    ],
+    [
+      "torso",
+      "LArm"
+    ],
+    [
+      "torso",
+      "RArm"
+    ]
+  ],
+  "volumes": [
+    {
+      "chain": "torso",
+      "material": "flesh",
+      "sides": 11,
+      "faceted": true,
+      "_note": "泡水的軀幹。r5 做得太厚，hero 上是一根石柱；r6 整條收窄約 15%，讓 t0.72 的聳肩（0.098 寬）與 t0.46 的胸腹凹陷（0.066）差距拉開＝骨感。頂端收到 0.046/0.062＝沒有像樣的脖子，頭直接壓在肩上。",
+      "profile": [
+        [
+          0,
+          0.078,
+          0.086,
+          {
+            "exp": 4.8
+          }
+        ],
+        [
+          0.18,
+          0.07,
+          0.078,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          0.46,
+          0.058,
+          0.066,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          0.72,
+          0.07,
+          0.098,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.046,
+          0.062,
+          {
+            "exp": 4.8
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.014,
+      "colors": {
+        "arcs": [
+          {
+            "from": 30,
+            "to": 48,
+            "color": "#39423e"
+          },
+          {
+            "from": 96,
+            "to": 114,
+            "color": "#39423e"
+          },
+          {
+            "from": 246,
+            "to": 264,
+            "color": "#3d4744"
+          },
+          {
+            "from": 312,
+            "to": 330,
+            "color": "#39423e"
+          }
+        ]
+      }
+    },
+    {
+      "chain": "head",
+      "material": "flesh",
+      "sides": 9,
+      "faceted": true,
+      "_note": "頭往前下方掛，且明顯比肩窄（0.048 對 0.098）＝r5 頭肩同寬時整塊讀成一根柱子。根環 0.044 埋在 Yoke 下方 0.044 的 Neck 上（該高度 torso 半徑約 0.070），root_containment 靠這個埋深過。",
+      "profile": [
+        [
+          0,
+          0.044,
+          0.04,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.3,
+          0.056,
+          0.048,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          0.66,
+          0.052,
+          0.044,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.04,
+          0.036,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.014
+    },
+    {
+      "chain": "drumFoul",
+      "material": "foul",
+      "sides": 14,
+      "faceted": true,
+      "_note": "★ F3 的下半＝桶的下半截。r12 的直錐與 r13 的外凸碟底都被讀成帽簷；r14 改成**垂直筒壁**（t0.40→1 幾乎不變徑）＋ t0.30 一道外突到 0.152 的**桶箍**——桶箍（barrel chime）是『桶』最強的辨識線索，也是低多邊形唯一做得出來的水平環（`colors.arcs` 做不出橫帶，harden-batch1 ⑥-3，只能靠 profile 的外突唇）。根環 0.026 埋在頭顱裡，出頭之後 0.02 內就張到全寬＝平底的桶壓在頭上，不是一圈往外伸的簷。頂端 caps none＝鈍口，由 drumHi 從裡面塞住。",
+      "profile": [
+        [
+          0,
+          0.026,
+          0.026,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.2,
+          0.122,
+          0.122,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.3,
+          0.152,
+          0.152,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.4,
+          0.144,
+          0.144,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.146,
+          0.146,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ]
+      ],
+      "caps": [
+        "dome",
+        "none"
+      ],
+      "ring_step": 0.014,
+      "colors": {
+        "arcs": [
+          {
+            "from": 14,
+            "to": 46,
+            "color": "#25261f"
+          },
+          {
+            "from": 96,
+            "to": 118,
+            "color": "#2b2c24"
+          },
+          {
+            "from": 152,
+            "to": 200,
+            "color": "#25261f"
+          },
+          {
+            "from": 262,
+            "to": 288,
+            "color": "#2b2c24"
+          },
+          {
+            "from": 316,
+            "to": 344,
+            "color": "#1f201a"
+          }
+        ]
+      }
+    },
+    {
+      "chain": "drumHi",
+      "material": "buoy",
+      "sides": 14,
+      "faceted": true,
+      "_note": "★ F1＋F3 的上半＋F5 的腰箍。根環 0.100 埋在 drumFoul 裡；t0.18 張到 0.150 出 drumFoul 的鈍口＝吃水線那條水平硬邊；t0.30 一道外突到 0.158 的 sharp 唇＝F5 的腰箍（也是桶的第二道箍）；t0.40–0.70 是**垂直筒壁**；t0.80 第三道箍；t0.88→1 收成平甲板（caps fan——用 dome 收成圓頂整顆會讀成香菇）。三道箍＋垂直壁＋吃水線分色是 r14 為了打掉『燈籠／斗笠』讀法下的重手：前兩輪四位讀者一致把矮胖的碟形讀成帽子。漆色 #22946a／rough 0.62＝霧面油漆的鐵桶，不是玻璃燈罩；五道深綠縱帶＝從鼓緣往下流的銹漬。",
+      "profile": [
+        [
+          0,
+          0.1,
+          0.1,
+          {
+            "exp": 4.8
+          }
+        ],
+        [
+          0.18,
+          0.15,
+          0.15,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.3,
+          0.158,
+          0.158,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.4,
+          0.148,
+          0.148,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.7,
+          0.148,
+          0.148,
+          {
+            "exp": 5.2
+          }
+        ],
+        [
+          0.8,
+          0.156,
+          0.156,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          0.88,
+          0.146,
+          0.146,
+          {
+            "exp": 5.2,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.112,
+          0.112,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "fan"
+      ],
+      "ring_step": 0.012,
+      "colors": {
+        "arcs": [
+          {
+            "from": 8,
+            "to": 30,
+            "color": "#14563c"
+          },
+          {
+            "from": 74,
+            "to": 88,
+            "color": "#1a6647"
+          },
+          {
+            "from": 130,
+            "to": 158,
+            "color": "#14563c"
+          },
+          {
+            "from": 236,
+            "to": 252,
+            "color": "#1a6647"
+          },
+          {
+            "from": 292,
+            "to": 320,
+            "color": "#123f2d"
+          }
+        ]
+      }
+    },
+    {
+      "chain": "mast",
+      "material": "foul",
+      "sides": 7,
+      "faceted": true,
+      "_note": "★ F2 的短桅：從甲板正中立起、往上收細。根環 0.024 埋在甲板底下。材質沿用 foul＝跟水下那截同一塊鏽鐵，漆只上在鼓身。",
+      "profile": [
+        [
+          0,
+          0.024,
+          0.024,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.4,
+          0.019,
+          0.019,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.015,
+          0.015,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.012
+    },
+    {
+      "chain": "rope",
+      "material": "rope",
+      "sides": 5,
+      "faceted": true,
+      "_note": "★ F4 的標繩。r11/r12 的繩又直又均勻，四位讀者一致讀成『釣竿／拐杖／法杖』——直而等粗的東西就是桿，不是繩。r13 讓它離開吊環之後先往外鬆鬆盪出 0.130（A→B 與 B→C 之間 62° 的大轉角，繩半徑只有 0.011，corner bevel-skip 的壓縮區 0.011·tan31°·1.2＝0.0079，丟不到環，compile.js:136），再一路垂下並左右擺兩次＝一條有垂弧的軟繩。全程走在軀幹前方＝側視看得見（claims 的 part_visible rope/side 在釘這件事）。",
+      "profile": [
+        [
+          0,
+          0.009,
+          0.009,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.3,
+          0.011,
+          0.011,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          0.7,
+          0.01,
+          0.01,
+          {
+            "exp": 4.8
+          }
+        ],
+        [
+          1,
+          0.008,
+          0.008,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.016
+    },
+    {
+      "chain": "knot",
+      "material": "knot",
+      "sides": 9,
+      "faceted": true,
+      "_note": "★ F4 的繩結，也是設計簡報指定的系別色帶落點。兩個鼓包（0.040／0.041）中間夾一道收腰（0.028）＝繩繞了兩圈打死的形狀，不是一顆珠子。r11 由繩的下段（RopeE）移到胸口高度（RopeC 往下 0.090，刻意避開 RopeC 那個 11° 轉角——落在轉角上時 corner bevel-skip 會把附近的環丟掉，最近的宿主環退遠、root_containment 量到 22% 露在外面），下面留一大截光禿禿的繩尾：第 1 輪盲讀兩位都把『末端掛著一顆同色綠色物件的長桿』讀成釣竿吊燈籠。根環同時由 0.009 收到 0.006。",
+      "profile": [
+        [
+          0,
+          0.006,
+          0.006,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.18,
+          0.04,
+          0.04,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          0.42,
+          0.028,
+          0.028,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          0.62,
+          0.041,
+          0.041,
+          {
+            "exp": 5.0,
+            "sharp": true
+          }
+        ],
+        [
+          0.85,
+          0.022,
+          0.022,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.006,
+          0.006,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "none"
+      ],
+      "ring_step": 0.012
+    },
+    {
+      "chain": "weed",
+      "material": "ghost_weed",
+      "sides": 13,
+      "faceted": true,
+      "_note": "haunt 下半身虛化：腰以下拖成一綹水草。r4 把主體做太胖（0.126），hero 上讀成一座實心底座；r5/r6 收到 0.098 並縮短，讓外面那 9 條 ghost_strand 成為最低也最外的輪廓＝水草而不是裙襬。根環由 0.086 降到 0.060 是 r6 收窄軀幹之後的必要跟進（root_containment 量的是根環有幾成落在宿主體內，軀幹一瘦，原本剛好的根環就有 54% 露在外面）。末端仍留鈍（0.032）不收尖——raincoat 硬化批 3B 的教訓：錐尖比周圍垂條低就會被讀成一條腿。",
+      "profile": [
+        [
+          0,
+          0.06,
+          0.06,
+          {
+            "exp": 4.8
+          }
+        ],
+        [
+          0.1,
+          0.098,
+          0.094,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          0.34,
+          0.082,
+          0.078,
+          {
+            "exp": 4.6,
+            "sharp": true
+          }
+        ],
+        [
+          0.62,
+          0.06,
+          0.056,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          1,
+          0.032,
+          0.03,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.014,
+      "colors": {
+        "arcs": [
+          {
+            "from": 0,
+            "to": 18,
+            "color": "#41594e"
+          },
+          {
+            "from": 55,
+            "to": 72,
+            "color": "#4fd49a"
+          },
+          {
+            "from": 110,
+            "to": 128,
+            "color": "#3a4f45"
+          },
+          {
+            "from": 168,
+            "to": 186,
+            "color": "#41594e"
+          },
+          {
+            "from": 222,
+            "to": 240,
+            "color": "#3a4f45"
+          },
+          {
+            "from": 288,
+            "to": 306,
+            "color": "#41594e"
+          }
+        ]
+      }
+    },
+    {
+      "chain": "LArm",
+      "material": "flesh",
+      "sides": 8,
+      "faceted": true,
+      "_note": "伸出去抓的那隻手臂：r6 把肘推到 side 0.146、腕再往外往前（0.062/0.126），整隻甩出軀幹輪廓之外破剪影（r4/r5 貼著身側，hero 上被讀成肋骨）。骨感＝t0.35 的 sharp 收窄。",
+      "profile": [
+        [
+          0,
+          0.034,
+          0.032,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.35,
+          0.026,
+          0.024,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          0.7,
+          0.023,
+          0.021,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.016,
+          0.015,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.016
+    },
+    {
+      "chain": "RArm",
+      "material": "flesh",
+      "sides": 8,
+      "faceted": true,
+      "_note": "萎縮的那隻：全長 0.246＝左臂 0.417 的 0.59 倍（1.70× 不對稱），貼著身側只垂到腰上方。",
+      "profile": [
+        [
+          0,
+          0.03,
+          0.028,
+          {
+            "exp": 4.6
+          }
+        ],
+        [
+          0.38,
+          0.022,
+          0.02,
+          {
+            "exp": 4.8,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.013,
+          0.012,
+          {
+            "exp": 4.6
+          }
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.016
+    }
+  ],
+  "parts": [
+    {
+      "type": "curve",
+      "name": "eyering",
+      "host": "MastTop",
+      "material": "foul",
+      "sides": 7,
+      "smooth_angle": 18,
+      "_note": "★ F2 的閉合吊環。n=8、每段 coil 45°、len=2R·sin(π/8)。r8 用 R=0.042／管徑 0.009，戲台 bloom 把標燈的光暈糊過整個環（stage-lit 上看不出是個環）；r9 放大到 R=0.052／管徑 0.012，同時把標燈縮一階。環心不在起點上：n 個頂點的重心相對起點是 (0, -0.038803, -0.016073)·(R/0.042)（dir=[0,0,1] 時），所以要讓環心落在 MastTop+(0,0.042,0)，offset 就得寫上面那組數字。這是**算完再驗過重心與平均半徑**的（eye ⑥-1：教科書推導的圓心公式是錯的）。dir=[0,0,1] ⇒ side=cross([0,1,0],[0,0,1])=[1,0,0] ⇒ coil 繞 +x 轉 ⇒ 環落在 YZ 平面（x 為常數）＝側視是一個完整的圓、正視是一條豎線。",
+      "offset": [
+        0,
+        0.090042,
+        0.0199
+      ],
+      "dir": [
+        0,
+        0,
+        1
+      ],
+      "segments": [
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        },
+        {
+          "len": 0.039799,
+          "r": 0.012,
+          "coil": 45
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "lamp",
+      "host": "DrumCap",
+      "material": "glow_buoy",
+      "sides": 6,
+      "smooth_angle": 16,
+      "_note": "標燈：站在甲板上、偏在桅的一側（不對稱手段）的一盞鬼火燈。r9 原本把它塞在吊環的孔裡，吊環放大到 R=0.052 之後，正視方向環的前弧剛好擋在燈前面——judge 的 part_visible glow_buoy/front 由 0.24% 掉到 0.03% 直接 BLOCK（nail ⑥-4 那條的實例：發光小件被掛件蓋掉）。改放到甲板上不但解掉遮擋，也更接近真實航標（ref5 的浮標燈就架在甲板上），而且順手讓吊環的孔留空、環才讀得出來是個環。",
+      "offset": [
+        0.064,
+        -0.006,
+        0.034
+      ],
+      "dir": [
+        0.16,
+        0.97,
+        0.18
+      ],
+      "segments": [
+        {
+          "len": 0.02,
+          "r": 0.013
+        },
+        {
+          "len": 0.02,
+          "r": 0.019
+        },
+        {
+          "len": 0.016,
+          "r": 0.011,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "stayA",
+      "host": "MastTop",
+      "material": "foul",
+      "sides": 5,
+      "smooth_angle": 18,
+      "_note": "★ F5 的斜撐。r4 掛在 MastFoot 上、沿著矮錐頂往下往外爬，結果整組埋在錐頂裡（hero 上 0 條可見）；r5 改成掛在桅身（MastTop 下方 0.014），由上往下**跨過**錐頂落在鼓緣，才站得出來。三支刻意不等長、不等角（20°／145°／250°，長 0.130／0.142／0.118）——bow 卷『等長芒讀成齒輪』與 eye 卷『對稱框架讀成骨架』兩個陷阱都來自等長等角的放射陣列。",
+      "offset": [
+        0,
+        -0.014,
+        0
+      ],
+      "dir": [
+        0.294,
+        -0.51,
+        0.808
+      ],
+      "segments": [
+        {
+          "len": 0.1,
+          "r": 0.0135
+        },
+        {
+          "len": 0.061,
+          "r": 0.0095,
+          "fall": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "stayB",
+      "host": "MastTop",
+      "material": "foul",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        0,
+        -0.014,
+        0
+      ],
+      "dir": [
+        0.493,
+        -0.51,
+        -0.704
+      ],
+      "segments": [
+        {
+          "len": 0.109,
+          "r": 0.0135
+        },
+        {
+          "len": 0.067,
+          "r": 0.0095,
+          "fall": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "stayC",
+      "host": "MastTop",
+      "material": "foul",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        0,
+        -0.014,
+        0
+      ],
+      "dir": [
+        -0.808,
+        -0.51,
+        -0.294
+      ],
+      "segments": [
+        {
+          "len": 0.091,
+          "r": 0.0121
+        },
+        {
+          "len": 0.056,
+          "r": 0.0081,
+          "fall": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "lash",
+      "host": "MastTop",
+      "material": "rope",
+      "sides": 6,
+      "smooth_angle": 18,
+      "_note": "把繩紮在桅上的那一圈——讓『繩是從吊環那裡接出來的』這件事在幾何上說得通。n=6 的小閉合環（coil 60°、len=2·0.020·sin30°=0.020），繞在桅身上。",
+      "offset": [
+        0,
+        -0.001,
+        -0.018484
+      ],
+      "dir": [
+        0,
+        0,
+        1
+      ],
+      "segments": [
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "coil": 60
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "knotwrapA",
+      "host": "KnotTop",
+      "material": "rope",
+      "sides": 5,
+      "smooth_angle": 18,
+      "_note": "繩結上的兩道纏繞（美術聖經 §5『繩結＝綁太多圈的繩』）。n=6 閉合環，半徑 0.033 剛好貼在 knot 第一個鼓包外緣。",
+      "offset": [
+        0,
+        -0.012,
+        -0.030496
+      ],
+      "dir": [
+        0,
+        0,
+        1
+      ],
+      "segments": [
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        },
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        },
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        },
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        },
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        },
+        {
+          "len": 0.033,
+          "r": 0.006,
+          "coil": 60
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "eyeL",
+      "host": "Head1",
+      "material": "eye",
+      "sides": 6,
+      "smooth_angle": 16,
+      "_note": "★ 兩顆瞳點沒有用 type:eye。buildEye 走的是 anchor.around 乘上 +1/-1（compile.js:286），而本檔頭鏈的『臉』落在 around≈298（編譯器 info 行實測），寫 62 會把其中一顆眼睛擺到後腦——見 _traps 第 1 條。改成兩支手放位置的 curve，材質名仍是 eye（js/creature-figures.js:51 的 /^eye(_|$)/ 掛 emissive），順帶拿到不對稱：左瞳大一階、位置也高一點。",
+      "offset": [
+        -0.028,
+        -0.01,
+        0.032
+      ],
+      "dir": [
+        -0.34,
+        -0.2,
+        0.92
+      ],
+      "segments": [
+        {
+          "len": 0.012,
+          "r": 0.009
+        },
+        {
+          "len": 0.011,
+          "r": 0.012
+        },
+        {
+          "len": 0.008,
+          "r": 0.006,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "eyeR",
+      "host": "Head1",
+      "material": "eye",
+      "sides": 6,
+      "smooth_angle": 16,
+      "offset": [
+        0.026,
+        -0.016,
+        0.028
+      ],
+      "dir": [
+        0.36,
+        -0.24,
+        0.9
+      ],
+      "segments": [
+        {
+          "len": 0.012,
+          "r": 0.008
+        },
+        {
+          "len": 0.01,
+          "r": 0.01
+        },
+        {
+          "len": 0.007,
+          "r": 0.005,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "fin",
+      "name": "socketL",
+      "host": "Head1",
+      "material": "void",
+      "thickness": 0.01,
+      "conform": false,
+      "_note": "左眼窩：不對稱的破洞形（左右不等長），不是對稱橫縫——對稱橫縫會被讀成面罩＝『裡面有人』，跟 haunt 要的『空』相反（raincoat ⑥-4，該條原文就點名 buoy 同樣適用）。",
+      "anchor": {
+        "chain": "head",
+        "t": 0.62,
+        "around": 310
+      },
+      "udir": [
+        0,
+        0.94,
+        0.33
+      ],
+      "vdir": [
+        0.99,
+        -0.02,
+        0.05
+      ],
+      "points": [
+        [
+          -0.014,
+          -0.03
+        ],
+        [
+          0.01,
+          -0.038
+        ],
+        [
+          0.036,
+          -0.028
+        ],
+        [
+          0.042,
+          -0.004
+        ],
+        [
+          0.034,
+          0.024
+        ],
+        [
+          0.008,
+          0.034
+        ],
+        [
+          -0.014,
+          0.026
+        ]
+      ]
+    },
+    {
+      "type": "fin",
+      "name": "socketR",
+      "host": "Head1",
+      "material": "void",
+      "thickness": 0.01,
+      "conform": false,
+      "_note": "右眼窩：刻意比左邊小一圈、形狀也不同＝不對稱手段④。",
+      "anchor": {
+        "chain": "head",
+        "t": 0.6,
+        "around": 226
+      },
+      "udir": [
+        0,
+        0.94,
+        0.33
+      ],
+      "vdir": [
+        -0.99,
+        -0.02,
+        0.05
+      ],
+      "points": [
+        [
+          -0.012,
+          -0.024
+        ],
+        [
+          0.008,
+          -0.03
+        ],
+        [
+          0.028,
+          -0.018
+        ],
+        [
+          0.032,
+          0.006
+        ],
+        [
+          0.02,
+          0.026
+        ],
+        [
+          -0.012,
+          0.02
+        ]
+      ]
+    },
+    {
+      "type": "fin",
+      "name": "maw",
+      "host": "Neck",
+      "material": "void",
+      "thickness": 0.009,
+      "conform": false,
+      "_note": "溺死者張著的口：偏在中線一側的直立裂口，上寬下窄。厚 0.009 是為了在戲台 bloom 下仍是純黑（近黑不 bloom，harden3C ⑥-4）。",
+      "anchor": {
+        "chain": "head",
+        "t": 0.24,
+        "around": 268
+      },
+      "udir": [
+        0,
+        -0.94,
+        -0.33
+      ],
+      "vdir": [
+        0.99,
+        -0.02,
+        0.05
+      ],
+      "points": [
+        [
+          -0.01,
+          -0.026
+        ],
+        [
+          0.016,
+          -0.03
+        ],
+        [
+          0.046,
+          -0.018
+        ],
+        [
+          0.058,
+          0
+        ],
+        [
+          0.044,
+          0.014
+        ],
+        [
+          0.014,
+          0.024
+        ],
+        [
+          -0.01,
+          0.02
+        ]
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "fingerL1",
+      "host": "LWrist",
+      "material": "flesh",
+      "sides": 5,
+      "smooth_angle": 18,
+      "_note": "細長指爪（凍結檔美術守則⑥）：三根長短不一、方向散開的細管，最長 0.098＝前臂的 0.56 倍。柱體讀成長出來的東西，薄板讀成貼上去的東西（eye ⑥-5）。",
+      "offset": [
+        0.004,
+        -0.006,
+        0.01
+      ],
+      "dir": [
+        0.1,
+        -0.52,
+        0.85
+      ],
+      "segments": [
+        {
+          "len": 0.048,
+          "r": 0.01
+        },
+        {
+          "len": 0.032,
+          "r": 0.007,
+          "fall": 22
+        },
+        {
+          "len": 0.018,
+          "r": 0.004,
+          "fall": 26,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "fingerL2",
+      "host": "LWrist",
+      "material": "flesh",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        0.018,
+        -0.004,
+        0.006
+      ],
+      "dir": [
+        0.44,
+        -0.44,
+        0.78
+      ],
+      "segments": [
+        {
+          "len": 0.04,
+          "r": 0.009
+        },
+        {
+          "len": 0.026,
+          "r": 0.006,
+          "fall": 20
+        },
+        {
+          "len": 0.014,
+          "r": 0.004,
+          "fall": 24,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "fingerL3",
+      "host": "LWrist",
+      "material": "flesh",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        -0.01,
+        -0.008,
+        0.006
+      ],
+      "dir": [
+        -0.3,
+        -0.58,
+        0.76
+      ],
+      "segments": [
+        {
+          "len": 0.036,
+          "r": 0.009
+        },
+        {
+          "len": 0.022,
+          "r": 0.006,
+          "fall": 24,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "fingerR1",
+      "host": "RWrist",
+      "material": "flesh",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        -0.004,
+        -0.006,
+        0.006
+      ],
+      "dir": [
+        -0.16,
+        -0.72,
+        0.68
+      ],
+      "segments": [
+        {
+          "len": 0.03,
+          "r": 0.008
+        },
+        {
+          "len": 0.02,
+          "r": 0.005,
+          "fall": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "fingerR2",
+      "host": "RWrist",
+      "material": "flesh",
+      "sides": 5,
+      "smooth_angle": 18,
+      "offset": [
+        0.008,
+        -0.008,
+        0.002
+      ],
+      "dir": [
+        0.26,
+        -0.78,
+        0.57
+      ],
+      "segments": [
+        {
+          "len": 0.024,
+          "r": 0.007
+        },
+        {
+          "len": 0.015,
+          "r": 0.004,
+          "fall": 20,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedA",
+      "host": "WeedRoot",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        0.072,
+        -0.01,
+        0.024
+      ],
+      "dir": [
+        0.1,
+        -0.98,
+        0.14
+      ],
+      "segments": [
+        {
+          "len": 0.128,
+          "r": 0.013
+        },
+        {
+          "len": 0.118,
+          "r": 0.01,
+          "coil": 9
+        },
+        {
+          "len": 0.108,
+          "r": 0.006,
+          "coil": 12,
+          "taper": true
+        }
+      ],
+      "_note": "★ 一綹水草共 9 條。r4 做成 7 根同向直垂的錐管，hero 上是一排柵欄式的尖刺（＝raincoat 硬化批 3B 第 1 輪『細長尖爪／腳架』那個讀法）。r5 三件事一起改：(a) 半徑由 0.017 降到 0.009–0.013＝細條不是柱子 (b) 每條給不同的 coil/behind/ahead 讓它各自彎去不同方向，沒有兩條平行 (c) 長度由 0.34/0.30/…/0.13 改成 0.42 到 0.13 相差 3.2 倍且**末端 y 全部錯開**，不再對齊成一條水平的下緣。"
+    },
+    {
+      "type": "curve",
+      "name": "weedB",
+      "host": "WeedRoot",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        -0.066,
+        -0.014,
+        0.04
+      ],
+      "dir": [
+        -0.12,
+        -0.98,
+        0.16
+      ],
+      "segments": [
+        {
+          "len": 0.124,
+          "r": 0.012
+        },
+        {
+          "len": 0.104,
+          "r": 0.009,
+          "coil": -11
+        },
+        {
+          "len": 0.076,
+          "r": 0.005,
+          "coil": -14,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedC",
+      "host": "WeedRoot",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        0.024,
+        -0.016,
+        -0.07
+      ],
+      "dir": [
+        0.06,
+        -0.98,
+        -0.19
+      ],
+      "segments": [
+        {
+          "len": 0.12,
+          "r": 0.012
+        },
+        {
+          "len": 0.11,
+          "r": 0.008,
+          "behind": 10
+        },
+        {
+          "len": 0.07,
+          "r": 0.005,
+          "behind": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedD",
+      "host": "WeedRoot",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        -0.04,
+        -0.012,
+        -0.058
+      ],
+      "dir": [
+        -0.2,
+        -0.96,
+        -0.2
+      ],
+      "segments": [
+        {
+          "len": 0.11,
+          "r": 0.011
+        },
+        {
+          "len": 0.09,
+          "r": 0.007,
+          "coil": 14
+        },
+        {
+          "len": 0.05,
+          "r": 0.004,
+          "coil": 16,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedE",
+      "host": "Weed1",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        -0.078,
+        0.008,
+        -0.014
+      ],
+      "dir": [
+        -0.18,
+        -0.97,
+        -0.16
+      ],
+      "segments": [
+        {
+          "len": 0.105,
+          "r": 0.011
+        },
+        {
+          "len": 0.075,
+          "r": 0.007,
+          "ahead": 9
+        },
+        {
+          "len": 0.04,
+          "r": 0.004,
+          "ahead": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedF",
+      "host": "Weed1",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        0.062,
+        0.006,
+        0.052
+      ],
+      "dir": [
+        0.16,
+        -0.96,
+        0.22
+      ],
+      "segments": [
+        {
+          "len": 0.096,
+          "r": 0.01
+        },
+        {
+          "len": 0.076,
+          "r": 0.007,
+          "coil": -12
+        },
+        {
+          "len": 0.042,
+          "r": 0.004,
+          "coil": -15,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedG",
+      "host": "Weed1",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        0.008,
+        0.004,
+        -0.082
+      ],
+      "dir": [
+        0.04,
+        -0.97,
+        -0.24
+      ],
+      "segments": [
+        {
+          "len": 0.096,
+          "r": 0.01
+        },
+        {
+          "len": 0.062,
+          "r": 0.006,
+          "behind": 12,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedH",
+      "host": "Weed2",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        -0.054,
+        0.014,
+        0.044
+      ],
+      "dir": [
+        -0.1,
+        -0.97,
+        0.22
+      ],
+      "segments": [
+        {
+          "len": 0.066,
+          "r": 0.009
+        },
+        {
+          "len": 0.04,
+          "r": 0.005,
+          "coil": 13,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "weedI",
+      "host": "Weed2",
+      "material": "ghost_strand",
+      "sides": 5,
+      "smooth_angle": 20,
+      "offset": [
+        0.046,
+        0.01,
+        -0.04
+      ],
+      "dir": [
+        0.14,
+        -0.96,
+        -0.24
+      ],
+      "segments": [
+        {
+          "len": 0.07,
+          "r": 0.009
+        },
+        {
+          "len": 0.04,
+          "r": 0.005,
+          "ahead": 14,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "frayA",
+      "host": "RopeF",
+      "material": "rope",
+      "sides": 4,
+      "smooth_angle": 20,
+      "_note": "★ 繩尾散開的兩股。前兩輪四位一致把這條繩讀成『釣竿／拐杖／法杖』——桿的末端是齊的，繩的末端會散開，所以 r14 在 RopeF 末端補兩股岔開的細鬚。與 F4 的繩結一起，把『這是一條繩』的證據放在兩端。",
+      "offset": [
+        0.002,
+        -0.004,
+        0.001
+      ],
+      "dir": [
+        -0.22,
+        -0.95,
+        0.22
+      ],
+      "segments": [
+        {
+          "len": 0.036,
+          "r": 0.006
+        },
+        {
+          "len": 0.026,
+          "r": 0.003,
+          "fall": 10,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "name": "frayB",
+      "host": "RopeF",
+      "material": "rope",
+      "sides": 4,
+      "smooth_angle": 20,
+      "offset": [
+        -0.002,
+        -0.005,
+        -0.002
+      ],
+      "dir": [
+        0.26,
+        -0.94,
+        -0.2
+      ],
+      "segments": [
+        {
+          "len": 0.028,
+          "r": 0.005
+        },
+        {
+          "len": 0.018,
+          "r": 0.003,
+          "fall": 12,
+          "taper": true
+        }
+      ]
+    }
+  ],
+  "animations": {
+    "idle": {
+      "duration": 3.2,
+      "loop": true,
+      "_note": "陰氣的節奏＝hold＋突跳（ART_BIBLE §3），三種拍子刻意錯開：① 頭與浮標是『停很久、忽然歪一格、再停住』（HeadRoot/Neck 的 ry、rz 用方波式關鍵影格）② 繩與繩結是滯後的連續擺（rope 的 rx/rz 相位落後 Neck 約 0.15）③ 腰以下的水草是完全連續的漂移。浮標本身還疊一個很慢的上下浮沉（Waist 的 ty）＝它還泡在看不見的水裡。",
+      "tracks": {
+        "Waist": {
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.26,
+              0.004
+            ],
+            [
+              0.5,
+              0.011
+            ],
+            [
+              0.74,
+              0.005
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Belly": {
+          "rx": [
+            [
+              0,
+              -1
+            ],
+            [
+              0.34,
+              -1
+            ],
+            [
+              0.38,
+              2.4
+            ],
+            [
+              0.76,
+              1.9
+            ],
+            [
+              0.8,
+              -1
+            ],
+            [
+              1,
+              -1
+            ]
+          ]
+        },
+        "Chest": {
+          "rz": [
+            [
+              0,
+              0.8
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              0.34,
+              -2.4
+            ],
+            [
+              0.74,
+              -2.0
+            ],
+            [
+              0.78,
+              0.8
+            ],
+            [
+              1,
+              0.8
+            ]
+          ]
+        },
+        "Neck": {
+          "ry": [
+            [
+              0,
+              0
+            ],
+            [
+              0.18,
+              0
+            ],
+            [
+              0.22,
+              9
+            ],
+            [
+              0.54,
+              8
+            ],
+            [
+              0.58,
+              -5
+            ],
+            [
+              0.86,
+              -5
+            ],
+            [
+              0.9,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "rz": [
+            [
+              0,
+              1.4
+            ],
+            [
+              0.24,
+              1.4
+            ],
+            [
+              0.28,
+              -3.0
+            ],
+            [
+              0.84,
+              -3.0
+            ],
+            [
+              0.88,
+              1.4
+            ],
+            [
+              1,
+              1.4
+            ]
+          ]
+        },
+        "Head1": {
+          "rx": [
+            [
+              0,
+              1
+            ],
+            [
+              0.4,
+              1
+            ],
+            [
+              0.44,
+              -3.2
+            ],
+            [
+              0.8,
+              -2.6
+            ],
+            [
+              0.84,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "DrumBase": {
+          "rz": [
+            [
+              0,
+              -0.8
+            ],
+            [
+              0.32,
+              -0.8
+            ],
+            [
+              0.36,
+              2.2
+            ],
+            [
+              0.78,
+              1.8
+            ],
+            [
+              0.82,
+              -0.8
+            ],
+            [
+              1,
+              -0.8
+            ]
+          ]
+        },
+        "RopeB": {
+          "rx": [
+            [
+              0,
+              2.2
+            ],
+            [
+              0.5,
+              -2.6
+            ],
+            [
+              1,
+              2.2
+            ]
+          ],
+          "rz": [
+            [
+              0,
+              -1.6
+            ],
+            [
+              0.5,
+              1.8
+            ],
+            [
+              1,
+              -1.6
+            ]
+          ]
+        },
+        "RopeC": {
+          "rx": [
+            [
+              0,
+              -1.8
+            ],
+            [
+              0.46,
+              2.4
+            ],
+            [
+              1,
+              -1.8
+            ]
+          ],
+          "rz": [
+            [
+              0,
+              1.4
+            ],
+            [
+              0.46,
+              -1.8
+            ],
+            [
+              1,
+              1.4
+            ]
+          ]
+        },
+        "RopeD": {
+          "rx": [
+            [
+              0,
+              2.6
+            ],
+            [
+              0.42,
+              -3.0
+            ],
+            [
+              1,
+              2.6
+            ]
+          ]
+        },
+        "RopeE": {
+          "rx": [
+            [
+              0,
+              -2.2
+            ],
+            [
+              0.38,
+              3.2
+            ],
+            [
+              1,
+              -2.2
+            ]
+          ],
+          "rz": [
+            [
+              0,
+              1.2
+            ],
+            [
+              0.5,
+              -1.6
+            ],
+            [
+              1,
+              1.2
+            ]
+          ]
+        },
+        "WeedRoot": {
+          "rz": [
+            [
+              0,
+              1.6
+            ],
+            [
+              0.5,
+              -1.6
+            ],
+            [
+              1,
+              1.6
+            ]
+          ]
+        },
+        "Weed1": {
+          "rz": [
+            [
+              0,
+              -2.6
+            ],
+            [
+              0.36,
+              2.6
+            ],
+            [
+              0.72,
+              -1.5
+            ],
+            [
+              1,
+              -2.6
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              3.0
+            ],
+            [
+              0.5,
+              -3.0
+            ],
+            [
+              1,
+              3.0
+            ]
+          ]
+        },
+        "Weed2": {
+          "rz": [
+            [
+              0,
+              2.6
+            ],
+            [
+              0.5,
+              -3.6
+            ],
+            [
+              1,
+              2.6
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              -2.4
+            ],
+            [
+              0.5,
+              2.8
+            ],
+            [
+              1,
+              -2.4
+            ]
+          ]
+        },
+        "LSh": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.44,
+              0
+            ],
+            [
+              0.48,
+              -4.5
+            ],
+            [
+              0.86,
+              -3.6
+            ],
+            [
+              0.9,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "LElbow": {
+          "rx": [
+            [
+              0,
+              1.6
+            ],
+            [
+              0.28,
+              1.6
+            ],
+            [
+              0.32,
+              -5.5
+            ],
+            [
+              0.7,
+              -4.4
+            ],
+            [
+              0.74,
+              1.6
+            ],
+            [
+              1,
+              1.6
+            ]
+          ]
+        },
+        "RSh": {
+          "rx": [
+            [
+              0,
+              1
+            ],
+            [
+              0.56,
+              1
+            ],
+            [
+              0.6,
+              -3.2
+            ],
+            [
+              0.92,
+              -2.4
+            ],
+            [
+              0.96,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      }
+    },
+    "move": {
+      "duration": 1.5,
+      "loop": true,
+      "_note": "沒有腿：整隻往前飄，水草在後面拖。節奏仍是陰氣的不連續——Waist 的 tz 每半拍才推一次，中間停住。",
+      "tracks": {
+        "Waist": {
+          "tz": [
+            [
+              0,
+              0
+            ],
+            [
+              0.18,
+              0.006
+            ],
+            [
+              0.22,
+              0.042
+            ],
+            [
+              0.48,
+              0.038
+            ],
+            [
+              0.52,
+              0.004
+            ],
+            [
+              0.68,
+              0.01
+            ],
+            [
+              0.72,
+              0.044
+            ],
+            [
+              0.94,
+              0.04
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.25,
+              0.014
+            ],
+            [
+              0.5,
+              0
+            ],
+            [
+              0.75,
+              0.013
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Belly": {
+          "rx": [
+            [
+              0,
+              -2
+            ],
+            [
+              0.25,
+              3
+            ],
+            [
+              0.5,
+              -2
+            ],
+            [
+              0.75,
+              3
+            ],
+            [
+              1,
+              -2
+            ]
+          ]
+        },
+        "Neck": {
+          "ry": [
+            [
+              0,
+              -4
+            ],
+            [
+              0.3,
+              -4
+            ],
+            [
+              0.34,
+              6
+            ],
+            [
+              0.7,
+              6
+            ],
+            [
+              0.74,
+              -4
+            ],
+            [
+              1,
+              -4
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              2
+            ],
+            [
+              0.5,
+              -3
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        "DrumBase": {
+          "rz": [
+            [
+              0,
+              1.8
+            ],
+            [
+              0.5,
+              -2.2
+            ],
+            [
+              1,
+              1.8
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              -1.4
+            ],
+            [
+              0.5,
+              1.8
+            ],
+            [
+              1,
+              -1.4
+            ]
+          ]
+        },
+        "RopeB": {
+          "rx": [
+            [
+              0,
+              5
+            ],
+            [
+              0.5,
+              -6
+            ],
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        "RopeC": {
+          "rx": [
+            [
+              0,
+              -5
+            ],
+            [
+              0.46,
+              7
+            ],
+            [
+              1,
+              -5
+            ]
+          ]
+        },
+        "RopeD": {
+          "rx": [
+            [
+              0,
+              6
+            ],
+            [
+              0.42,
+              -8
+            ],
+            [
+              1,
+              6
+            ]
+          ]
+        },
+        "RopeE": {
+          "rx": [
+            [
+              0,
+              -6
+            ],
+            [
+              0.4,
+              9
+            ],
+            [
+              1,
+              -6
+            ]
+          ]
+        },
+        "RopeF": {
+          "rx": [
+            [
+              0,
+              7
+            ],
+            [
+              0.38,
+              -9
+            ],
+            [
+              1,
+              7
+            ]
+          ]
+        },
+        "WeedRoot": {
+          "rx": [
+            [
+              0,
+              -4
+            ],
+            [
+              0.5,
+              5
+            ],
+            [
+              1,
+              -4
+            ]
+          ]
+        },
+        "Weed1": {
+          "rx": [
+            [
+              0,
+              6
+            ],
+            [
+              0.5,
+              -7
+            ],
+            [
+              1,
+              6
+            ]
+          ],
+          "rz": [
+            [
+              0,
+              -3
+            ],
+            [
+              0.5,
+              3
+            ],
+            [
+              1,
+              -3
+            ]
+          ]
+        },
+        "Weed2": {
+          "rx": [
+            [
+              0,
+              -7
+            ],
+            [
+              0.5,
+              8
+            ],
+            [
+              1,
+              -7
+            ]
+          ]
+        },
+        "LSh": {
+          "rx": [
+            [
+              0,
+              6
+            ],
+            [
+              0.5,
+              -8
+            ],
+            [
+              1,
+              6
+            ]
+          ]
+        },
+        "LElbow": {
+          "rx": [
+            [
+              0,
+              -5
+            ],
+            [
+              0.5,
+              7
+            ],
+            [
+              1,
+              -5
+            ]
+          ]
+        },
+        "RSh": {
+          "rx": [
+            [
+              0,
+              -4
+            ],
+            [
+              0.5,
+              5
+            ],
+            [
+              1,
+              -4
+            ]
+          ]
+        }
+      }
+    },
+    "attack": {
+      "duration": 1.25,
+      "loop": false,
+      "_note": "招式『抓交替』（hauntSwap）＝標繩甩向對面：0→0.10 整隻往後仰、繩往後蓄；0.10→0.34 完全靜止一拍（陰氣的 attack 前有一拍靜止）；0.34→0.76 繩由後往前整條甩出去，同時長臂往前抓、身體往前壓。attack_reach 兩條路都留了：REACH＝Waist 的 tz 前推 0.20 讓左手末端超出 bind 前緣；SWING＝繩的下三節（RopeD/E/F）由 −38° 掃到 +46°，末端行程遠大於自身長度的 45%。",
+      "tracks": {
+        "Waist": {
+          "tz": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -0.035
+            ],
+            [
+              0.34,
+              -0.035
+            ],
+            [
+              0.76,
+              0.205
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              0.014
+            ],
+            [
+              0.34,
+              0.014
+            ],
+            [
+              0.76,
+              -0.02
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -6
+            ],
+            [
+              0.34,
+              -6
+            ],
+            [
+              0.76,
+              9
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Belly": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -5
+            ],
+            [
+              0.34,
+              -5
+            ],
+            [
+              0.76,
+              8
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Chest": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -6
+            ],
+            [
+              0.34,
+              -6
+            ],
+            [
+              0.76,
+              11
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Neck": {
+          "ry": [
+            [
+              0,
+              0
+            ],
+            [
+              0.08,
+              -22
+            ],
+            [
+              0.34,
+              -22
+            ],
+            [
+              0.72,
+              8
+            ],
+            [
+              0.9,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -8
+            ],
+            [
+              0.34,
+              -8
+            ],
+            [
+              0.76,
+              15
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "DrumBase": {
+          "rz": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -5
+            ],
+            [
+              0.34,
+              -5
+            ],
+            [
+              0.76,
+              7
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RopeB": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              -24
+            ],
+            [
+              0.34,
+              -24
+            ],
+            [
+              0.7,
+              30
+            ],
+            [
+              0.88,
+              8
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RopeC": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.12,
+              -30
+            ],
+            [
+              0.34,
+              -30
+            ],
+            [
+              0.72,
+              38
+            ],
+            [
+              0.9,
+              9
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RopeD": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.14,
+              -36
+            ],
+            [
+              0.36,
+              -36
+            ],
+            [
+              0.74,
+              44
+            ],
+            [
+              0.92,
+              10
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RopeE": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.16,
+              -38
+            ],
+            [
+              0.38,
+              -38
+            ],
+            [
+              0.76,
+              46
+            ],
+            [
+              0.94,
+              11
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RopeF": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.18,
+              -38
+            ],
+            [
+              0.4,
+              -38
+            ],
+            [
+              0.78,
+              46
+            ],
+            [
+              0.96,
+              11
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "KnotTop": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.16,
+              -14
+            ],
+            [
+              0.38,
+              -14
+            ],
+            [
+              0.76,
+              18
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "LSh": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              18
+            ],
+            [
+              0.34,
+              18
+            ],
+            [
+              0.74,
+              -34
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "ry": [
+            [
+              0,
+              0
+            ],
+            [
+              0.34,
+              0
+            ],
+            [
+              0.74,
+              12
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "LElbow": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              14
+            ],
+            [
+              0.34,
+              14
+            ],
+            [
+              0.74,
+              -22
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RSh": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              10
+            ],
+            [
+              0.34,
+              10
+            ],
+            [
+              0.74,
+              -14
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "WeedRoot": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.1,
+              6
+            ],
+            [
+              0.34,
+              6
+            ],
+            [
+              0.78,
+              -11
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Weed1": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.14,
+              8
+            ],
+            [
+              0.38,
+              8
+            ],
+            [
+              0.8,
+              -13
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Weed2": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.18,
+              9
+            ],
+            [
+              0.42,
+              9
+            ],
+            [
+              0.84,
+              -14
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "_traps": [
+    "① type:\"eye\" 帶 anchor 時，兩顆眼睛用的是 anchor.around 乘上 +1 與 -1（compile.js:286）——所以這個 part 只有在『臉落在 around≈0』的鏈上才對。本檔頭鏈的臉落在 around≈298，寫 62 的結果是一顆在臉上、一顆在後腦（judge 只給 part_overlap warn，不擋）。判別法：先編一次、讀 fin 的 `world normal` info 行找出臉在哪個 around；不在 0 附近就別用 type:eye，改用兩支手放位置的 curve（材質名仍取 eye 就吃得到 emissive）。",
+    "② `around` 的世界方位要逐鏈實測，且『前方』不一定是 0：本檔 head 鏈實測 268→正 +z、310→前左、226→前右、356→−x。一條鏈上 t 變動時方位幾乎不變，但換一條鏈就要重測。",
+    "③ 用 coil 做閉合環時，環心相對起點的偏移量與 R 成正比：dir=[0,0,1]、n=8 時是 (0, −0.038803, −0.016073)·(R/0.042)（實測，閉合誤差 7.9e-18）。**放大環時 offset 必須等比重算**，只改 len 與 r 會讓整個環往下掉。",
+    "④ 環放大會遮住環孔裡的東西。R 0.042→0.052 之後，正視方向環的前弧剛好擋在孔裡那顆標燈前面，`part_visible` front 由 0.24% 掉到 0.03% 直接 BLOCK。把發光小件塞進環孔前先問一句『哪個視角正對著這個環的平面』——YZ 平面的環從正面看就是一條擋光的豎線。",
+    "⑤ 子鏈的根環落在宿主鏈的**轉角**上時，corner bevel-skip（compile.js:136）把轉角附近的環丟掉，最近的宿主環退遠，`root_containment` 就量到『22% 露在外面』——即使幾何上根環明明在管子裡。解法是把根環往段的中間挪，不是縮小根環。",
+    "⑥ 收窄宿主 volume 會連帶打壞所有掛在它上面的子鏈根環：r6 把 torso 收窄 15%，原本剛好過的 weed 根環立刻 54% 露在外面而 BLOCK。動了宿主 profile 就要把它的所有子鏈根環一起重算，不能只看自己改的那一條。",
+    "⑦ `leg_fraction` 會把『一條垂到地、與身體分離的細長物』算成腿：本檔的標繩讓 haunt 的 leg_fraction 由 0.066 跳到 0.683。這是量測差異不是造型缺陷（三輪六位 6/6 都主動寫『沒有腿／飄浮』），但拿 leg_fraction 當 haunt 下半身虛化的機械佐證會誤判——要用 ghost_ 材質的側視 share（本檔 24.6%）＋讀者原話。",
+    "⑧【美術】戴在頭上、寬於頭的**任何**物件都落進『帽／笠』的語意場。三輪六位把這顆浮標讀成燈籠(3)／斗笠·燈罩(2)／瓶罐(1)／棺材·米斗(2)，沒有一位讀成浮標；三次改造型只是在同一個語意場裡換詞。歸因：真實浮標之所以認得出來，是因為它**泡在水裡**——水面是那個詞的必要語境，戲台上沒有水。同族結論見 ⑨。",
+    "⑨【美術】直而等粗、從高處垂到地、旁邊還有一隻手的細長物＝杖。加垂弧（62° 的大轉角）、收細（0.013→0.008）、末端散兩股，三招做完六位仍 6/6 讀成拐杖／法杖／釣竿。要消掉『杖』只能讓它**不落地**或**不經過手邊**，改繩本身的形狀無效。",
+    "⑩【美術】`sides` 14 ＋ `exp` 5.2 ＋ `faceted:true` 的『圓筒』不會被讀成圓筒，會被讀成**箱型／梯形**——超橢圓斷面的平直段在低多邊形無輪廓線的條件下就是箱子的側面（六位裡四位用『箱型／方形／梯形』描述它）。要讀成圓得降 exp 或大幅加 sides，但那會撞硬化規則（exp ≥4.5）——這對矛盾要由主對話裁定。"
+  ]
+}

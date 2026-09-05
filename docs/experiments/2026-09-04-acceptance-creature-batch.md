@@ -165,3 +165,8 @@ eye 回修卷（報告 `2026-09-04-review-eye-report.md`）樹根 6/6、眼 2/2�
 ## 2026-09-05 主對話記錄：judge `--stage HIGH` 只跑 HIGH 三條（fushou 卷發現）
 `judge.mjs:271` 的 stage filter 是全等比對，`--stage HIGH` 只檢查 stage=="HIGH" 的 claims，MID 那批完全沒跑；fushou 同一顆 GLB 拿掉 `--stage` 立刻 4 條 BLOCK。**自此 M-A0 的 judge 一律不帶 `--stage`（全 claims）**；已在 main 的 21 隻由稽核 agent 不帶 `--stage` 全數重跑，有 BLOCK 的列入硬化批 5。此為加嚴，不移動任何門檻。
 
+## 2026-09-05 使用者裁定：fushou 油燈簽字；judge 稽核結果
+- **fushou**：④寬淺碗形油燈三輪三位置全否證 0/6（`2026-09-04-creature-fushou-report.md`）→使用者簽字引擎限制（凹面在無貼圖低多邊形下無可讀訊號）；硬化批 5 只動香火氣質配色與金件密度、不再動燈碗。
+- **judge 稽核**（`2026-09-05-judge-audit-nostage.md`）：21 隻不帶 `--stage` 全數重跑，全過、0 BLOCK；原報告只有 ashcharm 帶過 `--stage HIGH`，補跑 22 條照樣全過。加嚴條款（judge 一律不帶 --stage）維持。
+- **xianji 結案**：刃面分段補讀 2/3（`2026-09-05-reread-xianji-shanshen.md`），依「命中＝≥1 位」定義為命中；xianji 5/5（氣質口徑僅限本隻放寬）。
+

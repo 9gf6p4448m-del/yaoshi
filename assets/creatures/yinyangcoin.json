@@ -1,0 +1,10878 @@
+{
+ "name": "yinyangcoin_qianyan_zhiren",
+ "_variant": "3D 量產卷批 12 · 陰陽眼銅錢（ab=yinyangcoin、陰氣 yinqi、swarm ×2、trait swarmPierce「陰陽眼」）。造型依 `docs/design/ART_BIBLE.md` 陰氣段（權威）＋§0.5 真實參照鐵則；參照與五條特徵清單見 `docs/experiments/2026-09-04-ref-yinyangcoin.md`（圖 `tools/anyCreature/out/ref/yinyangcoin/`）。",
+ "_brief": "A small paper funeral effigy from a Taiwanese temple with a square-holed bronze CASH COIN pressed over each eye. The body is folded card: a flat plank torso, a wide flaring paper skirt below the waist, stick-thin bamboo legs, and a rectangular paper base card underfoot. The head is a wide flat card head, tilted, with no eyes of its own — only a torn black gash of a mouth slashed across the lower face. Over each eye sits a real cash coin: a round disc with a RAISED OUTER RIM, a RAISED SQUARE FRAME around a genuine SQUARE HOLE punched clean through, and blotchy verdigris green corrosion smeared unevenly over dark bronze. The coins overhang the edges of the head. Behind each square hole a cold green corpse-light burns, so the holes look straight through into whatever is inside. The left coin sits lower, rolled off true, with a chip missing from its rim. A dark red hemp cord is knotted across the chest. Everything is flat plate and hard crease — damp, mouldy, wrong. Feel: something folded out of paper that is standing up on its own. Signature = the square-holed coins on the face. Identity view = front / three-quarter.",
+ "_ref_features": "真實參照必做清單（`2026-09-04-ref-yinyangcoin.md` §五，目標盲讀 5/5；出貨輪實得 4/5）：① **圓錢正中一個正方形穿孔、孔是真的穿透的**（coin_guo 八根 45° 斜接的半條圍出 0.031 見方的洞，洞後放 `eye` 鬼火板；出貨輪 2/2，兩位逐字「中央各有一個方孔——明顯模仿中國古錢幣（外圓內方）」「外圈綠、內為方孔銅色」）② **兩圈凸起的邊**（coin_rim 外輪郭 thickness 0.026 ＋ coin_guo 內郭 thickness 0.024，夾著 coin_flesh 錢肉 thickness 0.008 ＝ 側看三層階；出貨輪 **0/2 未命中**，讀者只讀到「邊緣是綠色鑲邊」的單一圈，見報告 ⑦-1）③ **斑駁不均的青綠銅鏽壓在深褐銅底上**（每枚錢的 32 片逐片指定 coin_body 銅／coin_patina 暗青鏽／glow_coin 亮青鏽，分布刻意不規則；左眼那枚與腳下那枚各缺一片輪郭＝磕缺；出貨輪 2/2 讀出「綠色鑲邊＋古銅／古銅金材質」，但「斑駁」「鏽」「磕缺」三個詞無人點名）④ **薄紙板拼成的平板人形＋寬外撇的紙裙**（body 斷面 X0.166 vs Z0.052＝深寬比 0.31；skirt 下襬 X 0.244 vs 腰 0.130＝1.9 倍外撇、下緣五片長短不一的撕裂紙舌；出貨輪「人形」2/2、「破爛鋸齒裙擺」2/2，但「紙」本身 0/2——低多邊形表面質感的風格牆，同 wuying 紙紮感 0/8 族）⑤ **細直如竹籤的腿＋方形紙底座**（LLeg 半徑 0.042→0.017、露出段佔全高 30%；paper_base 0.426×0.256 紙板，四角刻意不正；出貨輪 2/2）。",
+ "_swarm_recipe": "swarm 寫法沿用 pojun／wuying／boat 三卷的結論：(1) **含配件總寬務必 ≤1.2**（`creature-preview.html:112-117` 在 n>1 時每隻縮 0.62、欄距 1.05）——本檔最寬處是紙裙下襬 0.620，縮完 0.384，相鄰淨距 0.666；(2) **idle 不寫 mirror_phase**（boat ⑤-2）——一排同款要同拍才讀得出「一群」；`move` 保留 `mirror_phase: 0.5`，因為兩腿同拍會變成雙腳跳（wuying 的同一個偏離）；(3) 體型語彙的「左右對稱」在本隻讓位給陣營文法——ART_BIBLE §0 第 6 條「衝突時陣營文法在體型框內實現」，陰氣的招牌是不對稱：頭往右歪、兩枚錢一高一低（差 0.018）一正一斜（roll −5° vs 15°）、左錢缺一塊輪郭、紅繩只綁一邊。體型框（可橫排、寬 ≤1.2、矮寬比例）完全保住；(4) ★ **swarm 的『矮』在全高 1.20–1.25 的硬帶下只能靠加寬達成**——r1 版全高 1.222 但總寬只有 0.246（側視 W/H 0.24），渲染出來是細長時裝人偶不是紙紮小兵；r2 把所有 X/Z 尺寸放大 1.9–2.4 倍、高度一格不動，寬高比才回到 swarm 該有的樣子。",
+ "_proportion_note": "不落玩偶區（凍結檔 18:00 守則①：頭 ≤ 身高 1/4 或 ≥ 1/2）：全高 1.222，頭鏈 HeadRoot(1.022)→Crown(1.222) 佔 0.200 ＝ **16.4%**，在 1/4 以下。髖 0.600 → 腿佔全高 **49%**；紙裙下襬 y 0.400 停在膝(0.350)之上，露出的細腿佔全高 **30%**。頭是**方板臉**（0.200 寬 × 0.200 高，斷面深只有 0.104），兩枚錢直徑 0.140、比臉的半寬還大，各往外突出約 0.021＝破頭部剪影。",
+ "_hardening_note": "凍結檔 19:10 修訂的模板規則（`build:\"rigid\"` 只是解鎖 `faceted:true` 的許可證、平面感來自每個 volume 的 `faceted:true`，見 harden-batch1 報告 ②）：本檔 **5 個 volume 全部 `faceted: true`**、斷面 exp 4.6–5.4、`smooth_angle` 全檔 26。紙紮的材質語言本來就是折板，所有斷面都用高 exp 超橢圓做成方角紙板。GLB 走 19:30 的預算制（≤1.5MB／≤8000 tri）。",
+ "_coin_construction": "★ 方孔錢是本卷最貴的一段，寫法記在這裡供後續「有孔的圓盤」沿用：(1) **anyCreature 做不出帶洞的單一面**——`fin` 的 points 必須是嚴格凸多邊形（試作卷 ③-7），環形是凹的。唯一的路是把環**切成扇形**：每枚錢 ＝ 12 片 30° 外輪郭扇（R 0.060→0.070）＋12 片 30° 錢肉扇（R 0.0215→0.060）＋8 根 45° 斜接的方框半條（內緣 0.0155 見方＝孔，外緣 0.0225 見方），共 32 片，全部是凸四邊形。(2) **不要用 chain 繞一圈做圓環**：等長環節相鄰段長比 = 1.0，必被 `checks.js:223` 的 proportion「dead rhythm」BLOCK，而且圓周上每個關節都是 30° 轉角，`compile.js:136` 的 bevel-skip 會把環丟光。(3) **長寬比全部壓在 4:1 以下**（pojun ⑨-1：世界長寬比 ≳5:1 的 fin 在 bind pose 就生翻面三角，加厚沒用）：錢肉扇 1.3:1、輪郭扇 3.3:1、方框半條 2.1:1（**方框整條寫成一根是 4.3:1 會踩線，所以每邊切成兩半**）。(4) **孔裡的光不要掛在錢的關節上**：`eye` 板掛在 `Skull`，不然招式翻錢片時光會跟著錢一起翻走。(5) **錢掛在鬆散關節** `CoinA`／`CoinB`（`attach` 到 Skull）才能單獨翻面；代價是 `checks.js:306` 對 `hostChain=null` 的部位整條略過 `part_attachment`，這兩枚的貼合**沒有機器在守**，只有肉眼看 hero／front 圖（胸前三枚 host 在 `Chest`、腳下兩枚 host 在 `BasePlate`，那五枚有機器在守）。(6) 錢面法線只離正面 12–14°（不是 30°）——臉是 exp 5.6 的方板、幾乎是平面，法線一斜錢的內緣就會浮空 0.02 以上；靠「錢比臉的半寬還大、兩側各突出 0.014–0.020」來破頭部剪影，不靠傾角。(7) ★★ **明暗與發光的分派決定它讀不讀得出是錢，這條比任何幾何都貴**：r11 的做法是「錢緣整圈亮青＋發光（glow_coin）」，四位讀者 **0/4 讀成護目鏡／發光眼罩／發光徽章**，沒有一位說錢。r13 改成 **① 錢肉與方框改成不發光的金屬銅色 ② 錢緣主色改成不發光的暗青鏽（coin_patina），只留 4/12 片是發光的 glow_coin ③ 在臉以外再放五枚同款錢（胸前串三枚、腳下紙板上躺兩枚）**——同一批問法下兩位讀者 **2/2 主動說出「古錢幣」「外圓內方」**。三件裡最關鍵的是 ③：臉上兩個圓環在人臉的位置上先驗就是護目鏡，唯一破除它的方法是**在別的部位放一枚不會被誤讀的同款錢**（躺在板子上的錢沒有任何別的解釋），讀者再回頭重讀臉上那兩枚。",
+ "_arc_frame_note": "★ `colors.arcs` 只吃斷面角 `sym`、不吃 `t`（陷阱總表 29），所以**做不出橫向的一圈霉帶**，本檔的霉斑一律是**縱向的**（水漬本來就往下淌，正好合陰氣的「吸飽水的布」語言）。`sym` 是引擎折過的 0–180（`compile.js:218-223`），寫超過 180 是死碼（redhat 的 216–324）。`frame:\"up\"` 直立鏈實測 **sym 0＝背（−Z）、90＝兩側、180＝正面（+Z）**。一條帶至少要含 2 個 sym 格才看得到（boat ④）：body／skirt 用 `sides: 20`（sym 格 0/18/36/…/180，每格 18°），霉帶寫成 18–36° 寬的**窄縱條**——r1 版寫 140–180 是一整片正面染綠，渲染出來是「綠色長衫」不是霉斑。",
+ "_glow_materials": "glow_coin / eye —— 簡報 `yinyangcoin` 列指定的兩個發光材質名，`js/creature-figures.js` 的 `/^eye(_|$)|^mouth_glow(_|$)|^glow_/` 會接成 emissive。沒有多開第三個發光材質。`glow_coin` 是錢緣與方框的亮青銅鏽（簡報：陰氣青落在錢緣），`eye` 是方孔後面透出來的鬼火。",
+ "_traps": "① 近黑一律中性灰（S<0.22），`shading.noise` 會把偏暖近黑擾到 HSV S>0.5、撞 `saturation_area` 上限（猛虎 ⑤-6）——本檔的紙色與錢底都控在 S<0.25，高飽和額度給 coin_patina／glow_coin 的青綠、紙裙的苔綠與 cord_red 的暗紅；② `fin` 帶 `anchor` 時 `offset` 被丟掉且預設 `conform:true` 會把法線吸到宿主表面（試作 ③-2、wuying `_traps_3C`①）——本檔所有錢片與臉上的件**一律不帶 anchor**，改 host+offset+`conform:false`＋手算 udir/vdir；③ `fin` 的 `points` 必須嚴格凸多邊形（試作 ③-7）——224 片錢件由 `_tmp_gen_yyc.py` 生成，逐片算過叉積同號；④ 相鄰鏈段長比 >0.923 會被 proportion BLOCK（試作 ③-5）——本檔各鏈最大相鄰比：body 0.759／skirt 0.825／head 0.884／LArm 0.902／LLeg 0.862；⑤ `compile.js:136` 的 corner bevel-skip 會丟環（redhat C-1）——五條鏈相鄰段夾角全部 <10°，只有腳踝→腳尖 41°（該處半徑 0.018，丟環範圍 <0.008）；⑥ `ring_step` 要小到取樣得到 profile 每一列（redhat C-2）：body 0.026／skirt 0.018／head 0.012／LArm 0.044／LLeg 0.050；⑦ `root_containment` 抓的是 t=0 那一列（redhat C-4、wuying ⑧）——skirt t=0 寫 0.130（< 髖 0.150×0.98）、head t=0 寫 0.034（< 頸 0.046×0.98）、LArm t=0 寫 0.020，外張留給後面的列；子鏈的根關節還要**貼在宿主關節上**（HeadRoot 只離 Neck2 0.004，第一版寫 0.014＋側偏 0.006 就整圈露在體外被 BLOCK）；⑧ 底端零件下緣穿到 y<0 會把全高撐出 band（ashcharm ⑮）——紙底座中心 y 0.013、厚 0.026，下緣正好 y=0；⑨ `parts` 陣列不能塞沒有 `type` 的註解物件會直接 throw（harden-batch1 ⑥-6）——註記一律寫在本檔 `_` 開頭的欄位；⑩ ★ **`profile` 兩個半徑落在哪個世界軸，不要從任何一份報告推**：ashcharm `_traps` ⑧ 記「直立鏈 a=Z、b=X」，本檔同樣是 `frame:\"up\"` 的直立鏈，實測卻是 **a=X、b=Z**（第一版照 (Z,X) 寫，judge 量到 `whole.size` 的 z 0.616 > x 0.512，整隻變成前後深、左右窄的木板人）。**唯一可靠的做法是先編一次、讀 `judge` 的 `whole.size` 再決定要不要對調**，心算與別人的筆記都不算數；⑪ ★ **swarm 的「矮」在全高 1.20–1.25 的硬帶下只能靠加寬達成**：r1 全高 1.222 但總寬只有 0.246（silmetrics side W/H **0.24**），渲染出來是細長時裝人偶；把所有 X/Z 尺寸放大 1.9–2.4 倍、高度一格不動之後 W/H 才到 **0.44**，寬高比回到 swarm 該有的樣子。體型語彙寫的是「矮小」，在硬帶下要翻譯成「寬」；⑫ ★ **垂在裙寬之內的手，`part_visible` 會量到 0**：r5 的紙裙下襬半寬 0.244、手掌落在 x 0.164，`hand_paper` 的 front／side／tq 三個視角**全部是 0.000**（六根手指在模型裡好好的，只是整組被裙子擋住）。把手臂往外送到 x 0.257（越過裙擺輪廓）之後才回到 2.0%；⑬ ★ **戲台 bloom 會把 lum ≳160 的臉整片燒白**（hairpin ⑥-3 的延伸）：`paper_head` 用 #a3a693（lum 165）時 `light=1&fx=1` 下整顆頭是一團白光、錢的結構全部消失；壓到 #5f6355（lum 99）才看得見錢。臉要亮不能靠色值，只能靠**周圍更暗**。",
+ "_devices": "不可愛的手段本隻用了七項（凍結檔 18:00 守則要求至少三項；陰氣段八項手段全開）：①比例——頭佔全高 16.4%、腿佔 49%，離開玩偶區②尖——指尖三節漸細、裙擺硬折角、錢緣缺口、腳尖紙片全部尖端外露③眼——**沒有眼睛**，只有兩枚錢壓在眼位上、孔裡透出一點冷綠光（禁圓大眼）④不對稱——頭往右歪、兩枚錢一高一低一正一斜、左錢輪郭缺一片、紅繩只綁一邊⑤骨感——紙人沒有肉，四肢是 0.017–0.042 的細桿⑥細長指——每手三根三節漸細的紙指⑦嘴——一道歪斜的近黑裂口橫過下半臉，沒有其他五官⑧色——濕紙中性灰底＋青綠霉條，禁粉嫩。",
+ "palette": {
+  "paper_body": {
+   "color": "#5b6154",
+   "rough": 0.95
+  },
+  "paper_skirt": {
+   "color": "#2f6642",
+   "rough": 0.96
+  },
+  "paper_arm": {
+   "color": "#6f7563",
+   "rough": 0.95
+  },
+  "paper_leg": {
+   "color": "#545c4c",
+   "rough": 0.95
+  },
+  "paper_head": {
+   "color": "#5f6355",
+   "rough": 0.93
+  },
+  "paper_base": {
+   "color": "#262924",
+   "rough": 0.97
+  },
+  "hand_paper": {
+   "color": "#6e7362",
+   "rough": 0.94
+  },
+  "coin_body": {
+   "color": "#977c4a",
+   "rough": 0.44
+  },
+  "coin_patina": {
+   "color": "#2f7d4e",
+   "rough": 0.7
+  },
+  "mouth_ink": {
+   "color": "#0e0e10",
+   "rough": 0.9
+  },
+  "cord_red": {
+   "color": "#9c2a22",
+   "rough": 0.8
+  },
+  "glow_coin": {
+   "color": "#3fa86a",
+   "rough": 0.34
+  },
+  "eye": {
+   "color": "#1d6b41",
+   "rough": 0.2
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.26,
+   "bottom": -0.9
+  },
+  "noise": {
+   "size": 0.016,
+   "amount": 0.24
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Hips": [
+   0,
+   0.6,
+   0
+  ],
+  "Spine": {
+   "from": "Hips",
+   "up": 0.126,
+   "fwd": 0.004
+  },
+  "Chest": {
+   "from": "Spine",
+   "up": 0.166,
+   "fwd": -0.002
+  },
+  "NeckB": {
+   "from": "Chest",
+   "up": 0.066,
+   "fwd": 0.002
+  },
+  "Neck2": {
+   "from": "NeckB",
+   "up": 0.034,
+   "fwd": 0.001
+  },
+  "SkirtRoot": {
+   "from": "Hips",
+   "up": -0.024,
+   "fwd": 0.002
+  },
+  "Skirt1": {
+   "from": "SkirtRoot",
+   "up": -0.16,
+   "fwd": 0.005
+  },
+  "SkirtHem": {
+   "from": "Skirt1",
+   "up": -0.132,
+   "fwd": 0.009
+  },
+  "HeadRoot": {
+   "from": "Neck2",
+   "up": 0.004,
+   "side": 0.006,
+   "fwd": 0.001
+  },
+  "Skull": {
+   "from": "HeadRoot",
+   "up": 0.086,
+   "side": 0.008,
+   "fwd": 0.004
+  },
+  "Brow": {
+   "from": "Skull",
+   "up": 0.076,
+   "side": 0.006,
+   "fwd": 0.002
+  },
+  "Crown": {
+   "from": "Brow",
+   "up": 0.064,
+   "side": 0.001,
+   "fwd": -0.004
+  },
+  "CoinA": [
+   0.0944,
+   1.112,
+   0.056
+  ],
+  "CoinB": [
+   -0.0616,
+   1.086,
+   0.055
+  ],
+  "BasePlate": [
+   0,
+   0.013,
+   0.014
+  ],
+  "LArmRoot": {
+   "from": "Chest",
+   "side": 0.112,
+   "up": -0.03,
+   "fwd": 0.002
+  },
+  "LElbow": {
+   "from": "LArmRoot",
+   "side": 0.07,
+   "up": -0.186,
+   "fwd": 0.01
+  },
+  "LWrist": {
+   "from": "LElbow",
+   "side": 0.055,
+   "up": -0.166,
+   "fwd": 0.026
+  },
+  "LHand": {
+   "from": "LWrist",
+   "side": 0.02,
+   "up": -0.044,
+   "fwd": 0.016
+  },
+  "LLegRoot": {
+   "from": "Hips",
+   "side": 0.07,
+   "up": 0.0,
+   "fwd": 0.0
+  },
+  "LKnee": {
+   "from": "LLegRoot",
+   "side": 0.008,
+   "up": -0.25,
+   "fwd": 0.008
+  },
+  "LAnkle": {
+   "from": "LKnee",
+   "side": 0.006,
+   "up": -0.29,
+   "fwd": -0.006
+  },
+  "LToe": {
+   "from": "LAnkle",
+   "side": 0.0,
+   "up": -0.032,
+   "fwd": 0.036
+  }
+ },
+ "chains": {
+  "body": [
+   "Hips",
+   "Spine",
+   "Chest",
+   "NeckB",
+   "Neck2"
+  ],
+  "skirt": [
+   "SkirtRoot",
+   "Skirt1",
+   "SkirtHem"
+  ],
+  "head": [
+   "HeadRoot",
+   "Skull",
+   "Brow",
+   "Crown"
+  ],
+  "LArm": [
+   "LArmRoot",
+   "LElbow",
+   "LWrist",
+   "LHand"
+  ],
+  "LLeg": [
+   "LLegRoot",
+   "LKnee",
+   "LAnkle",
+   "LToe"
+  ]
+ },
+ "attach": {
+  "skirt": "Hips",
+  "head": "Neck2",
+  "LArm": "Chest",
+  "LLeg": "Hips",
+  "CoinA": "Skull",
+  "CoinB": "Skull",
+  "BasePlate": "Hips"
+ },
+ "mirror": [
+  "LArm",
+  "LLeg"
+ ],
+ "touch": [
+  [
+   "body",
+   "skirt"
+  ],
+  [
+   "body",
+   "head"
+  ],
+  [
+   "body",
+   "LArm"
+  ],
+  [
+   "body",
+   "LLeg"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "body",
+   "material": "paper_body",
+   "sides": 20,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.15,
+     0.056,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.24,
+     0.128,
+     0.048,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.58,
+     0.158,
+     0.054,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.8,
+     0.166,
+     0.052,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.9,
+     0.086,
+     0.04,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.046,
+     0.03,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.026,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 36,
+      "color": "#2f4137"
+     },
+     {
+      "from": 72,
+      "to": 90,
+      "color": "#334739"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "skirt",
+   "material": "paper_skirt",
+   "sides": 20,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.13,
+     0.048,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.2,
+     0.176,
+     0.07,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.58,
+     0.212,
+     0.086,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.86,
+     0.232,
+     0.096,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.244,
+     0.102,
+     {
+      "exp": 5.0
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.018,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 36,
+      "color": "#1e3f2b"
+     },
+     {
+      "from": 90,
+      "to": 126,
+      "color": "#26502f"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "head",
+   "material": "paper_head",
+   "sides": 18,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.034,
+     0.022,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.18,
+     0.118,
+     0.038,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.5,
+     0.128,
+     0.04,
+     {
+      "exp": 5.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.82,
+     0.122,
+     0.038,
+     {
+      "exp": 5.4,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.086,
+     0.03,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.012,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 54,
+      "color": "#5e6357"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "LArm",
+   "material": "paper_arm",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.034,
+     0.028,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.36,
+     0.028,
+     0.022,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.76,
+     0.023,
+     0.017,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1.0,
+     0.018,
+     0.014,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.044
+  },
+  {
+   "chain": "LLeg",
+   "material": "paper_leg",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.042,
+     0.036,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.3,
+     0.032,
+     0.028,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.64,
+     0.026,
+     0.022,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.02,
+     0.017,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.05
+  }
+ ],
+ "parts": [
+  {
+   "type": "fin",
+   "name": "eye_glowA",
+   "host": "Skull",
+   "material": "eye",
+   "thickness": 0.008,
+   "conform": false,
+   "offset": [
+    0.0804,
+    0.03,
+    0.04
+   ],
+   "udir": [
+    0.973,
+    -0.0869,
+    -0.2137
+   ],
+   "vdir": [
+    0.0696,
+    0.9938,
+    -0.0872
+   ],
+   "points": [
+    [
+     -0.014,
+     -0.014
+    ],
+    [
+     0.014,
+     -0.014
+    ],
+    [
+     0.014,
+     0.014
+    ],
+    [
+     -0.014,
+     0.014
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "eye_glowB",
+   "host": "Skull",
+   "material": "eye",
+   "thickness": 0.008,
+   "conform": false,
+   "offset": [
+    -0.0756,
+    0.004,
+    0.039
+   ],
+   "udir": [
+    0.9389,
+    0.2588,
+    0.227
+   ],
+   "vdir": [
+    -0.2466,
+    0.9657,
+    -0.0809
+   ],
+   "points": [
+    [
+     -0.0118,
+     -0.0118
+    ],
+    [
+     0.0118,
+     -0.0118
+    ],
+    [
+     0.0118,
+     0.0118
+    ],
+    [
+     -0.0118,
+     0.0118
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "mouth_gash",
+   "host": "Skull",
+   "material": "mouth_ink",
+   "thickness": 0.012,
+   "conform": false,
+   "offset": [
+    0.002,
+    -0.058,
+    0.029
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.076,
+     -0.009
+    ],
+    [
+     -0.022,
+     -0.034
+    ],
+    [
+     0.048,
+     -0.024
+    ],
+    [
+     0.08,
+     0.013
+    ],
+    [
+     0.017,
+     0.034
+    ],
+    [
+     -0.048,
+     0.022
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "paper_card",
+   "host": "BasePlate",
+   "material": "paper_base",
+   "thickness": 0.026,
+   "conform": false,
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    0,
+    1
+   ],
+   "points": [
+    [
+     -0.208,
+     -0.124
+    ],
+    [
+     0.218,
+     -0.124
+    ],
+    [
+     0.23,
+     0.132
+    ],
+    [
+     -0.196,
+     0.132
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "paper_tear0",
+   "host": "Spine",
+   "material": "mouth_ink",
+   "thickness": 0.006,
+   "conform": false,
+   "offset": [
+    0.086,
+    0.03,
+    0.046
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.02,
+     0.014
+    ],
+    [
+     0.006,
+     0.02
+    ],
+    [
+     0.022,
+     -0.004
+    ],
+    [
+     0.002,
+     -0.018
+    ],
+    [
+     -0.018,
+     -0.01
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "paper_tear1",
+   "host": "Hips",
+   "material": "mouth_ink",
+   "thickness": 0.006,
+   "conform": false,
+   "offset": [
+    -0.104,
+    -0.052,
+    0.058
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.016,
+     0.02
+    ],
+    [
+     0.014,
+     0.016
+    ],
+    [
+     0.02,
+     -0.01
+    ],
+    [
+     -0.004,
+     -0.022
+    ],
+    [
+     -0.02,
+     -0.004
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "paper_tear2",
+   "host": "Skirt1",
+   "material": "mouth_ink",
+   "thickness": 0.006,
+   "conform": false,
+   "offset": [
+    0.15,
+    -0.03,
+    0.062
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.014,
+     0.016
+    ],
+    [
+     0.012,
+     0.012
+    ],
+    [
+     0.016,
+     -0.012
+    ],
+    [
+     -0.008,
+     -0.018
+    ],
+    [
+     -0.018,
+     -0.002
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "hem_tear0",
+   "host": "SkirtHem",
+   "material": "paper_skirt",
+   "thickness": 0.007,
+   "conform": false,
+   "offset": [
+    0.0,
+    0.004,
+    0.102
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.034,
+     0.012
+    ],
+    [
+     0.034,
+     0.012
+    ],
+    [
+     0.0061,
+     -0.062
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "hem_tear1",
+   "host": "SkirtHem",
+   "material": "paper_skirt",
+   "thickness": 0.007,
+   "conform": false,
+   "offset": [
+    0.126,
+    0.004,
+    0.092
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.03,
+     0.012
+    ],
+    [
+     0.03,
+     0.012
+    ],
+    [
+     0.0054,
+     -0.036
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "hem_tear2",
+   "host": "SkirtHem",
+   "material": "paper_skirt",
+   "thickness": 0.007,
+   "conform": false,
+   "offset": [
+    -0.148,
+    0.004,
+    0.088
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.038,
+     0.012
+    ],
+    [
+     0.038,
+     0.012
+    ],
+    [
+     0.0068,
+     -0.078
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "hem_tear3",
+   "host": "SkirtHem",
+   "material": "paper_skirt",
+   "thickness": 0.007,
+   "conform": false,
+   "offset": [
+    0.212,
+    0.004,
+    0.052
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.028,
+     0.012
+    ],
+    [
+     0.028,
+     0.012
+    ],
+    [
+     0.005,
+     -0.044
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "hem_tear4",
+   "host": "SkirtHem",
+   "material": "paper_skirt",
+   "thickness": 0.007,
+   "conform": false,
+   "offset": [
+    -0.23,
+    0.004,
+    0.028
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.032,
+     0.012
+    ],
+    [
+     0.032,
+     0.012
+    ],
+    [
+     0.0058,
+     -0.026
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Chest",
+   "material": "cord_red",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.098,
+    0.04,
+    0.05
+   ],
+   "dir": [
+    0.66,
+    -0.748,
+    0.07
+   ],
+   "segments": [
+    {
+     "len": 0.088,
+     "r": 0.009
+    },
+    {
+     "len": 0.074,
+     "r": 0.0082
+    },
+    {
+     "len": 0.058,
+     "r": 0.0072
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Hips",
+   "material": "cord_red",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.082,
+    -0.004,
+    0.062
+   ],
+   "dir": [
+    0.07,
+    -0.91,
+    0.408
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.0078
+    },
+    {
+     "len": 0.046,
+     "r": 0.0052,
+     "fall": 12
+    },
+    {
+     "len": 0.032,
+     "r": 0.0022,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand_paper",
+   "mirrored": true,
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.008,
+    -0.006,
+    0.014
+   ],
+   "dir": [
+    -0.16,
+    -0.955,
+    0.25
+   ],
+   "segments": [
+    {
+     "len": 0.048,
+     "r": 0.0094
+    },
+    {
+     "len": 0.038,
+     "r": 0.0056,
+     "fall": 12
+    },
+    {
+     "len": 0.03,
+     "r": 0.002,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand_paper",
+   "mirrored": true,
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.002,
+    -0.008,
+    0.0
+   ],
+   "dir": [
+    -0.04,
+    -0.985,
+    0.168
+   ],
+   "segments": [
+    {
+     "len": 0.054,
+     "r": 0.0092
+    },
+    {
+     "len": 0.042,
+     "r": 0.0054,
+     "fall": 12
+    },
+    {
+     "len": 0.032,
+     "r": 0.0019,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "hand_paper",
+   "mirrored": true,
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.006,
+    -0.006,
+    -0.014
+   ],
+   "dir": [
+    0.1,
+    -0.96,
+    -0.26
+   ],
+   "segments": [
+    {
+     "len": 0.044,
+     "r": 0.009
+    },
+    {
+     "len": 0.034,
+     "r": 0.0052,
+     "fall": 12
+    },
+    {
+     "len": 0.028,
+     "r": 0.0019,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a0",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.06,
+     0.0
+    ],
+    [
+     0.05196,
+     0.03
+    ],
+    [
+     0.06062,
+     0.035
+    ],
+    [
+     0.07,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a1",
+   "material": "glow_coin",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.05196,
+     0.03
+    ],
+    [
+     0.03,
+     0.05196
+    ],
+    [
+     0.035,
+     0.06062
+    ],
+    [
+     0.06062,
+     0.035
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a2",
+   "material": "glow_coin",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.03,
+     0.05196
+    ],
+    [
+     0.0,
+     0.06
+    ],
+    [
+     0.0,
+     0.07
+    ],
+    [
+     0.035,
+     0.06062
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a3",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.0,
+     0.06
+    ],
+    [
+     -0.03,
+     0.05196
+    ],
+    [
+     -0.035,
+     0.06062
+    ],
+    [
+     0.0,
+     0.07
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a4",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.03,
+     0.05196
+    ],
+    [
+     -0.05196,
+     0.03
+    ],
+    [
+     -0.06062,
+     0.035
+    ],
+    [
+     -0.035,
+     0.06062
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a5",
+   "material": "coin_body",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.05196,
+     0.03
+    ],
+    [
+     -0.06,
+     0.0
+    ],
+    [
+     -0.07,
+     0.0
+    ],
+    [
+     -0.06062,
+     0.035
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a6",
+   "material": "glow_coin",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.06,
+     0.0
+    ],
+    [
+     -0.05196,
+     -0.03
+    ],
+    [
+     -0.06062,
+     -0.035
+    ],
+    [
+     -0.07,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a7",
+   "material": "glow_coin",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.05196,
+     -0.03
+    ],
+    [
+     -0.03,
+     -0.05196
+    ],
+    [
+     -0.035,
+     -0.06062
+    ],
+    [
+     -0.06062,
+     -0.035
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a8",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.03,
+     -0.05196
+    ],
+    [
+     -0.0,
+     -0.06
+    ],
+    [
+     -0.0,
+     -0.07
+    ],
+    [
+     -0.035,
+     -0.06062
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a9",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     -0.0,
+     -0.06
+    ],
+    [
+     0.03,
+     -0.05196
+    ],
+    [
+     0.035,
+     -0.06062
+    ],
+    [
+     -0.0,
+     -0.07
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a10",
+   "material": "coin_patina",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.03,
+     -0.05196
+    ],
+    [
+     0.05196,
+     -0.03
+    ],
+    [
+     0.06062,
+     -0.035
+    ],
+    [
+     0.035,
+     -0.06062
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_rim_a11",
+   "material": "glow_coin",
+   "thickness": 0.026,
+   "points": [
+    [
+     0.05196,
+     -0.03
+    ],
+    [
+     0.06,
+     -0.0
+    ],
+    [
+     0.07,
+     -0.0
+    ],
+    [
+     0.06062,
+     -0.035
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a0",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.0215,
+     0.0
+    ],
+    [
+     0.01862,
+     0.01075
+    ],
+    [
+     0.05196,
+     0.03
+    ],
+    [
+     0.06,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a1",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.01862,
+     0.01075
+    ],
+    [
+     0.01075,
+     0.01862
+    ],
+    [
+     0.03,
+     0.05196
+    ],
+    [
+     0.05196,
+     0.03
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a2",
+   "material": "coin_patina",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.01075,
+     0.01862
+    ],
+    [
+     0.0,
+     0.0215
+    ],
+    [
+     0.0,
+     0.06
+    ],
+    [
+     0.03,
+     0.05196
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a3",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.0,
+     0.0215
+    ],
+    [
+     -0.01075,
+     0.01862
+    ],
+    [
+     -0.03,
+     0.05196
+    ],
+    [
+     0.0,
+     0.06
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a4",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.01075,
+     0.01862
+    ],
+    [
+     -0.01862,
+     0.01075
+    ],
+    [
+     -0.05196,
+     0.03
+    ],
+    [
+     -0.03,
+     0.05196
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a5",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.01862,
+     0.01075
+    ],
+    [
+     -0.0215,
+     0.0
+    ],
+    [
+     -0.06,
+     0.0
+    ],
+    [
+     -0.05196,
+     0.03
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a6",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.0215,
+     0.0
+    ],
+    [
+     -0.01862,
+     -0.01075
+    ],
+    [
+     -0.05196,
+     -0.03
+    ],
+    [
+     -0.06,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a7",
+   "material": "coin_patina",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.01862,
+     -0.01075
+    ],
+    [
+     -0.01075,
+     -0.01862
+    ],
+    [
+     -0.03,
+     -0.05196
+    ],
+    [
+     -0.05196,
+     -0.03
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a8",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.01075,
+     -0.01862
+    ],
+    [
+     -0.0,
+     -0.0215
+    ],
+    [
+     -0.0,
+     -0.06
+    ],
+    [
+     -0.03,
+     -0.05196
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a9",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     -0.0,
+     -0.0215
+    ],
+    [
+     0.01075,
+     -0.01862
+    ],
+    [
+     0.03,
+     -0.05196
+    ],
+    [
+     -0.0,
+     -0.06
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a10",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.01075,
+     -0.01862
+    ],
+    [
+     0.01862,
+     -0.01075
+    ],
+    [
+     0.05196,
+     -0.03
+    ],
+    [
+     0.03,
+     -0.05196
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_field_a11",
+   "material": "coin_body",
+   "thickness": 0.008,
+   "points": [
+    [
+     0.01862,
+     -0.01075
+    ],
+    [
+     0.0215,
+     -0.0
+    ],
+    [
+     0.06,
+     -0.0
+    ],
+    [
+     0.05196,
+     -0.03
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a0",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     0.0155,
+     0.0
+    ],
+    [
+     0.0155,
+     0.0155
+    ],
+    [
+     0.0225,
+     0.0225
+    ],
+    [
+     0.0225,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a1",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     0.0155,
+     -0.0155
+    ],
+    [
+     0.0155,
+     0.0
+    ],
+    [
+     0.0225,
+     0.0
+    ],
+    [
+     0.0225,
+     -0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a2",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     0.0,
+     0.0155
+    ],
+    [
+     -0.0155,
+     0.0155
+    ],
+    [
+     -0.0225,
+     0.0225
+    ],
+    [
+     0.0,
+     0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a3",
+   "material": "coin_patina",
+   "thickness": 0.024,
+   "points": [
+    [
+     0.0155,
+     0.0155
+    ],
+    [
+     0.0,
+     0.0155
+    ],
+    [
+     0.0,
+     0.0225
+    ],
+    [
+     0.0225,
+     0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a4",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     -0.0155,
+     0.0
+    ],
+    [
+     -0.0155,
+     -0.0155
+    ],
+    [
+     -0.0225,
+     -0.0225
+    ],
+    [
+     -0.0225,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a5",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     -0.0155,
+     0.0155
+    ],
+    [
+     -0.0155,
+     0.0
+    ],
+    [
+     -0.0225,
+     0.0
+    ],
+    [
+     -0.0225,
+     0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a6",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     -0.0,
+     -0.0155
+    ],
+    [
+     0.0155,
+     -0.0155
+    ],
+    [
+     0.0225,
+     -0.0225
+    ],
+    [
+     -0.0,
+     -0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinA",
+   "conform": false,
+   "udir": [
+    0.977,
+    -0.087,
+    -0.1945
+   ],
+   "vdir": [
+    0.0734,
+    0.9944,
+    -0.076
+   ],
+   "type": "fin",
+   "name": "coin_guo_a7",
+   "material": "coin_body",
+   "thickness": 0.024,
+   "points": [
+    [
+     -0.0155,
+     -0.0155
+    ],
+    [
+     -0.0,
+     -0.0155
+    ],
+    [
+     -0.0,
+     -0.0225
+    ],
+    [
+     -0.0225,
+     -0.0225
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b0",
+   "material": "glow_coin",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.0504,
+     0.0
+    ],
+    [
+     0.04365,
+     0.0252
+    ],
+    [
+     0.05092,
+     0.0294
+    ],
+    [
+     0.0588,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b1",
+   "material": "glow_coin",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.04365,
+     0.0252
+    ],
+    [
+     0.0252,
+     0.04365
+    ],
+    [
+     0.0294,
+     0.05092
+    ],
+    [
+     0.05092,
+     0.0294
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b2",
+   "material": "coin_patina",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.0252,
+     0.04365
+    ],
+    [
+     0.0,
+     0.0504
+    ],
+    [
+     0.0,
+     0.0588
+    ],
+    [
+     0.0294,
+     0.05092
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b3",
+   "material": "coin_patina",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.0,
+     0.0504
+    ],
+    [
+     -0.0252,
+     0.04365
+    ],
+    [
+     -0.0294,
+     0.05092
+    ],
+    [
+     0.0,
+     0.0588
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b5",
+   "material": "glow_coin",
+   "thickness": 0.0218,
+   "points": [
+    [
+     -0.04365,
+     0.0252
+    ],
+    [
+     -0.0504,
+     0.0
+    ],
+    [
+     -0.0588,
+     0.0
+    ],
+    [
+     -0.05092,
+     0.0294
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b6",
+   "material": "coin_body",
+   "thickness": 0.0218,
+   "points": [
+    [
+     -0.0504,
+     0.0
+    ],
+    [
+     -0.04365,
+     -0.0252
+    ],
+    [
+     -0.05092,
+     -0.0294
+    ],
+    [
+     -0.0588,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b7",
+   "material": "coin_patina",
+   "thickness": 0.0218,
+   "points": [
+    [
+     -0.04365,
+     -0.0252
+    ],
+    [
+     -0.0252,
+     -0.04365
+    ],
+    [
+     -0.0294,
+     -0.05092
+    ],
+    [
+     -0.05092,
+     -0.0294
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b8",
+   "material": "glow_coin",
+   "thickness": 0.0218,
+   "points": [
+    [
+     -0.0252,
+     -0.04365
+    ],
+    [
+     -0.0,
+     -0.0504
+    ],
+    [
+     -0.0,
+     -0.0588
+    ],
+    [
+     -0.0294,
+     -0.05092
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b9",
+   "material": "coin_patina",
+   "thickness": 0.0218,
+   "points": [
+    [
+     -0.0,
+     -0.0504
+    ],
+    [
+     0.0252,
+     -0.04365
+    ],
+    [
+     0.0294,
+     -0.05092
+    ],
+    [
+     -0.0,
+     -0.0588
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b10",
+   "material": "glow_coin",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.0252,
+     -0.04365
+    ],
+    [
+     0.04365,
+     -0.0252
+    ],
+    [
+     0.05092,
+     -0.0294
+    ],
+    [
+     0.0294,
+     -0.05092
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_rim_b11",
+   "material": "coin_patina",
+   "thickness": 0.0218,
+   "points": [
+    [
+     0.04365,
+     -0.0252
+    ],
+    [
+     0.0504,
+     -0.0
+    ],
+    [
+     0.0588,
+     -0.0
+    ],
+    [
+     0.05092,
+     -0.0294
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b0",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.01806,
+     0.0
+    ],
+    [
+     0.01564,
+     0.00903
+    ],
+    [
+     0.04365,
+     0.0252
+    ],
+    [
+     0.0504,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b1",
+   "material": "coin_patina",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.01564,
+     0.00903
+    ],
+    [
+     0.00903,
+     0.01564
+    ],
+    [
+     0.0252,
+     0.04365
+    ],
+    [
+     0.04365,
+     0.0252
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b2",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.00903,
+     0.01564
+    ],
+    [
+     0.0,
+     0.01806
+    ],
+    [
+     0.0,
+     0.0504
+    ],
+    [
+     0.0252,
+     0.04365
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b3",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.0,
+     0.01806
+    ],
+    [
+     -0.00903,
+     0.01564
+    ],
+    [
+     -0.0252,
+     0.04365
+    ],
+    [
+     0.0,
+     0.0504
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b4",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.00903,
+     0.01564
+    ],
+    [
+     -0.01564,
+     0.00903
+    ],
+    [
+     -0.04365,
+     0.0252
+    ],
+    [
+     -0.0252,
+     0.04365
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b5",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.01564,
+     0.00903
+    ],
+    [
+     -0.01806,
+     0.0
+    ],
+    [
+     -0.0504,
+     0.0
+    ],
+    [
+     -0.04365,
+     0.0252
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b6",
+   "material": "coin_patina",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.01806,
+     0.0
+    ],
+    [
+     -0.01564,
+     -0.00903
+    ],
+    [
+     -0.04365,
+     -0.0252
+    ],
+    [
+     -0.0504,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b7",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.01564,
+     -0.00903
+    ],
+    [
+     -0.00903,
+     -0.01564
+    ],
+    [
+     -0.0252,
+     -0.04365
+    ],
+    [
+     -0.04365,
+     -0.0252
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b8",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.00903,
+     -0.01564
+    ],
+    [
+     -0.0,
+     -0.01806
+    ],
+    [
+     -0.0,
+     -0.0504
+    ],
+    [
+     -0.0252,
+     -0.04365
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b9",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     -0.0,
+     -0.01806
+    ],
+    [
+     0.00903,
+     -0.01564
+    ],
+    [
+     0.0252,
+     -0.04365
+    ],
+    [
+     -0.0,
+     -0.0504
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b10",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.00903,
+     -0.01564
+    ],
+    [
+     0.01564,
+     -0.00903
+    ],
+    [
+     0.04365,
+     -0.0252
+    ],
+    [
+     0.0252,
+     -0.04365
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_field_b11",
+   "material": "coin_body",
+   "thickness": 0.0067,
+   "points": [
+    [
+     0.01564,
+     -0.00903
+    ],
+    [
+     0.01806,
+     -0.0
+    ],
+    [
+     0.0504,
+     -0.0
+    ],
+    [
+     0.04365,
+     -0.0252
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b0",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     0.01302,
+     0.0
+    ],
+    [
+     0.01302,
+     0.01302
+    ],
+    [
+     0.0189,
+     0.0189
+    ],
+    [
+     0.0189,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b1",
+   "material": "coin_patina",
+   "thickness": 0.0202,
+   "points": [
+    [
+     0.01302,
+     -0.01302
+    ],
+    [
+     0.01302,
+     0.0
+    ],
+    [
+     0.0189,
+     0.0
+    ],
+    [
+     0.0189,
+     -0.0189
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b2",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     0.0,
+     0.01302
+    ],
+    [
+     -0.01302,
+     0.01302
+    ],
+    [
+     -0.0189,
+     0.0189
+    ],
+    [
+     0.0,
+     0.0189
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b3",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     0.01302,
+     0.01302
+    ],
+    [
+     0.0,
+     0.01302
+    ],
+    [
+     0.0,
+     0.0189
+    ],
+    [
+     0.0189,
+     0.0189
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b4",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     -0.01302,
+     0.0
+    ],
+    [
+     -0.01302,
+     -0.01302
+    ],
+    [
+     -0.0189,
+     -0.0189
+    ],
+    [
+     -0.0189,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b5",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     -0.01302,
+     0.01302
+    ],
+    [
+     -0.01302,
+     0.0
+    ],
+    [
+     -0.0189,
+     0.0
+    ],
+    [
+     -0.0189,
+     0.0189
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b6",
+   "material": "coin_body",
+   "thickness": 0.0202,
+   "points": [
+    [
+     -0.0,
+     -0.01302
+    ],
+    [
+     0.01302,
+     -0.01302
+    ],
+    [
+     0.0189,
+     -0.0189
+    ],
+    [
+     -0.0,
+     -0.0189
+    ]
+   ]
+  },
+  {
+   "host": "CoinB",
+   "conform": false,
+   "udir": [
+    0.904,
+    0.3745,
+    0.206
+   ],
+   "vdir": [
+    -0.3603,
+    0.927,
+    -0.1042
+   ],
+   "type": "fin",
+   "name": "coin_guo_b7",
+   "material": "coin_patina",
+   "thickness": 0.0202,
+   "points": [
+    [
+     -0.01302,
+     -0.01302
+    ],
+    [
+     -0.0,
+     -0.01302
+    ],
+    [
+     -0.0,
+     -0.0189
+    ],
+    [
+     -0.0189,
+     -0.0189
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c0",
+   "material": "glow_coin",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.0348,
+     0.0
+    ],
+    [
+     0.03014,
+     0.0174
+    ],
+    [
+     0.03516,
+     0.0203
+    ],
+    [
+     0.0406,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c1",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.03014,
+     0.0174
+    ],
+    [
+     0.0174,
+     0.03014
+    ],
+    [
+     0.0203,
+     0.03516
+    ],
+    [
+     0.03516,
+     0.0203
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c2",
+   "material": "glow_coin",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.0174,
+     0.03014
+    ],
+    [
+     0.0,
+     0.0348
+    ],
+    [
+     0.0,
+     0.0406
+    ],
+    [
+     0.0203,
+     0.03516
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c3",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.0,
+     0.0348
+    ],
+    [
+     -0.0174,
+     0.03014
+    ],
+    [
+     -0.0203,
+     0.03516
+    ],
+    [
+     0.0,
+     0.0406
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c4",
+   "material": "glow_coin",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.0174,
+     0.03014
+    ],
+    [
+     -0.03014,
+     0.0174
+    ],
+    [
+     -0.03516,
+     0.0203
+    ],
+    [
+     -0.0203,
+     0.03516
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c5",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.03014,
+     0.0174
+    ],
+    [
+     -0.0348,
+     0.0
+    ],
+    [
+     -0.0406,
+     0.0
+    ],
+    [
+     -0.03516,
+     0.0203
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c6",
+   "material": "coin_body",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.0348,
+     0.0
+    ],
+    [
+     -0.03014,
+     -0.0174
+    ],
+    [
+     -0.03516,
+     -0.0203
+    ],
+    [
+     -0.0406,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c7",
+   "material": "glow_coin",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.03014,
+     -0.0174
+    ],
+    [
+     -0.0174,
+     -0.03014
+    ],
+    [
+     -0.0203,
+     -0.03516
+    ],
+    [
+     -0.03516,
+     -0.0203
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c8",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.0174,
+     -0.03014
+    ],
+    [
+     -0.0,
+     -0.0348
+    ],
+    [
+     -0.0,
+     -0.0406
+    ],
+    [
+     -0.0203,
+     -0.03516
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c9",
+   "material": "glow_coin",
+   "thickness": 0.0151,
+   "points": [
+    [
+     -0.0,
+     -0.0348
+    ],
+    [
+     0.0174,
+     -0.03014
+    ],
+    [
+     0.0203,
+     -0.03516
+    ],
+    [
+     -0.0,
+     -0.0406
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c10",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.0174,
+     -0.03014
+    ],
+    [
+     0.03014,
+     -0.0174
+    ],
+    [
+     0.03516,
+     -0.0203
+    ],
+    [
+     0.0203,
+     -0.03516
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_rim_c11",
+   "material": "coin_patina",
+   "thickness": 0.0151,
+   "points": [
+    [
+     0.03014,
+     -0.0174
+    ],
+    [
+     0.0348,
+     -0.0
+    ],
+    [
+     0.0406,
+     -0.0
+    ],
+    [
+     0.03516,
+     -0.0203
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c0",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.01247,
+     0.0
+    ],
+    [
+     0.0108,
+     0.00623
+    ],
+    [
+     0.03014,
+     0.0174
+    ],
+    [
+     0.0348,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c1",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.0108,
+     0.00623
+    ],
+    [
+     0.00624,
+     0.0108
+    ],
+    [
+     0.0174,
+     0.03014
+    ],
+    [
+     0.03014,
+     0.0174
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c2",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.00624,
+     0.0108
+    ],
+    [
+     0.0,
+     0.01247
+    ],
+    [
+     0.0,
+     0.0348
+    ],
+    [
+     0.0174,
+     0.03014
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c3",
+   "material": "coin_patina",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.0,
+     0.01247
+    ],
+    [
+     -0.00623,
+     0.0108
+    ],
+    [
+     -0.0174,
+     0.03014
+    ],
+    [
+     0.0,
+     0.0348
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c4",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.00623,
+     0.0108
+    ],
+    [
+     -0.0108,
+     0.00623
+    ],
+    [
+     -0.03014,
+     0.0174
+    ],
+    [
+     -0.0174,
+     0.03014
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c5",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.0108,
+     0.00623
+    ],
+    [
+     -0.01247,
+     0.0
+    ],
+    [
+     -0.0348,
+     0.0
+    ],
+    [
+     -0.03014,
+     0.0174
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c6",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.01247,
+     0.0
+    ],
+    [
+     -0.0108,
+     -0.00623
+    ],
+    [
+     -0.03014,
+     -0.0174
+    ],
+    [
+     -0.0348,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c7",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.0108,
+     -0.00623
+    ],
+    [
+     -0.00624,
+     -0.0108
+    ],
+    [
+     -0.0174,
+     -0.03014
+    ],
+    [
+     -0.03014,
+     -0.0174
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c8",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.00624,
+     -0.0108
+    ],
+    [
+     -0.0,
+     -0.01247
+    ],
+    [
+     -0.0,
+     -0.0348
+    ],
+    [
+     -0.0174,
+     -0.03014
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c9",
+   "material": "coin_patina",
+   "thickness": 0.0046,
+   "points": [
+    [
+     -0.0,
+     -0.01247
+    ],
+    [
+     0.00624,
+     -0.0108
+    ],
+    [
+     0.0174,
+     -0.03014
+    ],
+    [
+     -0.0,
+     -0.0348
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c10",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.00624,
+     -0.0108
+    ],
+    [
+     0.0108,
+     -0.00624
+    ],
+    [
+     0.03014,
+     -0.0174
+    ],
+    [
+     0.0174,
+     -0.03014
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_field_c11",
+   "material": "coin_body",
+   "thickness": 0.0046,
+   "points": [
+    [
+     0.0108,
+     -0.00624
+    ],
+    [
+     0.01247,
+     -0.0
+    ],
+    [
+     0.0348,
+     -0.0
+    ],
+    [
+     0.03014,
+     -0.0174
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c0",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     0.00899,
+     0.0
+    ],
+    [
+     0.00899,
+     0.00899
+    ],
+    [
+     0.01305,
+     0.01305
+    ],
+    [
+     0.01305,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c1",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     0.00899,
+     -0.00899
+    ],
+    [
+     0.00899,
+     0.0
+    ],
+    [
+     0.01305,
+     0.0
+    ],
+    [
+     0.01305,
+     -0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c2",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     0.0,
+     0.00899
+    ],
+    [
+     -0.00899,
+     0.00899
+    ],
+    [
+     -0.01305,
+     0.01305
+    ],
+    [
+     0.0,
+     0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c3",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     0.00899,
+     0.00899
+    ],
+    [
+     0.0,
+     0.00899
+    ],
+    [
+     0.0,
+     0.01305
+    ],
+    [
+     0.01305,
+     0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c4",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     -0.00899,
+     0.0
+    ],
+    [
+     -0.00899,
+     -0.00899
+    ],
+    [
+     -0.01305,
+     -0.01305
+    ],
+    [
+     -0.01305,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c5",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     -0.00899,
+     0.00899
+    ],
+    [
+     -0.00899,
+     0.0
+    ],
+    [
+     -0.01305,
+     0.0
+    ],
+    [
+     -0.01305,
+     0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c6",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     -0.0,
+     -0.00899
+    ],
+    [
+     0.00899,
+     -0.00899
+    ],
+    [
+     0.01305,
+     -0.01305
+    ],
+    [
+     -0.0,
+     -0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9723,
+    0.2077,
+    0.1073
+   ],
+   "vdir": [
+    -0.2005,
+    0.9769,
+    -0.0736
+   ],
+   "offset": [
+    -0.062,
+    -0.006,
+    0.056
+   ],
+   "type": "fin",
+   "name": "coin_guo_c7",
+   "material": "coin_body",
+   "thickness": 0.0139,
+   "points": [
+    [
+     -0.00899,
+     -0.00899
+    ],
+    [
+     -0.0,
+     -0.00899
+    ],
+    [
+     -0.0,
+     -0.01305
+    ],
+    [
+     -0.01305,
+     -0.01305
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d0",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0336,
+     0.0
+    ],
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.03395,
+     0.0196
+    ],
+    [
+     0.0392,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d1",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0196,
+     0.03395
+    ],
+    [
+     0.03395,
+     0.0196
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d2",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     0.0,
+     0.0392
+    ],
+    [
+     0.0196,
+     0.03395
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d3",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     -0.0196,
+     0.03395
+    ],
+    [
+     0.0,
+     0.0392
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d4",
+   "material": "coin_body",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.03395,
+     0.0196
+    ],
+    [
+     -0.0196,
+     0.03395
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d5",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0392,
+     0.0
+    ],
+    [
+     -0.03395,
+     0.0196
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d6",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.03395,
+     -0.0196
+    ],
+    [
+     -0.0392,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d7",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0196,
+     -0.03395
+    ],
+    [
+     -0.03395,
+     -0.0196
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d8",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     -0.0,
+     -0.0392
+    ],
+    [
+     -0.0196,
+     -0.03395
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d9",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     0.0196,
+     -0.03395
+    ],
+    [
+     -0.0,
+     -0.0392
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d10",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.03395,
+     -0.0196
+    ],
+    [
+     0.0196,
+     -0.03395
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_rim_d11",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.0336,
+     -0.0
+    ],
+    [
+     0.0392,
+     -0.0
+    ],
+    [
+     0.03395,
+     -0.0196
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d0",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01204,
+     0.0
+    ],
+    [
+     0.01043,
+     0.00602
+    ],
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.0336,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d1",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01043,
+     0.00602
+    ],
+    [
+     0.00602,
+     0.01043
+    ],
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0291,
+     0.0168
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d2",
+   "material": "coin_patina",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.00602,
+     0.01043
+    ],
+    [
+     0.0,
+     0.01204
+    ],
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     0.0168,
+     0.0291
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d3",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.0,
+     0.01204
+    ],
+    [
+     -0.00602,
+     0.01043
+    ],
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     0.0,
+     0.0336
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d4",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.00602,
+     0.01043
+    ],
+    [
+     -0.01043,
+     0.00602
+    ],
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.0168,
+     0.0291
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d5",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01043,
+     0.00602
+    ],
+    [
+     -0.01204,
+     0.0
+    ],
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0291,
+     0.0168
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d6",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01204,
+     0.0
+    ],
+    [
+     -0.01043,
+     -0.00602
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.0336,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d7",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01043,
+     -0.00602
+    ],
+    [
+     -0.00602,
+     -0.01043
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d8",
+   "material": "coin_patina",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.00602,
+     -0.01043
+    ],
+    [
+     -0.0,
+     -0.01204
+    ],
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d9",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.0,
+     -0.01204
+    ],
+    [
+     0.00602,
+     -0.01043
+    ],
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     -0.0,
+     -0.0336
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d10",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.00602,
+     -0.01043
+    ],
+    [
+     0.01043,
+     -0.00602
+    ],
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.0168,
+     -0.0291
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_field_d11",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01043,
+     -0.00602
+    ],
+    [
+     0.01204,
+     -0.0
+    ],
+    [
+     0.0336,
+     -0.0
+    ],
+    [
+     0.0291,
+     -0.0168
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d0",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     0.0
+    ],
+    [
+     0.00868,
+     0.00868
+    ],
+    [
+     0.0126,
+     0.0126
+    ],
+    [
+     0.0126,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d1",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     -0.00868
+    ],
+    [
+     0.00868,
+     0.0
+    ],
+    [
+     0.0126,
+     0.0
+    ],
+    [
+     0.0126,
+     -0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d2",
+   "material": "coin_patina",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.0,
+     0.00868
+    ],
+    [
+     -0.00868,
+     0.00868
+    ],
+    [
+     -0.0126,
+     0.0126
+    ],
+    [
+     0.0,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d3",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     0.00868
+    ],
+    [
+     0.0,
+     0.00868
+    ],
+    [
+     0.0,
+     0.0126
+    ],
+    [
+     0.0126,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d4",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     0.0
+    ],
+    [
+     -0.00868,
+     -0.00868
+    ],
+    [
+     -0.0126,
+     -0.0126
+    ],
+    [
+     -0.0126,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d5",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     0.00868
+    ],
+    [
+     -0.00868,
+     0.0
+    ],
+    [
+     -0.0126,
+     0.0
+    ],
+    [
+     -0.0126,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d6",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.0,
+     -0.00868
+    ],
+    [
+     0.00868,
+     -0.00868
+    ],
+    [
+     0.0126,
+     -0.0126
+    ],
+    [
+     -0.0,
+     -0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9901,
+    -0.1392,
+    -0.0198
+   ],
+   "vdir": [
+    0.1391,
+    0.9903,
+    -0.0028
+   ],
+   "offset": [
+    -0.016,
+    -0.062,
+    0.06
+   ],
+   "type": "fin",
+   "name": "coin_guo_d7",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     -0.00868
+    ],
+    [
+     -0.0,
+     -0.00868
+    ],
+    [
+     -0.0,
+     -0.0126
+    ],
+    [
+     -0.0126,
+     -0.0126
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e0",
+   "material": "coin_patina",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.0324,
+     0.0
+    ],
+    [
+     0.02806,
+     0.0162
+    ],
+    [
+     0.03274,
+     0.0189
+    ],
+    [
+     0.0378,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e1",
+   "material": "glow_coin",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.02806,
+     0.0162
+    ],
+    [
+     0.0162,
+     0.02806
+    ],
+    [
+     0.0189,
+     0.03274
+    ],
+    [
+     0.03274,
+     0.0189
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e2",
+   "material": "glow_coin",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.0162,
+     0.02806
+    ],
+    [
+     0.0,
+     0.0324
+    ],
+    [
+     0.0,
+     0.0378
+    ],
+    [
+     0.0189,
+     0.03274
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e3",
+   "material": "coin_body",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.0,
+     0.0324
+    ],
+    [
+     -0.0162,
+     0.02806
+    ],
+    [
+     -0.0189,
+     0.03274
+    ],
+    [
+     0.0,
+     0.0378
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e4",
+   "material": "glow_coin",
+   "thickness": 0.014,
+   "points": [
+    [
+     -0.0162,
+     0.02806
+    ],
+    [
+     -0.02806,
+     0.0162
+    ],
+    [
+     -0.03274,
+     0.0189
+    ],
+    [
+     -0.0189,
+     0.03274
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e6",
+   "material": "coin_patina",
+   "thickness": 0.014,
+   "points": [
+    [
+     -0.0324,
+     0.0
+    ],
+    [
+     -0.02806,
+     -0.0162
+    ],
+    [
+     -0.03274,
+     -0.0189
+    ],
+    [
+     -0.0378,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e7",
+   "material": "glow_coin",
+   "thickness": 0.014,
+   "points": [
+    [
+     -0.02806,
+     -0.0162
+    ],
+    [
+     -0.0162,
+     -0.02806
+    ],
+    [
+     -0.0189,
+     -0.03274
+    ],
+    [
+     -0.03274,
+     -0.0189
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e8",
+   "material": "glow_coin",
+   "thickness": 0.014,
+   "points": [
+    [
+     -0.0162,
+     -0.02806
+    ],
+    [
+     -0.0,
+     -0.0324
+    ],
+    [
+     -0.0,
+     -0.0378
+    ],
+    [
+     -0.0189,
+     -0.03274
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e9",
+   "material": "coin_patina",
+   "thickness": 0.014,
+   "points": [
+    [
+     -0.0,
+     -0.0324
+    ],
+    [
+     0.0162,
+     -0.02806
+    ],
+    [
+     0.0189,
+     -0.03274
+    ],
+    [
+     -0.0,
+     -0.0378
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e10",
+   "material": "coin_patina",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.0162,
+     -0.02806
+    ],
+    [
+     0.02806,
+     -0.0162
+    ],
+    [
+     0.03274,
+     -0.0189
+    ],
+    [
+     0.0189,
+     -0.03274
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_rim_e11",
+   "material": "coin_patina",
+   "thickness": 0.014,
+   "points": [
+    [
+     0.02806,
+     -0.0162
+    ],
+    [
+     0.0324,
+     -0.0
+    ],
+    [
+     0.0378,
+     -0.0
+    ],
+    [
+     0.03274,
+     -0.0189
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e0",
+   "material": "coin_patina",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.01161,
+     0.0
+    ],
+    [
+     0.01005,
+     0.0058
+    ],
+    [
+     0.02806,
+     0.0162
+    ],
+    [
+     0.0324,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e1",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.01005,
+     0.0058
+    ],
+    [
+     0.00581,
+     0.01005
+    ],
+    [
+     0.0162,
+     0.02806
+    ],
+    [
+     0.02806,
+     0.0162
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e2",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.00581,
+     0.01005
+    ],
+    [
+     0.0,
+     0.01161
+    ],
+    [
+     0.0,
+     0.0324
+    ],
+    [
+     0.0162,
+     0.02806
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e3",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.0,
+     0.01161
+    ],
+    [
+     -0.0058,
+     0.01005
+    ],
+    [
+     -0.0162,
+     0.02806
+    ],
+    [
+     0.0,
+     0.0324
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e4",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.0058,
+     0.01005
+    ],
+    [
+     -0.01005,
+     0.0058
+    ],
+    [
+     -0.02806,
+     0.0162
+    ],
+    [
+     -0.0162,
+     0.02806
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e5",
+   "material": "coin_patina",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.01005,
+     0.0058
+    ],
+    [
+     -0.01161,
+     0.0
+    ],
+    [
+     -0.0324,
+     0.0
+    ],
+    [
+     -0.02806,
+     0.0162
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e6",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.01161,
+     0.0
+    ],
+    [
+     -0.01005,
+     -0.0058
+    ],
+    [
+     -0.02806,
+     -0.0162
+    ],
+    [
+     -0.0324,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e7",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.01005,
+     -0.0058
+    ],
+    [
+     -0.00581,
+     -0.01005
+    ],
+    [
+     -0.0162,
+     -0.02806
+    ],
+    [
+     -0.02806,
+     -0.0162
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e8",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.00581,
+     -0.01005
+    ],
+    [
+     -0.0,
+     -0.01161
+    ],
+    [
+     -0.0,
+     -0.0324
+    ],
+    [
+     -0.0162,
+     -0.02806
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e9",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     -0.0,
+     -0.01161
+    ],
+    [
+     0.00581,
+     -0.01005
+    ],
+    [
+     0.0162,
+     -0.02806
+    ],
+    [
+     -0.0,
+     -0.0324
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e10",
+   "material": "coin_patina",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.00581,
+     -0.01005
+    ],
+    [
+     0.01005,
+     -0.00581
+    ],
+    [
+     0.02806,
+     -0.0162
+    ],
+    [
+     0.0162,
+     -0.02806
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_field_e11",
+   "material": "coin_body",
+   "thickness": 0.0043,
+   "points": [
+    [
+     0.01005,
+     -0.00581
+    ],
+    [
+     0.01161,
+     -0.0
+    ],
+    [
+     0.0324,
+     -0.0
+    ],
+    [
+     0.02806,
+     -0.0162
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e0",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     0.00837,
+     0.0
+    ],
+    [
+     0.00837,
+     0.00837
+    ],
+    [
+     0.01215,
+     0.01215
+    ],
+    [
+     0.01215,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e1",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     0.00837,
+     -0.00837
+    ],
+    [
+     0.00837,
+     0.0
+    ],
+    [
+     0.01215,
+     0.0
+    ],
+    [
+     0.01215,
+     -0.01215
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e2",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     0.0,
+     0.00837
+    ],
+    [
+     -0.00837,
+     0.00837
+    ],
+    [
+     -0.01215,
+     0.01215
+    ],
+    [
+     0.0,
+     0.01215
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e3",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     0.00837,
+     0.00837
+    ],
+    [
+     0.0,
+     0.00837
+    ],
+    [
+     0.0,
+     0.01215
+    ],
+    [
+     0.01215,
+     0.01215
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e4",
+   "material": "coin_patina",
+   "thickness": 0.013,
+   "points": [
+    [
+     -0.00837,
+     0.0
+    ],
+    [
+     -0.00837,
+     -0.00837
+    ],
+    [
+     -0.01215,
+     -0.01215
+    ],
+    [
+     -0.01215,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e5",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     -0.00837,
+     0.00837
+    ],
+    [
+     -0.00837,
+     0.0
+    ],
+    [
+     -0.01215,
+     0.0
+    ],
+    [
+     -0.01215,
+     0.01215
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e6",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     -0.0,
+     -0.00837
+    ],
+    [
+     0.00837,
+     -0.00837
+    ],
+    [
+     0.01215,
+     -0.01215
+    ],
+    [
+     -0.0,
+     -0.01215
+    ]
+   ]
+  },
+  {
+   "host": "Chest",
+   "conform": false,
+   "udir": [
+    0.9368,
+    0.3253,
+    -0.1291
+   ],
+   "vdir": [
+    -0.3162,
+    0.9448,
+    0.0863
+   ],
+   "offset": [
+    0.028,
+    -0.116,
+    0.062
+   ],
+   "type": "fin",
+   "name": "coin_guo_e7",
+   "material": "coin_body",
+   "thickness": 0.013,
+   "points": [
+    [
+     -0.00837,
+     -0.00837
+    ],
+    [
+     -0.0,
+     -0.00837
+    ],
+    [
+     -0.0,
+     -0.01215
+    ],
+    [
+     -0.01215,
+     -0.01215
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f0",
+   "material": "glow_coin",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.0384,
+     0.0
+    ],
+    [
+     0.03326,
+     0.0192
+    ],
+    [
+     0.0388,
+     0.0224
+    ],
+    [
+     0.0448,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f1",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.03326,
+     0.0192
+    ],
+    [
+     0.0192,
+     0.03326
+    ],
+    [
+     0.0224,
+     0.0388
+    ],
+    [
+     0.0388,
+     0.0224
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f2",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.0192,
+     0.03326
+    ],
+    [
+     0.0,
+     0.0384
+    ],
+    [
+     0.0,
+     0.0448
+    ],
+    [
+     0.0224,
+     0.0388
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f3",
+   "material": "glow_coin",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.0,
+     0.0384
+    ],
+    [
+     -0.0192,
+     0.03326
+    ],
+    [
+     -0.0224,
+     0.0388
+    ],
+    [
+     0.0,
+     0.0448
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f4",
+   "material": "glow_coin",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.0192,
+     0.03326
+    ],
+    [
+     -0.03326,
+     0.0192
+    ],
+    [
+     -0.0388,
+     0.0224
+    ],
+    [
+     -0.0224,
+     0.0388
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f5",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.03326,
+     0.0192
+    ],
+    [
+     -0.0384,
+     0.0
+    ],
+    [
+     -0.0448,
+     0.0
+    ],
+    [
+     -0.0388,
+     0.0224
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f6",
+   "material": "coin_body",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.0384,
+     0.0
+    ],
+    [
+     -0.03326,
+     -0.0192
+    ],
+    [
+     -0.0388,
+     -0.0224
+    ],
+    [
+     -0.0448,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f7",
+   "material": "glow_coin",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.03326,
+     -0.0192
+    ],
+    [
+     -0.0192,
+     -0.03326
+    ],
+    [
+     -0.0224,
+     -0.0388
+    ],
+    [
+     -0.0388,
+     -0.0224
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f8",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.0192,
+     -0.03326
+    ],
+    [
+     -0.0,
+     -0.0384
+    ],
+    [
+     -0.0,
+     -0.0448
+    ],
+    [
+     -0.0224,
+     -0.0388
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f9",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     -0.0,
+     -0.0384
+    ],
+    [
+     0.0192,
+     -0.03326
+    ],
+    [
+     0.0224,
+     -0.0388
+    ],
+    [
+     -0.0,
+     -0.0448
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f10",
+   "material": "glow_coin",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.0192,
+     -0.03326
+    ],
+    [
+     0.03326,
+     -0.0192
+    ],
+    [
+     0.0388,
+     -0.0224
+    ],
+    [
+     0.0224,
+     -0.0388
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_rim_f11",
+   "material": "coin_patina",
+   "thickness": 0.0166,
+   "points": [
+    [
+     0.03326,
+     -0.0192
+    ],
+    [
+     0.0384,
+     -0.0
+    ],
+    [
+     0.0448,
+     -0.0
+    ],
+    [
+     0.0388,
+     -0.0224
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f0",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.01376,
+     0.0
+    ],
+    [
+     0.01192,
+     0.00688
+    ],
+    [
+     0.03326,
+     0.0192
+    ],
+    [
+     0.0384,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f1",
+   "material": "coin_patina",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.01192,
+     0.00688
+    ],
+    [
+     0.00688,
+     0.01192
+    ],
+    [
+     0.0192,
+     0.03326
+    ],
+    [
+     0.03326,
+     0.0192
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f2",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.00688,
+     0.01192
+    ],
+    [
+     0.0,
+     0.01376
+    ],
+    [
+     0.0,
+     0.0384
+    ],
+    [
+     0.0192,
+     0.03326
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f3",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.0,
+     0.01376
+    ],
+    [
+     -0.00688,
+     0.01192
+    ],
+    [
+     -0.0192,
+     0.03326
+    ],
+    [
+     0.0,
+     0.0384
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f4",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.00688,
+     0.01192
+    ],
+    [
+     -0.01192,
+     0.00688
+    ],
+    [
+     -0.03326,
+     0.0192
+    ],
+    [
+     -0.0192,
+     0.03326
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f5",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.01192,
+     0.00688
+    ],
+    [
+     -0.01376,
+     0.0
+    ],
+    [
+     -0.0384,
+     0.0
+    ],
+    [
+     -0.03326,
+     0.0192
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f6",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.01376,
+     0.0
+    ],
+    [
+     -0.01192,
+     -0.00688
+    ],
+    [
+     -0.03326,
+     -0.0192
+    ],
+    [
+     -0.0384,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f7",
+   "material": "coin_patina",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.01192,
+     -0.00688
+    ],
+    [
+     -0.00688,
+     -0.01192
+    ],
+    [
+     -0.0192,
+     -0.03326
+    ],
+    [
+     -0.03326,
+     -0.0192
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f8",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.00688,
+     -0.01192
+    ],
+    [
+     -0.0,
+     -0.01376
+    ],
+    [
+     -0.0,
+     -0.0384
+    ],
+    [
+     -0.0192,
+     -0.03326
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f9",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     -0.0,
+     -0.01376
+    ],
+    [
+     0.00688,
+     -0.01192
+    ],
+    [
+     0.0192,
+     -0.03326
+    ],
+    [
+     -0.0,
+     -0.0384
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f10",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.00688,
+     -0.01192
+    ],
+    [
+     0.01192,
+     -0.00688
+    ],
+    [
+     0.03326,
+     -0.0192
+    ],
+    [
+     0.0192,
+     -0.03326
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_field_f11",
+   "material": "coin_body",
+   "thickness": 0.0051,
+   "points": [
+    [
+     0.01192,
+     -0.00688
+    ],
+    [
+     0.01376,
+     -0.0
+    ],
+    [
+     0.0384,
+     -0.0
+    ],
+    [
+     0.03326,
+     -0.0192
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f0",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     0.00992,
+     0.0
+    ],
+    [
+     0.00992,
+     0.00992
+    ],
+    [
+     0.0144,
+     0.0144
+    ],
+    [
+     0.0144,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f1",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     0.00992,
+     -0.00992
+    ],
+    [
+     0.00992,
+     0.0
+    ],
+    [
+     0.0144,
+     0.0
+    ],
+    [
+     0.0144,
+     -0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f2",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     0.0,
+     0.00992
+    ],
+    [
+     -0.00992,
+     0.00992
+    ],
+    [
+     -0.0144,
+     0.0144
+    ],
+    [
+     0.0,
+     0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f3",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     0.00992,
+     0.00992
+    ],
+    [
+     0.0,
+     0.00992
+    ],
+    [
+     0.0,
+     0.0144
+    ],
+    [
+     0.0144,
+     0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f4",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     -0.00992,
+     0.0
+    ],
+    [
+     -0.00992,
+     -0.00992
+    ],
+    [
+     -0.0144,
+     -0.0144
+    ],
+    [
+     -0.0144,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f5",
+   "material": "coin_patina",
+   "thickness": 0.0154,
+   "points": [
+    [
+     -0.00992,
+     0.00992
+    ],
+    [
+     -0.00992,
+     0.0
+    ],
+    [
+     -0.0144,
+     0.0
+    ],
+    [
+     -0.0144,
+     0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f6",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     -0.0,
+     -0.00992
+    ],
+    [
+     0.00992,
+     -0.00992
+    ],
+    [
+     0.0144,
+     -0.0144
+    ],
+    [
+     -0.0,
+     -0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.8779,
+    0.0,
+    -0.4789
+   ],
+   "vdir": [
+    -0.4751,
+    0.1253,
+    -0.871
+   ],
+   "offset": [
+    -0.112,
+    0.018,
+    0.086
+   ],
+   "type": "fin",
+   "name": "coin_guo_f7",
+   "material": "coin_body",
+   "thickness": 0.0154,
+   "points": [
+    [
+     -0.00992,
+     -0.00992
+    ],
+    [
+     -0.0,
+     -0.00992
+    ],
+    [
+     -0.0,
+     -0.0144
+    ],
+    [
+     -0.0144,
+     -0.0144
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g0",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0336,
+     0.0
+    ],
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.03395,
+     0.0196
+    ],
+    [
+     0.0392,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g1",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0196,
+     0.03395
+    ],
+    [
+     0.03395,
+     0.0196
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g2",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     0.0,
+     0.0392
+    ],
+    [
+     0.0196,
+     0.03395
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g3",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     -0.0196,
+     0.03395
+    ],
+    [
+     0.0,
+     0.0392
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g4",
+   "material": "coin_body",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.03395,
+     0.0196
+    ],
+    [
+     -0.0196,
+     0.03395
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g5",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0392,
+     0.0
+    ],
+    [
+     -0.03395,
+     0.0196
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g6",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.03395,
+     -0.0196
+    ],
+    [
+     -0.0392,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g7",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0196,
+     -0.03395
+    ],
+    [
+     -0.03395,
+     -0.0196
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g8",
+   "material": "glow_coin",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     -0.0,
+     -0.0392
+    ],
+    [
+     -0.0196,
+     -0.03395
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g9",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     0.0196,
+     -0.03395
+    ],
+    [
+     -0.0,
+     -0.0392
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g10",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.03395,
+     -0.0196
+    ],
+    [
+     0.0196,
+     -0.03395
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_rim_g11",
+   "material": "coin_patina",
+   "thickness": 0.0146,
+   "points": [
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.0336,
+     -0.0
+    ],
+    [
+     0.0392,
+     -0.0
+    ],
+    [
+     0.03395,
+     -0.0196
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g0",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01204,
+     0.0
+    ],
+    [
+     0.01043,
+     0.00602
+    ],
+    [
+     0.0291,
+     0.0168
+    ],
+    [
+     0.0336,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g1",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01043,
+     0.00602
+    ],
+    [
+     0.00602,
+     0.01043
+    ],
+    [
+     0.0168,
+     0.0291
+    ],
+    [
+     0.0291,
+     0.0168
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g2",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.00602,
+     0.01043
+    ],
+    [
+     0.0,
+     0.01204
+    ],
+    [
+     0.0,
+     0.0336
+    ],
+    [
+     0.0168,
+     0.0291
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g3",
+   "material": "coin_patina",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.0,
+     0.01204
+    ],
+    [
+     -0.00602,
+     0.01043
+    ],
+    [
+     -0.0168,
+     0.0291
+    ],
+    [
+     0.0,
+     0.0336
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g4",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.00602,
+     0.01043
+    ],
+    [
+     -0.01043,
+     0.00602
+    ],
+    [
+     -0.0291,
+     0.0168
+    ],
+    [
+     -0.0168,
+     0.0291
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g5",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01043,
+     0.00602
+    ],
+    [
+     -0.01204,
+     0.0
+    ],
+    [
+     -0.0336,
+     0.0
+    ],
+    [
+     -0.0291,
+     0.0168
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g6",
+   "material": "coin_patina",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01204,
+     0.0
+    ],
+    [
+     -0.01043,
+     -0.00602
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ],
+    [
+     -0.0336,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g7",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.01043,
+     -0.00602
+    ],
+    [
+     -0.00602,
+     -0.01043
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ],
+    [
+     -0.0291,
+     -0.0168
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g8",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.00602,
+     -0.01043
+    ],
+    [
+     -0.0,
+     -0.01204
+    ],
+    [
+     -0.0,
+     -0.0336
+    ],
+    [
+     -0.0168,
+     -0.0291
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g9",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     -0.0,
+     -0.01204
+    ],
+    [
+     0.00602,
+     -0.01043
+    ],
+    [
+     0.0168,
+     -0.0291
+    ],
+    [
+     -0.0,
+     -0.0336
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g10",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.00602,
+     -0.01043
+    ],
+    [
+     0.01043,
+     -0.00602
+    ],
+    [
+     0.0291,
+     -0.0168
+    ],
+    [
+     0.0168,
+     -0.0291
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_field_g11",
+   "material": "coin_body",
+   "thickness": 0.0045,
+   "points": [
+    [
+     0.01043,
+     -0.00602
+    ],
+    [
+     0.01204,
+     -0.0
+    ],
+    [
+     0.0336,
+     -0.0
+    ],
+    [
+     0.0291,
+     -0.0168
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g0",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     0.0
+    ],
+    [
+     0.00868,
+     0.00868
+    ],
+    [
+     0.0126,
+     0.0126
+    ],
+    [
+     0.0126,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g1",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     -0.00868
+    ],
+    [
+     0.00868,
+     0.0
+    ],
+    [
+     0.0126,
+     0.0
+    ],
+    [
+     0.0126,
+     -0.0126
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g2",
+   "material": "coin_patina",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.0,
+     0.00868
+    ],
+    [
+     -0.00868,
+     0.00868
+    ],
+    [
+     -0.0126,
+     0.0126
+    ],
+    [
+     0.0,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g3",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     0.00868,
+     0.00868
+    ],
+    [
+     0.0,
+     0.00868
+    ],
+    [
+     0.0,
+     0.0126
+    ],
+    [
+     0.0126,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g4",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     0.0
+    ],
+    [
+     -0.00868,
+     -0.00868
+    ],
+    [
+     -0.0126,
+     -0.0126
+    ],
+    [
+     -0.0126,
+     0.0
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g5",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     0.00868
+    ],
+    [
+     -0.00868,
+     0.0
+    ],
+    [
+     -0.0126,
+     0.0
+    ],
+    [
+     -0.0126,
+     0.0126
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g6",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.0,
+     -0.00868
+    ],
+    [
+     0.00868,
+     -0.00868
+    ],
+    [
+     0.0126,
+     -0.0126
+    ],
+    [
+     -0.0,
+     -0.0126
+    ]
+   ]
+  },
+  {
+   "host": "BasePlate",
+   "conform": false,
+   "udir": [
+    0.7433,
+    0.0,
+    0.669
+   ],
+   "vdir": [
+    0.6629,
+    0.1347,
+    -0.7365
+   ],
+   "offset": [
+    0.132,
+    0.018,
+    0.052
+   ],
+   "type": "fin",
+   "name": "coin_guo_g7",
+   "material": "coin_body",
+   "thickness": 0.0134,
+   "points": [
+    [
+     -0.00868,
+     -0.00868
+    ],
+    [
+     -0.0,
+     -0.00868
+    ],
+    [
+     -0.0,
+     -0.0126
+    ],
+    [
+     -0.0126,
+     -0.0126
+    ]
+   ]
+  }
+ ],
+ "animations": {
+  "idle": {
+   "duration": 3.0,
+   "loop": true,
+   "_note": "陰氣節奏：卡頓、不連續、拍子錯開（ART_BIBLE §3）。每條軌都用『hold 一段 → 一格突跳 → 再 hold』的關鍵影格，不是平滑的來回。swarm 的 idle 刻意**不寫 mirror_phase**（boat ⑤-2）——一排要同拍才讀得出「一群同款」。兩枚錢給不同的相位（A 在 0.50、B 在 0.66）＝拍子錯開，兩隻眼各晃各的。",
+   "tracks": {
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.4,
+       0
+      ],
+      [
+       0.44,
+       0.007
+      ],
+      [
+       0.76,
+       0.006
+      ],
+      [
+       0.8,
+       0.001
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       0.6
+      ],
+      [
+       0.38,
+       0.6
+      ],
+      [
+       0.42,
+       -1.9
+      ],
+      [
+       0.84,
+       -1.7
+      ],
+      [
+       0.88,
+       0.6
+      ],
+      [
+       1,
+       0.6
+      ]
+     ]
+    },
+    "Chest": {
+     "rz": [
+      [
+       0,
+       -0.8
+      ],
+      [
+       0.5,
+       0.9
+      ],
+      [
+       1,
+       -0.8
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       -0.8
+      ],
+      [
+       0.38,
+       -0.8
+      ],
+      [
+       0.42,
+       2.2
+      ],
+      [
+       0.84,
+       2.0
+      ],
+      [
+       0.88,
+       -0.8
+      ],
+      [
+       1,
+       -0.8
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "ry": [
+      [
+       0,
+       -4.5
+      ],
+      [
+       0.28,
+       -4.5
+      ],
+      [
+       0.32,
+       3.0
+      ],
+      [
+       0.7,
+       3.0
+      ],
+      [
+       0.74,
+       -1.0
+      ],
+      [
+       1,
+       -4.5
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       -1.8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "CoinA": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.46,
+       0
+      ],
+      [
+       0.5,
+       -3.2
+      ],
+      [
+       0.92,
+       -2.8
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       1.6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "CoinB": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.62,
+       0
+      ],
+      [
+       0.66,
+       4.4
+      ],
+      [
+       0.96,
+       3.6
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.66,
+       -2.0
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       0.8
+      ],
+      [
+       0.55,
+       -1.1
+      ],
+      [
+       1,
+       0.8
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       -1.6
+      ],
+      [
+       0.4,
+       -1.6
+      ],
+      [
+       0.44,
+       1.8
+      ],
+      [
+       0.86,
+       1.6
+      ],
+      [
+       1,
+       -1.6
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       1.4
+      ],
+      [
+       0.5,
+       -1.8
+      ],
+      [
+       1,
+       1.4
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 1.05,
+   "loop": true,
+   "mirror_phase": 0.5,
+   "_note": "紙人不會走路，是被拖著挪——步幅小、上身幾乎不動、頭以固定的歪角一顛一顛。`mirror_phase: 0.5` 是對 boat ⑤-2 的唯一偏離（同 wuying）：直立人形兩腿同拍會變成雙腳跳。膝／踝角度壓在 15° 以內配 LLeg 的 ring_step 0.050，避開 anim_integrity 撕皮（試作 ③-6）。",
+   "tracks": {
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.014
+      ],
+      [
+       0.5,
+       0
+      ],
+      [
+       0.75,
+       0.014
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LLegRoot": {
+     "rx": [
+      [
+       0,
+       -14
+      ],
+      [
+       0.5,
+       15
+      ],
+      [
+       1,
+       -14
+      ]
+     ]
+    },
+    "LKnee": {
+     "rx": [
+      [
+       0,
+       5
+      ],
+      [
+       0.3,
+       13
+      ],
+      [
+       0.6,
+       -3
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    "LAnkle": {
+     "rx": [
+      [
+       0,
+       -4
+      ],
+      [
+       0.4,
+       -9
+      ],
+      [
+       0.7,
+       3
+      ],
+      [
+       1,
+       -4
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       7
+      ],
+      [
+       0.5,
+       -7
+      ],
+      [
+       1,
+       7
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       -3
+      ],
+      [
+       0.5,
+       4
+      ],
+      [
+       1,
+       -3
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       1.2
+      ],
+      [
+       0.5,
+       -1.2
+      ],
+      [
+       1,
+       1.2
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       -1.2
+      ],
+      [
+       0.5,
+       1.2
+      ],
+      [
+       1,
+       -1.2
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       -2.4
+      ],
+      [
+       0.5,
+       2.4
+      ],
+      [
+       1,
+       -2.4
+      ]
+     ]
+    },
+    "CoinA": {
+     "rz": [
+      [
+       0,
+       2.4
+      ],
+      [
+       0.5,
+       -2.4
+      ],
+      [
+       1,
+       2.4
+      ]
+     ]
+    },
+    "CoinB": {
+     "rz": [
+      [
+       0,
+       -3.0
+      ],
+      [
+       0.5,
+       3.0
+      ],
+      [
+       1,
+       -3.0
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       -2.2
+      ],
+      [
+       0.5,
+       2.2
+      ],
+      [
+       1,
+       -2.2
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.92,
+   "loop": false,
+   "_note": "招式「陰陽眼」＝翻錢片。陰氣的 attack 前有一拍靜止（ART_BIBLE §3）：0→0.20 完全不動，0.20→0.34 是蓄（整體後坐、頭低下）；0.34→0.64 兩枚錢**各自翻開**（CoinA rx +168°、CoinB rx −152°，兩者起翻時間差 0.06＝拍子錯開），錢一翻開孔後面的 `eye` 鬼火整片露出來；同時 Hips 的 tz 推 +0.215 逼近（attack_reach 的 REACH 路線需要 ≥0.15×span，span＝max(z 幅寬, 模型高≈1.2)）；0.64→1 錢蓋回去。Spine 的 rx/ry 壓在 6/7 度以內配 body ring_step 0.026，避開 anim_integrity 撕皮。",
+   "tracks": {
+    "Hips": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       -0.05
+      ],
+      [
+       0.64,
+       0.215
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       0.018
+      ],
+      [
+       0.64,
+       -0.01
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       -4
+      ],
+      [
+       0.64,
+       6
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       4
+      ],
+      [
+       0.64,
+       -6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       -5
+      ],
+      [
+       0.64,
+       7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       -8
+      ],
+      [
+       0.64,
+       10
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       6
+      ],
+      [
+       0.64,
+       -9
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "CoinA": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       0
+      ],
+      [
+       0.34,
+       -14
+      ],
+      [
+       0.58,
+       168
+      ],
+      [
+       0.8,
+       168
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "CoinB": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       0
+      ],
+      [
+       0.4,
+       12
+      ],
+      [
+       0.64,
+       -152
+      ],
+      [
+       0.84,
+       -152
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       10
+      ],
+      [
+       0.62,
+       -20
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.34,
+       -5
+      ],
+      [
+       0.62,
+       8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       8
+      ],
+      [
+       0.62,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LLegRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.34,
+       -6
+      ],
+      [
+       0.64,
+       11
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0
+      ],
+      [
+       0.38,
+       5
+      ],
+      [
+       0.68,
+       -8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ }
+}
