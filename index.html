@@ -3124,7 +3124,7 @@ const PW_FX={
   BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
   MAXFIG:8,           /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部） */
-  TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 招式演出的固定時長，不與通用交鋒攤分 EV_BUDGET；沒 3D 時退回 EV_MAX_MS */
+  TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 舞台接下招式時的固定時長（取代該筆的 evMs）；沒 3D 時照舊等 evMs */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
 };
@@ -3138,6 +3138,8 @@ try{
   if(typeof location!=="undefined"&&new URLSearchParams(location.search||"").get("fxcount")==="1")
     window.__ysFxCount=FXC;
 }catch(e){}
+/* 治具用固定種子：只有 ?fxcount=1 同時帶 ?seed=N 才有值；正式頁 undefined → makeState 照舊用 Date.now() */
+const FX_SEED=(()=>{ try{ const q=new URLSearchParams(location.search||""); return (q.get("fxcount")==="1"&&q.get("seed"))?(parseInt(q.get("seed"),10)>>>0):undefined; }catch(e){ return undefined; } })();
 /* 傷害值→力道倍率。夾在 POWER_MIN..POWER_MAX 之間，免得 0 傷害沒感覺、爆擊震到暈。 */
 function fxPower(dmg){ return Math.max(FX.POWER_MIN,Math.min(FX.POWER_MAX,(dmg||0)/FX.POWER_DMG+FX.POWER_MIN)); }
 /* 【積木】停格：整個畫面凍住 ms 毫秒。DOM 動畫靠 body.hitstop 的 animation-play-state 停、
@@ -4032,10 +4034,10 @@ async function pwPlayBeat(f,beat,list,views){
   const burns=list.filter(b=>b.kind==="burn");
   const keep=new Set(pwThin(list.filter(b=>b.kind!=="burn"&&b.kind!=="trait"),PW_FX.MAX_HITS));
   const show=list.filter(b=>b.kind==="trait"||keep.has(b)); /* 保持引擎給的原始順序 */
-  /* 卷 C3：招式有自己的固定時長（TRAIT_MS），EV_BUDGET 只在通用交鋒之間攤分 */
-  const hits=show.filter(b=>b.kind!=="trait").length;
-  const evMs=hits
-    ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/hits))) : 0;
+  /* 攤分公式與 v0.32 逐字相同（含招式一起分）：卷 C3 曾改成只在通用交鋒間攤分，同種子實測每場多 100–400ms
+     超出凍結檔 T-6 的上限（交鋒每筆都拿到 260ms 上限），改回來——招式走 3D 舞台時等 TRAIT_MS，其餘照舊等 evMs */
+  const evMs=show.length
+    ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/show.length))) : 0;
   let stops=0;
   for(const b of show){
     if(b.kind==="trait"){
@@ -4049,8 +4051,7 @@ async function pwPlayBeat(f,beat,list,views){
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
-      await pwSleep(staged?PW_FX.TRAIT_MS:PW_FX.EV_MAX_MS);
-      continue; /* 招式不吃 evMs（下面那段 await 是通用交鋒的） */
+      if(staged){ await pwSleep(PW_FX.TRAIT_MS); continue; } /* 3D 舞台接了才等 900ms；fallback 照 v0.32 等 evMs */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -4406,7 +4407,7 @@ function confirmRole(){
   SEL.cur=null;
   if(SEL.mode==="hotseat"&&SEL.picks.length<2){ renderSelect(); return; }
   $("selectScr").classList.remove("on");
-  newGame(SEL.mode,undefined,SEL.picks);
+  newGame(SEL.mode,FX_SEED,SEL.picks); /* FX_SEED 只在 ?fxcount=1&seed=N 的治具頁有值，正式頁恆為 undefined（卷 C3 T-6 逐場比對） */
 }
 /* ================= 測試出口：headless 模擬（不碰 DOM） ================= */
 /* 固定腳本策略：每夜對 market 中 p 值最高的一件出保守標，金額 = min(保守標上限, 5)，

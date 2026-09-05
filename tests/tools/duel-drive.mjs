@@ -111,6 +111,11 @@ export async function drive(page, url, opts = {}) {
   if (opts.loadmax !== undefined) {
     await page.addInitScript(`document.addEventListener('DOMContentLoaded',()=>{ try{ PW_FX.LOAD_MAX_MS=${Number(opts.loadmax)}; }catch(e){} });`);
   }
+  // --skip：skipbtn 一顯示就按（MutationObserver，不靠 250ms 輪詢）——量的才是「按了跳過的對決」，不是「演到一半才按」
+  if (opts.skip) await page.addInitScript(`document.addEventListener('DOMContentLoaded',()=>{
+    let armed=true; const sk=()=>{ const b=document.getElementById('skipbtn'); if(!b) return; const on=b.style.display!=='none'&&b.offsetParent!==null;
+      if(on&&armed){ armed=false; window.__recSkipped=true; b.click(); } else if(!on) armed=true; };
+    new MutationObserver(sk).observe(document.body,{attributes:true,subtree:true,attributeFilter:['style','class']}); });`);
   if (opts.no3d) await page.route('**/js/renderer.js*', (route) => route.abort());
   if (opts.noglb) await page.route('**/assets/creatures/*.glb', (route) => route.abort()); // 審查 C-2：GLB 全 404 時對決不得卡死
   await page.goto(url, { waitUntil: 'load' });
@@ -150,7 +155,6 @@ export async function drive(page, url, opts = {}) {
     if (st.duels >= want && duelsSeen >= want) break;
     if (/再入妖市/.test(st.mainText)) break; // 一局打完了還沒湊到場數：到此為止
     // 卷 C3 T-6 的 SKIP 基準：對決一開始就按跳過（skipbtn 只在演出中顯示）
-    if (opts.skip && st.skipOk) { await page.evaluate(() => { window.__recSkipped = true; }); await page.click('#skipbtn').catch(() => {}); }
     if (st.stageOk) await page.click('#stage .bigbtn:not([disabled])').catch(() => {});
     else if (st.hoOk) await page.click('#hoBtn').catch(() => {});
     else if (st.mainOk) {
