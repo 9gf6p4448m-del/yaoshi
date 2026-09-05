@@ -105,7 +105,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
 
-  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0, compressed: 0, finished: 0 };
+  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0, compressed: 0 /* ＝被加速過的套數 */, finished: 0 };
   const runs = new Set();
   const wraps = new Map(); // figure → wrap
   let seedCounter = 11;
@@ -252,17 +252,16 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       rim(fig, mul) { run.sig.bones.add('@rim'); wrapOf(fig).rimMul = mul; },
       /* ── 時序 ── */
       /** tween({ms, delay, ease, update(t, e), done}) */
-      /** tween({ms, delay, ease, update(t, e), done})。排到 st.ms 之外的部分按比例壓縮進預算（覆審 HIGH-1：
-       *  滿編 8 尊時逐尊錯開的 lag 讓演出拖到 1317ms，index 只等 900ms → 兩套演出疊在同一批骨骼上）。 */
+      /** tween({ms, delay, ease, update(t, e), done})。排程走「虛擬時間」run.vt：編舞照自己的節奏排，排到 st.ms 之外時
+       *  整套均勻加速（見 update() 的 rate），醞釀／出手／收勢的比例不變——覆審第 1 輪 H-1（滿編 8 尊逐尊錯開的
+       *  lag 讓演出拖到 1317ms、index 只等 900ms）與第 2 輪 M（逐段按比例壓縮＝砍掉收勢）都由這一招處理。 */
       tween(o) {
-        let delay = Math.max(0, o.delay || 0), ms = Math.max(1, o.ms || run.ms);
-        const room = run.ms - run.t;
-        if (delay + ms > room) { const f = Math.max(0, room) / (delay + ms); delay *= f; ms = Math.max(1, ms * f); run.compressed++; }
-        const tw = { start: run.t + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
+        const delay = Math.max(0, o.delay || 0), ms = Math.max(1, o.ms || run.ms);
+        const tw = { start: run.vt + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
+        run.horizon = Math.max(run.horizon, tw.start + ms);
         run.tweens.push(tw); return tw;
       },
-      /** 排在 st.ms 之後的 timer 一律夾到收工前 40ms（它排的 tween 再由上面壓縮） */
-      at(ms, fn) { const at = Math.min(run.t + Math.max(0, ms), Math.max(run.t, run.ms - 40)); if (at < run.t + ms) run.compressed++; run.timers.push({ at, fn, fired: false }); },
+      at(ms, fn) { const at = run.vt + Math.max(0, ms); run.horizon = Math.max(run.horizon, at + 1); run.timers.push({ at, fn, fired: false }); },
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
@@ -355,7 +354,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     if (!actor.length) return null;
     const run = {
       trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms) || 900), done: false,
-      tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++, compressed: 0,
+      tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++,
+      vt: 0, horizon: 0, rate: 1, // 虛擬時間／目前排到的最遠點／加速倍率（1＝照編舞原節奏）
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), target: false },
     };
@@ -387,8 +387,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       w.mo.p.set(0, 0, 0); w.mo.r.set(0, 0, 0); w.mo.s = 1; w.rimMul = 1;
     });
     run.wraps.clear();
-    stats.compressed += run.compressed;
-    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), compressed: run.compressed };
+    if (run.sped) stats.compressed++;
+    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
@@ -400,11 +400,16 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const ms = dt * 1000;
     for (const run of Array.from(runs)) {
       run.t += ms;
-      for (const tm of run.timers) if (!tm.fired && run.t >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { /* 一段壞了不擋整招 */ } }
+      // 加速倍率＝剩餘虛擬工作量／剩餘牆鐘時間（≥1）：排程塞得下就照原節奏，塞不下就整套等比變快。
+      // 每幀重算：timer 回呼晚排進來的 tween 會把 horizon 往後推，rate 跟著升
+      const remainW = run.ms - run.t + ms;
+      run.rate = remainW > 1 ? Math.max(1, (run.horizon - run.vt) / remainW) : Math.max(1, run.rate);
+      run.vt += ms * run.rate;
+      for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { /* 一段壞了不擋整招 */ } }
       run.timers = run.timers.filter((tm) => !tm.fired);
       for (const tw of run.tweens) {
-        if (run.t < tw.start) continue;
-        const t = Math.min(1, (run.t - tw.start) / tw.ms);
+        if (run.vt < tw.start) continue;
+        const t = Math.min(1, (run.vt - tw.start) / tw.ms);
         try { tw.update(t, tw.ease(t)); } catch (e) { tw.dead = true; }
         if (t >= 1) { tw.dead = true; if (tw.done) { try { tw.done(); } catch (e) { /* 同上 */ } } }
       }
@@ -413,6 +418,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險
       if (run.t >= run.fuse) { stats.fused++; finish(run); }
       else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) stats.cut++; finish(run); }
+      else if (run.rate > 1.0001) run.sped = true;
     }
   }
 

@@ -4,39 +4,14 @@
   "pass": 1,
   "dupSignatures": 0,
   "t1": {
-   "missing": [
-    "wardHpFront2",
-    "eliteArmor",
-    "wardFirst",
-    "boltGamble",
-    "swarmHalfSplash",
-    "swarmThorn",
-    "eliteSelfCut",
-    "wardHpAll1",
-    "wardAtkAll1",
-    "wardAbsorb4",
-    "wardImmuneLost",
-    "swarmRally",
-    "biteGamble",
-    "wardHpFirst",
-    "wardRegen1",
-    "swarmLastStand",
-    "hauntLost",
-    "hauntSee",
-    "hauntDread1",
-    "hauntSwap",
-    "eliteVsSwarm",
-    "swarmPierce",
-    "hauntFearX2",
-    "swarmFeed1"
-   ],
+   "missing": [],
    "extra": []
   },
   "softGl": false,
   "opts": {
    "only": "eliteOpenShot",
    "block": "bow",
-   "port": "8846"
+   "port": "8863"
   }
  },
  "results": [
@@ -49,7 +24,7 @@
     "count": 1,
     "trait": "eliteOpenShot"
    },
-   "url": "http://127.0.0.1:8846/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900",
+   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -61,6 +36,7 @@
     "alive": false,
     "restored": true,
     "within": true,
+    "onTime": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -76,6 +52,8 @@
     "fallback": 1,
     "thrown": 0,
     "fused": 0,
+    "cut": 0,
+    "compressed": 0,
     "finished": 0
    },
    "errors": [
@@ -84,8 +62,32 @@
    "shots": [],
    "moves": [
     "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
     "eliteCleave",
-    "hauntSteal"
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
    ],
    "softGl": false,
    "newPrograms": [],
@@ -1211,7 +1213,7 @@
      0
     ]
    ],
-   "ms": 1031
+   "ms": 1153
   }
  ]
 }

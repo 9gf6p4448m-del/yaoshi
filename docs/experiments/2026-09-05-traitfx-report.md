@@ -13,7 +13,7 @@
 | 條 | 結果 | 證據 |
 |---|---|---|
 | T-1 齊備 | ✅ 27/27 | `all.json` summary.t1 `{missing:[],extra:[]}` |
-| T-2 活性＋歸零 | ✅ 27/27 | `all.json`：每套 handled=true、alive=true（Δ 最大 0.67～4.20，全部 >1e-3）、restored=true（演完 Δ<1e-3、mesh 0、wrapped 0）、within=true（結束幀 66–72 ≤ 12＋110） |
+| T-2 活性＋歸零 | ✅ 27/27 | `all.json`：每套 handled=true、alive=true（Δ 最大 0.67～4.20，全部 >1e-3）、restored=true（演完 Δ<1e-3、mesh 0、wrapped 0）、onTime=true（27 套原編制與 `--count=8` 滿編都在第 66 幀＝出招後 900ms 收工；覆審 H-1 修後） |
 | T-3 兩兩不同 | ✅ | ①27 個函式本體去空白兩兩不同（長度 1315～3161）②簽章 `重複簽章 0`（`all.json`） |
 | T-4 ①無 3D | ✅ | 同種子 `seed=20260905` 四場：`bl3-v032-seed-no3d` vs `bl3-v033-seed-no3d` 每場 trait 數 1/2/1/3 相同、FXC.trait 7=7、traitFig 0、時長差 −7／+31／+20／+14ms、錯誤只有刻意擋掉的 renderer.js |
 | T-4 ②單顆 GLB | ✅ | `tfx-block-actor.json`（擋 bow → handled=false 退 fallback）、`tfx-block-foe.json`（擋 boat → 照演、無錯） |
@@ -36,7 +36,9 @@
 | L-1 | LOW | `st.rim` 無疊加語意，同尊兩個 tween 後寫蓋前寫（yinqi.js 邊光脈衝被 flinch 蓋掉） | 不修（設計如此：後寫者勝；該處視覺仍有 flinch 的邊光） |
 | L-2 | LOW | T-2② `alive` 三條腿 OR、snapshot 不分敵我，沒單獨驗「出招方動了」 | 不修（凍結檔本文如此；27 套簽章的骨骼集合都含出招方骨名，接觸表另有人眼） |
 | L-3 | LOW | 同尊重疊時已收工那套的 `w.over` 殘值 | **修**：finish 時若該尊仍有別套在演，把共用覆寫值歸零 |
-**第 2 輪**：見下。
+**第 2 輪**（fresh opus「反駁我已修好」，報告 `2026-09-05-traitfx-review-round2.md`）：H-1／M-1／L-3／M-2 四條**真的修好**（H-1 做了雙向鑑別力：換回 `1c26b61` 的 trait-fx.js 同治具 6 套滿編 end 81–91／2 過，HEAD 6/6 end=66；hitstop 造成重疊那條被否證——三處 fxHitstop 都 await 且先派 ms:0 再 resolve）。新 finding MEDIUM 2／LOW 2，全部指向同一件事：逐段按比例壓縮＝砍演出（滿編第 8 尊的收勢被壓到 40–60ms、`delay*=f` 把收勢拉去蓋醞釀）。
+**處置（第 2 輪後）**：排程改走**虛擬時間**——編舞照自己節奏排、`horizon` 記排到的最遠點，每幀 `rate = max(1, 剩餘虛擬工作量／剩餘牆鐘)`，整套等比加速、醞釀／出手／收勢比例不變，時間到照樣硬收工。原編制 27 套只有 8 套 horizon 超過 900（最多 1016，加速 ≤13%）、滿編最多 1352（1.5×）。重跑：原編制 27/27、滿編 27/27 全在第 66 幀收工；reduced／throw／cancel／block 回歸全綠（`all.json`／`all-count8.json` 的 sig 帶 horizon／sped）。LOW（`--count` 只加出招方）：覆審員自己補跑對面滿編 6/6 通過，不另改。
+**第 3 輪**：只針對虛擬時間排程這一段 diff（`1ff3c21..HEAD` 的 js/trait-fx.js）做冷讀，見下。
 
 ## 教訓（候選，未寫進 lessons.md——該檔已達上限待蒸餾）
 1. `renderer.compile()` 只編「直接輸出」那一支 program；走 bloom 的 render target 是 linear 色彩空間的另一支，粒子池在第一次 burst 前也沒編過。要預熱得讓物件**真的每幀被畫**（`frustumCulled=false` 常駐桌底），`renderer.info.programs.length` 對決前後不變才算證據。
