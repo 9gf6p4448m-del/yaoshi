@@ -16,6 +16,7 @@
     &foe=boat:swarm:zuling:3,sword:elite:xianghuo:1                對面（預設就是這兩隊）
     &throw=1   把這一套編舞換成會 throw 的函式（驗 T-4 ③ 退回 fallback）
     &bloom=0   關 bloom（步進更快；截圖時開）
+    &dt=50     每幀步進的毫秒數（預設 16.67；驗低幀率相位競賽用）
   量測掛勾 window.__tfx（給 tests/tools/traitfx-drive.mjs 用）：
     ready            Promise：兩邊 GLB 都到、圖已就位
     stepA(n)         步進 n 幀並錄快照（pass A）
@@ -63,7 +64,7 @@ const FOE = (q.get('foe') || 'boat:swarm:zuling:3,sword:elite:xianghuo:1').split
 const THROW = q.get('throw') === '1';
 const BLOOM_ON = q.get('bloom') !== '0';
 const MS = parseInt(q.get('ms') || '900', 10) || 900;
-const DT = 1 / 60;
+const DT = Math.max(1, Math.min(100, parseFloat(q.get('dt') || '16.6667') || 16.6667)) / 1000; // ?dt=<ms>：模擬低幀率（renderer.js 夾值 100ms）
 
 const hud = document.getElementById('hud');
 const canvas = document.createElement('canvas');

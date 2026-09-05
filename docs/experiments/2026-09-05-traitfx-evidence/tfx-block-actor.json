@@ -11,7 +11,7 @@
   "opts": {
    "only": "eliteOpenShot",
    "block": "bow",
-   "port": "8863"
+   "port": "8865"
   }
  },
  "results": [
@@ -24,7 +24,7 @@
     "count": 1,
     "trait": "eliteOpenShot"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900&dt=16.666666666666668",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -37,6 +37,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -53,7 +54,7 @@
     "thrown": 0,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 0
    },
    "errors": [
@@ -1213,7 +1214,7 @@
      0
     ]
    ],
-   "ms": 1153
+   "ms": 1022
   }
  ]
 }

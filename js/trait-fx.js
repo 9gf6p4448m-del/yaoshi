@@ -37,6 +37,9 @@ export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING, XIANGHUO, 
 // 全部【試玩必調】
 export const TFX = {
   fuseMul: 2, // 保險絲：演出最長 ms×fuseMul
+  endMargin: 60, // 虛擬時間要在牆鐘收工前這麼多 ms 就抵達 horizon（覆審第 3 輪 H-1：壓線抵達會讓 horizon 上的 timer 在收工幀才燒）
+  atReserve: 160, // st.at 為回呼裡即將排的 tween 預留的虛擬額度（ms）
+  rateMax: 2.2, // 加速倍率天花板（實測滿編 1.50×、dt 夾 0.1s 時 1.64×）
   flinchMs: 240, // 受招輕反應：退縮多久
   flinchDist: 0.14, // 退縮多遠（group 空間，×該尊的 scale 由呼叫端決定）
   flinchRim: 1.8, // 退縮時邊光倍率
@@ -105,7 +108,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
 
-  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0, compressed: 0 /* ＝被加速過的套數 */, finished: 0 };
+  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0 };
   const runs = new Set();
   const wraps = new Map(); // figure → wrap
   let seedCounter = 11;
@@ -256,12 +259,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  整套均勻加速（見 update() 的 rate），醞釀／出手／收勢的比例不變——覆審第 1 輪 H-1（滿編 8 尊逐尊錯開的
        *  lag 讓演出拖到 1317ms、index 只等 900ms）與第 2 輪 M（逐段按比例壓縮＝砍掉收勢）都由這一招處理。 */
       tween(o) {
-        const delay = Math.max(0, o.delay || 0), ms = Math.max(1, o.ms || run.ms);
+        const delay = Number.isFinite(o.delay) ? Math.max(0, o.delay) : 0, ms = Number.isFinite(o.ms) && o.ms > 0 ? o.ms : run.ms;
         const tw = { start: run.vt + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
         run.horizon = Math.max(run.horizon, tw.start + ms);
         run.tweens.push(tw); return tw;
       },
-      at(ms, fn) { const at = run.vt + Math.max(0, ms); run.horizon = Math.max(run.horizon, at + 1); run.timers.push({ at, fn, fired: false }); },
+      at(ms, fn) { const at = run.vt + (Number.isFinite(ms) ? Math.max(0, ms) : 0); run.horizon = Math.max(run.horizon, at + TFX.atReserve); run.timers.push({ at, fn, fired: false }); },
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
@@ -387,8 +390,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       w.mo.p.set(0, 0, 0); w.mo.r.set(0, 0, 0); w.mo.s = 1; w.rimMul = 1;
     });
     run.wraps.clear();
-    if (run.sped) stats.compressed++;
-    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped };
+    if (run.sped) stats.sped++;
+    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped, cut: !!run.cut };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
@@ -402,9 +405,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       run.t += ms;
       // 加速倍率＝剩餘虛擬工作量／剩餘牆鐘時間（≥1）：排程塞得下就照原節奏，塞不下就整套等比變快。
       // 每幀重算：timer 回呼晚排進來的 tween 會把 horizon 往後推，rate 跟著升
-      const remainW = run.ms - run.t + ms;
-      run.rate = remainW > 1 ? Math.max(1, (run.horizon - run.vt) / remainW) : Math.max(1, run.rate);
+      // 目標是提前 endMargin 抵達 horizon（不壓線），倍率夾在 [1, rateMax]
+      // 邊距至少 1.5 幀（10fps 時 60ms 不到一幀，horizon 上的 timer 仍會在收工幀才燒）；最後兩幀內不套天花板，寧可快也不要砍
+      const margin = Math.max(TFX.endMargin, ms * 1.5);
+      const remainW = run.ms - margin - run.t + ms;
+      const cap = (run.ms - run.t) <= ms * 2 ? Infinity : TFX.rateMax;
+      run.rate = remainW > 1 ? Math.min(cap, Math.max(1, (run.horizon - run.vt) / remainW)) : Math.min(cap, Math.max(1, run.rate));
+      if (!Number.isFinite(run.rate)) run.rate = 1;
       run.vt += ms * run.rate;
+      if (run.rate > 1.0001) run.sped = true;
       for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { /* 一段壞了不擋整招 */ } }
       run.timers = run.timers.filter((tm) => !tm.fired);
       for (const tw of run.tweens) {
@@ -417,8 +426,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       run.wraps.forEach(apply);
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險
       if (run.t >= run.fuse) { stats.fused++; finish(run); }
-      else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) stats.cut++; finish(run); }
-      else if (run.rate > 1.0001) run.sped = true;
+      else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) { stats.cut++; run.cut = true; } finish(run); }
     }
   }
 

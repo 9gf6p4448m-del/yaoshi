@@ -38,7 +38,15 @@
 | L-3 | LOW | 同尊重疊時已收工那套的 `w.over` 殘值 | **修**：finish 時若該尊仍有別套在演，把共用覆寫值歸零 |
 **第 2 輪**（fresh opus「反駁我已修好」，報告 `2026-09-05-traitfx-review-round2.md`）：H-1／M-1／L-3／M-2 四條**真的修好**（H-1 做了雙向鑑別力：換回 `1c26b61` 的 trait-fx.js 同治具 6 套滿編 end 81–91／2 過，HEAD 6/6 end=66；hitstop 造成重疊那條被否證——三處 fxHitstop 都 await 且先派 ms:0 再 resolve）。新 finding MEDIUM 2／LOW 2，全部指向同一件事：逐段按比例壓縮＝砍演出（滿編第 8 尊的收勢被壓到 40–60ms、`delay*=f` 把收勢拉去蓋醞釀）。
 **處置（第 2 輪後）**：排程改走**虛擬時間**——編舞照自己節奏排、`horizon` 記排到的最遠點，每幀 `rate = max(1, 剩餘虛擬工作量／剩餘牆鐘)`，整套等比加速、醞釀／出手／收勢比例不變，時間到照樣硬收工。原編制 27 套只有 8 套 horizon 超過 900（最多 1016，加速 ≤13%）、滿編最多 1352（1.5×）。重跑：原編制 27/27、滿編 27/27 全在第 66 幀收工；reduced／throw／cancel／block 回歸全綠（`all.json`／`all-count8.json` 的 sig 帶 horizon／sped）。LOW（`--count` 只加出招方）：覆審員自己補跑對面滿編 6/6 通過，不另改。
-**第 3 輪**：只針對虛擬時間排程這一段 diff（`1ff3c21..HEAD` 的 js/trait-fx.js）做冷讀，見下。
+**第 3 輪**（fresh opus 只冷讀排程 diff，報告 `2026-09-05-traitfx-review-round3.md`）：HIGH 1／MEDIUM 1／LOW 3。
+| # | 等級 | finding | 處置 |
+|---|---|---|---|
+| H-1 | HIGH | vt 被設計成壓線抵達 horizon，horizon 上的 timer 會在收工幀才燒，回呼排的 tween 一幀沒畫就被 dispose；60／30fps 全 27 套 cut=0，20／10fps 各 3 套 cut=1（相位競賽） | **修**：`TFX.endMargin 60ms`（且至少 1.5 幀）提前抵達、`st.at` 為回呼預留 `atReserve 160ms` 虛擬額度、最後兩幀內不套倍率天花板。治具加 `--dt=<ms>` 模擬低幀率：滿編 27 套在 60／20／10fps（dt 夾值）三組 **cut 全 0**（`all-count8*.json`） |
+| M-1 | MEDIUM | 治具的 `stats.cut/fused` 有寫進 json 但沒進判定 | **修**：verdict 加 `clean`（cut=0 且 fused=0）納入 pass |
+| L-1 | LOW | `at(NaN)` 會讓整套 vt 變 NaN | **修**：`Number.isFinite` 守衛（tween 的 delay/ms 同） |
+| L-2 | LOW | `stats.compressed` 名稱與新語意脫節、`sped` 收工幀不設 | **修**：改名 `stats.sped`，在算 rate 的地方設 |
+| L-3 | LOW | rate 無上限 | **修**：`TFX.rateMax 2.2`（實測滿編 1.50×、dt 0.1s 時 1.64×），只在最後兩幀內解除 |
+**三輪到此為止**（02 §6.1 附則上限）。第 3 輪修正只做了機械驗證（上表），沒有再開第 4 輪冷讀。
 
 ## 教訓（候選，未寫進 lessons.md——該檔已達上限待蒸餾）
 1. `renderer.compile()` 只編「直接輸出」那一支 program；走 bloom 的 render target 是 linear 色彩空間的另一支，粒子池在第一次 burst 前也沒編過。要預熱得讓物件**真的每幀被畫**（`frustumCulled=false` 常駐桌底），`renderer.info.programs.length` 對決前後不變才算證據。

@@ -1,5 +1,5 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
-// 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8]
+// 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8] [--dt=50]
 //                                            [--shots=<png 目錄>] [--port=8841] [--ms=900] [--nobloom] [--block=<ab>]
 //   --block=<ab>  擋掉那一顆 GLB（T-4 ②）：擋到出招方→該套必須退回 fallback（handled=false）；擋到對面→照演、不炸
 //   出招方名冊由 index.html 的 POOL 反查（唯一事實來源，不另抄一份）：trait → {ab|m, body, count, fac}
@@ -23,7 +23,7 @@ const { chromium } = req('playwright');
 
 const EPS = 1e-3;
 const FIRE_AT = 12; // 第幾幀出招（前面幾幀讓 idle 站穩）
-const DT_MS = 1000 / 60;
+let DT_MS = 1000 / 60; // --dt=<ms> 覆寫（治具頁同步吃 &dt=）
 
 function parseArgs(argv) {
   const pos = []; const opt = {};
@@ -54,7 +54,7 @@ async function runCase(browser, base, c, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}`;
   if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完
@@ -109,13 +109,15 @@ async function runCase(browser, base, c, opt) {
   // 覆審 HIGH-1：演出必須在 TRAIT_MS 內收工（index 只等這麼久），不是只在保險絲內
   const onTime = endFrame >= 0 && endFrame <= FIRE_AT + Math.ceil(ms / DT_MS) + 2;
   const reducedOK = !opt.reduced || after.every((f) => !(f.d > EPS));
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, reducedOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
+  // 覆審第 3 輪 M-1：stats 要進判定——收工時還有沒演完的（cut）或撞保險絲（fused）都算紅
+  const clean = !!stats && stats.cut === 0 && stats.fused === 0;
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
   else if (cancelAt > 0) verdict.pass = fired.handled && endFrame >= 0 && endFrame <= FIRE_AT + cancelAt + 1 && restored && errors.length === 0;
   else if (opt.block) verdict.pass = fired.handled && alive && restored && within && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
-  else verdict.pass = fired.handled && alive && restored && within && onTime && reducedOK && errors.length === 0 && programs1 - programs0 === 0;
+  else verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && errors.length === 0 && programs1 - programs0 === 0;
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped]) };
 }
 
@@ -123,6 +125,7 @@ async function main() {
   const { pos, opt } = parseArgs(process.argv.slice(2));
   const out = pos[0] || path.join(ROOT, 'scratchpad', 'traitfx-run.json');
   const port = parseInt(opt.port || '8841', 10);
+  if (opt.dt) DT_MS = Math.max(1, Math.min(100, parseFloat(opt.dt) || DT_MS));
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   let cases = casesFromIndex(html);
   if (cases.length !== 27) console.warn(`POOL 反查到 ${cases.length} 套（預期 27）`);
@@ -138,7 +141,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }

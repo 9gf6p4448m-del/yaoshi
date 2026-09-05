@@ -1,0 +1,13875 @@
+{
+ "summary": {
+  "total": 27,
+  "pass": 27,
+  "dupSignatures": 0,
+  "t1": {
+   "missing": [],
+   "extra": []
+  },
+  "softGl": false,
+  "opts": {
+   "count": "8",
+   "dt": "100",
+   "port": "8864"
+  }
+ },
+ "results": [
+  {
+   "case": {
+    "name": "射日神弓",
+    "ab": "bow",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteOpenShot"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.6091,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteOpenShot",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "HeadRoot",
+     "Neck2",
+     "Neck3",
+     "TailRoot"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 914,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.42832,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.58113,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.60872,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.6091,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     16,
+     0.17144,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     17,
+     0.1972,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     18,
+     0.06157,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 1063
+  },
+  {
+   "case": {
+    "name": "百步蛇紋盾",
+    "ab": "shield",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpFront2"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardHpFront2&ab=shield&body=ward&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 2.9383,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpFront2",
+    "bones": [
+     "@rim",
+     "Body0",
+     "Body10",
+     "Body12",
+     "Body14",
+     "Body16",
+     "Body18",
+     "Body2",
+     "Body20",
+     "Body4",
+     "Body6",
+     "Body8",
+     "Crown",
+     "Head0",
+     "Jaw",
+     "Neck2",
+     "Neck3",
+     "Snout",
+     "Wall1",
+     "Wall2",
+     "Wall3"
+    ],
+    "meshes": [
+     "burst",
+     "dome",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1473,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     2.93777,
+     0,
+     0,
+     1,
+     3
+    ],
+    [
+     13,
+     2.93826,
+     4,
+     1,
+     1,
+     5
+    ],
+    [
+     14,
+     2.93723,
+     10,
+     1,
+     1,
+     8
+    ],
+    [
+     15,
+     2.93826,
+     14,
+     1,
+     1,
+     8
+    ],
+    [
+     16,
+     0.7629,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     17,
+     0.06837,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 812
+  },
+  {
+   "case": {
+    "name": "巴冷公主珠鍊",
+    "ab": "balen",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteArmor"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=eliteArmor&ab=balen&body=elite&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 2.4052,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteArmor",
+    "bones": [
+     "@model",
+     "@rim",
+     "Body0",
+     "Body12",
+     "Body15",
+     "Body18",
+     "Body3",
+     "Body6",
+     "Body9",
+     "Head0",
+     "Jaw",
+     "Neck0",
+     "Neck1",
+     "Neck2",
+     "Neck3",
+     "Snout",
+     "SnoutTip",
+     "Trunk0",
+     "Trunk1",
+     "Trunk2",
+     "Trunk3",
+     "Trunk4"
+    ],
+    "meshes": [
+     "burst",
+     "dome",
+     "orb",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1132,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     2.05225,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     2.40516,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     14,
+     0.46199,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     15,
+     0.13797,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     16,
+     0,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     17,
+     0,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     18,
+     0,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     19,
+     0,
+     10,
+     1,
+     1,
+     1
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 828
+  },
+  {
+   "case": {
+    "name": "祖靈之眼",
+    "ab": "eye",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardFirst"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardFirst&ab=eye&body=ward&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.746,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardFirst",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Br0",
+     "Br1",
+     "Br2",
+     "Sl0",
+     "Sl1",
+     "Sl2",
+     "Sl3"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1240,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.33901,
+     0,
+     0,
+     1,
+     3
+    ],
+    [
+     13,
+     0.74599,
+     9,
+     1,
+     1,
+     8
+    ],
+    [
+     14,
+     0.73544,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     15,
+     0.7154,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     16,
+     0.4511,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     17,
+     0.02884,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     18,
+     0.00044,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     19,
+     0,
+     9,
+     1,
+     1,
+     10
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 820
+  },
+  {
+   "case": {
+    "name": "雷女之火",
+    "ab": "thunder",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "boltGamble"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=boltGamble&ab=thunder&body=elite&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 2.0833,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "boltGamble",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "EmberSeed",
+     "HeadRoot",
+     "LLeg1Th",
+     "LWingA1Wi",
+     "Neck1",
+     "Neck2",
+     "NeckRoot",
+     "RLeg1Th",
+     "RWingA1Wi",
+     "Tail1",
+     "Tail2",
+     "Tail3",
+     "TailRoot",
+     "TailTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 840,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     1.72897,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     2.08261,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     2.08327,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.69555,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     16,
+     0.46059,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     17,
+     0.08348,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     18,
+     0.00291,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 659
+  },
+  {
+   "case": {
+    "name": "拼板舟",
+    "ab": "boat",
+    "fac": "zuling",
+    "body": "swarm",
+    "count": 3,
+    "trait": "swarmHalfSplash"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmHalfSplash&ab=boat&body=swarm&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.6295,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmHalfSplash",
+    "bones": [
+     "@model",
+     "@rim",
+     "BowBase",
+     "BowTip",
+     "LFin1Md",
+     "LFin1Rt",
+     "LFin1Tp",
+     "Mid",
+     "RFin1Md",
+     "RFin1Rt",
+     "RFin1Tp",
+     "Stern",
+     "SternTip"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1279,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.30945,
+     0,
+     0,
+     1,
+     3
+    ],
+    [
+     13,
+     0.52297,
+     0,
+     0,
+     1,
+     5
+    ],
+    [
+     14,
+     0.59932,
+     0,
+     0,
+     1,
+     8
+    ],
+    [
+     15,
+     0.62948,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     16,
+     0.60281,
+     8,
+     1,
+     1,
+     8
+    ],
+    [
+     17,
+     0.42042,
+     12,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 621
+  },
+  {
+   "case": {
+    "name": "山豬牙飾",
+    "ab": "boartusk",
+    "fac": "zuling",
+    "body": "swarm",
+    "count": 1,
+    "trait": "swarmThorn"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmThorn&ab=boartusk&body=swarm&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.9511,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmThorn",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Barrel",
+     "DiscFace",
+     "DiscRoot",
+     "HeadRoot",
+     "LBack1Kn",
+     "LEar1Ea",
+     "LFront1Kn",
+     "Muzzle",
+     "NeckMid",
+     "NeckRoot",
+     "RBack1Kn",
+     "REar1Ea",
+     "RFront1Kn",
+     "Skull",
+     "Withers"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "disc"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 860,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.88411,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.8025,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.95106,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.93391,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     16,
+     0.38817,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     17,
+     0.00465,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     18,
+     0,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 618
+  },
+  {
+   "case": {
+    "name": "獻祭刀",
+    "ab": "xianji",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteSelfCut"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=eliteSelfCut&ab=xianji&body=elite&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.4113,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteSelfCut",
+    "bones": [
+     "@model",
+     "@rim",
+     "HeadRoot",
+     "LFront1El",
+     "LFront1Wr",
+     "Muzzle",
+     "Neck1",
+     "Neck2",
+     "Neck3",
+     "NeckRoot",
+     "RFront1El",
+     "RFront1Wr",
+     "Skull",
+     "Tail1",
+     "TailRoot",
+     "TailTip",
+     "Withers"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1129,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.92576,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     1.21424,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     1.41129,
+     1,
+     1,
+     1,
+     1
+    ],
+    [
+     15,
+     0.27471,
+     9,
+     1,
+     1,
+     1
+    ],
+    [
+     16,
+     0.62994,
+     9,
+     1,
+     1,
+     5
+    ],
+    [
+     17,
+     0.15184,
+     9,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0,
+     9,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     9,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 730
+  },
+  {
+   "case": {
+    "name": "山神庇佑",
+    "ab": "shanshen",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpAll1"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardHpAll1&ab=shanshen&body=ward&fac=zuling&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.6941,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpAll1",
+    "bones": [
+     "@model",
+     "@rim",
+     "Barrel",
+     "Chest",
+     "CragBack",
+     "CragFore",
+     "CragMid",
+     "HeadRoot",
+     "LBack1Kn",
+     "LFront1Kn",
+     "Muzzle",
+     "Neck1",
+     "Neck2",
+     "NeckRoot",
+     "RBack1Kn",
+     "RFront1Kn"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1337,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.46748,
+     0,
+     0,
+     1,
+     3
+    ],
+    [
+     13,
+     0.47761,
+     4,
+     1,
+     1,
+     5
+    ],
+    [
+     14,
+     0.69045,
+     8,
+     1,
+     1,
+     8
+    ],
+    [
+     15,
+     0.69297,
+     12,
+     1,
+     1,
+     8
+    ],
+    [
+     16,
+     0.69405,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     17,
+     0.69413,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     16,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 825
+  },
+  {
+   "case": {
+    "name": "媽祖令旗",
+    "ab": "flag",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardAtkAll1"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardAtkAll1&ab=flag&body=ward&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.5789,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardAtkAll1",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "FlagMast",
+     "HeadRoot",
+     "Jaw1",
+     "JawRoot",
+     "Tail1",
+     "Tail2",
+     "TailRoot",
+     "Withers"
+    ],
+    "meshes": [
+     "burst",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1140,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.43883,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.56356,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.57894,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.4408,
+     2,
+     1,
+     1,
+     4
+    ],
+    [
+     16,
+     0.24716,
+     2,
+     1,
+     1,
+     7
+    ],
+    [
+     17,
+     0.1034,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0.06619,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 858
+  },
+  {
+   "case": {
+    "name": "王爺劍",
+    "ab": "sword",
+    "fac": "xianghuo",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteCleave"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=eliteCleave&ab=sword&body=elite&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.9974,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteCleave",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Chest",
+     "HeadRoot",
+     "RArm1El",
+     "RArm1Rt"
+    ],
+    "meshes": [
+     "burst",
+     "slash"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 920,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.85113,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.98677,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.99745,
+     1,
+     0,
+     1,
+     5
+    ],
+    [
+     15,
+     0.60754,
+     1,
+     1,
+     1,
+     5
+    ],
+    [
+     16,
+     0.68578,
+     1,
+     1,
+     1,
+     5
+    ],
+    [
+     17,
+     0.58079,
+     1,
+     1,
+     1,
+     5
+    ],
+    [
+     18,
+     0.0285,
+     1,
+     1,
+     1,
+     5
+    ],
+    [
+     19,
+     0,
+     1,
+     1,
+     1,
+     5
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 794
+  },
+  {
+   "case": {
+    "name": "送王船",
+    "ab": "wangchuan",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardAbsorb4"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardAbsorb4&ab=wangchuan&body=ward&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.4652,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardAbsorb4",
+    "bones": [
+     "@model",
+     "@rim",
+     "AftMid",
+     "BowRise",
+     "BowTip",
+     "FigA",
+     "FigB",
+     "FigC",
+     "FigD",
+     "FigE",
+     "FigF",
+     "FigG",
+     "ForeMid",
+     "Mast1",
+     "Mast2",
+     "Mast3",
+     "Mast4",
+     "MastFoot",
+     "MastTop",
+     "MidShip",
+     "SternRise",
+     "SternTip"
+    ],
+    "meshes": [
+     "disc",
+     "dome",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 903,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.44535,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.46285,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.46517,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.45785,
+     3,
+     0,
+     1,
+     2
+    ],
+    [
+     16,
+     0.45763,
+     3,
+     0,
+     1,
+     2
+    ],
+    [
+     17,
+     0.32824,
+     3,
+     0,
+     1,
+     2
+    ],
+    [
+     18,
+     0.01214,
+     3,
+     0,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     3,
+     0,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 848
+  },
+  {
+   "case": {
+    "name": "千里眼銅鈴",
+    "ab": "bell",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardImmuneLost"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardImmuneLost&ab=bell&body=ward&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.1791,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardImmuneLost",
+    "bones": [
+     "@rim",
+     "ArmDElbow",
+     "ArmDRoot",
+     "ArmUElbow",
+     "ArmUHand",
+     "ArmURoot",
+     "ArmUWrist",
+     "AxeHead",
+     "BellLip",
+     "BellRoot",
+     "BellShoulder",
+     "BellStem",
+     "BellWaist",
+     "Chest",
+     "LipEdge",
+     "LipMid",
+     "LipRoot",
+     "NeckB",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 974,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.86506,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     1.16463,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     1.17149,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     15,
+     1.17912,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     16,
+     1.14805,
+     4,
+     1,
+     1,
+     2
+    ],
+    [
+     17,
+     1.16248,
+     4,
+     1,
+     1,
+     2
+    ],
+    [
+     18,
+     0.05122,
+     4,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     4,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 668
+  },
+  {
+   "case": {
+    "name": "五營旗",
+    "ab": "wuying",
+    "fac": "xianghuo",
+    "body": "swarm",
+    "count": 3,
+    "trait": "swarmRally"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmRally&ab=wuying&body=swarm&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.932,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmRally",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "FlagTop",
+     "HeadRoot",
+     "Helm1",
+     "HelmRoot",
+     "Hips",
+     "NeckB",
+     "RArm1El",
+     "RArm1Rt",
+     "RArm1Wr",
+     "RLeg1An",
+     "RLeg1Kn",
+     "RLeg1Rt",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1053,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.68808,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.9197,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.93199,
+     4,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.26865,
+     12,
+     0,
+     1,
+     2
+    ],
+    [
+     16,
+     0.27338,
+     12,
+     1,
+     1,
+     5
+    ],
+    [
+     17,
+     0.20679,
+     12,
+     1,
+     1,
+     8
+    ],
+    [
+     18,
+     0.02407,
+     12,
+     1,
+     1,
+     8
+    ],
+    [
+     19,
+     0,
+     12,
+     1,
+     1,
+     8
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 640
+  },
+  {
+   "case": {
+    "name": "虎爺印",
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "body": "elite",
+    "count": 1,
+    "trait": "biteGamble"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=biteGamble&ab=tiger&body=elite&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.6498,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "biteGamble",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "Chest",
+     "HeadRoot",
+     "Hips",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "LBack1Kn",
+     "LFrontElbow1El",
+     "LFrontRoot1Rt",
+     "LFrontToe1To",
+     "Muzzle",
+     "Neck2",
+     "NeckB",
+     "Nose",
+     "RBack1Kn",
+     "RFrontElbow1El",
+     "RFrontRoot1Rt",
+     "RFrontToe1To",
+     "Rump",
+     "Spine",
+     "Tail1",
+     "Tail2",
+     "TailRoot",
+     "TailTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 950,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.6658,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.78341,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.78592,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     1.64978,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     16,
+     0.89703,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     17,
+     0.74631,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     18,
+     0.03661,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 673
+  },
+  {
+   "case": {
+    "name": "香灰符",
+    "ab": "ashcharm",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpFirst"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardHpFirst&ab=ashcharm&body=ward&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.8331,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpFirst",
+    "bones": [
+     "@model",
+     "@rim",
+     "BElbow",
+     "BHand",
+     "BShldr",
+     "BrowFu",
+     "Chest",
+     "Crown",
+     "FuD1",
+     "FuD10",
+     "FuD12",
+     "FuD14",
+     "FuD15",
+     "FuD16",
+     "FuD19",
+     "FuD20",
+     "FuD21",
+     "FuD22",
+     "FuD3",
+     "FuD5",
+     "FuD8",
+     "FuD9",
+     "FuX10",
+     "Head",
+     "Hip",
+     "JossT1",
+     "JossT2",
+     "JossT3",
+     "JossT4",
+     "JossT5",
+     "JossT6",
+     "Neck",
+     "RElbow1El",
+     "RHand1Ha",
+     "RShldr1Sh",
+     "WalA1",
+     "WalA2",
+     "WalA3",
+     "WalA4",
+     "WalA5",
+     "WalB1",
+     "WalB2",
+     "WalB3",
+     "WalB4",
+     "WalB5"
+    ],
+    "meshes": [
+     "burst",
+     "orb",
+     "ring"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1142,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.69702,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.81907,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.82645,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.82817,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     16,
+     0.82986,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     17,
+     0.83152,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     18,
+     0.83314,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 680
+  },
+  {
+   "case": {
+    "name": "福壽綿長",
+    "ab": "fushou",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardRegen1"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=wardRegen1&ab=fushou&body=ward&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.6831,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardRegen1",
+    "bones": [
+     "@rim",
+     "Bd0",
+     "Bd1",
+     "Bd2",
+     "Brm0",
+     "Brm1",
+     "Brm2",
+     "Cp0",
+     "Cp1",
+     "Cp2",
+     "Cp3",
+     "Crest",
+     "EyHiA",
+     "EyHiB",
+     "FlmR",
+     "Hd0",
+     "Hd1",
+     "Nk0",
+     "Nk1",
+     "Tl0",
+     "Tl1",
+     "Tl2"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 1648,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.47558,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.66893,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.68096,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.68168,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     16,
+     0.6824,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     17,
+     0.68312,
+     2,
+     0,
+     1,
+     1
+    ],
+    [
+     18,
+     0.08701,
+     3,
+     1,
+     1,
+     2
+    ],
+    [
+     19,
+     0,
+     6,
+     1,
+     1,
+     2
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 861
+  },
+  {
+   "case": {
+    "name": "破軍旗",
+    "ab": "pojun",
+    "fac": "xianghuo",
+    "body": "swarm",
+    "count": 1,
+    "trait": "swarmLastStand"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmLastStand&ab=pojun&body=swarm&fac=xianghuo&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.9844,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmLastStand",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "Crown1",
+     "CrownRoot",
+     "CrownTip",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Rt",
+     "LArm1Wr",
+     "NeckB",
+     "PoleMid",
+     "PoleRoot",
+     "PoleTop",
+     "RArm1El",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "SpearMid",
+     "SpearRoot",
+     "SpearTip",
+     "Spine"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 900,
+    "horizon": 909,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.81178,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     0.98023,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     0.97876,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.97373,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     16,
+     0.95321,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     17,
+     0.98441,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     18,
+     0.06578,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     1
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 702
+  },
+  {
+   "case": {
+    "name": "魔神仔紅帽",
+    "ab": "redhat",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntLost"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntLost&ab=redhat&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.9875,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntLost",
+    "bones": [
+     "@model",
+     "@rim",
+     "Hat1",
+     "HatRoot",
+     "HatTip",
+     "HeadRoot",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "LArmRoot1Rt",
+     "LElbow1El",
+     "Mist1",
+     "Mist2",
+     "MistRoot",
+     "MistTip",
+     "Neck2",
+     "NeckB",
+     "RArmRoot1Rt",
+     "RElbow1El",
+     "RWrist1Wr",
+     "Skull"
+    ],
+    "meshes": [
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1015,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.55225,
+     0,
+     0,
+     1,
+     4
+    ],
+    [
+     13,
+     0.9875,
+     3,
+     0,
+     1,
+     8
+    ],
+    [
+     14,
+     0.98686,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     15,
+     0.91392,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     16,
+     0.912,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     17,
+     0.89343,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     18,
+     0.09701,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     19,
+     0,
+     3,
+     0,
+     1,
+     11
+    ],
+    [
+     20,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 1041
+  },
+  {
+   "case": {
+    "name": "林投姐髮簪",
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntSteal"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntSteal&ab=hairpin&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.3873,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSteal",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "HairA",
+     "HairB",
+     "HairC",
+     "HairD",
+     "HairE",
+     "HeadRoot",
+     "LArmRoot1Rt",
+     "RArmRoot1Rt",
+     "VeilTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1333,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     1.21339,
+     0,
+     0,
+     1,
+     3
+    ],
+    [
+     13,
+     1.38516,
+     8,
+     0,
+     1,
+     9
+    ],
+    [
+     14,
+     1.38727,
+     8,
+     0,
+     1,
+     11
+    ],
+    [
+     15,
+     1.38584,
+     8,
+     0,
+     1,
+     12
+    ],
+    [
+     16,
+     1.38184,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     17,
+     1.34258,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     18,
+     1.3415,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 619
+  },
+  {
+   "case": {
+    "name": "椅仔姑竹椅",
+    "ab": "chair",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 3,
+    "trait": "hauntSee"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntSee&ab=chair&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.787,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSee",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "Chest",
+     "Crest",
+     "Head1",
+     "HeadTop",
+     "NeckRoot",
+     "PostA",
+     "PostB",
+     "SeatFront",
+     "SeatMid",
+     "SeatRoot",
+     "Waist",
+     "Yoke"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1100,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.43216,
+     0,
+     0,
+     1,
+     4
+    ],
+    [
+     13,
+     0.38015,
+     0,
+     0,
+     1,
+     8
+    ],
+    [
+     14,
+     0.76882,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     15,
+     0.78702,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     16,
+     0.78636,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     17,
+     0.78538,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     18,
+     0.10385,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     5,
+     1,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 1003
+  },
+  {
+   "case": {
+    "name": "黃色小雨衣",
+    "ab": "raincoat",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntDread1"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntDread1&ab=raincoat&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 0.7001,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntDread1",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Chest",
+     "Hood1",
+     "HoodRoot",
+     "HoodTop",
+     "LSlvCuff1Sl",
+     "LSlvElbow1El",
+     "LSlvRoot1Rt",
+     "MistRoot",
+     "RSlvCuff1Sl",
+     "RSlvElbow1El",
+     "RSlvRoot1Rt",
+     "ShoulderTop",
+     "Skirt1",
+     "Skirt2",
+     "SkirtTip",
+     "Waist",
+     "Yoke"
+    ],
+    "meshes": [
+     "ring"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1010,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.57631,
+     0,
+     0,
+     1,
+     5
+    ],
+    [
+     13,
+     0.69173,
+     0,
+     0,
+     1,
+     8
+    ],
+    [
+     14,
+     0.69968,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     15,
+     0.69946,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     16,
+     0.69912,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     17,
+     0.70006,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     18,
+     0.12161,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     1,
+     0,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 842
+  },
+  {
+   "case": {
+    "name": "水鬼浮標",
+    "ab": "buoy",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntSwap"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntSwap&ab=buoy&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.3333,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSwap",
+    "bones": [
+     "@model",
+     "@rim",
+     "Belly",
+     "Chest",
+     "Crown",
+     "DrumBase",
+     "DrumCap",
+     "Head1",
+     "KnotBot",
+     "KnotTop",
+     "LElbow1El",
+     "LSh1Sh",
+     "LWrist1Wr",
+     "MastTop",
+     "Neck",
+     "RElbow1El",
+     "RSh1Sh",
+     "RWrist1Wr",
+     "RopeA",
+     "RopeB",
+     "RopeC",
+     "RopeD",
+     "RopeE",
+     "RopeF",
+     "Waist",
+     "Weed1",
+     "WeedRoot",
+     "WeedTip",
+     "Yoke"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1035,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.87895,
+     0,
+     0,
+     1,
+     4
+    ],
+    [
+     13,
+     1.07109,
+     0,
+     0,
+     1,
+     8
+    ],
+    [
+     14,
+     1.08466,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     15,
+     1.32342,
+     2,
+     1,
+     1,
+     9
+    ],
+    [
+     16,
+     1.33327,
+     2,
+     1,
+     1,
+     9
+    ],
+    [
+     17,
+     1.06907,
+     2,
+     1,
+     1,
+     9
+    ],
+    [
+     18,
+     0.1262,
+     2,
+     1,
+     1,
+     9
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     9
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 1058
+  },
+  {
+   "case": {
+    "name": "虎姑婆指甲",
+    "ab": "nail",
+    "fac": "yinqi",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteVsSwarm"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=eliteVsSwarm&ab=nail&body=elite&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.8216,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteVsSwarm",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "Cape1",
+     "CapeHem",
+     "CapeRoot",
+     "Chest",
+     "ClawElbow",
+     "ClawHand",
+     "ClawRoot",
+     "ClawWrist",
+     "HeadRoot",
+     "Hips",
+     "Hood1",
+     "Hood2",
+     "HoodRoot",
+     "HoodTop",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "Neck",
+     "Robe1",
+     "RobeHem",
+     "RobeRoot",
+     "Snout",
+     "Spine",
+     "StubElbow",
+     "StubRoot",
+     "StubTip"
+    ],
+    "meshes": [
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 874,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     1.70195,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     13,
+     1.81872,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     14,
+     1.81946,
+     1,
+     0,
+     1,
+     1
+    ],
+    [
+     15,
+     0.82572,
+     1,
+     1,
+     1,
+     2
+    ],
+    [
+     16,
+     1.82049,
+     1,
+     1,
+     1,
+     3
+    ],
+    [
+     17,
+     1.8216,
+     1,
+     1,
+     1,
+     4
+    ],
+    [
+     18,
+     0.76022,
+     1,
+     1,
+     1,
+     4
+    ],
+    [
+     19,
+     0,
+     1,
+     1,
+     1,
+     4
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 794
+  },
+  {
+   "case": {
+    "name": "陰陽眼銅錢",
+    "ab": "yinyangcoin",
+    "fac": "yinqi",
+    "body": "swarm",
+    "count": 2,
+    "trait": "swarmPierce"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmPierce&ab=yinyangcoin&body=swarm&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.1035,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmPierce",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "BasePlate",
+     "Brow",
+     "Chest",
+     "CoinA",
+     "CoinB",
+     "Crown",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Ha",
+     "LArm1Rt",
+     "LArm1Wr",
+     "Neck2",
+     "NeckB",
+     "RArm1El",
+     "RArm1Ha",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Skull",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1195,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     1.10346,
+     0,
+     0,
+     1,
+     4
+    ],
+    [
+     13,
+     1.08146,
+     8,
+     0,
+     1,
+     12
+    ],
+    [
+     14,
+     0.82976,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     15,
+     0.82842,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     16,
+     1.01055,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     17,
+     1.05923,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     18,
+     0.27549,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     8,
+     1,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 655
+  },
+  {
+   "case": {
+    "name": "過陰咒",
+    "ab": "guoyin",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntFearX2"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=hauntFearX2&ab=guoyin&body=haunt&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.4784,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntFearX2",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "ArmElbow",
+     "ArmHand",
+     "ArmRoot",
+     "ArmWrist",
+     "Chest",
+     "Crown",
+     "HeadRoot",
+     "Mist1",
+     "Mist2",
+     "MistRoot",
+     "MistTip",
+     "NeckB",
+     "Skull",
+     "Spine",
+     "VArmElbow",
+     "VArmRoot",
+     "VArmTip",
+     "VArmWrist",
+     "VChest",
+     "VCrown",
+     "VHeadRoot",
+     "VNeck",
+     "VRoot",
+     "VSkull2",
+     "VSpine",
+     "Waist"
+    ],
+    "meshes": [
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1014,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.51056,
+     0,
+     0,
+     1,
+     5
+    ],
+    [
+     13,
+     0.60591,
+     0,
+     0,
+     1,
+     8
+    ],
+    [
+     14,
+     0.95206,
+     2,
+     1,
+     1,
+     8
+    ],
+    [
+     15,
+     1.45358,
+     2,
+     1,
+     1,
+     12
+    ],
+    [
+     16,
+     1.47812,
+     2,
+     1,
+     1,
+     12
+    ],
+    [
+     17,
+     1.47844,
+     2,
+     1,
+     1,
+     12
+    ],
+    [
+     18,
+     0.28849,
+     2,
+     1,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     2,
+     1,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 686
+  },
+  {
+   "case": {
+    "name": "飼鬼甕",
+    "ab": "sigui",
+    "fac": "yinqi",
+    "body": "swarm",
+    "count": 2,
+    "trait": "swarmFeed1"
+   },
+   "url": "http://127.0.0.1:8864/tests/tools/traitfx-preview.html?trait=swarmFeed1&ab=sigui&body=swarm&fac=yinqi&count=8&ms=900&dt=100",
+   "nA": 50,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "endFrame": 20,
+    "maxD": 1.0966,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmFeed1",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "Chest",
+     "Crown",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Ha",
+     "LArm1Ja",
+     "LArm1Rt",
+     "LArm1Wr",
+     "LipEdge",
+     "LipMid",
+     "LipRoot",
+     "NeckRoot",
+     "NeckTop",
+     "PotBase",
+     "PotLow",
+     "PotSeam",
+     "RArm1El",
+     "RArm1Ha",
+     "RArm1Ja",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Shoulders",
+     "Skull",
+     "ThroatRoot",
+     "ThroatTop",
+     "TorsoRoot",
+     "UrnA",
+     "UrnB",
+     "UrnC",
+     "UrnTop",
+     "Waist"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": true,
+    "t": 900,
+    "horizon": 1184,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "shots": [],
+   "moves": [
+    "eliteOpenShot",
+    "wardHpFront2",
+    "wardHpAll1",
+    "wardFirst",
+    "boltGamble",
+    "swarmHalfSplash",
+    "swarmThorn",
+    "eliteSelfCut",
+    "eliteArmor",
+    "eliteCleave",
+    "wardAtkAll1",
+    "wardAbsorb4",
+    "wardImmuneLost",
+    "swarmRally",
+    "biteGamble",
+    "wardHpFirst",
+    "wardRegen1",
+    "swarmLastStand",
+    "hauntSteal",
+    "hauntLost",
+    "hauntSee",
+    "hauntDread1",
+    "hauntSwap",
+    "eliteVsSwarm",
+    "swarmPierce",
+    "hauntFearX2",
+    "swarmFeed1"
+   ],
+   "softGl": false,
+   "newPrograms": [],
+   "frames": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     6,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     7,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     8,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     9,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     10,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     11,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     12,
+     0.98428,
+     0,
+     0,
+     1,
+     4
+    ],
+    [
+     13,
+     1.09657,
+     4,
+     0,
+     1,
+     11
+    ],
+    [
+     14,
+     1.09657,
+     4,
+     0,
+     1,
+     12
+    ],
+    [
+     15,
+     1.09657,
+     12,
+     0,
+     1,
+     12
+    ],
+    [
+     16,
+     1.09657,
+     12,
+     1,
+     1,
+     12
+    ],
+    [
+     17,
+     1.0818,
+     12,
+     1,
+     1,
+     12
+    ],
+    [
+     18,
+     0.06375,
+     12,
+     1,
+     1,
+     12
+    ],
+    [
+     19,
+     0,
+     12,
+     1,
+     1,
+     12
+    ],
+    [
+     20,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     21,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     22,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     23,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     24,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     25,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     26,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     27,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     28,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     29,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     30,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     31,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     32,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     33,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     34,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     35,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     36,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     37,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     38,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     39,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     40,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     41,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     42,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     43,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     44,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     45,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     46,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     47,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     48,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     49,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ],
+   "ms": 826
+  }
+ ]
+}

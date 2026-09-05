@@ -10,7 +10,7 @@
   "softGl": false,
   "opts": {
    "throw": true,
-   "port": "8863"
+   "port": "8865"
   }
  },
  "results": [
@@ -23,7 +23,7 @@
     "count": 1,
     "trait": "eliteOpenShot"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteOpenShot&ab=bow&body=elite&fac=zuling&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -36,6 +36,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -51,7 +52,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -60,7 +62,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -1218,7 +1220,7 @@
      0
     ]
    ],
-   "ms": 1155
+   "ms": 1025
   },
   {
    "case": {
@@ -1229,7 +1231,7 @@
     "count": 2,
     "trait": "wardHpFront2"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardHpFront2&ab=shield&body=ward&fac=zuling&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardHpFront2&ab=shield&body=ward&fac=zuling&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -1242,6 +1244,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -1257,7 +1260,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -1266,7 +1270,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -2424,7 +2428,7 @@
      0
     ]
    ],
-   "ms": 821
+   "ms": 762
   },
   {
    "case": {
@@ -2435,7 +2439,7 @@
     "count": 1,
     "trait": "eliteArmor"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteArmor&ab=balen&body=elite&fac=zuling&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteArmor&ab=balen&body=elite&fac=zuling&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -2448,6 +2452,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -2463,7 +2468,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -2472,7 +2478,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -3630,7 +3636,7 @@
      0
     ]
    ],
-   "ms": 794
+   "ms": 806
   },
   {
    "case": {
@@ -3641,7 +3647,7 @@
     "count": 2,
     "trait": "wardFirst"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardFirst&ab=eye&body=ward&fac=zuling&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardFirst&ab=eye&body=ward&fac=zuling&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -3654,6 +3660,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -3669,7 +3676,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -3678,7 +3686,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -4836,7 +4844,7 @@
      0
     ]
    ],
-   "ms": 804
+   "ms": 864
   },
   {
    "case": {
@@ -4847,7 +4855,7 @@
     "count": 1,
     "trait": "boltGamble"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=boltGamble&ab=thunder&body=elite&fac=zuling&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=boltGamble&ab=thunder&body=elite&fac=zuling&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -4860,6 +4868,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -4875,7 +4884,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -4884,7 +4894,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -6042,7 +6052,7 @@
      0
     ]
    ],
-   "ms": 861
+   "ms": 785
   },
   {
    "case": {
@@ -6053,7 +6063,7 @@
     "count": 3,
     "trait": "swarmHalfSplash"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmHalfSplash&ab=boat&body=swarm&fac=zuling&count=3&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmHalfSplash&ab=boat&body=swarm&fac=zuling&count=3&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -6066,6 +6076,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -6081,7 +6092,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -6090,7 +6102,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -7248,7 +7260,7 @@
      0
     ]
    ],
-   "ms": 640
+   "ms": 616
   },
   {
    "case": {
@@ -7259,7 +7271,7 @@
     "count": 1,
     "trait": "swarmThorn"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmThorn&ab=boartusk&body=swarm&fac=zuling&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmThorn&ab=boartusk&body=swarm&fac=zuling&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -7272,6 +7284,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -7287,7 +7300,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -7296,7 +7310,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -8454,7 +8468,7 @@
      0
     ]
    ],
-   "ms": 566
+   "ms": 589
   },
   {
    "case": {
@@ -8465,7 +8479,7 @@
     "count": 1,
     "trait": "eliteSelfCut"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteSelfCut&ab=xianji&body=elite&fac=zuling&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteSelfCut&ab=xianji&body=elite&fac=zuling&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -8478,6 +8492,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -8493,7 +8508,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -8502,7 +8518,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -9660,7 +9676,7 @@
      0
     ]
    ],
-   "ms": 602
+   "ms": 564
   },
   {
    "case": {
@@ -9671,7 +9687,7 @@
     "count": 2,
     "trait": "wardHpAll1"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardHpAll1&ab=shanshen&body=ward&fac=zuling&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardHpAll1&ab=shanshen&body=ward&fac=zuling&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -9684,6 +9700,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -9699,7 +9716,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -9708,7 +9726,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -10866,7 +10884,7 @@
      0
     ]
    ],
-   "ms": 937
+   "ms": 638
   },
   {
    "case": {
@@ -10877,7 +10895,7 @@
     "count": 2,
     "trait": "wardAtkAll1"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardAtkAll1&ab=flag&body=ward&fac=xianghuo&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardAtkAll1&ab=flag&body=ward&fac=xianghuo&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -10890,6 +10908,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -10905,7 +10924,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -10914,7 +10934,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -12072,7 +12092,7 @@
      0
     ]
    ],
-   "ms": 629
+   "ms": 637
   },
   {
    "case": {
@@ -12083,7 +12103,7 @@
     "count": 1,
     "trait": "eliteCleave"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteCleave&ab=sword&body=elite&fac=xianghuo&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteCleave&ab=sword&body=elite&fac=xianghuo&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -12096,6 +12116,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -12111,7 +12132,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -12120,7 +12142,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -13278,7 +13300,7 @@
      0
     ]
    ],
-   "ms": 773
+   "ms": 598
   },
   {
    "case": {
@@ -13289,7 +13311,7 @@
     "count": 2,
     "trait": "wardAbsorb4"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardAbsorb4&ab=wangchuan&body=ward&fac=xianghuo&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardAbsorb4&ab=wangchuan&body=ward&fac=xianghuo&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -13302,6 +13324,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -13317,7 +13340,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -13326,7 +13350,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -14484,7 +14508,7 @@
      0
     ]
    ],
-   "ms": 782
+   "ms": 849
   },
   {
    "case": {
@@ -14495,7 +14519,7 @@
     "count": 2,
     "trait": "wardImmuneLost"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardImmuneLost&ab=bell&body=ward&fac=xianghuo&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardImmuneLost&ab=bell&body=ward&fac=xianghuo&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -14508,6 +14532,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -14523,7 +14548,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -14532,7 +14558,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -15690,7 +15716,7 @@
      0
     ]
    ],
-   "ms": 612
+   "ms": 815
   },
   {
    "case": {
@@ -15701,7 +15727,7 @@
     "count": 3,
     "trait": "swarmRally"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmRally&ab=wuying&body=swarm&fac=xianghuo&count=3&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmRally&ab=wuying&body=swarm&fac=xianghuo&count=3&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -15714,6 +15740,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -15729,7 +15756,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -15738,7 +15766,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -16896,7 +16924,7 @@
      0
     ]
    ],
-   "ms": 619
+   "ms": 677
   },
   {
    "case": {
@@ -16907,7 +16935,7 @@
     "count": 1,
     "trait": "biteGamble"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=biteGamble&ab=tiger&body=elite&fac=xianghuo&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=biteGamble&ab=tiger&body=elite&fac=xianghuo&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -16920,6 +16948,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -16935,7 +16964,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -16944,7 +16974,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -18102,7 +18132,7 @@
      0
     ]
    ],
-   "ms": 620
+   "ms": 838
   },
   {
    "case": {
@@ -18113,7 +18143,7 @@
     "count": 2,
     "trait": "wardHpFirst"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardHpFirst&ab=ashcharm&body=ward&fac=xianghuo&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardHpFirst&ab=ashcharm&body=ward&fac=xianghuo&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -18126,6 +18156,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -18141,7 +18172,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -18150,7 +18182,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -19308,7 +19340,7 @@
      0
     ]
    ],
-   "ms": 632
+   "ms": 636
   },
   {
    "case": {
@@ -19319,7 +19351,7 @@
     "count": 2,
     "trait": "wardRegen1"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=wardRegen1&ab=fushou&body=ward&fac=xianghuo&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=wardRegen1&ab=fushou&body=ward&fac=xianghuo&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -19332,6 +19364,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -19347,7 +19380,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -19356,7 +19390,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -20514,7 +20548,7 @@
      0
     ]
    ],
-   "ms": 826
+   "ms": 641
   },
   {
    "case": {
@@ -20525,7 +20559,7 @@
     "count": 1,
     "trait": "swarmLastStand"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmLastStand&ab=pojun&body=swarm&fac=xianghuo&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmLastStand&ab=pojun&body=swarm&fac=xianghuo&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -20538,6 +20572,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -20553,7 +20588,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -20562,7 +20598,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -21720,7 +21756,7 @@
      0
     ]
    ],
-   "ms": 622
+   "ms": 571
   },
   {
    "case": {
@@ -21731,7 +21767,7 @@
     "count": 4,
     "trait": "hauntLost"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntLost&ab=redhat&body=haunt&fac=yinqi&count=4&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntLost&ab=redhat&body=haunt&fac=yinqi&count=4&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -21744,6 +21780,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -21759,7 +21796,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -21768,7 +21806,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -22926,7 +22964,7 @@
      0
     ]
    ],
-   "ms": 1041
+   "ms": 1015
   },
   {
    "case": {
@@ -22937,7 +22975,7 @@
     "count": 4,
     "trait": "hauntSteal"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntSteal&ab=hairpin&body=haunt&fac=yinqi&count=4&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntSteal&ab=hairpin&body=haunt&fac=yinqi&count=4&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -22950,6 +22988,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -22965,7 +23004,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -22974,7 +23014,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -24132,7 +24172,7 @@
      0
     ]
    ],
-   "ms": 717
+   "ms": 668
   },
   {
    "case": {
@@ -24143,7 +24183,7 @@
     "count": 3,
     "trait": "hauntSee"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntSee&ab=chair&body=haunt&fac=yinqi&count=3&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntSee&ab=chair&body=haunt&fac=yinqi&count=3&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -24156,6 +24196,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -24171,7 +24212,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -24180,7 +24222,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -25338,7 +25380,7 @@
      0
     ]
    ],
-   "ms": 983
+   "ms": 1012
   },
   {
    "case": {
@@ -25349,7 +25391,7 @@
     "count": 4,
     "trait": "hauntDread1"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntDread1&ab=raincoat&body=haunt&fac=yinqi&count=4&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntDread1&ab=raincoat&body=haunt&fac=yinqi&count=4&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -25362,6 +25404,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -25377,7 +25420,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -25386,7 +25430,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -26544,7 +26588,7 @@
      0
     ]
    ],
-   "ms": 835
+   "ms": 1012
   },
   {
    "case": {
@@ -26555,7 +26599,7 @@
     "count": 4,
     "trait": "hauntSwap"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntSwap&ab=buoy&body=haunt&fac=yinqi&count=4&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntSwap&ab=buoy&body=haunt&fac=yinqi&count=4&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -26568,6 +26612,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -26583,7 +26628,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -26592,7 +26638,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -27750,7 +27796,7 @@
      0
     ]
    ],
-   "ms": 1070
+   "ms": 1061
   },
   {
    "case": {
@@ -27761,7 +27807,7 @@
     "count": 1,
     "trait": "eliteVsSwarm"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=eliteVsSwarm&ab=nail&body=elite&fac=yinqi&count=1&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=eliteVsSwarm&ab=nail&body=elite&fac=yinqi&count=1&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -27774,6 +27820,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -27789,7 +27836,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -27798,7 +27846,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -28956,7 +29004,7 @@
      0
     ]
    ],
-   "ms": 567
+   "ms": 781
   },
   {
    "case": {
@@ -28967,7 +29015,7 @@
     "count": 2,
     "trait": "swarmPierce"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmPierce&ab=yinyangcoin&body=swarm&fac=yinqi&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmPierce&ab=yinyangcoin&body=swarm&fac=yinqi&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -28980,6 +29028,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -28995,7 +29044,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -29004,7 +29054,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -30162,7 +30212,7 @@
      0
     ]
    ],
-   "ms": 829
+   "ms": 812
   },
   {
    "case": {
@@ -30173,7 +30223,7 @@
     "count": 4,
     "trait": "hauntFearX2"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=hauntFearX2&ab=guoyin&body=haunt&fac=yinqi&count=4&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=hauntFearX2&ab=guoyin&body=haunt&fac=yinqi&count=4&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -30186,6 +30236,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -30201,7 +30252,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -30210,7 +30262,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -31368,7 +31420,7 @@
      0
     ]
    ],
-   "ms": 671
+   "ms": 661
   },
   {
    "case": {
@@ -31379,7 +31431,7 @@
     "count": 2,
     "trait": "swarmFeed1"
    },
-   "url": "http://127.0.0.1:8863/tests/tools/traitfx-preview.html?trait=swarmFeed1&ab=sigui&body=swarm&fac=yinqi&count=2&ms=900&throw=1",
+   "url": "http://127.0.0.1:8865/tests/tools/traitfx-preview.html?trait=swarmFeed1&ab=sigui&body=swarm&fac=yinqi&count=2&ms=900&dt=16.666666666666668&throw=1",
    "nA": 140,
    "fired": {
     "handled": false,
@@ -31392,6 +31444,7 @@
     "restored": true,
     "within": true,
     "onTime": true,
+    "clean": true,
     "reducedOK": true,
     "endFrame": 12,
     "maxD": 0,
@@ -31407,7 +31460,8 @@
     "target": false,
     "t": 0,
     "horizon": 0,
-    "sped": false
+    "sped": false,
+    "cut": false
    },
    "stats": {
     "asked": 1,
@@ -31416,7 +31470,7 @@
     "thrown": 1,
     "fused": 0,
     "cut": 0,
-    "compressed": 0,
+    "sped": 0,
     "finished": 1
    },
    "errors": [],
@@ -32574,7 +32628,7 @@
      0
     ]
    ],
-   "ms": 750
+   "ms": 637
   }
  ]
 }
