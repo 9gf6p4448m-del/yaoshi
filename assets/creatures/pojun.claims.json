@@ -1,0 +1,144 @@
+{
+  "name": "破軍旗 pojun_canbing (xianghuo/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模、看到任何 judge 數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝wuying.claims.json（同為香火 swarm），差異全部是**加嚴或換名**、沒有一格放寬：① part_exists 五條換成 pojun 的五個身分材質（pole_wood／flag_cloth／glow_tatter／eye／gold_trim）；② part_signature 換到 pole_wood（招牌＝穿胸旗桿），門檻 min_share 0.05 或 span 0.55，**span 那一路比 wuying 的 0.12 嚴了 4.6 倍**；③ 新增 part_visible pole_wood@front ≥1%（正視也要看得到桿子穿出來，wuying 沒有這條）；④ part_visible flag_cloth@side ≥2% 沿用；⑤ part_visible skin_face@front ≥2.5%（與 wuying 同值，未放寬）；⑥ 其餘 focal_contrast／share_hierarchy／style_dark／saturation_area／tri_budget／rig／anim 沿用凍結檔原值。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "pole_wood",
+      "stage": "MID",
+      "label": "穿胸旗桿必須存在（招牌剪影）"
+    },
+    {
+      "type": "part_exists",
+      "part": "flag_cloth",
+      "stage": "MID",
+      "label": "破爛旗面必須存在（破軍旗的身分物）"
+    },
+    {
+      "type": "part_exists",
+      "part": "glow_tatter",
+      "stage": "MID",
+      "label": "餘燼布條必須存在，材質名必須正是 glow_tatter（three.js 端靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "細長金瞳必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "gold_trim",
+      "stage": "MID",
+      "label": "鎏金（束髮冠＋腹甲片＋槍尖＋寶頂）必須存在——香火的金箔集中在這一個材質"
+    },
+    {
+      "type": "part_signature",
+      "part": "pole_wood",
+      "view": "side",
+      "min_share": 0.05,
+      "or_min_span": 0.55,
+      "stage": "MID",
+      "label": "招牌部位（穿胸旗桿）要撐得起側視面積或跨距其中一項——斜貫全身的長線"
+    },
+    {
+      "type": "part_visible",
+      "part": "pole_wood",
+      "view": "front",
+      "min_share": 0.01,
+      "stage": "MID",
+      "label": "旗桿在正視至少佔 1%——正面也要看得見它穿出胸口（特徵①的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "flag_cloth",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "破旗在側視至少佔 2%（特徵②的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "skin_face",
+      "view": "front",
+      "min_share": 0.025,
+      "stage": "MID",
+      "label": "黑面在正視至少佔 2.5%——冠壓得再低也要看得見臉（特徵③的機械化）"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "armor_body",
+      "b": "glow_tatter",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "軀幹必須壓過餘燼布條至少 3 倍——餘燼是幾條火星，不是一片光"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "armor_body",
+        "armor_skirt",
+        "armor_leg",
+        "armor_arm"
+      ],
+      "secondary": [
+        "flag_cloth",
+        "pole_wood"
+      ],
+      "tertiary": [
+        "skin_face",
+        "pauldron",
+        "gold_trim",
+        "sash",
+        "armor_break",
+        "glow_tatter",
+        "brow_ink",
+        "beard",
+        "boot",
+        "hand",
+        "eye"
+      ],
+      "view": "tq",
+      "stage": "MID",
+      "label": "6:3:1 階層：（甲衣＋戰裙＋腿＋臂＝殘兵本體）／（破旗＋旗桿＝穿胸的那件事）／（臉、肩甲、鎏金、腰封、碎甲、餘燼、黑眉、鬚、靴、手、金瞳）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

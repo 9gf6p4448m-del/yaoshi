@@ -1,0 +1,2966 @@
+{
+ "name": "pojun_canbing",
+ "_variant": "3D 量產卷批 10 · 破軍旗（ab=pojun、香火 xianghuo、swarm、trait swarmLastStand「殘旗插心」）。造型依 `docs/design/ART_BIBLE.md` 香火段（權威）＋§0.5 真實參照鐵則；參照與五條特徵清單見 `docs/experiments/2026-09-04-ref-pojun.md`（圖 `tools/anyCreature/out/ref/pojun/01-03`）。與 wuying（同為香火 swarm 帶旗）的對開由主對話裁定：wuying＝直立完整令旗、儀仗兵；pojun＝旗桿貫穿胸口＋破爛布條、殘破悍將。試作與盲讀三輪的完整經過見 `docs/experiments/2026-09-04-creature-pojun-report.md`。",
+ "_brief": "A broken paper soldier of a temple's war camp, still upright with the camp's ruined banner driven clean THROUGH his chest. A heavy lacquered POLE runs almost level through the torso, tilted slightly up and forward: it comes out of the breastplate as a gilt leaf-shaped SPEARHEAD that juts out in front of him, and it leaves the middle of his back and runs down behind, ending in a gilt ferrule near the ground. Where the shaft leaves the armour, both front and back, the plate is burst outward in pale torn shards with two rags of banner cloth and an ember still caught on them; a gilt binding ring sits on the shaft the same distance out on each side, so the two ends read as one pole. From the rear shaft hangs a vermilion WAR BANNER torn to five unequal ribbons that trail down and back, two of them still burning ember-orange. The head is a temple general's: a near-black lacquer face, heavy black sockets with two narrow gold eyes cut into them, a set mouth, a squared black beard, and a low gilt topknot crown of splayed plates with a medallion over the brow. Vermilion lacquer body armour, two gilt belly plates, a red sash, two big flared pauldrons, a stiff creased war skirt, paper boots; both arms hang at the sides in fists. Everything is flat plate and hard crease. Feel: a beaten officer who has not fallen — grim, upright, ceremonial, not gory. Signature = the pole running clean through the body. Identity view = side.",
+ "_ref_features": "真實參照必做清單（`2026-09-04-ref-pojun.md` §三，第 3 輪盲讀命中 5/5）：① 斜貫穿胸口的長旗桿（軸向 u ＝ (0, 0.28, 0.960)；`spear` 鏈由胸腔內往前上穿出＋`gold_trim` 槍尖，`pole` 鏈由胸腔內往後下穿出＋`gold_trim` 尾套，兩側各一枚 `gold_trim` 金箍等距）② 桿後段垂下的破爛旗（`flag_cloth` 長短不一的布條 ×10（每側 5）＋`glow_tatter` 餘燼 ×4（每側 2），另在前後破口各掛一對破布與餘燼）③ 黑面神將的臉（`skin_face` 近黑臉＋`brow_ink` 眼窩與抿嘴＋`eye` 細長金瞳＋`beard` 方鬚）④ 廟宇武將甲（`pauldron` 外張大肩甲＋`gold_trim` 腹甲片 ×2＋`sash` 腰封＋`armor_skirt` 硬折戰裙＋`armor_break` 前後兩處炸開的碎甲）⑤ 鎏金束髮冠（`crown` 鏈＋`gold_trim` 額前金牌與四片冠翼）。",
+ "_swarm_recipe": "沿用 boat 報告 ⑤ 與 wuying 報告 ⑤ 的 swarm 寫法，三處刻意偏離都寫在報告 ⑦：(1) **含配件寬（x）務必 ≤1.2**（preview `n>1` 每隻縮 0.62、欄距 1.05）——本檔的長度全放在 **z（深度）**，x 實測只有 **0.455**（縮完 0.282，相鄰淨距 0.768），離 1.2 很遠；(2) `idle` 不寫 `mirror_phase`（三隻並排要同拍），`move` 寫 `mirror_phase: 0.5`（兩腿同拍會變成雙腳跳）——與 wuying 同；(3) 第 1 輪原本讓兩手扣在穿胸的桿上，實拍發現**手臂正好擋住桿子穿出胸口的那一段**（貫穿讀不出來），第 2 輪改成兩手垂放握拳於身側（神將立姿），桿前的胸口才空出來給破口與破布；手臂放開之後 `move` 才給得了 LArm 軌，`mirror_phase: 0.5` 讓兩臂與兩腿正確反相。左右嚴格鏡射：所有非鏡射件（桿、槍尖、尾套、金箍、腰封、腹甲、金牌、嘴、鬚）都寫在 x=0 的中線上，破布條／餘燼／碎甲／肩甲／冠翼一律 `mirrored`。",
+ "_proportion_note": "不落玩偶區（凍結檔 18:00 守則①：頭 ≤ 身高 1/4）。全檔在第 3 輪整體等比放大 ×1.16，**全高改由頭冠決定**（腳底→冠頂 1.234，實測 whole size y ＝ 1.234），落在派工要求的 1.20–1.25——第 1、2 輪是由旗桿頂端決定全高，那個寫法逼著旗桿必須立起來，正是貫穿讀不出來的根源。頭鏈 HeadRoot 1.028→Crown 1.199 佔全高 **13.9%**，含金冠頂 1.234 也只到 **16.7%**。髖 0.580／全高 ＝ **47.0%** 是腿與裙；戰裙下襬 y 0.398 停在膝（0.357）之上。肩台半寬 0.225 vs 腰 0.146 ＝ **1.54×**。",
+ "_wh_note": "★ 香火硬條件「側視 W/H ≥0.9」（凍結檔 2026-09-05 凌晨加嚴）的達成手段：`silmetrics` 的 side 視角是**沿水平短軸看過去、量到的是水平長軸**（`silmetrics.mjs:57` `long = s.x>s.z ? 'x':'z'`，side 的 dir 取另一軸），所以 W ＝ max(x, z)。wuying 的 0.34 是因為它把長件全部放在**垂直**方向（直立旗桿）。本檔反過來：把招牌件放在 **z（前後）**——槍尖在前 z≈+0.66、破布條尾端在後 z≈−0.72，實測 z 幅寬 **1.486**、全高 **1.234**，`silmetrics` 的 **side W/H ＝ 1.20**（門檻 ≥0.9）。**這條同時免費解決了 swarm 的寬度問題**：n>1 的橫排是沿 x 排的，z 再長也不會撞到隔壁（`creature-preview.html:117` 欄距 1.05 在 x、列距 1.35 在 z，n=3 全在同一列）；本檔 x 只有 **0.455**。",
+ "_pierce_construction": "★ 穿胸的做法（本檔最主要的新寫法，與 wuying 的『雙手持直立旗』對開），**三輪盲讀換來的三條**：\n(1) 骨架：旗桿拆成**兩條真的 chain**——`spear`（SpearRoot→SpearMid→SpearTip，`attach` 到 `PoleRoot`，沿軸往前上）與 `pole`（PoleRoot→PoleMid→PoleTop，`attach` 到 `Chest`，沿同一軸往後下），槍尖與尾套各是一根 `curve`（host＝`SpearTip` / `PoleTop`）。**第 1 輪把前段做成 curve、金槍尖掛在 `PoleRoot` 上加 offset，被 `part_attachment` 直接擋掉**（0.392 clear）——curve 不是宿主表面，掛件量的是「離宿主 chain volume 表面」的距離；把前段改成一條有 volume 的 chain 之後才過。`PoleRoot` 落在胸腔內部，`root_containment` 有在守。\n(2) ★★ **軸的方向決定讀不讀得出來，比任何裝飾都重要**。第 1／2 輪寫成「往後上」（u ＝ (0,0.67,−0.74)，旗桿高過頭頂、前端斜插到腹前），**四位盲讀讀者 0/4 讀出貫穿**，一律讀成「扛在肩上的長矛／背旗」——因為往上走的那一段在 2D 投影裡必然貼著肩線經過，而『桿子貼著肩線』的先驗就是扛。第 3 輪把軸翻成**近水平、略往前上**（u ＝ (0, 0.28, 0.960)：前端從胸甲穿出、後端從背心穿出往下斜到地面），同一組讀者立刻出現「一根黑色橫桿狀物**穿過背部**」。**規則：要讀成貫穿，桿子的兩端都必須落在軀幹輪廓的左右（前後）兩側、且不得經過肩／頭的輪廓線。**\n(3) 兩個輔助裝置（單獨不夠、但配合 (2) 有效）：兩枚等距的 `gold_trim` 金箍（前後各一，距離軀幹表面一樣遠）把前後兩截綁成同一根；前後兩處 `armor_break` 炸開的碎甲（顏色刻意提亮到 #6f6459，近黑的碎甲在近黑的甲衣上讀不出來）＋破布＋餘燼標出洞口。\n★ **`touch` 刻意不寫 `[\"body\",\"pole\"]`**：寫了會把桿子根部的蒙皮權重混進軀幹，一推桿就整根被軀幹拉住變形，`anim_integrity` 會紅；不寫則桿子剛性綁在 pole 鏈上，attack 沿軸滑動乾淨。",
+ "_flag_construction": "破旗掛在 `PoleMid`（**在 `pole` 鏈裡**，不是鬆散關節），所以布條與餘燼**全部有 `part_attachment` 在守**（判法是「所有頂點裡離最近環心距離減該環最大半徑」的最小值，只要有頂點貼在桿上就過，遠端伸多遠都不影響——wuying 報告 ⑧-4）。座標框架是**沿著桿子鋪**：`vdir [0,-0.28,-0.96]`＝順著後段桿子往下，`udir [0.40,-0.90,-0.18]`＝布往下、往外、略往後垂。這樣每條布條 `u≈0` 的那個頂點都落在桿身上，`part_attachment` 才過得了（第 1 輪把 `udir` 寫成純垂直、`vdir` 往後外張，五條布條的最近點離桿子 0.32–0.64，全被擋）。**`v` 的起點必須 ≤ 宿主關節到鏈末端的實際長度**（本檔 PoleMid→PoleTop ＝ 0.317，一度把某條寫成 v0=0.37 就掉出桿子外 0.046 被擋）。旗做成**每側 5 條長短不一的三角布條**（不做整片旗面再挖鋸齒——凸多邊形做不出鋸齒，試作卷 ③-7），末端寬度接力排成一個扇面。餘燼每側 2 片用 `glow_tatter`，`offset` 沿板面法線往外推蓋在布條外面。",
+ "_arc_frame_note": "★ `colors.arcs` 的 sym 是引擎折過的 0–180（`compile.js:218-223`），寫超過 180 的帶是死碼（wuying 報告 ⑧-1）。`frame:\"up\"` 直立鏈上 **sym 0＝背（−Z）、180＝正面（+Z）、90＝兩側**。`anchor.around` 是**另一個框架、差 90°**：0＝背、90＝+X 側、180＝正面、270＝−X 側（wuying 報告 ⑧-2 實測）。本檔臉部件（嘴、鬚）、腹甲、腰封、額前金牌一律 180；肩甲與冠翼寫 90／118／58 配 `mirrored`；胸口碎甲與破布寫 150–168 配 `mirrored`（離正面 12–30°，留住中線給桿子）。眼窩／金瞳寫 152——harden3C ② 實測 `around:160` 會讓一對 `mirrored` 的 fin 在鼻樑處合體成一條橫帶，152 才留得住鼻樑間隙。",
+ "_hardening_note": "凍結檔 19:10 的模板規則（`build:\"rigid\"` 只是許可證，平面感來自每個 volume 的 `faceted:true`，harden-batch1 報告 ②）：本檔 **8 個 volume 全部 `faceted: true`**、斷面 exp 4.6–5.2、`smooth_angle` 全檔 26。出貨 GLB 696.2 KB／3860 tri，走 19:30 的預算制（≤1.5MB／≤8000 tri）。",
+ "_glow_materials": "eye / glow_tatter —— 簡報 `pojun` 列指定的兩個發光材質名，`js/creature-figures.js:51` 的 `/^eye(_|$)|^mouth_glow(_|$)|^glow_/` 會接成 emissive。沒有多開第三個發光材質（金冠、寶頂、槍尖一律走不發光的 `gold_trim`）。",
+ "_traps": "① 近黑一律中性灰（HSV S<0.22），`shading.noise` 會把偏暖近黑擾到 S>0.5（猛虎報告 ⑤-6）——本檔所有暗色實算過飽和度：armor_body #4e4842 S=0.154、pole_wood #3a342e S=0.207、boot #322e29 S=0.180、armor_break #6f6459 S=0.198、skin_face #45403a S=0.159。高飽和額度全給硃紅（肩甲／腰封／布條／軀幹正面帶）＋鎏金（冠、腹甲、槍尖、尾套、金箍）＋橘（餘燼）＋金瞳；② `fin` 帶 `anchor` 時 `offset` 被丟掉（試作卷 ③-2）——布條／餘燼全組**不帶 anchor**，改用 host＋offset＋顯式 udir/vdir；③ `fin` 的 `points` 必須是嚴格凸多邊形（試作卷 ③-7）——本檔所有多邊形逐一算過相鄰邊叉積同號，布條一律做成**三角形**（三角形恆凸，xianji ⑮⑯ 那類凸包翻面問題直接繞開）；④ 相鄰鏈段長比 >0.923 會被 proportion BLOCK（試作卷 ③-5）——本檔每條鏈的最大相鄰比：body 0.793／skirt 0.677／head 0.780／crown 0.762／pole 0.789／spear 0.795／LArm 0.834／LLeg 0.875；⑤ `compile.js:136` 的 corner bevel-skip 會丟環（redhat C-1）——八條鏈全部近乎直線（相鄰段夾角 <8°，pole 與 spear 是完全直線）；⑥ `ring_step` 要小到取樣得到 profile 每一列（redhat C-2）；⑦ `buildPaw` 預設 offset 會把腳掌吸到地面（試作卷 ③-1）——紙靴本來就在地上，沿用預設；⑧ `root_containment` 只查 chain 的 **t=0 那一列環**、且用「離宿主最近環心」判（`checks.js:244-261`），所以要把 t=0 縮成塞得進宿主的細環（wuying ⑧-3）：crown 0.043（頭在該高度 0.083）、skirt 0.114（髖 0.174）、pole 0.034（胸腔在該高度 0.19）、spear 0.029（在 pole 的 0.034 之內）；⑨ 動畫角度壓在 anim_integrity 之下：Spine ≤6°、NeckB ≤7°、膝踝 ≤16° 配各鏈的 ring_step（試作卷 ③-6）；⑩ ★ **細長的 `fin` 即使是嚴格凸多邊形也會在 bind pose 生 1 片翻面三角**（`mesh_integrity` 與 `anim_integrity` 同時紅，訊息會指名該 fin）——機制是 `foldCount`（`checks.js:76-92`）拿每個面的法線去對「頂點法線和」，薄板的正反兩層法線互相抵消之後只剩側牆（rim）的法線在投票，銳角尖端那一片 rim 的方向就會反過來。**判準是世界座標下的長寬比不是 (u,v) 上的**：`udir` 與 `vdir` 不必正交（本檔一度夾角 53°），(u,v) 上看起來 2.2:1 的三角形在世界座標可能是 5:1。實測門檻：世界長寬比 ≳5:1 會紅、≲4:1 安全；**加厚沒有用**（thickness 0.009→0.022 實測完全不變），要改的是長寬比。",
+ "_devices": "不可愛的手段本隻用了七項（凍結檔 18:00 守則要求至少三項）：①比例——頭佔全高 13.9%、含金冠 16.7%，離開玩偶區②尖——槍尖、冠翼折角、肩甲折角、碎甲尖、布條尖端、靴頭全部尖端外露③眼——**細長金瞳薄板**壓在近黑眼窩裡，不用球狀大眼（wuying 第 1 輪的 `type:\"eye\"` 金球被讀成「可愛大眼」）④骨感的替代——腰收細 1.54×＋硬折甲片（香火不用殘缺／腐爛／空洞眼，殘破只落在旗與甲片）⑤色——中性暗底＋硃紅一條帶＋鎏金點綴，禁粉嫩⑥全身 8 個 volume 一律 `faceted:true` 硬折板⑦**穿刺**——一根桿子從胸口貫穿出去，本身就是最強的反可愛裝置。左右嚴格鏡射是 swarm 的硬條件，所以刻意不用「不對稱」那一項。",
+ "palette": {
+  "armor_body": {
+   "color": "#4e4842",
+   "rough": 0.92
+  },
+  "armor_skirt": {
+   "color": "#464039",
+   "rough": 0.95
+  },
+  "armor_arm": {
+   "color": "#565049",
+   "rough": 0.93
+  },
+  "armor_leg": {
+   "color": "#4a4540",
+   "rough": 0.94
+  },
+  "armor_break": {
+   "color": "#6f6459",
+   "rough": 0.72
+  },
+  "skin_face": {
+   "color": "#45403a",
+   "rough": 0.88
+  },
+  "brow_ink": {
+   "color": "#0d0d0f",
+   "rough": 0.9
+  },
+  "beard": {
+   "color": "#24221f",
+   "rough": 0.92
+  },
+  "pauldron": {
+   "color": "#b23a2c",
+   "rough": 0.66
+  },
+  "gold_trim": {
+   "color": "#d8a63a",
+   "rough": 0.28
+  },
+  "sash": {
+   "color": "#a83228",
+   "rough": 0.7
+  },
+  "flag_cloth": {
+   "color": "#b8382c",
+   "rough": 0.68
+  },
+  "pole_wood": {
+   "color": "#3a342e",
+   "rough": 0.85
+  },
+  "hand": {
+   "color": "#4e4842",
+   "rough": 0.9
+  },
+  "boot": {
+   "color": "#322e29",
+   "rough": 0.9
+  },
+  "eye": {
+   "color": "#ffe066",
+   "rough": 0.12
+  },
+  "glow_tatter": {
+   "color": "#e2661a",
+   "rough": 0.2
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.3,
+   "bottom": -0.88
+  },
+  "noise": {
+   "size": 0.018,
+   "amount": 0.26
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Hips": [
+   0.0,
+   0.58,
+   0.0
+  ],
+  "Spine": {
+   "from": "Hips",
+   "up": 0.1334,
+   "fwd": 0.00928
+  },
+  "Chest": {
+   "from": "Spine",
+   "up": 0.1682,
+   "fwd": 0.0116
+  },
+  "NeckB": {
+   "from": "Chest",
+   "up": 0.08352,
+   "fwd": 0.00464
+  },
+  "Neck2": {
+   "from": "NeckB",
+   "up": 0.04872,
+   "fwd": 0.00348
+  },
+  "SkirtRoot": {
+   "from": "Hips",
+   "up": -0.0232,
+   "fwd": 0.00232
+  },
+  "Skirt1": {
+   "from": "SkirtRoot",
+   "up": -0.09512,
+   "fwd": 0.0058
+  },
+  "SkirtHem": {
+   "from": "Skirt1",
+   "up": -0.0638,
+   "fwd": 0.00928
+  },
+  "HeadRoot": {
+   "from": "Neck2",
+   "up": 0.01392,
+   "fwd": 0.00116
+  },
+  "Skull": {
+   "from": "HeadRoot",
+   "up": 0.07424,
+   "fwd": 0.00696
+  },
+  "Brow": {
+   "from": "Skull",
+   "up": 0.058,
+   "fwd": 0.00464
+  },
+  "Crown": {
+   "from": "Brow",
+   "up": 0.03944,
+   "fwd": -0.00232
+  },
+  "CrownRoot": {
+   "from": "Brow",
+   "up": -0.0116,
+   "fwd": -0.00232
+  },
+  "Crown1": {
+   "from": "CrownRoot",
+   "up": 0.03712,
+   "fwd": -0.00348
+  },
+  "CrownTip": {
+   "from": "Crown1",
+   "up": 0.04872,
+   "fwd": -0.00464
+  },
+  "PoleRoot": {
+   "from": "Chest",
+   "up": -0.07,
+   "fwd": -0.019
+  },
+  "PoleMid": {
+   "from": "PoleRoot",
+   "up": -0.07,
+   "fwd": -0.24
+  },
+  "PoleTop": {
+   "from": "PoleMid",
+   "up": -0.089,
+   "fwd": -0.304
+  },
+  "SpearRoot": {
+   "from": "PoleRoot",
+   "up": 0.003,
+   "fwd": 0.01
+  },
+  "SpearMid": {
+   "from": "SpearRoot",
+   "up": 0.064,
+   "fwd": 0.221
+  },
+  "SpearTip": {
+   "from": "SpearMid",
+   "up": 0.081,
+   "fwd": 0.278
+  },
+  "LArmRoot": {
+   "from": "Chest",
+   "side": 0.12992,
+   "up": -0.04176,
+   "fwd": 0.0
+  },
+  "LElbow": {
+   "from": "LArmRoot",
+   "side": 0.03016,
+   "up": -0.1334,
+   "fwd": 0.0116
+  },
+  "LWrist": {
+   "from": "LElbow",
+   "side": 0.01624,
+   "up": -0.1624,
+   "fwd": 0.02088
+  },
+  "LHand": {
+   "from": "LWrist",
+   "side": 0.00232,
+   "up": -0.05568,
+   "fwd": 0.0116
+  },
+  "LLegRoot": {
+   "from": "Hips",
+   "side": 0.06728,
+   "up": 0.00464,
+   "fwd": 0.00232
+  },
+  "LKnee": {
+   "from": "LLegRoot",
+   "side": 0.0232,
+   "up": -0.22736,
+   "fwd": 0.01624
+  },
+  "LAnkle": {
+   "from": "LKnee",
+   "side": 0.01624,
+   "up": -0.19952,
+   "fwd": -0.0116
+  },
+  "LToe": {
+   "from": "LAnkle",
+   "side": 0.00232,
+   "fwd": 0.0464,
+   "ground": 0.02784
+  }
+ },
+ "chains": {
+  "body": [
+   "Hips",
+   "Spine",
+   "Chest",
+   "NeckB",
+   "Neck2"
+  ],
+  "skirt": [
+   "SkirtRoot",
+   "Skirt1",
+   "SkirtHem"
+  ],
+  "head": [
+   "HeadRoot",
+   "Skull",
+   "Brow",
+   "Crown"
+  ],
+  "crown": [
+   "CrownRoot",
+   "Crown1",
+   "CrownTip"
+  ],
+  "pole": [
+   "PoleRoot",
+   "PoleMid",
+   "PoleTop"
+  ],
+  "spear": [
+   "SpearRoot",
+   "SpearMid",
+   "SpearTip"
+  ],
+  "LArm": [
+   "LArmRoot",
+   "LElbow",
+   "LWrist",
+   "LHand"
+  ],
+  "LLeg": [
+   "LLegRoot",
+   "LKnee",
+   "LAnkle",
+   "LToe"
+  ]
+ },
+ "attach": {
+  "skirt": "Hips",
+  "head": "Neck2",
+  "crown": "Brow",
+  "pole": "Chest",
+  "spear": "PoleRoot",
+  "LArm": "Chest",
+  "LLeg": "Hips"
+ },
+ "mirror": [
+  "LArm",
+  "LLeg"
+ ],
+ "touch": [
+  [
+   "body",
+   "skirt"
+  ],
+  [
+   "body",
+   "head"
+  ],
+  [
+   "head",
+   "crown"
+  ],
+  [
+   "body",
+   "LArm"
+  ],
+  [
+   "body",
+   "LLeg"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "body",
+   "material": "armor_body",
+   "sides": 16,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.174,
+     0.16472,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.22,
+     0.1508,
+     0.14616,
+     {
+      "exp": 5.0,
+      "sharp": true
+     }
+    ],
+    [
+     0.6,
+     0.19488,
+     0.20416,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.78,
+     0.20184,
+     0.22504,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.88,
+     0.12992,
+     0.12528,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.06496,
+     0.058,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "dome",
+    "none"
+   ],
+   "ring_step": 0.02784,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 62,
+      "color": "#43403a"
+     },
+     {
+      "from": 112,
+      "to": 180,
+      "color": "#8e3325"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "skirt",
+   "material": "armor_skirt",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.11368,
+     0.116,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.22,
+     0.174,
+     0.18328,
+     {
+      "exp": 5.0,
+      "sharp": true
+     }
+    ],
+    [
+     0.6,
+     0.17864,
+     0.18792,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.86,
+     0.17632,
+     0.1856,
+     {
+      "exp": 5.0,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.13688,
+     0.14384,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.01856
+  },
+  {
+   "chain": "head",
+   "material": "skin_face",
+   "sides": 26,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.0464,
+     0.04176,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.2,
+     0.07192,
+     0.06496,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.52,
+     0.08584,
+     0.07888,
+     {
+      "exp": 5.0,
+      "sharp": true
+     }
+    ],
+    [
+     0.8,
+     0.0812,
+     0.07192,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.05568,
+     0.04872,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.01276,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 68,
+      "color": "#2a2825"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "crown",
+   "material": "gold_trim",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.05104,
+     0.0464,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.22,
+     0.10672,
+     0.09976,
+     {
+      "exp": 5.0,
+      "sharp": true
+     }
+    ],
+    [
+     0.52,
+     0.09976,
+     0.0928,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.78,
+     0.06032,
+     0.05568,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.03016,
+     0.02784,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.0116
+  },
+  {
+   "chain": "pole",
+   "material": "pole_wood",
+   "sides": 6,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.03364,
+     0.03364,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.34,
+     0.03132,
+     0.03132,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.72,
+     0.02784,
+     0.02784,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.0232,
+     0.0232,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "flat",
+    "none"
+   ],
+   "ring_step": 0.0348
+  },
+  {
+   "chain": "spear",
+   "material": "pole_wood",
+   "sides": 6,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.029,
+     0.029,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.36,
+     0.03132,
+     0.03132,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.74,
+     0.03016,
+     0.03016,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1.0,
+     0.02436,
+     0.02436,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.0348
+  },
+  {
+   "chain": "LArm",
+   "material": "armor_arm",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.05336,
+     0.05104,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.36,
+     0.04408,
+     0.04176,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.76,
+     0.03596,
+     0.03364,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1.0,
+     0.029,
+     0.02436,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.0348
+  },
+  {
+   "chain": "LLeg",
+   "material": "armor_leg",
+   "sides": 8,
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0.0,
+     0.0696,
+     0.06728,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.28,
+     0.058,
+     0.05568,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.6,
+     0.04408,
+     0.04176,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     0.86,
+     0.03828,
+     0.03596,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1.0,
+     0.03364,
+     0.029,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.04176
+  }
+ ],
+ "parts": [
+  {
+   "type": "fin",
+   "name": "eye_socket",
+   "host": "Skull",
+   "material": "brow_ink",
+   "thickness": 0.00696,
+   "mirrored": true,
+   "anchor": {
+    "chain": "head",
+    "t": 0.5,
+    "around": 152
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.03944,
+     -0.00696
+    ],
+    [
+     0.00232,
+     -0.02784
+    ],
+    [
+     0.0464,
+     -0.01624
+    ],
+    [
+     0.07192,
+     0.03132
+    ],
+    [
+     0.01624,
+     0.03364
+    ],
+    [
+     -0.0348,
+     0.01508
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "eye",
+   "host": "Skull",
+   "material": "eye",
+   "thickness": 0.01508,
+   "mirrored": true,
+   "anchor": {
+    "chain": "head",
+    "t": 0.5,
+    "around": 152
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.02668,
+     0.00116
+    ],
+    [
+     0.00232,
+     -0.00696
+    ],
+    [
+     0.03364,
+     -0.00116
+    ],
+    [
+     0.05336,
+     0.01276
+    ],
+    [
+     0.0116,
+     0.00928
+    ],
+    [
+     -0.02204,
+     0.0058
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "mouth_line",
+   "host": "Skull",
+   "material": "brow_ink",
+   "thickness": 0.00928,
+   "anchor": {
+    "chain": "head",
+    "t": 0.26,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0464,
+     0.00696
+    ],
+    [
+     -0.01392,
+     -0.0058
+    ],
+    [
+     0.01392,
+     -0.0058
+    ],
+    [
+     0.0464,
+     0.00696
+    ],
+    [
+     0.01392,
+     0.01276
+    ],
+    [
+     -0.01392,
+     0.01276
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "beard",
+   "host": "HeadRoot",
+   "material": "beard",
+   "thickness": 0.01624,
+   "anchor": {
+    "chain": "head",
+    "t": 0.1,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.04176,
+     0.0116
+    ],
+    [
+     0.04176,
+     0.0116
+    ],
+    [
+     0.03248,
+     -0.0812
+    ],
+    [
+     -0.03248,
+     -0.0812
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crown_medal",
+   "host": "CrownRoot",
+   "material": "gold_trim",
+   "thickness": 0.01392,
+   "conform": false,
+   "anchor": {
+    "chain": "crown",
+    "t": 0.45,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.03248,
+     -0.03016
+    ],
+    [
+     0.0,
+     -0.04408
+    ],
+    [
+     0.03248,
+     -0.03016
+    ],
+    [
+     0.0232,
+     0.02784
+    ],
+    [
+     0.0,
+     0.05568
+    ],
+    [
+     -0.0232,
+     0.02784
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crown_wing",
+   "host": "CrownRoot",
+   "material": "gold_trim",
+   "thickness": 0.0116,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "crown",
+    "t": 0.35,
+    "around": 118
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0.55,
+    0.835,
+    0
+   ],
+   "points": [
+    [
+     -0.0348,
+     -0.0232
+    ],
+    [
+     0.02204,
+     -0.03248
+    ],
+    [
+     0.05104,
+     0.00464
+    ],
+    [
+     0.02668,
+     0.0638
+    ],
+    [
+     -0.01392,
+     0.05684
+    ],
+    [
+     -0.04756,
+     0.01276
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "crown_wing2",
+   "host": "CrownRoot",
+   "material": "gold_trim",
+   "thickness": 0.0116,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "crown",
+    "t": 0.3,
+    "around": 58
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0.55,
+    0.835,
+    0
+   ],
+   "points": [
+    [
+     -0.02784,
+     -0.01856
+    ],
+    [
+     0.0174,
+     -0.02552
+    ],
+    [
+     0.0406,
+     0.00348
+    ],
+    [
+     0.02088,
+     0.05104
+    ],
+    [
+     -0.0116,
+     0.04524
+    ],
+    [
+     -0.03828,
+     0.01044
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "pauldron",
+   "host": "Chest",
+   "material": "pauldron",
+   "thickness": 0.02552,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.78,
+    "around": 90
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0.4,
+    0.916,
+    0
+   ],
+   "points": [
+    [
+     -0.07192,
+     -0.02552
+    ],
+    [
+     -0.01276,
+     -0.04872
+    ],
+    [
+     0.06264,
+     -0.03944
+    ],
+    [
+     0.07656,
+     0.0058
+    ],
+    [
+     0.04408,
+     0.0522
+    ],
+    [
+     -0.0232,
+     0.05684
+    ],
+    [
+     -0.07076,
+     0.03132
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "belly_plate_1",
+   "host": "Spine",
+   "material": "gold_trim",
+   "thickness": 0.0116,
+   "anchor": {
+    "chain": "body",
+    "t": 0.5,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05104,
+     -0.00928
+    ],
+    [
+     -0.01624,
+     -0.01624
+    ],
+    [
+     0.01624,
+     -0.01624
+    ],
+    [
+     0.05104,
+     -0.00928
+    ],
+    [
+     0.04524,
+     0.01044
+    ],
+    [
+     0.0,
+     0.01856
+    ],
+    [
+     -0.04524,
+     0.01044
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "belly_plate_2",
+   "host": "Spine",
+   "material": "gold_trim",
+   "thickness": 0.0116,
+   "anchor": {
+    "chain": "body",
+    "t": 0.61,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05452,
+     -0.00928
+    ],
+    [
+     -0.01624,
+     -0.0174
+    ],
+    [
+     0.01624,
+     -0.0174
+    ],
+    [
+     0.05452,
+     -0.00928
+    ],
+    [
+     0.04988,
+     0.01044
+    ],
+    [
+     0.0,
+     0.01972
+    ],
+    [
+     -0.04988,
+     0.01044
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "sash",
+   "host": "Hips",
+   "material": "sash",
+   "thickness": 0.01624,
+   "anchor": {
+    "chain": "body",
+    "t": 0.1,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0696,
+     -0.0174
+    ],
+    [
+     -0.0232,
+     -0.029
+    ],
+    [
+     0.0232,
+     -0.029
+    ],
+    [
+     0.0696,
+     -0.0174
+    ],
+    [
+     0.06496,
+     0.01624
+    ],
+    [
+     0.0,
+     0.02552
+    ],
+    [
+     -0.06496,
+     0.01624
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "breach_a",
+   "host": "Chest",
+   "material": "armor_break",
+   "thickness": 0.01392,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.82,
+    "around": 170
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.02473,
+     -0.04376
+    ],
+    [
+     0.03805,
+     -0.00951
+    ],
+    [
+     0.05897,
+     0.03995
+    ],
+    [
+     -0.01332,
+     0.02663
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "breach_b",
+   "host": "Chest",
+   "material": "armor_break",
+   "thickness": 0.01392,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.77,
+    "around": 152
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.01522,
+     0.04566
+    ],
+    [
+     0.04566,
+     0.01141
+    ],
+    [
+     0.03044,
+     -0.03805
+    ],
+    [
+     -0.02473,
+     -0.01332
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "breach_c",
+   "host": "Chest",
+   "material": "armor_break",
+   "thickness": 0.01392,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.87,
+    "around": 176
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.01902,
+     0.04946
+    ],
+    [
+     0.04185,
+     0.01902
+    ],
+    [
+     0.03424,
+     -0.02854
+    ],
+    [
+     -0.02283,
+     -0.01141
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "breach_back",
+   "host": "Chest",
+   "material": "armor_break",
+   "thickness": 0.01392,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.27,
+    "around": 16
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.02093,
+     -0.03805
+    ],
+    [
+     0.03424,
+     -0.00761
+    ],
+    [
+     0.05327,
+     0.03615
+    ],
+    [
+     -0.01141,
+     0.02283
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "breach_back2",
+   "host": "Chest",
+   "material": "armor_break",
+   "thickness": 0.01392,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.22,
+    "around": 32
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.01332,
+     0.03995
+    ],
+    [
+     0.03995,
+     0.00951
+    ],
+    [
+     0.02663,
+     -0.03424
+    ],
+    [
+     -0.02093,
+     -0.01141
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "chest_rag",
+   "host": "Chest",
+   "material": "flag_cloth",
+   "thickness": 0.00928,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.79,
+    "around": 158
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.03016,
+     0.03248
+    ],
+    [
+     0.03248,
+     0.0116
+    ],
+    [
+     -0.00464,
+     -0.14616
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "chest_ember",
+   "host": "Chest",
+   "material": "glow_tatter",
+   "thickness": 0.00928,
+   "mirrored": true,
+   "conform": false,
+   "anchor": {
+    "chain": "body",
+    "t": 0.83,
+    "around": 168
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.0232,
+     0.01624
+    ],
+    [
+     0.02552,
+     0.00464
+    ],
+    [
+     -0.00232,
+     -0.10672
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "spear_head",
+   "host": "SpearTip",
+   "material": "gold_trim",
+   "sides": 6,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "dir": [
+    0,
+    0.28,
+    0.96
+   ],
+   "segments": [
+    {
+     "len": 0.037,
+     "r": 0.018
+    },
+    {
+     "len": 0.049,
+     "r": 0.038
+    },
+    {
+     "len": 0.077,
+     "r": 0.004,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "collar_front",
+   "host": "SpearRoot",
+   "material": "gold_trim",
+   "sides": 6,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0.078,
+    0.269
+   ],
+   "dir": [
+    0,
+    0.28,
+    0.96
+   ],
+   "segments": [
+    {
+     "len": 0.03,
+     "r": 0.033
+    },
+    {
+     "len": 0.021,
+     "r": 0.027
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "collar_back",
+   "host": "PoleRoot",
+   "material": "gold_trim",
+   "sides": 6,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.078,
+    -0.269
+   ],
+   "dir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "segments": [
+    {
+     "len": 0.03,
+     "r": 0.033
+    },
+    {
+     "len": 0.021,
+     "r": 0.027
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "finial",
+   "host": "PoleTop",
+   "material": "gold_trim",
+   "sides": 6,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.004,
+    -0.008
+   ],
+   "dir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "segments": [
+    {
+     "len": 0.03,
+     "r": 0.032
+    },
+    {
+     "len": 0.022,
+     "r": 0.015
+    },
+    {
+     "len": 0.017,
+     "r": 0.006,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tatter_1",
+   "host": "PoleMid",
+   "material": "flag_cloth",
+   "thickness": 0.01044,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.007,
+    -0.006,
+    -0.005
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.01
+    ],
+    [
+     0.5,
+     0.06
+    ],
+    [
+     0.38,
+     0.23
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tatter_2",
+   "host": "PoleMid",
+   "material": "flag_cloth",
+   "thickness": 0.01044,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.007,
+    -0.006,
+    -0.005
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.08
+    ],
+    [
+     0.32,
+     0.19
+    ],
+    [
+     0.24,
+     0.31
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tatter_3",
+   "host": "PoleMid",
+   "material": "flag_cloth",
+   "thickness": 0.01044,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.007,
+    -0.006,
+    -0.005
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.15
+    ],
+    [
+     0.54,
+     0.26
+    ],
+    [
+     0.41,
+     0.42
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tatter_4",
+   "host": "PoleMid",
+   "material": "flag_cloth",
+   "thickness": 0.01044,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.007,
+    -0.006,
+    -0.005
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.22
+    ],
+    [
+     0.3,
+     0.33
+    ],
+    [
+     0.22,
+     0.45
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "tatter_5",
+   "host": "PoleMid",
+   "material": "flag_cloth",
+   "thickness": 0.01044,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.007,
+    -0.006,
+    -0.005
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.29
+    ],
+    [
+     0.42,
+     0.39
+    ],
+    [
+     0.31,
+     0.54
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "ember_1",
+   "host": "PoleMid",
+   "material": "glow_tatter",
+   "thickness": 0.0116,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.024,
+    -0.004,
+    -0.002
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.045
+    ],
+    [
+     0.34,
+     0.13
+    ],
+    [
+     0.26,
+     0.23
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "name": "ember_2",
+   "host": "PoleMid",
+   "material": "glow_tatter",
+   "thickness": 0.0116,
+   "mirrored": true,
+   "conform": false,
+   "offset": [
+    0.024,
+    -0.004,
+    -0.002
+   ],
+   "udir": [
+    0.4,
+    -0.9,
+    -0.18
+   ],
+   "vdir": [
+    0,
+    -0.28,
+    -0.96
+   ],
+   "points": [
+    [
+     0.018,
+     0.255
+    ],
+    [
+     0.3,
+     0.34
+    ],
+    [
+     0.23,
+     0.44
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "grip_a",
+   "host": "LHand",
+   "material": "hand",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    -0.00232,
+    -0.00464,
+    0.00696
+   ],
+   "dir": [
+    -0.3,
+    -0.86,
+    0.41
+   ],
+   "segments": [
+    {
+     "len": 0.02552,
+     "r": 0.01392
+    },
+    {
+     "len": 0.01856,
+     "r": 0.00812,
+     "fall": 12
+    },
+    {
+     "len": 0.0116,
+     "r": 0.00348,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "grip_b",
+   "host": "LHand",
+   "material": "hand",
+   "mirrored": true,
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    0.00464,
+    -0.01392,
+    -0.00464
+   ],
+   "dir": [
+    -0.1,
+    -0.94,
+    -0.32
+   ],
+   "segments": [
+    {
+     "len": 0.0232,
+     "r": 0.01276
+    },
+    {
+     "len": 0.01624,
+     "r": 0.00696,
+     "fall": 14
+    },
+    {
+     "len": 0.01044,
+     "r": 0.00348,
+     "fall": 20,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "LToe",
+   "material": "boot",
+   "mirrored": true,
+   "size": [
+    0.058,
+    0.04176,
+    0.0928
+   ]
+  }
+ ],
+ "animations": {
+  "idle": {
+   "duration": 2.7,
+   "loop": true,
+   "_note": "香火節奏：緩慢、有拍子，像抬轎。每一端各 hold 0.15 個週期（keys 0/0.15 與 0.5/0.65 同值），走的那一段就變快，拍子出得來。swarm 的 idle 刻意**不寫 mirror_phase**（boat 報告 ⑤-2）——三隻並排要同拍才讀得出「一群同款」。金冠（CrownRoot）與貫穿的桿（PoleRoot）給滯後相位 0.35/0.70，晃在身體之後；桿是插在身上的，幅度刻意比 wuying 的手持旗小（rz ≤2.2°），讓它看起來卡死在肉裡而不是握著。",
+   "tracks": {
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.15,
+       0.00116
+      ],
+      [
+       0.5,
+       0.01044
+      ],
+      [
+       0.65,
+       0.00928
+      ],
+      [
+       1,
+       0.0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       -1.2
+      ],
+      [
+       0.15,
+       -1.2
+      ],
+      [
+       0.5,
+       1.6
+      ],
+      [
+       0.65,
+       1.6
+      ],
+      [
+       1,
+       -1.2
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       1.8
+      ],
+      [
+       0.15,
+       1.8
+      ],
+      [
+       0.5,
+       -2.2
+      ],
+      [
+       0.65,
+       -2.2
+      ],
+      [
+       1,
+       1.8
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "ry": [
+      [
+       0,
+       -3.0
+      ],
+      [
+       0.15,
+       -3.0
+      ],
+      [
+       0.5,
+       3.0
+      ],
+      [
+       0.65,
+       3.0
+      ],
+      [
+       1,
+       -3.0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       1.4
+      ],
+      [
+       0.5,
+       -1.8
+      ],
+      [
+       1,
+       1.4
+      ]
+     ]
+    },
+    "CrownRoot": {
+     "rz": [
+      [
+       0,
+       -1.8
+      ],
+      [
+       0.35,
+       1.8
+      ],
+      [
+       0.7,
+       -1.0
+      ],
+      [
+       1,
+       -1.8
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       1.0
+      ],
+      [
+       0.55,
+       -1.4
+      ],
+      [
+       1,
+       1.0
+      ]
+     ]
+    },
+    "PoleRoot": {
+     "rz": [
+      [
+       0,
+       -2.2
+      ],
+      [
+       0.35,
+       2.0
+      ],
+      [
+       0.7,
+       -1.2
+      ],
+      [
+       1,
+       -2.2
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       1.2
+      ],
+      [
+       0.55,
+       -1.6
+      ],
+      [
+       1,
+       1.2
+      ]
+     ]
+    },
+    "PoleTop": {
+     "rz": [
+      [
+       0,
+       -2.6
+      ],
+      [
+       0.4,
+       2.4
+      ],
+      [
+       0.75,
+       -1.4
+      ],
+      [
+       1,
+       -2.6
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       -1.8
+      ],
+      [
+       0.15,
+       -1.8
+      ],
+      [
+       0.5,
+       1.8
+      ],
+      [
+       0.65,
+       1.8
+      ],
+      [
+       1,
+       -1.8
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       1.6
+      ],
+      [
+       0.5,
+       -2.0
+      ],
+      [
+       1,
+       1.6
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       0.8
+      ],
+      [
+       0.55,
+       -1.2
+      ],
+      [
+       1,
+       0.8
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 0.95,
+   "loop": true,
+   "mirror_phase": 0.5,
+   "_note": "拖著破旗前進。`mirror_phase: 0.5` 只作用在有軌的鏡射關節；第 2 輪把兩手從握桿改成垂放之後，LArm 才給得了軌（兩臂與兩腿正確反相）。三隻之間仍然同拍（同一支 clip、同時起算）。膝／踝角度壓在 16° 以內配 LLeg 的 ring_step，避開 anim_integrity 撕皮（試作卷 ③-6）。",
+   "tracks": {
+    "Hips": {
+     "ty": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.25,
+       0.0174
+      ],
+      [
+       0.5,
+       0.0
+      ],
+      [
+       0.75,
+       0.0174
+      ],
+      [
+       1,
+       0.0
+      ]
+     ]
+    },
+    "LLegRoot": {
+     "rx": [
+      [
+       0,
+       -15
+      ],
+      [
+       0.5,
+       16
+      ],
+      [
+       1,
+       -15
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       10
+      ],
+      [
+       0.5,
+       -10
+      ],
+      [
+       1,
+       10
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       -4
+      ],
+      [
+       0.5,
+       6
+      ],
+      [
+       1,
+       -4
+      ]
+     ]
+    },
+    "LKnee": {
+     "rx": [
+      [
+       0,
+       5
+      ],
+      [
+       0.3,
+       14
+      ],
+      [
+       0.6,
+       -3
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    "LAnkle": {
+     "rx": [
+      [
+       0,
+       -4
+      ],
+      [
+       0.4,
+       -10
+      ],
+      [
+       0.7,
+       3
+      ],
+      [
+       1,
+       -4
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       1.6
+      ],
+      [
+       0.5,
+       -1.6
+      ],
+      [
+       1,
+       1.6
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       -1.6
+      ],
+      [
+       0.5,
+       1.6
+      ],
+      [
+       1,
+       -1.6
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       -3
+      ],
+      [
+       0.5,
+       3
+      ],
+      [
+       1,
+       -3
+      ]
+     ]
+    },
+    "CrownRoot": {
+     "rz": [
+      [
+       0,
+       2.4
+      ],
+      [
+       0.5,
+       -2.4
+      ],
+      [
+       1,
+       2.4
+      ]
+     ]
+    },
+    "PoleRoot": {
+     "rz": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -3
+      ],
+      [
+       1,
+       3
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       -2.4
+      ],
+      [
+       0.5,
+       2.4
+      ],
+      [
+       1,
+       -2.4
+      ]
+     ]
+    },
+    "PoleTop": {
+     "rz": [
+      [
+       0,
+       4
+      ],
+      [
+       0.5,
+       -4
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       -2.4
+      ],
+      [
+       0.5,
+       2.4
+      ],
+      [
+       1,
+       -2.4
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.85,
+   "loop": false,
+   "_note": "招式「殘旗插心」＝旗桿再插深。0→0.30 是蓄：整隻往後坐（Hips tz −0.064）、頭往後仰、桿子沿軸往回退一點（PoleRoot ty −0.021 / tz −0.028）；0.30→0.60 是插：Hips tz 推 +0.220 撲前，同時 **PoleRoot 沿軸 +u 推進**（ty +0.070 / tz +0.093）——桿子相對身體真的往裡走，前端槍尖因此比 bind 姿勢多伸出去（attack_reach 的 REACH 路線需要 ≥0.15×span，span＝max(z 幅寬, 全高)）；0.60→1 回位。Spine rx/ry 壓在 6/7 度以內配 body 的 ring_step，避開 anim_integrity 撕皮。`touch` 沒有寫 `[\"body\",\"pole\"]`，所以推桿時桿子是剛體位移、不會被軀幹權重拉變形。",
+   "tracks": {
+    "Hips": {
+     "tz": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.3,
+       -0.0638
+      ],
+      [
+       0.6,
+       0.2204
+      ],
+      [
+       1,
+       0.0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.3,
+       0.0232
+      ],
+      [
+       0.6,
+       -0.01624
+      ],
+      [
+       1,
+       0.0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -4
+      ],
+      [
+       0.6,
+       6
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       4
+      ],
+      [
+       0.6,
+       -6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -5
+      ],
+      [
+       0.6,
+       7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.32,
+       -10
+      ],
+      [
+       0.62,
+       13
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.32,
+       8
+      ],
+      [
+       0.62,
+       -10
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "CrownRoot": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       5
+      ],
+      [
+       0.66,
+       -7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "PoleRoot": {
+     "ty": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.3,
+       -0.02088
+      ],
+      [
+       0.6,
+       0.0696
+      ],
+      [
+       1,
+       0.0
+      ]
+     ],
+     "tz": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.3,
+       -0.02784
+      ],
+      [
+       0.6,
+       0.0928
+      ],
+      [
+       1,
+       0.0
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       -4
+      ],
+      [
+       0.66,
+       5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "PoleTop": {
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       -8
+      ],
+      [
+       0.68,
+       10
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.38,
+       6
+      ],
+      [
+       0.68,
+       -8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       9
+      ],
+      [
+       0.6,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -5
+      ],
+      [
+       0.6,
+       7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       8
+      ],
+      [
+       0.6,
+       -10
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LLegRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -7
+      ],
+      [
+       0.6,
+       12
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "SkirtRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       5
+      ],
+      [
+       0.66,
+       -7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ }
+}
