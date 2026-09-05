@@ -1,0 +1,189 @@
+{
+  "name": "山豬牙飾 boartusk (zuling/swarm)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單，**在動手建模、看到任何數字之前寫定**（凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md 的量產規則）。部位一律用 material 名指認（material 名＝部位名）。基底＝sigui.claims.json（同為 swarm），差異全部是**換名或加嚴**、沒有一格放寬：① part_exists 由 7 條加到 9 條，把 ref-boartusk.md 五條特徵的每個實體載體各釘一條；② part_signature 的宿主換成 tusk（招牌剪影＝外翻獠牙），且**另外再加兩條獨立的 part_visible tusk@side／@front**——part_signature 本身是 share OR span 的擇一條件，單靠它會被鏡射擺位免費通過，加上這兩條之後「獠牙要夠大」才真的被守住（此為加嚴，sigui 沒有對應條）；③ focal_contrast min_ratio 3、style_dark 90、saturation_area 0.10–0.60、tri_budget 1500–8000 沿用凍結檔原值；④ 五條特徵裡做得成機械條的四條各有 part_visible（吻盤、背鬃、獠牙、項圈牙）。門檻一經寫定即凍結，修不過去改實作不改門檻（02 §2.1）。judge 一律不帶 --stage（凍結檔 2026-09-05 主對話記錄）。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "hide_body",
+      "stage": "MID",
+      "label": "野豬軀幹（肩峰隆起）必須存在——特徵②的載體"
+    },
+    {
+      "type": "part_exists",
+      "part": "hide_face",
+      "stage": "MID",
+      "label": "長楔形頭必須存在——特徵①的載體"
+    },
+    {
+      "type": "part_exists",
+      "part": "snout_disc",
+      "stage": "MID",
+      "label": "平截圓盤豬鼻必須存在，且要有自己的材質（特徵①的辨識點，不能與臉同色）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mane_gold",
+      "stage": "MID",
+      "label": "倒豎背鬃必須存在，且是祖靈金的落點（特徵③＋簡報『主色祖靈金在背鬃』）"
+    },
+    {
+      "type": "part_exists",
+      "part": "tusk",
+      "stage": "MID",
+      "label": "外翻獠牙必須存在——招牌剪影（特徵④）"
+    },
+    {
+      "type": "part_exists",
+      "part": "collar_ring",
+      "stage": "MID",
+      "label": "項圈環身（骨／貝片）必須存在（特徵⑤）"
+    },
+    {
+      "type": "part_exists",
+      "part": "collar_fang",
+      "stage": "MID",
+      "label": "項圈上向外放射的一列小彎牙必須存在——『骨牙串成項圈』的牙就是這件（特徵⑤）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye（js/creature-figures.js:51 靠這個名字掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "mouth_glow",
+      "stage": "MID",
+      "label": "口內暖光必須存在，材質名必須正是 mouth_glow（簡報指定的第二個發光部位）"
+    },
+    {
+      "type": "part_signature",
+      "part": "tusk",
+      "view": "side",
+      "min_share": 0.03,
+      "or_min_span": 0.34,
+      "stage": "MID",
+      "label": "招牌部位（外翻獠牙）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "tusk",
+      "view": "side",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "獠牙在側視至少佔 2%——招牌剪影不能只靠鏡射擺位換到 span（本檔對 sigui 的加嚴之一）"
+    },
+    {
+      "type": "part_visible",
+      "part": "tusk",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "獠牙在正視至少佔 2%——『外翻』要在正面也看得到才叫外翻（加嚴之二）"
+    },
+    {
+      "type": "part_visible",
+      "part": "mane_gold",
+      "view": "side",
+      "min_share": 0.045,
+      "stage": "MID",
+      "label": "倒豎背鬃在側視至少佔 4.5%——它同時是特徵③與陣營主色的唯一載體"
+    },
+    {
+      "type": "part_visible",
+      "part": "snout_disc",
+      "view": "side",
+      "min_share": 0.006,
+      "stage": "MID",
+      "label": "圓盤豬鼻在側視至少佔 0.6%——吻端截斷面被吃掉就不成立（特徵①的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "collar_fang",
+      "view": "front",
+      "min_share": 0.015,
+      "stage": "MID",
+      "label": "項圈的放射牙在正視至少佔 1.5%——項圈被頭擋掉就不成立（特徵⑤的機械化）"
+    },
+    {
+      "type": "part_visible",
+      "part": "collar_ring",
+      "view": "side",
+      "min_share": 0.012,
+      "stage": "MID",
+      "label": "項圈環身在側視至少佔 1.2%——牙要串在一個看得見的環上，不是散插在脖子上"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "hide_body",
+      "b": "mouth_glow",
+      "view": "front",
+      "min_ratio": 3,
+      "stage": "MID",
+      "label": "軀幹必須壓過口內光至少 3 倍——嘴裡是一點火不是一顆燈"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": [
+        "hide_body",
+        "hide_face"
+      ],
+      "secondary": [
+        "mane_gold",
+        "hide_leg",
+        "tusk"
+      ],
+      "tertiary": [
+        "snout_disc",
+        "collar_ring",
+        "collar_fang",
+        "collar_bead",
+        "cord_red",
+        "tusk_root",
+        "hoof",
+        "eye",
+        "mouth_glow"
+      ],
+      "view": "tq",
+      "stage": "MID",
+      "label": "6:3:1 階層：（軀幹＋頭）／（背鬃＋四肢＋獠牙）／（鼻盤、項圈環、項圈牙、珠、紅繩、牙根、蹄、眼、口光）"
+    },
+    {
+      "type": "style_dark",
+      "view": "side",
+      "max_median_lum": 90,
+      "stage": "MID",
+      "label": "深底：側視的機體中位亮度不得超過 90/255（凍結檔原值）"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": [
+        "idle",
+        "move",
+        "attack"
+      ],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝獠牙反擊／獠牙上頂）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+    }
+  ]
+}

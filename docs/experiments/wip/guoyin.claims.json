@@ -1,0 +1,99 @@
+{
+  "name": "過陰咒 guoyin_banshen (yinqi/haunt)",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝assets/creatures/redhat.claims.json（同系同體型），本隻只做四類改動：① 材質名換成本隻的（redhat 的 hat／skin_head／ghost_skirt 在本隻不存在，留著 judge 會直接報 part 不存在）；② saturation_area 帶依量產凍結檔 2026-09-04 19:30「claims tri_budget 上限改 8000」與本卷派工「claims 的 saturation 帶 10–60」設為 0.10–0.60；③ tri_budget 上限 5000→8000（同上，預算制）；④ 加一條 part_visible 釘住 glow_seam 在正視必須看得見——加嚴，不是放寬：sigui 報告 ⑩⑥ 記過『發光筒被擋住時 part_visible 回 0，但 part_exists 與 focal_contrast（除以 0＝∞）照樣綠』，只寫 part_exists 對「斷面看不看得到」零鑑別力。view 選 front 是因為本隻的縱向斷面在 front（相機 +Z）才同時看得到實半與虛半；side／tq（相機在 +X）虛半會整片擋住實半。",
+  "_frozen": "本檔在動手建模、跑第一次 cli.js、看到任何 judge 數字之前寫定。之後只改 guoyin.json 去遷就它；被 BLOCK 一律改幾何或改色過關，不動任何 min／max／view／案例集。",
+  "claims": [
+    {
+      "type": "part_exists",
+      "part": "glow_seam",
+      "stage": "MID",
+      "label": "招牌部位：縱向斷面的發光鋸齒縫必須存在，材質名必須以 glow_ 開頭（three.js 端靠這個前綴掛 emissive）"
+    },
+    {
+      "type": "part_exists",
+      "part": "eye",
+      "stage": "MID",
+      "label": "發光眼必須存在，材質名必須正是 eye"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_half",
+      "stage": "MID",
+      "label": "只剩輪廓的那半身必須存在，材質名必須以 ghost_ 開頭（接線卷靠這個前綴掛半透明）"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_hem",
+      "stage": "MID",
+      "label": "haunt 的下半身虛化：袍襬必須存在，材質名必須以 ghost_ 開頭"
+    },
+    {
+      "type": "part_exists",
+      "part": "ghost_wisp",
+      "stage": "MID",
+      "label": "虛半外緣散出的煙縷必須存在，材質名必須以 ghost_ 開頭"
+    },
+    {
+      "type": "part_visible",
+      "part": "glow_seam",
+      "view": "front",
+      "min_share": 0.02,
+      "stage": "MID",
+      "label": "斷面在正視圖必須真的看得見（不是只存在於檔案裡）：被實半或虛半擋住就不算"
+    },
+    {
+      "type": "part_signature",
+      "part": "ghost_half",
+      "view": "front",
+      "min_share": 0.1,
+      "or_min_span": 0.12,
+      "stage": "MID",
+      "label": "招牌部位（半透明的那半身）在正視圖要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "focal_contrast",
+      "a": "ghost_half",
+      "b": "skin_face",
+      "view": "front",
+      "min_ratio": 2,
+      "stage": "MID",
+      "label": "兩個焦點（虛半／半張臉）不得等重：虛半必須明確壓過臉，剪影才認得出是這一隻"
+    },
+    {
+      "type": "share_hierarchy",
+      "primary": ["ghost_hem", "ghost_half"],
+      "secondary": ["robe", "sleeve"],
+      "tertiary": ["skin_face", "trim", "hand"],
+      "view": "front",
+      "tolerance": 0.15,
+      "stage": "MID",
+      "label": "6:3:1 階層：虛半＋袍襬／實半的袍與袖／半張臉與織帶與手"
+    },
+    {
+      "type": "rig_skinned",
+      "stage": "HIGH",
+      "label": "必須是蒙皮模型"
+    },
+    {
+      "type": "anim_named",
+      "names": ["idle", "move", "attack"],
+      "stage": "HIGH",
+      "label": "三支動畫齊備（attack＝恐懼加倍：虛半張開）"
+    },
+    {
+      "type": "saturation_area",
+      "view": "tq",
+      "min": 0.1,
+      "max": 0.6,
+      "stage": "HIGH",
+      "label": "高飽和面積落在 10%-60%：管的是多少，不管在哪"
+    },
+    {
+      "type": "tri_budget",
+      "min": 1500,
+      "max": 8000,
+      "stage": "LOW",
+      "label": "三角形預算（2026-09-04 19:30 預算制上限 8000）"
+    }
+  ]
+}

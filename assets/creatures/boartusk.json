@@ -1,0 +1,3694 @@
+{
+ "name": "boartusk",
+ "_variant": "3D 量產卷批 13 · 山豬牙飾（ab=boartusk、祖靈 zuling、swarm、trait swarmThorn「獠牙反擊」）。簡報第 21 列：骨牙串成項圈的小山豬靈，鬃毛倒豎；主色祖靈金在背鬃；發光 eye／mouth_glow；招牌剪影＝外翻獠牙；招式＝獠牙反擊:獠牙上頂。造型依 docs/design/ART_BIBLE.md（§0.5 真實參照、§2 祖靈、§5 材質→幾何）；凍結檔 docs/experiments/2026-09-04-acceptance-creature-batch.md。",
+ "_ref_features": "真實參照必做清單（docs/experiments/2026-09-04-ref-boartusk.md §三，寫本檔之前定稿、此後一條未改）：① 長楔形拱鼻頭＋平截圓盤鼻，眼小、位置高且靠後 ② 野豬體型：肩背隆起成全身最高的肩峰、往後下斜到較低的臀，頸粗到幾乎沒有脖子，四肢粗短 ③ 從後腦沿頸背到肩背一列尖端朝上豎起的硬鬃（＝祖靈金落點） ④ 外翻獠牙：吻側各一根象牙白獠牙，由下往外往上彎成 C 形勾、尖端外露於吻的輪廓外，牙根帶褐；另有一對更短更捲的上牙（＝招牌剪影） ⑤ 骨牙項圈：頸上一圈環，環身鑲一列橫躺骨／貝片，環外緣放射一整列向外的小彎牙，牙間夾深色珠列，接口纏紅繩。",
+ "_species_note": "★與其他祖靈四足獸的對開：xianji 是山羌（短吻、V 形角柄、細長腿、拱背垂頭）、bow 是水鹿（長腿、分叉鹿角）。本隻靠四件與它們分開：(a) 肩峰是全身最高點、臀明顯低於肩（鹿科是拱背，最高點在腰）(b) 頭是一根從肩直接長出來的長楔形、末端一片平截圓盤鼻（鹿是短吻窄鼻）(c) 頸背一列倒豎硬鬃（鹿科沒有）(d) 吻側兩根外翻上捲的大獠牙（鹿科沒有）。四肢刻意做粗短，不做鹿的細長腿。",
+ "_swarm_recipe": "boat 報告 ⑤／sigui `_swarm_recipe`：(1) **含配件總寬（模型 X）務必 ≤1.2**——本檔把長度全放在 z（前後），X 只由「軀幹半寬 0.196＋項圈放射牙／獠牙尖端」決定，實測見報告 §④；preview `n>1` 每隻縮 0.62、欄距 1.05。(2) **不寫 `mirror_phase`**——四足獸若左右反相會變成小跑步，三隻並排各走各的；同拍時前腳一對、後腳一對同時離地＝奔豬的縱躍，整群同拍才讀得出「一群同款」。(3) 左右嚴格鏡射：`mirror:[\"LFront\",\"LBack\"]` 管四肢，所有掛件不是寫在 x=0 中線（背鬃中線排、項圈環／珠／紅繩由程式對稱生成、口內餘燼、尾）就是 `mirrored:true`（側鬃、獠牙、牙根、上牙、蹄）。祖靈「剪影垂直線條主導」的 swarm 例外條款（每隻帶一根垂直物）由**倒豎背鬃**承擔。",
+ "_proportion_note": "凍結檔 18:00 守則①：頭 ≤ 身高 1/4。肩峰頂 y≈0.908 vs 臀頂 y≈0.753 ＝ ref 特徵②的「肩高臀低」；腹底 y≈0.539、蹄底 y=0.030 ⇒ 腿長約佔全高 42%（野豬的粗短腿，刻意不做鹿的細長腿）。全高由背鬃尖端決定，落在派工要求的 1.20–1.25（實測見報告 §④）。",
+ "_arc_frame_note": "★ `colors.arcs` 的 from/to 是引擎折過的 **sym 0–180**（compile.js:218-223），寫超過 180 是死碼（chair ⑦-⑧）。本檔 body 是**水平鏈＋frame:\"up\"**，推導：ring 頂點 k 在 U(=+X) 起算 aDeg=360k/16，fromTop=(450−aDeg)%360，sym=fromTop>180?360−fromTop:fromTop ⇒ **sym 0＝背頂(+Y)、90＝兩側(±X)、180＝腹底(−Y)**（與直立鏈的 0＝背、180＝正面**不同**，因為 frame:\"up\" 的 W 軸在水平鏈上就是世界 +Y）。sides=16 的格點只有 0/22.5/45/…/180，所以金帶寫 0–25（吃 sym 0 與 22.5 兩格）、暗腹帶寫 155–180（吃 157.5 與 180）。arcs 切不出橫向環帶（sigui ⑩④），本檔不需要橫帶。",
+ "_glow_materials": "eye / mouth_glow —— 簡報 `boartusk` 列指定的兩個發光部位，`js/creature-figures.js:51` 的 `/^eye(_|$)|^mouth_glow(_|$)|^glow_/` 會接成 emissive（×2.8）。**沒有多開第三個發光材質**，且兩者一律用暖琥珀（`#4a2f0c`／`#472d0b`，乘完約 (207,131,34)／(199,126,31)）——xianji ⑥-6 實測：發光顏色要與系別色帶同族，冷藍白會被讀成「妖異靈光／邪氣」，換成祖靈金族才讀成「莊嚴／祭祀／守護神獸」。祖靈次色靛藍只用在**小面積**的項圈琉璃珠（ART_BIBLE §2 原文口徑），不做發光。",
+ "_hardening_note": "凍結檔 19:10 模板規則（`build:\"rigid\"` 只是許可證，平面感來自每個 volume 的 `faceted:true`，harden-batch1 ②）：本檔 6 個 volume 全部 `faceted:true`、斷面 exp 4.6–4.8、`smooth_angle` 全檔 26。走 19:30 的預算制（≤1.5MB／≤8000 tri）。",
+ "_traps": "本檔動手前已吃進的既有陷阱：① `caps` 起始端 `ngon` 在大斷面固定生翻面（ashcharm ⑨）→ body 起始端用 `fan`、其餘子鏈 t=0 一律 `none`（根都埋在宿主體內），收尾端才用 `ngon`。② 父子鏈接縫雙方都 `caps:\"none\"` 會漏背景白線且 judge/cli 都不報（sigui ⑩③）→ neck 的 t=0 沉進 body（z 0.092 < Withers 0.122）、head 的 t=0 沉進 neck（z 0.232 < NeckMid 0.277）、disc 的 t=0 沉進 head（z 0.666 < Nose 0.696）。③ 關節轉角 >100° 在 bind pose 直接翻面、`ring_step` 無效（sigui ⑩①）→ 全檔每條鏈的相鄰段夾角壓在 12° 以內；會大轉彎的東西（尾巴、獠牙、項圈）**一律改用 `curve` part**，不做成鏈。④ 相鄰鏈段長比 >0.923 會被 proportion BLOCK（pilot ⑦-5）。⑤ `shading.noise` 會把**偏暖的近黑**擾到 HSV S>0.5 讓 saturation_area 誤判飆高（tiger_a ⑤-6）→ 本檔所有暗色實算過飽和度：hide_body #4a4038 S=0.243、hide_face #443a33 S=0.250、hide_leg #2e2a26 S=0.174、hoof #232323 S=0、腹帶 #262220 S=0.176；高飽和額度只給祖靈金背鬃＋背頂金帶＋靛藍珠＋紅繩＋兩處暖光。⑥ `mirrorName` 會把 `mirrored` 部位宿主關節名開頭的 L 換成 R（bow ⑧-1）→ 本檔以 L 開頭的關節只有 `LFront*`／`LBack*` 四肢（本來就要鏡射、R 孿生確實存在），其餘軸向關節一律避開 L 開頭。⑦ 「繞著曲面排成連續一圈」的東西用 `curve` 短圓柱、不用 `fin`（balen ㉛；自由懸掛薄板長寬比 >2 一律被讀成手指／觸手，harden3B ⑤-③）→ 項圈環身／放射牙／珠列／紅繩全部是 curve。⑧ `part_attachment` 容差 0.015×modelH（checks.js:300-325）→ 背鬃基座刻意埋進體表 0.030、項圈放射牙起點放在頸半徑的 0.86×、獠牙基座壓在吻部表面內側、尾巴起點埋在臀內。⑨ `root_containment` 只查 chain 的 t=0 那一列環、且用「離宿主最近環心」判（checks.js:244-261）。⑩ ★ profile 兩個半徑的軸向**不能照筆記推**（ashcharm ⑩／yinyangcoin ⑨-1）→ 本檔全部 volume 寫 `frame:\"up\"`，依 geometry.js:31-35 推得第一欄是 X 寬、第二欄是 W 軸（水平鏈上就是世界 +Y）。**這條在報告 §④ 用 judge 的 whole.size 實測驗過才算數**——實測 whole.size ＝ [0.562, 1.222, 1.324]，body 半寬 0.222×2＝0.444 對得上 X 而非 Z，第一欄是 X 確認。 ★本卷新增兩條（都在鼻盤 `disc` 這個「短鏈＋外擴斷面＋超橢圓」的組合上）：**⑪ 收尾端 `caps:\"ngon\"` 固定生翻面三角**——六組實測（ring_step 0.016／0.026／0.030／0.038／0.048 × caps ngon／fan）中 ngon 全部生 1–3 片 `mesh_integrity` 翻面、fan 全綠；判準＝exp≥4.6 的超橢圓斷面在短鏈末端要用 `fan` 不用 `ngon`（與 ashcharm ⑨『起始端 ngon 在大斷面翻面』是同一族的另一端）。**⑫ 外擴斜率（Δ半徑÷鏈長）> 約 0.4 就會翻面，且 `ring_step` 救不回來**——十六組實測：斜率 0.51 時 ring_step 0.016/0.020/0.026 全紅（0.033 才勉強綠），斜率 0.33 時四種 ring_step 全綠；修法是壓斜率不是調 ring_step（`ring_step` 對翻面單獨無效，同 sigui ⑩-①）。 ★第三條（⑬）：`root_containment` 對**軸向傾斜**的子鏈特別嚴——鼻盤軸相對頭軸上仰 27°，t=0 半徑 0.074（宿主環最大半徑 0.0771 的 96%，紙上算「小於 0.98×」）仍被判 29% 外露，因為傾斜使根環的頂點各自落在不同的宿主環上；把根往宿主內再埋 0.012 並把 t=0 收到 0.070 才過。**傾斜子鏈不要照 0.98× 的紙上算式抓餘裕。**",
+ "palette": {
+  "hide_body": {
+   "color": "#4a4038"
+  },
+  "hide_face": {
+   "color": "#443a33"
+  },
+  "hide_leg": {
+   "color": "#2e2a26"
+  },
+  "snout_disc": {
+   "color": "#4a3b36"
+  },
+  "mane_gold": {
+   "color": "#c68a35"
+  },
+  "tusk": {
+   "color": "#ded2b6"
+  },
+  "tusk_root": {
+   "color": "#5d4a30"
+  },
+  "collar_ring": {
+   "color": "#b8ac93"
+  },
+  "collar_fang": {
+   "color": "#cabfa4"
+  },
+  "collar_bead": {
+   "color": "#26356e"
+  },
+  "cord_red": {
+   "color": "#8e2f22"
+  },
+  "hoof": {
+   "color": "#232323"
+  },
+  "eye": {
+   "color": "#4a2f0c"
+  },
+  "mouth_glow": {
+   "color": "#472d0b"
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.12,
+   "bottom": -0.3
+  },
+  "noise": {
+   "size": 0.02,
+   "amount": 0.2
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Rump": [
+   0,
+   0.582,
+   -0.418
+  ],
+  "Barrel": [
+   0,
+   0.622,
+   -0.204
+  ],
+  "Chest": [
+   0,
+   0.664,
+   -0.024
+  ],
+  "Withers": [
+   0,
+   0.688,
+   0.108
+  ],
+  "NeckRoot": [
+   0,
+   0.712,
+   0.078
+  ],
+  "NeckMid": [
+   0,
+   0.704,
+   0.246
+  ],
+  "HeadRoot": [
+   0,
+   0.708,
+   0.204
+  ],
+  "Skull": [
+   0,
+   0.702,
+   0.352
+  ],
+  "Muzzle": [
+   0,
+   0.712,
+   0.532
+  ],
+  "Nose": [
+   0,
+   0.74,
+   0.644
+  ],
+  "DiscRoot": [
+   0,
+   0.727,
+   0.594
+  ],
+  "DiscFace": [
+   0,
+   0.768,
+   0.68
+  ],
+  "LEar": [
+   0.072,
+   0.807,
+   0.34
+  ],
+  "LFrontRoot": [
+   0.104,
+   0.5,
+   0.058
+  ],
+  "LFrontKnee": [
+   0.11,
+   0.31,
+   0.02
+  ],
+  "LFrontHoof": [
+   0.112,
+   0.03,
+   0.052
+  ],
+  "LBackRoot": [
+   0.1,
+   0.462,
+   -0.34
+  ],
+  "LBackKnee": [
+   0.104,
+   0.29,
+   -0.304
+  ],
+  "LBackHoof": [
+   0.106,
+   0.03,
+   -0.336
+  ]
+ },
+ "chains": {
+  "body": [
+   "Rump",
+   "Barrel",
+   "Chest",
+   "Withers"
+  ],
+  "neck": [
+   "NeckRoot",
+   "NeckMid"
+  ],
+  "head": [
+   "HeadRoot",
+   "Skull",
+   "Muzzle",
+   "Nose"
+  ],
+  "disc": [
+   "DiscRoot",
+   "DiscFace"
+  ],
+  "LFront": [
+   "LFrontRoot",
+   "LFrontKnee",
+   "LFrontHoof"
+  ],
+  "LBack": [
+   "LBackRoot",
+   "LBackKnee",
+   "LBackHoof"
+  ]
+ },
+ "attach": {
+  "neck": "Withers",
+  "head": "NeckMid",
+  "disc": "Nose",
+  "LFront": "Chest",
+  "LBack": "Rump",
+  "LEar": "Skull"
+ },
+ "mirror": [
+  "LFront",
+  "LBack"
+ ],
+ "touch": [
+  [
+   "body",
+   "neck"
+  ],
+  [
+   "neck",
+   "head"
+  ],
+  [
+   "head",
+   "disc"
+  ],
+  [
+   "body",
+   "LFront"
+  ],
+  [
+   "body",
+   "LBack"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "body",
+   "material": "hide_body",
+   "sides": 16,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.14,
+     0.15,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.16,
+     0.182,
+     0.222,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.41,
+     0.208,
+     0.264,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.75,
+     0.222,
+     0.286,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.212,
+     0.262,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "fan",
+    "ngon"
+   ],
+   "ring_step": 0.03,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 30,
+      "color": "#a8762a"
+     },
+     {
+      "from": 155,
+      "to": 180,
+      "color": "#262220"
+     }
+    ]
+   },
+   "_c": "野豬軀幹：肩峰(t=0.75)最寬最深、臀(t=0)收窄下沉＝ref 特徵②。背頂一條祖靈金窄帶承接背鬃，腹底壓暗。"
+  },
+  {
+   "chain": "neck",
+   "material": "hide_body",
+   "sides": 16,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.205,
+     0.215,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.45,
+     0.18,
+     0.188,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.132,
+     0.136,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.024,
+   "_c": "粗頸：t=0 埋在 body 內（root_containment），t=1 埋在 head 根下（避免 caps 雙 none 漏白線）。與軀幹同材質（eye ⑥-9：補件不自立新材質名）。"
+  },
+  {
+   "chain": "head",
+   "material": "hide_face",
+   "sides": 14,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.148,
+     0.158,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.3,
+     0.132,
+     0.136,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.7,
+     0.094,
+     0.086,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.07,
+     0.066,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.02,
+   "_c": "ref 特徵①長楔形頭：從 0.105 收到 0.060，軸線在 Muzzle→Nose 段上揚 ＝ 吻端上抬（祖靈抬頭口徑）。"
+  },
+  {
+   "chain": "disc",
+   "material": "snout_disc",
+   "sides": 14,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.07,
+     0.064,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1,
+     0.098,
+     0.09,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "fan"
+   ],
+   "ring_step": 0.022,
+   "_c": "ref 特徵①平截圓盤鼻：末端 ngon cap 就是那片平的鼻盤，半徑 0.074 > 吻端 0.060 ⇒ 外擴一圈。★新陷阱⑪：這片外擴斷面的收尾 cap 用 `ngon` 時，不論 ring_step 0.016/0.026/0.030/0.038/0.048 一律固定生 1–3 個翻面三角（六組實測，見報告 ⑥-1）；換成 `fan` 六組全綠。判準＝超橢圓(exp≥4.6)＋短鏈＋外擴斷面的收尾端不要用 ngon。★同族第二條（新陷阱⑫）：這片鼻盤的**外擴斜率**（Δ半徑÷鏈長）拉到 0.51 時，ring_step 0.016/0.020/0.026 一律翻面（0.033 才勉強綠）；壓到 0.33 則四種 ring_step 全綠。十六組實測見報告 ⑥-2。"
+  },
+  {
+   "chain": "LFront",
+   "material": "hide_leg",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.072,
+     0.075,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.42,
+     0.062,
+     0.064,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.038,
+     0.044,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.026,
+   "_c": "ref 特徵②粗短前肢。"
+  },
+  {
+   "chain": "LBack",
+   "material": "hide_leg",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.072,
+     0.075,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.42,
+     0.06,
+     0.062,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.036,
+     0.042,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.026,
+   "_c": "ref 特徵②粗短後肢。"
+  }
+ ],
+ "parts": [
+  {
+   "type": "curve",
+   "name": "mane_c_0",
+   "host": "NeckMid",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.13042,
+    -0.04
+   ],
+   "dir": [
+    0,
+    0.95783,
+    -0.28735
+   ],
+   "segments": [
+    {
+     "len": 0.11221,
+     "r": 0.019
+    },
+    {
+     "len": 0.09084,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.06412,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_1",
+   "host": "NeckMid",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.16325,
+    -0.0945
+   ],
+   "dir": [
+    0,
+    0.95783,
+    -0.28735
+   ],
+   "segments": [
+    {
+     "len": 0.12424,
+     "r": 0.019
+    },
+    {
+     "len": 0.10057,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.07099,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_1",
+   "host": "NeckMid",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.14125,
+    -0.0805
+   ],
+   "dir": [
+    0.3139,
+    0.92324,
+    -0.22158
+   ],
+   "segments": [
+    {
+     "len": 0.0762,
+     "r": 0.0142
+    },
+    {
+     "len": 0.05467,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03479,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_2",
+   "host": "NeckRoot",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.208,
+    0.019
+   ],
+   "dir": [
+    0,
+    0.95783,
+    -0.28735
+   ],
+   "segments": [
+    {
+     "len": 0.13401,
+     "r": 0.019
+    },
+    {
+     "len": 0.10849,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.07658,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_2",
+   "host": "NeckRoot",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.186,
+    0.033
+   ],
+   "dir": [
+    0.3139,
+    0.92324,
+    -0.22158
+   ],
+   "segments": [
+    {
+     "len": 0.08219,
+     "r": 0.0142
+    },
+    {
+     "len": 0.05897,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03752,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_3",
+   "host": "Chest",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.256,
+    0.0665
+   ],
+   "dir": [
+    0,
+    0.95783,
+    -0.28735
+   ],
+   "segments": [
+    {
+     "len": 0.13973,
+     "r": 0.019
+    },
+    {
+     "len": 0.11311,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.07985,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_3",
+   "host": "Chest",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.234,
+    0.0805
+   ],
+   "dir": [
+    0.3139,
+    0.92324,
+    -0.22158
+   ],
+   "segments": [
+    {
+     "len": 0.0857,
+     "r": 0.0142
+    },
+    {
+     "len": 0.06148,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03912,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_4",
+   "host": "Chest",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.256,
+    0.012
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.14025,
+     "r": 0.019
+    },
+    {
+     "len": 0.11354,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.08015,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_4",
+   "host": "Chest",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.234,
+    0.026
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.08602,
+     "r": 0.0142
+    },
+    {
+     "len": 0.06171,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03927,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_5",
+   "host": "Chest",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.24082,
+    -0.0425
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.13548,
+     "r": 0.019
+    },
+    {
+     "len": 0.10967,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.07742,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_5",
+   "host": "Chest",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.21882,
+    -0.0285
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.08309,
+     "r": 0.0142
+    },
+    {
+     "len": 0.05961,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03793,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_6",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.26336,
+    0.083
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.12636,
+     "r": 0.019
+    },
+    {
+     "len": 0.10229,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.0722,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_6",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.24136,
+    0.097
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.0775,
+     "r": 0.0142
+    },
+    {
+     "len": 0.0556,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03538,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_7",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.2439,
+    0.0285
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.11461,
+     "r": 0.019
+    },
+    {
+     "len": 0.09278,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.06549,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_7",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.2219,
+    0.0425
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.07029,
+     "r": 0.0142
+    },
+    {
+     "len": 0.05043,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.03209,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_8",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.22013,
+    -0.026
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.10217,
+     "r": 0.019
+    },
+    {
+     "len": 0.08271,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.05838,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_8",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.19813,
+    -0.012
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.06267,
+     "r": 0.0142
+    },
+    {
+     "len": 0.04496,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.02861,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_9",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.19259,
+    -0.0805
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.0907,
+     "r": 0.019
+    },
+    {
+     "len": 0.07343,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.05183,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_9",
+   "host": "Barrel",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.17059,
+    -0.0665
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.05563,
+     "r": 0.0142
+    },
+    {
+     "len": 0.03991,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.0254,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_10",
+   "host": "Rump",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.20215,
+    0.079
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.08126,
+     "r": 0.019
+    },
+    {
+     "len": 0.06578,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.04643,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_10",
+   "host": "Rump",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.052,
+    0.18015,
+    0.093
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.04984,
+     "r": 0.0142
+    },
+    {
+     "len": 0.03575,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.02275,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_c_11",
+   "host": "Rump",
+   "material": "mane_gold",
+   "sides": 6,
+   "offset": [
+    0,
+    0.14548,
+    0.0245
+   ],
+   "dir": [
+    0,
+    0.98058,
+    -0.19612
+   ],
+   "segments": [
+    {
+     "len": 0.07421,
+     "r": 0.019
+    },
+    {
+     "len": 0.06008,
+     "r": 0.0132,
+     "behind": 9
+    },
+    {
+     "len": 0.04241,
+     "r": 0.0066,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "mane_s_11",
+   "host": "Rump",
+   "material": "mane_gold",
+   "mirrored": true,
+   "sides": 6,
+   "offset": [
+    0.04655,
+    0.12348,
+    0.0385
+   ],
+   "dir": [
+    0.31827,
+    0.93609,
+    -0.14977
+   ],
+   "segments": [
+    {
+     "len": 0.04552,
+     "r": 0.0142
+    },
+    {
+     "len": 0.03265,
+     "r": 0.0094,
+     "behind": 10
+    },
+    {
+     "len": 0.02078,
+     "r": 0.0048,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "_c": "ref 特徵④下獠牙：C 形外翻大勾，招牌剪影。累計 rise 105° ⇒ 尖端指向上偏後。",
+   "type": "curve",
+   "name": "tusk_lower",
+   "host": "Muzzle",
+   "material": "tusk",
+   "mirrored": true,
+   "sides": 8,
+   "offset": [
+    0.076,
+    -0.052,
+    0.024
+   ],
+   "dir": [
+    0.34039,
+    0.30035,
+    0.89103
+   ],
+   "segments": [
+    {
+     "len": 0.089,
+     "r": 0.033,
+     "rise": 16
+    },
+    {
+     "len": 0.08,
+     "r": 0.028,
+     "rise": 22
+    },
+    {
+     "len": 0.072,
+     "r": 0.0218,
+     "rise": 26
+    },
+    {
+     "len": 0.063,
+     "r": 0.015,
+     "rise": 24
+    },
+    {
+     "len": 0.054,
+     "r": 0.0088,
+     "rise": 17,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "_c": "ref 特徵④「牙根帶褐」：套在下獠牙起段的褐色短筒。",
+   "type": "curve",
+   "name": "tusk_lower_root",
+   "host": "Muzzle",
+   "material": "tusk_root",
+   "mirrored": true,
+   "sides": 8,
+   "offset": [
+    0.07123,
+    -0.0562,
+    0.01153
+   ],
+   "dir": [
+    0.34039,
+    0.30035,
+    0.89103
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.033,
+     "rise": 14
+    }
+   ]
+  },
+  {
+   "_c": "ref 特徵④上獠牙：短而捲，往上往後。",
+   "type": "curve",
+   "name": "tusk_upper",
+   "host": "Muzzle",
+   "material": "tusk",
+   "mirrored": true,
+   "sides": 7,
+   "offset": [
+    0.07,
+    -0.028,
+    0.066
+   ],
+   "dir": [
+    0.24058,
+    0.60145,
+    0.76183
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.024,
+     "rise": 24
+    },
+    {
+     "len": 0.047,
+     "r": 0.0172,
+     "rise": 30
+    },
+    {
+     "len": 0.039,
+     "r": 0.01,
+     "rise": 28,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_0",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.18791,
+    -0.0388,
+    0.1008
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_1",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.18622,
+    0.03818,
+    0.1008
+   ],
+   "dir": [
+    -0.37101,
+    0.92863,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_2",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.15648,
+    0.10849,
+    0.1008
+   ],
+   "dir": [
+    -0.69423,
+    0.71975,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_3",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.10315,
+    0.16177,
+    0.1008
+   ],
+   "dir": [
+    -0.91885,
+    0.3946,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_4",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.034,
+    0.19002,
+    0.1008
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_5",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.04067,
+    0.1886,
+    0.1008
+   ],
+   "dir": [
+    -0.91885,
+    -0.3946,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_6",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.10927,
+    0.15743,
+    0.1008
+   ],
+   "dir": [
+    -0.69423,
+    -0.71975,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_7",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.16099,
+    0.10133,
+    0.1008
+   ],
+   "dir": [
+    -0.37101,
+    -0.92863,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_8",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.18791,
+    0.0292,
+    0.1008
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_9",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.18622,
+    -0.04778,
+    0.1008
+   ],
+   "dir": [
+    0.37101,
+    -0.92863,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_10",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.15648,
+    -0.11809,
+    0.1008
+   ],
+   "dir": [
+    0.69423,
+    -0.71975,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_11",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.10315,
+    -0.17137,
+    0.1008
+   ],
+   "dir": [
+    0.91885,
+    -0.3946,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_12",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    -0.034,
+    -0.19962,
+    0.1008
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_13",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.04067,
+    -0.1982,
+    0.1008
+   ],
+   "dir": [
+    0.91885,
+    0.3946,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_14",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.10927,
+    -0.16703,
+    0.1008
+   ],
+   "dir": [
+    0.69423,
+    0.71975,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_ring_15",
+   "host": "NeckRoot",
+   "material": "collar_ring",
+   "sides": 6,
+   "offset": [
+    0.16099,
+    -0.11093,
+    0.1008
+   ],
+   "dir": [
+    0.37101,
+    0.92863,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.068,
+     "r": 0.0205
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_0",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.13994,
+    0.02846,
+    0.1048
+   ],
+   "dir": [
+    0.96864,
+    0.21224,
+    0.12916
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_1",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.11223,
+    0.0884,
+    0.1048
+   ],
+   "dir": [
+    0.78719,
+    0.60266,
+    0.13089
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_2",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.06228,
+    0.12988,
+    0.1048
+   ],
+   "dir": [
+    0.44439,
+    0.88588,
+    0.13315
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_3",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0,
+    0.14468,
+    0.1048
+   ],
+   "dir": [
+    0,
+    0.99096,
+    0.13419
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_4",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.06228,
+    0.12988,
+    0.1048
+   ],
+   "dir": [
+    -0.44439,
+    0.88588,
+    0.13315
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_5",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.11223,
+    0.0884,
+    0.1048
+   ],
+   "dir": [
+    -0.78719,
+    0.60266,
+    0.13089
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_6",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.13994,
+    0.02846,
+    0.1048
+   ],
+   "dir": [
+    -0.96864,
+    0.21224,
+    0.12916
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_7",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.13994,
+    -0.03806,
+    0.1048
+   ],
+   "dir": [
+    -0.96864,
+    -0.21224,
+    0.12916
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_8",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.11223,
+    -0.098,
+    0.1048
+   ],
+   "dir": [
+    -0.78719,
+    -0.60266,
+    0.13089
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_9",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    -0.06228,
+    -0.13948,
+    0.1048
+   ],
+   "dir": [
+    -0.44439,
+    -0.88588,
+    0.13315
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_10",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0,
+    -0.15428,
+    0.1048
+   ],
+   "dir": [
+    0,
+    -0.99096,
+    0.13419
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_11",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.06228,
+    -0.13948,
+    0.1048
+   ],
+   "dir": [
+    0.44439,
+    -0.88588,
+    0.13315
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_12",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.11223,
+    -0.098,
+    0.1048
+   ],
+   "dir": [
+    0.78719,
+    -0.60266,
+    0.13089
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_fang_13",
+   "host": "NeckRoot",
+   "material": "collar_fang",
+   "sides": 6,
+   "offset": [
+    0.13994,
+    -0.03806,
+    0.1048
+   ],
+   "dir": [
+    0.96864,
+    -0.21224,
+    0.12916
+   ],
+   "segments": [
+    {
+     "len": 0.062,
+     "r": 0.018
+    },
+    {
+     "len": 0.05,
+     "r": 0.0125,
+     "ahead": 13
+    },
+    {
+     "len": 0.042,
+     "r": 0.0062,
+     "ahead": 15,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_0",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.18087,
+    -0.01009,
+    0.0648
+   ],
+   "dir": [
+    -0.07557,
+    0.99714,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_1",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.17362,
+    0.04812,
+    0.0648
+   ],
+   "dir": [
+    -0.37051,
+    0.92883,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_2",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.14951,
+    0.10108,
+    0.0648
+   ],
+   "dir": [
+    -0.63523,
+    0.77232,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_3",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.11088,
+    0.14375,
+    0.0648
+   ],
+   "dir": [
+    -0.84367,
+    0.53686,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_4",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.0614,
+    0.17202,
+    0.0648
+   ],
+   "dir": [
+    -0.9703,
+    0.24189,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_5",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.00582,
+    0.18307,
+    0.0648
+   ],
+   "dir": [
+    -0.99668,
+    -0.08145,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_6",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.05048,
+    0.1757,
+    0.0648
+   ],
+   "dir": [
+    -0.91863,
+    -0.39512,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_7",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.10188,
+    0.15053,
+    0.0648
+   ],
+   "dir": [
+    -0.74816,
+    -0.66352,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_8",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.14323,
+    0.11004,
+    0.0648
+   ],
+   "dir": [
+    -0.50824,
+    -0.86122,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_9",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.17043,
+    0.0583,
+    0.0648
+   ],
+   "dir": [
+    -0.22526,
+    -0.9743,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_10",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.18087,
+    0.00049,
+    0.0648
+   ],
+   "dir": [
+    0.07557,
+    -0.99714,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_11",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.17362,
+    -0.05772,
+    0.0648
+   ],
+   "dir": [
+    0.37051,
+    -0.92883,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_12",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.14951,
+    -0.11068,
+    0.0648
+   ],
+   "dir": [
+    0.63523,
+    -0.77232,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_13",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.11088,
+    -0.15335,
+    0.0648
+   ],
+   "dir": [
+    0.84367,
+    -0.53686,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_14",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.0614,
+    -0.18162,
+    0.0648
+   ],
+   "dir": [
+    0.9703,
+    -0.24189,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_15",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    -0.00582,
+    -0.19267,
+    0.0648
+   ],
+   "dir": [
+    0.99668,
+    0.08145,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_16",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.05048,
+    -0.1853,
+    0.0648
+   ],
+   "dir": [
+    0.91863,
+    0.39512,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_17",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.10188,
+    -0.16013,
+    0.0648
+   ],
+   "dir": [
+    0.74816,
+    0.66352,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_18",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.14323,
+    -0.11964,
+    0.0648
+   ],
+   "dir": [
+    0.50824,
+    0.86122,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_bead_19",
+   "host": "NeckRoot",
+   "material": "collar_bead",
+   "sides": 6,
+   "offset": [
+    0.17043,
+    -0.0679,
+    0.0648
+   ],
+   "dir": [
+    0.22526,
+    0.9743,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.0135
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_cord_0",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 6,
+   "offset": [
+    -0.11667,
+    -0.16616,
+    0.0888
+   ],
+   "dir": [
+    0.86526,
+    -0.50132,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.0235
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_cord_1",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 6,
+   "offset": [
+    -0.05824,
+    -0.19719,
+    0.0888
+   ],
+   "dir": [
+    0.98456,
+    -0.17506,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.0235
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_cord_2",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 6,
+   "offset": [
+    0.00704,
+    -0.20629,
+    0.0888
+   ],
+   "dir": [
+    0.98456,
+    0.17506,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.0235
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_cord_3",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 6,
+   "offset": [
+    0.07168,
+    -0.19222,
+    0.0888
+   ],
+   "dir": [
+    0.86526,
+    0.50132,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.0235
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_tassel_L",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 5,
+   "offset": [
+    -0.04,
+    -0.20862,
+    0.0848
+   ],
+   "dir": [
+    -0.21384,
+    -0.97202,
+    -0.0972
+   ],
+   "segments": [
+    {
+     "len": 0.058,
+     "r": 0.0125
+    },
+    {
+     "len": 0.05,
+     "r": 0.008,
+     "fall": 10,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "col_tassel_R",
+   "host": "NeckRoot",
+   "material": "cord_red",
+   "sides": 5,
+   "offset": [
+    0.04,
+    -0.20862,
+    0.0848
+   ],
+   "dir": [
+    0.21384,
+    -0.97202,
+    -0.0972
+   ],
+   "segments": [
+    {
+     "len": 0.058,
+     "r": 0.0125
+    },
+    {
+     "len": 0.05,
+     "r": 0.008,
+     "fall": 10,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "_c": "ref 特徵①「眼小、位置高且靠後」：珠狀小眼掛在 Skull 上緣外側，暖琥珀 emissive（xianji ⑥-6：冷光會拉向陰氣）。",
+   "type": "eye",
+   "host": "Skull",
+   "material": "eye",
+   "anchor": {
+    "chain": "head",
+    "t": 0.36,
+    "around": 60
+   },
+   "size": 0.029
+  },
+  {
+   "_c": "ref boar-side-01 的直立耳：從顱頂外側往上往外往後長，錐狀收尖。",
+   "type": "curve",
+   "name": "ear",
+   "host": "Skull",
+   "material": "hide_face",
+   "mirrored": true,
+   "sides": 7,
+   "offset": [
+    0.072,
+    0.105,
+    -0.012
+   ],
+   "dir": [
+    0.42118,
+    0.86242,
+    -0.28079
+   ],
+   "segments": [
+    {
+     "len": 0.054,
+     "r": 0.032
+    },
+    {
+     "len": 0.046,
+     "r": 0.0225,
+     "behind": 10
+    },
+    {
+     "len": 0.039,
+     "r": 0.0105,
+     "behind": 14,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "_c": "口內餘燼：橫貫吻下緣的一道暖光線，上半埋進頭部、下半外露＝發光的嘴線。",
+   "type": "curve",
+   "name": "maw",
+   "host": "Muzzle",
+   "material": "mouth_glow",
+   "sides": 6,
+   "offset": [
+    -0.058,
+    -0.074,
+    0.024
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ],
+   "segments": [
+    {
+     "len": 0.104,
+     "r": 0.0185
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "hoof_LFrontHoof",
+   "host": "LFrontHoof",
+   "material": "hoof",
+   "mirrored": true,
+   "sides": 8,
+   "offset": [
+    0,
+    0.044,
+    -0.004
+   ],
+   "dir": [
+    0,
+    -1,
+    0.06
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.047
+    },
+    {
+     "len": 0.026,
+     "r": 0.04
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "name": "hoof_LBackHoof",
+   "host": "LBackHoof",
+   "material": "hoof",
+   "mirrored": true,
+   "sides": 8,
+   "offset": [
+    0,
+    0.044,
+    -0.004
+   ],
+   "dir": [
+    0,
+    -1,
+    0.06
+   ],
+   "segments": [
+    {
+     "len": 0.034,
+     "r": 0.047
+    },
+    {
+     "len": 0.026,
+     "r": 0.04
+    }
+   ]
+  },
+  {
+   "_c": "野豬細尾：起點埋在臀內，穿出臀端往後下垂。",
+   "type": "curve",
+   "name": "tail",
+   "host": "Rump",
+   "material": "hide_leg",
+   "sides": 6,
+   "offset": [
+    0,
+    0.052,
+    -0.01
+   ],
+   "dir": [
+    0,
+    -0.26142,
+    -0.96523
+   ],
+   "segments": [
+    {
+     "len": 0.078,
+     "r": 0.025
+    },
+    {
+     "len": 0.092,
+     "r": 0.018,
+     "fall": 26
+    },
+    {
+     "len": 0.104,
+     "r": 0.0105,
+     "fall": 32,
+     "taper": true
+    }
+   ]
+  }
+ ],
+ "animations": {
+  "idle": {
+   "_c": "祖靈「靜時如樹」：幅度刻意壓到香火的一半以下。呼吸在 Barrel，鬃毛靠 NeckRoot/Chest 的微擺帶動，頭偶爾把吻端往上頂一下（獠牙的預告）。",
+   "duration": 3.2,
+   "loop": true,
+   "tracks": {
+    "Barrel": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       -1.1
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Chest": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.9
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.006
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Withers": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.46,
+       -0.8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckRoot": {
+     "rx": [
+      [
+       0,
+       0.6
+      ],
+      [
+       0.3,
+       0.6
+      ],
+      [
+       0.42,
+       -2.4
+      ],
+      [
+       0.62,
+       -2
+      ],
+      [
+       1,
+       0.6
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.34,
+       0
+      ],
+      [
+       0.44,
+       -2.6
+      ],
+      [
+       0.7,
+       -1.4
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       2.2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Muzzle": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.44,
+       -1.6
+      ],
+      [
+       0.72,
+       -0.6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "_c": "swarm 不寫 mirror_phase ⇒ 前腳一對同拍、後腳一對同拍＝奔豬的縱躍步態，三隻並排時整群同拍。位移放在 body 鏈的根關節 Rump（redhat ⑦-A）。",
+   "duration": 0.62,
+   "loop": true,
+   "tracks": {
+    "Rump": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.24,
+       0.03
+      ],
+      [
+       0.5,
+       0.004
+      ],
+      [
+       0.74,
+       0.026
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       2.2
+      ],
+      [
+       0.28,
+       -3
+      ],
+      [
+       0.62,
+       2.6
+      ],
+      [
+       1,
+       2.2
+      ]
+     ]
+    },
+    "Barrel": {
+     "rx": [
+      [
+       0,
+       -1.4
+      ],
+      [
+       0.3,
+       2
+      ],
+      [
+       0.66,
+       -1.8
+      ],
+      [
+       1,
+       -1.4
+      ]
+     ]
+    },
+    "Withers": {
+     "rx": [
+      [
+       0,
+       1.6
+      ],
+      [
+       0.3,
+       -2.2
+      ],
+      [
+       0.66,
+       1.8
+      ],
+      [
+       1,
+       1.6
+      ]
+     ]
+    },
+    "NeckRoot": {
+     "rx": [
+      [
+       0,
+       -2
+      ],
+      [
+       0.3,
+       3.2
+      ],
+      [
+       0.66,
+       -2.4
+      ],
+      [
+       1,
+       -2
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       1.4
+      ],
+      [
+       0.32,
+       -2.6
+      ],
+      [
+       0.68,
+       1.6
+      ],
+      [
+       1,
+       1.4
+      ]
+     ]
+    },
+    "LFrontRoot": {
+     "rx": [
+      [
+       0,
+       -22
+      ],
+      [
+       0.3,
+       20
+      ],
+      [
+       0.66,
+       -24
+      ],
+      [
+       1,
+       -22
+      ]
+     ]
+    },
+    "LFrontKnee": {
+     "rx": [
+      [
+       0,
+       16
+      ],
+      [
+       0.3,
+       -12
+      ],
+      [
+       0.66,
+       18
+      ],
+      [
+       1,
+       16
+      ]
+     ]
+    },
+    "LBackRoot": {
+     "rx": [
+      [
+       0,
+       20
+      ],
+      [
+       0.32,
+       -20
+      ],
+      [
+       0.68,
+       22
+      ],
+      [
+       1,
+       20
+      ]
+     ]
+    },
+    "LBackKnee": {
+     "rx": [
+      [
+       0,
+       -14
+      ],
+      [
+       0.32,
+       14
+      ],
+      [
+       0.68,
+       -16
+      ],
+      [
+       1,
+       -14
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "_c": "獠牙反擊：獠牙上頂。先蹲低蓄力，再由 Rump 的 tz 把整隻往前撞出去，同時頸與頭猛地往上翻（負 rx ＝ 吻端上抬），獠牙由下往上挑。爆發段 0.46s（ART_BIBLE §2 祖靈節奏）。",
+   "duration": 0.92,
+   "loop": false,
+   "tracks": {
+    "Rump": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       -0.045
+      ],
+      [
+       0.5,
+       0.235
+      ],
+      [
+       0.68,
+       0.18
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       -0.03
+      ],
+      [
+       0.5,
+       0.048
+      ],
+      [
+       0.72,
+       0.01
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       5
+      ],
+      [
+       0.5,
+       -6.5
+      ],
+      [
+       0.74,
+       -2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Barrel": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       4
+      ],
+      [
+       0.5,
+       -5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Withers": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       4.5
+      ],
+      [
+       0.48,
+       -7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       9
+      ],
+      [
+       0.48,
+       -18
+      ],
+      [
+       0.7,
+       -10
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       7
+      ],
+      [
+       0.48,
+       -16
+      ],
+      [
+       0.72,
+       -8
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Skull": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       4
+      ],
+      [
+       0.48,
+       -11
+      ],
+      [
+       0.74,
+       -5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Muzzle": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       2.5
+      ],
+      [
+       0.48,
+       -8
+      ],
+      [
+       0.76,
+       -3
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFrontRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       16
+      ],
+      [
+       0.5,
+       -20
+      ],
+      [
+       0.76,
+       6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LFrontKnee": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       -12
+      ],
+      [
+       0.5,
+       14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LBackRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       -14
+      ],
+      [
+       0.5,
+       18
+      ],
+      [
+       0.76,
+       -5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LBackKnee": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.26,
+       10
+      ],
+      [
+       0.5,
+       -12
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ }
+}
