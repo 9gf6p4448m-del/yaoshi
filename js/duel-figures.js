@@ -83,6 +83,7 @@ const FIG = {
   centerGap: 0.22, // 最內那尊的腳印外緣離中線至少這麼多（兩側合計 0.44 ≥ R-1 的 0.30）
   rimMax: 2.15, // 最外那尊的腳印外緣離桌心不得超過（桌面 3.4、八邊形內切 3.14；R-2 上限 2.20）
   rowGap3d: 0.75, // 前後排的間距（世界單位；≥ R-3 的 0.50）。俯角 24° 下深度差＝畫面高度差，拉開後排的頭才露得出來（使用者 09-05 晚追加）
+  rowSpanMax: 2.0, // 前後排總深度上限：排數多時排距自動縮（rowSpanMax/(rows−1)），免得後排深到桌緣半徑外
   rowMinStep: 0.55, // 同一排相鄰兩尊的最小中心距（塞得下才保證；step0 在 n=8 只有約 0.36）
   brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
 };
@@ -501,31 +502,45 @@ export function createDuelFigures(scene, camera, opts = {}) {
       // 演出可讀性小卷：n≥3 分排＋夾寬；n≤2 完全走原路徑（位置與 v0.33 逐項相同，凍結檔 R-4）
       let plan = null;
       if (n >= 3) {
-        const rows = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
-        const sizes = [];
-        { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
         const any3d = list.some((_, jj) => slots[i][jj] && slots[i][jj].skin === 'creature');
+        const is3dRow = any3d;
         const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
         const footOf = (jj) => { const g = slots[i][jj]; return g ? g.shadow.scale.x * (g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42) : 0.3; };
         const lo = FIG.centerGap, hi = FIG.rimMax, want = Math.abs(offset[i]);
         // 站位順序：小的前排、大的後排（依 bodyScale：群體 0.6 → 作祟 0.82 → 護法 0.86 → 精英 1.15），同體型保留名冊順序。
         // 只動站位不動名冊 j／unit id（beats 的 actor/target 與 DOM 隻數牌都靠 id），所以這裡是一個排列 order[slot]=j。
         const order = list.map((_, jj) => jj).sort((a, b) => ((FIG.bodyScale[list[a].body] || 1) - (FIG.bodyScale[list[b].body] || 1)) || (a - b));
-        plan = { rows, sizes, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n) };
-        let slot = 0;
-        for (let r = 0; r < rows; r++) {
-          const m = sizes[r];
-          const fIn = footOf(order[slot]), fOut = footOf(order[slot + m - 1]); // k=0 最內、k=m−1 最外
-          const need = (m - 1) / 2;
-          const W = Math.max(0, hi - lo - fIn - fOut); // 這一排兩端腳印中心能拉開的最大距離
-          const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
-          let c = Math.max(lo + fIn + need * s, Math.min(want, hi - fOut - need * s)); // 盡量貼欄位中心，不夠就往外滑
-          if (lo + fIn + need * s > hi - fOut - need * s) c = (lo + hi) / 2;
-          if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hi - fOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
-          plan.steps.push(s); plan.centers.push(c);
-          for (let k = 0; k < m; k++) { const j0 = order[slot + k]; plan.rowOf[j0] = r; plan.idxOf[j0] = k; }
-          slot += m;
-        }
+        // 排數自適應（覆審 H-2）：從 n=3 一排／其餘每排 perRow 起算，哪一排塞不進 rowMinStep 就多一排重排，直到每排都 ≥ rowMinStep 或一排一尊。
+        // 三件精英（腳印各 0.6）同排時 W 只剩 0.73、s 會被壓到 0.34；極端視窗 W=0 兩尊會重疊——多一排就解。
+        const layout = (rows) => {
+          const sizes = [];
+          { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
+          const gap = rows > 1 ? Math.min(FIG.rowGap3d, FIG.rowSpanMax / (rows - 1)) : 0;
+          const P = { rows, sizes, gap, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true };
+          let slot = 0;
+          for (let r = 0; r < rows; r++) {
+            const m = sizes[r];
+            const fIn = footOf(order[slot]), fOut = footOf(order[slot + m - 1]); // k=0 最內、k=m−1 最外
+            const need = (m - 1) / 2;
+            // 這一排的橫向上限＝該深度下的徑向上限（後排深 1.1 時橫向只剩 1.83），規劃時就吃進去，撞擊夾限才不會在靜態咬到人
+            const depthR = rows > 1 ? ((rows - 1) / 2 - r) * gap : (is3dRow ? FIG.rowDepth3d : FIG.rowDepth);
+            // 最外那尊中心的橫向上限：腳印外緣要在半徑 rimMax 的圓內 → sqrt((rimMax−fOut)²−depth²)，與下面撞擊夾限同一條式子
+            const hiOut = Math.sqrt(Math.max(0, (hi - fOut) * (hi - fOut) - depthR * depthR));
+            const W = Math.max(0, hiOut - lo - fIn); // 這一排兩端腳印中心能拉開的最大距離
+            const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
+            if (m > 1 && s < FIG.rowMinStep) P.ok = false;
+            let c = Math.max(lo + fIn + need * s, Math.min(want, hiOut - need * s)); // 盡量貼欄位中心，不夠就往外滑
+            if (lo + fIn + need * s > hiOut - need * s) c = (lo + fIn + hiOut) / 2;
+            if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hiOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
+            P.steps.push(s); P.centers.push(c);
+            for (let k = 0; k < m; k++) { const j0 = order[slot + k]; P.rowOf[j0] = r; P.idxOf[j0] = k; }
+            slot += m;
+          }
+          return P;
+        };
+        let rows = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
+        plan = layout(rows);
+        while (!plan.ok && rows < n) { rows++; plan = layout(rows); }
       }
 
       for (let j = 0; j < n; j++) {
@@ -586,12 +601,15 @@ export function createDuelFigures(scene, camera, opts = {}) {
           // 側向座標＝side×(排中心＋由內往外第 k 尊的偏移)，不再加 offset[i]（排中心已含欄位中心的意圖）
           lane = side * (plan.centers[r] + (k - (m - 1) / 2) * st) - offset[i];
           // 一排時前後交錯用排內位置 k 的奇偶（不是名冊 j：體型排序後相鄰兩尊可能同 j 奇偶而站同一深度，實測 3v3 距離只剩 0.478）
-          depth = plan.rows === 1 ? (k % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * FIG.rowGap3d; // 第 0 排最靠鏡頭
+          depth = plan.rows === 1 ? (k % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * plan.gap; // 第 0 排最靠鏡頭
         } else {
           lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
           depth = n > 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : 0;
         }
-        const x = offset[i] + lane + push;
+        let x = offset[i] + lane + push;
+        // 撞擊位移不得把人推出桌緣（覆審 H-3：8v8 敗方 power 2.0 時最外那尊 r 到 2.43、腳印外緣 2.94）；n≤2 不夾（R-4）
+        // 夾的是徑向距離（含這一排的深度）：四排深時橫向雖在限內、r 仍會到 2.28（覆審後實測），所以橫向上限＝sqrt((rimMax−foot)²−depth²)
+        if (plan) { const foot = f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42); const rr = Math.max(0, FIG.rimMax - foot); const lim = Math.sqrt(Math.max(0, rr * rr - depth * depth)); if (side * x > lim) x = side * lim; }
         const grounded = is3d && typeof f.groundFx === 'function' && !!f.groundFx();
         // 有腳下環境（水面）的不上下漂：水面跟著漂會沉到桌面下（實測 groupY 0.112～0.192，桌頂 0.15）
         const bobAmp = grounded ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;

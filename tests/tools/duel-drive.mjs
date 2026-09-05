@@ -94,7 +94,11 @@ const RECORDER = `(() => {
   document.addEventListener('ys:fx-trait', (e) => { const d = e.detail || {}; const el = document.getElementById('duelMove'); const du = document.getElementById('duel');
     const Y = window.__yaoshi || {}; const S = Y.S || {}; const seat = cur ? (d.side === 'B' ? cur.b : cur.a) : null;
     const pl = S.players && seat != null ? S.players.find((p) => p.id === seat) : null; const tr = Y.TRAITS ? Y.TRAITS[d.trId] : null;
-    R.moves.push({ t: now(), trId: d.trId, side: d.side, text: el ? el.textContent : null, cls: el ? el.className : null,
+    // 文字實際落點（Range 量字的框，不是元素框）與兩欄中心：side-A 的字要比置中更靠 dL、side-B 更靠 dR（覆審 H-1）
+    let geo = null; try { const line = el && (el.querySelector('.mvline') || el); const rg = document.createRange(); rg.selectNodeContents(line); const tb = rg.getBoundingClientRect();
+      const cx = (id) => { const r = document.getElementById(id).getBoundingClientRect(); return r.left + r.width / 2; };
+      geo = { textCx: tb.left + tb.width / 2, dL: cx('dL'), dR: cx('dR'), mid: window.innerWidth / 2 }; } catch (err) { geo = null; }
+    R.moves.push({ t: now(), trId: d.trId, side: d.side, text: el ? el.textContent : null, cls: el ? el.className : null, geo,
       expectName: pl ? pl.name : null, expectItem: Y.TRAIT_ITEM ? Y.TRAIT_ITEM[d.trId] : null, expectMove: tr ? tr.name : null, expectDesc: tr ? tr.desc : null,
       scroll: du ? [du.scrollHeight, du.clientHeight] : null }); });
   document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });

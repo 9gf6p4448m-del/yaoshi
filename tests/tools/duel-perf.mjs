@@ -152,18 +152,27 @@ if (mode === 'bounds') {
       duels: 1,
       onDuel: async (pg, n) => {
         if (n !== 1) return;
-        res = await pg.evaluate(async ({ heavy, fac, na, nb }) => {
+        res = await pg.evaluate(async ({ heavy, fac, na, nb, lunge, unitsA, unitsB }) => {
           const Y3 = window.__yaoshi3d;
           const cur = window.__rec.duels[window.__rec.duels.length - 1];
           const mk = (k, i) => ({ id: i, body: i % 3 === 0 ? 'elite' : i % 3 === 1 ? 'swarm' : 'ward', fac: fac[heavy[k % heavy.length]], ab: heavy[k % heavy.length] });
           // 用「不在真對決裡」的兩個座位：ys:fx-lunge 的 w/l 對不上就不會推（push=0），量到的才是靜態站位
           const others = [0, 1, 2, 3].filter((s) => s !== cur.a && s !== cur.b);
+          const parseUnits = (spec) => spec ? spec.split(',').map((s, i) => { const [ab, body] = s.split(':'); return { id: i, body: body || 'elite', fac: fac[ab] || 'zuling', ab }; }) : null;
           const det = { a: others[0], b: others[1], armies: [
-            { units: Array.from({ length: na }, (_, i) => mk(i, i)) },
-            { units: Array.from({ length: nb }, (_, i) => mk(i + 3, i)) } ] };
+            { units: parseUnits(unitsA) || Array.from({ length: na }, (_, i) => mk(i, i)) },
+            { units: parseUnits(unitsB) || Array.from({ length: nb }, (_, i) => mk(i + 3, i)) } ] };
           document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));
           await det.ready;
           await new Promise((r) => setTimeout(r, 1400));
+          // --lunge=P：對合成座位派兩個方向的撞擊（A 勝再 B 勝），之後 700ms 內逐幀取樣，R-2 看撞擊中的最大 r（覆審 H-3：撞擊會把最外尊推出去）
+          const samples = [];
+          if (lunge > 0) {
+            const shoot = async (w, l) => { document.dispatchEvent(new CustomEvent('ys:fx-lunge', { detail: { w, l, power: lunge } })); const t0 = performance.now();
+              while (performance.now() - t0 < 700) { await new Promise((r) => requestAnimationFrame(r)); samples.push(['A', 'B'].map((s) => Y3.duelFigures.figuresOf(s).filter((f) => f.group.visible).map((f) => { const p = f.group.position; return [p.x, p.z, f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42)]; }))); } };
+            await shoot(others[0], others[1]); await shoot(others[1], others[0]);
+            await new Promise((r) => setTimeout(r, 900));
+          }
           // 「站在紅色區塊外」的量法：腳點（含影子半徑往外側推）投影到螢幕，要落在桌面頂（八邊形、半徑 3.4、y=0.15）
           // 投影後的多邊形內；另量兩側沿「畫面右」方向有沒有交錯（A 的最右 vs B 的最左）
           const cam = Y3.camera; cam.updateMatrixWorld(); const V3 = cam.position.constructor;
@@ -173,7 +182,8 @@ if (mode === 'bounds') {
           const az = Math.atan2(cam.position.x, cam.position.z); const right = [Math.cos(az), -Math.sin(az)];
           const out = { A: [], B: [] };
           for (const s of ['A', 'B']) {
-            const figs = Y3.duelFigures.figuresOf(s);
+            // 只算看得見的尊：真對決的 ys:fx-burn 會打到合成名冊的同 id 單位，被燒掉隱藏的那尊位置停住不更新（實測 4v4 minPair 0.201 就是它）
+            const figs = Y3.duelFigures.figuresOf(s).filter((f) => f.group.visible);
             const pts = figs.map((f) => { const p = f.group.position; const foot = f.shadow.scale.x * (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42);
               const rr = Math.hypot(p.x, p.z) || 1e-6; const ox = p.x + p.x / rr * foot, oz = p.z + p.z / rr * foot; // 腳印最外緣
               return { ab: f.ab, body: f.unit && f.unit.body, x: +p.x.toFixed(3), z: +p.z.toFixed(3), r: +rr.toFixed(3), foot: +foot.toFixed(3), vis: f.group.visible,
@@ -185,13 +195,19 @@ if (mode === 'bounds') {
           // 交錯：A（畫面左）最右的腳印外緣 vs B（畫面右）最左的腳印外緣
           const aMax = Math.max(...out.A.pts.map((p) => p.lat + p.foot)), bMin = Math.min(...out.B.pts.map((p) => p.lat - p.foot));
           out.gap = +(bMin - aMax).toFixed(3);
+          if (samples.length) { // 撞擊中：最大 r（含腳印外緣）、最小兩側間隙
+            let maxR = 0, maxEdge = 0, minGap = Infinity;
+            for (const fr of samples) { const lats = [[], []]; fr.forEach((sidePts, si) => sidePts.forEach(([x, z, ft]) => { const rr = Math.hypot(x, z); maxR = Math.max(maxR, rr); maxEdge = Math.max(maxEdge, rr + ft); lats[si].push([x * right[0] + z * right[1], ft]); }));
+              const a = Math.max(...lats[0].map(([l, ft]) => l + ft)), b = Math.min(...lats[1].map(([l, ft]) => l - ft)); minGap = Math.min(minGap, b - a); }
+            out.lunge = { power: lunge, frames: samples.length, maxR: +maxR.toFixed(3), maxEdge: +maxEdge.toFixed(3), minGap: +minGap.toFixed(3) };
+          }
           return out;
-        }, { heavy: HEAVY, fac: FAC, na, nb });
+        }, { heavy: HEAVY, fac: FAC, na, nb, lunge: Number(opt.lunge || 0), unitsA: opt.unitsa || null, unitsB: opt.unitsb || null });
         await pg.screenshot({ path: out.replace(/\.json$/, '.png') });
       },
     });
     fs.writeFileSync(out, JSON.stringify({ lineup: res, errors: r.errors }, null, 1));
-    console.log(JSON.stringify({ out, A: res && { n: res.A.n, maxR: res.A.maxR, minPair: res.A.minPair, offTable: res.A.offTable }, B: res && { n: res.B.n, maxR: res.B.maxR, minPair: res.B.minPair, offTable: res.B.offTable }, gap: res && res.gap, errors: r.errors.length }));
+    console.log(JSON.stringify({ out, A: res && { n: res.A.n, maxR: res.A.maxR, minPair: res.A.minPair, offTable: res.A.offTable }, B: res && { n: res.B.n, maxR: res.B.maxR, minPair: res.B.minPair, offTable: res.B.offTable }, gap: res && res.gap, lunge: res && res.lunge, errors: r.errors.length }));
     await browser.close();
   } finally { srv.kill(); }
 } else {

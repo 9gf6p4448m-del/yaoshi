@@ -233,7 +233,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #duel.pw #duelMove{display:block;font-size:13px;min-height:18px;margin-top:2px;
   text-align:center;color:#ffd9a0;text-shadow:0 2px 8px #000,0 0 3px #000}
 /* 演出可讀性小卷（2026-09-05 晚）：招式字幕靠出招那一側、字色用出招方系色、第二行效果說明 */
-#duel.pw #duelMove.side-A{text-align:left;padding-left:6%} #duel.pw #duelMove.side-B{text-align:right;padding-right:6%}
+/* #duel 是置中的 column flex：字幕元素給 62% 寬、靠出招那一側對齊 flex 容器，字在其中置中 → 字的中心落在該側欄位附近
+   （覆審 H-1：原本元素縮到內容寬、padding 反而把字推去對面；改 text-align:left 又會貼到螢幕邊） */
+#duel.pw #duelMove.side-A,#duel.pw #duelMove.side-B{width:62%;box-sizing:border-box;text-align:center}
+#duel.pw #duelMove.side-A{align-self:flex-start} #duel.pw #duelMove.side-B{align-self:flex-end}
 #duel.pw #duelMove[class*="f-"]{background:none}
 #duel.pw #duelMove.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi{color:var(--yinqi)}
 #duel.pw #duelMove .mvline{display:block} #duel.pw #duelMove .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
