@@ -108,7 +108,7 @@ if (mode === 'bounds') {
 } else if (mode === 'buoy') {
   // W-A8：真實頁面第 1 場對決時派一個含 buoy 的合成 ys:duel，等 ready 後截圖，並讀每尊的 groundFx()
   const port = Number(opt.port || 8838);
-  const srv = await serve(ROOT, port);
+  const srv = await serve(opt.root ? path.resolve(opt.root) : ROOT, port) /* --root：量基準版（卷 C3 T-5） */;
   try {
     const browser = await launch();
     const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });

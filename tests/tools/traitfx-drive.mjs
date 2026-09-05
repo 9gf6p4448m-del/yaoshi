@@ -1,6 +1,7 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
 // 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15]
-//                                            [--shots=<png 目錄>] [--port=8841] [--ms=900] [--nobloom]
+//                                            [--shots=<png 目錄>] [--port=8841] [--ms=900] [--nobloom] [--block=<ab>]
+//   --block=<ab>  擋掉那一顆 GLB（T-4 ②）：擋到出招方→該套必須退回 fallback（handled=false）；擋到對面→照演、不炸
 //   出招方名冊由 index.html 的 POOL 反查（唯一事實來源，不另抄一份）：trait → {ab|m, body, count, fac}
 //   每套：pass A（不出招）錄 N 幀 → resetB → 第 FIRE_AT 幀出招 → pass B 逐幀比 Δ
 //   判定（寫進 out.json 的 verdict）：
@@ -54,6 +55,7 @@ async function runCase(browser, base, c, opt) {
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
   const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}`;
+  if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完
   try { await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 }); }
@@ -106,8 +108,11 @@ async function runCase(browser, base, c, opt) {
   const within = endFrame >= 0 && endFrame <= FIRE_AT + fuseFrames;
   const reducedOK = !opt.reduced || after.every((f) => !(f.d > EPS));
   const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, reducedOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
-  if (opt.throw) verdict.pass = !fired.handled && restored && errors.length === 0;
+  const blockActor = opt.block && String(opt.block) === c.ab;
+  verdict.blocked = opt.block || null;
+  if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
   else if (cancelAt > 0) verdict.pass = fired.handled && endFrame >= 0 && endFrame <= FIRE_AT + cancelAt + 1 && restored && errors.length === 0;
+  else if (opt.block) verdict.pass = fired.handled && alive && restored && within && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
   else verdict.pass = fired.handled && alive && restored && within && reducedOK && errors.length === 0 && programs1 - programs0 === 0;
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped]) };
 }

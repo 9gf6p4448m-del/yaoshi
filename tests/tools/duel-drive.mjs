@@ -49,6 +49,7 @@ const RECORDER = `(() => {
     const d = e.detail || {};
     cur = { t: now(), a: d.a, b: d.b, armies: d.armies ? d.armies.map((s) => s.units.map((u) => ({ id: u.id, body: u.body, fac: u.fac, ab: u.ab, hasAb: 'ab' in u }))) : null,
       hasReady: !!(d.ready && typeof d.ready.then === 'function'), loadTotal: d.loadTotal, readyAt: null, firstBeatAt: null, loading: [], samples: [] };
+    try { const F = window.__ysFxCount || {}; cur.trait0 = F.trait || 0; cur.traitFig0 = F.traitFig || 0; } catch (e) {} // 卷 C3 T-6：每場招式數＝trait1−trait0
     R.duels.push(cur);
     // detail.ready／loadTotal 是 duel-figures 的接收端在同一次派送裡才填的（本監聽器先註冊、先跑），macrotask 再讀
     cur.arenaEmptyAtDuel = !(document.getElementById('duelArena') || {}).innerHTML; // 審查 H-3：等載入時不得留上一場陣列
@@ -88,7 +89,7 @@ const RECORDER = `(() => {
       }
     }, 0);
   });
-  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
+  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('duelBeat');
     if (!el) return;
@@ -131,7 +132,8 @@ export async function drive(page, url, opts = {}) {
       const sb = [...document.querySelectorAll('#stage .bigbtn')].find(vis);
       const F = window.__ysFxCount || {};
       const R = window.__rec || {};
-      return { mainText: mb ? mb.textContent : '', mainOk: vis(mb), hoOk: vis(ho), stageOk: !!sb, duels: F.duels || 0, marks: R.marks || {}, ndu: (R.duels || []).length };
+      const sk = document.getElementById('skipbtn');
+      return { mainText: mb ? mb.textContent : '', mainOk: vis(mb), hoOk: vis(ho), stageOk: !!sb, skipOk: !!sk && sk.style.display !== 'none' && sk.offsetParent !== null, duels: F.duels || 0, marks: R.marks || {}, ndu: (R.duels || []).length };
     });
     duelsSeen = st.ndu;
     if (opts.onDuel && st.ndu > 0 && !shots['__ondu' + st.ndu]) { shots['__ondu' + st.ndu] = true; await opts.onDuel(page, st.ndu); }
@@ -147,6 +149,8 @@ export async function drive(page, url, opts = {}) {
     }
     if (st.duels >= want && duelsSeen >= want) break;
     if (/再入妖市/.test(st.mainText)) break; // 一局打完了還沒湊到場數：到此為止
+    // 卷 C3 T-6 的 SKIP 基準：對決一開始就按跳過（skipbtn 只在演出中顯示）
+    if (opts.skip && st.skipOk) { await page.evaluate(() => { window.__recSkipped = true; }); await page.click('#skipbtn').catch(() => {}); }
     if (st.stageOk) await page.click('#stage .bigbtn:not([disabled])').catch(() => {});
     else if (st.hoOk) await page.click('#hoBtn').catch(() => {});
     else if (st.mainOk) {
@@ -170,12 +174,13 @@ if (isMain) {
   try {
     const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
     const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
-    const r = await drive(page, url, { duels: Number(opt.duels || 4), shots: opt.shots, no3d: !!opt.no3d, noglb: !!opt.noglb, loadmax: opt.loadmax });
+    const r = await drive(page, url, { duels: Number(opt.duels || 4), shots: opt.shots, no3d: !!opt.no3d, noglb: !!opt.noglb, loadmax: opt.loadmax, skip: !!opt.skip });
     fs.writeFileSync(out, JSON.stringify(r, null, 1));
     const d = r.rec.duels;
     const abOk = d.every((x) => !x.armies || x.armies.every((s) => s.every((u) => u.hasAb)));
     console.log(JSON.stringify({ out, duels: d.length, errors: r.errors.length, ys3d: r.ys3d, abOnAllUnits: abOk,
-      burn: r.fxc && r.fxc.burn, burnFig: r.fxc && r.fxc.burnFig, burnDom: r.fxc && r.fxc.burnDom, load: r.fxc && r.fxc.load, ver: r.ver }));
+      burn: r.fxc && r.fxc.burn, burnFig: r.fxc && r.fxc.burnFig, burnDom: r.fxc && r.fxc.burnDom, trait: r.fxc && r.fxc.trait, traitFig: r.fxc && r.fxc.traitFig, load: r.fxc && r.fxc.load, ver: r.ver,
+      duelsMs: d.map((x) => [x.dur, (x.trait1 || 0) - (x.trait0 || 0), (x.traitFig1 || 0) - (x.traitFig0 || 0), x.skipped ? 'S' : '']) }));
     if (r.errors.length) console.log(r.errors.slice(0, 10).join('\n'));
     await browser.close();
   } finally { srv.kill(); }
