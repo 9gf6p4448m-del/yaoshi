@@ -287,7 +287,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const segs = o.segs || 9, jag = o.jag === undefined ? 0.12 : o.jag, rnd = makeLcg(o.seed || run.seed + 1);
         const pts = [];
         const d = _v.copy(to).sub(from), len = d.length() || 1e-3;
-        const side = _v2.set(-d.z, 0, d.x).normalize();
+        // 側向量：水平線段用 (-z,0,x)；純垂直（天雷從天劈下）會退化成零向量，改拿 X 軸當側向（祖靈 agent 實測）
+        const side = _v2.set(-d.z, 0, d.x);
+        if (side.lengthSq() < 1e-8) side.set(1, 0, 0); else side.normalize();
         for (let i = 0; i <= segs; i++) {
           const t = i / segs, p = new THREE.Vector3().copy(from).addScaledVector(d, t);
           if (i > 0 && i < segs) { const k = (rnd() - 0.5) * 2 * jag * len * 0.3; p.addScaledVector(side, k); p.y += (rnd() - 0.5) * jag * len * 0.25; }

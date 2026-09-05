@@ -157,4 +157,6 @@ async function main() {
   void moves;
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+// 被別的腳本 import（traitfx-sheet.mjs 借 casesFromIndex）時不要跑 main
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) main().catch((e) => { console.error(e); process.exit(1); });
