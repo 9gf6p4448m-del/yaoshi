@@ -1,0 +1,3540 @@
+{
+ "name": "福壽綿長 fushou",
+ "_variant": "3D 量產卷批 10 · 福壽綿長（ab=fushou、香火 xianghuo、ward ×2、trait wardRegen1「添了油的長明燈，越滿越亮」）。簡報第 30 列：肚子是一盞長明燈的油壺龜；系別色帶香火橘落在燈碗；發光材質 glow_lamp／eye；招牌剪影＝腹部油燈；招式＝福壽綿長:燈火拉高。造型依 docs/design/ART_BIBLE.md 香火段（威嚴神將／祭典）＋§0.5 真實參照鐵則；參照與五條特徵清單見 docs/experiments/2026-09-04-ref-fushou.md。",
+ "_brief": "A temple guardian tortoise cast as a bronze oil vessel. Its carapace is a broad, low, hard-edged dome of raised polygonal scutes over a dark bronze ground, ringed by a flared skirt of gilt-bronze marginal plates that makes it nearly as wide as it is tall; a small gilt gourd finial crowns the crest like a temple roof. From under the shell rim a heavy BIXI head thrusts forward — a blunt box muzzle, a straight barred row of square teeth, carved wavy scale rows down the jaw, a gilt brow ridge and two bulging ember-orange eyeballs each with one bone-white catchlight. Slung on a narrow gilt-ringed foot from the belly, jutting forward past the chest, is a wide shallow VERMILLION LAMP BOWL with a xianghuo-orange lip; it is brimming with a glowing amber pool of oil, a dark wick nub stands at its centre and a tall teardrop FLAME licks up in front of the beast's jaw. Four short splayed limbs with bone-white claws. Everything is flat plate and hard crease. Feel: an eternal lamp that has been kept burning so long it grew a shell and started walking. Signature = the burning belly lamp. Identity view = front (ward).",
+ "_ref_features": "凍結清單（docs/experiments/2026-09-04-ref-fushou.md，寫本檔之前訂下、此後一條未改）：① 背上一枚與身體明顯分離的低圓穹隆龜甲、甲緣一圈往外翻的裙邊 ② 龜甲表面由深溝切成一格一格外凸的多邊形甲片（中央一列大盾約 5 片＋兩側各一列較小的肋盾）③ 贔屭式方鈍龍首（方鈍吻、外突圓眼＋隆起眉稜、橫裂到腮的大嘴、顎側波狀鬚鱗）④ 腹前一只寬淺碗形油燈（碗口外翻、口徑遠大於碗深、下有細短高足、盛滿琥珀橘油面）⑤ 碗心一朵直立水滴狀火苗＋油面上凸出的深色燈芯結節。",
+ "_ward_recipe": "ward 兩條硬條件都在寫 JSON 之前算好：(a) M-A2 正面寬 ≥ 側面寬；(b) 凍結檔 2026-09-05 凌晨的香火「側視 W/H ≥0.9」。silmetrics.mjs:53 的 long=s.x>s.z?\"x\":\"z\"、:57 的 side 沿短水平軸看，所以 side W ＝ max(X,Z)；ward 又要 X ≥ Z，於是 side W/H 就等於 X/全高。全高 1.235 → X 必須 ≥1.1115。做法：16 片緣盾裙邊排成橢圓——側面（|sin|=1）外伸 0.150、正背面（|sin|=0）只外伸 0.098，X 因此明顯大於 Z，兩條同時成立、不需要動用牆型豁免。",
+ "_proportion_note": "不落玩偶區（凍結檔 18:00 守則①：頭 ≤ 全高 1/4 或 ≥ 1/2）：全高 1.235，頭＝下顎到顱頂約 0.285 ＝ 23% ≤ 25%。守則要求至少三項手段，本檔用五項：②尖（爪、齒、火苗尖、緣盾尖端）③眼（外突發光球＋單點高光，非圓大眼）⑤結構外露（硬折甲片、profile sharp 凸帶）⑧色（深銅底＋一條香火橘／朱紅帶）⑥比例壓扁加寬（門神：X 1.24 對 H 1.235）。",
+ "_glow_materials": "glow_lamp（油面＋火苗＋火舌）／eye（兩顆外突眼球）——簡報 fushou 列指定的兩個，js/creature-figures.js:51 的 /^eye(_|$)|^mouth_glow(_|$)|^glow_/ 會接成 emissive。高光點刻意取名 hi_white、暗窩取名 socket，避開那條正則；沒有多開第三個發光材質。",
+ "_traps": "（動手前寫下的預防清單，實測新坑另記於 _traps_batch10）① profile 兩個半徑的世界軸向由 frame 決定：ashcharm 的 (Z,X) 是 frame 未設（geometry.js:48 平行移動框架）；本檔所有 volume 一律 frame:\"up\"（geometry.js:31-35），此時 U 恆指向世界 +X → 第一個半徑就是 X 寬、第二個是剩下那軸。② caps 的起始端不得在大斷面用 ngon（ashcharm ⑨／bell ⑤）：shell 用 [\"none\",\"ngon\"]（收尾半徑 0.062）、pot／head／tail／腿一律 [\"none\",\"flat\"]、cup／brim 兩端全開。③ 相鄰鏈段長比 >0.923 會被 proportion BLOCK：八條鏈逐段算過，最大 0.917（pot Pt1→Pt2→Pt3）。④ fin 的 points 必須嚴格凸：全部由 scute()／teardrop()／poly() 產生。⑤ fin 帶 anchor 時 offset 被丟掉：油面、火苗、燈芯一律不帶 anchor，改用 offset＋udir/vdir。⑥ 關節名避開 L 開頭（bow ⑧-1，skeleton.js:7 mirrorName 會把 L* 換成 R*）：只有真的鏡射的 LFront／LBack 用 L。⑦ 眼睛的訊號是「有高光」不是「有瞳」（wangchuan ⑥-3）：hi_white 高光必做且 thickness 小於眼球外緣。⑧ 圓管 curve 會被讀成角（review-boat ⑧-5），火苗主體改用兩片交叉 teardrop fin，只有細火舌用 curve（thunder ⑥-4：要讀成「正在燒」必須有長短不一的細舌）。⑨ colors.arcs 做不出橫向環帶（wangchuan ⑥-6）：碗口的香火橘做成獨立 brim 鏈 volume，不用 arcs。⑩ 規則排列的小凸起＋硬轉折＋橫向發光條＝機器人（ashcharm ⑤）：本檔不做乳釘方陣，金只集中在頂剎／眉稜／燈足三處。",
+ "_traps_batch10": "批 10（fushou）新記的引擎與讀法事實，十一條：\n① ★★★ `judge.mjs --stage HIGH` 只跑 stage 欄位「等於 HIGH」的 claims（`judge.mjs:271` 的 filter 是全等比對），MID 那一批完全沒被檢查。本卷第一次跑 `--stage HIGH` 得到「all claims pass」，拿掉 `--stage` 重跑立刻抓到 4 條 BLOCK（hi_white／tusk 的 part_visible、focal_contrast、share_hierarchy）。驗收要跑「不帶 --stage 的完整版」；既有隻數若只留了 `--stage HIGH` 的紀錄，那份綠燈只證明了 rig_skinned／anim_named／saturation_area 三條。\n② ★★ profile 兩個半徑對應哪個世界軸「由 frame 決定，不是固定的」：frame:\"up\" 時 `geometry.js:31-35` 把 U 的符號翻到指向世界 +X，所以第一個半徑就是 X 寬；ashcharm 陷阱⑧ 記的 (Z, X) 是「frame 未設」時走 `geometry.js:48` 平行移動框架的行為。兩條都對，差在 frame——照抄前一隻的口訣會把 ward 硬條件寫反。\n③ ★★ 極扁的環狀 volume（半徑 0.30→0.62 發生在 0.04 高度內）在 bind pose 就固定產生 8 個翻面三角形，cli.js 直接 BLOCK。六個變體實測：起點半徑 0.30＋exp 5.4＋sharp＝8 flipped；只去掉 sharp＝4；起點拉大到 0.40 並把 ring_step 0.010→0.012＝0（sharp 可以留）。修法是「縮小半徑跨距」，不是拿掉 sharp。\n④ ★★ part_attachment 對貼在「扁穹隆」上的 fin 特別嚴：判準是「頂點到最近環心距離 − 該環最大半徑」，扁穹隆的最大環半徑是 X 寬（0.53），所以落在 ±X 側腹的板子天生 clearance≈0，再加曲率抬升就破線。同一片板 t=0.29 在 around ±50 是 0.031（擋）、±74 是 0（過）——移 around 比加 thickness 便宜，加 thickness 會把甲片變成方塊（見⑤）。\n⑤ ★★ thickness 0.082 配半寬 0.093 的 fin ＝立方體，不是甲片：第一版自查讀成「釘刺／裝飾釘」，撞 ashcharm 陷阱⑤ 的機器人文法。甲片要讀成板，thickness 要 ≤ 板半寬的 0.35（本檔 0.030／0.094）。\n⑥ ★★ 一片高瘦的 teardrop fin ＝喙（r10 自查）。火要讀成火需要「多枝、不等高、嚴格垂直」：五片不同高度不同傾角的 teardrop ＋三條長短不一的細 curve 舌；主軸只要往前傾 20° 就退回喙的讀法。\n⑦ ★★★ 碗掛在下巴底下永遠不會被讀成碗。三個位置的實測：(a) 頷下（與吻端垂直距離 0.07）→ 2/2 讀成「鬍鬚／鬃毛狀的裝飾」；(b) 胸前（0.10）→ 4/4 讀成「圓盤／鏡子／盾牌／法器」，至少變成獨立器物；(c) 腹前（0.21）→ 2/2 讀成「圓形底座上插著火焰狀物體」。器物與頭之間要留 ≥0.15×全高 的空白，否則一律被歸給頭（同 bell 陷阱③ 橫桿族）。\n⑧ ★★ 開口朝上的碗，在 3/4 俯角下必然是一個實心橢圓盤。要讀出「凹」三件要同時做：碗口傾角 ≥65°、油面沉到唇下 0.040 露出一圈內壁、火苗從油面正中垂直長出。三件做完六位讀者仍只到「圓盤＋底座」，沒有一位說出碗／燈／油——與 tiger_c 白毛邊、ashcharm 香灰同族，是低多邊形無貼圖的「凹面」限制，留後處理卷。\n⑨ ★ 發光材質要比直覺暗兩階：#f0a828 在戲台 bloom 下整片燒成白黃團、火苗形狀全失（不只是顏色變白，是輪廓消失）；改 #bd7614（眼 #c85c18）才保住形狀。延續 harden3C ⑥-4／eye ⑥-11。\n⑩ ★★ focal_contrast 與 share_hierarchy 會互相拉扯：壓小發光面積能過 focal，卻同時把 tertiary 壓破下限。本檔的解法是「加大 primary 的深色底」——把甲片縮小讓 shell_dark 從 11.5% 露到 17.8%，而不是繼續砍火。動一邊一定要兩邊一起量。\n⑪ ★ type:\"eye\" 用 anchor 定位、但高光掛在「絕對座標的鬆散關節」（EyHiA／EyHiB）上，所以每次移動頭部關節，眼球會跟著走、高光不會。動頭之後一定要重跑探針量出眼球中心再回填兩個高光關節，否則高光會飄到臉頰外。",
+ "palette": {
+  "shell_dark": {
+   "color": "#4b4136",
+   "rough": 0.92
+  },
+  "shell_plate": {
+   "color": "#6e5f4a",
+   "rough": 0.88
+  },
+  "shell_rim": {
+   "color": "#9c8450",
+   "rough": 0.72
+  },
+  "gold_trim": {
+   "color": "#cfa94e",
+   "rough": 0.42
+  },
+  "pot_body": {
+   "color": "#544839",
+   "rough": 0.9
+  },
+  "pot_band": {
+   "color": "#6a5942",
+   "rough": 0.85
+  },
+  "hide": {
+   "color": "#584e43",
+   "rough": 0.94
+  },
+  "claw": {
+   "color": "#b8b1a1",
+   "rough": 0.8
+  },
+  "tusk": {
+   "color": "#cbc4b2",
+   "rough": 0.74
+  },
+  "lamp_bowl": {
+   "color": "#c2452f",
+   "rough": 0.66
+  },
+  "lamp_lip": {
+   "color": "#f08060",
+   "rough": 0.6
+  },
+  "glow_lamp": {
+   "color": "#bd7614",
+   "rough": 0.3
+  },
+  "eye": {
+   "color": "#c85c18",
+   "rough": 0.28
+  },
+  "socket": {
+   "color": "#1a1a18",
+   "rough": 0.95
+  },
+  "hi_white": {
+   "color": "#e6e2d6",
+   "rough": 0.4
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.28,
+   "bottom": -0.7
+  },
+  "noise": {
+   "size": 0.013,
+   "amount": 0.24
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Sh0": [
+   0,
+   0.86,
+   -0.02
+  ],
+  "Sh1": [
+   0,
+   0.985,
+   -0.02
+  ],
+  "Sh2": [
+   0,
+   1.155,
+   -0.02
+  ],
+  "Sh3": [
+   0,
+   1.215,
+   -0.02
+  ],
+  "Sk0": [
+   0,
+   0.815,
+   -0.02
+  ],
+  "Sk1": [
+   0,
+   0.88,
+   -0.02
+  ],
+  "Sk2": [
+   0,
+   0.93,
+   -0.02
+  ],
+  "Pt0": [
+   0,
+   1,
+   0
+  ],
+  "Pt1": [
+   0,
+   0.8,
+   0
+  ],
+  "Pt2": [
+   0,
+   0.56,
+   0
+  ],
+  "Pt3": [
+   0,
+   0.36,
+   0
+  ],
+  "Pt4": [
+   0,
+   0.24,
+   0
+  ],
+  "Nk0": [
+   0,
+   0.8,
+   0.06
+  ],
+  "Nk1": [
+   0,
+   0.782,
+   0.28
+  ],
+  "Hd0": [
+   0,
+   0.765,
+   0.4
+  ],
+  "Hd1": [
+   0,
+   0.716,
+   0.53
+  ],
+  "Tl0": [
+   0,
+   0.4,
+   -0.14
+  ],
+  "Tl1": [
+   0,
+   0.33,
+   -0.32
+  ],
+  "Tl2": [
+   0,
+   0.29,
+   -0.46
+  ],
+  "Cp0": [
+   0,
+   0.26,
+   0.12
+  ],
+  "Cp1": [
+   0,
+   0.244,
+   0.3
+  ],
+  "Cp2": [
+   0,
+   0.238,
+   0.462
+  ],
+  "Cp3": [
+   0,
+   0.34,
+   0.51
+  ],
+  "Brm0": [
+   0,
+   0.3255,
+   0.5032
+  ],
+  "Brm1": [
+   0,
+   0.3436,
+   0.5117
+  ],
+  "Brm2": [
+   0,
+   0.3581,
+   0.5185
+  ],
+  "LFrHip": [
+   0.24,
+   0.4,
+   0.16
+  ],
+  "LFrKnee": [
+   0.42,
+   0.22,
+   0.24
+  ],
+  "LFrToe": [
+   0.5,
+   0.07,
+   0.29
+  ],
+  "LBkHip": [
+   0.23,
+   0.38,
+   -0.18
+  ],
+  "LBkKnee": [
+   0.41,
+   0.22,
+   -0.26
+  ],
+  "LBkToe": [
+   0.47,
+   0.07,
+   -0.31
+  ],
+  "FlmR": [
+   0,
+   0.314,
+   0.494
+  ],
+  "Crest": [
+   0,
+   1.178,
+   -0.02
+  ],
+  "EyHiA": [
+   0.161,
+   0.846,
+   0.458
+  ],
+  "EyHiB": [
+   0.181,
+   0.768,
+   0.466
+  ]
+ },
+ "chains": {
+  "shell": [
+   "Sh0",
+   "Sh1",
+   "Sh2",
+   "Sh3"
+  ],
+  "skirt": [
+   "Sk0",
+   "Sk1",
+   "Sk2"
+  ],
+  "pot": [
+   "Pt0",
+   "Pt1",
+   "Pt2",
+   "Pt3",
+   "Pt4"
+  ],
+  "head": [
+   "Nk0",
+   "Nk1",
+   "Hd0",
+   "Hd1"
+  ],
+  "tail": [
+   "Tl0",
+   "Tl1",
+   "Tl2"
+  ],
+  "cup": [
+   "Cp0",
+   "Cp1",
+   "Cp2",
+   "Cp3"
+  ],
+  "brim": [
+   "Brm0",
+   "Brm1",
+   "Brm2"
+  ],
+  "LFront": [
+   "LFrHip",
+   "LFrKnee",
+   "LFrToe"
+  ],
+  "LBack": [
+   "LBkHip",
+   "LBkKnee",
+   "LBkToe"
+  ]
+ },
+ "attach": {
+  "skirt": "Sh0",
+  "pot": "Sh1",
+  "head": "Pt1",
+  "tail": "Pt2",
+  "cup": "Pt2",
+  "brim": "Cp3",
+  "LFront": "Pt2",
+  "LBack": "Pt2",
+  "FlmR": "Cp3",
+  "Crest": "Sh3",
+  "EyHiA": "Hd0",
+  "EyHiB": "Hd0"
+ },
+ "mirror": [
+  "LFront",
+  "LBack"
+ ],
+ "touch": [
+  [
+   "shell",
+   "skirt"
+  ],
+  [
+   "shell",
+   "pot"
+  ],
+  [
+   "pot",
+   "head"
+  ],
+  [
+   "pot",
+   "tail"
+  ],
+  [
+   "pot",
+   "cup"
+  ],
+  [
+   "cup",
+   "brim"
+  ],
+  [
+   "pot",
+   "LFront"
+  ],
+  [
+   "pot",
+   "LBack"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "shell",
+   "material": "shell_dark",
+   "sides": 20,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.4,
+     0.35,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.1,
+     0.53,
+     0.462,
+     {
+      "exp": 5.2,
+      "sharp": true
+     }
+    ],
+    [
+     0.2,
+     0.518,
+     0.452,
+     {
+      "exp": 5
+     }
+    ],
+    [
+     0.45,
+     0.474,
+     0.412,
+     {
+      "exp": 4.9
+     }
+    ],
+    [
+     0.68,
+     0.384,
+     0.334,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.86,
+     0.24,
+     0.209,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     1,
+     0.062,
+     0.054,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "ngon"
+   ],
+   "ring_step": 0.023
+  },
+  {
+   "chain": "skirt",
+   "material": "shell_rim",
+   "sides": 24,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.4,
+     0.33,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.57,
+     0.66,
+     0.505,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.545,
+     0.425,
+     {
+      "exp": 5
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.012,
+   "colors": {
+    "arcs": [
+     {
+      "from": 30,
+      "to": 60,
+      "color": "#6a5a38"
+     },
+     {
+      "from": 90,
+      "to": 120,
+      "color": "#6a5a38"
+     },
+     {
+      "from": 150,
+      "to": 180,
+      "color": "#6a5a38"
+     },
+     {
+      "from": 210,
+      "to": 240,
+      "color": "#6a5a38"
+     },
+     {
+      "from": 270,
+      "to": 300,
+      "color": "#6a5a38"
+     },
+     {
+      "from": 330,
+      "to": 360,
+      "color": "#6a5a38"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "pot",
+   "material": "pot_body",
+   "sides": 18,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.22,
+     0.19,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.15,
+     0.34,
+     0.295,
+     {
+      "exp": 5
+     }
+    ],
+    [
+     0.34,
+     0.405,
+     0.35,
+     {
+      "exp": 5.1
+     }
+    ],
+    [
+     0.52,
+     0.425,
+     0.366,
+     {
+      "exp": 5.1
+     }
+    ],
+    [
+     0.68,
+     0.395,
+     0.34,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     0.82,
+     0.355,
+     0.305,
+     {
+      "exp": 4.9
+     }
+    ],
+    [
+     0.92,
+     0.325,
+     0.28,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.268,
+     0.23,
+     {
+      "exp": 4.7
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "flat"
+   ],
+   "ring_step": 0.027
+  },
+  {
+   "chain": "head",
+   "material": "hide",
+   "sides": 14,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.06,
+     0.054,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.25,
+     0.082,
+     0.074,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     0.46,
+     0.14,
+     0.126,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     0.62,
+     0.158,
+     0.133,
+     {
+      "exp": 5.2
+     }
+    ],
+    [
+     0.78,
+     0.142,
+     0.112,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.112,
+     0.086,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "flat"
+   ],
+   "ring_step": 0.014,
+   "colors": {
+    "arcs": [
+     {
+      "from": 128,
+      "to": 232,
+      "color": "#1f1c18"
+     }
+    ]
+   }
+  },
+  {
+   "chain": "tail",
+   "material": "hide",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.08,
+     0.072,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.55,
+     0.056,
+     0.05,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1,
+     0.024,
+     0.021,
+     {
+      "exp": 4.5
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "flat"
+   ],
+   "ring_step": 0.02
+  },
+  {
+   "chain": "cup",
+   "material": "lamp_bowl",
+   "sides": 16,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.032,
+     0.029,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.4,
+     0.046,
+     0.041,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.62,
+     0.062,
+     0.056,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     0.7,
+     0.084,
+     0.074,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     0.8,
+     0.132,
+     0.11,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.9,
+     0.188,
+     0.154,
+     {
+      "exp": 4.9
+     }
+    ],
+    [
+     1,
+     0.236,
+     0.192,
+     {
+      "exp": 5
+     }
+    ]
+   ],
+   "caps": [
+    "flat",
+    "none"
+   ],
+   "ring_step": 0.014
+  },
+  {
+   "chain": "brim",
+   "material": "lamp_lip",
+   "sides": 16,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.204,
+     0.166,
+     {
+      "exp": 5
+     }
+    ],
+    [
+     0.5,
+     0.228,
+     0.186,
+     {
+      "exp": 5
+     }
+    ],
+    [
+     1,
+     0.246,
+     0.2,
+     {
+      "exp": 5
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "none"
+   ],
+   "ring_step": 0.007
+  },
+  {
+   "chain": "LFront",
+   "material": "hide",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.09,
+     0.081,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.45,
+     0.099,
+     0.087,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     0.8,
+     0.081,
+     0.071,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1,
+     0.066,
+     0.059,
+     {
+      "exp": 4.5
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "flat"
+   ],
+   "ring_step": 0.034
+  },
+  {
+   "chain": "LBack",
+   "material": "hide",
+   "sides": 10,
+   "frame": "up",
+   "faceted": true,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.086,
+     0.078,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.45,
+     0.095,
+     0.084,
+     {
+      "exp": 4.7
+     }
+    ],
+    [
+     0.8,
+     0.078,
+     0.069,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     1,
+     0.064,
+     0.057,
+     {
+      "exp": 4.5
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "flat"
+   ],
+   "ring_step": 0.032
+  }
+ ],
+ "parts": [
+  {
+   "type": "fin",
+   "_c": "vertebral scute 1",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.03,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.2,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.097,
+     -0.052700000000000004
+    ],
+    [
+     -0.06014,
+     -0.085
+    ],
+    [
+     0.06014,
+     -0.085
+    ],
+    [
+     0.097,
+     -0.052700000000000004
+    ],
+    [
+     0.08342000000000001,
+     0.068
+    ],
+    [
+     0,
+     0.085
+    ],
+    [
+     -0.08342000000000001,
+     0.068
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "vertebral scute 2",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.03,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.44,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.094,
+     -0.051460000000000006
+    ],
+    [
+     -0.05828,
+     -0.083
+    ],
+    [
+     0.05828,
+     -0.083
+    ],
+    [
+     0.094,
+     -0.051460000000000006
+    ],
+    [
+     0.08084,
+     0.0664
+    ],
+    [
+     0,
+     0.083
+    ],
+    [
+     -0.08084,
+     0.0664
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "vertebral scute 3",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.03,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.78,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.079,
+     -0.0434
+    ],
+    [
+     -0.04898,
+     -0.07
+    ],
+    [
+     0.04898,
+     -0.07
+    ],
+    [
+     0.079,
+     -0.0434
+    ],
+    [
+     0.06794,
+     0.05600000000000001
+    ],
+    [
+     0,
+     0.07
+    ],
+    [
+     -0.06794,
+     0.05600000000000001
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "vertebral scute 4",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.03,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.44,
+    "around": 0
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.094,
+     -0.051460000000000006
+    ],
+    [
+     -0.05828,
+     -0.083
+    ],
+    [
+     0.05828,
+     -0.083
+    ],
+    [
+     0.094,
+     -0.051460000000000006
+    ],
+    [
+     0.08084,
+     0.0664
+    ],
+    [
+     0,
+     0.083
+    ],
+    [
+     -0.08084,
+     0.0664
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "vertebral scute 5",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.03,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.2,
+    "around": 0
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.097,
+     -0.052700000000000004
+    ],
+    [
+     -0.06014,
+     -0.085
+    ],
+    [
+     0.06014,
+     -0.085
+    ],
+    [
+     0.097,
+     -0.052700000000000004
+    ],
+    [
+     0.08342000000000001,
+     0.068
+    ],
+    [
+     0,
+     0.085
+    ],
+    [
+     -0.08342000000000001,
+     0.068
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 1",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.29,
+    "around": 74
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 2",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.5,
+    "around": 56
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 3",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.5,
+    "around": 124
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 4",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.29,
+    "around": 106
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 5",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.29,
+    "around": -74
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 6",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.5,
+    "around": -56
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 7",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.5,
+    "around": -124
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "costal scute 8",
+   "host": "Sh1",
+   "material": "shell_plate",
+   "thickness": 0.034,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "shell",
+    "t": 0.29,
+    "around": -106
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.083,
+     -0.04588
+    ],
+    [
+     -0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.051460000000000006,
+     -0.074
+    ],
+    [
+     0.083,
+     -0.04588
+    ],
+    [
+     0.07138,
+     0.0592
+    ],
+    [
+     0,
+     0.074
+    ],
+    [
+     -0.07138,
+     0.0592
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "gilt gourd finial",
+   "host": "Crest",
+   "material": "gold_trim",
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "sides": 10,
+   "segments": [
+    {
+     "len": 0.018,
+     "r": 0.044
+    },
+    {
+     "len": 0.014,
+     "r": 0.03
+    },
+    {
+     "len": 0.017,
+     "r": 0.04
+    },
+    {
+     "len": 0.011,
+     "r": 0.014,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "eye",
+   "_c": "bulging eyeball",
+   "host": "Hd0",
+   "material": "eye",
+   "size": 0.082,
+   "anchor": {
+    "chain": "head",
+    "t": 0.76,
+    "around": 76
+   }
+  },
+  {
+   "type": "fin",
+   "_c": "eye socket ring",
+   "host": "Hd0",
+   "material": "socket",
+   "thickness": 0.016,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "head",
+    "t": 0.76,
+    "around": 76
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.091,
+     0
+    ],
+    [
+     0.07362,
+     0.04644
+    ],
+    [
+     0.02812,
+     0.07513
+    ],
+    [
+     -0.02812,
+     0.07513
+    ],
+    [
+     -0.07362,
+     0.04644
+    ],
+    [
+     -0.091,
+     0
+    ],
+    [
+     -0.07362,
+     -0.04644
+    ],
+    [
+     -0.02812,
+     -0.07513
+    ],
+    [
+     0.02812,
+     -0.07513
+    ],
+    [
+     0.07362,
+     -0.04644
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "eye catchlight",
+   "host": "EyHiA",
+   "material": "hi_white",
+   "thickness": 0.011,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "udir": [
+    -0.447,
+    0,
+    0.894
+   ],
+   "vdir": [
+    0.644,
+    -0.693,
+    0.322
+   ],
+   "points": [
+    [
+     0.026,
+     0
+    ],
+    [
+     0.02252,
+     0.011
+    ],
+    [
+     0.013,
+     0.01905
+    ],
+    [
+     0,
+     0.022
+    ],
+    [
+     -0.013,
+     0.01905
+    ],
+    [
+     -0.02252,
+     0.011
+    ],
+    [
+     -0.026,
+     0
+    ],
+    [
+     -0.02252,
+     -0.011
+    ],
+    [
+     -0.013,
+     -0.01905
+    ],
+    [
+     0,
+     -0.022
+    ],
+    [
+     0.013,
+     -0.01905
+    ],
+    [
+     0.02252,
+     -0.011
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "eye secondary specular",
+   "host": "EyHiB",
+   "material": "hi_white",
+   "thickness": 0.01,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "udir": [
+    -0.447,
+    0,
+    0.894
+   ],
+   "vdir": [
+    0.644,
+    -0.693,
+    0.322
+   ],
+   "points": [
+    [
+     0.016,
+     0
+    ],
+    [
+     0.008,
+     0.01126
+    ],
+    [
+     -0.008,
+     0.01126
+    ],
+    [
+     -0.016,
+     0
+    ],
+    [
+     -0.008,
+     -0.01126
+    ],
+    [
+     0.008,
+     -0.01126
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "brow ridge",
+   "host": "Hd0",
+   "material": "gold_trim",
+   "thickness": 0.022,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "head",
+    "t": 0.73,
+    "around": 44
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.075,
+     -0.02
+    ],
+    [
+     -0.048,
+     0.028
+    ],
+    [
+     0.052,
+     0.03
+    ],
+    [
+     0.078,
+     -0.006
+    ],
+    [
+     0.04,
+     -0.034
+    ],
+    [
+     -0.04,
+     -0.036
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "mouth slot",
+   "host": "Hd1",
+   "material": "socket",
+   "thickness": 0.02,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.052,
+    0.006
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.128,
+     -0.008
+    ],
+    [
+     -0.106,
+     0.05
+    ],
+    [
+     0.106,
+     0.05
+    ],
+    [
+     0.128,
+     -0.008
+    ],
+    [
+     0.078,
+     -0.056
+    ],
+    [
+     -0.078,
+     -0.056
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "fang 0",
+   "host": "Hd1",
+   "material": "tusk",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.048,
+    0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.10400000000000001,
+     0.032
+    ],
+    [
+     -0.064,
+     0.032
+    ],
+    [
+     -0.084,
+     -0.046
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "fang 1",
+   "host": "Hd1",
+   "material": "tusk",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.048,
+    0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.062,
+     0.032
+    ],
+    [
+     -0.022000000000000002,
+     0.032
+    ],
+    [
+     -0.042,
+     -0.034
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "fang 2",
+   "host": "Hd1",
+   "material": "tusk",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.048,
+    0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.02,
+     0.032
+    ],
+    [
+     0.02,
+     0.032
+    ],
+    [
+     0,
+     -0.046
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "fang 3",
+   "host": "Hd1",
+   "material": "tusk",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.048,
+    0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.021999999999999995,
+     0.032
+    ],
+    [
+     0.062,
+     0.032
+    ],
+    [
+     0.041999999999999996,
+     -0.034
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "fang 4",
+   "host": "Hd1",
+   "material": "tusk",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.048,
+    0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.064,
+     0.032
+    ],
+    [
+     0.10400000000000001,
+     0.032
+    ],
+    [
+     0.084,
+     -0.046
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "jaw scale row 0",
+   "host": "Hd1",
+   "material": "shell_plate",
+   "thickness": 0.014,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "head",
+    "t": 0.7,
+    "around": 118
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     -0.012
+    ],
+    [
+     -0.02,
+     0.016
+    ],
+    [
+     0.028,
+     0.018
+    ],
+    [
+     0.052,
+     -0.004
+    ],
+    [
+     0.02,
+     -0.024
+    ],
+    [
+     -0.026,
+     -0.026
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "jaw scale row 1",
+   "host": "Hd1",
+   "material": "shell_plate",
+   "thickness": 0.014,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "head",
+    "t": 0.8,
+    "around": 124
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     -0.012
+    ],
+    [
+     -0.02,
+     0.016
+    ],
+    [
+     0.028,
+     0.018
+    ],
+    [
+     0.052,
+     -0.004
+    ],
+    [
+     0.02,
+     -0.024
+    ],
+    [
+     -0.026,
+     -0.026
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "jaw scale row 2",
+   "host": "Hd1",
+   "material": "shell_plate",
+   "thickness": 0.014,
+   "mirrored": true,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "head",
+    "t": 0.88,
+    "around": 130
+   },
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     -0.05,
+     -0.012
+    ],
+    [
+     -0.02,
+     0.016
+    ],
+    [
+     0.028,
+     0.018
+    ],
+    [
+     0.052,
+     -0.004
+    ],
+    [
+     0.02,
+     -0.024
+    ],
+    [
+     -0.026,
+     -0.026
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "nostril boss",
+   "host": "Hd1",
+   "material": "hide",
+   "mirrored": true,
+   "offset": [
+    0.045,
+    0.028,
+    -0.012
+   ],
+   "dir": [
+    0.1,
+    0.06,
+    1
+   ],
+   "sides": 8,
+   "segments": [
+    {
+     "len": 0.03,
+     "r": 0.027
+    },
+    {
+     "len": 0.016,
+     "r": 0.017,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 0-0",
+   "host": "LFrToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.012,
+    -0.02,
+    0.038000000000000006
+   ],
+   "sides": 6,
+   "dir": [
+    -0.06353,
+    -0.29647,
+    0.95293
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 0-1",
+   "host": "LFrToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.02,
+    -0.02,
+    0.05
+   ],
+   "sides": 6,
+   "dir": [
+    0.24675,
+    -0.28788,
+    0.92533
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 0-2",
+   "host": "LFrToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.028,
+    -0.02,
+    0.038000000000000006
+   ],
+   "sides": 6,
+   "dir": [
+    0.49711,
+    -0.25776,
+    0.82852
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 1-0",
+   "host": "LBkToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.012,
+    -0.02,
+    0.038000000000000006
+   ],
+   "sides": 6,
+   "dir": [
+    -0.06353,
+    -0.29647,
+    0.95293
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 1-1",
+   "host": "LBkToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.02,
+    -0.02,
+    0.05
+   ],
+   "sides": 6,
+   "dir": [
+    0.24675,
+    -0.28788,
+    0.92533
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "claw 1-2",
+   "host": "LBkToe",
+   "material": "claw",
+   "mirrored": true,
+   "offset": [
+    0.028,
+    -0.02,
+    0.038000000000000006
+   ],
+   "sides": 6,
+   "dir": [
+    0.49711,
+    -0.25776,
+    0.82852
+   ],
+   "segments": [
+    {
+     "len": 0.055,
+     "r": 0.022
+    },
+    {
+     "len": 0.048,
+     "r": 0.012,
+     "fall": 22,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "paw",
+   "_c": "front foot",
+   "host": "LFrToe",
+   "material": "hide",
+   "size": [
+    0.24,
+    0.11,
+    0.22
+   ],
+   "mirrored": true,
+   "smooth_angle": 26
+  },
+  {
+   "type": "paw",
+   "_c": "back foot",
+   "host": "LBkToe",
+   "material": "hide",
+   "size": [
+    0.22,
+    0.11,
+    0.2
+   ],
+   "mirrored": true,
+   "smooth_angle": 26
+  },
+  {
+   "type": "fin",
+   "_c": "lamp foot ring",
+   "host": "Cp1",
+   "material": "gold_trim",
+   "thickness": 0.018,
+   "smooth_angle": 26,
+   "anchor": {
+    "chain": "cup",
+    "t": 0.56,
+    "around": 180
+   },
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0.092,
+     0
+    ],
+    [
+     0.07443,
+     0.03644
+    ],
+    [
+     0.02843,
+     0.05897
+    ],
+    [
+     -0.02843,
+     0.05897
+    ],
+    [
+     -0.07443,
+     0.03644
+    ],
+    [
+     -0.092,
+     0
+    ],
+    [
+     -0.07443,
+     -0.03644
+    ],
+    [
+     -0.02843,
+     -0.05897
+    ],
+    [
+     0.02843,
+     -0.05897
+    ],
+    [
+     0.07443,
+     -0.03644
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "burning oil surface (glow_lamp)",
+   "host": "Cp3",
+   "material": "glow_lamp",
+   "thickness": 0.014,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    -0.0362,
+    -0.017
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    -0.4258,
+    0.90482
+   ],
+   "points": [
+    [
+     0.15,
+     0
+    ],
+    [
+     0.1299,
+     0.061
+    ],
+    [
+     0.075,
+     0.10566
+    ],
+    [
+     0,
+     0.122
+    ],
+    [
+     -0.075,
+     0.10566
+    ],
+    [
+     -0.1299,
+     0.061
+    ],
+    [
+     -0.15,
+     0
+    ],
+    [
+     -0.1299,
+     -0.061
+    ],
+    [
+     -0.075,
+     -0.10566
+    ],
+    [
+     0,
+     -0.122
+    ],
+    [
+     0.075,
+     -0.10566
+    ],
+    [
+     0.1299,
+     -0.061
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "wick nub",
+   "host": "Cp3",
+   "material": "socket",
+   "offset": [
+    0,
+    -0.0271,
+    -0.0128
+   ],
+   "dir": [
+    0,
+    1,
+    0.1
+   ],
+   "sides": 6,
+   "segments": [
+    {
+     "len": 0.032,
+     "r": 0.017
+    },
+    {
+     "len": 0.018,
+     "r": 0.01,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "fin",
+   "_c": "flame tip 0",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0,
+     -0.019200000000000002
+    ],
+    [
+     0.031,
+     0.019200000000000002
+    ],
+    [
+     0.043000000000000003,
+     0.06528
+    ],
+    [
+     0.022000000000000002,
+     0.13824
+    ],
+    [
+     0,
+     0.192
+    ],
+    [
+     -0.022000000000000002,
+     0.13824
+    ],
+    [
+     -0.043000000000000003,
+     0.06528
+    ],
+    [
+     -0.031,
+     0.019200000000000002
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "flame tip 1",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    -0.048,
+    -0.004,
+    0.004
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    -0.33952,
+    0.93667,
+    0.08588
+   ],
+   "points": [
+    [
+     0,
+     -0.0128
+    ],
+    [
+     0.02232,
+     0.0128
+    ],
+    [
+     0.030959999999999998,
+     0.04352
+    ],
+    [
+     0.01584,
+     0.09215999999999999
+    ],
+    [
+     0,
+     0.128
+    ],
+    [
+     -0.01584,
+     0.09215999999999999
+    ],
+    [
+     -0.030959999999999998,
+     0.04352
+    ],
+    [
+     -0.02232,
+     0.0128
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "flame tip 2",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0.05,
+    -0.006,
+    0.002
+   ],
+   "udir": [
+    1,
+    0,
+    0
+   ],
+   "vdir": [
+    0.35989,
+    0.92973,
+    0.07798
+   ],
+   "points": [
+    [
+     0,
+     -0.0108
+    ],
+    [
+     0.02108,
+     0.0108
+    ],
+    [
+     0.029240000000000002,
+     0.03672
+    ],
+    [
+     0.014960000000000001,
+     0.07776
+    ],
+    [
+     0,
+     0.108
+    ],
+    [
+     -0.014960000000000001,
+     0.07776
+    ],
+    [
+     -0.029240000000000002,
+     0.03672
+    ],
+    [
+     -0.02108,
+     0.0108
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "flame tip 3",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0,
+    0.004,
+    -0.004
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0,
+    1,
+    0
+   ],
+   "points": [
+    [
+     0,
+     -0.013200000000000002
+    ],
+    [
+     0.020460000000000002,
+     0.013200000000000002
+    ],
+    [
+     0.028380000000000002,
+     0.04488
+    ],
+    [
+     0.01452,
+     0.09504
+    ],
+    [
+     0,
+     0.132
+    ],
+    [
+     -0.01452,
+     0.09504
+    ],
+    [
+     -0.028380000000000002,
+     0.04488
+    ],
+    [
+     -0.020460000000000002,
+     0.013200000000000002
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "flame tip 4",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "thickness": 0.017,
+   "smooth_angle": 26,
+   "offset": [
+    0.008,
+    -0.002,
+    0.02
+   ],
+   "udir": [
+    0,
+    0,
+    1
+   ],
+   "vdir": [
+    0.10001,
+    0.97508,
+    0.19802
+   ],
+   "points": [
+    [
+     0,
+     -0.0086
+    ],
+    [
+     0.01426,
+     0.0086
+    ],
+    [
+     0.01978,
+     0.02924
+    ],
+    [
+     0.01012,
+     0.061919999999999996
+    ],
+    [
+     0,
+     0.086
+    ],
+    [
+     -0.01012,
+     0.061919999999999996
+    ],
+    [
+     -0.01978,
+     0.02924
+    ],
+    [
+     -0.01426,
+     0.0086
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "flame tongue 0",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "offset": [
+    -0.034,
+    0.006,
+    0
+   ],
+   "sides": 6,
+   "dir": [
+    -0.26094,
+    0.96347,
+    0.06022
+   ],
+   "segments": [
+    {
+     "len": 0.058300000000000005,
+     "r": 0.011
+    },
+    {
+     "len": 0.0477,
+     "r": 0.0035199999999999997,
+     "ahead": 30,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "flame tongue 1",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "offset": [
+    0,
+    0.006,
+    0
+   ],
+   "sides": 6,
+   "dir": [
+    0,
+    0.99805,
+    0.06238
+   ],
+   "segments": [
+    {
+     "len": 0.044000000000000004,
+     "r": 0.01
+    },
+    {
+     "len": 0.036000000000000004,
+     "r": 0.0032,
+     "ahead": -34,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  },
+  {
+   "type": "curve",
+   "_c": "flame tongue 2",
+   "host": "FlmR",
+   "material": "glow_lamp",
+   "offset": [
+    0.034,
+    0.006,
+    0
+   ],
+   "sides": 6,
+   "dir": [
+    0.26094,
+    0.96347,
+    0.06022
+   ],
+   "segments": [
+    {
+     "len": 0.034100000000000005,
+     "r": 0.009
+    },
+    {
+     "len": 0.0279,
+     "r": 0.0028799999999999997,
+     "ahead": 14,
+     "taper": true
+    }
+   ],
+   "smooth_angle": 26
+  }
+ ],
+ "animations": {
+  "idle": {
+   "duration": 2.7,
+   "loop": true,
+   "tracks": {
+    "Sh0": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.014
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Nk1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       -3.2
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Hd0": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.42,
+       2.6
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "FlmR": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.35,
+       0.02
+      ],
+      [
+       0.72,
+       -0.012
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       3.4
+      ],
+      [
+       0.7,
+       -3
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Cp3": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       1.4
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Tl1": {
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       4
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 1.05,
+   "loop": true,
+   "mirror_phase": 0.5,
+   "tracks": {
+    "LFrHip": {
+     "rx": [
+      [
+       0,
+       -14
+      ],
+      [
+       0.5,
+       15
+      ],
+      [
+       1,
+       -14
+      ]
+     ]
+    },
+    "LFrKnee": {
+     "rx": [
+      [
+       0,
+       10
+      ],
+      [
+       0.5,
+       -9
+      ],
+      [
+       1,
+       10
+      ]
+     ]
+    },
+    "LBkHip": {
+     "rx": [
+      [
+       0,
+       14
+      ],
+      [
+       0.5,
+       -15
+      ],
+      [
+       1,
+       14
+      ]
+     ]
+    },
+    "LBkKnee": {
+     "rx": [
+      [
+       0,
+       -9
+      ],
+      [
+       0.5,
+       10
+      ],
+      [
+       1,
+       -9
+      ]
+     ]
+    },
+    "Sh0": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.018
+      ],
+      [
+       0.5,
+       0
+      ],
+      [
+       0.75,
+       0.018
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       -2
+      ],
+      [
+       0.5,
+       2
+      ],
+      [
+       1,
+       -2
+      ]
+     ]
+    },
+    "Nk1": {
+     "ry": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -3
+      ],
+      [
+       1,
+       3
+      ]
+     ]
+    },
+    "FlmR": {
+     "rz": [
+      [
+       0,
+       5
+      ],
+      [
+       0.5,
+       -5
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.92,
+   "loop": false,
+   "tracks": {
+    "Nk0": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -0.055
+      ],
+      [
+       0.6,
+       0.245
+      ],
+      [
+       0.8,
+       0.19
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Nk1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       9
+      ],
+      [
+       0.58,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Hd0": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       7
+      ],
+      [
+       0.58,
+       -11
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "FlmR": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       -0.035
+      ],
+      [
+       0.58,
+       0.255
+      ],
+      [
+       0.8,
+       0.19
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       -0.01
+      ],
+      [
+       0.58,
+       0.045
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Cp3": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       -0.022
+      ],
+      [
+       0.58,
+       0.052
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       6
+      ],
+      [
+       0.58,
+       -7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Sh0": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       -0.026
+      ],
+      [
+       0.58,
+       0.03
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.28,
+       3.5
+      ],
+      [
+       0.58,
+       -4
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Tl1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       -8
+      ],
+      [
+       0.6,
+       7
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ }
+}

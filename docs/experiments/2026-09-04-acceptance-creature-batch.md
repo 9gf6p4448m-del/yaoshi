@@ -162,3 +162,6 @@ eye 回修卷（報告 `2026-09-04-review-eye-report.md`）樹根 6/6、眼 2/2�
 ## 2026-09-05 使用者裁定：shanshen 採用 r16、甲殼 1/3 簽字取樣限制
 第 4 輪（`2026-09-05-review2-shanshen-report.md`）金脈跟峰下沉 0.028（parts[159..204] offset[1]，46 個數字）→金脈 0/3→3/3、釘榫 0/3；甲殼作 Q1 中心名詞 1/3 未達本輪 0/3 門檻，控制組 0/3、改動未碰岩體、n=3 分不出改動或取樣。使用者裁定採用 r16、甲殼 1/3 簽字取樣限制；shanshen 5/5 結案。另記：岩盤環帶被 6/6 讀者點名「項圈／箍」＝殘留背甲讀法來源→後處理卷；「祖靈氣質」題受 memory 索引污染無鑑別力（同 Q3 註記）。
 
+## 2026-09-05 主對話記錄：judge `--stage HIGH` 只跑 HIGH 三條（fushou 卷發現）
+`judge.mjs:271` 的 stage filter 是全等比對，`--stage HIGH` 只檢查 stage=="HIGH" 的 claims，MID 那批完全沒跑；fushou 同一顆 GLB 拿掉 `--stage` 立刻 4 條 BLOCK。**自此 M-A0 的 judge 一律不帶 `--stage`（全 claims）**；已在 main 的 21 隻由稽核 agent 不帶 `--stage` 全數重跑，有 BLOCK 的列入硬化批 5。此為加嚴，不移動任何門檻。
+
