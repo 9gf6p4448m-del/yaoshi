@@ -1,0 +1,157 @@
+{
+ "res": {
+  "w": 1688,
+  "h": 780,
+  "total": 1316640,
+  "edgeDiff": {
+   "d0": 58281,
+   "d4": 56959,
+   "d8": 56307,
+   "d16": 53579,
+   "d64": 40422
+  },
+  "baseDiff": {
+   "d0": 0,
+   "d4": 0,
+   "d8": 0,
+   "d16": 0,
+   "d64": 0
+  },
+  "baseDiffOn": {
+   "d0": 58281,
+   "d4": 56959,
+   "d8": 56307,
+   "d16": 53579,
+   "d64": 40422
+  },
+  "baseErr": null,
+  "sweep": [
+   {
+    "p": {
+     "depthLo": 99,
+     "depthHi": 199,
+     "normLo": 9,
+     "normHi": 19,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 0,
+     "d4": 0,
+     "d8": 0,
+     "d16": 0,
+     "d64": 0
+    },
+    "png": null
+   },
+   {
+    "p": {
+     "depthLo": 0.02,
+     "depthHi": 0.04,
+     "normLo": 0.62,
+     "normHi": 0.82,
+     "maxDepth": 0.001,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 0,
+     "d4": 0,
+     "d8": 0,
+     "d16": 0,
+     "d64": 0
+    },
+    "png": null
+   },
+   {
+    "p": {
+     "depthLo": 0.02,
+     "depthHi": 0.04,
+     "normLo": 0.62,
+     "normHi": 0.82,
+     "maxDepth": 0.001,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 0,
+     "d4": 0,
+     "d8": 0,
+     "d16": 0,
+     "d64": 0
+    },
+    "png": null
+   }
+  ],
+  "edgeDefaults": {
+   "depthLo": 0.02,
+   "depthHi": 0.04,
+   "normLo": 0.62,
+   "normHi": 0.82,
+   "maxDepth": 12,
+   "sobelW": 1
+  },
+  "edgeOnAtDuel": true,
+  "urlEdgeOn": true,
+  "href": "http://127.0.0.1:8873/index.html?paperwar=1&fxcount=1",
+  "progBefore": 21,
+  "progAfterEdge": 21,
+  "progAfterBaseline": 22,
+  "edgeReady": true,
+  "edgeOn": true,
+  "bloomOn": true,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "figs": 16
+ },
+ "summary": {
+  "px": "1688x780",
+  "total": 1316640,
+  "figsVisible": 16,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "edgeReady": true,
+  "edgeOn": true,
+  "edgeOnAtDuel": true,
+  "urlEdgeOn": true,
+  "href": "http://127.0.0.1:8873/index.html?paperwar=1&fxcount=1",
+  "edgePctD8": 4.277,
+  "edgePctD16": 4.069,
+  "edgeNumD8": 56307,
+  "basePctD0": 0,
+  "baseNumD0": 0,
+  "baseOnPctD0": 4.426,
+  "baseErr": null,
+  "programs": [
+   21,
+   21,
+   22
+  ],
+  "sweep": [
+   {
+    "depthLo": 99,
+    "depthHi": 199,
+    "normLo": 9,
+    "normHi": 19,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 0
+   },
+   {
+    "depthLo": 0.02,
+    "depthHi": 0.04,
+    "normLo": 0.62,
+    "normHi": 0.82,
+    "maxDepth": 0.001,
+    "sobelW": 1,
+    "pctD8": 0
+   },
+   {
+    "depthLo": 0.02,
+    "depthHi": 0.04,
+    "normLo": 0.62,
+    "normHi": 0.82,
+    "maxDepth": 0.001,
+    "sobelW": 1,
+    "pctD8": 0
+   }
+  ]
+ },
+ "errors": []
+}

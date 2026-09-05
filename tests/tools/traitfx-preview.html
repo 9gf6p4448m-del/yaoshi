@@ -84,6 +84,8 @@ function glName() { try { const gl = renderer.getContext(); const ext = gl.getEx
 const SOFT_GL = /swiftshader|software|llvmpipe|basic render/i.test(glName());
 const bloom = (BLOOM_ON && !SOFT_GL) ? createBloom(renderer, { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 }) : null;
 if (bloom) bloom.setSize(window.innerWidth, window.innerHeight);
+// 深度邊緣線（後處理卷 P-3）：預覽頁預設跟正式頁一樣開著，?edge=0 關掉——招式治具因此每一幀都在跑新的 COMPOSITE
+if (bloom) bloom.setEdge(q.get('edge') !== '0');
 const rig = createFigureLightRig({ scale: 1.7 }); rig.position.y = 0.15; rig.setIntensity(1); scene.add(rig);
 rig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
 

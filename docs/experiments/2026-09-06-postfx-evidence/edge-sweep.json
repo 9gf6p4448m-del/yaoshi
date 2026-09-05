@@ -1,0 +1,218 @@
+{
+ "res": {
+  "w": 1688,
+  "h": 780,
+  "total": 1316640,
+  "edgeDiff": {
+   "d0": 112979,
+   "d4": 109063,
+   "d8": 107118,
+   "d16": 104145,
+   "d64": 76417
+  },
+  "baseDiff": {
+   "d0": 0,
+   "d4": 0,
+   "d8": 0,
+   "d16": 0,
+   "d64": 0
+  },
+  "baseErr": null,
+  "sweep": [
+   {
+    "p": {
+     "depthLo": 0.01,
+     "depthHi": 0.02,
+     "normLo": 0.3,
+     "normHi": 0.45,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 80970,
+     "d4": 79501,
+     "d8": 78740,
+     "d16": 77269,
+     "d64": 59226
+    }
+   },
+   {
+    "p": {
+     "depthLo": 0.012,
+     "depthHi": 0.025,
+     "normLo": 0.4,
+     "normHi": 0.55,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 72627,
+     "d4": 71034,
+     "d8": 70188,
+     "d16": 68861,
+     "d64": 52804
+    }
+   },
+   {
+    "p": {
+     "depthLo": 0.015,
+     "depthHi": 0.03,
+     "normLo": 0.5,
+     "normHi": 0.68,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 64817,
+     "d4": 63524,
+     "d8": 62818,
+     "d16": 61561,
+     "d64": 47486
+    }
+   },
+   {
+    "p": {
+     "depthLo": 0.02,
+     "depthHi": 0.04,
+     "normLo": 0.62,
+     "normHi": 0.82,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 57599,
+     "d4": 56267,
+     "d8": 55514,
+     "d16": 52575,
+     "d64": 39894
+    }
+   },
+   {
+    "p": {
+     "depthLo": 0.03,
+     "depthHi": 0.06,
+     "normLo": 0.75,
+     "normHi": 1,
+     "maxDepth": 12,
+     "sobelW": 1
+    },
+    "c": {
+     "d0": 47926,
+     "d4": 46595,
+     "d8": 45955,
+     "d16": 44757,
+     "d64": 33417
+    }
+   },
+   {
+    "p": {
+     "depthLo": 0.015,
+     "depthHi": 0.03,
+     "normLo": 0.5,
+     "normHi": 0.68,
+     "maxDepth": 12,
+     "sobelW": 0.5
+    },
+    "c": {
+     "d0": 62625,
+     "d4": 61445,
+     "d8": 60802,
+     "d16": 59652,
+     "d64": 46071
+    }
+   }
+  ],
+  "edgeDefaults": {
+   "depthLo": 0.003,
+   "depthHi": 0.01,
+   "normLo": 0.06,
+   "normHi": 0.25,
+   "maxDepth": 12,
+   "sobelW": 1
+  },
+  "progBefore": 21,
+  "progAfterEdge": 21,
+  "progAfterBaseline": 22,
+  "edgeReady": true,
+  "edgeOn": true,
+  "bloomOn": true,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "figs": 16
+ },
+ "summary": {
+  "px": "1688x780",
+  "total": 1316640,
+  "figsVisible": 16,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "edgeReady": true,
+  "edgeOn": true,
+  "edgePctD8": 8.136,
+  "edgePctD16": 7.91,
+  "edgeNumD8": 107118,
+  "basePctD0": 0,
+  "baseNumD0": 0,
+  "baseErr": null,
+  "programs": [
+   21,
+   21,
+   22
+  ],
+  "sweep": [
+   {
+    "depthLo": 0.01,
+    "depthHi": 0.02,
+    "normLo": 0.3,
+    "normHi": 0.45,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 5.98
+   },
+   {
+    "depthLo": 0.012,
+    "depthHi": 0.025,
+    "normLo": 0.4,
+    "normHi": 0.55,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 5.331
+   },
+   {
+    "depthLo": 0.015,
+    "depthHi": 0.03,
+    "normLo": 0.5,
+    "normHi": 0.68,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 4.771
+   },
+   {
+    "depthLo": 0.02,
+    "depthHi": 0.04,
+    "normLo": 0.62,
+    "normHi": 0.82,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 4.216
+   },
+   {
+    "depthLo": 0.03,
+    "depthHi": 0.06,
+    "normLo": 0.75,
+    "normHi": 1,
+    "maxDepth": 12,
+    "sobelW": 1,
+    "pctD8": 3.49
+   },
+   {
+    "depthLo": 0.015,
+    "depthHi": 0.03,
+    "normLo": 0.5,
+    "normHi": 0.68,
+    "maxDepth": 12,
+    "sobelW": 0.5,
+    "pctD8": 4.618
+   }
+  ]
+ },
+ "errors": []
+}

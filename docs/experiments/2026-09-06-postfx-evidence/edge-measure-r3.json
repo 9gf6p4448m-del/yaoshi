@@ -1,0 +1,60 @@
+{
+ "res": {
+  "w": 1688,
+  "h": 780,
+  "total": 1316640,
+  "edgeDiff": {
+   "d0": 60845,
+   "d4": 59451,
+   "d8": 58757,
+   "d16": 56018,
+   "d64": 41102
+  },
+  "baseDiff": {
+   "d0": 0,
+   "d4": 0,
+   "d8": 0,
+   "d16": 0,
+   "d64": 0
+  },
+  "baseErr": null,
+  "sweep": [],
+  "edgeDefaults": {
+   "depthLo": 0.02,
+   "depthHi": 0.04,
+   "normLo": 0.62,
+   "normHi": 0.82,
+   "maxDepth": 12,
+   "sobelW": 1
+  },
+  "progBefore": 21,
+  "progAfterEdge": 21,
+  "progAfterBaseline": 22,
+  "edgeReady": true,
+  "edgeOn": true,
+  "bloomOn": true,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "figs": 16
+ },
+ "summary": {
+  "px": "1688x780",
+  "total": 1316640,
+  "figsVisible": 16,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "edgeReady": true,
+  "edgeOn": true,
+  "edgePctD8": 4.463,
+  "edgePctD16": 4.255,
+  "edgeNumD8": 58757,
+  "basePctD0": 0,
+  "baseNumD0": 0,
+  "baseErr": null,
+  "programs": [
+   21,
+   21,
+   22
+  ],
+  "sweep": []
+ },
+ "errors": []
+}

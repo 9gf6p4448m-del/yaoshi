@@ -27,6 +27,13 @@ const { createTraitFx } = await import('./trait-fx.js' + V);
 // 實作在 js/bloom.js（自製，不是 UnrealBloomPass，理由見那個檔的檔頭）。全部【試玩必調】。
 const BLOOM = { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 };
 
+// 深度邊緣線（後處理卷 P-3，2026-09-06）：實作與參數在 js/bloom.js（折進合成那一趟）。
+// 關閉鉤 `?edge=0`——正式頁沒帶就是開（undefined＝開），跟 index.html 的 ?fxcount 同一種解析法。
+// 治具讀 window.__yaoshi3d.edgeOn 判斷這一版到底有沒有在畫線。
+const EDGE_URL_ON = (() => {
+  try { return new URLSearchParams(typeof location !== 'undefined' ? (location.search || '') : '').get('edge') !== '0'; } catch (e) { return true; }
+})();
+
 /** 取得 GPU 名稱（拿不到就回空字串，當成「不是軟體 GL」照常開 bloom）。 */
 function glRendererName(renderer) {
   try {
@@ -149,7 +156,9 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); } };
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+    // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
+    get edgeOn() { return EDGE_URL_ON && bloom.edgeReady && bloomOK; }, get edgeReady() { return bloom.edgeReady; } };
 
   let lastKind = undefined;
   let lastT = performance.now();
@@ -200,6 +209,9 @@ function init() {
     const sm = smoke.points.material;
     sm.opacity += (smokeWant - sm.opacity) * Math.min(1, dt * 3);
 
+    // 邊緣線只在對決場走（暖身那一幀是標題頁，不畫線——但 shader 是同一支 COMPOSITE，
+    // 暖身照樣把它編掉，對決前後 renderer.info.programs.length 不變）
+    bloom.setEdge(EDGE_URL_ON && kind === 'duel');
     if (bloomOK && (!warmedUp || kind === 'duel')) {
       warmedUp = true; // 第一幀（標題頁，canvas 只有 0.38 不透明度）順手把 bloom 的 shader 編掉
       bloom.render(scene, camera);

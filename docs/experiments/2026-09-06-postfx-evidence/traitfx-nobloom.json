@@ -1,0 +1,2211 @@
+{
+ "summary": {
+  "total": 27,
+  "pass": 27,
+  "dupSignatures": 0,
+  "t1": {
+   "missing": [],
+   "extra": []
+  },
+  "softGl": false,
+  "opts": {
+   "nobloom": true,
+   "port": "8874"
+  }
+ },
+ "note": "原始輸出的每案 frames（140 幀逐幀 Δ）已裁掉，只留 verdict／sig／stats／errors——那是驗收看的欄位。重跑指令見 2026-09-06-postfx-B-report.md 附錄。",
+ "results": [
+  {
+   "case": {
+    "name": "射日神弓",
+    "ab": "bow",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteOpenShot"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.8663,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteOpenShot",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "HeadRoot",
+     "Neck2",
+     "Neck3",
+     "TailRoot"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 813,
+    "sped": false,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 0,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 1172
+  },
+  {
+   "case": {
+    "name": "百步蛇紋盾",
+    "ab": "shield",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpFront2"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 4.1975,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpFront2",
+    "bones": [
+     "@rim",
+     "Body0",
+     "Body10",
+     "Body12",
+     "Body14",
+     "Body16",
+     "Body18",
+     "Body2",
+     "Body20",
+     "Body4",
+     "Body6",
+     "Body8",
+     "Crown",
+     "Head0",
+     "Jaw",
+     "Neck2",
+     "Neck3",
+     "Snout",
+     "Wall1",
+     "Wall2",
+     "Wall3"
+    ],
+    "meshes": [
+     "burst",
+     "dome",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 918,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 790
+  },
+  {
+   "case": {
+    "name": "巴冷公主珠鍊",
+    "ab": "balen",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteArmor"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 3.4275,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteArmor",
+    "bones": [
+     "@model",
+     "@rim",
+     "Body0",
+     "Body12",
+     "Body15",
+     "Body18",
+     "Body3",
+     "Body6",
+     "Body9",
+     "Head0",
+     "Jaw",
+     "Neck0",
+     "Neck1",
+     "Neck2",
+     "Neck3",
+     "Snout",
+     "SnoutTip",
+     "Trunk0",
+     "Trunk1",
+     "Trunk2",
+     "Trunk3",
+     "Trunk4"
+    ],
+    "meshes": [
+     "burst",
+     "dome",
+     "orb",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 882,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 608
+  },
+  {
+   "case": {
+    "name": "祖靈之眼",
+    "ab": "eye",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardFirst"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.0659,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardFirst",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Br0",
+     "Br1",
+     "Br2",
+     "Sl0",
+     "Sl1",
+     "Sl2",
+     "Sl3"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 880,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 587
+  },
+  {
+   "case": {
+    "name": "雷女之火",
+    "ab": "thunder",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "boltGamble"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 2.976,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "boltGamble",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "EmberSeed",
+     "HeadRoot",
+     "LLeg1Th",
+     "LWingA1Wi",
+     "Neck1",
+     "Neck2",
+     "NeckRoot",
+     "RLeg1Th",
+     "RWingA1Wi",
+     "Tail1",
+     "Tail2",
+     "Tail3",
+     "TailRoot",
+     "TailTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 840,
+    "sped": false,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 0,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 785
+  },
+  {
+   "case": {
+    "name": "拼板舟",
+    "ab": "boat",
+    "fac": "zuling",
+    "body": "swarm",
+    "count": 3,
+    "trait": "swarmHalfSplash"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.874,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmHalfSplash",
+    "bones": [
+     "@model",
+     "@rim",
+     "BowBase",
+     "BowTip",
+     "LFin1Md",
+     "LFin1Rt",
+     "LFin1Tp",
+     "Mid",
+     "RFin1Md",
+     "RFin1Rt",
+     "RFin1Tp",
+     "Stern",
+     "SternTip"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 897,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 1730
+  },
+  {
+   "case": {
+    "name": "山豬牙飾",
+    "ab": "boartusk",
+    "fac": "zuling",
+    "body": "swarm",
+    "count": 1,
+    "trait": "swarmThorn"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.4345,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmThorn",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Barrel",
+     "DiscFace",
+     "DiscRoot",
+     "HeadRoot",
+     "LBack1Kn",
+     "LEar1Ea",
+     "LFront1Kn",
+     "Muzzle",
+     "NeckMid",
+     "NeckRoot",
+     "RBack1Kn",
+     "REar1Ea",
+     "RFront1Kn",
+     "Skull",
+     "Withers"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "disc"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 860,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 1094
+  },
+  {
+   "case": {
+    "name": "獻祭刀",
+    "ab": "xianji",
+    "fac": "zuling",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteSelfCut"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 2.2254,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteSelfCut",
+    "bones": [
+     "@model",
+     "@rim",
+     "HeadRoot",
+     "LFront1El",
+     "LFront1Wr",
+     "Muzzle",
+     "Neck1",
+     "Neck2",
+     "Neck3",
+     "NeckRoot",
+     "RFront1El",
+     "RFront1Wr",
+     "Skull",
+     "Tail1",
+     "TailRoot",
+     "TailTip",
+     "Withers"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 880,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 564
+  },
+  {
+   "case": {
+    "name": "山神庇佑",
+    "ab": "shanshen",
+    "fac": "zuling",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpAll1"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.9958,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpAll1",
+    "bones": [
+     "@model",
+     "@rim",
+     "Barrel",
+     "Chest",
+     "CragBack",
+     "CragFore",
+     "CragMid",
+     "HeadRoot",
+     "LBack1Kn",
+     "LFront1Kn",
+     "Muzzle",
+     "Neck1",
+     "Neck2",
+     "NeckRoot",
+     "RBack1Kn",
+     "RFront1Kn"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 843,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 582
+  },
+  {
+   "case": {
+    "name": "媽祖令旗",
+    "ab": "flag",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardAtkAll1"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.8272,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardAtkAll1",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "FlagMast",
+     "HeadRoot",
+     "Jaw1",
+     "JawRoot",
+     "Tail1",
+     "Tail2",
+     "TailRoot",
+     "Withers"
+    ],
+    "meshes": [
+     "burst",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 863,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 606
+  },
+  {
+   "case": {
+    "name": "王爺劍",
+    "ab": "sword",
+    "fac": "xianghuo",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteCleave"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.526,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteCleave",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Chest",
+     "HeadRoot",
+     "RArm1El",
+     "RArm1Rt"
+    ],
+    "meshes": [
+     "burst",
+     "slash"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 870,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 566
+  },
+  {
+   "case": {
+    "name": "送王船",
+    "ab": "wangchuan",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardAbsorb4"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.6692,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardAbsorb4",
+    "bones": [
+     "@model",
+     "@rim",
+     "AftMid",
+     "BowRise",
+     "BowTip",
+     "FigA",
+     "FigB",
+     "FigC",
+     "FigD",
+     "FigE",
+     "FigF",
+     "FigG",
+     "ForeMid",
+     "Mast1",
+     "Mast2",
+     "Mast3",
+     "Mast4",
+     "MastFoot",
+     "MastTop",
+     "MidShip",
+     "SternRise",
+     "SternTip"
+    ],
+    "meshes": [
+     "disc",
+     "dome",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 893,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 636
+  },
+  {
+   "case": {
+    "name": "千里眼銅鈴",
+    "ab": "bell",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardImmuneLost"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.8024,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardImmuneLost",
+    "bones": [
+     "@rim",
+     "ArmDElbow",
+     "ArmDRoot",
+     "ArmUElbow",
+     "ArmUHand",
+     "ArmURoot",
+     "ArmUWrist",
+     "AxeHead",
+     "BellLip",
+     "BellRoot",
+     "BellShoulder",
+     "BellStem",
+     "BellWaist",
+     "Chest",
+     "LipEdge",
+     "LipMid",
+     "LipRoot",
+     "NeckB",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 887,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 628
+  },
+  {
+   "case": {
+    "name": "五營旗",
+    "ab": "wuying",
+    "fac": "xianghuo",
+    "body": "swarm",
+    "count": 3,
+    "trait": "swarmRally"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.2794,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmRally",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "FlagTop",
+     "HeadRoot",
+     "Helm1",
+     "HelmRoot",
+     "Hips",
+     "NeckB",
+     "RArm1El",
+     "RArm1Rt",
+     "RArm1Wr",
+     "RLeg1An",
+     "RLeg1Kn",
+     "RLeg1Rt",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 974,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 960
+  },
+  {
+   "case": {
+    "name": "虎爺印",
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "body": "elite",
+    "count": 1,
+    "trait": "biteGamble"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 2.3074,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "biteGamble",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "Chest",
+     "HeadRoot",
+     "Hips",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "LBack1Kn",
+     "LFrontElbow1El",
+     "LFrontRoot1Rt",
+     "LFrontToe1To",
+     "Muzzle",
+     "Neck2",
+     "NeckB",
+     "Nose",
+     "RBack1Kn",
+     "RFrontElbow1El",
+     "RFrontRoot1Rt",
+     "RFrontToe1To",
+     "Rump",
+     "Spine",
+     "Tail1",
+     "Tail2",
+     "TailRoot",
+     "TailTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 900,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 600
+  },
+  {
+   "case": {
+    "name": "香灰符",
+    "ab": "ashcharm",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardHpFirst"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.1983,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardHpFirst",
+    "bones": [
+     "@model",
+     "@rim",
+     "BElbow",
+     "BHand",
+     "BShldr",
+     "BrowFu",
+     "Chest",
+     "Crown",
+     "FuD1",
+     "FuD10",
+     "FuD12",
+     "FuD14",
+     "FuD15",
+     "FuD16",
+     "FuD19",
+     "FuD20",
+     "FuD21",
+     "FuD22",
+     "FuD3",
+     "FuD5",
+     "FuD8",
+     "FuD9",
+     "FuX10",
+     "Head",
+     "Hip",
+     "JossT1",
+     "JossT2",
+     "JossT3",
+     "JossT4",
+     "JossT5",
+     "JossT6",
+     "Neck",
+     "RElbow1El",
+     "RHand1Ha",
+     "RShldr1Sh",
+     "WalA1",
+     "WalA2",
+     "WalA3",
+     "WalA4",
+     "WalA5",
+     "WalB1",
+     "WalB2",
+     "WalB3",
+     "WalB4",
+     "WalB5"
+    ],
+    "meshes": [
+     "burst",
+     "orb",
+     "ring"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 1002,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 777
+  },
+  {
+   "case": {
+    "name": "福壽綿長",
+    "ab": "fushou",
+    "fac": "xianghuo",
+    "body": "ward",
+    "count": 2,
+    "trait": "wardRegen1"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.9804,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "wardRegen1",
+    "bones": [
+     "@rim",
+     "Bd0",
+     "Bd1",
+     "Bd2",
+     "Brm0",
+     "Brm1",
+     "Brm2",
+     "Cp0",
+     "Cp1",
+     "Cp2",
+     "Cp3",
+     "Crest",
+     "EyHiA",
+     "EyHiB",
+     "FlmR",
+     "Hd0",
+     "Hd1",
+     "Nk0",
+     "Nk1",
+     "Tl0",
+     "Tl1",
+     "Tl2"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 930,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 627
+  },
+  {
+   "case": {
+    "name": "破軍旗",
+    "ab": "pojun",
+    "fac": "xianghuo",
+    "body": "swarm",
+    "count": 1,
+    "trait": "swarmLastStand"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.4098,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmLastStand",
+    "bones": [
+     "@model",
+     "@rim",
+     "Chest",
+     "Crown1",
+     "CrownRoot",
+     "CrownTip",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Rt",
+     "LArm1Wr",
+     "NeckB",
+     "PoleMid",
+     "PoleRoot",
+     "PoleTop",
+     "RArm1El",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "SpearMid",
+     "SpearRoot",
+     "SpearTip",
+     "Spine"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": false,
+    "t": 917,
+    "horizon": 880,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 564
+  },
+  {
+   "case": {
+    "name": "魔神仔紅帽",
+    "ab": "redhat",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntLost"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.2426,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntLost",
+    "bones": [
+     "@model",
+     "@rim",
+     "Hat1",
+     "HatRoot",
+     "HatTip",
+     "HeadRoot",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "LArmRoot1Rt",
+     "LElbow1El",
+     "Mist1",
+     "Mist2",
+     "MistRoot",
+     "MistTip",
+     "Neck2",
+     "NeckB",
+     "RArmRoot1Rt",
+     "RElbow1El",
+     "RWrist1Wr",
+     "Skull"
+    ],
+    "meshes": [
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 875,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 777
+  },
+  {
+   "case": {
+    "name": "林投姐髮簪",
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntSteal"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.7843,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSteal",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "HairA",
+     "HairB",
+     "HairC",
+     "HairD",
+     "HairE",
+     "HeadRoot",
+     "LArmRoot1Rt",
+     "RArmRoot1Rt",
+     "VeilTip"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 1022,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 631
+  },
+  {
+   "case": {
+    "name": "椅仔姑竹椅",
+    "ab": "chair",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 3,
+    "trait": "hauntSee"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.0221,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSee",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "Chest",
+     "Crest",
+     "Head1",
+     "HeadTop",
+     "NeckRoot",
+     "PostA",
+     "PostB",
+     "SeatFront",
+     "SeatMid",
+     "SeatRoot",
+     "Waist",
+     "Yoke"
+    ],
+    "meshes": [
+     "beam",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 900,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 774
+  },
+  {
+   "case": {
+    "name": "黃色小雨衣",
+    "ab": "raincoat",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntDread1"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 0.888,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntDread1",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Chest",
+     "Hood1",
+     "HoodRoot",
+     "HoodTop",
+     "LSlvCuff1Sl",
+     "LSlvElbow1El",
+     "LSlvRoot1Rt",
+     "MistRoot",
+     "RSlvCuff1Sl",
+     "RSlvElbow1El",
+     "RSlvRoot1Rt",
+     "ShoulderTop",
+     "Skirt1",
+     "Skirt2",
+     "SkirtTip",
+     "Waist",
+     "Yoke"
+    ],
+    "meshes": [
+     "ring"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 890,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 783
+  },
+  {
+   "case": {
+    "name": "水鬼浮標",
+    "ab": "buoy",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntSwap"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.7567,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntSwap",
+    "bones": [
+     "@model",
+     "@rim",
+     "Belly",
+     "Chest",
+     "Crown",
+     "DrumBase",
+     "DrumCap",
+     "Head1",
+     "KnotBot",
+     "KnotTop",
+     "LElbow1El",
+     "LSh1Sh",
+     "LWrist1Wr",
+     "MastTop",
+     "Neck",
+     "RElbow1El",
+     "RSh1Sh",
+     "RWrist1Wr",
+     "RopeA",
+     "RopeB",
+     "RopeC",
+     "RopeD",
+     "RopeE",
+     "RopeF",
+     "Waist",
+     "Weed1",
+     "WeedRoot",
+     "WeedTip",
+     "Yoke"
+    ],
+    "meshes": [
+     "bolt",
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 895,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 1018
+  },
+  {
+   "case": {
+    "name": "虎姑婆指甲",
+    "ab": "nail",
+    "fac": "yinqi",
+    "body": "elite",
+    "count": 1,
+    "trait": "eliteVsSwarm"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 2.6059,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "eliteVsSwarm",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "Brow",
+     "Cape1",
+     "CapeHem",
+     "CapeRoot",
+     "Chest",
+     "ClawElbow",
+     "ClawHand",
+     "ClawRoot",
+     "ClawWrist",
+     "HeadRoot",
+     "Hips",
+     "Hood1",
+     "Hood2",
+     "HoodRoot",
+     "HoodTop",
+     "Jaw1",
+     "JawRoot",
+     "JawTip",
+     "Neck",
+     "Robe1",
+     "RobeHem",
+     "RobeRoot",
+     "Snout",
+     "Spine",
+     "StubElbow",
+     "StubRoot",
+     "StubTip"
+    ],
+    "meshes": [
+     "burst",
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 883,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 605
+  },
+  {
+   "case": {
+    "name": "陰陽眼銅錢",
+    "ab": "yinyangcoin",
+    "fac": "yinqi",
+    "body": "swarm",
+    "count": 2,
+    "trait": "swarmPierce"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.4977,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmPierce",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "BasePlate",
+     "Brow",
+     "Chest",
+     "CoinA",
+     "CoinB",
+     "Crown",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Ha",
+     "LArm1Rt",
+     "LArm1Wr",
+     "Neck2",
+     "NeckB",
+     "RArm1El",
+     "RArm1Ha",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Skirt1",
+     "SkirtHem",
+     "SkirtRoot",
+     "Skull",
+     "Spine"
+    ],
+    "meshes": [
+     "beam",
+     "burst"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 925,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 766
+  },
+  {
+   "case": {
+    "name": "過陰咒",
+    "ab": "guoyin",
+    "fac": "yinqi",
+    "body": "haunt",
+    "count": 4,
+    "trait": "hauntFearX2"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 1.9056,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "hauntFearX2",
+    "bones": [
+     "@flinch",
+     "@model",
+     "@rim",
+     "ArmElbow",
+     "ArmHand",
+     "ArmRoot",
+     "ArmWrist",
+     "Chest",
+     "Crown",
+     "HeadRoot",
+     "Mist1",
+     "Mist2",
+     "MistRoot",
+     "MistTip",
+     "NeckB",
+     "Skull",
+     "Spine",
+     "VArmElbow",
+     "VArmRoot",
+     "VArmTip",
+     "VArmWrist",
+     "VChest",
+     "VCrown",
+     "VHeadRoot",
+     "VNeck",
+     "VRoot",
+     "VSkull2",
+     "VSpine",
+     "Waist"
+    ],
+    "meshes": [
+     "burst",
+     "ring"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 928,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 646
+  },
+  {
+   "case": {
+    "name": "飼鬼甕",
+    "ab": "sigui",
+    "fac": "yinqi",
+    "body": "swarm",
+    "count": 2,
+    "trait": "swarmFeed1"
+   },
+   "nA": 140,
+   "fired": {
+    "handled": true,
+    "hasMove": true
+   },
+   "verdict": {
+    "handled": true,
+    "hasMove": true,
+    "alive": true,
+    "restored": true,
+    "within": true,
+    "onTime": true,
+    "clean": true,
+    "reducedOK": true,
+    "focus": true,
+    "endFrame": 66,
+    "maxD": 2.4052,
+    "errors": 0,
+    "programsGrew": 0,
+    "blocked": null,
+    "pass": true
+   },
+   "sig": {
+    "trId": "swarmFeed1",
+    "bones": [
+     "@flinch",
+     "@rim",
+     "Chest",
+     "Crown",
+     "HeadRoot",
+     "LArm1El",
+     "LArm1Ha",
+     "LArm1Ja",
+     "LArm1Rt",
+     "LArm1Wr",
+     "LipEdge",
+     "LipMid",
+     "LipRoot",
+     "NeckRoot",
+     "NeckTop",
+     "PotBase",
+     "PotLow",
+     "PotSeam",
+     "RArm1El",
+     "RArm1Ha",
+     "RArm1Ja",
+     "RArm1Rt",
+     "RArm1Wr",
+     "Shoulders",
+     "Skull",
+     "ThroatRoot",
+     "ThroatTop",
+     "TorsoRoot",
+     "UrnA",
+     "UrnB",
+     "UrnC",
+     "UrnTop",
+     "Waist"
+    ],
+    "meshes": [
+     "burst",
+     "disc",
+     "orb"
+    ],
+    "target": true,
+    "t": 917,
+    "horizon": 920,
+    "sped": true,
+    "cut": false
+   },
+   "stats": {
+    "asked": 1,
+    "handled": 1,
+    "fallback": 0,
+    "thrown": 0,
+    "fused": 0,
+    "cut": 0,
+    "sped": 1,
+    "finished": 1
+   },
+   "errors": [],
+   "softGl": false,
+   "newPrograms": [],
+   "ms": 628
+  }
+ ]
+}
