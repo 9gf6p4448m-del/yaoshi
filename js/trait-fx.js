@@ -105,7 +105,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
 
-  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, finished: 0 };
+  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0, compressed: 0, finished: 0 };
   const runs = new Set();
   const wraps = new Map(); // figure → wrap
   let seedCounter = 11;
@@ -252,11 +252,17 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       rim(fig, mul) { run.sig.bones.add('@rim'); wrapOf(fig).rimMul = mul; },
       /* ── 時序 ── */
       /** tween({ms, delay, ease, update(t, e), done}) */
+      /** tween({ms, delay, ease, update(t, e), done})。排到 st.ms 之外的部分按比例壓縮進預算（覆審 HIGH-1：
+       *  滿編 8 尊時逐尊錯開的 lag 讓演出拖到 1317ms，index 只等 900ms → 兩套演出疊在同一批骨骼上）。 */
       tween(o) {
-        const tw = { start: run.t + (o.delay || 0), ms: Math.max(1, o.ms || run.ms), ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
+        let delay = Math.max(0, o.delay || 0), ms = Math.max(1, o.ms || run.ms);
+        const room = run.ms - run.t;
+        if (delay + ms > room) { const f = Math.max(0, room) / (delay + ms); delay *= f; ms = Math.max(1, ms * f); run.compressed++; }
+        const tw = { start: run.t + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
         run.tweens.push(tw); return tw;
       },
-      at(ms, fn) { run.timers.push({ at: run.t + ms, fn, fired: false }); },
+      /** 排在 st.ms 之後的 timer 一律夾到收工前 40ms（它排的 tween 再由上面壓縮） */
+      at(ms, fn) { const at = Math.min(run.t + Math.max(0, ms), Math.max(run.t, run.ms - 40)); if (at < run.t + ms) run.compressed++; run.timers.push({ at, fn, fired: false }); },
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
@@ -349,7 +355,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     if (!actor.length) return null;
     const run = {
       trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms) || 900), done: false,
-      tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++,
+      tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++, compressed: 0,
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), target: false },
     };
@@ -367,13 +373,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     runs.delete(run);
     run.meshes.forEach((m) => {
       scene.remove(m);
-      try { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); } catch (e) { /* 已釋放 */ }
+      // 遞迴：spawn 進來的 Group（如斬瘟的劍光樞軸）子節點也要釋放（覆審 MEDIUM-1）
+      try { m.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); }); } catch (e) { /* 已釋放 */ }
     });
     run.meshes.length = 0;
     run.tweens.length = 0; run.timers.length = 0;
-    run.wraps.forEach((w) => { w.runs.delete(run); if (!w.runs.size) unwrap(w); });
+    run.wraps.forEach((w) => {
+      w.runs.delete(run);
+      if (!w.runs.size) { unwrap(w); return; }
+      // 同一尊還有別套在演（hitstop 讓 3D 時間慢於 index 的 setTimeout 時會重疊）：把本套留下的覆寫值歸零，
+      // 別套的 tween 下一幀會重寫自己要的值（覆審 LOW-3）
+      w.over.forEach((o) => { o.rot.set(0, 0, 0); o.pos.set(0, 0, 0); o.scl = 1; });
+      w.mo.p.set(0, 0, 0); w.mo.r.set(0, 0, 0); w.mo.s = 1; w.rimMul = 1;
+    });
     run.wraps.clear();
-    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t) };
+    stats.compressed += run.compressed;
+    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), compressed: run.compressed };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
@@ -395,8 +410,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       }
       run.tweens = run.tweens.filter((tw) => !tw.dead);
       run.wraps.forEach(apply);
+      // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險
       if (run.t >= run.fuse) { stats.fused++; finish(run); }
-      else if (run.t >= run.ms && !run.tweens.length && !run.timers.length) finish(run);
+      else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) stats.cut++; finish(run); }
     }
   }
 
