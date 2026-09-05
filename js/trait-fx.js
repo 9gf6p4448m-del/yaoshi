@@ -45,6 +45,8 @@ export const TFX = {
   flinchRim: 1.8, // 退縮時邊光倍率
   tableY: 0.152, // 桌面頂（duel-figures 的影子高度），地面陣一律貼這裡
   burstPool: 260, // 招式專用的火星池（不跟命中噴發搶）
+  focusK: 0.6, // 出招側打光：戲台燈組往出招方質心移這個比例（質心約 1.15 → 位移約 0.69）
+  focusLerp: 24, // 燈組位移的收斂速率（/秒）：150ms 內到 97%
 };
 
 // 強 ease（emil-design-eng：內建曲線太弱）。全部 t∈[0,1] → 值。
@@ -85,10 +87,14 @@ function prefersReduced() {
  * @param scene / camera   renderer.js 的那一組
  * @param duelFigures      createDuelFigures 的回傳（要 figuresOf(side)）
  * @param opts.renderer    有給就預熱兩支材質 program（第一場對決前編掉）
+ * @param opts.rig         戲台燈組（createFigureLightRig 的 Group）：招式期間往出招方移（演出可讀性小卷 C-2）
  */
 export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const burst = createImpactBurst(TFX.burstPool);
   scene.add(burst.points);
+  const rig = opts.rig || null;
+  const rigBase = rig ? rig.position.clone() : null;
+  let rigGoal = null; // 目前想把燈組移去哪（有招在演時）
 
   // 材質模板：clone 出來的 program cache key 相同，27 套怎麼用都只有這兩支 shader
   const MAT_GLOW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false });
@@ -355,6 +361,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     };
     const actor = live(det.side), target = live(det.foeSide);
     if (!actor.length) return null;
+    if (rig) { const c = centroid(actor); rigGoal = rigBase.clone(); rigGoal.x += (c.x - rigBase.x) * TFX.focusK; rigGoal.z += (c.z - rigBase.z) * TFX.focusK; }
     const run = {
       trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms) || 900), done: false,
       tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++,
@@ -395,10 +402,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
-  function cancelAll() { Array.from(runs).forEach(finish); }
+  function cancelAll() { Array.from(runs).forEach(finish); if (rig) rig.position.copy(rigBase); /* SKIP：燈組立刻回位 */ }
 
   function update(dt) {
     burst.update(dt);
+    // 出招側打光：有招在演就往 rigGoal 收斂，沒有就回 base（指數收斂，focusLerp 決定快慢）
+    if (rig) rig.position.lerp(runs.size && rigGoal ? rigGoal : rigBase, Math.min(1, dt * TFX.focusLerp));
     if (!runs.size) return;
     const ms = dt * 1000;
     for (const run of Array.from(runs)) {
@@ -448,6 +457,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     lastSig() { return lastSig; },
     /** 目前還掛著包裝的 figure 數（驗收 T-2 ③：演完應為 0） */
     wrapped() { return wraps.size; },
+    /** 燈組離基準位多遠（驗收 C-2） */
+    rigOffset() { return rig ? rig.position.distanceTo(rigBase) : 0; },
     burstPoints: burst.points,
   };
 }

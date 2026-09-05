@@ -37,7 +37,7 @@ export async function serve(root, port) {
 
 /** 頁面端的錄音機：在任何 script 之前掛好事件監聽（addInitScript）。 */
 const RECORDER = `(() => {
-  const R = window.__rec = { duels: [], loading: [], burns: [], lunges: [], samples: [], beatAt: [], ends: [], marks: {} };
+  const R = window.__rec = { duels: [], loading: [], burns: [], lunges: [], samples: [], beatAt: [], ends: [], marks: {}, moves: [] };
   const now = () => Date.now();
   const figApi = () => { try { return window.__yaoshi3d && window.__yaoshi3d.duelFigures; } catch (e) { return null; } };
   const snap = (side) => { const D = figApi(); if (!D) return []; return D.figuresOf(side).map((f) => ({
@@ -90,6 +90,13 @@ const RECORDER = `(() => {
       }
     }, 0);
   });
+  // 演出可讀性小卷 C-1／C-4：招式事件派送當下（字幕已寫好）讀 #duelMove 的字與 class、#duel 的捲動高度
+  document.addEventListener('ys:fx-trait', (e) => { const d = e.detail || {}; const el = document.getElementById('duelMove'); const du = document.getElementById('duel');
+    const Y = window.__yaoshi || {}; const S = Y.S || {}; const seat = cur ? (d.side === 'B' ? cur.b : cur.a) : null;
+    const pl = S.players && seat != null ? S.players.find((p) => p.id === seat) : null; const tr = Y.TRAITS ? Y.TRAITS[d.trId] : null;
+    R.moves.push({ t: now(), trId: d.trId, side: d.side, text: el ? el.textContent : null, cls: el ? el.className : null,
+      expectName: pl ? pl.name : null, expectItem: Y.TRAIT_ITEM ? Y.TRAIT_ITEM[d.trId] : null, expectMove: tr ? tr.name : null, expectDesc: tr ? tr.desc : null,
+      scroll: du ? [du.scrollHeight, du.clientHeight] : null }); });
   document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('duelBeat');

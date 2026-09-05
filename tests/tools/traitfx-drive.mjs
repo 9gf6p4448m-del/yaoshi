@@ -109,16 +109,20 @@ async function runCase(browser, base, c, opt) {
   // 覆審 HIGH-1：演出必須在 TRAIT_MS 內收工（index 只等這麼久），不是只在保險絲內
   const onTime = endFrame >= 0 && endFrame <= FIRE_AT + Math.ceil(ms / DT_MS) + 2;
   const reducedOK = !opt.reduced || after.every((f) => !(f.d > EPS));
+  // 演出可讀性小卷 C-2：燈組在出招後 ≤9 幀（150ms）內位移 ≥0.5，收工後 ≤9 幀回到 <0.05
+  const rigEarly = after.slice(0, 10).some((f) => f.rig >= 0.5);
+  const rigBack = endIdx >= 0 ? after.slice(endIdx + 9).every((f) => f.rig < 0.05) : false;
+  const focus = fired.handled ? rigEarly && rigBack : true;
   // 覆審第 3 輪 M-1：stats 要進判定——收工時還有沒演完的（cut）或撞保險絲（fused）都算紅
   const clean = !!stats && stats.cut === 0 && stats.fused === 0;
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
   else if (cancelAt > 0) verdict.pass = fired.handled && endFrame >= 0 && endFrame <= FIRE_AT + cancelAt + 1 && restored && errors.length === 0;
   else if (opt.block) verdict.pass = fired.handled && alive && restored && within && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
-  else verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && errors.length === 0 && programs1 - programs0 === 0;
-  return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped]) };
+  else verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && errors.length === 0 && programs1 - programs0 === 0;
+  return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
 
 async function main() {
@@ -141,7 +145,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }

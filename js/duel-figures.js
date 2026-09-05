@@ -74,6 +74,17 @@ const FIG = {
   rowDepth3d: 0.32, // 前後交錯的深度也放大：同排的四足獸長軸會互相穿插，交錯開才讀得出隻數
   hauntFloat3d: 0.5, // haunt 的 3D 模型自己已有飄浮設計（無腿鏈＋霧裾），再加的離地量只給一半
   rimHit3d: 1.6, // 受擊瞬間 3D 邊光倍率多爆多少（setRim 對 3D 皮是倍率，不是不透明度）
+  // ── 演出可讀性小卷（2026-09-05 晚）：n≥3 的列陣分排、整排夾在「桌緣以內、中線以外」──
+  // 實測 8v8 一排排到 r 2.5 踩桌緣剪影、兩側在中央交錯 1.57 個單位把 VS 蓋掉（凍結檔 R-1/R-2 基準表）。
+  // 排法：n=3 一排三尊；n≥4 每排兩尊（4→2 排、5–6→3 排、7–8→4 排）。欄位中心只有 0.9～1.1 個單位、腳印半徑
+  // 0.16～0.66 差很多，所以整排不釘在欄位中心，而是在「中線＋centerGap ～ rimMax」這段可用區間裡擺，
+  // 用該排最內、最外那兩尊各自的腳印當邊界；排寬塞不下才縮 step。
+  perRow: 2,
+  centerGap: 0.22, // 最內那尊的腳印外緣離中線至少這麼多（兩側合計 0.44 ≥ R-1 的 0.30）
+  rimMax: 2.15, // 最外那尊的腳印外緣離桌心不得超過（桌面 3.4、八邊形內切 3.14；R-2 上限 2.20）
+  rowGap3d: 0.55, // 前後排的間距（世界單位；≥ R-3 的 0.50）
+  rowMinStep: 0.55, // 同一排相鄰兩尊的最小中心距（塞得下才保證；step0 在 n=8 只有約 0.36）
+  brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
 };
 
 const NATURAL_H = FIG.headY + FIG.headR; // 人形在 scale=1 時的世界高度（頭頂）
@@ -487,6 +498,32 @@ export function createDuelFigures(scene, camera, opts = {}) {
       const crowd = n <= 2 ? 1 : Math.max(FIG.crowdMin, 1 - FIG.crowdShrink * (n - 2));
       const side = i === 0 ? -1 : 1; // 左 −1、右 +1
       const dir = hitDir[i] || 0;
+      // 演出可讀性小卷：n≥3 分排＋夾寬；n≤2 完全走原路徑（位置與 v0.33 逐項相同，凍結檔 R-4）
+      let plan = null;
+      if (n >= 3) {
+        const rows = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
+        const sizes = [];
+        { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
+        const any3d = list.some((_, jj) => slots[i][jj] && slots[i][jj].skin === 'creature');
+        const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
+        const footOf = (jj) => { const g = slots[i][jj]; return g ? g.shadow.scale.x * (g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42) : 0.3; };
+        const lo = FIG.centerGap, hi = FIG.rimMax, want = Math.abs(offset[i]);
+        plan = { rows, sizes, steps: [], centers: [], rowOf: [], idxOf: [] };
+        let jj = 0;
+        for (let r = 0; r < rows; r++) {
+          const m = sizes[r];
+          const fIn = footOf(jj), fOut = footOf(jj + m - 1); // k=0 最內、k=m−1 最外
+          const need = (m - 1) / 2;
+          const W = Math.max(0, hi - lo - fIn - fOut); // 這一排兩端腳印中心能拉開的最大距離
+          const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
+          let c = Math.max(lo + fIn + need * s, Math.min(want, hi - fOut - need * s)); // 盡量貼欄位中心，不夠就往外滑
+          if (lo + fIn + need * s > hi - fOut - need * s) c = (lo + hi) / 2;
+          if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hi - fOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
+          plan.steps.push(s); plan.centers.push(c);
+          for (let k = 0; k < m; k++) { plan.rowOf.push(r); plan.idxOf.push(k); }
+          jj += m;
+        }
+      }
 
       for (let j = 0; j < n; j++) {
         const u = list[j];
@@ -540,7 +577,16 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const bs = (FIG.bodyScale[u.body] || 1) * crowd;
         const haunt = u.body === 'haunt';
         // 一整排以自己那一欄的中心對稱排開，前後交錯避免完全重疊
-        const lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
+        let lane, depth;
+        if (plan) {
+          const r = plan.rowOf[j], k = plan.idxOf[j], m = plan.sizes[r], st = plan.steps[r];
+          // 側向座標＝side×(排中心＋由內往外第 k 尊的偏移)，不再加 offset[i]（排中心已含欄位中心的意圖）
+          lane = side * (plan.centers[r] + (k - (m - 1) / 2) * st) - offset[i];
+          depth = plan.rows === 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * FIG.rowGap3d; // 第 0 排最靠鏡頭
+        } else {
+          lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
+          depth = n > 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : 0;
+        }
         const x = offset[i] + lane + push;
         const grounded = is3d && typeof f.groundFx === 'function' && !!f.groundFx();
         // 有腳下環境（水面）的不上下漂：水面跟著漂會沉到桌面下（實測 groupY 0.112～0.192，桌頂 0.15）
@@ -552,7 +598,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         f.group.position.copy(tmpRight).multiplyScalar(x);
         // 前後交錯只在「一排不只一尊」時才有意義；n===1（＝OFF 的退路）不加，
         // 位置才跟 v0.30 逐項相同。
-        if (n > 1) f.group.position.addScaledVector(tmpFwd, (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth));
+        if (depth) f.group.position.addScaledVector(tmpFwd, depth);
         // 3D 妖有腳下環境（buoy 的水面）時不再離地飄：水面掛在 group 底下，飄起來就是一灘懸空的水（審查 H-2）；
         // 浮標本身的 min.y 0.04 已經讓它浮在水面上
         // 內建燒毀的上飄：有水面的不飄（水會離桌，覆審 H-2 殘留）；3D 皮的單位是 sc 不是紙紮的 figScale

@@ -97,7 +97,7 @@ const duelFigures = createDuelFigures(scene, camera, {
     return f;
   },
 });
-const traitFx = createTraitFx(scene, camera, duelFigures, { renderer });
+const traitFx = createTraitFx(scene, camera, duelFigures, { renderer, rig });
 if (THROW) TRAIT_MOVES[TRAIT] = () => { throw new Error('injected'); };
 
 // 名冊（同 index.html pwArmyView 的形狀）：A＝出招方、B＝對面
@@ -165,7 +165,7 @@ window.__tfx = {
       step();
       const idx = window.__tfx.frameB++;
       const d = idx < snapsA.length ? maxDiff(snapsA[idx], snapshot()) : NaN;
-      out.push({ i: idx, d: +d.toFixed(5), mesh: baseChildren() - base0, burst: !!traitFx.burstPoints.visible, active: traitFx.active(), wrapped: traitFx.wrapped() });
+      out.push({ i: idx, d: +d.toFixed(5), mesh: baseChildren() - base0, burst: !!traitFx.burstPoints.visible, active: traitFx.active(), wrapped: traitFx.wrapped(), rig: +traitFx.rigOffset().toFixed(3) });
     }
     return out;
   },
@@ -176,6 +176,8 @@ window.__tfx = {
   programs() { return renderer.info.programs ? renderer.info.programs.length : -1; },
   programList() { return (renderer.info.programs || []).map((p) => `${p.name}|${p.id}|${String(p.cacheKey || "")}`); },
   bones() { return figs().map((f) => ({ ab: f.ab, bones: Object.keys(f.parts) })); },
+  /** 每尊 group 的世界座標（演出可讀性小卷 R-4：n≤2 站位不得變） */
+  positions() { return figs().map((f) => ({ ab: f.ab, x: f.group.position.x, y: f.group.position.y, z: f.group.position.z })); },
   /** 診斷：場上可見、material 是 basic 且 geometry 有 RGBA 頂點色的物件（cacheKey 的 vertexAlphas 位） */
   suspects() { const out = []; scene.traverse((o) => { if (!o.visible || !o.material || !o.geometry) return; const c = o.geometry.attributes && o.geometry.attributes.color; out.push({ type: o.type, mat: o.material.type, vc: !!o.material.vertexColors, cItem: c ? c.itemSize : 0, name: o.name || (o.parent && o.parent.name) || '' }); }); return out; },
 };

@@ -156,7 +156,9 @@ if (mode === 'bounds') {
           const Y3 = window.__yaoshi3d;
           const cur = window.__rec.duels[window.__rec.duels.length - 1];
           const mk = (k, i) => ({ id: i, body: i % 3 === 0 ? 'elite' : i % 3 === 1 ? 'swarm' : 'ward', fac: fac[heavy[k % heavy.length]], ab: heavy[k % heavy.length] });
-          const det = { a: cur.a, b: cur.b, armies: [
+          // 用「不在真對決裡」的兩個座位：ys:fx-lunge 的 w/l 對不上就不會推（push=0），量到的才是靜態站位
+          const others = [0, 1, 2, 3].filter((s) => s !== cur.a && s !== cur.b);
+          const det = { a: others[0], b: others[1], armies: [
             { units: Array.from({ length: na }, (_, i) => mk(i, i)) },
             { units: Array.from({ length: nb }, (_, i) => mk(i + 3, i)) } ] };
           document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));

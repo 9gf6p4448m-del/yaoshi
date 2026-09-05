@@ -232,6 +232,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   min-height:21px;margin-bottom:2px;text-align:center;text-shadow:0 2px 8px #000,0 0 3px #000}
 #duel.pw #duelMove{display:block;font-size:13px;min-height:18px;margin-top:2px;
   text-align:center;color:#ffd9a0;text-shadow:0 2px 8px #000,0 0 3px #000}
+/* 演出可讀性小卷（2026-09-05 晚）：招式字幕靠出招那一側、字色用出招方系色、第二行效果說明 */
+#duel.pw #duelMove.side-A{text-align:left;padding-left:6%} #duel.pw #duelMove.side-B{text-align:right;padding-right:6%}
+#duel.pw #duelMove[class*="f-"]{background:none}
+#duel.pw #duelMove.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi{color:var(--yinqi)}
+#duel.pw #duelMove .mvline{display:block} #duel.pw #duelMove .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
 #duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
 /* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
    （實測 scratchpad/layout.js：未收斂前 scrollHeight 396 > clientHeight 390，結尾字幕被裁）。
@@ -1661,7 +1666,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.33", VERSION_NOTE="《紙紮夜戰》C3 招式卷：27 件法寶各自的招式演出、受招退縮";
+const VERSION="0.34", VERSION_NOTE="《紙紮夜戰》演出可讀性：招式字幕寫出誰丟與效果、出招側打光、多尊列陣收進桌面";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3954,6 +3959,15 @@ function pwRise(el,delay){
     {duration:PW_FX.CAP_MS,delay:delay||0,easing:PW_EASE,fill:"both"}); }catch(e){}
 }
 function pwCap(id,html){ const el=$(id); if(!el) return; el.innerHTML=html; if(html) pwRise(el,0); }
+/* 演出可讀性小卷（2026-09-05 晚，使用者回饋 3「不知道誰丟、做了什麼」）：招式字幕寫出出招方、法寶、招名與效果說明，
+   class 帶出招方系色與側別（CSS 靠那一側顯示）。who 給 null＝清空。 */
+function pwMoveCap(who,item,move,desc,fac,side){
+  const el=$("duelMove"); if(!el) return;
+  if(who==null){ el.innerHTML=""; el.className=""; return; }
+  el.className=`${(FAC[fac]||{}).cls||""} side-${side}`;
+  el.innerHTML=`<span class="mvline"><b>${who}</b>・${item}：${move}</span>`+(desc?`<span class="mvdesc">${desc}</span>`:"");
+  pwRise(el,0);
+}
 function pwArenaHTML(f,views){
   const cell=(p,tag,v,total)=>{
     const wind=p.id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}</span>`:"";
@@ -4041,13 +4055,14 @@ async function pwPlayBeat(f,beat,list,views){
   let stops=0;
   for(const b of show){
     if(b.kind==="trait"){
-      const nm=TRAIT_ITEM[b.trId]||"法寶", mv=(TRAITS[b.trId]||{}).name||b.trId;
-      pwCap("duelMove",`✦ ${nm}：${mv}`);
+      const nm=TRAIT_ITEM[b.trId]||"法寶", mv=(TRAITS[b.trId]||{}).name||b.trId, desc=(TRAITS[b.trId]||{}).desc||"";
+      const evFac=pwEvFac(f,b,views);
+      pwMoveCap((b.side==="B"?f.B:f.A).name,nm,mv,desc,evFac,b.side);
       FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
       const staged=pwTraitFx(b.trId,{
-        trId:b.trId, side:b.side, foeSide, fac:pwEvFac(f,b,views), power:0.8,
+        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8,
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
@@ -4075,7 +4090,7 @@ async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
   $("duel").classList.add("pw");
   $("duelArena").innerHTML=pwArenaHTML(f,views);
-  $("duelBeat").innerHTML=""; $("duelMove").innerHTML="";
+  $("duelBeat").innerHTML=""; pwMoveCap(null);
   $("duelResult").innerHTML=""; $("duelSub").innerHTML="";
   pwLineUp();
   await pwSleep(PW_FX.ENTER_MS);
@@ -4086,7 +4101,7 @@ async function playDuelWar(f,views){
     byBeat[Math.min(3,Math.max(1,b.beat|0))-1].push(b);
   }
   for(let beat=1;beat<=3;beat++) await pwPlayBeat(f,beat,byBeat[beat-1],views);
-  pwCap("duelMove","");
+  pwMoveCap(null);
   if(f.tie){
     $("duelResult").innerHTML=`<span class="mut">勢均力敵，互不失血</span>`;
   }else{

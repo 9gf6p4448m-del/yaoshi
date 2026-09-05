@@ -103,7 +103,7 @@ function init() {
   // 招式演出的舞台（卷 C3，2026-09-05）：接 ys:fx-trait，27 套手寫編舞在 js/trait-fx/*.js。
   // 帶 renderer 進去預熱它的兩支材質 program（審查 M-3：對決中不得重編 shader）——
   // 要排在 stageRig 進場之後：program cache key 含燈數，燈組還沒進來時編的那支到對決會再編一次。
-  const traitFx = createTraitFx(scene, camera, duelFigures, { renderer });
+  const traitFx = createTraitFx(scene, camera, duelFigures, { renderer, rig: stageRig });
   let stageOn = 0;
 
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）
