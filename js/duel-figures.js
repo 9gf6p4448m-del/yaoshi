@@ -551,14 +551,23 @@ export function createDuelFigures(scene, camera, opts = {}) {
         };
         // 先加排（到 rowsMax），再整側等比縮小（fitSteps），第一個 ok 的就用；都不行就取最後一個（最小 fit、最多排）。
         // 離散選擇一場只做一次（rowsFit），之後每幀只重算連續量（排中心、step 跟鏡頭距離微調）
-        if (rowsFit[i] && rowsFit[i].n === n) {
-          plan = layout(rowsFit[i].rows, rowsFit[i].fit);
-        } else {
+        // 鎖點只在該側所有 GLB 就位後（第 3 輪覆審 H-2：第一幀影子幾何還是預設 0.42，用它選的排法整場鎖死 → 8 虎爺 0.146）
+        const allReady = list.every((_, jj) => { const g = slots[i][jj]; return !!g && (typeof g.ready !== 'function' || g.ready()); });
+        const search = () => {
+          let best = null;
           const rows0 = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
           outer: for (const fit of FIG.fitSteps) {
-            for (let rows = rows0; rows <= Math.min(FIG.rowsMax, n); rows++) { plan = layout(rows, fit); if (plan.ok) break outer; }
+            for (let rows = rows0; rows <= Math.min(FIG.rowsMax, n); rows++) { best = layout(rows, fit); if (best.ok) break outer; }
           }
-          rowsFit[i] = { n, rows: plan.rows, fit: plan.fit };
+          return best;
+        };
+        if (rowsFit[i] && rowsFit[i].n === n) {
+          plan = layout(rowsFit[i].rows, rowsFit[i].fit);
+          // 鎖住的排法塞不下了（欄位或鏡頭距離變了）：重選一次，找得到塞得下的才換，找不到就守住原排法不翻面
+          if (!plan.ok) { const alt = search(); if (alt.ok) { plan = alt; rowsFit[i] = { n, rows: alt.rows, fit: alt.fit }; } }
+        } else {
+          plan = search();
+          if (allReady) rowsFit[i] = { n, rows: plan.rows, fit: plan.fit };
         }
       }
 

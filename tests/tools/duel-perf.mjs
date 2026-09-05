@@ -162,6 +162,9 @@ if (mode === 'bounds') {
           const det = { a: others[0], b: others[1], armies: [
             { units: parseUnits(unitsA) || Array.from({ length: na }, (_, i) => mk(i, i)) },
             { units: parseUnits(unitsB) || Array.from({ length: nb }, (_, i) => mk(i + 3, i)) } ] };
+          // 真對決的時間軸還在跑，它的 ys:fx-burn 會打到合成名冊的同 id 單位；真遊戲裡燒毀只會發生在 det.ready 之後（pwAwaitFigures），
+          // 未就位的尊也走 DOM 退路不隱藏——這裡在 capture 階段攔掉，量到的才是「就位後的站位」而不是暫定排法上被凍住的尊
+          document.addEventListener('ys:fx-burn', (ev) => ev.stopImmediatePropagation(), true);
           document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));
           await det.ready;
           await new Promise((r) => setTimeout(r, 1400));
