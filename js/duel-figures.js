@@ -82,7 +82,7 @@ const FIG = {
   perRow: 2,
   centerGap: 0.22, // 最內那尊的腳印外緣離中線至少這麼多（兩側合計 0.44 ≥ R-1 的 0.30）
   rimMax: 2.15, // 最外那尊的腳印外緣離桌心不得超過（桌面 3.4、八邊形內切 3.14；R-2 上限 2.20）
-  rowGap3d: 0.55, // 前後排的間距（世界單位；≥ R-3 的 0.50）
+  rowGap3d: 0.75, // 前後排的間距（世界單位；≥ R-3 的 0.50）。俯角 24° 下深度差＝畫面高度差，拉開後排的頭才露得出來（使用者 09-05 晚追加）
   rowMinStep: 0.55, // 同一排相鄰兩尊的最小中心距（塞得下才保證；step0 在 n=8 只有約 0.36）
   brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
 };
@@ -508,11 +508,14 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
         const footOf = (jj) => { const g = slots[i][jj]; return g ? g.shadow.scale.x * (g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42) : 0.3; };
         const lo = FIG.centerGap, hi = FIG.rimMax, want = Math.abs(offset[i]);
-        plan = { rows, sizes, steps: [], centers: [], rowOf: [], idxOf: [] };
-        let jj = 0;
+        // 站位順序：小的前排、大的後排（依 bodyScale：群體 0.6 → 作祟 0.82 → 護法 0.86 → 精英 1.15），同體型保留名冊順序。
+        // 只動站位不動名冊 j／unit id（beats 的 actor/target 與 DOM 隻數牌都靠 id），所以這裡是一個排列 order[slot]=j。
+        const order = list.map((_, jj) => jj).sort((a, b) => ((FIG.bodyScale[list[a].body] || 1) - (FIG.bodyScale[list[b].body] || 1)) || (a - b));
+        plan = { rows, sizes, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n) };
+        let slot = 0;
         for (let r = 0; r < rows; r++) {
           const m = sizes[r];
-          const fIn = footOf(jj), fOut = footOf(jj + m - 1); // k=0 最內、k=m−1 最外
+          const fIn = footOf(order[slot]), fOut = footOf(order[slot + m - 1]); // k=0 最內、k=m−1 最外
           const need = (m - 1) / 2;
           const W = Math.max(0, hi - lo - fIn - fOut); // 這一排兩端腳印中心能拉開的最大距離
           const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
@@ -520,8 +523,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
           if (lo + fIn + need * s > hi - fOut - need * s) c = (lo + hi) / 2;
           if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hi - fOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
           plan.steps.push(s); plan.centers.push(c);
-          for (let k = 0; k < m; k++) { plan.rowOf.push(r); plan.idxOf.push(k); }
-          jj += m;
+          for (let k = 0; k < m; k++) { const j0 = order[slot + k]; plan.rowOf[j0] = r; plan.idxOf[j0] = k; }
+          slot += m;
         }
       }
 
@@ -582,7 +585,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
           const r = plan.rowOf[j], k = plan.idxOf[j], m = plan.sizes[r], st = plan.steps[r];
           // 側向座標＝side×(排中心＋由內往外第 k 尊的偏移)，不再加 offset[i]（排中心已含欄位中心的意圖）
           lane = side * (plan.centers[r] + (k - (m - 1) / 2) * st) - offset[i];
-          depth = plan.rows === 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * FIG.rowGap3d; // 第 0 排最靠鏡頭
+          // 一排時前後交錯用排內位置 k 的奇偶（不是名冊 j：體型排序後相鄰兩尊可能同 j 奇偶而站同一深度，實測 3v3 距離只剩 0.478）
+          depth = plan.rows === 1 ? (k % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * FIG.rowGap3d; // 第 0 排最靠鏡頭
         } else {
           lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
           depth = n > 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : 0;
