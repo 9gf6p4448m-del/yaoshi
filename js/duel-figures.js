@@ -378,8 +378,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const f = figureFor(i, j);
         if (typeof f.loaded !== 'function') continue; // 貼片工廠沒有載入這回事
         total++;
-        if (f.ready()) { done++; continue; }
-        pending.push(f.loaded());
+        if (f.ready()) { done++; f.__settled = true; continue; }
+        f.__settled = false;
+        pending.push(f.loaded().then(() => { f.__settled = true; }, () => { f.__settled = true; })); // 成功或 404 都算「載入結束」（排法鎖點用）
       }
     }
     const emit = () => {
@@ -449,7 +450,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
   let figScale3d = 1; // 3D 妖的縮放（見 FIG.creaturePx）
   let pxWorld = 0.01; // 1 CSS 像素等於多少世界單位（在桌心那個深度上）
   let nextAlign = 0;
+  let camStable = false; // 相機距離兩幀之間沒變（realign 時更新）
   let aligned = false; // 這一場的兩欄座標拿到了沒（拿到之前不畫，見 onDuel 的註解）
+  let lastDist = 0; // 上一幀相機距離：進場鏡頭 3.6→4.2 推移中不鎖排法（第 4 輪覆審 M-2）
 
   /**
    * 把兩個人形對到 DOM 那兩欄的水平中心：把欄位中心的 NDC.x 換算成
@@ -461,6 +464,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     const h = window.innerHeight;
     if (!w || !h) return;
     const dist = camera.position.length() || 4.2;
+    camStable = Math.abs(dist - lastDist) < 1e-3; lastDist = dist;
     const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * dist;
     const halfW = halfH * camera.aspect;
     // 1 CSS 像素在桌心那個深度上是多少世界單位 → 換算人形該多大
@@ -552,7 +556,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
         // 先加排（到 rowsMax），再整側等比縮小（fitSteps），第一個 ok 的就用；都不行就取最後一個（最小 fit、最多排）。
         // 離散選擇一場只做一次（rowsFit），之後每幀只重算連續量（排中心、step 跟鏡頭距離微調）
         // 鎖點只在該側所有 GLB 就位後（第 3 輪覆審 H-2：第一幀影子幾何還是預設 0.42，用它選的排法整場鎖死 → 8 虎爺 0.146）
-        const allReady = list.every((_, jj) => { const g = slots[i][jj]; return !!g && (typeof g.ready !== 'function' || g.ready()); });
+        // 就位＝GLB 載完（真腳印已換上）或載入已結束（404／逾時：這尊不會現身，用預設腳印鎖住也無妨）；再加相機距離穩定
+        // （進場鏡頭 3.6→4.2 推移期間 pxWorld 偏大，鎖到偏小的腳印會在 300ms 後跳一次排）——第 4 輪覆審 M-1／M-2
+        const allReady = camStable && list.every((_, jj) => { const g = slots[i][jj]; return !!g && (typeof g.ready !== 'function' || g.ready() || g.__settled === true); });
         const search = () => {
           let best = null;
           const rows0 = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
