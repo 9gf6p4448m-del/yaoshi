@@ -54,6 +54,7 @@ const RECORDER = `(() => {
     // detail.ready／loadTotal 是 duel-figures 的接收端在同一次派送裡才填的（本監聽器先註冊、先跑），macrotask 再讀
     cur.arenaEmptyAtDuel = !(document.getElementById('duelArena') || {}).innerHTML; // 審查 H-3：等載入時不得留上一場陣列
     try { cur.programsAtDuel = window.__yaoshi3d.renderer.info.programs.length; } catch (e) { cur.programsAtDuel = null; } // 審查 M-3：燈組進出對決不得重編
+    try { cur.programListAtDuel = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); } catch (e) { cur.programListAtDuel = null; } // 卷 C3 T-5：新編的是哪一支
     setTimeout(() => {
       cur.hasReady = !!(d.ready && typeof d.ready.then === 'function');
       cur.loadTotal = d.loadTotal;
@@ -89,7 +90,7 @@ const RECORDER = `(() => {
       }
     }, 0);
   });
-  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
+  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('duelBeat');
     if (!el) return;

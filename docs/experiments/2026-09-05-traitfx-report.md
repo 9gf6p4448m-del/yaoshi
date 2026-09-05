@@ -18,7 +18,7 @@
 | T-4 ①無 3D | ✅ | 同種子 `seed=20260905` 四場：`bl3-v032-seed-no3d` vs `bl3-v033-seed-no3d` 每場 trait 數 1/2/1/3 相同、FXC.trait 7=7、traitFig 0、時長差 −7／+31／+20／+14ms、錯誤只有刻意擋掉的 renderer.js |
 | T-4 ②單顆 GLB | ✅ | `tfx-block-actor.json`（擋 bow → handled=false 退 fallback）、`tfx-block-foe.json`（擋 boat → 照演、無錯） |
 | T-4 ③掛鉤 throw | ✅ 27/27 | `all-throw.json` 全部 handled=false、restored、err=0 |
-| T-5 真玩不退步 | ✅ | `bl3-v033-seed`：traitFig 7/7（每筆招式都走 3D）、pageerror 0、requestfailed 0；`bl-perf-v033` rAF 中位 153.8fps vs v0.32 144.9（同機同設定 `--uncap`，8v8 最重 8 隻）；programs 第一場 16→21、之後三場恆 21（v0.32 反而每場都在增：7→14→15→16） |
+| T-5 真玩不退步 | ✅ | `bl3-v033-seed`：traitFig 7/7（每筆招式都走 3D）、pageerror 0、requestfailed 0；`bl-perf-v033` rAF 中位 153.8fps vs v0.32 144.9（同機同設定 `--uncap`，8v8 最重 8 隻）；programs 第一場 16→21、之後恆 21；排程改版後重跑（`bl5-v033-seed-programs.json`）第 4 場結束多 1 支，記下清單比差集是 `ghost_leg`（陰氣妖半透明材質，creature-figures 層、該妖首次登場才編），不是招式舞台的（v0.32 同樣會在該妖首次登場時編：7→14→15→16 每場都增） |
 | T-6 時長 | ✅（中位） | 同種子：v0.32 5093/5413/5331/6233、v0.33 5783/6860/5933/8363，招式數 1/2/1/3。扣 (900−260)×n 後 v0.33 中位 5437 ≤ 基準中位 5372＋150。**逐場看 d2／d4 超過「基準＋640n＋150」17／60ms**——公式用 260 是 evMs 的上限，那兩場 evMs 實際 <260，招式取代的是較短的等待，差額落在這裡。SKIP：43/13/20/285 vs 44/14/19/212（≤ +1ms） |
 | T-7 SKIP 即停 | ✅ | `tfx-cancel.json`：第 15 幀 cancel，同幀 active=0、Δ 歸零、mesh 0 |
 | T-8 reduced-motion | ✅ 27/27 | `all-reduced.json` maxD 全 0，mesh／burst 照有 |
