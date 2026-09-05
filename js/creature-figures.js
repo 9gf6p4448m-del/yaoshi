@@ -24,7 +24,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { createImpactBurst, SPARK_COLOR } from './particles.js';
+// 快取破除接力（接線卷）：本檔由 renderer.js 用 './creature-figures.js?v=<VERSION>' 載進來，
+// 相對 import 要接同一個查詢字串，particles.js 才不會被載成兩份（理由見 renderer.js 檔頭）。
+// 預覽頁直接 import 本檔（沒帶 ?v）時 V 是空字串，行為不變。
+const V = new URL(import.meta.url).search;
+const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 
 // 全部【試玩必調】。
 // look-dev 卷把邊光從「全身一圈細鑲邊」改成「偏向背光那一側的寬邊」：
@@ -69,6 +73,36 @@ const BURN = {
 const SHADOW_COLOR = 0x05030c;
 const RIM_FALLBACK = 0xf0a840;
 
+/* ── 接線卷（2026-09-05）：載入時的體型正規化、ab→GLB 映射、各隻專屬的腳下環境 ──────
+ * 戲台相機沒有正規化（shield 回修 3 曾被切頭），所以在工廠這一層把「太高」的壓回來。
+ * 只縮不放：tiger_c 只有 1.0 高是矮胖的虎，不是做錯；boat 0.79 是臥式的船。
+ * min.y<0 的抬到 0（nail −0.09 會陷進桌面）；min.y>0 的不動——那是 haunt 的飄浮設計。 */
+const NORM = { maxH: 1.2 };
+/** POOL 的 ab → assets/creatures 檔名（沒列的同名）。tiger.glb／tiger_a／tiger_b 是試作與 look-dev 遺留，正式用量產模板 tiger_c。 */
+export const CREATURE_GLB = { tiger: 'tiger_c' };
+export function creatureGlbUrl(ab, base = 'assets/creatures/') {
+  return base + (CREATURE_GLB[ab] || ab) + '.glb';
+}
+/** 各隻專屬的腳下環境。buoy：浮標之所以認得出來是因為它泡在水裡（gaps.md buoy 列，使用者 09-05 裁定甲）。 */
+const CREATURE_GROUND = { buoy: 'water' };
+// 水面【試玩必調】：一片暗青的圓盤＋一圈微光邊＋三圈往外擴的漣漪。全部掛在 figure.group 腳下，
+// 所以妖縮放、燒毀（setFade）都自動跟著。半徑相對模型包圍盒的腳印（fit）。
+const WATER = {
+  // 第一版（暗青 0x14323c、半徑 1.15×腳印）盲讀成「腳邊一圈光暈／陰影圈」：跟暗紅桌面同一個明度、
+  // 又只比陰影大一點，讀不出是水。要讀成水得靠三件事：**比桌面亮而且偏藍**（水在夜裡反光）、
+  // **明顯大過影子**（一灘，不是一圈）、**漣漪粗而亮**（動的同心圓是水的簽名）。
+  color: 0x1e5a78, // 夜水：藍青、比桌面亮
+  opacity: 0.78,
+  edgeColor: 0x8fd6ff, // 水緣反光：淺藍白（bloom 會抓一點）
+  edgeOpacity: 0.5,
+  radius: 2.1, // × 腳印半徑：一灘水，明顯大過影子
+  rings: 3,
+  period: 2.0, // 一圈漣漪從中心擴到邊要幾秒
+  ringOpacity: 0.9,
+  ringWidth: 0.11, // 環寬（相對水面半徑）
+  bob: 0.012, // 水面隨波微微起伏的幅度（相對高度）
+};
+
 // 同一份 GLB 只抓一次：26 隻分頭載入時，同一隻的多個實例共用一份 gltf，
 // 再用 SkeletonUtils.clone 各自複製骨架（clone 會連 skeleton 一起重建，
 // 直接 object3D.clone() 會讓兩個實例共用同一副骨頭、動起來互相拉扯）。
@@ -78,7 +112,10 @@ let loader = null;
 function loadGlb(url) {
   if (!glbCache.has(url)) {
     if (!loader) loader = new GLTFLoader();
-    glbCache.set(url, loader.loadAsync(url));
+    const p = loader.loadAsync(url);
+    // 失敗的不留在快取：網路抖一次不該讓這隻整個 session 都載不到（覆審 LOW）
+    p.catch(() => { if (glbCache.get(url) === p) glbCache.delete(url); });
+    glbCache.set(url, p);
   }
   return glbCache.get(url);
 }
@@ -203,8 +240,11 @@ export function makeCreatureFigure(opts = {}) {
 
   let burning = null; // { t, dur, resolve, puff }
   let ash = null;
-  let bbox = null; // 模型本地包圍盒（GLB 載完才有）
+  let bbox = null; // 模型本地包圍盒（GLB 載完才有；已含正規化）
   let fx = null; // 三系環境特效（attachFactionFx 掛上來的）
+  let ground = null; // 腳下環境（水面等；setGroundFx 掛上來的）
+  let current = null; // 目前在播的 clip 名（play() 記錄；量測與招式演出用）
+  const ab = opts.ab === undefined ? null : opts.ab;
 
   const shadow = new THREE.Mesh(
     new THREE.CircleGeometry(0.42, 22),
@@ -216,9 +256,17 @@ export function makeCreatureFigure(opts = {}) {
 
   const readyPromise = loadGlb(opts.glbUrl).then((gltf) => {
     model = cloneSkinned(gltf.scene);
+    // 正規化前的原始包圍盒：dissolve 的 uBurnY 用的是 mesh 本地座標（shader 裡的 position），
+    // 不受這裡的 model.scale／position 影響，所以要留原始值給它。
+    const raw = new THREE.Box3().setFromObject(model);
+    const burnY = [raw.min.y, raw.max.y];
+    const rawH = raw.max.y - raw.min.y;
+    const norm = rawH > NORM.maxH ? NORM.maxH / rawH : 1;
+    model.scale.setScalar(norm);
+    if (raw.min.y < 0) model.position.y = -raw.min.y * norm;
+    model.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(model);
     bbox = box;
-    const burnY = [box.min.y, box.max.y];
 
     model.traverse((o) => {
       if (o.isBone) parts[o.name] = o;
@@ -243,9 +291,13 @@ export function makeCreatureFigure(opts = {}) {
     shadow.geometry = new THREE.CircleGeometry(foot, 22);
 
     uniforms.forEach((u) => { u.uRimColor.value.copy(rimColor); });
+    if (ground) ground.fit(box);
     loaded = true;
     return true;
   });
+  // GLB 404／網路失敗：readyPromise 會 reject。等它的人（duel-figures 的 loaded()）各自接 handler，
+  // 這裡再掛一條空的，免得沒人等的時候變成 unhandledrejection（頁面 console error）。
+  readyPromise.catch(() => {});
 
   function setRimUniforms() {
     uniforms.forEach((u) => {
@@ -258,10 +310,13 @@ export function makeCreatureFigure(opts = {}) {
     uniforms.forEach((u) => { u.uDissolve.value = v; });
   }
 
-  return {
+  const api = {
     group,
     shadow,
     parts,
+    /** 換皮辨識：duel-figures 靠這個決定不套頭像／袍子色／整尊透明度（接線卷） */
+    skin: 'creature',
+    ab,
     /** 批 1 介面相容：3D 生物自己長著臉，不吃頭像貼圖。留著讓換皮呼叫端不必分支。 */
     setPortrait() {},
     /** 換邊光色（三系色；沿用批 1 的名字，換皮呼叫端一行都不用改） */
@@ -274,8 +329,27 @@ export function makeCreatureFigure(opts = {}) {
     loaded() { return readyPromise; },
     /** 有哪些 clip 可播 */
     clipNames() { return Object.keys(clips); },
-    /** 模型的本地包圍盒（GLB 沒載完是 null）；特效與掛件靠它決定尺寸，不寫死 1 公尺 */
+    /** 模型的本地包圍盒（GLB 沒載完是 null；已含正規化）；特效與掛件靠它決定尺寸，不寫死 1 公尺 */
     bounds() { return bbox; },
+    /** mixer 累計時間（秒）。量測用：對決中兩次取樣嚴格遞增＝每幀真的有 update 到。 */
+    animTime() { return mixer ? mixer.time : 0; },
+    /** 目前在播的 clip 名（play() 記錄；還沒播過是 null） */
+    current() { return current; },
+    /** 腳下環境的種類（'water'）或 null */
+    groundFx() { return ground ? ground.kind : null; },
+    /**
+     * 掛腳下環境（目前只有 'water'）。傳 null／'none' 拆掉。回傳控制點（沒掛成功回 null）。
+     * 由 makeCreatureFigure 依 CREATURE_GROUND 自動掛，呼叫端一般不必自己叫。
+     */
+    setGroundFx(kind) {
+      if (ground) { group.remove(ground.group); ground.dispose(); ground = null; }
+      if (!kind || kind === 'none') return null;
+      ground = kind === 'water' ? makeWaterPool() : null;
+      if (!ground) return null;
+      group.add(ground.group);
+      if (bbox) ground.fit(bbox);
+      return ground;
+    },
     /**
      * 掛上三系環境特效（見檔尾 attachFactionFx）。同一隻重掛會先拆掉舊的。
      * 傳 null／'none' 就是拆掉。回傳特效控制點（沒掛成功回 null）。
@@ -287,7 +361,7 @@ export function makeCreatureFigure(opts = {}) {
       if (!fx) return null;
       group.add(fx.points);
       // GLB 還沒到就先用預設高度，載完再按真實包圍盒重新框一次
-      if (bbox) fx.fit(bbox); else readyPromise.then(() => { if (fx && bbox) fx.fit(bbox); });
+      if (bbox) fx.fit(bbox); else readyPromise.then(() => { if (fx && bbox) fx.fit(bbox); }, () => { /* GLB 404：這隻不會現身，特效也不必框 */ });
       return fx;
     },
     /**
@@ -298,6 +372,7 @@ export function makeCreatureFigure(opts = {}) {
     play(name, o = {}) {
       if (!mixer || !clips[name]) return null;
       const act = mixer.clipAction(clips[name]);
+      current = name;
       const loop = o.loop === undefined ? name !== 'attack' : o.loop;
       act.reset();
       act.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1);
@@ -330,11 +405,13 @@ export function makeCreatureFigure(opts = {}) {
       if (mixer) mixer.update(dt);
       if (ash) ash.update(dt);
       if (fx) fx.update(dt);
+      if (ground) ground.update(dt);
       if (!burning) return;
       burning.t += dt;
       const p = Math.min(1, burning.t / burning.dur);
       setDissolve(p);
       if (fx) fx.setFade(1 - p); // 身體燒到哪，身上的香火／金粉／鬼火就淡到哪
+      if (ground) ground.setFade(1 - p);
       while (burning.puff < BURN.ashAt.length && p >= BURN.ashAt[burning.puff]) {
         const origin = group.getWorldPosition(new THREE.Vector3());
         const box = model ? new THREE.Box3().setFromObject(model) : null;
@@ -355,15 +432,19 @@ export function makeCreatureFigure(opts = {}) {
     },
     /** 換下一場之前把燒毀狀態收回來（dissolve 歸零、重新可見） */
     reset() {
+      // 上一場沒演完的燒毀（GLB 晚到、分頁在背景）：把它的 Promise 結掉，等它的人才走得下去（審查 H-1）
+      if (burning) { const done = burning.resolve; burning = null; try { done(); } catch (err) { /* 呼叫端的問題不擋本檔 */ } }
       burning = null;
       setDissolve(0);
       if (fx) fx.setFade(1);
+      if (ground) ground.setFade(1);
       group.visible = true;
       shadow.visible = true;
     },
     /** 釋放這一隻獨佔的材質與幾何（GLB 本身由 glbCache 共用，不在這裡釋放） */
     dispose() {
       if (fx) { group.remove(fx.points); fx.dispose(); fx = null; }
+      if (ground) { group.remove(ground.group); ground.dispose(); ground = null; }
       group.traverse((o) => {
         if (!o.isMesh) return;
         const mats = Array.isArray(o.material) ? o.material : [o.material];
@@ -371,6 +452,67 @@ export function makeCreatureFigure(opts = {}) {
       });
       shadow.geometry.dispose();
       shadow.material.dispose();
+    },
+  };
+  const groundKind = opts.groundFx === undefined ? (ab ? CREATURE_GROUND[ab] : null) : opts.groundFx;
+  if (groundKind) api.setGroundFx(groundKind);
+  return api;
+}
+
+/* ── 腳下環境：水面（接線卷，2026-09-05）────────────────────────────────────
+ * 三種 mesh：水面圓盤（Normal）、水緣微光（Additive）、漣漪環 ×3（Additive）。
+ * 座標是 figure.group 的本地座標：腳底 y=0，圓盤貼在 y=0.004（高於 duel-figures 的地面陰影 0.002）。 */
+function makeWaterPool() {
+  const g = new THREE.Group();
+  g.name = 'ground-water';
+  const flat = (color, opacity, additive) => new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity, depthWrite: false, fog: false, toneMapped: false,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide,
+  });
+  const discMat = flat(WATER.color, WATER.opacity, false);
+  const edgeMat = flat(WATER.edgeColor, WATER.edgeOpacity, true);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(1, 40), discMat);
+  const edge = new THREE.Mesh(new THREE.RingGeometry(0.86, 1.0, 40), edgeMat);
+  const rings = [];
+  for (let i = 0; i < WATER.rings; i++) {
+    const r = new THREE.Mesh(new THREE.RingGeometry(1 - WATER.ringWidth, 1, 40), flat(WATER.edgeColor, WATER.ringOpacity, true));
+    r.rotation.x = -Math.PI / 2;
+    r.position.y = 0.006;
+    rings.push(r);
+    g.add(r);
+  }
+  disc.rotation.x = -Math.PI / 2;
+  edge.rotation.x = -Math.PI / 2;
+  disc.position.y = 0.004;
+  edge.position.y = 0.005;
+  g.add(disc, edge);
+
+  let R = 0.5; // 水面半徑（fit 後依腳印改寫）
+  let fade = 1;
+  let elapsed = 0;
+
+  function update(dt) {
+    elapsed += dt;
+    disc.position.y = 0.004 + (0.5 + 0.5 * Math.sin(elapsed * 1.7)) * WATER.bob * R; // 只往上起伏，不會沉到桌面下
+    rings.forEach((r, i) => {
+      const t = ((elapsed / WATER.period) + i / WATER.rings) % 1; // 三圈錯開 1/3 週期
+      r.scale.setScalar(R * (0.18 + 0.97 * t));
+      r.material.opacity = WATER.ringOpacity * (1 - t) * (1 - t) * fade;
+    });
+    discMat.opacity = WATER.opacity * fade;
+    edgeMat.opacity = WATER.edgeOpacity * fade;
+  }
+  return {
+    group: g, kind: 'water', update,
+    fit(b) {
+      R = Math.max(0.25, Math.max(b.max.x - b.min.x, b.max.z - b.min.z) * 0.5 * WATER.radius);
+      disc.scale.setScalar(R);
+      edge.scale.setScalar(R);
+    },
+    setFade(v) { fade = Math.max(0, Math.min(1, v)); },
+    dispose() {
+      disc.geometry.dispose(); edge.geometry.dispose(); discMat.dispose(); edgeMat.dispose();
+      rings.forEach((r) => { r.geometry.dispose(); r.material.dispose(); });
     },
   };
 }

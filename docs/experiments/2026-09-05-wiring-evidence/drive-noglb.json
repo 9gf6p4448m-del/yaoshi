@@ -1,0 +1,867 @@
+{
+ "rec": {
+  "duels": [
+   {
+    "t": 1788606862794,
+    "a": 0,
+    "b": 3,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 0,
+    "readyAt": 1788606862813,
+    "firstBeatAt": 1788606863285,
+    "loading": [
+     {
+      "t": 1788606862798,
+      "loaded": 0,
+      "total": 0
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788606864300,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788606864702,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 7,
+    "loadLoaded0": 0,
+    "endAt": 1788606867252,
+    "programsAtEnd": 14,
+    "load": {
+     "ms": 1,
+     "total": 0,
+     "loaded": 0,
+     "timedOut": false,
+     "readyAt": 1788606862799
+    }
+   },
+   {
+    "t": 1788606867831,
+    "a": 1,
+    "b": 2,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "redhat",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "redhat",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "redhat",
+       "hasAb": true
+      },
+      {
+       "id": 3,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "redhat",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 7,
+    "readyAt": 1788606867847,
+    "firstBeatAt": 1788606868332,
+    "loading": [
+     {
+      "t": 1788606867837,
+      "loaded": 0,
+      "total": 7
+     },
+     {
+      "t": 1788606867846,
+      "loaded": 1,
+      "total": 7
+     },
+     {
+      "t": 1788606867846,
+      "loaded": 2,
+      "total": 7
+     },
+     {
+      "t": 1788606867846,
+      "loaded": 3,
+      "total": 7
+     },
+     {
+      "t": 1788606867847,
+      "loaded": 4,
+      "total": 7
+     },
+     {
+      "t": 1788606867847,
+      "loaded": 5,
+      "total": 7
+     },
+     {
+      "t": 1788606867847,
+      "loaded": 6,
+      "total": 7
+     },
+     {
+      "t": 1788606867847,
+      "loaded": 7,
+      "total": 7
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788606869333,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 3,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788606869733,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "redhat",
+        "unit": 3,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 14,
+    "loadLoaded0": 0,
+    "programsAfterEnd": 14,
+    "endAt": 1788606872578,
+    "programsAtEnd": 14,
+    "load": {
+     "ms": 10,
+     "total": 7,
+     "loaded": 7,
+     "timedOut": false,
+     "readyAt": 1788606867847
+    }
+   },
+   {
+    "t": 1788606883336,
+    "a": 0,
+    "b": 1,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "swarm",
+       "fac": "zuling",
+       "ab": "boat",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 3,
+    "readyAt": 1788606883342,
+    "firstBeatAt": 1788606883833,
+    "loading": [
+     {
+      "t": 1788606883337,
+      "loaded": 0,
+      "total": 3
+     },
+     {
+      "t": 1788606883342,
+      "loaded": 1,
+      "total": 3
+     },
+     {
+      "t": 1788606883342,
+      "loaded": 2,
+      "total": 3
+     },
+     {
+      "t": 1788606883342,
+      "loaded": 3,
+      "total": 3
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788606884850,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788606885240,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 0,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 1,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "boat",
+        "unit": 2,
+        "anim": 0,
+        "cur": null,
+        "vis": false,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 14,
+    "loadLoaded0": 0,
+    "endAt": 1788606888316,
+    "programsAtEnd": 14,
+    "load": {
+     "ms": 5,
+     "total": 3,
+     "loaded": 3,
+     "timedOut": false,
+     "readyAt": 1788606883342
+    }
+   }
+  ],
+  "loading": [
+   {
+    "t": 1788606862798,
+    "loaded": 0,
+    "total": 0
+   },
+   {
+    "t": 1788606867837,
+    "loaded": 0,
+    "total": 7
+   },
+   {
+    "t": 1788606867846,
+    "loaded": 1,
+    "total": 7
+   },
+   {
+    "t": 1788606867846,
+    "loaded": 2,
+    "total": 7
+   },
+   {
+    "t": 1788606867846,
+    "loaded": 3,
+    "total": 7
+   },
+   {
+    "t": 1788606867847,
+    "loaded": 4,
+    "total": 7
+   },
+   {
+    "t": 1788606867847,
+    "loaded": 5,
+    "total": 7
+   },
+   {
+    "t": 1788606867847,
+    "loaded": 6,
+    "total": 7
+   },
+   {
+    "t": 1788606867847,
+    "loaded": 7,
+    "total": 7
+   },
+   {
+    "t": 1788606883337,
+    "loaded": 0,
+    "total": 3
+   },
+   {
+    "t": 1788606883342,
+    "loaded": 1,
+    "total": 3
+   },
+   {
+    "t": 1788606883342,
+    "loaded": 2,
+    "total": 3
+   },
+   {
+    "t": 1788606883342,
+    "loaded": 3,
+    "total": 3
+   }
+  ],
+  "burns": [
+   {
+    "t": 1788606864914,
+    "side": "A",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   },
+   {
+    "t": 1788606885069,
+    "side": "A",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   }
+  ],
+  "lunges": [
+   {
+    "t": 1788606863650,
+    "w": 3,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788606864567,
+    "w": 3,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788606868696,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606868961,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606869228,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606869859,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606870128,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606870394,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606884197,
+    "w": 0,
+    "l": 1,
+    "side": "A",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788606884461,
+    "w": 1,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "t": 1788606884725,
+    "w": 1,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null,
+     null,
+     null
+    ],
+    "at670": [
+     null,
+     null,
+     null
+    ]
+   }
+  ],
+  "samples": [],
+  "beatAt": [],
+  "ends": [
+   1788606867252,
+   1788606872578,
+   1788606888316
+  ],
+  "marks": {
+   "attackAt": 1788606863790,
+   "lineupAt": 1788606869531
+  }
+ },
+ "fxc": {
+  "burn": 2,
+  "burnDom": 2,
+  "burnFig": 0,
+  "trait": 1,
+  "beat": 9,
+  "duels": 3,
+  "traits": {
+   "hauntLost": 1
+  },
+  "beats": {
+   "一拍・撞": 3,
+   "二拍・護": 3,
+   "三拍・祟": 3
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 0,
+    "burnCalls": 0,
+    "warBurn": 0,
+    "burnDom": 0,
+    "burnFig": 0,
+    "traitEv": 1,
+    "traitCap": 1
+   },
+   {
+    "round": 2,
+    "a": 0,
+    "b": 1,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0
+   }
+  ],
+  "load": {
+   "ms": 5,
+   "total": 3,
+   "loaded": 3,
+   "timedOut": false,
+   "readyAt": 1788606883342
+  }
+ },
+ "ys3d": true,
+ "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "ver": "v0.32・紙紮夜戰：開・《紙紮夜戰》接線卷：27 隻真 3D 妖進正式對決、召喚載入條、浮標水面",
+ "errors": [
+  "requestfailed: http://127.0.0.1:8836/assets/creatures/boat.glb net::ERR_FAILED",
+  "console: Failed to load resource: net::ERR_FAILED",
+  "requestfailed: http://127.0.0.1:8836/assets/creatures/redhat.glb net::ERR_FAILED",
+  "console: Failed to load resource: net::ERR_FAILED",
+  "requestfailed: http://127.0.0.1:8836/assets/creatures/boat.glb net::ERR_FAILED",
+  "console: Failed to load resource: net::ERR_FAILED"
+ ],
+ "lastMainText": "開戰",
+ "shots": {},
+ "elapsedMs": 35424
+}

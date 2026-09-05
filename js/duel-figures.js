@@ -66,6 +66,14 @@ const FIG = {
   hauntBob: 0.06, // 作祟上下飄的幅度（比站著的人明顯）
   burnMs: 420, // 被燒掉那一尊淡出＋上飄的時間（對齊 index.html 的 PW_FX.BURN_MS）
   burnRise: 0.5,
+  // ── 真 3D 妖（接線卷，2026-09-05；工廠 skin==='creature' 時才用）──
+  creaturePx: 150, // 3D 妖「1.2 世界單位高」在畫面上佔幾個 CSS 像素（190 時精英×1.15 在 390px 高的畫面被切頭，實測 scratchpad/buoy.png）（同 pixelH 的道理；紙紮是 176px/1.76 單位）
+  creatureH: 1.2, // 工廠正規化後的最大高度（creature-figures.js 的 NORM.maxH）
+  faceTurn3d: 35, // 3D 妖面向對手，再往鏡頭轉幾度（0＝純側面看不到臉；90＝正對鏡頭看不出對峙）
+  rowStepPx3d: 58, // 3D 妖比紙紮寬（四足的長軸沿著排開的方向），相鄰兩尊的間距放大一點
+  rowDepth3d: 0.32, // 前後交錯的深度也放大：同排的四足獸長軸會互相穿插，交錯開才讀得出隻數
+  hauntFloat3d: 0.5, // haunt 的 3D 模型自己已有飄浮設計（無腿鏈＋霧裾），再加的離地量只給一半
+  rimHit3d: 1.6, // 受擊瞬間 3D 邊光倍率多爆多少（setRim 對 3D 皮是倍率，不是不透明度）
 };
 
 const NATURAL_H = FIG.headY + FIG.headR; // 人形在 scale=1 時的世界高度（頭頂）
@@ -121,6 +129,18 @@ function flatMat(colorHex, extra) {
  * 想換成別種呈現（例如之後的真 3D 模型），寫一個新的工廠回傳同樣這五個成員，
  * 再用 createDuelFigures(scene, camera, { makeFigure: 你的工廠 }) 傳進來即可，
  * 本檔其餘程式碼一行都不用動。**上面那五個必要成員在卷 C1 沒有增減。**
+ *
+ * ── 接線卷（2026-09-05）：工廠改成 makeFigure(unit) 收單位 {id, body, fac, ab} ──────
+ *   同一尊人形不再綁死在池位 j 上，而是按 opts.figureKey(unit)（預設＝unit.ab）分池、
+ *   每場重新配位：這一場左邊第 3 尊是虎爺、下一場是王船，各自從自己那一池拿閒置的，
+ *   沒有才 new。批 1 的貼片工廠不收參數、key 一律 ''，行為與 C1 逐項相同。
+ *   工廠回傳物件若帶 skin==='creature'，本檔就不套頭像／袍子色／整尊透明度（3D 妖自己長著臉、
+ *   半透明由材質負責），並改用下面這些可選成員：
+ *     update(dt)     每幀呼叫（mixer／燒毀／特效）——燒毀中的那一尊也要呼叫，dissolve 靠它走
+ *     play(name,o)   'idle' 進場、'attack' 出招（ys:fx-lunge 的勝方）、撞完回 'idle'
+ *     reset()        下一場開始前把燒毀狀態收回來
+ *     loaded()       Promise：GLB 載完。本場所有尊的 Promise.all 放回 ys:duel 的 detail.ready，
+ *                    進度用 ys:duel-loading {loaded,total} 事件回報（index.html 的載入條）
  *
  * ── 給真 3D 模型的兩個「可選」成員（卷 C1 預留，2026-09-04 使用者裁定）──────────
  *   parts?: { body, armL, armR, head, ... }   子群組表。骨架動畫（揮手、踏步、被打退）
@@ -250,14 +270,19 @@ async function clothOf(roleId, assetsBase) {
 /**
  * @param scene 要掛上去的場景
  * @param camera 用來算「畫面左右」的相機（每幀取方位角，punch 的微震會自然帶出視差）
+ * @param opts.makeFigure  人形工廠 makeFigure(unit)（見上面的介面說明）
+ * @param opts.figureKey   unit → 池的鍵；同鍵的尊可以互相重用（預設 unit.ab，沒有＝''）
  */
 export function createDuelFigures(scene, camera, opts = {}) {
   const assetsBase = opts.assetsBase || 'assets/characters/';
   const factory = opts.makeFigure || makeLayeredFigure; // 換皮就換這個（見上面的介面說明）
+  const keyOf = opts.figureKey || ((u) => (u && u.ab ? String(u.ab) : ''));
   // 兩邊各一個「紙紮池」：[0]＝畫面左（ys:duel 的 a）、[1]＝畫面右（b）。
-  // 依名冊長度慢慢長出來（第一次用到才 new），一場只有一尊時成本與 v0.30 相同。
-  const pool = [[], []];
-  // 這一場每邊的名冊：[{id, body, fac}]。ys:duel 沒帶 armies（＝PAPERWAR_ON 關）時
+  // 池按 keyOf(unit) 分：{ key → [figure...] }；figure.__busy＝本場已配位。
+  // 依名冊慢慢長出來（第一次用到才 new），一場只有一尊時成本與 v0.30 相同。
+  const pool = [Object.create(null), Object.create(null)];
+  const slots = [[], []]; // 本場 j → figure（onDuel 時配位）
+  // 這一場每邊的名冊：[{id, body, fac, ab}]。ys:duel 沒帶 armies（＝PAPERWAR_ON 關）時
   // 退回「每邊一尊」，長相與 v0.30 逐項相同。
   let roster = [[], []];
   // 單位 id → { t0, custom, done }
@@ -266,14 +291,26 @@ export function createDuelFigures(scene, camera, opts = {}) {
   const burnState = [new Map(), new Map()];
   const indexOfUnit = (i, id) => roster[i].findIndex((u) => u && u.id === id);
 
+  function eachFigure(cb) {
+    pool.forEach((side, i) => { for (const key in side) side[key].forEach((f) => cb(f, i)); });
+  }
+
   function figureFor(side, j) {
-    if (!pool[side][j]) {
-      const f = Object.assign(factory(), { applied: '', cloth: '' });
+    if (slots[side][j]) return slots[side][j];
+    const u = roster[side][j];
+    const key = keyOf(u);
+    const arr = pool[side][key] || (pool[side][key] = []);
+    let f = arr.find((x) => !x.__busy);
+    if (!f) {
+      f = Object.assign(factory(u), { applied: '', cloth: '' });
       scene.add(f.group);
       scene.add(f.shadow);
-      pool[side][j] = f;
+      arr.push(f);
     }
-    return pool[side][j];
+    f.__busy = true;
+    f.unit = u;
+    slots[side][j] = f;
+    return f;
   }
 
   let active = false;
@@ -304,7 +341,36 @@ export function createDuelFigures(scene, camera, opts = {}) {
     nextAlign = 0;
     burnState[0].clear();
     burnState[1].clear();
-    pool.forEach((side) => side.forEach((f) => { f.applied = ''; f.cloth = ''; f.__op = undefined; }));
+    // 回收上一場：全部標閒置、收起、燒毀狀態歸零（3D 妖的 dissolve 要 reset 才會復原）
+    eachFigure((f) => {
+      f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
+      if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
+      f.group.visible = false;
+      f.shadow.visible = false;
+    });
+    slots[0].length = 0;
+    slots[1].length = 0;
+    // 立刻配位：GLB 從現在開始載（不等第一幀），載入條對的就是這一批。
+    // 已經載好的（重用池裡的尊）同步算完成，快取命中時首個進度事件就是 loaded===total。
+    let total = 0;
+    let done = 0;
+    const pending = [];
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < roster[i].length; j++) {
+        const f = figureFor(i, j);
+        if (typeof f.loaded !== 'function') continue; // 貼片工廠沒有載入這回事
+        total++;
+        if (f.ready()) { done++; continue; }
+        pending.push(f.loaded());
+      }
+    }
+    const emit = () => {
+      d.loadLoaded = done;
+      try { document.dispatchEvent(new CustomEvent('ys:duel-loading', { detail: { loaded: done, total } })); } catch (err) { /* headless */ }
+    };
+    d.loadTotal = total;
+    d.ready = Promise.all(pending.map((p) => Promise.resolve(p).then(() => { done++; emit(); }, () => { done++; emit(); }))).then(() => true);
+    emit();
   }
 
   /** 【積木接收端】ys:fx-burn：某一側的第幾隻被燒掉了。
@@ -317,12 +383,15 @@ export function createDuelFigures(scene, camera, opts = {}) {
     const i = d.side === 'B' ? 1 : 0;
     if (typeof d.unit !== 'number' || burnState[i].has(d.unit)) return;
     const j = indexOfUnit(i, d.unit);
-    const fig = j >= 0 ? pool[i][j] : null;
+    const fig = j >= 0 ? slots[i][j] : null;
     const st = { t0: performance.now(), custom: false, done: false };
     burnState[i].set(d.unit, st);
-    if (fig && typeof fig.burn === 'function') {
+    // GLB 還沒到（載入逾時照演、404）就不能交給工廠：它的 Promise 靠每幀 update 推進，
+    // 而 ready() 之前本檔不呼叫 update，交過去就永遠不 resolve、時間軸卡死（接線卷審查 C-2）。
+    // 退回內建淡出＋DOM 版 fxBurn，跟貼片一樣演。
+    if (fig && typeof fig.burn === 'function' && (typeof fig.ready !== 'function' || fig.ready())) {
       try {
-        const p = Promise.resolve(fig.burn({ ms: Number(d.ms) || FIG.burnMs, body: (roster[i][j] || {}).body }));
+        const p = Promise.resolve(fig.burn({ ms: Number(d.ms) || FIG.burnMs, body: (roster[i][j] || {}).body, seed: d.unit + 1 + i * 100 }));
         st.custom = true;
         d.handled = true;
         d.done = p.then(() => { st.done = true; }, () => { st.done = true; });
@@ -347,7 +416,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
   function onDuelEnd() {
     active = false;
     hitAt = 0;
-    pool.forEach((side) => side.forEach((f) => { f.group.visible = false; f.shadow.visible = false; }));
+    eachFigure((f) => { f.group.visible = false; f.shadow.visible = false; });
   }
 
   document.addEventListener('ys:duel', onDuel);
@@ -359,6 +428,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
   const tmpFwd = new THREE.Vector3(); // 「朝鏡頭」的水平向量，用來把整排排出前後深度
   const offset = [-FIG.spread, FIG.spread]; // 兩人離畫面中心的水平距離（世界單位）
   let figScale = 1; // 依視窗高度換算的人形縮放（見 FIG.pixelH）
+  let figScale3d = 1; // 3D 妖的縮放（見 FIG.creaturePx）
   let pxWorld = 0.01; // 1 CSS 像素等於多少世界單位（在桌心那個深度上）
   let nextAlign = 0;
   let aligned = false; // 這一場的兩欄座標拿到了沒（拿到之前不畫，見 onDuel 的註解）
@@ -378,6 +448,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     // 1 CSS 像素在桌心那個深度上是多少世界單位 → 換算人形該多大
     pxWorld = (2 * halfH) / h;
     figScale = Math.max(0.25, Math.min(2, (FIG.pixelH * pxWorld) / NATURAL_H));
+    figScale3d = Math.max(0.25, Math.min(2, (FIG.creaturePx * pxWorld) / FIG.creatureH));
     let ok = 0;
     COLUMN_DOM_ID.forEach((id, i) => {
       const el = document.getElementById(id);
@@ -414,17 +485,15 @@ export function createDuelFigures(scene, camera, opts = {}) {
       const n = list.length;
       // 一整排的整體縮小：八尊還用一尊的大小會擠成一團、互相蓋住臉
       const crowd = n <= 2 ? 1 : Math.max(FIG.crowdMin, 1 - FIG.crowdShrink * (n - 2));
-      const step = FIG.rowStepPx * pxWorld * crowd;
       const side = i === 0 ? -1 : 1; // 左 −1、右 +1
       const dir = hitDir[i] || 0;
-      const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * figScale;
 
-      for (let j = 0; j < Math.max(n, pool[i].length); j++) {
+      for (let j = 0; j < n; j++) {
         const u = list[j];
-        if (!u) { const old = pool[i][j]; if (old) { old.group.visible = false; old.shadow.visible = false; } continue; }
         const f = figureFor(i, j);
+        const is3d = f.skin === 'creature';
 
-        if (p) {
+        if (p && !is3d) {
           // 頭像：角色或氣色變了才換（三態快取與牌桌那條共用，見 bridge-players.getTexture）
           const state = Y.lifeState ? Y.lifeState(p) : 'state-healthy';
           const key = `${p.roleId}:${state}`;
@@ -443,6 +512,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
           }
         }
         if (!f.ready()) continue;
+        // 每幀推進（接線卷）：mixer／燒毀／灰燼／特效。放在燒毀判斷之前——
+        // 燒毀中的那一尊 dissolve 就是靠這一行在走，跳過它就會停在半燒的狀態。
+        if (typeof f.update === 'function') f.update(dt);
 
         // 燒掉的那一尊：內建演出＝淡出＋上飄（時長對齊 index.html 的 fxBurn）；
         // 工廠自己有 burn() 時（st.custom）本檔完全不插手，只在它演完後收起來。
@@ -453,35 +525,64 @@ export function createDuelFigures(scene, camera, opts = {}) {
         if (bt != null && bu >= 1) { st.done = true; f.group.visible = false; f.shadow.visible = false; continue; }
         if (st && st.custom) continue; // 這一尊的位置／透明度歸工廠的 burn() 管，本檔這一幀不碰
 
+        // 骨架動畫（3D 皮）：進場先站 idle；勝方在 lunge 那一下播 attack，撞完回 idle。
+        // 招式專屬的動作歸 C3 卷的 TRAIT_FX，這裡只做通用交鋒。
+        if (is3d && typeof f.play === 'function') {
+          if (!f.__anim) { f.__anim = 'idle'; f.__hitAt = 0; f.play('idle', { fade: 0 }); }
+          // 每一次 lunge（hitAt 換新值）都重播 attack：一拍內連擊五次要揮五次，不是揮一次定格（審查 M-1）
+          else if (dir === 1 && hitAt && f.__hitAt !== hitAt) { f.__anim = 'attack'; f.__hitAt = hitAt; f.play('attack', { fade: 0.08 }); }
+          else if (!hitAt && f.__anim === 'attack') { f.__anim = 'idle'; f.play('idle', { fade: 0.2 }); }
+        }
+
+        const sc = is3d ? figScale3d : figScale;
+        const step = (is3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
+        const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * sc;
         const bs = (FIG.bodyScale[u.body] || 1) * crowd;
         const haunt = u.body === 'haunt';
         // 一整排以自己那一欄的中心對稱排開，前後交錯避免完全重疊
         const lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
         const x = offset[i] + lane + push;
-        const bobAmp = (haunt ? FIG.hauntBob : FIG.bobAmp) * figScale * bs;
+        const grounded = is3d && typeof f.groundFx === 'function' && !!f.groundFx();
+        // 有腳下環境（水面）的不上下漂：水面跟著漂會沉到桌面下（實測 groupY 0.112～0.192，桌頂 0.15）
+        const bobAmp = grounded ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;
         const bob = Math.sin(now * 0.001 * Math.PI * 2 * FIG.bobHz + j * 1.7 + i * 0.9) * bobAmp;
 
-        f.group.scale.setScalar(figScale * bs);
-        f.shadow.scale.setScalar(figScale * bs);
+        f.group.scale.setScalar(sc * bs);
+        f.shadow.scale.setScalar(sc * bs);
         f.group.position.copy(tmpRight).multiplyScalar(x);
         // 前後交錯只在「一排不只一尊」時才有意義；n===1（＝OFF 的退路）不加，
         // 位置才跟 v0.30 逐項相同。
-        if (n > 1) f.group.position.addScaledVector(tmpFwd, (j % 2 ? 1 : -1) * FIG.rowDepth);
+        if (n > 1) f.group.position.addScaledVector(tmpFwd, (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth));
+        // 3D 妖有腳下環境（buoy 的水面）時不再離地飄：水面掛在 group 底下，飄起來就是一灘懸空的水（審查 H-2）；
+        // 浮標本身的 min.y 0.04 已經讓它浮在水面上
+        // 內建燒毀的上飄：有水面的不飄（水會離桌，覆審 H-2 殘留）；3D 皮的單位是 sc 不是紙紮的 figScale
         f.group.position.y = FIG.footY + bob
-          + (haunt ? FIG.hauntFloat * figScale * bs : 0)
-          + bu * FIG.burnRise * figScale;
-        // billboard 但刻意側身：正對鏡頭時加厚那疊完全被前層擋住，看不出厚度；
-        // 轉 faceTurn 度變成 3/4 面，側邊的擠出面才露出來，同時也讀成「面向對手」。
-        f.group.rotation.set(0, az + side * THREE.MathUtils.degToRad(FIG.faceTurn), 0);
-        // 站姿：往對手側傾；被打中的那一方額外歪出去（樞紐在腳底，看起來才像人被打退）
-        const leanDeg = -side * FIG.lean + (dir === -1 ? side * FIG.lungeSpinDeg * kick * hitPower : 0);
-        f.group.rotateZ(THREE.MathUtils.degToRad(leanDeg));
+          + (haunt && !grounded ? FIG.hauntFloat * (is3d ? FIG.hauntFloat3d : 1) * sc * bs : 0)
+          + (grounded ? 0 : bu * FIG.burnRise * sc);
+        if (is3d) {
+          // 3D 妖面向對手（模型正面＝+Z）：左邊的朝畫面右、右邊的朝畫面左，再往鏡頭轉 faceTurn3d 度
+          // 讓臉看得見。被打中的那一方以腳底為樞紐歪出去；不加紙紮那個 lean（四足獸側傾像翻倒）。
+          const turn = THREE.MathUtils.degToRad(FIG.faceTurn3d);
+          f.group.rotation.set(0, az - side * (Math.PI / 2 - turn), 0);
+          if (dir === -1) f.group.rotateZ(THREE.MathUtils.degToRad(side * FIG.lungeSpinDeg * kick * hitPower));
+          // 邊光在受擊瞬間爆一下（對 3D 皮 setRim 是倍率）；燒毀的亮滅由工廠的 burn() 自己演
+          f.setRim(1 + (dir ? FIG.rimHit3d * kick : 0));
+          // GLB 在燒毀開始後才到（st.custom=false 的 3D 皮）：走內建淡出，別讓它全不透明冒出來再消失（覆審 C-2 殘留）
+          if (bt != null) setFigureOpacity(f, 1 - bu);
+        } else {
+          // billboard 但刻意側身：正對鏡頭時加厚那疊完全被前層擋住，看不出厚度；
+          // 轉 faceTurn 度變成 3/4 面，側邊的擠出面才露出來，同時也讀成「面向對手」。
+          f.group.rotation.set(0, az + side * THREE.MathUtils.degToRad(FIG.faceTurn), 0);
+          // 站姿：往對手側傾；被打中的那一方額外歪出去（樞紐在腳底，看起來才像人被打退）
+          const leanDeg = -side * FIG.lean + (dir === -1 ? side * FIG.lungeSpinDeg * kick * hitPower : 0);
+          f.group.rotateZ(THREE.MathUtils.degToRad(leanDeg));
 
-        // 作祟本來就半透明；被燒的那一尊再往 0 收
-        setFigureOpacity(f, (haunt ? FIG.hauntOpacity : 1) * (1 - bu));
-        // 逆光在受擊瞬間爆一下，讓 bloom 抓得到；燒起來的那一尊逆光先亮再滅
-        const rimBase = (FIG.rimOpacity + (dir ? 0.6 * kick : 0)) * (haunt ? FIG.hauntOpacity : 1);
-        f.setRim(bt == null ? rimBase : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
+          // 作祟本來就半透明；被燒的那一尊再往 0 收
+          setFigureOpacity(f, (haunt ? FIG.hauntOpacity : 1) * (1 - bu));
+          // 逆光在受擊瞬間爆一下，讓 bloom 抓得到；燒起來的那一尊逆光先亮再滅
+          const rimBase = (FIG.rimOpacity + (dir ? 0.6 * kick : 0)) * (haunt ? FIG.hauntOpacity : 1);
+          f.setRim(bt == null ? rimBase : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
+        }
 
         f.shadow.position.set(f.group.position.x, 0.152, f.group.position.z);
         f.shadow.visible = !haunt; // 飄浮的影子不落地
@@ -497,12 +598,12 @@ export function createDuelFigures(scene, camera, opts = {}) {
   const sideIdx = (s) => (s === 'B' || s === 1 ? 1 : 0);
   function figuresOf(s) {
     const i = sideIdx(s);
-    return roster[i].map((u, j) => (pool[i][j] ? Object.assign(pool[i][j], { unit: u }) : null)).filter(Boolean);
+    return roster[i].map((u, j) => (slots[i][j] ? Object.assign(slots[i][j], { unit: u }) : null)).filter(Boolean);
   }
   function figureOf(s, unitId) {
     const i = sideIdx(s);
     const j = indexOfUnit(i, unitId);
-    return j >= 0 && pool[i][j] ? Object.assign(pool[i][j], { unit: roster[i][j] }) : null;
+    return j >= 0 && slots[i][j] ? Object.assign(slots[i][j], { unit: roster[i][j] }) : null;
   }
   return { update, figuresOf, figureOf };
 }

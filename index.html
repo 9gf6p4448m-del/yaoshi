@@ -204,6 +204,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,#31204f 62%,transparent),color-mix(in srgb,#0d0a16 78%,transparent));
   flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 #duelArena{display:flex;align-items:center;justify-content:center;gap:34px;width:100%}
+/* 接線卷：3D 妖載入條——只在還沒載完才出現（見 pwAwaitFigures），字距與拍首字幕同一套 */
+#duelLoad{display:none;font-size:12px;letter-spacing:3px;color:var(--gold);opacity:.8;margin-top:4px}
+#duelLoad.on{display:block;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.45}to{opacity:.95}}
 .fighter{text-align:center;transition:transform .35s}
 .fighter .fav{font-size:74px;line-height:1.15;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
 .fighter .fnm{font-size:14px;margin-top:2px}
@@ -409,6 +413,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 <div id="duel"><div class="flashfx" id="flashfx"></div>
   <div id="duelBeat"></div>
   <div id="duelArena"></div>
+  <div id="duelLoad"></div>
   <div id="duelMove"></div>
   <div id="duelResult"></div><div id="duelSub"></div>
 </div>
@@ -1573,11 +1578,11 @@ function traitMax(p,key,base){
 const POOL = [
   {n:"射日神弓",f:"zuling",p:7,ab:"bow",d:"射落烈日的太初之弓",unit:{body:"elite",count:1,atk:10,hp:8,trait:"eliteOpenShot"}},
   {n:"百步蛇紋盾",f:"zuling",p:6,ab:"shield",d:"排灣祖靈的鱗紋守護",unit:{body:"ward",count:2,atk:1,hp:7,trait:"wardHpFront2"}},
-  {n:"巴冷公主珠鍊",f:"zuling",p:6,d:"人蛇之戀的琉璃信物",unit:{body:"elite",count:1,atk:9,hp:6,trait:"eliteArmor"}},
+  {n:"巴冷公主珠鍊",m:"balen",f:"zuling",p:6,d:"人蛇之戀的琉璃信物",unit:{body:"elite",count:1,atk:9,hp:6,trait:"eliteArmor"}},
   {n:"祖靈之眼",f:"zuling",p:5,ab:"eye",d:"注視子孫的山林之眼",unit:{body:"ward",count:2,atk:1,hp:6,trait:"wardFirst"}},
   {n:"雷女之火",f:"zuling",p:5,ab:"thunder",d:"雷神之女擲下的天火",unit:{body:"elite",count:1,atk:8,hp:5,trait:"boltGamble"}},
   {n:"拼板舟",f:"zuling",p:4,ab:"boat",d:"達悟人渡海的飛魚之舟",unit:{body:"swarm",count:3,atk:1,hp:2,trait:"swarmHalfSplash"}},
-  {n:"山豬牙飾",f:"zuling",p:4,d:"勇士獵得的榮耀之牙",unit:{body:"swarm",count:1,atk:2,hp:2,trait:"swarmThorn"}},
+  {n:"山豬牙飾",m:"boartusk",f:"zuling",p:4,d:"勇士獵得的榮耀之牙",unit:{body:"swarm",count:1,atk:2,hp:2,trait:"swarmThorn"}},
   {n:"獻祭刀",f:"zuling",p:6,ab:"xianji",d:"祭儀用的黑曜石刃，割開自己才靈",unit:{body:"elite",count:1,atk:9,hp:7,trait:"eliteSelfCut"}},
   {n:"山神庇佑",f:"zuling",p:4,ab:"shanshen",d:"山神只護惜命的人",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpAll1"}},
   {n:"媽祖令旗",f:"xianghuo",p:7,ab:"flag",d:"海上聖母的鎮瀾令",unit:{body:"ward",count:2,atk:1,hp:8,trait:"wardAtkAll1"}},
@@ -1586,7 +1591,7 @@ const POOL = [
   {n:"千里眼銅鈴",f:"xianghuo",p:5,ab:"bell",d:"望盡千里的預示銅鈴",unit:{body:"ward",count:2,atk:1,hp:6,trait:"wardImmuneLost"}},
   {n:"五營旗",f:"xianghuo",p:5,ab:"wuying",d:"五方神將的令旗",unit:{body:"swarm",count:3,atk:1,hp:3,trait:"swarmRally"}},
   {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印",unit:{body:"elite",count:1,atk:7,hp:4,trait:"biteGamble"}},
-  {n:"香灰符",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpFirst"}},
+  {n:"香灰符",m:"ashcharm",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpFirst"}},
   {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮",unit:{body:"ward",count:2,atk:1,hp:4,trait:"wardRegen1"}},
   {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:1,trait:"swarmLastStand"}},
   {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntLost"}},
@@ -1595,7 +1600,7 @@ const POOL = [
   {n:"黃色小雨衣",f:"yinqi",p:5,ab:"raincoat",d:"雨夜裡跟在你身後",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntDread1"}},
   {n:"水鬼浮標",f:"yinqi",p:5,ab:"buoy",d:"渡不了的人留下的",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntSwap"}},
   {n:"虎姑婆指甲",f:"yinqi",p:4,ab:"nail",d:"床下傳來咬手指的聲音",unit:{body:"elite",count:1,atk:7,hp:4,trait:"eliteVsSwarm"}},
-  {n:"陰陽眼銅錢",f:"yinqi",p:4,d:"貼上眼皮就看得見",unit:{body:"swarm",count:2,atk:1,hp:3,trait:"swarmPierce"}},
+  {n:"陰陽眼銅錢",m:"yinyangcoin",f:"yinqi",p:4,d:"貼上眼皮就看得見",unit:{body:"swarm",count:2,atk:1,hp:3,trait:"swarmPierce"}},
   {n:"過陰咒",f:"yinqi",p:5,ab:"guoyin",d:"半條命踩在那邊，才聽得見那邊的話",unit:{body:"haunt",count:4,atk:0,hp:5,trait:"hauntFearX2"}},
   {n:"飼鬼甕",f:"yinqi",p:3,ab:"sigui",d:"甕裡養的東西，餓了就吃主人的命",unit:{body:"swarm",count:2,atk:1,hp:1,trait:"swarmFeed1"}},
 ];
@@ -1656,7 +1661,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.31", VERSION_NOTE="《紙紮夜戰》卷 C1：三拍時間軸演出底座、紙紮列陣與燒毀、?paperwar=1 試玩開關";
+const VERSION="0.32", VERSION_NOTE="《紙紮夜戰》接線卷：27 隻真 3D 妖進正式對決、召喚載入條、浮標水面";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2411,13 +2416,14 @@ function buildArmy(bag){
   for(const x of (bag||[])){
     if(x.curse){ curses++; continue; }
     const u=x.unit||pwDefaultUnit(x); if(!u) continue;
-    const t={idx:teams.length,fac:x.f,body:u.body,tr:(u.trait&&TRAITS[u.trait])||null,units:[]};
+    /* ab＝這隊的 3D 模型鍵（接線卷；純資料，引擎不讀）：POOL 的 ab 是「能力」鍵，四件沒能力的法寶另用 m 指定檔名（凍結檔：balen/boartusk/ashcharm/yinyangcoin） */
+    const t={idx:teams.length,fac:x.f,body:u.body,ab:x.ab||x.m||null,tr:(u.trait&&TRAITS[u.trait])||null,units:[]};
     for(let i=0;i<(u.count|0);i++)
       t.units.push({t:t.idx,body:u.body,atk:u.atk|0,hp:u.hp|0,max:u.hp|0,pend:0,alive:true});
     teams.push(t);
   }
   if(!teams.some(t=>t.units.length)){
-    const t={idx:teams.length,fac:null,body:"swarm",tr:null,units:[]};
+    const t={idx:teams.length,fac:null,body:"swarm",ab:null,tr:null,units:[]};
     t.units.push({t:t.idx,body:"swarm",atk:1,hp:3,max:3,pend:0,alive:true});
     teams.push(t);
   }
@@ -3118,6 +3124,8 @@ const PW_FX={
   BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
   MAXFIG:8,           /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部） */
+  LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
+  LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
 };
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
    只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
@@ -3894,7 +3902,7 @@ function pwTraitFx(trId,ctx){
 function pwArmyView(p){
   const a=buildArmy(p.bag);
   const units=[];
-  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac})));
+  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null})));
   units.forEach((u,i)=>{ u.id=i; });
   const comp={};
   units.forEach(u=>{ comp[u.body]=(comp[u.body]||0)+1; });
@@ -3957,6 +3965,24 @@ function pwLineUp(){
     [...box.children].forEach((el,i)=>pwRise(el,i*PW_FX.STAGGER_MS));
   }
 }
+/* 載入條（接線卷，2026-09-05）：3D 端在 ys:duel 的接收端把本場所有 GLB 的 Promise.all 放回
+   detail.ready、進度用 ys:duel-loading {loaded,total} 回報（js/duel-figures.js onDuel）。
+   有 ready 就等它——上限 PW_FX.LOAD_MAX_MS（走 pwSleep，跳過鍵照樣叫得醒），逾時照演；
+   超過 LOAD_SHOW_MS 還沒好才露出 #duelLoad（快取命中不閃）。3D 沒載入時 detail 沒有 ready，整段空操作。
+   FXC.load 純記錄（驗收 W-A5 對的是它），遊戲一行都不讀。 */
+async function pwAwaitFigures(det){
+  const r=det&&det.ready; if(!r||typeof r.then!=="function") return;
+  const el=$("duelLoad"); let shown=false, total=det.loadTotal|0, loaded=det.loadLoaded|0; /* 首發 ys:duel-loading 在這之前就派了，初值從 detail 讀 */
+  const txt=()=>{ if(el) el.textContent=`召喚中… ${loaded}/${total}`; };
+  const onProg=e=>{ const d=(e&&e.detail)||{}; loaded=d.loaded|0; total=d.total|0; if(shown) txt(); };
+  document.addEventListener("ys:duel-loading",onProg);
+  const t0=Date.now(); let timedOut=false;
+  const showT=setTimeout(()=>{ shown=true; txt(); if(el) el.classList.add("on"); },PW_FX.LOAD_SHOW_MS);
+  await Promise.race([Promise.resolve(r).catch(()=>{}), pwSleep(PW_FX.LOAD_MAX_MS).then(()=>{ timedOut=true; })]);
+  clearTimeout(showT); document.removeEventListener("ys:duel-loading",onProg);
+  if(el) el.classList.remove("on");
+  FXC.load={ms:Date.now()-t0,total,loaded,timedOut,readyAt:Date.now()};
+}
 /* 通用交鋒的抽樣：招式與燒毀一筆都不能少（驗收要對數），只有 hit 這一類多到演不完時均勻抽。 */
 function pwThin(list,k){
   if(list.length<=k) return list;
@@ -3978,7 +4004,9 @@ function pwBurnOne(b){
   const det={side:b.side,unit:b.target,ms:PW_FX.BURN_MS,handled:false,done:null};
   fx3d("ys:fx-burn",det);
   let job;
-  if(det.handled&&det.done&&typeof det.done.then==="function"){ FXC.burnFig++; job=det.done; }
+  /* 保險絲（接線卷審查 C-2）：3D 端的 Promise 只在它每幀 update 到 p>=1 時才 resolve，GLB 沒到／分頁在背景都會停住；
+     上限 3×BURN_MS 之後照樣往下走（sleep 在 SKIP 時為 0，跳過鍵照樣叫得醒） */
+  if(det.handled&&det.done&&typeof det.done.then==="function"){ FXC.burnFig++; job=Promise.race([det.done,sleep(PW_FX.BURN_MS*3)]); }
   else job=fxBurn(el,{fac:"lantern",ms:PW_FX.BURN_MS});
   return Promise.resolve(job).then(()=>{ if(el) el.classList.add("burnt"); },()=>{ if(el) el.classList.add("burnt"); });
 }
@@ -4080,12 +4108,16 @@ async function playDuel(f){
      OFF 時 detail 的形狀與 v0.30 一模一樣（只有 a／b 兩個欄位）。 */
   const views=f.war?[pwArmyView(f.A),pwArmyView(f.B)]:null;
   const duelDetail={a:f.A.id,b:f.B.id};
-  if(views) duelDetail.armies=views.map(v=>({units:v.units.slice(0,PW_FX.MAXFIG).map(u=>({id:u.id,body:u.body,fac:u.fac}))}));
+  if(views) duelDetail.armies=views.map(v=>({units:v.units.slice(0,PW_FX.MAXFIG).map(u=>({id:u.id,body:u.body,fac:u.fac,ab:u.ab===undefined?null:u.ab}))}));
+  /* 先清上一場的陣列與字幕（接線卷審查 H-3）：等 3D 妖載入那幾秒不能停在上一場的名字與隻數牌上，
+     而且 duel-figures 的 realign 會抓 #dL/#dR，留著殘留的欄位會讓 3D 妖在新陣列畫出來之前先站錯位 */
+  for(const id of ["duelArena","duelBeat","duelMove","duelResult","duelSub"]) $(id).innerHTML="";
   fx3d("ys:duel",duelDetail); /* 鏡頭切到看得見交手兩人的低角度 */
   bgm("duel");                          /* 對決層：切一首緊張的，退場時回牌桌層 */
   $("table").classList.add("duelfade"); /* 讓 3D 當舞台背景 */
   sfx("whoosh",{rnd:S.rngUi()});
   if(views){
+    await pwAwaitFigures(duelDetail); /* 接線卷：等本場的 3D 妖載完再開三拍（有載入條；3D 沒載入＝空操作） */
     await playDuelWar(f,views); /* ON：三拍時間軸（上一段） */
   }else{
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";

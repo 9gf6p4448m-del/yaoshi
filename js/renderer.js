@@ -17,7 +17,8 @@ const { createIncenseSmoke, createEmbers, createImpactBurst, SPARK_COLOR } = awa
 const { createCharacterBillboards } = await import('./characters-billboard.js' + V);
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
-const { createDuelFigures } = await import('./duel-figures.js' + V);
+const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
+const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM } = await import('./creature-figures.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -76,8 +77,29 @@ function init() {
   scene.add(charGroup);
   const playerBridge = createPlayerBridge(sprites, camera);
   const director = createCameraDirector(camera, lanterns);
-  // 換皮：傳 { makeFigure: 你的工廠 } 就能整組換掉呈現方式（介面說明在 duel-figures.js 檔中）
-  const duelFigures = createDuelFigures(scene, camera);
+  // 換皮（接線卷，2026-09-05）：有 ab（哪件法寶）的單位＝真 3D 妖（assets/creatures/<ab>.glb，
+  // 邊光取該系色、身上掛三系環境粒子）；沒有 ab 的（空袋「肉身」、OFF 的每邊一尊）退回批 1 的
+  // 貼片人形——肉身就是玩家本人，頭像貼片在語意上正好。介面說明在 duel-figures.js 檔中。
+  // POOL 的系名是 zuling/xianghuo/yinqi，FACTION_RIM 的鍵是 zuli/xianghu/yinqi（兩套拼法並存）。
+  const RIM_BY_FAC = { zuling: FACTION_RIM.zuli, xianghuo: FACTION_RIM.xianghu, yinqi: FACTION_RIM.yinqi };
+  let fxSeed = 7; // 環境粒子的決定性種子（3D 層不用 Math.random）
+  const duelFigures = createDuelFigures(scene, camera, {
+    makeFigure: (u) => {
+      if (!u || !u.ab) return makeLayeredFigure();
+      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac] });
+      attachFactionFx(f, u.fac, { seed: fxSeed++ });
+      return f;
+    },
+  });
+  // 戲台三燈組（look-dev 卷量出來的 key／fill／rim；理由見 creature-figures.js 那一段）：
+  // 掛在桌心、只在對決亮起（淡入淡出）、每幀跟著相機方位角轉——燈組是相對鏡頭擺的，
+  // 對決機位的 yaw 隨座位變，燈不跟著轉的話有些座位會變成背光。
+  // 常駐 visible、只調 intensity：three 的 program cache key 含燈數，用 visible 開關會在進／出對決各重編一次全場材質（審查 M-3）
+  const stageRig = createFigureLightRig({ scale: 1.7 });
+  stageRig.position.y = 0.15;
+  stageRig.setIntensity(0);
+  scene.add(stageRig);
+  let stageOn = 0;
 
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）
   const bloom = createBloom(renderer, BLOOM);
@@ -122,7 +144,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, get bloomOn() { return bloomOK; } };
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); } };
 
   let lastKind = undefined;
   let lastT = performance.now();
@@ -151,6 +173,10 @@ function init() {
     // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
     const kind = playerBridge.update(now);
+    // 戲台燈：對決淡入、其餘淡出；方位跟相機
+    stageOn += ((kind === 'duel' ? 1 : 0) - stageOn) * Math.min(1, dt * 3);
+    stageRig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
+    stageRig.setIntensity(stageOn < 0.01 ? 0 : stageOn);
     if (kind !== lastKind) {
       lastKind = kind;
       canvas.style.opacity = kind ? '1' : '0.38';

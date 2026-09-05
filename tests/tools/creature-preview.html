@@ -29,6 +29,7 @@
     window.__preview.setPhase(p)  'idle' | 'move' | 'attack' | 'burn' | 'reset'
     window.__preview.setCloth(h)  換三系邊光色
     window.__preview.burnDone()   最近一次 burn 的 Promise
+    window.__preview.bounds()     正規化後的包圍盒 {minY,maxY,w,d}（接線卷 W-A2）；groundFx() 腳下環境（'water'|null）
 -->
 <style>
   :root { color-scheme: dark; }
@@ -185,6 +186,10 @@ window.__preview = {
     return Promise.resolve();
   },
   allInvisible() { return figures.every((f) => f.group.visible === false); },
+  // 接線卷（2026-09-05）量測掛勾：正規化後的包圍盒（W-A2）、腳下環境種類（W-A8）、皮的辨識
+  bounds() { const b = figures[0].bounds(); return b ? { minY: b.min.y, maxY: b.max.y, w: b.max.x - b.min.x, d: b.max.z - b.min.z } : null; },
+  groundFx() { return figures[0].groundFx ? figures[0].groundFx() : null; },
+  skin: figures[0].skin || null,
 };
 
 // ── 自動循環（單隻時）：idle → attack → burn → reset ─────────────────────
