@@ -36,7 +36,8 @@ import * as THREE from 'three';
 //   (.020/.040, .62/.82) 4.22%｜(.030/.060, .75/1.00) 3.49%｜第三組 sobelW 0.5 → 4.62%
 // 驗收窗是 [0.5%, 6%]，取第四組（4.22%）：落在窗中段、上下都有餘裕，畫面上外輪廓、
 // 帽簷、嘴齒、眼窩都還在，但不會把低模的每一片面都描出來（前三組會）。
-export const EDGE = { color: 0x100b1a, depthLo: 0.020, depthHi: 0.040, normLo: 0.62, normHi: 0.82, maxDepth: 12.0, sobelW: 1.0, widthPx: 1.0 };
+export const EDGE = { color: 0x100b1a, depthLo: 0.020, depthHi: 0.040, normLo: 0.62, normHi: 0.82, maxDepth: 12.0, sobelW: 1.0, widthPx: 1.0,
+  silRel: 0.30 }; // 鄰域相對深度跳變超過這個比例＝外輪廓，交給外殼不畫黑線（P-2 第 4 輪加入）【試玩必調】
 
 // 用 RawShaderMaterial 自己寫滿 GLSL ES 1.00：ShaderMaterial 版本在 SwiftShader 上
 // 兩支 program LINK_STATUS false（info log 全空，看不出原因）。拿掉 three 的前置程式碼
@@ -133,7 +134,13 @@ void main(){
       vec3 nD = normalize(cross(p21 - p11, p12 - p11));
       float nDiff = max(1.0 - dot(nA, nD), 1.0 - dot(nB, nC));
       float nEdge = smoothstep(uThresh.z, uThresh.w, nDiff);
-      outc = mix(outc, uLineColor, max(dEdge, nEdge));
+      // 外輪廓交給反轉外殼（P-1，帶系色）：鄰域裡有相對深度跳變 > silRel 的＝與背景／別尊的交界，
+      // 這裡不畫，免得黑線疊在系色外殼內側把顏色吃掉（P-2 第 3 輪兩位讀者都讀成「黑線」）。
+      float zmax = max(max(max(z00, z10), max(z20, z01)), max(max(z21, z02), max(z12, z22)));
+      float zmin = min(min(min(z00, z10), min(z20, z01)), min(min(z21, z02), min(z12, z22)));
+      float jump = max(zmax - z11, z11 - zmin) / z11;
+      float inner = 1.0 - step(uEdgeCfg.z, jump);
+      outc = mix(outc, uLineColor, max(dEdge, nEdge) * inner);
     }
   }
   gl_FragColor = vec4(outc, 1.0);
@@ -195,7 +202,7 @@ export function createBloom(renderer, opts = {}) {
       // 但這條線是疊在 toSRGB **之後**的，要的就是螢幕上的那個 hex 原值。
       uLineColor: { value: new THREE.Vector3(((EDGE.color >> 16) & 255) / 255, ((EDGE.color >> 8) & 255) / 255, (EDGE.color & 255) / 255) },
       uThresh: { value: new THREE.Vector4(EDGE.depthLo, EDGE.depthHi, EDGE.normLo, EDGE.normHi) },
-      uEdgeCfg: { value: new THREE.Vector3(EDGE.maxDepth, EDGE.sobelW, 0) },
+      uEdgeCfg: { value: new THREE.Vector3(EDGE.maxDepth, EDGE.sobelW, EDGE.silRel) },
     },
     vertexShader: VERT, fragmentShader: COMPOSITE, depthTest: false, depthWrite: false,
   });

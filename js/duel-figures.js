@@ -709,5 +709,11 @@ export function createDuelFigures(scene, camera, opts = {}) {
     const j = indexOfUnit(i, unitId);
     return j >= 0 && slots[i][j] ? Object.assign(slots[i][j], { unit: roster[i][j] }) : null;
   }
-  return { update, figuresOf, figureOf };
+  // 後處理卷「滿編自動收斂」：任一側 ≥ CROWD_N 尊＝擠堆場面，renderer 據此關邊緣偵測、外殼變細
+  // （使用者 09-06 裁定：8v8 滿編描邊＋碎線讓畫面顯髒；1v1～3v3 全開）。【試玩必調】
+  const CROWD_N = 5;
+  return { update, figuresOf, figureOf,
+    // 不看 active：對決收掉那一幀 active 先變 false、#duel 還在畫面上，若在這裡翻回 false，
+    // 8v8 的最後幾幀邊緣線會閃開一下。roster 到下一場 onDuel 才換，拿它判就穩。
+    get crowded() { return Math.max(roster[0].length, roster[1].length) >= CROWD_N; } };
 }

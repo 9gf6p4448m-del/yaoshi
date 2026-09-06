@@ -18,7 +18,7 @@ const { createCharacterBillboards } = await import('./characters-billboard.js' +
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
-const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup } = await import('./creature-figures.js' + V);
+const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
@@ -162,7 +162,8 @@ function init() {
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
   window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
-    get edgeOn() { return EDGE_URL_ON && bloom.edgeReady && bloomOK; }, get edgeReady() { return bloom.edgeReady; } };
+    get edgeOn() { return EDGE_URL_ON && bloom.edgeReady && bloomOK && !duelFigures.crowded; }, get edgeReady() { return bloom.edgeReady; },
+    get crowded() { return duelFigures.crowded; } };
 
   let lastKind = undefined;
   let lastT = performance.now();
@@ -215,7 +216,10 @@ function init() {
 
     // 邊緣線只在對決場走（暖身那一幀是標題頁，不畫線——但 shader 是同一支 COMPOSITE，
     // 暖身照樣把它編掉，對決前後 renderer.info.programs.length 不變）
-    bloom.setEdge(EDGE_URL_ON && kind === 'duel');
+    // 滿編自動收斂（任一側 ≥5 尊）：邊緣偵測關、外殼線變細——擠堆場面碎線會糊成一團（使用者 09-06 裁定）
+    const crowded = kind === 'duel' && duelFigures.crowded;
+    setOutlineCrowd(crowded);
+    bloom.setEdge(EDGE_URL_ON && kind === 'duel' && !crowded);
     if (bloomOK && (!warmedUp || kind === 'duel')) {
       warmedUp = true; // 第一幀（標題頁，canvas 只有 0.38 不透明度）順手把 bloom 的 shader 編掉
       bloom.render(scene, camera);

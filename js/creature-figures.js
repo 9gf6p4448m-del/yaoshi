@@ -242,9 +242,10 @@ function dressMaterial(mat, burnY) {
  * ────────────────────────────────────────────────────────────────────────── */
 // 全部【試玩必調】。
 const OUTLINE = {
-  px: 2.6, // 螢幕線寬（CSS 像素）：844×390 的 8v8 裡 1px 讀不出來、3px 以上後排的小尊會被描邊吃掉（P-2 第 1 輪 2.0 讀不出色 → 2.6）
-  satMul: 1.8, // 系色飽和度倍率（在 sRGB 的 HSL 上算）
-  lum: 0.5, // 描邊明度（絕對值，不是倍率）：三系等亮，讀者才是在比色相而不是在比誰比較暗（第 1 輪 0.42 太暗，與燈籠陰影混）
+  px: 2.0, // 螢幕線寬（CSS 像素）：1v1～3v3 用；P-2 四輪（2.0／2.6／3.2）證明加粗換不到陣營辨識，使用者裁定回細線
+  crowdPx: 1.4, // 滿編（任一側 ≥5 尊，duel-figures.crowded）時的線寬：擠堆場面粗線會糊成一團【試玩必調】
+  satMul: 1.6, // 系色飽和度倍率（在 sRGB 的 HSL 上算）
+  lum: 0.36, // 描邊明度（絕對值）：第 3 輪 0.5 超過 bloom threshold 0.5，三系全被打成同一種黃光暈；壓到門檻下才留得住色相
   // 色相偏移（HSL 的 h，0–1）：FACTION_RIM 祖靈 #d4a870 與香火 #f08060 色相只差 20°，第 1 輪四位讀者沒有一位把它們當兩個色。
   // 祖靈往金黃、香火往深紅、陰氣往青綠拉開；只在描邊這一處偏，FACTION_RIM 本體不動。
   hueShift: { zuling: +0.045, xianghuo: -0.035, yinqi: +0.06 },
@@ -255,6 +256,8 @@ const OUTLINE_ON = (() => {
 })();
 // 線寬換算要知道畫布多大（CSS 像素）。兩個 uniform 全場共用同一個物件：寫一次，所有外殼同步。
 const OUTLINE_PX = { value: OUTLINE.px };
+/** 滿編收斂：renderer 每幀依 duelFigures.crowded 呼叫；全場外殼共用同一顆 uniform，寫一次全部生效。 */
+export function setOutlineCrowd(on) { OUTLINE_PX.value = on ? OUTLINE.crowdPx : OUTLINE.px; }
 // 多材質 mesh 裡 ghost_* 那幾組的外殼材質：什麼都不寫（不寫色、不寫深度），等於那幾組沒有外殼。
 const OUTLINE_SKIP_MAT = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, depthTest: false });
 const OUTLINE_RES = { value: new THREE.Vector2(1, 1) };
