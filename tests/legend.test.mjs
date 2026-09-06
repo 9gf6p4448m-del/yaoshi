@@ -263,5 +263,37 @@ test('傳說的招掛進紙紮夜戰：殘日的餘暉灼目讓對面前鋒 atk 
   ok(tr&&tr.blindFront>0,'那一尊的招應該帶 blindFront 效果欄位（餘暉灼目）');
 });
 
+/* ---------- 14. 對抗式覆審 H1：燒香燒到 0 的人，錢已經付了，本夜照樣要擲 ---------- */
+test('燒到 0 不影響本夜的擲：h 到天井、壽命剛好燒光的人仍然把那一尊請走',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
+  S.rng=alwaysFail;
+  /* 南家與東家都先累到 P−1，再把南家的壽命壓到剛好等於今夜要燒的量 */
+  let left=P-1;
+  while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a},3:{shrine:0,amt:a}}); left-=a; }
+  S.players[0].life=1;
+  shrineNight(G,S,{0:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+  eq(legendsOf(S.players[0]).length,1,`南家 h=${P}（天井）、燒光最後 1 點壽命 → 這一尊仍應歸他`);
+  eq(legendsOf(S.players[3]).length,0,'東家不該撿到（撿到＝把已經付過錢的人踢出隊伍）');
+  eq(S.players[0].alive,false,'燒光壽命的人仍然出局（只是請神先結算完才蓋出局旗）');
+});
+
+/* ---------- 15. 對抗式覆審 H2：回天結清不得覆寫「不屬於本輪」的壽命快照 ---------- */
+test('回天不砸紀錄：最後一筆壽命快照不是本輪收尾時，回天結清不得就地改寫它',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
+  const h=Math.ceil(P/3);
+  let left=h;
+  while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a}}); left-=a; }
+  /* 模擬「異事夜殺到剩一人」那條路：那一夜沒有 recordNightEnd，末筆壽命快照停在前一夜 */
+  S.history.nights=[];
+  S.history.life=[[60,60,60,60]];
+  const before=JSON.stringify(S.history.life);
+  const out=G.settleShrinesEnd?G.settleShrinesEnd():null;
+  ok(out&&out.length===1,'回天應該結清一筆（否則下一條沒有鑑別力）');
+  eq(JSON.stringify(S.history.life),before,'末筆不屬於本輪時，壽命曲線不得被就地改寫');
+});
+
 console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }

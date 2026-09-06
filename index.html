@@ -2484,7 +2484,7 @@ function resolveAuction(){
    以及它的燒香旋鈕＝CFG.INC_AI 疊上 ROLES[*].ai.inc 的個別覆寫（資料表驅動，引擎不寫死角色 id）。 */
 function incAiOf(p){
   const a=(p&&p.ai)||(p&&ROLES[p.roleId]&&ROLES[p.roleId].ai)||null;
-  return {cfg:{...CFG.INC_AI,...((a&&a.inc)||{})}, aggr:(a&&a.aggr)||0.6};
+  return {cfg:{...CFG.INC_AI,...((a&&a.inc)||{})}, aggr:(a&&a.aggr!=null)?a.aggr:0.6}; /* aggr 可能是 0，不能用 || 兜底 */
 }
 /* AI（與沒有指定策略的座位）的燒香啟發式（提案 §4.4）：
    拜主系那一尊 → 主系那尊已關就拜件數第二多的系 → 仍無就不拜；
@@ -2506,7 +2506,7 @@ function aiIncense(p){
     if(!sh) continue;
     const mine=sh.h[p.id]|0;
     let lead=0;
-    for(const q of S.players) if(q.id!==p.id&&(sh.h[q.id]|0)>lead) lead=sh.h[q.id]|0;
+    for(const q of S.players) if(q.alive&&q.id!==p.id&&(sh.h[q.id]|0)>lead) lead=sh.h[q.id]|0; /* 只看還活著的競爭者：死人的香火要等關龕才歸零，算進去會讓整座龕被鎖死 */
     if(lead-mine>=cfg.giveUpLead) continue;
     return {shrine:sh.i,amt:Math.min(amt,p.life)};
   }
@@ -2557,8 +2557,11 @@ function resolveShrines(){
     out.burn.push({pid:p.id,shrine:sh.i,amt,h:sh.h[p.id]});
     if(S.shrineStat){ S.shrineStat.burn++; S.shrineStat.burnLife+=amt; }
   });
-  S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; } }); /* 燒到 ≤0＝既有死亡路徑 */
-  /* ③ 逐龕結算（龕序固定）：只有**本夜有燒香**的人有資格擲，依加總後的 h 由高到低；
+  /* ★死亡掃描刻意**不放在這裡**★：香火是「當場扣、不退」，錢付了就該擲——把掃描插在擲骰之前，
+     會讓一個燒到 0、h 已達天井的人被剝奪必成的請神，尊直接落到第二名手上（對抗式覆審 H1）。
+     全檔其他四處死亡掃描（resolveAuction／settleEvent／resolveBattles）都在結算的最後一行，這裡跟它們對齊：
+     擲完、發完階段獎勵之後才蓋出局旗——語意與「心願回血救回歸零者」同一條（ARCH_SPEC §3.10）。
+     ③ 逐龕結算（龕序固定）：只有**本夜有燒香**的人有資格擲，依加總後的 h 由高到低；
         成功率 h/(h+K)，h≥P 必成；第一個成功者請走、關龕，排在他後面的人本夜不再擲。 */
   S.shrines.forEach(sh=>{
     if(!sh.open) return;
@@ -2583,6 +2586,7 @@ function resolveShrines(){
     shrineClose(sh,out.rewards);
   });
   S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; } });
+  S.incense={}; /* 信封當夜用完就作廢：不清的話同一夜再呼叫一次會照著同一份封籤再燒一次壽命（覆審 M2） */
   recordShrines(out);
   return out;
 }
@@ -2602,8 +2606,12 @@ function settleShrinesEnd(){
     S.history.shrineDawn=out;
     /* 回天結清跟「天明回血」一樣屬於**最後一夜的天亮**，所以就地覆寫最後那一筆壽命快照，
        不另外 push 一列——否則 S.history.life.length===nights.length+1 這條不變量會破
-       （tests/review.test.mjs 的「末筆快照＝局末各人壽命」與「finalizeHistory 冪等」兩案在守它）。 */
-    if(out.length&&S.history.life.length) S.history.life[S.history.life.length-1]=S.players.map(p=>p.life);
+       （tests/review.test.mjs 的「末筆快照＝局末各人壽命」與「finalizeHistory 冪等」兩案在守它）。
+       但**只有在末筆真的是本輪的收尾快照時才准覆寫**：異事夜殺到剩一人那條路沒有 recordNightEnd，
+       末筆還停在前一夜，覆寫會把那一夜的壽命整個抹掉（對抗式覆審 H2；那條路交回 finalizeHistory 自己補一筆）。 */
+    const HN=S.history.nights[S.history.nights.length-1];
+    const sealed=HN&&HN.closed&&HN.round===S.round&&S.history.life.length===S.history.nights.length+1;
+    if(out.length&&sealed) S.history.life[S.history.life.length-1]=S.players.map(p=>p.life);
   }
   return out;
 }

@@ -81,7 +81,7 @@ const main = async () => {
       }, seed);
       let lastKey = null, stallN = 0;
       for (let step = 0; step < 2600; step++) {
-        await page.waitForTimeout(30);
+        await page.waitForTimeout(12);
         const st = await page.evaluate(`(() => {
           const b = document.getElementById('mainbtn');
           const S = window.__yaoshi.S;
@@ -109,6 +109,7 @@ const main = async () => {
           await page.evaluate(`(() => { const M = CFG.INC_MAX; for (let k = 0; k < M; k++) incBump(1); })()`);
           g.burned++;
         }
+        if (step % 400 === 0 && step) console.log(`    …seed ${seed} step ${step} 第 ${st.round} 夜「${st.txt}${st.dis ? '（停用）' : ''}」`);
         if (st.txt === '再入妖市') break;
         if (!st.dis) { await page.click('#mainbtn'); g.clicks++; stallN = 0; continue; }
         stallN++;
