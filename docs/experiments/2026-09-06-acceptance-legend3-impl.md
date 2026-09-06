@@ -1,6 +1,6 @@
 # 驗收凍結檔：傳說三尊 實作卷（2026-09-06 深夜）
 
-基準 SHA：待本卷開工時記（A 段 v0.42 推上後的 origin/main）。規格＝`docs/proposals/2026-09-06-legend3-design.md`（使用者 2026-09-06 裁定：陰氣改有應公，其餘照案）。
+基準 SHA：`01cde46`（v0.42，origin/main＝線上）。規格＝`docs/proposals/2026-09-06-legend3-design.md`（使用者 2026-09-06 裁定：陰氣改有應公，其餘照案）。
 起始數值（提案 §四／§八，過閘門後仍屬策略數值、改預設要問）：`LEGEND_ON`、`INC_MAX 3`、`INC_K 6`、`INC_PITY 9`、階段獎勵區間以 P 定義。
 
 ## 範圍
