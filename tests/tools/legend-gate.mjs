@@ -4,7 +4,9 @@
    跑法（repo 根）：
      git show ca14065:index.html > old-l.html
      node tests/tools/legend-gate.mjs 10000 [--only=L0,L1] [--old=old-l.html] [--new=index.html]
-   L0 kill switch（雙向）／L1′ 優勢策略窮舉／L2 活性／L3′ 反事實有感不支配／L4 無支配策略／L5 節奏。
+   L0 kill switch（雙向）／L1″ 優勢策略窮舉／L2 活性／L3′ 反事實有感不支配／L4 無支配策略／L5 節奏。
+   `--kp=K,P` 只給「鑑別力對照」用：暫時覆寫載入後的 CFG.INC_K／CFG.INC_PITY 再跑同一條 L1″，
+   **不碰 index.html**、也不當判定依據（判定一律用檔案裡的值）。
    ★CFG.LEGEND_ON 自 2026-09-07 起**預設 false**（合併策略）★：本腳本一律**顯式**把它設成 true 才跑
    L1′–L5，不依賴預設；L0 反過來用「原封不動的預設」跟基準比。
    L6（既有測試＋單元測試＋Playwright）與 L7（diff 範圍）不在本腳本，見報告。 */
@@ -22,6 +24,7 @@ const NEW=arg('new')||path.join(ROOT,'index.html');
 const OLD=arg('old')||path.join(ROOT,'old-l.html');
 const ONLY=(arg('only')||'').split(',').filter(Boolean);
 const want=id=>!ONLY.length||ONLY.includes(id);
+const KP=(arg('kp')||'').split(',').filter(Boolean).map(Number); /* 鑑別力對照用，不當判定 */
 const SEEDS=Array.from({length:N},(_,i)=>i+1);
 const pct=v=>(v*100).toFixed(2)+'%';
 const say=(...s)=>console.log(s.join(' '));
@@ -30,10 +33,12 @@ const verdict={};
 
 const DEF=loadGame(NEW);                       /* 原封不動的預設（LEGEND_ON=false）——L0 的一半與各處 OFF 對照 */
 const G=loadGame(NEW); G.CFG.LEGEND_ON=true;   /* 顯式打開——L1′~L5 全部跑這一份 */
+if(KP.length===2){ G.CFG.INC_K=KP[0]; G.CFG.INC_PITY=KP[1]; }
 const O=fs.existsSync(OLD)?loadGame(OLD):null;
 say(`# 傳說三尊「請神」閘門　n=${N}　新版=${path.basename(NEW)}　基準=${path.basename(OLD)}`);
 say(`預設值：LEGEND_ON=${DEF.CFG.LEGEND_ON}（合併策略：預設關、?legend=1 試玩）`);
 say(`顯式打開後的數值：INC_MAX=${G.CFG.INC_MAX}　INC_K=${G.CFG.INC_K}　INC_PITY=${G.CFG.INC_PITY}　INC_GIFT_P=${G.CFG.INC_GIFT_P}　INC_AI=${JSON.stringify(G.CFG.INC_AI)}`);
+if(KP.length===2) say(`★本次帶了 --kp=${KP.join(',')}：INC_K／INC_PITY 被**暫時覆寫**（只在記憶體裡，index.html 沒動）——這是鑑別力對照，不是判定。★`);
 say('');
 
 /* ================= L0 kill switch（雙向）================= */
@@ -52,8 +57,12 @@ if(want('L0')){
   say('');
 }
 
-/* ================= L1′ 優勢策略窮舉（凍結檔 §2.1 修訂）=================
-   模型：contend（四人擠同一龕）＋**四家同一袋**（取原 contend 四袋中對該尊邊際價值 V 居中的那一袋，四家複製）。
+/* ================= L1″ 優勢策略窮舉（凍結檔 §2.1 修訂紀錄二）=================
+   模型：contend（四人擠同一龕）＋**四家共用同一個 V**。
+   V 的算法（L1′→L1″ 的唯一差別）：拿**原四個異質袋子互打**——每一袋對其餘三袋（**不含鏡像**）算該席的
+   邊際價值，四個數字取**中位數（第 2、3 名平均）**，四家共用。
+   為什麼要改：L1′ 的「四家同一袋」讓 duelBags 退化成鏡像對局——任何一袋加了傳說打自己都是 100% 全勝、
+   均傷釘在 PW_MAX，於是 V 恆等於 32.79、跟袋子與 K/P 都無關（二版實跑「取第 2 名／第 3 名」逐格相同）。
    三個狀態改為相對天井：①h 全 0 ②對手一人 h=⌊P/2⌋ ③自己 h=P−1。
    判定：**「燒 0」與「燒 INC_MAX」對四家任何一人都不得是弱優勢策略**（各自至少要有一個對手組合把它打敗）；
    中間注額是否優勢**列記錄項、不判**。
@@ -107,9 +116,10 @@ function stageReward(h){
 }
 /* dominantScan(state)：吃一個單夜快照，回傳收益矩陣摘要、analyzeEvent 的窮舉判定，
    以及「燒 0」「燒 INC_MAX」各自被哪些對手組合打敗（逐家）。 */
-function dominantScan(st){
+function dominantScan(st,fixedV){
   const K=G.CFG.INC_K, P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
-  const val=[0,1,2,3].map(i=>legendValue(st,i));
+  /* fixedV 有值＝L1″：四家共用同一個 V（由異質四袋互打取中位數算出），不再逐席重算 */
+  const val=(fixedV!=null)?[0,1,2,3].map(()=>({v:fixedV})):[0,1,2,3].map(i=>legendValue(st,i));
   const options=Array.from({length:M+1},(_,i)=>i);
   const payoff=choices=>{
     const out=[0,0,0,0];
@@ -163,35 +173,26 @@ function dominantScan(st){
 }
 if(want('L1')){
   const M=G.CFG.INC_MAX, P=G.CFG.INC_PITY;
-  say(`## L1′ 優勢策略窮舉（contend＋四家同一袋；判定＝「燒 0」與「燒 ${M}」對四家任何一人都不得是弱優勢）`);
-  /* 先在原 contend 四袋上算 V，取「居中」的那一袋（V 由小到大排序取第 2 名）給四家複製 */
-  const base=mkState('選袋用',zuBags());
+  say(`## L1″ 優勢策略窮舉（contend＋四家共用同一個 V；判定＝「燒 0」與「燒 ${M}」對四家任何一人都不得是弱優勢）`);
+  /* V：原四個異質袋子互打（每袋對其餘三袋，不含鏡像），取中位數（第 2、3 名平均），四家共用 */
+  const base=mkState('算 V 用',zuBags());
   const vs=[0,1,2,3].map(i=>({i,...legendValue(base,i)}));
-  const sorted=[...vs].sort((a,b)=>a.v-b.v);
-  say(`- 選袋：原 contend 四袋對「${G.LEGENDS[base.target[0]].n}」的 V＝`
+  const sorted=[...vs].map(x=>x.v).sort((a,b)=>a-b);
+  const V=(sorted[1]+sorted[2])/2;
+  say(`- V 的來源：原**異質**四袋互打（每袋對其餘三袋、不含鏡像）對「${G.LEGENDS[base.target[0]].n}」的邊際價值＝`
     +vs.map(v=>`袋${v.i} ${v.v.toFixed(2)}`).join('　')
-    +`。凍結檔 §2.1 寫的是「V 居中的那一袋（排序取第 2 或第 3）」——兩個都是合法的實例化，所以**兩組都跑、都印**：`
-    +`第 2 名＝袋${sorted[1].i}（V=${sorted[1].v.toFixed(2)}）、第 3 名＝袋${sorted[2].i}（V=${sorted[2].v.toFixed(2)}）。`
-    +`判定以**寫治具時就先定下的「取第 2 名」**為準，第 3 名列在後面供覆核。`);
+    +`；由小到大 ${sorted.map(v=>v.toFixed(2)).join(' < ')}，取中位數（第 2、3 名平均）＝**V=${V.toFixed(2)}**，四家共用。`);
+  say(`- 對照：L1′（四家同一袋）時 V 恆＝32.79（鏡像對局：加傳說 100% 全勝、均傷釘在 PW_MAX＝${G.CFG.PW_MAX}），與袋子和 K/P 都無關。`);
   const NAME=['南','北','西','東'];
-  verdict.L1={};
-  for(const rank of [1,2]){
-    const pick=sorted[rank];
-    const one=base.bags[pick.i];
-    const same=()=>[0,1,2,3].map(()=>one.map(x=>({...x})));
-    const states=[
-      mkState('狀態①局初：h 全 0',same()),
-      mkState(`狀態②對手領先：東家 h=⌊P/2⌋=${Math.floor(P/2)}`,same(),st=>{ st.h[st.target[3]][3]=Math.floor(P/2); }),
-      mkState(`狀態③差一步：南家 h=P−1=${P-1}`,same(),st=>{ st.h[st.target[0]][0]=P-1; }),
-    ];
-    const tag=`取第 ${rank+1} 名（袋${pick.i}，原 V=${pick.v.toFixed(2)}）`;
-    say('');
-    say(`## L1′ ── ${tag}${rank===1?'（判定依據）':'（覆核用，不影響判定）'}`);
-    let ok=true;
-    for(const st of states){
-    const r=dominantScan(st);
+  const states=[
+    mkState('狀態①局初：h 全 0',zuBags()),
+    mkState(`狀態②對手領先：東家 h=⌊P/2⌋=${Math.floor(P/2)}`,zuBags(),st=>{ st.h[st.target[3]][3]=Math.floor(P/2); }),
+    mkState(`狀態③差一步：南家 h=P−1=${P-1}`,zuBags(),st=>{ st.h[st.target[0]][0]=P-1; }),
+  ];
+  let ok=true; verdict.L1={};
+  for(const st of states){
+    const r=dominantScan(st,V);
     say(`### ${st.name}`);
-    say(`- 四家拜同一尊「${G.LEGENDS[st.target[0]].n}」，V 各 ${r.val.map(v=>v.v.toFixed(2)).join('／')}（同袋所以逐家相同）`);
     say('- 收益矩陣摘要（64 種對手組合下的 最小／平均／最大）：');
     say('| 家 | '+r.options.map(i=>'燒 '+i).join(' | ')+' |');
     say('|---|'+r.options.map(()=>'---').join('|')+'|');
@@ -203,7 +204,6 @@ if(want('L1')){
       const good=a>0&&b>0; if(!good) pass=false;
       say(`| ${NAME[i]} | ${a} | ${b} | ${good?'✅':'❌'} |`);
     });
-    /* 例子：各家「燒 0」「燒 M」各印一筆被打敗的組合 */
     [0,1,2,3].forEach(i=>{
       const a=r.beat0[i][0], b=r.beatMax[i][0];
       say(`  - ${NAME[i]}：${a?`對手 ${a.others} 時 燒0 得 ${a.pA} < 燒${a.B} 得 ${a.pB}`:'**「燒 0」沒有任何組合打得敗** ❌'}`
@@ -211,29 +211,12 @@ if(want('L1')){
     });
     const mid=r.res.dominant.filter(d=>d.option!==0&&d.option!==M);
     say(`- 記錄項（不判）：中間注額的弱優勢 ${mid.length?JSON.stringify(mid):'無'}；analyzeEvent 全部 dominant＝${JSON.stringify(r.res.dominant)}；freeLunch＝${r.res.freeLunch}`);
-    verdict.L1[`${tag}／${st.name}`]=pass; if(!pass) ok=false;
+    verdict.L1[st.name]=pass; if(!pass) ok=false;
     say(`- 本狀態判定：${pass?'✅':'❌'}`);
     say('');
-    }
-    say(`- ${tag} 小計：${ok?'✅':'❌'}`);
-    if(rank===1) verdict.L1.pass=ok; else verdict.L1.pass3rd=ok;
   }
-  /* 記錄項（不判）：同樣三個狀態，改用**原 contend 的異質四袋**（＝§2.1 修訂之前的治具）。
-     兩者只差「四家同不同袋」，拿來分辨「紅是來自 K/P 太便宜，還是來自同袋把 V 墊高了」。 */
-  say('## L1′ 記錄項（不判）：同三狀態、改用原 contend 的**異質四袋**');
-  const hetero=[
-    mkState('①h 全 0',zuBags()),
-    mkState(`②東家 h=${Math.floor(P/2)}`,zuBags(),st=>{ st.h[st.target[3]][3]=Math.floor(P/2); }),
-    mkState(`③南家 h=${P-1}`,zuBags(),st=>{ st.h[st.target[0]][0]=P-1; }),
-  ];
-  say('| 狀態 | 各家 V | 「燒 0」被打敗數（南/北/西/東） | 「燒 '+M+'」被打敗數（南/北/西/東） |');
-  say('|---|---|---|---|');
-  for(const st of hetero){
-    const r=dominantScan(st);
-    say(`| ${st.name} | ${r.val.map(v=>v.v.toFixed(1)).join('／')} | ${r.beat0.map(x=>x.length).join('/')} | ${r.beatMax.map(x=>x.length).join('/')} |`);
-  }
-  say('');
-  say(`- L1′ 判定（以「取第 2 名」為準）：${verdict.L1.pass?'✅':'❌'} ${lap()}`); say('');
+  verdict.L1.pass=ok;
+  say(`- L1″ 判定：${ok?'✅':'❌'} ${lap()}`); say('');
 }
 
 /* ================= L2／L3′／L5：預設 AI 桌逐局統計（顯式 LEGEND_ON=true）================= */
