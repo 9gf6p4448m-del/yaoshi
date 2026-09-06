@@ -73,6 +73,12 @@
 | hairpin 下半身髮／裙分界 | **0/2** | 兩位皆「長裙／裙擺／流蘇」 | 回簽引擎限制 |
 副產物：兩位讀者把陰氣尊半透明下半身的線讀成「故障／掃描線特效」→ ghost 材質上的外殼＋邊緣線是瑕疵，列入修正（見 P-8 前修正）。
 
+## P-8 覆審紀錄
+- **Round 1**（`2026-09-06-postfx-review-round1.md`）：CRITICAL 0／HIGH 2／MEDIUM 4／LOW 5。H-1 SKIP 在 orbit 中鏡頭單幀跳 2.41（36.8°）；H-2 同尺寸 resize 讓深度貼圖被換成空的、邊緣線消失；M-1 lean 清零跳 0.50；M-2 lean dist −0.3 動到 camStable 閘門；M-3 reduced-motion 下多了 v0.34 沒有的燒毀震鏡；M-4 bloomOK=false 下外殼照畫（mesh ×2，未量）；L-1～L-5 見報告。trace seeds 1..20 IDENTICAL（反向驗證 CFG.LIFE 改 49 → DIFFERENT）；Math.random 三處皆註解／既有債，與 5f76adc 逐一相同。
+- **修**（`2026-09-06-postfx-fix-round1.md`＋主對話 H-2）：H-1／M-1 清除改以當下實際機位為起點、固定角速度折回（2.4076→0.000148，折回段最大單幀 0.1758 ≤0.20）；M-2 `LEAN.dist` −0.3→0（lean 只動 yaw，|Δlength| 1.8e-15）；M-3 `onBurn` 加 reduced gate；H-2 只在尺寸真變才重建深度貼圖（同尺寸 resize 後佔比 0→4.865%）。
+- **凍結條澄清（09-06，非降標）**：P-4 (b) 的 dist −0.3 原標【試玩必調】，因 M-2 與鎖排法閘門衝突改 0——手感題，真機試玩再定；P-4 (c)「維持現行 punch」在 reduced-motion 下取「v0.34 沒有燒毀震鏡＝不震」之義。兩條在收尾報告向使用者列明。
+- M-4：`bloomOK=false`（軟體 GL）路徑的渲染鏈未動（P-3 條），外殼是 P-1 的一部分、該路徑本就不是效能基準機；記錄、不修。L-1～L-5：L-2 註解已改；其餘記錄。
+
 ## 不在本卷
 法線貼花（木紋／毛／紙紮感）、`PAPERWAR_ON` 預設、`wardFirst`/`eliteArmor` 光環被遮、傳說 3 隻、任何 CFG／引擎數值。
 
