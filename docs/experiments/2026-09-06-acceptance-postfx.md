@@ -79,6 +79,8 @@
 - **凍結條澄清（09-06，非降標）**：P-4 (b) 的 dist −0.3 原標【試玩必調】，因 M-2 與鎖排法閘門衝突改 0——手感題，真機試玩再定；P-4 (c)「維持現行 punch」在 reduced-motion 下取「v0.34 沒有燒毀震鏡＝不震」之義。兩條在收尾報告向使用者列明。
 - **Round 2**（`2026-09-06-postfx-review-round2.md`，「反駁已修好」）：H-2 真的修好（同尺寸×3／真換尺寸／dpr 變化四格 4.944%，換回舊 bloom.js 紅成 0）；M-3 真的修好；M-1 字面修好；**H-1 表面修好**（折回段中再來 goto 入口單幀跳 2.27，修法造出的新窗）；M-2 lean 修了、burn 半條沒動。新 finding：HIGH 1（同上）、MEDIUM 2（lean 上升沿無 ease-in 跳 0.63；burn 動 dist 0.758）、LOW 4（折回時間只算 yaw；A7 涵蓋宣稱對 S4 不成立；cam-unit 不帶 `--base` A3 恆假；`setEdgeParams` 無 silRel）。
 - **Round 2 處置**：HIGH＋lean ease-in＋cam-unit `--base` 必帶＋折回時間三軸 → 回修（`2026-09-06-postfx-fix-round2.md`）；L-3 `edgeOn` getter 改直接回報 bloom 狀態（主對話）；**burn 動 dist 主對話裁定不改行為**（v0.34 punch 同族、鎖排法「一場只選一次」已防翻面、真機 burn 落在鎖點之後），A8 窗延伸為記錄值；`setEdgeParams` silRel 記錄不修。
+- **Round 2 修**（`2026-09-06-postfx-fix-round2.md`）：`goto()` 起點一律用上一幀實際機位、刪 `foldFrom`（折回段插 duel/table/reveal 九格 2.27/1.26→≤0.2384；SKIP 出貨序列 2.746→0.083；真頁面 fold-race 2.307→0.0005）；`LEAN.riseMs=120` 上升沿（0.632→f1 0.0068、逐幀 0.182）；A8 窗涵蓋 burn 為記錄值（0.758）；折回時長三軸換算；cam-unit 無 `--base` 直接 exit(2)。**未解**：`X5_lean_onset_midFold=0.2627`（lean 疊在折回段，兩段平滑運動疊加非瞬移；拉長 riseMs 會讓 A3 峰值 <5°）→ 列給使用者。
+- **待使用者簽字的凍結條改動**（修復 agent 自陳、主對話未代簽）：① `LEAN.dist` −0.3→0（P-4 (b)）；② reduced-motion 下 (c) 取「v0.34 沒有燒毀震鏡＝不震」；③ A7 三格（reveal 相關）上限 0.20→0.247075（reveal 550ms 乾淨補間本身最大單幀 0.247；修復前同格 2.27／1.26，差一個數量級）；A3 餘裕 4.45°→1.89°（門檻 >5° 未動）。
 - M-4：`bloomOK=false`（軟體 GL）路徑的渲染鏈未動（P-3 條），外殼是 P-1 的一部分、該路徑本就不是效能基準機；記錄、不修。L-1～L-5：L-2 註解已改；其餘記錄。
 
 ## 不在本卷
