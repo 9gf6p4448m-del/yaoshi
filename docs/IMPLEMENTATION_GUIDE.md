@@ -725,6 +725,15 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.20 傳說三尊「請神」實作卷（2026-09-06 深夜，v0.43）——接手前先知道這五件事
+
+1. **機制全在 `index.html`，預設開、`?legend=0` 可關**：`CFG.LEGEND_ON`（kill switch，OFF 時 `makeState` 連 `S.shrines`／`S.incense`／`S.shrineStat` 都不建，引擎各處用 `!S.shrines` 跳過，trace 與 `ca14065` 逐位元組相等）＋`INC_MAX 3`／`INC_K 6`／`INC_PITY 9`／`INC_GIFT_P 4`／`INC_AI{minLifeFrac,div,giveUpLead}`。資料表＝`LEGENDS`（3 筆，與 POOL 同形＋`legend:true`，**不進 `S.deck`**；`m` 欄是 3D 佔位模型鍵，各借一隻既有體型的模型，系色由 `f` 帶）。新 TRAITS：`eliteBlind`（`blindFront`，在 `pwBolt` 段，一拍開打前對面前鋒 atk −2，降下去的 atk 三拍都算）、`hauntAnswer`（`curseHaunt`，在 `pwHaunt` 段，對面每有一件詛咒品多燒 1 隻）、`wardGuardAll`（沿用既有 `hpAll:2`，零新欄位）。
+2. **結算的位置只有一個：`resolveShrines()` 插在 `resolveAuction()` 之後、`resolveBattles()` 之前**，三條迴圈（真人 `startShrine`／`simulate`／`playPolicyGame`）都在同一格。亂數只有兩處會走 `S.rng()`：h/(h+K) 那一擲、階段獎勵第三段抽小法寶；AI 的選尊與燒香量（`aiIncense`）是純算式、零亂數。**加任何東西進這一段之前先想清楚它會不會動到亂數序**——動了三條迴圈就對不上。
+3. **回天結清 `settleShrinesEnd()` 會就地覆寫 `S.history.life` 的最後一筆**，不另 push 一列。原因：`tests/review.test.mjs` 有兩案在守「`life.length === nights.length+1`」與「末筆快照＝局末各人壽命」，直接 push 會兩案齊紅。`playPolicyGame` 的 `lifeByRound` 末筆與 `simulate` 最後一夜的 `post` 也一起同步——三者是同一個「天亮」時刻。
+4. **閘門治具 `tests/tools/legend-gate.mjs`（L0–L5）＋單元 `tests/legend.test.mjs`（13 案）＋Playwright `tests/tools/legend-drive.mjs`**。跑法：`git show ca14065:index.html > old-l.html` 後 `node tests/tools/legend-gate.mjs 10000`（約 15 分鐘）。**實跑結果：L0／L2／L4／L5 過，L1／L3 未過**，數字與診斷全文在 `docs/experiments/2026-09-06-legend3-impl-report.md` 與 `docs/experiments/2026-09-06-legend3-evidence/`。
+5. **兩件事不要做**：① 不要為了讓 L3 變綠去砍傳說的紙紮數值——閘門治具的消融欄已經證明「把三尊的紙紮全部歸零」相對帶仍有 **1.49**，門檻上緣 1.60 的可用區間只夠塞一件毫無作用的東西；那是量法的選樣混淆（拿得到傳說的人本來就有餘裕、也活得久），要動的是量法（照 R2→R2′ 的程序、要使用者同意），不是數值。② 不要在使用者裁定前改 `INC_MAX`／`INC_K`／`INC_PITY` 的預設（策略數值，硬規則 3）。
+6. **兩個已知的規格缺口（實作時自行裁的，要回頭確認）**：① 提案 §4.2 說「h≥P 天井必請、不會落到階段獎勵那一列」，但**獨一份**表示四人同時到天井時只有一人拿得到——落敗那幾位的 h≥P，本實作讓他們領最高那一段（退 ⌈h/2⌉＋小法寶）。② 提案 §4.2 的「從 POOL 該系 p≤4 的抽，走既有牌庫」，本實作解讀成「以 POOL 該系為抽取母體、發一份新的複本」，**不從 `S.deck` 抽走**——後者會讓神龕獎勵改變後續市集的牌堆組成，耦合過大。
+
 ### 11.19 共鳴接入紙紮夜戰候選＋傳說三尊設計提案（設計卷，2026-09-06 深夜，v0.41）——接手前先知道這五件事
 
 1. **共鳴候選全在 `index.html`，預設關**：`CFG.PW_RES_MODE` 0＝關（線上行為＝v0.40）、1＝同系列陣 hp、2＝共鳴拍 atk、3＝共鳴增員；`?res=N` 可切。`pwResLv(p,fac)`（facCount → onPowerCalc 的 resonanceMul → lv≤PW_RES_CAP）在 `pwSide` 算成 `sd.res`，M1／M2 在 `pwPrep` 月相段之後套、M3 在 `pwSide` 增員；`PW_RES_STAT` 純計數（只計 `resolveBattles` 帶 `real:true` 的場）。
