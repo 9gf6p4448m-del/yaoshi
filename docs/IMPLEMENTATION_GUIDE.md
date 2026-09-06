@@ -732,6 +732,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 3. **R2 紅是量法問題**：duelBags 決定性、勝率離散階；不得改門檻（§2.1），改寫已列為提案裁定題。**建議 M1、淘汰 M3**（成套即必勝）、M2 對陰氣無效（haunt atk 0）——理由與數字在 `docs/proposals/2026-09-06-resonance-paperwar.md`。
 4. **傳說三尊設計提案 `docs/proposals/2026-09-06-legend3-design.md`**（未實作）：三龕常駐、燒壽命當香火、h/(h+K) 機率公開、天井 P 必請、獨一份搶請、階段獎勵；三尊＝殘日（祖靈）／大士爺紙尊（香火）／守娘（陰氣）。fresh read-back 一輪、5 處二義已修。實作前要過 GAME_DESIGN 六之四優勢策略窮舉閘門（L1）。
 5. **兩件事不要做**：不要在使用者裁定前把 PW_RES_MODE 預設改掉（策略數值，硬規則 3）；不要拿 R2 的 4 組對照當結論（顆粒度不夠）。
+6. **v0.42（使用者裁定後）**：預設 `PW_RES_MODE=1`（M1），`?res=0` 關；R2 依 §2.1 程序改寫成 R2′（全 248 配對、平均位移 +5～+15pp、100% 配對 ≤ 基準×1.5），實跑 M1 ✅／M2 ❌／M3 ❌（`resonance-evidence/gate2-R2prime-10000.md`）。規則頁「風位與共鳴」ON 分支已改口徑（該系那一拍每隊每隻 hp +(件數−1)，上限 PW_RES_CAP）。**共鳴進了紙紮夜戰，之後任何動 unit hp／SET_MIN 的卷都要重跑 resonance-gate**。傳說三尊陰氣改「有應公」（使用者裁定），實作卷凍結檔 `docs/experiments/2026-09-06-acceptance-legend3-impl.md`。
 
 ### 11.18 法線貼花小卷（技術驗證，2026-09-06 深夜，v0.39）——接手前先知道這五件事
 

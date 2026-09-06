@@ -77,34 +77,30 @@ if(want('R3')){
   say(`- 判定：${ok?'✅':'❌'} ${lap()}`); say('');
 }
 
-/* R2 袋對袋 */
+/* R2′ 全配對（2026-09-06 §2.1 修訂，使用者同意；原 R2 因決定性顆粒度作廢，紀錄在凍結檔） */
 if(want('R2')){
-  say('## R2 有感但不支配（同系 3 件 vs 三系各 1 件、總 p 相等；基準 40–60% 者為有效對照，≥3 組；候選下成套袋 55–75%）');
+  say('## R2′ 有感但不支配（全部「同系 3 件 vs 三系各 1 件、總 p 相等」配對；平均位移 +5～+15pp 且候選下成套 100% 配對數 ≤ 基準×1.5）');
   const g0=G[0]; const pool=g0.POOL.filter(x=>!x.curse);
   const facs=['zuling','xianghuo','yinqi'];
   const byF={}; for(const f of facs) byF[f]=pool.filter(x=>x.f===f);
   const combos=arr=>{ const out=[]; for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++)for(let k=j+1;k<arr.length;k++) out.push([arr[i],arr[j],arr[k]]); return out; };
   const sumP=b=>b.reduce((s,x)=>s+x.p,0);
   const mixed=[]; for(const a of byF.zuling)for(const b of byF.xianghuo)for(const c of byF.yinqi) mixed.push([a,b,c]);
-  /* 候選配對：每個同系三件組配「總 p 相等」的第一個混系組（決定性）；先用 n=2000 篩基準 40–60%，再用 n=N 確認 */
-  const cand=[];
-  for(const f of facs) for(const s of combos(byF[f])){ const m=mixed.find(x=>sumP(x)===sumP(s)&&!x.some(y=>s.includes(y))); if(m) cand.push({f,set:s,mix:m}); }
+  const cand=[]; for(const f of facs) for(const s of combos(byF[f])){ const m=mixed.find(x=>sumP(x)===sumP(s)&&!x.some(y=>s.includes(y))); if(m) cand.push({f,set:s,mix:m}); }
   const bag=b=>b.map(x=>({...x}));
-  const S2=Array.from({length:2000},(_,i)=>i+1);
-  const screened=cand.filter(c=>{ const r=g0.duelBags(bag(c.set),bag(c.mix),S2).rateDecided; return r>=0.40&&r<=0.60; });
-  say(`- 候選配對 ${cand.length} 組，n=2000 快篩落在 40–60% 者 ${screened.length} 組；取每系前 2 組（最多 6 組）用 n=${N} 確認`);
-  const pick=[]; for(const f of facs) pick.push(...screened.filter(c=>c.f===f).slice(0,2));
-  say('| 系 | 成套袋 | 混系袋 | p | 基準 | '+MODES.map(m=>MODE_NAME[m]).join(' | ')+' |'); say('|---|---|---|---|---|'+MODES.map(()=>'---').join('|')+'|');
-  let valid=0; const passCount={}; for(const m of MODES) passCount[m]=0;
-  for(const c of pick){
-    const base=g0.duelBags(bag(c.set),bag(c.mix),SEEDS).rateDecided;
-    const isValid=base>=0.40&&base<=0.60; if(isValid) valid++;
-    const cells=MODES.map(m=>{ const v=G[m].duelBags(bag(c.set),bag(c.mix),SEEDS).rateDecided; const pass=v>=0.55&&v<=0.75; if(isValid&&pass) passCount[m]++; return `${pct(v)} ${isValid?(pass?'✅':'❌'):'—'}`; });
-    say(`| ${c.f} | ${c.set.map(x=>x.n).join('＋')} | ${c.mix.map(x=>x.n).join('＋')} | ${sumP(c.set)} | ${pct(base)}${isValid?'':'（無效對照）'} | ${cells.join(' | ')} |`);
-  }
+  const base=cand.map(c=>g0.duelBags(bag(c.set),bag(c.mix),SEEDS).rateDecided);
+  const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
+  const b100=base.filter(v=>v>=0.999).length;
+  say(`- 配對 ${cand.length} 組（zuling ${cand.filter(c=>c.f==='zuling').length}／xianghuo ${cand.filter(c=>c.f==='xianghuo').length}／yinqi ${cand.filter(c=>c.f==='yinqi').length}）；基準成套平均 ${pct(mean(base))}，基準 100% 配對 ${b100}`);
+  say('| 候選 | 成套平均勝率 | 平均位移 | 升／降配對 | 100% 配對（≤'+Math.floor(b100*1.5)+'） | 判定 |'); say('|---|---|---|---|---|---|');
   verdict.R2={};
-  if(valid<3){ say(`- 有效對照僅 ${valid} 組 <3 → **無法判定**`); for(const m of MODES) verdict.R2[m]=null; }
-  else for(const m of MODES){ verdict.R2[m]=(passCount[m]===valid); say(`- ${MODE_NAME[m]}：${passCount[m]}/${valid} 有效對照落在 55–75% → ${verdict.R2[m]?'✅':'❌'}`); }
+  for(const m of MODES){
+    const v=cand.map(c=>G[m].duelBags(bag(c.set),bag(c.mix),SEEDS).rateDecided);
+    const d=v.map((x,i)=>x-base[i]); const md=mean(d)*100; const c100=v.filter(x=>x>=0.999).length;
+    const pass=(md>=5&&md<=15)&&(c100<=b100*1.5); verdict.R2[m]=pass;
+    say(`| ${MODE_NAME[m]} | ${pct(mean(v))} | ${(md>=0?'+':'')+md.toFixed(2)}pp | ${d.filter(x=>x>0.001).length}／${d.filter(x=>x<-0.001).length} | ${c100} | ${pass?'✅':'❌'} |`);
+    for(const f of facs){ const idx=cand.map((c,i)=>c.f===f?i:-1).filter(i=>i>=0); say(`  - ${f}：基準 ${pct(mean(idx.map(i=>base[i])))} → ${pct(mean(idx.map(i=>v[i])))}`); }
+  }
   say(`- ${lap()}`); say('');
 }
 
