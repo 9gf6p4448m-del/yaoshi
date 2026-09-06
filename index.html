@@ -252,13 +252,24 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 /* 隻數牌：一隻紙紮一片，燒掉哪一片就是 fxBurn 燒的那個元素（3D 的紙紮同步消失） */
 .pwchips{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin-top:3px;
   max-width:190px;margin-left:auto;margin-right:auto}
+/* 系色小圖示小卷（2026-09-06，v0.37；凍結檔 docs/experiments/2026-09-06-acceptance-facchip.md）：
+   顏色＝該紙紮的陣營（--pwf 由 fac-* class 帶入；v0.36 以前是三系淺色卻按體型套，陰氣小紙人顯示成祖靈棕＝誤導），
+   體型改靠形狀：小紙人實心／大紙偶大片＋金邊／護法空心（只擋刀不出手）／飄影半透明＋虛線邊。
+   每隊（同一件法寶）前一枚 .pwfac 系字徽。pwLineUp 逐子元素 stagger、pwBurnOne 只認 id，兩者都不受新增徽章影響。 */
+.pwchip,.pwfac{--pwf:#8a8a8a}
+.fac-zuling{--pwf:var(--zuling)} .fac-xianghuo{--pwf:var(--xianghuo)} .fac-yinqi{--pwf:var(--yinqi)}
 .pwchip{width:8px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,.6);
+  box-shadow:0 1px 3px rgba(0,0,0,.5);background:var(--pwf)}
+.pwchip.elite{width:13px;height:17px;border-color:var(--gold)}
+.pwchip.ward{height:14px;background:transparent;border:1.5px solid var(--pwf)}
+/* 半透明走 filter 不走 opacity：pwRise 用 WAAPI fill:both 把 opacity 釘在 1，CSS 的 opacity 永遠被蓋（探針實測 haunt computed opacity＝1；
+   舊的 .burnt{opacity:.1} 同樣被蓋、燒掉的片只剩灰階——本卷一併改成 filter） */
+.pwchip.haunt{filter:opacity(.6);border:1px dashed rgba(255,255,255,.75)}
+.pwchip.burnt{filter:grayscale(1) opacity(.15)}
+.pwfac{font-style:normal;font-size:9px;font-weight:bold;line-height:12px;width:12px;height:12px;border-radius:50%;
+  text-align:center;color:#14101f;background:var(--pwf);margin-left:4px;align-self:center;
   box-shadow:0 1px 3px rgba(0,0,0,.5)}
-.pwchip.swarm{background:#d4a870}
-.pwchip.elite{background:#f08060;width:13px;height:17px}
-.pwchip.ward{background:#c8b090;height:14px}
-.pwchip.haunt{background:#70b080;opacity:.6}
-.pwchip.burnt{opacity:.1;filter:grayscale(1)}
+.pwfac:first-child{margin-left:0}
 /* 受擊停格（v0.27）：整頁的 CSS 動畫與轉場一起凍住，3D 那半邊由 ys:hitstop 事件把 dt 歸零。
    只停「播放狀態」，不改任何版面屬性，所以解凍後動畫接著原來的進度跑完，不會跳。 */
 body.hitstop *, body.hitstop *::before, body.hitstop *::after{
@@ -1670,7 +1681,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.36", VERSION_NOTE="《紙紮夜戰》預設開（3D 對決不再需要 ?paperwar=1）；後處理卷：系色描邊＋深度邊緣線、對決運鏡";
+const VERSION="0.37", VERSION_NOTE="對決隊列改陣營色＋每隊系字徽（小紙人／大紙偶／護法／飄影改靠形狀分）";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3351,7 +3362,7 @@ function openHelp(){
     ${sec(`⛩ 妖市異事（第 ${CFG.EVENT_NIGHTS.join("／")} 夜，前夜耳語預告）`,evRows)}
     ${(CFG.RULE_ON&&rlNights.length)?sec(`🏮 今夜市集規則（第 ${rlNights.join("／")} 夜，前夜耳語預告）`,
       `每局從下面 ${Object.keys(NIGHTRULES).length} 條抽 ${rlNights.length} 條配夜——那一夜<b>拍賣規則本身</b>被改寫，平常算好的價目表當夜作廢。${rlRows}`):""}
-    ${sec("⚔ 結算戰",`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。`)}
+    ${sec("⚔ 結算戰",`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。${CFG.PAPERWAR_ON?`<br>對決畫面兩側的小方塊＝各隻紙紮，<b>顏色是它的陣營</b>（祖靈棕／香火紅／陰氣綠，每隊前有系字），體型看形狀：大紙偶最大帶金邊、護法紙人空心、飄影半透明。`:""}`)}
     ${sec("🀄 風位與共鳴",`風位每夜輪轉：風位家戰力+${CFG.WIND_POWER}、出價平手時優先。同一系法寶集滿 ${CFG.SET_MIN} 件起，共鳴加戰力＝件數²。`)}
     ${/* ARCH_SPEC §9 待辦 6：袋裡兩把同名法寶只生效一次（collectEffects 用 Set 去重），
          這件事玩家在牌面上看不出來，必須寫在規則頁，否則會有人特地去湊第二把。
@@ -3922,7 +3933,8 @@ function pwTraitFx(trId,ctx){
 function pwArmyView(p){
   const a=buildArmy(p.bag);
   const units=[];
-  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null})));
+  /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
+  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,t:t.idx})));
   units.forEach((u,i)=>{ u.id=i; });
   const comp={};
   units.forEach(u=>{ comp[u.body]=(comp[u.body]||0)+1; });
@@ -3975,7 +3987,14 @@ function pwMoveCap(who,item,move,desc,fac,side){
 function pwArenaHTML(f,views){
   const cell=(p,tag,v,total)=>{
     const wind=p.id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}</span>`:"";
-    const chips=v.units.map(u=>`<i class="pwchip ${u.body}" id="pwc-${tag}-${u.id}"></i>`).join("");
+    /* 系色小圖示小卷：牌色＝陣營（fac-*）、每隊開頭一枚系字徽（fac:null 的肉身兜底＝「肉」灰徽） */
+    const facCls=u=>u.fac?`fac-${u.fac}`:"fac-none";
+    let lastT=null;
+    const chips=v.units.map(u=>{
+      const badge=u.t===lastT?"":`<i class="pwfac ${facCls(u)}">${u.fac?FAC[u.fac].n[0]:"肉"}</i>`;
+      lastT=u.t;
+      return badge+`<i class="pwchip ${u.body} ${facCls(u)}" id="pwc-${tag}-${u.id}"></i>`;
+    }).join("");
     return `<div class="fighter anim-clash-${tag==="A"?"left":"right"}" id="${tag==="A"?"dL":"dR"}">
       <div class="fdir">${DIRS[p.id]}家${wind}</div>
       <div class="fav">${avHTML(p)}</div><div class="fnm">${p.name}</div>
