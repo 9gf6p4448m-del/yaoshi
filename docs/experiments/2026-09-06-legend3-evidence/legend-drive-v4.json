@@ -1,0 +1,151 @@
+{
+ "seeds": [
+  3,
+  5
+ ],
+ "errors": [],
+ "pageerrors": [],
+ "requestfailed": [],
+ "overflow": [
+  {
+   "seed": 3,
+   "step": 0,
+   "txt": "不盯任何一件",
+   "ov": [
+    {
+     "sel": "body",
+     "scrollW": 863,
+     "clientW": 844,
+     "over": 19
+    },
+    {
+     "sel": "#table",
+     "scrollW": 863,
+     "clientW": 844,
+     "over": 19
+    }
+   ]
+  },
+  {
+   "seed": 3,
+   "step": 609,
+   "txt": "蓋牌開標",
+   "ov": [
+    {
+     "sel": "#stage",
+     "scrollW": 567,
+     "clientW": 564,
+     "over": 3
+    },
+    {
+     "sel": "#market",
+     "scrollW": 567,
+     "clientW": 564,
+     "over": 3
+    }
+   ]
+  },
+  {
+   "seed": 5,
+   "step": 152,
+   "txt": "蓋牌開標",
+   "ov": [
+    {
+     "sel": "#stage",
+     "scrollW": 567,
+     "clientW": 564,
+     "over": 3
+    },
+    {
+     "sel": "#market",
+     "scrollW": 567,
+     "clientW": 564,
+     "over": 3
+    }
+   ]
+  }
+ ],
+ "portraitOverflow": [
+  {
+   "sel": "#stage",
+   "scrollW": 116,
+   "clientW": 110,
+   "over": 6
+  },
+  {
+   "sel": "#market",
+   "scrollW": 116,
+   "clientW": 110,
+   "over": 6
+  }
+ ],
+ "taken": 6,
+ "dawn": 0,
+ "dawnShrines": 0,
+ "games": [
+  {
+   "seed": 3,
+   "nights": 12,
+   "clicks": 114,
+   "taken": 3,
+   "dawn": 0,
+   "burned": 6,
+   "stuck": "再入妖市",
+   "txts": {
+    "不盯任何一件": 12,
+    "蓋牌開標": 12,
+    "開標 ▸": 12,
+    "開標 ▸（停用）": 31,
+    "下一件拍品 ▸": 36,
+    "下一件拍品 ▸（停用）": 135,
+    "🕯️ 請神": 12,
+    "🕯️ 請神（停用）": 1,
+    "開戰": 12,
+    "開戰（停用）": 832,
+    "進入下一夜": 11,
+    "進入下一夜（停用）": 78,
+    "前往拍賣": 3,
+    "看最終結果": 1,
+    "再入妖市": 1
+   },
+   "shrineEl": true,
+   "incEl": true,
+   "stageClicks": 3,
+   "dawnShrines": 0
+  },
+  {
+   "seed": 5,
+   "nights": 12,
+   "clicks": 114,
+   "taken": 3,
+   "dawn": 0,
+   "burned": 8,
+   "stuck": "再入妖市",
+   "txts": {
+    "不盯任何一件": 12,
+    "蓋牌開標": 12,
+    "開標 ▸": 12,
+    "開標 ▸（停用）": 37,
+    "下一件拍品 ▸": 36,
+    "下一件拍品 ▸（停用）": 110,
+    "🕯️ 請神": 12,
+    "開戰": 12,
+    "開戰（停用）": 761,
+    "進入下一夜": 11,
+    "🕯️ 請神（停用）": 5,
+    "進入下一夜（停用）": 78,
+    "前往拍賣": 3,
+    "看最終結果": 1,
+    "再入妖市": 1
+   },
+   "shrineEl": true,
+   "incEl": true,
+   "stageClicks": 3,
+   "dawnShrines": 0
+  }
+ ],
+ "legendOn": true,
+ "shrineEl": false,
+ "portraitAt": "蓋牌開標",
+ "landscapeFixed": []
+}
