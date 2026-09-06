@@ -125,16 +125,8 @@ function loadGlb(url) {
  * 疊一段 fresnel emissive 與一段 dissolve discard。這樣 GLB 烘進 COLOR_0 的
  * per-vertex AO 與頂點色全部原封不動保留，燈光也還是場景那四盞燈籠。
  * ────────────────────────────────────────────────────────────────────────── */
-const PARS = `
-uniform vec3 uRimColor;
-uniform float uRimPower;
-uniform float uRimStrength;
-uniform vec3 uRimDir;
-uniform float uDissolve;
-uniform vec3 uBurnColor;
-uniform vec2 uBurnY;
-varying vec3 vLocalPosR;
-
+// 雜訊（dissolve 用）：本體與外殼描邊共用同一組函式，燒毀才會逐像素在同一個位置破。
+const NOISE_GLSL = `
 float hashR(vec3 p){
   p = fract(p * vec3(0.1031, 0.1030, 0.0973));
   p += dot(p, p.yxz + 33.33);
@@ -149,11 +141,25 @@ float noiseR(vec3 p){
                  mix(hashR(i + vec3(0,1,1)), hashR(i + vec3(1,1,1)), f.x), f.y), f.z);
 }`;
 
-const TAIL = `
-{
+const PARS = `
+uniform vec3 uRimColor;
+uniform float uRimPower;
+uniform float uRimStrength;
+uniform vec3 uRimDir;
+uniform float uDissolve;
+uniform vec3 uBurnColor;
+uniform vec2 uBurnY;
+varying vec3 vLocalPosR;
+` + NOISE_GLSL;
+
+// 燒毀的切口：本體與外殼描邊共用這一段（同一條門檻、同一組雜訊），外殼才不會比本體早燒完或晚燒完。
+const DISSOLVE_CUT = `
   float _h = clamp((vLocalPosR.y - uBurnY.x) / max(uBurnY.y - uBurnY.x, 1e-4), 0.0, 1.0);
   float _n = mix(noiseR(vLocalPosR * ${BURN.noiseScale.toFixed(1)}), _h, ${BURN.heightBias.toFixed(2)});
-  if (uDissolve > 0.0 && _n < uDissolve) discard;
+  if (uDissolve > 0.0 && _n < uDissolve) discard;`;
+
+const TAIL = `
+{` + DISSOLVE_CUT + `
   vec3 _N = normalize(normal);
   float _rim = pow(1.0 - clamp(dot(_N, normalize(vViewPosition)), 0.0, 1.0), uRimPower);
   // 方向性：只有「面向 rim 燈那一側」的邊吃滿，其餘按 wrap 打折。
@@ -220,6 +226,154 @@ function dressMaterial(mat, burnY) {
   return u;
 }
 
+/* ── 反轉外殼描邊（後處理卷 P-1，2026-09-06）─────────────────────────────────
+ * 為什麼要它：剪影三次實測（docs/experiments/2026-09-05-silhouette-test-*.md）證明「剪影」與
+ * 「主色」都分不出三系，ART_BIBLE.md:75 把陣營辨識的責任交給本卷；使用者裁定描邊色＝系色常駐。
+ *
+ * 做法：每一顆本體 mesh 底下再掛一顆 back-face、沿法線外擴的同款 mesh。三件事是刻意的：
+ *   ① 不再 SkeletonUtils.clone：外殼直接 reuse 本體的 geometry／skeleton／bindMatrix。
+ *      再 clone 一次會生出第二副不同步的骨架（事實表風險 2），而且 trait-fx.js:129 的 model
+ *      偵測會抓錯節點。外殼掛成「本體 mesh 的子節點」，matrixWorld 逐幀等於本體——SkinnedMesh
+ *      預設的 attached bindMode 每幀拿 matrixWorld 重算 bindMatrixInverse，掛成子節點才不會脫節。
+ *   ② 線寬用 CSS 像素定：在 clip space 沿「投影後的法線」推 uOutlinePx 個像素，乘 w 抵銷
+ *      透視除法 → 同一尊在 dist 3.6 與 4.2 的描邊一樣粗（驗收 P-1 的量法），不是越近越粗。
+ *   ③ 另一把 program cache key：本體那把是 'yaoshi-creature-rim-burn'（事實表風險 3），
+ *      共用會讓 three 拿本體的 program 去畫外殼。
+ * ────────────────────────────────────────────────────────────────────────── */
+// 全部【試玩必調】。
+const OUTLINE = {
+  px: 2.0, // 螢幕線寬（CSS 像素）：844×390 的 8v8 裡 1px 讀不出來、3px 以上後排的小尊會被描邊吃掉
+  satMul: 1.6, // 系色飽和度倍率（在 sRGB 的 HSL 上算）
+  lum: 0.42, // 描邊明度（絕對值，不是倍率）：三系等亮，讀者才是在比色相而不是在比誰比較暗
+};
+/** ?outline=0 關掉描邊（P-2 對照組）。正式頁沒帶這個參數＝開（解析方式對齊 index.html:3146 的 ?fxcount）。 */
+const OUTLINE_ON = (() => {
+  try { return new URLSearchParams((typeof location === 'undefined' ? '' : location.search) || '').get('outline') !== '0'; } catch (e) { return true; }
+})();
+// 線寬換算要知道畫布多大（CSS 像素）。兩個 uniform 全場共用同一個物件：寫一次，所有外殼同步。
+const OUTLINE_PX = { value: OUTLINE.px };
+const OUTLINE_RES = { value: new THREE.Vector2(1, 1) };
+function syncOutlineRes() {
+  if (typeof window === 'undefined') return;
+  const w = window.innerWidth || 1;
+  const h = window.innerHeight || 1;
+  if (OUTLINE_RES.value.x !== w || OUTLINE_RES.value.y !== h) OUTLINE_RES.value.set(w, h);
+}
+syncOutlineRes();
+
+// FACTION_RIM 的鍵（zuli/xianghu/yinqi）對上 canonFaction 的輸出（zuling/xianghuo/yinqi）。
+// 只是索引轉換，不是第 7 份系色複製品——描邊色一律由 FACTION_RIM 算出來。
+const RIM_KEY = { zuling: 'zuli', xianghuo: 'xianghu', yinqi: 'yinqi' };
+const _oc = new THREE.Color();
+const _ohsl = { h: 0, s: 0, l: 0 };
+/**
+ * 三系 → 描邊色：取既有的 FACTION_RIM，色相不動，飽和度 ×satMul、明度壓到 lum。
+ * 為什麼不能直接用 FACTION_RIM 原色：香火的 #f08060 跟燈籠光暈 #f0a840 幾乎同色
+ * （下面 RIM_FACTION_MIX 那段就是在處理同一件事），整隻被燈籠照橘之後描邊也是橘的＝沒有邊。
+ * 壓暗＋拉飽和之後三系都比燈籠暗、彼此的色相差才讀得出來。
+ * @param fallbackHex 沒給 faction（或認不得）時的來源色，預設燈籠色
+ */
+export function outlineColorOf(faction, fallbackHex) {
+  const key = RIM_KEY[canonFaction(faction)];
+  const src = key ? FACTION_RIM[key] : (fallbackHex === undefined ? RIM_FALLBACK : fallbackHex);
+  _oc.setHex(src);
+  _oc.getHSL(_ohsl, THREE.SRGBColorSpace);
+  return _oc.setHSL(_ohsl.h, Math.min(1, _ohsl.s * OUTLINE.satMul), OUTLINE.lum, THREE.SRGBColorSpace).getHex(THREE.SRGBColorSpace);
+}
+
+const OUTLINE_PARS = `
+uniform vec3 uOutlineColor;
+uniform float uDissolve;
+uniform vec2 uBurnY;
+varying vec3 vLocalPosR;
+` + NOISE_GLSL;
+
+// 取代 <begin_vertex>：留下本體局部座標給 dissolve，並取出這一格的法線。
+// meshbasic 的法線區塊只在 USE_SKINNING／USE_ENVMAP 時才展開（three r158 meshbasic_vert），
+// 沒展開時 objectNormal 不存在，要退回 attribute。蒙皮的那條拿到的已經是骨架變形後的法線。
+const OUTLINE_BEGIN = `#include <begin_vertex>
+  vLocalPosR = position;
+  #if defined( USE_SKINNING ) || defined( USE_ENVMAP )
+    vec3 _shellNormal = objectNormal;
+  #else
+    vec3 _shellNormal = vec3( normal );
+  #endif`;
+
+// 取代 <project_vertex>：先照原樣算出 clip 座標，再沿投影後的法線推固定的螢幕像素。
+// ×2/解析度＝把 CSS 像素換成 NDC；×w 抵銷後面的透視除法 → 線寬不隨距離縮放。
+// 法線正對鏡頭時投影後的 xy 約等於 0（沒有可推的方向），推 0；normalize(0) 是 NaN，一定要擋。
+const OUTLINE_PROJECT = `vec4 mvPosition = vec4( transformed, 1.0 );
+  #ifdef USE_INSTANCING
+    mvPosition = instanceMatrix * mvPosition;
+  #endif
+  mvPosition = modelViewMatrix * mvPosition;
+  vec4 _oClip = projectionMatrix * mvPosition;
+  vec3 _oN = normalize( normalMatrix * _shellNormal );
+  vec2 _oC = ( projectionMatrix * vec4( _oN, 0.0 ) ).xy;
+  vec2 _oDir = dot( _oC, _oC ) > 1e-12 ? normalize( _oC ) : vec2( 0.0 );
+  _oClip.xy += _oDir * ( uOutlinePx * 2.0 / max( uOutlineRes, vec2( 1.0 ) ) ) * _oClip.w;
+  gl_Position = _oClip;`;
+
+/**
+ * 一顆外殼描邊材質（一尊共用一顆）。回傳 { mat, u }，u.uDissolve 由本體的 setDissolve 同步餵。
+ * 用 MeshBasicMaterial＋onBeforeCompile 而不是 ShaderMaterial：蒙皮、霧、色彩空間（對決走
+ * bloom 的 render target 是 linear、直接輸出是 sRGB）全部交給 three 的標準管線處理，
+ * 才跟本體同一套；自己寫 ShaderMaterial 要把這三件事重抄一遍。
+ */
+function makeOutlineMaterial(colorHex, burnY) {
+  const u = {
+    uOutlineColor: { value: new THREE.Color(colorHex) },
+    uOutlinePx: OUTLINE_PX,
+    uOutlineRes: OUTLINE_RES,
+    uDissolve: { value: 0 },
+    uBurnY: { value: new THREE.Vector2(burnY[0], burnY[1]) },
+  };
+  const mat = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+  mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, u);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float uOutlinePx;\nuniform vec2 uOutlineRes;\nvarying vec3 vLocalPosR;')
+      .replace('#include <begin_vertex>', OUTLINE_BEGIN)
+      .replace('#include <project_vertex>', OUTLINE_PROJECT);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>' + OUTLINE_PARS)
+      // 燒毀：跟本體同一條切口（DISSOLVE_CUT），外殼才會跟身體一起破，不會剩一層殼
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n{' + DISSOLVE_CUT + '\n}')
+      // 描邊色蓋在 diffuseColor 上（不是直接寫 gl_FragColor）：後面的霧、色彩空間照標準管線走
+      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = uOutlineColor;');
+  };
+  mat.customProgramCacheKey = () => 'yaoshi-creature-outline';
+  mat.needsUpdate = true;
+  return { mat, u };
+}
+
+/**
+ * 描邊 shader 的暖身物件（renderer.js 掛進 scene，要排在燈組進場「之後」——
+ * three 的 program cache key 含燈數，燈還沒進來時編的那支到對決會再編一次）。
+ * 對決走 bloom 的 render target（linear 色彩空間）跟直接輸出是兩支 program，renderer.compile()
+ * 只編得到後者，所以照 trait-fx.js:104-114 的做法：常駐、關掉 frustumCulled、藏在桌面底下，
+ * 每一幀（兩條路都算）真的被畫，第一場對決之前兩種變體就都編好了。
+ * ?outline=0 時回一個空 Group（不編也不畫）。
+ */
+export function createOutlineWarmup() {
+  const g = new THREE.Group();
+  g.name = 'outline-warmup';
+  g.position.y = -30; // 桌面底下、鏡頭永遠看不到
+  if (!OUTLINE_ON) return g;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0.001, 0, 0, 0, 0.001, 0]), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), 3));
+  geo.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint16Array(12), 4));
+  geo.setAttribute('skinWeight', new THREE.BufferAttribute(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]), 4));
+  const bone = new THREE.Bone();
+  const mesh = new THREE.SkinnedMesh(geo, makeOutlineMaterial(RIM_FALLBACK, [0, 1]).mat);
+  mesh.add(bone);
+  mesh.bind(new THREE.Skeleton([bone]), new THREE.Matrix4());
+  mesh.frustumCulled = false;
+  g.add(mesh);
+  return g;
+}
+
 /**
  * @param opts.glbUrl   anyCreature 產出的蒙皮 GLB 路徑
  * @param opts.faction  三系（'zuli' | 'xianghu' | 'yinqi'），只用來決定邊光預設色；
@@ -229,6 +383,8 @@ function dressMaterial(mat, burnY) {
 export function makeCreatureFigure(opts = {}) {
   const group = new THREE.Group();
   const uniforms = []; // 這隻身上所有材質的 uniform 控制點
+  const shells = []; // 反轉外殼描邊的 mesh（每顆本體 mesh 一顆；?outline=0 時是空的）
+  let shellU = null; // 外殼材質的 uniform 控制點（整尊共用一顆材質）
   const parts = Object.create(null); // 骨骼名 → THREE.Bone
   const clips = Object.create(null); // clip 名 → THREE.AnimationClip
 
@@ -268,9 +424,11 @@ export function makeCreatureFigure(opts = {}) {
     const box = new THREE.Box3().setFromObject(model);
     bbox = box;
 
+    const bodyMeshes = []; // 先蒐集再掛外殼：邊 traverse 邊加子節點會把新加的外殼也走一遍
     model.traverse((o) => {
       if (o.isBone) parts[o.name] = o;
       if (!o.isMesh) return;
+      bodyMeshes.push(o);
       // SkeletonUtils.clone 沿用同一份材質；不各自複製的話 setCloth 會把 26 隻一起染色
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       const dressed = mats.map((m) => {
@@ -281,6 +439,22 @@ export function makeCreatureFigure(opts = {}) {
       o.material = Array.isArray(o.material) ? dressed : dressed[0];
       o.frustumCulled = false; // 蒙皮變形後 bounding sphere 不準，撲擊時會整隻被剔掉
     });
+
+    // 反轉外殼描邊（P-1）：整尊共用一顆材質（一支 program、一份 uniform），
+    // 每顆本體 mesh 底下掛一顆同 geometry／同 skeleton／同 bindMatrix 的殼。
+    if (OUTLINE_ON) {
+      const shell = makeOutlineMaterial(outlineColorOf(opts.faction, opts.rimColor), burnY);
+      shellU = shell.u;
+      bodyMeshes.forEach((o) => {
+        const mat = Array.isArray(o.material) ? o.material.map(() => shell.mat) : shell.mat;
+        const sh = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, mat) : new THREE.Mesh(o.geometry, mat);
+        if (o.isSkinnedMesh) { sh.bindMode = o.bindMode; sh.bind(o.skeleton, o.bindMatrix); }
+        sh.name = 'outline';
+        sh.frustumCulled = false; // 同本體：蒙皮變形後 bounding sphere 不準
+        o.add(sh); // 子節點＝matrixWorld 逐幀等於本體（見 makeOutlineMaterial 上面那段的 ①）
+        shells.push(sh);
+      });
+    }
 
     group.add(model);
     mixer = new THREE.AnimationMixer(model);
@@ -308,6 +482,7 @@ export function makeCreatureFigure(opts = {}) {
 
   function setDissolve(v) {
     uniforms.forEach((u) => { u.uDissolve.value = v; });
+    if (shellU) shellU.uDissolve.value = v; // 外殼跟本體同一個燒毀進度（P-1：燒完一起消）
   }
 
   const api = {
@@ -337,6 +512,10 @@ export function makeCreatureFigure(opts = {}) {
     current() { return current; },
     /** 腳下環境的種類（'water'）或 null */
     groundFx() { return ground ? ground.kind : null; },
+    /** 反轉外殼描邊的 mesh 清單（GLB 沒載完／?outline=0 時是空陣列）。驗收 P-1 的量測掛鉤。 */
+    outlines() { return shells.slice(); },
+    /** 這尊的描邊色（hex；?outline=0 時 null）。驗收與截圖判讀用。 */
+    outlineColor() { return shellU ? shellU.uOutlineColor.value.getHex(THREE.SRGBColorSpace) : null; },
     /**
      * 掛腳下環境（目前只有 'water'）。傳 null／'none' 拆掉。回傳控制點（沒掛成功回 null）。
      * 由 makeCreatureFigure 依 CREATURE_GROUND 自動掛，呼叫端一般不必自己叫。
@@ -402,6 +581,7 @@ export function makeCreatureFigure(opts = {}) {
     },
     /** 每幀呼叫：推進 mixer、燒毀進度與灰燼。dt 單位是秒。 */
     update(dt) {
+      syncOutlineRes(); // 視窗大小變了描邊要跟著換算（只在真的變了才寫 uniform）
       if (mixer) mixer.update(dt);
       if (ash) ash.update(dt);
       if (fx) fx.update(dt);
@@ -425,6 +605,9 @@ export function makeCreatureFigure(opts = {}) {
       if (p >= 1) {
         group.visible = false;
         shadow.visible = false;
+        // 外殼自己也關掉：group.visible=false 已經讓它畫不出來，但驗收要能逐尊讀到
+        // shell.visible===false（祖先隱藏不會改子節點自己的旗標）
+        shells.forEach((s) => { s.visible = false; });
         const done = burning.resolve;
         burning = null;
         done();
@@ -438,6 +621,7 @@ export function makeCreatureFigure(opts = {}) {
       setDissolve(0);
       if (fx) fx.setFade(1);
       if (ground) ground.setFade(1);
+      shells.forEach((s) => { s.visible = true; });
       group.visible = true;
       shadow.visible = true;
     },

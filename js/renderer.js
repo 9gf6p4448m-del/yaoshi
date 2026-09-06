@@ -18,7 +18,7 @@ const { createCharacterBillboards } = await import('./characters-billboard.js' +
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
-const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM } = await import('./creature-figures.js' + V);
+const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
@@ -87,7 +87,8 @@ function init() {
   const duelFigures = createDuelFigures(scene, camera, {
     makeFigure: (u) => {
       if (!u || !u.ab) return makeLayeredFigure();
-      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac] });
+      // faction 是給描邊用的（後處理卷 P-1：外殼描邊色＝該系 FACTION_RIM 的加深版，常駐）
+      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac });
       attachFactionFx(f, u.fac, { seed: fxSeed++ });
       return f;
     },
@@ -104,6 +105,9 @@ function init() {
   // 帶 renderer 進去預熱它的兩支材質 program（審查 M-3：對決中不得重編 shader）——
   // 要排在 stageRig 進場之後：program cache key 含燈數，燈組還沒進來時編的那支到對決會再編一次。
   const traitFx = createTraitFx(scene, camera, duelFigures, { renderer, rig: stageRig });
+  // 描邊 shader 的暖身（後處理卷 P-1）：跟 traitFx 同一個理由與同一套做法，也一樣要排在
+  // stageRig 進場之後（program cache key 含燈數）。第一場對決不得再編 program。
+  scene.add(createOutlineWarmup());
   let stageOn = 0;
 
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）

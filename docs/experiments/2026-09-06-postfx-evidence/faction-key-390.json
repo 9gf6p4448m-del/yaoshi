@@ -1,0 +1,731 @@
+{
+ "seed": 7,
+ "viewport": [
+  390,
+  844
+ ],
+ "deviceScaleFactor": 2,
+ "unitsA": [
+  "bow",
+  "shanshen",
+  "boartusk",
+  "sword",
+  "bell",
+  "redhat",
+  "nail",
+  "hairpin"
+ ],
+ "unitsB": [
+  "shield",
+  "eye",
+  "flag",
+  "wangchuan",
+  "tiger",
+  "chair",
+  "raincoat",
+  "buoy"
+ ],
+ "note": "編號 1–8＝畫面左（A 隊）、9–16＝畫面右（B 隊）；on＝描邊開、off＝?outline=0 對照組",
+ "on": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "bow",
+    "fac": "zuling",
+    "outline": 13071887,
+    "label": [
+     62.7,
+     424.7
+    ],
+    "bboxScreen": [
+     16.4,
+     383.8,
+     171.8,
+     585.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 18
+   },
+   {
+    "no": 2,
+    "side": "A",
+    "id": 1,
+    "ab": "shanshen",
+    "fac": "zuling",
+    "outline": 13071887,
+    "label": [
+     -101.8,
+     431.1
+    ],
+    "bboxScreen": [
+     -171.5,
+     395.5,
+     -5.9,
+     606.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 14
+   },
+   {
+    "no": 3,
+    "side": "A",
+    "id": 2,
+    "ab": "boartusk",
+    "fac": "zuling",
+    "outline": 13071887,
+    "label": [
+     49.1,
+     373.6
+    ],
+    "bboxScreen": [
+     -29.1,
+     345.1,
+     134.6,
+     523.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 14
+   },
+   {
+    "no": 4,
+    "side": "A",
+    "id": 3,
+    "ab": "sword",
+    "fac": "xianghuo",
+    "outline": 14036992,
+    "label": [
+     -87.6,
+     371.3
+    ],
+    "bboxScreen": [
+     -129.2,
+     354.1,
+     -41.7,
+     506.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 19
+   },
+   {
+    "no": 5,
+    "side": "A",
+    "id": 4,
+    "ab": "bell",
+    "fac": "xianghuo",
+    "outline": 14036992,
+    "label": [
+     104.8,
+     331.2
+    ],
+    "bboxScreen": [
+     55.1,
+     311.3,
+     163.8,
+     454.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 18
+   },
+   {
+    "no": 6,
+    "side": "A",
+    "id": 5,
+    "ab": "redhat",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     -11.4,
+     335
+    ],
+    "bboxScreen": [
+     -36.5,
+     315.4,
+     46.7,
+     445.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 18
+   },
+   {
+    "no": 7,
+    "side": "A",
+    "id": 6,
+    "ab": "nail",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     97.5,
+     304.1
+    ],
+    "bboxScreen": [
+     75.3,
+     285.8,
+     173.4,
+     407
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 17
+   },
+   {
+    "no": 8,
+    "side": "A",
+    "id": 7,
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     -4,
+     304.1
+    ],
+    "bboxScreen": [
+     -34.8,
+     288.3,
+     41.2,
+     391.3
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 11
+   },
+   {
+    "no": 9,
+    "side": "B",
+    "id": 0,
+    "ab": "shield",
+    "fac": "zuling",
+    "outline": 13071887,
+    "label": [
+     317.7,
+     428.5
+    ],
+    "bboxScreen": [
+     221.5,
+     386,
+     428.3,
+     616.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 11
+   },
+   {
+    "no": 10,
+    "side": "B",
+    "id": 1,
+    "ab": "eye",
+    "fac": "zuling",
+    "outline": 13071887,
+    "label": [
+     482.3,
+     432.3
+    ],
+    "bboxScreen": [
+     372.4,
+     390.4,
+     589.4,
+     615.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 9
+   },
+   {
+    "no": 11,
+    "side": "B",
+    "id": 2,
+    "ab": "flag",
+    "fac": "xianghuo",
+    "outline": 14036992,
+    "label": [
+     325.5,
+     383
+    ],
+    "bboxScreen": [
+     246,
+     354,
+     383.1,
+     514.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 19
+   },
+   {
+    "no": 12,
+    "side": "B",
+    "id": 3,
+    "ab": "wangchuan",
+    "fac": "xianghuo",
+    "outline": 14036992,
+    "label": [
+     463,
+     368.2
+    ],
+    "bboxScreen": [
+     378.3,
+     342.6,
+     542.3,
+     515.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 19
+   },
+   {
+    "no": 13,
+    "side": "B",
+    "id": 4,
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "outline": 14036992,
+    "label": [
+     308.6,
+     352.2
+    ],
+    "bboxScreen": [
+     210.7,
+     322.9,
+     389,
+     469.3
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 16
+   },
+   {
+    "no": 14,
+    "side": "B",
+    "id": 5,
+    "ab": "chair",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     425.7,
+     335
+    ],
+    "bboxScreen": [
+     388.5,
+     318.9,
+     463.5,
+     448.3
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 9
+   },
+   {
+    "no": 15,
+    "side": "B",
+    "id": 6,
+    "ab": "raincoat",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     282.2,
+     296.1
+    ],
+    "bboxScreen": [
+     244.6,
+     282.8,
+     317.1,
+     399
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 6
+   },
+   {
+    "no": 16,
+    "side": "B",
+    "id": 7,
+    "ab": "buoy",
+    "fac": "yinqi",
+    "outline": 3841362,
+    "label": [
+     383.7,
+     300.1
+    ],
+    "bboxScreen": [
+     348.1,
+     286.8,
+     411.9,
+     399.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 10
+   }
+  ],
+  "settle": {
+   "frames": 52,
+   "camLen": 4.2
+  },
+  "viewport": [
+   390,
+   844
+  ],
+  "camLen": 4.2
+ },
+ "off": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "bow",
+    "fac": "zuling",
+    "outline": null,
+    "label": [
+     62.7,
+     424.7
+    ],
+    "bboxScreen": [
+     16.4,
+     384.1,
+     171.8,
+     585.9
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 2,
+    "side": "A",
+    "id": 1,
+    "ab": "shanshen",
+    "fac": "zuling",
+    "outline": null,
+    "label": [
+     -101.8,
+     431.1
+    ],
+    "bboxScreen": [
+     -171.9,
+     392.9,
+     -6.1,
+     603.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 3,
+    "side": "A",
+    "id": 2,
+    "ab": "boartusk",
+    "fac": "zuling",
+    "outline": null,
+    "label": [
+     49.1,
+     373.6
+    ],
+    "bboxScreen": [
+     -29.1,
+     345.4,
+     134.6,
+     523.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 4,
+    "side": "A",
+    "id": 3,
+    "ab": "sword",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     -87.6,
+     371.3
+    ],
+    "bboxScreen": [
+     -128.9,
+     356.3,
+     -41.5,
+     508.9
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 5,
+    "side": "A",
+    "id": 4,
+    "ab": "bell",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     104.8,
+     331.2
+    ],
+    "bboxScreen": [
+     55.1,
+     310.6,
+     163.8,
+     453.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 6,
+    "side": "A",
+    "id": 5,
+    "ab": "redhat",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     -11.4,
+     335
+    ],
+    "bboxScreen": [
+     -36.6,
+     313.8,
+     46.6,
+     444.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 7,
+    "side": "A",
+    "id": 6,
+    "ab": "nail",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     97.5,
+     304.1
+    ],
+    "bboxScreen": [
+     75.3,
+     286.9,
+     173.4,
+     408.1
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 8,
+    "side": "A",
+    "id": 7,
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     -4,
+     304.1
+    ],
+    "bboxScreen": [
+     -34.7,
+     289.5,
+     41.3,
+     392.5
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 9,
+    "side": "B",
+    "id": 0,
+    "ab": "shield",
+    "fac": "zuling",
+    "outline": null,
+    "label": [
+     317.7,
+     428.5
+    ],
+    "bboxScreen": [
+     221.5,
+     384.2,
+     428.4,
+     614.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 10,
+    "side": "B",
+    "id": 1,
+    "ab": "eye",
+    "fac": "zuling",
+    "outline": null,
+    "label": [
+     482.3,
+     432.3
+    ],
+    "bboxScreen": [
+     372.6,
+     388.8,
+     589.6,
+     614
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 11,
+    "side": "B",
+    "id": 2,
+    "ab": "flag",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     325.5,
+     383
+    ],
+    "bboxScreen": [
+     246,
+     355.9,
+     383,
+     516.1
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 12,
+    "side": "B",
+    "id": 3,
+    "ab": "wangchuan",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     463,
+     368.2
+    ],
+    "bboxScreen": [
+     378.2,
+     343.4,
+     542.2,
+     516.5
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 13,
+    "side": "B",
+    "id": 4,
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     308.6,
+     352.2
+    ],
+    "bboxScreen": [
+     210.7,
+     321.1,
+     389.2,
+     467.4
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 14,
+    "side": "B",
+    "id": 5,
+    "ab": "chair",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     425.7,
+     335
+    ],
+    "bboxScreen": [
+     388.5,
+     318.6,
+     463.6,
+     448.1
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 15,
+    "side": "B",
+    "id": 6,
+    "ab": "raincoat",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     282.2,
+     296.1
+    ],
+    "bboxScreen": [
+     244.5,
+     284.5,
+     317,
+     400.7
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 16,
+    "side": "B",
+    "id": 7,
+    "ab": "buoy",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     383.7,
+     300.1
+    ],
+    "bboxScreen": [
+     348.1,
+     286.8,
+     411.9,
+     399.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   }
+  ],
+  "settle": {
+   "frames": 53,
+   "camLen": 4.2
+  },
+  "viewport": [
+   390,
+   844
+  ],
+  "camLen": 4.2
+ },
+ "errors": {
+  "on": [],
+  "off": []
+ }
+}

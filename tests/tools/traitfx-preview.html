@@ -92,7 +92,7 @@ let fxSeed = 7;
 const duelFigures = createDuelFigures(scene, camera, {
   makeFigure: (u) => {
     if (!u || !u.ab) return makeLayeredFigure();
-    const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab, '../../assets/creatures/'), ab: u.ab, rimColor: RIM_BY_FAC[u.fac] });
+    const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab, '../../assets/creatures/'), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac });
     attachFactionFx(f, u.fac, { seed: fxSeed++ });
     return f;
   },
