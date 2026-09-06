@@ -1,0 +1,153 @@
+{
+ "summary": {
+  "url": "http://127.0.0.1:8899/index.html?paperwar=1&fxcount=1&seed=7",
+  "duels": 4,
+  "frames": 2769,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "ver": "v0.35・紙紮夜戰：開・《紙紮夜戰》後處理卷：系色描邊＋深度邊緣線（滿編自動收斂）、對決運鏡（環繞進場、招式輕推、燒毀震鏡）",
+  "errors": 0,
+  "errorList": [],
+  "duelsMs": [
+   4858,
+   5953,
+   4436,
+   10788
+  ],
+  "orbit_dLenMax_all": 4.251e-07,
+  "orbit_dLen_PASS": true,
+  "traits_n": 5,
+  "traits_signOk": 5,
+  "traits_backOk": 5,
+  "trait_PASS": true,
+  "cancelDevMax": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "underSampled": [
+   4
+  ],
+  "rows": [
+   {
+    "i": 1,
+    "frames": 266,
+    "orbitFrames": 25,
+    "orbitPairs": 23,
+    "orbit_dLenMax": 4.251e-07,
+    "yaw0": 45,
+    "rest": 4.2,
+    "orbitStartDev": -37.998,
+    "orbitEndDev": -0.072,
+    "orbitSpanMs": 1500,
+    "traits": [],
+    "cancelDevMax": null
+   },
+   {
+    "i": 2,
+    "frames": 345,
+    "orbitFrames": 23,
+    "orbitPairs": 21,
+    "orbit_dLenMax": 2.097e-07,
+    "yaw0": -135,
+    "rest": 4.2,
+    "orbitStartDev": -38,
+    "orbitEndDev": 5.411,
+    "orbitSpanMs": 1500,
+    "traits": [
+     {
+      "side": "B",
+      "ms": 900,
+      "inOrbit": true,
+      "peak": 7.086,
+      "peakRaw": 7.914,
+      "distDip": 0,
+      "backDist": 0,
+      "backYaw": 0,
+      "signOk": true,
+      "backOk": true
+     }
+    ],
+    "cancelDevMax": null
+   },
+   {
+    "i": 3,
+    "frames": 259,
+    "orbitFrames": 22,
+    "orbitPairs": 19,
+    "orbit_dLenMax": 8.882e-16,
+    "yaw0": 90,
+    "rest": 4.2,
+    "orbitStartDev": -37.998,
+    "orbitEndDev": 0,
+    "orbitSpanMs": 1499,
+    "traits": [],
+    "cancelDevMax": null
+   },
+   {
+    "i": 4,
+    "frames": 603,
+    "orbitFrames": 4,
+    "orbitPairs": 2,
+    "orbit_dLenMax": 0,
+    "yaw0": -0.016,
+    "rest": 4.198133,
+    "orbitStartDev": -37.982,
+    "orbitEndDev": -0.102,
+    "orbitSpanMs": 1502,
+    "traits": [
+     {
+      "side": "B",
+      "ms": 900,
+      "inOrbit": true,
+      "peak": 10.173,
+      "peakRaw": -37.958,
+      "distDip": -0.0019,
+      "backDist": 0.0019,
+      "backYaw": null,
+      "signOk": true,
+      "backOk": true
+     },
+     {
+      "side": "A",
+      "ms": 900,
+      "inOrbit": false,
+      "peak": -9.454,
+      "peakRaw": -9.437,
+      "distDip": -0.0019,
+      "backDist": 0.0019,
+      "backYaw": 0.016,
+      "signOk": true,
+      "backOk": true
+     },
+     {
+      "side": "A",
+      "ms": 900,
+      "inOrbit": false,
+      "peak": -9.539,
+      "peakRaw": -9.437,
+      "distDip": -0.0019,
+      "backDist": 0.0019,
+      "backYaw": 0.016,
+      "signOk": true,
+      "backOk": true
+     },
+     {
+      "side": "B",
+      "ms": 900,
+      "inOrbit": false,
+      "peak": 9.398,
+      "peakRaw": 9.47,
+      "distDip": -0.0019,
+      "backDist": 0.0019,
+      "backYaw": 0.016,
+      "signOk": true,
+      "backOk": true
+     }
+    ],
+    "cancelDevMax": null
+   }
+  ]
+ },
+ "errors": []
+}

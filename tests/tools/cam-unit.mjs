@@ -13,6 +13,11 @@
 //   S4 SKIP：ys:fx-trait-cancel 的下一幀，新舊逐項差＝0（驗收 4）
 //   S5 burn punch：ys:fx-burn 造成的 dist 峰值減量（＝PUNCH.dist×1.5）
 //   S6 reduced-motion：整場 (a)(b) no-op（新舊逐項相同），(c) 依 M-3 改成也 no-op
+//   S10 折回段進行中再來 goto 入口（第 2 輪覆審 HIGH）：折回 1/4／2/4／3/4 處各插一次
+//      ys:duel／ys:table／ys:reveal（F1–F3），同門檻。修前 2.2655（C4）／2.2662（C6）。
+//   S11 SKIP 出貨序列（第 2 輪覆審 HIGH 的可達性）：cancel → 1 幀 → duel-end → 1 幀 → duel（F4）。
+//   S12 lean 上升沿（第 2 輪覆審 N-3）：ys:fx-trait 當幀起算（F5）。修前 0.6324。
+//      X3／X4 是既有 punch／burn 的上升沿（0.5061／0.7592），只揭露不斷言。
 //   S7 清除偏移的單幀位移（2026-09-06 修復卷新增，第 1 輪覆審 H-1／M-1）：
 //      orbit／lean 進行中收到 duel-end／trait-cancel／table／reveal／end／duel 時，
 //      事件當幀相對前一幀的相機位移必須 ≤ MAX_FRAME_STEP。修前 2.41（36.8°）／0.50。
@@ -153,6 +158,19 @@ async function run(page, url, newUrl, baseUrl) {
       };
     };
     let i0;
+    // ── R：同一段機位轉換「**沒有被打斷**」時的逐幀速度。這是 E／F 那些被打斷情境的上限參考：
+    // 被打斷的轉換不得比沒被打斷的更快。有些機位轉換本身就比 0.20 快（reveal 只有 550ms，
+    // duel→reveal 逐幀 0.247），拿 0.20 當它們的絕對上限等於要求改機位時長，不在本卷範圍。
+    H.step(120, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    i0 = H.log.length; H.fire('ys:table', {}); H.step(120, 'e'); jump(i0, 'R1_table_clean');
+    H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    i0 = H.log.length; H.fire('ys:reveal', { winner: 0 }); H.step(60, 'e'); jump(i0, 'R2_reveal_clean');
+    H.step(180, 'e'); // 讓 reveal 的自動返回跑完
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    i0 = H.log.length; H.fire('ys:end', {}); H.step(150, 'e'); jump(i0, 'R3_end_clean');
+    H.step(60, 'e'); H.fire('ys:table', {}); H.step(120, 'e');
+    i0 = H.log.length; H.fire('ys:duel', { a: 0, b: 3 }); H.step(180, 'e'); jump(i0, 'R4_duel_clean');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
     // E1 orbit 進行中收 duel-end（＝2.2 秒內按 SKIP 的出貨路徑）
     H.step(120, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
     i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
@@ -207,6 +225,64 @@ async function run(page, url, newUrl, baseUrl) {
     i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
     jump(i0, 'X2_punchPeak_duelEnd');
 
+    // ── S10：折回段**進行中**再來一個 goto 入口（第 2 輪覆審 HIGH）。
+    // 第 1 輪的 E1–E9 在派 cancel 之後一律 step 120（2.00s）才發下一件事，整個折回窗（≤700ms
+    // ＝42 幀）被跨過去，斷言集裡沒有一格落在折回進行中——這裡就補在 1/4、2/4、3/4 三個點上。
+    // 第二場刻意用 {a:0,b:3}（與前一場同 duelYaw）：要量的是「被打斷有沒有跳」，
+    // 不是 v0.34 就有的 180° 換場擺盪（那一格是 E9／X1，只揭露不斷言）。
+    const foldRace = (at, ev, detail, key) => {
+      H.step(60, 'e');
+      H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');   // 推進已完成、orbit 轉了 300ms
+      H.fire('ys:fx-trait-cancel', {}); H.step(at, 'e');    // 折回開始，走 at 幀
+      i0 = H.log.length; H.fire(ev, detail); H.step(180, 'e');
+      jump(i0, key);
+      H.fire('ys:duel-end', {}); H.step(120, 'e');
+    };
+    for (const [at, tag] of [[10, 'q1'], [20, 'q2'], [31, 'q3']]) {
+      foldRace(at, 'ys:duel', { a: 0, b: 3 }, `F1_duel_midFold_${tag}`);
+      foldRace(at, 'ys:table', {}, `F2_table_midFold_${tag}`);
+      foldRace(at, 'ys:reveal', { winner: 0 }, `F3_reveal_midFold_${tag}`);
+    }
+
+    // ── S11：SKIP 的出貨序列。doSkip（index.html:1744）同步派 ys:fx-trait-cancel，
+    // 然後 sleep 全塌成 0ms，playDuel 很快派 ys:duel-end（:4199）、下一場再派 ys:duel。
+    // 真實頁面實測 cancel→duel-end 只隔 0.5–16 ms，畫格落進這個縫的比例約 3%–76%
+    // （覆審 skip-real.mjs 六次實測）。這裡固定成「各隔 1 幀」＝最容易踩到的排列。
+    H.step(60, 'e');
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    i0 = H.log.length;
+    H.fire('ys:fx-trait-cancel', {}); H.step(1, 'e');
+    H.fire('ys:duel-end', {}); H.step(1, 'e');
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(240, 'e');
+    jump(i0, 'F4_skipSequence_1frameApart');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+
+    // ── S12：lean 的上升沿（第 2 輪覆審 N-3）。量測窗從 ys:fx-trait 當幀起算。
+    // 同組另外量既有的 punch／burn 上升沿當對照——它們是 v0.34 同族、本卷裁定不改行為。
+    H.step(60, 'e');
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');    // 進場與 orbit 都跑完，基座靜止
+    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(90, 'e');
+    jump(i0, 'F5_lean_onset');
+    H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:fx-punch', { power: 1 }); H.step(40, 'e');
+    jump(i0, 'X3_punch_onset');
+    H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:fx-burn', { side: 'B', unit: 0 }); H.step(40, 'e');
+    jump(i0, 'X4_burn_onset');
+    out.burnOnsetAt = i0;
+    H.step(60, 'e');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+    // X5：lean 的上升沿**疊在折回段上**。兩層各自都在門檻內（折回 ≤0.176、上升沿 ≤0.182），
+    // 疊起來會超過 0.20——這是兩段合法平滑運動的疊加，不是瞬移（f1 很小）。同一種疊加在
+    // punch／burn 上是 0.53／0.79（C1／C2，主對話裁定不改行為），所以這裡只揭露不斷言。
+    H.step(60, 'e');
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    H.fire('ys:fx-trait-cancel', {}); H.step(10, 'e');
+    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(90, 'e');
+    jump(i0, 'X5_lean_onset_midFold');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+
     out.log = H.log;
     return out;
   });
@@ -217,7 +293,15 @@ const out = pos[0];
 if (!out) { console.error('need <out.json>'); process.exit(2); }
 const port = Number(opt.port || 8875);
 const root = opt.root ? path.resolve(opt.root) : ROOT;
+// --base 是必要的，不是可選的（第 2 輪覆審 LOW）：沒帶時 O===N，dyaw／dmax 恆為 0，
+// A3（lean 方向與量）恆假、ALL_PASS 恆假——輸出一份會被誤讀成「壞掉」的 FAIL 比報錯還糟。
 const baseFile = opt.base ? path.resolve(opt.base) : null;
+if (!baseFile) {
+  console.error('need --base=<基準 camera-director.js 路徑>（通常是 v0.34：git show 5f76adc:js/camera-director.js > <路徑>）');
+  console.error('沒有基準版就沒有 (新−舊) 這個量，A3／A6 會恆假，判讀不成立。');
+  process.exit(2);
+}
+if (!fs.existsSync(baseFile)) { console.error('--base 指到的檔不存在：' + baseFile); process.exit(2); }
 const newUrl = opt.new || '/js/camera-director.js';
 
 const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -315,20 +399,49 @@ try {
   // （cam-edge.json 的 S0/max_old）留一點餘裕；修復前 E1／E2 是 2.407、E4／E5 是 0.504。
   const MAX_FRAME_STEP = 0.2;
   const E = R.edge;
-  // E1–E8：整段（清除當幀 ＋ 折回段 ＋ 接手的基座補間）逐幀都要 ≤ 門檻。
-  // E9 只查前 5 幀：它的量測窗裡含一段 v0.34 就有的 180° duel→duel 基座擺盪（新 0.8256／
-  // 舊 0.8191，maxAtFrame 20），那是既有運鏡速度不是清除造成的瞬移，不在本次修復範圍。
-  const EKEYS = ['E1_duelEnd_during_orbit', 'E2_traitCancel_during_orbit', 'E3_table_during_orbit',
-    'E4_duelEnd_during_lean', 'E5_table_during_lean', 'E6_traitCancel_during_lean',
-    'E7_reveal_during_orbit', 'E8_end_during_orbit'];
+  // 判準（動手前訂下、不隨量到的數字調整）：**每一幀的位移都要 ≤ MAX_FRAME_STEP，除非同一段
+  // 機位轉換在「沒被打斷」時本來就跑得那麼快**——0.20 量的是「跳」，不是運鏡本身的速度。
+  // 上限＝max(0.20, 對應的 R* 參考)。刻意**不用 max_old**（v0.34 在同一串事件裡的最大值）：
+  // v0.34 自己在 duel-end→duel 這種序列上就有 2.746 的瞬移（goto 的 from=上一個 target），
+  // 拿它當上限等於允許新版也跳 2.7；R* 量的是乾淨轉換，不含任何瞬移。
+  // E9 例外只查前 5 幀：它的窗裡含 v0.34 就有的 180° duel→duel 擺盪（新 0.8256／舊 0.8191），
+  // 那是換場的運鏡速度不是清除造成的瞬移；X 開頭的四格是 v0.34 同族路徑，只揭露不斷言。
+  const refOf = (k) => E[k].max_new;
+  const lim = (...refs) => Math.max(MAX_FRAME_STEP, ...refs.map(refOf));
+  const CASE_LIMIT = {
+    E1_duelEnd_during_orbit: ['R1_table_clean'],
+    E2_traitCancel_during_orbit: [],
+    E3_table_during_orbit: ['R1_table_clean'],
+    E4_duelEnd_during_lean: ['R1_table_clean'],
+    E5_table_during_lean: ['R1_table_clean'],
+    E6_traitCancel_during_lean: [],
+    E7_reveal_during_orbit: ['R2_reveal_clean'],
+    E8_end_during_orbit: ['R3_end_clean'],
+    F1_duel_midFold_q1: ['R4_duel_clean'], F1_duel_midFold_q2: ['R4_duel_clean'], F1_duel_midFold_q3: ['R4_duel_clean'],
+    F2_table_midFold_q1: ['R1_table_clean'], F2_table_midFold_q2: ['R1_table_clean'], F2_table_midFold_q3: ['R1_table_clean'],
+    F3_reveal_midFold_q1: ['R2_reveal_clean'], F3_reveal_midFold_q2: ['R2_reveal_clean'], F3_reveal_midFold_q3: ['R2_reveal_clean'],
+    F4_skipSequence_1frameApart: ['R1_table_clean', 'R4_duel_clean'],
+    F5_lean_onset: [],
+    E9_duel_during_orbit: [],
+  };
+  const EKEYS = Object.keys(CASE_LIMIT);
   const worstOf = (k) => (k === 'E9_duel_during_orbit' ? Math.max(E[k].f1_new, E[k].max5_new) : E[k].max_new);
-  const ALLK = EKEYS.concat(['E9_duel_during_orbit']);
+  const limitOf = (k) => lim(...CASE_LIMIT[k]);
+  const ALLK = EKEYS;
   const edgeWorst = ALLK.reduce((m, k) => Math.max(m, worstOf(k)), 0);
   const edgeWorstKey = ALLK.reduce((b, k) => (worstOf(k) > worstOf(b) ? k : b), ALLK[0]);
+  const edgeOver = ALLK.filter((k) => worstOf(k) > limitOf(k) || E[k].f1_new > MAX_FRAME_STEP)
+    .map((k) => `${k} ${worstOf(k)} > ${+limitOf(k).toFixed(6)}`);
   // 驗收 A8：lean 期間 |Δ camera.position.length()|。|position| 恆等於 dist，所以這一條就是
   // 「lean 不得動 dist」。起點取 ys:fx-trait 的當幀（與前一幀比），偏移一上來就會被抓到。
   const lenStep = (from, to) => { let m = 0; for (let i = from; i < to; i++) m = Math.max(m, Math.abs(L[i].nl - L[i - 1].nl)); return m; };
   const leanLenMax = Math.max(lenStep(R.traitAAt, R.traitBAt), lenStep(R.traitBAt, R.burnAt));
+  // 同一支尺延伸涵蓋 burn（第 2 輪覆審 MEDIUM）：burn punch 的 dist −0.9 一樣會動
+  // camera.position.length()，而它就是 duel-figures.js:467 camStable 的閘門。
+  // 主對話裁定**不改這個行為**（punch 同族、v0.34 既有形狀，鎖排法一場只選一次），
+  // 所以這裡是**記錄值不是斷言**——但要記在 verdict 裡，不能像修復前那樣被量測窗擋在外面。
+  const burnLenMax = lenStep(R.burnAt, R.refPunchAt);
+  const punchLenMax = lenStep(R.refPunchAt, R.quietAt);
 
   const verdict = {
     newUrl, base: baseFile || '(same file)',
@@ -355,9 +468,12 @@ try {
     // 同時 ys:fx-punch 這條既有路徑要照舊會動——不然「不動」可能只是治具沒餵到事件。
     'A6_PASS': rNoop === 0 && rBurnNoop === 0 && rRef > 0.1,
     'A7_clear_frameStep_max': +edgeWorst.toFixed(6), 'A7_clear_frameStep_worst': edgeWorstKey,
-    'A7_limit': MAX_FRAME_STEP, 'A7_edge': E,
-    'A7_PASS': ALLK.every((k) => worstOf(k) <= MAX_FRAME_STEP && E[k].f1_new <= MAX_FRAME_STEP),
+    'A7_limit': MAX_FRAME_STEP, 'A7_over': edgeOver, 'A7_edge': E,
+    'A7_refs': { R1_table: refOf('R1_table_clean'), R2_reveal: refOf('R2_reveal_clean'), R3_end: refOf('R3_end_clean'), R4_duel: refOf('R4_duel_clean') },
+    'A7_PASS': edgeOver.length === 0,
     'A8_lean_dLenMax': +leanLenMax.toExponential(3),
+    'A8_burn_dLenMax（記錄值，非斷言：punch 同族、裁定不改行為）': +burnLenMax.toFixed(5),
+    'A8_punch_dLenMax（記錄值，v0.34 既有）': +punchLenMax.toFixed(5),
     'A8_PASS': leanLenMax < 1e-3,
     'A9_reduced_burn_noop': +rBurnNoop.toExponential(3), 'A9_reduced_refPunch_drop': rRef,
     'A9_PASS': rBurnNoop === 0 && rRef > 0.1,
