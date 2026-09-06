@@ -725,6 +725,14 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.19 共鳴接入紙紮夜戰候選＋傳說三尊設計提案（設計卷，2026-09-06 深夜，v0.41）——接手前先知道這五件事
+
+1. **共鳴候選全在 `index.html`，預設關**：`CFG.PW_RES_MODE` 0＝關（線上行為＝v0.40）、1＝同系列陣 hp、2＝共鳴拍 atk、3＝共鳴增員；`?res=N` 可切。`pwResLv(p,fac)`（facCount → onPowerCalc 的 resonanceMul → lv≤PW_RES_CAP）在 `pwSide` 算成 `sd.res`，M1／M2 在 `pwPrep` 月相段之後套、M3 在 `pwSide` 增員；`PW_RES_STAT` 純計數（只計 `resolveBattles` 帶 `real:true` 的場）。
+2. **閘門治具 `tests/tools/resonance-gate.mjs`**（R0–R4；R5 用既有 5 套測試＋duel-drive）：`git show 31504b0:index.html > old.html` 後 `node tests/tools/resonance-gate.mjs 10000`，約 40 分鐘（20 趟 runMany）。結果與診斷在 `docs/experiments/2026-09-06-resonance-evidence/`。
+3. **R2 紅是量法問題**：duelBags 決定性、勝率離散階；不得改門檻（§2.1），改寫已列為提案裁定題。**建議 M1、淘汰 M3**（成套即必勝）、M2 對陰氣無效（haunt atk 0）——理由與數字在 `docs/proposals/2026-09-06-resonance-paperwar.md`。
+4. **傳說三尊設計提案 `docs/proposals/2026-09-06-legend3-design.md`**（未實作）：三龕常駐、燒壽命當香火、h/(h+K) 機率公開、天井 P 必請、獨一份搶請、階段獎勵；三尊＝殘日（祖靈）／大士爺紙尊（香火）／守娘（陰氣）。fresh read-back 一輪、5 處二義已修。實作前要過 GAME_DESIGN 六之四優勢策略窮舉閘門（L1）。
+5. **兩件事不要做**：不要在使用者裁定前把 PW_RES_MODE 預設改掉（策略數值，硬規則 3）；不要拿 R2 的 4 組對照當結論（顆粒度不夠）。
+
 ### 11.18 法線貼花小卷（技術驗證，2026-09-06 深夜，v0.39）——接手前先知道這五件事
 
 1. **機制＝程序式裂紋貼花，全在 `js/creature-figures.js`**：`DECALS` 表（鍵＝`opts.ab` 或 GLB 檔名；`mat` 正則挑材質；`lines` 每條 `[y0, xa, xb, zmin, 傾角]`，rest-pose 本地座標＝GLB 未正規化的 `position`）→ `decalFor()` → `dressMaterial(mat, burnY, decal)` 多送 8 顆 uniform（`uCrackN/uCrack[4]/uCrackAng/uCrackW/uCrackJag/uCrackFreq/uCrackDark/uCrackTilt`）→ GLSL 注入兩處：`<color_fragment>` 後壓暗 albedo（`CRACK_FRAG`）、`<normal_fragment_maps>` 後把下唇法線沿本地 +y 傾斜（`CRACK_NORMAL`，vertex 多一個 varying `vUpV`）。不加幾何、不加 pass、不加貼圖；無表項的生物 `uCrackN=0`，program cache key 改為 `'yaoshi-creature-rim-burn-decal'`（全場仍一支 program）。`?decal=0` 全關。

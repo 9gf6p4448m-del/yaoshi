@@ -541,6 +541,10 @@ const CFG = {
      省下幾點＝PW_MAX×(σ(k·加了這件的戰果)−σ(k·現況戰果))，k＝PW_AI_LOGIT。
      這三個數由 D-A7 實測定出（B2/S2/k0.5 時三策略比值 1.103／0.902／0.939 全過門檻）。 */
   PW_AI_BASE: 2, PW_AI_SCALE: 2, PW_AI_LOGIT: 0.5,
+  /* 共鳴接入紙紮夜戰候選（2026-09-06 設計卷 A 段；凍結檔 docs/experiments/2026-09-06-acceptance-resonance-pw.md）
+     PW_RES_MODE 0＝關（預設；trace 與 31504b0 逐位元組相等）、1＝同系列陣 hp、2＝共鳴拍 atk、3＝共鳴增員。
+     lv＝min(PW_RES_CAP, 同系件數−SET_MIN+1)×resonanceMul（過陰咒／山神庇佑仍生效）。預設值待使用者裁定（硬規則 3）。 */
+  PW_RES_MODE: 0, PW_RES_CAP: 3,
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
 /* 《紙紮夜戰》試玩開關（卷 C1，2026-09-04 使用者裁定）：?paperwar=1 開、?paperwar=0 關，
@@ -550,6 +554,8 @@ const CFG = {
 try{
   const pwq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("paperwar");
   if(pwq==="1") CFG.PAPERWAR_ON=true; else if(pwq==="0") CFG.PAPERWAR_ON=false;
+  const rq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("res"); /* 共鳴接入候選：?res=0/1/2/3（設計卷 A 段，試玩與 Playwright 用） */
+  if(rq!==null&&/^[0-3]$/.test(rq)) CFG.PW_RES_MODE=+rq;
 }catch(e){}
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
    true ＝玩家開局先選角（10 選 1），對手由 S.rng() 從剩下 9 個抽 3 個；
@@ -1681,7 +1687,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.40", VERSION_NOTE="貼花鋪開卷：機制通用化（線向／模式／唇），tiger_c 鑲邊與 hairpin 髮絲兩輪盲讀未過→預設關，?decal=all 可看";
+const VERSION="0.41", VERSION_NOTE="設計卷：共鳴接入紙紮夜戰三候選（預設關，?res=1/2/3 試玩）＋傳說三尊提案；線上賽局與 v0.40 相同";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2449,11 +2455,30 @@ function buildArmy(bag){
   }
   return {teams,curses};
 }
+/* 共鳴接入（候選；PW_RES_MODE=0 時恆回 0、不呼叫任何 hook）：同系件數走 facCount()，倍率走 onPowerCalc 的 resonanceMul。
+   p 可能是 pwTrial／duelBags 的人造玩家（無 life／roleId）——命格條件讀不到就當不成立，估價略保守，可接受。 */
+function pwResLv(p,fac){
+  if(!CFG.PW_RES_MODE) return 0;
+  const c=facCount(p,fac); if(c<CFG.SET_MIN) return 0;
+  const ctx={p,itemSum:0,resonance:0,flat:0,resonanceMul:1};
+  applyHooks("onPowerCalc",ctx,p);
+  return Math.max(0,Math.round(Math.min(CFG.PW_RES_CAP,c-CFG.SET_MIN+1)*ctx.resonanceMul));
+}
+const PW_RES_STAT={duels:0,hit:0}; /* 純計數（閘門 R1 活性）：只在 resolveBattles 的正式對決累加 */
 function pwSide(p,tag){
   const a=buildArmy(p.bag);
+  const res={}; let any=false;
+  if(CFG.PW_RES_MODE) for(const f of FACTIONS){ res[f]=pwResLv(p,f); if(res[f]>0) any=true; }
+  if(CFG.PW_RES_MODE===3) for(const f of FACTIONS){ /* M3 共鳴增員：該系隻數最多的隊多 lv 隻 */
+    const lv=res[f]|0; if(!lv) continue;
+    let best=null; for(const t of a.teams) if(t.fac===f&&t.units.length&&(!best||t.units.length>best.units.length)) best=t;
+    if(!best) continue;
+    const u0=best.units[0];
+    for(let i=0;i<lv;i++) best.units.push({t:best.idx,body:u0.body,atk:u0.atk,hp:u0.max,max:u0.max,pend:0,alive:true});
+  }
   const units=[]; a.teams.forEach(t=>t.units.forEach(u=>units.push(u)));
   units.forEach((u,i)=>{ u.id=i; });
-  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0};
+  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0,res,resAny:any};
 }
 /* 特性查詢：引擎只問「有沒有這個效果欄位」，不比對 trait id 字串（鐵則 2.4） */
 const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
@@ -2574,6 +2599,10 @@ function pwPrep(beat,fac,sd,env,phase){
   if(phase&&phase.fac===fac){
     for(const t of sd.teams){ if(t.fac!==fac) continue; for(const u of t.units) if(u.alive){ u.max+=1; u.hp+=1; } }
   }
+  /* 共鳴接入候選 M1／M2（該系的拍；lv 在 pwSide 算好，MODE 0 時 sd.res 為空物件、這裡恆跳過） */
+  const rl=(sd.res&&sd.res[fac])|0;
+  if(rl>0&&CFG.PW_RES_MODE===1){ for(const t of sd.teams){ if(t.fac!==fac) continue; for(const u of t.units) if(u.alive){ u.max+=rl; u.hp+=rl; } } }
+  else if(rl>0&&CFG.PW_RES_MODE===2){ for(const t of sd.teams){ if(t.fac!==fac) continue; t.bonus=(t.bonus||0)+Math.min(2,rl); } }
   /* 割祭（獻祭刀）：一拍自傷換全場 atk＋ */
   if(beat===1) for(const t of sd.teams){
     if(!t.tr||!t.tr.selfCut) continue;
@@ -2738,6 +2767,7 @@ function paperWar(A,B,ctx){
   const windId=(ctx.windId===undefined)?null:ctx.windId;
   const X=pwSide(A,"A"), Y=pwSide(B,"B");
   X.wind=(windId!=null&&A.id===windId); Y.wind=(windId!=null&&B.id===windId);
+  if(ctx.real){ PW_RES_STAT.duels++; if(X.resAny||Y.resAny) PW_RES_STAT.hit++; }
   X.armorV=pwMax(X,"armor"); X.armorTr=pwTrOf(X,"armor");
   Y.armorV=pwMax(Y,"armor"); Y.armorTr=pwTrOf(Y,"armor");
   const env={rng,log:[],beats:[],seen:{},beat:0,
@@ -2856,7 +2886,7 @@ function resolveBattles(){
        其餘（onBattle hooks、心願統計、extLoss）全部照舊走下面同一條路。 */
     let war=null;
     if(CFG.PAPERWAR_ON){
-      war=paperWar(A,B,{rng:S.rng,phase:phaseFor(S.round),windId:windPid(S.round)});
+      war=paperWar(A,B,{rng:S.rng,phase:phaseFor(S.round),windId:windPid(S.round),real:true});
       if(S.pwStat){ /* 活性統計（A9）：純記錄 */
         const T=S.pwStat; T.fights++;
         T.burn[war.burnedA]=(T.burn[war.burnedA]||0)+1; T.burn[war.burnedB]=(T.burn[war.burnedB]||0)+1;
@@ -4930,6 +4960,7 @@ function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate
 window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){return S;},
   CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
+  pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */
