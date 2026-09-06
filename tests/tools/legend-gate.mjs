@@ -246,7 +246,7 @@ if(want('L3')){
   const seeds=Array.from({length:1000},(_,i)=>i+1);
   const pool=G.POOL.filter(x=>!x.curse);
   const foes=['zuling','xianghuo','yinqi'].map(f=>pool.filter(x=>x.f===f).slice(0,3).map(x=>({...x})));
-  say('## L3′ 反事實有感不支配（①三尊各自的平均位移 ≥ +10pp ②**勝者持有任一尊的局比例 ≤85%**——2026-09-07 換口徑，見凍結檔 §2.1 修訂紀錄三）');
+  say('## L3′ 反事實有感不支配（①三尊各自的平均位移 ≥ +10pp ②**勝者持有任一尊的局比例 ≤80%**——2026-09-07 換口徑並加嚴 85→80，見凍結檔 §2.1 修訂紀錄三）');
   say('### ① 反事實有感：同一袋 ± 這一尊，對三系代表袋各 duelBags n=1000');
   say('| 尊 | 對祖靈袋 | 對香火袋 | 對陰氣袋 | 平均位移 | 門檻 ≥+10pp |'); say('|---|---|---|---|---|---|');
   let okA=true;
@@ -270,21 +270,35 @@ if(want('L3')){
     hold+=g.holders.length; if(g.holders.includes(g.winnerId)) holdWin++;
     if(g.holders.length){ anyHold++; if(g.holders.includes(g.winnerId)) winIsHolder++; } });
   const wr=anyHold?winIsHolder/anyHold:0;
-  const okB=wr<=0.85;
+  const TH=0.80;   /* 2026-09-07 加嚴 85→80：第二輪覆審量到壞掉版在五個互斥種子區塊上是 84.64~86.54%，
+                      門檻 85 落在它的抖動帶裡面 ⇒ 有約四成機率照樣放行。加嚴不需使用者同意，但要附改前／改後數字。 */
+  const okB=wr<=TH;
   say('');
-  say(`### ② 勝者持有任一尊的局比例：**${pct(wr)}**（${winIsHolder}/${anyHold} 有持有者的局）　門檻 ≤85% ${okB?'✅':'❌'}`);
-  /* 鑑別力：同一條指標在「三尊完全沒有戰鬥貢獻」與「三尊壓倒性強」兩種突變下各是多少（只改記憶體的資料表，不動引擎） */
-  const mut=(fn,label,M)=>{
-    const g2=loadGame(NEW); g2.CFG.LEGEND_ON=true; fn(g2);
+  say(`### ② 勝者持有任一尊的局比例：**${pct(wr)}**（${winIsHolder}/${anyHold} 有持有者的局）　門檻 ≤${(TH*100).toFixed(0)}% ${okB?'✅':'❌'}`);
+  /* 鑑別力：同一條指標在兩種突變下各是多少（只改記憶體的資料表，不動引擎）。
+     ★種子敏感度★：壞掉對照拆成 5 個**互斥**的種子區塊各跑一次——只有「每一塊都越過門檻」才算這條門檻真的會紅。 */
+  const runMut=(fn,lo,hi)=>{
+    const g2=loadGame(NEW); g2.CFG.LEGEND_ON=true; if(fn) fn(g2);
     let a=0,w=0;
-    for(let sd=1;sd<=M;sd++){ const r=g2.playPolicyGame(sd,{});
+    for(let sd=lo;sd<=hi;sd++){ const r=g2.playPolicyGame(sd,{});
       if(r.holders.length){ a++; if(r.holders.includes(r.winnerId)) w++; } }
-    say(`  - ${label}（n=${M}）：${pct(a?w/a:0)}（${w}/${a}）`);
-    return a?w/a:0;
+    return {r:a?w/a:0,w,a};
   };
-  const MM=Math.min(N,2000);
-  mut(g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={body:'ward',count:0,atk:0,hp:0}; }),'基準對照：三尊零戰力（unit.count=0）＝這條指標的下限，理論上應該接近「有持有者的局裡，冠軍剛好是持有者」的隨機水準',MM);
-  mut(g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={...Lg.unit,count:5,atk:99,hp:99}; }),'壞掉對照：三尊 atk99/hp99/count5（壓倒性強）＝這條指標必須逼近 100%，否則它沒有鑑別力',MM);
+  const BLK=Math.max(1,Math.floor(N/5)), blocks=[0,1,2,3,4].map(i=>[i*BLK+1,(i+1)*BLK]);
+  const zero=fn=>fn;
+  const mutZero=g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={body:'ward',count:0,atk:0,hp:0}; });
+  const mutBig =g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={...Lg.unit,count:5,atk:99,hp:99}; });
+  const line=(fn,label,judge)=>{
+    const vs=blocks.map(([lo,hi])=>runMut(fn,lo,hi));
+    const pass=vs.every(v=>v.r>TH);
+    say(`  - ${label}：${vs.map((v,i)=>`區塊${i+1}(${blocks[i][0]}–${blocks[i][1]}) ${pct(v.r)}`).join('　')}`
+      +(judge?`　→ 五塊都 >${(TH*100).toFixed(0)}%？ **${pass?'是 ✅':'否 ❌'}**`:''));
+    return {vs,pass};
+  };
+  say(`  - 現行實作（判定用，n=${N} 整批）：**${pct(wr)}**`);
+  line(mutZero,'基準對照：三尊零戰力（unit.count=0）＝這條指標的下限（不判，只是看它降不降得下來）',false);
+  const big=line(mutBig,'**壞掉對照**：三尊 atk99/hp99/count5（壓倒性強）＝這條門檻的鑑別力證明',true);
+  if(!big.pass) say(`  - ⚠️ 壞掉對照有區塊沒越過門檻 ⇒ 這條門檻在那批種子上**不會紅**，鑑別力不成立（照實記錄，不因此調門檻）。`);
   const r1=L.n?L.w/L.n:0, r0=Pl.n?Pl.w/Pl.n:0;
   say(`- 記錄項（不判，舊 L3 的口徑；含選樣混淆，見報告 §4.2）：請到者 ${pct(r1)}（${L.w}/${L.n}）／未請到者 ${pct(r0)}（${Pl.w}/${Pl.n}）＝相對帶 ${r0?(r1/r0).toFixed(3):'—'}`);
   say(`- 記錄項（不判，舊 ② 的口徑）：持有者人次勝率 ${pct(hold?holdWin/hold:0)}（${holdWin}/${hold}）——分子算局、分母算人次，理論上限只有 ~52%，是恆真斷言。`);
@@ -322,6 +336,19 @@ if(want('L4')){
   /* 記錄項（不判，使用者 2026-09-07 裁定甲）：incenseNever 與同出價法 splitter 的差。
      覆審 H3 指出 L4 只設上限、量不到「不燒香＝被支配」——使用者裁定這是**已知性質**：
      燒香是這一卷的核心動作，不燒香被支配就跟「整夜不出價」被支配一樣，不另立門檻。 */
+  /* 記錄項（不判，覆審 N2）：incenseMax 的封籤有多少比例被 incCap 夾掉。
+     封籤是在開標**前**填的，出價先扣完壽命之後可能就燒不出當初選的量——所以 L4 表上的
+     incenseMax 並不是真的「每夜都燒滿」，這裡把縮水的比例攤開來。 */
+  {
+    const g3=loadGame(NEW); g3.CFG.LEGEND_ON=true;
+    let sealed=0, clip=0, clipZero=0;
+    const M3=Math.min(N,2000);
+    for(let sd=1;sd<=M3;sd++){ const r=g3.playPolicyGame(sd,{0:g3.POLICIES.incenseMax});
+      if(r.shrineStat){ sealed+=r.shrineStat.sealed|0; clip+=r.shrineStat.clip|0; clipZero+=r.shrineStat.clipZero|0; } }
+    say(`- 記錄項（不判）：\`incenseMax\` 的封籤 ${sealed} 筆（n=${M3} 局，含三個 AI 座位）——`
+      +`**被夾掉 ${clip} 筆（${sealed?(clip/sealed*100).toFixed(2):'—'}%）、完全蒸發 ${clipZero} 筆（${sealed?(clipZero/sealed*100).toFixed(2):'—'}%）**。`
+      +`封籤在開標前填、引擎在開標後夾（引擎順序不動），夾到時會在請神結算卡、夜末戰況與局末回顧各記一筆。`);
+  }
   const sp=rows.splitter, nv=rows.incenseNever;
   if(sp!=null&&nv!=null)
     say(`- 記錄項（不判）：\`incenseNever\` ${pct(nv)} vs 同出價法的 \`splitter\` ${pct(sp)} ＝ **${((nv-sp)*100).toFixed(2)}pp**`

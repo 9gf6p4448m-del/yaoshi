@@ -321,5 +321,28 @@ test('同香火依風位：四家香火一樣多時，先擲的是本夜風位�
   eq(run(3),2,'第 3 夜（風位＝西家）同一組輸入 → 請走的應該換成西家(id 2)（否則就是還在依座位 id）');
 });
 
+/* ---------- 17. 覆審 N2：封籤被 incCap 夾掉時，不得默默發生——要留下事件與計數 ---------- */
+test('封籤被夾要看得見：壽命 3 封 3 → 實燒 2，clip 事件、shrineStat、夜末戰況 log 三處都要有',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const M=G.CFG.INC_MAX??3;
+  S.rng=alwaysFail;
+  S.players[0].life=3;                       /* 上限＝2，封 3 一定會被夾 */
+  const out=shrineNight(G,S,{0:{shrine:0,amt:M}});
+  ok(out&&out.clip&&out.clip.length===1,'被夾掉時 resolveShrines 應該回報一筆 clip 事件');
+  eq(out.clip[0].want,M,'clip 記的「封籤上寫的量」');
+  eq(out.clip[0].amt,2,'clip 記的「實際燒掉的量」');
+  eq(out.burn.length?out.burn[0].amt:0,2,'實際燒掉的量');
+  eq(S.players[0].life,1,'燒完剩下的壽命');
+  ok(S.shrineStat&&S.shrineStat.sealed===1&&S.shrineStat.clip===1&&S.shrineStat.clipZero===0,
+     `shrineStat 要記到封籤/被夾/完全蒸發：${JSON.stringify(S.shrineStat&&{s:S.shrineStat.sealed,c:S.shrineStat.clip,z:S.shrineStat.clipZero})}`);
+  ok(S.shrineClipMsgs&&S.shrineClipMsgs.length===1&&/實燒 2/.test(S.shrineClipMsgs[0]),
+     `夜末戰況 log 要有一句「封 → 實燒」：${JSON.stringify(S.shrineClipMsgs)}`);
+  /* 反面：燒得起的時候不得留下 clip 事件（否則這條斷言沒有鑑別力） */
+  const S2=setup(G); S2.rng=alwaysFail; S2.players[0].life=60;
+  const out2=shrineNight(G,S2,{0:{shrine:0,amt:M}});
+  eq(out2.clip.length,0,'壽命夠的時候不該有 clip 事件');
+  ok(!(S2.shrineClipMsgs&&S2.shrineClipMsgs.length),'壽命夠的時候不該有戰況 log');
+});
+
 console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }

@@ -2101,7 +2101,7 @@ function makeState(mode,seed,picks){
   if(CFG.LEGEND_ON){
     S.shrines=LEGENDS.map((L,i)=>({i,fac:L.f,open:true,takenBy:null,h:S.players.map(()=>0)}));
     S.incense={};
-    S.shrineStat={burn:0,burnLife:0,rolls:0,hits:0,pity:0,rewards:0,gifts:0,taken:0,dawn:0};
+    S.shrineStat={burn:0,burnLife:0,rolls:0,hits:0,pity:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0};
   }
   return S;
 }
@@ -2565,7 +2565,11 @@ function shrineOrderKey(pid,round){
 }
 function resolveShrines(){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
-  const out={burn:[],rolls:[],taken:[],rewards:[]};
+  /* clip＝封籤的量被 incCap 夾掉的紀錄（覆審 N2）。
+     順序刻意不動（開標後才收單、才夾）——因為封籤是在開標**前**填的，出價先扣完壽命之後
+     可能就燒不出當初選的量。以前這件事是默默發生的：UI 承諾「香火 3／23%」、引擎實際只跑 h=2。
+     現在夾到就記一筆，請神結算卡、夜末戰況 log、局末回顧三處都看得到。 */
+  const out={burn:[],rolls:[],taken:[],rewards:[],clip:[]};
   /* ① 沒有人替它決定的座位（AI，以及 headless 沒掛 policy 的真人座位）走啟發式；零亂數 */
   S.players.forEach(p=>{ if(p.alive&&S.incense[p.id]===undefined) S.incense[p.id]=aiIncense(p); });
   /* ② 密封同時開：當夜燒的量當場扣壽命、加進累計香火 h。燒掉的不退（請到的人也一樣）。 */
@@ -2573,10 +2577,19 @@ function resolveShrines(){
     const inc=S.incense[p.id];
     if(!p.alive||!inc){ if(!inc) S.incense[p.id]=null; return; }
     const sh=S.shrines[inc.shrine];
-    let amt=Math.max(0,Math.min(CFG.INC_MAX,inc.amt|0));
+    const want=Math.max(0,Math.min(CFG.INC_MAX,inc.amt|0));   /* 封籤上寫的量（已夾 INC_MAX） */
+    let amt=want;
     const cap=incCap(p);
     if(amt>cap) amt=cap;                     /* 燒香上限＝壽命−1（裁定甲）：燒不出來的不燒，也不准把自己燒死 */
-    if(!sh||!sh.open||amt<=0){ S.incense[p.id]=null; return; }
+    if(!sh||!sh.open){ S.incense[p.id]=null; return; }
+    if(S.shrineStat&&want>0) S.shrineStat.sealed++;          /* 封籤夜次（amt>0 的筆數） */
+    if(want>amt){                                            /* 被夾掉：記事件＋計數（覆審 N2） */
+      out.clip.push({pid:p.id,shrine:sh.i,want,amt});
+      if(S.shrineStat){ S.shrineStat.clip++; if(amt===0) S.shrineStat.clipZero++; }
+      (S.shrineClipMsgs=S.shrineClipMsgs||[]).push(
+        `🪫 ${p.name} 封的香火 ${want} → 實燒 ${amt}（出價扣完之後壽命不夠，最多只能燒到剩 1 點）`);
+    }
+    if(amt<=0){ S.incense[p.id]=null; return; }
     p.life-=amt; sh.h[p.id]+=amt;
     S.incense[p.id]={shrine:sh.i,amt};
     out.burn.push({pid:p.id,shrine:sh.i,amt,h:sh.h[p.id]});
@@ -3179,6 +3192,8 @@ function resolveBattles(){
     fights.push({A,B,pa,pb,w,l,dmg,extra,war});
   });
   const nightly=[];
+  /* 請神段被夾掉的封籤（覆審 N2）：純 log，接在夜末戰況最前面。LEGEND_ON=false 時 S.shrineClipMsgs 不存在。 */
+  if(S.shrineClipMsgs&&S.shrineClipMsgs.length){ nightly.push(...S.shrineClipMsgs); S.shrineClipMsgs=[]; }
   S.players.forEach(p=>{
     if(!p.alive)return;
     /* 夜末結算順序（ARCH_SPEC §3.10）：詛咒 drain → 道具 → 角色 → 心願 → 異事後效 */
@@ -3269,8 +3284,8 @@ function recordShrines(out){
   if(!S.history||!out) return;
   const H=S.history.nights[S.history.nights.length-1];
   if(!H||H.round!==S.round) return;
-  if(out.burn.length||out.taken.length||out.rewards.length)
-    H.shrine={burn:out.burn,taken:out.taken,rewards:out.rewards};
+  if(out.burn.length||out.taken.length||out.rewards.length||(out.clip&&out.clip.length))
+    H.shrine={burn:out.burn,taken:out.taken,rewards:out.rewards,...(out.clip&&out.clip.length?{clip:out.clip}:{})};
 }
 function recordNightEnd(fights,bye,deaths){
   if(!S.history) return;
@@ -3692,7 +3707,7 @@ function openHelp(){
     ${/* 🕯️ 請神（第 4 卷）：機率、天井、階段獎勵三件事全部公開寫死在這裡——玩家看不到就只會覺得是黑箱。
          所有數字都由 CFG 帶出（INC_MAX／INC_K／INC_PITY／INC_GIFT_P），不另寫一份。 */""}
     ${CFG.LEGEND_ON?sec("🕯️ 請神（傳說三尊）",`妖市入口供著<b>三尊從不上拍賣桌的東西</b>——殘日（祖靈）、大士爺紙尊（香火）、有應公（陰氣）。要它們只有一條路：<b>燒壽命當香火</b>。<br>
-      <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣），所以不會有人把自己燒到出局、也不會有請到神當場倒下、那一尊跟著陪葬的事。<br>
+      <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣），所以不會有人把自己燒到出局、也不會有請到神當場倒下、那一尊跟著陪葬的事。<b>注意先後</b>：開標時**先結算出價**、再燒香，所以標得太兇、扣完壽命不夠時，你封的香火會被縮到「剩 1 點」為止——結算卡與夜末戰況會明講「封 3 → 實燒 2」。<br>
       <b>機率是公開的</b>：你在那一尊上的<b>累計</b>香火 h，請下來的機率就是 h÷(h+${CFG.INC_K})：${Array.from({length:CFG.INC_PITY-1},(_,i)=>i+1).map(h=>`${h}→${Math.round(h/(h+CFG.INC_K)*100)}%`).join("、")}。<b>h 一旦到 ${CFG.INC_PITY}（含）以上，那一夜就不擲骰、直接請下來</b>——這叫<b>天井</b>，是 100%，上面那條 h÷(h+${CFG.INC_K}) 在天井之後不適用（不要自己去算 ${CFG.INC_PITY}÷${CFG.INC_PITY+CFG.INC_K}）。唯一擋得住你的只有「別人比你先請走、那一龕已經關了」。每夜開標後，<b>本夜有燒香的人</b>才有資格擲，<b>香火高的先擲；香火一樣多的，從本夜風位家起順時針</b>（東→南→西→北）——所以風位每夜輪轉，先擲的優勢不會固定在同一家。第一個成功的人請走，那一龕當場關閉，排在後面的人今夜不再擲。<br>
       <b>全桌只有一份</b>：三尊各一，被誰請走就沒了。四家的香火都攤在神龕上（畫面上方三格），你看得到誰拜了幾夜、離天井還差多少。<br>
       <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、或天亮回天），你的香火依高低結清——h＜${Math.ceil(CFG.INC_PITY/3)} 沒有；${Math.ceil(CFG.INC_PITY/3)}～${Math.ceil(2*CFG.INC_PITY/3)-1} 退 ⌈h/3⌉ 壽命（香灰）；${Math.ceil(2*CFG.INC_PITY/3)}～${CFG.INC_PITY-1} 退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）；<b>h 到了 ${CFG.INC_PITY} 以上卻還是被人搶先</b>（同一夜大家都到天井，只有排最前面的那個請得走）也<b>比照這一檔</b>。結清後香火歸零。<br>
@@ -3941,7 +3956,11 @@ function renderBloodBtn(ap){
 }
 function hideBloodBtn(){ const b=$("bloodBtn"); if(b) b.style.display="none"; }
 function doSacrifice(){
-  if(bleed(S.players[ACTIVE], CFG.BLOOD_FLOOR, 1)) showMarket();
+  if(!bleed(S.players[ACTIVE], CFG.BLOOD_FLOOR, 1)) return;
+  /* 放血把壽命壓低之後，燒香列的上限跟著降——不重夾的話面板會同時顯示「最多 0」與「當場扣 3」（覆審 N3）。
+     走的是同一支 incCap，不另寫一份 −1。 */
+  if(INC) INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(S.players[ACTIVE]),INC.amt));
+  showMarket();
 }
 /* 出價面板的「燒香」列（第 4 卷）：〔選一尊〕〔0～INC_MAX〕，預設 0＝不燒。
    密封——按下去只寫進本席的 INC，交卷（submitHumanBids）時才寫進 S.incense，跟出價同一個信封。
@@ -4261,6 +4280,7 @@ async function startShrine(){
   if(out&&(out.burn.length||out.taken.length||out.rewards.length)){
     const rows=[];
     out.burn.forEach(b=>rows.push(`<div style="font-size:12px;padding:2px 0">🕯️ ${who(b.pid)} 對「${nm(b.shrine)}」燒了 <b style="color:var(--gold)">${b.amt}</b> 壽命（累計香火 ${b.h}）</div>`));
+    (out.clip||[]).forEach(c=>rows.push(`<div style="font-size:12px;padding:2px 0;color:#ff8484">🪫 ${who(c.pid)} 封的香火 ${c.want} → <b>實燒 ${c.amt}</b>（出價扣完之後壽命不夠，最多只能燒到剩 1 點）</div>`));
     out.rolls.forEach(r=>rows.push(`<div style="font-size:12px;padding:2px 0">${r.hit?"🎉":"🌫️"} ${who(r.pid)}・香火 ${r.h}${r.pity?"（天井必成）":`・機率 ${Math.round(r.chance*100)}%`} → <b style="color:${r.hit?"var(--gold)":"var(--dim)"}">${r.hit?"請下來了":"沒請動"}</b></div>`));
     out.taken.forEach(t=>rows.push(`<div class="outcome">🏮 ${who(t.pid)} 請下了「${nm(t.shrine)}」——這一尊全桌只有一份，神龕就此關閉</div>`));
     out.rewards.forEach(r=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--green)">🍂 香火散：${who(r.pid)}（香火 ${r.h}）退回 ${r.back} 壽命${r.gift?`＋「${r.gift}」入袋`:""}</div>`));
@@ -4740,7 +4760,8 @@ function showReview(){
     ${n.shrine?`<div class="rvLine">🕯️ 請神：${
       [...n.shrine.burn.map(b=>`${short(b.pid)} 燒 ${b.amt} 拜「${LEGENDS[b.shrine].n}」（累計 ${b.h}）`),
        ...n.shrine.taken.map(t=>`<b style="color:var(--gold)">${short(t.pid)} 請走「${LEGENDS[t.shrine].n}」</b>`),
-       ...n.shrine.rewards.map(r=>`${short(r.pid)} 香火散 +${r.back}${r.gift?`／「${r.gift}」`:""}`)].join("　")}</div>`:""}
+       ...n.shrine.rewards.map(r=>`${short(r.pid)} 香火散 +${r.back}${r.gift?`／「${r.gift}」`:""}`),
+       ...((n.shrine.clip||[]).map(c=>`<span style="color:var(--red)">${short(c.pid)} 封 ${c.want}→實燒 ${c.amt}</span>`))].join("　")}</div>`:""}
     ${n.fights.length?`<div class="rvLine">⚔ ${n.fights.map(f=>f.tie?`${short(f.a)} ${Math.round(f.pa)} vs ${short(f.b)} ${Math.round(f.pb)} 平手`:`${short(f.w)} 勝 ${short(f.w===f.a?f.b:f.a)} −${f.dmg}${f.war?`（燒 ${f.w===f.a?`${f.war.bb}/${f.war.ub}`:`${f.war.ba}/${f.war.ua}`} 隻）`:""}`).join("　")}${n.bye!=null?`　${short(n.bye)} 輪空`:""}</div>`:""}
     ${n.deaths.length?`<div class="rvLine" style="color:var(--red)">☠ ${n.deaths.map(short).join("、")} 出局</div>`:""}
   </div>`).join("")||'<div class="mut" style="font-size:12px">本局沒有完成任何一夜拍賣</div>';
