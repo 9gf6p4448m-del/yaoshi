@@ -1620,7 +1620,7 @@ const POOL = [
   {n:"虎爺印",f:"xianghuo",p:4,ab:"tiger",d:"咬鬼鎮煞的虎爺神印",unit:{body:"elite",count:1,atk:7,hp:4,trait:"biteGamble"}},
   {n:"香灰符",m:"ashcharm",f:"xianghuo",p:4,d:"廟裡求來的平安香灰",unit:{body:"ward",count:2,atk:1,hp:5,trait:"wardHpFirst"}},
   {n:"福壽綿長",f:"xianghuo",p:3,ab:"fushou",d:"添了油的長明燈，越滿越亮",unit:{body:"ward",count:2,atk:1,hp:4,trait:"wardRegen1"}},
-  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:1,trait:"swarmLastStand"}},
+  {n:"破軍旗",f:"xianghuo",p:2,ab:"pojun",d:"殘破的軍旗，插在心口才有力氣",unit:{body:"swarm",count:1,atk:1,hp:2,trait:"swarmLastStand"}} /* hp 1→2（2026-09-07 使用者裁定甲）：唯一單件輸給空袋兜底隊（atk1 hp3）的法寶，24%→實測見 docs/experiments/2026-09-07-acceptance-pojun.md */,
   {n:"魔神仔紅帽",f:"yinqi",p:7,ab:"redhat",d:"山中牽人迷途的紅帽",unit:{body:"haunt",count:4,atk:0,hp:7,trait:"hauntLost"}},
   {n:"林投姐髮簪",f:"yinqi",p:6,ab:"hairpin",d:"林投樹下的怨情之簪",unit:{body:"haunt",count:4,atk:0,hp:6,trait:"hauntSteal"}},
   {n:"椅仔姑竹椅",f:"yinqi",p:6,ab:"chair",d:"問事通靈的三姑竹椅",unit:{body:"haunt",count:3,atk:0,hp:6,trait:"hauntSee"}},
@@ -1688,7 +1688,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.42", VERSION_NOTE="共鳴接進紙紮夜戰（M1 同系列陣 hp，使用者裁定預設開；?res=0 可關）＋規則頁口徑";
+const VERSION="0.42.1", VERSION_NOTE="破軍旗 hp 1→2（唯一比空袋還弱的法寶）；共鳴 M1 預設開，?res=0 可關";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
