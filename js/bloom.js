@@ -92,7 +92,7 @@ uniform vec2 uHalfTan;   // (tan(fovH/2), tan(fovV/2))：反投影用
 uniform vec2 uNearFar;
 uniform vec3 uLineColor;
 uniform vec4 uThresh;    // (深度 lo, 深度 hi, 法線 lo, 法線 hi)
-uniform vec3 uEdgeCfg;   // (maxDepth, sobelW, 未用)
+uniform vec3 uEdgeCfg;   // (maxDepth, sobelW, silRel＝外輪廓相對深度跳變門檻)
 varying vec2 vUv;
 vec3 aces(vec3 x){
   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
@@ -219,7 +219,10 @@ export function createBloom(renderer, opts = {}) {
     const fh = Math.max(1, Math.round(h * dpr));
     bw = Math.max(1, Math.round(fw * cfg.scale));
     bh = Math.max(1, Math.round(fh * cfg.scale));
-    if (depthTex) {
+    // 尺寸沒變就什麼都不做：sceneRT.setSize 同尺寸是 no-op、FBO 不重建，這時若 dispose 深度貼圖，
+    // three 會替 tDepth 重配一張空的，邊緣線就靜默消失（覆審 round1 H-2：180° 翻轉、鍵盘收合都會踩到）
+    const sizeChanged = sceneRT.width !== fw || sceneRT.height !== fh;
+    if (depthTex && sizeChanged) {
       // WebGLRenderTarget.setSize 只跟著改 color texture 的尺寸，depthTexture 要自己來
       depthTex.image.width = fw;
       depthTex.image.height = fh;
