@@ -12,7 +12,15 @@
 //   S3 lean：ys:fx-trait 後 200ms 內 yaw 朝出招側偏的符號與量、ms 內回位（驗收 3）
 //   S4 SKIP：ys:fx-trait-cancel 的下一幀，新舊逐項差＝0（驗收 4）
 //   S5 burn punch：ys:fx-burn 造成的 dist 峰值減量（＝PUNCH.dist×1.5）
-//   S6 reduced-motion：整場 (a)(b) no-op（新舊逐項相同），(c) 的 punch 照舊
+//   S6 reduced-motion：整場 (a)(b) no-op（新舊逐項相同），(c) 依 M-3 改成也 no-op
+//   S7 清除偏移的單幀位移（2026-09-06 修復卷新增，第 1 輪覆審 H-1／M-1）：
+//      orbit／lean 進行中收到 duel-end／trait-cancel／table／reveal／end／duel 時，
+//      事件當幀相對前一幀的相機位移必須 ≤ MAX_FRAME_STEP。修前 2.41（36.8°）／0.50。
+//      X 開頭那兩格是 v0.34 既有、本卷未動的路徑（goto 的 from=上一個 target、punch 歸零），
+//      只揭露不斷言——它們新舊逐值相同，拿來當「這支治具量得到大跳」的反面對照。
+//   S8 lean 期間 |Δ camera.position.length()|（第 1 輪覆審 M-2）：|position| 恆等於 dist，
+//      而它正是 duel-figures.js:467 camStable 的閘門，lean 不得動它。
+//   S9 reduced-motion 下 ys:fx-burn 完全不動相機（第 1 輪覆審 M-3）。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -46,10 +54,14 @@ window.__camunit = (async () => {
   const lanterns = [{}, {}, {}, {}];
   const camN = mkCam(), camO = mkCam();
   // 先建基準版再建新版也行；兩者都掛在 document 上，dispatch 一次兩邊都收得到
-  const dirO = O(camO, lanterns);
-  const dirN = N(camN, lanterns);
   const DT = 1 / 60, MS = 1000 / 60;
   let now = 1000;
+  // director 的 REVEAL_HOLD_MS 排程讀的是 performance.now()，而治具餵給 update() 的是合成時鐘。
+  // 兩把尺不同源時（治具幾毫秒真實時間內推完幾萬毫秒合成時間），ys:reveal 的自動返回會在
+  // 「下一幀」就到期，量到的是治具假象不是導演行為。把 performance.now 綁到同一把尺才量得準。
+  performance.now = () => now;
+  const dirO = O(camO, lanterns);
+  const dirN = N(camN, lanterns);
   const log = [];
   const D360 = (d) => ((((d % 360) + 540) % 360) - 180);
   function step(n, tag) {
@@ -117,10 +129,84 @@ async function run(page, url, newUrl, baseUrl) {
     H.step(6, 'skipTrait');         // 0.10s：lean 正在最大
     out.cancelAt = H.log.length;
     H.fire('ys:fx-trait-cancel', {});
-    H.step(30, 'cancel');           // 清零後的 30 幀
+    H.step(120, 'cancel');          // 清零後的 120 幀（2.00s；涵蓋折回段 ＋ 之後的靜止段）
     out.n2 = H.log.length;
     H.fire('ys:duel-end', {});
     H.step(120, 'end2');
+
+    // ── S7：清除偏移那一幀的位移。量法照覆審探針 cam-edge.mjs：
+    // 「事件當幀寫進去的位置」與「事件前最後一幀」的距離，就是畫面上看得到的瞬移。
+    out.edge = {};
+    const jump = (i0, key) => {
+      const dN = (i) => { const a = H.log[i], p = H.log[i - 1]; return Math.hypot(a.nx - p.nx, a.ny - p.ny, a.nz - p.nz); };
+      const dO = (i) => { const a = H.log[i], p = H.log[i - 1]; return Math.hypot(a.ox - p.ox, a.oy - p.oy, a.oz - p.oz); };
+      const to = H.log.length;
+      let m5n = 0, mn = 0, mo = 0, at = -1;
+      for (let i = i0; i < to; i++) {
+        if (dN(i) > mn) { mn = dN(i); at = i - i0; }
+        mo = Math.max(mo, dO(i));
+        if (i < i0 + 5) m5n = Math.max(m5n, dN(i));
+      }
+      out.edge[key] = {
+        f1_new: +dN(i0).toFixed(6), f1_old: +dO(i0).toFixed(6),
+        max5_new: +m5n.toFixed(6), max_new: +mn.toFixed(6), maxAtFrame: at, max_old: +mo.toFixed(6),
+      };
+    };
+    let i0;
+    // E1 orbit 進行中收 duel-end（＝2.2 秒內按 SKIP 的出貨路徑）
+    H.step(120, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
+    jump(i0, 'E1_duelEnd_during_orbit');
+    // E2 orbit 進行中收 ys:fx-trait-cancel（doSkip 的清場，index.html:1744）
+    H.step(120, 'e'); H.fire('ys:duel', { a: 1, b: 2 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:fx-trait-cancel', {}); H.step(120, 'e');
+    jump(i0, 'E2_traitCancel_during_orbit');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+    // E3 orbit 進行中收 ys:table
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:table', {}); H.step(120, 'e');
+    jump(i0, 'E3_table_during_orbit');
+    // E4 lean 峰值時收 duel-end
+    H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
+    jump(i0, 'E4_duelEnd_during_lean');
+    // E5 lean 峰值時收 ys:table
+    H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    H.fire('ys:fx-trait', { side: 'A', ms: 900 }); H.step(6, 'e');
+    i0 = H.log.length; H.fire('ys:table', {}); H.step(120, 'e');
+    jump(i0, 'E5_table_during_lean');
+    // E6 lean 峰值時收 ys:fx-trait-cancel
+    H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    i0 = H.log.length; H.fire('ys:fx-trait-cancel', {}); H.step(120, 'e');
+    jump(i0, 'E6_traitCancel_during_lean');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+    // E7 orbit 進行中收 ys:reveal
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:reveal', { winner: 0 }); H.step(60, 'e');
+    jump(i0, 'E7_reveal_during_orbit');
+    H.step(180, 'e');
+    // E8 orbit 進行中收 ys:end
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:end', {}); H.step(150, 'e');
+    jump(i0, 'E8_end_during_orbit');
+    // E9 orbit 進行中再來一個 ys:duel（出貨不可達，但 edge-shot／faction-sheet 治具會走）
+    H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
+    i0 = H.log.length; H.fire('ys:duel', { a: 1, b: 2 }); H.step(120, 'e');
+    jump(i0, 'E9_duel_during_orbit');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+    // X1／X2：v0.34 既有、本卷未動的路徑（goto 的 from=上一個 target、punch 歸零），新舊逐值相同。
+    // 只揭露不斷言；X2（punch 峰值時 duel-end，0.4160）順便當反面對照——修好之後 E1–E9 全部
+    // ≤ 門檻而 X2 仍在門檻之上，代表這支量測不是恆小、門檻不是恆真。
+    i0 = H.log.length; H.fire('ys:duel-end', {}); H.fire('ys:duel', { a: 1, b: 2 }); H.step(120, 'e');
+    jump(i0, 'X1_duelEnd_then_duel_sameFrame');
+    H.fire('ys:duel-end', {}); H.step(120, 'e');
+    H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
+    H.fire('ys:fx-punch', { power: 1 }); H.step(3, 'e');
+    i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
+    jump(i0, 'X2_punchPeak_duelEnd');
+
     out.log = H.log;
     return out;
   });
@@ -197,13 +283,19 @@ try {
   const burnDrop = dropOf(R.burnAt);
   const refDrop = dropOf(R.refPunchAt);
   const burnRatio = +(burnDrop / refDrop).toFixed(6);
-  // 驗收 4：SKIP 後下一幀。基準＝S1 那場自然轉完、三層全歸零的靜止位置（同一組座位、同一支新版）。
+  // 驗收 4：SKIP 之後的殘留。基準＝S1 那場自然轉完、三層全歸零的靜止位置（同一組座位、同一支新版）。
+  // 量測窗＝「折回段（最長 CLEAR_MS_MAX 700ms）跑完之後」到本場結束；折回段本身由 A7 逐幀盯著
+  // （每一幀 ≤ MAX_FRAME_STEP），不是沒人看的空窗。修復卷前的實作是瞬間清零，量測窗從 cancel 的
+  // 下一幀起算就等價；改成平滑折回之後，殘留只有在折回結束後量才有意義（見報告的凍結條說明）。
+  const CLEAR_F = Math.ceil(700 / (1000 / 60)) + 4; // CLEAR_MS_MAX 折回 ＋ 4 幀讓浮點把 t 夾到 1
   const ref = L[R.traitAAt - 1];
   const skipPeak = +Math.abs(L[R.cancelAt - 1].nyaw - ref.nyaw).toFixed(4);
-  const afterCancel = seg(R.cancelAt, R.n2);
+  const afterCancel = seg(R.cancelAt + CLEAR_F, R.n2);
   const devFromRef = (x) => Math.max(Math.abs(x.nx - ref.nx), Math.abs(x.ny - ref.ny), Math.abs(x.nz - ref.nz));
   const skipResidual = +maxOf(afterCancel, devFromRef).toFixed(12);
   const skipYawResidual = +maxOf(afterCancel, (x) => Math.abs(x.nyaw - ref.nyaw)).toFixed(12);
+  // 揭露：cancel 當幀起算的殘留（舊窗口）。折回段還在跑，所以這個值不再是 0，是設計上的。
+  const skipResidualAtCancel = +maxOf(seg(R.cancelAt, R.n2), devFromRef).toFixed(6);
   // S6：reduced-motion。(a)(b) no-op → 進場與招式期間新舊逐項相同；(c) burn punch 照舊
   const RR = results.reduced, RL = RR.log;
   const rNoop = Math.max(
@@ -213,6 +305,30 @@ try {
   const rDrop = (from) => +Math.max(...RL.slice(from, from + 40).map((x) => Math.abs(rRest - x.nz))).toFixed(9);
   const rBurn = rDrop(RR.burnAt), rRef = rDrop(RR.refPunchAt);
   const rBurnRatio = +(rBurn / rRef).toFixed(6);
+  // reduced-motion 下 ys:fx-burn 是否真的不動相機：拿基準版當對照最乾淨——v0.34 的 director
+  // 根本沒有 ys:fx-burn 監聽器，所以「新版也 no-op」＝燒毀那一段新舊逐項相同（恆等於 0）。
+  // 用 (新−舊) 而不是「位移是否為 0」，是因為後者會混進 v0.34 在 t 剛好等於 1 那一幀不寫入
+  // 造成的 8.2e-5 固定殘差（同 A2 揭露那一項），那與燒毀無關。
+  const rBurnNoop = maxOf(RL.slice(RR.burnAt, RR.refPunchAt), (x) => x.dmax);
+
+  // 驗收 A7：清除偏移那一幀的位移上限。0.20 的來源＝同場景平滑補間的既有最大單幀位移 0.152624
+  // （cam-edge.json 的 S0/max_old）留一點餘裕；修復前 E1／E2 是 2.407、E4／E5 是 0.504。
+  const MAX_FRAME_STEP = 0.2;
+  const E = R.edge;
+  // E1–E8：整段（清除當幀 ＋ 折回段 ＋ 接手的基座補間）逐幀都要 ≤ 門檻。
+  // E9 只查前 5 幀：它的量測窗裡含一段 v0.34 就有的 180° duel→duel 基座擺盪（新 0.8256／
+  // 舊 0.8191，maxAtFrame 20），那是既有運鏡速度不是清除造成的瞬移，不在本次修復範圍。
+  const EKEYS = ['E1_duelEnd_during_orbit', 'E2_traitCancel_during_orbit', 'E3_table_during_orbit',
+    'E4_duelEnd_during_lean', 'E5_table_during_lean', 'E6_traitCancel_during_lean',
+    'E7_reveal_during_orbit', 'E8_end_during_orbit'];
+  const worstOf = (k) => (k === 'E9_duel_during_orbit' ? Math.max(E[k].f1_new, E[k].max5_new) : E[k].max_new);
+  const ALLK = EKEYS.concat(['E9_duel_during_orbit']);
+  const edgeWorst = ALLK.reduce((m, k) => Math.max(m, worstOf(k)), 0);
+  const edgeWorstKey = ALLK.reduce((b, k) => (worstOf(k) > worstOf(b) ? k : b), ALLK[0]);
+  // 驗收 A8：lean 期間 |Δ camera.position.length()|。|position| 恆等於 dist，所以這一條就是
+  // 「lean 不得動 dist」。起點取 ys:fx-trait 的當幀（與前一幀比），偏移一上來就會被抓到。
+  const lenStep = (from, to) => { let m = 0; for (let i = from; i < to; i++) m = Math.max(m, Math.abs(L[i].nl - L[i - 1].nl)); return m; };
+  const leanLenMax = Math.max(lenStep(R.traitAAt, R.traitBAt), lenStep(R.traitBAt, R.burnAt));
 
   const verdict = {
     newUrl, base: baseFile || '(same file)',
@@ -228,14 +344,26 @@ try {
     'A3_PASS': leanA.peak200 < -5 && leanB.peak200 > 5 && leanA.atMs < 0.5 && leanB.atMs < 0.5,
     'A4_skip_peak_before_deg': skipPeak,
     'A4_skip_residual_pos': skipResidual, 'A4_skip_residual_yaw_deg': skipYawResidual,
+    'A4_residual_from_cancel_frame（揭露：折回段在內）': skipResidualAtCancel,
     'A4_PASS': skipPeak > 5 && skipResidual < 1e-6 && skipYawResidual < 1e-6,
     'A5_burn_distDrop': burnDrop, 'A5_refPunch_distDrop': refDrop, 'A5_ratio': burnRatio,
     'A5_PASS': Math.abs(burnRatio - 1.5) < 1e-6,
-    'A6_reduced_noop_max': +rNoop.toExponential(3), 'A6_reduced_burn_ratio': rBurnRatio,
-    'A6_PASS': rNoop === 0 && Math.abs(rBurnRatio - 1.5) < 1e-6,
+    'A6_reduced_noop_max': +rNoop.toExponential(3), 'A6_reduced_burn_noop': +rBurnNoop.toExponential(3),
+    'A6_reduced_burn_drop（揭露：含 v0.34 的 8.2e-5 固定殘差）': rBurn,
+    'A6_reduced_refPunch_drop': rRef, 'A6_reduced_burn_ratio': rBurnRatio,
+    // (c) 依 M-3 改判：reduced-motion 下 ys:fx-burn 必須與「沒有這個監聽器的 v0.34」逐項相同，
+    // 同時 ys:fx-punch 這條既有路徑要照舊會動——不然「不動」可能只是治具沒餵到事件。
+    'A6_PASS': rNoop === 0 && rBurnNoop === 0 && rRef > 0.1,
+    'A7_clear_frameStep_max': +edgeWorst.toFixed(6), 'A7_clear_frameStep_worst': edgeWorstKey,
+    'A7_limit': MAX_FRAME_STEP, 'A7_edge': E,
+    'A7_PASS': ALLK.every((k) => worstOf(k) <= MAX_FRAME_STEP && E[k].f1_new <= MAX_FRAME_STEP),
+    'A8_lean_dLenMax': +leanLenMax.toExponential(3),
+    'A8_PASS': leanLenMax < 1e-3,
+    'A9_reduced_burn_noop': +rBurnNoop.toExponential(3), 'A9_reduced_refPunch_drop': rRef,
+    'A9_PASS': rBurnNoop === 0 && rRef > 0.1,
     errors: errs.length,
   };
-  verdict.ALL_PASS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'].every((k) => verdict[k + '_PASS']) && errs.length === 0;
+  verdict.ALL_PASS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'].every((k) => verdict[k + '_PASS']) && errs.length === 0;
   fs.writeFileSync(out, JSON.stringify({ verdict, errors: errs, results }, null, 1));
   console.log(JSON.stringify(verdict, null, 1));
   if (errs.length) console.log(errs.slice(0, 10).join('\n'));

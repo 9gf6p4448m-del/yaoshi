@@ -61,9 +61,24 @@ const ORBIT = {
 //     side 'B' → +LEAN.yaw、side 'A' → −LEAN.yaw 就是「往出招側偏」。
 const LEAN = {
   yaw: 10, // 往出招側偏幾度
-  dist: 0.3, // 同時推近多少世界單位
+  // **dist 偏移固定 0，不得改成非零**（第 1 輪覆審 M-2）：|camera.position| 恆等於 dist
+  // （position=(sin·horiz, sin(tilt)·dist, cos·horiz)，平方和＝dist²），而 duel-figures.js:467 的
+  // camStable（Math.abs(dist - lastDist) < 1e-3）正是排法鎖點的閘門——lean 一動 dist，
+  // 招式拍落在鎖點前時 realign 會連續數次 camStable=false，rowsFit 鎖不下來、排數在對決前段翻面
+  // （＝可讀性小卷第 3／4 輪覆審 H-2／M-2 花兩輪修掉的東西）。與 ORBIT 同一條紀律：只轉 yaw。
+  dist: 0,
   ms: 900, // detail.ms 沒帶時的回位時間（＝index.html 的 PW_FX.TRAIT_MS）
 };
+
+// 清除 orbit／lean 時，把「當下實際機位」平順收回基座要花多久（第 1 輪覆審 H-1／M-1）。
+// 用**固定角速度**而不是固定時間：偏移量是變數（orbit 滿幅 38°、lean 只有 10°），固定時間
+// 會讓大偏移的那一段每幀跑太快——實測 36.8° 用 250ms 收，中段單幀就有 0.4576 世界單位，
+// 比平滑補間的既有上限 0.1526 還大三倍，等於把一次瞬移換成一次甩鏡。固定角速度則讓
+// 單幀位移有上限，與偏移大小無關。上下限：小偏移不拖（200ms），滿幅也不超過基座推進的 700ms。
+// 三個數字都【試玩必調】。
+const CLEAR_DEG_PER_MS = 38 / 700; // 滿幅 orbit（38°）用 700ms 收回
+const CLEAR_MS_MIN = 200;
+const CLEAR_MS_MAX = 700;
 
 // (c) 燒毀加強：燒毀是一場裡最重的一擊，借 punch 那一層再加重。
 //     index.html 的燒毀路徑（pwBurnOne）只叫 fxHitstop／fxFlash／pwBurnOne，
@@ -116,6 +131,19 @@ export function createCameraDirector(camera, lanterns) {
   let leanSign = 0; // +1 往畫面右（side 'B'）、−1 往畫面左（side 'A'）
   let leanMs = LEAN.ms; // 這一次輕推的回位時間（取 ys:fx-trait 的 detail.ms）
   let forceWrite = false; // 偏移被「清零」的那一幀要補寫一次位置，見 clearOrbitLean
+  // 折回段還沒跑完。寫入區塊的條件是 t < 1，所以「t 剛好到 1」的那一幀不會寫，補間會凍在
+  // 前一步、離目標差約 0.001–0.0024 度（v0.34 每次 goto 都有的既有行為，一般看不出來）。
+  // 折回段不能留這個尾巴：clearOrbitLean 的合約是「清完正好落在基座上，殘留 0」，差一點點
+  // 就會被 A4 的殘留斷言（<1e-6）抓到。所以折回期間強制每幀都寫，含最後那一幀。
+  let foldWrite = false;
+  // 最近一幀實際算出來的機位（基座＋orbit＋lean，**不含 punch**；yaw／tilt 是度數）。
+  // clearOrbitLean 折回基座時當補間起點用；初值＝ SHOTS.table，與 scene-env 的初始機位一致。
+  let curDist = base.dist;
+  let curTilt = base.tilt;
+  let curYaw = base.yaw;
+  let curLookY = base.lookY;
+  // 這一批事件裡有偏移被折回基座時暫存的起點；下一個 goto() 用掉它，用不掉的話這一幀結束就作廢。
+  let foldFrom = null;
   const lookAt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
@@ -124,13 +152,21 @@ export function createCameraDirector(camera, lanterns) {
   const emphasis = lanterns.map(() => 1);
   const emphasisTarget = lanterns.map(() => 1);
 
-  function goto(shot, ms) {
-    from = { dist: target.dist, tilt: target.tilt, yaw: target.yaw, lookY: target.lookY };
+  function startTween(src, shot, ms) {
+    from = { dist: src.dist, tilt: src.tilt, yaw: src.yaw, lookY: src.lookY };
     // 從目前的 yaw 走短邊到新 yaw：先把目標換算成「相對現在」的絕對角度
     const yaw = from.yaw + shortestDelta(from.yaw, shot.yaw);
     target = { dist: shot.dist, tilt: shot.tilt, yaw, lookY: shot.lookY };
     durMs = Math.max(1, ms || shot.ms || 700);
     t = 0;
+  }
+
+  /** 起點預設沿用「上一個 target」（v0.34 既有語意，不動）；只有在 clearOrbitLean 剛把
+   *  當下實際機位折進 foldFrom 時，才改從那個實際點接續——不然偏移會在清除那一幀被整個扣掉。 */
+  function goto(shot, ms) {
+    const src = foldFrom || target;
+    foldFrom = null;
+    startTween(src, shot, ms);
   }
 
   function setEmphasis(list, dim) {
@@ -140,17 +176,30 @@ export function createCameraDirector(camera, lanterns) {
     });
   }
 
-  /** orbit／lean 立刻歸零。跟 onDuelEnd 把 punchU 設回 1 是同一套處理：
-   *  把進度直接推到「已回位」，下一幀的偏移就是 0。
-   *  forceWrite 是必要的：清零之後四層都不在跑、基座也可能早就 t=1，
-   *  下面的寫入區塊就不會再執行——相機會**凍在最後那一幀的偏移位置**上（＝殘留偏移）。
-   *  補寫一幀才是真的清掉。 */
+  /** orbit／lean 立刻歸零，**但位置要連續**（第 1 輪覆審 H-1／M-1）。
+   *  只把進度推到 1 的話，下一幀少掉的是整個偏移量：實測 orbit 進行中收到 ys:duel-end 或
+   *  ys:fx-trait-cancel 單幀跳 2.41 世界單位（相機距離 4.2 下約 36.8°），lean 中被清跳 0.50。
+   *  改法：把「當下實際算出來的機位」（基座＋orbit＋lean）記進 foldFrom 當新的補間起點，
+   *  偏移層歸零，再以固定角速度（CLEAR_DEG_PER_MS，夾在 MIN／MAX 之間）往目前的目標平順收
+   *  ——偏移由基座吃掉，折回段每幀位移有上限，收完仍然正好落在基座上（殘留 0）。
+   *  punch 那一層不折：clearOrbitLean 不碰 punchU，它自己的 easeOutCubic 疊在新基座上仍然連續。
+   *  forceWrite 保留（t=0 其實已保證會寫），語意仍是「清除當幀一定要補寫一次位置」。 */
   function clearOrbitLean() {
-    if (orbitU < 1 || orbitHold || leanU < 1) forceWrite = true;
+    const active = orbitU < 1 || orbitHold || leanU < 1;
     orbitU = 1;
     orbitHold = false;
     leanU = 1;
     leanSign = 0;
+    if (!active) return; // 沒有偏移在跑＝沒東西要折，走的是與 v0.34 逐項相同的那條路
+    forceWrite = true;
+    foldWrite = true;
+    foldFrom = { dist: curDist, tilt: curTilt, yaw: curYaw, lookY: curLookY };
+    // 沒有後續 goto 的入口（ys:fx-trait-cancel）就靠這一段自己收回目前的目標；
+    // 有後續 goto 的入口（duel／duel-end／table／reveal／end）會用掉 foldFrom 覆寫它，
+    // 兩條路的補間起點都是同一個「實際機位」。
+    const dst = { dist: target.dist, tilt: target.tilt, yaw: target.yaw, lookY: target.lookY };
+    const span = Math.abs(shortestDelta(foldFrom.yaw, dst.yaw)); // 要收掉的 yaw 偏移（度）
+    startTween(foldFrom, dst, Math.min(CLEAR_MS_MAX, Math.max(CLEAR_MS_MIN, span / CLEAR_DEG_PER_MS)));
   }
 
   function onReveal(e) {
@@ -165,8 +214,10 @@ export function createCameraDirector(camera, lanterns) {
     const d = (e && e.detail) || {};
     revealUntil = 0;
     if (typeof d.a !== 'number' || typeof d.b !== 'number') return;
-    goto({ ...DUEL_SHOT, yaw: duelYaw(d.a, d.b) });
+    // 先清再 goto：清除時折下來的「實際機位」要當這一段推進的起點（見 clearOrbitLean）。
+    // 沒有偏移在跑時 foldFrom 是 null，goto 走的還是 v0.34 的 from=上一個 target。
     clearOrbitLean();
+    goto({ ...DUEL_SHOT, yaw: duelYaw(d.a, d.b) });
     if (!prefersReduced()) {
       // 把補間起點往回挪一個 ORBIT.yaw：第 0 幀的「基座＋orbit 偏移」正好等於進場前的 yaw，
       // 鏡頭不會在 ys:duel 當下跳一格；推進到位時落在 duelYaw+ORBIT.yaw ＝ 掃過兩隊的起點。
@@ -212,8 +263,12 @@ export function createCameraDirector(camera, lanterns) {
     clearOrbitLean();
   }
 
-  /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。 */
+  /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。
+   *  prefers-reduced-motion 時 no-op（第 1 輪覆審 M-3）：v0.34 的導演**沒有** ys:fx-burn 監聽器，
+   *  凍結檔 P-4 的「(c) 維持現行 punch」講的現行就是 v0.34 ＝燒毀不震鏡；不 gate 等於在
+   *  reduced-motion 下新增一個推近 0.9 世界單位＋橫向微震的動態。 */
   function onBurn() {
+    if (prefersReduced()) return;
     onPunch({ detail: { power: BURN_PUNCH_POWER } });
   }
 
@@ -263,20 +318,26 @@ export function createCameraDirector(camera, lanterns) {
     // ── 三層合成順序（都疊在基座機位上，由外往內）──────────────────────
     // ① 基座：from→target 的 easeInOutCubic 補間，給 tilt／yaw／dist／lookY
     // ② orbit（進場）：只加 yaw 偏移，**dist 一律不碰**
-    // ③ lean（招式）：加 yaw 偏移、減 dist
+    // ③ lean（招式）：只加 yaw 偏移（LEAN.dist 固定 0，理由見該常數註解）
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite) {
+    // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite) {
       forceWrite = false;
+      if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
       const orbitOff = ORBIT.yaw * (1 - easeInOutCubic(orbitU)); // orbitU=1 → 0
       const leanK = 1 - easeOutCubic(leanU); // leanU=1 → 0
-      const tilt = (from.tilt + (target.tilt - from.tilt) * k) * DEG;
-      const yaw = (from.yaw + (target.yaw - from.yaw) * k + orbitOff + leanSign * LEAN.yaw * leanK) * DEG;
-      const lookY = from.lookY + (target.lookY - from.lookY) * k;
+      curTilt = from.tilt + (target.tilt - from.tilt) * k;
+      curYaw = from.yaw + (target.yaw - from.yaw) * k + orbitOff + leanSign * LEAN.yaw * leanK;
+      curDist = from.dist + (target.dist - from.dist) * k - LEAN.dist * leanK;
+      curLookY = from.lookY + (target.lookY - from.lookY) * k;
+      const tilt = curTilt * DEG;
+      const yaw = curYaw * DEG;
+      const lookY = curLookY;
       // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
       const pk = punchAmp * (1 - easeOutCubic(punchU));
-      const dist = Math.max(0.6, from.dist + (target.dist - from.dist) * k - LEAN.dist * leanK - PUNCH.dist * pk);
+      const dist = Math.max(0.6, curDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
@@ -284,6 +345,9 @@ export function createCameraDirector(camera, lanterns) {
       lookAt.set(0, lookY, 0);
       camera.lookAt(lookAt);
     }
+    // foldFrom 只在「同一批事件的處理鏈」內有效（事件都在兩幀之間同步派送），過了這一幀就作廢，
+    // 免得 ys:fx-trait-cancel 折下來的舊機位被下一場的 goto 誤用當起點。
+    foldFrom = null;
 
     // 燈籠亮度往目標靠攏；4/秒的收斂速度，快到跟得上鏡頭、慢到不會閃
     for (let i = 0; i < emphasis.length; i++) {

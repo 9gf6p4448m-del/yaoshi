@@ -1,0 +1,142 @@
+{
+ "verdict": {
+  "newUrl": "/tests/tools/_tmp-prefix-camdir.js",
+  "base": "C:\\Users\\shung\\AppData\\Local\\Temp\\claude\\C--Users-shung\\dfc3efec-7a74-4a26-a245-7ac024a22aad\\scratchpad\\postfx\\camdir-v034.js",
+  "A1_orbit_dLenMax": 8.882e-16,
+  "A1_orbit_yaw_start_deg": -37.998,
+  "A1_orbit_yaw_end_deg": 0,
+  "A1_orbit_yaw_swept_deg": 37.998,
+  "A1_PASS": true,
+  "A2_afterDuelEnd_diff": 0,
+  "A2_duelSettled_diff（揭露，非凍結條）": 0.0001485,
+  "A2_PASS": true,
+  "A3_leanA_side_left": {
+   "peak200": -9.4522,
+   "atMs": 0.0024,
+   "distDrop": 0.2836
+  },
+  "A3_leanB_side_right": {
+   "peak200": 9.4571,
+   "atMs": 0.0024,
+   "distDrop": 0.2836
+  },
+  "A3_PASS": true,
+  "A4_skip_peak_before_deg": 27.7188,
+  "A4_skip_residual_pos": 0,
+  "A4_skip_residual_yaw_deg": 0,
+  "A4_residual_from_cancel_frame（揭露：折回段在內）": 0,
+  "A4_PASS": true,
+  "A5_burn_distDrop": 0.514875215,
+  "A5_refPunch_distDrop": 0.343250079,
+  "A5_ratio": 1.5,
+  "A5_PASS": true,
+  "A6_reduced_noop_max": 0,
+  "A6_reduced_burn_noop": 0.515,
+  "A6_reduced_burn_drop（揭露：含 v0.34 的 8.2e-5 固定殘差）": 0.514875215,
+  "A6_reduced_refPunch_drop": 0.343250079,
+  "A6_reduced_burn_ratio": 1.5,
+  "A6_PASS": false,
+  "A7_clear_frameStep_max": 2.407594,
+  "A7_clear_frameStep_worst": "E2_traitCancel_during_orbit",
+  "A7_limit": 0.2,
+  "A7_edge": {
+   "E1_duelEnd_during_orbit": {
+    "f1_new": 2.407514,
+    "f1_old": 9.1e-05,
+    "max5_new": 2.407514,
+    "max_new": 2.407514,
+    "maxAtFrame": 0,
+    "max_old": 0.152624
+   },
+   "E2_traitCancel_during_orbit": {
+    "f1_new": 2.407594,
+    "f1_old": 0,
+    "max5_new": 2.407594,
+    "max_new": 2.407594,
+    "maxAtFrame": 0,
+    "max_old": 0
+   },
+   "E3_table_during_orbit": {
+    "f1_new": 2.407514,
+    "f1_old": 9.1e-05,
+    "max5_new": 2.407514,
+    "max_new": 2.407514,
+    "maxAtFrame": 0,
+    "max_old": 0.152624
+   },
+   "E4_duelEnd_during_lean": {
+    "f1_new": 0.504283,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.504283,
+    "max_new": 0.504283,
+    "maxAtFrame": 0,
+    "max_old": 0.152624
+   },
+   "E5_table_during_lean": {
+    "f1_new": 0.504148,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.504148,
+    "max_new": 0.504148,
+    "maxAtFrame": 0,
+    "max_old": 0.152624
+   },
+   "E6_traitCancel_during_lean": {
+    "f1_new": 0.504223,
+    "f1_old": 0,
+    "max5_new": 0.504223,
+    "max_new": 0.504223,
+    "maxAtFrame": 0,
+    "max_old": 0
+   },
+   "E7_reveal_during_orbit": {
+    "f1_new": 2.407237,
+    "f1_old": 0.00019,
+    "max5_new": 2.407237,
+    "max_new": 2.407237,
+    "maxAtFrame": 0,
+    "max_old": 0.247075
+   },
+   "E8_end_during_orbit": {
+    "f1_new": 2.407577,
+    "f1_old": 0.000153,
+    "max5_new": 2.407577,
+    "max_new": 2.407577,
+    "maxAtFrame": 0,
+    "max_old": 0.170377
+   },
+   "E9_duel_during_orbit": {
+    "f1_new": 2.406845,
+    "f1_old": 0.000518,
+    "max5_new": 2.406845,
+    "max_new": 2.406845,
+    "maxAtFrame": 0,
+    "max_old": 0.819084
+   },
+   "X1_duelEnd_then_duel_sameFrame": {
+    "f1_new": 0.000483,
+    "f1_old": 0.000378,
+    "max5_new": 0.029524,
+    "max_new": 0.705783,
+    "maxAtFrame": 21,
+    "max_old": 0.552653
+   },
+   "X2_punchPeak_duelEnd": {
+    "f1_new": 0.415986,
+    "f1_old": 0.415986,
+    "max5_new": 0.415986,
+    "max_new": 0.415986,
+    "maxAtFrame": 0,
+    "max_old": 0.415986
+   }
+  },
+  "A7_PASS": false,
+  "A8_lean_dLenMax": 0.2836,
+  "A8_PASS": false,
+  "A9_reduced_burn_noop": 0.515,
+  "A9_reduced_refPunch_drop": 0.343250079,
+  "A9_PASS": false,
+  "errors": 0,
+  "ALL_PASS": false
+ },
+ "errors": []
+}
