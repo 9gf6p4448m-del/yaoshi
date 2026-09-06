@@ -1,0 +1,129 @@
+{
+ "seed": 7,
+ "viewport": [
+  844,
+  390
+ ],
+ "deviceScaleFactor": 2,
+ "unitsA": [
+  "redhat"
+ ],
+ "unitsB": [
+  "hairpin"
+ ],
+ "note": "編號 1–8＝畫面左（A 隊）、9–16＝畫面右（B 隊）；on＝描邊開、off＝?outline=0 對照組",
+ "on": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "redhat",
+    "fac": "yinqi",
+    "outline": 4047502,
+    "label": [
+     298.8,
+     37.3
+    ],
+    "bboxScreen": [
+     258,
+     22.4,
+     388.8,
+     224.6
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 16
+   },
+   {
+    "no": 2,
+    "side": "B",
+    "id": 0,
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "outline": 4047502,
+    "label": [
+     545,
+     39.5
+    ],
+    "bboxScreen": [
+     470.8,
+     24.7,
+     607.3,
+     208.4
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 9
+   }
+  ],
+  "settle": {
+   "frames": 158,
+   "camLen": 4.2
+  },
+  "viewport": [
+   844,
+   390
+  ],
+  "camLen": 4.2
+ },
+ "off": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "redhat",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     298.8,
+     37.3
+    ],
+    "bboxScreen": [
+     257.9,
+     21.4,
+     388.8,
+     223.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 2,
+    "side": "B",
+    "id": 0,
+    "ab": "hairpin",
+    "fac": "yinqi",
+    "outline": null,
+    "label": [
+     545,
+     39.5
+    ],
+    "bboxScreen": [
+     470.7,
+     29.8,
+     606.7,
+     212.1
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   }
+  ],
+  "settle": {
+   "frames": 153,
+   "camLen": 4.2
+  },
+  "viewport": [
+   844,
+   390
+  ],
+  "camLen": 4.2
+ },
+ "errors": {
+  "on": [],
+  "off": []
+ }
+}

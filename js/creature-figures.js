@@ -255,6 +255,8 @@ const OUTLINE_ON = (() => {
 })();
 // 線寬換算要知道畫布多大（CSS 像素）。兩個 uniform 全場共用同一個物件：寫一次，所有外殼同步。
 const OUTLINE_PX = { value: OUTLINE.px };
+// 多材質 mesh 裡 ghost_* 那幾組的外殼材質：什麼都不寫（不寫色、不寫深度），等於那幾組沒有外殼。
+const OUTLINE_SKIP_MAT = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, depthTest: false });
 const OUTLINE_RES = { value: new THREE.Vector2(1, 1) };
 function syncOutlineRes() {
   if (typeof window === 'undefined') return;
@@ -451,7 +453,13 @@ export function makeCreatureFigure(opts = {}) {
       const shell = makeOutlineMaterial(outlineColorOf(opts.faction, opts.rimColor), burnY);
       shellU = shell.u;
       bodyMeshes.forEach((o) => {
-        const mat = Array.isArray(o.material) ? o.material.map(() => shell.mat) : shell.mat;
+        // ghost_*（haunt 下半身半透明、depthWrite=false）不描邊：不透明外殼會整片蓋住半透明本體，
+        // P-7 兩位讀者把它讀成「故障／掃描線特效」。多材質 mesh 只把 ghost 那幾組換成不畫的材質。
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        const isGhost = (m) => GHOST.test.test((m && m.name) || '');
+        if (mats.every(isGhost)) return;
+        const pick = (m) => (isGhost(m) ? OUTLINE_SKIP_MAT : shell.mat);
+        const mat = Array.isArray(o.material) ? o.material.map(pick) : pick(o.material);
         const sh = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, mat) : new THREE.Mesh(o.geometry, mat);
         if (o.isSkinnedMesh) { sh.bindMode = o.bindMode; sh.bind(o.skeleton, o.bindMatrix); }
         sh.name = 'outline';

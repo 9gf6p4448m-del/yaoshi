@@ -1,0 +1,129 @@
+{
+ "seed": 7,
+ "viewport": [
+  844,
+  390
+ ],
+ "deviceScaleFactor": 2,
+ "unitsA": [
+  "sword"
+ ],
+ "unitsB": [
+  "tiger"
+ ],
+ "note": "編號 1–8＝畫面左（A 隊）、9–16＝畫面右（B 隊）；on＝描邊開、off＝?outline=0 對照組",
+ "on": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "sword",
+    "fac": "xianghuo",
+    "outline": 16712448,
+    "label": [
+     299.1,
+     40.2
+    ],
+    "bboxScreen": [
+     238.1,
+     24.3,
+     358.5,
+     236.2
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 19
+   },
+   {
+    "no": 2,
+    "side": "B",
+    "id": 0,
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "outline": 16712448,
+    "label": [
+     542.1,
+     71
+    ],
+    "bboxScreen": [
+     374.4,
+     56.9,
+     655.2,
+     278.7
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 16
+   }
+  ],
+  "settle": {
+   "frames": 162,
+   "camLen": 4.2
+  },
+  "viewport": [
+   844,
+   390
+  ],
+  "camLen": 4.2
+ },
+ "off": {
+  "rows": [
+   {
+    "no": 1,
+    "side": "A",
+    "id": 0,
+    "ab": "sword",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     299.1,
+     40.2
+    ],
+    "bboxScreen": [
+     238.3,
+     25.3,
+     358.5,
+     236.9
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   },
+   {
+    "no": 2,
+    "side": "B",
+    "id": 0,
+    "ab": "tiger",
+    "fac": "xianghuo",
+    "outline": null,
+    "label": [
+     542.1,
+     71
+    ],
+    "bboxScreen": [
+     374.6,
+     59.8,
+     654.6,
+     282.8
+    ],
+    "inBox": true,
+    "vis": true,
+    "shells": 0
+   }
+  ],
+  "settle": {
+   "frames": 163,
+   "camLen": 4.2
+  },
+  "viewport": [
+   844,
+   390
+  ],
+  "camLen": 4.2
+ },
+ "errors": {
+  "on": [],
+  "off": []
+ }
+}
