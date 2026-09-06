@@ -1,4 +1,4 @@
-// 妖市 3D 環境層 — 運鏡導演（Layer 3，2026-09-03 v0.16）
+// 妖市 3D 環境層 — 運鏡導演（Layer 3，2026-09-03 v0.16；2026-09-06 後處理卷 P-4 加對決三段）
 //
 // 職責：接收演出層發出的 CustomEvent，把鏡頭在幾個固定機位之間平滑補間，
 // 並讓相關座位的燈籠亮起、其餘壓暗。
@@ -38,6 +38,44 @@ const PUNCH = {
   shakeHz: 9, // 微震頻率
 };
 
+// ─── 對決運鏡三段最小組（v0.35 後處理卷 P-4）──────────────────────────────
+// 三段都跟 PUNCH 同型：疊在「當下那個機位」上的一組偏移量，偏移歸零時算出來的
+// 相機位置與 v0.34 逐項相同（加 0／減 0 不改浮點值）。合成順序見 update() 的註解。
+// 數字全部【試玩必調】；本檔一如既往不碰任何亂數（S.rng／S.rngUi 都不讀）。
+
+// (a) 軌道環繞進場：ys:duel 之後鏡頭照舊推進到 DUEL_SHOT，但落點刻意偏開 ORBIT.yaw
+//     （＝「掃過兩隊」的起點，±38 度大約就是其中一席的方位，所以進場會先從那一側看過去），
+//     再以 DUEL_SHOT 的 dist／tilt 只轉 yaw 回到 duelYaw。
+//     **dist 逐幀恆定是硬要求**：duel-figures.js:467 的 camStable 只看
+//     camera.position.length()，orbit 讓 dist 抖就會一直重選排法（踩 T-6／R-4）。
+//     所以 orbit 刻意等基座補間到位（t>=1，dist 已停在 DUEL_SHOT.dist）之後才開始轉。
+const ORBIT = {
+  yaw: -38, // 起點相對 duelYaw 的偏移（度）。常數且固定方向，不得改成亂數。
+  ms: 1500, // ORBIT_MS
+};
+
+// (b) 招式輕推：ys:fx-trait 當下往出招側偏一點再回位。
+//     side 'A'＝畫面左、'B'＝畫面右（duel-figures.js:342,448 的 seats[i]／offset[i]，
+//     i=0 是 −spread ＝ 畫面左）。相機位置對 yaw 微分＝(cos yaw, 0, −sin yaw)·horiz，
+//     正好是 duel-figures.js:496 那條「畫面右」向量，所以 yaw 變大＝鏡頭往畫面右靠：
+//     side 'B' → +LEAN.yaw、side 'A' → −LEAN.yaw 就是「往出招側偏」。
+const LEAN = {
+  yaw: 10, // 往出招側偏幾度
+  dist: 0.3, // 同時推近多少世界單位
+  ms: 900, // detail.ms 沒帶時的回位時間（＝index.html 的 PW_FX.TRAIT_MS）
+};
+
+// (c) 燒毀加強：燒毀是一場裡最重的一擊，借 punch 那一層再加重。
+//     index.html 的燒毀路徑（pwBurnOne）只叫 fxHitstop／fxFlash／pwBurnOne，
+//     全 repo 會派 ys:fx-punch 的只有 index.html:3168（fxPunch，命中拍才叫）
+//     與 trait-fx.js:339（招式積木自己叫），燒毀都不經過它們 → 這裡自己觸發不會變雙重 punch。
+const BURN_PUNCH_POWER = 1.5;
+
+/** prefers-reduced-motion（判法照抄 js/trait-fx.js:83）：(a)(b) 整段 no-op，(c) 的 punch 維持現行行為。 */
+function prefersReduced() {
+  try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+}
+
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
@@ -72,6 +110,12 @@ export function createCameraDirector(camera, lanterns) {
   let revealUntil = 0; // 開標機位的自動返回時間，0＝沒有排程
   let punchU = 1; // 命中 punch 的進度，1＝已回位（＝沒有偏移）
   let punchAmp = 0; // 這一次 punch 的力道倍率
+  let orbitU = 1; // 進場 orbit 的進度，1＝已轉回 duelYaw（＝沒有偏移）
+  let orbitHold = false; // true＝還在等基座推進到位；期間 orbit 偏移維持滿值（yaw 不動、dist 更不動）
+  let leanU = 1; // 招式輕推的進度，1＝已回位（＝沒有偏移）
+  let leanSign = 0; // +1 往畫面右（side 'B'）、−1 往畫面左（side 'A'）
+  let leanMs = LEAN.ms; // 這一次輕推的回位時間（取 ys:fx-trait 的 detail.ms）
+  let forceWrite = false; // 偏移被「清零」的那一幀要補寫一次位置，見 clearOrbitLean
   const lookAt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
@@ -96,8 +140,22 @@ export function createCameraDirector(camera, lanterns) {
     });
   }
 
+  /** orbit／lean 立刻歸零。跟 onDuelEnd 把 punchU 設回 1 是同一套處理：
+   *  把進度直接推到「已回位」，下一幀的偏移就是 0。
+   *  forceWrite 是必要的：清零之後四層都不在跑、基座也可能早就 t=1，
+   *  下面的寫入區塊就不會再執行——相機會**凍在最後那一幀的偏移位置**上（＝殘留偏移）。
+   *  補寫一幀才是真的清掉。 */
+  function clearOrbitLean() {
+    if (orbitU < 1 || orbitHold || leanU < 1) forceWrite = true;
+    orbitU = 1;
+    orbitHold = false;
+    leanU = 1;
+    leanSign = 0;
+  }
+
   function onReveal(e) {
     const winner = e && e.detail ? e.detail.winner : null;
+    clearOrbitLean();
     goto(SHOTS.reveal);
     setEmphasis(typeof winner === 'number' ? [winner] : null);
     revealUntil = performance.now() + REVEAL_HOLD_MS;
@@ -108,6 +166,15 @@ export function createCameraDirector(camera, lanterns) {
     revealUntil = 0;
     if (typeof d.a !== 'number' || typeof d.b !== 'number') return;
     goto({ ...DUEL_SHOT, yaw: duelYaw(d.a, d.b) });
+    clearOrbitLean();
+    if (!prefersReduced()) {
+      // 把補間起點往回挪一個 ORBIT.yaw：第 0 幀的「基座＋orbit 偏移」正好等於進場前的 yaw，
+      // 鏡頭不會在 ys:duel 當下跳一格；推進到位時落在 duelYaw+ORBIT.yaw ＝ 掃過兩隊的起點。
+      // 只動 from（起點），target 仍是 duelYaw，所以 orbit 歸零時位置與 v0.34 相同。
+      from.yaw -= ORBIT.yaw;
+      orbitU = 0;
+      orbitHold = true;
+    }
     setEmphasis([d.a, d.b], 0.6);
   }
 
@@ -115,6 +182,7 @@ export function createCameraDirector(camera, lanterns) {
     revealUntil = 0;
     punchU = 1; // 對決收掉時 punch 一定要歸零，不然殘餘偏移會帶進牌桌機位
     punchAmp = 0;
+    clearOrbitLean(); // orbit／lean 同理
     goto(SHOTS.table);
     setEmphasis(null);
   }
@@ -127,14 +195,38 @@ export function createCameraDirector(camera, lanterns) {
     punchU = 0;
   }
 
+  /** 【積木接收端】ys:fx-trait：鏡頭往出招側輕推一下，detail.ms 內回位。
+   *  只讀 detail.side／detail.ms，不碰 detail.handled（那是 3D 舞台在回覆接不接這一招，與鏡頭無關）。 */
+  function onTrait(e) {
+    if (prefersReduced()) return;
+    const d = (e && e.detail) || {};
+    const s = d.side === 'B' ? 1 : d.side === 'A' ? -1 : 0;
+    if (!s) return;
+    leanSign = s;
+    leanMs = Math.max(1, Number(d.ms) || LEAN.ms);
+    leanU = 0;
+  }
+
+  /** ys:fx-trait-cancel（doSkip 派，index.html:1744）：快轉時 orbit／lean 立刻清零。 */
+  function onTraitCancel() {
+    clearOrbitLean();
+  }
+
+  /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。 */
+  function onBurn() {
+    onPunch({ detail: { power: BURN_PUNCH_POWER } });
+  }
+
   function onEnd() {
     revealUntil = 0;
+    clearOrbitLean();
     goto(SHOTS.end);
     setEmphasis(null);
   }
 
   function onTable() {
     revealUntil = 0;
+    clearOrbitLean();
     goto(SHOTS.table);
     setEmphasis(null);
   }
@@ -142,6 +234,9 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:reveal', onReveal);
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-punch', onPunch);
+  document.addEventListener('ys:fx-trait', onTrait);
+  document.addEventListener('ys:fx-trait-cancel', onTraitCancel);
+  document.addEventListener('ys:fx-burn', onBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
   document.addEventListener('ys:end', onEnd);
   document.addEventListener('ys:table', onTable);
@@ -156,17 +251,32 @@ export function createCameraDirector(camera, lanterns) {
 
     if (t < 1) t = Math.min(1, t + (dt * 1000) / durMs);
     if (punchU < 1) punchU = Math.min(1, punchU + (dt * 1000) / PUNCH.ms);
+    // orbit 只在基座推進到位之後才開始轉：那時 dist 已經停在 DUEL_SHOT.dist，
+    // 整段 orbit 的 camera.position.length() 才會逐幀恆定（duel-figures 的 camStable 靠它鎖排）
+    if (orbitHold && t >= 1) orbitHold = false;
+    if (!orbitHold && orbitU < 1) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
+    if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
 
-    // 機位補間與 punch 偏移每幀都算一次。punch 沒在跑時偏移恆為 0，
+    // 機位補間與三層偏移每幀都算一次。三層都沒在跑時偏移恆為 0，
     // 算出來的位置與舊版「只在 t<1 時寫」逐項相同（SHOTS.table 就是 scene-env 的初始機位）。
-    if (t < 1 || punchU < 1) {
+    //
+    // ── 三層合成順序（都疊在基座機位上，由外往內）──────────────────────
+    // ① 基座：from→target 的 easeInOutCubic 補間，給 tilt／yaw／dist／lookY
+    // ② orbit（進場）：只加 yaw 偏移，**dist 一律不碰**
+    // ③ lean（招式）：加 yaw 偏移、減 dist
+    // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
+    // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite) {
+      forceWrite = false;
       const k = easeInOutCubic(t);
+      const orbitOff = ORBIT.yaw * (1 - easeInOutCubic(orbitU)); // orbitU=1 → 0
+      const leanK = 1 - easeOutCubic(leanU); // leanU=1 → 0
       const tilt = (from.tilt + (target.tilt - from.tilt) * k) * DEG;
-      const yaw = (from.yaw + (target.yaw - from.yaw) * k) * DEG;
+      const yaw = (from.yaw + (target.yaw - from.yaw) * k + orbitOff + leanSign * LEAN.yaw * leanK) * DEG;
       const lookY = from.lookY + (target.lookY - from.lookY) * k;
       // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
       const pk = punchAmp * (1 - easeOutCubic(punchU));
-      const dist = Math.max(0.6, from.dist + (target.dist - from.dist) * k - PUNCH.dist * pk);
+      const dist = Math.max(0.6, from.dist + (target.dist - from.dist) * k - LEAN.dist * leanK - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
