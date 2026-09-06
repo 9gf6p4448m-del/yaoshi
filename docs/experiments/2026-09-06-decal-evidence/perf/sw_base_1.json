@@ -1,0 +1,67 @@
+{
+ "perf": {
+  "loadMs": 410,
+  "rendersPerSec": 3.1,
+  "rafMedianFps": 84.7,
+  "rafP95Ms": 3561.1,
+  "rafFrames": 12,
+  "drawCallsPerFrame": 1054,
+  "trianglesPerFrame": 434538,
+  "renderPassesPerFrame": 2,
+  "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "visible": 16,
+  "total": 16,
+  "skins": 16
+ },
+ "errors": [],
+ "fxc": {
+  "burn": 2,
+  "burnDom": 0,
+  "burnFig": 2,
+  "trait": 1,
+  "traitFig": 1,
+  "beat": 6,
+  "duels": 2,
+  "traits": {
+   "hauntFearX2": 1
+  },
+  "beats": {
+   "一拍・撞": 2,
+   "二拍・護": 2,
+   "三拍・祟": 2
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 0,
+    "burnCalls": 0,
+    "warBurn": 0,
+    "burnDom": 0,
+    "burnFig": 0,
+    "traitEv": 1,
+    "traitCap": 1
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 2,
+    "burnCalls": 2,
+    "warBurn": 2,
+    "burnDom": 0,
+    "burnFig": 2,
+    "traitEv": 0,
+    "traitCap": 0
+   }
+  ],
+  "load": {
+   "ms": 0,
+   "total": 0,
+   "loaded": 0,
+   "timedOut": false,
+   "readyAt": 1788686740129
+  }
+ }
+}

@@ -150,7 +150,81 @@ uniform float uDissolve;
 uniform vec3 uBurnColor;
 uniform vec2 uBurnY;
 varying vec3 vLocalPosR;
+// 程序式裂紋貼花（法線貼花小卷，2026-09-06）：uCrack[i] = (y0, xa, xb, zmin)，見 DECALS
+uniform int uCrackN;
+uniform vec4 uCrack[4];
+uniform vec4 uCrackAng; // 每條線的傾角（弧度，繞本地 z）：0＝水平；分岔用
+uniform float uCrackW;
+uniform float uCrackJag;
+uniform float uCrackFreq;
+uniform float uCrackDark;
+uniform float uCrackTilt;
+varying vec3 vUpV;
 ` + NOISE_GLSL;
+
+/* ── 程序式裂紋貼花（法線貼花小卷 技術驗證，2026-09-06）──────────────────────────
+ * 為什麼：量產卷把「石體橫向裂縫」（eye ④）等四項回簽為引擎限制——低模無貼圖、幾何做的裂唇
+ * 三輪六位 0/6。描邊補的是深度輪廓，這幾項缺的是「表面上的線」。這裡不加幾何、不加 pass、
+ * 不加貼圖：在 fragment 用 rest-pose 本地座標（vLocalPosR，蒙皮前）算 N 條橫向裂紋線
+ * y = y0 ± jag·noise(x,z)，核心把 albedo 壓暗、兩唇把法線沿本地 +y 傾斜（上唇朝下、下唇朝上）
+ * ＝燈光下出現內陰影與受光唇。無表項的生物 uCrackN=0 直接跳過，program 全場仍共用一支。
+ * 參數全在 DECALS 表，?decal=0 全關（A/B 與範圍檢查用）。驗收：docs/experiments/2026-09-06-acceptance-decal.md
+ * ────────────────────────────────────────────────────────────────────────── */
+const CRACK_FRAG = `
+  float _cd = 1e9;
+  if (uCrackN > 0) {
+    for (int i = 0; i < 4; i++) {
+      if (i >= uCrackN) break;
+      vec4 L = uCrack[i];
+      // 傾角：把本地 (x,y) 繞 z 轉 −θ，之後一律當「水平線」處理（分岔線用）
+      float _a = (i == 0) ? uCrackAng.x : (i == 1) ? uCrackAng.y : (i == 2) ? uCrackAng.z : uCrackAng.w;
+      float _ca = cos(_a), _sa = sin(_a);
+      float _px = vLocalPosR.x * _ca + vLocalPosR.y * _sa;
+      float _py = -vLocalPosR.x * _sa + vLocalPosR.y * _ca;
+      // 兩層雜訊：低頻大擺幅＋高頻小鋸齒——單層平滑雜訊看起來是「波浪條紋」不是裂縫
+      float _n1 = noiseR(vec3(_px * uCrackFreq, 3.1 + float(i) * 7.7, vLocalPosR.z * uCrackFreq)) * 2.0 - 1.0;
+      float _n2 = noiseR(vec3(_px * uCrackFreq * 4.3, 11.7 + float(i) * 5.3, vLocalPosR.z * uCrackFreq * 4.3)) * 2.0 - 1.0;
+      float yj = L.x + uCrackJag * (_n1 + 0.45 * _n2);
+      float d = _py - yj;
+      float wgt = smoothstep(L.y, L.y + 0.08, _px) * (1.0 - smoothstep(L.z - 0.08, L.z, _px))
+                * smoothstep(L.w - 0.06, L.w + 0.06, vLocalPosR.z);
+      d /= max(wgt, 1e-3);
+      if (abs(d) < abs(_cd)) _cd = d;
+    }
+  }
+  float _crackCore = 1.0 - smoothstep(uCrackW * 0.6, uCrackW, abs(_cd));
+  // 第 1 輪盲讀：核心暗線＋上唇暗＋下唇亮＝三條平行帶→被讀成「抓痕／風化紋」。改成只有一條暗線
+  // ＋緊貼下緣的一道細高光（受光的下唇），上唇不動。
+  float _crackLip = (1.0 - smoothstep(uCrackW, uCrackW * 1.7, abs(_cd))) * (1.0 - _crackCore) * step(_cd, 0.0);
+  diffuseColor.rgb *= mix(1.0, uCrackDark, _crackCore);
+  diffuseColor.rgb *= 1.0 + _crackLip * 0.22;`;
+const CRACK_NORMAL = `
+  normal = normalize(normal + vUpV * (uCrackTilt * _crackLip));`;
+
+/** ?decal=0 關掉裂紋貼花（A/B 對照與 D6 範圍檢查）。正式頁沒帶＝開。 */
+const DECAL_ON = (() => {
+  try { return new URLSearchParams((typeof location === 'undefined' ? '' : location.search) || '').get('decal') !== '0'; } catch (e) { return true; }
+})();
+// 貼花表：鍵＝生物鍵（opts.ab 或 GLB 檔名），mat＝套用的材質名正則；lines 每條 [y0, xa, xb, zmin]
+// （rest-pose 本地座標，未正規化：eye 的 rock 網格 y −0.02..1.23、x ±0.60、z −0.30..0.37；
+// 下崖 slab y 0.02–0.50、上崖 brow y 0.84–1.13、眼窩縫在 0.50–0.84）。全部【盲讀必調】。
+const DECALS = {
+  eye: {
+    mat: /^rock/, width: 0.024, jag: 0.045, freq: 5.0, dark: 0.16, tilt: 0.9,
+    // [y0, xa, xb, zmin, 傾角]（傾角以旋轉後座標定義 y0／xa／xb）
+    lines: [
+      [0.30, -0.62, 0.22, -0.05, 0.0], // 主縫：下崖正面偏左，從邊緣裂進來
+      [0.36, -0.30, 0.10, -0.05, 0.55], // 分岔：從主縫中段斜向右上
+      [0.98, -0.20, 0.62, -0.05, 0.0], // 上崖正面偏右
+    ],
+  },
+};
+function decalFor(key, matName) {
+  if (!DECAL_ON || !key) return null;
+  const d = DECALS[key];
+  return d && d.mat.test(matName || '') ? d : null;
+}
+
 
 // 燒毀的切口：本體與外殼描邊共用這一段（同一條門檻、同一組雜訊），外殼才不會比本體早燒完或晚燒完。
 const DISSOLVE_CUT = `
@@ -185,9 +259,18 @@ const EMISSIVE_TAIL = `
 #endif`;
 
 /** 把一顆 MeshStandardMaterial 改造成「頂點色＋邊光＋可燒毀（＋眼／口內自發光）」。回傳它的 uniform 控制點。 */
-function dressMaterial(mat, burnY) {
+function dressMaterial(mat, burnY, decal) {
   const glow = GLOW.test.test(mat.name || '');
+  const dc = decal || null;
   const u = {
+    uCrackN: { value: dc ? Math.min(4, dc.lines.length) : 0 },
+    uCrack: { value: [0, 1, 2, 3].map((i) => new THREE.Vector4(...((dc && dc.lines[i]) || [0, 0, 0, 0]).slice(0, 4))) },
+    uCrackAng: { value: new THREE.Vector4(...[0, 1, 2, 3].map((i) => (dc && dc.lines[i] && dc.lines[i][4]) || 0)) },
+    uCrackW: { value: dc ? dc.width : 0.02 },
+    uCrackJag: { value: dc ? dc.jag : 0 },
+    uCrackFreq: { value: dc ? dc.freq : 1 },
+    uCrackDark: { value: dc ? dc.dark : 1 },
+    uCrackTilt: { value: dc ? dc.tilt : 0 },
     uRimColor: { value: new THREE.Color(RIM_FALLBACK) },
     uRimPower: { value: RIM.power },
     uRimStrength: { value: glow ? GLOW.rim : RIM.strength },
@@ -211,17 +294,19 @@ function dressMaterial(mat, burnY) {
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vLocalPosR;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLocalPosR = position;');
+      .replace('#include <common>', '#include <common>\nvarying vec3 vLocalPosR;\nvarying vec3 vUpV;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLocalPosR = position;\nvUpV = normalize(normalMatrix * vec3(0.0, 1.0, 0.0));');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>' + PARS)
+      .replace('#include <color_fragment>', '#include <color_fragment>' + CRACK_FRAG)
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + CRACK_NORMAL)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>' + EMISSIVE_TAIL)
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>' + TAIL);
   };
   // 注入的 GLSL 對所有實例都一樣，程式可以共用；uniform 是逐材質上傳的，所以
   // 每隻的邊光色與 dissolve 進度互不干擾。快取鍵要固定，不然 three 會為每顆材質
   // 各編一支一模一樣的 program（26 隻 × 十幾顆材質＝上百次編譯，手機會卡）。
-  mat.customProgramCacheKey = () => 'yaoshi-creature-rim-burn';
+  mat.customProgramCacheKey = () => 'yaoshi-creature-rim-burn-decal';
   mat.needsUpdate = true;
   return u;
 }
@@ -411,6 +496,8 @@ export function makeCreatureFigure(opts = {}) {
   let ground = null; // 腳下環境（水面等；setGroundFx 掛上來的）
   let current = null; // 目前在播的 clip 名（play() 記錄；量測與招式演出用）
   const ab = opts.ab === undefined ? null : opts.ab;
+  // 貼花表的鍵：對決走 opts.ab；預覽頁沒有 ab 就用 GLB 檔名（eye.glb → eye）
+  const decalKey = ab || (String(opts.glbUrl || '').split('/').pop() || '').replace(/\.glb$/i, '') || null;
 
   const shadow = new THREE.Mesh(
     new THREE.CircleGeometry(0.42, 22),
@@ -443,7 +530,7 @@ export function makeCreatureFigure(opts = {}) {
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       const dressed = mats.map((m) => {
         const c = m.clone();
-        uniforms.push(dressMaterial(c, burnY));
+        uniforms.push(dressMaterial(c, burnY, decalFor(decalKey, m.name)));
         return c;
       });
       o.material = Array.isArray(o.material) ? dressed : dressed[0];

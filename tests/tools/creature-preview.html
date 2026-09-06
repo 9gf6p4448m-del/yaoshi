@@ -177,7 +177,8 @@ window.__preview = {
   burnDone() { return burnPromise; },
   setPhase(p, o) {
     window.__preview.phase = p;
-    if (p === 'reset') { figures.forEach((f) => { f.reset(); f.play('idle', { fade: 0 }); }); return Promise.resolve(); }
+    // ?freeze=1（法線貼花小卷 D2/D6，2026-09-06）：reset 後 idle 以 timeScale 0 停在第 0 格——同參數兩次截圖才會逐像素相同（idle 呼吸讓 tiger_c 雜訊底 2019 px）
+    if (p === 'reset') { figures.forEach((f) => { f.reset(); f.play('idle', { fade: 0, timeScale: q.get('freeze') === '1' ? 0 : 1 }); }); return Promise.resolve(); }
     if (p === 'burn') {
       burnPromise = Promise.all(figures.map((f, i) => f.burn({ ms: (o || {}).ms, seed: i + 1, scale: N > 1 ? 0.62 : 1 })));
       return burnPromise;

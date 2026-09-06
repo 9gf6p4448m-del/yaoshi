@@ -725,6 +725,14 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.18 法線貼花小卷（技術驗證，2026-09-06 深夜，v0.39）——接手前先知道這五件事
+
+1. **機制＝程序式裂紋貼花，全在 `js/creature-figures.js`**：`DECALS` 表（鍵＝`opts.ab` 或 GLB 檔名；`mat` 正則挑材質；`lines` 每條 `[y0, xa, xb, zmin, 傾角]`，rest-pose 本地座標＝GLB 未正規化的 `position`）→ `decalFor()` → `dressMaterial(mat, burnY, decal)` 多送 8 顆 uniform（`uCrackN/uCrack[4]/uCrackAng/uCrackW/uCrackJag/uCrackFreq/uCrackDark/uCrackTilt`）→ GLSL 注入兩處：`<color_fragment>` 後壓暗 albedo（`CRACK_FRAG`）、`<normal_fragment_maps>` 後把下唇法線沿本地 +y 傾斜（`CRACK_NORMAL`，vertex 多一個 varying `vUpV`）。不加幾何、不加 pass、不加貼圖；無表項的生物 `uCrackN=0`，program cache key 改為 `'yaoshi-creature-rim-burn-decal'`（全場仍一支 program）。`?decal=0` 全關。
+2. **目前只有 `eye`**（gaps.md ④ 石體橫向裂縫）：主縫（下崖左）＋斜向分岔＋上崖右一條。盲讀第 1 輪失敗的教訓：**核心暗線＋上唇暗＋下唇亮＝三條平行帶→被讀成「抓痕／風化紋」**；改成單暗線＋細下唇高光＋分岔後第 2 輪 2/2 讀成「裂縫／裂痕」。要鋪到別隻（tiger_c 白毛邊等）另開卷，先在 `DECALS` 加表項、拍 `creature-shoot` 對照、再盲讀。
+3. **驗法（凍結檔 `docs/experiments/2026-09-06-acceptance-decal.md`）**：像素差用 `creature-shoot.mjs` 的 `reset` 相位＋預覽頁新參數 `?freeze=1`（idle timeScale 0，否則 tiger_c 呼吸讓同參數兩張差 2019 px）；`fx=0`。突變式＝dark 1／tilt 0／假斜面 0 三項歸零→像素差必須回 0。盲讀圖照舊 idle＋fx=1。
+4. **效能**：`duel-perf.mjs perf --uncap` 8v8 新版 vs `--root=<基準 worktree>` 各 3 次取中位（本卷 100.0 vs 99.0 fps）；軟體 GL 用新選項 `--gl=swiftshader`（M-4 待量在此卷第一次量到，數字見凍結檔）。**量測不得與其他 Playwright 治具並跑**。
+5. 兩件事不要做：不要把 `DECALS` 的座標寫成正規化後的值（shader 拿的是 GLB 原座標，同 `uBurnY`）；不要為了「更明顯」把上唇也壓暗（第 1 輪已否證）。
+
 ### 11.17 系色小圖示小卷（2026-09-06，v0.37）——接手前先知道這四件事
 
 1. **隻數牌顏色＝陣營，不是體型**：`.pwchip` 的底色由 `fac-zuling/xianghuo/yinqi` class 帶的 `--pwf` 決定（`fac-none`＝肉身兜底灰）；v0.36 以前 `.pwchip.swarm/elite/haunt` 各自寫死三系淺色＝按體型套色，別改回去。體型靠形狀：小紙人實心 8×12、大紙偶 13×17＋金邊、護法空心（只有邊框系色）、飄影 `filter:opacity(.6)`＋虛線邊。**半透明一律走 filter 不走 opacity**：`pwRise` 的 WAAPI `fill:both` 把 opacity 釘在 1，CSS opacity 永遠被蓋（探針實測 haunt computed opacity＝1；舊 `.burnt{opacity:.1}` 同樣被蓋、燒掉的片只剩灰階，本卷一併改成 `filter:grayscale(1) opacity(.15)`）。全部【試玩必調】。

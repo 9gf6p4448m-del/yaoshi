@@ -25,7 +25,8 @@ const { pos, opt } = parseArgs(process.argv.slice(2));
 const [mode, out] = pos;
 if (!mode || !out) { console.error('need <bounds|perf> <out.json>'); process.exit(2); }
 // --uncap：關掉 vsync 與幀率上限，量的才是「跑得動幾幀」而不是「螢幕更新幾次」（60Hz 桌機 rAF 永遠貼著 60）
-const launch = () => chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'].concat(opt.uncap ? ['--disable-gpu-vsync', '--disable-frame-rate-limit'] : []) });
+// --gl=swiftshader：改走軟體 GL（renderer.js bloomOK=false 路徑；法線貼花小卷 D5／M-4 待量，2026-09-06）
+const launch = () => chromium.launch({ args: ['--use-gl=angle', opt.gl === 'swiftshader' ? '--use-angle=swiftshader' : '--use-angle=d3d11', '--ignore-gpu-blocklist'].concat(opt.uncap ? ['--disable-gpu-vsync', '--disable-frame-rate-limit'] : []) });
 
 if (mode === 'bounds') {
   const port = Number(opt.port || 8832);
