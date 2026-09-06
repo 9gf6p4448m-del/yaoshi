@@ -730,7 +730,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 1. **隻數牌顏色＝陣營，不是體型**：`.pwchip` 的底色由 `fac-zuling/xianghuo/yinqi` class 帶的 `--pwf` 決定（`fac-none`＝肉身兜底灰）；v0.36 以前 `.pwchip.swarm/elite/haunt` 各自寫死三系淺色＝按體型套色，別改回去。體型靠形狀：小紙人實心 8×12、大紙偶 13×17＋金邊、護法空心（只有邊框系色）、飄影 `filter:opacity(.6)`＋虛線邊。**半透明一律走 filter 不走 opacity**：`pwRise` 的 WAAPI `fill:both` 把 opacity 釘在 1，CSS opacity 永遠被蓋（探針實測 haunt computed opacity＝1；舊 `.burnt{opacity:.1}` 同樣被蓋、燒掉的片只剩灰階，本卷一併改成 `filter:grayscale(1) opacity(.15)`）。全部【試玩必調】。
 2. **每隊一枚 `.pwfac` 系字徽**：`pwArmyView` 的 unit 多帶 `t`（隊序＝同一件法寶），`pwArenaHTML` 在隊序變化處插徽；徽是 `#pwch-*` 的直接子元素，所以 `pwLineUp` 的逐片 stagger 會連徽一起升起（設計如此），`pwBurnOne` 只認 `pwc-<tag>-<id>` 不受影響。送 3D 的 `armies` 是逐欄位挑的（index.html `duelDetail.armies`），`t` 不會帶出去。
 3. **驗法**：`node tests/tools/facchip-probe.mjs <outdir> --duels=12 --seed=7`——真對局 12 場，每場拿 `S.players[].bag` 獨立推期望序列對 computed style（A1 顏色／A2 徽章／A3 形狀簽名／A5 溢出），並截兩欄含編號的圖給盲讀（A6）。引擎等價照 §7 的 trace 規程對前一版 SHA。
-4. **規則頁「⚔ 結算戰」只在 `CFG.PAPERWAR_ON` 時多一句圖例文字**（對決畫面本身不加圖例，使用者裁定）。注意該節前半仍是舊的「比戰力扣血」口徑——紙紮夜戰預設開之後這段文案未改，是既有文件債，本卷未動。
+4. **規則頁「⚔ 結算戰」只在 `CFG.PAPERWAR_ON` 時多一句圖例文字**（對決畫面本身不加圖例，使用者裁定）。（v0.38 已清）該節前半原本仍是舊的「比戰力扣血」口徑，2026-09-06 深夜改成 `CFG.PAPERWAR_ON` 三元分支：ON＝紙紮夜戰口徑（召軍／三拍／勝負序／`PW_MIN`–`PW_MAX` 扣血），OFF＝舊文案一字不動；純 UI，trace 對 382f1c2 逐位元組相等。
 
 ### 11.16 對決大作化 批 1（2026-09-03，v0.27）——接手前先知道這七件事
 
