@@ -9,11 +9,11 @@
 |---|---|---|
 | **L0** kill switch | ✅ | `LEGEND_ON=false` 的 `trace(1..20)` 與 `ca14065` 逐位元組相等（325288 字元對 325288）；ON 不等（392280）。 |
 | **L1** 優勢策略窮舉 | ❌ **無法達成** | 三個狀態都存在優勢策略。兩個獨立紅因：①「四人三龕、各拜主系」的治具**一定有人獨佔一龕**，獨佔者的收益完全不隨對手變動 ⇒ 依定義必有優勢策略；②即使把四家全擠到同一龕，**「h 全 0」下「每夜燒滿」找不到任何能打敗它的對手組合**。「永不燒」三個狀態都被打敗（那一半 ✅）。詳見 §三。 |
-| **L2** 活性 | ✅ | 至少一尊被請走 **99.23%**（≥60%）；殘日 91.72%／大士爺 84.53%／有應公 83.19%（各 ≥25%）。 |
-| **L3** 有感不支配 | ❌ **無法達成（相對帶）／✅（持有者勝率）** | 相對帶 **2.145**（門檻 1.15–1.60）。但**把三尊的紙紮全部歸零、在夜戰裡毫無作用時，相對帶仍有 1.491**——這條量法本身含選樣混淆，門檻上緣 1.60 的可用區間只夠容納「一件毫無作用的東西」。持有者最終勝率 **37.65%** ≤55% ✅。詳見 §四。 |
+| **L2** 活性 | ✅ | 至少一尊被請走 **99.24%**（≥60%）；殘日 92.06%／大士爺 85.33%／有應公 84.20%（各 ≥25%）。 |
+| **L3** 有感不支配 | ❌ **無法達成（相對帶）／✅（持有者勝率）** | 相對帶 **2.147**（門檻 1.15–1.60）。但**把三尊的紙紮全部歸零、在夜戰裡毫無作用時，相對帶仍有 1.490**——這條量法本身含選樣混淆，門檻上緣 1.60 的可用區間只夠容納「一件毫無作用的東西」。持有者最終勝率 **37.71%** ≤55% ✅。詳見 §四。 |
 | **L4** 無支配策略 | ❌ **未過（差 0.08pp）** | 六策略中五個過，`incenseMax` **40.08%** > 40%。這正是凍結檔預言的紅法「incenseMax 靠獨一份衝 >40%」。n=10000 時 40% 附近的單點 SE≈0.49pp，所以 40.08 與門檻在統計上分不開——但**照條文的字面判定就是紅**，我不改門檻也不改數值。詳見 §五。 |
 | **L5** 節奏 | ✅ | 預設桌中位 **11** 夜（門檻 10–12）；同種子 `LEGEND_ON=false` 對照也是 11 夜（＝請神沒有把局縮短）。 |
-| **L6** 測試與瀏覽器 | ✅ | 既有 5 套全綠；`tests/legend.test.mjs` 13 案新版全綠、對 `ca14065` **13 案全紅且全部紅在行為斷言**；Playwright 一整局 0 console error、走到「請走」與「回天」；橫向溢出與 `LEGEND_ON=false` 基準同級（見 §七）。規則頁三輪 fresh read-back 過。 |
+| **L6** 測試與瀏覽器 | ✅（測試／0 error／兩條路）＋❌（無橫向溢出） | 既有 5 套全綠；`tests/legend.test.mjs` 15 案新版全綠、對 `ca14065` **15 案全紅且全部紅在行為斷言**；Playwright 六局跑到「再入妖市」，0 console error／pageerror，「請走」15 次、「天亮回天」收攤 3 龕（結出 2 筆階段獎勵）；規則頁三輪 fresh read-back 過。**「無橫向溢出」照字面判是紅的**——但同一支治具對 `?legend=0` 的對照組量到**逐值相同**的溢出，這一卷沒有讓它變差（見 §7.2）。 |
 | **L7** 範圍 | ✅ | 只動 `index.html`＋兩份既有文件＋新增治具與證據檔；POOL／CURSES／ROLES／TRAITS 既有條目與 CFG 既有鍵**逐位元組相同**（機械比對，見 §八）。 |
 
 **未達成的三條（L1／L3／L4）要使用者裁定**——我沒有動門檻、沒有動凍結條文、也沒有動 `LEGENDS` 或 `CFG` 的任何數值（`02 §2.1`；派工也明寫「其他數值不得動」）。可選路線與代價寫在 §三～§五。
@@ -41,7 +41,7 @@
 | 局末回顧 | `4690-4694`（逐夜「請神」列）／`4671-4675`＋`4725`（「天亮回天」列） | 純呈現 |
 | 版本 | `index.html:1757` | `VERSION="0.43"` |
 
-新檔：`tests/tools/legend-gate.mjs`（L0–L5，含 `dominantScan` 與 L3 消融診斷）、`tests/legend.test.mjs`（13 案）、`tests/tools/legend-drive.mjs`（Playwright）。
+新檔：`tests/tools/legend-gate.mjs`（L0–L5，含 `dominantScan` 與 L3 消融診斷）、`tests/legend.test.mjs`（15 案）、`tests/tools/legend-drive.mjs`（Playwright）。
 文件：`docs/IMPLEMENTATION_GUIDE.md §11.20`、`docs/GAME_DESIGN.md` changelog。
 
 ## 三、L1 為什麼過不了（無法達成＋原因）
@@ -68,19 +68,19 @@ L4 的 `incenseMax` 40.08% 是同一件事的另一個面向（見 §五），�
 
 ### 4.1 量到的數字（n=10000）
 
-- 請到者（自請到那夜起）：**71.82%**（106060/147685 場）
-- 同局未請到者：**33.48%**（65275/194985 場）
-- 相對帶 **2.145**（門檻 1.15–1.60）❌
-- 持有任一尊者的最終勝率 **37.65%**（7791/20692，門檻 ≤55%）✅
+- 請到者（自請到那夜起）：**71.82%**（106098/147719 場）
+- 同局未請到者：**33.46%**（65218/194913 場）
+- 相對帶 **2.147**（門檻 1.15–1.60）❌
+- 持有任一尊者的最終勝率 **37.71%**（7814/20723，門檻 ≤55%）✅
 
 ### 4.2 這個量法本身的下限（消融，n=2000，同一批種子）
 
 | 版本 | 請到者 | 未請到者 | 相對帶 | 持有者最終勝率 |
 |---|---|---|---|---|
-| **零紙紮**（三尊 `unit.count=0`＝在夜戰裡完全沒有貢獻） | 61.52% | 41.27% | **1.491** | 29.48% |
-| 現行三尊（對照） | 72.17% | 33.37% | **2.163** | 38.27% |
+| **零紙紮**（三尊 `unit.count=0`＝在夜戰裡完全沒有貢獻） | 61.51% | 41.27% | **1.490** | 29.57% |
+| 現行三尊（對照） | 72.15% | 33.38% | **2.161** | 38.30% |
 
-**讀法**：拿得到傳說的人本來就比較有餘裕（燒得起壽命）、也活得比較久；「未請到者」那一組則裝滿了快出局的人。這個選樣混淆單獨就值 **1.49**，吃掉門檻上緣 1.60 的絕大部分——**L3 的可用區間只夠塞一件毫無作用的東西**。
+**讀法**：拿得到傳說的人本來就比較有餘裕（燒得起壽命）、也活得比較久；「未請到者」那一組則裝滿了快出局的人。這個選樣混淆單獨就值 **1.490**，吃掉門檻上緣 1.60 的絕大部分——**L3 的可用區間只夠塞一件毫無作用的東西**。
 
 補充（快篩 n=400）：把 AI 啟發式改成「不看壽命、每夜一律燒滿」拆掉「有錢才燒」這條相關性之後，零紙紮版的相對帶仍有 **1.597**。所以混淆不是來自啟發式，是來自「持有＝活著」這件事本身。
 
@@ -103,10 +103,10 @@ L4 的 `incenseMax` 40.08% 是同一件事的另一個面向（見 §五），�
 
 | 策略 | LEGEND_ON=false | LEGEND_ON=true | 位移 | 判定 |
 |---|---|---|---|---|
-| splitter | 20.47% | 23.75% | +3.28pp | ✅ |
-| greedy | 19.35% | 20.91% | +1.56pp | ✅ |
-| hoarder | 9.68% | 8.06% | −1.62pp | ✅ |
-| specialist | 26.62% | 31.96% | +5.34pp | ✅ |
+| splitter | 20.47% | 23.67% | +3.20pp | ✅ |
+| greedy | 19.35% | 20.98% | +1.63pp | ✅ |
+| hoarder | 9.68% | 8.09% | −1.59pp | ✅ |
+| specialist | 26.62% | 31.99% | +5.37pp | ✅ |
 | **incenseMax** | 20.47% | **40.08%** | **+19.61pp** | ❌ |
 | incenseNever | 20.47% | 13.99% | −6.48pp | ✅ |
 
@@ -146,15 +146,16 @@ hauntAnswer   3325 次（每千場 128.0）　有求必應多燒掉的隻數合�
 git show ca14065:index.html > old-l.html
 node tests/tools/legend-gate.mjs 10000                       # → docs/experiments/2026-09-06-legend3-evidence/gate-10000.md
 node tests/tools/legend-gate.mjs 10000 --only=L3             # → 同目錄 gate-10000-L3.md（L3 診斷 (b) 的治具修正後重跑）
-node tests/legend.test.mjs                                   # 13 過 / 0 失敗
-node tests/legend.test.mjs old-l.html                        # 0 過 / 13 失敗（鑑別力）
+node tests/legend.test.mjs                                   # 15 過 / 0 失敗
+node tests/legend.test.mjs old-l.html                        # 0 過 / 15 失敗（鑑別力）
 node tests/aistake.test.mjs      # 通過 8　失敗 0
 node tests/conscap.test.mjs      # 通過 5　失敗 0
 node tests/nightrules.test.mjs   # 16 綠 ／ 0 紅
 node tests/review.test.mjs       # 通過 28　失敗 0
 node tests/wish16.test.mjs       # PASS=36 FAIL=0
-node tests/tools/legend-drive.mjs docs/experiments/2026-09-06-legend3-evidence/legend-drive.json --port=8851 --seeds=1,2,3,4,5,6,7,8
-node tests/tools/legend-drive.mjs docs/experiments/2026-09-06-legend3-evidence/legend-drive-OFF.json --port=8849 --seeds=1 --legend=0   # 溢出對照組
+node tests/tools/legend-drive.mjs docs/experiments/2026-09-06-legend3-evidence/legend-drive.json      --port=8854 --seeds=3,5,7,2
+node tests/tools/legend-drive.mjs docs/experiments/2026-09-06-legend3-evidence/legend-drive-dawn.json --port=8855 --seeds=1,4,6,8,9,11 --burn=0   # 走「天亮回天」那條路
+node tests/tools/legend-drive.mjs docs/experiments/2026-09-06-legend3-evidence/legend-drive-OFF.json  --port=8849 --seeds=1 --legend=0            # 橫向溢出對照組
 grep -c "Math.random" index.html # → 0
 ```
 
@@ -163,17 +164,49 @@ grep -c "Math.random" index.html # → 0
 
 ### 7.1 鑑別力（`02 §6.1` 第 1 條，兩面都驗）
 
-- **修復前的版本會不會紅**：`node tests/legend.test.mjs old-l.html`（`old-l.html` ＝ `git show ca14065:index.html`）→ **13 案全紅**，且每一案的第一條失敗訊息都是行為斷言，例如
+- **修復前的版本會不會紅**：`node tests/legend.test.mjs old-l.html`（`old-l.html` ＝ `git show ca14065:index.html`）→ **15 案全紅**，且每一案的第一條失敗訊息都是行為斷言，例如
   `燒滿 3 夜（h=9 ≥ 天井 9）後，南家袋裡的傳說法寶件數：預期 1，實際 0`、
   `燒 2 之後的壽命：預期 58，實際 60`、
   `LEGEND_ON=true、兩家都燒了香 → 應該有人擲骰（消耗亂數次數 >0）`。
   第一版寫出來時有三案是紅在治具的 `NaN` 前置守衛（＝屬性錯誤排在行為斷言前面），已把守衛移到行為斷言之後、並給治具常數加 fallback 修掉。
-- **健康狀態下會不會綠**：同一組 13 案對 HEAD 全綠。
+- **健康狀態下會不會綠**：同一組 15 案對 HEAD 全綠。另外第 14／15 案（覆審 H1／H2 的回歸）對**修復前的 commit `b7ffc08`** 也各自紅在行為斷言、對 HEAD 綠——見 §十一。
 - **kill switch 兩面都驗**：OFF 對基準相等、ON 對基準不等（L0）；單元測試第 10 案同時斷言「OFF 零亂數消耗」與「ON 一定要擲骰」——只驗前半的話舊版（永遠不擲）會靜默通過。
 
 ### 7.2 Playwright（L6）
 
-<!--PW-->
+治具＝`tests/tools/legend-drive.mjs`：自起 `python -m http.server`，用真的 Chromium（844×390 橫式）把整局玩完，錄 console error／pageerror／requestfailed、走沒走到「請走」與「天亮回天」、以及每次換頁的橫向溢出。
+
+**跑法 A（真人每夜燒滿 → 一定走到「請走」）**
+`node tests/tools/legend-drive.mjs …/legend-drive.json --port=8854 --seeds=3,5,7,2`
+
+```
+- 局數 4：seed 3（12 夜・請走 3 尊・燒香 5 夜）；seed 5（11 夜・請走 3 尊）；seed 7（9 夜・請走 3 尊）；seed 2（12 夜・請走 3 尊）
+- console error 0、pageerror 0、requestfailed 0 → ✅
+- 走到「請走」12 次
+```
+
+**跑法 B（真人整局不燒香 → 才留得住沒被請走的龕，走到「天亮回天」）**
+`node tests/tools/legend-drive.mjs …/legend-drive-dawn.json --port=8855 --seeds=1,4,6,8,9,11 --burn=0`
+
+```
+- 局數 2：seed 1（9 夜・請走 2 尊・回天收攤 1 龕）；seed 4（8 夜・請走 1 尊・回天收攤 2 龕／結清 2 筆）
+- console error 0、pageerror 0、requestfailed 0 → ✅
+- 走到「請走」3 次、「天亮回天」收攤 3 龕（其中結出階段獎勵 2 筆）→ ✅
+```
+
+四局都跑到「再入妖市」（＝真的走完整局，含 `endGame` 的回天結清），中途另外開過「本局回顧」與規則頁各一次，全程 0 error。
+
+**橫向溢出：❌ 但不是這一卷造成的。** 同一支治具對 `?legend=0`（＝把本卷加的神龕列與燒香列整個關掉）跑一次當對照組：
+
+| 量測點 | `?legend=1`（本卷） | `?legend=0`（對照） |
+|---|---|---|
+| 固定頁對照（同一局同一頁「蓋牌開標」）橫式 | **無溢出** | **無溢出** |
+| 固定頁對照 直式 390×844 | `#stage` 6px、`#market` 6px | `#stage` 6px、`#market` 6px（**逐值相同**） |
+| 逐頁掃描 橫式 844×390 | 盯上頁 `body`/`#table` 19／7／2px、出價頁 `#market` 3px | 盯上頁 `body`/`#table` 19／7／2px、出價頁 `#market` 3px |
+
+也就是說：`#shrines` 與 `.incbar` 在兩個尺寸下都**沒有**把版面撐開（`.incbar` 自己是 `overflow-x:auto` 的可捲容器，探針依 `overflow-x` 把這類容器排除，判準與 `index.html` 底部那份「放行名單」一致）；量到的溢出在 `LEGEND_ON=false` 的對照組上逐值相同，來源是既有的 `#south` 底列與 `#market` 四欄格線。**凍結檔 L6 的「無橫向溢出」照字面判是紅的，但它在基準上就已經是紅的**——這一卷沒有讓它變差，要不要另開一卷修那 19px 是使用者的事。
+
+直式（390×844）本來就被 `#rotateHint` 全螢幕蓋住要玩家轉橫，本卷另外加了 `@media (orientation:portrait){ #shrines{display:none} }`——加之前直式的 `#north` 會多 5px，加之後與對照組逐值相同。
 
 ## 八、L7 範圍逐檔對應
 
@@ -194,7 +227,7 @@ grep -c "Math.random" index.html # → 0
 |---|---|
 | `index.html` | 「引擎」＋「UI」兩段全部：LEGENDS 表、2 個新效果欄位、燒香欄位、請神結算、階段獎勵、AI 啟發式、神龕列、燒香列、請神演出、規則頁、局末回顧、`VERSION`。 |
 | `tests/tools/legend-gate.mjs` | 「治具」段的 `legend-gate.mjs`（L0–L5）。 |
-| `tests/legend.test.mjs` | 「治具」段的 `legend.test.mjs`（單元）。 |
+| `tests/legend.test.mjs` | 「治具」段的 `legend.test.mjs`（單元，15 案）。 |
 | `tests/tools/legend-drive.mjs` | L6 的 Playwright（凍結檔沒有指定檔名，派工授權「可仿 duel-drive 或寫新的 legend-drive」）。 |
 | `docs/IMPLEMENTATION_GUIDE.md` | 派工 E：新增 §11.20（接手前先知道的五件事）。 |
 | `docs/GAME_DESIGN.md` | 派工 E：changelog 一行。 |

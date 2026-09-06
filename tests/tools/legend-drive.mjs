@@ -1,5 +1,8 @@
 // 傳說三尊「請神」Playwright 驅動（第 4 卷，凍結檔 L6）
-// 用法：node tests/tools/legend-drive.mjs <out.json> [--port=8841] [--seeds=1,2,3,4,5,6] [--root=<靜態根目錄>] [--shots=<png 前綴>]
+// 用法：node tests/tools/legend-drive.mjs <out.json> [--port=8841] [--seeds=1,2,3,4,5,6] [--root=<靜態根目錄>]
+//                                          [--shots=<png 前綴>] [--legend=0] [--burn=0]
+//   --burn=0  真人整局不燒香（要走到「天亮回天」得留一座龕沒被請走）
+//   --legend=0  關掉整個請神機制（量橫向溢出的對照組）
 // 做的事：自起 http.server，用真的瀏覽器把一整局玩完（真人座位每夜燒滿香），錄下
 //   ① console error／pageerror／requestfailed
 //   ② 是不是真的走到「請走」與「天亮回天」各至少一次
@@ -104,7 +107,9 @@ const main = async () => {
           const ov = await page.evaluate(OVERFLOW);
           if (ov.length) rec.overflow.push({ seed, step, txt: st.txt, ov });
         }
-        if (st.bidding && st.hasInc) {
+        // --burn=0：真人整局不燒香（要走到「天亮回天」那條路就得有龕沒被請走，
+        // 真人每夜燒滿的話三龕通常在第 4 夜前就被清空，回天永遠碰不到）
+        if (st.bidding && st.hasInc && opt.burn !== '0') {
           // 每夜對還開著的那一尊燒滿，確保一定會走到「請走」那條路
           await page.evaluate(`(() => { const M = CFG.INC_MAX; for (let k = 0; k < M; k++) incBump(1); })()`);
           g.burned++;
