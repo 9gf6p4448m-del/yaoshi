@@ -1688,7 +1688,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.42.1", VERSION_NOTE="破軍旗 hp 1→2（唯一比空袋還弱的法寶）；共鳴 M1 預設開，?res=0 可關";
+const VERSION="0.42.2", VERSION_NOTE="修對決演出：沒兵仍出招／紙紮燒光但隻數沒歸零";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2485,6 +2485,9 @@ function pwSide(p,tag){
 const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
 const pwAny=(sd,k)=>sd.teams.some(t=>t.tr&&t.tr[k]);
 const pwAliveN=sd=>sd.units.reduce((n,u)=>n+(u.alive?1:0),0);
+/* 卷 E 演出小卷（2026-09-07）：pwFire 前用它擋「該側已無存活單位卻仍出效果／出字幕」——
+   四處共用同一支，語意與驗收凍結檔的探針一致（beats 重建的存活數，而非任何 team 局部值）。 */
+const pwHasAlive=sd=>sd.units.some(u=>u.alive);
 const pwHpSum=sd=>sd.units.reduce((s,u)=>s+(u.alive?u.hp:0),0);
 const pwSwarmN=sd=>sd.units.reduce((n,u)=>n+(u.alive&&u.body==="swarm"?1:0),0);
 const pwHasHaunt=sd=>sd.teams.some(t=>t.body==="haunt"&&t.units.some(u=>u.alive));
@@ -2615,6 +2618,7 @@ function pwPrep(beat,fac,sd,env,phase){
   /* 五方調兵（五營旗）：二拍本隊若已有折損，全體 hp+2（神將補位） */
   if(beat===2) for(const t of sd.teams){
     if(!t.tr||!t.tr.rallyHp) continue;
+    if(!pwHasAlive(sd)) continue; /* 卷 E：該側全滅就不該再有「補位」這回事 */
     if(!t.units.some(u=>!u.alive)) continue;
     for(const u of t.units) if(u.alive){ u.max+=t.tr.rallyHp; u.hp+=t.tr.rallyHp; }
     pwFire(env,t.tr,`🎏 五方調兵：${sd.p.name} 補位 hp+${t.tr.rallyHp}`,sd);
@@ -2624,7 +2628,7 @@ function pwPrep(beat,fac,sd,env,phase){
   let m=0;
   const k=sd.teams.filter(t=>t.fac===fac).length;   /* 同陣協同：同一拍出手的同系隊伍每多一隊 +1 */
   if(k>1) m+=k-1;
-  if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa){ m+=aa;   /* 媽祖令旗：本方全體 atk+1 */
+  if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa&&pwHasAlive(sd)){ m+=aa;   /* 媽祖令旗：本方全體 atk+1（卷 E：該側全滅就沒有誰吃得到這個 atk） */
     pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`,sd); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
   m-=sd.curses;                                     /* 詛咒纏身 */
@@ -2654,7 +2658,7 @@ function pwBolt(sd,foe,env){
 }
 /* 三拍開場的作祟：迷途、抓交替（恐懼在 pwPass、偷命在勝負之後） */
 function pwHaunt(sd,foe,env){
-  if(pwAny(sd,"lost")){
+  if(pwAny(sd,"lost")&&pwHasAlive(sd)){ /* 卷 E：作祟本尊死絕就不該還能對對面下迷途 */
     if(pwAny(foe,"immuneLost")){
       pwFire(env,pwTrOf(foe,"immuneLost"),`🔔 千里眼：${foe.p.name} 識破迷途`,foe);
     }else{
@@ -2668,7 +2672,7 @@ function pwHaunt(sd,foe,env){
         pwFire(env,pwTrOf(sd,"lost"),`🎭 迷途：${foe.p.name} 一隊三拍不出手`,sd); }
     }
   }
-  if(pwAny(sd,"swap")){
+  if(pwAny(sd,"swap")&&pwHasAlive(sd)){ /* 卷 E：抓交替的作祟本尊死絕就不該還能拖對面一隻下水 */
     const e=pwLowest(foe,true);
     if(e&&pwBurn(e,foe,env)){
       const m=pwLowest(sd,false); if(m) pwBurn(m,sd,env);
@@ -2745,7 +2749,7 @@ function pwSettle(sd,env){
 /* 拍末：飼鬼甕的餓鬼進食——對面本拍有紙紮被燒掉，本方全體 hp+1 */
 function pwFeed(sd,foe,env,before){
   const f=pwMax(sd,"feed");
-  if(!f||foe.burned<=before) return;
+  if(!f||foe.burned<=before||!pwHasAlive(sd)) return; /* 卷 E：飼鬼甕本尊死絕就沒有誰吃得到這頓 */
   for(const u of sd.units) if(u.alive){ u.max+=f; u.hp+=f; }
   pwFire(env,pwTrOf(sd,"feed"),`🏺 餓鬼進食：${sd.p.name} 全體 hp+${f}`,sd);
 }
@@ -4196,7 +4200,14 @@ async function playDuel(f){
      OFF 時 detail 的形狀與 v0.30 一模一樣（只有 a／b 兩個欄位）。 */
   const views=f.war?[pwArmyView(f.A),pwArmyView(f.B)]:null;
   const duelDetail={a:f.A.id,b:f.B.id};
-  if(views) duelDetail.armies=views.map(v=>({units:v.units.slice(0,PW_FX.MAXFIG).map(u=>({id:u.id,body:u.body,fac:u.fac,ab:u.ab===undefined?null:u.ab}))}));
+  /* 卷 E（2026-09-07）：不再把名冊截斷到 MAXFIG 才送——場上同時最多幾尊改由 duel-figures.js
+     自己控管（燒一尊、名冊裡還有排隊的存活單位就遞補上場），這裡只把上限值一併帶過去。
+     不截斷是故意的：DOM 那半邊（pwArenaHTML／pwBurnOne）本來就認全名冊，3D 若只認前 MAXFIG 隻，
+     多出來的單位燒光後畫面就會出現「紙紮燒完了但 HUD 隻數還沒歸零」的落差（凍結檔 D 卷 (a)）。 */
+  if(views){
+    duelDetail.armies=views.map(v=>({units:v.units.map(u=>({id:u.id,body:u.body,fac:u.fac,ab:u.ab===undefined?null:u.ab}))}));
+    duelDetail.maxFig=PW_FX.MAXFIG;
+  }
   /* 先清上一場的陣列與字幕（接線卷審查 H-3）：等 3D 妖載入那幾秒不能停在上一場的名字與隻數牌上，
      而且 duel-figures 的 realign 會抓 #dL/#dR，留著殘留的欄位會讓 3D 妖在新陣列畫出來之前先站錯位 */
   for(const id of ["duelArena","duelBeat","duelMove","duelResult","duelSub"]) $(id).innerHTML="";

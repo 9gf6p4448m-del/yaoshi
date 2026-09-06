@@ -725,6 +725,33 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.20 對決演出「沒兵仍出招／隻數不同步」修復（2026-09-07，v0.42.2）——接手前先知道這三件事
+
+規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-duel-desync.md`（D1–D5）。使用者真機回報兩個症狀：
+①對方紙紮全燒光但 HUD 隻數仍 >0　②對方 0 隻仍出招式字幕。兩者是不同層的同一族 bug，別混著改。
+
+1. **遞補上場怎麼運作（演出層，`js/duel-figures.js`）**：`index.html:4199` 起不再把 `duelDetail.armies` 截斷到
+   `PW_FX.MAXFIG`（8）才送出去——DOM 那半邊（`pwArenaHTML`／`pwBurnOne`）本來就認全名冊，只有 3D 半邊以前只認
+   前 8 隻，第 9 隻起沒有模型可燒，這正是症狀①的根因。改法：`duel-figures.js` 的 `onDuel` 把名冊拆成
+   `roster[i]`（目前擺上場、長度 ≤ `cap`）＋`queue[i]`（排隊中還沒建模的存活單位，按名冊順序）；`cap` 讀
+   `duelDetail.maxFig`（正式頁＝`PW_FX.MAXFIG`），沒帶就退回 `FIG.maxFigures`（10，舊保險絲）。某一格位那尊
+   燒毀演完（`update()` 內建淡出算完 `bu>=1`，或工廠自己的 `burn()` Promise resolve／reject）就呼叫
+   `reinforce(side,j)`：`queue[side]` 有排隊單位就 `releaseSlot` 收掉舊尊、把新單位塞進 `roster[side][j]`，
+   下一幀 `figureFor` 會照 `keyOf(unit)` 重新配位建模（材質／貼花／系色跟其餘尊同一條路徑，GLB 沒到走既有退路）；
+   `queue` 空了就什麼都不做，那個格位從此空著。場上同時看得到的尊數因此恆等於 `min(該側目前存活數, cap)`。
+2. **存活檢查 helper（引擎層，`index.html`）**：`pwHasAlive(sd)=sd.units.some(u=>u.alive)`（緊接在 `pwAliveN`
+   後面），四處在 `pwFire` 前補上它，沒有就整段跳過（不記 trait beat、不改 hp）：`pwFeed`（飼鬼甕）、
+   `pwPrep` 的 `atkAll`（媽祖令旗）與 `rallyHp`（五營旗）、`pwHaunt` 的 `lost`（迷途）／`swap`（抓交替）。
+   後兩者（`lost`／`swap`）在修之前不只是「多印一行字幕」——`hauntSwap` 的效果是不看施法方死活、直接燒掉對面
+   一隻小兵，修好之後這個「死人抓交替」的隱藏數值效果也一併消失了（見下一點的附帶發現）。
+3. **`trace(1..20)` 差異只落在 trait 文字，這句話有例外**：D1 對 seeds 1..2000 的例牌配對（24000 場）逐場
+   `winner/dmg/aliveA·B/hpA·B/burnedA·B` 全相同、只有 trait 筆數少了（`tests/tools/duel-desync-d1.mjs`）；但
+   完整一局的 `trace()` 從 seed 5 的第 3 夜起會出現非 trait 文字的數值差異（`tests/tools/duel-desync-d1c.mjs`
+   可重現），根因是 AI 出價用的 `pwTrial()` 呼叫的是同一支（已修好的）`paperWar`，牠評估到「這件法寶對我這桌
+   有沒有用」時偶爾也會踩進本卷修的那四個桶子，估值因而改變、連鎖影響後續夜的購買與配對——這是同一支引擎修
+   對就會外溢到 AI 估值的自然結果，不是本卷順手改了別的判定。接手後續卷如果又要動 `paperWar` 內任何判定，
+   记得 `pwTrial` 是同一支函式，AI 出價行為會跟著變，不要只拿單一場 `paperWar` 的輸出去驗證「引擎沒變」。
+
 ### 11.19 共鳴接入紙紮夜戰候選＋傳說三尊設計提案（設計卷，2026-09-06 深夜，v0.41）——接手前先知道這五件事
 
 1. **共鳴候選全在 `index.html`，預設關**：`CFG.PW_RES_MODE` 0＝關（線上行為＝v0.40）、1＝同系列陣 hp、2＝共鳴拍 atk、3＝共鳴增員；`?res=N` 可切。`pwResLv(p,fac)`（facCount → onPowerCalc 的 resonanceMul → lv≤PW_RES_CAP）在 `pwSide` 算成 `sd.res`，M1／M2 在 `pwPrep` 月相段之後套、M3 在 `pwSide` 增員；`PW_RES_STAT` 純計數（只計 `resolveBattles` 帶 `real:true` 的場）。
