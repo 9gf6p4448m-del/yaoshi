@@ -242,9 +242,12 @@ function dressMaterial(mat, burnY) {
  * ────────────────────────────────────────────────────────────────────────── */
 // 全部【試玩必調】。
 const OUTLINE = {
-  px: 2.0, // 螢幕線寬（CSS 像素）：844×390 的 8v8 裡 1px 讀不出來、3px 以上後排的小尊會被描邊吃掉
-  satMul: 1.6, // 系色飽和度倍率（在 sRGB 的 HSL 上算）
-  lum: 0.42, // 描邊明度（絕對值，不是倍率）：三系等亮，讀者才是在比色相而不是在比誰比較暗
+  px: 2.6, // 螢幕線寬（CSS 像素）：844×390 的 8v8 裡 1px 讀不出來、3px 以上後排的小尊會被描邊吃掉（P-2 第 1 輪 2.0 讀不出色 → 2.6）
+  satMul: 1.8, // 系色飽和度倍率（在 sRGB 的 HSL 上算）
+  lum: 0.5, // 描邊明度（絕對值，不是倍率）：三系等亮，讀者才是在比色相而不是在比誰比較暗（第 1 輪 0.42 太暗，與燈籠陰影混）
+  // 色相偏移（HSL 的 h，0–1）：FACTION_RIM 祖靈 #d4a870 與香火 #f08060 色相只差 20°，第 1 輪四位讀者沒有一位把它們當兩個色。
+  // 祖靈往金黃、香火往深紅、陰氣往青綠拉開；只在描邊這一處偏，FACTION_RIM 本體不動。
+  hueShift: { zuling: +0.045, xianghuo: -0.035, yinqi: +0.06 },
 };
 /** ?outline=0 關掉描邊（P-2 對照組）。正式頁沒帶這個參數＝開（解析方式對齊 index.html:3146 的 ?fxcount）。 */
 const OUTLINE_ON = (() => {
@@ -278,7 +281,9 @@ export function outlineColorOf(faction, fallbackHex) {
   const src = key ? FACTION_RIM[key] : (fallbackHex === undefined ? RIM_FALLBACK : fallbackHex);
   _oc.setHex(src);
   _oc.getHSL(_ohsl, THREE.SRGBColorSpace);
-  return _oc.setHSL(_ohsl.h, Math.min(1, _ohsl.s * OUTLINE.satMul), OUTLINE.lum, THREE.SRGBColorSpace).getHex(THREE.SRGBColorSpace);
+  const shift = (key && OUTLINE.hueShift[canonFaction(faction)]) || 0;
+  const h = (_ohsl.h + shift + 1) % 1;
+  return _oc.setHSL(h, Math.min(1, _ohsl.s * OUTLINE.satMul), OUTLINE.lum, THREE.SRGBColorSpace).getHex(THREE.SRGBColorSpace);
 }
 
 const OUTLINE_PARS = `
