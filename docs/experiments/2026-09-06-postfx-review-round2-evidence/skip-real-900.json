@@ -1,0 +1,77 @@
+{
+ "skipAt": 900,
+ "res": {
+  "frames": 797,
+  "fps": 53.8,
+  "cancelAtMs": 906.4,
+  "duelEndAtMs": 907.2,
+  "duelEndMinusCancelMs": 0.8,
+  "duelEndInsideFoldWindow": true,
+  "beforeSkip": {
+   "max": 0.143319,
+   "atMsFromDuel": 393.4
+  },
+  "foldWindow_cancel_to_700ms": {
+   "max": 0.056278,
+   "atMsFromDuel": 1386.9
+  },
+  "stepAtDuelEndFrame": 0.001273,
+  "maxAroundDuelEnd_pm4": {
+   "max": 0.001273,
+   "atMsFromDuel": 936
+  },
+  "wholeRun": {
+   "max": 0.143319,
+   "atMsFromDuel": 393.4
+  },
+  "lenAtCancel": 4.2,
+  "lenAtDuelEnd": 4.2,
+  "marks": [
+   {
+    "n": "ys:table",
+    "ms": -10267.1
+   },
+   {
+    "n": "ys:reveal",
+    "ms": -4593.8
+   },
+   {
+    "n": "ys:reveal",
+    "ms": -2224.2
+   },
+   {
+    "n": "ys:reveal",
+    "ms": -725.8
+   },
+   {
+    "n": "ys:duel",
+    "ms": 0
+   },
+   {
+    "n": "ys:fx-trait-cancel",
+    "ms": 906.4
+   },
+   {
+    "n": "ys:fx-burn",
+    "ms": 906.8
+   },
+   {
+    "n": "ys:duel-end",
+    "ms": 907.2
+   },
+   {
+    "n": "ys:duel",
+    "ms": 921.5
+   },
+   {
+    "n": "ys:fx-burn",
+    "ms": 924.9
+   },
+   {
+    "n": "ys:duel-end",
+    "ms": 925.1
+   }
+  ]
+ },
+ "errors": []
+}
