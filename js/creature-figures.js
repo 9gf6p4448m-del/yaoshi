@@ -158,7 +158,11 @@ uniform float uCrackW;
 uniform float uCrackJag;
 uniform float uCrackFreq;
 uniform float uCrackDark;
-uniform float uCrackTilt;
+uniform vec2 uCrackTilt;  // (上唇, 下唇) 法線傾斜量
+uniform vec2 uCrackLip;   // (上唇, 下唇) albedo 增減係數
+uniform float uCrackAxis; // 0＝線沿本地 x（用 z 切）、1＝線沿本地 z（用 x 切）
+uniform float uCrackMode; // 0＝暗線（裂縫）、1＝亮色鑲邊（混到 uCrackColor）、2＝髮絲條紋
+uniform vec3 uCrackColor;
 varying vec3 vUpV;
 ` + NOISE_GLSL;
 
@@ -172,57 +176,92 @@ varying vec3 vUpV;
  * ────────────────────────────────────────────────────────────────────────── */
 const CRACK_FRAG = `
   float _cd = 1e9;
-  if (uCrackN > 0) {
+  float _strand = 0.0;
+  // 鋪開卷：axis=1 把 (x,z) 對調，之後一律當「線沿 x、用 z 切」處理（tiger_c 的鑲邊沿身長 z 走）
+  vec3 _LP = (uCrackAxis > 0.5) ? vec3(vLocalPosR.z, vLocalPosR.y, vLocalPosR.x) : vLocalPosR;
+  if (uCrackN > 0 && uCrackMode < 1.5) {
     for (int i = 0; i < 4; i++) {
       if (i >= uCrackN) break;
       vec4 L = uCrack[i];
       // 傾角：把本地 (x,y) 繞 z 轉 −θ，之後一律當「水平線」處理（分岔線用）
       float _a = (i == 0) ? uCrackAng.x : (i == 1) ? uCrackAng.y : (i == 2) ? uCrackAng.z : uCrackAng.w;
       float _ca = cos(_a), _sa = sin(_a);
-      float _px = vLocalPosR.x * _ca + vLocalPosR.y * _sa;
-      float _py = -vLocalPosR.x * _sa + vLocalPosR.y * _ca;
+      float _px = _LP.x * _ca + _LP.y * _sa;
+      float _py = -_LP.x * _sa + _LP.y * _ca;
       // 兩層雜訊：低頻大擺幅＋高頻小鋸齒——單層平滑雜訊看起來是「波浪條紋」不是裂縫
-      float _n1 = noiseR(vec3(_px * uCrackFreq, 3.1 + float(i) * 7.7, vLocalPosR.z * uCrackFreq)) * 2.0 - 1.0;
-      float _n2 = noiseR(vec3(_px * uCrackFreq * 4.3, 11.7 + float(i) * 5.3, vLocalPosR.z * uCrackFreq * 4.3)) * 2.0 - 1.0;
+      float _n1 = noiseR(vec3(_px * uCrackFreq, 3.1 + float(i) * 7.7, _LP.z * uCrackFreq)) * 2.0 - 1.0;
+      float _n2 = noiseR(vec3(_px * uCrackFreq * 4.3, 11.7 + float(i) * 5.3, _LP.z * uCrackFreq * 4.3)) * 2.0 - 1.0;
       float yj = L.x + uCrackJag * (_n1 + 0.45 * _n2);
       float d = _py - yj;
       float wgt = smoothstep(L.y, L.y + 0.08, _px) * (1.0 - smoothstep(L.z - 0.08, L.z, _px))
-                * smoothstep(L.w - 0.06, L.w + 0.06, vLocalPosR.z);
+                * smoothstep(L.w - 0.06, L.w + 0.06, _LP.z);
       d /= max(wgt, 1e-3);
       if (abs(d) < abs(_cd)) _cd = d;
     }
   }
+  if (uCrackN > 0 && uCrackMode > 1.5) {
+    // 髮絲條紋（hairpin 下半身）：繞本地 y 軸的角度切成 uCrackFreq 條，每條一道細暗線，雜訊擺動；只在 uCrack[0] 的 y 範圍 (L.y..L.z)
+    vec4 L = uCrack[0];
+    float _yr = smoothstep(L.y, L.y + 0.05, vLocalPosR.y) * (1.0 - smoothstep(L.z - 0.05, L.z, vLocalPosR.y));
+    float _ang = atan(vLocalPosR.z, vLocalPosR.x) / 6.2831853 + 0.5;
+    float _wob = uCrackJag * (noiseR(vec3(vLocalPosR.x * 4.0, vLocalPosR.y * 3.0, vLocalPosR.z * 4.0)) * 2.0 - 1.0);
+    float _ph = fract(_ang * uCrackFreq + _wob);
+    _strand = (1.0 - smoothstep(uCrackW, uCrackW * 2.0, abs(_ph - 0.5))) * _yr;
+  }
   float _crackCore = 1.0 - smoothstep(uCrackW * 0.6, uCrackW, abs(_cd));
-  // 第 1 輪盲讀：核心暗線＋上唇暗＋下唇亮＝三條平行帶→被讀成「抓痕／風化紋」。改成只有一條暗線
-  // ＋緊貼下緣的一道細高光（受光的下唇），上唇不動。
-  float _crackLip = (1.0 - smoothstep(uCrackW, uCrackW * 1.7, abs(_cd))) * (1.0 - _crackCore) * step(_cd, 0.0);
-  diffuseColor.rgb *= mix(1.0, uCrackDark, _crackCore);
-  diffuseColor.rgb *= 1.0 + _crackLip * 0.22;`;
+  // eye 第 1 輪盲讀：核心暗線＋上唇暗＋下唇亮＝三條平行帶→被讀成「抓痕／風化紋」。裂縫只留一條暗線
+  // ＋緊貼下緣的細高光（uCrackLip=(0,.22)）；鑲邊反過來：亮線＋上緣暗縫（uCrackLip=(−.3,0)）。
+  float _lipM = (1.0 - smoothstep(uCrackW, uCrackW * 1.7, abs(_cd))) * (1.0 - _crackCore);
+  float _lipUp = _lipM * step(0.0, _cd), _lipDown = _lipM * step(_cd, 0.0);
+  if (uCrackMode < 0.5) diffuseColor.rgb *= mix(1.0, uCrackDark, _crackCore);
+  else if (uCrackMode < 1.5) diffuseColor.rgb = mix(diffuseColor.rgb, uCrackColor, _crackCore);
+  else diffuseColor.rgb = mix(diffuseColor.rgb, uCrackColor, _strand * (1.0 - uCrackDark)); // 髮絲：近黑髮上壓暗看不見，改成沿絲提亮到 uCrackColor（強度 1−dark）
+  diffuseColor.rgb *= 1.0 + _lipUp * uCrackLip.x + _lipDown * uCrackLip.y;`;
 const CRACK_NORMAL = `
-  normal = normalize(normal + vUpV * (uCrackTilt * _crackLip));`;
+  normal = normalize(normal + vUpV * (uCrackTilt.y * _lipDown - uCrackTilt.x * _lipUp));`;
 
-/** ?decal=0 關掉裂紋貼花（A/B 對照與 D6 範圍檢查）。正式頁沒帶＝開。 */
-const DECAL_ON = (() => {
-  try { return new URLSearchParams((typeof location === 'undefined' ? '' : location.search) || '').get('decal') !== '0'; } catch (e) { return true; }
+/** ?decal=0 全關（A/B 對照與範圍檢查）；?decal=all 連 `on:false` 的表項也開（鋪開卷兩輪盲讀未過的 tiger_c／hairpin，留給真機試玩自己看）。正式頁沒帶＝只開 on!==false 的。 */
+const DECAL_Q = (() => {
+  try { return new URLSearchParams((typeof location === 'undefined' ? '' : location.search) || '').get('decal'); } catch (e) { return null; }
 })();
+const DECAL_ON = DECAL_Q !== '0';
+const DECAL_ALL = DECAL_Q === 'all';
 // 貼花表：鍵＝生物鍵（opts.ab 或 GLB 檔名），mat＝套用的材質名正則；lines 每條 [y0, xa, xb, zmin]
 // （rest-pose 本地座標，未正規化：eye 的 rock 網格 y −0.02..1.23、x ±0.60、z −0.30..0.37；
 // 下崖 slab y 0.02–0.50、上崖 brow y 0.84–1.13、眼窩縫在 0.50–0.84）。全部【盲讀必調】。
+// 欄位：mat 材質正則；mode 0 暗線／1 亮色鑲邊／2 髮絲條紋；axis 'x'（預設）或 'z'＝線沿哪個本地軸；
+// lip [上, 下] albedo 係數；tilt [上, 下] 法線傾斜；lines 每條 [y0, a, b, cut, 傾角]（a..b 是沿線軸的範圍、cut 是另一軸的下限，−1＝不切）
 const DECALS = {
   eye: {
-    mat: /^rock/, width: 0.024, jag: 0.045, freq: 5.0, dark: 0.16, tilt: 0.9,
-    // [y0, xa, xb, zmin, 傾角]（傾角以旋轉後座標定義 y0／xa／xb）
+    mat: /^rock/, mode: 0, width: 0.024, jag: 0.045, freq: 5.0, dark: 0.16, lip: [0, 0.22], tilt: [0, 0.9],
     lines: [
       [0.30, -0.62, 0.22, -0.05, 0.0], // 主縫：下崖正面偏左，從邊緣裂進來
       [0.36, -0.30, 0.10, -0.05, 0.55], // 分岔：從主縫中段斜向右上
       [0.98, -0.20, 0.62, -0.05, 0.0], // 上崖正面偏右
     ],
   },
+  // 鋪開卷：布罩下緣的白毛鑲邊（量產卷簽字項）。GLB 頂點色量到布罩暗銅金帶／香灰白帶交界 body y≈0.40、head y≈0.33。
+  // **兩輪盲讀 0/2（白繩 @2x 3→8 px 都無人看見；四足獸縱向色帶仍被歸給毛色）→ 回簽貼花不解，預設關，?decal=all 可看**
+  tiger_c: {
+    on: false, mat: /^fur_body|^fur_head/, mode: 1, axis: 'z', color: 0xffffff, width: 0.04, jag: 0.006, freq: 3.0, dark: 1,
+    lip: [-0.55, -0.45], tilt: [0.5, -0.3], // 第 2 輪：加粗成繩邊＋雙暗縫（第 1 輪 @2x 約 3px 無人看見） // 純白細繩＋上下兩道暗縫：貼著本就偏白的腹側帶，只有白線讀不出「縫上去的邊」
+    lines: [
+      [0.405, -0.56, 0.58, -1.0, 0.0], // 身體：沿 z 全長，不切 x（兩側都要）
+      [0.335, 0.62, 0.90, -1.0, 0.0], // 頭：從頸後到吻端
+      [0.345, -0.56, 0.58, -1.0, 0.0], // 身體下方 0.06 一道細縫線（雙線＝布邊縫份）
+    ],
+  },
+  // 鋪開卷：下半身 ghost_hair 加髮絲高光（回修卷 3/6 讀成裙擺／布條）。**兩輪盲讀 0/2（讀者看見高光條紋仍讀成稻草／布條）→ 回簽貼花不解，預設關，?decal=all 可看**
+  hairpin: {
+    on: false, mat: /^ghost_hair/, mode: 2, color: 0xb8ccd2, width: 0.12, jag: 0.02, freq: 28.0, dark: 0.0, // 第 2 輪：配對讀者看不出差異→強度拉滿、加粗、色提亮 lip: [0, 0], tilt: [0, 0], // 沿絲淡青灰高光（強度 0.85）
+    lines: [[0, 0.15, 0.60, 0, 0]], // 只用 [1]..[2]＝y 範圍
+  },
 };
 function decalFor(key, matName) {
   if (!DECAL_ON || !key) return null;
   const d = DECALS[key];
-  return d && d.mat.test(matName || '') ? d : null;
+  if (!d || (d.on === false && !DECAL_ALL)) return null;
+  return d.mat.test(matName || '') ? d : null;
 }
 
 
@@ -270,7 +309,11 @@ function dressMaterial(mat, burnY, decal) {
     uCrackJag: { value: dc ? dc.jag : 0 },
     uCrackFreq: { value: dc ? dc.freq : 1 },
     uCrackDark: { value: dc ? dc.dark : 1 },
-    uCrackTilt: { value: dc ? dc.tilt : 0 },
+    uCrackTilt: { value: new THREE.Vector2(...((dc && dc.tilt) || [0, 0])) },
+    uCrackLip: { value: new THREE.Vector2(...((dc && dc.lip) || [0, 0])) },
+    uCrackAxis: { value: dc && dc.axis === 'z' ? 1 : 0 },
+    uCrackMode: { value: dc ? (dc.mode || 0) : 0 },
+    uCrackColor: { value: new THREE.Color((dc && dc.color) || 0xffffff) },
     uRimColor: { value: new THREE.Color(RIM_FALLBACK) },
     uRimPower: { value: RIM.power },
     uRimStrength: { value: glow ? GLOW.rim : RIM.strength },

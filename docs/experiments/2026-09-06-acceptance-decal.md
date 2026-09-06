@@ -46,3 +46,4 @@
 - **D5（軟體 GL，SwiftShader）：比值條不可判定（訊號不可信，`02 §6.2`）；「編譯執行 0 error」那半條 ✅。** 兩輪對決量測方向相反：第 1 輪 new 0.3 vs base 3.1 renders/s、第 2 輪 new 5.2 vs base 0.7；四筆的 p95 都是 3.5～3.9 s 或 0.96 s、rafFrames 2／12／18／3——歸因＝SwiftShader 首次渲染的 shader JIT 停頓（3～4 s）落不落在 2.5 s 量測窗內，屬**量測本身**，不是受測物（依據：慢的那輪 p95 恰為一次 3.5 s+ 停頓、幀數 2～3；快的那輪 p95 <1 s、幀數 12～18）。補做穩態探針（`scratchpad/sw-steady.mjs`：預覽頁 eye×8、暖機 12 s、fps() ×5）：decal=1 中位 208、decal=0 中位 256，但樣本 36～454 極散且軟體 GL 下 fps() 200+ 不合理（rAF 未被渲染阻塞，量的是 rAF 節奏不是渲染）→ 同樣不可信。**處置**：不宣告 D5 通過；需要真判定的話，選項：甲 接受「0 error＋硬體 GL 1.01×＋軟體路徑本就 0.3 fps 不可玩」為足夠（等同 09-06 M-4 簽字的延伸）／乙 duel-perf 各 ≥5 輪並把量測窗改到停頓之後（改治具，約 40 分鐘）／丙 真低階機。**要使用者裁。**
 - D6 後半：`duel-drive` 真對局 3 場（seed 11）**errors 0、ys3d true、abOnAllUnits true、burn 4／trait 3** ✅（`decal-evidence/duel-drive.json`）。
 - D7：見 commit 訊息與回報（`git diff --stat` 逐檔）。
+- **D5 處置：使用者 2026-09-06 深夜裁定甲**（「依照建議開工」）——接受「SwiftShader 編譯執行 0 error＋硬體 GL 1.01×＋軟體路徑本就 0.3 fps 不可玩」為足夠；比值條不再追。本卷結案。

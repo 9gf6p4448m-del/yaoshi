@@ -732,6 +732,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 3. **驗法（凍結檔 `docs/experiments/2026-09-06-acceptance-decal.md`）**：像素差用 `creature-shoot.mjs` 的 `reset` 相位＋預覽頁新參數 `?freeze=1`（idle timeScale 0，否則 tiger_c 呼吸讓同參數兩張差 2019 px）；`fx=0`。突變式＝dark 1／tilt 0／假斜面 0 三項歸零→像素差必須回 0。盲讀圖照舊 idle＋fx=1。
 4. **效能**：`duel-perf.mjs perf --uncap` 8v8 新版 vs `--root=<基準 worktree>` 各 3 次取中位（本卷 100.0 vs 99.0 fps）；軟體 GL 用新選項 `--gl=swiftshader`（M-4 待量在此卷第一次量到，數字見凍結檔）。**量測不得與其他 Playwright 治具並跑**。
 5. 兩件事不要做：不要把 `DECALS` 的座標寫成正規化後的值（shader 拿的是 GLB 原座標，同 `uBurnY`）；不要為了「更明顯」把上唇也壓暗（第 1 輪已否證）。
+6. **鋪開卷（v0.40）後的欄位**：`mode`（0 暗線／1 亮色鑲邊混到 `color`／2 髮絲高光：繞本地 y 的角度切 `freq` 條）、`axis`（'x' 預設或 'z'＝線沿哪個本地軸；'z' 時 lines 的 a..b 是 z 範圍、cut 是 x 下限）、`lip [上,下]`、`tilt [上,下]`、`on:false`＝預設不畫（`?decal=all` 才開）。tiger_c 白毛鑲邊與 hairpin 髮絲兩輪盲讀 0/4，**回簽貼花不解**（gaps.md 回填），表項留著給真機試玩看；eye 路徑在重構後逐像素不變（`fin_eye.png` vs `r2_fz_eye_1.png` 0 px）。教訓：貼花能補「本來沒有的線」，補不了「既有色帶的語意」與「剪影語意」；context-free 讀者對 @2x ≤8 px 的亮線幾乎不感知。
 
 ### 11.17 系色小圖示小卷（2026-09-06，v0.37）——接手前先知道這四件事
 
