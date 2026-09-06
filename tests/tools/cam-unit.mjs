@@ -407,7 +407,11 @@ try {
   // E9 例外只查前 5 幀：它的窗裡含 v0.34 就有的 180° duel→duel 擺盪（新 0.8256／舊 0.8191），
   // 那是換場的運鏡速度不是清除造成的瞬移；X 開頭的四格是 v0.34 同族路徑，只揭露不斷言。
   const refOf = (k) => E[k].max_new;
-  const lim = (...refs) => Math.max(MAX_FRAME_STEP, ...refs.map(refOf));
+  // 上限**寫死**（09-06 使用者簽字＋加嚴，round3 LOW：不得由受測實作自算）：有乾淨轉換參考的格用
+  // CLEAN_TRANSITION_CAP＝0.25（reveal 550ms 乾淨補間的物理上限實測 0.247075），其餘 0.20。
+  // R1–R4 乾淨轉換本身也要 ≤ 0.25，改了 SHOTS.*.ms 讓轉換變快會在這裡紅，門檻不會跟著漂。
+  const CLEAN_TRANSITION_CAP = 0.25;
+  const lim = (...refs) => (refs.length ? CLEAN_TRANSITION_CAP : MAX_FRAME_STEP);
   const CASE_LIMIT = {
     E1_duelEnd_during_orbit: ['R1_table_clean'],
     E2_traitCancel_during_orbit: [],
@@ -432,6 +436,9 @@ try {
   const edgeWorstKey = ALLK.reduce((b, k) => (worstOf(k) > worstOf(b) ? k : b), ALLK[0]);
   const edgeOver = ALLK.filter((k) => worstOf(k) > limitOf(k) || E[k].f1_new > MAX_FRAME_STEP)
     .map((k) => `${k} ${worstOf(k)} > ${+limitOf(k).toFixed(6)}`);
+  for (const rk of ['R1_table_clean', 'R2_reveal_clean', 'R3_end_clean', 'R4_duel_clean']) {
+    if (E[rk] && refOf(rk) > CLEAN_TRANSITION_CAP) edgeOver.push(`${rk} ${refOf(rk)} > ${CLEAN_TRANSITION_CAP}（乾淨轉換本身超上限）`);
+  }
   // 驗收 A8：lean 期間 |Δ camera.position.length()|。|position| 恆等於 dist，所以這一條就是
   // 「lean 不得動 dist」。起點取 ys:fx-trait 的當幀（與前一幀比），偏移一上來就會被抓到。
   const lenStep = (from, to) => { let m = 0; for (let i = from; i < to; i++) m = Math.max(m, Math.abs(L[i].nl - L[i - 1].nl)); return m; };
