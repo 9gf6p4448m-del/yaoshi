@@ -1,0 +1,292 @@
+{
+ "limit": 0.2,
+ "table": {
+  "A1_duelEnd_during_orbit": {
+   "f1": 2.9e-05,
+   "max": 0.058096,
+   "at": 26,
+   "old_max": 0.152624,
+   "dLenMax": 0.032114,
+   "over": false,
+   "reduced_f1": 8.1e-05,
+   "reduced_max": 0.152614,
+   "reduced_dLenMax": 0.032112
+  },
+  "A2_traitCancel_during_orbit": {
+   "f1": 0.000148,
+   "max": 0.175821,
+   "at": 20,
+   "old_max": 0,
+   "dLenMax": 1.7764e-15,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "A3_table_during_orbit": {
+   "f1": 2.9e-05,
+   "max": 0.058096,
+   "at": 26,
+   "old_max": 0.152624,
+   "dLenMax": 0.032114,
+   "over": false,
+   "reduced_f1": 8.1e-05,
+   "reduced_max": 0.152614,
+   "reduced_dLenMax": 0.032112
+  },
+  "A4_reveal_during_orbit": {
+   "f1": 0.000137,
+   "max": 0.103791,
+   "at": 16,
+   "old_max": 0.247075,
+   "dLenMax": 0.088182,
+   "over": false,
+   "reduced_f1": 0.000357,
+   "reduced_max": 0.24706,
+   "reduced_dLenMax": 0.088179
+  },
+  "A5_end_during_orbit": {
+   "f1": 2.2e-05,
+   "max": 0.130868,
+   "at": 42,
+   "old_max": 0.170377,
+   "dLenMax": 0.076716,
+   "over": false,
+   "reduced_f1": 3e-05,
+   "reduced_max": 0.170372,
+   "reduced_dLenMax": 0.076717
+  },
+  "A6_duel2_during_orbit": {
+   "f1": 0.000656,
+   "max": 0.825567,
+   "at": 20,
+   "old_max": 0.819084,
+   "dLenMax": 1.7764e-15,
+   "over": true,
+   "reduced_f1": 0.000651,
+   "reduced_max": 0.819068,
+   "reduced_dLenMax": 2.2054e-06
+  },
+  "A7_traitCancel_during_orbit_AND_lean": {
+   "f1": 0.000256,
+   "max": 0.175607,
+   "at": 15,
+   "old_max": 0,
+   "dLenMax": 8.8818e-16,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "B1_duelEnd_during_push": {
+   "f1": 2e-06,
+   "max": 0.004941,
+   "at": 26,
+   "old_max": 2.53257,
+   "dLenMax": 0.0029961,
+   "over": false,
+   "reduced_f1": 6e-06,
+   "reduced_max": 0.012603,
+   "reduced_dLenMax": 0.0029961
+  },
+  "B2_traitCancel_during_push": {
+   "f1": 0.000135,
+   "max": 0.191981,
+   "at": 21,
+   "old_max": 0.194466,
+   "dLenMax": 0.037038,
+   "over": false,
+   "reduced_f1": 0.064888,
+   "reduced_max": 0.194466,
+   "reduced_dLenMax": 0.040849
+  },
+  "C1_punch_midFold": {
+   "f1": 0.530908,
+   "max": 0.530908,
+   "at": 0,
+   "old_max": 0.50611,
+   "dLenMax": 0.52361,
+   "over": true,
+   "reduced_f1": 0.50611,
+   "reduced_max": 0.50611,
+   "reduced_dLenMax": 0.50508
+  },
+  "C2_burn_midFold": {
+   "f1": 0.792799,
+   "max": 0.792799,
+   "at": 0,
+   "old_max": 0,
+   "dLenMax": 0.78522,
+   "over": true,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "C3_trait_midFold": {
+   "f1": 0.055845,
+   "max": 0.26271,
+   "at": 3,
+   "old_max": 0,
+   "dLenMax": 1.7764e-15,
+   "over": true,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "C4_duel_midFold": {
+   "f1": 0.000664,
+   "max": 0.835598,
+   "at": 20,
+   "old_max": 0.819084,
+   "dLenMax": 1.7764e-15,
+   "over": true,
+   "reduced_f1": 0.000651,
+   "reduced_max": 0.819068,
+   "reduced_dLenMax": 2.2054e-06
+  },
+  "C5_cancel_midFold": {
+   "f1": 0.04906,
+   "max": 0.175821,
+   "at": 10,
+   "old_max": 0,
+   "dLenMax": 8.8818e-16,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "C6_duelEnd_midFold": {
+   "f1": 3.1e-05,
+   "max": 0.061689,
+   "at": 26,
+   "old_max": 0.152624,
+   "dLenMax": 0.032114,
+   "over": false,
+   "reduced_f1": 8.1e-05,
+   "reduced_max": 0.152614,
+   "reduced_dLenMax": 0.032112
+  },
+  "C7_trait_then_cancel_midFold": {
+   "f1": 0.042275,
+   "max": 0.174295,
+   "at": 21,
+   "old_max": 0,
+   "dLenMax": 1.7764e-15,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "D1_punch_onset": {
+   "f1": 0.506132,
+   "max": 0.506132,
+   "at": 0,
+   "old_max": 0.50611,
+   "dLenMax": 0.50511,
+   "over": true,
+   "reduced_f1": 0.50611,
+   "reduced_max": 0.50611,
+   "reduced_dLenMax": 0.50508
+  },
+  "D2_burn_onset": {
+   "f1": 0.759198,
+   "max": 0.759198,
+   "at": 0,
+   "old_max": 0,
+   "dLenMax": 0.75755,
+   "over": true,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "D3_lean_onset": {
+   "f1": 0.006785,
+   "max": 0.181669,
+   "at": 3,
+   "old_max": 0,
+   "dLenMax": 4.377e-07,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "E1_lean_window": {
+   "f1": 0.006785,
+   "max": 0.181669,
+   "at": 3,
+   "old_max": 0,
+   "dLenMax": 8.8818e-16,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "E2_burn_window": {
+   "f1": 0.759199,
+   "max": 0.759199,
+   "at": 0,
+   "old_max": 0,
+   "dLenMax": 0.75755,
+   "over": true,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "E3_punch_window": {
+   "f1": 0.506132,
+   "max": 0.506132,
+   "at": 0,
+   "old_max": 0.50611,
+   "dLenMax": 0.50511,
+   "over": true,
+   "reduced_f1": 0.50611,
+   "reduced_max": 0.50611,
+   "reduced_dLenMax": 0.50508
+  },
+  "F1_fold_after_orbit_cancel": {
+   "f1": 0.000148,
+   "max": 0.175821,
+   "at": 20,
+   "old_max": 0,
+   "dLenMax": 8.8818e-16,
+   "over": false,
+   "reduced_f1": 0,
+   "reduced_max": 0,
+   "reduced_dLenMax": 0
+  },
+  "G1_cancel_during_long_tween": {
+   "f1": 4.3e-05,
+   "max": 0.196049,
+   "at": 37,
+   "old_max": 0.170377,
+   "dLenMax": 0.086405,
+   "over": false,
+   "reduced_f1": 0.008073,
+   "reduced_max": 0.170372,
+   "reduced_dLenMax": 0.076717
+  },
+  "G0_end_tween_baseline": {
+   "f1": 3e-05,
+   "max": 0.170377,
+   "at": 42,
+   "old_max": 0.170377,
+   "dLenMax": 0.076716,
+   "over": false,
+   "reduced_f1": 3e-05,
+   "reduced_max": 0.170372,
+   "reduced_dLenMax": 0.076717
+  },
+  "H1_duelEnd_then_duel_sameFrame": {
+   "f1": 0.000656,
+   "max": 0.825567,
+   "at": 20,
+   "old_max": 2.746786,
+   "dLenMax": 8.8818e-16,
+   "over": true,
+   "reduced_f1": 0.000651,
+   "reduced_max": 0.819068,
+   "reduced_dLenMax": 2.2054e-06
+  }
+ },
+ "errors": []
+}

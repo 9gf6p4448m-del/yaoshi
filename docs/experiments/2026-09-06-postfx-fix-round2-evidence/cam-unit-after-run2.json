@@ -1,0 +1,295 @@
+{
+ "verdict": {
+  "newUrl": "/js/camera-director.js",
+  "base": "C:\\Users\\shung\\AppData\\Local\\Temp\\claude\\C--Users-shung\\dfc3efec-7a74-4a26-a245-7ac024a22aad\\scratchpad\\postfx\\camdir-v034.js",
+  "A1_orbit_dLenMax": 8.882e-16,
+  "A1_orbit_yaw_start_deg": -37.998,
+  "A1_orbit_yaw_end_deg": 0,
+  "A1_orbit_yaw_swept_deg": 37.998,
+  "A1_PASS": true,
+  "A2_afterDuelEnd_diff": 0,
+  "A2_duelSettled_diff（揭露，非凍結條）": 0.0001485,
+  "A2_PASS": true,
+  "A3_leanA_side_left": {
+   "peak200": -6.8908,
+   "atMs": 0.0024,
+   "distDrop": 0
+  },
+  "A3_leanB_side_right": {
+   "peak200": 6.8957,
+   "atMs": 0.0024,
+   "distDrop": 0
+  },
+  "A3_PASS": true,
+  "A4_skip_peak_before_deg": 27.8489,
+  "A4_skip_residual_pos": 0,
+  "A4_skip_residual_yaw_deg": 0,
+  "A4_residual_from_cancel_frame（揭露：折回段在內）": 1.581374,
+  "A4_PASS": true,
+  "A5_burn_distDrop": 0.514875215,
+  "A5_refPunch_distDrop": 0.343250079,
+  "A5_ratio": 1.5,
+  "A5_PASS": true,
+  "A6_reduced_noop_max": 0,
+  "A6_reduced_burn_noop": 0,
+  "A6_reduced_burn_drop（揭露：含 v0.34 的 8.2e-5 固定殘差）": 8.1788e-05,
+  "A6_reduced_refPunch_drop": 0.343250079,
+  "A6_reduced_burn_ratio": 0.000238,
+  "A6_PASS": true,
+  "A7_clear_frameStep_max": 0.238405,
+  "A7_clear_frameStep_worst": "F3_reveal_midFold_q3",
+  "A7_limit": 0.2,
+  "A7_over": [],
+  "A7_edge": {
+   "R1_table_clean": {
+    "f1_new": 8.1e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.00492,
+    "max_new": 0.152624,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "R2_reveal_clean": {
+    "f1_new": 0.000357,
+    "f1_old": 0.00019,
+    "max5_new": 0.021705,
+    "max_new": 0.247075,
+    "maxAtFrame": 16,
+    "max_old": 0.247075
+   },
+   "R3_end_clean": {
+    "f1_new": 3e-05,
+    "f1_old": 0.000153,
+    "max5_new": 0.001815,
+    "max_new": 0.170377,
+    "maxAtFrame": 42,
+    "max_old": 0.170377
+   },
+   "R4_duel_clean": {
+    "f1_new": 5.3e-05,
+    "f1_old": 0.000134,
+    "max5_new": 0.003241,
+    "max_new": 0.082951,
+    "maxAtFrame": 85,
+    "max_old": 0.194466
+   },
+   "E1_duelEnd_during_orbit": {
+    "f1_new": 2.9e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.001786,
+    "max_new": 0.058096,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "E2_traitCancel_during_orbit": {
+    "f1_new": 0.000148,
+    "f1_old": 0,
+    "max5_new": 0.009041,
+    "max_new": 0.175821,
+    "maxAtFrame": 20,
+    "max_old": 0
+   },
+   "E3_table_during_orbit": {
+    "f1_new": 2.9e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.001786,
+    "max_new": 0.058096,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "E4_duelEnd_during_lean": {
+    "f1_new": 9.2e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.005603,
+    "max_new": 0.173498,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "E5_table_during_lean": {
+    "f1_new": 7e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.004248,
+    "max_new": 0.132116,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "E6_traitCancel_during_lean": {
+    "f1_new": 0.001069,
+    "f1_old": 0,
+    "max5_new": 0.065181,
+    "max_new": 0.097236,
+    "maxAtFrame": 6,
+    "max_old": 0
+   },
+   "E7_reveal_during_orbit": {
+    "f1_new": 0.000137,
+    "f1_old": 0.00019,
+    "max5_new": 0.008341,
+    "max_new": 0.103791,
+    "maxAtFrame": 16,
+    "max_old": 0.247075
+   },
+   "E8_end_during_orbit": {
+    "f1_new": 2.2e-05,
+    "f1_old": 0.000153,
+    "max5_new": 0.001344,
+    "max_new": 0.130868,
+    "maxAtFrame": 42,
+    "max_old": 0.170377
+   },
+   "E9_duel_during_orbit": {
+    "f1_new": 0.000656,
+    "f1_old": 0.000518,
+    "max5_new": 0.040013,
+    "max_new": 0.825567,
+    "maxAtFrame": 20,
+    "max_old": 0.819084
+   },
+   "X1_duelEnd_then_duel_sameFrame": {
+    "f1_new": 0.000483,
+    "f1_old": 0.000378,
+    "max5_new": 0.029524,
+    "max_new": 0.705783,
+    "maxAtFrame": 21,
+    "max_old": 0.552653
+   },
+   "X2_punchPeak_duelEnd": {
+    "f1_new": 0.415986,
+    "f1_old": 0.415986,
+    "max5_new": 0.415986,
+    "max_new": 0.415986,
+    "maxAtFrame": 0,
+    "max_old": 0.415986
+   },
+   "F1_duel_midFold_q1": {
+    "f1_new": 1.3e-05,
+    "f1_old": 0.000172,
+    "max5_new": 0.000804,
+    "max_new": 0.082951,
+    "maxAtFrame": 85,
+    "max_old": 0.000172
+   },
+   "F2_table_midFold_q1": {
+    "f1_new": 3.1e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.001909,
+    "max_new": 0.061689,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "F3_reveal_midFold_q1": {
+    "f1_new": 0.000145,
+    "f1_old": 0.00019,
+    "max5_new": 0.008846,
+    "max_new": 0.1089,
+    "maxAtFrame": 16,
+    "max_old": 0.247075
+   },
+   "F1_duel_midFold_q2": {
+    "f1_new": 6.9e-05,
+    "f1_old": 0.000172,
+    "max5_new": 0.004221,
+    "max_new": 0.087246,
+    "maxAtFrame": 20,
+    "max_old": 0.000172
+   },
+   "F2_table_midFold_q2": {
+    "f1_new": 5.1e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.003126,
+    "max_new": 0.098057,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "F3_reveal_midFold_q2": {
+    "f1_new": 0.00023,
+    "f1_old": 0.00019,
+    "max5_new": 0.013977,
+    "max_new": 0.162864,
+    "maxAtFrame": 16,
+    "max_old": 0.247075
+   },
+   "F1_duel_midFold_q3": {
+    "f1_new": 0.000131,
+    "f1_old": 0.000172,
+    "max5_new": 0.007971,
+    "max_new": 0.164771,
+    "maxAtFrame": 20,
+    "max_old": 0.000172
+   },
+   "F2_table_midFold_q3": {
+    "f1_new": 7.8e-05,
+    "f1_old": 9.1e-05,
+    "max5_new": 0.004738,
+    "max_new": 0.147058,
+    "maxAtFrame": 26,
+    "max_old": 0.152624
+   },
+   "F3_reveal_midFold_q3": {
+    "f1_new": 0.000344,
+    "f1_old": 0.00019,
+    "max5_new": 0.020916,
+    "max_new": 0.238405,
+    "maxAtFrame": 16,
+    "max_old": 0.247075
+   },
+   "F4_skipSequence_1frameApart": {
+    "f1_new": 0.000256,
+    "f1_old": 0,
+    "max5_new": 0.000698,
+    "max_new": 0.082951,
+    "maxAtFrame": 87,
+    "max_old": 2.746375
+   },
+   "F5_lean_onset": {
+    "f1_new": 0.006785,
+    "f1_old": 0,
+    "max5_new": 0.181669,
+    "max_new": 0.181669,
+    "maxAtFrame": 3,
+    "max_old": 0
+   },
+   "X3_punch_onset": {
+    "f1_new": 0.506132,
+    "f1_old": 0.50611,
+    "max5_new": 0.506132,
+    "max_new": 0.506132,
+    "maxAtFrame": 0,
+    "max_old": 0.50611
+   },
+   "X4_burn_onset": {
+    "f1_new": 0.759198,
+    "f1_old": 0,
+    "max5_new": 0.759198,
+    "max_new": 0.759198,
+    "maxAtFrame": 0,
+    "max_old": 0
+   },
+   "X5_lean_onset_midFold": {
+    "f1_new": 0.055845,
+    "f1_old": 0,
+    "max5_new": 0.26271,
+    "max_new": 0.26271,
+    "maxAtFrame": 3,
+    "max_old": 0
+   }
+  },
+  "A7_refs": {
+   "R1_table": 0.152624,
+   "R2_reveal": 0.247075,
+   "R3_end": 0.170377,
+   "R4_duel": 0.082951
+  },
+  "A7_PASS": true,
+  "A8_lean_dLenMax": 1.776e-15,
+  "A8_burn_dLenMax（記錄值，非斷言：punch 同族、裁定不改行為）": 0.75755,
+  "A8_punch_dLenMax（記錄值，v0.34 既有）": 0.50511,
+  "A8_PASS": true,
+  "A9_reduced_burn_noop": 0,
+  "A9_reduced_refPunch_drop": 0.343250079,
+  "A9_PASS": true,
+  "errors": 0,
+  "ALL_PASS": true
+ },
+ "errors": []
+}
