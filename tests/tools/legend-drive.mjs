@@ -72,7 +72,13 @@ const main = async () => {
       rec.seeds.push(seed);
       const g = { seed, nights: 0, clicks: 0, taken: [], dawn: 0, burned: 0, stuck: null, txts: {} };
       // 開一局（真人＝南家，角色固定，避免選角畫面的隨機）；把演出節拍壓到最短
-      await page.evaluate((sd) => { CFG.T = 1; window.__yaoshi.newGame('solo', sd, ['qingmian']); }, seed);
+      await page.evaluate((sd) => {
+        CFG.T = 1;
+        // 對決時間軸的每一段都壓到最短：不壓的話光是「開戰（停用）」那段等 3D／演出就吃掉整個 step 預算
+        const F = window.__yaoshi.PW_FX;
+        for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+        window.__yaoshi.newGame('solo', sd, ['qingmian']);
+      }, seed);
       let lastKey = null, stallN = 0;
       for (let step = 0; step < 2600; step++) {
         await page.waitForTimeout(30);
@@ -144,7 +150,9 @@ const main = async () => {
 
     // 手機直式：整頁不得橫向溢出。量在**固定的同一頁**（新開一局、停在出價那一頁）——
     // 拿局末結果畫面跟出價畫面比等於在比兩個不同版面，ON／OFF 對照就沒有意義了。
-    await page.evaluate(`(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); })()`);
+    await page.evaluate(`(() => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', 1, ['qingmian']); })()`);
     for (let k = 0; k < 300; k++) {
       await page.waitForTimeout(30);
       const st = await page.evaluate(`(() => { const b = document.getElementById('mainbtn');
