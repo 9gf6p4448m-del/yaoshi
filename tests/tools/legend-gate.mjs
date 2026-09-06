@@ -118,6 +118,7 @@ function stageReward(h){
    以及「燒 0」「燒 INC_MAX」各自被哪些對手組合打敗（逐家）。 */
 function dominantScan(st,fixedV){
   const K=G.CFG.INC_K, P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
+  if(!G.S) G.makeState('solo',1); /* shrineOrderKey 讀 WIND_SEQ 與傳入的 round，但需要 S 存在 */
   /* fixedV 有值＝L1″：四家共用同一個 V（由異質四袋互打取中位數算出），不再逐席重算 */
   const val=(fixedV!=null)?[0,1,2,3].map(()=>({v:fixedV})):[0,1,2,3].map(i=>legendValue(st,i));
   const options=Array.from({length:M+1},(_,i)=>i);
@@ -125,7 +126,10 @@ function dominantScan(st,fixedV){
     const out=[0,0,0,0];
     const h=[0,1,2,3].map(i=>st.h[st.target[i]][i]+choices[i]);
     for(let s=0;s<3;s++){
-      const rollers=[0,1,2,3].filter(i=>st.target[i]===s&&choices[i]>0).sort((a,b)=>h[b]-h[a]||a-b);
+      /* 擲骰順序與引擎同一條規則（使用者 2026-09-07 裁定甲）：h 高到低；同 h 從本夜風位家起順時針。
+         直接呼叫 index.html 匯出的 shrineOrderKey(pid, round)，不在治具裡另抄一份排序鍵。 */
+      const rollers=[0,1,2,3].filter(i=>st.target[i]===s&&choices[i]>0)
+        .sort((a,b)=>h[b]-h[a]||G.shrineOrderKey(a,st.round)-G.shrineOrderKey(b,st.round));
       const anyH=[0,1,2,3].filter(i=>st.target[i]===s&&h[i]>0);
       let alive=1; const win=[0,0,0,0]; let closeP=0;
       for(const i of rollers){

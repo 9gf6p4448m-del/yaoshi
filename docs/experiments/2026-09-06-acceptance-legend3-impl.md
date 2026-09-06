@@ -4,7 +4,7 @@
 起始數值（提案 §四／§八，過閘門後仍屬策略數值、改預設要問）：`LEGEND_ON`、`INC_MAX 3`、`INC_K 6`、`INC_PITY 9`、階段獎勵區間以 P 定義。
 
 ## 範圍
-- 引擎：`LEGENDS` 表（3 筆，與 POOL 同形＋`legend:true`）、`TRAITS` 新 2 條（`eliteBlind`／`hauntAnswer`）＋ 2 個新效果欄位（`blindFront` 在 pwBolt 段、`curseHaunt` 在 pwHaunt 段）、大士爺 `wardGuardAll` 走既有 `hpAll:2`；燒香欄位（密封、每夜一尊、0–INC_MAX、當場扣壽命）；請神結算（開標後、結算戰前：當夜香火加進 h → 本夜有燒香者依 h 高到低擲 h/(h+K)、h≥P 必成 → 第一個成功者請走、關龕 → 其餘依 h 領階段獎勵、歸零；天亮回天結清）；AI 啟發式掛 `ROLES[*].ai`（拜主系→第二系→不拜；每夜 min(INC_MAX, floor(life×aggr/12))；life<LIFE×0.3 不拜；被領先 ≥3 棄拜）；`S.history` 多「請神」紀錄。
+- 引擎：`LEGENDS` 表（3 筆，與 POOL 同形＋`legend:true`）、`TRAITS` 新 2 條（`eliteBlind`／`hauntAnswer`）＋ 2 個新效果欄位（`blindFront` 在 pwBolt 段、`curseHaunt` 在 pwHaunt 段）、大士爺 `wardGuardAll` 走既有 `hpAll:2`；燒香欄位（密封、每夜一尊、0–INC_MAX、當場扣壽命）；請神結算（開標後、結算戰前：當夜香火加進 h → 本夜有燒香者依 h 高到低擲 h/(h+K)、h≥P 必成 → 第一個成功者請走、關龕 → 其餘依 h 領階段獎勵、歸零；天亮回天結清）【**同 h 的擲骰順序＝從本夜風位家起順時針（`WIND_SEQ` 次序），不依座位 id；沒有風位的夜從 `WIND_SEQ[round % 人數]` 起算——使用者 2026-09-07 裁定甲**】；AI 啟發式掛 `ROLES[*].ai`（拜主系→第二系→不拜；每夜 min(INC_MAX, floor(life×aggr/12))；life<LIFE×0.3 不拜；被領先 ≥3 棄拜）；`S.history` 多「請神」紀錄。
 - UI：神龕列（三格：尊名／系色／機率表／四人香火條／請走後標示）、出價面板「燒香」列、請神成功／香火散演出（3D 用佔位：既有 elite／ward／haunt 各借一隻換系色）、規則頁「🕯️ 請神」節、局末回顧「請神」列。
 - 治具：`tests/tools/legend-gate.mjs`（L0–L5）、`tests/legend.test.mjs`（單元）、runMany 新策略 `incenseMax`／`incenseNever`。
 - **不在本卷**：真模型（美術卷）、任何 CFG 既有數值、共鳴機制。

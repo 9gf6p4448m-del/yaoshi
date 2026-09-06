@@ -2540,6 +2540,20 @@ function shrineClose(sh,out){
     if(r) out.push({pid:q.id,shrine:sh.i,h,...r});
   });
 }
+/* 同香火者的擲骰順序（使用者 2026-09-07 裁定甲）：**從本夜風位家起順時針**，不再依座位 id。
+   「順時針」＝ WIND_SEQ 的次序（東→南→西→北），與市集規則「同分取本夜風位起算的座位順序」那一段同一個口徑
+   （index.html 收祟夜那段），不另外發明一種座位序。
+   回傳「離風位家幾個位子」——0＝風位家自己。h 不同的人仍然由高到低，這個鍵只在 h 相同時才用得到。
+   windPid 在本引擎恆有值；萬一沒有風位（回 null），改從 WIND_SEQ[round % 人數] 起算（規則頁也是這樣寫的）。
+   ★三條迴圈共用這一支★：排序只寫在 resolveShrines 裡一次，不得再複製第二份。 */
+function shrineOrderKey(pid,round){
+  const r=(round===undefined)?S.round:round;
+  const w=windPid(r);
+  const base=(w==null)?(((r%WIND_SEQ.length)+WIND_SEQ.length)%WIND_SEQ.length)
+                      :(((r-1)%WIND_SEQ.length)+WIND_SEQ.length)%WIND_SEQ.length;
+  for(let k=0;k<WIND_SEQ.length;k++) if(WIND_SEQ[(base+k)%WIND_SEQ.length]===pid) return k;
+  return WIND_SEQ.length; /* 不在座位表裡（理論上不會發生）：排最後 */
+}
 function resolveShrines(){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
   const out={burn:[],rolls:[],taken:[],rewards:[]};
@@ -2567,7 +2581,7 @@ function resolveShrines(){
   S.shrines.forEach(sh=>{
     if(!sh.open) return;
     const rollers=S.players.filter(p=>p.alive&&S.incense[p.id]&&S.incense[p.id].shrine===sh.i&&S.incense[p.id].amt>0)
-      .sort((a,b)=>sh.h[b.id]-sh.h[a.id]||a.id-b.id);
+      .sort((a,b)=>sh.h[b.id]-sh.h[a.id]||shrineOrderKey(a.id)-shrineOrderKey(b.id)); /* 同香火＝從本夜風位家起順時針（裁定甲） */
     let win=null;
     for(const p of rollers){
       const h=sh.h[p.id];
@@ -3667,7 +3681,7 @@ function openHelp(){
          所有數字都由 CFG 帶出（INC_MAX／INC_K／INC_PITY／INC_GIFT_P），不另寫一份。 */""}
     ${CFG.LEGEND_ON?sec("🕯️ 請神（傳說三尊）",`妖市入口供著<b>三尊從不上拍賣桌的東西</b>——殘日（祖靈）、大士爺紙尊（香火）、有應公（陰氣）。要它們只有一條路：<b>燒壽命當香火</b>。<br>
       <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<br>
-      <b>機率是公開的</b>：你在那一尊上的<b>累計</b>香火 h，請下來的機率就是 h÷(h+${CFG.INC_K})：${Array.from({length:CFG.INC_PITY-1},(_,i)=>i+1).map(h=>`${h}→${Math.round(h/(h+CFG.INC_K)*100)}%`).join("、")}。<b>h 一旦到 ${CFG.INC_PITY}（含）以上，那一夜就不擲骰、直接請下來</b>——這叫<b>天井</b>，是 100%，上面那條 h÷(h+${CFG.INC_K}) 在天井之後不適用（不要自己去算 ${CFG.INC_PITY}÷${CFG.INC_PITY+CFG.INC_K}）。唯一擋得住你的只有「別人比你先請走、那一龕已經關了」。每夜開標後，<b>本夜有燒香的人</b>才有資格擲，香火高的先擲；第一個成功的人請走，那一龕當場關閉，排在後面的人今夜不再擲。<br>
+      <b>機率是公開的</b>：你在那一尊上的<b>累計</b>香火 h，請下來的機率就是 h÷(h+${CFG.INC_K})：${Array.from({length:CFG.INC_PITY-1},(_,i)=>i+1).map(h=>`${h}→${Math.round(h/(h+CFG.INC_K)*100)}%`).join("、")}。<b>h 一旦到 ${CFG.INC_PITY}（含）以上，那一夜就不擲骰、直接請下來</b>——這叫<b>天井</b>，是 100%，上面那條 h÷(h+${CFG.INC_K}) 在天井之後不適用（不要自己去算 ${CFG.INC_PITY}÷${CFG.INC_PITY+CFG.INC_K}）。唯一擋得住你的只有「別人比你先請走、那一龕已經關了」。每夜開標後，<b>本夜有燒香的人</b>才有資格擲，<b>香火高的先擲；香火一樣多的，從本夜風位家起順時針</b>（東→南→西→北；沒有風位的夜從第 N 夜對應的位子起算）——所以風位每夜輪轉，先擲的優勢不會固定在同一家。第一個成功的人請走，那一龕當場關閉，排在後面的人今夜不再擲。<br>
       <b>全桌只有一份</b>：三尊各一，被誰請走就沒了。四家的香火都攤在神龕上（畫面上方三格），你看得到誰拜了幾夜、離天井還差多少。<br>
       <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、或天亮回天），你的香火依高低結清——h＜${Math.ceil(CFG.INC_PITY/3)} 沒有；${Math.ceil(CFG.INC_PITY/3)}～${Math.ceil(2*CFG.INC_PITY/3)-1} 退 ⌈h/3⌉ 壽命（香灰）；${Math.ceil(2*CFG.INC_PITY/3)}～${CFG.INC_PITY-1} 退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）；<b>h 到了 ${CFG.INC_PITY} 以上卻還是被人搶先</b>（同一夜大家都到天井，只有排最前面的那個請得走）也<b>比照這一檔</b>。結清後香火歸零。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，算同系件數（吃共鳴）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
@@ -5344,7 +5358,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
   /* 傳說三尊「請神」（第 4 卷）測試出口：資料表、結算、回天、AI 啟發式、階段獎勵 */
-  LEGENDS, resolveShrines, settleShrinesEnd, aiIncense, incAiOf, shrineReward, mainFaction,
+  LEGENDS, resolveShrines, settleShrinesEnd, aiIncense, incAiOf, shrineReward, mainFaction, shrineOrderKey, windPid,
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */

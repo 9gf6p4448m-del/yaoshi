@@ -269,6 +269,9 @@ test('燒到 0 不影響本夜的擲：h 到天井、壽命剛好燒光的人仍
   const G=loadGame(TARGET); const S=setup(G);
   const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
   S.rng=alwaysFail;
+  /* 第 2 夜的風位是南家（windPid(2)=WIND_SEQ[1]=0），所以同香火時南家先擲——這一案要驗的是
+     「燒光壽命的人還能不能擲」，不是排序規則，所以把風位固定成南家，免得被 2026-09-07 的裁定甲干擾 */
+  S.round=2;
   /* 南家與東家都先累到 P−1，再把南家的壽命壓到剛好等於今夜要燒的量 */
   let left=P-1;
   while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a},3:{shrine:0,amt:a}}); left-=a; }
@@ -294,6 +297,23 @@ test('回天不砸紀錄：最後一筆壽命快照不是本輪收尾時，回�
   const out=G.settleShrinesEnd?G.settleShrinesEnd():null;
   ok(out&&out.length===1,'回天應該結清一筆（否則下一條沒有鑑別力）');
   eq(JSON.stringify(S.history.life),before,'末筆不屬於本輪時，壽命曲線不得被就地改寫');
+});
+
+/* ---------- 16. 同香火者的擲骰順序＝從本夜風位家起順時針（使用者 2026-09-07 裁定甲） ---------- */
+test('同香火依風位：四家香火一樣多時，先擲的是本夜風位家（風位換人，請走的人就換人）',()=>{
+  const G=loadGame(TARGET);
+  const M=G.CFG.INC_MAX??3;
+  /* windPid(r)＝WIND_SEQ[(r-1)%4]，WIND_SEQ=[東3,南0,西2,北1]：第 1 夜風位＝東家(3)、第 3 夜風位＝西家(2) */
+  const run=round=>{
+    const S=setup(G);
+    S.round=round;
+    S.rng=alwaysHit;                       /* 骰子必中 ⇒ 唯一決定誰請走的就是「誰先擲」 */
+    shrineNight(G,S,{0:{shrine:0,amt:M},1:{shrine:0,amt:M},2:{shrine:0,amt:M},3:{shrine:0,amt:M}});
+    const w=S.players.filter(p=>legendsOf(p).length);
+    return w.length===1?w[0].id:-1;
+  };
+  eq(run(1),3,'第 1 夜（風位＝東家）四家香火相同 → 請走的應該是東家(id 3)');
+  eq(run(3),2,'第 3 夜（風位＝西家）同一組輸入 → 請走的應該換成西家(id 2)（否則就是還在依座位 id）');
 });
 
 console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
