@@ -92,7 +92,8 @@ test('階段獎勵：關龕時 h 落在中段的人退 ⌈h/3⌉ 壽命、不附
   S.rng=alwaysFail;
   const P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
   const mid=Math.ceil(P/3);      /* P=9 → 3，落在「退 ⌈h/3⌉」那一段 */
-  shrineNight(G,S,{1:{shrine:0,amt:Math.min(mid,M)}});   /* 北家先燒到 h=mid */
+  /* 北家先累到 h=mid（P=12 時 mid=4 > INC_MAX=3，一夜燒不完，要跨夜累積） */
+  let acc=mid; while(acc>0){ const a=Math.min(M,acc); shrineNight(G,S,{1:{shrine:0,amt:a}}); acc-=a; }
   const bagBefore=S.players[1].bag.length;
   const lifeBefore=S.players[1].life;
   for(let k=0;k<Math.ceil(P/M);k++) shrineNight(G,S,{0:{shrine:0,amt:M}}); /* 南家燒到天井請走 */

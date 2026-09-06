@@ -67,13 +67,17 @@ const main = async () => {
     // 開場三卡（showIntro）把 #mainbtn 停用、只認自己那顆按鈕，會把驅動卡在第 1 夜；
     // 直接把「看過了」的旗標寫進 localStorage，走的是產品自己的 introSeen() 路徑。
     await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
-    await page.goto(`http://127.0.0.1:${PORT}/index.html?legend=${opt.legend === '0' ? 0 : 1}`, { waitUntil: 'load' });
+    // --legend=none：完全不帶 ?legend，走 CFG 的預設（2026-09-07 起是 false）——驗「預設關的一整局」
+    const q = opt.legend === 'none' ? '' : `?legend=${opt.legend === '0' ? 0 : 1}`;
+    await page.goto(`http://127.0.0.1:${PORT}/index.html${q}`, { waitUntil: 'load' });
+    rec.legendOn = await page.evaluate(`(() => CFG.LEGEND_ON)()`);
+    rec.shrineEl = await page.evaluate(`(() => !!document.getElementById('shrines'))()`);
     await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
 
     for (const seed of SEEDS) {
       if (rec.taken > 0 && rec.dawnShrines > 0 && rec.dawn > 0) break;
       rec.seeds.push(seed);
-      const g = { seed, nights: 0, clicks: 0, taken: [], dawn: 0, burned: 0, stuck: null, txts: {} };
+      const g = { seed, nights: 0, clicks: 0, taken: [], dawn: 0, burned: 0, stuck: null, txts: {}, shrineEl: null, incEl: null };
       // 開一局（真人＝南家，角色固定，避免選角畫面的隨機）；把演出節拍壓到最短
       await page.evaluate((sd) => {
         CFG.T = 1;
@@ -97,6 +101,8 @@ const main = async () => {
             bidding: b && /蓋牌/.test(b.textContent) };
         })()`);
         g.nights = Math.max(g.nights, st.round);
+        if (g.shrineEl === null) g.shrineEl = await page.evaluate(`(() => !!document.getElementById('shrines'))()`);
+        if (g.incEl === null && st.bidding) g.incEl = await page.evaluate(`(() => !!document.querySelector('.incbar'))()`);
         g.txts[st.txt + (st.dis ? '（停用）' : '')] = (g.txts[st.txt + (st.dis ? '（停用）' : '')] || 0) + 1;
         g.stuck = st.txt + (st.dis ? '（停用）' : '');
         if (st.shrines) g.taken = st.shrines.filter((s) => s.takenBy != null).map((s) => s.i);
@@ -184,6 +190,7 @@ const main = async () => {
   console.log(`# 請神 Playwright 驅動（844×390 橫式＋390×844 直式）　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天收攤 ${g.dawnShrines} 龕／結清 ${g.dawn} 筆・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　按鈕出現次數 ${JSON.stringify(g.txts)}`));
+  console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
   console.log(`- console error ${rec.errors.length}、pageerror ${rec.pageerrors.length}、requestfailed ${rec.requestfailed.length} → ${okErr ? '✅' : '❌'}`);
   if (!okErr) { rec.errors.slice(0, 5).forEach((e) => console.log('    error: ' + e)); rec.pageerrors.slice(0, 5).forEach((e) => console.log('    pageerror: ' + e)); }
   console.log(`- 走到「請走」${rec.taken} 次、「天亮回天」收攤 ${rec.dawnShrines} 龕（其中結出階段獎勵 ${rec.dawn} 筆）→ ${okPath ? '✅' : '❌'}`);

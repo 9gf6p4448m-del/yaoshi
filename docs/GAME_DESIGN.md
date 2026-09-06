@@ -489,6 +489,10 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 
 ## Changelog
 
+- 2026-09-07 v0.43（二版）：依使用者裁定（「都照建議」）**`INC_K 6→10`、`INC_PITY 9→12`**（`INC_MAX` 維持 3）、
+  **`LEGEND_ON` 預設改 false**（合併策略：先預設關併進 main，`?legend=1` 試玩，閘門全綠＋真機試玩後再裁預設開），
+  並把 L1／L3 依凍結檔 §2.1 修訂紀錄改寫成 **L1′／L3′**（L1′＝contend＋四家同一袋、只判「燒 0」與「燒滿」；
+  L3′＝反事實位移 ≥+10pp ＋持有者勝率 ≤55%）。閘門重跑結果見 `docs/experiments/2026-09-06-legend3-impl-report.md` 二版那一節。
 - 2026-09-06 v0.43：**傳說三尊「請神」實作上線**（第 4 卷；規格 `docs/proposals/2026-09-06-legend3-design.md`、
   凍結檔 `docs/experiments/2026-09-06-acceptance-legend3-impl.md`、實跑報告 `docs/experiments/2026-09-06-legend3-impl-report.md`）。
   三龕常駐、每夜密封燒 0～`INC_MAX` 壽命當香火、成功率 h/(h+`INC_K`) 公開、h≥`INC_PITY` 天井必請、全桌獨一份、
