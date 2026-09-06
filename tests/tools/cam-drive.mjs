@@ -104,8 +104,11 @@ try {
         const v = wrap(yawAt(s) - yaw0) - base(s.t); if (Math.abs(v) > Math.abs(peak)) peak = v;
         const r = wrap(yawAt(s) - yaw0); if (Math.abs(r) > Math.abs(peakRaw)) peakRaw = r;
       }
-      // 回位：lean 的 dist −0.3 與 orbit 完全無關（orbit 不碰 dist），所以用 dist 驗回位最乾淨。
-      // 只在該時點沒有 punch 在跑時才算得準。
+      // 回位：用 dist 驗最乾淨（orbit 不碰 dist）。只在該時點沒有 punch 在跑時才算得準。
+      // 註（2026-09-06 修復卷）：LEAN.dist 已改成 0（第 1 輪覆審 M-2），所以下面的 distDip
+      // **不再是 lean 的量**——它量到的是 hitstop 把 punch 的牆鐘時長拖過 420ms 排除窗之後
+      // 漏進來的 punch 殘量（實測改前 0.2817／改後 0.2818，逐值不變＝與 lean 無關）。
+      // 「lean 不動 dist」改由 cam-unit.mjs 的 A8 決定性斷言驗（|Δlength| < 1e-3）。
       // 回位窗放寬到 ms+400ms：低幀率＋連續 punch 時，ms 那一刻常常整段都被 punch 蓋住，
       // 往後找第一批乾淨的幀才量得到。lean 在 ms 就歸零了，往後看只會更接近 0，不會放水。
       const bw = F.filter((s) => s.t >= e.t + ms && s.t <= e.t + ms + 400 && !EV.some((x) => (x.n === 'ys:fx-punch' || x.n === 'ys:fx-burn') && s.t >= x.t && s.t <= x.t + PUNCH_MS));
