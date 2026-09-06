@@ -77,6 +77,8 @@
 - **Round 1**（`2026-09-06-postfx-review-round1.md`）：CRITICAL 0／HIGH 2／MEDIUM 4／LOW 5。H-1 SKIP 在 orbit 中鏡頭單幀跳 2.41（36.8°）；H-2 同尺寸 resize 讓深度貼圖被換成空的、邊緣線消失；M-1 lean 清零跳 0.50；M-2 lean dist −0.3 動到 camStable 閘門；M-3 reduced-motion 下多了 v0.34 沒有的燒毀震鏡；M-4 bloomOK=false 下外殼照畫（mesh ×2，未量）；L-1～L-5 見報告。trace seeds 1..20 IDENTICAL（反向驗證 CFG.LIFE 改 49 → DIFFERENT）；Math.random 三處皆註解／既有債，與 5f76adc 逐一相同。
 - **修**（`2026-09-06-postfx-fix-round1.md`＋主對話 H-2）：H-1／M-1 清除改以當下實際機位為起點、固定角速度折回（2.4076→0.000148，折回段最大單幀 0.1758 ≤0.20）；M-2 `LEAN.dist` −0.3→0（lean 只動 yaw，|Δlength| 1.8e-15）；M-3 `onBurn` 加 reduced gate；H-2 只在尺寸真變才重建深度貼圖（同尺寸 resize 後佔比 0→4.865%）。
 - **凍結條澄清（09-06，非降標）**：P-4 (b) 的 dist −0.3 原標【試玩必調】，因 M-2 與鎖排法閘門衝突改 0——手感題，真機試玩再定；P-4 (c)「維持現行 punch」在 reduced-motion 下取「v0.34 沒有燒毀震鏡＝不震」之義。兩條在收尾報告向使用者列明。
+- **Round 2**（`2026-09-06-postfx-review-round2.md`，「反駁已修好」）：H-2 真的修好（同尺寸×3／真換尺寸／dpr 變化四格 4.944%，換回舊 bloom.js 紅成 0）；M-3 真的修好；M-1 字面修好；**H-1 表面修好**（折回段中再來 goto 入口單幀跳 2.27，修法造出的新窗）；M-2 lean 修了、burn 半條沒動。新 finding：HIGH 1（同上）、MEDIUM 2（lean 上升沿無 ease-in 跳 0.63；burn 動 dist 0.758）、LOW 4（折回時間只算 yaw；A7 涵蓋宣稱對 S4 不成立；cam-unit 不帶 `--base` A3 恆假；`setEdgeParams` 無 silRel）。
+- **Round 2 處置**：HIGH＋lean ease-in＋cam-unit `--base` 必帶＋折回時間三軸 → 回修（`2026-09-06-postfx-fix-round2.md`）；L-3 `edgeOn` getter 改直接回報 bloom 狀態（主對話）；**burn 動 dist 主對話裁定不改行為**（v0.34 punch 同族、鎖排法「一場只選一次」已防翻面、真機 burn 落在鎖點之後），A8 窗延伸為記錄值；`setEdgeParams` silRel 記錄不修。
 - M-4：`bloomOK=false`（軟體 GL）路徑的渲染鏈未動（P-3 條），外殼是 P-1 的一部分、該路徑本就不是效能基準機；記錄、不修。L-1～L-5：L-2 註解已改；其餘記錄。
 
 ## 不在本卷

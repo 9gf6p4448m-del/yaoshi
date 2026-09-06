@@ -162,7 +162,8 @@ function init() {
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
   window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
-    get edgeOn() { return EDGE_URL_ON && bloom.edgeReady && bloomOK && !duelFigures.crowded; }, get edgeReady() { return bloom.edgeReady; },
+    // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
+    get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },
     get crowded() { return duelFigures.crowded; } };
 
   let lastKind = undefined;
