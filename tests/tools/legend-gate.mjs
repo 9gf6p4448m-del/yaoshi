@@ -246,7 +246,7 @@ if(want('L3')){
   const seeds=Array.from({length:1000},(_,i)=>i+1);
   const pool=G.POOL.filter(x=>!x.curse);
   const foes=['zuling','xianghuo','yinqi'].map(f=>pool.filter(x=>x.f===f).slice(0,3).map(x=>({...x})));
-  say('## L3′ 反事實有感不支配（①三尊各自的平均位移 ≥ +10pp ②持有任一尊者最終勝率 ≤55%）');
+  say('## L3′ 反事實有感不支配（①三尊各自的平均位移 ≥ +10pp ②**勝者持有任一尊的局比例 ≤85%**——2026-09-07 換口徑，見凍結檔 §2.1 修訂紀錄三）');
   say('### ① 反事實有感：同一袋 ± 這一尊，對三系代表袋各 duelBags n=1000');
   say('| 尊 | 對祖靈袋 | 對香火袋 | 對陰氣袋 | 平均位移 | 門檻 ≥+10pp |'); say('|---|---|---|---|---|---|');
   let okA=true;
@@ -261,15 +261,33 @@ if(want('L3')){
     const pass=avg>=10; if(!pass) okA=false;
     say(`| ${Lg.n} | ${cells.map(c=>`${pct(c.a)}→${pct(c.b)}（${c.d>=0?'+':''}${c.d.toFixed(1)}pp）`).join(' | ')} | **${avg>=0?'+':''}${avg.toFixed(1)}pp** | ${pass?'✅':'❌'} |`);
   });
-  const L={w:0,n:0}, Pl={w:0,n:0}; let hold=0, holdWin=0;
+  /* ② 2026-09-07 依凍結檔 §2.1 修訂紀錄三改口徑（使用者裁定）：
+        舊版是「持有者最終勝率＝holdWin ÷ 持有者人次」——分子每局最多 +1（冠軍只有一個）、分母每局 +1~3，
+        理論上限只有 ~52% < 門檻 55% ⇒ **恆真斷言**（三尊改成 atk99/hp99/count5 的突變版仍然綠）。
+        新口徑：**勝者持有任一尊的局比例（分子分母都是「局」）≤85%**，並同時印兩組突變對照當鑑別力證據。 */
+  const L={w:0,n:0}, Pl={w:0,n:0}; let hold=0, holdWin=0, anyHold=0, winIsHolder=0;
   games.forEach(g=>{ L.w+=g.legendDuel.w; L.n+=g.legendDuel.n; Pl.w+=g.plainDuel.w; Pl.n+=g.plainDuel.n;
-    hold+=g.holders.length; if(g.holders.includes(g.winnerId)) holdWin++; });
-  const hw=hold?holdWin/hold:0;
-  const okB=hw<=0.55;
+    hold+=g.holders.length; if(g.holders.includes(g.winnerId)) holdWin++;
+    if(g.holders.length){ anyHold++; if(g.holders.includes(g.winnerId)) winIsHolder++; } });
+  const wr=anyHold?winIsHolder/anyHold:0;
+  const okB=wr<=0.85;
   say('');
-  say(`### ② 持有任一尊者的最終勝率：**${pct(hw)}**（${holdWin}/${hold}）　門檻 ≤55% ${okB?'✅':'❌'}`);
+  say(`### ② 勝者持有任一尊的局比例：**${pct(wr)}**（${winIsHolder}/${anyHold} 有持有者的局）　門檻 ≤85% ${okB?'✅':'❌'}`);
+  /* 鑑別力：同一條指標在「三尊完全沒有戰鬥貢獻」與「三尊壓倒性強」兩種突變下各是多少（只改記憶體的資料表，不動引擎） */
+  const mut=(fn,label,M)=>{
+    const g2=loadGame(NEW); g2.CFG.LEGEND_ON=true; fn(g2);
+    let a=0,w=0;
+    for(let sd=1;sd<=M;sd++){ const r=g2.playPolicyGame(sd,{});
+      if(r.holders.length){ a++; if(r.holders.includes(r.winnerId)) w++; } }
+    say(`  - ${label}（n=${M}）：${pct(a?w/a:0)}（${w}/${a}）`);
+    return a?w/a:0;
+  };
+  const MM=Math.min(N,2000);
+  mut(g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={body:'ward',count:0,atk:0,hp:0}; }),'基準對照：三尊零戰力（unit.count=0）＝這條指標的下限，理論上應該接近「有持有者的局裡，冠軍剛好是持有者」的隨機水準',MM);
+  mut(g2=>g2.LEGENDS.forEach(Lg=>{ Lg.unit={...Lg.unit,count:5,atk:99,hp:99}; }),'壞掉對照：三尊 atk99/hp99/count5（壓倒性強）＝這條指標必須逼近 100%，否則它沒有鑑別力',MM);
   const r1=L.n?L.w/L.n:0, r0=Pl.n?Pl.w/Pl.n:0;
   say(`- 記錄項（不判，舊 L3 的口徑；含選樣混淆，見報告 §4.2）：請到者 ${pct(r1)}（${L.w}/${L.n}）／未請到者 ${pct(r0)}（${Pl.w}/${Pl.n}）＝相對帶 ${r0?(r1/r0).toFixed(3):'—'}`);
+  say(`- 記錄項（不判，舊 ② 的口徑）：持有者人次勝率 ${pct(hold?holdWin/hold:0)}（${holdWin}/${hold}）——分子算局、分母算人次，理論上限只有 ~52%，是恆真斷言。`);
   verdict.L3=okA&&okB;
   say(`- 判定：${verdict.L3?'✅':'❌'} ${lap()}`); say('');
 }
@@ -292,14 +310,22 @@ if(want('L4')){
   say('## L4 無支配策略（座位 0 勝率各 ≤40%；位移＝相對預設 LEGEND_ON=false 的同一策略）');
   const pols=['splitter','greedy','hoarder','specialist','incenseMax','incenseNever'];
   say('| 策略 | LEGEND_ON=false | LEGEND_ON=true | 位移 | 判定 |'); say('|---|---|---|---|---|');
-  let ok=true;
+  let ok=true; const rows={};
   for(const p of pols){
     const on=G.runMany({seeds:SEEDS,policies:{0:G.POLICIES[p]}}).winRate[0];
+    rows[p]=on;
     const offP=DEF.POLICIES[p]?DEF.runMany({seeds:SEEDS,policies:{0:DEF.POLICIES[p]}}).winRate[0]:null;
     const pass=on<=0.40; if(!pass) ok=false;
     say(`| ${p} | ${offP==null?'—':pct(offP)} | ${pct(on)} | ${offP==null?'—':((on-offP)>=0?'+':'')+((on-offP)*100).toFixed(2)+'pp'} | ${pass?'✅':'❌'} |`);
   }
   verdict.L4=ok;
+  /* 記錄項（不判，使用者 2026-09-07 裁定甲）：incenseNever 與同出價法 splitter 的差。
+     覆審 H3 指出 L4 只設上限、量不到「不燒香＝被支配」——使用者裁定這是**已知性質**：
+     燒香是這一卷的核心動作，不燒香被支配就跟「整夜不出價」被支配一樣，不另立門檻。 */
+  const sp=rows.splitter, nv=rows.incenseNever;
+  if(sp!=null&&nv!=null)
+    say(`- 記錄項（不判）：\`incenseNever\` ${pct(nv)} vs 同出價法的 \`splitter\` ${pct(sp)} ＝ **${((nv-sp)*100).toFixed(2)}pp**`
+      +`——不燒香確實被支配，這是已知性質（燒香是核心動作，如同不出價），使用者裁定不另立門檻。`);
   say(`- 判定：${ok?'✅':'❌'} ${lap()}`); say('');
 }
 

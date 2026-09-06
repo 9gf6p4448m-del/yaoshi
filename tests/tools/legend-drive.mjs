@@ -173,6 +173,45 @@ const main = async () => {
       if (!st.dis) await page.click('#mainbtn');
     }
     rec.portraitAt = await page.evaluate(`(() => (document.getElementById('mainbtn')||{}).textContent`+`)()`);
+    // ── 覆審 M1：熱座交棒時，上一位的密封燒香列不得留在 DOM ──
+    // 熱座才有交棒畫面（solo 不會叫 showHandoff），所以另開一局 hotseat 走到「蓋牌，交給下一位」那一下。
+    if (opt.legend !== '0' && opt.legend !== 'none') {
+      await page.evaluate(`(() => { CFG.T = 1;
+        const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+        window.__yaoshi.newGame('hotseat', 5, ['qingmian', 'hongyi']); })()`);
+      const hs = { sawIncbar: false, handoffShown: false, incbarAtHandoff: null, steps: 0 };
+      for (let k = 0; k < 400; k++) {
+        await page.waitForTimeout(20);
+        hs.steps = k;
+        const st = await page.evaluate(`(() => {
+          const ho = document.getElementById('handoff');
+          const b = document.getElementById('mainbtn');
+          return { handoff: !!(ho && getComputedStyle(ho).display !== 'none'),
+                   txt: b ? b.textContent : '', dis: b ? b.disabled : true,
+                   incbar: document.querySelectorAll('#stage .incbar').length }; })()`);
+        if (st.handoff) {
+          hs.handoffShown = true;
+          if (hs.sawIncbar && hs.incbarAtHandoff === null) hs.incbarAtHandoff = st.incbar; // 交棒當下還剩幾個燒香列
+          await page.click('#hoBtn');
+          continue;
+        }
+        if (/蓋牌/.test(st.txt)) {
+          if (st.incbar > 0) hs.sawIncbar = true;
+          await page.evaluate(`(() => { if (typeof incBump === 'function') { incBump(1); incBump(1); } })()`);
+          await page.click('#mainbtn');
+          if (hs.sawIncbar) {  // 交卷之後立刻量：這一下就是 showHandoff 把畫面蓋起來的時候
+            await page.waitForTimeout(60);
+            const now = await page.evaluate(`(() => { const ho = document.getElementById('handoff');
+              return { handoff: !!(ho && getComputedStyle(ho).display !== 'none'),
+                       incbar: document.querySelectorAll('#stage .incbar').length }; })()`);
+            if (now.handoff) { hs.handoffShown = true; hs.incbarAtHandoff = now.incbar; break; }
+          }
+          continue;
+        }
+        if (!st.dis) await page.click('#mainbtn');
+      }
+      rec.hotseat = hs;
+    }
     rec.landscapeFixed = await page.evaluate(OVERFLOW);   // 同一頁的橫式對照（ON／OFF 才比得起來）
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
@@ -190,6 +229,11 @@ const main = async () => {
   console.log(`# 請神 Playwright 驅動（844×390 橫式＋390×844 直式）　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天收攤 ${g.dawnShrines} 龕／結清 ${g.dawn} 筆・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　按鈕出現次數 ${JSON.stringify(g.txts)}`));
+  if (rec.hotseat) {
+    const h = rec.hotseat;
+    const ok = h.sawIncbar && h.handoffShown && h.incbarAtHandoff === 0;
+    console.log(`- 覆審 M1 熱座交棒：出價頁看得到燒香列＝${h.sawIncbar}、交棒畫面出現＝${h.handoffShown}、交棒當下 #stage .incbar 個數＝${h.incbarAtHandoff} → ${ok ? '✅' : '❌'}`);
+  }
   console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
   console.log(`- console error ${rec.errors.length}、pageerror ${rec.pageerrors.length}、requestfailed ${rec.requestfailed.length} → ${okErr ? '✅' : '❌'}`);
   if (!okErr) { rec.errors.slice(0, 5).forEach((e) => console.log('    error: ' + e)); rec.pageerrors.slice(0, 5).forEach((e) => console.log('    pageerror: ' + e)); }

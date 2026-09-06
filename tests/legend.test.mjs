@@ -264,22 +264,27 @@ test('傳說的招掛進紙紮夜戰：殘日的餘暉灼目讓對面前鋒 atk 
   ok(tr&&tr.blindFront>0,'那一尊的招應該帶 blindFront 效果欄位（餘暉灼目）');
 });
 
-/* ---------- 14. 對抗式覆審 H1：燒香燒到 0 的人，錢已經付了，本夜照樣要擲 ---------- */
-test('燒到 0 不影響本夜的擲：h 到天井、壽命剛好燒光的人仍然把那一尊請走',()=>{
+/* ---------- 14. 覆審 H4（使用者 2026-09-07 裁定甲）：燒香上限＝當前壽命 −1，不得把自己燒到 ≤0 ---------- */
+test('燒香夾限：壽命 2 選燒 3 只收 1 且活著；壽命 1 選燒 3 收 0、當夜沒有資格擲',()=>{
   const G=loadGame(TARGET); const S=setup(G);
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
-  S.rng=alwaysFail;
-  /* 第 2 夜的風位是南家（windPid(2)=WIND_SEQ[1]=0），所以同香火時南家先擲——這一案要驗的是
-     「燒光壽命的人還能不能擲」，不是排序規則，所以把風位固定成南家，免得被 2026-09-07 的裁定甲干擾 */
-  S.round=2;
-  /* 南家與東家都先累到 P−1，再把南家的壽命壓到剛好等於今夜要燒的量 */
-  let left=P-1;
-  while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a},3:{shrine:0,amt:a}}); left-=a; }
-  S.players[0].life=1;
-  shrineNight(G,S,{0:{shrine:0,amt:1},3:{shrine:0,amt:1}});
-  eq(legendsOf(S.players[0]).length,1,`南家 h=${P}（天井）、燒光最後 1 點壽命 → 這一尊仍應歸他`);
-  eq(legendsOf(S.players[3]).length,0,'東家不該撿到（撿到＝把已經付過錢的人踢出隊伍）');
-  eq(S.players[0].alive,false,'燒光壽命的人仍然出局（只是請神先結算完才蓋出局旗）');
+  const M=G.CFG.INC_MAX??3;
+  S.rng=alwaysHit;                     /* 骰子必中：有擲就一定請走，用「有沒有請走」反推有沒有擲 */
+  /* 壽命 2 的人選燒滿 → 只能燒 1（要留 1 點），扣完剩 1、還活著、而且照樣擲得到 */
+  S.players[0].life=2;
+  const a=shrineNight(G,S,{0:{shrine:0,amt:M}});
+  eq(a&&a.burn.length?a.burn[0].amt:0,1,`壽命 2 的人選燒 ${M}，實際燒掉的量（上限＝壽命−1）`);
+  eq(S.players[0].life,1,'燒完之後的壽命（要留 1 點）');
+  eq(S.players[0].alive,true,'燒香不得把自己燒死');
+  eq(legendsOf(S.players[0]).length,1,'夾限之後仍然有資格擲（骰子必中 → 應該請走）');
+  /* 壽命 1 的人選燒滿 → 一點都燒不了，當夜就不是「有燒香的人」，沒有資格擲 */
+  const S2=setup(G);
+  S2.rng=alwaysHit;
+  S2.players[0].life=1;
+  const b=shrineNight(G,S2,{0:{shrine:0,amt:M}});
+  eq(b&&b.burn.length?b.burn[0].amt:0,0,'壽命 1 的人實際燒掉的量');
+  eq(S2.players[0].life,1,'壽命 1 的人不該再被扣');
+  eq(legendsOf(S2.players[0]).length,0,'燒 0 就沒有資格擲（骰子必中也請不走）');
+  ok(G.incCap&&G.incCap({life:1})===0&&G.incCap({life:2})===1,'incCap 是單一事實來源：life 1→0、life 2→1');
 });
 
 /* ---------- 15. 對抗式覆審 H2：回天結清不得覆寫「不屬於本輪」的壽命快照 ---------- */
