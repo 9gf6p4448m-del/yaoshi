@@ -80,9 +80,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .shrow{display:flex;gap:5px;font-size:8.5px;color:var(--dim);line-height:1.35;white-space:nowrap;overflow:hidden}
 .shrow span.on{color:var(--gold)}
 .shrow b{font-weight:bold}
-.shgap{font-size:8.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shwhen .shgap{color:var(--dim);margin-left:5px}
 .shtaken{font-size:9px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.shname{font-size:9.5px} .shrow,.shgap{font-size:7.5px}}
+@media(max-width:760px){.shname{font-size:9.5px} .shrow,.shwhen{font-size:7.5px}}
 /* 直式：整個 #rotateHint 蓋住畫面要玩家轉橫（第 39 行），牌桌根本看不到；直式一律收起來，轉橫就回來。 */
 @media (orientation:portrait){ #shrines{display:none} }
 /* 部隊預覽的那一行（市集卡與袋子面板共用；請神 2.0 使用者裁定）：
@@ -203,6 +203,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    的 scrollWidth 撐出 3px（橫式）／6px（直式）——探針 tests/tools/mkt-probe.mjs 指名是 .pickbox。
    兩側各留 5px 之後徽章落在容器內，版面看起來一樣（卡片只窄了 2.5px），不必動徽章本身的視覺設計。 */
 #market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:0 5px}
+/* 直式收起來（**與 #shrines 同一條慣例**，見上面「直式：整個 #rotateHint 蓋住畫面」那一段）：
+   直式的 #table 是 `120px 1fr 120px`，#felt 只剩 ~110px，四張卡各 19px、而掛在卡角的徽章
+   （`.markb` 實測 31px）比整張卡還寬——改欄數也解不掉（實測兩欄反而從 119 變 122）。
+   牌桌在直式本來就被 #rotateHint 整片蓋住、玩家看不到，所以照 #shrines 的做法直接收起來，轉橫就回來；
+   蓋板本身（#rotateHint 的顯示條件與文案）一字未動。 */
+@media (orientation:portrait){ #market{display:none} }
 .mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
 .mcard:active{transform:scale(.97)}
@@ -3572,10 +3578,10 @@ function shrinesHTML(){
       const h=sh.h[p.id]|0;
       return `<span class="${h?"on":""}" title="${DIRS[p.id]}家・${p.name}　香火 ${h}">${DIRS[p.id]}<b>${h}</b></span>`;
     }).join("");
+    /* 只兩列（#felt 的高度預算是零餘裕，GUIDE §11.12）：第一列＝開標夜＋你的位置，第二列＝四家香火 */
     return `<div class="shrine fac-${sh.fac}">${head}
-      <div class="shwhen">${when}</div>
-      <div class="shrow">${cells}</div>
-      <div class="shgap" title="香火最高的人請走；同分依本夜風位起順時針">你 ${mine}・${gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手")}</div></div>`;
+      <div class="shwhen" title="香火最高的人請走；同分依本夜風位起順時針">${when}<span class="shgap">你 ${mine}・${gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手")}</span></div>
+      <div class="shrow">${cells}</div></div>`;
   }).join("")}</div>`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
@@ -4211,7 +4217,7 @@ function incbarHTML(ap){
   const left=cur.night-S.round;
   return `<div class="incbar"><span>🕯️ 燒香</span>${btns}
     <button onclick="incBump(-1)" ${INC.amt<=0?"disabled":""}>−</button><span class="incamt">${INC.amt}</span><button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>
-    <span class="mut">最多 ${cap}${cap<CFG.INC_MAX?`（要留 1 壽命）`:""}・${left>0?`第 ${cur.night} 夜開標（倒數 ${left}）`:"<b>今夜開標</b>"}・你 ${h}／對手最高 ${lead}${h>lead?"（領先）":(h<lead?`（差 ${lead-h}）`:"（平手）")}${INC.amt>0?`・當場扣 ${INC.amt} 壽命，不退`:"・0＝今夜不拜"}</span></div>`;
+    <span class="mut">最多 ${cap}${cap<CFG.INC_MAX?`（留 1）`:""}・${left>0?`第 ${cur.night} 夜開標`:"<b>今夜開標</b>"}・你 ${h}／敵 ${lead}${h>lead?"（領先）":(h<lead?`（差 ${lead-h}）`:"（平）")}${INC.amt>0?`・扣 ${INC.amt} 不退`:"・0＝不拜"}</span></div>`;
 }
 function incPick(i){ if(!INC||!S.shrines[i].open) return; INC.shrine=i; showMarket(); }
 function incBump(d){ if(!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }

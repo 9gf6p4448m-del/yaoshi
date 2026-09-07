@@ -38,6 +38,12 @@ const main=async()=>{
     page.on('pageerror',e=>errs.push(String(e)));
     await page.goto(`http://127.0.0.1:${PORT}/index.html`,{waitUntil:'load'});
     await page.waitForFunction('typeof window.__yaoshi === "object"',{timeout:20000});
+    /* ★守衛：確認瀏覽器拿到的真的是這個 worktree 的檔★
+       踩過的坑：port 被別的（指向主 repo 的）http.server 佔住時，`spawn` 會靜默失敗、
+       瀏覽器連上的是**舊版**，截出來的圖看起來像「改動沒生效」。這裡直接比對 VERSION。 */
+    const want=fs.readFileSync(path.join(ROOT,'index.html'),'utf8').match(/const VERSION="([0-9.]+)"/)[1];
+    const got=await page.evaluate('VERSION');
+    if(got!==want) throw new Error(`拿到的不是這個 worktree 的檔：頁面 VERSION=${got}，檔案 VERSION=${want}（port ${PORT} 可能被別的 http.server 佔住了，換一個 --port 再跑）`);
     await page.evaluate(sd=>{ CFG.T=1;
       const F=window.__yaoshi.PW_FX; for(const k of Object.keys(F)) if(/_MS$/.test(k)) F[k]=1;
       window.__yaoshi.newGame('solo',sd,['qingmian']); },SEED);
@@ -54,9 +60,6 @@ const main=async()=>{
     await page.waitForTimeout(400); await shot('n1');
     /* ①b 市集卡特寫（同一頁，只截 #market 那一塊） */
     { const el=await page.$('#market'); if(el) { const p=`${OUT}-market.png`; await el.screenshot({path:p}); shots.push(p); } }
-    /* ①c 袋子面板（部隊預覽） */
-    await page.evaluate(`(()=>{ showBag(0); })()`); await page.waitForTimeout(250); await shot('bag');
-    await page.evaluate(`(()=>{ closeModal(); })()`); await page.waitForTimeout(120);
     /* ② 第 2 夜盯上宣告頁（說明收成一行） */
     for(let i=0;i<600;i++){ const st=await state(); if(st.round===2&&/不盯任何一件/.test(st.t)) break; await step(); }
     await page.waitForTimeout(300); await shot('mark2');
@@ -69,6 +72,12 @@ const main=async()=>{
       await step();
     }
     await page.waitForTimeout(300); await shot('preshrine');
+    /* ③b 袋子面板（部隊預覽）——拍**袋子最滿的那一席**：治具不出價，南家整局是空袋，
+       拍空袋看不出「為什麼輸」那件事（這一卷加部隊預覽就是為了回答它）。 */
+    await page.evaluate(`(()=>{ const S=window.__yaoshi.S;
+      let best=0; S.players.forEach(p=>{ if(p.bag.length>S.players[best].bag.length) best=p.id; });
+      showBag(best); })()`); await page.waitForTimeout(250); await shot('bag');
+    await page.evaluate(`(()=>{ closeModal(); })()`); await page.waitForTimeout(120);
     /* ④ 直式 */
     await page.setViewportSize({width:390,height:844}); await page.waitForTimeout(400); await shot('portrait');
     await ctx.close();

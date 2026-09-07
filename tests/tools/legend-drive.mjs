@@ -75,7 +75,8 @@ const main = async () => {
     await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
 
     for (const seed of SEEDS) {
-      if (rec.taken > 0 && rec.dawnShrines > 0 && rec.dawn > 0) break;
+      // --all：不提早收工，把 --seeds 給的每一顆都跑完（凍結檔 G6 的「seeds ≥6」照字面走）
+      if (!opt.all && rec.taken > 0 && rec.dawnShrines > 0 && rec.dawn > 0) break;
       rec.seeds.push(seed);
       const g = { seed, nights: 0, clicks: 0, taken: [], dawn: 0, burned: 0, stuck: null, txts: {}, shrineEl: null, incEl: null };
       // 開一局（真人＝南家，角色固定，避免選角畫面的隨機）；把演出節拍壓到最短
@@ -122,6 +123,12 @@ const main = async () => {
         }
         if (step % 400 === 0 && step) console.log(`    …seed ${seed} step ${step} 第 ${st.round} 夜「${st.txt}${st.dis ? '（停用）' : ''}」`);
         if (st.txt === '再入妖市') break;
+        // 供奉危急提示（請神 2.0 §二 6）：那是 #modal 上的兩顆鈕，#mainbtn 這時是停用的，
+        // 不處理的話驅動會卡死在「開戰（停用）」。一律按「要，繼續供奉」＝與 headless 的預設同一條路。
+        const ask = await page.evaluate(`(() => { const m = document.getElementById('modal');
+          if (!m || getComputedStyle(m).display === 'none') return 0;
+          const k = document.getElementById('titheKeep'); if (!k) return 0; k.click(); return 1; })()`);
+        if (ask) { g.titheAsk = (g.titheAsk || 0) + 1; rec.titheAsk = (rec.titheAsk || 0) + 1; stallN = 0; continue; }
         if (!st.dis) { await page.click('#mainbtn'); g.clicks++; stallN = 0; continue; }
         stallN++;
         if (stallN > 25) {
@@ -248,6 +255,7 @@ const main = async () => {
     console.log(`- 覆審 M1 熱座交棒：出價頁看得到燒香列＝${h.sawIncbar}、交棒畫面出現＝${h.handoffShown}、交棒當下 #stage .incbar 個數＝${h.incbarAtHandoff} → ${ok ? '✅' : '❌'}`);
   }
   console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
+  console.log(`- 供奉危急提示（#modal「壽命危急，繼續供奉？」）出現並按「要」的次數：${rec.titheAsk || 0}`);
   console.log(`- console error ${rec.errors.length}、pageerror ${rec.pageerrors.length}、requestfailed ${rec.requestfailed.length} → ${okErr ? '✅' : '❌'}`);
   if (!okErr) { rec.errors.slice(0, 5).forEach((e) => console.log('    error: ' + e)); rec.pageerrors.slice(0, 5).forEach((e) => console.log('    pageerror: ' + e)); }
   console.log(`- 走到「請走」${rec.taken} 次、「回天」${rec.dawnShrines} 龕、「落空的階段獎勵」${rec.rewards} 筆 → ${okPath ? '✅' : '❌'}`);

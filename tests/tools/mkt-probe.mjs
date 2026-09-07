@@ -43,8 +43,16 @@ try{
     return {mkt:{sw:m.scrollWidth,cw:m.clientWidth},cards,rows};
   })()`);
   console.log(`視窗 ${W}×${H}`); console.log(JSON.stringify(scan,null,1));
-  const scan2=await page.evaluate(`(()=>{document.querySelectorAll('.uline').forEach(e=>e.remove());
-    const m=document.getElementById('market'); return {sw:m.scrollWidth,cw:m.clientWidth};})()`);
-  console.log('移除 .uline（本卷新增的部隊預覽行）之後：',JSON.stringify(scan2));
+  /* 直式：在**同一頁**改視窗大小再掃一次（直式沒辦法自己點到出價頁——#rotateHint 蓋板會攔掉點擊） */
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForTimeout(400);
+  const scanP=await page.evaluate(`(()=>{
+    const m=document.getElementById('market'); const mr=m.getBoundingClientRect(); const rows=[];
+    m.querySelectorAll('*').forEach(el=>{const r=el.getBoundingClientRect();
+      if(r.right-mr.right>0.5||mr.left-r.left>0.5) rows.push({tag:el.tagName,cls:(el.className||'').toString().slice(0,30),
+        l:+r.left.toFixed(1),rr:+r.right.toFixed(1),w:+r.width.toFixed(1),txt:(el.textContent||'').trim().slice(0,20)});});
+    return {mkt:{sw:m.scrollWidth,cw:m.clientWidth,l:+mr.left.toFixed(1),r:+mr.right.toFixed(1)},rows};
+  })()`);
+  console.log('直式 390×844（同一頁）：',JSON.stringify(scanP,null,1));
   await ctx.close();
 } finally { await browser.close(); srv.kill(); }
