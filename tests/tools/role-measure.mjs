@@ -24,7 +24,10 @@ import {fileURLToPath} from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
-const INDEX = path.join(ROOT, 'index.html');
+/* --html= 可指向別的版本（例：git show af12d4d:index.html > old.html），
+   用來分辨「治具對不上 roles-res0」是治具的錯還是引擎在那之後改過。 */
+const HTML_ARG = process.argv.find(a => a.startsWith('--html='));
+const INDEX = HTML_ARG ? path.resolve(HTML_ARG.slice(7)) : path.join(ROOT, 'index.html');
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const h = argv.find(a => a.startsWith('--' + k + '=')); return h ? h.slice(k.length + 3) : d; };
@@ -58,7 +61,12 @@ function snapCtx(ctx) {
   for (const k of Object.keys(ctx)) {
     const v = ctx[k];
     if (v === null || ['number', 'boolean', 'string', 'undefined'].includes(typeof v)) s[k] = v;
-    else if (Array.isArray(v)) s['#' + k] = v.length;
+    else if (Array.isArray(v)) {
+      s['#' + k] = v.length;
+      /* 短陣列（拍賣桌就 4 格）連內容一起比：onAiExtraBids 是往 ctx.bids[i] 寫一格，
+         只比長度會漏掉（實測 qingmian／xiaonv 的虛張／攪局標就是這樣被漏算的）。 */
+      if (v.length <= 8) { try { s['$' + k] = JSON.stringify(v); } catch (e) { /* 有環就只比長度 */ } }
+    }
   }
   return s;
 }
