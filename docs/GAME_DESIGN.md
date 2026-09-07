@@ -650,7 +650,7 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 - 2026-09-07（v0.43.3；使用者裁定甲＋乙）：`PW_FX.MAXFIG` 8→10（`FIG.maxFigures` 上限 10，手機 fps 試玩必調，低於可接受再退回 8）；`pwArmyView` 名冊改依拍序 `BEAT_FAC`（祖靈→香火→陰氣，無系肉身殿後）穩定排序，`id` 在排序前指派、不重排（beats 的 actor／target 是 `pwSide` 索引，DOM 晶片與 3D `figureOf` 都靠它對位；`pwEvFac` 改用 id 查找）。引擎零改動（`trace(1..20)` 與 ef24d07 逐位元組相等）。凍結檔 `docs/experiments/2026-09-07-acceptance-lineup.md` G1–G7；單元測試 `tests/lineup-order.test.mjs`（對舊版紅在 fac 序列）。
 - 2026-09-07（v0.44，請神小卷；使用者裁定 N1 乙／傳說預設開／**N7 裁丙撤案**）：兩件事——①**同香火者的擲骰先後改成隨機洗牌**（`resolveShrines` 對同 `h` 並列組跑 `S.rng()` Fisher–Yates，並列人數 1 時不消耗亂數；原「從本夜風位家起順時針」與 `shrineOrderKey` 一併移除，不留死碼）。動機：v0.43 實測 3000 局 1643 組並列，座位 0 拿到公平份額的 1.183 倍、座位 1 只有 0.770 倍（χ²=37.53, df=3）——風位輪轉字面上不固定在同一家，但公平意義不成立。②**`CFG.LEGEND_ON` 預設 `false→true`**（`?legend=0` 仍可關），請神正式進入線上賽局。**③ N7『天井者免燒香也具擲骰資格』提出後撤案（使用者裁丙）**：原本要救的「壽命剩 1 的人到了天井卻請不走」是**不可達狀態**——`h` 只有燒香一條增加路徑，而 `h` 一到天井那一夜就必請並當夜關龕；壽命剩 1 者 `incCap=0` 也累積不到天井。冷讀對抗式覆審用不變量＋探針證出後，整段（引擎、AI、規則頁、燒香面板、結算卡）拔除，不留死碼、不教假規則；回天結清時「`h≥`天井」人次＝0 這條**不變量守衛**保留（`shrineStat.dawnPity`／閘門 A6）。驗收凍結 `docs/experiments/2026-09-07-acceptance-legend-n1n7.md`（§2.1 有 A0-b 改寫與 N7 撤案兩筆），實跑報告 `docs/experiments/2026-09-07-legend-n1n7-report.md`。
 
-- 2026-09-07（v0.45；角色平衡卷，使用者裁定「都照建議」）：依量法卷（`docs/experiments/2026-09-07-role-measure-report.md`）做四件——
+- 2026-09-07（v0.46；角色平衡卷，使用者裁定「都照建議」；分支併入 main 的 v0.45＝近景切鏡批 1 之後編號）：依量法卷（`docs/experiments/2026-09-07-role-measure-report.md`）做四件——
   ①**兩個被動改接紙紮夜戰真正吃的那條路**：斷手書生「同系 ≥4 件」由 `ctx.flat+=4`（只進 PAPERWAR_ON 之後已不決定勝負的 `power()`）改成該系
   `ctx.resonanceMul*=1.5`（`pwResLv` 只讀這個；`pwResLv` 的 ctx 新增 `fac` 欄位讓逐系被動分辨算哪一系）；閭山法師的「詛咒品戰力視為 0」原本只寫在
   `onItemValue`，而紙紮的詛咒懲罰是 `pwMod` 的 `m-=sd.curses`（數件數），改成 `traits.curseWard`＋`pwSide` 查一次＋`pwMod` 判分支（`traits` 在本專案首次被用到）。
