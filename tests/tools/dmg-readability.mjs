@@ -430,10 +430,22 @@ async function runPix(browser) {
     M.cfg = { synth: ${synth}, maxFloat: ${maxFloat}, maxHit: ${maxHit} };
     M.nFloat = 0; M.nHit = 0;
     // 跳字：冒出來 +150ms（彈完、正在飄）凍住量對比度
+    // 跳字冒出來 +150ms（彈完、還沒開始淡）凍住量對比度。忙就再等一拍——
+    // 閃紅的凍幀序列一次佔住 4 格，不重試的話跳字的樣本會被吃光（實測一整場只剩 2 筆）。
+    M.lastFloatT = -1e9;
     window.__dmgArmFloat = (seq) => {
-      if (M.busy || M.nFloat >= M.cfg.maxFloat) return;
-      M.nFloat++;
-      M.run('float', { seq: seq }, [150]);
+      if (M.nFloat >= M.cfg.maxFloat) return;
+      M.lastFloatT = performance.now();
+      let tries = 0;
+      const go = () => {
+        if (M.nFloat >= M.cfg.maxFloat) return;
+        const el = document.querySelector('.dmgfloat[data-mseq="' + seq + '"]');
+        if (!el) return; // 已經飄完了就算了
+        if (M.busy) { if (++tries < 8) setTimeout(go, 60); return; }
+        M.nFloat++;
+        M.run('float', { seq: seq }, [0]);
+      };
+      setTimeout(go, 150);
     };
     // 閃紅：由治具自己派刺激（新舊兩版同一顆事件）。四格 [0, 40, 40, 200]：
     //   f0＝探路、f1＝命中前（**在這一格凍住之後才派事件**，所以畫面停在命中前）、f2＝命中後 40ms、f3＝+200ms。
@@ -467,6 +479,7 @@ async function runPix(browser) {
     M.tryFire = () => {
       if (M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return;
       if (!M.duelOn || performance.now() - M.duelT < 1600) return;
+      if (performance.now() - M.lastFloatT < 700) return; // 剛冒出跳字：讓 R1 的取樣先做完
       const ov = document.getElementById('duel');
       if (!ov || getComputedStyle(ov).opacity !== '1') return; // 淡入淡出中不量
       const side = (M.nHit % 2) ? 'B' : 'A', foe = side === 'B' ? 'A' : 'B';
