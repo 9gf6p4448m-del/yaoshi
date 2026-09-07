@@ -40,13 +40,14 @@ const PROBE = `(() => {
   const V3 = cam.position.constructor;
   const tmp = new V3();
   // 某個 Object3D 在螢幕空間（NDC，x/y ∈ [-1,1]）的 2D 包圍盒；沒有幾何或整個在鏡頭後面回 null
+  // 可見性單獨當一個欄位回報，**不在包圍盒計算裡短路**（A4 二版，凍結檔 §2.1）：
+  // 短路會讓「整組藏起來」的實作在幾何判準上空手通過，那是把判準搬淺。
   function shown(o) { for (let n = o; n; n = n.parent) if (!n.visible) return false; return true; }
   function ndcBox(root) {
     let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, any = false, behind = 0, total = 0;
-    if (!shown(root)) return null;
     root.updateWorldMatrix(true, true);
     root.traverse((o) => {
-      if (!o.isMesh || !shown(o) || !o.geometry) return;
+      if (!o.isMesh || !o.geometry) return;
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
       const b = o.geometry.boundingBox; if (!b) return;
       for (let i = 0; i < 8; i++) {
@@ -70,7 +71,7 @@ const PROBE = `(() => {
   const overlap = (a, b) => !!a && !!b && a.minx < b.maxx && b.minx < a.maxx && a.miny < b.maxy && b.miny < a.maxy;
   const fars = [];
   scene.traverse((o) => { if (o.name && o.name.indexOf('far-') === 0) fars.push(o); });
-  return { V3, cam, scene, r, ndcBox, onScreen, overlap, fars };
+  return { V3, cam, scene, r, ndcBox, onScreen, overlap, shown, fars };
 })()`;
 
 async function probeFar(page, kind) {
@@ -79,7 +80,7 @@ async function probeFar(page, kind) {
     const out = { kind: ${JSON.stringify(kind)}, fars: [] };
     for (const o of P.fars) {
       const b = P.ndcBox(o);
-      out.fars.push({ name: o.name, visible: o.visible, box: b, onScreen: P.onScreen(b) });
+      out.fars.push({ name: o.name, visible: o.visible, shown: P.shown(o), box: b, onScreen: P.onScreen(b) });
     }
     return out;
   })(${PROBE})`);

@@ -38,7 +38,7 @@ async function run(browser, query) {
     const el = document.getElementById('fpsDiag');
     return { exists: !!el, text: el ? el.textContent : null };
   });
-  const m = r.text && r.text.match(/fps 中位 (\d+)[^|]*\|\s*draw calls (\d+)\s*\|\s*三角形 (\d+)/);
+  const m = r.text && r.text.match(/fps 平均 (\d+)[^|]*\|\s*draw calls (\d+)\s*\|\s*三角形 (\d+)/);
   await page.close();
   return { query: query || '(none)', ...r, fps: m ? Number(m[1]) : null, calls: m ? Number(m[2]) : null, tris: m ? Number(m[3]) : null, errors: errs };
 }

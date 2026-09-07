@@ -31,7 +31,7 @@ const { createTraitFx } = await import('./trait-fx.js' + V);
 // 同一份 bloom 貼圖加進去之後被推得更高、也更往白色去（ACES 高光本來就會去飽和），
 // 所以萃取門檻要往上收，只留真正的光源。0.9＝「燈籠與火星還會發光、木桌與人臉不會」的落點
 // （前後對照見 docs/experiments/2026-09-07-art-a-report.md 的 A6 contact sheet）。【試玩必調】
-const BLOOM = { strength: 1.05, threshold: 0.9, knee: 0.3, radius: 1.7, scale: 0.5 };
+const BLOOM = { strength: 1.05, threshold: 0.7, knee: 0.3, radius: 1.7, scale: 0.5 };
 
 // 深度邊緣線（後處理卷 P-3，2026-09-06）：實作與參數在 js/bloom.js（折進合成那一趟）。
 // 關閉鉤 `?edge=0`——正式頁沒帶就是開（undefined＝開），跟 index.html 的 ?fxcount 同一種解析法。
@@ -83,8 +83,11 @@ function init() {
   // 美術甲卷（v0.46）：色調映射改成全域，牌桌／市集（玩家 90% 時間看的畫面）也吃得到。
   // three 只在「畫到畫布」那一趟注入 tonemapping／colorspace，畫進 render target 的一律是
   // 線性未映射值——bloom 的場景那一趟正是畫進 RT，所以它不會被重複映射；bloom 的合成那一趟
-  // 才是畫到畫布的那一趟，由 js/bloom.js 用 ShaderMaterial 讓 three 注入同一組 chunk，
-  // 兩條路（直接 render／bloom）因此走同一條曲線、同一個曝光。outputColorSpace 明寫，不吃預設。
+  // 才是畫到畫布的那一趟，由 js/bloom.js 用 ShaderMaterial 讓 three 注入同一組 chunk。
+  // 實測（bloom 開／關同一幀對照）：**不透明幾何兩條路逐值一致（差 <1/255）；半透明與粒子
+  // 仍有落差（~12/255）**——它們的混色發生在不同的色彩空間（直接 render 是在畫布上混已映射值，
+  // bloom 是在線性 RT 裡混再一起映射）。所以不能說「兩條路同一條曲線」，只能說不透明部分對得上。
+  // outputColorSpace 明寫，不吃預設。
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = ENV.EXPOSURE;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -217,14 +220,13 @@ function init() {
     stageOn += ((kind === 'duel' ? 1 : 0) - stageOn) * Math.min(1, dt * 3);
     stageRig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
     stageRig.setIntensity(stageOn < 0.01 ? 0 : stageOn);
-    // 遠景剪影跟著戲台燈反向淡出：對決是「戲台」，機位壓到俯角 24° 就會看見水平線上方，
-    // 那一圈屋脊正好落在兩隊人形的高度上（實測 NDC y 0.28～0.53，人形是 −0.5～0.75）。
-    // 凍結檔 A4 明訂「不得擋到對決人形」，所以進對決就把它收掉——順帶少 5 個 draw call
-    // 在整局最重的那個場景。opacity 到 0 就整個 visible=false（不進 render list）。
+    // 遠景剪影在對決淡到 FAR_DUEL_OPACITY（0.30），**不藏起來**（使用者 2026-09-07 裁定）。
+    // 「不得擋到對決人形」靠的是深度：剪影離桌心 8.5～12，人形站在桌面（半徑 3.4）以內，
+    // 對決機位下實測 min(剪影距相機)=9.30 > max(人形距相機)=4.93，任何一尊都在剪影前面。
+    // 之前那版是整組 visible=false，量出來當然 0 重疊——那是把判準搬淺，不是把問題解掉。
     {
-      const o = (1 - stageOn) * ENV.FAR_OPACITY;
-      far.visible = o > 0.02;
-      if (far.visible) far.children.forEach((m) => { m.material.opacity = o; });
+      const o = ENV.FAR_OPACITY + (ENV.FAR_DUEL_OPACITY - ENV.FAR_OPACITY) * stageOn;
+      far.children.forEach((m) => { m.material.opacity = o; });
     }
     if (kind !== lastKind) {
       lastKind = kind;

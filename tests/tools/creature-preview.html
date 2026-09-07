@@ -74,7 +74,7 @@ const GLB = !GLB_Q ? '../../assets/creatures/tiger.glb'
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // 對決那一段的參數（與 renderer.js 的 BLOOM 同一組數值，這頁不另外調）
-const BLOOM = { strength: 1.05, threshold: 0.9, knee: 0.3, radius: 1.7, scale: 0.5 };
+const BLOOM = { strength: 1.05, threshold: 0.7, knee: 0.3, radius: 1.7, scale: 0.5 };
 
 const canvas = document.createElement('canvas');
 Object.assign(canvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%' });

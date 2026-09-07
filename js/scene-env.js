@@ -61,7 +61,11 @@ export const ENV = {
   // （專案鐵則）。夜市燈籠串那幾點是同一份幾何裡的暖色頂點，所以一片剪影＝1 個 draw call。
   FAR_DARK: 0x0a0710, // 剪影本體：近黑帶一點紫（純黑在夜色裡看起來像破圖）
   FAR_LAMP: 0xff8a3a, // 屋簷燈籠串
-  FAR_OPACITY: 1.0,
+  FAR_OPACITY: 1.0, // 牌桌／市集：全不透明
+  // 對決時的不透明度（使用者 2026-09-07 裁定：**保留**遠景、不要整組藏）。0.30 是覆審實測的落點——
+  // 對決畫面只有地平線那一帶約 3.2% 的畫素有變動、人形所在的區域 0 變動。
+  // 「不得擋人形」改由深度判準把關（min(剪影距相機) > max(人形距相機)），不是靠藏起來。【試玩必調】
+  FAR_DUEL_OPACITY: 0.30,
 };
 
 // 四盞燈籠改成四種色溫與亮度（東 青白／南 橘／西 琥珀／北 暗紅）。
@@ -147,7 +151,7 @@ function silhouette() {
  *  地面上的東西要離鏡頭 < 2.065/tan(8.7°) ≈ 13.5 才進得了畫面，所以距離取 8.5～13。 */
 function createFarSilhouettes() {
   const g = new THREE.Group();
-  g.name = 'far-group';
+  g.name = 'far'; // 容器不叫 far-*：治具掃的是 name 以 `far-` 開頭的物件，容器同名會被多算一筆
   const D = ENV.FAR_DARK, L = ENV.FAR_LAMP;
 
   // ① 廟宇屋脊（燕尾脊：兩段翹起的梯形頂＋殿身）

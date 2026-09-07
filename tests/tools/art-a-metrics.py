@@ -3,12 +3,17 @@
 
 跑法：python tests/tools/art-a-metrics.py <png> [<png> ...]
 輸出：每張圖一行 JSON——
-  a3_top / a3_bottom：畫面「上 10% 列」與「下 10% 列」的平均 RGB（0-255）
-  a3_deltaE        ：兩者的 CIE76 ΔE（sRGB→線性→XYZ(D65)→Lab）。A3 門檻：新版 ≥15、基準 <5
+  a3_top / a3_bottom / a3_deltaE ：**一版量法（已由使用者裁定汰換，只留著當對照）**——整張截圖
+                     上 10% 列與下 10% 列的平均 RGB 與 CIE76 ΔE。它量到的是「背景 vs 木桌」與
+                     DOM 面板的對比，與天空漸層無關（基準 24.96 反高於新版）。
+  a3sky_top / a3sky_bottom / a3sky_deltaE ：**二版量法（現行 A3）**——純 3D 圖、x∈[20%,80%]、
+                     上帶 rows [2%,5%] vs 下帶 [9%,12%]（皆在桌沿以上）、逐通道中位數、CIE76 ΔE。
+                     門檻：新版 ≥ 8、基準 7ab389e 須 <5。
   a5_corner        ：四角各 5%（寬 5% × 高 5%）區域的平均亮度（Rec.709 相對亮度，0-255 尺度）
   a5_center        ：中央 20%（寬 20% × 高 20%）區域的平均亮度
-  a5_ratio         ：a5_corner / a5_center。A5 門檻：新版 <0.8、基準 ≥0.9
-量測位置＝玩家實際看到的那張截圖（含 DOM 面板），不是只有 canvas——A3/A5 條文寫的就是「截圖」。
+  a5_ratio         ：a5_corner / a5_center。**A5 二版**：量測位置改成純 3D 圖（`*-table3d.png`），
+                     門檻 0.8 不動（基準 0.8185 不過、新版 0.4648 過＝有鑑別力）。
+**A3／A5 一律量 `*-table3d.png`（純 3D）**；含 UI 的 `*-table.png` 只留著當參考，不當判準。
 """
 import json
 import sys
@@ -43,6 +48,18 @@ def measure(path):
     bot = a[h - rows:].reshape(-1, 3).mean(axis=0)
     dE = float(np.linalg.norm(srgb_to_lab(top) - srgb_to_lab(bot)))
 
+    # A3 二版量法（使用者 2026-09-07 裁定同意，記在凍結檔 §2.1）：只量「天空那一段」。
+    # 一版量整張截圖的上下 10%，量到的是「背景 vs 木桌」與 DOM 面板的對比，與天空漸層無關
+    # （基準 24.96 反而高於新版）。二版限定：純 3D 圖、x 取中間 [20%,80%]（避開左右邊緣的
+    # 桌沿與粒子）、上帶 rows [2%,5%] 對下帶 [9%,12%]（兩條都在桌沿以上，都落在天空裡）、
+    # 逐通道**中位數**（不是平均——避開火星／煙這種亮點的拉扯）、再比 CIE76 ΔE。門檻 ≥ 8。
+    xs, xe = int(round(w * 0.20)), int(round(w * 0.80))
+    sky_t = a[int(round(h * 0.02)):max(int(round(h * 0.02)) + 1, int(round(h * 0.05))), xs:xe]
+    sky_b = a[int(round(h * 0.09)):max(int(round(h * 0.09)) + 1, int(round(h * 0.12))), xs:xe]
+    med_t = np.median(sky_t.reshape(-1, 3), axis=0)
+    med_b = np.median(sky_b.reshape(-1, 3), axis=0)
+    dE_sky = float(np.linalg.norm(srgb_to_lab(med_t) - srgb_to_lab(med_b)))
+
     cw, ch = max(1, int(round(w * 0.05))), max(1, int(round(h * 0.05)))
     corners = [a[:ch, :cw], a[:ch, w - cw:], a[h - ch:, :cw], a[h - ch:, w - cw:]]
     corner_l = float(np.mean([luma(c) for c in corners]))
@@ -55,6 +72,9 @@ def measure(path):
         "a3_top": [round(v, 2) for v in top],
         "a3_bottom": [round(v, 2) for v in bot],
         "a3_deltaE": round(dE, 2),
+        "a3sky_top": [round(v, 2) for v in med_t],
+        "a3sky_bottom": [round(v, 2) for v in med_b],
+        "a3sky_deltaE": round(dE_sky, 2),
         "a5_corner": round(corner_l, 3),
         "a5_center": round(center_l, 3),
         "a5_ratio": round(corner_l / center_l, 4) if center_l else None,

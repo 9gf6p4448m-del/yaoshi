@@ -13,6 +13,9 @@
 // 由 three 注入同一組 chunk 收尾。v0.45 之前這裡是自己手刻一段 ACES＋sRGB，於是牌桌（不走 bloom）
 // 完全沒有映射、對決（走 bloom）走的是另一條曲線，兩個場景對不起來；現在兩條路共用
 // renderer.toneMapping／toneMappingExposure 那一組設定，這個檔案裡不再有任何手刻的映射。
+// 對得上到什麼程度（實測，不是推論）：**不透明幾何逐值一致（差 <1/255）；半透明與粒子仍差
+// ~12/255**——直接 render 是在畫布上混「已映射」的值，bloom 是在線性 RT 裡混完再一起映射，
+// 混色發生的色彩空間不同。所以敘述上不能寫「兩條路完全同一條曲線」。
 // 代價：合成這一趟必須是 ShaderMaterial（RawShaderMaterial 不吃 three 的注入）。SwiftShader 上
 // ShaderMaterial 會連結失敗——但 renderer.js 的 bloomOK 在軟體 GL 上根本不呼叫 bloom.render()，
 // 這支 program 因此不會被編譯；bright／blur 兩支維持 RawShaderMaterial 不動。
