@@ -191,7 +191,7 @@ const HARNESS = `(() => {
       const go = () => {
         F.freeze();
         if (onStep) { try { onStep(k); } catch (e) {} } // 凍住之後才動作（例如派刺激）：畫面停在動作發生前那一幀
-        M.ready = { tag: tag, meta: meta, step: k, at: steps[k], cam: M.camPos(), hk: M.hitK(), bn: M.burns.length, ids: [M.liveUnits('A'), M.liveUnits('B')] };
+        M.ready = { tag: tag, meta: meta, step: k, at: steps[k], cam: M.camPos(), hk: M.hitK(), bn: M.burns.length, on: !!M.duelOn, ids: [M.liveUnits('A'), M.liveUnits('B')] };
       };
       if (d <= 0) go(); else setTimeout(go, d);
     };
@@ -452,8 +452,13 @@ async function runPix(browser) {
     M.duelOn = false; M.duelT = 0;
     document.addEventListener('ys:duel', () => { M.duelOn = true; M.duelT = performance.now(); });
     document.addEventListener('ys:duel-end', () => { M.duelOn = false; });
+    // 已經被燒掉（或正在燒）的尊不當刺激目標：燒毀中的尊照規矩就不閃（凍結檔 R2 的另一半），
+    // 拿它當「應該要閃」的樣本量到的必然是 0，那不是實作壞了，是刺激打錯對象。
+    M.burnt = new Set();
+    document.addEventListener('ys:fx-burn', (e) => { const d = e.detail || {}; M.burnt.add(d.side + ':' + d.unit); });
+    document.addEventListener('ys:duel', () => { M.burnt.clear(); });
     M.pickTarget = (side) => {
-      const us = M.liveUnits(side).filter((u) => typeof u === 'number');
+      const us = M.liveUnits(side).filter((u) => typeof u === 'number' && !M.burnt.has(side + ':' + u));
       const rows = us.map((u) => { const b = M.figBox(side, u); return { u: u, a: b ? (b.x1 - b.x0) * (b.y1 - b.y0) : 0, b: b }; })
         .filter((r) => r.b && r.b.x0 > -20 && r.b.x1 < innerWidth + 20 && r.b.y0 > -20 && r.b.y1 < innerHeight + 20)
         .sort((p, q) => q.a - p.a);
@@ -476,7 +481,7 @@ async function runPix(browser) {
       M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe });
     };
     document.addEventListener('ys:duel', () => {
-      const tick = () => { M.tryFire(); if (M.nHit < M.cfg.maxHit) setTimeout(tick, 300); };
+      const tick = () => { M.tryFire(); if (M.nHit < M.cfg.maxHit) setTimeout(tick, 220); };
       setTimeout(tick, 1700);
     });
     // 燒毀中的尊不得閃紅：燒到一半對同一尊派一顆 hit（真實路徑上的守衛探針）
@@ -501,9 +506,9 @@ async function runPix(browser) {
     });
     // R5：派一顆 hit → +40ms 按跳過 → +300ms 量
     window.__dmgSkipPix = () => {
-      const side = 'A', us = M.liveUnits(side);
-      if (M.busy || !us.length) return false;
-      const unit = us[0];
+      const side = 'A', rows = M.pickTarget(side); // 已燒掉的尊不能當目標（它照規矩本來就不閃）
+      if (M.busy || !rows.length || !M.duelOn) return false;
+      const unit = rows[0].u;
       return M.run('skip', { side: side, unit: unit }, [0, 40, 340], (k) => {
         if (k === 0) { try { document.dispatchEvent(new CustomEvent('ys:fx-hit', { detail: { side: side, unit: unit, ms: 120, __synth: true } })); } catch (e) {} }
         if (k === 1) { try { window.doSkip(); } catch (e) {} } // 正在閃的時候按跳過
@@ -520,7 +525,7 @@ async function runPix(browser) {
 
   const pump = async (pg) => {
     for (let guard = 0; guard < 6; guard++) {
-      const r = await pg.evaluate(() => (window.__dmg.ready ? { tag: window.__dmg.ready.tag, meta: window.__dmg.ready.meta, step: window.__dmg.ready.step, at: window.__dmg.ready.at, cam: window.__dmg.ready.cam, hk: window.__dmg.ready.hk, bn: window.__dmg.ready.bn, ids: window.__dmg.ready.ids } : null)).catch(() => null);
+      const r = await pg.evaluate(() => (window.__dmg.ready ? { tag: window.__dmg.ready.tag, meta: window.__dmg.ready.meta, step: window.__dmg.ready.step, at: window.__dmg.ready.at, cam: window.__dmg.ready.cam, hk: window.__dmg.ready.hk, bn: window.__dmg.ready.bn, on: window.__dmg.ready.on, ids: window.__dmg.ready.ids } : null)).catch(() => null);
       if (!r) return;
       if (r.step === 0) runId++;
       const file = path.join(shotDir, `${String(++nshot).padStart(4, '0')}-${r.tag}-${r.step}.png`);
@@ -539,7 +544,7 @@ async function runPix(browser) {
         }
       } else if ((r.tag === 'flash' || r.tag === 'skip') && im) {
         const boxes = await pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined || m.control === null ? null : window.__dmg.figBox(m.ctrlSide || m.side, m.control) }), r.meta).catch(() => null);
-        const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
+        const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, on: r.on, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
           t: num(boxes && boxes.t ? redness(im, boxes.t) : null),
           c: num(boxes && boxes.c ? redness(im, boxes.c) : null) };
         (r.tag === 'skip' ? samples.skip : samples.flashes).push(row);
@@ -611,7 +616,9 @@ function judgePix(S) {
     // 有燒毀夾進來的樣本一律作廢：燒毀會放一片全螢幕暖光（#duel .flashfx，ys3d 下是橘黃漸層），
     // 整個畫面的紅偏量都會抬起來——那不是「被打的尊在閃」，量到的是背景。
     row.burnIn = (g[2].bn !== undefined && g[0].bn !== undefined) ? (g[2].bn - g[0].bn) : null;
-    row.usable = row.d40 !== null && row.d0 !== null && Math.abs(row.d0) <= 5 && !row.burnIn;
+    // 對決收場（ys:duel-end）之後人形停止更新、閃紅照規矩不演——那不是實作壞了，是刺激落在演出之外。
+    row.duelOn = [0, 1, 2].every((k) => g[k] && g[k].on !== false);
+    row.usable = row.d40 !== null && row.d0 !== null && Math.abs(row.d0) <= 5 && !row.burnIn && row.duelOn;
     seqs.push(row);
   }
   const moved = seqs.filter((x) => !x.usable);
@@ -641,6 +648,6 @@ function judgePix(S) {
     back200max: live.filter((x) => x.d200 !== null).length ? Math.max(...live.filter((x) => x.d200 !== null).map((x) => Math.abs(x.d200))) : null,
     ctrlMax: live.filter((x) => x.ctrl40 !== null).length ? Math.max(...live.filter((x) => x.ctrl40 !== null).map((x) => x.ctrl40)) : null,
     burnProbes: burning.length, burnMax: burning.length ? Math.max(...burning.map((x) => Math.abs(x.d40))) : null,
-    rejected: moved.length, rejBurn: seqs.filter((x) => x.burnIn).length, noiseMax: live.filter((x) => x.d0 !== null).length ? Math.max(...live.map((x) => Math.abs(x.d0 || 0))) : null,
+    rejected: moved.length, rejBurn: seqs.filter((x) => x.burnIn).length, rejOffDuel: seqs.filter((x) => !x.duelOn).length, noiseMax: live.filter((x) => x.d0 !== null).length ? Math.max(...live.map((x) => Math.abs(x.d0 || 0))) : null,
     skipFlash: skFlash, skipAfter300: skD } };
 }
