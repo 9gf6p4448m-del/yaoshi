@@ -725,7 +725,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
-### 11.22 請神 2.0「神債暗標」（2026-09-07，v0.47）——接手前先知道這九件事
+### 11.23 請神 2.0「神債暗標」（2026-09-07，v0.47）——接手前先知道這九件事
 
 規格＝提案 `docs/proposals/2026-09-07-legend-v2-debt-auction.md` §二（11 條）＋驗收凍結
 `docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11）。實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。
@@ -764,6 +764,31 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    `anim-stamp-in` 放大到 2.26 倍 ⇒ 凸出 18.6px，已改 `#east .mark-stamp{left:-6px}`）與**最右那張卡的
    `.pickbox`／`.mybid`**（`right:-4px` ⇒ 3px，已由 `#market{padding:0 5px}` 吸收）。
    定位工具：`tests/tools/overflow-probe.mjs`（對 `#table`）與 `tests/tools/mkt-probe.mjs`（對 `#market`）。
+### 11.22 對決「近景切鏡」批 1 原型（2026-09-07，v0.45）——接手前先知道這五件事
+
+規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二；驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9）；
+報告與連拍＝`docs/experiments/2026-09-07-closeup-p1-report.md`。純演出卷：引擎（`paperWar`／`pwRec`／`buildArmy`／`S.rng`）一行未動。
+
+1. **一個新事件串起三個檔**：`index.html` 的 `pwPlayBeat` 在「該拍第一筆 `amount ≥ PW_FX.FOCUS_DMG` 的 hit」與
+   「該拍第一隻 burn」派 `ys:fx-focus {kind,side,actor,foeSide,target,ms,dim,shrink}`（一拍最多 `FOCUS_PER_BEAT` 次）。
+   接收端各自獨立：`camera-director.js` 的 FOCUS 層推近鏡頭、`duel-figures.js` 的 `focusState` 每幀算退暗。
+   兩邊**各算各的包絡**（進 160ms／回 220ms 同一組數字），不互相依賴——3D 沒載入時 DOM 那半邊照樣成立。
+2. **推近之所以看得到，是因為 focus 期間凍結了 `realign()`**：`realign` 會依 `camera.position.length()`
+   把人形等比縮回「固定 CSS 像素高」，鏡頭 4.2→2.6 的放大量剛好被它抵銷，只 dolly 的話畫面**一點都不會變**。
+   凍結的起訖點 dist 都是 4.2，所以回全景時凍住的那組值仍然正確，收尾不跳。
+   附帶好處：dist 抖動期間不會去動 `camStable`（排法鎖點見 `rowsFit`）。
+3. **focus 不記進 `cur*`（與 punch 同一條紀律）**：`cur*` 是補間起點。把 focus 算進去的話，切鏡進行中收到
+   `ys:fx-trait-cancel`／`ys:duel-end` 時 `clearOrbitLean` 會拿 2.6 當起點，基座得自己再爬 700ms 回 4.2
+   （實測 cancel 後 300ms 只回到 3.08）。分開之後 cancel 只是讓 `focusK` 在 220ms 內歸零，位置照樣連續。
+   同理 `endFocus()` 走的是獨立的回位段旗標 `focusFall`，不得再經過進場段（經過的話前 160ms 維持滿幅、回位變 380ms）。
+4. **退暗一定要每幀算，不能收到事件設一次**：主迴圈每幀都對每一尊寫 `setFigureOpacity((haunt?0.5:1)*(1-bu)*fdim)`，
+   一次性設值下一幀就被蓋掉。**燒毀中的尊（`bt != null` 或工廠自己的 `burn()` 在演）完全不參與退暗與復原**——
+   它的 opacity 歸燒毀曲線管，退暗會讓化灰演到一半變淡、復原會讓它突然變回實心。
+   池是重用的，所以 `resetFigure`／`onDuelEnd` 要 `restoreDim()` 把退暗寫回去，否則下一場開場就有半透明的尊。
+5. **治具**：`closeup-drive.mjs`（真實路徑錄相機逐幀／退暗抽樣／跳字 DOM／HUD；`--cancel`、`--skipfocus` 兩個中斷探針）
+   → `closeup-judge.mjs`（照凍結檔判 P0–P7）→ `closeup-shots.mjs`＋`closeup-sheet.py`（連拍與 contact sheet）、
+   `closeup-trace.mjs`（P0 的引擎逐位元組比對）。**截圖有 250–450ms 的延遲**（輪詢＋`page.screenshot`），
+   要拍「切鏡當下」得把 mark 的延遲往前挪，否則整批會拍到切鏡結束後的全景（實測踩過）。
 
 ### 11.21 對決演出「沒兵仍出招／隻數不同步」修復（2026-09-07，分支 v0.42.2 → 併入 main 為 v0.43.1）——接手前先知道這三件事
 

@@ -94,6 +94,28 @@ const CLEAR_MS_MAX = 700;
 //     與 trait-fx.js:339（招式積木自己叫），燒毀都不經過它們 → 這裡自己觸發不會變雙重 punch。
 const BURN_PUNCH_POWER = 1.5;
 
+// 近景進行中的相機距離下限（v0.45 三版，二版訂 1.6 是算錯的）：
+// 合法最低＝FOCUS.dist 2.6 − PUNCH.dist 0.6 × 力道上限 2 ＝ **1.4**，而 power=2 是真的到得了的值
+// （bolt：PW_KIND.bolt.p 1.5 × fxPower ≤1.6 ＝ 2.4，onPunch 夾成 2）。訂 1.6 會把最重那一擊的
+// 最後 0.2 個世界單位默默削掉——保險絲不該擋住合法的演出。
+const FOCUS_FLOOR = 1.4;
+
+// (d) 近景切鏡（v0.45 批 1 原型，規格 docs/proposals/2026-09-07-duel-closeup.md §二.1）：
+//     ys:fx-focus 進來時把鏡頭推近到出手者與目標身上，ms 之後回全景。
+//     **只動 dist／tilt／lookAt 三樣，yaw 一律不碰**——yaw 已經有 orbit 與 lean 兩層在疊，
+//     再加一層會跟它們搶同一個量；而且 camera.position 仍然是「以桌心為球心」算出來的，
+//     所以 |camera.position| 恆等於 dist（驗收 P2 量的就是它，focus 期間才量得乾淨）。
+//     鏡頭「變近景」的觀感來自兩件事一起發生：① 相機到交鋒中點的實際距離縮短
+//     ② duel-figures.js 在 focus 期間凍結 realign（不再依相機距離回縮人形），
+//     所以 4.2→2.6 是真的放大 1.6 倍，不是被人形縮放抵銷掉。
+const FOCUS = {
+  dist: 2.6, // FOCUS_DIST：推到多近
+  tilt: 18, // FOCUS_TILT：俯角略降（比 DUEL_SHOT 的 24 更貼桌面）
+  inMs: 160, // 進：ease-out
+  outMs: 220, // 回：ease-in-out
+  aimY: 0.55, // 交鋒中點往上抬到胸口高度（人形腳底在 y=0.15）
+};
+
 /** prefers-reduced-motion（判法照抄 js/trait-fx.js:83）：(a)(b) 整段 no-op，(c) 的 punch 維持現行行為。 */
 function prefersReduced() {
   try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
@@ -152,6 +174,16 @@ export function createCameraDirector(camera, lanterns) {
   let curYaw = base.yaw;
   let curLookY = base.lookY;
   const lookAt = new THREE.Vector3();
+  // 近景切鏡（v0.45）：focusOn＝這一次切鏡還在跑（含回位段）；focusK 是包絡值 0..1。
+  // focusK0＝這一次切鏡起跳時的包絡值——同一拍第二次 focus 直接從當下接續，不先回全景（規格 §二.1）。
+  let focusOn = false;
+  let focusAt = 0;
+  let focusMs = 0;
+  let focusK0 = 0;
+  let focusK = 0;
+  let focusFall = false; // true＝正在回位（endFocus 叫的），不再經過進場段
+  let focusRef = null; // { side, actor, foeSide, target }：要看的那兩尊（burn 只有一尊）
+  const focusPt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
   // 壓暗刻意保守（0.75／0.5）：實測壓到 0.35 時整張桌子跟著變黑，開標反而比平常還暗，
@@ -251,6 +283,7 @@ export function createCameraDirector(camera, lanterns) {
     punchU = 1; // 對決收掉時 punch 一定要歸零，不然殘餘偏移會帶進牌桌機位
     punchAmp = 0;
     clearOrbitLean(); // orbit／lean 同理
+    endFocus(); // focus 走它自己的回位段（220ms），與回牌桌的補間疊起來仍然連續
     goto(SHOTS.table);
     setEmphasis(null);
   }
@@ -275,9 +308,72 @@ export function createCameraDirector(camera, lanterns) {
     leanU = 0;
   }
 
-  /** ys:fx-trait-cancel（doSkip 派，index.html:1744）：快轉時 orbit／lean 立刻清零。 */
+  /** 【積木接收端】ys:fx-focus（v0.45 近景切鏡）：推近到 detail 指的那一（兩）尊，ms 之後回全景。
+   *  只讀 side／actor／foeSide／target／ms；prefers-reduced-motion 一律不切（同 orbit／lean）。 */
+  function onFocus(e) {
+    if (prefersReduced()) return;
+    const d = (e && e.detail) || {};
+    focusK0 = focusK; // 前一次還沒回完就直接接續
+    focusAt = performance.now();
+    focusMs = Math.max(1, Number(d.ms) || 650);
+    focusRef = { side: d.side, actor: d.actor, foeSide: d.foeSide, target: d.target };
+    focusFall = false;
+    focusOn = true;
+  }
+
+  /** 立刻開始回全景（ys:fx-trait-cancel／ys:duel-end）：不把 focusK 直接歸零——
+   *  歸零那一幀 dist 會從 2.6 硬跳回 4.2（跟 orbit／lean 當初踩的是同一個坑），
+   *  改成從當下的包絡值走 FOCUS.outMs 的回位段，220ms 內收乾淨（驗收 P2 的 300ms）。 */
+  function endFocus() {
+    if (!focusOn) return;
+    focusK0 = focusK;
+    focusAt = performance.now();
+    focusFall = true; // 直接進回位段：不得再走進場那一段（走了的話前 160ms 會維持滿幅，回位變成 380ms）
+  }
+
+  /** 這一幀的 focus 包絡：進（ease-out，從 focusK0 起跳）→ 停 → 回（ease-in-out）。回完就關掉。 */
+  function focusEnvelope(now) {
+    if (!focusOn) return 0;
+    const e = Math.max(0, now - focusAt);
+    // 回位段跑完的那一幀要補寫一次位置，否則 focusK 的最後一點殘量會凍在相機上（同 clearOrbitLean 的 forceWrite）
+    const done = () => { focusOn = false; focusFall = false; focusRef = null; forceWrite = true; return 0; };
+    if (focusFall) {
+      const u = e / FOCUS.outMs;
+      return u >= 1 ? done() : focusK0 * (1 - easeInOutCubic(u));
+    }
+    if (e < FOCUS.inMs) return focusK0 + (1 - focusK0) * easeOutCubic(e / FOCUS.inMs);
+    if (e <= focusMs) return 1;
+    const u = (e - Math.max(focusMs, FOCUS.inMs)) / FOCUS.outMs;
+    return u >= 1 ? done() : 1 - easeInOutCubic(u);
+  }
+
+  /** 交鋒中點（世界座標）：讀 duel-figures 的 figureOf。兩尊都查不到就回 false，
+   *  呼叫端退回原本的 lookAt（＝duelYaw 雙方中點那個機位），不得拋錯（規格 §四）。 */
+  function aimAtFocus(out) {
+    if (!focusRef) return false;
+    try {
+      const D = window.__yaoshi3d && window.__yaoshi3d.duelFigures;
+      if (!D || typeof D.figureOf !== 'function') return false;
+      let n = 0;
+      out.set(0, 0, 0);
+      const add = (s, id) => {
+        if (id == null || s == null) return;
+        const f = D.figureOf(s, id);
+        if (f && f.group) { out.add(f.group.position); n++; }
+      };
+      add(focusRef.side, focusRef.actor);
+      add(focusRef.foeSide, focusRef.target);
+      if (!n) return false;
+      out.multiplyScalar(1 / n);
+      out.y += FOCUS.aimY;
+      return true;
+    } catch (err) { return false; }
+  }
+
+  /** ys:fx-trait-cancel（doSkip 派，index.html:1744）：快轉時 orbit／lean 立刻清零、focus 開始回位。 */
   function onTraitCancel() {
     clearOrbitLean();
+    endFocus();
   }
 
   /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。
@@ -307,6 +403,10 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:fx-trait', onTrait);
+  document.addEventListener('ys:fx-focus', onFocus);
+  // 提前收切鏡（v0.45 二版，審查 MEDIUM-3）：招式要在全景、不退暗的舞台上演，
+  // 所以 index.html 在招式那一筆先派這個事件。跟 ys:fx-trait-cancel 不同：它不碰 orbit／lean。
+  document.addEventListener('ys:fx-focus-end', endFocus);
   document.addEventListener('ys:fx-trait-cancel', onTraitCancel);
   document.addEventListener('ys:fx-burn', onBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
@@ -326,7 +426,10 @@ export function createCameraDirector(camera, lanterns) {
     // orbit 只在基座推進到位之後才開始轉：那時 dist 已經停在 DUEL_SHOT.dist，
     // 整段 orbit 的 camera.position.length() 才會逐幀恆定（duel-figures 的 camStable 靠它鎖排）
     if (orbitHold && t >= 1) orbitHold = false;
-    if (!orbitHold && orbitU < 1) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
+    // focus 期間 orbit 停（規格 §二.1）：近景已經在動 dist／lookAt，再讓 yaw 繼續掃會暈；
+    // 回全景後 orbitU 從停下的地方繼續，不跳格。
+    focusK = focusEnvelope(now);
+    if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
     if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
 
     // 機位補間與三層偏移每幀都算一次。三層都沒在跑時偏移恆為 0，
@@ -339,7 +442,7 @@ export function createCameraDirector(camera, lanterns) {
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
     // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite) {
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn) {
       forceWrite = false;
       if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
@@ -352,17 +455,32 @@ export function createCameraDirector(camera, lanterns) {
       curYaw = from.yaw + (target.yaw - from.yaw) * k + orbitOff + leanSign * LEAN.yaw * leanK;
       curDist = from.dist + (target.dist - from.dist) * k - LEAN.dist * leanK;
       curLookY = from.lookY + (target.lookY - from.lookY) * k;
-      const tilt = curTilt * DEG;
+      // ⑤ focus（近景切鏡）：疊在①②③之後、punch 之前，只縮 dist／壓 tilt。
+      //    **和 punch 一樣不記進 cur\***：cur* 是「補間起點」，把 focus 算進去的話，
+      //    切鏡進行中收到 ys:fx-trait-cancel／ys:duel-end 時 clearOrbitLean 會把 2.6 當起點，
+      //    基座得自己再走 700ms 從 2.6 爬回 4.2（實測 cancel 後 300ms 只回到 3.08，P2 紅）。
+      //    分開之後：cancel 只是讓 focusK 在 220ms 內歸零，基座仍停在 4.2，位置照樣連續。
+      //    focusK=0 時下面兩個變數與 cur* 逐值相同（加 0／減 0）。
+      const fDist = focusK > 0 ? curDist + (FOCUS.dist - curDist) * focusK : curDist;
+      const fTilt = focusK > 0 ? curTilt + (FOCUS.tilt - curTilt) * focusK : curTilt;
+      const tilt = fTilt * DEG;
       const yaw = curYaw * DEG;
       const lookY = curLookY;
       // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
       const pk = punchAmp * (1 - easeOutCubic(punchU));
-      const dist = Math.max(0.6, curDist - PUNCH.dist * pk);
+      // 下限（v0.45 三版，審查 L-2 第二輪）：0.6 是「任何機位都不准穿過桌心」的老保險絲。
+      // 近景推到 2.6，最重的一記 punch 減 PUNCH.dist 0.6×2 ＝ 1.2，所以合法最低是 2.6−1.2＝1.4；
+      // FOCUS_FLOOR 就訂在那裡——夾得到的只剩「算爛了」的情形，正常演出一次都不該碰到它
+      // （二版訂 1.6 是把 1.4~1.6 這段合法區間夾掉了，覆審實測差 0.063–0.28）。
+      const floor = focusK > 0 ? FOCUS_FLOOR : 0.6;
+      const dist = Math.max(floor, fDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
       camera.position.set(Math.sin(yaw) * horiz + sx, Math.sin(tilt) * dist + sy, Math.cos(yaw) * horiz);
       lookAt.set(0, lookY, 0);
+      // focus：視線挪到交鋒中點（查不到那兩尊就維持桌心，不拋錯）
+      if (focusK > 0 && aimAtFocus(focusPt)) lookAt.lerp(focusPt, focusK);
       camera.lookAt(lookAt);
     }
 
