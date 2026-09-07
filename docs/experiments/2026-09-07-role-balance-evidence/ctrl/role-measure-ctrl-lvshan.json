@@ -1,0 +1,37 @@
+{
+ "n": 10000,
+ "variants": [
+  "b"
+ ],
+ "roles": [
+  "lvshan"
+ ],
+ "aiOverride": {
+  "lvshan": {
+   "aggr": 0.5,
+   "spite": 0.2,
+   "markReact": "ignore"
+  }
+ },
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.1172,
+   "surv": 8.7335,
+   "life": 6.0359,
+   "len": 8.7335,
+   "hookCalls": {
+    "onAiCurse": 72998,
+    "onBidSettle": 123725,
+    "onItemValue": 2623554
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 844616
+  }
+ ]
+}

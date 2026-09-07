@@ -1,0 +1,16 @@
+# 傳說三尊「請神」閘門　n=200　新版=index.html　基準=old-l.html
+預設值：LEGEND_ON=true（v0.44 起預設開、?legend=0 可關）
+顯式打開後的數值：INC_MAX=3　INC_K=10　INC_PITY=12　INC_GIFT_P=4　INC_AI={"minLifeFrac":0.3,"div":12,"giveUpLead":3}
+
+## L0／A0 Kill switch（**顯式 LEGEND_ON=false** 的 trace(1..20) 與基準逐位元組相等；預設（v0.44 起＝開）必不等且 S.shrines 非空）
+- 顯式 LEGEND_ON=false vs 基準：長度 352021/332125，**不相等** ❌
+- 預設（LEGEND_ON=true） vs 基準：長度 387971/332125，不相等 ✅
+- 預設載入後 makeState('solo',1) 的 S.shrines：3 龕 ✅
+- 判定：❌ （3s）
+
+## 總表
+```
+{
+ "L0": false
+}
+```

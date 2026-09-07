@@ -1,0 +1,39 @@
+{
+ "n": 2000,
+ "variants": [
+  "b"
+ ],
+ "roles": [
+  "dangpu"
+ ],
+ "aiOverride": {
+  "dangpu": {
+   "aggr": 0.8,
+   "spite": 0.1,
+   "markReact": "avoid"
+  }
+ },
+ "se_pp_at_25pct": "0.968",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "dangpu",
+   "n": 2000,
+   "win": 0.1635,
+   "surv": 9.525,
+   "life": 7.128,
+   "len": 9.525,
+   "hookCalls": {
+    "onBudget": 40921,
+    "onBattle": 17428,
+    "onNightEnd": 18251,
+    "onAiAmount": 21877,
+    "onBidSettle": 26636
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 108098
+  }
+ ]
+}
