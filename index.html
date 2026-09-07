@@ -112,8 +112,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .tithebtn{margin-left:6px;background:var(--panel2);color:var(--gold);border:1px solid var(--gold);
   border-radius:6px;font-size:10.5px;padding:1px 6px;cursor:pointer;white-space:nowrap}
 /* 出價面板的「燒香」列：一列到底、不換行，橫向放不下時內部自己捲（外層不得溢出） */
-.incbar{display:flex;align-items:center;gap:5px;margin:3px 0 4px;padding:2px 6px;border:1px dashed var(--line);
-  border-radius:8px;font-size:10.5px;overflow-x:auto;white-space:nowrap}
+/* 燒香列（併進底列 #budget 的出價那一行；2026-09-07 第二輪覆審 3）：行內、不換行、**不佔 #felt 的高度**。
+   沿革：本來在 #stage 裡自成一列，實測 26px——那正是第 2 夜出價頁 30px 直向溢出的主體
+   （神龕列 slim 只有 20.8px）。搬到 #south 之後 #felt 少掉整整一列。 */
+.incbar{display:inline-flex;align-items:center;gap:4px;margin:0 8px 0 0;padding:1px 6px;
+  border:1px dashed var(--line);border-radius:8px;font-size:10.5px;white-space:nowrap;vertical-align:middle}
+#budget{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap}
+#budget .bsum{white-space:nowrap}
 .incbar button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;
   font-size:10px;padding:1px 6px;height:20px;cursor:pointer;flex:0 0 auto}
 .incbar button.on{background:var(--gold);color:#14101f;border-color:var(--gold);font-weight:bold}
@@ -3021,7 +3026,9 @@ function unitRowText(it,owner,mode){
   if(!CFG.PAPERWAR_ON) return "";           /* 紙紮夜戰關掉時沒有部隊這回事，不長這一行 */
   const r=unitRow(it);
   if(!r) return "";
-  if(r.curse) return `<div class="uline mut">🕸 詛咒品不召喚${
+  /* 詛咒品那一行也要吃 `.stat`（卡面版一行到底、不換行；覆審二輪 3）。
+     `full` 在下面才用 const 宣告，這裡直接判 `mode` 而不是提前引用它——避免 TDZ。 */
+  if(r.curse) return `<div class="uline${mode==="full"?"":" stat"} mut">🕸 詛咒品不召喚${
     (owner&&traitMax(owner,"curseWard",0)>0)?"（你已淨化，不扣戰力）":"（只算纏身）"}</div>`;
   /* mode 'stat'（市集卡，預設）＝只印「隻數・攻・血・拍」一行；'full'（袋子面板、卡片詳情）＝連招式名與說明。
      沿革：覆審 HIGH-1 乙——市集卡塞完整招式會讓卡片變兩三行，844×390 下 #felt 直向溢出 47～77px、
@@ -4125,7 +4132,7 @@ function openHelp(){
       出局的人同理。所以有時候龕上明明有香火，還是「沒有人請得動」而回天。<br>
       <b>供奉（神債）</b>：請到之後每個夜末<b>自動</b>付 <b>${CFG.INC_TITHE} 壽命</b>供著祂（戰況會記一行，不會每夜跳出來問）；<b>付不出來</b>（付了會剩不到 1 點）祂就<b>回天</b>、從你袋裡消失，那一龕也不會重開。祂很強，但你得一直養得起。<br>
       <b>要放手隨時可以</b>：袋子面板上那一尊旁邊有「<b>送神回天</b>」，任何一夜按下去，當夜起就不再供奉、祂離開你的袋子（那一龕一樣不重開）。另外，只有在「付完供奉壽命會剩 ${CFG.TITHE_WARN} 點以下」的那一夜，遊戲會<b>跳一次</b>「壽命危急，繼續供奉？」讓你選——同一尊只問這一次，之後照舊自動扣。<br>
-      <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、無人上香回天、或天亮收攤），你的香火依<b>與本龕最高香火的比例</b>結清——不到最高的 1/3 沒有；1/3～2/3 退 ⌈h/3⌉ 壽命（香灰）；<b>到了最高的 2/3 以上</b>退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）。結清後香火歸零。<br>
+      <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、沒有人請得動而回天、或天亮收攤），你的香火依<b>與本龕最高香火的比例</b>結清——不到最高的 1/3 沒有；1/3～2/3 退 ⌈h/3⌉ 壽命（香灰）；<b>到了最高的 2/3 以上</b>退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）。結清後香火歸零。<br>
       <b>資訊全公開</b>：四家在三龕上的香火、以及各尊的請神夜，都攤在神龕卡上（中央面板法寶卡上方）。對手燒哪一龕，就等於告訴你他在湊哪一系。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，<b>在共鳴計算裡算 2 件</b>（強化你同系的其他法寶）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
     ${sec("🧧 法寶疊加規則",`同一系法寶的<b>戰力</b>每一件都算（所以湊同系仍然划算），但<b>能力</b>同名只生效一次——袋裡兩把「破軍旗」的能力不會變兩倍。想變強是集<b>不同</b>的法寶，不是收集同一件。`)}
@@ -4325,7 +4332,9 @@ function noCurseNight(){ return hasFlag(null,"noCurseAuction"); }
 function showHandoff(pid, cont){
   /* 雙保險：交棒遮罩本身是不透明全屏，但仍先把上一位的私有心願列從 stage 撤掉，
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
-  document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .incbar,#stage .mybid,#stage .pickbox").forEach(el=>el.remove());
+  /* 燒香列自 2026-09-07 第二輪覆審起併進底列 #budget（在 #south），清場名單要跟著改，
+     否則上一位封的香火會留在畫面上被下一位看到（覆審 M1 守的就是這件事）。 */
+  document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .incbar,#stage .mybid,#stage .pickbox,#south .incbar").forEach(el=>el.remove());
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
   $("hoAv").innerHTML=avHTML(p);
@@ -4353,7 +4362,6 @@ function showMarket(){
          把規則說明再塞進預告框只會多推一行、把溢出從 33 推到 49（實測）。 */
       (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
     ${wishBarHTML(ap)}
-    ${incbarHTML(ap)}
     ${stakeHTML(ap)}
     ${shrinesHTML()}
     <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
@@ -4391,6 +4399,11 @@ function doSacrifice(){
    密封——按下去只寫進本席的 INC，交卷（submitHumanBids）時才寫進 S.incense，跟出價同一個信封。
    顯示的成功率與引擎同一條算式（h/(h+K)、h≥P 必成），UI 不另訂一份門檻。
    三龕全關或 LEGEND_ON=false 時回空字串＝這一列整個不存在（#felt 高度預算零餘裕，GUIDE §11.12）。 */
+/* 燒香列（請神 2.0）——★2026-09-07 第二輪覆審 3：改成併進底列 #budget 的「出價那一行」★
+   沿革：本來是 #stage 裡自成一列的 .incbar，實測佔 **26px**；#felt 在 844×390 的高度預算是零餘裕
+   （GUIDE §11.12），第 2 夜出價頁那 30px 直向溢出主體就是它（神龕列 slim 只有 20.8px）。
+   併進底列之後同一行同時看得到「封了幾件・出價合計・香火幾點」，而且底列在 #south、不吃 #felt 的高度。
+   class 仍叫 .incbar：熱座交棒的清場（showHandoff）與 Playwright 治具都認這個名字。 */
 function incbarHTML(ap){
   if(!CFG.LEGEND_ON||!S.shrines) return "";
   /* 一人一尊（§二 5）：已經請走過的人，整列直接鎖起來——引擎那邊也會拒收（resolveShrines 的 hasLegend），
@@ -4398,9 +4411,8 @@ function incbarHTML(ap){
   if(hasLegend(ap)){
     const mineSh=S.shrines.find(sh=>sh.takenBy===ap.id);
     const still=ap.bag.some(x=>x.legend);
-    return `<div class="incbar locked"><span>🕯️ 燒香</span>
-      <span class="mut">你這一局已經請走「${LEGENDS[mineSh.i].n}」——<b>一人一尊</b>，其餘龕不再收你的香。${
-        still?`供奉每夜 −${CFG.INC_TITHE} 壽命，付不出祂就回天。`:"（供奉斷了，祂已經回天）"}</span></div>`;
+    return `<span class="incbar locked" title="一人一尊：請到一尊之後其餘龕不再收你的香；${
+      still?`供奉每夜 −${CFG.INC_TITHE} 壽命，付不出祂就回天`:"供奉斷了，祂已經回天"}"><span class="mut">🕯️ 已請走「${LEGENDS[mineSh.i].n}」・一人一尊${still?`・供奉 −${CFG.INC_TITHE}／夜`:"・已回天"}</span></span>`;
   }
   if(!INC) return "";
   const cur=S.shrines[INC.shrine];
@@ -4414,9 +4426,12 @@ function incbarHTML(ap){
   let lead=0; S.players.forEach(p=>{ if(p.id===ap.id) return; const v=cur.h[p.id]|0; if(v>lead) lead=v; });
   const cap=Math.min(CFG.INC_MAX,incCap(ap));   /* 燒香不得把自己燒到 ≤0（裁定甲），所以上限跟著壽命走 */
   const left=cur.night-S.round;
-  return `<div class="incbar"><span>🕯️ 燒香</span>${btns}
-    <button onclick="incBump(-1)" ${INC.amt<=0?"disabled":""}>−</button><span class="incamt">${INC.amt}</span><button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>
-    <span class="mut">最多 ${cap}${cap<CFG.INC_MAX?`（留 1）`:""}・${left>0?`第 ${cur.night} 夜開標`:"<b>今夜開標</b>"}・你 ${h}／敵 ${lead}${h>lead?"（領先）":(h<lead?`（差 ${lead-h}）`:"（平）")}${INC.amt>0?`・扣 ${INC.amt} 不退`:"・0＝不拜"}</span></div>`;
+  const tipAll=`燒香：每夜只能選一尊、0～${CFG.INC_MAX} 壽命，密封、當場扣、不退；最多 ${cap}${cap<CFG.INC_MAX?"（要留 1 點壽命）":""}。`
+    +`「${LEGENDS[cur.i].n}」${left>0?`第 ${cur.night} 夜開標（倒數 ${left}）`:"今夜開標"}；你 ${h}／對手最高 ${lead}。`;
+  return `<span class="incbar" title="${tipAll}">🕯️${btns}`
+    +`<button onclick="incBump(-1)" ${INC.amt<=0?"disabled":""}>−</button><span class="incamt">${INC.amt}</span>`
+    +`<button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>`
+    +`<span class="mut">${left>0?`第 ${cur.night} 夜`:"<b>今夜</b>"}・你 ${h}／敵 ${lead}</span></span>`;
 }
 function incPick(i){ if(!INC||!S.shrines[i].open) return; INC.shrine=i; showMarket(); }
 function incBump(d){ if(!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }
@@ -4563,7 +4578,7 @@ function updateBudget(){
     const tot=(n>0?YB.amt+CFG.BID_FEE:0)+(INC?INC.amt:0);
     const cap=budgetFor(ap);
     const el=$("budget");
-    el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}這一注合計 <b>${tot}</b>${n>0&&CFG.BID_FEE>0?`（含買路錢 ${CFG.BID_FEE}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}　🎲 已勾 ${n} 件`;
+    el.innerHTML=`${incbarHTML(ap)}<span class="bsum">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}這一注合計 <b>${tot}</b>${n>0&&CFG.BID_FEE>0?`（含買路錢 ${CFG.BID_FEE}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}　🎲 已勾 ${n} 件</span>`;
     el.className=tot>cap?"over":"";
     $("mainbtn").disabled=tot>cap;
     return;
@@ -4574,7 +4589,9 @@ function updateBudget(){
   const tot=myBids.reduce((s,b)=>s+b.amt,0)+fees+inc;
   const el=$("budget");
   const cap=budgetFor(ap);
-  el.innerHTML=`${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含買路錢 ${fees}）`:""}${inc>0?`（含香火 ${inc}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}`;
+  /* 燒香列併進這一行（2026-09-07 第二輪覆審 3）：同一行同時給「封了幾件・出價合計・香火幾點」。
+     它在 #south，不吃 #felt 的高度預算。 */
+  el.innerHTML=`${incbarHTML(ap)}<span class="bsum">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含買路錢 ${fees}）`:""}${inc>0?`（含香火 ${inc}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}</span>`;
   el.className=tot>cap?"over":"";
   $("mainbtn").disabled=tot>cap;
 }
