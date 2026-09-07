@@ -767,6 +767,8 @@ async function runPix(browser) {
         await pg.evaluate(() => window.__frzWarp(160)).catch(() => {});
         await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
         const A1 = await shot('after200');
+        const bx200 = await boxNow();
+        row.box200 = bx200 && bx200.t ? bx200.t : null; // +200ms 那一幀的方框（Δ200 那條子判準的位移閘門）
         row.sil = sil ? { n: sil.n, frac: num(sil.frac) } : null;
         row.silDiag = { okHide: okHide, hasSil: !!sil };
         row.hk40 = hk40;
@@ -880,6 +882,7 @@ function judgePix(S) {
   const seqs = [];
   /* 【覆審 HIGH-1】現在一次凍結就把「命中前／剪影／+40ms／+200ms」四張拍完（虛擬時鐘 warp，不等牆鐘），
      所以每一輪只有 step 0 一列，欄位（maskD／maskD200／maskFrac／maskC／hk40）都掛在那一列上。 */
+  const shiftPx = (a2, b2) => (a2 && b2 ? Math.max(Math.abs(a2.x0 - b2.x0), Math.abs(a2.y0 - b2.y0), Math.abs(a2.x1 - b2.x1), Math.abs(a2.y1 - b2.y1)) : null);
   for (const g of byKey.values()) {
     const r0 = g[0];
     if (!r0 || r0.maskD === undefined) continue;
@@ -889,7 +892,6 @@ function judgePix(S) {
          ③ 這一格畫面在動（moved）：+40ms 那一幀的方框相對命中前位移 > MOVE_MAX(4px)——
             那表示鏡頭或人形在動，剪影已經對不上，量到的差分混著背景
          ④ 窗內發生燒毀（burnIn）⑤ 落在 ys:duel-end 之後（offDuel） */
-    const shiftPx = (a2, b2) => (a2 && b2 ? Math.max(Math.abs(a2.x0 - b2.x0), Math.abs(a2.y0 - b2.y0), Math.abs(a2.x1 - b2.x1), Math.abs(a2.y1 - b2.y1)) : null);
     const mv40 = shiftPx(r0.box, r0.box40);
     /* 位移閘門對「燒毀中的尊」不適用：化灰本來就會讓那一尊縮小上飄，方框一定在動，
        套下去的話那一條子判準永遠 0 樣本＝空過（fail-open）。燒毀那幾筆改成不套位移閘門，
@@ -905,6 +907,10 @@ function judgePix(S) {
       maskFrac: r0.maskFrac === undefined ? null : r0.maskFrac,
       maskC: r0.maskC === undefined ? null : r0.maskC,
       move40: mv40 === null ? null : +mv40.toFixed(1), why: why,
+      /* Δ200 那一條要自己的位移閘門：遮罩是命中前那一幀的像素集合，200ms 後那一尊已經呼吸／微動過，
+         固定像素集合會開始吃到背景，量到的負值是「尊移開了」不是「還在紅」（實測 −8～−61 全是這樣來的）。
+         位移 >4px 的那幾筆對這一條記成不可判（back200Unjudged），不當違規也不當通過。 */
+      move200: (function () { const m2 = shiftPx(r0.box, r0.box200); return m2 === null ? null : +m2.toFixed(1); })(),
       boxD40: null, d0: 0, d200: r0.maskD200 === undefined ? null : r0.maskD200,
       d40: r0.maskD === undefined ? null : r0.maskD, ctrl40: r0.maskC === undefined ? null : r0.maskC,
       hkMax: hk ? Math.max(0, ...hk.map((x) => +x || 0)) : null,
@@ -928,10 +934,13 @@ function judgePix(S) {
   const mSorted = valid.map((x) => x.maskD).sort((a2, b2) => a2 - b2);
   const mMed = mSorted.length ? mSorted[Math.floor(mSorted.length / 2)] : null;
   const mRatio = mSorted.length ? +(mSorted.filter((x) => x >= 25).length / mSorted.length).toFixed(3) : null;
-  const badBack = valid.filter((x) => x.maskD200 !== null && Math.abs(x.maskD200) > BACK_MAX);
+  const back200Judgeable = valid.filter((x) => x.maskD200 !== null && x.move200 !== null && x.move200 <= MOVE_MAX);
+  const back200Unjudged = valid.filter((x) => x.maskD200 !== null && !(x.move200 !== null && x.move200 <= MOVE_MAX)).length;
+  const badBack = back200Judgeable.filter((x) => Math.abs(x.maskD200) > BACK_MAX);
   const badBurn = burnValid.filter((x) => x.maskD !== null && Math.abs(x.maskD) > BURN_MAX);
   const badCtrl = valid.filter((x) => x.maskC !== null && x.maskC >= CTRL_MAX);
   if (!burnValid.length) bad.push('R2 「燒毀中不得閃」0 樣本＝空過，不算通過（fail-closed）');
+  if (!back200Judgeable.length) bad.push('R2 「+200ms 回到原值」0 個可判樣本＝空過，不算通過（fail-closed）');
   if (mSorted.length && !(mMed >= 25 && mRatio >= 0.70)) bad.push(`R2 主門檻（方案 A）未過：中位 ${mMed}（要 ≥25）、≥25 比例 ${mRatio}（要 ≥0.70）、n=${mSorted.length}`);
   for (const x of badBack.slice(0, 5)) bad.push(`R2 +200ms 未回到原值 Δ=${x.maskD200}（門檻 ±${BACK_MAX}）`);
   for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 Δ=${x.maskD}（門檻 ±${BURN_MAX}）`);
@@ -947,9 +956,9 @@ function judgePix(S) {
     /* 【使用者 2026-09-08 裁定：方案 A】剪影遮罩（含位移 ≤4px 閘門）下的分布式門檻：
        **中位 ≥ +25 且「≥+25 的樣本比例」≥ 70%**，再加三個子判準全部通過才算綠。 */
     R2: valid.length > 0 && mMed !== null && mMed >= 25 && mRatio !== null && mRatio >= 0.70
-      && burnValid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
+      && burnValid.length > 0 && back200Judgeable.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
     R2main: valid.length > 0 && mMed !== null && mMed >= 25 && mRatio !== null && mRatio >= 0.70,
-    R2sub: valid.length > 0 && burnValid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
+    R2sub: valid.length > 0 && burnValid.length > 0 && back200Judgeable.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
     R5pix: skD !== null && Math.abs(skD) <= 5,
   };
   const mk = valid.map((x) => x.maskD).sort((a, b) => a - b);
@@ -964,7 +973,8 @@ function judgePix(S) {
     maskDropped: dropped, maskGe15: mk.filter((x) => x >= 15).length, maskGe25Ratio: mRatio, via: S.via || null,
     move40P50: valid.length ? valid.map((x) => x.move40).filter((x) => x !== null).sort((a2, b2) => a2 - b2)[Math.floor(valid.length / 2)] : null,
     burnMaskN: bk.length, burnMaskAbsMax: bk.length ? Math.max(...bk.map((x) => Math.abs(x))) : null,
-    back200MaskN: bk200.length, back200MaskAbsMax: bk200.length ? Math.max(...bk200.map((x) => Math.abs(x))) : null,
+    back200MaskN: back200Judgeable.length, back200Unjudged: back200Unjudged,
+    back200MaskAbsMax: back200Judgeable.length ? Math.max(...back200Judgeable.map((x) => Math.abs(x.maskD200))) : null,
     flashes: live.length, d40min: live.length ? Math.min(...live.map((x) => x.d40)) : null, d40med: live.length ? live.map((x) => x.d40).sort((a, b) => a - b)[Math.floor(live.length / 2)] : null,
     back200max: live.filter((x) => x.d200 !== null).length ? Math.max(...live.filter((x) => x.d200 !== null).map((x) => Math.abs(x.d200))) : null,
     ctrlMax: live.filter((x) => x.ctrl40 !== null).length ? Math.max(...live.filter((x) => x.ctrl40 !== null).map((x) => x.ctrl40)) : null,
