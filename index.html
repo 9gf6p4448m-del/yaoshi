@@ -4895,17 +4895,22 @@ function pwGaugeGhost(g,was,now){
   const from=Math.max(parseFloat(gh.dataset.from)||was,was);
   gh.dataset.from=String(from);
   gh.style.left=now+"%"; gh.style.width=Math.max(0,from-now)+"%"; gh.style.opacity="1";
-  /* 兩個計時器同時排（不串接）：串接的話兩段的延遲會累加，重幀時整條殘影會拖過 GAUGE_GHOST_MS+100（R3）。
-     收合那一下由 transitionend 直接收掉（不必等第二個計時器），計時器只當保險絲——
-     覆審在單瀏覽器就量到 412ms，離 GAUGE_GHOST_MS+100=400ms 的餘裕只剩 40ms，全靠計時器排隊太脆。 */
-  clearTimeout(+gh.dataset.t2||0);
-  gh.dataset.t=String(setTimeout(()=>{
-    gh.addEventListener("transitionend",()=>{ gh.remove(); },{once:true});
-    gh.style.width="0%"; gh.style.opacity="0";
-  },PW_FX.GAUGE_GHOST_MS));
-  /* 保險絲要排在 transition（40ms）之後才有意義：原本 +30 一定比 transitionend 早到，
-     那一行 transitionend 是死碼（覆審第二輪）。判準是 GAUGE_GHOST_MS+100，+70 仍在窗內。 */
-  gh.dataset.t2=String(setTimeout(()=>{ gh.remove(); },PW_FX.GAUGE_GHOST_MS+70));
+  /* 「停 GAUGE_GHOST_MS 再收掉」整段改由**一支 WAAPI 動畫**驅動，不再用計時器串（覆審第二輪＋第三輪實測）：
+       ・二版：collapse 計時器＋transitionend＋保險絲 → transitionend 是死碼（保險絲 +30 先到）
+       ・三版照指示改 transition .04s＋保險絲 +70 → **反而更糟**：主導誤差是「第一支計時器自己遲到」，
+         實測那一支遲了 60ms，整條就變成 432ms、超過 GAUGE_GHOST_MS+100=400ms 的窗（seed 1 紅 3 條）
+     WAAPI 的 onfinish 是動畫時間軸到期後的下一幀派送（抖動約一幀），比 300ms 的計時器排隊穩得多。
+     還是留一支保險絲（+80，仍在窗內）給沒有 WAAPI 或動畫被取消的情況。 */
+  clearTimeout(+gh.dataset.t||0); clearTimeout(+gh.dataset.t2||0);
+  try{ gh.getAnimations().forEach(a=>a.cancel()); }catch(e){}
+  const total=PW_FX.GAUGE_GHOST_MS+40, wNow=Math.max(0,from-now);
+  try{
+    const an=gh.animate([{opacity:1,width:wNow+"%"},
+                         {opacity:1,width:wNow+"%",offset:PW_FX.GAUGE_GHOST_MS/total},
+                         {opacity:0,width:"0%"}],{duration:total,easing:"linear",fill:"forwards"});
+    an.onfinish=()=>{ gh.remove(); };
+  }catch(e){ gh.dataset.t=String(setTimeout(()=>{ gh.style.width="0%"; gh.style.opacity="0"; },PW_FX.GAUGE_GHOST_MS)); }
+  gh.dataset.t2=String(setTimeout(()=>{ gh.remove(); },PW_FX.GAUGE_GHOST_MS+80));
 }
 /* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
 function pwActorCard(side,item,fac){
