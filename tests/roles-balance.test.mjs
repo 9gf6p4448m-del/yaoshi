@@ -201,11 +201,23 @@ test('陰間當鋪：典當一局只有一次（不是恆真式）',()=>{
    這一案是「值有沒有被改成掃描結果」的釘子——改回舊值（青面 .85/.25/contest、斷手 1.0/.4/ignore、
    閭山 .5/.2/ignore、當鋪 .8/.4/avoid）就紅。 */
 const SCANNED_AI={
-  qingmian:{aggr:0.6, spite:0.1,  markReact:'avoid'},
-  duanshou:{aggr:0.6, spite:0.1,  markReact:'avoid'},
-  lvshan:  {aggr:0.6, spite:0.25, markReact:'avoid'},
-  dangpu:  {aggr:0.6, spite:0.1,  markReact:'avoid'},
+  qingmian:{aggr:0.6, spite:0.1, markReact:'contest'},
+  duanshou:{aggr:1.0, spite:0.1, markReact:'ignore'},   /* aggr 釘 1.0（裁定②） */
+  lvshan:  {aggr:0.8, spite:0.1, markReact:'ignore'},
+  dangpu:  {aggr:0.8, spite:0.1, markReact:'avoid'},
 };
+/* markReact 是角色性格的公開資訊、不進掃描（凍結檔 §2.1 第 9 條）：這四隻必須維持改前的設計值。
+   把哪一隻改成別型都要紅——這一案在守 §5.8 的「三型混桌」讀人層。 */
+const DESIGN_MARK={qingmian:'contest',duanshou:'ignore',lvshan:'ignore',dangpu:'avoid',
+  hongyi:'contest',shoujing:'avoid',hunter:'contest',xiaonv:'avoid',zutou:'contest',luzhu:'ignore'};
+test('盯上宣告：十隻的 markReact 全部維持設計值（三型混桌 3 怯場／4 搶標／3 無視）',()=>{
+  const cnt={avoid:0,contest:0,ignore:0};
+  for(const [id,want] of Object.entries(DESIGN_MARK)){
+    eq((ROLES[id]||{}).ai&&ROLES[id].ai.markReact,want,`${id} markReact`);
+    cnt[want]++;
+  }
+  eq(cnt.avoid,3,'怯場型隻數'); eq(cnt.contest,4,'搶標型隻數'); eq(cnt.ignore,3,'無視型隻數');
+});
 for(const [id,want] of Object.entries(SCANNED_AI)){
   test(`${ROLES[id]?ROLES[id].name:id}：ROLES.ai ＝掃描表最佳值 ${want.aggr}/${want.spite}/${want.markReact}`,()=>{
     const got=(ROLES[id]||{}).ai||{};
