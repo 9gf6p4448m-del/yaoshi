@@ -201,6 +201,11 @@ const REC = `(() => {
           // 把 tside 還原成 v0.45 的錯邊也一樣綠（自我比對）。判準端改用引擎真相決定期望側別，
           // 再比「到期望那一側的距離 < 到對面那一側的距離」，所以這裡兩邊都要有數字。
           const boxA = figBox('A', unit), boxB = figBox('B', unit);
+          // 覆審第二輪：3D 方框拿不到時（那一尊還沒建模／已收起來）不能靜默丟棄，
+          // 退回兩欄的 DOM 方框（#dL/#dR）也能判「離哪一側比較近」。
+          const colBox = (id) => { const el = document.getElementById(id); if (!el) return null;
+            const rr = el.getBoundingClientRect(); return rr.width ? { x0: rr.left, y0: rr.top, x1: rr.right, y1: rr.bottom } : null; };
+          const colA = colBox('dL'), colB = colBox('dR');
           // 覆審 MEDIUM-4：「−1 隻」刻意往下讓開 UNIT_DY，DOM 旁證要把那段位移補回去再問，
           // 不能整類豁免（豁免＝那一類的擺錯邊沒人看）。
           // 用 classList 不用正規式：這一整段是**模板字串**注入頁面的，反斜線 s 在模板字串裡會被吃掉，
@@ -224,7 +229,7 @@ const REC = `(() => {
           nd.dataset.probeSeq = seq;
           const rec = { t: now(), duel: duelN, text: nd.textContent, cls: nd.className, mode: nd.dataset.mode,
             side: side, unit: unit, cx: cx, cy: cy, w: rc.width, h: rc.height, underDy: dy,
-            box: box, boxA: boxA, boxB: boxB, badge: bd, under: under, underCol: underCol, seq: seq,
+            box: box, boxA: boxA, boxB: boxB, colA: colA, colB: colB, badge: bd, under: under, underCol: underCol, seq: seq,
             live: document.querySelectorAll('.dmgfloat').length, removedAt: null, gone: null };
           C.dmg.push(rec);
           dmgLive.set(nd, rec);

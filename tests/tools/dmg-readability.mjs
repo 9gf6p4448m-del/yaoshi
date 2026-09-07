@@ -63,6 +63,7 @@ const num = (v) => (v === null || v === undefined || !isFinite(v) ? null : +v.to
    在遮罩內算 R−(G+B)/2 的平均差。門檻仍是 +25。遮罩用「有沒有變」選（三通道亮度差取最大），
    不是用「有沒有變紅」選，所以不會自動把樣本挑成紅的；基準版跑同一套選到的是鏡頭移動的邊緣像素。 */
 const MASK_TH = 8;
+const MOVE_MAX = 4; // 位移閘門：+40ms 那一幀的方框相對命中前不得移動超過這麼多像素（剪影才對得上）
 function maskDelta(imA, boxA, imB, boxB) {
   if (!imA || !imB || !boxA || !boxB || imA.w !== imB.w || imA.h !== imB.h) return null;
   const x0 = Math.max(0, Math.floor(Math.min(boxA.x0, boxB.x0))), x1 = Math.min(imA.w - 1, Math.ceil(Math.max(boxA.x1, boxB.x1)));
@@ -745,6 +746,7 @@ async function runPix(browser) {
         const F1 = await shot('flash40');
         const hk40 = await pg.evaluate(() => window.__dmg.hitK()).catch(() => null);
         const bx40 = await boxNow();
+        row.box40 = bx40 && bx40.t ? bx40.t : null; // 位移閘門：+40ms 那一幀那一尊的方框
         await pg.evaluate(() => window.__frzWarp(160)).catch(() => {});
         await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
         const A1 = await shot('after200');
@@ -865,28 +867,49 @@ function judgePix(S) {
     const r0 = g[0];
     if (!r0 || r0.maskD === undefined) continue;
     const hk = r0.hk40 && r0.meta ? (r0.hk40[r0.meta.side === 'B' ? 1 : 0] || []) : null;
+    /* 【第三輪覆審】usable 閘門講清楚，被剔掉的要印筆數與原因：
+         ① 拿不到剪影遮罩（noMask）② 剪影太小（tinyMask，<10% 方框）
+         ③ 這一格畫面在動（moved）：+40ms 那一幀的方框相對命中前位移 > MOVE_MAX(4px)——
+            那表示鏡頭或人形在動，剪影已經對不上，量到的差分混著背景
+         ④ 窗內發生燒毀（burnIn）⑤ 落在 ys:duel-end 之後（offDuel） */
+    const shiftPx = (a2, b2) => (a2 && b2 ? Math.max(Math.abs(a2.x0 - b2.x0), Math.abs(a2.y0 - b2.y0), Math.abs(a2.x1 - b2.x1), Math.abs(a2.y1 - b2.y1)) : null);
+    const mv40 = shiftPx(r0.box, r0.box40);
+    const why = r0.maskD === null || r0.maskD === undefined ? 'noMask'
+      : (r0.maskFrac || 0) < 0.1 ? 'tinyMask'
+      : (mv40 === null ? 'noBox40' : (mv40 > MOVE_MAX ? 'moved' : null))
+      || (r0.on === false ? 'offDuel' : null);
     seqs.push({ burning: !!r0.meta.burning,
       maskD: r0.maskD === undefined ? null : r0.maskD,
       maskD200: r0.maskD200 === undefined ? null : r0.maskD200,
       maskFrac: r0.maskFrac === undefined ? null : r0.maskFrac,
       maskC: r0.maskC === undefined ? null : r0.maskC,
+      move40: mv40 === null ? null : +mv40.toFixed(1), why: why,
       boxD40: null, d0: 0, d200: r0.maskD200 === undefined ? null : r0.maskD200,
       d40: r0.maskD === undefined ? null : r0.maskD, ctrl40: r0.maskC === undefined ? null : r0.maskC,
       hkMax: hk ? Math.max(0, ...hk.map((x) => +x || 0)) : null,
       sil: r0.sil || null, files: r0.files || [r0.file], figInfo: r0.figInfo || null,
-      usable: r0.maskD !== null && r0.maskD !== undefined && r0.on !== false });
+      usable: !why });
   }
   const moved = seqs.filter((x) => !x.usable);
   const live = seqs.filter((x) => x.usable && !x.burning), burning = seqs.filter((x) => x.usable && x.burning);
   /* 【覆審 HIGH-1】R2 現在是**新尺規**：剪影遮罩內的紅偏量平均差。舊的 25 是給「方框平均」訂的，
      兩者不是同一把尺，所以這一版**不判門檻**，只輸出分布交使用者訂新數字（治具的 R2 欄位固定回 null）。
      有效樣本＝拿得到剪影、且 maskFrac ≥ MASK_FRAC_MIN（剪影太小＝那一尊在畫面上幾乎看不到，量了沒意義）。 */
-  const MASK_FRAC_MIN = 0.1;
-  const valid = live.filter((x) => x.maskD !== null && x.maskFrac !== null && x.maskFrac >= MASK_FRAC_MIN);
-  const dropped = { noMask: live.filter((x) => x.maskD === null).length, tinyMask: live.filter((x) => x.maskD !== null && (x.maskFrac || 0) < MASK_FRAC_MIN).length };
-  const badCtrl = live.filter((x) => x.maskC !== null && x.maskC >= 25);
-  const burnValid = burning.filter((x) => x.maskD !== null);
-  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 非 target 尊也紅 Δ=${x.maskC}（整片閃紅＝假綠）`);
+  const valid = live;               // usable 閘門已經在上面把不合格的剔掉了
+  const dropped = {};               // 逐項原因統計（含 burning 的那幾筆）
+  for (const x of seqs) if (x.why) dropped[x.why] = (dropped[x.why] || 0) + 1;
+  const burnValid = burning;
+  /* 【第三輪覆審】主門檻待使用者裁，但**三個子判準恢復判定**（它們跟主門檻無關，是「有沒有亂閃」）：
+       ・+200ms 要回到原值：|Δ200| ≤ 5
+       ・燒毀中的尊不得閃：|Δ| ≤ 10（化灰本身會讓紅偏量動，比原本的 5 放寬並寫明理由）
+       ・對照尊（對面那一欄最大的一尊）不得跟著紅：max < 10 */
+  const BACK_MAX = 5, BURN_MAX = 10, CTRL_MAX = 10;
+  const badBack = valid.filter((x) => x.maskD200 !== null && Math.abs(x.maskD200) > BACK_MAX);
+  const badBurn = burnValid.filter((x) => x.maskD !== null && Math.abs(x.maskD) > BURN_MAX);
+  const badCtrl = valid.filter((x) => x.maskC !== null && x.maskC >= CTRL_MAX);
+  for (const x of badBack.slice(0, 5)) bad.push(`R2 +200ms 未回到原值 Δ=${x.maskD200}（門檻 ±${BACK_MAX}）`);
+  for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 Δ=${x.maskD}（門檻 ±${BURN_MAX}）`);
+  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 對照尊也紅 Δ=${x.maskC}（門檻 <${CTRL_MAX}；整片閃紅＝假綠）`);
   // R5 像素版
   const sk = {};
   for (const r of S.skip) sk[r.step] = r;
@@ -895,7 +918,10 @@ function judgePix(S) {
   if (skD !== null && Math.abs(skD) > 5) bad.push(`R5 跳過後 300ms 仍紅 Δ=${skD}`);
   const res = {
     R1: S.floats.length > 0 && fontBad.length === 0 && kindBad.length === 0 && hueBad.length === 0 && under.length === 0,
-    R2: null, // 新尺規、門檻未訂（見上面那段註解）；badCtrl 仍然會出現在 bad 裡讓人看見
+    /* 主門檻（那一筆抬升多少才算「閃了」）待使用者裁，所以 R2 不給總判定；
+       三個子判準有判，紅了就是紅——不讓整條 null 把「亂閃」也一起放行（第三輪覆審）。 */
+    R2main: null,
+    R2sub: valid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
     R5pix: skD !== null && Math.abs(skD) <= 5,
   };
   const mk = valid.map((x) => x.maskD).sort((a, b) => a - b);
@@ -907,7 +933,8 @@ function judgePix(S) {
     bySkin: (() => { const o = {}; for (const x of valid) { const k = (x.figInfo && x.figInfo.skin) || '?'; (o[k] = o[k] || []).push(x.maskD); } for (const k of Object.keys(o)) { const a2 = o[k].sort((p, q) => p - q); o[k] = { n: a2.length, min: a2[0], p50: a2[Math.floor(a2.length / 2)], max: a2[a2.length - 1], ge25: a2.filter((v) => v >= 25).length }; } return o; })(),
     maskN: mk.length, maskMin: mk[0] ?? null, maskP50: mk[Math.floor(mk.length / 2)] ?? null, maskMax: mk[mk.length - 1] ?? null,
     maskGe25: mk.filter((x) => x >= 25).length, maskFracP50: valid.length ? valid.map((x) => x.maskFrac).sort((a, b) => a - b)[Math.floor(valid.length / 2)] : null,
-    maskDropped: dropped, via: S.via || null,
+    maskDropped: dropped, maskGe15: mk.filter((x) => x >= 15).length, via: S.via || null,
+    move40P50: valid.length ? valid.map((x) => x.move40).filter((x) => x !== null).sort((a2, b2) => a2 - b2)[Math.floor(valid.length / 2)] : null,
     burnMaskN: bk.length, burnMaskAbsMax: bk.length ? Math.max(...bk.map((x) => Math.abs(x))) : null,
     back200MaskN: bk200.length, back200MaskAbsMax: bk200.length ? Math.max(...bk200.map((x) => Math.abs(x))) : null,
     flashes: live.length, d40min: live.length ? Math.min(...live.map((x) => x.d40)) : null, d40med: live.length ? live.map((x) => x.d40).sort((a, b) => a - b)[Math.floor(live.length / 2)] : null,

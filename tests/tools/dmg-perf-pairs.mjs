@@ -23,17 +23,45 @@ const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
 const { chromium } = req('playwright');
 
-/** 固定的合成對決：8v8、體型與 ab 寫死，兩版收到的 detail 逐位元組相同。 */
+/** 固定的合成對決：8v8、體型與 ab 寫死，兩版收到的 detail 逐位元組相同。
+ *  **場景要真的建起來**：`duel-figures` 的 realign 會抓 `#dL`／`#dR` 決定兩欄的座標，
+ *  沒有那兩個容器的話人形擺不出來、`figuresOf` 是空的——量到的就只是空舞台的 fps（覆審第二輪）。
+ *  所以這裡先把 `#duel` 的骨架與兩欄補上，再派 ys:duel。 */
 const HEAVY = `(() => {
   const mk = (n, body, ab) => Array.from({ length: n }, (_, i) => ({ id: i, body: body, fac: ['zuling', 'xianghuo', 'yinqi'][i % 3], ab: ab }));
   window.__heavy = { a: 0, b: 1, maxFig: 10,
     armies: [{ units: mk(8, 'elite', 'tiger') }, { units: mk(8, 'elite', 'tiger') }] };
+  window.__stage = () => {
+    const ov = document.getElementById('duel'); if (!ov) return false;
+    ov.style.display = 'flex'; ov.classList.add('on'); ov.classList.add('pw');
+    const arena = document.getElementById('duelArena');
+    if (arena && !document.getElementById('dL')) {
+      arena.innerHTML = '<div class="fighter" id="dL"><div class="fdir">A</div><div class="fnm">A</div>'
+        + '<div><span class="pwcnt" id="pwn-A">8</span><span class="pwunit"> 隻</span></div>'
+        + '<div class="pwchips" id="pwch-A"></div></div>'
+        + '<div class="vsbig">VS</div>'
+        + '<div class="fighter" id="dR"><div class="fdir">B</div><div class="fnm">B</div>'
+        + '<div><span class="pwcnt" id="pwn-B">8</span><span class="pwunit"> 隻</span></div>'
+        + '<div class="pwchips" id="pwch-B"></div></div>';
+    }
+    return !!document.getElementById('dL');
+  };
   window.__fireHeavy = () => new Promise((res) => {
+    window.__stage();
     const d = JSON.parse(JSON.stringify(window.__heavy));
     d.ready = null;
     document.dispatchEvent(new CustomEvent('ys:duel', { detail: d }));
     setTimeout(() => res(!!(d.ready || d.loadTotal !== undefined)), 0);
   });
+  /** 活性：兩側各站了幾尊、可見幾尊（0 就代表這一次量的是空舞台，作廢） */
+  window.__liveCount = () => {
+    try {
+      const D = window.__yaoshi3d && window.__yaoshi3d.duelFigures;
+      if (!D) return null;
+      const c = (s2) => D.figuresOf(s2).filter((f) => f.group && f.group.visible).length;
+      return { a: c('A'), b: c('B') };
+    } catch (e) { return null; }
+  };
   window.__perfSample = (ms) => new Promise((res) => {
     const R = window.__yaoshi3d && window.__yaoshi3d.renderer;
     if (!R) return res(null);
@@ -65,9 +93,10 @@ async function sample(browser, url, root, port, secs) {
     await page.waitForTimeout(2500); // 讓 GLB 載完、站位穩定
     const warm = await page.evaluate((ms) => window.__perfSample(ms), 800); // 暖機不計
     const out = await page.evaluate((ms) => window.__perfSample(ms), secs * 1000);
+    const live = await page.evaluate(() => window.__liveCount());
     const ver = await page.evaluate(() => (document.getElementById('verLine') || {}).textContent || '');
     await page.close();
-    return { ...out, warmFps: warm ? warm.rafMedianFps : null, ver: ver.slice(0, 12) };
+    return { ...out, warmFps: warm ? warm.rafMedianFps : null, live: live, ver: ver.slice(0, 40) };
   } finally { srv.kill(); }
 }
 
@@ -75,7 +104,9 @@ const { pos, opt } = parseArgs(process.argv.slice(2));
 const out = pos[0];
 if (!out || !opt.base) { console.error('need <out.json> --base=<基準 worktree>'); process.exit(2); }
 const pairs = Number(opt.pairs || 9);
-const port = Number(opt.port || 8990);
+const port = Number(opt.port || 9140); // 9140+：8990 那一段常被別的治具佔著（serve 不檢查埠有沒有人在用）
+const TRI_MIN = Number(opt.trimin || 200000); // 活性下限：三角形數低於這個就是「舞台沒建起來」
+const expectVer = (() => { try { const m = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').match(/const VERSION="([0-9.]+)"/); return m ? m[1] : null; } catch (e) { return null; } })();
 const secs = Number(opt.secs || 2.5);
 const rows = [];
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
@@ -87,17 +118,27 @@ try {
     const a2 = await sample(browser, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=1`, ROOT, port, secs);
     const same = a.rafMedianFps && a2.rafMedianFps ? +(a2.rafMedianFps / a.rafMedianFps).toFixed(3) : null;
     const ratio = a.rafMedianFps && b.rafMedianFps ? +(a.rafMedianFps / b.rafMedianFps).toFixed(3) : null;
+    /* 這一對能不能用，三道閘門（缺一就作廢，理由記在 row.why）：
+         ① 場景對齊：三角形數與 draw call 兩版相同（不同＝兩邊擺出來的東西不一樣，比了沒意義）
+         ② 活性：三角形 ≥ TRI_MIN 而且兩側各站 8 尊——舞台沒建起來時量到的是空場的 fps
+         ③ 版本：新版那一支的 verLine 要含工作區的 VERSION（埠被別人佔著時會整場量到別版） */
     const aligned = a.triangles === b.triangles && a.calls === b.calls;
+    const liveOk = !!(a.live && b.live && a.live.a === 8 && a.live.b === 8 && b.live.a === 8 && b.live.b === 8);
+    const triOk = (a.triangles || 0) >= TRI_MIN && (b.triangles || 0) >= TRI_MIN;
+    const verOk = !expectVer || String(a.ver).includes('v' + expectVer);
+    const why = !aligned ? 'scene-mismatch' : !triOk ? 'stage-empty' : !liveOk ? 'figures-missing' : !verOk ? 'version-mismatch' : null;
     rows.push({ i: i + 1, newFps: a.rafMedianFps, baseFps: b.rafMedianFps, newFps2: a2.rafMedianFps,
-      ratio: ratio, sameVersionRatio: same, aligned: aligned,
+      ratio: ratio, sameVersionRatio: same, aligned: aligned, live: [a.live, b.live], why: why, usable: !why,
       tri: [a.triangles, b.triangles], calls: [a.calls, b.calls], programs: [a.programs, b.programs], ver: [a.ver, b.ver] });
     console.log('pair', i + 1, JSON.stringify(rows[rows.length - 1]));
   }
 } finally { await browser.close(); }
 
 const st = (a) => { const s = a.filter((x) => x !== null).sort((x, y) => x - y); return s.length ? { n: s.length, min: s[0], q1: s[Math.floor(s.length * 0.25)], p50: s[Math.floor(s.length / 2)], q3: s[Math.floor(s.length * 0.75)], max: s[s.length - 1] } : null; };
-const used = rows.filter((r) => r.aligned);
-const sum = { pairs: rows.length, alignedPairs: used.length,
+const used = rows.filter((r) => r.usable);
+const dropped = {};
+for (const r of rows) if (r.why) dropped[r.why] = (dropped[r.why] || 0) + 1;
+const sum = { pairs: rows.length, usablePairs: used.length, dropped: dropped, expectVersion: expectVer,
   ratio: st(used.map((r) => r.ratio)), noiseFloor: st(used.map((r) => r.sameVersionRatio)) };
 fs.writeFileSync(out, JSON.stringify({ pairs: rows, summary: sum }, null, 1));
 console.log(JSON.stringify(sum));

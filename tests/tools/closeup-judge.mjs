@@ -338,7 +338,7 @@ if (off && base) {
 // ── P4 跳字 ───────────────────────────────────────────────────────────────
 {
   const bad = [];
-  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0, unitN = 0, killN = 0, burnEv = 0, sideOk = 0, sideJudged = 0, sideAmbig = 0, underCrossCol = 0;
+  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0, unitN = 0, killN = 0, burnEv = 0, sideOk = 0, sideJudged = 0, sideAmbig = 0, sideNoBox = 0, sideViaCol = 0, underCrossCol = 0;
   for (const { f, d } of ons) {
     // 每筆演出的 hit 類事件都要有一個跳字：分母＝fights[].beatsShown[].shown
     let shownHits = 0;
@@ -348,16 +348,22 @@ if (off && base) {
     /* 覆審 HIGH-2：期望側別只能從**引擎真相**推——`fights[].beatsShown[]`。
        規則：burn 那一筆的 side 就是被燒的那一方；其餘交鋒的 side 是行動方、target 在**對面**。
        建一張 (unit id, 金額) → 期望側別 的表；同一組鍵若兩側都出現過就標成 ambiguous 不判（不灌水）。 */
-    const wantBy = new Map(); // key → Set(side)
-    const put = (k, v) => { const st = wantBy.get(k) || new Set(); st.add(v); wantBy.set(k, st); };
-    for (const fight of (d.fxc && d.fxc.fights) || []) for (const bt of fight.beatsShown || []) {
-      for (const x of bt.shown || []) put('h:' + x.target + ':' + (x.amount | 0), x.side === 'B' ? 'A' : 'B');
-      for (const x of bt.burns || []) put('u:' + x.target, x.side);
-    }
+    /* 鍵要含**場次**：不同場對決的 unit id 會重複，跨場合併會製造假的 ambiguous
+       （覆審第二輪實測本輪 8 筆 ambiguous 有一半是這樣來的）。fights[] 的索引就是場次序號，
+       跟 closeup-drive 記在每個跳字上的 duel 對得起來（兩邊都是從 1 數起）。 */
+    const wantBy = new Map(); // 'duel|key' → Set(side)
+    const put = (dn, k, v) => { const kk = dn + '|' + k; const st = wantBy.get(kk) || new Set(); st.add(v); wantBy.set(kk, st); };
+    ((d.fxc && d.fxc.fights) || []).forEach((fight, fi) => {
+      for (const bt of fight.beatsShown || []) {
+        for (const x of bt.shown || []) put(fi + 1, 'h:' + x.target + ':' + (x.amount | 0), x.side === 'B' ? 'A' : 'B');
+        for (const x of bt.burns || []) put(fi + 1, 'u:' + x.target, x.side);
+      }
+    });
     d.__wantBy = wantBy;
     for (const r of d.cu.dmg) {
       n++;
       const isUnitFloat = /(^|\s)unit(\s|$)/.test(r.cls);
+      let thisSideOk = false; // 這一筆自己的側別判定結果（per-record 降級要用）
       maxLive = Math.max(maxLive, r.live);
       // 移除：以 MutationObserver 量到的那一次移除為準（DMG_MS+100 內），沒量到才退回旗標
       const removedIn = r.removedAt != null ? r.removedAt - r.t : null;
@@ -374,17 +380,26 @@ if (off && base) {
            「跳字中心到期望那一側那一尊的距離 < 到對面那一側同 id 那一尊的距離」。
            只比自己那一側的距離是自我比對：把產品的 tside 還原成 v0.45 的錯邊，
            因為 dataset.side 跟著一起錯，量到的還是「離自己說的那一尊很近」，永遠綠。 */
-        const key = isUnitFloat ? ('u:' + r.unit) : ('h:' + r.unit + ':' + Math.abs(parseInt(String(r.text).replace(/[^0-9]/g, ''), 10) || 0));
+        const key = (r.duel === undefined ? 1 : r.duel) + '|' + (isUnitFloat ? ('u:' + r.unit) : ('h:' + r.unit + ':' + Math.abs(parseInt(String(r.text).replace(/[^0-9]/g, ''), 10) || 0)));
         const st = d.__wantBy && d.__wantBy.get(key);
         const wantSide = st && st.size === 1 ? [...st][0] : null;
-        const boxOf = (sd) => (sd === 'A' ? r.boxA : r.boxB);
         const distTo = (bx) => { if (!bx) return null; const ddx = Math.max(bx.x0 - r.cx, 0, r.cx - bx.x1), ddy = Math.max(bx.y0 - r.cy, 0, r.cy - bx.y1); return Math.hypot(ddx, ddy); };
-        if (wantSide && r.boxA && r.boxB) {
-          sideJudged++;
-          const dW = distTo(boxOf(wantSide)), dF = distTo(boxOf(wantSide === 'A' ? 'B' : 'A'));
-          if (!(dW < dF)) bad.push({ f, why: 'side', text: r.text, wantSide: wantSide, dWant: +dW.toFixed(1), dFoe: +dF.toFixed(1), datasetSide: r.side });
-          else sideOk++;
+        // 3D 方框優先；那一尊在對面拿不到方框時（還沒建模／已收起來）退回兩欄的 DOM 方框，
+        // 兩者都拿不到才記成 sideNoBox（**不靜默丟棄**，覆審第二輪抓到本輪有 10 筆這樣消失）
+        let bW = null, bF = null, via = null;
+        if (wantSide) {
+          const foeSide = wantSide === 'A' ? 'B' : 'A';
+          const f3 = (sd) => (sd === 'A' ? r.boxA : r.boxB), fc = (sd) => (sd === 'A' ? r.colA : r.colB);
+          if (f3(wantSide) && f3(foeSide)) { bW = f3(wantSide); bF = f3(foeSide); via = 'fig'; }
+          else if (fc(wantSide) && fc(foeSide)) { bW = fc(wantSide); bF = fc(foeSide); via = 'col'; }
+        }
+        if (wantSide && bW && bF) {
+          sideJudged++; if (via === 'col') sideViaCol++;
+          const dW = distTo(bW), dF = distTo(bF);
+          if (!(dW < dF)) bad.push({ f, why: 'side', text: r.text, wantSide: wantSide, via: via, dWant: +dW.toFixed(1), dFoe: +dF.toFixed(1), datasetSide: r.side });
+          else { sideOk++; thisSideOk = true; }
         } else if (!wantSide) sideAmbig++;
+        else sideNoBox++;
         const dx = Math.max(r.box.x0 - r.cx, 0, r.cx - r.box.x1);
         const dy = Math.max(r.box.y0 - r.cy, 0, r.cy - r.box.y1);
         const dist = Math.hypot(dx, dy);
@@ -413,8 +428,10 @@ if (off && base) {
            上面那條「引擎真相決定期望側別 → 比兩側方框距離」是更強、而且來源獨立的檢查
            （突變版實測 sideOk 2/11＝會紅），所以這裡對「3D 尊且側別已判過且通過」的那幾筆
            降級為揭露計數；退回隻數牌的 badge 模式仍然照舊硬判。 */
+        // 降級要 per-record：只有「**這一筆**的側別判過而且通過」才降成揭露；
+        // 原本寫成 sideOk > 0（整批只要有一筆過就全部降級）＝把別筆的通過拿來替這一筆背書（覆審第二輪）。
         if (!okUnder) {
-          if (r.mode === 'fig' && wantSide && sideOk > 0) underCrossCol++;
+          if (r.mode === 'fig' && thisSideOk) underCrossCol++;
           else bad.push({ f, why: 'under', under: r.under, col: r.underCol, want: wantCol, side: r.side, text: r.text });
         }
       } else if (r.mode === 'badge' && r.badge) {
@@ -447,7 +464,10 @@ if (off && base) {
   }
   // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判。
   // 批 2-a 之後分母要扣掉「−1 隻」那一種：它對的是燒毀事件，不是交鋒。
-  out.P4.sideOk = sideOk; out.P4.sideJudged = sideJudged; out.P4.sideAmbiguous = sideAmbig; out.P4.underCrossCol = underCrossCol;
+  // 分母講清楚：judged（真的判了幾筆）／ambiguous（同鍵兩側都出現過）／noBox（兩種方框都拿不到）
+  out.P4.sideOk = sideOk; out.P4.sideJudged = sideJudged; out.P4.sideAmbiguous = sideAmbig;
+  out.P4.sideNoBox = sideNoBox; out.P4.sideViaColumnBox = sideViaCol; out.P4.underCrossCol = underCrossCol;
+  out.P4.sideCoverage = n ? +((sideJudged / n) * 100).toFixed(1) : null;
   out.P4.unitFloats = unitN; out.P4.killFloats = killN; out.P4.hitFloats = n - unitN; out.P4.burnEvents = burnEv;
   out.P4.oneToOne = out.P4.shownHits === out.P4.hitFloats;
   // 「每筆燒毀一個『−1 隻』」：舊錄影（v0.45／v0.48）沒有這一種跳字，unitN 為 0 時不判（回 null），
