@@ -4,10 +4,13 @@
 基準 SHA：`7ab389e`（＝凍結檔那一筆；凍結檔自己寫的基準是它的前一筆 `5565364`，兩者之間只有凍結檔本身）。
 證據目錄：`docs/experiments/2026-09-07-art-a-evidence/`。量測機器：同一台、同一 session、ANGLE (AMD Radeon 780M, D3D11)。
 
-> **先講三件不好的事**（細節在 §4）：
-> ① **A3 這一條零鑑別力**——基準版就已經 24.96 ≥ 15（凍結檔預期 <5），它量到的是 DOM 面板的上下色差，不是背景漸層。
-> ② **A5 同樣零鑑別力**——基準版就已經 0.6487 < 0.8（凍結檔預期 ≥0.9）；凍結檔自己預告過這個風險並指定了改量法，本報告照 `02 §2.1` 記錄但**沒有動門檻**。
-> ③ **A4 是靠「對決時把遠景剪影收掉」達成的**，不是靠擺位閃開；若不收掉，實測 6 場對決共 33 處重疊。三件都留給使用者裁。
+> **先講四件不好的事**（細節在 §4；前三件要你裁，第四件是我已自行決定、只是報備）：
+> ① **A3 這一條零鑑別力**——基準版就已經 24.96 ≥ 15（凍結檔預期 <5），它量到的是 DOM 面板的上下色差，不是背景漸層。**要你裁量法**。
+> ② **A5 同樣零鑑別力**——基準版就已經 0.6487 < 0.8（凍結檔預期 ≥0.9）；凍結檔自己預告過這個風險並指定了改量法，本報告照 `02 §2.1` 記錄但**沒有動門檻**。**要你裁量法**。
+> ③ **A4 是靠「對決時把遠景剪影收掉」達成的**，不是靠擺位閃開；若不收掉，實測 6 場對決共 33 處重疊。**要你裁對決要不要留遠景**。
+> ④ **A10 的檔案清單多了一個 `tests/tools/creature-preview.html`**（+9/−5）——它是 A6 指定要用的量測工具、自己建 renderer，不同步就會量到錯的東西。這一件**我自行決定改了、沒等你點頭**，理由在 §4.4；覺得不該改就退回這一個檔。
+>
+> 整體判定：**有條件通過**——A1／A2／A6／A7／A8／A9 乾淨過，A3／A5 過了但門檻本身沒有鑑別力，A4 過了但做法要你確認，A10 多一個檔。
 
 ---
 
@@ -40,7 +43,7 @@
 | **A7** | ✅ | `node tests/tools/duel-perf.mjs perf … --n=10 --uncap` 與 `--n=8`（基準加 `--root=<7ab389e worktree>`） | `--n=10 --uncap`：基準 rafMedian **113.6** → 新版 **111.1**（比 0.978 ≥ 0.9 ✅；rendersPerSec 505.1→488.0，比 0.966）。`--n=8`：基準 **59.9** → 新版 **59.9**（比 1.000；rendersPerSec 282.7→284.2）。牌桌 draw calls：基準 **8** → 新版 **14**（**+6** ≤ 10 ✅；治具另量了把穹頂與剪影暫時關掉的 `callsWithoutNew=8`，證明 +6 全部來自本卷新增物） |
 | **A8** | ✅（`ash-freeze` 見註） | 見下方逐條 | `?fps=1` 雙向：不帶參數 `#fpsDiag` 不存在、帶參數存在且 2s 後 `fps 中位 60／draw calls 14／三角形 855`（`node tests/tools/art-a-fps.mjs` → `pass:true`）。8 套測試：aistake 8/0、conscap 5/0、duel-desync 7 綠、legend 17/0、lineup-order 5 綠、nightrules 16 綠、review 28/0、wish16 36/0。`duel-drive --duels=6` → `errors:0`、`abOnAllUnits:true`。`ash-freeze-probe.mjs`：新版「F1 凍結 Points 數＝2 ❌／0 error true／F6 硬切段數 0 ✅」，**基準版同一指令逐字相同**（`--root` 對 7ab389e 跑），所以這個 ❌ 不是本卷造成的 |
 | **A9** | ✅ | `node tests/tools/trace-eq.mjs <基準 index.html> index.html` | `{"seeds":"1..20","bytesOld":332125,"bytesNew":332125,"equal":true}`，exit 0。活性證據：輸出 332,125 bytes（不是空的），且同一支腳本對 `?paperwar` 相關開關的既有雙向測試（wish16／legend 等 8 套）全綠 |
-| **A10** | ⚠️ 多一個檔 | `git diff --stat 7ab389e` | 清單見 §5。**多出凍結檔沒列的 `tests/tools/creature-preview.html`**（+14/−5），理由見 §4.4 |
+| **A10** | ⚠️ 多一個檔 | `git diff --stat 7ab389e` | 清單見 §5。**多出凍結檔沒列的 `tests/tools/creature-preview.html`**（+9/−5；§5 表裡的「14」是 git diff --stat 的「總變動行數」，兩個數字是同一件事的兩種寫法），理由見 §4.4 |
 
 ## 4. 凍結檔哪幾條有問題（只報告，未動門檻）
 
@@ -65,12 +68,21 @@
 - 待使用者裁：對決時要不要留一點遠景（例如只留最遠那片、或壓到人形頭頂以上的一條窄帶）。
 
 ### 4.4 A10 的檔案清單少一個必要的檔
-- 多出 `tests/tools/creature-preview.html`（+14/−5）。這是 A6 指定要用的 lookdev 治具，它**自己建 renderer**，而且原本刻意不設 `outputColorSpace`（註解寫「最後的 linear→sRGB 由 bloom 的合成 shader 自己做」）。本卷把手刻映射從 `js/bloom.js` 拿掉之後，這一頁若不同步就會輸出線性值——**尺跟產品不同刻度，A6 的前後對照就沒有意義**。改動只有三行 renderer 設定＋bloom threshold 對齊＋一行 `userData.baseIntensity`。
+- 多出 `tests/tools/creature-preview.html`（`git diff --numstat 7ab389e` → **+9/−5**）。這是 A6 指定要用的 lookdev 治具，它**自己建 renderer**，而且原本刻意不設 `outputColorSpace`（註解寫「最後的 linear→sRGB 由 bloom 的合成 shader 自己做」）。本卷把手刻映射從 `js/bloom.js` 拿掉之後，這一頁若不同步就會輸出線性值——**尺跟產品不同刻度，A6 的前後對照就沒有意義**。改動只有三行 renderer 設定＋bloom threshold 對齊＋一行 `userData.baseIntensity`。
 - 另外凍結檔允許但本卷**沒有用到**的：`assets/theme.css`（暈角的 CSS 放進 `index.html` 的既有 `<style>`，跟其他覆蓋層一致）。
 
 ### 4.5 其他兩件實作上的重要發現（不是凍結檔的問題）
 - **不存在「雙重映射」**：凍結檔範圍 §1 的理由是「bloom 合成 shader 那顆手刻 ACES 拿掉避免雙重」。實際上 three r158 只在**畫到畫布**那一趟注入 tonemapping／colorspace（`WebGLPrograms.js`：`currentRenderTarget === null || isXRRenderTarget`），bloom 的場景那一趟畫進 `sceneRT`，本來就吃不到 renderer 的設定——所以照原樣加上 `renderer.toneMapping` 並**不會**造成雙重映射；但若只是把手刻那段刪掉、不做別的，bloom 那條路就會完全沒有映射（輸出線性值，畫面變濁）。實作採取的做法是把合成那一趟從 `RawShaderMaterial` 換成 `ShaderMaterial`＋`#include <tonemapping_fragment>`／`<colorspace_fragment>`，讓 three 用**同一組設定**收尾——這樣兩條路曲線一致、手刻整段移除、亮部萃取仍在線性 HDR 上做（順序正確）。SwiftShader 上 `ShaderMaterial` 會連結失敗，但 `renderer.js` 的 `bloomOK` 在軟體 GL 上根本不呼叫 `bloom.render()`，那支 program 不會被編譯。
 - **exposure 1.1 一度把對決洗白**：中途版本（霧色 `#33254c`）實測對決畫面中央亮度從基準 51.3／39.9 衝到 **114.1／72.3**，整場糊成灰紫霧。歸因是**霧色**不是曝光（對決霧密度 0.115，霧色一亮整個背景就抬起來）；把 `ENV.SKY_FOG` 壓回 `#1c1330`（與基準 `#1a0a2e` 同量級）之後回到 43.6／54.6，與基準同量級。曝光維持凍結檔範圍寫的 1.1。
+
+### 3.1 額外的邊界測試（不在 A1–A10 內，是 `03 R5` 的「一個邊界」）
+本卷最高風險的改動是「bloom 合成從 `RawShaderMaterial` 換成 `ShaderMaterial`」——`js/bloom.js` 檔頭記載
+ShaderMaterial 在 SwiftShader（軟體 GL）上會連結失敗。推論是「`bloomOK` 在軟體 GL 上根本不呼叫
+`bloom.render()`，那支 program 不會被編譯」，但推論不算數，所以真的跑了一遍：
+
+`node tests/tools/art-a-swgl.mjs --port=8973 --duels=2`（chromium 不給 `--use-gl=angle`，退回 SwiftShader）
+→ `{"gl":{"bloomOn":false,"glName":"ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device …), SwiftShader driver)","programs":16},"errors":0,"pass":true}`
+確認：真的跑在 SwiftShader 上、bloom 真的關著、console/pageerror **0 筆**。
 
 ## 5. 改動清單（`git diff --stat 7ab389e`，不含證據目錄）
 
@@ -106,5 +118,6 @@
 1. **真機試玩**（使用者側）：橫持開 `?fps=1` → 進規則頁截一張圖回報，就補齊了從未回填過的 iPhone fps／draw call。
 2. **兩件待裁**（§4.1／§4.2）：A3／A5 兩條零鑑別力的量法要不要改成「只量天空那一段」與「只驗有無疊層」——**我沒有動，等你點頭**。
 3. **一件待裁**（§4.3）：對決要不要留一點遠景剪影。
+3b. **一件報備**（§4.4）：`tests/tools/creature-preview.html` 我自行改了三行 renderer 設定（不改的話 A6 的尺會壞掉）。覺得不該碰就退這一個檔，其餘不受影響。
 4. **剪影只露出上緣一條**：牌桌是俯視，離地 0.85 世界單位以上的東西會跑出畫面，所以現在看到的是天際線的下半截（已把剪影縱向壓扁 0.26～0.34 補救）。真正解「市集沒有東西看」的是**乙卷**（妖怪站上桌），不是再加剪影。
 5. bloom 高光在 ACES 下會往白色去飽和（`new-duel1.png` 中央那團），若試玩覺得太白，調 `BLOOM.strength` 或 `ENV.EXPOSURE`，**不要調回手刻映射**。
