@@ -75,7 +75,7 @@
 - **不存在「雙重映射」**：凍結檔範圍 §1 的理由是「bloom 合成 shader 那顆手刻 ACES 拿掉避免雙重」。實際上 three r158 只在**畫到畫布**那一趟注入 tonemapping／colorspace（`WebGLPrograms.js`：`currentRenderTarget === null || isXRRenderTarget`），bloom 的場景那一趟畫進 `sceneRT`，本來就吃不到 renderer 的設定——所以照原樣加上 `renderer.toneMapping` 並**不會**造成雙重映射；但若只是把手刻那段刪掉、不做別的，bloom 那條路就會完全沒有映射（輸出線性值，畫面變濁）。實作採取的做法是把合成那一趟從 `RawShaderMaterial` 換成 `ShaderMaterial`＋`#include <tonemapping_fragment>`／`<colorspace_fragment>`，讓 three 用**同一組設定**收尾——這樣兩條路曲線一致、手刻整段移除、亮部萃取仍在線性 HDR 上做（順序正確）。SwiftShader 上 `ShaderMaterial` 會連結失敗，但 `renderer.js` 的 `bloomOK` 在軟體 GL 上根本不呼叫 `bloom.render()`，那支 program 不會被編譯。
 - **exposure 1.1 一度把對決洗白**：中途版本（霧色 `#33254c`）實測對決畫面中央亮度從基準 51.3／39.9 衝到 **114.1／72.3**，整場糊成灰紫霧。歸因是**霧色**不是曝光（對決霧密度 0.115，霧色一亮整個背景就抬起來）；把 `ENV.SKY_FOG` 壓回 `#1c1330`（與基準 `#1a0a2e` 同量級）之後回到 43.6／54.6，與基準同量級。曝光維持凍結檔範圍寫的 1.1。
 
-### 3.1 額外的邊界測試（不在 A1–A10 內，是 `03 R5` 的「一個邊界」）
+### 4.6 額外的邊界測試（不在 A1–A10 內，是 `03 R5` 的「一個邊界」；擺在這一節是因為它印證了 §4.5 的第一點）
 本卷最高風險的改動是「bloom 合成從 `RawShaderMaterial` 換成 `ShaderMaterial`」——`js/bloom.js` 檔頭記載
 ShaderMaterial 在 SwiftShader（軟體 GL）上會連結失敗。推論是「`bloomOK` 在軟體 GL 上根本不呼叫
 `bloom.render()`，那支 program 不會被編譯」，但推論不算數，所以真的跑了一遍：
@@ -84,25 +84,26 @@ ShaderMaterial 在 SwiftShader（軟體 GL）上會連結失敗。推論是「`b
 → `{"gl":{"bloomOn":false,"glName":"ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device …), SwiftShader driver)","programs":16},"errors":0,"pass":true}`
 確認：真的跑在 SwiftShader 上、bloom 真的關著、console/pageerror **0 筆**。
 
-## 5. 改動清單（`git diff --stat 7ab389e`，不含證據目錄）
+## 5. 改動清單（`git diff --stat 7ab389e`，不含證據目錄與本報告）
 
 ```
- docs/GAME_DESIGN.md               |  10 ++   changelog v0.46
- docs/IMPLEMENTATION_GUIDE.md      |  23 ++   §11.22 接手前先知道這六件事
- docs/design/ART_BIBLE.md          |  19 ++   §8 燈光與色調（常數表＋理由）
- index.html                        |  42 +-   VERSION 0.46／#vignette CSS＋DOM／?fps=1 段
- js/bloom.js                       |  40 +-   合成改 ShaderMaterial、手刻 aces()/toSRGB() 移除
- js/renderer.js                    |  42 +-   ACES＋exposure＋colorSpace／canvas z −2／燈籠 baseIntensity／遠景淡出／bloom threshold
- js/scene-env.js                   | 229 +-   ENV／LANTERNS 常數表、漸層穹頂、HemisphereLight、五片剪影
- tests/tools/art-a-duel.mjs        | 114 ++   A4 對決重疊判定（新治具）
- tests/tools/art-a-fps.mjs         |  54 ++   A8 ?fps=1 雙向（新治具）
- tests/tools/art-a-lookdev.mjs     |  58 ++   A6 27 隻一次拍完（新治具）
- tests/tools/art-a-metrics.py      |  66 ++   A3／A5 畫素量測（新治具）
- tests/tools/art-a-sheet.py        |  50 ++   contact sheet（新治具）
- tests/tools/creature-preview.html |  14 +-   lookdev 尺對齊產品（見 §4.4）
- tests/tools/scene-shot.mjs        | 161 +-   --gate：關 intro／draw call 歸因／far-* 視錐／暈角 DOM／純 3D 截圖
- tests/tools/trace-eq.mjs          |  18 ++   A9 等價比對（新治具）
- 15 files changed, 895 insertions(+), 45 deletions(-)
+docs/GAME_DESIGN.md               |  10 ++
+ docs/IMPLEMENTATION_GUIDE.md      |  23 ++++
+ docs/design/ART_BIBLE.md          |  19 ++++
+ index.html                        |  42 ++++++-
+ js/bloom.js                       |  40 ++++---
+ js/renderer.js                    |  42 +++++--
+ js/scene-env.js                   | 229 ++++++++++++++++++++++++++++++++++++--
+ tests/tools/art-a-duel.mjs        | 114 +++++++++++++++++++
+ tests/tools/art-a-fps.mjs         |  54 +++++++++
+ tests/tools/art-a-lookdev.mjs     |  58 ++++++++++
+ tests/tools/art-a-metrics.py      |  66 +++++++++++
+ tests/tools/art-a-sheet.py        |  50 +++++++++
+ tests/tools/art-a-swgl.mjs        |  41 +++++++
+ tests/tools/creature-preview.html |  14 ++-
+ tests/tools/scene-shot.mjs        | 161 ++++++++++++++++++++++++++-
+ tests/tools/trace-eq.mjs          |  18 +++
+ 16 files changed, 936 insertions(+), 45 deletions(-)
 ```
 
 逐檔對應需求：`js/*` ＝範圍 1–5；`index.html` ＝範圍 1（VERSION）、5（暈角）、6（`?fps=1`）；`docs/*` ＝範圍 7；`tests/tools/*` ＝ A1–A9 的機械證據。**沒有一行動到引擎**（A9 逐位元組相等即為此背書）。
