@@ -74,14 +74,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    2026-09-07 使用者裁定搬進中央面板——北家因此回到頂端正中，三龕與法寶卡在同一個視線動線上。
    寬度用 flex 均分＋min-width:0，三格永遠塞得下 ⇒ 橫向溢出 0（不再靠 overflow:hidden 遮）。
    顏色沿用 fac-* 帶的 --pwf（與對決隻數牌同一份系色事實來源，v0.37 §11.17）。 */
-#shrines{display:flex;gap:5px;align-items:stretch;width:100%;min-width:0;margin:0 0 5px}
+#shrines{display:flex;gap:5px;align-items:stretch;width:100%;min-width:0;margin:0 0 3px}
 .shrine{flex:1 1 0;min-width:0;background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:1px solid var(--line);border-left:3px solid var(--pwf,#8a8a8a);border-radius:10px;
   padding:3px 6px;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden}
 .shrine.gone{opacity:.5}
 /* slim＝離請神夜還遠的那些夜：整格壓成一列（尊名｜倒數｜你 h），把高度還給市集卡（覆審 HIGH-1 甲） */
-.shrine.slim{flex-direction:row;align-items:center;gap:6px;padding:2px 6px}
+.shrine.slim{flex-direction:row;align-items:center;gap:6px;padding:0 6px;line-height:1.5;font-size:9.5px}
 .shrine.slim .shname{flex:0 0 auto}
 .shrine.slim .shwhen{flex:1 1 auto;min-width:0}
 .shname{font-size:10.5px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -102,6 +102,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    實測 -webkit-box 在 grid 的 minmax(0,1fr) 欄裡仍會把 #market 的 scrollWidth 撐出 3px（探針 tests/tools/mkt-probe.mjs）。 */
 .uline{font-size:10px;color:var(--dim);line-height:1.4;margin-top:2px;min-width:0;max-width:100%;
   overflow-wrap:anywhere;overflow:hidden;max-height:2.8em}
+.uline.stat{white-space:nowrap;max-height:1.5em;text-overflow:ellipsis}
 .uline .umv{color:var(--gold);margin-left:4px}
 .uline .umd{margin-left:4px}
 .bagit.uprev{align-items:flex-start;gap:8px}
@@ -3026,7 +3027,8 @@ function unitRowText(it,owner,mode){
      沿革：覆審 HIGH-1 乙——市集卡塞完整招式會讓卡片變兩三行，844×390 下 #felt 直向溢出 47～77px、
      整行反而被裁掉看不到。使用者裁定：卡面留數字、招式移到點進去的卡片詳情，袋子面板保留全文。 */
   const full=(mode==="full");
-  return `<div class="uline">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
+  /* 卡面那一版加 .stat：一行到底、不換行（只有數字，換行等於白吃 #felt 的高度預算） */
+  return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
     (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</div>`;
 }
 /* 袋子面板的「部隊預覽」：逐件一行＋最上方總計一行（總隻數・總攻・總血・共鳴 hp）。

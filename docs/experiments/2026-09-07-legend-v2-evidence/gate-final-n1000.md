@@ -1,0 +1,19 @@
+# 請神 2.0「神債暗標」閘門　n=1000　新版=index.html　基準=old-main.html
+預設值：LEGEND_ON=true
+顯式打開後的數值：SHRINE_NIGHTS=[4,7,10]　INC_MAX=3　INC_TITHE=1　INC_GIFT_P=4　INC_AI={"minLifeFrac":0.3,"value":12}
+
+## G0 Kill switch 雙向（**顯式 LEGEND_ON=false** 的 trace(1..20) 與**基準的 OFF 路徑**逐位元組相等；預設必不等且 S.shrines 三龕各帶 night∈SHRINE_NIGHTS 且互異）
+- 顯式 LEGEND_ON=false vs 基準 OFF：長度 347394/347394，逐位元組相等 ✅
+- 新版預設 vs 基準預設：長度 383349/357531，不相等 ✅
+- 預設載入後 makeState('solo',1) 的三龕請神夜：[10,7,4]（SHRINE_NIGHTS=[4,7,10]）✅
+- 判定：✅ （本段 9.2s，累計 9.2s）
+
+## G1 優勢策略（座位 0 勝率；incenseMax − splitter ≤ +5pp、incenseNever ≥ splitter − 8pp、任一 ≤40%）
+| 策略 | LEGEND_ON=false | LEGEND_ON=true | 位移 | ≤40% |
+|---|---|---|---|---|
+| splitter | 21.10% | 21.90% | +0.80pp | ✅ |
+| greedy | 12.90% | 17.70% | +4.80pp | ✅ |
+| hoarder | 8.80% | 5.80% | -3.00pp | ✅ |
+| specialist | 25.20% | 27.70% | +2.50pp | ✅ |
+| incenseMax | 21.10% | 15.90% | -5.20pp | ✅ |
+| incenseNever | 21.10% | 19.20% | -1.90pp | ✅ |
