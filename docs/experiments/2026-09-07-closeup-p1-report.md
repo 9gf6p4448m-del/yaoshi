@@ -3,7 +3,9 @@
 > **二版（冷讀對抗審查修補）**：§5 是逐條三態與證據；§1 的 P0–P7 數字已用二版程式重跑並就地更新，
 > §2 的連拍與 contact sheet 也重拍過。
 > **三版（第二輪覆審修補）**：§6。
-> **合併 v0.44 之後的重跑**：§7（新基準＝`0c80537`）。一版／二版的原始判讀留在 git 歷史（`affdb69`／`b065d4e`）。
+> **合併 v0.44 之後的重跑**：§7（新基準＝`0c80537`）。
+> **四版（第三輪覆審，治具修補）**：§8——這一輪**只動 `tests/tools`**，產品碼（`index.html`／`js/*`）一行未改。
+> 一版／二版／三版的原始判讀留在 git 歷史（`affdb69`／`b065d4e`／`b37df9c`）。
 
 規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二　驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9，**未動一個字**）
 基準＝`4051dd1`（v0.43.3；本卷起點 `c5128fb` 只多兩份文件，`index.html` 與 `4051dd1` 相同）
@@ -246,3 +248,31 @@ seed 3 的**全域**計數器有 4 欄各差 1（`burn 91/92`、`burnDom 26/27`�
 
 第一次跑「遞補有動（burn>MAXFIG）」是 `false`（那一局沒有出現燒毀數 > MAXFIG 的對決，遞補路徑沒被行使），
 F1／F6 仍綠；再跑一次為 `true`（`runs 共 126 段`）。兩次都 0 error。
+
+---
+
+## 8. 四版：第三輪覆審的治具修補（2026-09-07）
+
+**這一輪沒有動產品碼**：`git diff de8c3be -- index.html js/` 為空，改的全在 `tests/tools/`（量測與判準）。
+
+| # | 項目 | 三態 | 紅→綠證據 |
+|---|---|---|---|
+| A | P0 切點漏了 `beat` | **真的修好（改走乙案，切點表整個拿掉）** | 二版的切點只涵蓋 `burn/burnDom/burnFig/trait`，而 `FXC.beat++` 在 `pwPlayBeat` 內、第 21 場一開演就污染 → 覆審重跑 seed 3 `P0=FAIL`（beat 60 vs 61）。**修**：`closeup-drive` 在**每一次 `ys:duel-end` 當下**對 `FXC` 存一份深拷貝（`C.snaps[已演完幾場]`），judge 取兩邊都達到過的最大場次當共同切點，**比原始七欄**，切點 escape（`'cut'`）整段刪除。**綠**：seed 3 切在第 19 場 → `burn 84/84、burnFig 58/58、burnDom 26/26、trait 79/79、traitFig 64/64、beat 57/57、duels 19/19`、`fights[]` 逐字相同 → `P0=PASS` |
+| B | cancel 子句缺「下一次 focus」守衛 | **真的修好** | seed 7 實測中斷後 97ms 就來新 focus，B 側被正確地再退暗卻被判成 `cancel-deeper`／`not-restored`。**修**：cancel 迴圈與 P2 的 `backAfter` 都補上「這一筆抽樣之後若已有新的 `ys:fx-focus` 就不判」，另補 `ys:duel-end`（基座機位已在往 3.6 走）與 punch（同 P2 主窗的 `busy()` 規則）兩支守衛，並逐項計數揭露。`--cancel` 探針改成**每一次 focus 都派一次**（上限 20）、`--skipfocus` 改成**每一場按一次**。**綠**：cancel 樣本 11 筆（判 5、排除 6：新 focus 1／punch 5）全部 4.200；skip 樣本 4 筆（判 1、排除 3 都是 duel-end 已發）4.200；P3 的中斷子句 22 次、`cancelBack 177/177`、`cancelSkippedByNextFocus 3`。0 樣本仍是 fail-closed |
+| C | stale 過濾＝丟樣本 | **真的修好（改成重算期望值，不丟）** | 二版對「落後最後一幀 >60ms」的抽樣直接 `continue`，那是第四次放寬且沒記 §2.1。**修**：改用**最後畫的那一幀的時刻**重算該時刻的包絡期望退暗量（`envK`：進 160ms／停 ms／回 220ms，與 `duel-figures` 同一組常數），容差 0.08（量化 1/50 ＋幀間誤差），樣本照判。**綠**：本輪 360 筆抽樣中 17 筆 stale、其中 48 個 fig 列改走期望值判定，`bad 0`；新鮮樣本仍照凍結檔的 `≤0.40` 判（實測最大 0.36） |
+| D | 招式截斷的回位段沒進 P3 | **真的修好** | `closeup-drive` 對 `ys:fx-focus-end` 也做同一組（0／80／160／300ms）逐尊抽樣。本輪 22 筆中斷抽樣裡有 10 筆來自 `focus-end`、11 筆來自 `trait-cancel` |
+| D2 | §2.1 修訂 3 的「不是不驗」措辭 | **真的修好** | 改成準確措辭：截斷後**被這組抽樣涵蓋到的時點**有驗；沒被任何抽樣涵蓋的幀（兩次抽樣之間、或中斷後立刻又來新 focus 的那幾幀）是**涵蓋缺口**，不是「已驗證」 |
+| E | `underCol===null` 當萬用通行證 | **真的修好** | 改成三分：落在目標欄或 `#duel` → 過；落在**對面那一欄** → 紅；`null`（連 `#duel` 都不在，多半是 3D canvas）→ 過但**計數揭露**。本輪 184 筆中 `underOutsideDuel = 3` |
+| F | 抽樣筆數 vs fig 列數混在一起 | **真的修好** | P3 現在分開印：`samples`（一次 `snapFigs` 算一筆）與 `figRowsDimmed`（逐尊列數）。本輪 **360 筆抽樣 / 1133 個退暗 fig 列** |
+
+### 四版全量重跑（seeds 1/3/5/7/9 各 `--duels=10`）
+
+`VERDICT P0=PASS P1=PASS P2=PASS P3=PASS P4=PASS P5=PASS P7=PASS`
+
+- **P0**（`?closeup=0` seed 3 vs `0c80537`）：共同切點＝第 19 場，七欄逐欄相同、`fights[]` 逐字相同、DOM 四樣皆無
+- **P1**：**42 場**、hit-focus **28 場**、burn-focus **40 場**、每拍 ≤2、規則逐筆相同
+- **P2**：90 次切鏡 deepOk 90/90、回位 60/60、`monoQuiet` 62/62、hit 類可判 37 次；cancel 5/5＝4.200、skip 1/1＝4.200；決定性治具 U1–U4 全過
+- **P3**：360 筆抽樣（stale 17，其中 48 fig 列走期望值判定）、1133 個退暗 fig 列最大 **0.36**、主角最小 **1.00**、回全景 254 筆回原值、`burnRise 0`、中斷 22 次 `cancelBack 177/177`、`bad 0`
+- **P4**：**184 = 184**、同時最多 5、移除 184/184（觀察者上界 724ms，判準是 +700ms 那一刻已不在 DOM）、位置 184/184、`under` 0 違規（`outsideDuel 3` 已揭露）、跳過後 0 殘留
+- **P5**：燈 126／量表 106／卡 132，bad 0　**P7**：8 份紀錄 0 error
+- **P9**：8 套測試全綠（aistake 8／conscap 5／duel-desync 7／legend 20／lineup-order 5／nightrules 16／review 28／wish16 36）

@@ -42,44 +42,31 @@ const camunit = opt.camunit ? rd(opt.camunit) : null; // closeup-cam-unit.mjs �
 // ── P0 退路等價（雙向）────────────────────────────────────────────────────
 if (off && base) {
   const keys = ['burn', 'burnFig', 'burnDom', 'trait', 'traitFig', 'beat', 'duels'];
-  const a = off.fxc || {}, b = base.fxc || {};
+  // 兩邊在「同一場已完成對決」上比原始總數（第三輪覆審 A，走乙案）。
+  // closeup-drive 在每一次 ys:duel-end 當下對 FXC 存一份深拷貝（C.snaps[已演完幾場]），
+  // 這裡取兩邊都達到過的最大場次當共同切點——驅動器停手時多半已經開了下一場但沒演完，
+  // 那半場會污染**所有**全域計數器（FXC.beat 在 pwPlayBeat 內就加了，二版的切點表漏了它）。
+  // 取到快照就直接比原始七欄，不再有任何 escape。
+  const snapsA = off.cu.snaps || {}, snapsB = base.cu.snaps || {};
+  const common = Object.keys(snapsA).map(Number).filter((n) => snapsB[String(n)]).sort((x, y) => x - y);
+  const at = common.length ? common[common.length - 1] : null;
+  const a = at !== null ? snapsA[String(at)] : (off.fxc || {});
+  const b = at !== null ? snapsB[String(at)] : (base.fxc || {});
   const same = {};
   for (const k of keys) same[k] = [a[k], b[k], a[k] === b[k]];
-  // 收尾邊界（合併 v0.44 之後量到，seed 3）：驅動器停手時兩邊都已經開了「第 21 場」但沒演完
-  //（`ys:duel` 21 次、`ys:duel-end` 20 次），那一場不會進 fights[]（push 在 playDuelWar 最後），
-  // 可是全域計數器已經加過了；而且 fxc 與 __cu 兩份快照是先後讀的，中間那一場又往前跑了幾筆。
-  // 所以全域總數在「未演完的那一場」上本來就不可比。改成在**已完成的對決**這個共同切點上比：
-  //   ① fights[] 逐字相同（每一場的 burnCalls／burnDom／burnFig／traitCap／warBurn…）
-  //   ② 各計數器在已完成對決上的合計相同
-  //   ③ beat／duels 仍比原始值
-  // 原始總數與尾段事件一起揭露，不藏。**這是量測邊界的決定，不是門檻**，仍列進報告請使用者確認。
-  const sumF = (d, k) => (d.fxc.fights || []).reduce((acc, x) => acc + (x[k] || 0), 0);
-  const cut = { burn: 'burnCalls', burnDom: 'burnDom', burnFig: 'burnFig', trait: 'traitCap' };
-  const tailEv = (d) => { const ev = d.cu.ev || []; let last = -1;
-    ev.forEach((e, i) => { if (e.n === 'ys:duel-end') last = i; });
-    return ev.slice(last + 1).map((e) => e.n).reduce((m, x) => (m[x] = (m[x] || 0) + 1, m), {}); };
-  const cutSame = {};
-  for (const k of Object.keys(cut)) {
-    const va = sumF(off, cut[k]), vb = sumF(base, cut[k]);
-    cutSame[k] = [va, vb, va === vb];
-    if (!same[k][2] && va === vb) same[k][2] = 'cut'; // 已完成對決上相同，差額落在沒演完那一場
-  }
-  same.__cut = { perCompletedDuel: cutSame, rawTotals: { off: { burn: a.burn, trait: a.trait, traitFig: a.traitFig, burnDom: a.burnDom },
-    base: { burn: b.burn, trait: b.trait, traitFig: b.traitFig, burnDom: b.burnDom } },
-    tailEvents: { off: tailEv(off), base: tailEv(base) },
-    duelsStarted: { off: (off.cu.ev || []).filter((e) => e.n === 'ys:duel').length, base: (base.cu.ev || []).filter((e) => e.n === 'ys:duel').length },
-    duelsEnded: { off: (off.cu.ev || []).filter((e) => e.n === 'ys:duel-end').length, base: (base.cu.ev || []).filter((e) => e.n === 'ys:duel-end').length } };
-  // traitFig 沒有逐場欄位，只能靠 fights 逐字相同＋trait 合計相同一起佐證
-  if (!same.traitFig[2] && cutSame.trait[2] && fbEqualLater()) same.traitFig[2] = 'cut';
-  function fbEqualLater() { return JSON.stringify(a.fights || []) === JSON.stringify(b.fights || []); }
   const fa = JSON.stringify(a.fights || []), fb = JSON.stringify(b.fights || []);
   const dom = (off.cu.dom || []).every((x) => !x.lamps && !x.card && !x.layer && x.gauge === 0 && x.floats === 0);
   const noFocus = !(a.focus > 0) && (off.cu.focus || []).filter((x) => x.kind !== 'base').length === 0;
   const onFocus = ons.every((x) => (x.d.fxc || {}).focus > 0);
-  out.P0 = { fxcSame: same, fightsSame: fa === fb, fightsLen: [(a.fights || []).length, (b.fights || []).length],
+  const evCount = (d, n) => (d.cu.ev || []).filter((e) => e.n === n).length;
+  out.P0 = { cutAtCompletedDuel: at, snapshotsAvailable: { off: Object.keys(snapsA).length, base: Object.keys(snapsB).length },
+    fxcSame: same, fightsSame: fa === fb, fightsLen: [(a.fights || []).length, (b.fights || []).length],
     domClean: dom, noFocusWhenOff: noFocus, focusWhenOn: onFocus,
-    boundary: same.__cut,
-    PASS: keys.every((k) => same[k][2] === true || same[k][2] === 'cut') && fa === fb && dom && noFocus && onFocus };
+    // 揭露：兩邊各自跑到哪裡（收手時的半場不進比對，但要看得到）
+    rawTotalsAtStop: { off: { burn: (off.fxc || {}).burn, trait: (off.fxc || {}).trait, beat: (off.fxc || {}).beat, duels: (off.fxc || {}).duels },
+      base: { burn: (base.fxc || {}).burn, trait: (base.fxc || {}).trait, beat: (base.fxc || {}).beat, duels: (base.fxc || {}).duels } },
+    duelsStartedEnded: { off: [evCount(off, 'ys:duel'), evCount(off, 'ys:duel-end')], base: [evCount(base, 'ys:duel'), evCount(base, 'ys:duel-end')] },
+    PASS: at !== null && keys.every((k) => same[k][2] === true) && fa === fb && dom && noFocus && onFocus };
 }
 
 // ── P1 事件規則 ───────────────────────────────────────────────────────────
@@ -200,9 +187,24 @@ if (off && base) {
       && mq.length > 0 && mq.every((r) => r.monoQuietOk)
       && judged.length > 0 && judged.every((r) => r.backOk)
       && !!camunit && camunit.res.PASS === true };
+  // 守衛（第三輪覆審 B）：中斷後若已經來了新的一次 focus，鏡頭本來就該再壓近，不能拿來判「有沒有回位」。
   const backAfter = (d) => {
-    const S = (d.cu.skips || []).filter((x) => x.rel === 300);
-    return { at300: S.map((x) => (x.l === null ? null : +x.l.toFixed(3))),
+    const marks = (d.cu.skips || []).filter((x) => x.why === 'cancel-probe' || x.why === 'skip-btn');
+    const all = (d.cu.skips || []).filter((x) => x.rel === 300);
+    let byFocus = 0, byPunch = 0, byEnd = 0;
+    const S = all.filter((x) => {
+      const t0 = marks.filter((m) => m.t <= x.t).map((m) => m.t).pop();
+      const ev = d.cu.ev || [];
+      // 中斷之後又來一次切鏡：鏡頭本來就該再壓近
+      if (t0 !== undefined && ev.some((e) => e.n === 'ys:fx-focus' && e.t > t0 && e.t <= x.t)) { byFocus++; return false; }
+      // 對決已經收了：基座機位在往牌桌的 3.6 走，4.2 不再是該回的位置
+      if (t0 !== undefined && ev.some((e) => e.n === 'ys:duel-end' && e.t > t0 && e.t <= x.t)) { byEnd++; return false; }
+      // punch 疊在同一條 dist 上（與 P2 主窗的 busy() 同一條規則）
+      if (ev.some((e) => (e.n === 'ys:fx-punch' || e.n === 'ys:fx-burn') && x.t - e.t >= 0 && x.t - e.t <= PUNCH_MS)) { byPunch++; return false; }
+      return true;
+    });
+    return { at300: S.map((x) => (x.l === null ? null : +x.l.toFixed(3))), judged: S.length, total: all.length,
+      skipped: { byNextFocus: byFocus, byDuelEnd: byEnd, byPunch: byPunch },
       ok: S.length > 0 && S.every((x) => x.l !== null && Math.abs(x.l - PW.DUEL_DIST) <= 0.05) };
   };
   if (cancel) { out.P2.cancelBack = backAfter(cancel); out.P2.PASS = out.P2.PASS && out.P2.cancelBack.ok; }
@@ -212,7 +214,17 @@ if (off && base) {
 // ── P3 退暗 ───────────────────────────────────────────────────────────────
 {
   const bad = [], stat = { dimmed: [], kept: [], restored: [], burning: [] };
-  let stale = 0;
+  let stale = 0, staleJudged = 0, sampleCount = 0;
+  // 退暗包絡（duel-figures 的 FOCUS：進 160ms ease-out、停到 ms、回 220ms ease-in-out）。
+  // 卡幀時用「最後畫的那一幀」的時刻算期望值，樣本才不必丟。
+  const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const envK = (e, ms) => {
+    if (e <= 0) return 0;
+    if (e < 160) return 1 - Math.pow(1 - e / 160, 3);
+    if (e <= ms) return 1;
+    const u = (e - Math.max(ms, 160)) / 220;
+    return u >= 1 ? 0 : 1 - easeIO(u);
+  };
   for (const { f, d } of ons) {
     const EV = d.cu.ev;
     const frames = d.cu.frames || [];
@@ -224,12 +236,15 @@ if (off && base) {
       const endEv = (d.cu.ev || []).find((e) => (e.n === 'ys:fx-focus-end' || e.n === 'ys:fx-trait-cancel') && e.t > fo.t);
       const nextT = Math.min(foci[i + 1] ? foci[i + 1].t : Infinity, endEv ? endEv.t : Infinity);
       for (const s of fo.samples) {
-        // 抽樣新鮮度（第二輪覆審後補）：退暗是**每幀**寫上去的，卡幀時讀到的是好幾十毫秒前那一幀的值。
-        // 實測 seed=1 duel6 有一次 229ms 的頓幀，dt=260 的抽樣落後最後一幀 209ms、讀到的是 focus+51ms
-        // 的中途值 0.52（＝包絡 k≈0.74），那不是「沒退暗」是「量到舊的一幀」。落後 >60ms 的抽樣不判。
+        // 抽樣新鮮度（第三輪覆審 C：不丟樣本）：退暗是**每幀**寫上去的，卡幀時讀到的是前一幀的值。
+        // 實測 seed=1 duel6 有一次 229ms 頓幀，dt=260 的抽樣落後最後一幀 209ms、讀到 focus+51ms 的
+        // 中途值 0.52（＝包絡 k≈0.74）。二版的作法是把這種樣本丟掉——那是第四次放寬。
+        // 三版改成：**用最後畫的那一幀的時刻**重算該時刻的包絡期望值，樣本照判（見下面的 expDim）。
+        sampleCount++;
         const lastFrame = frames.filter((x) => x.t <= s.t).pop();
         const lagMs = lastFrame ? s.t - lastFrame.t : Infinity;
-        if (lagMs > 60) { stale++; continue; }
+        const effT = lastFrame ? Math.min(s.t, lastFrame.t) : s.t; // 這個 opacity 是哪一刻畫上去的
+        if (lagMs > 60) stale++;
         const burning = (side, unit) => EV.some((e) => e.n === 'ys:fx-burn' && e.side === side && e.unit === unit && s.t >= e.t - 20 && s.t <= e.t + PW.BURN_MS + 260);
         const after = s.dt > fo.ms; // 回全景之後的那一筆
         if (s.t >= nextT) continue; // 這一筆抽樣時下一次 focus 已經開始了，要判也是判那一次的名單
@@ -246,7 +261,18 @@ if (off && base) {
             if (Math.abs(g.op - expBase) > 0.02) bad.push({ ...row, why: 'restore', exp: expBase });
           } else if (s.dt >= 260) {
             if (keep) { stat.kept.push(row); if (g.op < 0.95) bad.push({ ...row, why: 'keep<0.95' }); }
-            else { stat.dimmed.push(row); if (g.op > PW.FOCUS_DIM + 0.05) bad.push({ ...row, why: 'dim>0.40' }); }
+            else if (lagMs <= 60) {
+              stat.dimmed.push(row);
+              if (g.op > PW.FOCUS_DIM + 0.05) bad.push({ ...row, why: 'dim>0.40' });
+            } else {
+              // 卡幀樣本：比「那一幀該有的退暗量」——k 由 effT 重算，容差 0.08
+              //（setFigureOpacity 量化 1/50 ＋ 幀間隔造成的時間誤差）。仍然是判，不是丟。
+              const k = envK(effT - fo.t, fo.ms);
+              const expDim = 1 - (1 - PW.FOCUS_DIM) * k;
+              staleJudged++;
+              stat.dimmed.push({ ...row, stale: true, expDim: +expDim.toFixed(3) });
+              if (g.op > expDim + 0.08) bad.push({ ...row, why: 'dim>expected(stale)', expDim: +expDim.toFixed(3), lagMs: +lagMs.toFixed(0) });
+            }
           }
         }
       }
@@ -266,7 +292,7 @@ if (off && base) {
   // 兩件事一起判：① cancel 後 300ms 內每一尊回到原值 ② 期間任何一幀都不得比 cancel 當下更暗
   //（更暗＝收到中斷還繼續往下退暗，人形端少了鏡頭端那支 focusFall 旗標就會這樣）
   const cbad = [];
-  let cN = 0, cDeeper = 0, cBack = 0, cBackN = 0;
+  let cN = 0, cDeeper = 0, cBack = 0, cBackN = 0, cSkipped = 0;
   for (const { f, d } of ons.concat(cancel ? [{ f: opt.cancel, d: cancel }] : []).concat(skipf ? [{ f: opt.skipfocus, d: skipf }] : [])) {
     for (const c of d.cu.cancels || []) {
       const at0 = (c.samples || []).find((s) => s.dt === 0);
@@ -277,8 +303,12 @@ if (off && base) {
       if (!Object.values(base0).some((g) => g.op < 0.9)) continue;
       cN++;
       const burning = (t, side, unit) => (d.cu.ev || []).some((e) => e.n === 'ys:fx-burn' && e.side === side && e.unit === unit && t >= e.t - 20 && t <= e.t + PW.BURN_MS + 260);
+      // 守衛（第三輪覆審 B）：中斷之後若又來一次 ys:fx-focus，那之後的抽樣量到的是**新的一次切鏡**
+      // 正在退暗（seed 7 實測 cancel 後 97ms 就來新 focus），不能算成「中斷沒收乾淨」。
+      const nextFocusT = (d.cu.ev || []).filter((e) => e.n === 'ys:fx-focus' && e.t > c.t).map((e) => e.t)[0] || Infinity;
       for (const s of (c.samples || [])) {
         if (s.dt === 0) continue;
+        if (s.t >= nextFocusT) { cSkipped++; continue; }
         for (const g of s.figs) {
           if (g.op == null || !g.vis) continue;
           const b = base0[g.side + g.unit];
@@ -295,7 +325,8 @@ if (off && base) {
     }
   }
 
-  out.P3 = { staleSkipped: stale, cancelSamples: cN, cancelDeeper: cDeeper, cancelBack: cBack + '/' + cBackN, cancelBad: cbad.slice(0, 8),
+  out.P3 = { samples: sampleCount, /* 抽樣筆數（一筆＝一次 snapFigs，含全場的尊） */ staleSamples: stale, staleJudgedByEnvelope: staleJudged, cancelSamples: cN, cancelSkippedByNextFocus: cSkipped, cancelDeeper: cDeeper, cancelBack: cBack + '/' + cBackN, cancelBad: cbad.slice(0, 8),
+    figRowsDimmed: stat.dimmed.length, /* 逐尊列數（一筆抽樣會產生多列） */
     dimmed: stat.dimmed.length, dimMax: stat.dimmed.length ? Math.max(...stat.dimmed.map((r) => r.op)) : null,
     kept: stat.kept.length, keptMin: stat.kept.length ? Math.min(...stat.kept.map((r) => r.op)) : null,
     restored: stat.restored.length, burning: stat.burning.length, burnRise,
@@ -307,7 +338,7 @@ if (off && base) {
 // ── P4 跳字 ───────────────────────────────────────────────────────────────
 {
   const bad = [];
-  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0;
+  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0;
   for (const { f, d } of ons) {
     // 每筆演出的 hit 類事件都要有一個跳字：分母＝fights[].beatsShown[].shown
     let shownHits = 0;
@@ -320,7 +351,9 @@ if (off && base) {
       const removedIn = r.removedAt != null ? r.removedAt - r.t : null;
       const removedOk = (removedIn !== null && removedIn <= PW.DMG_MS + 100) || r.gone === true;
       if (removedOk) goneOk++; else bad.push({ f, why: 'not-removed', t: r.t, text: r.text, removedIn });
-      if (removedIn !== null) out.P4.removeMs = Math.max(out.P4.removeMs || 0, +removedIn.toFixed(0));
+      // 觀察者回呼本身會晚幾毫秒（MutationObserver 批次），所以這個數字是**上界**；
+      // 真正的判準是上一行：+700ms 那一刻已經不在 DOM（或已被回收給下一筆）就算移除。
+      if (removedIn !== null) out.P4.removeMsObserved = Math.max(out.P4.removeMsObserved || 0, +removedIn.toFixed(0));
       // 位置：3D 尊在場時量「跳字中心到那一尊畫面方框的距離」（在方框內＝0），
       // 方框是治具自己從世界包圍盒＋canvas rect 算的，跟 pwScreenOf 不同路（審查 MEDIUM-1）。
       if (r.mode === 'fig' && r.box) {
@@ -334,8 +367,14 @@ if (off && base) {
         // 用「祖先鏈上的欄位容器」判：#dL/#dR 裡面那幾層 div 沒有 id（fdir／fav／fnm／pwbody），
         // 只看 tagName+id 會變成 'DIV' 而誤紅（第二輪覆審）。
         const wantCol = r.side === 'B' ? 'dR' : 'dL';
-        const okUnder = r.underCol === undefined ? (!r.under || /^CANVAS/.test(r.under))
-          : (r.underCol === null || r.underCol === 'duel' || r.underCol === wantCol || /^CANVAS/.test(r.under || ''));
+        // underCol：'dL'/'dR'＝落在某一側的欄位容器、'duel'＝落在覆蓋層但不在任一欄、
+        // null＝連 #duel 都不在（多半是 3D canvas 本身）。第三輪覆審 E：null 只在 elementFromPoint
+        // 真的落在 #duel 之外時才放行，並且要計數揭露，不能當成萬用通行證。
+        let okUnder;
+        if (r.underCol === undefined) okUnder = !r.under || /^CANVAS/.test(r.under); // 舊格式資料
+        else if (r.underCol === wantCol || r.underCol === 'duel') okUnder = true;
+        else if (r.underCol === null) { okUnder = true; outsideDuel++; }
+        else okUnder = false; // 落在對面那一欄＝真的擺錯邊
         if (!okUnder) bad.push({ f, why: 'under', under: r.under, col: r.underCol, want: wantCol, side: r.side, text: r.text });
       } else if (r.mode === 'badge' && r.badge) {
         posN++;
@@ -349,7 +388,7 @@ if (off && base) {
       if (/kill/.test(r.cls) && !/dmgfloat kill/.test(r.cls)) bad.push({ f, why: 'cls', cls: r.cls });
     }
   }
-  out.P4.n = n; out.P4.floats = n; out.P4.maxLive = maxLive; out.P4.removed = goneOk; out.P4.posOk = posOk; out.P4.posN = posN;
+  out.P4.n = n; out.P4.floats = n; out.P4.maxLive = maxLive; out.P4.underOutsideDuel = outsideDuel; out.P4.removed = goneOk; out.P4.posOk = posOk; out.P4.posN = posN;
   out.P4.bad = bad.slice(0, 8);
   if (skipf) {
     const s = skipf.cu.skips.filter((x) => x.rel !== undefined);

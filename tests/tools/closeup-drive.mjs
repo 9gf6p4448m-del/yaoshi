@@ -31,7 +31,7 @@ const { chromium } = req('playwright');
 // THREE.AdditiveBlending 常數＝2（three r1xx 起固定），逆光那一層跳過的判準與
 // js/duel-figures.js:185 的 setFigureOpacity 同一條規則。
 const REC = `(() => {
-  const C = window.__cu = { frames: [], focus: [], dmg: [], hud: [], cards: [], dom: [], duels: [], skips: [], ev: [], cancels: [] };
+  const C = window.__cu = { frames: [], focus: [], dmg: [], hud: [], cards: [], dom: [], duels: [], skips: [], ev: [], cancels: [], snaps: {} };
   // P2 的 dist 曲線要把 punch（命中／燒毀，420ms）那幾幀排掉：punch 疊在同一條 dist 上，
   // 而近景的觸發筆本身就會叫 fxPunch（cam-drive.mjs 的 busy() 是同一個作法）。
   for (const n of ['ys:fx-punch', 'ys:fx-burn', 'ys:hitstop', 'ys:fx-trait', 'ys:duel', 'ys:duel-end', 'ys:fx-focus', 'ys:fx-focus-end', 'ys:fx-trait-cancel'])
@@ -132,13 +132,22 @@ const REC = `(() => {
   };
 
   let duelN = 0, burnLog = [];
+  // A（第三輪覆審）：每一場對決**演完**的當下對 FXC 存一份深拷貝。
+  // P0 要比的是「同一場已完成對決」上的原始總數——驅動器停手時兩邊常常已經開了下一場但沒演完，
+  // 全域計數器（含 FXC.beat，它在 pwPlayBeat 內就加了）會被那半場污染。存快照之後就不必用切點 escape。
+  const snapFxc = () => { try { return JSON.parse(JSON.stringify(window.__ysFxCount || {})); } catch (e) { return null; } };
   document.addEventListener('ys:duel', () => {
     duelN++; burnLog = [];
+    fired = false; // --skipfocus：每一場對決都按一次跳過，樣本才夠（第三輪覆審 B 的同一個理由）
     C.duels.push({ n: duelN, t: now() });
     setTimeout(() => domSnap('duel' + duelN + '-mount'), 400);
     setTimeout(() => { const s = snapFigs(); if (s) C.focus.push({ kind: 'base', duel: duelN, t: now(), figs: s }); }, 1500);
   });
-  document.addEventListener('ys:duel-end', () => { domSnap('end' + duelN); });
+  document.addEventListener('ys:duel-end', () => {
+    domSnap('end' + duelN);
+    const f = snapFxc();
+    if (f) C.snaps[String(f.duels | 0)] = f; // 鍵＝這一刻「已演完幾場」
+  });
 
   document.addEventListener('ys:fx-focus', (e) => {
     const d = (e && e.detail) || {};
@@ -228,15 +237,21 @@ const REC = `(() => {
   };
   document.addEventListener('ys:fx-trait', (e) => setTimeout(() => cardSample('trait', (e.detail || {}).side), 30));
   document.addEventListener('ys:fx-focus', (e) => { const d = e.detail || {}; if (d.kind === 'hit') setTimeout(() => cardSample('hit', d.side), 30); });
-  document.addEventListener('ys:fx-trait-cancel', () => {
+  const cancelSample = (why) => {
     const t0 = now();
-    // 退暗這一半的中斷證據：cancel 當下先取一次，之後 80／160／300ms 各取一次。
-    // 80／160 落在「進場上升段」的長度內——退暗若在 cancel 之後還往下走，這兩筆會比 dt=0 更暗。
-    const row = { t: t0, samples: [] };
+    const row = { t: t0, why: why, samples: [] };
     C.cancels.push(row);
     const grab = (dt) => { const s = snapFigs(); if (s) row.samples.push({ dt: dt, t: now(), figs: s }); };
     grab(0);
     for (const dt of [80, 160, 300]) setTimeout(() => grab(dt), dt);
+  };
+  // D：招式把切鏡提前收掉的那條路徑（ys:fx-focus-end）也要驗回位，不能只是「排除不判」
+  document.addEventListener('ys:fx-focus-end', () => cancelSample('focus-end'));
+  document.addEventListener('ys:fx-trait-cancel', () => {
+    const t0 = now();
+    // 退暗這一半的中斷證據：cancel 當下先取一次，之後 80／160／300ms 各取一次。
+    // 80／160 落在「進場上升段」的長度內——退暗若在 cancel 之後還往下走，這兩筆會比 dt=0 更暗。
+    cancelSample('trait-cancel');
     C.skips.push({ t: t0 });
     for (const dt of [50, 150, 300]) setTimeout(() => {
       const K = cam();
@@ -247,14 +262,19 @@ const REC = `(() => {
 
   // --cancel／--skipfocus 的觸發器（見檔頭）：都掛在「第一次 ys:fx-focus 之後」，
   // 這樣量到的才是「切鏡進行中被打斷」，而不是對決都還沒開始就按跳過。
-  let fired = false;
+  let fired = false, cancelN = 0;
   document.addEventListener('ys:fx-focus', () => {
-    if (fired) return;
+    // --cancel：**每一次**切鏡都在固定偏移派一次 ys:fx-trait-cancel（上限 20 次），
+    // 中斷子句才有夠多樣本；一輪只派一次的話，那一次剛好被別的 focus 蓋掉就整條歸零（第三輪覆審 B）。
     if (window.__cuCancel) {
-      fired = true;
+      if (cancelN >= 20) return;
+      cancelN++;
       setTimeout(() => { C.skips.push({ t: now(), why: 'cancel-probe' });
         document.dispatchEvent(new CustomEvent('ys:fx-trait-cancel', { detail: {} })); }, 250);
-    } else if (window.__cuSkipFocus) {
+      return;
+    }
+    if (fired) return;
+    if (window.__cuSkipFocus) {
       fired = true;
       setTimeout(() => { const b = document.getElementById('skipbtn');
         C.skips.push({ t: now(), why: 'skip-btn', floats0: document.querySelectorAll('.dmgfloat').length });
@@ -288,7 +308,7 @@ try {
     const C = window.__cu || {};
     return { frames: C.frames || [], focus: C.focus || [], dmg: C.dmg || [], hud: C.hud || [],
       cards: C.cards || [], dom: C.dom || [], duels: C.duels || [], skips: C.skips || [], ev: C.ev || [],
-      cancels: C.cancels || [] };
+      cancels: C.cancels || [], snaps: C.snaps || {} };
   });
   await browser.close();
 
