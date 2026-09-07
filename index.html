@@ -907,7 +907,7 @@ const ROLES = {
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
-    desc:"專精流。被動：集齊同系第 2 件法寶起，該系共鳴等級 ×1.5。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
+    desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴等級 ×1.5。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
     /* aggr 0.7→1.0（2026-09-03 使用者裁定，ARCH_SPEC §9 待辦 3）：
        「紀律」＝算出真實價值但絕不溢價。aggr=0.7 時預設出價本來就低於上限 ×0.9，
        上限永遠碰不到（實測只有 0.23% 的出價被壓低、總額只壓 0.03%），紀律形同虛設。
@@ -916,18 +916,19 @@ const ROLES = {
        且對照組實測反而 −2.80pp ⇒ 使用者裁定 **aggr 釘回 1.0**，只讓掃描決定 spite。 */
     ai:{aggr:1.0,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；不得手填 */
     hooks:{
-      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥2 件（詛咒品不計）該系共鳴等級 ×1.5。
-         門檻 4→3（二版）→3→2（二版 B1 第二輪，凍結檔 §2.1 第 8 條允許的「各一級」）：
-         一版接線修好之後仍 11.57%、門檻 3 的第一輪仍 15.52%，湊件數太難、被動幾乎摸不到。
-         ★設計上要知道★：CFG.SET_MIN 就是 2，所以門檻 2＝「凡是有共鳴的那一系都 ×1.5」，
-         「集齊同系第 N 件」這個專精流的識別度到此為止；這一項列在報告待裁。
+      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴等級 ×1.5。
+         門檻沿革：4→3（二版）→2（二版 B1 第二輪）→**撤回 4**（三版，使用者裁定）。
+         撤回理由是實測：其餘完全相同、只換門檻，各 n=10000 ⇒ 門檻 4＝15.57%／3＝15.70%／2＝15.60%
+         （最大差 0.13pp、SE ±0.36pp）——**門檻對這隻的勝率沒有可測得的影響**，而門檻 2 剛好等於
+         CFG.SET_MIN，等於取消「集齊同系第 N 件」的專精識別度卻換不到任何東西。不留無意義的改動。
+         真正的瓶頸在它的 AI 打法 hook（onAiValue／onAiPlan，量法卷實測 −7.42pp），另開一卷處理。
          2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；PAPERWAR_ON 預設開之後 power()
          已不決定勝負（index.html 註解「power() 只留給 UI 當行情顯示」），紙紮夜戰的共鳴只讀
          ctx.resonanceMul（pwResLv），所以這個被動改接到 resonanceMul 才真的生效。
          ctx.fac 有值＝pwResLv 的逐系呼叫，只有達標的那一系吃到；沒有 fac＝power()，任一系達標即生效。 */
       onPowerCalc(ctx){
-        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=2) ctx.resonanceMul*=1.5; return; }
-        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=2){ ctx.resonanceMul*=1.5; break; } }
+        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5; return; }
+        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4){ ctx.resonanceMul*=1.5; break; } }
       },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
