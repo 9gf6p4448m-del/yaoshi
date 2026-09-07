@@ -1,0 +1,2489 @@
+{
+ "rec": {
+  "duels": [
+   {
+    "t": 1788770303660,
+    "a": 0,
+    "b": 3,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 2,
+    "readyAt": 1788770303880,
+    "firstBeatAt": 1788770305044,
+    "loading": [
+     {
+      "t": 1788770303720,
+      "loaded": 0,
+      "total": 2
+     },
+     {
+      "t": 1788770303880,
+      "loaded": 1,
+      "total": 2
+     },
+     {
+      "t": 1788770303880,
+      "loaded": 2,
+      "total": 2
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770305161,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 0.4000999999999985,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 0.4000999999999985,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788770305561,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 0.8000999999999981,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 0.8000999999999981,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "trait0": 0,
+    "traitFig0": 0,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 22,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline"
+    ],
+    "loadLoaded0": 0,
+    "endAt": 1788770309394,
+    "dur": 5734,
+    "trait1": 0,
+    "traitFig1": 0,
+    "skipped": false,
+    "programsAtEnd": 27,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
+    ],
+    "load": {
+     "ms": 160,
+     "total": 2,
+     "loaded": 2,
+     "timedOut": false,
+     "readyAt": 1788770303880
+    }
+   },
+   {
+    "t": 1788770310028,
+    "a": 1,
+    "b": 2,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 2,
+    "readyAt": 1788770310181,
+    "firstBeatAt": 1788770310684,
+    "loading": [
+     {
+      "t": 1788770310031,
+      "loaded": 0,
+      "total": 2
+     },
+     {
+      "t": 1788770310181,
+      "loaded": 1,
+      "total": 2
+     },
+     {
+      "t": 1788770310181,
+      "loaded": 2,
+      "total": 2
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770311562,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 1.4166000000000034,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 1.4166000000000034,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788770311937,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 1.7998000000000058,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 1.7998000000000058,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "trait0": 0,
+    "traitFig0": 0,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 27,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
+    ],
+    "loadLoaded0": 0,
+    "programsAfterEnd": 27,
+    "endAt": 1788770316123,
+    "dur": 6095,
+    "trait1": 1,
+    "traitFig1": 1,
+    "skipped": false,
+    "programsAtEnd": 27,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
+    ],
+    "load": {
+     "ms": 150,
+     "total": 2,
+     "loaded": 2,
+     "timedOut": false,
+     "readyAt": 1788770310181
+    }
+   },
+   {
+    "t": 1788770329346,
+    "a": 0,
+    "b": 1,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 3,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 4,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 5,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 6,
+    "readyAt": 1788770329420,
+    "firstBeatAt": 1788770330576,
+    "loading": [
+     {
+      "t": 1788770329348,
+      "loaded": 0,
+      "total": 6
+     },
+     {
+      "t": 1788770329358,
+      "loaded": 1,
+      "total": 6
+     },
+     {
+      "t": 1788770329358,
+      "loaded": 2,
+      "total": 6
+     },
+     {
+      "t": 1788770329420,
+      "loaded": 3,
+      "total": 6
+     },
+     {
+      "t": 1788770329420,
+      "loaded": 4,
+      "total": 6
+     },
+     {
+      "t": 1788770329420,
+      "loaded": 5,
+      "total": 6
+     },
+     {
+      "t": 1788770329420,
+      "loaded": 6,
+      "total": 6
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770330926,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 2,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 3,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 4,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 5,
+        "anim": 0.5999000000000017,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788770331253,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 2,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 3,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 4,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 5,
+        "anim": 0.9499000000000014,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "trait0": 1,
+    "traitFig0": 1,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 27,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
+    ],
+    "loadLoaded0": 2,
+    "endAt": 1788770335384,
+    "dur": 6038,
+    "trait1": 3,
+    "traitFig1": 3,
+    "skipped": false,
+    "programsAtEnd": 28,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "load": {
+     "ms": 72,
+     "total": 6,
+     "loaded": 6,
+     "timedOut": false,
+     "readyAt": 1788770329420
+    }
+   },
+   {
+    "t": 1788770335970,
+    "a": 2,
+    "b": 3,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 3,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 4,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 5,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 6,
+    "readyAt": 1788770336104,
+    "firstBeatAt": 1788770336649,
+    "loading": [
+     {
+      "t": 1788770335977,
+      "loaded": 2,
+      "total": 6
+     },
+     {
+      "t": 1788770336104,
+      "loaded": 3,
+      "total": 6
+     },
+     {
+      "t": 1788770336104,
+      "loaded": 4,
+      "total": 6
+     },
+     {
+      "t": 1788770336104,
+      "loaded": 5,
+      "total": 6
+     },
+     {
+      "t": 1788770336104,
+      "loaded": 6,
+      "total": 6
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770337479,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 8.966400000000013,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 8.966400000000013,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 2,
+        "anim": 1.3665999999999983,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 3,
+        "anim": 1.3665999999999983,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 4,
+        "anim": 1.3665999999999983,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 5,
+        "anim": 1.3665999999999983,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       }
+      ]
+     },
+     {
+      "t": 1788770337898,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 9.333200000000007,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 9.333200000000007,
+        "cur": "attack",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 2,
+        "anim": 1.7333999999999943,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 3,
+        "anim": 1.7333999999999943,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 4,
+        "anim": 1.7333999999999943,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 5,
+        "anim": 1.7333999999999943,
+        "cur": "attack",
+        "vis": true,
+        "ground": "water"
+       }
+      ]
+     }
+    ],
+    "trait0": 3,
+    "traitFig0": 3,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 28,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "loadLoaded0": 2,
+    "programsAfterEnd": 28,
+    "endAt": 1788770341215,
+    "dur": 5245,
+    "trait1": 3,
+    "traitFig1": 3,
+    "skipped": false,
+    "programsAtEnd": 28,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "load": {
+     "ms": 127,
+     "total": 6,
+     "loaded": 6,
+     "timedOut": false,
+     "readyAt": 1788770336104
+    }
+   },
+   {
+    "t": 1788770355318,
+    "a": 0,
+    "b": 2,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": null,
+       "ab": null,
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 0,
+    "readyAt": 1788770355345,
+    "firstBeatAt": 1788770355809,
+    "loading": [
+     {
+      "t": 1788770355319,
+      "loaded": 0,
+      "total": 0
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770356826,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788770357225,
+      "A": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ],
+      "B": [
+       {
+        "skin": "layered",
+        "ab": null,
+        "unit": 0,
+        "anim": null,
+        "cur": null,
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "trait0": 3,
+    "traitFig0": 3,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 28,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "loadLoaded0": 0,
+    "endAt": 1788770359801,
+    "dur": 4483,
+    "trait1": 3,
+    "traitFig1": 3,
+    "skipped": false,
+    "programsAtEnd": 28,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "load": {
+     "ms": 0,
+     "total": 0,
+     "loaded": 0,
+     "timedOut": false,
+     "readyAt": 1788770355319
+    }
+   },
+   {
+    "t": 1788770360385,
+    "a": 3,
+    "b": 1,
+    "armies": [
+     [
+      {
+       "id": 0,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "swarm",
+       "fac": "yinqi",
+       "ab": "yinyangcoin",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 3,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 4,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      },
+      {
+       "id": 5,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "buoy",
+       "hasAb": true
+      }
+     ],
+     [
+      {
+       "id": 0,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      },
+      {
+       "id": 1,
+       "body": "ward",
+       "fac": "zuling",
+       "ab": "shield",
+       "hasAb": true
+      },
+      {
+       "id": 2,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 3,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 4,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      },
+      {
+       "id": 5,
+       "body": "haunt",
+       "fac": "yinqi",
+       "ab": "hairpin",
+       "hasAb": true
+      }
+     ]
+    ],
+    "hasReady": true,
+    "loadTotal": 12,
+    "readyAt": 1788770360526,
+    "firstBeatAt": 1788770360935,
+    "loading": [
+     {
+      "t": 1788770360387,
+      "loaded": 6,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 7,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 8,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 9,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 10,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 11,
+      "total": 12
+     },
+     {
+      "t": 1788770360432,
+      "loaded": 12,
+      "total": 12
+     }
+    ],
+    "samples": [
+     {
+      "t": 1788770361885,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 2,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 3,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 4,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 5,
+        "anim": 1.4666999999999957,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 2,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 3,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 4,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 5,
+        "anim": 10.449599999999984,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     },
+     {
+      "t": 1788770362287,
+      "A": [
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 0,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "yinyangcoin",
+        "unit": 1,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 2,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 3,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 4,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       },
+       {
+        "skin": "creature",
+        "ab": "buoy",
+        "unit": 5,
+        "anim": 1.8499999999999976,
+        "cur": "idle",
+        "vis": true,
+        "ground": "water"
+       }
+      ],
+      "B": [
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 0,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "shield",
+        "unit": 1,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 2,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 3,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 4,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       },
+       {
+        "skin": "creature",
+        "ab": "hairpin",
+        "unit": 5,
+        "anim": 10.83289999999998,
+        "cur": "idle",
+        "vis": true,
+        "ground": null
+       }
+      ]
+     }
+    ],
+    "trait0": 3,
+    "traitFig0": 3,
+    "arenaEmptyAtDuel": true,
+    "programsAtDuel": 28,
+    "programListAtDuel": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "loadLoaded0": 12,
+    "programsAfterEnd": 28,
+    "endAt": 1788770365440,
+    "dur": 5055,
+    "trait1": 5,
+    "traitFig1": 5,
+    "skipped": false,
+    "programsAtEnd": 28,
+    "programListAtEnd": [
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|sprite,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,3,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,1,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|0,2,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|3,4,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,,false,0,,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,3,131072,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline",
+     "paper_body|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+     "|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,133121,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
+     "ghost_hair|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
+    ],
+    "load": {
+     "ms": 45,
+     "total": 12,
+     "loaded": 12,
+     "timedOut": false,
+     "readyAt": 1788770360432
+    }
+   }
+  ],
+  "loading": [
+   {
+    "t": 1788770303720,
+    "loaded": 0,
+    "total": 2
+   },
+   {
+    "t": 1788770303880,
+    "loaded": 1,
+    "total": 2
+   },
+   {
+    "t": 1788770303880,
+    "loaded": 2,
+    "total": 2
+   },
+   {
+    "t": 1788770310031,
+    "loaded": 0,
+    "total": 2
+   },
+   {
+    "t": 1788770310181,
+    "loaded": 1,
+    "total": 2
+   },
+   {
+    "t": 1788770310181,
+    "loaded": 2,
+    "total": 2
+   },
+   {
+    "t": 1788770329348,
+    "loaded": 0,
+    "total": 6
+   },
+   {
+    "t": 1788770329358,
+    "loaded": 1,
+    "total": 6
+   },
+   {
+    "t": 1788770329358,
+    "loaded": 2,
+    "total": 6
+   },
+   {
+    "t": 1788770329420,
+    "loaded": 3,
+    "total": 6
+   },
+   {
+    "t": 1788770329420,
+    "loaded": 4,
+    "total": 6
+   },
+   {
+    "t": 1788770329420,
+    "loaded": 5,
+    "total": 6
+   },
+   {
+    "t": 1788770329420,
+    "loaded": 6,
+    "total": 6
+   },
+   {
+    "t": 1788770335977,
+    "loaded": 2,
+    "total": 6
+   },
+   {
+    "t": 1788770336104,
+    "loaded": 3,
+    "total": 6
+   },
+   {
+    "t": 1788770336104,
+    "loaded": 4,
+    "total": 6
+   },
+   {
+    "t": 1788770336104,
+    "loaded": 5,
+    "total": 6
+   },
+   {
+    "t": 1788770336104,
+    "loaded": 6,
+    "total": 6
+   },
+   {
+    "t": 1788770355319,
+    "loaded": 0,
+    "total": 0
+   },
+   {
+    "t": 1788770360387,
+    "loaded": 6,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 7,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 8,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 9,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 10,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 11,
+    "total": 12
+   },
+   {
+    "t": 1788770360432,
+    "loaded": 12,
+    "total": 12
+   }
+  ],
+  "burns": [
+   {
+    "t": 1788770306138,
+    "side": "A",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   },
+   {
+    "t": 1788770313779,
+    "side": "B",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   },
+   {
+    "t": 1788770337940,
+    "side": "A",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   },
+   {
+    "t": 1788770357466,
+    "side": "A",
+    "unit": 0,
+    "handled": false,
+    "visAfter": null
+   }
+  ],
+  "lunges": [
+   {
+    "t": 1788770305413,
+    "w": 3,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "attack",
+     "attack"
+    ]
+   },
+   {
+    "t": 1788770305752,
+    "w": 3,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "idle",
+     "idle"
+    ]
+   },
+   {
+    "t": 1788770311976,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "attack",
+     "attack"
+    ]
+   },
+   {
+    "t": 1788770312243,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "attack",
+     "attack"
+    ]
+   },
+   {
+    "t": 1788770312510,
+    "w": 2,
+    "l": 1,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788770313154,
+    "w": 1,
+    "l": 2,
+    "side": "A",
+    "at40": [
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "attack",
+     "attack"
+    ]
+   },
+   {
+    "t": 1788770313422,
+    "w": 2,
+    "l": 1,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788770331920,
+    "w": 0,
+    "l": 1,
+    "side": "A",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788770337057,
+    "w": 2,
+    "l": 3,
+    "side": "A",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788770337323,
+    "w": 3,
+    "l": 2,
+    "side": "B",
+    "at40": [
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ]
+   },
+   {
+    "t": 1788770337589,
+    "w": 3,
+    "l": 2,
+    "side": "B",
+    "at40": [
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "at670": [
+     "idle",
+     "idle",
+     "idle",
+     "idle",
+     "idle",
+     "idle"
+    ]
+   },
+   {
+    "t": 1788770356179,
+    "w": 2,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   },
+   {
+    "t": 1788770357074,
+    "w": 2,
+    "l": 0,
+    "side": "B",
+    "at40": [
+     null
+    ],
+    "at670": [
+     null
+    ]
+   }
+  ],
+  "samples": [],
+  "beatAt": [],
+  "ends": [
+   1788770309394,
+   1788770316123,
+   1788770335384,
+   1788770341215,
+   1788770359801,
+   1788770365440
+  ],
+  "marks": {
+   "lineupAt": 1788770305360,
+   "attackAt": 1788770305553
+  },
+  "moves": [
+   {
+    "t": 1788770311071,
+    "trId": "wardHpFront2",
+    "side": "A",
+    "text": "紅衣婆婆・百步蛇紋盾：鱗紋護體一拍：前鋒全體 hp+2",
+    "cls": "f-zuling side-A",
+    "geo": {
+     "textCx": 261.6252975463867,
+     "dL": 316.65625,
+     "dR": 527.34375,
+     "mid": 422
+    },
+    "expectName": "紅衣婆婆",
+    "expectItem": "百步蛇紋盾",
+    "expectMove": "鱗紋護體",
+    "expectDesc": "一拍：前鋒全體 hp+2",
+    "scroll": [
+     390,
+     390
+    ]
+   },
+   {
+    "t": 1788770331007,
+    "trId": "wardHpFront2",
+    "side": "B",
+    "text": "紅衣婆婆・百步蛇紋盾：鱗紋護體一拍：前鋒全體 hp+2",
+    "cls": "f-zuling side-B",
+    "geo": {
+     "textCx": 582.3597106933594,
+     "dL": 295.3275146484375,
+     "dR": 518.396240234375,
+     "mid": 422
+    },
+    "expectName": "紅衣婆婆",
+    "expectItem": "百步蛇紋盾",
+    "expectMove": "鱗紋護體",
+    "expectDesc": "一拍：前鋒全體 hp+2",
+    "scroll": [
+     390,
+     390
+    ]
+   },
+   {
+    "t": 1788770333472,
+    "trId": "hauntSteal",
+    "side": "B",
+    "text": "紅衣婆婆・林投姐髮簪：偷命三拍結束時敗方另 −1 壽命",
+    "cls": "f-zuling side-B",
+    "geo": {
+     "textCx": 582.3597106933594,
+     "dL": 289.453125,
+     "dR": 527.34375,
+     "mid": 422
+    },
+    "expectName": "紅衣婆婆",
+    "expectItem": "林投姐髮簪",
+    "expectMove": "偷命",
+    "expectDesc": "三拍結束時敗方另 −1 壽命",
+    "scroll": [
+     390,
+     390
+    ]
+   },
+   {
+    "t": 1788770361303,
+    "trId": "wardHpFront2",
+    "side": "B",
+    "text": "紅衣婆婆・百步蛇紋盾：鱗紋護體一拍：前鋒全體 hp+2",
+    "cls": "f-curse side-B",
+    "geo": {
+     "textCx": 582.3597106933594,
+     "dL": 289.015625,
+     "dR": 549.5390625,
+     "mid": 422
+    },
+    "expectName": "紅衣婆婆",
+    "expectItem": "百步蛇紋盾",
+    "expectMove": "鱗紋護體",
+    "expectDesc": "一拍：前鋒全體 hp+2",
+    "scroll": [
+     390,
+     390
+    ]
+   },
+   {
+    "t": 1788770363486,
+    "trId": "hauntSteal",
+    "side": "B",
+    "text": "紅衣婆婆・林投姐髮簪：偷命三拍結束時敗方另 −1 壽命",
+    "cls": "f-curse side-B",
+    "geo": {
+     "textCx": 582.3597106933594,
+     "dL": 289.015625,
+     "dR": 549.5390625,
+     "mid": 422
+    },
+    "expectName": "紅衣婆婆",
+    "expectItem": "林投姐髮簪",
+    "expectMove": "偷命",
+    "expectDesc": "三拍結束時敗方另 −1 壽命",
+    "scroll": [
+     390,
+     390
+    ]
+   }
+  ]
+ },
+ "fxc": {
+  "burn": 4,
+  "burnDom": 4,
+  "burnFig": 0,
+  "trait": 5,
+  "traitFig": 5,
+  "beat": 18,
+  "duels": 6,
+  "focus": 5,
+  "dmgFloat": 13,
+  "traits": {
+   "wardHpFront2": 3,
+   "hauntSteal": 2
+  },
+  "beats": {
+   "一拍・撞": 6,
+   "二拍・護": 6,
+   "三拍・祟": 6
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 1,
+      "kind": "hit",
+      "actor": 1,
+      "target": 0,
+      "ms": 650
+     },
+     {
+      "beat": 1,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 2
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 1,
+        "target": 0,
+        "amount": 3
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 1,
+    "traitCap": 1,
+    "focus": [
+     {
+      "beat": 2,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 1,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 1,
+        "amount": 1
+       }
+      ],
+      "burns": [
+       {
+        "side": "B",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "a": 0,
+    "b": 1,
+    "burnEv": 0,
+    "burnCalls": 0,
+    "warBurn": 0,
+    "burnDom": 0,
+    "burnFig": 0,
+    "traitEv": 2,
+    "traitCap": 2,
+    "focus": [],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "a": 2,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 1,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 2,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 1,
+        "target": 0,
+        "amount": 2
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 3,
+    "a": 0,
+    "b": 2,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 2,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 2
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 3,
+    "a": 3,
+    "b": 1,
+    "burnEv": 0,
+    "burnCalls": 0,
+    "warBurn": 0,
+    "burnDom": 0,
+    "burnFig": 0,
+    "traitEv": 2,
+    "traitCap": 2,
+    "focus": [],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   }
+  ],
+  "load": {
+   "ms": 45,
+   "total": 12,
+   "loaded": 12,
+   "timedOut": false,
+   "readyAt": 1788770360432
+  }
+ },
+ "ys3d": true,
+ "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "ver": "v0.46・紙紮夜戰：開・夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call",
+ "errors": [],
+ "lastMainText": "開戰",
+ "shots": {},
+ "elapsedMs": 75507
+}

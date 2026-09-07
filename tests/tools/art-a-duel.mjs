@@ -109,6 +109,16 @@ const SAMPLER = `(() => {
       farRows, figRows });
   };
   document.addEventListener('ys:duel-end', () => take('duel-end'));
+  // v0.45 近景切鏡併入後對決機位不只一種：交鋒時鏡頭會推近（camera-director 的 FOCUS 層）。
+  // 深度判準在兩種機位都要過，所以除了凍結檔指定的 duel-end，**另加**一個 focus 推到底之後的取樣點。
+  // 這是加嚴（多一個會紅的機會），不是換判準；一場只取前兩次，免得取樣本身變成負擔。
+  let focusTaken = 0;
+  document.addEventListener('ys:fx-focus', () => {
+    if (focusTaken >= 2) return;
+    focusTaken++;
+    setTimeout(() => take('focus'), 220); // 進場包絡 160ms，220ms 時已推到底
+  });
+  document.addEventListener('ys:duel', () => { focusTaken = 0; });
   window.__artATake = take; // 治具也可以現場叫一次（除錯用）
 })()`;
 
@@ -120,7 +130,9 @@ try {
   await page.addInitScript(SAMPLER);
   // --seed=N：帶 ?fxcount=1&seed=N（index.html:3567 的治具鉤），基準版與新版才會玩到**同一場**對決，
   // 截圖才是同場景對照（覆審 MEDIUM-2：一版拿兩場不同的對決並排，比的是內容不是渲染）。
-  const url = `http://127.0.0.1:${PORT}/index.html?paperwar=1` + (opt.seed ? `&fxcount=1&seed=${opt.seed}` : '');
+  // --extra=closeup%3D0 之類：直接接在網址後面（v0.45 之後對決機位有兩種，兩種都要驗）
+  const url = `http://127.0.0.1:${PORT}/index.html?paperwar=1` + (opt.seed ? `&fxcount=1&seed=${opt.seed}` : '')
+    + (opt.extra ? `&${String(opt.extra).replace(/%3D/gi, '=')}` : '');
   const r = await drive(page, url, {
     duels: Number(opt.duels || 2),
     onDuel: async (pg, n) => {
