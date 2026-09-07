@@ -109,6 +109,11 @@ function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+/** 近景切鏡的回位段用（與 camera-director 的同一條曲線，兩邊各自算）。 */
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
 /**
  * 袍子剪影：垂袖外張、肩線微圓、下擺展開。座標系＝腳底 y=0、頸窩 y≈1（再乘 scale）。
  * 沒有袖子的話整個人像不倒翁（實測 scratchpad duel-v6-charge.png），垂袖是讓它讀成
@@ -325,6 +330,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
   /** 把一尊收回閒置池：標未占用、清掉頭像/袍子/animation 快取、燒毀狀態走它自己的 reset()（3D 妖的 dissolve
    *  要這樣才會復原），並藏起來。onDuel 收回上一場全部尊、reinforce() 收回被遞補掉的那一尊都走這裡（防分岔）。 */
   function resetFigure(f) {
+    restoreDim(f); // 被近景切鏡退暗的尊要先寫回原值，材質才不會帶著 0.35 進下一場（池是重用的）
     f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
     if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
     f.group.visible = false;
@@ -367,6 +373,58 @@ export function createDuelFigures(scene, camera, opts = {}) {
     f.unit = u;
     slots[side][j] = f;
     return f;
+  }
+
+  // ── 近景切鏡的退暗（v0.45 批 1，規格 docs/proposals/2026-09-07-duel-closeup.md §二.2）──
+  // 「每幀依狀態算」而不是收到事件就 setFigureOpacity 一次：主迴圈每幀都會對每一尊寫一次
+  // opacity（`(haunt?0.5:1)*(1-bu)`），一次性設值下一幀就被蓋掉（凍結檔 P3 那句「什麼實作會讓它紅」）。
+  // 包絡與 camera-director 的 FOCUS 同一組時間（進 160／回 220），兩邊各自算、不互相依賴。
+  const FOCUS = { inMs: 160, outMs: 220, dim: 0.35, shrink: 0.92 };
+  let focusOn = false;
+  let focusAt = 0;
+  let focusMs = 0;
+  let focusK0 = 0;
+  let focusK = 0;
+  let focusRef = null; // { a:[側index, unitId], b:[側index, unitId] }：這兩尊不退暗
+
+  function onFocusEv(e) {
+    const d = (e && e.detail) || {};
+    focusK0 = focusK; // 同一拍第二次 focus 直接接續（與導演同一條規則）
+    focusAt = performance.now();
+    focusMs = Math.max(1, Number(d.ms) || 650);
+    focusRef = {
+      a: d.actor == null ? null : [sideIdx(d.side), d.actor],
+      b: d.target == null ? null : [sideIdx(d.foeSide), d.target],
+    };
+    if (d.dim !== undefined) FOCUS.dim = Number(d.dim);
+    if (d.shrink !== undefined) FOCUS.shrink = Number(d.shrink);
+    focusOn = true;
+  }
+
+  /** 立刻進回位段（ys:fx-trait-cancel／ys:duel-end）：不硬歸零，讓退暗跟著鏡頭一起收。 */
+  function endFocusEv() {
+    if (!focusOn) return;
+    focusK0 = focusK;
+    focusAt = performance.now();
+    focusMs = 0;
+  }
+
+  function focusEnvelope(now) {
+    if (!focusOn) return 0;
+    const e = now - focusAt;
+    if (e < FOCUS.inMs) return focusK0 + (1 - focusK0) * (1 - Math.pow(1 - Math.max(0, e) / FOCUS.inMs, 3));
+    if (e <= focusMs) return 1;
+    const u = (e - Math.max(focusMs, FOCUS.inMs)) / FOCUS.outMs;
+    if (u >= 1) { focusOn = false; focusRef = null; return 0; }
+    const top = focusMs <= 0 ? focusK0 : 1;
+    return top * (1 - easeInOutCubic(Math.max(0, u)));
+  }
+
+  /** 這一尊是不是本次切鏡的主角（出手者或目標）。查不到＝一律當成配角（退暗），不拋錯。 */
+  function focusKeeps(i, unitId) {
+    if (!focusRef) return false;
+    const hit = (p) => !!p && p[0] === i && p[1] === unitId;
+    return hit(focusRef.a) || hit(focusRef.b);
   }
 
   let active = false;
@@ -476,10 +534,22 @@ export function createDuelFigures(scene, camera, opts = {}) {
   function onDuelEnd() {
     active = false;
     hitAt = 0;
-    eachFigure((f) => { f.group.visible = false; f.shadow.visible = false; });
+    // 退暗要在這裡清乾淨：active=false 之後主迴圈不再跑，被退暗的尊會帶著壓低的 opacity
+    // 進入下一場（池是重用的）。restoreDim 把它們寫回原值，focusK 一併歸零。
+    focusOn = false; focusRef = null; focusK = 0; focusK0 = 0;
+    eachFigure((f) => { restoreDim(f); f.group.visible = false; f.shadow.visible = false; });
+  }
+
+  /** 把被退暗的那一尊寫回原值（燒毀中的尊不在此列——它們的 opacity 歸燒毀曲線管）。 */
+  function restoreDim(f) {
+    if (!f.__focusDim) return;
+    f.__focusDim = false;
+    try { setFigureOpacity(f, 1); } catch (err) { /* 一尊壞了不擋整場 */ }
   }
 
   document.addEventListener('ys:duel', onDuel);
+  document.addEventListener('ys:fx-focus', onFocusEv);
+  document.addEventListener('ys:fx-trait-cancel', endFocusEv);
   document.addEventListener('ys:fx-lunge', onLunge);
   document.addEventListener('ys:fx-burn', onFigBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
@@ -532,8 +602,14 @@ export function createDuelFigures(scene, camera, opts = {}) {
       if (!r.f.__busy) { try { r.f.update(dt); } catch (err) { retired.splice(k, 1); } } // 被重新占用的尊由下面主迴圈推，不重複
     }
     if (!active) return;
+    focusK = focusEnvelope(now);
+    // 近景切鏡期間**凍結 realign**（v0.45）：realign 會依 camera.position.length() 把人形等比縮回
+    // 「固定 CSS 像素高」，鏡頭 4.2→2.6 推近的放大量剛好被它抵銷掉，畫面上一點都不會變近。
+    // 凍住之後 dist 縮 1.6 倍就是真的放大 1.6 倍；而且切鏡起訖點的 dist 都是 4.2，
+    // 凍結時記下的那組值在回全景時仍然正確，收尾不會跳一下。
+    // 附帶效果：dist 抖動期間 camStable 也不會被寫壞（排法鎖點見 rowsFit 的註解）。
     if (!aligned) { realign(); if (!aligned) return; nextAlign = now + ALIGN_MS; }
-    else if (now >= nextAlign) { nextAlign = now + ALIGN_MS; realign(); }
+    else if (now >= nextAlign && focusK <= 0) { nextAlign = now + ALIGN_MS; realign(); }
     const Y = api();
     const players = Y && Y.S && Y.S.players ? Y.S.players : null;
 
@@ -680,6 +756,11 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * sc;
         const bs = (FIG.bodyScale[u.body] || 1) * (plan ? plan.crowd : crowd); // n≥3 時 crowd 含這一側的 fit（塞不下才 <1）
         const haunt = u.body === 'haunt';
+        // 近景切鏡：非主角的尊退暗＋縮一點；**燒毀中的尊（bt!=null）完全不受影響**——
+        // 它的 opacity 沿燒毀曲線走，退暗會把化灰演成一半就變淡、復原又會讓它突然變回實心（凍結檔 P3）。
+        const focusOff = focusK > 0 && bt == null && !focusKeeps(i, u.id);
+        const fdim = focusOff ? 1 - (1 - FOCUS.dim) * focusK : 1;
+        const fshr = focusOff ? 1 - (1 - FOCUS.shrink) * focusK : 1;
         // 一整排以自己那一欄的中心對稱排開，前後交錯避免完全重疊
         let lane, depth;
         if (plan) {
@@ -703,8 +784,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const bobAmp = grounded ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;
         const bob = Math.sin(now * 0.001 * Math.PI * 2 * FIG.bobHz + j * 1.7 + i * 0.9) * bobAmp;
 
-        f.group.scale.setScalar(sc * bs);
-        f.shadow.scale.setScalar(sc * bs);
+        f.group.scale.setScalar(sc * bs * fshr);
+        f.shadow.scale.setScalar(sc * bs * fshr);
         f.group.position.copy(tmpRight).multiplyScalar(x);
         // 前後交錯只在「一排不只一尊」時才有意義；n===1（＝OFF 的退路）不加，
         // 位置才跟 v0.30 逐項相同。
@@ -725,6 +806,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
           f.setRim(1 + (dir ? FIG.rimHit3d * kick : 0));
           // GLB 在燒毀開始後才到（st.custom=false 的 3D 皮）：走內建淡出，別讓它全不透明冒出來再消失（覆審 C-2 殘留）
           if (bt != null) setFigureOpacity(f, 1 - bu);
+          // 近景切鏡的退暗：3D 皮平常不寫 opacity，所以只在「要退暗」與「退暗過、要收回來」兩種時候寫
+          else if (fdim < 1 || f.__focusDim) { setFigureOpacity(f, fdim); f.__focusDim = fdim < 1; }
         } else {
           // billboard 但刻意側身：正對鏡頭時加厚那疊完全被前層擋住，看不出厚度；
           // 轉 faceTurn 度變成 3/4 面，側邊的擠出面才露出來，同時也讀成「面向對手」。
@@ -733,8 +816,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
           const leanDeg = -side * FIG.lean + (dir === -1 ? side * FIG.lungeSpinDeg * kick * hitPower : 0);
           f.group.rotateZ(THREE.MathUtils.degToRad(leanDeg));
 
-          // 作祟本來就半透明；被燒的那一尊再往 0 收
-          setFigureOpacity(f, (haunt ? FIG.hauntOpacity : 1) * (1 - bu));
+          // 作祟本來就半透明；被燒的那一尊再往 0 收；近景切鏡時配角再乘退暗係數（燒毀中的 fdim 恆為 1）
+          setFigureOpacity(f, (haunt ? FIG.hauntOpacity : 1) * (1 - bu) * fdim);
+          f.__focusDim = fdim < 1;
           // 逆光在受擊瞬間爆一下，讓 bloom 抓得到；燒起來的那一尊逆光先亮再滅
           const rimBase = (FIG.rimOpacity + (dir ? 0.6 * kick : 0)) * (haunt ? FIG.hauntOpacity : 1);
           f.setRim(bt == null ? rimBase : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
