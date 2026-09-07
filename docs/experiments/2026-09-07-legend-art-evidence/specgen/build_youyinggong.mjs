@@ -62,7 +62,7 @@ function build(key) {
     MistTip: { from: 'Mist2', up: -0.100, fwd: 0.028 },
     // 鬆散關節：外挑的瓦簷與香爐都咬不到石身（part_attachment 必 BLOCK），同 bow _loose_joints
     Eave: [0, 0.862, 0],   // 貼在石身頂端（Top=0.840）稍微沉進去；0.755 會整個埋掉、0.945 會浮在半空
-    Censer: c.censer === 'foot' ? [0, 0.335, 0.205] : c.censer === 'side' ? [0.215, 0.545, 0.135] : [0, 0.395, 0.225],
+    Censer: c.censer === 'foot' ? [0, 0.335, 0.205] : c.censer === 'side' ? [0.235, 0.455, 0.055] : [0, 0.395, 0.225],   // V2 R3：側爐往外往後移，不再擋住正面的龕口
   };
   const chains = {
     body: ['Waist', 'Spine', 'Chest', 'Top'],
@@ -132,7 +132,21 @@ function build(key) {
   }
 
   // ★ 特徵 2：朱瓦頂 —— 一排平行凸起的瓦壟＋兩端翹起的簷角（buoy ⑧：光滑的板一定被讀成斗笠）
-  if (c.roof === true || c.roof === 'cap') {
+  if (c.roof === 'cap') {
+    // V2 回修：不再做對稱的帽。一片往左後歪斜的殘瓦，只蓋住頂端一半，斷口露出淺色新木／碎瓦。
+    const t = -22 * D2R;
+    parts.push({ type: 'fin', host: 'Eave', material: 'roof_tile', thickness: 0.028, smooth_angle: 18,
+      udir: [Math.cos(t), Math.sin(t), 0], vdir: [-Math.sin(t) * 0.2, Math.cos(t) * 0.2, 0.97], offset: [-0.028, -0.020, 0.010],
+      points: [[-0.096, -0.086], [0.042, -0.104], [0.104, -0.034], [0.088, 0.070], [-0.030, 0.096], [-0.104, 0.030]] });
+    for (let i = 0; i < 4; i++) {
+      parts.push({ type: 'curve', host: 'Eave', material: 'roof_tile', sides: 5, smooth_angle: 20,
+        offset: [-0.070 + i * 0.036, -0.006 + i * 0.008, -0.072], dir: [0.16, 0.05, 1],
+        segments: [{ len: 0.062, r: 0.016 }, { len: 0.050 - 0.008 * i, r: 0.013 }] });
+    }
+    parts.push({ type: 'fin', host: 'Eave', material: 'bone', thickness: 0.020, smooth_angle: 18,
+      udir: [1, 0, 0], vdir: [0, 0.34, 0.94], offset: [0.062, -0.026, 0.006],
+      points: [[-0.010, -0.030], [0.046, -0.018], [0.040, 0.026], [-0.014, 0.030]] });
+  } else if (c.roof === true) {
     const kw = c.roof === 'cap' ? 0.66 : c.roof === 'crest' ? 0.86 : 1.0;
     // 屋面：四片外挑的薄板實測會在 foldCount 生 2 片翻面（拿掉任一片或縮小任一片都轉綠＝borderline
     // 的封口三角），改成「一片方屋面板＋七條瓦壟圓管」——瓦壟本來就是把屋頂跟斗笠分開的那件事
@@ -196,6 +210,19 @@ function build(key) {
   [-1, 0, 1].forEach(sx => parts.push({ type: 'curve', host: 'Censer', material: 'censer_iron', sides: 4, smooth_angle: 20,
     offset: [sx * 0.048, -0.068, sx === 0 ? -0.034 : 0.024], dir: [sx * 0.30, -1, sx === 0 ? -0.24 : 0.16],
     segments: [{ len: 0.038, r: 0.013 }, { len: 0.028, r: 0.008, taper: true }] }));
+  // V2 回修：爐口（近黑的凹面）＋三支插著的香 —— 這兩件是把「圓腹＋兩支彎耳」讀成香爐的必要條件
+  parts.push({ type: 'fin', host: 'Censer', material: 'stone_dark', thickness: 0.052, smooth_angle: 20,
+    udir: [1, 0, 0], vdir: [0, 0, 1], offset: [0, 0.062, 0], points: polyN(10, 0.058) });
+  parts.push({ type: 'fin', host: 'Censer', material: 'censer_iron', thickness: 0.034, smooth_angle: 20,
+    udir: [1, 0, 0], vdir: [0, 0, 1], offset: [0, 0.074, 0], points: polyN(10, 0.070) });
+  [[-0.020, 0.010, -6], [0.004, -0.014, 3], [0.024, 0.016, 11]].forEach(([dx, dz, deg]) => {
+    const t = deg * D2R;
+    parts.push({ type: 'curve', host: 'Censer', material: 'bone', sides: 4, smooth_angle: 20,
+      offset: [dx, 0.056, dz], dir: [Math.sin(t), 1, Math.sin(t * 0.6)],
+      segments: [{ len: 0.052, r: 0.0055 }, { len: 0.046, r: 0.0045 }] });
+    parts.push({ type: 'spike', host: 'Censer', material: 'glow_wick', sides: 4,
+      offset: [dx + Math.sin(t) * 0.026, 0.152, dz], dir: [0, 1, 0], segments: [{ len: 0.016, r: 0.007 }] });
+  });
   // 爐口上的紅燭與燭火（整片灰綠濕暗裡唯一的暖點）
   parts.push({ type: 'fin', host: 'Censer', material: 'red_sash', thickness: 0.030, smooth_angle: 22,
     udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0.034, 0.084, 0.006], points: polyN(6, 0.020) });
@@ -212,15 +239,42 @@ function build(key) {
   }
   parts.push({ type: 'fin', host: 'Waist', material: 'moss', thickness: 0.016, smooth_angle: 20, mirrored: true,
     udir: [0, 1, 0], vdir: [1, 0, 0], offset: [W[0] * 0.72, 0.040, 0.030], points: polyN(7, 0.034) });
+  // V2 R3：第 2 輪加在胸口正面的四片苔斑把龕口蓋掉（龕口命中 2/2→0/2），**整批撤回**；
+  // 苔只留在腰側（不擋正面），並改成貼著側面的長條而不是正面的六角片（六角片被讀成「小球」）。
+  [[1, -0.030], [-1, -0.062], [1, -0.096]].forEach(([sx, dy], i) => parts.push({
+    type: 'fin', host: 'Spine', material: 'moss', thickness: 0.018, smooth_angle: 20,
+    udir: [0, 1, 0], vdir: [0, 0, 1], offset: [sx * W[1] * 0.97, dy, 0.010 * i],
+    points: [[-0.030 - 0.012 * i, -0.026], [0.034, -0.020], [0.030, 0.024], [-0.026, 0.030]] }));
 
   // 乙：斜插的枯骨束
   if (c.bones) {
+    // 回修（V1→V2 前）：V1 的骨是「等粗漸細的桿」，剪影與一把香分不開。長骨在低多邊形下
+    // 唯一讀得出來的訊號是**兩端膨大、中段細**（骨骺），所以把粗細比從 1.45× 拉到 2.9×，
+    // 並加兩條彎的肋弧（直桿沒有肋的語彙）與捆在骨束上的紅布圈。
     const set = [[0.74, 0.30, -0.26], [-0.66, 0.38, 0.34], [0.28, 0.24, 0.62], [-0.80, 0.16, -0.20], [0.10, 0.46, -0.60]];
     set.forEach(([dx, up, dz], i) => parts.push({
-      type: 'curve', host: 'Spine', material: 'bone', sides: 5, smooth_angle: 22,
+      type: 'curve', host: 'Spine', material: 'bone', sides: 6, smooth_angle: 22,
       offset: [dx * 0.10, 0.02 + 0.012 * i, dz * 0.10], dir: [dx, up, dz],
-      segments: [{ len: 0.088 + 0.02 * (i % 3), r: 0.016 }, { len: 0.070, r: 0.011, rise: 12 },
-                 { len: 0.052, r: 0.016, fall: 8 }] }));
+      segments: [{ len: 0.030, r: 0.023 },                       // 近端骨骺（膨大）
+                 { len: 0.086 + 0.018 * (i % 3), r: 0.0085, rise: 10 },  // 骨幹（細）
+                 { len: 0.026, r: 0.021, fall: 6 },              // 遠端骨骺（膨大）
+                 { len: 0.020, r: 0.014, fall: 14, taper: true }] }));   // 髁的分岔
+    // 兩條彎的肋弧：直桿沒有「肋」的語彙，彎才有
+    [[1, 0.42], [-1, -0.34]].forEach(([sx, dz], i) => parts.push({
+      type: 'curve', host: 'Chest', material: 'bone', sides: 5, smooth_angle: 22,
+      offset: [sx * 0.052, -0.030 - 0.026 * i, Dp[2] * 0.42], dir: [sx * 0.86, 0.30, dz],
+      segments: [{ len: 0.062, r: 0.013 }, { len: 0.058, r: 0.010, fall: 34 },
+                 { len: 0.050, r: 0.008, fall: 38 }, { len: 0.040, r: 0.006, fall: 30, taper: true }] }));
+    // 捆在骨束上的紅布圈（「紅布裹枯骨」的裹）
+    // V2 R3：10 片粗方塊被讀成「血塊／礦石結晶」。改成 18 片首尾相接的窄帶 → 才讀得成一條繞一圈的布。
+    for (let i = 0; i < 18; i++) {
+      const a = (-180 + i * 20) * D2R;
+      const arc = (Math.PI * 2 / 18) * Math.hypot(W[2], Dp[2]) * 0.68;
+      parts.push({ type: 'fin', host: 'Chest', material: 'red_sash', thickness: 0.020, smooth_angle: 18,
+        udir: [-Math.sin(a), 0, Math.cos(a)], vdir: [0, 1, 0],
+        offset: [W[2] * 0.99 * Math.cos(a), -0.052, Dp[2] * 0.99 * Math.sin(a)],
+        points: [[-arc, -0.026], [arc, -0.026], [arc, 0.026], [-arc, 0.026]] });
+    }
     parts.push({ type: 'fin', host: 'Chest', material: 'bone', thickness: 0.040, smooth_angle: 22,
       udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.020, 0.052, Dp[2] * 0.72], points: polyN(9, 0.044) });
   }

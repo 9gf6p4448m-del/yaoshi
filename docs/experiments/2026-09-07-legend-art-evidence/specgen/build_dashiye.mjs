@@ -20,9 +20,11 @@ const palette = () => ({
   paper_gold: { color: '#c8912e', rough: 0.55 },  // 鎏金／剪刀鋸齒滾邊
   paper_ash: { color: '#b4ada0', rough: 0.94 },   // 香灰白（中性）
   face_teal: { color: '#3f605b', rough: 0.88 },   // 青面（去飽和到 S=0.34：頭是支撐質量不是招牌色）
-  tongue: { color: '#b0333f', rough: 0.7 },       // 垂到胸腹的長舌
+  tongue: { color: '#cf5560', rough: 0.62 },      // V2 R3：亮一階、粉一階（暗紅與黑袍太近，四位一致讀成綬帶）
+  tongue_groove: { color: '#7d2632', rough: 0.75 },  // 舌面中央縱溝
   fang: { color: '#e0d6bb', rough: 0.5 },
-  shrine_box: { color: '#b4ada0', rough: 0.9 },   // 頭頂小龕（香灰白紙）
+  shrine_box: { color: '#4a3a2c', rough: 0.9 },   // 頭頂小龕（暗赭紙；V2 回修：原灰白被 2/2 讀成面罩）
+  mouth_dark: { color: '#241f1c', rough: 0.95 },  // 口腔（近黑＝洞，bow _traps_3B ④）
   mirror_plate: { color: '#2b3a38', rough: 0.6 }, // 胸腹獸面護心鏡
   eye: { color: '#ffd066', rough: 0.1 },
   glow_censer: { color: '#ff8f2e', rough: 0.25 },
@@ -67,14 +69,14 @@ function build(key) {
     Skull: { from: 'HeadRoot', up: H * 0.80 },
     Brow: { from: 'Skull', up: H * 0.56 },
     Crown: { from: 'Brow', up: H * 0.40 },
-    JawRoot: { from: 'Skull', up: -H * 0.22, fwd: H * 0.30 },
-    Jaw1: { from: 'JawRoot', up: -H * 0.16, fwd: H * 0.52 },
-    JawTip: { from: 'Jaw1', up: -H * 0.06, fwd: H * 0.34 },
-    TongueRoot: { from: 'Jaw1', up: -0.002, fwd: 0.002 },   // 埋在下顎裡（root_containment）
-    Tong1: { from: 'TongueRoot', up: -0.095 * c.tongueLen, fwd: 0.030 },
-    Tong2: { from: 'Tong1', up: -0.118 * c.tongueLen, fwd: 0.010 },
+    JawRoot: { from: 'Skull', up: -H * 0.34, fwd: H * 0.30 },
+    Jaw1: { from: 'JawRoot', up: -H * 0.30, fwd: H * 0.50 },
+    JawTip: { from: 'Jaw1', up: -H * 0.16, fwd: H * 0.30 },
+    TongueRoot: { from: 'Jaw1', up: -0.002, fwd: 0.002, side: 0.004 },   // 埋在下顎裡（root_containment）
+    Tong1: { from: 'TongueRoot', up: -0.095 * c.tongueLen, fwd: 0.030, side: 0.020 },
+    Tong2: { from: 'Tong1', up: -0.118 * c.tongueLen, fwd: 0.010, side: 0.016 },
     Tong3: { from: 'Tong2', up: -0.078 * c.tongueLen, fwd: -0.014 },
-    ShrineRoot: { from: 'Brow', up: H * 0.16 },   // 埋在 Brow→Crown 之間的頭裡，不放在收細的 Crown 上
+    ShrineRoot: { from: 'Brow', up: H * 0.62 },   // V2 R3：再抬高，離開「頭」的位置   // 埋在 Brow→Crown 之間的頭裡，不放在收細的 Crown 上
     Shr1: { from: 'ShrineRoot', up: 0.056 },
     Shr2: { from: 'Shr1', up: 0.042 },
     Shr3: { from: 'Shr2', up: 0.030 },
@@ -132,9 +134,10 @@ function build(key) {
       profile: [
         // 根環半徑跟著頭尺寸縮放，否則小頭方案（r1b H=0.072）的舌根撐破下顎（root_containment）
         [0, H * 0.15, H * 0.32, { exp: 5.0 }],
-        [0.26, 0.016, 0.044, { exp: 5.0, sharp: true }],
-        [0.68, 0.014, 0.038, { exp: 5.0 }],
-        [1, 0.008, 0.018, { exp: 5.0 }],
+        [0.26, 0.017, 0.058, { exp: 5.0, sharp: true }],
+        [0.68, 0.016, 0.060, { exp: 5.0 }],
+        [0.90, 0.017, 0.066, { exp: 5.0, sharp: true }],
+        [1, 0.013, 0.046, { exp: 5.0 }],
       ] },
     // ★ 特徵 3：頭頂正中的小龕
     { chain: 'shrine', material: 'shrine_box', sides: 8, faceted: true, smooth_angle: 22,
@@ -142,7 +145,7 @@ function build(key) {
       // 回修 1：原本是「越往上越細」的錐體 → 三張 hero 一致讀成灰色尖帽。改成方箱：
       // 側壁近乎等寬（b 幾乎不變）到 t=0.80 才收，箱頂另外掛一片外挑的簷（見 parts）。
       profile: (() => { const k = c.shrine === 'gate' ? 1.32 : c.shrine === 'small' ? 0.74 : 1.0;
-        const a = 0.040 * k, b = 0.056 * k;
+        const a = 0.023 * k, b = 0.032 * k;   // V2 R3：再縮到 0.58×（原尺寸），兩輪四位有三位把它當成頭
         return [[0, a * 0.45, b * 0.45, { exp: 5.4 }], [0.24, a, b, { exp: 5.4, sharp: true }],
                 [0.80, a * 0.97, b * 0.97, { exp: 5.4, sharp: true }], [1, a * 0.34, b * 0.34, { exp: 5.4 }]]; })(),
       colors: { arcs: [{ from: 258, to: 282, color: '#c8912e' }] } },
@@ -169,11 +172,11 @@ function build(key) {
   }
   // ★ 特徵 5：胸腹正中的獸面護心鏡（暗底＋金框＋白牙）
   parts.push({ type: 'fin', host: 'Chest', material: 'paper_gold', thickness: 0.016, smooth_angle: 24,
-    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.052 - W[3] * 0.10, -0.030, Dp[3] * 0.86], points: polyN(12, 0.058) });
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, -0.030, Dp[3] * 0.86], points: polyN(12, 0.058) });
   parts.push({ type: 'fin', host: 'Chest', material: 'mirror_plate', thickness: 0.022, smooth_angle: 24,
-    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.052 - W[3] * 0.10, -0.030, Dp[3] * 0.90], points: polyN(11, 0.044) });
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, -0.030, Dp[3] * 0.90], points: polyN(11, 0.044) });
   parts.push({ type: 'fin', host: 'Chest', material: 'fang', thickness: 0.024, smooth_angle: 20,
-    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.052 - W[3] * 0.10, -0.048, Dp[3] * 0.92],
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, -0.048, Dp[3] * 0.92],
     points: [[-0.030, -0.006], [-0.014, -0.014], [0.014, -0.014], [0.030, -0.006], [0.020, 0.010], [-0.020, 0.010]] });
   // 普渡的香爐火（招式演出的落點；材質名 glow_censer 給 three.js 接 emissive）
   parts.push({ type: 'fin', host: 'Waist', material: 'glow_censer', thickness: 0.026, smooth_angle: 22,
@@ -187,7 +190,7 @@ function build(key) {
     parts.push({ type: 'fin', host: 'Brow', material: i % 2 ? 'paper_red' : 'paper_gold',
       thickness: 0.012, smooth_angle: 18,
       udir: [Math.cos(th), Math.sin(th), 0], vdir: [-Math.sin(th), Math.cos(th), 0],
-      offset: [0, -H * 0.15, -0.006],
+      offset: [0, -H * 0.15, -H * 0.34],   // V2 回修：往頭後推，讓臉露出來（再深就浮空）
       points: [[H * 0.5, -0.036], [H * 0.5 + L, -0.007], [H * 0.5 + L, 0.007], [H * 0.5, 0.036]] });
   }
   // 回修 1：小龕的方頂——一片外挑的簷（兩端翹起）＋兩支尖立飾＋正面一個近黑的龕口，
@@ -205,10 +208,10 @@ function build(key) {
           points: [[-0.046 * k, -w], [out, -w * 0.58], [out, w * 0.58], [-0.046 * k, w]] });
       }
     };
-    eave(0.010, 0.086 * k, 0.070 * k, 'paper_gold', 0.014);
-    eave(0.034, 0.058 * k, 0.050 * k, 'paper_red', 0.012);
+    eave(0.010, 0.052 * k, 0.042 * k, 'paper_gold', 0.014);
+    eave(0.030, 0.036 * k, 0.030 * k, 'paper_red', 0.012);
     parts.push({ type: 'spike', host: 'Shr3', material: 'paper_gold', sides: 4, mirrored: true,
-      offset: [0.036 * k, -0.006, 0], dir: [0.18, 1, 0], segments: [{ len: 0.042 * k, r: 0.007 }] });
+      offset: [0.020 * k, -0.010, 0], dir: [0.18, 1, 0], segments: [{ len: 0.042 * k, r: 0.007 }] });   // 龕縮小後立飾也要往內收，否則浮空
     parts.push({ type: 'fin', host: 'Shr1', material: 'paper_ink', thickness: 0.020, smooth_angle: 20,
       udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, 0.004, 0.052 * k],
       points: [[-0.020 * k, -0.026 * k], [0.020 * k, -0.026 * k], [0.020 * k, 0.026 * k], [-0.020 * k, 0.026 * k]] });
@@ -222,13 +225,30 @@ function build(key) {
   parts.push({ type: 'fin', host: 'Shoulder', material: 'paper_red', thickness: 0.010, smooth_angle: 20, mirrored: true,
     udir: [0.94, 0.34, 0], vdir: [-0.34, 0.94, 0], offset: [W[4] * 0.5, 0.01, -0.01],
     points: [[0, -0.058], [c.armSpan * 0.62, -0.050], [c.armSpan, -0.012], [c.armSpan, 0.030], [c.armSpan * 0.55, 0.056], [0, 0.052]] });
+  // V2 R3：舌面中央縱溝＋舌尖的分岔 —— 綬帶沒有溝也沒有分岔的鈍圓尖端，這是「舌」的專屬訊號
+  [0.30, 0.55, 0.80].forEach((t, i) => parts.push({
+    type: 'fin', host: i === 0 ? 'Tong1' : i === 1 ? 'Tong2' : 'Tong3', material: 'tongue_groove',
+    thickness: 0.030, smooth_angle: 20, udir: [0, 1, 0], vdir: [1, 0, 0], offset: [0, 0, 0.014],
+    points: [[-0.052, -0.007], [0.052, -0.006], [0.052, 0.006], [-0.052, 0.007]] }));
+  parts.push({ type: 'fin', host: 'Tong3', material: 'tongue', thickness: 0.026, smooth_angle: 20,
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, -0.010, 0.006],
+    points: [[-0.046, -0.030], [-0.010, -0.052], [0.010, -0.052], [0.046, -0.030], [0.040, 0.020], [-0.040, 0.020]] });
   // 眼（不帶 anchor，走 host+face/spread/height —— redhat 的 type:eye 註記）
   parts.push({ type: 'eye', host: 'Brow', material: 'eye', size: 0.020 + H * 0.06,
     face: c.headR * 0.62, spread: c.headW * 0.46, height: -H * 0.10 });
-  // 獠牙
+  // V2 回修：口腔——近黑的一片橫向裂口，架在上顎與下顎之間（近黑＝洞，bow _traps_3B ④）。
+  // 沒有這一片，讀者找不到「嘴」，垂下來的舌就只能被讀成圍巾。
+  parts.push({ type: 'fin', host: 'JawRoot', material: 'mouth_dark', thickness: 0.030 + H * 0.16, smooth_angle: 20,
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, H * 0.10, H * 0.34],
+    points: [[-H * 0.46, -H * 0.20], [-H * 0.30, -H * 0.30], [H * 0.30, -H * 0.30], [H * 0.46, -H * 0.20],
+             [H * 0.36, H * 0.20], [-H * 0.36, H * 0.20]] });
+  // 獠牙：加大 1.9×，從口腔的上緣往下咬出來
+  parts.push({ type: 'spike', host: 'JawRoot', material: 'fang', sides: 5, mirrored: true,
+    offset: [H * 0.30, H * 0.16, H * 0.36], dir: [0.16, -0.96, 0.22],
+    segments: [{ len: 0.030 + H * 0.34, r: 0.014 + H * 0.05 }] });
   parts.push({ type: 'spike', host: 'Jaw1', material: 'fang', sides: 5, mirrored: true,
-    offset: [H * 0.26, H * 0.10, H * 0.10], dir: [0.22, 0.94, 0.26],
-    segments: [{ len: 0.028 + H * 0.16, r: 0.011 }] });
+    offset: [H * 0.24, H * 0.14, H * 0.14], dir: [0.20, 0.94, 0.28],
+    segments: [{ len: 0.026 + H * 0.22, r: 0.011 + H * 0.04 }] });
 
   if (c.roof) {   // 乙：三層外挑的簷
     [[0.020, 1.00], [0.062, 0.84], [0.100, 0.66]].forEach(([dy, k], i) => {

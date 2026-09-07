@@ -31,12 +31,14 @@ const trunkVolume = () => ({
   // 回修 1：原本是一根平滑漸細的錐子 → hero 被讀成「握把」。改成有腰、有肩的立姿：
   // 底盤外張（腳）→ 腰收細 → 胸再外張成肩（0.72 那一列的 b 拉到 0.135）→ 頸收細。
   profile: [
-    [0, 0.096, 0.122, { exp: 4.6 }],
-    [0.17, 0.068, 0.084, { exp: 4.6, sharp: true }],
-    [0.41, 0.052, 0.062, { exp: 4.6 }],
-    [0.60, 0.054, 0.080, { exp: 4.8, sharp: true }],
-    [0.78, 0.058, 0.106, { exp: 4.9, sharp: true }],
-    [0.88, 0.046, 0.078, { exp: 4.9, sharp: true }],
+    // V2 回修：原本底盤 0.122 最寬、往上漸細＝不倒翁的配重底（兩位讀者的主詞就是不倒翁／陀螺）。
+    // 改成上寬下窄的柱：肩最寬（0.112）、腰細、腳踝最細（0.046），重量往上壓。
+    [0, 0.046, 0.056, { exp: 4.6 }],
+    [0.15, 0.050, 0.062, { exp: 4.6, sharp: true }],
+    [0.40, 0.046, 0.056, { exp: 4.6 }],
+    [0.60, 0.052, 0.076, { exp: 4.8, sharp: true }],
+    [0.78, 0.060, 0.112, { exp: 4.9, sharp: true }],
+    [0.88, 0.048, 0.082, { exp: 4.9, sharp: true }],
     [1, 0.030, 0.038, { exp: 4.8 }],
   ],
   colors: { arcs: [{ from: 200, to: 260, color: '#4b463c' }, { from: 20, to: 70, color: '#3a3630' }] },
@@ -46,7 +48,8 @@ const palette = () => ({
   bark_char: { color: '#2b2926', rough: 0.97 },   // 焦炭軀幹（中性近黑 S=0.12，_traps ①）
   bone_ring: { color: '#a89878', rough: 0.85 },   // 頸上骨環
   sun_char: { color: '#2e2b28', rough: 0.95 },    // 熄掉的日盤（中性近黑）
-  ember_ring: { color: '#33406a', rough: 0.7 },   // 祖靈次色靛藍：餘燼內環
+  ember_ring: { color: '#7a3320', rough: 0.72 },  // V2 R3：靛藍→暗紅褐餘燼（四位讀者一致把冷藍讀成「深藍色的一半」，冷色離「日」最遠）
+  eye_halo: { color: '#e8b25e', rough: 0.35 },    // 白熱眼外圈的暖暈
   ray_bone: { color: '#c8b489', rough: 0.8 },     // 裂芒（骨白）
   ray_gold: { color: '#d8a33c', rough: 0.55 },    // 裂芒（鎏金＝祖靈金色帶）
   eye: { color: '#fff2cc', rough: 0.08 },         // 白熱獨眼
@@ -103,11 +106,11 @@ const trunkParts = () => ([
     segments: [{ len: 0.052, r: 0.016 }, { len: 0.038, r: 0.007, fall: 30, taper: true }] },
   // 回修 1：三根外張的焦根當腳，把「握把」的收尾改成抓地的基座
   { type: 'curve', host: 'Root', material: 'bark_char', sides: 5, smooth_angle: 22, mirrored: true,
-    offset: [0.056, 0.026, 0.030], dir: [0.66, -0.42, 0.62],
-    segments: [{ len: 0.070, r: 0.028 }, { len: 0.056, r: 0.014, fall: 30, taper: true }] },
+    offset: [0.030, 0.030, 0.018], dir: [0.52, -0.30, 0.80],
+    segments: [{ len: 0.062, r: 0.022 }, { len: 0.058, r: 0.014, fall: 40 }, { len: 0.046, r: 0.008, fall: 32, taper: true }] },
   { type: 'curve', host: 'Root', material: 'bark_char', sides: 5, smooth_angle: 22,
-    offset: [0, 0.030, -0.052], dir: [0, -0.44, -0.9],
-    segments: [{ len: 0.078, r: 0.030 }, { len: 0.060, r: 0.015, fall: 26, taper: true }] },
+    offset: [0, 0.032, -0.030], dir: [0, -0.26, -0.96],
+    segments: [{ len: 0.066, r: 0.024 }, { len: 0.062, r: 0.015, fall: 40 }, { len: 0.048, r: 0.009, fall: 30, taper: true }] },
 ]);
 
 // ---- 動畫（祖靈：靜如樹、動時瞬發） --------------------------------------
@@ -171,11 +174,30 @@ function variantA() {
   // 眼窩（暗框）＋放大的白熱眼：bow _traps_R4 ④「暗框亮窩」，被命名的是窩
   parts.push({ type: 'fin', host: 'Disc', material: 'sun_char', thickness: 0.066, smooth_angle: 26,
     udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.098, 0.104, 0.006], points: polyN(12, 0.112) });
-  parts.push({ type: 'fin', host: 'Disc', material: 'eye', thickness: 0.086, smooth_angle: 30,
-    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.098, 0.104, 0.010], points: polyN(10, 0.076) });
+  parts.push({ type: 'fin', host: 'Disc', material: 'eye_halo', thickness: 0.080, smooth_angle: 28,
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.098, 0.104, 0.008], points: polyN(12, 0.098) });
+  parts.push({ type: 'fin', host: 'Disc', material: 'eye', thickness: 0.094, smooth_angle: 30,
+    udir: [1, 0, 0], vdir: [0, 1, 0], offset: [-0.098, 0.104, 0.012], points: polyN(10, 0.082) });
+  // ★ V2 回修：盤緣一圈粗細不均的亮環（ref 04 環食）——暗盤外一圈亮邊是「日」的定義，
+  // 沒有這一圈，暗盤加一顆亮點只會被讀成「一顆頭上的眼睛」。環用 10 段凸弧拼（fin 必須嚴格凸）。
+  {
+    const SEG = 10;
+    for (let i = 0; i < SEG; i++) {
+      const a0 = (i * 360 / SEG), a1 = ((i + 1) * 360 / SEG);
+      const w = 0.020 + 0.016 * Math.abs(Math.sin((a0 + 20) * D2R));   // 粗細不均
+      const n = 4, pts = [];
+      for (let k = 0; k <= n; k++) { const a = (a0 + (a1 - a0) * k / n) * D2R; pts.push([(R + 0.012) * Math.cos(a), (R + 0.012) * Math.sin(a)]); }
+      pts.push([(R + 0.012 - w) * Math.cos(a1 * D2R), (R + 0.012 - w) * Math.sin(a1 * D2R)]);
+      pts.push([(R + 0.012 - w) * Math.cos(a0 * D2R), (R + 0.012 - w) * Math.sin(a0 * D2R)]);
+      parts.push({ type: 'fin', host: 'Disc', material: 'ray_gold', thickness: 0.056, smooth_angle: 20,
+        udir: [1, 0, 0], vdir: [0, 1, 0], offset: [0, 0, 0.001], points: pts });
+    }
+  }
   // ★ 七道不等長不對稱的裂芒
-  const rays = [[96, 0.30], [140, 0.13], [178, 0.225], [214, 0.10], [262, 0.265], [312, 0.155], [40, 0.195]];
-  rays.forEach(([a, l], i) => parts.push(ray(a, l, 0.052 - 0.004 * (i % 3), i % 3 === 0 ? 'ray_gold' : 'ray_bone')));
+  // V2 回修：芒由 7 道短粗改成 11 道長而細（0.16–0.42），才讀得成「光芒」而不是「尖刺」
+  const rays = [[96, 0.42], [122, 0.19], [148, 0.31], [174, 0.16], [200, 0.36], [226, 0.20],
+                [252, 0.40], [286, 0.24], [312, 0.33], [340, 0.17], [30, 0.28]];
+  rays.forEach(([a, l], i) => parts.push(ray(a, l, 0.036 - 0.004 * (i % 3), i % 3 === 0 ? 'ray_gold' : 'ray_bone', 0.255, 0.007)));
   // 盤緣三點日珥
   [118, 236, 336].forEach(a => parts.push(prominence(a)));
   return { parts, note: '甲：完整焦盤＋七道不等長裂芒＋偏心白熱獨眼；靛藍餘燼內環壓在盤面上。' };
