@@ -4726,10 +4726,10 @@ function pwScreenOf(side,unitId){
    由於兩側 id 都是 0..n−1，查得到的是**出手方自己的一尊**，數字就冒在打人那一側的頭上。
    使用者回報「扣血的部分看不太出來」有一半是這個（批 2-a 修正，見報告 §3）。 */
 const pwFoe=s=>(s==="B"?"A":"B");
-function pwDmgFloat(b,fac){
+function pwDmgFloat(b,fac,killed){
   if(!pwCloseup()||SKIP) return;
   const tside=b.kind==="burn"?b.side:pwFoe(b.side);
-  const cls=(b.killed?" kill":"")+((b.amount|0)<0||b.kind==="heal"?" heal":"");
+  const cls=((b.killed||killed)?" kill":"")+((b.amount|0)<0||b.kind==="heal"?" heal":"");
   pwFloat(tside,b.target,`−${Math.abs(b.amount|0)}`,cls,fac,0,b.kind);
   if(tside===pwMySide) pwHurtEdge(); /* 己方（南家）被打：整框邊緣閃一圈紅暈 */
 }
@@ -4854,7 +4854,18 @@ async function pwPlayBeat(f,beat,list,views){
     burns:burns.map(x=>({side:x.side,target:x.target}))});
   let stops=0;
   let focuses=0, hitFocused=false; /* 這一拍已經切了幾次、hit 那一次切過了沒 */
+  /* 批 2-a：哪幾筆交鋒是「打死的那一下」。引擎的 killed 只掛在 burn 事件上（pwRec 上方註解），
+     而 burn 不走 pwDmgFloat，所以 v0.45 的 .kill 其實一次都沒觸發過。
+     這裡在演出層補回事件源：這一拍會燒毀的那幾隻，各自對應「本拍最後一筆打到它的交鋒」。 */
+  const killIdx=new Set();
+  if(pwCloseup()&&burns.length){
+    const lastAt=new Map();
+    show.forEach((x,i)=>{ if(x.kind!=="trait") lastAt.set(`${pwFoe(x.side)}:${x.target}`,i); });
+    for(const b0 of burns){ const k=`${b0.side}:${b0.target}`; if(lastAt.has(k)) killIdx.add(lastAt.get(k)); }
+  }
+  let evIdx=-1;
   for(const b of show){
+    evIdx++;
     if(b.kind==="trait"){
       const nm=TRAIT_ITEM[b.trId]||"法寶", mv=(TRAITS[b.trId]||{}).name||b.trId, desc=(TRAITS[b.trId]||{}).desc||"";
       const evFac=pwEvFac(f,b,views);
@@ -4895,7 +4906,7 @@ async function pwPlayBeat(f,beat,list,views){
       fxPunch(pw);
       fxImpact(null,evFac,pw);
       fxLunge(b.side==="B"?f.B.id:f.A.id, b.side==="B"?f.A.id:f.B.id, pw);
-      pwDmgFloat(b,evFac); /* 近景切鏡卷：這一下扣了幾點，就在被打那一尊頭上寫幾點 */
+      pwDmgFloat(b,evFac,killIdx.has(evIdx)); /* 近景切鏡卷：這一下扣了幾點，就在被打那一尊頭上寫幾點 */
       sfx(K.s,{rnd:S.rngUi()});
     }
     await pwSleep(evMs);
