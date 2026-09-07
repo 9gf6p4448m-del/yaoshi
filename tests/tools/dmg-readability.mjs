@@ -588,7 +588,7 @@ async function runPix(browser) {
     // 上限放到 150s：每一格凍幀在牆鐘上要 300–500ms（截圖＋兩次 evaluate），一場對決常常有上百格。
     // **退出前一定要把畫面放行**（見迴圈後那一行）：這個迴圈是唯一會呼叫 __frzGo() 的地方，
     // 帶著凍結退出＝整個頁面從此停住，後面一場對決都跑不出來（踩過：10 場只跑到 1 場）。
-    while (Date.now() - t0 < 150000) {
+    while (Date.now() - t0 < 400000) {
       await pump(pg);
       const st = await pg.evaluate(() => ({ busy: window.__dmg.busy, nf: window.__dmg.nFloat, nh: window.__dmg.nHit, ended: (window.__dmg.note.ends || 0) })).catch(() => null);
       if (!st) break;
