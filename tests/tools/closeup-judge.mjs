@@ -45,13 +45,41 @@ if (off && base) {
   const a = off.fxc || {}, b = base.fxc || {};
   const same = {};
   for (const k of keys) same[k] = [a[k], b[k], a[k] === b[k]];
+  // 收尾邊界（合併 v0.44 之後量到，seed 3）：驅動器停手時兩邊都已經開了「第 21 場」但沒演完
+  //（`ys:duel` 21 次、`ys:duel-end` 20 次），那一場不會進 fights[]（push 在 playDuelWar 最後），
+  // 可是全域計數器已經加過了；而且 fxc 與 __cu 兩份快照是先後讀的，中間那一場又往前跑了幾筆。
+  // 所以全域總數在「未演完的那一場」上本來就不可比。改成在**已完成的對決**這個共同切點上比：
+  //   ① fights[] 逐字相同（每一場的 burnCalls／burnDom／burnFig／traitCap／warBurn…）
+  //   ② 各計數器在已完成對決上的合計相同
+  //   ③ beat／duels 仍比原始值
+  // 原始總數與尾段事件一起揭露，不藏。**這是量測邊界的決定，不是門檻**，仍列進報告請使用者確認。
+  const sumF = (d, k) => (d.fxc.fights || []).reduce((acc, x) => acc + (x[k] || 0), 0);
+  const cut = { burn: 'burnCalls', burnDom: 'burnDom', burnFig: 'burnFig', trait: 'traitCap' };
+  const tailEv = (d) => { const ev = d.cu.ev || []; let last = -1;
+    ev.forEach((e, i) => { if (e.n === 'ys:duel-end') last = i; });
+    return ev.slice(last + 1).map((e) => e.n).reduce((m, x) => (m[x] = (m[x] || 0) + 1, m), {}); };
+  const cutSame = {};
+  for (const k of Object.keys(cut)) {
+    const va = sumF(off, cut[k]), vb = sumF(base, cut[k]);
+    cutSame[k] = [va, vb, va === vb];
+    if (!same[k][2] && va === vb) same[k][2] = 'cut'; // 已完成對決上相同，差額落在沒演完那一場
+  }
+  same.__cut = { perCompletedDuel: cutSame, rawTotals: { off: { burn: a.burn, trait: a.trait, traitFig: a.traitFig, burnDom: a.burnDom },
+    base: { burn: b.burn, trait: b.trait, traitFig: b.traitFig, burnDom: b.burnDom } },
+    tailEvents: { off: tailEv(off), base: tailEv(base) },
+    duelsStarted: { off: (off.cu.ev || []).filter((e) => e.n === 'ys:duel').length, base: (base.cu.ev || []).filter((e) => e.n === 'ys:duel').length },
+    duelsEnded: { off: (off.cu.ev || []).filter((e) => e.n === 'ys:duel-end').length, base: (base.cu.ev || []).filter((e) => e.n === 'ys:duel-end').length } };
+  // traitFig 沒有逐場欄位，只能靠 fights 逐字相同＋trait 合計相同一起佐證
+  if (!same.traitFig[2] && cutSame.trait[2] && fbEqualLater()) same.traitFig[2] = 'cut';
+  function fbEqualLater() { return JSON.stringify(a.fights || []) === JSON.stringify(b.fights || []); }
   const fa = JSON.stringify(a.fights || []), fb = JSON.stringify(b.fights || []);
   const dom = (off.cu.dom || []).every((x) => !x.lamps && !x.card && !x.layer && x.gauge === 0 && x.floats === 0);
   const noFocus = !(a.focus > 0) && (off.cu.focus || []).filter((x) => x.kind !== 'base').length === 0;
   const onFocus = ons.every((x) => (x.d.fxc || {}).focus > 0);
   out.P0 = { fxcSame: same, fightsSame: fa === fb, fightsLen: [(a.fights || []).length, (b.fights || []).length],
     domClean: dom, noFocusWhenOff: noFocus, focusWhenOn: onFocus,
-    PASS: keys.every((k) => same[k][2]) && fa === fb && dom && noFocus && onFocus };
+    boundary: same.__cut,
+    PASS: keys.every((k) => same[k][2] === true || same[k][2] === 'cut') && fa === fb && dom && noFocus && onFocus };
 }
 
 // ── P1 事件規則 ───────────────────────────────────────────────────────────

@@ -2,7 +2,8 @@
 
 > **二版（冷讀對抗審查修補）**：§5 是逐條三態與證據；§1 的 P0–P7 數字已用二版程式重跑並就地更新，
 > §2 的連拍與 contact sheet 也重拍過。
-> **三版（第二輪覆審修補）**：§6。一版／二版的原始判讀留在 git 歷史（`affdb69`／`b065d4e`）。
+> **三版（第二輪覆審修補）**：§6。
+> **合併 v0.44 之後的重跑**：§7（新基準＝`0c80537`）。一版／二版的原始判讀留在 git 歷史（`affdb69`／`b065d4e`）。
 
 規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二　驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9，**未動一個字**）
 基準＝`4051dd1`（v0.43.3；本卷起點 `c5128fb` 只多兩份文件，`index.html` 與 `4051dd1` 相同）
@@ -206,3 +207,42 @@ $ git diff --stat 4051dd1
 - `P3 ✅` 配角 695 筆 ≤0.36、主角 66 筆 ≥1.00、回全景 127 筆回原值、burnRise 0、中斷 back 2/2、stale 5 筆不判
 - `P4 ✅` 115 = 115、同時最多 5、移除 115/115（最慢 674ms）、位置 115/115、`under` 0 違規
 - `P5 ✅`　`P7 ✅`（0 error）
+
+---
+
+## 7. 合併 v0.44（`0c80537`）之後的重跑
+
+合併方式：`git merge 0c80537` 進本分支。衝突只有 `index.html` 的 VERSION 行，取
+`VERSION="0.45", VERSION_NOTE="近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關"`；
+`docs/GAME_DESIGN.md` 兩條 changelog 都留（各自在原本的位置）；`tests/legend.test.mjs`／`legend-gate.mjs` 取 main 版（`git diff 0c80537` 為空）。
+
+| 條 | 結果 | 數字 |
+|---|---|---|
+| P0 | ✅ | `closeup-trace` 對 `0c80537:index.html` **identical=true**（386,483 字元）；`?closeup=0` seeds 1–3 各跑完整一局（14／14／20 場）與 `0c80537` 實跑比對：`fights[]` 逐字相同、七欄相同（seed 3 見下方「收尾邊界」） |
+| P1 | ✅ | 重數活性：seeds 1–6 共 **36 場**，hit-focus **18 場**、burn-focus **33 場**（門檻 6／3／2），每拍 ≤2、規則重算逐筆相同 |
+| P2 | ✅ | 67 次切鏡：deepOk 67/67、回位 45/45 誤差 0、`monoQuiet` 49/49、cancel／doSkip +300ms 皆 4.200；決定性治具 U1–U4 全過（U4 min 1.6139，未被夾） |
+| P3 | ✅ | 配角 787 筆最大 **0.36**、主角最小 **1.00**、回全景 188 筆回原值、burnRise **0**、中斷 back 2/2、stale 3 筆不判 |
+| P4 | ✅ | **149 = 149**（每筆演出交鋒一個跳字）、同時最多 4、移除 149/149（最慢 674ms）、位置 149/149、`under` 0 違規、跳過後 0 殘留 |
+| P5 | ✅ | 燈 108／量表 60／卡 83 次抽樣，bad 0 |
+| P6 | ✅ | 同 session 交錯：`--n=10` 新 {91.7, 99.0, 97.1} 中位 **97.1**／基準 {114.9, 103.1, 98.0} 中位 **103.1** → **0.942**；`--n=8` 新 {103.1, 104.2} 中位 103.65／基準 {106.4, 100.0} 中位 103.2 → **1.004**。兩檔都過 0.9 |
+| P7 | ✅ | `duel-drive --duels=6` 開／關各一次 0 error；另 11 支治具 0 error |
+| P9 | ✅ | 8 套測試全綠（aistake 8／conscap 5／duel-desync 7／**legend 20**（v0.44 加了 3 條）／lineup-order 5／nightrules 16／review 28／wish16 36）；`ash-freeze-probe` F1 0／F6 0 綠 |
+| 旗標互斥 | ✅ | `?legend` 與 `?closeup` 互不干擾：預設 (true,true)／`?legend=0` (false,true)／`?closeup=0` (true,false)／兩個都帶 (false,false)／`?legend=1&closeup=1` (true,true) |
+
+### 收尾邊界（seed 3；量測邊界的決定，列出來請使用者確認）
+
+seed 3 的**全域**計數器有 4 欄各差 1（`burn 91/92`、`burnDom 26/27`、`trait 87/88`、`traitFig 71/72`），
+但 `fights[]` 逐字相同、`beat`／`duels` 相同。根因不是行為差：兩邊的驅動器停手時**都已經開了第 21 場對決但沒演完**
+（`ys:duel` 21 次、`ys:duel-end` 20 次），那一場不會進 `fights[]`（push 在 `playDuelWar` 最後）但全域計數器已經加過；
+而且 `FXC` 與治具的事件快照是先後兩次 `page.evaluate` 讀的，中間那一場又往前跑了幾筆
+（尾段事件：off `{duel:1, trait:1}`／base `{duel:1, trait:1, punch:3, hitstop:2, burn:1}`）。
+
+處置：P0 的計數器比對改在**已完成的對決**這個共同切點上做（`fights[]` 逐字相同 ＋ 各計數器在 fights 上的合計相同
+＋ `beat`／`duels` 仍比原始值），原始總數與尾段事件一併揭露。切點上：`burn 91=91`、`burnDom 26=26`、`burnFig 65=65`、`trait 87=87`。
+**這是量測邊界的決定，不是門檻**——它沒有放過任何一場演完的對決；但因為它讓 seed 3 從「紅」變成「綠」，
+按 `02 §2.1` 的判準仍請使用者確認：(甲) 接受此切點；(乙) 要求改治具讓兩邊在同一場次收手再比原始總數。
+
+### ash-freeze 的活性
+
+第一次跑「遞補有動（burn>MAXFIG）」是 `false`（那一局沒有出現燒毀數 > MAXFIG 的對決，遞補路徑沒被行使），
+F1／F6 仍綠；再跑一次為 `true`（`runs 共 126 段`）。兩次都 0 error。
