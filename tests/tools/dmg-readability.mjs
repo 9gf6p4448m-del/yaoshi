@@ -58,6 +58,50 @@ function decodePng(buf) {
   return { w, h, ch, data: out };
 }
 const num = (v) => (v === null || v === undefined || !isFinite(v) ? null : +v.toFixed(2));
+/* 【凍結檔 §2.1 修訂 2】R2 的量測位置：只量「屬於那一尊的像素」。
+   命中前那一幀 vs 閃紅瞬間那一幀逐像素差分，任一通道 |Δ| > MASK_TH 的像素集合＝那一尊的遮罩，
+   在遮罩內算 R−(G+B)/2 的平均差。門檻仍是 +25。遮罩用「有沒有變」選（三通道亮度差取最大），
+   不是用「有沒有變紅」選，所以不會自動把樣本挑成紅的；基準版跑同一套選到的是鏡頭移動的邊緣像素。 */
+const MASK_TH = 8;
+function maskDelta(imA, boxA, imB, boxB) {
+  if (!imA || !imB || !boxA || !boxB || imA.w !== imB.w || imA.h !== imB.h) return null;
+  const x0 = Math.max(0, Math.floor(Math.min(boxA.x0, boxB.x0))), x1 = Math.min(imA.w - 1, Math.ceil(Math.max(boxA.x1, boxB.x1)));
+  const y0 = Math.max(0, Math.floor(Math.min(boxA.y0, boxB.y0))), y1 = Math.min(imA.h - 1, Math.ceil(Math.max(boxA.y1, boxB.y1)));
+  let n = 0, tot = 0, sA = 0, sB = 0;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const i = (y * imA.w + x) * imA.ch;
+    tot++;
+    if (Math.max(Math.abs(imA.data[i] - imB.data[i]), Math.abs(imA.data[i + 1] - imB.data[i + 1]), Math.abs(imA.data[i + 2] - imB.data[i + 2])) <= MASK_TH) continue;
+    sA += imA.data[i] - (imA.data[i + 1] + imA.data[i + 2]) / 2;
+    sB += imB.data[i] - (imB.data[i + 1] + imB.data[i + 2]) / 2;
+    n++;
+  }
+  return n ? { d: (sB - sA) / n, n, frac: n / tot, keep: { x0: x0, y0: y0, x1: x1, y1: y1 } } : null;
+}
+/** 用「已經算好的遮罩範圍」再量一次另一幀（+200ms 那一格要用同一組像素才比得準）。 */
+function maskDeltaOn(imA, imB, keep, imRef) {
+  if (!imA || !imB || !keep || !imRef || imA.w !== imB.w) return null;
+  let n = 0, sA = 0, sB = 0;
+  for (let y = keep.y0; y <= keep.y1; y++) for (let x = keep.x0; x <= keep.x1; x++) {
+    const i = (y * imA.w + x) * imA.ch;
+    if (Math.max(Math.abs(imA.data[i] - imRef.data[i]), Math.abs(imA.data[i + 1] - imRef.data[i + 1]), Math.abs(imA.data[i + 2] - imRef.data[i + 2])) <= MASK_TH) continue;
+    sA += imA.data[i] - (imA.data[i + 1] + imA.data[i + 2]) / 2;
+    sB += imB.data[i] - (imB.data[i + 1] + imB.data[i + 2]) / 2;
+    n++;
+  }
+  return n ? { d: (sB - sA) / n, n } : null;
+}
+/* 【凍結檔 §2.1 修訂 1】R1 的主判準：字級與分類。
+   BASE_FONT＝基準（v0.48）實測的跳字字級，全部是 17px（同一支治具量的，見報告 R1 那一節）。 */
+const BASE_FONT = 17;
+const FONT_MIN = 1.6; // 傷害／擊殺要 ≥ 基準 ×1.6；「−1 隻」照凍結檔範圍 4 是 ×1.0，不套這一條
+function hueOf(c) {
+  if (!c || c.length < 3) return 'unknown';
+  const [r, g, b] = c;
+  if (g >= r && g >= b && g - Math.max(r, b) >= 20) return 'green';
+  if (r >= g && r >= b && r - g >= 40 && r - b >= 40) return 'warm-red';
+  return 'neutral';
+}
 const px = (im, x, y) => { const i = (y * im.w + x) * im.ch; return [im.data[i], im.data[i + 1], im.data[i + 2]]; };
 const srgb = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
 const lum = (r, g, b) => 0.2126 * srgb(r) + 0.7152 * srgb(g) + 0.0722 * srgb(b);
@@ -544,6 +588,10 @@ async function runPix(browser) {
   let nshot = 0;
   let runId = 0;
   const seenFloat = new Set();
+  const seqIms = [];      // 這一輪凍幀序列的解碼影像（遮罩量法要拿前一格來差分）
+  const lastBox = [];     // 各格的目標方框
+  let lastCbox = null;    // 對照組方框
+  let lastMask = null;    // 閃紅那一格算出來的遮罩（+200ms 沿用同一組像素）
 
   const pump = async (pg) => {
     for (let guard = 0; guard < 6; guard++) {
@@ -573,10 +621,27 @@ async function runPix(browser) {
         }
       }
       if ((r.tag === 'flash' || r.tag === 'skip') && im) {
+        if (r.step === 0) seqIms.length = 0;
+        seqIms[r.step] = im;
         const boxes = await pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined || m.control === null ? null : window.__dmg.figBox(m.ctrlSide || m.side, m.control) }), r.meta).catch(() => null);
         const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, on: r.on, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
           t: num(boxes && boxes.t ? redness(im, boxes.t) : null),
           c: num(boxes && boxes.c ? redness(im, boxes.c) : null) };
+        // 遮罩量法（凍結檔 §2.1 修訂 2）：閃紅那一格對命中前那一格算；+200ms 那一格沿用同一組遮罩像素
+        const pre = r.tag === 'flash' ? seqIms[1] : seqIms[0];
+        const preBox = r.tag === 'flash' ? (lastBox[1] || null) : (lastBox[0] || null);
+        if (r.step === (r.tag === 'flash' ? 2 : 1) && pre && preBox && row.box) {
+          const m = maskDelta(pre, preBox, im, row.box);
+          if (m) { row.maskD = num(m.d); row.maskN = m.n; row.maskFrac = num(m.frac); lastMask = { keep: m.keep, pre: pre }; }
+          if (boxes && boxes.c && lastCbox) {
+            const mc = maskDelta(pre, lastCbox, im, boxes.c);
+            if (mc) row.maskC = num(mc.d);
+          }
+        } else if (lastMask && ((r.tag === 'flash' && r.step === 3) || (r.tag === 'skip' && r.step === 2))) {
+          const m2 = maskDeltaOn(lastMask.pre, im, lastMask.keep, seqIms[r.tag === 'flash' ? 2 : 1]);
+          if (m2) { row.maskD = num(m2.d); row.maskN = m2.n; }
+        }
+        lastBox[r.step] = row.box; lastCbox = boxes && boxes.c ? boxes.c : null;
         (r.tag === 'skip' ? samples.skip : samples.flashes).push(row);
       }
       shots.push({ file: path.basename(file), tag: r.tag, step: r.step, at: r.at, meta: r.meta });
@@ -640,10 +705,29 @@ async function runPix(browser) {
 
 function judgePix(S) {
   const bad = [];
-  // R1：每一筆 .dmgfloat 對比度 ≥4.5
+  // 【凍結檔 §2.1 修訂 1】R1 主判準＝字級＋分類；對比度 ≥4.5 降為附帶條件（仍須全過）
   const under = S.floats.filter((f) => f.ratio < 4.5);
   for (const f of under.slice(0, 8)) bad.push(`R1 對比度 ${f.ratio} < 4.5 seq=${f.seq} cls=${f.cls} ring=${f.ring}`);
   const ratios = S.floats.map((f) => f.ratio).sort((a, b) => a - b);
+  const catOf = (f) => (/(^|\s)unit(\s|$)/.test(f.cls) ? 'unit' : /(^|\s)kill(\s|$)/.test(f.cls) ? 'kill' : /(^|\s)heal(\s|$)/.test(f.cls) ? 'heal' : 'hit');
+  const fontBad = [], kindBad = [], hueBad = [];
+  for (const f of S.floats) {
+    const cat = catOf(f);
+    // 字級：傷害／擊殺要 ≥ 基準 ×1.6；「−1 隻」照凍結檔範圍 4 是 ×1.0（見 §2.1 修訂 1 的附註）
+    const wantFont = cat === 'unit' ? BASE_FONT : BASE_FONT * FONT_MIN;
+    if (!(f.font >= wantFont - 0.01)) fontBad.push(`seq=${f.seq} ${cat} ${f.font}px < ${wantFont.toFixed(1)}px`);
+    // class 與事件 kind 逐筆對應：unit 只能來自 burn，其餘只能來自非 burn 的交鋒
+    const kindOk = f.kind ? (cat === 'unit' ? f.kind === 'burn' : f.kind !== 'burn') : false;
+    if (!kindOk) kindBad.push(`seq=${f.seq} ${cat} kind=${f.kind || '(無)'}`);
+    // 色相類別：傷害／擊殺＝暖紅橙、治療＝綠、「−1 隻」＝灰白
+    const hue = hueOf(f.color), wantHue = cat === 'unit' ? 'neutral' : cat === 'heal' ? 'green' : 'warm-red';
+    if (hue !== wantHue) hueBad.push(`seq=${f.seq} ${cat} hue=${hue} want=${wantHue}`);
+  }
+  for (const x of fontBad.slice(0, 5)) bad.push('R1 字級 ' + x);
+  for (const x of kindBad.slice(0, 5)) bad.push('R1 class↔kind ' + x);
+  for (const x of hueBad.slice(0, 5)) bad.push('R1 色相 ' + x);
+  const fonts = {};
+  for (const f of S.floats) { const c = catOf(f); (fonts[c] = fonts[c] || new Set()).add(f.font); }
   // R2：pre → +40 的紅偏量差 ≥25、+200 回到 ±5、非 target 尊 <25、燒毀中 <5
   const byKey = new Map();
   for (const r of S.flashes) {
@@ -657,6 +741,12 @@ function judgePix(S) {
     const mv = shift(g[0].box, g[1].box); // f0→f1 是「沒有刺激的同長度空窗」：動了就代表鏡頭／人形在動
     const row = { burning: !!g[1].meta.burning, move: mv === null ? null : +mv.toFixed(1),
       pre: g[1].t, flash: g[2].t,
+      // 【§2.1 修訂 2】主判準＝遮罩平均；方框平均（boxD40）留著揭露，不判
+      maskD: g[2].maskD === undefined ? null : g[2].maskD,
+      maskFrac: g[2].maskFrac === undefined ? null : g[2].maskFrac,
+      maskD200: g[3] && g[3].maskD !== undefined ? g[3].maskD : null,
+      maskC: g[2].maskC === undefined ? null : g[2].maskC,
+      boxD40: g[1].t !== null && g[2].t !== null ? +(g[2].t - g[1].t).toFixed(2) : null,
       d40: g[1].t !== null && g[2].t !== null ? +(g[2].t - g[1].t).toFixed(2) : null,
       d0: g[0].t !== null && g[1].t !== null ? +(g[1].t - g[0].t).toFixed(2) : null, // 空窗的自然漂移（噪音底）
       d200: g[3] && g[3].t !== null && g[1].t !== null ? +(g[3].t - g[1].t).toFixed(2) : null,
@@ -676,14 +766,15 @@ function judgePix(S) {
   }
   const moved = seqs.filter((x) => !x.usable);
   const live = seqs.filter((x) => x.usable && !x.burning), burning = seqs.filter((x) => x.usable && x.burning);
-  const badFlash = live.filter((x) => x.d40 < 25);
-  const badBack = live.filter((x) => x.d200 !== null && Math.abs(x.d200) > 5);
-  const badCtrl = live.filter((x) => x.ctrl40 !== null && x.ctrl40 >= 25);
-  const badBurn = burning.filter((x) => Math.abs(x.d40) >= 5);
-  for (const x of badFlash.slice(0, 5)) bad.push(`R2 閃紅不足 Δ40=${x.d40}（噪音底 ${x.d0}）${x.files}`);
-  for (const x of badBack.slice(0, 5)) bad.push(`R2 200ms 未回 Δ=${x.d200}`);
-  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 非 target 尊也紅 Δ=${x.ctrl40}（整片閃紅＝假綠）`);
-  for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 Δ=${x.d40}`);
+  const mval = (x) => (x.maskD === null ? x.d40 : x.maskD); // 遮罩量不到（尊掉出畫面）時退回方框平均並記在 bad
+  const badFlash = live.filter((x) => mval(x) < 25);
+  const badBack = live.filter((x) => x.maskD200 !== null && Math.abs(x.maskD200) > 5);
+  const badCtrl = live.filter((x) => (x.maskC !== null ? x.maskC : x.ctrl40) >= 25);
+  const badBurn = burning.filter((x) => Math.abs(mval(x)) >= 5);
+  for (const x of badFlash.slice(0, 6)) bad.push(`R2 閃紅不足 遮罩Δ=${x.maskD}（方框Δ=${x.boxD40}、遮罩佔比 ${x.maskFrac}、噪音底 ${x.d0}）${x.files}`);
+  for (const x of badBack.slice(0, 5)) bad.push(`R2 200ms 未回 遮罩Δ=${x.maskD200}`);
+  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 非 target 尊也紅 Δ=${x.maskC !== null ? x.maskC : x.ctrl40}（整片閃紅＝假綠）`);
+  for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 遮罩Δ=${x.maskD}／方框Δ=${x.boxD40}`);
   // R5 像素版
   const sk = {};
   for (const r of S.skip) sk[r.step] = r;
@@ -691,12 +782,15 @@ function judgePix(S) {
   const skFlash = sk[0] && sk[1] && sk[0].t !== null && sk[1].t !== null ? +(sk[1].t - sk[0].t).toFixed(2) : null;
   if (skD !== null && Math.abs(skD) > 5) bad.push(`R5 跳過後 300ms 仍紅 Δ=${skD}`);
   const res = {
-    R1: S.floats.length > 0 && under.length === 0,
+    R1: S.floats.length > 0 && fontBad.length === 0 && kindBad.length === 0 && hueBad.length === 0 && under.length === 0,
     R2: live.length > 0 && badFlash.length === 0 && badBack.length === 0 && badCtrl.length === 0 && badBurn.length === 0,
     R5pix: skD !== null && Math.abs(skD) <= 5,
   };
+  const mk = live.map(mval).sort((a, b) => a - b);
   return { res: res, bad: bad, summary: {
     floats: S.floats.length, underMin: ratios[0] === undefined ? null : ratios[0], p50: ratios[Math.floor(ratios.length / 2)] ?? null, max: ratios[ratios.length - 1] ?? null, under45: under.length,
+    fontPx: Object.fromEntries(Object.entries(fonts).map(([k, v]) => [k, [...v]])), fontBad: fontBad.length, kindBad: kindBad.length, hueBad: hueBad.length,
+    maskMin: mk[0] ?? null, maskP50: mk[Math.floor(mk.length / 2)] ?? null, maskMax: mk[mk.length - 1] ?? null, maskGe25: mk.filter((x) => x >= 25).length,
     flashes: live.length, d40min: live.length ? Math.min(...live.map((x) => x.d40)) : null, d40med: live.length ? live.map((x) => x.d40).sort((a, b) => a - b)[Math.floor(live.length / 2)] : null,
     back200max: live.filter((x) => x.d200 !== null).length ? Math.max(...live.filter((x) => x.d200 !== null).map((x) => Math.abs(x.d200))) : null,
     ctrlMax: live.filter((x) => x.ctrl40 !== null).length ? Math.max(...live.filter((x) => x.ctrl40 !== null).map((x) => x.ctrl40)) : null,

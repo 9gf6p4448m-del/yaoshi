@@ -338,14 +338,16 @@ if (off && base) {
 // ── P4 跳字 ───────────────────────────────────────────────────────────────
 {
   const bad = [];
-  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0;
+  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0, unitN = 0, killN = 0, burnEv = 0, unitUnderSkipped = 0;
   for (const { f, d } of ons) {
     // 每筆演出的 hit 類事件都要有一個跳字：分母＝fights[].beatsShown[].shown
     let shownHits = 0;
     for (const fight of (d.fxc && d.fxc.fights) || []) for (const b of fight.beatsShown || []) shownHits += b.shown.length;
     out.P4.shownHits = (out.P4.shownHits || 0) + shownHits;
+    burnEv += (d.fxc || {}).burn || 0; // 傷害可讀性批 2-a：每一筆燒毀對應一個「−1 隻」跳字
     for (const r of d.cu.dmg) {
       n++;
+      const isUnitFloat = /(^|\s)unit(\s|$)/.test(r.cls);
       maxLive = Math.max(maxLive, r.live);
       // 移除：以 MutationObserver 量到的那一次移除為準（DMG_MS+100 內），沒量到才退回旗標
       const removedIn = r.removedAt != null ? r.removedAt - r.t : null;
@@ -370,8 +372,13 @@ if (off && base) {
         // underCol：'dL'/'dR'＝落在某一側的欄位容器、'duel'＝落在覆蓋層但不在任一欄、
         // null＝連 #duel 都不在（多半是 3D canvas 本身）。第三輪覆審 E：null 只在 elementFromPoint
         // 真的落在 #duel 之外時才放行，並且要計數揭露，不能當成萬用通行證。
+        // 批 2-a：「−1 隻」刻意往下讓開 UNIT_DY(44px) 才不跟傷害數字重疊，
+        // 那個位移會讓 elementFromPoint 落到別的欄位容器上（3D 尊的投影點本來就不一定在自己那半邊）。
+        // 這一種跳字改由上面那條「到自己那一尊方框的距離 ≤80px」把關（44 < 80，仍然管得住），
+        // 這個旁證跳過並計數揭露。
         let okUnder;
-        if (r.underCol === undefined) okUnder = !r.under || /^CANVAS/.test(r.under); // 舊格式資料
+        if (isUnitFloat) { okUnder = true; unitUnderSkipped++; }
+        else if (r.underCol === undefined) okUnder = !r.under || /^CANVAS/.test(r.under); // 舊格式資料
         else if (r.underCol === wantCol || r.underCol === 'duel') okUnder = true;
         else if (r.underCol === null) { okUnder = true; outsideDuel++; }
         else okUnder = false; // 落在對面那一欄＝真的擺錯邊
@@ -384,7 +391,15 @@ if (off && base) {
         // 3D 尊當下量不到方框（燒完收起來／GLB 沒到）：不灌水當通過，記成未判
         out.P4.unmeasured = (out.P4.unmeasured || 0) + 1;
       }
-      if (!/^−\d+$/.test(r.text)) bad.push({ f, why: 'text', text: r.text });
+      // 傷害可讀性批 2-a（v0.49）：#dmgLayer 裡現在有三種跳字，文字格式不再只有「−數字」——
+      //   .dmgfloat            交鋒的傷害數字「−n」
+      //   .dmgfloat.kill       同上但放大＋系色底光（擊殺；文字仍是「−n」）
+      //   .dmgfloat.unit       燒毀那一筆的「−1 隻」灰白小字
+      // 舊判準 /^−\d+$/ 會把每一個「−1 隻」判成 text 違規（本卷實測 30 個跳字裡有 8 個誤紅）。
+      const isUnit = isUnitFloat;
+      if (isUnit) { unitN++; if (r.text !== '−1 隻') bad.push({ f, why: 'unit-text', text: r.text }); }
+      else if (!/^−\d+$/.test(r.text)) bad.push({ f, why: 'text', text: r.text });
+      if (/(^|\s)kill(\s|$)/.test(r.cls)) killN++;
       if (/kill/.test(r.cls) && !/dmgfloat kill/.test(r.cls)) bad.push({ f, why: 'cls', cls: r.cls });
     }
   }
@@ -396,10 +411,16 @@ if (off && base) {
     out.P4.afterSkipFloats = s.map((x) => x.floats);
     out.P4.skipClean = s.length > 0 && s.every((x) => x.floats === 0) && out.P4.beforeSkipFloats > 0;
   }
-  // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判
-  out.P4.oneToOne = out.P4.shownHits === n;
+  // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判。
+  // 批 2-a 之後分母要扣掉「−1 隻」那一種：它對的是燒毀事件，不是交鋒。
+  out.P4.unitUnderSkipped = unitUnderSkipped;
+  out.P4.unitFloats = unitN; out.P4.killFloats = killN; out.P4.hitFloats = n - unitN; out.P4.burnEvents = burnEv;
+  out.P4.oneToOne = out.P4.shownHits === out.P4.hitFloats;
+  // 「每筆燒毀一個『−1 隻』」：舊錄影（v0.45／v0.48）沒有這一種跳字，unitN 為 0 時不判（回 null），
+  // 這條的正式守衛在 tests/tools/dmg-readability.mjs 的 dom 模式（R4），這裡只是不讓舊判準誤紅。
+  out.P4.unitOneToOne = unitN === 0 ? null : unitN === burnEv;
   out.P4.PASS = n > 0 && bad.length === 0 && maxLive <= PW.MAX_HITS && goneOk === n && posOk === posN
-    && out.P4.oneToOne && (out.P4.unmeasured || 0) === 0 && (!skipf || out.P4.skipClean);
+    && out.P4.oneToOne && out.P4.unitOneToOne !== false && (out.P4.unmeasured || 0) === 0 && (!skipf || out.P4.skipClean);
 }
 
 // ── P5 HUD ────────────────────────────────────────────────────────────────
