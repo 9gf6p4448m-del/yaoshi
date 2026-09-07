@@ -122,7 +122,7 @@ const HARNESS = `(() => {
   };
 
   // ── 探針 ──
-  const M = W.__dmg = { ready: null, busy: false, next: null, floats: [], hits: [], burns: [], seq: 0, note: {}, done: {} };
+  const M = W.__dmg = { ready: null, busy: false, next: null, floats: [], hits: [], burns: [], ends: [], duelN: 0, seq: 0, note: {}, done: {} };
   const fig = () => { try { return window.__yaoshi3d && window.__yaoshi3d.duelFigures; } catch (e) { return null; } };
   const cam = () => { try { return window.__yaoshi3d && window.__yaoshi3d.camera; } catch (e) { return null; } };
   // 那一尊在畫面上實際佔的方框（世界包圍盒八角投影＋canvas rect；與產品的 pwScreenOf 不同路）
@@ -206,47 +206,66 @@ const HARNESS = `(() => {
         if (!n.classList || !n.classList.contains('dmgfloat')) continue;
         const seq = ++M.seq;
         n.dataset.mseq = String(seq);
-        M.floats.push({ seq: seq, t: vnow(), cls: n.className, kind: n.dataset.kind || '', side: n.dataset.side, unit: +n.dataset.unit,
+        M.floats.push({ seq: seq, t: vnow(), duel: M.duelN, cls: n.className, kind: n.dataset.kind || '', side: n.dataset.side, unit: +n.dataset.unit,
           text: n.textContent, left: n.style.left, top: n.style.top, font: parseFloat(getComputedStyle(n).fontSize) });
         if (W.__dmgArmFloat) W.__dmgArmFloat(seq);
       }
     }).observe(document.documentElement, { childList: true, subtree: true });
   });
-  document.addEventListener('ys:fx-hit', (e) => { const d = e.detail || {}; M.hits.push({ t: vnow(), side: d.side, unit: d.unit, ms: d.ms, synth: !!d.__synth }); });
-  document.addEventListener('ys:fx-burn', (e) => { const d = e.detail || {}; M.burns.push({ t: vnow(), side: d.side, unit: d.unit }); });
-  document.addEventListener('ys:duel', () => { M.note.duels = (M.note.duels || 0) + 1; });
-  document.addEventListener('ys:duel-end', () => { M.note.ends = (M.note.ends || 0) + 1; });
+  const skipNow = () => { try { return !!SKIP; } catch (e) { return null; } }; // SKIP 是 let 全域：只能用裸名字取，window.SKIP 拿不到
+  document.addEventListener('ys:fx-hit', (e) => { const d = e.detail || {}; M.hits.push({ t: vnow(), duel: M.duelN, side: d.side, unit: d.unit, ms: d.ms, synth: !!d.__synth, skip: skipNow() }); });
+  document.addEventListener('ys:fx-burn', (e) => { const d = e.detail || {}; M.burns.push({ t: vnow(), duel: M.duelN, side: d.side, unit: d.unit, skip: skipNow() }); });
+  document.addEventListener('ys:duel', () => { M.duelN = (M.duelN || 0) + 1; M.note.duels = M.duelN; });
+  document.addEventListener('ys:duel-end', () => { M.note.ends = (M.note.ends || 0) + 1; M.ends.push({ n: M.duelN, t: vnow() }); });
 })();`;
 
 /* ─────────── dom 模式（不凍結）：R3／R4／R5 與事件對位 ─────────── */
 const DOM_PROBE = `(() => {
-  const M = window.__dmg, S = window.__dmgDom = { ghost: [], edge: [], skip: null, beats: [], burns: [] };
+  const M = window.__dmg, S = window.__dmgDom = { edge: [], skip: null, burns: [], edges: [], ghosts: [], ends: [] };
   const now = () => performance.now();
+  const ghostMs = () => (typeof PW_FX === 'undefined' ? 300 : PW_FX.GAUGE_GHOST_MS);
+  const skipNow = () => { try { return !!SKIP; } catch (e) { return null; } };
+  // 邊緣紅暈：用 MutationObserver 記「什麼時候長出來、什麼時候被拿掉」，不用固定時點取樣
+  // ——命中事件與紅暈之間隔著 fxHitstop（停格），固定 20ms 量會整批落空。
+  document.addEventListener('DOMContentLoaded', () => {
+    new MutationObserver((ms) => {
+      for (const m of ms) {
+        for (const n of m.addedNodes) {
+          if (n.classList && n.classList.contains('hurtedge')) { const row = { t: now(), duel: M.duelN, gone: null }; n.__row = row; S.edges.push(row); }
+          if (n.classList && n.classList.contains('ghost')) { const row = { t: now(), duel: M.duelN, side: (n.parentNode || {}).id, gone: null }; n.__grow = row; S.ghosts.push(row); }
+        }
+        for (const n of m.removedNodes) {
+          if (n.classList && n.classList.contains('hurtedge') && n.__row) n.__row.gone = now();
+          if (n.classList && n.classList.contains('ghost') && n.__grow) n.__grow.gone = now();
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  });
   document.addEventListener('ys:fx-burn', (e) => {
     const d = e.detail || {};
     const g = document.getElementById('pwg-' + d.side);
     const w0 = g && g.querySelector('i') ? parseFloat(g.querySelector('i').style.width) : null;
-    const row = { t: now(), side: d.side, unit: d.unit, w0: w0, at50: null, atGhostEnd: null };
+    const row = { t: now(), duel: M.duelN, side: d.side, unit: d.unit, w0: w0, at50: null, atGhostEnd: null, skip: skipNow() };
     S.burns.push(row);
-    // 50ms 內殘影要在（寬度＝掉的段落）；GAUGE_GHOST_MS+100 之後要不見
     setTimeout(() => {
       const gg = g && g.querySelector('b.ghost'), bar = g && g.querySelector('i');
-      row.at50 = { has: !!gg, left: gg ? gg.style.left : null, w: gg ? gg.style.width : null, bar: bar ? bar.style.width : null,
-        from: gg ? gg.dataset.from : null };
-      row.edges = document.querySelectorAll('#duel i.hurtedge').length;
+      row.at50 = { has: !!gg, left: gg ? gg.style.left : null, w: gg ? gg.style.width : null,
+        bar: bar ? bar.style.width : null, from: gg ? gg.dataset.from : null };
       row.units = document.querySelectorAll('.dmgfloat.unit').length;
     }, 50);
-    const ghostMs = (window.PW_FX && window.PW_FX.GAUGE_GHOST_MS) || 300;
-    setTimeout(() => { row.atGhostEnd = document.querySelectorAll('#pwg-' + d.side + ' b.ghost').length; }, ghostMs + 100);
+    setTimeout(() => { row.atGhostEnd = document.querySelectorAll('#pwg-' + d.side + ' b.ghost').length; }, ghostMs() + 100);
   });
   document.addEventListener('ys:fx-hit', (e) => {
     const d = e.detail || {};
-    const row = { t: now(), side: d.side, unit: d.unit, edgeAt20: null, mySide: window.pwMySide === undefined ? null : window.pwMySide };
-    S.edge.push(row);
-    setTimeout(() => { row.edgeAt20 = document.querySelectorAll('#duel i.hurtedge').length; }, 20);
-    setTimeout(() => { row.edgeAt220 = document.querySelectorAll('#duel i.hurtedge').length; }, 220);
+    S.edge.push({ t: now(), duel: M.duelN, side: d.side, unit: d.unit, skip: skipNow(),
+      mySide: (typeof pwMySide === 'undefined' ? null : pwMySide) });
   });
-  // doSkip：每一場對決按一次（第 N 場才按，讓前面幾場正常演完）
+  document.addEventListener('ys:duel-end', () => {
+    // 對決收場之後殘影／紅暈都不得留著（下一場的量表是新建的，留著就是跨場殘留）
+    setTimeout(() => { S.ends.push({ t: now(), duel: M.duelN,
+      ghosts: document.querySelectorAll('.pwgauge b.ghost').length,
+      edges: document.querySelectorAll('#duel i.hurtedge').length }); }, ghostMs() + 200);
+  });
   window.__dmgSkip = (n) => {
     if (S.skip) return false;
     S.skip = { t: now(), n: n, before: M.domNow() };
@@ -305,71 +324,97 @@ function judgeDom(D) {
   const bad = [];
   const S = D.dom, M = D.dmg;
   const ghostMs = (D.pwfx && D.pwfx.GAUGE_GHOST_MS) || 300;
-  // R3-a 殘影
-  let g50 = 0; let gBad = 0; let gEnd = 0; let gEndBad = 0;
-  for (const b of S.burns) {
+  const edgeMs = (D.pwfx && D.pwfx.HURT_EDGE_MS) || 150;
+  // ── R3-a 量表紅殘影 ──
+  // 「殘影消失」只在這一側 GHOST_MS+100 內沒有下一筆燒毀時才判：後面那一筆會把同一條殘影接著用，
+  // 這時候還在畫面上是對的（右緣固定、左緣跟著新的存活寬度走）。
+  let g50 = 0, gBad = 0, gEnd = 0, gEndBad = 0, gSkip = 0;
+  const burnsAll = S.burns.slice().sort((a, b) => a.t - b.t);
+  for (const b of burnsAll) {
+    if (b.skip) { gSkip++; continue; }
     if (!b.at50) continue;
     g50++;
     const w = b.at50.w ? parseFloat(b.at50.w) : null, from = b.at50.from ? parseFloat(b.at50.from) : null, bar = b.at50.bar ? parseFloat(b.at50.bar) : null;
-    if (!b.at50.has || w === null || from === null || bar === null || Math.abs(w - (from - bar)) > 1) { gBad++; bad.push(`R3 ghost@50 side=${b.side} unit=${b.unit} ${JSON.stringify(b.at50)}`); }
-    if (b.atGhostEnd !== null) { gEnd++; if (b.atGhostEnd !== 0) { gEndBad++; bad.push(`R3 ghost 未消失 side=${b.side} n=${b.atGhostEnd}`); } }
+    if (!b.at50.has || w === null || from === null || bar === null || Math.abs(w - (from - bar)) > 1) {
+      gBad++; bad.push('R3 ghost@50 side=' + b.side + ' unit=' + b.unit + ' ' + JSON.stringify(b.at50));
+    }
+    const later = burnsAll.some((x) => x !== b && x.side === b.side && x.t > b.t && x.t <= b.t + ghostMs + 100);
+    if (b.atGhostEnd !== null && !later) { gEnd++; if (b.atGhostEnd !== 0) { gEndBad++; bad.push('R3 ghost 未消失 side=' + b.side + ' n=' + b.atGhostEnd); } }
   }
-  // R3-b 己方紅暈
-  let eMine = 0; let eFoe = 0; let eBad = 0; let eGone = 0;
-  for (const h of S.edge) {
-    if (h.edgeAt20 === null) continue;
-    const mine = h.side === h.mySide;
-    if (mine) { eMine++; if (h.edgeAt20 < 1) { eBad++; bad.push(`R3 己方受擊無紅暈 side=${h.side}`); } }
-    else { eFoe++; if (h.edgeAt20 > 0) { eBad++; bad.push(`R3 對方受擊卻有紅暈 side=${h.side} my=${h.mySide}`); } }
-    if (h.edgeAt220 === 0) eGone++;
-    else if (h.edgeAt220 > 0 && mine) { eBad++; bad.push(`R3 紅暈 220ms 未消失`); }
-  }
-  // R4 「−1 隻」：每筆 burn 恰一個 .dmgfloat.unit（用建立紀錄數，池重用不影響）
+  for (const e of S.ends) if (e.ghosts !== 0 || e.edges !== 0) { gEndBad++; bad.push('R3 對決收場後仍有殘留 ' + JSON.stringify(e)); }
+  // 每一條殘影自己的壽命（MutationObserver 量的真實出生／移除時刻）：GHOST_MS+100 內要收掉。
+  // 被後面那一筆燒毀接著用的殘影，壽命是從第一次冒出來算到最後收掉，門檻順延到最後一次更新
+  const ghosts = (S.ghosts || []).filter((g) => g.gone !== null);
+  const ghostLifeMax = ghosts.length ? Math.max(...ghosts.map((g) => g.gone - g.t)) : null;
+  const ghostSlow = ghosts.filter((g) => {
+    const last = burnsAll.filter((b) => !b.skip && ('pwg-' + b.side) === g.side && b.t >= g.t - 30 && b.t <= g.gone).map((b) => b.t);
+    const base = last.length ? Math.max(...last) : g.t;
+    return g.gone - base > ghostMs + 100;
+  });
+  if (ghostSlow.length) { gEndBad++; bad.push('R3 殘影超時 ' + ghostSlow.length + ' 條，最長 ' + Math.max(...ghostSlow.map((g) => Math.round(g.gone - g.t))) + 'ms'); }
+  // ── R3-b 己方紅暈 ──
+  const hits = S.edge.filter((h) => !h.skip && h.mySide);
+  const mine = hits.filter((h) => h.side === h.mySide);
+  const foe = hits.filter((h) => h.side !== h.mySide);
+  const edges = S.edges;
+  let eBad = 0;
+  if (mine.length !== edges.length) { eBad++; bad.push('R3 己方受擊 ' + mine.length + ' 筆 ≠ 紅暈 ' + edges.length + ' 片'); }
+  const lateGone = edges.filter((e) => e.gone === null || e.gone - e.t > edgeMs + 80);
+  if (lateGone.length) { eBad++; bad.push('R3 紅暈沒在 ' + edgeMs + '+80ms 內收掉：' + lateGone.length + ' 片'); }
+  for (const e of edges) if (!mine.some((h) => e.t - h.t >= -5 && e.t - h.t < 500)) { eBad++; bad.push('R3 找不到對應的己方受擊（紅暈 t=' + e.t.toFixed(0) + '）'); }
+  // ── R4 「−1 隻」 ──
   const unitFloats = M.floats.filter((f) => /\bunit\b/.test(f.cls));
-  const burnsN = M.burns.length;
-  // 燒毀時該尊不在場（3D 沒載到／隻數牌退路）會拿不到位置，pwFloat 直接不冒——記為 skipped 不當違規
+  const burnsSkipped = M.burns.filter((b) => b.skip).length;
+  const burnsN = M.burns.length - burnsSkipped; // SKIP 之後不演（與 pwLamps／pwGauge 同一條 L-3 規矩）
   const unitOk = unitFloats.length === burnsN;
-  if (!unitOk) bad.push(`R4 「−1 隻」${unitFloats.length} ≠ burn ${burnsN}`);
+  if (!unitOk) bad.push('R4 「−1 隻」' + unitFloats.length + ' ≠ burn ' + burnsN + '（SKIP 中的 ' + burnsSkipped + ' 筆不算）');
   let overlap = 0;
   for (const u of unitFloats) {
     const near = M.floats.filter((f) => f.seq !== u.seq && !/\bunit\b/.test(f.cls) && Math.abs(f.t - u.t) < 600 && f.side === u.side && f.unit === u.unit);
     for (const f of near) {
       const dy = Math.abs(parseFloat(f.top) - parseFloat(u.top)), dx = Math.abs(parseFloat(f.left) - parseFloat(u.left));
       const need = Math.max(f.font || 27, u.font || 17);
-      if (Math.hypot(dx, dy) < need) { overlap++; bad.push(`R4 重疊 seq=${u.seq}/${f.seq} d=${Math.hypot(dx, dy).toFixed(1)} need=${need}`); }
+      if (Math.hypot(dx, dy) < need) { overlap++; bad.push('R4 重疊 seq=' + u.seq + '/' + f.seq + ' d=' + Math.hypot(dx, dy).toFixed(1) + ' need=' + need); }
     }
   }
-  // R5 doSkip
+  const texts = unitFloats.filter((f) => f.text !== '−1 隻');
+  if (texts.length) bad.push('R4 文字不是「−1 隻」：' + texts.length + ' 筆');
+  // ── R5 doSkip ──
   const sk = S.skip;
   const skOk = !!sk && sk.after300 && sk.after300.floats === 0 && sk.after300.ghosts.length === 0 && sk.after300.edges === 0
     && !!sk.hitK && sk.hitK.every((s) => s.every((k) => k === 0));
-  if (sk && !skOk) bad.push(`R5 skip 殘留 ${JSON.stringify(sk.after300)} hitK=${JSON.stringify(sk.hitK)}`);
+  if (sk && !skOk) bad.push('R5 skip 殘留 ' + JSON.stringify(sk.after300) + ' hitK=' + JSON.stringify(sk.hitK));
   if (!sk) bad.push('R5 沒按到跳過（樣本 0）');
-  // 事件對位：ys:fx-hit 的筆數要等於「演出的交鋒筆數」，side 要是被打那一側
-  let evOk = true; let evShown = 0; const evBad = [];
+  // ── 接線：ys:fx-hit 逐筆對 beatsShown ──
+  let evOk = true, evShown = 0; const evBad = [];
   const fights = (D.fxc && D.fxc.fights) || [];
-  for (const f of fights) {
-    for (const b of (f.beatsShown || [])) evShown += (b.shown || []).filter((x) => x.kind !== 'trait').length;
-  }
-  const realHits = M.hits.filter((h) => !h.synth).length;
-  if (evShown && realHits !== evShown) { evOk = false; evBad.push(`ys:fx-hit ${realHits} ≠ 演出交鋒 ${evShown}`); }
-  // side 對位：每一筆 hit 的 (side,unit) 必須是某一筆 shown 的 target 在對面那一側
+  const skipN = S.skip ? S.skip.n : -1; // 按過跳過的那一場不比
   const wants = [];
-  for (const f of fights) for (const b of (f.beatsShown || [])) for (const x of (b.shown || [])) {
-    if (x.kind === 'trait') continue;
-    wants.push(`${x.side === 'B' ? 'A' : 'B'}:${x.target}`);
-  }
-  const got = M.hits.filter((h) => !h.synth).map((h) => `${h.side}:${h.unit}`);
+  fights.forEach((f, i) => {
+    if ((i + 1) === skipN) return;
+    for (const b of (f.beatsShown || [])) for (const x of (b.shown || [])) {
+      if (x.kind === 'trait') continue;
+      evShown++;
+      wants.push((x.side === 'B' ? 'A' : 'B') + ':' + x.target);
+    }
+  });
+  // 只比「已經演完並記進 fights」的那幾場：驅動器停手時常常還開著下一場（同 closeup P0 的收手邊界）
+  const useHit = (h) => !h.synth && !h.skip && h.duel <= fights.length && h.duel !== skipN;
+  const realHits = M.hits.filter(useHit).length;
+  if (evShown && realHits !== evShown) { evOk = false; evBad.push('ys:fx-hit ' + realHits + ' ≠ 演出交鋒 ' + evShown); }
+  const got = M.hits.filter(useHit).map((h) => h.side + ':' + h.unit);
   const cnt = (a) => a.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {});
   const cw = cnt(wants), cg = cnt(got);
-  for (const k of new Set([...Object.keys(cw), ...Object.keys(cg)])) if ((cw[k] || 0) !== (cg[k] || 0)) { evOk = false; evBad.push(`target 對位 ${k}: want ${cw[k] || 0} got ${cg[k] || 0}`); }
+  for (const k of new Set([...Object.keys(cw), ...Object.keys(cg)])) if ((cw[k] || 0) !== (cg[k] || 0)) { evOk = false; evBad.push('target 對位 ' + k + ': want ' + (cw[k] || 0) + ' got ' + (cg[k] || 0)); }
   if (!evOk) bad.push('WIRE ' + evBad.slice(0, 5).join('; '));
-  const res = { R3: g50 > 0 && gBad === 0 && gEndBad === 0 && eBad === 0 && (eMine + eFoe) > 0,
-    R4: unitOk && overlap === 0 && burnsN > 0, R5: skOk, WIRE: evOk && realHits > 0 };
+  const res = { R3: g50 > 0 && gBad === 0 && gEndBad === 0 && eBad === 0 && mine.length > 0 && foe.length > 0,
+    R4: unitOk && overlap === 0 && texts.length === 0 && burnsN > 0, R5: skOk, WIRE: evOk && realHits > 0 };
   return { res: res, bad: bad,
-    summary: { ghostSamples: g50, ghostBad: gBad, ghostGone: gEnd - gEndBad, edgeMine: eMine, edgeFoe: eFoe, edgeBad: eBad,
-      unitFloats: unitFloats.length, burns: burnsN, overlap: overlap, hits: realHits, shownHits: evShown,
-      skipAfter: sk ? sk.after300 : null } };
+    summary: { ghostSamples: g50, ghostBad: gBad, ghostGoneChecked: gEnd, ghostGoneBad: gEndBad, ghostSkipped: gSkip,
+      hitMine: mine.length, hitFoe: foe.length, edges: edges.length, edgeBad: eBad,
+      edgeLifeMax: edges.filter((e) => e.gone !== null).length ? Math.max(...edges.filter((e) => e.gone !== null).map((e) => +(e.gone - e.t).toFixed(0))) : null,
+      unitFloats: unitFloats.length, burns: burnsN, burnsSkipped: burnsSkipped, overlap: overlap,
+      hits: realHits, shownHits: evShown, skipAfter: sk ? sk.after300 : null } };
 }
 
 /* ═══════════ pix 模式 ═══════════ */

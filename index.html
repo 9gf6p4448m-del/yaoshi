@@ -4682,7 +4682,7 @@ function pwCloseupClear(){
   if(layer){ [...layer.children].forEach(el=>{ try{ el.getAnimations().forEach(a=>a.cancel()); }catch(e){} el.remove(); }); }
   clearTimeout(PW_CARD_T);
   /* 批 2-a：量表紅殘影與己方紅暈也一次清乾淨（R5：doSkip 後 300ms 這兩樣都要是 0） */
-  document.querySelectorAll(".pwgauge b.ghost").forEach(g=>{ clearTimeout(+g.dataset.t||0); g.remove(); });
+  document.querySelectorAll(".pwgauge b.ghost").forEach(g=>{ clearTimeout(+g.dataset.t||0); clearTimeout(+g.dataset.t2||0); g.remove(); });
   clearTimeout(PW_EDGE_T); document.querySelectorAll("#duel i.hurtedge").forEach(e=>e.remove());
   const c=$("actorCard"); if(c){ c.classList.remove("on"); c.innerHTML=""; }
   const l=$("beatLamps"); if(l) [...l.children].forEach(el=>{ el.className=""; }); /* L-4：燈也一起清，別把上一場的亮法帶進下一場 */
@@ -4801,10 +4801,10 @@ function pwGaugeGhost(g,was,now){
   const from=Math.max(parseFloat(gh.dataset.from)||was,was);
   gh.dataset.from=String(from);
   gh.style.left=now+"%"; gh.style.width=Math.max(0,from-now)+"%"; gh.style.opacity="1";
-  gh.dataset.t=String(setTimeout(()=>{
-    gh.style.width="0%"; gh.style.opacity="0";
-    setTimeout(()=>{ gh.remove(); },70); /* 收起來的 60ms transition 走完才移除——整段 ≤ GAUGE_GHOST_MS+100（R3） */
-  },PW_FX.GAUGE_GHOST_MS));
+  /* 兩個計時器同時排（不串接）：串接的話兩段的延遲會累加，重幀時整條殘影會拖過 GAUGE_GHOST_MS+100（R3）。 */
+  clearTimeout(+gh.dataset.t2||0);
+  gh.dataset.t=String(setTimeout(()=>{ gh.style.width="0%"; gh.style.opacity="0"; },PW_FX.GAUGE_GHOST_MS));
+  gh.dataset.t2=String(setTimeout(()=>{ gh.remove(); },PW_FX.GAUGE_GHOST_MS+60));
 }
 /* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
 function pwActorCard(side,item,fac){
