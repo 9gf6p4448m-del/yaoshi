@@ -326,6 +326,36 @@ test('N1 同香火洗牌：固定 round、四家同 h，200 顆種子裡每一�
     `座位 ${i} 先擲的比例不得超過 50%，實際 ${(first[i]/n*100).toFixed(1)}%（分布 ${first.join('/')})`));
 });
 
+/* ---------- 16c. N1 洗牌無偏：m=4 並列組跑 20000 次，四家首擲比值 ∈[0.95,1.05] ----------
+   為什麼要有這一案（對抗式覆審 HIGH-2）：把 `shrineRollOrder` 的 Fisher–Yates 換成
+   `sort(()=>S.rng()-0.5)`（偏倚洗牌）之後，第 16 案與閘門 A1 **仍然全綠**——因為真實牌局的並列組
+   97.6% 是 m=2，而 V8 的隨機比較子在 m=2 恰好無偏，偏倚只在 m≥3 才顯現；第 16 案的「≤50%」
+   對 m=4 也太寬（偏倚洗牌最壞只到 35.9%）。所以這一案**固定 m=4、把帶收到 [0.95,1.05]、樣本拉到 20000**。
+   量法走**真實路徑**：不直接呼叫匯出的 shrineRollOrder，而是每一輪把四家的 h 重設成同一個值、
+   各燒 1，讓 resolveShrines 自己排序，再讀 out.rolls[0]——這樣舊版（風位序）跑同一案會紅在
+   「比值 4.000」這個**行為數字**上，而不是紅在「沒有這個匯出」的屬性錯誤。 */
+test('N1 洗牌無偏：m=4 同 h 並列組 20000 次，四家首擲比值都在 [0.95,1.05]',()=>{
+  const G=loadGame(TARGET);
+  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 每輪都看得到完整擲序、龕不會關 */
+  const S=setup(G,20260907);
+  S.round=1;                                /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
+  S.players.forEach(p=>{ p.life=10000000; });
+  const sh=S.shrines[0];
+  const N=20000, first=[0,0,0,0];
+  for(let k=0;k<N;k++){
+    S.players.forEach(p=>{ sh.h[p.id]=5; }); /* 每輪重設成同 h（燒 1 之後四家都是 6，並列 m=4） */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    ok(out&&out.rolls&&out.rolls.length===4,`第 ${k} 輪應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
+    first[out.rolls[0].pid]++;
+  }
+  const exp=N/4;
+  [0,1,2,3].forEach(i=>{
+    const r=first[i]/exp;
+    ok(r>=0.95&&r<=1.05,
+      `座位 ${i} 的首擲比值應在 [0.95,1.05]，實際 **${r.toFixed(4)}**（首擲次數 ${first.join('/')}，公平期望各 ${exp}）`);
+  });
+});
+
 /* ---------- 16b. N1 的另一半：h 不同時擲序恆為 h 降冪，且與 seed 無關 ---------- */
 test('N1 不同香火不洗牌：h 不同時 out.rolls 恆為 h 由高到低，50 顆種子完全一致',()=>{
   const G=loadGame(TARGET);
@@ -337,64 +367,6 @@ test('N1 不同香火不洗牌：h 不同時 out.rolls 恆為 h 由高到低，5
     const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
     eq(out.rolls.map(r=>r.pid).join(','),'0,1,2,3',`seed ${seed}：h 相異時的擲序應恆為 h 降冪`);
     eq(out.rolls.map(r=>r.h).join(','),'7,5,3,1',`seed ${seed}：擲序對應的 h`);
-  }
-});
-
-/* ---------- 18. N7（使用者 2026-09-07 裁定甲）：h 到天井者本夜免燒香也具擲骰資格、必成 ----------
-   凍結檔 A4。動機：燒香上限＝壽命−1（裁定甲）的必然後果是「壽命剩 1 的人到了天井卻永遠請不走」。
-   對基準 SHA 必紅在 takenBy（舊版的 rollers 只收「本夜燒過香的人」）。 */
-test('N7 天井免燒：壽命 1、h=天井、本夜完全沒封籤 → 照樣請走，壽命一點都不扣',()=>{
-  const G=loadGame(TARGET); const S=setup(G);
-  const P=G.CFG.INC_PITY??9;
-  S.rng=alwaysFail;                          /* 骰子必失敗 ⇒ 請得走就只可能是天井那條路 */
-  S.players[0].life=1;                       /* incCap=0：這個人一輩子再也燒不出任何香 */
-  S.shrines[0].h[0]=P;
-  const out=shrineNight(G,S,{0:null,1:null,2:null,3:null});
-  eq(S.shrines[0].takenBy,0,'h 已達天井、壽命 1 燒不動的人，本夜應該直接請走第 0 龕');
-  const r=(out&&out.rolls||[]).filter(x=>x.pid===0&&x.shrine===0);
-  eq(r.length,1,'應該有一筆屬於他的擲骰紀錄');
-  eq(r[0].pity,true,'那一筆應該標記為天井必成');
-  eq((out.burn||[]).filter(b=>b.pid===0).length,0,'免燒 ⇒ 不得有任何燒香紀錄');
-  eq(S.players[0].life,1,'免燒 ⇒ 壽命一點都不該少');
-  eq(legendsOf(S.players[0]).length,1,'那一尊應該進了他的袋子');
-});
-
-test('N7 兩龕各自結算：天井者本夜封籤燒在別的龕 → 天井龕免費請走、另一龕照常擲',()=>{
-  const G=loadGame(TARGET); const S=setup(G);
-  const P=G.CFG.INC_PITY??9;
-  S.rng=alwaysFail;                          /* 龕 1 那一擲必失敗，用來確認「照常擲」而不是也白拿 */
-  S.shrines[0].h[0]=P;                       /* 對龕 0 已達天井 */
-  const before=S.players[0].life;
-  const out=shrineNight(G,S,{0:{shrine:1,amt:2},1:null,2:null,3:null});
-  eq(S.shrines[0].takenBy,0,'龕 0（天井）應該免費被他請走');
-  eq(S.shrines[1].open,true,'龕 1 的那一擲失敗 ⇒ 龕 1 仍開著');
-  eq((out.rolls||[]).length,2,`應該有兩筆擲骰紀錄（龕 0 天井＋龕 1 照常擲），實際 ${JSON.stringify(out.rolls)}`);
-  eq(out.rolls[0].shrine,0,'第一筆在龕 0');
-  eq(out.rolls[0].pity,true,'龕 0 那一筆是天井必成');
-  eq(out.rolls[1].shrine,1,'第二筆在龕 1');
-  eq(out.rolls[1].pity,false,'龕 1 那一筆不是天井（h 只有 2）');
-  eq(S.players[0].life,before-2,'燒在龕 1 的 2 點壽命照扣');
-  eq(legendsOf(S.players[0]).length,1,'只請到龕 0 那一尊');
-});
-
-/* ---------- 20. N7 附帶（凍結檔 A5）：AI 不對已達天井的龕白燒香 ---------- */
-test('N7 AI 不白燒：對某龕 h≥天井時，aiIncense 改拜下一順位的系（50 顆種子都不燒在天井龕）',()=>{
-  const G=loadGame(TARGET);
-  const P=G.CFG.INC_PITY??9;
-  for(let seed=1;seed<=50;seed++){
-    const S=setup(G,seed);
-    const p=S.players[1];
-    p.life=60; p.alive=true; p.ai=null; p.roleId='human';
-    /* 袋子：祖靈 3 件（第一順位）＋香火 1 件（第二順位）——不設天井時 aiIncense 會拜第 0 龕 */
-    p.bag=[...G.POOL.filter(x=>x.f==='zuling'&&!x.curse).slice(0,3).map(x=>({...x})),
-           {...G.POOL.filter(x=>x.f==='xianghuo'&&!x.curse)[0]}];
-    const base=G.aiIncense?G.aiIncense(p):null;
-    ok(base&&base.shrine===0&&base.amt>0,`seed ${seed}：沒到天井時 AI 應該拜第 0 龕（否則下一條沒有鑑別力），實際 ${JSON.stringify(base)}`);
-    S.shrines[0].h[p.id]=P;                  /* 對第 0 龕已達天井 */
-    const after=G.aiIncense?G.aiIncense(p):null;
-    ok(!after||after.shrine!==0||after.amt===0,
-      `seed ${seed}：已達天井的龕不得再燒，實際 ${JSON.stringify(after)}`);
-    eq(after?after.shrine:1,1,`seed ${seed}：應該改拜第二順位（香火＝第 1 龕）`);
   }
 });
 
