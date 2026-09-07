@@ -1,0 +1,48 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "hongyi"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "mode": "aggrsweep",
+   "role": "hongyi",
+   "aggr": 0.3,
+   "n": 10000,
+   "win": 0.1412,
+   "surv": 9.3285,
+   "life": 8.1598,
+   "ms": 217941
+  },
+  {
+   "mode": "aggrsweep",
+   "role": "hongyi",
+   "aggr": 0.7,
+   "n": 10000,
+   "win": 0.1725,
+   "surv": 9.592,
+   "life": 8.6014,
+   "ms": 166567
+  },
+  {
+   "mode": "aggrsweep",
+   "role": "hongyi",
+   "aggr": 1,
+   "n": 10000,
+   "win": 0.1509,
+   "surv": 9.6167,
+   "life": 7.7854,
+   "ms": 159274
+  }
+ ]
+}
