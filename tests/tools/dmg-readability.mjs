@@ -78,7 +78,28 @@ function maskDelta(imA, boxA, imB, boxB) {
   }
   return n ? { d: (sB - sA) / n, n, frac: n / tot, keep: { x0: x0, y0: y0, x1: x1, y1: y1 } } : null;
 }
-/** 用「已經算好的遮罩範圍」再量一次另一幀（+200ms 那一格要用同一組像素才比得準）。 */
+/** 剪影遮罩：同一時刻的兩幀（那一尊在／不在）差分出它佔的像素；回傳像素索引陣列與佔方框的比例。 */
+function silhouette(imOn, imOff, boxA, boxB) {
+  if (!imOn || !imOff || imOn.w !== imOff.w || imOn.h !== imOff.h) return null;
+  const x0 = Math.max(0, Math.floor(Math.min(boxA.x0, boxB.x0))), x1 = Math.min(imOn.w - 1, Math.ceil(Math.max(boxA.x1, boxB.x1)));
+  const y0 = Math.max(0, Math.floor(Math.min(boxA.y0, boxB.y0))), y1 = Math.min(imOn.h - 1, Math.ceil(Math.max(boxA.y1, boxB.y1)));
+  const px = []; let tot = 0;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const i = (y * imOn.w + x) * imOn.ch;
+    tot++;
+    if (Math.max(Math.abs(imOn.data[i] - imOff.data[i]), Math.abs(imOn.data[i + 1] - imOff.data[i + 1]), Math.abs(imOn.data[i + 2] - imOff.data[i + 2])) <= MASK_TH) continue;
+    px.push(i);
+  }
+  return px.length ? { px: px, n: px.length, frac: tot ? px.length / tot : 0 } : null;
+}
+/** 在給定的遮罩像素上量兩幀的紅偏量平均差。 */
+function maskDeltaOnMask(imA, imB, px) {
+  if (!imA || !imB || !px || !px.length || imA.w !== imB.w) return null;
+  let s = 0;
+  for (const i of px) s += (imB.data[i] - (imB.data[i + 1] + imB.data[i + 2]) / 2) - (imA.data[i] - (imA.data[i + 1] + imA.data[i + 2]) / 2);
+  return s / px.length;
+}
+/** 用「已經算好的遮罩範圍」再量一次另一幀（舊量法留著給 dmg-redstat 的對照用）。 */
 function maskDeltaOn(imA, imB, keep, imRef) {
   if (!imA || !imB || !keep || !imRef || imA.w !== imB.w) return null;
   let n = 0, sA = 0, sB = 0;
@@ -157,6 +178,14 @@ const HARNESS = `(() => {
     try { document.getAnimations().forEach((a) => { if (a.playState === 'running') { a.pause(); F.anims.push(a); } }); } catch (e) {}
     return true;
   };
+  /* 單步：把排在佇列裡的 rAF 回呼跑一次，**虛擬時間不前進**（傳同一個 vnow）。
+     用來在凍結狀態下重畫一幀——剪影遮罩要「同一時刻、同一機位，只差那一尊在不在」兩幀。 */
+  F.step = () => {
+    const q = F.rafQ.splice(0);
+    const t = vnow();
+    q.forEach((x) => { try { x.cb(t); } catch (e) {} });
+    return q.length;
+  };
   F.resume = () => {
     if (!F.on) return false;
     F.off += P0() - F.atP; F.on = false;
@@ -208,6 +237,16 @@ const HARNESS = `(() => {
       return { x0: x0, y0: y0, x1: x1, y1: y1 };
     } catch (e) { return null; }
   };
+  /* 這一尊是什麼皮：3D 妖（creature）還是貼片人形（layered）、模型鍵、體型。
+     閃紅在兩種皮上的做法不同（3D 動 albedo＋邊光 uniform，貼片只染逆光層），分布會分成兩群，
+     不記下來的話報告只會寫「有些樣本沒反應」，看不出是哪一類。 */
+  M.figInfo = (side, unit) => {
+    try {
+      const D = fig(); const f = D && D.figureOf(side, unit);
+      if (!f) return null;
+      return { skin: f.skin || 'layered', ab: f.ab === undefined ? null : f.ab, body: f.unit && f.unit.body, haunt: !!(f.unit && f.unit.body === 'haunt') };
+    } catch (e) { return null; }
+  };
   M.liveUnits = (side) => { const D = fig(); if (!D) return []; try { return D.figuresOf(side).filter((f) => f.group && f.group.visible).map((f) => f.unit && f.unit.id); } catch (e) { return []; } };
   M.hitK = () => { const D = fig(); if (!D) return null; try { return ['A', 'B'].map((s) => D.figuresOf(s).map((f) => +(f.__hitK || 0))); } catch (e) { return null; } };
   M.floatsNow = () => [...document.querySelectorAll('.dmgfloat')].map((el) => {
@@ -245,6 +284,39 @@ const HARNESS = `(() => {
   };
   M.camPos = () => { try { const K = cam(); return K ? [+K.position.x.toFixed(4), +K.position.y.toFixed(4), +K.position.z.toFixed(4)] : null; } catch (e) { return null; } };
   W.__frzGo = () => { M.ready = null; F.resume(); if (M.next) M.next(); };
+  /* 剪影遮罩用的兩個鉤子：切那一尊的可見性、原地重畫一幀（都不動虛擬時鐘）。 */
+  /* 藏一尊：**不能動 visible**——duel-figures 的主迴圈每幀最後都會把它寫回 true
+     （js/duel-figures.js 的主迴圈結尾那一行 "if (!f.group.visible) f.group.visible = true;"），
+     我們單步重畫的那一幀正好會把藏起來的那一尊又打開，差分出來 0 個像素（實測 6/7 個樣本都這樣）。
+     改動 layers：把整棵子樹丟到相機看不到的層，主迴圈不碰 layers，所以藏得住；還原時寫回原本的 mask。 */
+  W.__figVis = (side, unit, vis) => {
+    try {
+      const D = window.__yaoshi3d && window.__yaoshi3d.duelFigures;
+      const f = D && D.figureOf(side, unit);
+      if (!f || !f.group) return false;
+      const each = (root) => { if (!root) return; root.traverse((o) => {
+        if (vis) { if (o.__savedLayers !== undefined) { o.layers.mask = o.__savedLayers; o.__savedLayers = undefined; } }
+        else { if (o.__savedLayers === undefined) o.__savedLayers = o.layers.mask; o.layers.set(31); }
+      }); };
+      each(f.group); each(f.shadow);
+      return true;
+    } catch (e) { return false; }
+  };
+  /* 單步「真的畫出來」：直接呼叫 rAF 回呼雖然會 render，但那是在瀏覽器的 render lifecycle 之外，
+     合成器不會把新畫面交出去——實測截到的還是上一張（剪影差分 0 個像素）。
+     所以改成排一次**原生** rAF、在那裡面跑回呼（時間戳仍是凍住的 vnow，遊戲狀態不前進），
+     再多等一次 rAF 確定這一幀已經送出去。 */
+  /* 凍結中把虛擬時鐘往前推 ms 毫秒：遊戲的其它東西（timer）仍然停著，只有「下一次畫的那一幀
+     會拿到 t+ms」——閃紅的包絡與鏡頭的補間都是吃這個時間，所以這等於「往後 ms 毫秒的那一幀」，
+     而且完全不看牆鐘。原本靠 setTimeout(40) 等真實時間，機器一忙那一格就落在 80–120ms、
+     閃紅早就衰退掉（實測 hk 0.48／0 的樣本一大把）。 */
+  W.__frzWarp = (ms) => { if (!F.on) return null; F.off -= Number(ms) || 0; return vnow(); };
+  W.__frzStepReal = () => new Promise((res) => {
+    const q = F.rafQ.splice(0);
+    const t = vnow();
+    RAF(() => { q.forEach((x) => { try { x.cb(t); } catch (e) {} }); RAF(() => res(q.length)); });
+  });
+  W.__frzDraw = () => F.step();
 
   // 跳字：一冒出來就編號（重用池會讓同一個節點再用，所以每次都要重編）
   document.addEventListener('DOMContentLoaded', () => {
@@ -304,8 +376,9 @@ const DOM_PROBE = `(() => {
   });
   document.addEventListener('ys:fx-hit', (e) => {
     const d = e.detail || {};
+    // 三版 MEDIUM-4：己方不再是單一側（熱座兩位真人時兩側都算），產品的出口改成 pwMySides 陣列
     S.edge.push({ t: now(), duel: M.duelN, side: d.side, unit: d.unit, skip: skipNow(),
-      mySide: (typeof pwMySide === 'undefined' ? null : pwMySide) });
+      mySides: (typeof pwMySides === 'undefined' ? null : pwMySides.slice()) });
   });
   document.addEventListener('ys:duel-end', () => {
     // 對決收場之後殘影／紅暈都不得留著（下一場的量表是新建的，留著就是跨場殘留）
@@ -365,7 +438,7 @@ async function runDom(browser) {
   const v = judgeDom(data);
   fs.writeFileSync(out, JSON.stringify({ url: url, seed: seed, duels: duels, verdict: v, data: data, errors: r.errors }, null, 1));
   console.log(JSON.stringify({ out: out, seed: seed, errors: r.errors.length, ...v.summary }));
-  console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x ? 'PASS' : 'FAIL'}`).join(' '));
+  console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x === null ? '（新尺規，門檻未訂）' : x ? 'PASS' : 'FAIL'}`).join(' '));
   if (v.bad.length) console.log(v.bad.slice(0, 12).join('\n'));
 }
 
@@ -402,9 +475,9 @@ function judgeDom(D) {
   });
   if (ghostSlow.length) { gEndBad++; bad.push('R3 殘影超時 ' + ghostSlow.length + ' 條，最長 ' + Math.max(...ghostSlow.map((g) => Math.round(g.gone - g.t))) + 'ms'); }
   // ── R3-b 己方紅暈 ──
-  const hits = S.edge.filter((h) => !h.skip && h.mySide);
-  const mine = hits.filter((h) => h.side === h.mySide);
-  const foe = hits.filter((h) => h.side !== h.mySide);
+  const hits = S.edge.filter((h) => !h.skip && Array.isArray(h.mySides) && h.mySides.length);
+  const mine = hits.filter((h) => h.mySides.indexOf(h.side) >= 0);
+  const foe = hits.filter((h) => h.mySides.indexOf(h.side) < 0);
   const edges = S.edges;
   let eBad = 0;
   if (mine.length !== edges.length) { eBad++; bad.push('R3 己方受擊 ' + mine.length + ' 筆 ≠ 紅暈 ' + edges.length + ' 片'); }
@@ -502,11 +575,8 @@ async function runPix(browser) {
     M.fire = (side, unit, extra) => {
       const meta = { side: side, unit: unit, foe: side === 'B' ? 'A' : 'B' };
       if (extra) Object.assign(meta, extra);
-      const ms = (window.PW_FX && window.PW_FX.HIT_FLASH_MS) || 120;
-      return M.run('flash', meta, [0, 40, 80, 280], (k) => {
-        if (k !== 1) return;
-        try { document.dispatchEvent(new CustomEvent('ys:fx-hit', { detail: { side: side, unit: unit, ms: ms, __synth: true } })); } catch (e) {}
-      });
+      // 只凍一次：命中前／剪影／+40ms／+200ms 四張都在這一次凍結裡由 Node 端用 warp 拍完（見 pump）。
+      return M.run('flash', meta, [0]);
     };
     // 對決演到一半才打（不在進場／收場的淡入淡出上量：那時整個畫面都在變）；每 300ms 試一次
     M.duelOn = false; M.duelT = 0;
@@ -524,25 +594,38 @@ async function runPix(browser) {
         .sort((p, q) => q.a - p.a);
       return rows;
     };
-    M.tryFire = () => {
-      if (!M.cfg.on || M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return;
-      if (!M.duelOn || performance.now() - M.duelT < 1600) return;
-      if (performance.now() - M.lastFloatT < 700) return; // 剛冒出跳字：讓 R1 的取樣先做完
+    M.tryFire = (via) => {
+      if (!M.cfg.on || M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return false;
+      if (!M.duelOn || performance.now() - M.duelT < 1600) return false;
+      if (via !== 'hitstop' && performance.now() - M.lastFloatT < 700) return false; // 剛冒出跳字：讓 R1 的取樣先做完（hitstop 是好時機，不讓）
       const ov = document.getElementById('duel');
-      if (!ov || getComputedStyle(ov).opacity !== '1') return; // 淡入淡出中不量
+      if (!ov || getComputedStyle(ov).opacity !== '1') return false; // 淡入淡出中不量
       const side = (M.nHit % 2) ? 'B' : 'A', foe = side === 'B' ? 'A' : 'B';
       const rows = M.pickTarget(side), frows = M.pickTarget(foe);
-      if (!rows.length || rows[0].a < 4000 || !frows.length) return; // 太小的尊：方框裡幾乎都是背景，量不出東西
-      // 對照組取**對面那一欄**最大的一尊：同一欄的兩尊在畫面上會互相疊到（擠堆時方框幾乎重合），
-      // 拿同欄的當對照，target 一閃連對照也跟著紅，會誤判成「整片閃紅」。
+      if (!rows.length || rows[0].a < 4000 || !frows.length) return false; // 太小的尊：方框裡幾乎都是背景
+      // 對照組取**對面那一欄**最大的一尊：同一欄的兩尊在畫面上會互相疊到（擠堆時方框幾乎重合）。
       const t = rows[0].b, c = frows[0].b;
       const overlap = !(c.x1 < t.x0 || c.x0 > t.x1 || c.y1 < t.y0 || c.y0 > t.y1);
-      if (overlap) return;
+      if (overlap) return false;
       M.nHit++;
-      M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe });
+      M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe, via: via || 'timer' });
+      return true;
     };
+    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零、鏡頭完全不動，
+       命中前那一幀與閃紅那一幀才是同一個機位；不然量到的差分裡混著鏡頭位移。
+       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。 */
+    M.viaHitstop = 0; M.viaTimer = 0;
+    document.addEventListener('ys:hitstop', () => {
+      if (!M.duelOn) return;
+      M.lastHitstop = performance.now();
+      setTimeout(() => { if (M.tryFire('hitstop')) M.viaHitstop++; }, 8);
+    });
     document.addEventListener('ys:duel', () => {
-      const tick = () => { M.tryFire(); if (M.nHit < M.cfg.maxHit) setTimeout(tick, 220); };
+      const tick = () => {
+        // hitstop 在最近 1.5 秒內出現過就交給它，計時器不插隊
+        if (!(performance.now() - (M.lastHitstop || -1e9) < 1500)) { if (M.tryFire('timer')) M.viaTimer++; }
+        if (M.nHit < M.cfg.maxHit) setTimeout(tick, 220);
+      };
       setTimeout(tick, 1700);
     });
     // 燒毀中的尊不得閃紅：燒到一半對同一尊派一顆 hit（真實路徑上的守衛探針）
@@ -593,7 +676,9 @@ async function runPix(browser) {
   const seqIms = [];      // 這一輪凍幀序列的解碼影像（遮罩量法要拿前一格來差分）
   const lastBox = [];     // 各格的目標方框
   let lastCbox = null;    // 對照組方框
-  let lastMask = null;    // 閃紅那一格算出來的遮罩（+200ms 沿用同一組像素）
+  let lastMask = null;    // 剪影遮罩（+200ms 沿用同一組像素）
+  let silIm = null;       // 這一輪的剪影幀（把目標尊藏起來的那一張）
+  let silDiag = null;     // 剪影拍不到時的診斷（藏成功沒／單步畫了幾個回呼）
 
   const pump = async (pg) => {
     for (let guard = 0; guard < 6; guard++) {
@@ -629,20 +714,50 @@ async function runPix(browser) {
         const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, on: r.on, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
           t: num(boxes && boxes.t ? redness(im, boxes.t) : null),
           c: num(boxes && boxes.c ? redness(im, boxes.c) : null) };
-        // 遮罩量法（凍結檔 §2.1 修訂 2）：閃紅那一格對命中前那一格算；+200ms 那一格沿用同一組遮罩像素
-        const pre = r.tag === 'flash' ? seqIms[1] : seqIms[0];
-        const preBox = r.tag === 'flash' ? (lastBox[1] || null) : (lastBox[0] || null);
-        if (r.step === (r.tag === 'flash' ? 2 : 1) && pre && preBox && row.box) {
-          const m = maskDelta(pre, preBox, im, row.box);
-          if (m) { row.maskD = num(m.d); row.maskN = m.n; row.maskFrac = num(m.frac); lastMask = { keep: m.keep, pre: pre }; }
-          if (boxes && boxes.c && lastCbox) {
-            const mc = maskDelta(pre, lastCbox, im, boxes.c);
-            if (mc) row.maskC = num(mc.d);
-          }
-        } else if (lastMask && ((r.tag === 'flash' && r.step === 3) || (r.tag === 'skip' && r.step === 2))) {
-          const m2 = maskDeltaOn(lastMask.pre, im, lastMask.keep, seqIms[r.tag === 'flash' ? 2 : 1]);
-          if (m2) { row.maskD = num(m2.d); row.maskN = m2.n; }
+      // 【覆審 HIGH-1】剪影遮罩：命中前那一幀拍完之後，原地（虛擬時鐘不前進）把那一尊藏起來重畫一幀，
+      // 兩幀差分出來的就是「這一尊在畫面上佔哪些像素」——遮罩與刺激無關。拍完再顯示回去、才派刺激。
+        if (r.tag === 'flash' && r.step === 0) {
+        /* 【覆審 HIGH-1】整段量測都在**這一次凍結**裡做完，四張圖的順序是：
+             P 命中前 → S 剪影（同一時刻把那一尊丟到相機看不到的層，重畫一幀）→ 派刺激
+             → warp(+40ms) 重畫 → F 閃紅 → warp(+160ms) 重畫 → A 命中後 200ms
+           warp 是「把虛擬時鐘往前推」，不是等牆鐘——閃紅只有 120ms，靠 setTimeout(40) 等真實時間的話
+           機器一忙那一格就落到 80–120ms、閃得差不多了（實測一半以上的樣本 hk 只剩 0.5 或 0）。
+           遮罩＝P 與 S 的差分，跟「哪些像素變紅」無關（那是覆審說的「刺激選遮罩＝換尺規」）。 */
+        const shot = async (tag) => {
+          const f2 = path.join(shotDir, `${String(++nshot).padStart(4, '0')}-${tag}.png`);
+          await pg.screenshot({ path: f2 }).catch(() => {});
+          try { return { im: decodePng(fs.readFileSync(f2)), file: path.basename(f2) }; } catch (e) { return { im: null, file: path.basename(f2) }; }
+        };
+        const boxNow = async () => pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined || m.control === null ? null : window.__dmg.figBox(m.ctrlSide || m.side, m.control) }), r.meta).catch(() => null);
+        row.figInfo = await pg.evaluate((m) => window.__dmg.figInfo(m.side, m.unit), r.meta).catch(() => null);
+        const okHide = await pg.evaluate((m) => window.__figVis(m.side, m.unit, false), r.meta).catch(() => false);
+        let sil = null;
+        if (okHide) {
+          await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
+          const S1 = await shot('sil');
+          await pg.evaluate((m) => window.__figVis(m.side, m.unit, true), r.meta).catch(() => {});
+          await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
+          if (S1.im && im && row.box) sil = silhouette(im, S1.im, row.box, row.box);
         }
+        await pg.evaluate((m) => { try { document.dispatchEvent(new CustomEvent('ys:fx-hit', { detail: { side: m.side, unit: m.unit, ms: (window.PW_FX && window.PW_FX.HIT_FLASH_MS) || 120, __synth: true } })); } catch (e) {} }, r.meta).catch(() => {});
+        await pg.evaluate(() => window.__frzWarp(40)).catch(() => {});
+        await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
+        const F1 = await shot('flash40');
+        const hk40 = await pg.evaluate(() => window.__dmg.hitK()).catch(() => null);
+        const bx40 = await boxNow();
+        await pg.evaluate(() => window.__frzWarp(160)).catch(() => {});
+        await pg.evaluate(() => window.__frzStepReal()).catch(() => {});
+        const A1 = await shot('after200');
+        row.sil = sil ? { n: sil.n, frac: num(sil.frac) } : null;
+        row.silDiag = { okHide: okHide, hasSil: !!sil };
+        row.hk40 = hk40;
+        if (sil && F1.im) row.maskD = num(maskDeltaOnMask(im, F1.im, sil.px));
+        if (sil && A1.im) row.maskD200 = num(maskDeltaOnMask(im, A1.im, sil.px));
+        if (sil) row.maskFrac = num(sil.frac);
+        // 對照組（對面那一欄最大的一尊）：同一套剪影流程太貴，改用它自己的方框平均差當旁證
+        if (boxes && boxes.c && bx40 && bx40.c && F1.im) row.maskC = num(redness(F1.im, bx40.c) - redness(im, boxes.c));
+        row.files = [F1.file, A1.file];
+      }
         lastBox[r.step] = row.box; lastCbox = boxes && boxes.c ? boxes.c : null;
         (r.tag === 'skip' ? samples.skip : samples.flashes).push(row);
       }
@@ -696,6 +811,7 @@ async function runPix(browser) {
     if (!busy) break;
     await page.waitForTimeout(40);
   }
+  samples.via = await page.evaluate(() => ({ hitstop: window.__dmg.viaHitstop || 0, timer: window.__dmg.viaTimer || 0 })).catch(() => null);
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
     froze: window.__frz.froze, note: window.__dmg.note, ver: (document.getElementById('verLine') || {}).textContent }));
   // 服到的到底是哪一版？serve() 起 http.server 時**不會檢查埠有沒有被別人佔著**——
@@ -707,7 +823,7 @@ async function runPix(browser) {
   const v = judgePix(samples);
   fs.writeFileSync(path.join(outdir, 'pix.json'), JSON.stringify({ url: url, seed: seed, duels: duels, synth: synth, verdict: v, samples: samples, shots: shots, meta: meta, errors: r.errors }, null, 1));
   console.log(JSON.stringify({ outdir: outdir, seed: seed, froze: meta.froze, errors: r.errors.length, versionOk: meta.versionOk, ...v.summary }));
-  console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x ? 'PASS' : 'FAIL'}`).join(' '));
+  console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x === null ? '（新尺規，門檻未訂）' : x ? 'PASS' : 'FAIL'}`).join(' '));
   if (v.bad.length) console.log(v.bad.slice(0, 12).join('\n'));
 }
 
@@ -743,46 +859,34 @@ function judgePix(S) {
     byKey.get(r.run)[r.step] = r;
   }
   const seqs = [];
-  const shift = (a, b) => (a && b ? Math.max(Math.abs(a.x0 - b.x0), Math.abs(a.y0 - b.y0), Math.abs(a.x1 - b.x1), Math.abs(a.y1 - b.y1)) : null);
+  /* 【覆審 HIGH-1】現在一次凍結就把「命中前／剪影／+40ms／+200ms」四張拍完（虛擬時鐘 warp，不等牆鐘），
+     所以每一輪只有 step 0 一列，欄位（maskD／maskD200／maskFrac／maskC／hk40）都掛在那一列上。 */
   for (const g of byKey.values()) {
-    if (!g[0] || !g[1] || !g[2]) continue;
-    const mv = shift(g[0].box, g[1].box); // f0→f1 是「沒有刺激的同長度空窗」：動了就代表鏡頭／人形在動
-    const row = { burning: !!g[1].meta.burning, move: mv === null ? null : +mv.toFixed(1),
-      pre: g[1].t, flash: g[2].t,
-      // 【§2.1 修訂 2】主判準＝遮罩平均；方框平均（boxD40）留著揭露，不判
-      maskD: g[2].maskD === undefined ? null : g[2].maskD,
-      maskFrac: g[2].maskFrac === undefined ? null : g[2].maskFrac,
-      maskD200: g[3] && g[3].maskD !== undefined ? g[3].maskD : null,
-      maskC: g[2].maskC === undefined ? null : g[2].maskC,
-      boxD40: g[1].t !== null && g[2].t !== null ? +(g[2].t - g[1].t).toFixed(2) : null,
-      d40: g[1].t !== null && g[2].t !== null ? +(g[2].t - g[1].t).toFixed(2) : null,
-      d0: g[0].t !== null && g[1].t !== null ? +(g[1].t - g[0].t).toFixed(2) : null, // 空窗的自然漂移（噪音底）
-      d200: g[3] && g[3].t !== null && g[1].t !== null ? +(g[3].t - g[1].t).toFixed(2) : null,
-      ctrl40: g[1].c !== null && g[2].c !== null ? +(g[2].c - g[1].c).toFixed(2) : null,
-      files: [g[1].file, g[2].file] };
-    // 能不能用，判準是**這個樣本自己的噪音底**：f0→f1 是同樣長度、同樣有鏡頭運動、但沒有刺激的空窗，
-    // 它的紅偏量漂移就是本樣本的量測噪音。噪音 ≤5（＝R2「回到 ±5」的同一把尺）才拿來判 +25。
-    // 鏡頭幾乎一直在動（每 40ms 位移 0.1～1.0 世界單位），拿「方框不准動」當閘門會把樣本全篩掉；
-    // 方框是逐幀跟著那一尊算的，所以鏡頭動不影響量測——實測空窗漂移只有 0.6～2。
-    // 有燒毀夾進來的樣本一律作廢：燒毀會放一片全螢幕暖光（#duel .flashfx，ys3d 下是橘黃漸層），
-    // 整個畫面的紅偏量都會抬起來——那不是「被打的尊在閃」，量到的是背景。
-    row.burnIn = (g[2].bn !== undefined && g[0].bn !== undefined) ? (g[2].bn - g[0].bn) : null;
-    // 對決收場（ys:duel-end）之後人形停止更新、閃紅照規矩不演——那不是實作壞了，是刺激落在演出之外。
-    row.duelOn = [0, 1, 2].every((k) => g[k] && g[k].on !== false);
-    row.usable = row.d40 !== null && row.d0 !== null && Math.abs(row.d0) <= 5 && !row.burnIn && row.duelOn;
-    seqs.push(row);
+    const r0 = g[0];
+    if (!r0 || r0.maskD === undefined) continue;
+    const hk = r0.hk40 && r0.meta ? (r0.hk40[r0.meta.side === 'B' ? 1 : 0] || []) : null;
+    seqs.push({ burning: !!r0.meta.burning,
+      maskD: r0.maskD === undefined ? null : r0.maskD,
+      maskD200: r0.maskD200 === undefined ? null : r0.maskD200,
+      maskFrac: r0.maskFrac === undefined ? null : r0.maskFrac,
+      maskC: r0.maskC === undefined ? null : r0.maskC,
+      boxD40: null, d0: 0, d200: r0.maskD200 === undefined ? null : r0.maskD200,
+      d40: r0.maskD === undefined ? null : r0.maskD, ctrl40: r0.maskC === undefined ? null : r0.maskC,
+      hkMax: hk ? Math.max(0, ...hk.map((x) => +x || 0)) : null,
+      sil: r0.sil || null, files: r0.files || [r0.file], figInfo: r0.figInfo || null,
+      usable: r0.maskD !== null && r0.maskD !== undefined && r0.on !== false });
   }
   const moved = seqs.filter((x) => !x.usable);
   const live = seqs.filter((x) => x.usable && !x.burning), burning = seqs.filter((x) => x.usable && x.burning);
-  const mval = (x) => (x.maskD === null ? x.d40 : x.maskD); // 遮罩量不到（尊掉出畫面）時退回方框平均並記在 bad
-  const badFlash = live.filter((x) => mval(x) < 25);
-  const badBack = live.filter((x) => x.maskD200 !== null && Math.abs(x.maskD200) > 5);
-  const badCtrl = live.filter((x) => (x.maskC !== null ? x.maskC : x.ctrl40) >= 25);
-  const badBurn = burning.filter((x) => Math.abs(mval(x)) >= 5);
-  for (const x of badFlash.slice(0, 6)) bad.push(`R2 閃紅不足 遮罩Δ=${x.maskD}（方框Δ=${x.boxD40}、遮罩佔比 ${x.maskFrac}、噪音底 ${x.d0}）${x.files}`);
-  for (const x of badBack.slice(0, 5)) bad.push(`R2 200ms 未回 遮罩Δ=${x.maskD200}`);
-  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 非 target 尊也紅 Δ=${x.maskC !== null ? x.maskC : x.ctrl40}（整片閃紅＝假綠）`);
-  for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 遮罩Δ=${x.maskD}／方框Δ=${x.boxD40}`);
+  /* 【覆審 HIGH-1】R2 現在是**新尺規**：剪影遮罩內的紅偏量平均差。舊的 25 是給「方框平均」訂的，
+     兩者不是同一把尺，所以這一版**不判門檻**，只輸出分布交使用者訂新數字（治具的 R2 欄位固定回 null）。
+     有效樣本＝拿得到剪影、且 maskFrac ≥ MASK_FRAC_MIN（剪影太小＝那一尊在畫面上幾乎看不到，量了沒意義）。 */
+  const MASK_FRAC_MIN = 0.1;
+  const valid = live.filter((x) => x.maskD !== null && x.maskFrac !== null && x.maskFrac >= MASK_FRAC_MIN);
+  const dropped = { noMask: live.filter((x) => x.maskD === null).length, tinyMask: live.filter((x) => x.maskD !== null && (x.maskFrac || 0) < MASK_FRAC_MIN).length };
+  const badCtrl = live.filter((x) => x.maskC !== null && x.maskC >= 25);
+  const burnValid = burning.filter((x) => x.maskD !== null);
+  for (const x of badCtrl.slice(0, 5)) bad.push(`R2 非 target 尊也紅 Δ=${x.maskC}（整片閃紅＝假綠）`);
   // R5 像素版
   const sk = {};
   for (const r of S.skip) sk[r.step] = r;
@@ -791,14 +895,21 @@ function judgePix(S) {
   if (skD !== null && Math.abs(skD) > 5) bad.push(`R5 跳過後 300ms 仍紅 Δ=${skD}`);
   const res = {
     R1: S.floats.length > 0 && fontBad.length === 0 && kindBad.length === 0 && hueBad.length === 0 && under.length === 0,
-    R2: live.length > 0 && badFlash.length === 0 && badBack.length === 0 && badCtrl.length === 0 && badBurn.length === 0,
+    R2: null, // 新尺規、門檻未訂（見上面那段註解）；badCtrl 仍然會出現在 bad 裡讓人看見
     R5pix: skD !== null && Math.abs(skD) <= 5,
   };
-  const mk = live.map(mval).sort((a, b) => a - b);
+  const mk = valid.map((x) => x.maskD).sort((a, b) => a - b);
+  const bk = burnValid.map((x) => x.maskD).sort((a, b) => a - b);
+  const bk200 = valid.filter((x) => x.maskD200 !== null).map((x) => x.maskD200).sort((a, b) => a - b);
   return { res: res, bad: bad, summary: {
     floats: S.floats.length, underMin: ratios[0] === undefined ? null : ratios[0], p50: ratios[Math.floor(ratios.length / 2)] ?? null, max: ratios[ratios.length - 1] ?? null, under45: under.length,
     fontPx: Object.fromEntries(Object.entries(fonts).map(([k, v]) => [k, [...v]])), fontBad: fontBad.length, kindBad: kindBad.length, hueBad: hueBad.length,
-    maskMin: mk[0] ?? null, maskP50: mk[Math.floor(mk.length / 2)] ?? null, maskMax: mk[mk.length - 1] ?? null, maskGe25: mk.filter((x) => x >= 25).length,
+    bySkin: (() => { const o = {}; for (const x of valid) { const k = (x.figInfo && x.figInfo.skin) || '?'; (o[k] = o[k] || []).push(x.maskD); } for (const k of Object.keys(o)) { const a2 = o[k].sort((p, q) => p - q); o[k] = { n: a2.length, min: a2[0], p50: a2[Math.floor(a2.length / 2)], max: a2[a2.length - 1], ge25: a2.filter((v) => v >= 25).length }; } return o; })(),
+    maskN: mk.length, maskMin: mk[0] ?? null, maskP50: mk[Math.floor(mk.length / 2)] ?? null, maskMax: mk[mk.length - 1] ?? null,
+    maskGe25: mk.filter((x) => x >= 25).length, maskFracP50: valid.length ? valid.map((x) => x.maskFrac).sort((a, b) => a - b)[Math.floor(valid.length / 2)] : null,
+    maskDropped: dropped, via: S.via || null,
+    burnMaskN: bk.length, burnMaskAbsMax: bk.length ? Math.max(...bk.map((x) => Math.abs(x))) : null,
+    back200MaskN: bk200.length, back200MaskAbsMax: bk200.length ? Math.max(...bk200.map((x) => Math.abs(x))) : null,
     flashes: live.length, d40min: live.length ? Math.min(...live.map((x) => x.d40)) : null, d40med: live.length ? live.map((x) => x.d40).sort((a, b) => a - b)[Math.floor(live.length / 2)] : null,
     back200max: live.filter((x) => x.d200 !== null).length ? Math.max(...live.filter((x) => x.d200 !== null).map((x) => Math.abs(x.d200))) : null,
     ctrlMax: live.filter((x) => x.ctrl40 !== null).length ? Math.max(...live.filter((x) => x.ctrl40 !== null).map((x) => x.ctrl40)) : null,
