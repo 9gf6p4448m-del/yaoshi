@@ -190,8 +190,10 @@ const HARNESS = `(() => {
       const prev = i ? steps[i - 1] : 0, d = steps[i] - prev, k = i; i++;
       const go = () => {
         F.freeze();
+        // hk 要在 onStep 之前讀：onStep 可能是 doSkip()，它會把閃紅清掉，讀在後面永遠是 0
+        const snap = { cam: M.camPos(), hk: M.hitK(), bn: M.burns.length, on: !!M.duelOn, ids: [M.liveUnits('A'), M.liveUnits('B')] };
         if (onStep) { try { onStep(k); } catch (e) {} } // 凍住之後才動作（例如派刺激）：畫面停在動作發生前那一幀
-        M.ready = { tag: tag, meta: meta, step: k, at: steps[k], cam: M.camPos(), hk: M.hitK(), bn: M.burns.length, on: !!M.duelOn, ids: [M.liveUnits('A'), M.liveUnits('B')] };
+        M.ready = Object.assign({ tag: tag, meta: meta, step: k, at: steps[k] }, snap);
       };
       if (d <= 0) go(); else setTimeout(go, d);
     };
@@ -427,7 +429,7 @@ async function runPix(browser) {
   const maxHit = Number(opt.maxhit || 10);
   const PIX_PROBE = `(() => {
     const M = window.__dmg;
-    M.cfg = { synth: ${synth}, maxFloat: ${maxFloat}, maxHit: ${maxHit} };
+    M.cfg = { on: true, synth: ${synth}, maxFloat: ${maxFloat}, maxHit: ${maxHit} };
     M.nFloat = 0; M.nHit = 0;
     // 跳字：冒出來 +150ms（彈完、正在飄）凍住量對比度
     // 跳字冒出來 +150ms（彈完、還沒開始淡）凍住量對比度。忙就再等一拍——
@@ -438,7 +440,7 @@ async function runPix(browser) {
       M.lastFloatT = performance.now();
       let tries = 0;
       const go = () => {
-        if (M.nFloat >= M.cfg.maxFloat) return;
+        if (!M.cfg.on || M.nFloat >= M.cfg.maxFloat) return;
         const el = document.querySelector('.dmgfloat[data-mseq="' + seq + '"]');
         if (!el) return; // 已經飄完了就算了
         if (M.busy) { if (++tries < 8) setTimeout(go, 60); return; }
@@ -477,7 +479,7 @@ async function runPix(browser) {
       return rows;
     };
     M.tryFire = () => {
-      if (M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return;
+      if (!M.cfg.on || M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return;
       if (!M.duelOn || performance.now() - M.duelT < 1600) return;
       if (performance.now() - M.lastFloatT < 700) return; // 剛冒出跳字：讓 R1 的取樣先做完
       const ov = document.getElementById('duel');
@@ -500,7 +502,7 @@ async function runPix(browser) {
     // 燒毀中的尊不得閃紅：燒到一半對同一尊派一顆 hit（真實路徑上的守衛探針）
     document.addEventListener('ys:fx-burn', (e) => {
       const d = e.detail || {};
-      if (!M.cfg.synth || (M.done.burnProbe || 0) >= 4) return;
+      if (!M.cfg.on || !M.cfg.synth || (M.done.burnProbe || 0) >= 4) return;
       setTimeout(() => {
         if (M.busy) return;
         const us = M.liveUnits(d.side);
@@ -510,11 +512,11 @@ async function runPix(browser) {
     });
     // 量表紅殘影的凍幀（R7 用）：燒毀之後 90ms 凍住，殘影一定還在（GAUGE_GHOST_MS 300）
     document.addEventListener('ys:fx-burn', () => {
-      if ((M.done.ghostShot || 0) >= 2) return;
+      if (!M.cfg.on || (M.done.ghostShot || 0) >= 2) return;
       // 忙就再等一拍（跳字的凍幀幾乎一直在排隊）；殘影有 GAUGE_GHOST_MS(300)＋收起來那 60ms 可以等
       let tries = 0;
       const go = () => {
-        if ((M.done.ghostShot || 0) >= 2) return;
+        if (!M.cfg.on || (M.done.ghostShot || 0) >= 2) return;
         if (M.busy) { if (++tries < 6) setTimeout(go, 60); return; }
         if (!document.querySelector('.pwgauge b.ghost')) { if (++tries < 6) setTimeout(go, 60); return; }
         M.done.ghostShot = (M.done.ghostShot || 0) + 1;
@@ -525,11 +527,12 @@ async function runPix(browser) {
     // R5：派一顆 hit → +40ms 按跳過 → +300ms 量
     window.__dmgSkipPix = () => {
       const side = 'A', rows = M.pickTarget(side); // 已燒掉的尊不能當目標（它照規矩本來就不閃）
-      if (M.busy || !rows.length || !M.duelOn) return false;
+      if (!M.cfg.on || M.busy || !rows.length || !M.duelOn) return false;
       const unit = rows[0].u;
       return M.run('skip', { side: side, unit: unit }, [0, 40, 340], (k) => {
         if (k === 0) { try { document.dispatchEvent(new CustomEvent('ys:fx-hit', { detail: { side: side, unit: unit, ms: 120, __synth: true } })); } catch (e) {} }
-        if (k === 1) { try { window.doSkip(); } catch (e) {} } // 正在閃的時候按跳過
+        // 跳過鍵由 Node 端在「截完 +40ms 那一格之後」才按：onStep 是在凍結當下跑的，
+        // 在這裡按會先把閃紅清掉、那一格就拍不到「正在閃」了
       });
     };
   })();`;
@@ -577,6 +580,8 @@ async function runPix(browser) {
         (r.tag === 'skip' ? samples.skip : samples.flashes).push(row);
       }
       shots.push({ file: path.basename(file), tag: r.tag, step: r.step, at: r.at, meta: r.meta });
+      // R5：+40ms 那一格（正在閃）拍完了才按跳過，下一格量的才是「跳過之後」
+      if (r.tag === 'skip' && r.step === 1) await pg.evaluate(() => { try { window.doSkip(); } catch (e) {} }).catch(() => {});
       await pg.evaluate(() => window.__frzGo()).catch(() => {});
     }
   };
@@ -586,7 +591,7 @@ async function runPix(browser) {
   const r = await drive(page, url, { duels: duels, timeoutMs: 2400000, onDuel: async (pg, n) => {
     const t0 = Date.now();
     // 進場先把取樣打開（上一場退出時關掉了，見迴圈後）
-    await pg.evaluate((c) => { window.__dmg.cfg.maxFloat = c.f; window.__dmg.cfg.maxHit = c.h; }, { f: maxFloat, h: maxHit }).catch(() => {});
+    await pg.evaluate((c) => { window.__dmg.cfg.on = true; window.__dmg.cfg.maxFloat = c.f; window.__dmg.cfg.maxHit = c.h; }, { f: maxFloat, h: maxHit }).catch(() => {});
     // 上限放到 150s：每一格凍幀在牆鐘上要 300–500ms（截圖＋兩次 evaluate），一場對決常常有上百格。
     // **退出前一定要把畫面放行**（見迴圈後那一行）：這個迴圈是唯一會呼叫 __frzGo() 的地方，
     // 帶著凍結退出＝整個頁面從此停住，後面一場對決都跑不出來（踩過：10 場只跑到 1 場）。
@@ -603,7 +608,7 @@ async function runPix(browser) {
     }
     // 退出這一場的抽取迴圈之前：先把取樣關掉（不然下一次凍結沒人來截圖，畫面會永遠停住——
     // 這個迴圈是唯一會呼叫 __frzGo() 的地方），把還沒走完的序列抽乾，最後無條件放行。
-    await pg.evaluate(() => { window.__dmg.cfg.maxFloat = 0; window.__dmg.cfg.maxHit = 0; }).catch(() => {});
+    await pg.evaluate(() => { window.__dmg.cfg.on = false; }).catch(() => {}); // 總開關：任何一種凍幀都不再自己啟動
     for (let i = 0; i < 12; i++) {
       await pump(pg);
       const busy = await pg.evaluate(() => window.__dmg.busy).catch(() => false);
