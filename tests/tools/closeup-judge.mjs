@@ -184,8 +184,10 @@ if (off && base) {
 // ── P3 退暗 ───────────────────────────────────────────────────────────────
 {
   const bad = [], stat = { dimmed: [], kept: [], restored: [], burning: [] };
+  let stale = 0;
   for (const { f, d } of ons) {
     const EV = d.cu.ev;
+    const frames = d.cu.frames || [];
     const foci = d.cu.focus.filter((x) => x.kind !== 'base');
     for (let i = 0; i < foci.length; i++) {
       const fo = foci[i];
@@ -194,6 +196,12 @@ if (off && base) {
       const endEv = (d.cu.ev || []).find((e) => (e.n === 'ys:fx-focus-end' || e.n === 'ys:fx-trait-cancel') && e.t > fo.t);
       const nextT = Math.min(foci[i + 1] ? foci[i + 1].t : Infinity, endEv ? endEv.t : Infinity);
       for (const s of fo.samples) {
+        // 抽樣新鮮度（第二輪覆審後補）：退暗是**每幀**寫上去的，卡幀時讀到的是好幾十毫秒前那一幀的值。
+        // 實測 seed=1 duel6 有一次 229ms 的頓幀，dt=260 的抽樣落後最後一幀 209ms、讀到的是 focus+51ms
+        // 的中途值 0.52（＝包絡 k≈0.74），那不是「沒退暗」是「量到舊的一幀」。落後 >60ms 的抽樣不判。
+        const lastFrame = frames.filter((x) => x.t <= s.t).pop();
+        const lagMs = lastFrame ? s.t - lastFrame.t : Infinity;
+        if (lagMs > 60) { stale++; continue; }
         const burning = (side, unit) => EV.some((e) => e.n === 'ys:fx-burn' && e.side === side && e.unit === unit && s.t >= e.t - 20 && s.t <= e.t + PW.BURN_MS + 260);
         const after = s.dt > fo.ms; // 回全景之後的那一筆
         if (s.t >= nextT) continue; // 這一筆抽樣時下一次 focus 已經開始了，要判也是判那一次的名單
@@ -259,7 +267,7 @@ if (off && base) {
     }
   }
 
-  out.P3 = { cancelSamples: cN, cancelDeeper: cDeeper, cancelBack: cBack + '/' + cBackN, cancelBad: cbad.slice(0, 8),
+  out.P3 = { staleSkipped: stale, cancelSamples: cN, cancelDeeper: cDeeper, cancelBack: cBack + '/' + cBackN, cancelBad: cbad.slice(0, 8),
     dimmed: stat.dimmed.length, dimMax: stat.dimmed.length ? Math.max(...stat.dimmed.map((r) => r.op)) : null,
     kept: stat.kept.length, keptMin: stat.kept.length ? Math.min(...stat.kept.map((r) => r.op)) : null,
     restored: stat.restored.length, burning: stat.burning.length, burnRise,
@@ -280,7 +288,11 @@ if (off && base) {
     for (const r of d.cu.dmg) {
       n++;
       maxLive = Math.max(maxLive, r.live);
-      if (r.gone) goneOk++; else bad.push({ f, why: 'not-removed', t: r.t, text: r.text });
+      // 移除：以 MutationObserver 量到的那一次移除為準（DMG_MS+100 內），沒量到才退回旗標
+      const removedIn = r.removedAt != null ? r.removedAt - r.t : null;
+      const removedOk = (removedIn !== null && removedIn <= PW.DMG_MS + 100) || r.gone === true;
+      if (removedOk) goneOk++; else bad.push({ f, why: 'not-removed', t: r.t, text: r.text, removedIn });
+      if (removedIn !== null) out.P4.removeMs = Math.max(out.P4.removeMs || 0, +removedIn.toFixed(0));
       // 位置：3D 尊在場時量「跳字中心到那一尊畫面方框的距離」（在方框內＝0），
       // 方框是治具自己從世界包圍盒＋canvas rect 算的，跟 pwScreenOf 不同路（審查 MEDIUM-1）。
       if (r.mode === 'fig' && r.box) {
@@ -291,10 +303,12 @@ if (off && base) {
         if (dist <= 80) posOk++; else bad.push({ f, why: 'pos-box', dist: +dist.toFixed(1), text: r.text, box: r.box, cx: r.cx, cy: r.cy });
         // 旁證（與投影算式無關）：跳字底下要嘛是 3D 舞台的 canvas，要嘛是**目標那一側**的欄位容器。
         // #duel 是整片覆蓋層、#dL/#dR 是左右兩欄的透明容器，所以「落在對面那一欄」才是真的擺錯邊。
-        const wantCol = r.side === 'B' ? 'DIV#dR' : 'DIV#dL';
-        const okUnder = !r.under || /^CANVAS/.test(r.under) || r.under === 'DIV#duel' || r.under === wantCol
-          || r.under === 'DIV#duelArena' || r.under === 'DIV#dmgLayer';
-        if (!okUnder) bad.push({ f, why: 'under', under: r.under, want: wantCol, side: r.side, text: r.text });
+        // 用「祖先鏈上的欄位容器」判：#dL/#dR 裡面那幾層 div 沒有 id（fdir／fav／fnm／pwbody），
+        // 只看 tagName+id 會變成 'DIV' 而誤紅（第二輪覆審）。
+        const wantCol = r.side === 'B' ? 'dR' : 'dL';
+        const okUnder = r.underCol === undefined ? (!r.under || /^CANVAS/.test(r.under))
+          : (r.underCol === null || r.underCol === 'duel' || r.underCol === wantCol || /^CANVAS/.test(r.under || ''));
+        if (!okUnder) bad.push({ f, why: 'under', under: r.under, col: r.underCol, want: wantCol, side: r.side, text: r.text });
       } else if (r.mode === 'badge' && r.badge) {
         posN++;
         const dist = Math.hypot(r.cx - r.badge.x, r.cy - r.badge.y);

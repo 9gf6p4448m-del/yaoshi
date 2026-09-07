@@ -10,6 +10,9 @@
 //   U1 進→停→回：單調（下降段不回頭、上升段不再下探）、最低點 ≤ FOCUS_DIST+0.15、ms 之後回 4.2±0.05
 //   U2 ys:fx-focus-end（招式提前收）：發出後 220ms＋2 幀內回到 4.2±0.05
 //   U3 ys:fx-trait-cancel（跳過）：同 U2
+//   U4 近景滿幅時來一記最重的 punch（power=2，bolt 那一類真的到得了：fxPower(amount×2)×PW_KIND.bolt.p 1.5 → 夾在 2）：
+//      dist 應該落在 FOCUS.dist 2.6 − PUNCH.dist 0.6×2 ＝ **1.4**。量到的最低值若被夾在別的數字上，
+//      就是 update() 那個下限訂錯了（審查 L-2 覆審：1.6 會把合法的 0.2 夾掉）。
 // 用法：node tests/tools/closeup-cam-unit.mjs <out.json> [--port=8975] [--dir=<camera-director.js 路徑>]
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -70,6 +73,12 @@ window.__cu2 = (async () => {
   step(18);
   fire('ys:fx-trait-cancel', {});
   step(20);
+  mark('u4');
+  // U4：先讓切鏡推到滿幅（160ms 進場＋餘裕），再派一記 power=2 的 punch，量最低點
+  fire('ys:fx-focus', { kind: 'hit', side: 'A', actor: 0, foeSide: 'B', target: 0, ms: 900 });
+  step(20);
+  fire('ys:fx-punch', { power: 2 });
+  step(30);
   mark('end');
   return { rec, runs };
 })();
@@ -109,7 +118,8 @@ try {
     return rev; };
   const U1 = seg(runs.u1, runs.u2);
   const U2 = seg(runs.u2, runs.u3);
-  const U3 = seg(runs.u3, runs.end);
+  const U3 = seg(runs.u3, runs.u4);
+  const U4 = seg(runs.u4, runs.end);
   const res = {
     U1: { frames: U1.length, min: +Math.min(...U1.map((s) => s.l)).toFixed(4), rev: mono(U1, 1e-6),
       backAt: +U1[U1.length - 1].l.toFixed(4),
@@ -119,11 +129,18 @@ try {
       backAfterEnd: +Math.abs(U2[U2.length - 1].l - DUEL).toFixed(4) },
     U3: { frames: U3.length, min: +Math.min(...U3.map((s) => s.l)).toFixed(4), rev: mono(U3, 1e-6),
       backAfterCancel: +Math.abs(U3[U3.length - 1].l - DUEL).toFixed(4) },
+    // 合法最低＝FOCUS.dist − PUNCH.dist×power(≤2) ＝ 2.6 − 1.2 ＝ 1.4（下限 FOCUS_FLOOR 就該訂在這）。
+    // 但 60fps 取樣拍不到 pk=2 那一瞬：第一幀 punchU 已經走了 1/60s → pk=1.771 → dist=2.6−1.063=1.537；
+    // 再加 punch 的橫向微震（PUNCH.shake），|camera.position| 約 1.614。
+    // 所以帶寬 1.55–1.65 ＝「沒有被夾」：舊的 1.6 下限會把同一幀夾成 1.677（實測，差 0.063）。
+    U4: { frames: U4.length, min: +Math.min(...U4.map((s) => s.l)).toFixed(4),
+      wantUnclamped: 1.614, clampedWouldBe: 1.677, band: [1.55, 1.65] },
     errors: errs,
   };
   res.PASS = res.U1.min <= FOCUS + 0.15 && res.U1.rev === 0 && res.U1.back870 <= 0.05
     && res.U2.rev === 0 && res.U2.backAfterEnd <= 0.05
-    && res.U3.rev === 0 && res.U3.backAfterCancel <= 0.05 && errs.length === 0;
+    && res.U3.rev === 0 && res.U3.backAfterCancel <= 0.05
+    && res.U4.min <= res.U4.band[1] && res.U4.min >= res.U4.band[0] && errs.length === 0;
   fs.writeFileSync(out, JSON.stringify({ res, rec }, null, 1));
   console.log(JSON.stringify(res, null, 1));
   if (!res.PASS) process.exitCode = 1;

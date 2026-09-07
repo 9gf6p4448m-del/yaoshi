@@ -94,8 +94,11 @@ const CLEAR_MS_MAX = 700;
 //     與 trait-fx.js:339（招式積木自己叫），燒毀都不經過它們 → 這裡自己觸發不會變雙重 punch。
 const BURN_PUNCH_POWER = 1.5;
 
-// 近景進行中的相機距離下限（v0.45 二版）：見 update() 裡 floor 的註解。
-const FOCUS_FLOOR = 1.6;
+// 近景進行中的相機距離下限（v0.45 三版，二版訂 1.6 是算錯的）：
+// 合法最低＝FOCUS.dist 2.6 − PUNCH.dist 0.6 × 力道上限 2 ＝ **1.4**，而 power=2 是真的到得了的值
+// （bolt：PW_KIND.bolt.p 1.5 × fxPower ≤1.6 ＝ 2.4，onPunch 夾成 2）。訂 1.6 會把最重那一擊的
+// 最後 0.2 個世界單位默默削掉——保險絲不該擋住合法的演出。
+const FOCUS_FLOOR = 1.4;
 
 // (d) 近景切鏡（v0.45 批 1 原型，規格 docs/proposals/2026-09-07-duel-closeup.md §二.1）：
 //     ys:fx-focus 進來時把鏡頭推近到出手者與目標身上，ms 之後回全景。
@@ -465,9 +468,10 @@ export function createCameraDirector(camera, lanterns) {
       const lookY = curLookY;
       // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
       const pk = punchAmp * (1 - easeOutCubic(punchU));
-      // 下限（v0.45 二版，審查 L-2）：0.6 是「任何機位都不准穿過桌心」的老保險絲；近景本身就只推到 2.6，
-      // 再疊 punch（最多 1.2）也才 1.4，撞到 0.6 只可能是別的地方算爛了。改成 focus 進行中至少留 FOCUS_FLOOR，
-      // 相機不會鑽進人形裡（人形高約 1.5 世界單位），也讓「夾到了」這件事一眼看得出是異常。
+      // 下限（v0.45 三版，審查 L-2 第二輪）：0.6 是「任何機位都不准穿過桌心」的老保險絲。
+      // 近景推到 2.6，最重的一記 punch 減 PUNCH.dist 0.6×2 ＝ 1.2，所以合法最低是 2.6−1.2＝1.4；
+      // FOCUS_FLOOR 就訂在那裡——夾得到的只剩「算爛了」的情形，正常演出一次都不該碰到它
+      // （二版訂 1.6 是把 1.4~1.6 這段合法區間夾掉了，覆審實測差 0.063–0.28）。
       const floor = focusK > 0 ? FOCUS_FLOOR : 0.6;
       const dist = Math.max(floor, fDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;

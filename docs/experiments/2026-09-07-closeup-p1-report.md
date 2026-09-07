@@ -1,7 +1,8 @@
 # 對決「近景切鏡」卷 批 1 原型——實作報告（2026-09-07，v0.45）
 
 > **二版（冷讀對抗審查修補）**：§5 是逐條三態與證據；§1 的 P0–P7 數字已用二版程式重跑並就地更新，
-> §2 的連拍與 contact sheet 也重拍過。一版的原始判讀留在 git 歷史（commit `affdb69`）。
+> §2 的連拍與 contact sheet 也重拍過。
+> **三版（第二輪覆審修補）**：§6。一版／二版的原始判讀留在 git 歷史（`affdb69`／`b065d4e`）。
 
 規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二　驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9，**未動一個字**）
 基準＝`4051dd1`（v0.43.3；本卷起點 `c5128fb` 只多兩份文件，`index.html` 與 `4051dd1` 相同）
@@ -145,10 +146,10 @@ $ git diff --stat 4051dd1
 
 | # | 項目 | 三態 | 證據 |
 |---|---|---|---|
-| HIGH-1 | 人形端 `endFocusEv`／`focusEnvelope` 少了 `focusFall` | **真的修好** | 先建訊號再修：`closeup-drive` 在 `ys:fx-trait-cancel` 當下與 +80/+160/+300ms 取逐尊材質 opacity，`closeup-judge` P3 加「300ms 內回原值＋期間不得更暗」。**修復前**（`--cancel` 探針）B0／B1 在 dt 0/80/160 全是 0.36、dt300 只回到 **0.80** → P3=FAIL（`cancel-not-restored` 0/2）；**修復後** 0.36 → 0.48 → 0.96 → **1.00**，P3=PASS（back 4/4、deeper 0）。另在決定性治具上以「拿掉 focusFall 的壞版本」複驗：`backAfterEnd/backAfterCancel = 0.0611 > 0.05` 變紅，修好的版本 = 0 |
+| HIGH-1 | 人形端 `endFocusEv`／`focusEnvelope` 少了 `focusFall` | **真的修好** | 先建訊號再修：`closeup-drive` 在 `ys:fx-trait-cancel` 當下與 +80/+160/+300ms 取逐尊材質 opacity，`closeup-judge` P3 加「300ms 內回原值＋期間不得更暗」。**修復前**（`--cancel` 探針）B0／B1 在 dt 0/80/160 全是 0.36、dt300 只回到 **0.80** → P3=FAIL（`cancel-not-restored` 0/2）；**修復後** 0.36 → 0.48 → 0.96 → **1.00**，P3=PASS（back 4/4、deeper 0）。**突變驗紅打在正確的落點上**：HIGH-1 的落點是 `js/duel-figures.js`，紅燈就是上面那組 `closeup-drive --cancel` 的實測（MUTANT＝修好前的 duel-figures：dt300 **0.80**；修好後 **1.00**）。（`closeup-cam-unit.mjs` 打的是 `camera-director.js`，它在 `affdb69` 就有 `focusFall`，**不能拿來當 HIGH-1 的紅燈**——二版報告曾誤引，三版更正） |
 | MEDIUM-1 | P4 位置量法循環論證（治具重抄 `pwScreenOf`） | **真的修好** | 改量「跳字中心 → 那一尊的畫面方框」：方框由**世界包圍盒八角投影＋canvas `getBoundingClientRect`**算（與被測邏輯的局部座標／0.9×scale／innerWidth 不同路），另加 `elementFromPoint` 旁證「跳字落在目標那一側的欄位或舞台」。「每筆演出交鋒＝一個跳字」由只印改成硬斷言：**54 = 54**。量不到方框的記 `unmeasured` 不當通過（本輪 0 筆）。實測 54/54 在門檻內、`under` 0 違規 |
 | MEDIUM-2 | P2 單調子句零鑑別力（hit 類 3/6 次 quiet=0） | **真的修好（改走替代路徑，原提議法被自檢否掉）** | ① 靜幀版加前提 `quiet≥8`，不足標 `null`：本輪 **16/16** 可判且全過（全是 burn 類），hit 類只有 1 次可判 ② 提議的「扣掉 punch 解析包絡」照做並附自檢——**非 focus 期間扣完應回 4.2，實測殘差 p50 0.054／p95 1.00**，重建不可信（renderer 夾 dt＋hitstop 歸零，導演內部時鐘與牆鐘對不起來），依 `02 §6.1` 第 4 條**只揭露不判** ③ hit 類的曲線形狀改由新治具 `closeup-cam-unit.mjs`（同一支 director、固定 dt、虛擬時鐘、只派 focus 不派 punch）驗：U1 最低 2.600、反轉 0、870ms 回 4.2 誤差 0；U2（focus-end）／U3（cancel）回位誤差 0。該治具對「拿掉 focusFall」的壞版本會紅（見 HIGH-1） |
-| MEDIUM-3 | 招式被退暗蓋掉（focus 窗內接 trait） | **真的修好** | 招式那一筆先派**新事件** `ys:fx-focus-end`（`index.html:4709`），`camera-director`／`duel-figures` 各自提前收（220ms 回位段）。不用 `ys:fx-trait-cancel` 是因為它還會清 orbit／lean、中斷 trait-fx 編舞。證據：決定性治具 U2 = focus-end 後回 4.2 誤差 0；真實路徑上招式接手後的抽樣量到 op 0.94（正在回原值）。關掉近景時一個事件都不派 → P0 仍逐欄相同 |
+| MEDIUM-3 | 招式被退暗蓋掉（focus 窗內接 trait） | **真的修好** | 招式那一筆先派**新事件** `ys:fx-focus-end`（`index.html:4709`），`camera-director`／`duel-figures` 各自提前收（220ms 回位段）。不用 `ys:fx-trait-cancel` 是因為它還會清 orbit／lean、中斷 trait-fx 編舞。證據：決定性治具 U2＝focus-end 後回 4.2 誤差 0；真實路徑上 focus-end 之後 62ms 起的逐尊序列 **0.36 → 0.42 → 1.0**（正在回亮）。關掉近景時一個事件都不派 → P0 仍逐欄相同。**要揭露**：P3 的 `cancelDeeper`（中斷後不得更暗）對 HIGH-1 這個 bug **零鑑別力**——那次中斷發生在 `focusK` 已滿幅時，壞版本也不可能更暗；真正抓到它的是「300ms 內回原值」，而防線目前只靠 `--cancel` 探針的**單一時間點、單一場對決**（三版量到 1 次中斷、2 尊）。要更厚得多打幾個中斷時間點（批 2） |
 | MEDIUM-4 | `pwActorCard` 直接 `FAC[fac].n[0]` 會炸 | **真的修好（防禦性，沒有能重現的種子）** | 改 `const fm=FAC[fac]; fm?fm.n[0]:"肉"`，`fac-${fac}` class 也只在 `fm` 存在時加。要踩到得同時「有法寶名、fac 卻查不到」（`pwEvFac` 會回 `"lantern"`），六個種子沒撞到，所以**沒有修復前的紅燈**，只有程式碼與 P7 全程 0 error |
 | 傳說出手卡（3/3 錯名） | `ab`／`m` 反查撞名 | **真的修好** | 名字改由資料帶：`pwArmyView` 依 bag 順序對位取 `x.n`（並核 `ab` 相符才採用）掛在單位上，`pwItemOf` 直接讀，反查表 `AB_ITEM` 刪除。實測（`.claude/tmp/namecheck.mjs`）：只有殘日→「殘日」；射日神弓＋殘日→「射日神弓」「殘日」；詛咒品夾在中間仍正確；空袋兜底隊→空字串 |
 | L-1 | focus 記錄改吃 `?fxcount=1` | **真的修好** | 新增 `FX_COUNT_ON`（與 `window.__ysFxCount` 同一支旗標），`PW_FOCUS_LOG`／`PW_BEAT_LOG` 只在它為真時建 |
@@ -182,3 +183,26 @@ $ git diff --stat 4051dd1
   `closeup-judge.mjs`（P3 中斷子句與歸屬、P4 硬斷言、P2 分母與重建自檢、併入決定性治具）、
   `closeup-cam-unit.mjs`（**新**）、`closeup-shots.mjs`／`closeup-sheet.py`（直式標註）
 - `docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md` §2.1 修訂紀錄（P8 直式，使用者裁甲）
+
+---
+
+## 6. 三版：第二輪覆審的處置（2026-09-07）
+
+| # | 項目 | 三態 | 紅→綠證據 |
+|---|---|---|---|
+| 1 | P4 `under` 旁證誤紅 | **真的修好** | 根因：治具只記 `tagName+#id`，`.fighter` 裡的 `fdir/fav/fnm/pwbody` 都是沒有 id 的 div → 記成 `"DIV"`、白名單一律不 match。**紅**：seed=5 `--duels=10` → `P4=FAIL`（`under:"DIV" want:"DIV#dR"`）。**修**：治具改記 `el.closest('#dL,#dR')` 的 id，judge 白名單改判「祖先鏈含目標欄／`#duel`／canvas」。**綠**：seeds 1/3/5 各 10 場、115 筆 → `P4=PASS`（`under` 0 違規） |
+| 1b | 跳字「沒移除」誤紅（同一輪抓到的第二個治具缺陷） | **真的修好** | 根因：跳字 DOM 是**重用池**，同一個節點被下一筆再用，`document.contains(node)` 在檢查點又是 true。**紅**：seed=5 那一輪 2 筆 `not-removed`（−4、−4）。**修**：每次冒出來蓋流水號 `probeSeq`，並用 MutationObserver 的 `removedNodes` 記真正的移除時刻。**綠**：115/115 全部移除，最慢 **674ms**（門檻 `DMG_MS+100 = 700ms`） |
+| 1c | 退暗抽樣讀到舊幀（新發現） | **真的修好** | 根因：退暗是每幀寫的，卡幀時抽樣讀到的是幾十毫秒前那一幀。**紅**：seed=1 duel6 一次 **229ms 頓幀**，`dt=260` 抽樣落後最後一幀 **209ms**，讀到 focus+51ms 的中途值 **0.52**（＝包絡 k≈0.74），10 筆 `dim>0.40`。**修**：judge 對「落後最後一幀 >60ms」的抽樣不判並計數。**綠**：同一批資料重判 → 配角 695 筆最大 **0.36**、`staleSkipped=5`、`bad 0` |
+| 2 | `FOCUS_FLOOR` 1.6 算錯 | **真的修好** | 合法最低＝`FOCUS.dist 2.6 − PUNCH.dist 0.6 × 上限 2 = 1.4`（bolt 到得了：`1.5 × fxPower ≤1.6 = 2.4 → 夾成 2`）。治具加 U4（切鏡滿幅後派 `power=2` punch）。**紅**（floor 1.6）：`min |position| = 1.6766`。**綠**（floor 1.4）：**1.6139**，與解析值一致（60fps 第一幀 pk=1.771 → dist 1.537，微震 +0.077），差 **0.063** 就是被夾掉的量。註解算術一併改正 |
+| 3 | 報告 §5 的證據歸屬 | **真的修好** | HIGH-1 欄改引 `closeup-drive --cancel` 對 duel-figures MUTANT 的 0.80 紅／1.00 綠，並註明決定性治具打的是 camera-director、不能當 HIGH-1 的紅燈；M-3 欄改成覆審量到的序列 0.36 → 0.42 → 1.0，並揭露 `cancelDeeper` 的零鑑別力與防線厚度 |
+| 4 | P2「focus 與 ORBIT 疊加」子句 | **已揭露，不改門檻** | 凍結檔 P2 的「什麼實作會讓它紅：focus 與 ORBIT 疊加造成 dist 抖動」在現行架構下**恆真**：ORBIT 只加 yaw，而 `|camera.position|` 與 yaw 無關（`position=(sin·h, sin(tilt)·d, cos·h)`，平方和＝d²），那一條在任何實作下都不會紅——**這是凍結檔原有的零鑑別力子句，不是二版造成的**；決定性治具的 U1 同樣對 ORBIT 零鑑別力。門檻一字未動，只在此揭露 |
+| 5 | P4 量法改「距方框 ≤80px」 | **已寫進凍結檔 §2.1 修訂 2** | 使用者裁定「都照建議」同意（主對話轉述）。改前／改後：22 筆中 1 筆距框心 107.5px（舊法紅）但距框 0px；三版 115/115 綠 |
+| 6 | P3 判定窗併入截斷 | **已寫進凍結檔 §2.1 修訂 3** | 同上。改前／改後：39 筆丟 4 筆，其中 1 筆 `dt260 op=[0.62, 0.36]` 在舊窗下會紅；新窗下配角 695 筆最大 0.36、bad 0 |
+
+### 三版重跑（seeds 1/3/5 各 `--duels=10`，共 26 場對決）
+
+- `P1 ✅` 26 場、hit-focus 17 場、burn-focus 24 場、每拍 ≤2、規則逐筆相同
+- `P2 ✅` deepOk 全過、`monoQuiet` 全過、決定性治具 U1–U4 全過
+- `P3 ✅` 配角 695 筆 ≤0.36、主角 66 筆 ≥1.00、回全景 127 筆回原值、burnRise 0、中斷 back 2/2、stale 5 筆不判
+- `P4 ✅` 115 = 115、同時最多 5、移除 115/115（最慢 674ms）、位置 115/115、`under` 0 違規
+- `P5 ✅`　`P7 ✅`（0 error）

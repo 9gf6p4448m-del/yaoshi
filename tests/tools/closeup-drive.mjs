@@ -120,6 +120,8 @@ const REC = `(() => {
       return { x0: x0, y0: y0, x1: x1, y1: y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
     } catch (e) { return null; }
   };
+  let dmgSeq = 0;
+  const dmgLive = new Map(); // 節點 → 這一次冒出來的紀錄（重用池會讓同一個節點出現多次）
   const badge = (side) => { const n = document.getElementById('pwn-' + side); if (!n) return null;
     const r = n.getBoundingClientRect(); return r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null; };
   const domSnap = (tag) => {
@@ -175,6 +177,11 @@ const REC = `(() => {
     const ov = document.getElementById('duel');
     if (ov) new MutationObserver((recs) => {
       for (const r of recs) {
+        for (const nd of r.removedNodes) {
+          if (!nd.classList || !nd.classList.contains('dmgfloat')) continue;
+          const rec = dmgLive.get(nd);
+          if (rec && nd.dataset && nd.dataset.probeSeq === rec.seq) { rec.removedAt = now(); dmgLive.delete(nd); }
+        }
         for (const nd of r.addedNodes) {
           if (!nd.classList || !nd.classList.contains('dmgfloat')) continue;
           const rc = nd.getBoundingClientRect();
@@ -183,16 +190,29 @@ const REC = `(() => {
           const cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
           // 跳字底下是不是 3D 舞台（不是壓在別的 DOM 上）：elementFromPoint 會回跳字自己，
           // 先把它藏一幀再問。與投影算式完全無關的一條旁證。
-          let under = null;
+          // 記的是「祖先鏈上的欄位容器」而不是 tagName＋id：.fighter 裡的 fdir／fav／fnm／pwbody
+          // 都是沒有 id 的 div，只記 tagName 會變成 'DIV'、白名單一律不match（第二輪覆審實測誤紅）。
+          let under = null, underCol = null;
           try { const vis = nd.style.visibility; nd.style.visibility = 'hidden';
             const el = document.elementFromPoint(Math.round(cx), Math.round(cy));
-            under = el ? (el.tagName + (el.id ? '#' + el.id : '')) : null; nd.style.visibility = vis; } catch (err) {}
+            under = el ? (el.tagName + (el.id ? '#' + el.id : '')) : null;
+            const col = el && el.closest ? el.closest('#dL,#dR') : null;
+            underCol = col ? col.id : (el && el.closest && el.closest('#duel') ? 'duel' : null);
+            nd.style.visibility = vis; } catch (err) {}
+          // 跳字 DOM 是重用池：同一個節點會被下一筆跳字再拿去用，所以「移除了沒有」不能只看
+          // document.contains(node)——那會把「已移除又被回收上場」誤判成沒移除（第二輪覆審實測 2 筆）。
+          // 每次冒出來蓋一個流水號，移除時只認號碼相同的那一次。
+          const seq = String(++dmgSeq);
+          nd.dataset.probeSeq = seq;
           const rec = { t: now(), duel: duelN, text: nd.textContent, cls: nd.className, mode: nd.dataset.mode,
             side: side, unit: unit, cx: cx, cy: cy, w: rc.width, h: rc.height,
-            box: box, badge: bd, under: under, live: document.querySelectorAll('.dmgfloat').length, gone: null };
+            box: box, badge: bd, under: under, underCol: underCol, seq: seq,
+            live: document.querySelectorAll('.dmgfloat').length, removedAt: null, gone: null };
           C.dmg.push(rec);
+          dmgLive.set(nd, rec);
           const ms = (P().DMG_MS || 600) + 100;
-          setTimeout(() => { rec.gone = !document.body.contains(nd); rec.liveAfter = document.querySelectorAll('.dmgfloat').length; }, ms);
+          setTimeout(() => { rec.gone = !document.body.contains(nd) || nd.dataset.probeSeq !== seq;
+            rec.liveAfter = document.querySelectorAll('.dmgfloat').length; }, ms);
         }
       }
     }).observe(ov, { childList: true, subtree: true });
