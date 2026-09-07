@@ -235,6 +235,28 @@ test('收驚婆：ai 與 life0d 與基準相同（B2 不得動）',()=>{
   eq(R.life0d,-6,'收驚婆 life0d');
 });
 
+/* ===================== 覆審 M6：免疫者的隻數牌不得再印「詛咒纏身」 ===================== */
+/* pwMod 已經不扣閭山的 m-=sd.curses，但 UI 的 pwCompText 還照印「詛咒纏身 N」，會讓玩家
+   以為自己正在被扣。純顯示層，不進結算。
+   ★鑑別力的誠實話（02 §6.1 第 1 條）★：`pwCompText` 是本次覆審才加進 window.__yaoshi 的出口，
+   所以這兩案對 b38980a 是**出口缺失紅**、不是行為斷言紅——舊版沒有任何可觀察的路徑能問到這串字。
+   本檔其餘 22 案都是行為斷言紅。下面第二案（沒有免疫的角色仍要印「詛咒纏身」）是守衛：
+   它擋掉「乾脆把這段字整個拆掉」這種假修法。 */
+test('閭山法師：袋中帶詛咒品時，隻數牌印「詛咒已淨化」而不是「詛咒纏身」',()=>{
+  const bag=bagOfFac(G.BEAT_FAC[0],2).concat(cursesN(2));
+  const v=G.pwArmyView(player(0,'lvshan',bag));
+  ok(v.curses===2,`治具前提：袋中應有 2 件詛咒品，實際 ${v.curses}`);
+  const txt=G.pwCompText?G.pwCompText(v):'（舊版沒有 pwCompText 出口——見本段檔頭的鑑別力說明）';
+  ok(/詛咒已淨化 2/.test(txt),`閭山的隻數牌應印「詛咒已淨化 2」，實際：${txt}`);
+  ok(!/詛咒纏身/.test(txt),`閭山的隻數牌不得出現「詛咒纏身」，實際：${txt}`);
+});
+test('沒有免疫的角色仍印「詛咒纏身」（M6 不是把這段拆掉）',()=>{
+  const bag=bagOfFac(G.BEAT_FAC[0],2).concat(cursesN(2));
+  const v=G.pwArmyView(player(0,'zutou',bag));
+  const txt=G.pwCompText?G.pwCompText(v):'（舊版沒有 pwCompText 出口——見本段檔頭的鑑別力說明）';
+  ok(/詛咒纏身 2/.test(txt),`大家樂組頭的隻數牌應仍印「詛咒纏身 2」，實際：${txt}`);
+});
+
 /* ---------- 收尾 ---------- */
 console.log(`\n角色平衡卷單元測試：${pass} 過 / ${fail} 失敗`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }
