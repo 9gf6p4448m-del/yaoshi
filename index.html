@@ -312,11 +312,28 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 /* ── 近景切鏡卷 批 1（v0.45，規格 docs/proposals/2026-09-07-duel-closeup.md §二.3／§二.4）──
    四樣東西都只在 PW_FX.CLOSEUP_ON 時由 JS 建出來（?closeup=0 連 DOM 都不長，凍結檔 P0）。
    全部只動 transform／opacity／width，不觸發 layout；跳字用 WAAPI 由 JS 驅動（SKIP 要能立刻清）。 */
-#dmgLayer{position:absolute;inset:0;pointer-events:none;z-index:6}
-.dmgfloat{position:absolute;transform:translate(-50%,-50%);font-weight:bold;font-size:17px;color:#ffe6c0;
-  font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums;
-  text-shadow:0 2px 8px #000,0 0 4px #000;white-space:nowrap;opacity:0}
-.dmgfloat.kill{font-size:23px;color:var(--pwf,#ffb060);text-shadow:0 2px 10px #000,0 0 8px var(--pwf,#ffb060)}
+#dmgLayer{position:absolute;inset:0;pointer-events:none;z-index:6;
+  /* 切鏡批 2-a「傷害可讀性」（v0.49）：字級倍率由 JS 寫進來（PW_FX.DMG_SCALE，【試玩必調】集中在那裡）。
+     顏色刻意不直接用 --c-danger(#e04040)／--c-safe(#60b060)：那兩顆的相對亮度只有 0.195／0.344，
+     壓在近乎全黑的描邊環帶上 WCAG 對比度分別是 4.45／6.6——紅那顆過不了凍結檔 R1 的 4.5:1。
+     這裡取「同一個色相往上提亮」的版本（暖紅橙 #ff7a45 亮度 0.32→6.7:1、綠 #7bdc7b→9.4:1），
+     語意仍是危急紅／安全綠，只是為了讀得到而提亮。 */
+  --dmg-hit:#ff7a45; --dmg-heal:#7bdc7b; --dmg-unit:#ded7c8}
+.dmgfloat{position:absolute;transform:translate(-50%,-50%);font-weight:900;
+  font-size:calc(17px * var(--dmgs,1.6));color:var(--dmg-hit);
+  font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums;letter-spacing:.01em;
+  /* 深色描邊：stroke 打輪廓（paint-order 讓它畫在字身後面，不吃掉筆畫），四層黑影把周圍 8px 環帶壓暗
+     ——R1 量的就是「字色 vs 背後 8px 環帶」，畫面再亮也要讀得到。底板一律不加（R1 假綠條款）。 */
+  -webkit-text-stroke:2px rgba(6,3,2,.94);paint-order:stroke fill;
+  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9),0 0 16px rgba(0,0,0,.75);
+  white-space:nowrap;opacity:0}
+.dmgfloat.heal{color:var(--dmg-heal)}
+/* 擊殺：再放大 1.3 倍，系色只用在「底光」，字身仍是暖紅橙——把字色換成系色會讓烏木棕那系整個讀不到（R1） */
+.dmgfloat.kill{font-size:calc(17px * var(--dmgs,1.6) * 1.3);
+  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9),
+    0 0 14px var(--pwf,#ffb060),0 0 26px var(--pwf,#ffb060)}
+/* 「−1 隻」：灰白小字（字級 ×1.0，不隨 DMG_SCALE 放大），與傷害數字分色也分位置（R4） */
+.dmgfloat.unit{font-size:17px;font-weight:700;color:var(--dmg-unit);-webkit-text-stroke:1.5px rgba(6,3,2,.94)}
 /* 三拍燈（撞／護／祟）：跟拍首字幕同一行，依拍序累積點亮，當前那顆呼吸 */
 #beatLamps{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:2px}
 #beatLamps i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.16);
@@ -325,9 +342,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #beatLamps i.cur{animation:lampPulse .9s ease-in-out infinite alternate}
 @keyframes lampPulse{from{transform:scale(1);opacity:.75}to{transform:scale(1.45);opacity:1}}
 /* 存活量表：寬＝存活/開場總數，低於 1/3 轉紅 */
-.pwgauge{width:96px;height:4px;margin:3px auto 0;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+.pwgauge{position:relative;width:96px;height:4px;margin:3px auto 0;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
 .pwgauge i{display:block;height:100%;background:var(--gold);border-radius:3px;transition:width .28s ease-out}
 .pwgauge.low i{background:#ff6a4a}
+/* 切鏡批 2-a：掉的那一段先留一條紅殘影（GAUGE_GHOST_MS 之後才收），量表縮短那一下才看得出「掉了多少」。
+   殘影是絕對定位的另一條，蓋不到存活那條的寬度（同一個事實來源仍是 i 的 width）。 */
+.pwgauge b.ghost{position:absolute;top:0;height:100%;background:#ff3a2a;border-radius:3px;
+  box-shadow:0 0 6px rgba(255,58,42,.85);transition:width .06s linear,opacity .06s linear}
+/* 己方（南家）被打時整個對決框邊緣閃一圈淡紅暈；不擋點擊、150ms 自己收掉 */
+#duel i.hurtedge{position:absolute;inset:0;pointer-events:none;z-index:5;border-radius:inherit;
+  box-shadow:inset 0 0 46px 10px rgba(224,40,40,.55),inset 0 0 12px 2px rgba(255,90,60,.35);
+  animation:hurtEdgeFade 150ms ease-out forwards}
+@keyframes hurtEdgeFade{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 /* 出手卡：出招那一側閃現「系徽＋法寶名」，同時只有一張 */
 #actorCard{position:absolute;top:34%;display:none;align-items:center;gap:6px;padding:3px 9px;border-radius:9px;
   background:rgba(12,9,20,.72);border:1px solid var(--pwf,var(--line));font-size:12px;color:#ffe6c0;
@@ -1793,7 +1819,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.46", VERSION_NOTE="夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.49", VERSION_NOTE="傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅、量表紅殘影＋己方受擊紅暈、燒毀「−1 隻」；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3591,6 +3617,14 @@ const PW_FX={
   FOCUS_SHRINK:0.92,   /* 退暗的同時縮一點，交鋒那兩尊才跳得出來 */
   DMG_MS:600,          /* 傷害跳字上飄＋淡出的時間 */
   ACTOR_CARD_MS:700,   /* 出手卡停留多久 */
+  /* ── 批 2-a「傷害可讀性」（v0.49，2026-09-07；凍結檔 docs/experiments/2026-09-07-acceptance-dmg-readability.md）──
+     使用者手機試玩 v0.45 回報「扣血的部分看不太出來、顏色分不出」。以下三個全部【試玩必調】。 */
+  DMG_SCALE:1.6,       /* 跳字字級倍率（CSS 由 pwCloseupMount 寫成 #dmgLayer 的 --dmgs） */
+  DMG_POP_MS:120,      /* 跳字冒出來時先彈一下（scale 1.3→1.0）的時間，含在 DMG_MS 裡 */
+  HIT_FLASH_MS:120,    /* 被打的那一尊閃紅多久（燒毀中的尊不閃） */
+  GAUGE_GHOST_MS:300,  /* 存活量表掉的那一段，紅殘影停留多久才收 */
+  HURT_EDGE_MS:150,    /* 己方受擊時 #duel 邊緣紅暈的長度（與 CSS 的 hurtEdgeFade 同一個數） */
+  UNIT_DY:44,          /* 「−1 隻」往下讓開幾個像素：要 ≥ 最大字高（擊殺 17×1.6×1.3＝35.4px），R4 才不判重疊 */
 };
 /* ?closeup=0 關掉整卷近景切鏡（試玩 A／B 與凍結檔 P0 的退路等價都靠它）；?closeup=1 顯式開。
    PW_FX 是 const 但屬性可改——與 ?paperwar 那條同一個作法。 */
@@ -4603,6 +4637,7 @@ function pwBurnOne(b){
   const n=$(`pwn-${b.side}`);
   if(n){ const v=(parseInt(n.textContent,10)||0)-1; n.textContent=Math.max(0,v); }
   pwGauge(b.side); /* 近景切鏡卷 HUD (b)：存活量表跟著隻數牌同步（同一個事實來源） */
+  pwUnitFloat(b); /* 批 2-a：燒掉一隻就在那一尊位置補一個灰白「−1 隻」小字 */
   const det={side:b.side,unit:b.target,ms:PW_FX.BURN_MS,handled:false,done:null};
   fx3d("ys:fx-burn",det);
   let job;
@@ -4621,6 +4656,7 @@ function pwBurnOne(b){
 let PW_FOCUS_LOG=null;  /* 這一場的 focus 記錄（?fxcount=1 才留；凍結檔 P1 對的就是它） */
 let PW_BEAT_LOG=null;   /* 這一場逐拍「實際演出的那幾筆」，P1 的規則驗證要拿它當分母 */
 let PW_CARD_T=0;        /* 出手卡的收起計時器（同時只有一張＝同一個元素、同一個計時器） */
+let pwMySide=null;      /* 這一場哪一側是己方（南家＝席位 id 0）；兩邊都不是就 null（AI 對 AI 的旁觀場） */
 const PW_DMG_POOL=[];   /* 跳字 DOM 的重用池（不新建材質、不新建無上限的節點；上限 MAX_HITS） */
 
 function pwCloseup(){ return !!PW_FX.CLOSEUP_ON; }
@@ -4632,6 +4668,7 @@ function pwCloseupMount(){
   }
   if(!pwCloseup()) return;
   if(!$("dmgLayer")){ const d=document.createElement("div"); d.id="dmgLayer"; ov.appendChild(d); }
+  $("dmgLayer").style.setProperty("--dmgs",String(PW_FX.DMG_SCALE)); /* 字級倍率的單一來源在 PW_FX（批 2-a） */
   if(!$("actorCard")){ const c=document.createElement("div"); c.id="actorCard"; ov.appendChild(c); }
   if(!$("beatLamps")){
     const l=document.createElement("div"); l.id="beatLamps";
@@ -4644,6 +4681,9 @@ function pwCloseupClear(){
   const layer=$("dmgLayer");
   if(layer){ [...layer.children].forEach(el=>{ try{ el.getAnimations().forEach(a=>a.cancel()); }catch(e){} el.remove(); }); }
   clearTimeout(PW_CARD_T);
+  /* 批 2-a：量表紅殘影與己方紅暈也一次清乾淨（R5：doSkip 後 300ms 這兩樣都要是 0） */
+  document.querySelectorAll(".pwgauge b.ghost").forEach(g=>{ clearTimeout(+g.dataset.t||0); g.remove(); });
+  clearTimeout(PW_EDGE_T); document.querySelectorAll("#duel i.hurtedge").forEach(e=>e.remove());
   const c=$("actorCard"); if(c){ c.classList.remove("on"); c.innerHTML=""; }
   const l=$("beatLamps"); if(l) [...l.children].forEach(el=>{ el.className=""; }); /* L-4：燈也一起清，別把上一場的亮法帶進下一場 */
 }
@@ -4675,31 +4715,63 @@ function pwScreenOf(side,unitId){
 }
 /* 【積木】傷害跳字：在 target 那一尊的位置冒一個 −n 上飄淡出。
    DOM 上限＝MAX_HITS（滿了就回收最舊那個），演完自己 remove 並回到重用池。 */
+/* 被打的那一尊在哪一側：引擎的 pwRec 記的 side 是**行動方**（pwStrike：sd.tag ＝出手那一邊），
+   target 是對面那一隻（thorn／bite 也一樣：side 改記反擊方，target 才是被反傷的人）。
+   只有 burn 例外——那一筆的 side 就是被燒的那一方（pwRec 上方註解）。
+   v0.45 這裡寫成 pwScreenOf(b.side,b.target)：拿「出手方」配「對面的單位 id」，
+   由於兩側 id 都是 0..n−1，查得到的是**出手方自己的一尊**，數字就冒在打人那一側的頭上。
+   使用者回報「扣血的部分看不太出來」有一半是這個（批 2-a 修正，見報告 §3）。 */
+const pwFoe=s=>(s==="B"?"A":"B");
 function pwDmgFloat(b,fac){
   if(!pwCloseup()||SKIP) return;
+  const tside=b.kind==="burn"?b.side:pwFoe(b.side);
+  const cls=(b.killed?" kill":"")+((b.amount|0)<0||b.kind==="heal"?" heal":"");
+  pwFloat(tside,b.target,`−${Math.abs(b.amount|0)}`,cls,fac,0,b.kind);
+  if(tside===pwMySide) pwHurtEdge(); /* 己方（南家）被打：整框邊緣閃一圈紅暈 */
+}
+/* 燒毀那一筆的「−1 隻」小字：走同一個池、同一個上限，位置往下讓開，不跟傷害數字重疊（R4）。 */
+function pwUnitFloat(b){
+  if(!pwCloseup()||SKIP) return;
+  pwFloat(b.side,b.target,"−1 隻"," unit",null,PW_FX.UNIT_DY,"burn");
+}
+/* 【積木】跳字共用底層：在某一尊的位置冒一個字上飄淡出（先彈 DMG_POP_MS 再飄）。
+   DOM 上限＝MAX_HITS（滿了就回收最舊那個），演完自己 remove 並回到重用池。 */
+function pwFloat(side,unit,text,cls,fac,dy,kind){
   const layer=$("dmgLayer"); if(!layer) return;
-  const pos=pwScreenOf(b.side,b.target); if(!pos) return;
+  const pos=pwScreenOf(side,unit); if(!pos) return;
   while(layer.childElementCount>=PW_FX.MAX_HITS){
     const old=layer.firstElementChild; if(!old) break;
     try{ old.getAnimations().forEach(a=>a.cancel()); }catch(e){}
     old.remove(); PW_DMG_POOL.push(old);
   }
   const el=PW_DMG_POOL.pop()||document.createElement("div");
-  el.className="dmgfloat"+(b.killed?" kill":"")+(fac?` fac-${fac}`:"");
-  el.textContent=`−${b.amount|0}`;
-  el.style.left=Math.round(pos.x)+"px"; el.style.top=Math.round(pos.y)+"px";
-  el.dataset.side=b.side; el.dataset.unit=String(b.target); el.dataset.mode=pos.mode;
+  el.className="dmgfloat"+(cls||"")+(fac?` fac-${fac}`:"");
+  el.textContent=text;
+  el.style.left=Math.round(pos.x)+"px"; el.style.top=Math.round(pos.y+(dy||0))+"px";
+  el.dataset.side=side; el.dataset.unit=String(unit); el.dataset.mode=pos.mode; el.dataset.kind=kind||"";
   layer.appendChild(el);
   FXC.dmgFloat++;
   const done=()=>{ if(el.parentNode){ el.remove(); if(PW_DMG_POOL.length<PW_FX.MAX_HITS) PW_DMG_POOL.push(el); } };
   try{
-    const a=el.animate([{opacity:0,transform:"translate(-50%,-50%) scale(.82)"},
-                        {opacity:1,transform:"translate(-50%,-105%) scale(1)",offset:.3},
+    /* 先彈（1.3→1.0，DMG_POP_MS）再上飄淡出：彈那一下讓眼睛抓得到「這裡剛剛掉血」 */
+    const pop=Math.max(.05,Math.min(.6,PW_FX.DMG_POP_MS/PW_FX.DMG_MS));
+    const a=el.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.3)"},
+                        {opacity:1,transform:"translate(-50%,-72%) scale(1)",offset:pop},
+                        {opacity:1,transform:"translate(-50%,-118%) scale(1)",offset:Math.min(.75,pop+.4)},
                         {opacity:0,transform:"translate(-50%,-190%) scale(1)"}],
       {duration:PW_FX.DMG_MS,easing:"ease-out",fill:"forwards"});
     a.onfinish=done;
   }catch(e){}
   setTimeout(done,PW_FX.DMG_MS+60); /* WAAPI 沒有（或被取消）時的保險絲：DMG_MS+100 內一定要移除（P4） */
+}
+/* 己方（南家）受擊的邊緣紅暈：同時只有一片，150ms 自己收掉（CSS animation 走完就移除）。 */
+let PW_EDGE_T=0;
+function pwHurtEdge(){
+  const ov=$("duel"); if(!ov||!pwCloseup()||SKIP) return;
+  clearTimeout(PW_EDGE_T);
+  ov.querySelectorAll("i.hurtedge").forEach(e=>e.remove());
+  const e=document.createElement("i"); e.className="hurtedge"; ov.appendChild(e);
+  PW_EDGE_T=setTimeout(()=>{ e.remove(); },PW_FX.HURT_EDGE_MS);
 }
 /* HUD (a) 三拍燈：依拍序累積點亮，當前那顆呼吸。 */
 function pwLamps(beat){
@@ -4712,9 +4784,27 @@ function pwGauge(side){
   if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演——SKIP 之後這一場馬上收，量表停在最後一次的值 */
   const g=$(`pwg-${side}`), n=$(`pwn-${side}`); if(!g||!n) return;
   const tot=parseInt(g.dataset.total,10)||0, alive=Math.max(0,parseInt(n.textContent,10)||0);
-  const bar=g.firstElementChild; if(!bar) return;
-  bar.style.width=(tot?Math.round(alive/tot*100):0)+"%";
+  const bar=g.querySelector("i"); if(!bar) return;
+  const was=parseFloat(bar.style.width)||0;
+  const now=tot?Math.round(alive/tot*100):0;
+  bar.style.width=now+"%";
   g.classList.toggle("low",!!tot&&alive/tot<1/3);
+  /* 批 2-a 量表紅殘影：掉的那一段先留一條紅的停 GAUGE_GHOST_MS 再收。
+     同一拍多隻同時燒會連叫好幾次 pwGauge——殘影只有一條，右緣固定在「這條殘影開始時的寬度」，
+     左緣跟著現在的寬度走，所以它量到的一直是「這一輪總共掉了多少」。 */
+  if(now<was) pwGaugeGhost(g,was,now);
+}
+function pwGaugeGhost(g,was,now){
+  let gh=g.querySelector("b.ghost");
+  if(!gh){ gh=document.createElement("b"); gh.className="ghost"; gh.dataset.from=String(was); g.appendChild(gh); }
+  else clearTimeout(+gh.dataset.t||0);
+  const from=Math.max(parseFloat(gh.dataset.from)||was,was);
+  gh.dataset.from=String(from);
+  gh.style.left=now+"%"; gh.style.width=Math.max(0,from-now)+"%"; gh.style.opacity="1";
+  gh.dataset.t=String(setTimeout(()=>{
+    gh.style.width="0%"; gh.style.opacity="0";
+    setTimeout(()=>{ gh.remove(); },70); /* 收起來的 60ms transition 走完才移除——整段 ≤ GAUGE_GHOST_MS+100（R3） */
+  },PW_FX.GAUGE_GHOST_MS));
 }
 /* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
 function pwActorCard(side,item,fac){
@@ -4794,6 +4884,9 @@ async function pwPlayBeat(f,beat,list,views){
           pwActorCard(b.side,pwItemOf(views,b),evFac);
         }
       }
+      /* 批 2-a：被打的那一尊閃紅（3D 邊光倍率＋紅 tint，貼片走逆光層；燒毀中的尊不閃、SKIP 不派）。
+         target 在**對面**那一側（pwRec 的 side 是行動方，見 pwDmgFloat 上方的註解）。 */
+      if(pwCloseup()&&!SKIP) fx3d("ys:fx-hit",{side:foeSide,unit:b.target,ms:PW_FX.HIT_FLASH_MS});
       if(stops<PW_FX.HITSTOP_PER_BEAT&&b.amount>=PW_FX.HITSTOP_DMG){ stops++; await fxHitstop(); }
       fxPunch(pw);
       fxImpact(null,evFac,pw);
@@ -4824,6 +4917,7 @@ async function playDuelWar(f,views){
   PW_FOCUS_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   PW_BEAT_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   $("duel").classList.add("pw");
+  pwMySide=f.A.id===0?"A":(f.B.id===0?"B":null); /* 批 2-a：己方受擊才閃邊緣紅暈（DIRS[0]＝南＝玩家） */
   pwCloseupMount(); /* HUD 三件的容器（關掉時連建都不建） */
   $("duelArena").innerHTML=pwArenaHTML(f,views);
   $("duelBeat").innerHTML=""; pwMoveCap(null);
