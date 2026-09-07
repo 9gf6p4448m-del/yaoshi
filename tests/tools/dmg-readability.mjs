@@ -585,6 +585,8 @@ async function runPix(browser) {
   // drive 預設 300s 就收手；凍幀讓牆鐘遠長於遊戲時間（一場對決要 2–4 分鐘），不放寬會只跑到兩三場
   const r = await drive(page, url, { duels: duels, timeoutMs: 2400000, onDuel: async (pg, n) => {
     const t0 = Date.now();
+    // 進場先把取樣打開（上一場退出時關掉了，見迴圈後）
+    await pg.evaluate((c) => { window.__dmg.cfg.maxFloat = c.f; window.__dmg.cfg.maxHit = c.h; }, { f: maxFloat, h: maxHit }).catch(() => {});
     // 上限放到 150s：每一格凍幀在牆鐘上要 300–500ms（截圖＋兩次 evaluate），一場對決常常有上百格。
     // **退出前一定要把畫面放行**（見迴圈後那一行）：這個迴圈是唯一會呼叫 __frzGo() 的地方，
     // 帶著凍結退出＝整個頁面從此停住，後面一場對決都跑不出來（踩過：10 場只跑到 1 場）。
@@ -598,6 +600,15 @@ async function runPix(browser) {
         skipDone = await pg.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
       }
       await pg.waitForTimeout(20);
+    }
+    // 退出這一場的抽取迴圈之前：先把取樣關掉（不然下一次凍結沒人來截圖，畫面會永遠停住——
+    // 這個迴圈是唯一會呼叫 __frzGo() 的地方），把還沒走完的序列抽乾，最後無條件放行。
+    await pg.evaluate(() => { window.__dmg.cfg.maxFloat = 0; window.__dmg.cfg.maxHit = 0; }).catch(() => {});
+    for (let i = 0; i < 12; i++) {
+      await pump(pg);
+      const busy = await pg.evaluate(() => window.__dmg.busy).catch(() => false);
+      if (!busy) break;
+      await pg.waitForTimeout(40);
     }
     await pg.evaluate(() => { if (window.__frz && window.__frz.on) window.__frzGo(); }).catch(() => {});
   } });
