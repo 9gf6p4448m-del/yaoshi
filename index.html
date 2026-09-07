@@ -2863,7 +2863,13 @@ function settleTithe(log){
   const out=[];
   const t=CFG.INC_TITHE|0;
   S.players.forEach(p=>{
-    if(!p.alive) return;
+    /* ★`p.life<=0` 也要跳過★（M-2 甲把這一支移到夜末最後之後才浮出來的）：
+       出局旗是在這一支**之後**才蓋的，所以這裡看到的「alive」裡混著「這一夜已經被打到 ≤0、
+       等一下就會出局」的人。不跳過的話，他們每一個都會在死前被判一次「付不出供奉」——
+       實測 n=10000 的「斷供」事件因此 100% 落在出局當夜，G2 想量的「養不起神」被雜訊淹掉。
+       語意上也對：`p.life<=0` 的人不會付任何東西，那一尊隨主人出局一起消失（stripEndgameItems），
+       不是「供奉斷了」。 */
+    if(!p.alive||p.life<=0) return;
     for(const x of p.bag.filter(y=>y.legend)){
       if(t>0&&p.life-t<1){                                   /* ① 付不出 */
         releaseLegend(p,x,log,"供奉不起",false);
@@ -3541,6 +3547,20 @@ function resolveBattles(){
      所以這裡記的分數要下一夜才會影響別人怎麼看你。 */
   recordCred();
   S.players.forEach(p=>{ if(p.alive) judgeWish(p,nightly); });
+  /* 供奉（神債，請神 2.0 §二 6）：**神債最後收，付得起才付**（2026-09-07 覆審 M-2 甲，使用者裁定）。
+     位置＝夜末所有「帳」都結完之後（詛咒 drain → 道具／角色 onNightEnd → 虛張稅 → 心願），
+     **但在天明回血之前**。
+     ★為什麼不是「整個夜末的最後一行」★（動手前的不變量掃描，`02 §6.1` 第 6 條）：
+     天明回血是 `NIGHT_REGEN=5`，凡是活著且壽命 >0 的人領完都 ≥5。而「付不出」要 `life−1<1`（≤1）、
+     「AI 主動放手」要 `life−1≤TITHE_WARN`（≤3）——排在回血**之後**的話這兩條在所有合法輸入下**都不可達**，
+     神債退化成純粹的每夜 −1 稅、沒有任何失敗模式。實測 n=1000：斷供 0 次、主動送神 0 次（改前分別是 407／189 局）。
+     所以「最後收」取的是「所有帳之後、回血之前」這個讀法；裁定文字列舉的也正是
+     「詛咒 drain／道具／角色 hook」這幾筆帳。
+     沿革（M-2 甲要修的那件事）：一版排在 drain **之前**，「壽命 2＋詛咒品 −1」的人會先被供奉扣到 1、
+     再被 drain 扣到 0 出局——神債把人殺死了。移到帳後之後，同一個情境是「drain 完剩 1 → 付不出 →
+     傳說回天、人活著」，符合 §二 6「付不出則傳說回天」而不是「付不出就死」。
+     resolveBattles 是真人／simulate／playPolicyGame 共用的那一支，所以掛在這裡＝三條迴圈自動一致。 */
+  if(CFG.LEGEND_ON&&S.shrines) settleTithe(nightly);
   /* 天明回血（節奏包，2026-09-02 使用者裁定甲）：存活且壽命 >0 者夜末 +NIGHT_REGEN；歸零者不救（只有心願能救回） */
   if(CFG.NIGHT_REGEN>0){
     const back=S.players.filter(p=>p.alive&&p.life>0);
@@ -3566,14 +3586,6 @@ function resolveBattles(){
     const t=S.nightRule.report(S.ruleStat);
     if(t) nightly.push(t);
   }
-  /* 供奉（神債，請神 2.0 §二 6）：**神債最後收，付得起才付**（2026-09-07 覆審 M-2 甲，使用者裁定）。
-     排在夜末所有帳（詛咒 drain → 道具／角色 onNightEnd → 虛張稅 → 心願 → 天明回血 → 陰間放貸 → 規則後效）
-     之後、蓋出局旗之前：這樣「付不出」用的是**這一夜真正剩下的壽命**。
-     沿革：一版排在 drain 之前，結果「壽命 2＋詛咒品 −1」的人會先被供奉扣到 1、再被 drain 扣到 0 而出局——
-     神債把人殺死了。移到最後之後，同一個情境變成「drain 完剩 1 → 付不出 → 傳說回天、人活著」，
-     符合 §二 6「付不出則傳說回天」而不是「付不出就死」。
-     resolveBattles 是真人／simulate／playPolicyGame 共用的那一支，所以掛在這裡＝三條迴圈自動一致。 */
-  if(CFG.LEGEND_ON&&S.shrines) settleTithe(nightly);
   const deaths=[];
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;deaths.push(p);}});
   /* 獻祭放血只在本夜生效：夜末一律歸零（正常遊戲、playPolicyGame、simulate 三條迴圈共用此處） */
