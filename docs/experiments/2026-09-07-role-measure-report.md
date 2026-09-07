@@ -79,6 +79,49 @@ function policyAiLike(p){
   （`rosterSeats`，`index.html:2047-2060`），不是固定同一組。
 - SE ＝ `sqrt(p(1−p)/n)`，n=10000 時在 p≈25% 附近 ≈ **0.43pp**，兩點差的 SE ≈ 0.6pp。
 
+### 0.5 十個角色的被動機制與程式位置（提案要對得上這張表）
+
+| 角色 | 玩家被動（非 `onAi*`） | 程式位置 | AI 風格 hook | `ROLES.ai` |
+|---|---|---|---|---|
+| 青面攤主 | `onBidEff` 對手上一夜得標陣營的拍品比價 +2 | `index.html:791-797` | `onAiValue`（跟標 +4）、`onAiExtraBids`（30% 虛張標） | aggr .85／spite .25／contest |
+| 紅衣婆婆 | `onWinItem` 被毒標塞中時下手者 −2；`onBidSettle`／`onBattle`／`onNightEnd` 是記仇帳本（只餵 AI hook） | `index.html:825-853` | `onAiCurse`（毒標鎖仇人）、`onAiValue`（掐仇人主系 +3） | aggr .6／spite .6／contest |
+| 斷手書生 | `onPowerCalc` 同系 ≥4 件該系共鳴額外 +4 | `index.html:869-871` | `onAiValue`（鎖定系 ×1.6／其餘 ×0.7）、`onAiPlan`（每夜只標 1 件）、`onAiAmount`（紀律壓價／破戒梭哈） | aggr 1.0／spite .4／ignore |
+| 收驚婆 | `onNightEnd` 整夜未得標 +3、完全沒出價 +5 | `index.html:900-909` | `onAiPlan`（沒 p≥6 大貨就整夜不出手） | aggr .3／spite .1／avoid |
+| 獵人 | `onBattle` 擊敗實際戰力更高者時奪走其袋中最貴一件 | `index.html:925-934` | `onAiValue`（能追上第一名 +4） | aggr .85／spite .5／contest |
+| 孝女白琴 | `onBidSettle` 押命標落標免血債＋該件得標者 −1（每夜 ≤3 次） | `index.html:945-960` | `onAiExtraBids`（50% 攪局小額押命標） | aggr .55／spite .5／avoid |
+| 閭山法師 | `onItemValue` 袋中詛咒品戰力視為 0；`onBidSettle` 獨力買銷詛咒品實付減半 | `index.html:984-993` | `onAiCurse`（壽命 >10 就一律買下詛咒品） | aggr .5／spite .2／ignore |
+| 大家樂組頭 | `onBidCap` 保守標上限 ×1.5；`onWinItem`＋`onNightEnd` 夜末得標 ≥2 件 +2、掛零 −2 | `index.html:1006-1021` | `onAiPlan`（每夜標 3 件）、`onAiAmount`（每筆 ≤4） | aggr .65／spite .3／contest |
+| 陰間當鋪 | `onBudget` 總額上限＝壽命+8；`onBidSettle`／`onBattle`／`onNightEnd` 壽命歸零時典當一次保 1 命 | `index.html:1028-1053` | `onAiAmount`（詐術喊到估值全額） | aggr .8／spite .4／avoid |
+| 普渡爐主 | `onReveal` 開標看得到標書型態（**headless 恆無效**）；`onNightEnd` 每有人出局 −3、終局存活 ≥3 人 +6 | `index.html:1066-1084` | `onAiCurse`（最弱者 ≤8 命時買下詛咒品保人） | aggr .6／spite .15／ignore |
+
+### 0.6 一條貫穿全卷的機制發現：有兩個被動掛在「已經不決定勝負」的那條算式上
+
+`index.html:3158-3159` 的註解字面寫著：
+
+```js
+/* 《紙紮夜戰》：PAPERWAR_ON 時改由三拍自動戰決勝負與傷害，power() 只留給 UI 當行情顯示。 */
+```
+
+`CFG.PAPERWAR_ON` 自 2026-09-06 起**預設為 true**（`index.html:568`）。而 `power()` 是
+`onItemValue`（逐件估值）與 `onPowerCalc`（`itemSum`／`resonance`／`flat`）唯一的消費者
+（`index.html:2133-2147`）。所以：
+
+- **斷手書生**的「同系 ≥4 件該系共鳴額外 +4」寫的是 `ctx.flat+=4`。共鳴接進紙紮夜戰的那條路
+  （`pwResLv`，`index.html:2715-2722`）**只讀 `ctx.resonanceMul`，不讀 `ctx.flat`** ⇒ 這個被動
+  對紙紮對決的勝負與傷害**完全沒有作用**。
+- **閭山法師**的「袋中詛咒品戰力視為 0」寫的是 `onItemValue` 把 `ctx.value` 設 0。紙紮夜戰裡
+  詛咒品的懲罰改成 `m-=sd.curses`（`index.html:2889` 詛咒纏身：每件詛咒品該側 atk 修正 −1），
+  數的是 `buildArmy` 回傳的 `curses` 件數（`index.html:2697`），**跟 `power()` 無關** ⇒ 這個被動
+  對紙紮對決同樣沒有作用。
+
+`power()` 現在還留著的用途只剩：毒標／收祟挑「戰力最高的對手」（`index.html:2173`、`2179`、
+`strongestFoe`）、獵人 AI 的追分估值（`index.html:919-920`）、獵人被動的 `pwRaw/plRaw` 判準
+（`index.html:3184`）、`finalPower` 統計與 UI 顯示。也就是說這兩個被動現在**只剩「把自己的帳面
+戰力推高／推低，因而改變自己被毒標鎖定的機率」這一個副作用**——斷手書生的 +4 讓它更常被鎖定。
+
+**這不是推論，有實測對照**（`--paperwar=0` 把紙紮夜戰關掉退回舊的戰力比較路徑）：見 §4 的
+「PAPERWAR 對照」表。
+
 ---
 
 <!-- 以下由實測回填 -->

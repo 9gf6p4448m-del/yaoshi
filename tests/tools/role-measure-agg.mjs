@@ -29,6 +29,9 @@ const NAMES = {qingmian: '青面攤主', hongyi: '紅衣婆婆', duanshou: '斷�
 const ORDER = ['qingmian', 'hongyi', 'duanshou', 'shoujing', 'hunter', 'xiaonv', 'lvshan', 'zutou', 'dangpu', 'luzhu'];
 /* roles-res0.md 的數字（n=2000，af12d4d 版引擎） */
 const RES0 = {qingmian: 27, hongyi: 25, duanshou: 12, shoujing: 38, hunter: 32, xiaonv: 31, lvshan: 5, zutou: 25, dangpu: 13, luzhu: 27};
+/* roles-res1.md：同一個 commit（af12d4d）裡的第二張表＝破軍旗 hp 1→2 修好之後的量測 */
+const RES1 = {qingmian: 25, hongyi: 25, duanshou: 12, shoujing: 38, hunter: 31, xiaonv: 31, lvshan: 6, zutou: 27, dangpu: 12, luzhu: 27};
+const preRow = readAll(f => f.includes('-pre-'));
 
 const get = (r, v) => rows.find(x => x.role === r && x.variant === v);
 const pct = x => (x * 100).toFixed(2);
@@ -39,20 +42,13 @@ const SE = p => (Math.sqrt(p * (1 - p) / N) * 100).toFixed(2);
 let md = `n=${N}（seed 1..${N}），座位 0 為受測角色、其餘三席由 \`S.rng()\` 每一局各自抽（不固定同一組）。\n\n`;
 
 md += '### M1-0 (a) 是否重現 `roles-res0.md`（凍結檔要求 ±2pp）\n\n';
-md += `| 角色 | roles-res0（n=2000、\`af12d4d\` 引擎） | 本卷 (a)（n=${N}、\`5565364\` 引擎） | 差 | ±2pp |\n|---|---|---|---|---|\n`;
+md += `| 角色 | res0 | res1 | 治具跑 \`ca14065\`（res0 的引擎，n=2000） | 治具跑 \`af12d4d\`（res1 的引擎，n=2000） | 本卷 (a)（n=${N}、\`5565364\`） | (a)−res0 | ±2pp |\n|---|---|---|---|---|---|---|---|\n`;
 for (const r of ORDER) {
   const a = get(r, 'a'); if (!a) continue;
+  const o = oldRow.find(x => x.role === r && x.variant === 'a');
+  const q = preRow.find(x => x.role === r && x.variant === 'a');
   const d = a.win * 100 - RES0[r];
-  md += `| ${NAMES[r]} | ${RES0[r]}% | ${pct(a.win)}% | ${(d >= 0 ? '+' : '') + d.toFixed(2)}pp | ${Math.abs(d) <= 2 ? '✅' : '❌'} |\n`;
-}
-if (oldRow.length) {
-  md += '\n對照：把同一支治具指向 `af12d4d` 的 `index.html`（`--html=`）跑 (a)，用來分辨「治具對不上」與「引擎在 res0 之後改過」。\n\n';
-  md += '| 角色 | roles-res0 | 治具跑 af12d4d 引擎 | 差 |\n|---|---|---|---|\n';
-  for (const r of ORDER) {
-    const o = oldRow.find(x => x.role === r && x.variant === 'a'); if (!o) continue;
-    const d = o.win * 100 - RES0[r];
-    md += `| ${NAMES[r]} | ${RES0[r]}% | ${pct(o.win)}%（n=${o.n}） | ${(d >= 0 ? '+' : '') + d.toFixed(2)}pp |\n`;
-  }
+  md += `| ${NAMES[r]} | ${RES0[r]}% | ${RES1[r]}% | ${q ? pct(q.win) + '%' : '—'} | ${o ? pct(o.win) + '%' : '—'} | ${pct(a.win)}% | ${(d >= 0 ? '+' : '') + d.toFixed(2)}pp | ${Math.abs(d) <= 2 ? '✅' : '❌'} |\n`;
 }
 
 md += '\n### M1 主表（凍結檔口徑）\n\n';
