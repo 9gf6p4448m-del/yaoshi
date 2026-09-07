@@ -554,6 +554,9 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 /* ================= 常數（【試玩必調】集中此處） ================= */
 const CFG = {
   LIFE: 50, ROUNDS: 12, MARKET: 4, /* LIFE 40→50：節奏包甲（2026-09-02 使用者裁定），角色起始壽命為 CFG.LIFE±n 一起平移 */
+  PAWN_KEEP: 8,         /* 陰間當鋪典當保命後剩下的壽命。1→8（2026-09-07 角色平衡卷二版，使用者同意）：
+                           量法卷實測典當三條路徑每局只觸發 0.76 次、只保 1 命的話下一夜多半還是死，
+                           被動淨值 +0.73pp 形同虛設。desc 與三條掛點的 log 都讀這個常數，不得各寫一份。 */
   CURSE_PROB: 0.65,
   SET_MIN: 2,
   DMG_BASE: 3, DMG_DIV: 5, DMG_MAX: 6,
@@ -837,6 +840,14 @@ function mainFaction(p){
 /* 陰間當鋪的一次性典當：唯一寫入 p.pawned 的地方（ARCH_SPEC §4 欄位）。
    成功典當回傳 true；呼叫端自己決定怎麼把「這次致死的扣血」調整成「剛好留 1 命」。
    縛靈鎖從 CURSES 表按名字取（資料表內容互相引用，不是引擎寫死 id）。 */
+/* 典當保命的底線（2026-09-07 角色平衡卷覆審 H2 丙，使用者裁定）：
+   壽命 ≥CFG.PAWN_KEEP 時保住 PAWN_KEEP，否則保住 1（＝二版之前的原規則）。
+   為什麼要分兩段：二版把保命值從 1 提到 8 之後，`cost=max(0, life-8)` 在 life<8 時恆為 0
+   ⇒ 當鋪在低血時**出價完全免費、對決完全免傷**（覆審 H2 的「白拿」）。這個窗口在保命值是 1 的
+   年代不可達（life<1 就已經死了），所以改成 8 才露出來。
+   三處掛點（onBidSettle 實付／onBattle 受傷／onNightEnd 夜末）共用這一支，不得各寫一份。
+   夜末那條路的 p.life 已經 ≤0 ⇒ floor 恆為 1（主對話 2026-09-07 更正：不留「從 ≤0 免費回到 8」的特例）。 */
+function pawnFloor(p){ return p.life>=CFG.PAWN_KEEP?CFG.PAWN_KEEP:1; }
 function pawnNow(p){
   if(p.pawned) return false;
   const lock=CURSES.find(x=>x.n==="縛靈鎖");
@@ -855,7 +866,7 @@ const ROLES = {
   /* 干擾型：跟標（追殺人類上一夜得標的陣營）＋虛張標（推高別人的認知價） */
   qingmian:{id:"qingmian",name:"青面攤主",av:"👹",pool:true,
     desc:"干擾流。被動：對手上一夜得標陣營的拍品，你出價比價時視為 +2（實付不變）。AI 時跟標追殺你上一夜得標的陣營、偶爾下虛張押命標",
-    ai:{aggr:0.85,spite:0.25,markReact:"contest"},
+    ai:{aggr:0.6,spite:0.1,markReact:"contest"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     hooks:{
       /* 玩家被動（GAME_DESIGN §六之三A）：對手上一夜得標陣營的拍品，比價 eff +2（實付照舊） */
       onBidEff(ctx){
@@ -891,7 +902,7 @@ const ROLES = {
       poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
   /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
   hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",pool:true,
-    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
+    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命、自己 +2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
     ai:{aggr:0.6,spite:0.6,markReact:"contest"},
     hooks:{
       onBidSettle(ctx){                              /* 被搶標 +1 */
@@ -900,11 +911,15 @@ const ROLES = {
         if(w===null||w===undefined||w===ctx.p.id) return;
         ctx.p.grudge[w]=(ctx.p.grudge[w]||0)+1;
       },
-      onWinItem(ctx){                                /* 被毒標塞中：記仇 +2＋玩家被動（下手者 −2，GAME_DESIGN §六之三A） */
+      /* 被毒標塞中：記仇 +2＋玩家被動（下手者 −2、紅衣自己 +2）。
+         自己 +2 是 2026-09-07 角色平衡卷加的（使用者裁定「都照建議」）：這是紅衣唯一的玩家被動、
+         生效率只有 12.7%，而且要等別人先毒她——原本純罰對手，她自己一點也拿不到。 */
+      onWinItem(ctx){
         if(!ctx.target||ctx.target.roleId!=="hongyi") return;
         ctx.target.grudge[ctx.winner.id]=(ctx.target.grudge[ctx.winner.id]||0)+2;
         ctx.winner.life-=2;
-        ctx.events.push({txt:`👵 ${ctx.target.name} 回瞪一眼，${ctx.winner.name} -2`});
+        ctx.target.life+=2;
+        ctx.events.push({txt:`👵 ${ctx.target.name} 回瞪一眼，${ctx.winner.name} -2、${ctx.target.name} +2`});
       },
       onBattle(ctx){                                 /* 被擊敗 +1（跨玩家 hook，要自己認人） */
         if(ctx.l.roleId!=="hongyi") return;
@@ -930,16 +945,30 @@ const ROLES = {
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
-    desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴額外 +4。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
+    desc:"專精流。被動：集齊同系第 4 件法寶起，該系共鳴等級 ×1.5。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
     /* aggr 0.7→1.0（2026-09-03 使用者裁定，ARCH_SPEC §9 待辦 3）：
        「紀律」＝算出真實價值但絕不溢價。aggr=0.7 時預設出價本來就低於上限 ×0.9，
        上限永遠碰不到（實測只有 0.23% 的出價被壓低、總額只壓 0.03%），紀律形同虛設。
-       提到 1.0 之後預設出價＝估值本身，上限才真的咬得到。【試玩必調】 */
-    ai:{aggr:1.0,spite:0.4,markReact:"ignore"},
+       提到 1.0 之後預設出價＝估值本身，上限才真的咬得到。【試玩必調】
+       2026-09-07 角色平衡卷二版：一版的掃描把 aggr 選成 0.6，讓上面這條性質再次失效，
+       且對照組實測反而 −2.80pp ⇒ 使用者裁定 **aggr 釘回 1.0**，只讓掃描決定 spite。 */
+    ai:{aggr:1.0,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     hooks:{
-      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴額外 +4 */
+      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴等級 ×1.5。
+         門檻沿革：4→3（二版）→2（二版 B1 第二輪）→**撤回 4**（三版，使用者裁定）。
+         撤回理由是實測：其餘完全相同、只換門檻，各 n=10000 ⇒ 門檻 4＝15.57%／3＝15.70%／2＝15.60%
+         （最大差 0.13pp、SE ±0.36pp）——**門檻對這隻的勝率沒有可測得的影響**，而門檻 2 剛好等於
+         CFG.SET_MIN，等於取消「集齊同系第 N 件」的專精識別度卻換不到任何東西。不留無意義的改動。
+         真正的瓶頸在它的 AI 打法 hook（onAiValue／onAiPlan，量法卷實測 −7.42pp），另開一卷處理。
+         2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；紙紮夜戰的共鳴只讀
+         ctx.resonanceMul（pwResLv），所以這個被動改接到 resonanceMul 才真的生效。
+         ★覆審 H3 乙（使用者裁定）★：**power() 不是只剩顯示**——它還餵毒標／收祟的「戰力最高的對手」
+         挑選、獵人 AI 的追分估值與 pwRaw/plRaw 判準（冷讀覆審用 trace 差異證明的）。所以本被動
+         **刻意只走對決路徑**：ctx.fac 有值＝pwResLv 的逐系呼叫才生效；沒有 fac＝power()，直接 return，
+         不去推高自己的帳面戰力（推高只會讓自己更常被鎖定當毒標目標）。 */
       onPowerCalc(ctx){
-        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4) ctx.flat+=4; }
+        if(ctx.fac===undefined) return;              /* power() 那條路刻意不吃（H3 乙） */
+        if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5;
       },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
@@ -1042,9 +1071,13 @@ const ROLES = {
   /* 免疫型（GAME_DESIGN 六之三 A）：詛咒品戰力視為 0（drain 照舊），獨力買銷詛咒品半價。
      規格的「囤詛咒品當肉盾」在現行引擎裡沒有「留在袋中」這條路（買下＝銷毀），
      故 AI 收祟＝一律買下銷毀（ARCH_SPEC §8.5 的字面實作 intent='keep'）。 */
-  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:-8,pool:true,
-    desc:"免疫流（起始 32）。被動：袋中詛咒品戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
-    ai:{aggr:0.5,spite:0.2,markReact:"ignore"},
+  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:2,pool:true, /* life0d −8→−2（一版）→0（二版）→+2（二版 B1 第二輪，凍結檔 §2.1 第 8 條允許的「各一級」）：量法卷實測 1.08pp／點，−8 是這隻 −18.4pp 整包淨值裡最大的一塊 */
+    desc:"免疫流（起始 52）。被動：袋中詛咒品在紙紮夜戰不造成「詛咒纏身」減益、戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
+    ai:{aggr:0.8,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
+    /* 2026-09-07 角色平衡卷：「袋中詛咒品戰力視為 0」原本只寫在 onItemValue（＝只進 power()），
+       而紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數，與 power() 無關）⇒ 免疫在現行對決引擎裡
+       根本不存在。curseWard 是它在紙紮側的等價入口（pwSide 查一次、pwMod 讀）。 */
+    traits:{curseWard:1},
     hooks:{
       onItemValue(ctx){ if(ctx.item.curse) ctx.value=0; },
       onBidSettle(ctx){
@@ -1060,7 +1093,7 @@ const ROLES = {
       poison:["這道符，你拿著。"],poisoned:["區區小祟也敢上身？"],bwin:["妖邪退散。"],blose:["今夜法力見底…"]}},
   /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改壽命 1/2；夜末得標 ≥2 件 +2、0 件 −2。 */
   zutou:{id:"zutou",name:"大家樂組頭",av:"🎲",pool:true,
-    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2、掛零 −2。AI 時亂槍——每夜對 3 件下小額標`,
+    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2。AI 時亂槍——每夜對 3 件下小額標`,
     ai:{aggr:0.65,spite:0.3,markReact:"contest"},
     hooks:{
       onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/(CFG.CONS_CAP_DIV/1.5))); }, /* 「改為」一般上限的 1.5 倍（÷6 時＝壽命÷4），不與其他加成疊；跟著 CONS_CAP_DIV 走（2026-09-03 ÷3→÷6 時由寫死的 /2 改成相對比例） */
@@ -1070,11 +1103,13 @@ const ROLES = {
         if(p._ztR!==S.round){ p._ztR=S.round; p._ztN=0; }
         p._ztN++;
       },
+      /* 掛零 −2 已於 2026-09-07 角色平衡卷拿掉（使用者裁定「都照建議」）：量法卷實測這隻的玩家被動
+         淨值是 −3.08pp（全表唯一為負），因為它的 AI 打法是「每夜標 3 件、每筆 ≤4」，小額標很容易
+         全部落標 ⇒ 罰則比獎勵常發生。只留獎勵側。 */
       onNightEnd(ctx){
         const p=ctx.p;
         const n=(p._ztR===S.round)?(p._ztN||0):0;
         if(n>=2){ p.life+=2; ctx.log.push(`🎲 ${p.name} 今夜連中 ${n} 注 +2`); }
-        else if(n===0){ p.life-=2; ctx.log.push(`🎲 ${p.name} 今夜槓龜 −2`); }
       },
       onAiPlan(ctx){ ctx.maxPicks=3; },              /* 亂槍：每夜標 3 件（ARCH_SPEC §8.2） */
       onAiAmount(ctx){                               /* 小額鋪開（ARCH_SPEC §8.3）【試玩必調：上限 4】 */
@@ -1088,31 +1123,35 @@ const ROLES = {
      典當掛在三個致死路徑上：出價實付（onBidSettle）、對決傷害（onBattle）、夜末結算（onNightEnd）。
      已知微縫：夜間結算「途中」由別的 hook 直接扣血致死（如孝女白琴的 −1 恰好補刀）不在這三個
      掛點之間，救不到——屬既有 hook 架構的邊界，接受並記錄於 roles-report.md。 */
-  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",life0d:-4,pool:true,order:95, /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
-    desc:"上限流（起始 36）。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——保住 1 壽命、袋中多一件縛靈鎖。AI 時詐術喊高價",
-    ai:{aggr:0.8,spite:0.4,markReact:"avoid"},
+  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",pool:true,order:95, /* life0d −4→0（2026-09-07 角色平衡卷，使用者裁定「都照建議」）：欄位省略＝起始壽命 CFG.LIFE */ /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
+    desc:`上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——壽命 ${CFG.PAWN_KEEP} 以上時保住 ${CFG.PAWN_KEEP}；不足 ${CFG.PAWN_KEEP} 時至少保住 1，袋中多一件縛靈鎖。AI 時詐術喊高價`,
+    ai:{aggr:0.8,spite:0.1,markReact:"avoid"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     hooks:{
       onBudget(ctx){ ctx.budget=ctx.p.life+8; },     /* 「改為」壽命+8（規格） */
       onBidSettle(ctx){
         const p=ctx.p;
         if(ctx.cost>0 && p.life-ctx.cost<=0 && pawnNow(p)){
-          ctx.cost=Math.max(0,p.life-1);             /* 付到剛好剩 1 */
-          ctx.events.push({txt:`🏮 ${p.name} 抵押魂魄——保住 1 壽命，袋中多了「縛靈鎖」`});
+          const floor=pawnFloor(p);                  /* 實付＝max(0, min(原出價, 壽命−底線))：低血時不再白拿 */
+          ctx.cost=Math.max(0,Math.min(ctx.cost,p.life-floor));
+          ctx.events.push({txt:`🏮 ${p.name} 抵押魂魄——保住 ${p.life-ctx.cost} 壽命，袋中多了「縛靈鎖」`});
         }
       },
       onBattle(ctx){
         const l=ctx.l;
         if(l.roleId!=="dangpu") return;              /* 跨玩家 hook，認自己 */
         if(l.life-ctx.dmg<=0 && pawnNow(l)){
-          ctx.dmg=Math.max(0,l.life-1);
-          ctx.extra.push(`🏮 ${l.name} 抵押魂魄——保住 1 壽命，袋中多了「縛靈鎖」`);
+          const floor=pawnFloor(l);                  /* 受傷＝max(0, min(原傷害, 壽命−底線))：低血時不再免傷 */
+          ctx.dmg=Math.max(0,Math.min(ctx.dmg,l.life-floor));
+          ctx.extra.push(`🏮 ${l.name} 抵押魂魄——保住 ${l.life-ctx.dmg} 壽命，袋中多了「縛靈鎖」`);
         }
       },
       onNightEnd(ctx){
         const p=ctx.p;
         if(p.life<=0 && pawnNow(p)){
-          p.life=1;
-          ctx.log.push(`🏮 ${p.name} 抵押魂魄——保住 1 壽命，袋中多了「縛靈鎖」`);
+          /* 夜末也走同一支 pawnFloor（主對話 2026-09-07 更正）：這條路的 p.life 已經被別的 hook
+             扣成 ≤0 ⇒ floor 恆為 1。三處掛點語意一致，不留「從 ≤0 免費回到 8」的特例。 */
+          p.life=pawnFloor(p);
+          ctx.log.push(`🏮 ${p.name} 抵押魂魄——保住 ${p.life} 壽命，袋中多了「縛靈鎖」`);
         }
       },
       /* 詐術：不被帳面壽命綁住，敢喊到估值全額（總額上限=壽命+8 由 onBudget 撐開） */
@@ -1823,7 +1862,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.49", VERSION_NOTE="傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅、量表紅殘影＋己方受擊紅暈、燒毀「−1 隻」；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.49", VERSION_NOTE="傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅、量表紅殘影＋己方受擊紅暈、燒毀「−1 隻」；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2843,7 +2882,9 @@ function buildArmy(bag){
 function pwResLv(p,fac){
   if(!CFG.PW_RES_MODE) return 0;
   const c=facCount(p,fac); if(c<CFG.SET_MIN) return 0;
-  const ctx={p,itemSum:0,resonance:0,flat:0,resonanceMul:1};
+  /* ctx.fac＝這一次算的是哪一系（2026-09-07 角色平衡卷新增）：onPowerCalc 是逐系呼叫的，
+     「同系 ≥N 件」這類逐系被動要靠它分辨；power() 那條路沒有 fac，hook 自己判 undefined。 */
+  const ctx={p,fac,itemSum:0,resonance:0,flat:0,resonanceMul:1};
   applyHooks("onPowerCalc",ctx,p);
   return Math.max(0,Math.round(Math.min(CFG.PW_RES_CAP,c-CFG.SET_MIN+1)*ctx.resonanceMul));
 }
@@ -2861,7 +2902,9 @@ function pwSide(p,tag){
   }
   const units=[]; a.teams.forEach(t=>t.units.forEach(u=>units.push(u)));
   units.forEach((u,i)=>{ u.id=i; });
-  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0,res,resAny:any};
+  /* curseWard＝「詛咒纏身」免疫（2026-09-07 角色平衡卷）：閭山法師的 traits.curseWard 走這條進 pwMod。
+     一側只查一次（pwMod 每拍每側都會跑，不宜逐拍重查）。沒有這個 trait 的人一律 0 ⇒ 行為與加入前相同。 */
+  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,curseWard:traitMax(p,"curseWard",0)>0,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0,res,resAny:any};
 }
 /* 特性查詢：引擎只問「有沒有這個效果欄位」，不比對 trait id 字串（鐵則 2.4） */
 const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
@@ -3013,7 +3056,7 @@ function pwPrep(beat,fac,sd,env,phase){
   if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa&&pwHasAlive(sd)){ m+=aa;   /* 媽祖令旗：本方全體 atk+1（卷 E：該側全滅就沒有誰吃得到這個 atk） */
     pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`,sd); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
-  m-=sd.curses;                                     /* 詛咒纏身 */
+  if(!sd.curseWard) m-=sd.curses;                   /* 詛咒纏身（閭山法師的免疫在此生效；無 trait 者恆走扣分支） */
   sd.mod=m;
 }
 /* 取本方第一個帶某效果欄位的 trait（純查表、供 log 標名字用） */
@@ -4527,11 +4570,15 @@ function pwArmyView(p){
   units.sort((x,y)=>beatRank(x)-beatRank(y)||x.id-y.id);
   const comp={};
   units.forEach(u=>{ comp[u.body]=(comp[u.body]||0)+1; });
-  return {units,comp,curses:a.curses};
+  /* curseWard：帶「詛咒免疫」的角色（閭山法師）袋裡雖然有詛咒品，pwMod 的 m-=sd.curses 不會扣它
+     （index.html 的 pwMod），所以隻數牌不能再印「詛咒纏身 N」——那會讓玩家以為自己正在被扣。
+     2026-09-07 角色平衡卷覆審 M6。純顯示，不進任何結算。 */
+  return {units,comp,curses:a.curses,curseWard:traitMax(p,"curseWard",0)>0};
 }
 function pwCompText(v){
   const t=Object.keys(PW_BODY).filter(b=>v.comp[b]).map(b=>`${PW_BODY[b].n}×${v.comp[b]}`).join("・");
-  return t+(v.curses?`${t?"・":""}詛咒纏身 ${v.curses}`:"");
+  if(!v.curses) return t;
+  return t+`${t?"・":""}${v.curseWard?`詛咒已淨化 ${v.curses}`:`詛咒纏身 ${v.curses}`}`;
 }
 /* 出手那一隻的系別（決定火星顏色）；作祟／賭注那類沒有 actor 的事件退回該側的主系 */
 function pwEvFac(f,b,views){
@@ -5821,7 +5868,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, BEAT_FAC, PW_FX, /* 陣列卷 G1／D3 測試出口 */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字） */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */

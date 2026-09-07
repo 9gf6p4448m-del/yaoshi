@@ -1,0 +1,38 @@
+{
+ "n": 2000,
+ "variants": [
+  "b"
+ ],
+ "roles": [
+  "duanshou"
+ ],
+ "aiOverride": {
+  "duanshou": {
+   "aggr": 0.8,
+   "spite": 0.4,
+   "markReact": "contest"
+  }
+ },
+ "se_pp_at_25pct": "0.968",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "duanshou",
+   "n": 2000,
+   "win": 0.1255,
+   "surv": 9.143,
+   "life": 6.1055,
+   "len": 9.143,
+   "hookCalls": {
+    "onAiValue": 58060,
+    "onAiPlan": 18284,
+    "onPowerCalc": 219638,
+    "onAiAmount": 14234
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 78321
+  }
+ ]
+}

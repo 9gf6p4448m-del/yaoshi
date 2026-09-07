@@ -17,6 +17,12 @@
      node tests/tools/role-measure.mjs --n=10000 --out=... --tag=n10000
      node tests/tools/role-measure.mjs --n=10000 --only=a --roles=shoujing
      node tests/tools/role-measure.mjs --seat2 --n=10000 --out=... --roles=shoujing,hunter,...   （M3）
+
+   --ai=<角色>:<aggr>/<spite>/<markReact>（2026-09-07 角色平衡卷加，可重複用逗號分隔）
+     載入之後、跑之前把 G.ROLES[角色].ai 換成指定值（座位 0 與 AI 席讀的是同一張表，一起換）。
+     用途＝③ 的 AI 風格掃描：aggr∈{0.3,0.45,0.6}×spite∈{0.1,0.25}×markReact∈{avoid,ignore}。
+     不給這個旗標時本檔行為與量法卷完全相同（B1 的十隻 (b) 就是不帶旗標跑的）。
+     例：node tests/tools/role-measure.mjs --n=2000 --roles=lvshan --only=b --ai=lvshan:0.3/0.1/avoid
 */
 import fs from 'fs';
 import path from 'path';
@@ -38,6 +44,19 @@ const OUT = arg('out', '');
 const TAG = arg('tag', 'n' + N);
 const ONLY = arg('only', '').split(',').filter(Boolean);
 const ROLES_ARG = arg('roles', '').split(',').filter(Boolean);
+/* --ai= 覆寫表：{roleId:{aggr,spite,markReact}}；空＝完全不動 ROLES.ai（量法卷的原行為） */
+const AI_OVERRIDE = {};
+for (const spec of arg('ai', '').split(',').filter(Boolean)) {
+  const m = spec.match(/^([A-Za-z0-9_]+):([\d.]+)\/([\d.]+)\/(\w+)$/);
+  if (!m) throw new Error('--ai= 格式應為 <角色>:<aggr>/<spite>/<markReact>，收到：' + spec);
+  AI_OVERRIDE[m[1]] = {aggr: Number(m[2]), spite: Number(m[3]), markReact: m[4]};
+}
+function applyAiOverride(G) {
+  for (const k of Object.keys(AI_OVERRIDE)) {
+    if (!G.ROLES[k]) throw new Error('--ai= 指到不存在的角色：' + k);
+    G.ROLES[k].ai = {...AI_OVERRIDE[k]};
+  }
+}
 
 /* ---- load.mjs 的 loadGame 吃絕對路徑；每個變體各一份新實例 ---- */
 const {loadGame} = await import(path.join(HERE, 'load.mjs').replace(/\\/g, '/').replace(/^/, 'file:///'));
@@ -168,6 +187,7 @@ const VARIANTS = {
 function runVariant(vk, roleId, n) {
   const V = VARIANTS[vk];
   const G = loadGame(INDEX);                     /* 每個 (變體, 角色) 各一份全新實例 */
+  applyAiOverride(G);                            /* --ai= 掃描值（沒給就什麼都不做） */
   const counters = {}, shadow = {}, eff = has('eff') ? {} : null;
   let abl = null;
   if (V.ablate) {
@@ -203,6 +223,7 @@ function runVariant(vk, roleId, n) {
    注意：座位 2 是純 AI 席，本來就吃 ROLES.ai，等同變體 b 的出價量法。 */
 function runSeat2(roleId, n) {
   const G = loadGame(INDEX);
+  applyAiOverride(G);
   const pol = makePolicyRoleAi(G);
   const pool = Object.keys(G.ROLES).filter(k => G.ROLES[k].pool);
   const others = pool.filter(k => k !== roleId);
@@ -245,6 +266,7 @@ if (AGGRS.length) {
   for (const r of roles) {
     for (const g of AGGRS) {
       const G = loadGame(INDEX);
+      applyAiOverride(G);
       const t0 = Date.now();
       const st = G.runMany({n: N, policies: {0: makePolicyFixedAi(G, g)}, picks: [r]});
       const res = {mode: 'aggrsweep', role: r, aggr: g, n: N, win: st.winRate[0], surv: st.avgSurvivalNights[0], life: st.avgFinalLife[0], ms: Date.now() - t0};
@@ -277,6 +299,6 @@ if (OUT) {
   const dir = path.isAbsolute(OUT) ? OUT : path.join(ROOT, OUT);
   fs.mkdirSync(dir, {recursive: true});
   const f = path.join(dir, `role-measure-${has('seat2') ? 'seat2-' : ''}${TAG}.json`);
-  fs.writeFileSync(f, JSON.stringify({n: N, variants, roles, se_pp_at_25pct: se(0.25).toFixed(3), rows}, null, 1), 'utf8');
+  fs.writeFileSync(f, JSON.stringify({n: N, variants, roles, aiOverride: AI_OVERRIDE, se_pp_at_25pct: se(0.25).toFixed(3), rows}, null, 1), 'utf8');
   console.log('\n寫出 ' + f);
 }
