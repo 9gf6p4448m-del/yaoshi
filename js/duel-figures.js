@@ -296,9 +296,13 @@ export function createDuelFigures(scene, camera, opts = {}) {
   // 依名冊慢慢長出來（第一次用到才 new），一場只有一尊時成本與 v0.30 相同。
   const pool = [Object.create(null), Object.create(null)];
   const slots = [[], []]; // 本場 j → figure（onDuel 時配位）
-  // 這一場每邊的名冊：[{id, body, fac, ab}]。ys:duel 沒帶 armies（＝PAPERWAR_ON 關）時
-  // 退回「每邊一尊」，長相與 v0.30 逐項相同。
+  // 這一場每邊「目前擺上場」的名冊：[{id, body, fac, ab}]，長度 ≤ 場上同時最多幾尊（見 onDuel 的 cap）。
+  // ys:duel 沒帶 armies（＝PAPERWAR_ON 關）時退回「每邊一尊」，長相與 v0.30 逐項相同。
   let roster = [[], []];
+  // 遞補上場（演出小卷，2026-09-07）：這一場名冊裡「排隊中還沒建模」的存活單位（按名冊順序）。
+  // index.html 不再把 armies 截斷到 MAXFIG 才送出來，本檔才有機會在某尊燒毀演完後，
+  // 從這裡挑下一個換上同一格位——不然場上同時擺著的尊數超過 MAXFIG 一步都跑不動（三排/四排的站位規劃只認 MAXFIG）。
+  let queue = [[], []];
   // 單位 id → { t0, custom, done }
   //   custom=true 代表這一尊的燒毀由工廠自己的 burn() 在演，本檔不插手它的透明度與位移；
   //   done=true 代表演完了，這一尊收起來不再顯示。
@@ -310,6 +314,33 @@ export function createDuelFigures(scene, camera, opts = {}) {
 
   function eachFigure(cb) {
     pool.forEach((side, i) => { for (const key in side) side[key].forEach((f) => cb(f, i)); });
+  }
+
+  /** 把一尊收回閒置池：標未占用、清掉頭像/袍子/animation 快取、燒毀狀態走它自己的 reset()（3D 妖的 dissolve
+   *  要這樣才會復原），並藏起來。onDuel 收回上一場全部尊、reinforce() 收回被遞補掉的那一尊都走這裡（防分岔）。 */
+  function resetFigure(f) {
+    f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
+    if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
+    f.group.visible = false;
+    f.shadow.visible = false;
+  }
+
+  /** 釋出某一格位目前占用的尊（若有），並把該格位清空，讓下一次 figureFor(side,j) 重新配位。 */
+  function releaseSlot(side, j) {
+    const f = slots[side][j];
+    if (f) resetFigure(f);
+    slots[side][j] = null;
+  }
+
+  /** 遞補上場（演出小卷，2026-09-07）：某一格位那一尊燒毀演完，且該側名冊裡還有排隊中的存活單位時，
+   *  把下一個換上同一格位——figureFor 照 keyOf(unit) 重新分池／視需要 new，跟其餘尊走同一條建模路徑
+   *  （材質／貼花／系色一致；GLB 沒載到走既有退路）。查無排隊單位（隊伍已經全數現身過）就什麼都不做，
+   *  這一格位從此空著；場上「可見未燒尊數」因此自然收斂到 min(該側目前存活數, cap)。 */
+  function reinforce(side, j) {
+    const q = queue[side];
+    if (!q || !q.length) return;
+    releaseSlot(side, j);
+    roster[side][j] = q.shift();
   }
 
   function figureFor(side, j) {
@@ -347,10 +378,15 @@ export function createDuelFigures(scene, camera, opts = {}) {
     // body 刻意用 bodyScale 裡沒有的鍵，倍率才會是 ×1、跟 v0.30 逐項相同
     // （寫 'elite' 會變成 ×1.15，OFF 的人形就無聲地變大一圈了）。
     const fallback = [{ id: 0, body: 'single' }];
-    roster = [0, 1].map((i) => {
+    // 場上同時最多幾尊：index.html 這一場帶了 maxFig 就用它（正式頁＝PW_FX.MAXFIG），
+    // 沒帶（例如治具手動發 ys:duel）就退回 FIG.maxFigures 這條保險絲，跟 v0.30 逐項相同。
+    const cap = Math.max(1, Math.min(FIG.maxFigures, Number(d.maxFig) || FIG.maxFigures));
+    const full = [0, 1].map((i) => {
       const a = d.armies && d.armies[i] && Array.isArray(d.armies[i].units) ? d.armies[i].units : null;
-      return (a && a.length ? a : fallback).slice(0, FIG.maxFigures);
+      return (a && a.length ? a : fallback);
     });
+    roster = full.map((list) => list.slice(0, cap));
+    queue = full.map((list) => list.slice(cap)); // 排隊中尚未建模的單位；有尊燒毀演完就從這裡遞補一個上來
     // 這一場的兩欄還沒重畫完就用上一場的座標，第一格會看到整排站錯位置
     // （實測 scratchpad/s3-01-lineup.png：八尊有一半掉出畫面左緣）。
     // 對齊成功之前一尊都不畫，對齊了才現身。
@@ -360,12 +396,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     burnState[1].clear();
     rowsFit[0] = null; rowsFit[1] = null;
     // 回收上一場：全部標閒置、收起、燒毀狀態歸零（3D 妖的 dissolve 要 reset 才會復原）
-    eachFigure((f) => {
-      f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
-      if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
-      f.group.visible = false;
-      f.shadow.visible = false;
-    });
+    eachFigure((f) => resetFigure(f));
     slots[0].length = 0;
     slots[1].length = 0;
     // 立刻配位：GLB 從現在開始載（不等第一幀），載入條對的就是這一批。
@@ -413,7 +444,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const p = Promise.resolve(fig.burn({ ms: Number(d.ms) || FIG.burnMs, body: (roster[i][j] || {}).body, seed: d.unit + 1 + i * 100 }));
         st.custom = true;
         d.handled = true;
-        d.done = p.then(() => { st.done = true; }, () => { st.done = true; });
+        // 遞補上場：這一尊自己的 burn() 演完（resolve／reject 都算演完）才真的算燒完，
+        // 這時才把排隊中的下一個單位換上同一格位——j 在這裡已經固定，不受這之後其他尊燒毀影響。
+        d.done = p.then(() => { st.done = true; reinforce(i, j); }, () => { st.done = true; reinforce(i, j); });
       } catch (err) {
         st.custom = false; // 工廠的 burn() 炸了就退回內建演出，不讓一支動畫弄壞整場
         d.handled = false;
@@ -611,7 +644,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         if (st && st.done) { f.group.visible = false; f.shadow.visible = false; continue; }
         const bt = st && !st.custom ? st.t0 : null;
         const bu = bt == null ? 0 : Math.min(1, (now - bt) / FIG.burnMs);
-        if (bt != null && bu >= 1) { st.done = true; f.group.visible = false; f.shadow.visible = false; continue; }
+        if (bt != null && bu >= 1) { st.done = true; f.group.visible = false; f.shadow.visible = false; reinforce(i, j); continue; }
         if (st && st.custom) continue; // 這一尊的位置／透明度歸工廠的 burn() 管，本檔這一幀不碰
 
         // 骨架動畫（3D 皮）：進場先站 idle；勝方在 lunge 那一下播 attack，撞完回 idle。
