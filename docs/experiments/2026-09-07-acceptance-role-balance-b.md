@@ -1,6 +1,6 @@
 # 驗收凍結檔：角色平衡 B 小卷（2026-09-07；使用者裁「照建議」）
 
-基準 SHA：待填＝角色平衡 0.47 合併後的 main。依據：`docs/experiments/2026-09-07-role-balance-report.md` §7（A–E 選項）。使用者裁定：①斷手書生：門檻已退回 4（上一卷），本卷改它的 AI 出價 hook（`onAiValue`／`onAiPlan`，量法卷量到 −7.4pp 自傷）②紅衣婆婆：記仇被動接到玩家側（現在只在 AI 側生效）③收驚婆不動 ④量法不改（座位 0＝真人座位，(b) 量法沿用）。
+基準 SHA：`2c1760e`（v0.47）。VERSION 0.50（2.0 佔 0.48、可讀性 0.49；合併時再對）。依據：`docs/experiments/2026-09-07-role-balance-report.md` §7（A–E 選項）。使用者裁定：①斷手書生：門檻已退回 4（上一卷），本卷改它的 AI 出價 hook（`onAiValue`／`onAiPlan`，量法卷量到 −7.4pp 自傷）②紅衣婆婆：記仇被動接到玩家側（現在只在 AI 側生效）③收驚婆不動 ④量法不改（座位 0＝真人座位，(b) 量法沿用）。
 
 ## 範圍
 - `index.html` `ROLES.duanshou` 的 AI hook（改法二選一：把「集齊同系」估值改成不超過 `ctx.val×1.5` 的加成、或把它從「每件都加」改成「只對能湊成套的那一件加」——擇一，理由寫報告）；`ROLES.hongyi` 記仇三 hook 的觸發點改成玩家與 AI 共用（`onBidEff`／`onBidSettle` 那條路徑），效果數值不變；規則頁 desc 若語意變才改；GAME_DESIGN 角色表、changelog、GUIDE §11.23 補一段。
