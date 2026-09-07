@@ -1,0 +1,37 @@
+{
+ "n": 2000,
+ "variants": [
+  "b"
+ ],
+ "roles": [
+  "qingmian"
+ ],
+ "aiOverride": {
+  "qingmian": {
+   "aggr": 0.3,
+   "spite": 0.4,
+   "markReact": "ignore"
+  }
+ },
+ "se_pp_at_25pct": "0.968",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "qingmian",
+   "n": 2000,
+   "win": 0.1145,
+   "surv": 8.8515,
+   "life": 5.9675,
+   "len": 8.8515,
+   "hookCalls": {
+    "onAiValue": 56143,
+    "onAiExtraBids": 16837,
+    "onBidEff": 27728
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 246968
+  }
+ ]
+}

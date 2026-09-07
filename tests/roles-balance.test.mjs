@@ -36,7 +36,7 @@ const G=loadGame(TARGET);
 const {CFG,ROLES,POOL,CURSES}=G;
 
 /* ---------- 治具 ---------- */
-/* 同系 N 件的乾淨袋子（法寶，不含詛咒品）。斷手書生的門檻是 4 件。 */
+/* 同系 N 件的乾淨袋子（法寶，不含詛咒品）。斷手書生的門檻二版起是 3 件（一版 4 件）。 */
 function bagOfFac(fac,n){ return POOL.filter(x=>x.f===fac).slice(0,n).map(x=>({...x})); }
 function cursesN(n){ return CURSES.slice(0,n).map(x=>({...x})); }
 function player(id,roleId,bag){ return {id,name:'P'+id,roleId,bag,life:CFG.LIFE,alive:true}; }
@@ -49,10 +49,10 @@ function duel(A,B,seed){
 /* ===================== ① 被動接線：斷手書生 ===================== */
 /* 舊版寫 ctx.flat+=4，只進 power()；紙紮夜戰的共鳴只讀 ctx.resonanceMul（pwResLv）
    ⇒ 舊版這兩案紅在「共鳴等級沒有比沒被動的人高」「整場對決結果一模一樣」。 */
-test('斷手書生：同系 4 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）',()=>{
+test('斷手書生：同系 3 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）',()=>{
   const fac=G.BEAT_FAC[0];
-  const bag=bagOfFac(fac,4);
-  ok(bag.length===4,`治具前提：${fac} 系至少 4 件法寶，實際 ${bag.length}`);
+  const bag=bagOfFac(fac,3);
+  ok(bag.length===3,`治具前提：${fac} 系至少 3 件法寶，實際 ${bag.length}`);
   const lvDs=G.pwResLv(player(0,'duanshou',bag),fac);
   const lvBase=G.pwResLv(player(0,'human',bag.map(x=>({...x}))),fac);
   ok(lvDs>lvBase,`斷手書生的該系共鳴等級應高於無被動者：斷手 ${lvDs}、無被動 ${lvBase}`);
@@ -66,19 +66,19 @@ test('斷手書生：同系 4 件時整場紙紮夜戰的結果真的變好（�
   ok(rDs.hpA>rBase.hpA||rDs.aliveA>rBase.aliveA,
     `斷手書生該系共鳴 ×1.5 應讓自己這側撐得更久：斷手 alive ${rDs.aliveA}/hp ${rDs.hpA}、無被動 alive ${rBase.aliveA}/hp ${rBase.hpA}`);
 });
-test('斷手書生：不足 4 件時不生效（被動不是恆真式）',()=>{
+test('斷手書生：不足 3 件時不生效（被動不是恆真式）',()=>{
   const fac=G.BEAT_FAC[0];
-  const bag=bagOfFac(fac,3);
+  const bag=bagOfFac(fac,2);
   eq(G.pwResLv(player(0,'duanshou',bag),fac),
      G.pwResLv(player(0,'human',bag.map(x=>({...x}))),fac),
-     '同系只有 3 件時，斷手書生的共鳴等級應與無被動者相同');
+     '同系只有 2 件時，斷手書生的共鳴等級應與無被動者相同');
 });
 test('斷手書生：只有達標的那一系吃到（另一系不得跟著 ×1.5）',()=>{
   const facA=G.BEAT_FAC[0], facB=G.BEAT_FAC[1];
-  const bag=bagOfFac(facA,4).concat(bagOfFac(facB,2));
+  const bag=bagOfFac(facA,4).concat(bagOfFac(facB,2));   /* facB 只有 2 件＝未達 3 件門檻 */
   eq(G.pwResLv(player(0,'duanshou',bag),facB),
      G.pwResLv(player(0,'human',bag.map(x=>({...x}))),facB),
-     '沒達標的那一系（只有 2 件）不得吃到共鳴倍率');
+     '沒達標的那一系（只有 2 件、門檻 3）不得吃到共鳴倍率');
 });
 
 /* ===================== ① 被動接線：閭山法師 ===================== */
@@ -123,8 +123,8 @@ function lifeOnTable(roleId){
   ok(p,`makeState 應把 ${roleId} 發到桌上`);
   return p.life;
 }
-test('閭山法師：起始壽命＝CFG.LIFE−2',()=>{
-  eq(lifeOnTable('lvshan'),CFG.LIFE-2,'閭山法師開局壽命');
+test('閭山法師：起始壽命＝CFG.LIFE（二版 life0d −2→0）',()=>{
+  eq(lifeOnTable('lvshan'),CFG.LIFE,'閭山法師開局壽命');
 });
 test('陰間當鋪：起始壽命＝CFG.LIFE',()=>{
   eq(lifeOnTable('dangpu'),CFG.LIFE,'陰間當鋪開局壽命');
@@ -163,6 +163,37 @@ test('紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆�
   G.applyHooks('onWinItem',{winner:a,item:{...POOL[0]},target:b,events},[a,b]);
   eq(a.life,aL,'下手者壽命不得變');
   eq(b.life,bL,'被塞的人壽命不得變');
+});
+
+/* ===================== ② 二版：陰間當鋪的典當保命值 ===================== */
+/* 一版是寫死的「保住 1 壽命」，二版改成 CFG.PAWN_KEEP=8（使用者同意）。
+   三條掛點（onBidSettle 實付、onBattle 對決傷害、onNightEnd 夜末結算）都要吃到同一個值。 */
+test('陰間當鋪：夜末結算致死時典當保住 CFG.PAWN_KEEP 壽命（不再是 1）',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=0; p.pawned=false; p.bag=[];
+  const log=[];
+  G.applyHooks('onNightEnd',{p,log},p);
+  eq(p.life,CFG.PAWN_KEEP,'夜末典當後的壽命');
+  eq(CFG.PAWN_KEEP,8,'CFG.PAWN_KEEP（二版裁定值）');
+  ok(p.bag.some(x=>x.n==='縛靈鎖'),'典當應在袋中留下縛靈鎖');
+});
+test('陰間當鋪：出價實付致死時付到剛好剩 CFG.PAWN_KEEP',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=20; p.pawned=false; p.bag=[];
+  const ctx={p,cost:25,events:[]};                 /* 25 > 20 ⇒ 這筆實付會致死 */
+  G.applyHooks('onBidSettle',ctx,p);
+  eq(ctx.cost,20-CFG.PAWN_KEEP,'典當後的實付金額');
+});
+test('陰間當鋪：典當一局只有一次（不是恆真式）',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=0; p.pawned=false; p.bag=[];
+  G.applyHooks('onNightEnd',{p,log:[]},p);
+  p.life=0;                                        /* 第二次致死：已典當過，不得再救 */
+  G.applyHooks('onNightEnd',{p,log:[]},p);
+  eq(p.life,0,'第二次致死不得再被典當救起');
 });
 
 /* ===================== ③ AI 風格：四隻的 ROLES.ai ＝掃描表最佳值 ===================== */

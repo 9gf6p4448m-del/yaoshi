@@ -751,7 +751,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    `closeup-trace.mjs`（P0 的引擎逐位元組比對）。**截圖有 250–450ms 的延遲**（輪詢＋`page.screenshot`），
    要拍「切鏡當下」得把 mark 的延遲往前挪，否則整批會拍到切鏡結束後的全景（實測踩過）。
 
-### 11.23 角色平衡卷（2026-09-07，v0.46）——接手前先知道這五件事
+### 11.23 角色平衡卷（2026-09-07，一版 v0.46 未上線／**二版 v0.47**）——接手前先知道這六件事
 
 規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-role-balance.md`（B0–B7），
 依據＝量法卷報告 `docs/experiments/2026-09-07-role-measure-report.md`，本卷報告
@@ -773,7 +773,13 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    `ai` 是治具掃出來的（`role-measure.mjs --ai=<角色>:<aggr>/<spite>/<markReact>`），**不是手填**；
    要改先跑掃描。副作用兩件：斷手 `aggr` 1.0→0.6 讓 2026-09-03 才修好的「紀律上限真的咬得到」再次失效；
    `markReact` 四隻全落在 `avoid`，全桌變成怯場 6／搶標 3／無視 1。兩件都在報告待裁。
-5. **量法固定用 `(b)`**（座位 0 吃自己的 `ROLES.ai`，治具 `tests/tools/role-measure.mjs`）。
+5. **二版（使用者裁定）改了四件，接手前對得上號**：斷手書生的被動門檻 **4→3 件**、`ai.aggr` **釘回 1.0**
+   （保住 2026-09-03「紀律上限真的咬得到」那條修正，一版掃描把它選成 0.6，對照組實測反而 −2.80pp）；
+   陰間當鋪的典當保命 **1 → `CFG.PAWN_KEEP`＝8**（`index.html` CFG 區，desc 與三條掛點的 log 都讀它，
+   **不得各寫一份**）；閭山法師 `life0d` **−2→0**。掃描格點放寬成 5×3×3 並**把各角色原值列為候選**，
+   另加約束「全桌 `markReact:"avoid"` 最多兩隻」——一版四隻全被選成 `avoid`，把 §5.8 的讀人層壓扁。
+   凍結檔的 §2.1 修訂紀錄（八條）在 `docs/experiments/2026-09-07-acceptance-role-balance.md` 末段。
+6. **量法固定用 `(b)`**（座位 0 吃自己的 `ROLES.ai`，治具 `tests/tools/role-measure.mjs`）。
    換回 `policyAiLike` 會讓角色個性完全量不到（量法卷 §0.2 已證 `policyAiLike` 把 `p.ai` 覆寫成
    寫死的 `{aggr:0.7,spite:0.15}`）。本卷閘門治具：`role-balance-b4.mjs`（引擎等價）、
    `role-balance-b3.mjs`（局長中位＋三策略位移）。
