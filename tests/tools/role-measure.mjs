@@ -47,12 +47,39 @@ const AI_HOOKS = ['onAiValue', 'onAiPlan', 'onAiAmount', 'onAiCurse', 'onAiExtra
 
 function hookNames(G, roleId) { return Object.keys(G.ROLES[roleId].hooks || {}); }
 
-/* 把角色的 hooks 換成「計數包裝版」：呼叫原函式，行為完全不變，只多一個計數器。 */
-function instrument(G, roleId, counters) {
+/* 把角色的 hooks 換成「計數包裝版」：呼叫原函式，行為完全不變，只多一個計數器。
+   eff 有給時另記「這一次呼叫真的改到 ctx 了沒」——hook 被呼叫 ≠ 被動生效
+   （斷手書生的 onPowerCalc 每次算戰力都被呼叫，但只有同系 ≥4 件時才真的 +4）。
+   判準＝ctx 的**淺層** own property（數字／布林／字串，陣列比長度）有沒有變。
+   淺層比不到的（改 ctx.p.life 這種巢狀寫入）會低估，逐 hook 的已知漏網寫在報告。 */
+function snapCtx(ctx) {
+  const s = {};
+  if (!ctx || typeof ctx !== 'object') return s;
+  for (const k of Object.keys(ctx)) {
+    const v = ctx[k];
+    if (v === null || ['number', 'boolean', 'string', 'undefined'].includes(typeof v)) s[k] = v;
+    else if (Array.isArray(v)) s['#' + k] = v.length;
+  }
+  return s;
+}
+function diffCtx(a, b) {
+  const ks = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of ks) if (a[k] !== b[k]) return true;
+  return false;
+}
+function instrument(G, roleId, counters, eff) {
   const R = G.ROLES[roleId], orig = R.hooks || {}, wrapped = {};
   for (const n of Object.keys(orig)) {
     const f = orig[n];
-    wrapped[n] = function (ctx) { counters[n] = (counters[n] || 0) + 1; return f.call(this, ctx); };
+    wrapped[n] = eff
+      ? function (ctx) {
+          counters[n] = (counters[n] || 0) + 1;
+          const before = snapCtx(ctx);
+          const r = f.call(this, ctx);
+          if (diffCtx(before, snapCtx(ctx))) eff[n] = (eff[n] || 0) + 1;
+          return r;
+        }
+      : function (ctx) { counters[n] = (counters[n] || 0) + 1; return f.call(this, ctx); };
   }
   R.hooks = wrapped;
 }
@@ -65,8 +92,10 @@ function ablate(G, roleId, opt) {
   const keepAi = !!opt.keepAiHooks;
   const kept = {}, dropped = [];
   for (const n of names) {
-    if (keepAi && AI_HOOKS.includes(n)) kept[n] = R.hooks[n];
-    else dropped.push(n);
+    const isAi = AI_HOOKS.includes(n);
+    /* onlyAiHooks＝只清 AI 風格 hook、玩家被動全留（c3）；keepAiHooks＝反過來（c2）；兩者都不給＝全清 */
+    const drop = opt.onlyAiHooks ? isAi : (keepAi ? !isAi : true);
+    if (drop) dropped.push(n); else kept[n] = R.hooks[n];
   }
   R.hooks = kept;                                /* 影子計數 hook 由 installShadow 在 instrument 之後才裝，
                                                     免得 hookCalls（實觸發）把空殼也算進去 */
@@ -118,28 +147,37 @@ const VARIANTS = {
   cL: {policy: 'roleAi', ablate: {keepLife0d: true,  keepAiHooks: false},      desc: '風格＋被動關（保留 life0d）'},
   dL: {policy: 'aiLike', ablate: {keepLife0d: true,  keepAiHooks: false},      desc: '基準＋被動關（保留 life0d）'},
   c2: {policy: 'roleAi', ablate: {keepLife0d: true,  keepAiHooks: true},       desc: '風格＋只關玩家被動（留 AI hook、留 life0d）'},
+  /* bm＝(b)＋座位 0 也照 AI 的方式「盯上」一件。policyAiLike 與 policyRoleAi 都沒有 .mark，
+     policyMarks 會把座位 0 的 mark 設成 null ⇒ 座位 0 從來不盯，但三個 AI 席每夜都盯。
+     這是座位 0 特有的量法缺口（MARK_OWN +2 拿不到、markReact 的 contest 也少一個對象），
+     跟 M3 的座位效應是同一件事的兩面，所以另立一欄量它。 */
+  bm: {policy: 'roleAi', ablate: null, mark: true,                             desc: '風格＋座位 0 也盯上（補 policyMarks 缺口）'},
+  /* c3＝(b) 只關 AI 風格 hook（保留玩家被動＋life0d），是 c2 的互補。
+     b／c2／c3／cL／c 五個一起才能把「玩家被動／AI 風格 hook／起始壽命」三項拆乾淨。 */
+  c3: {policy: 'roleAi', ablate: {keepLife0d: true, keepAiHooks: false, onlyAiHooks: true}, desc: '風格＋只關 AI 風格 hook'},
 };
 
 function runVariant(vk, roleId, n) {
   const V = VARIANTS[vk];
   const G = loadGame(INDEX);                     /* 每個 (變體, 角色) 各一份全新實例 */
-  const counters = {}, shadow = {};
+  const counters = {}, shadow = {}, eff = has('eff') ? {} : null;
   let abl = null;
   if (V.ablate) {
     abl = ablate(G, roleId, V.ablate);
-    instrument(G, roleId, counters);             /* 只包住「還留著的」hook（c2 的 AI hook） */
+    instrument(G, roleId, counters, eff);        /* 只包住「還留著的」hook（c2／c3 保留的那些） */
     installShadow(G, roleId, abl.dropped, shadow);
   } else {
-    instrument(G, roleId, counters);
+    instrument(G, roleId, counters, eff);
   }
-  const pol = V.policy === 'aiLike' ? makePolicyAiLike(G) : makePolicyRoleAi(G);
+  let pol = V.policy === 'aiLike' ? makePolicyAiLike(G) : makePolicyRoleAi(G);
+  if (V.mark) { const base = pol; pol = p => base(p); pol.mark = p => G.aiMark(p); }
   const t0 = Date.now();
   const st = G.runMany({n, policies: {0: pol}, picks: [roleId]});
   return {
     variant: vk, role: roleId, n,
     win: st.winRate[0], surv: st.avgSurvivalNights[0], life: st.avgFinalLife[0],
     len: st.avgGameLength,
-    hookCalls: counters, shadowCalls: shadow, ablated: abl,
+    hookCalls: counters, hookEffective: eff, shadowCalls: shadow, ablated: abl,
     ms: Date.now() - t0,
   };
 }
@@ -167,12 +205,17 @@ function runSeat2(roleId, n) {
      所以這裡逐種子分組跑（同一個 picks 的種子合成一批），再把 winRate[2] 加權平均。 */
   const byPick = {};
   for (const sd of seeds) { const y = others[sd % others.length]; (byPick[y] = byPick[y] || []).push(sd); }
-  let win2 = 0, tot = 0;
+  const seatWin = [0, 0, 0, 0];
+  let len = 0, surv2 = 0, life2 = 0, tot = 0;
   for (const y of Object.keys(byPick)) {
     const st = G.runMany({seeds: byPick[y], policies: {0: pol}, picks: [y]});
-    win2 += st.winRate[2] * st.games; tot += st.games;
+    st.winRate.forEach((w, i) => { seatWin[i] += w * st.games; });
+    len += st.avgGameLength * st.games; surv2 += st.avgSurvivalNights[2] * st.games;
+    life2 += st.avgFinalLife[2] * st.games; tot += st.games;
   }
-  return {role: roleId, seat: 2, n: tot, win: tot ? win2 / tot : 0, scanned, ms: Date.now() - t0};
+  return {mode: 'seat2', role: roleId, seat: 2, n: tot, win: tot ? seatWin[2] / tot : 0,
+    seatWin: seatWin.map(w => tot ? w / tot : 0), avgGameLength: tot ? len / tot : 0,
+    surv: tot ? surv2 / tot : 0, life: tot ? life2 / tot : 0, scanned, ms: Date.now() - t0};
 }
 
 /* =============== main =============== */
@@ -199,7 +242,7 @@ if (AGGRS.length) {
   for (const r of roles) {
     const res = runSeat2(r, N);
     rows.push(res);
-    console.log(`[seat2] ${r}\t勝率 ${(res.win * 100).toFixed(2)}%\tn=${res.n}\t掃描 ${res.scanned} 種子\t(${res.ms}ms)`);
+    console.log(`[seat2] ${r}\t座位2勝率 ${(res.win * 100).toFixed(2)}%\t存活 ${res.surv.toFixed(2)}\t終壽 ${res.life.toFixed(2)}\t局長 ${res.avgGameLength.toFixed(2)}\t四席勝率 ${res.seatWin.map(w => (w * 100).toFixed(2)).join('/')}\tn=${res.n}\t掃描 ${res.scanned}\t(${res.ms}ms)`);
   }
 } else {
   for (const r of roles) {
@@ -210,6 +253,7 @@ if (AGGRS.length) {
       const sc = Object.entries(res.shadowCalls).map(([k, n2]) => `${k}=${n2}`).join(' ') || '（無）';
       console.log(`${r}\t${v}\t勝率 ${(res.win * 100).toFixed(2)}%\t存活 ${res.surv.toFixed(2)}\t終壽 ${res.life.toFixed(2)}\t(${res.ms}ms)`);
       console.log(`    hook 實觸發: ${hc}`);
+      if (res.hookEffective) console.log(`    其中真的改到 ctx（被動生效）: ${Object.entries(res.hookEffective).map(([k, n2]) => `${k}=${n2}`).join(' ') || '（無）'}`);
       if (res.ablated) console.log(`    影子觸發(已清空的 hook 呼叫點): ${sc}`);
     }
   }

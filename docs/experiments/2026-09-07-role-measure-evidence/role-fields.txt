@@ -1,0 +1,34 @@
+human      fields=id,name,av,ai,lines,hooks
+   玩家被動hook: （無） | AI風格hook: （無）
+   life0d=0 traits=null flags=null order=(預設100) ai=null
+qingmian   fields=id,name,av,pool,desc,ai,hooks,lines
+   玩家被動hook: onBidEff | AI風格hook: onAiValue,onAiExtraBids
+   life0d=0 traits=null flags=null order=(預設100) ai={"aggr":0.85,"spite":0.25,"markReact":"contest"}
+hongyi     fields=id,name,av,pool,desc,ai,hooks,lines
+   玩家被動hook: onBidSettle,onWinItem,onBattle,onNightEnd | AI風格hook: onAiCurse,onAiValue
+   life0d=0 traits=null flags=null order=(預設100) ai={"aggr":0.6,"spite":0.6,"markReact":"contest"}
+duanshou   fields=id,name,av,pool,desc,ai,hooks,lines
+   玩家被動hook: onPowerCalc | AI風格hook: onAiValue,onAiPlan,onAiAmount
+   life0d=0 traits=null flags=null order=(預設100) ai={"aggr":1,"spite":0.4,"markReact":"ignore"}
+shoujing   fields=id,name,av,life0d,pool,desc,ai,hooks,lines
+   玩家被動hook: onNightEnd | AI風格hook: onAiPlan
+   life0d=-6 traits=null flags=null order=(預設100) ai={"aggr":0.3,"spite":0.1,"markReact":"avoid"}
+hunter     fields=id,name,av,pool,desc,ai,hooks,lines
+   玩家被動hook: onBattle | AI風格hook: onAiValue
+   life0d=0 traits=null flags=null order=(預設100) ai={"aggr":0.85,"spite":0.5,"markReact":"contest"}
+xiaonv     fields=id,name,av,life0d,pool,desc,ai,hooks,lines
+   玩家被動hook: onBidSettle | AI風格hook: onAiExtraBids
+   life0d=-4 traits=null flags=null order=(預設100) ai={"aggr":0.55,"spite":0.5,"markReact":"avoid"}
+lvshan     fields=id,name,av,life0d,pool,desc,ai,hooks,lines
+   玩家被動hook: onItemValue,onBidSettle | AI風格hook: onAiCurse
+   life0d=-8 traits=null flags=null order=(預設100) ai={"aggr":0.5,"spite":0.2,"markReact":"ignore"}
+zutou      fields=id,name,av,pool,desc,ai,hooks,lines
+   玩家被動hook: onBidCap,onWinItem,onNightEnd | AI風格hook: onAiPlan,onAiAmount
+   life0d=0 traits=null flags=null order=(預設100) ai={"aggr":0.65,"spite":0.3,"markReact":"contest"}
+dangpu     fields=id,name,av,life0d,pool,order,desc,ai,hooks,lines
+   玩家被動hook: onBudget,onBidSettle,onBattle,onNightEnd | AI風格hook: onAiAmount
+   life0d=-4 traits=null flags=null order=95 ai={"aggr":0.8,"spite":0.4,"markReact":"avoid"}
+luzhu      fields=id,name,av,life0d,pool,desc,ai,hooks,lines
+   玩家被動hook: onReveal,onNightEnd | AI風格hook: onAiCurse
+   life0d=2 traits=null flags=null order=(預設100) ai={"aggr":0.6,"spite":0.15,"markReact":"ignore"}
+CFG.LIFE= 50 MARK_ON= true PAPERWAR_ON= true LEGEND_ON= false RULE_ON= true EVENT_ON= true WISH_ON= true PW_RES_MODE= 1
