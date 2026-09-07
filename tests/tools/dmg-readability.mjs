@@ -171,7 +171,7 @@ const HARNESS = `(() => {
     const m = (cs.color.match(/[\\d.]+/g) || []).map(Number);
     return { seq: +(el.dataset.mseq || 0), cls: el.className, kind: el.dataset.kind || '', side: el.dataset.side, unit: +el.dataset.unit,
       text: el.textContent, mode: el.dataset.mode, color: [m[0], m[1], m[2]], font: parseFloat(cs.fontSize),
-      rect: { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom } };
+      op: parseFloat(cs.opacity), rect: { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom } };
   });
   M.domNow = () => ({
     floats: document.querySelectorAll('.dmgfloat').length,
@@ -527,6 +527,7 @@ async function runPix(browser) {
   fs.mkdirSync(shotDir, { recursive: true });
   let nshot = 0;
   let runId = 0;
+  const seenFloat = new Set();
 
   const pump = async (pg) => {
     for (let guard = 0; guard < 6; guard++) {
@@ -537,17 +538,25 @@ async function runPix(browser) {
       await pg.screenshot({ path: file }).catch(() => {});
       let im = null;
       try { im = decodePng(fs.readFileSync(file)); } catch (e) { im = null; }
-      if (r.tag === 'float' && im) {
+      // 每一張凍幀都順便量畫面上的跳字（不限 tag）：閃紅的凍幀一樣看得到跳字，
+      // 不順便量的話 R1 的樣本會被 R2 的凍幀排擠掉（實測一整場只剩 5 筆）。
+      // 只量**已經完全顯示**的（opacity ≥ 0.8）：跳字有 120ms 的彈出與尾段淡出，
+      // 半透明那幾幀本來就該淡，拿去判對比度是量錯東西。
+      if (im) {
         const fl = await pg.evaluate(() => window.__dmg.floatsNow()).catch(() => []);
         for (const f of fl) {
+          if (!f.seq || seenFloat.has(f.seq)) continue;
           if (!f.rect || f.rect.x1 <= f.rect.x0) continue;
+          if (!(f.op >= 0.8)) continue;
           const ring = ringAvg(im, f.rect, 8);
           if (!ring) continue;
-          samples.floats.push({ seq: f.seq, cls: f.cls, kind: f.kind, text: f.text, font: f.font, mode: f.mode,
+          seenFloat.add(f.seq);
+          samples.floats.push({ seq: f.seq, cls: f.cls, kind: f.kind, text: f.text, font: f.font, mode: f.mode, op: f.op,
             color: f.color, ring: ring.rgb.map((x) => +x.toFixed(1)), n: ring.n,
             ratio: +contrast(f.color, ring.rgb).toFixed(2), file: path.basename(file) });
         }
-      } else if ((r.tag === 'flash' || r.tag === 'skip') && im) {
+      }
+      if ((r.tag === 'flash' || r.tag === 'skip') && im) {
         const boxes = await pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined || m.control === null ? null : window.__dmg.figBox(m.ctrlSide || m.side, m.control) }), r.meta).catch(() => null);
         const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, on: r.on, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
           t: num(boxes && boxes.t ? redness(im, boxes.t) : null),
