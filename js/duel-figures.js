@@ -85,6 +85,7 @@ const FIG = {
   hitFlashHold: 0.6, // 滿幅撐到 ms 的六成才開始收——不撐的話「命中後 40ms」那一格只剩六成，看起來像沒閃
   hitFlashRim: 2.6, // 閃紅期間邊光倍率再乘多少（k=1 時 ×3.6）
   hitFlashTint: 1.0, // 傳給工廠 setHitTint 的強度上限（工廠自己決定怎麼染）
+  hitFlashPaper: 0.85, // 貼片人形本體往紅乘多少（k=1 時）——只染逆光層的話正面幾乎看不出來（三版覆審實測 +3.3）
   // ── 演出可讀性小卷（2026-09-05 晚）：n≥3 的列陣分排、整排夾在「桌緣以內、中線以外」──
   // 實測 8v8 一排排到 r 2.5 踩桌緣剪影、兩側在中央交錯 1.57 個單位把 VS 蓋掉（凍結檔 R-1/R-2 基準表）。
   // 排法：n=3 一排三尊；n≥4 每排兩尊（4→2 排、5–6→3 排、7–8→4 排）。欄位中心只有 0.9～1.1 個單位、腳印半徑
@@ -286,13 +287,18 @@ export function makeLayeredFigure() {
     setCloth(hex) { bodyMats.forEach((b) => { b.mat.color.setHex(hex).multiplyScalar(b.tint); }); },
     /** 逆光亮度（受擊瞬間爆一下，bloom 才抓得到） */
     setRim(op) { rimMats.forEach((m) => { m.opacity = op; }); },
-    /** 【批 2-a】被打那一瞬間把逆光層染紅（k 0→1）。用的是既有那兩顆材質的 color，
-     *  不新建材質、不動 blending，k 回到 0 就寫回燈籠色。 */
+    /** 【批 2-a】被打那一瞬間染紅（k 0→1）。用的是既有材質的 color，不新建材質、不動 blending。
+     *  三版覆審實測：只染逆光層的話，貼片人形的剪影紅偏量只有 +3.3（3D 妖是 +77）——
+     *  逆光層在本體後面、只露出一圈光暈，正面幾乎看不出來。所以本體那四層也一起往紅乘
+     *  （跟 3D 皮動 albedo 是同一招）：k 回到 0 時每一層都寫回自己那一層的原色。 */
     setHitTint(k) {
       const q = Math.max(0, Math.min(1, k || 0));
       if (hitTintK === q) return;
+      // 由 0 進入閃紅的那一下，先把當下的顏色記起來（setCloth 換過袍子色也吃得到）
+      if (hitTintK === 0 && q > 0) bodyMats.forEach((b) => { b.base = b.mat.color.clone(); });
       hitTintK = q;
       rimMats.forEach((m) => { m.color.copy(RIM_C).lerp(HIT_C, q); });
+      bodyMats.forEach((b) => { if (!b.base) return; b.mat.color.copy(b.base); if (q > 0) b.mat.color.lerp(HIT_C, q * FIG.hitFlashPaper); });
     },
     /** 素材還沒到就別冒出一團色塊 */
     ready() { return hasPortrait; },
