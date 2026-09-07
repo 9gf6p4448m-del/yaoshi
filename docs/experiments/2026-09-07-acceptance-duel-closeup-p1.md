@@ -15,3 +15,20 @@
 - **P9 範圍**：`git diff --stat 4051dd1` 只含 `index.html`（pwPlayBeat 派事件、HUD DOM／CSS、跳字、PW_FX 旗標、VERSION）、`js/camera-director.js`（FOCUS 層）、`js/duel-figures.js`（focusState 退暗）、新治具、`docs/GAME_DESIGN.md` changelog 一行、`docs/IMPLEMENTATION_GUIDE.md` 新一節、本檔、證據目錄；既有 6 套測試＋`lineup-order`／`duel-desync` 綠；`ash-freeze-probe.mjs` 綠。
 
 什麼實作會讓 P0 紅：把 HUD 直接寫進 `pwArenaHTML` 而不看旗標。什麼實作會讓 P3 紅：一次性 `setFigureOpacity` 被主迴圈每幀蓋掉、或把燒毀中的尊復原成 1。
+
+## §2.1 修訂紀錄（2026-09-07，實作後）
+
+凍結檔一經訂定即凍結（`~/docs/harness/02-dispatch-rules.md` §2.1）。本節是**唯一一筆**修訂，程序照該節：
+先寫明原標準錯在哪、為什麼現在才知道，再取得使用者對這一條的明確同意。
+
+- **改的是哪一條**：P8 的「另 390×844 直式 2 張（HUD 不溢出、`.pwgauge`／`#beatLamps` 可見）」。
+- **原標準錯在哪**：它假設「對決在直式手機上看得到」。實際上產品在 `orientation:portrait` 會蓋一整片
+  `#rotateHint`「請把手機轉橫進入妖市」（`index.html:39`／`:454`，v0.x 就有的設計），連點擊都擋掉——
+  直式根本沒有對決畫面可拍，這一條在任何實作下都不可能通過（不是實作沒做到）。
+- **為什麼現在才知道**：訂條件時只從「手機玩家、直式」推，沒有回頭查產品現行的直式行為；
+  實跑 Playwright 拍直式那一輪被 `#rotateHint` 擋住點擊、逾時失敗，才碰到。
+- **改成什麼**：直式兩張改為「把 `#rotateHint` 蓋板停用後拍」，只驗一件事——**HUD 在 390 寬的窄畫面
+  會不會溢出**（`#duel` 的 `scrollHeight ≤ clientHeight`）。這兩張**不是玩家會看到的畫面**，
+  檔名與 `shots-portrait.json` 的 note 都要標明。橫式那 ≥8 張不受影響，門檻一字未動。
+- **同意**：2026-09-07 使用者裁**甲＝接受這個口徑**（由主對話轉述；沿革：實作方在一版報告 §3 第 1 點
+  列了甲／乙／丙三個選項請裁）。乙（批 2 讓對決支援直式）留給後續卷，不在本卷範圍。

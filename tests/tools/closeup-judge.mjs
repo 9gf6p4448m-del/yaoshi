@@ -4,6 +4,7 @@
 //        [--cancel=<cancel.json>] [--skipfocus=<skipfocus.json>]
 //   --cancel     closeup-drive --cancel 的產物：P2 的「cancel 後 300ms 內回 4.2±0.05」
 //   --skipfocus  closeup-drive --skipfocus 的產物：P2 同一條在真實 doSkip 上的複驗＋P4 的「跳過後 0 個殘留」
+//   --camunit    closeup-cam-unit.mjs 的產物：hit 類切鏡的曲線形狀（真實路徑上與 punch 分不開，見該檔檔頭）
 import fs from 'node:fs';
 
 const args = process.argv.slice(2);
@@ -36,6 +37,7 @@ const off = opt.off ? rd(opt.off) : null;
 const base = opt.base ? rd(opt.base) : null;
 const cancel = opt.cancel ? rd(opt.cancel) : null;
 const skipf = opt.skipfocus ? rd(opt.skipfocus) : null;
+const camunit = opt.camunit ? rd(opt.camunit) : null; // closeup-cam-unit.mjs 的決定性曲線（P2 的 hit 類形狀）
 
 // ── P0 退路等價（雙向）────────────────────────────────────────────────────
 if (off && base) {
@@ -162,10 +164,14 @@ if (off && base) {
     hitMonoJudgable: hitMono.length,
     punchRebuildResid: resid.length ? { n: resid.length, p50: +resid[Math.floor(resid.length / 2)].toFixed(4), p95: +resid[Math.floor(resid.length * 0.95)].toFixed(4), max: +resid[resid.length - 1].toFixed(4) } : null,
     rows: rows.slice(0, 40),
+    // monoCorr（扣 punch 的重建版）**只揭露不判**：它的自檢過不了（見 punchRebuildResid），
+    // 依 02 §6.1 第 4 條，取不到可信路徑的重建不得拿來否證或放行。
+    // hit 類的曲線形狀改由 closeup-cam-unit.mjs 的決定性環境負責（U1/U2/U3），這裡把它的結果併進來。
+    camUnit: camunit ? camunit.res : null,
     PASS: rows.length > 0 && rows.every((r) => r.deepOk)
-      && mq.every((r) => r.monoQuietOk) && mc.every((r) => r.monoCorrOk)
-      && hitMono.length >= 2
-      && judged.length > 0 && judged.every((r) => r.backOk) };
+      && mq.length > 0 && mq.every((r) => r.monoQuietOk)
+      && judged.length > 0 && judged.every((r) => r.backOk)
+      && !!camunit && camunit.res.PASS === true };
   const backAfter = (d) => {
     const S = (d.cu.skips || []).filter((x) => x.rel === 300);
     return { at300: S.map((x) => (x.l === null ? null : +x.l.toFixed(3))),
@@ -183,7 +189,10 @@ if (off && base) {
     const foci = d.cu.focus.filter((x) => x.kind !== 'base');
     for (let i = 0; i < foci.length; i++) {
       const fo = foci[i];
-      const nextT = foci[i + 1] ? foci[i + 1].t : Infinity;
+      // 這一次切鏡的有效期到「下一次切鏡」或「被提前收掉」為止（v0.45 二版：招式會派 ys:fx-focus-end、
+      // 跳過會派 ys:fx-trait-cancel）。之後的抽樣量到的是回位中的值，不該拿去判「有沒有退暗」。
+      const endEv = (d.cu.ev || []).find((e) => (e.n === 'ys:fx-focus-end' || e.n === 'ys:fx-trait-cancel') && e.t > fo.t);
+      const nextT = Math.min(foci[i + 1] ? foci[i + 1].t : Infinity, endEv ? endEv.t : Infinity);
       for (const s of fo.samples) {
         const burning = (side, unit) => EV.some((e) => e.n === 'ys:fx-burn' && e.side === side && e.unit === unit && s.t >= e.t - 20 && s.t <= e.t + PW.BURN_MS + 260);
         const after = s.dt > fo.ms; // 回全景之後的那一筆
@@ -280,8 +289,12 @@ if (off && base) {
         const dy = Math.max(r.box.y0 - r.cy, 0, r.cy - r.box.y1);
         const dist = Math.hypot(dx, dy);
         if (dist <= 80) posOk++; else bad.push({ f, why: 'pos-box', dist: +dist.toFixed(1), text: r.text, box: r.box, cx: r.cx, cy: r.cy });
-        // 旁證：跳字底下要是 3D 舞台的 canvas，不是壓在某塊 DOM 面板上
-        if (r.under && !/^CANVAS/.test(r.under)) bad.push({ f, why: 'under', under: r.under, text: r.text });
+        // 旁證（與投影算式無關）：跳字底下要嘛是 3D 舞台的 canvas，要嘛是**目標那一側**的欄位容器。
+        // #duel 是整片覆蓋層、#dL/#dR 是左右兩欄的透明容器，所以「落在對面那一欄」才是真的擺錯邊。
+        const wantCol = r.side === 'B' ? 'DIV#dR' : 'DIV#dL';
+        const okUnder = !r.under || /^CANVAS/.test(r.under) || r.under === 'DIV#duel' || r.under === wantCol
+          || r.under === 'DIV#duelArena' || r.under === 'DIV#dmgLayer';
+        if (!okUnder) bad.push({ f, why: 'under', under: r.under, want: wantCol, side: r.side, text: r.text });
       } else if (r.mode === 'badge' && r.badge) {
         posN++;
         const dist = Math.hypot(r.cx - r.badge.x, r.cy - r.badge.y);

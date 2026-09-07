@@ -34,7 +34,7 @@ const REC = `(() => {
   const C = window.__cu = { frames: [], focus: [], dmg: [], hud: [], cards: [], dom: [], duels: [], skips: [], ev: [], cancels: [] };
   // P2 的 dist 曲線要把 punch（命中／燒毀，420ms）那幾幀排掉：punch 疊在同一條 dist 上，
   // 而近景的觸發筆本身就會叫 fxPunch（cam-drive.mjs 的 busy() 是同一個作法）。
-  for (const n of ['ys:fx-punch', 'ys:fx-burn', 'ys:hitstop', 'ys:fx-trait', 'ys:duel', 'ys:duel-end', 'ys:fx-focus'])
+  for (const n of ['ys:fx-punch', 'ys:fx-burn', 'ys:hitstop', 'ys:fx-trait', 'ys:duel', 'ys:duel-end', 'ys:fx-focus', 'ys:fx-focus-end', 'ys:fx-trait-cancel'])
     document.addEventListener(n, ((nm) => (e) => { const d = (e && e.detail) || {};
       const row = { n: nm, t: performance.now(), ms: d.ms, side: d.side, kind: d.kind, unit: d.unit, power: d.power };
       C.ev.push(row);

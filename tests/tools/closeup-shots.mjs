@@ -85,7 +85,9 @@ try {
     }).catch(() => []);
     for (const d0 of due) {
       const name = d0.name;
-      const file = path.join(outdir, (portrait ? 'p-' : '') + name + '.png');
+      // 直式檔名一律帶 no-rotate-guard：這不是玩家會看到的畫面（蓋板被治具停用），
+      // 檔名就要講清楚，別讓人拿去當「產品直式長這樣」的證據（凍結檔 §2.1 修訂）
+      const file = path.join(outdir, (portrait ? 'p-norotate-' : '') + name + '.png');
       const c0 = Date.now();
       await page.screenshot({ path: file }).catch(() => {});
       const capMs = Date.now() - c0;
@@ -116,6 +118,7 @@ try {
     }
   } });
   const note = await page.evaluate(() => (window.__marks || {}).note || {});
+  if (portrait) note.caveat = '#rotateHint（請轉橫蓋板）已由治具停用，這不是產品的直式畫面；只用來看 HUD 會不會溢出（凍結檔 §2.1 修訂）';
   await browser.close();
   fs.writeFileSync(path.join(outdir, portrait ? 'shots-portrait.json' : 'shots.json'), JSON.stringify({ url, portrait, note, shots, errors: r.errors }, null, 1));
   console.log(JSON.stringify({ outdir, n: shots.length, units: note.units, errors: r.errors.length }));

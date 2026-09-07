@@ -79,11 +79,11 @@ def main():
         d.text((x + 2, yy + ch + 24), sub, font=f_s, fill=(160, 152, 176))
 
     y2 = y + rows * (ch + cap_h + gap)
-    d.text((pad, y2 - 6), "390×844 直式（產品在直式本來會蓋「請轉橫」提示，這兩張是把蓋板關掉拍的，只為看 HUD 會不會溢出）",
+    d.text((pad, y2 - 6), "390×844 直式・非產品畫面（#rotateHint「請轉橫」蓋板已由治具停用，只為看 HUD 會不會溢出；凍結檔 §2.1 修訂）",
            font=f_c, fill=(240, 216, 160))
     px = pad
     for name in ["01-lineup", "04-focus-hold"]:
-        s = pinfo.get("p-" + name) or pinfo.get(name)
+        s = pinfo.get("p-norotate-" + name) or pinfo.get("p-" + name) or pinfo.get(name)
         if not s or not os.path.exists(s["file"]):
             continue
         im = Image.open(s["file"]).convert("RGB").resize((pw, ph))

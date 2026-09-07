@@ -1,5 +1,8 @@
 # 對決「近景切鏡」卷 批 1 原型——實作報告（2026-09-07，v0.45）
 
+> **二版（冷讀對抗審查修補）**：§5 是逐條三態與證據；§1 的 P0–P7 數字已用二版程式重跑並就地更新，
+> §2 的連拍與 contact sheet 也重拍過。一版的原始判讀留在 git 歷史（commit `affdb69`）。
+
 規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二　驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9，**未動一個字**）
 基準＝`4051dd1`（v0.43.3；本卷起點 `c5128fb` 只多兩份文件，`index.html` 與 `4051dd1` 相同）
 
@@ -133,3 +136,49 @@ $ git diff --stat 4051dd1
 3. **DOM 半邊在切鏡時淡出／或改成貼在人形旁的浮動標籤**（接 §3.6）。
 4. **勝負結算演出**：現在切鏡把注意力拉到交鋒上，反而讓結尾那行字更顯得平。
 5. **數值全部【試玩必調】**：`FOCUS_DMG 3`（切太頻繁的話往上調）、`FOCUS_PER_BEAT 2`、`FOCUS_MS 650`、`FOCUS_DIST 2.6`、`FOCUS_DIM 0.35`。手機上會不會暈，只有真機試玩答得出來。
+
+---
+
+## 5. 二版：冷讀對抗審查的逐條處置（2026-09-07）
+
+分支同 `feat/duel-closeup-p1`。三態＝真的修好／表面修好／沒修到。
+
+| # | 項目 | 三態 | 證據 |
+|---|---|---|---|
+| HIGH-1 | 人形端 `endFocusEv`／`focusEnvelope` 少了 `focusFall` | **真的修好** | 先建訊號再修：`closeup-drive` 在 `ys:fx-trait-cancel` 當下與 +80/+160/+300ms 取逐尊材質 opacity，`closeup-judge` P3 加「300ms 內回原值＋期間不得更暗」。**修復前**（`--cancel` 探針）B0／B1 在 dt 0/80/160 全是 0.36、dt300 只回到 **0.80** → P3=FAIL（`cancel-not-restored` 0/2）；**修復後** 0.36 → 0.48 → 0.96 → **1.00**，P3=PASS（back 4/4、deeper 0）。另在決定性治具上以「拿掉 focusFall 的壞版本」複驗：`backAfterEnd/backAfterCancel = 0.0611 > 0.05` 變紅，修好的版本 = 0 |
+| MEDIUM-1 | P4 位置量法循環論證（治具重抄 `pwScreenOf`） | **真的修好** | 改量「跳字中心 → 那一尊的畫面方框」：方框由**世界包圍盒八角投影＋canvas `getBoundingClientRect`**算（與被測邏輯的局部座標／0.9×scale／innerWidth 不同路），另加 `elementFromPoint` 旁證「跳字落在目標那一側的欄位或舞台」。「每筆演出交鋒＝一個跳字」由只印改成硬斷言：**54 = 54**。量不到方框的記 `unmeasured` 不當通過（本輪 0 筆）。實測 54/54 在門檻內、`under` 0 違規 |
+| MEDIUM-2 | P2 單調子句零鑑別力（hit 類 3/6 次 quiet=0） | **真的修好（改走替代路徑，原提議法被自檢否掉）** | ① 靜幀版加前提 `quiet≥8`，不足標 `null`：本輪 **16/16** 可判且全過（全是 burn 類），hit 類只有 1 次可判 ② 提議的「扣掉 punch 解析包絡」照做並附自檢——**非 focus 期間扣完應回 4.2，實測殘差 p50 0.054／p95 1.00**，重建不可信（renderer 夾 dt＋hitstop 歸零，導演內部時鐘與牆鐘對不起來），依 `02 §6.1` 第 4 條**只揭露不判** ③ hit 類的曲線形狀改由新治具 `closeup-cam-unit.mjs`（同一支 director、固定 dt、虛擬時鐘、只派 focus 不派 punch）驗：U1 最低 2.600、反轉 0、870ms 回 4.2 誤差 0；U2（focus-end）／U3（cancel）回位誤差 0。該治具對「拿掉 focusFall」的壞版本會紅（見 HIGH-1） |
+| MEDIUM-3 | 招式被退暗蓋掉（focus 窗內接 trait） | **真的修好** | 招式那一筆先派**新事件** `ys:fx-focus-end`（`index.html:4709`），`camera-director`／`duel-figures` 各自提前收（220ms 回位段）。不用 `ys:fx-trait-cancel` 是因為它還會清 orbit／lean、中斷 trait-fx 編舞。證據：決定性治具 U2 = focus-end 後回 4.2 誤差 0；真實路徑上招式接手後的抽樣量到 op 0.94（正在回原值）。關掉近景時一個事件都不派 → P0 仍逐欄相同 |
+| MEDIUM-4 | `pwActorCard` 直接 `FAC[fac].n[0]` 會炸 | **真的修好（防禦性，沒有能重現的種子）** | 改 `const fm=FAC[fac]; fm?fm.n[0]:"肉"`，`fac-${fac}` class 也只在 `fm` 存在時加。要踩到得同時「有法寶名、fac 卻查不到」（`pwEvFac` 會回 `"lantern"`），六個種子沒撞到，所以**沒有修復前的紅燈**，只有程式碼與 P7 全程 0 error |
+| 傳說出手卡（3/3 錯名） | `ab`／`m` 反查撞名 | **真的修好** | 名字改由資料帶：`pwArmyView` 依 bag 順序對位取 `x.n`（並核 `ab` 相符才採用）掛在單位上，`pwItemOf` 直接讀，反查表 `AB_ITEM` 刪除。實測（`.claude/tmp/namecheck.mjs`）：只有殘日→「殘日」；射日神弓＋殘日→「射日神弓」「殘日」；詛咒品夾在中間仍正確；空袋兜底隊→空字串 |
+| L-1 | focus 記錄改吃 `?fxcount=1` | **真的修好** | 新增 `FX_COUNT_ON`（與 `window.__ysFxCount` 同一支旗標），`PW_FOCUS_LOG`／`PW_BEAT_LOG` 只在它為真時建 |
+| L-2 | focus 期間 dist 下限 | **真的修好** | `FOCUS_FLOOR = 1.6`，`update()` 內 `focusK>0` 時用它，並註明理由（近景 2.6＋punch 1.2 也才 1.4，撞到 0.6 只可能是別處算爛了） |
+| L-3 | HUD 三件加 SKIP 守衛 | **真的修好（一處取捨要講）** | `pwLamps`／`pwActorCard`／`pwGauge` 都加了 `||SKIP`。取捨：`pwGauge` 被擋掉之後，按跳過的那幾百毫秒內若還有紙紮被燒，隻數牌會減、量表停在最後一次的值（下一場 `pwArenaHTML` 重建就恢復）。照審查指示照做，但這一點記在案 |
+| L-4 | `pwCloseupClear()` 清三拍燈 | **真的修好** | 清場時把 `#beatLamps` 每顆燈的 class 清空 |
+| P8 直式 | 凍結檔 §2.1 修訂 | **真的修好** | 凍結檔補了修訂紀錄（原標準錯在哪、為什麼現在才知道、使用者裁甲）；直式截圖改名 `p-norotate-*.png`、`shots-portrait.json` 加 `caveat`、contact sheet 的那一行圖說改成「非產品畫面」 |
+
+### 二版重跑（全部用二版程式）
+
+| 條 | 結果 | 關鍵數字 |
+|---|---|---|
+| P0 | ✅ | `closeup-trace` identical=true（332,125 字元）；`?closeup=0` 對 seeds 1–3 各跑完整一局（14／14／20 場），七欄與 `fights[]` 與 `4051dd1` 逐欄相同；DOM 四樣皆無；開啟時 `FXC.focus>0` |
+| P1 | ✅ | 18 場、每拍 ≤2、規則重算逐筆相同；hit-focus 5 場／burn-focus 14 場 |
+| P2 | ✅ | 21 次切鏡 deepOk 21/21、回位 16/16 誤差 0、`monoQuiet` 16/16（判準：quiet≥8）、cancel／doSkip +300ms 皆 4.200；決定性治具 U1/U2/U3 全過；`monoCorr` 0/21 **只揭露不判**（重建自檢殘差 p95 1.00） |
+| P3 | ✅ | 配角 96 筆最大 0.36、主角 keptMin 1.00、回全景後 38 筆全回原值、燒毀中 burnRise 0；**中斷後**：2 次抽樣、deeper 0、back 4/4 |
+| P4 | ✅ | 54 個跳字＝54 筆演出交鋒（硬斷言）、同時最多 4、移除 54/54、位置 54/54（方框量法）、`under` 0 違規、跳過後 0 殘留 |
+| P5 | ✅ | 燈 54／量表 17／卡 19，bad 0 |
+| P6 | ✅ | **同一 session 交錯**跑（新／基準各 4 次，`--n=10 --uncap`）：新 {89.3, 83.3, 91.7, 91.7} 中位 **90.5**；基準 {92.6, 91.7, 96.2, 92.6} 中位 **92.6** → 比值 **0.977 ≥ 0.9**。注意整台機器這一輪比一版那一輪慢（基準自己從 111 掉到 92.6），所以只有交錯樣本可比、跨 session 的絕對值不可比 |
+| P7 | ✅ | `duel-drive --duels=6` 開／關各一次 0 error；另 10 支治具 0 error |
+| P8 | ✅（依 §2.1 修訂後的口徑） | 橫式 10 張重拍、contact sheet 重產；直式改名並標註非產品畫面 |
+| P9 | ✅ | 既有 8 套測試全綠、`ash-freeze-probe` F1/F6 綠（141 段） |
+
+### 二版新增／修改的檔案
+
+- `js/duel-figures.js:388,405,414,420` `focusFall`；`:561` 接 `ys:fx-focus-end`
+- `js/camera-director.js:98` `FOCUS_FLOOR`；`:406` 接 `ys:fx-focus-end`；`:471` focus 期間的 dist 下限
+- `index.html:4709` 招式先派 `ys:fx-focus-end`；`:4650` 出手卡 FAC 防禦；`pwArmyView` 對位帶法寶名；
+  `FX_COUNT_ON`；`pwLamps`／`pwGauge`／`pwActorCard` 的 SKIP 守衛；`pwCloseupClear` 清燈
+- `tests/tools/closeup-drive.mjs`（cancel 抽樣、方框量法、`under` 旁證、多錄兩個事件）、
+  `closeup-judge.mjs`（P3 中斷子句與歸屬、P4 硬斷言、P2 分母與重建自檢、併入決定性治具）、
+  `closeup-cam-unit.mjs`（**新**）、`closeup-shots.mjs`／`closeup-sheet.py`（直式標註）
+- `docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md` §2.1 修訂紀錄（P8 直式，使用者裁甲）
