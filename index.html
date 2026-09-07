@@ -4728,8 +4728,19 @@ function pwBurnOne(b){
 let PW_FOCUS_LOG=null;  /* 這一場的 focus 記錄（?fxcount=1 才留；凍結檔 P1 對的就是它） */
 let PW_BEAT_LOG=null;   /* 這一場逐拍「實際演出的那幾筆」，P1 的規則驗證要拿它當分母 */
 let PW_CARD_T=0;        /* 出手卡的收起計時器（同時只有一張＝同一個元素、同一個計時器） */
-let pwMySide=null;      /* 這一場哪一側是己方（南家＝席位 id 0）；兩邊都不是就 null（AI 對 AI 的旁觀場） */
+/* 這一場哪幾側是「真人的」：熱座（S.mode==="hotseat"）兩位真人對打時**兩側都算**，各自被打各自閃。
+   判準是座位的 ai 旗標（!p.ai＝真人），不是席位 id——寫死 id 0 的話熱座的玩家二一輩子看不到紅暈（覆審 MEDIUM-4）。 */
+let pwMySides=[];
+/** 這一側是不是真人的（給紅暈用）。測試出口：pwHumanSides(fA,fB)。 */
+function pwHumanSides(A,B){
+  const isHuman=p=>!!p&&!p.ai;
+  const out=[];
+  if(isHuman(A)) out.push("A");
+  if(isHuman(B)) out.push("B");
+  return out;
+}
 const PW_DMG_POOL=[];   /* 跳字 DOM 的重用池（不新建材質、不新建無上限的節點；上限 MAX_HITS） */
+let PW_FLOAT_GEN=0;     /* 跳字的世代戳記：節點被池重用之後，舊那一輪的 done 就不該再動它 */
 
 function pwCloseup(){ return !!PW_FX.CLOSEUP_ON; }
 /* 每一場對決開場時把三個容器建起來（關閉時連建都不建＝DOM 查不到，P0）。 */
@@ -4797,9 +4808,11 @@ const pwFoe=s=>(s==="B"?"A":"B");
 function pwDmgFloat(b,fac,killed){
   if(!pwCloseup()||SKIP) return;
   const tside=b.kind==="burn"?b.side:pwFoe(b.side);
+  /* .heal（治療綠）目前是**死碼**：引擎的 pwRec 沒有 kind:"heal"，回血在拍首直接改 hp、不進 beats，
+     所以這個分支一次都不會成立（報告 §3 已揭露）。真的要接回血事件時，這裡的文字也要從「−n」翻成「+n」。 */
   const cls=((b.killed||killed)?" kill":"")+((b.amount|0)<0||b.kind==="heal"?" heal":"");
   pwFloat(tside,b.target,`−${Math.abs(b.amount|0)}`,cls,fac,0,b.kind);
-  if(tside===pwMySide) pwHurtEdge(); /* 己方（南家）被打：整框邊緣閃一圈紅暈 */
+  if(pwMySides.indexOf(tside)>=0) pwHurtEdge(); /* 真人那一側被打：整框邊緣閃一圈紅暈 */
 }
 /* 燒毀那一筆的「−1 隻」小字：走同一個池、同一個上限，位置往下讓開，不跟傷害數字重疊（R4）。 */
 function pwUnitFloat(b){
@@ -4811,19 +4824,27 @@ function pwUnitFloat(b){
 function pwFloat(side,unit,text,cls,fac,dy,kind){
   const layer=$("dmgLayer"); if(!layer) return;
   const pos=pwScreenOf(side,unit); if(!pos) return;
-  while(layer.childElementCount>=PW_FX.MAX_HITS){
-    const old=layer.firstElementChild; if(!old) break;
+  /* 兩種跳字各有各的配額：合用一個 MAX_HITS 的話，同一拍多隻燒毀時「−1 隻」會把傷害數字（含擊殺）擠掉，
+     使用者反而看不到扣了幾點（覆審 LOW）。淘汰時只淘汰同一類最舊的那一個。 */
+  const unitCls=/(^|\s)unit(\s|$)/.test(cls||"");
+  const sel=unitCls?".dmgfloat.unit":".dmgfloat:not(.unit)";
+  let guard=0;
+  while(layer.querySelectorAll(sel).length>=PW_FX.MAX_HITS&&guard++<PW_FX.MAX_HITS+2){
+    const old=layer.querySelector(sel); if(!old) break;
     try{ old.getAnimations().forEach(a=>a.cancel()); }catch(e){}
     old.remove(); PW_DMG_POOL.push(old);
   }
   const el=PW_DMG_POOL.pop()||document.createElement("div");
+  /* 世代戳記：同一個節點會被池重用，舊那一輪的 done（WAAPI onfinish 與保險絲各一支）
+     若在重用之後才跑，會把「正在演的這一個」remove 掉、還會把同一個節點 push 進池兩次（覆審 LOW）。 */
+  const gen=++PW_FLOAT_GEN; el.__gen=gen;
   el.className="dmgfloat"+(cls||"")+(fac?` fac-${fac}`:"");
   el.textContent=text;
   el.style.left=Math.round(pos.x)+"px"; el.style.top=Math.round(pos.y+(dy||0))+"px";
   el.dataset.side=side; el.dataset.unit=String(unit); el.dataset.mode=pos.mode; el.dataset.kind=kind||"";
   layer.appendChild(el);
   FXC.dmgFloat++;
-  const done=()=>{ if(el.parentNode){ el.remove(); if(PW_DMG_POOL.length<PW_FX.MAX_HITS) PW_DMG_POOL.push(el); } };
+  const done=()=>{ if(el.__gen!==gen) return; if(el.parentNode){ el.remove(); if(PW_DMG_POOL.indexOf(el)<0&&PW_DMG_POOL.length<PW_FX.MAX_HITS*2) PW_DMG_POOL.push(el); } };
   try{
     /* 先彈（1.3→1.0，DMG_POP_MS）再上飄淡出：彈那一下讓眼睛抓得到「這裡剛剛掉血」 */
     const pop=Math.max(.05,Math.min(.6,PW_FX.DMG_POP_MS/PW_FX.DMG_MS));
@@ -4873,10 +4894,15 @@ function pwGaugeGhost(g,was,now){
   const from=Math.max(parseFloat(gh.dataset.from)||was,was);
   gh.dataset.from=String(from);
   gh.style.left=now+"%"; gh.style.width=Math.max(0,from-now)+"%"; gh.style.opacity="1";
-  /* 兩個計時器同時排（不串接）：串接的話兩段的延遲會累加，重幀時整條殘影會拖過 GAUGE_GHOST_MS+100（R3）。 */
+  /* 兩個計時器同時排（不串接）：串接的話兩段的延遲會累加，重幀時整條殘影會拖過 GAUGE_GHOST_MS+100（R3）。
+     收合那一下由 transitionend 直接收掉（不必等第二個計時器），計時器只當保險絲——
+     覆審在單瀏覽器就量到 412ms，離 GAUGE_GHOST_MS+100=400ms 的餘裕只剩 40ms，全靠計時器排隊太脆。 */
   clearTimeout(+gh.dataset.t2||0);
-  gh.dataset.t=String(setTimeout(()=>{ gh.style.width="0%"; gh.style.opacity="0"; },PW_FX.GAUGE_GHOST_MS));
-  gh.dataset.t2=String(setTimeout(()=>{ gh.remove(); },PW_FX.GAUGE_GHOST_MS+60));
+  gh.dataset.t=String(setTimeout(()=>{
+    gh.addEventListener("transitionend",()=>{ gh.remove(); },{once:true});
+    gh.style.width="0%"; gh.style.opacity="0";
+  },PW_FX.GAUGE_GHOST_MS));
+  gh.dataset.t2=String(setTimeout(()=>{ gh.remove(); },PW_FX.GAUGE_GHOST_MS+30));
 }
 /* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
 function pwActorCard(side,item,fac){
@@ -4969,7 +4995,8 @@ async function pwPlayBeat(f,beat,list,views){
       }
       /* 批 2-a：被打的那一尊閃紅（3D 邊光倍率＋紅 tint，貼片走逆光層；燒毀中的尊不閃、SKIP 不派）。
          target 在**對面**那一側（pwRec 的 side 是行動方，見 pwDmgFloat 上方的註解）。 */
-      if(pwCloseup()&&!SKIP) fx3d("ys:fx-hit",{side:foeSide,unit:b.target,ms:PW_FX.HIT_FLASH_MS});
+      /* 只有真的扣到血才閃（amount 0 的交鋒——例如被護法擋光——不該讓那一尊亮起來）。 */
+      if(pwCloseup()&&!SKIP&&(b.amount|0)>0) fx3d("ys:fx-hit",{side:foeSide,unit:b.target,ms:PW_FX.HIT_FLASH_MS});
       if(stops<PW_FX.HITSTOP_PER_BEAT&&b.amount>=PW_FX.HITSTOP_DMG){ stops++; await fxHitstop(); }
       fxPunch(pw);
       fxImpact(null,evFac,pw);
@@ -5000,7 +5027,7 @@ async function playDuelWar(f,views){
   PW_FOCUS_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   PW_BEAT_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   $("duel").classList.add("pw");
-  pwMySide=f.A.id===0?"A":(f.B.id===0?"B":null); /* 批 2-a：己方受擊才閃邊緣紅暈（DIRS[0]＝南＝玩家） */
+  pwMySides=pwHumanSides(f.A,f.B); /* 批 2-a：真人那一側被打才閃邊緣紅暈（熱座兩人對打＝兩側都閃） */
   pwCloseupMount(); /* HUD 三件的容器（關掉時連建都不建） */
   $("duelArena").innerHTML=pwArenaHTML(f,views);
   $("duelBeat").innerHTML=""; pwMoveCap(null);
@@ -5892,6 +5919,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字） */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
+  pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */

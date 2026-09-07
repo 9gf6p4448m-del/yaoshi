@@ -655,7 +655,9 @@ export function makeCreatureFigure(opts = {}) {
       if (hitK > 0) m.color.copy(m.__baseCol).lerp(HIT_ALB, Math.min(1, hitK * HIT.alb));
       else m.color.copy(m.__baseCol);
     });
-    // 反轉外殼描邊也跟著轉紅：那一圈是整尊的輪廓，紅起來「被打到的是這一尊」在擠堆場面才分得出來
+    // 反轉外殼描邊也跟著轉紅：那一圈是整尊的輪廓，紅起來「被打到的是這一尊」在擠堆場面才分得出來。
+    // **這條 uniform 目前只有閃紅在寫**（`outlineColorOf` 只在建材質時決定一次，之後沒人改它）——
+    // 之後若有別的效果也要染描邊，兩邊都得改成「疊加」而不是各自 copy，否則後寫的會蓋掉先寫的（覆審 LOW）。
     if (shellU) {
       if (!shellBase) shellBase = shellU.uOutlineColor.value.clone();
       if (hitK > 0) shellU.uOutlineColor.value.copy(shellBase).lerp(HIT_C, Math.min(1, hitK * HIT.outline));
