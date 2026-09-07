@@ -2,7 +2,7 @@
 // 用法：node tests/tools/legend-drive.mjs <out.json> [--port=8841] [--seeds=1,2,3,4,5,6] [--root=<靜態根目錄>]
 //                                          [--shots=<png 前綴>] [--legend=0] [--burn=0]
 //   --burn=0  真人整局不燒香（要走到「天亮回天」得留一座龕沒被請走）
-//   --legend=0  關掉整個請神機制（量橫向溢出的對照組）
+//   --legend=0  關掉整個請神機制（量橫向溢出的對照組）；不帶 --legend＝完全不帶 query，走 CFG 預設（v0.44 起＝開）
 // 做的事：自起 http.server，用真的瀏覽器把一整局玩完（真人座位每夜燒滿香），錄下
 //   ① console error／pageerror／requestfailed
 //   ② 是不是真的走到「請走」與「天亮回天」各至少一次
@@ -67,8 +67,8 @@ const main = async () => {
     // 開場三卡（showIntro）把 #mainbtn 停用、只認自己那顆按鈕，會把驅動卡在第 1 夜；
     // 直接把「看過了」的旗標寫進 localStorage，走的是產品自己的 introSeen() 路徑。
     await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
-    // --legend=none：完全不帶 ?legend，走 CFG 的預設（2026-09-07 起是 false）——驗「預設關的一整局」
-    const q = opt.legend === 'none' ? '' : `?legend=${opt.legend === '0' ? 0 : 1}`;
+    // v0.44 起 CFG.LEGEND_ON 預設 true：不帶 --legend 就完全不帶 query，走產品自己的預設（凍結檔 A0-b）
+    const q = opt.legend === undefined ? '' : `?legend=${opt.legend === '0' ? 0 : 1}`;
     await page.goto(`http://127.0.0.1:${PORT}/index.html${q}`, { waitUntil: 'load' });
     rec.legendOn = await page.evaluate(`(() => CFG.LEGEND_ON)()`);
     rec.shrineEl = await page.evaluate(`(() => !!document.getElementById('shrines'))()`);
@@ -175,7 +175,7 @@ const main = async () => {
     rec.portraitAt = await page.evaluate(`(() => (document.getElementById('mainbtn')||{}).textContent`+`)()`);
     // ── 覆審 M1：熱座交棒時，上一位的密封燒香列不得留在 DOM ──
     // 熱座才有交棒畫面（solo 不會叫 showHandoff），所以另開一局 hotseat 走到「蓋牌，交給下一位」那一下。
-    if (opt.legend !== '0' && opt.legend !== 'none') {
+    if (opt.legend !== '0') {
       await page.evaluate(`(() => { CFG.T = 1;
         const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
         window.__yaoshi.newGame('hotseat', 5, ['qingmian', 'hongyi']); })()`);
