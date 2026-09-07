@@ -7,8 +7,15 @@
 //   ① 場景 → 全解析度 RT   ② 亮部萃取（半解析度）   ③ 兩趟分離式高斯模糊   ④ 合成輸出
 // UnrealBloom 是 5 層 mip × 2 趟＝10 趟模糊；這支只有 2×2 趟，手機上便宜得多。
 //
-// 色彩空間：非 XR 的 render target 在 three r158 一律拿到線性值，所以最後一步要自己
-// 做 linear→sRGB（外加一個溫和的 ACES 曲線，免得燈籠加了 bloom 之後直接過曝成白斑）。
+// 色彩空間（美術甲卷 v0.46 改）：非 XR 的 render target 在 three r158 一律拿到**線性、未做色調
+// 映射**的值——three 只在「畫到畫布」那一趟才注入 tonemapping／colorspace。所以場景畫進 sceneRT
+// 那一趟不會被映射，亮部萃取與模糊都在線性 HDR 上做（正確的順序）；最後合成那一趟才是畫到畫布的，
+// 由 three 注入同一組 chunk 收尾。v0.45 之前這裡是自己手刻一段 ACES＋sRGB，於是牌桌（不走 bloom）
+// 完全沒有映射、對決（走 bloom）走的是另一條曲線，兩個場景對不起來；現在兩條路共用
+// renderer.toneMapping／toneMappingExposure 那一組設定，這個檔案裡不再有任何手刻的映射。
+// 代價：合成這一趟必須是 ShaderMaterial（RawShaderMaterial 不吃 three 的注入）。SwiftShader 上
+// ShaderMaterial 會連結失敗——但 renderer.js 的 bloomOK 在軟體 GL 上根本不呼叫 bloom.render()，
+// 這支 program 因此不會被編譯；bright／blur 兩支維持 RawShaderMaterial 不動。
 //
 // 深度邊緣線（後處理卷 P-3，2026-09-06）：`sceneRT` 另掛一張 DepthTexture，合成那一趟
 // 順手用 3×3 的深度鄰域做邊緣偵測，在妖與桌上物件的輪廓／摺線疊一條近黑的細線。
@@ -72,7 +79,8 @@ void main(){
 }`;
 
 // 合成＋深度邊緣線。uEdge=0 時整段邊緣程式碼一行都不執行（uniform 分支），
-// 輸出就是原本那一行 `toSRGB(aces(col))`——`?edge=0` 與 v0.34 逐位元組相同靠的是這件事。
+// 輸出就是「場景＋bloom」經 three 注入的 tonemapping／colorspace 收尾的那一個值——
+// `?edge=0` 與同版本開關開啟版逐位元組相同靠的是這件事。
 //
 // 為什麼判準用「反深度（1/z）的二階殘差」而不是直接拿 Sobel 的一階梯度當門檻：
 // 一階梯度在**斜面**上本來就大（遠處桌面幾乎跟視線平行，一格就跳好幾公分），拿它當門檻
@@ -83,8 +91,13 @@ void main(){
 // 法線那一路：把 9 個深度樣本反投影回視空間座標，在四個象限角各算一顆法線（不必多取樣），
 // 再對兩條對角做 Roberts。平面上四顆法線一樣 → 0，摺線上才有值。
 // 兩條判準取 max（深度差 **或** 法線差成立就畫線）＝規格的「雙門檻」。
+// 合成這一趟是 ShaderMaterial（不是 Raw）：three 會補上 precision、position／uv 的 attribute
+// 宣告與 tonemapping／colorspace 的 chunk，所以底下不得再自己宣告 precision 與那兩個 attribute。
+const COMP_VERT = `
+varying vec2 vUv;
+void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+
 const COMPOSITE = `
-precision highp float;
 uniform sampler2D tScene; uniform sampler2D tBloom; uniform sampler2D tDepth;
 uniform float strength; uniform float uEdge;
 uniform vec2 uOff;       // 一步的 uv 位移（＝EDGE.widthPx 個 CSS 像素）
@@ -94,12 +107,6 @@ uniform vec3 uLineColor;
 uniform vec4 uThresh;    // (深度 lo, 深度 hi, 法線 lo, 法線 hi)
 uniform vec3 uEdgeCfg;   // (maxDepth, sobelW, silRel＝外輪廓相對深度跳變門檻)
 varying vec2 vUv;
-vec3 aces(vec3 x){
-  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
-}
-vec3 toSRGB(vec3 c){
-  return mix(1.055 * pow(max(c, vec3(0.0)), vec3(0.4166667)) - 0.055, c * 12.92, step(c, vec3(0.0031308)));
-}
 // 視窗深度 → 線性深度（沿 −Z 的正距離）
 float linz(vec2 uv){
   float z = texture2D(tDepth, uv).x * 2.0 - 1.0;
@@ -108,7 +115,11 @@ float linz(vec2 uv){
 vec3 vpos(vec2 uv, float z){ return vec3((uv * 2.0 - 1.0) * uHalfTan * z, -z); }
 void main(){
   vec3 col = texture2D(tScene, vUv).rgb + texture2D(tBloom, vUv).rgb * strength;
-  vec3 outc = toSRGB(aces(col));
+  gl_FragColor = vec4(col, 1.0);
+  // 色調映射與 sRGB 由 three 依 renderer.toneMapping／outputColorSpace 注入（美術甲卷 v0.46）。
+  // 邊緣線刻意疊在這兩個 chunk **之後**：EDGE.color 是「螢幕上的那個 hex」，不該再被曲線壓一次。
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
   if (uEdge > 0.5) {
     float z11 = linz(vUv);
     if (z11 <= uEdgeCfg.x) {
@@ -140,10 +151,9 @@ void main(){
       float zmin = min(min(min(z00, z10), min(z20, z01)), min(min(z21, z02), min(z12, z22)));
       float jump = max(zmax - z11, z11 - zmin) / z11;
       float inner = 1.0 - step(uEdgeCfg.z, jump);
-      outc = mix(outc, uLineColor, max(dEdge, nEdge) * inner);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, uLineColor, max(dEdge, nEdge) * inner);
     }
   }
-  gl_FragColor = vec4(outc, 1.0);
 }`;
 
 function quadScene(material) {
@@ -192,7 +202,7 @@ export function createBloom(renderer, opts = {}) {
     uniforms: { tDiffuse: { value: null }, dir: { value: new THREE.Vector2() } },
     vertexShader: VERT, fragmentShader: BLUR, depthTest: false, depthWrite: false,
   });
-  const mComp = new THREE.RawShaderMaterial({
+  const mComp = new THREE.ShaderMaterial({
     uniforms: {
       tScene: { value: sceneRT.texture }, tBloom: { value: rtA.texture }, strength: { value: cfg.strength },
       tDepth: { value: depthTex }, uEdge: { value: 0 },
@@ -204,7 +214,7 @@ export function createBloom(renderer, opts = {}) {
       uThresh: { value: new THREE.Vector4(EDGE.depthLo, EDGE.depthHi, EDGE.normLo, EDGE.normHi) },
       uEdgeCfg: { value: new THREE.Vector3(EDGE.maxDepth, EDGE.sobelW, EDGE.silRel) },
     },
-    vertexShader: VERT, fragmentShader: COMPOSITE, depthTest: false, depthWrite: false,
+    vertexShader: COMP_VERT, fragmentShader: COMPOSITE, depthTest: false, depthWrite: false,
   });
   const sBright = quadScene(mBright);
   const sBlur = quadScene(mBlur);
