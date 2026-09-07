@@ -907,7 +907,7 @@ const ROLES = {
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
   /* 專精型：局初暗中鎖定一系，平時紀律（不追高、每夜只標一件），湊得到第 4 件就破戒梭哈 */
   duanshou:{id:"duanshou",name:"斷手書生",av:"📜",pool:true,
-    desc:"專精流。被動：集齊同系第 3 件法寶起，該系共鳴等級 ×1.5。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
+    desc:"專精流。被動：集齊同系第 2 件法寶起，該系共鳴等級 ×1.5。AI 時暗中鎖定一系、絕不追高、湊第 4 件破戒梭哈",
     /* aggr 0.7→1.0（2026-09-03 使用者裁定，ARCH_SPEC §9 待辦 3）：
        「紀律」＝算出真實價值但絕不溢價。aggr=0.7 時預設出價本來就低於上限 ×0.9，
        上限永遠碰不到（實測只有 0.23% 的出價被壓低、總額只壓 0.03%），紀律形同虛設。
@@ -916,16 +916,18 @@ const ROLES = {
        且對照組實測反而 −2.80pp ⇒ 使用者裁定 **aggr 釘回 1.0**，只讓掃描決定 spite。 */
     ai:{aggr:1.0,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；不得手填 */
     hooks:{
-      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥3 件（詛咒品不計）該系共鳴等級 ×1.5。
-         門檻 4→3 是 2026-09-07 角色平衡卷二版加的（使用者同意，凍結檔 §2.1 有記）：
-         一版接線修好之後這隻仍 11.57%，湊滿 4 件太難、被動幾乎摸不到。
+      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥2 件（詛咒品不計）該系共鳴等級 ×1.5。
+         門檻 4→3（二版）→3→2（二版 B1 第二輪，凍結檔 §2.1 第 8 條允許的「各一級」）：
+         一版接線修好之後仍 11.57%、門檻 3 的第一輪仍 15.52%，湊件數太難、被動幾乎摸不到。
+         ★設計上要知道★：CFG.SET_MIN 就是 2，所以門檻 2＝「凡是有共鳴的那一系都 ×1.5」，
+         「集齊同系第 N 件」這個專精流的識別度到此為止；這一項列在報告待裁。
          2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；PAPERWAR_ON 預設開之後 power()
          已不決定勝負（index.html 註解「power() 只留給 UI 當行情顯示」），紙紮夜戰的共鳴只讀
          ctx.resonanceMul（pwResLv），所以這個被動改接到 resonanceMul 才真的生效。
          ctx.fac 有值＝pwResLv 的逐系呼叫，只有達標的那一系吃到；沒有 fac＝power()，任一系達標即生效。 */
       onPowerCalc(ctx){
-        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=3) ctx.resonanceMul*=1.5; return; }
-        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=3){ ctx.resonanceMul*=1.5; break; } }
+        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=2) ctx.resonanceMul*=1.5; return; }
+        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=2){ ctx.resonanceMul*=1.5; break; } }
       },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
@@ -1028,8 +1030,8 @@ const ROLES = {
   /* 免疫型（GAME_DESIGN 六之三 A）：詛咒品戰力視為 0（drain 照舊），獨力買銷詛咒品半價。
      規格的「囤詛咒品當肉盾」在現行引擎裡沒有「留在袋中」這條路（買下＝銷毀），
      故 AI 收祟＝一律買下銷毀（ARCH_SPEC §8.5 的字面實作 intent='keep'）。 */
-  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",pool:true, /* life0d −8→−2（一版）→0（二版，使用者同意）：量法卷實測 1.08pp／點，−8 是這隻 −18.4pp 整包淨值裡最大的一塊；欄位省略＝起始壽命 CFG.LIFE */
-    desc:"免疫流。被動：袋中詛咒品在紙紮夜戰不造成「詛咒纏身」減益、戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
+  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:2,pool:true, /* life0d −8→−2（一版）→0（二版）→+2（二版 B1 第二輪，凍結檔 §2.1 第 8 條允許的「各一級」）：量法卷實測 1.08pp／點，−8 是這隻 −18.4pp 整包淨值裡最大的一塊 */
+    desc:"免疫流（起始 52）。被動：袋中詛咒品在紙紮夜戰不造成「詛咒纏身」減益、戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
     ai:{aggr:0.8,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；不得手填 */
     /* 2026-09-07 角色平衡卷：「袋中詛咒品戰力視為 0」原本只寫在 onItemValue（＝只進 power()），
        而紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數，與 power() 無關）⇒ 免疫在現行對決引擎裡

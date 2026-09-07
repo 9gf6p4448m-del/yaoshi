@@ -36,7 +36,7 @@ const G=loadGame(TARGET);
 const {CFG,ROLES,POOL,CURSES}=G;
 
 /* ---------- 治具 ---------- */
-/* 同系 N 件的乾淨袋子（法寶，不含詛咒品）。斷手書生的門檻二版起是 3 件（一版 4 件）。 */
+/* 同系 N 件的乾淨袋子（法寶，不含詛咒品）。斷手書生的門檻：一版 4 件→二版 3 件→二版第二輪 2 件。 */
 function bagOfFac(fac,n){ return POOL.filter(x=>x.f===fac).slice(0,n).map(x=>({...x})); }
 function cursesN(n){ return CURSES.slice(0,n).map(x=>({...x})); }
 function player(id,roleId,bag){ return {id,name:'P'+id,roleId,bag,life:CFG.LIFE,alive:true}; }
@@ -49,10 +49,10 @@ function duel(A,B,seed){
 /* ===================== ① 被動接線：斷手書生 ===================== */
 /* 舊版寫 ctx.flat+=4，只進 power()；紙紮夜戰的共鳴只讀 ctx.resonanceMul（pwResLv）
    ⇒ 舊版這兩案紅在「共鳴等級沒有比沒被動的人高」「整場對決結果一模一樣」。 */
-test('斷手書生：同系 3 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）',()=>{
+test('斷手書生：同系 2 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）',()=>{
   const fac=G.BEAT_FAC[0];
-  const bag=bagOfFac(fac,3);
-  ok(bag.length===3,`治具前提：${fac} 系至少 3 件法寶，實際 ${bag.length}`);
+  const bag=bagOfFac(fac,2);
+  ok(bag.length===2,`治具前提：${fac} 系至少 2 件法寶，實際 ${bag.length}`);
   const lvDs=G.pwResLv(player(0,'duanshou',bag),fac);
   const lvBase=G.pwResLv(player(0,'human',bag.map(x=>({...x}))),fac);
   ok(lvDs>lvBase,`斷手書生的該系共鳴等級應高於無被動者：斷手 ${lvDs}、無被動 ${lvBase}`);
@@ -66,19 +66,19 @@ test('斷手書生：同系 4 件時整場紙紮夜戰的結果真的變好（�
   ok(rDs.hpA>rBase.hpA||rDs.aliveA>rBase.aliveA,
     `斷手書生該系共鳴 ×1.5 應讓自己這側撐得更久：斷手 alive ${rDs.aliveA}/hp ${rDs.hpA}、無被動 alive ${rBase.aliveA}/hp ${rBase.hpA}`);
 });
-test('斷手書生：不足 3 件時不生效（被動不是恆真式）',()=>{
+test('斷手書生：不足 2 件時不生效（被動不是恆真式）',()=>{
   const fac=G.BEAT_FAC[0];
-  const bag=bagOfFac(fac,2);
+  const bag=bagOfFac(fac,1);
   eq(G.pwResLv(player(0,'duanshou',bag),fac),
      G.pwResLv(player(0,'human',bag.map(x=>({...x}))),fac),
-     '同系只有 2 件時，斷手書生的共鳴等級應與無被動者相同');
+     '同系只有 1 件時（未達 CFG.SET_MIN），斷手書生的共鳴等級應與無被動者相同');
 });
 test('斷手書生：只有達標的那一系吃到（另一系不得跟著 ×1.5）',()=>{
   const facA=G.BEAT_FAC[0], facB=G.BEAT_FAC[1];
-  const bag=bagOfFac(facA,4).concat(bagOfFac(facB,2));   /* facB 只有 2 件＝未達 3 件門檻 */
+  const bag=bagOfFac(facA,4).concat(bagOfFac(facB,1));   /* facB 只有 1 件＝未達 2 件門檻 */
   eq(G.pwResLv(player(0,'duanshou',bag),facB),
      G.pwResLv(player(0,'human',bag.map(x=>({...x}))),facB),
-     '沒達標的那一系（只有 2 件、門檻 3）不得吃到共鳴倍率');
+     '沒達標的那一系（只有 1 件、門檻 2）不得吃到共鳴倍率');
 });
 
 /* ===================== ① 被動接線：閭山法師 ===================== */
@@ -123,8 +123,8 @@ function lifeOnTable(roleId){
   ok(p,`makeState 應把 ${roleId} 發到桌上`);
   return p.life;
 }
-test('閭山法師：起始壽命＝CFG.LIFE（二版 life0d −2→0）',()=>{
-  eq(lifeOnTable('lvshan'),CFG.LIFE,'閭山法師開局壽命');
+test('閭山法師：起始壽命＝CFG.LIFE+2（二版第二輪 life0d 0→+2）',()=>{
+  eq(lifeOnTable('lvshan'),CFG.LIFE+2,'閭山法師開局壽命');
 });
 test('陰間當鋪：起始壽命＝CFG.LIFE',()=>{
   eq(lifeOnTable('dangpu'),CFG.LIFE,'陰間當鋪開局壽命');

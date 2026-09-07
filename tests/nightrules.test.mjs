@@ -98,13 +98,17 @@ test('保命例外不被規則覆寫：黃色小雨衣落標仍只付買路錢�
   eq(S.players[0].life,40-G.CFG.BID_FEE,'有雨衣者的壽命（只付買路錢）');
   eq(S.players[2].life,40-(8+G.CFG.BID_FEE),'同注但沒有雨衣者的壽命（落標全付）');
 });
-test('保命例外不被規則覆寫：陰間當鋪在落魄夜被逼到典當，保住 1 壽命＋縛靈鎖',()=>{
+/* 2026-09-07 角色平衡卷二版：典當保命值由寫死的 1 改成 CFG.PAWN_KEEP（使用者同意，凍結檔
+   docs/experiments/2026-09-07-acceptance-role-balance.md §2.1 第 6 條）。本案守的是「保命例外不被
+   落魄夜規則覆寫」這個行為，不是那個數字，所以斷言改讀 CFG.PAWN_KEEP——沒典當到的話壽命會 ≤0，
+   照樣紅。 */
+test('保命例外不被規則覆寫：陰間當鋪在落魄夜被逼到典當，保住 CFG.PAWN_KEEP 壽命＋縛靈鎖',()=>{
   const G=loadGame(TARGET), S=setup(G,'luopo');
   neutralSeats(S,[10,40,40,40]); S.market=WARES();
   S.players[0].roleId='dangpu';
   S.humanBids={0:row({0:bid(12,'yaming')}), 1:row({0:bid(20,'yaming')})};
   G.resolveAuction();
-  eq(S.players[0].life,1,'典當後的壽命（落標全付把它逼到致死，典當接住＝剛好剩 1）');
+  eq(S.players[0].life,G.CFG.PAWN_KEEP,'典當後的壽命（落標全付把它逼到致死，典當接住＝剛好剩 CFG.PAWN_KEEP）');
   eq(S.players[0].pawned,true,'是否真的典當過');
   ok(S.players[0].bag.some(x=>x.n==="縛靈鎖"),'袋中應該多了一件「縛靈鎖」，實際袋子：'
     +JSON.stringify(S.players[0].bag.map(x=>x.n)));
