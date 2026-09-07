@@ -117,8 +117,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    （神龕列 slim 只有 20.8px）。搬到 #south 之後 #felt 少掉整整一列。 */
 .incbar{display:inline-flex;align-items:center;gap:4px;margin:0 8px 0 0;padding:1px 6px;
   border:1px dashed var(--line);border-radius:8px;font-size:10.5px;white-space:nowrap;vertical-align:middle}
-#budget{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap}
+/* min-width:0 是必要的：#budget 是 #south 這個 flex 列的項目，裡面的 .bsum 又是 nowrap，
+   不給它 min-width:0 的話 flex 項目的最小尺寸＝內容寬度，直式（390px）會把 #south 整個撐開（實測 +225px）。 */
+#budget{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;min-width:0}
 #budget .bsum{white-space:nowrap}
+/* 直式收起來（**與 #shrines／#market 同一條慣例**）：直式整片被 #rotateHint 蓋住、牌桌看不到，
+   而底列在 390px 寬只有幾十像素可用，行內的燒香列一定會把 #south 撐開。轉橫就回來。 */
+@media (orientation:portrait){ #budget .incbar{display:none} #budget .bsum{white-space:normal} }
 .incbar button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;
   font-size:10px;padding:1px 6px;height:20px;cursor:pointer;flex:0 0 auto}
 .incbar button.on{background:var(--gold);color:#14101f;border-color:var(--gold);font-weight:bold}

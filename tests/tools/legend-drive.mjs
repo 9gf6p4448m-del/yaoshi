@@ -140,8 +140,11 @@ const main = async () => {
             const key = `${seed}|${st.round}|${/蓋牌/.test(st.txt) ? '出價' : '盯上'}`;
             const base = BASE_V[key];
             const cap = (st.round === 1) ? 0 : ((base == null ? 0 : base) + BASE_SLACK);
-            rec.vrows.push({ key, over: vo ? vo.over : null, base: base == null ? null : base, cap });
-            if (vo && vo.over > cap) rec.voverflow.push({ seed, round: st.round, txt: st.txt, cap, base, ...vo });
+            // 凍結檔 §2.1 修訂四二版把量測條件寫死成 **seeds 1 與 3**：只有基準表裡有的種子才判，
+            // 其餘種子沒有同格基準可比（第 3 夜抽到什麼卡、有沒有規則列都會改變高度），一律只印不判。
+            const judged = (base != null);
+            rec.vrows.push({ key, over: vo ? vo.over : null, base: base == null ? null : base, cap, judged });
+            if (judged && vo && vo.over > cap) rec.voverflow.push({ seed, round: st.round, txt: st.txt, cap, base, ...vo });
           }
         }
         // --burn=0：真人整局不燒香（要走到「天亮回天」那條路就得有龕沒被請走，
@@ -251,7 +254,7 @@ const main = async () => {
           const b = document.getElementById('mainbtn');
           return { handoff: !!(ho && getComputedStyle(ho).display !== 'none'),
                    txt: b ? b.textContent : '', dis: b ? b.disabled : true,
-                   incbar: document.querySelectorAll('#stage .incbar').length }; })()`);
+                   incbar: document.querySelectorAll('#stage .incbar,#south .incbar').length }; })()`);
         if (st.handoff) {
           hs.handoffShown = true;
           if (hs.sawIncbar && hs.incbarAtHandoff === null) hs.incbarAtHandoff = st.incbar; // 交棒當下還剩幾個燒香列
@@ -266,7 +269,7 @@ const main = async () => {
             await page.waitForTimeout(60);
             const now = await page.evaluate(`(() => { const ho = document.getElementById('handoff');
               return { handoff: !!(ho && getComputedStyle(ho).display !== 'none'),
-                       incbar: document.querySelectorAll('#stage .incbar').length }; })()`);
+                       incbar: document.querySelectorAll('#stage .incbar,#south .incbar').length }; })()`);
             if (now.handoff) { hs.handoffShown = true; hs.incbarAtHandoff = now.incbar; break; }
           }
           continue;
@@ -296,7 +299,7 @@ const main = async () => {
   if (rec.hotseat) {
     const h = rec.hotseat;
     const ok = h.sawIncbar && h.handoffShown && h.incbarAtHandoff === 0;
-    console.log(`- 覆審 M1 熱座交棒：出價頁看得到燒香列＝${h.sawIncbar}、交棒畫面出現＝${h.handoffShown}、交棒當下 #stage .incbar 個數＝${h.incbarAtHandoff} → ${ok ? '✅' : '❌'}`);
+    console.log(`- 覆審 M1 熱座交棒：出價頁看得到燒香列＝${h.sawIncbar}、交棒畫面出現＝${h.handoffShown}、交棒當下 (#stage,#south) .incbar 個數＝${h.incbarAtHandoff} → ${ok ? '✅' : '❌'}`);
   }
   console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
   console.log(`- 供奉危急提示（#modal「壽命危急，繼續供奉？」）出現並按「要」的次數：${rec.titheAsk || 0}`);
@@ -310,7 +313,8 @@ const main = async () => {
   console.log(`- **直向**（#felt scrollHeight − clientHeight；§2.1 修訂四二版：第 1 夜每頁＝0、其餘頁 ≤ 基準同格＋${BASE_SLACK}px）：`
     + `取樣 ${rec.vsamples || 0} 次、超標 ${rec.voverflow.length} 次`
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
-  rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap} ${r.over != null && r.over <= r.cap ? '✅' : '❌'}`));
+  rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
+    + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
   console.log(`- 判定：${okErr && okPath && okOv && okVert ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(okErr && okPath && okOv && okVert ? 0 : 1);
 };
