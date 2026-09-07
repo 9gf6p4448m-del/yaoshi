@@ -23,8 +23,10 @@ const LANTERN_DIST = 2.6; // 東南西北四角方位半徑，對應 characters-
 // ② 四盞燈籠同色溫同亮度，四面等亮、沒有明暗交界
 // ③ 背景是一片純色，桌子以外什麼都沒有——「夜市」只剩一張圓桌浮在紫黑裡。
 export const ENV = {
-  // 5-1 渲染器：ACESFilmic 的曝光。three 的 ACES 內部會先乘 exposure/0.6，所以 1.1 已經是
-  // 明顯提亮；27 隻妖的 lookdev 若發白，要調的是這個數字（凍結檔 A6 明寫），不是調門檻。
+  // 5-1 渲染器：ACESFilmic 的曝光。three 的 ACES 內部會先乘 `exposure/0.6`，1.1 大約是
+  // 「中間調維持原樣」的落點——ACES 的完整擬合本身有很重的趾部（linear 0.1 會被壓到 0.043），
+  // 光靠 exposure 1.0 會讓整張牌桌暗一截。牌桌不足的亮度由 HemisphereLight／AmbientLight／
+  // 四盞燈籠的絕對值補（見下面兩張表），不是靠再往上推 exposure——推上去對決會糊掉。【試玩必調】
   EXPOSURE: 1.1,
 
   // 5-4 漸層穹頂（大球 BackSide＋頂點色）。SKY_STOPS＝[t, hex]，t＝頂點 y / 半徑（-1 底、+1 頂），
@@ -42,16 +44,18 @@ export const ENV = {
     [0.35, 0x1b1740], // 夜空：藍紫
     [1.00, 0x141031], // 天頂：更暗
   ],
-  SKY_FOG: 0x2e2044, // scene.fog／scene.background：取牌桌看到的那一段（遠處要化進「那個」顏色）
+  SKY_FOG: 0x1c1330, // scene.fog／scene.background：取牌桌看到的那一段（遠處要化進「那個」顏色）。
+  // 這個值要**暗**：對決霧密度 0.115，霧色一亮整個對決背景就變成一片灰紫霧（實測畫面中央亮度
+  // 從基準 51.3 衝到 114.1）。基準版是 #1a0a2e，這裡取同亮度但偏藍紫一點。
   DOME_RADIUS: 22, // > 遠景剪影最遠 13，< camera.far 100
 
   // 5-2 補光：暗部不死黑。天空色偏紫藍、地面色暖褐，與四盞燈籠的暖色形成冷暖對比。
-  HEMI_SKY: 0x5a5484,
-  HEMI_GROUND: 0x7a4a22,
-  HEMI_INT: 1.2,
+  HEMI_SKY: 0x6b6a96,
+  HEMI_GROUND: 0x8a5626,
+  HEMI_INT: 1.8,
   // 環境光從 0.55 退到 0.30：補光的職責交給 HemisphereLight，AmbientLight 只留最底那層墊色。
-  AMBIENT_COLOR: 0x2a1840,
-  AMBIENT_INT: 0.35,
+  AMBIENT_COLOR: 0x3a2450,
+  AMBIENT_INT: 0.5,
 
   // 5-4 遠景剪影：離桌心多遠、多高、什麼顏色。剪影是程序化幾何＋頂點色，**不載任何外部貼圖**
   // （專案鐵則）。夜市燈籠串那幾點是同一份幾何裡的暖色頂點，所以一片剪影＝1 個 draw call。
@@ -64,10 +68,10 @@ export const ENV = {
 // 這是「明暗交界」的來源：北側刻意暗、南側（玩家）最亮。閃爍在 renderer.js，
 // 那裡讀的是 light.userData.baseIntensity，不再寫死 3.4。
 export const LANTERNS = {
-  south: { color: 0xffa855, intensity: 4.6 }, // 玩家這一側：橘、最亮
-  north: { color: 0xa8402a, intensity: 2.6 }, // 對面：暗紅，做出明暗交界
-  west: { color: 0xffc070, intensity: 3.8 }, // 琥珀
-  east: { color: 0xd8e8ff, intensity: 3.2 }, // 青白（供桌上的白蠟）
+  south: { color: 0xffa855, intensity: 7.0 }, // 玩家這一側：橘、最亮
+  north: { color: 0xa8402a, intensity: 3.6 }, // 對面：暗紅，做出明暗交界
+  west: { color: 0xffc070, intensity: 5.6 }, // 琥珀
+  east: { color: 0xd8e8ff, intensity: 5.0 }, // 青白（供桌上的白蠟）
 };
 
 // 夜霧（v0.27）：從 THREE.Fog（線性 6→16）換成 FogExp2，遠處才會真的化進夜色而不是硬切。

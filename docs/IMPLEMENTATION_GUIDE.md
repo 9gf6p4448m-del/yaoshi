@@ -725,6 +725,29 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.22 美術甲「夜市燈火」渲染基礎包（2026-09-07，v0.46）——接手前先知道這六件事
+
+1. **色調映射現在是全域的**：`js/renderer.js` 設 `renderer.toneMapping = ACESFilmicToneMapping`、
+   `toneMappingExposure = ENV.EXPOSURE`、`outputColorSpace = SRGBColorSpace`。v0.45 之前牌桌／市集
+   （玩家 90% 時間看的畫面）**完全沒有色調映射**，ACES 只手刻在 `js/bloom.js` 的合成 shader 裡、
+   而 bloom 只在對決開。改動畫面亮度／材質前先讀 `docs/design/ART_BIBLE.md` §8。
+2. **`js/bloom.js` 不再有任何手刻的映射**：three 只在「畫到畫布」那一趟注入 tonemapping／colorspace，
+   場景畫進 `sceneRT` 那一趟拿到的是**線性未映射值**（所以亮部萃取仍在線性 HDR 上做，順序是對的）；
+   合成那一趟改用 `ShaderMaterial`＋`#include <tonemapping_fragment>`／`<colorspace_fragment>`。
+   **不要改回 RawShaderMaterial**——Raw 不吃 three 的注入，改回去等於牌桌與對決各走一條曲線。
+   SwiftShader 上 ShaderMaterial 會連結失敗，但 `bloomOK` 在軟體 GL 上根本不呼叫 `bloom.render()`，
+   那支 program 不會被編譯；`BRIGHT`／`BLUR` 兩支維持 Raw 不動。
+   換 three 版本時，這一步是最該回歸的地方（chunk 名稱在 r152 從 `encodings_fragment` 改名過）。
+3. **bloom 的 `threshold` 跟曝光綁在一起**：曝光一改，亮部萃取的門檻要跟著重調（v0.46 從 0.5 調到 0.9）。
+   改 `ENV.EXPOSURE` 而不動 threshold，對決會整片發光。
+4. **場景常數只有一個地方**：`js/scene-env.js` 的 `ENV`（曝光、穹頂色站、霧色、剪影色、暈角）與
+   `LANTERNS`（四盞燈籠的色溫與亮度）。`renderer.js` 的燈籠閃爍讀 `light.userData.baseIntensity`，
+   **不要再把 3.4 寫死回去**。
+5. **遠景剪影對決時要收掉**：`far-*` 那五片離地 8.5～9，在對決機位（俯角 19.5°）落在 NDC y 0.28～0.53，
+   正好是兩隊人形的高度；`renderer.js` 用 `stageOn` 反向淡出它們。要讓它們在對決留著，得先解決遮擋。
+6. **`?fps=1`**：規則頁音訊診斷區旁多一行 fps 中位／draw calls／三角形／機型，只在帶參數時存在。
+   量手機 fps 就靠它——請使用者開 `?fps=1`、打開規則頁截圖回報。
+
 ### 11.21 對決演出「沒兵仍出招／隻數不同步」修復（2026-09-07，分支 v0.42.2 → 併入 main 為 v0.43.1）——接手前先知道這三件事
 
 規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-duel-desync.md`（D1–D5）。使用者真機回報兩個症狀：

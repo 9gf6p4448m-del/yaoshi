@@ -25,11 +25,12 @@ const { createTraitFx } = await import('./trait-fx.js' + V);
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
 // ② 牌桌畫面要跟 49dba77 對得起來（驗收 J7）。scale 0.5＝半解析度緩衝。
 // 實作在 js/bloom.js（自製，不是 UnrealBloomPass，理由見那個檔的檔頭）。全部【試玩必調】。
-// threshold 依新曲線重調（美術甲卷 v0.46）：v0.45 之前合成 shader 自己做 ACES＋sRGB，
-// 亮部萃取吃的是「未映射的線性值」；改成 renderer 全域 ACESFilmic 之後，合成那一趟由 three
-// 注入的 tonemapping/colorspace 收尾，曝光 1.1（three 內部再乘 1/0.6）等於把同一個場景
-// 抬亮約 1.8 倍，舊的 0.5 會讓半張桌子都進 bloom。0.9 是「燈籠與火星還會發光、木桌與人臉不會」
-// 的落點（前後對照見 docs/experiments/2026-09-07-art-a-report.md 的 A6 contact sheet）。【試玩必調】
+// threshold 依新曲線重調（美術甲卷 v0.46）：亮部萃取吃的仍然是「畫進 sceneRT 的線性未映射值」
+// （這一點前後沒變），變的是**合成之後那條曲線**——v0.45 是合成 shader 手刻的 Narkowicz ACES
+// 且不乘曝光，v0.46 換成 three 的 ACESFilmic 完整擬合＋exposure 1.1（內部再乘 1/0.6）。
+// 同一份 bloom 貼圖加進去之後被推得更高、也更往白色去（ACES 高光本來就會去飽和），
+// 所以萃取門檻要往上收，只留真正的光源。0.9＝「燈籠與火星還會發光、木桌與人臉不會」的落點
+// （前後對照見 docs/experiments/2026-09-07-art-a-report.md 的 A6 contact sheet）。【試玩必調】
 const BLOOM = { strength: 1.05, threshold: 0.9, knee: 0.3, radius: 1.7, scale: 0.5 };
 
 // 深度邊緣線（後處理卷 P-3，2026-09-06）：實作與參數在 js/bloom.js（折進合成那一趟）。

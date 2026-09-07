@@ -489,6 +489,16 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 
 ## Changelog
 
+- 2026-09-07 v0.46（美術甲「夜市燈火」渲染基礎包）：**只動畫面，不動任何規則與數值**——`trace()`
+  seeds 1..20 與 `7ab389e` 逐位元組相等（332,125 bytes）。做了六件事：① renderer 全域
+  `ACESFilmicToneMapping`＋exposure 1.1＋明寫 `outputColorSpace`（玩家 90% 時間看的牌桌／市集
+  以前完全沒有色調映射，ACES 只手刻在 bloom 合成 shader 裡、而 bloom 只在對決開）② 四盞燈籠改四種
+  色溫與亮度（東青白／南橘／西琥珀／北暗紅），桌面才有明暗交界 ③ 加 `HemisphereLight` 補光 ④ 背景
+  純色改漸層穹頂、霧色跟著 ⑤ 五片遠景剪影（廟宇屋脊／牌樓／榕樹／屋簷燈籠串／攤棚，程序化幾何、
+  無外部貼圖），對決時淡出以免擋人形 ⑥ CSS 暈角層。另加 `?fps=1`：規則頁音訊診斷區旁印
+  「fps 中位／draw calls／三角形／機型」，補上從未回填過的手機 fps 數字。常數全集中在
+  `js/scene-env.js` 的 `ENV`／`LANTERNS`，理由寫在 `docs/design/ART_BIBLE.md` §8。
+  驗收與實測數字見 `docs/experiments/2026-09-07-art-a-report.md`。
 - 2026-09-07 v0.43（六版・第二輪審查修補，制度上限第 3 輪）：依第二輪冷讀覆審
   （`docs/experiments/2026-09-07-legend3-review-round2.md`）——**封籤的燒香被引擎夾掉時不再默默發生**
   （請神結算卡、夜末戰況、局末回顧各記一行「封 3 → 實燒 2」，規則頁補一句講「先結算出價、再燒香」的先後）、

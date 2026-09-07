@@ -26,11 +26,15 @@ const PROBE = `(() => {
   const cam = Y3.camera, scene = Y3.scene;
   const V3 = cam.position.constructor;
   const tmp = new V3();
+  // 「真的看得見嗎」要一路問到祖先：three 的 visible=false 設在群組上時，子 Mesh 自己的
+  //  visible 仍是 true，但整棵樹都不會進 render list——只看 o.visible 會把隱藏的東西算成擋住人形。
+  function shown(o) { for (let n = o; n; n = n.parent) if (!n.visible) return false; return true; }
   function ndcBox(root) {
     let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, any = false, clipped = 0, total = 0;
+    if (!shown(root)) return null;
     root.updateWorldMatrix(true, true);
     root.traverse((o) => {
-      if (!o.isMesh || !o.visible || !o.geometry) return;
+      if (!o.isMesh || !shown(o) || !o.geometry) return;
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
       const b = o.geometry.boundingBox; if (!b) return;
       for (let i = 0; i < 8; i++) {
@@ -64,10 +68,11 @@ const PROBE = `(() => {
   }
   const out = { figures: figs.length, figBoxes: figs, fars: [], overlaps: [],
     figKeys: (D && D.figuresOf && D.figuresOf('A')[0]) ? Object.keys(D.figuresOf('A')[0]).slice(0, 14) : [],
-    cam: { x: +cam.position.x.toFixed(3), y: +cam.position.y.toFixed(3), z: +cam.position.z.toFixed(3) } };
+    cam: { x: +cam.position.x.toFixed(3), y: +cam.position.y.toFixed(3), z: +cam.position.z.toFixed(3) },
+    farGroupVisible: !!(Y3.far && Y3.far.visible), farOpacity: (Y3.far && Y3.far.children[0]) ? +Y3.far.children[0].material.opacity.toFixed(3) : null };
   for (const o of fars) {
     const fb = ndcBox(o);
-    out.fars.push({ name: o.name, visible: o.visible, box: fb, onScreen: onScreen(fb) });
+    out.fars.push({ name: o.name, visible: o.visible, shown: shown(o), box: fb, onScreen: onScreen(fb) });
     for (const f of figs) if (overlap(fb, f.box)) out.overlaps.push({ far: o.name, side: f.side, farBox: fb, figBox: f.box });
   }
   return out;

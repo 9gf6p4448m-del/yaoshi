@@ -55,7 +55,7 @@
 </script>
 <script type="module">
 import * as THREE from 'three';
-import { createSceneEnv, resizeSceneEnv, FOG_DENSITY } from '../../js/scene-env.js';
+import { createSceneEnv, resizeSceneEnv, FOG_DENSITY, ENV } from '../../js/scene-env.js';
 import { createBloom } from '../../js/bloom.js';
 import { makeCreatureFigure, FACTION_RIM, createFigureLightRig, attachFactionFx } from '../../js/creature-figures.js';
 
@@ -74,7 +74,7 @@ const GLB = !GLB_Q ? '../../assets/creatures/tiger.glb'
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // 對決那一段的參數（與 renderer.js 的 BLOOM 同一組數值，這頁不另外調）
-const BLOOM = { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 };
+const BLOOM = { strength: 1.05, threshold: 0.9, knee: 0.3, radius: 1.7, scale: 0.5 };
 
 const canvas = document.createElement('canvas');
 Object.assign(canvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%' });
@@ -83,8 +83,12 @@ document.body.appendChild(canvas);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight, false);
-// 不設 outputColorSpace：跟 js/renderer.js 一樣走預設，最後的 linear→sRGB 由 bloom 的
-// 合成 shader 自己做（見 js/bloom.js 檔頭），這裡再設一次會變成轉兩次、整個畫面泛白。
+// 色調映射與色彩空間要跟 js/renderer.js 逐項一致（美術甲卷 v0.46 起）——這頁是 lookdev 的
+// 「尺」，尺跟產品不同刻度就量不出東西。v0.45 之前 bloom 的合成 shader 自己手刻 ACES＋sRGB，
+// 所以這裡刻意不設；現在那段手刻已經移除、改由 three 依這三行注入，這裡不設就會輸出線性值。
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = ENV.EXPOSURE;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 // bloom 會多跑四趟，autoReset 會讓 info 只留最後一趟；改成每幀自己歸零，貼出來的
 // draw call 才是「整幀」的數字而不是「最後一次 render」的數字。
 renderer.info.autoReset = false;
@@ -93,7 +97,7 @@ const { scene, camera, lanterns } = createSceneEnv(window.innerWidth / Math.max(
 scene.fog.density = FOG_DENSITY.duel;
 // 燈籠比牌桌那組亮：預覽頁只有一張桌子與一隻妖，沒有座位卡擋光，
 // 3.4 的原值在近鏡頭下只照得出一團暗紅，看不出頂點色的條紋與金印。
-lanterns.forEach((l) => { l.intensity = 5.2; l.distance = 14; });
+lanterns.forEach((l) => { l.intensity = 5.2; l.userData.baseIntensity = 5.2; l.distance = 14; });
 
 const bloom = createBloom(renderer, BLOOM);
 bloom.setSize(window.innerWidth, window.innerHeight);

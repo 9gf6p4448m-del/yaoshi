@@ -40,11 +40,13 @@ const PROBE = `(() => {
   const V3 = cam.position.constructor;
   const tmp = new V3();
   // 某個 Object3D 在螢幕空間（NDC，x/y ∈ [-1,1]）的 2D 包圍盒；沒有幾何或整個在鏡頭後面回 null
+  function shown(o) { for (let n = o; n; n = n.parent) if (!n.visible) return false; return true; }
   function ndcBox(root) {
     let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, any = false, behind = 0, total = 0;
+    if (!shown(root)) return null;
     root.updateWorldMatrix(true, true);
     root.traverse((o) => {
-      if (!o.isMesh || !o.visible || !o.geometry) return;
+      if (!o.isMesh || !shown(o) || !o.geometry) return;
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
       const b = o.geometry.boundingBox; if (!b) return;
       for (let i = 0; i < 8; i++) {
@@ -133,6 +135,19 @@ async function main() {
           fogDensity: Y3.scene.fog ? +Y3.scene.fog.density.toFixed(4) : null };
       });
       gate.farTable = await probeFar(page, 'table');
+      // A5 的 DOM 條件：#vignette 存在、pointer-events:none、疊在 canvas 之上 HUD 之下。
+      // 「HUD 之下」在這個專案是靠 in-flow 內容永遠畫在負 z-index 之上（canvas −2、暈角 −1），
+      // 所以這裡把兩個負值與 HUD 的定位方式一起印出來，判定看數字不看敘述。
+      gate.vignette = await page.evaluate(() => {
+        const v = document.getElementById('vignette');
+        const c = document.querySelector('body > canvas');
+        const hud = document.getElementById('felt') || document.getElementById('table');
+        const cs = (el) => (el ? getComputedStyle(el) : null);
+        const sv = cs(v), sc = cs(c), sh = cs(hud);
+        return { exists: !!v, pointerEvents: sv && sv.pointerEvents, zIndex: sv && sv.zIndex,
+          canvasZ: sc && sc.zIndex, hudId: hud && hud.id, hudPosition: sh && sh.position, hudZ: sh && sh.zIndex,
+          hitAtCorner: (() => { const el = document.elementFromPoint(4, 4); return el ? (el.id || el.tagName) : null; })() };
+      });
       // 補充量測（比 A3／A5 條文更嚴，只是加測不取代）：把 DOM 面板整層藏起來，只留 canvas 與 #vignette，
       // 拍一張「純 3D」的牌桌。條文量的是含 UI 的整張截圖，那張的上下差主要來自面板本身；
       // 這一張才看得出背景漸層與暈角本身有沒有做到。兩張都進報告。
