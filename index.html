@@ -309,6 +309,34 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   text-align:center;color:#14101f;background:var(--pwf);margin-left:4px;align-self:center;
   box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .pwfac:first-child{margin-left:0}
+/* ── 近景切鏡卷 批 1（v0.45，規格 docs/proposals/2026-09-07-duel-closeup.md §二.3／§二.4）──
+   四樣東西都只在 PW_FX.CLOSEUP_ON 時由 JS 建出來（?closeup=0 連 DOM 都不長，凍結檔 P0）。
+   全部只動 transform／opacity／width，不觸發 layout；跳字用 WAAPI 由 JS 驅動（SKIP 要能立刻清）。 */
+#dmgLayer{position:absolute;inset:0;pointer-events:none;z-index:6}
+.dmgfloat{position:absolute;transform:translate(-50%,-50%);font-weight:bold;font-size:17px;color:#ffe6c0;
+  font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 8px #000,0 0 4px #000;white-space:nowrap;opacity:0}
+.dmgfloat.kill{font-size:23px;color:var(--pwf,#ffb060);text-shadow:0 2px 10px #000,0 0 8px var(--pwf,#ffb060)}
+/* 三拍燈（撞／護／祟）：跟拍首字幕同一行，依拍序累積點亮，當前那顆呼吸 */
+#beatLamps{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:2px}
+#beatLamps i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.28);font-style:normal}
+#beatLamps i.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 6px var(--gold)}
+#beatLamps i.cur{animation:lampPulse .9s ease-in-out infinite alternate}
+@keyframes lampPulse{from{transform:scale(1);opacity:.75}to{transform:scale(1.45);opacity:1}}
+/* 存活量表：寬＝存活/開場總數，低於 1/3 轉紅 */
+.pwgauge{width:96px;height:4px;margin:3px auto 0;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+.pwgauge i{display:block;height:100%;background:var(--gold);border-radius:3px;transition:width .28s ease-out}
+.pwgauge.low i{background:#ff6a4a}
+/* 出手卡：出招那一側閃現「系徽＋法寶名」，同時只有一張 */
+#actorCard{position:absolute;top:34%;display:none;align-items:center;gap:6px;padding:3px 9px;border-radius:9px;
+  background:rgba(12,9,20,.72);border:1px solid var(--pwf,var(--line));font-size:12px;color:#ffe6c0;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:7;pointer-events:none}
+#actorCard.on{display:flex}
+#actorCard.side-A{left:6%} #actorCard.side-B{right:6%}
+#actorCard b{font-style:normal;font-size:10px;font-weight:bold;line-height:14px;width:14px;height:14px;border-radius:50%;
+  text-align:center;color:#14101f;background:var(--pwf,#8a8a8a)}
+@media (prefers-reduced-motion: reduce){ #beatLamps i.cur{animation:none} }
 /* 受擊停格（v0.27）：整頁的 CSS 動畫與轉場一起凍住，3D 那半邊由 ys:hitstop 事件把 dt 歸零。
    只停「播放狀態」，不改任何版面屬性，所以解凍後動畫接著原來的進度跑完，不會跳。 */
 body.hitstop *, body.hitstop *::before, body.hitstop *::after{
@@ -1765,7 +1793,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.46", VERSION_NOTE="夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.46", VERSION_NOTE="夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1871,7 +1899,7 @@ try{
 }catch(e){}
 
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
-function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); /* 卷 C3：正在演的招式立刻清場 */ }
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); /* 卷 C3＋v0.45：正在演的招式立刻清場，focus／退暗同一個事件收 */ try{ pwCloseupClear(); }catch(e){} /* v0.45：跳字與出手卡一次清乾淨 */ }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
   return new Promise(res=>{
@@ -3552,19 +3580,41 @@ const PW_FX={
   TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 舞台接下招式時的固定時長（取代該筆的 evMs）；沒 3D 時照舊等 evMs */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
+  /* ── 近景切鏡卷 批 1 原型（v0.45，2026-09-07；規格 docs/proposals/2026-09-07-duel-closeup.md §二）──
+     使用者回報「兩團人對站像兩堵牆、看不出誰在打誰」。這一組數字全部【試玩必調】。
+     鏡頭端的 FOCUS_DIST／FOCUS_TILT 在 js/camera-director.js 的 FOCUS（那是機位，不是時間軸）。 */
+  CLOSEUP_ON:true,     /* 總開關；?closeup=0 關掉時 focus 事件、退暗、跳字、HUD 三件全不出現（P0） */
+  FOCUS_DMG:3,         /* hit 要到這個傷害才值得切近景（＝HITSTOP_DMG，同一個「這一下夠重」的門檻） */
+  FOCUS_PER_BEAT:2,    /* 一拍最多切幾次（手機切太頻繁會暈） */
+  FOCUS_MS:650,        /* 一次近景停留多久（burn 用 BURN_MS+180，跟到化灰演完） */
+  FOCUS_DIM:0.35,      /* 非交鋒兩尊退暗到的不透明度 */
+  FOCUS_SHRINK:0.92,   /* 退暗的同時縮一點，交鋒那兩尊才跳得出來 */
+  DMG_MS:600,          /* 傷害跳字上飄＋淡出的時間 */
+  ACTOR_CARD_MS:700,   /* 出手卡停留多久 */
 };
+/* ?closeup=0 關掉整卷近景切鏡（試玩 A／B 與凍結檔 P0 的退路等價都靠它）；?closeup=1 顯式開。
+   PW_FX 是 const 但屬性可改——與 ?paperwar 那條同一個作法。 */
+try{
+  const cq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("closeup");
+  if(cq==="0") PW_FX.CLOSEUP_ON=false; else if(cq==="1") PW_FX.CLOSEUP_ON=true;
+}catch(e){}
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
    只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
 /* burn＝燒毀演出被觸發的總次數（不論走 3D 人形自己的 burn() 還是退回 DOM 版 fxBurn），
    burnDom＝其中走 DOM 那條的次數，burnFig＝走 3D 人形那條的次數；burn===burnDom+burnFig。
    驗收 C-A2 對的是 burn（＝「每一隻被燒掉的紙紮都真的演了一次燒毀」），與走哪條無關。 */
-const FXC={burn:0,burnDom:0,burnFig:0,trait:0,traitFig:0,beat:0,duels:0,traits:{},beats:{},fights:[]}; /* traitFig＝招式走 3D 舞台（ys:fx-trait handled）的次數（卷 C3 T-5） */
+/* focus／dmgFloat＝近景切鏡卷 批 1 的計數（凍結檔 P0／P1）：CLOSEUP_ON=false 時兩者恆 0、
+   fights[] 的每一筆也不會多出 focus 欄，與基準逐欄相同。 */
+const FXC={burn:0,burnDom:0,burnFig:0,trait:0,traitFig:0,beat:0,duels:0,focus:0,dmgFloat:0,traits:{},beats:{},fights:[]}; /* traitFig＝招式走 3D 舞台（ys:fx-trait handled）的次數（卷 C3 T-5） */
 try{
   if(typeof location!=="undefined"&&new URLSearchParams(location.search||"").get("fxcount")==="1")
     window.__ysFxCount=FXC;
 }catch(e){}
 /* 治具用固定種子：只有 ?fxcount=1 同時帶 ?seed=N 才有值；正式頁 undefined → makeState 照舊用 Date.now() */
 const FX_SEED=(()=>{ try{ const q=new URLSearchParams(location.search||""); return (q.get("fxcount")==="1"&&q.get("seed"))?(parseInt(q.get("seed"),10)>>>0):undefined; }catch(e){ return undefined; } })();
+/* 與 window.__ysFxCount 同一支旗標：近景切鏡的 focus／逐拍記錄只有 ?fxcount=1 才留（治具讀的就是它），
+   正式頁一個陣列都不建。 */
+const FX_COUNT_ON=(()=>{ try{ return new URLSearchParams(location.search||"").get("fxcount")==="1"; }catch(e){ return false; } })();
 /* 傷害值→力道倍率。夾在 POWER_MIN..POWER_MAX 之間，免得 0 傷害沒感覺、爆擊震到暈。 */
 function fxPower(dmg){ return Math.max(FX.POWER_MIN,Math.min(FX.POWER_MAX,(dmg||0)/FX.POWER_DMG+FX.POWER_MIN)); }
 /* 【積木】停格：整個畫面凍住 ms 毫秒。DOM 動畫靠 body.hitstop 的 animation-play-state 停、
@@ -4424,8 +4474,13 @@ function pwTraitFx(trId,ctx){
 function pwArmyView(p){
   const a=buildArmy(p.bag);
   const units=[];
+  /* 這一隊是哪一件法寶（近景切鏡卷 v0.45 二版）：buildArmy 是照 bag 順序逐件展開的（詛咒品跳過、其餘一件一隊），
+     所以第 idx 隊就是 bag 裡第 idx 件非詛咒品。**對位還要核 ab 才採用**——對不上就留空（出手卡不顯示），
+     不猜。以前用 ab→名字的反查表會撞名：傳說三尊借既有模型鍵（殘日借 bow），反查回來會顯示「射日神弓」。 */
+  const src=(p.bag||[]).filter(x=>!x.curse);
+  const nameOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.n)?x.n:""; };
   /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
-  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,t:t.idx})));
+  a.teams.forEach(t=>{ const nm=nameOf(t); t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,nm,t:t.idx})); });
   units.forEach((u,i)=>{ u.id=i; });
   /* 陣列卷（2026-09-07 使用者裁乙）：顯示順序依拍序 BEAT_FAC（祖靈→香火→陰氣，無系肉身殿後），同系內維持取得順序。
      id 在排序「前」指派且不重排——beats 的 actor／target 是 pwSide 的單位索引，DOM 晶片 pwc-${tag}-${id} 與 3D figureOf(side,id) 都靠它對位；
@@ -4491,10 +4546,12 @@ function pwArenaHTML(f,views){
       lastT=u.t;
       return badge+`<i class="pwchip ${u.body} ${facCls(u)}" id="pwc-${tag}-${u.id}"></i>`;
     }).join("");
+    /* 近景切鏡卷 HUD (b)：存活量表。關掉時整段不長出來（P0 的「DOM 不出現 .pwgauge」） */
+    const gauge=pwCloseup()?`<div class="pwgauge" id="pwg-${tag}" data-total="${total}"><i style="width:100%"></i></div>`:"";
     return `<div class="fighter anim-clash-${tag==="A"?"left":"right"}" id="${tag==="A"?"dL":"dR"}">
       <div class="fdir">${DIRS[p.id]}家${wind}</div>
       <div class="fav">${avHTML(p)}</div><div class="fnm">${p.name}</div>
-      <div><span class="pwcnt" id="pwn-${tag}">${total}</span><span class="pwunit"> 隻</span></div>
+      <div><span class="pwcnt" id="pwn-${tag}">${total}</span><span class="pwunit"> 隻</span></div>${gauge}
       <div class="pwbody">${pwCompText(v)}</div>
       <div class="pwchips" id="pwch-${tag}">${chips}</div></div>`;
   };
@@ -4545,6 +4602,7 @@ function pwBurnOne(b){
   const el=$(`pwc-${b.side}-${b.target}`);
   const n=$(`pwn-${b.side}`);
   if(n){ const v=(parseInt(n.textContent,10)||0)-1; n.textContent=Math.max(0,v); }
+  pwGauge(b.side); /* 近景切鏡卷 HUD (b)：存活量表跟著隻數牌同步（同一個事實來源） */
   const det={side:b.side,unit:b.target,ms:PW_FX.BURN_MS,handled:false,done:null};
   fx3d("ys:fx-burn",det);
   let job;
@@ -4554,12 +4612,136 @@ function pwBurnOne(b){
   else job=fxBurn(el,{fac:"lantern",ms:PW_FX.BURN_MS});
   return Promise.resolve(job).then(()=>{ if(el) el.classList.add("burnt"); },()=>{ if(el) el.classList.add("burnt"); });
 }
+/* ═══════════ 近景切鏡卷 批 1 原型（v0.45，2026-09-07）═══════════
+   規格＝docs/proposals/2026-09-07-duel-closeup.md §二；驗收凍結＝docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md。
+   五件（聚焦切鏡／退暗／傷害跳字／HUD 三件／旗標退路）全部掛在 PW_FX.CLOSEUP_ON 底下：
+   關掉時一個事件都不派、一個 DOM 都不建，演出與 v0.43.3 逐事件相同（P0）。
+   這一段仍然只是「按 war.beats 的順序叫積木」——引擎（paperWar／pwRec／buildArmy）一行未動。 */
+
+let PW_FOCUS_LOG=null;  /* 這一場的 focus 記錄（?fxcount=1 才留；凍結檔 P1 對的就是它） */
+let PW_BEAT_LOG=null;   /* 這一場逐拍「實際演出的那幾筆」，P1 的規則驗證要拿它當分母 */
+let PW_CARD_T=0;        /* 出手卡的收起計時器（同時只有一張＝同一個元素、同一個計時器） */
+const PW_DMG_POOL=[];   /* 跳字 DOM 的重用池（不新建材質、不新建無上限的節點；上限 MAX_HITS） */
+
+function pwCloseup(){ return !!PW_FX.CLOSEUP_ON; }
+/* 每一場對決開場時把三個容器建起來（關閉時連建都不建＝DOM 查不到，P0）。 */
+function pwCloseupMount(){
+  const ov=$("duel"); if(!ov) return;
+  for(const id of ["dmgLayer","beatLamps","actorCard"]){
+    const old=$(id); if(old&&!pwCloseup()) old.remove();
+  }
+  if(!pwCloseup()) return;
+  if(!$("dmgLayer")){ const d=document.createElement("div"); d.id="dmgLayer"; ov.appendChild(d); }
+  if(!$("actorCard")){ const c=document.createElement("div"); c.id="actorCard"; ov.appendChild(c); }
+  if(!$("beatLamps")){
+    const l=document.createElement("div"); l.id="beatLamps";
+    l.innerHTML=BEAT_NAME.map((n,i)=>`<i title="${n}" data-i="${i}"></i>`).join("");
+    ov.insertBefore(l,$("duelBeat"));
+  }else $("beatLamps").querySelectorAll("i").forEach(i=>{ i.className=""; });
+}
+/* 跳字與出手卡一次清乾淨（doSkip／對決收場）。focus 與退暗由 ys:fx-trait-cancel／ys:duel-end 收。 */
+function pwCloseupClear(){
+  const layer=$("dmgLayer");
+  if(layer){ [...layer.children].forEach(el=>{ try{ el.getAnimations().forEach(a=>a.cancel()); }catch(e){} el.remove(); }); }
+  clearTimeout(PW_CARD_T);
+  const c=$("actorCard"); if(c){ c.classList.remove("on"); c.innerHTML=""; }
+  const l=$("beatLamps"); if(l) [...l.children].forEach(el=>{ el.className=""; }); /* L-4：燈也一起清，別把上一場的亮法帶進下一場 */
+}
+/* 【積木】聚焦切鏡：把「現在該看誰」告訴鏡頭（camera-director 的 FOCUS 層）與人形（duel-figures 的退暗）。
+   SKIP 時不切（跟其餘積木同一條規矩）；回傳 true＝真的派出去了，呼叫端才計入這一拍的次數。 */
+function pwFocus(o){
+  if(!pwCloseup()||SKIP) return false;
+  FXC.focus++;
+  if(PW_FOCUS_LOG) PW_FOCUS_LOG.push({beat:o.beat,kind:o.kind,actor:o.actor===undefined?null:o.actor,target:o.target===undefined?null:o.target,ms:o.ms});
+  fx3d("ys:fx-focus",{side:o.side,actor:o.actor===undefined?null:o.actor,foeSide:o.foeSide,target:o.target===undefined?null:o.target,
+    ms:o.ms,kind:o.kind,dim:PW_FX.FOCUS_DIM,shrink:PW_FX.FOCUS_SHRINK});
+  return true;
+}
+/* 某一尊在畫面上的位置（CSS 像素）。3D 尊在場就用 camera.project，否則退回該側的隻數牌（規格 §四）。 */
+function pwScreenOf(side,unitId){
+  try{
+    const Y3=window.__yaoshi3d, f=pwFigureOf(side,unitId);
+    if(Y3&&Y3.camera&&f&&f.group&&f.group.visible){
+      const p=f.group.position.clone();
+      p.y+=0.9*(f.group.scale.y||1); /* 腳底原點 → 胸口高度 */
+      p.project(Y3.camera);
+      if(isFinite(p.x)&&isFinite(p.y))
+        return {x:(p.x*0.5+0.5)*window.innerWidth, y:(-p.y*0.5+0.5)*window.innerHeight, mode:"fig"};
+    }
+  }catch(e){}
+  const n=$(`pwn-${side}`);
+  if(n){ const r=n.getBoundingClientRect(); if(r.width) return {x:r.left+r.width/2, y:r.top+r.height/2, mode:"badge"}; }
+  return null;
+}
+/* 【積木】傷害跳字：在 target 那一尊的位置冒一個 −n 上飄淡出。
+   DOM 上限＝MAX_HITS（滿了就回收最舊那個），演完自己 remove 並回到重用池。 */
+function pwDmgFloat(b,fac){
+  if(!pwCloseup()||SKIP) return;
+  const layer=$("dmgLayer"); if(!layer) return;
+  const pos=pwScreenOf(b.side,b.target); if(!pos) return;
+  while(layer.childElementCount>=PW_FX.MAX_HITS){
+    const old=layer.firstElementChild; if(!old) break;
+    try{ old.getAnimations().forEach(a=>a.cancel()); }catch(e){}
+    old.remove(); PW_DMG_POOL.push(old);
+  }
+  const el=PW_DMG_POOL.pop()||document.createElement("div");
+  el.className="dmgfloat"+(b.killed?" kill":"")+(fac?` fac-${fac}`:"");
+  el.textContent=`−${b.amount|0}`;
+  el.style.left=Math.round(pos.x)+"px"; el.style.top=Math.round(pos.y)+"px";
+  el.dataset.side=b.side; el.dataset.unit=String(b.target); el.dataset.mode=pos.mode;
+  layer.appendChild(el);
+  FXC.dmgFloat++;
+  const done=()=>{ if(el.parentNode){ el.remove(); if(PW_DMG_POOL.length<PW_FX.MAX_HITS) PW_DMG_POOL.push(el); } };
+  try{
+    const a=el.animate([{opacity:0,transform:"translate(-50%,-50%) scale(.82)"},
+                        {opacity:1,transform:"translate(-50%,-105%) scale(1)",offset:.3},
+                        {opacity:0,transform:"translate(-50%,-190%) scale(1)"}],
+      {duration:PW_FX.DMG_MS,easing:"ease-out",fill:"forwards"});
+    a.onfinish=done;
+  }catch(e){}
+  setTimeout(done,PW_FX.DMG_MS+60); /* WAAPI 沒有（或被取消）時的保險絲：DMG_MS+100 內一定要移除（P4） */
+}
+/* HUD (a) 三拍燈：依拍序累積點亮，當前那顆呼吸。 */
+function pwLamps(beat){
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演（下一場 pwCloseupMount 會把燈重置） */
+  const l=$("beatLamps"); if(!l) return;
+  [...l.children].forEach((el,i)=>{ el.classList.toggle("on",i<=beat-1); el.classList.toggle("cur",i===beat-1); });
+}
+/* HUD (b) 存活量表：寬＝存活／開場總數（隻數牌是同一個事實來源），低於 1/3 轉紅。 */
+function pwGauge(side){
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演——SKIP 之後這一場馬上收，量表停在最後一次的值 */
+  const g=$(`pwg-${side}`), n=$(`pwn-${side}`); if(!g||!n) return;
+  const tot=parseInt(g.dataset.total,10)||0, alive=Math.max(0,parseInt(n.textContent,10)||0);
+  const bar=g.firstElementChild; if(!bar) return;
+  bar.style.width=(tot?Math.round(alive/tot*100):0)+"%";
+  g.classList.toggle("low",!!tot&&alive/tot<1/3);
+}
+/* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
+function pwActorCard(side,item,fac){
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演 */
+  const el=$("actorCard"); if(!el||!item) return;
+  /* fac 來自 pwEvFac／fxFacOf，沒有 actor 的事件會回 "lantern"（FAC 裡沒有這個鍵）——
+     直接 FAC[fac].n[0] 會炸掉整條演出。查不到就沿用隻數牌那條「肉」灰徽的口徑。 */
+  const fm=FAC[fac];
+  el.className=`side-${side}${fm?` fac-${fac}`:""} on`;
+  el.innerHTML=`<b>${fm?fm.n[0]:"肉"}</b><span>${item}</span>`;
+  clearTimeout(PW_CARD_T);
+  PW_CARD_T=setTimeout(()=>{ el.classList.remove("on"); },PW_FX.ACTOR_CARD_MS);
+}
+/* 出手那一尊帶的法寶名。名字是 pwArmyView 對位好之後直接掛在單位上的（u.nm），
+   不做任何鍵反查——傳說尊借模型鍵會撞名（見 pwArmyView 的註解）。查不到就回空字串，出手卡不出現。 */
+function pwItemOf(views,b){
+  if(!views||b.actor==null) return "";
+  const v=views[b.side==="B"?1:0], u=v&&v.units.find(x=>x.id===b.actor);
+  return (u&&u.nm)||"";
+}
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
   pwCap("duelBeat",`${BEAT_NAME[beat-1]}${bonus}`);
+  pwLamps(beat); /* 近景切鏡卷 HUD (a)：拍序燈 */
   FXC.beat++; FXC.beats[BEAT_NAME[beat-1]]=(FXC.beats[BEAT_NAME[beat-1]]||0)+1;
   sfx(PW_BEAT_SFX[beat-1],{rnd:S.rngUi()});
   await pwSleep(PW_FX.BANNER_MS);
@@ -4571,7 +4753,13 @@ async function pwPlayBeat(f,beat,list,views){
      超出凍結檔 T-6 的上限（交鋒每筆都拿到 260ms 上限），改回來——招式走 3D 舞台時等 TRAIT_MS，其餘照舊等 evMs */
   const evMs=show.length
     ? Math.max(PW_FX.EV_MIN_MS,Math.min(PW_FX.EV_MAX_MS,Math.round(PW_FX.EV_BUDGET_MS/show.length))) : 0;
+  /* 這一拍實際會演的那幾筆（凍結檔 P1 的分母：規則說的「該拍第一筆」指的是演出的那幾筆，
+     不是引擎產的全部——多到演不完時 pwThin 早就抽過樣了）。只有 ?fxcount=1 才記。 */
+  if(PW_BEAT_LOG) PW_BEAT_LOG.push({beat,
+    shown:show.filter(x=>x.kind!=="trait").map(x=>({kind:x.kind,side:x.side,actor:x.actor===undefined?null:x.actor,target:x.target===undefined?null:x.target,amount:x.amount|0})),
+    burns:burns.map(x=>({side:x.side,target:x.target}))});
   let stops=0;
+  let focuses=0, hitFocused=false; /* 這一拍已經切了幾次、hit 那一次切過了沒 */
   for(const b of show){
     if(b.kind==="trait"){
       const nm=TRAIT_ITEM[b.trId]||"法寶", mv=(TRAITS[b.trId]||{}).name||b.trId, desc=(TRAITS[b.trId]||{}).desc||"";
@@ -4585,19 +4773,43 @@ async function pwPlayBeat(f,beat,list,views){
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
+      /* 近景切鏡卷 二版（審查 MEDIUM-3）：招式是一拍裡最重要的演出，不能在退暗到 0.35 的尊身上演。
+         focus 的 650ms 蓋得到後面接的招式，所以招式一開始就先把切鏡收掉（220ms 的回位段，不是硬切）。
+         用**新事件** ys:fx-focus-end 而不是 ys:fx-trait-cancel：後者還會清 orbit／lean 並中斷 trait-fx 的編舞，
+         那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
+      if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
+      pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
       if(staged){ await pwSleep(PW_FX.TRAIT_MS); continue; } /* 3D 舞台接了才等 900ms；fallback 照 v0.32 等 evMs */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
+      const evFac=pwEvFac(f,b,views);
+      const foeSide=b.side==="B"?"A":"B";
+      /* 近景切鏡：這一拍第一筆夠重的 hit 才切（規格 §二.1 (a)），一拍最多 FOCUS_PER_BEAT 次。
+         切鏡要在停格／撞擊之前派出去——鏡頭 160ms 進場，正好在停格那一下推到位。 */
+      if(!hitFocused&&b.kind==="hit"&&(b.amount|0)>=PW_FX.FOCUS_DMG&&focuses<PW_FX.FOCUS_PER_BEAT){
+        hitFocused=true;
+        if(pwFocus({beat,kind:"hit",side:b.side,actor:b.actor,foeSide,target:b.target,ms:PW_FX.FOCUS_MS})){
+          focuses++;
+          pwActorCard(b.side,pwItemOf(views,b),evFac);
+        }
+      }
       if(stops<PW_FX.HITSTOP_PER_BEAT&&b.amount>=PW_FX.HITSTOP_DMG){ stops++; await fxHitstop(); }
       fxPunch(pw);
-      fxImpact(null,pwEvFac(f,b,views),pw);
+      fxImpact(null,evFac,pw);
       fxLunge(b.side==="B"?f.B.id:f.A.id, b.side==="B"?f.A.id:f.B.id, pw);
+      pwDmgFloat(b,evFac); /* 近景切鏡卷：這一下扣了幾點，就在被打那一尊頭上寫幾點 */
       sfx(K.s,{rnd:S.rngUi()});
     }
     await pwSleep(evMs);
   }
   if(burns.length){
+    /* 近景切鏡：化灰是一拍裡最重的一下，鏡頭跟著燒毀那一尊（規格 §二.1 (b)）。
+       同拍多隻同時燒時只跟第一隻——一拍最多 FOCUS_PER_BEAT 次，且鏡頭不可能同時跟兩個方向。 */
+    if(focuses<PW_FX.FOCUS_PER_BEAT){
+      const b0=burns[0];
+      if(pwFocus({beat,kind:"burn",side:b0.side,actor:b0.target,foeSide:b0.side==="B"?"A":"B",target:null,ms:PW_FX.BURN_MS+180})) focuses++;
+    }
     await fxHitstop();
     fxFlash(); sfx("hurt",{rnd:S.rngUi()});
     await Promise.all(burns.map(pwBurnOne));
@@ -4607,7 +4819,12 @@ async function pwPlayBeat(f,beat,list,views){
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
+  /* 近景切鏡卷：這一場的 focus／逐拍演出記錄（只有 ?fxcount=1 才有 window.__ysFxCount，
+     不過這兩個陣列本來就只是純記錄，遊戲一行都不讀）。關掉近景時不記，fights[] 與基準逐欄相同（P0）。 */
+  PW_FOCUS_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
+  PW_BEAT_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   $("duel").classList.add("pw");
+  pwCloseupMount(); /* HUD 三件的容器（關掉時連建都不建） */
   $("duelArena").innerHTML=pwArenaHTML(f,views);
   $("duelBeat").innerHTML=""; pwMoveCap(null);
   $("duelResult").innerHTML=""; $("duelSub").innerHTML="";
@@ -4641,12 +4858,16 @@ async function playDuelWar(f,views){
   }
   await pwSleep(PW_FX.END_MS);
   FXC.duels++;
-  FXC.fights.push({
+  const fight={
     round:S.round, a:f.A.id, b:f.B.id,
     burnEv:f.war.beats.filter(x=>x.kind==="burn").length,
     burnCalls:FXC.burn-c0, warBurn:f.war.burnedA+f.war.burnedB, burnDom:FXC.burnDom-d0, burnFig:FXC.burnFig-g0,
     traitEv:f.war.beats.filter(x=>x.kind==="trait").length, traitCap:FXC.trait-r0,
-  });
+  };
+  /* 近景切鏡卷：關掉時這兩個欄位根本不存在，fights[] 與基準逐欄相同（P0）。 */
+  if(PW_FOCUS_LOG){ fight.focus=PW_FOCUS_LOG; fight.beatsShown=PW_BEAT_LOG; }
+  FXC.fights.push(fight);
+  PW_FOCUS_LOG=null; PW_BEAT_LOG=null;
 }
 /* ================= 對決動畫 ================= */
 async function playDuel(f){
@@ -4719,6 +4940,7 @@ async function playDuel(f){
     await sleep(CFG.T*1.6);
   }
   } /* ← ON／OFF 分支結束 */
+  pwCloseupClear(); /* v0.45：跳字／出手卡不得跨場殘留（focus 與退暗由下一行的 ys:duel-end 收） */
   ov.classList.remove("on"); ov.classList.remove("pw"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }
