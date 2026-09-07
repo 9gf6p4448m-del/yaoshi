@@ -53,6 +53,9 @@ const FIG = {
   lungeMs: 520,
   // ── 《紙紮夜戰》列陣（v0.31 卷 C1）：一邊不再只有一尊，而是一整隊紙紮 ──
   maxFigures: 10, // 每邊最多擺幾尊（index.html 的 PW_FX.MAXFIG 只送 8 進來，這裡是保險絲）
+  // 退場寬限（v0.43.2）：被遞補收掉／換場收回的尊，還要被 update(dt) 推進這麼久，讓它掛在 scene 上的灰燼
+  // 自然燒完（creature-figures 的 ash 壽命最長 BURST.life 1.05×1.4≈1.47s）——不然灰燼會凍在半空（使用者真機回報）
+  ashGraceMs: 2000,
   rowStepPx: 50, // 同一邊相鄰兩尊的水平間距（CSS 像素，跟 pixelH 同一個尺度）
   // 30 時八尊擠成一面牆、三尊也互相蓋住臉（實測 scratchpad/pw-03-beat1-mid.png、
   // slow1-01-lineup.png 兩版），拉到 50：三尊剛好各自看得見臉，八尊靠 crowdShrink 收回畫面內
@@ -303,6 +306,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
   // index.html 不再把 armies 截斷到 MAXFIG 才送出來，本檔才有機會在某尊燒毀演完後，
   // 從這裡挑下一個換上同一格位——不然場上同時擺著的尊數超過 MAXFIG 一步都跑不動（三排/四排的站位規劃只認 MAXFIG）。
   let queue = [[], []];
+  // 退場寬限清單（v0.43.2）：[{ f, until }]。resetFigure 收回的尊進來，主迴圈每幀對「未被重新占用」的尊繼續 update(dt)，
+  // 到期即移除。不在 onDuel 清空——跨場的殘餘灰燼也要燒完。
+  const retired = [];
   // 單位 id → { t0, custom, done }
   //   custom=true 代表這一尊的燒毀由工廠自己的 burn() 在演，本檔不插手它的透明度與位移；
   //   done=true 代表演完了，這一尊收起來不再顯示。
@@ -323,6 +329,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
     if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
     f.group.visible = false;
     f.shadow.visible = false;
+    // 灰燼掛在 scene、只靠這尊自己的 update 推進：收回後再推 ashGraceMs，讓它自己燒完並隱藏（凍結檔 F1／F6）
+    if (typeof f.update === 'function' && !retired.some((r) => r.f === f)) retired.push({ f, until: performance.now() + FIG.ashGraceMs });
   }
 
   /** 釋出某一格位目前占用的尊（若有），並把該格位清空，讓下一次 figureFor(side,j) 重新配位。 */
@@ -517,6 +525,12 @@ export function createDuelFigures(scene, camera, opts = {}) {
   }
 
   function update(dt, now) {
+    // 退場寬限（v0.43.2）：放在 active 檢查之前——對決結束後 active=false，殘餘灰燼仍要推進到燒完
+    for (let k = retired.length - 1; k >= 0; k--) {
+      const r = retired[k];
+      if (now > r.until) { retired.splice(k, 1); continue; }
+      if (!r.f.__busy) { try { r.f.update(dt); } catch (err) { retired.splice(k, 1); } } // 被重新占用的尊由下面主迴圈推，不重複
+    }
     if (!active) return;
     if (!aligned) { realign(); if (!aligned) return; nextAlign = now + ALIGN_MS; }
     else if (now >= nextAlign) { nextAlign = now + ALIGN_MS; realign(); }

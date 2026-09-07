@@ -751,6 +751,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    有沒有用」時偶爾也會踩進本卷修的那四個桶子，估值因而改變、連鎖影響後續夜的購買與配對——這是同一支引擎修
    對就會外溢到 AI 估值的自然結果，不是本卷順手改了別的判定。接手後續卷如果又要動 `paperWar` 內任何判定，
    记得 `pwTrial` 是同一支函式，AI 出價行為會跟著變，不要只拿單一場 `paperWar` 的輸出去驗證「引擎沒變」。
+4. **遞補收尊要走「退場寬限」，不能收了就不管（v0.43.2，使用者真機回報灰燼凍在半空）**：`creature-figures.js` 的燒毀灰燼 `ash.points` 掛在 `group.parent`（scene），只靠那尊自己的 `update(dt)` 推進，`reset()` 刻意不砍它（砍了灰燼會在燒完那一瞬硬切）。所以 `resetFigure` 會把收回的尊登記到 `retired`（`{f, until}`），`update(dt, now)` 開頭（在 `active` 檢查之前，對決結束後也要推）對未被重新占用（`!f.__busy`）的尊繼續 `f.update(dt)` 到 `FIG.ashGraceMs`（2000ms ≥ `BURST.life 1.05×1.4≈1.47s`）到期。之後若有人把別的「掛在 scene 上、靠 figure 推進」的特效加進 creature，也走這一條，不要另開清單。驗證用 `tests/tools/ash-freeze-probe.mjs`（對 ff227a7 必紅）。
 
 ### 11.20 傳說三尊「請神」實作卷（2026-09-06 深夜～09-07，v0.43）——接手前先知道這幾件事
 

@@ -773,6 +773,8 @@ export function makeCreatureFigure(opts = {}) {
     },
     /** 釋放這一隻獨佔的材質與幾何（GLB 本身由 glbCache 共用，不在這裡釋放） */
     dispose() {
+      // 灰燼掛在 group.parent（scene）而非 group：釋放時要從那裡拿掉（v0.43.2）
+      if (ash) { if (ash.points.parent) ash.points.parent.remove(ash.points); ash.points.geometry.dispose(); ash.points.material.dispose(); ash = null; }
       if (fx) { group.remove(fx.points); fx.dispose(); fx = null; }
       if (ground) { group.remove(ground.group); ground.dispose(); ground = null; }
       group.traverse((o) => {
