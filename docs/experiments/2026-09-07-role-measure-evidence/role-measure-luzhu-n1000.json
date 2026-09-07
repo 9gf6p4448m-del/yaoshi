@@ -1,0 +1,167 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "luzhu"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.257,
+   "surv": 10.171,
+   "life": 12.733,
+   "len": 10.171,
+   "hookCalls": {
+    "onNightEnd": 10151,
+    "onAiCurse": 8184
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 25908
+  },
+  {
+   "variant": "b",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.278,
+   "surv": 10.209,
+   "life": 13.381,
+   "len": 10.209,
+   "hookCalls": {
+    "onNightEnd": 10186,
+    "onAiCurse": 8206
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 27174
+  },
+  {
+   "variant": "c",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.28,
+   "surv": 10.291,
+   "life": 13.472,
+   "len": 10.291,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onNightEnd": 10270,
+    "onAiCurse": 8268
+   },
+   "ablated": {
+    "dropped": [
+     "onReveal",
+     "onNightEnd",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 21276
+  },
+  {
+   "variant": "d",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.265,
+   "surv": 10.3,
+   "life": 12.519,
+   "len": 10.3,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onNightEnd": 10280,
+    "onAiCurse": 8226
+   },
+   "ablated": {
+    "dropped": [
+     "onReveal",
+     "onNightEnd",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 25267
+  },
+  {
+   "variant": "cL",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.319,
+   "surv": 10.44,
+   "life": 14.696,
+   "len": 10.44,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onNightEnd": 10418,
+    "onAiCurse": 8341
+   },
+   "ablated": {
+    "dropped": [
+     "onReveal",
+     "onNightEnd",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 24544
+  },
+  {
+   "variant": "dL",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.296,
+   "surv": 10.393,
+   "life": 13.683,
+   "len": 10.393,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onNightEnd": 10379,
+    "onAiCurse": 8298
+   },
+   "ablated": {
+    "dropped": [
+     "onReveal",
+     "onNightEnd",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 21956
+  },
+  {
+   "variant": "c2",
+   "role": "luzhu",
+   "n": 1000,
+   "win": 0.296,
+   "surv": 10.394,
+   "life": 14.062,
+   "len": 10.394,
+   "hookCalls": {
+    "onAiCurse": 8308
+   },
+   "shadowCalls": {
+    "onNightEnd": 10376
+   },
+   "ablated": {
+    "dropped": [
+     "onReveal",
+     "onNightEnd"
+    ],
+    "keptAi": [
+     "onAiCurse"
+    ]
+   },
+   "ms": 21124
+  }
+ ]
+}

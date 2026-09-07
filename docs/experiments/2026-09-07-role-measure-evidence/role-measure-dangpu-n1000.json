@@ -1,0 +1,198 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "dangpu"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.117,
+   "surv": 8.984,
+   "life": 5.231,
+   "len": 8.984,
+   "hookCalls": {
+    "onBudget": 18538,
+    "onBattle": 8158,
+    "onNightEnd": 8557,
+    "onAiAmount": 9555,
+    "onBidSettle": 12073
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 22367
+  },
+  {
+   "variant": "b",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.119,
+   "surv": 8.917,
+   "life": 4.949,
+   "len": 8.917,
+   "hookCalls": {
+    "onBudget": 18371,
+    "onBattle": 8106,
+    "onNightEnd": 8495,
+    "onAiAmount": 9454,
+    "onBidSettle": 12600
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 23713
+  },
+  {
+   "variant": "c",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.256,
+   "surv": 10.398,
+   "life": 12.502,
+   "len": 10.398,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onBudget": 10395,
+    "onBattle": 9790,
+    "onNightEnd": 10369,
+    "onAiAmount": 11074,
+    "onBidSettle": 14590
+   },
+   "ablated": {
+    "dropped": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 24749
+  },
+  {
+   "variant": "d",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.259,
+   "surv": 10.385,
+   "life": 13.253,
+   "len": 10.385,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onBudget": 10385,
+    "onBattle": 9765,
+    "onNightEnd": 10367,
+    "onAiAmount": 11761,
+    "onBidSettle": 14238
+   },
+   "ablated": {
+    "dropped": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 24639
+  },
+  {
+   "variant": "cL",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.199,
+   "surv": 10.05,
+   "life": 10.207,
+   "len": 10.05,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onBudget": 10049,
+    "onBattle": 9474,
+    "onNightEnd": 10020,
+    "onAiAmount": 10262,
+    "onBidSettle": 13532
+   },
+   "ablated": {
+    "dropped": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 24858
+  },
+  {
+   "variant": "dL",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.214,
+   "surv": 9.96,
+   "life": 11.311,
+   "len": 9.96,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onBudget": 9957,
+    "onBattle": 9395,
+    "onNightEnd": 9923,
+    "onAiAmount": 10936,
+    "onBidSettle": 13250
+   },
+   "ablated": {
+    "dropped": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 21173
+  },
+  {
+   "variant": "c2",
+   "role": "dangpu",
+   "n": 1000,
+   "win": 0.11,
+   "surv": 8.617,
+   "life": 4.524,
+   "len": 8.617,
+   "hookCalls": {
+    "onAiAmount": 8025
+   },
+   "shadowCalls": {
+    "onBudget": 16640,
+    "onBattle": 7826,
+    "onNightEnd": 8177,
+    "onBidSettle": 10993
+   },
+   "ablated": {
+    "dropped": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd"
+    ],
+    "keptAi": [
+     "onAiAmount"
+    ]
+   },
+   "ms": 18063
+  }
+ ]
+}
