@@ -57,6 +57,7 @@ function decodePng(buf) {
   }
   return { w, h, ch, data: out };
 }
+const num = (v) => (v === null || v === undefined || !isFinite(v) ? null : +v.toFixed(2));
 const px = (im, x, y) => { const i = (y * im.w + x) * im.ch; return [im.data[i], im.data[i + 1], im.data[i + 2]]; };
 const srgb = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
 const lum = (r, g, b) => 0.2126 * srgb(r) + 0.7152 * srgb(g) + 0.0722 * srgb(b);
@@ -190,7 +191,7 @@ const HARNESS = `(() => {
       const go = () => {
         F.freeze();
         if (onStep) { try { onStep(k); } catch (e) {} } // 凍住之後才動作（例如派刺激）：畫面停在動作發生前那一幀
-        M.ready = { tag: tag, meta: meta, step: k, at: steps[k], cam: M.camPos(), hk: M.hitK(), ids: [M.liveUnits('A'), M.liveUnits('B')] };
+        M.ready = { tag: tag, meta: meta, step: k, at: steps[k], cam: M.camPos(), hk: M.hitK(), bn: M.burns.length, ids: [M.liveUnits('A'), M.liveUnits('B')] };
       };
       if (d <= 0) go(); else setTimeout(go, d);
     };
@@ -463,11 +464,16 @@ async function runPix(browser) {
       if (!M.duelOn || performance.now() - M.duelT < 1600) return;
       const ov = document.getElementById('duel');
       if (!ov || getComputedStyle(ov).opacity !== '1') return; // 淡入淡出中不量
-      const side = (M.nHit % 2) ? 'B' : 'A';
-      const rows = M.pickTarget(side);
-      if (rows.length < 2 || rows[0].a < 4000) return; // 太小的尊：方框裡幾乎都是背景，量不出東西
+      const side = (M.nHit % 2) ? 'B' : 'A', foe = side === 'B' ? 'A' : 'B';
+      const rows = M.pickTarget(side), frows = M.pickTarget(foe);
+      if (!rows.length || rows[0].a < 4000 || !frows.length) return; // 太小的尊：方框裡幾乎都是背景，量不出東西
+      // 對照組取**對面那一欄**最大的一尊：同一欄的兩尊在畫面上會互相疊到（擠堆時方框幾乎重合），
+      // 拿同欄的當對照，target 一閃連對照也跟著紅，會誤判成「整片閃紅」。
+      const t = rows[0].b, c = frows[0].b;
+      const overlap = !(c.x1 < t.x0 || c.x0 > t.x1 || c.y1 < t.y0 || c.y0 > t.y1);
+      if (overlap) return;
       M.nHit++;
-      M.fire(side, rows[0].u, { control: rows[1].u });
+      M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe });
     };
     document.addEventListener('ys:duel', () => {
       const tick = () => { M.tryFire(); if (M.nHit < M.cfg.maxHit) setTimeout(tick, 300); };
@@ -483,6 +489,15 @@ async function runPix(browser) {
         M.done.burnProbe = (M.done.burnProbe || 0) + 1;
         M.fire(d.side, d.unit, { burning: true, control: us.find((u) => u !== d.unit) });
       }, 60);
+    });
+    // 量表紅殘影的凍幀（R7 用）：燒毀之後 90ms 凍住，殘影一定還在（GAUGE_GHOST_MS 300）
+    document.addEventListener('ys:fx-burn', () => {
+      if ((M.done.ghostShot || 0) >= 2) return;
+      setTimeout(() => {
+        if (M.busy) return;
+        M.done.ghostShot = (M.done.ghostShot || 0) + 1;
+        M.run('ghost', {}, [0]);
+      }, 90);
     });
     // R5：派一顆 hit → +40ms 按跳過 → +300ms 量
     window.__dmgSkipPix = () => {
@@ -505,7 +520,7 @@ async function runPix(browser) {
 
   const pump = async (pg) => {
     for (let guard = 0; guard < 6; guard++) {
-      const r = await pg.evaluate(() => (window.__dmg.ready ? { tag: window.__dmg.ready.tag, meta: window.__dmg.ready.meta, step: window.__dmg.ready.step, at: window.__dmg.ready.at, cam: window.__dmg.ready.cam, hk: window.__dmg.ready.hk, ids: window.__dmg.ready.ids } : null)).catch(() => null);
+      const r = await pg.evaluate(() => (window.__dmg.ready ? { tag: window.__dmg.ready.tag, meta: window.__dmg.ready.meta, step: window.__dmg.ready.step, at: window.__dmg.ready.at, cam: window.__dmg.ready.cam, hk: window.__dmg.ready.hk, bn: window.__dmg.ready.bn, ids: window.__dmg.ready.ids } : null)).catch(() => null);
       if (!r) return;
       if (r.step === 0) runId++;
       const file = path.join(shotDir, `${String(++nshot).padStart(4, '0')}-${r.tag}-${r.step}.png`);
@@ -523,10 +538,10 @@ async function runPix(browser) {
             ratio: +contrast(f.color, ring.rgb).toFixed(2), file: path.basename(file) });
         }
       } else if ((r.tag === 'flash' || r.tag === 'skip') && im) {
-        const boxes = await pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined ? null : window.__dmg.figBox(m.side, m.control) }), r.meta).catch(() => null);
-        const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
-          t: boxes && boxes.t ? +redness(im, boxes.t).toFixed(2) : null,
-          c: boxes && boxes.c ? +redness(im, boxes.c).toFixed(2) : null };
+        const boxes = await pg.evaluate((m) => ({ t: window.__dmg.figBox(m.side, m.unit), c: m.control === undefined || m.control === null ? null : window.__dmg.figBox(m.ctrlSide || m.side, m.control) }), r.meta).catch(() => null);
+        const row = { run: runId, step: r.step, at: r.at, meta: r.meta, file: path.basename(file), cam: r.cam, hk: r.hk, bn: r.bn, ids: r.ids, box: boxes && boxes.t ? boxes.t : null, cbox: boxes && boxes.c ? boxes.c : null,
+          t: num(boxes && boxes.t ? redness(im, boxes.t) : null),
+          c: num(boxes && boxes.c ? redness(im, boxes.c) : null) };
         (r.tag === 'skip' ? samples.skip : samples.flashes).push(row);
       }
       shots.push({ file: path.basename(file), tag: r.tag, step: r.step, at: r.at, meta: r.meta });
@@ -534,19 +549,28 @@ async function runPix(browser) {
     }
   };
 
+  let skipDone = false;
   const r = await drive(page, url, { duels: duels, onDuel: async (pg, n) => {
     const t0 = Date.now();
+    let armed = false;
     while (Date.now() - t0 < 30000) {
       await pump(pg);
       const st = await pg.evaluate(() => ({ busy: window.__dmg.busy, nf: window.__dmg.nFloat, nh: window.__dmg.nHit, ended: (window.__dmg.note.ends || 0) })).catch(() => null);
       if (!st) break;
       if (st.ended >= n) break;
+      // R5 像素版：最後一場演到一半才觸發（doSkip 要有東西可以清）
+      if (n >= duels && !skipDone && !armed && !st.busy && Date.now() - t0 > 4000) {
+        armed = true;
+        skipDone = await pg.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
+      }
       await pg.waitForTimeout(20);
     }
   } });
   // R5 的像素版：最後一場對決手動觸發（drive 已結束時場上可能沒尊了，所以放在 onDuel 之外的 best-effort）
-  const skipTried = await page.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
-  if (skipTried) { for (let i = 0; i < 30; i++) { await pump(page); await page.waitForTimeout(30); } }
+  if (!skipDone) { // 最後一場沒觸發到就再試一次（best-effort）
+    const t = await page.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
+    if (t) for (let i = 0; i < 30; i++) { await pump(page); await page.waitForTimeout(30); }
+  }
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
     froze: window.__frz.froze, note: window.__dmg.note, ver: (document.getElementById('verLine') || {}).textContent }));
   const v = judgePix(samples);
@@ -584,7 +608,10 @@ function judgePix(S) {
     // 它的紅偏量漂移就是本樣本的量測噪音。噪音 ≤5（＝R2「回到 ±5」的同一把尺）才拿來判 +25。
     // 鏡頭幾乎一直在動（每 40ms 位移 0.1～1.0 世界單位），拿「方框不准動」當閘門會把樣本全篩掉；
     // 方框是逐幀跟著那一尊算的，所以鏡頭動不影響量測——實測空窗漂移只有 0.6～2。
-    row.usable = row.d40 !== null && row.d0 !== null && Math.abs(row.d0) <= 5;
+    // 有燒毀夾進來的樣本一律作廢：燒毀會放一片全螢幕暖光（#duel .flashfx，ys3d 下是橘黃漸層），
+    // 整個畫面的紅偏量都會抬起來——那不是「被打的尊在閃」，量到的是背景。
+    row.burnIn = (g[2].bn !== undefined && g[0].bn !== undefined) ? (g[2].bn - g[0].bn) : null;
+    row.usable = row.d40 !== null && row.d0 !== null && Math.abs(row.d0) <= 5 && !row.burnIn;
     seqs.push(row);
   }
   const moved = seqs.filter((x) => !x.usable);
@@ -614,6 +641,6 @@ function judgePix(S) {
     back200max: live.filter((x) => x.d200 !== null).length ? Math.max(...live.filter((x) => x.d200 !== null).map((x) => Math.abs(x.d200))) : null,
     ctrlMax: live.filter((x) => x.ctrl40 !== null).length ? Math.max(...live.filter((x) => x.ctrl40 !== null).map((x) => x.ctrl40)) : null,
     burnProbes: burning.length, burnMax: burning.length ? Math.max(...burning.map((x) => Math.abs(x.d40))) : null,
-    movedRejected: moved.length, noiseMax: live.filter((x) => x.d0 !== null).length ? Math.max(...live.map((x) => Math.abs(x.d0 || 0))) : null,
+    rejected: moved.length, rejBurn: seqs.filter((x) => x.burnIn).length, noiseMax: live.filter((x) => x.d0 !== null).length ? Math.max(...live.map((x) => Math.abs(x.d0 || 0))) : null,
     skipFlash: skFlash, skipAfter300: skD } };
 }

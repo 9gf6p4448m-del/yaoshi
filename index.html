@@ -325,12 +325,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   /* 深色描邊：stroke 打輪廓（paint-order 讓它畫在字身後面，不吃掉筆畫），四層黑影把周圍 8px 環帶壓暗
      ——R1 量的就是「字色 vs 背後 8px 環帶」，畫面再亮也要讀得到。底板一律不加（R1 假綠條款）。 */
   -webkit-text-stroke:2px rgba(6,3,2,.94);paint-order:stroke fill;
-  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9),0 0 16px rgba(0,0,0,.75);
+  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9);
+  /* drop-shadow 疊兩層＝連描邊一起投影的暗暈，比 text-shadow 更能把周圍那一圈壓暗：
+     跳字冒在火光／灰燼／金色量表上時，光靠字色是讀不到的（實測背後環帶亮度到 134，對比度掉到 3.1）。
+     這不是底板——它是模糊的暗暈，不會蓋住畫面（R1 的假綠條款禁的是不透明底板）。 */
+  filter:drop-shadow(0 0 5px rgba(0,0,0,.98)) drop-shadow(0 0 12px rgba(0,0,0,.9));
   white-space:nowrap;opacity:0}
 .dmgfloat.heal{color:var(--dmg-heal)}
 /* 擊殺：再放大 1.3 倍，系色只用在「底光」，字身仍是暖紅橙——把字色換成系色會讓烏木棕那系整個讀不到（R1） */
 .dmgfloat.kill{font-size:calc(17px * var(--dmgs,1.6) * 1.3);
-  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9),
+  text-shadow:0 0 4px #000,0 0 8px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.9),
     0 0 14px var(--pwf,#ffb060),0 0 26px var(--pwf,#ffb060)}
 /* 「−1 隻」：灰白小字（字級 ×1.0，不隨 DMG_SCALE 放大），與傷害數字分色也分位置（R4） */
 .dmgfloat.unit{font-size:17px;font-weight:700;color:var(--dmg-unit);-webkit-text-stroke:1.5px rgba(6,3,2,.94)}
