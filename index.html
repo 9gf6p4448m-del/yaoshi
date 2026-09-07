@@ -825,7 +825,7 @@ const ROLES = {
       poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
   /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
   hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",pool:true,
-    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
+    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命、自己 +2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
     ai:{aggr:0.6,spite:0.6,markReact:"contest"},
     hooks:{
       onBidSettle(ctx){                              /* 被搶標 +1 */
@@ -834,11 +834,15 @@ const ROLES = {
         if(w===null||w===undefined||w===ctx.p.id) return;
         ctx.p.grudge[w]=(ctx.p.grudge[w]||0)+1;
       },
-      onWinItem(ctx){                                /* 被毒標塞中：記仇 +2＋玩家被動（下手者 −2，GAME_DESIGN §六之三A） */
+      /* 被毒標塞中：記仇 +2＋玩家被動（下手者 −2、紅衣自己 +2）。
+         自己 +2 是 2026-09-07 角色平衡卷加的（使用者裁定「都照建議」）：這是紅衣唯一的玩家被動、
+         生效率只有 12.7%，而且要等別人先毒她——原本純罰對手，她自己一點也拿不到。 */
+      onWinItem(ctx){
         if(!ctx.target||ctx.target.roleId!=="hongyi") return;
         ctx.target.grudge[ctx.winner.id]=(ctx.target.grudge[ctx.winner.id]||0)+2;
         ctx.winner.life-=2;
-        ctx.events.push({txt:`👵 ${ctx.target.name} 回瞪一眼，${ctx.winner.name} -2`});
+        ctx.target.life+=2;
+        ctx.events.push({txt:`👵 ${ctx.target.name} 回瞪一眼，${ctx.winner.name} -2、${ctx.target.name} +2`});
       },
       onBattle(ctx){                                 /* 被擊敗 +1（跨玩家 hook，要自己認人） */
         if(ctx.l.roleId!=="hongyi") return;
@@ -981,8 +985,8 @@ const ROLES = {
   /* 免疫型（GAME_DESIGN 六之三 A）：詛咒品戰力視為 0（drain 照舊），獨力買銷詛咒品半價。
      規格的「囤詛咒品當肉盾」在現行引擎裡沒有「留在袋中」這條路（買下＝銷毀），
      故 AI 收祟＝一律買下銷毀（ARCH_SPEC §8.5 的字面實作 intent='keep'）。 */
-  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:-8,pool:true,
-    desc:"免疫流（起始 32）。被動：袋中詛咒品戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
+  lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:-2,pool:true, /* life0d −8→−2（2026-09-07 角色平衡卷，使用者裁定「都照建議」）：量法卷實測 1.08pp／點，−8 是這隻 −18.4pp 整包淨值裡最大的一塊 */
+    desc:"免疫流（起始 48）。被動：袋中詛咒品在紙紮夜戰不造成「詛咒纏身」減益、戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
     ai:{aggr:0.5,spite:0.2,markReact:"ignore"},
     /* 2026-09-07 角色平衡卷：「袋中詛咒品戰力視為 0」原本只寫在 onItemValue（＝只進 power()），
        而紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數，與 power() 無關）⇒ 免疫在現行對決引擎裡
@@ -1003,7 +1007,7 @@ const ROLES = {
       poison:["這道符，你拿著。"],poisoned:["區區小祟也敢上身？"],bwin:["妖邪退散。"],blose:["今夜法力見底…"]}},
   /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改壽命 1/2；夜末得標 ≥2 件 +2、0 件 −2。 */
   zutou:{id:"zutou",name:"大家樂組頭",av:"🎲",pool:true,
-    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2、掛零 −2。AI 時亂槍——每夜對 3 件下小額標`,
+    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2。AI 時亂槍——每夜對 3 件下小額標`,
     ai:{aggr:0.65,spite:0.3,markReact:"contest"},
     hooks:{
       onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/(CFG.CONS_CAP_DIV/1.5))); }, /* 「改為」一般上限的 1.5 倍（÷6 時＝壽命÷4），不與其他加成疊；跟著 CONS_CAP_DIV 走（2026-09-03 ÷3→÷6 時由寫死的 /2 改成相對比例） */
@@ -1013,11 +1017,13 @@ const ROLES = {
         if(p._ztR!==S.round){ p._ztR=S.round; p._ztN=0; }
         p._ztN++;
       },
+      /* 掛零 −2 已於 2026-09-07 角色平衡卷拿掉（使用者裁定「都照建議」）：量法卷實測這隻的玩家被動
+         淨值是 −3.08pp（全表唯一為負），因為它的 AI 打法是「每夜標 3 件、每筆 ≤4」，小額標很容易
+         全部落標 ⇒ 罰則比獎勵常發生。只留獎勵側。 */
       onNightEnd(ctx){
         const p=ctx.p;
         const n=(p._ztR===S.round)?(p._ztN||0):0;
         if(n>=2){ p.life+=2; ctx.log.push(`🎲 ${p.name} 今夜連中 ${n} 注 +2`); }
-        else if(n===0){ p.life-=2; ctx.log.push(`🎲 ${p.name} 今夜槓龜 −2`); }
       },
       onAiPlan(ctx){ ctx.maxPicks=3; },              /* 亂槍：每夜標 3 件（ARCH_SPEC §8.2） */
       onAiAmount(ctx){                               /* 小額鋪開（ARCH_SPEC §8.3）【試玩必調：上限 4】 */
@@ -1031,8 +1037,8 @@ const ROLES = {
      典當掛在三個致死路徑上：出價實付（onBidSettle）、對決傷害（onBattle）、夜末結算（onNightEnd）。
      已知微縫：夜間結算「途中」由別的 hook 直接扣血致死（如孝女白琴的 −1 恰好補刀）不在這三個
      掛點之間，救不到——屬既有 hook 架構的邊界，接受並記錄於 roles-report.md。 */
-  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",life0d:-4,pool:true,order:95, /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
-    desc:"上限流（起始 36）。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——保住 1 壽命、袋中多一件縛靈鎖。AI 時詐術喊高價",
+  dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",pool:true,order:95, /* life0d −4→0（2026-09-07 角色平衡卷，使用者裁定「都照建議」）：欄位省略＝起始壽命 CFG.LIFE */ /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
+    desc:"上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——保住 1 壽命、袋中多一件縛靈鎖。AI 時詐術喊高價",
     ai:{aggr:0.8,spite:0.4,markReact:"avoid"},
     hooks:{
       onBudget(ctx){ ctx.budget=ctx.p.life+8; },     /* 「改為」壽命+8（規格） */

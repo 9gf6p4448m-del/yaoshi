@@ -114,6 +114,57 @@ test('閭山法師：免疫不外洩給別人（別的角色帶同樣的詛咒�
     `沒有 curseWard 的角色帶詛咒品仍應被「詛咒纏身」拖累：帶咒 alive ${rCursed.aliveA}/hp ${rCursed.hpA}、乾淨 alive ${rClean.aliveA}/hp ${rClean.hpA}`);
 });
 
+/* ===================== ② 數值：起始壽命與兩個被動 ===================== */
+/* 起始壽命從實際發牌的座位讀（makeState），不是讀 ROLES.life0d 這個欄位——
+   舊版紅在「壽命是 42／46」這個行為值，不是紅在欄位不存在。 */
+function lifeOnTable(roleId){
+  G.makeState('solo',1,[roleId]);
+  const p=G.S.players.find(q=>q.roleId===roleId);
+  ok(p,`makeState 應把 ${roleId} 發到桌上`);
+  return p.life;
+}
+test('閭山法師：起始壽命＝CFG.LIFE−2',()=>{
+  eq(lifeOnTable('lvshan'),CFG.LIFE-2,'閭山法師開局壽命');
+});
+test('陰間當鋪：起始壽命＝CFG.LIFE',()=>{
+  eq(lifeOnTable('dangpu'),CFG.LIFE,'陰間當鋪開局壽命');
+});
+test('大家樂組頭：夜末掛零不再扣 2 壽命',()=>{
+  G.makeState('solo',1,['zutou']);
+  const p=G.S.players.find(q=>q.roleId==='zutou');
+  p._ztR=G.S.round; p._ztN=0;              /* 本夜得標 0 件＝掛零 */
+  const before=p.life, log=[];
+  G.applyHooks('onNightEnd',{p,log},p);
+  eq(p.life,before,'掛零那一夜的壽命不得變動');
+});
+test('大家樂組頭：夜末連中 ≥2 件仍然 +2（獎勵側沒被順手拆掉）',()=>{
+  G.makeState('solo',1,['zutou']);
+  const p=G.S.players.find(q=>q.roleId==='zutou');
+  p._ztR=G.S.round; p._ztN=2;
+  const before=p.life, log=[];
+  G.applyHooks('onNightEnd',{p,log},p);
+  eq(p.life,before+2,'連中 2 注的夜末壽命');
+});
+test('紅衣婆婆：被毒標塞中時下手者 −2、自己 +2',()=>{
+  G.makeState('solo',1,['hongyi']);
+  const target=G.S.players.find(q=>q.roleId==='hongyi');
+  const winner=G.S.players.find(q=>q.id!==target.id);
+  const tL=target.life, wL=winner.life, events=[];
+  G.applyHooks('onWinItem',{winner,item:{...POOL[0]},target,events},[winner,target]);
+  eq(winner.life,wL-2,'下手者壽命');
+  eq(target.life,tL+2,'紅衣婆婆自己的壽命');
+});
+test('紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆真式）',()=>{
+  G.makeState('solo',1,['hongyi']);
+  const hy=G.S.players.find(q=>q.roleId==='hongyi');
+  const a=G.S.players.find(q=>q.id!==hy.id);
+  const b=G.S.players.find(q=>q.id!==hy.id&&q.id!==a.id);
+  const aL=a.life, bL=b.life, events=[];
+  G.applyHooks('onWinItem',{winner:a,item:{...POOL[0]},target:b,events},[a,b]);
+  eq(a.life,aL,'下手者壽命不得變');
+  eq(b.life,bL,'被塞的人壽命不得變');
+});
+
 /* ---------- 收尾 ---------- */
 console.log(`\n角色平衡卷單元測試：${pass} 過 / ${fail} 失敗`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }
