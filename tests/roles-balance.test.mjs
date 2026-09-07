@@ -316,6 +316,49 @@ test('沒有免疫的角色仍印「詛咒纏身」（M6 不是把這段拆掉�
   ok(/詛咒纏身 2/.test(txt),`大家樂組頭的隻數牌應仍印「詛咒纏身 2」，實際：${txt}`);
 });
 
+/* ===================== 角色平衡 B 小卷（2026-09-07）：兩隻帶外角色的 C0 =====================
+   凍結檔：docs/experiments/2026-09-07-acceptance-role-balance-b.md C0。基準＝5a3c56b（v0.47）。
+   鑑別力：兩案在基準上都必須紅，而且紅在行為斷言——
+     斷手：基準寫 `ctx.val*=鎖定系?1.6:0.7`（每一件都套）⇒ 同一個 val=10，鎖定系 16、其餘系 7，
+           差 9 且其餘系被低估三成；本案紅在「差值 9」與「其餘系不是 10」。
+     紅衣：基準的記仇只有 onAiValue（AI 專屬）這一個出口，玩家座位跑 onBidEff 時 eff 不會變；
+           本案紅在「比價沒有 +3」。兩案都不去讀「新加的欄位」，只從 applyHooks 這個公開出口看行為。 */
+test('斷手書生 B：AI 估值只對「湊得成套的那一件」加價，其餘系不再被低估',()=>{
+  const spec=G.BEAT_FAC[0], other=G.BEAT_FAC[1];
+  ok(bagOfFac(spec,3).length===3&&bagOfFac(other,3).length===3,'治具前提：兩系各至少 3 件法寶');
+  /* lockedSpec 有 p.spec 就不再抽，所以這裡把「暗中鎖定的那一系」釘死，不吃 S.seed */
+  const val=(bag,f)=>{
+    const p=player(0,'duanshou',bag); p.spec=spec;
+    const c={p,item:{f,p:5,curse:false},val:10};
+    G.applyHooks('onAiValue',c,p);
+    return c.val;
+  };
+  const ready=()=>bagOfFac(spec,3);            /* 鎖定系已有 3 件＝下一件正好湊成第 4 件 */
+  const notReady=()=>bagOfFac(other,3);        /* 鎖定系 0 件＝這一件湊不成套 */
+  const dReady=val(ready(),spec)-val(ready(),other);
+  const dNot=val(notReady(),spec)-val(notReady(),other);
+  ok(dReady>=0&&dNot>=0,`鎖定系與其餘系的估值差不得為負：可湊 ${dReady}、不可湊 ${dNot}`);
+  ok(dReady<9&&dNot<9,`估值差必須小於基準的 9（val=10 時鎖定系 16、其餘系 7）：可湊 ${dReady}、不可湊 ${dNot}`);
+  eq(val(ready(),other),10,'可湊成套時，其餘系的估值不得被打折');
+  eq(val(notReady(),other),10,'湊不成套時，其餘系的估值不得被打折');
+  eq(val(notReady(),spec),10,'湊不成套時，鎖定系也不加價（加成不是恆真式）');
+});
+test('紅衣婆婆 B：玩家座位的記仇換得到東西（對仇人主力陣營的拍品比價 +3）',()=>{
+  G.makeState('solo',1,['hongyi']);
+  const hy=G.S.players.find(q=>q.roleId==='hongyi');
+  const foe=G.S.players.find(q=>q.id!==hy.id);
+  const fac=G.BEAT_FAC[0], other=G.BEAT_FAC[1];
+  foe.bag=bagOfFac(fac,2);
+  eq(G.mainFaction(foe),fac,'治具前提：仇人的主力陣營');
+  const bid={amt:5,type:'cons',intent:'keep',target:null};
+  const eff=f=>{ const c={p:hy,bid,item:{f,p:5,curse:false},eff:5}; G.applyHooks('onBidEff',c,hy); return c.eff; };
+  hy.grudge={};
+  eq(eff(fac),5,'還沒結下仇時不得加價（不是恆真式）');
+  hy.grudge[foe.id]=2;                          /* 記仇帳本＝onBidSettle／onBattle 平常就在寫的那一本 */
+  eq(eff(fac),8,'對仇人主力陣營的拍品，玩家座位的紅衣比價 +3');
+  eq(eff(other),5,'不是仇人主力陣營的拍品不得加價');
+});
+
 /* ---------- 收尾 ---------- */
 console.log(`\n角色平衡卷單元測試：${pass} 過 / ${fail} 失敗`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }

@@ -872,9 +872,20 @@ const ROLES = {
       poison:["拿去，別客氣。"],poisoned:["呸！誰塞的！"],bwin:["妖市裡別跟我裝闊。"],blose:["今夜風水不對…"]}},
   /* 復仇型：記仇（grudge 累積寫在既有 hook 上，見 ARCH_SPEC §8.6），毒標鎖定仇人 */
   hongyi:{id:"hongyi",name:"紅衣婆婆",av:"👵",pool:true,
-    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命、自己 +2 壽命。AI 時記仇——搶她的標、毒她、打贏她都記帳，毒標鎖定仇人",
+    desc:"復仇流。被動：被毒標塞中拍品時，下手者 −2 壽命、自己 +2 壽命；記仇——搶你的標、毒你、打敗你都記帳，對仇恨最高者主力陣營的拍品，你出價比價時視為 +3（實付不變）。AI 時毒標鎖定仇人",
     ai:{aggr:0.6,spite:0.6,markReact:"contest"},
     hooks:{
+      /* 玩家被動（2026-09-07 角色平衡 B 小卷，使用者裁定②「記仇被動接到玩家側」）：
+         對「仇恨值最高的對手的主力陣營」拍品，比價 eff +3（實付照舊，同青面攤主那條路）。
+         **只改觸發路徑、效果數值不變**：這個 +3 原本寫在下面的 onAiValue，而 onAi* 只在 aiBids()
+         裡跑（GUIDE §11.1）⇒ 真人玩家的記仇帳本（onBidSettle／onBattle／onNightEnd 三支）永遠只進不出，
+         記仇對玩家一點意義都沒有。改掛 onBidEff 之後，玩家與 AI 走 resolveAuction 的同一條比價路徑。
+         為什麼是比價不是估值：onAiValue 改的是 AI 心中的估值（會真的多付壽命），玩家沒有這一層；
+         onBidEff 是引擎對每一張標書都跑的比價掛點，兩側共用的只有它。 */
+      onBidEff(ctx){
+        const t=topGrudge(ctx.p);
+        if(t && mainFaction(t)===ctx.item.f) ctx.eff+=3; /* 阻擋加價【試玩必調】 */
+      },
       onBidSettle(ctx){                              /* 被搶標 +1 */
         if(ctx.isWinner) return;
         const w=ctx.winner;                          /* 本件得標者 id，沒人得標＝null（ARCH_SPEC §3.7） */
@@ -905,11 +916,8 @@ const ROLES = {
         const t=topGrudge(ctx.p);
         if(t) ctx.target=t.id;
       },
-      /* 順手掐斷仇人的主力陣營 */
-      onAiValue(ctx){
-        const t=topGrudge(ctx.p);
-        if(t && mainFaction(t)===ctx.item.f) ctx.val+=3; /* 阻擋加價【試玩必調】 */
-      },
+      /* 「順手掐斷仇人的主力陣營」原本是這裡的 onAiValue（ctx.val+=3，AI 專屬）；
+         2026-09-07 角色平衡 B 小卷把它整條搬到上面的 onBidEff，玩家與 AI 共用同一條，數值不變。 */
     },
     lines:{win:["乖乖，跟婆婆回家。","婆婆看上的跑不掉。"],lose:["年輕人，手腳真快。"],
       poison:["這個…給你戴著玩。"],poisoned:["小鬼敢陰我？"],bwin:["夜還長呢，孩子。"],blose:["咳咳…婆婆記住你了。"]}},
@@ -940,7 +948,20 @@ const ROLES = {
         if(ctx.fac===undefined) return;              /* power() 那條路刻意不吃（H3 乙） */
         if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5;
       },
-      onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
+      /* AI 出價風格（2026-09-07 角色平衡 B 小卷，凍結檔範圍段的「改法二」：
+         把加成從「每件都加」改成「只對能湊成套的那一件加」）。
+         原式 ctx.val*=鎖定系?1.6:0.7 的自傷在那個 ×0.7——它把市場上其餘七成的貨一律低估三成，
+         斷手因此連該搶的都搶不到（量法卷 §7.2：這一包 AI hook 整體 −7.42pp）。
+         現在只有「袋中鎖定系已有 3 件、這一件正好湊成第 4 件（＝被動門檻）」時才 ×1.6，
+         其餘一律照引擎原估值、不再打折。專精識別度留著（仍然只為鎖定系破例、湊到就梭哈），
+         自傷拿掉。件數判準與下面 onAiAmount 的破戒條件寫成同一式，不另訂一份。
+         為什麼不取另一個候選（改法一：鎖定系 ×1.5、其餘不打折）：n=2000 探針實測改法一只回
+         +0.65pp（15.30→15.95）、本案 +3.10pp（15.30→18.40）——證據見
+         docs/experiments/2026-09-07-role-balance-b-evidence/probe/。 */
+      onAiValue(ctx){
+        const spec=lockedSpec(ctx.p);
+        if(ctx.item.f===spec && ctx.p.bag.filter(x=>!x.curse&&x.f===spec).length===3) ctx.val*=1.6; /* 湊成套的那一件【試玩必調】 */
+      },
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
       onAiAmount(ctx){
         const spec=lockedSpec(ctx.p);
@@ -1832,7 +1853,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.47", VERSION_NOTE="角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.50", VERSION_NOTE="角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
