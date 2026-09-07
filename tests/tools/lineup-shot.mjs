@@ -63,7 +63,7 @@ async function main() {
         const info = await page.evaluate(() => {
           const d = window.__ls.last || {};
           const facs = (d.armies || []).map((a) => a.units.map((u) => (u.fac || 'none')[0]).join(''));
-          const chips = ['A', 'B'].map((t) => [...document.querySelectorAll('#pwch-' + t + ' .pwchip')].map((c) => (c.className.match(/fac-(\\w+)/) || [])[1] || '?').map((f) => f[0]).join(''));
+          const chips = ['A', 'B'].map((t) => [...document.querySelectorAll('#pwch-' + t + ' .pwchip')].map((c) => (c.className.match(/fac-([a-z]+)/) || [])[1] || '?').map((f) => f[0]).join(''));
           const D = window.__yaoshi3d && window.__yaoshi3d.duelFigures;
           const vis = D ? ['A', 'B'].map((s) => D.figuresOf(s).filter((f) => f.group.visible).length) : null;
           const hud = ['A', 'B'].map((t) => { const el = document.getElementById('pwn-' + t); return el ? el.textContent : null; });
