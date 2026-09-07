@@ -1,609 +1,116 @@
 {
- "results": [
+ "samples": [
   {
-   "n": 1,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel1.png",
-   "probe": {
-    "figures": 6,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3566,
-       "miny": -0.1399,
-       "maxx": -0.1669,
-       "maxy": 0.4954,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1069,
-       "miny": -0.3314,
-       "maxx": 0.3616,
-       "maxy": 0.2211,
-       "clipped": 0,
-       "total": 272
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1883,
-       "miny": -0.53,
-       "maxx": 0.5979,
-       "maxy": 0.4113,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0509,
-       "miny": -0.2526,
-       "maxx": 0.3756,
-       "maxy": 0.4776,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1891,
-       "miny": -0.2526,
-       "maxx": 0.5212,
-       "maxy": 0.4776,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0724,
-       "miny": -0.0739,
-       "maxx": 0.3464,
-       "maxy": 0.5223,
-       "clipped": 0,
-       "total": 184
-      }
+   "tag": "duel-end",
+   "t": 1788768433651,
+   "farCount": 0,
+   "farVisible": 0,
+   "figures": 4,
+   "minFarDist": null,
+   "maxFigDist": 4.8,
+   "depthPass": false,
+   "overlaps2d": 0,
+   "farOpacity": null,
+   "farGroupVisible": null,
+   "cam": {
+    "x": 2.713,
+    "y": 1.708,
+    "z": 2.713
+   },
+   "farRows": [],
+   "figRows": [
+    {
+     "side": "A",
+     "maxDist": 4.609,
+     "box": {
+      "minx": -0.341,
+      "miny": 0.1118,
+      "maxx": -0.1576,
+      "maxy": 0.7715
      }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op"
-    ],
-    "cam": {
-     "x": 2.507,
-     "y": 1.599,
-     "z": 2.536
+    },
+    {
+     "side": "B",
+     "maxDist": 4.547,
+     "box": {
+      "minx": 0.0797,
+      "miny": -0.0481,
+      "maxx": 0.1503,
+      "maxy": 0.3702
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.061,
+     "box": {
+      "minx": 0.2388,
+      "miny": -0.1778,
+      "maxx": 0.3289,
+      "maxy": 0.3046
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.8,
+     "box": {
+      "minx": 0.3308,
+      "miny": -0.0574,
+      "maxx": 0.4119,
+      "maxy": 0.3597
+     }
     }
-   }
+   ]
   },
   {
-   "n": 2,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel2.png",
-   "probe": {
-    "figures": 3,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4829,
-       "miny": -0.1159,
-       "maxx": -0.1316,
-       "maxy": 0.6418,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3951,
-       "miny": -0.2818,
-       "maxx": 0.0079,
-       "maxy": 0.6358,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2282,
-       "miny": -0.1667,
-       "maxx": 0.4085,
-       "maxy": 0.5484,
-       "clipped": 0,
-       "total": 88
-      }
+   "tag": "duel-end",
+   "t": 1788768440642,
+   "farCount": 0,
+   "farVisible": 0,
+   "figures": 3,
+   "minFarDist": null,
+   "maxFigDist": 5.028,
+   "depthPass": false,
+   "overlaps2d": 0,
+   "farOpacity": null,
+   "farGroupVisible": null,
+   "cam": {
+    "x": -2.713,
+    "y": 1.708,
+    "z": -2.713
+   },
+   "farRows": [],
+   "figRows": [
+    {
+     "side": "A",
+     "maxDist": 4.5,
+     "box": {
+      "minx": -0.3622,
+      "miny": 0.1147,
+      "maxx": -0.1613,
+      "maxy": 0.7921
      }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "skin",
-     "ab",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "loaded",
-     "clipNames",
-     "bounds",
-     "animTime",
-     "current"
-    ],
-    "cam": {
-     "x": -2.374,
-     "y": 1.553,
-     "z": -2.526
-    }
-   }
-  },
-  {
-   "n": 3,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel3.png",
-   "probe": {
-    "figures": 4,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3171,
-       "miny": -0.1182,
-       "maxx": -0.1351,
-       "maxy": 0.4749,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0421,
-       "miny": -0.0803,
-       "maxx": 0.32,
-       "maxy": 0.533,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2049,
-       "miny": -0.2502,
-       "maxx": 0.543,
-       "maxy": 0.4748,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.347,
-       "miny": -0.0835,
-       "maxx": 0.5106,
-       "maxy": 0.7513,
-       "clipped": 0,
-       "total": 304
-      }
+    },
+    {
+     "side": "B",
+     "maxDist": 5.028,
+     "box": {
+      "minx": 0.0536,
+      "miny": -0.1525,
+      "maxx": 0.3432,
+      "maxy": 0.627
      }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op",
-     "__anim"
-    ],
-    "cam": {
-     "x": 3.737,
-     "y": 1.666,
-     "z": 0.005
-    }
-   }
-  },
-  {
-   "n": 4,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel4.png",
-   "probe": {
-    "figures": 7,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3987,
-       "miny": -0.1279,
-       "maxx": -0.205,
-       "maxy": 0.5044,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1811,
-       "miny": 0.0058,
-       "maxx": 0.4318,
-       "maxy": 0.6711,
-       "clipped": 0,
-       "total": 288
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1305,
-       "miny": -0.2926,
-       "maxx": 0.3649,
-       "maxy": 0.2187,
-       "clipped": 0,
-       "total": 272
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2065,
-       "miny": -0.4749,
-       "maxx": 0.5748,
-       "maxy": 0.38,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0755,
-       "miny": -0.2306,
-       "maxx": 0.3727,
-       "maxy": 0.4485,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2042,
-       "miny": -0.2306,
-       "maxx": 0.5078,
-       "maxy": 0.4485,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0371,
-       "miny": -0.067,
-       "maxx": 0.2884,
-       "maxy": 0.496,
-       "clipped": 0,
-       "total": 184
-      }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.533,
+     "box": {
+      "minx": 0.2025,
+      "miny": -0.3219,
+      "maxx": 0.5962,
+      "maxy": 0.6052
      }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op",
-     "__anim"
-    ],
-    "cam": {
-     "x": -0.019,
-     "y": 1.708,
-     "z": 3.836
     }
-   }
-  },
-  {
-   "n": 5,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel5.png",
-   "probe": {
-    "figures": 5,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3482,
-       "miny": -0.125,
-       "maxx": -0.1545,
-       "maxy": 0.5082,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1187,
-       "miny": -0.1466,
-       "maxx": 0.3427,
-       "maxy": 0.5732,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2683,
-       "miny": -0.1231,
-       "maxx": 0.5112,
-       "maxy": 0.5996,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1318,
-       "miny": 0.0585,
-       "maxx": 0.3189,
-       "maxy": 0.6618,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2562,
-       "miny": 0.0299,
-       "maxx": 0.4547,
-       "maxy": 0.6304,
-       "clipped": 0,
-       "total": 80
-      }
-     }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op",
-     "__anim"
-    ],
-    "cam": {
-     "x": -2.697,
-     "y": 1.691,
-     "z": 2.679
-    }
-   }
-  },
-  {
-   "n": 6,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/base-duel6.png",
-   "probe": {
-    "figures": 13,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4256,
-       "miny": 0.0483,
-       "maxx": -0.2168,
-       "maxy": 0.6039,
-       "clipped": 0,
-       "total": 288
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3834,
-       "miny": -0.3677,
-       "maxx": -0.1656,
-       "maxy": 0.1153,
-       "clipped": 0,
-       "total": 272
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3953,
-       "miny": -0.0961,
-       "maxx": -0.2243,
-       "maxy": 0.4024,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.2596,
-       "miny": 0.0107,
-       "maxx": -0.1161,
-       "maxy": 0.4395,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.6023,
-       "miny": -0.5507,
-       "maxx": -0.2543,
-       "maxy": 0.2589,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3915,
-       "miny": -0.3034,
-       "maxx": -0.1088,
-       "maxy": 0.3452,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.5374,
-       "miny": -0.3034,
-       "maxx": -0.2483,
-       "maxy": 0.3452,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3038,
-       "miny": -0.1346,
-       "maxx": -0.0637,
-       "maxy": 0.4062,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1644,
-       "miny": -0.3788,
-       "maxx": 0.5445,
-       "maxy": 0.43,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.323,
-       "miny": -0.3787,
-       "maxx": 0.7292,
-       "maxy": 0.43,
-       "clipped": 0,
-       "total": 176
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2665,
-       "miny": -0.0216,
-       "maxx": 0.4262,
-       "maxy": 0.708,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1992,
-       "miny": -0.1858,
-       "maxx": 0.5037,
-       "maxy": 0.4412,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.3314,
-       "miny": -0.1725,
-       "maxx": 0.6611,
-       "maxy": 0.4552,
-       "clipped": 0,
-       "total": 304
-      }
-     }
-    ],
-    "fars": [],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "skin",
-     "ab",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "loaded",
-     "clipNames",
-     "bounds",
-     "animTime",
-     "current"
-    ],
-    "cam": {
-     "x": 2.9,
-     "y": 1.708,
-     "z": -2.512
-    }
-   }
+   ]
   }
  ],
  "errors": []

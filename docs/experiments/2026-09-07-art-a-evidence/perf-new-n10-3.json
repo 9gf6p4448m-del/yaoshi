@@ -1,10 +1,10 @@
 {
  "perf": {
-  "loadMs": 324,
-  "rendersPerSec": 284.2,
-  "rafMedianFps": 59.9,
-  "rafP95Ms": 16.7,
-  "rafFrames": 143,
+  "loadMs": 601,
+  "rendersPerSec": 221.7,
+  "rafMedianFps": 65.8,
+  "rafP95Ms": 64,
+  "rafFrames": 114,
   "drawCallsPerFrame": 1064,
   "trianglesPerFrame": 435994,
   "renderPassesPerFrame": 10,
@@ -18,13 +18,13 @@
   "burn": 2,
   "burnDom": 1,
   "burnFig": 1,
-  "trait": 2,
-  "traitFig": 2,
+  "trait": 3,
+  "traitFig": 3,
   "beat": 6,
   "duels": 2,
   "traits": {
-   "wardAtkAll1": 1,
-   "wardFirst": 1
+   "wardFirst": 2,
+   "wardHpFront2": 1
   },
   "beats": {
    "一拍・撞": 2,
@@ -53,16 +53,16 @@
     "warBurn": 1,
     "burnDom": 0,
     "burnFig": 1,
-    "traitEv": 1,
-    "traitCap": 1
+    "traitEv": 2,
+    "traitCap": 2
    }
   ],
   "load": {
-   "ms": 17,
-   "total": 2,
-   "loaded": 2,
+   "ms": 87,
+   "total": 4,
+   "loaded": 4,
    "timedOut": false,
-   "readyAt": 1788760753649
+   "readyAt": 1788767979092
   }
  }
 }

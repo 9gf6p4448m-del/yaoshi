@@ -123,7 +123,19 @@ try {
   const url = `http://127.0.0.1:${PORT}/index.html?paperwar=1` + (opt.seed ? `&fxcount=1&seed=${opt.seed}` : '');
   const r = await drive(page, url, {
     duels: Number(opt.duels || 2),
-    onDuel: async (pg, n) => { await pg.waitForTimeout(1400); const f = `${OUT}-duel${n}.png`; await pg.screenshot({ path: f }); shots.push(f); },
+    onDuel: async (pg, n) => {
+      await pg.waitForTimeout(1400);
+      const f = `${OUT}-duel${n}.png`; await pg.screenshot({ path: f }); shots.push(f);
+      // --bloomprobe：同一幀把 bloom 強度切 0 再拍一張。兩張的差異＝「光暈到底畫了多少」。
+      // 覆審在 threshold 0.9 時量到整張只差 0.022/255（＝光暈實質消失），這支就是拿來重驗門檻的。
+      if (opt.bloomprobe && n === 1) {
+        await pg.evaluate(() => { window.__yaoshi3d.bloom.setStrength(0); });
+        await pg.waitForTimeout(260);
+        const f0 = `${OUT}-duel${n}-bloom0.png`; await pg.screenshot({ path: f0 }); shots.push(f0);
+        await pg.evaluate(() => { window.__yaoshi3d.bloom.setStrength(1.05); });
+        await pg.waitForTimeout(260);
+      }
+    },
   });
   const samples = await page.evaluate(() => (window.__artA ? window.__artA.samples : []));
   await browser.close();

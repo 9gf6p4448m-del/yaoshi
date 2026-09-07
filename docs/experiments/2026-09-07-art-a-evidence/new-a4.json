@@ -1,902 +1,213 @@
 {
- "results": [
+ "samples": [
   {
-   "n": 1,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel1.png",
-   "probe": {
-    "figures": 2,
-    "figBoxes": [
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0536,
-       "miny": -0.1514,
-       "maxx": 0.3433,
-       "maxy": 0.6281,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2031,
-       "miny": -0.302,
-       "maxx": 0.5984,
-       "maxy": 0.6256,
-       "clipped": 0,
-       "total": 304
-      }
+   "tag": "duel-end",
+   "t": 1788766653444,
+   "farCount": 5,
+   "farVisible": 5,
+   "figures": 4,
+   "minFarDist": 9.115,
+   "maxFigDist": 4.799,
+   "depthPass": true,
+   "overlaps2d": 4,
+   "farOpacity": 0.3,
+   "farGroupVisible": true,
+   "cam": {
+    "x": 2.713,
+    "y": 1.708,
+    "z": 2.713
+   },
+   "farRows": [
+    {
+     "name": "far-temple",
+     "visible": true,
+     "minDist": 12.697,
+     "box": {
+      "minx": -0.1978,
+      "miny": 0.4281,
+      "maxx": 0.3918,
+      "maxy": 0.6254
      }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op"
-    ],
-    "cam": {
-     "x": 2.371,
-     "y": 1.708,
-     "z": 3.017
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.02
-   }
+    {
+     "name": "far-arch",
+     "visible": true,
+     "minDist": 9.115,
+     "box": {
+      "minx": 1.1048,
+      "miny": -0.5313,
+      "maxx": 3.2586,
+      "maxy": 0.5539
+     }
+    },
+    {
+     "name": "far-banyan",
+     "visible": true,
+     "minDist": 12.59,
+     "box": {
+      "minx": -0.3239,
+      "miny": 0.4319,
+      "maxx": 0.1196,
+      "maxy": 0.6277
+     }
+    },
+    {
+     "name": "far-eaves",
+     "visible": true,
+     "minDist": 10.167,
+     "box": {
+      "minx": 0.5753,
+      "miny": -0.1049,
+      "maxx": 2.1531,
+      "maxy": 0.5505
+     }
+    },
+    {
+     "name": "far-stalls",
+     "visible": true,
+     "minDist": 13.229,
+     "box": {
+      "minx": 0.0198,
+      "miny": 0.3512,
+      "maxx": 0.976,
+      "maxy": 0.586
+     }
+    }
+   ],
+   "figRows": [
+    {
+     "side": "A",
+     "maxDist": 4.586,
+     "box": {
+      "minx": -0.3493,
+      "miny": 0.1315,
+      "maxx": -0.1604,
+      "maxy": 0.8046
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.547,
+     "box": {
+      "minx": 0.0797,
+      "miny": -0.0479,
+      "maxx": 0.1503,
+      "maxy": 0.3703
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.069,
+     "box": {
+      "minx": 0.2383,
+      "miny": -0.1894,
+      "maxx": 0.3282,
+      "maxy": 0.2914
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.799,
+     "box": {
+      "minx": 0.3309,
+      "miny": -0.0549,
+      "maxx": 0.4121,
+      "maxy": 0.3625
+     }
+    }
+   ]
   },
   {
-   "n": 2,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel2.png",
-   "probe": {
-    "figures": 5,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3871,
-       "miny": -0.1786,
-       "maxx": -0.1713,
-       "maxy": 0.857,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0282,
-       "miny": -0.3635,
-       "maxx": 0.393,
-       "maxy": 0.4976,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1682,
-       "miny": -0.3635,
-       "maxx": 0.5416,
-       "maxy": 0.4976,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0535,
-       "miny": -0.1576,
-       "maxx": 0.3607,
-       "maxy": 0.5412,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1719,
-       "miny": -0.1576,
-       "maxx": 0.4852,
-       "maxy": 0.5412,
-       "clipped": 0,
-       "total": 184
-      }
-     }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "skin",
-     "ab",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "loaded",
-     "clipNames",
-     "bounds",
-     "animTime",
-     "current"
-    ],
-    "cam": {
-     "x": -2.534,
-     "y": 1.708,
-     "z": -2.881
+   "tag": "duel-end",
+   "t": 1788766659981,
+   "farCount": 5,
+   "farVisible": 5,
+   "figures": 3,
+   "minFarDist": 5.314,
+   "maxFigDist": 5.029,
+   "depthPass": true,
+   "overlaps2d": 0,
+   "farOpacity": 0.3,
+   "farGroupVisible": true,
+   "cam": {
+    "x": -2.713,
+    "y": 1.708,
+    "z": -2.713
+   },
+   "farRows": [
+    {
+     "name": "far-temple",
+     "visible": true,
+     "minDist": 5.632,
+     "box": null
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.02
-   }
-  },
-  {
-   "n": 3,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel3.png",
-   "probe": {
-    "figures": 2,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3463,
-       "miny": 0.0401,
-       "maxx": -0.1543,
-       "maxy": 0.6801,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1656,
-       "miny": -0.1727,
-       "maxx": 0.3722,
-       "maxy": 0.8212,
-       "clipped": 0,
-       "total": 304
-      }
+    {
+     "name": "far-arch",
+     "visible": true,
+     "minDist": 8.197,
+     "box": {
+      "minx": -11.5821,
+      "miny": -2.9122,
+      "maxx": -1.6108,
+      "maxy": 0.4738
      }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op",
-     "__anim"
-    ],
-    "cam": {
-     "x": 3.804,
-     "y": 1.699,
-     "z": 0.339
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.02
-   }
-  },
-  {
-   "n": 4,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel4.png",
-   "probe": {
-    "figures": 12,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.5651,
-       "miny": -0.5713,
-       "maxx": -0.1793,
-       "maxy": 0.2817,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.7668,
-       "miny": -0.5713,
-       "maxx": -0.3668,
-       "maxy": 0.2817,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4991,
-       "miny": -0.2896,
-       "maxx": -0.1858,
-       "maxy": 0.3716,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.6627,
-       "miny": -0.2896,
-       "maxx": -0.34,
-       "maxy": 0.3716,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.2979,
-       "miny": 0.0611,
-       "maxx": -0.137,
-       "maxy": 0.4887,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4343,
-       "miny": 0.0436,
-       "maxx": -0.2753,
-       "maxy": 0.4699,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.285,
-       "miny": 0.1183,
-       "maxx": -0.1471,
-       "maxy": 0.4838,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4033,
-       "miny": 0.1393,
-       "maxx": -0.266,
-       "maxy": 0.5063,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0528,
-       "miny": -0.334,
-       "maxx": 0.3964,
-       "maxy": 0.5874,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2032,
-       "miny": -0.3493,
-       "maxx": 0.5934,
-       "maxy": 0.5718,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0754,
-       "miny": -0.1415,
-       "maxx": 0.3532,
-       "maxy": 0.5942,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2016,
-       "miny": -0.1268,
-       "maxx": 0.5118,
-       "maxy": 0.609,
-       "clipped": 0,
-       "total": 304
-      }
-     }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "skin",
-     "ab",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "loaded",
-     "clipNames",
-     "bounds",
-     "animTime",
-     "current"
-    ],
-    "cam": {
-     "x": -0.28,
-     "y": 1.553,
-     "z": 3.472
+    {
+     "name": "far-banyan",
+     "visible": true,
+     "minDist": 5.314,
+     "box": null
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.021
-   }
-  },
-  {
-   "n": 5,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel5.png",
-   "probe": {
-    "figures": 9,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3676,
-       "miny": -0.1223,
-       "maxx": -0.1738,
-       "maxy": 0.5113,
-       "clipped": 0,
-       "total": 88
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.056,
-       "miny": -0.585,
-       "maxx": 0.4421,
-       "maxy": 0.2568,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2215,
-       "miny": -0.585,
-       "maxx": 0.6182,
-       "maxy": 0.2568,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0818,
-       "miny": -0.3257,
-       "maxx": 0.404,
-       "maxy": 0.3439,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2208,
-       "miny": -0.3257,
-       "maxx": 0.5505,
-       "maxy": 0.3439,
-       "clipped": 0,
-       "total": 184
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1164,
-       "miny": 0.0478,
-       "maxx": 0.2434,
-       "maxy": 0.4584,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2485,
-       "miny": 0.0285,
-       "maxx": 0.3808,
-       "maxy": 0.438,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1289,
-       "miny": 0.1036,
-       "maxx": 0.2382,
-       "maxy": 0.459,
-       "clipped": 0,
-       "total": 160
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2444,
-       "miny": 0.1254,
-       "maxx": 0.3585,
-       "maxy": 0.482,
-       "clipped": 0,
-       "total": 160
-      }
+    {
+     "name": "far-eaves",
+     "visible": true,
+     "minDist": 6.945,
+     "box": {
+      "minx": -2.5222,
+      "miny": -0.2434,
+      "maxx": -2.3583,
+      "maxy": 0.1607
      }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "applied",
-     "cloth",
-     "__busy",
-     "unit",
-     "__op",
-     "__anim"
-    ],
-    "cam": {
-     "x": -2.761,
-     "y": 1.708,
-     "z": 2.664
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.02
-   }
-  },
-  {
-   "n": 6,
-   "file": "docs/experiments/2026-09-07-art-a-evidence/new-duel6.png",
-   "probe": {
-    "figures": 10,
-    "figBoxes": [
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.4234,
-       "miny": -0.2794,
-       "maxx": -0.1184,
-       "maxy": 0.5287,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.5954,
-       "miny": -0.2918,
-       "maxx": -0.2527,
-       "maxy": 0.5169,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.3798,
-       "miny": -0.1113,
-       "maxx": -0.1291,
-       "maxy": 0.5462,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "A",
-      "box": {
-       "minx": -0.522,
-       "miny": -0.0986,
-       "maxx": -0.2439,
-       "maxy": 0.5582,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.0548,
-       "miny": 0.0196,
-       "maxx": 0.2868,
-       "maxy": 0.6764,
-       "clipped": 0,
-       "total": 288
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2038,
-       "miny": -0.0177,
-       "maxx": 0.3457,
-       "maxy": 0.6563,
-       "clipped": 0,
-       "total": 304
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1211,
-       "miny": -0.2392,
-       "maxx": 0.339,
-       "maxy": 0.4589,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.2879,
-       "miny": -0.1977,
-       "maxx": 0.5271,
-       "maxy": 0.5056,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.1341,
-       "miny": -0.0401,
-       "maxx": 0.3116,
-       "maxy": 0.5313,
-       "clipped": 0,
-       "total": 80
-      }
-     },
-     {
-      "side": "B",
-      "box": {
-       "minx": 0.269,
-       "miny": -0.0698,
-       "maxx": 0.4583,
-       "maxy": 0.4986,
-       "clipped": 0,
-       "total": 80
-      }
+    {
+     "name": "far-stalls",
+     "visible": true,
+     "minDist": 6.058,
+     "box": null
+    }
+   ],
+   "figRows": [
+    {
+     "side": "A",
+     "maxDist": 4.499,
+     "box": {
+      "minx": -0.3637,
+      "miny": 0.1204,
+      "maxx": -0.1619,
+      "maxy": 0.8014
      }
-    ],
-    "fars": [
-     {
-      "name": "far-group",
-      "visible": false,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-temple",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-arch",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-banyan",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-eaves",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     },
-     {
-      "name": "far-stalls",
-      "visible": true,
-      "shown": false,
-      "box": null,
-      "onScreen": false
-     }
-    ],
-    "overlaps": [],
-    "figKeys": [
-     "group",
-     "shadow",
-     "parts",
-     "skin",
-     "ab",
-     "setPortrait",
-     "setCloth",
-     "setRim",
-     "ready",
-     "loaded",
-     "clipNames",
-     "bounds",
-     "animTime",
-     "current"
-    ],
-    "cam": {
-     "x": 2.583,
-     "y": 1.691,
-     "z": -2.777
     },
-    "farGroupVisible": false,
-    "farOpacity": 0.021
-   }
+    {
+     "side": "B",
+     "maxDist": 5.029,
+     "box": {
+      "minx": 0.0536,
+      "miny": -0.1545,
+      "maxx": 0.3431,
+      "maxy": 0.625
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.531,
+     "box": {
+      "minx": 0.2026,
+      "miny": -0.3191,
+      "maxx": 0.5965,
+      "maxy": 0.6081
+     }
+    }
+   ]
   }
  ],
  "errors": []

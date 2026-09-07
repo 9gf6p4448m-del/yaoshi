@@ -1,11 +1,11 @@
 {
  "perf": {
-  "loadMs": 239,
-  "rendersPerSec": 488,
-  "rafMedianFps": 111.1,
-  "rafP95Ms": 14.1,
-  "rafFrames": 250,
-  "drawCallsPerFrame": 1062,
+  "loadMs": 580,
+  "rendersPerSec": 215.6,
+  "rafMedianFps": 61.7,
+  "rafP95Ms": 68.4,
+  "rafFrames": 109,
+  "drawCallsPerFrame": 1064,
   "trianglesPerFrame": 435994,
   "renderPassesPerFrame": 10,
   "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
@@ -18,13 +18,11 @@
   "burn": 1,
   "burnDom": 1,
   "burnFig": 0,
-  "trait": 1,
-  "traitFig": 1,
+  "trait": 0,
+  "traitFig": 0,
   "beat": 6,
   "duels": 2,
-  "traits": {
-   "wardAbsorb4": 1
-  },
+  "traits": {},
   "beats": {
    "一拍・撞": 2,
    "二拍・護": 2,
@@ -40,8 +38,8 @@
     "warBurn": 1,
     "burnDom": 1,
     "burnFig": 0,
-    "traitEv": 1,
-    "traitCap": 1
+    "traitEv": 0,
+    "traitCap": 0
    },
    {
     "round": 1,
@@ -57,11 +55,11 @@
    }
   ],
   "load": {
-   "ms": 47,
-   "total": 7,
-   "loaded": 7,
+   "ms": 109,
+   "total": 6,
+   "loaded": 6,
    "timedOut": false,
-   "readyAt": 1788760699467
+   "readyAt": 1788767907471
   }
  }
 }
