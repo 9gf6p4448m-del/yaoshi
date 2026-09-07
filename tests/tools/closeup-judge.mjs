@@ -163,11 +163,46 @@ if (off && base) {
     const seq = byKey[k].sort((a, b) => a.dt - b.dt);
     for (let i = 1; i < seq.length; i++) if (seq[i].op - seq[i - 1].op > 0.02) { burnRise++; bad.push({ ...seq[i], why: 'burn-op-rise', prev: seq[i - 1].op }); }
   }
-  out.P3 = { dimmed: stat.dimmed.length, dimMax: stat.dimmed.length ? Math.max(...stat.dimmed.map((r) => r.op)) : null,
+  // ── P3 追加：中斷（ys:fx-trait-cancel＝按跳過）之後的退暗（HIGH-1）──────────
+  // 兩件事一起判：① cancel 後 300ms 內每一尊回到原值 ② 期間任何一幀都不得比 cancel 當下更暗
+  //（更暗＝收到中斷還繼續往下退暗，人形端少了鏡頭端那支 focusFall 旗標就會這樣）
+  const cbad = [];
+  let cN = 0, cDeeper = 0, cBack = 0, cBackN = 0;
+  for (const { f, d } of ons.concat(cancel ? [{ f: opt.cancel, d: cancel }] : []).concat(skipf ? [{ f: opt.skipfocus, d: skipf }] : [])) {
+    for (const c of d.cu.cancels || []) {
+      const at0 = (c.samples || []).find((s) => s.dt === 0);
+      if (!at0) continue;
+      const base0 = {};
+      for (const g of at0.figs) if (g.op != null && g.vis) base0[g.side + g.unit] = g;
+      // 這一次中斷時本來就沒有退暗（沒人被壓暗）＝這一筆沒有鑑別力，不計入
+      if (!Object.values(base0).some((g) => g.op < 0.9)) continue;
+      cN++;
+      const burning = (t, side, unit) => (d.cu.ev || []).some((e) => e.n === 'ys:fx-burn' && e.side === side && e.unit === unit && t >= e.t - 20 && t <= e.t + PW.BURN_MS + 260);
+      for (const s of (c.samples || [])) {
+        if (s.dt === 0) continue;
+        for (const g of s.figs) {
+          if (g.op == null || !g.vis) continue;
+          const b = base0[g.side + g.unit];
+          if (!b || burning(s.t, g.side, g.unit)) continue;
+          if (g.op < b.op - 0.02) { cDeeper++; cbad.push({ f, why: 'cancel-deeper', dt: s.dt, id: g.side + g.unit, at0: b.op, now: g.op }); }
+          if (s.dt === 300) {
+            cBackN++;
+            const expBase = (g.skin !== 'creature' && g.body === 'haunt') ? 0.5 : 1;
+            if (Math.abs(g.op - expBase) <= 0.02) cBack++;
+            else cbad.push({ f, why: 'cancel-not-restored', id: g.side + g.unit, op: g.op, exp: expBase });
+          }
+        }
+      }
+    }
+  }
+
+  out.P3 = { cancelSamples: cN, cancelDeeper: cDeeper, cancelBack: cBack + '/' + cBackN, cancelBad: cbad.slice(0, 8),
+    dimmed: stat.dimmed.length, dimMax: stat.dimmed.length ? Math.max(...stat.dimmed.map((r) => r.op)) : null,
     kept: stat.kept.length, keptMin: stat.kept.length ? Math.min(...stat.kept.map((r) => r.op)) : null,
     restored: stat.restored.length, burning: stat.burning.length, burnRise,
     bad: bad.slice(0, 10),
-    PASS: stat.dimmed.length > 0 && stat.kept.length > 0 && stat.restored.length > 0 && burnRise === 0 && bad.length === 0 };
+    PASS: stat.dimmed.length > 0 && stat.kept.length > 0 && stat.restored.length > 0 && burnRise === 0 && bad.length === 0
+      && cN > 0 && cbad.length === 0 && cBack === cBackN };
 }
 
 // ── P4 跳字 ───────────────────────────────────────────────────────────────

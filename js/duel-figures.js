@@ -385,6 +385,10 @@ export function createDuelFigures(scene, camera, opts = {}) {
   let focusMs = 0;
   let focusK0 = 0;
   let focusK = 0;
+  // 正在回位（endFocusEv 叫的），不得再經過進場的上升段——與 camera-director 的 focusFall 同一支旗標。
+  // 少了它，ys:fx-trait-cancel（按跳過）進來的前 160ms 會走上升曲線：退暗不但沒收，還往更暗走，
+  // 撐滿 160ms 再單幀跳一下才開始收，整段變 380ms（實測 cancel+300ms 只回到 0.80，凍結檔 P3 紅）。
+  let focusFall = false;
   let focusRef = null; // { a:[側index, unitId], b:[側index, unitId] }：這兩尊不退暗
 
   function onFocusEv(e) {
@@ -398,6 +402,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     };
     if (d.dim !== undefined) FOCUS.dim = Number(d.dim);
     if (d.shrink !== undefined) FOCUS.shrink = Number(d.shrink);
+    focusFall = false;
     focusOn = true;
   }
 
@@ -406,18 +411,21 @@ export function createDuelFigures(scene, camera, opts = {}) {
     if (!focusOn) return;
     focusK0 = focusK;
     focusAt = performance.now();
-    focusMs = 0;
+    focusFall = true; // 直接進回位段（見 focusFall 的註解）
   }
 
   function focusEnvelope(now) {
     if (!focusOn) return 0;
-    const e = now - focusAt;
-    if (e < FOCUS.inMs) return focusK0 + (1 - focusK0) * (1 - Math.pow(1 - Math.max(0, e) / FOCUS.inMs, 3));
+    const e = Math.max(0, now - focusAt);
+    const done = () => { focusOn = false; focusFall = false; focusRef = null; return 0; };
+    if (focusFall) {
+      const u = e / FOCUS.outMs;
+      return u >= 1 ? done() : focusK0 * (1 - easeInOutCubic(u));
+    }
+    if (e < FOCUS.inMs) return focusK0 + (1 - focusK0) * (1 - Math.pow(1 - e / FOCUS.inMs, 3));
     if (e <= focusMs) return 1;
     const u = (e - Math.max(focusMs, FOCUS.inMs)) / FOCUS.outMs;
-    if (u >= 1) { focusOn = false; focusRef = null; return 0; }
-    const top = focusMs <= 0 ? focusK0 : 1;
-    return top * (1 - easeInOutCubic(Math.max(0, u)));
+    return u >= 1 ? done() : 1 - easeInOutCubic(u);
   }
 
   /** 這一尊是不是本次切鏡的主角（出手者或目標）。查不到＝一律當成配角（退暗），不拋錯。 */
@@ -536,7 +544,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     hitAt = 0;
     // 退暗要在這裡清乾淨：active=false 之後主迴圈不再跑，被退暗的尊會帶著壓低的 opacity
     // 進入下一場（池是重用的）。restoreDim 把它們寫回原值，focusK 一併歸零。
-    focusOn = false; focusRef = null; focusK = 0; focusK0 = 0;
+    focusOn = false; focusFall = false; focusRef = null; focusK = 0; focusK0 = 0;
     eachFigure((f) => { restoreDim(f); f.group.visible = false; f.shadow.visible = false; });
   }
 

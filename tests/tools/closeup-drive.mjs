@@ -31,7 +31,7 @@ const { chromium } = req('playwright');
 // THREE.AdditiveBlending 常數＝2（three r1xx 起固定），逆光那一層跳過的判準與
 // js/duel-figures.js:185 的 setFigureOpacity 同一條規則。
 const REC = `(() => {
-  const C = window.__cu = { frames: [], focus: [], dmg: [], hud: [], cards: [], dom: [], duels: [], skips: [], ev: [] };
+  const C = window.__cu = { frames: [], focus: [], dmg: [], hud: [], cards: [], dom: [], duels: [], skips: [], ev: [], cancels: [] };
   // P2 的 dist 曲線要把 punch（命中／燒毀，420ms）那幾幀排掉：punch 疊在同一條 dist 上，
   // 而近景的觸發筆本身就會叫 fxPunch（cam-drive.mjs 的 busy() 是同一個作法）。
   for (const n of ['ys:fx-punch', 'ys:fx-burn', 'ys:hitstop', 'ys:fx-trait', 'ys:duel', 'ys:duel-end', 'ys:fx-focus'])
@@ -175,6 +175,13 @@ const REC = `(() => {
   document.addEventListener('ys:fx-focus', (e) => { const d = e.detail || {}; if (d.kind === 'hit') setTimeout(() => cardSample('hit', d.side), 30); });
   document.addEventListener('ys:fx-trait-cancel', () => {
     const t0 = now();
+    // 退暗這一半的中斷證據：cancel 當下先取一次，之後 80／160／300ms 各取一次。
+    // 80／160 落在「進場上升段」的長度內——退暗若在 cancel 之後還往下走，這兩筆會比 dt=0 更暗。
+    const row = { t: t0, samples: [] };
+    C.cancels.push(row);
+    const grab = (dt) => { const s = snapFigs(); if (s) row.samples.push({ dt: dt, t: now(), figs: s }); };
+    grab(0);
+    for (const dt of [80, 160, 300]) setTimeout(() => grab(dt), dt);
     C.skips.push({ t: t0 });
     for (const dt of [50, 150, 300]) setTimeout(() => {
       const K = cam();
@@ -225,7 +232,8 @@ try {
   const cu = await page.evaluate(() => {
     const C = window.__cu || {};
     return { frames: C.frames || [], focus: C.focus || [], dmg: C.dmg || [], hud: C.hud || [],
-      cards: C.cards || [], dom: C.dom || [], duels: C.duels || [], skips: C.skips || [], ev: C.ev || [] };
+      cards: C.cards || [], dom: C.dom || [], duels: C.duels || [], skips: C.skips || [], ev: C.ev || [],
+      cancels: C.cancels || [] };
   });
   await browser.close();
 
