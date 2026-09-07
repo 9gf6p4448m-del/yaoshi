@@ -177,6 +177,12 @@ function runVariant(vk, roleId, n) {
   } else {
     instrument(G, roleId, counters, eff);
   }
+  /* --paperwar=0：把《紙紮夜戰》關掉退回舊的「戰力比較」路徑。
+     用途＝檢驗「某個被動之所以量不到，是不是因為它掛在 power() 上，
+     而 PAPERWAR_ON=true 之後 power() 已經不決定勝負了」（index.html:3158 的註解）。
+     這是診斷用的對照組，不是 M1 的判定值。 */
+  const pw = arg('paperwar', '');
+  if (pw === '0') G.CFG.PAPERWAR_ON = false;
   let pol = V.policy === 'aiLike' ? makePolicyAiLike(G) : makePolicyRoleAi(G);
   if (V.mark) { const base = pol; pol = p => base(p); pol.mark = p => G.aiMark(p); }
   const t0 = Date.now();
