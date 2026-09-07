@@ -1,0 +1,17 @@
+基準：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\old-main85ca73e.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 435314 vs 435314
+B4：逐位元組相等 ✅
+基準：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\old-main85ca73e.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html（--mutate 突變版）
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 435314 vs 412103
+B4：不相等 ❌
+  首個差異位於第 4274 個字元：
+    基準 …ue,"bag":["虎爺印","椅仔姑竹椅","水鬼浮標"],"power":24},{"id":2,"life":31,"alive":true,"bag":["過陰咒","有應公","椅仔姑竹椅"],"power":32},{"id"
+    新版 …ue,"bag":["虎爺印","椅仔姑竹椅","水鬼浮標"],"power":24},{"id":2,"life":30,"alive":true,"bag":["過陰咒","有應公","椅仔姑竹椅"],"power":32},{"id"
+
+=== L0 補證：顯式 LEGEND_ON=false＋移除本卷動過的六隻，新版 vs origin/main(85ca73e) ===
+基準：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\old-main85ca73e.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 350205 vs 350205
+B4：逐位元組相等 ✅

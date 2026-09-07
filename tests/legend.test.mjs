@@ -384,6 +384,23 @@ test('G11市集卡招式行：27 件法寶＋3 尊傳說的招式一行皆非空
     ok(r&&html.indexOf('×'+r.n)>=0,`「${it.n}」那一行應含隻數 ×${r.n}：${html}`);
   });
 });
+/* 角色平衡卷（v0.47）覆審 M6：帶 curseWard 的角色（閭山法師）紙紮側不扣 sd.curses，
+   對他印「只算纏身」是假的——部隊預覽那一行要跟著換字。 */
+test('G11詛咒品那一行看主人：一般人印「只算纏身」，帶 curseWard 的印「已淨化」',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  G.CFG.PAPERWAR_ON=true;
+  const curse=G.CURSES[0];
+  const plain=S.players[1]; plain.roleId='human'; plain.bag=[];
+  const txtPlain=(G.unitRowText||(()=>''))(curse,plain);
+  ok(/纏身/.test(txtPlain)&&!/淨化/.test(txtPlain),`一般人看到的詛咒品說明：${txtPlain}`);
+  /* 找一個真的帶 curseWard 的角色（資料表驅動，不寫死角色 id） */
+  const rid=Object.keys(G.ROLES).find(k=>G.ROLES[k].traits&&G.ROLES[k].traits.curseWard);
+  ok(rid,`應該有角色帶 traits.curseWard：${JSON.stringify(Object.keys(G.ROLES))}`);
+  const ward=S.players[2]; ward.roleId=rid; ward.bag=[];
+  ok(G.traitMax(ward,'curseWard',0)>0,'治具設定的那一席應該真的帶 curseWard');
+  const txtWard=(G.unitRowText||(()=>''))(curse,ward);
+  ok(/淨化/.test(txtWard)&&!/只算纏身/.test(txtWard),`帶 curseWard 的人看到的詛咒品說明：${txtWard}`);
+});
 test('G11袋子總計：總隻數／總攻／總血與 buildArmy(整袋) 一致，共鳴 hp 與 pwResLv 一致',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   G.CFG.PAPERWAR_ON=true;

@@ -2,8 +2,13 @@
    驗收條件與門檻凍結於 docs/experiments/2026-09-07-acceptance-legend-v2.md（G0–G11），
    本腳本**不得為了過而調門檻**。
    跑法（repo 根）：
-     git show b38980a:index.html > old-l.html      ★基準 SHA＝本卷派工時的 main（請神 1.0）★
-     node tests/tools/legend-gate.mjs 10000 [--only=G0,G1,G2,G3,G4,G9] [--old=old-l.html] [--new=index.html]
+     git show b38980a:index.html > old-l.html       ★G1 的「1.0 對照」與 G5 鑑別力用的基準（請神 1.0）★
+     git show origin/main:index.html > old-main.html ★G0 用的基準：**當下的 main**★
+     node tests/tools/legend-gate.mjs 10000 [--only=G0,G1,G2,G3,G4,G9] [--old=old-main.html] [--new=index.html]
+   ★G0 的基準 SHA 會隨 main 前進而過期（同 GUIDE §11.20 第 1 點的 ca14065→ff227a7 那個坑）★：
+   G0 要證的是「**我這一卷**有沒有漏進 OFF 路徑」，所以基準必須是**我併進來的那個 main**。
+   併入 v0.47 角色平衡卷（`5a3c56b`）之後，OFF 路徑本來就跟 `b38980a` 不同了（ROLES／pwSide 都動過），
+   拿 `b38980a` 跑 G0 會得到 332125 vs 339303 的**假 ❌**。
    本腳本負責 G0 kill switch／G1 優勢策略／G2 活性／G3 節奏／G4 消耗戰／G9 持有者優勢帶。
    ★G2 與 G9 的判定口徑已依凍結檔 §2.1（修訂一／二，2026-09-07 使用者裁定）改寫★：
      G2「供奉回天」判「斷供後仍活到局末」的局；G9 判「持有者局勝率 − 零戰力對照」的差值。
