@@ -6,6 +6,54 @@ const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 
 export default {
+  /* 大士爺紙尊・普渡（dashiye，護法×1；傳說三尊美術卷 2026-09-07）：本方全體 hp+2。
+     編舞（香火＝緩慢、先蓄後落，像抬轎）：0–320ms 整尊下沉、舌垂、頭低（蓄）
+          → 320ms 紙軀往上抬、口張、頭頂小龕跟著抬；同時本方每一尊腳下升起一圈光環，罩成半透明護罩
+          → 700ms 起護罩淡出、姿態回 0。 */
+  wardGuardAll(st) {
+    const lead = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    st.tween({ ms: 320, ease: 'inout', update(t, e) {
+      st.move(lead, 0, -0.09 * e, 0);
+      st.rot(lead, 'Hips', 0.10 * e); st.rot(lead, 'Chest', 0.09 * e); st.rot(lead, 'HeadRoot', 0.13 * e);
+      st.rot(lead, 'TongueRoot', 0.18 * e); st.rot(lead, 'Tong1', 0.16 * e);
+      st.rim(lead, 1 + 0.5 * e);
+    } });
+    st.at(320, () => {
+      st.tween({ ms: 380, ease: 'snap', update(t, e) {
+        const k = 1 - t;
+        st.move(lead, 0, -0.09 * k + 0.12 * e, 0);
+        st.rot(lead, 'Hips', 0.10 * k - 0.14 * e); st.rot(lead, 'Chest', 0.09 * k - 0.12 * e);
+        st.rot(lead, 'HeadRoot', 0.13 * k - 0.18 * e);
+        st.rot(lead, 'JawRoot', 0.34 * Math.sin(Math.PI * e));
+        st.rot(lead, 'TongueRoot', 0.18 * k - 0.30 * e); st.rot(lead, 'Tong1', 0.16 * k - 0.26 * e);
+        st.rot(lead, 'ShrineRoot', -0.16 * e);
+        st.rim(lead, 1 + 1.2 * e);
+      } });
+      st.actor.forEach((f, i) => {
+        const foot = st.foot(f, new THREE.Vector3());
+        const c = st.worldOf(f, null, new THREE.Vector3());
+        st.at(40 * i, () => {
+          const r = st.ring(foot, 0.30, 0.05, { opacity: 0.9 });
+          r.scale.setScalar(0.25); st.grow(r, { ms: 280, from: 0.25, to: 1.05 });
+          st.fade(r, { ms: 320, delay: 200, from: 0.9, to: 0 });
+          const d = st.dome(c, 0.78, { opacity: 0 });
+          d.scale.setScalar(0.35);
+          st.grow(d, { ms: 300, from: 0.35, to: 1 });
+          st.fade(d, { ms: 300, from: 0, to: 0.32 });
+          st.at(420, () => st.fade(d, { ms: 300, from: 0.32, to: 0 }));
+          st.rim(f, 1.5);
+        });
+      });
+    });
+    st.at(700, () => st.tween({ ms: 200, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.move(lead, 0, 0.12 * k, 0);
+      st.rot(lead, 'Hips', -0.14 * k); st.rot(lead, 'Chest', -0.12 * k); st.rot(lead, 'HeadRoot', -0.18 * k);
+      st.rot(lead, 'TongueRoot', -0.30 * k); st.rot(lead, 'Tong1', -0.26 * k); st.rot(lead, 'ShrineRoot', -0.16 * k);
+      st.actor.forEach((f) => st.rim(f, 1 + 0.5 * k));
+    } }));
+  },
+
   /* 王爺劍・斬瘟（sword，精英×1）：本隊精英的濺射改為全額。
      編舞：舉劍（0–260ms：右臂高舉、胸口後仰側擰、劍身邊光大亮）
           → 斬（260ms：臂胸猛甩到前下方、整尊往前踏半步、鏡頭小推；一片劍光以腳下為軸 200ms 掃過對面整排）

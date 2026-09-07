@@ -27,6 +27,8 @@ const FAC = {
   bow: 'zuling', shield: 'zuling', balen: 'zuling', eye: 'zuling', thunder: 'zuling', boat: 'zuling', boartusk: 'zuling', xianji: 'zuling', shanshen: 'zuling',
   flag: 'xianghuo', sword: 'xianghuo', wangchuan: 'xianghuo', bell: 'xianghuo', wuying: 'xianghuo', tiger: 'xianghuo', ashcharm: 'xianghuo', fushou: 'xianghuo', pojun: 'xianghuo',
   redhat: 'yinqi', hairpin: 'yinqi', chair: 'yinqi', raincoat: 'yinqi', buoy: 'yinqi', nail: 'yinqi', yinyangcoin: 'yinqi', guoyin: 'yinqi', sigui: 'yinqi',
+  // 傳說三尊（2026-09-07 美術卷）：不在 POOL，GLB 名＝LEGENDS.m
+  canri: 'zuling', dashiye: 'xianghuo', youyinggong: 'yinqi',
 };
 // 兩隊各 8 隻、每隊每系至少 2 隻（A＝3 祖靈／2 香火／3 陰氣，B＝2／3／3）。
 // 體型一律 elite：三系的隻數與大小都不帶訊息，讀者只能靠顏色分——不然純度可能是靠拓樸拿到的（P-2 的紅線）。

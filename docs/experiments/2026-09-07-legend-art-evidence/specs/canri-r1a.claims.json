@@ -1,0 +1,110 @@
+{
+ "name": "殘日 canri r1a (zuling/elite)",
+ "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。識別視角＝正視（front）——日盤是正對鏡頭的一片，側視只剩厚度。基底＝bow.claims.json；saturation 帶沿用凍結檔的 10%–60%；tri 上限 8000（09-04 19:30 預算制）。",
+ "_frozen_at": "動手編譯之前寫定（與 spec 同一支產生器、同一次執行）。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "sun_char",
+   "stage": "MID",
+   "label": "焦盤本體必須存在（招牌質量）"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "白熱獨眼必須存在，材質名必須正是 eye（three.js 靠這個名字掛 emissive）"
+  },
+  {
+   "type": "part_exists",
+   "part": "ray_gold",
+   "stage": "MID",
+   "label": "祖靈金色帶＝裂芒必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_ember",
+   "stage": "MID",
+   "label": "盤緣日珥必須存在，材質名必須正是 glow_ember"
+  },
+  {
+   "type": "part_signature",
+   "part": "sun_char",
+   "view": "front",
+   "min_share": 0.1,
+   "or_min_span": 0.15,
+   "stage": "MID",
+   "label": "招牌部位在識別視角要撐得起面積或跨距其中一項"
+  },
+  {
+   "type": "part_visible",
+   "part": "eye",
+   "view": "front",
+   "min_share": 0.004,
+   "stage": "MID",
+   "label": "真實參照特徵 1 的機械化：獨眼在識別視角必須量得到——看不到那顆亮點，焦盤就只是一塊黑板"
+  },
+  {
+   "type": "part_visible",
+   "part": "ray_bone",
+   "view": "front",
+   "min_share": 0.01,
+   "stage": "MID",
+   "label": "真實參照特徵 2 的機械化：不對稱裂芒必須量得到"
+  },
+  {
+   "type": "part_visible",
+   "part": "bark_char",
+   "view": "front",
+   "min_share": 0.03,
+   "stage": "MID",
+   "label": "軀幹不得被自己頭上的日盤吞掉（elite 招牌過大的專屬風險，同 bow skull_bone）"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "sun_char",
+   "b": "eye",
+   "min_ratio": 3,
+   "view": "front",
+   "stage": "MID",
+   "label": "兩個焦點（焦盤／白熱眼）不得等重相爭"
+  },
+  {
+   "type": "style_dark",
+   "view": "front",
+   "max_median_lum": 95,
+   "stage": "MID",
+   "label": "深底：熄掉的天體在識別視角也要讀得出是暗的"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%–60%（凍結檔指定的帶）"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1200,
+   "max": 8000,
+   "stage": "LOW",
+   "label": "三角形預算（09-04 19:30 預算制上限 8000）"
+  }
+ ]
+}

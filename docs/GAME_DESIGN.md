@@ -492,6 +492,17 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 
 ## Changelog
 
+- 2026-09-07 v0.51（傳說三尊美術卷）：**只動 3D 與治具登記，不動任何規則與數值**——`LEGENDS` 只改
+  `m`（3D 模型鍵），賽局欄位（`f`／`p`／`unit`／`trait`）一格未動，9 套測試全綠。三尊從此有專屬 GLB：
+  `assets/creatures/{canri,dashiye,youyinggong}.{json,glb,claims.json}`，不再借 `bow`／`wangchuan`／`redhat`。
+  做了六件事：① 三份真實參照 ref 檔（Wikimedia Commons，來源與授權在檔內）＋簡報補三列
+  ② 每尊三方案 contact sheet 給使用者挑（挑定：殘日 r1a／大士爺 r1a／有應公 r1b）
+  ③ V2 盲讀三輪六位／尊——**三尊皆未過，交最佳版標「未過」待簽字**（`docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md`）
+  ④ `LEGENDS.m` 改指新鍵、`duel-perf` 的 ALL／HEAVY／FAC 與 `faction-sheet` 的 FAC 登記三尊
+  ⑤ 三招編舞 `eliteBlind`／`wardGuardAll`／`hauntAnswer` 進 `js/trait-fx/{zuling,xianghuo,yinqi}.js`
+  ⑥ ART_BIBLE 加 §9「傳說三尊」。美術上量到的兩條通則（底比肩寬＝不倒翁語意場、haunt 虛化錐體＝陀螺輪廓）
+  已寫進 ART_BIBLE §9，對 27 隻也成立。
+
 - 2026-09-07 v0.46（美術甲「夜市燈火」渲染基礎包）：**只動畫面，不動任何規則與數值**——`trace()`
   seeds 1..20 與合併後的 `main` 逐位元組相等。做了六件事：① renderer 全域
   `ACESFilmicToneMapping`＋exposure 1.1＋明寫 `outputColorSpace`（玩家 90% 時間看的牌桌／市集
