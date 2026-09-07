@@ -16,14 +16,21 @@ const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
 const { chromium } = req('playwright');
 
 const ALL = ['ashcharm', 'balen', 'bell', 'boartusk', 'boat', 'bow', 'buoy', 'chair', 'eye', 'flag', 'fushou', 'guoyin', 'hairpin', 'nail',
-  'pojun', 'raincoat', 'redhat', 'shanshen', 'shield', 'sigui', 'sword', 'thunder', 'tiger_c', 'wangchuan', 'wuying', 'xianji', 'yinyangcoin'];
-// 最重 8 隻（GLB 位元組數由大到小；scratchpad/glb-bounds.mjs 量的）
-const HEAVY = ['fushou', 'ashcharm', 'wangchuan', 'boartusk', 'shanshen', 'balen', 'yinyangcoin', 'boat'];
-const FAC = { fushou: 'xianghuo', ashcharm: 'xianghuo', wangchuan: 'xianghuo', boartusk: 'zuling', shanshen: 'zuling', balen: 'zuling', yinyangcoin: 'yinqi', boat: 'zuling' };
+  'pojun', 'raincoat', 'redhat', 'shanshen', 'shield', 'sigui', 'sword', 'thunder', 'tiger_c', 'wangchuan', 'wuying', 'xianji', 'yinyangcoin',
+  // 傳說三尊（2026-09-07 美術卷）：不在 POOL，但 LEGENDS.m 指到這三顆 GLB，bounds 要一起量
+  'canri', 'dashiye', 'youyinggong'];
+// 最重 8 隻。2026-09-07 起改成「傳說三尊＋原本最重的 5 隻」——三尊一定會同時上場（每尊全桌只有一份，
+// 但三尊可能落在交手的兩家手上），效能閘門要量得到它們；被擠掉的是 balen／yinyangcoin／boat。
+const HEAVY_BASE = ['fushou', 'ashcharm', 'wangchuan', 'boartusk', 'shanshen', 'balen', 'yinyangcoin', 'boat'];
+const HEAVY = ['canri', 'dashiye', 'youyinggong', 'fushou', 'ashcharm', 'wangchuan', 'boartusk', 'shanshen'];
+const FAC = { fushou: 'xianghuo', ashcharm: 'xianghuo', wangchuan: 'xianghuo', boartusk: 'zuling', shanshen: 'zuling', balen: 'zuling', yinyangcoin: 'yinqi', boat: 'zuling',
+  canri: 'zuling', dashiye: 'xianghuo', youyinggong: 'yinqi' };
 
 const { pos, opt } = parseArgs(process.argv.slice(2));
 const [mode, out] = pos;
 if (!mode || !out) { console.error('need <bounds|perf> <out.json>'); process.exit(2); }
+// --heavy=base 用原本最重 8 隻（不含傳說三尊）——V6 的基準組，只給「同 session 交錯比較」用
+const HEAVY_USE = String(opt.heavy || '') === 'base' ? HEAVY_BASE : HEAVY;
 // --uncap：關掉 vsync 與幀率上限，量的才是「跑得動幾幀」而不是「螢幕更新幾次」（60Hz 桌機 rAF 永遠貼著 60）
 // --gl=swiftshader：改走軟體 GL（renderer.js bloomOK=false 路徑；法線貼花小卷 D5／M-4 待量，2026-09-06）
 const launch = () => chromium.launch({ args: ['--use-gl=angle', opt.gl === 'swiftshader' ? '--use-angle=swiftshader' : '--use-angle=d3d11', '--ignore-gpu-blocklist'].concat(opt.uncap ? ['--disable-gpu-vsync', '--disable-frame-rate-limit'] : []) });
@@ -98,7 +105,7 @@ if (mode === 'bounds') {
           return { loadMs: Math.round(loadMs), rendersPerSec: +((f1 - f0) / ((te - ts) / 1000)).toFixed(1), rafMedianFps: +(1000 / med).toFixed(1), rafP95Ms: +p95.toFixed(1),
             rafFrames: raf.length, drawCallsPerFrame: calls, trianglesPerFrame: tris, renderPassesPerFrame: passes, gl: Y3.glName,
             visible: figs.filter((f) => f.group.visible).length, total: figs.length, skins: figs.map((f) => f.skin).filter((x) => x === 'creature').length };
-        }, { heavy: HEAVY, fac: FAC, N });
+        }, { heavy: HEAVY_USE, fac: FAC, N });
       },
     });
     fs.writeFileSync(out, JSON.stringify({ perf, errors: r.errors, fxc: r.fxc }, null, 1));

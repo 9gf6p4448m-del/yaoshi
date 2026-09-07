@@ -1,0 +1,128 @@
+{
+ "name": "大士爺紙尊 dashiye r1a (xianghuo/ward)",
+ "_role": "judge.mjs 的機械檢查清單。識別視角＝正視（front）——ward 正面寬 ≥ 側面寬，紙紮的臉與滾邊都在正面。基底＝wangchuan/flag claims；saturation 帶沿用凍結檔的 10%–60%；tri 上限 8000。",
+ "_frozen_at": "動手編譯之前寫定（與 spec 同一支產生器、同一次執行）。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "paper_ink",
+   "stage": "MID",
+   "label": "紙紮軀體必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "paper_gold",
+   "stage": "MID",
+   "label": "系別色帶＝剪刀鋸齒滾邊必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "tongue",
+   "stage": "MID",
+   "label": "★ 特徵 2：垂到胸腹的長舌必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "shrine_box",
+   "stage": "MID",
+   "label": "★ 特徵 3：頭頂小龕必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "mirror_plate",
+   "stage": "MID",
+   "label": "★ 特徵 5：胸腹獸面護心鏡必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "發光眼必須存在，材質名必須正是 eye"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_censer",
+   "stage": "MID",
+   "label": "普渡香爐火必須存在，材質名必須正是 glow_censer"
+  },
+  {
+   "type": "part_signature",
+   "part": "paper_ink",
+   "view": "front",
+   "min_share": 0.2,
+   "or_min_span": 0.2,
+   "stage": "MID",
+   "label": "招牌質量（紙軀）在識別視角要撐得起面積或跨距"
+  },
+  {
+   "type": "part_visible",
+   "part": "tongue",
+   "view": "front",
+   "min_share": 0.008,
+   "stage": "MID",
+   "label": "★ 特徵 2 的機械化：長舌在正視必須量得到——看不見舌就只是一尊神像"
+  },
+  {
+   "type": "part_visible",
+   "part": "shrine_box",
+   "view": "front",
+   "min_share": 0.006,
+   "stage": "MID",
+   "label": "★ 特徵 3 的機械化：頭頂小龕必須量得到"
+  },
+  {
+   "type": "part_visible",
+   "part": "paper_gold",
+   "view": "front",
+   "min_share": 0.02,
+   "stage": "MID",
+   "label": "★ 特徵 4 的機械化：剪刀鋸齒滾邊必須量得到（紙的唯一幾何證據）"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "paper_ink",
+   "b": "eye",
+   "min_ratio": 3,
+   "view": "front",
+   "stage": "MID",
+   "label": "兩個焦點（紙軀／發光眼）不得等重相爭"
+  },
+  {
+   "type": "style_dark",
+   "view": "front",
+   "max_median_lum": 110,
+   "stage": "MID",
+   "label": "深底＋一條高飽和帶（香火比祖靈亮一階，上限放到 110）"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%–60%"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1200,
+   "max": 8000,
+   "stage": "LOW",
+   "label": "三角形預算（09-04 19:30 預算制上限 8000）"
+  }
+ ]
+}

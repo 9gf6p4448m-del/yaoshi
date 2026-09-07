@@ -37,6 +37,10 @@ export function casesFromIndex(html) {
   const re = /\{n:"([^"]+)",(?:m:"([a-z_]+)",)?f:"([a-z]+)",p:-?\d+,(?:ab:"([a-z_]+)",)?d:"[^"]*",unit:\{body:"([a-z]+)",count:(\d+),atk:\d+,hp:\d+,trait:"([A-Za-z0-9]+)"\}\}/g;
   let m;
   while ((m = re.exec(html))) out.push({ name: m[1], ab: m[4] || m[2], fac: m[3], body: m[5], count: parseInt(m[6], 10), trait: m[7] });
+  // 傳說三尊（2026-09-07 美術卷）：LEGENDS 的欄位順序與 POOL 不同（legend:true 夾在 p 與 m 之間），
+  // 上面那條 regex 抓不到。它們的 GLB 名＝m（沒有 ab），三招也要走同一組機械驗收。
+  const reL = /\{n:"([^"]+)",f:"([a-z]+)",p:-?\d+,legend:true,m:"([a-z_]+)",d:"[^"]*",\s*unit:\{body:"([a-z]+)",count:(\d+),atk:\d+,hp:\d+,trait:"([A-Za-z0-9]+)"\}\}/g;
+  while ((m = reL.exec(html))) out.push({ name: m[1], ab: m[3], fac: m[2], body: m[4], count: parseInt(m[5], 10), trait: m[6], legend: true });
   return out;
 }
 
@@ -132,7 +136,9 @@ async function main() {
   if (opt.dt) DT_MS = Math.max(1, Math.min(100, parseFloat(opt.dt) || DT_MS));
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   let cases = casesFromIndex(html);
-  if (cases.length !== 27) console.warn(`POOL 反查到 ${cases.length} 套（預期 27）`);
+  const poolN = cases.filter((c) => !c.legend).length;
+  if (poolN !== 27) console.warn(`POOL 反查到 ${poolN} 套（預期 27）`);
+  if (cases.length - poolN !== 3) console.warn(`LEGENDS 反查到 ${cases.length - poolN} 套（預期 3）`);
   if (opt.only) { const set = new Set(String(opt.only).split(',')); cases = cases.filter((c) => set.has(c.trait)); }
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(ROOT, port);

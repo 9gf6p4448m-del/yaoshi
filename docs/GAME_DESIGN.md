@@ -508,6 +508,17 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 
 ## Changelog
 
+- 2026-09-07 v0.51（傳說三尊美術卷）：**只動 3D 與治具登記，不動任何規則與數值**——`LEGENDS` 只改
+  `m`（3D 模型鍵），賽局欄位（`f`／`p`／`unit`／`trait`）一格未動，9 套測試全綠。三尊從此有專屬 GLB：
+  `assets/creatures/{canri,dashiye,youyinggong}.{json,glb,claims.json}`，不再借 `bow`／`wangchuan`／`redhat`。
+  做了六件事：① 三份真實參照 ref 檔（Wikimedia Commons，來源與授權在檔內）＋簡報補三列
+  ② 每尊三方案 contact sheet 給使用者挑（挑定：殘日 r1a／大士爺 r1a／有應公 r1b）
+  ③ V2 盲讀三輪六位／尊——**三尊皆未過，交最佳版標「未過」待簽字**（`docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md`）
+  ④ `LEGENDS.m` 改指新鍵、`duel-perf` 的 ALL／HEAVY／FAC 與 `faction-sheet` 的 FAC 登記三尊
+  ⑤ 三招編舞 `eliteBlind`／`wardGuardAll`／`hauntAnswer` 進 `js/trait-fx/{zuling,xianghuo,yinqi}.js`
+  ⑥ ART_BIBLE 加 §9「傳說三尊」。美術上量到的兩條通則（底比肩寬＝不倒翁語意場、haunt 虛化錐體＝陀螺輪廓）
+  已寫進 ART_BIBLE §9，對 27 隻也成立。
+
 - 2026-09-07 v0.46（美術甲「夜市燈火」渲染基礎包）：**只動畫面，不動任何規則與數值**——`trace()`
   seeds 1..20 與合併後的 `main` 逐位元組相等。做了六件事：① renderer 全域
   `ACESFilmicToneMapping`＋exposure 1.1＋明寫 `outputColorSpace`（玩家 90% 時間看的牌桌／市集
@@ -714,4 +725,4 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
   而門檻 2 等於 `CFG.SET_MIN`、把「集齊同系第 N 件」的專精識別度取消掉——**三版已依裁定撤回 4**。
   **本卷以 7/10 進帶的狀態上線（v0.47）；剩下的紅衣婆婆 16.26／斷手書生 15.60／收驚婆 34.20 另開「角色平衡 B」小卷**，
   候選處方（紅衣把 `grudge` 帳本接到玩家側、斷手改 `onAiValue`／`onAiPlan`、收驚婆三條路）寫在 `docs/experiments/2026-09-07-role-balance-report.md` §7。
-- 2026-09-07（v0.49，**請神 2.0「神債暗標」**；使用者真機試玩 v0.44 回報「每夜燒 3 請神最划算」＋「持兩尊仍 12/12 全燒、看不出為什麼輸」，裁定改版）：**擲骰 `INC_K` 與天井 `INC_PITY` 整組移除**（連同 `shrineRollOrder` 洗牌與機率表文案，不留死碼），改成**請神夜全員付費暗標**——`CFG.SHRINE_NIGHTS=[4,7,10]`，尊→夜每局用 `S.rng` 洗牌並**公開**；那一夜開標由**累計香火最高者請走**，同分依「本夜風位起順時針」（`shrineWindOrder`，決定性可讀），無人上香則回天且不重開。另加四件：**一人一尊**（`hasLegend` 的判準是 `sh.takenBy` 不是袋子內容——用袋子會讓斷供的人再搶第二尊，實測 n=1000 出 23 局）、**供奉神債**（`INC_TITHE=1`，夜末自動扣；`settleTithe` 掛在三條迴圈共用的 `resolveBattles`，付不出即回天。互動口徑裁丙：平常不跳窗、袋子面板常駐「送神回天」鈕、只有付完 ≤`TITHE_WARN=2` 那一夜跳一次提示、同一尊只一次、AI 走同一門檻）、**階段獎勵改以「本龕最高 h」的比例**分段（天井拿掉後不再有固定門檻）、**傳說共鳴**（傳說在 `facCount` 視為 2 件，走法寶自帶的 `eff` hook——`collectEffects` 新增這條 effect 來源，因為傳說沒有 `ab`、而 `ab` 欄被 `buildArmy` 當 3D 模型鍵用）。版面同時搬：北家回頂端正中、三龕整排進中央面板法寶卡上方、四家香火收一行、盯上說明第二夜起一行、教學卡加「請神」一頁；**袋子面板與市集卡加「部隊預覽」**（隻數／攻／血／出手拍／招式名＋一句效果，走引擎同一支 `buildArmy`＋`TRAITS`，總計一行含共鳴 hp）。橫式 19px 溢出定位到**東席的盯上印**（`.mark-stamp` `right:-6px` 在 `anim-stamp-in` 放大到 2.26 倍時凸出 18.6px，跟神龕列無關；探針 `tests/tools/overflow-probe.mjs`），改 `#east .mark-stamp{left:-6px}`；殘留 3px 是最右那張卡的 `.pickbox`（`right:-4px`），`#market` 兩側各補 5px padding 解決。驗收凍結 `docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11），實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。
+- 2026-09-07（v0.52，**請神 2.0「神債暗標」**；使用者真機試玩 v0.44 回報「每夜燒 3 請神最划算」＋「持兩尊仍 12/12 全燒、看不出為什麼輸」，裁定改版）：**擲骰 `INC_K` 與天井 `INC_PITY` 整組移除**（連同 `shrineRollOrder` 洗牌與機率表文案，不留死碼），改成**請神夜全員付費暗標**——`CFG.SHRINE_NIGHTS=[4,7,10]`，尊→夜每局用 `S.rng` 洗牌並**公開**；那一夜開標由**累計香火最高者請走**，同分依「本夜風位起順時針」（`shrineWindOrder`，決定性可讀），無人上香則回天且不重開。另加四件：**一人一尊**（`hasLegend` 的判準是 `sh.takenBy` 不是袋子內容——用袋子會讓斷供的人再搶第二尊，實測 n=1000 出 23 局）、**供奉神債**（`INC_TITHE=1`，夜末自動扣；`settleTithe` 掛在三條迴圈共用的 `resolveBattles`，付不出即回天。互動口徑裁丙：平常不跳窗、袋子面板常駐「送神回天」鈕、只有付完 ≤`TITHE_WARN=2` 那一夜跳一次提示、同一尊只一次、AI 走同一門檻）、**階段獎勵改以「本龕最高 h」的比例**分段（天井拿掉後不再有固定門檻）、**傳說共鳴**（傳說在 `facCount` 視為 2 件，走法寶自帶的 `eff` hook——`collectEffects` 新增這條 effect 來源，因為傳說沒有 `ab`、而 `ab` 欄被 `buildArmy` 當 3D 模型鍵用）。版面同時搬：北家回頂端正中、三龕整排進中央面板法寶卡上方、四家香火收一行、盯上說明第二夜起一行、教學卡加「請神」一頁；**袋子面板與市集卡加「部隊預覽」**（隻數／攻／血／出手拍／招式名＋一句效果，走引擎同一支 `buildArmy`＋`TRAITS`，總計一行含共鳴 hp）。橫式 19px 溢出定位到**東席的盯上印**（`.mark-stamp` `right:-6px` 在 `anim-stamp-in` 放大到 2.26 倍時凸出 18.6px，跟神龕列無關；探針 `tests/tools/overflow-probe.mjs`），改 `#east .mark-stamp{left:-6px}`；殘留 3px 是最右那張卡的 `.pickbox`（`right:-4px`），`#market` 兩側各補 5px padding 解決。驗收凍結 `docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11），實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。
