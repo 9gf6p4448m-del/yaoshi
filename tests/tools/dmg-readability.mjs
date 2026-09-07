@@ -407,7 +407,7 @@ async function openPage(browser, opt, extra) {
 const { pos, opt } = parseArgs(process.argv.slice(2));
 const mode = pos[0];
 const out = pos[1];
-if (!mode || !out) { console.error('need <dom|pix> <out.json|outdir>'); process.exit(2); }
+if (!mode || !out) { console.error('need <dom|pix|judge> <out.json|outdir>'); process.exit(2); }
 const port = Number(opt.port || (mode === 'pix' ? 9001 : 9002));
 const root = opt.root ? path.resolve(opt.root) : ROOT;
 const seed = Number(opt.seed || 1);
@@ -416,6 +416,23 @@ const url = opt.url || `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1
 
 // 工作區 index.html 宣告的版本（--root 指到別的 worktree 時不比對）
 const expectVer = (() => { try { const m = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').match(/const VERSION="([0-9.]+)"/); return m ? m[1] : null; } catch (e) { return null; } })();
+/* 離線重判：judge 只吃已經存好的 pix.json，重新套一次現行判準（不開瀏覽器、不重跑遊戲）。
+   判準改了要回頭重判舊證據時用它，省掉一整輪錄影。 */
+if (mode === 'judge') {
+  const dirs = pos.slice(1);
+  for (const d of dirs) {
+    const f = fs.existsSync(path.join(d, 'pix.json')) ? path.join(d, 'pix.json') : d;
+    const J = JSON.parse(fs.readFileSync(f, 'utf8'));
+    const v = judgePix(J.samples);
+    J.verdict = v;
+    fs.writeFileSync(f, JSON.stringify(J, null, 1));
+    console.log(d, JSON.stringify({ res: v.res, ...v.summary }));
+    console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x === null ? '（未訂）' : x ? 'PASS' : 'FAIL'}`).join(' '));
+    if (v.bad.length) console.log(v.bad.slice(0, 8).join('\n'));
+  }
+  process.exit(0);
+}
+
 const srv = await serve(root, port);
 try {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
@@ -874,9 +891,13 @@ function judgePix(S) {
          ④ 窗內發生燒毀（burnIn）⑤ 落在 ys:duel-end 之後（offDuel） */
     const shiftPx = (a2, b2) => (a2 && b2 ? Math.max(Math.abs(a2.x0 - b2.x0), Math.abs(a2.y0 - b2.y0), Math.abs(a2.x1 - b2.x1), Math.abs(a2.y1 - b2.y1)) : null);
     const mv40 = shiftPx(r0.box, r0.box40);
+    /* 位移閘門對「燒毀中的尊」不適用：化灰本來就會讓那一尊縮小上飄，方框一定在動，
+       套下去的話那一條子判準永遠 0 樣本＝空過（fail-open）。燒毀那幾筆改成不套位移閘門，
+       在輸出裡標 burnLoose，讓看的人知道它們的量測比較鬆。 */
+    const isBurn = !!r0.meta.burning;
     const why = r0.maskD === null || r0.maskD === undefined ? 'noMask'
       : (r0.maskFrac || 0) < 0.1 ? 'tinyMask'
-      : (mv40 === null ? 'noBox40' : (mv40 > MOVE_MAX ? 'moved' : null))
+      : (isBurn ? null : (mv40 === null ? 'noBox40' : (mv40 > MOVE_MAX ? 'moved' : null)))
       || (r0.on === false ? 'offDuel' : null);
     seqs.push({ burning: !!r0.meta.burning,
       maskD: r0.maskD === undefined ? null : r0.maskD,
@@ -888,7 +909,7 @@ function judgePix(S) {
       d40: r0.maskD === undefined ? null : r0.maskD, ctrl40: r0.maskC === undefined ? null : r0.maskC,
       hkMax: hk ? Math.max(0, ...hk.map((x) => +x || 0)) : null,
       sil: r0.sil || null, files: r0.files || [r0.file], figInfo: r0.figInfo || null,
-      usable: !why });
+      burnLoose: isBurn, usable: !why });
   }
   const moved = seqs.filter((x) => !x.usable);
   const live = seqs.filter((x) => x.usable && !x.burning), burning = seqs.filter((x) => x.usable && x.burning);
@@ -904,9 +925,14 @@ function judgePix(S) {
        ・燒毀中的尊不得閃：|Δ| ≤ 10（化灰本身會讓紅偏量動，比原本的 5 放寬並寫明理由）
        ・對照尊（對面那一欄最大的一尊）不得跟著紅：max < 10 */
   const BACK_MAX = 5, BURN_MAX = 10, CTRL_MAX = 10;
+  const mSorted = valid.map((x) => x.maskD).sort((a2, b2) => a2 - b2);
+  const mMed = mSorted.length ? mSorted[Math.floor(mSorted.length / 2)] : null;
+  const mRatio = mSorted.length ? +(mSorted.filter((x) => x >= 25).length / mSorted.length).toFixed(3) : null;
   const badBack = valid.filter((x) => x.maskD200 !== null && Math.abs(x.maskD200) > BACK_MAX);
   const badBurn = burnValid.filter((x) => x.maskD !== null && Math.abs(x.maskD) > BURN_MAX);
   const badCtrl = valid.filter((x) => x.maskC !== null && x.maskC >= CTRL_MAX);
+  if (!burnValid.length) bad.push('R2 「燒毀中不得閃」0 樣本＝空過，不算通過（fail-closed）');
+  if (mSorted.length && !(mMed >= 25 && mRatio >= 0.70)) bad.push(`R2 主門檻（方案 A）未過：中位 ${mMed}（要 ≥25）、≥25 比例 ${mRatio}（要 ≥0.70）、n=${mSorted.length}`);
   for (const x of badBack.slice(0, 5)) bad.push(`R2 +200ms 未回到原值 Δ=${x.maskD200}（門檻 ±${BACK_MAX}）`);
   for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 Δ=${x.maskD}（門檻 ±${BURN_MAX}）`);
   for (const x of badCtrl.slice(0, 5)) bad.push(`R2 對照尊也紅 Δ=${x.maskC}（門檻 <${CTRL_MAX}；整片閃紅＝假綠）`);
@@ -918,10 +944,12 @@ function judgePix(S) {
   if (skD !== null && Math.abs(skD) > 5) bad.push(`R5 跳過後 300ms 仍紅 Δ=${skD}`);
   const res = {
     R1: S.floats.length > 0 && fontBad.length === 0 && kindBad.length === 0 && hueBad.length === 0 && under.length === 0,
-    /* 主門檻（那一筆抬升多少才算「閃了」）待使用者裁，所以 R2 不給總判定；
-       三個子判準有判，紅了就是紅——不讓整條 null 把「亂閃」也一起放行（第三輪覆審）。 */
-    R2main: null,
-    R2sub: valid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
+    /* 【使用者 2026-09-08 裁定：方案 A】剪影遮罩（含位移 ≤4px 閘門）下的分布式門檻：
+       **中位 ≥ +25 且「≥+25 的樣本比例」≥ 70%**，再加三個子判準全部通過才算綠。 */
+    R2: valid.length > 0 && mMed !== null && mMed >= 25 && mRatio !== null && mRatio >= 0.70
+      && burnValid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
+    R2main: valid.length > 0 && mMed !== null && mMed >= 25 && mRatio !== null && mRatio >= 0.70,
+    R2sub: valid.length > 0 && burnValid.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,
     R5pix: skD !== null && Math.abs(skD) <= 5,
   };
   const mk = valid.map((x) => x.maskD).sort((a, b) => a - b);
@@ -933,7 +961,7 @@ function judgePix(S) {
     bySkin: (() => { const o = {}; for (const x of valid) { const k = (x.figInfo && x.figInfo.skin) || '?'; (o[k] = o[k] || []).push(x.maskD); } for (const k of Object.keys(o)) { const a2 = o[k].sort((p, q) => p - q); o[k] = { n: a2.length, min: a2[0], p50: a2[Math.floor(a2.length / 2)], max: a2[a2.length - 1], ge25: a2.filter((v) => v >= 25).length }; } return o; })(),
     maskN: mk.length, maskMin: mk[0] ?? null, maskP50: mk[Math.floor(mk.length / 2)] ?? null, maskMax: mk[mk.length - 1] ?? null,
     maskGe25: mk.filter((x) => x >= 25).length, maskFracP50: valid.length ? valid.map((x) => x.maskFrac).sort((a, b) => a - b)[Math.floor(valid.length / 2)] : null,
-    maskDropped: dropped, maskGe15: mk.filter((x) => x >= 15).length, via: S.via || null,
+    maskDropped: dropped, maskGe15: mk.filter((x) => x >= 15).length, maskGe25Ratio: mRatio, via: S.via || null,
     move40P50: valid.length ? valid.map((x) => x.move40).filter((x) => x !== null).sort((a2, b2) => a2 - b2)[Math.floor(valid.length / 2)] : null,
     burnMaskN: bk.length, burnMaskAbsMax: bk.length ? Math.max(...bk.map((x) => Math.abs(x))) : null,
     back200MaskN: bk200.length, back200MaskAbsMax: bk200.length ? Math.max(...bk200.map((x) => Math.abs(x))) : null,
