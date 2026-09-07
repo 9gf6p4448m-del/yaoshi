@@ -3543,6 +3543,9 @@ try{
 }catch(e){}
 /* 治具用固定種子：只有 ?fxcount=1 同時帶 ?seed=N 才有值；正式頁 undefined → makeState 照舊用 Date.now() */
 const FX_SEED=(()=>{ try{ const q=new URLSearchParams(location.search||""); return (q.get("fxcount")==="1"&&q.get("seed"))?(parseInt(q.get("seed"),10)>>>0):undefined; }catch(e){ return undefined; } })();
+/* 與 window.__ysFxCount 同一支旗標：近景切鏡的 focus／逐拍記錄只有 ?fxcount=1 才留（治具讀的就是它），
+   正式頁一個陣列都不建。 */
+const FX_COUNT_ON=(()=>{ try{ return new URLSearchParams(location.search||"").get("fxcount")==="1"; }catch(e){ return false; } })();
 /* 傷害值→力道倍率。夾在 POWER_MIN..POWER_MAX 之間，免得 0 傷害沒感覺、爆擊震到暈。 */
 function fxPower(dmg){ return Math.max(FX.POWER_MIN,Math.min(FX.POWER_MAX,(dmg||0)/FX.POWER_DMG+FX.POWER_MIN)); }
 /* 【積木】停格：整個畫面凍住 ms 毫秒。DOM 動畫靠 body.hitstop 的 animation-play-state 停、
@@ -4400,8 +4403,13 @@ function pwTraitFx(trId,ctx){
 function pwArmyView(p){
   const a=buildArmy(p.bag);
   const units=[];
+  /* 這一隊是哪一件法寶（近景切鏡卷 v0.45 二版）：buildArmy 是照 bag 順序逐件展開的（詛咒品跳過、其餘一件一隊），
+     所以第 idx 隊就是 bag 裡第 idx 件非詛咒品。**對位還要核 ab 才採用**——對不上就留空（出手卡不顯示），
+     不猜。以前用 ab→名字的反查表會撞名：傳說三尊借既有模型鍵（殘日借 bow），反查回來會顯示「射日神弓」。 */
+  const src=(p.bag||[]).filter(x=>!x.curse);
+  const nameOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.n)?x.n:""; };
   /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
-  a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,t:t.idx})));
+  a.teams.forEach(t=>{ const nm=nameOf(t); t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,nm,t:t.idx})); });
   units.forEach((u,i)=>{ u.id=i; });
   /* 陣列卷（2026-09-07 使用者裁乙）：顯示順序依拍序 BEAT_FAC（祖靈→香火→陰氣，無系肉身殿後），同系內維持取得順序。
      id 在排序「前」指派且不重排——beats 的 actor／target 是 pwSide 的單位索引，DOM 晶片 pwc-${tag}-${id} 與 3D figureOf(side,id) 都靠它對位；
@@ -4539,12 +4547,6 @@ function pwBurnOne(b){
    關掉時一個事件都不派、一個 DOM 都不建，演出與 v0.43.3 逐事件相同（P0）。
    這一段仍然只是「按 war.beats 的順序叫積木」——引擎（paperWar／pwRec／buildArmy）一行未動。 */
 
-/* 3D 模型鍵 → 法寶名。POOL 是唯一事實來源（ab 沒有的四件用 m，見 buildArmy:2730），
-   LEGENDS 借既有模型鍵、撞名時不覆蓋 POOL——出手卡在傳說尊身上會顯示借來那件的名字，
-   批 1 原型接受這個誤差（批 2 要改成 armies 直接帶名字，不靠鍵反查）。 */
-const AB_ITEM=(()=>{ const m={}; for(const x of POOL){ const k=x.ab||x.m; if(k&&!m[k]) m[k]=x.n; }
-  try{ for(const x of LEGENDS){ const k=x.ab||x.m; if(k&&!m[k]) m[k]=x.n; } }catch(e){}
-  return m; })();
 let PW_FOCUS_LOG=null;  /* 這一場的 focus 記錄（?fxcount=1 才留；凍結檔 P1 對的就是它） */
 let PW_BEAT_LOG=null;   /* 這一場逐拍「實際演出的那幾筆」，P1 的規則驗證要拿它當分母 */
 let PW_CARD_T=0;        /* 出手卡的收起計時器（同時只有一張＝同一個元素、同一個計時器） */
@@ -4572,6 +4574,7 @@ function pwCloseupClear(){
   if(layer){ [...layer.children].forEach(el=>{ try{ el.getAnimations().forEach(a=>a.cancel()); }catch(e){} el.remove(); }); }
   clearTimeout(PW_CARD_T);
   const c=$("actorCard"); if(c){ c.classList.remove("on"); c.innerHTML=""; }
+  const l=$("beatLamps"); if(l) [...l.children].forEach(el=>{ el.className=""; }); /* L-4：燈也一起清，別把上一場的亮法帶進下一場 */
 }
 /* 【積木】聚焦切鏡：把「現在該看誰」告訴鏡頭（camera-director 的 FOCUS 層）與人形（duel-figures 的退暗）。
    SKIP 時不切（跟其餘積木同一條規矩）；回傳 true＝真的派出去了，呼叫端才計入這一拍的次數。 */
@@ -4629,13 +4632,13 @@ function pwDmgFloat(b,fac){
 }
 /* HUD (a) 三拍燈：依拍序累積點亮，當前那顆呼吸。 */
 function pwLamps(beat){
-  if(!pwCloseup()) return;
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演（下一場 pwCloseupMount 會把燈重置） */
   const l=$("beatLamps"); if(!l) return;
   [...l.children].forEach((el,i)=>{ el.classList.toggle("on",i<=beat-1); el.classList.toggle("cur",i===beat-1); });
 }
 /* HUD (b) 存活量表：寬＝存活／開場總數（隻數牌是同一個事實來源），低於 1/3 轉紅。 */
 function pwGauge(side){
-  if(!pwCloseup()) return;
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演——SKIP 之後這一場馬上收，量表停在最後一次的值 */
   const g=$(`pwg-${side}`), n=$(`pwn-${side}`); if(!g||!n) return;
   const tot=parseInt(g.dataset.total,10)||0, alive=Math.max(0,parseInt(n.textContent,10)||0);
   const bar=g.firstElementChild; if(!bar) return;
@@ -4644,18 +4647,22 @@ function pwGauge(side){
 }
 /* HUD (c) 出手卡：出招／出手那一側閃現「系徽＋法寶名」，同時只有一張。 */
 function pwActorCard(side,item,fac){
-  if(!pwCloseup()) return;
+  if(!pwCloseup()||SKIP) return; /* L-3：快轉時不演 */
   const el=$("actorCard"); if(!el||!item) return;
-  el.className=`side-${side}${fac?` fac-${fac}`:""} on`;
-  el.innerHTML=`<b>${fac?FAC[fac].n[0]:"肉"}</b><span>${item}</span>`;
+  /* fac 來自 pwEvFac／fxFacOf，沒有 actor 的事件會回 "lantern"（FAC 裡沒有這個鍵）——
+     直接 FAC[fac].n[0] 會炸掉整條演出。查不到就沿用隻數牌那條「肉」灰徽的口徑。 */
+  const fm=FAC[fac];
+  el.className=`side-${side}${fm?` fac-${fac}`:""} on`;
+  el.innerHTML=`<b>${fm?fm.n[0]:"肉"}</b><span>${item}</span>`;
   clearTimeout(PW_CARD_T);
   PW_CARD_T=setTimeout(()=>{ el.classList.remove("on"); },PW_FX.ACTOR_CARD_MS);
 }
-/* 出手那一尊帶的法寶名（沒有 3D 名冊或沒有 ab 就回空字串，出手卡不出現）。 */
+/* 出手那一尊帶的法寶名。名字是 pwArmyView 對位好之後直接掛在單位上的（u.nm），
+   不做任何鍵反查——傳說尊借模型鍵會撞名（見 pwArmyView 的註解）。查不到就回空字串，出手卡不出現。 */
 function pwItemOf(views,b){
   if(!views||b.actor==null) return "";
   const v=views[b.side==="B"?1:0], u=v&&v.units.find(x=>x.id===b.actor);
-  return (u&&u.ab&&AB_ITEM[u.ab])||"";
+  return (u&&u.nm)||"";
 }
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
@@ -4695,6 +4702,11 @@ async function pwPlayBeat(f,beat,list,views){
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
+      /* 近景切鏡卷 二版（審查 MEDIUM-3）：招式是一拍裡最重要的演出，不能在退暗到 0.35 的尊身上演。
+         focus 的 650ms 蓋得到後面接的招式，所以招式一開始就先把切鏡收掉（220ms 的回位段，不是硬切）。
+         用**新事件** ys:fx-focus-end 而不是 ys:fx-trait-cancel：後者還會清 orbit／lean 並中斷 trait-fx 的編舞，
+         那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
+      if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
       if(staged){ await pwSleep(PW_FX.TRAIT_MS); continue; } /* 3D 舞台接了才等 900ms；fallback 照 v0.32 等 evMs */
     }else{
@@ -4738,8 +4750,8 @@ async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
   /* 近景切鏡卷：這一場的 focus／逐拍演出記錄（只有 ?fxcount=1 才有 window.__ysFxCount，
      不過這兩個陣列本來就只是純記錄，遊戲一行都不讀）。關掉近景時不記，fights[] 與基準逐欄相同（P0）。 */
-  PW_FOCUS_LOG=pwCloseup()?[]:null;
-  PW_BEAT_LOG=pwCloseup()?[]:null;
+  PW_FOCUS_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
+  PW_BEAT_LOG=(pwCloseup()&&FX_COUNT_ON)?[]:null;
   $("duel").classList.add("pw");
   pwCloseupMount(); /* HUD 三件的容器（關掉時連建都不建） */
   $("duelArena").innerHTML=pwArenaHTML(f,views);

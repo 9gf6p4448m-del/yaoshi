@@ -94,6 +94,9 @@ const CLEAR_MS_MAX = 700;
 //     與 trait-fx.js:339（招式積木自己叫），燒毀都不經過它們 → 這裡自己觸發不會變雙重 punch。
 const BURN_PUNCH_POWER = 1.5;
 
+// 近景進行中的相機距離下限（v0.45 二版）：見 update() 裡 floor 的註解。
+const FOCUS_FLOOR = 1.6;
+
 // (d) 近景切鏡（v0.45 批 1 原型，規格 docs/proposals/2026-09-07-duel-closeup.md §二.1）：
 //     ys:fx-focus 進來時把鏡頭推近到出手者與目標身上，ms 之後回全景。
 //     **只動 dist／tilt／lookAt 三樣，yaw 一律不碰**——yaw 已經有 orbit 與 lean 兩層在疊，
@@ -398,6 +401,9 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:fx-trait', onTrait);
   document.addEventListener('ys:fx-focus', onFocus);
+  // 提前收切鏡（v0.45 二版，審查 MEDIUM-3）：招式要在全景、不退暗的舞台上演，
+  // 所以 index.html 在招式那一筆先派這個事件。跟 ys:fx-trait-cancel 不同：它不碰 orbit／lean。
+  document.addEventListener('ys:fx-focus-end', endFocus);
   document.addEventListener('ys:fx-trait-cancel', onTraitCancel);
   document.addEventListener('ys:fx-burn', onBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
@@ -459,7 +465,11 @@ export function createCameraDirector(camera, lanterns) {
       const lookY = curLookY;
       // punch：命中當下推到最近，再 easeOutCubic 回位；微震跟著同一條包絡衰減
       const pk = punchAmp * (1 - easeOutCubic(punchU));
-      const dist = Math.max(0.6, fDist - PUNCH.dist * pk);
+      // 下限（v0.45 二版，審查 L-2）：0.6 是「任何機位都不准穿過桌心」的老保險絲；近景本身就只推到 2.6，
+      // 再疊 punch（最多 1.2）也才 1.4，撞到 0.6 只可能是別的地方算爛了。改成 focus 進行中至少留 FOCUS_FLOOR，
+      // 相機不會鑽進人形裡（人形高約 1.5 世界單位），也讓「夾到了」這件事一眼看得出是異常。
+      const floor = focusK > 0 ? FOCUS_FLOOR : 0.6;
+      const dist = Math.max(floor, fDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;

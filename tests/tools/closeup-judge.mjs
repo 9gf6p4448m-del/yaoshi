@@ -13,6 +13,22 @@ const rd = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 
 const PW = { FOCUS_DIST: 2.6, DUEL_DIST: 4.2, FOCUS_DIM: 0.35, FOCUS_PER_BEAT: 2, FOCUS_DMG: 3, MAX_HITS: 5, DMG_MS: 600, BURN_MS: 420, ACTOR_CARD_MS: 700 };
 const PUNCH_MS = 420; // camera-director 的 PUNCH.ms：這段時間內 dist 上疊著 punch，量 focus 曲線要排掉
+const PUNCH_DIST = 0.6; // camera-director 的 PUNCH.dist
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+/** 某一幀上疊著多少 punch（0..2 的力道倍率×衰減）。導演只留最後一次 punch（punchAmp／punchU 每次重設），
+ *  所以取「這一幀之前最近的一次」punch 或 burn（burn 走 onBurn → power 1.5）。 */
+function punchPk(EV, t) {
+  let last = null;
+  for (const e of EV) {
+    if (e.t > t) break;
+    if (e.n === 'ys:fx-punch') last = { t: e.t, p: e.power === undefined ? 1 : e.power };
+    else if (e.n === 'ys:fx-burn') last = { t: e.t, p: 1.5 };
+  }
+  if (!last) return 0;
+  const u = (t - last.t) / PUNCH_MS;
+  if (u >= 1 || u < 0) return 0;
+  return Math.max(0.2, Math.min(2, last.p)) * (1 - easeOutCubic(u));
+}
 const out = { P0: {}, P1: {}, P2: {}, P3: {}, P4: {}, P5: {}, P7: {} };
 
 const ons = files.map((f) => ({ f, d: rd(f) }));
@@ -92,26 +108,64 @@ if (off && base) {
       // 回位：ms+outMs(220)+120 之後（且下一次 focus 之前）該回到 4.2
       const backW = F.filter((s) => s.t >= fo.t + fo.ms + 340 && s.t <= endT && !busy(s.t));
       const back = backW.length ? Math.min(...backW.map((s) => Math.abs(s.l - PW.DUEL_DIST))) : null;
-      // 單調：靜幀序列必須是「非遞增前段 ＋ 非遞減後段」（容差 0.01：無 punch 時本來就沒有噪音源）
-      let rev = 0, phase = 'down';
-      for (let k = 1; k < quiet.length; k++) {
-        if (quiet[k].t - quiet[k - 1].t > 150) continue; // 中間被排掉一段就不算相鄰
-        const dv = quiet[k].l - quiet[k - 1].l;
-        if (phase === 'down' && dv > 0.01) phase = 'up';
-        else if (phase === 'up' && dv < -0.01) rev++;
-      }
+      // 單調（審查 MEDIUM-2）：以前只看靜幀序列，命中拍每 45–260ms 就一次 punch，
+      // 6 次 hit 切鏡有 3 次 quiet=0 → 空序列恆綠，那條子句沒有鑑別力。改成兩條一起看：
+      //  (a) 靜幀版：**要有 ≥8 幀才判**，不足標 null（不算過）
+      //  (b) 扣掉 punch 解析包絡的全序列版：punch 是 camera-director 自己算的
+      //      pk = clamp(power,0.2,2)×(1−easeOutCubic(min(1,(t−t0)/420)))，dist 上少掉 PUNCH.dist×pk，
+      //      把它加回去就是「沒有 punch 的話這一幀會在哪」。這個重建有沒有效，看下面 residual：
+      //      非 focus 期間重建值必須回到 4.2（同一支重建套在已知答案上驗過，才敢拿去判 focus 段）。
+      const mono = (seq, tol) => {
+        let rev = 0, phase = 'down';
+        for (let k = 1; k < seq.length; k++) {
+          if (seq[k].t - seq[k - 1].t > 150) continue;
+          const dv = seq[k].v - seq[k - 1].v;
+          if (phase === 'down' && dv > tol) phase = 'up';
+          else if (phase === 'up' && dv < -tol) rev++;
+        }
+        return rev;
+      };
+      const corr = win.map((s) => ({ t: s.t, v: s.l + PUNCH_DIST * punchPk(EV, s.t) }));
+      const revQuiet = mono(quiet.map((s) => ({ t: s.t, v: s.l })), 0.01);
+      const revCorr = mono(corr, 0.03);
       const row = { f, kind: fo.kind, ms: fo.ms, frames: win.length, quiet: quiet.length,
         minD: minD === null ? null : +minD.toFixed(3), minQuiet: minQuiet === null ? null : +minQuiet.toFixed(3),
-        back: back === null ? null : +back.toFixed(4), rev,
+        back: back === null ? null : +back.toFixed(4), revQuiet, revCorr,
         deepOk: minD !== null && minD <= PW.FOCUS_DIST + 0.15,
-        backOk: back === null ? null : back <= 0.05, monoOk: rev === 0 };
+        backOk: back === null ? null : back <= 0.05,
+        monoQuietOk: quiet.length >= 8 ? revQuiet === 0 : null,
+        monoCorrOk: corr.length >= 8 ? revCorr === 0 : null };
       rows.push(row);
     }
   }
   const judged = rows.filter((r) => r.backOk !== null);
-  out.P2 = { n: rows.length, deepOk: rows.filter((r) => r.deepOk).length, backOk: judged.filter((r) => r.backOk).length,
-    monoOk: rows.filter((r) => r.monoOk).length, rows: rows.slice(0, 40),
-    PASS: rows.length > 0 && rows.every((r) => r.deepOk && r.monoOk) && judged.length > 0 && judged.every((r) => r.backOk) };
+  const mq = rows.filter((r) => r.monoQuietOk !== null);
+  const mc = rows.filter((r) => r.monoCorrOk !== null);
+  const hitMono = rows.filter((r) => r.kind === 'hit' && (r.monoQuietOk !== null || r.monoCorrOk !== null));
+  // 重建的鑑別力自檢：非 focus 期間（任一場對決內、離所有 focus 都 >1.2s）扣掉 punch 之後該回到 4.2
+  const resid = [];
+  for (const { d } of ons) {
+    const foci = d.cu.focus.filter((x) => x.kind !== 'base');
+    const inDuel = (t) => (d.cu.ev || []).some((e) => e.n === 'ys:duel' && t > e.t + 3000)
+      && !(d.cu.ev || []).some((e) => e.n === 'ys:duel-end' && t > e.t && t < e.t + 4000);
+    for (const s of d.cu.frames) {
+      if (!inDuel(s.t)) continue;
+      if (foci.some((x) => s.t >= x.t - 300 && s.t <= x.t + x.ms + 700)) continue;
+      resid.push(Math.abs(s.l + PUNCH_DIST * punchPk(d.cu.ev, s.t) - PW.DUEL_DIST));
+    }
+  }
+  resid.sort((a, b) => a - b);
+  out.P2 = { n: rows.length, hit: rows.filter((r) => r.kind === 'hit').length, deepOk: rows.filter((r) => r.deepOk).length,
+    backOk: judged.filter((r) => r.backOk).length + '/' + judged.length,
+    monoQuiet: mq.filter((r) => r.monoQuietOk).length + '/' + mq.length,
+    monoCorr: mc.filter((r) => r.monoCorrOk).length + '/' + mc.length,
+    hitMonoJudgable: hitMono.length,
+    punchRebuildResid: resid.length ? { n: resid.length, p50: +resid[Math.floor(resid.length / 2)].toFixed(4), p95: +resid[Math.floor(resid.length * 0.95)].toFixed(4), max: +resid[resid.length - 1].toFixed(4) } : null,
+    rows: rows.slice(0, 40),
+    PASS: rows.length > 0 && rows.every((r) => r.deepOk)
+      && mq.every((r) => r.monoQuietOk) && mc.every((r) => r.monoCorrOk)
+      && hitMono.length >= 2
+      && judged.length > 0 && judged.every((r) => r.backOk) };
   const backAfter = (d) => {
     const S = (d.cu.skips || []).filter((x) => x.rel === 300);
     return { at300: S.map((x) => (x.l === null ? null : +x.l.toFixed(3))),
@@ -218,12 +272,23 @@ if (off && base) {
       n++;
       maxLive = Math.max(maxLive, r.live);
       if (r.gone) goneOk++; else bad.push({ f, why: 'not-removed', t: r.t, text: r.text });
-      const ref = r.mode === 'fig' ? r.proj : r.badge;
-      if (ref) {
+      // 位置：3D 尊在場時量「跳字中心到那一尊畫面方框的距離」（在方框內＝0），
+      // 方框是治具自己從世界包圍盒＋canvas rect 算的，跟 pwScreenOf 不同路（審查 MEDIUM-1）。
+      if (r.mode === 'fig' && r.box) {
         posN++;
-        const dist = Math.hypot(r.cx - ref.x, r.cy - ref.y);
-        const lim = r.mode === 'fig' ? 80 : 60;
-        if (dist <= lim) posOk++; else bad.push({ f, why: 'pos', mode: r.mode, dist: +dist.toFixed(1), text: r.text });
+        const dx = Math.max(r.box.x0 - r.cx, 0, r.cx - r.box.x1);
+        const dy = Math.max(r.box.y0 - r.cy, 0, r.cy - r.box.y1);
+        const dist = Math.hypot(dx, dy);
+        if (dist <= 80) posOk++; else bad.push({ f, why: 'pos-box', dist: +dist.toFixed(1), text: r.text, box: r.box, cx: r.cx, cy: r.cy });
+        // 旁證：跳字底下要是 3D 舞台的 canvas，不是壓在某塊 DOM 面板上
+        if (r.under && !/^CANVAS/.test(r.under)) bad.push({ f, why: 'under', under: r.under, text: r.text });
+      } else if (r.mode === 'badge' && r.badge) {
+        posN++;
+        const dist = Math.hypot(r.cx - r.badge.x, r.cy - r.badge.y);
+        if (dist <= 60) posOk++; else bad.push({ f, why: 'pos-badge', dist: +dist.toFixed(1), text: r.text });
+      } else if (r.mode === 'fig') {
+        // 3D 尊當下量不到方框（燒完收起來／GLB 沒到）：不灌水當通過，記成未判
+        out.P4.unmeasured = (out.P4.unmeasured || 0) + 1;
       }
       if (!/^−\d+$/.test(r.text)) bad.push({ f, why: 'text', text: r.text });
       if (/kill/.test(r.cls) && !/dmgfloat kill/.test(r.cls)) bad.push({ f, why: 'cls', cls: r.cls });
@@ -237,8 +302,10 @@ if (off && base) {
     out.P4.afterSkipFloats = s.map((x) => x.floats);
     out.P4.skipClean = s.length > 0 && s.every((x) => x.floats === 0) && out.P4.beforeSkipFloats > 0;
   }
+  // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判
+  out.P4.oneToOne = out.P4.shownHits === n;
   out.P4.PASS = n > 0 && bad.length === 0 && maxLive <= PW.MAX_HITS && goneOk === n && posOk === posN
-    && (!skipf || out.P4.skipClean);
+    && out.P4.oneToOne && (out.P4.unmeasured || 0) === 0 && (!skipf || out.P4.skipClean);
 }
 
 // ── P5 HUD ────────────────────────────────────────────────────────────────

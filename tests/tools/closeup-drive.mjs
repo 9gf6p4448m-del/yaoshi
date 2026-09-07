@@ -84,12 +84,40 @@ const REC = `(() => {
     }
     return out;
   };
-  const proj = (side, unit) => {
+  // P4 的位置量法（v0.45 二版，審查 MEDIUM-1）：**不重抄 pwScreenOf 的算式**。
+  // 改量「那一尊在畫面上實際佔的方框」：拿 group 的世界包圍盒八個角投影，再用 canvas 的
+  // getBoundingClientRect 換算 CSS 像素（不假設 canvas＝整個視窗），回傳方框與方框中心。
+  // 這樣被測邏輯（局部座標＋0.9×scale 的胸口高度＋innerWidth/Height）換成別條路，
+  // 差一個座標系、抓錯尊、canvas 有位移這幾類錯都還驗得出來。
+  const figBox = (side, unit) => {
     try {
-      const D = fig(), K = cam(); if (!D || !K) return null;
+      const D = fig(), K = cam(), Y3 = window.__yaoshi3d; if (!D || !K || !Y3 || !Y3.renderer) return null;
       const f = D.figureOf(side, unit); if (!f || !f.group || !f.group.visible) return null;
-      const p = f.group.position.clone(); p.y += 0.9 * (f.group.scale.y || 1); p.project(K);
-      return { x: (p.x * 0.5 + 0.5) * window.innerWidth, y: (-p.y * 0.5 + 0.5) * window.innerHeight };
+      const g = f.group;
+      g.updateWorldMatrix(true, true);
+      // 世界包圍盒（Box3.setFromObject 會遞迴所有子網格；THREE 從 __yaoshi3d.scene 的建構子拿）
+      let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+      g.traverse((o) => {
+        const geo = o.geometry; if (!geo || !geo.attributes || !geo.attributes.position) return;
+        if (!geo.boundingBox) geo.computeBoundingBox();
+        const b = geo.boundingBox; if (!b) return;
+        for (const cx of [b.min.x, b.max.x]) for (const cy of [b.min.y, b.max.y]) for (const cz of [b.min.z, b.max.z]) {
+          const v = new o.position.constructor(cx, cy, cz).applyMatrix4(o.matrixWorld);
+          minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
+          minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
+          minZ = Math.min(minZ, v.z); maxZ = Math.max(maxZ, v.z);
+        }
+      });
+      if (!isFinite(minX)) return null;
+      const rect = Y3.renderer.domElement.getBoundingClientRect();
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const cx of [minX, maxX]) for (const cy of [minY, maxY]) for (const cz of [minZ, maxZ]) {
+        const v = new g.position.constructor(cx, cy, cz).project(K);
+        const sx = rect.left + (v.x * 0.5 + 0.5) * rect.width;
+        const sy = rect.top + (-v.y * 0.5 + 0.5) * rect.height;
+        x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
+      }
+      return { x0: x0, y0: y0, x1: x1, y1: y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
     } catch (e) { return null; }
   };
   const badge = (side) => { const n = document.getElementById('pwn-' + side); if (!n) return null;
@@ -151,10 +179,17 @@ const REC = `(() => {
           if (!nd.classList || !nd.classList.contains('dmgfloat')) continue;
           const rc = nd.getBoundingClientRect();
           const side = nd.dataset.side, unit = Number(nd.dataset.unit);
-          const pr = proj(side, unit), bd = badge(side);
+          const box = figBox(side, unit), bd = badge(side);
+          const cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
+          // 跳字底下是不是 3D 舞台（不是壓在別的 DOM 上）：elementFromPoint 會回跳字自己，
+          // 先把它藏一幀再問。與投影算式完全無關的一條旁證。
+          let under = null;
+          try { const vis = nd.style.visibility; nd.style.visibility = 'hidden';
+            const el = document.elementFromPoint(Math.round(cx), Math.round(cy));
+            under = el ? (el.tagName + (el.id ? '#' + el.id : '')) : null; nd.style.visibility = vis; } catch (err) {}
           const rec = { t: now(), duel: duelN, text: nd.textContent, cls: nd.className, mode: nd.dataset.mode,
-            side: side, unit: unit, cx: rc.left + rc.width / 2, cy: rc.top + rc.height / 2,
-            proj: pr, badge: bd, live: document.querySelectorAll('.dmgfloat').length, gone: null };
+            side: side, unit: unit, cx: cx, cy: cy, w: rc.width, h: rc.height,
+            box: box, badge: bd, under: under, live: document.querySelectorAll('.dmgfloat').length, gone: null };
           C.dmg.push(rec);
           const ms = (P().DMG_MS || 600) + 100;
           setTimeout(() => { rec.gone = !document.body.contains(nd); rec.liveAfter = document.querySelectorAll('.dmgfloat').length; }, ms);

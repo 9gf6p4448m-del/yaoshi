@@ -558,6 +558,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-focus', onFocusEv);
   document.addEventListener('ys:fx-trait-cancel', endFocusEv);
+  document.addEventListener('ys:fx-focus-end', endFocusEv); // 招式進來時提前收切鏡（審查 MEDIUM-3）
   document.addEventListener('ys:fx-lunge', onLunge);
   document.addEventListener('ys:fx-burn', onFigBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
