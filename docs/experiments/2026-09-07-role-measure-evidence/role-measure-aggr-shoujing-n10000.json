@@ -1,0 +1,48 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "shoujing"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "mode": "aggrsweep",
+   "role": "shoujing",
+   "aggr": 0.3,
+   "n": 10000,
+   "win": 0.438,
+   "surv": 11.3144,
+   "life": 25.9783,
+   "ms": 263895
+  },
+  {
+   "mode": "aggrsweep",
+   "role": "shoujing",
+   "aggr": 0.7,
+   "n": 10000,
+   "win": 0.4208,
+   "surv": 11.1433,
+   "life": 21.5308,
+   "ms": 199910
+  },
+  {
+   "mode": "aggrsweep",
+   "role": "shoujing",
+   "aggr": 1,
+   "n": 10000,
+   "win": 0.3561,
+   "surv": 11.0929,
+   "life": 18.4285,
+   "ms": 191997
+  }
+ ]
+}

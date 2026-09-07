@@ -1,0 +1,55 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "xiaonv"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.276,
+   "surv": 10.2707,
+   "life": 13.8574,
+   "len": 10.2707,
+   "hookCalls": {
+    "onBidSettle": 149776
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiExtraBids": 97315
+   },
+   "ablated": {
+    "dropped": [
+     "onAiExtraBids"
+    ],
+    "keptAi": [
+     "onBidSettle"
+    ]
+   },
+   "ms": 499305
+  },
+  {
+   "variant": "bm",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2728,
+   "surv": 9.9842,
+   "life": 11.6967,
+   "len": 9.9842,
+   "hookCalls": {
+    "onAiExtraBids": 94678,
+    "onBidSettle": 158152
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 295554
+  }
+ ]
+}

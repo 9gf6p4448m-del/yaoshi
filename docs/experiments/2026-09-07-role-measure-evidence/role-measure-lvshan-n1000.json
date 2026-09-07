@@ -1,0 +1,174 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "lvshan"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.058,
+   "surv": 8.098,
+   "life": 3.624,
+   "len": 8.098,
+   "hookCalls": {
+    "onAiCurse": 6807,
+    "onBidSettle": 10740,
+    "onItemValue": 211961
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 18896
+  },
+  {
+   "variant": "b",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.062,
+   "surv": 8.261,
+   "life": 3.989,
+   "len": 8.261,
+   "hookCalls": {
+    "onAiCurse": 6953,
+    "onBidSettle": 11223,
+    "onItemValue": 207298
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 21806
+  },
+  {
+   "variant": "c",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.26,
+   "surv": 10.057,
+   "life": 12.363,
+   "len": 10.057,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 8185,
+    "onBidSettle": 14469,
+    "onItemValue": 391659
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 24791
+  },
+  {
+   "variant": "d",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.24,
+   "surv": 10.124,
+   "life": 11.54,
+   "len": 10.124,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 8226,
+    "onBidSettle": 13701,
+    "onItemValue": 414083
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 22673
+  },
+  {
+   "variant": "cL",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.167,
+   "surv": 9.093,
+   "life": 8.435,
+   "len": 9.093,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 7478,
+    "onBidSettle": 12443,
+    "onItemValue": 303938
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 22487
+  },
+  {
+   "variant": "dL",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.141,
+   "surv": 9.158,
+   "life": 7.557,
+   "len": 9.158,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 7473,
+    "onBidSettle": 11434,
+    "onItemValue": 307944
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 20283
+  },
+  {
+   "variant": "c2",
+   "role": "lvshan",
+   "n": 1000,
+   "win": 0.067,
+   "surv": 8.178,
+   "life": 3.823,
+   "len": 8.178,
+   "hookCalls": {
+    "onAiCurse": 6869
+   },
+   "shadowCalls": {
+    "onBidSettle": 11149,
+    "onItemValue": 200401
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle"
+    ],
+    "keptAi": [
+     "onAiCurse"
+    ]
+   },
+   "ms": 16852
+  }
+ ]
+}

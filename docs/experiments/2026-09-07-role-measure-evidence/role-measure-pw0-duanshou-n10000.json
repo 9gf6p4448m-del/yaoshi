@@ -1,0 +1,61 @@
+{
+ "n": 10000,
+ "variants": [
+  "b",
+  "c2"
+ ],
+ "roles": [
+  "duanshou"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "duanshou",
+   "n": 10000,
+   "win": 0.1422,
+   "surv": 10.1239,
+   "life": 6.838,
+   "len": 10.1239,
+   "hookCalls": {
+    "onAiValue": 322826,
+    "onAiPlan": 101223,
+    "onPowerCalc": 1124609,
+    "onAiAmount": 80040
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 78876
+  },
+  {
+   "variant": "c2",
+   "role": "duanshou",
+   "n": 10000,
+   "win": 0.1289,
+   "surv": 10.0618,
+   "life": 6.3444,
+   "len": 10.0618,
+   "hookCalls": {
+    "onAiValue": 320556,
+    "onAiPlan": 100594,
+    "onAiAmount": 79522
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onPowerCalc": 1126249
+   },
+   "ablated": {
+    "dropped": [
+     "onPowerCalc"
+    ],
+    "keptAi": [
+     "onAiValue",
+     "onAiPlan",
+     "onAiAmount"
+    ]
+   },
+   "ms": 73679
+  }
+ ]
+}

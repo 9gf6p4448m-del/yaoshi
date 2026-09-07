@@ -1,0 +1,162 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "hunter"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.29,
+   "surv": 10.178,
+   "life": 13.746,
+   "len": 10.178,
+   "hookCalls": {
+    "onAiValue": 32484,
+    "onBattle": 9541
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 28359
+  },
+  {
+   "variant": "b",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.262,
+   "surv": 9.947,
+   "life": 11.354,
+   "len": 9.947,
+   "hookCalls": {
+    "onAiValue": 31689,
+    "onBattle": 9342
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 26429
+  },
+  {
+   "variant": "c",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.19,
+   "surv": 9.851,
+   "life": 9.235,
+   "len": 9.851,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 31333,
+    "onBattle": 9261
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onBattle"
+    ],
+    "keptAi": []
+   },
+   "ms": 19433
+  },
+  {
+   "variant": "d",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.263,
+   "surv": 10.166,
+   "life": 12.755,
+   "len": 10.166,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32467,
+    "onBattle": 9562
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onBattle"
+    ],
+    "keptAi": []
+   },
+   "ms": 24153
+  },
+  {
+   "variant": "cL",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.19,
+   "surv": 9.851,
+   "life": 9.235,
+   "len": 9.851,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 31333,
+    "onBattle": 9261
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onBattle"
+    ],
+    "keptAi": []
+   },
+   "ms": 22146
+  },
+  {
+   "variant": "dL",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.263,
+   "surv": 10.166,
+   "life": 12.755,
+   "len": 10.166,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32467,
+    "onBattle": 9562
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onBattle"
+    ],
+    "keptAi": []
+   },
+   "ms": 21131
+  },
+  {
+   "variant": "c2",
+   "role": "hunter",
+   "n": 1000,
+   "win": 0.202,
+   "surv": 9.896,
+   "life": 9.644,
+   "len": 9.896,
+   "hookCalls": {
+    "onAiValue": 31508
+   },
+   "shadowCalls": {
+    "onBattle": 9294
+   },
+   "ablated": {
+    "dropped": [
+     "onBattle"
+    ],
+    "keptAi": [
+     "onAiValue"
+    ]
+   },
+   "ms": 21885
+  }
+ ]
+}
