@@ -238,6 +238,93 @@ test('G5④AI 放手走同一條門檻：AI 持有者在「付完 ≤TITHE_WARN�
   ok(log.some(t=>/回天/.test(t)),`戰況 log 應該記一筆：${JSON.stringify(log)}`);
 });
 
+/* ================= G5 ④ 供奉的結算位置（覆審 M-2 甲，使用者裁定：神債最後收）================= */
+test('G5④神債最後收：壽命 2＋詛咒品 −1 → 先 drain 剩 1 → 付不出供奉 → 傳說回天、人活著（供奉不得殺人）',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  /* 佈置：壽命 2、袋裡多一件每夜 −1 的詛咒品；夜末順序若是「供奉先、drain 後」＝2→1→0 出局，
+     順序若是「所有帳結完才收神債」＝2→1（drain）→ 付不出 → 傳說回天、人留在場上。 */
+  const curse=G.CURSES.find(x=>x.drain)||{n:'魔神仔的芭樂',f:'curse',p:0,curse:true,drain:1};
+  p.bag.push({...curse});
+  p.life=2;
+  S.players.forEach(q=>{ if(q.id!==p.id) q.life=60; });
+  ok(!!G.resolveBattles,'應該有 resolveBattles（夜末結算的那一支）');
+  G.resolveBattles();
+  eq(p.alive,true,'夜末結完之後南家應該還活著（供奉不得把人殺死）');
+  eq(p.life,1,'drain 扣掉 1 之後剩 1，供奉付不出來所以不再扣');
+  eq(legendsOf(p).length,0,'付不出供奉 → 那一尊回天、從袋中移除');
+});
+
+/* ================= 五條守衛（覆審 MEDIUM-4：被刪但仍成立的舊案補回）================= */
+test('守衛：傳說不進 S.deck、也不在 POOL 裡——整局市集不會出現傳說，但請神請得下來',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const names=new Set(G.LEGENDS.map(L=>L.n));
+  ok(!G.POOL.some(x=>names.has(x.n)),'POOL 裡不得有傳說');
+  ok(!S.deck.some(x=>names.has(x.n)),'S.deck 裡不得有傳說');
+  /* 整局市集掃一遍（用 simulate 走完一局，看每一夜的 market 名單） */
+  const G2=loadGame(TARGET); G2.CFG.LEGEND_ON=true;
+  const run=G2.simulate(11);
+  let seen=0, taken=0;
+  run.nights.forEach(n=>{ n.market.forEach(nm=>{ if(names.has(nm)) seen++; });
+    if(n.shrine&&n.shrine.taken) taken+=n.shrine.taken.length; });
+  eq(seen,0,'整局市集不得出現任何一尊傳說');
+  ok(taken>0,`同一局裡請神要真的請得下來（否則這一案退化成恆真）：taken=${taken}`);
+});
+test('守衛：AI 燒香啟發式是資料表驅動——ROLES[*].ai.inc 覆寫 minLifeFrac 之後那個角色就不拜了',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const p=S.players[1];
+  p.ai={aggr:0.6}; p.life=60;
+  ok(G.aiIncense(p),'預設設定下這一席應該會燒香');
+  p.ai={aggr:0.6, inc:{minLifeFrac:99}};   /* 覆寫成「壽命低於 LIFE×99 就不拜」＝一定不拜 */
+  eq(G.aiIncense(p),null,'ROLES[*].ai.inc 覆寫 minLifeFrac 之後應該完全不燒香');
+  eq(G.incAiOf(p).cfg.minLifeFrac,99,'incAiOf 應該把個別覆寫疊在 CFG.INC_AI 上');
+});
+test('守衛：settleShrinesEnd 冪等——連叫兩次不得重複結清、壽命不得再變',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=()=>0.5;
+  S.round=1;
+  shrineNight(G,S,{0:{shrine:0,amt:3},1:{shrine:0,amt:2}});
+  const a=G.settleShrinesEnd();
+  const lives=S.players.map(q=>q.life);
+  ok(a&&a.length>0,`第一次回天結清應該有東西：${JSON.stringify(a)}`);
+  const b=G.settleShrinesEnd();
+  eq(JSON.stringify(S.players.map(q=>q.life)),JSON.stringify(lives),'第二次呼叫不得再改壽命');
+  eq(b.length,0,'第二次呼叫不得再結出任何一筆');
+});
+test('守衛：回天結清不得就地改寫「不是本輪收尾」的那一筆 S.history.life',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=()=>0.5;
+  S.round=3;
+  S.history={nights:[{round:2,closed:true}],life:[[60,60,60,60],[59,59,59,59]],shrineDawn:null};
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const snapshot=JSON.stringify(S.history.life);
+  G.settleShrinesEnd();
+  eq(JSON.stringify(S.history.life),snapshot,
+    '末筆不是本輪（history 停在第 2 夜、現在是第 3 夜）時，回天結清不得覆寫它');
+  ok(S.history.shrineDawn&&S.history.shrineDawn.length>0,'但回天的紀錄本身要留下來');
+});
+test('守衛：傳說的招式真的進得了 paperWar——殘日的餘暉灼目會出現在對決 beats 裡',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  G.CFG.PAPERWAR_ON=true;
+  const L=G.LEGENDS.find(x=>x.unit&&x.unit.trait==='eliteBlind');
+  ok(L,'應該有一尊帶 eliteBlind（殘日的餘暉灼目）');
+  const foe=G.POOL.filter(x=>!x.curse&&x.f==='xianghuo').slice(0,3).map(x=>({...x}));
+  let hit=0;
+  for(let sd=1;sd<=40;sd++){
+    const A={id:0,name:'A',bag:[{...L}],life:50,roleId:'human'};
+    const B={id:1,name:'B',bag:foe.map(x=>({...x})),life:50,roleId:'human'};
+    const rng=G.mulberry32(sd);
+    const war=G.paperWar(A,B,{rng,round:1,windId:0});
+    if(war&&war.beats&&war.beats.some(b=>b.kind==='trait'&&b.trId==='eliteBlind')) hit++;
+  }
+  ok(hit>0,`40 場裡至少要有一場記到 eliteBlind 的招式事件（實際 ${hit}）——招式沒接進引擎的話這裡恆 0`);
+});
+
 /* ================= G5 ⑤ 階段獎勵依本龕最高 h 比例 ================= */
 test('G5⑤階段獎勵：區間依「本龕最高 h」的比例（不是固定門檻）——最高 9 時 h=3 退 1、h=6 退 3＋小法寶',()=>{
   const G=loadGame(TARGET); const S=setup(G);
@@ -366,7 +453,9 @@ test('G11部隊預覽：5 個袋子的逐件隻數／atk／hp／拍序／招式�
     });
   });
 });
-test('G11市集卡招式行：27 件法寶＋3 尊傳說的招式一行皆非空，且與 TRAITS 對得上',()=>{
+/* 覆審 HIGH-1 乙（使用者裁定）：市集**卡面**只留「隻數・攻・血・拍」，招式名＋效果移到卡片詳情（mode 'full'）。
+   所以這一案分兩半驗：卡面那一行必須有數字、**不得**有招式；詳情那一行必須有招式且對得上 TRAITS。 */
+test('G11市集卡招式行：27 件法寶＋3 尊傳說——卡面只印數字、卡片詳情印招式且與 TRAITS 對得上',()=>{
   const G=loadGame(TARGET); setup(G);
   G.CFG.PAPERWAR_ON=true;
   const unitRowText=G.unitRowText||(()=>'');   /* 同上：讓行為斷言（那一行不得為空）先紅 */
@@ -374,14 +463,17 @@ test('G11市集卡招式行：27 件法寶＋3 尊傳說的招式一行皆非空
   const all=[...G.POOL.filter(x=>!x.curse),...G.LEGENDS];
   eq(all.length,30,'27 件法寶＋3 尊傳說');
   all.forEach(it=>{
-    const html=unitRowText(it);
-    ok(html&&html.length>0,`「${it.n}」的部隊預覽一行不得為空`);
+    const card=unitRowText(it);                 /* 卡面（預設 mode） */
+    const full=unitRowText(it,null,'full');     /* 卡片詳情 */
+    ok(card&&card.length>0,`「${it.n}」的卡面部隊預覽一行不得為空`);
     const tr=G.TRAITS[it.unit.trait];
     ok(tr,`「${it.n}」應該有 TRAITS 表項`);
-    ok(html.indexOf(tr.name)>=0,`「${it.n}」那一行應含招式名「${tr.name}」：${html}`);
-    ok(html.indexOf(tr.desc)>=0,`「${it.n}」那一行應含招式說明：${html}`);
     const r=unitRow(it);
-    ok(r&&html.indexOf('×'+r.n)>=0,`「${it.n}」那一行應含隻數 ×${r.n}：${html}`);
+    ok(r&&card.indexOf('×'+r.n)>=0,`「${it.n}」卡面那一行應含隻數 ×${r.n}：${card}`);
+    ok(card.indexOf('攻 '+r.atk)>=0&&card.indexOf('血 '+r.hp)>=0,`「${it.n}」卡面那一行應含攻／血：${card}`);
+    ok(card.indexOf(tr.name)<0,`「${it.n}」**卡面不得**印招式名（已移到卡片詳情）：${card}`);
+    ok(full.indexOf(tr.name)>=0,`「${it.n}」卡片詳情應含招式名「${tr.name}」：${full}`);
+    ok(full.indexOf(tr.desc)>=0,`「${it.n}」卡片詳情應含招式說明：${full}`);
   });
 });
 /* 角色平衡卷（v0.47）覆審 M6：帶 curseWard 的角色（閭山法師）紙紮側不扣 sd.curses，
@@ -413,7 +505,7 @@ test('G11袋子總計：總隻數／總攻／總血與 buildArmy(整袋) 一致�
   ok(html.indexOf(`${n} 隻・總攻 ${atk}・總血 ${hp}`)>=0,`袋子總計那一行應該是「${n} 隻・總攻 ${atk}・總血 ${hp}」：${html.slice(0,200)}`);
   const lv=G.pwResLv(p,'zuling');
   ok(lv>0,`四件祖靈（含傳說算 2 件）應該有共鳴：lv=${lv}`);
-  ok(html.indexOf(`共鳴 hp+${lv}`)>=0,`袋子總計那一行應該印出共鳴 hp+${lv}：${html.slice(0,300)}`);
+  ok(html.indexOf(`共鳴 該系那一拍 hp+${lv}`)>=0,`袋子總計那一行應該印出「共鳴 該系那一拍 hp+${lv}」：${html.slice(0,300)}`);
 });
 
 /* ================= 決定性（1.0 已有、2.0 不得回歸） ================= */

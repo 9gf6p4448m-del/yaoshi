@@ -93,11 +93,15 @@ if(want('G1')){
   }
   const sp=rows.splitter, mx=rows.incenseMax, nv=rows.incenseNever;
   const d1=(mx-sp)*100, d2=(nv-sp)*100;
-  const c1=d1<=5, c2=d2>=-8;
-  say(`- ① incenseMax − splitter ＝ **${d1>=0?'+':''}${d1.toFixed(2)}pp**　門檻 ≤ +5pp ${c1?'✅':'❌'}　（1.0 基準：+10.72pp）`);
+  /* ①的下界＝2026-09-07 依 §2.1 修訂三**加嚴**（使用者裁定）：原本只有上界 ≤+5pp，
+     那擋得住「燒香是優勢策略」，卻擋不住反過來壞掉的那一半——把燒香做成純虧損（沒人該燒香），
+     ① 照樣綠。加下界 ≥−8pp 之後兩邊都咬得住。加嚴不需另外同意，但要附改前／改後數字（見 §2.1）。 */
+  const c1=d1<=5, c1lo=d1>=-8, c2=d2>=-8;
+  say(`- ① incenseMax − splitter ＝ **${d1>=0?'+':''}${d1.toFixed(2)}pp**　門檻 **−8pp ≤ x ≤ +5pp**`
+    +`（上界 ${c1?'✅':'❌'}／下界 ${c1lo?'✅':'❌'}，下界為 §2.1 修訂三加嚴）　（1.0 基準：+10.72pp）`);
   say(`- ② incenseNever − splitter ＝ **${d2>=0?'+':''}${d2.toFixed(2)}pp**　門檻 ≥ −8pp ${c2?'✅':'❌'}　（1.0 基準：−7.19pp）`);
   say(`- ③ 任一策略座位 0 ≤ 40%：${cap?'✅':'❌'}`);
-  verdict.G1=c1&&c2&&cap;
+  verdict.G1=c1&&c1lo&&c2&&cap;
   say(`- 判定：${verdict.G1?'✅':'❌'} ${lap()}`); say('');
 }
 
@@ -135,6 +139,21 @@ if(want('G2')){
     voidDawn+=g.shrineStat.voidDawn|0; locked+=g.shrineStat.locked|0;
   });
   const anyR=any/N, tAll=titheAll/N, tAlive=titheAlive/N;
+  /* 揭露加嚴（覆審 6，**不改口徑**）：
+     ① 分席次印——座位 0 是 headless 的「真人」席，`showTitheAsk` 沒人讀 ⇒ 它**永不主動放手**，
+        AI 席（1–3）則走同一條門檻會放手。兩者混在一起看不出這個假設，拆開印。
+     ② 多印「斷供當下 life>TITHE_WARN 的比例」——那一類才是「明明還有餘裕卻付不出」，
+        照理應該是 0（付得起就會付）；不是 0 就代表結算順序有問題。 */
+  const seat={0:0,ai:0}; let overWarn=0;
+  games.forEach(g=>{
+    const seen={};
+    (g.shrineStat.titheLostLog||[]).forEach(e=>{
+      if(e.why&&e.why!=='供奉不起') return;
+      if((e.life|0)>G.CFG.TITHE_WARN) overWarn++;
+      const k=(e.pid===0)?0:'ai';
+      if(!seen[k]){ seen[k]=1; seat[k]++; }
+    });
+  });
   say('| 項目 | 值 | 門檻 | 判定 |'); say('|---|---|---|---|');
   say(`| 至少一尊被請走的局 | ${pct(anyR)} | ≥80% | ${anyR>=0.80?'✅':'❌'} |`);
   say(`| **斷供後仍活到局末**的供奉回天（新口徑，判定用） | **${pct(tAlive)}** | 1%～20% | ${(tAlive>=0.01&&tAlive<=0.20)?'✅':'❌'} |`);
@@ -145,8 +164,29 @@ if(want('G2')){
     +`・下一夜出局 ${evNext}（${evAll?(evNext/evAll*100).toFixed(1):'—'}%）・更晚出局 ${evLater}`
     +`・**活到局末 ${evAlive}（${evAll?(evAlive/evAll*100).toFixed(1):'—'}%）**`
     +`——這就是改口徑的理由：舊口徑量到的大多是死亡螺旋的副產品，不是「養不起神」這個決策。`);
+  say(`- 記錄項（揭露，**不判**）：分席次的「付不出供奉」局數——**座位 0（headless 的真人席，永不主動放手）${seat[0]}**`
+    +`／AI 席 1–3 合計 ${seat.ai}。座位 0 沒有人讀 S.titheAsk，所以它的行為是「一路照付到付不出為止」，`
+    +`AI 席則會在付後 ≤TITHE_WARN 那一夜主動送神——兩者混在一起會看不出這個假設。`);
+  say(`- 記錄項（揭露，**不判**）：斷供當下 life>${G.CFG.TITHE_WARN}（還有餘裕卻付不出）的事件 **${overWarn}** 筆`
+    +`——付得起就會付，所以這一格照理應該是 0；不是 0 就代表夜末結算順序出了問題。`);
   G.LEGENDS.forEach((L,i)=>say(`- 記錄項：「${L.n}」被請走的局 ${pct(taken[i]/N)}`));
-  say(`- 記錄項：請神夜無人上香而回天的龕 ${voidDawn} 座；「一人一尊」擋下的封籤 ${locked} 筆`);
+  say(`- 記錄項：請神夜無人上香而回天的龕 ${voidDawn} 座；「一人一尊」擋下的封籤 ${locked} 筆`
+    +`（預設 AI 桌全走 aiIncense，它自己會查 hasLegend ⇒ 這一格本來就是 0，下一行才是真的在量引擎側那道鎖）`);
+  /* 覆審 L2：預設桌的 AI 啟發式自己就查 hasLegend，所以「引擎側拒收」在預設桌上**永遠不會觸發**。
+     另跑一批把座位 0 換成 policyIncenseMax（它只看「還開著的龕」、不查 hasLegend），
+     讓 resolveShrines 裡那道 `if(hasLegend(p))` 在真實路徑上真的被走到。 */
+  {
+    const M=Math.min(N,2000); let lk=0, games2=0, dbl=0;
+    for(let sd=1;sd<=M;sd++){
+      const r=G.playPolicyGame(sd,{0:G.POLICIES.incenseMax});
+      lk+=r.shrineStat.locked|0; games2++;
+      const t=r.shrines.filter(sh=>sh.takenBy!=null);
+      if(new Set(t.map(sh=>sh.takenBy)).size<t.length) dbl++;
+    }
+    say(`- 記錄項（覆審 L2，**不判**）：座位 0 換成 \`incenseMax\`（不查 hasLegend）跑 ${games2} 局 →`
+      +` 引擎側「一人一尊」拒收封籤 **${lk}** 筆（>0 才代表那道鎖在真實路徑上被走到）；`
+      +`同一批的「三尊落在同一人」局數 **${dbl}**（必須是 0）。`);
+  }
   const st=games.reduce((a,g)=>{ Object.keys(g.shrineStat).forEach(k=>{ if(typeof g.shrineStat[k]==='number') a[k]=(a[k]||0)+g.shrineStat[k]; }); return a; },{});
   say(`- 累計：燒香 ${st.burn} 次共 ${st.burnLife} 壽命・請走 ${st.taken}・階段獎勵 ${st.rewards} 次（含小法寶 ${st.gifts}）・回天 ${st.dawn} 龕・供奉付出 ${st.tithe} 壽命／斷供 ${st.titheLost} 尊／主動送神 ${st.titheGiveUp} 尊`);
   verdict.G2=anyR>=0.80&&tAlive>=0.01&&tAlive<=0.20&&same===0;
@@ -212,7 +252,7 @@ if(want('G9')){
      原標準恆假：一人一尊之後每局平均 2.25 位持有者，「贏家全隨機」的無資訊期望就是 ~56.4%，
      而零戰力對照（傳說完全沒用）實測仍有 67.57% ⇒ 舊帶 [45,60] 用任何實作都到不了。 */
   const LO=3, HI=10;   /* 凍結檔 §2.1 修訂二的新帶（pp） */
-  say(`## G9 持有者優勢帶〔§2.1 修訂二〕（「持有者局勝率 − 零戰力對照」∈ [+${LO}pp, +${HI}pp]；兩邊分子都是持有者贏的局、分母都是至少一尊被請走的局）`);
+  say(`## G9 持有者優勢帶〔§2.1 修訂二〕（「持有者局勝率 − **零效果對照**」∈ [+${LO}pp, +${HI}pp]；兩邊分子都是持有者贏的局、分母都是至少一尊被請走的局）`);
   const measure=games=>{
     let a=0,w=0,nullExp=0; const hc={0:0,1:0,2:0,3:0};
     games.forEach(g=>{ hc[g.holders.length]=(hc[g.holders.length]||0)+1;
@@ -220,14 +260,20 @@ if(want('G9')){
     return {r:a?w/a:0, w, a, nul:a?nullExp/a:0, hc};
   };
   const cur=measure(games);
-  /* 零戰力對照：**同一批種子**、只把三尊的 unit 換成不上場，其餘一行不動（記憶體覆寫，index.html 沒動） */
-  const gz=loadGame(NEW); gz.CFG.LEGEND_ON=true;
-  gz.LEGENDS.forEach(L=>{ L.unit={body:'ward',count:0,atk:0,hp:0}; });
-  const zero=measure(SEEDS.map(s=>gz.playPolicyGame(s,{})));
+  /* 零效果對照：**同一批種子**、把三尊所有會影響賽局的效果都拿掉，其餘一行不動（記憶體覆寫，產品碼沒動）。
+     ★覆審 MEDIUM-3★：一版只換 `unit`（不上場），**忘了拿掉 `eff`**——傳說共鳴（facCount 視為 2 件）
+     照樣生效，於是「零效果」對照其實還帶著一個真效果、差值被低估。unit 與 eff 一起拿掉才是真的零。
+     另外把「只拿掉共鳴」「只拿掉戰力」兩組當**記錄項**印出來，讓兩個效果各自貢獻多少看得見。門檻不動。 */
+  const mk=fn=>{ const g2=loadGame(NEW); g2.CFG.LEGEND_ON=true; fn(g2); return measure(SEEDS.map(s=>g2.playPolicyGame(s,{}))); };
+  const zero=mk(g2=>g2.LEGENDS.forEach(L=>{ L.unit={body:'ward',count:0,atk:0,hp:0}; delete L.eff; }));
+  const noRes=mk(g2=>g2.LEGENDS.forEach(L=>{ delete L.eff; }));
+  const noUnit=mk(g2=>g2.LEGENDS.forEach(L=>{ L.unit={body:'ward',count:0,atk:0,hp:0}; }));
   const d=(cur.r-zero.r)*100;
-  say(`- 現行：**${pct(cur.r)}**（${cur.w}/${cur.a}）`);
-  say(`- 零戰力對照（三尊 unit 不上場、其餘完全相同、同一批 ${N} 顆種子）：**${pct(zero.r)}**（${zero.w}/${zero.a}）`);
-  say(`- **差值＝${d>=0?'+':''}${d.toFixed(2)}pp**　門檻 [+${LO}pp, +${HI}pp] ${(d>=LO&&d<=HI)?'✅':'❌'}`);
+  say(`- 現行（A）：**${pct(cur.r)}**（${cur.w}/${cur.a}）`);
+  say(`- **零效果對照（B）**：三尊 unit 不上場**且**拿掉 eff（傳說共鳴），同一批 ${N} 顆種子：**${pct(zero.r)}**（${zero.w}/${zero.a}）`);
+  say(`- 記錄項（不判）拆解：只拿掉共鳴（D，unit 照舊）${pct(noRes.r)}　／　只拿掉戰力（C，eff 照舊）${pct(noUnit.r)}`
+    +`　⇒ 戰力貢獻約 ${((cur.r-noUnit.r)*100).toFixed(2)}pp、共鳴貢獻約 ${((cur.r-noRes.r)*100).toFixed(2)}pp`);
+  say(`- **差值（A − B）＝${d>=0?'+':''}${d.toFixed(2)}pp**　門檻 [+${LO}pp, +${HI}pp] ${(d>=LO&&d<=HI)?'✅':'❌'}`);
   say(`- 記錄項（**舊口徑、不判**）：絕對值 ${pct(cur.r)}——§2.1 修訂二之前就是拿它對 [45%,60%]（改寫當下 74.25% ❌）。`);
   say(`- 記錄項（不判）：持有者人數分布（局）${Object.keys(cur.hc).sort().map(k=>`${k} 人 ${cur.hc[k]}`).join('　')}；`
     +`虛無模型「贏家在四席之間隨機」的期望值＝**${pct(cur.nul)}**——一人一尊之後每局最多三位持有者，`
@@ -241,16 +287,16 @@ if(want('G9')){
     const run=fn=>{ const g2=loadGame(NEW); g2.CFG.LEGEND_ON=true; fn(g2); let a=0,w=0;
       for(const s of sub){ const r=g2.playPolicyGame(s,{}); if(r.holders.length){ a++; if(r.holders.includes(r.winnerId)) w++; } }
       return a?w/a:0; };
-    const base=run(()=>{}), zeroM=run(g2=>g2.LEGENDS.forEach(L=>{ L.unit={body:'ward',count:0,atk:0,hp:0}; }));
+    const base=run(()=>{}), zeroM=run(g2=>g2.LEGENDS.forEach(L=>{ L.unit={body:'ward',count:0,atk:0,hp:0}; delete L.eff; }));
     const dd=v=>`${((v-zeroM)*100>=0?'+':'')}${((v-zeroM)*100).toFixed(2)}pp`;
-    say(`- 選項對照（記憶體覆寫、n=${M}，**不是判定、也不是自調**，只供使用者裁定 INC_TITHE／本體時參考；差值都對同一組零戰力對照 ${pct(zeroM)}）：`);
+    say(`- 選項對照（記憶體覆寫、n=${M}，**不是判定、也不是自調**，只供使用者裁定 INC_TITHE／本體時參考；差值都對同一組零效果對照 ${pct(zeroM)}）：`);
     say(`  - 現行 INC_TITHE=${G.CFG.INC_TITHE}：${pct(base)}（${dd(base)}）`);
     say(`  - 供奉 0（INC_TITHE=0）：${(v=>`${pct(v)}（${dd(v)}）`)(run(g2=>{g2.CFG.INC_TITHE=0;}))}`);
     say(`  - 供奉 2（INC_TITHE=2）：${(v=>`${pct(v)}（${dd(v)}）`)(run(g2=>{g2.CFG.INC_TITHE=2;}))}`);
     say(`  - 供奉 3（INC_TITHE=3）：${(v=>`${pct(v)}（${dd(v)}）`)(run(g2=>{g2.CFG.INC_TITHE=3;}))}`);
     say(`  - 本體下修（三尊 hp×0.6、atk×0.6，供奉維持 ${G.CFG.INC_TITHE}）：`
       +(v=>`${pct(v)}（${dd(v)}）`)(run(g2=>g2.LEGENDS.forEach(L=>{ L.unit={...L.unit,hp:Math.round(L.unit.hp*0.6),atk:Math.round(L.unit.atk*0.6)}; }))));
-    say(`  - 零戰力對照本身：${pct(zeroM)}（+0.00pp，定義上）`);
+    say(`  - 零效果對照本身（unit 不上場＋無 eff）：${pct(zeroM)}（+0.00pp，定義上）`);
     lap();
   }
   say('');

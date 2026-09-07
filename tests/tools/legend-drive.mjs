@@ -30,6 +30,8 @@ const OUT = pos[0] || path.join(ROOT, 'legend-drive.json');
 const PORT = +(opt.port || 8841);
 const SERVE_ROOT = opt.root || ROOT;
 const SEEDS = (opt.seeds || '1,2,3,4,5,6,7,8').split(',').map(Number);
+// 覆審 L7：這一顆種子拿到傳說之後會按一次「送神回天」，把 releaseLegend 的真人路徑走過
+const GIVEUP_SEED = +(opt.giveup || SEEDS[1] || SEEDS[0]);
 
 async function serve(root, port) {
   const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -37,7 +39,10 @@ async function serve(root, port) {
   return srv;
 }
 
-/* 頁面端：量整頁與幾個關鍵容器的橫向溢出（scrollWidth > clientWidth 即溢出） */
+/* 頁面端：量整頁與幾個關鍵容器的橫向溢出（scrollWidth > clientWidth 即溢出），
+   外加 #felt 的**直向**溢出——凍結檔 §2.1 修訂四（使用者裁定加嚴）：
+   844×390 第 1～3 夜的出價頁與盯上頁，`#felt.scrollHeight − clientHeight` 必須 ≤ 0。
+   基準 69df086 是 0，本分支在收成一列／卡面精簡之前實測 47／77 紅。 */
 const OVERFLOW = `(() => {
   const rows = [];
   // 自己就是可捲容器（overflow-x:auto/scroll）的不算溢出——那是刻意讓它內部捲，外層版面沒有被撐開。
@@ -53,11 +58,19 @@ const OVERFLOW = `(() => {
   return rows;
 })()`;
 
+/* #felt 的直向溢出（G6 §2.1 修訂四）：#felt 是 overflow-y:auto，捲得動不代表看得到——
+   844×390 這個尺寸下把市集卡的部隊預覽整行推到看不見，就是版面沒放下。 */
+const VOVERFLOW = `(() => {
+  const f = document.getElementById('felt');
+  if (!f) return null;
+  return { scrollH: f.scrollHeight, clientH: f.clientHeight, over: f.scrollHeight - f.clientHeight };
+})()`;
+
 const main = async () => {
   const srv = await serve(SERVE_ROOT, PORT);
   const chromium = loadChromium();
   const browser = await chromium.launch();
-  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, rewards: 0, games: [] };
+  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], voverflow: [], portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, rewards: 0, games: [] };
   try {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
@@ -113,9 +126,28 @@ const main = async () => {
           lastKey = key;
           const ov = await page.evaluate(OVERFLOW);
           if (ov.length) rec.overflow.push({ seed, step, txt: st.txt, ov });
+          // 直向只在「第 1～3 夜的出價頁與盯上頁」判（凍結檔 §2.1 修訂四的字面範圍）
+          if (st.round >= 1 && st.round <= 3 && !st.dis && /蓋牌|不盯任何一件/.test(st.txt)) {
+            const vo = await page.evaluate(VOVERFLOW);
+            rec.vsamples = (rec.vsamples || 0) + 1;
+            if (vo && vo.over > 0) rec.voverflow.push({ seed, round: st.round, txt: st.txt, ...vo });
+          }
         }
         // --burn=0：真人整局不燒香（要走到「天亮回天」那條路就得有龕沒被請走，
         // 真人每夜燒滿的話三龕通常在第 4 夜前就被清空，回天永遠碰不到）
+        // 覆審 L7：六顆種子挑一顆（--giveup=<seed>，預設第 2 顆）在拿到傳說之後按一次袋子面板的
+        // 「送神回天」，讓 releaseLegend 的 refund=false 那條路徑在**真瀏覽器**裡走過一次。
+        if (seed === GIVEUP_SEED && !g.gaveUp && st.bidding) {
+          const done = await page.evaluate(`(() => {
+            const S = window.__yaoshi.S; const me = S.players[0];
+            if (!me.bag.some(x => x.legend)) return 0;
+            showBag(0);
+            const b = document.querySelector('#modalbox .tithebtn');
+            if (!b) { closeModal(); return 0; }
+            b.click(); closeModal(); return 1;
+          })()`);
+          if (done) { g.gaveUp = 1; rec.giveUp = (rec.giveUp || 0) + 1; }
+        }
         if (st.bidding && st.hasInc && opt.burn !== '0') {
           // 每夜對還開著的那一尊燒滿，確保一定會走到「請走」那條路
           await page.evaluate(`(() => { const M = CFG.INC_MAX; for (let k = 0; k < M; k++) incBump(1); })()`);
@@ -246,6 +278,7 @@ const main = async () => {
   const okErr = rec.errors.length === 0 && rec.pageerrors.length === 0;
   const okPath = rec.taken > 0 && rec.dawnShrines > 0 && rec.rewards > 0;
   const okOv = rec.overflow.length === 0 && rec.portraitOverflow.length === 0;
+  const okVert = rec.voverflow.length === 0 && (rec.vsamples || 0) > 0;
   console.log(`# 請神 Playwright 驅動（844×390 橫式＋390×844 直式）　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天收攤 ${g.dawnShrines} 龕／結清 ${g.dawn} 筆・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　按鈕出現次數 ${JSON.stringify(g.txts)}`));
@@ -256,13 +289,17 @@ const main = async () => {
   }
   console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
   console.log(`- 供奉危急提示（#modal「壽命危急，繼續供奉？」）出現並按「要」的次數：${rec.titheAsk || 0}`);
+  console.log(`- 袋子面板「送神回天」在真瀏覽器按下的次數（覆審 L7，seed ${GIVEUP_SEED}）：${rec.giveUp || 0} ${(rec.giveUp || 0) > 0 ? '✅' : '⚠️ 那一局沒請到傳說，這條沒走到'}`);
   console.log(`- console error ${rec.errors.length}、pageerror ${rec.pageerrors.length}、requestfailed ${rec.requestfailed.length} → ${okErr ? '✅' : '❌'}`);
   if (!okErr) { rec.errors.slice(0, 5).forEach((e) => console.log('    error: ' + e)); rec.pageerrors.slice(0, 5).forEach((e) => console.log('    pageerror: ' + e)); }
   console.log(`- 走到「請走」${rec.taken} 次、「回天」${rec.dawnShrines} 龕、「落空的階段獎勵」${rec.rewards} 筆 → ${okPath ? '✅' : '❌'}`);
   console.log(`- 固定頁對照（同一局同一頁「${rec.portraitAt}」）：橫式 ${JSON.stringify(rec.landscapeFixed)}　直式 ${JSON.stringify(rec.portraitOverflow)}`);
   console.log(`- 橫向溢出：橫式 ${rec.overflow.length} 筆、直式 ${rec.portraitOverflow.length} 筆（直式量在「${rec.portraitAt}」那一頁）→ ${okOv ? '✅' : '❌'}`);
   if (!okOv) [...rec.overflow.slice(0, 5), ...rec.portraitOverflow.slice(0, 5)].forEach((o) => console.log('    ' + JSON.stringify(o)));
-  console.log(`- 判定：${okErr && okPath && okOv ? '✅ 通過' : '❌ 未通過'}`);
-  process.exit(okErr && okPath && okOv ? 0 : 1);
+  console.log(`- **直向**（#felt scrollHeight − clientHeight，只判第 1～3 夜的出價／盯上頁；§2.1 修訂四）：`
+    + `取樣 ${rec.vsamples || 0} 次、溢出 ${rec.voverflow.length} 次 → ${okVert ? '✅' : '❌'}`);
+  if (!okVert) rec.voverflow.slice(0, 6).forEach((o) => console.log('    ' + JSON.stringify(o)));
+  console.log(`- 判定：${okErr && okPath && okOv && okVert ? '✅ 通過' : '❌ 未通過'}`);
+  process.exit(okErr && okPath && okOv && okVert ? 0 : 1);
 };
 main().catch((e) => { console.error(e); process.exit(2); });
