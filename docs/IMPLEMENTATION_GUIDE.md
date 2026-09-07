@@ -725,6 +725,33 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.22 角色平衡卷（2026-09-07，v0.45）——接手前先知道這五件事
+
+規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-role-balance.md`（B0–B7），
+依據＝量法卷報告 `docs/experiments/2026-09-07-role-measure-report.md`，本卷報告
+`docs/experiments/2026-09-07-role-balance-report.md`。
+
+1. **`onPowerCalc` 現在有兩條呼叫路徑，寫這個 hook 之前先問「我在哪一條」**：
+   `power()`（`index.html:2155`，PAPERWAR_ON 之後只剩 UI 行情與毒標鎖定用）給的 ctx **沒有 `fac`**；
+   `pwResLv()`（`index.html:2746`，紙紮夜戰真正吃的共鳴）是**逐系呼叫**、ctx **有 `fac`**。
+   要影響勝負就得寫 `ctx.resonanceMul`（`ctx.flat` 只有 `power()` 讀）；要「只有達標那一系吃到」
+   就得判 `ctx.fac`。斷手書生的被動是這條的範例。
+2. **紙紮夜戰的詛咒懲罰不走 `power()`**：`pwMod` 的 `m -= sd.curses`（`index.html:2916` 附近）數的是
+   `buildArmy` 回傳的**件數**。所以「詛咒品戰力視為 0」這種寫在 `onItemValue` 的被動對對決毫無作用。
+   閭山法師的免疫改走 `traits.curseWard`＋`pwSide` 查一次（`sd.curseWard`）＋`pwMod` 判分支。
+   **`traits` 在本專案原本 10 個角色一個都沒用**，這是第一個。
+3. **`pwTrial`／`duelBags` 的人造玩家沒有 `roleId`**，所以角色的 `traits`／`hooks` 在 AI 估值那條路
+   **一律不生效**——閭山自己估詛咒品的價時仍然當作會被扣。這是既有邊界（命格條件也一樣），
+   不是本卷的 bug，但改角色被動時要記得「AI 估的和實際打的不是同一套」。
+4. **`ROLES.ai` 的三個數字比大多數被動更值錢**（量法卷 §2.4：只留 `ai` 就有 12pp 跨距）。本卷四隻的
+   `ai` 是治具掃出來的（`role-measure.mjs --ai=<角色>:<aggr>/<spite>/<markReact>`），**不是手填**；
+   要改先跑掃描。副作用兩件：斷手 `aggr` 1.0→0.6 讓 2026-09-03 才修好的「紀律上限真的咬得到」再次失效；
+   `markReact` 四隻全落在 `avoid`，全桌變成怯場 6／搶標 3／無視 1。兩件都在報告待裁。
+5. **量法固定用 `(b)`**（座位 0 吃自己的 `ROLES.ai`，治具 `tests/tools/role-measure.mjs`）。
+   換回 `policyAiLike` 會讓角色個性完全量不到（量法卷 §0.2 已證 `policyAiLike` 把 `p.ai` 覆寫成
+   寫死的 `{aggr:0.7,spite:0.15}`）。本卷閘門治具：`role-balance-b4.mjs`（引擎等價）、
+   `role-balance-b3.mjs`（局長中位＋三策略位移）。
+
 ### 11.21 對決演出「沒兵仍出招／隻數不同步」修復（2026-09-07，分支 v0.42.2 → 併入 main 為 v0.43.1）——接手前先知道這三件事
 
 規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-duel-desync.md`（D1–D5）。使用者真機回報兩個症狀：

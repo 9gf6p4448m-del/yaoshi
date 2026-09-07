@@ -1,0 +1,28 @@
+基準：C:\Users\shung\AppData\Local\Temp\claude\C--Users-shung\1ace4377-4a82-4751-b40d-ea890e742683\scratchpad\base-b38980a.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 435314 vs 435314
+B4：逐位元組相等 ✅
+
+=== 反面驗證（--mutate：把 pwMod 的詛咒扣分改成兩倍，本檢查必須紅）===
+基準：C:\Users\shung\AppData\Local\Temp\claude\C--Users-shung\1ace4377-4a82-4751-b40d-ea890e742683\scratchpad\base-b38980a.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html（--mutate 突變版）
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 435314 vs 412103
+B4：不相等 ❌
+  首個差異位於第 4274 個字元：
+    基準 …ue,"bag":["虎爺印","椅仔姑竹椅","水鬼浮標"],"power":24},{"id":2,"life":31,"alive":true,"bag":["過陰咒","有應公","椅仔姑竹椅"],"power":32},{"id"
+    新版 …ue,"bag":["虎爺印","椅仔姑竹椅","水鬼浮標"],"power":24},{"id":2,"life":30,"alive":true,"bag":["過陰咒","有應公","椅仔姑竹椅"],"power":32},{"id"
+
+=== 凍結檔字面版（只移除 AI 風格掃描的四隻；必紅，原因見檔頭）===
+基準：C:\Users\shung\AppData\Local\Temp\claude\C--Users-shung\1ace4377-4a82-4751-b40d-ea890e742683\scratchpad\base-b38980a.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html
+移除角色：qingmian／duanshou／lvshan／dangpu；trace(1..20) 長度 414327 vs 411880
+B4：不相等 ❌
+  首個差異位於第 2980 個字元：
+    基準 …"nightly":["⛵ 普渡爐主 的拼板舟渡來生息 +1","🕯️ 收驚婆 整夜靜觀不出手，收驚安神 +5","🎲 大家樂組頭 今夜槓龜 −2","🌒 你的心願「借刀傷人」未能達成","🌒 收驚婆 的心願達成 +4","🌅 天
+    新版 …"nightly":["⛵ 普渡爐主 的拼板舟渡來生息 +1","🕯️ 收驚婆 整夜靜觀不出手，收驚安神 +5","🌒 你的心願「借刀傷人」未能達成","🌒 收驚婆 的心願達成 +4","🌅 天明回血：存活者各 +5","🔮 夜市
+
+=== L0 補證：顯式 LEGEND_ON=false＋移除本卷動過的六隻，新版 vs b38980a ===
+基準：C:\Users\shung\AppData\Local\Temp\claude\C--Users-shung\1ace4377-4a82-4751-b40d-ea890e742683\scratchpad\base-b38980a.html
+新版：C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a5c78df724a60dc9f\index.html
+移除角色：qingmian／hongyi／duanshou／lvshan／zutou／dangpu；trace(1..20) 長度 350205 vs 350205
+B4：逐位元組相等 ✅
