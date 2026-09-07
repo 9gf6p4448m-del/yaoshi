@@ -1,0 +1,64 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "dangpu"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "dangpu",
+   "n": 10000,
+   "win": 0.2334,
+   "surv": 10.1719,
+   "life": 10.5749,
+   "len": 10.1719,
+   "hookCalls": {
+    "onBudget": 101694,
+    "onBattle": 94102,
+    "onNightEnd": 99703,
+    "onBidSettle": 150065
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiAmount": 115776
+   },
+   "ablated": {
+    "dropped": [
+     "onAiAmount"
+    ],
+    "keptAi": [
+     "onBudget",
+     "onBidSettle",
+     "onBattle",
+     "onNightEnd"
+    ]
+   },
+   "ms": 500881
+  },
+  {
+   "variant": "bm",
+   "role": "dangpu",
+   "n": 10000,
+   "win": 0.1088,
+   "surv": 8.642,
+   "life": 4.2172,
+   "len": 8.642,
+   "hookCalls": {
+    "onBudget": 174437,
+    "onBattle": 78250,
+    "onNightEnd": 81817,
+    "onAiAmount": 88035,
+    "onBidSettle": 119494
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 259595
+  }
+ ]
+}

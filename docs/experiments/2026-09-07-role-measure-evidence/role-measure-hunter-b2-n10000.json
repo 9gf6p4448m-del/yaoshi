@@ -1,0 +1,55 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "hunter"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "hunter",
+   "n": 10000,
+   "win": 0.2603,
+   "surv": 9.9459,
+   "life": 11.6734,
+   "len": 9.9459,
+   "hookCalls": {
+    "onBattle": 93271
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiValue": 317740
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue"
+    ],
+    "keptAi": [
+     "onBattle"
+    ]
+   },
+   "ms": 441421
+  },
+  {
+   "variant": "bm",
+   "role": "hunter",
+   "n": 10000,
+   "win": 0.2553,
+   "surv": 9.953,
+   "life": 11.2085,
+   "len": 9.953,
+   "hookCalls": {
+    "onAiValue": 317842,
+    "onBattle": 93207
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 329334
+  }
+ ]
+}

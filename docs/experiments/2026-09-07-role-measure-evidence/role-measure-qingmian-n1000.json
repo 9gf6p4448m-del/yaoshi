@@ -1,0 +1,174 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "qingmian"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.266,
+   "surv": 10.094,
+   "life": 11.355,
+   "len": 10.094,
+   "hookCalls": {
+    "onAiValue": 32274,
+    "onAiExtraBids": 9521,
+    "onBidEff": 15002
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 26486
+  },
+  {
+   "variant": "b",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.23,
+   "surv": 9.973,
+   "life": 9.213,
+   "len": 9.973,
+   "hookCalls": {
+    "onAiValue": 31774,
+    "onAiExtraBids": 9462,
+    "onBidEff": 14188
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 26022
+  },
+  {
+   "variant": "c",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.245,
+   "surv": 10.128,
+   "life": 11.073,
+   "len": 10.128,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32331,
+    "onAiExtraBids": 9588,
+    "onBidEff": 13099
+   },
+   "ablated": {
+    "dropped": [
+     "onBidEff",
+     "onAiValue",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 21042
+  },
+  {
+   "variant": "d",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.282,
+   "surv": 10.317,
+   "life": 13.421,
+   "len": 10.317,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32958,
+    "onAiExtraBids": 9779,
+    "onBidEff": 14416
+   },
+   "ablated": {
+    "dropped": [
+     "onBidEff",
+     "onAiValue",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 24851
+  },
+  {
+   "variant": "cL",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.245,
+   "surv": 10.128,
+   "life": 11.073,
+   "len": 10.128,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32331,
+    "onAiExtraBids": 9588,
+    "onBidEff": 13099
+   },
+   "ablated": {
+    "dropped": [
+     "onBidEff",
+     "onAiValue",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 22989
+  },
+  {
+   "variant": "dL",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.282,
+   "surv": 10.317,
+   "life": 13.421,
+   "len": 10.317,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 32958,
+    "onAiExtraBids": 9779,
+    "onBidEff": 14416
+   },
+   "ablated": {
+    "dropped": [
+     "onBidEff",
+     "onAiValue",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 22310
+  },
+  {
+   "variant": "c2",
+   "role": "qingmian",
+   "n": 1000,
+   "win": 0.18,
+   "surv": 9.637,
+   "life": 7.669,
+   "len": 9.637,
+   "hookCalls": {
+    "onAiValue": 30621,
+    "onAiExtraBids": 9176
+   },
+   "shadowCalls": {
+    "onBidEff": 13724
+   },
+   "ablated": {
+    "dropped": [
+     "onBidEff"
+    ],
+    "keptAi": [
+     "onAiValue",
+     "onAiExtraBids"
+    ]
+   },
+   "ms": 19302
+  }
+ ]
+}

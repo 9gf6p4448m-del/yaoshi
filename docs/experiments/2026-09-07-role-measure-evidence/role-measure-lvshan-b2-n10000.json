@@ -1,0 +1,58 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "lvshan"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.1493,
+   "surv": 9.0753,
+   "life": 7.9854,
+   "len": 9.0753,
+   "hookCalls": {
+    "onBidSettle": 123179,
+    "onItemValue": 3062624
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiCurse": 74106
+   },
+   "ablated": {
+    "dropped": [
+     "onAiCurse"
+    ],
+    "keptAi": [
+     "onItemValue",
+     "onBidSettle"
+    ]
+   },
+   "ms": 427843
+  },
+  {
+   "variant": "bm",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.0626,
+   "surv": 8.1306,
+   "life": 3.8239,
+   "len": 8.1306,
+   "hookCalls": {
+    "onAiCurse": 68349,
+    "onBidSettle": 110393,
+    "onItemValue": 2051559
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 285926
+  }
+ ]
+}

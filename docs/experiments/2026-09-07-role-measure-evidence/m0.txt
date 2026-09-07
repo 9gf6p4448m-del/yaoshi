@@ -1,0 +1,8 @@
+現行 index.html md5(LF)  = 7e01bd227783016aca6fbeaa75f4acd5
+基準 index.html md5(LF)  = 7e01bd227783016aca6fbeaa75f4acd5
+  → 兩者相同 ✅ 引擎零改動
+  基準 trace(1..20) md5   = 1d523892b3f9f0f017f3146fb547c01b
+trace(1..20) md5（乾淨）  = 1d523892b3f9f0f017f3146fb547c01b
+trace(1..20) md5（消融後）= 1ab5e6d2b529334c334fa188b0101597  ✅ 消融確實會改變 trace（探針有鑑別力）
+trace(1..20) md5（消融後再載一份新實例）= 1d523892b3f9f0f017f3146fb547c01b  ✅ 記憶體覆寫不外洩
+跑完之後 index.html md5(LF)= 7e01bd227783016aca6fbeaa75f4acd5

@@ -1,0 +1,67 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "hongyi"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.1982,
+   "surv": 9.6578,
+   "life": 9.7124,
+   "len": 9.6578,
+   "hookCalls": {
+    "onBattle": 90759,
+    "onNightEnd": 96299,
+    "onBidSettle": 135894,
+    "onWinItem": 83263
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiValue": 307831,
+    "onAiCurse": 78433
+   },
+   "ablated": {
+    "dropped": [
+     "onAiCurse",
+     "onAiValue"
+    ],
+    "keptAi": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd"
+    ]
+   },
+   "ms": 446090
+  },
+  {
+   "variant": "bm",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.1915,
+   "surv": 9.6799,
+   "life": 9.2527,
+   "len": 9.6799,
+   "hookCalls": {
+    "onAiValue": 308583,
+    "onBattle": 90988,
+    "onNightEnd": 96522,
+    "onAiCurse": 78557,
+    "onBidSettle": 131859,
+    "onWinItem": 83532
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 317907
+  }
+ ]
+}

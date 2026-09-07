@@ -1,0 +1,64 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "zutou"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2015,
+   "surv": 9.236,
+   "life": 9.6521,
+   "len": 9.236,
+   "hookCalls": {
+    "onNightEnd": 92114,
+    "onBidCap": 202699,
+    "onWinItem": 79921
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiPlan": 92347,
+    "onAiAmount": 98626
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd"
+    ]
+   },
+   "ms": 411824
+  },
+  {
+   "variant": "bm",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2166,
+   "surv": 9.1547,
+   "life": 10.496,
+   "len": 9.1547,
+   "hookCalls": {
+    "onAiPlan": 91538,
+    "onNightEnd": 91313,
+    "onBidCap": 382157,
+    "onAiAmount": 111649,
+    "onWinItem": 74809
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 328109
+  }
+ ]
+}

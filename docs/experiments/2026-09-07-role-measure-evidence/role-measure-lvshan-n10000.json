@@ -1,0 +1,174 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "lvshan"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.052,
+   "surv": 8.1413,
+   "life": 3.5503,
+   "len": 8.1413,
+   "hookCalls": {
+    "onAiCurse": 68410,
+    "onBidSettle": 106882,
+    "onItemValue": 2119486
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 162747
+  },
+  {
+   "variant": "b",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.0616,
+   "surv": 8.1823,
+   "life": 3.8721,
+   "len": 8.1823,
+   "hookCalls": {
+    "onAiCurse": 68790,
+    "onBidSettle": 111598,
+    "onItemValue": 2091784
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 171528
+  },
+  {
+   "variant": "c",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.2477,
+   "surv": 9.9964,
+   "life": 12.2478,
+   "len": 9.9964,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 80472,
+    "onBidSettle": 143546,
+    "onItemValue": 3845617
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 262574
+  },
+  {
+   "variant": "d",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.2458,
+   "surv": 10.0579,
+   "life": 11.8591,
+   "len": 10.0579,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 80576,
+    "onBidSettle": 136050,
+    "onItemValue": 4073687
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 337302
+  },
+  {
+   "variant": "cL",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.1612,
+   "surv": 9.1052,
+   "life": 8.3217,
+   "len": 9.1052,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 74182,
+    "onBidSettle": 123610,
+    "onItemValue": 3049599
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 476599
+  },
+  {
+   "variant": "dL",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.1595,
+   "surv": 9.2035,
+   "life": 8.2283,
+   "len": 9.2035,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiCurse": 74729,
+    "onBidSettle": 115860,
+    "onItemValue": 3171865
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle",
+     "onAiCurse"
+    ],
+    "keptAi": []
+   },
+   "ms": 552024
+  },
+  {
+   "variant": "c2",
+   "role": "lvshan",
+   "n": 10000,
+   "win": 0.0608,
+   "surv": 8.1124,
+   "life": 3.7644,
+   "len": 8.1124,
+   "hookCalls": {
+    "onAiCurse": 68235
+   },
+   "shadowCalls": {
+    "onBidSettle": 110541,
+    "onItemValue": 2033777
+   },
+   "ablated": {
+    "dropped": [
+     "onItemValue",
+     "onBidSettle"
+    ],
+    "keptAi": [
+     "onAiCurse"
+    ]
+   },
+   "ms": 432127
+  }
+ ]
+}

@@ -1,0 +1,162 @@
+{
+ "n": 1000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "shoujing"
+ ],
+ "se_pp_at_25pct": "1.369",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.383,
+   "surv": 11.077,
+   "life": 20.14,
+   "len": 11.077,
+   "hookCalls": {
+    "onAiPlan": 11076,
+    "onNightEnd": 11059
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 28687
+  },
+  {
+   "variant": "b",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.442,
+   "surv": 11.383,
+   "life": 25.895,
+   "len": 11.383,
+   "hookCalls": {
+    "onAiPlan": 11382,
+    "onNightEnd": 11367
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 30328
+  },
+  {
+   "variant": "c",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.307,
+   "surv": 10.298,
+   "life": 15.177,
+   "len": 10.298,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 10295,
+    "onNightEnd": 10267
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan",
+     "onNightEnd"
+    ],
+    "keptAi": []
+   },
+   "ms": 22302
+  },
+  {
+   "variant": "d",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.282,
+   "surv": 9.945,
+   "life": 11.687,
+   "len": 9.945,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 9944,
+    "onNightEnd": 9926
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan",
+     "onNightEnd"
+    ],
+    "keptAi": []
+   },
+   "ms": 23188
+  },
+  {
+   "variant": "cL",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.269,
+   "surv": 9.842,
+   "life": 12.692,
+   "len": 9.842,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 9837,
+    "onNightEnd": 9809
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan",
+     "onNightEnd"
+    ],
+    "keptAi": []
+   },
+   "ms": 22961
+  },
+  {
+   "variant": "dL",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.209,
+   "surv": 9.388,
+   "life": 8.841,
+   "len": 9.388,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 9386,
+    "onNightEnd": 9360
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan",
+     "onNightEnd"
+    ],
+    "keptAi": []
+   },
+   "ms": 19074
+  },
+  {
+   "variant": "c2",
+   "role": "shoujing",
+   "n": 1000,
+   "win": 0.208,
+   "surv": 9.988,
+   "life": 11.592,
+   "len": 9.988,
+   "hookCalls": {
+    "onAiPlan": 9987
+   },
+   "shadowCalls": {
+    "onNightEnd": 9960
+   },
+   "ablated": {
+    "dropped": [
+     "onNightEnd"
+    ],
+    "keptAi": [
+     "onAiPlan"
+    ]
+   },
+   "ms": 20185
+  }
+ ]
+}
