@@ -608,10 +608,12 @@ const CFG = {
   PW_RES_MODE: 1, PW_RES_CAP: 3,
   /* ===== 傳說三尊「請神」（第 4 卷，2026-09-06；規格 docs/proposals/2026-09-06-legend3-design.md §四）=====
      LEGEND_ON=false＝kill switch：不建神龕、不收燒香、不擲、不消耗 S.rng()、不往 S 寫任何新欄位，
-     trace 與 ca14065 逐位元組相等（閘門 L0）。?legend=1 開、?legend=0 關，只影響這一次載入。
-     ★2026-09-07 使用者裁定的合併策略★：先以**預設關**併進 main（L0 已證等價），試玩走 ?legend=1；
-     閘門全綠且真機試玩過後再裁要不要把預設打開——那是策略數值，改預設要再問（硬規則 3）。 */
-  LEGEND_ON: false,
+     **顯式** LEGEND_ON=false 的 trace 與 ff227a7（v0.43.1）的 OFF 路徑逐位元組相等（閘門 L0／A0；
+     v0.43 卷寫的是 ca14065，v0.43.1 併入對決演出小卷之後基準已換成 ff227a7）。?legend=1 開、?legend=0 關，只影響這一次載入。
+     ★2026-09-07 使用者裁定★：v0.43 先以預設關併進 main（L0 已證等價）、閘門全綠之後，
+     本卷（v0.44，N1 擲序洗牌）起**預設打開**；?legend=0 仍然可以整組關掉，
+     ?legend=1 保留（顯式打開，與預設同值、不報錯）。改這個預設是策略數值，要再問（硬規則 3）。 */
+  LEGEND_ON: true,
   INC_MAX: 3,        /* 每夜每人最多燒幾點壽命當香火（密封、當場扣、不退） */
   INC_K: 10,         /* 請神成功率＝h/(h+INC_K)（與博杯 X/(X+8) 同一種曲線）。6→10：使用者 2026-09-07 裁定甲 */
   INC_PITY: 12,      /* 天井：累計香火 h≥此值必請。階段獎勵的三段區間也由它定義（P/3、2P/3）。9→12：同一裁定 */
@@ -1783,7 +1785,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.45", VERSION_NOTE="對決近景切鏡（批 1 原型）：交鋒推近、其餘尊退暗、傷害跳字、三拍燈／存活量表／出手卡；?closeup=0 全關";
+const VERSION="0.45", VERSION_NOTE="近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2124,12 +2126,20 @@ function makeState(mode,seed,picks){
   S.pwStat={fights:0,burn:{},dmg:{},gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0,
     tr:{},beats:0,beatsReal:0,killed:0,burnSum:0,emptyBeats:0}; /* tr／beats 系列＝卷 D D-A9 的逐招活性與時間軸自檢 */
   /* 傳說三尊神龕（第 4 卷）：三龕從第 1 夜起常駐。LEGEND_ON=false 時這三個欄位一個都不建、
-     引擎其餘各處都靠 !S.shrines 直接跳過，所以停用時 S 的形狀與 ca14065 完全相同（閘門 L0）。
+     引擎其餘各處都靠 !S.shrines 直接跳過，所以停用時 S 的形狀與 ff227a7 的 OFF 路徑完全相同（閘門 L0／A0）。
      h＝每位玩家在該龕的累計香火（依 pid 索引）；open＝還沒被請走；takenBy＝請走的人。 */
   if(CFG.LEGEND_ON){
     S.shrines=LEGENDS.map((L,i)=>({i,fac:L.f,open:true,takenBy:null,h:S.players.map(()=>0)}));
     S.incense={};
-    S.shrineStat={burn:0,burnLife:0,rolls:0,hits:0,pity:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0};
+    /* dawnPity＝回天結清時還帶著 h≥INC_PITY 的人次。**不變量守衛（改動前就成立）**：h 只有「燒香」一條增加路徑，
+       而 h 一到天井那一夜就必請、當夜關龕，所以「天亮還開著的龕上有人 h≥P」不可達 ⇒ 這個計數恆為 0（閘門 A6）。
+       它守的是「日後有人動 h 的增減路徑或天井判定時不要靜默壞掉」，**不是任何新規則的證據**
+       （N7『天井者免燒也必請』已於 2026-09-07 由使用者裁丙撤案，理由就是這條不變量證明原情境不可達）。
+       純計數、零亂數、不改任何結算值。
+       ★N1 的擲序公平性（A1）刻意**不在這裡加計數器**★：覆審 HIGH-2 指出「舊版沒有這個欄位」會讓 A1 紅在
+       屬性缺失而不是紅在比值本身。A1 改成從 resolveShrines 回傳的 out.rolls 順序重建並列組（新舊版都有這個回傳），
+       量的仍然是引擎真正用的那個順序。 */
+    S.shrineStat={burn:0,burnLife:0,rolls:0,hits:0,pity:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0,dawnPity:0};
   }
   return S;
 }
@@ -2576,20 +2586,30 @@ function shrineClose(sh,out){
     if(r) out.push({pid:q.id,shrine:sh.i,h,...r});
   });
 }
-/* 同香火者的擲骰順序（使用者 2026-09-07 裁定甲）：**從本夜風位家起順時針**，不再依座位 id。
-   「順時針」＝ WIND_SEQ 的次序（東→南→西→北），與市集規則「同分取本夜風位起算的座位順序」那一段同一個口徑
-   （index.html 收祟夜那段），不另外發明一種座位序。
-   回傳「離風位家幾個位子」——0＝風位家自己。h 不同的人仍然由高到低，這個鍵只在 h 相同時才用得到。
-   windPid 在本引擎**恆有值**（`WIND_SEQ[(r-1)%4]`），所以下面 w==null 那一支是**防禦性、現行恆不觸發**——
-   規則頁刻意不向玩家描述這個不存在的情況（覆審 L1）。留著是為了日後真的出現「無風位的夜」時不會靜默壞掉。
-   ★三條迴圈共用這一支★：排序只寫在 resolveShrines 裡一次，不得再複製第二份。 */
-function shrineOrderKey(pid,round){
-  const r=(round===undefined)?S.round:round;
-  const w=windPid(r);
-  const base=(w==null)?(((r%WIND_SEQ.length)+WIND_SEQ.length)%WIND_SEQ.length)
-                      :(((r-1)%WIND_SEQ.length)+WIND_SEQ.length)%WIND_SEQ.length;
-  for(let k=0;k<WIND_SEQ.length;k++) if(WIND_SEQ[(base+k)%WIND_SEQ.length]===pid) return k;
-  return WIND_SEQ.length; /* 不在座位表裡（理論上不會發生）：排最後 */
+/* 同香火者的擲骰順序（使用者 2026-09-07 裁定乙，取代原本的「從本夜風位家起順時針」）：
+   **同 h 並列組用 S.rng() 做 Fisher–Yates 洗牌**。沿革：風位序字面上「不固定在同一家」，但實測 3000 局
+   1643 組並列，座位 0 拿到公平份額的 1.183 倍、座位 1 只有 0.770 倍（χ²=37.53, df=3）——輪轉不等於公平，
+   因為並列組不一定四家到齊，風位輪轉的相位跟「誰在並列組裡」有相關。改成洗牌之後期望值就是 1/m。
+   紀律：① 只有並列組人數 ≥2 才消耗亂數（人數 1 一次都不擲，否則三條迴圈的亂數序會被無謂地推動）
+        ② 不得用 sort 的隨機比較子（比較子不是全序，V8 的 TimSort 會給出偏倚分布）
+        ③ 不得碰瀏覽器內建亂數，也不得走 S.rngUi——請神全程只用 S.rng，決定性由種子保證
+           （引擎 <script> 段的內建亂數出現次數必須是 0，凍結檔 A2 有一條 grep 在守）
+   ★三條迴圈共用★：排序只寫在 resolveShrines 裡一次，不得再複製第二份（閘門治具也不得另抄）。 */
+function shrineRollOrder(sh,rollers){
+  rollers.sort((a,b)=>sh.h[b.id]-sh.h[a.id]); /* 不同 h 仍嚴格由高到低（穩定排序，與 seed 無關） */
+  for(let i=0;i<rollers.length;){
+    let j=i+1;
+    while(j<rollers.length&&sh.h[rollers[j].id]===sh.h[rollers[i].id]) j++;
+    const m=j-i;
+    if(m>=2){
+      for(let k=m-1;k>0;k--){                                   /* Fisher–Yates：消耗 m−1 次 S.rng() */
+        const r=i+Math.floor(S.rng()*(k+1));
+        const t=rollers[i+k]; rollers[i+k]=rollers[r]; rollers[r]=t;
+      }
+    }
+    i=j;
+  }
+  return rollers;
 }
 function resolveShrines(){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
@@ -2627,12 +2647,16 @@ function resolveShrines(){
      會讓一個燒到 0、h 已達天井的人被剝奪必成的請神，尊直接落到第二名手上（對抗式覆審 H1）。
      全檔其他四處死亡掃描（resolveAuction／settleEvent／resolveBattles）都在結算的最後一行，這裡跟它們對齊：
      擲完、發完階段獎勵之後才蓋出局旗——語意與「心願回血救回歸零者」同一條（ARCH_SPEC §3.10）。
-     ③ 逐龕結算（龕序固定）：只有**本夜有燒香**的人有資格擲，依加總後的 h 由高到低；
-        成功率 h/(h+K)，h≥P 必成；第一個成功者請走、關龕，排在他後面的人本夜不再擲。 */
+     ③ 逐龕結算（龕序固定）：只有**本夜有燒香**的人有資格擲，依加總後的 h 由高到低，
+        同 h 洗牌（shrineRollOrder，使用者 2026-09-07 裁定乙）；
+        成功率 h/(h+K)，h≥P 必成；第一個成功者請走、關龕，排在他後面的人本夜不再擲。
+        ★「天井者免燒香也具擲骰資格」（N7）2026-09-07 由使用者裁丙撤案★：h 只有「燒香」一條增加路徑，
+        而 h 一到天井那一夜就必請、當夜關龕，所以「h≥P 卻還留在開著的龕上」這個狀態**不可達**；
+        壽命剩 1 的人 incCap=0，根本也累積不到天井。原本要救的情境不存在，加了只會多一條教錯規則的路。 */
   S.shrines.forEach(sh=>{
     if(!sh.open) return;
-    const rollers=S.players.filter(p=>p.alive&&S.incense[p.id]&&S.incense[p.id].shrine===sh.i&&S.incense[p.id].amt>0)
-      .sort((a,b)=>sh.h[b.id]-sh.h[a.id]||shrineOrderKey(a.id)-shrineOrderKey(b.id)); /* 同香火＝從本夜風位家起順時針（裁定甲） */
+    const rollers=shrineRollOrder(sh,
+      S.players.filter(p=>p.alive&&S.incense[p.id]&&S.incense[p.id].shrine===sh.i&&S.incense[p.id].amt>0));
     let win=null;
     for(const p of rollers){
       const h=sh.h[p.id];
@@ -2665,6 +2689,9 @@ function settleShrinesEnd(){
   const out=[];
   S.shrines.forEach(sh=>{
     if(!sh.open) return;
+    /* 純記錄（閘門 A6，不變量守衛）：回天時還帶著 h≥天井 的活人人次。h 一到天井那一夜就必請、當夜關龕，
+       所以這個計數恆為 0——**這在改動前就成立**，不是本卷帶來的性質。 */
+    if(S.shrineStat) S.players.forEach(q=>{ if(q.alive&&(sh.h[q.id]|0)>=CFG.INC_PITY) S.shrineStat.dawnPity++; });
     sh.open=false; sh.dawn=true;
     shrineClose(sh,out);
     if(S.shrineStat) S.shrineStat.dawn++;
@@ -3762,7 +3789,7 @@ function openHelp(){
          所有數字都由 CFG 帶出（INC_MAX／INC_K／INC_PITY／INC_GIFT_P），不另寫一份。 */""}
     ${CFG.LEGEND_ON?sec("🕯️ 請神（傳說三尊）",`妖市入口供著<b>三尊從不上拍賣桌的東西</b>——殘日（祖靈）、大士爺紙尊（香火）、有應公（陰氣）。要它們只有一條路：<b>燒壽命當香火</b>。<br>
       <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣），所以不會有人把自己燒到出局、也不會有請到神當場倒下、那一尊跟著陪葬的事。<b>注意先後</b>：開標時**先結算出價**、再燒香，所以標得太兇、扣完壽命不夠時，你封的香火會被縮到「剩 1 點」為止——結算卡與夜末戰況會明講「封 3 → 實燒 2」。<br>
-      <b>機率是公開的</b>：你在那一尊上的<b>累計</b>香火 h，請下來的機率就是 h÷(h+${CFG.INC_K})：${Array.from({length:CFG.INC_PITY-1},(_,i)=>i+1).map(h=>`${h}→${Math.round(h/(h+CFG.INC_K)*100)}%`).join("、")}。<b>h 一旦到 ${CFG.INC_PITY}（含）以上，那一夜就不擲骰、直接請下來</b>——這叫<b>天井</b>，是 100%，上面那條 h÷(h+${CFG.INC_K}) 在天井之後不適用（不要自己去算 ${CFG.INC_PITY}÷${CFG.INC_PITY+CFG.INC_K}）。唯一擋得住你的只有「別人比你先請走、那一龕已經關了」。每夜開標後，<b>本夜有燒香的人</b>才有資格擲，<b>香火高的先擲；香火一樣多的，從本夜風位家起順時針</b>（東→南→西→北）——所以風位每夜輪轉，先擲的優勢不會固定在同一家。第一個成功的人請走，那一龕當場關閉，排在後面的人今夜不再擲。<br>
+      <b>機率是公開的</b>：你在那一尊上的<b>累計</b>香火 h，請下來的機率就是 h÷(h+${CFG.INC_K})：${Array.from({length:CFG.INC_PITY-1},(_,i)=>i+1).map(h=>`${h}→${Math.round(h/(h+CFG.INC_K)*100)}%`).join("、")}。<b>h 一旦到 ${CFG.INC_PITY}（含）以上，那一夜就不擲骰、直接請下來</b>——這叫<b>天井</b>，是 100%，上面那條 h÷(h+${CFG.INC_K}) 在天井之後不適用（不要自己去算 ${CFG.INC_PITY}÷${CFG.INC_PITY+CFG.INC_K}）。唯一擋得住你的只有「別人比你先請走、那一龕已經關了」。每夜開標後，<b>本夜有燒香的人</b>才有資格擲，<b>香火高的先擲；香火一樣多的，先後隨機決定</b>——每一夜重洗，誰都可能排第一，長期下來人人均分。第一個成功的人請走，那一龕當場關閉，排在後面的人今夜不再擲。<br>
       <b>全桌只有一份</b>：三尊各一，被誰請走就沒了。四家的香火都攤在神龕上（畫面上方三格），你看得到誰拜了幾夜、離天井還差多少。<br>
       <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、或天亮回天），你的香火依高低結清——h＜${Math.ceil(CFG.INC_PITY/3)} 沒有；${Math.ceil(CFG.INC_PITY/3)}～${Math.ceil(2*CFG.INC_PITY/3)-1} 退 ⌈h/3⌉ 壽命（香灰）；${Math.ceil(2*CFG.INC_PITY/3)}～${CFG.INC_PITY-1} 退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）；<b>h 到了 ${CFG.INC_PITY} 以上卻還是被人搶先</b>（同一夜大家都到天井，只有排最前面的那個請得走）也<b>比照這一檔</b>。結清後香火歸零。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，算同系件數（吃共鳴）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
@@ -5630,7 +5657,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
   /* 傳說三尊「請神」（第 4 卷）測試出口：資料表、結算、回天、AI 啟發式、階段獎勵 */
-  LEGENDS, resolveShrines, settleShrinesEnd, aiIncense, incAiOf, shrineReward, mainFaction, shrineOrderKey, windPid, incCap,
+  LEGENDS, resolveShrines, settleShrinesEnd, aiIncense, incAiOf, shrineReward, mainFaction, shrineRollOrder, windPid, incCap,
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */

@@ -1,8 +1,10 @@
 /* 傳說三尊「請神」行為單元測試（第 4 卷；凍結檔 docs/experiments/2026-09-06-acceptance-legend3-impl.md L6）
    跑法：node tests/legend.test.mjs [index.html 的路徑]
    鑑別力（02 §6.1 第 1 條）：
-     git show ca14065:index.html > old-l.html && node tests/legend.test.mjs old-l.html
-     舊版沒有神龕，所以每一案都紅在**行為斷言**（「應該有人請走」「應該退 N 壽命」「應該消耗亂數」），
+     git show ff227a7:index.html > old-l.html && node tests/legend.test.mjs old-l.html
+     （基準沿革：ca14065→ff227a7，2026-09-07 請神小卷；對 ff227a7 是 18 過／2 失敗，兩條紅在 N1 洗牌的行為斷言；
+      拿 ca14065 跑會 1 過／19 失敗且含 TypeError——那不是本卷的基準，第二輪覆審 MEDIUM-1）
+     （更早的 ca14065 沒有神龕，每一案都紅在**行為斷言**（「應該有人請走」「應該退 N 壽命」「應該消耗亂數」）），
      不是 TypeError——本檔對 index.html 新增的匯出一律用 `G.x?G.x():null` 取值，取不到就讓後面的
      行為斷言自己紅，不讓屬性錯誤排在行為斷言前面。
    每一案都刻意做成「舊版必紅」：連 kill switch 那一案都同時斷言「ON 一定要擲骰」，
@@ -304,21 +306,70 @@ test('回天不砸紀錄：最後一筆壽命快照不是本輪收尾時，回�
   eq(JSON.stringify(S.history.life),before,'末筆不屬於本輪時，壽命曲線不得被就地改寫');
 });
 
-/* ---------- 16. 同香火者的擲骰順序＝從本夜風位家起順時針（使用者 2026-09-07 裁定甲） ---------- */
-test('同香火依風位：四家香火一樣多時，先擲的是本夜風位家（風位換人，請走的人就換人）',()=>{
+/* ---------- 16. N1（使用者 2026-09-07 裁定乙）：同香火並列者的擲骰先後＝S.rng() 洗牌 ----------
+   凍結檔 docs/experiments/2026-09-07-acceptance-legend-n1n7.md 的 A3。
+   量法：把 INC_K 拉到 1e9 讓「誰都擲不中」，於是 out.rolls 就是完整的擲序快照，第一筆＝先擲的人。
+   round 固定成 1（舊版的風位序只吃 round，固定 round 之後舊版必然永遠同一家先擲 → 對基準 SHA 必紅
+   在「每一家至少先擲 1 次」這條**行為**斷言上，不是 TypeError）。 */
+test('N1 同香火洗牌：固定 round、四家同 h，200 顆種子裡每一家都先擲過，且沒有任何一家超過 50%',()=>{
   const G=loadGame(TARGET);
-  const M=G.CFG.INC_MAX??3;
-  /* windPid(r)＝WIND_SEQ[(r-1)%4]，WIND_SEQ=[東3,南0,西2,北1]：第 1 夜風位＝東家(3)、第 3 夜風位＝西家(2) */
-  const run=round=>{
-    const S=setup(G);
-    S.round=round;
-    S.rng=alwaysHit;                       /* 骰子必中 ⇒ 唯一決定誰請走的就是「誰先擲」 */
-    shrineNight(G,S,{0:{shrine:0,amt:M},1:{shrine:0,amt:M},2:{shrine:0,amt:M},3:{shrine:0,amt:M}});
-    const w=S.players.filter(p=>legendsOf(p).length);
-    return w.length===1?w[0].id:-1;
-  };
-  eq(run(1),3,'第 1 夜（風位＝東家）四家香火相同 → 請走的應該是東家(id 3)');
-  eq(run(3),2,'第 3 夜（風位＝西家）同一組輸入 → 請走的應該換成西家(id 2)（否則就是還在依座位 id）');
+  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 四家都會擲到，rolls 是完整擲序 */
+  const first=[0,0,0,0]; let n=0;
+  for(let seed=1;seed<=200;seed++){
+    const S=setup(G,seed);
+    S.round=1;                              /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    ok(out&&out.rolls&&out.rolls.length===4,`四家都燒了 1、K 極大 → 這一夜應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
+    first[out.rolls[0].pid]++; n++;
+  }
+  [0,1,2,3].forEach(i=>ok(first[i]>=1,
+    `座位 ${i} 在 200 顆種子裡先擲的次數應該 ≥1（風位序下同一 round 永遠同一家先擲），實際 ${first[i]}（分布 ${first.join('/')})`));
+  [0,1,2,3].forEach(i=>ok(first[i]<=n*0.5,
+    `座位 ${i} 先擲的比例不得超過 50%，實際 ${(first[i]/n*100).toFixed(1)}%（分布 ${first.join('/')})`));
+});
+
+/* ---------- 16c. N1 洗牌無偏：m=4 並列組跑 20000 次，四家首擲比值 ∈[0.95,1.05] ----------
+   為什麼要有這一案（對抗式覆審 HIGH-2）：把 `shrineRollOrder` 的 Fisher–Yates 換成
+   `sort(()=>S.rng()-0.5)`（偏倚洗牌）之後，第 16 案與閘門 A1 **仍然全綠**——因為真實牌局的並列組
+   97.6% 是 m=2，而 V8 的隨機比較子在 m=2 恰好無偏，偏倚只在 m≥3 才顯現；第 16 案的「≤50%」
+   對 m=4 也太寬（偏倚洗牌最壞只到 35.9%）。所以這一案**固定 m=4、把帶收到 [0.95,1.05]、樣本拉到 20000**。
+   量法走**真實路徑**：不直接呼叫匯出的 shrineRollOrder，而是每一輪把四家的 h 重設成同一個值、
+   各燒 1，讓 resolveShrines 自己排序，再讀 out.rolls[0]——這樣舊版（風位序）跑同一案會紅在
+   「比值 4.000」這個**行為數字**上，而不是紅在「沒有這個匯出」的屬性錯誤。 */
+test('N1 洗牌無偏：m=4 同 h 並列組 20000 次，四家首擲比值都在 [0.95,1.05]',()=>{
+  const G=loadGame(TARGET);
+  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 每輪都看得到完整擲序、龕不會關 */
+  const S=setup(G,20260907);
+  S.round=1;                                /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
+  S.players.forEach(p=>{ p.life=10000000; });
+  const sh=S.shrines[0];
+  const N=20000, first=[0,0,0,0];
+  for(let k=0;k<N;k++){
+    S.players.forEach(p=>{ sh.h[p.id]=5; }); /* 每輪重設成同 h（燒 1 之後四家都是 6，並列 m=4） */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    ok(out&&out.rolls&&out.rolls.length===4,`第 ${k} 輪應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
+    first[out.rolls[0].pid]++;
+  }
+  const exp=N/4;
+  [0,1,2,3].forEach(i=>{
+    const r=first[i]/exp;
+    ok(r>=0.95&&r<=1.05,
+      `座位 ${i} 的首擲比值應在 [0.95,1.05]，實際 **${r.toFixed(4)}**（首擲次數 ${first.join('/')}，公平期望各 ${exp}）`);
+  });
+});
+
+/* ---------- 16b. N1 的另一半：h 不同時擲序恆為 h 降冪，且與 seed 無關 ---------- */
+test('N1 不同香火不洗牌：h 不同時 out.rolls 恆為 h 由高到低，50 顆種子完全一致',()=>{
+  const G=loadGame(TARGET);
+  G.CFG.INC_K=1e9;
+  for(let seed=1;seed<=50;seed++){
+    const S=setup(G,seed);
+    S.round=1;
+    S.shrines[0].h[0]=6; S.shrines[0].h[1]=4; S.shrines[0].h[2]=2; S.shrines[0].h[3]=0; /* 燒 1 之後＝7/5/3/1，四家皆相異 */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    eq(out.rolls.map(r=>r.pid).join(','),'0,1,2,3',`seed ${seed}：h 相異時的擲序應恆為 h 降冪`);
+    eq(out.rolls.map(r=>r.h).join(','),'7,5,3,1',`seed ${seed}：擲序對應的 h`);
+  }
 });
 
 /* ---------- 17. 覆審 N2：封籤被 incCap 夾掉時，不得默默發生——要留下事件與計數 ---------- */
@@ -342,6 +393,18 @@ test('封籤被夾要看得見：壽命 3 封 3 → 實燒 2，clip 事件、shr
   const out2=shrineNight(G,S2,{0:{shrine:0,amt:M}});
   eq(out2.clip.length,0,'壽命夠的時候不該有 clip 事件');
   ok(!(S2.shrineClipMsgs&&S2.shrineClipMsgs.length),'壽命夠的時候不該有戰況 log');
+});
+
+/* ---------- 21. N1 決定性（凍結檔 A2）：洗牌只走 S.rng，同一批種子連跑兩次逐位元組相等 ----------
+   反面：引擎裡不得出現 Math.random（洗牌用它就會每次不同、trace 失去可比性）。 */
+test('N1 決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎零 Math.random',()=>{
+  const seeds=Array.from({length:20},(_,i)=>i+1);
+  const tr=()=>{ const g=loadGame(TARGET); g.CFG.LEGEND_ON=true; return JSON.stringify(g.trace(seeds)); };
+  const a=tr(), b=tr();
+  ok(a===b,`兩次 trace 應逐位元組相等（長度 ${a.length}/${b.length}）`);
+  const html=fs.readFileSync(TARGET,'utf8');
+  const code=html.match(/<script>[\s\S]*?<\/script>/)[0];
+  eq((code.match(/Math\.random/g)||[]).length,0,'引擎 <script> 段裡 Math.random 的出現次數');
 });
 
 console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
