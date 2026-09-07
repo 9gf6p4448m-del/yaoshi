@@ -1,0 +1,34 @@
+{
+ "n": 10000,
+ "variants": [
+  "b"
+ ],
+ "roles": [
+  "hongyi"
+ ],
+ "aiOverride": {},
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "b",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.2374,
+   "surv": 9.6932,
+   "life": 11.0018,
+   "len": 9.6932,
+   "hookCalls": {
+    "onBattle": 91511,
+    "onNightEnd": 96674,
+    "onAiCurse": 78825,
+    "onBidEff": 137562,
+    "onBidSettle": 136021,
+    "onWinItem": 89170
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 1020593
+  }
+ ]
+}
