@@ -96,6 +96,9 @@ node tests/legend.test.mjs old-l.html        # → 18 過 / 2 失敗，兩條都
 | L4 六策略勝率 | — | 22.96／20.91／8.14／32.53／33.68／15.77 | **同左** | 各 ≤40% ✅ |
 
 二版與一版逐值相同，與 §2 的「N7 是死碼」互相印證。
+★證據檔說明★：`gate-10000-v2.md` 這一趟在 L4 跑到第 3 個策略時被連線中斷殺掉（L0／L1″／A1／A6／L2／L3′／L5 都已完整落檔），
+**L4 另外用 `node tests/tools/legend-gate.mjs 10000 --only=L4` 補跑一整輪**，落在 `gate-10000-v2-L4.md`（六策略全 ✅，1558s）。
+被中斷那半輪已跑出的三個策略（splitter 22.96／greedy 20.91／hoarder 8.14）與補跑逐值相同。
 **狀態① 的說明**：v6 的「北、東綠」是風位不公平的副產品（那一夜輪不到它們先擲）；改成洗牌之後四家收益矩陣
 逐格相同、於是四家一起紅——這是 N1 生效的證據，不是變差。單夜快照量不到「洗牌讓長期期望均等」。
 
@@ -106,10 +109,13 @@ for f in tests/*.test.mjs; do node $f; done
 ```
 `aistake` 8-0／`conscap` 5-0／`duel-desync` 7 綠／**`legend` 20 過 0 失敗**／`nightrules` 16 綠／`review` 28-0／`wish16` 36-0 ⇒ **7 套全綠**。
 
-| 跑法 | console error／pageerror | 請走 | 天亮回天 |
-|---|---|---|---|
-| `node tests/tools/legend-drive.mjs …/legend-drive-v2.json`（不帶 `--legend`＝預設開） | （見 evidence/`legend-drive-v2.log`） | | |
-| `… legend-drive-v2-dawn.json --seeds=1,4,6,8,9,11 --burn=0` | （見 evidence/`legend-drive-v2-dawn.log`） | | |
+| 跑法 | console error／pageerror／requestfailed | 請走 | 天亮回天 | 熱座交棒 `.incbar` |
+|---|---|---|---|---|
+| `node tests/tools/legend-drive.mjs …/legend-drive-v2.json --port=8871`（**不帶 `--legend`＝走 CFG 預設**） | 0／0／0 ✅ | **24 次** ✅ | 0 龕（預設跑法真人每夜燒滿，三尊必被請完） | 0 ✅ |
+| `… legend-drive-v2-dawn.json --port=8873 --seeds=1,4,6,8,9,11 --burn=0` | 0／0／0 ✅ | 12 次 ✅ | **6 龕**（結出 1 筆階段獎勵）✅ | — |
+
+兩支都印出 `CFG.LEGEND_ON=true`、逐局「神龕列／燒香列」皆 `true/true`。
+依 §2.1 改寫後的 A0-b（「預設走到請走；回天由預設或 `--burn=0` 任一走到」）⇒ **✅**。
 
 ### 橫向溢出：❌（照字面），而且**使用者側真的會看到變化**
 一版報告寫「與基準逐值相同」是**只比了 ON-vs-ON**（基準 `?legend=1` vs 新版預設開），那一組確實逐值相同——
