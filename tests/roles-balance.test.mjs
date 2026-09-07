@@ -171,7 +171,8 @@ test('紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆�
 /* 覆審 H2 丙（使用者裁定）：保命底線改成「壽命 ≥CFG.PAWN_KEEP 保 PAWN_KEEP，否則保 1」。
    二版的 `cost=max(0, life-8)` 在 life<8 時恆為 0 ⇒ 當鋪低血時出價免費、對決免傷（「白拿」）。
    下面四案照使用者給的驗收值：life=5 出價 13 → 實付 4 剩 1；life=5 受傷 40 → 剩 1；
-   life=20 出價 30 → 實付 12 剩 8；life=−30 夜末 → 8。前兩案對三版必紅（三版會給 0）。 */
+   life=20 出價 30 → 實付 12 剩 8；**life=−30 夜末 → 1**（主對話 2026-09-07 更正：原寫 8 與丙公式互斥，
+   夜末也走 pawnFloor、life 已 ≤0 ⇒ 保 1，這是收緊）。前兩案對三版必紅（三版會給 0）。 */
 test('陰間當鋪 H2：life=5 出價 13 → 實付 4、剩 1（不再白拿）',()=>{
   G.makeState('solo',1,['dangpu']);
   const p=G.S.players.find(q=>q.roleId==='dangpu');
@@ -199,12 +200,12 @@ test('陰間當鋪 H2：life=20 出價 30 → 實付 12、剩 8',()=>{
   eq(ctx.cost,12,'實付金額');
   eq(p.life-ctx.cost,8,'付完剩下的壽命');
 });
-test('陰間當鋪 H2：life=−30 夜末 → 8',()=>{
+test('陰間當鋪 H2：life=−30 夜末 → 1（夜末也走 pawnFloor，不從 ≤0 免費回到 8）',()=>{
   G.makeState('solo',1,['dangpu']);
   const p=G.S.players.find(q=>q.roleId==='dangpu');
   p.life=-30; p.pawned=false; p.bag=[];
   G.applyHooks('onNightEnd',{p,log:[]},p);
-  eq(p.life,8,'夜末典當後的壽命');
+  eq(p.life,1,'夜末典當後的壽命');
 });
 
 /* ===================== 覆審 H3 乙：斷手被動只走對決路徑 ===================== */
@@ -224,13 +225,15 @@ test('斷手書生 H3：對決路徑仍然生效（不是把被動整個拆掉�
     '紙紮共鳴等級仍應高於無被動者');
 });
 
-test('陰間當鋪：夜末結算致死時典當保住 CFG.PAWN_KEEP 壽命（不再是 1）',()=>{
+/* 二版原本斷言「夜末保住 CFG.PAWN_KEEP」；四版更正後夜末走 pawnFloor（life 已 ≤0 ⇒ 保 1），
+   所以這一案改成守「典當有發生、袋中留下縛靈鎖、壽命被接回正數」，數值那一格由上面的 H2 四案負責。 */
+test('陰間當鋪：夜末結算致死時典當接住（壽命回正、袋中留下縛靈鎖）',()=>{
   G.makeState('solo',1,['dangpu']);
   const p=G.S.players.find(q=>q.roleId==='dangpu');
   p.life=0; p.pawned=false; p.bag=[];
   const log=[];
   G.applyHooks('onNightEnd',{p,log},p);
-  eq(p.life,CFG.PAWN_KEEP,'夜末典當後的壽命');
+  eq(p.life,1,'夜末典當後的壽命（life=0 ⇒ floor=1）');
   eq(CFG.PAWN_KEEP,8,'CFG.PAWN_KEEP（二版裁定值）');
   ok(p.bag.some(x=>x.n==='縛靈鎖'),'典當應在袋中留下縛靈鎖');
 });

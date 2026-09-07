@@ -815,7 +815,8 @@ function mainFaction(p){
    為什麼要分兩段：二版把保命值從 1 提到 8 之後，`cost=max(0, life-8)` 在 life<8 時恆為 0
    ⇒ 當鋪在低血時**出價完全免費、對決完全免傷**（覆審 H2 的「白拿」）。這個窗口在保命值是 1 的
    年代不可達（life<1 就已經死了），所以改成 8 才露出來。
-   三處掛點（onBidSettle 實付／onBattle 受傷／onNightEnd 夜末）共用這一支，不得各寫一份。 */
+   三處掛點（onBidSettle 實付／onBattle 受傷／onNightEnd 夜末）共用這一支，不得各寫一份。
+   夜末那條路的 p.life 已經 ≤0 ⇒ floor 恆為 1（主對話 2026-09-07 更正：不留「從 ≤0 免費回到 8」的特例）。 */
 function pawnFloor(p){ return p.life>=CFG.PAWN_KEEP?CFG.PAWN_KEEP:1; }
 function pawnNow(p){
   if(p.pawned) return false;
@@ -1093,7 +1094,7 @@ const ROLES = {
      已知微縫：夜間結算「途中」由別的 hook 直接扣血致死（如孝女白琴的 −1 恰好補刀）不在這三個
      掛點之間，救不到——屬既有 hook 架構的邊界，接受並記錄於 roles-report.md。 */
   dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",pool:true,order:95, /* life0d −4→0（2026-09-07 角色平衡卷，使用者裁定「都照建議」）：欄位省略＝起始壽命 CFG.LIFE */ /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
-    desc:`上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——壽命 ${CFG.PAWN_KEEP} 以上保住 ${CFG.PAWN_KEEP}、不足則保住 1，袋中多一件縛靈鎖。AI 時詐術喊高價`,
+    desc:`上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——壽命 ${CFG.PAWN_KEEP} 以上時保住 ${CFG.PAWN_KEEP}；不足 ${CFG.PAWN_KEEP} 時至少保住 1，袋中多一件縛靈鎖。AI 時詐術喊高價`,
     ai:{aggr:0.8,spite:0.1,markReact:"avoid"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     hooks:{
       onBudget(ctx){ ctx.budget=ctx.p.life+8; },     /* 「改為」壽命+8（規格） */
@@ -1117,10 +1118,9 @@ const ROLES = {
       onNightEnd(ctx){
         const p=ctx.p;
         if(p.life<=0 && pawnNow(p)){
-          /* 夜末這條路的 p.life 已經被別的 hook 扣成 ≤0，「壽命 ≥PAWN_KEEP」在這裡問不出東西
-             （pawnFloor(p) 會恆回 1）。使用者的驗收案指定「life=−30 夜末 → 8」⇒ 這條路給滿額。
-             ★這一點與 H2 丙的字面公式不一致，已在報告與凍結檔 §2.1 標明待確認★ */
-          p.life=CFG.PAWN_KEEP;
+          /* 夜末也走同一支 pawnFloor（主對話 2026-09-07 更正）：這條路的 p.life 已經被別的 hook
+             扣成 ≤0 ⇒ floor 恆為 1。三處掛點語意一致，不留「從 ≤0 免費回到 8」的特例。 */
+          p.life=pawnFloor(p);
           ctx.log.push(`🏮 ${p.name} 抵押魂魄——保住 ${p.life} 壽命，袋中多了「縛靈鎖」`);
         }
       },
