@@ -4,11 +4,14 @@
    跑法（repo 根）：
      git show ca14065:index.html > old-l.html
      node tests/tools/legend-gate.mjs 10000 [--only=L0,L1] [--old=old-l.html] [--new=index.html]
-   L0 kill switch（雙向）／L1″ 優勢策略窮舉／L2 活性／L3′ 反事實有感不支配／L4 無支配策略／L5 節奏。
+   L0 kill switch（雙向）／L1″ 優勢策略窮舉／L2 活性／L3′ 反事實有感不支配／L4 無支配策略／L5 節奏
+   ＋ A1 擲序公平性（N1 洗牌）／A6 天井鎖死歸零（N7），兩者的凍結檔是
+   docs/experiments/2026-09-07-acceptance-legend-n1n7.md。
    `--kp=K,P` 只給「鑑別力對照」用：暫時覆寫載入後的 CFG.INC_K／CFG.INC_PITY 再跑同一條 L1″，
    **不碰 index.html**、也不當判定依據（判定一律用檔案裡的值）。
-   ★CFG.LEGEND_ON 自 2026-09-07 起**預設 false**（合併策略）★：本腳本一律**顯式**把它設成 true 才跑
-   L1′–L5，不依賴預設；L0 反過來用「原封不動的預設」跟基準比。
+   ★CFG.LEGEND_ON 自 v0.44（2026-09-07 第二次裁定）起**預設 true**★：本腳本仍一律**顯式**把它設成 true
+   才跑 L1″–L5／A1／A6，不依賴預設；L0 的兩支跟著對調口徑——「原封不動的預設」現在必須**不等於**基準，
+   「顯式 LEGEND_ON=false」才是要跟基準逐位元組相等的那一支。
    L6（既有測試＋單元測試＋Playwright）與 L7（diff 範圍）不在本腳本，見報告。 */
 import fs from 'fs';
 import path from 'path';
@@ -31,27 +34,32 @@ const say=(...s)=>console.log(s.join(' '));
 const t0=Date.now(); const lap=()=>`（${((Date.now()-t0)/1000).toFixed(0)}s）`;
 const verdict={};
 
-const DEF=loadGame(NEW);                       /* 原封不動的預設（LEGEND_ON=false）——L0 的一半與各處 OFF 對照 */
-const G=loadGame(NEW); G.CFG.LEGEND_ON=true;   /* 顯式打開——L1′~L5 全部跑這一份 */
+const DEF=loadGame(NEW);                       /* 原封不動的預設（v0.44 起＝LEGEND_ON:true）——L0 的一半 */
+const OFF=loadGame(NEW); OFF.CFG.LEGEND_ON=false; /* 顯式關掉——L0 的另一半與 L4／L5 的 OFF 對照 */
+const G=loadGame(NEW); G.CFG.LEGEND_ON=true;   /* 顯式打開——L1″~L5／A1／A6 全部跑這一份 */
 if(KP.length===2){ G.CFG.INC_K=KP[0]; G.CFG.INC_PITY=KP[1]; }
 const O=fs.existsSync(OLD)?loadGame(OLD):null;
 say(`# 傳說三尊「請神」閘門　n=${N}　新版=${path.basename(NEW)}　基準=${path.basename(OLD)}`);
-say(`預設值：LEGEND_ON=${DEF.CFG.LEGEND_ON}（合併策略：預設關、?legend=1 試玩）`);
+say(`預設值：LEGEND_ON=${DEF.CFG.LEGEND_ON}（v0.44 起預設開、?legend=0 可關）`);
 say(`顯式打開後的數值：INC_MAX=${G.CFG.INC_MAX}　INC_K=${G.CFG.INC_K}　INC_PITY=${G.CFG.INC_PITY}　INC_GIFT_P=${G.CFG.INC_GIFT_P}　INC_AI=${JSON.stringify(G.CFG.INC_AI)}`);
 if(KP.length===2) say(`★本次帶了 --kp=${KP.join(',')}：INC_K／INC_PITY 被**暫時覆寫**（只在記憶體裡，index.html 沒動）——這是鑑別力對照，不是判定。★`);
 say('');
 
 /* ================= L0 kill switch（雙向）================= */
 if(want('L0')){
-  say('## L0 Kill switch（**預設**的 trace(1..20) 與基準 ca14065 逐位元組相等；顯式 LEGEND_ON=true 必不等）');
+  say('## L0／A0 Kill switch（**顯式 LEGEND_ON=false** 的 trace(1..20) 與基準逐位元組相等；預設（v0.44 起＝開）必不等且 S.shrines 非空）');
   if(!O){ say('❌ 找不到基準檔 '+OLD); verdict.L0=false; }
   else{
     const tr=g=>JSON.stringify(g.trace(Array.from({length:20},(_,i)=>i+1)));
-    const base=tr(O), def=tr(DEF), on=tr(G);
-    const eqDef=(def===base), neOn=(on!==base);
-    say(`- 預設（LEGEND_ON=${DEF.CFG.LEGEND_ON}） vs 基準：長度 ${def.length}/${base.length}，${eqDef?'逐位元組相等 ✅':'**不相等** ❌'}`);
-    say(`- 顯式 LEGEND_ON=true vs 基準：長度 ${on.length}/${base.length}，${neOn?'不相等 ✅':'**相等** ❌（新內容根本沒進牌局）'}`);
-    verdict.L0=eqDef&&neOn;
+    const base=tr(O), off=tr(OFF), def=tr(DEF);
+    const eqOff=(off===base), neDef=(def!==base);
+    /* 預設路徑真的把神龕建起來了嗎（只驗「不相等」的話，差異也可能來自別的地方） */
+    const D2=loadGame(NEW); D2.makeState('solo',1);
+    const shrinesOK=!!(D2.S&&D2.S.shrines&&D2.S.shrines.length===3);
+    say(`- 顯式 LEGEND_ON=false vs 基準：長度 ${off.length}/${base.length}，${eqOff?'逐位元組相等 ✅':'**不相等** ❌'}`);
+    say(`- 預設（LEGEND_ON=${DEF.CFG.LEGEND_ON}） vs 基準：長度 ${def.length}/${base.length}，${neDef?'不相等 ✅':'**相等** ❌（新內容根本沒進牌局）'}`);
+    say(`- 預設載入後 makeState('solo',1) 的 S.shrines：${D2.S&&D2.S.shrines?D2.S.shrines.length+' 龕':'不存在'} ${shrinesOK?'✅':'❌'}`);
+    verdict.L0=eqOff&&neDef&&shrinesOK;
     say(`- 判定：${verdict.L0?'✅':'❌'} ${lap()}`);
   }
   say('');
@@ -118,7 +126,7 @@ function stageReward(h){
    以及「燒 0」「燒 INC_MAX」各自被哪些對手組合打敗（逐家）。 */
 function dominantScan(st,fixedV){
   const K=G.CFG.INC_K, P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
-  if(!G.S) G.makeState('solo',1); /* shrineOrderKey 讀 WIND_SEQ 與傳入的 round，但需要 S 存在 */
+  if(!G.S) G.makeState('solo',1);
   /* fixedV 有值＝L1″：四家共用同一個 V（由異質四袋互打取中位數算出），不再逐席重算 */
   const val=(fixedV!=null)?[0,1,2,3].map(()=>({v:fixedV})):[0,1,2,3].map(i=>legendValue(st,i));
   const options=Array.from({length:M+1},(_,i)=>i);
@@ -126,15 +134,22 @@ function dominantScan(st,fixedV){
     const out=[0,0,0,0];
     const h=[0,1,2,3].map(i=>st.h[st.target[i]][i]+choices[i]);
     for(let s=0;s<3;s++){
-      /* 擲骰順序與引擎同一條規則（使用者 2026-09-07 裁定甲）：h 高到低；同 h 從本夜風位家起順時針。
-         直接呼叫 index.html 匯出的 shrineOrderKey(pid, round)，不在治具裡另抄一份排序鍵。 */
-      const rollers=[0,1,2,3].filter(i=>st.target[i]===s&&choices[i]>0)
-        .sort((a,b)=>h[b]-h[a]||G.shrineOrderKey(a,st.round)-G.shrineOrderKey(b,st.round));
+      /* 擲骰資格與順序都跟引擎同一條規則（使用者 2026-09-07 裁定：N1 乙＋N7 甲）：
+         資格＝「本夜燒了香」∪「加總後 h≥P」（N7）；順序＝h 高到低，**同 h 隨機洗牌**（N1）。
+         單夜快照是個機率模型，所以這裡把「隨機洗牌」展開成**對所有與 h 降冪相容的排列取等權平均**
+         ——那正是 Fisher–Yates 的分布。組內人數 ≤4 ⇒ 至多 24 種排列，全列舉。 */
+      const rollers=[0,1,2,3].filter(i=>st.target[i]===s&&(choices[i]>0||h[i]>=P));
       const anyH=[0,1,2,3].filter(i=>st.target[i]===s&&h[i]>0);
-      let alive=1; const win=[0,0,0,0]; let closeP=0;
-      for(const i of rollers){
-        const c=h[i]>=P?1:h[i]/(h[i]+K);
-        win[i]=alive*c; closeP+=win[i]; alive*=(1-c);
+      const perms=a=>a.length<=1?[a]:a.flatMap((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).map(r=>[x,...r]));
+      const orders=perms(rollers).filter(o=>o.every((v,k)=>k===0||h[o[k-1]]>=h[v]));
+      const win=[0,0,0,0]; let closeP=0;
+      for(const o of orders){
+        let alive=1;
+        for(const i of o){
+          const c=h[i]>=P?1:h[i]/(h[i]+K);
+          const w=alive*c/orders.length;
+          win[i]+=w; closeP+=w; alive*=(1-c);
+        }
       }
       for(const i of anyH){
         out[i]+=win[i]*val[i].v;                       /* 自己請到 */
@@ -225,7 +240,39 @@ if(want('L1')){
 
 /* ================= L2／L3′／L5：預設 AI 桌逐局統計（顯式 LEGEND_ON=true）================= */
 let games=null;
-if(want('L2')||want('L3')||want('L5')) games=SEEDS.map(s=>G.playPolicyGame(s,{}));
+if(want('L2')||want('L3')||want('L5')||want('A1')||want('A6')) games=SEEDS.map(s=>G.playPolicyGame(s,{}));
+/* ===== A1 N1 擲序公平性（凍結檔 2026-09-07-acceptance-legend-n1n7.md）=====
+   只數並列組（同龕、加總後同 h、人數 ≥2）：四個座位的「實際排第一的次數 ÷ 公平期望（每組 1/m）」
+   各自要落在 [0.92,1.08]，χ²（df=3）≤ 11.34。
+   計數是**引擎自己**在 shrineRollOrder 裡記的（S.shrineStat.tieFirst／tieExp），治具不另建模型——
+   量的就是真實路徑上那一次排序的結果。 */
+if(want('A1')){
+  say('## A1 N1 擲序公平性（並列組裡實際排第一的次數 ÷ 公平期望；四座位各 ∈[0.92,1.08]、χ²(df=3) ≤ 11.34）');
+  const O4=[0,0,0,0], E4=[0,0,0,0]; let groups=0;
+  games.forEach(g=>{ const st=g.shrineStat; if(!st||!st.tieFirst) return;
+    groups+=st.tieGroups|0;
+    for(let i=0;i<4;i++){ O4[i]+=st.tieFirst[i]; E4[i]+=st.tieExp[i]; } });
+  const ratio=[0,1,2,3].map(i=>E4[i]?O4[i]/E4[i]:NaN);
+  const chi=[0,1,2,3].reduce((s,i)=>s+(E4[i]?Math.pow(O4[i]-E4[i],2)/E4[i]:0),0);
+  say(`- 並列組總數 ${groups}（n=${N} 局）`);
+  say('| 座位 | 實際先擲 | 公平期望 | 比值 | 門檻 [0.92,1.08] |'); say('|---|---|---|---|---|');
+  const inBand=[0,1,2,3].map(i=>ratio[i]>=0.92&&ratio[i]<=1.08);
+  [0,1,2,3].forEach(i=>say(`| ${i} | ${O4[i]} | ${E4[i].toFixed(2)} | **${ratio[i].toFixed(3)}** | ${inBand[i]?'✅':'❌'} |`));
+  say(`- χ²(df=3)＝**${chi.toFixed(2)}**　門檻 ≤11.34 ${chi<=11.34?'✅':'❌'}`);
+  verdict.A1=inBand.every(Boolean)&&chi<=11.34&&groups>0;
+  say(`- 判定：${verdict.A1?'✅':'❌'}${groups?'':'（並列組 0 組＝這條沒有量到東西，視為未通過）'} ${lap()}`); say('');
+}
+/* ===== A6 天井鎖死歸零（N7）=====
+   settleShrinesEnd（天亮回天）結清時，「h≥INC_PITY 且該龕仍 open」的人次必須是 0——
+   N7 之後，到達天井的那一夜就已經免燒必請，不可能帶著天井香火撐到天亮。 */
+if(want('A6')){
+  say('## A6 天井鎖死歸零（回天結清時 h≥INC_PITY 的人次＝0）');
+  let dp=0, dawn=0;
+  games.forEach(g=>{ const st=g.shrineStat; if(!st) return; dp+=st.dawnPity|0; dawn+=st.dawn|0; });
+  say(`- 回天收攤的龕 ${dawn} 座（n=${N} 局）；其中結清時仍握著 h≥${G.CFG.INC_PITY} 的人次：**${dp}**　門檻 ＝0 ${dp===0?'✅':'❌'}`);
+  verdict.A6=(dp===0);
+  say(`- 判定：${verdict.A6?'✅':'❌'} ${lap()}`); say('');
+}
 if(want('L2')){
   say('## L2 活性（預設 AI 桌：至少一尊被請走的局 ≥60%；三尊各自被請走的局 ≥25%）');
   const taken=[0,0,0]; let any=0;
@@ -313,22 +360,22 @@ if(want('L5')){
   const dist={}; lens.forEach(l=>dist[l]=(dist[l]||0)+1);
   say(`- 中位 **${med}** 夜（門檻 10～12）　平均 ${avg.toFixed(2)} 夜`);
   say(`- 分布：${Object.keys(dist).sort((a,b)=>a-b).map(k=>`${k}夜 ${(dist[k]/N*100).toFixed(1)}%`).join('　')}`);
-  const off=SEEDS.slice(0,Math.min(N,2000)).map(s=>DEF.playPolicyGame(s,{}).gameLength).sort((a,b)=>a-b);
-  say(`- 對照（預設＝LEGEND_ON=false，同一批前 ${off.length} 顆種子）：中位 ${off[Math.floor(off.length/2)]} 夜、平均 ${(off.reduce((a,b)=>a+b,0)/off.length).toFixed(2)} 夜`);
+  const off=SEEDS.slice(0,Math.min(N,2000)).map(s=>OFF.playPolicyGame(s,{}).gameLength).sort((a,b)=>a-b);
+  say(`- 對照（顯式 LEGEND_ON=false，同一批前 ${off.length} 顆種子）：中位 ${off[Math.floor(off.length/2)]} 夜、平均 ${(off.reduce((a,b)=>a+b,0)/off.length).toFixed(2)} 夜`);
   verdict.L5=med>=10&&med<=12;
   say(`- 判定：${verdict.L5?'✅':'❌'} ${lap()}`); say('');
 }
 
 /* ================= L4 無支配策略 ================= */
 if(want('L4')){
-  say('## L4 無支配策略（座位 0 勝率各 ≤40%；位移＝相對預設 LEGEND_ON=false 的同一策略）');
+  say('## L4 無支配策略（座位 0 勝率各 ≤40%；位移＝相對顯式 LEGEND_ON=false 的同一策略）');
   const pols=['splitter','greedy','hoarder','specialist','incenseMax','incenseNever'];
   say('| 策略 | LEGEND_ON=false | LEGEND_ON=true | 位移 | 判定 |'); say('|---|---|---|---|---|');
   let ok=true; const rows={};
   for(const p of pols){
     const on=G.runMany({seeds:SEEDS,policies:{0:G.POLICIES[p]}}).winRate[0];
     rows[p]=on;
-    const offP=DEF.POLICIES[p]?DEF.runMany({seeds:SEEDS,policies:{0:DEF.POLICIES[p]}}).winRate[0]:null;
+    const offP=OFF.POLICIES[p]?OFF.runMany({seeds:SEEDS,policies:{0:OFF.POLICIES[p]}}).winRate[0]:null;
     const pass=on<=0.40; if(!pass) ok=false;
     say(`| ${p} | ${offP==null?'—':pct(offP)} | ${pct(on)} | ${offP==null?'—':((on-offP)>=0?'+':'')+((on-offP)*100).toFixed(2)+'pp'} | ${pass?'✅':'❌'} |`);
   }

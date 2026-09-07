@@ -304,21 +304,98 @@ test('回天不砸紀錄：最後一筆壽命快照不是本輪收尾時，回�
   eq(JSON.stringify(S.history.life),before,'末筆不屬於本輪時，壽命曲線不得被就地改寫');
 });
 
-/* ---------- 16. 同香火者的擲骰順序＝從本夜風位家起順時針（使用者 2026-09-07 裁定甲） ---------- */
-test('同香火依風位：四家香火一樣多時，先擲的是本夜風位家（風位換人，請走的人就換人）',()=>{
+/* ---------- 16. N1（使用者 2026-09-07 裁定乙）：同香火並列者的擲骰先後＝S.rng() 洗牌 ----------
+   凍結檔 docs/experiments/2026-09-07-acceptance-legend-n1n7.md 的 A3。
+   量法：把 INC_K 拉到 1e9 讓「誰都擲不中」，於是 out.rolls 就是完整的擲序快照，第一筆＝先擲的人。
+   round 固定成 1（舊版的風位序只吃 round，固定 round 之後舊版必然永遠同一家先擲 → 對基準 SHA 必紅
+   在「每一家至少先擲 1 次」這條**行為**斷言上，不是 TypeError）。 */
+test('N1 同香火洗牌：固定 round、四家同 h，200 顆種子裡每一家都先擲過，且沒有任何一家超過 50%',()=>{
   const G=loadGame(TARGET);
-  const M=G.CFG.INC_MAX??3;
-  /* windPid(r)＝WIND_SEQ[(r-1)%4]，WIND_SEQ=[東3,南0,西2,北1]：第 1 夜風位＝東家(3)、第 3 夜風位＝西家(2) */
-  const run=round=>{
-    const S=setup(G);
-    S.round=round;
-    S.rng=alwaysHit;                       /* 骰子必中 ⇒ 唯一決定誰請走的就是「誰先擲」 */
-    shrineNight(G,S,{0:{shrine:0,amt:M},1:{shrine:0,amt:M},2:{shrine:0,amt:M},3:{shrine:0,amt:M}});
-    const w=S.players.filter(p=>legendsOf(p).length);
-    return w.length===1?w[0].id:-1;
-  };
-  eq(run(1),3,'第 1 夜（風位＝東家）四家香火相同 → 請走的應該是東家(id 3)');
-  eq(run(3),2,'第 3 夜（風位＝西家）同一組輸入 → 請走的應該換成西家(id 2)（否則就是還在依座位 id）');
+  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 四家都會擲到，rolls 是完整擲序 */
+  const first=[0,0,0,0]; let n=0;
+  for(let seed=1;seed<=200;seed++){
+    const S=setup(G,seed);
+    S.round=1;                              /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    ok(out&&out.rolls&&out.rolls.length===4,`四家都燒了 1、K 極大 → 這一夜應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
+    first[out.rolls[0].pid]++; n++;
+  }
+  [0,1,2,3].forEach(i=>ok(first[i]>=1,
+    `座位 ${i} 在 200 顆種子裡先擲的次數應該 ≥1（風位序下同一 round 永遠同一家先擲），實際 ${first[i]}（分布 ${first.join('/')})`));
+  [0,1,2,3].forEach(i=>ok(first[i]<=n*0.5,
+    `座位 ${i} 先擲的比例不得超過 50%，實際 ${(first[i]/n*100).toFixed(1)}%（分布 ${first.join('/')})`));
+});
+
+/* ---------- 16b. N1 的另一半：h 不同時擲序恆為 h 降冪，且與 seed 無關 ---------- */
+test('N1 不同香火不洗牌：h 不同時 out.rolls 恆為 h 由高到低，50 顆種子完全一致',()=>{
+  const G=loadGame(TARGET);
+  G.CFG.INC_K=1e9;
+  for(let seed=1;seed<=50;seed++){
+    const S=setup(G,seed);
+    S.round=1;
+    S.shrines[0].h[0]=6; S.shrines[0].h[1]=4; S.shrines[0].h[2]=2; S.shrines[0].h[3]=0; /* 燒 1 之後＝7/5/3/1，四家皆相異 */
+    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+    eq(out.rolls.map(r=>r.pid).join(','),'0,1,2,3',`seed ${seed}：h 相異時的擲序應恆為 h 降冪`);
+    eq(out.rolls.map(r=>r.h).join(','),'7,5,3,1',`seed ${seed}：擲序對應的 h`);
+  }
+});
+
+/* ---------- 18. N7（使用者 2026-09-07 裁定甲）：h 到天井者本夜免燒香也具擲骰資格、必成 ----------
+   凍結檔 A4。動機：燒香上限＝壽命−1（裁定甲）的必然後果是「壽命剩 1 的人到了天井卻永遠請不走」。
+   對基準 SHA 必紅在 takenBy（舊版的 rollers 只收「本夜燒過香的人」）。 */
+test('N7 天井免燒：壽命 1、h=天井、本夜完全沒封籤 → 照樣請走，壽命一點都不扣',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const P=G.CFG.INC_PITY??9;
+  S.rng=alwaysFail;                          /* 骰子必失敗 ⇒ 請得走就只可能是天井那條路 */
+  S.players[0].life=1;                       /* incCap=0：這個人一輩子再也燒不出任何香 */
+  S.shrines[0].h[0]=P;
+  const out=shrineNight(G,S,{0:null,1:null,2:null,3:null});
+  eq(S.shrines[0].takenBy,0,'h 已達天井、壽命 1 燒不動的人，本夜應該直接請走第 0 龕');
+  const r=(out&&out.rolls||[]).filter(x=>x.pid===0&&x.shrine===0);
+  eq(r.length,1,'應該有一筆屬於他的擲骰紀錄');
+  eq(r[0].pity,true,'那一筆應該標記為天井必成');
+  eq((out.burn||[]).filter(b=>b.pid===0).length,0,'免燒 ⇒ 不得有任何燒香紀錄');
+  eq(S.players[0].life,1,'免燒 ⇒ 壽命一點都不該少');
+  eq(legendsOf(S.players[0]).length,1,'那一尊應該進了他的袋子');
+});
+
+test('N7 兩龕各自結算：天井者本夜封籤燒在別的龕 → 天井龕免費請走、另一龕照常擲',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const P=G.CFG.INC_PITY??9;
+  S.rng=alwaysFail;                          /* 龕 1 那一擲必失敗，用來確認「照常擲」而不是也白拿 */
+  S.shrines[0].h[0]=P;                       /* 對龕 0 已達天井 */
+  const before=S.players[0].life;
+  const out=shrineNight(G,S,{0:{shrine:1,amt:2},1:null,2:null,3:null});
+  eq(S.shrines[0].takenBy,0,'龕 0（天井）應該免費被他請走');
+  eq(S.shrines[1].open,true,'龕 1 的那一擲失敗 ⇒ 龕 1 仍開著');
+  eq((out.rolls||[]).length,2,`應該有兩筆擲骰紀錄（龕 0 天井＋龕 1 照常擲），實際 ${JSON.stringify(out.rolls)}`);
+  eq(out.rolls[0].shrine,0,'第一筆在龕 0');
+  eq(out.rolls[0].pity,true,'龕 0 那一筆是天井必成');
+  eq(out.rolls[1].shrine,1,'第二筆在龕 1');
+  eq(out.rolls[1].pity,false,'龕 1 那一筆不是天井（h 只有 2）');
+  eq(S.players[0].life,before-2,'燒在龕 1 的 2 點壽命照扣');
+  eq(legendsOf(S.players[0]).length,1,'只請到龕 0 那一尊');
+});
+
+/* ---------- 20. N7 附帶（凍結檔 A5）：AI 不對已達天井的龕白燒香 ---------- */
+test('N7 AI 不白燒：對某龕 h≥天井時，aiIncense 改拜下一順位的系（50 顆種子都不燒在天井龕）',()=>{
+  const G=loadGame(TARGET);
+  const P=G.CFG.INC_PITY??9;
+  for(let seed=1;seed<=50;seed++){
+    const S=setup(G,seed);
+    const p=S.players[1];
+    p.life=60; p.alive=true; p.ai=null; p.roleId='human';
+    /* 袋子：祖靈 3 件（第一順位）＋香火 1 件（第二順位）——不設天井時 aiIncense 會拜第 0 龕 */
+    p.bag=[...G.POOL.filter(x=>x.f==='zuling'&&!x.curse).slice(0,3).map(x=>({...x})),
+           {...G.POOL.filter(x=>x.f==='xianghuo'&&!x.curse)[0]}];
+    const base=G.aiIncense?G.aiIncense(p):null;
+    ok(base&&base.shrine===0&&base.amt>0,`seed ${seed}：沒到天井時 AI 應該拜第 0 龕（否則下一條沒有鑑別力），實際 ${JSON.stringify(base)}`);
+    S.shrines[0].h[p.id]=P;                  /* 對第 0 龕已達天井 */
+    const after=G.aiIncense?G.aiIncense(p):null;
+    ok(!after||after.shrine!==0||after.amt===0,
+      `seed ${seed}：已達天井的龕不得再燒，實際 ${JSON.stringify(after)}`);
+    eq(after?after.shrine:1,1,`seed ${seed}：應該改拜第二順位（香火＝第 1 龕）`);
+  }
 });
 
 /* ---------- 17. 覆審 N2：封籤被 incCap 夾掉時，不得默默發生——要留下事件與計數 ---------- */
@@ -342,6 +419,18 @@ test('封籤被夾要看得見：壽命 3 封 3 → 實燒 2，clip 事件、shr
   const out2=shrineNight(G,S2,{0:{shrine:0,amt:M}});
   eq(out2.clip.length,0,'壽命夠的時候不該有 clip 事件');
   ok(!(S2.shrineClipMsgs&&S2.shrineClipMsgs.length),'壽命夠的時候不該有戰況 log');
+});
+
+/* ---------- 21. N1 決定性（凍結檔 A2）：洗牌只走 S.rng，同一批種子連跑兩次逐位元組相等 ----------
+   反面：引擎裡不得出現 Math.random（洗牌用它就會每次不同、trace 失去可比性）。 */
+test('N1 決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎零 Math.random',()=>{
+  const seeds=Array.from({length:20},(_,i)=>i+1);
+  const tr=()=>{ const g=loadGame(TARGET); g.CFG.LEGEND_ON=true; return JSON.stringify(g.trace(seeds)); };
+  const a=tr(), b=tr();
+  ok(a===b,`兩次 trace 應逐位元組相等（長度 ${a.length}/${b.length}）`);
+  const html=fs.readFileSync(TARGET,'utf8');
+  const code=html.match(/<script>[\s\S]*?<\/script>/)[0];
+  eq((code.match(/Math\.random/g)||[]).length,0,'引擎 <script> 段裡 Math.random 的出現次數');
 });
 
 console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
