@@ -5224,10 +5224,16 @@ function policyIncenseMax(p){ return policySplitter(p); }
 policyIncenseMax.inc=p=>{ const sh=incShrineFor(p); const c=Math.min(CFG.INC_MAX,incCap(p)); return (sh&&c>0)?{shrine:sh.i,amt:c}:null; }; /* 同一條夾限（裁定甲） */
 function policyIncenseNever(p){ return policySplitter(p); }
 policyIncenseNever.inc=()=>null;
+/* incenseAi＝出價照 splitter、燒香**明示地**走引擎的追價啟發式（請神 2.0 §二 7）。
+   行為與「splitter 不掛 .inc」相同（resolveShrines 對 undefined 的座位就是跑 aiIncense），
+   分開列一條是為了讓閘門表上「追價 AI」是一個具名的對照組，而不是靠讀者自己記得 splitter 隱含走它。 */
+function policyIncenseAi(p){ return policySplitter(p); }
+policyIncenseAi.inc=p=>aiIncense(p);
 const POLICIES={ greedy:policyGreedy, hoarder:policyHoarder, splitter:policySplitter,
   aiLike:policyAiLike, bargain:policyBargain, sniper:policySniper,
   specialist:policySpecialist, minlegal:policyMinLegal, minlegal2:policyMinLegal2,
-  feeaware:policyFeeAware, incenseMax:policyIncenseMax, incenseNever:policyIncenseNever };
+  feeaware:policyFeeAware, incenseMax:policyIncenseMax, incenseNever:policyIncenseNever,
+  incenseAi:policyIncenseAi };
 /* 無頭跑一整局，供 runMany 統計聚合用。不重用/不修改 simulate()，避免任何動到既有等價基準的風險——
    完全靠 makeState/resolveAuction/resolveBattles/power 這些既有唯讀引擎函式組成，邏輯零重寫。 */
 function playPolicyGame(seed,policies,picks){
