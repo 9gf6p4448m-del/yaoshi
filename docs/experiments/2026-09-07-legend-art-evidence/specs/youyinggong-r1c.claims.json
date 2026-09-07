@@ -1,0 +1,134 @@
+{
+ "name": "有應公 youyinggong r1c (yinqi/haunt)",
+ "_role": "judge.mjs 的機械檢查清單。識別視角＝正視（front）——龕口／碑面／紅布結都在正面。saturation 帶沿用凍結檔的 10%–60%；tri 上限 8000。",
+ "_frozen_at": "動手編譯之前寫定（與 spec 同一支產生器、同一次執行）。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "stone_body",
+   "stage": "MID",
+   "label": "苔石身必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "ghost_ash",
+   "stage": "MID",
+   "label": "haunt 硬條件：腰以下的半透明香灰霧必須存在，材質名必須以 ghost_ 開頭"
+  },
+  {
+   "type": "part_exists",
+   "part": "red_sash",
+   "stage": "MID",
+   "label": "★ 特徵 4：繫腰的紅布必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "roof_tile",
+   "stage": "MID",
+   "label": "★ 特徵 2：朱瓦必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "censer_iron",
+   "stage": "MID",
+   "label": "★ 特徵 3：香爐必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "censer_ear",
+   "stage": "MID",
+   "label": "★ 特徵 3：香爐的金捲耳必須存在（沒有耳就只是一個罐子）"
+  },
+  {
+   "type": "part_exists",
+   "part": "mouth_glow",
+   "stage": "MID",
+   "label": "龕口深處的餘火必須存在，材質名必須正是 mouth_glow"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_wick",
+   "stage": "MID",
+   "label": "燭火必須存在，材質名必須正是 glow_wick"
+  },
+  {
+   "type": "part_signature",
+   "part": "stone_body",
+   "view": "front",
+   "min_share": 0.18,
+   "or_min_span": 0.18,
+   "stage": "MID",
+   "label": "招牌質量（石身）在識別視角要撐得起面積或跨距"
+  },
+  {
+   "type": "part_visible",
+   "part": "red_sash",
+   "view": "front",
+   "min_share": 0.015,
+   "stage": "MID",
+   "label": "★ 特徵 4 的機械化：紅布在正視必須量得到——那是整尊唯一刺眼的紅"
+  },
+  {
+   "type": "part_visible",
+   "part": "ghost_ash",
+   "view": "front",
+   "min_share": 0.06,
+   "stage": "MID",
+   "label": "haunt 下半身虛化必須量得到（不是一條細尾巴）"
+  },
+  {
+   "type": "part_visible",
+   "part": "censer_iron",
+   "view": "front",
+   "min_share": 0.008,
+   "stage": "MID",
+   "label": "★ 特徵 3 的機械化：香爐在正視必須量得到"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "stone_body",
+   "b": "glow_wick",
+   "min_ratio": 3,
+   "view": "front",
+   "stage": "MID",
+   "label": "兩個焦點（石身／燭火）不得等重相爭"
+  },
+  {
+   "type": "style_dark",
+   "view": "front",
+   "max_median_lum": 100,
+   "stage": "MID",
+   "label": "深底：濕黑的東西在識別視角也要讀得出是暗的"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%–60%"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1200,
+   "max": 8000,
+   "stage": "LOW",
+   "label": "三角形預算（09-04 19:30 預算制上限 8000）"
+  }
+ ]
+}
