@@ -725,7 +725,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
-### 11.23 請神 2.0「神債暗標」（2026-09-07，v0.47）——接手前先知道這九件事
+### 11.24 請神 2.0「神債暗標」（2026-09-07，v0.48）——接手前先知道這九件事
 
 規格＝提案 `docs/proposals/2026-09-07-legend-v2-debt-auction.md` §二（11 條）＋驗收凍結
 `docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11）。實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。
@@ -764,6 +764,32 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    `anim-stamp-in` 放大到 2.26 倍 ⇒ 凸出 18.6px，已改 `#east .mark-stamp{left:-6px}`）與**最右那張卡的
    `.pickbox`／`.mybid`**（`right:-4px` ⇒ 3px，已由 `#market{padding:0 5px}` 吸收）。
    定位工具：`tests/tools/overflow-probe.mjs`（對 `#table`）與 `tests/tools/mkt-probe.mjs`（對 `#market`）。
+### 11.23 美術甲「夜市燈火」渲染基礎包（2026-09-07，v0.46）——接手前先知道這六件事
+
+1. **色調映射現在是全域的**：`js/renderer.js` 設 `renderer.toneMapping = ACESFilmicToneMapping`、
+   `toneMappingExposure = ENV.EXPOSURE`、`outputColorSpace = SRGBColorSpace`。v0.45 之前牌桌／市集
+   （玩家 90% 時間看的畫面）**完全沒有色調映射**，ACES 只手刻在 `js/bloom.js` 的合成 shader 裡、
+   而 bloom 只在對決開。改動畫面亮度／材質前先讀 `docs/design/ART_BIBLE.md` §8。
+2. **`js/bloom.js` 不再有任何手刻的映射**：three 只在「畫到畫布」那一趟注入 tonemapping／colorspace，
+   場景畫進 `sceneRT` 那一趟拿到的是**線性未映射值**（所以亮部萃取仍在線性 HDR 上做，順序是對的）；
+   合成那一趟改用 `ShaderMaterial`＋`#include <tonemapping_fragment>`／`<colorspace_fragment>`。
+   **不要改回 RawShaderMaterial**——Raw 不吃 three 的注入，改回去等於牌桌與對決各走一條曲線。
+   SwiftShader 上 ShaderMaterial 會連結失敗，但 `bloomOK` 在軟體 GL 上根本不呼叫 `bloom.render()`，
+   那支 program 不會被編譯；`BRIGHT`／`BLUR` 兩支維持 Raw 不動。
+   換 three 版本時，這一步是最該回歸的地方（chunk 名稱在 r152 從 `encodings_fragment` 改名過）。
+3. **bloom 的 `threshold` 跟曝光綁在一起**：曝光一改，亮部萃取的門檻要跟著重調（v0.46 從 0.5 調到 0.9）。
+   改 `ENV.EXPOSURE` 而不動 threshold，對決會整片發光。
+4. **場景常數只有一個地方**：`js/scene-env.js` 的 `ENV`（曝光、穹頂色站、霧色、剪影色、暈角）與
+   `LANTERNS`（四盞燈籠的色溫與亮度）。`renderer.js` 的燈籠閃爍讀 `light.userData.baseIntensity`，
+   **不要再把 3.4 寫死回去**。
+5. **遠景剪影對決時要收掉**：`far-*` 那五片離地 8.5～9，在對決機位（俯角 19.5°）落在 NDC y 0.28～0.53，
+   正好是兩隊人形的高度；`renderer.js` 用 `stageOn` 反向淡出它們。要讓它們在對決留著，得先解決遮擋。
+6. **`?fps=1`**：規則頁音訊診斷區旁多一行 fps 中位／draw calls／三角形／機型，只在帶參數時存在。
+   量手機 fps 就靠它——請使用者開 `?fps=1`、打開規則頁截圖回報。
+7. **對決機位不只一種了**（v0.45 近景切鏡併入後）：`?closeup=0` 是全景、預設會在交鋒時推近。
+   A4 的深度判準在**兩種機位都要過**——推近時相機更靠近桌心，`min(剪影距相機)` 反而變大，
+   所以真正的最壞情況仍是全景那組（dist 4.2、相機半徑 3.84）。改剪影距離前兩種機位都要重量。
+
 ### 11.22 對決「近景切鏡」批 1 原型（2026-09-07，v0.45）——接手前先知道這五件事
 
 規格＝`docs/proposals/2026-09-07-duel-closeup.md` §二；驗收凍結＝`docs/experiments/2026-09-07-acceptance-duel-closeup-p1.md`（P0–P9）；

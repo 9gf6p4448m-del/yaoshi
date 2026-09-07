@@ -12,7 +12,7 @@ import * as THREE from 'three';
 // 'three' 是 importmap 的裸名（走 CDN），不需要也不能加查詢字串。
 const V = new URL(import.meta.url).search;
 const { createBloom } = await import('./bloom.js' + V);
-const { createSceneEnv, resizeSceneEnv, FOG_DENSITY } = await import('./scene-env.js' + V);
+const { createSceneEnv, resizeSceneEnv, FOG_DENSITY, ENV } = await import('./scene-env.js' + V);
 const { createIncenseSmoke, createEmbers, createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 const { createCharacterBillboards } = await import('./characters-billboard.js' + V);
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
@@ -25,7 +25,13 @@ const { createTraitFx } = await import('./trait-fx.js' + V);
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
 // ② 牌桌畫面要跟 49dba77 對得起來（驗收 J7）。scale 0.5＝半解析度緩衝。
 // 實作在 js/bloom.js（自製，不是 UnrealBloomPass，理由見那個檔的檔頭）。全部【試玩必調】。
-const BLOOM = { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 };
+// threshold 依新曲線重調（美術甲卷 v0.46）：亮部萃取吃的仍然是「畫進 sceneRT 的線性未映射值」
+// （這一點前後沒變），變的是**合成之後那條曲線**——v0.45 是合成 shader 手刻的 Narkowicz ACES
+// 且不乘曝光，v0.46 換成 three 的 ACESFilmic 完整擬合＋exposure 1.1（內部再乘 1/0.6）。
+// 同一份 bloom 貼圖加進去之後被推得更高、也更往白色去（ACES 高光本來就會去飽和），
+// 所以萃取門檻要往上收，只留真正的光源。0.9＝「燈籠與火星還會發光、木桌與人臉不會」的落點
+// （前後對照見 docs/experiments/2026-09-07-art-a-report.md 的 A6 contact sheet）。【試玩必調】
+const BLOOM = { strength: 1.05, threshold: 0.7, knee: 0.3, radius: 1.7, scale: 0.5 };
 
 // 深度邊緣線（後處理卷 P-3，2026-09-06）：實作與參數在 js/bloom.js（折進合成那一趟）。
 // 關閉鉤 `?edge=0`——正式頁沒帶就是開（undefined＝開），跟 index.html 的 ?fxcount 同一種解析法。
@@ -57,7 +63,9 @@ function createCanvas() {
     // 負值：#table／#titleScr 是未定位（static）的元素，CSS 疊層順序下未定位的
     // in-flow 內容本來就會畫在「z-index:0 的定位元素」之上；用負 z-index 讓
     // canvas 落在 <body> 背景之上、所有現有 UI 之下，不必改動 index.html 既有 CSS。
-    zIndex: '-1',
+    // −2（美術甲卷 v0.46）：暈角層 #vignette 是 z-index:−1，要夾在 canvas 之上、UI 之下。
+    // 兩個都是負值＝都在 in-flow 內容底下，彼此再靠數值分先後，不必去動 DOM 順序。
+    zIndex: '-2',
   });
   document.body.appendChild(canvas);
   return canvas;
@@ -72,8 +80,19 @@ function init() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
+  // 美術甲卷（v0.46）：色調映射改成全域，牌桌／市集（玩家 90% 時間看的畫面）也吃得到。
+  // three 只在「畫到畫布」那一趟注入 tonemapping／colorspace，畫進 render target 的一律是
+  // 線性未映射值——bloom 的場景那一趟正是畫進 RT，所以它不會被重複映射；bloom 的合成那一趟
+  // 才是畫到畫布的那一趟，由 js/bloom.js 用 ShaderMaterial 讓 three 注入同一組 chunk。
+  // 實測（bloom 開／關同一幀對照）：**不透明幾何兩條路逐值一致（差 <1/255）；半透明與粒子
+  // 仍有落差（~12/255）**——它們的混色發生在不同的色彩空間（直接 render 是在畫布上混已映射值，
+  // bloom 是在線性 RT 裡混再一起映射）。所以不能說「兩條路同一條曲線」，只能說不透明部分對得上。
+  // outputColorSpace 明寫，不吃預設。
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = ENV.EXPOSURE;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  const { scene, camera, lanterns } = createSceneEnv(window.innerWidth / window.innerHeight);
+  const { scene, camera, lanterns, far, sky } = createSceneEnv(window.innerWidth / window.innerHeight);
 
   const smoke = createIncenseSmoke(50);
   const embers = createEmbers(20);
@@ -160,7 +179,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
     // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
     get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },
@@ -181,9 +200,12 @@ function init() {
     // 運鏡與燈籠強調（開標打亮得標者、對決只留交手兩人）
     const emphasis = director.update(dt, now);
 
-    // 燈籠光微微閃爍，避免死板的固定光源；再乘上導演給的強調係數
+    // 燈籠光微微閃爍，避免死板的固定光源；再乘上導演給的強調係數。
+    // 基準亮度改讀 light.userData.baseIntensity（scene-env 的 LANTERNS 表，四盞各不相同），
+    // 閃爍幅度跟著基準等比例縮放——不然暗紅那盞（2.0）會被 ±0.35 的絕對值閃到發抖。
     lanterns.forEach((light, i) => {
-      light.intensity = (3.4 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.35) * emphasis[i];
+      const base = light.userData.baseIntensity || 3.4;
+      light.intensity = base * (1 + Math.sin(elapsed * (1.5 + i * 0.3) + i) * 0.103) * emphasis[i];
     });
 
     smoke.update(dt, elapsed);
@@ -198,6 +220,14 @@ function init() {
     stageOn += ((kind === 'duel' ? 1 : 0) - stageOn) * Math.min(1, dt * 3);
     stageRig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
     stageRig.setIntensity(stageOn < 0.01 ? 0 : stageOn);
+    // 遠景剪影在對決淡到 FAR_DUEL_OPACITY（0.30），**不藏起來**（使用者 2026-09-07 裁定）。
+    // 「不得擋到對決人形」靠的是深度：剪影離桌心 8.5～12，人形站在桌面（半徑 3.4）以內，
+    // 對決機位下實測 min(剪影距相機)=9.30 > max(人形距相機)=4.93，任何一尊都在剪影前面。
+    // 之前那版是整組 visible=false，量出來當然 0 重疊——那是把判準搬淺，不是把問題解掉。
+    {
+      const o = ENV.FAR_OPACITY + (ENV.FAR_DUEL_OPACITY - ENV.FAR_OPACITY) * stageOn;
+      far.children.forEach((m) => { m.material.opacity = o; });
+    }
     if (kind !== lastKind) {
       lastKind = kind;
       canvas.style.opacity = kind ? '1' : '0.38';

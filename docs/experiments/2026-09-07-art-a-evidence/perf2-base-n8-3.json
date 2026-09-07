@@ -1,0 +1,188 @@
+{
+ "perf": {
+  "loadMs": 588,
+  "rendersPerSec": 151,
+  "rafMedianFps": 59.5,
+  "rafP95Ms": 100,
+  "rafFrames": 77,
+  "drawCallsPerFrame": 1064,
+  "trianglesPerFrame": 435922,
+  "renderPassesPerFrame": 10,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "visible": 16,
+  "total": 16,
+  "skins": 16
+ },
+ "errors": [],
+ "fxc": {
+  "burn": 3,
+  "burnDom": 1,
+  "burnFig": 2,
+  "trait": 1,
+  "traitFig": 1,
+  "beat": 6,
+  "duels": 2,
+  "focus": 2,
+  "dmgFloat": 7,
+  "traits": {
+   "boltGamble": 1
+  },
+  "beats": {
+   "一拍・撞": 2,
+   "二拍・護": 2,
+   "三拍・祟": 2
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 1,
+    "traitCap": 1,
+    "focus": [
+     {
+      "beat": 1,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "bolt",
+        "side": "B",
+        "actor": null,
+        "target": 0,
+        "amount": 3
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 2,
+    "burnCalls": 2,
+    "warBurn": 2,
+    "burnDom": 0,
+    "burnFig": 2,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 3,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       },
+       {
+        "side": "B",
+        "target": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "load": {
+   "ms": 1,
+   "total": 0,
+   "loaded": 0,
+   "timedOut": false,
+   "readyAt": 1788771473641
+  }
+ }
+}

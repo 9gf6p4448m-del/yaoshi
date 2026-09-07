@@ -32,6 +32,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 *{touch-action:manipulation} /* 連點任何位置都不觸發 double-tap zoom（試玩回饋：視窗上跳）；下行捲動容器另開 pan-y */
 #felt,#sheetbox,#modalbox,#review,#selGrid{touch-action:pan-y}
+/* 暈角（美術甲卷 v0.46，凍結檔 A5）：CSS 覆蓋層，不進 shader——手機上多一趟全畫面 fill 太貴，
+   而且暈角本來就是「疊在畫面最上面」的東西，用 DOM 做最便宜也最好調。
+   疊層：3D canvas 是 z-index:−2（renderer.js 設的），這層 −1，兩個都在 in-flow 的 UI 之下，
+   所以它蓋得到 3D、蓋不到任何面板與文字。pointer-events 關掉，不吃任何點擊。
+   0.62 是最外圈的黑度【試玩必調】。 */
+#vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 72% 78% at 50% 46%,rgba(0,0,0,0) 38%,rgba(0,0,0,.30) 72%,rgba(0,0,0,.62) 100%)}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -479,6 +486,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </script>
 </head>
 <body>
+<div id="vignette"></div>
 <div id="rotateHint"><div class="ic">📱</div><div>請把手機<b style="color:var(--gold)">轉橫</b>進入妖市<br><span class="mut">深夜牌桌需要寬一點的視野</span></div></div>
 <div id="titleScr" class="title">
   <h1>妖　市</h1>
@@ -1832,7 +1840,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.47", VERSION_NOTE="請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1；神龕搬進中央面板，袋子與市集卡加部隊預覽；近景切鏡 ?closeup=0 可關、請神 ?legend=0 可關";
+const VERSION="0.48", VERSION_NOTE="請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1；神龕搬進中央面板，袋子與市集卡加部隊預覽；夜市燈火（全域 ACES、四色溫燈籠、漸層夜空＋遠景剪影、暈角）；近景切鏡 ?closeup=0 可關、請神 ?legend=0 可關、?fps=1 看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -1853,6 +1861,40 @@ function audioDiag(){
     ].filter(Boolean).join("　|　");
   }catch(e){ return "診斷本身炸了："+e.message; }
 }
+/* ===== fps 回填欄位（美術甲卷 v0.46；研究文件 §三 題 7 的前置）=====
+   問題：所有手機決策（MAXFIG 10、切鏡、乙方向的常駐妖）都吃「iPhone 到底跑幾 fps」，而這個數字
+   從來沒回填過——凍結檔一路寫「使用者側記錄項」。解法：規則頁音訊診斷區旁多印一行
+   「fps 中位（最近 2s）／draw calls／三角形／機型」，使用者試玩時截一張圖唸給我聽就補齊了。
+   只在 ?fps=1 開（不帶參數時整個元素不存在，DOM 上查不到 #fpsDiag）。純顯示、不記錄、不上傳，
+   也不碰引擎：取樣器只讀 performance.now() 與 window.__yaoshi3d.renderer.info。 */
+const FPS_ON=(()=>{ try{ return new URLSearchParams(location.search||"").get("fps")==="1"; }catch(e){ return false; } })();
+/* 量測器本身不得擾動被測物（覆審 MEDIUM-6）：上一版每幀 push 陣列＋每幀 sort 求中位數＋每幀寫 DOM，
+   60fps 下等於每秒 60 次配置、排序與版面重算，量到的數字會被量測器自己拖低。改成：
+   ① 定長環形緩衝（Float64Array，穩態零配置）② 文字每 250ms 才更新一次 ③ 用平均
+   (n−1)/(t_last−t_first)×1000，不排序。中位數改平均是刻意的取捨——中位數非得排序才求得出來。 */
+const FPS_DIAG={ buf:new Float64Array(256), n:0, fps:0, win:0, calls:0, tris:0, lastPaint:0 };
+function fpsDiagText(){
+  const ua=navigator.userAgent.replace(/Mozilla\/5.0 \(|\).*$/g,"").slice(0,34);
+  return `fps 平均 ${FPS_DIAG.fps||"-"}（最近 2s，n=${FPS_DIAG.win}）　|　draw calls ${FPS_DIAG.calls}　|　三角形 ${FPS_DIAG.tris}　|　${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)} dpr ${window.devicePixelRatio||1}　|　${ua}`;
+}
+if(FPS_ON){ try{
+  const B=FPS_DIAG.buf, CAP=B.length;
+  const tick=(t)=>{
+    B[FPS_DIAG.n%CAP]=t; FPS_DIAG.n++;
+    if(t-FPS_DIAG.lastPaint>=250){
+      FPS_DIAG.lastPaint=t;
+      /* 只在這裡走一次緩衝：往回找 2 秒內的樣本（最多 CAP 筆）。只讀不寫、不配置、不排序。 */
+      let k=Math.min(FPS_DIAG.n,CAP), oldest=t, cnt=0;
+      for(let i=1;i<=k;i++){ const v=B[(FPS_DIAG.n-i)%CAP]; if(t-v>2000) break; oldest=v; cnt++; }
+      FPS_DIAG.win=cnt;
+      FPS_DIAG.fps=(cnt>1&&t>oldest)?Math.round((cnt-1)/(t-oldest)*1000):0;
+      try{ const r=window.__yaoshi3d&&window.__yaoshi3d.renderer; if(r){ FPS_DIAG.calls=r.info.render.calls; FPS_DIAG.tris=r.info.render.triangles; } }catch(e){}
+      const el=document.getElementById("fpsDiag"); if(el) el.textContent="📈 fps 診斷："+fpsDiagText();
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}catch(e){} }
 function audioWake(){
   /* 沒 running 就把 unlock 的三招整套再做一次（iOS 主畫面 PWA 光 resume 不夠） */
   try{ if(typeof YS_SFX!=="undefined"&&(!YS_SFX.ctx||YS_SFX.ctx.state!=="running")) YS_SFX.unlock(); }catch(e){}
@@ -3939,7 +3981,9 @@ function openHelp(){
   /* 顯示「本局實際生效」的規則夜，不是 CFG 原值——RULE_NIGHTS 設得比規則條數多時後面那幾夜是靜默失效的 */
   const rlNights=(S.ruleOrder&&S.ruleOrder.length)?CFG.RULE_NIGHTS.filter((r,i)=>!!S.ruleOrder[i]):[];
   const sec=(t,b)=>`<div style="margin-top:10px"><div style="color:var(--gold);font-weight:bold;font-size:13px">${t}</div><div style="font-size:12px;line-height:1.9">${b}</div></div>`;
-  const diag=`<div style="font-size:11px;color:var(--dim);line-height:1.6;word-break:break-all;border:1px dashed var(--line);padding:4px 6px;border-radius:6px">🔧 音訊診斷：${audioDiag()}</div>`;
+  const diag=`<div style="font-size:11px;color:var(--dim);line-height:1.6;word-break:break-all;border:1px dashed var(--line);padding:4px 6px;border-radius:6px">🔧 音訊診斷：${audioDiag()}</div>`
+    /* ?fps=1 才有這一行（見 FPS_DIAG 那段的註解）：不帶參數時 DOM 上根本沒有 #fpsDiag */
+    +(FPS_ON?`<div id="fpsDiag" style="font-size:11px;color:var(--dim);line-height:1.6;word-break:break-all;border:1px dashed var(--line);padding:4px 6px;border-radius:6px;margin-top:4px">📈 fps 診斷：${fpsDiagText()}</div>`:"");
   $("modalbox").innerHTML=`<h2>？ 妖市規則</h2><div style="text-align:left">
     ${diag}
     ${sec("🏮 目標",`壽命＝錢包＋血條。撐過 ${CFG.ROUNDS} 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。${CFG.NIGHT_REGEN>0?`每夜天明，存活者回 ${CFG.NIGHT_REGEN} 壽命。`:""}`)}
