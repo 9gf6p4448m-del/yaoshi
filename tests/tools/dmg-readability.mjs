@@ -498,11 +498,16 @@ async function runPix(browser) {
     // 量表紅殘影的凍幀（R7 用）：燒毀之後 90ms 凍住，殘影一定還在（GAUGE_GHOST_MS 300）
     document.addEventListener('ys:fx-burn', () => {
       if ((M.done.ghostShot || 0) >= 2) return;
-      setTimeout(() => {
-        if (M.busy) return;
+      // 忙就再等一拍（跳字的凍幀幾乎一直在排隊）；殘影有 GAUGE_GHOST_MS(300)＋收起來那 60ms 可以等
+      let tries = 0;
+      const go = () => {
+        if ((M.done.ghostShot || 0) >= 2) return;
+        if (M.busy) { if (++tries < 6) setTimeout(go, 60); return; }
+        if (!document.querySelector('.pwgauge b.ghost')) { if (++tries < 6) setTimeout(go, 60); return; }
         M.done.ghostShot = (M.done.ghostShot || 0) + 1;
         M.run('ghost', {}, [0]);
-      }, 90);
+      };
+      setTimeout(go, 80);
     });
     // R5：派一顆 hit → +40ms 按跳過 → +300ms 量
     window.__dmgSkipPix = () => {
@@ -557,15 +562,13 @@ async function runPix(browser) {
   let skipDone = false;
   const r = await drive(page, url, { duels: duels, onDuel: async (pg, n) => {
     const t0 = Date.now();
-    let armed = false;
     while (Date.now() - t0 < 30000) {
       await pump(pg);
       const st = await pg.evaluate(() => ({ busy: window.__dmg.busy, nf: window.__dmg.nFloat, nh: window.__dmg.nHit, ended: (window.__dmg.note.ends || 0) })).catch(() => null);
       if (!st) break;
       if (st.ended >= n) break;
       // R5 像素版：最後一場演到一半才觸發（doSkip 要有東西可以清）
-      if (n >= duels && !skipDone && !armed && !st.busy && Date.now() - t0 > 4000) {
-        armed = true;
+      if (n >= duels && !skipDone && !st.busy && Date.now() - t0 > 4000) {
         skipDone = await pg.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
       }
       await pg.waitForTimeout(20);
@@ -573,8 +576,15 @@ async function runPix(browser) {
   } });
   // R5 的像素版：最後一場對決手動觸發（drive 已結束時場上可能沒尊了，所以放在 onDuel 之外的 best-effort）
   if (!skipDone) { // 最後一場沒觸發到就再試一次（best-effort）
-    const t = await page.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
-    if (t) for (let i = 0; i < 30; i++) { await pump(page); await page.waitForTimeout(30); }
+    skipDone = await page.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
+  }
+  // 收尾統一把還沒走完的凍幀序列抽乾：按下跳過會讓對決立刻收場，drive 的迴圈就結束了，
+  // 但世界是凍住的（虛擬時鐘），序列停在原地等人來截圖——不抽乾就只剩第一格。
+  for (let i = 0; i < 60; i++) {
+    await pump(page);
+    const busy = await page.evaluate(() => window.__dmg.busy).catch(() => false);
+    if (!busy) break;
+    await page.waitForTimeout(40);
   }
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
     froze: window.__frz.froze, note: window.__dmg.note, ver: (document.getElementById('verLine') || {}).textContent }));

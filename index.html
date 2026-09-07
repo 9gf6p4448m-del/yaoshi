@@ -318,7 +318,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
      壓在近乎全黑的描邊環帶上 WCAG 對比度分別是 4.45／6.6——紅那顆過不了凍結檔 R1 的 4.5:1。
      這裡取「同一個色相往上提亮」的版本（暖紅橙 #ff7a45 亮度 0.32→6.7:1、綠 #7bdc7b→9.4:1），
      語意仍是危急紅／安全綠，只是為了讀得到而提亮。 */
-  --dmg-hit:#ff7a45; --dmg-heal:#7bdc7b; --dmg-unit:#ded7c8}
+  --dmg-hit:#ff7a45; --dmg-heal:#7bdc7b; --dmg-unit:#f2ece0}
 .dmgfloat{position:absolute;transform:translate(-50%,-50%);font-weight:900;
   font-size:calc(17px * var(--dmgs,1.6));color:var(--dmg-hit);
   font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums;letter-spacing:.01em;
@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   /* drop-shadow 疊兩層＝連描邊一起投影的暗暈，比 text-shadow 更能把周圍那一圈壓暗：
      跳字冒在火光／灰燼／金色量表上時，光靠字色是讀不到的（實測背後環帶亮度到 134，對比度掉到 3.1）。
      這不是底板——它是模糊的暗暈，不會蓋住畫面（R1 的假綠條款禁的是不透明底板）。 */
-  filter:drop-shadow(0 0 5px rgba(0,0,0,.98)) drop-shadow(0 0 12px rgba(0,0,0,.9));
+  filter:drop-shadow(0 0 6px rgba(0,0,0,1)) drop-shadow(0 0 14px rgba(0,0,0,.96)) drop-shadow(0 0 22px rgba(0,0,0,.8));
   white-space:nowrap;opacity:0}
 .dmgfloat.heal{color:var(--dmg-heal)}
 /* 擊殺：再放大 1.3 倍，系色只用在「底光」，字身仍是暖紅橙——把字色換成系色會讓烏木棕那系整個讀不到（R1） */
