@@ -16,6 +16,52 @@ import * as THREE from 'three';
 const _a = new THREE.Vector3();
 
 export default {
+  /* 殘日・餘暉灼目（canri，精英×1；傳說三尊美術卷 2026-09-07）：第 1 拍開打前，對面前鋒 atk −2。
+     編舞（祖靈＝靜如樹、動時瞬發）：0–260ms 只有日盤反向慢轉、邊光漸亮，獸身幾乎不動（蓄）
+          → 260ms 日盤猛轉正，盤面射出一片罩住對面的白光（dome）＋一道掃過前鋒的光束
+          → 前鋒被灼：退縮、往後退半步、金火星、鏡頭小推 → 680ms 起姿態回 0。 */
+  eliteBlind(st) {
+    const sun = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const front = st.byBody(st.target, 'ward')[0] || st.biggest(st.target) || st.target[0] || null;
+    const disc = st.worldOf(sun, 'Disc', new THREE.Vector3());
+    const core = st.orb(disc, 0.05, { opacity: 0 });
+    st.tween({ ms: 260, ease: 'out', update(t, e) {
+      st.rot(sun, 'Neck', -0.10 * e); st.rot(sun, 'Crown', -0.16 * e);
+      st.rot(sun, 'Disc', 0, 0, -0.5 * e);
+      st.rim(sun, 1 + 1.1 * e);
+      st.worldOf(sun, 'Disc', core.position);
+      core.material.opacity = 0.9 * e;
+      core.scale.setScalar(0.4 + 1.2 * e);
+    } });
+    st.at(260, () => {
+      const mid = front ? st.worldOf(front, null, new THREE.Vector3()) : disc.clone().addScaledVector(st.dir, 1.6);
+      const flash = st.dome(mid, 0.9, { opacity: 0.55 });
+      flash.scale.setScalar(0.2);
+      st.grow(flash, { ms: 260, from: 0.2, to: 1.25 });
+      st.fade(flash, { ms: 300, delay: 60, from: 0.55, to: 0 });
+      const ray = st.beam(core.position.clone(), mid, { opacity: 0 });
+      ray.material.opacity = 0.95; st.fade(ray, { ms: 240, from: 0.95, to: 0 });
+      st.burst(mid, { power: 0.85, n: 55 });
+      st.punch(0.4);
+      st.fade(core, { ms: 200, to: 0 });
+      if (front) {
+        st.flinch([front], { strength: 1.25, burst: false });
+        st.tween({ ms: 420, ease: 'out', update(t, e) { st.move(front, 0, 0, -0.20 * Math.sin(Math.PI * e)); } });
+      }
+      st.tween({ ms: 420, ease: 'snap', update(t, e) {
+        const k = 1 - t;
+        st.rot(sun, 'Neck', -0.10 * k + 0.06 * e); st.rot(sun, 'Crown', -0.16 * k + 0.10 * e);
+        st.rot(sun, 'Disc', 0, 0, -0.5 * k + 0.9 * e);
+        st.rim(sun, 1 + 1.1 * k);
+      } });
+    });
+    st.at(680, () => st.tween({ ms: 220, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(sun, 'Neck', 0.06 * k); st.rot(sun, 'Crown', 0.10 * k); st.rot(sun, 'Disc', 0, 0, 0.9 * k);
+      st.rim(sun, 1);
+    } }));
+  },
+
   /* 射日神弓・射日（bow，精英×1）：一拍開場，對面最壯的一隻 −1。
      編舞：抬頭拉弓（0–320ms：Neck2/Neck3/HeadRoot 逐節後仰、尾巴翹起、邊光漸亮，弓弦 SunNock 上凝出一顆小太陽）
           → 放箭（320ms：頭猛甩回過衝再回正；太陽 190ms 直射到對面最壯那隻胸口，留一條瞬亮即滅的軌跡）

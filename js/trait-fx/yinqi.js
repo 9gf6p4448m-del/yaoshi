@@ -5,6 +5,50 @@ import * as THREE from 'three';
 const _a = new THREE.Vector3();
 
 export default {
+  /* 有應公・有求必應（youyinggong，作祟×2；傳說三尊美術卷 2026-09-07）：第 3 拍作祟時，
+     對面每有一件詛咒品就多燒一隻。
+     編舞（陰氣＝attack 前先有一拍靜止、拍子卡頓）：0–200ms 完全不動，只有邊光慢慢亮起來
+          → 200ms 龕口整個往前壓、從龕口噴出數股祟，逐一落到對面每一隻身上（錯開拍子）
+          → 霧裾慢半拍才追上 → 720ms 起回 0。 */
+  hauntAnswer(st) {
+    const shrines = st.byBody(st.actor, 'haunt');
+    const lead = shrines[0] || st.actor[0];
+    st.tween({ ms: 200, ease: 'inout', update(t, e) { st.rim(lead, 1 + 0.9 * e); } });
+    st.at(200, () => {
+      const mouth = st.worldOf(lead, 'Chest', new THREE.Vector3());
+      st.tween({ ms: 340, ease: 'snap', update(t, e) {
+        st.move(lead, 0, 0, 0.22 * Math.sin(Math.PI * e));
+        st.rot(lead, 'Spine', -0.12 * e); st.rot(lead, 'Chest', -0.20 * e); st.rot(lead, 'Top', -0.16 * e);
+        st.scaleBone(lead, 'Chest', 1 + 0.10 * Math.sin(Math.PI * e));
+      } });
+      st.at(120, () => st.tween({ ms: 380, ease: 'out', update(t, e) {
+        st.rot(lead, 'MistRoot', 0.16 * Math.sin(Math.PI * e));
+        st.rot(lead, 'Mist1', -0.20 * Math.sin(Math.PI * e));
+        st.rot(lead, 'Mist2', 0.22 * Math.sin(Math.PI * e));
+      } }));
+      (st.target || []).forEach((f, i) => st.at(60 * i, () => {
+        const to = st.worldOf(f, null, new THREE.Vector3());
+        const wisp = st.orb(mouth.clone(), 0.055, { opacity: 0.95 });
+        st.fly(wisp, mouth.clone(), to, { ms: 220, ease: 'out', arc: 0.22, done() {
+          st.burst(to, { power: 0.7, n: 40 });
+          st.fade(wisp, { ms: 140, to: 0 });
+          const d = st.disc(st.foot(f, new THREE.Vector3()), 0.34, { opacity: 0.5 });
+          d.scale.setScalar(0.3); st.grow(d, { ms: 240, from: 0.3, to: 1.1 });
+          st.fade(d, { ms: 260, delay: 120, from: 0.5, to: 0 });
+          st.flinch([f], { strength: 0.9, burst: false });
+        } });
+      }));
+      st.punch(0.3);
+    });
+    st.at(720, () => st.tween({ ms: 180, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(lead, 'Spine', -0.12 * k); st.rot(lead, 'Chest', -0.20 * k); st.rot(lead, 'Top', -0.16 * k);
+      st.scaleBone(lead, 'Chest', 1);
+      st.rot(lead, 'MistRoot', 0); st.rot(lead, 'Mist1', 0); st.rot(lead, 'Mist2', 0);
+      st.rim(lead, 1 + 0.9 * k);
+    } }));
+  },
+
   /* 林投姐髮簪・偷命（hairpin，作祟×4）：三拍結束時敗方另 −1 壽命。
      編舞：髮瀑揚起（0–420ms，四尊錯開 60ms：HairA–E 向上外翻、面紗掀、仰頭、雙手前探，整尊上浮）
           → 偷命（240ms 起：對面每一隻胸口牽一條抖動的陰綢到最近的鬼，一顆命火順著綢子被吸到鬼的頭上，
