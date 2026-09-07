@@ -1,6 +1,6 @@
 # 驗收凍結檔：角色平衡卷（2026-09-07，使用者裁定「都照建議」）
 
-基準 SHA：待填＝派工時的 main（切鏡 0.45 合併之後）。依據：`docs/experiments/2026-09-07-role-measure-report.md`（量法卷，95f6b86）。使用者裁定四件：①斷手書生／閭山法師的被動改接到紙紮夜戰真正使用的共鳴倍率（被動失效修正）②數值：閭山 `life0d` −8→−2、陰間當鋪 `life0d` −4→0、大家樂組頭拿掉「掛零 −2」、紅衣婆婆改「被毒標塞中時自己也 +2」③四隻 AI 風格（青面／斷手／閭山／當鋪）的 `ROLES.ai` aggr／spite 往迴避型調（AI 打法，不動玩家被動）④收驚婆先不動。
+基準 SHA：`bffcb34`（派工時的 main；收尾前須再併入最新 origin/main 重跑）。依據：`docs/experiments/2026-09-07-role-measure-report.md`（量法卷，95f6b86）。使用者裁定四件：①斷手書生／閭山法師的被動改接到紙紮夜戰真正使用的共鳴倍率（被動失效修正）②數值：閭山 `life0d` −8→−2、陰間當鋪 `life0d` −4→0、大家樂組頭拿掉「掛零 −2」、紅衣婆婆改「被毒標塞中時自己也 +2」③四隻 AI 風格（青面／斷手／閭山／當鋪）的 `ROLES.ai` aggr／spite 往迴避型調（AI 打法，不動玩家被動）④收驚婆先不動。
 
 ## 範圍
 - `index.html` 的 `ROLES` 表（上述四隻的 `life0d`／`hooks`／`ai`）、斷手／閭山 hook 的接線點（`ctx.flat`→`ctx.resonanceMul` 或等價的紙紮夜戰入口）、規則頁角色說明對應句、`docs/GAME_DESIGN.md` 角色表與 changelog、GUIDE 一節。
