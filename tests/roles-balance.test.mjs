@@ -165,6 +165,33 @@ test('紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆�
   eq(b.life,bL,'被塞的人壽命不得變');
 });
 
+/* ===================== ③ AI 風格：四隻的 ROLES.ai ＝掃描表最佳值 ===================== */
+/* 掃描表在 docs/experiments/2026-09-07-role-balance-report.md §3（n=2000 初掃、前 2 名 n=10000 決選）。
+   這一案是「值有沒有被改成掃描結果」的釘子——改回舊值（青面 .85/.25/contest、斷手 1.0/.4/ignore、
+   閭山 .5/.2/ignore、當鋪 .8/.4/avoid）就紅。 */
+const SCANNED_AI={
+  qingmian:{aggr:0.6, spite:0.1,  markReact:'avoid'},
+  duanshou:{aggr:0.6, spite:0.1,  markReact:'avoid'},
+  lvshan:  {aggr:0.6, spite:0.25, markReact:'avoid'},
+  dangpu:  {aggr:0.6, spite:0.1,  markReact:'avoid'},
+};
+for(const [id,want] of Object.entries(SCANNED_AI)){
+  test(`${ROLES[id]?ROLES[id].name:id}：ROLES.ai ＝掃描表最佳值 ${want.aggr}/${want.spite}/${want.markReact}`,()=>{
+    const got=(ROLES[id]||{}).ai||{};
+    eq(got.aggr,want.aggr,`${id} aggr`);
+    eq(got.spite,want.spite,`${id} spite`);
+    eq(got.markReact,want.markReact,`${id} markReact`);
+  });
+}
+/* 收驚婆一個字都不能動（凍結檔 B2）：這一案在守「順手調」 */
+test('收驚婆：ai 與 life0d 與基準相同（B2 不得動）',()=>{
+  const R=ROLES.shoujing;
+  eq(R.ai.aggr,0.3,'收驚婆 aggr');
+  eq(R.ai.spite,0.1,'收驚婆 spite');
+  eq(R.ai.markReact,'avoid','收驚婆 markReact');
+  eq(R.life0d,-6,'收驚婆 life0d');
+});
+
 /* ---------- 收尾 ---------- */
 console.log(`\n角色平衡卷單元測試：${pass} 過 / ${fail} 失敗`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }
