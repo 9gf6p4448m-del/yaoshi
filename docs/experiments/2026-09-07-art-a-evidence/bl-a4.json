@@ -1,0 +1,122 @@
+{
+ "samples": [
+  {
+   "tag": "duel-end",
+   "t": 1788768818774,
+   "farCount": 5,
+   "farVisible": 5,
+   "figures": 4,
+   "minFarDist": 10.115,
+   "maxFigDist": 4.793,
+   "depthPass": true,
+   "overlaps2d": 2,
+   "farOpacity": 0.3,
+   "farGroupVisible": true,
+   "cam": {
+    "x": 2.713,
+    "y": 1.708,
+    "z": 2.713
+   },
+   "farRows": [
+    {
+     "name": "far-temple",
+     "visible": true,
+     "minDist": 14.432,
+     "box": {
+      "minx": -0.2154,
+      "miny": 0.4738,
+      "maxx": 0.3004,
+      "maxy": 0.6393
+     }
+    },
+    {
+     "name": "far-arch",
+     "visible": true,
+     "minDist": 11.101,
+     "box": {
+      "minx": 1.0298,
+      "miny": -0.098,
+      "maxx": 2.4352,
+      "maxy": 0.5884
+     }
+    },
+    {
+     "name": "far-banyan",
+     "visible": true,
+     "minDist": 13.91,
+     "box": {
+      "minx": -0.3498,
+      "miny": 0.4596,
+      "maxx": 0.054,
+      "maxy": 0.6408
+     }
+    },
+    {
+     "name": "far-eaves",
+     "visible": true,
+     "minDist": 10.115,
+     "box": {
+      "minx": 1.2711,
+      "miny": -3.2917,
+      "maxx": 14.0931,
+      "maxy": 0.4697
+     }
+    },
+    {
+     "name": "far-stalls",
+     "visible": true,
+     "minDist": 15.152,
+     "box": {
+      "minx": 0.0018,
+      "miny": 0.4313,
+      "maxx": 0.7879,
+      "maxy": 0.6046
+     }
+    }
+   ],
+   "figRows": [
+    {
+     "side": "A",
+     "maxDist": 4.543,
+     "box": {
+      "minx": -0.357,
+      "miny": 0.1114,
+      "maxx": -0.161,
+      "maxy": 0.7864
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.554,
+     "box": {
+      "minx": 0.0796,
+      "miny": -0.0569,
+      "maxx": 0.15,
+      "maxy": 0.3603
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.068,
+     "box": {
+      "minx": 0.2384,
+      "miny": -0.1875,
+      "maxx": 0.3284,
+      "maxy": 0.2935
+     }
+    },
+    {
+     "side": "B",
+     "maxDist": 4.793,
+     "box": {
+      "minx": 0.3314,
+      "miny": -0.0464,
+      "maxx": 0.4127,
+      "maxy": 0.3721
+     }
+    }
+   ]
+  }
+ ],
+ "errors": []
+}
