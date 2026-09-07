@@ -168,6 +168,62 @@ test('紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆�
 /* ===================== ② 二版：陰間當鋪的典當保命值 ===================== */
 /* 一版是寫死的「保住 1 壽命」，二版改成 CFG.PAWN_KEEP=8（使用者同意）。
    三條掛點（onBidSettle 實付、onBattle 對決傷害、onNightEnd 夜末結算）都要吃到同一個值。 */
+/* 覆審 H2 丙（使用者裁定）：保命底線改成「壽命 ≥CFG.PAWN_KEEP 保 PAWN_KEEP，否則保 1」。
+   二版的 `cost=max(0, life-8)` 在 life<8 時恆為 0 ⇒ 當鋪低血時出價免費、對決免傷（「白拿」）。
+   下面四案照使用者給的驗收值：life=5 出價 13 → 實付 4 剩 1；life=5 受傷 40 → 剩 1；
+   life=20 出價 30 → 實付 12 剩 8；life=−30 夜末 → 8。前兩案對三版必紅（三版會給 0）。 */
+test('陰間當鋪 H2：life=5 出價 13 → 實付 4、剩 1（不再白拿）',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=5; p.pawned=false; p.bag=[];
+  const ctx={p,cost:13,events:[]};
+  G.applyHooks('onBidSettle',ctx,p);
+  eq(ctx.cost,4,'實付金額');
+  eq(p.life-ctx.cost,1,'付完剩下的壽命');
+});
+test('陰間當鋪 H2：life=5 受傷 40 → 剩 1（不再免傷）',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const l=G.S.players.find(q=>q.roleId==='dangpu');
+  l.life=5; l.pawned=false; l.bag=[];
+  const ctx={l,w:{id:99,name:'W'},dmg:40,extra:[]};
+  G.applyHooks('onBattle',ctx,[l]);
+  eq(ctx.dmg,4,'實際受傷');
+  eq(l.life-ctx.dmg,1,'受傷後剩下的壽命');
+});
+test('陰間當鋪 H2：life=20 出價 30 → 實付 12、剩 8',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=20; p.pawned=false; p.bag=[];
+  const ctx={p,cost:30,events:[]};
+  G.applyHooks('onBidSettle',ctx,p);
+  eq(ctx.cost,12,'實付金額');
+  eq(p.life-ctx.cost,8,'付完剩下的壽命');
+});
+test('陰間當鋪 H2：life=−30 夜末 → 8',()=>{
+  G.makeState('solo',1,['dangpu']);
+  const p=G.S.players.find(q=>q.roleId==='dangpu');
+  p.life=-30; p.pawned=false; p.bag=[];
+  G.applyHooks('onNightEnd',{p,log:[]},p);
+  eq(p.life,8,'夜末典當後的壽命');
+});
+
+/* ===================== 覆審 H3 乙：斷手被動只走對決路徑 ===================== */
+/* power() 不是只剩顯示——它餵毒標／收祟的目標挑選與獵人 AI 的估值。斷手把帳面戰力推高
+   只會讓自己更常被鎖定，所以被動刻意不進 power()。對三版（有 power() 分支那版）必紅。 */
+test('斷手書生 H3：同系 4 件時 power() 不再被推高（被動只走對決路徑）',()=>{
+  const fac=G.BEAT_FAC[0];
+  const bag=bagOfFac(fac,4);
+  const ds=G.power(player(0,'duanshou',bag));
+  const base=G.power(player(0,'human',bag.map(x=>({...x}))));
+  eq(ds,base,`斷手的 power() 應與無被動者相同（斷手 ${ds}、無被動 ${base}）`);
+});
+test('斷手書生 H3：對決路徑仍然生效（不是把被動整個拆掉）',()=>{
+  const fac=G.BEAT_FAC[0];
+  const bag=bagOfFac(fac,4);
+  ok(G.pwResLv(player(0,'duanshou',bag),fac)>G.pwResLv(player(0,'human',bag.map(x=>({...x}))),fac),
+    '紙紮共鳴等級仍應高於無被動者');
+});
+
 test('陰間當鋪：夜末結算致死時典當保住 CFG.PAWN_KEEP 壽命（不再是 1）',()=>{
   G.makeState('solo',1,['dangpu']);
   const p=G.S.players.find(q=>q.roleId==='dangpu');

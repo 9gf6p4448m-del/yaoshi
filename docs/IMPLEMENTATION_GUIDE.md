@@ -783,6 +783,10 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 依據＝量法卷報告 `docs/experiments/2026-09-07-role-measure-report.md`，本卷報告
 `docs/experiments/2026-09-07-role-balance-report.md`。
 
+0. **`power()` 不是只剩顯示——別再照抄那句註解**（四版覆審 H3）。`PAPERWAR_ON` 之後它確實不決定對決勝負，
+   但它還餵：毒標／收祟的「戰力最高的對手」挑選、獵人 AI 的追分估值、獵人被動的 `pwRaw/plRaw` 判準、
+   `finalPower` 統計與 UI。所以**把帳面戰力推高是有代價的**（更常被鎖定當毒標目標）——
+   斷手書生的被動因此刻意只走對決路徑（`ctx.fac===undefined` 時直接 return）。
 1. **`onPowerCalc` 現在有兩條呼叫路徑，寫這個 hook 之前先問「我在哪一條」**：
    `power()`（`index.html:2155`，PAPERWAR_ON 之後只剩 UI 行情與毒標鎖定用）給的 ctx **沒有 `fac`**；
    `pwResLv()`（`index.html:2746`，紙紮夜戰真正吃的共鳴）是**逐系呼叫**、ctx **有 `fac`**。
@@ -808,7 +812,10 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    而門檻 2＝`CFG.SET_MIN` 會取消專精識別度）、`ai.aggr` **釘回 1.0**
    （保住 2026-09-03「紀律上限真的咬得到」那條修正，一版掃描把它選成 0.6，對照組實測反而 −2.80pp）；
    陰間當鋪的典當保命 **1 → `CFG.PAWN_KEEP`＝8**（`index.html` CFG 區，desc 與三條掛點的 log 都讀它，
-   **不得各寫一份**）；閭山法師 `life0d` **−2→0**。掃描格點放寬成 `aggr` 5 × `spite` 3 並
+   **不得各寫一份**）——**四版覆審 H2 丙**再改成「壽命 ≥8 保 8、不足保 1」，三處掛點共用
+   `pawnFloor(p)`：舊寫法 `cost=max(0, life−保命值)` 在 `life<保命值` 時恆為 0，
+   **當鋪低血時出價免費、對決免傷**；保命值是 1 的年代這個窗口不可達，改成 8 才露出來。
+   閭山法師 `life0d` **−2→0**。掃描格點放寬成 `aggr` 5 × `spite` 3 並
    **把各角色原值列為候選**。**`markReact` 退出掃描、維持各角色的原設計值**（使用者修正）——
    它是角色性格的公開資訊，§5.8 的讀人層要靠三型混桌才有價值；一版把它交給勝率掃描，四隻全被選成
    `avoid`、全桌從怯場 3／搶標 4／無視 3 變成 6／3／1，那一層就沒了。**要動 `markReact` 前先想清楚

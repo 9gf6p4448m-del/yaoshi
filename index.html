@@ -810,6 +810,13 @@ function mainFaction(p){
 /* 陰間當鋪的一次性典當：唯一寫入 p.pawned 的地方（ARCH_SPEC §4 欄位）。
    成功典當回傳 true；呼叫端自己決定怎麼把「這次致死的扣血」調整成「剛好留 1 命」。
    縛靈鎖從 CURSES 表按名字取（資料表內容互相引用，不是引擎寫死 id）。 */
+/* 典當保命的底線（2026-09-07 角色平衡卷覆審 H2 丙，使用者裁定）：
+   壽命 ≥CFG.PAWN_KEEP 時保住 PAWN_KEEP，否則保住 1（＝二版之前的原規則）。
+   為什麼要分兩段：二版把保命值從 1 提到 8 之後，`cost=max(0, life-8)` 在 life<8 時恆為 0
+   ⇒ 當鋪在低血時**出價完全免費、對決完全免傷**（覆審 H2 的「白拿」）。這個窗口在保命值是 1 的
+   年代不可達（life<1 就已經死了），所以改成 8 才露出來。
+   三處掛點（onBidSettle 實付／onBattle 受傷／onNightEnd 夜末）共用這一支，不得各寫一份。 */
+function pawnFloor(p){ return p.life>=CFG.PAWN_KEEP?CFG.PAWN_KEEP:1; }
 function pawnNow(p){
   if(p.pawned) return false;
   const lock=CURSES.find(x=>x.n==="縛靈鎖");
@@ -922,13 +929,15 @@ const ROLES = {
          （最大差 0.13pp、SE ±0.36pp）——**門檻對這隻的勝率沒有可測得的影響**，而門檻 2 剛好等於
          CFG.SET_MIN，等於取消「集齊同系第 N 件」的專精識別度卻換不到任何東西。不留無意義的改動。
          真正的瓶頸在它的 AI 打法 hook（onAiValue／onAiPlan，量法卷實測 −7.42pp），另開一卷處理。
-         2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；PAPERWAR_ON 預設開之後 power()
-         已不決定勝負（index.html 註解「power() 只留給 UI 當行情顯示」），紙紮夜戰的共鳴只讀
+         2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；紙紮夜戰的共鳴只讀
          ctx.resonanceMul（pwResLv），所以這個被動改接到 resonanceMul 才真的生效。
-         ctx.fac 有值＝pwResLv 的逐系呼叫，只有達標的那一系吃到；沒有 fac＝power()，任一系達標即生效。 */
+         ★覆審 H3 乙（使用者裁定）★：**power() 不是只剩顯示**——它還餵毒標／收祟的「戰力最高的對手」
+         挑選、獵人 AI 的追分估值與 pwRaw/plRaw 判準（冷讀覆審用 trace 差異證明的）。所以本被動
+         **刻意只走對決路徑**：ctx.fac 有值＝pwResLv 的逐系呼叫才生效；沒有 fac＝power()，直接 return，
+         不去推高自己的帳面戰力（推高只會讓自己更常被鎖定當毒標目標）。 */
       onPowerCalc(ctx){
-        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5; return; }
-        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4){ ctx.resonanceMul*=1.5; break; } }
+        if(ctx.fac===undefined) return;              /* power() 那條路刻意不吃（H3 乙） */
+        if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5;
       },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
@@ -1084,30 +1093,35 @@ const ROLES = {
      已知微縫：夜間結算「途中」由別的 hook 直接扣血致死（如孝女白琴的 −1 恰好補刀）不在這三個
      掛點之間，救不到——屬既有 hook 架構的邊界，接受並記錄於 roles-report.md。 */
   dangpu:{id:"dangpu",name:"陰間當鋪",av:"🏮",pool:true,order:95, /* life0d −4→0（2026-09-07 角色平衡卷，使用者裁定「都照建議」）：欄位省略＝起始壽命 CFG.LIFE */ /* order 95：等 bow/shield 等 dmg 修正跑完才判斷致死 */
-    desc:`上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——保住 ${CFG.PAWN_KEEP} 壽命、袋中多一件縛靈鎖。AI 時詐術喊高價`,
+    desc:`上限流。被動：出價總額上限＝壽命+8（可透支）；壽命歸零時典當一次——壽命 ${CFG.PAWN_KEEP} 以上保住 ${CFG.PAWN_KEEP}、不足則保住 1，袋中多一件縛靈鎖。AI 時詐術喊高價`,
     ai:{aggr:0.8,spite:0.1,markReact:"avoid"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     hooks:{
       onBudget(ctx){ ctx.budget=ctx.p.life+8; },     /* 「改為」壽命+8（規格） */
       onBidSettle(ctx){
         const p=ctx.p;
         if(ctx.cost>0 && p.life-ctx.cost<=0 && pawnNow(p)){
-          ctx.cost=Math.max(0,p.life-CFG.PAWN_KEEP);  /* 付到剛好剩 PAWN_KEEP */
-          ctx.events.push({txt:`🏮 ${p.name} 抵押魂魄——保住 ${CFG.PAWN_KEEP} 壽命，袋中多了「縛靈鎖」`});
+          const floor=pawnFloor(p);                  /* 實付＝max(0, min(原出價, 壽命−底線))：低血時不再白拿 */
+          ctx.cost=Math.max(0,Math.min(ctx.cost,p.life-floor));
+          ctx.events.push({txt:`🏮 ${p.name} 抵押魂魄——保住 ${p.life-ctx.cost} 壽命，袋中多了「縛靈鎖」`});
         }
       },
       onBattle(ctx){
         const l=ctx.l;
         if(l.roleId!=="dangpu") return;              /* 跨玩家 hook，認自己 */
         if(l.life-ctx.dmg<=0 && pawnNow(l)){
-          ctx.dmg=Math.max(0,l.life-CFG.PAWN_KEEP);
-          ctx.extra.push(`🏮 ${l.name} 抵押魂魄——保住 ${CFG.PAWN_KEEP} 壽命，袋中多了「縛靈鎖」`);
+          const floor=pawnFloor(l);                  /* 受傷＝max(0, min(原傷害, 壽命−底線))：低血時不再免傷 */
+          ctx.dmg=Math.max(0,Math.min(ctx.dmg,l.life-floor));
+          ctx.extra.push(`🏮 ${l.name} 抵押魂魄——保住 ${l.life-ctx.dmg} 壽命，袋中多了「縛靈鎖」`);
         }
       },
       onNightEnd(ctx){
         const p=ctx.p;
         if(p.life<=0 && pawnNow(p)){
+          /* 夜末這條路的 p.life 已經被別的 hook 扣成 ≤0，「壽命 ≥PAWN_KEEP」在這裡問不出東西
+             （pawnFloor(p) 會恆回 1）。使用者的驗收案指定「life=−30 夜末 → 8」⇒ 這條路給滿額。
+             ★這一點與 H2 丙的字面公式不一致，已在報告與凍結檔 §2.1 標明待確認★ */
           p.life=CFG.PAWN_KEEP;
-          ctx.log.push(`🏮 ${p.name} 抵押魂魄——保住 ${CFG.PAWN_KEEP} 壽命，袋中多了「縛靈鎖」`);
+          ctx.log.push(`🏮 ${p.name} 抵押魂魄——保住 ${p.life} 壽命，袋中多了「縛靈鎖」`);
         }
       },
       /* 詐術：不被帳面壽命綁住，敢喊到估值全額（總額上限=壽命+8 由 onBudget 撐開） */
