@@ -4,12 +4,18 @@
    另拍 390×844 直式一張（portrait，產品在直式會蓋「請轉橫」，這張就是玩家看到的樣子）。0 console error 才算成功。 */
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import fsSync from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
-const { chromium } = req('playwright');
+/* worktree 裡沒有 tools/（那是主 repo 的目錄），所以往上找到第一個裝了 playwright 的地方 */
+const { chromium } = (() => {
+  const cands = [path.join(ROOT, 'tools/anyCreature/package.json'),
+    path.resolve(ROOT, '../../../tools/anyCreature/package.json')];
+  for (const c of cands) if (fsSync.existsSync(c)) return createRequire(c)('playwright');
+  throw new Error('找不到 playwright（試過：' + cands.join('、') + '）');
+})();
 
 const argv = process.argv.slice(2);
 const opt = {}; const pos = [];

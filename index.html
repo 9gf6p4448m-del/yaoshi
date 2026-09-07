@@ -87,12 +87,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 @media (orientation:portrait){ #shrines{display:none} }
 /* 部隊預覽的那一行（市集卡與袋子面板共用；請神 2.0 使用者裁定）：
    字級與卡片說明 .ab 同級（不得更小——凍結檔 G11 明訂），放不下時省略號，不撐開卡片。 */
-.uline{font-size:10px;color:var(--dim);line-height:1.4;margin-top:2px;min-width:0;overflow-wrap:anywhere;
-  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* 用一般的 block＋overflow:hidden，**不用** -webkit-box／line-clamp：
+   實測 -webkit-box 在 grid 的 minmax(0,1fr) 欄裡仍會把 #market 的 scrollWidth 撐出 3px（探針 tests/tools/mkt-probe.mjs）。 */
+.uline{font-size:10px;color:var(--dim);line-height:1.4;margin-top:2px;min-width:0;max-width:100%;
+  overflow-wrap:anywhere;overflow:hidden;max-height:2.8em}
 .uline .umv{color:var(--gold);margin-left:4px}
 .uline .umd{margin-left:4px}
 .bagit.uprev{align-items:flex-start;gap:8px}
-.bagit.uprev .uline{text-align:right;max-width:62%;-webkit-line-clamp:3}
+.bagit.uprev .uline{text-align:right;max-width:62%;max-height:4.2em}
 .bagit.bagsum{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
 /* 袋子面板傳說旁的「送神回天」鈕（常駐；請神 2.0 §二 6） */
 .tithebtn{margin-left:6px;background:var(--panel2);color:var(--gold);border:1px solid var(--gold);
@@ -196,7 +198,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   font-size:13px;font-weight:bold;line-height:20px;text-align:center}
 .pickbox.on{background:var(--gold);color:#14101f}
 .mcard.locked{opacity:.5;cursor:default}
-#market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+/* padding 0 5px＝給掛在卡角外側的徽章留位置（請神 2.0 版面卷，凍結檔 G6 把橫向溢出門檻收到 0）：
+   `.markb`（left:-4px）與 `.mybid`／`.pickbox`（right:-4px）本來就凸出卡片 4px，最右那張因此把 #market
+   的 scrollWidth 撐出 3px（橫式）／6px（直式）——探針 tests/tools/mkt-probe.mjs 指名是 .pickbox。
+   兩側各留 5px 之後徽章落在容器內，版面看起來一樣（卡片只窄了 2.5px），不必動徽章本身的視覺設計。 */
+#market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:0 5px}
 .mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
 .mcard:active{transform:scale(.97)}

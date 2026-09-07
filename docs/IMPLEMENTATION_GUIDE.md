@@ -725,6 +725,46 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.22 請神 2.0「神債暗標」（2026-09-07，v0.47）——接手前先知道這九件事
+
+規格＝提案 `docs/proposals/2026-09-07-legend-v2-debt-auction.md` §二（11 條）＋驗收凍結
+`docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11）。實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。
+
+1. **★1.0 的擲骰與天井已整組移除，別回頭引用★**：`CFG.INC_K`／`CFG.INC_PITY`／`shrineRollOrder`（同 h 洗牌）
+   ／規則頁的機率表全部不存在了。§11.20 那一節寫的東西**只剩「燒香上限＝壽命−1（`incCap`）」與「三條迴圈同一格」
+   兩條還成立**，其餘（h/(h+K)、天井、擲序公平性 A1、天井鎖死 A6、N7 撤案）都是 1.0 的歷史，接手時不要照抄。
+2. **新的常數**：`CFG.SHRINE_NIGHTS=[4,7,10]`（請神夜）／`INC_TITHE=1`（供奉）／`TITHE_WARN=2`（危急提示門檻）
+   ／沿用 `INC_MAX=3`、`INC_GIFT_P=4`；`INC_AI={minLifeFrac:0.3, value:12}`（1.0 的 `div`／`giveUpLead` 已不用）。
+   全部【試玩必調】，**改它們是策略數值，要先問使用者**（硬規則 3）。
+3. **尊→夜每局洗牌並公開**：`makeState` 裡 `shuffle([...CFG.SHRINE_NIGHTS])` 逐龕發下去，寫進 `sh.night`。
+   這是這一卷唯一新增的 `S.rng()` 消耗，`LEGEND_ON=false` 時整段不執行（G0 靠這條）。
+4. **結算只在請神夜**：`resolveShrines` 的第三段改成 `if(!sh.open||sh.night!==S.round) return;`——
+   **累計** h 最高者請走（不必本夜有燒香），同分走 `shrineWindOrder(round)`＝從 `windPid(round)` 起順時針。
+   沒有任何**有資格**的人燒過香就回天（`sh.dawn=true`），本局不再出現、**不重開**。
+   位置仍然是 `resolveAuction()` 之後、`resolveBattles()` 之前，三條迴圈同一格（沒動）。
+5. **一人一尊的判準是 `sh.takenBy`，不是袋子內容**：`hasLegend(p)=S.shrines.some(sh=>sh.takenBy===p.id)`。
+   踩過的坑：一版寫成 `p.bag.some(x=>x.legend)`，結果**供奉斷掉、尊回天之後那個人又能去搶第二尊**——
+   n=1000 實測 23 局出現「三尊落在同一人手上」，G2 直接紅。一人一尊是**整局**的限制。
+6. **供奉掛在 `resolveBattles` 的夜末段**（`settleTithe(nightly)`，排在詛咒 drain 之前）。
+   `resolveBattles` 是真人 `startBattle`／`simulate`／`playPolicyGame` **共用**的那一支，所以掛在這裡＝三條迴圈自動一致；
+   不要在別處再寫第二份 −1。三條分支：①付不出（付了會剩不到 1）⇒ 直接回天 ②付完會 ≤`TITHE_WARN` 且這一尊還沒判過
+   （`x.titheWarn` 旗標）⇒ AI 主動放手／真人**照預設「要」先扣**並把這一筆推進 `S.titheAsk` ③其餘照付。
+   **headless 沒有人讀 `S.titheAsk` ⇒ 行為就是預設「要」**（凍結檔 G5④ 明訂）。
+   送神回天的唯一事實來源是 `releaseLegend(p,x,log,why,refund)`——四條路（付不出／AI 放手／袋子面板的鈕／
+   危急提示選送神）都走它；`refund=true` 只給「夜末已經扣過才問」的那一條，等價於「當夜起不再扣」。
+7. **階段獎勵的區間基準是「本龕最高 h」**（`shrineReward(p,h,top,fac)`）：`top` 必須在 `sh.h[win]=0` **之前**取，
+   由呼叫端傳進來——`shrineClose` 不能自己重算（得標者的 h 已經歸零了）。
+8. **傳說共鳴走法寶自帶的 `eff`**：`collectEffects` 的 items() 現在收兩條來源——`ABILITIES[it.ab]` 與 `it.eff`。
+   為什麼不用 `ab`：`buildArmy` 把 `x.ab||x.m` 當 3D 模型鍵，給傳說配 `ab` 會把模型換掉。
+   `eff` 掛在 `LEGENDS` 原型上、進袋是淺拷貝 ⇒ 同一個物件參照，`collectEffects` 的 Set 去重＝「同名法寶不疊加」。
+9. **版面與部隊預覽**：神龕列 `shrinesHTML()` 已從 `#north` 搬進 `#stage`（法寶卡正上方），`#north` 回到只有北席。
+   `unitRow(it)`／`unitRowText(it)`／`bagPreviewHTML(p)` 是市集卡與袋子面板**共用**的部隊預覽，
+   數值一律由 `buildArmy` 展開、招式一律取 `TRAITS`，**不得另抄一份規則**。
+   橫向溢出的兩個真兇（v0.44 一直量到的 19px 不是神龕列造成的）：**東席的 `.mark-stamp`**（`right:-6px`＋
+   `anim-stamp-in` 放大到 2.26 倍 ⇒ 凸出 18.6px，已改 `#east .mark-stamp{left:-6px}`）與**最右那張卡的
+   `.pickbox`／`.mybid`**（`right:-4px` ⇒ 3px，已由 `#market{padding:0 5px}` 吸收）。
+   定位工具：`tests/tools/overflow-probe.mjs`（對 `#table`）與 `tests/tools/mkt-probe.mjs`（對 `#market`）。
+
 ### 11.21 對決演出「沒兵仍出招／隻數不同步」修復（2026-09-07，分支 v0.42.2 → 併入 main 為 v0.43.1）——接手前先知道這三件事
 
 規格＝驗收凍結檔 `docs/experiments/2026-09-07-acceptance-duel-desync.md`（D1–D5）。使用者真機回報兩個症狀：
