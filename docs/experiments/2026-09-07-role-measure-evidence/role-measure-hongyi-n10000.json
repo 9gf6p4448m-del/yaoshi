@@ -1,0 +1,210 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "hongyi"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.2489,
+   "surv": 10.1195,
+   "life": 11.7484,
+   "len": 10.1195,
+   "hookCalls": {
+    "onAiValue": 323735,
+    "onBattle": 94642,
+    "onNightEnd": 100951,
+    "onAiCurse": 80985,
+    "onBidSettle": 134347,
+    "onWinItem": 92493
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 216106
+  },
+  {
+   "variant": "b",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.179,
+   "surv": 9.6,
+   "life": 8.8542,
+   "len": 9.6,
+   "hookCalls": {
+    "onAiValue": 305874,
+    "onBattle": 90186,
+    "onNightEnd": 95686,
+    "onAiCurse": 78038,
+    "onBidSettle": 132161,
+    "onWinItem": 81320
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 211909
+  },
+  {
+   "variant": "c",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.1918,
+   "surv": 9.6697,
+   "life": 9.5456,
+   "len": 9.6697,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 308200,
+    "onBattle": 90952,
+    "onNightEnd": 96391,
+    "onAiCurse": 78520,
+    "onBidSettle": 135957,
+    "onWinItem": 82822
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd",
+     "onAiCurse",
+     "onAiValue"
+    ],
+    "keptAi": []
+   },
+   "ms": 254597
+  },
+  {
+   "variant": "d",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.2581,
+   "surv": 10.198,
+   "life": 12.5401,
+   "len": 10.198,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 326313,
+    "onBattle": 95421,
+    "onNightEnd": 101674,
+    "onAiCurse": 81527,
+    "onBidSettle": 139044,
+    "onWinItem": 94697
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd",
+     "onAiCurse",
+     "onAiValue"
+    ],
+    "keptAi": []
+   },
+   "ms": 397117
+  },
+  {
+   "variant": "cL",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.1918,
+   "surv": 9.6697,
+   "life": 9.5456,
+   "len": 9.6697,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 308200,
+    "onBattle": 90952,
+    "onNightEnd": 96391,
+    "onAiCurse": 78520,
+    "onBidSettle": 135957,
+    "onWinItem": 82822
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd",
+     "onAiCurse",
+     "onAiValue"
+    ],
+    "keptAi": []
+   },
+   "ms": 584658
+  },
+  {
+   "variant": "dL",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.2581,
+   "surv": 10.198,
+   "life": 12.5401,
+   "len": 10.198,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiValue": 326313,
+    "onBattle": 95421,
+    "onNightEnd": 101674,
+    "onAiCurse": 81527,
+    "onBidSettle": 139044,
+    "onWinItem": 94697
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd",
+     "onAiCurse",
+     "onAiValue"
+    ],
+    "keptAi": []
+   },
+   "ms": 573103
+  },
+  {
+   "variant": "c2",
+   "role": "hongyi",
+   "n": 10000,
+   "win": 0.1918,
+   "surv": 9.6697,
+   "life": 9.5456,
+   "len": 9.6697,
+   "hookCalls": {
+    "onAiValue": 308200,
+    "onAiCurse": 78520
+   },
+   "shadowCalls": {
+    "onBattle": 90952,
+    "onNightEnd": 96391,
+    "onBidSettle": 135957,
+    "onWinItem": 82822
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onWinItem",
+     "onBattle",
+     "onNightEnd"
+    ],
+    "keptAi": [
+     "onAiCurse",
+     "onAiValue"
+    ]
+   },
+   "ms": 474964
+  }
+ ]
+}

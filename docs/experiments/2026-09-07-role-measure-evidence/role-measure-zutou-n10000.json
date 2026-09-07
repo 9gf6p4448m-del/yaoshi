@@ -1,0 +1,198 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "zutou"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.252,
+   "surv": 9.5014,
+   "life": 12.4659,
+   "len": 9.5014,
+   "hookCalls": {
+    "onAiPlan": 94998,
+    "onNightEnd": 94782,
+    "onBidCap": 400778,
+    "onAiAmount": 121488,
+    "onWinItem": 82599
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 203565
+  },
+  {
+   "variant": "b",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.1953,
+   "surv": 9.0762,
+   "life": 9.8999,
+   "len": 9.0762,
+   "hookCalls": {
+    "onAiPlan": 90752,
+    "onNightEnd": 90524,
+    "onBidCap": 378258,
+    "onAiAmount": 110384,
+    "onWinItem": 72526
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 200339
+  },
+  {
+   "variant": "c",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2233,
+   "surv": 9.8726,
+   "life": 10.7002,
+   "len": 9.8726,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 98707,
+    "onNightEnd": 98456,
+    "onBidCap": 198049,
+    "onAiAmount": 105743,
+    "onWinItem": 86146
+   },
+   "ablated": {
+    "dropped": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd",
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 258272
+  },
+  {
+   "variant": "d",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2586,
+   "surv": 10.0991,
+   "life": 12.3667,
+   "len": 10.0991,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 100971,
+    "onNightEnd": 100733,
+    "onBidCap": 205635,
+    "onAiAmount": 114194,
+    "onWinItem": 92581
+   },
+   "ablated": {
+    "dropped": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd",
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 365596
+  },
+  {
+   "variant": "cL",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2233,
+   "surv": 9.8726,
+   "life": 10.7002,
+   "len": 9.8726,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 98707,
+    "onNightEnd": 98456,
+    "onBidCap": 198049,
+    "onAiAmount": 105743,
+    "onWinItem": 86146
+   },
+   "ablated": {
+    "dropped": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd",
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 578552
+  },
+  {
+   "variant": "dL",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2586,
+   "surv": 10.0991,
+   "life": 12.3667,
+   "len": 10.0991,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiPlan": 100971,
+    "onNightEnd": 100733,
+    "onBidCap": 205635,
+    "onAiAmount": 114194,
+    "onWinItem": 92581
+   },
+   "ablated": {
+    "dropped": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd",
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": []
+   },
+   "ms": 579612
+  },
+  {
+   "variant": "c2",
+   "role": "zutou",
+   "n": 10000,
+   "win": 0.2261,
+   "surv": 9.8422,
+   "life": 11.4516,
+   "len": 9.8422,
+   "hookCalls": {
+    "onAiPlan": 98413,
+    "onAiAmount": 120860
+   },
+   "shadowCalls": {
+    "onNightEnd": 98139,
+    "onBidCap": 398403,
+    "onWinItem": 80331
+   },
+   "ablated": {
+    "dropped": [
+     "onBidCap",
+     "onWinItem",
+     "onNightEnd"
+    ],
+    "keptAi": [
+     "onAiPlan",
+     "onAiAmount"
+    ]
+   },
+   "ms": 506443
+  }
+ ]
+}

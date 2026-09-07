@@ -1,0 +1,162 @@
+{
+ "n": 10000,
+ "variants": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "cL",
+  "dL",
+  "c2"
+ ],
+ "roles": [
+  "xiaonv"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "a",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.3121,
+   "surv": 10.2901,
+   "life": 12.9115,
+   "len": 10.2901,
+   "hookCalls": {
+    "onAiExtraBids": 97355,
+    "onBidSettle": 156582
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 218492
+  },
+  {
+   "variant": "b",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2835,
+   "surv": 10.0765,
+   "life": 12.4945,
+   "len": 10.0765,
+   "hookCalls": {
+    "onAiExtraBids": 95329,
+    "onBidSettle": 160161
+   },
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 238459
+  },
+  {
+   "variant": "c",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2755,
+   "surv": 10.1844,
+   "life": 13.8698,
+   "len": 10.1844,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiExtraBids": 96338,
+    "onBidSettle": 149686
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 272366
+  },
+  {
+   "variant": "d",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2736,
+   "surv": 10.2199,
+   "life": 13.1408,
+   "len": 10.2199,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiExtraBids": 96697,
+    "onBidSettle": 139708
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 473321
+  },
+  {
+   "variant": "cL",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2367,
+   "surv": 9.8423,
+   "life": 11.9135,
+   "len": 9.8423,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiExtraBids": 93204,
+    "onBidSettle": 141854
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 612727
+  },
+  {
+   "variant": "dL",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.2233,
+   "surv": 9.8331,
+   "life": 11.1696,
+   "len": 9.8331,
+   "hookCalls": {},
+   "shadowCalls": {
+    "onAiExtraBids": 93144,
+    "onBidSettle": 130081
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle",
+     "onAiExtraBids"
+    ],
+    "keptAi": []
+   },
+   "ms": 543252
+  },
+  {
+   "variant": "c2",
+   "role": "xiaonv",
+   "n": 10000,
+   "win": 0.224,
+   "surv": 9.4404,
+   "life": 9.947,
+   "len": 9.4404,
+   "hookCalls": {
+    "onAiExtraBids": 89332
+   },
+   "shadowCalls": {
+    "onBidSettle": 148827
+   },
+   "ablated": {
+    "dropped": [
+     "onBidSettle"
+    ],
+    "keptAi": [
+     "onAiExtraBids"
+    ]
+   },
+   "ms": 426812
+  }
+ ]
+}
