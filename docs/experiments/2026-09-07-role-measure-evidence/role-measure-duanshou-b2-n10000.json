@@ -1,0 +1,61 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "duanshou"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "duanshou",
+   "n": 10000,
+   "win": 0.1878,
+   "surv": 9.9314,
+   "life": 9.8028,
+   "len": 9.9314,
+   "hookCalls": {
+    "onPowerCalc": 1184082
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiValue": 317244,
+    "onAiPlan": 99300,
+    "onAiAmount": 94500
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onAiPlan",
+     "onAiAmount"
+    ],
+    "keptAi": [
+     "onPowerCalc"
+    ]
+   },
+   "ms": 468998
+  },
+  {
+   "variant": "bm",
+   "role": "duanshou",
+   "n": 10000,
+   "win": 0.1188,
+   "surv": 9.449,
+   "life": 6.0472,
+   "len": 9.449,
+   "hookCalls": {
+    "onAiValue": 300866,
+    "onAiPlan": 94474,
+    "onPowerCalc": 1127753,
+    "onAiAmount": 74636
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 299545
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "qingmian"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "qingmian",
+   "n": 10000,
+   "win": 0.2846,
+   "surv": 10.4078,
+   "life": 13.3098,
+   "len": 10.4078,
+   "hookCalls": {
+    "onBidEff": 136118
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiValue": 333519,
+    "onAiExtraBids": 98649
+   },
+   "ablated": {
+    "dropped": [
+     "onAiValue",
+     "onAiExtraBids"
+    ],
+    "keptAi": [
+     "onBidEff"
+    ]
+   },
+   "ms": 465765
+  },
+  {
+   "variant": "bm",
+   "role": "qingmian",
+   "n": 10000,
+   "win": 0.2188,
+   "surv": 9.879,
+   "life": 9.1466,
+   "len": 9.879,
+   "hookCalls": {
+    "onAiValue": 315768,
+    "onAiExtraBids": 93495,
+    "onBidEff": 137388
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 307662
+  }
+ ]
+}

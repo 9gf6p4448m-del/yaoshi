@@ -68,6 +68,23 @@ for (const r of ORDER) {
   md += `| ${NAMES[r]} | ${l0} | ${pct(b.win)}% | ${c2 ? pct(c2.win) + '%' : '-'} | ${c3 ? pct(c3.win) + '%' : '-'} | ${cL ? pct(cL.win) + '%' : '-'} | ${c ? pct(c.win) + '%' : '-'} | ${c2 ? pp(b.win - c2.win) + 'pp' : '-'} | ${c3 ? pp(b.win - c3.win) + 'pp' : '-'} | ${(cL && c) ? pp(cL.win - c.win) + 'pp' : '-'} |\n`;
 }
 
+md += '\n### M1 附表 1b：每個角色自己的「空白基準線」與整包淨值\n\n';
+md += '(d)＝基準量法＋整包關掉，此時座位 0 已經沒有任何角色特性，剩下的差別只有「把這個角色抽走之後、對手池剩下誰」。所以 **(d) 才是這個角色的空白基準線，不是 25%**。(b)−(d)＝整包角色特性（玩家被動＋AI 風格 hook＋life0d）實際值多少。\n\n';
+md += '| 角色 | (d) 空白基準 | (b) 全開 | 整包淨值 (b)−(d) |\n|---|---|---|---|\n';
+for (const r of ORDER) {
+  const b = get(r, 'b'), d = get(r, 'd');
+  if (!b || !d) continue;
+  md += `| ${NAMES[r]} | ${pct(d.win)}% | ${pct(b.win)}% | ${pp(b.win - d.win)}pp |\n`;
+}
+md += '\n### M1 附表 1c：`ROLES.ai` 三個參數自己值多少（(c)＝只剩 `ai`，其餘全關）\n\n';
+md += '| 角色 | `ai` | (c) 只剩 ai | (d) 連 ai 都換成統一的 {0.7,0.15} |\n|---|---|---|---|\n';
+for (const r of ORDER) {
+  const c = get(r, 'c'), d = get(r, 'd');
+  if (!c || !d) continue;
+  const A = G0.ROLES[r].ai;
+  md += `| ${NAMES[r]} | aggr ${A.aggr}／spite ${A.spite}／${A.markReact} | ${pct(c.win)}% | ${pct(d.win)}% |\n`;
+}
+
 md += '\n### M1 附表 2：座位 0 從來不「盯上」的量法缺口（bm）\n\n';
 md += '`policyMarks`（`index.html:1941`）對沒有 `.mark` 的策略一律把該席的宣告設成 `null`；`policyAiLike` 與 (b) 都沒有 `.mark` ⇒ 座位 0 每一夜都不盯，三個 AI 席每一夜都盯。(bm) 把座位 0 也接上 `aiMark`。\n\n';
 md += '| 角色 | (b) | (bm) 座位 0 也盯 | 差 |\n|---|---|---|---|\n';

@@ -1,0 +1,55 @@
+{
+ "n": 10000,
+ "variants": [
+  "c3",
+  "bm"
+ ],
+ "roles": [
+  "shoujing"
+ ],
+ "se_pp_at_25pct": "0.433",
+ "rows": [
+  {
+   "variant": "c3",
+   "role": "shoujing",
+   "n": 10000,
+   "win": 0.3876,
+   "surv": 10.8996,
+   "life": 20.6229,
+   "len": 10.8996,
+   "hookCalls": {
+    "onNightEnd": 108797
+   },
+   "hookEffective": null,
+   "shadowCalls": {
+    "onAiPlan": 108976
+   },
+   "ablated": {
+    "dropped": [
+     "onAiPlan"
+    ],
+    "keptAi": [
+     "onNightEnd"
+    ]
+   },
+   "ms": 563414
+  },
+  {
+   "variant": "bm",
+   "role": "shoujing",
+   "n": 10000,
+   "win": 0.4232,
+   "surv": 11.2623,
+   "life": 24.656,
+   "len": 11.2623,
+   "hookCalls": {
+    "onAiPlan": 112606,
+    "onNightEnd": 112483
+   },
+   "hookEffective": null,
+   "shadowCalls": {},
+   "ablated": null,
+   "ms": 275666
+  }
+ ]
+}
