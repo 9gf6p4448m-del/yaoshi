@@ -1,4 +1,14 @@
-# 傳說三尊美術卷 V1 證據（2026-09-07，第一段：三方案截圖）
+# 傳說三尊美術卷 證據目錄（2026-09-07）
+
+**第二段（V2–V7）已完成**，使用者挑定：殘日 `r1a`／大士爺紙尊 `r1a`／有應公 `r1b`。
+- `sheet-final.png` — 三尊出貨版 hero＋stage-lit
+- `blindread-v2.md` — V2 盲讀三輪六位／尊的原話摘要、命中表、未過原因與三個裁定題（**三尊皆未過，待簽字**）
+- `v4-bounds-legend.json`／`v5-traitfx.json`／`v6-perf.json` — V4 bounds、V5 三招、V6 效能的原始輸出
+- `specgen/{v6.mjs,addtraits.py,sheet_final.py}` — V5／V6／收尾 sheet 的腳本
+
+---
+
+# 第一段：V0＋V1（三方案截圖）
 
 凍結檔：`docs/experiments/2026-09-07-acceptance-legend-art.md`。基準 `38aa437`（v0.48）。
 **做到這裡停下來等使用者挑**（可混搭）；V2 之後不在本段。
