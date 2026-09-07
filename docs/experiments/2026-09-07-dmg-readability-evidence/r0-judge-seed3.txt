@@ -1,77 +1,77 @@
 {
  "P0": {
-  "cutAtCompletedDuel": 14,
+  "cutAtCompletedDuel": 18,
   "snapshotsAvailable": {
-   "off": 14,
-   "base": 14
+   "off": 20,
+   "base": 18
   },
   "fxcSame": {
    "burn": [
-    54,
-    54,
+    65,
+    65,
     true
    ],
    "burnFig": [
-    37,
-    37,
+    53,
+    53,
     true
    ],
    "burnDom": [
-    17,
-    17,
+    12,
+    12,
     true
    ],
    "trait": [
-    51,
-    51,
+    70,
+    70,
     true
    ],
    "traitFig": [
-    46,
-    46,
+    52,
+    52,
     true
    ],
    "beat": [
-    42,
-    42,
+    54,
+    54,
     true
    ],
    "duels": [
-    14,
-    14,
+    18,
+    18,
     true
    ]
   },
   "fightsSame": true,
   "fightsLen": [
-   14,
-   14
+   18,
+   18
   ],
   "domClean": true,
   "noFocusWhenOff": true,
   "focusWhenOn": true,
   "rawTotalsAtStop": {
    "off": {
-    "burn": 54,
-    "trait": 51,
-    "beat": 42,
-    "duels": 14
+    "burn": 78,
+    "trait": 82,
+    "beat": 60,
+    "duels": 20
    },
    "base": {
-    "burn": 54,
-    "trait": 51,
-    "beat": 42,
-    "duels": 14
+    "burn": 66,
+    "trait": 73,
+    "beat": 57,
+    "duels": 18
    }
   },
   "duelsStartedEnded": {
    "off": [
-    14,
-    14
+    20,
+    20
    ],
    "base": [
-    14,
-    14
+    19,
+    18
    ]
   },
   "PASS": true
@@ -80,161 +80,161 @@
   "capOk": true,
   "ruleOk": true,
   "fights": 6,
-  "hitFights": 3,
-  "burnFights": 4,
+  "hitFights": 5,
+  "burnFights": 6,
   "bad": [],
   "PASS": true
  },
  "P2": {
-  "n": 10,
+  "n": 11,
   "hit": 5,
-  "deepOk": 10,
-  "backOk": "8/8",
+  "deepOk": 11,
+  "backOk": "7/7",
   "monoQuiet": "7/7",
-  "monoCorr": "0/10",
+  "monoCorr": "0/11",
   "hitMonoJudgable": 5,
   "punchRebuildResid": {
-   "n": 2031,
+   "n": 1682,
    "p50": 0.6,
    "p95": 1,
    "max": 1
   },
   "rows": [
    {
-    "f": ".claude/tmp/out/r0-on-1.json",
+    "f": ".claude/tmp/out/r0-on-3.json",
     "kind": "hit",
     "ms": 650,
-    "frames": 33,
-    "quiet": 4,
-    "minD": 2.025,
-    "minQuiet": 3.235,
+    "frames": 20,
+    "quiet": 0,
+    "minD": 1.867,
+    "minQuiet": null,
     "back": null,
-    "revQuiet": 0,
-    "revCorr": 3,
-    "deepOk": true,
-    "backOk": null,
-    "monoQuietOk": null,
-    "monoCorrOk": false
-   },
-   {
-    "f": ".claude/tmp/out/r0-on-1.json",
-    "kind": "burn",
-    "ms": 600,
-    "frames": 82,
-    "quiet": 56,
-    "minD": 1.765,
-    "minQuiet": 2.6,
-    "back": 0,
-    "revQuiet": 0,
-    "revCorr": 3,
-    "deepOk": true,
-    "backOk": true,
-    "monoQuietOk": true,
-    "monoCorrOk": false
-   },
-   {
-    "f": ".claude/tmp/out/r0-on-1.json",
-    "kind": "hit",
-    "ms": 650,
-    "frames": 16,
-    "quiet": 3,
-    "minD": 2.085,
-    "minQuiet": 3.553,
-    "back": null,
-    "revQuiet": 0,
-    "revCorr": 1,
-    "deepOk": true,
-    "backOk": null,
-    "monoQuietOk": null,
-    "monoCorrOk": false
-   },
-   {
-    "f": ".claude/tmp/out/r0-on-1.json",
-    "kind": "burn",
-    "ms": 600,
-    "frames": 90,
-    "quiet": 41,
-    "minD": 1.861,
-    "minQuiet": 2.6,
-    "back": 0,
-    "revQuiet": 0,
-    "revCorr": 3,
-    "deepOk": true,
-    "backOk": true,
-    "monoQuietOk": true,
-    "monoCorrOk": false
-   },
-   {
-    "f": ".claude/tmp/out/r0-on-1.json",
-    "kind": "burn",
-    "ms": 600,
-    "frames": 90,
-    "quiet": 60,
-    "minD": 1.903,
-    "minQuiet": 2.6,
-    "back": 0,
     "revQuiet": 0,
     "revCorr": 2,
     "deepOk": true,
-    "backOk": true,
-    "monoQuietOk": true,
+    "backOk": null,
+    "monoQuietOk": null,
     "monoCorrOk": false
    },
    {
-    "f": ".claude/tmp/out/r0-on-1.json",
-    "kind": "hit",
-    "ms": 650,
-    "frames": 91,
-    "quiet": 15,
-    "minD": 1.948,
-    "minQuiet": 4.2,
-    "back": 0,
-    "revQuiet": 0,
-    "revCorr": 6,
-    "deepOk": true,
-    "backOk": true,
-    "monoQuietOk": true,
-    "monoCorrOk": false
-   },
-   {
-    "f": ".claude/tmp/out/r0-on-1.json",
+    "f": ".claude/tmp/out/r0-on-3.json",
     "kind": "burn",
     "ms": 600,
-    "frames": 81,
-    "quiet": 37,
-    "minD": 2.001,
+    "frames": 85,
+    "quiet": 56,
+    "minD": 1.812,
     "minQuiet": 2.6,
     "back": 0,
     "revQuiet": 0,
-    "revCorr": 5,
+    "revCorr": 3,
     "deepOk": true,
     "backOk": true,
     "monoQuietOk": true,
     "monoCorrOk": false
    },
    {
-    "f": ".claude/tmp/out/r0-on-1.json",
+    "f": ".claude/tmp/out/r0-on-3.json",
     "kind": "hit",
     "ms": 650,
-    "frames": 81,
-    "quiet": 7,
-    "minD": 1.673,
-    "minQuiet": 3.37,
+    "frames": 20,
+    "quiet": 0,
+    "minD": 1.941,
+    "minQuiet": null,
+    "back": null,
+    "revQuiet": 0,
+    "revCorr": 3,
+    "deepOk": true,
+    "backOk": null,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 85,
+    "quiet": 55,
+    "minD": 1.792,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 1,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 84,
+    "quiet": 58,
+    "minD": 2.015,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 4,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 90,
+    "quiet": 11,
+    "minD": 1.62,
+    "minQuiet": 3.282,
     "back": 0,
     "revQuiet": 0,
     "revCorr": 7,
     "deepOk": true,
     "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 84,
+    "quiet": 49,
+    "minD": 2.009,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 4,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 19,
+    "quiet": 4,
+    "minD": 1.959,
+    "minQuiet": 3.299,
+    "back": null,
+    "revQuiet": 0,
+    "revCorr": 2,
+    "deepOk": true,
+    "backOk": null,
     "monoQuietOk": null,
     "monoCorrOk": false
    },
    {
-    "f": ".claude/tmp/out/r0-on-1.json",
+    "f": ".claude/tmp/out/r0-on-3.json",
     "kind": "burn",
     "ms": 600,
-    "frames": 89,
-    "quiet": 60,
-    "minD": 2.059,
+    "frames": 88,
+    "quiet": 57,
+    "minD": 1.748,
     "minQuiet": 2.6,
     "back": 0,
     "revQuiet": 0,
@@ -245,16 +245,32 @@
     "monoCorrOk": false
    },
    {
-    "f": ".claude/tmp/out/r0-on-1.json",
+    "f": ".claude/tmp/out/r0-on-3.json",
     "kind": "hit",
     "ms": 650,
-    "frames": 93,
-    "quiet": 20,
-    "minD": 1.673,
-    "minQuiet": 3.406,
+    "frames": 33,
+    "quiet": 3,
+    "minD": 1.985,
+    "minQuiet": 3.542,
+    "back": null,
+    "revQuiet": 0,
+    "revCorr": 4,
+    "deepOk": true,
+    "backOk": null,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/r0-on-3.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 83,
+    "quiet": 53,
+    "minD": 1.845,
+    "minQuiet": 2.6,
     "back": 0,
     "revQuiet": 0,
-    "revCorr": 6,
+    "revCorr": 2,
     "deepOk": true,
     "backOk": true,
     "monoQuietOk": true,
@@ -265,40 +281,40 @@
   "PASS": false
  },
  "P3": {
-  "samples": 40,
+  "samples": 44,
   "staleSamples": 0,
   "staleJudgedByEnvelope": 0,
-  "cancelSamples": 3,
+  "cancelSamples": 1,
   "cancelSkippedByNextFocus": 0,
   "cancelDeeper": 0,
-  "cancelBack": "51/51",
+  "cancelBack": "9/9",
   "cancelBad": [],
-  "figRowsDimmed": 198,
-  "dimmed": 198,
+  "figRowsDimmed": 66,
+  "dimmed": 66,
   "dimMax": 0.36,
-  "kept": 16,
+  "kept": 14,
   "keptMin": 1,
-  "restored": 8,
+  "restored": 6,
   "burning": 24,
   "burnRise": 0,
   "bad": [],
   "PASS": true
  },
  "P4": {
-  "shownHits": 22,
-  "removeMsObserved": 663,
-  "n": 30,
-  "floats": 30,
-  "maxLive": 4,
-  "underOutsideDuel": 2,
-  "removed": 30,
-  "posOk": 30,
-  "posN": 30,
+  "shownHits": 16,
+  "removeMsObserved": 665,
+  "n": 24,
+  "floats": 24,
+  "maxLive": 5,
+  "underOutsideDuel": 0,
+  "removed": 24,
+  "posOk": 24,
+  "posN": 24,
   "bad": [],
   "unitUnderSkipped": 8,
   "unitFloats": 8,
   "killFloats": 8,
-  "hitFloats": 22,
+  "hitFloats": 16,
   "burnEvents": 8,
   "oneToOne": true,
   "unitOneToOne": true,
@@ -307,14 +323,24 @@
  "P5": {
   "lamps": 18,
   "gauges": 8,
-  "cards": 18,
+  "cards": 15,
   "bad": [],
   "PASS": true
  },
  "P7": {
   "files": 2,
-  "errs": [],
-  "PASS": true
+  "errs": [
+   {
+    "f": ".claude/tmp/out/r0-off-3.json",
+    "e": [
+     "requestfailed: https://fonts.gstatic.com/s/notoseriftc/v36/XLYgIZb5bJNDGYxLBibeHZ0BhnJsUnN3PrBufRbmGqUtcg4pzRPk5AEpzv6YzI9aTbOhf6M.60.woff2 net::ERR_CONNECTION_CLOSED",
+     "console: Failed to load resource: net::ERR_CONNECTION_CLOSED",
+     "requestfailed: https://fonts.gstatic.com/s/notoseriftc/v36/XLYgIZb5bJNDGYxLBibeHZ0BhnJsUnN3PrBufRbmGqUtcg4pzRPk5AEpzv6YzI9aTbOhf6M.55.woff2 net::ERR_CONNECTION_CLOSED",
+     "console: Failed to load resource: net::ERR_CONNECTION_CLOSED"
+    ]
+   }
+  ],
+  "PASS": false
  }
 }
-VERDICT P0=PASS P1=PASS P2=FAIL P3=PASS P4=PASS P5=PASS P7=PASS
+VERDICT P0=PASS P1=PASS P2=FAIL P3=PASS P4=PASS P5=PASS P7=FAIL

@@ -340,6 +340,8 @@ const seed = Number(opt.seed || 1);
 const duels = Number(opt.duels || (mode === 'pix' ? 6 : 10));
 const url = opt.url || `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=${seed}`;
 
+// 工作區 index.html 宣告的版本（--root 指到別的 worktree 時不比對）
+const expectVer = (() => { try { const m = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').match(/const VERSION="([0-9.]+)"/); return m ? m[1] : null; } catch (e) { return null; } })();
 const srv = await serve(root, port);
 try {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
@@ -696,9 +698,15 @@ async function runPix(browser) {
   }
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
     froze: window.__frz.froze, note: window.__dmg.note, ver: (document.getElementById('verLine') || {}).textContent }));
+  // 服到的到底是哪一版？serve() 起 http.server 時**不會檢查埠有沒有被別人佔著**——
+  // 之前有一支被 kill 掉的錄影留下 root 指到基準 worktree 的 server 佔著同一個埠，
+  // 新版那一支就整場都在量基準（實測 v2-pix-1 的 verLine 是 v0.48，字級全 17px、一次閃紅都沒有）。
+  meta.expectVersion = expectVer;
+  meta.versionOk = !opt.root ? (expectVer && String(meta.ver || '').includes('v' + expectVer + '・')) : null;
+  if (meta.versionOk === false) console.log(`!! 版本不符：期望 v${expectVer}，實際 ${String(meta.ver || '').slice(0, 30)} —— 這個埠多半被別的 http.server 佔著，數字全部作廢`);
   const v = judgePix(samples);
   fs.writeFileSync(path.join(outdir, 'pix.json'), JSON.stringify({ url: url, seed: seed, duels: duels, synth: synth, verdict: v, samples: samples, shots: shots, meta: meta, errors: r.errors }, null, 1));
-  console.log(JSON.stringify({ outdir: outdir, seed: seed, froze: meta.froze, errors: r.errors.length, ...v.summary }));
+  console.log(JSON.stringify({ outdir: outdir, seed: seed, froze: meta.froze, errors: r.errors.length, versionOk: meta.versionOk, ...v.summary }));
   console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x ? 'PASS' : 'FAIL'}`).join(' '));
   if (v.bad.length) console.log(v.bad.slice(0, 12).join('\n'));
 }
