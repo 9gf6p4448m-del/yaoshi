@@ -608,10 +608,15 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const allReady = camStable && list.every((_, jj) => { const g = slots[i][jj]; return !!g && (typeof g.ready !== 'function' || g.ready() || g.__settled === true); });
         const search = () => {
           let best = null;
-          const rows0 = n === 3 ? 1 : Math.ceil(n / FIG.perRow);
+          // 起始排數夾在 rowsMax 內（v0.43.3：MAXFIG 10 時 ceil(10/2)=5 > rowsMax 4，迴圈一次都不跑、best 留 null，
+          // 主迴圈讀 plan.rows 每幀炸掉——所謂 maxFigures 10 的保險絲以前從沒被這裡支援過）
+          const rowsCap = Math.min(FIG.rowsMax, n);
+          const rows0 = Math.min(n === 3 ? 1 : Math.ceil(n / FIG.perRow), rowsCap);
           outer: for (const fit of FIG.fitSteps) {
-            for (let rows = rows0; rows <= Math.min(FIG.rowsMax, n); rows++) { best = layout(rows, fit); if (best.ok) break outer; }
+            for (let rows = rows0; rows <= rowsCap; rows++) { best = layout(rows, fit); if (best.ok) break outer; }
           }
+          // 真保險絲：無論如何回一個排法（最多排、最小 fit），寧可擠也不能回 null
+          if (!best) best = layout(rowsCap, FIG.fitSteps[FIG.fitSteps.length - 1]);
           return best;
         };
         if (rowsFit[i] && rowsFit[i].n === n) {

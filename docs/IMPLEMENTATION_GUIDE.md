@@ -752,6 +752,7 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    對就會外溢到 AI 估值的自然結果，不是本卷順手改了別的判定。接手後續卷如果又要動 `paperWar` 內任何判定，
    记得 `pwTrial` 是同一支函式，AI 出價行為會跟著變，不要只拿單一場 `paperWar` 的輸出去驗證「引擎沒變」。
 4. **遞補收尊要走「退場寬限」，不能收了就不管（v0.43.2，使用者真機回報灰燼凍在半空）**：`creature-figures.js` 的燒毀灰燼 `ash.points` 掛在 `group.parent`（scene），只靠那尊自己的 `update(dt)` 推進，`reset()` 刻意不砍它（砍了灰燼會在燒完那一瞬硬切）。所以 `resetFigure` 會把收回的尊登記到 `retired`（`{f, until}`），`update(dt, now)` 開頭（在 `active` 檢查之前，對決結束後也要推）對未被重新占用（`!f.__busy`）的尊繼續 `f.update(dt)` 到 `FIG.ashGraceMs`（2000ms ≥ `BURST.life 1.05×1.4≈1.47s`）到期。之後若有人把別的「掛在 scene 上、靠 figure 推進」的特效加進 creature，也走這一條，不要另開清單。驗證用 `tests/tools/ash-freeze-probe.mjs`（對 ff227a7 必紅）。
+5. **名冊順序是「顯示序」，單位 `id` 才是「對位鍵」（v0.43.3）**：`pwArmyView` 先照 `buildArmy` 展開順序指派 `u.id`（＝`pwSide` 的單位索引，beats 的 actor／target 就是它），**再**依 `BEAT_FAC` 拍序穩定排序。所以任何拿 beats 去查名冊的地方都要用 `find(x=>x.id===…)`，**不得**用 `units[b.actor]` 索引（`pwEvFac` 曾經這樣寫，已改）；DOM 晶片 `pwc-${tag}-${id}`、3D `figureOf(side,id)`／`indexOfUnit` 本來就走 id。3D 只擺前 `PW_FX.MAXFIG`（現 10）尊，排序後看得到的就是先出手的那幾拍。測試出口 `pwArmyView`／`BEAT_FAC` 在 `window.__yaoshi`。
 
 ### 11.20 傳說三尊「請神」實作卷（2026-09-06 深夜～09-07，v0.43）——接手前先知道這幾件事
 

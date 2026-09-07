@@ -95,7 +95,8 @@ async function main() {
       await page.waitForTimeout(200);
     }
     const result = await page.evaluate(() => window.__d3);
-    const MAXFIG = await page.evaluate(() => window.PW_FX ? window.PW_FX.MAXFIG : null).catch(() => null);
+    // v0.43.3：PW_FX 是 const、不在 window 上，以前這裡恆 null → 判定一律退回 8 猜；改讀 __yaoshi.PW_FX（真 cap），再退回 window.PW_FX
+    const MAXFIG = await page.evaluate(() => (window.__yaoshi && window.__yaoshi.PW_FX && window.__yaoshi.PW_FX.MAXFIG) || (window.PW_FX ? window.PW_FX.MAXFIG : null)).catch(() => null);
     await browser.close();
     console.log(JSON.stringify({ bagInfo, MAXFIG, result, errors: errs }, null, 1));
     const cap = MAXFIG || 8;

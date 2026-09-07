@@ -1755,7 +1755,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.43.2", VERSION_NOTE="修對決燒毀灰燼凍在半空（遞補上場後殘留）；請神預設關，?legend=1 試玩";
+const VERSION="0.43.3", VERSION_NOTE="對決陣列：每邊 3D 最多 10 尊、名冊依拍序（祖靈→香火→陰氣）排；請神預設關，?legend=1 試玩";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3479,7 +3479,7 @@ const PW_FX={
   BURN_MS:420,        /* 一拍的燒毀（同拍多隻同時燒，不逐隻排隊） */
   BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
-  MAXFIG:8,           /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部） */
+  MAXFIG:10,          /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部）；8→10 使用者 2026-09-07 裁甲（FIG.maxFigures 上限 10；手機 fps 試玩必調） */
   TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 舞台接下招式時的固定時長（取代該筆的 evMs）；沒 3D 時照舊等 evMs */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
@@ -4356,6 +4356,11 @@ function pwArmyView(p){
   /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
   a.teams.forEach(t=>t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,t:t.idx})));
   units.forEach((u,i)=>{ u.id=i; });
+  /* 陣列卷（2026-09-07 使用者裁乙）：顯示順序依拍序 BEAT_FAC（祖靈→香火→陰氣，無系肉身殿後），同系內維持取得順序。
+     id 在排序「前」指派且不重排——beats 的 actor／target 是 pwSide 的單位索引，DOM 晶片 pwc-${tag}-${id} 與 3D figureOf(side,id) 都靠它對位；
+     3D 只擺前 MAXFIG 尊、其餘排隊遞補，排了序之後看得到的就是先出手的那幾拍。 */
+  const beatRank=u=>{ const k=u.fac?BEAT_FAC.indexOf(u.fac):-1; return k<0?BEAT_FAC.length:k; };
+  units.sort((x,y)=>beatRank(x)-beatRank(y)||x.id-y.id);
   const comp={};
   units.forEach(u=>{ comp[u.body]=(comp[u.body]||0)+1; });
   return {units,comp,curses:a.curses};
@@ -4367,7 +4372,7 @@ function pwCompText(v){
 /* 出手那一隻的系別（決定火星顏色）；作祟／賭注那類沒有 actor 的事件退回該側的主系 */
 function pwEvFac(f,b,views){
   const v=views[b.side==="B"?1:0];
-  const u=(b.actor==null)?null:v.units[b.actor];
+  const u=(b.actor==null)?null:v.units.find(x=>x.id===b.actor); /* 陣列卷：名冊已依拍序排，actor 是單位 id 不是索引 */
   return (u&&u.fac)||fxFacOf(b.side==="B"?f.B:f.A);
 }
 /* 字幕：只動 transform／opacity，強 ease-out ≤300ms，絕不從 scale(0) 長出來。
@@ -5414,7 +5419,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy,
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, BEAT_FAC, PW_FX, /* 陣列卷 G1／D3 測試出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
