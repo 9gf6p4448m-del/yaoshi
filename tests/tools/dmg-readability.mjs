@@ -306,7 +306,7 @@ try {
 async function runDom(browser) {
   const page = await openPage(browser, opt, DOM_PROBE);
   const skipAt = Number(opt.skipat || Math.max(2, Math.floor(duels / 2)));
-  const r = await drive(page, url, { duels: duels, onDuel: async (pg, n) => {
+  const r = await drive(page, url, { duels: duels, timeoutMs: 900000, onDuel: async (pg, n) => {
     if (n !== skipAt) return;
     await pg.waitForTimeout(2600); // 讓這一場演到有跳字／殘影再按跳過
     await pg.evaluate((k) => window.__dmgSkip(k), n);
@@ -582,7 +582,8 @@ async function runPix(browser) {
   };
 
   let skipDone = false;
-  const r = await drive(page, url, { duels: duels, onDuel: async (pg, n) => {
+  // drive 預設 300s 就收手；凍幀讓牆鐘遠長於遊戲時間（一場對決要 2–4 分鐘），不放寬會只跑到兩三場
+  const r = await drive(page, url, { duels: duels, timeoutMs: 2400000, onDuel: async (pg, n) => {
     const t0 = Date.now();
     // 上限放到 150s：每一格凍幀在牆鐘上要 300–500ms（截圖＋兩次 evaluate），一場對決常常有上百格。
     // **退出前一定要把畫面放行**（見迴圈後那一行）：這個迴圈是唯一會呼叫 __frzGo() 的地方，
