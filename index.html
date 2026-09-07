@@ -871,9 +871,14 @@ const ROLES = {
        提到 1.0 之後預設出價＝估值本身，上限才真的咬得到。【試玩必調】 */
     ai:{aggr:1.0,spite:0.4,markReact:"ignore"},
     hooks:{
-      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴額外 +4 */
+      /* 玩家被動（GAME_DESIGN §六之三A）：同系 ≥4 件（詛咒品不計）該系共鳴等級 ×1.5。
+         2026-09-07 角色平衡卷：原本寫 ctx.flat+=4，只進 power()；PAPERWAR_ON 預設開之後 power()
+         已不決定勝負（index.html 註解「power() 只留給 UI 當行情顯示」），紙紮夜戰的共鳴只讀
+         ctx.resonanceMul（pwResLv），所以這個被動改接到 resonanceMul 才真的生效。
+         ctx.fac 有值＝pwResLv 的逐系呼叫，只有達標的那一系吃到；沒有 fac＝power()，任一系達標即生效。 */
       onPowerCalc(ctx){
-        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4) ctx.flat+=4; }
+        if(ctx.fac!==undefined){ if(facCount(ctx.p,ctx.fac)>=4) ctx.resonanceMul*=1.5; return; }
+        for(const f of FACTIONS){ if(facCount(ctx.p,f)>=4){ ctx.resonanceMul*=1.5; break; } }
       },
       onAiValue(ctx){ ctx.val*=(ctx.item.f===lockedSpec(ctx.p))?1.6:0.7; }, /* 專精偏好【試玩必調】 */
       onAiPlan(ctx){ ctx.maxPicks=1; },                                     /* 紀律：每夜只標一件 */
@@ -979,6 +984,10 @@ const ROLES = {
   lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:-8,pool:true,
     desc:"免疫流（起始 32）。被動：袋中詛咒品戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
     ai:{aggr:0.5,spite:0.2,markReact:"ignore"},
+    /* 2026-09-07 角色平衡卷：「袋中詛咒品戰力視為 0」原本只寫在 onItemValue（＝只進 power()），
+       而紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數，與 power() 無關）⇒ 免疫在現行對決引擎裡
+       根本不存在。curseWard 是它在紙紮側的等價入口（pwSide 查一次、pwMod 讀）。 */
+    traits:{curseWard:1},
     hooks:{
       onItemValue(ctx){ if(ctx.item.curse) ctx.value=0; },
       onBidSettle(ctx){
@@ -2743,7 +2752,9 @@ function buildArmy(bag){
 function pwResLv(p,fac){
   if(!CFG.PW_RES_MODE) return 0;
   const c=facCount(p,fac); if(c<CFG.SET_MIN) return 0;
-  const ctx={p,itemSum:0,resonance:0,flat:0,resonanceMul:1};
+  /* ctx.fac＝這一次算的是哪一系（2026-09-07 角色平衡卷新增）：onPowerCalc 是逐系呼叫的，
+     「同系 ≥N 件」這類逐系被動要靠它分辨；power() 那條路沒有 fac，hook 自己判 undefined。 */
+  const ctx={p,fac,itemSum:0,resonance:0,flat:0,resonanceMul:1};
   applyHooks("onPowerCalc",ctx,p);
   return Math.max(0,Math.round(Math.min(CFG.PW_RES_CAP,c-CFG.SET_MIN+1)*ctx.resonanceMul));
 }
@@ -2761,7 +2772,9 @@ function pwSide(p,tag){
   }
   const units=[]; a.teams.forEach(t=>t.units.forEach(u=>units.push(u)));
   units.forEach((u,i)=>{ u.id=i; });
-  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0,res,resAny:any};
+  /* curseWard＝「詛咒纏身」免疫（2026-09-07 角色平衡卷）：閭山法師的 traits.curseWard 走這條進 pwMod。
+     一側只查一次（pwMod 每拍每側都會跑，不宜逐拍重查）。沒有這個 trait 的人一律 0 ⇒ 行為與加入前相同。 */
+  return {p,tag:tag||"A",teams:a.teams,curses:a.curses,curseWard:traitMax(p,"curseWard",0)>0,units,n0:units.length,burned:0,absorb:0,lost:-1,mod:0,wind:false,armorV:0,res,resAny:any};
 }
 /* 特性查詢：引擎只問「有沒有這個效果欄位」，不比對 trait id 字串（鐵則 2.4） */
 const pwMax=(sd,k)=>{ let v=0; for(const t of sd.teams) if(t.tr&&t.tr[k]>v) v=t.tr[k]; return v; };
@@ -2913,7 +2926,7 @@ function pwPrep(beat,fac,sd,env,phase){
   if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa&&pwHasAlive(sd)){ m+=aa;   /* 媽祖令旗：本方全體 atk+1（卷 E：該側全滅就沒有誰吃得到這個 atk） */
     pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`,sd); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
-  m-=sd.curses;                                     /* 詛咒纏身 */
+  if(!sd.curseWard) m-=sd.curses;                   /* 詛咒纏身（閭山法師的免疫在此生效；無 trait 者恆走扣分支） */
   sd.mod=m;
 }
 /* 取本方第一個帶某效果欄位的 trait（純查表、供 log 標名字用） */
