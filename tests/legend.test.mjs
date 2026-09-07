@@ -165,6 +165,79 @@ test('G5④供奉：持有者每夜末 −INC_TITHE 壽命；壽命 ≤1 付不�
   ok(log2.some(x=>/回天/.test(x)),`夜末戰況 log 應該記一筆回天：${JSON.stringify(log2)}`);
 });
 
+/* ================= G5 ④ 供奉互動口徑（使用者 2026-09-07 裁丙）================= */
+test('G5④送神回天鈕：任何一夜可主動放手——當夜起不再扣供奉、尊移出袋、那一龕不重開',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  eq(legendsOf(S.players[0]).length,1,'南家應該先請到一尊');
+  const p=S.players[0], x=p.bag.find(y=>y.legend);
+  const life=p.life;
+  ok(!!G.releaseLegend,'應該有 releaseLegend（送神回天的單一事實來源）');
+  const msgs=[];
+  G.releaseLegend(p,x,msgs,'主動送神回天',false);
+  eq(legendsOf(p).length,0,'送神回天之後袋裡不該還有那一尊');
+  eq(p.life,life,'送神回天本身不扣壽命');
+  ok(msgs.some(t=>/回天/.test(t)),`戰況 log 應該記一筆：${JSON.stringify(msgs)}`);
+  /* 當夜起不再扣：同一夜再跑一次夜末供奉，壽命一毛都不動 */
+  G.settleTithe([]);
+  eq(p.life,life,'送神回天當夜起就不再供奉');
+  /* 那一龕不重開，也不能再被任何人請走 */
+  eq(S.shrines[0].open,false,'送神回天之後那一龕不得重開');
+  S.round=n0+1;
+  shrineNight(G,S,{1:{shrine:0,amt:3}});
+  eq(takenBy(S,0),0,'龕仍記在原本請走的人名下，不得被別人再請一次');
+  eq(legendsOf(S.players[1]).length,0,'別人也拿不到回天的那一尊');
+});
+test('G5④危急提示：只在「付完壽命 ≤TITHE_WARN」那一夜出現，同一尊只一次；headless 走預設「要」',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const W=G.CFG.TITHE_WARN, T=G.CFG.INC_TITHE;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  ok(W!=null&&T!=null,`CFG.TITHE_WARN／INC_TITHE 應該存在：${W}／${T}`);
+  /* 壽命還高的時候：自動扣、不進待問清單 */
+  p.life=30;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(p.life,30-T,'門檻以上的夜：自動扣供奉');
+  eq(S.titheAsk.length,0,'門檻以上的夜不得跳提示');
+  /* 壓到剛好會踩門檻那一夜：進待問清單一次，而且**照預設「要」先扣**（headless 就是這條路） */
+  p.life=W+T;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(S.titheAsk.length,1,`付完剩 ${W}（≤TITHE_WARN）那一夜應該跳一次提示`);
+  eq(p.life,W,'headless 走預設「要」：照樣扣，尊留在袋裡');
+  eq(legendsOf(p).length,1,'預設「要」不得把尊拿走');
+  /* 同一尊只提示一次：下一夜即使還在門檻下也不再進待問清單 */
+  p.life=W+T;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(S.titheAsk.length,0,'同一尊只提示一次');
+  eq(p.life,W,'之後照舊自動扣');
+});
+test('G5④AI 放手走同一條門檻：AI 持有者在「付完 ≤TITHE_WARN」那一夜主動送神回天',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  p.ai={aggr:0.6};                 /* 把這一席改成 AI（判準是 p.ai，不是角色 id） */
+  p.life=G.CFG.TITHE_WARN+G.CFG.INC_TITHE;
+  const log=[];
+  G.settleTithe(log);
+  eq(legendsOf(p).length,0,'AI 在門檻上應該主動送神回天（同一條門檻）');
+  eq(p.life,G.CFG.TITHE_WARN+G.CFG.INC_TITHE,'AI 放手那一夜不扣供奉');
+  ok(log.some(t=>/回天/.test(t)),`戰況 log 應該記一筆：${JSON.stringify(log)}`);
+});
+
 /* ================= G5 ⑤ 階段獎勵依本龕最高 h 比例 ================= */
 test('G5⑤階段獎勵：區間依「本龕最高 h」的比例（不是固定門檻）——最高 9 時 h=3 退 1、h=6 退 3＋小法寶',()=>{
   const G=loadGame(TARGET); const S=setup(G);

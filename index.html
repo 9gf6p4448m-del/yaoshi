@@ -87,13 +87,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 @media (orientation:portrait){ #shrines{display:none} }
 /* 部隊預覽的那一行（市集卡與袋子面板共用；請神 2.0 使用者裁定）：
    字級與卡片說明 .ab 同級（不得更小——凍結檔 G11 明訂），放不下時省略號，不撐開卡片。 */
-.uline{font-size:10px;color:var(--dim);line-height:1.4;margin-top:2px;
+.uline{font-size:10px;color:var(--dim);line-height:1.4;margin-top:2px;min-width:0;overflow-wrap:anywhere;
   overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .uline .umv{color:var(--gold);margin-left:4px}
 .uline .umd{margin-left:4px}
 .bagit.uprev{align-items:flex-start;gap:8px}
 .bagit.uprev .uline{text-align:right;max-width:62%;-webkit-line-clamp:3}
 .bagit.bagsum{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+/* 袋子面板傳說旁的「送神回天」鈕（常駐；請神 2.0 §二 6） */
+.tithebtn{margin-left:6px;background:var(--panel2);color:var(--gold);border:1px solid var(--gold);
+  border-radius:6px;font-size:10.5px;padding:1px 6px;cursor:pointer;white-space:nowrap}
 /* 出價面板的「燒香」列：一列到底、不換行，橫向放不下時內部自己捲（外層不得溢出） */
 .incbar{display:flex;align-items:center;gap:5px;margin:3px 0 4px;padding:2px 6px;border:1px dashed var(--line);
   border-radius:8px;font-size:10.5px;overflow-x:auto;white-space:nowrap}
@@ -125,6 +128,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .mark-stamp{position:absolute;right:-6px;top:-9px;width:28px;height:28px;z-index:4;pointer-events:none;
   filter:drop-shadow(0 0 6px var(--c-danger,#e04040))}
 #south .mark-stamp{right:auto;left:42px;top:-6px}
+/* 東席的盯上印要翻到卡片**內側**（請神 2.0 版面卷）：東席貼著 #table 右緣，
+   印章 right:-6px 本來就凸出 6px，anim-stamp-in 放大到 2.26 倍時實測凸出 **19px**——
+   就是 v0.44 一直量到的那 19px 橫向溢出（不是神龕列造成的，探針 tests/tools/overflow-probe.mjs 指出來的）。
+   翻到左側之後放大也還在桌內；西席本來就在左緣，印章在右側不會凸出，不必動。 */
+#east .mark-stamp{right:auto;left:-6px}
 .seat .dir{position:absolute;top:-7px;left:8px;background:var(--table2);border:1px solid var(--line);
   border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
 .windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
@@ -600,6 +608,10 @@ const CFG = {
   SHRINE_NIGHTS: [4,7,10],  /* 請神夜：三尊各在其中一夜開標；哪一尊落在哪一夜每局用 S.rng 洗牌並公開【試玩必調】 */
   INC_MAX: 3,        /* 每夜每人最多燒幾點壽命當香火（密封、當場扣、不退）【試玩必調】 */
   INC_TITHE: 1,      /* 供奉（神債）：持有傳說者每夜末付這麼多壽命；付不出（壽命 ≤1）那一尊回天、該龕不重開【試玩必調】 */
+  /* 供奉的互動口徑（提案 §二 6，使用者 2026-09-07 裁丙）：平常自動扣、不跳窗；
+     只有「付完供奉壽命會 ≤TITHE_WARN」那一夜跳一次「壽命危急，繼續供奉？」，同一尊只提示一次；
+     AI 的放手規則走同一條門檻（付後 ≤TITHE_WARN 就送神回天）。袋子面板另有常駐的「送神回天」鈕。 */
+  TITHE_WARN: 2,     /* 【試玩必調】 */
   INC_GIFT_P: 4,     /* 階段獎勵第三段附送的小法寶：從 POOL 該系 p≤此值的抽一件 */
   /* AI 追價啟發式（提案 §二 7）：壽命低於 LIFE×minLifeFrac 不拜；
      每夜只燒「追平領先者所需」的量（min(INC_MAX, 壽命−1, lead−mine+1)）；
@@ -2133,10 +2145,12 @@ function makeState(mode,seed,picks){
     /* 閘門統計（純計數、零亂數、不改任何結算值）：
        burn/burnLife 燒香次數與壽命／rewards/gifts 階段獎勵／taken 請走／dawn 天亮回天的龕／
        sealed/clip/clipZero 封籤與被 incCap 夾掉的筆數（覆審 N2）／
-       tithe 供奉付出去的壽命、titheLost 付不出而回天的尊、locked 因「一人一尊」被擋下的封籤、
+       tithe 供奉付出去的壽命、titheLost 付不出而回天的尊、titheGiveUp 主動（或 AI 依門檻）送神回天的尊、
+       locked 因「一人一尊」被擋下的封籤、
        voidDawn 請神夜到了卻無人燒香（h 全 0）而回天的龕。 */
     S.shrineStat={burn:0,burnLife:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0,
-      tithe:0,titheLost:0,locked:0,voidDawn:0};
+      tithe:0,titheLost:0,titheGiveUp:0,locked:0,voidDawn:0};
+    S.titheAsk=[]; /* 夜末「壽命危急，繼續供奉？」的待問清單（純 UI 佇列；headless 沒人讀＝預設「要」） */
   }
   return S;
 }
@@ -2689,10 +2703,33 @@ function resolveShrines(){
   recordShrines(out);
   return out;
 }
-/* 供奉（神債，請神 2.0 §二 6）：持有傳說者每夜末付 CFG.INC_TITHE 壽命；
-   付不出（付了會剩不到 1 點壽命）⇒ 那一尊**回天**、從袋中移除，該龕**不重開**。
+/* 送神回天（請神 2.0 §二 6）：把某人袋裡的那一尊移出去。**唯一的事實來源**——
+   「付不出」「AI 放手」「真人按送神回天鈕」「危急提示選送神」四條路都呼叫這一支。
+   龕早在請走那一夜就 open=false，所以**不重開**是自動成立的（這裡不碰 sh.open）。
+   refund＝把本夜已經扣掉的供奉退回來：危急提示是在夜末**扣完之後**才問的，選「送神」要等於「當夜起不再扣」。 */
+function releaseLegend(p,x,log,why,refund){
+  const k=p.bag.indexOf(x);
+  if(k<0) return false;
+  p.bag.splice(k,1);
+  if(refund){ p.life+=CFG.INC_TITHE|0; if(S.shrineStat) S.shrineStat.tithe-=CFG.INC_TITHE|0; }
+  if(log) log.push(`🕯️ ${p.name} 送「${x.n}」回天${why?`（${why}）`:""}——袋中不再有這一尊，那一龕也不會重開`);
+  if(S.shrineStat){
+    if(why==="供奉不起") S.shrineStat.titheLost++; else S.shrineStat.titheGiveUp++;
+    (S.shrineStat.titheLostLog=S.shrineStat.titheLostLog||[]).push({pid:p.id,round:S.round,life:p.life,why});
+  }
+  return true;
+}
+/* 供奉（神債，請神 2.0 §二 6）：持有傳說者每夜末付 CFG.INC_TITHE 壽命——**平常自動扣、不跳窗**。
    ★三條迴圈共用★：這一支只被 resolveBattles 的夜末段呼叫一次（真人 startBattle／simulate／playPolicyGame
    都走同一支 resolveBattles），不得在別處再複製一份 −1。零亂數。
+   三條分支（使用者 2026-09-07 裁丙）：
+     ① 付不出（付了會剩不到 1 點壽命）⇒ 直接回天。
+     ② 付完會 ≤CFG.TITHE_WARN，且這一尊還沒提示過（x.titheWarn 旗標，同一尊只判一次）：
+        AI ⇒ 走同一條門檻主動放手；真人 ⇒ **照預設「要」先扣**，同時把這一筆記進 S.titheAsk，
+        由 UI（showTitheAsk）在夜末戰況之後問一次；選「送神回天」時 releaseLegend(...,refund=true)
+        會把本夜的供奉退回來，等價於「當夜起不再扣」。
+        ★headless／simulate／playPolicyGame 沒有 UI，S.titheAsk 只是被寫進去沒人讀 ⇒ 行為就是預設「要」★（凍結檔 G5④）。
+     ③ 其餘照付。
    供奉本身不會殺人：付得起才付（付完至少剩 1），付不起就改成回天。 */
 function settleTithe(log){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
@@ -2700,20 +2737,21 @@ function settleTithe(log){
   const t=CFG.INC_TITHE|0;
   S.players.forEach(p=>{
     if(!p.alive) return;
-    const held=p.bag.filter(x=>x.legend);
-    if(!held.length) return;
-    for(const x of held){
-      if(t>0&&p.life-t<1){
-        p.bag.splice(p.bag.indexOf(x),1);        /* 供奉斷了：尊回天，該龕不重開 */
+    for(const x of p.bag.filter(y=>y.legend)){
+      if(t>0&&p.life-t<1){                                   /* ① 付不出 */
+        releaseLegend(p,x,log,"供奉不起",false);
         out.push({pid:p.id,item:x.n,lost:true});
-        if(log) log.push(`🕯️ ${p.name} 供奉不起「${x.n}」——神像回天，袋中不再有這一尊`);
-        if(S.shrineStat) S.shrineStat.titheLost++;
-      }else{
-        p.life-=t;
-        out.push({pid:p.id,item:x.n,paid:t});
-        if(log&&t>0) log.push(`🕯️ ${p.name} 供奉「${x.n}」-${t} 壽命`);
-        if(S.shrineStat) S.shrineStat.tithe+=t;
+        continue;
       }
+      if(t>0&&p.life-t<=CFG.TITHE_WARN&&!x.titheWarn){       /* ② 危急門檻，同一尊只判一次 */
+        x.titheWarn=true;
+        if(p.ai){ releaseLegend(p,x,log,"壽命危急，主動放手",false); out.push({pid:p.id,item:x.n,lost:true}); continue; }
+        if(S.titheAsk) S.titheAsk.push({pid:p.id,item:x.n});
+      }
+      p.life-=t;                                             /* ③ 照付（真人在門檻上也先照預設「要」扣） */
+      out.push({pid:p.id,item:x.n,paid:t});
+      if(log&&t>0) log.push(`🕯️ ${p.name} 供奉「${x.n}」-${t} 壽命`);
+      if(S.shrineStat) S.shrineStat.tithe+=t;
     }
   });
   return out;
@@ -3817,7 +3855,7 @@ function introPages(){ return [
   ...(CFG.LEGEND_ON?[`<div style="font-size:30px">🕯️</div><h2 style="font-size:17px;margin:6px 0">請神（傳說三尊）</h2>
    <div style="font-size:12.5px;line-height:1.8;text-align:left">妖市供著<b style="color:var(--gold)">三尊不上拍賣桌的東西</b>。每夜出價時可以多<b>燒 0～${CFG.INC_MAX} 壽命</b>當香火給任一尊（密封、當場扣、<b>不退</b>）。<br>
    三尊各有自己的<b>請神夜</b>（第 ${CFG.SHRINE_NIGHTS.join("／")} 夜，開局就公開哪一尊在哪一夜）：那一夜開標，<b>累計香火最高的人請走</b>，同分看本夜風位。沒人上香就<b>回天</b>。<br>
-   <b>一人一尊</b>；請到之後每夜末要<b>供奉 ${CFG.INC_TITHE} 壽命</b>，付不出來祂就走。落空的人依香火高低退回一些壽命。<br><br>
+   <b>一人一尊</b>；請到之後每夜末自動<b>供奉 ${CFG.INC_TITHE} 壽命</b>，付不出來祂就走（袋子裡隨時可以按「送神回天」主動放手）。落空的人依香火高低退回一些壽命。<br><br>
    看不懂任何名詞？右上角 <b style="color:var(--gold)">？</b> 隨時可查。</div>`]:[]),
 ]; }
 function showIntro(cont){
@@ -3874,7 +3912,8 @@ function openHelp(){
       <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣）。<b>注意先後</b>：開標時先結算出價、再燒香，所以標得太兇、扣完壽命不夠時，你封的香火會被縮到「剩 1 點」為止——結算卡與夜末戰況會明講「封 3 → 實燒 2」。<br>
       <b>請神夜</b>：三尊各有自己開標的那一夜（第 ${CFG.SHRINE_NIGHTS.join("／")} 夜）。<b>哪一尊在哪一夜，每一局開場就洗好、公開寫在神龕卡上</b>（「第 N 夜請・倒數 M 夜」）。到了那一夜，開標之後<b>累計香火最高的人把祂請走</b>——沒有骰子、沒有天井，就是比大小。<b>同分</b>看本夜風位：從風位家起順時針，第一個到的人贏。<b>那一夜完全沒有人上香，這一尊就回天</b>，本局不再出現、也不重開。<br>
       <b>一人一尊</b>：請到一尊之後，其餘的龕不再收你的香（燒香列會鎖起來）。所以三尊必定落在三個不同的人手上。<br>
-      <b>供奉（神債）</b>：請到之後每個夜末要付 <b>${CFG.INC_TITHE} 壽命</b>供著祂；<b>付不出來</b>（付了會剩不到 1 點）祂就<b>回天</b>、從你袋裡消失，那一龕也不會重開。祂很強，但你得一直養得起。<br>
+      <b>供奉（神債）</b>：請到之後每個夜末<b>自動</b>付 <b>${CFG.INC_TITHE} 壽命</b>供著祂（戰況會記一行，不會每夜跳出來問）；<b>付不出來</b>（付了會剩不到 1 點）祂就<b>回天</b>、從你袋裡消失，那一龕也不會重開。祂很強，但你得一直養得起。<br>
+      <b>要放手隨時可以</b>：袋子面板上那一尊旁邊有「<b>送神回天</b>」，任何一夜按下去，當夜起就不再供奉、祂離開你的袋子（那一龕一樣不重開）。另外，只有在「付完供奉壽命會剩 ${CFG.TITHE_WARN} 點以下」的那一夜，遊戲會<b>跳一次</b>「壽命危急，繼續供奉？」讓你選——同一尊只問這一次，之後照舊自動扣。<br>
       <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、無人上香回天、或天亮收攤），你的香火依<b>與本龕最高香火的比例</b>結清——不到最高的 1/3 沒有；1/3～2/3 退 ⌈h/3⌉ 壽命（香灰）；<b>到了最高的 2/3 以上</b>退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）。結清後香火歸零。<br>
       <b>資訊全公開</b>：四家在三龕上的香火、以及各尊的請神夜，都攤在神龕卡上（中央面板法寶卡上方）。對手燒哪一龕，就等於告訴你他在湊哪一系。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，<b>在共鳴計算裡算 2 件</b>（強化你同系的其他法寶）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
@@ -4874,6 +4913,7 @@ async function startBattle(){
   });
   renderSeats();
   $("skipbtn").style.display="none";
+  await showTitheAsk();  /* 供奉危急提示（同一尊只問一次；沒有待問就直接過去） */
   const aliveN=S.players.filter(p=>p.alive).length;
   if(!aliveHumans().length||aliveN<=1||S.round>=CFG.ROUNDS){
     $("mainbtn").textContent="看最終結果";$("mainbtn").onclick=endGame;
@@ -4881,6 +4921,47 @@ async function startBattle(){
     $("mainbtn").textContent="進入下一夜";$("mainbtn").onclick=nextRound;
   }
   $("mainbtn").disabled=false;
+}
+/* 供奉危急提示（請神 2.0 §二 6，使用者裁丙）：**只有**「付完供奉壽命會 ≤CFG.TITHE_WARN」那一夜跳，
+   而且同一尊只跳一次（旗標在 settleTithe 就蓋好了，這裡只負責問）。平常那些夜一律自動扣、不跳窗。
+   引擎在夜末已經照預設「要」扣過了，所以選「送神回天」時 releaseLegend 帶 refund＝把本夜那一筆退回來
+   ——語意就是「當夜起不再扣」。headless 沒有人呼叫這一支 ⇒ 行為＝預設「要」（凍結檔 G5④）。 */
+function showTitheAsk(){
+  return new Promise(done=>{
+    const q=(S&&S.titheAsk)?S.titheAsk.splice(0):[];
+    const step=()=>{
+      const a=q.shift();
+      if(!a){ done(); return; }
+      const p=S.players[a.pid];
+      const x=p&&p.alive?p.bag.find(y=>y.legend&&y.n===a.item):null;
+      if(!x){ step(); return; }   /* 這一夜已經被別條路收走了（例如袋子面板先按了送神回天） */
+      $("modalbox").innerHTML=`<h2>🕯️ 壽命危急，繼續供奉？</h2>
+        <p style="font-size:13px;line-height:1.8">${S.mode==="hotseat"?`${DIRS[p.id]}家・${p.name}`:"你"}供著「<b style="color:var(--gold)">${x.n}</b>」，
+        每夜末要付 <b>${CFG.INC_TITHE}</b> 壽命。付完只剩 <b style="color:#ff8484">${p.life}</b> 點——
+        再撐下去，付不出來的那一夜祂一樣會回天，而且你可能已經先倒下了。<br>
+        <span class="mut">送神回天：這一尊離開你的袋子（那一龕也不會重開），<b>本夜的供奉退回來</b>，之後不再扣。</span></p>
+        <button class="bigbtn" style="margin-top:10px;width:100%" id="titheKeep">要，繼續供奉</button>
+        <button class="bigbtn" style="margin-top:8px;width:100%;background:var(--panel2)" id="titheDrop">送神回天</button>`;
+      $("modal").style.display="flex";
+      $("titheKeep").onclick=()=>{ $("modal").style.display="none"; step(); };
+      $("titheDrop").onclick=()=>{
+        const msgs=(S.shrineClipMsgs=S.shrineClipMsgs||[]);
+        releaseLegend(p,x,msgs,"主動送神回天",true);
+        $("modal").style.display="none"; renderSeats(); step();
+      };
+    };
+    step();
+  });
+}
+/* 袋子面板的「送神回天」鈕（常駐，任何一夜都按得下去）：走的是同一支 releaseLegend，
+   不 refund——夜末的供奉還沒扣（袋子是出價階段開的），所以「當夜起不再扣」自然成立。 */
+function giveUpLegend(pid,name){
+  const p=S.players[pid];
+  if(!p||!p.alive) return;
+  const x=p.bag.find(y=>y.legend&&y.n===name);
+  if(!x) return;
+  releaseLegend(p,x,(S.shrineClipMsgs=S.shrineClipMsgs||[]),"主動送神回天",false);
+  renderSeats(); showBag(pid);
 }
 function nextRound(){
   sfx("dawn"); /* 天明 */
@@ -4991,7 +5072,13 @@ function showBag(pid){
   }
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}（${faceLbl(p)}）</h2>
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
-      ${x.ab?`<span class="abtxt">✦ ${abDesc(x.ab)}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
+      ${x.ab?`<span class="abtxt">✦ ${abDesc(x.ab)}</span>`:""}${
+      /* 傳說：常駐「送神回天」鈕（請神 2.0 §二 6，使用者裁丙）——任何一夜都可以主動放手，
+         當夜起不再供奉、那一龕也不會重開。只有自己（或熱座的當前席）看得到，AI 的袋子不長這顆鈕。 */
+      (x.legend&&p.alive&&!p.ai&&pid===ACTIVE)
+        ?`<button class="tithebtn" title="供奉每夜 −${CFG.INC_TITHE} 壽命；送神回天之後不再扣，那一龕也不重開"
+            onclick="giveUpLegend(${pid},'${x.n}')">🕯️ 送神回天</button>`:""}${
+      x.legend?`<span class="mut" style="font-size:10.5px">・供奉每夜 −${CFG.INC_TITHE}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
     ${bonus}
     ${/* 部隊預覽（請神 2.0）：使用者試玩「持兩尊仍 12/12 全燒、看不出為什麼輸」——袋子全是 atk 0 的作祟型與護法。
          逐件的隻數／攻／血／拍／招式與最上方的總計都走引擎同一支 buildArmy＋TRAITS，不另抄規則。 */""}
@@ -5605,7 +5692,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
   /* 傳說三尊「請神」（第 4 卷）測試出口：資料表、結算、回天、AI 啟發式、階段獎勵 */
-  LEGENDS, resolveShrines, settleShrinesEnd, settleTithe, aiIncense, incAiOf, shrineReward, mainFaction,
+  LEGENDS, resolveShrines, settleShrinesEnd, settleTithe, releaseLegend, aiIncense, incAiOf, shrineReward, mainFaction,
   shrineWindOrder, hasLegend, windPid, incCap, unitRow, unitRowText, bagPreviewHTML,
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,

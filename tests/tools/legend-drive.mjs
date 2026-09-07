@@ -1,11 +1,11 @@
-// 傳說三尊「請神」Playwright 驅動（第 4 卷，凍結檔 L6）
+// 請神 2.0「神債暗標」Playwright 驅動（凍結檔 docs/experiments/2026-09-07-acceptance-legend-v2.md G6／G11）
 // 用法：node tests/tools/legend-drive.mjs <out.json> [--port=8841] [--seeds=1,2,3,4,5,6] [--root=<靜態根目錄>]
 //                                          [--shots=<png 前綴>] [--legend=0] [--burn=0]
 //   --burn=0  真人整局不燒香（要走到「天亮回天」得留一座龕沒被請走）
 //   --legend=0  關掉整個請神機制（量橫向溢出的對照組）；不帶 --legend＝完全不帶 query，走 CFG 預設（v0.44 起＝開）
 // 做的事：自起 http.server，用真的瀏覽器把一整局玩完（真人座位每夜燒滿香），錄下
 //   ① console error／pageerror／requestfailed
-//   ② 是不是真的走到「請走」與「天亮回天」各至少一次
+//   ② 是不是真的走到「請走」「回天」「落空的階段獎勵」各至少一次（G6）
 //   ③ 每一次畫面更新後的橫向溢出（844×390 橫式與 390×844 直式各量一輪）
 // 走到兩條路各一次就停；一顆種子走不到就換下一顆（真人每夜燒滿，通常第一顆就同時有請走與回天）。
 import { spawn } from 'node:child_process';
@@ -57,7 +57,7 @@ const main = async () => {
   const srv = await serve(SERVE_ROOT, PORT);
   const chromium = loadChromium();
   const browser = await chromium.launch();
-  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, games: [] };
+  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, rewards: 0, games: [] };
   try {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
@@ -150,14 +150,27 @@ const main = async () => {
       await page.evaluate(`(() => { if (typeof closeModal === 'function') closeModal(); })()`);
       const fin = await page.evaluate(`(() => { const S = window.__yaoshi.S;
         if (!S.shrines) return { taken: 0, dawnShrines: 0, dawn: 0, round: S.round };
+        // 落空者的階段獎勵：逐夜 history 的 shrine.rewards ＋ 天亮收攤那一批（G6 要各走到一次）
+        let rw = (S.history && S.history.shrineDawn) ? S.history.shrineDawn.length : 0;
+        if (S.history && S.history.nights) for (const n of S.history.nights)
+          if (n.shrine && n.shrine.rewards) rw += n.shrine.rewards.length;
         return { taken: S.shrines.filter(s => s.takenBy != null).length,
                  dawnShrines: S.shrines.filter(s => s.dawn).length,
                  dawn: (S.history && S.history.shrineDawn) ? S.history.shrineDawn.length : 0,
-                 round: S.round }; })()`);
-      g.taken = fin.taken; g.dawn = fin.dawn; g.dawnShrines = fin.dawnShrines; g.nights = fin.round;
-      rec.taken += fin.taken; rec.dawn += fin.dawn; rec.dawnShrines += fin.dawnShrines;
+                 rewards: rw, round: S.round }; })()`);
+      g.taken = fin.taken; g.dawn = fin.dawn; g.dawnShrines = fin.dawnShrines; g.rewards = fin.rewards; g.nights = fin.round;
+      rec.taken += fin.taken; rec.dawn += fin.dawn; rec.dawnShrines += fin.dawnShrines; rec.rewards += fin.rewards;
       rec.games.push(g);
       if (opt.shots) await page.screenshot({ path: `${opt.shots}-s${seed}.png` });
+      // G11 人眼：袋子面板（部隊預覽）各拍一張；量的是它會不會在 844×390 撐出橫向溢出
+      if (opt.shots) {
+        await page.evaluate(`(() => { if (typeof showBag === 'function') showBag(0); })()`);
+        await page.waitForTimeout(150);
+        const ovB = await page.evaluate(OVERFLOW);
+        if (ovB.length) rec.overflow.push({ seed, step: 'bag', ov: ovB });
+        await page.screenshot({ path: `${opt.shots}-bag-s${seed}.png` });
+        await page.evaluate(`(() => { if (typeof closeModal === 'function') closeModal(); })()`);
+      }
     }
 
     // 手機直式：整頁不得橫向溢出。量在**固定的同一頁**（新開一局、停在出價那一頁）——
@@ -224,7 +237,7 @@ const main = async () => {
   }
   fs.writeFileSync(OUT, JSON.stringify(rec, null, 1), 'utf8');
   const okErr = rec.errors.length === 0 && rec.pageerrors.length === 0;
-  const okPath = rec.taken > 0 && rec.dawnShrines > 0;
+  const okPath = rec.taken > 0 && rec.dawnShrines > 0 && rec.rewards > 0;
   const okOv = rec.overflow.length === 0 && rec.portraitOverflow.length === 0;
   console.log(`# 請神 Playwright 驅動（844×390 橫式＋390×844 直式）　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天收攤 ${g.dawnShrines} 龕／結清 ${g.dawn} 筆・燒香 ${g.burned} 夜）`).join('；'));
@@ -237,7 +250,7 @@ const main = async () => {
   console.log(`- CFG.LEGEND_ON=${rec.legendOn}　神龕列 #shrines 開頁時存在？${rec.shrineEl}　逐局（神龕列／燒香列）：` + rec.games.map((g) => `seed ${g.seed} ${g.shrineEl}/${g.incEl}`).join('；'));
   console.log(`- console error ${rec.errors.length}、pageerror ${rec.pageerrors.length}、requestfailed ${rec.requestfailed.length} → ${okErr ? '✅' : '❌'}`);
   if (!okErr) { rec.errors.slice(0, 5).forEach((e) => console.log('    error: ' + e)); rec.pageerrors.slice(0, 5).forEach((e) => console.log('    pageerror: ' + e)); }
-  console.log(`- 走到「請走」${rec.taken} 次、「天亮回天」收攤 ${rec.dawnShrines} 龕（其中結出階段獎勵 ${rec.dawn} 筆）→ ${okPath ? '✅' : '❌'}`);
+  console.log(`- 走到「請走」${rec.taken} 次、「回天」${rec.dawnShrines} 龕、「落空的階段獎勵」${rec.rewards} 筆 → ${okPath ? '✅' : '❌'}`);
   console.log(`- 固定頁對照（同一局同一頁「${rec.portraitAt}」）：橫式 ${JSON.stringify(rec.landscapeFixed)}　直式 ${JSON.stringify(rec.portraitOverflow)}`);
   console.log(`- 橫向溢出：橫式 ${rec.overflow.length} 筆、直式 ${rec.portraitOverflow.length} 筆（直式量在「${rec.portraitAt}」那一頁）→ ${okOv ? '✅' : '❌'}`);
   if (!okOv) [...rec.overflow.slice(0, 5), ...rec.portraitOverflow.slice(0, 5)].forEach((o) => console.log('    ' + JSON.stringify(o)));
