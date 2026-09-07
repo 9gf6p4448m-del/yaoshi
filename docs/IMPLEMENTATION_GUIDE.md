@@ -1254,3 +1254,23 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 **`git show <改動前的 commit>:index.html` 跑同一支 `trace()` 的結果**，而不是那兩個 JSON 檔。
 純新增內容時記得做雙向檢查：把新項目從 `POOL` 拿掉要相等、放回去要不相等
 （只驗前者的話，「道具根本沒進牌局」會靜默通過）。
+
+## 12. 傳說三尊的 3D 接線（2026-09-07 美術卷）
+
+三尊走 `LEGENDS`（`index.html`），**不在 `POOL` 裡**。要改它們的 3D 時記得四件事：
+
+1. **模型鍵是 `m` 不是 `ab`**。`LEGENDS` 沒有 `ab`（沒有 `ab` ＝ 不帶任何拍賣能力，`collectEffects` 只認 `ab`）；
+   組對決隊伍時 `index.html:2859` 用 `ab: x.ab || x.m || null`，所以 3D 那一側拿到的字串是 `m`。
+   `m` 直接就是 `assets/creatures/<m>.glb` 的檔名（`creatureGlbUrl` 只在 `CREATURE_GLB` 有列時改寫，三尊沒列）。
+   **現值**：`canri`／`dashiye`／`youyinggong`。
+2. **治具要另外登記**。`tests/tools/duel-perf.mjs` 的 `ALL`（bounds 要量到）、`HEAVY`（效能閘門要含三尊）、
+   `FAC`（系別），以及 `tests/tools/faction-sheet.mjs` 的 `FAC` —— 這四張表都是**手寫的**，加新尊要自己補，
+   忘了補的話三尊會落在所有治具的視野之外、靜默不受檢。
+   `duel-perf perf --heavy=base` 是 V6 專用的基準組（原本最重 8 隻、不含三尊），只給「同 session 交錯比較」用。
+3. **`traitfx-drive.mjs` 的名冊反查有兩條 regex**。`LEGENDS` 的欄位順序與 `POOL` 不同（`legend:true` 夾在
+   `p` 與 `m` 之間），所以 `casesFromIndex()` 另有一條 `reL`；動 `LEGENDS` 的欄位順序會讓三招從名冊消失
+   （不會報錯，只會少三套）。
+4. **三招的編舞在三個系別檔裡**：`eliteBlind`（`js/trait-fx/zuling.js`）／`wardGuardAll`（`xianghuo.js`）／
+   `hauntAnswer`（`yinqi.js`）。骨骼名＝spec 的關節名：`canri` 有 `Root,Hips,Spine,Chest,Neck,Crown,Disc`；
+   `dashiye` 有 `Foot,Hips,Waist,Chest,Shoulder,Neck,HeadRoot,Skull,Brow,Crown,JawRoot,Jaw1,JawTip,TongueRoot,Tong1..3,ShrineRoot,Shr1..3,Eave`；
+   `youyinggong` 有 `Waist,Spine,Chest,Top,MistRoot,Mist1..2,MistTip,Eave,Censer`。`st.rot` 對不存在的骨回 `false`、不會炸。

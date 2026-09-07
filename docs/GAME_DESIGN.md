@@ -492,11 +492,22 @@ v0.6 拍賣經濟改版取代，不再是現行行為**（沿革見下方 change
 
 ## Changelog
 
-- 2026-09-07 v0.49（傷害可讀性 批 2-a，純演出）：使用者手機試玩 v0.45 回報「扣血的部分看不太出來、
+- 2026-09-07 v0.51（傳說三尊美術卷）：**只動 3D 與治具登記，不動任何規則與數值**——`LEGENDS` 只改
+  `m`（3D 模型鍵），賽局欄位（`f`／`p`／`unit`／`trait`）一格未動，9 套測試全綠。三尊從此有專屬 GLB：
+  `assets/creatures/{canri,dashiye,youyinggong}.{json,glb,claims.json}`，不再借 `bow`／`wangchuan`／`redhat`。
+  做了六件事：① 三份真實參照 ref 檔（Wikimedia Commons，來源與授權在檔內）＋簡報補三列
+  ② 每尊三方案 contact sheet 給使用者挑（挑定：殘日 r1a／大士爺 r1a／有應公 r1b）
+  ③ V2 盲讀三輪六位／尊——**三尊皆未過，交最佳版標「未過」待簽字**（`docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md`）
+  ④ `LEGENDS.m` 改指新鍵、`duel-perf` 的 ALL／HEAVY／FAC 與 `faction-sheet` 的 FAC 登記三尊
+  ⑤ 三招編舞 `eliteBlind`／`wardGuardAll`／`hauntAnswer` 進 `js/trait-fx/{zuling,xianghuo,yinqi}.js`
+  ⑥ ART_BIBLE 加 §9「傳說三尊」。美術上量到的兩條通則（底比肩寬＝不倒翁語意場、haunt 虛化錐體＝陀螺輪廓）
+  已寫進 ART_BIBLE §9，對 27 隻也成立。
+
+- 2026-09-08 v0.51（傷害可讀性 批 2-a，純演出；與傳說三尊同版）：使用者手機試玩 v0.45 回報「扣血的部分看不太出來、
   顏色分不出」。四件：① 跳字字級 ×1.6、900 粗體、深色描邊＋黑色光暈，傷害＝暖紅橙／治療＝綠／
   擊殺再 ×1.3 且系色只用在底光，出現先彈 120ms 再上飄 ② 被打的那一尊閃紅 120ms（3D 走既有的
   邊光 uniform ＋ albedo 往紅乘，燒毀中的尊不閃）③ 存活量表掉的那一段留 300ms 紅殘影，
-  己方（南家）被打時對決框邊緣閃 150ms 紅暈 ④ 每隻紙紮燒毀時補一個灰白「−1 隻」小字。
+  真人那一側（含熱座兩人）被打時對決框邊緣閃 150ms 紅暈 ④ 每隻紙紮燒毀時補一個灰白「−1 隻」小字。
   順手修掉一個 v0.45 的錯：傷害數字本來冒在**出手方**那一側（`pwRec` 的 side 是行動方、target 在對面，
   而兩側 unit id 都是 0..n−1，所以查得到的是出手方自己的一尊）。引擎一行未動，`trace(1..20)` 逐位元組相等。
 
