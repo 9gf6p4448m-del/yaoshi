@@ -147,8 +147,15 @@ function silhouette() {
 }
 
 /** 五片遠景剪影：廟宇屋脊／牌樓／榕樹／屋簷燈籠串／攤棚一排。
- *  擺位理由：牌桌機位（俯角 34°、垂直半 FOV 25°）畫面最上緣＝水平線下 8.7°，
- *  地面上的東西要離鏡頭 < 2.065/tan(8.7°) ≈ 13.5 才進得了畫面，所以距離取 8.5～13。 */
+ *  擺位理由（兩個上下夾的條件）：
+ *  ① **上限**：牌桌機位（俯角 34°、垂直半 FOV 25°）畫面最上緣＝水平線下 8.7°，地面上的東西要離
+ *     鏡頭 < 2.065/tan(8.7°) ≈ 13.5 才進得了畫面。
+ *  ② **下限**：A4 的深度判準是 min(剪影距相機) > max(人形距相機)，而對決相機在半徑 3.84 的圓上
+ *     繞（四個座位都可能），最壞情況是相機正對著某一片剪影：那時距離只剩 D − 3.84。人形最遠實測
+ *     5.38，所以 D 要 > 9.24 才恆過。**實測教訓**：D=8.5～9.0 那一版在六場對決裡有一場紅
+ *     （minFar 5.076 < maxFig 5.379）——紅的原因不是遮擋，是相機剛好停在剪影旁邊。
+ *  兩條夾出 9.6 ≤ D ≤ 13.5，本卷取 10.0～10.8，方位角同時往畫面左右外側推（±45° 是水平半 FOV，
+ *  愈外側的剪影底邊在畫面上愈低、看得到的部分愈多）。 */
 function createFarSilhouettes() {
   const g = new THREE.Group();
   g.name = 'far'; // 容器不叫 far-*：治具掃的是 name 以 `far-` 開頭的物件，容器同名會被多算一筆
@@ -163,7 +170,7 @@ function createFarSilhouettes() {
     s.box(2.5, 2.5, 1.0, 0.28, D); // 右燕尾
     s.box(-0.18, 2.8, 0.36, 0.5, D); // 脊飾
     for (let i = 0; i < 4; i++) s.box(-2.1 + i * 1.4, 1.55, 0.18, 0.3, L); // 簷下燈籠
-    g.add(place(s.build('far-temple'), 218, 8.5, 0.30));
+    g.add(place(s.build('far-temple'), 222, 10.2, 0.30));
   }
   // ② 牌樓（兩柱三樓）
   {
@@ -175,7 +182,7 @@ function createFarSilhouettes() {
     s.trap(0, 3.26, 3.0, 1.6, 0.6, D);
     s.box(-1.2, 2.0, 0.2, 0.3, L);
     s.box(1.0, 2.0, 0.2, 0.3, L);
-    g.add(place(s.build('far-arch'), 142, 8.5, 0.28));
+    g.add(place(s.build('far-arch'), 150, 10.0, 0.28));
   }
   // ③ 榕樹（幹＋團塊樹冠，刻意不對稱）
   {
@@ -186,7 +193,7 @@ function createFarSilhouettes() {
     s.box(-2.6, 1.7, 0.9, 0.7, D);
     s.box(1.6, 1.8, 1.1, 0.6, D);
     s.box(-0.45, 3.3, 1.2, 0.55, D);
-    g.add(place(s.build('far-banyan'), 233, 8.6, 0.26));
+    g.add(place(s.build('far-banyan'), 236, 10.0, 0.26));
   }
   // ④ 屋簷燈籠串（一條橫樑吊六盞，最像「夜市」的那一片）
   {
@@ -199,7 +206,7 @@ function createFarSilhouettes() {
       s.box(x - 0.04, 1.75, 0.08, 0.25, D); // 吊繩
       s.box(x - 0.16, 1.42, 0.32, 0.34, L); // 燈籠
     }
-    g.add(place(s.build('far-eaves'), 160, 8.5, 0.34));
+    g.add(place(s.build('far-eaves'), 136, 10.0, 0.34));
   }
   // ⑤ 攤棚一排（高低錯落的斜頂）
   {
@@ -211,7 +218,7 @@ function createFarSilhouettes() {
       s.trap(x + 1.0, h, 2.6, 1.2, 0.45, D);
       s.box(x + 0.85, h - 0.35, 0.3, 0.26, L);
     }
-    g.add(place(s.build('far-stalls'), 200, 9.0, 0.32));
+    g.add(place(s.build('far-stalls'), 205, 10.8, 0.32));
   }
   return g;
 }

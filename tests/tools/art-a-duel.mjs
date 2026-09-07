@@ -118,7 +118,10 @@ try {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
   await page.addInitScript(SAMPLER);
-  const r = await drive(page, `http://127.0.0.1:${PORT}/index.html?paperwar=1`, {
+  // --seed=N：帶 ?fxcount=1&seed=N（index.html:3567 的治具鉤），基準版與新版才會玩到**同一場**對決，
+  // 截圖才是同場景對照（覆審 MEDIUM-2：一版拿兩場不同的對決並排，比的是內容不是渲染）。
+  const url = `http://127.0.0.1:${PORT}/index.html?paperwar=1` + (opt.seed ? `&fxcount=1&seed=${opt.seed}` : '');
+  const r = await drive(page, url, {
     duels: Number(opt.duels || 2),
     onDuel: async (pg, n) => { await pg.waitForTimeout(1400); const f = `${OUT}-duel${n}.png`; await pg.screenshot({ path: f }); shots.push(f); },
   });
