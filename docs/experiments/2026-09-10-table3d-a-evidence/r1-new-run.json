@@ -1,0 +1,356 @@
+{
+ "seeds": [],
+ "errors": [],
+ "pageerrors": [],
+ "requestfailed": [],
+ "overflow": [],
+ "voverflow": [],
+ "vrows": [],
+ "portraitOverflow": [],
+ "taken": 0,
+ "dawn": 0,
+ "dawnShrines": 0,
+ "skips": 0,
+ "picks": 0,
+ "carry": 0,
+ "carryEg": [],
+ "games": [],
+ "modal": {
+  "rows": [
+   {
+    "label": "（沒開面板：對照組）",
+    "open": false,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "overlap": {
+     "x": 0,
+     "y": 0
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "helpBtn",
+      "inModal": false
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "felt",
+      "inModal": false
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "felt",
+      "inModal": false
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "wishbar",
+      "inModal": false
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "tray",
+      "inModal": false
+     }
+    ]
+   },
+   {
+    "label": "袋子 showBag(1)",
+    "open": true,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     192,
+     652,
+     92.5,
+     297.5
+    ],
+    "overlap": {
+     "x": 28,
+     "y": 13.5
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "modalbox",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "modal",
+      "inModal": true
+     }
+    ]
+   },
+   {
+    "label": "角色資訊 showRoleInfo(1)",
+    "open": true,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     192,
+     652,
+     84.5,
+     305.5
+    ],
+    "overlap": {
+     "x": 28,
+     "y": 21.5
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "modalbox",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "H2",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "modal",
+      "inModal": true
+     }
+    ]
+   },
+   {
+    "label": "角色資訊 showRoleInfo(2)",
+    "open": true,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     192,
+     652,
+     94.5,
+     295.5
+    ],
+    "overlap": {
+     "x": 28,
+     "y": 11.5
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "modalbox",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "modal",
+      "inModal": true
+     }
+    ]
+   },
+   {
+    "label": "角色資訊 showRoleInfo(3)",
+    "open": true,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     192,
+     652,
+     84.5,
+     305.5
+    ],
+    "overlap": {
+     "x": 28,
+     "y": 21.5
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "modalbox",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "H2",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "modal",
+      "inModal": true
+     }
+    ]
+   },
+   {
+    "label": "說明 openHelp()",
+    "open": true,
+    "helpBtnVisible": true,
+    "helpRect": [
+     624,
+     658,
+     72,
+     106
+    ],
+    "modalboxRect": [
+     192,
+     652,
+     23.4,
+     366.6
+    ],
+    "overlap": {
+     "x": 28,
+     "y": 34
+    },
+    "pts": [
+     {
+      "x": 641,
+      "y": 89,
+      "el": "modalbox",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 74,
+      "el": "DIV",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 74,
+      "el": "modal",
+      "inModal": true
+     },
+     {
+      "x": 626,
+      "y": 104,
+      "el": "DIV",
+      "inModal": true
+     },
+     {
+      "x": 656,
+      "y": 104,
+      "el": "modal",
+      "inModal": true
+     }
+    ]
+   }
+  ],
+  "pageerrors": []
+ },
+ "handoff2": {
+  "sealedIn": {
+   "where": "railW",
+   "txt": "押 2"
+  },
+  "atHandoff": {
+   "handoff": true,
+   "total": 0,
+   "visible": 0,
+   "where": []
+  },
+  "sealedCount": 1,
+  "pageerrors": [],
+  "reached": true
+ }
+}

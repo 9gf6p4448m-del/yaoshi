@@ -24,8 +24,10 @@ function loadChromium(){
 const argv=process.argv.slice(2); const opt={};
 for(const a of argv){ const m=a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if(m) opt[m[1]]=m[2]===undefined?true:m[2]; }
 const PORT=+(opt.port||8858), ROUNDS=+(opt.rounds||3), TAG=opt.tag||'mine';
-/* --sel=<逗號分隔的選擇器>：預設只量 #felt（＝v0.53 行為）。多容器時 JSON 表的鍵帶容器前綴。 */
-const SELS=String(opt.sel||'#felt').split(',').map(x=>x.trim()).filter(Boolean);
+/* --sel=<逗號分隔的選擇器>：**預設就是掏空版現行的四個容器**（0.56a 二版，覆審 MEDIUM-1）。
+   沿革：一版的預設是 `#felt` 一個，下一手不帶旗標跑就只量到四分之一而不自知。
+   多容器時 JSON 表的鍵一律帶容器前綴（`#felt|seed|round|page`），legend-drive 的 --base= 兩種鍵都吃。 */
+const SELS=String(opt.sel||'#felt,#west,#east,#north').split(',').map(x=>x.trim()).filter(Boolean);
 /* --root=<靜態根目錄>：量**基準版**時用——把基準的 index.html 放進另一個目錄（js/assets 用 junction 接回來），
    本檔就不必動 worktree 的 index.html（02 §6.1 第 1 條：不做反向 sed、原檔全程唯讀）。 */
 const SERVE_ROOT=opt.root||ROOT;
@@ -76,7 +78,10 @@ const main=async()=>{
           for(const sel of SELS){
             const m=all[sel];
             const key=SELS.length>1?`${sel}|${SEED}|${st.r}|${page2}`:`${SEED}|${st.r}|${page2}`;
-            if(!m){ out[key]=null; console.log(`- ${sel} seed ${SEED} 第 ${st.r} 夜「${st.t}」：**這一版沒有這個容器**`); continue; }
+            /* 找不到容器一律炸掉（0.56a 二版，覆審 MEDIUM-1）：一版只印一行「這一版沒有這個容器」就繼續，
+               量不到的格子在收尾表裡被當成「沒問題」——那是靜默失敗。 */
+            if(!m) throw new Error(`--sel 指到的容器在這一版不存在：${sel}（seed ${SEED} 第 ${st.r} 夜「${st.t}」）。`
+              +`量基準版請帶 --sel=#felt（v0.53 沒有 #railW／#northPrev 那些）。`);
             out[key]=m.over;
             console.log(`- ${sel} seed ${SEED} 第 ${st.r} 夜「${st.t}」：scrollH ${m.scrollH} / clientH ${m.clientH} → **溢出 ${m.over}**`);
             console.log(`    子元素高度：${m.kids.map(k=>`${k.id} ${k.h}`).join('　')}`);

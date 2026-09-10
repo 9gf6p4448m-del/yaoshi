@@ -119,9 +119,29 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   #table.t3d #northShr .incboard .ibh{font-size:7.5px}
   #table.t3d #northShr .shname,#table.t3d #northShr .shfac,
   #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{font-size:8px}
+  /* 使用者裁乙（0.56a 二版）：**請神夜前一夜與當夜**（`#shrines.wide`，也就是玩家要決定燒不燒香的那兩夜）
+     把預告框的寬讓給香火榜——三張待請卡的尊名／系別 chip／招式名是那個決定的唯一輸入，
+     不該被 ellipsis 吃掉。只有那兩夜生效（`#north.shwide` 由 fillRails 依 `#shrines.wide` 掛上）。
+     預告框在那兩夜本來就是兩行，讓寬反而可能收回一行。 */
+  #table.t3d #north.shwide #northPrev{flex:0.6 1 0}
+  #table.t3d #north.shwide #northShr{flex:1.4 1 0}
+  /* chip 不參與縮排，只縮尊名（覆審 LOW-1 的配套：光讓寬只解決招式名，chip 還是會被切） */
+  #table.t3d #northShr .shname{display:flex;align-items:center;min-width:0;overflow:visible}
+  #table.t3d #northShr .shname .shn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #table.t3d #northShr .shfac{flex:0 0 auto}
+  #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{flex:0 1 auto}
   /* 掏空本體：#felt 保留 id、保留 position:relative（撐 #skipbtn／#helpBtn）、保留 overflow-y:auto，
      只是不再畫玻璃、裡面也不再裝市集卡。--glass-* 四個變數一格不動（非掏空頁照舊吃）。 */
-  #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent}
+  /* ★isolation:isolate 是必要的，不是裝飾★（0.56a 二版，覆審 CRITICAL-1）：
+     v0.53 的 `#felt` 有 `backdrop-filter`，而 backdrop-filter **會建立堆疊環境**——`#helpBtn` 的 z-index:25
+     因此一直被關在 `#felt` 裡面，`#modal`（fixed、z 20）永遠畫在它上面。掏空把 backdrop-filter 拿掉之後
+     那個堆疊環境跟著消失，z-index:25 逃到根環境、**贏過 `#modal` 的 20**：側欄 120→168 讓 `#felt` 右緣左移 48px，
+     `？` 鈕就滑進置中 460px 的 `#modalbox`（右緣恆 652）裡，實測重疊 28×34px 且 `elementFromPoint` 回 helpBtn。
+     `isolation:isolate` 把堆疊環境補回來（不動 #sheet／#modal／#duel 的 30／20／40，計畫 §3 第 6 條），
+     #felt 內部的 #tray 1 / #stage 2 / #skipbtn 5 / #veil 6 / #helpBtn 25 相對順序一格不變。
+     ★計畫 §6 Q1③ 說「backdrop-filter 那條理由已經過期」只對了一半★：它對 `position:fixed` 的**包含塊**確實過期了
+     （那兩顆鈕早就改成 absolute），但對**堆疊環境**沒有過期——這一條是掏空真正踩到的地雷。 */
+  #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent;isolation:isolate}
   #felt.hollow #feltHead{position:relative;z-index:2;pointer-events:none;text-shadow:0 1px 3px #000,0 0 8px #000}
   #felt.hollow #tray{display:block;position:absolute;left:0;right:0;top:26px;bottom:0;z-index:1;
     pointer-events:auto;touch-action:manipulation;background:transparent}
@@ -2184,7 +2204,10 @@ function setHollow(on){
   const f=$("felt"); if(!f) return;
   const hollow=!!on&&TABLE3D;
   f.classList.toggle("hollow",hollow);
-  if(!hollow) ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
+  if(!hollow){
+    ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
+    const n=$("north"); if(n) n.classList.remove("shwide"); /* 讓寬只在掏空頁的 wide 兩夜生效 */
+  }
 }
 /* 側欄卡列的兩張卡。卡片內容一字不改——內部仍呼叫既有的 mcardHTML／markCardHTML，
    兩頁各自把自己的卡片工廠傳進來（出價頁＝mcardHTML，盯上頁＝markCardHTML）。 */
@@ -2201,6 +2224,11 @@ function fillRails(prevHTML,shrHTML,cardFn){
   set("northShr",shrHTML);
   set("railW",railHTML(idx.slice(0,half),cardFn));
   set("railE",railHTML(idx.slice(half),cardFn));
+  /* 請神夜前一夜與當夜（香火榜是 wide）給北列掛 `.shwide`，CSS 才知道要把預告框的寬讓給香火榜
+     （使用者裁乙）。判準直接問渲染出來的 DOM，不另抄一份「哪兩夜是 wide」的規則——
+     wide 的唯一事實來源是 shrinesHTML 裡的 `left<=1`。 */
+  const n=$("north");
+  if(n) n.classList.toggle("shwide", !!(($("northShr")||{}).querySelector && $("northShr").querySelector("#shrines.wide")));
 }
 /* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
    0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
@@ -3990,7 +4018,10 @@ function shrinesHTML(){
     <span class="ibwhen">${when}</span></div>`;
   const cards=S.shrines.map(sh=>{
     const L=LEGENDS[sh.i], f=FAC[sh.fac]||{n:"？"}, tr=(TRAITS[L.unit.trait]||{name:"",desc:""});
-    const head=`<span class="shname">${L.n}<span class="shfac">${f.n}</span></span>`;
+    /* 尊名另包一層 `.shn`（0.56a 二版，使用者裁乙）：`.shname` 的 ellipsis 本來會把**系別 chip 一起吃掉**
+       （北列格窄的時候實測只剩一小塊色塊、看不出系名）。包起來之後，掏空版的北列格可以讓 chip 不參與縮排、
+       只縮尊名。純多一層 span，沒有樣式的地方（`?table3d=0`、直式、非掏空頁）算繪結果一格不變。 */
+    const head=`<span class="shname"><span class="shn">${L.n}</span><span class="shfac">${f.n}</span></span>`;
     if(!sh.open) return `<div class="shcard gone fac-${sh.fac}">${head}<span class="shtaken">${
       sh.takenBy!=null?`已請走：${DIRS[sh.takenBy]}家`:"已回天"}</span></div>`;
     return `<div class="shcard fac-${sh.fac}" title="${f.n}・${tr.name}：${tr.desc}">${head}${
@@ -4591,7 +4622,12 @@ function showHandoff(pid, cont){
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
   /* 燒香列自 2026-09-07 第二輪覆審起併進底列 #budget（在 #south），清場名單要跟著改，
      否則上一位封的香火會留在畫面上被下一位看到（覆審 M1 守的就是這件事）。 */
-  document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .incbar,#stage .mybid,#stage .pickbox,#south .incbar").forEach(el=>el.remove());
+  /* ★選擇器一律用 `#table ` 前綴，不用 `#stage `★（0.56a 二版，覆審 HIGH-1）：
+     掏空之後拍品卡從 `#stage` 搬到 `#railW`／`#railE`（fillRails），`#stage .mybid`／`#stage .pickbox`
+     一顆都不再命中——實測熱座封一筆「押 2」交棒，上一位的徽章留在 #railW 上（基準是 0）。
+     `#table` 一次涵蓋 #stage、兩條 rail 與北列兩塊，對 0.55b 的右側抽屜也免疫。
+     這是「防線按危險的效果寫，不按已知的入口寫」：要清的是**牌桌上任何一顆私有徽章**，不是「#stage 裡的」。 */
+  document.querySelectorAll("#table .wishbar,#table .stakebar,#table .incbar,#table .mybid,#table .pickbox,#south .incbar").forEach(el=>el.remove());
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
   $("hoAv").innerHTML=avHTML(p);

@@ -16,7 +16,9 @@ function loadChromium(){
 const PORT=+(process.argv.find(a=>a.startsWith('--port='))||'--port=8995').split('=')[1];
 const W=+(process.argv.find(a=>a.startsWith('--w='))||'--w=844').split('=')[1];
 const H=+(process.argv.find(a=>a.startsWith('--h='))||'--h=390').split('=')[1];
-const SEL=(process.argv.find(a=>a.startsWith('--sel='))||'--sel=#market').split('=').slice(1).join('=');
+/* 預設＝掏空版現行的側欄卡列（0.56a 二版，覆審 MEDIUM-1）；量 `?table3d=0`／v0.53 要自己帶 --sel=#market。
+   沿革：一版預設 `#market`，在掏空版回一個 `{missing:'#market'}` 的空掃描卻**照樣 exit 0**。 */
+const SEL=(process.argv.find(a=>a.startsWith('--sel='))||'--sel=#railW').split('=').slice(1).join('=');
 const srv=spawn('python',['-m','http.server',String(PORT),'--bind','127.0.0.1'],{cwd:ROOT,stdio:'ignore'});
 await new Promise(r=>setTimeout(r,900));
 const browser=await loadChromium().launch();
@@ -37,7 +39,8 @@ try{
     else await page.evaluate(`(()=>{const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled);if(e)e.click();})()`);
   }
   const SCAN=`(()=>{
-    const m=document.querySelector(${JSON.stringify(SEL)}); if(!m) return {missing:${JSON.stringify(SEL)}};
+    const m=document.querySelector(${JSON.stringify(SEL)});
+    if(!m) throw new Error('--sel 指到的容器在這一版不存在：'+${JSON.stringify(SEL)}+'（掏空版用預設 #railW；?table3d=0／v0.53 請帶 --sel=#market）');
     const mr=m.getBoundingClientRect(); const rows=[];
     m.querySelectorAll('*').forEach(el=>{const r=el.getBoundingClientRect();
       if(r.right-mr.right>0.5||mr.left-r.left>0.5) rows.push({tag:el.tagName,cls:(el.className||'').toString().slice(0,30),
