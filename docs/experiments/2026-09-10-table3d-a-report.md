@@ -1,7 +1,9 @@
-# 0.55a 版面卷 實跑報告（拍賣桌整片掏空，2026-09-10）
+# 0.56a 版面卷 實跑報告（拍賣桌整片掏空，2026-09-10；**二版**回應冷讀覆審 R1）
 
-> 卷＝ROADMAP_V2 Top 1 的 **0.55a 版面卷**（桌面先平面；托盤／Raycaster／木紋香灰是 0.55b）。
-> 規格＝`docs/proposals/2026-09-10-plan-table3d.md`；驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6**；T7–T12 屬 0.55b）。
+> **版號**：計畫檔與凍結檔寫的「0.55a／0.55b」＝本檔的 **0.56a／0.56b**（0.54／0.55 另有其卷，主對話 2026-09-11 改號）。同一卷、同一份驗收，門檻一字未動。
+> **二版**（commit `7fc8fb1` 起）修掉冷讀覆審 R1 的 CRITICAL-1／HIGH-1／MEDIUM-1／MEDIUM-2，並落實使用者裁乙。逐條三態見本檔末段「覆審 R1 逐條三態」。
+> 卷＝ROADMAP_V2 Top 1 的 **版面卷**（桌面先平面；托盤／Raycaster／木紋香灰是上桌卷）。
+> 規格＝`docs/proposals/2026-09-10-plan-table3d.md`；驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6**；T7–T12 屬 0.56b）。
 > 分母清單＝`docs/experiments/2026-09-10-table3d-a-worklog.md`；證據＝`docs/experiments/2026-09-10-table3d-a-evidence/`。
 > 基準 commit＝**`84b1a0c`**（v0.53）。基準靜態根＝`.base84/`（基準 `index.html` 實體複製＋`js`／`assets`／`tests` junction；不進版控，驗完刪）。
 > **門檻一字未改**（`02 §2.1`）：本卷沒有動任何 T 條的門檻、seeds、選擇器清單、fixture 或執行範圍。
@@ -21,6 +23,10 @@
 | **T5** 觸控命中回歸 | **綠** | 基準清單 177 個可測元素**全部命中**（177／177），`trayTap` 被呼叫 **0** 次；**鑑別力突變驗紅**：`#tray{top:0;z-index:9}` ⇒ 174／177、`trayTap` **3** 次、exit 1 | `evidence/T5-base-84b1a0c.txt`、`T4-legend-drive-new.txt`、`T5-mutation-check.txt` |
 | **T6** 直式蓋板行為不變 | **綠** | 390×844：`#rotateHint`=flex／`120px 134px 120px`／`.rail`=none／`#table` 橫向溢出 0／`#felt` backdrop-filter=`blur(7px)`；**對基準逐項相同** | `evidence/T4-legend-drive-new.txt`、`t3d-base.json` vs `t3d-new.json` |
 | 9 套單元測試 | **綠** | 8／5／7／32／8／16／28／32／36 ＝ 172 條全過、0 紅 | `evidence/unit-tests.txt` |
+| **R1-CRITICAL-1** 面板遮擋（二版新加） | **綠** | 真的打開袋子／三席 ⓘ／說明 5 種面板，`#helpBtn` 矩形上 25 個取樣點**全部落在 `#modal` 裡**；基準綠、一版 `51a8e5a` 紅 | `evidence/R1-gates-{new,base-84b1a0c,v1-51a8e5a}.txt` |
+| **R1-HIGH-1** 熱座交棒清場（二版新加） | **綠** | 封一筆「押 2」（落在 `#railW`）→ 蓋牌 → 交棒當下殘留 **0**；基準 0（綠）、一版 **1**（紅，`railW:mybid="押 2"`） | 同上 |
+
+> 上表是**二版最終碼**（`7fc8fb1` 之後）在 `port 9661` 的那一次跑出來的；T5 的基準清單也用同一版治具對 `84b1a0c` 重跑過（177 可測／177 命中／**152 個驗了字面引數**／引數對不上 0）。
 
 ---
 
@@ -60,7 +66,7 @@ node tests/tools/trace-eq.mjs index.html --mutate
 ### T2 `#felt` 直向溢出恆 0（比基準加嚴）
 
 ```
-node tests/tools/felt-probe.mjs --seeds=1,3 --rounds=3 --sel=#felt,#west,#east,#north --tag=new --port=9601
+node tests/tools/felt-probe.mjs --seeds=1,3 --rounds=3 --tag=new --port=9647   # 二版起這四個容器就是預設
 - **#felt**：12 格　最大溢出 0　非 0 的格數 0
 ```
 
@@ -77,7 +83,7 @@ node tests/tools/felt-probe.mjs --seeds=1,3 --rounds=3 --sel=#felt,#west,#east,#
 來源是北席卡掛在卡外的 `.roleInfoBtn`（`bottom:-7px`）與 `.bubble`（`top:calc(100% + 4px)`）。
 T3 要求 12 格全 0 ⇒ 本卷把北席這幾顆的座標翻進卡內（只在 `#table.t3d` 底下）。**這是加嚴，不是放寬**：11 → 0。
 
-**配套人眼（T3 的字面要求）**：`evidence/shot-055a-west.png`／`-east.png` 是側欄卡片特寫，
+**配套人眼（T3 的字面要求）**：`evidence/shot-055a-railW.png`／`-railE.png` 是側欄卡片特寫，
 四張卡的**名稱／戰力＋系別 chip／招式行（`✦ …`）／部隊預覽（`飄影×4・攻 0・血 5・3 拍`）四樣都完整可見**，
 沒有 ellipsis 到看不出招式。做法是卡片矮 10px、寬 24.7px 之後把字級一起收
 （`.nm` 11.5／`.pw` 10／`.ab` 9／`.uline` 9），**`.uline` 與 `.ab` 維持同級**（請神 2.0 凍結檔 G11 明訂不得更小）。
@@ -86,7 +92,7 @@ T3 要求 12 格全 0 ⇒ 本卷把北席這幾顆的座標翻進卡內（只在
 
 ```
 node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,4,5,6 \
-  --base=…/felt-base.json --taps --t3d --tapseeds=1,3 --port=9628 …
+  --base=…/felt-base.json --taps --t3d --modal --handoff --tapseeds=1,3 --port=9661 …
 ```
 
 - **橫向溢出：橫式 0 筆、直式 0 筆 → ✅**（量的清單＝T4 的 12 個
@@ -165,14 +171,14 @@ node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,
 
 ## 人眼 contact sheet（844×390；T12 前四張本卷先出）
 
-`node tests/tools/layout-shot.mjs docs/experiments/2026-09-10-table3d-a-evidence/shot-055a --port=9627 --sel=#west,#east`
+`node tests/tools/layout-shot.mjs docs/experiments/2026-09-10-table3d-a-evidence/shot-055a --port=9645`（二版起 `--sel` 預設就是 `#railW,#railE`）
 （`console error 0`）
 
 | 檔 | 是什麼 | T12 對應 |
 |---|---|---|
 | `shot-055a-n1.png` | **第 1 夜出價頁** | T12 第 1 張 ✅ |
 | `shot-055a-mark2.png` | **第 2 夜盯上頁** | T12 第 2 張 ✅ |
-| `shot-055a-west.png`／`-east.png` | **側欄卡片特寫**（左右各一） | T12 第 5 張 ✅ |
+| `shot-055a-railW.png`／`-railE.png` | **側欄卡片特寫**（左右卡列各一） | T12 第 5 張 ✅ |
 | `shot-055a-portrait.png` | **直式蓋板** | T12 第 6 張 ✅ |
 | `shot-055a-preshrine.png` | 請神夜前一夜出價頁（wide 香火榜） | T12 第 3 張（順手也出了） |
 | `shot-055a-bag.png` | 袋子面板 | T12 第 4 張（順手也出了） |
@@ -187,10 +193,12 @@ node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,
 2. `layout-shot` 的第 ③ 張本來拍出跟第 ② 張一模一樣的畫面——請神 3.0 已移除 `sh.night`（GUIDE §11.26 第 1 點），
    舊寫法 `map(s=>s.night)` 全是 `undefined`、`Math.min` 變 `NaN` 就直接 break。改問 `CFG.SHRINE_NIGHTS`。
 
-**留給使用者裁的一件（品味題，`03 R6`）**：請神夜前一夜的 `wide` 香火榜進了 299px 的北列格之後，
-三張待請卡的**招式名被 ellipsis 成兩三個字**（「餘暉…」「普…」「有求…」，見 `shot-055a-preshrine.png`）。
-在 v0.53 那一列有 564px。可選：① 照現況（招式名在請神夜的選尊視窗與 `？` 裡都看得到）
-② `wide` 那兩夜把預告框讓寬給香火榜 ③ `wide` 那兩夜香火榜改浮在桌心。**本卷不自行決定。**
+**（已裁定並落地）使用者裁乙**：請神夜前後 `wide` 兩夜，把預告框的寬讓給香火榜。
+一版量到的是：待請卡的**尊名／系別 chip／招式名三樣全被 ellipsis 切掉**（覆審 R1-LOW-1 逐欄量過）。
+二版落地後實測：北列格 254→**418.6px**、卡寬 81.4→**136.2px**、**被切掉的欄位 3 卡 ×3 欄 → 0 個**、
+`#north` 直向溢出仍 **0**（`evidence/T12-layout-shot.txt`，新的 `shot-055a-preshrine.png` 上三張卡的
+「殘日 祖靈 餘暉灼目」「大士爺紙尊 香火 普渡」「有應公 陰氣 有求必應」都完整）。
+這個量測已經變成 `layout-shot` 的斷言（切到就非零離開），不是只留一張圖。
 
 ---
 
@@ -225,3 +233,44 @@ node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,
 | `docs/experiments/2026-09-10-table3d-a-report.md`＋`-evidence/` | 本報告與實跑輸出 |
 
 **`VERSION` 不改**（合併時由主對話定）；`js/` 一格未動；`docs/design/ART_BIBLE.md`、`docs/GAME_DESIGN.md`、`assets/` 未動。
+
+---
+
+## 覆審 R1 逐條三態（真的修好／表面修好／沒修到）
+
+> 覆審全文＝`scratchpad/review-table3d-a-r1.md`（冷讀、無作者對話史、worktree 唯讀）。
+> 覆審員自己重跑的 T0–T6 六條判定是「**六條全部真的綠**、沒有一條假綠」，另抓出兩個從閘門縫隙掉出去的真實回歸。
+> 下表是**我對他每一條的處置**，判準照 `02 §6.1` 附則：修完要能說出「這個修正會不會讓一份壞掉的實作變成通過」。
+
+| 覆審條目 | 三態 | 做了什麼／為什麼算數 |
+|---|---|---|
+| **CRITICAL-1** `#helpBtn` 壓在 `#modal` 面板上並吃掉點擊 | **真的修好** | **根因不是幾何、是堆疊環境**：v0.53 的 `#felt` 有 `backdrop-filter`，順便建立了堆疊環境，把 `#helpBtn` 的 `z-index:25` 關在 `#felt` 裡；掏空拿掉 backdrop-filter 之後那個環境消失，25 逃到根環境、**贏過 `#modal` 的 20**。修法＝`#felt.hollow{isolation:isolate}` 把環境補回來（**沒動** `#sheet`／`#modal`／`#duel` 的 30／20／40，計畫 §3 第 6 條；`#felt` 內部 1／2／5／6／25 的相對順序也一格不變）。**證據是行為不是推理**：新閘門 `legend-drive --modal` 真的打開五種面板、在 `#helpBtn` 矩形上取樣 25 點，`elementFromPoint` 全部落在 `#modal` 裡。**鑑別力雙向都驗**：對 `84b1a0c` 綠、對一版 `51a8e5a` **紅**（5 種面板的鈕心全部回 `helpBtn`、exit 1）。注意**重疊面積仍是 28×34**——修的是誰贏命中測試，不是把鈕挪開，這正是「基準也重疊 0×34 卻沒問題」的同一個機制。 |
+| **HIGH-1** 熱座交棒雙保險清場對掏空頁失效 | **真的修好** | `showHandoff` 的清場選擇器 `#stage .mybid,#stage .pickbox,…` 全部改 `#table ` 前綴（一次涵蓋 `#stage`、兩條 rail、北列兩塊，對 0.56b 的右側抽屜也免疫）。這是「防線按危險的**效果**寫，不按已知的入口寫」：要清的是牌桌上任何一顆私有徽章。新閘門 `legend-drive --handoff` 走真實路徑（熱座 → 出價頁 → `openSheet(0);bump(1);bump(1);closeSheet()` 封「押 2」→ 蓋牌 → 交棒畫面出現當下數）。**三邊都跑**：基準 0（綠，封在 `#stage`）／一版 **1**（紅，封在 `#railW`、殘留 `railW:mybid="押 2"`，與覆審實測逐字相同）／二版 **0**（綠，封在 `#railW`）。 |
+| **MEDIUM-1** 三支治具 `--sel` 預設值指退役容器、失敗靜默 | **真的修好** | 預設值改成掏空版現行容器：`felt-probe` → `#felt,#west,#east,#north`、`layout-shot` → `#railW,#railE`、`mkt-probe` → `#railW`；三支**找不到元素一律 throw**（`layout-shot` 從「印一行就跳過、照樣 exit 0」改成拋錯）。`legend-drive --base=` 同時吃兩種鍵格式（`seed|round|page` 與 `#felt|seed|round|page`），所以 felt-probe 換預設不會把 T4 的直向判定弄啞。量 `?table3d=0`／v0.53 要自己帶 `--sel=`，錯了會炸而不是靜默少一張圖。 |
+| **MEDIUM-2** T5 的命中不驗參數 | **真的修好** | `--taps` 的 stub 從「只計數」改成「連第一個引數一起記」，並從 `onclick` 屬性解析字面引數（`openSheet(2)` ⇒ `"2"`）兩邊比對；對不上就紅。**本次實測 177 個可測元素裡有 152 個帶字面引數**（拍品卡 `openSheet`／`pickMark`／`ybToggle`、座位 `showBag(id)`／`showRoleInfo(id)`），基準與二版都是**引數對不上 0 個**。0.56b 的 T8 要驗 `i`，這一半已經先做好。 |
+| **MEDIUM-3** `VERSION` 還是 `0.53` | **沒修到（刻意）** | 版號由主對話合併時定（本卷不改），我把它留在回報的第一段。覆審把它列出來就是為了不讓它掉，這裡再記一次：**合併 PR 不含首頁版本字串就等於沒有送達證明**。 |
+| **LOW-1** `wide` 兩夜的截斷比報告寫的更廣（chip 也被切） | **真的修好（＝使用者裁乙）** | 使用者裁乙選②「讓寬」＋覆審建議的 chip 配套一起做：`#north.shwide` 時預告框 `flex 1.15→0.6`、香火榜 `0.85→1.4`（只有請神夜前一夜與當夜生效，class 由 `fillRails` 依渲染出來的 `#shrines.wide` 掛上，不另抄一份「哪兩夜」的規則）；尊名另包 `.shn`、chip 改 `flex:0 0 auto` ⇒ **chip 不再參與縮排**。**實測**（`layout-shot` 新增的量測，量 `scrollWidth > clientWidth` 不是看圖）：北列格 254→**418.6px**、卡寬 81.4→**136.2px**、被切掉的欄位（尊名／chip／招式名，三張卡共 9 欄）**3 卡全切 → 0 個**，`#north` 直向溢出仍 **0**。這個量測已變成 `layout-shot` 的斷言（切到就非零離開）。 |
+| **LOW-2** `#skipbtn` 那一半沒被實際行使；凍結檔對突變機制的描述不準 | **沒修到（記錄，不動）** | 兩件都不影響判定：① `#skipbtn` 在被掃的 12 頁全是 `display:none`，而它 z-index 5 且只在 `setHollow(false)` 的頁面顯示、與 `#tray` 永遠不同框；② 凍結檔寫「`z-index:9`（蓋住 helpBtn）」是錯的（helpBtn 是 25），但**要求本身仍然滿足**——突變仍靠押寶夜三顆 stepper 驗紅（二版重跑：**174／177、trayTap 3**）。**凍結檔的字我一個都沒改**（`02 §2.1`）。覆審另做的 `z-index:30` 突變（162／177）記在這裡當第二條鑑別力證據。 |
+| **LOW-3** `display:contents` 的容器在探針裡回零矩形 | **沒修到（記錄）** | `#northSeat`／`#westSeat`／`#eastSeat` 的 `getBoundingClientRect()` 回 `(0,0,0,0)` 是規範行為，不影響任何閘門（`#north` 的 `scrollWidth − clientWidth` 是 0）。已寫進 GUIDE §11.28 給 0.56b 的幾何探針提醒。 |
+| 覆審「查了但不成立」的四條 | **不處置** | `#west` 橫向 23px（基準逐值相同）／北席 `.windb` × `.mark-stamp` 重疊 14×15（基準一模一樣）／非掏空頁 `#felt` 直向溢出（基準整局對照過、且不在 T2 範圍）／`#market` 退役沒有漏改的呼叫點。我重新確認過覆審的歸因，同意都是既有行為，不是本卷造成的。 |
+
+### 二版新加的兩道閘門，鑑別力都是雙向驗過的
+
+| 閘門 | 基準 `84b1a0c` | 一版 `51a8e5a` | 二版（本版） |
+|---|---|---|---|
+| `legend-drive --modal` | ✅ 25/25 點落在 `#modal` 裡 | ❌ 5 種面板的鈕心全回 `helpBtn`、exit 1 | ✅ 25/25 |
+| `legend-drive --handoff` | ✅ 殘留 0 | ❌ 殘留 1（`railW:mybid="押 2"`） | ✅ 殘留 0 |
+
+證據檔：`evidence/R1-gates-base-84b1a0c.txt`／`R1-gates-v1-51a8e5a.txt`／`R1-gates-new.txt`
+（＋最終那一輪合併在 `evidence/T4-legend-drive-new.txt` 的前兩段），明細 json `evidence/r1-modal-{base,v1,new}.json`。
+兩個對照靜態根都是另建目錄（`.v1/`＝`git show 51a8e5a:index.html`、`.base84/`＝`84b1a0c`，`js`／`assets`／`tests` 用 junction 接回來），
+**worktree 的 `index.html` 全程唯讀、不做反向 sed**（`02 §6.1` 第 1 條）；驗完即刪。
+
+### 覆審點名的盲區，寫在這裡不讓它再掉一次
+
+**T5 的計數 proxy 把 `showBag`／`showRoleInfo`／`openHelp` 換成空函式，所以整輪 tap 掃描裡那三種面板一次都沒真的打開過**
+——CRITICAL-1 就是從這個縫掉出去的。再加上 T4／T5 的量測範圍只有 `#table` 內，
+而 `#modal` 是 `position:fixed`、在 `#table` 之外，不在任何一條 T 的範圍裡。
+**這一類「被 stub 掉的東西本身就是缺陷所在」的盲區，結構上閘門看不見。**
+二版的 `--modal` 是專門補這一塊的：它**不 stub 任何東西**，真的把面板打開再量命中測試。
+0.56b 若再加任何 proxy／stub，先問一句「我 stub 掉的那支函式，會不會就是我要驗的東西」。
