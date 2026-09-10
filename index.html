@@ -52,6 +52,15 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #lbTop{top:0}
 #lbBot{bottom:0}
 #lbTop.on,#lbBot.on{height:8vh}
+/* ★R2 覆審 N1★：黑條提到 z-index:41 之後會蓋掉對決自己的字幕——實測 tier 3 那一拍
+   #duelBeat（拍首字幕）被上條蓋 82.4%、#duelSub（燒毀說明）被下條蓋 100%、#duelResult 蓋 16.5%。
+   那是全場最重要的一拍，玩家反而看不到這一拍叫什麼、燒了幾隻。
+   為什麼不是把字幕的 z-index 提上去：#duel 自己是 z-index:40 的 position:fixed，
+   **它建立了一個堆疊上下文**，裡面的子元素再怎麼調 z-index 都出不去 40 這一層。
+   所以改成「黑條開著時，對決內容整塊內縮 8vh」——字幕落在黑條之間、完整可見。
+   transition 與黑條同步（.22s），不會跳一下。 */
+#duel.lbox{padding-top:8vh;padding-bottom:8vh;box-sizing:border-box}
+#duel{transition:padding .22s cubic-bezier(.23,1,.32,1)}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -5064,6 +5073,10 @@ function pwLetterbox(on){
     const a=$("lbTop"), b=$("lbBot");
     if(a) a.classList.toggle("on",!!on);
     if(b) b.classList.toggle("on",!!on);
+    /* R2 N1：黑條開著時對決內容內縮，字幕才不會被壓在黑條底下（見 #duel.lbox 的註解）。
+       兩者一定要同一支開關切——分開切就會有「黑條開了但字幕還沒讓位」的那幾幀。 */
+    const d=$("duel");
+    if(d) d.classList.toggle("lbox",!!on);
   }catch(e){}
 }
 /* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
@@ -5072,7 +5085,12 @@ function pwLetterbox(on){
 function pwTraitFx(trId,ctx){
   if(SKIP) return false;
   const tier=pwTierOf(ctx.tier);
-  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
+  /* R2 覆審 N5：?closeup=0 是「近景切鏡」的總開關，**CINEMA 也是近景**（dist 2.9／tilt 8°，
+     比 FOCUS 的 2.6 更兇），關掉近景的玩家不該在 tier 3 反而吃到更重的推近。
+     所以事件多帶一個 cinema 旗標，camera-director 只在它為 true 時切機位。
+     ★黑條不跟著關★：它是 DOM 的畫面框飾、不是鏡頭，而且現在還負責讓對決字幕內縮（見 #duel.lbox），
+     關掉只會讓 tier 3 少一個視覺標記、字幕也失去讓位。要改這個取捨要問使用者。 */
+  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,cinema:pwCloseup(),baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];

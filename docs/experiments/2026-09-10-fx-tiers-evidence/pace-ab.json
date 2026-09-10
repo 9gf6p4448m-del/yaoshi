@@ -9,35 +9,35 @@
   "rootB": "scratchpad/headfull",
   "A": {
    "medians": [
-    5676,
-    5558.5,
-    5601.5,
-    5540.5,
-    5547
+    5582,
+    5521.5,
+    5544.5,
+    5508.5,
+    5514
    ],
-   "medianOfMedians": 5558.5,
+   "medianOfMedians": 5521.5,
    "range": [
-    5540.5,
-    5676
+    5508.5,
+    5582
    ],
-   "spread": 135.5
+   "spread": 73.5
   },
   "B": {
    "medians": [
-    5043.5,
-    5032.5,
-    5051.5,
-    4994,
-    4993
+    5009,
+    4993.5,
+    5047,
+    5014,
+    4996
    ],
-   "medianOfMedians": 5032.5,
+   "medianOfMedians": 5009,
    "range": [
-    4993,
-    5051.5
+    4993.5,
+    5047
    ],
-   "spread": 58.5
+   "spread": 53.5
   },
-  "effect": -526,
+  "effect": -512.5,
   "overlap": false,
   "verdict": "兩組的中位全距不重疊 ⇒ 差異大於這台機器的噪音"
  },
@@ -46,14 +46,14 @@
    "run": 1,
    "grp": "A",
    "seed": 7,
-   "url": "http://127.0.0.1:9580/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9630/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    5379,
-    5973,
-    4763,
-    9127
+    5221,
+    5943,
+    4697,
+    8615
    ],
-   "median": 5676,
+   "median": 5582,
    "tiers": null,
    "lbox": [
     {
@@ -79,14 +79,14 @@
    "run": 1,
    "grp": "B",
    "seed": 7,
-   "url": "http://127.0.0.1:9581/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9631/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    4595,
-    5351,
-    4736,
-    7458
+    4558,
+    5291,
+    4727,
+    7357
    ],
-   "median": 5043.5,
+   "median": 5009,
    "tiers": {
     "1": 8,
     "2": 4,
@@ -116,154 +116,154 @@
    "run": 2,
    "grp": "B",
    "seed": 7,
-   "url": "http://127.0.0.1:9581/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9631/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    4704,
-    5361,
-    4692,
-    7535
-   ],
-   "median": 5032.5,
-   "tiers": {
-    "1": 8,
-    "2": 4,
-    "3": 0
-   },
-   "lbox": [
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    }
-   ],
-   "errors": 0
-  },
-  {
-   "run": 2,
-   "grp": "A",
-   "seed": 7,
-   "url": "http://127.0.0.1:9580/index.html?paperwar=1&fxcount=1&seed=7",
-   "durs": [
-    5131,
-    5986,
-    4693,
-    8779
-   ],
-   "median": 5558.5,
-   "tiers": null,
-   "lbox": [
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    }
-   ],
-   "errors": 0
-  },
-  {
-   "run": 3,
-   "grp": "A",
-   "seed": 7,
-   "url": "http://127.0.0.1:9580/index.html?paperwar=1&fxcount=1&seed=7",
-   "durs": [
-    5169,
-    6034,
-    4829,
-    8852
-   ],
-   "median": 5601.5,
-   "tiers": null,
-   "lbox": [
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    }
-   ],
-   "errors": 0
-  },
-  {
-   "run": 3,
-   "grp": "B",
-   "seed": 7,
-   "url": "http://127.0.0.1:9581/index.html?paperwar=1&fxcount=1&seed=7",
-   "durs": [
-    4619,
-    5371,
-    4732,
-    7396
-   ],
-   "median": 5051.5,
-   "tiers": {
-    "1": 8,
-    "2": 4,
-    "3": 0
-   },
-   "lbox": [
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    },
-    {
-     "lboxMs": 0,
-     "t3": 0
-    }
-   ],
-   "errors": 0
-  },
-  {
-   "run": 4,
-   "grp": "B",
-   "seed": 7,
-   "url": "http://127.0.0.1:9581/index.html?paperwar=1&fxcount=1&seed=7",
-   "durs": [
-    4612,
-    5281,
+    4609,
+    5280,
     4707,
-    7526
+    7375
    ],
-   "median": 4994,
+   "median": 4993.5,
+   "tiers": {
+    "1": 8,
+    "2": 4,
+    "3": 0
+   },
+   "lbox": [
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    }
+   ],
+   "errors": 0
+  },
+  {
+   "run": 2,
+   "grp": "A",
+   "seed": 7,
+   "url": "http://127.0.0.1:9630/index.html?paperwar=1&fxcount=1&seed=7",
+   "durs": [
+    5115,
+    5928,
+    4778,
+    8625
+   ],
+   "median": 5521.5,
+   "tiers": null,
+   "lbox": [
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    }
+   ],
+   "errors": 0
+  },
+  {
+   "run": 3,
+   "grp": "A",
+   "seed": 7,
+   "url": "http://127.0.0.1:9630/index.html?paperwar=1&fxcount=1&seed=7",
+   "durs": [
+    5159,
+    5930,
+    4722,
+    8627
+   ],
+   "median": 5544.5,
+   "tiers": null,
+   "lbox": [
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    }
+   ],
+   "errors": 0
+  },
+  {
+   "run": 3,
+   "grp": "B",
+   "seed": 7,
+   "url": "http://127.0.0.1:9631/index.html?paperwar=1&fxcount=1&seed=7",
+   "durs": [
+    4564,
+    5280,
+    4814,
+    7505
+   ],
+   "median": 5047,
+   "tiers": {
+    "1": 8,
+    "2": 4,
+    "3": 0
+   },
+   "lbox": [
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    },
+    {
+     "lboxMs": 0,
+     "t3": 0
+    }
+   ],
+   "errors": 0
+  },
+  {
+   "run": 4,
+   "grp": "B",
+   "seed": 7,
+   "url": "http://127.0.0.1:9631/index.html?paperwar=1&fxcount=1&seed=7",
+   "durs": [
+    4720,
+    5308,
+    4699,
+    7435
+   ],
+   "median": 5014,
    "tiers": {
     "1": 8,
     "2": 4,
@@ -293,14 +293,14 @@
    "run": 4,
    "grp": "A",
    "seed": 7,
-   "url": "http://127.0.0.1:9580/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9630/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    5124,
-    5957,
-    4756,
-    8780
+    5111,
+    5906,
+    4697,
+    8642
    ],
-   "median": 5540.5,
+   "median": 5508.5,
    "tiers": null,
    "lbox": [
     {
@@ -326,14 +326,14 @@
    "run": 5,
    "grp": "A",
    "seed": 7,
-   "url": "http://127.0.0.1:9580/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9630/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    5153,
-    5941,
-    4772,
-    8885
+    5115,
+    5913,
+    4714,
+    8626
    ],
-   "median": 5547,
+   "median": 5514,
    "tiers": null,
    "lbox": [
     {
@@ -359,14 +359,14 @@
    "run": 5,
    "grp": "B",
    "seed": 7,
-   "url": "http://127.0.0.1:9581/index.html?paperwar=1&fxcount=1&seed=7",
+   "url": "http://127.0.0.1:9631/index.html?paperwar=1&fxcount=1&seed=7",
    "durs": [
-    4576,
-    5269,
-    4717,
-    7524
+    4560,
+    5268,
+    4724,
+    7323
    ],
-   "median": 4993,
+   "median": 4996,
    "tiers": {
     "1": 8,
     "2": 4,

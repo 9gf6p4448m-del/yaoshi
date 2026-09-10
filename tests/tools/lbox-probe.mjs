@@ -10,6 +10,9 @@
  *      pwLetterbox(false) 之後回到 0；正式頁面初始狀態必須是 0（沒人開就不存在）。
  *
  *   L4 黑條不進 renderer：同一頁面、同一場景、同一幀只切黑條，draw calls／triangles 逐值相同。
+ *   L7 字幕不被黑條遮（R2 覆審 N1）：黑條開著時 #duelBeat／#duelSub／#duelResult 的
+ *      bounding box 與兩條黑條的**交集面積必須是 0**；黑條關著時當然也是 0（正反都驗）。
+ *   L8 CINEMA 吃 ?closeup=0（R2 覆審 N5）：?closeup=0 時 tier 3 的 maxK 必須是 0，黑條照舊（DOM 不是鏡頭）。
  *   L5 取消路徑（R1 覆審 C1）：tier 3 演到一半派 ys:fx-trait-cancel（＝doSkip 那條），
  *      CINEMA.outMs＋餘裕內 cinemaOn() 必須是 false；再驗 ys:duel-end 與 ys:table 兩條入口。
  *
@@ -133,6 +136,47 @@ try {
     return { off, on, off2 };
   });
 
+  /* L7（R2 覆審 N1）：黑條蓋不蓋得到字幕。
+     為什麼不是「把字幕的 z-index 提上去就好」：#duel 自己是 z-index:40 的 fixed，
+     它建立了堆疊上下文，子元素再怎麼調都出不去那一層——所以修法是「黑條開著時內容內縮 8vh」。
+     這裡量的是**幾何**（bounding box 交集面積），不是 z 序：不管將來用哪一種修法，
+     「字幕有沒有被壓在黑條底下」都是同一個問題。 */
+  res.L7 = await page.evaluate(async () => {
+    const ids = ['duelBeat', 'duelSub', 'duelResult'];
+    const d = document.getElementById('duel');
+    // 這三塊只在對決演出中才有內容：把 #duel 叫出來、補上 pw class 與假文字，量得到 rect
+    d.style.display = 'block'; d.classList.add('pw');
+    const el = {};
+    ids.forEach((id) => { el[id] = document.getElementById(id); if (el[id] && !el[id].textContent.trim()) el[id].textContent = '測量用字幕'; });
+    const overlap = (a, b) => {
+      const x = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const y = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return x * y;
+    };
+    const measure = () => {
+      const bars = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect());
+      const out = {};
+      ids.forEach((id) => {
+        const r = el[id] ? el[id].getBoundingClientRect() : null;
+        if (!r || r.height === 0) { out[id] = { h: 0, area: 0, pct: 0, skipped: true }; return; }
+        const area = bars.reduce((acc, b) => acc + overlap(r, b), 0);
+        out[id] = { h: +r.height.toFixed(1), top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1), area: +area.toFixed(1), pct: +(area / (r.width * r.height) * 100).toFixed(1) };
+      });
+      out.bars = bars.map((b) => [+b.top.toFixed(1), +b.bottom.toFixed(1)]);
+      return out;
+    };
+    window.__yaoshi.pwLetterbox(false);
+    await new Promise((r) => setTimeout(r, 400));
+    const off = measure();
+    window.__yaoshi.pwLetterbox(true);
+    await new Promise((r) => setTimeout(r, 400));
+    const on = measure();
+    window.__yaoshi.pwLetterbox(false);
+    await new Promise((r) => setTimeout(r, 400));
+    d.classList.remove('pw');
+    return { off, on };
+  });
+
   // L1／L2：對每個 tier 派一次 ys:fx-trait，逐幀取樣 cinemaOn()
   const probe = async (tier, ms) => page.evaluate(async ({ tier, ms, base }) => {
     const D = window.__yaoshi3d.director;
@@ -201,6 +245,33 @@ try {
   res.L6 = { off: await shot(false), on: await shot(true) };
   await page.evaluate(() => window.__yaoshi.pwLetterbox(false));
 
+  /* L8（R2 覆審 N5）：?closeup=0 是「近景切鏡」的總開關，CINEMA 也是近景，
+     所以它應該一起被關掉。黑條不跟著關——那是 DOM 字幕框的一部分，不是鏡頭。
+     另開一個 context 載 ?closeup=0 的頁面來量（同一頁改不了那個旗標）。 */
+  {
+    const ctx2 = await browser.newContext({ viewport: { width: 844, height: 390 } });
+    const p2 = await ctx2.newPage();
+    p2.on('pageerror', (e) => errors.push('closeup0: ' + String((e && e.message) || e)));
+    p2.on('console', (m) => { if (m.type() === 'error') errors.push('closeup0 console: ' + m.text()); });
+    await p2.goto(`http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7&closeup=0`, { waitUntil: 'load' });
+    await p2.waitForFunction(() => !!(window.__yaoshi3d && window.__yaoshi3d.director), null, { timeout: 30000 });
+    res.L8 = await p2.evaluate(async ({ ms, base }) => {
+      const D = window.__yaoshi3d.director;
+      const closeupOn = !!window.__yaoshi.PW_FX.CLOSEUP_ON;
+      document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: { trId: 'probe', side: 'A', foeSide: 'B', fac: 'zuling', power: 0.8, ms, tier: 3, cinema: window.__yaoshi.PW_FX.CLOSEUP_ON, baseMs: base, handled: false, done: null } }));
+      const t0 = performance.now();
+      let maxK = 0, onCount = 0;
+      while (performance.now() - t0 < ms + 400) { const k = D.cinemaK(); if (k > maxK) maxK = k; if (D.cinemaOn()) onCount++; await new Promise((r) => requestAnimationFrame(r)); }
+      // 黑條照舊：pwLetterbox 仍然切得動（它是 DOM，不歸鏡頭的總開關管）
+      window.__yaoshi.pwLetterbox(true);
+      await new Promise((r) => setTimeout(r, 400));
+      const barH = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect().height);
+      window.__yaoshi.pwLetterbox(false);
+      return { closeupOn, maxK: +maxK.toFixed(3), onCount, barH };
+    }, { ms: msOf(3), base: TIER_BASE_MS });
+    await ctx2.close();
+  }
+
 } finally {
   await ctx.close();
   await browser.close();
@@ -225,11 +296,15 @@ const v = {
   L6: res.L6.on.top <= 10 && res.L6.on.bot <= 10
     && res.L6.on.top < res.L6.off.top && res.L6.on.bot < res.L6.off.bot
     && Math.abs(res.L6.on.mid - res.L6.off.mid) < 2,
+  // L7（R2 N1）：黑條開著時字幕與黑條的交集面積必須是 0（關著時本來就是 0）
+  L7: ['duelBeat', 'duelSub', 'duelResult'].every((k) => res.L7.on[k].area === 0 && res.L7.off[k].area === 0),
+  // L8（R2 N5）：?closeup=0 時 tier 3 一個 CINEMA 幀都不該有；黑條照舊開得起來
+  L8: res.L8.closeupOn === false && res.L8.maxK === 0 && res.L8.onCount === 0 && res.L8.barH.every((h) => h > 0),
   errors: errors.length,
 };
-v.PASS = v.L1 && v.L2 && v.L3 && v.L4 && v.L5 && v.L6 && errors.length === 0;
+v.PASS = v.L1 && v.L2 && v.L3 && v.L4 && v.L5 && v.L6 && v.L7 && v.L8 && errors.length === 0;
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, JSON.stringify({ verdict: v, res, errors }, null, 1));
-console.log(JSON.stringify({ verdict: v, tier1: res.tier1, tier2: res.tier2, tier3: res.tier3, lbox: res.L3, draws: res.L4, cancel: res.L5, pixels: res.L6 }));
-console.log(`VERDICT L1=${v.L1 ? 'PASS' : 'FAIL'} L2=${v.L2 ? 'PASS' : 'FAIL'} L3=${v.L3 ? 'PASS' : 'FAIL'} L4=${v.L4 ? 'PASS' : 'FAIL'} L5=${v.L5 ? 'PASS' : 'FAIL'} L6=${v.L6 ? 'PASS' : 'FAIL'} err=${errors.length} → ${v.PASS ? 'PASS' : 'FAIL'}`);
+console.log(JSON.stringify({ verdict: v, tier1: res.tier1, tier2: res.tier2, tier3: res.tier3, lbox: res.L3, draws: res.L4, cancel: res.L5, pixels: res.L6, caption: res.L7, closeup0: res.L8 }));
+console.log(`VERDICT L1=${v.L1 ? 'PASS' : 'FAIL'} L2=${v.L2 ? 'PASS' : 'FAIL'} L3=${v.L3 ? 'PASS' : 'FAIL'} L4=${v.L4 ? 'PASS' : 'FAIL'} L5=${v.L5 ? 'PASS' : 'FAIL'} L6=${v.L6 ? 'PASS' : 'FAIL'} L7=${v.L7 ? 'PASS' : 'FAIL'} L8=${v.L8 ? 'PASS' : 'FAIL'} err=${errors.length} → ${v.PASS ? 'PASS' : 'FAIL'}`);
 process.exit(v.PASS ? 0 : 1);

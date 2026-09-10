@@ -328,7 +328,10 @@ export function createCameraDirector(camera, lanterns) {
     leanU = 0;
     // v0.54：tier 3（三尊大招）才切 CINEMA 機位。tier 1／2 一個 CINEMA 幀都不該有
     // （凍結檔 F5 的機械斷言量的就是這件事）。
-    if ((d.tier | 0) === 3) {
+    // R2 覆審 N5：?closeup=0（近景切鏡總開關）也要關掉 CINEMA——它是近景的一種，
+    // 而且比 FOCUS 更兇。旗標由 index.html 的 pwTraitFx 帶進來（本檔一如既往不讀 PW_FX／CFG）。
+    // 沒帶 cinema 欄位時視為 true（合成事件與舊治具照舊會切）。
+    if ((d.tier | 0) === 3 && d.cinema !== false) {
       cinemaK0 = cinemaK; // 前一次還沒回完就直接接續（同 focus）
       cinemaAt = performance.now();
       cinemaMs = Math.max(1, Number(d.ms));

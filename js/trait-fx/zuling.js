@@ -641,49 +641,53 @@ export const SHORT = {
     } });
   },
 
-  /* 祖靈先手｜辨識：眼睛猛地睜圓、一道注視射向對面 */
-  /* 祖靈先手｜辨識：★一顆睜圓的大眼★＋一道注視射向對面
-     （盲讀 r1：只有眼瞼骨骼在動時讀者認不出來——眼球本體要真的出現在畫面上） */
+  /* 祖靈先手｜辨識：★一顆睜圓的大眼★ ＋ 一道注視射過去 ＋ **被盯到的那一隻退縮**
+     （盲讀 r2：短 1/2 vs 完整 3/3。低分共同特徵是「效果只在自己身上、沒有指向、受方沒反應」，
+      所以眼球提前到 35ms 就現形、注視光束燒滿 95→215ms、對面被指到的那一隻真的退一步） */
   wardFirst(st) {
     const eye = st.byBody(st.actor, 'ward')[0] || st.actor[0];
     const from = st.worldOf(eye, 'Sl0', new THREE.Vector3());
-    const aim = st.target.length ? st.worldOf(st.target[0], null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
+    const foe = st.target[0] || null;
+    const aim = foe ? st.worldOf(foe, null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
     const gaze = st.beam(from, aim, { opacity: 0 });
+    const gaze2 = st.beam(from.clone().add(new THREE.Vector3(0, 0.05, 0)), aim, { opacity: 0 });
     const ring = st.ring(st.foot(eye, new THREE.Vector3()), 0.36, 0.05, { opacity: 0 });
-    /* 法寶本體：眼位上疊一顆眼白（大球）＋一顆瞳（小球）。睜圓＝眼白脹大、瞳縮小。 */
-    const sclera = st.orb(from, 0.13, { opacity: 0 });
-    const pupil = st.orb(from.clone().addScaledVector(st.dir, 0.06), 0.055, { opacity: 0, color: 0x120a1e });
-    sclera.scale.setScalar(0.35); pupil.scale.setScalar(1.5);
-    st.tween({ ms: 85, ease: 'in', update(t, e) { // 凝視：眼瞼壓下、眉壓低，眼白微微透出來
+    const sclera = st.orb(from, 0.15, { opacity: 0 });
+    const pupil = st.orb(from.clone().addScaledVector(st.dir, 0.07), 0.06, { opacity: 0, color: 0x120a1e });
+    sclera.scale.setScalar(0.3); pupil.scale.setScalar(1.6);
+    st.tween({ ms: 88, ease: 'in', update(t, e) { // 凝視：眼球本體先長出來（35ms 就看得到）
       st.rot(eye, 'Sl0', 0.18 * e); st.rot(eye, 'Sl1', 0.14 * e); st.rot(eye, 'Br0', 0.2 * e); st.rot(eye, 'Br1', 0.16 * e);
       st.scale(eye, 1 - 0.03 * e); st.rim(eye, 1 + 0.4 * e);
-      sclera.material.opacity = 0.45 * e; sclera.scale.setScalar(0.35 + 0.25 * e);
-      pupil.material.opacity = 0.7 * e;
+      const k = Math.min(1, e * 2.5);
+      sclera.material.opacity = 0.75 * k; sclera.scale.setScalar(0.3 + 0.45 * k);
+      pupil.material.opacity = 0.9 * k;
     } });
-    st.tween({ ms: 80, delay: 85, ease: 'out', update(t, e) { // 猛地睜圓：眼白暴脹、瞳孔縮成一點
+    st.tween({ ms: 78, delay: 88, ease: 'out', update(t, e) { // 猛地睜圓：眼白暴脹、瞳孔縮成一點
       const k = 1 - e;
       st.rot(eye, 'Sl0', 0.18 * k - 0.26 * e); st.rot(eye, 'Sl1', 0.14 * k - 0.2 * e);
       st.rot(eye, 'Br0', 0.2 * k - 0.12 * e); st.rot(eye, 'Br1', 0.16 * k - 0.1 * e);
-      st.scale(eye, 1 - 0.03 * k + 0.06 * e); st.rim(eye, 1 + 0.4 * k + 2.2 * e);
-      sclera.material.opacity = 0.45 + 0.5 * e; sclera.scale.setScalar(0.6 + 0.75 * e);
-      pupil.scale.setScalar(1.5 - 0.9 * e); pupil.material.opacity = 0.7 + 0.3 * e;
-    }, done() { st.punch(0.3); } });
-    st.fade(gaze, { ms: 70, delay: 120, from: 0.95, to: 0 }); // 一道注視射向對面
-    st.grow(ring, { ms: 90, delay: 110, from: 0.3, to: 1.4 });
-    st.fade(ring, { ms: 90, delay: 110, from: 0.6, to: 0 });
-    st.actor.forEach((f, i) => st.tween({ ms: 90, delay: 120 + i * 8, ease: 'snap', update(t, e) { // 全體搶半步
-      st.move(f, 0, 0, 0.09 * e);
-    } }));
-    st.fade(sclera, { ms: 62, delay: 165, from: 0.95, to: 0 });
-    st.fade(pupil, { ms: 62, delay: 165, from: 1, to: 0 });
-    st.tween({ ms: 62, delay: 165, ease: 'inout', update(t, e) { // 眼半闔
+      st.scale(eye, 1 - 0.03 * k + 0.06 * e); st.rim(eye, 1 + 0.4 * k + 2.4 * e);
+      sclera.scale.setScalar(0.75 + 0.85 * e); pupil.scale.setScalar(1.6 - 1.05 * e);
+    }, done() { st.punch(0.35); } });
+    // 注視：兩條光束疊起來變粗，燒滿 95→215ms（一版只有 70ms，取樣幀常常錯過）
+    st.fade(gaze, { ms: 120, delay: 95, from: 1, to: 0 });
+    st.fade(gaze2, { ms: 108, delay: 107, from: 0.85, to: 0 });
+    st.grow(ring, { ms: 95, delay: 100, from: 0.3, to: 1.5 });
+    st.fade(ring, { ms: 95, delay: 100, from: 0.65, to: 0 });
+    if (foe) { // ★受方反應★：被盯到的那一隻退縮、邊光暴亮
+      st.flinch([foe], { delay: 112, strength: 1.15, burst: true });
+      st.tween({ ms: 96, delay: 112, ease: 'pulse', update(t, e) { st.rim(foe, 1 + 2.6 * e); } });
+    }
+    st.actor.forEach((f, i) => st.tween({ ms: 84, delay: 120 + i * 8, ease: 'snap', update(t, e) { st.move(f, 0, 0, 0.09 * e); } }));
+    st.fade(sclera, { ms: 58, delay: 168, from: 0.75, to: 0 });
+    st.fade(pupil, { ms: 58, delay: 168, from: 0.9, to: 0 });
+    st.tween({ ms: 60, delay: 168, ease: 'inout', update(t, e) { // 眼半闔
       const k = 1 - e;
       st.rot(eye, 'Sl0', -0.26 * k); st.rot(eye, 'Sl1', -0.2 * k); st.rot(eye, 'Br0', -0.12 * k); st.rot(eye, 'Br1', -0.1 * k);
-      st.scale(eye, 1 + 0.06 * k); st.rim(eye, 1 + 2.2 * k);
+      st.scale(eye, 1 + 0.06 * k); st.rim(eye, 1 + 2.4 * k);
     } });
   },
 
-  /* 天雷｜辨識：胸前火種升空＋兩道天雷從高處劈下 */
   /* 天雷｜辨識：★三道劈下來的閃電★（本體＝雷本身，越早出現越好）＋胸前火種升空
      （盲讀 r1：一版的雷只在 150ms 後閃 62ms，讀者的取樣幀常常錯過） */
   boltGamble(st) {
@@ -806,9 +810,7 @@ export const SHORT = {
     } });
   },
 
-  /* 琉璃護心｜辨識：珠鍊一顆一顆亮上去＋心口琉璃珠護心罩 */
-  /* 琉璃護心｜辨識：★一串真的珠鍊★一顆一顆亮上去＋心口琉璃珠護心罩
-     （盲讀 r1：一版只有骨骼縮放與一顆珠，看不出「鍊」） */
+  /* 琉璃護心｜辨識：★一串真的珠鍊★一顆一顆亮上去＋心口琉璃珠護心罩 */
   eliteArmor(st) {
     const snake = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const heart = st.worldOf(snake, 'Body', new THREE.Vector3());
@@ -818,7 +820,6 @@ export const SHORT = {
     const foot = st.foot(snake, new THREE.Vector3());
     const halo = st.ring(foot, 0.34, 0.045, { opacity: 0 });
     bead.scale.setScalar(0.3); shell.scale.setScalar(0.4);
-    /* 法寶本體：九顆珠沿著「心口→頭頂」的弧線串成一條鍊，由內往外一顆一顆亮。 */
     const chain = [];
     for (let i = 0; i < 9; i++) {
       const u = i / 8;

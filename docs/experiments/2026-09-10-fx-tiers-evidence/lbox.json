@@ -6,6 +6,8 @@
   "L4": true,
   "L5": true,
   "L6": true,
+  "L7": true,
+  "L8": true,
   "errors": 0,
   "PASS": true
  },
@@ -49,9 +51,77 @@
     "tris": 855
    }
   },
+  "L7": {
+   "off": {
+    "duelBeat": {
+     "h": 21,
+     "top": 0,
+     "bottom": 21,
+     "area": 0,
+     "pct": 0
+    },
+    "duelSub": {
+     "h": 18,
+     "top": 79,
+     "bottom": 97,
+     "area": 0,
+     "pct": 0
+    },
+    "duelResult": {
+     "h": 26,
+     "top": 49,
+     "bottom": 75,
+     "area": 0,
+     "pct": 0
+    },
+    "bars": [
+     [
+      0,
+      0
+     ],
+     [
+      390,
+      390
+     ]
+    ]
+   },
+   "on": {
+    "duelBeat": {
+     "h": 21,
+     "top": 31.2,
+     "bottom": 52.2,
+     "area": 0,
+     "pct": 0
+    },
+    "duelSub": {
+     "h": 18,
+     "top": 110.2,
+     "bottom": 128.2,
+     "area": 0,
+     "pct": 0
+    },
+    "duelResult": {
+     "h": 26,
+     "top": 80.2,
+     "bottom": 106.2,
+     "area": 0,
+     "pct": 0
+    },
+    "bars": [
+     [
+      0,
+      31.2
+     ],
+     [
+      358.8,
+      390
+     ]
+    ]
+   }
+  },
   "tier1": {
    "ms": 260,
-   "samples": 53,
+   "samples": 52,
    "onCount": 0,
    "maxK": 0,
    "onDuring": 0,
@@ -59,7 +129,7 @@
   },
   "tier2": {
    "ms": 900,
-   "samples": 89,
+   "samples": 91,
    "onCount": 0,
    "maxK": 0,
    "onDuring": 0,
@@ -67,43 +137,52 @@
   },
   "tier3": {
    "ms": 1400,
-   "samples": 122,
+   "samples": 121,
    "onCount": 105,
    "maxK": 1,
-   "onDuring": 86,
+   "onDuring": 85,
    "onAtTail": 0
   },
   "L5": {
    "ys:fx-trait-cancel": {
     "kAtCancel": 1,
     "onAfter300": 0,
-    "samples": 43,
-    "lastOnT": 316
+    "samples": 42,
+    "lastOnT": 314
    },
    "ys:duel-end": {
     "kAtCancel": 1,
     "onAfter300": 0,
-    "samples": 43,
+    "samples": 42,
     "lastOnT": 316
    },
    "ys:table": {
     "kAtCancel": 1,
     "onAfter300": 0,
     "samples": 43,
-    "lastOnT": 316
+    "lastOnT": 317
    }
   },
   "L6": {
    "off": {
-    "top": 29.38,
-    "bot": 40.76,
-    "mid": 53.56
+    "top": 29.29,
+    "bot": 40.85,
+    "mid": 53.1
    },
    "on": {
     "top": 0,
     "bot": 0,
-    "mid": 52.8
+    "mid": 53.63
    }
+  },
+  "L8": {
+   "closeupOn": false,
+   "maxK": 0,
+   "onCount": 0,
+   "barH": [
+    31.1875,
+    31.1875
+   ]
   }
  },
  "errors": []

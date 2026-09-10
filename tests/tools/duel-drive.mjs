@@ -54,7 +54,9 @@ const RECORDER = `(() => {
     ['lbTop', 'lbBot'].forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
-      const push = () => R.lbox.push({ t: now(), id, on: el.classList.contains('on') });
+      /* R2 覆審 N9：這裡刻意用 Date.now() 而不是下面才宣告的 now()——
+         換個注入時機（或有人直接在 console 貼這段）就會踩到 TDZ 的 ReferenceError。 */
+      const push = () => R.lbox.push({ t: Date.now(), id, on: el.classList.contains('on') });
       push();
       new MutationObserver(push).observe(el, { attributes: true, attributeFilter: ['class'] });
     });
