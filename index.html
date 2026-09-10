@@ -69,31 +69,47 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .seat.hl{box-shadow:0 0 12px var(--gold);border-color:var(--gold)}
 .seat.dead{opacity:.35}
 #north .seat{display:flex;align-items:center;gap:8px;max-width:320px}
-/* ===== 神龕列（請神 2.0）：中央面板 #stage 裡、法寶卡**正上方**的三格 =====
-   沿革：v0.43～0.44 塞在 #north 北席旁邊（那時北席被擠得偏左、且橫式量到 19px 溢出）。
-   2026-09-07 使用者裁定搬進中央面板——北家因此回到頂端正中，三龕與法寶卡在同一個視線動線上。
-   寬度用 flex 均分＋min-width:0，三格永遠塞得下 ⇒ 橫向溢出 0（不再靠 overflow:hidden 遮）。
+/* ===== 香火榜＋三尊待請卡（請神 3.0，2026-09-10）：中央面板 #stage 裡、法寶卡**正上方** =====
+   3.0 把 2.0 的「三格神龕（各自的開標夜＋各自的香火）」換成
+   「**一條香火榜**（四家香火池・你領先／落後・下一個請神夜倒數）＋**三尊待請卡**（陣營・招式・被請走時標示）」。
+   高度預算沿用 2.0 覆審 HIGH-1 甲（使用者裁定）：**平常整組壓成一列**（榜在左、三張精簡卡在右），
+   **只有請神夜前一夜與當夜**才拆成兩列、卡上多印招式名——那兩夜正是要讀對手、想清楚要挑哪一尊的時候。
+   寬度用 flex 均分＋min-width:0 ⇒ 橫向溢出 0（不靠 overflow:hidden 遮）。
    顏色沿用 fac-* 帶的 --pwf（與對決隻數牌同一份系色事實來源，v0.37 §11.17）。 */
-#shrines{display:flex;gap:5px;align-items:stretch;width:100%;min-width:0;margin:0 0 3px}
-.shrine{flex:1 1 0;min-width:0;background:var(--panel);background:var(--glass);
+#shrines{display:flex;width:100%;min-width:0;margin:0 0 3px;gap:5px}
+#shrines.slim{flex-direction:row;align-items:center}
+#shrines.wide{flex-direction:column;gap:3px}
+.incboard{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;
+  background:var(--panel);background:var(--glass);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;
+  padding:0 6px;line-height:1.55;font-size:9.5px;white-space:nowrap;overflow:hidden}
+.incboard .ibh{display:flex;gap:5px;font-size:8.5px;color:var(--dim)}
+.incboard .ibh span.on{color:var(--gold)}
+.incboard .ibh b{font-weight:bold}
+.incboard .ibgap{color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.incboard .ibwhen{color:var(--gold);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.shcards{display:flex;gap:5px;min-width:0;flex:1 1 auto}
+#shrines.slim .shcards{flex:1 1 auto}
+.shcard{flex:1 1 0;min-width:0;background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:1px solid var(--line);border-left:3px solid var(--pwf,#8a8a8a);border-radius:10px;
-  padding:3px 6px;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden}
-.shrine.gone{opacity:.5}
-/* slim＝離請神夜還遠的那些夜：整格壓成一列（尊名｜倒數｜你 h），把高度還給市集卡（覆審 HIGH-1 甲） */
-.shrine.slim{flex-direction:row;align-items:center;gap:6px;padding:0 6px;line-height:1.5;font-size:9.5px}
-.shrine.slim .shname{flex:0 0 auto}
-.shrine.slim .shwhen{flex:1 1 auto;min-width:0}
-.shname{font-size:10.5px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  padding:0 6px;display:flex;align-items:center;gap:4px;line-height:1.55;overflow:hidden}
+.shcard.gone{opacity:.5}
+.shname{font-size:9.5px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
 .shname .shfac{font-size:8.5px;color:#14101f;background:var(--pwf,#8a8a8a);border-radius:4px;padding:0 3px;margin-left:3px}
-.shwhen{font-size:9px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* 四家香火**一行**（使用者裁定；原本是 2×2 的 grid，改成一列比較好掃） */
-.shrow{display:flex;gap:5px;font-size:8.5px;color:var(--dim);line-height:1.35;white-space:nowrap;overflow:hidden}
-.shrow span.on{color:var(--gold)}
-.shrow b{font-weight:bold}
-.shwhen .shgap{color:var(--dim);margin-left:5px}
-.shtaken{font-size:9px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.shname{font-size:9.5px} .shrow,.shwhen{font-size:7.5px}}
+.shmove{font-size:8.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto}
+.shtaken{font-size:8.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto}
+/* 真人得主的選尊視窗（請神 3.0 §二 3）：三張大卡，點一下就是請那一尊 */
+.legendPicks{display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.legendPick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;
+  background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--pwf,#8a8a8a);
+  border-radius:10px;padding:7px 10px;cursor:pointer;font-family:inherit}
+.legendPick:hover{border-color:var(--gold)}
+.legendPick .lpn{font-size:14px;font-weight:bold}
+.legendPick .lpm{font-size:11.5px;color:var(--gold);line-height:1.5;white-space:normal}
+.legendPick .lpc{font-size:11px;color:var(--dim)}
+@media(max-width:760px){.shname{font-size:9px} .incboard,.shmove,.shtaken{font-size:8px} .incboard .ibh{font-size:7.5px}}
 /* 直式：整個 #rotateHint 蓋住畫面要玩家轉橫（第 39 行），牌桌根本看不到；直式一律收起來，轉橫就回來。 */
 @media (orientation:portrait){ #shrines{display:none} }
 /* 部隊預覽的那一行（市集卡與袋子面板共用；請神 2.0 使用者裁定）：
@@ -701,21 +717,23 @@ const CFG = {
      本卷（v0.44，N1 擲序洗牌）起**預設打開**；?legend=0 仍然可以整組關掉，
      ?legend=1 保留（顯式打開，與預設同值、不報錯）。改這個預設是策略數值，要再問（硬規則 3）。 */
   LEGEND_ON: true,
-  /* ★請神 2.0「神債暗標」（2026-09-07 使用者裁定；提案 docs/proposals/2026-09-07-legend-v2-debt-auction.md）★
-     1.0 的擲骰（INC_K）與天井（INC_PITY）已整組移除，**別再回頭引用**——現在是
-     「請神夜開標、香火 h 最高者請走」的全員付費暗標（燒下去一律不退）。 */
-  SHRINE_NIGHTS: [4,7,10],  /* 請神夜：三尊各在其中一夜開標；哪一尊落在哪一夜每局用 S.rng 洗牌並公開【試玩必調】 */
+  /* ★請神 3.0「香火池」（2026-09-10 使用者裁定；提案 docs/proposals/2026-09-10-legend-v3-pool.md）★
+     2.0 的「三龕各自計分＋尊→夜洗牌＋落空階段獎勵」與 1.0 的擲骰（INC_K）／天井（INC_PITY）
+     都已整組移除，**別再回頭引用**——現在是「每人一個**不綁尊**的香火池 h，請神夜由
+     **尚未持有傳說者中 h 最高者**請神、**自選**一尊還沒被請走的；落空者的 h 原封保留到下一請神夜」。 */
+  SHRINE_NIGHTS: [4,7,10],  /* 請神夜：這三夜各結算一次（三尊從第 1 夜起都是「待請」，沒有尊→夜洗牌）【試玩必調】 */
   INC_MAX: 3,        /* 每夜每人最多燒幾點壽命當香火（密封、當場扣、不退）【試玩必調】 */
   INC_TITHE: 1,      /* 供奉（神債）：持有傳說者每夜末付這麼多壽命；付不出（壽命 ≤1）那一尊回天、該龕不重開【試玩必調】 */
   /* 供奉的互動口徑（提案 §二 6，使用者 2026-09-07 裁丙）：平常自動扣、不跳窗；
      只有「付完供奉壽命會 ≤TITHE_WARN」那一夜跳一次「壽命危急，繼續供奉？」，同一尊只提示一次；
      AI 的放手規則走同一條門檻（付後 ≤TITHE_WARN 就送神回天）。袋子面板另有常駐的「送神回天」鈕。 */
   TITHE_WARN: 2,     /* 【試玩必調】 */
-  INC_GIFT_P: 4,     /* 階段獎勵第三段附送的小法寶：從 POOL 該系 p≤此值的抽一件 */
-  /* AI 追價啟發式（提案 §二 7）：壽命低於 LIFE×minLifeFrac 不拜；
-     每夜只燒「追平領先者所需」的量（min(INC_MAX, 壽命−1, lead−mine+1)）；
-     value＝這一尊值多少壽命（角色個性 aggr 會放大／縮小它）——「估值 − 已投入 − 追平所需 < 0」就停損不追，
-     「追平所需 > 剩餘夜數×INC_MAX」（追不上了）也停損。個別角色可在 ROLES[*].ai.inc 覆寫其中任一鍵。 */
+  INC_GIFT_P: 4,     /* 局末結清第三段附送的小法寶：從 POOL 該系 p≤此值的抽一件（3.0 只剩局末這一處用得到） */
+  /* AI 追價啟發式（請神 3.0 提案 §二 10，**對池**版）：壽命低於 LIFE×minLifeFrac 不拜；
+     領先＝「尚未持有傳說者」之中他人最高的香火池 h，每夜只燒 min(INC_MAX, 壽命−1, lead−mine+1)；
+     value＝請到一尊值多少壽命（角色個性 aggr 會放大／縮小它，另隨「還沒被請走的尊裡有沒有我同系的」×1／×0.5）
+     ——「估值 − 已投入 − 追平所需 < 0」就停損不追，「追平所需 > **剩餘請神夜數**×INC_MAX」（追不上了）也停損。
+     個別角色可在 ROLES[*].ai.inc 覆寫其中任一鍵。 */
   INC_AI:{minLifeFrac:0.3, value:12},
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
@@ -1948,7 +1966,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.52", VERSION_NOTE="出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.53", VERSION_NOTE="請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 4／7／10 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，第 10 夜結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值常數一格未動。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2322,24 +2340,27 @@ function makeState(mode,seed,picks){
   /* 《紙紮夜戰》活性統計（A9）：純記錄，不耗亂數、不改任何結算；PAPERWAR_ON=false 時全程不會有人往裡面寫 */
   S.pwStat={fights:0,burn:{},dmg:{},gang:0,splash:0,fear:0,lost:0,swap:0,bolt:0,bite:0,steal:0,regen:0,
     tr:{},beats:0,beatsReal:0,killed:0,burnSum:0,emptyBeats:0}; /* tr／beats 系列＝卷 D D-A9 的逐招活性與時間軸自檢 */
-  /* 傳說三尊神龕（第 4 卷）：三龕從第 1 夜起常駐。LEGEND_ON=false 時這三個欄位一個都不建、
-     引擎其餘各處都靠 !S.shrines 直接跳過，所以停用時 S 的形狀與 ff227a7 的 OFF 路徑完全相同（閘門 L0／A0）。
-     h＝每位玩家在該龕的累計香火（依 pid 索引）；open＝還沒被請走；takenBy＝請走的人。 */
+  /* 傳說三尊＋香火池（請神 3.0，2026-09-10）：三尊從第 1 夜起都是「待請」，**沒有各自的開標夜**。
+     LEGEND_ON=false 時這些欄位一個都不建、引擎其餘各處都靠 !S.shrines 直接跳過，
+     所以停用時 S 的形狀與 ff227a7 的 OFF 路徑完全相同（閘門 H0）。
+     ★3.0 不再洗尊→夜★：2.0 那一行 `shuffle([...CFG.SHRINE_NIGHTS])` 已整支移除
+     ⇒ 打開請神的 ON 路徑**少消耗一次 S.rng**（凍結檔 H0 的「ON 路徑不再因尊→夜洗牌消耗 rng」）。
+     S.incPool[pid]＝這個人的累計香火（**不綁尊**，落空原封保留）；open＝還沒被請走；takenBy＝請走的人。 */
   if(CFG.LEGEND_ON){
-    /* 尊→夜每局洗牌並公開（請神 2.0 §二 1）：三個請神夜 CFG.SHRINE_NIGHTS 洗過之後逐龕發下去，
-       所以「哪一尊在第幾夜開標」每局不同、但開局第一夜就全桌可見（神龕卡直接寫「第 N 夜請」）。
-       洗牌走 S.rng（決定性、同種子可重現），LEGEND_ON=false 時這一段整個不執行＝零 rng 消耗。 */
-    const nights=shuffle([...CFG.SHRINE_NIGHTS]);
-    S.shrines=LEGENDS.map((L,i)=>({i,fac:L.f,open:true,takenBy:null,night:nights[i],h:S.players.map(()=>0)}));
+    S.shrines=LEGENDS.map((L,i)=>({i,fac:L.f,open:true,takenBy:null}));
+    S.incPool=S.players.map(()=>0);
+    S.incBurn=S.players.map(()=>0);   /* 整局累計燒掉的壽命（純記錄，閘門 H4 的「落空者淨損」用） */
+    S.incBack=S.players.map(()=>0);   /* 局末結清退回的壽命（純記錄，同上） */
     S.incense={};
     /* 閘門統計（純計數、零亂數、不改任何結算值）：
-       burn/burnLife 燒香次數與壽命／rewards/gifts 階段獎勵／taken 請走／dawn 天亮回天的龕／
-       sealed/clip/clipZero 封籤與被 incCap 夾掉的筆數（覆審 N2）／
+       burn/burnLife 燒香次數與壽命／rewards/gifts 局末結清與小法寶／taken 請走／dawn 回天的尊／
+       sealed/clip/clipZero 封籤與被 incCap 夾掉的筆數／
        tithe 供奉付出去的壽命、titheLost 付不出而回天的尊、titheGiveUp 主動（或 AI 依門檻）送神回天的尊、
        locked 因「一人一尊」被擋下的封籤、
-       voidDawn 請神夜到了卻無人燒香（h 全 0）而回天的龕。 */
+       skip 請神夜到了卻**沒人有資格**（全員 h=0 或全員已持有）而不結算的夜、
+       nightPools 每個請神夜結算前的四家香火池快照（閘門 H4 用）。 */
     S.shrineStat={burn:0,burnLife:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0,
-      tithe:0,titheLost:0,titheGiveUp:0,locked:0,voidDawn:0};
+      tithe:0,titheLost:0,titheGiveUp:0,locked:0,skip:0,nightPools:[]};
     S.titheAsk=[]; /* 夜末「壽命危急，繼續供奉？」的待問清單（純 UI 佇列；headless 沒人讀＝預設「要」） */
   }
   return S;
@@ -2714,12 +2735,14 @@ function resolveAuction(){
   S.players.forEach(p=>{if(p.alive&&p.life<=0){p.alive=false;p.life=0;}});
   return reveal;
 }
-/* ================= 請神：傳說三尊（第 4 卷，2026-09-06）=================
-   規格＝docs/proposals/2026-09-06-legend3-design.md §四；驗收凍結＝docs/experiments/2026-09-06-acceptance-legend3-impl.md。
+/* ================= 請神：傳說三尊「香火池」（請神 3.0，2026-09-10）=================
+   規格＝docs/proposals/2026-09-10-legend-v3-pool.md §二；驗收凍結＝docs/experiments/2026-09-10-acceptance-legend-v3.md。
    時機：**開標之後、結算戰之前**，三條迴圈（真人 startShrine／simulate／playPolicyGame）同一位置、同一亂數序。
-   亂數紀律：唯一會走 S.rng() 的是「h/(h+K) 的那一擲」與「階段獎勵第三段抽小法寶」；
-   AI 的選尊與燒香量是純算式，零亂數。CFG.LEGEND_ON=false 時本段一次都不會被呼叫（!S.shrines 直接回 null）。
-   鐵則 2.4：引擎只讀 S.shrines[i].fac／LEGENDS[i] 的欄位，不比對任何尊名字串。 */
+   ★亂數紀律（3.0 比 2.0 更少）★：引擎段**零 S.rng()**——1.0 的擲骰、2.0 的尊→夜洗牌都沒有了；
+   唯一還會走 S.rng() 的是**局末結清抽小法寶**（settleShrinesEnd → shrineReward）。
+   AI 的燒香量與選尊都是純算式，零亂數。CFG.LEGEND_ON=false 時本段一次都不會被呼叫（!S.shrines 直接回 null）。
+   鐵則 2.4：引擎只讀 S.shrines[i].fac／LEGENDS[i] 的欄位，不比對任何尊名字串。
+   ★2.0 已移除、別回頭引用★：sh.night（尊→夜）、sh.h（逐龕香火）、shrineClose／落空階段獎勵、incPick。 */
 /* 這個座位的 AI 個性（真人座位 p.ai 為 null，退回角色卡上的 ai；都沒有就用中庸值），
    以及它的燒香旋鈕＝CFG.INC_AI 疊上 ROLES[*].ai.inc 的個別覆寫（資料表驅動，引擎不寫死角色 id）。 */
 function incAiOf(p){
@@ -2727,59 +2750,74 @@ function incAiOf(p){
   return {cfg:{...CFG.INC_AI,...((a&&a.inc)||{})}, aggr:(a&&a.aggr!=null)?a.aggr:0.6}; /* aggr 可能是 0，不能用 || 兜底 */
 }
 /* 燒香的上限（使用者 2026-09-07 裁定甲）：**當前壽命 −1**——燒香不得把自己燒到 ≤0。
-   沿革：冷讀對抗式覆審 H4 指出原本可以燒到 0，結果是「請到神的人當場出局、那一尊被鎖在死人袋裡永遠退場，
-   同一夜沒請到的人反而被階段獎勵回血救活」；真人的出價面板還放行 tot===life 而沒有任何警示。
    慣例與獻祭放血的 CFG.BLOOD_FLOOR 一致（都留至少 1 點壽命）。
    ★這一支是唯一的事實來源★：resolveShrines 收燒香、aiIncense、policyIncenseMax、出價 UI 的 incBump／incbarHTML
    全部呼叫它，不得各自再寫一份 −1。 */
 function incCap(p){ return Math.max(0,((p&&p.life)|0)-1); }
-/* 這個人**這一局請走過**任何一尊了嗎？「一人一尊」（請神 2.0 §二 5）唯一的事實來源——
+/* 這個人**這一局請走過**任何一尊了嗎？「一人一尊」（提案 §二 7）唯一的事實來源——
    引擎收香火、AI 啟發式、出價 UI 的燒香列都問這一支，不各自再寫一份判斷。
-   ★判準是 sh.takenBy 不是 bag.some★：供奉付不出來時尊會回天、從袋子裡消失（§二 6），
-   若用袋子判斷，那個人就能再去搶第二尊——三尊落到同一人手上（實測 n=1000 有 23 局）。
-   一人一尊是**整局**的限制，所以問的是「這一局有沒有哪一龕記在他名下」。 */
+   ★判準是 sh.takenBy 不是 bag.some★：供奉付不出來時尊會回天、從袋子裡消失（§二 8），
+   若用袋子判斷，那個人就能再去搶第二尊。一人一尊是**整局**的限制。 */
 function hasLegend(p){ return !!(p&&S&&S.shrines&&S.shrines.some(sh=>sh.takenBy===p.id)); }
-/* AI（與沒有指定策略的座位）的**追價**啟發式（請神 2.0 §二 7，取代 1.0 的「每夜燒 life×aggr/div」）：
-   選尊：主系那一尊 → 已關就換件數第二多的系 → 仍無就挑第一座還開著的；
-   出手量：只燒「追平並超過領先者所需」的量（沒人領先就跟 1 點），上限 min(INC_MAX, 壽命−1)；
-   兩條停損（提案 §二 7 的「估值 − 已投入 − 追平所需 ≥ 0 才追」）：
-     ① 追平所需 > 剩餘夜數×INC_MAX ⇒ 到開標那一夜也追不上，不追（換下一龕）
-     ② 估值 − 已投入 − 追平所需 < 0 ⇒ 追下去不划算，不追（換下一龕）
-   估值＝CFG.INC_AI.value 乘上角色個性 aggr（aggr 0.6 是中庸值，所以除以 0.6 當基準）。
-   全程零亂數，只讀公開資訊（各龕的 h、請神夜）與自己的壽命。 */
+/* 請神夜的三個共用判斷（★單一事實來源★：AI 停損、結算入口、香火榜倒數、燒香列都問這三支）：
+   isShrineNight＝本夜是不是請神夜；shrineNightsLeft＝含今夜還剩幾個請神夜；lastShrineNight＝最後一個請神夜。
+   3.0 沒有「哪一尊在哪一夜」，所以這三支只讀 CFG.SHRINE_NIGHTS，不讀任何龕的欄位。 */
+function isShrineNight(r){ return (CFG.SHRINE_NIGHTS||[]).indexOf(r)>=0; }
+function shrineNightsLeft(r){ return (CFG.SHRINE_NIGHTS||[]).filter(n=>n>=r).length; }
+function lastShrineNight(){ const A=CFG.SHRINE_NIGHTS||[]; return A.length?Math.max(...A):0; }
+/* 還沒被請走的尊＝請神夜得主能挑的清單（提案 §二 3）。 */
+function openShrines(){ return S&&S.shrines?S.shrines.filter(sh=>sh.open):[]; }
+/* AI（與沒有指定策略的座位）的**追價**啟發式（提案 §二 10，取代 2.0 的「逐龕挑一座再追」）：
+   3.0 燒香不綁尊，所以沒有「選哪一龕」這件事——只剩「這一夜投多少」。
+   領先＝**尚未持有傳說者**之中他人最高的香火池（持有者不再參加開標，把他們算進去會虛抬價）；
+   出手量＝min(INC_MAX, 壽命−1, lead−mine+1)（沒人領先就跟 1 點守住）；
+   兩條停損：① 追平所需 > 剩餘請神夜數×INC_MAX ⇒ 到最後一夜也追不上 ② 估值 − 已投入 − 追平所需 < 0。
+   估值＝CFG.INC_AI.value × 角色個性（aggr 0.6 是中庸值，所以除以 0.6 當基準）
+        × 「還沒被請走的尊裡有沒有我同系的」（有 ×1、沒有 ×0.5）——同系才吃得到傳說共鳴。
+   全程零亂數，只讀公開資訊（四家的香火池、還開著的尊、請神夜表）與自己的壽命。 */
 function aiIncense(p){
   if(!S.shrines||!p.alive) return null;
   if(hasLegend(p)) return null;                  /* 一人一尊：請到之後不再收這個人的香 */
   const {cfg,aggr}=incAiOf(p);
   if(p.life<CFG.LIFE*cfg.minLifeFrac) return null;
   const cap=incCap(p); if(cap<1) return null;    /* 燒香不得燒到 ≤0（裁定甲） */
-  const cnt={};
-  for(const x of p.bag){ if(!x.curse) cnt[x.f]=(cnt[x.f]||0)+1; }
-  /* 件數多到少；同數取 FACTIONS 表序（決定性，不擲骰） */
-  const order=Object.keys(cnt).filter(f=>FAC[f]&&FAC[f].resonate)
-    .sort((a,b)=>cnt[b]-cnt[a]||FACTIONS.indexOf(a)-FACTIONS.indexOf(b));
-  const prefer=[];
-  for(const f of order){ const sh=S.shrines.find(s=>s.open&&s.fac===f); if(sh&&prefer.indexOf(sh)<0) prefer.push(sh); }
-  for(const sh of S.shrines) if(sh.open&&prefer.indexOf(sh)<0) prefer.push(sh);
-  const value=cfg.value*(aggr/0.6);
-  for(const sh of prefer){
-    const mine=sh.h[p.id]|0;
-    let lead=0;
-    for(const q of S.players) if(q.alive&&q.id!==p.id&&(sh.h[q.id]|0)>lead) lead=sh.h[q.id]|0; /* 只看還活著的競爭者：死人的香火要等關龕才歸零，算進去會讓整座龕被鎖死 */
-    const need=Math.max(1,lead-mine+1);          /* 追平並超過所需；沒人領先時跟 1 點守住 */
-    const left=Math.max(1,sh.night-S.round+1);   /* 含今夜的剩餘夜數 */
-    if(need>CFG.INC_MAX*left) continue;          /* 停損①：到開標夜也追不上 */
-    if(value-mine-need<0) continue;              /* 停損②：估值扣掉已投入與追平所需已是負的 */
-    const amt=Math.min(CFG.INC_MAX,cap,need);
-    if(amt<1) continue;
-    return {shrine:sh.i,amt};
+  const open=openShrines();
+  if(!open.length) return null;                  /* 三尊都被請走了：再燒也換不到東西 */
+  const left=shrineNightsLeft(S.round);
+  if(left<=0) return null;                       /* 最後一個請神夜也過了：不追 */
+  const mine=S.incPool[p.id]|0;
+  let lead=0;
+  for(const q of S.players){
+    if(!q.alive||q.id===p.id||hasLegend(q)) continue;
+    const h=S.incPool[q.id]|0; if(h>lead) lead=h;
   }
-  return null;
+  const need=Math.max(1,lead-mine+1);            /* 追平並超過所需；沒人領先時跟 1 點 */
+  if(need>CFG.INC_MAX*left) return null;         /* 停損①：到最後一個請神夜也追不上 */
+  const f=mainFaction(p);
+  const same=!!(f&&open.some(sh=>sh.fac===f));   /* 還開著的尊裡有沒有我主系的那一尊 */
+  const value=cfg.value*(aggr/0.6)*(same?1:0.5);
+  if(value-mine-need<0) return null;             /* 停損②：估值扣掉已投入與追平所需已是負的 */
+  const amt=Math.min(CFG.INC_MAX,cap,need);
+  if(amt<1) return null;
+  return {amt};
 }
-/* 階段獎勵（請神 2.0 §二 4）：區間改以**本龕最高 h**（＝請走那個人的 h；回天時＝場上最高）的比例定義，
-   天井拿掉之後不再有任何固定門檻，所以「差一點點」永遠是相對於當夜實際的競價高度。
-   h<top/3 無；top/3≤h<2top/3 退壽命 ⌈h/3⌉；h≥2top/3 退 ⌈h/2⌉ ＋ 該系一件小法寶（POOL 裡 p≤INC_GIFT_P 的）。
-   請走的人 h 已在呼叫前歸零，不會落到這裡。 */
+/* 得主自選（提案 §二 3）的 **AI 規則**：挑「與自己袋中最多的陣營同系」的尊；同數取 LEGENDS 順序靠前者。
+   S.shrines 本來就是 LEGENDS.map 出來的（順序＝LEGENDS 順序），照順序掃＋**嚴格大於**＝同數取前者。
+   決定性、零亂數。★真人路徑走的是同一格的覆寫★：startShrine 的選尊視窗把玩家點的 i 帶進 finishShrines，
+   headless／simulate／playPolicyGame 沒有 UI ⇒ 行為就是這條 AI 規則（凍結檔 H5②）。 */
+function aiPickShrine(p){
+  const open=openShrines();
+  if(!open.length) return null;
+  const cnt={};
+  for(const x of (p&&p.bag)||[]){ if(!x.curse) cnt[x.f]=(cnt[x.f]||0)+1; }
+  let best=null, bc=-1;
+  for(const sh of open){ const c=cnt[sh.fac]|0; if(c>bc){ bc=c; best=sh; } }
+  return best;
+}
+/* 局末結清（提案 §二 6，沿用 2.0 shrineReward 的區間口徑，只是基準換成「場上最高的香火池」）：
+   h<top/3 無；top/3≤h<2top/3 退壽命 ⌈h/3⌉；h≥2top/3 退 ⌈h/2⌉ ＋ 一件小法寶（POOL 裡 p≤INC_GIFT_P 的）。
+   ★3.0 只在局末用它★——請神夜的落空者 h **原封保留**，不退、不發獎勵（提案 §二 4）。
+   fac＝抽小法寶的系別（局末用結清者自己的主系；沒有主系就抽不到，不送）。 */
 function shrineReward(p,h,top,fac){
   const P=Math.max(1,top|0);
   if(h<P/3) return null;
@@ -2793,105 +2831,113 @@ function shrineReward(p,h,top,fac){
   if(S.shrineStat){ S.shrineStat.rewards++; if(gift) S.shrineStat.gifts++; }
   return {back,gift:gift?gift.n:null};
 }
-/* 某一龕關閉（被請走或天亮回天）時：其餘曾對這尊燒過香的人依 h 領階段獎勵，香火一律歸零。
-   top＝**呼叫前**算好的「本龕最高 h」＝**場上最高**（不是「得標者的 h」）：
-   得標者通常就是最高的那個，但**不一定**——死者與已持有一尊的人不參加開標、他們的 h 卻還留在龕上
-   （覆審 L1 實測約 1.6% 的關龕落在這種情形），這時 top 會高於得標者的 h，階段獎勵的區間跟著抬高。
-   請走時 sh.h[win] 已經歸零，所以 top 必須由呼叫端先取，不能在這裡重算。 */
-function shrineClose(sh,out,top){
-  sh.closeBack=S.players.map(()=>0);   /* 各家實際退回的壽命（純記錄，閘門 G4 的「落空者淨損」用） */
-  S.players.forEach(q=>{
-    const h=sh.h[q.id]|0;
-    if(!h) return;
-    sh.h[q.id]=0;
-    if(!q.alive) return;
-    const r=shrineReward(q,h,top,sh.fac);
-    if(r){ out.push({pid:q.id,shrine:sh.i,h,...r}); sh.closeBack[q.id]=r.back; }
-  });
-}
-/* 同香火（h 並列）時誰請走：**本夜風位家起順時針**（請神 2.0 §二 3，決定性、可讀）。
-   風位輪轉是 東→南→西→北＝WIND_SEQ，windPid(r)=WIND_SEQ[(r−1)%4]，所以從那一格往後數就是順時針。
-   1.0 的 shrineRollOrder（同 h 用 S.rng 洗牌）隨擲骰一起整支移除——沒有擲骰就沒有「誰先擲」這件事，
-   現在是一次性開標比大小，並列只需要一條公開、可預測的排序（玩家因此讀得出「今晚同分我贏不贏」）。 */
+/* 同香火（h 並列）時誰請神：**本夜風位家起順時針**（提案 §二 3，決定性、可讀）。
+   風位輪轉是 東→南→西→北＝WIND_SEQ，windPid(r)=WIND_SEQ[(r−1)%4]，所以從那一格往後數就是順時針。 */
 function shrineWindOrder(round){
   return [0,1,2,3].map(k=>WIND_SEQ[((round-1)+k)%4]);
 }
-function resolveShrines(){
+/* 請神夜的得主（提案 §二 3）：在**尚未持有傳說、且 h>0** 的人裡香火池最高者；
+   同分依 shrineWindOrder 的第一個（嚴格大於 ⇒ 同分時風位順時針第一個留住）。
+   沒有人有資格（全員 h=0 或全員已持有）⇒ 回 null，那一夜**不結算**（提案 §二 5）。 */
+function shrineWinner(){
+  if(!S.shrines) return null;
+  const order=shrineWindOrder(S.round);
+  let win=null,best=0;
+  for(const pid of order){
+    const p=S.players[pid], h=S.incPool[pid]|0;
+    if(!p.alive||h<=0||hasLegend(p)) continue;   /* 死人與已持有者不參加開標 */
+    if(h>best){ best=h; win=p; }
+  }
+  return win;
+}
+/* 把某一尊記到得主名下（提案 §二 3）：得主 h **歸零**（已付），那一尊關起來、進袋。
+   idx＝得主挑的尊（真人選尊視窗回填）；null／不合法／已被請走 ⇒ 退回 AI 規則 aiPickShrine。 */
+function awardLegend(out,win,idx){
+  const sh=(idx!=null&&S.shrines[idx]&&S.shrines[idx].open)?S.shrines[idx]:aiPickShrine(win);
+  if(!sh) return null;
+  const h=S.incPool[win.id]|0;
+  sh.open=false; sh.takenBy=win.id; sh.round=S.round;
+  win.bag.push({...LEGENDS[sh.i]});
+  out.taken.push({pid:win.id,shrine:sh.i,h});
+  S.incPool[win.id]=0;
+  if(S.shrineStat) S.shrineStat.taken++;
+  return sh;
+}
+/* 請神一夜（提案 §二 1／3／4／5）。opts.interactive＝真人得主要跳選尊視窗（只有 startShrine 會傳）；
+   三條 headless 迴圈一律不傳 ⇒ 走 AI 規則，行為與 2.0 一樣是「一次呼叫做完」。 */
+function resolveShrines(opts){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
-  /* clip＝封籤的量被 incCap 夾掉的紀錄（覆審 N2）。
-     順序刻意不動（開標後才收單、才夾）——因為封籤是在開標**前**填的，出價先扣完壽命之後
-     可能就燒不出當初選的量。夾到就記一筆，請神結算卡、夜末戰況 log、局末回顧三處都看得到。
-     dawn＝本夜到期卻沒有任何人燒過香（h 全 0）而回天的龕（請神 2.0 §二 3）。 */
-  const out={burn:[],taken:[],rewards:[],clip:[],dawn:[],locked:[]};
+  /* clip＝封籤的量被 incCap 夾掉的紀錄；locked＝一人一尊擋下的封籤；
+     skip＝請神夜到了卻沒人有資格（三尊都留著、下一個請神夜再比）；dawn＝最後一個請神夜之後回天的尊。
+     ★3.0 沒有 rewards★：落空者的 h 原封保留，請神夜不發任何階段獎勵（提案 §二 4）。 */
+  const out={burn:[],taken:[],clip:[],locked:[],dawn:[],skip:null,night:false,pending:null};
   /* ① 沒有人替它決定的座位（AI，以及 headless 沒掛 policy 的真人座位）走追價啟發式；零亂數 */
   S.players.forEach(p=>{ if(p.alive&&S.incense[p.id]===undefined) S.incense[p.id]=aiIncense(p); });
-  /* ② 密封同時開：當夜燒的量當場扣壽命、加進累計香火 h。燒掉的不退（請到的人也一樣）。 */
+  /* ② 密封同時開：當夜燒的量當場扣壽命、加進**自己的香火池**（不綁尊）。燒掉的不退。 */
   S.players.forEach(p=>{
     const inc=S.incense[p.id];
     if(!p.alive||!inc){ if(!inc) S.incense[p.id]=null; return; }
-    /* 一人一尊（§二 5）：已經請走過的人，其餘龕不再收他的香——封籤直接被拒，壽命一毛都不扣。
+    /* 一人一尊（§二 7）：已經請走過的人不再收他的香——封籤直接被拒，壽命一毛都不扣。
        UI 那邊 incbarHTML 會把整列鎖起來，這裡是引擎側的把關（策略／AI／熱座任何一條路徑都擋得住）。 */
     if(hasLegend(p)){
-      if((inc.amt|0)>0){ out.locked.push({pid:p.id,shrine:inc.shrine}); if(S.shrineStat) S.shrineStat.locked++; }
+      if((inc.amt|0)>0){ out.locked.push({pid:p.id}); if(S.shrineStat) S.shrineStat.locked++; }
       S.incense[p.id]=null; return;
     }
-    const sh=S.shrines[inc.shrine];
     const want=Math.max(0,Math.min(CFG.INC_MAX,inc.amt|0));   /* 封籤上寫的量（已夾 INC_MAX） */
     let amt=want;
     const cap=incCap(p);
-    if(amt>cap) amt=cap;                     /* 燒香上限＝壽命−1（裁定甲）：燒不出來的不燒，也不准把自己燒死 */
-    if(!sh||!sh.open){ S.incense[p.id]=null; return; }
-    if(S.shrineStat&&want>0) S.shrineStat.sealed++;          /* 封籤夜次（amt>0 的筆數） */
-    if(want>amt){                                            /* 被夾掉：記事件＋計數（覆審 N2） */
-      out.clip.push({pid:p.id,shrine:sh.i,want,amt});
+    if(amt>cap) amt=cap;                     /* 燒香上限＝壽命−1（裁定甲） */
+    if(S.shrineStat&&want>0) S.shrineStat.sealed++;
+    if(want>amt){                            /* 被夾掉：記事件＋計數 */
+      out.clip.push({pid:p.id,want,amt});
       if(S.shrineStat){ S.shrineStat.clip++; if(amt===0) S.shrineStat.clipZero++; }
       (S.shrineClipMsgs=S.shrineClipMsgs||[]).push(
         `🪫 ${p.name} 封的香火 ${want} → 實燒 ${amt}（出價扣完之後壽命不夠，最多只能燒到剩 1 點）`);
     }
     if(amt<=0){ S.incense[p.id]=null; return; }
-    p.life-=amt; sh.h[p.id]+=amt;
-    S.incense[p.id]={shrine:sh.i,amt};
-    out.burn.push({pid:p.id,shrine:sh.i,amt,h:sh.h[p.id]});
+    p.life-=amt; S.incPool[p.id]+=amt; S.incBurn[p.id]+=amt;
+    S.incense[p.id]={amt};
+    out.burn.push({pid:p.id,amt,h:S.incPool[p.id]});
     if(S.shrineStat){ S.shrineStat.burn++; S.shrineStat.burnLife+=amt; }
   });
-  /* ③ 請神夜開標（請神 2.0 §二 3，取代 1.0 的逐人擲骰）：只有 night===本夜的龕結算，龕序固定。
-        **累計** h 最高者請走（不必本夜有燒香——香火是累計的，這裡比的是總額，不是今晚加了多少）；
-        同分依「本夜風位起順時針」第一個（shrineWindOrder，決定性、公開、可讀）；
-        h 全 0（沒有任何人燒過香）⇒ 這一尊回天，本局不再出現、**不重開**。
-        死亡掃描一樣留在最後一行（與 resolveAuction／settleEvent／resolveBattles 對齊）：
-        香火當場扣、不退，錢付了就該讓他參加這一次開標。 */
-  S.shrines.forEach(sh=>{
-    if(!sh.open||sh.night!==S.round) return;
-    const top=Math.max(0,...S.players.map(q=>sh.h[q.id]|0));  /* 本龕最高 h＝階段獎勵的區間基準（§二 4） */
-    sh.closeH=S.players.map(q=>sh.h[q.id]|0);   /* 關龕當下的四家香火快照（純記錄，閘門 G4 用；不參與任何結算） */
-    const order=shrineWindOrder(S.round);
-    let win=null, best=0;
-    for(const pid of order){
-      const p=S.players[pid];
-      const h=sh.h[pid]|0;
-      if(!p.alive||h<=0||hasLegend(p)) continue;   /* 死人與已持有者不參加開標；他們的香火在關龕時照樣結清 */
-      if(h>best){ best=h; win=p; }                 /* 嚴格大於 ⇒ 同分時風位順時針第一個留住 */
-    }
-    if(!win){
-      /* 回天：沒有任何有資格的人燒過香（h 全 0，或剩下的 h 都屬於死人／已持有者）。
-         這一尊本局不再出現、**不重開**；還留著的香火照樣依最高 h 結清後歸零。 */
-      sh.open=false; sh.dawn=true; sh.round=S.round;
-      shrineClose(sh,out.rewards,top);
-      out.dawn.push({shrine:sh.i,leftover:top});   /* top＝關龕當下場上最高的 h（死者／已持有者留下的） */
-      if(S.shrineStat){ S.shrineStat.dawn++; S.shrineStat.voidDawn++; }
-      return;
-    }
-    sh.open=false; sh.takenBy=win.id; sh.round=S.round;
-    win.bag.push({...LEGENDS[sh.i]});
-    out.taken.push({pid:win.id,shrine:sh.i,h:best});
-    if(S.shrineStat) S.shrineStat.taken++;
-    sh.h[win.id]=0;                              /* 得標者的香火不退也不結算階段獎勵 */
-    shrineClose(sh,out.rewards,top);             /* top 是關龕前算好的最高 h（§二 4 的區間基準） */
-  });
-  /* 防禦性掃描：裁定甲的 incCap 之後燒香**不可能**把人燒到 ≤0（進來時 resolveAuction 已掃過一次，
-     所有活人 life≥1，最多燒到剩 1），所以這一行現行恆不觸發；留著是為了「日後有人加別的壽命成本」時仍然安全。 */
+  /* 防禦性掃描：裁定甲的 incCap 之後燒香**不可能**把人燒到 ≤0，現行恆不觸發；
+     留著是為了「日後有人加別的壽命成本」時仍然安全。 */
   S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; } });
-  S.incense={}; /* 信封當夜用完就作廢：不清的話同一夜再呼叫一次會照著同一份封籤再燒一次壽命（覆審 M2） */
+  S.incense={}; /* 信封當夜用完就作廢：不清的話同一夜再呼叫一次會照著同一份封籤再燒一次壽命 */
+  /* ③ 請神夜（CFG.SHRINE_NIGHTS 的三夜）：**一夜只出一尊**，得主自選還沒被請走的那些。 */
+  if(!isShrineNight(S.round)){ recordShrines(out); return out; }
+  out.night=true;
+  if(S.shrineStat) S.shrineStat.nightPools.push({round:S.round,h:S.players.map(q=>S.incPool[q.id]|0)});
+  const win=shrineWinner();
+  const open=openShrines();
+  if(!win||!open.length){
+    /* 沒人有資格（全員 h=0／全員已持有）或三尊都被請走了 ⇒ **不結算、三尊都留著**，下一個請神夜再比。
+       落空者的 h 在這裡一個字都不動＝原封保留（提案 §二 4／5；這正是 3.0 與 2.0「回天不重開」最大的差別）。 */
+    out.skip={round:S.round,why:!open.length?"三尊都已請走":"沒有人有資格"};
+    if(S.shrineStat) S.shrineStat.skip++;
+    return finishShrines(out,null);
+  }
+  if(opts&&opts.interactive&&!win.ai){
+    /* 真人得主 ⇒ 把選擇權交出去（startShrine 的選尊視窗），收尾等 finishShrines。
+       headless 沒有人傳 interactive ⇒ 這條路走不到，行為＝AI 規則（凍結檔 H5②）。 */
+    out.pending={pid:win.id,h:S.incPool[win.id]|0,choices:open.map(sh=>sh.i)};
+    return out;
+  }
+  awardLegend(out,win,null);
+  return finishShrines(out,null);
+}
+/* 請神夜的收尾：**得主自選之後**才做的事。兩條路徑共用——headless 由 resolveShrines 自己接著跑，
+   真人由選尊視窗選完之後呼叫（idx＝玩家點的那一尊）。
+   ★最後一個請神夜結算完，還沒被請走的尊回天★（提案 §二 5：本局不再出現）。 */
+function finishShrines(out,idx){
+  if(!out) return out;
+  if(out.pending){ awardLegend(out,S.players[out.pending.pid],idx); out.pending=null; }
+  if(out.night&&S.round>=lastShrineNight()) S.shrines.forEach(sh=>{
+    if(!sh.open) return;
+    sh.open=false; sh.dawn=true; sh.round=S.round;
+    out.dawn.push({shrine:sh.i});
+    if(S.shrineStat) S.shrineStat.dawn++;
+  });
   recordShrines(out);
   return out;
 }
@@ -2954,19 +3000,28 @@ function settleTithe(log){
   });
   return out;
 }
-/* 天亮回天：到局末還沒被請走的尊收攤，所有人的香火依階段獎勵結清（提案 §4.1-4）。
-   三條迴圈都在「局已結束、還沒 stripEndgameItems」時各叫一次。 */
+/* 天亮回天結清（提案 §二 6，口徑沿用 2.0 的 shrineReward 區間）：局末把**剩餘的香火池**結清
+   退壽命／小法寶，還沒被請走的尊一起回天。三條迴圈都在「局已結束、還沒 stripEndgameItems」時各叫一次。
+   ★冪等★：結清過的池已經歸零、關掉的尊 open=false，所以第二次呼叫必回空陣列、壽命一毛不動。
+   ★這是 3.0 唯一還會走 S.rng() 的一格★（shrineReward 抽小法寶）。 */
 function settleShrinesEnd(){
   if(!CFG.LEGEND_ON||!S.shrines) return null;
   const out=[];
+  /* 池化之後沒有「本龕最高 h」，區間基準改成**場上最高的香火池**；
+     小法寶抽自結清者自己的主系（沒有主系＝抽不到，不送）。 */
+  const top=Math.max(0,...S.players.map(q=>S.incPool[q.id]|0));
+  if(top>0) S.incCloseH=S.players.map(q=>S.incPool[q.id]|0);   /* 結清當下的四家香火快照（純記錄，閘門 H4 用） */
+  S.players.forEach(q=>{
+    const h=S.incPool[q.id]|0;
+    if(!h) return;
+    S.incPool[q.id]=0;
+    if(!q.alive) return;
+    const r=shrineReward(q,h,top,mainFaction(q));
+    if(r){ out.push({pid:q.id,h,...r}); S.incBack[q.id]+=r.back; }
+  });
   S.shrines.forEach(sh=>{
     if(!sh.open) return;
-    /* 局提早結束（有人出局到剩一人／打滿 12 夜）時，請神夜還沒到的龕在這裡收攤：
-       香火依**本龕最高 h** 的比例結清（與請神夜落空同一條 shrineReward，不另寫一份）。 */
-    const top=Math.max(0,...S.players.map(q=>sh.h[q.id]|0));
-    sh.closeH=S.players.map(q=>sh.h[q.id]|0);   /* 同 resolveShrines：關龕當下的香火快照（純記錄） */
     sh.open=false; sh.dawn=true;
-    shrineClose(sh,out,top);
     if(S.shrineStat) S.shrineStat.dawn++;
   });
   S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; } });
@@ -3693,10 +3748,13 @@ function recordShrines(out){
   if(!S.history||!out) return;
   const H=S.history.nights[S.history.nights.length-1];
   if(!H||H.round!==S.round) return;
-  if(out.burn.length||out.taken.length||out.rewards.length||(out.clip&&out.clip.length)||(out.dawn&&out.dawn.length))
-    H.shrine={burn:out.burn,taken:out.taken,rewards:out.rewards,
+  if(out.burn.length||out.taken.length||(out.clip&&out.clip.length)||(out.dawn&&out.dawn.length)
+     ||(out.locked&&out.locked.length)||out.skip)
+    H.shrine={burn:out.burn,taken:out.taken,
       ...(out.clip&&out.clip.length?{clip:out.clip}:{}),
-      ...(out.dawn&&out.dawn.length?{dawn:out.dawn}:{})};
+      ...(out.dawn&&out.dawn.length?{dawn:out.dawn}:{}),
+      ...(out.locked&&out.locked.length?{locked:out.locked}:{}),
+      ...(out.skip?{skip:out.skip}:{})};
 }
 function recordNightEnd(fights,bye,deaths){
   if(!S.history) return;
@@ -3770,37 +3828,39 @@ function renderSeats(hlIds){
     +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}</span>`;
   if(nb) renderNights(S.round);
 }
-/* 神龕列（請神 2.0）：純呈現——只讀 S.shrines／LEGENDS，不寫任何賽局欄位、不耗亂數。
-   一格＝尊名＋系別＋「第 N 夜請・倒數 M 夜」＋你的香火與領先差＋四家香火**一行**。
-   機率表已隨擲骰一起拿掉（現在是 h 最高者請走的暗標，沒有機率這回事）。
-   版面：整排放在中央面板（#stage）的法寶卡正上方，北席因此回到頂端正中。 */
+/* 香火榜＋三尊待請卡（請神 3.0）：純呈現——只讀 S.incPool／S.shrines／LEGENDS，不寫任何賽局欄位、不耗亂數。
+   一條榜＝四家香火池＋你領先／落後＋下一個請神夜倒數；三張卡＝三尊的陣營與招式，被請走時標「已請走：X 家」。
+   版面：整組放在中央面板（#stage）的法寶卡正上方，北席因此回到頂端正中。
+   高度預算（覆審 HIGH-1 甲）：平常 slim＝榜與三卡擠成**一列**；請神夜前一夜與當夜 wide＝拆成兩列、卡上多印招式。 */
 function shrinesHTML(){
   if(!CFG.LEGEND_ON||!S||!S.shrines) return "";
   const me=S.players[typeof ACTIVE==="number"?ACTIVE:0];
-  return `<div id="shrines">${S.shrines.map(sh=>{
-    const L=LEGENDS[sh.i], f=FAC[sh.fac]||{n:"？"};
-    const head=`<div class="shname">🕯️ ${L.n}<span class="shfac">${f.n}</span></div>`;
-    if(!sh.open) return `<div class="shrine gone fac-${sh.fac}">${head}
-      <div class="shtaken">${sh.takenBy!=null?`已請走：${DIRS[sh.takenBy]}家・${S.players[sh.takenBy].name}`:"已回天"}</div></div>`;
-    const left=sh.night-S.round;
-    const mine=me?(sh.h[me.id]|0):0;
-    let lead=0; S.players.forEach(p=>{ if(me&&p.id===me.id) return; const h=sh.h[p.id]|0; if(h>lead) lead=h; });
-    const gap=mine-lead;
-    const when=`第 ${sh.night} 夜請${left>0?`・倒數 ${left} 夜`:"・<b>今夜開標</b>"}`;
-    const cells=S.players.map(p=>{
-      const h=sh.h[p.id]|0;
-      return `<span class="${h?"on":""}" title="${DIRS[p.id]}家・${p.name}　香火 ${h}">${DIRS[p.id]}<b>${h}</b></span>`;
-    }).join("");
-    /* 高度預算（覆審 HIGH-1 甲，使用者裁定）：#felt 在 844×390 是零餘裕，神龕列搬進來之後
-       實測直向溢出 47～77px、市集卡的部隊預覽整行被裁掉。所以**平常只印一列**
-       （尊名＋倒數＋你 h／領先 h），**只有請神夜前一夜與當夜**才展開成兩列、多印四家香火——
-       那兩夜正是要讀對手的時候，其餘夜次看倒數就夠。 */
-    const wide=left<=1;
-    const you=`<span class="shgap">你 ${mine}・${gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手")}</span>`;
-    return `<div class="shrine fac-${sh.fac}${wide?"":" slim"}" title="香火最高的人請走；同分依本夜風位起順時針">${head}
-      <div class="shwhen">${when}${you}</div>
-      ${wide?`<div class="shrow">${cells}</div>`:""}</div>`;
-  }).join("")}</div>`;
+  const mine=me?(S.incPool[me.id]|0):0;
+  /* 領先＝**還沒請到的人**裡他人最高（持有者不參加開標，把他們算進去會讓玩家誤判自己落後） */
+  let lead=0; S.players.forEach(p=>{ if(!me||p.id===me.id||hasLegend(p)) return; const h=S.incPool[p.id]|0; if(h>lead) lead=h; });
+  const gap=mine-lead;
+  const nxt=(CFG.SHRINE_NIGHTS||[]).find(n=>n>=S.round);
+  const left=nxt==null?null:nxt-S.round;
+  const wide=(left!=null&&left<=1);
+  const cells=S.players.map(p=>{
+    const h=S.incPool[p.id]|0, got=hasLegend(p);
+    return `<span class="${h?"on":""}" title="${DIRS[p.id]}家・${p.name}　香火 ${h}${got?"（已請到一尊，不再參加開標）":""}">${DIRS[p.id]}<b>${h}</b>${got?"🏮":""}</span>`;
+  }).join("");
+  const when=(nxt==null)?"請神夜已過・香火局末結清"
+    :(left>0?`第 ${nxt} 夜請神・倒數 ${left} 夜`:"<b>今夜請神</b>");
+  const board=`<div class="incboard" title="香火不綁尊：請神夜由「還沒請到的人」裡香火最高者請神、自選一尊；同分依本夜風位起順時針。落空的香火原封留到下一個請神夜。">
+    🕯️<span class="ibh">${cells}</span>
+    <span class="ibgap">你 ${mine}・${(me&&hasLegend(me))?"已請到":(gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手"))}</span>
+    <span class="ibwhen">${when}</span></div>`;
+  const cards=S.shrines.map(sh=>{
+    const L=LEGENDS[sh.i], f=FAC[sh.fac]||{n:"？"}, tr=(TRAITS[L.unit.trait]||{name:"",desc:""});
+    const head=`<span class="shname">${L.n}<span class="shfac">${f.n}</span></span>`;
+    if(!sh.open) return `<div class="shcard gone fac-${sh.fac}">${head}<span class="shtaken">${
+      sh.takenBy!=null?`已請走：${DIRS[sh.takenBy]}家`:"已回天"}</span></div>`;
+    return `<div class="shcard fac-${sh.fac}" title="${f.n}・${tr.name}：${tr.desc}">${head}${
+      wide?`<span class="shmove">${tr.name}</span>`:""}</div>`;
+  }).join("");
+  return `<div id="shrines" class="${wide?"wide":"slim"}">${board}<div class="shcards">${cards}</div></div>`;
 }
 function faceOf(p){const r=p.life/CFG.LIFE;return !p.alive?"💀":r>2/3?"😊":r>1/3?"😰":"🥀";}
 function faceLbl(p){const r=p.life/CFG.LIFE;return !p.alive?"出局":r>2/3?"氣色紅潤":r>1/3?"面色蒼白":"命懸一線";}
@@ -4113,9 +4173,9 @@ function introPages(){ return [
   /* 第四卡：請神（請神 2.0 使用者裁定加的一頁）。數字全由 CFG 帶出，不另寫一份。
      LEGEND_ON=false 時這一頁整個不存在（開場回到三卡，與加入前一樣，「？」那句留在第三卡）。 */
   ...(CFG.LEGEND_ON?[`<div style="font-size:30px">🕯️</div><h2 style="font-size:17px;margin:6px 0">請神（傳說三尊）</h2>
-   <div style="font-size:12.5px;line-height:1.8;text-align:left">妖市供著<b style="color:var(--gold)">三尊不上拍賣桌的東西</b>。每夜出價時可以多<b>燒 0～${CFG.INC_MAX} 壽命</b>當香火給任一尊（密封、當場扣、<b>不退</b>）。<br>
-   三尊各有自己的<b>請神夜</b>（第 ${CFG.SHRINE_NIGHTS.join("／")} 夜，開局就公開哪一尊在哪一夜）：那一夜開標，<b>累計香火最高的人請走</b>，同分看本夜風位。沒人上香就<b>回天</b>。<br>
-   <b>一人一尊</b>（請到之後，你先前燒在別龕的香火就不算了）；請到之後每夜末自動<b>供奉 ${CFG.INC_TITHE} 壽命</b>，付不出來祂就走（袋子裡隨時可以按「送神回天」主動放手）。落空的人依香火高低退回一些壽命。<br><br>
+   <div style="font-size:12.5px;line-height:1.8;text-align:left">妖市供著<b style="color:var(--gold)">三尊不上拍賣桌的東西</b>。每夜出價時可以多<b>燒 0～${CFG.INC_MAX} 壽命</b>當香火——<b>燒進自己的香火，不指定要哪一尊</b>（密封、當場扣、<b>不退</b>）。<br>
+   第 ${CFG.SHRINE_NIGHTS.join("／")} 夜是<b>請神夜</b>：還沒請到的人裡<b>香火最高的那一個請神</b>，同分看本夜風位，然後<b>自己從還沒被請走的尊裡挑一尊</b>。<br>
+   落空的人香火<b>原封保留</b>到下一個請神夜；沒有人有資格的那一夜就<b>不結算</b>、三尊都留著。<b>一人一尊</b>；請到之後每夜末自動<b>供奉 ${CFG.INC_TITHE} 壽命</b>，付不出來祂就走（袋子裡隨時可以按「送神回天」主動放手）。<br><br>
    看不懂任何名詞？右上角 <b style="color:var(--gold)">？</b> 隨時可查。</div>`]:[]),
 ]; }
 function showIntro(cont){
@@ -4167,19 +4227,20 @@ function openHelp(){
     ${/* ARCH_SPEC §9 待辦 6：袋裡兩把同名法寶只生效一次（collectEffects 用 Set 去重），
          這件事玩家在牌面上看不出來，必須寫在規則頁，否則會有人特地去湊第二把。
          戰力（p 值）是每一件各自算的，只有「能力」不疊加——兩者要分清楚寫。 */""}
-    ${/* 🕯️ 請神 2.0「神債暗標」（2026-09-07）：請神夜、暗標比大小、一人一尊、供奉、階段獎勵五件事全部公開寫在這裡。
-         ★1.0 的擲骰與天井已整組移除，這一段不得再出現機率表★。數字全由 CFG 帶出
-         （SHRINE_NIGHTS／INC_MAX／INC_TITHE／INC_GIFT_P），不另寫一份。 */""}
+    ${/* 🕯️ 請神 3.0「香火池」（2026-09-10）：香火不綁尊、請神夜最高者得、得主自選、落空保留、
+         沒人有資格不結算、一人一尊、供奉、局末結清——八件事全部公開寫在這裡。
+         ★2.0 的「尊→夜洗牌」「三龕各自計分」「落空階段獎勵」已整組移除，這一段不得再出現它們★，
+         1.0 的機率表更不得回來。數字全由 CFG 帶出（SHRINE_NIGHTS／INC_MAX／INC_TITHE／INC_GIFT_P），不另寫一份。 */""}
     ${CFG.LEGEND_ON?sec("🕯️ 請神（傳說三尊）",`妖市入口供著<b>三尊從不上拍賣桌的東西</b>——殘日（祖靈）、大士爺紙尊（香火）、有應公（陰氣）。要它們只有一條路：<b>燒壽命當香火</b>。<br>
-      <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜<b>只能選一尊</b>、燒 0～${CFG.INC_MAX} 壽命。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>——請到的人也一樣，那是消耗不是押金。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣）。<b>注意先後</b>：開標時先結算出價、再燒香，所以標得太兇、扣完壽命不夠時，你封的香火會被縮到「剩 1 點」為止——結算卡與夜末戰況會明講「封 3 → 實燒 2」。<br>
-      <b>請神夜</b>：三尊各有自己開標的那一夜（第 ${CFG.SHRINE_NIGHTS.join("／")} 夜）。<b>哪一尊在哪一夜，每一局開場就洗好、公開寫在神龕卡上</b>（「第 N 夜請・倒數 M 夜」）。到了那一夜，開標之後<b>累計香火最高的人把祂請走</b>——沒有骰子、沒有天井，就是比大小。<b>同分</b>看本夜風位：從風位家起順時針，第一個到的人贏。<b>那一夜完全沒有人上香，這一尊就回天</b>，本局不再出現、也不重開。<br>
-      <b>一人一尊</b>：請到一尊之後，其餘的龕不再收你的香（燒香列會鎖起來）。所以三尊必定落在三個不同的人手上。
-      <b>你先前燒在別龕上的香火也不算了</b>——那些龕開標時不把你算進去（香火還是會依比例結清退還給你）；
-      出局的人同理。所以有時候龕上明明有香火，還是「沒有人請得動」而回天。<br>
-      <b>供奉（神債）</b>：請到之後每個夜末<b>自動</b>付 <b>${CFG.INC_TITHE} 壽命</b>供著祂（戰況會記一行，不會每夜跳出來問）；<b>付不出來</b>（付了會剩不到 1 點）祂就<b>回天</b>、從你袋裡消失，那一龕也不會重開。祂很強，但你得一直養得起。<br>
-      <b>要放手隨時可以</b>：袋子面板上那一尊旁邊有「<b>送神回天</b>」，任何一夜按下去，當夜起就不再供奉、祂離開你的袋子（那一龕一樣不重開）。另外，只有在「付完供奉壽命會剩 ${CFG.TITHE_WARN} 點以下」的那一夜，遊戲會<b>跳一次</b>「壽命危急，繼續供奉？」讓你選——同一尊只問這一次，之後照舊自動扣。<br>
-      <b>沒請到不是純虧</b>：那一龕關閉時（被人請走、沒有人請得動而回天、或天亮收攤），你的香火依<b>與本龕最高香火的比例</b>結清——不到最高的 1/3 沒有；1/3～2/3 退 ⌈h/3⌉ 壽命（香灰）；<b>到了最高的 2/3 以上</b>退 ⌈h/2⌉ 壽命<b>並隨機得到該系一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）。結清後香火歸零。<br>
-      <b>資訊全公開</b>：四家在三龕上的香火、以及各尊的請神夜，都攤在神龕卡上（中央面板法寶卡上方）。對手燒哪一龕，就等於告訴你他在湊哪一系。<br>
+      <b>怎麼拜</b>：出價的時候多一列「燒香」，每夜燒 0～${CFG.INC_MAX} 壽命。★<b>燒香不指定要哪一尊</b>★——燒下去就是進<b>你自己的香火</b>，要哪一尊等請神夜再挑。<b>燒香跟出價各算各的</b>——今夜一件都不標，照樣可以燒香；標了一堆，也可以燒 0。密封，跟出價一起開；壽命<b>當場扣、不退</b>。<b>但燒香最多只能燒到剩 1 點壽命</b>（跟放血一樣要留一口氣）。<b>注意先後</b>：開標時先結算出價、再燒香，所以標得太兇、扣完壽命不夠時，你封的香火會被縮到「剩 1 點」為止——結算卡與夜末戰況會明講「封 3 → 實燒 2」。<br>
+      <b>請神夜</b>：第 ${CFG.SHRINE_NIGHTS.join("／")} 夜各結算<b>一次</b>，<b>一夜只出一尊</b>。開標之後，在<b>還沒請到傳說、而且香火 &gt; 0</b> 的人裡，<b>香火最高的那一個請神</b>——沒有骰子，就是比大小。<b>同分</b>看本夜風位：從風位家起順時針，第一個到的人贏。<br>
+      <b>得主自己挑</b>：贏的人從<b>還沒被請走的尊</b>裡<b>自選一尊</b>（視窗會列出三尊的陣營、招式、你袋中同系件數）。請到之後香火<b>歸零</b>——那是已經付掉的。<br>
+      <b>落空不會白燒</b>：沒請到的人，香火<b>原封保留</b>到下一個請神夜，可以繼續往上加。<b>沒有人有資格</b>的那一夜（大家香火都是 0，或還沒請到的人都沒燒過）就<b>不結算</b>、三尊全部留著，下一個請神夜再比。<b>第 ${CFG.SHRINE_NIGHTS[CFG.SHRINE_NIGHTS.length-1]} 夜結算完</b>還沒被請走的尊就<b>回天</b>，本局不再出現。<br>
+      <b>一人一尊</b>：請到之後不再收你的香（燒香列會鎖起來）。所以三尊必定落在三個不同的人手上。<br>
+      <b>供奉（神債）</b>：請到之後每個夜末<b>自動</b>付 <b>${CFG.INC_TITHE} 壽命</b>供著祂（戰況會記一行，不會每夜跳出來問）；<b>付不出來</b>（付了會剩不到 1 點）祂就<b>回天</b>、從你袋裡消失。祂很強，但你得一直養得起。<br>
+      <b>要放手隨時可以</b>：袋子面板上那一尊旁邊有「<b>送神回天</b>」，任何一夜按下去，當夜起就不再供奉、祂離開你的袋子。另外，只有在「付完供奉壽命會剩 ${CFG.TITHE_WARN} 點以下」的那一夜，遊戲會<b>跳一次</b>「壽命危急，繼續供奉？」讓你選——同一尊只問這一次，之後照舊自動扣。<br>
+      <b>天亮結清</b>：局末還剩著的香火，依<b>與場上最高香火的比例</b>結清——不到最高的 1/3 沒有；1/3～2/3 退 ⌈h/3⌉ 壽命（香灰）；<b>到了最高的 2/3 以上</b>退 ⌈h/2⌉ 壽命<b>並隨機得到你主系的一件小法寶</b>（行情 ${CFG.INC_GIFT_P} 以下）。<br>
+      <b>資訊全公開</b>：四家的香火與下一個請神夜的倒數都攤在香火榜上（中央面板法寶卡上方），三尊的待請卡就在旁邊。<b>早請＝先挑、但供奉付得久；晚請＝便宜、卻沒得挑</b>——這個張力是對手造成的，不是骰子。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，<b>在共鳴計算裡算 2 件</b>（強化你同系的其他法寶）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
     ${sec("🧧 法寶疊加規則",`同一系法寶的<b>戰力</b>每一件都算（所以湊同系仍然划算），但<b>能力</b>同名只生效一次——袋裡兩把「破軍旗」的能力不會變兩倍。想變強是集<b>不同</b>的法寶，不是收集同一件。`)}
     </div>
@@ -4289,15 +4350,16 @@ function startBidUI(){
   initIncense();
   showMarket();
 }
-/* 燒香（第 4 卷）：每夜只能選一尊、預設 0（＝不燒）。預設選中自己主系那一尊，沒有就第一座還開著的；
-   三龕都關了（或 LEGEND_ON=false）就是 null＝出價面板不長那一列。熱座交棒／盯上宣告後都要重設一次。 */
+/* 燒香（請神 3.0）：**不選尊**，只決定這一夜往自己的香火池投多少，預設 0（＝不燒）。
+   三尊都被請走（或 LEGEND_ON=false）就是 null＝出價面板不長那一列——再燒也換不到東西，
+   與 aiIncense 的前提同一條。熱座交棒／盯上宣告後都要重設一次。 */
 function initIncense(){
   INC=null;
   if(!CFG.LEGEND_ON||!S.shrines) return;
   const ap=S.players[ACTIVE];
   if(hasLegend(ap)) return;   /* 一人一尊：已請走過的人不再有燒香列（incbarHTML 會改印鎖住的說明） */
-  const sh=S.shrines.find(s=>s.open&&s.fac===mainFaction(ap))||S.shrines.find(s=>s.open);
-  if(sh) INC={shrine:sh.i,amt:0};
+  if(!openShrines().length) return;
+  INC={amt:0};
 }
 /* 盯上宣告的選擇畫面：釘一件或不釘；AI 的釘法此時尚未揭露（同時宣告版），釘完才一起公開在拍品卡上 */
 function showMarkUI(){
@@ -4441,45 +4503,36 @@ function doSacrifice(){
   if(INC) INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(S.players[ACTIVE]),INC.amt));
   showMarket();
 }
-/* 出價面板的「燒香」列（第 4 卷）：〔選一尊〕〔0～INC_MAX〕，預設 0＝不燒。
+/* 出價面板的「燒香」列（請神 3.0）：〔0～INC_MAX〕，預設 0＝不燒。**沒有選尊那一段**（香火不綁尊）。
    密封——按下去只寫進本席的 INC，交卷（submitHumanBids）時才寫進 S.incense，跟出價同一個信封。
-   顯示的成功率與引擎同一條算式（h/(h+K)、h≥P 必成），UI 不另訂一份門檻。
-   三龕全關或 LEGEND_ON=false 時回空字串＝這一列整個不存在（#felt 高度預算零餘裕，GUIDE §11.12）。 */
-/* 燒香列（請神 2.0）——★2026-09-07 第二輪覆審 3：改成併進底列 #budget 的「出價那一行」★
-   沿革：本來是 #stage 裡自成一列的 .incbar，實測佔 **26px**；#felt 在 844×390 的高度預算是零餘裕
-   （GUIDE §11.12），第 2 夜出價頁那 30px 直向溢出主體就是它（神龕列 slim 只有 20.8px）。
-   併進底列之後同一行同時看得到「封了幾件・出價合計・香火幾點」，而且底列在 #south、不吃 #felt 的高度。
+   三尊全被請走或 LEGEND_ON=false 時回空字串＝這一列整個不存在（#felt 高度預算零餘裕，GUIDE §11.12）。
+   ★位置★：併進底列 #budget 的「出價那一行」（2026-09-07 第二輪覆審 3）——同一行同時看得到
+   「封了幾件・出價合計・香火幾點」，而且底列在 #south、不吃 #felt 的高度。
    class 仍叫 .incbar：熱座交棒的清場（showHandoff）與 Playwright 治具都認這個名字。 */
 function incbarHTML(ap){
   if(!CFG.LEGEND_ON||!S.shrines) return "";
-  /* 一人一尊（§二 5）：已經請走過的人，整列直接鎖起來——引擎那邊也會拒收（resolveShrines 的 hasLegend），
+  /* 一人一尊（§二 7）：已經請走過的人，整列直接鎖起來——引擎那邊也會拒收（resolveShrines 的 hasLegend），
      兩邊問的是同一支 hasLegend，不各自寫一份判斷。 */
   if(hasLegend(ap)){
     const mineSh=S.shrines.find(sh=>sh.takenBy===ap.id);
     const still=ap.bag.some(x=>x.legend);
-    return `<span class="incbar locked" title="一人一尊：請到一尊之後其餘龕不再收你的香；${
+    return `<span class="incbar locked" title="一人一尊：請到一尊之後不再收你的香；${
       still?`供奉每夜 −${CFG.INC_TITHE} 壽命，付不出祂就回天`:"供奉斷了，祂已經回天"}"><span class="mut">🕯️ 已請走「${LEGENDS[mineSh.i].n}」・一人一尊${still?`・供奉 −${CFG.INC_TITHE}／夜`:"・已回天"}</span></span>`;
   }
   if(!INC) return "";
-  const cur=S.shrines[INC.shrine];
-  const btns=S.shrines.map(sh=>{
-    const L=LEGENDS[sh.i], mine=sh.h[ap.id]|0;
-    const tip=sh.open?`${FAC[sh.fac].n}・第 ${sh.night} 夜開標・你的香火 ${mine}`
-                     :(sh.takenBy!=null?`已請走：${S.players[sh.takenBy].name}`:"已回天");
-    return `<button class="${INC.shrine===sh.i?"on":""}" ${sh.open?"":"disabled"} title="${tip}" onclick="incPick(${sh.i})">${L.n}</button>`;
-  }).join("");
-  const h=(cur.h[ap.id]|0)+INC.amt;
-  let lead=0; S.players.forEach(p=>{ if(p.id===ap.id) return; const v=cur.h[p.id]|0; if(v>lead) lead=v; });
+  const h=(S.incPool[ap.id]|0)+INC.amt;
+  let lead=0; S.players.forEach(p=>{ if(p.id===ap.id||hasLegend(p)) return; const v=S.incPool[p.id]|0; if(v>lead) lead=v; });
   const cap=Math.min(CFG.INC_MAX,incCap(ap));   /* 燒香不得把自己燒到 ≤0（裁定甲），所以上限跟著壽命走 */
-  const left=cur.night-S.round;
-  const tipAll=`燒香：每夜只能選一尊、0～${CFG.INC_MAX} 壽命，密封、當場扣、不退；最多 ${cap}${cap<CFG.INC_MAX?"（要留 1 點壽命）":""}。`
-    +`「${LEGENDS[cur.i].n}」${left>0?`第 ${cur.night} 夜開標（倒數 ${left}）`:"今夜開標"}；你 ${h}／對手最高 ${lead}。`;
-  return `<span class="incbar" title="${tipAll}">🕯️${btns}`
+  const nxt=(CFG.SHRINE_NIGHTS||[]).find(n=>n>=S.round);
+  const left=nxt==null?null:nxt-S.round;
+  const tipAll=`燒香：每夜 0～${CFG.INC_MAX} 壽命燒進**自己的香火**（不選尊），密封、當場扣、不退；最多 ${cap}${cap<CFG.INC_MAX?"（要留 1 點壽命）":""}。`
+    +`${nxt==null?"請神夜都過了，香火局末結清。":(left>0?`第 ${nxt} 夜請神（倒數 ${left}）。`:"今夜請神。")}`
+    +`你 ${h}／對手最高 ${lead}——請神夜由香火最高的人請神，並從還沒被請走的尊裡自選一尊。`;
+  return `<span class="incbar" title="${tipAll}">🕯️`
     +`<button onclick="incBump(-1)" ${INC.amt<=0?"disabled":""}>−</button><span class="incamt">${INC.amt}</span>`
     +`<button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>`
-    +`<span class="mut">${left>0?`第 ${cur.night} 夜`:"<b>今夜</b>"}・你 ${h}／敵 ${lead}</span></span>`;
+    +`<span class="mut">${nxt==null?"局末結清":(left>0?`第 ${nxt} 夜`:"<b>今夜請神</b>")}・你 ${h}／敵 ${lead}</span></span>`;
 }
-function incPick(i){ if(!INC||!S.shrines[i].open) return; INC.shrine=i; showMarket(); }
 function incBump(d){ if(!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }
 /* 押寶夜的「一注」輸入條（非押寶夜回空字串，其餘夜的出價流程完全不變） */
 function stakeHTML(ap){
@@ -4536,7 +4589,7 @@ function mcardHTML(it,i){
     ${unitRowText(it,S.players[ACTIVE])}
   </div>`;
 }
-let sheetIdx=null, YB=null, INC=null; /* INC＝本席這一夜的燒香（第 4 卷）：{shrine,amt}；null＝沒有龕可拜 */
+let sheetIdx=null, YB=null, INC=null; /* INC＝本席這一夜的燒香（請神 3.0）：{amt}（不綁尊）；null＝沒有尊可請 */
 function openSheet(i){
   sheetIdx=i;
   const it=S.market[i],b=myBids[i];
@@ -4650,7 +4703,7 @@ function submitHumanBids(){
                                      :{amt:0,type:YB.type,intent:"keep",target:null,stake:true});
   S.humanBids[ACTIVE]=myBids;
   /* 燒香封進同一個信封（第 4 卷）：null＝今夜不拜。LEGEND_ON=false 時 S.incense 根本不存在，這行不執行。 */
-  if(CFG.LEGEND_ON&&S.incense) S.incense[ACTIVE]=(INC&&INC.amt>0)?{shrine:INC.shrine,amt:INC.amt}:null;
+  if(CFG.LEGEND_ON&&S.incense) S.incense[ACTIVE]=(INC&&INC.amt>0)?{amt:INC.amt}:null;
   const hs=aliveHumans();
   const idx=hs.findIndex(p=>p.id===ACTIVE);
   if(idx<hs.length-1){
@@ -4773,27 +4826,57 @@ async function startReveal(){
   $("mainbtn").disabled=false;
   $("skipbtn").style.display="none";
 }
-/* 請神結算演出（純呈現）：結算本身在 resolveShrines，這裡只把它回傳的東西攤開來給人看。
-   香火是公開資訊（提案 §四），所以四家燒了多少、擲了幾次、機率多少全都照實顯示。 */
+/* 真人得主的「選尊視窗」（請神 3.0 §二 3）：香火最高的人自己挑一尊還沒被請走的。
+   顯示每一尊的陣營、招式一句、**自己袋中同系件數**（＝共鳴會不會吃到）——這正是使用者要的
+   「到那一夜再決定要哪一尊」。回傳玩家點的 shrine index，交給 finishShrines 落地。
+   ★AI 得主與 headless 走不到這裡★：引擎用 aiPickShrine（袋中最多陣營同系、同數取 LEGENDS 順序），
+   兩條路最後都收在同一支 awardLegend（凍結檔 H5②）。 */
+let LEGEND_PICK=null;
+function legendPick(i){ const f=LEGEND_PICK; LEGEND_PICK=null; if(f) f(i); }
+function showLegendPick(pend){
+  return new Promise(done=>{
+    const p=S.players[pend.pid];
+    const cards=pend.choices.map(i=>{
+      const L=LEGENDS[i], f=FAC[L.f]||{n:"？"}, tr=TRAITS[L.unit.trait]||{name:"",desc:""};
+      const same=facCount(p,L.f);
+      return `<button class="legendPick fac-${L.f}" onclick="legendPick(${i})">
+        <span class="lpn">${L.n}<span class="shfac">${f.n}</span></span>
+        <span class="lpm">${tr.name}：${tr.desc}</span>
+        <span class="lpc">你袋中 ${f.n} 系 <b style="color:var(--gold)">${same}</b> 件（請到之後這一尊自己算 2 件）</span></button>`;
+    }).join("");
+    $("modalbox").innerHTML=`<h2>🕯️ 香火最高——你要請哪一尊？</h2>
+      <p style="font-size:12.5px;line-height:1.75">${S.mode==="hotseat"?`${DIRS[p.id]}家・${p.name}`:"你"}以香火 <b style="color:var(--gold)">${pend.h}</b> 拔得頭籌，
+      從<b>還沒被請走的尊</b>裡自己挑一尊。挑完香火歸零（已付），之後每個夜末供奉 <b>${CFG.INC_TITHE}</b> 壽命。</p>
+      <div class="legendPicks">${cards}</div>`;
+    $("modal").style.display="flex";
+    LEGEND_PICK=i=>{ $("modal").style.display="none"; done(i); };
+  });
+}
+/* 請神結算演出（純呈現）：結算本身在 resolveShrines／finishShrines，這裡只把它回傳的東西攤開來給人看。
+   香火是公開資訊，所以四家燒了多少、誰請走了誰全都照實顯示。 */
 async function startShrine(){
   $("mainbtn").disabled=true;
   SKIP=false; $("skipbtn").style.display="block";
-  const out=resolveShrines();
+  /* interactive＝真人得主要跳選尊視窗；AI 得主與 headless 三條迴圈都不傳，走引擎的 AI 規則 */
+  const out=resolveShrines({interactive:true});
   renderSeats();
+  if(out&&out.pending){
+    const idx=await showLegendPick(out.pending);
+    finishShrines(out,idx);
+    renderSeats();
+  }
   const nm=i=>LEGENDS[i].n;
   const who=id=>`${DIRS[id]}家・${S.players[id].name}`;
-  if(out&&(out.burn.length||out.taken.length||out.rewards.length||out.dawn.length)){
+  if(out&&(out.burn.length||out.taken.length||out.dawn.length||out.skip)){
     const rows=[];
-    out.burn.forEach(b=>rows.push(`<div style="font-size:12px;padding:2px 0">🕯️ ${who(b.pid)} 對「${nm(b.shrine)}」燒了 <b style="color:var(--gold)">${b.amt}</b> 壽命（累計香火 ${b.h}）</div>`));
+    out.burn.forEach(b=>rows.push(`<div style="font-size:12px;padding:2px 0">🕯️ ${who(b.pid)} 燒了 <b style="color:var(--gold)">${b.amt}</b> 壽命（香火累計 ${b.h}）</div>`));
     (out.clip||[]).forEach(c=>rows.push(`<div style="font-size:12px;padding:2px 0;color:#ff8484">🪫 ${who(c.pid)} 封的香火 ${c.want} → <b>實燒 ${c.amt}</b>（出價扣完之後壽命不夠，最多只能燒到剩 1 點）</div>`));
-    (out.locked||[]).forEach(l=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🔒 ${who(l.pid)} 已經請走一尊，「${nm(l.shrine)}」不收他的香（一人一尊）</div>`));
-    out.taken.forEach(t=>rows.push(`<div class="outcome">🏮 ${who(t.pid)} 以香火 <b>${t.h}</b> 請下了「${nm(t.shrine)}」——全桌只有一份，神龕就此關閉</div>`));
-    /* 回天的文案要說實話（覆審 M-1）：實測約 36% 的回天龕上其實**有**香火——那是死者或已請到一尊的人留下的，
-       他們不參加開標，所以「沒有人請得動」才是真的，「無人上香」不是。有殘留香火時另印一句。 */
-    out.dawn.forEach(d=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 「${nm(d.shrine)}」開標之夜<b>沒有人請得動</b>（有資格的人都沒上香）→ <b>回天</b>，本局不再出現${
-      d.leftover?`；殘留的香火 ${d.leftover} 點散去`:""}</div>`));
-    out.rewards.forEach(r=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--green)">🍂 香火散：${who(r.pid)}（香火 ${r.h}）退回 ${r.back} 壽命${r.gift?`＋「${r.gift}」入袋`:""}</div>`));
-    if(!rows.length) rows.push('<div class="mut" style="font-size:12px">三龕今夜都沒有動靜</div>');
+    (out.locked||[]).forEach(l=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🔒 ${who(l.pid)} 已經請走一尊，不再收他的香（一人一尊）</div>`));
+    out.taken.forEach(t=>rows.push(`<div class="outcome">🏮 ${who(t.pid)} 以香火 <b>${t.h}</b> 請下了「${nm(t.shrine)}」——香火歸零，之後每夜供奉 ${CFG.INC_TITHE} 壽命</div>`));
+    /* 沒人有資格（全員香火 0 或全員已持有）：**不結算、三尊都留著**，落空的香火原封保留（3.0 §二 4／5） */
+    if(out.skip) rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 今夜是請神夜，但<b>沒有人請得動</b>（${out.skip.why}）→ 三尊都留著，下一個請神夜再比；已燒的香火<b>原封保留</b></div>`);
+    out.dawn.forEach(d=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 最後一個請神夜結束，「${nm(d.shrine)}」<b>回天</b>，本局不再出現</div>`));
+    if(!rows.length) rows.push('<div class="mut" style="font-size:12px">今夜沒有動靜</div>');
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🕯️ 第 ${S.round} 夜・請神</div><div id="shz"></div></div>`;
     const z=$("shz");
     for(const r of rows){ z.insertAdjacentHTML("beforeend",r); if(!SKIP) await sleep(CFG.T*0.45); }
@@ -5588,7 +5671,7 @@ function showReview(){
   const legend=P.map(p=>`<span><i style="background:${RV_COL[p.id]}"></i>${short(p.id)}${p.alive?"":"（出局）"}</span>`).join("");
   /* 天亮回天結清（第 4 卷）：局末還開著的龕把所有人的香火結清，紀錄掛在 S.history.shrineDawn */
   const dawnRows=(H.shrineDawn&&H.shrineDawn.length)
-    ? H.shrineDawn.map(r=>`<div class="rvLine">🍂 ${short(r.pid)}「${LEGENDS[r.shrine].n}」香火 ${r.h} → 退 ${r.back} 壽命${r.gift?`＋「${r.gift}」`:""}</div>`).join("")
+    ? H.shrineDawn.map(r=>`<div class="rvLine">🍂 ${short(r.pid)} 剩餘香火 ${r.h} → 退 ${r.back} 壽命${r.gift?`＋「${r.gift}」`:""}</div>`).join("")
     : "";
   /* 亮點 */
   const topWin=Object.keys(sm.wins).sort((a,b)=>sm.wins[b]-sm.wins[a])[0];
@@ -5605,10 +5688,10 @@ function showReview(){
     ${n.auction.map(a=>`<div class="rvItem"><span class="rvChip ${(FAC[a.fac]||{}).cls||""}">${(FAC[a.fac]||{}).n||a.fac}</span><b>${a.item}</b>${a.curse?"":`（${a.p}）`} — ${a.winnerId==null?'<span class="mut">流標</span>':`${short(a.winnerId)} ${a.amt} ${RV_TYPE[a.type]||""}${a.intent==="poison"?` 毒標→${short(a.targetId)}`:a.curse?" 買下銷毀":""}`}
       ${a.bids.length?`<div class="rvBids">出價：${a.bids.map(b=>`${short(b.pid)} ${b.amt}${RV_TYPE[b.type]||""}${b.intent==="poison"?"毒":""}${b.cost!=null?`（付 ${b.cost}）`:""}`).join("／")}</div>`:""}</div>`).join("")}
     ${n.shrine?`<div class="rvLine">🕯️ 請神：${
-      [...n.shrine.burn.map(b=>`${short(b.pid)} 燒 ${b.amt} 拜「${LEGENDS[b.shrine].n}」（累計 ${b.h}）`),
+      [...n.shrine.burn.map(b=>`${short(b.pid)} 燒 ${b.amt}（香火 ${b.h}）`),
        ...n.shrine.taken.map(t=>`<b style="color:var(--gold)">${short(t.pid)} 以香火 ${t.h} 請走「${LEGENDS[t.shrine].n}」</b>`),
-       ...((n.shrine.dawn||[]).map(d=>`<span class="mut">「${LEGENDS[d.shrine].n}」沒有人請得動 → 回天${d.leftover?`（香火 ${d.leftover} 散）`:""}</span>`)),
-       ...n.shrine.rewards.map(r=>`${short(r.pid)} 香火散 +${r.back}${r.gift?`／「${r.gift}」`:""}`),
+       ...(n.shrine.skip?[`<span class="mut">請神夜沒有人請得動（${n.shrine.skip.why}）→ 三尊都留著，香火原封保留</span>`]:[]),
+       ...((n.shrine.dawn||[]).map(d=>`<span class="mut">「${LEGENDS[d.shrine].n}」回天</span>`)),
        ...((n.shrine.clip||[]).map(c=>`<span style="color:var(--red)">${short(c.pid)} 封 ${c.want}→實燒 ${c.amt}</span>`))].join("　")}</div>`:""}
     ${n.fights.length?`<div class="rvLine">⚔ ${n.fights.map(f=>f.tie?`${short(f.a)} ${Math.round(f.pa)} vs ${short(f.b)} ${Math.round(f.pb)} 平手`:`${short(f.w)} 勝 ${short(f.w===f.a?f.b:f.a)} −${f.dmg}${f.war?`（燒 ${f.w===f.a?`${f.war.bb}/${f.war.ub}`:`${f.war.ba}/${f.war.ua}`} 隻）`:""}`).join("　")}${n.bye!=null?`　${short(n.bye)} 輪空`:""}</div>`:""}
     ${n.deaths.length?`<div class="rvLine" style="color:var(--red)">☠ ${n.deaths.map(short).join("、")} 出局</div>`:""}
@@ -5864,14 +5947,10 @@ function policyFeeAware(p){
 }
 /* ===== 請神策略（第 4 卷閘門 L4）=====
    出價一律照 splitter，把變因隔離成「燒不燒香」這一項；差別只在掛在函式上的 .inc（playPolicyGame 會讀）。
-   incenseMax＝每夜對還開著的主系那一尊燒滿 INC_MAX（沒有主系就挑第一座還開著的）；incenseNever＝一輩子不燒。 */
-function incShrineFor(p){
-  if(!S.shrines) return null;
-  const f=mainFaction(p);
-  return S.shrines.find(s=>s.open&&s.fac===f)||S.shrines.find(s=>s.open)||null;
-}
+   incenseMax＝每夜往自己的香火池燒滿 INC_MAX（3.0 燒香不綁尊，所以沒有「挑哪一尊」這件事）；incenseNever＝一輩子不燒。 */
 function policyIncenseMax(p){ return policySplitter(p); }
-policyIncenseMax.inc=p=>{ const sh=incShrineFor(p); const c=Math.min(CFG.INC_MAX,incCap(p)); return (sh&&c>0)?{shrine:sh.i,amt:c}:null; }; /* 同一條夾限（裁定甲） */
+/* 3.0 燒香不綁尊 ⇒ 封籤只剩 amt；「還開著的尊」沒了就沒東西可請，這一夜不燒（與 aiIncense 同一條前提）。 */
+policyIncenseMax.inc=p=>{ const c=Math.min(CFG.INC_MAX,incCap(p)); return (openShrines().length&&c>0)?{amt:c}:null; }; /* 同一條夾限（裁定甲） */
 function policyIncenseNever(p){ return policySplitter(p); }
 policyIncenseNever.inc=()=>null;
 /* incenseAi＝出價照 splitter、燒香**明示地**走引擎的追價啟發式（請神 2.0 §二 7）。
@@ -5952,13 +6031,16 @@ function playPolicyGame(seed,policies,picks){
   settleShrinesEnd(); /* 天亮回天結清（在名次排序之前，因為回天的階段獎勵會改壽命） */
   if(CFG.LEGEND_ON&&lifeByRound.length) lifeByRound[lifeByRound.length-1]=S.players.map(p=>p.life); /* 與 S.history.life 的末筆同步 */
   /* 請神閘門統計（L2／L3／L5）：哪一龕被誰在第幾夜請走、誰曾持有過任一尊 */
-  const shrines=S.shrines?S.shrines.map(sh=>({i:sh.i,fac:sh.fac,night:sh.night,takenBy:sh.takenBy,round:sh.round||null,dawn:!!sh.dawn,closeH:sh.closeH||null,closeBack:sh.closeBack||null})):null;
+  const shrines=S.shrines?S.shrines.map(sh=>({i:sh.i,fac:sh.fac,takenBy:sh.takenBy,round:sh.round||null,dawn:!!sh.dawn})):null;
+  /* 香火池的閘門素材（H4）：整局各家燒掉多少（incBurn）、局末結清退回多少（incBack）、
+     每個請神夜結算前的四家池快照（nightPools，在 shrineStat 裡）——全部由引擎記，治具不重算。 */
+  const incBurn=S.incBurn?[...S.incBurn]:null, incBack=S.incBack?[...S.incBack]:null;
   const holders=S.shrines?[...new Set(S.shrines.filter(sh=>sh.takenBy!=null).map(sh=>sh.takenBy))]:null;
   stripEndgameItems();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
   return {
     seed, gameLength, winnerId:rank[0].id,
-    ...(shrines?{shrines,holders,legendDuel,plainDuel,shrineStat:S.shrineStat}:{}),
+    ...(shrines?{shrines,holders,incBurn,incBack,legendDuel,plainDuel,shrineStat:S.shrineStat}:{}),
     finalLife:S.players.map(p=>p.life), finalPower:S.players.map(p=>power(p)),
     survival:S.players.map(p=>deathRound[p.id]),
     lifeByRound, factionWinCounts, factionOffered,
@@ -6254,9 +6336,10 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
-  /* 傳說三尊「請神」（第 4 卷）測試出口：資料表、結算、回天、AI 啟發式、階段獎勵 */
-  LEGENDS, resolveShrines, settleShrinesEnd, settleTithe, releaseLegend, aiIncense, incAiOf, shrineReward, mainFaction,
-  shrineWindOrder, hasLegend, windPid, incCap, unitRow, unitRowText, bagPreviewHTML,
+  /* 傳說三尊「請神 3.0 香火池」測試出口：資料表、結算、得主自選、回天、AI 啟發式、局末結清 */
+  LEGENDS, resolveShrines, finishShrines, settleShrinesEnd, settleTithe, releaseLegend, aiIncense, incAiOf, shrineReward, mainFaction,
+  shrineWindOrder, shrineWinner, aiPickShrine, awardLegend, openShrines, isShrineNight, shrineNightsLeft, lastShrineNight,
+  hasLegend, windPid, incCap, unitRow, unitRowText, bagPreviewHTML,
   /* 地基 2：平衡模擬器＋優勢策略窮舉器（見 docs/GAME_DESIGN.md 六之四、docs/ARCH_SPEC.md） */
   runMany, analyzeEvent, playPolicyGame, statsToMarkdown, POLICIES, bleed, withBleed,
   drawWishes, judgeWish, wishBarHTML, /* 心願系統測試出口 */
