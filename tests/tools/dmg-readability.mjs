@@ -907,9 +907,8 @@ function judgePix(S) {
       maskFrac: r0.maskFrac === undefined ? null : r0.maskFrac,
       maskC: r0.maskC === undefined ? null : r0.maskC,
       move40: mv40 === null ? null : +mv40.toFixed(1), why: why,
-      /* Δ200 那一條要自己的位移閘門：遮罩是命中前那一幀的像素集合，200ms 後那一尊已經呼吸／微動過，
-         固定像素集合會開始吃到背景，量到的負值是「尊移開了」不是「還在紅」（實測 −8～−61 全是這樣來的）。
-         位移 >4px 的那幾筆對這一條記成不可判（back200Unjudged），不當違規也不當通過。 */
+      /* move200：+200ms 那一幀方框相對命中前的位移（px）。只記錄不判——曾用它當 Δ200 的閘門（686515c），
+         2026-09-10 使用者裁乙拿掉（覆審 HIGH-A）。 */
       move200: (function () { const m2 = shiftPx(r0.box, r0.box200); return m2 === null ? null : +m2.toFixed(1); })(),
       boxD40: null, d0: 0, d200: r0.maskD200 === undefined ? null : r0.maskD200,
       d40: r0.maskD === undefined ? null : r0.maskD, ctrl40: r0.maskC === undefined ? null : r0.maskC,
@@ -927,22 +926,28 @@ function judgePix(S) {
   for (const x of seqs) if (x.why) dropped[x.why] = (dropped[x.why] || 0) + 1;
   const burnValid = burning;
   /* 【第三輪覆審】主門檻待使用者裁，但**三個子判準恢復判定**（它們跟主門檻無關，是「有沒有亂閃」）：
-       ・+200ms 要回到原值：|Δ200| ≤ 5
+       ・+200ms 不得還在紅：Δ200 ≤ +5（單向；修訂 2-C，2026-09-10 使用者裁丙）
        ・燒毀中的尊不得閃：|Δ| ≤ 10（化灰本身會讓紅偏量動，比原本的 5 放寬並寫明理由）
        ・對照尊（對面那一欄最大的一尊）不得跟著紅：max < 10 */
   const BACK_MAX = 5, BURN_MAX = 10, CTRL_MAX = 10;
   const mSorted = valid.map((x) => x.maskD).sort((a2, b2) => a2 - b2);
   const mMed = mSorted.length ? mSorted[Math.floor(mSorted.length / 2)] : null;
   const mRatio = mSorted.length ? +(mSorted.filter((x) => x >= 25).length / mSorted.length).toFixed(3) : null;
-  const back200Judgeable = valid.filter((x) => x.maskD200 !== null && x.move200 !== null && x.move200 <= MOVE_MAX);
-  const back200Unjudged = valid.filter((x) => x.maskD200 !== null && !(x.move200 !== null && x.move200 <= MOVE_MAX)).length;
-  const badBack = back200Judgeable.filter((x) => Math.abs(x.maskD200) > BACK_MAX);
+  /* 2026-09-10 使用者裁乙：拿掉 686515c 加的 Δ200 位移閘門（第三輪覆審 HIGH-A＝未經同意的移動及格線），
+     回到方案 A 原文「三個子判準全部硬判」——每一筆量得到 maskD200 的樣本都判，沒有「不可判」這一類。
+     move200 仍記錄（只印不判）。 */
+  const back200Judgeable = valid.filter((x) => x.maskD200 !== null);
+  const back200Unjudged = 0;
+  /* 2026-09-10 使用者裁丙（凍結檔修訂 2-C）：Δ200 改單向 `Δ200 ≤ +5`——這條抓的是「200ms 後還在紅」，
+     負值（比命中前更不紅）物理上不可能是殘紅，是遮罩混到背景（實例：v9-pix-3 run 22 命中前有紅色護法罩、
+     +200ms 罩消散 → −10.39；基準 v0.48 無閃紅功能也量到 +6.1，±5 低於量法雜訊底）。 */
+  const badBack = back200Judgeable.filter((x) => x.maskD200 > BACK_MAX);
   const badBurn = burnValid.filter((x) => x.maskD !== null && Math.abs(x.maskD) > BURN_MAX);
   const badCtrl = valid.filter((x) => x.maskC !== null && x.maskC >= CTRL_MAX);
   if (!burnValid.length) bad.push('R2 「燒毀中不得閃」0 樣本＝空過，不算通過（fail-closed）');
   if (!back200Judgeable.length) bad.push('R2 「+200ms 回到原值」0 個可判樣本＝空過，不算通過（fail-closed）');
   if (mSorted.length && !(mMed >= 25 && mRatio >= 0.70)) bad.push(`R2 主門檻（方案 A）未過：中位 ${mMed}（要 ≥25）、≥25 比例 ${mRatio}（要 ≥0.70）、n=${mSorted.length}`);
-  for (const x of badBack.slice(0, 5)) bad.push(`R2 +200ms 未回到原值 Δ=${x.maskD200}（門檻 ±${BACK_MAX}）`);
+  for (const x of badBack.slice(0, 5)) bad.push(`R2 +200ms 仍在紅 Δ=${x.maskD200}（門檻 ≤ +${BACK_MAX}，單向；修訂 2-C）`);
   for (const x of badBurn.slice(0, 5)) bad.push(`R2 燒毀中的尊閃了 Δ=${x.maskD}（門檻 ±${BURN_MAX}）`);
   for (const x of badCtrl.slice(0, 5)) bad.push(`R2 對照尊也紅 Δ=${x.maskC}（門檻 <${CTRL_MAX}；整片閃紅＝假綠）`);
   // R5 像素版
@@ -953,7 +958,7 @@ function judgePix(S) {
   if (skD !== null && Math.abs(skD) > 5) bad.push(`R5 跳過後 300ms 仍紅 Δ=${skD}`);
   const res = {
     R1: S.floats.length > 0 && fontBad.length === 0 && kindBad.length === 0 && hueBad.length === 0 && under.length === 0,
-    /* 【使用者 2026-09-08 裁定：方案 A】剪影遮罩（含位移 ≤4px 閘門）下的分布式門檻：
+    /* 【使用者 2026-09-08 裁定：方案 A】剪影遮罩下的分布式門檻（Δ200 不設位移閘門，2026-09-10 裁乙）：
        **中位 ≥ +25 且「≥+25 的樣本比例」≥ 70%**，再加三個子判準全部通過才算綠。 */
     R2: valid.length > 0 && mMed !== null && mMed >= 25 && mRatio !== null && mRatio >= 0.70
       && burnValid.length > 0 && back200Judgeable.length > 0 && badBack.length === 0 && badBurn.length === 0 && badCtrl.length === 0,

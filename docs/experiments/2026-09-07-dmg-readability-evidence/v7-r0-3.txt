@@ -1,0 +1,326 @@
+{
+ "P0": {
+  "cutAtCompletedDuel": 20,
+  "snapshotsAvailable": {
+   "off": 20,
+   "base": 20
+  },
+  "fxcSame": {
+   "burn": [
+    78,
+    78,
+    true
+   ],
+   "burnFig": [
+    63,
+    63,
+    true
+   ],
+   "burnDom": [
+    15,
+    15,
+    true
+   ],
+   "trait": [
+    82,
+    82,
+    true
+   ],
+   "traitFig": [
+    81,
+    81,
+    true
+   ],
+   "beat": [
+    60,
+    60,
+    true
+   ],
+   "duels": [
+    20,
+    20,
+    true
+   ]
+  },
+  "fightsSame": true,
+  "fightsLen": [
+   20,
+   20
+  ],
+  "domClean": true,
+  "noFocusWhenOff": true,
+  "focusWhenOn": true,
+  "rawTotalsAtStop": {
+   "off": {
+    "burn": 78,
+    "trait": 82,
+    "beat": 60,
+    "duels": 20
+   },
+   "base": {
+    "burn": 78,
+    "trait": 82,
+    "beat": 60,
+    "duels": 20
+   }
+  },
+  "duelsStartedEnded": {
+   "off": [
+    20,
+    20
+   ],
+   "base": [
+    20,
+    20
+   ]
+  },
+  "PASS": true
+ },
+ "P1": {
+  "capOk": true,
+  "ruleOk": true,
+  "fights": 6,
+  "hitFights": 3,
+  "burnFights": 4,
+  "bad": [],
+  "PASS": true
+ },
+ "P2": {
+  "n": 10,
+  "hit": 5,
+  "deepOk": 10,
+  "backOk": "8/8",
+  "monoQuiet": "6/6",
+  "monoCorr": "0/10",
+  "hitMonoJudgable": 5,
+  "punchRebuildResid": {
+   "n": 1914,
+   "p50": 0.6,
+   "p95": 1,
+   "max": 1
+  },
+  "rows": [
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 34,
+    "quiet": 4,
+    "minD": 1.883,
+    "minQuiet": 3.387,
+    "back": null,
+    "revQuiet": 0,
+    "revCorr": 7,
+    "deepOk": true,
+    "backOk": null,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 78,
+    "quiet": 53,
+    "minD": 1.765,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 4,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 19,
+    "quiet": 2,
+    "minD": 1.963,
+    "minQuiet": 4.2,
+    "back": null,
+    "revQuiet": 0,
+    "revCorr": 4,
+    "deepOk": true,
+    "backOk": null,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 73,
+    "quiet": 34,
+    "minD": 1.973,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 5,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 71,
+    "quiet": 47,
+    "minD": 1.939,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 2,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 49,
+    "quiet": 6,
+    "minD": 2.252,
+    "minQuiet": 4.195,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 8,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 43,
+    "quiet": 23,
+    "minD": 2.079,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 2,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 48,
+    "quiet": 5,
+    "minD": 1.764,
+    "minQuiet": 4.2,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 12,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": null,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "burn",
+    "ms": 600,
+    "frames": 51,
+    "quiet": 35,
+    "minD": 2.214,
+    "minQuiet": 2.6,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 2,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   },
+   {
+    "f": ".claude/tmp/out/v7-on-1.json",
+    "kind": "hit",
+    "ms": 650,
+    "frames": 58,
+    "quiet": 14,
+    "minD": 1.764,
+    "minQuiet": 3.272,
+    "back": 0,
+    "revQuiet": 0,
+    "revCorr": 7,
+    "deepOk": true,
+    "backOk": true,
+    "monoQuietOk": true,
+    "monoCorrOk": false
+   }
+  ],
+  "camUnit": null,
+  "PASS": false
+ },
+ "P3": {
+  "samples": 40,
+  "staleSamples": 4,
+  "staleJudgedByEnvelope": 3,
+  "cancelSamples": 2,
+  "cancelSkippedByNextFocus": 0,
+  "cancelDeeper": 0,
+  "cancelBack": "33/33",
+  "cancelBad": [],
+  "figRowsDimmed": 198,
+  "dimmed": 198,
+  "dimMax": 0.36,
+  "kept": 16,
+  "keptMin": 1,
+  "restored": 33,
+  "burning": 24,
+  "burnRise": 0,
+  "bad": [],
+  "PASS": true
+ },
+ "P4": {
+  "shownHits": 22,
+  "removeMsObserved": 743,
+  "n": 30,
+  "floats": 30,
+  "maxLive": 4,
+  "underOutsideDuel": 2,
+  "removed": 30,
+  "posOk": 30,
+  "posN": 30,
+  "bad": [],
+  "sideOk": 29,
+  "sideJudged": 29,
+  "sideAmbiguous": 0,
+  "sideNoBox": 0,
+  "sideViaColumnBox": 12,
+  "underCrossCol": 0,
+  "sideCoverage": 96.7,
+  "unitFloats": 8,
+  "killFloats": 8,
+  "hitFloats": 22,
+  "burnEvents": 8,
+  "oneToOne": true,
+  "unitOneToOne": true,
+  "PASS": true
+ },
+ "P5": {
+  "lamps": 18,
+  "gauges": 8,
+  "cards": 18,
+  "bad": [],
+  "PASS": true
+ },
+ "P7": {
+  "files": 2,
+  "errs": [],
+  "PASS": true
+ }
+}
+VERDICT P0=PASS P1=PASS P2=FAIL P3=PASS P4=PASS P5=PASS P7=PASS
