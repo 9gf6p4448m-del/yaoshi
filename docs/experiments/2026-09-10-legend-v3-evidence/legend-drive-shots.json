@@ -1,0 +1,194 @@
+{
+ "seeds": [
+  1
+ ],
+ "errors": [],
+ "pageerrors": [],
+ "requestfailed": [],
+ "overflow": [],
+ "voverflow": [],
+ "vrows": [
+  {
+   "key": "1|1|盯上",
+   "over": 0,
+   "base": 0,
+   "cap": 0,
+   "judged": true
+  },
+  {
+   "key": "1|1|出價",
+   "over": 0,
+   "base": 0,
+   "cap": 0,
+   "judged": true
+  },
+  {
+   "key": "1|2|盯上",
+   "over": 0,
+   "base": 0,
+   "cap": 52,
+   "judged": true
+  },
+  {
+   "key": "1|2|出價",
+   "over": 0,
+   "base": 0,
+   "cap": 52,
+   "judged": true
+  },
+  {
+   "key": "1|3|盯上",
+   "over": 0,
+   "base": 31,
+   "cap": 83,
+   "judged": true
+  },
+  {
+   "key": "1|3|出價",
+   "over": 54,
+   "base": 87,
+   "cap": 139,
+   "judged": true
+  }
+ ],
+ "portraitOverflow": [],
+ "taken": 1,
+ "dawn": 2,
+ "dawnShrines": 2,
+ "skips": 0,
+ "picks": 1,
+ "carry": 3,
+ "carryEg": [
+  {
+   "seed": 1,
+   "round": 5,
+   "pid": 1,
+   "h": 13,
+   "next": 13
+  },
+  {
+   "seed": 1,
+   "round": 5,
+   "pid": 2,
+   "h": 4,
+   "next": 4
+  },
+  {
+   "seed": 1,
+   "round": 5,
+   "pid": 3,
+   "h": 13,
+   "next": 13
+  }
+ ],
+ "games": [
+  {
+   "seed": 1,
+   "nights": 7,
+   "clicks": 65,
+   "taken": 1,
+   "dawn": 2,
+   "burned": 5,
+   "stuck": "再入妖市",
+   "txts": {
+    "不盯任何一件": 7,
+    "蓋牌開標": 7,
+    "開標 ▸": 7,
+    "開標 ▸（停用）": 13,
+    "下一件拍品 ▸": 21,
+    "下一件拍品 ▸（停用）": 44,
+    "🕯️ 請神": 7,
+    "開戰": 7,
+    "開戰（停用）": 177,
+    "進入下一夜": 6,
+    "🕯️ 請神（停用）": 4,
+    "進入下一夜（停用）": 26,
+    "前往拍賣": 1,
+    "看最終結果": 1,
+    "再入妖市": 1
+   },
+   "shrineEl": true,
+   "incEl": true,
+   "boardEl": 3,
+   "picked": [
+    {
+     "idx": 1,
+     "n": 3
+    }
+   ],
+   "poolByRound": {
+    "1": [
+     3,
+     1,
+     1,
+     1
+    ],
+    "2": [
+     6,
+     4,
+     4,
+     4
+    ],
+    "3": [
+     9,
+     7,
+     4,
+     7
+    ],
+    "4": [
+     12,
+     10,
+     4,
+     10
+    ],
+    "5": [
+     0,
+     13,
+     4,
+     13
+    ],
+    "6": [
+     0,
+     13,
+     4,
+     13
+    ],
+    "7": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "skips": 0,
+   "stageClicks": 1,
+   "gaveUp": 1,
+   "dawnShrines": 2
+  }
+ ],
+ "version": "0.53",
+ "legendOn": true,
+ "shrineNights": [
+  5,
+  8,
+  11
+ ],
+ "shrineEl": false,
+ "vsamples": 6,
+ "shotN1": 1,
+ "shotPre": 1,
+ "shotPick": 1,
+ "giveUp": 1,
+ "portraitAt": "蓋牌開標",
+ "hotseat": {
+  "sawIncbar": true,
+  "handoffShown": true,
+  "incbarAtHandoff": 0,
+  "steps": 2
+ },
+ "landscapeFixed": [],
+ "portraitCover": {
+  "rotateHint": true,
+  "shrinesHidden": true
+ }
+}

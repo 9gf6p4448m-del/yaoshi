@@ -21,6 +21,9 @@ function loadChromium(){
 const argv=process.argv.slice(2); const opt={};
 for(const a of argv){ const m=a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if(m) opt[m[1]]=m[2]===undefined?true:m[2]; }
 const PORT=+(opt.port||8858), ROUNDS=+(opt.rounds||3), TAG=opt.tag||'mine';
+/* --root=<靜態根目錄>：量**基準版**時用——把基準的 index.html 放進另一個目錄（js/assets 用 junction 接回來），
+   本檔就不必動 worktree 的 index.html（02 §6.1 第 1 條：不做反向 sed、原檔全程唯讀）。 */
+const SERVE_ROOT=opt.root||ROOT;
 /* --seeds=1,3（凍結檔 §2.1 修訂四二版的量測條件：844×390、**dpr=2**、seeds 1 與 3）；--seed= 是單顆的舊寫法 */
 const SEEDS=(opt.seeds||String(opt.seed||1)).split(',').map(Number);
 const JSONOUT=opt.json||null;   /* 落成 {"<seed>|<round>|出價|盯上": over} 的表，給 legend-drive.mjs 當 --base= */
@@ -33,7 +36,7 @@ const MEASURE=`(() => {
 })()`;
 
 const main=async()=>{
-  const srv=spawn('python',['-m','http.server',String(PORT),'--bind','127.0.0.1'],{cwd:ROOT,stdio:'ignore'});
+  const srv=spawn('python',['-m','http.server',String(PORT),'--bind','127.0.0.1'],{cwd:SERVE_ROOT,stdio:'ignore'});
   await new Promise(r=>setTimeout(r,900));
   const browser=await loadChromium().launch();
   try{
@@ -43,7 +46,7 @@ const main=async()=>{
     await page.goto(`http://127.0.0.1:${PORT}/index.html`,{waitUntil:'load'});
     await page.waitForFunction('typeof window.__yaoshi === "object"',{timeout:20000});
     const ver=await page.evaluate('VERSION');
-    console.log(`# felt 直向探針　tag=${TAG}　頁面 VERSION=${ver}　seeds=${SEEDS.join(',')}　844×390 dpr=2`);
+    console.log(`# felt 直向探針　tag=${TAG}　頁面 VERSION=${ver}　seeds=${SEEDS.join(',')}　844×390 dpr=2　root=${SERVE_ROOT}`);
     const out={};
     for(const SEED of SEEDS){
       await page.evaluate(sd=>{ CFG.T=1;

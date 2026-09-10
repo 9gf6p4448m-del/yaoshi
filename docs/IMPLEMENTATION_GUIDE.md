@@ -1313,3 +1313,38 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
    `hauntAnswer`（`yinqi.js`）。骨骼名＝spec 的關節名：`canri` 有 `Root,Hips,Spine,Chest,Neck,Crown,Disc`；
    `dashiye` 有 `Foot,Hips,Waist,Chest,Shoulder,Neck,HeadRoot,Skull,Brow,Crown,JawRoot,Jaw1,JawTip,TongueRoot,Tong1..3,ShrineRoot,Shr1..3,Eave`；
    `youyinggong` 有 `Waist,Spine,Chest,Top,MistRoot,Mist1..2,MistTip,Eave,Censer`。`st.rot` 對不存在的骨回 `false`、不會炸。
+
+### 11.26 請神 3.0「香火池」（2026-09-10，v0.53 上線）——接手前先知道這幾件事
+
+規格＝`docs/proposals/2026-09-10-legend-v3-pool.md` §二（13 條規則是權威）；驗收凍結＝`docs/experiments/2026-09-10-acceptance-legend-v3.md`（H0–H11）；實測報告＝`docs/experiments/2026-09-10-legend-v3-report.md`。
+
+1. **★2.0 的三樣東西已整組移除，別回頭引用★**：`sh.night`（尊→夜每局洗牌）、`sh.h`（逐龕香火）、
+   請神夜的落空**階段獎勵**（`shrineClose`／`out.rewards`），連同 UI 的 `incPick`（選尊按鈕）。
+   §11.24 那一節寫的是 2.0，讀它只為了看沿革，**不要照著它接手**。
+2. **香火在 `S.incPool[pid]`，不綁尊**。三尊只剩 `{i,fac,open,takenBy,round,dawn}`。
+   讀某人手上的香火一律 `S.incPool[pid]`；`S.incBurn[pid]`／`S.incBack[pid]` 是整局燒掉／局末退回的純記錄（閘門 H4 用）。
+3. **`resolveShrines` 是兩段式**。`resolveShrines()`（headless 三條迴圈）一次做完；
+   `resolveShrines({interactive:true})` 在**真人得主**時提早回傳 `out.pending={pid,h,choices}`、
+   **尊還沒發**，等 UI 的選尊視窗選完再呼叫 `finishShrines(out, idx)` 收尾（發尊＋最後一夜回天＋`recordShrines`）。
+   ★三條迴圈的口徑一致★：只有 `startShrine` 傳 `interactive`，simulate／playPolicyGame 都不傳 ⇒ 走 AI 規則。
+4. **得主自選的兩條路收在同一支 `awardLegend`**：`idx` 為 null／不合法／已被請走 ⇒ 退回 `aiPickShrine`
+   （袋中最多陣營同系、同數取 `LEGENDS` 順序靠前者）。要改選尊規則只改 `aiPickShrine` 一處。
+5. **請神夜的三個判斷只讀 `CFG.SHRINE_NIGHTS`**：`isShrineNight(r)`／`shrineNightsLeft(r)`／`lastShrineNight()`。
+   AI 停損、結算入口、香火榜倒數、燒香列全問這三支，不得各自再寫一份。
+6. **「三尊都沒了就不收封籤」在 `resolveShrines` 的燒香段最前面**（`anyOpen`）。
+   UI（`initIncense`）、AI（`aiIncense`）、策略（`policyIncenseMax`）也都問同一支 `openShrines()`——
+   這是四道同義的門，改其中一道記得四道一起改（防線按危險的效果寫，不按已知入口寫）。
+7. **亂數帳**：3.0 的請神引擎段**零 `S.rng()`**；唯一還會走 rng 的是局末結清抽小法寶
+   （`settleShrinesEnd` → `shrineReward`）。所以「ON 與 OFF 在 `makeState` 之後的亂數游標必須落在同一格」
+   ——`legend.test.mjs` H5⑧ 與 `legend-gate.mjs` H0 各有一支探針在守它。
+8. **UI 是「香火榜一行＋三尊待請卡」**（`shrinesHTML`，在 `#stage` 法寶卡正上方）。
+   高度預算沿用 2.0 覆審 HIGH-1 甲：**平常 `slim`＝榜與三卡擠成一列**，
+   只有**請神夜前一夜與當夜** `wide`＝拆成兩列、卡上多印招式名。`#felt` 在 844×390 是零餘裕（§11.12），
+   要加東西先跑 `tests/tools/felt-probe.mjs`。
+9. **治具**：閘門 `tests/tools/legend-gate.mjs`（H0–H4／H9，基準 `e83028c`＝v0.52）；
+   單元 `tests/legend.test.mjs`（H5／H10／H11，`node tests/legend.test.mjs old-main.html` 是它的鑑別力檢查）；
+   Playwright `tests/tools/legend-drive.mjs`（H6／H11，`--base=` 帶 `felt-probe --root=<基準靜態根>` 產的表）。
+   **埠一律用 95xx 段**，避免撞別的 session。
+10. **局末結清那一條是主對話自定的**（提案 §二 6 有星號標記，未經使用者逐條裁定）。
+    ★但「H1 紅就拿掉局末退還」這根槓桿**實測無效**（n=2000：+7.65→+8.05pp），因為它只影響落空者、贏家的香火本來就歸零；別再拉它。★
+11. **使用者 2026-09-10 裁甲的兩個數值**：`INC_TITHE` 1→2、`SHRINE_NIGHTS` [4,7,10]→[5,8,11]。第一輪 n=10000 閘門 H1（燒滿−splitter +9.88pp）與 H3（局長中位 9 夜、greedy −6pp）紅；歸因＝3.0 關掉請神局長 11、2.0 也是 11、3.0 開著 9——縮短來自「自選」讓第 4 夜得主拿到最配系的尊滾雪球，不是燒太多（每局燒 21 < 2.0 的 26.75）。供奉 2 治 H1、延後一夜治 H3，兩者合併 n=2000 七策略全進帶（燒滿 −0.8pp、greedy −1.3、中位 10）。凍結檔 §2.1 修訂一有完整表。**回天彈窗使用者裁定留著**（09-10：真人也可能不按「要」）。
