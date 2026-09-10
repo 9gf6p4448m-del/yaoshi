@@ -69,8 +69,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   #table.t3d{grid-template-columns:168px 1fr 168px}   /* 原 120px 1fr 120px（Q5 甲：側欄 168px、桌心 492px） */
   #table.t3d #west,#table.t3d #east{flex-direction:column;gap:4px;align-items:stretch}
   #table.t3d #westSeat,#table.t3d #eastSeat{display:block;width:100%;min-width:0;flex:0 0 auto}
-  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0}
-  #table.t3d .rail .mcard{height:88px}                /* 原 133.3×98 → 168×88 */
+  /* padding 的理由與 #market{padding:0 5px} 完全同一條（請神 2.0 凍結檔 G6）：`.markb`（left:-4px）與
+     `.mybid`／`.pickbox`（right:-4px／top:-8px）本來就掛在卡角**外側**，不留位置的話卡列會被撐出 3px 橫向溢出
+     （實測 #railW／#railE 各 3px），最上面那張卡的徽章還會壓到座位卡。留了之後徽章落在卡列內，徽章本身的視覺一格不動。 */
+  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;padding:8px 5px 0}
+  #table.t3d .rail .mcard{height:88px}                /* 原 133.3×98 → 158×88（168 欄寬扣掉兩側各 5px 徽章位） */
+  /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
+     `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
+  #table.t3d .rail .mcard{padding:4px 6px}
+  #table.t3d .rail .mcard .nm{font-size:11.5px}
+  #table.t3d .rail .mcard .pw{font-size:10px}
+  #table.t3d .rail .mcard .fchip{font-size:8.5px}
+  #table.t3d .rail .mcard .ab{font-size:9px;line-height:1.3;margin-top:1px}
+  #table.t3d .rail .mcard .uline{font-size:9px;line-height:1.35}
   /* 側欄的垂直帳：256 ＝ 座位 72 ＋ 4 ＋ 卡 88 ＋ 4 ＋ 卡 88。座位卡從 85.6 壓到 ≤72，
      壓的是字級與內距，不是把它藏起來（T3 量的是 scrollHeight−clientHeight，藏不掉）。 */
   #table.t3d #west .seat,#table.t3d #east .seat{padding:2px 7px}
@@ -84,9 +95,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   /* 北列：現有的兩塊 258px 空白拿來放「明夜預告／盯上說明」與「香火榜＋三尊待請卡」，
      北席卡維持置中（#north 仍是 justify-content:center，兩側各 flex:1 1 0）。 */
   #table.t3d #north{gap:4px}
+  #table.t3d #north .seat{max-width:230px}   /* 讓出兩側的欄寬：836−230−8 ⇒ 每側 299px */
+  /* 北席卡掛在外側的三顆徽章與對話泡也翻進來：56px 的北列容不下 -7px 的凸出（基準 v0.53 量到 #north 直向溢出 11px，
+     就是 .roleInfoBtn 與 .bubble 掛在卡外造成的）。翻進來之後 #north 的 scrollHeight ＝ clientHeight。 */
+  #table.t3d #north .seat .dir{top:1px}
+  #table.t3d #north .seat .windb{top:1px}
+  #table.t3d #north .seat .roleInfoBtn{bottom:1px}
+  #table.t3d #north .bubble{left:calc(100% + 6px);top:50%;bottom:auto;transform:translateY(-50%)}
   #table.t3d #northPrev,#table.t3d #northShr{display:flex;flex:1 1 0;min-width:0;align-items:center}
   #table.t3d #northPrev>*,#table.t3d #northShr>*{margin:0;width:100%;min-width:0}
-  #table.t3d #northPrev .preview{font-size:9.5px;line-height:1.32;padding:2px 6px;text-align:left}
+  /* 北列左格的預告框：字級與同一列的香火榜（.incboard 9.5px／.shcard 8.5px）同一個量級，
+     56px 的列高塞得下最長的那一版（盯上第 1 夜的完整教學、規則夜的規則說明）。 */
+  #table.t3d #northPrev .preview{font-size:8.5px;line-height:1.14;padding:0 4px;text-align:left}
+  #table.t3d #northPrev{flex:1.15 1 0} #table.t3d #northShr{flex:0.85 1 0}   /* 預告框的字比香火榜多，寬度就多分一點 */
   /* 掏空本體：#felt 保留 id、保留 position:relative（撐 #skipbtn／#helpBtn）、保留 overflow-y:auto，
      只是不再畫玻璃、裡面也不再裝市集卡。--glass-* 四個變數一格不動（非掏空頁照舊吃）。 */
   #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent}
@@ -2155,6 +2176,16 @@ function setHollow(on){
 function railHTML(idxs,cardFn){
   const fn=cardFn||mcardHTML;
   return idxs.map(i=>fn(S.market[i],i)).join("");
+}
+/* 掏空頁的三塊搬家：預告框→#northPrev、香火榜→#northShr、市集卡→#railW／#railE（前半／後半）。
+   四張卡的左右分配用 S.market.length 算，不寫死 4——CFG.MARKET 改了這裡自動跟上。 */
+function fillRails(prevHTML,shrHTML,cardFn){
+  const set=(id,h)=>{ const e=$(id); if(e) e.innerHTML=h; };
+  const idx=S.market.map((_,i)=>i), half=Math.ceil(idx.length/2);
+  set("northPrev",prevHTML);
+  set("northShr",shrHTML);
+  set("railW",railHTML(idx.slice(0,half),cardFn));
+  set("railE",railHTML(idx.slice(half),cardFn));
 }
 /* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
    0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
@@ -4273,6 +4304,7 @@ function showIntro(cont){
   $("helpBtn").style.display="block";
   $("mainbtn").disabled=true;
   const draw=()=>{
+    setHollow(false);   /* 掏空卷 v0.55a：非掏空頁一律回玻璃面板，並清空側欄卡列與北列兩塊 */
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${pages[k]}
       <button class="bigbtn" style="margin-top:14px" onclick="__introNext()">${k<pages.length-1?"下一頁 ▸":"開始入市！"}</button>
       <div class="mut" style="font-size:10px;margin-top:6px">${k+1}／${pages.length}</div></div>`;
@@ -4384,6 +4416,7 @@ function renderEventInput(p,done){
   const who=S.mode==="hotseat"?`<div class="mut" style="font-size:12px;margin-top:6px">【${p.name}｜壽命 ${p.life}】密封抉擇，他人不可見</div>`:"";
   const warn=(ev.id==="ghost"&&EVCTX.victim&&EVCTX.victim.id===p.id)?`<div style="color:#ff8484;font-weight:bold;font-size:14px;margin-top:6px">⚠ 厲鬼盯上的就是你——沒人擋煞你將失 ${CFG.GHOST_DMG} 壽命</div>`:"";
   EVDONE=done;
+  setHollow(false);   /* 掏空卷 v0.55a */
   if(ev.input==="pick"){
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}${warn}
       <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
@@ -4418,6 +4451,7 @@ function revealEventUI(){
     return `<div style="font-size:13px;padding:2px 0">${DIRS[p.id]}家・${p.name}：<b>${lbl}</b>${dTxt}</div>`;
   }).join("");
   renderSeats();
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}・開盅</h2>
     ${lines}<hr style="opacity:.2">
@@ -4451,6 +4485,16 @@ function initIncense(){
   if(!openShrines().length) return;
   INC={amt:0};
 }
+/* 盯上頁的市集卡（掏空卷 v0.55a 從 showMarkUI 的樣板原樣抽出來，一字未改）：
+   抽出來的唯一理由是側欄卡列要用同一份卡片工廠（railHTML 的 cardFn），不是為了改視覺。 */
+function markCardHTML(it,i){
+  return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
+      ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
+      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
+      ${unitRowText(it,S.players[ACTIVE])}
+    </div>`;
+}
 /* 盯上宣告的選擇畫面：釘一件或不釘；AI 的釘法此時尚未揭露（同時宣告版），釘完才一起公開在拍品卡上 */
 function showMarkUI(){
   SKIP=false; $("skipbtn").style.display="none";
@@ -4464,21 +4508,21 @@ function showMarkUI(){
   /* 盯上說明**第二夜起收成一行**（請神 2.0 版面裁定）：第 1 夜給完整教學，之後玩家已經懂了，
      長句只是在跟神龕列與法寶卡搶 #felt 的高度預算（GUIDE §11.12：零餘裕）。 */
   const first=S.round<=1;
-  $("stage").innerHTML=`
-    <div class="preview">${who}👁 <b>盯上宣告</b>：${first
+  const prev=`<div class="preview">${who}👁 <b>盯上宣告</b>：${first
       ? `封標前公開釘一件「我盯上了」。${CFG.MARK_TAX>0?`盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。`:""}`
       : `公開釘一件${CFG.MARK_TAX>0?`（不出價罰 ${CFG.MARK_TAX}）`:""}`}${
       (CFG.MARK_CRED_ON?`<span class="credin">🤝 <b>你的信譽 ${credTxt(ap)}</b>${first?`<span class="mut">（近 ${CFG.MARK_CRED_WIN} 次宣告；怎麼算看 ？）</span>`:""}</span>`:"")}${
       first?`<span class="mut">盯主標還是誘餌？看底列每隻對手的反應。</span>`:""}${
-      rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
+      rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>`;
+  /* 掏空卷 v0.55a（Q1 甲：盯上頁掏空）：預告框與香火榜搬進 #north 的兩塊空白、四張卡退到左右側欄，
+     #stage 只留心願條 ⇒ 桌心乾淨。`?table3d=0` 走 else 那條，版面與 v0.53 逐像素相同。 */
+  const hollow=TABLE3D;
+  $("stage").innerHTML=`${hollow?"":prev}
     ${wishBarHTML(ap)}
-    ${shrinesHTML()}
-    <div id="market">${S.market.map((it,i)=>`<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
-      ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
-      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
-      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
-      ${unitRowText(it,ap)}
-    </div>`).join("")}</div>`;
+    ${hollow?"":shrinesHTML()}
+    ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
+  setHollow(hollow);
+  if(hollow) fillRails(prev,shrinesHTML(),markCardHTML);
   /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
      牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
   const bd=$("budget"); bd.innerHTML=markHintHTML(ap); bd.className="";
@@ -4552,17 +4596,22 @@ function showMarket(){
   const howto=stake
     ? `封一注、勾要壓的法寶${CFG.BID_FEE>0?`・買路錢只收 ${CFG.BID_FEE}`:""}`
     : `點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆買路錢 ${CFG.BID_FEE}`:""}`;
-  $("stage").innerHTML=`
-    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span>${
+  const prev=`<div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span>${
       /* 今夜市集規則的說明併進這個「每夜都在」的虛線框（異事的 hint 也共用同一欄），不再另開一列——
          #felt 的高度預算是零餘裕，多一個有邊框的區塊就是多 25~34px 的溢出。文案沒動，只換了位置。 */
       /* 押寶夜維持原樣不併入：它本來就沒有 .rulebar 那一列（說明寫在一注條裡），
          把規則說明再塞進預告框只會多推一行、把溢出從 33 推到 49（實測）。 */
-      (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
+      (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>`;
+  /* 掏空卷 v0.55a（Q1 甲：出價頁掏空）：預告框與香火榜搬進 #north、四張卡退到左右側欄；
+     #stage 只留心願條與押寶條（兩者都要能點，所以 #felt.hollow #stage 疊在 #tray 之上）。 */
+  const hollow=TABLE3D;
+  $("stage").innerHTML=`${hollow?"":prev}
     ${wishBarHTML(ap)}
     ${stakeHTML(ap)}
-    ${shrinesHTML()}
-    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
+    ${hollow?"":shrinesHTML()}
+    ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
+  setHollow(hollow);
+  if(hollow) fillRails(prev,shrinesHTML(),mcardHTML);
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
@@ -4817,6 +4866,7 @@ async function startReveal(){
   applyHooks("onReveal",rv,aliveHumans());
   /* 落標實付的註記文字：規則夜可用 loseLabel 換掉（如落魄夜的「落標全付」），引擎不寫規則 id */
   const loseLbl=(S.nightRule&&S.nightRule.loseLabel)||"落標費";
+  setHollow(false);   /* 掏空卷 v0.55a：開標揭盅回玻璃面板（#veil 的黑幕要有底才蓋得住） */
   const stage=$("stage");
   if(S.bleedLog&&S.bleedLog.length){
     renderSeats();
@@ -4906,6 +4956,7 @@ async function startReveal(){
   /* 本夜成交總覽 */
   SKIP=false;
   renderSeats();
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div class="big">🏮 本夜成交總覽</div>
     ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・實付 ${r.winner.cost}`:""}）`:""}</span></div>`).join("")}
@@ -4975,6 +5026,7 @@ async function startShrine(){
     if(out.skip) rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 今夜是請神夜，但<b>沒有人請得動</b>（${out.skip.why}）→ 三尊都留著，下一個請神夜再比；已燒的香火<b>原封保留</b></div>`);
     out.dawn.forEach(d=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 最後一個請神夜結束，「${nm(d.shrine)}」<b>回天</b>，本局不再出現</div>`));
     if(!rows.length) rows.push('<div class="mut" style="font-size:12px">今夜沒有動靜</div>');
+    setHollow(false);   /* 掏空卷 v0.55a */
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🕯️ 第 ${S.round} 夜・請神</div><div id="shz"></div></div>`;
     const z=$("shz");
     for(const r of rows){ z.insertAdjacentHTML("beforeend",r); if(!SKIP) await sleep(CFG.T*0.45); }
@@ -5632,6 +5684,7 @@ async function startBattle(){
     if(!f.tie){ sayFrom(f.w.id,"bwin"); if(f.l.ai)sayFrom(f.l.id,"blose"); }
     await sleep(CFG.T*0.4);
   }
+  setHollow(false);   /* 掏空卷 v0.55a */
   const stage=$("stage");
   stage.innerHTML=`<div class="stageCard"><div class="big">⚔️ 第 ${S.round} 夜・戰況</div><div id="bz"></div></div>`;
   const bz=$("bz");
@@ -5729,6 +5782,7 @@ function endGame(){
     const myRank=rank.indexOf(S.players[0])+1;
     head=myRank===1?"你活到了天亮":"你是第 "+myRank+" 名";
   }
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
