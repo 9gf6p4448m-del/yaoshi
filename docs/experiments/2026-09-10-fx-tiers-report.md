@@ -68,6 +68,14 @@ node tests/tools/traitfx-drive.mjs docs/.../tfx-t3.json --tier=3 --port=9543  �
 - `--tier=3` 三尊：1400ms、`clean`、`rate` 1.0（900→1400 之後反而更從容）。
 - **防假綠的兩道**：治具斷言 `run.ms===msOf(tier)`（防「`--tier=1` 其實還在跑 900」）；`rate` 上限 1.0（防「把完整版 `rate` 拉到 3.46×」）。`clean` 判準沿用 v0.53 的 `cut===0 && fused===0`，一字未放寬。
 
+**邊界實測：「短版缺席退回完整版」不是恆綠退路**（這是 `trait-fx.js` 與 GUIDE 都寫下的宣稱，所以要有數字）。
+三尊三招沒有 `SHORT`，強制用 `--tier=1` 跑它們：
+```
+node tests/tools/traitfx-drive.mjs scratchpad/t1-fallback.json --tier=1 --only=eliteBlind,wardGuardAll
+→ 0/2 pass；wardGuardAll rate=180（完整版被迫加速 180×，rateOK 立刻紅）
+```
+也就是說，哪天有人漏寫一支短版，`--tier=1` 會當場紅在 `rateOK`，不會靜默通過。
+
 ## F3 節奏（**紅**）
 | | 4 場 duelsMs | 中位 |
 |---|---|---|
