@@ -23,16 +23,16 @@
 | H4 消耗戰 | ✅ | 前三名平均投入 第 5／8／11 夜 4.88／6.08／3.92（≤9）；落空者淨損 3.89（≤6） | gate §H4 |
 | H5 單元測試 | ✅ | 本卷 32/0；對基準 `e83028c` **18 過／14 紅，全部紅在行為斷言**（清單見 §4） | `h5-baseline-red.log`；覆審員自跑同結果 |
 | H6 Playwright | ✅ | seeds 1–6 `--all`：請走 11／真人選尊視窗 6（點錯尊 0）／落空保留 22 人次；0 console error；橫向溢出 0；直向 36 取樣 0 超標（基準 `felt-base-e83028c.json`、slack 52） | `legend-drive-run2.log`／`.json` |
-| H7 版面截圖 | ✅（人眼） | 裁甲後重拍 seed 1：第 1 夜、請神夜前一夜、真人選尊視窗 | `shots-run2/`（第一輪 `shots/` 是 4/7/10 時代，只留參考） |
+| H7 版面截圖 | ✅（contact sheet 已交使用者） | 裁甲後重拍 seed 1 共 6 張（第 1 夜／請神夜前一夜／真人選尊視窗／袋子／直式／局末）；主對話先看過三張關鍵圖，contact sheet 於 2026-09-10 送使用者 | `shots-run2/contact-sheet.png`（第一輪 `shots/` 是 4/7/10 時代，只留參考） |
 | H8 文件與範圍 | ✅ | GAME_DESIGN §5.9 改寫＋changelog；GUIDE §11.26（含 2.0 已移除項、裁甲、無效槓桿）；`git diff --stat 15d98d2` 只含 index.html／tests／tools／docs／evidence | 本報告 §6 |
 | H9 持有者優勢帶 | ✅ | 持有者局勝率 73.62% − 零效果對照 67.10% ＝ **+6.52pp**（帶 [+3,+10]）；絕對 73.62% ≤85%；拆解 戰力 6.15pp／共鳴 0.02pp | gate §H9 |
 | H10 傳說共鳴 | ✅ | `facCount`／`eff` 段 diff 為空；G10 案綠 | `h10-h11-untouched.txt` |
 | H11 部隊預覽 | ✅ | `buildArmy`／`unitRowText` diff 為空；G11 四案綠 | 同上 |
 
-補充：`node --test tests/*.test.mjs` 9/9；`duel-drive` 6 場 0 error（`duel-drive.log`）；閘門是從 `955f48b` 起跑，之後只動 UI 顯示與文件（`git diff 955f48b..f64f4b5` 3 檔 7 行），`trace-eq` 兩版引擎逐位元組相等（主對話親跑 `"equal":true`）。
+補充：`node --test tests/*.test.mjs` 9/9；`duel-drive` 6 場 0 error（`duel-drive.log`，2026-09-10 對 HEAD 重跑，ver＝v0.53 3.0）；閘門是從 `955f48b` 起跑，之後只動 UI 顯示與文件（`git diff 955f48b..f64f4b5` 3 檔 7 行），`trace-eq` 955f48b vs HEAD 引擎逐位元組相等 357285 B＋突變驗紅（`trace-eq-gate-era.log`，2026-09-10 重產；舊檔比的是裁甲前對裁甲前，已作廢）。
 
 ## 3. 第一輪紅與歸因（為什麼要裁甲）
-第一輪（4/7/10、供奉 1，`gate-n10000-run1-4-7-10.md`，H4 之後中斷）：H1 incenseMax − splitter **+9.88pp** ❌、H3 中位 **9** 夜／greedy **−6.05pp** ❌，其餘綠、H9 未跑完（作者 agent 中途 API 斷線）。
+第一輪（4/7/10、供奉 1，`gate-n10000-run1-4-7-10.md`，H4 之後中斷）：H1 incenseMax − splitter **+9.88pp** ❌、H3 中位 **9** 夜／greedy **−6.05pp** ❌，其餘綠；H9 +7.36pp ✅（`gate-n10000-run1-4-7-10.md`——作者 agent 因 API 斷線在 H4 印出時終止，但閘門子行程繼續跑完，主對話當時只看到 H4 為止的檔案，事後核對該檔已含完整 H9 與總表）。
 主對話診斷（n=2000，`scratchpad/v3exp`，不進版）：
 
 | 組 | 燒滿−splitter | 局長中位 | 每局燒香 | 持有者勝率 | 第 8 夜前死亡/局 |
