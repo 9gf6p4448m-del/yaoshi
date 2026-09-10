@@ -1348,3 +1348,42 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 10. **局末結清那一條是主對話自定的**（提案 §二 6 有星號標記，未經使用者逐條裁定）。
     ★但「H1 紅就拿掉局末退還」這根槓桿**實測無效**（n=2000：+7.65→+8.05pp），因為它只影響落空者、贏家的香火本來就歸零；別再拉它。★
 11. **使用者 2026-09-10 裁甲的兩個數值**：`INC_TITHE` 1→2、`SHRINE_NIGHTS` [4,7,10]→[5,8,11]。第一輪 n=10000 閘門 H1（燒滿−splitter +9.88pp）與 H3（局長中位 9 夜、greedy −6pp）紅；歸因＝3.0 關掉請神局長 11、2.0 也是 11、3.0 開著 9——縮短來自「自選」讓第 4 夜得主拿到最配系的尊滾雪球，不是燒太多（每局燒 21 < 2.0 的 26.75）。供奉 2 治 H1、延後一夜治 H3，兩者合併 n=2000 七策略全進帶（燒滿 −0.8pp、greedy −1.3、中位 10）。凍結檔 §2.1 修訂一有完整表。**回天彈窗使用者裁定留著**（09-10：真人也可能不按「要」）。
+
+### 11.28 拍賣桌整片掏空 0.55a「版面卷」（2026-09-10，桌面先平面）——接手前先知道這八件事
+
+規格＝`docs/proposals/2026-09-10-plan-table3d.md`（§1 檔案清單／§2 介面已寫死／§3 不做什麼／§7 裁定）；
+驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6 是 0.55a，T7–T12 屬 0.55b**）；
+分母清單＝`docs/experiments/2026-09-10-table3d-a-worklog.md`；實跑報告＝`docs/experiments/2026-09-10-table3d-a-report.md`。
+純版面／DOM／CSS 卷：`js/` 一格未動，引擎 `trace(1..20)` 與 `84b1a0c` 逐位元組相等。
+
+1. **★掏空是「依頁面切換」，不是全域開關★**：`#felt` 是**所有階段**的舞台（`$("stage").innerHTML=` 全檔 11 處），
+   全掏空的話開標揭盅會變成一張浮在木桌上的無底文字（使用者裁 Q1 甲）。
+   只有**出價頁**（`showMarket`）與**盯上頁**（`showMarkUI`）走 `setHollow(true)`，其餘 9 頁 `setHollow(false)`。
+   新增任何一個會寫 `#stage` 的畫面，**一定要順手決定它的 `setHollow`**——漏掉就會出現「玻璃面板不見了」。
+2. **`setHollow(false)` 同時負責清空側欄與北列**（`#railW`／`#railE`／`#northPrev`／`#northShr`）。
+   這四個容器的生命週期收斂在這一支，不要在別處各寫一份清空——那會變成 11 個要記得的點。
+3. **`renderSeats()` 只寫 `#northSeat`／`#westSeat`／`#eastSeat`**（原本直接覆寫 `#north`／`#west`／`#east`）。
+   座位卡容器**預設 `display:contents`** ⇒ 座位卡仍是 `#north`／`#west`／`#east` 的直接 flex 項目，
+   v0.53 的版面因此逐像素不變。全檔就這三行在覆寫座位卡；`renderSeats` 的 20 個呼叫點一行都不必改。
+4. **掏空版面的每一條 CSS 都寫在 `#table.t3d` ＋ `@media (orientation:landscape)` 裡面**。
+   ⇒ `?table3d=0`（kill switch）與**直式**由**建構上**回到 v0.53，不靠另寫一份覆蓋（Q6 甲）。
+   改這一段時千萬別把規則搬出媒體查詢——直式 390px 扣兩根 168px 側欄只剩 −6px，版面會直接爆。
+5. **側欄的垂直帳是死的：256 ＝ 座位 62 ＋ 4 ＋（卡列 190：上緣 8 ＋ 卡 88 ＋ 4 ＋ 卡 88）**。
+   座位卡壓到 62px 靠的是字級與內距（`.av` 18px／`.nm` 11.5px／`.st` 9px），不是把東西藏起來——
+   `felt-probe --sel=#west,#east` 量的是 `scrollHeight − clientHeight`，藏不掉。要加東西先跑它。
+6. **掛在卡角外側的徽章要記得翻進來**：`.markb`（left:-4px）／`.mybid`／`.pickbox`（right:-4px、top:-8px）
+   會把卡列撐出 3px 橫向溢出；`.seat` 的 `.dir`／`.windb`／`.roleInfoBtn`／`.bubble` 則會把 `#north` 撐出 11px 直向溢出
+   （**基準 v0.53 本來就有這 11px**，是這一卷順手修掉的）。做法是 `.rail{padding:8px 5px 0}` 留位置＋把北席那幾顆的座標翻進卡內。
+7. **`#tray` 是 0.55b 的預留命中層，在 0.55a 是空操作**：`trayTap`／`trayHover` 收 `pointerdown`／`pointermove`
+   但什麼都不做。`#felt.hollow #stage` 疊在 `#tray` 之上（z-index 2 對 1）且 `pointer-events:none`、
+   子元素才 `auto` ⇒ 桌心空白處的 tap 落到 `#tray`、押寶夜的 stepper 仍然點得到。
+   **0.55b 接手時：`#tray` 的 z-index 不得高過 `#veil` 的 6**（否則開標黑幕蓋不住），也不得高過 `#stage` 的 2。
+8. **觸控白名單兩處字串（`index.html:34` CSS 與 `:6430` JS）一字未動**：`#tray` 是 `#felt` 的子元素，
+   `closest("#felt,…")` 沿祖先鏈找 ⇒ 仍然命中。新增的只有 `#tray{touch-action:manipulation}`。
+   白名單真的要變成三處的情境只有一種：做拖曳轉桌／捏合縮放（本卷 §3 明令不做）。
+
+**治具**：`felt-probe --sel=`（一支量四個容器，T2／T3）／`legend-drive --sel=`（橫向溢出清單，T4）／
+`legend-drive --taps`（逐一 tap 命中回歸，T5；`--tapsonly` 只跑這段拿基準）／`legend-drive --t3d`（kill switch 與直式 computed 值，T1／T6）／
+`layout-shot --sel=`／`mkt-probe --sel=`（`#market` 這個 id 在掏空頁退役，三支一律改吃 `--sel`，不逐支複製選擇器）。
+**埠用 96xx 段**（95xx 是請神卷的）。量基準要一個靜態根：把基準 commit 的 `index.html` 放進一個目錄、`js/`／`assets/` 用 junction 接回來，
+`--root=` 指過去（治具全程不動 worktree 的 `index.html`）。

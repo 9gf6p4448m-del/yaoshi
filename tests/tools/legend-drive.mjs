@@ -7,7 +7,8 @@
 //   --sel=      橫向溢出量哪些容器（**收斂**：#market 退役、#railW／#railE 上線之後不逐支複製選擇器，改吃這個旗標）
 //   --taps      觸控命中回歸（掏空卷 v0.55a 凍結檔 T5）：對第 1～3 夜出價頁與盯上頁的**每一個** `#table [onclick]`
 //               各 tap 一次，驗「這一 tap 有沒有讓對應的處理函式被呼叫」，並驗 #tray 沒有吃掉任何一個
-//   --tapsonly  只跑 --taps 那一段（量基準時用，不必把整局玩完）
+//   --tapsonly  只跑 --taps／--t3d 那幾段（量基準時用，不必把整局玩完）
+//   --t3d       kill switch 雙向（T1）＋直式蓋板 computed 值（T6）；--t3dout=<json> 落明細、--t6base=<基準 json> 逐項對照
 //   --burn=0    真人整局不燒香（對照組）
 //   --legend=0  關掉整個請神機制（量橫向溢出的對照組）；不帶 --legend＝完全不帶 query，走 CFG 預設（＝開）
 //   --all       不提早收工，把 --seeds 給的每一顆都跑完（凍結檔 H6 的「seeds ≥6」照字面走）
@@ -125,6 +126,65 @@ const TAP_ENUM = `(() => {
   });
 })()`;
 
+/* ===== T1 kill switch 雙向＋T6 直式蓋板行為（掏空卷 v0.55a）=====
+   T1：`?table3d=0` 四項全是 v0.53 的值、預設（不帶旗標）四項全反——**只驗開不驗關＝反向探針**（02 §6.1 第 1 條），
+       所以兩邊都量，而且量的是 computed 值與實際的 DOM 內容，不是「旗標有沒有被讀到」。
+   T6：390×844 下量 computed 值（#rotateHint display／#table 欄寬／.rail display／#table 橫向溢出／#felt 的毛玻璃），
+       --t6base= 帶基準版同一組值逐項比對——只截圖看「有沒有蓋住」是看不出蓋板底下版面爆掉的。 */
+const T3D_SNAP = `(() => {
+  const g=(el,p)=>el?getComputedStyle(el)[p]:'(absent)';
+  const t=document.getElementById('table'), f=document.getElementById('felt');
+  const rw=document.getElementById('railW'), re=document.getElementById('railE');
+  return {
+    cols: g(t,'gridTemplateColumns'),
+    hollow: !!(f && f.classList.contains('hollow')),
+    trayDisplay: g(document.getElementById('tray'),'display'),
+    railW: rw?rw.childElementCount:'(absent)',
+    railE: re?re.childElementCount:'(absent)',
+    marketCards: document.querySelectorAll('#market .mcard').length,
+    railCards: document.querySelectorAll('.rail .mcard').length,
+    rotateHint: g(document.getElementById('rotateHint'),'display'),
+    railDisplay: g(rw,'display'),
+    feltBackdrop: g(f,'backdropFilter'),
+    tableOverX: t?(t.scrollWidth-t.clientWidth):null
+  };
+})()`;
+
+async function snapAt(browser, port, query) {
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  const errs = [];
+  page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  page.on('pageerror', (e) => errs.push(String(e)));
+  await page.goto(`http://127.0.0.1:${port}/index.html${query}`, { waitUntil: 'load' });
+  await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+  await page.evaluate(() => { CFG.T = 1;
+    const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+    window.__yaoshi.newGame('solo', 1, ['qingmian']); });
+  for (let i = 0; i < 800; i++) {
+    await page.waitForTimeout(12);
+    const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn');
+      return { t:b?b.textContent:'', d:b?b.disabled:true }; })()`);
+    if (/蓋牌/.test(st.t) && !st.d) break;
+    if (!st.d) await page.click('#mainbtn');
+    else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e) e.click(); })()`);
+  }
+  await page.waitForTimeout(150);
+  const land = await page.evaluate(T3D_SNAP);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(400);
+  const port2 = await page.evaluate(T3D_SNAP);
+  await ctx.close();
+  return { landscape: land, portrait: port2, errors: errs };
+}
+
+async function runT3d(browser, port) {
+  const off = await snapAt(browser, port, '?table3d=0');
+  const on = await snapAt(browser, port, '');
+  return { off, on };
+}
+
 async function runTaps(browser, port) {
   const rec = { rows: [], trayTaps: 0, pages: 0, stubbed: null };
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
@@ -177,6 +237,7 @@ const main = async () => {
   const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], voverflow: [], vrows: [],
     portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, skips: 0, picks: 0, carry: 0, carryEg: [], games: [] };
   try {
+    if (opt.t3d) rec.t3d = await runT3d(browser, PORT);
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
     if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
@@ -443,6 +504,39 @@ const main = async () => {
   const okVert = rec.voverflow.length === 0 && (rec.vsamples || 0) > 0 && Object.keys(BASE_V).length > 0;
   const okCover = !!(rec.portraitCover && rec.portraitCover.rotateHint && rec.portraitCover.shrinesHidden);
   const okHot = !rec.hotseat || (rec.hotseat.sawIncbar && rec.hotseat.handoffShown && rec.hotseat.incbarAtHandoff === 0);
+  /* T1／T6 判定 */
+  let okT1 = true, okT6 = true;
+  if (opt.t3d) {
+    const t = rec.t3d;
+    if (opt.t3dout) fs.writeFileSync(opt.t3dout, JSON.stringify(t, null, 1), 'utf8');
+    const off = t.off.landscape, on = t.on.landscape;
+    const c120 = (s) => /^120px .* 120px$/.test(s);
+    const c168 = (s) => /^168px .* 168px$/.test(s);
+    const offOK = { cols: c120(off.cols), hollow: off.hollow === false, tray: off.trayDisplay === 'none' || off.trayDisplay === '(absent)',
+      rails: off.railW === 0 && off.railE === 0, market: off.marketCards === 4 };
+    const onOK = { cols: c168(on.cols), hollow: on.hollow === true, tray: on.trayDisplay === 'block',
+      rails: on.railW > 0 && on.railE > 0, market: on.marketCards === 0 && on.railCards === 4 };
+    okT1 = Object.values(offOK).every(Boolean) && Object.values(onOK).every(Boolean);
+    console.log(`- **T1 kill switch 雙向**：`);
+    console.log(`    ?table3d=0　cols=${off.cols}｜hollow=${off.hollow}｜#tray display=${off.trayDisplay}｜#railW/#railE 子元素=${off.railW}/${off.railE}｜#market .mcard=${off.marketCards} → ${Object.values(offOK).every(Boolean) ? '✅' : '❌ ' + JSON.stringify(offOK)}`);
+    console.log(`    預設　　　　cols=${on.cols}｜hollow=${on.hollow}｜#tray display=${on.trayDisplay}｜#railW/#railE 子元素=${on.railW}/${on.railE}｜#market .mcard=${on.marketCards}（側欄 .mcard=${on.railCards}） → ${Object.values(onOK).every(Boolean) ? '✅' : '❌ ' + JSON.stringify(onOK)}`);
+    /* T6：直式（390×844）逐項；有 --t6base 就跟基準逐項比對 */
+    const p = t.on.portrait;
+    const T6KEYS = ['rotateHint', 'cols', 'railDisplay', 'tableOverX', 'feltBackdrop'];
+    const selfOK = p.rotateHint === 'flex' && c120(p.cols) && (p.railDisplay === 'none' || p.railDisplay === '(absent)') && p.tableOverX === 0;
+    let baseCmp = null;
+    if (opt.t6base && fs.existsSync(opt.t6base)) {
+      const b = JSON.parse(fs.readFileSync(opt.t6base, 'utf8'));
+      const bp = (b.on || b.off).portrait;
+      baseCmp = T6KEYS.map((k) => ({ k, base: bp[k], now: p[k], same: String(bp[k]) === String(p[k]) }))
+        .filter((r) => !(r.k === 'railDisplay' && r.base === '(absent)' && r.now === 'none'));   /* 基準版沒有 .rail，語意等價於 none */
+    }
+    okT6 = selfOK && (!baseCmp || baseCmp.every((r) => r.same));
+    console.log(`- **T6 直式蓋板行為**（390×844）：#rotateHint=${p.rotateHint}｜cols=${p.cols}｜.rail display=${p.railDisplay}｜#table 橫向溢出=${p.tableOverX}｜#felt backdrop-filter=${p.feltBackdrop} → ${selfOK ? '✅' : '❌'}`);
+    if (baseCmp) console.log(`    對基準逐項：` + baseCmp.map((r) => `${r.k} ${r.same ? '＝' : `❌ 基準 ${r.base} → 現在 ${r.now}`}`).join('　'));
+    else console.log(`    （沒帶 --t6base=，只驗自己這一版的四項，不做逐項對照）`);
+    if (opt.t3dout) console.log('    T1／T6 明細 → ' + opt.t3dout);
+  }
   /* T5：基準清單的每一格都要在新版存在且命中；tap 在既有可點元素上時 trayTap 一次都不許被呼叫。
      沒帶 --tapbase（＝量基準那一次）就退回「自己這一版每一格都命中」。 */
   let okTaps = true, tapMiss = [], tapLost = [];
@@ -496,7 +590,7 @@ const main = async () => {
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
-  const all = opt.tapsonly ? okTaps : (okErr && okPath && okOv && okVert && okCover && okHot && okTaps);
+  const all = opt.tapsonly ? (okTaps && okT1 && okT6) : (okErr && okPath && okOv && okVert && okCover && okHot && okTaps && okT1 && okT6);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };

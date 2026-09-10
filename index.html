@@ -108,6 +108,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
      56px 的列高塞得下最長的那一版（盯上第 1 夜的完整教學、規則夜的規則說明）。 */
   #table.t3d #northPrev .preview{font-size:8.5px;line-height:1.14;padding:0 4px;text-align:left}
   #table.t3d #northPrev{flex:1.15 1 0} #table.t3d #northShr{flex:0.85 1 0}   /* 預告框的字比香火榜多，寬度就多分一點 */
+  /* 香火榜進了 251px 的北列格之後，slim 的「一列」會被三張待請卡吃光、香火榜只剩一個燈籠圖示
+     （試玩截圖看得出來）。北列這一格改成**兩列**：榜佔滿一列、三張卡佔滿一列，
+     56px 的列高塞得下（16.7＋2＋16.7＝35.4）。這是版面適配，不動 shrinesHTML 一個字。 */
+  #table.t3d #northShr #shrines,#table.t3d #northShr #shrines.slim{flex-direction:column;gap:2px;align-items:stretch}
+  #table.t3d #northShr #shrines.slim .incboard{flex:0 0 auto}
+  #table.t3d #northShr #shrines.slim .shcards{flex:1 1 auto}
+  #table.t3d #northShr #shrines.slim .shcard{flex:1 1 0}
+  #table.t3d #northShr .incboard{font-size:8px}
+  #table.t3d #northShr .incboard .ibh{font-size:7.5px}
+  #table.t3d #northShr .shname,#table.t3d #northShr .shfac,
+  #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{font-size:8px}
   /* 掏空本體：#felt 保留 id、保留 position:relative（撐 #skipbtn／#helpBtn）、保留 overflow-y:auto，
      只是不再畫玻璃、裡面也不再裝市集卡。--glass-* 四個變數一格不動（非掏空頁照舊吃）。 */
   #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent}
