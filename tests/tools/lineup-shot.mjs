@@ -4,12 +4,18 @@
    跑法：node tests/tools/lineup-shot.mjs <png 前綴> [--port=8891] [--root=<靜態根目錄>] */
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import fsSync from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
-const { chromium } = req('playwright');
+/* worktree 裡沒有 tools/（那是主 repo 的目錄），所以往上找到第一個裝了 playwright 的地方 */
+const { chromium } = (() => {
+  const cands = [path.join(ROOT, 'tools/anyCreature/package.json'),
+    path.resolve(ROOT, '../../../tools/anyCreature/package.json')];
+  for (const c of cands) if (fsSync.existsSync(c)) return createRequire(c)('playwright');
+  throw new Error('找不到 playwright（試過：' + cands.join('、') + '）');
+})();
 
 const argv = process.argv.slice(2);
 const opt = {}; const pos = [];

@@ -1,14 +1,11 @@
-/* 傳說三尊「請神」行為單元測試（第 4 卷；凍結檔 docs/experiments/2026-09-06-acceptance-legend3-impl.md L6）
+/* 請神 2.0「神債暗標」行為單元測試（凍結檔 docs/experiments/2026-09-07-acceptance-legend-v2.md G5／G10／G11）
    跑法：node tests/legend.test.mjs [index.html 的路徑]
    鑑別力（02 §6.1 第 1 條）：
-     git show ff227a7:index.html > old-l.html && node tests/legend.test.mjs old-l.html
-     （基準沿革：ca14065→ff227a7，2026-09-07 請神小卷；對 ff227a7 是 18 過／2 失敗，兩條紅在 N1 洗牌的行為斷言；
-      拿 ca14065 跑會 1 過／19 失敗且含 TypeError——那不是本卷的基準，第二輪覆審 MEDIUM-1）
-     （更早的 ca14065 沒有神龕，每一案都紅在**行為斷言**（「應該有人請走」「應該退 N 壽命」「應該消耗亂數」）），
-     不是 TypeError——本檔對 index.html 新增的匯出一律用 `G.x?G.x():null` 取值，取不到就讓後面的
-     行為斷言自己紅，不讓屬性錯誤排在行為斷言前面。
-   每一案都刻意做成「舊版必紅」：連 kill switch 那一案都同時斷言「ON 一定要擲骰」，
-   否則舊版（永遠不擲）會靜默通過。 */
+     git show b38980a:index.html > old-l.html && node tests/legend.test.mjs old-l.html
+     （b38980a＝本卷派工時的 main＝請神 1.0：擲骰 h/(h+K)＋天井、沒有請神夜、沒有一人一尊、沒有供奉、
+       傳說不算 2 件、沒有部隊預覽。每一案都必須紅在**行為斷言**上。）
+   ★不讓屬性錯誤排在行為斷言前面★：對 index.html 新增的匯出一律用 `G.x?G.x(...):<退路>` 取值，
+   取不到就讓後面的行為斷言自己紅（舊版沒有 settleTithe／hasLegend／unitRow／CFG.SHRINE_NIGHTS）。 */
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -53,359 +50,474 @@ function shrineNight(G,S,inc){
   S.players.forEach(p=>{ S.incense[p.id]=(inc&&inc[p.id]!==undefined)?inc[p.id]:null; });
   return G.resolveShrines?G.resolveShrines():null;
 }
+/* 把某一龕燒到指定的 h，然後把回合推到它的請神夜結算。
+   舊版沒有 sh.night ⇒ nightOf 退回 null，測試會紅在「應該有人請走」這種行為斷言上。 */
+const nightOf=(G,S,i)=>(S.shrines&&S.shrines[i]&&S.shrines[i].night)
+  ||((G.CFG.SHRINE_NIGHTS&&G.CFG.SHRINE_NIGHTS[i])||[4,7,10][i]);
 const legendsOf=p=>p.bag.filter(x=>x.legend);
-const bagNames=p=>p.bag.map(x=>x.n);
-/* 只有天井會成功的骰子（chance 最高 8/(8+6)=0.57，回 0.99 保證非天井必失敗） */
+const takenBy=(S,i)=>S.shrines&&S.shrines[i]?S.shrines[i].takenBy:undefined;
+/* 骰子：舊版（1.0）會用 S.rng 決定請不請得到。固定成「非天井必失敗」，
+   這樣舊版的行為就是「幾乎請不到」，本檔的行為斷言（誰請走、退多少）就會紅在數字上。 */
 const alwaysFail=()=>0.99;
-const alwaysHit=()=>0;
 
-/* ---------- 1. 請走＋關龕：h 到天井必請，請走後那一龕再也吃不到香火 ---------- */
-test('請走：累計香火到天井 → 有人把那一尊請進袋子，該龕關閉、之後燒香不再扣壽命',()=>{
+/* ================= G5 ① 請神夜 h 最高者得 ================= */
+test('G5①請神夜開標：累計香火最高的人請走，其他人一個都拿不到',()=>{
   const G=loadGame(TARGET); const S=setup(G);
-  S.rng=alwaysFail;              /* 只有天井會成功——請到就一定是天井這條路 */
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;   /* fallback＝舊版沒有這兩欄，仍讓治具跑完、紅在行為斷言 */
-  const nights=Math.ceil(P/M);
-  for(let k=0;k<nights;k++) shrineNight(G,S,{0:{shrine:0,amt:M}});
-  const got=legendsOf(S.players[0]);
-  eq(got.length,1,`燒滿 ${nights} 夜（h=${nights*M} ≥ 天井 ${P}）後，南家袋裡的傳說法寶件數`);
-  ok(got[0].p>=12,`請到的那一件行情值（傳說 p 應為 12）：${got[0].p}`);
-  /* 關龕：同一龕再燒，壽命一毛都不該少（龕已關＝不受理） */
+  S.rng=alwaysFail;
+  const night=nightOf(G,S,0);
+  S.round=1; shrineNight(G,S,{0:{shrine:0,amt:3},1:{shrine:0,amt:2},2:{shrine:0,amt:1}});
+  eq(takenBy(S,0),null,'請神夜還沒到，第 0 龕不該有人請走');
+  S.round=night;
+  const out=shrineNight(G,S,{});
+  eq(takenBy(S,0),0,'請神夜開標後，香火最高（南家 3）的人應該請走第 0 龕');
+  eq(legendsOf(S.players[0]).length,1,'南家袋裡的傳說件數');
+  eq(legendsOf(S.players[1]).length,0,'北家（香火 2）不該拿到');
+  eq(S.shrines[0].open,false,'請走之後那一龕要關閉');
+  ok(out&&out.taken.length===1&&out.taken[0].h===3,`out.taken 應記下得標香火 3：${JSON.stringify(out&&out.taken)}`);
+});
+
+/* ================= G5 ① 同分風位順時針 ================= */
+test('G5①同分：依「本夜風位起順時針」的第一個人請走（不是座位 0 恆贏）',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const night=nightOf(G,S,0);
+  S.round=night;
+  /* 四家同 h＝1 → 由「本夜風位起順時針」的第一個決定＝windPid(round)（windPid 新舊版都有） */
+  const wind=G.windPid(night);
+  shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
+  eq(takenBy(S,0),wind,`四家同 h 時，應由本夜風位家（座位 ${wind}）請走`);
+  /* 順序本身也要是四家的一個排列，且第一個就是風位家（不得只是「座位 0 恆贏」） */
+  const order=G.shrineWindOrder?G.shrineWindOrder(night):null;
+  ok(order&&order.length===4&&new Set(order).size===4,`shrineWindOrder(${night}) 應回四個座位的順時針序：${JSON.stringify(order)}`);
+  eq(order[0],wind,'順時針序的第一個應該就是本夜風位家');
+  ok(G.shrineWindOrder(night+1)[0]!==wind,'下一夜的風位家要換人（風位輪轉，不是固定座位）');
+});
+
+/* ================= G5 ② h 全 0 回天且不重開 ================= */
+test('G5②請神夜沒有任何人上香 → 那一尊回天，本局不再出現、也不重開',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const night=nightOf(G,S,1);
+  S.round=night;
+  const out=shrineNight(G,S,{});   /* 四家都不燒 */
+  eq(S.shrines[1].open,false,'請神夜無人上香 → 該龕應該關閉（回天）');
+  eq(takenBy(S,1),null,'回天不該有 takenBy');
+  ok(out&&out.dawn&&out.dawn.length>=1,`out.dawn 應記下回天的龕：${JSON.stringify(out&&out.dawn)}`);
+  /* 不重開：之後再燒也不進 h、壽命不動 */
   const before=S.players[0].life;
-  shrineNight(G,S,{0:{shrine:0,amt:M}});
-  eq(S.players[0].life,before,'關龕之後再對同一尊燒香，壽命變動');
-  eq(legendsOf(S.players[0]).length,1,'關龕之後不該再拿到第二份');
+  S.round=night+1;
+  shrineNight(G,S,{0:{shrine:1,amt:3}});
+  eq(S.players[0].life,before,'回天之後再對同一尊燒香，壽命不得變動');
+  eq(S.shrines[1].open,false,'回天的龕不得重開');
+  eq(legendsOf(S.players[0]).length,0,'回天的尊不得再被請走');
 });
 
-/* ---------- 2. 獨一份：四人同時到天井，只有一個人拿得到 ---------- */
-test('獨一份：四人同夜同尊都到天井，全桌只有一個人請走',()=>{
+/* ================= G5 ③ 一人一尊 ================= */
+test('G5③一人一尊：請到一尊之後，其餘龕不再收這個人的香（封籤被拒、壽命不扣）',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   S.rng=alwaysFail;
-  const P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
-  for(let k=0;k<Math.ceil(P/M);k++)
-    shrineNight(G,S,{0:{shrine:0,amt:M},1:{shrine:0,amt:M},2:{shrine:0,amt:M},3:{shrine:0,amt:M}});
-  const holders=S.players.filter(p=>legendsOf(p).length);
-  eq(holders.length,1,'四人同拜同尊時，最後拿到那一尊的人數');
-  eq(legendsOf(holders[0]).length,1,'拿到的人手上的份數');
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  eq(takenBy(S,0),0,'南家應該請走第 0 龕');
+  ok(G.hasLegend?G.hasLegend(S.players[0]):false,'hasLegend 應該對已請走的人回 true');
+  const life=S.players[0].life;
+  const other=S.shrines.findIndex(sh=>sh.open);
+  ok(other>=0,'應該還有別的龕開著');
+  S.round=n0+1;
+  const out=shrineNight(G,S,{0:{shrine:other,amt:3}});
+  eq(S.players[0].life,life,'已請走一尊的人再燒香：壽命一毛都不該扣');
+  eq(S.shrines[other].h[0]|0,0,'已請走一尊的人不該在別的龕上累積香火');
+  ok(out&&out.locked&&out.locked.length===1,`out.locked 應記下被擋的封籤：${JSON.stringify(out&&out.locked)}`);
+  /* 而且真的到了那一龕的請神夜也拿不到第二尊 */
+  S.players[1].life=60;
+  S.round=S.shrines[other].night;
+  shrineNight(G,S,{0:{shrine:other,amt:3},1:{shrine:other,amt:1}});
+  eq(takenBy(S,other),1,'第二龕應該落到北家（南家已有一尊，不參加開標）');
+  eq(legendsOf(S.players[0]).length,1,'南家整局只能有一尊');
 });
 
-/* ---------- 3. 階段獎勵（香灰段）：沒請到的人依 h 退壽命 ---------- */
-test('階段獎勵：關龕時 h 落在中段的人退 ⌈h/3⌉ 壽命、不附法寶',()=>{
+/* ================= G5 ④ 供奉 ================= */
+test('G5④供奉：持有者每夜末 −INC_TITHE 壽命；壽命 ≤1 付不出 → 尊回天並移出袋子',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   S.rng=alwaysFail;
-  const P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
-  const mid=Math.ceil(P/3);      /* P=9 → 3，落在「退 ⌈h/3⌉」那一段 */
-  /* 北家先累到 h=mid（P=12 時 mid=4 > INC_MAX=3，一夜燒不完，要跨夜累積） */
-  let acc=mid; while(acc>0){ const a=Math.min(M,acc); shrineNight(G,S,{1:{shrine:0,amt:a}}); acc-=a; }
-  const bagBefore=S.players[1].bag.length;
-  const lifeBefore=S.players[1].life;
-  for(let k=0;k<Math.ceil(P/M);k++) shrineNight(G,S,{0:{shrine:0,amt:M}}); /* 南家燒到天井請走 */
-  eq(legendsOf(S.players[0]).length,1,'南家應該在天井那一夜請走');
-  eq(S.players[1].life-lifeBefore,Math.ceil(mid/3),`北家（h=${mid}）關龕時退回的壽命`);
-  eq(S.players[1].bag.length,bagBefore,'香灰段不附小法寶，袋子件數');
-  ok(mid>=P/3&&mid<2*P/3,`治具用的 h=${mid} 必須落在香灰段（${P/3} ≤ h < ${2*P/3}）`);
-});
-
-/* ---------- 4. 階段獎勵（差一步段）：退 ⌈h/2⌉ ＋ 該系一件小法寶 ---------- */
-test('階段獎勵：關龕時 h 落在差一步段的人退 ⌈h/2⌉ 壽命＋該系一件小法寶入袋',()=>{
-  const G=loadGame(TARGET); const S=setup(G);
-  S.rng=alwaysFail;
-  const P=G.CFG.INC_PITY, M=G.CFG.INC_MAX;
-  const hi=Math.ceil(2*P/3);     /* P=9 → 6，落在「退 ⌈h/2⌉＋小法寶」那一段 */
-  let left=hi;
-  while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{1:{shrine:0,amt:a}}); left-=a; }
-  const bagBefore=S.players[1].bag.length, lifeBefore=S.players[1].life;
-  S.rng=alwaysFail;              /* 抽小法寶也走 S.rng，固定成同一顆，結果決定性 */
-  for(let k=0;k<Math.ceil(P/M);k++) shrineNight(G,S,{0:{shrine:0,amt:M}});
-  eq(legendsOf(S.players[0]).length,1,'南家應該在天井那一夜請走');
-  eq(S.players[1].life-lifeBefore,Math.ceil(hi/2),`北家（h=${hi}）關龕時退回的壽命`);
-  eq(S.players[1].bag.length,bagBefore+1,'差一步段應該多一件小法寶');
-  const gift=S.players[1].bag[S.players[1].bag.length-1];
-  eq(gift.f,'zuling','附送的小法寶陣營（應與那一尊同系）');
-  ok(gift.p<=G.CFG.INC_GIFT_P,`附送的小法寶行情值應 ≤ ${G.CFG.INC_GIFT_P}，實際 ${gift.p}（${gift.n}）`);
-  ok(!gift.legend,'附送的是 POOL 的小法寶，不是傳說本體');
-  ok(hi>=2*P/3&&hi<P,`治具用的 h=${hi} 必須落在差一步段（${2*P/3} ≤ h < ${P}）`);
-});
-
-/* ---------- 5. 天井必成：h≥P 時不論骰子怎麼擲都請得到 ---------- */
-test('天井：h≥天井時 20 顆不同種子全部請到（不受骰子影響）',()=>{
-  const G=loadGame(TARGET);
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
-  let hit=0;
-  for(let seed=1;seed<=20;seed++){
-    const S=setup(G,seed);
-    S.rng=alwaysFail;
-    for(let k=0;k<Math.ceil(P/M);k++) shrineNight(G,S,{0:{shrine:0,amt:M}});
-    if(legendsOf(S.players[0]).length===1) hit++;
-  }
-  eq(hit,20,'20 顆種子裡到天井仍請到的局數');
-});
-
-/* ---------- 6. 未燒香本夜不得擲：h 再高，今夜沒燒就不擲 ---------- */
-test('沒燒香就不擲：h=天井−1 的人今夜燒 0 → 拿不到；同一狀態燒 1 → 拿得到',()=>{
-  const G=loadGame(TARGET);
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
-  const build=()=>{
-    const S=setup(G);
-    S.rng=alwaysFail;
-    let left=P-1;
-    while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a}}); left-=a; }
-    return S;
-  };
-  const A=build(); A.rng=alwaysHit;            /* 骰子必中，唯一擋住他的只能是「今夜沒燒」 */
-  shrineNight(G,A,{0:null});
-  eq(legendsOf(A.players[0]).length,0,`h=${P-1}、骰子必中、但今夜燒 0 → 應該拿不到`);
-  const B=build(); B.rng=alwaysHit;
-  shrineNight(G,B,{0:{shrine:0,amt:1}});
-  eq(legendsOf(B.players[0]).length,1,`同一狀態改成今夜燒 1 → 應該拿得到（否則上一條沒有鑑別力）`);
-});
-
-/* ---------- 7. 每夜一尊：燒在哪一尊，就只有那一尊會被請下來 ---------- */
-test('每夜一尊：整局只對第 0 尊燒香 → 只請得到第 0 尊，另外兩尊不會憑空到手',()=>{
-  const G=loadGame(TARGET); const S=setup(G);
-  S.rng=alwaysHit;               /* 骰子必中：只要有資格擲就會成功 */
-  shrineNight(G,S,{0:{shrine:0,amt:1}});
-  const got=legendsOf(S.players[0]);
-  eq(got.length,1,'燒 1 把、骰子必中 → 應該請到一尊');
-  eq(got[0].f,'zuling','請到的那一尊的陣營（第 0 龕＝祖靈）');
-  /* 其他人沒燒香，不該拿到任何東西 */
-  eq(S.players[1].bag.length+S.players[2].bag.length+S.players[3].bag.length,0,'沒燒香的三家袋子件數');
-});
-
-/* ---------- 8. 燒掉的壽命當場扣、不退 ---------- */
-test('燒香當場扣壽命：燒 n 就少 n，請到的人也不退',()=>{
-  const G=loadGame(TARGET); const S=setup(G);
-  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  eq(legendsOf(S.players[0]).length,1,'南家應該先請到一尊');
+  const T=G.CFG.INC_TITHE;
+  ok(T!=null,`CFG.INC_TITHE 應該存在（供奉）：實際 ${T}`);
   const before=S.players[0].life;
-  shrineNight(G,S,{0:{shrine:0,amt:2}});
-  eq(S.players[0].life,before-2,'燒 2 之後的壽命');
-  eq(legendsOf(S.players[0]).length,0,'骰子必失敗時不該請到');
-  S.rng=alwaysHit;
-  const before2=S.players[0].life;
-  shrineNight(G,S,{0:{shrine:0,amt:2}});
-  eq(legendsOf(S.players[0]).length,1,'骰子必中時應該請到');
-  eq(S.players[0].life,before2-2,'請到的人燒掉的壽命一樣不退');
+  const log=[];
+  ok(!!G.settleTithe,'應該有 settleTithe（供奉結算）這一支');
+  G.settleTithe(log);
+  eq(S.players[0].life,before-T,`供奉一夜之後南家的壽命（原 ${before}，供奉 ${T}）`);
+  eq(legendsOf(S.players[0]).length,1,'付得出來時尊不該離開袋子');
+  ok(log.some(x=>/供奉/.test(x)),`夜末戰況 log 應該記一筆供奉：${JSON.stringify(log)}`);
+  /* 付不出：壽命壓到 1 */
+  S.players[0].life=1;
+  const log2=[];
+  G.settleTithe(log2);
+  eq(S.players[0].life,1,'付不出來時不得再扣壽命（不能靠供奉殺人）');
+  eq(legendsOf(S.players[0]).length,0,'付不出來 → 那一尊回天、從袋中移除');
+  eq(S.players[0].alive,true,'供奉回天不得把人弄出局');
+  eq(S.shrines[0].open,false,'供奉回天之後那一龕不得重開');
+  ok(log2.some(x=>/回天/.test(x)),`夜末戰況 log 應該記一筆回天：${JSON.stringify(log2)}`);
 });
 
-/* ---------- 9. 回天結清：局末還開著的龕把香火結清 ---------- */
-test('回天：局末沒被請走的尊收攤，香火依階段獎勵結清、之後不再重複結清',()=>{
+/* ================= G5 ④ 供奉互動口徑（使用者 2026-09-07 裁丙）================= */
+test('G5④送神回天鈕：任何一夜可主動放手——當夜起不再扣供奉、尊移出袋、那一龕不重開',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   S.rng=alwaysFail;
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
-  const h=Math.ceil(P/3);
-  let left=h; while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a}}); left-=a; }
-  const before=S.players[0].life;
-  const out=G.settleShrinesEnd?G.settleShrinesEnd():null;
-  eq(S.players[0].life-before,Math.ceil(h/3),`回天時 h=${h} 應退的壽命`);
-  ok(out&&out.length===1,'回天結清應該回報一筆結算紀錄');
-  const after=S.players[0].life;
-  if(G.settleShrinesEnd) G.settleShrinesEnd();
-  eq(S.players[0].life,after,'再叫一次回天不得重複發獎（香火已歸零）');
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  eq(legendsOf(S.players[0]).length,1,'南家應該先請到一尊');
+  const p=S.players[0], x=p.bag.find(y=>y.legend);
+  const life=p.life;
+  ok(!!G.releaseLegend,'應該有 releaseLegend（送神回天的單一事實來源）');
+  const msgs=[];
+  G.releaseLegend(p,x,msgs,'主動送神回天',false);
+  eq(legendsOf(p).length,0,'送神回天之後袋裡不該還有那一尊');
+  eq(p.life,life,'送神回天本身不扣壽命');
+  ok(msgs.some(t=>/回天/.test(t)),`戰況 log 應該記一筆：${JSON.stringify(msgs)}`);
+  /* 當夜起不再扣：同一夜再跑一次夜末供奉，壽命一毛都不動 */
+  G.settleTithe([]);
+  eq(p.life,life,'送神回天當夜起就不再供奉');
+  /* 那一龕不重開，也不能再被任何人請走 */
+  eq(S.shrines[0].open,false,'送神回天之後那一龕不得重開');
+  S.round=n0+1;
+  shrineNight(G,S,{1:{shrine:0,amt:3}});
+  eq(takenBy(S,0),0,'龕仍記在原本請走的人名下，不得被別人再請一次');
+  eq(legendsOf(S.players[1]).length,0,'別人也拿不到回天的那一尊');
 });
-
-/* ---------- 10. kill switch：OFF 不擲骰、ON 一定要擲骰 ---------- */
-test('LEGEND_ON kill switch：關掉時零亂數消耗、打開時一定會擲骰（兩邊都驗才有鑑別力）',()=>{
-  const G=loadGame(TARGET);
-  const count=on=>{
-    G.CFG.LEGEND_ON=on;
-    const S=setup(G); G.CFG.LEGEND_ON=on;   /* setup 內部會把它設回 true，這裡覆蓋回來 */
-    let n=0; const base=S.rng; S.rng=()=>{ n++; return base(); };
-    shrineNight(G,S,{0:{shrine:0,amt:2},1:{shrine:0,amt:1}});
-    return n;
-  };
-  eq(count(false),0,'LEGEND_ON=false 時 resolveShrines 消耗的亂數次數');
-  ok(count(true)>0,'LEGEND_ON=true、兩家都燒了香 → 應該有人擲骰（消耗亂數次數 >0）');
-});
-
-/* ---------- 11. 不進拍賣牌庫，但請得下來 ---------- */
-test('傳說不上拍賣桌：整局市集不會出現傳說法寶，但請神請得下來',()=>{
+test('G5④危急提示：只在「付完壽命 ≤TITHE_WARN」那一夜出現，同一尊只一次；headless 走預設「要」',()=>{
   const G=loadGame(TARGET); const S=setup(G);
-  let seen=0;
-  for(let r=0;r<12;r++){
-    S.round=r+1;
-    S.market=G.drawMarketFor(S.round);
-    seen+=S.market.filter(x=>x.legend).length;
-  }
-  eq(seen,0,'12 夜的市集裡出現的傳說法寶件數');
-  S.rng=alwaysHit;
-  shrineNight(G,S,{0:{shrine:1,amt:1}});
-  eq(legendsOf(S.players[0]).length,1,'請神應該請得下來（否則上一條零件數沒有鑑別力）');
-  eq(legendsOf(S.players[0])[0].f,'xianghuo','第 1 龕的陣營');
+  S.rng=alwaysFail;
+  const W=G.CFG.TITHE_WARN, T=G.CFG.INC_TITHE;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  ok(W!=null&&T!=null,`CFG.TITHE_WARN／INC_TITHE 應該存在：${W}／${T}`);
+  /* 壽命還高的時候：自動扣、不進待問清單 */
+  p.life=30;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(p.life,30-T,'門檻以上的夜：自動扣供奉');
+  eq(S.titheAsk.length,0,'門檻以上的夜不得跳提示');
+  /* 壓到剛好會踩門檻那一夜：進待問清單一次，而且**照預設「要」先扣**（headless 就是這條路） */
+  p.life=W+T;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(S.titheAsk.length,1,`付完剩 ${W}（≤TITHE_WARN）那一夜應該跳一次提示`);
+  eq(p.life,W,'headless 走預設「要」：照樣扣，尊留在袋裡');
+  eq(legendsOf(p).length,1,'預設「要」不得把尊拿走');
+  /* 同一尊只提示一次：下一夜即使還在門檻下也不再進待問清單 */
+  p.life=W+T;
+  S.titheAsk=[];
+  G.settleTithe([]);
+  eq(S.titheAsk.length,0,'同一尊只提示一次');
+  eq(p.life,W,'之後照舊自動扣');
+});
+test('G5④AI 放手走同一條門檻：AI 持有者在「付完 ≤TITHE_WARN」那一夜主動送神回天',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  p.ai={aggr:0.6};                 /* 把這一席改成 AI（判準是 p.ai，不是角色 id） */
+  p.life=G.CFG.TITHE_WARN+G.CFG.INC_TITHE;
+  const log=[];
+  G.settleTithe(log);
+  eq(legendsOf(p).length,0,'AI 在門檻上應該主動送神回天（同一條門檻）');
+  eq(p.life,G.CFG.TITHE_WARN+G.CFG.INC_TITHE,'AI 放手那一夜不扣供奉');
+  ok(log.some(t=>/回天/.test(t)),`戰況 log 應該記一筆：${JSON.stringify(log)}`);
 });
 
-/* ---------- 12. AI 啟發式掛在資料表上：ROLES[*].ai.inc 的覆寫要真的生效 ---------- */
-test('AI 燒香啟發式是資料表驅動：ROLES[*].ai.inc 覆寫 minLifeFrac 後那個角色就不拜了',()=>{
-  const G=loadGame(TARGET);
-  G.CFG.LEGEND_ON=true; G.CFG.EVENT_ON=false; G.CFG.RULE_ON=false; G.CFG.WISH_ON=false; G.CFG.MARK_ON=false;
-  G.makeState('solo',7);
-  const S=G.S, p=S.players[1];
-  p.bag=[{...G.POOL.find(x=>x.f==='zuling')}];
-  p.life=60; p.alive=true;
-  const base=G.aiIncense?G.aiIncense(p):null;
-  ok(base&&base.amt>0,'預設旋鈕下，袋裡有祖靈法寶、壽命充足的 AI 應該會拜（amt>0）');
-  const R=G.ROLES[p.roleId];
-  const saved=R.ai.inc;
-  R.ai.inc={minLifeFrac:99};                 /* 覆寫：壽命門檻拉到不可能達成 */
-  p.ai={...R.ai};
-  const after=G.aiIncense?G.aiIncense(p):null;
-  R.ai.inc=saved;
-  eq(after,null,'ROLES[*].ai.inc 覆寫 minLifeFrac 之後，同一個 AI 應該完全不拜');
+/* ================= G5 ④ 供奉的結算位置（覆審 M-2 甲，使用者裁定：神債最後收）================= */
+test('G5④神債最後收：壽命 2＋詛咒品 −1 → 先 drain 剩 1 → 付不出供奉 → 傳說回天、人活著（供奉不得殺人）',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=alwaysFail;
+  const n0=nightOf(G,S,0);
+  S.round=n0;
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const p=S.players[0];
+  eq(legendsOf(p).length,1,'南家應該先請到一尊');
+  /* 佈置：壽命 2、袋裡多一件每夜 −1 的詛咒品；夜末順序若是「供奉先、drain 後」＝2→1→0 出局，
+     順序若是「所有帳結完才收神債」＝2→1（drain）→ 付不出 → 傳說回天、人留在場上。 */
+  const curse=G.CURSES.find(x=>x.drain)||{n:'魔神仔的芭樂',f:'curse',p:0,curse:true,drain:1};
+  p.bag.push({...curse});
+  p.life=2;
+  S.players.forEach(q=>{ if(q.id!==p.id) q.life=60; });
+  ok(!!G.resolveBattles,'應該有 resolveBattles（夜末結算的那一支）');
+  G.resolveBattles();
+  eq(p.alive,true,'夜末結完之後南家應該還活著（供奉不得把人殺死）');
+  eq(p.life,1,'drain 扣掉 1 之後剩 1，供奉付不出來所以不再扣');
+  eq(legendsOf(p).length,0,'付不出供奉 → 那一尊回天、從袋中移除');
 });
 
-/* ---------- 13. 傳說進了紙紮夜戰真的有招（招式欄位掛得上） ---------- */
-test('傳說的招掛進紙紮夜戰：殘日的餘暉灼目讓對面前鋒 atk 降下來（換算成勝率位移）',()=>{
-  const G=loadGame(TARGET);
+/* ================= 五條守衛（覆審 MEDIUM-4：被刪但仍成立的舊案補回）================= */
+test('守衛：傳說不進 S.deck、也不在 POOL 裡——整局市集不會出現傳說，但請神請得下來',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const names=new Set(G.LEGENDS.map(L=>L.n));
+  ok(!G.POOL.some(x=>names.has(x.n)),'POOL 裡不得有傳說');
+  ok(!S.deck.some(x=>names.has(x.n)),'S.deck 裡不得有傳說');
+  /* 整局市集掃一遍（用 simulate 走完一局，看每一夜的 market 名單） */
+  const G2=loadGame(TARGET); G2.CFG.LEGEND_ON=true;
+  const run=G2.simulate(11);
+  let seen=0, taken=0;
+  run.nights.forEach(n=>{ n.market.forEach(nm=>{ if(names.has(nm)) seen++; });
+    if(n.shrine&&n.shrine.taken) taken+=n.shrine.taken.length; });
+  eq(seen,0,'整局市集不得出現任何一尊傳說');
+  ok(taken>0,`同一局裡請神要真的請得下來（否則這一案退化成恆真）：taken=${taken}`);
+});
+test('守衛：AI 燒香啟發式是資料表驅動——ROLES[*].ai.inc 覆寫 minLifeFrac 之後那個角色就不拜了',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const p=S.players[1];
+  p.ai={aggr:0.6}; p.life=60;
+  ok(G.aiIncense(p),'預設設定下這一席應該會燒香');
+  p.ai={aggr:0.6, inc:{minLifeFrac:99}};   /* 覆寫成「壽命低於 LIFE×99 就不拜」＝一定不拜 */
+  eq(G.aiIncense(p),null,'ROLES[*].ai.inc 覆寫 minLifeFrac 之後應該完全不燒香');
+  eq(G.incAiOf(p).cfg.minLifeFrac,99,'incAiOf 應該把個別覆寫疊在 CFG.INC_AI 上');
+});
+test('守衛：settleShrinesEnd 冪等——連叫兩次不得重複結清、壽命不得再變',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=()=>0.5;
+  S.round=1;
+  shrineNight(G,S,{0:{shrine:0,amt:3},1:{shrine:0,amt:2}});
+  const a=G.settleShrinesEnd();
+  const lives=S.players.map(q=>q.life);
+  ok(a&&a.length>0,`第一次回天結清應該有東西：${JSON.stringify(a)}`);
+  const b=G.settleShrinesEnd();
+  eq(JSON.stringify(S.players.map(q=>q.life)),JSON.stringify(lives),'第二次呼叫不得再改壽命');
+  eq(b.length,0,'第二次呼叫不得再結出任何一筆');
+});
+test('守衛：回天結清不得就地改寫「不是本輪收尾」的那一筆 S.history.life',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  S.rng=()=>0.5;
+  S.round=3;
+  S.history={nights:[{round:2,closed:true}],life:[[60,60,60,60],[59,59,59,59]],shrineDawn:null};
+  shrineNight(G,S,{0:{shrine:0,amt:3}});
+  const snapshot=JSON.stringify(S.history.life);
+  G.settleShrinesEnd();
+  eq(JSON.stringify(S.history.life),snapshot,
+    '末筆不是本輪（history 停在第 2 夜、現在是第 3 夜）時，回天結清不得覆寫它');
+  ok(S.history.shrineDawn&&S.history.shrineDawn.length>0,'但回天的紀錄本身要留下來');
+});
+test('守衛：傳說的招式真的進得了 paperWar——殘日的餘暉灼目會出現在對決 beats 裡',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
   G.CFG.PAPERWAR_ON=true;
-  const legend=(G.LEGENDS||[]).find(L=>L.f==='zuling')||null;
-  const foe=G.POOL.filter(x=>x.f==='xianghuo').slice(0,3).map(x=>({...x}));
-  const mine=G.POOL.filter(x=>x.f==='zuling').slice(0,2).map(x=>({...x}));
-  const seeds=Array.from({length:400},(_,i)=>i+1);
-  const without=G.duelBags(mine.map(x=>({...x})),foe.map(x=>({...x})),seeds).rateDecided;
-  const with_=G.duelBags([...mine.map(x=>({...x})),...(legend?[{...legend}]:[])],foe.map(x=>({...x})),seeds).rateDecided;
-  ok(with_>without,`加上祖靈系的傳說法寶之後勝率應該上升：${(without*100).toFixed(1)}% → ${(with_*100).toFixed(1)}%`);
-  const tr=legend?G.TRAITS[legend.unit.trait]:null;
-  ok(tr&&tr.blindFront>0,'那一尊的招應該帶 blindFront 效果欄位（餘暉灼目）');
+  const L=G.LEGENDS.find(x=>x.unit&&x.unit.trait==='eliteBlind');
+  ok(L,'應該有一尊帶 eliteBlind（殘日的餘暉灼目）');
+  const foe=G.POOL.filter(x=>!x.curse&&x.f==='xianghuo').slice(0,3).map(x=>({...x}));
+  let hit=0;
+  for(let sd=1;sd<=40;sd++){
+    const A={id:0,name:'A',bag:[{...L}],life:50,roleId:'human'};
+    const B={id:1,name:'B',bag:foe.map(x=>({...x})),life:50,roleId:'human'};
+    const rng=G.mulberry32(sd);
+    const war=G.paperWar(A,B,{rng,round:1,windId:0});
+    if(war&&war.beats&&war.beats.some(b=>b.kind==='trait'&&b.trId==='eliteBlind')) hit++;
+  }
+  ok(hit>0,`40 場裡至少要有一場記到 eliteBlind 的招式事件（實際 ${hit}）——招式沒接進引擎的話這裡恆 0`);
 });
 
-/* ---------- 14. 覆審 H4（使用者 2026-09-07 裁定甲）：燒香上限＝當前壽命 −1，不得把自己燒到 ≤0 ---------- */
-test('燒香夾限：壽命 2 選燒 3 只收 1 且活著；壽命 1 選燒 3 收 0、當夜沒有資格擲',()=>{
+/* ================= G5 ⑤ 階段獎勵依本龕最高 h 比例 ================= */
+test('G5⑤階段獎勵：區間依「本龕最高 h」的比例（不是固定門檻）——最高 9 時 h=3 退 1、h=6 退 3＋小法寶',()=>{
   const G=loadGame(TARGET); const S=setup(G);
-  const M=G.CFG.INC_MAX??3;
-  S.rng=alwaysHit;                     /* 骰子必中：有擲就一定請走，用「有沒有請走」反推有沒有擲 */
-  /* 壽命 2 的人選燒滿 → 只能燒 1（要留 1 點），扣完剩 1、還活著、而且照樣擲得到 */
-  S.players[0].life=2;
-  const a=shrineNight(G,S,{0:{shrine:0,amt:M}});
-  eq(a&&a.burn.length?a.burn[0].amt:0,1,`壽命 2 的人選燒 ${M}，實際燒掉的量（上限＝壽命−1）`);
-  eq(S.players[0].life,1,'燒完之後的壽命（要留 1 點）');
-  eq(S.players[0].alive,true,'燒香不得把自己燒死');
-  eq(legendsOf(S.players[0]).length,1,'夾限之後仍然有資格擲（骰子必中 → 應該請走）');
-  /* 壽命 1 的人選燒滿 → 一點都燒不了，當夜就不是「有燒香的人」，沒有資格擲 */
-  const S2=setup(G);
-  S2.rng=alwaysHit;
-  S2.players[0].life=1;
-  const b=shrineNight(G,S2,{0:{shrine:0,amt:M}});
-  eq(b&&b.burn.length?b.burn[0].amt:0,0,'壽命 1 的人實際燒掉的量');
-  eq(S2.players[0].life,1,'壽命 1 的人不該再被扣');
-  eq(legendsOf(S2.players[0]).length,0,'燒 0 就沒有資格擲（骰子必中也請不走）');
-  ok(G.incCap&&G.incCap({life:1})===0&&G.incCap({life:2})===1,'incCap 是單一事實來源：life 1→0、life 2→1');
+  S.rng=()=>0.5;                       /* 抽小法寶要用到；固定值讓結果可重現 */
+  const n0=nightOf(G,S,0);
+  /* 累到 南9／北6／西3：三夜各燒 3／2／1 */
+  for(let k=0;k<3;k++){ S.round=1+k; shrineNight(G,S,{0:{shrine:0,amt:3},1:{shrine:0,amt:2},2:{shrine:0,amt:1}}); }
+  eq(S.shrines[0].h[0]|0,9,'南家累計香火');
+  eq(S.shrines[0].h[1]|0,6,'北家累計香火');
+  eq(S.shrines[0].h[2]|0,3,'西家累計香火');
+  const l1=S.players[1].life, l2=S.players[2].life, bag1=S.players[1].bag.length;
+  S.round=n0;
+  const out=shrineNight(G,S,{});      /* 開標：不再加燒，直接比大小 */
+  eq(takenBy(S,0),0,'南家（香火 9）應該請走');
+  /* top=9 ⇒ 2/3×9=6：北家 h=6 落在「≥2top/3」→ 退 ⌈6/2⌉=3 ＋ 小法寶；西家 h=3 落在 [3,6) → 退 ⌈3/3⌉=1、無法寶 */
+  eq(S.players[1].life-l1,3,'北家（h=6，本龕最高 9 的 2/3）應退 ⌈6/2⌉=3 壽命');
+  eq(S.players[1].bag.length-bag1,1,'北家應另得一件該系小法寶');
+  eq(S.players[2].life-l2,1,'西家（h=3，本龕最高 9 的 1/3）應退 ⌈3/3⌉=1 壽命');
+  ok(out&&out.rewards.length===2,`階段獎勵應有兩筆：${JSON.stringify(out&&out.rewards)}`);
+  eq(S.shrines[0].h.reduce((a,b)=>a+b,0),0,'結清後全部香火歸零');
 });
 
-/* ---------- 15. 對抗式覆審 H2：回天結清不得覆寫「不屬於本輪」的壽命快照 ---------- */
-test('回天不砸紀錄：最後一筆壽命快照不是本輪收尾時，回天結清不得就地改寫它',()=>{
+/* ================= G5 ⑥ 尊→夜洗牌 ================= */
+test('G5⑥尊→夜洗牌：走 S.rng、同種子可重現、三夜互異且都在 CFG.SHRINE_NIGHTS 裡',()=>{
+  const G=loadGame(TARGET);
+  const nightsOf=seed=>{ const S=setup(G,seed); return S.shrines.map(sh=>sh.night); };
+  /* 行為斷言排最前面：掃 200 顆種子，第 0 龕應該三個請神夜都出現過（＝真的有洗牌、也真的排了夜） */
+  const seen=new Set();
+  for(let s=1;s<=200;s++) seen.add(nightsOf(s)[0]);
+  eq(seen.size,3,`200 顆種子裡第 0 龕應該三個請神夜都出現過（真的有洗牌、也真的排了夜）：${JSON.stringify([...seen])}`);
+  const a=nightsOf(7), b=nightsOf(7);
+  eq(JSON.stringify(a),JSON.stringify(b),'同一顆種子兩次 makeState 的尊→夜必須一模一樣（決定性）');
+  eq(new Set(a).size,3,`三龕的請神夜必須互異：${JSON.stringify(a)}`);
+  const NI=G.CFG.SHRINE_NIGHTS;
+  ok(Array.isArray(NI)&&NI.length===3,`CFG.SHRINE_NIGHTS 應該是三個請神夜：實際 ${JSON.stringify(NI)}`);
+  ok(a.every(n=>NI.includes(n)),`每一夜都要落在 CFG.SHRINE_NIGHTS 裡：${JSON.stringify(a)}`);
+});
+
+/* ================= G5 ⑦ OFF 路徑零 rng ================= */
+test('G5⑦kill switch：LEGEND_ON=false 時零亂數消耗、不建 S.shrines；打開時一定會洗尊→夜（兩邊都驗才有鑑別力）',()=>{
+  const G=loadGame(TARGET);
+  const count=g=>{ let n=0; const base=g.mulberry32(123); const S=g.makeState('solo',1); S.rng=()=>{n++;return base();}; return {S,get n(){return n;}}; };
+  /* OFF：makeState 之後不得有 S.shrines，且 resolveShrines／settleShrinesEnd 一次亂數都不耗 */
+  G.CFG.LEGEND_ON=false;
+  const off=count(G);
+  eq(off.S.shrines,undefined,'LEGEND_ON=false 時不得建立 S.shrines');
+  eq(G.resolveShrines(),null,'LEGEND_ON=false 時 resolveShrines 恆回 null');
+  eq(G.settleShrinesEnd(),null,'LEGEND_ON=false 時 settleShrinesEnd 恆回 null');
+  eq(off.n,0,'OFF 路徑不得消耗任何 S.rng()');
+  /* ON：三龕要建起來，而且**只有到了自己的請神夜才會開標**——
+     這一條同時是打開這一邊的行為斷言：1.0 的天井（h≥12 必請）會在任何一夜直接把尊送出去，
+     2.0 燒到 h=12 但還沒到請神夜時，一個都不該出手。 */
+  G.CFG.LEGEND_ON=true;
+  const S=setup(G,1);
+  eq(S.shrines?S.shrines.length:0,3,'LEGEND_ON=true 時應建三龕');
+  S.rng=alwaysFail;
+  /* 挑一座請神夜在第 7 夜以後的龕（舊版沒有 night ⇒ `sh.night||99` 讓它取第 0 龕，照樣跑得完） */
+  const idx=S.shrines.findIndex(sh=>(sh.night||99)>=7);
+  const use=idx>=0?idx:0;
+  for(let r=1;r<=5;r++){ S.round=r; shrineNight(G,S,{0:{shrine:use,amt:3}}); }
+  eq(takenBy(S,use),null,'燒到 h≥12 但還沒到請神夜——1.0 的天井會在這裡直接把尊送出去，2.0 不得有任何人請走');
+  ok((S.shrines[use].h[0]|0)>=12,`活性：香火真的累到 12 以上（不是因為沒燒到才沒人請走）：${S.shrines[use].h[0]}`);
+  ok(S.shrines.every(sh=>typeof sh.night==='number'),`每一龕都要帶 night：${JSON.stringify(S.shrines.map(s=>s.night))}`);
+});
+
+/* ================= G5 補：燒香夾限與封籤留痕（1.0 已有、2.0 不得回歸） ================= */
+test('G5補：燒香夾限＋封籤留痕——壽命 3 封 3 → 實燒 2，clip 事件與 shrineStat 都要有',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   S.rng=alwaysFail;
-  const P=G.CFG.INC_PITY??9, M=G.CFG.INC_MAX??3;
-  const h=Math.ceil(P/3);
-  let left=h;
-  while(left>0){ const a=Math.min(M,left); shrineNight(G,S,{0:{shrine:0,amt:a}}); left-=a; }
-  /* 模擬「異事夜殺到剩一人」那條路：那一夜沒有 recordNightEnd，末筆壽命快照停在前一夜 */
-  S.history.nights=[];
-  S.history.life=[[60,60,60,60]];
-  const before=JSON.stringify(S.history.life);
-  const out=G.settleShrinesEnd?G.settleShrinesEnd():null;
-  ok(out&&out.length===1,'回天應該結清一筆（否則下一條沒有鑑別力）');
-  eq(JSON.stringify(S.history.life),before,'末筆不屬於本輪時，壽命曲線不得被就地改寫');
+  S.players[0].life=3;
+  S.round=1;
+  const out=shrineNight(G,S,{0:{shrine:0,amt:3}});
+  eq(S.players[0].life,1,'壽命 3 燒 3 應被夾成 2（留 1 口氣）');
+  eq(S.shrines[0].h[0]|0,2,'累計香火應該是實燒的 2');
+  ok(out&&out.clip&&out.clip.length===1,`clip 事件應有一筆：${JSON.stringify(out&&out.clip)}`);
+  eq(S.shrineStat.clip,1,'shrineStat.clip');
 });
 
-/* ---------- 16. N1（使用者 2026-09-07 裁定乙）：同香火並列者的擲骰先後＝S.rng() 洗牌 ----------
-   凍結檔 docs/experiments/2026-09-07-acceptance-legend-n1n7.md 的 A3。
-   量法：把 INC_K 拉到 1e9 讓「誰都擲不中」，於是 out.rolls 就是完整的擲序快照，第一筆＝先擲的人。
-   round 固定成 1（舊版的風位序只吃 round，固定 round 之後舊版必然永遠同一家先擲 → 對基準 SHA 必紅
-   在「每一家至少先擲 1 次」這條**行為**斷言上，不是 TypeError）。 */
-test('N1 同香火洗牌：固定 round、四家同 h，200 顆種子裡每一家都先擲過，且沒有任何一家超過 50%',()=>{
-  const G=loadGame(TARGET);
-  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 四家都會擲到，rolls 是完整擲序 */
-  const first=[0,0,0,0]; let n=0;
-  for(let seed=1;seed<=200;seed++){
-    const S=setup(G,seed);
-    S.round=1;                              /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
-    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
-    ok(out&&out.rolls&&out.rolls.length===4,`四家都燒了 1、K 極大 → 這一夜應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
-    first[out.rolls[0].pid]++; n++;
-  }
-  [0,1,2,3].forEach(i=>ok(first[i]>=1,
-    `座位 ${i} 在 200 顆種子裡先擲的次數應該 ≥1（風位序下同一 round 永遠同一家先擲），實際 ${first[i]}（分布 ${first.join('/')})`));
-  [0,1,2,3].forEach(i=>ok(first[i]<=n*0.5,
-    `座位 ${i} 先擲的比例不得超過 50%，實際 ${(first[i]/n*100).toFixed(1)}%（分布 ${first.join('/')})`));
+/* ================= G10 傳說共鳴 ================= */
+test('G10傳說共鳴：持殘日（祖靈）＋2 件祖靈法寶 → facCount("zuling")=4（傳說算 2 件）',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const zu=G.POOL.filter(x=>x.f==='zuling'&&!x.curse).slice(0,2).map(x=>({...x}));
+  const L=G.LEGENDS.find(x=>x.f==='zuling');
+  const p=S.players[0];
+  p.bag=[...zu];
+  eq(G.facCount(p,'zuling'),2,'先確認：兩件祖靈＝2 件（沒有傳說時的基準）');
+  p.bag=[...zu,{...L}];
+  eq(G.facCount(p,'zuling'),4,'加上殘日之後：本體 1 件＋共鳴額外 1 件＝4 件');
+  eq(G.facCount(p,'xianghuo'),0,'傳說共鳴只加自己那一系');
+  /* 兩份同名傳說不疊加（collectEffects 的 Set 去重，GUIDE §2.5） */
+  p.bag=[...zu,{...L},{...L}];
+  eq(G.facCount(p,'zuling'),5,'兩份殘日：本體 2 件＋共鳴只加 1 次＝5（同名法寶效果不疊加）');
 });
 
-/* ---------- 16c. N1 洗牌無偏：m=4 並列組跑 20000 次，四家首擲比值 ∈[0.95,1.05] ----------
-   為什麼要有這一案（對抗式覆審 HIGH-2）：把 `shrineRollOrder` 的 Fisher–Yates 換成
-   `sort(()=>S.rng()-0.5)`（偏倚洗牌）之後，第 16 案與閘門 A1 **仍然全綠**——因為真實牌局的並列組
-   97.6% 是 m=2，而 V8 的隨機比較子在 m=2 恰好無偏，偏倚只在 m≥3 才顯現；第 16 案的「≤50%」
-   對 m=4 也太寬（偏倚洗牌最壞只到 35.9%）。所以這一案**固定 m=4、把帶收到 [0.95,1.05]、樣本拉到 20000**。
-   量法走**真實路徑**：不直接呼叫匯出的 shrineRollOrder，而是每一輪把四家的 h 重設成同一個值、
-   各燒 1，讓 resolveShrines 自己排序，再讀 out.rolls[0]——這樣舊版（風位序）跑同一案會紅在
-   「比值 4.000」這個**行為數字**上，而不是紅在「沒有這個匯出」的屬性錯誤。 */
-test('N1 洗牌無偏：m=4 同 h 並列組 20000 次，四家首擲比值都在 [0.95,1.05]',()=>{
-  const G=loadGame(TARGET);
-  G.CFG.INC_K=1e9;                          /* 誰都擲不中 ⇒ 每輪都看得到完整擲序、龕不會關 */
-  const S=setup(G,20260907);
-  S.round=1;                                /* 固定 round：舊版的風位序在同一 round 下恆為同一家先擲 */
-  S.players.forEach(p=>{ p.life=10000000; });
-  const sh=S.shrines[0];
-  const N=20000, first=[0,0,0,0];
-  for(let k=0;k<N;k++){
-    S.players.forEach(p=>{ sh.h[p.id]=5; }); /* 每輪重設成同 h（燒 1 之後四家都是 6，並列 m=4） */
-    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
-    ok(out&&out.rolls&&out.rolls.length===4,`第 ${k} 輪應該有 4 筆擲骰紀錄，實際 ${out&&out.rolls?out.rolls.length:'無'}`);
-    first[out.rolls[0].pid]++;
-  }
-  const exp=N/4;
-  [0,1,2,3].forEach(i=>{
-    const r=first[i]/exp;
-    ok(r>=0.95&&r<=1.05,
-      `座位 ${i} 的首擲比值應在 [0.95,1.05]，實際 **${r.toFixed(4)}**（首擲次數 ${first.join('/')}，公平期望各 ${exp}）`);
+/* ================= G11 部隊預覽 ================= */
+test('G11部隊預覽：5 個袋子的逐件隻數／atk／hp／拍序／招式名，逐項等於 buildArmy 展開與 TRAITS 表',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  const unitRow=G.unitRow||(()=>null);   /* 舊版沒有這一支：讓後面的行為斷言自己紅，不紅在屬性缺失 */
+  const pool=G.POOL.filter(x=>!x.curse);
+  const byF=f=>pool.filter(x=>x.f===f);
+  const curse=G.CURSES?G.CURSES[0]:{n:'冥婚紅包',f:'curse',p:-5,curse:true};
+  const bags=[
+    byF('zuling').slice(0,3).map(x=>({...x})),
+    byF('xianghuo').slice(0,3).map(x=>({...x})),
+    byF('yinqi').slice(0,3).map(x=>({...x})),
+    [...byF('zuling').slice(0,2).map(x=>({...x})), {...curse}],                    /* 含詛咒品 */
+    [...byF('zuling').slice(0,2).map(x=>({...x})), ...G.LEGENDS.map(L=>({...L}))], /* 含傳說＋共鳴件 */
+  ];
+  bags.forEach((bag,bi)=>{
+    const a=G.buildArmy(bag);
+    let ti=0;
+    bag.forEach(it=>{
+      const r=unitRow(it);
+      if(it.curse){ ok(r&&r.curse,`袋${bi}「${it.n}」是詛咒品，預覽應標示不召喚（實際 ${JSON.stringify(r)}）`); return; }
+      const t=a.teams[ti++];
+      ok(r,`袋${bi}「${it.n}」應該有預覽`);
+      eq(r.n,t.units.length,`袋${bi}「${it.n}」隻數`);
+      eq(r.atk,t.units[0].atk,`袋${bi}「${it.n}」atk`);
+      eq(r.hp,t.units[0].max,`袋${bi}「${it.n}」hp`);
+      eq(r.body,t.body,`袋${bi}「${it.n}」體型`);
+      const beat=t.fac?G.BEAT_FAC.indexOf(t.fac)+1:0;
+      eq(r.beat,beat,`袋${bi}「${it.n}」出手拍`);
+      const tr=(it.unit&&it.unit.trait)?G.TRAITS[it.unit.trait]:null;
+      eq(r.move,tr?tr.name:'',`袋${bi}「${it.n}」招式名`);
+      eq(r.desc,tr?tr.desc:'',`袋${bi}「${it.n}」招式說明`);
+    });
   });
 });
-
-/* ---------- 16b. N1 的另一半：h 不同時擲序恆為 h 降冪，且與 seed 無關 ---------- */
-test('N1 不同香火不洗牌：h 不同時 out.rolls 恆為 h 由高到低，50 顆種子完全一致',()=>{
-  const G=loadGame(TARGET);
-  G.CFG.INC_K=1e9;
-  for(let seed=1;seed<=50;seed++){
-    const S=setup(G,seed);
-    S.round=1;
-    S.shrines[0].h[0]=6; S.shrines[0].h[1]=4; S.shrines[0].h[2]=2; S.shrines[0].h[3]=0; /* 燒 1 之後＝7/5/3/1，四家皆相異 */
-    const out=shrineNight(G,S,{0:{shrine:0,amt:1},1:{shrine:0,amt:1},2:{shrine:0,amt:1},3:{shrine:0,amt:1}});
-    eq(out.rolls.map(r=>r.pid).join(','),'0,1,2,3',`seed ${seed}：h 相異時的擲序應恆為 h 降冪`);
-    eq(out.rolls.map(r=>r.h).join(','),'7,5,3,1',`seed ${seed}：擲序對應的 h`);
-  }
+/* 覆審 HIGH-1 乙（使用者裁定）：市集**卡面**只留「隻數・攻・血・拍」，招式名＋效果移到卡片詳情（mode 'full'）。
+   所以這一案分兩半驗：卡面那一行必須有數字、**不得**有招式；詳情那一行必須有招式且對得上 TRAITS。 */
+test('G11市集卡招式行：27 件法寶＋3 尊傳說——卡面只印數字、卡片詳情印招式且與 TRAITS 對得上',()=>{
+  const G=loadGame(TARGET); setup(G);
+  G.CFG.PAPERWAR_ON=true;
+  const unitRowText=G.unitRowText||(()=>'');   /* 同上：讓行為斷言（那一行不得為空）先紅 */
+  const unitRow=G.unitRow||(()=>null);
+  const all=[...G.POOL.filter(x=>!x.curse),...G.LEGENDS];
+  eq(all.length,30,'27 件法寶＋3 尊傳說');
+  all.forEach(it=>{
+    const card=unitRowText(it);                 /* 卡面（預設 mode） */
+    const full=unitRowText(it,null,'full');     /* 卡片詳情 */
+    ok(card&&card.length>0,`「${it.n}」的卡面部隊預覽一行不得為空`);
+    const tr=G.TRAITS[it.unit.trait];
+    ok(tr,`「${it.n}」應該有 TRAITS 表項`);
+    const r=unitRow(it);
+    ok(r&&card.indexOf('×'+r.n)>=0,`「${it.n}」卡面那一行應含隻數 ×${r.n}：${card}`);
+    ok(card.indexOf('攻 '+r.atk)>=0&&card.indexOf('血 '+r.hp)>=0,`「${it.n}」卡面那一行應含攻／血：${card}`);
+    ok(card.indexOf(tr.name)<0,`「${it.n}」**卡面不得**印招式名（已移到卡片詳情）：${card}`);
+    ok(full.indexOf(tr.name)>=0,`「${it.n}」卡片詳情應含招式名「${tr.name}」：${full}`);
+    ok(full.indexOf(tr.desc)>=0,`「${it.n}」卡片詳情應含招式說明：${full}`);
+  });
 });
-
-/* ---------- 17. 覆審 N2：封籤被 incCap 夾掉時，不得默默發生——要留下事件與計數 ---------- */
-test('封籤被夾要看得見：壽命 3 封 3 → 實燒 2，clip 事件、shrineStat、夜末戰況 log 三處都要有',()=>{
+/* 角色平衡卷（v0.47）覆審 M6：帶 curseWard 的角色（閭山法師）紙紮側不扣 sd.curses，
+   對他印「只算纏身」是假的——部隊預覽那一行要跟著換字。 */
+test('G11詛咒品那一行看主人：一般人印「只算纏身」，帶 curseWard 的印「已淨化」',()=>{
   const G=loadGame(TARGET); const S=setup(G);
-  const M=G.CFG.INC_MAX??3;
-  S.rng=alwaysFail;
-  S.players[0].life=3;                       /* 上限＝2，封 3 一定會被夾 */
-  const out=shrineNight(G,S,{0:{shrine:0,amt:M}});
-  ok(out&&out.clip&&out.clip.length===1,'被夾掉時 resolveShrines 應該回報一筆 clip 事件');
-  eq(out.clip[0].want,M,'clip 記的「封籤上寫的量」');
-  eq(out.clip[0].amt,2,'clip 記的「實際燒掉的量」');
-  eq(out.burn.length?out.burn[0].amt:0,2,'實際燒掉的量');
-  eq(S.players[0].life,1,'燒完剩下的壽命');
-  ok(S.shrineStat&&S.shrineStat.sealed===1&&S.shrineStat.clip===1&&S.shrineStat.clipZero===0,
-     `shrineStat 要記到封籤/被夾/完全蒸發：${JSON.stringify(S.shrineStat&&{s:S.shrineStat.sealed,c:S.shrineStat.clip,z:S.shrineStat.clipZero})}`);
-  ok(S.shrineClipMsgs&&S.shrineClipMsgs.length===1&&/實燒 2/.test(S.shrineClipMsgs[0]),
-     `夜末戰況 log 要有一句「封 → 實燒」：${JSON.stringify(S.shrineClipMsgs)}`);
-  /* 反面：燒得起的時候不得留下 clip 事件（否則這條斷言沒有鑑別力） */
-  const S2=setup(G); S2.rng=alwaysFail; S2.players[0].life=60;
-  const out2=shrineNight(G,S2,{0:{shrine:0,amt:M}});
-  eq(out2.clip.length,0,'壽命夠的時候不該有 clip 事件');
-  ok(!(S2.shrineClipMsgs&&S2.shrineClipMsgs.length),'壽命夠的時候不該有戰況 log');
+  G.CFG.PAPERWAR_ON=true;
+  const curse=G.CURSES[0];
+  const plain=S.players[1]; plain.roleId='human'; plain.bag=[];
+  const txtPlain=(G.unitRowText||(()=>''))(curse,plain);
+  ok(/纏身/.test(txtPlain)&&!/淨化/.test(txtPlain),`一般人看到的詛咒品說明：${txtPlain}`);
+  /* 找一個真的帶 curseWard 的角色（資料表驅動，不寫死角色 id） */
+  const rid=Object.keys(G.ROLES).find(k=>G.ROLES[k].traits&&G.ROLES[k].traits.curseWard);
+  ok(rid,`應該有角色帶 traits.curseWard：${JSON.stringify(Object.keys(G.ROLES))}`);
+  const ward=S.players[2]; ward.roleId=rid; ward.bag=[];
+  ok(G.traitMax(ward,'curseWard',0)>0,'治具設定的那一席應該真的帶 curseWard');
+  const txtWard=(G.unitRowText||(()=>''))(curse,ward);
+  ok(/淨化/.test(txtWard)&&!/只算纏身/.test(txtWard),`帶 curseWard 的人看到的詛咒品說明：${txtWard}`);
+});
+test('G11袋子總計：總隻數／總攻／總血與 buildArmy(整袋) 一致，共鳴 hp 與 pwResLv 一致',()=>{
+  const G=loadGame(TARGET); const S=setup(G);
+  G.CFG.PAPERWAR_ON=true;
+  const zu=G.POOL.filter(x=>x.f==='zuling'&&!x.curse).slice(0,3).map(x=>({...x}));
+  const p=S.players[0]; p.bag=[...zu,{...G.LEGENDS.find(x=>x.f==='zuling')}];
+  const a=G.buildArmy(p.bag);
+  let n=0,atk=0,hp=0;
+  a.teams.forEach(t=>t.units.forEach(u=>{n++;atk+=u.atk|0;hp+=u.max|0;}));
+  const html=G.bagPreviewHTML?G.bagPreviewHTML(p):'';
+  ok(html.indexOf(`${n} 隻・總攻 ${atk}・總血 ${hp}`)>=0,`袋子總計那一行應該是「${n} 隻・總攻 ${atk}・總血 ${hp}」：${html.slice(0,200)}`);
+  const lv=G.pwResLv(p,'zuling');
+  ok(lv>0,`四件祖靈（含傳說算 2 件）應該有共鳴：lv=${lv}`);
+  ok(html.indexOf(`共鳴 該系那一拍 hp+${lv}`)>=0,`袋子總計那一行應該印出「共鳴 該系那一拍 hp+${lv}」：${html.slice(0,300)}`);
 });
 
-/* ---------- 21. N1 決定性（凍結檔 A2）：洗牌只走 S.rng，同一批種子連跑兩次逐位元組相等 ----------
-   反面：引擎裡不得出現 Math.random（洗牌用它就會每次不同、trace 失去可比性）。 */
-test('N1 決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎零 Math.random',()=>{
+/* ================= 決定性（1.0 已有、2.0 不得回歸） ================= */
+test('決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎段零 Math.random',()=>{
+  const G1=loadGame(TARGET), G2=loadGame(TARGET);
+  G1.CFG.LEGEND_ON=true; G2.CFG.LEGEND_ON=true;
   const seeds=Array.from({length:20},(_,i)=>i+1);
-  const tr=()=>{ const g=loadGame(TARGET); g.CFG.LEGEND_ON=true; return JSON.stringify(g.trace(seeds)); };
-  const a=tr(), b=tr();
-  ok(a===b,`兩次 trace 應逐位元組相等（長度 ${a.length}/${b.length}）`);
+  eq(JSON.stringify(G1.trace(seeds)),JSON.stringify(G2.trace(seeds)),'同一份程式碼兩次 trace');
   const html=fs.readFileSync(TARGET,'utf8');
   const code=html.match(/<script>[\s\S]*?<\/script>/)[0];
-  eq((code.match(/Math\.random/g)||[]).length,0,'引擎 <script> 段裡 Math.random 的出現次數');
+  eq((code.match(/Math\.random/g)||[]).length,0,'引擎 <script> 段不得出現 Math.random');
 });
 
-console.log(`\n傳說三尊「請神」單元測試：${pass} 過 / ${fail} 失敗　（目標檔 ${path.basename(TARGET)}）`);
+console.log(`\n${pass} 過 / ${fail} 失敗`);
 if(fail){ console.log('\n失敗清單：'); fails.forEach(f=>console.log('  - '+f)); process.exit(1); }
