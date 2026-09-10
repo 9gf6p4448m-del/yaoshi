@@ -129,6 +129,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
      ⇒ 桌心空白處的 tap 落到 #tray，押寶夜的 stepper 仍然點得到（T5 兩邊都要成立）。 */
   #felt.hollow #stage{position:relative;z-index:2;pointer-events:none}
   #felt.hollow #stage>*{pointer-events:auto}
+  /* 掏空之後這幾條浮在 3D 桌面上：底下不再是玻璃面板，而是會亮起來的燈籠光與粒子（實測 preshrine 那一張
+     右半被一團 bloom 洗白、心願條的字讀不到）。底色從 rgba(0,0,0,.25) 加深到 .62 就夠——
+     不用 backdrop-filter：iPhone 牌桌基準只有 55–58 fps，一趟全區模糊換不到等值的可讀性。 */
+  #felt.hollow .preview,#felt.hollow .wishbar,#felt.hollow .stakebar{background:rgba(8,5,16,.62)}
 }
 /* #tray：非掏空頁與直式一律不存在意義（凍結檔 §2.2 寫死） */
 #tray{display:none}

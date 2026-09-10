@@ -52,9 +52,13 @@ const main=async()=>{
     await page.evaluate(sd=>{ CFG.T=1;
       const F=window.__yaoshi.PW_FX; for(const k of Object.keys(F)) if(/_MS$/.test(k)) F[k]=1;
       window.__yaoshi.newGame('solo',sd,['qingmian']); },SEED);
+    /* 請神夜清單：3.0（v0.53）把「尊→夜」整組拿掉了（GUIDE §11.26 第 1 點），`sh.night` 不再存在——
+       舊寫法 `S.shrines.map(s=>s.night)` 會全拿到 undefined、`Math.min(...)` 變 NaN，
+       ③ 那一張於是直接 break 掉、拍出跟 ② 一模一樣的畫面（掏空卷 v0.55a 的 contact sheet 才發現）。
+       改問唯一事實來源 `CFG.SHRINE_NIGHTS`（`isShrineNight` 等三支問的也是它）。 */
     const state=()=>page.evaluate(`(()=>{const b=document.getElementById('mainbtn');const S=window.__yaoshi.S;
       return {t:b?b.textContent:'',d:b?b.disabled:true,round:S?S.round:0,
-        nights:S&&S.shrines?S.shrines.filter(s=>s.open).map(s=>s.night):[]};})()`);
+        nights:(typeof CFG!=='undefined'&&CFG.SHRINE_NIGHTS)?CFG.SHRINE_NIGHTS.slice():[]};})()`);
     const step=async()=>{ const st=await state();
       if(!st.d) await page.click('#mainbtn');
       else await page.evaluate(`(()=>{const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled);if(e)e.click();})()`);
