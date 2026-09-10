@@ -614,25 +614,45 @@ export default {
    docs/experiments/2026-09-10-plan-fx-tiers.md §5。 */
 export const SHORT = {
   /* 斬瘟｜辨識：高舉的劍猛甩＋一片劍光橫掃過對面整排 */
+  /* 斬瘟｜辨識：★把劍畫出來★＋一片劍光橫掃過對面整排
+     （盲讀 r1：短版只有手臂動作與腳下光弧時，讀者說「沒拔劍」——本體不出現就認不出來） */
   eliteCleave(st) {
     const gen = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const foot = st.foot(gen, new THREE.Vector3());
     const arc = st.disc(foot, 0.75, { opacity: 0 });
     arc.scale.setScalar(0.3);
-    st.tween({ ms: 85, ease: 'wind', update(t, e) { // 舉劍：右臂高舉、胸口後仰側擰
+    /* 法寶本體：一把 0.66 長的光刃，掛在右手上。頂層先建好（opacity 0），
+       出招那一刻才亮——第一幀就看得到「他手上有把劍」。 */
+    const blade = st.spawn(new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.66, 0.045), st.glow(undefined, 0)), 'blade');
+    const hilt = st.spawn(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.05), st.glow(undefined, 0)), 'blade');
+    const hand = new THREE.Vector3();
+    const place = (ang, lift) => {
+      st.worldOf(gen, 'RArm1El', hand);
+      blade.position.copy(hand); blade.position.y += lift;
+      blade.rotation.set(0, 0, ang);
+      hilt.position.copy(blade.position); hilt.position.y -= 0.3 * Math.cos(ang);
+      hilt.rotation.set(0, 0, ang);
+    };
+    place(0, 0.34);
+    st.tween({ ms: 85, ease: 'wind', update(t, e) { // 舉劍：右臂高舉、胸口後仰側擰，劍身同時現形
       st.rot(gen, 'RArm1Rt', -1.15 * e, 0, -0.3 * e); st.rot(gen, 'RArm1El', -0.5 * e);
       st.rot(gen, 'Chest', -0.16 * e, 0.24 * e, 0); st.rot(gen, 'HeadRoot', -0.12 * e);
       st.rim(gen, 1 + 1.3 * e);
+      blade.material.opacity = Math.min(1, e * 2.2); hilt.material.opacity = Math.min(1, e * 2.2);
+      place(-0.35 * e, 0.34 + 0.1 * e);
     } });
-    st.tween({ ms: 80, delay: 82, ease: 'strike', update(t, e) { // 斬：臂胸猛甩到前下方、踏半步
+    st.tween({ ms: 80, delay: 82, ease: 'strike', update(t, e) { // 斬：臂胸猛甩到前下方、劍跟著劈過去
       st.rot(gen, 'RArm1Rt', -1.15 + 1.9 * e, 0, -0.3 + 0.6 * e); st.rot(gen, 'RArm1El', -0.5 + 0.7 * e);
       st.rot(gen, 'Chest', -0.16 + 0.36 * e, 0.24 - 0.5 * e, 0);
       st.move(gen, 0, 0, 0.13 * e);
+      place(-0.35 + 2.5 * e, 0.44 - 0.5 * e);
     }, done() { st.punch(0.55); } });
     st.grow(arc, { ms: 95, delay: 112, from: 0.3, to: 1.7 }); // 一片劍光以腳下為軸掃過對面整排
     st.fade(arc, { ms: 95, delay: 112, from: 0.7, to: 0 });
+    st.fade(blade, { ms: 70, delay: 158, from: 1, to: 0 });
+    st.fade(hilt, { ms: 70, delay: 158, from: 1, to: 0 });
     st.target.forEach((f, i) => { if (i < 4) st.flinch([f], { delay: 128 + i * 12, strength: 0.95, burst: i === 0 }); });
-    st.tween({ ms: 70, delay: 162, ease: 'inout', update(t, e) { // 收劍
+    st.tween({ ms: 70, delay: 158, ease: 'inout', update(t, e) { // 收劍
       const k = 1 - e;
       st.rot(gen, 'RArm1Rt', 0.75 * k, 0, 0.3 * k); st.rot(gen, 'RArm1El', 0.2 * k);
       st.rot(gen, 'Chest', 0.2 * k, -0.26 * k, 0); st.rot(gen, 'HeadRoot', -0.12 * k);

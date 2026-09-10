@@ -67,9 +67,9 @@ export default {
     if (st.tier === 3) {
       const foot = st.foot(sun, new THREE.Vector3());
       const after = st.ring(foot, 0.5, 0.05, { opacity: 0 });
-      st.grow(after, { ms: 320, delay: 900, from: 0.4, to: 1.9 });
-      st.fade(after, { ms: 320, delay: 900, from: 0.5, to: 0 });
-      st.tween({ ms: 380, delay: 900, ease: 'pulse', update(t, e) { st.rim(sun, 1 + 0.5 * e); st.move(sun, 0, -0.03 * e, 0); } });
+      st.grow(after, { ms: 320, delay: 910, from: 0.4, to: 1.9 });
+      st.fade(after, { ms: 320, delay: 910, from: 0.5, to: 0 });
+      st.tween({ ms: 380, delay: 910, ease: 'pulse', update(t, e) { st.rim(sun, 1 + 0.5 * e); st.move(sun, 0, -0.03 * e, 0); } });
       st.tween({ ms: 260, delay: 1020, ease: 'inout', update(t, e) { st.rot(sun, 'Disc', 0, 0, 0.35 * (1 - e)); } });
     }
   },
@@ -642,21 +642,31 @@ export const SHORT = {
   },
 
   /* 祖靈先手｜辨識：眼睛猛地睜圓、一道注視射向對面 */
+  /* 祖靈先手｜辨識：★一顆睜圓的大眼★＋一道注視射向對面
+     （盲讀 r1：只有眼瞼骨骼在動時讀者認不出來——眼球本體要真的出現在畫面上） */
   wardFirst(st) {
     const eye = st.byBody(st.actor, 'ward')[0] || st.actor[0];
     const from = st.worldOf(eye, 'Sl0', new THREE.Vector3());
     const aim = st.target.length ? st.worldOf(st.target[0], null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
     const gaze = st.beam(from, aim, { opacity: 0 });
     const ring = st.ring(st.foot(eye, new THREE.Vector3()), 0.36, 0.05, { opacity: 0 });
-    st.tween({ ms: 85, ease: 'in', update(t, e) { // 凝視：眼瞼壓下、眉壓低
+    /* 法寶本體：眼位上疊一顆眼白（大球）＋一顆瞳（小球）。睜圓＝眼白脹大、瞳縮小。 */
+    const sclera = st.orb(from, 0.13, { opacity: 0 });
+    const pupil = st.orb(from.clone().addScaledVector(st.dir, 0.06), 0.055, { opacity: 0, color: 0x120a1e });
+    sclera.scale.setScalar(0.35); pupil.scale.setScalar(1.5);
+    st.tween({ ms: 85, ease: 'in', update(t, e) { // 凝視：眼瞼壓下、眉壓低，眼白微微透出來
       st.rot(eye, 'Sl0', 0.18 * e); st.rot(eye, 'Sl1', 0.14 * e); st.rot(eye, 'Br0', 0.2 * e); st.rot(eye, 'Br1', 0.16 * e);
       st.scale(eye, 1 - 0.03 * e); st.rim(eye, 1 + 0.4 * e);
+      sclera.material.opacity = 0.45 * e; sclera.scale.setScalar(0.35 + 0.25 * e);
+      pupil.material.opacity = 0.7 * e;
     } });
-    st.tween({ ms: 80, delay: 85, ease: 'out', update(t, e) { // 猛地睜圓、邊光暴亮
+    st.tween({ ms: 80, delay: 85, ease: 'out', update(t, e) { // 猛地睜圓：眼白暴脹、瞳孔縮成一點
       const k = 1 - e;
       st.rot(eye, 'Sl0', 0.18 * k - 0.26 * e); st.rot(eye, 'Sl1', 0.14 * k - 0.2 * e);
       st.rot(eye, 'Br0', 0.2 * k - 0.12 * e); st.rot(eye, 'Br1', 0.16 * k - 0.1 * e);
       st.scale(eye, 1 - 0.03 * k + 0.06 * e); st.rim(eye, 1 + 0.4 * k + 2.2 * e);
+      sclera.material.opacity = 0.45 + 0.5 * e; sclera.scale.setScalar(0.6 + 0.75 * e);
+      pupil.scale.setScalar(1.5 - 0.9 * e); pupil.material.opacity = 0.7 + 0.3 * e;
     }, done() { st.punch(0.3); } });
     st.fade(gaze, { ms: 70, delay: 120, from: 0.95, to: 0 }); // 一道注視射向對面
     st.grow(ring, { ms: 90, delay: 110, from: 0.3, to: 1.4 });
@@ -664,7 +674,9 @@ export const SHORT = {
     st.actor.forEach((f, i) => st.tween({ ms: 90, delay: 120 + i * 8, ease: 'snap', update(t, e) { // 全體搶半步
       st.move(f, 0, 0, 0.09 * e);
     } }));
-    st.tween({ ms: 65, delay: 165, ease: 'inout', update(t, e) { // 眼半闔
+    st.fade(sclera, { ms: 62, delay: 165, from: 0.95, to: 0 });
+    st.fade(pupil, { ms: 62, delay: 165, from: 1, to: 0 });
+    st.tween({ ms: 62, delay: 165, ease: 'inout', update(t, e) { // 眼半闔
       const k = 1 - e;
       st.rot(eye, 'Sl0', -0.26 * k); st.rot(eye, 'Sl1', -0.2 * k); st.rot(eye, 'Br0', -0.12 * k); st.rot(eye, 'Br1', -0.1 * k);
       st.scale(eye, 1 + 0.06 * k); st.rim(eye, 1 + 2.2 * k);
@@ -672,6 +684,8 @@ export const SHORT = {
   },
 
   /* 天雷｜辨識：胸前火種升空＋兩道天雷從高處劈下 */
+  /* 天雷｜辨識：★三道劈下來的閃電★（本體＝雷本身，越早出現越好）＋胸前火種升空
+     （盲讀 r1：一版的雷只在 150ms 後閃 62ms，讀者的取樣幀常常錯過） */
   boltGamble(st) {
     const bird = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const prey = st.byBody(st.target, 'swarm')[0] || st.target[0] || null;
@@ -680,23 +694,24 @@ export const SHORT = {
     const sky = mark.clone(); sky.y += 1.5;
     const ember = st.orb(seed, 0.06, { opacity: 0.9 });
     ember.scale.setScalar(0.3);
-    st.tween({ ms: 85, ease: 'out', update(t, e) { // 撐翼仰頸、胸前火種脹亮
+    /* 三道雷頂層先建好（opacity 0），從 78ms 起依序現形——整個中段畫面上都有雷。 */
+    const bolts = [
+      st.bolt(sky, mark, { jag: 0.34, segs: 9, seed: 3, opacity: 0 }),
+      st.bolt(sky.clone().add(new THREE.Vector3(0.16, 0, -0.12)), mark, { jag: 0.4, segs: 9, seed: 9, opacity: 0 }),
+      st.bolt(sky.clone().add(new THREE.Vector3(-0.14, 0.1, 0.1)), mark, { jag: 0.3, segs: 9, seed: 17, opacity: 0 }),
+    ];
+    st.tween({ ms: 78, ease: 'out', update(t, e) { // 撐翼仰頸、胸前火種脹亮
       st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * e);
       st.rot(bird, 'NeckRoot', -0.16 * e); st.rot(bird, 'HeadRoot', -0.22 * e); st.rot(bird, 'TailRoot', 0.2 * e);
       st.rim(bird, 1 + 1.1 * e); ember.scale.setScalar(0.3 + 0.9 * e);
     } });
-    // 火種升空；抵達那一刻（vt≈150）在 done 裡只放 burst／punch——**不能在回呼裡再排補間**
-    // （那會把 horizon 推到 250+，rate 就 >1 了，見本區塊開頭紀律 2）。
-    st.fly(ember, seed.clone(), sky, { ms: 70, delay: 80, ease: 'out', arc: 0.2,
+    st.fly(ember, seed.clone(), sky, { ms: 62, delay: 74, ease: 'out', arc: 0.2,
       done() { st.burst(mark, { power: 1, n: 50 }); st.punch(0.5); } });
-    st.fade(ember, { ms: 35, delay: 150, from: 0.9, to: 0 });
-    // 兩道天雷：mesh 在頂層就建好、opacity 0，靠 delay 到 152 才開始淡出＝那一刻才看得見
-    const boltA = st.bolt(sky, mark, { jag: 0.3, segs: 8, seed: 3, opacity: 0 });
-    const boltB = st.bolt(sky.clone().add(new THREE.Vector3(0.12, 0, -0.1)), mark, { jag: 0.36, segs: 8, seed: 9, opacity: 0 });
-    st.fade(boltA, { ms: 62, delay: 150, from: 1, to: 0 });
-    st.fade(boltB, { ms: 62, delay: 162, from: 1, to: 0 });
-    if (prey) st.flinch([prey], { delay: 150, strength: 1.3, burst: false });
-    st.tween({ ms: 75, delay: 155, ease: 'snap', update(t, e) { // 猛然收翅下拍
+    st.fade(ember, { ms: 30, delay: 138, from: 0.9, to: 0 });
+    // 三道雷各燒 92ms、間隔 26ms：78→170、104→196、130→222，中段任何一幀都看得到雷
+    bolts.forEach((b, i) => st.fade(b, { ms: 92, delay: 78 + i * 26, from: 1, to: 0 }));
+    if (prey) st.flinch([prey], { delay: 140, strength: 1.3, burst: false });
+    st.tween({ ms: 72, delay: 150, ease: 'snap', update(t, e) { // 猛然收翅下拍
       const k = 1 - e;
       st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * k + 0.3 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * k - 0.3 * e);
       st.rot(bird, 'NeckRoot', -0.16 * k); st.rot(bird, 'HeadRoot', -0.22 * k); st.rot(bird, 'TailRoot', 0.2 * k);
@@ -792,18 +807,30 @@ export const SHORT = {
   },
 
   /* 琉璃護心｜辨識：珠鍊一顆一顆亮上去＋心口琉璃珠護心罩 */
+  /* 琉璃護心｜辨識：★一串真的珠鍊★一顆一顆亮上去＋心口琉璃珠護心罩
+     （盲讀 r1：一版只有骨骼縮放與一顆珠，看不出「鍊」） */
   eliteArmor(st) {
     const snake = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const heart = st.worldOf(snake, 'Body', new THREE.Vector3());
+    const top = st.top(snake, new THREE.Vector3());
     const bead = st.orb(heart, 0.05, { opacity: 0 });
     const shell = st.dome(heart, 0.62, { opacity: 0 });
     const foot = st.foot(snake, new THREE.Vector3());
     const halo = st.ring(foot, 0.34, 0.045, { opacity: 0 });
     bead.scale.setScalar(0.3); shell.scale.setScalar(0.4);
+    /* 法寶本體：九顆珠沿著「心口→頭頂」的弧線串成一條鍊，由內往外一顆一顆亮。 */
+    const chain = [];
+    for (let i = 0; i < 9; i++) {
+      const u = i / 8;
+      const p = heart.clone().lerp(top, u);
+      p.x += Math.sin(u * Math.PI) * 0.16; p.y += Math.sin(u * Math.PI) * 0.05;
+      chain.push(st.orb(p, 0.028, { opacity: 0 }));
+    }
     st.tween({ ms: 90, ease: 'out', update(t, e) { // 珠鍊由內往外一顆一顆亮、昂首
       st.scaleBone(snake, 'Trunk', 1 + 0.12 * Math.min(1, e * 2));
       st.scaleBone(snake, 'Trunk2', 1 + 0.14 * Math.max(0, e * 2 - 1));
       st.rot(snake, 'Neck1', -0.16 * e); st.rot(snake, 'Jaw', 0.2 * e); st.rim(snake, 1 + 1 * e);
+      chain.forEach((o, i) => { const k = Math.max(0, Math.min(1, e * 9 - i)); o.material.opacity = k; o.scale.setScalar(0.6 + 0.7 * k); });
     } });
     st.fade(bead, { ms: 55, delay: 82, from: 0, to: 1 }); // 心口琉璃珠亮起
     st.grow(bead, { ms: 80, delay: 82, from: 0.3, to: 1.3 });
@@ -813,6 +840,7 @@ export const SHORT = {
     st.fade(bead, { ms: 60, delay: 160, from: 1, to: 0 });
     st.grow(halo, { ms: 95, delay: 100, from: 0.3, to: 1.5 });
     st.fade(halo, { ms: 95, delay: 100, from: 0.65, to: 0 });
+    chain.forEach((o, i) => st.fade(o, { ms: 54, delay: 150 + i * 2, from: 1, to: 0 }));
     st.tween({ ms: 65, delay: 160, ease: 'inout', update(t, e) { // 蛇口一開一合、身段回落
       const k = 1 - e;
       st.scaleBone(snake, 'Trunk', 1 + 0.12 * k); st.scaleBone(snake, 'Trunk2', 1 + 0.14 * k);

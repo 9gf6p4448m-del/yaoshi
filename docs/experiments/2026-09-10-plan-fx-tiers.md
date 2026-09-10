@@ -24,6 +24,15 @@
 | `docs/IMPLEMENTATION_GUIDE.md` | 新 §11.27 |
 | `docs/experiments/2026-09-10-plan-fx-tiers.md` | 本檔 |
 | `docs/experiments/2026-09-10-fx-tiers-report.md`、`docs/experiments/2026-09-10-fx-tiers-evidence/` | 報告與證據 |
+| `docs/experiments/2026-09-10-acceptance-fx-tiers.md` | **（修訂三補列）** 凍結檔的 §2.1 修訂紀錄（修訂一／二／三三條使用者裁定） |
+| `tests/tools/lbox-probe.mjs` | **（修訂三補列，新檔）** F5 機械段：黑條與 CINEMA「只在 tier 3」＋L4 draw call 對照＋L5 取消路徑＋L6 像素亮度 |
+| `tests/tools/traitfx-sheet.mjs` | **（修訂三補列）** contact sheet 的幀號改成掃目錄取最小三張（幀位依 tier 換算後不再是固定的 8/22/36） |
+| `tests/tools/fpsdiag-probe.mjs` | **（修訂三補列，新檔）** `?fps=1` 的「對決最低 fps」欄位斷言（D1 文字＋數值、D2 零成本、D3 每場重算） |
+| `tests/tools/pace-ab.mjs` | **（修訂三補列，新檔）** F3 的 A/B 量測驅動器：交錯跑、每組 N 次、輸出中位的中位與全距、seeds 落檔 |
+| `tests/tools/t3-shot.mjs` | **（修訂三補列，新檔）** F5 人眼段的 tier 3 交付物改從**真實對決路徑**截（含黑條與 CINEMA），附 `-nobox` 對照 |
+| `tests/tools/duel-perf.mjs` | **（修訂三補列）** perf 模式改吃 `--root`＋加 `--seed`；不支援的旗標一律 throw |
+| `tests/tools/trace-eq.mjs` | **（修訂三補列）** 新增 `--beats` 模式（對兩邊做同一個注入，序列化 `war.beats`） |
+| `tests/tools/duel-drive.mjs` | **（修訂三補列）** 黑條的 MutationObserver、逐場 tier 快照與 `lboxMs`、輸出 `url`（含 seed） |
 
 **不動**（動了就是 F9 紅）：`docs/ART_BIBLE.md`、`docs/GAME_DESIGN.md`、`assets/`、`js/bloom.js`、`js/duel-figures.js`、`js/particles.js`（`js/renderer.js` 見上表補列那一行：**只允許那 +1 行的治具出口**，渲染路徑一格不動）、引擎函式（`paperWar`／`pwSide`／`pwClash`／`pwPrep`／`pwBolt`／`pwHaunt`／`pwStrike`／`pwRec`／`buildArmy`／`collectEffects`／`applyHooks`）、`TRAITS` 的規則欄位、AI、拍賣、請神、共鳴、既有 9 套 `tests/*.test.mjs` 的斷言。
 

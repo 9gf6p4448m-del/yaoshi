@@ -56,7 +56,9 @@ const legendViews = () => {
   return v;
 };
 const warTie = { war: { tie: true } };
-const warWin = { war: { tie: false } };
+/* R1 覆審 L2：paperWar 的勝方分支回傳裡**沒有** tie 欄位（只有平手分支才 tie:true），
+   所以 fixture 用 `{ war: {} }` 才貼近真實路徑；`!undefined` 與 `!false` 同義，判定不變。 */
+const warWin = { war: {} };
 t('pwBeatTier 已匯出（沒有就是這一卷還沒做，下面四條一併紅）', () => {
   if (!has) throw new Error('pwBeatTier 未匯出：這個版本沒有三級視覺分級');
 });
@@ -99,6 +101,18 @@ t('?fxtier=0（TIER_ON=false）時所有拍恆回 tier 2＝v0.53 行為', () => 
     eq(Y.pwBeatTier([beat('trait', 'eliteBlind')], 1, warWin, plainViews()), 2, '大招也降回 2');
     eq(Y.pwBeatTier([beat('hit')], 1, warTie, plainViews()), 2, '一般拍也是 2');
   } finally { Y.PW_FX.TIER_ON = on; }
+});
+t('★R1 M2★ 招級時長：同一拍裡的普通招上限 2，只有傳說招走 3', () => {
+  if (typeof Y.pwMoveTier !== 'function') throw new Error('pwMoveTier 未匯出');
+  // tier 3 的拍：傳說招 3、同拍的普通招被夾到 2（不會跟著演 1400＋CINEMA＋黑條）
+  eq(Y.pwMoveTier('eliteBlind', 3), 3, '傳說招在 tier 3 拍');
+  eq(Y.pwMoveTier('eliteCleave', 3), 2, '普通招在 tier 3 拍（上限 2）');
+  eq(Y.pwMoveTier('hauntSteal', 3), 2, '普通招在 tier 3 拍（上限 2）');
+  // tier 2／1 的拍：招級＝拍級（傳說招在低等級拍也不會自己升上去）
+  eq(Y.pwMoveTier('eliteCleave', 2), 2, '普通招在 tier 2 拍');
+  eq(Y.pwMoveTier('eliteCleave', 1), 1, '普通招在 tier 1 拍');
+  eq(Y.pwMoveTier('eliteBlind', 1), 1, '傳說招在 tier 1 拍（min 取拍級）');
+  eq(Y.pwMoveTier('eliteBlind', 2), 2, '傳說招在 tier 2 拍');
 });
 t('pwTierMs／pwBeatMinMs 只認 1／2／3，別的值一律當 2（不給 0 或 undefined）', () => {
   if (typeof Y.pwTierMs !== 'function') throw new Error('pwTierMs 未匯出');

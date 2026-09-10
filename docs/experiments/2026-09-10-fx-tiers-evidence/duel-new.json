@@ -2,7 +2,7 @@
  "rec": {
   "duels": [
    {
-    "t": 1789055921082,
+    "t": 1789061603660,
     "a": 0,
     "b": 3,
     "armies": [
@@ -41,33 +41,33 @@
     ],
     "hasReady": true,
     "loadTotal": 3,
-    "readyAt": 1789055921161,
-    "firstBeatAt": 1789055921916,
+    "readyAt": 1789061603810,
+    "firstBeatAt": 1789061604525,
     "loading": [
      {
-      "t": 1789055921091,
+      "t": 1789061603671,
       "loaded": 0,
       "total": 3
      },
      {
-      "t": 1789055921161,
+      "t": 1789061603810,
       "loaded": 1,
       "total": 3
      },
      {
-      "t": 1789055921161,
+      "t": 1789061603810,
       "loaded": 2,
       "total": 3
      },
      {
-      "t": 1789055921161,
+      "t": 1789061603810,
       "loaded": 3,
       "total": 3
      }
     ],
     "samples": [
      {
-      "t": 1789055922602,
+      "t": 1789061605164,
       "A": [
        {
         "skin": "layered",
@@ -84,8 +84,8 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 0,
-        "anim": 0.9000000000000032,
-        "cur": "attack",
+        "anim": 0.8500000000000031,
+        "cur": "idle",
         "vis": true,
         "ground": null
        },
@@ -93,8 +93,8 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 1,
-        "anim": 0.9000000000000032,
-        "cur": "attack",
+        "anim": 0.8500000000000031,
+        "cur": "idle",
         "vis": true,
         "ground": null
        },
@@ -102,15 +102,15 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 2,
-        "anim": 0.9000000000000032,
-        "cur": "attack",
+        "anim": 0.8500000000000031,
+        "cur": "idle",
         "vis": true,
         "ground": null
        }
       ]
      },
      {
-      "t": 1789055923022,
+      "t": 1789061605563,
       "A": [
        {
         "skin": "layered",
@@ -127,7 +127,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 0,
-        "anim": 1.2334000000000052,
+        "anim": 1.166700000000004,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -136,7 +136,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 1,
-        "anim": 1.2334000000000052,
+        "anim": 1.166700000000004,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -145,7 +145,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 2,
-        "anim": 1.2334000000000052,
+        "anim": 1.166700000000004,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -156,6 +156,11 @@
     "trait0": 0,
     "traitFig0": 0,
     "arenaEmptyAtDuel": true,
+    "tiers0": {
+     "1": 0,
+     "2": 0,
+     "3": 0
+    },
     "programsAtDuel": 22,
     "programListAtDuel": [
      "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -182,10 +187,16 @@
      "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,3,135187,srgb,yaoshi-creature-outline"
     ],
     "loadLoaded0": 0,
-    "endAt": 1789055925998,
-    "dur": 4916,
+    "endAt": 1789061608595,
+    "dur": 4935,
     "trait1": 0,
     "traitFig1": 0,
+    "tiers1": {
+     "1": 2,
+     "2": 1,
+     "3": 0
+    },
+    "lboxMs": 0,
     "skipped": false,
     "programsAtEnd": 27,
     "programListAtEnd": [
@@ -218,15 +229,15 @@
      "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
     ],
     "load": {
-     "ms": 69,
+     "ms": 139,
      "total": 3,
      "loaded": 3,
      "timedOut": false,
-     "readyAt": 1789055921161
+     "readyAt": 1789061603810
     }
    },
    {
-    "t": 1789055926583,
+    "t": 1789061609181,
     "a": 1,
     "b": 2,
     "armies": [
@@ -258,28 +269,28 @@
     ],
     "hasReady": true,
     "loadTotal": 2,
-    "readyAt": 1789055926621,
-    "firstBeatAt": 1789055927107,
+    "readyAt": 1789061609213,
+    "firstBeatAt": 1789061609698,
     "loading": [
      {
-      "t": 1789055926586,
+      "t": 1789061609184,
       "loaded": 0,
       "total": 2
      },
      {
-      "t": 1789055926621,
+      "t": 1789061609213,
       "loaded": 1,
       "total": 2
      },
      {
-      "t": 1789055926621,
+      "t": 1789061609213,
       "loaded": 2,
       "total": 2
      }
     ],
     "samples": [
      {
-      "t": 1789055928089,
+      "t": 1789061610693,
       "A": [
        {
         "skin": "layered",
@@ -296,7 +307,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 0,
-        "anim": 1.4999000000000031,
+        "anim": 1.4833000000000038,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -305,7 +316,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 1,
-        "anim": 1.4999000000000031,
+        "anim": 1.4833000000000038,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -313,7 +324,7 @@
       ]
      },
      {
-      "t": 1789055928492,
+      "t": 1789061611103,
       "A": [
        {
         "skin": "layered",
@@ -330,7 +341,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 0,
-        "anim": 1.8998000000000026,
+        "anim": 1.8999000000000037,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -339,7 +350,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 1,
-        "anim": 1.8998000000000026,
+        "anim": 1.8999000000000037,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -350,6 +361,11 @@
     "trait0": 0,
     "traitFig0": 0,
     "arenaEmptyAtDuel": true,
+    "tiers0": {
+     "1": 2,
+     "2": 1,
+     "3": 0
+    },
     "programsAtDuel": 27,
     "programListAtDuel": [
      "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -382,10 +398,16 @@
     ],
     "loadLoaded0": 0,
     "programsAfterEnd": 27,
-    "endAt": 1789055931938,
-    "dur": 5355,
+    "endAt": 1789061614509,
+    "dur": 5328,
     "trait1": 1,
     "traitFig1": 1,
+    "tiers1": {
+     "1": 4,
+     "2": 2,
+     "3": 0
+    },
+    "lboxMs": 0,
     "skipped": false,
     "programsAtEnd": 27,
     "programListAtEnd": [
@@ -418,15 +440,15 @@
      "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
     ],
     "load": {
-     "ms": 36,
+     "ms": 29,
      "total": 2,
      "loaded": 2,
      "timedOut": false,
-     "readyAt": 1789055926622
+     "readyAt": 1789061609213
     }
    },
    {
-    "t": 1789055943799,
+    "t": 1789061626129,
     "a": 0,
     "b": 1,
     "armies": [
@@ -451,18 +473,18 @@
     ],
     "hasReady": true,
     "loadTotal": 0,
-    "readyAt": 1789055943817,
-    "firstBeatAt": 1789055944292,
+    "readyAt": 1789061626140,
+    "firstBeatAt": 1789061626620,
     "loading": [
      {
-      "t": 1789055943800,
+      "t": 1789061626130,
       "loaded": 0,
       "total": 0
      }
     ],
     "samples": [
      {
-      "t": 1789055945304,
+      "t": 1789061627630,
       "A": [
        {
         "skin": "layered",
@@ -487,7 +509,7 @@
       ]
      },
      {
-      "t": 1789055945699,
+      "t": 1789061628033,
       "A": [
        {
         "skin": "layered",
@@ -515,6 +537,11 @@
     "trait0": 1,
     "traitFig0": 1,
     "arenaEmptyAtDuel": true,
+    "tiers0": {
+     "1": 4,
+     "2": 2,
+     "3": 0
+    },
     "programsAtDuel": 27,
     "programListAtDuel": [
      "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -546,10 +573,16 @@
      "|basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,1027,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}"
     ],
     "loadLoaded0": 0,
-    "endAt": 1789055948555,
-    "dur": 4756,
+    "endAt": 1789061630875,
+    "dur": 4746,
     "trait1": 1,
     "traitFig1": 1,
+    "tiers1": {
+     "1": 6,
+     "2": 3,
+     "3": 0
+    },
+    "lboxMs": 0,
     "skipped": false,
     "programsAtEnd": 27,
     "programListAtEnd": [
@@ -586,11 +619,11 @@
      "total": 0,
      "loaded": 0,
      "timedOut": false,
-     "readyAt": 1789055943800
+     "readyAt": 1789061626130
     }
    },
    {
-    "t": 1789055949138,
+    "t": 1789061631449,
     "a": 2,
     "b": 3,
     "armies": [
@@ -706,84 +739,84 @@
     ],
     "hasReady": true,
     "loadTotal": 15,
-    "readyAt": 1789055949204,
-    "firstBeatAt": 1789055949850,
+    "readyAt": 1789061631503,
+    "firstBeatAt": 1789061632158,
     "loading": [
      {
-      "t": 1789055949140,
+      "t": 1789061631452,
       "loaded": 3,
       "total": 15
      },
      {
-      "t": 1789055949149,
+      "t": 1789061631460,
       "loaded": 4,
       "total": 15
      },
      {
-      "t": 1789055949149,
+      "t": 1789061631460,
       "loaded": 5,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631474,
       "loaded": 6,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631474,
       "loaded": 7,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 8,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 9,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 10,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 11,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 12,
       "total": 15
      },
      {
-      "t": 1789055949197,
+      "t": 1789061631503,
       "loaded": 13,
       "total": 15
      },
      {
-      "t": 1789055949204,
+      "t": 1789061631503,
       "loaded": 14,
       "total": 15
      },
      {
-      "t": 1789055949204,
+      "t": 1789061631503,
       "loaded": 15,
       "total": 15
      }
     ],
     "samples": [
      {
-      "t": 1789055950652,
+      "t": 1789061632956,
       "A": [
        {
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 0,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -792,7 +825,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 1,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -801,7 +834,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 2,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -810,7 +843,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 3,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -819,7 +852,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 4,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -828,7 +861,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 5,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -837,7 +870,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 6,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -846,7 +879,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 7,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -855,7 +888,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 8,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -864,7 +897,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 9,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -875,7 +908,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 0,
-        "anim": 9.016300000000035,
+        "anim": 9.066500000000014,
         "cur": "idle",
         "vis": true,
         "ground": null
@@ -884,7 +917,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 1,
-        "anim": 9.016300000000035,
+        "anim": 9.066500000000014,
         "cur": "idle",
         "vis": true,
         "ground": null
@@ -893,7 +926,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 2,
-        "anim": 9.016300000000035,
+        "anim": 9.066500000000014,
         "cur": "idle",
         "vis": true,
         "ground": null
@@ -902,7 +935,7 @@
         "skin": "creature",
         "ab": "flag",
         "unit": 3,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "idle",
         "vis": true,
         "ground": null
@@ -911,7 +944,7 @@
         "skin": "creature",
         "ab": "flag",
         "unit": 4,
-        "anim": 0.9166999999999967,
+        "anim": 0.8999999999999923,
         "cur": "idle",
         "vis": true,
         "ground": null
@@ -919,13 +952,13 @@
       ]
      },
      {
-      "t": 1789055951046,
+      "t": 1789061633352,
       "A": [
        {
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 0,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -934,7 +967,7 @@
         "skin": "creature",
         "ab": "wangchuan",
         "unit": 1,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -943,7 +976,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 2,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -952,7 +985,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 3,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -961,7 +994,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 4,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -970,7 +1003,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 5,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -979,7 +1012,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 6,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -988,7 +1021,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 7,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -997,7 +1030,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 8,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1006,7 +1039,7 @@
         "skin": "creature",
         "ab": "guoyin",
         "unit": 9,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1017,7 +1050,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 0,
-        "anim": 9.41630000000003,
+        "anim": 9.466500000000007,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1026,7 +1059,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 1,
-        "anim": 9.41630000000003,
+        "anim": 9.466500000000007,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1035,7 +1068,7 @@
         "skin": "creature",
         "ab": "wuying",
         "unit": 2,
-        "anim": 9.41630000000003,
+        "anim": 9.466500000000007,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1044,7 +1077,7 @@
         "skin": "creature",
         "ab": "flag",
         "unit": 3,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1053,7 +1086,7 @@
         "skin": "creature",
         "ab": "flag",
         "unit": 4,
-        "anim": 1.3166999999999969,
+        "anim": 1.2999999999999923,
         "cur": "attack",
         "vis": true,
         "ground": null
@@ -1064,6 +1097,11 @@
     "trait0": 1,
     "traitFig0": 1,
     "arenaEmptyAtDuel": true,
+    "tiers0": {
+     "1": 6,
+     "2": 3,
+     "3": 0
+    },
     "programsAtDuel": 27,
     "programListAtDuel": [
      "|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,4,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -1096,10 +1134,16 @@
     ],
     "loadLoaded0": 5,
     "programsAfterEnd": 28,
-    "endAt": 1789055956728,
-    "dur": 7590,
+    "endAt": 1789061639075,
+    "dur": 7626,
     "trait1": 4,
     "traitFig1": 4,
+    "tiers1": {
+     "1": 8,
+     "2": 4,
+     "3": 0
+    },
+    "lboxMs": 0,
     "skipped": false,
     "programsAtEnd": 28,
     "programListAtEnd": [
@@ -1133,171 +1177,171 @@
      "ghost_wisp|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,19,srgb,yaoshi-creature-rim-burn-decal"
     ],
     "load": {
-     "ms": 64,
+     "ms": 51,
      "total": 15,
      "loaded": 15,
      "timedOut": false,
-     "readyAt": 1789055949205
+     "readyAt": 1789061631503
     }
    }
   ],
   "loading": [
    {
-    "t": 1789055921091,
+    "t": 1789061603671,
     "loaded": 0,
     "total": 3
    },
    {
-    "t": 1789055921161,
+    "t": 1789061603810,
     "loaded": 1,
     "total": 3
    },
    {
-    "t": 1789055921161,
+    "t": 1789061603810,
     "loaded": 2,
     "total": 3
    },
    {
-    "t": 1789055921161,
+    "t": 1789061603810,
     "loaded": 3,
     "total": 3
    },
    {
-    "t": 1789055926586,
+    "t": 1789061609184,
     "loaded": 0,
     "total": 2
    },
    {
-    "t": 1789055926621,
+    "t": 1789061609213,
     "loaded": 1,
     "total": 2
    },
    {
-    "t": 1789055926621,
+    "t": 1789061609213,
     "loaded": 2,
     "total": 2
    },
    {
-    "t": 1789055943800,
+    "t": 1789061626130,
     "loaded": 0,
     "total": 0
    },
    {
-    "t": 1789055949140,
+    "t": 1789061631452,
     "loaded": 3,
     "total": 15
    },
    {
-    "t": 1789055949149,
+    "t": 1789061631460,
     "loaded": 4,
     "total": 15
    },
    {
-    "t": 1789055949149,
+    "t": 1789061631460,
     "loaded": 5,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631474,
     "loaded": 6,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631474,
     "loaded": 7,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 8,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 9,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 10,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 11,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 12,
     "total": 15
    },
    {
-    "t": 1789055949197,
+    "t": 1789061631503,
     "loaded": 13,
     "total": 15
    },
    {
-    "t": 1789055949204,
+    "t": 1789061631503,
     "loaded": 14,
     "total": 15
    },
    {
-    "t": 1789055949204,
+    "t": 1789061631503,
     "loaded": 15,
     "total": 15
    }
   ],
   "burns": [
    {
-    "t": 1789055923266,
+    "t": 1789061605877,
     "side": "A",
     "unit": 0,
     "handled": false,
     "visAfter": null
    },
    {
-    "t": 1789055929604,
+    "t": 1789061612150,
     "side": "A",
     "unit": 0,
     "handled": false,
     "visAfter": null
    },
    {
-    "t": 1789055946226,
+    "t": 1789061628537,
     "side": "B",
     "unit": 0,
     "handled": false,
     "visAfter": null
    },
    {
-    "t": 1789055953255,
+    "t": 1789061635536,
     "side": "A",
     "unit": 0,
     "handled": true,
     "visAfter": false,
-    "doneAt": 1789055953660
+    "doneAt": 1789061635968
    },
    {
-    "t": 1789055953256,
+    "t": 1789061635536,
     "side": "A",
     "unit": 2,
     "handled": true,
     "visAfter": false,
-    "doneAt": 1789055953660
+    "doneAt": 1789061635968
    },
    {
-    "t": 1789055955300,
+    "t": 1789061637605,
     "side": "B",
     "unit": 0,
     "handled": true,
     "visAfter": false,
-    "doneAt": 1789055955726
+    "doneAt": 1789061638050
    }
   ],
   "lunges": [
    {
-    "t": 1789055922300,
+    "t": 1789061604900,
     "w": 0,
     "l": 3,
     "side": "A",
@@ -1309,7 +1353,7 @@
     ]
    },
    {
-    "t": 1789055922563,
+    "t": 1789061605165,
     "w": 3,
     "l": 0,
     "side": "B",
@@ -1325,7 +1369,7 @@
     ]
    },
    {
-    "t": 1789055922896,
+    "t": 1789061605530,
     "w": 3,
     "l": 0,
     "side": "B",
@@ -1341,7 +1385,7 @@
     ]
    },
    {
-    "t": 1789055927474,
+    "t": 1789061610060,
     "w": 1,
     "l": 2,
     "side": "A",
@@ -1353,7 +1397,7 @@
     ]
    },
    {
-    "t": 1789055927744,
+    "t": 1789061610340,
     "w": 2,
     "l": 1,
     "side": "B",
@@ -1367,7 +1411,7 @@
     ]
    },
    {
-    "t": 1789055928020,
+    "t": 1789061610609,
     "w": 2,
     "l": 1,
     "side": "B",
@@ -1381,7 +1425,7 @@
     ]
    },
    {
-    "t": 1789055928994,
+    "t": 1789061611528,
     "w": 1,
     "l": 2,
     "side": "A",
@@ -1393,7 +1437,7 @@
     ]
    },
    {
-    "t": 1789055929257,
+    "t": 1789061611795,
     "w": 2,
     "l": 1,
     "side": "B",
@@ -1407,7 +1451,7 @@
     ]
    },
    {
-    "t": 1789055944679,
+    "t": 1789061627003,
     "w": 0,
     "l": 1,
     "side": "A",
@@ -1419,7 +1463,7 @@
     ]
    },
    {
-    "t": 1789055944948,
+    "t": 1789061627276,
     "w": 1,
     "l": 0,
     "side": "B",
@@ -1431,7 +1475,7 @@
     ]
    },
    {
-    "t": 1789055945583,
+    "t": 1789061627912,
     "w": 0,
     "l": 1,
     "side": "A",
@@ -1443,7 +1487,7 @@
     ]
    },
    {
-    "t": 1789055945854,
+    "t": 1789061628185,
     "w": 1,
     "l": 0,
     "side": "B",
@@ -1455,7 +1499,7 @@
     ]
    },
    {
-    "t": 1789055950216,
+    "t": 1789061632518,
     "w": 2,
     "l": 3,
     "side": "A",
@@ -1485,7 +1529,7 @@
     ]
    },
    {
-    "t": 1789055950448,
+    "t": 1789061632732,
     "w": 2,
     "l": 3,
     "side": "A",
@@ -1515,7 +1559,7 @@
     ]
    },
    {
-    "t": 1789055950660,
+    "t": 1789061632956,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1535,7 +1579,7 @@
     ]
    },
    {
-    "t": 1789055950873,
+    "t": 1789061633167,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1555,7 +1599,7 @@
     ]
    },
    {
-    "t": 1789055951102,
+    "t": 1789061633386,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1575,7 +1619,7 @@
     ]
    },
    {
-    "t": 1789055952248,
+    "t": 1789061634546,
     "w": 2,
     "l": 3,
     "side": "A",
@@ -1605,7 +1649,7 @@
     ]
    },
    {
-    "t": 1789055952423,
+    "t": 1789061634701,
     "w": 2,
     "l": 3,
     "side": "A",
@@ -1635,7 +1679,7 @@
     ]
    },
    {
-    "t": 1789055952583,
+    "t": 1789061634896,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1655,7 +1699,7 @@
     ]
    },
    {
-    "t": 1789055952837,
+    "t": 1789061635150,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1675,7 +1719,7 @@
     ]
    },
    {
-    "t": 1789055952999,
+    "t": 1789061635303,
     "w": 3,
     "l": 2,
     "side": "B",
@@ -1695,7 +1739,7 @@
     ]
    },
    {
-    "t": 1789055954036,
+    "t": 1789061636334,
     "w": 2,
     "l": 3,
     "side": "A",
@@ -1728,19 +1772,19 @@
   "samples": [],
   "beatAt": [],
   "ends": [
-   1789055925998,
-   1789055931938,
-   1789055948555,
-   1789055956728
+   1789061608595,
+   1789061614509,
+   1789061630875,
+   1789061639075
   ],
   "marks": {
-   "lineupAt": 1789055922782,
-   "attackAt": 1789055922440,
-   "burnAt": 1789055953464
+   "lineupAt": 1789061605360,
+   "attackAt": 1789061605040,
+   "burnAt": 1789061635753
   },
   "moves": [
    {
-    "t": 1789055928726,
+    "t": 1789061611258,
     "trId": "wardAbsorb4",
     "side": "B",
     "text": "陰間當鋪・送王船：送王船二拍：吸收對面本拍首 4 點傷害",
@@ -1761,7 +1805,7 @@
     ]
    },
    {
-    "t": 1789055951717,
+    "t": 1789061633988,
     "trId": "wardAbsorb4",
     "side": "A",
     "text": "陰間當鋪・送王船：送王船二拍：吸收對面本拍首 4 點傷害",
@@ -1782,7 +1826,7 @@
     ]
    },
    {
-    "t": 1789055951986,
+    "t": 1789061634256,
     "trId": "wardAtkAll1",
     "side": "B",
     "text": "獵人・媽祖令旗：令旗改陣二拍：本方全體 atk+1",
@@ -1803,7 +1847,7 @@
     ]
    },
    {
-    "t": 1789055954299,
+    "t": 1789061636604,
     "trId": "hauntFearX2",
     "side": "A",
     "text": "陰間當鋪・過陰咒：恐懼加倍三拍：恐懼倍率 ×2",
@@ -1822,6 +1866,18 @@
      390,
      390
     ]
+   }
+  ],
+  "lbox": [
+   {
+    "t": 1789061586828,
+    "id": "lbTop",
+    "on": false
+   },
+   {
+    "t": 1789061586828,
+    "id": "lbBot",
+    "on": false
    }
   ]
  },
@@ -2224,18 +2280,19 @@
    }
   ],
   "load": {
-   "ms": 64,
+   "ms": 51,
    "total": 15,
    "loaded": 15,
    "timedOut": false,
-   "readyAt": 1789055949205
+   "readyAt": 1789061631503
   }
  },
  "ys3d": true,
  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
  "ver": "v0.54・紙紮夜戰：開・招式三級視覺分級：一般拍走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素，不是把完整版加速——既有 rate 天花板 2.2× 根本擠不進去）、擊殺拍與決定性最後一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位 ＋ 兩條 DOM 黑條；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call",
+ "url": "http://127.0.0.1:9613/index.html?paperwar=1&fxcount=1&seed=7",
  "errors": [],
  "lastMainText": "開戰",
  "shots": {},
- "elapsedMs": 49083
+ "elapsedMs": 49288
 }
