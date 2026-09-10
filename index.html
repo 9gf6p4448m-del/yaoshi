@@ -1918,6 +1918,8 @@ const LEGENDS = [
    rallyHp 二拍有折損則本隊全體 hp＋／lastStand 本隊只剩 1 隻時 atk＋／pierce 無視吸收／
    feed 拍末對面有人被燒則本方全體 hp＋
    ——群體的招一律不給「全隊 atk＋1」：群體 atk 本來就是 1，+1 是翻倍，實測 D-A1 單一件就搬動 10–38pp。 */
+/* ★tier 是唯一的「非規則」欄位★（v0.54 三級視覺分級）：只有三尊三招標 tier:3，引擎一行都不讀它，
+   讀它的只有演出層的 pwBeatTier。純演出欄位，不進 collectEffects／applyHooks，trace() 逐位元組不受影響。 */
 const TRAITS = {
   wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"一拍：前鋒全體 hp+2",hpFront:2},
   wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"一拍：全體 hp+1（含護法、作祟）",hpAll:1},
@@ -1949,9 +1951,9 @@ const TRAITS = {
   swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"拍末對面有紙紮被燒 → 本方全體 hp+1",feed:1},
   /* 第 4 卷 傳說三尊：兩個新效果欄位（blindFront 在 pwBolt 段、curseHaunt 在 pwHaunt 段）＋一個沿用既有的 hpAll。
      blindFront 是「一拍開打前施加一次」的減攻（跟射日的 openShot 同時機），減下去的 atk 三拍都算。 */
-  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"一拍開打前：對面前鋒 atk −2（下限 0）",blindFront:2},
-  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"該拍：本方全體 hp+2（含護法、作祟）",hpAll:2},
-  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"三拍：對面每有一件詛咒品，多燒對面 1 隻",curseHaunt:1},
+  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"一拍開打前：對面前鋒 atk −2（下限 0）",blindFront:2,tier:3},
+  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"該拍：本方全體 hp+2（含護法、作祟）",hpAll:2,tier:3},
+  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"三拍：對面每有一件詛咒品，多燒對面 1 隻",curseHaunt:1,tier:3},
 };
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
@@ -4964,8 +4966,23 @@ function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
 /* ── v0.54 三級視覺分級：tier 的三支存取器（招式時長／拍末下限的唯一入口）──────────────
    合法 tier 只有 1／2／3；拿到別的值一律當 2（＝v0.53 行為），不靜默給 0 或 undefined。 */
 function pwTierOf(t){ const n=t|0; return (n===1||n===2||n===3)?n:2; }
-/* 這一拍的 tier（拍級，不是招級）。分母歸一那一步先恆回 2＝v0.53 行為；真正的三級判定在下一步接上。 */
-function pwBeatTier(list,beat,f){ void list; void beat; void f; return 2; }
+/* 這一拍的 tier（★拍級，不是招級★——同一拍裡的每一支招吃同一個等級，拍末等待也是）。
+   規則（凍結檔「三級定義」）：
+     3 ＝ 這一拍有三尊大招（TRAITS[].tier===3）。TRAITS[].tier 是該招的**上限**：只有標 3 的招
+         把整拍鎖在 3，一支沒標的招不會因為打得漂亮就自己升到 3。
+     2 ＝ 這一拍有擊殺（burn 是引擎唯一帶 killed 的事件源，pwRec 上方註解），
+         或這是該場對決的決定性最後一拍（第 3 拍且分得出勝負）。
+     1 ＝ 其餘（短版 260ms）。
+   ?fxtier=0 時恆回 2＝v0.53 行為（900、無 CINEMA、無黑條），退路等價靠這一行。
+   註：凍結檔寫的簽名是 pwBeatTier(beat, war)，實際要讀「這一拍的事件」，所以帶的是 list；
+   war.beats 是三拍混在一起的，從它切不出「這一拍」而不重做一次 byBeat。 */
+function pwBeatTier(list,beat,f){
+  if(!PW_FX.TIER_ON) return 2;
+  if(list.some(b=>b.kind==="trait"&&((TRAITS[b.trId]||{}).tier|0)>=3)) return 3;
+  if(list.some(b=>b.kind==="burn")) return 2;
+  if(beat===3&&f&&f.war&&!f.war.tie) return 2;
+  return 1;
+}
 function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
 function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
 /* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
