@@ -55,6 +55,51 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #north{grid-area:north;display:flex;justify-content:center}
 #west{grid-area:west} #east{grid-area:east}
 #west,#east{display:flex;align-items:center}
+/* ===== 拍賣桌整片掏空 v0.55a（ROADMAP_V2 Top 1；凍結檔 docs/experiments/2026-09-10-acceptance-table3d.md）=====
+   `#north`／`#west`／`#east` 拆成「座位卡容器＋內容容器」，理由是 renderSeats() 直接覆寫這三個容器的 innerHTML
+   （計畫 §7 風險 4）：不拆的話市集卡會被座位卡整批洗掉，出現間歇性「卡片消失」。
+   **座位卡容器預設 display:contents** ⇒ 座位卡仍然是 #north／#west／#east 的直接 flex 項目，
+   v0.53 的版面因此逐像素不變（`?table3d=0` 與直式走的就是這條）。
+   掏空版面的每一條規則都只寫在 `#table.t3d` ＋ `@media (orientation:landscape)` 裡面
+   ⇒ 直式與 kill switch 由**建構上**回到 v0.53，不靠另寫一份覆蓋（Q6 甲）。 */
+#northSeat,#westSeat,#eastSeat{display:contents}
+#northPrev,#northShr{display:none}
+.rail{display:none}
+@media (orientation:landscape){
+  #table.t3d{grid-template-columns:168px 1fr 168px}   /* 原 120px 1fr 120px（Q5 甲：側欄 168px、桌心 492px） */
+  #table.t3d #west,#table.t3d #east{flex-direction:column;gap:4px;align-items:stretch}
+  #table.t3d #westSeat,#table.t3d #eastSeat{display:block;width:100%;min-width:0;flex:0 0 auto}
+  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0}
+  #table.t3d .rail .mcard{height:88px}                /* 原 133.3×98 → 168×88 */
+  /* 側欄的垂直帳：256 ＝ 座位 72 ＋ 4 ＋ 卡 88 ＋ 4 ＋ 卡 88。座位卡從 85.6 壓到 ≤72，
+     壓的是字級與內距，不是把它藏起來（T3 量的是 scrollHeight−clientHeight，藏不掉）。 */
+  #table.t3d #west .seat,#table.t3d #east .seat{padding:2px 7px}
+  #table.t3d #west .seat .av,#table.t3d #east .seat .av{font-size:18px;line-height:1.05}
+  #table.t3d #west .seat .nm,#table.t3d #east .seat .nm{font-size:11px;line-height:1.25}
+  #table.t3d #west .seat .st,#table.t3d #east .seat .st{font-size:9px;line-height:1.3}
+  /* 掛在卡角外側的三顆徽章翻進卡內：側欄改成「座位卡貼著上緣」之後，-7px 的凸出會被 #west 的上緣切掉 */
+  #table.t3d #west .seat .dir,#table.t3d #east .seat .dir{top:1px}
+  #table.t3d #west .seat .windb,#table.t3d #east .seat .windb{top:1px}
+  #table.t3d #west .seat .roleInfoBtn,#table.t3d #east .seat .roleInfoBtn{bottom:1px}
+  /* 北列：現有的兩塊 258px 空白拿來放「明夜預告／盯上說明」與「香火榜＋三尊待請卡」，
+     北席卡維持置中（#north 仍是 justify-content:center，兩側各 flex:1 1 0）。 */
+  #table.t3d #north{gap:4px}
+  #table.t3d #northPrev,#table.t3d #northShr{display:flex;flex:1 1 0;min-width:0;align-items:center}
+  #table.t3d #northPrev>*,#table.t3d #northShr>*{margin:0;width:100%;min-width:0}
+  #table.t3d #northPrev .preview{font-size:9.5px;line-height:1.32;padding:2px 6px;text-align:left}
+  /* 掏空本體：#felt 保留 id、保留 position:relative（撐 #skipbtn／#helpBtn）、保留 overflow-y:auto，
+     只是不再畫玻璃、裡面也不再裝市集卡。--glass-* 四個變數一格不動（非掏空頁照舊吃）。 */
+  #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent}
+  #felt.hollow #feltHead{position:relative;z-index:2;pointer-events:none;text-shadow:0 1px 3px #000,0 0 8px #000}
+  #felt.hollow #tray{display:block;position:absolute;left:0;right:0;top:26px;bottom:0;z-index:1;
+    pointer-events:auto;touch-action:manipulation;background:transparent}
+  /* #stage 疊在 #tray 之上、本身不吃事件、只有實際內容（心願條／押寶條）吃
+     ⇒ 桌心空白處的 tap 落到 #tray，押寶夜的 stepper 仍然點得到（T5 兩邊都要成立）。 */
+  #felt.hollow #stage{position:relative;z-index:2;pointer-events:none}
+  #felt.hollow #stage>*{pointer-events:auto}
+}
+/* #tray：非掏空頁與直式一律不存在意義（凍結檔 §2.2 寫死） */
+#tray{display:none}
 /* 3D 環境層透出（v0.15，使用者裁定「甲」）：牌桌面板半透明＋毛玻璃，讓 canvas 的桌面／燈籠光／
    線香煙從後面透出來。透明度的單一事實來源＝下面三個變數，要調就改這裡，不要各處硬寫 rgba。
    每條都先寫不透明的舊值當 fallback：不支援 color-mix 的瀏覽器退回原樣，不會破版。 */
@@ -568,16 +613,19 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <p id="verLine" style="margin-top:10px;color:var(--gold);font-size:11px"></p>
 </div>
 <div id="table">
-  <div id="north"></div>
-  <div id="west"></div>
+  <!-- 掏空卷 v0.55a：三個座位容器各自拆成「座位卡（renderSeats 獨佔）＋內容（setHollow／showMarket 獨佔）」，
+       兩邊互不覆蓋（計畫 §2.1／§7 風險 4）。#tray 是掏空後桌心的透明命中層，0.55b 才接 Raycaster。 -->
+  <div id="north"><div id="northPrev"></div><div id="northSeat"></div><div id="northShr"></div></div>
+  <div id="west"><div id="westSeat"></div><div id="railW" class="rail"></div></div>
   <div id="felt">
     <button id="skipbtn" onclick="doSkip()">跳過 ≫</button>
     <div id="feltHead"></div>
     <button id="helpBtn" onclick="openHelp()">？</button>
+    <div id="tray"></div>
     <div id="stage"></div>
     <div id="veil"></div>
   </div>
-  <div id="east"></div>
+  <div id="east"><div id="eastSeat"></div><div id="railE" class="rail"></div></div>
   <div id="south">
     <span class="av" id="myAv">🧑</span>
     <div><div class="dir" id="myDir">南・你</div><div class="life" id="myLife"></div></div>
@@ -2088,6 +2136,32 @@ function waitMain(label){
   });
 }
 const $=id=>document.getElementById(id);
+/* ===== 拍賣桌整片掏空 v0.55a：kill switch 與掏空切換 =====
+   `?table3d=0` ＝ **完全回到 v0.53 版面**（不加 .hollow、欄寬回 120px、卡片回 #stage 裡的 #market）。
+   解析法與既有的 ?closeup／?fps／?legend／?edge／?outline／?decal 同一種；headless（tests/tools/load.mjs）
+   的 location.search 是空字串 ⇒ 預設開，且下面所有 DOM 操作都對 null 免疫。 */
+const TABLE3D=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("table3d")!=="0"; }catch(e){ return true; } })();
+/* 掏空只能**依頁面**切換：#felt 是所有階段的舞台（$("stage").innerHTML 全檔 11 處），
+   全掏空的話開標揭盅會變成一張浮在木桌上的無底文字（使用者裁 Q1 甲）。
+   off 時順手清空側欄卡列與北列兩塊 ⇒ 這四個容器的生命週期只有這一支在管（收斂，不逐頁補清空）。 */
+function setHollow(on){
+  const f=$("felt"); if(!f) return;
+  const hollow=!!on&&TABLE3D;
+  f.classList.toggle("hollow",hollow);
+  if(!hollow) ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
+}
+/* 側欄卡列的兩張卡。卡片內容一字不改——內部仍呼叫既有的 mcardHTML／markCardHTML，
+   兩頁各自把自己的卡片工廠傳進來（出價頁＝mcardHTML，盯上頁＝markCardHTML）。 */
+function railHTML(idxs,cardFn){
+  const fn=cardFn||mcardHTML;
+  return idxs.map(i=>fn(S.market[i],i)).join("");
+}
+/* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
+   0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
+   ★凍結檔 T5 會數這支被呼叫幾次★：tap 落在既有可點元素（.mcard／#skipbtn／#helpBtn／#south 任何鈕）
+   上時必須是 0——#tray 不得吃掉任何一個原本點得到的東西。 */
+function trayTap(ev){ /* 0.55a：無托盤，不做事 */ }
+function trayHover(ev){ /* 0.55a：無托盤，不做事 */ }
 /* 種子化亂數：同一顆種子必須重現整局。S.rng = 玩法流（洗牌、AI 抖動、平標決勝、事件）；
    S.rngUi = 純演出流（台詞挑選），與玩法分開才不會讓「有沒有播動畫」改變賽局結果。 */
 function mulberry32(a){
@@ -3820,9 +3894,12 @@ function renderSeats(hlIds){
   const hl=id=>hlIds&&hlIds.includes(id);
   /* 北席回到頂端正中（請神 2.0 版面裁定）：神龕列已搬進中央面板 #stage 的法寶卡上方，
      #north 恢復成「只有北家一張座位卡、justify-content:center」＝與加入神龕之前一模一樣。 */
-  $("north").innerHTML=seatHTML(1,hl(1));
-  $("west").innerHTML=seatHTML(2,hl(2));
-  $("east").innerHTML=seatHTML(3,hl(3));
+  /* 掏空卷 v0.55a：寫入目標從 #north／#west／#east 收進 #northSeat／#westSeat／#eastSeat
+     ——側欄卡列（#railW／#railE）與北列兩塊（#northPrev／#northShr）是這三個容器的兄弟，
+     這一支因此不會再把它們洗掉（計畫 §7 風險 4；全檔就這三行在覆寫座位卡）。 */
+  $("northSeat").innerHTML=seatHTML(1,hl(1));
+  $("westSeat").innerHTML=seatHTML(2,hl(2));
+  $("eastSeat").innerHTML=seatHTML(3,hl(3));
   const me=S.players[0];
   $("myAv").innerHTML=avHTML(me)+markStampHTML(0);
   $("south").classList.remove("dimmed","anim-lantern-reveal"); /* #south 不重建，開標演出加上的 class 要在這裡清 */
@@ -6417,6 +6494,13 @@ function initSimTool(){
       "舊版試膽大會（應 FAIL）\nverdict="+r1.verdict+"\ndominant="+JSON.stringify(r1.dominant)+"\nfreeLunch="+r1.freeLunch
       +"\n\n修正版試膽大會（應 PASS）\nverdict="+r2.verdict+"\ndominant="+JSON.stringify(r2.dominant)+"\nfreeLunch="+r2.freeLunch;
   };
+}
+/* 掏空卷 v0.55a：版面類別與命中層的接線。#table 這個 div 在本 script 之前就已經解析完，所以這裡拿得到。
+   `?table3d=0` 時**什麼都不掛** ⇒ 版面、事件、疊層三樣都回到 v0.53（kill switch 的雙向由 T1 驗）。 */
+if(!SIM_MODE&&TABLE3D){
+  const tb=$("table"); if(tb) tb.classList.add("t3d");
+  const tr=$("tray");
+  if(tr){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e)); }
 }
 if(SIM_MODE) initSimTool();
 else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine");
