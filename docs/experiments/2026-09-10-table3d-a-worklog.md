@@ -118,7 +118,10 @@ node tests/tools/legend-drive.mjs docs/experiments/2026-09-10-table3d-a-evidence
 **為什麼 tap 掃描挑 seeds 1,3**：與 `felt-probe --seeds=1,3` 同一組；而且 **seed 1 的第 3 夜是押寶夜**
 （`RULE_NIGHTS=[3,7]`，seed 1 的 `ruleOrder[0]='yabao'`），`#stage` 裡因此有 `ybBump`／`ybFlip` 三顆鈕——
 那是**唯一**落在 `#felt` 內、z-index 低於 `#tray` 突變值的可點元素，T5 的鑑別力突變（`#tray{z-index:9}`）要靠它才驗得紅。
-`_tmp-rule.mjs` 實測 seeds 1／5／6／8／9 的第 3 夜是押寶夜。
+實測（一次性探針，用完刪）：`S.ruleOrder` 在 seeds **1／5／6／8／9** 的第 3 夜是 `yabao`（押寶夜），
+seeds 2／3／4／7／10 是 `luopo`、11／12 是 `shousui`。
+⇒ 挑 seeds 1,3 讓突變**驗得紅**，這是**加嚴**（沒有這一組的話 `#felt` 內就只剩 `#helpBtn`（z-index 25）一個可點元素，
+突變的 `z-index:9` 蓋不到它，鑑別力檢查會靜默通過）。
 
 ---
 

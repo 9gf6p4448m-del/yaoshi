@@ -82,7 +82,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   #table.t3d .rail .mcard .fchip{font-size:8.5px}
   #table.t3d .rail .mcard .ab{font-size:9px;line-height:1.3;margin-top:1px}
   #table.t3d .rail .mcard .uline{font-size:9px;line-height:1.35}
-  /* 側欄的垂直帳：256 ＝ 座位 72 ＋ 4 ＋ 卡 88 ＋ 4 ＋ 卡 88。座位卡從 85.6 壓到 ≤72，
+  /* 側欄的垂直帳（實測）：256 ＝ 座位 62 ＋ 4 ＋ 卡列 190（上緣 8 ＋ 卡 88 ＋ 4 ＋ 卡 88）。座位卡從 85.6 壓到 62，
      壓的是字級與內距，不是把它藏起來（T3 量的是 scrollHeight−clientHeight，藏不掉）。 */
   #table.t3d #west .seat,#table.t3d #east .seat{padding:2px 7px}
   #table.t3d #west .seat .av,#table.t3d #east .seat .av{font-size:18px;line-height:1.05}
@@ -92,7 +92,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   #table.t3d #west .seat .dir,#table.t3d #east .seat .dir{top:1px}
   #table.t3d #west .seat .windb,#table.t3d #east .seat .windb{top:1px}
   #table.t3d #west .seat .roleInfoBtn,#table.t3d #east .seat .roleInfoBtn{bottom:1px}
-  /* 北列：現有的兩塊 258px 空白拿來放「明夜預告／盯上說明」與「香火榜＋三尊待請卡」，
+  /* 北列：北席卡兩側的空白拿來放「明夜預告／盯上說明」與「香火榜＋三尊待請卡」，
      北席卡維持置中（#north 仍是 justify-content:center，兩側各 flex:1 1 0）。 */
   #table.t3d #north{gap:4px}
   #table.t3d #north .seat{max-width:230px}   /* 讓出兩側的欄寬：836−230−8 ⇒ 每側 299px */
@@ -108,7 +108,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
      56px 的列高塞得下最長的那一版（盯上第 1 夜的完整教學、規則夜的規則說明）。 */
   #table.t3d #northPrev .preview{font-size:8.5px;line-height:1.14;padding:0 4px;text-align:left}
   #table.t3d #northPrev{flex:1.15 1 0} #table.t3d #northShr{flex:0.85 1 0}   /* 預告框的字比香火榜多，寬度就多分一點 */
-  /* 香火榜進了 251px 的北列格之後，slim 的「一列」會被三張待請卡吃光、香火榜只剩一個燈籠圖示
+  /* 香火榜進了 ~254px 的北列格之後，slim 的「一列」會被三張待請卡吃光、香火榜只剩一個燈籠圖示
      （試玩截圖看得出來）。北列這一格改成**兩列**：榜佔滿一列、三張卡佔滿一列，
      56px 的列高塞得下（16.7＋2＋16.7＝35.4）。這是版面適配，不動 shrinesHTML 一個字。 */
   #table.t3d #northShr #shrines,#table.t3d #northShr #shrines.slim{flex-direction:column;gap:2px;align-items:stretch}
