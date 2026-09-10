@@ -2,6 +2,12 @@
 // 用法：node tests/tools/legend-drive.mjs <out.json> [--port=9511] [--seeds=1,2,3,4,5,6] [--root=<靜態根目錄>]
 //                                          [--shots=<png 前綴>] [--legend=0] [--burn=0] [--all]
 //                                          [--base=<felt-probe 對基準量的 json>] [--slack=52]
+//                                          [--sel=<橫向溢出選擇器清單>] [--taps] [--tapsonly]
+//                                          [--tapseeds=1,3] [--taprounds=3] [--tapbase=<基準 json>] [--tapout=<json>]
+//   --sel=      橫向溢出量哪些容器（**收斂**：#market 退役、#railW／#railE 上線之後不逐支複製選擇器，改吃這個旗標）
+//   --taps      觸控命中回歸（掏空卷 v0.55a 凍結檔 T5）：對第 1～3 夜出價頁與盯上頁的**每一個** `#table [onclick]`
+//               各 tap 一次，驗「這一 tap 有沒有讓對應的處理函式被呼叫」，並驗 #tray 沒有吃掉任何一個
+//   --tapsonly  只跑 --taps 那一段（量基準時用，不必把整局玩完）
 //   --burn=0    真人整局不燒香（對照組）
 //   --legend=0  關掉整個請神機制（量橫向溢出的對照組）；不帶 --legend＝完全不帶 query，走 CFG 預設（＝開）
 //   --all       不提早收工，把 --seeds 給的每一顆都跑完（凍結檔 H6 的「seeds ≥6」照字面走）
@@ -41,6 +47,17 @@ const GIVEUP_SEED = +(opt.giveup || SEEDS[1] || SEEDS[0]);
    --slack=<px>＝香火榜／待請卡展開的高度寬限（預設 52）。沒帶 --base 就沒有基準可比，一律不算通過。 */
 const BASE_V = opt.base && fs.existsSync(opt.base) ? JSON.parse(fs.readFileSync(opt.base, 'utf8')) : {};
 const BASE_SLACK = +(opt.slack || 52);
+/* 橫向溢出的選擇器清單（掏空卷 v0.55a 凍結檔 T4 的 12 個＋兩個舊容器當加嚴）。
+   `#market` 這個 id 在掏空頁退役 ⇒ 清單改吃 --sel（收斂），不逐支治具各寫一份新選擇器。
+   清單裡查不到的選擇器自然跳過（基準版沒有 #railW／掏空版沒有 #market，同一份清單兩邊都跑得動）。 */
+const SEL_LIST = String(opt.sel || '#table,#north,#shrines,.incboard,.shcards,#felt,#stage,#south,#railW,#railE,.incbar,.preview,#market,.legendPicks')
+  .split(',').map((x) => x.trim()).filter(Boolean);
+/* --taps（T5）：tap 掃描用的種子與夜數。預設 1,3 ×第 1～3 夜——與 felt-probe 的 --seeds=1,3 同一組，
+   而且 seed 1 第 3 夜是押寶夜（#stage 裡有 stepper）⇒ 這一組才驗得到「#tray 有沒有壓住 #felt 裡的可點元素」。 */
+const TAP_SEEDS = String(opt.tapseeds || '1,3').split(',').map(Number);
+const TAP_ROUNDS = +(opt.taprounds || 3);
+const TAP_BASE = opt.tapbase && fs.existsSync(opt.tapbase) ? JSON.parse(fs.readFileSync(opt.tapbase, 'utf8')) : null;
+const TAP_OUT = opt.tapout || null;
 
 async function serve(root, port) {
   const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -58,10 +75,10 @@ const OVERFLOW = `(() => {
     if (o > 1) rows.push({ sel, scrollW: el.scrollWidth, clientW: el.clientWidth, over: o }); };
   push('html', document.documentElement);
   push('body', document.body);
-  for (const sel of ['#table', '#north', '#shrines', '.incboard', '.shcards', '#felt', '#stage', '#south', '#market', '.incbar', '.preview', '.legendPicks'])
+  for (const sel of __SELS__)
     document.querySelectorAll(sel).forEach((el) => push(sel, el));
   return rows;
-})()`;
+})()`.replace('__SELS__', JSON.stringify(SEL_LIST));
 
 /* #felt 的直向溢出：#felt 是 overflow-y:auto，捲得動不代表看得到——
    844×390 這個尺寸下把市集卡的部隊預覽整行推到看不見，就是版面沒放下。 */
@@ -71,6 +88,88 @@ const VOVERFLOW = `(() => {
   return { scrollH: f.scrollHeight, clientH: f.clientHeight, over: f.scrollHeight - f.clientHeight };
 })()`;
 
+/* ===== T5 觸控命中回歸（掏空卷 v0.55a）=====
+   做法（凍結檔 T5 的字面）：在第 1～3 夜的出價頁與盯上頁，對**每一個** `#table [onclick]` 元素各 tap 一次，
+   記錄「這一 tap 有沒有讓對應的處理函式被呼叫」。
+   ★量的是「點得到嗎」，不是「元素還在嗎」★——所以：
+   ① 用 `page.touchscreen.tap(x,y)` 打在元素中心的**座標**上，真的走瀏覽器的命中測試（#tray 蓋住就會被它吃掉）
+   ② 在頁面端把每個 onclick 用到的全域函式換成計數 proxy ⇒ tap 完全不改遊戲狀態，掃描順序不影響結果
+   ③ 同時數 `trayTap` 被呼叫幾次：tap 落在既有可點元素上時必須是 0（#tray 不得吃掉別人的事件）
+   基準（v0.53）由同一支治具跑一次產生清單（--tapout），新版用 --tapbase 帶進來逐項比對。 */
+const TAP_INSTALL = `(() => {
+  const els=[...document.querySelectorAll('#table [onclick]')];
+  const names=new Set(['trayTap']);
+  els.forEach(e=>{ const a=e.getAttribute('onclick')||'';
+    (a.match(/([A-Za-z_$][\\w$]*)\\s*\\(/g)||[]).forEach(m=>names.add(m.replace(/\\s*\\($/,''))); });
+  window.__tapCount={}; window.__tapOrig={};
+  const stubbed=[];
+  names.forEach(n=>{ if(typeof window[n]==='function'){ window.__tapOrig[n]=window[n];
+    window[n]=function(){ window.__tapCount[n]=(window.__tapCount[n]||0)+1; }; stubbed.push(n); } });
+  return stubbed;
+})()`;
+const TAP_RESTORE = `(() => { const o=window.__tapOrig||{}; Object.keys(o).forEach(n=>{ window[n]=o[n]; }); return 1; })()`;
+const TAP_ENUM = `(() => {
+  const stub=new Set(Object.keys(window.__tapOrig||{}));
+  return [...document.querySelectorAll('#table [onclick]')].map(e=>{
+    const r=e.getBoundingClientRect();
+    const a=e.getAttribute('onclick')||'';
+    const cand=(a.match(/([A-Za-z_$][\\w$]*)\\s*\\(/g)||[]).map(m=>m.replace(/\\s*\\($/,'')).filter(n=>stub.has(n));
+    return { sig:(e.id||(e.className||'').toString().trim()||e.tagName)+'::'+a.replace(/\\s+/g,' ').slice(0,40),
+      expect:cand[0]||null, x:+(r.left+r.width/2).toFixed(1), y:+(r.top+r.height/2).toFixed(1),
+      w:+r.width.toFixed(1), h:+r.height.toFixed(1),
+      /* dis＝產品自己把它停用了（例：燒香列的「−」在 amt=0 時 disabled）——停用的鈕本來就不該有反應，
+         基準版同樣打不中，所以它不進「可測集合」；但停用狀態本身要記下來比對，
+         免得新版把某顆本來點得到的鈕變成停用而靜默消失在分母裡。 */
+      dis: e.disabled===true,
+      vis: r.width>0 && r.height>0 && getComputedStyle(e).visibility!=='hidden' };
+  });
+})()`;
+
+async function runTaps(browser, port) {
+  const rec = { rows: [], trayTaps: 0, pages: 0, stubbed: null };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
+  await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+  for (const seed of TAP_SEEDS) {
+    await page.evaluate((sd) => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']); }, seed);
+    const seen = {};
+    for (let i = 0; i < 2000; i++) {
+      await page.waitForTimeout(12);
+      const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+        return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+      if (st.r > TAP_ROUNDS) break;
+      const isBid = /蓋牌/.test(st.t), isMark = /不盯任何一件/.test(st.t);
+      const key = `${st.r}|${isBid ? '出價' : '盯上'}`;
+      if (!st.d && (isBid || isMark) && !seen[key]) {
+        seen[key] = 1;
+        rec.pages++;
+        rec.stubbed = await page.evaluate(TAP_INSTALL);
+        const els = await page.evaluate(TAP_ENUM);
+        for (const el of els) {
+          if (!el.vis || el.dis) { rec.rows.push({ key: `${seed}|${key}|${el.sig}`, vis: el.vis, dis: el.dis, hit: null, expect: el.expect }); continue; }
+          await page.evaluate('(() => { window.__tapCount = {}; })()');
+          await page.touchscreen.tap(Math.max(1, Math.min(843, el.x)), Math.max(1, Math.min(389, el.y)));
+          await page.waitForTimeout(25);
+          const cnt = await page.evaluate('(() => window.__tapCount || {})()');
+          const hit = !!(el.expect && (cnt[el.expect] | 0) > 0);
+          const tray = cnt.trayTap | 0;
+          rec.trayTaps += tray;
+          rec.rows.push({ key: `${seed}|${key}|${el.sig}`, vis: true, dis: false, hit, expect: el.expect, tray, got: Object.keys(cnt).join(',') });
+        }
+        await page.evaluate(TAP_RESTORE);
+      }
+      if (!st.d) await page.click('#mainbtn');
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e) e.click(); })()`);
+    }
+  }
+  await ctx.close();
+  return rec;
+}
+
 const main = async () => {
   const srv = await serve(SERVE_ROOT, PORT);
   const chromium = loadChromium();
@@ -78,6 +177,8 @@ const main = async () => {
   const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], voverflow: [], vrows: [],
     portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, skips: 0, picks: 0, carry: 0, carryEg: [], games: [] };
   try {
+    if (opt.taps) rec.taps = await runTaps(browser, PORT);
+    if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
     page.on('console', (m) => { if (m.type() === 'error') rec.errors.push(m.text()); });
@@ -330,6 +431,7 @@ const main = async () => {
                shrinesHidden: !sh || getComputedStyle(sh).display === 'none' }; })()`);
     if (opt.shots) await page.screenshot({ path: `${opt.shots}-portrait.png` });
     await ctx.close();
+    }
   } finally {
     await browser.close();
     srv.kill();
@@ -341,6 +443,36 @@ const main = async () => {
   const okVert = rec.voverflow.length === 0 && (rec.vsamples || 0) > 0 && Object.keys(BASE_V).length > 0;
   const okCover = !!(rec.portraitCover && rec.portraitCover.rotateHint && rec.portraitCover.shrinesHidden);
   const okHot = !rec.hotseat || (rec.hotseat.sawIncbar && rec.hotseat.handoffShown && rec.hotseat.incbarAtHandoff === 0);
+  /* T5：基準清單的每一格都要在新版存在且命中；tap 在既有可點元素上時 trayTap 一次都不許被呼叫。
+     沒帶 --tapbase（＝量基準那一次）就退回「自己這一版每一格都命中」。 */
+  let okTaps = true, tapMiss = [], tapLost = [];
+  if (opt.taps) {
+    const t = rec.taps || { rows: [], trayTaps: 0 };
+    if (TAP_OUT) fs.writeFileSync(TAP_OUT, JSON.stringify(t, null, 1), 'utf8');
+    const testable = (r) => r.vis && !r.dis;   /* 可測集合＝看得見且產品沒把它停用 */
+    const byKey = {}; t.rows.forEach((r) => { byKey[r.key] = r; });
+    if (TAP_BASE) {
+      TAP_BASE.rows.filter(testable).forEach((b) => {
+        const n = byKey[b.key];
+        if (!n || !testable(n)) tapLost.push(b.key);
+        else if (!n.hit) tapMiss.push(b.key);
+      });
+    } else {
+      t.rows.filter((r) => testable(r) && !r.hit).forEach((r) => tapMiss.push(r.key));
+    }
+    okTaps = t.rows.length > 0 && t.trayTaps === 0 && tapMiss.length === 0 && tapLost.length === 0;
+    const visN = t.rows.filter(testable).length;
+    const baseVisN = TAP_BASE ? TAP_BASE.rows.filter(testable).length : null;
+    console.log(`- **T5 觸控命中**（每個 #table [onclick] 各 tap 一次，第 1～${TAP_ROUNDS} 夜出價頁與盯上頁，seeds ${TAP_SEEDS.join(',')}）：`
+      + `掃了 ${t.pages} 頁、可測元素 ${visN} 個（基準 ${baseVisN == null ? '—（本次即基準）' : baseVisN} 個；`
+      + `另有停用 ${t.rows.filter((r) => r.dis).length} 個、隱藏 ${t.rows.filter((r) => !r.vis).length} 個不計）`
+      + `　命中 ${t.rows.filter((r) => testable(r) && r.hit).length}／${visN}`
+      + `　基準清單漏掉 ${tapLost.length} 個、沒命中 ${tapMiss.length} 個`
+      + `　**trayTap 被呼叫 ${t.trayTaps} 次**（必須 0） → ${okTaps ? '✅' : '❌'}`);
+    if (tapLost.length) console.log('    基準有、新版量不到：' + tapLost.slice(0, 12).join('　'));
+    if (tapMiss.length) console.log('    沒命中：' + tapMiss.slice(0, 12).join('　'));
+    if (TAP_OUT) console.log('    tap 明細 → ' + TAP_OUT);
+  }
   console.log(`# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION ${rec.version}　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天 ${g.dawnShrines} 尊・沒人有資格 ${g.skips} 夜・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　真人選尊 ${JSON.stringify(g.picked)}　按鈕出現次數 ${JSON.stringify(g.txts)}`));
@@ -364,7 +496,7 @@ const main = async () => {
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
-  const all = okErr && okPath && okOv && okVert && okCover && okHot;
+  const all = opt.tapsonly ? okTaps : (okErr && okPath && okOv && okVert && okCover && okHot && okTaps);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };

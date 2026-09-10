@@ -1,5 +1,8 @@
-/* 版面截圖治具（請神 2.0 版面卷；凍結檔 G7／G11 的人眼證據）
-   跑法：node tests/tools/layout-shot.mjs <png 前綴> [--port=8890] [--seed=1]
+/* 版面截圖治具（請神 2.0 版面卷；凍結檔 G7／G11 的人眼證據。掏空卷 v0.55a 加 --sel=）
+   跑法：node tests/tools/layout-shot.mjs <png 前綴> [--port=8890] [--seed=1] [--sel=#market]
+   --sel=<逗號分隔>：拍「市集卡特寫」時要框住哪個容器。**#market 這個 id 在掏空頁退役**（卡片退到 #railW／#railE），
+     所以這裡改吃旗標而不是寫死；預設 `#market`＝v0.53 行為，掏空版傳 `--sel=#west,#east`。
+     檔名由選擇器去掉標點得來（`#market`→`-market.png`、`#west`→`-west.png`）。
    拍五張 844×390（＋一張 390×844 直式）：
      -n1        第 1 夜「出價」頁（北家在頂端正中、三龕整排在法寶卡正上方、盯上說明完整版）
      -mark2     第 2 夜「盯上宣告」頁（說明已收成一行）
@@ -24,6 +27,8 @@ const argv=process.argv.slice(2); const opt={}; const pos=[];
 for(const a of argv){ const m=a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if(m) opt[m[1]]=m[2]===undefined?true:m[2]; else pos.push(a); }
 const OUT=pos[0]||path.join(ROOT,'layout');
 const PORT=+(opt.port||8890), SEED=+(opt.seed||1);
+const CLOSE_SELS=String(opt.sel||'#market').split(',').map(x=>x.trim()).filter(Boolean);
+const selName=s=>s.replace(/[^A-Za-z0-9_-]/g,'')||'close';
 
 const main=async()=>{
   const srv=spawn('python',['-m','http.server',String(PORT),'--bind','127.0.0.1'],{cwd:ROOT,stdio:'ignore'});
@@ -58,8 +63,12 @@ const main=async()=>{
     /* ① 第 1 夜出價頁 */
     for(let i=0;i<400;i++){ const st=await state(); if(st.round===1&&/蓋牌/.test(st.t)) break; await step(); }
     await page.waitForTimeout(400); await shot('n1');
-    /* ①b 市集卡特寫（同一頁，只截 #market 那一塊） */
-    { const el=await page.$('#market'); if(el) { const p=`${OUT}-market.png`; await el.screenshot({path:p}); shots.push(p); } }
+    /* ①b 市集卡特寫（同一頁，只截 --sel 指的那一塊；掏空版是左右兩條側欄卡列） */
+    for(const sel of CLOSE_SELS){
+      const el=await page.$(sel);
+      if(el){ const p=`${OUT}-${selName(sel)}.png`; await el.screenshot({path:p}); shots.push(p); }
+      else console.log(`- （--sel ${sel} 在這一版不存在，跳過）`);
+    }
     /* ② 第 2 夜盯上宣告頁（說明收成一行） */
     for(let i=0;i<600;i++){ const st=await state(); if(st.round===2&&/不盯任何一件/.test(st.t)) break; await step(); }
     await page.waitForTimeout(300); await shot('mark2');
