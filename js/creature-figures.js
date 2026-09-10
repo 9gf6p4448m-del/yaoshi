@@ -72,6 +72,20 @@ const BURN = {
 };
 const SHADOW_COLOR = 0x05030c;
 const RIM_FALLBACK = 0xf0a840;
+// 批 2-a：受擊閃紅（與 duel-figures 的 HIT_RED 同一顆色）。mix＝色相往紅推多少、boost＝邊光亮度倍率。
+// boost 這個數字是量出來的：R2 要求 target 尊的投影方框內 R−(G+B)/2 比命中前高 ≥25（0–255）。
+// power：閃紅時把 fresnel 指數壓低，邊光從「一圈細邊」攤成「整隻泛紅」——不然只有輪廓變紅，
+// 被打的那一尊在畫面上的紅偏量（R2 量的是整個投影方框的平均）只有 +1.5，遠不到 +25。
+// boost／power＝邊光那一項（往紅推、指數壓低讓紅攤到整隻），alb＝albedo 往紅乘多少。
+// 為什麼一定要動 albedo：只靠加色的話，紅加到夠亮就被 ACES 洗成白的——實測整個投影方框的
+// 紅偏量（R2 的量法）只從 +1.5 爬到 +8，離門檻 +25 很遠；把 albedo 往紅乘之後綠藍才會降下來。
+// 動的是既有材質的 color／既有 uniform，沒有新材質、沒有新 program（R6）。
+// 亮度刻意壓住：ACES 會把「很亮又很飽和」的紅洗成粉白（實測 boost 1.6 那版整隻變成粉白色、
+// 紅偏量反而掉下來）。所以紅是**靠 albedo 乘出來的**（綠藍降下去），邊光只補一點點亮度。
+const HIT = { mix: 1.0, boost: 2.4, power: 0.55, alb: 1.0, outline: 0.9 };
+const HIT_C = new THREE.Color(0xff2a14);
+const HIT_ALB = new THREE.Color(0xff1c0c); // albedo 乘上去的紅（頂點色再乘一次，所以取飽和的）
+const TMP_C = new THREE.Color();
 
 /* ── 接線卷（2026-09-05）：載入時的體型正規化、ab→GLB 映射、各隻專屬的腳下環境 ──────
  * 戲台相機沒有正規化（shield 回修 3 曾被切頭），所以在工廠這一層把「太高」的壓回來。
@@ -523,6 +537,7 @@ export function makeCreatureFigure(opts = {}) {
   const uniforms = []; // 這隻身上所有材質的 uniform 控制點
   const shells = []; // 反轉外殼描邊的 mesh（每顆本體 mesh 一顆；?outline=0 時是空的）
   let shellU = null; // 外殼材質的 uniform 控制點（整尊共用一顆材質）
+  let shellBase = null; // 批 2-a：閃紅前的描邊色（閃完寫回去）
   const parts = Object.create(null); // 骨骼名 → THREE.Bone
   const clips = Object.create(null); // clip 名 → THREE.AnimationClip
 
@@ -530,6 +545,8 @@ export function makeCreatureFigure(opts = {}) {
   let model = null;
   let loaded = false;
   let rimScale = 1;
+  let hitK = 0; // 批 2-a：受擊閃紅強度（0＝原本的系色邊光）
+  const bodyMats = []; // 這隻身上所有本體材質（閃紅要動它們的 color；外殼描邊不在內）
   const rimColor = new THREE.Color(opts.rimColor === undefined ? RIM_FALLBACK : opts.rimColor);
 
   let burning = null; // { t, dur, resolve, puff }
@@ -574,6 +591,7 @@ export function makeCreatureFigure(opts = {}) {
       const dressed = mats.map((m) => {
         const c = m.clone();
         uniforms.push(dressMaterial(c, burnY, decalFor(decalKey, m.name)));
+        bodyMats.push(c); // 批 2-a：閃紅要把 albedo 一起往紅推（只加光會被 ACES 洗成白的）
         return c;
       });
       o.material = Array.isArray(o.material) ? dressed : dressed[0];
@@ -610,7 +628,7 @@ export function makeCreatureFigure(opts = {}) {
     shadow.geometry.dispose();
     shadow.geometry = new THREE.CircleGeometry(foot, 22);
 
-    uniforms.forEach((u) => { u.uRimColor.value.copy(rimColor); });
+    setRimUniforms(); // GLB 載完才有材質：套上目前的系色／閃紅狀態（原本只寫 uRimColor，會蓋掉閃紅）
     if (ground) ground.fit(box);
     loaded = true;
     return true;
@@ -620,10 +638,31 @@ export function makeCreatureFigure(opts = {}) {
   readyPromise.catch(() => {});
 
   function setRimUniforms() {
+    // 批 2-a（傷害可讀性）：被打那一瞬間把**既有的**邊光 uniform 往紅色推並加亮。
+    // 不新建材質、不改注入的 GLSL，所以 renderer.info.programs 不會多一支（凍結檔 R6）。
+    // 邊光那一項是 uRimColor*(_rim + RIM.ambient)*uRimStrength：_rim 在輪廓最強、ambient 是全身常數，
+    // 所以把 strength 拉高時整隻都會泛紅、輪廓最亮——「這一尊被打到」一眼看得出來。
+    const c = hitK > 0 ? TMP_C.copy(rimColor).lerp(HIT_C, Math.min(1, hitK * HIT.mix)) : rimColor;
+    const boost = 1 + HIT.boost * hitK;
+    const power = RIM.power + (HIT.power - RIM.power) * hitK;
     uniforms.forEach((u) => {
-      u.uRimColor.value.copy(rimColor);
-      u.uRimStrength.value = (u.glow ? GLOW.rim : RIM.strength) * rimScale;
+      u.uRimColor.value.copy(c);
+      u.uRimPower.value = power;
+      u.uRimStrength.value = (u.glow ? GLOW.rim : RIM.strength) * rimScale * boost;
     });
+    bodyMats.forEach((m) => {
+      if (!m.__baseCol) m.__baseCol = m.color.clone();
+      if (hitK > 0) m.color.copy(m.__baseCol).lerp(HIT_ALB, Math.min(1, hitK * HIT.alb));
+      else m.color.copy(m.__baseCol);
+    });
+    // 反轉外殼描邊也跟著轉紅：那一圈是整尊的輪廓，紅起來「被打到的是這一尊」在擠堆場面才分得出來。
+    // **這條 uniform 目前只有閃紅在寫**（`outlineColorOf` 只在建材質時決定一次，之後沒人改它）——
+    // 之後若有別的效果也要染描邊，兩邊都得改成「疊加」而不是各自 copy，否則後寫的會蓋掉先寫的（覆審 LOW）。
+    if (shellU) {
+      if (!shellBase) shellBase = shellU.uOutlineColor.value.clone();
+      if (hitK > 0) shellU.uOutlineColor.value.copy(shellBase).lerp(HIT_C, Math.min(1, hitK * HIT.outline));
+      else shellU.uOutlineColor.value.copy(shellBase);
+    }
   }
 
   function setDissolve(v) {
@@ -644,6 +683,13 @@ export function makeCreatureFigure(opts = {}) {
     setCloth(hex) { rimColor.setHex(hex); setRimUniforms(); },
     /** 邊光亮度倍率（受擊瞬間爆一下，bloom 才抓得到） */
     setRim(op) { rimScale = op === undefined ? 1 : op; setRimUniforms(); },
+    /** 【批 2-a】被打那一瞬間的閃紅強度（0～1）。量化到 1/20，同一格不重寫 uniform。 */
+    setHitTint(k) {
+      const q = Math.max(0, Math.min(1, Math.round((k || 0) * 20) / 20));
+      if (q === hitK) return;
+      hitK = q;
+      setRimUniforms();
+    },
     /** GLB 還沒到就別冒出一團色塊 */
     ready() { return loaded; },
     /** 等 GLB 載完（預覽頁／演出層要排時序時用） */

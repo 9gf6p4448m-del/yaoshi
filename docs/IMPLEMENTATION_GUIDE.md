@@ -725,7 +725,36 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
-### 11.24 請神 2.0「神債暗標」（2026-09-07，v0.52）——接手前先知道這九件事
+### 11.25 傷害可讀性 批 2-a（2026-09-07～10，v0.51 上線）——接手前先知道這六件事
+
+規格與驗收凍結＝`docs/experiments/2026-09-07-acceptance-dmg-readability.md`（R0–R8）；
+報告與連拍＝`docs/experiments/2026-09-07-dmg-readability-report.md`。純演出卷：引擎 `trace(1..20)` 與 `443f802` 逐位元組相等。
+
+1. **跳字冒在哪一側，v0.45 是錯的**：引擎 `pwRec` 記的 `side` 是**行動方**（`pwStrike` 傳 `sd.tag`），
+   `target` 是**對面**那一隻；只有 `burn` 那一筆的 `side` 才是被燒的那一方。v0.45 的 `pwDmgFloat`
+   寫成 `pwScreenOf(b.side, b.target)`——兩側的 unit id 都是 `0..n−1`，所以查得到的是**出手方自己的一尊**，
+   傷害數字一直冒在打人那一側的頭上。批 2-a 改成 `pwFoe(b.side)`（burn 維持 `b.side`）。
+   新加任何「對被打的那一尊做事」的演出，side 都要先過這一關。
+2. **閃紅不新建材質、不重編 shader**：`js/duel-figures.js` 收 `ys:fx-hit {side,unit,ms}`，
+   每幀依狀態算強度（跟退暗同一條紀律：一次性設值下一幀就被主迴圈蓋掉），
+   再叫工廠的 `setHitTint(k)`。3D 妖那邊只動**既有**的 `uRimColor`／`uRimPower`／`uRimStrength`
+   與既有材質的 `color`；貼片版只動既有的兩顆逆光材質。`renderer.info.programs.length` 對決前後不變。
+3. **只加光會被 ACES 洗成粉白**：加色加到夠亮時 ACES 會把飽和紅推向白，量到的「紅偏量」反而下降
+   （實測 boost 1.6→3.2 時 R−(G+B)/2 從 18.6 掉到 8.0）。所以紅是靠 **albedo 往紅乘**（把綠藍壓下去）
+   撐起來的，邊光只補一點亮度。調 `HIT` 那組常數時記得往兩個方向各試一次，別只往「更亮」調。
+4. **燒毀中的尊不閃**：`bt != null` 時 `hitFlashK` 一律 0（同 §11.22 第 4 點的理由：燒毀有自己的曲線）。
+   `ys:fx-trait-cancel`（doSkip 派的）／`ys:duel-end`／`resetFigure` 都要把閃紅清乾淨——池是重用的。
+5. **量表殘影的兩個計時器要並列排、不能串接**：串接（收起來 → 再排移除）會讓兩段的延遲累加，
+   重幀時整條殘影拖過 `GAUGE_GHOST_MS+100`（凍結檔 R3 實測踩過）。
+6. **治具 `tests/tools/dmg-readability.mjs` 在頁面端裝了一組虛擬時鐘**：
+   `requestAnimationFrame`／`setTimeout`／`performance.now`／`Date.now` 全部被包起來，
+   freeze() 之後遊戲時間完全停住、畫面停在最後畫出來的那一幀，Node 端慢慢截圖再 resume()。
+   **rAF 的時戳一定要一起換成虛擬時鐘**——`renderer.js` 的 `frame(now)` 直接把它當 `performance.now` 用，
+   不換的話第一次凍結之後所有包絡都會被算成「早就結束」，閃紅永遠量不到（踩過，白花兩輪）。
+   量閃紅時要排掉兩種污染：燒毀會放一片全螢幕暖光（`#duel .flashfx`）、同一欄的兩尊方框會互相疊到
+   （對照組要取**對面那一欄**）。
+
+### 11.24 請神 2.0「神債暗標」（2026-09-07，v0.50 上線）——接手前先知道這九件事
 
 規格＝提案 `docs/proposals/2026-09-07-legend-v2-debt-auction.md` §二（11 條）＋驗收凍結
 `docs/experiments/2026-09-07-acceptance-legend-v2.md`（G0–G11）。實跑報告 `docs/experiments/2026-09-07-legend-v2-report.md`。

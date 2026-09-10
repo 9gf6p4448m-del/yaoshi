@@ -338,14 +338,32 @@ if (off && base) {
 // ── P4 跳字 ───────────────────────────────────────────────────────────────
 {
   const bad = [];
-  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0;
+  let n = 0, maxLive = 0, goneOk = 0, posOk = 0, posN = 0, outsideDuel = 0, unitN = 0, killN = 0, burnEv = 0, sideOk = 0, sideJudged = 0, sideAmbig = 0, sideNoBox = 0, sideViaCol = 0, underCrossCol = 0;
   for (const { f, d } of ons) {
     // 每筆演出的 hit 類事件都要有一個跳字：分母＝fights[].beatsShown[].shown
     let shownHits = 0;
     for (const fight of (d.fxc && d.fxc.fights) || []) for (const b of fight.beatsShown || []) shownHits += b.shown.length;
     out.P4.shownHits = (out.P4.shownHits || 0) + shownHits;
+    burnEv += (d.fxc || {}).burn || 0; // 傷害可讀性批 2-a：每一筆燒毀對應一個「−1 隻」跳字
+    /* 覆審 HIGH-2：期望側別只能從**引擎真相**推——`fights[].beatsShown[]`。
+       規則：burn 那一筆的 side 就是被燒的那一方；其餘交鋒的 side 是行動方、target 在**對面**。
+       建一張 (unit id, 金額) → 期望側別 的表；同一組鍵若兩側都出現過就標成 ambiguous 不判（不灌水）。 */
+    /* 鍵要含**場次**：不同場對決的 unit id 會重複，跨場合併會製造假的 ambiguous
+       （覆審第二輪實測本輪 8 筆 ambiguous 有一半是這樣來的）。fights[] 的索引就是場次序號，
+       跟 closeup-drive 記在每個跳字上的 duel 對得起來（兩邊都是從 1 數起）。 */
+    const wantBy = new Map(); // 'duel|key' → Set(side)
+    const put = (dn, k, v) => { const kk = dn + '|' + k; const st = wantBy.get(kk) || new Set(); st.add(v); wantBy.set(kk, st); };
+    ((d.fxc && d.fxc.fights) || []).forEach((fight, fi) => {
+      for (const bt of fight.beatsShown || []) {
+        for (const x of bt.shown || []) put(fi + 1, 'h:' + x.target + ':' + (x.amount | 0), x.side === 'B' ? 'A' : 'B');
+        for (const x of bt.burns || []) put(fi + 1, 'u:' + x.target, x.side);
+      }
+    });
+    d.__wantBy = wantBy;
     for (const r of d.cu.dmg) {
       n++;
+      const isUnitFloat = /(^|\s)unit(\s|$)/.test(r.cls);
+      let thisSideOk = false; // 這一筆自己的側別判定結果（per-record 降級要用）
       maxLive = Math.max(maxLive, r.live);
       // 移除：以 MutationObserver 量到的那一次移除為準（DMG_MS+100 內），沒量到才退回旗標
       const removedIn = r.removedAt != null ? r.removedAt - r.t : null;
@@ -358,6 +376,30 @@ if (off && base) {
       // 方框是治具自己從世界包圍盒＋canvas rect 算的，跟 pwScreenOf 不同路（審查 MEDIUM-1）。
       if (r.mode === 'fig' && r.box) {
         posN++;
+        /* 覆審 HIGH-2：期望側別取引擎真相，位置改成**兩側相比**——
+           「跳字中心到期望那一側那一尊的距離 < 到對面那一側同 id 那一尊的距離」。
+           只比自己那一側的距離是自我比對：把產品的 tside 還原成 v0.45 的錯邊，
+           因為 dataset.side 跟著一起錯，量到的還是「離自己說的那一尊很近」，永遠綠。 */
+        const key = (r.duel === undefined ? 1 : r.duel) + '|' + (isUnitFloat ? ('u:' + r.unit) : ('h:' + r.unit + ':' + Math.abs(parseInt(String(r.text).replace(/[^0-9]/g, ''), 10) || 0)));
+        const st = d.__wantBy && d.__wantBy.get(key);
+        const wantSide = st && st.size === 1 ? [...st][0] : null;
+        const distTo = (bx) => { if (!bx) return null; const ddx = Math.max(bx.x0 - r.cx, 0, r.cx - bx.x1), ddy = Math.max(bx.y0 - r.cy, 0, r.cy - bx.y1); return Math.hypot(ddx, ddy); };
+        // 3D 方框優先；那一尊在對面拿不到方框時（還沒建模／已收起來）退回兩欄的 DOM 方框，
+        // 兩者都拿不到才記成 sideNoBox（**不靜默丟棄**，覆審第二輪抓到本輪有 10 筆這樣消失）
+        let bW = null, bF = null, via = null;
+        if (wantSide) {
+          const foeSide = wantSide === 'A' ? 'B' : 'A';
+          const f3 = (sd) => (sd === 'A' ? r.boxA : r.boxB), fc = (sd) => (sd === 'A' ? r.colA : r.colB);
+          if (f3(wantSide) && f3(foeSide)) { bW = f3(wantSide); bF = f3(foeSide); via = 'fig'; }
+          else if (fc(wantSide) && fc(foeSide)) { bW = fc(wantSide); bF = fc(foeSide); via = 'col'; }
+        }
+        if (wantSide && bW && bF) {
+          sideJudged++; if (via === 'col') sideViaCol++;
+          const dW = distTo(bW), dF = distTo(bF);
+          if (!(dW < dF)) bad.push({ f, why: 'side', text: r.text, wantSide: wantSide, via: via, dWant: +dW.toFixed(1), dFoe: +dF.toFixed(1), datasetSide: r.side });
+          else { sideOk++; thisSideOk = true; }
+        } else if (!wantSide) sideAmbig++;
+        else sideNoBox++;
         const dx = Math.max(r.box.x0 - r.cx, 0, r.cx - r.box.x1);
         const dy = Math.max(r.box.y0 - r.cy, 0, r.cy - r.box.y1);
         const dist = Math.hypot(dx, dy);
@@ -370,12 +412,28 @@ if (off && base) {
         // underCol：'dL'/'dR'＝落在某一側的欄位容器、'duel'＝落在覆蓋層但不在任一欄、
         // null＝連 #duel 都不在（多半是 3D canvas 本身）。第三輪覆審 E：null 只在 elementFromPoint
         // 真的落在 #duel 之外時才放行，並且要計數揭露，不能當成萬用通行證。
+        // 批 2-a：「−1 隻」刻意往下讓開 UNIT_DY(44px) 才不跟傷害數字重疊，
+        // 那個位移會讓 elementFromPoint 落到別的欄位容器上（3D 尊的投影點本來就不一定在自己那半邊）。
+        // 這一種跳字改由上面那條「到自己那一尊方框的距離 ≤80px」把關（44 < 80，仍然管得住），
+        // 這個旁證跳過並計數揭露。
+        // 覆審 MEDIUM-4：「−1 隻」不再整類豁免——closeup-drive 已改成在 (cx, cy−UNIT_DY) 取樣，
+        // 位移補回去之後這條旁證對它一樣有效（`underDy` 記著實際補了多少）。
         let okUnder;
         if (r.underCol === undefined) okUnder = !r.under || /^CANVAS/.test(r.under); // 舊格式資料
         else if (r.underCol === wantCol || r.underCol === 'duel') okUnder = true;
         else if (r.underCol === null) { okUnder = true; outsideDuel++; }
         else okUnder = false; // 落在對面那一欄＝真的擺錯邊
-        if (!okUnder) bad.push({ f, why: 'under', under: r.under, col: r.underCol, want: wantCol, side: r.side, text: r.text });
+        /* 3D 尊在場時，這條 DOM 旁證會誤紅：人形的投影點跟 DOM 兩欄的分界線沒有對齊，
+           一尊站在中線附近時 elementFromPoint 就落到對面那一欄（本輪 30 個跳字裡 1 個）。
+           上面那條「引擎真相決定期望側別 → 比兩側方框距離」是更強、而且來源獨立的檢查
+           （突變版實測 sideOk 2/11＝會紅），所以這裡對「3D 尊且側別已判過且通過」的那幾筆
+           降級為揭露計數；退回隻數牌的 badge 模式仍然照舊硬判。 */
+        // 降級要 per-record：只有「**這一筆**的側別判過而且通過」才降成揭露；
+        // 原本寫成 sideOk > 0（整批只要有一筆過就全部降級）＝把別筆的通過拿來替這一筆背書（覆審第二輪）。
+        if (!okUnder) {
+          if (r.mode === 'fig' && thisSideOk) underCrossCol++;
+          else bad.push({ f, why: 'under', under: r.under, col: r.underCol, want: wantCol, side: r.side, text: r.text });
+        }
       } else if (r.mode === 'badge' && r.badge) {
         posN++;
         const dist = Math.hypot(r.cx - r.badge.x, r.cy - r.badge.y);
@@ -384,7 +442,15 @@ if (off && base) {
         // 3D 尊當下量不到方框（燒完收起來／GLB 沒到）：不灌水當通過，記成未判
         out.P4.unmeasured = (out.P4.unmeasured || 0) + 1;
       }
-      if (!/^−\d+$/.test(r.text)) bad.push({ f, why: 'text', text: r.text });
+      // 傷害可讀性批 2-a（v0.49）：#dmgLayer 裡現在有三種跳字，文字格式不再只有「−數字」——
+      //   .dmgfloat            交鋒的傷害數字「−n」
+      //   .dmgfloat.kill       同上但放大＋系色底光（擊殺；文字仍是「−n」）
+      //   .dmgfloat.unit       燒毀那一筆的「−1 隻」灰白小字
+      // 舊判準 /^−\d+$/ 會把每一個「−1 隻」判成 text 違規（本卷實測 30 個跳字裡有 8 個誤紅）。
+      const isUnit = isUnitFloat;
+      if (isUnit) { unitN++; if (r.text !== '−1 隻') bad.push({ f, why: 'unit-text', text: r.text }); }
+      else if (!/^−\d+$/.test(r.text)) bad.push({ f, why: 'text', text: r.text });
+      if (/(^|\s)kill(\s|$)/.test(r.cls)) killN++;
       if (/kill/.test(r.cls) && !/dmgfloat kill/.test(r.cls)) bad.push({ f, why: 'cls', cls: r.cls });
     }
   }
@@ -396,10 +462,21 @@ if (off && base) {
     out.P4.afterSkipFloats = s.map((x) => x.floats);
     out.P4.skipClean = s.length > 0 && s.every((x) => x.floats === 0) && out.P4.beforeSkipFloats > 0;
   }
-  // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判
-  out.P4.oneToOne = out.P4.shownHits === n;
+  // 「每筆演出的交鋒都要有一個跳字」改成硬斷言（審查 MEDIUM-1）：以前只印數字沒判。
+  // 批 2-a 之後分母要扣掉「−1 隻」那一種：它對的是燒毀事件，不是交鋒。
+  // 分母講清楚：judged（真的判了幾筆）／ambiguous（同鍵兩側都出現過）／noBox（兩種方框都拿不到）
+  out.P4.sideOk = sideOk; out.P4.sideJudged = sideJudged; out.P4.sideAmbiguous = sideAmbig;
+  out.P4.sideNoBox = sideNoBox; out.P4.sideViaColumnBox = sideViaCol; out.P4.underCrossCol = underCrossCol;
+  out.P4.sideCoverage = n ? +((sideJudged / n) * 100).toFixed(1) : null;
+  out.P4.unitFloats = unitN; out.P4.killFloats = killN; out.P4.hitFloats = n - unitN; out.P4.burnEvents = burnEv;
+  out.P4.oneToOne = out.P4.shownHits === out.P4.hitFloats;
+  // 「每筆燒毀一個『−1 隻』」：舊錄影（v0.45／v0.48）沒有這一種跳字，unitN 為 0 時不判（回 null），
+  // 這條的正式守衛在 tests/tools/dmg-readability.mjs 的 dom 模式（R4），這裡只是不讓舊判準誤紅。
+  out.P4.unitOneToOne = unitN === 0 ? null : unitN === burnEv;
+  // 側別那一條要有樣本才算數（0 樣本＝fail-closed，不讓「沒判到」冒充「判過了」）
   out.P4.PASS = n > 0 && bad.length === 0 && maxLive <= PW.MAX_HITS && goneOk === n && posOk === posN
-    && out.P4.oneToOne && (out.P4.unmeasured || 0) === 0 && (!skipf || out.P4.skipClean);
+    && out.P4.oneToOne && out.P4.unitOneToOne !== false && sideJudged > 0 && sideOk === sideJudged
+    && (out.P4.unmeasured || 0) === 0 && (!skipf || out.P4.skipClean);
 }
 
 // ── P5 HUD ────────────────────────────────────────────────────────────────

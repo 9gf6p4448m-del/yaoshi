@@ -1,0 +1,1928 @@
+{
+ "url": "http://127.0.0.1:9073/index.html?paperwar=1&fxcount=1&seed=3",
+ "seed": 3,
+ "duels": 8,
+ "verdict": {
+  "res": {
+   "R3": true,
+   "R4": true,
+   "R5": true,
+   "WIRE": true
+  },
+  "bad": [],
+  "summary": {
+   "ghostSamples": 8,
+   "ghostBad": 0,
+   "ghostGoneChecked": 7,
+   "ghostGoneBad": 0,
+   "ghostSkipped": 3,
+   "hitMine": 5,
+   "hitFoe": 4,
+   "edges": 5,
+   "edgeBad": 0,
+   "edgeLifeMax": 162,
+   "unitFloats": 8,
+   "burns": 8,
+   "burnsSkipped": 3,
+   "overlap": 0,
+   "hits": 18,
+   "shownHits": 18,
+   "skipAfter": {
+    "floats": 0,
+    "units": 0,
+    "ghosts": [],
+    "edges": 0,
+    "gauge": [
+     {
+      "id": "pwg-A",
+      "w": "100%"
+     },
+     {
+      "id": "pwg-B",
+      "w": "100%"
+     }
+    ]
+   }
+  }
+ },
+ "data": {
+  "dom": {
+   "edge": [
+    {
+     "t": 15849.099999904633,
+     "duel": 1,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 16121.5,
+     "duel": 1,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 21310.5,
+     "duel": 2,
+     "side": "B",
+     "unit": 1,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 21577.900000095367,
+     "duel": 2,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 38136.299999952316,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 38404.799999952316,
+     "duel": 3,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 39035.90000009537,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 39301.299999952316,
+     "duel": 3,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 44561.90000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 44778.200000047684,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 44911.90000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 45045.59999990463,
+     "duel": 4,
+     "side": "B",
+     "unit": 2,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 45180.700000047684,
+     "duel": 4,
+     "side": "A",
+     "unit": 1,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 55960.200000047684,
+     "duel": 5,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 62628.40000009537,
+     "duel": 6,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 62974,
+     "duel": 6,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 82008.29999995232,
+     "duel": 7,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 82274.70000004768,
+     "duel": 7,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": "A"
+    },
+    {
+     "t": 88764.20000004768,
+     "duel": 8,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 88932.09999990463,
+     "duel": 8,
+     "side": "B",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 89096.40000009537,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 89332.40000009537,
+     "duel": 8,
+     "side": "A",
+     "unit": 1,
+     "skip": false,
+     "mySide": null
+    },
+    {
+     "t": 89498.59999990463,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "skip": false,
+     "mySide": null
+    }
+   ],
+   "skip": {
+    "t": 45214,
+    "n": 4,
+    "before": {
+     "floats": 5,
+     "units": 0,
+     "ghosts": [],
+     "edges": 0,
+     "gauge": [
+      {
+       "id": "pwg-A",
+       "w": "100%"
+      },
+      {
+       "id": "pwg-B",
+       "w": "100%"
+      }
+     ]
+    },
+    "after300": {
+     "floats": 0,
+     "units": 0,
+     "ghosts": [],
+     "edges": 0,
+     "gauge": [
+      {
+       "id": "pwg-A",
+       "w": "100%"
+      },
+      {
+       "id": "pwg-B",
+       "w": "100%"
+      }
+     ]
+    },
+    "hitK": [
+     [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0
+     ]
+    ]
+   },
+   "burns": [
+    {
+     "t": 16560.799999952316,
+     "duel": 1,
+     "side": "A",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 22002.900000095367,
+     "duel": 2,
+     "side": "A",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 39643.40000009537,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 45215.40000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 0,
+     "w0": 100,
+     "at50": {
+      "has": false,
+      "left": null,
+      "w": null,
+      "bar": "100%",
+      "from": null
+     },
+     "atGhostEnd": 0,
+     "skip": true,
+     "units": 0
+    },
+    {
+     "t": 45216,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "w0": 100,
+     "at50": {
+      "has": false,
+      "left": null,
+      "w": null,
+      "bar": "100%",
+      "from": null
+     },
+     "atGhostEnd": 0,
+     "skip": true,
+     "units": 0
+    },
+    {
+     "t": 45216.299999952316,
+     "duel": 4,
+     "side": "B",
+     "unit": 2,
+     "w0": 100,
+     "at50": {
+      "has": false,
+      "left": null,
+      "w": null,
+      "bar": "100%",
+      "from": null
+     },
+     "atGhostEnd": 0,
+     "skip": true,
+     "units": 0
+    },
+    {
+     "t": 56378.700000047684,
+     "duel": 5,
+     "side": "A",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 63314.200000047684,
+     "duel": 6,
+     "side": "B",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 82702.59999990463,
+     "duel": 7,
+     "side": "A",
+     "unit": 0,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 1
+    },
+    {
+     "t": 89750.70000004768,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "w0": 50,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 2
+    },
+    {
+     "t": 89751.20000004768,
+     "duel": 8,
+     "side": "A",
+     "unit": 1,
+     "w0": 0,
+     "at50": {
+      "has": true,
+      "left": "0%",
+      "w": "100%",
+      "bar": "0%",
+      "from": "100"
+     },
+     "atGhostEnd": 0,
+     "skip": false,
+     "units": 2
+    }
+   ],
+   "edges": [
+    {
+     "t": 16209.700000047684,
+     "duel": 1,
+     "gone": 16362.5
+    },
+    {
+     "t": 38405.799999952316,
+     "duel": 3,
+     "gone": 38567.299999952316
+    },
+    {
+     "t": 39302.799999952316,
+     "duel": 3,
+     "gone": 39453.299999952316
+    },
+    {
+     "t": 56038.200000047684,
+     "duel": 5,
+     "gone": 56190.200000047684
+    },
+    {
+     "t": 82363.40000009537,
+     "duel": 7,
+     "gone": 82511.90000009537
+    }
+   ],
+   "ghosts": [
+    {
+     "t": 16565.5,
+     "duel": 1,
+     "side": "pwg-A",
+     "gone": 16921.700000047684
+    },
+    {
+     "t": 22004.299999952316,
+     "duel": 2,
+     "side": "pwg-A",
+     "gone": 22373.099999904633
+    },
+    {
+     "t": 39646.5,
+     "duel": 3,
+     "side": "pwg-B",
+     "gone": 40005
+    },
+    {
+     "t": 56381,
+     "duel": 5,
+     "side": "pwg-A",
+     "gone": 56745.5
+    },
+    {
+     "t": 63317.299999952316,
+     "duel": 6,
+     "side": "pwg-B",
+     "gone": 63677
+    },
+    {
+     "t": 82704.29999995232,
+     "duel": 7,
+     "side": "pwg-A",
+     "gone": 83075.90000009537
+    },
+    {
+     "t": 89751.90000009537,
+     "duel": 8,
+     "side": "pwg-A",
+     "gone": 90115.29999995232
+    }
+   ],
+   "ends": [
+    {
+     "t": 20319.5,
+     "duel": 1,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 25786.5,
+     "duel": 2,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 42498.700000047684,
+     "duel": 3,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 45718.90000009537,
+     "duel": 4,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 60787.299999952316,
+     "duel": 5,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 67070.70000004768,
+     "duel": 6,
+     "ghosts": 0,
+     "edges": 0
+    },
+    {
+     "t": 86451.29999995232,
+     "duel": 7,
+     "ghosts": 0,
+     "edges": 0
+    }
+   ]
+  },
+  "dmg": {
+   "floats": [
+    {
+     "seq": 1,
+     "t": 15851.400000095367,
+     "duel": 1,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−1",
+     "left": "537px",
+     "top": "77px",
+     "font": 27.2
+    },
+    {
+     "seq": 2,
+     "t": 16205.700000047684,
+     "duel": 1,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−10",
+     "left": "261px",
+     "top": "195px",
+     "font": 35.36
+    },
+    {
+     "seq": 3,
+     "t": 16565.5,
+     "duel": 1,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "423px",
+     "top": "244px",
+     "font": 17
+    },
+    {
+     "seq": 4,
+     "t": 21311.700000047684,
+     "duel": 2,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "B",
+     "unit": 1,
+     "text": "−1",
+     "left": "583px",
+     "top": "120px",
+     "font": 27.2
+    },
+    {
+     "seq": 5,
+     "t": 21650,
+     "duel": 2,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−7",
+     "left": "281px",
+     "top": "186px",
+     "font": 35.36
+    },
+    {
+     "seq": 6,
+     "t": 22004.299999952316,
+     "duel": 2,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "423px",
+     "top": "241px",
+     "font": 17
+    },
+    {
+     "seq": 7,
+     "t": 38137.09999990463,
+     "duel": 3,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−2",
+     "left": "534px",
+     "top": "160px",
+     "font": 27.2
+    },
+    {
+     "seq": 8,
+     "t": 38405.5,
+     "duel": 3,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−1",
+     "left": "314px",
+     "top": "160px",
+     "font": 27.2
+    },
+    {
+     "seq": 9,
+     "t": 39036.700000047684,
+     "duel": 3,
+     "cls": "dmgfloat kill fac-lantern",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−1",
+     "left": "534px",
+     "top": "162px",
+     "font": 35.36
+    },
+    {
+     "seq": 10,
+     "t": 39302.5,
+     "duel": 3,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−1",
+     "left": "316px",
+     "top": "163px",
+     "font": 27.2
+    },
+    {
+     "seq": 11,
+     "t": 39646.5,
+     "duel": 3,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "B",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "449px",
+     "top": "231px",
+     "font": 17
+    },
+    {
+     "seq": 12,
+     "t": 44634.700000047684,
+     "duel": 4,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−8",
+     "left": "624px",
+     "top": "95px",
+     "font": 35.36
+    },
+    {
+     "seq": 13,
+     "t": 44779.40000009537,
+     "duel": 4,
+     "cls": "dmgfloat fac-xianghuo",
+     "kind": "splash",
+     "side": "B",
+     "unit": 1,
+     "text": "−4",
+     "left": "509px",
+     "top": "149px",
+     "font": 27.2
+    },
+    {
+     "seq": 14,
+     "t": 44913.200000047684,
+     "duel": 4,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "ward",
+     "side": "B",
+     "unit": 1,
+     "text": "−4",
+     "left": "519px",
+     "top": "151px",
+     "font": 35.36
+    },
+    {
+     "seq": 15,
+     "t": 45046.799999952316,
+     "duel": 4,
+     "cls": "dmgfloat kill fac-zuling",
+     "kind": "hit",
+     "side": "B",
+     "unit": 2,
+     "text": "−9",
+     "left": "648px",
+     "top": "144px",
+     "font": 35.36
+    },
+    {
+     "seq": 16,
+     "t": 45182,
+     "duel": 4,
+     "cls": "dmgfloat fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 1,
+     "text": "−7",
+     "left": "96px",
+     "top": "163px",
+     "font": 27.2
+    },
+    {
+     "seq": 17,
+     "t": 56033.799999952316,
+     "duel": 5,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−9",
+     "left": "236px",
+     "top": "187px",
+     "font": 35.36
+    },
+    {
+     "seq": 18,
+     "t": 56381,
+     "duel": 5,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "423px",
+     "top": "240px",
+     "font": 17
+    },
+    {
+     "seq": 19,
+     "t": 62707.59999990463,
+     "duel": 6,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−9",
+     "left": "560px",
+     "top": "188px",
+     "font": 35.36
+    },
+    {
+     "seq": 20,
+     "t": 62974.90000009537,
+     "duel": 6,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−1",
+     "left": "282px",
+     "top": "97px",
+     "font": 27.2
+    },
+    {
+     "seq": 21,
+     "t": 63317.200000047684,
+     "duel": 6,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "B",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "422px",
+     "top": "240px",
+     "font": 17
+    },
+    {
+     "seq": 22,
+     "t": 82010,
+     "duel": 7,
+     "cls": "dmgfloat fac-lantern",
+     "kind": "hit",
+     "side": "B",
+     "unit": 0,
+     "text": "−1",
+     "left": "488px",
+     "top": "92px",
+     "font": 27.2
+    },
+    {
+     "seq": 23,
+     "t": 82359.40000009537,
+     "duel": 7,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−9",
+     "left": "282px",
+     "top": "192px",
+     "font": 35.36
+    },
+    {
+     "seq": 24,
+     "t": 82704.29999995232,
+     "duel": 7,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "423px",
+     "top": "244px",
+     "font": 17
+    },
+    {
+     "seq": 25,
+     "t": 88765.29999995232,
+     "duel": 8,
+     "cls": "dmgfloat fac-zuling",
+     "kind": "ward",
+     "side": "B",
+     "unit": 0,
+     "text": "−1",
+     "left": "530px",
+     "top": "123px",
+     "font": 27.2
+    },
+    {
+     "seq": 26,
+     "t": 88933.5,
+     "duel": 8,
+     "cls": "dmgfloat fac-zuling",
+     "kind": "ward",
+     "side": "B",
+     "unit": 0,
+     "text": "−1",
+     "left": "534px",
+     "top": "123px",
+     "font": 27.2
+    },
+    {
+     "seq": 27,
+     "t": 89177.70000004768,
+     "duel": 8,
+     "cls": "dmgfloat fac-xianghuo",
+     "kind": "hit",
+     "side": "A",
+     "unit": 0,
+     "text": "−8",
+     "left": "201px",
+     "top": "138px",
+     "font": 27.2
+    },
+    {
+     "seq": 28,
+     "t": 89333.79999995232,
+     "duel": 8,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "splash",
+     "side": "A",
+     "unit": 1,
+     "text": "−4",
+     "left": "167px",
+     "top": "137px",
+     "font": 35.36
+    },
+    {
+     "seq": 29,
+     "t": 89499.5,
+     "duel": 8,
+     "cls": "dmgfloat kill fac-xianghuo",
+     "kind": "ward",
+     "side": "A",
+     "unit": 0,
+     "text": "−4",
+     "left": "197px",
+     "top": "140px",
+     "font": 35.36
+    },
+    {
+     "seq": 30,
+     "t": 89751.40000009537,
+     "duel": 8,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 0,
+     "text": "−1 隻",
+     "left": "422px",
+     "top": "190px",
+     "font": 17
+    },
+    {
+     "seq": 31,
+     "t": 89751.90000009537,
+     "duel": 8,
+     "cls": "dmgfloat unit",
+     "kind": "burn",
+     "side": "A",
+     "unit": 1,
+     "text": "−1 隻",
+     "left": "427px",
+     "top": "184px",
+     "font": 17
+    }
+   ],
+   "hits": [
+    {
+     "t": 15849.099999904633,
+     "duel": 1,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 16121.5,
+     "duel": 1,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 21310.5,
+     "duel": 2,
+     "side": "B",
+     "unit": 1,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 21577.900000095367,
+     "duel": 2,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 38136.299999952316,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 38404.700000047684,
+     "duel": 3,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 39035.799999952316,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 39301.299999952316,
+     "duel": 3,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 44561.90000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 44778.200000047684,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 44911.90000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 45045.59999990463,
+     "duel": 4,
+     "side": "B",
+     "unit": 2,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 45180.700000047684,
+     "duel": 4,
+     "side": "A",
+     "unit": 1,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 55960.200000047684,
+     "duel": 5,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 62628.40000009537,
+     "duel": 6,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 62974,
+     "duel": 6,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 82008.29999995232,
+     "duel": 7,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 82274.70000004768,
+     "duel": 7,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 88764.20000004768,
+     "duel": 8,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 88932.09999990463,
+     "duel": 8,
+     "side": "B",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 89096.40000009537,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 89332.40000009537,
+     "duel": 8,
+     "side": "A",
+     "unit": 1,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    },
+    {
+     "t": 89498.59999990463,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "ms": 120,
+     "synth": false,
+     "skip": false
+    }
+   ],
+   "burns": [
+    {
+     "t": 16560.799999952316,
+     "duel": 1,
+     "side": "A",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 22002.900000095367,
+     "duel": 2,
+     "side": "A",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 39643.299999952316,
+     "duel": 3,
+     "side": "B",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 45215.40000009537,
+     "duel": 4,
+     "side": "B",
+     "unit": 0,
+     "skip": true
+    },
+    {
+     "t": 45216,
+     "duel": 4,
+     "side": "B",
+     "unit": 1,
+     "skip": true
+    },
+    {
+     "t": 45216.299999952316,
+     "duel": 4,
+     "side": "B",
+     "unit": 2,
+     "skip": true
+    },
+    {
+     "t": 56378.700000047684,
+     "duel": 5,
+     "side": "A",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 63314.200000047684,
+     "duel": 6,
+     "side": "B",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 82702.59999990463,
+     "duel": 7,
+     "side": "A",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 89750.70000004768,
+     "duel": 8,
+     "side": "A",
+     "unit": 0,
+     "skip": false
+    },
+    {
+     "t": 89751.20000004768,
+     "duel": 8,
+     "side": "A",
+     "unit": 1,
+     "skip": false
+    }
+   ],
+   "note": {
+    "duels": 8,
+    "ends": 8
+   }
+  },
+  "fxc": {
+   "burn": 11,
+   "burnDom": 6,
+   "burnFig": 5,
+   "trait": 15,
+   "traitFig": 6,
+   "beat": 24,
+   "duels": 8,
+   "focus": 14,
+   "dmgFloat": 31,
+   "traits": {
+    "wardGuardAll": 4,
+    "wardHpAll1": 3,
+    "eliteBlind": 3,
+    "eliteCleave": 1,
+    "wardAbsorb4": 3,
+    "wardHpFront2": 1
+   },
+   "beats": {
+    "一拍・撞": 8,
+    "二拍・護": 8,
+    "三拍・祟": 8
+   },
+   "fights": [
+    {
+     "round": 1,
+     "a": 0,
+     "b": 3,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 0,
+     "traitCap": 0,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 10
+        }
+       ],
+       "burns": [
+        {
+         "side": "A",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 1,
+     "a": 1,
+     "b": 2,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 1,
+     "traitCap": 1,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 1,
+         "amount": 1
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 7
+        }
+       ],
+       "burns": [
+        {
+         "side": "A",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 2,
+     "a": 0,
+     "b": 1,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 0,
+     "traitCap": 0,
+     "focus": [
+      {
+       "beat": 2,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 2
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        }
+       ],
+       "burns": []
+      },
+      {
+       "beat": 2,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        }
+       ],
+       "burns": [
+        {
+         "side": "B",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 2,
+     "a": 2,
+     "b": 3,
+     "burnEv": 3,
+     "burnCalls": 3,
+     "warBurn": 3,
+     "burnDom": 0,
+     "burnFig": 3,
+     "traitEv": 5,
+     "traitCap": 5,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 8
+        },
+        {
+         "kind": "splash",
+         "side": "A",
+         "actor": 0,
+         "target": 1,
+         "amount": 4
+        },
+        {
+         "kind": "ward",
+         "side": "A",
+         "actor": 1,
+         "target": 1,
+         "amount": 4
+        },
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 2,
+         "target": 2,
+         "amount": 9
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 1,
+         "amount": 7
+        }
+       ],
+       "burns": [
+        {
+         "side": "B",
+         "target": 0
+        },
+        {
+         "side": "B",
+         "target": 1
+        },
+        {
+         "side": "B",
+         "target": 2
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 3,
+     "a": 0,
+     "b": 2,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 3,
+     "traitCap": 3,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 9
+        }
+       ],
+       "burns": [
+        {
+         "side": "A",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 3,
+     "a": 3,
+     "b": 1,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 1,
+     "traitCap": 1,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 9
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        }
+       ],
+       "burns": [
+        {
+         "side": "B",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 4,
+     "a": 0,
+     "b": 3,
+     "burnEv": 1,
+     "burnCalls": 1,
+     "warBurn": 1,
+     "burnDom": 1,
+     "burnFig": 0,
+     "traitEv": 1,
+     "traitCap": 1,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "hit",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 9
+        }
+       ],
+       "burns": [
+        {
+         "side": "A",
+         "target": 0
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    },
+    {
+     "round": 4,
+     "a": 1,
+     "b": 2,
+     "burnEv": 2,
+     "burnCalls": 2,
+     "warBurn": 2,
+     "burnDom": 0,
+     "burnFig": 2,
+     "traitEv": 4,
+     "traitCap": 4,
+     "focus": [
+      {
+       "beat": 1,
+       "kind": "hit",
+       "actor": 0,
+       "target": 0,
+       "ms": 650
+      },
+      {
+       "beat": 1,
+       "kind": "burn",
+       "actor": 0,
+       "target": null,
+       "ms": 600
+      }
+     ],
+     "beatsShown": [
+      {
+       "beat": 1,
+       "shown": [
+        {
+         "kind": "ward",
+         "side": "A",
+         "actor": 0,
+         "target": 0,
+         "amount": 1
+        },
+        {
+         "kind": "ward",
+         "side": "A",
+         "actor": 1,
+         "target": 0,
+         "amount": 1
+        },
+        {
+         "kind": "hit",
+         "side": "B",
+         "actor": 0,
+         "target": 0,
+         "amount": 8
+        },
+        {
+         "kind": "splash",
+         "side": "B",
+         "actor": 0,
+         "target": 1,
+         "amount": 4
+        },
+        {
+         "kind": "ward",
+         "side": "B",
+         "actor": 1,
+         "target": 0,
+         "amount": 4
+        }
+       ],
+       "burns": [
+        {
+         "side": "A",
+         "target": 0
+        },
+        {
+         "side": "A",
+         "target": 1
+        }
+       ]
+      },
+      {
+       "beat": 2,
+       "shown": [],
+       "burns": []
+      },
+      {
+       "beat": 3,
+       "shown": [],
+       "burns": []
+      }
+     ]
+    }
+   ],
+   "load": {
+    "ms": 71,
+    "total": 12,
+    "loaded": 12,
+    "timedOut": false,
+    "readyAt": 1788787703682
+   }
+  },
+  "mySide": null,
+  "pwfx": {
+   "ENTER_MS": 480,
+   "STAGGER_MS": 45,
+   "BANNER_MS": 360,
+   "CAP_MS": 280,
+   "EV_BUDGET_MS": 1050,
+   "EV_MIN_MS": 45,
+   "EV_MAX_MS": 260,
+   "MAX_HITS": 5,
+   "HITSTOP_PER_BEAT": 1,
+   "HITSTOP_DMG": 3,
+   "BURN_MS": 420,
+   "BEAT_MIN_MS": 900,
+   "END_MS": 1000,
+   "MAXFIG": 10,
+   "TRAIT_MS": 900,
+   "LOAD_MAX_MS": 12000,
+   "LOAD_SHOW_MS": 150,
+   "CLOSEUP_ON": true,
+   "FOCUS_DMG": 3,
+   "FOCUS_PER_BEAT": 2,
+   "FOCUS_MS": 650,
+   "FOCUS_DIM": 0.35,
+   "FOCUS_SHRINK": 0.92,
+   "DMG_MS": 600,
+   "ACTOR_CARD_MS": 700,
+   "DMG_SCALE": 1.6,
+   "DMG_POP_MS": 120,
+   "HIT_FLASH_MS": 120,
+   "GAUGE_GHOST_MS": 300,
+   "HURT_EDGE_MS": 150,
+   "UNIT_DY": 44
+  }
+ },
+ "errors": []
+}

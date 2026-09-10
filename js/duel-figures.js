@@ -77,6 +77,15 @@ const FIG = {
   rowDepth3d: 0.32, // 前後交錯的深度也放大：同排的四足獸長軸會互相穿插，交錯開才讀得出隻數
   hauntFloat3d: 0.5, // haunt 的 3D 模型自己已有飄浮設計（無腿鏈＋霧裾），再加的離地量只給一半
   rimHit3d: 1.6, // 受擊瞬間 3D 邊光倍率多爆多少（setRim 對 3D 皮是倍率，不是不透明度）
+  // ── 傷害可讀性批 2-a（2026-09-07，v0.49）：被打的那一尊閃紅 ──
+  // 不新建材質、不重編 shader：3D 皮走既有的 uRimColor／uRimStrength（往紅色 lerp ＋亮度倍率），
+  // 貼片走既有的逆光層（rimMats 的 color／opacity）。全部【試玩必調】。
+  hitFlashMs: 120, // 事件沒帶 ms 時的預設長度（index.html 的 PW_FX.HIT_FLASH_MS 會帶）
+  hitFlashRise: 20, // 前 20ms 衝到滿
+  hitFlashHold: 0.6, // 滿幅撐到 ms 的六成才開始收——不撐的話「命中後 40ms」那一格只剩六成，看起來像沒閃
+  hitFlashRim: 2.6, // 閃紅期間邊光倍率再乘多少（k=1 時 ×3.6）
+  hitFlashTint: 1.0, // 傳給工廠 setHitTint 的強度上限（工廠自己決定怎麼染）
+  hitFlashPaper: 0.85, // 貼片人形本體往紅乘多少（k=1 時）——只染逆光層的話正面幾乎看不出來（三版覆審實測 +3.3）
   // ── 演出可讀性小卷（2026-09-05 晚）：n≥3 的列陣分排、整排夾在「桌緣以內、中線以外」──
   // 實測 8v8 一排排到 r 2.5 踩桌緣剪影、兩側在中央交錯 1.57 個單位把 VS 蓋掉（凍結檔 R-1/R-2 基準表）。
   // 排法：n=3 一排三尊；n≥4 每排兩尊（4→2 排、5–6→3 排、7–8→4 排）。欄位中心只有 0.9～1.1 個單位、腳印半徑
@@ -95,6 +104,9 @@ const FIG = {
 
 const NATURAL_H = FIG.headY + FIG.headR; // 人形在 scale=1 時的世界高度（頭頂）
 const RIM_COLOR = 0xf0a840; // 燈籠光暈（對齊 assets/theme.css 的 --c-lantern-glow）
+const HIT_RED = 0xff2a14; // 批 2-a：被打的那一尊閃的紅（暖紅，不是純紅——純紅在 ACES 下會糊成一團）
+const RIM_C = new THREE.Color(RIM_COLOR);
+const HIT_C = new THREE.Color(HIT_RED);
 const INK = 0x1a0a0a; // 版畫粗描邊（對齊角色 SVG 的 --c-ink）
 const CLOTH_FALLBACK = 0x7a3020;
 const SHADOW_COLOR = 0x05030c;
@@ -202,6 +214,7 @@ function setFigureOpacity(fig, op) {
 /** 預設工廠：四層加厚人形 ＋ 逆光 ＋ 地面陰影，全部掛在同一個 group 上（原點＝腳底）。 */
 export function makeLayeredFigure() {
   let hasPortrait = false;
+  let hitTintK = 0; // 批 2-a：逆光層染紅的強度（0＝燈籠色）
   const group = new THREE.Group();
   const bodyGeo = new THREE.ShapeGeometry(bodyShape(FIG.bodyH));
   const outlineGeo = new THREE.ShapeGeometry(bodyShape(FIG.bodyH * 1.055));
@@ -274,6 +287,19 @@ export function makeLayeredFigure() {
     setCloth(hex) { bodyMats.forEach((b) => { b.mat.color.setHex(hex).multiplyScalar(b.tint); }); },
     /** 逆光亮度（受擊瞬間爆一下，bloom 才抓得到） */
     setRim(op) { rimMats.forEach((m) => { m.opacity = op; }); },
+    /** 【批 2-a】被打那一瞬間染紅（k 0→1）。用的是既有材質的 color，不新建材質、不動 blending。
+     *  三版覆審實測：只染逆光層的話，貼片人形的剪影紅偏量只有 +3.3（3D 妖是 +77）——
+     *  逆光層在本體後面、只露出一圈光暈，正面幾乎看不出來。所以本體那四層也一起往紅乘
+     *  （跟 3D 皮動 albedo 是同一招）：k 回到 0 時每一層都寫回自己那一層的原色。 */
+    setHitTint(k) {
+      const q = Math.max(0, Math.min(1, k || 0));
+      if (hitTintK === q) return;
+      // 由 0 進入閃紅的那一下，先把當下的顏色記起來（setCloth 換過袍子色也吃得到）
+      if (hitTintK === 0 && q > 0) bodyMats.forEach((b) => { b.base = b.mat.color.clone(); });
+      hitTintK = q;
+      rimMats.forEach((m) => { m.color.copy(RIM_C).lerp(HIT_C, q); });
+      bodyMats.forEach((b) => { if (!b.base) return; b.mat.color.copy(b.base); if (q > 0) b.mat.color.lerp(HIT_C, q * FIG.hitFlashPaper); });
+    },
     /** 素材還沒到就別冒出一團色塊 */
     ready() { return hasPortrait; },
   };
@@ -332,6 +358,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
   function resetFigure(f) {
     restoreDim(f); // 被近景切鏡退暗的尊要先寫回原值，材質才不會帶著 0.35 進下一場（池是重用的）
     f.__busy = false; f.applied = ''; f.cloth = ''; f.__op = undefined; f.__anim = null; f.unit = null;
+    if (f.__hitK) { try { f.setHitTint(0); } catch (err) { /* 一尊壞了不擋整場 */ } f.__hitK = 0; }
     if (typeof f.reset === 'function') { try { f.reset(); } catch (err) { /* 一尊壞了不擋整場 */ } }
     f.group.visible = false;
     f.shadow.visible = false;
@@ -437,6 +464,32 @@ export function createDuelFigures(scene, camera, opts = {}) {
 
   let active = false;
   let seats = [null, null];
+  // ── 批 2-a：被打的那一尊閃紅（每一筆交鋒各自一條曲線，與整場的 lunge 無關）──
+  // 一樣是「每幀依狀態算」：邊光倍率每幀都被主迴圈寫一次，一次性設值下一幀就被蓋掉。
+  const hitFlash = [new Map(), new Map()]; // 側 index → unit id → { t0, ms }
+  function onHitEv(e) {
+    const d = (e && e.detail) || {};
+    if (typeof d.unit !== 'number') return;
+    hitFlash[sideIdx(d.side)].set(d.unit, { t0: performance.now(), ms: Math.max(1, Number(d.ms) || FIG.hitFlashMs) });
+  }
+  function clearHitFlash() {
+    for (const m of hitFlash) m.clear();
+    eachFigure((f) => { if (f.__hitK) { try { f.setHitTint(0); } catch (err) { /* 一尊壞了不擋整場 */ } f.__hitK = 0; } });
+  }
+  /** 這一尊此刻的閃紅強度（0～1）。前 hitFlashRise 毫秒衝到滿，其餘線性收；到期自己從表裡拿掉。 */
+  function hitFlashK(i, unitId, now) {
+    const st = hitFlash[i].get(unitId);
+    if (!st) return 0;
+    const e = now - st.t0;
+    if (e < 0) return 0;
+    if (e >= st.ms) { hitFlash[i].delete(unitId); return 0; }
+    const rise = Math.min(FIG.hitFlashRise, st.ms * 0.3);
+    const hold = Math.max(rise, st.ms * FIG.hitFlashHold);
+    if (e < rise) return e / rise;
+    if (e <= hold) return 1;
+    return Math.max(0, 1 - (e - hold) / (st.ms - hold));
+  }
+
   let hitAt = 0; // 命中時刻（performance.now），0＝沒有進行中的受擊
   let hitPower = 1; // 這一次撞擊的力道倍率
   let hitDir = [0, 0]; // 每人的位移方向：+1 往前撞、−1 被打退、0 沒事
@@ -545,6 +598,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
     // 退暗要在這裡清乾淨：active=false 之後主迴圈不再跑，被退暗的尊會帶著壓低的 opacity
     // 進入下一場（池是重用的）。restoreDim 把它們寫回原值，focusK 一併歸零。
     focusOn = false; focusFall = false; focusRef = null; focusK = 0; focusK0 = 0;
+    clearHitFlash(); // 批 2-a：閃紅不得跨場殘留（池是重用的）
     eachFigure((f) => { restoreDim(f); f.group.visible = false; f.shadow.visible = false; });
   }
 
@@ -559,6 +613,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
   document.addEventListener('ys:fx-focus', onFocusEv);
   document.addEventListener('ys:fx-trait-cancel', endFocusEv);
   document.addEventListener('ys:fx-focus-end', endFocusEv); // 招式進來時提前收切鏡（審查 MEDIUM-3）
+  document.addEventListener('ys:fx-hit', onHitEv); // 批 2-a：被打的那一尊閃紅
+  document.addEventListener('ys:fx-trait-cancel', clearHitFlash); // 跳過／中斷：閃紅一次清乾淨（R5）
   document.addEventListener('ys:fx-lunge', onLunge);
   document.addEventListener('ys:fx-burn', onFigBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
@@ -767,6 +823,13 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const haunt = u.body === 'haunt';
         // 近景切鏡：非主角的尊退暗＋縮一點；**燒毀中的尊（bt!=null）完全不受影響**——
         // 它的 opacity 沿燒毀曲線走，退暗會把化灰演成一半就變淡、復原又會讓它突然變回實心（凍結檔 P3）。
+        // 批 2-a：被打的那一尊閃紅。燒毀中的尊（bt!=null）不閃——它的亮滅歸燒毀曲線管（凍結檔 R2）。
+        const hk = bt == null ? hitFlashK(i, u.id, now) : 0;
+        if (hk > 0 || f.__hitK) {
+          if (typeof f.setHitTint === 'function') { try { f.setHitTint(hk * FIG.hitFlashTint); } catch (err) { /* 一尊壞了不擋整場 */ } }
+          f.__hitK = hk;
+        }
+        const hrim = 1 + FIG.hitFlashRim * hk; // 邊光倍率（與 lunge 那一爆相乘，不互相取代）
         const focusOff = focusK > 0 && bt == null && !focusKeeps(i, u.id);
         const fdim = focusOff ? 1 - (1 - FOCUS.dim) * focusK : 1;
         const fshr = focusOff ? 1 - (1 - FOCUS.shrink) * focusK : 1;
@@ -812,7 +875,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
           f.group.rotation.set(0, az - side * (Math.PI / 2 - turn), 0);
           if (dir === -1) f.group.rotateZ(THREE.MathUtils.degToRad(side * FIG.lungeSpinDeg * kick * hitPower));
           // 邊光在受擊瞬間爆一下（對 3D 皮 setRim 是倍率）；燒毀的亮滅由工廠的 burn() 自己演
-          f.setRim(1 + (dir ? FIG.rimHit3d * kick : 0));
+          f.setRim((1 + (dir ? FIG.rimHit3d * kick : 0)) * hrim);
           // GLB 在燒毀開始後才到（st.custom=false 的 3D 皮）：走內建淡出，別讓它全不透明冒出來再消失（覆審 C-2 殘留）
           if (bt != null) setFigureOpacity(f, 1 - bu);
           // 近景切鏡的退暗：3D 皮平常不寫 opacity，所以只在「要退暗」與「退暗過、要收回來」兩種時候寫
@@ -830,7 +893,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
           f.__focusDim = fdim < 1;
           // 逆光在受擊瞬間爆一下，讓 bloom 抓得到；燒起來的那一尊逆光先亮再滅
           const rimBase = (FIG.rimOpacity + (dir ? 0.6 * kick : 0)) * (haunt ? FIG.hauntOpacity : 1);
-          f.setRim(bt == null ? rimBase : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
+          f.setRim(bt == null ? Math.min(1, rimBase * hrim) : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
         }
 
         f.shadow.position.set(f.group.position.x, 0.152, f.group.position.z);

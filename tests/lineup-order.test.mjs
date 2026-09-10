@@ -61,6 +61,28 @@ else {
     eq(Object.entries(v.comp).sort(), Object.entries(comp).sort(), 'comp');
   });
   t('MAXFIG＝10（裁甲；讀 index.html 的 PW_FX.MAXFIG 字面值）', () => { if (MAXFIG !== 10) throw new Error(`MAXFIG=${MAXFIG}`); });
+
+  /* 傷害可讀性批 2-a 覆審 MEDIUM-4：己方受擊紅暈該閃在哪一側。
+     舊版寫死「席位 id 0＝南家」，熱座的玩家二（另一個真人座位）一輩子看不到紅暈。
+     判準改成「座位的 ai 旗標」：!p.ai＝真人。對舊版（沒有 pwHumanSides 這個出口）會紅在「未匯出」，
+     那是旁枝錯誤——所以這裡先明說：舊版本來就沒有這支函式，這條是新增的行為斷言。 */
+  if (typeof Y.pwHumanSides !== 'function') { console.log('  FAIL  pwHumanSides 未匯出（批 2-a 覆審 MEDIUM-4 的測試出口）'); fail++; }
+  else {
+    // id 刻意都不給 0：舊版的判準是「席位 id 0＝南家」，用非 0 的 id 才分得出新舊
+    const H = (ai, id) => ({ id: id === undefined ? 2 : id, name: 'p', ai: ai });
+    t('紅暈側別：真人那一側（跟席位 id 無關；AI 對 AI 的旁觀場兩側都不閃）', () => {
+      eq(Y.pwHumanSides(H(null, 1), H({ aggr: 1 }, 2)), ['A'], '真人在 A（id 1，不是 0）');
+      eq(Y.pwHumanSides(H({ aggr: 1 }, 3), H(null, 2)), ['B'], '真人在 B（id 2）');
+      eq(Y.pwHumanSides(H({ aggr: 1 }, 0), H({ aggr: 1 }, 1)), [], 'AI vs AI（其中一個還坐在 id 0）');
+    });
+    t('紅暈側別：熱座兩位真人對打時**兩側都閃**（各自被打各自閃）', () => {
+      eq(Y.pwHumanSides(H(null, 1), H(null, 2)), ['A', 'B'], '兩位真人，兩邊 id 都不是 0');
+    });
+    t('紅暈側別：座位物件缺失時不當成真人（不會誤閃）', () => {
+      eq(Y.pwHumanSides(null, H(null)), ['B'], 'A 缺');
+      eq(Y.pwHumanSides(undefined, undefined), [], '兩邊都缺');
+    });
+  }
 }
 console.log(`結果：${pass} 綠 ／ ${fail} 紅`);
 process.exit(fail ? 1 : 0);
