@@ -2873,10 +2873,15 @@ function resolveShrines(opts){
   const out={burn:[],taken:[],clip:[],locked:[],dawn:[],skip:null,night:false,pending:null};
   /* ① 沒有人替它決定的座位（AI，以及 headless 沒掛 policy 的真人座位）走追價啟發式；零亂數 */
   S.players.forEach(p=>{ if(p.alive&&S.incense[p.id]===undefined) S.incense[p.id]=aiIncense(p); });
-  /* ② 密封同時開：當夜燒的量當場扣壽命、加進**自己的香火池**（不綁尊）。燒掉的不退。 */
+  /* ② 密封同時開：當夜燒的量當場扣壽命、加進**自己的香火池**（不綁尊）。燒掉的不退。
+     ★三尊都沒了（全被請走或已回天）就整段不收★：香火再也換不到東西，收下去只是白扣壽命——
+     「回天的尊本局不再出現、也不重開」（提案 §二 5）在引擎側就是這一行。
+     UI（initIncense）與 AI（aiIncense）、策略（policyIncenseMax）也都問同一條 openShrines()，
+     這裡是最後一道：策略／熱座／任何一條路徑硬塞封籤過來也擋得住。 */
+  const anyOpen=openShrines().length>0;
   S.players.forEach(p=>{
     const inc=S.incense[p.id];
-    if(!p.alive||!inc){ if(!inc) S.incense[p.id]=null; return; }
+    if(!p.alive||!inc||!anyOpen){ S.incense[p.id]=null; return; }
     /* 一人一尊（§二 7）：已經請走過的人不再收他的香——封籤直接被拒，壽命一毛都不扣。
        UI 那邊 incbarHTML 會把整列鎖起來，這裡是引擎側的把關（策略／AI／熱座任何一條路徑都擋得住）。 */
     if(hasLegend(p)){
