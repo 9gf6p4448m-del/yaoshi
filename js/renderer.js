@@ -179,7 +179,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
     // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
     get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },

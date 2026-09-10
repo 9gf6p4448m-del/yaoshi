@@ -1,0 +1,76 @@
+{
+ "verdict": {
+  "L1": true,
+  "L2": true,
+  "L3": true,
+  "L4": true,
+  "errors": 0,
+  "PASS": true
+ },
+ "res": {
+  "L3": {
+   "before": [
+    0,
+    0
+   ],
+   "onCls": [
+    true,
+    true
+   ],
+   "offCls": [
+    false,
+    false
+   ],
+   "exists": true,
+   "onHeight": {
+    "open": [
+     31.1875,
+     31.1875
+    ],
+    "back": [
+     0,
+     0
+    ]
+   }
+  },
+  "L4": {
+   "off": {
+    "calls": 14,
+    "tris": 855
+   },
+   "on": {
+    "calls": 14,
+    "tris": 855
+   },
+   "off2": {
+    "calls": 14,
+    "tris": 855
+   }
+  },
+  "tier1": {
+   "ms": 260,
+   "samples": 52,
+   "onCount": 0,
+   "maxK": 0,
+   "onDuring": 0,
+   "onAtTail": 0
+  },
+  "tier2": {
+   "ms": 900,
+   "samples": 88,
+   "onCount": 0,
+   "maxK": 0,
+   "onDuring": 0,
+   "onAtTail": 0
+  },
+  "tier3": {
+   "ms": 1400,
+   "samples": 120,
+   "onCount": 103,
+   "maxK": 1,
+   "onDuring": 84,
+   "onAtTail": 0
+  }
+ },
+ "errors": []
+}

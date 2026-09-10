@@ -725,6 +725,65 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.27 招式三級視覺分級（2026-09-10，v0.54）——接手前先知道這八件事
+
+規格＝評審 `docs/proposals/2026-09-10-roadmap-v2-review.md` §1；**權威驗收凍結**＝`docs/experiments/2026-09-10-acceptance-fx-tiers.md`（F0–F10）；
+介面寫死在計畫檔 `docs/experiments/2026-09-10-plan-fx-tiers.md`（含 27 招辨識元素表）；實跑報告＝`docs/experiments/2026-09-10-fx-tiers-report.md`。
+純演出卷：引擎 `trace(1..20)` 與 `adbb124`（v0.53）逐位元組相等。
+
+1. **★招式時長的唯一事實來源是 `PW_FX.TRAIT_MS_BY_TIER`（`index.html`）★**：`{1:260, 2:900, 3:1400}`，
+   拍末下限另一張 `BEAT_MIN_MS_BY_TIER {1:300, 2:900, 3:1400}`，等比基準 `TIER_BASE_MS:900`。
+   舊的 `PW_FX.TRAIT_MS` 與 `PW_FX.BEAT_MIN_MS` **已整組刪除，別回頭引用**。
+   `js/trait-fx.js` 與 `js/camera-director.js` 的 `||900` 退路也刪了——**事件沒帶 `detail.ms`／`detail.baseMs` 就 throw**。
+   會這樣做是因為 v0.53 以前同一個 900 抄在 runtime 4 處＋治具 17 處，改一處漏二十處。
+   治具那一側的單一來源是 `tests/tools/fx-consts.mjs`，它的 `assertPageConsts()` 每次跑 `traitfx-drive` 都會與頁面逐鍵比對，分岔就當場 throw。
+
+2. **tier 是「拍級」不是「招級」**：`pwBeatTier(list, beat, f)`（`index.html`）——
+   該拍有三尊大招（`TRAITS[].tier===3`）→ 3；該拍有 `burn`（引擎唯一帶 killed 的事件源）或第 3 拍且非平手 → 2；其餘 → 1。
+   同一拍裡每一支招吃同一個等級，拍末等待也是。`TRAITS[].tier` 只掛在三尊三招上（`eliteBlind`／`wardGuardAll`／`hauntAnswer`），
+   **是這一卷對 `TRAITS` 的唯一改動，引擎一行不讀它**。
+   ★凍結檔那句「`TRAITS[].tier` 是上限」與「預設 1 的招也能因擊殺升 2」字面互斥★，取的自洽解是：
+   標 3 的招把整拍鎖在 3，其餘由拍決定——「上限」生效的地方只有「一支 tier 1 的招不會自己升到 3」。
+
+3. **短版是 27 支各寫一條，不是把完整版加速**（使用者 2026-09-10 裁 D4 丙）：
+   `js/trait-fx/{zuling,xianghuo,yinqi}.js` 各 `export const SHORT`（9 支），`trait-fx.js` 的 `start()` 在 `det.tier===1` 時優先取它。
+   為什麼不能加速：`run.rate` 的天花板是 `TFX.rateMax` 2.2×，900→260 需要 3.46×，撞上去就是 `stats.cut`（收勢被硬切）。
+   短版缺席時退回完整版**不是恆綠退路**——完整版塞不進 260ms 會 `cut>0`，治具的 `clean` 立刻紅。
+
+4. **★寫短版的三條紀律（照著走才不會 rate>1）★**（檔頭也抄了一份）：
+   ① **horizon ≤ 230**。`rate = (horizon−vt)/(ms−margin−t+dt)`，`margin = max(endMargin×k, dt×1.5)`；
+      實測 horizon 233 還是 1.0、238 就 1.0128，門檻落在 235 附近，留到 230 是給低幀率的餘裕。
+   ② **所有補間一律在函式頂層用 `delay` 排定**。在 tween 的 `done` 回呼裡再排新補間，是在 vt≈170 那一刻才排，
+      horizon 直接被推到 240+。回呼裡只放 `st.burst`／`st.punch`／直接設 `material.opacity`（那些不進排程）。
+   ③ **不要用 `st.at`**：它替回呼預留 `atReserve×k`，260ms 下白丟 46ms 預算。
+   還有一個踩過的坑：**`ms:1` 的「觸發器 tween」不能用**——`update` 在那一幀會被呼叫不只一次，
+   裡面 `st.bolt`＋`st.fade` 會逐幀重排，horizon 被推到 264（`boltGamble` 第一版 rate 1.0537 紅）。
+   要「某一刻才現形」的 mesh，就在頂層先建好、`opacity:0`，靠 `st.fade(..., {delay})` 讓它到點才淡出。
+
+5. **三個絕對常數隨 tier 等比**：`TFX.flinchMs`／`atReserve`／`endMargin` 乘 `run.k = run.ms / det.baseMs`。
+   基準值不寫在 `trait-fx.js`（寫了就是第二份事實來源），由事件帶 `detail.baseMs`＝`PW_FX.TIER_BASE_MS`。
+
+6. **Tier 3 ＝ 完整版 ＋ `CINEMA` 機位 ＋ 兩條 DOM 黑條**：
+   `camera-director.js` 的 `CINEMA {dist:2.9, tilt:8, inMs:220, outMs:320}` 是第 ⑥ 層偏移，只動 dist／tilt，
+   **yaw 一律不碰**（同 FOCUS 的紀律：yaw 上已經有 orbit 與 lean 兩層）；`cinemaK=0` 時逐值等於沒有這層。
+   黑條是 `#lbTop`／`#lbBot`，與 `#vignette` 同層（`z-index:-1`），**刻意用 DOM 不進 shader**——
+   實測開關前後 `renderer.info.render.calls` 與 `triangles` 逐值相同（14／855），手機端零成本。
+   開關集中在 `pwLetterbox()` 一支，**三條路都會關**：招式演完（3D 與 fallback 兩條）、`doSkip`、對決收場。
+
+7. **`?fxtier=0` 是退路等價開關**：`PW_FX.TIER_ON=false` → `pwBeatTier` 恆回 2 ＝ v0.53 行為
+   （900、拍末 900、無 CINEMA、無黑條）。實測 `tiers {1:0,2:12,3:0}`、4 場時長與基準幾乎逐項相同。
+
+8. **治具**：`traitfx-drive.mjs --tier=1|2|3`（`--ms` 已移除，時長從 `fx-consts` 取），
+   新判定 `msOK`（頁面實際 `run.ms` 等於該 tier，防「`--tier=1` 其實還在跑 900」）、
+   `rateOK`（`maxRate ≤1.0`，tier 1 專用）、`actionsOK`（非 flinch 的補間 ≥2，F10）；
+   `tests/tools/lbox-probe.mjs` 驗黑條與 CINEMA「只在 tier 3」（正反都驗）；`tests/fxtier.test.mjs` 是 F1 的單元測試。
+   ★順手修掉一個靜默漏測★：`traitfx-drive` 的 LEGENDS regex 自 2026-09-07 請神 2.0 插入 `eff:{}` 之後
+   **一套都抓不到**（只印一行 warn），三尊三招近一個月沒被機械驗收過；現在反查不到直接 throw。
+
+**兩條沒過的閘門（凍結檔門檻未動，留給製作人裁）**：F3 節奏中位 5302ms >5000ms（歸因：`tiers {1:4,2:8,3:0}`，
+8v8 基礎戰三分之二的拍有 burn ⇒ 停在 tier 2，招式本身一局只出現 4 次）；F4 的 `closeup-judge nullCount=2`
+與 seed 3 的 R2 空過——**基準 `adbb124` 上逐項相同**（同樣 2 筆、同樣 `maskDropped`），與 tier 無關。詳見報告。
+
 ### 11.25 傷害可讀性 批 2-a（2026-09-07～10，v0.51 上線）——接手前先知道這六件事
 
 規格與驗收凍結＝`docs/experiments/2026-09-07-acceptance-dmg-readability.md`（R0–R8）；

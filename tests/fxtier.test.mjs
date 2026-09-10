@@ -125,6 +125,7 @@ t('runtime（index.html＋js/）語意為招式時長的 900 字面值＝0 處',
     /TRAIT_MS_BY_TIER:\{/,
     /BEAT_MIN_MS_BY_TIER:\{/,
     /TIER_BASE_MS:\s*900/,
+    /^const VERSION="/, // ⑤ VERSION_NOTE 是給人看的版本說明文字（「留 900ms 完整版」），不是常數
   ];
   const bad = [];
   for (const f of files) {

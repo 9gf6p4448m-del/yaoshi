@@ -18,7 +18,16 @@ const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const cases = casesFromIndex(html);
 const moveName = (trId) => { const m = html.match(new RegExp(`${trId}:\\{id:"${trId}",name:"([^"]+)"`)); return m ? m[1] : trId; };
 const rows = cases.map((c) => {
-  const imgs = [8, 22, 36].map((k) => { const f = path.join(dir, `${c.trait}-${k}.png`); return fs.existsSync(f) ? `data:image/png;base64,${fs.readFileSync(f).toString('base64')}` : null; });
+  // v0.54：截圖點改成依 tier 按比例換算（traitfx-drive 那邊同一個算法），檔名裡的幀號不再是固定的 8/22/36。
+  // 這裡直接掃目錄找 `<trId>-<幀號>.png`，取幀號最小的三張——不寫死數字，tier 換了也不會抓空。
+  const imgs = (() => {
+    const re = new RegExp('^' + c.trait + '-([0-9]+)\\.png$'); // trId 只有英數，不必跳脫
+    const found = fs.readdirSync(dir).map((f) => { const m = f.match(re); return m ? { f, k: parseInt(m[1], 10) } : null; })
+      .filter(Boolean).sort((a, b) => a.k - b.k).slice(0, 3);
+    const out = found.map((x) => `data:image/png;base64,${fs.readFileSync(path.join(dir, x.f)).toString('base64')}`);
+    while (out.length < 3) out.push(null);
+    return out;
+  })();
   return { c, imgs };
 });
 const page = `<!doctype html><meta charset="utf-8"><style>

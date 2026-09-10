@@ -86,7 +86,10 @@ async function runCase(browser, base, c, opt) {
   const fired = await page.evaluate(() => window.__tfx.fire());
   const frames = pre.slice();
   const shots = [];
-  const shotAt = [8, 22, 36]; // 出招後 ~130／370／600ms 各一格
+  // 出招後三格：**依這一 tier 的時長按比例換算幀**（v0.54）。以前寫死 8／22／36，
+  // 那是 900ms 的 20%／45%／75%；tier 1 只有 260ms（≈16 幀），22／36 兩格會落在演完之後，
+  // contact sheet 就會拍到三張空畫面——「看不出是哪一招」的假象來自截圖點，不是短版本身。
+  const shotAt = [0.2, 0.45, 0.75].map((f) => Math.max(1, Math.round((ms * f) / DT_MS)));
   let stepped = 0;
   const cancelAt = opt.cancel ? parseInt(opt.cancel, 10) : -1;
   const plan = [];
