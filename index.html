@@ -2357,10 +2357,10 @@ function makeState(mode,seed,picks){
        sealed/clip/clipZero 封籤與被 incCap 夾掉的筆數／
        tithe 供奉付出去的壽命、titheLost 付不出而回天的尊、titheGiveUp 主動（或 AI 依門檻）送神回天的尊、
        locked 因「一人一尊」被擋下的封籤、
-       skip 請神夜到了卻**沒人有資格**（全員 h=0 或全員已持有）而不結算的夜、
+       skip／skipLog 請神夜到了卻**沒人有資格**（全員 h=0 或全員已持有）而不結算的夜次與夜號、
        nightPools 每個請神夜結算前的四家香火池快照（閘門 H4 用）。 */
     S.shrineStat={burn:0,burnLife:0,rewards:0,gifts:0,taken:0,dawn:0,sealed:0,clip:0,clipZero:0,
-      tithe:0,titheLost:0,titheGiveUp:0,locked:0,skip:0,nightPools:[]};
+      tithe:0,titheLost:0,titheGiveUp:0,locked:0,skip:0,skipLog:[],nightPools:[]};
     S.titheAsk=[]; /* 夜末「壽命危急，繼續供奉？」的待問清單（純 UI 佇列；headless 沒人讀＝預設「要」） */
   }
   return S;
@@ -2793,8 +2793,12 @@ function aiIncense(p){
   }
   const need=Math.max(1,lead-mine+1);            /* 追平並超過所需；沒人領先時跟 1 點 */
   if(need>CFG.INC_MAX*left) return null;         /* 停損①：到最後一個請神夜也追不上 */
+  /* 「還沒被請走的尊裡有沒有我同系的」（提案 §二 10）：有 ×1、沒有 ×0.5。
+     ★還沒有主系的人（開局空袋）算「有」★——×0.5 要罰的是「我那一系的尊已經被別人請走了」，
+     不是「我還沒開始湊」；把空袋也罰下去的話，前三夜四家 AI 一律低估、開局那幾夜沒有人跟價，
+     「每夜燒滿」就變成無人競爭的支配策略（實測 n=300 H1① +8.67pp ❌ → 修正後見報告）。 */
   const f=mainFaction(p);
-  const same=!!(f&&open.some(sh=>sh.fac===f));   /* 還開著的尊裡有沒有我主系的那一尊 */
+  const same=(!f)||open.some(sh=>sh.fac===f);
   const value=cfg.value*(aggr/0.6)*(same?1:0.5);
   if(value-mine-need<0) return null;             /* 停損②：估值扣掉已投入與追平所需已是負的 */
   const amt=Math.min(CFG.INC_MAX,cap,need);
@@ -2919,7 +2923,7 @@ function resolveShrines(opts){
     /* 沒人有資格（全員 h=0／全員已持有）或三尊都被請走了 ⇒ **不結算、三尊都留著**，下一個請神夜再比。
        落空者的 h 在這裡一個字都不動＝原封保留（提案 §二 4／5；這正是 3.0 與 2.0「回天不重開」最大的差別）。 */
     out.skip={round:S.round,why:!open.length?"三尊都已請走":"沒有人有資格"};
-    if(S.shrineStat) S.shrineStat.skip++;
+    if(S.shrineStat){ S.shrineStat.skip++; S.shrineStat.skipLog.push(S.round); }
     return finishShrines(out,null);
   }
   if(opts&&opts.interactive&&!win.ai){
