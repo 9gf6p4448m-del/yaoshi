@@ -40,10 +40,11 @@ export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short
 // 全部【試玩必調】
 export const TFX = {
   fuseMul: 2, // 保險絲：演出最長 ms×fuseMul
-  // ★下面三個常數（endMargin／atReserve／flinchMs）在 v0.54 起隨 run.k＝run.ms/baseMs 等比縮放★
+  // ★下面三個常數（endMargin／atReserve／flinchMs）在 v0.54 起隨 run.k＝run.ms/det.baseMs 等比縮放★
   // 理由（凍結檔「Tier 1 短版」）：它們是絕對毫秒，260ms 的短版若還用 900ms 的預留額度，
   // atReserve 一個 st.at 就吃掉 62% 的預算、horizon 被推爆 → rate 被迫 >1（＝靠加速硬擠，F2 的 rateOK 紅）。
-  baseMs: 900, // 等比的基準＝v0.53 的 PW_FX.TRAIT_MS（index.html 的 PW_FX.TIER_BASE_MS 與這裡是同一個數）
+  // 基準值**不寫在這裡**：它由事件帶（detail.baseMs ＝ index.html 的 PW_FX.TIER_BASE_MS），
+  // 在這裡放一份 900 就又是第二份事實來源了（F1 掃分母時會抓到）。
   endMargin: 60, // 虛擬時間要在牆鐘收工前這麼多 ms 就抵達 horizon（覆審第 3 輪 H-1：壓線抵達會讓 horizon 上的 timer 在收工幀才燒）
   atReserve: 160, // st.at 為回呼裡即將排的 tween 預留的虛擬額度（ms）
   rateMax: 2.2, // 加速倍率天花板（實測滿編 1.50×、dt 夾 0.1s 時 1.64×）
@@ -369,6 +370,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     // v0.54：招式時長只有一個來源＝事件帶的 detail.ms（index.html 的 PW_FX.TRAIT_MS_BY_TIER）。
     // 舊版的 `Number(det.ms) || 900` 退路已刪：那是第二份事實來源，改了 index.html 這裡會靜默沿用舊值。
     if (!Number.isFinite(det.ms) || det.ms <= 0) throw new Error('ys:fx-trait 缺 detail.ms（招式時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來）');
+    if (!Number.isFinite(det.baseMs) || det.baseMs <= 0) throw new Error('ys:fx-trait 缺 detail.baseMs（等比基準只能由 PW_FX.TIER_BASE_MS 帶進來）');
     const tier = (det.tier | 0) === 1 || (det.tier | 0) === 3 ? det.tier | 0 : 2;
     const fn = (tier === 1 && TRAIT_MOVES_SHORT[det.trId]) || TRAIT_MOVES[det.trId];
     if (typeof fn !== 'function') return null;
@@ -386,7 +388,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), target: false },
     };
-    run.k = run.ms / TFX.baseMs; // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
+    run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
     run.maxRate = 1; // 這一套實際用過的最高加速倍率（F2 的 rateOK：短版不得 >1.0）
     run.fuse = run.ms * TFX.fuseMul;
     run.promise = new Promise((r) => { run.resolve = r; });
