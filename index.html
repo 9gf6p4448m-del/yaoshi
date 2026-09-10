@@ -3970,10 +3970,21 @@ const PW_FX={
   HITSTOP_PER_BEAT:1, /* 每拍最多停格幾次（停格很貴，多了會撐爆時長） */
   HITSTOP_DMG:3,      /* 傷害到這個數才值得停一格 */
   BURN_MS:420,        /* 一拍的燒毀（同拍多隻同時燒，不逐隻排隊） */
-  BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
+  /* 每一拍的下限（免得零傷害那一拍一閃就過），依該拍的 tier（v0.54 三級視覺分級）。
+     tier 1 取 300：逐筆事件的上限是 EV_MAX_MS 260，短招與命中路徑並行演完之後再留 40ms 餘裕。 */
+  BEAT_MIN_MS_BY_TIER:{1:300,2:900,3:1400},
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
   MAXFIG:10,          /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部）；8→10 使用者 2026-09-07 裁甲（FIG.maxFigures 上限 10；手機 fps 試玩必調） */
-  TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 舞台接下招式時的固定時長（取代該筆的 evMs）；沒 3D 時照舊等 evMs */
+  /* ★招式時長的唯一事實來源★（v0.54 三級視覺分級，凍結檔 docs/experiments/2026-09-10-acceptance-fx-tiers.md）
+     3D 舞台接下招式時等這裡的毫秒（取代該筆的 evMs）；沒 3D 時照舊等 evMs。
+     卷 C3（2026-09-05）原本是單一個 TRAIT_MS:900，v0.54 起依 tier 分三級：
+       1＝一般拍（27 支專屬短版時間軸，js/trait-fx/*.js 的 SHORT）／2＝擊殺拍或決定性最後一拍（完整版）
+       3＝三尊大招（完整版＋CINEMA 機位＋黑條）。
+     **別處不得再寫死招式毫秒**：js/trait-fx.js 與 js/camera-director.js 一律吃事件帶的 detail.ms，
+     沒帶就 throw（退路已刪，理由見 GUIDE §11.27）；治具讀 tests/tools/fx-consts.mjs。 */
+  TRAIT_MS_BY_TIER:{1:260,2:900,3:1400},
+  TIER_BASE_MS:900,   /* 三常數（flinchMs／atReserve／endMargin）等比縮放的基準＝v0.53 的 TRAIT_MS */
+  TIER_ON:true,       /* ?fxtier=0 → false：所有拍走 tier 2（＝v0.53 行為：900、無 CINEMA、無黑條） */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
   /* ── 近景切鏡卷 批 1 原型（v0.45，2026-09-07；規格 docs/proposals/2026-09-07-duel-closeup.md §二）──
@@ -4001,6 +4012,12 @@ const PW_FX={
 try{
   const cq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("closeup");
   if(cq==="0") PW_FX.CLOSEUP_ON=false; else if(cq==="1") PW_FX.CLOSEUP_ON=true;
+}catch(e){}
+/* ?fxtier=0 關掉整卷三級視覺分級（凍結檔 F0 的退路等價靠它）：所有拍一律 tier 2
+   ＝v0.53 行為（招式 900、拍末 900、無 CINEMA、無黑條）。?fxtier=1 顯式開。 */
+try{
+  const tq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("fxtier");
+  if(tq==="0") PW_FX.TIER_ON=false; else if(tq==="1") PW_FX.TIER_ON=true;
 }catch(e){}
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
    只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
@@ -4944,11 +4961,20 @@ function pwDuelFigApi(){ try{ return (window.__yaoshi3d&&window.__yaoshi3d.duelF
 function pwFigsOf(side){ const D=pwDuelFigApi(); try{ return D&&D.figuresOf?D.figuresOf(side)||[]:[]; }catch(e){ return []; } }
 function pwFigureOf(side,unitId){ const D=pwDuelFigApi(); try{ return D&&D.figureOf?D.figureOf(side,unitId):null; }catch(e){ return null; } }
 function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
-/* 回傳 true＝3D 舞台接了這一招（呼叫端等 TRAIT_MS）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
-   ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。 */
+/* ── v0.54 三級視覺分級：tier 的三支存取器（招式時長／拍末下限的唯一入口）──────────────
+   合法 tier 只有 1／2／3；拿到別的值一律當 2（＝v0.53 行為），不靜默給 0 或 undefined。 */
+function pwTierOf(t){ const n=t|0; return (n===1||n===2||n===3)?n:2; }
+/* 這一拍的 tier（拍級，不是招級）。分母歸一那一步先恆回 2＝v0.53 行為；真正的三級判定在下一步接上。 */
+function pwBeatTier(list,beat,f){ void list; void beat; void f; return 2; }
+function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
+function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
+/* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
+   ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。
+   v0.54：ctx.tier 決定時長與短版分支（js/trait-fx.js 讀 det.tier），tier 3 另外開黑條。 */
 function pwTraitFx(trId,ctx){
   if(SKIP) return false;
-  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:PW_FX.TRAIT_MS,handled:false,done:null};
+  const tier=pwTierOf(ctx.tier);
+  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,handled:false,done:null};
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];
@@ -5319,6 +5345,7 @@ function pwItemOf(views,b){
 }
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
+  const tier=pwBeatTier(list,beat,f); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
@@ -5364,7 +5391,7 @@ async function pwPlayBeat(f,beat,list,views){
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
       const staged=pwTraitFx(b.trId,{
-        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8,
+        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8, tier,
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
@@ -5374,7 +5401,7 @@ async function pwPlayBeat(f,beat,list,views){
          那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
-      if(staged){ await pwSleep(PW_FX.TRAIT_MS); continue; } /* 3D 舞台接了才等 900ms；fallback 照 v0.32 等 evMs */
+      if(staged){ await pwSleep(pwTierMs(tier)); continue; } /* 3D 舞台接了才等這一拍 tier 的時長；fallback 照 v0.32 等 evMs */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -5413,8 +5440,8 @@ async function pwPlayBeat(f,beat,list,views){
     fxFlash(); sfx("hurt",{rnd:S.rngUi()});
     await Promise.all(burns.map(pwBurnOne));
   }
-  const spent=Date.now()-t0;
-  if(!SKIP&&spent<PW_FX.BEAT_MIN_MS) await pwSleep(PW_FX.BEAT_MIN_MS-spent);
+  const spent=Date.now()-t0, floor=pwBeatMinMs(tier);
+  if(!SKIP&&spent<floor) await pwSleep(floor-spent);
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;

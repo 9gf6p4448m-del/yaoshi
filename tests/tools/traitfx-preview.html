@@ -63,7 +63,11 @@ const COUNT = Math.max(1, Math.min(8, parseInt(q.get('count') || '1', 10) || 1))
 const FOE = (q.get('foe') || 'boat:swarm:zuling:3,sword:elite:xianghuo:1').split(',').map((s) => { const [ab, body, fac, n] = s.split(':'); return { ab, body, fac, n: parseInt(n || '1', 10) || 1 }; });
 const THROW = q.get('throw') === '1';
 const BLOOM_ON = q.get('bloom') !== '0';
-const MS = parseInt(q.get('ms') || '900', 10) || 900;
+// v0.54：ms 與 tier 一律由呼叫端（traitfx-drive.mjs，讀 tests/tools/fx-consts.mjs）帶進來。
+// **沒帶就 throw，不給預設值**——預設值就是下一個靠人肉同步的 900（凍結檔 F1「||900 退路刪掉」）。
+const MS = parseInt(q.get('ms') || '', 10);
+if (!Number.isFinite(MS) || MS <= 0) throw new Error('traitfx-preview 缺 ?ms=（招式時長只能由 fx-consts.mjs 帶進來）');
+const TIER = parseInt(q.get('tier') || '2', 10) || 2;
 const DT = Math.max(1, Math.min(100, parseFloat(q.get('dt') || '16.6667') || 16.6667)) / 1000; // ?dt=<ms>：模擬低幀率（renderer.js 夾值 100ms）
 
 const hud = document.getElementById('hud');
@@ -155,7 +159,7 @@ window.__tfx = {
   stepA(n) { for (let i = 0; i < n; i++) { step(); snapsA.push(snapshot()); } return snapsA.length; },
   async resetB() { await dispatchDuel(); step(); return figs().length; },
   fire(over) {
-    const det = Object.assign({ trId: TRAIT, side: 'A', foeSide: 'B', fac: FAC, power: 0.8, ms: MS, handled: false, done: null }, over || {});
+    const det = Object.assign({ trId: TRAIT, side: 'A', foeSide: 'B', fac: FAC, power: 0.8, ms: MS, tier: TIER, handled: false, done: null }, over || {});
     document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: det }));
     if (det.done) det.done.then(() => { window.__tfx.doneAt = window.__tfx.frameB; });
     return { handled: !!det.handled, hasMove: typeof TRAIT_MOVES[TRAIT] === 'function' };

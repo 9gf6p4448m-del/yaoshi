@@ -15,6 +15,8 @@ const DEG = Math.PI / 180;
 // 機位＝球座標。yaw 0 度是南家那一側（+Z），順時針到東 90、北 180、西 270；
 // tilt 是俯角，愈小愈貼桌面。改這些數字就是改運鏡，其他地方不必動。
 const SHOTS = {
+  // ★這個 900 是「牌桌機位的過場時間」，與招式時長無關★（v0.54 分母歸一時逐處確認過）：
+  // 招式時長的唯一來源是 index.html 的 PW_FX.TRAIT_MS_BY_TIER，經 detail.ms 帶進來。
   table: { dist: 3.6, tilt: 35, yaw: 0, lookY: 0.1, ms: 900 },
   reveal: { dist: 3.2, tilt: 30, yaw: 0, lookY: 0.3, ms: 550 }, // 開標：往桌心壓進去（幅度小，畫面別被裁掉）
   end: { dist: 6.4, tilt: 56, yaw: 0, lookY: 0.0, ms: 1400 }, // 局末：拉遠俯瞰整桌
@@ -71,7 +73,8 @@ const LEAN = {
   // `ys:fx-trait` 當幀鏡頭橫跳 0.6324 世界單位（v0.34 是 0，比它剛修掉的下降沿 0.50 還大），
   // 而且每一招各發生一次。120ms＝7 幀，短到看起來仍是「當下就偏過去」，長到單幀位移進得了門檻。
   riseMs: 120,
-  ms: 900, // detail.ms 沒帶時的回位時間（＝index.html 的 PW_FX.TRAIT_MS）
+  // ★v0.54：`ms: 900` 這條退路已刪★。它自承「＝index.html 的 PW_FX.TRAIT_MS」，是靠人肉同步的
+  // 第二份事實來源——招式時長改成依 tier 之後，沒帶 ms 的事件會靜默沿用 900。改成沒帶就 throw（見 onTrait）。
 };
 
 // 清除 orbit／lean 時，把「當下實際機位」平順收回基座要花多久（第 1 輪覆審 H-1／M-1）。
@@ -159,7 +162,7 @@ export function createCameraDirector(camera, lanterns) {
   let orbitHold = false; // true＝還在等基座推進到位；期間 orbit 偏移維持滿值（yaw 不動、dist 更不動）
   let leanU = 1; // 招式輕推的進度，1＝已回位（＝沒有偏移）
   let leanSign = 0; // +1 往畫面右（side 'B'）、−1 往畫面左（side 'A'）
-  let leanMs = LEAN.ms; // 這一次輕推的回位時間（取 ys:fx-trait 的 detail.ms）
+  let leanMs = 1; // 這一次輕推的回位時間（一律取 ys:fx-trait 的 detail.ms；leanU 初值 1＝沒有偏移，這個初值不會被讀到）
   let forceWrite = false; // 偏移被「清零」的那一幀要補寫一次位置，見 clearOrbitLean
   // 折回段還沒跑完。寫入區塊的條件是 t < 1，所以「t 剛好到 1」的那一幀不會寫，補間會凍在
   // 前一步、離目標差約 0.001–0.0024 度（v0.34 每次 goto 都有的既有行為，一般看不出來）。
@@ -303,8 +306,9 @@ export function createCameraDirector(camera, lanterns) {
     const d = (e && e.detail) || {};
     const s = d.side === 'B' ? 1 : d.side === 'A' ? -1 : 0;
     if (!s) return;
+    if (!Number.isFinite(d.ms) || d.ms <= 0) throw new Error('ys:fx-trait 缺 detail.ms（招式時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來）');
     leanSign = s;
-    leanMs = Math.max(1, Number(d.ms) || LEAN.ms);
+    leanMs = Math.max(1, Number(d.ms));
     leanU = 0;
   }
 
