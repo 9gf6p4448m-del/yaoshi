@@ -14,6 +14,8 @@
 | `js/trait-fx/xianghuo.js` | `export const SHORT`：9 支短版 |
 | `js/trait-fx/yinqi.js` | `export const SHORT`：9 支短版 |
 | `js/camera-director.js` | `CINEMA` 機位（tier 3）、`LEAN.ms` 退路刪除改 throw、`table` shot 的 900 加註（語意非招式時長） |
+| `js/renderer.js` | **（凍結檔 §2.1 修訂三補列）** +1 行：把既有的 `director` 掛上 `window.__yaoshi3d`。理由：F5 的 Playwright 探針要讀 `director.cinemaOn()` 才驗得了「CINEMA 只在 tier 3」，沒有它那一條就只能靠人眼 |
+| `index.html`（`FPS_DIAG` 段） | **（凍結檔 §2.1 修訂三補列，使用者追加）** `?fps=1` 診斷行加「上一場對決最低 fps」＝對決期間 1 秒視窗的最低值，起訖用現有的 `ys:duel`／`ys:duel-end` 掛點；只在 `FPS_ON` 下掛載（不帶參數時連事件監聽都不註冊，零成本） |
 | `tests/tools/fx-consts.mjs` | **新檔**：治具共用常數單一來源 |
 | `tests/tools/traitfx-drive.mjs` | `--tier=` 介面、`run.ms` 斷言、F10 動作統計、讀 `fx-consts.mjs` |
 | `tests/tools/traitfx-preview.html` | `?tier=`、`__tfx.runMs()`／`actions()`／`maxRate()` |
@@ -23,7 +25,7 @@
 | `docs/experiments/2026-09-10-plan-fx-tiers.md` | 本檔 |
 | `docs/experiments/2026-09-10-fx-tiers-report.md`、`docs/experiments/2026-09-10-fx-tiers-evidence/` | 報告與證據 |
 
-**不動**（動了就是 F9 紅）：`docs/ART_BIBLE.md`、`docs/GAME_DESIGN.md`、`assets/`、`js/bloom.js`、`js/duel-figures.js`、`js/renderer.js`、`js/particles.js`、引擎函式（`paperWar`／`pwSide`／`pwClash`／`pwPrep`／`pwBolt`／`pwHaunt`／`pwStrike`／`pwRec`／`buildArmy`／`collectEffects`／`applyHooks`）、`TRAITS` 的規則欄位、AI、拍賣、請神、共鳴、既有 9 套 `tests/*.test.mjs` 的斷言。
+**不動**（動了就是 F9 紅）：`docs/ART_BIBLE.md`、`docs/GAME_DESIGN.md`、`assets/`、`js/bloom.js`、`js/duel-figures.js`、`js/particles.js`（`js/renderer.js` 見上表補列那一行：**只允許那 +1 行的治具出口**，渲染路徑一格不動）、引擎函式（`paperWar`／`pwSide`／`pwClash`／`pwPrep`／`pwBolt`／`pwHaunt`／`pwStrike`／`pwRec`／`buildArmy`／`collectEffects`／`applyHooks`）、`TRAITS` 的規則欄位、AI、拍賣、請神、共鳴、既有 9 套 `tests/*.test.mjs` 的斷言。
 
 ## 2. 介面（寫死；此節即凍結）
 

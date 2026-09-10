@@ -9,14 +9,21 @@
  *   L3 黑條 DOM：pwLetterbox(true) 之後 #lbTop／#lbBot 的實際高度 >0，
  *      pwLetterbox(false) 之後回到 0；正式頁面初始狀態必須是 0（沒人開就不存在）。
  *
- * 為什麼不靠真實對局：一局裡有沒有 tier 3 取決於袋子裡有沒有三尊，逼不出來；
- * 真實對局那一半由 duel-drive 的 FXC.tiers 與 MutationObserver 覆蓋（見報告 F5）。
+ *   L4 黑條不進 renderer：同一頁面、同一場景、同一幀只切黑條，draw calls／triangles 逐值相同。
+ *   L5 取消路徑（R1 覆審 C1）：tier 3 演到一半派 ys:fx-trait-cancel（＝doSkip 那條），
+ *      CINEMA.outMs＋餘裕內 cinemaOn() 必須是 false；再驗 ys:duel-end 與 ys:table 兩條入口。
+ *
+ * 為什麼還要在這裡派合成事件：一局裡有沒有 tier 3 取決於袋子裡有沒有三尊，在這支探針裡逼不出來。
+ * ★真實對局那一半在 tests/tools/duel-drive.mjs★：它對 #lbTop／#lbBot 掛 MutationObserver，
+ * 逐場算出「黑條可見的累計毫秒」（cur.lboxMs），配 FXC.tiers 的逐場快照判「tier 1／2 的場必須是 0」。
+ * （一版這裡寫「由 duel-drive 的 MutationObserver 覆蓋」時，那個 observer 根本不存在——R1 覆審 H3 抓到的不實宣稱。）
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import zlib from 'node:zlib';
 import { msOf, TIER_BASE_MS, LETTERBOX_IDS } from './fx-consts.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -42,6 +49,45 @@ const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+
+/* 極簡 PNG 解碼（只支援 Playwright 截圖會產出的 8-bit RGBA，colorType 6）：
+   把 IDAT 拼起來 inflate，逐 scanline 反 filter，回傳平均亮度 (R+G+B)/3。
+   為什麼要自己解：H2 要驗的是「玩家看不看得到黑條」＝**像素**，
+   一版只驗 getBoundingClientRect().height（DOM 幾何），對這件事零鑑別力
+   （實測 z-index:-1 時黑條只把亮度從 27.27 壓到 17.31，畫面上是灰紫帶不是黑條）。 */
+function pngMeanLuma(buf) {
+  if (buf.readUInt32BE(0) !== 0x89504e47) throw new Error('不是 PNG');
+  let pos = 8, w = 0, h = 0, bd = 0, ct = 0; const idat = [];
+  while (pos < buf.length) {
+    const len = buf.readUInt32BE(pos); const type = buf.toString('ascii', pos + 4, pos + 8);
+    const data = buf.subarray(pos + 8, pos + 8 + len);
+    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); bd = data[8]; ct = data[9]; }
+    else if (type === 'IDAT') idat.push(data);
+    else if (type === 'IEND') break;
+    pos += 12 + len;
+  }
+  // Playwright 不透明截圖給的是 colorType 2（RGB，3 bytes/px）；有 alpha 時是 6（RGBA，4）
+  if (bd !== 8 || (ct !== 6 && ct !== 2)) throw new Error(`只支援 8-bit RGB/RGBA，拿到 bd=${bd} ct=${ct}`);
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const bpp = ct === 6 ? 4 : 3, stride = w * bpp;
+  const out = Buffer.alloc(h * stride);
+  for (let y = 0; y < h; y++) {
+    const ft = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, y * (stride + 1) + 1 + stride);
+    const prev = y > 0 ? out.subarray((y - 1) * stride, y * stride) : Buffer.alloc(stride);
+    const cur = out.subarray(y * stride, (y + 1) * stride);
+    for (let x = 0; x < stride; x++) {
+      const A = x >= bpp ? cur[x - bpp] : 0, B = prev[x], C = x >= bpp ? prev[x - bpp] : 0;
+      let v = line[x];
+      if (ft === 1) v += A; else if (ft === 2) v += B; else if (ft === 3) v += (A + B) >> 1;
+      else if (ft === 4) { const pa = Math.abs(B - C), pb = Math.abs(A - C), pc = Math.abs(A + B - 2 * C); v += (pa <= pb && pa <= pc) ? A : (pb <= pc ? B : C); }
+      cur[x] = v & 255;
+    }
+  }
+  let sum = 0;
+  for (let i = 0; i < out.length; i += bpp) sum += (out[i] + out[i + 1] + out[i + 2]) / 3;
+  return +(sum / (w * h)).toFixed(2);
+}
 
 const res = {};
 try {
@@ -115,6 +161,46 @@ try {
     };
     await page.waitForTimeout(500); // 讓上一次完全收乾淨再測下一個
   }
+  /* L5（R1 覆審 C1）：CINEMA 的三條取消路徑。派 tier 3 之後演到一半就送取消事件，
+     CINEMA.outMs(320)＋餘裕內 cinemaOn() 必須變成 false。三個入口各驗一次。 */
+  const cancelProbe = async (evName) => page.evaluate(async ({ evName, ms, base }) => {
+    const D = window.__yaoshi3d.director;
+    document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: { trId: 'probe', side: 'A', foeSide: 'B', fac: 'zuling', power: 0.8, ms, tier: 3, baseMs: base, handled: false, done: null } }));
+    const t0 = performance.now();
+    while (performance.now() - t0 < 400) await new Promise((r) => requestAnimationFrame(r)); // 讓 CINEMA 推到滿幅
+    const kAtCancel = D.cinemaK();
+    document.dispatchEvent(new CustomEvent(evName, { detail: {} }));
+    const tc = performance.now();
+    const samples = [];
+    while (performance.now() - tc < 700) { samples.push({ t: Math.round(performance.now() - tc), on: !!D.cinemaOn(), k: +D.cinemaK().toFixed(3) }); await new Promise((r) => requestAnimationFrame(r)); }
+    return { kAtCancel: +kAtCancel.toFixed(3), samples };
+  }, { evName, ms: msOf(3), base: TIER_BASE_MS });
+
+  res.L5 = {};
+  for (const ev of ['ys:fx-trait-cancel', 'ys:duel-end', 'ys:table']) {
+    const r = await cancelProbe(ev);
+    const after300 = r.samples.filter((x) => x.t >= 320 + 80);
+    res.L5[ev] = { kAtCancel: r.kAtCancel, onAfter300: after300.filter((x) => x.on).length, samples: r.samples.length,
+      lastOnT: r.samples.filter((x) => x.on).map((x) => x.t).pop() ?? -1 };
+    await page.waitForTimeout(500);
+  }
+
+  /* L6（R1 覆審 H2）：黑條的**像素**證據。同一個畫面 on／off 各截一張，
+     比上下 8vh 帶的平均亮度；中段當對照組（不該變）。 */
+  const shot = async (on) => {
+    await page.evaluate((v) => window.__yaoshi.pwLetterbox(v), on);
+    await page.waitForTimeout(400); // CSS transition 220ms
+    const h = 390, band = Math.round(h * 0.08);
+    const top = await page.screenshot({ clip: { x: 0, y: 0, width: 844, height: band } });
+    const bot = await page.screenshot({ clip: { x: 0, y: h - band, width: 844, height: band } });
+    const mid = await page.screenshot({ clip: { x: 0, y: Math.round(h / 2) - 20, width: 844, height: 40 } });
+    return { top: pngMeanLuma(top), bot: pngMeanLuma(bot), mid: pngMeanLuma(mid) };
+  };
+  // 先把對決覆蓋層叫出來（黑條的意義是「蓋在對決畫面上」）
+  await page.evaluate(() => { const d = document.getElementById('duel'); if (d) d.style.display = 'block'; });
+  res.L6 = { off: await shot(false), on: await shot(true) };
+  await page.evaluate(() => window.__yaoshi.pwLetterbox(false));
+
 } finally {
   await ctx.close();
   await browser.close();
@@ -133,11 +219,17 @@ const v = {
   // L4：黑條開關不得動到 draw call／三角形數（它是 DOM，不進 renderer）
   L4: res.L4.on.calls === res.L4.off.calls && res.L4.on.calls === res.L4.off2.calls
     && res.L4.on.tris === res.L4.off.tris,
+  // L5（R1 C1）：三條取消路徑都要在 outMs＋餘裕內把 CINEMA 收掉
+  L5: Object.values(res.L5).every((x) => x.kAtCancel > 0.9 && x.onAfter300 === 0),
+  // L6（R1 H2）：黑條要真的把上下帶壓黑（≤10/255），中段不得變（對照組，證明量測位置對）
+  L6: res.L6.on.top <= 10 && res.L6.on.bot <= 10
+    && res.L6.on.top < res.L6.off.top && res.L6.on.bot < res.L6.off.bot
+    && Math.abs(res.L6.on.mid - res.L6.off.mid) < 2,
   errors: errors.length,
 };
-v.PASS = v.L1 && v.L2 && v.L3 && v.L4 && errors.length === 0;
+v.PASS = v.L1 && v.L2 && v.L3 && v.L4 && v.L5 && v.L6 && errors.length === 0;
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, JSON.stringify({ verdict: v, res, errors }, null, 1));
-console.log(JSON.stringify({ verdict: v, tier1: res.tier1, tier2: res.tier2, tier3: res.tier3, lbox: res.L3, draws: res.L4 }));
-console.log(`VERDICT L1=${v.L1 ? 'PASS' : 'FAIL'} L2=${v.L2 ? 'PASS' : 'FAIL'} L3=${v.L3 ? 'PASS' : 'FAIL'} L4=${v.L4 ? 'PASS' : 'FAIL'} err=${errors.length} → ${v.PASS ? 'PASS' : 'FAIL'}`);
+console.log(JSON.stringify({ verdict: v, tier1: res.tier1, tier2: res.tier2, tier3: res.tier3, lbox: res.L3, draws: res.L4, cancel: res.L5, pixels: res.L6 }));
+console.log(`VERDICT L1=${v.L1 ? 'PASS' : 'FAIL'} L2=${v.L2 ? 'PASS' : 'FAIL'} L3=${v.L3 ? 'PASS' : 'FAIL'} L4=${v.L4 ? 'PASS' : 'FAIL'} L5=${v.L5 ? 'PASS' : 'FAIL'} L6=${v.L6 ? 'PASS' : 'FAIL'} err=${errors.length} → ${v.PASS ? 'PASS' : 'FAIL'}`);
 process.exit(v.PASS ? 0 : 1);

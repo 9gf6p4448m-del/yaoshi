@@ -18,6 +18,9 @@
 //     msOK        頁面實際跑的 run.ms 等於 fx-consts 的 msOf(tier)（防「--tier=1 其實還在跑 900」）
 //     rateOK      run.maxRate ≤1.0（tier 1 專用：短版必須原生塞進 260ms，不得靠加速硬擠）
 //     actionsOK   非 flinch 的補間條數 ≥2（F10：防「只剩一個閃光」的偷懶短版）
+//     fillOK      sig.horizon >= run.ms * 0.85（R1 覆審 M1：擋「演完之後乾等」——一版三尊的
+//                 horizon 只有 929／1067／1013 對 run.ms 1400，最後三分之一畫面上沒東西在動，
+//                 而 clean／onTime／within 全是上界，一條都擋不住）
 // 依賴：tools/anyCreature/node_modules/playwright；自起 python http.server。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -142,7 +145,10 @@ async function runCase(browser, base, c, opt) {
   const rateOK = !!sig && sig.maxRate <= 1.0;
   const acts = sig ? sig.acts : 0;
   const actionsOK = acts >= 2;
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
+  // R1 M1：時間軸要真的填滿這個 tier 的預算，不能演完之後乾等（sig 為 null 一律不過）
+  const fill = sig ? sig.horizon / ms : 0;
+  const fillOK = !!sig && fill >= 0.85;
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -152,7 +158,8 @@ async function runCase(browser, base, c, opt) {
     // rateOK／actionsOK 是「短版原生合身」的門檻，只對 tier 1 納入 pass：
     // tier 2 的完整版在滿編錯開時本來就會被 run.rate 等比加速（v0.53 既有設計，rateMax 2.2）。
     const shortOK = tier !== 1 || (rateOK && actionsOK);
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && errors.length === 0 && programs1 - programs0 === 0;
+    // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -189,7 +196,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }
@@ -204,7 +211,7 @@ async function main() {
   const sigs = results.filter((r) => r.sig).map((r) => `${r.sig.bones.join(',')}|${r.sig.meshes.join(',')}|${r.sig.target}`);
   const dupSig = sigs.filter((s, i) => sigs.indexOf(s) !== i);
   // F10 的表：逐招印非 flinch 的動作數（＜2 就是偷懶短版）
-  const actsTable = results.map((r) => ({ trait: r.case.trait, acts: r.verdict.acts, ok: r.verdict.actionsOK, maxRate: r.sig ? r.sig.maxRate : null, runMs: r.sig ? r.sig.ms : null }));
+  const actsTable = results.map((r) => ({ trait: r.case.trait, acts: r.verdict.acts, ok: r.verdict.actionsOK, maxRate: r.sig ? r.sig.maxRate : null, runMs: r.sig ? r.sig.ms : null, horizon: r.verdict.horizon, fill: r.verdict.fill }));
   const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, opts: opt };
   console.log(`\nF10 動作數（非 flinch 的 tween／fly／fade／grow）：` + actsTable.map((a) => `${a.trait}=${a.acts}${a.ok ? '' : '✗'}`).join(' '));
   fs.mkdirSync(path.dirname(out), { recursive: true });

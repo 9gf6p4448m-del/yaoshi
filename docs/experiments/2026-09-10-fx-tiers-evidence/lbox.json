@@ -4,6 +4,8 @@
   "L2": true,
   "L3": true,
   "L4": true,
+  "L5": true,
+  "L6": true,
   "errors": 0,
   "PASS": true
  },
@@ -49,7 +51,7 @@
   },
   "tier1": {
    "ms": 260,
-   "samples": 52,
+   "samples": 53,
    "onCount": 0,
    "maxK": 0,
    "onDuring": 0,
@@ -57,7 +59,7 @@
   },
   "tier2": {
    "ms": 900,
-   "samples": 88,
+   "samples": 89,
    "onCount": 0,
    "maxK": 0,
    "onDuring": 0,
@@ -65,11 +67,43 @@
   },
   "tier3": {
    "ms": 1400,
-   "samples": 120,
-   "onCount": 103,
+   "samples": 122,
+   "onCount": 105,
    "maxK": 1,
-   "onDuring": 84,
+   "onDuring": 86,
    "onAtTail": 0
+  },
+  "L5": {
+   "ys:fx-trait-cancel": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 43,
+    "lastOnT": 316
+   },
+   "ys:duel-end": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 43,
+    "lastOnT": 316
+   },
+   "ys:table": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 43,
+    "lastOnT": 316
+   }
+  },
+  "L6": {
+   "off": {
+    "top": 29.38,
+    "bot": 40.76,
+    "mid": 53.56
+   },
+   "on": {
+    "top": 0,
+    "bot": 0,
+    "mid": 52.8
+   }
   }
  },
  "errors": []

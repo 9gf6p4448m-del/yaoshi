@@ -47,6 +47,18 @@ export default {
       st.rot(lead, 'MistRoot', 0); st.rot(lead, 'Mist1', 0); st.rot(lead, 'Mist2', 0);
       st.rim(lead, 1 + 0.9 * k);
     } }));
+    /* ★Tier 3 餘韻（R1 覆審 M1）★：原本只排到 1013ms，tier 3 有 1400ms。
+       只在 tier 3 追加新節拍（tier 2 行為逐項不變）：祟氣散盡之前，對面每一隻腳下浮一圈暗環、
+       龕口的光緩緩闔上（陰氣＝拍子卡頓、慢半拍）。 */
+    if (st.tier === 3) {
+      st.target.slice(0, 4).forEach((f, i) => {
+        const r = st.ring(st.foot(f, new THREE.Vector3()), 0.26, 0.035, { opacity: 0, color: 0x2f1f47 });
+        st.grow(r, { ms: 280, delay: 980 + i * 40, from: 0.35, to: 1.6 });
+        st.fade(r, { ms: 280, delay: 980 + i * 40, from: 0.7, to: 0 });
+      });
+      st.tween({ ms: 340, delay: 1000, ease: 'pulse', update(t, e) { st.rim(lead, 1 + 1.2 * e); } });
+      st.tween({ ms: 260, delay: 1040, ease: 'inout', update(t, e) { st.scaleBone(lead, 'Top', 1 - 0.08 * e); } });
+    }
   },
 
   /* 林投姐髮簪・偷命（hairpin，作祟×4）：三拍結束時敗方另 −1 壽命。

@@ -302,6 +302,7 @@ export function createCameraDirector(camera, lanterns) {
     punchAmp = 0;
     clearOrbitLean(); // orbit／lean 同理
     endFocus(); // focus 走它自己的回位段（220ms），與回牌桌的補間疊起來仍然連續
+    endCinema(); // R1 C1：對決收場時 CINEMA 一定要收，否則會壓著回牌桌的那一段
     goto(SHOTS.table);
     setEmphasis(null);
   }
@@ -375,6 +376,19 @@ export function createCameraDirector(camera, lanterns) {
     return u >= 1 ? done() : 1 - easeInOutCubic(u);
   }
 
+  /** 立刻開始收 CINEMA（ys:fx-trait-cancel／ys:duel-end／ys:table／ys:end）。
+   *  ★R1 覆審 C1★：一版宣告了 cinemaFall 卻**沒有任何一行把它設成 true**，
+   *  所以「立刻回位」那個分支是死碼——玩家在三尊大招按跳過，黑條收了、鏡頭卻卡在
+   *  dist 2.9／tilt 8° 的貼地仰視 1.49 秒，還會延續到對決收場之後。
+   *  照 endFocus() 同一套：從當下的包絡值走 CINEMA.outMs 的回位段，不硬歸零（硬歸零會單幀跳 dist）。
+   *  防線按「危險的效果」寫：四個離開對決的入口全都叫它，不是只堵 doSkip 那一條。 */
+  function endCinema() {
+    if (!cinemaOn) return;
+    cinemaK0 = cinemaK;
+    cinemaAt = performance.now();
+    cinemaFall = true;
+  }
+
   /** 這一幀的 CINEMA 包絡：進（ease-out）→ 停到 ms → 回（ease-in-out）。回完就關掉。
    *  形狀照抄 focusEnvelope（同一套進／停／回），差別只在常數與「不追交鋒中點」。 */
   function cinemaEnvelope(now) {
@@ -418,6 +432,7 @@ export function createCameraDirector(camera, lanterns) {
   function onTraitCancel() {
     clearOrbitLean();
     endFocus();
+    endCinema(); // R1 C1：跳過大招時 CINEMA 也要收（黑條由 index.html 的 pwLetterbox 同步關）
   }
 
   /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。
@@ -432,6 +447,7 @@ export function createCameraDirector(camera, lanterns) {
   function onEnd() {
     revealUntil = 0;
     clearOrbitLean();
+    endCinema(); // R1 C1
     goto(SHOTS.end);
     setEmphasis(null);
   }
@@ -439,6 +455,7 @@ export function createCameraDirector(camera, lanterns) {
   function onTable() {
     revealUntil = 0;
     clearOrbitLean();
+    endCinema(); // R1 C1
     goto(SHOTS.table);
     setEmphasis(null);
   }

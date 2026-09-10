@@ -52,6 +52,18 @@ export default {
       st.rot(lead, 'TongueRoot', -0.30 * k); st.rot(lead, 'Tong1', -0.26 * k); st.rot(lead, 'ShrineRoot', -0.16 * k);
       st.actor.forEach((f) => st.rim(f, 1 + 0.5 * k));
     } }));
+    /* ★Tier 3 餘韻（R1 覆審 M1）★：原本只排到 1067ms，tier 3 有 1400ms。
+       只在 tier 3 追加新節拍（tier 2 行為逐項不變）：護罩退去之後，本方每一尊腳下的光環依序再亮一次
+       （香火＝緩慢、像抬轎走遠），紙軀最後沉一口氣。 */
+    if (st.tier === 3) {
+      st.actor.forEach((f, i) => {
+        const r = st.ring(st.foot(f, new THREE.Vector3()), 0.3, 0.04, { opacity: 0 });
+        st.grow(r, { ms: 300, delay: 1000 + i * 45, from: 0.4, to: 1.5 });
+        st.fade(r, { ms: 300, delay: 1000 + i * 45, from: 0.55, to: 0 });
+        st.tween({ ms: 260, delay: 1010 + i * 45, ease: 'pulse', update(t, e) { st.rim(f, 1 + 0.9 * e); } });
+      });
+      st.tween({ ms: 320, delay: 1040, ease: 'pulse', update(t, e) { st.move(lead, 0, -0.04 * e, 0); } });
+    }
   },
 
   /* 王爺劍・斬瘟（sword，精英×1）：本隊精英的濺射改為全額。

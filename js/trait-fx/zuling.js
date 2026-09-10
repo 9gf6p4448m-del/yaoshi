@@ -60,6 +60,18 @@ export default {
       st.rot(sun, 'Neck', 0.06 * k); st.rot(sun, 'Crown', 0.10 * k); st.rot(sun, 'Disc', 0, 0, 0.9 * k);
       st.rim(sun, 1);
     } }));
+    /* ★Tier 3 餘韻（R1 覆審 M1）★：大招在 tier 3 有 1400ms，但這支編舞原本只排到 929ms——
+       最後 471ms 是黑條掛著、CINEMA 壓著、畫面上沒東西在動，而那是全遊戲最大的一刻。
+       只在 tier 3 追加（tier 2 走同一支函式，行為必須逐項不變），而且是**新的節拍**不是把既有 tween 拉長：
+       日盤餘光緩緩收、地上落下一圈殘暉、獸身呼吸似的沉一下。 */
+    if (st.tier === 3) {
+      const foot = st.foot(sun, new THREE.Vector3());
+      const after = st.ring(foot, 0.5, 0.05, { opacity: 0 });
+      st.grow(after, { ms: 320, delay: 900, from: 0.4, to: 1.9 });
+      st.fade(after, { ms: 320, delay: 900, from: 0.5, to: 0 });
+      st.tween({ ms: 380, delay: 900, ease: 'pulse', update(t, e) { st.rim(sun, 1 + 0.5 * e); st.move(sun, 0, -0.03 * e, 0); } });
+      st.tween({ ms: 260, delay: 1020, ease: 'inout', update(t, e) { st.rot(sun, 'Disc', 0, 0, 0.35 * (1 - e)); } });
+    }
   },
 
   /* 射日神弓・射日（bow，精英×1）：一拍開場，對面最壯的一隻 −1。

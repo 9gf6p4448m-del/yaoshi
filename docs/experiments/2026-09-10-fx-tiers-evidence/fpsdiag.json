@@ -1,0 +1,54 @@
+{
+ "verdict": {
+  "D1": true,
+  "D2": true,
+  "D3": true,
+  "duels": 2,
+  "textMin": 55,
+  "perDuel": [
+   18,
+   55
+  ],
+  "errors": 0,
+  "PASS": true
+ },
+ "res": {
+  "on": {
+   "rec": [
+    {
+     "text": null,
+     "hasEl": false,
+     "duelMin": 18,
+     "duelOn": false
+    },
+    {
+     "text": null,
+     "hasEl": false,
+     "duelMin": 55,
+     "duelOn": false
+    }
+   ],
+   "finalText": "📈 fps 診斷：fps 平均 50（最近 2s，n=101）　|　對決最低 55（1s 視窗）　|　draw calls 14　|　三角形 855　|　844×390 dpr 1　|　Windows NT 10.0; Win64; x64",
+   "hasEl": true
+  },
+  "off": {
+   "rec": [
+    {
+     "text": null,
+     "hasEl": false,
+     "duelMin": 0,
+     "duelOn": false
+    },
+    {
+     "text": null,
+     "hasEl": false,
+     "duelMin": 0,
+     "duelOn": false
+    }
+   ],
+   "finalText": null,
+   "hasEl": false
+  }
+ },
+ "errors": []
+}

@@ -29,6 +29,25 @@ const FAC = { fushou: 'xianghuo', ashcharm: 'xianghuo', wangchuan: 'xianghuo', b
 const { pos, opt } = parseArgs(process.argv.slice(2));
 const [mode, out] = pos;
 if (!mode || !out) { console.error('need <bounds|perf> <out.json>'); process.exit(2); }
+/* ★R1 覆審 H1／M7★：perf 模式以前**靜默吃掉 `--root`**（只有 bounds／buoy／lineup 吃），
+   於是「基準」的那一份其實是拿新版跑的——F6 的比值變成新版對新版，對「有沒有變慢」零鑑別力。
+   （證據：一版的 fps-base.json 裡有 `fxc.tiers`，那個鍵是本卷才加的，基準 adbb124 根本沒有。）
+   兩件事一起修：① perf 吃 --root ② **不支援的旗標一律 throw**，不再靜默忽略——
+   參數要按「效果」擋，不是按「已知的入口」擋（02 §6.1 第 7 條的同型陷阱）。 */
+const KNOWN_FLAGS = {
+  bounds: ['port', 'root', 'gl', 'uncap'],
+  perf: ['port', 'root', 'n', 'heavy', 'gl', 'uncap', 'seed'],
+  buoy: ['port', 'root', 'gl', 'uncap'],
+  lineup: ['port', 'root', 'gl', 'uncap'],
+};
+{
+  const known = KNOWN_FLAGS[mode];
+  if (!known) { console.error(`未知的模式 ${mode}`); process.exit(2); }
+  const bad = Object.keys(opt).filter((k) => !known.includes(k));
+  if (bad.length) throw new Error(`duel-perf ${mode} 不吃這些旗標：${bad.map((k) => '--' + k).join(' ')}（合法：${known.map((k) => '--' + k).join(' ')}）。靜默忽略旗標會讓「基準」變成假的，見檔頭 R1 H1。`);
+}
+/** 靜態根：--root 給了就用它（量基準時指到基準樹），沒給就是 repo 根 */
+const SRV_ROOT = opt.root ? path.resolve(opt.root) : ROOT;
 // --heavy=base 用原本最重 8 隻（不含傳說三尊）——V6 的基準組，只給「同 session 交錯比較」用
 const HEAVY_USE = String(opt.heavy || '') === 'base' ? HEAVY_BASE : HEAVY;
 // --uncap：關掉 vsync 與幀率上限，量的才是「跑得動幾幀」而不是「螢幕更新幾次」（60Hz 桌機 rAF 永遠貼著 60）
@@ -37,7 +56,7 @@ const launch = () => chromium.launch({ args: ['--use-gl=angle', opt.gl === 'swif
 
 if (mode === 'bounds') {
   const port = Number(opt.port || 8832);
-  const srv = await serve(ROOT, port);
+  const srv = await serve(SRV_ROOT, port);
   try {
     const browser = await launch();
     const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
@@ -64,12 +83,12 @@ if (mode === 'bounds') {
 } else if (mode === 'perf') {
   const port = Number(opt.port || 8833);
   const N = Number(opt.n || 8);
-  const srv = await serve(ROOT, port);
+  const srv = await serve(SRV_ROOT, port);
   try {
     const browser = await launch();
     const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     let perf = null;
-    const r = await drive(page, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1`, {
+    const r = await drive(page, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1${opt.seed ? '&seed=' + opt.seed : ''}`, {
       duels: 2,
       onDuel: async (pg, n) => {
         if (n !== 2) return; // 第 2 場：第 1 場已把 shader 編掉、部分 GLB 進快取

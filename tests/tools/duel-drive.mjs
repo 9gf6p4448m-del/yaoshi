@@ -44,6 +44,22 @@ export async function serve(root, port) {
 /** 頁面端的錄音機：在任何 script 之前掛好事件監聽（addInitScript）。 */
 const RECORDER = `(() => {
   const R = window.__rec = { duels: [], loading: [], burns: [], lunges: [], samples: [], beatAt: [], ends: [], marks: {}, moves: [] };
+  /* ★R1 覆審 H3：真的觀察黑條★
+     一版只驗了「pwLetterbox(true/false) 這支 API 會不會切高度」，沒有任何一處量「真實對局裡
+     tier 1／2 的拍，#lbTop 是不是 0」；報告還宣稱有 MutationObserver，全 repo 一個都沒有。
+     這裡補上：對兩條黑條的 class 變化記時間序，收場時算出本場「黑條可見」的累計毫秒。
+     判定在 Node 端：FXC.tiers[3]===0 的場必須是 0，有 tier 3 的場必須 >0。 */
+  R.lbox = [];
+  const lboxWatch = () => {
+    ['lbTop', 'lbBot'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const push = () => R.lbox.push({ t: now(), id, on: el.classList.contains('on') });
+      push();
+      new MutationObserver(push).observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lboxWatch); else lboxWatch();
   const now = () => Date.now();
   const figApi = () => { try { return window.__yaoshi3d && window.__yaoshi3d.duelFigures; } catch (e) { return null; } };
   const snap = (side) => { const D = figApi(); if (!D) return []; return D.figuresOf(side).map((f) => ({
@@ -59,6 +75,7 @@ const RECORDER = `(() => {
     R.duels.push(cur);
     // detail.ready／loadTotal 是 duel-figures 的接收端在同一次派送裡才填的（本監聽器先註冊、先跑），macrotask 再讀
     cur.arenaEmptyAtDuel = !(document.getElementById('duelArena') || {}).innerHTML; // 審查 H-3：等載入時不得留上一場陣列
+    try { const F = window.__ysFxCount || {}; cur.tiers0 = Object.assign({}, F.tiers || {}); } catch (e) { cur.tiers0 = null; } // v0.54：這一場開場時的拍級累計（收場再減，得到本場分布）
     try { cur.programsAtDuel = window.__yaoshi3d.renderer.info.programs.length; } catch (e) { cur.programsAtDuel = null; } // 審查 M-3：燈組進出對決不得重編
     try { cur.programListAtDuel = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); } catch (e) { cur.programListAtDuel = null; } // 卷 C3 T-5：新編的是哪一支
     setTimeout(() => {
@@ -107,7 +124,14 @@ const RECORDER = `(() => {
     R.moves.push({ t: now(), trId: d.trId, side: d.side, text: el ? el.textContent : null, cls: el ? el.className : null, geo,
       expectName: pl ? pl.name : null, expectItem: Y.TRAIT_ITEM ? Y.TRAIT_ITEM[d.trId] : null, expectMove: tr ? tr.name : null, expectDesc: tr ? tr.desc : null,
       scroll: du ? [du.scrollHeight, du.clientHeight] : null }); });
-  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
+  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.tiers1 = Object.assign({}, F.tiers || {}); /* R1 H3：本場黑條可見的累計毫秒（只看 lbTop，兩條同開同關） */
+      try {
+        const evs = (window.__rec.lbox || []).filter((x) => x.id === 'lbTop' && x.t <= cur.endAt);
+        let ms = 0, onAt = null;
+        for (const e of evs) { if (e.on && onAt === null) onAt = e.t; else if (!e.on && onAt !== null) { if (e.t > cur.t) ms += e.t - Math.max(onAt, cur.t); onAt = null; } }
+        if (onAt !== null) ms += cur.endAt - Math.max(onAt, cur.t);
+        cur.lboxMs = ms;
+      } catch (e) { cur.lboxMs = null; } cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('duelBeat');
     if (!el) return;
@@ -182,7 +206,7 @@ export async function drive(page, url, opts = {}) {
     await page.waitForTimeout(250);
   }
   const rec = await page.evaluate(() => ({ rec: window.__rec, fxc: window.__ysFxCount || null, ys3d: !!window.__yaoshi3d, gl: window.__yaoshi3d ? window.__yaoshi3d.glName : null, ver: (document.getElementById('verLine') || {}).textContent }));
-  return { ...rec, errors: errs, lastMainText: lastText, shots, elapsedMs: Date.now() - t0 };
+  return { ...rec, url, errors: errs, lastMainText: lastText, shots, elapsedMs: Date.now() - t0 }; // R1 M6：url（含 seed）落檔，數字才複現得了
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

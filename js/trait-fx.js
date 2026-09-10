@@ -213,7 +213,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
 
     const st = {
       /** 這一招的時長（ms）、系色鍵與 hex、力道、是否 reduced-motion */
-      ms: run.ms, fac: det.fac, color: colorObj.getHex(), colorObj, power: det.power || 0.8, reduced: run.reduced,
+      /** 這一招的時長（ms）、tier（1／2／3）、系色鍵與 hex、力道、是否 reduced-motion。
+       *  tier 給編舞用來加「只有大招才有」的段落（例：三尊在 tier 3 的餘韻，見 R1 覆審 M1）；
+       *  tier 2 走同一支函式時必須逐項不變，所以那些段落一律包在 `if (st.tier === 3)` 裡。 */
+      ms: run.ms, tier: run.tier, fac: det.fac, color: colorObj.getHex(), colorObj, power: det.power || 0.8, reduced: run.reduced,
       actor, target, dir, up: UP, tableY: TFX.tableY, EASE,
       /** 決定性亂數（0..1），同一場同一招每次一樣 */
       rnd: makeLcg(run.seed),

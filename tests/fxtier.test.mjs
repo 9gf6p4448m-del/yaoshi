@@ -42,7 +42,19 @@ t('頁面 PW_FX 就是 fx-consts 那三張表（走真的載進來的物件，�
 
 /* ── 2. pwBeatTier 的三級判定（拍級）─────────────────────────────────── */
 const has = typeof Y.pwBeatTier === 'function';
-const beat = (kind, trId) => ({ kind, trId, side: 'A' });
+const beat = (kind, trId, target) => ({ kind, trId, side: 'A', target: target === undefined ? null : target });
+/* views＝[viewA, viewB]，形狀照 pwArmyView 的回傳（units 只有 body／fac／ab／id）。 */
+const plainViews = () => [
+  { units: [{ id: 0, body: 'swarm', fac: 'zuling', ab: 'boat' }, { id: 1, body: 'elite', fac: 'yinqi', ab: 'nail' }] },
+  { units: [{ id: 0, body: 'swarm', fac: 'xianghuo', ab: 'wuying' }] },
+];
+/* A 側 id0 換成傳說尊（ab＝LEGENDS 的 m，從表裡取、不寫死字串） */
+const legendViews = () => {
+  const m = (Y.LEGENDS || []).map((x) => x.m).filter(Boolean)[0];
+  const v = plainViews();
+  v[0].units[0] = { id: 0, body: 'elite', fac: 'zuling', ab: m };
+  return v;
+};
 const warTie = { war: { tie: true } };
 const warWin = { war: { tie: false } };
 t('pwBeatTier 已匯出（沒有就是這一卷還沒做，下面四條一併紅）', () => {
@@ -50,30 +62,42 @@ t('pwBeatTier 已匯出（沒有就是這一卷還沒做，下面四條一併紅
 });
 t('三尊大招（TRAITS.tier===3）把整拍鎖在 tier 3', () => {
   if (!has) throw new Error('pwBeatTier 未匯出');
-  eq(Y.pwBeatTier([beat('trait', 'eliteBlind')], 1, warWin), 3, '殘日・餘暉灼目');
-  eq(Y.pwBeatTier([beat('trait', 'wardGuardAll')], 2, warTie), 3, '大士爺・普渡');
-  eq(Y.pwBeatTier([beat('trait', 'hauntAnswer')], 3, warWin), 3, '有應公・有求必應');
+  eq(Y.pwBeatTier([beat('trait', 'eliteBlind')], 1, warWin, plainViews()), 3, '殘日・餘暉灼目');
+  eq(Y.pwBeatTier([beat('trait', 'wardGuardAll')], 2, warTie, plainViews()), 3, '大士爺・普渡');
+  eq(Y.pwBeatTier([beat('trait', 'hauntAnswer')], 3, warWin, plainViews()), 3, '有應公・有求必應');
   // 同一拍混著普通招也還是 3（上限鎖住整拍）
-  eq(Y.pwBeatTier([beat('trait', 'eliteOpenShot'), beat('trait', 'eliteBlind')], 1, warWin), 3, '混拍');
+  eq(Y.pwBeatTier([beat('trait', 'eliteOpenShot'), beat('trait', 'eliteBlind')], 1, warWin, plainViews()), 3, '混拍');
 });
-t('該拍有擊殺（burn）→ tier 2；沒有就不是', () => {
+t('★修訂一★ 一般擊殺拍走 tier 1（不再因為有 burn 就升 2）', () => {
   if (!has) throw new Error('pwBeatTier 未匯出');
-  eq(Y.pwBeatTier([beat('hit'), beat('burn')], 1, warTie), 2, '第 1 拍有 burn');
-  eq(Y.pwBeatTier([beat('hit'), beat('trait', 'hauntSee')], 1, warTie), 1, '第 1 拍沒 burn');
+  const views = plainViews();
+  eq(Y.pwBeatTier([beat('hit'), beat('burn', null, 0)], 1, warTie, views), 1, '第 1 拍燒掉一般紙紮');
+  eq(Y.pwBeatTier([beat('hit'), beat('trait', 'hauntSee')], 1, warTie, views), 1, '第 1 拍沒 burn');
 });
-t('決定性最後一拍（第 3 拍且非平手）→ tier 2；平手不是', () => {
+t('★修訂一★ 燒掉傳說尊那一拍升 tier 2', () => {
   if (!has) throw new Error('pwBeatTier 未匯出');
-  eq(Y.pwBeatTier([beat('hit')], 3, warWin), 2, '第 3 拍分出勝負');
-  eq(Y.pwBeatTier([beat('hit')], 3, warTie), 1, '第 3 拍平手');
-  eq(Y.pwBeatTier([beat('hit')], 2, warWin), 1, '第 2 拍');
+  const views = legendViews();
+  eq(Y.pwBeatTier([beat('hit'), beat('burn', null, 0)], 1, warTie, views), 2, '第 1 拍燒掉傳說尊');
+  // 同一批 views 裡 id=1 是一般紙紮：燒它不升
+  eq(Y.pwBeatTier([beat('burn', null, 1)], 1, warTie, views), 1, '燒掉旁邊那隻一般紙紮');
+});
+t('pwIsLegendUnit 認的是 LEGENDS 的 m（不是寫死字串），側別用 burn 的 side', () => {
+  if (typeof Y.pwIsLegendUnit !== 'function') throw new Error('pwIsLegendUnit 未匯出');
+  const ms = (Y.LEGENDS || []).map((x) => x.m).filter(Boolean);
+  if (ms.length !== 3) throw new Error('LEGENDS 的 m 應該有三個，得到 ' + JSON.stringify(ms));
+  const views = legendViews();
+  eq(Y.pwIsLegendUnit(views, 'A', 0), true, 'A 側 id0 是傳說');
+  eq(Y.pwIsLegendUnit(views, 'B', 0), false, 'B 側 id0 不是');
+  eq(Y.pwIsLegendUnit(views, 'A', 9), false, '不存在的 id');
+  eq(Y.pwIsLegendUnit(null, 'A', 0), false, '沒有 views 時不得爆炸');
 });
 t('?fxtier=0（TIER_ON=false）時所有拍恆回 tier 2＝v0.53 行為', () => {
   if (!has) throw new Error('pwBeatTier 未匯出');
   const on = Y.PW_FX.TIER_ON;
   try {
     Y.PW_FX.TIER_ON = false;
-    eq(Y.pwBeatTier([beat('trait', 'eliteBlind')], 1, warWin), 2, '大招也降回 2');
-    eq(Y.pwBeatTier([beat('hit')], 1, warTie), 2, '一般拍也是 2');
+    eq(Y.pwBeatTier([beat('trait', 'eliteBlind')], 1, warWin, plainViews()), 2, '大招也降回 2');
+    eq(Y.pwBeatTier([beat('hit')], 1, warTie, plainViews()), 2, '一般拍也是 2');
   } finally { Y.PW_FX.TIER_ON = on; }
 });
 t('pwTierMs／pwBeatMinMs 只認 1／2／3，別的值一律當 2（不給 0 或 undefined）', () => {

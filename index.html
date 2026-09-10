@@ -39,11 +39,15 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    0.62 是最外圈的黑度【試玩必調】。 */
 #vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(ellipse 72% 78% at 50% 46%,rgba(0,0,0,0) 38%,rgba(0,0,0,.30) 72%,rgba(0,0,0,.62) 100%)}
-/* Tier 3 大招的黑條 letterbox（v0.54 三級視覺分級）：與 #vignette 同層（z-index:-1），
-   所以它蓋得到 3D、蓋不到面板與文字，也不吃點擊。**刻意用 DOM 不進 shader**——
-   後處理多一道 pass 在手機上是真的要錢的，兩條 div 是零 draw call（凍結檔 F6）。
+/* Tier 3 大招的黑條 letterbox（v0.54 三級視覺分級）。
+   ★R1 覆審 H2：z-index 從 -1 改成 41★——一版放在 #vignette 那一層（-1），但對決期間覆蓋全螢幕的
+   #duel 是 z-index:40 且背景半透明，黑條在它下面只透得出約四成：實測上緣帶平均亮度只從
+   27.27 掉到 17.31（Δ−9.96/255），畫面上是「比原本暗一成的灰紫帶」而不是黑條。
+   41＝壓在 #duel 之上、#rotateHint（99）之下；模態（#sheet 30／#modal 20）本來就在 #duel 之下，
+   對決期間不會與黑條打架。pointer-events:none 不吃任何點擊。
+   仍然是 DOM 不進 shader（後處理多一道 pass 在手機上是真的要錢的，兩條 div 是零 draw call，F6 已量）。
    平常 height:0（等於不存在），.on 才張開；transition 與 CINEMA 的 inMs 對齊。 */
-#lbTop,#lbBot{position:fixed;left:0;right:0;height:0;z-index:-1;pointer-events:none;
+#lbTop,#lbBot{position:fixed;left:0;right:0;height:0;z-index:41;pointer-events:none;
   background:#000;transition:height .22s cubic-bezier(.23,1,.32,1)}
 #lbTop{top:0}
 #lbBot{bottom:0}
@@ -2014,15 +2018,47 @@ const FPS_ON=(()=>{ try{ return new URLSearchParams(location.search||"").get("fp
    60fps 下等於每秒 60 次配置、排序與版面重算，量到的數字會被量測器自己拖低。改成：
    ① 定長環形緩衝（Float64Array，穩態零配置）② 文字每 250ms 才更新一次 ③ 用平均
    (n−1)/(t_last−t_first)×1000，不排序。中位數改平均是刻意的取捨——中位數非得排序才求得出來。 */
-const FPS_DIAG={ buf:new Float64Array(256), n:0, fps:0, win:0, calls:0, tris:0, lastPaint:0 };
+/* duelMin＝「上一場對決期間，1 秒視窗的最低 fps」（v0.54 使用者要的欄位）。
+   為什麼要它：平均值把卡頓吃掉了——手機上真正會被感覺到的是招式那幾拍的瞬間掉幀，
+   而 2 秒平均在一場 5 秒的對決裡只會微幅下降。1 秒視窗才抓得到。
+   duelOn＝現在在對決中（ys:duel → ys:duel-end）；cur＝這一場目前為止的最低值；
+   winT0／winN＝當前 1 秒視窗的起點與幀數。**整段只在 FPS_ON 下掛載**，不帶 ?fps=1 時
+   連事件監聽都不註冊，零成本（與這一區塊既有的紀律一致：量測器不得擾動被測物）。 */
+const FPS_DIAG={ buf:new Float64Array(256), n:0, fps:0, win:0, calls:0, tris:0, lastPaint:0,
+  duelOn:false, duelMin:0, cur:0, winT0:0, winN:0 };
 function fpsDiagText(){
   const ua=navigator.userAgent.replace(/Mozilla\/5.0 \(|\).*$/g,"").slice(0,34);
-  return `fps 平均 ${FPS_DIAG.fps||"-"}（最近 2s，n=${FPS_DIAG.win}）　|　draw calls ${FPS_DIAG.calls}　|　三角形 ${FPS_DIAG.tris}　|　${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)} dpr ${window.devicePixelRatio||1}　|　${ua}`;
+  return `fps 平均 ${FPS_DIAG.fps||"-"}（最近 2s，n=${FPS_DIAG.win}）　|　對決最低 ${FPS_DIAG.duelMin||"-"}（1s 視窗${FPS_DIAG.duelOn?"，本場進行中":""}）　|　draw calls ${FPS_DIAG.calls}　|　三角形 ${FPS_DIAG.tris}　|　${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)} dpr ${window.devicePixelRatio||1}　|　${ua}`;
 }
 if(FPS_ON){ try{
   const B=FPS_DIAG.buf, CAP=B.length;
+  /* 對決的起訖用**現有的** ys:duel／ys:duel-end 掛點（演出層本來就會派，不新增事件）。
+     開場把上一場的值歸零再重算，這樣「上一場」永遠是最近那一場、不會累積成整局最低。 */
+  document.addEventListener("ys:duel",()=>{ FPS_DIAG.duelOn=true; FPS_DIAG.duelMin=0; FPS_DIAG.cur=0; FPS_DIAG.winT0=0; FPS_DIAG.winN=0; });
+  document.addEventListener("ys:duel-end",()=>{
+    /* 收場時把最後一個不滿 1 秒的視窗也結算掉（招式常落在對決尾巴，丟掉它等於丟掉最該量的那一段） */
+    if(FPS_DIAG.duelOn&&FPS_DIAG.winN>1&&FPS_DIAG.winT0){
+      const el=performance.now()-FPS_DIAG.winT0;
+      if(el>200){ const f=Math.round((FPS_DIAG.winN-1)/el*1000); if(!FPS_DIAG.cur||f<FPS_DIAG.cur) FPS_DIAG.cur=f; }
+    }
+    FPS_DIAG.duelOn=false; FPS_DIAG.duelMin=FPS_DIAG.cur||FPS_DIAG.duelMin;
+  });
   const tick=(t)=>{
     B[FPS_DIAG.n%CAP]=t; FPS_DIAG.n++;
+    /* 對決中的 1 秒視窗最低值：滿 1 秒就結算一次、取最小，然後開新視窗。
+       只做兩次比較與一次除法，穩態零配置（同這一區塊既有的紀律）。 */
+    if(FPS_DIAG.duelOn){
+      if(!FPS_DIAG.winT0){ FPS_DIAG.winT0=t; FPS_DIAG.winN=1; }
+      else{
+        FPS_DIAG.winN++;
+        if(t-FPS_DIAG.winT0>=1000){
+          const f=Math.round((FPS_DIAG.winN-1)/(t-FPS_DIAG.winT0)*1000);
+          if(!FPS_DIAG.cur||f<FPS_DIAG.cur) FPS_DIAG.cur=f;
+          FPS_DIAG.duelMin=FPS_DIAG.cur; /* 本場進行中也看得到目前最低 */
+          FPS_DIAG.winT0=t; FPS_DIAG.winN=1;
+        }
+      }
+    }
     if(t-FPS_DIAG.lastPaint>=250){
       FPS_DIAG.lastPaint=t;
       /* 只在這裡走一次緩衝：往回找 2 秒內的樣本（最多 CAP 筆）。只讀不寫、不配置、不排序。 */
@@ -4976,24 +5012,50 @@ function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
 /* ── v0.54 三級視覺分級：tier 的三支存取器（招式時長／拍末下限的唯一入口）──────────────
    合法 tier 只有 1／2／3；拿到別的值一律當 2（＝v0.53 行為），不靜默給 0 或 undefined。 */
 function pwTierOf(t){ const n=t|0; return (n===1||n===2||n===3)?n:2; }
+/* 傳說三尊的 3D 模型鍵集合（`LEGENDS` 是唯一事實來源，新增第四尊自動涵蓋，這裡不寫死字串）。
+   pwArmyView 的 units 只帶 body／fac／ab，沒有 trait，所以「這一尊是不是傳說」只能靠 ab（＝LEGENDS 的 m）認。 */
+const PW_LEGEND_ABS=new Set(LEGENDS.map(x=>x.m).filter(Boolean));
+/* 這一筆 burn 燒掉的是不是傳說尊。burn 事件的 side 就是**被燒的那一方**（pwRec 上方註解），
+   target 是該側的單位 id；views 是 [viewA, viewB]，units 的 id 在排序前指派、不重排。 */
+function pwIsLegendUnit(views,side,unitId){
+  if(!views||unitId==null) return false;
+  const v=views[side==="B"?1:0];
+  if(!v||!v.units) return false;
+  const u=v.units.find(x=>x.id===unitId);
+  return !!(u&&u.ab&&PW_LEGEND_ABS.has(u.ab));
+}
 /* 這一拍的 tier（★拍級，不是招級★——同一拍裡的每一支招吃同一個等級，拍末等待也是）。
-   規則（凍結檔「三級定義」）：
+   規則（凍結檔「三級定義」＋§2.1 修訂一）：
      3 ＝ 這一拍有三尊大招（TRAITS[].tier===3）。TRAITS[].tier 是該招的**上限**：只有標 3 的招
          把整拍鎖在 3，一支沒標的招不會因為打得漂亮就自己升到 3。
-     2 ＝ 這一拍有擊殺（burn 是引擎唯一帶 killed 的事件源，pwRec 上方註解），
-         或這是該場對決的決定性最後一拍（第 3 拍且分得出勝負）。
-     1 ＝ 其餘（短版 260ms）。
+     2 ＝ ①該場對決的決定性最後一拍（第 3 拍且分得出勝負）②這一拍燒掉了傳說三尊之一。
+     1 ＝ 其餘（短版 260ms）——**含一般的擊殺拍**。
+   ★修訂一（使用者 2026-09-10 裁甲）★：一版把「該拍有任何 burn」都升 tier 2，實測 4 場 12 拍的
+   分布是 {1:4, 2:8}——8v8 基礎戰三分之二的拍都有紙紮被燒，拍末下限因此大多停在 900ms，
+   F3 中位只從 5573.5ms 降到 5302ms（門檻 ≤5000）。收窄成「決定勝負」與「燒掉傳說尊」兩種之後，
+   一般擊殺拍回到 260ms 短版＋300ms 拍末。**這是三級定義的變更，不是門檻變更**（F3 的 5 秒一字沒動）。
    ?fxtier=0 時恆回 2＝v0.53 行為（900、無 CINEMA、無黑條），退路等價靠這一行。
-   註：凍結檔寫的簽名是 pwBeatTier(beat, war)，實際要讀「這一拍的事件」，所以帶的是 list；
-   war.beats 是三拍混在一起的，從它切不出「這一拍」而不重做一次 byBeat。 */
-function pwBeatTier(list,beat,f){
+   註：凍結檔寫的簽名是 pwBeatTier(beat, war)，實際要讀「這一拍的事件」與「被燒的是誰」，
+   所以帶的是 list 與 views；war.beats 是三拍混在一起的，從它切不出「這一拍」而不重做一次 byBeat。 */
+function pwBeatTier(list,beat,f,views){
   if(!PW_FX.TIER_ON) return 2;
   if(list.some(b=>b.kind==="trait"&&((TRAITS[b.trId]||{}).tier|0)>=3)) return 3;
-  if(list.some(b=>b.kind==="burn")) return 2;
   if(beat===3&&f&&f.war&&!f.war.tie) return 2;
+  if(list.some(b=>b.kind==="burn"&&pwIsLegendUnit(views,b.side,b.target))) return 2;
   return 1;
 }
 function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
+/* 這一支招實際要用的等級（★招級★，R1 覆審 M2）。
+   拍級 tier 決定「這一拍有多重要」，但**同一拍裡的普通招不該跟著大招演 1400ms＋CINEMA＋黑條**——
+   一版就是那樣，計畫檔 §2.2 自己寫「一支 tier 1 的招不會單獨升 3」卻與實作不符，而且那個組合
+   （傳說招與普通招同拍）治具一次都沒跑到。
+   規則：招級＝min(拍級, 該招的上限)，普通招上限 2、`TRAITS[].tier===3` 的傳說招上限 3。
+   於是：tier 3 的拍裡，傳說招走 1400ms＋CINEMA，同拍的普通招走 900ms 完整版、不觸發 CINEMA；
+   拍末等待仍吃拍級（1400），黑條也是拍級（整拍開著，見 pwPlayBeat）。 */
+function pwMoveTier(trId,beatTier){
+  const cap=(((TRAITS[trId]||{}).tier|0)>=3)?3:2;
+  return Math.min(pwTierOf(beatTier),cap);
+}
 function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
 /* Tier 3 大招的黑條：只有三尊那一拍會開。開關集中在這一支（防線按「危險的效果」寫，不按入口寫）——
    doSkip／對決收場／招式演完都叫它關，任何一條路漏掉都會把黑條留在畫面上。 */
@@ -5011,7 +5073,6 @@ function pwTraitFx(trId,ctx){
   if(SKIP) return false;
   const tier=pwTierOf(ctx.tier);
   const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
-  if(tier===3) pwLetterbox(true); /* 黑條與 CINEMA 機位（camera-director 讀同一個 detail.tier）同時起 */
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];
@@ -5382,8 +5443,11 @@ function pwItemOf(views,b){
 }
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
-  const tier=pwBeatTier(list,beat,f); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
+  const tier=pwBeatTier(list,beat,f,views); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
   FXC.tiers[tier]=(FXC.tiers[tier]||0)+1; /* 純記錄（F3 的節奏歸因要看拍的 tier 分布）；遊戲一行不讀它 */
+  /* 黑條是★拍級★的（R1 覆審 L5）：一版在每支招演完就關、下一支再開，CSS transition 220ms
+     會讓同一拍兩支招之間黑條收一半又張開。改成整拍開著、拍末統一關。 */
+  if(tier===3) pwLetterbox(true);
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
@@ -5428,8 +5492,9 @@ async function pwPlayBeat(f,beat,list,views){
       FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
+      const mvTier=pwMoveTier(b.trId,tier); /* R1 M2：招級（普通招上限 2），拍末等待仍用拍級 */
       const staged=pwTraitFx(b.trId,{
-        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8, tier,
+        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8, tier:mvTier,
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
@@ -5439,8 +5504,7 @@ async function pwPlayBeat(f,beat,list,views){
          那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
-      if(staged){ await pwSleep(pwTierMs(tier)); if(tier===3) pwLetterbox(false); continue; } /* 3D 舞台接了才等這一拍 tier 的時長；fallback 照 v0.32 等 evMs */
-      if(tier===3) pwLetterbox(false); /* fallback 那條也要收，否則黑條會留在畫面上 */
+      if(staged){ await pwSleep(pwTierMs(mvTier)); continue; } /* 3D 舞台接了才等這一招 tier 的時長；fallback 照 v0.32 等 evMs */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -5481,6 +5545,7 @@ async function pwPlayBeat(f,beat,list,views){
   }
   const spent=Date.now()-t0, floor=pwBeatMinMs(tier);
   if(!SKIP&&spent<floor) await pwSleep(floor-spent);
+  if(tier===3) pwLetterbox(false); /* 拍級黑條：整拍演完才收（doSkip 與對決收場另有兩條獨立的關閉路徑） */
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
@@ -6438,7 +6503,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, pwBeatTier, pwTierMs, pwBeatMinMs, pwLetterbox, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwTierMs, pwBeatMinMs, pwLetterbox, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */
