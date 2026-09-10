@@ -162,6 +162,14 @@ const main = async () => {
           })()`);
           if (done) { g.gaveUp = 1; rec.giveUp = (rec.giveUp || 0) + 1; }
         }
+        /* H7 人眼關鍵單張（只在第一顆種子拍）：第 1 夜的出價頁、請神夜**前一夜**的出價頁。
+           兩張都要看得到「香火榜一行＋三尊待請卡」在中央面板法寶卡正上方——
+           前一夜那張是 wide（拆成兩列、卡上多印招式名），第 1 夜那張是 slim（擠成一列）。 */
+        if (opt.shots && seed === SEEDS[0] && st.bidding && !st.dis) {
+          const pre = (rec.shrineNights || [4])[0] - 1;
+          if (st.round === 1 && !rec.shotN1) { rec.shotN1 = 1; await page.screenshot({ path: `${opt.shots}-n1.png` }); }
+          if (st.round === pre && !rec.shotPre) { rec.shotPre = 1; await page.screenshot({ path: `${opt.shots}-pre.png` }); }
+        }
         if (st.bidding && st.hasInc && opt.burn !== '0') {
           // 每夜燒滿，確保一定會走到「請走」與「真人選尊視窗」那條路
           await page.evaluate(`(() => { const M = CFG.INC_MAX; for (let k = 0; k < M; k++) incBump(1); })()`);
@@ -172,6 +180,11 @@ const main = async () => {
         // ★真人選尊視窗（請神 3.0 §二 3）★：#modal 上是三張 .legendPick 卡，#mainbtn 這時停用。
         // 刻意挑**第二張**（不是第一張）——那正好不是 AI 規則在空袋時會挑的那一尊，
         // 所以「玩家挑的真的被採用」這件事才驗得到（只有一張時就挑那一張）。
+        if (opt.shots && !rec.shotPick) {
+          const up = await page.evaluate(`(() => { const m = document.getElementById('modal');
+            return !!(m && getComputedStyle(m).display !== 'none' && document.querySelector('#modalbox .legendPick')); })()`);
+          if (up) { rec.shotPick = 1; await page.screenshot({ path: `${opt.shots}-pick.png` }); }
+        }
         const pick = await page.evaluate(`(() => {
           const m = document.getElementById('modal');
           if (!m || getComputedStyle(m).display === 'none') return null;

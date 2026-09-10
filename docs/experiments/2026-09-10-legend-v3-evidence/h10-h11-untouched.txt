@@ -1,0 +1,11 @@
+# H10／H11「未動」證明：基準 e83028c（v0.52）與本卷 v0.53 的逐段位元組比對
+（H10 要「facCount／eff 段 git diff 為空」；H11 的部隊預覽三支一併列出。）
+
+- facCount         逐位元組相同 ✅（154 bytes）
+- LEGENDS（含 eff）   逐位元組相同 ✅（767 bytes）
+- pwResLv          逐位元組相同 ✅（436 bytes）
+- buildArmy        逐位元組相同 ✅（1081 bytes）
+- unitRow          逐位元組相同 ✅（633 bytes）
+- unitRowText      逐位元組相同 ✅（1031 bytes）
+
+總判定：全部未動 ✅
