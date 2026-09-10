@@ -162,7 +162,14 @@ async function runCase(browser, base, c, opt) {
   else {
     // rateOK／actionsOK 是「短版原生合身」的門檻，只對 tier 1 納入 pass：
     // tier 2 的完整版在滿編錯開時本來就會被 run.rate 等比加速（v0.53 既有設計，rateMax 2.2）。
-    const shortOK = tier !== 1 || (rateOK && actionsOK);
+    /* ★R3 覆審 H-3★：一版把 rateOK 的適用範圍從「30 套」縮到「tier 1 的 27 套」，
+       而被排除的那 3 套**恰好就是唯一 rate >1.0 的 3 套**（三尊在 tier 3 是 1.04–1.06）
+       ——那是 02 §2.1 的「縮小實際跑到的範圍」＝移動及格線。現在改成：
+       **tier 1 與 tier 3 都驗 `rate ≤1.0`**（凍結檔 F2 的字面），三尊的時間軸已原生壓進 1400ms；
+       tier 2 的完整版在滿編錯開時本來就會被等比加速（v0.53 既有行為，rateMax 2.2，L4 已記錄）
+       ⇒ tier 2 只把 maxRate 印出來當記錄，不進 pass。
+       actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
+    const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
     verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && errors.length === 0 && programs1 - programs0 === 0;
   }

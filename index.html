@@ -52,15 +52,22 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #lbTop{top:0}
 #lbBot{bottom:0}
 #lbTop.on,#lbBot.on{height:8vh}
-/* ★R2 覆審 N1★：黑條提到 z-index:41 之後會蓋掉對決自己的字幕——實測 tier 3 那一拍
-   #duelBeat（拍首字幕）被上條蓋 82.4%、#duelSub（燒毀說明）被下條蓋 100%、#duelResult 蓋 16.5%。
-   那是全場最重要的一拍，玩家反而看不到這一拍叫什麼、燒了幾隻。
-   為什麼不是把字幕的 z-index 提上去：#duel 自己是 z-index:40 的 position:fixed，
-   **它建立了一個堆疊上下文**，裡面的子元素再怎麼調 z-index 都出不去 40 這一層。
-   所以改成「黑條開著時，對決內容整塊內縮 8vh」——字幕落在黑條之間、完整可見。
-   transition 與黑條同步（.22s），不會跳一下。 */
-#duel.lbox{padding-top:8vh;padding-bottom:8vh;box-sizing:border-box}
-#duel{transition:padding .22s cubic-bezier(.23,1,.32,1)}
+/* ★R2 覆審 N1／R3 覆審 H-1 重修★：黑條提到 z-index:41 之後會蓋掉對決自己的字幕——
+   實測 tier 3 那一拍 #duelBeat 被上條蓋 82.4%、#duelSub 被下條蓋 100%。那是全場最重要的一拍。
+   ★三版用「#duel 內縮 8vh」是無效的修法★（R3 實測修前修後 #duelBeat 幾何逐值相同）：
+   #duel 是 `flex-direction:column; justify-content:center; overflow:hidden`，而真實對決的內容本來就
+   塞不下（scrollHeight 390→416 > clientHeight 390）。**內容溢出時居中對齊的是內容盒中心**，
+   上下加等量 padding 之後中心點還是同一個（(31.2+358.8)/2 == (0+390)/2 == 195），一格都不會動，
+   只是把溢出量從 26px 變成 52px（只有壞處）。
+   ★真正的修法★：黑條開著時把三塊字幕**移出 flex 流**（position:absolute），直接釘在兩條黑條之間的安全區。
+   ① 移出流之後 #duel 的內容高度變小，剩下的（舞台）照舊居中，溢出反而減輕；
+   ② 字幕的位置由 top/bottom 直接決定，不再受「內容塞不塞得下」影響。
+   安全區＝黑條高度 8vh 再往內留一點：上緣 calc(8vh + 6px)、下緣兩行由下往上疊。
+   為什麼不是把字幕的 z-index 提上去：#duel 自己是 z-index:40 的 fixed，**它建立了堆疊上下文**，
+   裡面的子元素再怎麼調 z-index 都出不去 40 那一層。 */
+#duel.lbox #duelBeat{position:absolute;left:0;right:0;top:calc(8vh + 6px);margin:0}
+#duel.lbox #duelResult{position:absolute;left:0;right:0;bottom:calc(8vh + 28px);margin:0}
+#duel.lbox #duelSub{position:absolute;left:0;right:0;bottom:calc(8vh + 8px);margin:0}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -5088,8 +5095,10 @@ function pwTraitFx(trId,ctx){
   /* R2 覆審 N5：?closeup=0 是「近景切鏡」的總開關，**CINEMA 也是近景**（dist 2.9／tilt 8°，
      比 FOCUS 的 2.6 更兇），關掉近景的玩家不該在 tier 3 反而吃到更重的推近。
      所以事件多帶一個 cinema 旗標，camera-director 只在它為 true 時切機位。
-     ★黑條不跟著關★：它是 DOM 的畫面框飾、不是鏡頭，而且現在還負責讓對決字幕內縮（見 #duel.lbox），
-     關掉只會讓 tier 3 少一個視覺標記、字幕也失去讓位。要改這個取捨要問使用者。 */
+     ★黑條也跟著關★（R3 覆審 M-4 裁定）：一版寫「它是 DOM 框飾不是鏡頭」＋「它還負責讓字幕內縮」，
+     後者是循環論證——字幕要內縮的唯一原因就是黑條存在。?closeup=0 的語意是「不要任何電影化效果」，
+     而 tier 3 對這些玩家原本只剩「上下壓出兩條純黑、鏡頭完全不動」＝純損失。所以黑條一起關。
+     */
   const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,cinema:pwCloseup(),baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
@@ -5465,7 +5474,7 @@ async function pwPlayBeat(f,beat,list,views){
   FXC.tiers[tier]=(FXC.tiers[tier]||0)+1; /* 純記錄（F3 的節奏歸因要看拍的 tier 分布）；遊戲一行不讀它 */
   /* 黑條是★拍級★的（R1 覆審 L5）：一版在每支招演完就關、下一支再開，CSS transition 220ms
      會讓同一拍兩支招之間黑條收一半又張開。改成整拍開著、拍末統一關。 */
-  if(tier===3) pwLetterbox(true);
+  if(tier===3&&pwCloseup()) pwLetterbox(true); /* R3 M-4：?closeup=0 連黑條一起關（kill switch 語意＝沒有任何電影化效果） */
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
@@ -5563,7 +5572,8 @@ async function pwPlayBeat(f,beat,list,views){
   }
   const spent=Date.now()-t0, floor=pwBeatMinMs(tier);
   if(!SKIP&&spent<floor) await pwSleep(floor-spent);
-  if(tier===3) pwLetterbox(false); /* 拍級黑條：整拍演完才收（doSkip 與對決收場另有兩條獨立的關閉路徑） */
+  if(tier===3) pwLetterbox(false); /* 拍級黑條：整拍演完才收。**關這一側不加 pwCloseup() 條件**——
+     防線按「危險的效果」寫：旗標若在對決中途被改，關的那一條也必須無條件執行，不然黑條會留在畫面上。 */
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;

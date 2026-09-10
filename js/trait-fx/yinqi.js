@@ -53,11 +53,11 @@ export default {
     if (st.tier === 3) {
       st.target.slice(0, 4).forEach((f, i) => {
         const r = st.ring(st.foot(f, new THREE.Vector3()), 0.26, 0.035, { opacity: 0, color: 0x2f1f47 });
-        st.grow(r, { ms: 280, delay: 980 + i * 40, from: 0.35, to: 1.6 });
-        st.fade(r, { ms: 280, delay: 980 + i * 40, from: 0.7, to: 0 });
+        st.grow(r, { ms: 270, delay: 940 + i * 28, from: 0.35, to: 1.6 });
+        st.fade(r, { ms: 270, delay: 940 + i * 28, from: 0.7, to: 0 });
       });
-      st.tween({ ms: 340, delay: 1000, ease: 'pulse', update(t, e) { st.rim(lead, 1 + 1.2 * e); } });
-      st.tween({ ms: 260, delay: 1040, ease: 'inout', update(t, e) { st.scaleBone(lead, 'Top', 1 - 0.08 * e); } });
+      st.tween({ ms: 300, delay: 960, ease: 'pulse', update(t, e) { st.rim(lead, 1 + 1.2 * e); } });
+      st.tween({ ms: 260, delay: 1010, ease: 'inout', update(t, e) { st.scaleBone(lead, 'Top', 1 - 0.08 * e); } });
     }
   },
 

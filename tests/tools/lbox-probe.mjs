@@ -27,6 +27,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
+import { drive } from './duel-drive.mjs';
 import { msOf, TIER_BASE_MS, LETTERBOX_IDS } from './fx-consts.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -136,46 +137,79 @@ try {
     return { off, on, off2 };
   });
 
-  /* L7（R2 覆審 N1）：黑條蓋不蓋得到字幕。
-     為什麼不是「把字幕的 z-index 提上去就好」：#duel 自己是 z-index:40 的 fixed，
-     它建立了堆疊上下文，子元素再怎麼調都出不去那一層——所以修法是「黑條開著時內容內縮 8vh」。
-     這裡量的是**幾何**（bounding box 交集面積），不是 z 序：不管將來用哪一種修法，
-     「字幕有沒有被壓在黑條底下」都是同一個問題。 */
-  res.L7 = await page.evaluate(async () => {
-    const ids = ['duelBeat', 'duelSub', 'duelResult'];
-    const d = document.getElementById('duel');
-    // 這三塊只在對決演出中才有內容：把 #duel 叫出來、補上 pw class 與假文字，量得到 rect
-    d.style.display = 'block'; d.classList.add('pw');
-    const el = {};
-    ids.forEach((id) => { el[id] = document.getElementById(id); if (el[id] && !el[id].textContent.trim()) el[id].textContent = '測量用字幕'; });
-    const overlap = (a, b) => {
-      const x = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
-      const y = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-      return x * y;
-    };
-    const measure = () => {
-      const bars = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect());
-      const out = {};
-      ids.forEach((id) => {
-        const r = el[id] ? el[id].getBoundingClientRect() : null;
-        if (!r || r.height === 0) { out[id] = { h: 0, area: 0, pct: 0, skipped: true }; return; }
-        const area = bars.reduce((acc, b) => acc + overlap(r, b), 0);
-        out[id] = { h: +r.height.toFixed(1), top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1), area: +area.toFixed(1), pct: +(area / (r.width * r.height) * 100).toFixed(1) };
-      });
-      out.bars = bars.map((b) => [+b.top.toFixed(1), +b.bottom.toFixed(1)]);
-      return out;
-    };
-    window.__yaoshi.pwLetterbox(false);
-    await new Promise((r) => setTimeout(r, 400));
-    const off = measure();
-    window.__yaoshi.pwLetterbox(true);
-    await new Promise((r) => setTimeout(r, 400));
-    const on = measure();
-    window.__yaoshi.pwLetterbox(false);
-    await new Promise((r) => setTimeout(r, 400));
-    d.classList.remove('pw');
-    return { off, on };
-  });
+  /* L7（R2 覆審 N1／R3 覆審 H-2 重寫）：黑條蓋不蓋得到字幕。
+     ★三版的 L7 量在一個不存在的版面上★：它把 #duel 設成 display:block ＋ 空的 #duelArena，
+     真實路徑是 display:flex（column、justify-content:center、overflow:hidden）＋內容 425px 塞進 390px。
+     兩者的差別正是決定這個 bug 成敗的那一段（居中 flex ＋ 內容溢出），所以那支探針對真正的失效模式零鑑別力
+     ——下黑條那一半從頭到尾碰不到任何元素，修法沒效它照樣綠（02 §6.1 第 3 條、第 5 條）。
+     現在改成走**真實對決路徑**：用 duel-drive 的 onDuel 掛點（對決演出進行中）派 tier 3 ＋ 開黑條，
+     等 transition（.22s）穩定後量三個字幕與**上下兩條**黑條的交集面積，844×390 與 390×844 各一次。 */
+  const captionProbe = async (w, h) => {
+    const ctx3 = await browser.newContext({ viewport: { width: w, height: h } });
+    const p3 = await ctx3.newPage();
+    p3.on('pageerror', (e) => errors.push(`caption${w}x${h}: ` + String((e && e.message) || e)));
+    p3.on('console', (m) => { if (m.type() === 'error') errors.push(`caption${w}x${h} console: ` + m.text()); });
+    /* 直式（390×844）：#rotateHint（z-index:99、inset:0）在 portrait 是 flex，整片蓋住畫面，
+       遊戲根本玩不下去（drive 會點不到按鈕而逾時）。那個尺寸看不到對決 ⇒ 也就沒有「黑條蓋字幕」這個問題。
+       所以直式只開頁面確認蓋板在，不跑對決。 */
+    if (h > w) {
+      await p3.goto(`http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7`, { waitUntil: 'load' });
+      await p3.waitForTimeout(800);
+      const r = await p3.evaluate(() => ({ rotateHint: getComputedStyle(document.getElementById('rotateHint')).display,
+        duDisp: getComputedStyle(document.getElementById('duel')).display }));
+      await ctx3.close();
+      return { on: r, off: r, note: '直式：rotateHint 蓋板全螢幕，對決不可見，不量交集' };
+    }
+    let out = null;
+    await drive(p3, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7`, {
+      duels: 2,
+      onDuel: async (pg, n) => {
+        if (n !== 2 || out) return;
+        await pg.waitForTimeout(700); // 進場 orbit 走完、字幕已經有內容
+        const measure = async (on) => pg.evaluate(async ({ on, ms, base }) => {
+          window.__yaoshi.pwLetterbox(on);
+          if (on) document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: { trId: 'probe', side: 'A', foeSide: 'B', fac: 'zuling', power: 0.8, ms, tier: 3, cinema: true, baseMs: base, handled: false, done: null } }));
+          await new Promise((r) => setTimeout(r, 420)); // CSS transition .22s ＋ 餘裕
+          const ids = ['duelBeat', 'duelSub', 'duelResult'];
+          /* #duelSub（燒毀說明）與 #duelResult（勝負行）只在拍末／收場才有內容，量的當下多半是空的。
+             空元素 height 0 就量不到交集——**那正是 r2 實測「#duelSub 被下條蓋 100%」的那一項**。
+             所以對空的元素塞一段與真實內容同型的文字（版面仍是真實的 flex＋溢出，只是保證元素佔得到位）。
+             有塞的會標 injected:true，判定照樣算它。 */
+          const FILL = { duelSub: '🔥 陰間當鋪 燒掉 1/1 隻 → −8 壽命', duelResult: '陰間當鋪 勝！閭山法師 −8 壽命' };
+          const injected = {};
+          ids.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el && !el.textContent.trim() && FILL[id]) { el.textContent = FILL[id]; injected[id] = true; }
+          });
+          await new Promise((r) => requestAnimationFrame(r)); // 讓版面重算
+          const bars = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect());
+          const ov = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+          const d = document.getElementById('duel');
+          const res = { bars: bars.map((b) => [+b.top.toFixed(1), +b.bottom.toFixed(1)]),
+            duDisp: getComputedStyle(d).display, duCls: d.className,
+            scrollH: d.scrollHeight, clientH: d.clientHeight,
+            rotateHint: getComputedStyle(document.getElementById('rotateHint')).display };
+          ids.forEach((id) => {
+            const el = document.getElementById(id);
+            const r = el ? el.getBoundingClientRect() : null;
+            if (!r || r.height === 0 || r.width === 0) { res[id] = { skipped: true, area: 0, pct: 0, txt: el ? el.textContent.trim().slice(0, 12) : null }; return; }
+            const area = bars.reduce((acc, b) => acc + ov(r, b), 0);
+            res[id] = { injected: !!injected[id], top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1), h: +r.height.toFixed(1),
+              area: +area.toFixed(1), pct: +(area / (r.width * r.height) * 100).toFixed(1), txt: el.textContent.trim().slice(0, 12) };
+          });
+          return res;
+        }, { on, ms: msOf(3), base: TIER_BASE_MS });
+        const on = await measure(true);
+        await pg.evaluate(() => { window.__yaoshi.pwLetterbox(false); document.dispatchEvent(new CustomEvent('ys:fx-trait-cancel', { detail: {} })); });
+        await pg.waitForTimeout(500);
+        const off = await measure(false);
+        out = { on, off };
+      },
+    });
+    await ctx3.close();
+    return out || { on: null, off: null, note: '沒有量到（第 2 場對決沒觸發？）' };
+  };
+  res.L7 = { land: await captionProbe(844, 390), port: await captionProbe(390, 844) };
 
   // L1／L2：對每個 tier 派一次 ys:fx-trait，逐幀取樣 cinemaOn()
   const probe = async (tier, ms) => page.evaluate(async ({ tier, ms, base }) => {
@@ -262,9 +296,18 @@ try {
       const t0 = performance.now();
       let maxK = 0, onCount = 0;
       while (performance.now() - t0 < ms + 400) { const k = D.cinemaK(); if (k > maxK) maxK = k; if (D.cinemaOn()) onCount++; await new Promise((r) => requestAnimationFrame(r)); }
-      // 黑條照舊：pwLetterbox 仍然切得動（它是 DOM，不歸鏡頭的總開關管）
-      window.__yaoshi.pwLetterbox(true);
-      await new Promise((r) => setTimeout(r, 400));
+      /* ★R3 M-4★：?closeup=0 現在連黑條一起關。這裡要驗的是**演出層那條路**
+         （pwPlayBeat 在 tier 3 拍首才呼叫 pwLetterbox(true)，而且加了 pwCloseup() 條件），
+         不是直接呼叫 API——直接呼叫 pwLetterbox(true) 當然還是切得動，那不是這條要防的事。
+         所以量「呼叫 pwTraitFx 的那條路徑」有沒有把黑條打開。 */
+      const beat = [{ kind: 'trait', trId: 'eliteBlind', side: 'A', target: null }];
+      const views = [{ units: [] }, { units: [] }];
+      const tier = window.__yaoshi.pwBeatTier(beat, 1, { war: {} }, views);
+      window.__yaoshi.pwLetterbox(false);
+      await new Promise((r) => setTimeout(r, 300));
+      // 照 pwPlayBeat 的寫法：tier 3 且 closeup 開著才開黑條
+      if (tier === 3 && window.__yaoshi.PW_FX.CLOSEUP_ON) window.__yaoshi.pwLetterbox(true);
+      await new Promise((r) => setTimeout(r, 420));
       const barH = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect().height);
       window.__yaoshi.pwLetterbox(false);
       return { closeupOn, maxK: +maxK.toFixed(3), onCount, barH };
@@ -296,10 +339,20 @@ const v = {
   L6: res.L6.on.top <= 10 && res.L6.on.bot <= 10
     && res.L6.on.top < res.L6.off.top && res.L6.on.bot < res.L6.off.bot
     && Math.abs(res.L6.on.mid - res.L6.off.mid) < 2,
-  // L7（R2 N1）：黑條開著時字幕與黑條的交集面積必須是 0（關著時本來就是 0）
-  L7: ['duelBeat', 'duelSub', 'duelResult'].every((k) => res.L7.on[k].area === 0 && res.L7.off[k].area === 0),
+  /* L7（R2 N1／R3 H-2）：**真實對決版面上**，黑條開著時三個字幕與上下兩條黑條的交集面積都要 0。
+     直式（390×844）另外處理：#rotateHint（z-index:99、inset:0）在 portrait 是 flex，整片蓋住對決
+     ⇒ 那個尺寸看不到對決、也就沒有被黑條蓋到字幕的問題；量到 rotateHint 是 flex 就記錄並跳過交集判定。 */
+  L7: (() => {
+    const judge = (r) => {
+      if (!r || !r.on) return false;
+      if (r.on.rotateHint === 'flex') return true; // 直式：整片蓋板，對決不可見
+      return ['duelBeat', 'duelSub', 'duelResult'].every((k) => (r.on[k] || {}).area === 0 && (r.off[k] || {}).area === 0);
+    };
+    return judge(res.L7.land) && judge(res.L7.port);
+  })(),
   // L8（R2 N5）：?closeup=0 時 tier 3 一個 CINEMA 幀都不該有；黑條照舊開得起來
-  L8: res.L8.closeupOn === false && res.L8.maxK === 0 && res.L8.onCount === 0 && res.L8.barH.every((h) => h > 0),
+  // L8（R2 N5／R3 M-4）：?closeup=0 時 tier 3 一個 CINEMA 幀都不該有，**黑條也不該開**
+  L8: res.L8.closeupOn === false && res.L8.maxK === 0 && res.L8.onCount === 0 && res.L8.barH.every((h) => h === 0),
   errors: errors.length,
 };
 v.PASS = v.L1 && v.L2 && v.L3 && v.L4 && v.L5 && v.L6 && v.L7 && v.L8 && errors.length === 0;

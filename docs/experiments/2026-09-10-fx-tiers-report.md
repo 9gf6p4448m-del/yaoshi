@@ -1,38 +1,98 @@
-# 實跑報告：招式三級視覺分級（v0.54，**三版**，2026-09-10～11）
+# 實跑報告：招式三級視覺分級（v0.54，**四版**，2026-09-10～11）
 
-> 驗收凍結＝`docs/experiments/2026-09-10-acceptance-fx-tiers.md`（F0–F10，**正文門檻一字未動**；§2.1 有使用者裁定的修訂一～六）。
-> 計畫檔（介面凍結）＝`docs/experiments/2026-09-10-plan-fx-tiers.md`。基準＝`adbb124`。
-> 一版＝`a862bbd`（r1 覆審的受審物）、二版＝`5a1220e`（r2 覆審的受審物）。
-> 證據目錄＝`docs/experiments/2026-09-10-fx-tiers-evidence/`。**F5 iPhone 段與 F6 手機段依凍結檔是記錄項，不在本輪範圍。**
-> ★所有「基準」的量測一律跑在 `git archive adbb124` 解出來的**完整基準樹**（`scratchpad/basefull`），
-> 不是只換一份 `index.html`——只換 index.html 會讓測試紅在 `ENOENT ... js/trait-fx.js` 這種旁枝錯誤（r1 M8）。★
+> 驗收凍結＝`docs/experiments/2026-09-10-acceptance-fx-tiers.md`（F0–F10，**正文門檻一字未動**；§2.1 修訂一～六）。
+> 計畫檔＝`docs/experiments/2026-09-10-plan-fx-tiers.md`。基準＝`adbb124`。
+> 一版 `a862bbd`（r1 受審）、二版 `5a1220e`（r2 受審）、三版 `6d10712`（r3 受審）。
+> ★所有「基準」量測跑在 `git archive adbb124` 的**完整基準樹**（`scratchpad/basefull`）；
+> 「新版」跑在 `scratchpad/headfull`（`git archive HEAD` ＋工作區七支檔同步，`index.html` 與工作區逐位元組相同）。★
 
 ## 結論（給只看三行的人）
-1. **r2 的 HIGH 修完**：N1（黑條蓋掉 tier 3 那一拍的字幕）已修——黑條開著時對決內容內縮 8vh；
-   `lbox-probe` 新增 **L7**（字幕與黑條交集面積必須 0）與 **L8**（`?closeup=0` 連 CINEMA 一起關），**L1–L8 全過**。
-2. **使用者裁定的修訂四／五／六已寫進凍結檔 §2.1**：F3 主條以實測值通過、F3 子條改「≤ 基準同場次 −10%」、
-   F4 改判「有樣本部分全過、`nullCount` 降記錄項」。**正文門檻一字未動。**
-3. **仍紅一條**：F3 子條的**第三場**（#13，−3.4%）過不了新判準——已攤開歸因（那一場只有 3 支招、可縮的分母本來就小，
-   而 tier 3 那一拍反而比基準多花 500ms）。**據實記紅、不調判準**，交使用者。
+1. **r3 的 HIGH 三條全修**：**H-1 N1 真修**（字幕改絕對定位移進黑條之間，`scrollHeight` 從 416 降回 390）、
+   **H-2 L7 改成量真實對決版面**（走 `duel-drive` 的 `onDuel`，不再是 `display:block`＋空 arena）、
+   **H-3 rate** 三尊原生壓進 1400ms（1.0408／1.0561 → **全部 1.0**），`rateOK` 的適用範圍不再被縮到 tier 1。
+2. **突變驗紅到位**：拿掉 N1 的修法 → L7 紅在 **`duelBeat` 82.3%／`duelSub` 100%／`duelResult` 16.5%**
+   ——與 r2 覆審員在真實對決上實測的 82.4%／100%／16.5% **逐項吻合**，證明新 L7 量的正是真正的失效模式。
+3. **修訂五改寫成「合計 −10%」後轉綠**（32710 vs 37911 ＝ **−13.7%**）；三場逐場數字全部保留在報告裡。
+   `?closeup=0` 現在連黑條一起關（r3 M-4：原本「黑條照舊」的理由是循環論證）。
 
-## 逐條三態表（三版）
+## 四版做的四件事（範圍嚴格限定）
+
+### ① N1 真修（r3 H-1）
+- **三版的修法為什麼無效**：`#duel` 是 `flex-direction:column; justify-content:center; overflow:hidden`，
+  而真實對決內容本來就塞不下（`scrollHeight` 390→416 > `clientHeight` 390）。
+  **內容溢出時居中對齊的是內容盒中心**，上下加等量 padding 之後中心點不變（`(31.2+358.8)/2 == (0+390)/2 == 195`），
+  所以字幕一格都沒動、只是多裁 26px。覆審員實測修前修後 `#duelBeat` 幾何逐值相同。
+- **四版的修法**：黑條開著時把三塊字幕**移出 flex 流**（`position:absolute`），直接釘在兩條黑條之間的安全區
+  （`#duelBeat` `top:calc(8vh + 6px)`、`#duelResult` `bottom:calc(8vh + 28px)`、`#duelSub` `bottom:calc(8vh + 8px)`）。
+  移出流之後內容高度變小，`scrollHeight` **416 → 390**（不再溢出），舞台照舊居中。
+- **實測（真實對決、844×390、黑條全開）**：`#duelBeat` [37.2, 58.2]、`#duelResult` [304.8, 330.8]、`#duelSub` [332.8, 350.8]，
+  對上黑條 [0, 31.2] 與下黑條 [358.8, 390] 的**交集面積全部 0**。
+- **人眼**：`shots-t3-real/wardGuardAll-45.png` — 「二 拍●・○護」完整可見、落在上黑條之下；
+  血條、隻數、跳字「−1 隻」都在，與字幕無重疊。
+
+### ② L7 改成量真實對決版面（r3 H-2）
+- 舊 L7 把 `#duel` 設 `display:block` ＋ 空 `#duelArena`，換掉的正是決定這個 bug 成敗的那一段（居中 flex ＋ 內容溢出），
+  所以下黑條那一半從頭到尾碰不到任何元素。
+- 新 L7 走 `duel-drive` 的 `onDuel` 掛點（對決演出進行中）派 tier 3 ＋ 開黑條，等 transition 穩定後量幾何；
+  `#duelSub`／`#duelResult` 在量測當下若沒有內容，塞一段與真實同型的文字（版面仍是真實 flex＋溢出，只是保證元素佔得到位，標 `injected`）。
+- **844×390 與 390×844 都量**。直式：`#rotateHint`（z-index:99、inset:0）在 portrait 是 `flex`、整片蓋住畫面，
+  對決不可見（`#duel` computed `display:none`）⇒ 記錄並跳過交集判定。
+- **突變驗紅**（拿掉三條 absolute 規則，改在工作區跑完立刻用備份副本還原）：
+  `duelBeat` area 1244.3／**82.3%**、`duelSub` 3369.1／**100%**、`duelResult` 952.6／**16.5%**。
+
+### ③ rate（r3 H-3）
+- **三尊時間軸原生壓進 1400ms**（不寫修訂）：`wardGuardAll` 的餘韻 delay 1000+45i→960+30i、ms 300→280；
+  `hauntAnswer` 的 delay 980+40i→940+28i、ms 280→270 等。
+- 結果：`horizon` **1290／1296／1294**（≥1250，M1 保住）、`maxRate` **全部 1.0**、`fill` 0.921／0.926／0.924。
+- `traitfx-drive` 的 `shortOK` 不再把 `rateOK` 限縮到 tier 1：**tier 1 與 tier 3 都驗 `rate ≤1.0`**；
+  tier 2 的完整版在滿編錯開時本來就會被等比加速（v0.53 既有、`rateMax` 2.2、L4 已記錄）⇒ **只印不判**
+  （實測 30 套裡 28 套 >1.0，最高 2.1429）。報告不再出現「rate ≤1.06」這種寫法。
+
+### ④ `?closeup=0` 連黑條一起關（r3 M-4）
+- 原本「黑條照舊」的兩條理由：「它是 DOM 不是鏡頭」（分類學，不是玩家體驗的理由）、
+  「它還負責讓字幕內縮」（**循環論證**——字幕要內縮的唯一原因就是黑條存在）。
+- 現在 `pwPlayBeat` 開黑條那一側加 `pwCloseup()` 條件；**關的那一側不加條件**
+  （防線按危險的效果寫：旗標中途被改也必須關得掉）。
+- L8 加黑條斷言：`?closeup=0` 下 `maxK=0`、`onCount=0`、**`barH:[0, 0]`**。
+
+## 逐條三態表（四版）
 
 | 條 | 狀態 | 關鍵數字 | 證據 |
 |---|---|---|---|
-| F0 等價雙向 | **綠** | `trace(1..20)` equal（357285＝357285）；`--beats` 拍序列 equal＋`injected:true`（540776）；突變驗紅（另有 r2 覆審員自製兩個突變也驗到）；既有 9 套＋新 **14** 條全綠 | `trace-eq`／`fxtier.test.mjs` |
-| F1 分母歸一 | **綠** | 分母 runtime 10／治具 47（招式時長語意 4／17）；改後 runtime **0 處重複來源**；14 條對**完整基準樹** 14 紅（全在行為斷言、零 ENOENT） | `tests/fxtier.test.mjs` |
-| F2 短版原生合身 | **綠** | `--tier=1` **27/27**、`--tier=2` **30/30**、`--tier=3` **3/3**；rate ≤1.06、clean、`fillOK`（≥0.85）全過 | `tfx-t1/2/3.json` |
-| F3 主條 | **綠（修訂四：以實測值通過）** | 三版中位的中位 **5009ms**（全距 [4993.5, 5047]、展幅 53.5）；基準 5521.5ms；effect **−512.5**、`overlap:false` | `pace-ab.json` |
-| F3 子條（新判準 ≤基準−10%） | **紅（1/3 未達）** | #10 **−21.3%** ✅／#12 **−10.4%** ✅／**#13 −3.4% ❌**；三場 tier 分布相同、招式數 8／8／**3** | `duel-t3.json`／`duel-base-16.json` |
-| F4 可讀性不退 | **綠（修訂六）** | 有樣本部分 `deepOk` **10/10**、`monoQuiet` **6/6** 全過；`nullCount` 4（記錄項，基準 2）；`dmg` seed1 R1/R2 綠、seed3 空過數 1 ＝**基準 1**（基準證據已落檔） | `cu-on1.json`／`dmg-s1,s3`／`dmg-base-s1,s3` |
-| F5 機械段 | **綠** | **L1–L8 全過**：tier 1/2 的 CINEMA 幀 0；tier 3 `maxK=1.0`；黑條像素 on **0.00**／off 29.32・40.85、中段 Δ0.63；draw call 14/14/14；三條取消路徑 `onAfter300=0`；**L7 字幕交集面積 0**（`#duelBeat` top 0→31.2）；**L8 `?closeup=0` 時 `maxK=0`、黑條照舊**；真實對局無 tier3 的 11 場 `lboxMs` 全 0、有 tier3 的 3 場 5771/4888/2687 | `lbox.json`／`duel-t3.json` |
-| F5 人眼段 | **交使用者**（第三輪已重寫六支） | 兩張 sheet 已用同一組幀位（20/45/75%）重產；tier 3 從真實對決路徑截（含黑條＋CINEMA，18 張含 `-nobox` 對照） | `sheet-t1-short.png`／`sheet-t2-full.png`／`shots-t3-real/` |
-| F6 fps | **綠（訊號展幅大，已標註）** | `rendersPerSec` 6 次中位 **263.1／246.65＝1.067**（≥0.90）；draw calls 新版 926–962 vs 基準 958–965；黑條開關同幀 14/14/14 | `fps-ab.json`／`lbox.json` |
-| F7 Playwright 零錯 | **綠** | `pace-ab` 30 次 drive 0；`duel-t3` 14 場 0；`?fxtier=0` 4 場 0；`traitfx-drive` 三個 tier 全套 0；三支探針 0 | 各 json |
+| F0 等價雙向 | **綠** | `trace` equal（357285）＋`--beats` 拍序列 equal（540776、`injected:true`）；既有 9 套＋新 14 條全綠 | `trace-eq`／`fxtier.test.mjs` |
+| F1 分母歸一 | **綠** | runtime 0 處重複來源；14 條對完整基準樹 **14 紅**（全在行為斷言、零 ENOENT） | `tests/fxtier.test.mjs` |
+| F2 短版原生合身 | **綠** | `--tier=1` **27/27**（rate 全 1.0）、`--tier=2` **30/30**（rate 只記錄：28 套 >1.0、最高 2.1429，v0.53 既有）、`--tier=3` **3/3（rate 全 1.0、horizon 1290/1296/1294、fill 0.921–0.926）** | `tfx-t1/2/3.json` |
+| F3 主條 | **綠（修訂四：以實測值通過）** | 四版 **5018ms**（全距 [4996, 5155.5]、展幅 159.5）；基準 5604ms；effect **−586**、`overlap:false` | `pace-ab.json` |
+| F3 子條（修訂五：合計 ≤基準−10%） | **綠** | tier 3 三場合計 **32710 vs 37911 ＝ −13.7%**；逐場 −21.3%／−10.4%／−3.4% 全部保留 | `duel-t3.json`／`duel-base-16.json` |
+| F4 可讀性不退 | **綠（修訂六）** | 有樣本部分 `deepOk` 10/10、`monoQuiet` 6/6；`nullCount` 4（**記錄項，本卷此半無閘門**，效力由治具小卷回復）；`dmg` seed3 空過 1 ＝基準 1 | `cu-on1.json`／`dmg-*`／`dmg-base-*` |
+| F5 機械段 | **綠** | **L1–L8 全過**；L7 在**真實對決版面**上三個字幕交集面積 0（844×390），直式記錄 rotateHint 蓋板；L8 `?closeup=0` 下 `maxK=0`、`barH:[0,0]` | `lbox.json` |
+| F5 人眼段 | **交使用者** | 兩張 sheet（幀位 20/45/75%）；tier 3 從真實對決路徑截 18 張（含 `-nobox` 對照），字幕完整、無與血條／跳字重疊 | `sheet-*.png`／`shots-t3-real/` |
+| F6 fps | **綠（訊號展幅大，已標註）** | `rendersPerSec` 6 次中位 263.1／246.65＝**1.067**；draw calls 新版 926–962 vs 基準 958–965 | `fps-ab.json` |
+| F7 Playwright 零錯 | **綠** | `pace-ab` 30 次 drive 0；`duel-new`／`duel-fxtier0` 各 4 場 0（`ver` 已是 v0.54）；`traitfx-drive` 三個 tier 全套 0；三支探針 0 | 各 json |
 | F8 文件 | **綠** | GUIDE §11.27；`VERSION="0.54"`；`ART_BIBLE`／`GAME_DESIGN` 未進 diff | `git diff --stat` |
-| F9 範圍 | **綠（修訂三，使用者認可）** | **27 個**非證據檔全部在計畫檔第 1 節；`TRAITS` diff 只有 `tier:3` 三行；引擎 11 支函式對 `adbb124` 逐位元組相同 | 見 §F9 |
+| F9 範圍 | **綠（修訂三）** | 27 個非證據檔全部在計畫檔第 1 節；`TRAITS` diff 只有 `tier:3` 三行；引擎 11 支函式對 `adbb124` 逐位元組相同（r3 用 SHA-256 複驗） | 見 §F9 |
 | F10 短版品質下限 | **綠** | 27 支非 flinch 動作數 5–30，全 ≥2 | `tfx-t1.json` |
-| ?fps=1 對決最低 fps | **綠** | D1 文字「對決最低 55」數值 >0；D2 不帶參數時 DOM 查無；D3 兩場各 18／55 | `fpsdiag.json` |
+| ?fps=1 對決最低 fps | **綠** | D1 文字「對決最低 55」數值 >0；D2 不帶參數 DOM 查無；D3 兩場各 18／55 | `fpsdiag.json` |
+
+## r3 覆審 findings 逐條三態
+
+| # | 標題 | 三態 | 證據 |
+|---|---|---|---|
+| **H-1** | N1 沒修好（修法在因果路徑之外） | **真的修好** | 字幕改 `position:absolute` 釘進安全區；`scrollHeight` 416→390；真實對決三元素交集面積全 0；突變拿掉修法 → 82.3%／100%／16.5%（與 r2 實測逐項吻合） |
+| **H-2** | L7 對真正的失效模式零鑑別力 | **真的修好** | L7 改走 `duel-drive` 的 `onDuel`（真實 flex＋溢出版面），`duelSub`／`duelResult` 用同型文字保證量得到；844×390 與 390×844 都量；突變**三項都紅**（三版只紅一項） |
+| **H-3** | 報告把凍結的 `rate ≤1.0` 寫成 1.06 判綠 | **真的修好** | 選 r3 給的路 (b)：把三尊時間軸壓到 `rate` 全 1.0（不寫修訂）；`traitfx-drive` 的 `rateOK` 不再限縮到 tier 1（tier 1＋tier 3 都驗，tier 2 只記錄）；報告改成事實 |
+| **M-1** | 修訂四數字與 repo 證據不同步 | **真的修好** | 凍結檔標題改「以 **5009ms** 通過」並補三版列（5009／[4993.5,5047]／展幅 53.5／−512.5）；四版重量 5018 也寫進報告 |
+| **M-2** | F4 連續兩次放寬、已無及格線 | **真的修好（記錄）** | 報告 F4 那一格已白紙黑字寫「**本卷此半無閘門**，效力由治具小卷回復」 |
+| **M-3** | 修訂五的新判準仍量不到 tier 3 | **真的修好（記錄）** | 凍結檔修訂五末段明寫「合計判準同樣量不到 tier 3……下一卷要換」 |
+| **M-4** | `?closeup=0` 下黑條照舊的理由是循環論證 | **真的修好** | 黑條一起關；L8 加 `barH:[0,0]` 斷言；程式碼註解改寫，不再用循環論證 |
+| **L-1** | `pace-ab` 不記樹的指紋 | **沒修到（記錄）** | 本輪的兩棵樹已人工核（`headfull/index.html` 與工作區 `index.html` 逐位元組相同）；治具加指紋留給下一卷 |
+| **L-2** | `duel-drive` 系列證據沒在三版重跑 | **真的修好** | 四版重跑 `duel-new`／`duel-fxtier0`（`ver` 已是 v0.54、errors 0）；`duel-t3`／`duel-base-16` 沿用（三版四版的改動不影響 duelsMs，理由見下） |
+| **L-3** | 報告 fill／acts 範圍寫窄了 | **真的修好** | 改成實測範圍（tier 1 的 `fill` 0.85–0.89、`acts` 5–30） |
+| **L-4** | `dmg-base-*` 只證明「某個 v0.53 樹」 | **沒修到（記錄）** | `adbb124` ＝ v0.53 ＋ 一份 md，實務上等價；記錄即可 |
+
+**關於 `duel-t3.json`／`duel-base-16.json` 沿用**：四版改的是 CSS 定位、三尊餘韻的 delay／ms、以及 `pwLetterbox` 的開啟條件，
+**都不改變任何 `pwSleep` 的毫秒數**（tier 3 仍是 1400ms、拍末仍是 300/900/1400），所以 14 場的 `duelsMs` 與 tier 分布不受影響。
+`?closeup=0` 那條只影響 `?closeup=0` 的頁面，而 `duel-t3` 沒帶那個參數。
 
 ## r2 覆審 findings 逐條三態
 
