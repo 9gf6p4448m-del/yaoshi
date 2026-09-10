@@ -78,11 +78,47 @@
 
 ## 分母 N3：`#table [onclick]` 觸控命中基準清單
 
-由 `node tests/tools/legend-drive.mjs --taps` 對**基準 `84b1a0c`**（靜態根 `.base84/`）實跑產生。
-清單與逐項命中結果落在 `docs/experiments/2026-09-10-table3d-a-evidence/taps-base.json`，
-本檔在 step 4 跑完後回填數字。
+由 `node tests/tools/legend-drive.mjs --tapsonly --taps --root=.base84 --tapseeds=1,3 --tapout=…` 對**基準 `84b1a0c`** 實跑產生。
 
-**回填（step 4 實跑）**：見本檔末段「N3 回填」。
+```
+node tests/tools/legend-drive.mjs docs/experiments/2026-09-10-table3d-a-evidence/taps-base-run.json \
+  --tapsonly --taps --root=.base84 --tapseeds=1,3 --port=9623 \
+  --tapout=docs/experiments/2026-09-10-table3d-a-evidence/taps-base.json
+```
+
+**實測（基準 84b1a0c，seeds 1,3 × 第 1～3 夜 × 出價／盯上 ＝ 12 頁）**
+
+| 量 | 值 |
+|---|---|
+| 掃過的頁數 | **12** |
+| `#table [onclick]` 元素總筆數（含隱藏／停用） | **207** |
+| **可測元素（看得見且沒被產品停用）** | **177** ← 這才是 T5 的分母 |
+| 其中隱藏（`#skipbtn`／`#bloodBtn` 等） | 24 |
+| 其中停用（燒香列的「−」在 amt=0 時 `disabled`） | 6 |
+| 命中 | **177／177** |
+| `trayTap` 被呼叫 | **0**（基準版根本沒有這支） |
+
+清單全文：`docs/experiments/2026-09-10-table3d-a-evidence/taps-base.json`；跑出來的輸出：`…/T5-base-84b1a0c.txt`。
+
+**★關於凍結檔 T5 括號裡那個「實測 25 個」★**（要說清楚，免得下一手以為分母對不上）：
+25 ＝ `document.querySelectorAll('[onclick]').length`（**整份文件**，含標題頁的兩顆入市鈕、`#updBar` 等），
+不是 T5 正文要求的 `#table [onclick]`。而**只數這個總數正好是 T5 自己列的假綠**
+（「只數 `document.querySelectorAll('[onclick]').length` 相等——元素還在不代表點得到」）。
+實測三個口徑（基準版第 1 夜出價頁，844×390）：
+
+| 口徑 | 值 |
+|---|---|
+| `document.querySelectorAll('[onclick]')`（凍結檔括號裡的 25） | **25** |
+| `#table [onclick]`（含隱藏） | 18 |
+| `#table [onclick]` 且看得見（T5 正文的集合） | **16** |
+
+⇒ 本卷照 **T5 正文**走：以基準同治具跑出來的那一份逐項清單（177 個可測元素）為分母，逐一 tap、逐一驗命中。
+括號裡的 25 是那個假綠指標的值，兩者不衝突。**沒有改門檻**（`02 §2.1`）。
+
+**為什麼 tap 掃描挑 seeds 1,3**：與 `felt-probe --seeds=1,3` 同一組；而且 **seed 1 的第 3 夜是押寶夜**
+（`RULE_NIGHTS=[3,7]`，seed 1 的 `ruleOrder[0]='yabao'`），`#stage` 裡因此有 `ybBump`／`ybFlip` 三顆鈕——
+那是**唯一**落在 `#felt` 內、z-index 低於 `#tray` 突變值的可點元素，T5 的鑑別力突變（`#tray{z-index:9}`）要靠它才驗得紅。
+`_tmp-rule.mjs` 實測 seeds 1／5／6／8／9 的第 3 夜是押寶夜。
 
 ---
 
@@ -95,6 +131,18 @@
 3. **`#veil` 的 z-index 6 不動**：`#tray` 用 z-index 1，低於黑幕（計畫 §7 風險 5）。
 
 ---
+
+## 實作過程中量出來、規格沒寫到的三件事（都寫在這裡，不藏在 commit 訊息裡）
+
+1. **基準 v0.53 的 `#north` 本來就直向溢出 11px**（`scrollHeight 67 / clientHeight 56`）。
+   來源是北席卡掛在卡外的 `.roleInfoBtn`（`bottom:-7px`）與 `.bubble`（`top:calc(100% + 4px)`）。
+   T3 要求 `#north` 12 格全 0 ⇒ 本卷把北席這幾顆的座標翻進卡內（`#table.t3d #north` 底下，只影響掏空版面）。
+   **這是加嚴，不是放寬**：基準值 11 → 現在 0。
+2. **側欄卡列會被卡角徽章撐出 3px 橫向溢出**（`.markb` left:-4px／`.mybid`／`.pickbox` right:-4px）。
+   做法與 v0.44 的 `#market{padding:0 5px}` 同一條（請神 2.0 凍結檔 G6）：`.rail{padding:8px 5px 0}`。
+   代價是卡片實寬 168 → **158**（計畫 §6 Q2 的 px 帳寫 168）。上緣 8px 是給第一張卡的 `top:-8px` 徽章留的。
+3. **香火榜進 251px 的北列格之後，`slim` 的「一列」排法會把榜擠成一個燈籠圖示**（三張待請卡是 `flex:0 1 auto`、吃光寬度）。
+   北列這一格改成**兩列**（榜一列、三卡一列；16.7＋2＋16.7＝35.4 ≤ 56）。`shrinesHTML()` 一個字未動，只有 CSS。
 
 ## 基準靜態根 `.base84/`（暫時物，收工前刪）
 
