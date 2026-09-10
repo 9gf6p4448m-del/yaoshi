@@ -17,7 +17,7 @@
 | **T1** kill switch 雙向 | **綠** | `?table3d=0`：`120px 588px 120px`／hollow=false／`#tray` none／rail 子元素 0,0／`#market .mcard`=4；預設：`168px 492px 168px`／hollow=true／`#tray` block／rail 子元素 2,2／`#market .mcard`=0（側欄 4） | `evidence/T4-legend-drive-new.txt`、`evidence/t3d-new.json` |
 | **T2** `#felt` 直向恆 0 | **綠** | 12 格**全 0**（基準 11 格 0＋1 格 54）；配套 `scrollHeight` 12 格**全 252 ≤ 260** | `evidence/T2-T3-felt-probe-new.txt`、`felt-new.json` |
 | **T3** 側欄與北列不溢出 | **綠** | `#west` 12 格 0／`#east` 12 格 0／`#north` 12 格 0（**基準 `#north` 本來就是 11**，本卷順手修掉） | 同上 |
-| **T4** 橫向溢出 0＋0 error | 待填 | | `evidence/T4-legend-drive-new.txt` |
+| **T4** 橫向溢出 0＋0 error | **綠** | seeds 1..6 跑完 6 局：橫向溢出**橫式 0 筆、直式 0 筆**；`console error 0／pageerror 0／requestfailed 0`；治具總判定 `✅ 通過` | `evidence/T4-legend-drive-new.txt` |
 | **T5** 觸控命中回歸 | **綠** | 基準清單 177 個可測元素**全部命中**（177／177），`trayTap` 被呼叫 **0** 次；**鑑別力突變驗紅**：`#tray{top:0;z-index:9}` ⇒ 174／177、`trayTap` **3** 次、exit 1 | `evidence/T5-base-84b1a0c.txt`、`T4-legend-drive-new.txt`、`T5-mutation-check.txt` |
 | **T6** 直式蓋板行為不變 | **綠** | 390×844：`#rotateHint`=flex／`120px 134px 120px`／`.rail`=none／`#table` 橫向溢出 0／`#felt` backdrop-filter=`blur(7px)`；**對基準逐項相同** | `evidence/T4-legend-drive-new.txt`、`t3d-base.json` vs `t3d-new.json` |
 | 9 套單元測試 | **綠** | 8／5／7／32／8／16／28／32／36 ＝ 172 條全過、0 紅 | `evidence/unit-tests.txt` |
@@ -83,7 +83,24 @@ T3 要求 12 格全 0 ⇒ 本卷把北席這幾顆的座標翻進卡內（只在
 
 ### T4 橫向溢出 0＋0 error
 
-待填。
+```
+node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,4,5,6 \
+  --base=…/felt-base.json --taps --t3d --tapseeds=1,3 --port=9628 …
+```
+
+- **橫向溢出：橫式 0 筆、直式 0 筆 → ✅**（量的清單＝T4 的 12 個
+  `#table`／`#north`／`#shrines`／`.incboard`／`.shcards`／`#felt`／`#stage`／`#south`／**`#railW`**／**`#railE`**／`.incbar`／`.preview`
+  ＋加嚴的 `#market`／`.legendPicks`，另外 `html`／`body` 也一起量。清單改吃 `--sel=`，預設就是這一份）。
+- **`console error 0`／`pageerror 0`／`requestfailed 0` → ✅**
+- 治具總判定：**`- 判定：✅ 通過`**
+
+順帶證明「遊戲還玩得完、請神那一整套沒被版面卷弄壞」（這幾條是治具原本就有的 H6 檢查，不是本卷新加）：
+6 局全部跑完（7～10 夜），**請走 11 尊／真人選尊視窗出現並選擇 6 次（點的那一尊沒對上 0）／落空保留 22 人次**，
+熱座交棒的燒香列清乾淨（`.incbar` 個數 0），袋子面板「送神回天」按下 1 次。
+
+*T4 的假綠（「把新加的兩條 rail 從選擇器清單裡漏掉」）已堵死*：`#railW`／`#railE` 就在預設 `--sel` 清單裡，
+而且實測**它們一開始真的溢出 3px**（卡角徽章 `right:-4px`），是 `.rail{padding:8px 5px 0}` 之後才變 0——
+換句話說這兩個選擇器**在這一卷裡真的抓到過東西**，不是擺著好看的。
 
 ### T5 觸控命中回歸（逐一 tap，不是數數量）
 

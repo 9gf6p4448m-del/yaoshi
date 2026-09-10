@@ -1,0 +1,1838 @@
+{
+ "seeds": [],
+ "errors": [],
+ "pageerrors": [],
+ "requestfailed": [],
+ "overflow": [],
+ "voverflow": [],
+ "vrows": [],
+ "portraitOverflow": [],
+ "taken": 0,
+ "dawn": 0,
+ "dawnShrines": 0,
+ "skips": 0,
+ "picks": 0,
+ "carry": 0,
+ "carryEg": [],
+ "games": [],
+ "taps": {
+  "rows": [
+   {
+    "key": "1|1|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|1|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|1|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|1|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|1|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|1|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|1|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|1|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|1|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|出價|mc0::openSheet(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|1|出價|mc1::openSheet(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|1|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|1|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|1|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|出價|mc2::openSheet(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|1|出價|mc3::openSheet(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|1|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|1|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|1|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|1|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|1|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "1|1|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   },
+   {
+    "key": "1|2|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|2|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|2|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|2|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|2|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|2|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|2|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|2|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|2|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|出價|mc0::openSheet(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|2|出價|mc1::openSheet(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|2|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|2|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|2|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|出價|mc2::openSheet(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|2|出價|mc3::openSheet(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "1|2|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|2|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|2|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|2|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|2|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "1|2|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   },
+   {
+    "key": "1|3|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|3|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|3|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|3|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|3|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|3|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "1|3|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|3|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|3|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|出價|mc0::ybToggle(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "ybToggle",
+    "tray": 0,
+    "got": "ybToggle"
+   },
+   {
+    "key": "1|3|出價|mc1::ybToggle(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "ybToggle",
+    "tray": 0,
+    "got": "ybToggle"
+   },
+   {
+    "key": "1|3|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "1|3|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "1|3|出價|BUTTON::ybBump(-1)",
+    "vis": true,
+    "dis": false,
+    "hit": false,
+    "expect": "ybBump",
+    "tray": 1,
+    "got": "trayTap"
+   },
+   {
+    "key": "1|3|出價|BUTTON::ybBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": false,
+    "expect": "ybBump",
+    "tray": 1,
+    "got": "trayTap"
+   },
+   {
+    "key": "1|3|出價|typebtn::ybFlip()",
+    "vis": true,
+    "dis": false,
+    "hit": false,
+    "expect": "ybFlip",
+    "tray": 1,
+    "got": "trayTap"
+   },
+   {
+    "key": "1|3|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|出價|mc2::ybToggle(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "ybToggle",
+    "tray": 0,
+    "got": "ybToggle"
+   },
+   {
+    "key": "1|3|出價|mc3::ybToggle(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "ybToggle",
+    "tray": 0,
+    "got": "ybToggle"
+   },
+   {
+    "key": "1|3|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "1|3|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "1|3|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "1|3|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "1|3|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "1|3|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   },
+   {
+    "key": "3|1|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|1|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|1|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|1|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|1|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|1|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|1|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|1|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|1|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|出價|mc0::openSheet(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|1|出價|mc1::openSheet(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|1|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|1|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|1|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|出價|mc2::openSheet(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|1|出價|mc3::openSheet(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|1|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|1|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|1|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|1|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|1|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "3|1|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   },
+   {
+    "key": "3|2|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|2|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|2|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|2|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|2|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|2|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|2|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|2|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|2|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|出價|mc0::openSheet(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|2|出價|mc1::openSheet(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|2|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|2|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|2|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|出價|mc2::openSheet(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|2|出價|mc3::openSheet(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|2|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|2|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|2|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|2|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|2|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "3|2|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   },
+   {
+    "key": "3|3|盯上|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|盯上|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|盯上|mc0::pickMark(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|3|盯上|mc1::pickMark(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|3|盯上|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|3|盯上|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|3|盯上|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|盯上|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|盯上|mc2::pickMark(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|3|盯上|mc3::pickMark(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "pickMark",
+    "tray": 0,
+    "got": "pickMark"
+   },
+   {
+    "key": "3|3|盯上|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|盯上|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|盯上|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|3|盯上|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|3|出價|seat1::showBag(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|出價|seat2::showBag(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|出價|mc0::openSheet(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|3|出價|mc1::openSheet(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|3|出價|skipbtn::doSkip()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSkip"
+   },
+   {
+    "key": "3|3|出價|helpBtn::openHelp()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openHelp",
+    "tray": 0,
+    "got": "openHelp"
+   },
+   {
+    "key": "3|3|出價|seat3::showBag(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|出價|roleInfoBtn::event.stopPropagation();showRoleInfo(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|出價|mc2::openSheet(2)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|3|出價|mc3::openSheet(3)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "openSheet",
+    "tray": 0,
+    "got": "openSheet"
+   },
+   {
+    "key": "3|3|出價|side::showBag(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showBag",
+    "tray": 0,
+    "got": "showBag"
+   },
+   {
+    "key": "3|3|出價|side roleInfoBtn::showRoleInfo(0)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "showRoleInfo",
+    "tray": 0,
+    "got": "showRoleInfo"
+   },
+   {
+    "key": "3|3|出價|sfxBtn::toggleSfx()",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "toggleSfx",
+    "tray": 0,
+    "got": "toggleSfx"
+   },
+   {
+    "key": "3|3|出價|bloodBtn::doSacrifice()",
+    "vis": false,
+    "dis": false,
+    "hit": null,
+    "expect": "doSacrifice"
+   },
+   {
+    "key": "3|3|出價|BUTTON::incBump(-1)",
+    "vis": true,
+    "dis": true,
+    "hit": null,
+    "expect": "incBump"
+   },
+   {
+    "key": "3|3|出價|BUTTON::incBump(1)",
+    "vis": true,
+    "dis": false,
+    "hit": true,
+    "expect": "incBump",
+    "tray": 0,
+    "got": "incBump"
+   }
+  ],
+  "trayTaps": 3,
+  "pages": 12,
+  "stubbed": [
+   "trayTap",
+   "showBag",
+   "showRoleInfo",
+   "openSheet",
+   "doSkip",
+   "openHelp",
+   "toggleSfx",
+   "doSacrifice",
+   "incBump"
+  ]
+ }
+}

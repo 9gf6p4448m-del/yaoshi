@@ -1,0 +1,16 @@
+- **T5 觸控命中**（每個 #table [onclick] 各 tap 一次，第 1～3 夜出價頁與盯上頁，seeds 1,3）：掃了 12 頁、可測元素 177 個（基準 177 個；另有停用 6 個、隱藏 24 個不計）　命中 174／177　基準清單漏掉 0 個、沒命中 3 個　**trayTap 被呼叫 3 次**（必須 0） → ❌
+    沒命中：1|3|出價|BUTTON::ybBump(-1)　1|3|出價|BUTTON::ybBump(1)　1|3|出價|typebtn::ybFlip()
+    tap 明細 → docs/experiments/2026-09-10-table3d-a-evidence/taps-mutant.json
+# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION undefined　輸出 taps-mutant-run.json
+- 局數 0：
+- CFG.LEGEND_ON=undefined　香火榜 #shrines／.incboard＋待請卡：　燒香列：
+- 供奉危急提示出現並按「要」的次數：0；袋子面板「送神回天」按下次數（seed 2）：0
+- console error 0、pageerror 0、requestfailed 0 → ✅
+- **H6 三條路徑**：走到「請走」0 次／「**真人選尊視窗**出現並選擇」0 次（點的那一尊沒對上：0）／「**落空保留**」0 人次 → ❌
+    落空保留樣本：[]
+- 記錄項（不判）：回天 0 尊、局末結清 0 筆、沒人有資格的請神夜 0 次
+- 固定頁對照（同一局同一頁「undefined」）：橫式 undefined　直式 []
+- 直式蓋板行為：#rotateHint 顯示＝undefined、#shrines 收起＝undefined → ❌
+- 橫向溢出：橫式 0 筆、直式 0 筆 → ✅
+- **直向**（#felt scrollHeight − clientHeight；第 1 夜每頁＝0、其餘頁 ≤ 基準同格＋52px）：取樣 0 次、超標 0 次（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**） → ❌
+- 判定：❌ 未通過
