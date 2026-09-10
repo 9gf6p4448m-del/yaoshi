@@ -39,6 +39,15 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    0.62 是最外圈的黑度【試玩必調】。 */
 #vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(ellipse 72% 78% at 50% 46%,rgba(0,0,0,0) 38%,rgba(0,0,0,.30) 72%,rgba(0,0,0,.62) 100%)}
+/* Tier 3 大招的黑條 letterbox（v0.54 三級視覺分級）：與 #vignette 同層（z-index:-1），
+   所以它蓋得到 3D、蓋不到面板與文字，也不吃點擊。**刻意用 DOM 不進 shader**——
+   後處理多一道 pass 在手機上是真的要錢的，兩條 div 是零 draw call（凍結檔 F6）。
+   平常 height:0（等於不存在），.on 才張開；transition 與 CINEMA 的 inMs 對齊。 */
+#lbTop,#lbBot{position:fixed;left:0;right:0;height:0;z-index:-1;pointer-events:none;
+  background:#000;transition:height .22s cubic-bezier(.23,1,.32,1)}
+#lbTop{top:0}
+#lbBot{bottom:0}
+#lbTop.on,#lbBot.on{height:8vh}
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -555,6 +564,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </head>
 <body>
 <div id="vignette"></div>
+<div id="lbTop"></div><div id="lbBot"></div>
 <div id="rotateHint"><div class="ic">📱</div><div>請把手機<b style="color:var(--gold)">轉橫</b>進入妖市<br><span class="mut">深夜牌桌需要寬一點的視野</span></div></div>
 <div id="titleScr" class="title">
   <h1>妖　市</h1>
@@ -2078,7 +2088,7 @@ try{
 }catch(e){}
 
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
-function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); /* 卷 C3＋v0.45：正在演的招式立刻清場，focus／退暗同一個事件收 */ try{ pwCloseupClear(); }catch(e){} /* v0.45：跳字與出手卡一次清乾淨 */ }
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); try{ pwLetterbox(false); }catch(e){} /* v0.54：快轉時黑條立刻收 */ /* 卷 C3＋v0.45：正在演的招式立刻清場，focus／退暗同一個事件收 */ try{ pwCloseupClear(); }catch(e){} /* v0.45：跳字與出手卡一次清乾淨 */ }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
   return new Promise(res=>{
@@ -4985,6 +4995,15 @@ function pwBeatTier(list,beat,f){
 }
 function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
 function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
+/* Tier 3 大招的黑條：只有三尊那一拍會開。開關集中在這一支（防線按「危險的效果」寫，不按入口寫）——
+   doSkip／對決收場／招式演完都叫它關，任何一條路漏掉都會把黑條留在畫面上。 */
+function pwLetterbox(on){
+  try{
+    const a=$("lbTop"), b=$("lbBot");
+    if(a) a.classList.toggle("on",!!on);
+    if(b) b.classList.toggle("on",!!on);
+  }catch(e){}
+}
 /* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
    ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。
    v0.54：ctx.tier 決定時長與短版分支（js/trait-fx.js 讀 det.tier），tier 3 另外開黑條。 */
@@ -4992,6 +5011,7 @@ function pwTraitFx(trId,ctx){
   if(SKIP) return false;
   const tier=pwTierOf(ctx.tier);
   const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,handled:false,done:null};
+  if(tier===3) pwLetterbox(true); /* 黑條與 CINEMA 機位（camera-director 讀同一個 detail.tier）同時起 */
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];
@@ -5418,7 +5438,8 @@ async function pwPlayBeat(f,beat,list,views){
          那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
-      if(staged){ await pwSleep(pwTierMs(tier)); continue; } /* 3D 舞台接了才等這一拍 tier 的時長；fallback 照 v0.32 等 evMs */
+      if(staged){ await pwSleep(pwTierMs(tier)); if(tier===3) pwLetterbox(false); continue; } /* 3D 舞台接了才等這一拍 tier 的時長；fallback 照 v0.32 等 evMs */
+      if(tier===3) pwLetterbox(false); /* fallback 那條也要收，否則黑條會留在畫面上 */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -5585,6 +5606,7 @@ async function playDuel(f){
   }
   } /* ← ON／OFF 分支結束 */
   pwCloseupClear(); /* v0.45：跳字／出手卡不得跨場殘留（focus 與退暗由下一行的 ys:duel-end 收） */
+  pwLetterbox(false); /* v0.54：黑條同理不得跨場殘留——收場這條路獨立於 doSkip 與招式演完那兩條 */
   ov.classList.remove("on"); ov.classList.remove("pw"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }

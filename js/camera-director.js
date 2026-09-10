@@ -119,6 +119,19 @@ const FOCUS = {
   aimY: 0.55, // 交鋒中點往上抬到胸口高度（人形腳底在 y=0.15）
 };
 
+// (e) CINEMA 大招機位（v0.54 三級視覺分級，凍結檔「Tier 3」）：三尊大招那一拍才出現。
+//     語氣是**低角度仰視、拉近**——tilt 從 DUEL_SHOT 的 24 壓到 8（幾乎貼著桌面往上看），
+//     dist 從 4.2 拉到 2.9。與 FOCUS 同一條紀律：**只動 dist／tilt，yaw 一律不碰**
+//     （yaw 上已經疊了 orbit 與 lean 兩層，再加一層會跟它們搶同一個量）。
+//     黑條 letterbox 不在這裡——它是 index.html 的兩條 DOM（#lbTop／#lbBot，與 #vignette 同層），
+//     不進 shader、不加 draw call，所以手機端零成本（凍結檔 F6：draw calls 不得增加）。
+const CINEMA = {
+  dist: 2.9,
+  tilt: 8,
+  inMs: 220, // 進：ease-out（比 focus 的 160 慢一點——大招要「壓下來」不是「彈過去」）
+  outMs: 320, // 回：ease-in-out
+};
+
 /** prefers-reduced-motion（判法照抄 js/trait-fx.js:83）：(a)(b) 整段 no-op，(c) 的 punch 維持現行行為。 */
 function prefersReduced() {
   try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
@@ -177,6 +190,8 @@ export function createCameraDirector(camera, lanterns) {
   let curYaw = base.yaw;
   let curLookY = base.lookY;
   const lookAt = new THREE.Vector3();
+  // CINEMA 大招機位（v0.54）：與 focus 同型的一層包絡，只在 tier 3 的招式期間開。
+  let cinemaOn = false, cinemaAt = 0, cinemaMs = 0, cinemaK = 0, cinemaK0 = 0, cinemaFall = false;
   // 近景切鏡（v0.45）：focusOn＝這一次切鏡還在跑（含回位段）；focusK 是包絡值 0..1。
   // focusK0＝這一次切鏡起跳時的包絡值——同一拍第二次 focus 直接從當下接續，不先回全景（規格 §二.1）。
   let focusOn = false;
@@ -310,6 +325,15 @@ export function createCameraDirector(camera, lanterns) {
     leanSign = s;
     leanMs = Math.max(1, Number(d.ms));
     leanU = 0;
+    // v0.54：tier 3（三尊大招）才切 CINEMA 機位。tier 1／2 一個 CINEMA 幀都不該有
+    // （凍結檔 F5 的機械斷言量的就是這件事）。
+    if ((d.tier | 0) === 3) {
+      cinemaK0 = cinemaK; // 前一次還沒回完就直接接續（同 focus）
+      cinemaAt = performance.now();
+      cinemaMs = Math.max(1, Number(d.ms));
+      cinemaFall = false;
+      cinemaOn = true;
+    }
   }
 
   /** 【積木接收端】ys:fx-focus（v0.45 近景切鏡）：推近到 detail 指的那一（兩）尊，ms 之後回全景。
@@ -348,6 +372,22 @@ export function createCameraDirector(camera, lanterns) {
     if (e < FOCUS.inMs) return focusK0 + (1 - focusK0) * easeOutCubic(e / FOCUS.inMs);
     if (e <= focusMs) return 1;
     const u = (e - Math.max(focusMs, FOCUS.inMs)) / FOCUS.outMs;
+    return u >= 1 ? done() : 1 - easeInOutCubic(u);
+  }
+
+  /** 這一幀的 CINEMA 包絡：進（ease-out）→ 停到 ms → 回（ease-in-out）。回完就關掉。
+   *  形狀照抄 focusEnvelope（同一套進／停／回），差別只在常數與「不追交鋒中點」。 */
+  function cinemaEnvelope(now) {
+    if (!cinemaOn) return 0;
+    const e = Math.max(0, now - cinemaAt);
+    const done = () => { cinemaOn = false; cinemaFall = false; forceWrite = true; return 0; };
+    if (cinemaFall) {
+      const u = e / CINEMA.outMs;
+      return u >= 1 ? done() : cinemaK0 * (1 - easeInOutCubic(u));
+    }
+    if (e < CINEMA.inMs) return cinemaK0 + (1 - cinemaK0) * easeOutCubic(e / CINEMA.inMs);
+    if (e <= cinemaMs) return 1;
+    const u = (e - Math.max(cinemaMs, CINEMA.inMs)) / CINEMA.outMs;
     return u >= 1 ? done() : 1 - easeInOutCubic(u);
   }
 
@@ -433,6 +473,7 @@ export function createCameraDirector(camera, lanterns) {
     // focus 期間 orbit 停（規格 §二.1）：近景已經在動 dist／lookAt，再讓 yaw 繼續掃會暈；
     // 回全景後 orbitU 從停下的地方繼續，不跳格。
     focusK = focusEnvelope(now);
+    cinemaK = cinemaEnvelope(now);
     if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
     if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
 
@@ -446,7 +487,7 @@ export function createCameraDirector(camera, lanterns) {
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
     // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn) {
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn) {
       forceWrite = false;
       if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
@@ -465,8 +506,12 @@ export function createCameraDirector(camera, lanterns) {
       //    基座得自己再走 700ms 從 2.6 爬回 4.2（實測 cancel 後 300ms 只回到 3.08，P2 紅）。
       //    分開之後：cancel 只是讓 focusK 在 220ms 內歸零，基座仍停在 4.2，位置照樣連續。
       //    focusK=0 時下面兩個變數與 cur* 逐值相同（加 0／減 0）。
-      const fDist = focusK > 0 ? curDist + (FOCUS.dist - curDist) * focusK : curDist;
-      const fTilt = focusK > 0 ? curTilt + (FOCUS.tilt - curTilt) * focusK : curTilt;
+      const fDist0 = focusK > 0 ? curDist + (FOCUS.dist - curDist) * focusK : curDist;
+      const fTilt0 = focusK > 0 ? curTilt + (FOCUS.tilt - curTilt) * focusK : curTilt;
+      // ⑥ cinema（tier 3 大招）：疊在 ⑤ 之後、punch 之前，同樣只縮 dist／壓 tilt。
+      //    cinemaK=0 時與 fDist0／fTilt0 逐值相同（加 0／減 0），tier 1／2 的畫面因此逐項不變。
+      const fDist = cinemaK > 0 ? fDist0 + (CINEMA.dist - fDist0) * cinemaK : fDist0;
+      const fTilt = cinemaK > 0 ? fTilt0 + (CINEMA.tilt - fTilt0) * cinemaK : fTilt0;
       const tilt = fTilt * DEG;
       const yaw = curYaw * DEG;
       const lookY = curLookY;
@@ -476,7 +521,7 @@ export function createCameraDirector(camera, lanterns) {
       // 近景推到 2.6，最重的一記 punch 減 PUNCH.dist 0.6×2 ＝ 1.2，所以合法最低是 2.6−1.2＝1.4；
       // FOCUS_FLOOR 就訂在那裡——夾得到的只剩「算爛了」的情形，正常演出一次都不該碰到它
       // （二版訂 1.6 是把 1.4~1.6 這段合法區間夾掉了，覆審實測差 0.063–0.28）。
-      const floor = focusK > 0 ? FOCUS_FLOOR : 0.6;
+      const floor = (focusK > 0 || cinemaK > 0) ? FOCUS_FLOOR : 0.6;
       const dist = Math.max(floor, fDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
@@ -495,5 +540,10 @@ export function createCameraDirector(camera, lanterns) {
     return emphasis;
   }
 
-  return { update };
+  return {
+    update,
+    /** 這一幀 CINEMA 有沒有在作用（凍結檔 F5：黑條與 CINEMA 只准在 tier 3 出現）。純記錄，遊戲不讀。 */
+    cinemaOn() { return cinemaOn || cinemaK > 0; },
+    cinemaK() { return cinemaK; },
+  };
 }
