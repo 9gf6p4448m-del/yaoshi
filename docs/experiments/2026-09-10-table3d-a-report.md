@@ -29,8 +29,9 @@
 ### T0 引擎逐位元組相等（兩卷都適用）
 
 ```
-node tests/tools/trace-eq.mjs .base84/index.html index.html
-{"old":".base84/index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+git show 84b1a0c:index.html > docs/experiments/base84-index.tmp.html
+node tests/tools/trace-eq.mjs docs/experiments/base84-index.tmp.html index.html
+{"old":"docs/experiments/base84-index.tmp.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
 
 node tests/tools/trace-eq.mjs index.html --mutate
 {"mode":"mutate","mutation":"CFG.ROUNDS 12 -> 11","bytesSrc":357285,"bytesMutant":341041,"differs":true,
@@ -195,7 +196,22 @@ node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,
 
 ## `git diff --stat 84b1a0c..HEAD`
 
-見報告末段（回報時附原文）。逐檔對得上需求：
+```
+ docs/IMPLEMENTATION_GUIDE.md                       |  39 ++++
+ docs/experiments/2026-09-10-table3d-a-evidence/*   | （實跑輸出：txt 8 份、json 12 份、png 7 張）
+ docs/experiments/2026-09-10-table3d-a-report.md    | 新增
+ docs/experiments/2026-09-10-table3d-a-worklog.md   | 新增
+ index.html                                         | 195 +++++++++++++++--
+ tests/tools/felt-probe.mjs                         |  47 +++--
+ tests/tools/layout-shot.mjs                        |  23 +-
+ tests/tools/legend-drive.mjs                       | 232 ++++++++++++++++++++-
+ tests/tools/mkt-probe.mjs                          |  28 ++-
+```
+
+`git diff --name-only 84b1a0c..HEAD -- js assets docs/design docs/GAME_DESIGN.md` ⇒ **0 檔**
+（`js/`、`assets/`、`ART_BIBLE`、`GAME_DESIGN` 一格未動）。
+
+逐檔對得上需求：
 
 | 檔 | 為什麼動 |
 |---|---|
