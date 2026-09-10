@@ -90,14 +90,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .incboard .ibgap{color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis}
 .incboard .ibwhen{color:var(--gold);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .shcards{display:flex;gap:5px;min-width:0;flex:1 1 auto}
-#shrines.slim .shcards{flex:1 1 auto}
+#shrines.slim .shcards{flex:0 1 auto}
+/* slim：三張待請卡按**內容**寬（尊名長的那張自己佔多一點），香火榜吃剩下的空間並負責縮。
+   沿革：三張都 flex:1 1 0 均分時，「大士爺紙尊」那張的陣營徽章被擠成一塊看不出字的色條（H7 人眼）。 */
+#shrines.slim .shcard{flex:0 1 auto}
+#shrines.slim .incboard{flex:1 1 0}
 .shcard{flex:1 1 0;min-width:0;background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border:1px solid var(--line);border-left:3px solid var(--pwf,#8a8a8a);border-radius:10px;
   padding:0 6px;display:flex;align-items:center;gap:4px;line-height:1.55;overflow:hidden}
 .shcard.gone{opacity:.5}
 .shname{font-size:9.5px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
-.shname .shfac{font-size:8.5px;color:#14101f;background:var(--pwf,#8a8a8a);border-radius:4px;padding:0 3px;margin-left:3px}
+.shfac{font-size:8.5px;color:#14101f;background:var(--pwf,#8a8a8a);border-radius:4px;padding:0 3px;margin-left:3px;white-space:nowrap}
 .shmove{font-size:8.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto}
 .shtaken{font-size:8.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto}
 /* 真人得主的選尊視窗（請神 3.0 §二 3）：三張大卡，點一下就是請那一尊 */
@@ -4857,8 +4861,16 @@ function showLegendPick(pend){
       <p style="font-size:12.5px;line-height:1.75">${S.mode==="hotseat"?`${DIRS[p.id]}家・${p.name}`:"你"}以香火 <b style="color:var(--gold)">${pend.h}</b> 拔得頭籌，
       從<b>還沒被請走的尊</b>裡自己挑一尊。挑完香火歸零（已付），之後每個夜末供奉 <b>${CFG.INC_TITHE}</b> 壽命。</p>
       <div class="legendPicks">${cards}</div>`;
-    $("modal").style.display="flex";
-    LEGEND_PICK=i=>{ $("modal").style.display="none"; done(i); };
+    const m=$("modal");
+    m.style.display="flex";
+    /* ★背景點一下也要收得掉★：#modal 的 inline onclick 會走 closeModal 把視窗蓋起來，
+       但那時候還沒挑——收尾（finishShrines）就沒有人做，#mainbtn 會永遠停在停用。
+       所以這裡也接一手：關掉＝「不挑」，退回 AI 規則（與 headless 同一條路），遊戲照樣往下走。
+       ★防線按「危險的效果」寫★：危險的效果是「promise 沒 resolve、局卡死」，
+       不是「某一顆按鈕沒被按」——所以擋的是**視窗被關掉**這件事，不是只堵背景那一下。 */
+    const onBg=e=>{ if(e.target===m) legendPick(null); };
+    m.addEventListener("click",onBg);
+    LEGEND_PICK=i=>{ m.removeEventListener("click",onBg); m.style.display="none"; done(i); };
   });
 }
 /* 請神結算演出（純呈現）：結算本身在 resolveShrines／finishShrines，這裡只把它回傳的東西攤開來給人看。
