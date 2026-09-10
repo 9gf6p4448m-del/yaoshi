@@ -595,3 +595,293 @@ export default {
     });
   },
 };
+
+/* ══════════ Tier 1 短版（260ms，v0.54 三級視覺分級）══════════
+   寫法紀律與踩過的坑見 js/trait-fx/zuling.js 同一區塊的檔頭（horizon ≤230、補間一律頂層
+   用 delay 排定、不用 st.at、回呼裡只放 burst／punch）。辨識元素表在
+   docs/experiments/2026-09-10-plan-fx-tiers.md §5。 */
+export const SHORT = {
+  /* 斬瘟｜辨識：高舉的劍猛甩＋一片劍光橫掃過對面整排 */
+  eliteCleave(st) {
+    const gen = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const foot = st.foot(gen, new THREE.Vector3());
+    const arc = st.disc(foot, 0.75, { opacity: 0 });
+    arc.scale.setScalar(0.3);
+    st.tween({ ms: 85, ease: 'wind', update(t, e) { // 舉劍：右臂高舉、胸口後仰側擰
+      st.rot(gen, 'RArm1Rt', -1.15 * e, 0, -0.3 * e); st.rot(gen, 'RArm1El', -0.5 * e);
+      st.rot(gen, 'Chest', -0.16 * e, 0.24 * e, 0); st.rot(gen, 'HeadRoot', -0.12 * e);
+      st.rim(gen, 1 + 1.3 * e);
+    } });
+    st.tween({ ms: 80, delay: 82, ease: 'strike', update(t, e) { // 斬：臂胸猛甩到前下方、踏半步
+      st.rot(gen, 'RArm1Rt', -1.15 + 1.9 * e, 0, -0.3 + 0.6 * e); st.rot(gen, 'RArm1El', -0.5 + 0.7 * e);
+      st.rot(gen, 'Chest', -0.16 + 0.36 * e, 0.24 - 0.5 * e, 0);
+      st.move(gen, 0, 0, 0.13 * e);
+    }, done() { st.punch(0.55); } });
+    st.grow(arc, { ms: 95, delay: 112, from: 0.3, to: 1.7 }); // 一片劍光以腳下為軸掃過對面整排
+    st.fade(arc, { ms: 95, delay: 112, from: 0.7, to: 0 });
+    st.target.forEach((f, i) => { if (i < 4) st.flinch([f], { delay: 128 + i * 12, strength: 0.95, burst: i === 0 }); });
+    st.tween({ ms: 70, delay: 162, ease: 'inout', update(t, e) { // 收劍
+      const k = 1 - e;
+      st.rot(gen, 'RArm1Rt', 0.75 * k, 0, 0.3 * k); st.rot(gen, 'RArm1El', 0.2 * k);
+      st.rot(gen, 'Chest', 0.2 * k, -0.26 * k, 0); st.rot(gen, 'HeadRoot', -0.12 * k);
+      st.move(gen, 0, 0, 0.13 * k); st.rim(gen, 1 + 1.3 * k);
+    } });
+  },
+
+  /* 令旗改陣｜辨識：旗桿由後猛甩到前＋兩道令波推過本方整排 */
+  wardAtkAll1(st) {
+    const flag = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const foot = st.foot(flag, new THREE.Vector3());
+    const w1 = st.ring(foot, 0.4, 0.055, { opacity: 0 });
+    const w2 = st.ring(foot, 0.4, 0.045, { opacity: 0 });
+    st.tween({ ms: 88, ease: 'wind', update(t, e) { // 壓身舉旗：旗桿後倒、獸首抬起張口
+      st.rot(flag, 'FlagMast', -0.7 * e); st.rot(flag, 'Withers', 0.1 * e); st.rot(flag, 'Chest', 0.12 * e);
+      st.rot(flag, 'HeadRoot', -0.2 * e); st.rot(flag, 'Jaw1', 0.26 * e); st.rot(flag, 'TailRoot', -0.2 * e);
+      st.rim(flag, 1 + 0.9 * e);
+    } });
+    st.tween({ ms: 75, delay: 85, ease: 'strike', update(t, e) { // 揮旗下令：旗桿由後猛甩到前
+      st.rot(flag, 'FlagMast', -0.7 + 1.5 * e); st.rot(flag, 'Chest', 0.12 - 0.24 * e);
+      st.rot(flag, 'HeadRoot', -0.2 + 0.24 * e); st.rot(flag, 'Tail1', 0.24 * e);
+    }, done() { st.punch(0.35); } });
+    st.grow(w1, { ms: 90, delay: 110, from: 0.3, to: 1.6 }); // 兩道令波推過本方整排
+    st.fade(w1, { ms: 90, delay: 110, from: 0.75, to: 0 });
+    st.grow(w2, { ms: 90, delay: 138, from: 0.3, to: 1.9 });
+    st.fade(w2, { ms: 90, delay: 138, from: 0.55, to: 0 });
+    st.actor.forEach((f, i) => st.tween({ ms: 80, delay: 118 + i * 14, ease: 'snap', update(t, e) { // 全體聞令側踏
+      st.move(f, 0.07 * e, 0, 0); st.rim(f, 1 + 1.5 * e);
+    } }));
+    st.tween({ ms: 68, delay: 160, ease: 'inout', update(t, e) { // 收旗
+      const k = 1 - e;
+      st.rot(flag, 'FlagMast', 0.8 * k); st.rot(flag, 'Withers', 0.1 * k); st.rot(flag, 'Jaw1', 0.26 * k);
+      st.rot(flag, 'Tail1', 0.24 * k); st.rot(flag, 'TailRoot', -0.2 * k); st.rim(flag, 1 + 0.9 * k);
+    } });
+  },
+
+  /* 送王船｜辨識：船身前滑擋在陣前＋金罩漲開 */
+  wardAbsorb4(st) {
+    const boats = st.byBody(st.actor, 'ward').length ? st.byBody(st.actor, 'ward') : st.actor;
+    const lead = boats[0];
+    const mid = st.worldOf(lead, 'MidShip', new THREE.Vector3());
+    const shell = st.dome(mid, 0.9, { opacity: 0 });
+    const deck = st.disc(st.foot(lead, new THREE.Vector3()), 0.55, { opacity: 0 });
+    const lamp = st.orb(st.worldOf(lead, 'MastTop', new THREE.Vector3()), 0.05, { opacity: 0 });
+    shell.scale.setScalar(0.35);
+    boats.forEach((b, i) => {
+      st.tween({ ms: 85, delay: i * 16, ease: 'out', update(t, e) { // 離岸：船尾翹起、四節桅挺直
+        st.rot(b, 'SternRise', -0.2 * e); st.rot(b, 'Mast1', 0.14 * e); st.rot(b, 'Mast3', 0.1 * e);
+        st.rot(b, 'BowRise', 0.12 * e); st.rim(b, 1 + 0.8 * e);
+      } });
+      st.tween({ ms: 90, delay: 85 + i * 16, ease: 'out', update(t, e) { // 前滑擋在陣前、船首抬起破浪
+        st.move(b, 0, 0, 0.16 * e); st.rot(b, 'BowTip', -0.22 * e); st.rot(b, 'SternTip', 0.1 * e);
+      } });
+    });
+    st.fade(lamp, { ms: 55, delay: 40, from: 0, to: 0.95 }); // 桅頂燃起香火
+    st.grow(shell, { ms: 95, delay: 105, from: 0.35, to: 1.2 }); // 金罩漲開罩住本方
+    st.fade(shell, { ms: 55, delay: 105, from: 0, to: 0.4 });
+    st.fade(shell, { ms: 65, delay: 160, from: 0.4, to: 0 });
+    st.grow(deck, { ms: 90, delay: 110, from: 0.3, to: 1.5 });
+    st.fade(deck, { ms: 90, delay: 110, from: 0.5, to: 0 });
+    st.fade(lamp, { ms: 55, delay: 170, from: 0.95, to: 0 });
+    st.tween({ ms: 65, delay: 163, ease: 'inout', update(t, e) { // 船退回原位
+      const k = 1 - e;
+      boats.forEach((b) => {
+        st.move(b, 0, 0, 0.16 * k); st.rot(b, 'BowTip', -0.22 * k); st.rot(b, 'SternRise', -0.2 * k);
+        st.rot(b, 'Mast1', 0.14 * k); st.rim(b, 1 + 0.8 * k);
+      });
+    } });
+  },
+
+  /* 千里眼｜辨識：舉鈴搖甩＋鈴波往外擴 */
+  wardImmuneLost(st) {
+    const bell = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const foot = st.foot(bell, new THREE.Vector3());
+    const w1 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
+    const w2 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
+    const mate = st.actor[1] || null;
+    const link = mate ? st.beam(st.worldOf(bell, 'BellLip', new THREE.Vector3()), st.worldOf(mate, null, new THREE.Vector3()), { opacity: 0 }) : null;
+    st.tween({ ms: 80, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
+      st.rot(bell, 'ArmURoot', -0.9 * e); st.rot(bell, 'ArmUElbow', -0.35 * e);
+      st.rot(bell, 'BellRoot', -0.3 * e); st.rot(bell, 'Chest', 0, 0.16 * e, 0); st.rim(bell, 1 + 0.7 * e);
+    } });
+    st.tween({ ms: 95, delay: 78, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
+      const s = Math.sin(e * Math.PI * 3);
+      st.rot(bell, 'BellRoot', -0.3 + 0.1 * e, 0, 0.34 * s); st.rot(bell, 'BellLip', 0, 0, 0.22 * s);
+      st.rot(bell, 'Skirt1', 0, 0, 0.12 * s); st.rim(bell, 1.7 + 0.6 * Math.abs(s));
+    } });
+    st.grow(w1, { ms: 85, delay: 96, from: 0.3, to: 1.5 }); // 鈴波往外擴
+    st.fade(w1, { ms: 85, delay: 96, from: 0.7, to: 0 });
+    st.grow(w2, { ms: 85, delay: 128, from: 0.3, to: 1.8 });
+    st.fade(w2, { ms: 85, delay: 128, from: 0.5, to: 0 });
+    if (link) st.fade(link, { ms: 70, delay: 130, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
+    st.actor.forEach((f, i) => st.tween({ ms: 75, delay: 130 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
+    st.tween({ ms: 68, delay: 160, ease: 'inout', update(t, e) { // 放下
+      const k = 1 - e;
+      st.rot(bell, 'ArmURoot', -0.9 * k); st.rot(bell, 'ArmUElbow', -0.35 * k);
+      st.rot(bell, 'BellRoot', -0.2 * k); st.rot(bell, 'Chest', 0, 0.16 * k, 0);
+    } });
+  },
+
+  /* 五方調兵｜辨識：旗臂下劈＋腳下五方光陣（中央盤＋五點營火＋五連線） */
+  swarmRally(st) {
+    const men = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
+    const lead = men[0];
+    const foot = st.foot(lead, new THREE.Vector3());
+    const core = st.disc(foot, 0.42, { opacity: 0 });
+    core.scale.setScalar(0.3);
+    const fires = [], lines = [];
+    for (let i = 0; i < 5; i++) { // 五點營火＋五道連線
+      const a = (i / 5) * Math.PI * 2;
+      const p = foot.clone().add(new THREE.Vector3(Math.cos(a) * 0.42, 0.02, Math.sin(a) * 0.42));
+      fires.push(st.orb(p, 0.035, { opacity: 0 }));
+      lines.push(st.beam(foot.clone(), p, { opacity: 0 }));
+    }
+    st.tween({ ms: 82, ease: 'wind', update(t, e) { // 舉旗過頭、身體擰半圈
+      st.rot(lead, 'RArm1Rt', -1.2 * e); st.rot(lead, 'RArm1El', -0.4 * e); st.rot(lead, 'FlagTop', -0.5 * e);
+      st.rot(lead, 'Chest', 0, 0.3 * e, 0); st.rot(lead, 'HelmRoot', -0.16 * e); st.rim(lead, 1 + 1 * e);
+    } });
+    st.tween({ ms: 72, delay: 80, ease: 'strike', update(t, e) { // 落旗：旗臂由上劈到前
+      st.rot(lead, 'RArm1Rt', -1.2 + 1.75 * e); st.rot(lead, 'RArm1El', -0.4 + 0.55 * e);
+      st.rot(lead, 'FlagTop', -0.5 + 1.1 * e); st.rot(lead, 'Chest', 0, 0.3 - 0.55 * e, 0);
+    }, done() { st.punch(0.45); } });
+    st.grow(core, { ms: 85, delay: 108, from: 0.3, to: 1.5 });
+    st.fade(core, { ms: 50, delay: 108, from: 0, to: 0.6 });
+    st.fade(core, { ms: 70, delay: 162, from: 0.6, to: 0 });
+    fires.forEach((o, i) => { st.fade(o, { ms: 40, delay: 112 + i * 7, from: 0, to: 1 }); st.fade(o, { ms: 60, delay: 165, from: 1, to: 0 }); });
+    lines.forEach((l, i) => st.fade(l, { ms: 80, delay: 116 + i * 7, from: 0.8, to: 0 }));
+    men.forEach((f, i) => st.tween({ ms: 70, delay: 126 + i * 14, ease: 'snap', update(t, e) { // 三尊錯開頓足
+      st.move(f, 0, -0.05 * e, 0); st.rot(f, 'RLeg1Kn', -0.3 * e); st.rim(f, 1 + 1.3 * e);
+    } }));
+    st.tween({ ms: 65, delay: 165, ease: 'inout', update(t, e) { // 旗收回
+      const k = 1 - e;
+      st.rot(lead, 'RArm1Rt', 0.55 * k); st.rot(lead, 'FlagTop', 0.6 * k); st.rot(lead, 'HelmRoot', -0.16 * k);
+      st.rim(lead, 1 + 1 * k);
+    } });
+  },
+
+  /* 虎爺反咬｜辨識：伏身張口→撲出去＋兩道咬痕光 */
+  biteGamble(st) {
+    const tiger = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const jaw = st.worldOf(tiger, 'JawTip', new THREE.Vector3());
+    const at = prey ? st.worldOf(prey, null, new THREE.Vector3()) : jaw.clone().addScaledVector(st.dir, 1.4);
+    const m1 = st.bolt(at.clone().add(new THREE.Vector3(-0.16, 0.16, 0)), at.clone().add(new THREE.Vector3(0.16, -0.16, 0)), { jag: 0.05, segs: 4, seed: 2, opacity: 0 });
+    const m2 = st.bolt(at.clone().add(new THREE.Vector3(0.16, 0.14, 0)), at.clone().add(new THREE.Vector3(-0.14, -0.18, 0)), { jag: 0.05, segs: 4, seed: 8, opacity: 0 });
+    st.tween({ ms: 80, ease: 'in', update(t, e) { // 伏身張口：後臀壓低、脊背弓起、下顎大張
+      st.rot(tiger, 'Rump', 0.2 * e); st.rot(tiger, 'Spine', -0.14 * e); st.rot(tiger, 'NeckB', 0.16 * e);
+      st.rot(tiger, 'JawRoot', 0.34 * e); st.rot(tiger, 'Jaw1', 0.24 * e); st.rot(tiger, 'TailRoot', -0.3 * e);
+      st.move(tiger, 0, 0, -0.06 * e); st.rim(tiger, 1 + 0.6 * e);
+    } });
+    st.tween({ ms: 75, delay: 78, ease: 'strike', update(t, e) { // 撲：整尊躍出、頭往前刺
+      st.move(tiger, 0, 0.05 * Math.sin(Math.PI * e), 0.28 * e);
+      st.rot(tiger, 'Rump', 0.2 - 0.3 * e); st.rot(tiger, 'NeckB', 0.16 - 0.3 * e); st.rot(tiger, 'HeadRoot', -0.18 * e);
+      st.rim(tiger, 1.6 + 1.5 * e);
+    } });
+    st.tween({ ms: 45, delay: 148, ease: 'out', update(t, e) { // 咬：下顎猛闔
+      st.rot(tiger, 'JawRoot', 0.34 * (1 - e)); st.rot(tiger, 'Jaw1', 0.24 * (1 - e));
+    }, done() { st.burst(at, { power: 0.95, n: 44 }); st.punch(0.6); } });
+    st.fade(m1, { ms: 58, delay: 150, from: 1, to: 0 }); // 兩道咬痕光
+    st.fade(m2, { ms: 58, delay: 158, from: 1, to: 0 });
+    if (prey) st.flinch([prey], { delay: 150, strength: 1.4, burst: false });
+    st.tween({ ms: 62, delay: 168, ease: 'inout', update(t, e) { // 鬆口退回
+      const k = 1 - e;
+      st.move(tiger, 0, 0, 0.28 * k); st.rot(tiger, 'HeadRoot', -0.18 * k); st.rot(tiger, 'Spine', -0.14 * k);
+      st.rot(tiger, 'TailRoot', -0.3 * k); st.rim(tiger, 1 + 2.1 * k);
+    } });
+  },
+
+  /* 香灰符｜辨識：掌心一撮金灰拋物線飄到本方最前一隻的頭頂 */
+  wardHpFirst(st) {
+    const monk = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const mate = st.actor[1] || monk;
+    const palm = st.worldOf(monk, 'RHand1Ha', new THREE.Vector3());
+    const head = st.top(mate, new THREE.Vector3());
+    const ash = st.orb(palm, 0.045, { opacity: 0 });
+    const halo = st.ring(st.foot(mate, new THREE.Vector3()), 0.3, 0.04, { opacity: 0 });
+    ash.scale.setScalar(0.35);
+    st.tween({ ms: 80, ease: 'out', update(t, e) { // 右臂把香灰捧到胸前、身體微俯
+      st.rot(monk, 'RShldr1Sh', -0.5 * e); st.rot(monk, 'RElbow1El', -0.6 * e); st.rot(monk, 'Chest', 0.12 * e);
+      st.rot(monk, 'BrowFu', 0, 0, 0.2 * e); st.rot(monk, 'Neck', 0.1 * e); st.rim(monk, 1 + 0.6 * e);
+      st.worldOf(monk, 'RHand1Ha', ash.position);
+    } });
+    st.fade(ash, { ms: 45, delay: 60, from: 0, to: 1 }); // 一撮金灰自掌心升起
+    st.grow(ash, { ms: 60, delay: 60, from: 0.35, to: 1.1 });
+    st.fly(ash, palm.clone(), head, { ms: 80, delay: 82, ease: 'inout', arc: 0.22, // 拋物線飄到頭頂
+      done() { st.burst(head, { power: 0.5, n: 26 }); } });
+    st.fade(ash, { ms: 48, delay: 160, from: 1, to: 0 });
+    st.grow(halo, { ms: 82, delay: 145, from: 0.3, to: 1.4 }); // 腳下一圈金環漲開
+    st.fade(halo, { ms: 82, delay: 145, from: 0.7, to: 0 });
+    st.tween({ ms: 72, delay: 155, ease: 'pulse', update(t, e) { st.move(mate, 0, 0.04 * e, 0); st.rim(mate, 1 + 1.5 * e); } });
+    st.tween({ ms: 62, delay: 162, ease: 'inout', update(t, e) { // 收手
+      const k = 1 - e;
+      st.rot(monk, 'RShldr1Sh', -0.5 * k); st.rot(monk, 'RElbow1El', -0.6 * k); st.rot(monk, 'Chest', 0.12 * k);
+      st.rot(monk, 'BrowFu', 0, 0, 0.2 * k); st.rim(monk, 1 + 0.6 * k);
+    } });
+  },
+
+  /* 福壽綿長｜辨識：一縷暖火離燈＋沒入同伴時的光柱 */
+  wardRegen1(st) {
+    const lamp = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const mate = st.actor[1] || lamp;
+    const flm = st.worldOf(lamp, 'FlmR', new THREE.Vector3());
+    const mateP = st.worldOf(mate, null, new THREE.Vector3());
+    const foot = st.foot(mate, new THREE.Vector3());
+    const top = st.top(mate, new THREE.Vector3());
+    const warm = st.orb(flm, 0.05, { opacity: 0 });
+    const pillar = st.beam(foot.clone(), top, { opacity: 0 });
+    warm.scale.setScalar(0.3);
+    st.tween({ ms: 82, ease: 'out', update(t, e) { // 燈火脹亮：燈焰放大、頸與頭抬起、頂冠張開
+      st.scaleBone(lamp, 'FlmR', 1 + 0.55 * e); st.scaleBone(lamp, 'Crest', 1 + 0.2 * e);
+      st.rot(lamp, 'Nk0', -0.14 * e); st.rot(lamp, 'Hd0', -0.16 * e); st.rot(lamp, 'Tl1', 0.16 * e);
+      st.rim(lamp, 1 + 1.1 * e); st.worldOf(lamp, 'FlmR', warm.position);
+    } });
+    st.fade(warm, { ms: 45, delay: 58, from: 0, to: 1 });
+    st.grow(warm, { ms: 60, delay: 58, from: 0.3, to: 1.15 });
+    st.fly(warm, flm.clone(), mateP, { ms: 82, delay: 82, ease: 'inout', arc: 0.2, // 一縷暖火離燈飄到同伴
+      done() { st.burst(mateP, { power: 0.45, n: 24 }); } });
+    st.fade(warm, { ms: 45, delay: 160, from: 1, to: 0 });
+    st.fade(pillar, { ms: 78, delay: 150, from: 0.85, to: 0 }); // 光柱自腳底升起
+    st.tween({ ms: 70, delay: 158, ease: 'pulse', update(t, e) { st.rim(mate, 1 + 1.6 * e); } });
+    st.tween({ ms: 62, delay: 162, ease: 'inout', update(t, e) { // 燈火收斂
+      const k = 1 - e;
+      st.scaleBone(lamp, 'FlmR', 1 + 0.55 * k); st.scaleBone(lamp, 'Crest', 1 + 0.2 * k);
+      st.rot(lamp, 'Nk0', -0.14 * k); st.rot(lamp, 'Hd0', -0.16 * k); st.rot(lamp, 'Tl1', 0.16 * k);
+      st.rim(lamp, 1 + 1.1 * k);
+    } });
+  },
+
+  /* 殘旗插心｜辨識：矛尖倒轉插進自己胸口＋腳下紅光暴亮 */
+  swarmLastStand(st) {
+    const man = st.actor[0];
+    const foot = st.foot(man, new THREE.Vector3());
+    const chest = st.worldOf(man, 'Chest', new THREE.Vector3());
+    const blaze = st.disc(foot, 0.38, { opacity: 0 });
+    const burstOrb = st.orb(chest, 0.06, { opacity: 0 });
+    blaze.scale.setScalar(0.35); burstOrb.scale.setScalar(0.3);
+    st.tween({ ms: 88, ease: 'wind', update(t, e) { // 倒矛過頂：雙臂把矛尖翻轉朝下高舉、身體後仰
+      st.rot(man, 'LArm1Rt', -1.25 * e); st.rot(man, 'RArm1Rt', -1.25 * e);
+      st.rot(man, 'SpearRoot', 2.2 * e); st.rot(man, 'PoleTop', -0.3 * e);
+      st.rot(man, 'Chest', -0.2 * e); st.rot(man, 'CrownTip', -0.24 * e); st.rim(man, 1 + 0.5 * e);
+    } });
+    st.tween({ ms: 62, delay: 86, ease: 'in', update(t, e) { // 插心：雙臂猛力下壓、整尊下沉
+      st.rot(man, 'LArm1Rt', -1.25 + 1.5 * e); st.rot(man, 'RArm1Rt', -1.25 + 1.5 * e);
+      st.rot(man, 'Chest', -0.2 + 0.55 * e); st.rot(man, 'HeadRoot', -0.3 * e);
+      st.move(man, 0, -0.07 * e, 0);
+    }, done() { st.burst(chest, { power: 1.1, n: 52, color: 0xd8382c }); st.punch(0.7); } });
+    st.fade(burstOrb, { ms: 40, delay: 146, from: 0, to: 1 }); // 胸口一團光炸開
+    st.grow(burstOrb, { ms: 85, delay: 146, from: 0.3, to: 2.1 });
+    st.fade(burstOrb, { ms: 55, delay: 172, from: 1, to: 0 });
+    st.grow(blaze, { ms: 82, delay: 148, from: 0.35, to: 1.7 }); // 腳下一圈紅光暴亮
+    st.fade(blaze, { ms: 82, delay: 148, from: 0.8, to: 0 });
+    st.tween({ ms: 78, delay: 150, ease: 'out', update(t, e) { // 旗桿餘顫＋邊光衝到 3.4 倍
+      const damp = (1 - e) * (1 - e);
+      st.rot(man, 'PoleMid', 0, 0, 0.2 * damp * Math.sin(e * 22));
+      st.rot(man, 'CrownTip', 0.18 * damp * Math.sin(e * 18));
+      st.rim(man, 1 + 2.4 * (1 - e));
+    } });
+    st.tween({ ms: 58, delay: 170, ease: 'inout', update(t, e) { // 收勢
+      const k = 1 - e;
+      st.rot(man, 'LArm1Rt', 0.25 * k); st.rot(man, 'RArm1Rt', 0.25 * k); st.rot(man, 'SpearRoot', 2.2 * k);
+      st.rot(man, 'Chest', 0.35 * k); st.rot(man, 'HeadRoot', -0.3 * k); st.move(man, 0, -0.07 * k, 0);
+    } });
+  },
+};
