@@ -1404,8 +1404,8 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     撐到 785ms、衝出 500ms 視窗而忽紅忽綠。探針另有 `gapOk` 前提斷言：第二下沒落在視窗內就直接紅，
     不讓它因為錯過視窗而偷偷綠。B3 的「有沒有重載」要數 `framenavigated`，不能只看事後快照
     （`location.reload()` 是非同步的，只看快照會忽紅忽綠）。
-    ★**這道守衛守得到的只有「第二下落在 `#mainbtn` 上」那一半**★（fresh-context 對抗覆審實測，
-    **三條都不是 v0.53.3 造成的，也都不在 v0.53.3 的任務範圍，待使用者裁定要不要續修**）：
+    ★**這道守衛守得到的只有「第二下落在 `#mainbtn` 上」那一半**★（fresh-context 對抗覆審實測；
+    **三條都不是 v0.53.3 造成的，使用者 2026-09-11 裁定續修，已於 v0.53.4 全部修掉——見第 14 條**）：
     第二下是**依座標**落地的，換手之後那個位置若蓋的是別的東西，守衛完全碰不到。
     ① 連按兩下「🕯️ 請神」——`startShrine` 同步開 `#modal`（`inset:0`），主鈕正中心
     `elementFromPoint` 回的是 `#modal` 背景，第二下＝`legendPick(null)`＝**放棄自己挑尊**、退回 AI 規則。
@@ -1416,4 +1416,56 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     （`#modal` 的 inline onclick 走 `closeModal` 只把視窗藏起來）⇒ 點背景會讓 promise 永不 resolve，
     `startBattle` 的 `await showTitheAsk()` 就是**整局永久卡死**，只能重載。
     真要根治得把閘設在「相位切換」本身（切換瞬間讓整個互動層吸收 500ms），而不是單一按鈕；
-    ③ 則比照 `showLegendPick` 補一道 resolve 保險即可。
+    ③ 則比照 `showLegendPick` 補一道 resolve 保險即可。**兩件都已於 v0.53.4 做掉，見下一條。**
+14. **★相位閘：整個互動層（v0.53.4 修，2026-09-11）★**
+    修掉第 13 條末段那三件。**兩個獨立的危險效果，分別處理**：
+    **甲「`await` 的 promise 永不 resolve ⇒ 整局卡死」**（`showTitheAsk`，`index.html:5690` 附近）。
+    分母＝全檔 `new Promise` 7 處，扣掉 4 處純 `setTimeout` 的，**會 await 且靠 modal 按鈕才 resolve 的只有 2 支**：
+    `showLegendPick`（早就有背景保險）與 `showTitheAsk`（漏了）。現在兩支都有：
+    `tk.addEventListener("click",onBgTithe)`，背景點一下＝「要，繼續供奉」（＝headless 三條迴圈的預設，語意一致），
+    並在 `fin()` 裡把 listener 拆掉。**這一類日後新增 modal-gated promise 一定要一起補**。
+    **乙「第二下落在使用者還沒看過的互動面上」**：v0.53.3 的守衛只掛在 `#mainbtn`，
+    而第二下是**依座標**落地的 ⇒ 相位一換，同一個座標底下常常已經是別的東西，那時 `dispatching` 是 false、
+    連武裝都沒有。改成 **`armPhaseGate`**（`index.html:2153` 附近）：一個 `document` 上的 **capture** 監聽，
+    量的是「使用者手指那個點**現在能做什麼**有沒有變」——變了就把 `PHASE_AT` 設成現在，
+    之後 `MAIN_GUARD_MS` 內、**按下時刻**（`e.timeStamp`）落在視窗裡的點擊由 `phaseSwallow` 整個互動層吸收。
+    ★收斂：不逐入口加 `disabled`★——任何入口（現在的、以後新增的）只要同步換掉手指下那塊互動面就自動吃到。
+    ★**四個踩過的坑，改之前一定要讀**★：
+    (a) **比對時機**：微任務檢查點發生在**每一個 listener 之間**（堆疊一空就跑），
+    `Promise.resolve().then()` 會排在目標元素的 `onclick` **之前**、什麼都比不到（實測：`PHASE_AT` 從頭到尾沒被設過，
+    C2／C3 照樣紅，看起來像「閘沒生效」，其實是比對時機錯）。
+    (a2) ★**主要武裝點必須是 document 的 bubble 監聽，不能只靠 `setTimeout`**★（覆審 F1）：
+    `setTimeout` 排在 timer task，而**瀏覽器的輸入佇列優先權高於 timer 佇列**——相位切換阻塞主執行緒時
+    （註解 (c) 講的那幾百毫秒），排隊中的第二下會**先**派送、那時 `PHASE_AT` 還沒設，
+    閘在它最該生效的情境下等於不存在。bubble 監聽與目標 handler 在**同一個任務**裡跑完，武裝一定早於下一個輸入事件。
+    `setTimeout` 留著當備援，涵蓋會 `stopPropagation` 的那一個（全檔只有座位卡的 ⓘ）。
+    (b) **比的是「簽名」不是節點**（`id|最近的 inline onclick|class`）：`#budget` 重繪會換掉燒香「＋」的節點，
+    但它做的事沒變 ⇒ 不是相位切換、不該武裝；拿節點比對會把「連按燒香 ＋」也擋掉。
+    (c) **`phaseSwallow` 用 `stopImmediatePropagation`，一定要明文補叫 `audioWake()`**——
+    iOS 解鎖音訊靠 document 上那個 click 監聽，不補叫就會斷掉（探針 C5 在守，M1 突變體實測會紅）。
+    **治具**：`tests/tools/phase-gate-probe.mjs`（真實 UI、**一律用 `page.mouse.click` 真座標**，C1／C1b／C2–C6，
+    內建 `--mutate` **四個**突變體）。
+    **C1b＝走真實路徑**（覆審 F7）：真人第 1 夜請到一尊、把 `CFG.TITHE_WARN` 抬高（只為走到那條路，不動門檻），
+    夜末 `await showTitheAsk()` 會**自己**把視窗跳出來，再真滑鼠點背景 ⇒ 局必須在 1s 內走到夜末畫面。
+    對 `8d8360c` 的紅燈是決定性的：「點背景後解開耗時ms：**沒解開（卡死）**／停在：開戰」。
+    **C6＝真滑鼠連按燒香「＋」三下都要生效**（覆審 F9：整組驗收原本沒有任何一條在守「閘不吃正常的第一下」，
+    C4 用合成點擊、由建構上被閘的座標守衛放行）。
+    **四個突變體**：M1 刪掉閘的吞 ⇒ C2/C3 紅；M2 刪掉供奉視窗背景保險 ⇒ C1/C1b 紅；
+    **M3 讓 `sigAt` 恆變（偵測過度武裝）⇒ C6 紅**；**M4 刪掉被吞那一下補叫的 `audioWake` ⇒ C5 紅**。
+    M3／M4 是覆審 F6／F8 逼出來的——原本兩個突變體**只覆蓋「吞」那一半**，「偵測」那一半沒有任何守衛。
+    ★C2／C3 的量測前提★：被閘吞掉的點擊**不會**進到 `window.__clicks`（capture 那層 `stopImmediatePropagation`
+    擋掉了），所以「第二下有沒有被吞」可以直接量；沒被吞時再用 `e.timeStamp − PHASE_AT` 分辨
+    「閘漏了」與「治具太慢、根本沒測到」，後者才換一局重跑（最多 3 次）。
+    **兩下之間絕對不要做跨行程取樣**——實測那會把 120ms 撐過 500ms 視窗而忽紅忽綠。
+    C3 的落點是**掃出來的**不是猜的（乾跑一次、在 `#hoBtn` 矩形內逐點 `elementFromPoint`，找會落在 `pickMark(...)`
+    上的座標；實測 `372,265 → pickMark(1)`）——掃不到就直接紅，不讓它因為點到空白而偷偷綠。
+    ★用真座標不用 `el.click()`★：這一卷守的就是「第二下打到座標底下的東西」，`el.click()` 走 id、繞過 hit-test，
+    量不到要量的現象（v0.53.3 覆審 Q4-1 指出的缺口）。
+    對 `8d8360c` 連跑 2 次都紅在 C1／C1b／C2／C3；對本版連跑 5 次全綠；四個突變體全紅。
+    ★**這道閘仍有已知的盲點，覆審實測列出、不在本卷範圍**★：簽名只取
+    `id｜最近的 inline onclick｜class`，看不到 `textContent` 與 **property 綁定的 handler**。
+    最有代表性的一格是 **`#bloodBtn` 獻祭放血**（`index.html:585`／`renderBloodBtn`）：第一下放血之後
+    按鈕**原地**改字成新價錢（自損 2→4），`id`／`class`／inline onclick 三項都沒變 ⇒ 不武裝，
+    第二下用**他沒看過的新價錢**又放一次血（對手再各 −4）。它不是 `#mainbtn`，v0.53.3 那道守衛也管不到。
+    另一格是熱座**同夜兩人都跨過供奉門檻**時，`showTitheAsk` 推進佇列的前後簽名逐位元組相同 ⇒ 第二下
+    會替下一位把唯一一次「送神回天」的機會答掉。兩者都**不是 v0.53.4 造成的**，待使用者裁定。

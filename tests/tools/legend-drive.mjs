@@ -202,8 +202,20 @@ const main = async () => {
           rec.picks++;
           // 立刻驗：玩家點的那一尊真的記在自己名下（南家＝座位 0）
           await page.waitForTimeout(40);
-          const okPick = await page.evaluate(`(() => { const S = window.__yaoshi.S;
+          /* ★要重試★（v0.53.4 相位閘上線後）：選尊視窗是在「按下🕯️請神」那一下**同步**開出來的，
+             相位閘會把接下來 MAIN_GUARD_MS 內的點擊整層吸收——真人要讀三張卡不可能這麼快，
+             但治具是視窗一出現就點，正好落在吸收窗內而被吞掉（實測 pickMismatch 3/3）。
+             這裡按到它真的生效為止；**判準一格沒動**，還是「我點的那一尊要記在座位 0 名下」。 */
+          let okPick = await page.evaluate(`(() => { const S = window.__yaoshi.S;
             return S.shrines[${pick.idx}] ? S.shrines[${pick.idx}].takenBy : null; })()`);
+          for (let a = 0; a < 15 && okPick !== 0; a++) {
+            await page.evaluate(`(() => { const bs = [...document.querySelectorAll('#modalbox .legendPick')];
+              const t = bs.find((b) => /legendPick\\(${pick.idx}\\)/.test(b.getAttribute('onclick') || ''));
+              if (t) t.click(); })()`);
+            await page.waitForTimeout(70);
+            okPick = await page.evaluate(`(() => { const S = window.__yaoshi.S;
+              return S.shrines[${pick.idx}] ? S.shrines[${pick.idx}].takenBy : null; })()`);
+          }
           if (okPick !== 0) rec.pickMismatch = (rec.pickMismatch || 0) + 1;
           stallN = 0; continue;
         }
