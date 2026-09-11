@@ -1609,3 +1609,77 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     **記錄不修（LOW，非本卷造成）**：`__introNext`「下一頁 ▸」五項逐位元組相同（連按跳過一頁教學）；
     `#hoBtn` 的 property 重綁是結構性盲點（今天沒有活路徑）；座位卡 ⓘ 的 `stopPropagation` 讓武裝退回
     `setTimeout` 備援；`#sfxBtn` 本卷起會被武裝（關掉音效後 500ms 內按不回來）。
+
+### 11.28 拍賣桌整片掏空 **0.56a**「版面卷」（2026-09-10，桌面先平面）——接手前先知道這十二件事
+
+規格＝`docs/proposals/2026-09-10-plan-table3d.md`（§1 檔案清單／§2 介面已寫死／§3 不做什麼／§7 裁定）；
+驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6 是本卷，T7–T12 屬上桌卷**）；
+> ★版號：計畫檔與凍結檔寫的「0.55a／0.55b」＝這裡的 **0.56a／0.56b**（0.54／0.55 另有其卷，主對話 2026-09-11 改號），同一卷、同一份驗收。
+分母清單＝`docs/experiments/2026-09-10-table3d-a-worklog.md`；實跑報告＝`docs/experiments/2026-09-10-table3d-a-report.md`。
+純版面／DOM／CSS 卷：`js/` 一格未動，引擎 `trace(1..20)` 與 `84b1a0c` 逐位元組相等。
+
+1. **★掏空是「依頁面切換」，不是全域開關★**：`#felt` 是**所有階段**的舞台（`$("stage").innerHTML=` 全檔 11 處），
+   全掏空的話開標揭盅會變成一張浮在木桌上的無底文字（使用者裁 Q1 甲）。
+   只有**出價頁**（`showMarket`）與**盯上頁**（`showMarkUI`）走 `setHollow(true)`，其餘 9 頁 `setHollow(false)`。
+   新增任何一個會寫 `#stage` 的畫面，**一定要順手決定它的 `setHollow`**——漏掉就會出現「玻璃面板不見了」。
+2. **`setHollow(false)` 同時負責清空側欄與北列**（`#railW`／`#railE`／`#northPrev`／`#northShr`）。
+   這四個容器的生命週期收斂在這一支，不要在別處各寫一份清空——那會變成 11 個要記得的點。
+3. **`renderSeats()` 只寫 `#northSeat`／`#westSeat`／`#eastSeat`**（原本直接覆寫 `#north`／`#west`／`#east`）。
+   座位卡容器**預設 `display:contents`** ⇒ 座位卡仍是 `#north`／`#west`／`#east` 的直接 flex 項目，
+   v0.53 的版面因此逐像素不變。全檔就這三行在覆寫座位卡；`renderSeats` 的 20 個呼叫點一行都不必改。
+4. **掏空版面的每一條 CSS 都寫在 `#table.t3d` ＋ `@media (orientation:landscape)` 裡面**。
+   ⇒ `?table3d=0`（kill switch）與**直式**由**建構上**回到 v0.53，不靠另寫一份覆蓋（Q6 甲）。
+   改這一段時千萬別把規則搬出媒體查詢——直式 390px 扣兩根 168px 側欄只剩 −6px，版面會直接爆。
+5. **側欄的垂直帳是死的：256 ＝ 座位 62 ＋ 4 ＋（卡列 190：上緣 8 ＋ 卡 88 ＋ 4 ＋ 卡 88）**。
+   座位卡壓到 62px 靠的是字級與內距（`.av` 18px／`.nm` 11.5px／`.st` 9px），不是把東西藏起來——
+   `felt-probe --sel=#west,#east` 量的是 `scrollHeight − clientHeight`，藏不掉。要加東西先跑它。
+6. **掛在卡角外側的徽章要記得翻進來**：`.markb`（left:-4px）／`.mybid`／`.pickbox`（right:-4px、top:-8px）
+   會把卡列撐出 3px 橫向溢出；`.seat` 的 `.dir`／`.windb`／`.roleInfoBtn`／`.bubble` 則會把 `#north` 撐出 11px 直向溢出
+   （**基準 v0.53 本來就有這 11px**，是這一卷順手修掉的）。做法是 `.rail{padding:8px 5px 0}` 留位置＋把北席那幾顆的座標翻進卡內。
+7. **`#tray` 是 0.56b 的預留命中層，在 0.56a 是空操作**：`trayTap`／`trayHover` 收 `pointerdown`／`pointermove`
+   但什麼都不做。`#felt.hollow #stage` 疊在 `#tray` 之上（z-index 2 對 1）且 `pointer-events:none`、
+   子元素才 `auto` ⇒ 桌心空白處的 tap 落到 `#tray`、押寶夜的 stepper 仍然點得到。
+   **0.56b 接手時：`#tray` 的 z-index 不得高過 `#veil` 的 6**（否則開標黑幕蓋不住），也不得高過 `#stage` 的 2。
+8. **觸控白名單兩處字串（`index.html:34` CSS 與 `:6637` JS）一字未動**：`#tray` 是 `#felt` 的子元素，
+   `closest("#felt,…")` 沿祖先鏈找 ⇒ 仍然命中。新增的只有 `#tray{touch-action:manipulation}`。
+   白名單真的要變成三處的情境只有一種：做拖曳轉桌／捏合縮放（本卷 §3 明令不做）。
+9. **★`#felt.hollow` 一定要有 `isolation:isolate`★**（二版修的 CRITICAL）：v0.53 的 `#felt` 靠 `backdrop-filter`
+   順便建立了**堆疊環境**，把 `#helpBtn` 的 `z-index:25` 關在 `#felt` 裡；掏空拿掉 backdrop-filter 之後那個環境消失，
+   25 逃到根環境、**贏過 `#modal` 的 20**，`？` 鈕就壓在袋子／角色資訊／說明面板上並吃掉那一塊的點擊
+   （側欄 120→168 讓 `#felt` 右緣左移 48px，剛好滑進置中 460px 的 `#modalbox`）。
+   計畫 §6 Q1③ 說「backdrop-filter 那條理由已經過期」**只對了一半**：對 `position:fixed` 的包含塊過期了，
+   對堆疊環境沒有。動 `#felt.hollow` 的任何一條時不要順手把它拿掉；`legend-drive --modal` 就是守它的。
+10. **牌桌上「清掉上一位的私有東西」一律用 `#table ` 前綴，不要用 `#stage `**（二版修的 HIGH）：
+   熱座交棒的雙保險清場（`showHandoff`）在掏空後對 `#railW`／`#railE` 的 `.mybid`／`.pickbox` 一顆都不命中。
+   `legend-drive --handoff` 走真實路徑（封一筆「押 2」→ 蓋牌 → 交棒當下數；掏空與 `?table3d=0` 兩條路都跑）守它，
+   判定式含**活性斷言**「這一輪真的封出過一顆 `.mybid`」——只驗「殘留 0」是歸零斷言，會恆綠。
+11. **★北列 56px 是固定的——而且至少有三種組合同時停在 52.8／56 的天花板★**（三版修的 HIGH-A、四版補齊，覆審 R3 LOW-J）：
+   `#north` 是 `grid-template-rows:56px 1fr 62px` 的固定列、`overflow:visible`，撐爆會直接衝出畫面上緣並壓到座位卡。
+   `.preview` 的高度是量化的：**15.7／29.4／43.1／52.8／62.4 ＝ 1／2／3／4／5 行**，而 56px 的列**最多吃到 52.8（4 行）**，
+   再多一行（62.4）就溢出（二版實測 62.4 那一格 `#north` 溢出 4px、89.8 那一格 17px）。實測停在 52.8 的有：
+   ① **solo 規則夜（第 3／7 夜）不讓寬那一側**：343.8px／52.8（只剩 3.2px）
+   ② **押寶夜落在第 7 夜時的出價頁**：`showMarket` 的樣板是 `(rl && !stake)`（押寶夜的規則說明寫在一注條裡、**不進預告框**）
+      ⇒ 那一頁沒有 `.rulein`、`wide && !hasRule` 成立、**照樣讓寬**，179.4px 下也正好 52.8（只剩 1.6px）。
+      覆審實測 seeds 1..40 有 **11 顆**把押寶夜排在第 7 夜（3,4,11,13,18,22,28,31,33,38,40，**含官方跑的 seed 3**）；
+      同一夜兩頁的版面會左右互換（盯上 254.2／出價 418.6），那是 `.rulein` 判準的必然結果，不是 bug。
+   ③ **熱座的規則夜（第 3 夜就會遇到）**：預告框多一段「【西家・玩家二 出價中｜壽命 N】」，343.8px 下也是 52.8。
+   ⇒ **「第 7 夜最緊」只說對了 solo**；動北列任何字級、內距或欄寬之前，這三種都要重量。
+   裁乙的「讓寬」**對規則夜不生效**（`fillRails` 掛 `.shwide` 的條件是「`#shrines.wide` **且** 預告框裡沒有 `.rulein`」）。
+   閘門：`legend-drive` 的直向判定四版起量 `#north`／`#west`／`#east` 且**溢出 >0 一律紅**、夜數走到 `--vrounds=8`；
+   `felt-probe --rounds=7`（預設）是診斷用的逐格表。**熱座第 7 夜沒有任何閘門走得到**（熱座一局要跑一萬次以上迴圈，
+   覆審跑 22 分鐘沒走到）——0.56b 最省的做法是給 `felt-probe` 加一個 `--mode=hotseat`。
+12. **裁乙在規則夜有已知代價（0.56b 要處理）**：規則夜不讓寬 ⇒ 香火榜退回 254px，
+   三張待請卡的**尊名與招式名都會被 ellipsis 切掉**（實測 solo seed 1 第 7 夜：殘日 `.shn` 16/9、大士爺紙尊 40/24、
+   有應公 24/6；系別 chip 22/22 沒被切）。第 7 夜同時是請神夜前一夜，正是裁乙要保的兩夜之一 ⇒
+   **那一夜把裁乙要保的三樣裡的兩樣交還回去了**。現況的取捨是「規則讀不到比尊名被切嚴重」，
+   但這是**已知代價、不是已解決**；0.56b 版面重排（托盤上桌時北列本來就要重排）時一併處理。
+
+**治具**：`felt-probe --sel=`（一支量四個容器，T2／T3）／`legend-drive --sel=`（橫向溢出清單，T4）／
+`legend-drive --taps`（逐一 tap 命中回歸＋字面引數，T5；`--tapsonly` 只跑這段拿基準）／`legend-drive --t3d`（kill switch 與直式 computed 值，T1／T6）／
+`legend-drive --modal`（面板遮擋，R1-CRITICAL-1）／`legend-drive --handoff`（熱座交棒清場，R1-HIGH-1）／
+`layout-shot --sel=`／`mkt-probe --sel=`（`#market` 這個 id 在掏空頁退役，三支一律改吃 `--sel`，不逐支複製選擇器）。
+**三支的 `--sel` 預設值都是掏空版現行的容器，找不到元素一律 throw**——量 `?table3d=0`／v0.53 要自己帶
+`--sel=#felt`（felt-probe）／`--sel=#market`（layout-shot、mkt-probe）。一版曾經「少拍一張圖卻 exit 0」，別再讓它靜默。
+`layout-shot` 順帶量請神夜前一夜三張待請卡的 `scrollWidth>clientWidth`（尊名／系別 chip／招式名一個都不許被切），切到就非零離開。
+**埠用 96xx 段**（95xx 是請神卷的）。量基準要一個靜態根：把基準 commit 的 `index.html` 放進一個目錄、`js/`／`assets/` 用 junction 接回來，
+`--root=` 指過去（治具全程不動 worktree 的 `index.html`）。

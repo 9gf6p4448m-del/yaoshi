@@ -1,6 +1,7 @@
-/* 市集卡橫向溢出的一次性定位探針（請神 2.0 版面卷）：844×390 走到「蓋牌開標」那一頁，
-   列出每一個右緣超出 #market 的元素，並在移除 .uline（部隊預覽那一行）之後再量一次
-   ——用來回答「這 3px 是本來就有的，還是本卷加的那一行造成的」。純診斷、不判定。 */
+/* 市集卡橫向溢出的一次性定位探針（請神 2.0 版面卷；掏空卷 v0.55a 加 --sel=）：844×390 走到「蓋牌開標」那一頁，
+   列出每一個右緣超出 --sel 容器的元素——用來回答「這 3px 是誰撐出來的」。純診斷、不判定。
+   --sel=<選擇器>：**#market 這個 id 在掏空頁退役**（卡片退到 #railW／#railE），所以容器改吃旗標而不是寫死。
+     預設 `#market`＝v0.53 行為；掏空版傳 `--sel=#railW`。 */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,6 +16,9 @@ function loadChromium(){
 const PORT=+(process.argv.find(a=>a.startsWith('--port='))||'--port=8995').split('=')[1];
 const W=+(process.argv.find(a=>a.startsWith('--w='))||'--w=844').split('=')[1];
 const H=+(process.argv.find(a=>a.startsWith('--h='))||'--h=390').split('=')[1];
+/* 預設＝掏空版現行的側欄卡列（0.56a 二版，覆審 MEDIUM-1）；量 `?table3d=0`／v0.53 要自己帶 --sel=#market。
+   沿革：一版預設 `#market`，在掏空版回一個 `{missing:'#market'}` 的空掃描卻**照樣 exit 0**。 */
+const SEL=(process.argv.find(a=>a.startsWith('--sel='))||'--sel=#railW').split('=').slice(1).join('=');
 const srv=spawn('python',['-m','http.server',String(PORT),'--bind','127.0.0.1'],{cwd:ROOT,stdio:'ignore'});
 await new Promise(r=>setTimeout(r,900));
 const browser=await loadChromium().launch();
@@ -34,25 +38,22 @@ try{
     if(!st.d) await page.click('#mainbtn');
     else await page.evaluate(`(()=>{const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled);if(e)e.click();})()`);
   }
-  const scan=await page.evaluate(`(()=>{
-    const m=document.getElementById('market'); const mr=m.getBoundingClientRect(); const rows=[];
+  const SCAN=`(()=>{
+    const m=document.querySelector(${JSON.stringify(SEL)});
+    if(!m) throw new Error('--sel 指到的容器在這一版不存在：'+${JSON.stringify(SEL)}+'（掏空版用預設 #railW；?table3d=0／v0.53 請帶 --sel=#market）');
+    const mr=m.getBoundingClientRect(); const rows=[];
     m.querySelectorAll('*').forEach(el=>{const r=el.getBoundingClientRect();
       if(r.right-mr.right>0.5||mr.left-r.left>0.5) rows.push({tag:el.tagName,cls:(el.className||'').toString().slice(0,30),
         l:+r.left.toFixed(1),rr:+r.right.toFixed(1),w:+r.width.toFixed(1),txt:(el.textContent||'').trim().slice(0,20)});});
     const cards=[...m.children].map(c=>({w:+c.getBoundingClientRect().width.toFixed(1),sw:c.scrollWidth,cw:c.clientWidth}));
-    return {mkt:{sw:m.scrollWidth,cw:m.clientWidth},cards,rows};
-  })()`);
-  console.log(`視窗 ${W}×${H}`); console.log(JSON.stringify(scan,null,1));
+    return {sel:${JSON.stringify(SEL)},mkt:{sw:m.scrollWidth,cw:m.clientWidth},cards,rows};
+  })()`;
+  const scan=await page.evaluate(SCAN);
+  console.log(`視窗 ${W}×${H}　sel=${SEL}`); console.log(JSON.stringify(scan,null,1));
   /* 直式：在**同一頁**改視窗大小再掃一次（直式沒辦法自己點到出價頁——#rotateHint 蓋板會攔掉點擊） */
   await page.setViewportSize({width:390,height:844});
   await page.waitForTimeout(400);
-  const scanP=await page.evaluate(`(()=>{
-    const m=document.getElementById('market'); const mr=m.getBoundingClientRect(); const rows=[];
-    m.querySelectorAll('*').forEach(el=>{const r=el.getBoundingClientRect();
-      if(r.right-mr.right>0.5||mr.left-r.left>0.5) rows.push({tag:el.tagName,cls:(el.className||'').toString().slice(0,30),
-        l:+r.left.toFixed(1),rr:+r.right.toFixed(1),w:+r.width.toFixed(1),txt:(el.textContent||'').trim().slice(0,20)});});
-    return {mkt:{sw:m.scrollWidth,cw:m.clientWidth,l:+mr.left.toFixed(1),r:+mr.right.toFixed(1)},rows};
-  })()`);
+  const scanP=await page.evaluate(SCAN);
   console.log('直式 390×844（同一頁）：',JSON.stringify(scanP,null,1));
   await ctx.close();
 } finally { await browser.close(); srv.kill(); }

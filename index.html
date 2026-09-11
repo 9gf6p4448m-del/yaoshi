@@ -55,6 +55,119 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #north{grid-area:north;display:flex;justify-content:center}
 #west{grid-area:west} #east{grid-area:east}
 #west,#east{display:flex;align-items:center}
+/* ===== 拍賣桌整片掏空 v0.55a（ROADMAP_V2 Top 1；凍結檔 docs/experiments/2026-09-10-acceptance-table3d.md）=====
+   `#north`／`#west`／`#east` 拆成「座位卡容器＋內容容器」，理由是 renderSeats() 直接覆寫這三個容器的 innerHTML
+   （計畫 §7 風險 4）：不拆的話市集卡會被座位卡整批洗掉，出現間歇性「卡片消失」。
+   **座位卡容器預設 display:contents** ⇒ 座位卡仍然是 #north／#west／#east 的直接 flex 項目，
+   v0.53 的版面因此逐像素不變（`?table3d=0` 與直式走的就是這條）。
+   掏空版面的每一條規則都只寫在 `#table.t3d` ＋ `@media (orientation:landscape)` 裡面
+   ⇒ 直式與 kill switch 由**建構上**回到 v0.53，不靠另寫一份覆蓋（Q6 甲）。 */
+#northSeat,#westSeat,#eastSeat{display:contents}
+#northPrev,#northShr{display:none}
+.rail{display:none}
+@media (orientation:landscape){
+  #table.t3d{grid-template-columns:168px 1fr 168px}   /* 原 120px 1fr 120px（Q5 甲：側欄 168px、桌心 492px） */
+  #table.t3d #west,#table.t3d #east{flex-direction:column;gap:4px;align-items:stretch}
+  #table.t3d #westSeat,#table.t3d #eastSeat{display:block;width:100%;min-width:0;flex:0 0 auto}
+  /* padding 的理由與 #market{padding:0 5px} 完全同一條（請神 2.0 凍結檔 G6）：`.markb`（left:-4px）與
+     `.mybid`／`.pickbox`（right:-4px／top:-8px）本來就掛在卡角**外側**，不留位置的話卡列會被撐出 3px 橫向溢出
+     （實測 #railW／#railE 各 3px），最上面那張卡的徽章還會壓到座位卡。留了之後徽章落在卡列內，徽章本身的視覺一格不動。 */
+  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;padding:8px 5px 0}
+  #table.t3d .rail .mcard{height:88px}                /* 原 133.3×98 → 158×88（168 欄寬扣掉兩側各 5px 徽章位） */
+  /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
+     `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
+  #table.t3d .rail .mcard{padding:4px 6px}
+  #table.t3d .rail .mcard .nm{font-size:11.5px}
+  #table.t3d .rail .mcard .pw{font-size:10px}
+  #table.t3d .rail .mcard .fchip{font-size:8.5px}
+  #table.t3d .rail .mcard .ab{font-size:9px;line-height:1.3;margin-top:1px}
+  #table.t3d .rail .mcard .uline{font-size:9px;line-height:1.35}
+  /* 側欄的垂直帳（實測）：256 ＝ 座位 62 ＋ 4 ＋ 卡列 190（上緣 8 ＋ 卡 88 ＋ 4 ＋ 卡 88）。座位卡從 85.6 壓到 62，
+     壓的是字級與內距，不是把它藏起來（T3 量的是 scrollHeight−clientHeight，藏不掉）。 */
+  #table.t3d #west .seat,#table.t3d #east .seat{padding:2px 7px}
+  #table.t3d #west .seat .av,#table.t3d #east .seat .av{font-size:18px;line-height:1.05}
+  #table.t3d #west .seat .nm,#table.t3d #east .seat .nm{font-size:11px;line-height:1.25}
+  #table.t3d #west .seat .st,#table.t3d #east .seat .st{font-size:9px;line-height:1.3}
+  /* 掛在卡角外側的三顆徽章翻進卡內：側欄改成「座位卡貼著上緣」之後，-7px 的凸出會被 #west 的上緣切掉 */
+  #table.t3d #west .seat .dir,#table.t3d #east .seat .dir{top:1px}
+  #table.t3d #west .seat .windb,#table.t3d #east .seat .windb{top:1px}
+  #table.t3d #west .seat .roleInfoBtn,#table.t3d #east .seat .roleInfoBtn{bottom:1px}
+  /* 北列：北席卡兩側的空白拿來放「明夜預告／盯上說明」與「香火榜＋三尊待請卡」，
+     北席卡維持置中（#north 仍是 justify-content:center，兩側各 flex:1 1 0）。 */
+  #table.t3d #north{gap:4px}
+  #table.t3d #north .seat{max-width:230px}   /* 讓出兩側的欄寬：836−230−8 ⇒ 每側 299px */
+  /* 北席卡掛在外側的三顆徽章與對話泡也翻進來：56px 的北列容不下 -7px 的凸出（基準 v0.53 量到 #north 直向溢出 11px，
+     就是 .roleInfoBtn 與 .bubble 掛在卡外造成的）。翻進來之後 #north 的 scrollHeight ＝ clientHeight。 */
+  #table.t3d #north .seat .dir{top:1px}
+  #table.t3d #north .seat .windb{top:1px}
+  #table.t3d #north .seat .roleInfoBtn{bottom:1px}
+  #table.t3d #north .bubble{left:calc(100% + 6px);top:50%;bottom:auto;transform:translateY(-50%)}
+  #table.t3d #northPrev,#table.t3d #northShr{display:flex;flex:1 1 0;min-width:0;align-items:center}
+  #table.t3d #northPrev>*,#table.t3d #northShr>*{margin:0;width:100%;min-width:0}
+  /* 北列左格的預告框：字級與同一列的香火榜（.incboard 9.5px／.shcard 8.5px）同一個量級，
+     56px 的列高塞得下最長的那一版（盯上第 1 夜的完整教學、規則夜的規則說明）。 */
+  #table.t3d #northPrev .preview{font-size:8.5px;line-height:1.14;padding:0 4px;text-align:left}
+  #table.t3d #northPrev{flex:1.15 1 0} #table.t3d #northShr{flex:0.85 1 0}   /* 預告框的字比香火榜多，寬度就多分一點 */
+  /* 香火榜進了 ~254px 的北列格之後，slim 的「一列」會被三張待請卡吃光、香火榜只剩一個燈籠圖示
+     （試玩截圖看得出來）。北列這一格改成**兩列**：榜佔滿一列、三張卡佔滿一列，
+     56px 的列高塞得下（16.7＋2＋16.7＝35.4）。這是版面適配，不動 shrinesHTML 一個字。 */
+  #table.t3d #northShr #shrines,#table.t3d #northShr #shrines.slim{flex-direction:column;gap:2px;align-items:stretch}
+  #table.t3d #northShr #shrines.slim .incboard{flex:0 0 auto}
+  #table.t3d #northShr #shrines.slim .shcards{flex:1 1 auto}
+  #table.t3d #northShr #shrines.slim .shcard{flex:1 1 0}
+  #table.t3d #northShr .incboard{font-size:8px}
+  #table.t3d #northShr .incboard .ibh{font-size:7.5px}
+  #table.t3d #northShr .shname,#table.t3d #northShr .shfac,
+  #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{font-size:8px}
+  /* 使用者裁乙（0.56a 二版）：**請神夜前一夜與當夜**（`#shrines.wide`，也就是玩家要決定燒不燒香的那兩夜）
+     把預告框的寬讓給香火榜——三張待請卡的尊名／系別 chip／招式名是那個決定的唯一輸入，不該被 ellipsis 吃掉。
+     ★三版（覆審 R2 HIGH-A）加了一條例外：**規則夜不讓寬**★。實測（seed 1／2 逐值相同）：
+       讓寬後預告框 179.4px，一般夜排 43.1px（3 行）沒事；但**第 7 夜同時是規則夜（RULE_NIGHTS [3,7]）
+       與 wide 夜（SHRINE_NIGHTS [5,8,11] 的前一夜）**，多一段「今夜市集規則：…」在 179.4px 下排成 **89.8px**，
+       把固定 56px 的北列撐爆 **17px**（出價）／**4px**（盯上）——`#north` 是 `overflow:visible`，
+       第一行整行衝出畫面上緣、底下壓到西家座位卡、規則說明在句子中間斷掉。
+       規則夜正是玩家最需要讀那段字的一夜 ⇒ **規則說明優先**。
+     ★代價要照實寫（四版，覆審 R3 MEDIUM-D）★：那一夜香火榜退回 254px，被切的**不只招式名**——
+       三張待請卡的**尊名也被切**（實測 solo seed 1 第 7 夜：殘日 `.shn` 16/9、大士爺紙尊 40/24、有應公 24/6，
+       系別 chip 22/22 沒被切，`.shn` 包層那一半是有效的）。第 7 夜同時是請神夜前一夜，
+       正是使用者裁乙要保的「決定燒不燒香的那兩夜」之一 ⇒ **這一版在那一夜把裁乙要保的三樣裡的兩樣交還回去了**。
+       取捨仍成立（規則讀不到比尊名被切嚴重），但這是**已知代價**，0.56b 版面重排時要處理，不要當成已經解決。
+     ★實測的行數（別再寫「讓寬會收回一行」，那句是錯的，R2 LOW-B）★：
+       請神夜前一夜出價頁 343.8px/29.4px(2 行) → 179.4px/43.1px(**3 行**)；當夜 15.7px(1 行) → 43.1px(**3 行**)。
+       讓寬是**多出行**，只是一般夜的 56px 吃得下；第 7 夜吃不下，所以才有上面那條例外。 */
+  #table.t3d #north.shwide #northPrev{flex:0.6 1 0}
+  #table.t3d #north.shwide #northShr{flex:1.4 1 0}
+  /* chip 不參與縮排，只縮尊名（覆審 LOW-1 的配套：光讓寬只解決招式名，chip 還是會被切） */
+  #table.t3d #northShr .shname{display:flex;align-items:center;min-width:0;overflow:visible}
+  #table.t3d #northShr .shname .shn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #table.t3d #northShr .shfac{flex:0 0 auto}
+  #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{flex:0 1 auto}
+  /* 掏空本體：#felt 保留 id、保留 position:relative（撐 #skipbtn／#helpBtn）、保留 overflow-y:auto，
+     只是不再畫玻璃、裡面也不再裝市集卡。--glass-* 四個變數一格不動（非掏空頁照舊吃）。 */
+  /* ★isolation:isolate 是必要的，不是裝飾★（0.56a 二版，覆審 CRITICAL-1）：
+     v0.53 的 `#felt` 有 `backdrop-filter`，而 backdrop-filter **會建立堆疊環境**——`#helpBtn` 的 z-index:25
+     因此一直被關在 `#felt` 裡面，`#modal`（fixed、z 20）永遠畫在它上面。掏空把 backdrop-filter 拿掉之後
+     那個堆疊環境跟著消失，z-index:25 逃到根環境、**贏過 `#modal` 的 20**：側欄 120→168 讓 `#felt` 右緣左移 48px，
+     `？` 鈕就滑進置中 460px 的 `#modalbox`（右緣恆 652）裡，實測重疊 28×34px 且 `elementFromPoint` 回 helpBtn。
+     `isolation:isolate` 把堆疊環境補回來（不動 #sheet／#modal／#duel 的 30／20／40，計畫 §3 第 6 條），
+     #felt 內部的 #tray 1 / #stage 2 / #skipbtn 5 / #veil 6 / #helpBtn 25 相對順序一格不變。
+     ★計畫 §6 Q1③ 說「backdrop-filter 那條理由已經過期」只對了一半★：它對 `position:fixed` 的**包含塊**確實過期了
+     （那兩顆鈕早就改成 absolute），但對**堆疊環境**沒有過期——這一條是掏空真正踩到的地雷。 */
+  #felt.hollow{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:transparent;isolation:isolate}
+  #felt.hollow #feltHead{position:relative;z-index:2;pointer-events:none;text-shadow:0 1px 3px #000,0 0 8px #000}
+  #felt.hollow #tray{display:block;position:absolute;left:0;right:0;top:26px;bottom:0;z-index:1;
+    pointer-events:auto;touch-action:manipulation;background:transparent}
+  /* #stage 疊在 #tray 之上、本身不吃事件、只有實際內容（心願條／押寶條）吃
+     ⇒ 桌心空白處的 tap 落到 #tray，押寶夜的 stepper 仍然點得到（T5 兩邊都要成立）。 */
+  #felt.hollow #stage{position:relative;z-index:2;pointer-events:none}
+  #felt.hollow #stage>*{pointer-events:auto}
+  /* 掏空之後這幾條浮在 3D 桌面上：底下不再是玻璃面板，而是會亮起來的燈籠光與粒子（實測 preshrine 那一張
+     右半被一團 bloom 洗白、心願條的字讀不到）。底色從 rgba(0,0,0,.25) 加深到 .62 就夠——
+     不用 backdrop-filter：iPhone 牌桌基準只有 55–58 fps，一趟全區模糊換不到等值的可讀性。 */
+  #felt.hollow .preview,#felt.hollow .wishbar,#felt.hollow .stakebar{background:rgba(8,5,16,.62)}
+}
+/* #tray：非掏空頁與直式一律不存在意義（凍結檔 §2.2 寫死） */
+#tray{display:none}
 /* 3D 環境層透出（v0.15，使用者裁定「甲」）：牌桌面板半透明＋毛玻璃，讓 canvas 的桌面／燈籠光／
    線香煙從後面透出來。透明度的單一事實來源＝下面三個變數，要調就改這裡，不要各處硬寫 rgba。
    每條都先寫不透明的舊值當 fallback：不支援 color-mix 的瀏覽器退回原樣，不會破版。 */
@@ -568,16 +681,19 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <p id="verLine" style="margin-top:10px;color:var(--gold);font-size:11px"></p>
 </div>
 <div id="table">
-  <div id="north"></div>
-  <div id="west"></div>
+  <!-- 掏空卷 v0.55a：三個座位容器各自拆成「座位卡（renderSeats 獨佔）＋內容（setHollow／showMarket 獨佔）」，
+       兩邊互不覆蓋（計畫 §2.1／§7 風險 4）。#tray 是掏空後桌心的透明命中層，0.55b 才接 Raycaster。 -->
+  <div id="north"><div id="northPrev"></div><div id="northSeat"></div><div id="northShr"></div></div>
+  <div id="west"><div id="westSeat"></div><div id="railW" class="rail"></div></div>
   <div id="felt">
     <button id="skipbtn" onclick="doSkip()">跳過 ≫</button>
     <div id="feltHead"></div>
     <button id="helpBtn" onclick="openHelp()">？</button>
+    <div id="tray"></div>
     <div id="stage"></div>
     <div id="veil"></div>
   </div>
-  <div id="east"></div>
+  <div id="east"><div id="eastSeat"></div><div id="railE" class="rail"></div></div>
   <div id="south">
     <span class="av" id="myAv">🧑</span>
     <div><div class="dir" id="myDir">南・你</div><div class="life" id="myLife"></div></div>
@@ -1972,7 +2088,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.54", VERSION_NOTE="招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.56a", VERSION_NOTE="拍賣桌整片掏空 0.56a 版面卷：出價頁與盯上頁的中央面板掏空露出 3D 桌面（桌面本身仍是平面，托盤／木紋是 0.56b），市集卡退到左右側欄 168px 與底列、直式維持原版面；?table3d=0 可關；規則夜不讓寬（第 7 夜三張待請卡尊名會被截，0.56b 處理）；觸控命中逐一 tap 回歸 177/177、熱座清場與面板遮擋新閘門｜招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2258,6 +2374,56 @@ function waitMain(label){
   });
 }
 const $=id=>document.getElementById(id);
+/* ===== 拍賣桌整片掏空 v0.55a：kill switch 與掏空切換 =====
+   `?table3d=0` ＝ **完全回到 v0.53 版面**（不加 .hollow、欄寬回 120px、卡片回 #stage 裡的 #market）。
+   解析法與既有的 ?closeup／?fps／?legend／?edge／?outline／?decal 同一種；headless（tests/tools/load.mjs）
+   的 location.search 是空字串 ⇒ 預設開，且下面所有 DOM 操作都對 null 免疫。 */
+const TABLE3D=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("table3d")!=="0"; }catch(e){ return true; } })();
+/* 掏空只能**依頁面**切換：#felt 是所有階段的舞台（$("stage").innerHTML 全檔 11 處），
+   全掏空的話開標揭盅會變成一張浮在木桌上的無底文字（使用者裁 Q1 甲）。
+   off 時順手清空側欄卡列與北列兩塊 ⇒ 這四個容器的生命週期只有這一支在管（收斂，不逐頁補清空）。 */
+function setHollow(on){
+  const f=$("felt"); if(!f) return;
+  const hollow=!!on&&TABLE3D;
+  f.classList.toggle("hollow",hollow);
+  if(!hollow){
+    ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
+    const n=$("north"); if(n) n.classList.remove("shwide"); /* 讓寬只在掏空頁的 wide 兩夜生效 */
+  }
+}
+/* 側欄卡列的兩張卡。卡片內容一字不改——內部仍呼叫既有的 mcardHTML／markCardHTML，
+   兩頁各自把自己的卡片工廠傳進來（出價頁＝mcardHTML，盯上頁＝markCardHTML）。 */
+function railHTML(idxs,cardFn){
+  const fn=cardFn||mcardHTML;
+  return idxs.map(i=>fn(S.market[i],i)).join("");
+}
+/* 掏空頁的三塊搬家：預告框→#northPrev、香火榜→#northShr、市集卡→#railW／#railE（前半／後半）。
+   四張卡的左右分配用 S.market.length 算，不寫死 4——CFG.MARKET 改了這裡自動跟上。 */
+function fillRails(prevHTML,shrHTML,cardFn){
+  const set=(id,h)=>{ const e=$(id); if(e) e.innerHTML=h; };
+  const idx=S.market.map((_,i)=>i), half=Math.ceil(idx.length/2);
+  set("northPrev",prevHTML);
+  set("northShr",shrHTML);
+  set("railW",railHTML(idx.slice(0,half),cardFn));
+  set("railE",railHTML(idx.slice(half),cardFn));
+  /* 請神夜前一夜與當夜（香火榜是 wide）給北列掛 `.shwide`，CSS 才知道要把預告框的寬讓給香火榜
+     （使用者裁乙）。判準直接問渲染出來的 DOM，不另抄一份「哪兩夜是 wide」的規則——
+     wide 的唯一事實來源是 shrinesHTML 裡的 `left<=1`。 */
+  const n=$("north"), shr=$("northShr"), pv=$("northPrev");
+  /* ★讓寬的條件是「wide 夜 **而且** 預告框裡沒有規則說明」★（三版，覆審 R2 HIGH-A）。
+     `.rulein` 就是「今夜市集規則：…」那一段（index.html 的兩處預告框樣板各一）；它在 179.4px 下
+     會把預告框排成 89.8px、撐爆 56px 的北列。判準直接問**渲染出來的 DOM**，不另抄一份
+     「哪幾夜是規則夜」或「哪幾夜是 wide」的規則——兩邊的唯一事實來源分別是 ruleForRound 與 shrinesHTML。 */
+  const wide=!!(shr&&shr.querySelector&&shr.querySelector("#shrines.wide"));
+  const hasRule=!!(pv&&pv.querySelector&&pv.querySelector(".rulein"));
+  if(n) n.classList.toggle("shwide", wide&&!hasRule);
+}
+/* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
+   0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
+   ★凍結檔 T5 會數這支被呼叫幾次★：tap 落在既有可點元素（.mcard／#skipbtn／#helpBtn／#south 任何鈕）
+   上時必須是 0——#tray 不得吃掉任何一個原本點得到的東西。 */
+function trayTap(ev){ /* 0.55a：無托盤，不做事 */ }
+function trayHover(ev){ /* 0.55a：無托盤，不做事 */ }
 /* 種子化亂數：同一顆種子必須重現整局。S.rng = 玩法流（洗牌、AI 抖動、平標決勝、事件）；
    S.rngUi = 純演出流（台詞挑選），與玩法分開才不會讓「有沒有播動畫」改變賽局結果。 */
 function mulberry32(a){
@@ -3990,9 +4156,12 @@ function renderSeats(hlIds){
   const hl=id=>hlIds&&hlIds.includes(id);
   /* 北席回到頂端正中（請神 2.0 版面裁定）：神龕列已搬進中央面板 #stage 的法寶卡上方，
      #north 恢復成「只有北家一張座位卡、justify-content:center」＝與加入神龕之前一模一樣。 */
-  $("north").innerHTML=seatHTML(1,hl(1));
-  $("west").innerHTML=seatHTML(2,hl(2));
-  $("east").innerHTML=seatHTML(3,hl(3));
+  /* 掏空卷 v0.55a：寫入目標從 #north／#west／#east 收進 #northSeat／#westSeat／#eastSeat
+     ——側欄卡列（#railW／#railE）與北列兩塊（#northPrev／#northShr）是這三個容器的兄弟，
+     這一支因此不會再把它們洗掉（計畫 §7 風險 4；全檔就這三行在覆寫座位卡）。 */
+  $("northSeat").innerHTML=seatHTML(1,hl(1));
+  $("westSeat").innerHTML=seatHTML(2,hl(2));
+  $("eastSeat").innerHTML=seatHTML(3,hl(3));
   const me=S.players[0];
   $("myAv").innerHTML=avHTML(me)+markStampHTML(0);
   $("south").classList.remove("dimmed","anim-lantern-reveal"); /* #south 不重建，開標演出加上的 class 要在這裡清 */
@@ -4037,7 +4206,10 @@ function shrinesHTML(){
     <span class="ibwhen">${when}</span></div>`;
   const cards=S.shrines.map(sh=>{
     const L=LEGENDS[sh.i], f=FAC[sh.fac]||{n:"？"}, tr=(TRAITS[L.unit.trait]||{name:"",desc:""});
-    const head=`<span class="shname">${L.n}<span class="shfac">${f.n}</span></span>`;
+    /* 尊名另包一層 `.shn`（0.56a 二版，使用者裁乙）：`.shname` 的 ellipsis 本來會把**系別 chip 一起吃掉**
+       （北列格窄的時候實測只剩一小塊色塊、看不出系名）。包起來之後，掏空版的北列格可以讓 chip 不參與縮排、
+       只縮尊名。純多一層 span，沒有樣式的地方（`?table3d=0`、直式、非掏空頁）算繪結果一格不變。 */
+    const head=`<span class="shname"><span class="shn">${L.n}</span><span class="shfac">${f.n}</span></span>`;
     if(!sh.open) return `<div class="shcard gone fac-${sh.fac}">${head}<span class="shtaken">${
       sh.takenBy!=null?`已請走：${DIRS[sh.takenBy]}家`:"已回天"}</span></div>`;
     return `<div class="shcard fac-${sh.fac}" title="${f.n}・${tr.name}：${tr.desc}">${head}${
@@ -4383,6 +4555,7 @@ function showIntro(cont){
   $("helpBtn").style.display="block";
   $("mainbtn").disabled=true;
   const draw=()=>{
+    setHollow(false);   /* 掏空卷 v0.55a：非掏空頁一律回玻璃面板，並清空側欄卡列與北列兩塊 */
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${pages[k]}
       <button class="bigbtn" style="margin-top:14px" onclick="__introNext()">${k<pages.length-1?"下一頁 ▸":"開始入市！"}</button>
       <div class="mut" style="font-size:10px;margin-top:6px">${k+1}／${pages.length}</div></div>`;
@@ -4494,6 +4667,7 @@ function renderEventInput(p,done){
   const who=S.mode==="hotseat"?`<div class="mut" style="font-size:12px;margin-top:6px">【${p.name}｜壽命 ${p.life}】密封抉擇，他人不可見</div>`:"";
   const warn=(ev.id==="ghost"&&EVCTX.victim&&EVCTX.victim.id===p.id)?`<div style="color:#ff8484;font-weight:bold;font-size:14px;margin-top:6px">⚠ 厲鬼盯上的就是你——沒人擋煞你將失 ${CFG.GHOST_DMG} 壽命</div>`:"";
   EVDONE=done;
+  setHollow(false);   /* 掏空卷 v0.55a */
   if(ev.input==="pick"){
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}${warn}
       <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
@@ -4528,6 +4702,7 @@ function revealEventUI(){
     return `<div style="font-size:13px;padding:2px 0">${DIRS[p.id]}家・${p.name}：<b>${lbl}</b>${dTxt}</div>`;
   }).join("");
   renderSeats();
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:30px">${ev.icon}</div><h2 style="font-size:17px;margin:4px 0">${ev.name}・開盅</h2>
     ${lines}<hr style="opacity:.2">
@@ -4562,6 +4737,16 @@ function initIncense(){
   if(!openShrines().length) return;
   INC={amt:0};
 }
+/* 盯上頁的市集卡（掏空卷 v0.55a 從 showMarkUI 的樣板原樣抽出來，一字未改）：
+   抽出來的唯一理由是側欄卡列要用同一份卡片工廠（railHTML 的 cardFn），不是為了改視覺。 */
+function markCardHTML(it,i){
+  return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
+      ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
+      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
+      ${unitRowText(it,S.players[ACTIVE])}
+    </div>`;
+}
 /* 盯上宣告的選擇畫面：釘一件或不釘；AI 的釘法此時尚未揭露（同時宣告版），釘完才一起公開在拍品卡上 */
 function showMarkUI(){
   SKIP=false; $("skipbtn").style.display="none";
@@ -4575,21 +4760,21 @@ function showMarkUI(){
   /* 盯上說明**第二夜起收成一行**（請神 2.0 版面裁定）：第 1 夜給完整教學，之後玩家已經懂了，
      長句只是在跟神龕列與法寶卡搶 #felt 的高度預算（GUIDE §11.12：零餘裕）。 */
   const first=S.round<=1;
-  $("stage").innerHTML=`
-    <div class="preview">${who}👁 <b>盯上宣告</b>：${first
+  const prev=`<div class="preview">${who}👁 <b>盯上宣告</b>：${first
       ? `封標前公開釘一件「我盯上了」。${CFG.MARK_TAX>0?`盯了要真的出價，否則夜末付 ${CFG.MARK_TAX} 壽命。`:""}`
       : `公開釘一件${CFG.MARK_TAX>0?`（不出價罰 ${CFG.MARK_TAX}）`:""}`}${
       (CFG.MARK_CRED_ON?`<span class="credin">🤝 <b>你的信譽 ${credTxt(ap)}</b>${first?`<span class="mut">（近 ${CFG.MARK_CRED_WIN} 次宣告；怎麼算看 ？）</span>`:""}</span>`:"")}${
       first?`<span class="mut">盯主標還是誘餌？看底列每隻對手的反應。</span>`:""}${
-      rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
+      rl?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>`;
+  /* 掏空卷 v0.55a（Q1 甲：盯上頁掏空）：預告框與香火榜搬進 #north 的兩塊空白、四張卡退到左右側欄，
+     #stage 只留心願條 ⇒ 桌心乾淨。`?table3d=0` 走 else 那條，版面與 v0.53 逐像素相同。 */
+  const hollow=TABLE3D;
+  $("stage").innerHTML=`${hollow?"":prev}
     ${wishBarHTML(ap)}
-    ${shrinesHTML()}
-    <div id="market">${S.market.map((it,i)=>`<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
-      ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
-      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
-      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
-      ${unitRowText(it,ap)}
-    </div>`).join("")}</div>`;
+    ${hollow?"":shrinesHTML()}
+    ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
+  setHollow(hollow);
+  if(hollow) fillRails(prev,shrinesHTML(),markCardHTML);
   /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
      牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
   const bd=$("budget"); bd.innerHTML=markHintHTML(ap); bd.className="";
@@ -4643,7 +4828,12 @@ function showHandoff(pid, cont){
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
   /* 燒香列自 2026-09-07 第二輪覆審起併進底列 #budget（在 #south），清場名單要跟著改，
      否則上一位封的香火會留在畫面上被下一位看到（覆審 M1 守的就是這件事）。 */
-  document.querySelectorAll("#stage .wishbar,#stage .stakebar,#stage .incbar,#stage .mybid,#stage .pickbox,#south .incbar").forEach(el=>el.remove());
+  /* ★選擇器一律用 `#table ` 前綴，不用 `#stage `★（0.56a 二版，覆審 HIGH-1）：
+     掏空之後拍品卡從 `#stage` 搬到 `#railW`／`#railE`（fillRails），`#stage .mybid`／`#stage .pickbox`
+     一顆都不再命中——實測熱座封一筆「押 2」交棒，上一位的徽章留在 #railW 上（基準是 0）。
+     `#table` 一次涵蓋 #stage、兩條 rail 與北列兩塊，對 0.55b 的右側抽屜也免疫。
+     這是「防線按危險的效果寫，不按已知的入口寫」：要清的是**牌桌上任何一顆私有徽章**，不是「#stage 裡的」。 */
+  document.querySelectorAll("#table .wishbar,#table .stakebar,#table .incbar,#table .mybid,#table .pickbox,#south .incbar").forEach(el=>el.remove());
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
   $("hoAv").innerHTML=avHTML(p);
@@ -4664,17 +4854,22 @@ function showMarket(){
   const howto=stake
     ? `封一注、勾要壓的法寶${CFG.BID_FEE>0?`・買路錢只收 ${CFG.BID_FEE}`:""}`
     : `點拍品出價${CFG.MAX_BIDS>0?`・每夜最多 ${CFG.MAX_BIDS} 筆`:"・可同時標多件"}${CFG.BID_FEE>0?`・每筆買路錢 ${CFG.BID_FEE}`:""}`;
-  $("stage").innerHTML=`
-    <div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span>${
+  const prev=`<div class="preview">${who}🔮 明夜預告：${pv.map(x=>`「${x.n}」`).join("、")}${(()=>{const nx=eventForRound(S.round+1);return nx?`＋${nx.icon}${nx.name}<span class="mut">（${nx.hint}）</span>`:""})()}${(()=>{const nr=ruleForRound(S.round+1);return nr?`＋${nr.icon}${nr.name}<span class="mut">（${nr.hint}）</span>`:""})()}　<span class="mut">${howto}</span>${
       /* 今夜市集規則的說明併進這個「每夜都在」的虛線框（異事的 hint 也共用同一欄），不再另開一列——
          #felt 的高度預算是零餘裕，多一個有邊框的區塊就是多 25~34px 的溢出。文案沒動，只換了位置。 */
       /* 押寶夜維持原樣不併入：它本來就沒有 .rulebar 那一列（說明寫在一注條裡），
          把規則說明再塞進預告框只會多推一行、把溢出從 33 推到 49（實測）。 */
-      (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>
+      (rl&&!stake)?`<span class="rulein">${rl.icon} <b>今夜市集規則：${rl.name}</b>——${rl.bar?rl.bar():rl.desc()}<span class="mut">（詳見右上 ？）</span></span>`:""}</div>`;
+  /* 掏空卷 v0.55a（Q1 甲：出價頁掏空）：預告框與香火榜搬進 #north、四張卡退到左右側欄；
+     #stage 只留心願條與押寶條（兩者都要能點，所以 #felt.hollow #stage 疊在 #tray 之上）。 */
+  const hollow=TABLE3D;
+  $("stage").innerHTML=`${hollow?"":prev}
     ${wishBarHTML(ap)}
     ${stakeHTML(ap)}
-    ${shrinesHTML()}
-    <div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`;
+    ${hollow?"":shrinesHTML()}
+    ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
+  setHollow(hollow);
+  if(hollow) fillRails(prev,shrinesHTML(),mcardHTML);
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
@@ -4951,6 +5146,7 @@ async function startReveal(){
   applyHooks("onReveal",rv,aliveHumans());
   /* 落標實付的註記文字：規則夜可用 loseLabel 換掉（如落魄夜的「落標全付」），引擎不寫規則 id */
   const loseLbl=(S.nightRule&&S.nightRule.loseLabel)||"落標費";
+  setHollow(false);   /* 掏空卷 v0.55a：開標揭盅回玻璃面板（#veil 的黑幕要有底才蓋得住） */
   const stage=$("stage");
   if(S.bleedLog&&S.bleedLog.length){
     renderSeats();
@@ -5040,6 +5236,7 @@ async function startReveal(){
   /* 本夜成交總覽 */
   SKIP=false;
   renderSeats();
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div class="big">🏮 本夜成交總覽</div>
     ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・實付 ${r.winner.cost}`:""}）`:""}</span></div>`).join("")}
@@ -5109,6 +5306,7 @@ async function startShrine(){
     if(out.skip) rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 今夜是請神夜，但<b>沒有人請得動</b>（${out.skip.why}）→ 三尊都留著，下一個請神夜再比；已燒的香火<b>原封保留</b></div>`);
     out.dawn.forEach(d=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 最後一個請神夜結束，「${nm(d.shrine)}」<b>回天</b>，本局不再出現</div>`));
     if(!rows.length) rows.push('<div class="mut" style="font-size:12px">今夜沒有動靜</div>');
+    setHollow(false);   /* 掏空卷 v0.55a */
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🕯️ 第 ${S.round} 夜・請神</div><div id="shz"></div></div>`;
     const z=$("shz");
     for(const r of rows){ z.insertAdjacentHTML("beforeend",r); if(!SKIP) await sleep(CFG.T*0.45); }
@@ -5825,6 +6023,7 @@ async function startBattle(){
     if(!f.tie){ sayFrom(f.w.id,"bwin"); if(f.l.ai)sayFrom(f.l.id,"blose"); }
     await sleep(CFG.T*0.4);
   }
+  setHollow(false);   /* 掏空卷 v0.55a */
   const stage=$("stage");
   stage.innerHTML=`<div class="stageCard"><div class="big">⚔️ 第 ${S.round} 夜・戰況</div><div id="bz"></div></div>`;
   const bz=$("bz");
@@ -5934,6 +6133,7 @@ function endGame(){
     const myRank=rank.indexOf(S.players[0])+1;
     head=myRank===1?"你活到了天亮":"你是第 "+myRank+" 名";
   }
+  setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
@@ -6699,6 +6899,13 @@ function initSimTool(){
       "舊版試膽大會（應 FAIL）\nverdict="+r1.verdict+"\ndominant="+JSON.stringify(r1.dominant)+"\nfreeLunch="+r1.freeLunch
       +"\n\n修正版試膽大會（應 PASS）\nverdict="+r2.verdict+"\ndominant="+JSON.stringify(r2.dominant)+"\nfreeLunch="+r2.freeLunch;
   };
+}
+/* 掏空卷 v0.55a：版面類別與命中層的接線。#table 這個 div 在本 script 之前就已經解析完，所以這裡拿得到。
+   `?table3d=0` 時**什麼都不掛** ⇒ 版面、事件、疊層三樣都回到 v0.53（kill switch 的雙向由 T1 驗）。 */
+if(!SIM_MODE&&TABLE3D){
+  const tb=$("table"); if(tb) tb.classList.add("t3d");
+  const tr=$("tray");
+  if(tr){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e)); }
 }
 if(SIM_MODE) initSimTool();
 else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine");

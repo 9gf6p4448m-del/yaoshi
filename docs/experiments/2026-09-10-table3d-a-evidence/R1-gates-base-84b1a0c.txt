@@ -1,0 +1,22 @@
+- **R1-CRITICAL-1 面板遮擋**（真的打開袋子／三席 ⓘ／說明，在 #helpBtn 矩形上取樣 5 點 elementFromPoint）：開了 5 種面板、取樣 25 點，**沒落在 #modal 裡的面板 0 種** → ✅
+    （對照） （沒開面板：對照組）：helpBtn 672/706/72/106　modalbox 0/0/0/0　重疊 0×0　elementFromPoint helpBtn❌ feltHead❌ felt❌ preview❌ felt❌
+    面板開著 袋子 showBag(1)：helpBtn 672/706/72/106　modalbox 192/652/92.5/297.5　重疊 0×13.5　elementFromPoint modal✅ modal✅ modal✅ modal✅ modal✅
+    面板開著 角色資訊 showRoleInfo(1)：helpBtn 672/706/72/106　modalbox 192/652/84.5/305.5　重疊 0×21.5　elementFromPoint modal✅ modal✅ modal✅ modal✅ modal✅
+    面板開著 角色資訊 showRoleInfo(2)：helpBtn 672/706/72/106　modalbox 192/652/94.5/295.5　重疊 0×11.5　elementFromPoint modal✅ modal✅ modal✅ modal✅ modal✅
+    面板開著 角色資訊 showRoleInfo(3)：helpBtn 672/706/72/106　modalbox 192/652/84.5/305.5　重疊 0×21.5　elementFromPoint modal✅ modal✅ modal✅ modal✅ modal✅
+    面板開著 說明 openHelp()：helpBtn 672/706/72/106　modalbox 192/652/23.4/366.6　重疊 0×34　elementFromPoint modal✅ modal✅ modal✅ modal✅ modal✅
+    明細 → docs/experiments/2026-09-10-table3d-a-evidence/r1-modal-base.json
+- **R1-HIGH-1 熱座交棒清場**（封一筆「押 2」→ 蓋牌 → 交棒畫面出現當下）：封在 stage 的 押 2（封標後 #table .mybid 1）　交棒當下殘留 **0** 個（看得見 0） → ✅
+# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION undefined　輸出 r1-base-run.json
+- 局數 0：
+- CFG.LEGEND_ON=undefined　香火榜 #shrines／.incboard＋待請卡：　燒香列：
+- 供奉危急提示出現並按「要」的次數：0；袋子面板「送神回天」按下次數（seed 2）：0
+- console error 0、pageerror 0、requestfailed 0 → ✅
+- **H6 三條路徑**：走到「請走」0 次／「**真人選尊視窗**出現並選擇」0 次（點的那一尊沒對上：0）／「**落空保留**」0 人次 → ❌
+    落空保留樣本：[]
+- 記錄項（不判）：回天 0 尊、局末結清 0 筆、沒人有資格的請神夜 0 次
+- 固定頁對照（同一局同一頁「undefined」）：橫式 undefined　直式 []
+- 直式蓋板行為：#rotateHint 顯示＝undefined、#shrines 收起＝undefined → ❌
+- 橫向溢出：橫式 0 筆、直式 0 筆 → ✅
+- **直向**（#felt scrollHeight − clientHeight；第 1 夜每頁＝0、其餘頁 ≤ 基準同格＋52px）：取樣 0 次、超標 0 次（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**） → ❌
+- 判定：✅ 通過

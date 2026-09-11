@@ -1,0 +1,14 @@
+- **T1 kill switch 雙向**：
+    ?table3d=0　cols=120px 588px 120px｜hollow=false｜#tray display=none｜#railW/#railE 子元素=0/0｜#market .mcard=4 → ✅
+    預設　　　　cols=168px 492px 168px｜hollow=true｜#tray display=block｜#railW/#railE 子元素=2/2｜#market .mcard=0（側欄 .mcard=4） → ✅
+- **T6 直式蓋板行為**（390×844）：#rotateHint=flex｜cols=120px 134px 120px｜.rail display=none｜#table 橫向溢出=0｜#felt backdrop-filter=blur(7px) → ✅
+    對基準逐項：rotateHint ＝　cols ＝　tableOverX ＝　feltBackdrop ＝
+    T1／T6 明細 → docs/experiments/2026-09-10-table3d-a-evidence/t3d-new.json
+- **T5 觸控命中**（每個 #table [onclick] 各 tap 一次，第 1～3 夜出價頁與盯上頁，seeds 1,3）：掃了 12 頁、可測元素 177 個（基準 177 個；另有停用 6 個、隱藏 24 個不計）　命中 177／177　基準清單漏掉 0 個、沒命中 0 個　**trayTap 被呼叫 0 次**（必須 0） → ✅
+    tap 明細 → docs/experiments/2026-09-10-table3d-a-evidence/taps-new.json
+# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION undefined　輸出 taps-new-run.json
+- 局數 0：
+- CFG.LEGEND_ON=undefined　香火榜 #shrines／.incboard＋待請卡：　燒香列：
+- 供奉危急提示出現並按「要」的次數：0；袋子面板「送神回天」按下次數（seed 2）：0
+
+[exited with code 0]
