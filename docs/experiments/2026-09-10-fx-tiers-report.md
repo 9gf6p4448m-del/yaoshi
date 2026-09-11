@@ -10,14 +10,18 @@
 > `scratchpad/mutfull`＝收尾版 ＋ r5 那一行「`#duelBeat` 上移 9px」的突變（第二個壞掉版本）、
 > `scratchpad/headfull`＝`git archive HEAD` ＋工作區改動同步（`index.html` 與工作區逐位元組相同）。★
 
-## 結論（給只看三行的人）
+## 結論（給只看四行的人）
 1. **黑邊整支拿掉了**（使用者 2026-09-11 裁甲）：`#lbTop`／`#lbBot`、`#duel.lbox` 的 `transform:scale(.80)`
    與 `box-shadow`、`pwLetterbox()` 與它的四個呼叫點、測試出口、`duel-drive` 的黑條 observer——
    **DOM、CSS、JS、治具裡各 0 處**。tier 3 剩下的畫面語言是 **CINEMA 低角度仰視機位 ＋ 1400ms**，兩者未動。
 2. **「版面沒被動到」改成相等性斷言**：tier 3 那一拍 `#duel` 底下**所有可見子孫**的 rect
    與 v0.53 基準樹逐值相同（≥3 錨點 ×3 時點 ×2 方向，錨點分屬 3 場不同的對決）。分母不再是我列的清單，是 DOM 自己的——
    這解掉了 r2–r5 一路「列了哪些元素就只守得住哪些元素」的死結。
-3. **鑑別力正反都驗**：同一組治具對**五版 `00706e0`** 紅、對基準樹自己跑兩次綠、對收尾版綠（數字見 §F5）。
+3. **鑑別力正反都驗**：同一組治具對**五版 `00706e0`** 紅、對 **r5 那個逃過 L1–L8 的突變**（`#duelBeat` 上移 9px）紅、
+   對基準樹自己跑兩次綠、對收尾版綠（數字見 §F5）。
+4. **新增一條沒過字面門檻的**（據實記紅，不調門檻）：**F6 的「draw calls 不增」**中位 +3（960 vs 957）。
+   歸因做到決定性——同一棵樹只把 `?fxtier=0` 打開就回到 953–958 ⇒ 不是新的繪製來源，是節奏造成的取樣差。
+   連同前三條（F3 主條 5018ms、F3 子條原文的 8 秒、F4 的 `nullCount`）一起交製作人裁。
 
 ## 收尾版做的四件事（範圍嚴格限定：使用者裁甲的四項，其他一律不碰）
 
@@ -61,9 +65,9 @@ F0／F2／F5 新機械段／F6／F7 與既有 9 套全部重跑；F3 的數字�
 | F4 可讀性不退 | **綠（修訂六）** | `deepOk` 10/10、`monoQuiet` 6/6；`nullCount` 4（記錄項）。★本卷此半無閘門★，效力由治具小卷回復 | `cu-on1.json`／`dmg-*` |
 | F5 機械段（修訂七改寫） | **綠** | **L1／L2／L5／L8／L9／L10 全過**；L10＝tier 3 那一拍 `#duel` 全部可見子孫 rect 與 v0.53 基準樹逐值相同（橫式與直式各 3 錨點 ×3 時點）；鑑別力：同一組治具對五版 `00706e0` **紅**、對基準樹自己跑兩次 **綠** | `lbox.json`／`rects-*.json` |
 | F5 人眼段 | **交使用者** | 兩張 sheet（27 支短版／30 套完整版）；tier 3 真實路徑 **18 張全部是對決畫面**（`duelOk` 機械判定，不再靠人眼宣稱），畫面內容＝CINEMA 仰視機位＋1400ms、**沒有黑邊** | `sheet-*.png`／`shots-t3-real/` |
-| F6 fps | **綠（訊號展幅大）** | `rendersPerSec` 6 次中位 1.067；draw calls 926–962 vs 958–965 | `fps-ab.json` |
-| F7 Playwright 零錯 | **綠** | L7 的 16 場 ×2 尺寸、`duel-new`／`duel-fxtier0` 各 4 場、`traitfx-drive` 三個 tier、三支探針全 0。★一次 `duel-fxtier0` 曾記到 2 個 error，逐字是 `fonts.googleapis.com … ERR_CONNECTION_TIMED_OUT`＝**外部網路逾時、非受測物**；同指令重跑為 0，兩次都記在這裡（`02 §6.2`：波動先歸因再放行）★ | 各 json |
-| F8／F9／F10 | **綠** | GUIDE §11.27；27 檔全在白名單；acts 5–30 | — |
+| F6 fps | **主數字綠／draw calls 那半條紅** | 收尾版重跑交錯 5 輪：`rendersPerSec` 中位 283.9 vs 282.0 ＝ **1.007**（≥0.90 ✅）；**draw calls 中位 960 > 基準 957（+3）＝依門檻字面紅**，歸因＝節奏造成的取樣差（同一棵樹 `?fxtier=0` 回到 953–958） | `scratchpad/fps{A,B}1-5.json` |
+| F7 Playwright 零錯 | **綠** | 收尾版重跑：`duel-rects` 10 次（5 棵樹 ×2 方向、每次 18 場）／`lbox-probe`／`t3-shot`（8 場 18 張）／`duel-perf` 13 次／`duel-new`／`duel-fxtier0`／`traitfx-drive` 三個 tier **全 0**。★二版那次 `duel-fxtier0` 的 2 個 error 逐字是 `fonts.googleapis.com … ERR_CONNECTION_TIMED_OUT`＝外部網路逾時、非受測物★ | 各 json |
+| F8／F9／F10 | **綠** | GUIDE §11.27 已對齊收尾版；**28 檔**全在白名單（新增 `duel-rects.mjs`，已補進計畫檔）；acts 5–30 | — |
 
 ## r5 覆審 findings 逐條三態
 
@@ -517,10 +521,16 @@ GUIDE §11.27 已對齊收尾版（第 6 條改成「Tier 3 ＝ 完整版＋CINE
 「經五輪覆審後由使用者裁定移出本卷」）；`ART_BIBLE`／`GAME_DESIGN` 未出現在 diff。
 
 ## F9 範圍（**綠**，修訂三補列後）
-`git diff --stat adbb124..HEAD`（排除證據目錄）共 **27 個檔**，全部在計畫檔第 1 節（修訂三的完整清單，逐檔理由見凍結檔）：
+```
+git diff --stat adbb124..HEAD -- . ':(exclude)docs/experiments/2026-09-10-fx-tiers-evidence'
+→ 28 files changed, 3645 insertions(+), 77 deletions(-)
+```
+共 **28 個檔**（五版 27 ＋ 收尾版新增的 `tests/tools/duel-rects.mjs`），全部在計畫檔第 1 節
+（修訂三的完整清單 ＋ 修訂七補列的 `duel-rects.mjs`，逐檔理由見計畫檔）：
 `index.html`／`js/trait-fx.js`／`js/trait-fx/{zuling,xianghuo,yinqi}.js`／`js/camera-director.js`／`js/renderer.js`（+1 行治具出口）／
-`tests/fxtier.test.mjs`／`tests/tools/{fx-consts,traitfx-drive,traitfx-preview,traitfx-sheet,cam-drive,cam-unit,closeup-cam-unit,closeup-judge,lbox-probe,fpsdiag-probe,pace-ab,t3-shot,duel-perf,trace-eq,duel-drive}`／
+`tests/fxtier.test.mjs`／`tests/tools/{fx-consts,duel-rects,traitfx-drive,traitfx-preview,traitfx-sheet,cam-drive,cam-unit,closeup-cam-unit,closeup-judge,lbox-probe,fpsdiag-probe,pace-ab,t3-shot,duel-perf,trace-eq,duel-drive}`／
 `docs/IMPLEMENTATION_GUIDE.md`／凍結檔／計畫檔／報告＋證據。
+★收尾版沒有動 `.gitignore`、沒有動任何不在清單上的檔★（`scratchpad/` 一律不進 commit）。
 - 收尾版新增 `tests/tools/duel-rects.mjs`（F5 機械段主條的量測與比對），已補進計畫檔第 1 節（修訂七補列）。
 - `TRAITS` 的 diff **只有三行**（三尊各加 `tier:3`）。
 - 引擎函式（`paperWar`／`pwSide`／`pwClash`／`pwPrep`／`pwBolt`／`pwHaunt`／`pwStrike`／`pwRec`／`buildArmy`／`collectEffects`／`applyHooks`）diff 為空——**這一點是靠 diff 證明的**，不是靠 `trace-eq`（r1 H7）。
@@ -542,4 +552,8 @@ GUIDE §11.27 已對齊收尾版（第 6 條改成「Tier 3 ＝ 完整版＋CINE
      `realign()` 只用 DOM rect 算水平 offset），版面一縮就會脫節。
    - `.mvdesc` 沒有字級下限（五版縮 0.8 之後掉到 8.8px，F4 沒有任何一條在量字級）。
    - 這三件要一起做，才做得出「有內距、3D 與 DOM 同步縮放、字級有下限」的對決版面。
-5. **`acts` 可被空 tween 灌水**（r1 L1，記錄未修）與 **修訂五的逐場條件沒有治具在機械判定**（r5 L2）：兩條都留給下一卷。
+5. **F6 的 draw calls 那半條**：中位 +3（960 vs 957），依門檻字面是紅。歸因已做到決定性
+   （同一棵樹 `?fxtier=0` 回到 953–958 ⇒ 不是新的繪製來源，是取樣那一幀有哪些演出 mesh 還活著）。
+   要讓它變回可判定的閘門，得讓 `duel-perf` 在**固定的演出時點**取樣，或改量整場的 calls 分佈——下一卷。
+   ★五版那條「同一頁面同一幀切黑條、calls 逐值相同」的決定性對照隨黑條一起移除，本卷沒有替代品。★
+6. **`acts` 可被空 tween 灌水**（r1 L1，記錄未修）與 **修訂五的逐場條件沒有治具在機械判定**（r5 L2）：兩條都留給下一卷。
