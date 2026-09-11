@@ -1970,7 +1970,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.53.3", VERSION_NOTE="首頁只顯示版本號（更新說明移出首頁）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.53.4", VERSION_NOTE="首頁只顯示版本號（更新說明移出首頁）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2100,11 +2100,20 @@ function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷
    所以改成遮蔽 onclick 屬性、由自家 listener 派送，事件照常往上冒泡。 */
 const MAIN_GUARD_MS=500;   /* ＝Windows 預設雙擊間隔。凍結：不得為了讓探針過而調大 */
 let MAIN_SWAP_AT=-1e9;     /* 上一次「在點擊的同步執行裡被換手」的時刻（performance 時間軸） */
+const gNow=()=>(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+/* 事件的「按下時刻」：e.timeStamp 是事件**建立**時寫的，才是使用者真正按下的那一刻。
+   相位切換的 handler 會同步重畫市集＋更新 3D，實測可以阻塞主執行緒數百毫秒；排隊中的第二下要等解凍
+   才派送，那時用「現在」去比早就超出視窗、擋不到——而使用者其實是在畫面凍住的那 500ms 內按的。 */
+const gStamp=e=>{
+  let t=e&&typeof e.timeStamp==="number"&&isFinite(e.timeStamp)&&e.timeStamp>0?e.timeStamp:gNow();
+  if(t>1e12) t-=(Date.now()-gNow());   /* 舊式 epoch 時間戳 → 換算回 performance 時間軸 */
+  return t;
+};
 (function armMainBtnGuard(){
   const b=document.getElementById("mainbtn");
   /* headless 載入器（tests/tools/load.mjs）的 document stub 回 null ⇒ 直接跳過，引擎那三條迴圈一格不受影響 */
   if(!b||!b.addEventListener) return;
-  const nowMs=()=>(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  const nowMs=gNow;
   let fn=null, dispatching=false;
   Object.defineProperty(b,"onclick",{configurable:true,
     get(){ return fn; },
@@ -2115,13 +2124,64 @@ let MAIN_SWAP_AT=-1e9;     /* 上一次「在點擊的同步執行裡被換手�
        相位切換的 handler 會同步重畫市集＋更新 3D，實測可以阻塞主執行緒數百毫秒；
        排隊中的第二下要等解凍才派送，那時用 Date.now() 去比早就超出視窗、擋不到
        ——而使用者其實是在畫面凍住的那 500ms 內按的。timeStamp 是事件**建立**時寫的，才是真正的按下時刻。 */
-    let t=e&&typeof e.timeStamp==="number"&&isFinite(e.timeStamp)&&e.timeStamp>0?e.timeStamp:nowMs();
-    if(t>1e12) t-=(Date.now()-nowMs());   /* 舊式 epoch 時間戳 → 換算回 performance 時間軸 */
-    if(t-MAIN_SWAP_AT<MAIN_GUARD_MS) return;   /* 吞掉：使用者還沒看過現在這顆鈕要做什麼 */
+    if(gStamp(e)-MAIN_SWAP_AT<MAIN_GUARD_MS) return;   /* 吞掉：使用者還沒看過現在這顆鈕要做什麼 */
     const f=fn;
     dispatching=true;
     try{ f.call(b,e); } finally{ dispatching=false; }
   });
+})();
+/* ═════ 相位閘：整個互動層（v0.53.4，2026-09-11；凍結檔 docs/experiments/2026-09-11-acceptance-phase-gate.md）═════
+   ★上面那道只守得到「第二下落在 #mainbtn 上」那一半★——**第二下是依座標落地的**：
+   相位一換，同一個座標底下常常已經是別的東西，那時 #mainbtn 的 dispatching 是 false、連武裝都沒有。
+   實測到的兩條（v0.53.3 對抗覆審）：
+     ① 連按兩下「🕯️ 請神」：startShrine 同步開 #modal（inset:0），第二下打在背景 ⇒ legendPick(null)
+        ＝**被迫放棄自選尊**、退回 AI 規則。
+     ② 熱座連按兩下交棒鈕 #hoBtn：cont()=startBidUI 同步關遮罩＋重繪，#hoBtn 的面積有一部分蓋在 .mcard 上
+        （實測 372,265 → pickMark(1)）⇒ 第二下**替玩家公開宣告了一件他沒選的盯上**。
+   ★收斂：閘設在「相位切換」本身，不逐入口加 disabled★——一個 document 上的 capture 監聽，
+   量的是**使用者手指那個點「現在能做什麼」有沒有變**。任何入口（現在的、以後新增的）只要
+   同步換掉了手指下那塊互動面，就自動武裝，不必去列舉入口。
+   ★為什麼用「簽名」而不是節點本身★：#budget 重繪會換掉燒香「＋」的節點，但它做的事沒變
+   （還是同一個 incBump(1)）——那不是相位切換，不該武裝；拿節點比對會把「連按燒香 ＋」也擋掉。 */
+let PHASE_AT=-1e9;
+function phaseSwallow(e){
+  /* ★不能連 audioWake 一起擋★：iOS 解鎖音訊靠 document 上那個 click 監聽，
+     stopImmediatePropagation 之後它收不到，所以這裡明文補叫一次（探針 C5 在驗）。 */
+  try{ audioWake(); }catch(_){}
+  e.stopImmediatePropagation(); e.preventDefault();
+}
+let PENDING_PT=null;   /* 這一下點擊的落點與「按之前那裡能做什麼」，等派送結束再比 */
+(function armPhaseGate(){
+  if(typeof document==="undefined"||!document.addEventListener||!document.elementFromPoint) return; /* headless stub 直接跳過 */
+  const sigAt=(x,y)=>{
+    const el=document.elementFromPoint(x,y);
+    if(!el) return "∅";
+    const a=el.closest?el.closest("[onclick]"):null;
+    return (el.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(el.className||"");
+  };
+  document.addEventListener("click",function(e){
+    const t=gStamp(e);
+    if(t-PHASE_AT<MAIN_GUARD_MS){ phaseSwallow(e); return; }
+    const x=e.clientX, y=e.clientY;
+    if(!(x>0||y>0)) return;   /* 合成事件（治具的 el.click()）沒有座標，量不了落點——那條由 #mainbtn 的守衛管 */
+    PENDING_PT={x,y,sig:sigAt(x,y)};
+    /* ★備援★：若這一下的冒泡被誰擋掉（全檔只有座位卡的 ⓘ 會 stopPropagation），下面那個 bubble
+       監聽就收不到，改由這個 task 補比。
+       ★一定不能用微任務★：微任務檢查點發生在**每一個 listener 之間**（堆疊一空就跑），
+       Promise.resolve().then() 會排在目標元素的 onclick **之前**執行、什麼都比不到（實測踩過）。 */
+    setTimeout(()=>{ armIfSwitched(); },0);
+  },true);
+  /* ★主要的武裝點：同步、就在這一下點擊的派送尾端★（覆審 F1）
+     相位切換的 handler 會阻塞主執行緒數百毫秒，使用者按的第二下在阻塞期間就已經排進輸入佇列；
+     主執行緒一解凍，瀏覽器的**輸入佇列優先權高於 timer 佇列** ⇒ 只靠 setTimeout 武裝的話，
+     第二下會先派送、那時 PHASE_AT 還沒設，閘等於沒有——而那正是這道閘存在的情境。
+     bubble 監聽跟目標的 handler 在**同一個任務**裡跑完，武裝因此一定早於下一個輸入事件。 */
+  document.addEventListener("click",function(){ armIfSwitched(); },false);
+  function armIfSwitched(){
+    const p=PENDING_PT; if(!p) return;
+    PENDING_PT=null;
+    if(sigAt(p.x,p.y)!==p.sig) PHASE_AT=gNow();
+  }
 })();
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
@@ -5666,9 +5726,21 @@ async function startBattle(){
 function showTitheAsk(){
   return new Promise(done=>{
     const q=(S&&S.titheAsk)?S.titheAsk.splice(0):[];
+    /* ★背景點一下也要收得掉★（v0.53.4，與 showLegendPick 同一道保險——那裡有、這裡漏了）：
+       #modal 的 inline onclick 走 closeModal 只把視窗藏起來，done() 就永遠不會被呼叫，
+       startBattle 的 `await showTitheAsk()` **整局永久卡死**，只能重載。
+       關掉＝「要，繼續供奉」——那正是 headless 三條迴圈的預設行為（引擎在夜末已經照預設扣過了），
+       所以兩條路的語意一致。★防線按「危險的效果」寫★：擋的是「promise 沒 resolve」，
+       不是「某一顆按鈕沒被按」，所以接的是**視窗被關掉**這件事。
+       分母：全檔 `new Promise` 7 處，扣掉 4 處純 setTimeout 的，會 await 且靠 modal 按鈕才 resolve 的
+       只有 showLegendPick 與本支兩處——兩處現在都有保險。 */
+    const tk=$("modal");
+    const onBgTithe=e=>{ if(e.target===tk){ tk.style.display="none"; step(); } };
+    tk.addEventListener("click",onBgTithe);
+    const fin=()=>{ tk.removeEventListener("click",onBgTithe); done(); };
     const step=()=>{
       const a=q.shift();
-      if(!a){ done(); return; }
+      if(!a){ fin(); return; }
       const p=S.players[a.pid];
       const x=p&&p.alive?p.bag.find(y=>y.legend&&y.n===a.item):null;
       if(!x){ step(); return; }   /* 這一夜已經被別條路收走了（例如袋子面板先按了送神回天） */

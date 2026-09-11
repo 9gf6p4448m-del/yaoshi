@@ -417,7 +417,10 @@ const mutate = async () => {
   const j = m2.findIndex((l) => l.includes('e.timeStamp==="number"'));
   if (j < 0) throw new Error('找不到 e.timeStamp 那一行');
   const gone2 = m2[j].trim();
-  m2[j] = '    let t=nowMs();\n';
+  /* ★替換式要跟著程式碼搬家★：v0.53.4 把時間戳邏輯抽成共用的 gStamp，那個 scope 裡只有 gNow、沒有 nowMs
+     ——沿用舊字串會讓 gStamp 拋 ReferenceError（每一下點擊都當掉），B7 於是變成「什麼都沒發生」而**假綠**。
+     實測踩過：M2 一度回報「B7 沒紅」。改字串時務必確認突變體真的只換掉「時間怎麼取」。 */
+  m2[j] = '  let t=gNow();\n';
   const f2 = 'old-mut-nostamp-dbl.html';
   fs.writeFileSync(path.join(ROOT, f2), m2.join(''), 'utf8');
   let ok = false;
@@ -427,7 +430,7 @@ const mutate = async () => {
     const red = (k) => new RegExp('紅 FAIL ' + k).test(r.out);
     const b1 = red('B1_nextround_2nd_ignored'), b2 = red('B2_markui_2nd_ignored'), b3 = red('B3_endgame_no_reload');
     console.log(r.out.split('\n').filter((l) => /B1_|B2_|B3_|B4_|★/.test(l)).map((l) => '  突變體 ' + l.trim()).join('\n'));
-    console.log('\n突變 M2：' + gone2.slice(0, 60) + ' → let t=nowMs();');
+    console.log('\n突變 M2：' + gone2.slice(0, 60) + ' → let t=gNow();');
     const rB = await runChild(f2, PORT + 61);
     const b7 = /紅 FAIL B7_blocked_queued_click/.test(rB.out);
     console.log(rB.out.split('\n').filter((l) => /B7_|★/.test(l)).map((l) => '  M2 ' + l.trim()).join('\n'));
