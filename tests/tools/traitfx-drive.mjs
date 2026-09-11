@@ -1,7 +1,11 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
 // 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8] [--dt=50]
 //                                            [--shots=<png 目錄>] [--port=8841] [--tier=2] [--nobloom] [--block=<ab>]
-//                                            [--sigdump=<sig 序列檔>]
+//                                            [--sigdump=<sig 序列檔>] [--root=<靜態根目錄>]
+// --root  http.server 的根目錄與 index.html 的來源（預設＝repo 根）。照 duel-drive.mjs:5 的寫法補的
+//         （覆審 r2 N3）：--sigdump 要拿來當「js/trait-fx* 有沒有被動到」的等價證據，就得能對
+//         **基準樹**跑同一支治具（基準 SHA 的治具本身沒有 --sigdump，只能由本樹的治具去跑它的靜態檔）。
+//         用法：git worktree add --detach <路徑> <基準SHA>（或 git archive 解出來），再 --root=<路徑>。
 // v0.54 三級視覺分級（凍結檔 F2／F10）：
 //   --tier=1  27 支專屬短版（260ms）。case 集合排除三尊（它們恆 tier 3）。
 //   --tier=2  27 支完整版（900ms）＋三尊完整版：與 v0.53 的回歸對照。
@@ -190,7 +194,9 @@ async function main() {
   const out = pos[0] || path.join(ROOT, 'scratchpad', 'traitfx-run.json');
   const port = parseInt(opt.port || '8841', 10);
   if (opt.dt) DT_MS = Math.max(1, Math.min(100, parseFloat(opt.dt) || DT_MS));
-  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const root = opt.root ? path.resolve(opt.root) : ROOT; // 覆審 r2 N3：靜態根目錄可指到基準樹
+  if (!fs.existsSync(path.join(root, 'index.html'))) throw new Error(`--root=${root} 底下沒有 index.html`);
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const tier = parseInt(opt.tier || '2', 10);
   // F1：治具與頁面的常數分岔就當場停（不是印個 warn 繼續跑）
   assertPageConsts(pageConstsFromHtml(html));
@@ -207,7 +213,8 @@ async function main() {
   }
   if (opt.only) { const set = new Set(String(opt.only).split(',')); cases = cases.filter((c) => set.has(c.trait)); }
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
-  const srv = await serve(ROOT, port);
+  const srv = await serve(root, port);
+  if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   const results = [];
   try {

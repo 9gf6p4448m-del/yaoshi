@@ -1824,6 +1824,24 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     它證明的只是 B0-9 已經證明過的事。對 `js/trait-fx*` 有鑑別力的等價證據是
     `traitfx-drive --sigdump=<檔>`（每套一行：骨骼／spawn 物／徽記 kind／三段／acts／horizon／maxRate），
     批 1–3 直接 `diff` 兩份 dump 就知道哪一套的演出真的變了。
+    ★工作流（覆審 r2 N3：基準 SHA 的治具**自己沒有** `--sigdump`，所以要由本樹的治具去跑基準的靜態檔）★——
+    `traitfx-drive` 已補 `--root=`（照 `duel-drive.mjs:5` 的寫法）：
+
+    ```bash
+    git worktree add --detach scratchpad/<工作>/base<SHA> <基準SHA>     # 或 git archive <SHA> | tar -x
+    node tests/tools/traitfx-drive.mjs <out>.json --tier=1 --port=8900 \
+         --sigdump=scratchpad/<工作>/sig-t1-work.txt                     # 本樹
+    node tests/tools/traitfx-drive.mjs <out>.json --tier=1 --port=8901 \
+         --root=scratchpad/<工作>/base<SHA> --sigdump=scratchpad/<工作>/sig-t1-base.txt
+    diff scratchpad/<工作>/sig-t1-base.txt scratchpad/<工作>/sig-t1-work.txt
+    # 用完：git worktree remove scratchpad/<工作>/base<SHA>
+    ```
+
+    **鑑別力實測（批 0 修補 r2，`6a839de` ↔ `8076805`）**：27 行差 **4 行**，正好是四支示範招
+    （`biteGamble`／`eliteSelfCut`／`hauntLost`／`wardImmuneLost`），其餘 23 支逐行相同。
+    `--root` 換的只有**靜態檔**（`index.html`＋`js/`＋治具頁），跑的治具程式仍是本樹的，
+    所以基準那一跑的 `phases=` 欄會是空的（基準的 `js/trait-fx.js` 還沒有 `phaseDetail`）——
+    這不是雜訊，它本來就是「這四支的演出真的變了」的一部分。Playwright 一次一支，兩支並發會互相假紅。
 
 **治具**：`fx-contrast.mjs`（L3 凍幀 A/B）／`fx-contrast-metrics.py`（面積％＋CIE76 ΔE 中位）／
 `blindread-sheet.mjs`（6 幀 2×3 盲讀材料）／`tests/fxvocab.test.mjs`（文件↔`vocab.js` 對齊，
