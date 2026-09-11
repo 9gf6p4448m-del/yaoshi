@@ -124,6 +124,19 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const MAT_SOLID = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.NormalBlending, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false });
   /** 三支材質模板的清單——`matTemplates` 與 `matPrograms()` 都數這一份，不另寫數字。 */
   const MAT_TEMPLATES = [['MAT_GLOW', MAT_GLOW], ['MAT_LINE', MAT_LINE], ['MAT_SOLID', MAT_SOLID]];
+  /* ★徽記尺寸的收斂閘（覆審 r2 N1／N7）★
+     危險效果＝「徽記的實際世界尺寸出現第二份來源」。`o.size` 是其中一條路，所以三支入口
+     （st.icon／st.icons／st.mark）**一律拒收**：傳了就 throw，而不是靜默沿用。
+     ——不寫成「忽略 o.size」是因為靜默忽略會讓編舞以為自己調到了尺寸，下一卷又長回來；
+     throw 才會在 traitfx-drive／duel-drive 的 handled=false 上當場現形（L9 零錯會抓）。
+     另一條路（直接 mesh.scale.setScalar(<數字>)）由 tests/fxvocab.test.mjs 的掃描守。 */
+  function iconSizeSrc(who, kind, o, size) {
+    if (o && 'size' in o) {
+      throw new Error(`${who} 不接受 o.size（徽記尺寸的唯一來源是 js/trait-fx/vocab.js 的 ICON.byKind／flatByKind／markByKind；`
+        + `要改 ${kind} 的尺寸就改那張表，編舞要放大縮小請乘 st.iconSize／st.iconFlatSize／st.markSize）`);
+    }
+    return size;
+  }
   // 徽記朝鏡頭：相機四元數再往下壓 ICON.billboardTiltDeg（正俯視時完全正對會像貼紙，壓一點才有厚度）
   const TILT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -THREE.MathUtils.degToRad(ICON.billboardTiltDeg));
   const _bq = new THREE.Quaternion();
@@ -490,13 +503,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       iconSize: ICON.sizeOf(EMBLEM_OF[det.trId] || null),
       /** 這一招貼桌副件（水漬／腳印／貼桌陣）的尺寸；來源同上，ICON.flatByKind。 */
       iconFlatSize: ICON.flatSizeOf(EMBLEM_OF[det.trId] || null),
+      /** 這一招印記（st.mark 蓋在受招／受益方身上那枚）的尺寸；來源同上，ICON.markByKind。 */
+      markSize: ICON.markSizeOf(EMBLEM_OF[det.trId] || null),
       /** 徽記：一片朝鏡頭的法寶剪影。
        *  o = { size=ICON.sizeOf(kind), color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
        *  outline＝在本體後面墊一片 ink 色的實心底板（把亮色從暗紅桌／夜紫天上切出來）；
        *  ★這裡刻意用 MAT_SOLID 底板而不是 MAT_LINE 描邊★——加色的細線正是盲讀抱怨的「白虛線」，
        *  而且 1px 線在 780×360 的盲讀格上連面積都量不到。要真的 MAT_LINE 外框就開 rimLine。 */
       icon(kind, pos, o = {}) {
-        const size = o.size === undefined ? ICON.sizeOf(kind) : o.size;
+        const size = iconSizeSrc('st.icon', kind, o, o.role === 'mark' ? ICON.markSizeOf(kind) : ICON.sizeOf(kind));
         const op = o.opacity === undefined ? 1 : o.opacity;
         const mat = MAT_SOLID.clone();
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
@@ -529,7 +544,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /** 同一 kind ≥3 份走這支：N 枚徽記 = 1 個 draw call（群體招的 draw call 預算靠它）。
        *  positions 是 Vector3[]（會被記住並逐幀重排朝向；要移動就改陣列裡的向量）。 */
       icons(kind, positions, o = {}) {
-        const size = o.size === undefined ? (o.flat ? ICON.flatSizeOf(kind) : ICON.sizeOf(kind)) : o.size;
+        const size = iconSizeSrc('st.icons', kind, o, o.flat ? ICON.flatSizeOf(kind) : ICON.sizeOf(kind));
         const mat = MAT_SOLID.clone();
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
         mat.opacity = o.opacity === undefined ? 1 : o.opacity;
@@ -582,8 +597,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         });
       },
       /** 印記：在受招／受益方身上蓋一枚徽記並跟著它走（因果第三段的「證據」）。
-       *  o = { size=ICON.markSize, color, at='chest'|'top'|'foot', off:Vector3, opacity } */
+       *  o = { color, at='chest'|'top'|'foot', off:Vector3, opacity }
+       *  尺寸不在 o 裡：一律由 vocab.js 的 ICON.markSizeOf(kind) 決定（傳 o.size 會 throw）。 */
       mark(fig, kind, o = {}) {
+        iconSizeSrc('st.mark', kind, o, 0); // 拒收 o.size（真正的尺寸下面由 role:'mark' 取）
         const at = o.at || 'chest';
         const off = o.off || null;
         const get = (out) => {
@@ -594,7 +611,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           return out;
         };
         const p = get(new THREE.Vector3());
-        const mesh = st.icon(kind, p, { size: o.size === undefined ? ICON.markSize : o.size, color: o.color, opacity: o.opacity, outline: o.outline });
+        const mesh = st.icon(kind, p, { role: 'mark', color: o.color, opacity: o.opacity, outline: o.outline });
         // st.icon 已經 spawn＋登記 billboard 了；這裡只多打一個 mark 標記與加一條「跟著走」。
         // ★不得把 'emblem:<kind>' 從簽章刪掉★：同一招常常是「手上一枚徽記＋受招方身上一枚印記」，
         //   刪掉會讓 L1 的「tier 1／2 都要有 emblem」在這種招上假綠。

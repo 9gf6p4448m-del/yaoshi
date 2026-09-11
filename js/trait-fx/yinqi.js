@@ -147,7 +147,7 @@ const MOVES = {
         rolls.push(st.rnd() * Math.PI * 2);
       }
     });
-    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, size: st.iconFlatSize, color: C.ink, opacity: 0 }) : null;
+    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, color: C.ink, opacity: 0 }) : null;
 
     st.phase('windup');
     /* ① 帽尖後仰蓄勢（windup）：陰氣＝出招前一拍完全靜止、拍子卡頓，四尊錯開 */

@@ -445,7 +445,7 @@ const MOVES = {
     st.fade(seal, { ms: RL * 0.35, delay: R0, from: 1, to: 0 });
     if (stamp) {
       st.fade(stamp, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { stamp.scale.setScalar(0.2 * (1.9 - 0.9 * e)); } });
+      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { stamp.scale.setScalar(st.markSize * (1.9 - 0.9 * e)); } });
       st.fade(stamp, { ms: RL * 0.45, delay: R0 + RL * 0.55, from: 1, to: 0 });
     }
     // ★flinch 一定要帶 ms★：預設是 TFX.flinchMs×k，tier 1 下是 69ms，從 react 起算會把 horizon 推到 249＞235 ⇒ rate>1

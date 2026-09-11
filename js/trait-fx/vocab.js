@@ -48,10 +48,20 @@ export function beatOf(tier, ms) {
  *  ★尺寸的單一事實來源★（覆審 r1 C1）：批 0 第一版四支示範招在編舞裡各自寫死
  *  `const SZ = 0.56／0.46／0.62／0.40`，於是凍結檔 L3 指名的突變「`ICON.size` 改 0.02 必須紅」
  *  對這四支**完全打不到**——實測面積與 ΔE 逐位數不變、exit 0，那是一場恆綠的儀式。
- *  現在逐招尺寸一律住在 byKind／flatByKind 這兩張表裡，編舞只能讀 `st.iconSize`／`st.iconFlatSize`；
- *  `tests/fxvocab.test.mjs` 的「編舞不得出現尺寸字面值」掃描（--mutate=4 驗紅）守住這條紀律。
+ *  現在逐招尺寸一律住在 byKind／flatByKind／markByKind 這三張表裡，編舞只能讀
+ *  `st.iconSize`／`st.iconFlatSize`／`st.markSize`。
  *  ★L3 的 canary 打在 `sizeOf()` 的回傳值上★：把它改成固定回 0.02，用到徽記的招必須全部判紅
- *  （byKind 有覆寫的四支也逃不掉；只改 `size` 只打得到走預設值的那 23 支）。 */
+ *  （byKind 有覆寫的四支也逃不掉；只改 `size` 只打得到走預設值的那 23 支）。
+ *
+ *  ★覆審 r2 N1／N7：防線改成按「危險的效果」寫★
+ *  危險效果＝**徽記的實際世界尺寸出現第二份來源**。它能發生的路徑只有兩條：
+ *    (a) 把數字餵進 `st.icon()`／`st.icons()`／`st.mark()` 的 `o.size`
+ *        → 三支**一律拒收 `o.size`**（傳了就 throw，訊息指回本表），這條路由建構上消失；
+ *    (b) 直接對徽記 mesh 做 `scale.setScalar(<數字>)`／`scale.set(...)`
+ *        → `tests/fxvocab.test.mjs` 的掃描要求「徽記 mesh 的縮放引數必須引用
+ *          `st.iconSize`／`st.iconFlatSize`／`st.markSize`／`ICON.*`」，否則判紅。
+ *  r2 實測的三種繞法（`const S = 0.56` ＋ `{size:S}`／`setScalar(S * …)`／`setScalar(0.56 * …)`）
+ *  因此各自被 throw 或掃描擋下（`--mutate=4` 就是其中一種的回歸案例）。 */
 export const ICON = {
   size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30,
   /** 逐 kind 的本體尺寸覆寫（沒列出的 kind 走 size 預設）。
@@ -61,10 +71,16 @@ export const ICON = {
   /** 逐 kind 的「貼桌副件」尺寸（st.icons 的 flat:true：陰氣的水漬／錯亂腳印、香火的貼桌陣）。
    *  沒列出就回 sizeOf()。hat 0.20＝魔神仔紅帽的地面腳印，同樣是搬家不改值。 */
   flatByKind: { hat: 0.20 },
+  /** 逐 kind 的**印記**尺寸覆寫（st.mark 蓋在受招／受益方身上的那一枚；沒列出走 markSize 預設）。
+   *  seal 0.20＝虎爺印原本寫在編舞裡的 `stamp.scale.setScalar(0.2 * (1.9 - 0.9*e))` 那個 0.2
+   *  （覆審 r2 N1/N7 抓到的最後一處第二來源），搬家不改值：實際演出仍是 0.2 ×(1.9→1.0)。 */
+  markByKind: { seal: 0.20 },
   /** 這個 kind 的徽記本體尺寸（世界單位）。 */
   sizeOf(kind) { const v = this.byKind[kind]; return v === undefined ? this.size : v; },
   /** 這個 kind 貼桌副件的尺寸（世界單位）。 */
   flatSizeOf(kind) { const v = this.flatByKind[kind]; return v === undefined ? this.sizeOf(kind) : v; },
+  /** 這個 kind 印記的尺寸（世界單位）。與 sizeOf 同一張表家族＝印記不再是繞過本檔的第二條路（N7）。 */
+  markSizeOf(kind) { const v = this.markByKind[kind]; return v === undefined ? this.markSize : v; },
 };
 
 /** st.phase 的機械判準（ART_BIBLE §10.3；計畫 §2.3 寫死，不得放寬）。
