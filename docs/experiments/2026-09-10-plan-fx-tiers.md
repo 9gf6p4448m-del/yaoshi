@@ -8,7 +8,7 @@
 
 | 檔案 | 改什麼 |
 |---|---|
-| `index.html` | `PW_FX.TRAIT_MS`→`TRAIT_MS_BY_TIER`、`BEAT_MIN_MS`→`BEAT_MIN_MS_BY_TIER`、`pwBeatTier`、`pwTraitFx` 帶 tier、`pwPlayBeat` 拍末等待依 tier、`?fxtier=0`、黑條 DOM＋CSS、`TRAITS` 三尊加 `tier:3`、`VERSION`／`VERSION_NOTE` |
+| `index.html` | `PW_FX.TRAIT_MS`→`TRAIT_MS_BY_TIER`、`BEAT_MIN_MS`→`BEAT_MIN_MS_BY_TIER`、`pwBeatTier`、`pwTraitFx` 帶 tier、`pwPlayBeat` 拍末等待依 tier、`?fxtier=0`、`TRAITS` 三尊加 `tier:3`、`VERSION`／`VERSION_NOTE`（★黑條 DOM＋CSS 依 §2.1 修訂七整項作廢，收尾版一個字都不存在★） |
 | `js/trait-fx.js` | `TRAIT_MOVES_SHORT` 載入、`det.tier` 分支、`||900` 退路刪除改 throw、三常數等比、`st.tier` |
 | `js/trait-fx/zuling.js` | `export const SHORT`：9 支短版 |
 | `js/trait-fx/xianghuo.js` | `export const SHORT`：9 支短版 |
@@ -27,6 +27,7 @@
 | `docs/experiments/2026-09-10-acceptance-fx-tiers.md` | **（修訂三補列）** 凍結檔的 §2.1 修訂紀錄（修訂一／二／三三條使用者裁定） |
 | `tests/tools/lbox-probe.mjs` | **（修訂三補列，新檔；修訂七改寫）** F5 機械段判定：L1／L2 CINEMA 只在 tier 3、L5 取消路徑、L8 `?closeup=0`、L9 黑條 DOM 不存在、L10 tier 3 版面與 v0.53 逐值相同 |
 | `tests/tools/duel-rects.mjs` | **（修訂七補列，新檔）** F5 機械段主條的量測與比對：tier 3 錨點 ±時點的 `#duel` 可見子孫 rect 快照、兩棵樹逐值比對 |
+| `.gitignore` | **（修訂七之後補列）** 加一行 `scratchpad/`：量測用的樹副本（數 GB）本來只靠「記得不要 `git add -A`」這條口頭紀律擋，r6 LOW-6 指出沒有機械保證 |
 | `tests/tools/traitfx-sheet.mjs` | **（修訂三補列）** contact sheet 的幀號改成掃目錄取最小三張（幀位依 tier 換算後不再是固定的 8/22/36） |
 | `tests/tools/fpsdiag-probe.mjs` | **（修訂三補列，新檔）** `?fps=1` 的「對決最低 fps」欄位斷言（D1 文字＋數值、D2 零成本、D3 每場重算） |
 | `tests/tools/pace-ab.mjs` | **（修訂三補列，新檔）** F3 的 A/B 量測驅動器：交錯跑、每組 N 次、輸出中位的中位與全距、seeds 落檔 |
@@ -60,7 +61,7 @@ function pwBeatTier(list, beat, f){
   return 1;
 }
 ```
-- **凍結檔寫的簽名是 `pwBeatTier(beat, war)`；實際 `pwBeatTier(list, beat, f)`**——判定要讀「該拍的事件」，`beat`＋`war` 兩參數取不到 `list`（`war.beats` 是全場三拍混在一起的）。介面細化，不動任何門檻。
+- **凍結檔寫的簽名是 `pwBeatTier(beat, war)`；實際 `pwBeatTier(list, beat, f, views)`（**四參**；第四個 `views` 是修訂一附帶引入的——要查「被燒的那一隻是不是傳說尊」，此處補記）**——判定要讀「該拍的事件」，`beat`＋`war` 兩參數取不到 `list`（`war.beats` 是全場三拍混在一起的）。介面細化，不動任何門檻。
 - **`TRAITS[].tier` 的「上限」語意**：凍結檔括號同時寫「預設 1 的招也能因擊殺升 2」，字面互斥。取自洽解＝`tier:3` 的招把該拍**鎖在 3**，其餘由拍決定（1 或 2）；一支 tier 1 的招不會單獨升 3——「上限」在這裡生效。
 - 不另設 `pwFxTier`：拍級＝招級（凍結檔「三級定義（拍級，不是招級）」）。
 

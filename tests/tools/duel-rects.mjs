@@ -10,9 +10,16 @@
  *   三版量在假版面上、四版漏掉當下真正有字的 #duelMove／#beatLamps、五版量的是 8vh 舊黑條
  *   （真正的黑邊已經變成縮放後 #duel 的邊界＋它自己的 overflow:hidden），一行削掉 19.2% 字幕的
  *   突變照樣全綠。列舉「誰被蓋到」永遠會漏掉下一個元素。
- *   ★改成相等性：把 tier 3 那一拍 #duel 底下**所有可見子孫**的 rect 與 v0.53 基準樹逐值比對★。
- *   分母不是我列的，是 DOM 自己的；任何讓版面位移／縮放／裁切的手段（padding、absolute 挪位、
- *   transform: scale、box-shadow 外框、overflow 變更）都會讓某一個 rect 變值 ⇒ 紅。
+ *   ★改成相等性：把 tier 3 那一拍 **document.body 底下所有可見子孫**的 rect 與 v0.53 基準樹逐值比對★
+ *   （r6 HIGH-1 之前掃的是 #duel 的子孫；蓋板型黑邊是 <body> 的直接子節點，那樣掃不到，已改根）。
+ *
+ *   ★這支量具守得住什麼、守不住什麼（別再寫成「任何手段都抓得到」）★
+ *     守得住：**以靜態宣告表達的 DOM 幾何變化**——padding、absolute 挪位、transform: scale、
+ *       box-shadow 外框、overflow 變更，以及**多出來／少掉一個可見元素**（含 #duel 之外的蓋板）。
+ *     守不住：① **以動畫表達的位移**——讀 rect 前會定格（無限迴圈讀相位 0、有限長度讀終態），
+ *       所以「用 keyframes 把畫面縮到 0.8」這種寫法量到的是未縮放的那一格（r6 §2.3 的 A／B 案實測綠）。
+ *       ② 顏色、透明度、z-index 造成的**遮擋**——rect 相同但畫面被蓋住，這支量不到。
+ *     ⇒ 它是「DOM 幾何與 v0.53 相同」的斷言，不是「畫面與 v0.53 相同」的斷言。
  *
  * 取樣怎麼對齊兩棵樹（相等性斷言的活性證據，02 §6.1 第 1 條）：
  *   錨點＝真實對局裡 `ys:fx-trait` 且 trId 是三尊大招（eliteBlind／wardGuardAll／hauntAnswer）那一刻，
@@ -65,12 +72,12 @@ const SCANNER = (ids, sampleMs) => `(() => {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   };
-  /* 位置鍵：從 #duel 往下的 childIndex 鏈。用它配對兩棵樹的同一個元素，
+  /* 位置鍵：從 document.body 往下的 childIndex 鏈。用它配對兩棵樹的同一個元素，
      不用 id／class（同一層可能有多個同 class 的欄位，id 也不見得有）。 */
   const keyOf = (el) => {
     const parts = [];
     let n = el;
-    while (n && n.id !== 'duel') { parts.unshift([...n.parentNode.children].indexOf(n)); n = n.parentNode; }
+    while (n && n !== document.body && n.parentNode) { parts.unshift([...n.parentNode.children].indexOf(n)); n = n.parentNode; }
     return parts.join('/');
   };
   const rd = (v) => Math.round(v * 10) / 10;
@@ -106,8 +113,13 @@ const SCANNER = (ids, sampleMs) => `(() => {
       k: keyOf(el), tag: el.tagName.toLowerCase(), id: el.id || '', cls: String(el.className || '').slice(0, 40),
       x: rd(r.left), y: rd(r.top), w: rd(r.width), h: rd(r.height),
       t: (el.textContent || '').trim().slice(0, 12) }); };
-    push(duel);
-    duel.querySelectorAll('*').forEach((el) => { if (vis(el)) push(el); });
+    /* ★掃描根是 document.body，不是 #duel★（r6 HIGH-1 加嚴）：
+       二版 5a1220e 的黑條是 <body> 的直接子節點、跟 #duel 是兄弟（00706e0:index.html:596），
+       只掃 #duel 的子孫的話，那種「蓋板型」黑邊一格 rect 都不會動 ⇒ 整組逃得過。
+       改成掃 body 的全部可見子孫之後，蓋板自己就是新出現的元素 ⇒ 紅。 */
+    const root = document.body;
+    push(root);
+    root.querySelectorAll('*').forEach((el) => { if (vis(el)) push(el); });
     const cs = getComputedStyle(duel);
     window.__rects.push({ anchor: n, trId, tag, n: els.length,
       duelCls: duel.className, tf: cs.transform, shadow: cs.boxShadow, ovf: cs.overflow,
@@ -152,7 +164,8 @@ export async function assertTier3Ids(page) {
 
 /**
  * 兩份快照逐值比對。回傳 { same, checked, elsChecked, matchedAnchors, unmatched, diffs }。
- * 配對規則：同 anchor 序號 + 同 tag（anchor+300/700/800）。trId 不同就直接紅（對錯了東西）。
+ * 配對規則：同 anchor 序號 + 同 tag（anchor+200/400/600，＝ collectRects 的預設 sampleMs）。
+ * trId 不同就直接紅（對錯了東西）。
  *
  * ★兩邊錨點數不一定一樣★：新版每一拍比較短，同樣 18 場可能多跑到一個 tier 3 拍；基準樹慢，
  * 有時會先到 drive 的時間上限。**只比對得起來的那些**，比不起來的記進 unmatched（不當差異，
@@ -171,9 +184,13 @@ export function compareRects(a, b, { maxDiff = 40 } = {}) {
     checked++; matched.add(sa.anchor);
     if (sa.trId !== sb.trId) { diffs.push({ where: key(sa), why: `trId 不同：${sa.trId} vs ${sb.trId}` }); continue; }
     /* #duel 自己的狀態也逐值比（加嚴，自行記錄）：五版是靠 duelCls 多一個 lbox ＋ box-shadow 外框
-       ＋ transform:scale 做出黑邊的，這五個欄位任一不同都必須紅。 */
+       ＋ transform:scale 做出黑邊的，這五個欄位任一不同都必須紅。
+       ★這五個欄位只量 #duel 本身★——#duel 之外的蓋板由「掃描根＝document.body」那一側擋。 */
     for (const f of ['n', 'duelCls', 'tf', 'shadow', 'ovf', 'scrollH', 'clientH']) {
-      if (String(sa[f]) !== String(sb[f])) diffs.push({ where: key(sa), why: `#duel.${f}：新 ${sa[f]} ≠ 基準 ${sb[f]}` });
+      /* n ＝這個樣本的可見元素總數（掃描根是 document.body，所以不是「#duel 底下幾個」）；
+         其餘五個欄位量的是 #duel 自己。標籤分開寫，免得讀 diff 的人把 n 看成 #duel 的子孫數。 */
+      const label = f === 'n' ? '樣本.可見元素數' : `#duel.${f}`;
+      if (String(sa[f]) !== String(sb[f])) diffs.push({ where: key(sa), why: `${label}：新 ${sa[f]} ≠ 基準 ${sb[f]}` });
     }
     const mb = new Map(sb.els.map((e) => [e.k, e]));
     for (const ea of sa.els) {

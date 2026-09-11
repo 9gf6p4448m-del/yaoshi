@@ -15,8 +15,11 @@
  *      ★收尾版起 ?closeup=0 只管 CINEMA 這一件事★（黑條沒了，原本那半條斷言一併移除）。
  *   L9 黑條 DOM 不存在：#lbTop／#lbBot 在 DOM 中查不到，且原始碼裡沒有 `.lbox` 規則、沒有 pwLetterbox。
  *   ★L10 tier 3 的版面與 v0.53 逐值相同★（本節主條，取代 r2–r5 的 L3/L4/L6/L7）：
- *      真實對局裡三尊大招那一拍，#duel 底下**所有可見子孫**的 rect 與 v0.53 基準樹同錨點逐值相同。
- *      取樣＝錨點 +300／+700／+800ms、**與基準配對成功的錨點 ≥3 個**（分屬 3 場不同的對決）、橫式與直式兩種方向。
+ *      真實對局裡三尊大招那一拍，**document.body 底下所有可見子孫**的 rect 與 v0.53 基準樹同錨點逐值相同。
+ *      取樣＝錨點 **+200／+400／+600ms**（避開 ACTOR_CARD_MS=700 那個計時器邊界，見凍結檔 F5）、
+ *      **與基準配對成功的錨點 ≥3 個**（分屬 3 場不同的對決）、橫式與直式兩種方向。
+ *      ★它守的是「DOM 幾何與 v0.53 相同」，不是「畫面與 v0.53 相同」★——以動畫表達的位移會被定格讀成
+ *      相位 0／終態、純遮擋（顏色／透明度／z-index）rect 不變，兩類都抓不到（r6 HIGH-1／MED-1）。
  *      量測與比對在 tests/tools/duel-rects.mjs（那支檔頭寫了為什麼改成相等性、以及兩棵樹怎麼對齊）。
  *      基準快照用 `--baserects=` 指進來（由 v0.53 樹跑同一支 duel-rects 產生）。
  *      **沒給 --baserects 就整支紅**，不是跳過——「拿不到基準」不得當成通過。
@@ -72,7 +75,9 @@ try {
     res.L9.src = {
       lbox: (src.match(/\.lbox\b/g) || []).length,
       pwLetterbox: (src.match(/pwLetterbox/g) || []).length,
-      ids: LETTERBOX_IDS.map((id) => (src.match(new RegExp('"' + id + '"', 'g')) || []).length),
+      /* r6 LOW-1：原本只認雙引號字面值，`#lbTop{...}`（CSS 選擇器）與 `<div id='lbTop'>` 都漏掉。
+         改成「單引號｜雙引號｜CSS 選擇器 #id」三種形式一起算。 */
+      ids: LETTERBOX_IDS.map((id) => (src.match(new RegExp('[\'"#]' + id + '\\b', 'g')) || []).length),
     };
   }
   // 錨點與實作不得分岔（新版樹才有 tier 欄位）
