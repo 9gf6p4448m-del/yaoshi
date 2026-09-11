@@ -111,6 +111,7 @@
     子元素高度：eastSeat 62　railE 190
 - #north seed 1 第 7 夜「蓋牌開標」：scrollH 56 / clientH 56 → **溢出 0**
     子元素高度：northPrev 56　northSeat 0　northShr 56
+- seed 1 收工：**步數跑滿 1500 仍未結束（這一局沒打完，停在第 8 夜）**
 - #felt seed 2 第 1 夜「不盯任何一件」：scrollH 252 / clientH 252 → **溢出 0**
     子元素高度：skipbtn 0　feltHead 17　helpBtn 34　tray 226　stage 40　veil 252
 - #west seed 2 第 1 夜「不盯任何一件」：scrollH 256 / clientH 256 → **溢出 0**
@@ -223,6 +224,7 @@
     子元素高度：eastSeat 62　railE 190
 - #north seed 2 第 7 夜「蓋牌開標」：scrollH 56 / clientH 56 → **溢出 0**
     子元素高度：northPrev 56　northSeat 0　northShr 56
+- seed 2 收工：**步數跑滿 1500 仍未結束（這一局沒打完，停在第 8 夜）**
 - #felt seed 3 第 1 夜「不盯任何一件」：scrollH 252 / clientH 252 → **溢出 0**
     子元素高度：skipbtn 0　feltHead 17　helpBtn 34　tray 226　stage 40　veil 252
 - #west seed 3 第 1 夜「不盯任何一件」：scrollH 256 / clientH 256 → **溢出 0**
@@ -399,6 +401,9 @@
     子元素高度：eastSeat 62　railE 190
 - #north seed 3 第 11 夜「蓋牌開標」：scrollH 56 / clientH 56 → **溢出 0**
     子元素高度：northPrev 56　northSeat 0　northShr 56
+- seed 3 收工：這一局打完了（局末，第 11 夜）
+- **每一顆 seed 的收工理由**：seed 1 → **步數跑滿 1500 仍未結束（這一局沒打完，停在第 8 夜）**；seed 2 → **步數跑滿 1500 仍未結束（這一局沒打完，停在第 8 夜）**；seed 3 → 這一局打完了（局末，第 11 夜）
+  ★注意：上面有 seed 是**步數跑滿**才停的，那一局沒打完——要跑完整局請加大 --steps=（目前 1500）。
 - **#felt**：50 格　最大溢出 0　非 0 的格數 0
 - **#west**：50 格　最大溢出 0　非 0 的格數 0
 - **#east**：50 格　最大溢出 0　非 0 的格數 0
