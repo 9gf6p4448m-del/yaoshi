@@ -1,0 +1,1828 @@
+{
+ "url": "http://127.0.0.1:9611/index.html?paperwar=1&fxcount=1&seed=3",
+ "seed": 3,
+ "duels": 6,
+ "synth": true,
+ "verdict": {
+  "res": {
+   "R1": true,
+   "R2": false,
+   "R2main": false,
+   "R2sub": false,
+   "R5pix": false
+  },
+  "bad": [
+   "R2 「+200ms 回到原值」0 個可判樣本＝空過，不算通過（fail-closed）"
+  ],
+  "summary": {
+   "floats": 19,
+   "underMin": 6.21,
+   "p50": 6.67,
+   "max": 14.73,
+   "under45": 0,
+   "fontPx": {
+    "hit": [
+     27.2
+    ],
+    "kill": [
+     35.36
+    ],
+    "unit": [
+     17
+    ]
+   },
+   "fontBad": 0,
+   "kindBad": 0,
+   "hueBad": 0,
+   "bySkin": {},
+   "maskN": 0,
+   "maskMin": null,
+   "maskP50": null,
+   "maskMax": null,
+   "maskGe25": 0,
+   "maskFracP50": null,
+   "maskDropped": {
+    "moved": 3,
+    "tinyMask": 2
+   },
+   "maskGe15": 0,
+   "maskGe25Ratio": null,
+   "via": {
+    "hitstop": 3,
+    "timer": 0
+   },
+   "move40P50": null,
+   "burnMaskN": 4,
+   "burnMaskAbsMax": 2.73,
+   "back200MaskN": 0,
+   "back200Unjudged": 0,
+   "back200MaskAbsMax": null,
+   "flashes": 0,
+   "d40min": null,
+   "d40med": null,
+   "back200max": null,
+   "ctrlMax": null,
+   "burnProbes": 4,
+   "burnMax": 2.73,
+   "rejected": 5,
+   "rejBurn": 0,
+   "rejOffDuel": 9,
+   "noiseMax": null,
+   "skipFlash": 15.49,
+   "skipAfter300": null
+  }
+ },
+ "samples": {
+  "floats": [
+   {
+    "seq": 1,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     41.2,
+     25.9,
+     29.8
+    ],
+    "n": 1638,
+    "ratio": 6.44,
+    "file": "0001-float-0.png"
+   },
+   {
+    "seq": 2,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−10",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     38.3,
+     23.1,
+     23
+    ],
+    "n": 2412,
+    "ratio": 6.66,
+    "file": "0002-float-0.png"
+   },
+   {
+    "seq": 3,
+    "cls": "dmgfloat unit",
+    "kind": "burn",
+    "text": "−1 隻",
+    "font": 17,
+    "mode": "fig",
+    "op": 0.886803,
+    "color": [
+     242,
+     236,
+     224
+    ],
+    "ring": [
+     80.7,
+     51.1,
+     46.7
+    ],
+    "n": 1566,
+    "ratio": 9.58,
+    "file": "0003-flash-0.png"
+   },
+   {
+    "seq": 4,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     39,
+     22.9,
+     29.1
+    ],
+    "n": 1638,
+    "ratio": 6.62,
+    "file": "0009-float-0.png"
+   },
+   {
+    "seq": 5,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−7",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     43,
+     29.7,
+     32.7
+    ],
+    "n": 2016,
+    "ratio": 6.21,
+    "file": "0010-float-0.png"
+   },
+   {
+    "seq": 7,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−2",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     41.7,
+     24.5,
+     33.4
+    ],
+    "n": 1638,
+    "ratio": 6.48,
+    "file": "0017-float-0.png"
+   },
+   {
+    "seq": 8,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     40.9,
+     23.1,
+     30.6
+    ],
+    "n": 1638,
+    "ratio": 6.57,
+    "file": "0018-float-0.png"
+   },
+   {
+    "seq": 9,
+    "cls": "dmgfloat kill fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     38,
+     23.2,
+     27.5
+    ],
+    "n": 2016,
+    "ratio": 6.64,
+    "file": "0019-float-0.png"
+   },
+   {
+    "seq": 10,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     45.5,
+     24,
+     28.4
+    ],
+    "n": 1638,
+    "ratio": 6.44,
+    "file": "0020-float-0.png"
+   },
+   {
+    "seq": 11,
+    "cls": "dmgfloat unit",
+    "kind": "burn",
+    "text": "−1 隻",
+    "font": 17,
+    "mode": "fig",
+    "op": 0.888426,
+    "color": [
+     242,
+     236,
+     224
+    ],
+    "ring": [
+     74.3,
+     74,
+     64.9
+    ],
+    "n": 1566,
+    "ratio": 7.59,
+    "file": "0025-flash-0.png"
+   },
+   {
+    "seq": 12,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−7",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     38.6,
+     20.3,
+     20.7
+    ],
+    "n": 2016,
+    "ratio": 6.78,
+    "file": "0030-float-0.png"
+   },
+   {
+    "seq": 13,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−9",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     31.8,
+     19.6,
+     24.2
+    ],
+    "n": 2016,
+    "ratio": 6.93,
+    "file": "0031-float-0.png"
+   },
+   {
+    "seq": 14,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "splash",
+    "text": "−9",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     37.4,
+     21.5,
+     24.3
+    ],
+    "n": 2016,
+    "ratio": 6.74,
+    "file": "0032-float-0.png"
+   },
+   {
+    "seq": 18,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     38.6,
+     21.5,
+     30
+    ],
+    "n": 1638,
+    "ratio": 6.69,
+    "file": "0049-float-0.png"
+   },
+   {
+    "seq": 19,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−8",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     37.5,
+     23.1,
+     24.6
+    ],
+    "n": 2016,
+    "ratio": 6.67,
+    "file": "0050-float-0.png"
+   },
+   {
+    "seq": 20,
+    "cls": "dmgfloat unit",
+    "kind": "burn",
+    "text": "−1 隻",
+    "font": 17,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     242,
+     236,
+     224
+    ],
+    "ring": [
+     45.2,
+     18.1,
+     22.9
+    ],
+    "n": 1512,
+    "ratio": 14.73,
+    "file": "0055-float-0.png"
+   },
+   {
+    "seq": 21,
+    "cls": "dmgfloat kill fac-xianghuo",
+    "kind": "hit",
+    "text": "−9",
+    "font": 35.36,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     40,
+     25.1,
+     28.1
+    ],
+    "n": 2016,
+    "ratio": 6.51,
+    "file": "0056-float-0.png"
+   },
+   {
+    "seq": 22,
+    "cls": "dmgfloat fac-lantern",
+    "kind": "hit",
+    "text": "−1",
+    "font": 27.2,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     255,
+     122,
+     69
+    ],
+    "ring": [
+     29.7,
+     17.4,
+     27.1
+    ],
+    "n": 1638,
+    "ratio": 7.05,
+    "file": "0057-float-0.png"
+   },
+   {
+    "seq": 23,
+    "cls": "dmgfloat unit",
+    "kind": "burn",
+    "text": "−1 隻",
+    "font": 17,
+    "mode": "fig",
+    "op": 1,
+    "color": [
+     242,
+     236,
+     224
+    ],
+    "ring": [
+     71.5,
+     63.1,
+     68.5
+    ],
+    "n": 1512,
+    "ratio": 8.63,
+    "file": "0058-float-0.png"
+   }
+  ],
+  "flashes": [
+   {
+    "run": 3,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 0,
+     "foe": "B",
+     "burning": true
+    },
+    "file": "0003-flash-0.png",
+    "cam": [
+     0.1961,
+     0.6593,
+     1.9365
+    ],
+    "hk": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 1,
+    "on": true,
+    "ids": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 351.1965972982944,
+     "y0": 74.71515668117127,
+     "x1": 512.5093857869847,
+     "y1": 336.05748118917234
+    },
+    "cbox": null,
+    "t": 24.83,
+    "c": null,
+    "figInfo": {
+     "skin": "layered",
+     "ab": null,
+     "body": "swarm",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 353.7596602219049,
+     "y0": 76.26869764823043,
+     "x1": 503.851737831612,
+     "y1": 318.2447426954632
+    },
+    "box200": {
+     "x0": 360.80397182404954,
+     "y0": 62.68253723755632,
+     "x1": 498.8413585140536,
+     "y1": 281.13259696635424
+    },
+    "sil": {
+     "n": 15192,
+     "frac": 0.35
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": 0.24,
+    "maskD200": -4.37,
+    "maskFrac": 0.35,
+    "files": [
+     "0005-flash40.png",
+     "0006-after200.png"
+    ]
+   },
+   {
+    "run": 8,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 0,
+     "foe": "B",
+     "burning": true
+    },
+    "file": "0011-flash-0.png",
+    "cam": [
+     -0.439,
+     0.6689,
+     -1.9642
+    ],
+    "hk": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 2,
+    "on": true,
+    "ids": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 360.36244287770813,
+     "y0": 77.66677527849292,
+     "x1": 509.5454754546102,
+     "y1": 332.44967859694833
+    },
+    "cbox": null,
+    "t": 21.22,
+    "c": null,
+    "figInfo": {
+     "skin": "layered",
+     "ab": null,
+     "body": "swarm",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 362.55692516603847,
+     "y0": 77.20687556258858,
+     "x1": 507.23451922972646,
+     "y1": 317.43301354316606
+    },
+    "box200": {
+     "x0": 363.74794834764765,
+     "y0": 64.30120863614565,
+     "x1": 496.98544617044047,
+     "y1": 281.9074244201141
+    },
+    "sil": {
+     "n": 15921,
+     "frac": 0.41
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": 0.65,
+    "maskD200": -1.71,
+    "maskFrac": 0.41,
+    "files": [
+     "0013-flash40.png",
+     "0014-after200.png"
+    ]
+   },
+   {
+    "run": 15,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 0,
+     "foe": "B",
+     "control": 0,
+     "ctrlSide": "B",
+     "via": "hitstop"
+    },
+    "file": "0021-flash-0.png",
+    "cam": [
+     3.801,
+     1.6939,
+     0
+    ],
+    "hk": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 2,
+    "on": true,
+    "ids": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 207.21357175656624,
+     "y0": 97.12040173365762,
+     "x1": 326.3991573401053,
+     "y1": 245.4978437494916
+    },
+    "cbox": {
+     "x0": 458.69602607508693,
+     "y0": 93.79159376827316,
+     "x1": 568.1778190810875,
+     "y1": 241.32452412751002
+    },
+    "t": 30.84,
+    "c": 18.09,
+    "figInfo": {
+     "skin": "layered",
+     "ab": null,
+     "body": "swarm",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 47.384982260751045,
+     "y0": 99.81492740227492,
+     "x1": 225.94700486746706,
+     "y1": 303.544640531
+    },
+    "box200": {
+     "x0": -140.3197521547468,
+     "y0": 80.28246791667718,
+     "x1": 122.5525646029336,
+     "y1": 368.7905455526197
+    },
+    "sil": {
+     "n": 6141,
+     "frac": 0.34
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": -15.48,
+    "maskD200": -17.66,
+    "maskFrac": 0.34,
+    "maskC": 0.66,
+    "files": [
+     "0023-flash40.png",
+     "0024-after200.png"
+    ]
+   },
+   {
+    "run": 16,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "B",
+     "unit": 0,
+     "foe": "A",
+     "burning": true
+    },
+    "file": "0025-flash-0.png",
+    "cam": [
+     1.9109,
+     0.6604,
+     0
+    ],
+    "hk": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 3,
+    "on": true,
+    "ids": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 327.81228296190915,
+     "y0": 65.53417711973985,
+     "x1": 499.35722983189237,
+     "y1": 341.4833561226163
+    },
+    "cbox": null,
+    "t": 19.69,
+    "c": null,
+    "figInfo": {
+     "skin": "layered",
+     "ab": null,
+     "body": "swarm",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 337.15833802273846,
+     "y0": 70.67546110634389,
+     "x1": 493.6281862828183,
+     "y1": 318.12525542168794
+    },
+    "box200": {
+     "x0": 345.34237923703927,
+     "y0": 58.11900279248564,
+     "x1": 488.0854989402398,
+     "y1": 282.1352601062173
+    },
+    "sil": {
+     "n": 16639,
+     "frac": 0.34
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": 2.73,
+    "maskD200": 1.49,
+    "maskFrac": 0.34,
+    "files": [
+     "0027-flash40.png",
+     "0028-after200.png"
+    ]
+   },
+   {
+    "run": 21,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "B",
+     "unit": 0,
+     "foe": "A",
+     "control": 0,
+     "ctrlSide": "A",
+     "via": "hitstop"
+    },
+    "file": "0033-flash-0.png",
+    "cam": [
+     -1.8288,
+     1.5465,
+     3.1129
+    ],
+    "hk": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 3,
+    "on": true,
+    "ids": [
+     [
+      1,
+      0,
+      2,
+      3
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 508.70621320102913,
+     "y0": 14.936656702435332,
+     "x1": 653.5174117555997,
+     "y1": 250.40578450462564
+    },
+    "cbox": {
+     "x0": 201.988713084703,
+     "y0": 76.33394506464333,
+     "x1": 498.9778410137531,
+     "y1": 288.9004649096199
+    },
+    "t": 23.93,
+    "c": 29.91,
+    "figInfo": {
+     "skin": "creature",
+     "ab": "sword",
+     "body": "elite",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 583.5278872033698,
+     "y0": -14.140243513532806,
+     "x1": 774.0295226373971,
+     "y1": 294.0959831321198
+    },
+    "box200": {
+     "x0": 646.6238403177994,
+     "y0": -50.28158813965104,
+     "x1": 875.2231399163968,
+     "y1": 325.52582886388007
+    },
+    "sil": {
+     "n": 11729,
+     "frac": 0.34
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      1
+     ]
+    ],
+    "maskD": -16.57,
+    "maskD200": -20.61,
+    "maskFrac": 0.34,
+    "maskC": -2.72,
+    "files": [
+     "0035-flash40.png",
+     "0036-after200.png"
+    ]
+   },
+   {
+    "run": 22,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 1,
+     "foe": "B",
+     "burning": true,
+     "control": 0
+    },
+    "file": "0037-flash-0.png",
+    "cam": [
+     -1.0358,
+     0.6638,
+     1.692
+    ],
+    "hk": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 6,
+    "on": true,
+    "ids": [
+     [
+      1,
+      0,
+      2,
+      3
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 302.5690281263004,
+     "y0": -44.29833580156996,
+     "x1": 570.4581866423855,
+     "y1": 326.2436627296371
+    },
+    "cbox": {
+     "x0": 110.88953485355322,
+     "y0": -21.800283378776648,
+     "x1": 607.2696950457806,
+     "y1": 360.694023146834
+    },
+    "t": 30.01,
+    "c": 29.91,
+    "figInfo": {
+     "skin": "creature",
+     "ab": "thunder",
+     "body": "elite",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 309.2962244397087,
+     "y0": -27.329701887664584,
+     "x1": 561.4816786043392,
+     "y1": 317.79550658658104
+    },
+    "box200": {
+     "x0": 313.8922765680152,
+     "y0": -2.2894082457323774,
+     "x1": 550.2725721991156,
+     "y1": 308.69361591573056
+    },
+    "sil": {
+     "n": 3796,
+     "frac": 0.04
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": -2.15,
+    "maskD200": -2.51,
+    "maskFrac": 0.04,
+    "maskC": 0.05,
+    "files": [
+     "0039-flash40.png",
+     "0040-after200.png"
+    ]
+   },
+   {
+    "run": 23,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 2,
+     "foe": "B",
+     "burning": true,
+     "control": 1
+    },
+    "file": "0041-flash-0.png",
+    "cam": [
+     -1.1898,
+     0.7739,
+     2.0438
+    ],
+    "hk": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 6,
+    "on": true,
+    "ids": [
+     [
+      1,
+      0,
+      2,
+      3
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 233.48305104310654,
+     "y0": 61.24103352192166,
+     "x1": 507.6490650069192,
+     "y1": 340.1920828383104
+    },
+    "cbox": {
+     "x0": 313.9015038069818,
+     "y0": -2.2481082323718438,
+     "x1": 550.2502327293298,
+     "y1": 308.6712408488854
+    },
+    "t": 33.31,
+    "c": 28.59,
+    "figInfo": {
+     "skin": "creature",
+     "ab": "wangchuan",
+     "body": "ward",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 241.33544296509007,
+     "y0": 66.02937835284425,
+     "x1": 506.96116155178163,
+     "y1": 337.1053275453152
+    },
+    "box200": {
+     "x0": 258.26087587140603,
+     "y0": 92.2627409477857,
+     "x1": 477.717177751828,
+     "y1": 311.8992749740944
+    },
+    "sil": {
+     "n": 13028,
+     "frac": 0.17
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": 0.4,
+    "maskD200": 2.56,
+    "maskFrac": 0.17,
+    "maskC": 0.2,
+    "files": [
+     "0043-flash40.png",
+     "0044-after200.png"
+    ]
+   },
+   {
+    "run": 24,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "B",
+     "unit": 0,
+     "foe": "A",
+     "burning": true
+    },
+    "file": "0045-flash-0.png",
+    "cam": [
+     -1.4298,
+     1.0009,
+     2.4373
+    ],
+    "hk": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 6,
+    "on": true,
+    "ids": [
+     [
+      1,
+      0,
+      2,
+      3
+     ],
+     [
+      0
+     ]
+    ],
+    "box": {
+     "x0": 585.5406527572891,
+     "y0": -4.645077357673748,
+     "x1": 768.572244412061,
+     "y1": 293.4176417990438
+    },
+    "cbox": null,
+    "t": 25.43,
+    "c": null,
+    "figInfo": {
+     "skin": "creature",
+     "ab": "sword",
+     "body": "elite",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 519.445756127663,
+     "y0": 30.641145843297863,
+     "x1": 656.5005032337214,
+     "y1": 250.23400536205347
+    },
+    "box200": null,
+    "sil": {
+     "n": 706,
+     "frac": 0.01
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "maskD": -7.65,
+    "maskD200": -4.18,
+    "maskFrac": 0.01,
+    "files": [
+     "0047-flash40.png",
+     "0048-after200.png"
+    ]
+   },
+   {
+    "run": 27,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 0,
+     "foe": "B",
+     "control": 0,
+     "ctrlSide": "B",
+     "via": "hitstop"
+    },
+    "file": "0051-flash-0.png",
+    "cam": [
+     -3.3824,
+     1.4426,
+     0.88
+    ],
+    "hk": [
+     [
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "bn": 6,
+    "on": true,
+    "ids": [
+     [
+      0
+     ],
+     [
+      1,
+      0,
+      2,
+      3,
+      4,
+      5
+     ]
+    ],
+    "box": {
+     "x0": 280.6898851337655,
+     "y0": 95.92113766549708,
+     "x1": 388.9320926619013,
+     "y1": 253.9215949167727
+    },
+    "cbox": {
+     "x0": 482.1090467812537,
+     "y0": 95.54527251909585,
+     "x1": 873.9567881167923,
+     "y1": 294.18138643765155
+    },
+    "t": 29.42,
+    "c": 29.63,
+    "figInfo": {
+     "skin": "layered",
+     "ab": null,
+     "body": "swarm",
+     "haunt": false
+    },
+    "box40": {
+     "x0": 340.3288851951254,
+     "y0": 97.23295290926394,
+     "x1": 453.7500095367759,
+     "y1": 285.6586127852575
+    },
+    "box200": {
+     "x0": 373.26181905319186,
+     "y0": 96.23238468941688,
+     "x1": 492.802007617605,
+     "y1": 306.2379101105671
+    },
+    "sil": {
+     "n": 6844,
+     "frac": 0.39
+    },
+    "silDiag": {
+     "okHide": true,
+     "hasSil": true
+    },
+    "hk40": [
+     [
+      1
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "maskD": -23.15,
+    "maskD200": -33.31,
+    "maskFrac": 0.39,
+    "maskC": -5.36,
+    "files": [
+     "0053-flash40.png",
+     "0054-after200.png"
+    ]
+   }
+  ],
+  "skip": [
+   {
+    "run": 32,
+    "step": 0,
+    "at": 0,
+    "meta": {
+     "side": "A",
+     "unit": 1
+    },
+    "file": "0059-skip-0.png",
+    "cam": [
+     2.8189,
+     1.7083,
+     -2.6029
+    ],
+    "hk": [
+     [
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 8,
+    "on": true,
+    "ids": [
+     [
+      0,
+      1
+     ],
+     []
+    ],
+    "box": {
+     "x0": 177.9777035010826,
+     "y0": 60.16473605152746,
+     "x1": 544.0198662714245,
+     "y1": 329.15729208552733
+    },
+    "cbox": null,
+    "t": 24.22,
+    "c": null
+   },
+   {
+    "run": 32,
+    "step": 1,
+    "at": 40,
+    "meta": {
+     "side": "A",
+     "unit": 1
+    },
+    "file": "0060-skip-1.png",
+    "cam": [
+     2.7737,
+     1.7083,
+     -2.6511
+    ],
+    "hk": [
+     [
+      0,
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 8,
+    "on": true,
+    "ids": [
+     [
+      0,
+      1
+     ],
+     []
+    ],
+    "box": {
+     "x0": 177.62537571045365,
+     "y0": 60.292954511384295,
+     "x1": 546.1363325997246,
+     "y1": 332.0889678478399
+    },
+    "cbox": null,
+    "t": 39.71,
+    "c": null
+   },
+   {
+    "run": 32,
+    "step": 2,
+    "at": 340,
+    "meta": {
+     "side": "A",
+     "unit": 1
+    },
+    "file": "0061-skip-2.png",
+    "cam": [
+     3.4699,
+     1.7939,
+     -1.2131
+    ],
+    "hk": [
+     [
+      0,
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    "bn": 8,
+    "on": false,
+    "ids": [
+     [],
+     []
+    ],
+    "box": null,
+    "cbox": null,
+    "t": null,
+    "c": null
+   }
+  ],
+  "via": {
+   "hitstop": 3,
+   "timer": 0
+  }
+ },
+ "shots": [
+  {
+   "file": "0001-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 1
+   }
+  },
+  {
+   "file": "0002-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 2
+   }
+  },
+  {
+   "file": "0003-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 0,
+    "foe": "B",
+    "burning": true
+   }
+  },
+  {
+   "file": "0007-ghost-0.png",
+   "tag": "ghost",
+   "step": 0,
+   "at": 0,
+   "meta": {}
+  },
+  {
+   "file": "0008-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 3
+   }
+  },
+  {
+   "file": "0009-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 4
+   }
+  },
+  {
+   "file": "0010-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 5
+   }
+  },
+  {
+   "file": "0011-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 0,
+    "foe": "B",
+    "burning": true
+   }
+  },
+  {
+   "file": "0015-ghost-0.png",
+   "tag": "ghost",
+   "step": 0,
+   "at": 0,
+   "meta": {}
+  },
+  {
+   "file": "0016-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 6
+   }
+  },
+  {
+   "file": "0017-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 7
+   }
+  },
+  {
+   "file": "0018-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 8
+   }
+  },
+  {
+   "file": "0019-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 9
+   }
+  },
+  {
+   "file": "0020-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 10
+   }
+  },
+  {
+   "file": "0021-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 0,
+    "foe": "B",
+    "control": 0,
+    "ctrlSide": "B",
+    "via": "hitstop"
+   }
+  },
+  {
+   "file": "0025-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "B",
+    "unit": 0,
+    "foe": "A",
+    "burning": true
+   }
+  },
+  {
+   "file": "0029-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 11
+   }
+  },
+  {
+   "file": "0030-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 12
+   }
+  },
+  {
+   "file": "0031-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 13
+   }
+  },
+  {
+   "file": "0032-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 14
+   }
+  },
+  {
+   "file": "0033-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "B",
+    "unit": 0,
+    "foe": "A",
+    "control": 0,
+    "ctrlSide": "A",
+    "via": "hitstop"
+   }
+  },
+  {
+   "file": "0037-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 1,
+    "foe": "B",
+    "burning": true,
+    "control": 0
+   }
+  },
+  {
+   "file": "0041-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 2,
+    "foe": "B",
+    "burning": true,
+    "control": 1
+   }
+  },
+  {
+   "file": "0045-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "B",
+    "unit": 0,
+    "foe": "A",
+    "burning": true
+   }
+  },
+  {
+   "file": "0049-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 18
+   }
+  },
+  {
+   "file": "0050-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 19
+   }
+  },
+  {
+   "file": "0051-flash-0.png",
+   "tag": "flash",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 0,
+    "foe": "B",
+    "control": 0,
+    "ctrlSide": "B",
+    "via": "hitstop"
+   }
+  },
+  {
+   "file": "0055-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 20
+   }
+  },
+  {
+   "file": "0056-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 21
+   }
+  },
+  {
+   "file": "0057-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 22
+   }
+  },
+  {
+   "file": "0058-float-0.png",
+   "tag": "float",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "seq": 23
+   }
+  },
+  {
+   "file": "0059-skip-0.png",
+   "tag": "skip",
+   "step": 0,
+   "at": 0,
+   "meta": {
+    "side": "A",
+    "unit": 1
+   }
+  },
+  {
+   "file": "0060-skip-1.png",
+   "tag": "skip",
+   "step": 1,
+   "at": 40,
+   "meta": {
+    "side": "A",
+    "unit": 1
+   }
+  },
+  {
+   "file": "0061-skip-2.png",
+   "tag": "skip",
+   "step": 2,
+   "at": 340,
+   "meta": {
+    "side": "A",
+    "unit": 1
+   }
+  }
+ ],
+ "meta": {
+  "floats": 23,
+  "hits": 25,
+  "burns": 8,
+  "froze": 34,
+  "note": {
+   "duels": 6,
+   "ends": 6
+  },
+  "ver": "v0.54・紙紮夜戰：開・招式三級視覺分級：一般拍走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素，不是把完整版加速——既有 rate 天花板 2.2× 根本擠不進去）、擊殺拍與決定性最後一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位 ＋ 兩條 DOM 黑條；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call",
+  "expectVersion": "0.54",
+  "versionOk": true
+ },
+ "errors": []
+}

@@ -36,6 +36,10 @@ const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
 const { chromium } = req('playwright');
 
+/* v0.54：治具不得自己寫死招式毫秒（凍結檔 F1）。lean 的回位窗口就是這個值，
+   寫死 900 而頁面改成依 tier 之後，S3／S12 量的窗口會整整錯 640ms。 */
+const TRAIT_MS = msOf(2); // 這支治具驗的是 lean 的既有行為（＝完整版 tier 2）
+
 function parseArgs(argv) {
   const pos = []; const opt = {};
   for (const a of argv) {
@@ -53,6 +57,7 @@ const PAGE = `<!doctype html><meta charset="utf-8"><title>cam-unit</title>
 const HARNESS = (newUrl, baseUrl) => `
 import * as THREE from 'three';
 import { createCameraDirector as N } from '${newUrl}';
+import { msOf } from './fx-consts.mjs';
 ${newUrl === baseUrl ? 'const O = N;' : `import { createCameraDirector as O } from '${baseUrl}';`}
 window.__camunit = (async () => {
   const mkCam = () => ({ position: new THREE.Vector3(), lookAt() {} });
@@ -95,7 +100,7 @@ async function run(page, url, newUrl, baseUrl) {
   await page.addScriptTag({ type: 'module', content: HARNESS(newUrl, baseUrl) });
   await page.waitForFunction(() => !!window.__camunit, null, { timeout: 20000 })
     .catch((e) => { throw new Error('harness 沒起來（多半是 module 載入失敗）: ' + e.message); });
-  return page.evaluate(async () => {
+  return page.evaluate(async (K) => {
     const H = await window.__camunit;
     const out = {};
     // ── 定場：先走到牌桌機位穩定（t=1、無任何偏移）
@@ -106,10 +111,10 @@ async function run(page, url, newUrl, baseUrl) {
     out.duelAt = H.log.length;
     H.step(300, 'duel');            // 5.00s：涵蓋 700ms 推進 ＋ 1500ms orbit ＋ 之後的靜止
     out.traitAAt = H.log.length;
-    H.fire('ys:fx-trait', { side: 'A', ms: 900 });
+    H.fire('ys:fx-trait', { side: 'A', ms: K.TRAIT_MS });
     H.step(90, 'traitA');           // 1.50s
     out.traitBAt = H.log.length;
-    H.fire('ys:fx-trait', { side: 'B', ms: 900 });
+    H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS });
     H.step(90, 'traitB');
     out.burnAt = H.log.length;
     H.fire('ys:fx-burn', { side: 'B', unit: 0, ms: 500 });
@@ -130,7 +135,7 @@ async function run(page, url, newUrl, baseUrl) {
     out.duel2At = H.log.length;
     H.step(60, 'duel2');            // 1.00s > 推進 700ms，orbit 還在轉
     out.skipTraitAt = H.log.length;
-    H.fire('ys:fx-trait', { side: 'B', ms: 900 });
+    H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS });
     H.step(6, 'skipTrait');         // 0.10s：lean 正在最大
     out.cancelAt = H.log.length;
     H.fire('ys:fx-trait-cancel', {});
@@ -186,17 +191,17 @@ async function run(page, url, newUrl, baseUrl) {
     jump(i0, 'E3_table_during_orbit');
     // E4 lean 峰值時收 duel-end
     H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
-    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS }); H.step(6, 'e');
     i0 = H.log.length; H.fire('ys:duel-end', {}); H.step(120, 'e');
     jump(i0, 'E4_duelEnd_during_lean');
     // E5 lean 峰值時收 ys:table
     H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
-    H.fire('ys:fx-trait', { side: 'A', ms: 900 }); H.step(6, 'e');
+    H.fire('ys:fx-trait', { side: 'A', ms: K.TRAIT_MS }); H.step(6, 'e');
     i0 = H.log.length; H.fire('ys:table', {}); H.step(120, 'e');
     jump(i0, 'E5_table_during_lean');
     // E6 lean 峰值時收 ys:fx-trait-cancel
     H.step(60, 'e'); H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');
-    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS }); H.step(6, 'e');
     i0 = H.log.length; H.fire('ys:fx-trait-cancel', {}); H.step(120, 'e');
     jump(i0, 'E6_traitCancel_during_lean');
     H.fire('ys:duel-end', {}); H.step(120, 'e');
@@ -250,7 +255,7 @@ async function run(page, url, newUrl, baseUrl) {
     // （覆審 skip-real.mjs 六次實測）。這裡固定成「各隔 1 幀」＝最容易踩到的排列。
     H.step(60, 'e');
     H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
-    H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(6, 'e');
+    H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS }); H.step(6, 'e');
     i0 = H.log.length;
     H.fire('ys:fx-trait-cancel', {}); H.step(1, 'e');
     H.fire('ys:duel-end', {}); H.step(1, 'e');
@@ -262,7 +267,7 @@ async function run(page, url, newUrl, baseUrl) {
     // 同組另外量既有的 punch／burn 上升沿當對照——它們是 v0.34 同族、本卷裁定不改行為。
     H.step(60, 'e');
     H.fire('ys:duel', { a: 0, b: 3 }); H.step(300, 'e');    // 進場與 orbit 都跑完，基座靜止
-    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(90, 'e');
+    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS }); H.step(90, 'e');
     jump(i0, 'F5_lean_onset');
     H.step(60, 'e');
     i0 = H.log.length; H.fire('ys:fx-punch', { power: 1 }); H.step(40, 'e');
@@ -279,13 +284,13 @@ async function run(page, url, newUrl, baseUrl) {
     H.step(60, 'e');
     H.fire('ys:duel', { a: 0, b: 3 }); H.step(60, 'e');
     H.fire('ys:fx-trait-cancel', {}); H.step(10, 'e');
-    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: 900 }); H.step(90, 'e');
+    i0 = H.log.length; H.fire('ys:fx-trait', { side: 'B', ms: K.TRAIT_MS }); H.step(90, 'e');
     jump(i0, 'X5_lean_onset_midFold');
     H.fire('ys:duel-end', {}); H.step(120, 'e');
 
     out.log = H.log;
     return out;
-  });
+  }, { TRAIT_MS: TRAIT_MS });
 }
 
 const { pos, opt } = parseArgs(process.argv.slice(2));
@@ -356,8 +361,8 @@ try {
     const back = L[from + backF];
     return { peak200: +best.toFixed(4), atMs: +Math.abs(back.dyaw).toFixed(4), distDrop: +Math.max(...w.map((x) => x.ol - x.nl)).toFixed(4) };
   };
-  const leanA = leanOf(R.traitAAt, 900);
-  const leanB = leanOf(R.traitBAt, 900);
+  const leanA = leanOf(R.traitAAt, TRAIT_MS);
+  const leanB = leanOf(R.traitBAt, TRAIT_MS);
   // (c) burn punch：拿「新版自己」靜止時當基線，量 burn 與 power=1 對照組的 dist 減量比。
   // 不用 (舊−新)，因為舊版也收 ys:fx-punch，對照組會被抵銷成 0。
   // 量 z 不量 |position|：punch 的橫向微震只加在 x／y 上，z＝cos(yaw)cos(tilt)·dist 與 dist 成正比，

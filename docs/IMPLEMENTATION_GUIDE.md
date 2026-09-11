@@ -725,6 +725,117 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 
 動手前先查這一節，不要假設設計文件寫了就是做好了。
 
+### 11.27 招式三級視覺分級（2026-09-10，v0.54）——接手前先知道這八件事
+
+規格＝評審 `docs/proposals/2026-09-10-roadmap-v2-review.md` §1；**權威驗收凍結**＝`docs/experiments/2026-09-10-acceptance-fx-tiers.md`（F0–F10）；
+介面寫死在計畫檔 `docs/experiments/2026-09-10-plan-fx-tiers.md`（含 27 招辨識元素表）；實跑報告＝`docs/experiments/2026-09-10-fx-tiers-report.md`。
+純演出卷：引擎 `trace(1..20)` 與 `adbb124`（v0.53）逐位元組相等。
+
+1. **★招式時長的唯一事實來源是 `PW_FX.TRAIT_MS_BY_TIER`（`index.html`）★**：`{1:260, 2:900, 3:1400}`，
+   拍末下限另一張 `BEAT_MIN_MS_BY_TIER {1:300, 2:900, 3:1400}`，等比基準 `TIER_BASE_MS:900`。
+   舊的 `PW_FX.TRAIT_MS` 與 `PW_FX.BEAT_MIN_MS` **已整組刪除，別回頭引用**。
+   `js/trait-fx.js` 與 `js/camera-director.js` 的 `||900` 退路也刪了——**事件沒帶 `detail.ms`／`detail.baseMs` 就 throw**。
+   會這樣做是因為 v0.53 以前同一個 900 抄在 runtime 4 處＋治具 17 處，改一處漏二十處。
+   治具那一側的單一來源是 `tests/tools/fx-consts.mjs`，它的 `assertPageConsts()` 每次跑 `traitfx-drive` 都會與頁面逐鍵比對，分岔就當場 throw。
+
+2. **tier 是「拍級」不是「招級」**：`pwBeatTier(list, beat, f, views)`（`index.html`，**四個參數**）——
+   ★以下是**凍結檔 §2.1 修訂一（使用者 2026-09-10 裁甲）之後**的規則，這一節只留這一套說法★：
+   - 該拍有三尊大招（`TRAITS[].tier===3`）→ **3**
+   - ①該場對決的**決定性最後一拍**（第 3 拍且分得出勝負）或②這一拍**燒掉了傳說三尊之一** → **2**
+   - 其餘 → **1**（**含一般的擊殺拍**）
+   `views` 就是為了②才加的（要查「被燒的那一隻是不是傳說尊」，`pwIsLegendUnit` 認 `LEGENDS[].m`）。
+   ★別回頭寫成「該拍有任何 burn 就升 2」★——那是一版的規則，實測 8v8 有三分之二的拍都有 burn，
+   拍末大多停在 900ms、F3 幾乎沒動，修訂一就是為了這件事收窄的。
+   同一拍裡每一支招吃同一個**拍級**，拍末等待也是；但**招級另有上限**（見下面「二版改了三件事」第 2 條）。
+   `TRAITS[].tier` 只掛在三尊三招上（`eliteBlind`／`wardGuardAll`／`hauntAnswer`），
+   **是這一卷對 `TRAITS` 的唯一改動，引擎一行不讀它**；它是該招的**上限**，
+   生效的地方只有「一支普通招不會因為同拍有大招就自己升到 3」。
+
+3. **短版是 27 支各寫一條，不是把完整版加速**（使用者 2026-09-10 裁 D4 丙）：
+   `js/trait-fx/{zuling,xianghuo,yinqi}.js` 各 `export const SHORT`（9 支），`trait-fx.js` 的 `start()` 在 `det.tier===1` 時優先取它。
+   為什麼不能加速：`run.rate` 的天花板是 `TFX.rateMax` 2.2×，900→260 需要 3.46×，撞上去就是 `stats.cut`（收勢被硬切）。
+   短版缺席時退回完整版**不是恆綠退路**——完整版塞不進 260ms 會 `cut>0`，治具的 `clean` 立刻紅。
+
+4. **★寫短版的三條紀律（照著走才不會 rate>1）★**（檔頭也抄了一份）：
+   ① **horizon ≤ 230**。`rate = (horizon−vt)/(ms−margin−t+dt)`，`margin = max(endMargin×k, dt×1.5)`；
+      實測 horizon 233 還是 1.0、238 就 1.0128，門檻落在 235 附近，留到 230 是給低幀率的餘裕。
+   ② **所有補間一律在函式頂層用 `delay` 排定**。在 tween 的 `done` 回呼裡再排新補間，是在 vt≈170 那一刻才排，
+      horizon 直接被推到 240+。回呼裡只放 `st.burst`／`st.punch`／直接設 `material.opacity`（那些不進排程）。
+   ③ **不要用 `st.at`**：它替回呼預留 `atReserve×k`，260ms 下白丟 46ms 預算。
+   還有一個踩過的坑：**`ms:1` 的「觸發器 tween」不能用**——`update` 在那一幀會被呼叫不只一次，
+   裡面 `st.bolt`＋`st.fade` 會逐幀重排，horizon 被推到 264（`boltGamble` 第一版 rate 1.0537 紅）。
+   要「某一刻才現形」的 mesh，就在頂層先建好、`opacity:0`，靠 `st.fade(..., {delay})` 讓它到點才淡出。
+
+5. **三個絕對常數隨 tier 等比**：`TFX.flinchMs`／`atReserve`／`endMargin` 乘 `run.k = run.ms / det.baseMs`。
+   基準值不寫在 `trait-fx.js`（寫了就是第二份事實來源），由事件帶 `detail.baseMs`＝`PW_FX.TIER_BASE_MS`。
+
+6. **Tier 3 ＝ 完整版 ＋ `CINEMA` 機位**（1400ms）：
+   `camera-director.js` 的 `CINEMA {dist:2.9, tilt:8, inMs:220, outMs:320}` 是第 ⑥ 層偏移，只動 dist／tilt，
+   **yaw 一律不碰**（同 FOCUS 的紀律：yaw 上已經有 orbit 與 lean 兩層）；`cinemaK=0` 時逐值等於沒有這層。
+   ★**黑條 letterbox 不在本卷**★（凍結檔 §2.1 修訂七，使用者 2026-09-11 裁甲）：
+   一～五版試過 `z-index:-1`／`z-index:41`／`#duel` padding／逐元素 absolute／整塊 `transform:scale(.80)`
+   五種做法，每一種都壓到不同的元素——**真因是對決版面本來就填滿到溢出（`scrollHeight 394 > clientHeight 390`），
+   沒有安全區**。黑邊連同「對決版面安全區」整包留給招式可辨性卷重做。
+   想再加黑邊之前先讀修訂七那張「五個版本各壓到誰」的表，別再走一次同樣的五步。
+   機械防線有兩道，**但它們守得住的事比名字聽起來窄，下一卷動手前先讀清楚**（r6 HIGH-1）：
+   - **L9**＝原始碼字串比對（`.lbox`／`pwLetterbox`／兩個 id 的 `'`、`"`、`#` 三種寫法各 0 處）。
+     它按**名字**寫，所以**換一組 id 名字就繞得過**。
+   - **L10**＝tier 3 那一拍 **`document.body` 的可見子孫** rect 與 v0.53 逐值相同（`duel-rects.mjs`）。
+     它守的是「**DOM 幾何**與 v0.53 相同」，**不是**「畫面與 v0.53 相同」：
+     ① **以動畫表達的位移**抓不到（讀 rect 前會定格：無限迴圈讀相位 0、有限長度讀終態——
+     而「黑邊柔和進出」正是最容易寫成動畫的那一種）；② 顏色／透明度／z-index 造成的**純遮擋**抓不到。
+     （掃描根本來是 `#duel`，那樣連「`#duel` 之外的蓋板」都抓不到——二版 `5a1220e` 就是那種寫法；
+     r6 抓到後已改成掃 `document.body`，這一類現在紅得起來。）
+   ⇒ **下一卷重做黑邊時，這兩道擋不住「用動畫做位移」與「純遮擋」，要另外建防線**（例如遮擋取樣或像素比對）。
+
+7. **`?fxtier=0` 是退路等價開關**：`PW_FX.TIER_ON=false` → `pwBeatTier` 恆回 2 ＝ v0.53 行為
+   （900、拍末 900、無 CINEMA）。實測 `tiers {1:0,2:12,3:0}`、4 場時長與基準幾乎逐項相同。
+   `?closeup=0` 則只管 CINEMA 這一件事（修訂七之後黑條沒了，它不再有第二個作用）。
+
+8. **治具**：`traitfx-drive.mjs --tier=1|2|3`（`--ms` 已移除，時長從 `fx-consts` 取），
+   新判定 `msOK`（頁面實際 `run.ms` 等於該 tier，防「`--tier=1` 其實還在跑 900」）、
+   `rateOK`（`maxRate ≤1.0`，tier 1 專用）、`actionsOK`（非 flinch 的補間 ≥2，F10）；
+   `tests/tools/lbox-probe.mjs` 驗 CINEMA「只在 tier 3」＋黑條不存在＋tier 3 版面與 v0.53 逐值相同（正反都驗，
+   量測在 `tests/tools/duel-rects.mjs`）；`tests/fxtier.test.mjs` 是 F1 的單元測試。
+   ★順手修掉一個靜默漏測★：`traitfx-drive` 的 LEGENDS regex 自 2026-09-07 請神 2.0 插入 `eff:{}` 之後
+   **一套都抓不到**（只印一行 warn），三尊三招近一個月沒被機械驗收過；現在反查不到直接 throw。
+
+**★二版（2026-09-11）改了三件事，接手前一定要知道★**
+1. **tier 2 的條件收窄了**（凍結檔 §2.1 修訂一，使用者裁甲）：只有「該場決定勝負的最後一拍」與
+   「這一拍燒掉了傳說三尊之一」升 tier 2，**一般擊殺拍走 tier 1**。一版把所有擊殺拍都升 2，
+   實測 12 拍裡 8 拍停在 900ms，F3 幾乎沒動。收窄後 `FXC.tiers` 從 `{1:4,2:8}` 翻成 `{1:8,2:4}`。
+2. **招級 ≠ 拍級**（`pwMoveTier`，R1 覆審 M2）：拍級決定「這一拍多重要」，但同一拍裡的**普通招上限 2**，
+   只有 `TRAITS[].tier===3` 的傳說招走 1400＋CINEMA。拍末等待仍吃**拍級**。
+3. **CINEMA 一定要有取消路徑**（R1 覆審 C1，CRITICAL）：一版宣告了 `cinemaFall` 卻沒有一行把它設 true，
+   「立刻回位」是死碼——跳過大招後鏡頭卡在貼地仰視 1.49 秒。現在 `endCinema()` 掛在
+   `onTraitCancel`／`onDuelEnd`／`onTable`／`onEnd` 四個入口。**改這一段一定要重跑 `lbox-probe` 的 L5**。
+
+**三尊的 tier 3 餘韻**（R1 M1）：三招各有一段包在 `if (st.tier === 3)` 裡的收勢，把 1400ms 填到
+horizon **1290／1296／1294**（fill 0.921／0.926／0.924，收尾版實測；★別再抄 1280／1360／1385 那組，那是二版的，三版為了把 `rate` 壓回凍結的 ≤1.0 又壓縮過一次★）。
+**tier 2 走同一支函式，那段不執行、行為逐項不變**——加新段落時務必照這個寫法。
+
+**量測紀律（二版學到的）**：
+- F3 一次 4 場的中位**分辨不出**這一卷改了什麼（覆審員實測同組態 ±550ms）。要比就用 `pace-ab.mjs`：
+  交錯跑、每組 5 次、看「中位的中位」與**全距有沒有重疊**。
+- F6 的 `rafMedianFps` 撞 vsync（兩邊都 59.9），**零鑑別力**；主數字用 `rendersPerSec`。
+  `duel-perf perf` 以前靜默吃掉 `--root`（基準會變成新版自己），現在不支援的旗標一律 throw。
+- **列舉「誰被蓋到」永遠會漏掉下一個元素**（黑條五輪的教訓）：要驗版面沒被動到，
+  就對**所有可見子孫的 rect** 做相等性斷言（`duel-rects.mjs`），不要自己列一份元素清單。
+  相等性斷言另附活性證據：錨點數、時點數、掃到的元素數都要 >0，兩邊一起空也會「逐值相同」。
+- `trace-eq` 預設只證明「勝負與扣血沒變」；拍序列要用 `--beats`（對兩邊做同一個注入）。
+
+**沒過字面門檻的三條（門檻未動，留給製作人裁；數字以報告現況為準）＋一條已改判準**：
+① F3 主條中位 **5018ms** >5000（差 18ms，但效果 −586ms 已大於噪音、全距不重疊；使用者裁甲以實測值通過，修訂四）；
+② F3 子條原文「有 tier 3 的對決 ≤8s」3 場中 2 場超標（**基準同場次更慢**，與 tier 3 無關；現行判準＝修訂五，綠）；
+③ F4 的 `closeup-judge nullCount` 4 > 基準 2（拍變短讓 punch 排光更多靜幀，`deepOk` 與有樣本的 `monoQuiet` 仍全過；修訂六降記錄項）；
+④ **F6 的 draw calls 那一半**：原文「不增」已依 **§2.1 修訂八**（使用者 2026-09-11 裁甲）改成
+   「**同 `visible` 樣本下落在基準全距內**」＋`rendersPerSec` ≥0.90，**現在是綠的**。
+   為什麼非改不可：`duel-perf perf` 在真實對決進行中另派合成場，背景的 `ys:fx-burn` 會燒掉合成場上的尊，
+   `visible` 15 vs 16 ＝ 約 30 個 draw call，是被宣稱效果（±3）的**十倍**；同一份程式碼在兩個 session
+   之間方向翻轉（作者 +3、覆審員 r6 −29，而兩人的基準側中位同為 957）。
+   ★改這一段前先讀修訂八★；真正決定性的量法（固定演出時點取樣）留給下一卷。
+詳見報告 `docs/experiments/2026-09-10-fx-tiers-report.md`。
+
 ### 11.25 傷害可讀性 批 2-a（2026-09-07～10，v0.51 上線）——接手前先知道這六件事
 
 規格與驗收凍結＝`docs/experiments/2026-09-07-acceptance-dmg-readability.md`（R0–R8）；

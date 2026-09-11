@@ -1,0 +1,795 @@
+{
+ "verdict": {
+  "L1": true,
+  "L2": true,
+  "L3": true,
+  "L4": true,
+  "L5": true,
+  "L6": true,
+  "L7": false,
+  "L8": true,
+  "errors": 0,
+  "PASS": false
+ },
+ "res": {
+  "L3": {
+   "before": [
+    0,
+    0
+   ],
+   "onCls": [
+    true,
+    true
+   ],
+   "offCls": [
+    false,
+    false
+   ],
+   "exists": true,
+   "onHeight": {
+    "open": [
+     31.1875,
+     31.1875
+    ],
+    "back": [
+     0,
+     0
+    ]
+   }
+  },
+  "L4": {
+   "off": {
+    "calls": 14,
+    "tris": 855
+   },
+   "on": {
+    "calls": 14,
+    "tris": 855
+   },
+   "off2": {
+    "calls": 14,
+    "tris": 855
+   }
+  },
+  "L7": {
+   "land": {
+    "samples": [
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 72,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.5,
+        "bottom": 33.3,
+        "h": 7.8,
+        "area": 44.4,
+        "pct": 72.8,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "陰間當鋪・破軍旗：殘旗插心本"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "本隊只剩 1 隻時 atk+"
+       }
+      ]
+     },
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 75,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.5,
+        "bottom": 34.3,
+        "h": 9.9,
+        "area": 66.4,
+        "pct": 68,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "陰間當鋪・送王船：送王船二拍"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "二拍：吸收對面本拍首 4 點"
+       }
+      ]
+     },
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 75,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.4,
+        "bottom": 34.4,
+        "h": 10.1,
+        "area": 68.7,
+        "pct": 67.7,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "陰間當鋪・送王船：送王船二拍"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "二拍：吸收對面本拍首 4 點"
+       }
+      ]
+     },
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 68,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.5,
+        "bottom": 33.3,
+        "h": 7.7,
+        "area": 43.6,
+        "pct": 73,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "閭山法師・王爺劍：斬瘟本隊精"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "本隊精英的濺射改為全額"
+       }
+      ]
+     },
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 71,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.5,
+        "bottom": 34.3,
+        "h": 9.8,
+        "area": 65.8,
+        "pct": 68.1,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "獵人・法寶：普渡該拍：本方全"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "該拍：本方全體 hp+2（含"
+       }
+      ]
+     },
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 71,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.4,
+        "bottom": 34.4,
+        "h": 10.1,
+        "area": 68.7,
+        "pct": 67.7,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "獵人・法寶：普渡該拍：本方全"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "該拍：本方全體 hp+2（含"
+       }
+      ]
+     },
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 52,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.7,
+        "bottom": 33.2,
+        "h": 7.5,
+        "area": 41.5,
+        "pct": 73.7,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "獵人・虎姑婆指甲：咬手指打群"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "打群體目標額外 +2"
+       }
+      ]
+     },
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 55,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.6,
+        "bottom": 34.2,
+        "h": 9.6,
+        "area": 63.7,
+        "pct": 68.5,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "獵人・法寶：普渡該拍：本方全"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "該拍：本方全體 hp+2（含"
+       }
+      ]
+     },
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 390,
+      "clientH": 390,
+      "seenN": 55,
+      "hits": [
+       {
+        "key": "beatLamps",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 174.3,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "on",
+        "top": 24.4,
+        "bottom": 34.4,
+        "h": 10,
+        "area": 67.5,
+        "pct": 67.9,
+        "txt": ""
+       },
+       {
+        "key": "i",
+        "top": 25.9,
+        "bottom": 32.9,
+        "h": 7,
+        "area": 37,
+        "pct": 75.4,
+        "txt": ""
+       },
+       {
+        "key": "duelMove",
+        "top": 329.1,
+        "bottom": 364.1,
+        "h": 35,
+        "area": 2763.5,
+        "pct": 15.1,
+        "txt": "獵人・法寶：普渡該拍：本方全"
+       },
+       {
+        "key": "mvdesc",
+        "top": 348.1,
+        "bottom": 364.1,
+        "h": 16,
+        "area": 2763.5,
+        "pct": 33,
+        "txt": "該拍：本方全體 hp+2（含"
+       }
+      ]
+     }
+    ],
+    "tiers": {
+     "1": 25,
+     "2": 14,
+     "3": 3
+    }
+   },
+   "port": {
+    "samples": [],
+    "rotateHint": "flex",
+    "duDisp": "none",
+    "note": "直式：rotateHint 蓋板全螢幕，對決不可見，不量交集"
+   }
+  },
+  "tier1": {
+   "ms": 260,
+   "samples": 53,
+   "onCount": 0,
+   "maxK": 0,
+   "onDuring": 0,
+   "onAtTail": 0
+  },
+  "tier2": {
+   "ms": 900,
+   "samples": 91,
+   "onCount": 0,
+   "maxK": 0,
+   "onDuring": 0,
+   "onAtTail": 0
+  },
+  "tier3": {
+   "ms": 1400,
+   "samples": 121,
+   "onCount": 104,
+   "maxK": 1,
+   "onDuring": 85,
+   "onAtTail": 0
+  },
+  "L5": {
+   "ys:fx-trait-cancel": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 42,
+    "lastOnT": 312
+   },
+   "ys:duel-end": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 43,
+    "lastOnT": 316
+   },
+   "ys:table": {
+    "kAtCancel": 1,
+    "onAfter300": 0,
+    "samples": 43,
+    "lastOnT": 316
+   }
+  },
+  "L6": {
+   "off": {
+    "top": 29.41,
+    "bot": 40.44,
+    "mid": 53.25
+   },
+   "on": {
+    "top": 0,
+    "bot": 0,
+    "mid": 55.15
+   }
+  },
+  "L8": {
+   "closeupOn": false,
+   "maxK": 0,
+   "onCount": 0,
+   "barH": [
+    0,
+    0
+   ]
+  }
+ },
+ "errors": []
+}

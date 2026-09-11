@@ -75,6 +75,8 @@ window.__cu2 = (async () => {
   step(20);
   mark('u4');
   // U4：先讓切鏡推到滿幅（160ms 進場＋餘裕），再派一記 power=2 的 punch，量最低點
+  // 這裡的 900 是**近景切鏡自己的停留長度**（要夠長才量得到最低點），不是招式時長——
+  // 招式時長的唯一來源是 PW_FX.TRAIT_MS_BY_TIER，這支治具一次都沒派過 ys:fx-trait（v0.54 分母歸一逐處確認）。
   fire('ys:fx-focus', { kind: 'hit', side: 'A', actor: 0, foeSide: 'B', target: 0, ms: 900 });
   step(20);
   fire('ys:fx-punch', { power: 2 });

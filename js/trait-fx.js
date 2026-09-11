@@ -24,7 +24,7 @@ import * as THREE from 'three';
 const V = new URL(import.meta.url).search;
 const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
-const loadMoves = (file) => import(file + V).then((m) => m.default || m.MOVES || {}, () => ({}));
+const loadMoves = (file) => import(file + V).then((m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {} }), () => ({ full: {}, short: {} }));
 const [ZULING, XIANGHUO, YINQI] = await Promise.all([
   loadMoves('./trait-fx/zuling.js'),
   loadMoves('./trait-fx/xianghuo.js'),
@@ -32,11 +32,19 @@ const [ZULING, XIANGHUO, YINQI] = await Promise.all([
 ]);
 
 /** trId → 編舞函式(stage)。三個系別檔各自導出自己那一系的招；鍵名＝index.html TRAITS 的 id。 */
-export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING, XIANGHUO, YINQI);
+export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING.full, XIANGHUO.full, YINQI.full);
+/** trId → tier 1 的 260ms 短版編舞（v0.54）。三個系別檔各 export const SHORT；三尊三招沒有短版（恆 tier 3）。
+ *  缺席時 start() 退回完整版——那不是恆綠退路：完整版塞不進 260ms 會 stats.cut++，治具的 clean 立刻紅。 */
+export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short, XIANGHUO.short, YINQI.short);
 
 // 全部【試玩必調】
 export const TFX = {
   fuseMul: 2, // 保險絲：演出最長 ms×fuseMul
+  // ★下面三個常數（endMargin／atReserve／flinchMs）在 v0.54 起隨 run.k＝run.ms/det.baseMs 等比縮放★
+  // 理由（凍結檔「Tier 1 短版」）：它們是絕對毫秒，260ms 的短版若還用 900ms 的預留額度，
+  // atReserve 一個 st.at 就吃掉 62% 的預算、horizon 被推爆 → rate 被迫 >1（＝靠加速硬擠，F2 的 rateOK 紅）。
+  // 基準值**不寫在這裡**：它由事件帶（detail.baseMs ＝ index.html 的 PW_FX.TIER_BASE_MS），
+  // 在這裡放一份 900 就又是第二份事實來源了（F1 掃分母時會抓到）。
   endMargin: 60, // 虛擬時間要在牆鐘收工前這麼多 ms 就抵達 horizon（覆審第 3 輪 H-1：壓線抵達會讓 horizon 上的 timer 在收工幀才燒）
   atReserve: 160, // st.at 為回呼裡即將排的 tween 預留的虛擬額度（ms）
   rateMax: 2.2, // 加速倍率天花板（實測滿編 1.50×、dt 夾 0.1s 時 1.64×）
@@ -205,7 +213,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
 
     const st = {
       /** 這一招的時長（ms）、系色鍵與 hex、力道、是否 reduced-motion */
-      ms: run.ms, fac: det.fac, color: colorObj.getHex(), colorObj, power: det.power || 0.8, reduced: run.reduced,
+      /** 這一招的時長（ms）、tier（1／2／3）、系色鍵與 hex、力道、是否 reduced-motion。
+       *  tier 給編舞用來加「只有大招才有」的段落（例：三尊在 tier 3 的餘韻，見 R1 覆審 M1）；
+       *  tier 2 走同一支函式時必須逐項不變，所以那些段落一律包在 `if (st.tier === 3)` 裡。 */
+      ms: run.ms, tier: run.tier, fac: det.fac, color: colorObj.getHex(), colorObj, power: det.power || 0.8, reduced: run.reduced,
       actor, target, dir, up: UP, tableY: TFX.tableY, EASE,
       /** 決定性亂數（0..1），同一場同一招每次一樣 */
       rnd: makeLcg(run.seed),
@@ -266,11 +277,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  lag 讓演出拖到 1317ms、index 只等 900ms）與第 2 輪 M（逐段按比例壓縮＝砍掉收勢）都由這一招處理。 */
       tween(o) {
         const delay = Number.isFinite(o.delay) ? Math.max(0, o.delay) : 0, ms = Number.isFinite(o.ms) && o.ms > 0 ? o.ms : run.ms;
+        // F10 的分子：時間軸註冊過的「非 flinch」補間條數（fly／fade／grow 都經過這裡）。
+        // 受招退縮不算——它是每一招共用的通用反應，不構成這一招的辨識元素。
+        if (!run.inFlinch) run.acts++;
         const tw = { start: run.vt + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
         run.horizon = Math.max(run.horizon, tw.start + ms);
         run.tweens.push(tw); return tw;
       },
-      at(ms, fn) { const at = run.vt + (Number.isFinite(ms) ? Math.max(0, ms) : 0); run.horizon = Math.max(run.horizon, at + TFX.atReserve); run.timers.push({ at, fn, fired: false }); },
+      at(ms, fn) { const at = run.vt + (Number.isFinite(ms) ? Math.max(0, ms) : 0); run.horizon = Math.max(run.horizon, at + TFX.atReserve * run.k); run.timers.push({ at, fn, fired: false }); },
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
@@ -340,12 +354,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /** 受招輕反應（使用者裁定）：model 沿「遠離出招方」退縮＋邊光閃一下，不新增動畫 */
       flinch(figs, o = {}) {
         const k = o.strength === undefined ? 1 : o.strength, delay = o.delay || 0;
+        run.inFlinch = true; // 這一段裡註冊的 tween 不計入 F10 的動作數
         figs.forEach((f, i) => {
           const w = wrapOf(f); run.sig.bones.add('@flinch');
           const away = st.toward(f).multiplyScalar(-TFX.flinchDist * k);
-          st.tween({ ms: o.ms || TFX.flinchMs, delay: delay + (o.stagger || 0) * i, ease: 'snap',
+          st.tween({ ms: o.ms || TFX.flinchMs * run.k, delay: delay + (o.stagger || 0) * i, ease: 'snap',
             update(t, e) { if (!run.reduced) w.mo.p.copy(away).multiplyScalar(e); w.rimMul = 1 + (TFX.flinchRim - 1) * e * k; } });
         });
+        run.inFlinch = false;
         if (o.burst !== false && figs.length) { const p = st.worldOf(figs[0], null); st.at(delay, () => st.burst(p, { power: 0.5 * k, n: 30 })); }
       },
       cancelled() { return run.done; },
@@ -354,7 +370,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   }
 
   function start(det) {
-    const fn = TRAIT_MOVES[det.trId];
+    // v0.54：招式時長只有一個來源＝事件帶的 detail.ms（index.html 的 PW_FX.TRAIT_MS_BY_TIER）。
+    // 舊版的 `Number(det.ms) || 900` 退路已刪：那是第二份事實來源，改了 index.html 這裡會靜默沿用舊值。
+    if (!Number.isFinite(det.ms) || det.ms <= 0) throw new Error('ys:fx-trait 缺 detail.ms（招式時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來）');
+    if (!Number.isFinite(det.baseMs) || det.baseMs <= 0) throw new Error('ys:fx-trait 缺 detail.baseMs（等比基準只能由 PW_FX.TIER_BASE_MS 帶進來）');
+    const tier = (det.tier | 0) === 1 || (det.tier | 0) === 3 ? det.tier | 0 : 2;
+    const fn = (tier === 1 && TRAIT_MOVES_SHORT[det.trId]) || TRAIT_MOVES[det.trId];
     if (typeof fn !== 'function') return null;
     const live = (side) => {
       try { return (duelFigures.figuresOf(side) || []).filter((f) => f && f.skin === 'creature' && typeof f.ready === 'function' && f.ready() && f.group.visible); } catch (e) { return []; }
@@ -363,12 +384,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     if (!actor.length) return null;
     if (rig) { const c = centroid(actor); rigGoal = rigBase.clone(); rigGoal.x += (c.x - rigBase.x) * TFX.focusK; rigGoal.z += (c.z - rigBase.z) * TFX.focusK; }
     const run = {
-      trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms) || 900), done: false,
+      trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms)), tier, done: false,
       tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++,
       vt: 0, horizon: 0, rate: 1, // 虛擬時間／目前排到的最遠點／加速倍率（1＝照編舞原節奏）
+      acts: 0, inFlinch: false, // F10：非 flinch 的補間條數
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), target: false },
     };
+    run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
+    run.maxRate = 1; // 這一套實際用過的最高加速倍率（F2 的 rateOK：短版不得 >1.0）
     run.fuse = run.ms * TFX.fuseMul;
     run.promise = new Promise((r) => { run.resolve = r; });
     const stage = makeStage(run, actor, target, det);
@@ -398,7 +422,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     run.wraps.clear();
     if (run.sped) stats.sped++;
-    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped, cut: !!run.cut };
+    lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped, cut: !!run.cut,
+      // v0.54 機械驗收：ms／tier 防「--tier=1 其實還在跑 900」、maxRate 防「靠加速硬擠」、acts＝F10 的動作數
+      ms: run.ms, tier: run.tier, maxRate: +run.maxRate.toFixed(4), acts: run.acts };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
@@ -416,12 +442,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       // 每幀重算：timer 回呼晚排進來的 tween 會把 horizon 往後推，rate 跟著升
       // 目標是提前 endMargin 抵達 horizon（不壓線），倍率夾在 [1, rateMax]
       // 邊距至少 1.5 幀（10fps 時 60ms 不到一幀，horizon 上的 timer 仍會在收工幀才燒）；最後兩幀內不套天花板，寧可快也不要砍
-      const margin = Math.max(TFX.endMargin, ms * 1.5);
+      const margin = Math.max(TFX.endMargin * run.k, ms * 1.5);
       const remainW = run.ms - margin - run.t + ms;
       const cap = (run.ms - run.t) <= ms * 2 ? Infinity : TFX.rateMax;
       run.rate = remainW > 1 ? Math.min(cap, Math.max(1, (run.horizon - run.vt) / remainW)) : Math.min(cap, Math.max(1, run.rate));
       if (!Number.isFinite(run.rate)) run.rate = 1;
       run.vt += ms * run.rate;
+      if (run.rate > run.maxRate) run.maxRate = run.rate;
       if (run.rate > 1.0001) run.sped = true;
       for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { /* 一段壞了不擋整招 */ } }
       run.timers = run.timers.filter((tm) => !tm.fired);

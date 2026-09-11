@@ -1918,6 +1918,8 @@ const LEGENDS = [
    rallyHp 二拍有折損則本隊全體 hp＋／lastStand 本隊只剩 1 隻時 atk＋／pierce 無視吸收／
    feed 拍末對面有人被燒則本方全體 hp＋
    ——群體的招一律不給「全隊 atk＋1」：群體 atk 本來就是 1，+1 是翻倍，實測 D-A1 單一件就搬動 10–38pp。 */
+/* ★tier 是唯一的「非規則」欄位★（v0.54 三級視覺分級）：只有三尊三招標 tier:3，引擎一行都不讀它，
+   讀它的只有演出層的 pwBeatTier。純演出欄位，不進 collectEffects／applyHooks，trace() 逐位元組不受影響。 */
 const TRAITS = {
   wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"一拍：前鋒全體 hp+2",hpFront:2},
   wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"一拍：全體 hp+1（含護法、作祟）",hpAll:1},
@@ -1949,9 +1951,9 @@ const TRAITS = {
   swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"拍末對面有紙紮被燒 → 本方全體 hp+1",feed:1},
   /* 第 4 卷 傳說三尊：兩個新效果欄位（blindFront 在 pwBolt 段、curseHaunt 在 pwHaunt 段）＋一個沿用既有的 hpAll。
      blindFront 是「一拍開打前施加一次」的減攻（跟射日的 openShot 同時機），減下去的 atk 三拍都算。 */
-  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"一拍開打前：對面前鋒 atk −2（下限 0）",blindFront:2},
-  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"該拍：本方全體 hp+2（含護法、作祟）",hpAll:2},
-  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"三拍：對面每有一件詛咒品，多燒對面 1 隻",curseHaunt:1},
+  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"一拍開打前：對面前鋒 atk −2（下限 0）",blindFront:2,tier:3},
+  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"該拍：本方全體 hp+2（含護法、作祟）",hpAll:2,tier:3},
+  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"三拍：對面每有一件詛咒品，多燒對面 1 隻",curseHaunt:1,tier:3},
 };
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
@@ -1970,7 +1972,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.53.5", VERSION_NOTE="首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.54", VERSION_NOTE="招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2002,15 +2004,47 @@ const FPS_ON=(()=>{ try{ return new URLSearchParams(location.search||"").get("fp
    60fps 下等於每秒 60 次配置、排序與版面重算，量到的數字會被量測器自己拖低。改成：
    ① 定長環形緩衝（Float64Array，穩態零配置）② 文字每 250ms 才更新一次 ③ 用平均
    (n−1)/(t_last−t_first)×1000，不排序。中位數改平均是刻意的取捨——中位數非得排序才求得出來。 */
-const FPS_DIAG={ buf:new Float64Array(256), n:0, fps:0, win:0, calls:0, tris:0, lastPaint:0 };
+/* duelMin＝「上一場對決期間，1 秒視窗的最低 fps」（v0.54 使用者要的欄位）。
+   為什麼要它：平均值把卡頓吃掉了——手機上真正會被感覺到的是招式那幾拍的瞬間掉幀，
+   而 2 秒平均在一場 5 秒的對決裡只會微幅下降。1 秒視窗才抓得到。
+   duelOn＝現在在對決中（ys:duel → ys:duel-end）；cur＝這一場目前為止的最低值；
+   winT0／winN＝當前 1 秒視窗的起點與幀數。**整段只在 FPS_ON 下掛載**，不帶 ?fps=1 時
+   連事件監聽都不註冊，零成本（與這一區塊既有的紀律一致：量測器不得擾動被測物）。 */
+const FPS_DIAG={ buf:new Float64Array(256), n:0, fps:0, win:0, calls:0, tris:0, lastPaint:0,
+  duelOn:false, duelMin:0, cur:0, winT0:0, winN:0 };
 function fpsDiagText(){
   const ua=navigator.userAgent.replace(/Mozilla\/5.0 \(|\).*$/g,"").slice(0,34);
-  return `fps 平均 ${FPS_DIAG.fps||"-"}（最近 2s，n=${FPS_DIAG.win}）　|　draw calls ${FPS_DIAG.calls}　|　三角形 ${FPS_DIAG.tris}　|　${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)} dpr ${window.devicePixelRatio||1}　|　${ua}`;
+  return `fps 平均 ${FPS_DIAG.fps||"-"}（最近 2s，n=${FPS_DIAG.win}）　|　對決最低 ${FPS_DIAG.duelMin||"-"}（1s 視窗${FPS_DIAG.duelOn?"，本場進行中":""}）　|　draw calls ${FPS_DIAG.calls}　|　三角形 ${FPS_DIAG.tris}　|　${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)} dpr ${window.devicePixelRatio||1}　|　${ua}`;
 }
 if(FPS_ON){ try{
   const B=FPS_DIAG.buf, CAP=B.length;
+  /* 對決的起訖用**現有的** ys:duel／ys:duel-end 掛點（演出層本來就會派，不新增事件）。
+     開場把上一場的值歸零再重算，這樣「上一場」永遠是最近那一場、不會累積成整局最低。 */
+  document.addEventListener("ys:duel",()=>{ FPS_DIAG.duelOn=true; FPS_DIAG.duelMin=0; FPS_DIAG.cur=0; FPS_DIAG.winT0=0; FPS_DIAG.winN=0; });
+  document.addEventListener("ys:duel-end",()=>{
+    /* 收場時把最後一個不滿 1 秒的視窗也結算掉（招式常落在對決尾巴，丟掉它等於丟掉最該量的那一段） */
+    if(FPS_DIAG.duelOn&&FPS_DIAG.winN>1&&FPS_DIAG.winT0){
+      const el=performance.now()-FPS_DIAG.winT0;
+      if(el>200){ const f=Math.round((FPS_DIAG.winN-1)/el*1000); if(!FPS_DIAG.cur||f<FPS_DIAG.cur) FPS_DIAG.cur=f; }
+    }
+    FPS_DIAG.duelOn=false; FPS_DIAG.duelMin=FPS_DIAG.cur||FPS_DIAG.duelMin;
+  });
   const tick=(t)=>{
     B[FPS_DIAG.n%CAP]=t; FPS_DIAG.n++;
+    /* 對決中的 1 秒視窗最低值：滿 1 秒就結算一次、取最小，然後開新視窗。
+       只做兩次比較與一次除法，穩態零配置（同這一區塊既有的紀律）。 */
+    if(FPS_DIAG.duelOn){
+      if(!FPS_DIAG.winT0){ FPS_DIAG.winT0=t; FPS_DIAG.winN=1; }
+      else{
+        FPS_DIAG.winN++;
+        if(t-FPS_DIAG.winT0>=1000){
+          const f=Math.round((FPS_DIAG.winN-1)/(t-FPS_DIAG.winT0)*1000);
+          if(!FPS_DIAG.cur||f<FPS_DIAG.cur) FPS_DIAG.cur=f;
+          FPS_DIAG.duelMin=FPS_DIAG.cur; /* 本場進行中也看得到目前最低 */
+          FPS_DIAG.winT0=t; FPS_DIAG.winN=1;
+        }
+      }
+    }
     if(t-FPS_DIAG.lastPaint>=250){
       FPS_DIAG.lastPaint=t;
       /* 只在這裡走一次緩衝：往回找 2 秒內的樣本（最多 CAP 筆）。只讀不寫、不配置、不排序。 */
@@ -4106,10 +4140,21 @@ const PW_FX={
   HITSTOP_PER_BEAT:1, /* 每拍最多停格幾次（停格很貴，多了會撐爆時長） */
   HITSTOP_DMG:3,      /* 傷害到這個數才值得停一格 */
   BURN_MS:420,        /* 一拍的燒毀（同拍多隻同時燒，不逐隻排隊） */
-  BEAT_MIN_MS:900,    /* 每一拍的下限，免得零傷害那一拍一閃就過 */
+  /* 每一拍的下限（免得零傷害那一拍一閃就過），依該拍的 tier（v0.54 三級視覺分級）。
+     tier 1 取 300：逐筆事件的上限是 EV_MAX_MS 260，短招與命中路徑並行演完之後再留 40ms 餘裕。 */
+  BEAT_MIN_MS_BY_TIER:{1:300,2:900,3:1400},
   END_MS:1000,        /* 結尾「燒掉 x 隻 → −n 壽命」停留 */
   MAXFIG:10,          /* 每邊最多擺幾尊 3D 紙紮（DOM 的隻數牌照樣顯示全部）；8→10 使用者 2026-09-07 裁甲（FIG.maxFigures 上限 10；手機 fps 試玩必調） */
-  TRAIT_MS:900,       /* 卷 C3（使用者裁定 2026-09-05）：3D 舞台接下招式時的固定時長（取代該筆的 evMs）；沒 3D 時照舊等 evMs */
+  /* ★招式時長的唯一事實來源★（v0.54 三級視覺分級，凍結檔 docs/experiments/2026-09-10-acceptance-fx-tiers.md）
+     3D 舞台接下招式時等這裡的毫秒（取代該筆的 evMs）；沒 3D 時照舊等 evMs。
+     卷 C3（2026-09-05）原本是單一個 TRAIT_MS:900，v0.54 起依 tier 分三級：
+       1＝一般拍（27 支專屬短版時間軸，js/trait-fx/*.js 的 SHORT）／2＝擊殺拍或決定性最後一拍（完整版）
+       3＝三尊大招（完整版＋CINEMA 低角度仰視機位）。
+     **別處不得再寫死招式毫秒**：js/trait-fx.js 與 js/camera-director.js 一律吃事件帶的 detail.ms，
+     沒帶就 throw（退路已刪，理由見 GUIDE §11.27）；治具讀 tests/tools/fx-consts.mjs。 */
+  TRAIT_MS_BY_TIER:{1:260,2:900,3:1400},
+  TIER_BASE_MS:900,   /* 三常數（flinchMs／atReserve／endMargin）等比縮放的基準＝v0.53 的 TRAIT_MS */
+  TIER_ON:true,       /* ?fxtier=0 → false：所有拍走 tier 2（＝v0.53 行為：900、無 CINEMA） */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
   /* ── 近景切鏡卷 批 1 原型（v0.45，2026-09-07；規格 docs/proposals/2026-09-07-duel-closeup.md §二）──
@@ -4138,6 +4183,12 @@ try{
   const cq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("closeup");
   if(cq==="0") PW_FX.CLOSEUP_ON=false; else if(cq==="1") PW_FX.CLOSEUP_ON=true;
 }catch(e){}
+/* ?fxtier=0 關掉整卷三級視覺分級（凍結檔 F0 的退路等價靠它）：所有拍一律 tier 2
+   ＝v0.53 行為（招式 900、拍末 900、無 CINEMA）。?fxtier=1 顯式開。 */
+try{
+  const tq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("fxtier");
+  if(tq==="0") PW_FX.TIER_ON=false; else if(tq==="1") PW_FX.TIER_ON=true;
+}catch(e){}
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
    只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
 /* burn＝燒毀演出被觸發的總次數（不論走 3D 人形自己的 burn() 還是退回 DOM 版 fxBurn），
@@ -4145,7 +4196,7 @@ try{
    驗收 C-A2 對的是 burn（＝「每一隻被燒掉的紙紮都真的演了一次燒毀」），與走哪條無關。 */
 /* focus／dmgFloat＝近景切鏡卷 批 1 的計數（凍結檔 P0／P1）：CLOSEUP_ON=false 時兩者恆 0、
    fights[] 的每一筆也不會多出 focus 欄，與基準逐欄相同。 */
-const FXC={burn:0,burnDom:0,burnFig:0,trait:0,traitFig:0,beat:0,duels:0,focus:0,dmgFloat:0,traits:{},beats:{},fights:[]}; /* traitFig＝招式走 3D 舞台（ys:fx-trait handled）的次數（卷 C3 T-5） */
+const FXC={burn:0,burnDom:0,burnFig:0,trait:0,traitFig:0,beat:0,duels:0,focus:0,dmgFloat:0,traits:{},beats:{},tiers:{1:0,2:0,3:0},fights:[]}; /* traitFig＝招式走 3D 舞台（ys:fx-trait handled）的次數（卷 C3 T-5） */
 try{
   if(typeof location!=="undefined"&&new URLSearchParams(location.search||"").get("fxcount")==="1")
     window.__ysFxCount=FXC;
@@ -5104,11 +5155,67 @@ function pwDuelFigApi(){ try{ return (window.__yaoshi3d&&window.__yaoshi3d.duelF
 function pwFigsOf(side){ const D=pwDuelFigApi(); try{ return D&&D.figuresOf?D.figuresOf(side)||[]:[]; }catch(e){ return []; } }
 function pwFigureOf(side,unitId){ const D=pwDuelFigApi(); try{ return D&&D.figureOf?D.figureOf(side,unitId):null; }catch(e){ return null; } }
 function pwTraitFxDefault(ctx){ fxFlash(); fxImpact(null,ctx.fac,0.55); }
-/* 回傳 true＝3D 舞台接了這一招（呼叫端等 TRAIT_MS）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
-   ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。 */
+/* ── v0.54 三級視覺分級：tier 的三支存取器（招式時長／拍末下限的唯一入口）──────────────
+   合法 tier 只有 1／2／3；拿到別的值一律當 2（＝v0.53 行為），不靜默給 0 或 undefined。 */
+function pwTierOf(t){ const n=t|0; return (n===1||n===2||n===3)?n:2; }
+/* 傳說三尊的 3D 模型鍵集合（`LEGENDS` 是唯一事實來源，新增第四尊自動涵蓋，這裡不寫死字串）。
+   pwArmyView 的 units 只帶 body／fac／ab，沒有 trait，所以「這一尊是不是傳說」只能靠 ab（＝LEGENDS 的 m）認。 */
+const PW_LEGEND_ABS=new Set(LEGENDS.map(x=>x.m).filter(Boolean));
+/* 這一筆 burn 燒掉的是不是傳說尊。burn 事件的 side 就是**被燒的那一方**（pwRec 上方註解），
+   target 是該側的單位 id；views 是 [viewA, viewB]，units 的 id 在排序前指派、不重排。 */
+function pwIsLegendUnit(views,side,unitId){
+  if(!views||unitId==null) return false;
+  const v=views[side==="B"?1:0];
+  if(!v||!v.units) return false;
+  const u=v.units.find(x=>x.id===unitId);
+  return !!(u&&u.ab&&PW_LEGEND_ABS.has(u.ab));
+}
+/* 這一拍的 tier（★拍級，不是招級★——同一拍裡的每一支招吃同一個等級，拍末等待也是）。
+   規則（凍結檔「三級定義」＋§2.1 修訂一）：
+     3 ＝ 這一拍有三尊大招（TRAITS[].tier===3）。TRAITS[].tier 是該招的**上限**：只有標 3 的招
+         把整拍鎖在 3，一支沒標的招不會因為打得漂亮就自己升到 3。
+     2 ＝ ①該場對決的決定性最後一拍（第 3 拍且分得出勝負）②這一拍燒掉了傳說三尊之一。
+     1 ＝ 其餘（短版 260ms）——**含一般的擊殺拍**。
+   ★修訂一（使用者 2026-09-10 裁甲）★：一版把「該拍有任何 burn」都升 tier 2，實測 4 場 12 拍的
+   分布是 {1:4, 2:8}——8v8 基礎戰三分之二的拍都有紙紮被燒，拍末下限因此大多停在 900ms，
+   F3 中位只從 5573.5ms 降到 5302ms（門檻 ≤5000）。收窄成「決定勝負」與「燒掉傳說尊」兩種之後，
+   一般擊殺拍回到 260ms 短版＋300ms 拍末。**這是三級定義的變更，不是門檻變更**（F3 的 5 秒一字沒動）。
+   ?fxtier=0 時恆回 2＝v0.53 行為（900、無 CINEMA），退路等價靠這一行。
+   註：凍結檔寫的簽名是 pwBeatTier(beat, war)，實際要讀「這一拍的事件」與「被燒的是誰」，
+   所以帶的是 list 與 views；war.beats 是三拍混在一起的，從它切不出「這一拍」而不重做一次 byBeat。 */
+function pwBeatTier(list,beat,f,views){
+  if(!PW_FX.TIER_ON) return 2;
+  if(list.some(b=>b.kind==="trait"&&((TRAITS[b.trId]||{}).tier|0)>=3)) return 3;
+  if(beat===3&&f&&f.war&&!f.war.tie) return 2;
+  if(list.some(b=>b.kind==="burn"&&pwIsLegendUnit(views,b.side,b.target))) return 2;
+  return 1;
+}
+function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
+/* 這一支招實際要用的等級（★招級★，R1 覆審 M2）。
+   拍級 tier 決定「這一拍有多重要」，但**同一拍裡的普通招不該跟著大招演 1400ms＋CINEMA**——
+   一版就是那樣，計畫檔 §2.2 自己寫「一支 tier 1 的招不會單獨升 3」卻與實作不符，而且那個組合
+   （傳說招與普通招同拍）治具一次都沒跑到。
+   規則：招級＝min(拍級, 該招的上限)，普通招上限 2、`TRAITS[].tier===3` 的傳說招上限 3。
+   於是：tier 3 的拍裡，傳說招走 1400ms＋CINEMA，同拍的普通招走 900ms 完整版、不觸發 CINEMA；
+   拍末等待仍吃拍級（1400）。 */
+function pwMoveTier(trId,beatTier){
+  const cap=(((TRAITS[trId]||{}).tier|0)>=3)?3:2;
+  return Math.min(pwTierOf(beatTier),cap);
+}
+function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
+/* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
+   ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。
+   v0.54：ctx.tier 決定時長與短版分支（js/trait-fx.js 讀 det.tier），tier 3 另外切 CINEMA 機位。 */
 function pwTraitFx(trId,ctx){
   if(SKIP) return false;
-  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:PW_FX.TRAIT_MS,handled:false,done:null};
+  const tier=pwTierOf(ctx.tier);
+  /* R2 覆審 N5：?closeup=0 是「近景切鏡」的總開關，**CINEMA 也是近景**（dist 2.9／tilt 8°，
+     比 FOCUS 的 2.6 更兇），關掉近景的玩家不該在 tier 3 反而吃到更重的推近。
+     所以事件多帶一個 cinema 旗標，camera-director 只在它為 true 時切機位。
+     ★收尾版（使用者 2026-09-11 裁甲）：黑條 letterbox 整支移出本卷★（凍結檔 §2.1 修訂七）——
+     對決版面本來就填滿畫面、沒有安全區，五輪補丁換了四種位置都還是壓到元素。
+     所以 ?closeup=0 現在只管 CINEMA 這一件事，tier 3 對這些玩家＝1400ms 但鏡頭不動。 */
+  const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,cinema:pwCloseup(),baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
   const fn=TRAIT_FX[trId];
@@ -5479,6 +5586,8 @@ function pwItemOf(views,b){
 }
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
+  const tier=pwBeatTier(list,beat,f,views); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
+  FXC.tiers[tier]=(FXC.tiers[tier]||0)+1; /* 純記錄（F3 的節奏歸因要看拍的 tier 分布）；遊戲一行不讀它 */
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
@@ -5523,8 +5632,9 @@ async function pwPlayBeat(f,beat,list,views){
       FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
+      const mvTier=pwMoveTier(b.trId,tier); /* R1 M2：招級（普通招上限 2），拍末等待仍用拍級 */
       const staged=pwTraitFx(b.trId,{
-        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8,
+        trId:b.trId, side:b.side, foeSide, fac:evFac, power:0.8, tier:mvTier,
         el:$("duelMove"),
         actorFigs:pwFigsOf(b.side), targetFigs:pwFigsOf(foeSide), figureOf:pwFigureOf,
       });
@@ -5534,7 +5644,7 @@ async function pwPlayBeat(f,beat,list,views){
          那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
-      if(staged){ await pwSleep(PW_FX.TRAIT_MS); continue; } /* 3D 舞台接了才等 900ms；fallback 照 v0.32 等 evMs */
+      if(staged){ await pwSleep(pwTierMs(mvTier)); continue; } /* 3D 舞台接了才等這一招 tier 的時長；fallback 照 v0.32 等 evMs */
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -5573,8 +5683,8 @@ async function pwPlayBeat(f,beat,list,views){
     fxFlash(); sfx("hurt",{rnd:S.rngUi()});
     await Promise.all(burns.map(pwBurnOne));
   }
-  const spent=Date.now()-t0;
-  if(!SKIP&&spent<PW_FX.BEAT_MIN_MS) await pwSleep(PW_FX.BEAT_MIN_MS-spent);
+  const spent=Date.now()-t0, floor=pwBeatMinMs(tier);
+  if(!SKIP&&spent<floor) await pwSleep(floor-spent);
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
@@ -6543,7 +6653,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字） */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */

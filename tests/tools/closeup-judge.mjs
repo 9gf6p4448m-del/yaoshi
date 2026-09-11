@@ -6,11 +6,32 @@
 //   --skipfocus  closeup-drive --skipfocus 的產物：P2 同一條在真實 doSkip 上的複驗＋P4 的「跳過後 0 個殘留」
 //   --camunit    closeup-cam-unit.mjs 的產物：hit 類切鏡的曲線形狀（真實路徑上與 punch 分不開，見該檔檔頭）
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { beatMinOf } from './fx-consts.mjs';
 
 const args = process.argv.slice(2);
 const files = [], opt = {};
 for (const a of args) { const m = a.match(/^--([a-z0-9]+)=(.*)$/i); if (m) opt[m[1]] = m[2]; else files.push(a); }
 const rd = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
+/* P2 的 nullCount 上限（凍結檔 §2.1 修訂二的新口徑「≤ 基準同 seeds 的 nullCount」）。
+   ★R1 覆審 H6：不接受自由數字★——一版是 `--nullbase=<n>`，等於把及格線交到呼叫端手上
+   （`--nullbase=10` 就全過）。現在只能給 `--basecj=<對基準樹跑出來的 cu-*.json>`，
+   由**同一支判官**對那份基準產物跑一次，拿它的 nullCount 當上限：上限因此是實測值，
+   呼叫端改不動（要改只能去改基準樹，那就不是基準了）。沒帶就是 0（最嚴），不是「不判」。
+   基準怎麼產：closeup-drive --root=<基準樹> "<url>" <base.json>（同一組 seeds）。 */
+const BASE_CJ = opt.basecj || null;
+/** 上限＝**同一支判官**對基準產物跑一次得到的 nullCount（不是呼叫端給的數字）。 */
+let NULL_BASE = 0;
+let NULL_BASE_SRC = '沒帶 --basecj → 上限 0（最嚴）';
+if (BASE_CJ) {
+  const self = fileURLToPath(import.meta.url);
+  const r = spawnSync(process.execPath, [self, BASE_CJ], { encoding: 'utf8' });
+  const m = (r.stdout || '').match(/"nullCount":\s*(\d+)/);
+  if (!m) throw new Error(`--basecj=${BASE_CJ} 判不出 nullCount（判官對基準產物跑失敗？）：${(r.stderr || '').slice(0, 300)}`);
+  NULL_BASE = Number(m[1]);
+  NULL_BASE_SRC = `${BASE_CJ} 實測 nullCount=${NULL_BASE}`;
+}
 
 const PW = { FOCUS_DIST: 2.6, DUEL_DIST: 4.2, FOCUS_DIM: 0.35, FOCUS_PER_BEAT: 2, FOCUS_DMG: 3, MAX_HITS: 5, DMG_MS: 600, BURN_MS: 420, ACTOR_CARD_MS: 700 };
 const PUNCH_MS = 420; // camera-director 的 PUNCH.ms：這段時間內 dist 上疊著 punch，量 focus 曲線要排掉
@@ -113,7 +134,11 @@ if (off && base) {
     const busy = (t) => EV.some((e) => (e.n === 'ys:fx-punch' || e.n === 'ys:fx-burn') && t >= e.t - 16 && t <= e.t + PUNCH_MS);
     for (const fo of d.cu.focus.filter((x) => x.kind !== 'base')) {
       const nextT = d.cu.focus.filter((x) => x.kind !== 'base' && x.t > fo.t).map((x) => x.t)[0] || Infinity;
-      const endT = Math.min(nextT, fo.t + fo.ms + 900);
+      // v0.54：這個尾巴＝「切鏡演完之後那一拍還會等多久」，以前寫死 900（＝當時唯一的 BEAT_MIN_MS）。
+      // 招式時長依 tier 分級之後它就是第二份事實來源，改讀 fx-consts 的拍末下限。
+      // 取 tier 2 的值＝與 v0.53 的量測窗口逐幀相同（tier 1 的拍由 nextT 自然切短，見下面的 need）。
+      const tailMs = beatMinOf(2);
+      const endT = Math.min(nextT, fo.t + fo.ms + tailMs);
       const win = F.filter((s) => s.t >= fo.t && s.t <= endT);
       const quiet = win.filter((s) => !busy(s.t));
       // 「推到多近」用**原始**最小值判：punch 單獨最多只能從 4.2 減 PUNCH.dist×power(≤2)＝1.2 → 3.0，
@@ -143,6 +168,19 @@ if (off && base) {
         return rev;
       };
       const corr = win.map((s) => ({ t: s.t, v: s.l + PUNCH_DIST * punchPk(EV, s.t) }));
+      // v0.54：靜幀門檻不再寫死 8 幀，改成**依這一次的視窗長按比例換算**。
+      // 為什麼：tier 1 的拍事件更密、punch 把更多幀標成 busy，固定 8 幀會讓 monoQuietOk 大量變成 null，
+      // 而 null 在既有判定裡是「不算過」＝靜默恆綠（凍結檔 F4 明文要擋的那個坑）。
+      // 基準＝tier 2 的視窗（fo.ms + 拍末下限）對應 8 幀，所以 tier 2 的判定與 v0.53 逐項相同。
+      /* need 的推導（★R1 覆審 M3：地板 3 不是自由參數★）：
+         比例部分＝v0.53 的固定門檻 8 幀，按「這一次實際視窗長 / 基準視窗長（fo.ms + 拍末下限）」等比縮放，
+         所以 tier 2 下 need 恆等於 8（與 v0.53 逐項相同），拍變短時才跟著降。
+         地板 3 的來源：`mono()` 判的是「單調序列有沒有反轉」，一次反轉至少要兩個相鄰差、
+         也就是**至少 3 個取樣點**；2 點只有 1 個差，1 點連差都沒有，斷言必然恆真（零鑑別力）。
+         所以 3 是「這個斷言還有意義的最小樣本數」，不是挑出來的數字。
+         上界：endT − fo.t ≤ fo.ms + tailMs ⇒ need ≤ 8，門檻只會降不會升；降到地板仍判不了的，
+         就會落進 nullCount（不算過），由上面的 NULL_BASE 擋。 */
+      const need = Math.max(3, Math.round(8 * (endT - fo.t) / (fo.ms + tailMs)));
       const revQuiet = mono(quiet.map((s) => ({ t: s.t, v: s.l })), 0.01);
       const revCorr = mono(corr, 0.03);
       const row = { f, kind: fo.kind, ms: fo.ms, frames: win.length, quiet: quiet.length,
@@ -150,8 +188,9 @@ if (off && base) {
         back: back === null ? null : +back.toFixed(4), revQuiet, revCorr,
         deepOk: minD !== null && minD <= PW.FOCUS_DIST + 0.15,
         backOk: back === null ? null : back <= 0.05,
-        monoQuietOk: quiet.length >= 8 ? revQuiet === 0 : null,
-        monoCorrOk: corr.length >= 8 ? revCorr === 0 : null };
+        need,
+        monoQuietOk: quiet.length >= need ? revQuiet === 0 : null,
+        monoCorrOk: corr.length >= need ? revCorr === 0 : null };
       rows.push(row);
     }
   }
@@ -175,6 +214,10 @@ if (off && base) {
   out.P2 = { n: rows.length, hit: rows.filter((r) => r.kind === 'hit').length, deepOk: rows.filter((r) => r.deepOk).length,
     backOk: judged.filter((r) => r.backOk).length + '/' + judged.length,
     monoQuiet: mq.filter((r) => r.monoQuietOk).length + '/' + mq.length,
+    // F4：靜幀不足而回 null 的筆數。null 不算過，所以它必須是 0——不得拿 null 當通過。
+    nullCount: rows.filter((r) => r.monoQuietOk === null).length,
+    nullBase: NULL_BASE,
+    nullBaseSrc: NULL_BASE_SRC,
     monoCorr: mc.filter((r) => r.monoCorrOk).length + '/' + mc.length,
     hitMonoJudgable: hitMono.length,
     punchRebuildResid: resid.length ? { n: resid.length, p50: +resid[Math.floor(resid.length / 2)].toFixed(4), p95: +resid[Math.floor(resid.length * 0.95)].toFixed(4), max: +resid[resid.length - 1].toFixed(4) } : null,
@@ -184,6 +227,10 @@ if (off && base) {
     // hit 類的曲線形狀改由 closeup-cam-unit.mjs 的決定性環境負責（U1/U2/U3），這裡把它的結果併進來。
     camUnit: camunit ? camunit.res : null,
     PASS: rows.length > 0 && rows.every((r) => r.deepOk)
+      // F4（凍結檔 §2.1 修訂二）：nullCount 不得超過基準（--nullbase）。
+      // 原本寫「必須 0」，但基準 v0.53 本來就有 2 筆（rows 6/8 的 quiet=0，
+      // 成因是命中拍的 punch 把靜幀排光），那條門檻無論實作對錯都過不了＝恆假。改成「不比基準差」。
+      && rows.filter((r) => r.monoQuietOk === null).length <= NULL_BASE
       && mq.length > 0 && mq.every((r) => r.monoQuietOk)
       && judged.length > 0 && judged.every((r) => r.backOk)
       && !!camunit && camunit.res.PASS === true };

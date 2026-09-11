@@ -14,6 +14,14 @@ const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
 const { chromium } = req('playwright');
 
+/* v0.54：招式時長依 tier 分三級，`e.ms || 900` 這種退路會把 260ms 的短招當成 900ms 量
+   （lean 的回位窗口整整多算 640ms，殘差極值必然量錯）。事件一定帶 ms（runtime 沒帶就 throw），
+   所以這裡也不留退路——沒帶就是上游壞了，當場紅。 */
+function traitMsOf(e) {
+  if (!Number.isFinite(e.ms) || e.ms <= 0) throw new Error(`ys:fx-trait 事件沒帶 ms（t=${e.t}）：招式時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來`);
+  return e.ms;
+}
+
 // 逐幀取樣：跟著 rAF 走，讀「上一次 render 之後」的相機。director.update 與 renderer 的 frame()
 // 在同一個 rAF 鏈上，所以這裡拿到的就是每一幀寫進去的值。
 const CAM_REC = `document.addEventListener('DOMContentLoaded',()=>{
@@ -59,7 +67,7 @@ try {
     // 這一場的「基準 yaw／dist」＝全場中位數。orbit 與 lean／punch 都是短暫偏離，中位數就是基座那組值。
     const med = (a) => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
     const busy = (t) => EV.some((e) => (e.n === 'ys:fx-punch' || e.n === 'ys:fx-burn') && t >= e.t && t <= e.t + PUNCH_MS)
-      || EV.some((e) => e.n === 'ys:fx-trait' && t >= e.t && t <= e.t + (e.ms || 900));
+      || EV.some((e) => e.n === 'ys:fx-trait' && t >= e.t && t <= e.t + traitMsOf(e));
     const yaw0 = med(win.map(yawAt));
     // 基準 dist 只取沒有 punch／lean 在跑的幀：像 duel 4 那種 10 秒內十幾次 punch 的場，
     // 全母體中位數會被 punch 幀拉低 0.08，量回位時就會冤枉判成沒回去。
@@ -87,7 +95,7 @@ try {
     // 再看事後 200ms 的殘差極值。招式落在 orbit 還在轉的期間時，orbit 的漂移就是這條斜線，
     // 扣掉之後剩下的才是 lean 本身（duel 4 第一招就在 orbit 進行中，不扣會被 −38 度的 orbit 蓋掉）。
     const traits = EV.filter((e) => e.n === 'ys:fx-trait' && e.t >= d.t && e.t <= endT).map((e) => {
-      const ms = e.ms || 900;
+      const ms = traitMsOf(e);
       const pre = F.filter((s) => s.t >= e.t - 250 && s.t <= e.t);
       let a = yaw0, b = 0;
       if (pre.length >= 3) { // 最小平方擬合 yaw = a + b·(t − e.t)

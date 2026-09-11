@@ -60,6 +60,18 @@ export default {
       st.rot(sun, 'Neck', 0.06 * k); st.rot(sun, 'Crown', 0.10 * k); st.rot(sun, 'Disc', 0, 0, 0.9 * k);
       st.rim(sun, 1);
     } }));
+    /* ★Tier 3 餘韻（R1 覆審 M1）★：大招在 tier 3 有 1400ms，但這支編舞原本只排到 929ms——
+       最後 471ms 是 CINEMA 仰視機位壓著、畫面上沒東西在動，而那是全遊戲最大的一刻。
+       只在 tier 3 追加（tier 2 走同一支函式，行為必須逐項不變），而且是**新的節拍**不是把既有 tween 拉長：
+       日盤餘光緩緩收、地上落下一圈殘暉、獸身呼吸似的沉一下。 */
+    if (st.tier === 3) {
+      const foot = st.foot(sun, new THREE.Vector3());
+      const after = st.ring(foot, 0.5, 0.05, { opacity: 0 });
+      st.grow(after, { ms: 320, delay: 910, from: 0.4, to: 1.9 });
+      st.fade(after, { ms: 320, delay: 910, from: 0.5, to: 0 });
+      st.tween({ ms: 380, delay: 910, ease: 'pulse', update(t, e) { st.rim(sun, 1 + 0.5 * e); st.move(sun, 0, -0.03 * e, 0); } });
+      st.tween({ ms: 260, delay: 1020, ease: 'inout', update(t, e) { st.rot(sun, 'Disc', 0, 0, 0.35 * (1 - e)); } });
+    }
   },
 
   /* 射日神弓・射日（bow，精英×1）：一拍開場，對面最壯的一隻 −1。
@@ -526,6 +538,314 @@ export default {
       st.rot(snake, 'Snout', 0.16 * jaw, 0, 0); st.rot(snake, 'SnoutTip', 0.12 * jaw, 0, 0);
       st.scale(snake, 1 + 0.06 * g);
       st.rim(snake, 1 + 1 * k + 1.5 * g);
+    } });
+  },
+};
+
+/* ══════════ Tier 1 短版（260ms，v0.54 三級視覺分級）══════════
+   為什麼另寫一份而不是把完整版加速：既有的 run.rate 天花板是 2.2×，900→260 需要 3.46×，
+   撞上去就是 stats.cut（收勢被硬切）。使用者裁 D4 丙——27 支各寫一條原生 260ms 的時間軸，
+   每一條都要**保住該招的辨識元素**（辨識元素表在 docs/experiments/2026-09-10-plan-fx-tiers.md §5）。
+
+   寫短版的三條紀律（推導過才寫下來的）：
+   1. **horizon ≤ 230**。rate 公式是 (horizon−vt)/(ms−margin−t+dt)，margin＝max(endMargin×k, dt×1.5)；
+      dt=16.7ms 時只要 horizon >251 就會 rate>1（＝靠加速硬擠，F2 的 rateOK 紅）。留到 230 是為了
+      低幀率（dt 50ms 時門檻降到 235）也還在 1.0。
+   2. **所有補間一律在函式頂層用 delay 排定**，不要在 tween 的 done 回呼裡再排新的補間——
+      回呼是在 vt≈170 那一刻才跑，排下去 horizon 直接被推到 240+。done 裡只放 burst／punch／
+      直接設 material 的動作（那些不進排程，不推 horizon）。
+   3. **不要用 st.at**：它會替回呼預留 atReserve×k 的虛擬額度，260ms 下等於白丟 46ms 預算。 */
+export const SHORT = {
+  /* 射日｜辨識：弓弦上凝出的小太陽直射對面最壯那隻 */
+  eliteOpenShot(st) {
+    const bow = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const nock = st.worldOf(bow, 'SunNock', new THREE.Vector3());
+    const to = prey ? st.worldOf(prey, null, new THREE.Vector3()) : nock.clone().addScaledVector(st.dir, 2.2);
+    const sun = st.orb(nock, 0.075, { opacity: 0.95 });
+    sun.scale.setScalar(0.25);
+    const trail = st.beam(nock.clone(), to, { opacity: 0 });
+    st.grow(sun, { ms: 85, from: 0.25, to: 1 });
+    st.tween({ ms: 85, ease: 'out', update(t, e) { // 抬頭拉弓
+      st.rot(bow, 'Neck3', -0.2 * e); st.rot(bow, 'HeadRoot', -0.34 * e); st.rot(bow, 'TailRoot', 0.25 * e);
+      st.rim(bow, 1 + 0.8 * e); st.worldOf(bow, 'SunNock', sun.position);
+    } });
+    st.fly(sun, nock.clone(), to, { ms: 80, delay: 85, ease: 'out', arc: 0.1,
+      done() { st.burst(to, { power: 0.95, n: 45 }); st.punch(0.45); } });
+    st.fade(trail, { ms: 55, delay: 165, from: 0.9, to: 0 });
+    st.fade(sun, { ms: 45, delay: 165, from: 0.95, to: 0 });
+    if (prey) st.flinch([prey], { delay: 155, strength: 1.2, burst: false });
+    st.tween({ ms: 70, delay: 160, ease: 'inout', update(t, e) { // 收弓
+      const k = 1 - e;
+      st.rot(bow, 'Neck3', -0.2 * k); st.rot(bow, 'HeadRoot', -0.34 * k); st.rot(bow, 'TailRoot', 0.25 * k);
+      st.rim(bow, 1 + 0.8 * k);
+    } });
+  },
+
+  /* 鱗紋護體｜辨識：蛇身鱗紋一節一節亮上去＋半圓護罩罩下 */
+  wardHpFront2(st) {
+    const wards = st.byBody(st.actor, 'ward');
+    const line = wards.length ? wards : st.actor;
+    const g = line[0];
+    const mid = st.worldOf(g, 'Body10', new THREE.Vector3());
+    const foot = st.foot(g, new THREE.Vector3());
+    const dome = st.dome(mid, 0.8, { opacity: 0 });
+    const ring = st.ring(foot, 0.42, 0.07, { opacity: 0 });
+    dome.scale.setScalar(0.35);
+    st.tween({ ms: 90, ease: 'out', update(t, e) { // 鱗紋行進波：由尾往頭一節一節鼓起
+      line.forEach((f) => {
+        for (let i = 0; i <= 20; i += 4) {
+          const ph = Math.max(0, Math.min(1, e * 1.7 - i / 30));
+          st.scaleBone(f, 'Body' + i, 1 + 0.16 * ph);
+        }
+        st.rot(f, 'Crown', -0.12 * e); st.rot(f, 'Jaw', 0.18 * e); st.rim(f, 1 + 0.9 * e);
+      });
+    } });
+    st.grow(dome, { ms: 85, delay: 85, from: 0.35, to: 1.15 }); // 半圓護罩罩下
+    st.fade(dome, { ms: 60, delay: 85, from: 0, to: 0.45 });
+    st.fade(dome, { ms: 65, delay: 160, from: 0.45, to: 0 });
+    st.grow(ring, { ms: 95, delay: 85, from: 0.3, to: 1.5 });
+    st.fade(ring, { ms: 95, delay: 85, from: 0.7, to: 0 });
+    st.tween({ ms: 70, delay: 160, ease: 'inout', update(t, e) { // 鱗紋退光、蛇身回位
+      const k = 1 - e;
+      line.forEach((f) => {
+        for (let i = 0; i <= 20; i += 4) st.scaleBone(f, 'Body' + i, 1 + 0.16 * k);
+        st.rot(f, 'Crown', -0.12 * k); st.rot(f, 'Jaw', 0.18 * k); st.rim(f, 1 + 0.9 * k);
+      });
+    } });
+  },
+
+  /* 山神庇佑｜辨識：背上山岩隆起＋腳下地紋圓盤擴散 */
+  wardHpAll1(st) {
+    const g = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const foot = st.foot(g, new THREE.Vector3());
+    const head = st.top(g, new THREE.Vector3());
+    const disc = st.disc(foot, 0.5, { opacity: 0 });
+    const light = st.orb(head, 0.09, { opacity: 0 });
+    disc.scale.setScalar(0.25);
+    st.tween({ ms: 90, ease: 'out', update(t, e) { // 沉身、背上山岩隆起
+      st.scaleBone(g, 'CragBack', 1 + 0.3 * e); st.scaleBone(g, 'CragMid', 1 + 0.34 * e); st.scaleBone(g, 'CragFore', 1 + 0.24 * e);
+      st.rot(g, 'Barrel', -0.06 * e); st.rot(g, 'NeckRoot', -0.14 * e); st.rot(g, 'HeadRoot', -0.2 * e);
+      st.move(g, 0, -0.05 * e, 0); st.rim(g, 1 + 0.7 * e);
+    } });
+    st.grow(disc, { ms: 100, delay: 85, from: 0.25, to: 1.6 }); // 腳下地紋圓盤擴散
+    st.fade(disc, { ms: 100, delay: 85, from: 0.55, to: 0 });
+    st.grow(light, { ms: 70, delay: 85, from: 0.3, to: 1.2 }); // 頭頂山神之光
+    st.fade(light, { ms: 55, delay: 85, from: 0, to: 0.9 });
+    st.fade(light, { ms: 65, delay: 160, from: 0.9, to: 0 });
+    st.tween({ ms: 70, delay: 160, ease: 'back', update(t, e) { // 岩落、獸伏回原姿
+      const k = 1 - e;
+      st.scaleBone(g, 'CragBack', 1 + 0.3 * k); st.scaleBone(g, 'CragMid', 1 + 0.34 * k); st.scaleBone(g, 'CragFore', 1 + 0.24 * k);
+      st.rot(g, 'Barrel', -0.06 * k); st.rot(g, 'NeckRoot', -0.14 * k); st.rot(g, 'HeadRoot', -0.2 * k);
+      st.move(g, 0, -0.05 * k, 0); st.rim(g, 1 + 0.7 * k);
+    } });
+  },
+
+  /* 祖靈先手｜辨識：★一顆睜圓的大眼★ ＋ 一道注視射過去 ＋ **被盯到的那一隻退縮**
+     （盲讀 r2：短 1/2 vs 完整 3/3。低分共同特徵是「效果只在自己身上、沒有指向、受方沒反應」，
+      所以眼球提前到 35ms 就現形、注視光束燒滿 95→215ms、對面被指到的那一隻真的退一步） */
+  wardFirst(st) {
+    const eye = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const from = st.worldOf(eye, 'Sl0', new THREE.Vector3());
+    const foe = st.target[0] || null;
+    const aim = foe ? st.worldOf(foe, null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
+    const gaze = st.beam(from, aim, { opacity: 0 });
+    const gaze2 = st.beam(from.clone().add(new THREE.Vector3(0, 0.05, 0)), aim, { opacity: 0 });
+    const ring = st.ring(st.foot(eye, new THREE.Vector3()), 0.36, 0.05, { opacity: 0 });
+    const sclera = st.orb(from, 0.15, { opacity: 0 });
+    const pupil = st.orb(from.clone().addScaledVector(st.dir, 0.07), 0.06, { opacity: 0, color: 0x120a1e });
+    sclera.scale.setScalar(0.3); pupil.scale.setScalar(1.6);
+    st.tween({ ms: 88, ease: 'in', update(t, e) { // 凝視：眼球本體先長出來（35ms 就看得到）
+      st.rot(eye, 'Sl0', 0.18 * e); st.rot(eye, 'Sl1', 0.14 * e); st.rot(eye, 'Br0', 0.2 * e); st.rot(eye, 'Br1', 0.16 * e);
+      st.scale(eye, 1 - 0.03 * e); st.rim(eye, 1 + 0.4 * e);
+      const k = Math.min(1, e * 2.5);
+      sclera.material.opacity = 0.75 * k; sclera.scale.setScalar(0.3 + 0.45 * k);
+      pupil.material.opacity = 0.9 * k;
+    } });
+    st.tween({ ms: 78, delay: 88, ease: 'out', update(t, e) { // 猛地睜圓：眼白暴脹、瞳孔縮成一點
+      const k = 1 - e;
+      st.rot(eye, 'Sl0', 0.18 * k - 0.26 * e); st.rot(eye, 'Sl1', 0.14 * k - 0.2 * e);
+      st.rot(eye, 'Br0', 0.2 * k - 0.12 * e); st.rot(eye, 'Br1', 0.16 * k - 0.1 * e);
+      st.scale(eye, 1 - 0.03 * k + 0.06 * e); st.rim(eye, 1 + 0.4 * k + 2.4 * e);
+      sclera.scale.setScalar(0.75 + 0.85 * e); pupil.scale.setScalar(1.6 - 1.05 * e);
+    }, done() { st.punch(0.35); } });
+    // 注視：兩條光束疊起來變粗，燒滿 95→215ms（一版只有 70ms，取樣幀常常錯過）
+    st.fade(gaze, { ms: 120, delay: 95, from: 1, to: 0 });
+    st.fade(gaze2, { ms: 108, delay: 107, from: 0.85, to: 0 });
+    st.grow(ring, { ms: 95, delay: 100, from: 0.3, to: 1.5 });
+    st.fade(ring, { ms: 95, delay: 100, from: 0.65, to: 0 });
+    if (foe) { // ★受方反應★：被盯到的那一隻退縮、邊光暴亮
+      st.flinch([foe], { delay: 112, strength: 1.15, burst: true });
+      st.tween({ ms: 96, delay: 112, ease: 'pulse', update(t, e) { st.rim(foe, 1 + 2.6 * e); } });
+    }
+    st.actor.forEach((f, i) => st.tween({ ms: 84, delay: 120 + i * 8, ease: 'snap', update(t, e) { st.move(f, 0, 0, 0.09 * e); } }));
+    st.fade(sclera, { ms: 58, delay: 168, from: 0.75, to: 0 });
+    st.fade(pupil, { ms: 58, delay: 168, from: 0.9, to: 0 });
+    st.tween({ ms: 60, delay: 168, ease: 'inout', update(t, e) { // 眼半闔
+      const k = 1 - e;
+      st.rot(eye, 'Sl0', -0.26 * k); st.rot(eye, 'Sl1', -0.2 * k); st.rot(eye, 'Br0', -0.12 * k); st.rot(eye, 'Br1', -0.1 * k);
+      st.scale(eye, 1 + 0.06 * k); st.rim(eye, 1 + 2.4 * k);
+    } });
+  },
+
+  /* 天雷｜辨識：★三道劈下來的閃電★（本體＝雷本身，越早出現越好）＋胸前火種升空
+     （盲讀 r1：一版的雷只在 150ms 後閃 62ms，讀者的取樣幀常常錯過） */
+  boltGamble(st) {
+    const bird = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const prey = st.byBody(st.target, 'swarm')[0] || st.target[0] || null;
+    const seed = st.worldOf(bird, 'EmberSeed', new THREE.Vector3());
+    const mark = prey ? st.worldOf(prey, null, new THREE.Vector3()) : seed.clone().addScaledVector(st.dir, 1.8);
+    const sky = mark.clone(); sky.y += 1.5;
+    const ember = st.orb(seed, 0.06, { opacity: 0.9 });
+    ember.scale.setScalar(0.3);
+    /* 三道雷頂層先建好（opacity 0），從 78ms 起依序現形——整個中段畫面上都有雷。 */
+    const bolts = [
+      st.bolt(sky, mark, { jag: 0.34, segs: 9, seed: 3, opacity: 0 }),
+      st.bolt(sky.clone().add(new THREE.Vector3(0.16, 0, -0.12)), mark, { jag: 0.4, segs: 9, seed: 9, opacity: 0 }),
+      st.bolt(sky.clone().add(new THREE.Vector3(-0.14, 0.1, 0.1)), mark, { jag: 0.3, segs: 9, seed: 17, opacity: 0 }),
+    ];
+    st.tween({ ms: 78, ease: 'out', update(t, e) { // 撐翼仰頸、胸前火種脹亮
+      st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * e);
+      st.rot(bird, 'NeckRoot', -0.16 * e); st.rot(bird, 'HeadRoot', -0.22 * e); st.rot(bird, 'TailRoot', 0.2 * e);
+      st.rim(bird, 1 + 1.1 * e); ember.scale.setScalar(0.3 + 0.9 * e);
+    } });
+    st.fly(ember, seed.clone(), sky, { ms: 62, delay: 74, ease: 'out', arc: 0.2,
+      done() { st.burst(mark, { power: 1, n: 50 }); st.punch(0.5); } });
+    st.fade(ember, { ms: 30, delay: 138, from: 0.9, to: 0 });
+    // 三道雷各燒 92ms、間隔 26ms：78→170、104→196、130→222，中段任何一幀都看得到雷
+    bolts.forEach((b, i) => st.fade(b, { ms: 92, delay: 78 + i * 26, from: 1, to: 0 }));
+    if (prey) st.flinch([prey], { delay: 140, strength: 1.3, burst: false });
+    st.tween({ ms: 72, delay: 150, ease: 'snap', update(t, e) { // 猛然收翅下拍
+      const k = 1 - e;
+      st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * k + 0.3 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * k - 0.3 * e);
+      st.rot(bird, 'NeckRoot', -0.16 * k); st.rot(bird, 'HeadRoot', -0.22 * k); st.rot(bird, 'TailRoot', 0.2 * k);
+      st.rim(bird, 1 + 1.1 * k);
+    } });
+  },
+
+  /* 飛魚躍｜辨識：舟身躍離水面＋落水漣漪環 */
+  swarmHalfSplash(st) {
+    const boats = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
+    boats.forEach((b, i) => {
+      const lag = i * 18;
+      st.tween({ ms: 80, delay: lag, ease: 'in', update(t, e) { // 船首壓浪下沉、側鰭收攏
+        st.rot(b, 'BowBase', 0.16 * e); st.rot(b, 'Stern', -0.1 * e);
+        st.rot(b, 'LFin1Rt', 0, 0, 0.3 * e); st.rot(b, 'RFin1Rt', 0, 0, -0.3 * e);
+        st.move(b, 0, -0.03 * e, 0);
+      } });
+      st.tween({ ms: 110, delay: 80 + lag, ease: 'pulse', update(t, e) { // 躍離水面（鰭全張）
+        st.move(b, 0, 0.24 * e, 0.06 * e);
+        st.rot(b, 'BowBase', 0.16 * (1 - e) - 0.28 * e); st.rot(b, 'BowTip', -0.2 * e);
+        st.rot(b, 'LFin1Rt', 0, 0, 0.3 - 0.7 * e); st.rot(b, 'RFin1Rt', 0, 0, -0.3 + 0.7 * e);
+        st.rim(b, 1 + 0.8 * e);
+      } });
+    });
+    const foot = st.foot(boats[0], new THREE.Vector3());
+    const ripple = st.ring(foot, 0.34, 0.05, { opacity: 0 });
+    const splash = st.disc(foot, 0.3, { opacity: 0 });
+    st.grow(ripple, { ms: 90, delay: 140, from: 0.3, to: 1.8 }); // 落水漣漪環
+    st.fade(ripple, { ms: 90, delay: 140, from: 0.75, to: 0 });
+    st.grow(splash, { ms: 70, delay: 140, from: 0.2, to: 1.2 });
+    st.fade(splash, { ms: 70, delay: 140, from: 0.5, to: 0 });
+    st.tween({ ms: 60, delay: 170, ease: 'out', update(t, e) { // 舟身回平
+      const k = 1 - e;
+      boats.forEach((b) => { st.move(b, 0, 0.07 * k, 0); st.rot(b, 'BowTip', -0.2 * k); st.rim(b, 1 + 0.8 * k); });
+    } });
+  },
+
+  /* 獠牙反擊｜辨識：低頭挑牙、牙尖射出一道獠光 */
+  swarmThorn(st) {
+    const hog = st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const nose = st.worldOf(hog, 'Nose', new THREE.Vector3());
+    const to = prey ? st.worldOf(prey, null, new THREE.Vector3()) : nose.clone().addScaledVector(st.dir, 1.8);
+    const dirt = st.disc(st.foot(hog, new THREE.Vector3()), 0.28, { opacity: 0 });
+    st.tween({ ms: 85, ease: 'out', update(t, e) { // 低頭挑牙、刨地、牙盤慢轉
+      st.rot(hog, 'NeckRoot', 0.24 * e); st.rot(hog, 'HeadRoot', 0.2 * e); st.rot(hog, 'Skull', 0.14 * e);
+      st.rot(hog, 'DiscFace', 0, 1.6 * e, 0); st.move(hog, 0, 0, -0.05 * e); st.rim(hog, 1 + 0.6 * e);
+    } });
+    st.fade(dirt, { ms: 85, from: 0.45, to: 0 });
+    st.tween({ ms: 85, delay: 85, ease: 'strike', update(t, e) { // 頂撞：前衝、頭往上挑
+      st.move(hog, 0, 0.02 * e, 0.22 * e);
+      st.rot(hog, 'NeckRoot', 0.24 - 0.5 * e); st.rot(hog, 'HeadRoot', 0.2 - 0.44 * e); st.rot(hog, 'Skull', 0.14 - 0.3 * e);
+      st.rim(hog, 1.6 + 1.4 * e);
+    } });
+    // 牙尖射出一道獠光：同 boltGamble，mesh 頂層先建好、opacity 0，靠 delay 才現形
+    const tusk = st.bolt(nose, to, { jag: 0.08, segs: 5, seed: 5, opacity: 0 });
+    st.fade(tusk, { ms: 58, delay: 150, from: 1, to: 0 });
+    st.tween({ ms: 40, delay: 150, ease: 'out', update(t, e) { st.rim(hog, 3 - 0.6 * e); },
+      done() { st.burst(to, { power: 0.8, n: 36 }); st.punch(0.4); } });
+    if (prey) st.flinch([prey], { delay: 152, strength: 1.15, burst: false });
+    st.tween({ ms: 65, delay: 165, ease: 'inout', update(t, e) { // 退回原位
+      const k = 1 - e;
+      st.move(hog, 0, 0.02 * k, 0.22 * k); st.rot(hog, 'NeckRoot', -0.26 * k); st.rot(hog, 'HeadRoot', -0.24 * k);
+      st.rot(hog, 'Skull', -0.16 * k); st.rim(hog, 1 + 2 * k);
+    } });
+  },
+
+  /* 割祭｜辨識：邊光「先暗」再暴亮＋胸口一顆血火星 */
+  eliteSelfCut(st) {
+    const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const chest = st.worldOf(deer, 'Chest', new THREE.Vector3());
+    const blood = st.orb(chest, 0.055, { opacity: 0 });
+    blood.scale.setScalar(0.3);
+    st.tween({ ms: 90, ease: 'in', update(t, e) { // 俯首就刃：頸逐節下彎、邊光先暗
+      st.rot(deer, 'NeckRoot', 0.26 * e); st.rot(deer, 'Neck2', 0.22 * e); st.rot(deer, 'HeadRoot', 0.3 * e);
+      st.rot(deer, 'TailRoot', -0.18 * e); st.rim(deer, 1 - 0.75 * e);
+    } });
+    st.tween({ ms: 70, delay: 88, ease: 'snap', update(t, e) { // 割：頭橫甩、邊光暴亮到三倍
+      st.rot(deer, 'HeadRoot', 0.3, 0.5 * e, 0); st.rot(deer, 'Neck2', 0.22 * (1 - e));
+      st.rim(deer, 0.25 + 3.1 * e);
+    }, done() { st.punch(0.42); st.burst(chest, { power: 0.7, n: 34, color: 0xd83a2a }); } });
+    st.fade(blood, { ms: 45, delay: 88, from: 0, to: 1 });
+    st.grow(blood, { ms: 90, delay: 88, from: 0.3, to: 1.5 });
+    st.fade(blood, { ms: 60, delay: 150, from: 1, to: 0 });
+    const up = st.top(deer, new THREE.Vector3());
+    const rite = st.beam(chest.clone(), up, { opacity: 0 });
+    st.fade(rite, { ms: 65, delay: 130, from: 0.95, to: 0 }); // 祭光自心口竄上頭頂
+    st.actor.forEach((f, i) => st.tween({ ms: 70, delay: 140 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } }));
+    st.tween({ ms: 65, delay: 160, ease: 'inout', update(t, e) { // 頭頸回正
+      const k = 1 - e;
+      st.rot(deer, 'NeckRoot', 0.26 * k); st.rot(deer, 'HeadRoot', 0.3 * k, 0.5 * k, 0); st.rot(deer, 'TailRoot', -0.18 * k);
+    } });
+  },
+
+  /* 琉璃護心｜辨識：★一串真的珠鍊★一顆一顆亮上去＋心口琉璃珠護心罩 */
+  eliteArmor(st) {
+    const snake = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const heart = st.worldOf(snake, 'Body', new THREE.Vector3());
+    const top = st.top(snake, new THREE.Vector3());
+    const bead = st.orb(heart, 0.05, { opacity: 0 });
+    const shell = st.dome(heart, 0.62, { opacity: 0 });
+    const foot = st.foot(snake, new THREE.Vector3());
+    const halo = st.ring(foot, 0.34, 0.045, { opacity: 0 });
+    bead.scale.setScalar(0.3); shell.scale.setScalar(0.4);
+    const chain = [];
+    for (let i = 0; i < 9; i++) {
+      const u = i / 8;
+      const p = heart.clone().lerp(top, u);
+      p.x += Math.sin(u * Math.PI) * 0.16; p.y += Math.sin(u * Math.PI) * 0.05;
+      chain.push(st.orb(p, 0.028, { opacity: 0 }));
+    }
+    st.tween({ ms: 90, ease: 'out', update(t, e) { // 珠鍊由內往外一顆一顆亮、昂首
+      st.scaleBone(snake, 'Trunk', 1 + 0.12 * Math.min(1, e * 2));
+      st.scaleBone(snake, 'Trunk2', 1 + 0.14 * Math.max(0, e * 2 - 1));
+      st.rot(snake, 'Neck1', -0.16 * e); st.rot(snake, 'Jaw', 0.2 * e); st.rim(snake, 1 + 1 * e);
+      chain.forEach((o, i) => { const k = Math.max(0, Math.min(1, e * 9 - i)); o.material.opacity = k; o.scale.setScalar(0.6 + 0.7 * k); });
+    } });
+    st.fade(bead, { ms: 55, delay: 82, from: 0, to: 1 }); // 心口琉璃珠亮起
+    st.grow(bead, { ms: 80, delay: 82, from: 0.3, to: 1.3 });
+    st.grow(shell, { ms: 85, delay: 92, from: 0.4, to: 1.15 }); // 護心罩罩下
+    st.fade(shell, { ms: 55, delay: 92, from: 0, to: 0.42 });
+    st.fade(shell, { ms: 65, delay: 155, from: 0.42, to: 0 });
+    st.fade(bead, { ms: 60, delay: 160, from: 1, to: 0 });
+    st.grow(halo, { ms: 95, delay: 100, from: 0.3, to: 1.5 });
+    st.fade(halo, { ms: 95, delay: 100, from: 0.65, to: 0 });
+    chain.forEach((o, i) => st.fade(o, { ms: 54, delay: 150 + i * 2, from: 1, to: 0 }));
+    st.tween({ ms: 65, delay: 160, ease: 'inout', update(t, e) { // 蛇口一開一合、身段回落
+      const k = 1 - e;
+      st.scaleBone(snake, 'Trunk', 1 + 0.12 * k); st.scaleBone(snake, 'Trunk2', 1 + 0.14 * k);
+      st.rot(snake, 'Neck1', -0.16 * k); st.rot(snake, 'Jaw', 0.2 * k * (1 - e)); st.rim(snake, 1 + 1 * k);
     } });
   },
 };
