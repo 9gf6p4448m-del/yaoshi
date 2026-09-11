@@ -60,9 +60,8 @@ try {
         await page.close();
         const durs = (r.rec && r.rec.duels || []).map((x) => x.dur).filter(Number.isFinite);
         const tiers = (r.fxc && r.fxc.tiers) || null;
-        const lbox = (r.rec && r.rec.duels || []).map((x) => ({ lboxMs: x.lboxMs, t3: x.tiers1 && x.tiers0 ? (x.tiers1[3] || 0) - (x.tiers0[3] || 0) : null }));
         runs[grp].push(med(durs));
-        raw.push({ run: i + 1, grp, seed, url, durs, median: med(durs), tiers, lbox, errors: (r.errors || []).length });
+        raw.push({ run: i + 1, grp, seed, url, durs, median: med(durs), tiers, errors: (r.errors || []).length });
         console.log(`run${i + 1} ${grp} seed=${seed} durs=${JSON.stringify(durs)} median=${med(durs)} tiers=${JSON.stringify(tiers)} err=${(r.errors || []).length}`);
       }
     }

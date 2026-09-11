@@ -104,7 +104,7 @@ t('?fxtier=0（TIER_ON=false）時所有拍恆回 tier 2＝v0.53 行為', () => 
 });
 t('★R1 M2★ 招級時長：同一拍裡的普通招上限 2，只有傳說招走 3', () => {
   if (typeof Y.pwMoveTier !== 'function') throw new Error('pwMoveTier 未匯出');
-  // tier 3 的拍：傳說招 3、同拍的普通招被夾到 2（不會跟著演 1400＋CINEMA＋黑條）
+  // tier 3 的拍：傳說招 3、同拍的普通招被夾到 2（不會跟著演 1400＋CINEMA）
   eq(Y.pwMoveTier('eliteBlind', 3), 3, '傳說招在 tier 3 拍');
   eq(Y.pwMoveTier('eliteCleave', 3), 2, '普通招在 tier 3 拍（上限 2）');
   eq(Y.pwMoveTier('hauntSteal', 3), 2, '普通招在 tier 3 拍（上限 2）');

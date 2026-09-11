@@ -18,7 +18,9 @@ export const BEAT_MIN_MS_BY_TIER = { 1: 300, 2: 900, 3: 1400 };
 /** flinchMs／atReserve／endMargin 等比縮放的基準（＝v0.53 的 PW_FX.TRAIT_MS） */
 export const TIER_BASE_MS = 900;
 
-/** tier 3 的黑條 letterbox DOM id（與 #vignette 同層、不進 shader） */
+/** 黑條 letterbox 的兩個 DOM id。★收尾版起這兩個 id 必須在 DOM 中不存在★
+ *  （使用者 2026-09-11 裁甲，凍結檔 §2.1 修訂七：黑邊連同對決版面安全區移出本卷）。
+ *  留著這個常數是為了讓 lbox-probe 的 L9 有東西可以斷言「不存在」，不是給誰再掛回去用的。 */
 export const LETTERBOX_IDS = ['lbTop', 'lbBot'];
 
 /** tier 3 的 CINEMA 機位（低角度仰視、拉近）；與 js/camera-director.js 的 CINEMA 同一組數字 */

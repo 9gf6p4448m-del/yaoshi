@@ -39,44 +39,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    0.62 是最外圈的黑度【試玩必調】。 */
 #vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(ellipse 72% 78% at 50% 46%,rgba(0,0,0,0) 38%,rgba(0,0,0,.30) 72%,rgba(0,0,0,.62) 100%)}
-/* Tier 3 大招的黑條 letterbox（v0.54 三級視覺分級）。
-   ★R1 覆審 H2：z-index 從 -1 改成 41★——一版放在 #vignette 那一層（-1），但對決期間覆蓋全螢幕的
-   #duel 是 z-index:40 且背景半透明，黑條在它下面只透得出約四成：實測上緣帶平均亮度只從
-   27.27 掉到 17.31（Δ−9.96/255），畫面上是「比原本暗一成的灰紫帶」而不是黑條。
-   41＝壓在 #duel 之上、#rotateHint（99）之下；模態（#sheet 30／#modal 20）本來就在 #duel 之下，
-   對決期間不會與黑條打架。pointer-events:none 不吃任何點擊。
-   仍然是 DOM 不進 shader（後處理多一道 pass 在手機上是真的要錢的，兩條 div 是零 draw call，F6 已量）。
-   平常 height:0（等於不存在），.on 才張開；transition 與 CINEMA 的 inMs 對齊。 */
-#lbTop,#lbBot{position:fixed;left:0;right:0;height:0;z-index:41;pointer-events:none;
-  background:#000;transition:height .22s cubic-bezier(.23,1,.32,1)}
-#lbTop{top:0}
-#lbBot{bottom:0}
-#lbTop.on,#lbBot.on{height:8vh}
-/* ★黑條開著時，對決內容整塊縮進兩條黑條之間★（R2 N1 → R3 H-1 → R4 H-1/H2 第三次重修）
-   走過的兩條死路，寫下來免得再試一次：
-   ① 三版「#duel{padding:8vh 0}」＝完全的 no-op。#duel 是 `justify-content:center` + `overflow:hidden`，
-      真實對決內容本來就塞不下（scrollHeight 394 > clientHeight 390）；**內容溢出時居中對齊的是內容盒中心**，
-      上下加等量 padding 之後中心點不變（(31.2+358.8)/2 == (0+390)/2 == 195），字幕一格都沒動、只多裁 26px。
-   ② 四版「把 #duelBeat／#duelResult／#duelSub 三塊移出 flex 流（absolute）」＝只救了三分之一，
-      而且**把別的東西推進黑條裡**：那三塊離開後剩下的內容重新居中、整條流下移 7px，
-      溢出消失又讓 #duelMove 從一行長回兩行 ⇒ #duelMove 被下黑條蓋 15–30%、#beatLamps 被上黑條蓋 75%。
-      逐個元素 absolute 挪位是「防線按已知入口寫」，每補一個就擠到下一個。
-   ★這一版：讓 padding 真的生效★——padding 之所以無效，唯一原因是「內容縮不下去」，
-   而縮不下去是因為 flex item 的 `min-height:auto` 擋住了 #duelArena 收縮。
-   給 arena 一組 `flex:1 1 0; min-height:0`，它就會吃掉（也只吃掉）剩餘空間：
-   內容總高 == content box 高（327.6）⇒ 不再溢出 ⇒ padding 把**所有流內元素**一起壓進安全區，
-   不論現在有幾塊、將來誰再加一塊。分母歸一，不是逐個補洞。
-   驗收在 lbox-probe 的 L7：掃 #duel 底下**所有可見子孫**與兩條黑條的交集，全部必須是 0。 */
-#duel.lbox{transform:scale(.80);box-shadow:0 0 0 100vmax #000}
-/* .80 的來源（不是湊出來的）：黑條佔上下各 8vh ⇒ 安全區是 84vh；
-   但 #duel 的**內容本來就比視窗高**（真實對決 scrollHeight 394 > clientHeight 390，
-   而且 #duelMove 一行／兩行會讓它再浮動幾 px），居中溢出時內容實際範圍是 [−2, 392] 而不是 [0, 390]。
-   所以縮放係數要算在「內容高」上而不是「視窗高」上：0.84 只夠 390 的內容，實測拍燈仍超出 1.7px。
-   取 .80 ＝ 327.6 / 409：對 409px 高的內容（比實測 394 再留 15px 餘裕）仍然塞得進安全區，
-   #duelMove 長成兩行、或將來多一列字幕也不會又擠出去。
-   box-shadow 的 100vmax 實心外框把縮放後露出來的四周塗黑 ⇒ 真正的 letterbox（不是只有上下兩條）。
-   3D 妖不受影響地跟著走：duel-figures 是讀 .fighter 欄位的 getBoundingClientRect 對齊的，
-   而 rect 會反映 transform ⇒ 妖與 DOM 版面一起等比縮放，不會脫節。 */
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -593,7 +555,6 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </head>
 <body>
 <div id="vignette"></div>
-<div id="lbTop"></div><div id="lbBot"></div>
 <div id="rotateHint"><div class="ic">📱</div><div>請把手機<b style="color:var(--gold)">轉橫</b>進入妖市<br><span class="mut">深夜牌桌需要寬一點的視野</span></div></div>
 <div id="titleScr" class="title">
   <h1>妖　市</h1>
@@ -2011,7 +1972,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.54", VERSION_NOTE="招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位 ＋ 兩條 DOM 黑條（同拍的普通招不跟著演大招）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.54", VERSION_NOTE="招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2149,7 +2110,7 @@ try{
 }catch(e){}
 
 const SIM_MODE=new URLSearchParams(location.search).get("sim")==="1";
-function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); try{ pwLetterbox(false); }catch(e){} /* v0.54：快轉時黑條立刻收 */ /* 卷 C3＋v0.45：正在演的招式立刻清場，focus／退暗同一個事件收 */ try{ pwCloseupClear(); }catch(e){} /* v0.45：跳字與出手卡一次清乾淨 */ }
+function doSkip(){ SKIP=true; if(PENDING)PENDING(); if(PW_WAKE)PW_WAKE(); /* 卷 C1：叫醒三拍時間軸目前那一段等待 */ fx3d("ys:fx-trait-cancel",{}); /* 卷 C3＋v0.45：正在演的招式立刻清場，focus／退暗同一個事件收 */ try{ pwCloseupClear(); }catch(e){} /* v0.45：跳字與出手卡一次清乾淨 */ }
 /* 等使用者按主按鈕才繼續（跳過中則直接通過） */
 function waitMain(label){
   return new Promise(res=>{
@@ -4052,12 +4013,12 @@ const PW_FX={
      3D 舞台接下招式時等這裡的毫秒（取代該筆的 evMs）；沒 3D 時照舊等 evMs。
      卷 C3（2026-09-05）原本是單一個 TRAIT_MS:900，v0.54 起依 tier 分三級：
        1＝一般拍（27 支專屬短版時間軸，js/trait-fx/*.js 的 SHORT）／2＝擊殺拍或決定性最後一拍（完整版）
-       3＝三尊大招（完整版＋CINEMA 機位＋黑條）。
+       3＝三尊大招（完整版＋CINEMA 低角度仰視機位）。
      **別處不得再寫死招式毫秒**：js/trait-fx.js 與 js/camera-director.js 一律吃事件帶的 detail.ms，
      沒帶就 throw（退路已刪，理由見 GUIDE §11.27）；治具讀 tests/tools/fx-consts.mjs。 */
   TRAIT_MS_BY_TIER:{1:260,2:900,3:1400},
   TIER_BASE_MS:900,   /* 三常數（flinchMs／atReserve／endMargin）等比縮放的基準＝v0.53 的 TRAIT_MS */
-  TIER_ON:true,       /* ?fxtier=0 → false：所有拍走 tier 2（＝v0.53 行為：900、無 CINEMA、無黑條） */
+  TIER_ON:true,       /* ?fxtier=0 → false：所有拍走 tier 2（＝v0.53 行為：900、無 CINEMA） */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
   LOAD_SHOW_MS:150,   /* 超過這個時間還沒載完才露出「召喚中」載入條（快取命中不閃一下） */
   /* ── 近景切鏡卷 批 1 原型（v0.45，2026-09-07；規格 docs/proposals/2026-09-07-duel-closeup.md §二）──
@@ -4087,7 +4048,7 @@ try{
   if(cq==="0") PW_FX.CLOSEUP_ON=false; else if(cq==="1") PW_FX.CLOSEUP_ON=true;
 }catch(e){}
 /* ?fxtier=0 關掉整卷三級視覺分級（凍結檔 F0 的退路等價靠它）：所有拍一律 tier 2
-   ＝v0.53 行為（招式 900、拍末 900、無 CINEMA、無黑條）。?fxtier=1 顯式開。 */
+   ＝v0.53 行為（招式 900、拍末 900、無 CINEMA）。?fxtier=1 顯式開。 */
 try{
   const tq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("fxtier");
   if(tq==="0") PW_FX.TIER_ON=false; else if(tq==="1") PW_FX.TIER_ON=true;
@@ -5059,7 +5020,7 @@ function pwIsLegendUnit(views,side,unitId){
    分布是 {1:4, 2:8}——8v8 基礎戰三分之二的拍都有紙紮被燒，拍末下限因此大多停在 900ms，
    F3 中位只從 5573.5ms 降到 5302ms（門檻 ≤5000）。收窄成「決定勝負」與「燒掉傳說尊」兩種之後，
    一般擊殺拍回到 260ms 短版＋300ms 拍末。**這是三級定義的變更，不是門檻變更**（F3 的 5 秒一字沒動）。
-   ?fxtier=0 時恆回 2＝v0.53 行為（900、無 CINEMA、無黑條），退路等價靠這一行。
+   ?fxtier=0 時恆回 2＝v0.53 行為（900、無 CINEMA），退路等價靠這一行。
    註：凍結檔寫的簽名是 pwBeatTier(beat, war)，實際要讀「這一拍的事件」與「被燒的是誰」，
    所以帶的是 list 與 views；war.beats 是三拍混在一起的，從它切不出「這一拍」而不重做一次 byBeat。 */
 function pwBeatTier(list,beat,f,views){
@@ -5071,44 +5032,29 @@ function pwBeatTier(list,beat,f,views){
 }
 function pwTierMs(t){ return PW_FX.TRAIT_MS_BY_TIER[pwTierOf(t)]; }
 /* 這一支招實際要用的等級（★招級★，R1 覆審 M2）。
-   拍級 tier 決定「這一拍有多重要」，但**同一拍裡的普通招不該跟著大招演 1400ms＋CINEMA＋黑條**——
+   拍級 tier 決定「這一拍有多重要」，但**同一拍裡的普通招不該跟著大招演 1400ms＋CINEMA**——
    一版就是那樣，計畫檔 §2.2 自己寫「一支 tier 1 的招不會單獨升 3」卻與實作不符，而且那個組合
    （傳說招與普通招同拍）治具一次都沒跑到。
    規則：招級＝min(拍級, 該招的上限)，普通招上限 2、`TRAITS[].tier===3` 的傳說招上限 3。
    於是：tier 3 的拍裡，傳說招走 1400ms＋CINEMA，同拍的普通招走 900ms 完整版、不觸發 CINEMA；
-   拍末等待仍吃拍級（1400），黑條也是拍級（整拍開著，見 pwPlayBeat）。 */
+   拍末等待仍吃拍級（1400）。 */
 function pwMoveTier(trId,beatTier){
   const cap=(((TRAITS[trId]||{}).tier|0)>=3)?3:2;
   return Math.min(pwTierOf(beatTier),cap);
 }
 function pwBeatMinMs(t){ return PW_FX.BEAT_MIN_MS_BY_TIER[pwTierOf(t)]; }
-/* Tier 3 大招的黑條：只有三尊那一拍會開。開關集中在這一支（防線按「危險的效果」寫，不按入口寫）——
-   doSkip／對決收場／招式演完都叫它關，任何一條路漏掉都會把黑條留在畫面上。 */
-function pwLetterbox(on){
-  try{
-    const a=$("lbTop"), b=$("lbBot");
-    if(a) a.classList.toggle("on",!!on);
-    if(b) b.classList.toggle("on",!!on);
-/* 黑條開著時同步給 #duel 掛 lbox class：對決內容整塊等比縮進兩條黑條之間（見 #duel.lbox 的註解）。
-       兩者一定要同一支開關切——分開切就會有「黑條開了但內容還沒讓位」的那幾幀。
-       （R4 覆審：三版的「內縮 padding」與四版的「逐個字幕 absolute」都被否掉了，別再往回試。） */
-    const d=$("duel");
-    if(d) d.classList.toggle("lbox",!!on);
-  }catch(e){}
-}
 /* 回傳 true＝3D 舞台接了這一招（呼叫端等 pwTierMs(tier)）；false＝走 DOM 掛鉤／fallback（等 EV_MAX_MS）。
    ys:fx-trait 是同步派送，det.handled 派完立刻讀得到（同 pwBurnOne 的模式）。SKIP 時什麼都不演。
-   v0.54：ctx.tier 決定時長與短版分支（js/trait-fx.js 讀 det.tier），tier 3 另外開黑條。 */
+   v0.54：ctx.tier 決定時長與短版分支（js/trait-fx.js 讀 det.tier），tier 3 另外切 CINEMA 機位。 */
 function pwTraitFx(trId,ctx){
   if(SKIP) return false;
   const tier=pwTierOf(ctx.tier);
   /* R2 覆審 N5：?closeup=0 是「近景切鏡」的總開關，**CINEMA 也是近景**（dist 2.9／tilt 8°，
      比 FOCUS 的 2.6 更兇），關掉近景的玩家不該在 tier 3 反而吃到更重的推近。
      所以事件多帶一個 cinema 旗標，camera-director 只在它為 true 時切機位。
-     ★黑條也跟著關★（R3 覆審 M-4 裁定）：一版寫「它是 DOM 框飾不是鏡頭」＋「它還負責讓字幕內縮」，
-     後者是循環論證——字幕要內縮的唯一原因就是黑條存在。?closeup=0 的語意是「不要任何電影化效果」，
-     而 tier 3 對這些玩家原本只剩「上下壓出兩條純黑、鏡頭完全不動」＝純損失。所以黑條一起關。
-     */
+     ★收尾版（使用者 2026-09-11 裁甲）：黑條 letterbox 整支移出本卷★（凍結檔 §2.1 修訂七）——
+     對決版面本來就填滿畫面、沒有安全區，五輪補丁換了四種位置都還是壓到元素。
+     所以 ?closeup=0 現在只管 CINEMA 這一件事，tier 3 對這些玩家＝1400ms 但鏡頭不動。 */
   const det={trId,side:ctx.side,foeSide:ctx.foeSide,fac:ctx.fac,power:ctx.power,ms:pwTierMs(tier),tier,cinema:pwCloseup(),baseMs:PW_FX.TIER_BASE_MS,handled:false,done:null};
   fx3d("ys:fx-trait",det);
   if(det.handled){ FXC.traitFig++; return true; }
@@ -5482,9 +5428,6 @@ async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
   const tier=pwBeatTier(list,beat,f,views); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
   FXC.tiers[tier]=(FXC.tiers[tier]||0)+1; /* 純記錄（F3 的節奏歸因要看拍的 tier 分布）；遊戲一行不讀它 */
-  /* 黑條是★拍級★的（R1 覆審 L5）：一版在每支招演完就關、下一支再開，CSS transition 220ms
-     會讓同一拍兩支招之間黑條收一半又張開。改成整拍開著、拍末統一關。 */
-  if(tier===3&&pwCloseup()) pwLetterbox(true); /* R3 M-4：?closeup=0 連黑條一起關（kill switch 語意＝沒有任何電影化效果） */
   const ph=f.war.phase?PHASES[f.war.phase]:null;
   const bonus=(ph&&ph.fac===BEAT_FAC[beat-1])
     ? `　<span style="color:#ffd9a0;font-size:12px;letter-spacing:0">${ph.icon}${ph.name}・${FAC[ph.fac].n}拍 hp+1</span>` : "";
@@ -5582,8 +5525,6 @@ async function pwPlayBeat(f,beat,list,views){
   }
   const spent=Date.now()-t0, floor=pwBeatMinMs(tier);
   if(!SKIP&&spent<floor) await pwSleep(floor-spent);
-  if(tier===3) pwLetterbox(false); /* 拍級黑條：整拍演完才收。**關這一側不加 pwCloseup() 條件**——
-     防線按「危險的效果」寫：旗標若在對決中途被改，關的那一條也必須無條件執行，不然黑條會留在畫面上。 */
 }
 async function playDuelWar(f,views){
   const c0=FXC.burn, r0=FXC.trait, d0=FXC.burnDom, g0=FXC.burnFig;
@@ -5710,7 +5651,6 @@ async function playDuel(f){
   }
   } /* ← ON／OFF 分支結束 */
   pwCloseupClear(); /* v0.45：跳字／出手卡不得跨場殘留（focus 與退暗由下一行的 ys:duel-end 收） */
-  pwLetterbox(false); /* v0.54：黑條同理不得跨場殘留——收場這條路獨立於 doSkip 與招式演完那兩條 */
   ov.classList.remove("on"); ov.classList.remove("pw"); fx3d("ys:duel-end"); bgm("market"); $("table").classList.remove("duelfade"); await sleep(300); /* 退場：反向淡出，鏡頭與牌桌同步回來 */
   ov.style.display="none";
 }
@@ -6541,7 +6481,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){retur
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, pwLetterbox, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */

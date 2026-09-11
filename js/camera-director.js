@@ -123,8 +123,8 @@ const FOCUS = {
 //     語氣是**低角度仰視、拉近**——tilt 從 DUEL_SHOT 的 24 壓到 8（幾乎貼著桌面往上看），
 //     dist 從 4.2 拉到 2.9。與 FOCUS 同一條紀律：**只動 dist／tilt，yaw 一律不碰**
 //     （yaw 上已經疊了 orbit 與 lean 兩層，再加一層會跟它們搶同一個量）。
-//     黑條 letterbox 不在這裡——它是 index.html 的兩條 DOM（#lbTop／#lbBot，與 #vignette 同層），
-//     不進 shader、不加 draw call，所以手機端零成本（凍結檔 F6：draw calls 不得增加）。
+//     ★這是 tier 3 唯一的畫面語言★：黑條 letterbox 五輪覆審後由使用者 2026-09-11 裁定移出本卷
+//     （凍結檔 §2.1 修訂七），連同「對決版面安全區」留給招式可辨性卷重做。
 const CINEMA = {
   dist: 2.9,
   tilt: 8,
@@ -381,7 +381,7 @@ export function createCameraDirector(camera, lanterns) {
 
   /** 立刻開始收 CINEMA（ys:fx-trait-cancel／ys:duel-end／ys:table／ys:end）。
    *  ★R1 覆審 C1★：一版宣告了 cinemaFall 卻**沒有任何一行把它設成 true**，
-   *  所以「立刻回位」那個分支是死碼——玩家在三尊大招按跳過，黑條收了、鏡頭卻卡在
+   *  所以「立刻回位」那個分支是死碼——玩家在三尊大招按跳過，鏡頭卻卡在
    *  dist 2.9／tilt 8° 的貼地仰視 1.49 秒，還會延續到對決收場之後。
    *  照 endFocus() 同一套：從當下的包絡值走 CINEMA.outMs 的回位段，不硬歸零（硬歸零會單幀跳 dist）。
    *  防線按「危險的效果」寫：四個離開對決的入口全都叫它，不是只堵 doSkip 那一條。 */
@@ -435,7 +435,7 @@ export function createCameraDirector(camera, lanterns) {
   function onTraitCancel() {
     clearOrbitLean();
     endFocus();
-    endCinema(); // R1 C1：跳過大招時 CINEMA 也要收（黑條由 index.html 的 pwLetterbox 同步關）
+    endCinema(); // R1 C1：跳過大招時 CINEMA 也要收（不然貼地仰視會卡著延續到收場之後）
   }
 
   /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。
@@ -562,7 +562,7 @@ export function createCameraDirector(camera, lanterns) {
 
   return {
     update,
-    /** 這一幀 CINEMA 有沒有在作用（凍結檔 F5：黑條與 CINEMA 只准在 tier 3 出現）。純記錄，遊戲不讀。 */
+    /** 這一幀 CINEMA 有沒有在作用（凍結檔 F5：CINEMA 只准在 tier 3 出現）。純記錄，遊戲不讀。 */
     cinemaOn() { return cinemaOn || cinemaK > 0; },
     cinemaK() { return cinemaK; },
   };

@@ -763,20 +763,26 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 5. **三個絕對常數隨 tier 等比**：`TFX.flinchMs`／`atReserve`／`endMargin` 乘 `run.k = run.ms / det.baseMs`。
    基準值不寫在 `trait-fx.js`（寫了就是第二份事實來源），由事件帶 `detail.baseMs`＝`PW_FX.TIER_BASE_MS`。
 
-6. **Tier 3 ＝ 完整版 ＋ `CINEMA` 機位 ＋ 兩條 DOM 黑條**：
+6. **Tier 3 ＝ 完整版 ＋ `CINEMA` 機位**（1400ms）：
    `camera-director.js` 的 `CINEMA {dist:2.9, tilt:8, inMs:220, outMs:320}` 是第 ⑥ 層偏移，只動 dist／tilt，
    **yaw 一律不碰**（同 FOCUS 的紀律：yaw 上已經有 orbit 與 lean 兩層）；`cinemaK=0` 時逐值等於沒有這層。
-   黑條是 `#lbTop`／`#lbBot`，與 `#vignette` 同層（`z-index:-1`），**刻意用 DOM 不進 shader**——
-   實測開關前後 `renderer.info.render.calls` 與 `triangles` 逐值相同（14／855），手機端零成本。
-   開關集中在 `pwLetterbox()` 一支，**三條路都會關**：招式演完（3D 與 fallback 兩條）、`doSkip`、對決收場。
+   ★**黑條 letterbox 不在本卷**★（凍結檔 §2.1 修訂七，使用者 2026-09-11 裁甲）：
+   一～五版試過 `z-index:-1`／`z-index:41`／`#duel` padding／逐元素 absolute／整塊 `transform:scale(.80)`
+   五種做法，每一種都壓到不同的元素——**真因是對決版面本來就填滿到溢出（`scrollHeight 394 > clientHeight 390`），
+   沒有安全區**。黑邊連同「對決版面安全區」整包留給招式可辨性卷重做。
+   想再加黑邊之前先讀修訂七那張「五個版本各壓到誰」的表，別再走一次同樣的五步。
+   機械防線：`lbox-probe` 的 L9（`#lbTop`／`#lbBot`／`.lbox`／`pwLetterbox` 在 DOM 與原始碼裡各 0 處）
+   與 L10（tier 3 那一拍的 `#duel` 可見子孫 rect 與 v0.53 逐值相同）。
 
 7. **`?fxtier=0` 是退路等價開關**：`PW_FX.TIER_ON=false` → `pwBeatTier` 恆回 2 ＝ v0.53 行為
-   （900、拍末 900、無 CINEMA、無黑條）。實測 `tiers {1:0,2:12,3:0}`、4 場時長與基準幾乎逐項相同。
+   （900、拍末 900、無 CINEMA）。實測 `tiers {1:0,2:12,3:0}`、4 場時長與基準幾乎逐項相同。
+   `?closeup=0` 則只管 CINEMA 這一件事（修訂七之後黑條沒了，它不再有第二個作用）。
 
 8. **治具**：`traitfx-drive.mjs --tier=1|2|3`（`--ms` 已移除，時長從 `fx-consts` 取），
    新判定 `msOK`（頁面實際 `run.ms` 等於該 tier，防「`--tier=1` 其實還在跑 900」）、
    `rateOK`（`maxRate ≤1.0`，tier 1 專用）、`actionsOK`（非 flinch 的補間 ≥2，F10）；
-   `tests/tools/lbox-probe.mjs` 驗黑條與 CINEMA「只在 tier 3」（正反都驗）；`tests/fxtier.test.mjs` 是 F1 的單元測試。
+   `tests/tools/lbox-probe.mjs` 驗 CINEMA「只在 tier 3」＋黑條不存在＋tier 3 版面與 v0.53 逐值相同（正反都驗，
+   量測在 `tests/tools/duel-rects.mjs`）；`tests/fxtier.test.mjs` 是 F1 的單元測試。
    ★順手修掉一個靜默漏測★：`traitfx-drive` 的 LEGENDS regex 自 2026-09-07 請神 2.0 插入 `eff:{}` 之後
    **一套都抓不到**（只印一行 warn），三尊三招近一個月沒被機械驗收過；現在反查不到直接 throw。
 
@@ -785,24 +791,26 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
    「這一拍燒掉了傳說三尊之一」升 tier 2，**一般擊殺拍走 tier 1**。一版把所有擊殺拍都升 2，
    實測 12 拍裡 8 拍停在 900ms，F3 幾乎沒動。收窄後 `FXC.tiers` 從 `{1:4,2:8}` 翻成 `{1:8,2:4}`。
 2. **招級 ≠ 拍級**（`pwMoveTier`，R1 覆審 M2）：拍級決定「這一拍多重要」，但同一拍裡的**普通招上限 2**，
-   只有 `TRAITS[].tier===3` 的傳說招走 1400＋CINEMA。黑條與拍末等待仍吃**拍級**。
+   只有 `TRAITS[].tier===3` 的傳說招走 1400＋CINEMA。拍末等待仍吃**拍級**。
 3. **CINEMA 一定要有取消路徑**（R1 覆審 C1，CRITICAL）：一版宣告了 `cinemaFall` 卻沒有一行把它設 true，
    「立刻回位」是死碼——跳過大招後鏡頭卡在貼地仰視 1.49 秒。現在 `endCinema()` 掛在
    `onTraitCancel`／`onDuelEnd`／`onTable`／`onEnd` 四個入口。**改這一段一定要重跑 `lbox-probe` 的 L5**。
 
 **三尊的 tier 3 餘韻**（R1 M1）：三招各有一段包在 `if (st.tier === 3)` 裡的收勢，把 1400ms 填到
-horizon 1280／1360／1385。**tier 2 走同一支函式，那段不執行、行為逐項不變**——加新段落時務必照這個寫法。
+horizon **1290／1296／1294**（fill 0.921／0.926／0.924，收尾版實測；★別再抄 1280／1360／1385 那組，那是二版的，三版為了把 `rate` 壓回凍結的 ≤1.0 又壓縮過一次★）。
+**tier 2 走同一支函式，那段不執行、行為逐項不變**——加新段落時務必照這個寫法。
 
 **量測紀律（二版學到的）**：
 - F3 一次 4 場的中位**分辨不出**這一卷改了什麼（覆審員實測同組態 ±550ms）。要比就用 `pace-ab.mjs`：
   交錯跑、每組 5 次、看「中位的中位」與**全距有沒有重疊**。
 - F6 的 `rafMedianFps` 撞 vsync（兩邊都 59.9），**零鑑別力**；主數字用 `rendersPerSec`。
   `duel-perf perf` 以前靜默吃掉 `--root`（基準會變成新版自己），現在不支援的旗標一律 throw。
-- 黑條要驗**像素**不是 DOM 高度（`lbox-probe` 的 L6 自解 PNG）；tier 1／2 的真實對局黑條可見毫秒
-  由 `duel-drive` 的 MutationObserver（`cur.lboxMs`）守。
+- **列舉「誰被蓋到」永遠會漏掉下一個元素**（黑條五輪的教訓）：要驗版面沒被動到，
+  就對**所有可見子孫的 rect** 做相等性斷言（`duel-rects.mjs`），不要自己列一份元素清單。
+  相等性斷言另附活性證據：錨點數、時點數、掃到的元素數都要 >0，兩邊一起空也會「逐值相同」。
 - `trace-eq` 預設只證明「勝負與扣血沒變」；拍序列要用 `--beats`（對兩邊做同一個注入）。
 
-**三條沒過的閘門（門檻未動，留給製作人裁）**：F3 主條中位 5032.5ms >5000（差 32.5ms，但效果 −526ms
+**三條沒過的閘門（門檻未動，留給製作人裁；數字以報告現況為準）**：F3 主條中位 **5018ms** >5000（差 18ms，但效果 −586ms
 已大於噪音、全距不重疊）；F3 子條「有 tier 3 的對決 ≤8s」3 場中 2 場超標（**基準同場次更慢**，與 tier 3 無關）；
 F4 的 `closeup-judge nullCount` 4 > 基準 2（拍變短讓 punch 排光更多靜幀，`deepOk` 與有樣本的 `monoQuiet` 仍全過）。
 詳見報告 `docs/experiments/2026-09-10-fx-tiers-report.md`。

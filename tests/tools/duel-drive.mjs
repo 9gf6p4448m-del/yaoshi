@@ -44,24 +44,10 @@ export async function serve(root, port) {
 /** 頁面端的錄音機：在任何 script 之前掛好事件監聽（addInitScript）。 */
 const RECORDER = `(() => {
   const R = window.__rec = { duels: [], loading: [], burns: [], lunges: [], samples: [], beatAt: [], ends: [], marks: {}, moves: [] };
-  /* ★R1 覆審 H3：真的觀察黑條★
-     一版只驗了「pwLetterbox(true/false) 這支 API 會不會切高度」，沒有任何一處量「真實對局裡
-     tier 1／2 的拍，#lbTop 是不是 0」；報告還宣稱有 MutationObserver，全 repo 一個都沒有。
-     這裡補上：對兩條黑條的 class 變化記時間序，收場時算出本場「黑條可見」的累計毫秒。
-     判定在 Node 端：FXC.tiers[3]===0 的場必須是 0，有 tier 3 的場必須 >0。 */
-  R.lbox = [];
-  const lboxWatch = () => {
-    ['lbTop', 'lbBot'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      /* R2 覆審 N9：這裡刻意用 Date.now() 而不是下面才宣告的 now()——
-         換個注入時機（或有人直接在 console 貼這段）就會踩到 TDZ 的 ReferenceError。 */
-      const push = () => R.lbox.push({ t: Date.now(), id, on: el.classList.contains('on') });
-      push();
-      new MutationObserver(push).observe(el, { attributes: true, attributeFilter: ['class'] });
-    });
-  };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lboxWatch); else lboxWatch();
+  /* ★收尾版（使用者 2026-09-11 裁甲，凍結檔 §2.1 修訂七）：黑條 letterbox 移出本卷★
+     這裡原本有一組 #lbTop／#lbBot 的 MutationObserver 與逐場 lboxMs。黑條拿掉之後那個
+     observer 會永遠掛不上（getElementById 回 null）、lboxMs 恆 0 ⇒ 正是「靜默恆綠」的治具，
+     所以整段刪掉而不是留著。tier 3 的版面驗收改到 tests/tools/duel-rects.mjs（rect 逐值相等）。 */
   const now = () => Date.now();
   const figApi = () => { try { return window.__yaoshi3d && window.__yaoshi3d.duelFigures; } catch (e) { return null; } };
   const snap = (side) => { const D = figApi(); if (!D) return []; return D.figuresOf(side).map((f) => ({
@@ -126,14 +112,7 @@ const RECORDER = `(() => {
     R.moves.push({ t: now(), trId: d.trId, side: d.side, text: el ? el.textContent : null, cls: el ? el.className : null, geo,
       expectName: pl ? pl.name : null, expectItem: Y.TRAIT_ITEM ? Y.TRAIT_ITEM[d.trId] : null, expectMove: tr ? tr.name : null, expectDesc: tr ? tr.desc : null,
       scroll: du ? [du.scrollHeight, du.clientHeight] : null }); });
-  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.tiers1 = Object.assign({}, F.tiers || {}); /* R1 H3：本場黑條可見的累計毫秒（只看 lbTop，兩條同開同關） */
-      try {
-        const evs = (window.__rec.lbox || []).filter((x) => x.id === 'lbTop' && x.t <= cur.endAt);
-        let ms = 0, onAt = null;
-        for (const e of evs) { if (e.on && onAt === null) onAt = e.t; else if (!e.on && onAt !== null) { if (e.t > cur.t) ms += e.t - Math.max(onAt, cur.t); onAt = null; } }
-        if (onAt !== null) ms += cur.endAt - Math.max(onAt, cur.t);
-        cur.lboxMs = ms;
-      } catch (e) { cur.lboxMs = null; } cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
+  document.addEventListener('ys:duel-end', () => { R.ends.push(now()); if (cur) { cur.endAt = now(); cur.dur = now() - cur.t; try { const F = window.__ysFxCount || {}; cur.trait1 = F.trait || 0; cur.traitFig1 = F.traitFig || 0; cur.tiers1 = Object.assign({}, F.tiers || {}); cur.skipped = !!window.__recSkipped; window.__recSkipped = false; } catch (e) {} try { cur.programsAtEnd = window.__yaoshi3d.renderer.info.programs.length; cur.programListAtEnd = window.__yaoshi3d.renderer.info.programs.map((p) => p.name + '|' + String(p.cacheKey || '').slice(0, 400)); setTimeout(() => { try { cur.programsAfterEnd = window.__yaoshi3d.renderer.info.programs.length; } catch (e) {} }, 1500); } catch (e) {} try { cur.load = window.__ysFxCount && window.__ysFxCount.load ? Object.assign({}, window.__ysFxCount.load) : null; } catch (e) { cur.load = null; } } });
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('duelBeat');
     if (!el) return;

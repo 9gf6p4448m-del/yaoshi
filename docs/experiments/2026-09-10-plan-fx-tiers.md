@@ -25,14 +25,15 @@
 | `docs/experiments/2026-09-10-plan-fx-tiers.md` | 本檔 |
 | `docs/experiments/2026-09-10-fx-tiers-report.md`、`docs/experiments/2026-09-10-fx-tiers-evidence/` | 報告與證據 |
 | `docs/experiments/2026-09-10-acceptance-fx-tiers.md` | **（修訂三補列）** 凍結檔的 §2.1 修訂紀錄（修訂一／二／三三條使用者裁定） |
-| `tests/tools/lbox-probe.mjs` | **（修訂三補列，新檔）** F5 機械段：黑條與 CINEMA「只在 tier 3」＋L4 draw call 對照＋L5 取消路徑＋L6 像素亮度 |
+| `tests/tools/lbox-probe.mjs` | **（修訂三補列，新檔；修訂七改寫）** F5 機械段判定：L1／L2 CINEMA 只在 tier 3、L5 取消路徑、L8 `?closeup=0`、L9 黑條 DOM 不存在、L10 tier 3 版面與 v0.53 逐值相同 |
+| `tests/tools/duel-rects.mjs` | **（修訂七補列，新檔）** F5 機械段主條的量測與比對：tier 3 錨點 ±時點的 `#duel` 可見子孫 rect 快照、兩棵樹逐值比對 |
 | `tests/tools/traitfx-sheet.mjs` | **（修訂三補列）** contact sheet 的幀號改成掃目錄取最小三張（幀位依 tier 換算後不再是固定的 8/22/36） |
 | `tests/tools/fpsdiag-probe.mjs` | **（修訂三補列，新檔）** `?fps=1` 的「對決最低 fps」欄位斷言（D1 文字＋數值、D2 零成本、D3 每場重算） |
 | `tests/tools/pace-ab.mjs` | **（修訂三補列，新檔）** F3 的 A/B 量測驅動器：交錯跑、每組 N 次、輸出中位的中位與全距、seeds 落檔 |
-| `tests/tools/t3-shot.mjs` | **（修訂三補列，新檔）** F5 人眼段的 tier 3 交付物改從**真實對決路徑**截（含黑條與 CINEMA），附 `-nobox` 對照 |
+| `tests/tools/t3-shot.mjs` | **（修訂三補列，新檔；修訂七改寫）** F5 人眼段的 tier 3 交付物改從**真實對決路徑**截（CINEMA 仰視機位）；6 場 ×3 幀＝18 張，每張當下機械記錄「是不是對決畫面」 |
 | `tests/tools/duel-perf.mjs` | **（修訂三補列）** perf 模式改吃 `--root`＋加 `--seed`；不支援的旗標一律 throw |
 | `tests/tools/trace-eq.mjs` | **（修訂三補列）** 新增 `--beats` 模式（對兩邊做同一個注入，序列化 `war.beats`） |
-| `tests/tools/duel-drive.mjs` | **（修訂三補列）** 黑條的 MutationObserver、逐場 tier 快照與 `lboxMs`、輸出 `url`（含 seed） |
+| `tests/tools/duel-drive.mjs` | **（修訂三補列；修訂七改寫）** 逐場 tier 快照、輸出 `url`（含 seed）；黑條的 MutationObserver 與 `lboxMs` 依修訂七**刪除**（黑條沒了之後它恆 0＝靜默恆綠） |
 
 **不動**（動了就是 F9 紅）：`docs/ART_BIBLE.md`、`docs/GAME_DESIGN.md`、`assets/`、`js/bloom.js`、`js/duel-figures.js`、`js/particles.js`（`js/renderer.js` 見上表補列那一行：**只允許那 +1 行的治具出口**，渲染路徑一格不動）、引擎函式（`paperWar`／`pwSide`／`pwClash`／`pwPrep`／`pwBolt`／`pwHaunt`／`pwStrike`／`pwRec`／`buildArmy`／`collectEffects`／`applyHooks`）、`TRAITS` 的規則欄位、AI、拍賣、請神、共鳴、既有 9 套 `tests/*.test.mjs` 的斷言。
 
@@ -78,21 +79,21 @@ function pwBeatTier(list, beat, f){
 ### 2.5 三常數等比（`js/trait-fx.js` 一處改）
 `run.k = run.ms / TIER_BASE_MS(900)`；`flinch` 預設用 `TFX.flinchMs*run.k`、`st.at` 用 `TFX.atReserve*run.k`、`update()` 的 margin 用 `TFX.endMargin*run.k`。**`TFX.rateMax` 不動（2.2）**；短版另有 `rate≤1.0` 的機械斷言擋「靠加速硬擠」。
 
-### 2.6 Tier 3：CINEMA ＋ 黑條
+### 2.6 Tier 3：CINEMA（黑條依 §2.1 修訂七移出本卷）
 ```js
 // js/camera-director.js
 const CINEMA = { dist: 2.9, tilt: 8, lookY: 0.45, inMs: 220, outMs: 320 }; // 低角度仰視、拉近
 ```
 - 觸發：`onTrait` 讀 `d.tier===3` → `cinemaOn=true`，`d.ms` 後走 `outMs` 回位。只動 dist／tilt／lookY，**yaw 一律不碰**（同 FOCUS 的紀律，不與 orbit／lean 搶同一個量）。
 - 對外：`director.cinemaOn()`（Playwright 斷言用）。
-- 黑條 DOM：`index.html` 加 `<div id="lbTop" class="lbar"></div><div id="lbBot" class="lbar"></div>`，與 `#vignette` 同層（`position:fixed;z-index:-1;pointer-events:none`，不進 shader、不加 draw call）。**id 寫死 `lbTop`／`lbBot`**；`.lbar.on{height:8vh}`、平常 `height:0`（CSS transition 220ms）。由 `pwTraitFx` 在 tier 3 開、招式結束關；`doSkip`／`ys:duel-end` 一律關。
+- ~~黑條 DOM~~：**依凍結檔 §2.1 修訂七（使用者 2026-09-11 裁甲）整段作廢**——黑邊連同「對決版面安全區」移出本卷，交招式可辨性卷重做。`#lbTop`／`#lbBot`、`.lbox`、`pwLetterbox` 在收尾版一個字都不存在（`lbox-probe` L9 機械擋）。本卷 tier 3 的畫面語言只剩 CINEMA 仰視機位＋1400ms。
 
 ### 2.7 `tests/tools/fx-consts.mjs`（治具唯一事實來源）
 ```js
 export const TRAIT_MS_BY_TIER    = { 1: 260, 2: 900, 3: 1400 };
 export const BEAT_MIN_MS_BY_TIER = { 1: 300, 2: 900, 3: 1400 };
 export const TIER_BASE_MS = 900;
-export const LETTERBOX_IDS = ['lbTop', 'lbBot'];
+export const LETTERBOX_IDS = ['lbTop', 'lbBot']; // 修訂七起語意反轉：這兩個 id 必須「不存在」
 export const CINEMA = { dist: 2.9, tilt: 8 };
 export function msOf(tier){ /* 取不到就 throw，不給預設值 */ }
 export function assertPageConsts(pageConsts){ /* 與頁面 PW_FX 逐鍵比對，不一致 throw */ }
@@ -100,7 +101,7 @@ export function assertPageConsts(pageConsts){ /* 與頁面 PW_FX 逐鍵比對，
 治具**不得**再出現招式時長的字面毫秒數。
 
 ### 2.8 kill switch
-`?fxtier=0` → `PW_FX.TIER_ON=false` → `pwBeatTier` 恆回 2 → 招式 900、拍末 900、無 CINEMA、無黑條＝v0.53 行為。解析位置與寫法同 `?closeup`。
+`?fxtier=0` → `PW_FX.TIER_ON=false` → `pwBeatTier` 恆回 2 → 招式 900、拍末 900、無 CINEMA＝v0.53 行為。解析位置與寫法同 `?closeup`。
 
 ### 2.9 治具介面
 - `traitfx-drive.mjs`：`--tier=1|2|3`（預設 2）。ms 由 `fx-consts.msOf(tier)` 取，**移除 `--ms=`**。
@@ -154,7 +155,7 @@ node tests/tools/dmg-readability.mjs dom docs/experiments/2026-09-10-fx-tiers-ev
 node tests/tools/dmg-readability.mjs dom docs/experiments/2026-09-10-fx-tiers-evidence/dmg-s3.json --seed=3 --port=9549
 node tests/tools/closeup-judge.mjs docs/experiments/2026-09-10-fx-tiers-evidence/cj.json --port=9546
 
-# F5 機械段（黑條僅 tier 3、CINEMA 僅 tier 3）＋ contact sheet
+# F5 機械段（修訂七：CINEMA 僅 tier 3 ＋ tier 3 版面與 v0.53 逐值相同 ＋ 黑條 DOM 不存在）＋ contact sheet
 # F7 零錯：由 F2／F3 的 errors 欄位
 # F6 fps
 node tests/tools/duel-perf.mjs docs/experiments/2026-09-10-fx-tiers-evidence/fps-new.json --port=9547
@@ -202,7 +203,7 @@ node tests/tools/duel-perf.mjs docs/experiments/2026-09-10-fx-tiers-evidence/fps
 | `hauntFearX2` | 恐懼加倍 | 虛影從本尊分離抬起 ＋ 兩圈暗環一前一後推出 |
 | `swarmFeed1` | 餓鬼進食 | 甕口張開 ＋ 灰火帶弧線被吸進甕、甕身脹一下 |
 
-### Tier 3 三尊（不寫短版，恆 1400ms＋CINEMA＋黑條）
+### Tier 3 三尊（不寫短版，恆 1400ms＋CINEMA）
 `eliteBlind`（殘日・餘暉灼目）／`wardGuardAll`（大士爺・普渡）／`hauntAnswer`（有應公・有求必應）。
 
 ## 6. F1 分母（動手前自己 grep，不抄評審的 20）
