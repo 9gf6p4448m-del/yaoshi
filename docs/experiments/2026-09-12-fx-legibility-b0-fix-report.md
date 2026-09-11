@@ -514,3 +514,318 @@ git status --short                 → （空）
 2. **剪影互撞的機械檢查校準不成立**（§2.5）——純幾何量不到人眼，`knife` 要不要一併進批 1 前置回修仍未裁。
 3. **L10 的條文在基準上就不成立**（§2.4）——R2 seed 1 基準紅、`closeup-judge` nullCount 基準 22。
 4. 覆審原有的 C3／C4／M2／M4／M5（L4-pre 的判定與統計量），本批未動。
+
+---
+
+## 7. 修補批 2（覆審 r2 的 N1–N10）
+
+> 起點 `a8e8182`（＝修補批 1 的終點）／終點見本檔所在 commit。六個 commit，逐項一個：
+> `3177126` N1＋N7 ／ `8076805` N4 ／ `0b872f7` N3 ／ `35749ea` N5 ／ `104c17f` N9 ／
+> `c4f0229` N1 收尾 ／ 本 commit（本節）。
+> **凍結檔 `2026-09-11-acceptance-fx-legibility.md` 對起點 `a8e8182` 零 diff**（`git diff a8e8182 -- <凍結檔>` ＝空），
+> 門檻（面積 0.8%／ΔE 28／`rate ≤1.0`／draw ≤1000／IoU 0.80／Δ200 ≤5）一字未動；`index.html` 對 `6a839de` 零 diff。
+
+### 7.0 逐項三態
+
+| # | 覆審 r2 finding | 三態 | 一句話證據 |
+|---|---|---|---|
+| **N1** | 尺寸防線按已知入口寫，改個變數名就繞過 | **真的修好** | 三條路各自收斂：`o.size` 拒收（throw）＋「徽記 mesh 的縮放必須引用 `ICON`」掃描；r2 實測的三種繞法**各自 `exit 1`**（§7.1） |
+| **N2** | L10「基準本來就過不了」建立在未歸因的訊號上 | **真的修好（歸因完成，結論改寫）** | 兩樹 × 兩 seed × 各 5 跑＝20 跑；**seed 1 兩樹都忽紅忽綠 ⇒ 訊號不可信、不判**；**seed 3 兩樹 5/5 決定性紅、原因是 0 個可判樣本**（§7.2） |
+| **N3** | `traitfx-drive` 沒有 `--root`，批 1–3 的工作流沒驗過 | **真的修好** | 補 `--root=`；對 `6a839de` 的真實 diff＝**27 行差 4 行**，正好四支示範招（§7.3） |
+| **N4** | bloom 守衛在「根本沒有 bloom」時整條跳過 | **真的修好** | `bloomCfg().on !== true` 一律 throw（實跑）；`--allow-nobloom` 才放行且標 `nobloom:true`；`--bthr=` 只跳過 threshold 一鍵（用治具 `bstr` 突變驗紅）（§7.4） |
+| **N5** | 剪影互撞只守同系，最像的一對是跨系 | **真的修好（採「兩者都守」）** | 新增 `CROSS_DEBT` 13 對＋兩條斷言；健康態 9 綠 0 紅（不恆紅），`--mutate=1` 由 2 紅變 4 紅（§7.5） |
+| **N6** | `duels` 8→20 是提高通過機率的治具改動 | **真的修好（明寫成未採用）** | 本節 L10 的判讀**一律以 `duels=8` 為準**；20 的數字只當參考並標明它是候選的及格線移動（§7.2 末） |
+| **N7** | `ICON.markSize` 是繞過 `sizeOf()` 的第二條尺寸路徑 | **真的修好** | `markByKind`＋`markSizeOf(kind)`；`st.mark` 不再自己傳 `size`；編舞裡最後一處印記字面值（`xianghuo.js:448` 的 `0.2`）搬進表，數值不變（§7.1） |
+| **N8** | `R5pix` 兩樹全紅但 L10 表沒有這一欄 | **真的修好** | §7.2 的表補 `R5pix` 欄：**20/20 跑（兩樹）全 FAIL**，它不在凍結檔 L10 的條文內，照實列 |
+| **N9** | 批 0 報告 B0-7 那一列仍寫著已被否證的條件 | **真的修好** | `2026-09-12-fx-legibility-b0-report.md:27` 只加一行註記，其餘一字未動 |
+| **N10** | `index.html` 零 diff ＝ `VERSION` 沒動 | **沒修（依任務書）** | 任務書明列「不動 `VERSION`，合併時由主對話 bump」。`git diff 6a839de -- index.html` ＝空 |
+
+### 7.1 N1＋N7　尺寸防線改成按「危險的效果」寫（`3177126`、`c4f0229`）
+
+**危險的效果**＝「徽記的實際世界尺寸出現第二份來源」。它能發生的路徑只有兩條，各自收斂：
+
+- **(a) `o.size`**：`js/trait-fx.js` 新增 `iconSizeSrc()`，`st.icon()`／`st.icons()`／`st.mark()`
+  **一律拒收 `o.size`**（傳了就 `throw`，訊息指回 `ICON.byKind`）。不寫成「靜默忽略」是因為靜默
+  會讓編舞以為自己調到了尺寸，下一卷又長回來；`throw` 會在 `traitfx-drive`／`duel-drive` 的
+  `handled=false` 上當場現形。
+- **(b) 直接對徽記 mesh 縮放**：`tests/fxvocab.test.mjs` 的掃描改成「先找出所有由
+  `st.icon(`／`st.icons(`／`st.mark(` 產生的名字（含 `mesh:` 屬性、`.map(…)` 陣列），再要求它們的
+  `scale.setScalar(`／`scale.set(` **引數裡必須出現** `st.iconSize`／`st.iconFlatSize`／`st.markSize`／`ICON.*`」。
+
+**分母先數出來**（去註解後，`js/trait-fx/` 下除 `vocab.js` 外的全部 `.js`，目前 4 個）：
+
+| 寫法 | 修補前 | 修補後 | 說明 |
+|---|---|---|---|
+| `size:`／`sizes:` 這個鍵 | **1 處**（`yinqi.js:150` `size: st.iconFlatSize`） | **0 處** | 改走 `icons()` 的 `flat` 預設值（`flatSizeOf('hat')`＝0.20，同值） |
+| `.scale.setScalar(` | **79 處** | **79 處** | 其中落在**徽記 mesh** 上的 **5 處**（其餘 74 處是 23 支未改招的 `ring`／`disc`／`orb`／光球縮放） |
+| `.scale.set(` | **0 處** | **0 處** | — |
+
+5 處徽記縮放裡，修補前有 **1 處是真的第二來源**：`xianghuo.js:448`
+`stamp.scale.setScalar(0.2 * (1.9 - 0.9 * e))`（虎爺印蓋在獵物身上那一枚，完全繞過 `ICON.markSize`）。
+它連同 `ICON.markSize` 一起收進表：`ICON.markByKind = { seal: 0.20 }` ＋ `ICON.markSizeOf(kind)`，
+編舞改寫成 `st.markSize * (1.9 - 0.9 * e)`——**實際演出的數值一格未改**（0.2 ×(1.9→1.0)）。
+四支示範招的 `0.56／0.46／0.62／0.40` 與 `markSize 0.30` 全部留在表裡，數值不變。
+`markSizeOf` 一併關掉 N7：印記不再自己傳 `o.size`，尺寸與本體同一張表家族。
+
+**★把修正拿掉會紅的證據（覆審 r2 實測的三種繞法，逐一在工作樹上套用再還原）★**
+
+```
+# 繞法①　const S = 0.56 ＋ { size: S }
+node tests/fxvocab.test.mjs   → 14 綠 ／ 1 紅  exit 1
+  FAIL 徽記 mesh 的尺寸不得有第二份來源 — zuling.js:417 size:（o.size 已拒收，編舞不得再出現這個鍵）
+node tests/tools/traitfx-drive.mjs … --only=eliteSelfCut --tier=2 --port=8900
+  FAIL eliteSelfCut  … handled=false  acts=0  sig=0b/      ← ★執行期 throw，編舞整支退回 fallback★
+
+# 繞法②　const S = 0.56 ＋ setScalar(S * …)   ←（r2 §2 C1③「繞過 B」，舊掃描綠）
+node tests/fxvocab.test.mjs   → 14 綠 ／ 1 紅  exit 1
+  FAIL … zuling.js:433 knife.scale.setScalar(S * (0.5 + 0.5 * e)）（沒有引用 st.iconSize／…／ICON.*）
+
+# 繞法③　setScalar(0.56 * …)                  ←（r2 §2 C1③「繞過 A」，舊掃描完全沒反應）
+node tests/fxvocab.test.mjs   → 14 綠 ／ 1 紅  exit 1
+  FAIL … zuling.js:432 knife.scale.setScalar(0.56 * (0.5 + 0.5 * e)）（同上）
+
+# 健康態與四個突變
+node tests/fxvocab.test.mjs            → 15 綠 ／ 0 紅   exit 0
+       （分母：4 個編舞檔、79 處 scale 呼叫，其中 5 處落在徽記 mesh 上）
+node tests/fxvocab.test.mjs --mutate=1 → 11 綠 ／ 4 紅   exit 1
+node tests/fxvocab.test.mjs --mutate=2 → 14 綠 ／ 1 紅   exit 1
+node tests/fxvocab.test.mjs --mutate=3 → 14 綠 ／ 1 紅   exit 1
+node tests/fxvocab.test.mjs --mutate=4 → 14 綠 ／ 1 紅   exit 1
+  FAIL … zuling.js:432 knife.scale.setScalar(S * (0.5 + 0.5 * e)）   ←★突變 4 已換成繞法②★
+# 三次繞法測完一律 git checkout -- js/trait-fx/zuling.js；每次還原後 git diff --stat 為空（已逐次貼出）
+```
+
+**活性（防這條掃描自己變恆綠）**：掃到的徽記 mesh 縮放 **<5 處就判紅**——名字解析壞掉、或編舞被搬走，
+這條掃描就會對著空氣跑，那正是它要防的病。
+
+**`sizes:`（複數）刻意不在禁列**（`c4f0229`）：那是 `st.icons` 的逐實例**相對**倍率
+（`size * o.sizes[i]`），`ICON` 的值仍在乘積裡、不構成第二份來源；連它一起禁是禁到不該禁的東西。
+
+**L3 的健康態與 canary（新量測位置 844×390@2x／bloom 0.7／seed 7）**
+
+| 招 | 現值（本批） | 修補報告 §2.2 現值欄 | canary `sizeOf()→0.02` |
+|---|---|---|---|
+| eliteSelfCut | **0.9728% / ΔE 63.35 / px 3202** ✅ | 0.9728 / 63.35 | 0.0595% / 54.12 ❌ |
+| wardImmuneLost | **1.2210% / 107.27 / px 4019** ✅ | 1.2210 / 107.27 | 0.0507% / 84.85 ❌ |
+| biteGamble | **1.9519% / 64.53 / px 6425** ✅ | 1.9519 / 64.53 | 0.0012% / 47.02 ❌ |
+| hauntLost | **2.1682% / 82.02 / px 7137** ✅ | 2.1682 / 82.02 | 0.0623% / 32.83 ❌ |
+| 總表 | `pass 4` | — | **`pass 0`、四支全 failed** |
+
+★四格與修補報告 §2.2 **逐位數相同**★（含 `px`）⇒ N1／N7 的改法對演出是零變動；canary **4/4 紅**成立。
+證據 `scratchpad/fix-r2/l3/{current,canary}/metrics.txt`（scratchpad 在 gitignore 內）。
+
+**★誠實記錄：三種繞法下 L3 canary 各自發生什麼★**（任務書驗收 2 的字面是「繞法被擋、跑不到量測」，
+實測不完全是那樣，照實寫）：
+
+| 繞法 | 擋它的是哪一道 | L3 canary 對 `eliteSelfCut` |
+|---|---|---|
+| ① `{size:S}` | **執行期 throw**（＋掃描） | `handled=false`＝編舞根本沒演，`fx-contrast` 那一套判 FAIL |
+| ② `setScalar(S * …)` | **只有掃描**（執行期不會 throw） | 實跑：`area_pct 10.2822% / ΔE 中位 20.62 / ok:false`——**紅，但不是因為刀變小了**，是因為 `outline` 底板的 `1 + outlineW/max(0.02,size)` 被 canary 撐成 3.5 倍、糊掉 ΔE。這個紅**不可歸因於「尺寸的單一來源」**，所以②③的真正防線就是掃描那一道 |
+| ③ `setScalar(0.56 * …)` | 同② | 與②逐字同義（`S === 0.56`），同一份實跑 |
+
+（②③的實跑在 `scratchpad/fix-r2/l3/bypass3-canary/`，同時 `node tests/fxvocab.test.mjs` `exit 1`。）
+
+### 7.2 N2＋N6＋N8　L10 的訊號歸因（20 次實跑）
+
+**條件固定**：`node tests/tools/dmg-readability.mjs pix <out> --seed=<1|3> --duels=8 --port=89xx
+--maxfloat=50 --maxhit=20 [--root=scratchpad/fix-r2/base6a839de]`，兩棵樹 × 兩個 seed × 各 **5 跑**＝20 跑。
+基準樹＝`git worktree add --detach scratchpad/fix-r2/base6a839de 6a839de`
+（`index.html` md5 與工作樹同為 `cae859bf91ea11f45fa9367ffc24ca10`）。Playwright 一次一支。
+
+| 樹 | seed | 跑次 | R1 | R2 | R2main | R2sub | **R5pix** | Δ200 | maskN | moved | 中位 | ≥25 比例 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 本樹 | 1 | 1 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **5.94** | 17 | 3 | 61.09 | 0.941 |
+| 本樹 | 1 | 2 | 🟢 | **🟢** | 🟢 | 🟢 | 🔴 | **2.64** | 17 | 3 | 73.75 | 1 |
+| 本樹 | 1 | 3 | 🟢 | **🟢** | 🟢 | 🟢 | 🔴 | **4.27** | 17 | 3 | 73.78 | 0.941 |
+| 本樹 | 1 | 4 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **6.50** | 16 | 4 | 77.60 | 1 |
+| 本樹 | 1 | 5 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **5.63** | 17 | 3 | 70.80 | 1 |
+| 基準 | 1 | 1 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **5.66** | 16 | 4 | 76.69 | 0.938 |
+| 基準 | 1 | 2 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **6.34** | 17 | 2 | 75.21 | 0.941 |
+| 基準 | 1 | 3 | 🟢 | **🟢** | 🟢 | 🟢 | 🔴 | **3.10** | 17 | 3 | 70.91 | 1 |
+| 基準 | 1 | 4 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **5.94** | 17 | 3 | 70.21 | 1 |
+| 基準 | 1 | 5 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | **5.88** | 16 | 2 | 77.85 | 1 |
+| 本樹 | 3 | 1–5 | 🟢×5 | 🔴×5 | 🔴×5 | 🔴×5 | 🔴×5 | — | **0×5** | 4–5 | — | — |
+| 基準 | 3 | 1–5 | 🟢×5 | 🔴×5 | 🔴×5 | 🔴×5 | 🔴×5 | — | **0×5** | 4 | — | — |
+
+（完整逐跑表 `scratchpad/fix-r2/l10/table.md`，原始 JSON 在 `scratchpad/fix-r2/l10/<樹>-s<seed>-<跑次>/pix.json`。）
+
+**歸因（`02 §6.2`：波動來自受測物／量測／環境時序哪一個，要寫出依據）**
+
+> **結論：seed 1 的波動落在「量測」那一側——具體是「取樣抓到哪幾格」逐跑不同；
+> seed 3 不是波動，它是兩棵樹上都決定性的「0 個可判樣本」。**
+
+依據四條，缺一不可：
+
+1. **受測物那一側是穩定的**：R1 的字級簽章在 **20/20 跑逐位數相同**
+   （`hit 27.2` ／ `kill 35.36` ／ `unit 17`，`fontBad=kindBad=hueBad=0`）。
+   同一個 seed 下產品畫出來的東西沒有在抖。
+2. **R2 的主門檻也是穩定的**：seed 1 的 10 跑裡 `R2main`（中位 ≥25 且 ≥25 比例 ≥0.70）
+   **10/10 全綠**，中位落在 61–78（門檻 25），離門檻極遠。
+   ⇒ 「被打的尊閃不閃紅」這件**受測行為**本身沒有忽紅忽綠。
+3. **翻紅綠的只有一個統計量，而它是「對一組逐跑不同的樣本取 max」**：
+   `R2sub` 的 `Δ200`（+200ms 回復殘差的**最大值**）在 2.64–6.50 之間橫跨 ±5 的門檻，
+   而同一組跑次的 `maskN` 在 16–17、`maskDropped.moved` 在 2–4 之間變動
+   ——**樣本集合本身逐跑不同**。`Δ200` 與可判樣本數的相關係數只有 **−0.416（n=10）**，
+   也就是不是單純「樣本多→max 高」，而是「抓到**哪幾格**」決定的。
+4. **基準樹自己也翻**（1 綠 4 紅）。如果波動來自本批改動，基準應該是穩定的。
+
+**近因（為什麼取樣不決定性）**：`dmg-readability` 的刺激派送是 wall-clock 耦合的——
+`M.tryFire` 的三道閘（`performance.now() - M.duelT < 1600`、`- M.lastFloatT < 700`、
+`M.busy`＝截圖還在飛）、`setTimeout(tick, 220)` 的輪詢、以及 `ys:hitstop` 的派送時刻
+都跟著真實幀率走；`M.pickTarget` 又是「那一瞬間畫面上最大的那一尊」。
+同一個 seed 的**對局內容**是決定性的（`trace-eq` 逐位元組相等），但**在哪幾幀凍住去量**不是。
+
+**取樣要怎麼變決定性——做不到，卡在哪（照實寫）**：
+要讓它決定性，得把整場對決改成**由治具逐幀 pump 的虛擬時鐘**（像 `traitfx-preview.html` 的
+`stepA`／`stepB`），而不是讓 `index.html` 在 rAF 的真實時間上跑、只在截圖那一瞬凍住。
+`dmg-readability` 已經有時鐘鉤子（`freeze`／`resume`），但兩次凍結之間仍然是真實時間。
+改成全程 pump 會同時改到 R1／R3／R5 的取樣位置，等於重寫這支治具的驅動層——
+**超出本修補批的範圍，也不該在「修 findings」這一輪順手做**（`03 R5` 範圍檢查）。
+本批只把**歸因**做完，並把結論改寫成下面這兩句。
+
+**改寫後的結論（取代修補批 1 §2.4 的最後一段）**
+
+- **seed 1（`duels=8`）**：`R2` 這個訊號**目前不可信**（兩棵樹都忽紅忽綠，波動來自取樣），
+  **不得拿它宣告本批讓 R2 退步，也不得拿它宣告沒退步**，更不得拿它說「基準本來就過不了」。
+- **seed 3（`duels=8`）**：兩棵樹各 5/5 **決定性紅**，紅的原因是
+  「`R2「+200ms 回到原值」0 個可判樣本＝空過，不算通過（fail-closed）」——`maskN=0`。
+  這是**治具在這個 seed 上取不到樣本**，不是產品退步；而且**基準與本樹完全相同**。
+  ⇒ 凍結檔 L10 寫的「seeds 1/3 的 R2 維持綠」，在 seed 3 這一格**於基準上就不成立**，
+  而且原因在治具而不在產品。這一格仍然是**交使用者裁**的事（要不要重新校準 L10 的條文、
+  或改寫成「與基準同 seeds 比對、不得變差」），但現在它建立在 5/5 決定性的證據上，不是未歸因的訊號。
+- **`closeup-judge` 的 nullCount 22**：本批**沒有重跑**（誠實記錄），沿用修補批 1 的 committed 證據。
+
+**N8　`R5pix`**：**20/20 跑（兩棵樹、兩個 seed）全部 FAIL**。它**不在**凍結檔 L10 的條文內
+（L10 只要 R1／R2 ＋ `closeup-judge` 的 null 數），所以不算違規；但同一支治具印出來的紅燈不列，
+會讓讀者以為 L10 只有 R2 有事，所以照實列進上表。
+
+**N6　`duels` 8→20 是一次「候選的及格線移動」，本批未採用**：
+凍結檔 L10 沒有寫死 `duels`，但依 `02 §2.1`「實際跑到的範圍」這條，把 8 改成 20 會讓
+seed 3 從「0 個可判樣本＝fail-closed 紅」變成「開始有樣本、開始出現綠」——**那是提高通過機率**。
+本節**全部 20 跑一律 `duels=8`**，L10 的判讀也一律以 `duels=8` 為準。
+修補批 1 §2.4 表中的 `duels=20` 那一列（本批 🟢2／🔴3、基準 🟢4／🔴1）
+**只作參考，不進任何判定**，並在此明寫它是一次候選的及格線移動、未採用。
+
+### 7.3 N3　`traitfx-drive --root=` 與基準樹的真 diff（`0b872f7`）
+
+```bash
+git worktree add --detach scratchpad/fix-r2/base6a839de 6a839de
+node tests/tools/traitfx-drive.mjs …/t1-work.json --tier=1 --port=8900 --sigdump=…/sig-t1-work.txt
+   → 27/27 pass、27 行
+node tests/tools/traitfx-drive.mjs …/t1-base.json --tier=1 --port=8901 \
+     --root=scratchpad/fix-r2/base6a839de --sigdump=…/sig-t1-base.txt
+   → ★--root=…/base6a839de（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★　27/27 pass、27 行
+diff sig-t1-base.txt sig-t1-work.txt    → **27 行差 4 行**
+   biteGamble ／ eliteSelfCut ／ hauntLost ／ wardImmuneLost  ←★正好四支示範招，其餘 23 支逐行相同★
+```
+
+四行的差異內容是 `bones`／`meshes`（`emblem:<kind>`＋`mark:<kind>`＋`trail` 取代舊的 `beam`／`orb`／`ring`）
+／`phases`（基準是空的——基準的 `js/trait-fx.js` 還沒有 `phaseDetail`）。工作流已寫進
+`docs/IMPLEMENTATION_GUIDE.md` §11.29-14（含「基準那一跑 `phases=` 會是空的」這個坑）。
+
+### 7.4 N4　bloom 守衛改成「擋真貨、放行替身」（`8076805`）
+
+```
+# ① 沒有 bloom 必須 throw（?bloom=0 ＝ SwiftShader／軟體 GL 那條路的可重現版）
+node tests/tools/fx-contrast.mjs … --only=wardImmuneLost --nobloom
+→ Error: 量測位置沒有 bloom（治具頁回報 bloomCfg().on=false：?bloom=0 或軟體 GL 的 SOFT_GL）…
+     at shoot (tests/tools/fx-contrast.mjs:132:13)        exit 1      ★舊版在這裡是靜默 pass★
+
+# ② --allow-nobloom 才放行，且兩邊都標紅
+node tests/tools/fx-contrast.mjs … --nobloom --allow-nobloom
+→ ★★ --allow-nobloom：這一跑沒有 bloom，量的不是產品的量測位置，不得當成 L3 通過 ★★
+   shots.json → "nobloom": true
+python tests/tools/fx-contrast-metrics.py …
+→ {"gate":…, "nobloom": true, "n":1, "pass":1, …, "bloom":{"on":false}}
+   ★★ nobloom:true —— 這份量測沒有 bloom…pass 數不得當成 L3 通過 ★★
+
+# ③ --bthr= 只跳過 threshold 一鍵（其餘四鍵仍比對）
+node tests/tools/fx-contrast.mjs … --bthr=0.9
+→ 通過，"bloom":{…,"threshold":0.9,…}、"bthr_override":0.9、area 1.2210%（與 0.7 那跑逐位元組相同）
+# 把治具頁的 bstr 由 1.05 故意改成 1.2，再帶 --bthr=0.9：
+→ Error: 治具 bloom 與產品 js/renderer.js 的 BLOOM 分岔：strength 治具 1.2 vs 產品 1.05
+     at shoot (tests/tools/fx-contrast.mjs:143:13)        exit 1      ★舊版帶了 --bthr 就五鍵全跳過★
+# 還原後 git diff --stat -- tests/tools/traitfx-preview.html 為空（已貼）
+```
+
+### 7.5 N5　剪影互撞跨系也守（`35749ea`）
+
+採「兩者都守」（健康態不會因此恆紅，已實測）。新增 `CROSS_DEBT` 13 對（逐對列名＋IoU，最高的
+`bell~shade = 0.9290` 香火/陰氣在第一列），規則與 `KNOWN_DEBT` 相同：超標的必須在表裡、
+表裡的每一對都必須現在仍然超標（死豁免判紅）。檔頭補上「為什麼第一版只守同系、現在兩者都守」
+以及「兩張表分開是因為處置優先序不同（同系＝批 1 前置回修、跨系＝記錄與回歸護欄）」。
+
+```
+node tests/emblem-collision.test.mjs            → 9 綠 ／ 0 紅   exit 0   （原本 7 條，新增 2 條）
+node tests/emblem-collision.test.mjs --mutate=1 → 5 綠 ／ 4 紅   exit 1   （原本 2 紅，新增的兩條也紅）
+  FAIL 同系… talis~lamp=1 ／ FAIL 死豁免 bell~lamp=0.6526
+  FAIL 跨系… rhomb~lamp=0.8333 lamp~tablet=0.8202 ／ FAIL 跨系死豁免 lamp~shade=0.6809
+```
+
+### 7.6 驗收 1–7 逐條
+
+| # | 條件 | 判定 | 證據 |
+|---|---|---|---|
+| **1** | `fxvocab` 全綠；三種繞法各自被掃描或 throw 擋下；`--mutate=4` 紅 | **🟢 綠** | §7.1 的輸出區塊：健康態 15 綠 0 紅 exit 0；繞法①②③ 各 `exit 1`（①另有執行期 `handled=false`）；`--mutate=4` 14 綠 1 紅 exit 1 |
+| **2** | L3 新量測位置四支數字與 §2.2 逐位數相同；canary 4/4 紅；三種繞法下 canary 仍紅 | **🟡 黃（前兩項綠，第三項照實改寫）** | 0.9728／1.2210／1.9519／2.1682 逐位數相同、canary `pass 0` 四支全紅；★三種繞法下 canary 的紅，只有①可歸因於「繞法被擋」，②③的紅來自 outline 底板被 canary 撐大而不是刀變小——照實記在 §7.1 末表，擋②③的是掃描那一道★ |
+| **3** | `fx-contrast` 無 bloom 情境 throw；`--allow-nobloom` 放行且標紅；`--bthr=0.9` 只覆寫 threshold | **🟢 綠** | §7.4 三段實跑輸出 |
+| **4** | L10：兩樹兩 seed 各 ≥5 次的表＋歸因段；取樣決定性則 5 次逐位元組相同 | **🟡 黃（表與歸因完成；取樣決定性未做到）** | §7.2：20 跑表＋四條依據的歸因段；★取樣沒有變成決定性，卡在「要把整場對決改成逐幀 pump 的虛擬時鐘」，理由與範圍寫在 §7.2★ |
+| **5** | `traitfx-drive --root=<基準樹> --sigdump` 跑出 27 行且與本樹 diff 4 行 | **🟢 綠** | §7.3 |
+| **6** | `trace-eq` equal＋`--mutate differs:true`；`traitfx-drive --tier=1/2/3` 同批 0；`duel-drive` 4 場 0 error；九套規則測試＋fxtier＋emblem-collision 綠 | **🟢 綠** | 見下方指令原文 |
+| **7** | fn-hash 53 未變／4 變；`git status --short` 乾淨；`index.html` 零 diff | **🟢 綠** | 見下方指令原文 |
+
+**驗收 6 的實跑輸出**
+
+```
+node tests/tools/trace-eq.mjs scratchpad/fix-r2/base-index.html index.html
+  {"bytesOld":357285,"bytesNew":357285,"equal":true}                                   exit 0
+node tests/tools/trace-eq.mjs scratchpad/fix-r2/base-index.html index.html --beats
+  {"mode":"beats","bytesOld":540776,"bytesNew":540776,"equal":true,"injected":true}    exit 0
+node tests/tools/trace-eq.mjs index.html --mutate
+  {"mutation":"CFG.ROUNDS 12 -> 11","differs":true,"verdict":"突變驗紅 ✅"}             exit 0
+
+node tests/tools/traitfx-drive.mjs … --tier=1 --port=8900   27/27 pass · 重複簽章 0   （批 0 B0-2 同）
+node tests/tools/traitfx-drive.mjs … --tier=2 --port=8902   30/30 pass · 重複簽章 0   （批 0 B0-3 同）
+node tests/tools/traitfx-drive.mjs … --tier=3 --port=8903     3/3 pass · 重複簽章 0   （批 0 B0-3 同）
+node tests/tools/duel-drive.mjs "…?paperwar=1&fxcount=1" … --duels=4 --port=8904
+  {"duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"trait":4,"traitFig":4,"ver":"v0.56a"}
+
+for f in tests/*.test.mjs; do node $f; done        （12 支全 exit 0）
+  aistake 8/0  conscap 5/0  duel-desync 7/0  emblem-collision 9/0  fxtier 14/0  fxvocab 15/0
+  legend 32/0  lineup-order 8/0  nightrules 16/0  review 28/0  roles-balance 32/0  wish16 36/0
+```
+
+**驗收 7 的實跑輸出**
+
+```
+node tests/tools/fn-hash.mjs abe2f69 WORKTREE
+  未變動：53 ／ 變動：4 ／ 新增：0 ／ 消失：0
+  CHANGED zuling.js MOVES:eliteSelfCut ／ xianghuo.js MOVES:wardImmuneLost ／
+          xianghuo.js MOVES:biteGamble ／ yinqi.js MOVES:hauntLost
+git diff 6a839de -- index.html      → （空）
+git diff a8e8182 -- docs/experiments/2026-09-11-acceptance-fx-legibility.md → （空，凍結檔未改）
+git diff a8e8182..HEAD -- js/trait-fx/{zuling,xianghuo,yinqi}.js → 只有 2 行：
+  xianghuo.js:448  stamp.scale.setScalar(0.2 * …)  → st.markSize * …
+  yinqi.js:150     刪掉 size: st.iconFlatSize
+  （zuling.js 本批零 diff；fn-hash 的 4 支變動是修補批 1 就有的）
+git status --short                  → （空）
+```
+
+### 7.7 本批沒修到的一行清單
+
+| 項目 | 原因 |
+|---|---|
+| **N10 `VERSION`／`VERSION_NOTE`** | 任務書明列不動，合併時由主對話 bump |
+| **L10 取樣的決定性** | 做不到：要改成逐幀 pump 的虛擬時鐘＝重寫 `dmg-readability` 的驅動層，超出本批範圍（§7.2） |
+| **`closeup-judge` 重跑** | 本批沒跑，沿用修補批 1 的 committed 證據（誠實記錄） |
+| **覆審 r1 的 C3／C4／M2／M4／M5、`ICON.size=0.44`、刀／印／帽剪影回修、H3 的 `duel-drive` 正式 L3** | 都是使用者裁定項或另一小卷，維持修補批 1 §4 的狀態，本批一行未動 |
+
+### 7.8 交使用者裁的事（更新）
+
+修補批 1 §6 的四件事**維持**，其中第 3 件改寫：
+
+3. ~~L10 的條文在基準上就不成立（R2 seed 1 基準紅）~~ →
+   **L10 的 seed 3（`duels=8`）在基準樹上 5/5 決定性紅，原因是治具取不到可判樣本（`maskN=0`）；
+   seed 1 的訊號兩樹都忽紅忽綠、目前不可信，不進判定。**
+   要裁的是：L10 的條文要不要重新校準（例如改寫成「與基準同 seeds 比對、不得變差」），
+   還是先把 `dmg-readability` 的取樣改成決定性再談。**本批不自行決定。**
