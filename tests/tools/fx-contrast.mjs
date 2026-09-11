@@ -2,6 +2,8 @@
 //
 // 用法：node tests/tools/fx-contrast.mjs <輸出目錄> [--only=trId,trId] [--tier=2] [--port=8845] [--dt=16.6667]
 //                                        [--seed=7] [--bthr=<只給反向實驗的 bloom threshold 覆寫>]
+//                                        [--nobloom]（治具頁 ?bloom=0，只給反證守衛用）
+//                                        [--allow-nobloom]（★放行「根本沒有 bloom」的量測位置，summary 標紅★）
 //
 // 量什麼：**徽記／拖尾／印記在暗紅桌面＋紫夜空上到底看不看得見**。
 // 為什麼不用色票算 ΔE：加色混合＋bloom 之後畫面上的顏色不等於色票值——那是重建的模型，不是真實路徑
@@ -22,6 +24,10 @@
 // CSS 尺寸與 DPR，同 blindread-sheet.mjs 的理由：治具視口 ≠ 玩家視口就會量錯人物佔比）、
 // **bloom 五個參數逐一對齊產品 js/renderer.js 的 `BLOOM`**（本檔每次跑都解析那個檔，
 // 與治具頁回報的 **live** bloomCfg 逐鍵比對，不一致當場 throw）、**seed 記進 shots.json**。
+// ★覆審 r2 N4★：守衛不再只在「有 bloom」時才生效——`bloomCfg().on !== true`（`?bloom=0`、
+// SwiftShader／軟體 GL）一律 throw，要在那種環境跑就明確帶 `--allow-nobloom`，
+// 屆時 `shots.json`／metrics summary 都會帶 `nobloom:true` 紅字，那一跑不得當成 L3 通過。
+// 另外 `--bthr=` 只跳過 **threshold 這一鍵**的比對，其餘四鍵照比（舊版一帶上就五鍵全跳過）。
 //
 // ★「治具 bloom 門檻低＝保守」這句宣稱已刪（覆審 r1 H4）★：它沒有實測支持，而且方向是反的。
 // 雙向實測（覆審 r1 §3 H4，四支示範招、只改 threshold 0.5→0.7）：
@@ -75,7 +81,8 @@ function productBloom(root) {
 
 function parseArgs(argv) {
   const pos = []; const opt = {};
-  for (const a of argv) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; else pos.push(a); }
+  // 旗標名允許帶 `-`（--allow-nobloom），鍵一律去掉 `-`（→ allownobloom）
+  for (const a of argv) { const m = a.match(/^--([a-z0-9-]+)(?:=(.*))?$/i); if (m) opt[m[1].replace(/-/g, '')] = m[2] === undefined ? true : m[2]; else pos.push(a); }
   return { pos, opt };
 }
 
@@ -102,7 +109,8 @@ async function shoot(browser, base, c, opt, outDir) {
   const seed = parseInt(opt.seed || String(DEFAULT_SEED), 10);
   // bloom 覆寫鉤：只給「證明 bloomCfg() 真的讀 live 值」的反向實驗用；帶了就跳過與產品的比對。
   const bOver = opt.bthr === undefined ? '' : `&bthr=${opt.bthr}`;
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}&seed=${seed}${bOver}`;
+  const noB = opt.nobloom ? '&bloom=0' : ''; // 只給「反證守衛真的會擋」用
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}&seed=${seed}${bOver}${noB}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -114,8 +122,23 @@ async function shoot(browser, base, c, opt, outDir) {
   /* ★量測位置的守衛（覆審 r1 H3／H4）★：治具頁回報的 **live** bloom 必須與產品 js/renderer.js
      的 BLOOM 逐鍵相同。差一個數字，L3 的綠燈就與玩家看到的畫面脫鉤——L4-pre 第 1 輪同一個坑。
      只有明確帶 --bthr=（反向實驗）時才放行不一致。 */
-  if (bloomCfg.on && opt.bthr === undefined) {
-    const bad = Object.keys(opt.product).filter((k) => bloomCfg[k] !== opt.product[k]);
+  /* ★覆審 r2 N4：守衛擋真貨、放行替身★
+     舊版的條件是 `if (bloomCfg.on && …)`——「參數差一個數字」會被擋，「整條 bloom 不在」
+     （`?bloom=0`、SwiftShader／軟體 GL 的 SOFT_GL）反而**靜默放行**，照樣印 `pass 4`。
+     那是同一個坑的反面：量測位置根本不是玩家的畫面，綠燈與待驗行為脫鉤。
+     現在 `bloomCfg.on !== true` 一律 throw，除非明確帶 `--allow-nobloom`（那時 summary 標紅）。 */
+  if (bloomCfg.on !== true) {
+    if (!opt.allownobloom) {
+      throw new Error('量測位置沒有 bloom（治具頁回報 bloomCfg().on=false：?bloom=0 或軟體 GL 的 SOFT_GL）。'
+        + 'L3 的門檻是「玩家畫面上的佔比」，沒有 bloom 的畫面不是那個位置——'
+        + '要在這種環境下跑就明確加 --allow-nobloom（summary 會標 nobloom:true，結果不得當成 L3 通過）');
+    }
+    console.log('★★ --allow-nobloom：這一跑沒有 bloom，量的不是產品的量測位置，不得當成 L3 通過 ★★');
+  } else {
+    /* `--bthr=` 是 threshold 的反向實驗鉤：**只跳過 threshold 這一鍵**，其餘四鍵照比
+       （舊版一帶上就五鍵全跳過＝反向實驗順手把整面守衛也拆了）。 */
+    const skip = opt.bthr === undefined ? [] : ['threshold'];
+    const bad = Object.keys(opt.product).filter((k) => !skip.includes(k) && bloomCfg[k] !== opt.product[k]);
     if (bad.length) {
       throw new Error(`治具 bloom 與產品 js/renderer.js 的 BLOOM 分岔：${bad.map((k) => `${k} 治具 ${bloomCfg[k]} vs 產品 ${opt.product[k]}`).join('／')}`);
     }
@@ -154,7 +177,7 @@ async function main() {
   if (!cases.length) throw new Error('--only 篩掉了全部的招');
   fs.mkdirSync(outDir, { recursive: true });
   opt.product = productBloom(ROOT); // 量測位置的權威：產品 js/renderer.js 的 BLOOM
-  console.log(`量測位置：視口 ${VIEW.width}×${VIEW.height}@${VIEW.deviceScaleFactor}x · seed ${opt.seed || DEFAULT_SEED} · 產品 bloom ${JSON.stringify(opt.product)}${opt.bthr === undefined ? '' : ` · ★--bthr=${opt.bthr} 覆寫（跳過產品比對）★`}`);
+  console.log(`量測位置：視口 ${VIEW.width}×${VIEW.height}@${VIEW.deviceScaleFactor}x · seed ${opt.seed || DEFAULT_SEED} · 產品 bloom ${JSON.stringify(opt.product)}${opt.bthr === undefined ? '' : ` · ★--bthr=${opt.bthr} 覆寫（只跳過 threshold 這一鍵的比對，其餘四鍵照比）★`}${opt.allownobloom ? ' · ★--allow-nobloom★' : ''}`);
   const srv = await serve(ROOT, port);
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   const out = [];
@@ -167,8 +190,11 @@ async function main() {
     }
   } finally { await browser.close(); srv.kill(); }
   const meta = path.join(outDir, 'shots.json');
-  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), cases: out }, null, 1));
-  console.log(`\n${out.length} 套 · ${meta}\n接著跑：python tests/tools/fx-contrast-metrics.py ${path.relative(ROOT, outDir)}`);
+  // N4：沒有 bloom 的那一跑要在 summary 上留紅字，不能只在 stdout 一閃而過
+  const nobloom = out.some((r) => !r.bloomCfg || r.bloomCfg.on !== true);
+  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), nobloom, cases: out }, null, 1));
+  console.log(`\n${out.length} 套 · ${meta}${nobloom ? '\n★★ nobloom:true —— 這份量測沒有 bloom，不是產品的量測位置，不得當成 L3 通過 ★★' : ''}`);
+  console.log(`接著跑：python tests/tools/fx-contrast-metrics.py ${path.relative(ROOT, outDir)}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -93,7 +93,10 @@ def main():
         if not ok:
             bad.append(trait)
         print(json.dumps(row, ensure_ascii=False))
+    # N4：沒有 bloom 的那一跑，pass 數不得被讀成 L3 通過——summary 帶紅旗，stdout 也印一行
+    nobloom = bool(shots.get('nobloom'))
     summary = {'gate': {'area_pct_min': AREA_MIN, 'de_median_min': DE_MIN, 'luma_eps': LUMA_EPS},
+               'nobloom': nobloom,
                'n': len(rows), 'pass': len(rows) - len(bad), 'failed': bad,
                'view': shots.get('view'), 'seed': shots.get('seed'),
                'product_bloom': shots.get('productBloom'), 'bthr_override': shots.get('bthrOverride'),
@@ -101,6 +104,8 @@ def main():
                'mat_programs': shots['cases'][0].get('matPrograms') if shots['cases'] else None,
                'bloom': shots['cases'][0].get('bloomCfg') if shots['cases'] else None}
     print(json.dumps(summary, ensure_ascii=False))
+    if nobloom:
+        print('★★ nobloom:true —— 這份量測沒有 bloom，不是產品的量測位置，pass 數不得當成 L3 通過 ★★')
     if jsonout:
         with open(jsonout, 'w', encoding='utf-8') as f:
             json.dump({'summary': summary, 'rows': rows}, f, ensure_ascii=False, indent=1)
