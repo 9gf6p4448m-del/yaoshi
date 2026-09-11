@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 
-export default {
+const MOVES = {
   /* 大士爺紙尊・普渡（dashiye，護法×1；傳說三尊美術卷 2026-09-07）：本方全體 hp+2。
      編舞（香火＝緩慢、先蓄後落，像抬轎）：0–320ms 整尊下沉、舌垂、頭低（蓄）
           → 320ms 紙軀往上抬、口張、頭頂小龕跟著抬；同時本方每一尊腳下升起一圈光環，罩成半透明護罩
@@ -238,50 +238,77 @@ export default {
   },
 
   /* 千里眼銅鈴・千里眼（bell，護法×2）：本方免疫迷途。
-     編舞：舉鈴（0–260ms：上臂高舉、鈴身後傾、胸與頸擰向鈴、下臂沉住斧）
-          → 搖鈴（260–680ms：鈴身／鈴唇三次左右甩，裙擺跟著晃；每一次甩到底放一圈鈴波，共三圈往外擴）
-          → 清明（一條光從鈴串到同伴，本方邊光整段提亮）→ 放下（680–880ms）。 */
+     ★v0.55 招式可辨性卷 批 0 示範招（香火）★
+     盲讀 r1 的病因（計畫 §6 第 13 列）：**A 猜五營旗、B 猜虎爺印，兩版皆錯**；
+       A 短版 2 分「只有幾點橘色火星，看不出做了什麼」
+       ⇒ 失敗類型 D（短版只剩骨骼＋火星）＋B（三圈鈴波環撞掉 19/27 的腳下光環語彙）。
+       而且效果本身是**被動免疫**，本來就沒有可演的因果。
+     改法（ART_BIBLE §10）：
+       ① windup：舉鈴、搖鈴，同時鈴身上方浮出一枚**放大的銅鈴徽記**（鎏金實心＋ink 底板）；
+       ② travel：鈴聲「望出千里」——徽記朝對面**飛出去一段**再折返（這是把被動效果演成看得見的動作；
+          三圈貼桌鈴波環整組退役，不再與另外 18 支撞）；
+       ③ react：折返之後在**每一位同伴頭上蓋一枚銅鈴印記**並托起半寸＝「這幾尊被護到了」。
+     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
   wardImmuneLost(st) {
-    const ringer = st.actor[0];
-    const mates = st.actor.slice();
-    st.tween({ ms: 780, ease: 'wind', update(t, e) { st.rim(ringer, 1 + 1.7 * e); } });
-    st.tween({ ms: 260, ease: 'out', update(t, e) {
-      st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.3 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
-      st.rot(ringer, 'ArmDRoot', 0.3 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.2 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
+    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
+    const ringer = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const mates = st.actor.filter((f) => f !== ringer);
+    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
+    const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
+    src.y += 0.10;
+    const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里
+    const SZ = 0.32;
+    const bell = st.icon(st.kind, src, { size: SZ, color: C.key, inkColor: C.ink, opacity: 0 });
+    const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
+
+    st.phase('windup');
+    /* ① 舉鈴＋搖鈴（windup）：上臂高舉、鈴身三次左右甩；徽記同時在鈴上長出來 */
+    st.tween({ ms: W * 0.42, ease: 'out', update(t, e) {
+      st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.30 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
+      st.rot(ringer, 'ArmDRoot', 0.30 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.20 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
       st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
       st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
+      st.rim(ringer, 1 + 1.2 * e);
+      st.alpha(bell, Math.min(1, e * 2.2));
+      bell.scale.setScalar(SZ * (0.4 + 0.6 * e));
     } });
-    st.at(260, () => {
-      st.burst(st.worldOf(ringer, 'BellTop', new THREE.Vector3()), { power: 0.5, n: 26 });
-      st.tween({ ms: 420, ease: 'linear', update(t) {
-        const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.5);
-        st.rot(ringer, 'ArmURoot', -1.2, 0, 0.3 + 0.26 * s); st.rot(ringer, 'ArmUWrist', -0.28, 0, 0.5 * s); st.rot(ringer, 'ArmUHand', 0, 0, 0.4 * s);
+    st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
+      update(t) {
+        const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.4);
+        st.rot(ringer, 'ArmURoot', -1.2, 0, 0.30 + 0.26 * s); st.rot(ringer, 'ArmUWrist', -0.28, 0, 0.50 * s); st.rot(ringer, 'ArmUHand', 0, 0, 0.40 * s);
         st.rot(ringer, 'BellRoot', -0.32, 0, 0.55 * s); st.rot(ringer, 'BellStem', -0.22, 0, 0.45 * s); st.rot(ringer, 'BellWaist', 0, 0, 0.35 * s);
-        st.rot(ringer, 'BellLip', 0, 0, 0.5 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.7 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.9 * s);
+        st.rot(ringer, 'BellLip', 0, 0, 0.50 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.70 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.90 * s);
         st.rot(ringer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(ringer, 'Skirt1', 0, 0, 0.13 * s); st.rot(ringer, 'SkirtHem', 0, 0, 0.18 * s);
-      } });
-      [0, 95, 190].forEach((d) => st.at(d, () => {
-        const p = st.worldOf(ringer, 'BellRoot', new THREE.Vector3()); p.y = st.tableY;
-        const r = st.ring(p, 0.26, 0.045, { opacity: 0.85 });
-        st.tween({ ms: 400, ease: 'out', update(t, e) { r.scale.setScalar(1 + 6 * e); r.material.opacity = 0.85 * (1 - e * e); } });
-      }));
-      if (mates[1]) {
-        const a = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
-        const b = st.top(mates[1], new THREE.Vector3());
-        const ln = st.beam(a, b, { opacity: 0 });
-        st.tween({ ms: 340, delay: 110, ease: 'pulse', update(t, e) { ln.material.opacity = 0.95 * e; } });
-        st.tween({ ms: 480, delay: 110, ease: 'pulse', update(t, e) { st.rim(mates[1], 1 + 1.6 * e); } });
-      }
-      st.at(420, () => st.tween({ ms: 200, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(ringer, 'ArmURoot', -1.2 * k, 0, 0.3 * k); st.rot(ringer, 'ArmUElbow', -0.55 * k); st.rot(ringer, 'ArmUWrist', -0.28 * k); st.rot(ringer, 'ArmUHand', 0);
-        st.rot(ringer, 'ArmDRoot', 0.3 * k, 0, -0.22 * k); st.rot(ringer, 'ArmDElbow', -0.2 * k); st.rot(ringer, 'AxeHead', 0.25 * k);
-        st.rot(ringer, 'Chest', -0.12 * k, -0.24 * k, 0); st.rot(ringer, 'NeckB', -0.18 * k); st.rot(ringer, 'Spine', -0.08 * k);
-        st.rot(ringer, 'BellRoot', -0.32 * k); st.rot(ringer, 'BellStem', -0.22 * k); st.rot(ringer, 'BellShoulder', -0.12 * k);
-        st.rot(ringer, 'BellWaist', 0); st.rot(ringer, 'BellLip', 0); st.rot(ringer, 'LipRoot', 0); st.rot(ringer, 'LipMid', 0); st.rot(ringer, 'LipEdge', 0);
-        st.rot(ringer, 'SkirtRoot', 0); st.rot(ringer, 'Skirt1', 0); st.rot(ringer, 'SkirtHem', 0);
-      } }));
+        bell.userData.fxRoll = 0.35 * s;
+      },
+      done() { st.phase('travel'); st.burst(src, { power: 0.55, n: 28, color: C.line }); } });
+    /* ② 望出千里（travel）：徽記飛出去 */
+    st.trail(bell, src, far, { ms: TL * 0.52, delay: T0, ease: 'out', color: C.line, opacity: 0.9, segs: 12 });
+    /* 折返：回到出招方頭上，再化成同伴身上的印記。
+       ★中間留 0.1×TL 的停格★：飛到最遠點就立刻折返時，逐幀取樣很可能整幀跳過最遠點，
+       travel 的位移量測會少掉最後一小段（實測 tier 2 只量到 1.28／門檻 1.25，壓在線上）。 */
+    st.trail(bell, far, src, { ms: TL * 0.38, delay: T0 + TL * 0.62, ease: 'in', color: C.line, opacity: 0.75, segs: 12,
+      done() { st.phase('react'); st.punch(0.22); } });
+    st.fade(bell, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
+    /* ③ 護到誰看得見（react）：同伴頭上各蓋一枚銅鈴印記並被托起半寸 */
+    guard.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.24, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.4, delay: R0 + RL * 0.58, from: 1, to: 0 });
     });
+    (mates.length ? mates : [ringer]).forEach((f, i) => st.tween({ ms: RL * 0.9, delay: R0 + i * RL * 0.08, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.07 * e, 0); st.rim(f, 1 + 1.6 * e);
+    } }));
+    /* 收勢：放下 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(ringer, 'ArmURoot', -1.2 * k, 0, 0.30 * k); st.rot(ringer, 'ArmUElbow', -0.55 * k); st.rot(ringer, 'ArmUWrist', -0.28 * k); st.rot(ringer, 'ArmUHand', 0);
+      st.rot(ringer, 'ArmDRoot', 0.30 * k, 0, -0.22 * k); st.rot(ringer, 'ArmDElbow', -0.20 * k); st.rot(ringer, 'AxeHead', 0.25 * k);
+      st.rot(ringer, 'Chest', -0.12 * k, -0.24 * k, 0); st.rot(ringer, 'NeckB', -0.18 * k); st.rot(ringer, 'Spine', -0.08 * k);
+      st.rot(ringer, 'BellRoot', -0.32 * k); st.rot(ringer, 'BellStem', -0.22 * k); st.rot(ringer, 'BellShoulder', -0.12 * k);
+      st.rot(ringer, 'BellWaist', 0); st.rot(ringer, 'BellLip', 0); st.rot(ringer, 'LipRoot', 0); st.rot(ringer, 'LipMid', 0); st.rot(ringer, 'LipEdge', 0);
+      st.rot(ringer, 'SkirtRoot', 0); st.rot(ringer, 'Skirt1', 0); st.rot(ringer, 'SkirtHem', 0);
+      st.rim(ringer, 1 + 1.2 * k);
+    } });
   },
 
   /* 五營旗・五方調兵（wuying，兵×3）：二拍本隊已有折損則全體 hp+1。
@@ -358,64 +385,87 @@ export default {
   },
 
   /* 虎爺印・虎爺反咬（tiger→tiger_c，精英×1）：被擊中時 15% 反咬 3 點。
-     編舞：伏身張口（0–240ms：後臀壓低、脊背弓起、頸前伸、下顎三節大張、尾豎起，整尊往後蹲一點）
-          → 撲（240ms：整尊沿「朝對面」躍出、前肢前伸、頭往前刺）
-          → 咬（390ms：下顎猛闔、兩道咬痕光、火星、punch、對面那一隻重退縮）
-          → 鬆口退回（430–880ms）。 */
+     ★v0.55 招式可辨性卷 批 0 示範招（香火）★
+     盲讀 r1 的病因（計畫 §6 第 17 列）：**兩位讀者、兩個版本全部讀成「山豬」**
+       （B 短版 3 分：「背上燒著金火的長牙野獸」→ 直接猜山豬牙飾）
+       ⇒ 失敗類型 F（`tiger_c` 骨骼表裡完全沒有「印」）＋造型撞 `boartusk`（模型層，Q8 先用語彙硬拉開）。
+     改法（ART_BIBLE §10）：**一枚硃紅方印徽記**——這是唯一能把「虎爺**印**」和「山豬**牙**」分開的元素。
+       ① windup：伏身張口的同時，方印在額前浮現（法寶本體現身，不是常駐造型的一部分）；
+       ② travel：撲擊時方印**隨著咬合線飛到咬點**（st.trail，拖尾是印的殘影），
+          取代原本兩道分不出是什麼的 `bolt` 咬痕；
+       ③ react：方印**蓋在獵物身上**（st.mark）＋重退縮＝「被虎爺蓋印鎮住」的因果。
+     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
   biteGamble(st) {
+    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
     const cat = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const prey = st.biggest(st.target) || st.target[0] || null;
     const fwd = st.toward(cat, new THREE.Vector3());
-    st.tween({ ms: 240, ease: 'out', update(t, e) {
-      st.rot(cat, 'Rump', 0.3 * e); st.rot(cat, 'Hips', 0.24 * e); st.rot(cat, 'Spine', -0.16 * e); st.rot(cat, 'Chest', -0.2 * e);
-      st.rot(cat, 'NeckB', -0.3 * e); st.rot(cat, 'Neck2', -0.22 * e); st.rot(cat, 'HeadRoot', 0.12 * e);
-      st.rot(cat, 'JawRoot', 0.55 * e); st.rot(cat, 'Jaw1', 0.35 * e); st.rot(cat, 'JawTip', 0.25 * e);
-      st.rot(cat, 'TailRoot', -0.4 * e); st.rot(cat, 'Tail1', -0.3 * e); st.rot(cat, 'Tail2', -0.22 * e); st.rot(cat, 'TailTip', -0.18 * e);
-      st.rot(cat, 'LBack1Kn', 0.4 * e); st.rot(cat, 'RBack1Kn', 0.4 * e);
-      st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
-      st.rim(cat, 1 + 1.0 * e);
+    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
+    const brow = st.worldOf(cat, 'Brow', new THREE.Vector3());
+    if (!brow.lengthSq()) st.worldOf(cat, null, brow);
+    const start = brow.clone().addScaledVector(st.dir, 0.16); start.y += 0.22;
+    const hit = prey ? st.worldOf(prey, null, new THREE.Vector3()) : start.clone().addScaledVector(st.dir, 1.4);
+    const SZ = 0.30;
+    const seal = st.icon(st.kind, start, { size: SZ, color: C.hot, inkColor: C.ink, opacity: 0 });
+    const stamp = prey ? st.mark(prey, st.kind, { opacity: 0, color: C.hot }) : null;
+
+    st.phase('windup');
+    /* ① 伏身張口（windup）：後臀壓低、脊背弓起、下顎三節大張；方印在額前浮現 */
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.rot(cat, 'Rump', 0.30 * e); st.rot(cat, 'Hips', 0.24 * e); st.rot(cat, 'Spine', -0.16 * e); st.rot(cat, 'Chest', -0.20 * e);
+        st.rot(cat, 'NeckB', -0.30 * e); st.rot(cat, 'Neck2', -0.22 * e); st.rot(cat, 'HeadRoot', 0.12 * e);
+        st.rot(cat, 'JawRoot', 0.55 * e); st.rot(cat, 'Jaw1', 0.35 * e); st.rot(cat, 'JawTip', 0.25 * e);
+        st.rot(cat, 'TailRoot', -0.40 * e); st.rot(cat, 'Tail1', -0.30 * e); st.rot(cat, 'Tail2', -0.22 * e); st.rot(cat, 'TailTip', -0.18 * e);
+        st.rot(cat, 'LBack1Kn', 0.40 * e); st.rot(cat, 'RBack1Kn', 0.40 * e);
+        st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
+        st.rim(cat, 1 + 1.0 * e);
+        st.alpha(seal, Math.min(1, e * 2));
+        seal.scale.setScalar(SZ * (0.35 + 0.75 * e)); // 過衝一點再收，印才有「蓋下來」的重量
+        seal.userData.fxRoll = 0.55 * (1 - e);
+      },
+      done() { st.phase('travel'); } });
+    /* ② 撲＋方印飛到咬點（travel）：印是飛行物本體，拖尾只是它的殘影 */
+    st.tween({ ms: TL * 0.62, delay: T0, ease: 'outQuint', update(t, e) {
+      st.move(cat, fwd.x * (-0.09 + 0.51 * e), -0.03 + 0.05 * e, fwd.z * (-0.09 + 0.51 * e));
+      st.rot(cat, 'Rump', 0.30 - 0.34 * e); st.rot(cat, 'Hips', 0.24 - 0.28 * e); st.rot(cat, 'Spine', -0.16 + 0.24 * e); st.rot(cat, 'Chest', -0.20 + 0.30 * e);
+      st.rot(cat, 'NeckB', -0.30 + 0.44 * e); st.rot(cat, 'Neck2', -0.22 + 0.34 * e);
+      st.rot(cat, 'LFrontRoot1Rt', -0.90 * e); st.rot(cat, 'LFrontElbow1El', 0.50 * e); st.rot(cat, 'LFrontToe1To', -0.30 * e);
+      st.rot(cat, 'RFrontRoot1Rt', -0.75 * e); st.rot(cat, 'RFrontElbow1El', 0.42 * e); st.rot(cat, 'RFrontToe1To', -0.30 * e);
+      st.rot(cat, 'LBack1Kn', 0.40 - 0.55 * e); st.rot(cat, 'RBack1Kn', 0.40 - 0.55 * e);
+      st.rot(cat, 'JawRoot', 0.55 + 0.28 * e); st.rot(cat, 'Jaw1', 0.35 + 0.20 * e); st.rot(cat, 'JawTip', 0.25 + 0.14 * e);
     } });
-    st.at(240, () => {
-      st.tween({ ms: 150, ease: 'outQuint', update(t, e) {
-        st.move(cat, fwd.x * (-0.09 + 0.51 * e), -0.03 + 0.05 * e, fwd.z * (-0.09 + 0.51 * e));
-        st.rot(cat, 'Rump', 0.3 - 0.34 * e); st.rot(cat, 'Hips', 0.24 - 0.28 * e); st.rot(cat, 'Spine', -0.16 + 0.24 * e); st.rot(cat, 'Chest', -0.2 + 0.3 * e);
-        st.rot(cat, 'NeckB', -0.3 + 0.44 * e); st.rot(cat, 'Neck2', -0.22 + 0.34 * e);
-        st.rot(cat, 'LFrontRoot1Rt', -0.9 * e); st.rot(cat, 'LFrontElbow1El', 0.5 * e); st.rot(cat, 'LFrontToe1To', -0.3 * e);
-        st.rot(cat, 'RFrontRoot1Rt', -0.75 * e); st.rot(cat, 'RFrontElbow1El', 0.42 * e); st.rot(cat, 'RFrontToe1To', -0.3 * e);
-        st.rot(cat, 'LBack1Kn', 0.4 - 0.55 * e); st.rot(cat, 'RBack1Kn', 0.4 - 0.55 * e);
-        st.rot(cat, 'JawRoot', 0.55 + 0.28 * e); st.rot(cat, 'Jaw1', 0.35 + 0.2 * e); st.rot(cat, 'JawTip', 0.25 + 0.14 * e);
-      } });
-      st.at(150, () => {
-        // 咬合
-        st.tween({ ms: 90, ease: 'outQuint', update(t, e) {
-          st.rot(cat, 'JawRoot', 0.83 - 0.95 * e); st.rot(cat, 'Jaw1', 0.55 - 0.62 * e); st.rot(cat, 'JawTip', 0.39 - 0.44 * e);
-          st.rot(cat, 'Muzzle', -0.12 * e); st.rot(cat, 'Nose', -0.1 * e); st.rot(cat, 'Brow', -0.18 * e);
-          st.rot(cat, 'HeadRoot', 0.12 + 0.2 * e);
-        } });
-        const bite = st.worldOf(cat, 'JawTip', new THREE.Vector3());
-        const hit = prey ? st.worldOf(prey, null, new THREE.Vector3()) : bite.clone().addScaledVector(st.dir, 0.5);
-        for (let i = 0; i < 2; i++) {
-          const mark = st.bolt(bite, hit, { jag: 0.3, segs: 5, seed: 90 + i * 17, opacity: 1 });
-          st.fade(mark, { ms: 200 + 60 * i, from: 1, to: 0 });
-        }
-        st.burst(hit, { power: 1.0, n: 60 });
-        st.punch(0.45);
-        if (prey) st.flinch([prey], { strength: 1.5, burst: false });
-      });
-      st.at(190, () => st.tween({ ms: 450, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.move(cat, fwd.x * 0.42 * k, 0.02 * k, fwd.z * 0.42 * k);
-        st.rot(cat, 'Rump', -0.04 * k); st.rot(cat, 'Hips', -0.04 * k); st.rot(cat, 'Spine', 0.08 * k); st.rot(cat, 'Chest', 0.1 * k);
-        st.rot(cat, 'NeckB', 0.14 * k); st.rot(cat, 'Neck2', 0.12 * k); st.rot(cat, 'HeadRoot', 0.32 * k);
-        st.rot(cat, 'JawRoot', -0.12 * k); st.rot(cat, 'Jaw1', -0.07 * k); st.rot(cat, 'JawTip', -0.05 * k);
-        st.rot(cat, 'Muzzle', -0.12 * k); st.rot(cat, 'Nose', -0.1 * k); st.rot(cat, 'Brow', -0.18 * k);
-        st.rot(cat, 'TailRoot', -0.4 * k); st.rot(cat, 'Tail1', -0.3 * k); st.rot(cat, 'Tail2', -0.22 * k); st.rot(cat, 'TailTip', -0.18 * k);
-        st.rot(cat, 'LFrontRoot1Rt', -0.9 * k); st.rot(cat, 'LFrontElbow1El', 0.5 * k); st.rot(cat, 'LFrontToe1To', -0.3 * k);
-        st.rot(cat, 'RFrontRoot1Rt', -0.75 * k); st.rot(cat, 'RFrontElbow1El', 0.42 * k); st.rot(cat, 'RFrontToe1To', -0.3 * k);
-        st.rot(cat, 'LBack1Kn', -0.15 * k); st.rot(cat, 'RBack1Kn', -0.15 * k);
-        st.rim(cat, 1 + 1.0 * k);
-      } }));
-    });
+    st.trail(seal, start, hit, { ms: TL, delay: T0, ease: 'in', arc: 0.10, color: C.line, opacity: 0.9, segs: 10,
+      done() { st.phase('react'); st.burst(hit, { power: 1.0, n: 60, color: C.hot }); st.punch(0.45); } });
+    /* 咬合（travel 末）：下顎猛闔 */
+    st.tween({ ms: TL * 0.34, delay: T0 + TL * 0.62, ease: 'outQuint', update(t, e) {
+      st.rot(cat, 'JawRoot', 0.83 - 0.95 * e); st.rot(cat, 'Jaw1', 0.55 - 0.62 * e); st.rot(cat, 'JawTip', 0.39 - 0.44 * e);
+      st.rot(cat, 'Muzzle', -0.12 * e); st.rot(cat, 'Nose', -0.10 * e); st.rot(cat, 'Brow', -0.18 * e);
+      st.rot(cat, 'HeadRoot', 0.12 + 0.20 * e);
+    } });
+    /* ③ 蓋印（react）：方印烙在獵物身上、獵物重退縮 */
+    st.fade(seal, { ms: RL * 0.35, delay: R0, from: 1, to: 0 });
+    if (stamp) {
+      st.fade(stamp, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { stamp.scale.setScalar(0.2 * (1.9 - 0.9 * e)); } });
+      st.fade(stamp, { ms: RL * 0.45, delay: R0 + RL * 0.55, from: 1, to: 0 });
+    }
+    // ★flinch 一定要帶 ms★：預設是 TFX.flinchMs×k，tier 1 下是 69ms，從 react 起算會把 horizon 推到 249＞235 ⇒ rate>1
+    if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.5, burst: false });
+    /* 收勢：鬆口退回 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.move(cat, fwd.x * 0.42 * k, 0.02 * k, fwd.z * 0.42 * k);
+      st.rot(cat, 'Rump', -0.04 * k); st.rot(cat, 'Hips', -0.04 * k); st.rot(cat, 'Spine', 0.08 * k); st.rot(cat, 'Chest', 0.10 * k);
+      st.rot(cat, 'NeckB', 0.14 * k); st.rot(cat, 'Neck2', 0.12 * k); st.rot(cat, 'HeadRoot', 0.32 * k);
+      st.rot(cat, 'JawRoot', -0.12 * k); st.rot(cat, 'Jaw1', -0.07 * k); st.rot(cat, 'JawTip', -0.05 * k);
+      st.rot(cat, 'Muzzle', -0.12 * k); st.rot(cat, 'Nose', -0.10 * k); st.rot(cat, 'Brow', -0.18 * k);
+      st.rot(cat, 'TailRoot', -0.40 * k); st.rot(cat, 'Tail1', -0.30 * k); st.rot(cat, 'Tail2', -0.22 * k); st.rot(cat, 'TailTip', -0.18 * k);
+      st.rot(cat, 'LFrontRoot1Rt', -0.90 * k); st.rot(cat, 'LFrontElbow1El', 0.50 * k); st.rot(cat, 'LFrontToe1To', -0.30 * k);
+      st.rot(cat, 'RFrontRoot1Rt', -0.75 * k); st.rot(cat, 'RFrontElbow1El', 0.42 * k); st.rot(cat, 'RFrontToe1To', -0.30 * k);
+      st.rot(cat, 'LBack1Kn', -0.15 * k); st.rot(cat, 'RBack1Kn', -0.15 * k);
+      st.rim(cat, 1 + 1.0 * k);
+    } });
   },
 
   /* 香灰符・香灰符（ashcharm，護法×2）：二拍前鋒首隻 hp+1。
@@ -607,6 +657,7 @@ export default {
     });
   },
 };
+export default MOVES;
 
 /* ══════════ Tier 1 短版（260ms，v0.54 三級視覺分級）══════════
    寫法紀律與踩過的坑見 js/trait-fx/zuling.js 同一區塊的檔頭（horizon ≤230、補間一律頂層
@@ -755,35 +806,8 @@ export const SHORT = {
     } });
   },
 
-  /* 千里眼｜辨識：舉鈴搖甩＋鈴波往外擴 */
-  wardImmuneLost(st) {
-    const bell = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const foot = st.foot(bell, new THREE.Vector3());
-    const w1 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
-    const w2 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
-    const mate = st.actor[1] || null;
-    const link = mate ? st.beam(st.worldOf(bell, 'BellLip', new THREE.Vector3()), st.worldOf(mate, null, new THREE.Vector3()), { opacity: 0 }) : null;
-    st.tween({ ms: 80, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
-      st.rot(bell, 'ArmURoot', -0.9 * e); st.rot(bell, 'ArmUElbow', -0.35 * e);
-      st.rot(bell, 'BellRoot', -0.3 * e); st.rot(bell, 'Chest', 0, 0.16 * e, 0); st.rim(bell, 1 + 0.7 * e);
-    } });
-    st.tween({ ms: 95, delay: 78, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
-      const s = Math.sin(e * Math.PI * 3);
-      st.rot(bell, 'BellRoot', -0.3 + 0.1 * e, 0, 0.34 * s); st.rot(bell, 'BellLip', 0, 0, 0.22 * s);
-      st.rot(bell, 'Skirt1', 0, 0, 0.12 * s); st.rim(bell, 1.7 + 0.6 * Math.abs(s));
-    } });
-    st.grow(w1, { ms: 85, delay: 96, from: 0.3, to: 1.5 }); // 鈴波往外擴
-    st.fade(w1, { ms: 85, delay: 96, from: 0.7, to: 0 });
-    st.grow(w2, { ms: 85, delay: 128, from: 0.3, to: 1.8 });
-    st.fade(w2, { ms: 85, delay: 128, from: 0.5, to: 0 });
-    if (link) st.fade(link, { ms: 70, delay: 130, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
-    st.actor.forEach((f, i) => st.tween({ ms: 75, delay: 130 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
-    st.tween({ ms: 68, delay: 160, ease: 'inout', update(t, e) { // 放下
-      const k = 1 - e;
-      st.rot(bell, 'ArmURoot', -0.9 * k); st.rot(bell, 'ArmUElbow', -0.35 * k);
-      st.rot(bell, 'BellRoot', -0.2 * k); st.rot(bell, 'Chest', 0, 0.16 * k, 0);
-    } });
-  },
+  /* 千里眼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  wardImmuneLost: MOVES.wardImmuneLost,
 
   /* 五方調兵｜辨識：★旗面本體（一面會飄的令旗）★＋五方光陣＋令波推向對面
      （盲讀 r2：短版只有腳下光陣＝效果全在自己身上，看不出「旗」） */
@@ -846,36 +870,8 @@ export const SHORT = {
     } });
   },
 
-  /* 虎爺反咬｜辨識：伏身張口→撲出去＋兩道咬痕光 */
-  biteGamble(st) {
-    const tiger = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const prey = st.biggest(st.target) || st.target[0] || null;
-    const jaw = st.worldOf(tiger, 'JawTip', new THREE.Vector3());
-    const at = prey ? st.worldOf(prey, null, new THREE.Vector3()) : jaw.clone().addScaledVector(st.dir, 1.4);
-    const m1 = st.bolt(at.clone().add(new THREE.Vector3(-0.16, 0.16, 0)), at.clone().add(new THREE.Vector3(0.16, -0.16, 0)), { jag: 0.05, segs: 4, seed: 2, opacity: 0 });
-    const m2 = st.bolt(at.clone().add(new THREE.Vector3(0.16, 0.14, 0)), at.clone().add(new THREE.Vector3(-0.14, -0.18, 0)), { jag: 0.05, segs: 4, seed: 8, opacity: 0 });
-    st.tween({ ms: 80, ease: 'in', update(t, e) { // 伏身張口：後臀壓低、脊背弓起、下顎大張
-      st.rot(tiger, 'Rump', 0.2 * e); st.rot(tiger, 'Spine', -0.14 * e); st.rot(tiger, 'NeckB', 0.16 * e);
-      st.rot(tiger, 'JawRoot', 0.34 * e); st.rot(tiger, 'Jaw1', 0.24 * e); st.rot(tiger, 'TailRoot', -0.3 * e);
-      st.move(tiger, 0, 0, -0.06 * e); st.rim(tiger, 1 + 0.6 * e);
-    } });
-    st.tween({ ms: 75, delay: 78, ease: 'strike', update(t, e) { // 撲：整尊躍出、頭往前刺
-      st.move(tiger, 0, 0.05 * Math.sin(Math.PI * e), 0.28 * e);
-      st.rot(tiger, 'Rump', 0.2 - 0.3 * e); st.rot(tiger, 'NeckB', 0.16 - 0.3 * e); st.rot(tiger, 'HeadRoot', -0.18 * e);
-      st.rim(tiger, 1.6 + 1.5 * e);
-    } });
-    st.tween({ ms: 45, delay: 148, ease: 'out', update(t, e) { // 咬：下顎猛闔
-      st.rot(tiger, 'JawRoot', 0.34 * (1 - e)); st.rot(tiger, 'Jaw1', 0.24 * (1 - e));
-    }, done() { st.burst(at, { power: 0.95, n: 44 }); st.punch(0.6); } });
-    st.fade(m1, { ms: 58, delay: 150, from: 1, to: 0 }); // 兩道咬痕光
-    st.fade(m2, { ms: 58, delay: 158, from: 1, to: 0 });
-    if (prey) st.flinch([prey], { delay: 150, strength: 1.4, burst: false });
-    st.tween({ ms: 62, delay: 168, ease: 'inout', update(t, e) { // 鬆口退回
-      const k = 1 - e;
-      st.move(tiger, 0, 0, 0.28 * k); st.rot(tiger, 'HeadRoot', -0.18 * k); st.rot(tiger, 'Spine', -0.14 * k);
-      st.rot(tiger, 'TailRoot', -0.3 * k); st.rim(tiger, 1 + 2.1 * k);
-    } });
-  },
+  /* 虎爺反咬｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  biteGamble: MOVES.biteGamble,
 
   /* 香灰符｜辨識：掌心一撮金灰拋物線飄到本方最前一隻的頭頂 */
   wardHpFirst(st) {

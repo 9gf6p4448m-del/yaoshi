@@ -257,9 +257,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         c.moved = Math.max(c.moved, best);
         if (c.moved >= c.need) c.ok = true;
       } else {
-        // 受招方／受益方有反應：出招方自己的收勢不算，所以排掉 caster
-        const m = metricOf(run, (f) => f !== run.caster);
-        c.model = Math.max(c.model, m.model);
+        /* 受招方／受益方有反應。兩個設計決定，兩個都是為了不讓這條恆真或恆假（02 §6.1 第 6 條）：
+           ① 量的是「打點之後**變了多少**」，不是絕對值——否則出招方 windup 留在身上的位移會讓它恆真；
+           ② 排掉 caster（他自己的收勢不算），**但場上只有他一個人時就量他自己**——
+              自益招（獻祭刀在治具裡只有 1 尊）若一律排掉 caster，這條就恆假、再對的實作也過不了。 */
+        let best = 0, sawOther = false;
+        run.wraps.forEach((w) => { if (w.fig !== run.caster) sawOther = true; });
+        run.wraps.forEach((w) => {
+          if (sawOther && w.fig === run.caster) return;
+          let b = c.base.get(w);
+          // 打點之後才被包裝的 figure（受招方通常是在 flinch 那一刻才進 wraps）：基準是**中性姿勢**，
+          // 不是「第一次看到它時的值」——那一幀 tween 已經動過一次了，會白丟掉一格的位移。
+          if (!b) { b = { p: new THREE.Vector3(), s: 1 }; c.base.set(w, b); }
+          best = Math.max(best, w.mo.p.distanceTo(b.p), Math.abs(w.mo.s - b.s));
+        });
+        c.model = Math.max(c.model, best);
+        c.solo = !sawOther;
         if (c.model >= PHASE_GATE.reactDelta) c.ok = true;
       }
     }
@@ -426,10 +439,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         return st.tween({ ms: o.ms || run.ms * 0.4, delay: o.delay || 0, ease: o.ease || 'inout', done: o.done,
           update(t, e) { obj.position.lerpVectors(a, b, e); obj.position.y += arc * Math.sin(Math.PI * e); if (o.update) o.update(t, e); } });
       },
+      /** 淡入淡出。徽記是「本體＋ink 底板（＋描邊）」的複合物，userData.fxParts 讓三片一起淡——
+       *  只淡本體會留下一片孤零零的黑底板。沒有 fxParts 的物件行為與 v0.54 逐字相同。 */
       fade(obj, o = {}) {
-        const from = o.from === undefined ? obj.material.opacity : o.from, to = o.to === undefined ? 0 : o.to;
-        return st.tween({ ms: o.ms || run.ms * 0.4, delay: o.delay || 0, ease: o.ease || 'out', done: o.done, update(t, e) { obj.material.opacity = from + (to - from) * e; } });
+        const parts = (obj.userData && obj.userData.fxParts) || [obj];
+        const from = o.from === undefined ? parts[0].material.opacity : o.from, to = o.to === undefined ? 0 : o.to;
+        return st.tween({ ms: o.ms || run.ms * 0.4, delay: o.delay || 0, ease: o.ease || 'out', done: o.done, update(t, e) { const v = from + (to - from) * e; for (let i = 0; i < parts.length; i++) parts[i].material.opacity = v; } });
       },
+      /** 直接設透明度（複合徽記一起設） */
+      alpha(obj, v) { const parts = (obj.userData && obj.userData.fxParts) || [obj]; for (let i = 0; i < parts.length; i++) parts[i].material.opacity = v; },
       grow(obj, o = {}) {
         const from = o.from === undefined ? 0.2 : o.from, to = o.to === undefined ? 1 : o.to;
         return st.tween({ ms: o.ms || run.ms * 0.5, delay: o.delay || 0, ease: o.ease || 'out', done: o.done, update(t, e) { obj.scale.setScalar(from + (to - from) * e); } });
@@ -491,10 +509,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           line.position.z = 0.012;
           mesh.add(line);
         }
+        mesh.userData.fxParts = [mesh].concat(mesh.children.filter((c) => c.material)); // st.fade／st.alpha 三片一起動
         st.spawn(mesh, 'emblem:' + kind);
         run.sig.emblems.add(kind);
-        run.bb.push(mesh);
-        faceCamera(mesh);
+        if (o.flat) { mesh.rotation.x = -Math.PI / 2; mesh.rotation.z = o.roll || 0; } // 貼桌（陰氣的水漬／暗斑、香火的貼桌陣）：不朝鏡頭
+        else { run.bb.push(mesh); faceCamera(mesh); }
         return mesh;
       },
       /** 同一 kind ≥3 份走這支：N 枚徽記 = 1 個 draw call（群體招的 draw call 預算靠它）。
@@ -505,12 +524,21 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
         mat.opacity = o.opacity === undefined ? 1 : o.opacity;
         const im = new THREE.InstancedMesh(EMBLEMS.geomOf(kind), mat, Math.max(1, positions.length));
-        im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1 };
+        im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1, rolls: o.rolls || null };
         im.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉
         st.spawn(im, 'emblem:' + kind);
         run.sig.emblems.add(kind);
-        run.bbi.push(im);
-        faceCameraInstanced(im);
+        if (o.flat) { // 貼桌：一次把 N 個實例壓平，之後不逐幀重排（省掉整批 billboard 的成本）
+          const q = _bq.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+          const d = im.userData.fxIcons;
+          for (let i = 0; i < d.pos.length; i++) {
+            _rq.copy(q);
+            if (d.rolls) { const rr = new THREE.Quaternion().setFromAxisAngle(UP, d.rolls[i]); _rq.premultiply(rr); }
+            _m4.compose(d.pos[i], _rq, _s3.setScalar(size * (o.sizes ? o.sizes[i] : 1)));
+            im.setMatrixAt(i, _m4);
+          }
+          im.instanceMatrix.needsUpdate = true;
+        } else { run.bbi.push(im); faceCameraInstanced(im); }
         return im;
       },
       /** 飛行物＋拖尾：把 obj 從 from 飛到 to，尾巴是綁在它身上的 MAT_LINE。
@@ -569,10 +597,16 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
       phase(name) {
         if (name !== 'windup' && name !== 'travel' && name !== 'react') return false;
-        const c = { name, at: run.vt, ok: false, bone: 0, model: 0, moved: 0, need: 0, until: Infinity, base: null };
+        const c = { name, at: run.vt, ok: false, bone: 0, model: 0, moved: 0, need: 0, until: Infinity, base: new Map(), solo: false };
         if (name === 'windup') c.until = run.vt + PHASE_GATE.windupMs * run.k;
-        else if (name === 'react') c.until = run.vt + PHASE_GATE.reactMs * run.k;
-        else { c.need = PHASE_GATE.travelFrac * run.travelDist; c.base = new Map(); }
+        else if (name === 'react') { c.until = run.vt + PHASE_GATE.reactMs * run.k; run.wraps.forEach((w) => c.base.set(w, { p: w.mo.p.clone(), s: w.mo.s })); }
+        else {
+          c.need = PHASE_GATE.travelFrac * run.travelDist;
+          /* ★基準一定要在打點當下抓★：打點多半發生在前一段 tween 的 done 裡，而同一幀後面還有
+             飛行 tween 會把位置改掉。留給 evalPhases 惰性抓就會抓到「已經飛了半格」的位置，
+             量到的位移少一格（實測千里眼因此從 1.38 掉到 0.70，硬生生低於門檻）。 */
+          run.meshes.forEach((m) => { if (m && m.position) c.base.set(m, m.position.clone()); });
+        }
         run.phaseClaims.push(c);
         return true;
       },
@@ -645,7 +679,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       // v0.55 L1／L2 的機械抓手：徽記 kind（雙射）與「實際成立」的因果段
       emblems: Array.from(run.sig.emblems).sort(),
       phases: run.phaseClaims.filter((c) => c.ok).map((c) => c.name).filter((n, i, a) => a.indexOf(n) === i),
-      phaseDetail: run.phaseClaims.map((c) => ({ name: c.name, ok: c.ok, bone: +c.bone.toFixed(4), model: +c.model.toFixed(4), moved: +c.moved.toFixed(4), need: +c.need.toFixed(4) })) };
+      phaseDetail: run.phaseClaims.map((c) => ({ name: c.name, ok: c.ok, bone: +c.bone.toFixed(4), model: +c.model.toFixed(4), moved: +c.moved.toFixed(4), need: +c.need.toFixed(4), solo: !!c.solo })),
+      travelDist: +run.travelDist.toFixed(3) };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
