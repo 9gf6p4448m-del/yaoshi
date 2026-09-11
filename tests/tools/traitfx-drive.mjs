@@ -1,6 +1,7 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
 // 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8] [--dt=50]
 //                                            [--shots=<png 目錄>] [--port=8841] [--tier=2] [--nobloom] [--block=<ab>]
+//                                            [--sigdump=<sig 序列檔>]
 // v0.54 三級視覺分級（凍結檔 F2／F10）：
 //   --tier=1  27 支專屬短版（260ms）。case 集合排除三尊（它們恆 tier 3）。
 //   --tier=2  27 支完整版（900ms）＋三尊完整版：與 v0.53 的回歸對照。
@@ -153,7 +154,15 @@ async function runCase(browser, base, c, opt) {
   // R1 M1：時間軸要真的填滿這個 tier 的預算，不能演完之後乾等（sig 為 null 一律不過）
   const fill = sig ? sig.horizon / ms : 0;
   const fillOK = !!sig && fill >= 0.85;
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0 };
+  /* ★M1（覆審 r1）：react 是不是量在出招方自己身上★
+     js/trait-fx.js 的 evalPhases 註解②：「場上只有他一個人時就量他自己」（不這樣寫這條會恆假）。
+     凍結檔 L2 的假綠清單要求「增益招的 react 量在**受益方**身上」，所以 solo 的那一格
+     **不算在條文指定的情境下驗過**——它不是紅，是「這一格沒有證據」。
+     治具的解法：對自益招（獻祭刀 eliteSelfCut 在 POOL 的 count=1）用 --count=2 再跑一次，
+     場上有隊友時 react 就會量在受益方身上（reactSolo=false）。 */
+  const reactClaim = sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === 'react') : null;
+  const reactSolo = reactClaim ? !!reactClaim.solo : null;
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -224,9 +233,34 @@ async function main() {
   const dupSig = sigs.filter((s, i) => sigs.indexOf(s) !== i);
   // F10 的表：逐招印非 flinch 的動作數（＜2 就是偷懶短版）
   const actsTable = results.map((r) => ({ trait: r.case.trait, acts: r.verdict.acts, ok: r.verdict.actionsOK, maxRate: r.sig ? r.sig.maxRate : null, runMs: r.sig ? r.sig.ms : null, horizon: r.verdict.horizon, fill: r.verdict.fill }));
-  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, opts: opt };
+  // M1：react 量在出招方自己身上的那幾套（solo）＝「未在條文情境下驗證」，逐套列名
+  const soloReact = results.filter((r) => r.verdict.reactSolo === true).map((r) => r.case.trait);
+  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, opts: opt };
   console.log(`\nF10 動作數（非 flinch 的 tween／fly／fade／grow）：` + actsTable.map((a) => `${a.trait}=${a.acts}${a.ok ? '' : '✗'}`).join(' '));
+  if (soloReact.length) {
+    console.log(`\n★M1 未在條文情境下驗證（react 量在出招方自己身上，場上只有他一個人）：${soloReact.join(' ')}`);
+    console.log('  自益招要量在受益方身上，請另跑一次 --only=<trId> --count=2（凍結檔 L2 假綠清單第 3 條）');
+  }
   fs.mkdirSync(path.dirname(out), { recursive: true });
+  /* ★H1（覆審 r1）：--sigdump=<檔>★
+     L5 的 trace-eq 只抽 index.html 的第一個 <script> 在 node 裡跑，**完全不載入 js/**，
+     所以本批 index.html 零 diff ⇒ 那條「逐位元組相等」恆真，證明不了 js/trait-fx* 有沒有被動到。
+     這支 dump 把每套的簽章（骨骼／spawn 物／徽記 kind／三段）正規化成一行，
+     批 1–3 可以用 `diff` 直接比出「哪一套的演出真的變了」——那才是對 js/ 有鑑別力的等價證據。 */
+  if (opt.sigdump) {
+    const TAB = '\t';
+    const lines = results.map((r) => {
+      const g = r.sig;
+      if (!g) return r.case.trait + TAB + 'NO_SIG';
+      const ph = (g.phaseDetail || []).map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',');
+      return [r.case.trait, `tier=${g.tier}`, `ms=${g.ms}`, `bones=${(g.bones || []).join('+')}`,
+        `meshes=${(g.meshes || []).join('+')}`, `target=${g.target ? 1 : 0}`, `phases=${ph}`,
+        `acts=${g.acts}`, `horizon=${g.horizon}`, `maxRate=${g.maxRate}`].join(TAB);
+    });
+    fs.mkdirSync(path.dirname(opt.sigdump), { recursive: true });
+    fs.writeFileSync(opt.sigdump, lines.sort().join('\n') + '\n');
+    console.log(`sig 序列 → ${opt.sigdump}（${lines.length} 行；批 1–3 用 diff 比這份，不要只比 trace-eq）`);
+  }
   fs.writeFileSync(out, JSON.stringify({ summary, results }, null, 1));
   console.log(`\n${summary.pass}/${summary.total} pass · 重複簽章 ${dupSig.length} · ${out}`);
   void moves;

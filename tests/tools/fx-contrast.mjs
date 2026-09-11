@@ -138,8 +138,9 @@ async function shoot(browser, base, c, opt, outDir) {
   // M3：program 數改成實測（凍結檔 L8「材質模板固定 3 支、全部預熱」與 Q10「program 2→3」的對照）
   const programs = await page.evaluate(() => window.__tfx.programs());
   const programList = await page.evaluate(() => window.__tfx.programList());
+  const matPrograms = await page.evaluate(() => window.__tfx.matPrograms());
   await ctx.close();
-  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, errors, meshes: sig ? sig.meshes : null };
+  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, matPrograms, errors, meshes: sig ? sig.meshes : null };
 }
 
 async function main() {

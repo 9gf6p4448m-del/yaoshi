@@ -98,6 +98,7 @@ def main():
                'view': shots.get('view'), 'seed': shots.get('seed'),
                'product_bloom': shots.get('productBloom'), 'bthr_override': shots.get('bthrOverride'),
                'programs': shots['cases'][0].get('programs') if shots['cases'] else None,
+               'mat_programs': shots['cases'][0].get('matPrograms') if shots['cases'] else None,
                'bloom': shots['cases'][0].get('bloomCfg') if shots['cases'] else None}
     print(json.dumps(summary, ensure_ascii=False))
     if jsonout:

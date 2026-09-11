@@ -117,8 +117,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      threshold 0.55、strength 1.15）就往白色去，**系色在畫面上根本活不下來**。徽記本體因此走 NormalBlending。
      解法是換材質與換形狀，不是調 bloom 或 EXPOSURE（ART_BIBLE §8 明寫那兩個一動整張牌桌要重驗）。
      注意：blending／opacity／color 都是 render state 與 uniform，**不進 program cacheKey**，
-     所以這支的 shader program 與 MAT_GLOW 共用——材質模板是 3 支，program 數不增（實測見批 0 報告）。 */
+     所以這支的 shader program 與 MAT_GLOW 共用——材質模板是 3 支，program 數不增。
+     ★這句以前是從 three 的 cacheKey 規則推出來的，不是量出來的（覆審 r1 M3）★：
+     下面的 `matPrograms()` 回報三支模板**實際拿到的 program id**（renderer.properties 的 currentProgram），
+     `matTemplates` 也改成數陣列長度而不是寫死 3。凍結檔 Q10 寫「program 2→3」，實測值以 matPrograms() 為準。 */
   const MAT_SOLID = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.NormalBlending, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false });
+  /** 三支材質模板的清單——`matTemplates` 與 `matPrograms()` 都數這一份，不另寫數字。 */
+  const MAT_TEMPLATES = [['MAT_GLOW', MAT_GLOW], ['MAT_LINE', MAT_LINE], ['MAT_SOLID', MAT_SOLID]];
   // 徽記朝鏡頭：相機四元數再往下壓 ICON.billboardTiltDeg（正俯視時完全正對會像貼紙，壓一點才有厚度）
   const TILT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -THREE.MathUtils.degToRad(ICON.billboardTiltDeg));
   const _bq = new THREE.Quaternion();
@@ -752,9 +757,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     wrapped() { return wraps.size; },
     /** 燈組離基準位多遠（驗收 C-2） */
     rigOffset() { return rig ? rig.position.distanceTo(rigBase) : 0; },
-    /** v0.55 診斷：材質模板數（MAT_GLOW／MAT_LINE／MAT_SOLID＝3，其中 SOLID 與 GLOW 共用 program）
-     *  與徽記剪影的頂點／三角形統計（ART_BIBLE §10.2 第 3 條：≤24 頂點、≤22 三角形） */
-    matTemplates: 3,
+    /** v0.55 診斷：材質模板數（MAT_GLOW／MAT_LINE／MAT_SOLID）。★數陣列長度，不寫死數字★（覆審 r1 M3）。 */
+    matTemplates: MAT_TEMPLATES.length,
+    /** v0.55 診斷：三支模板**實際**佔用幾支 GPU program（凍結檔 Q10「program 2→3」的實測對照）。
+     *  取的是 renderer.properties.get(mat).currentProgram.id——只有那支材質真的被畫過才有值
+     *  （三支模板各有一個常駐桌底的暖身物件，所以 render 一幀之後就會有）。
+     *  拿不到 renderer 或還沒畫過就回 null，**不給預設值**：null 代表「沒量到」，不是「2」。 */
+    matPrograms(renderer) {
+      const r = renderer || opts.renderer;
+      if (!r || !r.properties) return null;
+      const rows = MAT_TEMPLATES.map(([name, m]) => {
+        const p = r.properties.get(m);
+        return { name, program: p && p.currentProgram ? p.currentProgram.id : null };
+      });
+      const ids = rows.map((x) => x.program).filter((x) => x !== null);
+      return { templates: MAT_TEMPLATES.length, rows, measured: ids.length, distinct: new Set(ids).size };
+    },
     emblemStats() { try { return EMBLEMS.stats(); } catch (e) { return null; } },
     burstPoints: burst.points,
   };

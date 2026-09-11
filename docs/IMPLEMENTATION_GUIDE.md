@@ -1729,9 +1729,14 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 4. **`MAT_SOLID` 是第三支材質模板，但 program 數不增**。徽記本體走 `NormalBlending`——
    加色的東西一旦越過 bloom 門檻就往白色去，系色在畫面上活不下來，這就是「顏色分不出、全是白」的機制成因
    （解法是換材質與換形狀，**不是調 bloom 或 EXPOSURE**，ART_BIBLE §8 明寫那兩個一動整張牌桌要重驗）。
-   ★實測發現★：`blending`／`opacity`／`color` 都是 render state 與 uniform，**不進 program cacheKey**，
-   所以 `MAT_SOLID` 與 `MAT_GLOW` 共用同一支 shader——**材質模板是 3 支、program 仍是 2 支**，
-   `traitfx-drive` 三個 tier 的 `programsGrew` 全部 0。計畫 §2.1 預期的「2→3 支 program」沒有發生，不必為它付錢。
+   `blending`／`opacity`／`color` 都是 render state 與 uniform，**不進 program cacheKey**，
+   所以 `MAT_SOLID` 與 `MAT_GLOW` 共用同一支 shader——**材質模板是 3 支、program 仍是 2 支**。
+   ★這句原本是推理不是量測（覆審 r1 M3）★：`programsGrew=0` 在 2 支與 3 支下**都**會成立
+   （暖身物件在取樣前就把兩支都預熱掉了），而 `matTemplates: 3` 是寫死的字面值。
+   現在 `traitFx.matPrograms(renderer)` 直接回報三支模板**實際拿到的 program id**
+   （`renderer.properties.get(mat).currentProgram.id`），`matTemplates` 改成數 `MAT_TEMPLATES` 的長度；
+   治具端是 `__tfx.matPrograms()`，`fx-contrast` 每次跑都把它寫進 `shots.json`。
+   實測值見 `docs/experiments/2026-09-12-fx-legibility-b0-fix-report.md`（凍結檔 Q10 寫的是「2→3」）。
    預熱物件仍照加（`warmSolid`），代價是常駐 +1 個 draw call。
 
 5. **六個新積木**（`js/trait-fx.js`，名字照計畫 §2.3 寫死）：
@@ -1770,8 +1775,15 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
    凍幀 A/B 差圖，**同一次載入、同一格畫面、兩幀之間只有 `visible` 一個變數**（抓手是 `st.spawn` 打的
    `userData.fxKind`，治具端是 `__tfx.fxVis(on)`）。判定：`|ΔLuma|≥6` 的特效像素 ≥ 全畫面 **0.8%**
    **且** 這些像素的 CIE76 ΔE 中位 ≥ **28**。`fxVis` 回傳 0 直接判 DEAD——那代表根本沒量到東西。
-   ★量測位置★：治具頁是真實牌桌與夜紫天，但 **bloom threshold 0.5、產品 `js/renderer.js` 是 0.7**；
-   門檻低＝更容易爆白，所以在這裡過是保守的。要量產品端那一格得走 `duel-drive` 的真實對決場景（批 1–3 的正式 L3）。
+   ★量測位置（覆審 r1 C2／H3／H4 之後已改）★：治具頁是真實牌桌與夜紫天，
+   **視口 844×390 @2x**（＝使用者手機的 CSS 尺寸與 DPR，同 `blindread-sheet.mjs`）、
+   **bloom 五個參數逐一對齊產品 `js/renderer.js` 的 `BLOOM`**（threshold 0.7），
+   `fx-contrast.mjs` 每次跑都解析那個檔、與治具頁回報的 **live** `bloomCfg()` 逐鍵比對，分岔就當場 throw；
+   `seed` 記進 `shots.json`。
+   ★不要再寫「治具 bloom 門檻低＝保守」★——那句沒有實測支持而且方向是反的：
+   門檻低＝光暈擴散到更多像素 ⇒ 差圖**面積被高估**（實測 wardImmuneLost 2.2795%→1.5051%，−34%）。
+   ★改視口會改 `area_pct` 的絕對值，舊值不可跨視口比對★（720×405 的 1.189% ＝ 844×390@2x 的 0.9728%）。
+   本批量的仍是**治具棚**，凍結檔 L3 要的那一格（走 `duel-drive` 的真實對決場景）是批 1–3 的正式 L3。
 
 10. **盲讀材料的兩個坑**（`tests/tools/blindread-sheet.mjs`）：
     ★HUD 會洩題★——治具頁左上角那行 debug 文字寫著招名與 ab，批 0 第一版六格全帶，
@@ -1781,9 +1793,44 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     規格：6 幀 2×3、每格 780×360、總圖 1560×1080，短版與完整版混洗成匿名編號，
     對應表 `mapping-HIDDEN.json` **讀者不得看**。`--label` 只給修者自己看。
 
+11. **徽記尺寸的單一事實來源＝`ICON.byKind`／`ICON.flatByKind`**（覆審 r1 C1 之後才變成這樣）。
+    批 0 第一版四支示範招在編舞裡各自寫 `const SZ = 0.56／0.46／0.62／0.40`，
+    於是凍結檔 L3 指名的突變「`ICON.size` 改 0.02 必須紅」對這四支**完全打不到**——
+    實測面積與 ΔE 逐位數不變、`exit 0`，那是一場恆綠的儀式。
+    現在編舞只能讀 `st.iconSize`／`st.iconFlatSize`（＝`ICON.sizeOf(kind)`／`ICON.flatSizeOf(kind)`），
+    `tests/fxvocab.test.mjs` 有一條掃描：**`js/trait-fx/` 下除 `vocab.js` 外的所有 .js 不得出現尺寸字面值**
+    （`size: <數字>`／`const SZ = <數字>`），`--mutate=4` 把字面值塞回去驗紅。
+    ★L3 的 canary 打在 `ICON.sizeOf()` 的回傳值上★（改成固定回 0.02 ⇒ 用到徽記的招全紅）；
+    只改 `ICON.size` 只打得到走預設值的那 23 支。逐招要調尺寸就改表，不要回去寫字面值。
+
+12. **驗「另外 23 支沒被動到」要用逐函式 md5，不是 grep 函式名**（覆審 r1 LOW3）。
+    `node tests/tools/fn-hash.mjs <舊 ref> [新 ref|WORKTREE]` 把三個系別檔切成
+    `MOVES:<trId>`／`SHORT:<trId>` 區塊各算一個 md5，逐支比對（`SHORT` 的別名寫成 `ALIAS->…`）。
+    `git diff --stat` 只證明哪幾個檔被動過、grep 函式標頭只證明函式名沒變，**兩者都驗不到函式體**。
+    比對前一律把 CRLF 收成 LF（git blob 是 LF、Windows checkout 可能是 CRLF，不正規化會全部誤判成變動）。
+
+13. **徽記剪影互撞有機械檢查，但它量的是幾何不是人眼**（覆審 r1 C5-③）。
+    `tests/tools/emblem-sim.mjs`＋`tests/emblem-collision.test.mjs`：低解析度（12×12）灰階 IoU、
+    面積歸一（保留長寬比）、質心對齊。★重要的負結果★：六位讀者實際發生的五組誤讀
+    （`knife`→`blade`、`seal`→`tornflag`／`chair`、`hat`→`wave`／`banner5`）
+    在**任何純幾何門檻**下都排不到 `bell`（唯一被穩定認出的那支）同系配對的前面——
+    五組落在 435 對的第 227／337／374／292／241 名，`bell~lamp` 第 4 名；Hu moments 更差。
+    ⇒ **不得拿這支的綠去宣稱剪影不會互撞**，人眼閘門仍然是 L4 盲讀。
+    它的用途是「同系有沒有新的幾何近似冒出來」：同系 ≥0.80 的必須在測試裡的 `KNOWN_DEBT` 清單中，
+    而清單裡的每一對都必須**現在仍然超標**（死豁免判紅，修好就得刪掉）。
+
+14. **L5 的 `trace-eq` 對本卷零鑑別力**（覆審 r1 H1）。`tests/tools/load.mjs` 只抽 `index.html` 的第一個
+    `<script>` 在 node 裡跑，**完全不載入 `js/`**；本卷 `index.html` 零 diff ⇒ 「逐位元組相等」恆真，
+    它證明的只是 B0-9 已經證明過的事。對 `js/trait-fx*` 有鑑別力的等價證據是
+    `traitfx-drive --sigdump=<檔>`（每套一行：骨骼／spawn 物／徽記 kind／三段／acts／horizon／maxRate），
+    批 1–3 直接 `diff` 兩份 dump 就知道哪一套的演出真的變了。
+
 **治具**：`fx-contrast.mjs`（L3 凍幀 A/B）／`fx-contrast-metrics.py`（面積％＋CIE76 ΔE 中位）／
-`blindread-sheet.mjs`（6 幀 2×3 盲讀材料）／`tests/fxvocab.test.mjs`（文件↔`vocab.js` 對齊，`--mutate=1/2/3` 三個突變體）。
-**埠用 884x／887x 段**（`fx-contrast` 預設 8845、`blindread-sheet` 預設 8846）。
+`blindread-sheet.mjs`（6 幀 2×3 盲讀材料）／`tests/fxvocab.test.mjs`（文件↔`vocab.js` 對齊，
+`--mutate=1/2/3/4` 四個突變體）／`tests/emblem-collision.test.mjs`＋`tests/tools/emblem-sim.mjs`（剪影互撞，`--mutate=1`）／
+`tests/tools/fn-hash.mjs`（逐函式 md5）／`traitfx-drive --sigdump=`（sig 序列）。
+**埠用 884x／887x／888x 段**（`fx-contrast` 預設 8845、`blindread-sheet` 預設 8846）。
 **Playwright 治具一律單獨跑**，兩支並發會讓彼此的 `http.server` 假紅。
-`tests/tools/dmg-readability.mjs` **在 worktree 跑不起來**（只有一段 playwright 候選路徑，R2 覆審 N8 那個坑這支還沒補）——
-批 0 沒跑它，要跑得先補第二段候選路徑。
+`tests/tools/dmg-readability.mjs`／`closeup-drive.mjs` 的第二段 playwright 候選路徑**已補**（覆審 r1 H5），
+worktree 裡跑得動了；L10 的實跑結果與「基準本來就紅」那件事見
+`docs/experiments/2026-09-12-fx-legibility-b0-fix-report.md`。

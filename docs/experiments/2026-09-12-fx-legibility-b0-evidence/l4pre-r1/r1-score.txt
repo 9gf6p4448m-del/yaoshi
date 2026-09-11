@@ -1,0 +1,36 @@
+L4-pre r1
+set    trait            tier  A(答/Q2)         B(答/Q2)         兩位皆對且≥4
+after  biteGamble       1     認不出/3            虎爺印/4            ❌
+after  biteGamble       2     認不出/3            虎爺印/4            ❌
+after  eliteOpenShot    1     射日神弓/4           射日神弓/3           ❌
+after  eliteOpenShot    2     射日神弓/4           射日神弓/3           ❌
+after  eliteSelfCut     1     獻祭刀/3            獻祭刀/3            ❌
+after  eliteSelfCut     2     獻祭刀/3            獻祭刀/3            ❌
+after  eliteVsSwarm     1     認不出/2            認不出/2            ❌
+after  eliteVsSwarm     2     認不出/3            認不出/3            ❌
+after  hauntLost        1     認不出/3            虎姑婆指甲/4          ❌
+after  hauntLost        2     認不出/3            虎姑婆指甲/4          ❌
+after  wardImmuneLost   1     千里眼銅鈴/4          千里眼銅鈴/4          ✅
+after  wardImmuneLost   2     千里眼銅鈴/4          千里眼銅鈴/4          ✅
+before biteGamble       1     認不出/1            認不出/2            ❌
+before biteGamble       2     虎姑婆指甲/4          認不出/3            ❌
+before eliteSelfCut     1     認不出/2            認不出/1            ❌
+before eliteSelfCut     2     認不出/3            認不出/2            ❌
+before hauntLost        1     認不出/2            認不出/2            ❌
+before hauntLost        2     認不出/3            過陰咒/3            ❌
+before wardImmuneLost   1     認不出/1            認不出/1            ❌
+before wardImmuneLost   2     認不出/3            香灰符/3            ❌
+
+方向① 已知可辨仍可辨（after eliteVsSwarm/eliteOpenShot 4 格皆 pass）：❌ 未重現  0/4
+方向② 已知不可辨仍不可辨（before eliteSelfCut/biteGamble 4 格皆不 pass）：✅ 重現  不可辨 4/4
+L4-pre：❌ 材料無效（回頭修材料，不得先改招式）
+
+參考（非閘門）：四支示範招 改前→改後
+  獻祭刀    t1  改前 A 認不出/2 B 認不出/1 ❌  →  改後 A 獻祭刀/3 B 獻祭刀/3 ❌
+  獻祭刀    t2  改前 A 認不出/3 B 認不出/2 ❌  →  改後 A 獻祭刀/3 B 獻祭刀/3 ❌
+  虎爺印    t1  改前 A 認不出/1 B 認不出/2 ❌  →  改後 A 認不出/3 B 虎爺印/4 ❌
+  虎爺印    t2  改前 A 虎姑婆指甲/4 B 認不出/3 ❌  →  改後 A 認不出/3 B 虎爺印/4 ❌
+  千里眼銅鈴  t1  改前 A 認不出/1 B 認不出/1 ❌  →  改後 A 千里眼銅鈴/4 B 千里眼銅鈴/4 ✅
+  千里眼銅鈴  t2  改前 A 認不出/3 B 香灰符/3 ❌  →  改後 A 千里眼銅鈴/4 B 千里眼銅鈴/4 ✅
+  魔神仔紅帽  t1  改前 A 認不出/2 B 認不出/2 ❌  →  改後 A 認不出/3 B 虎姑婆指甲/4 ❌
+  魔神仔紅帽  t2  改前 A 認不出/3 B 過陰咒/3 ❌  →  改後 A 認不出/3 B 虎姑婆指甲/4 ❌

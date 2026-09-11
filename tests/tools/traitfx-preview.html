@@ -212,6 +212,9 @@ window.__tfx = {
   sig() { return traitFx.lastSig(); },
   stats() { return Object.assign({}, traitFx.stats); },
   programs() { return renderer.info.programs ? renderer.info.programs.length : -1; },
+  /** v0.55 M3：三支材質模板實際佔用幾支 program（實測，不是推理；見 js/trait-fx.js 的 matPrograms） */
+  matPrograms() { return typeof traitFx.matPrograms === 'function' ? traitFx.matPrograms(renderer) : null; },
+  matTemplates() { return traitFx.matTemplates; },
   programList() { return (renderer.info.programs || []).map((p) => `${p.name}|${p.id}|${String(p.cacheKey || "")}`); },
   bones() { return figs().map((f) => ({ ab: f.ab, bones: Object.keys(f.parts) })); },
   /** 每尊 group 的世界座標（演出可讀性小卷 R-4：n≤2 站位不得變） */
