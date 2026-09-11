@@ -46,7 +46,12 @@ export const FRAME_AT = [
 ];
 export const CELL = { w: 780, h: 360 };
 export const SHEET = { w: CELL.w * 2, h: CELL.h * 3 }; // 1560×1080
-const SHOT = { width: CELL.w * 2, height: CELL.h * 2 }; // 截圖 2× 再縮到格內（1560×720 → 780×360）
+// ★L4-pre 第 1 輪（2026-09-12）判材料無效後修正★：截圖視口必須是玩家的 CSS 視口（手機橫式 844×390，同 duel-drive），
+// 超取樣用 deviceScaleFactor 2（1688×780 → 縮進 780×360 格）。原本「視口拉到 1560×720 再縮半」拍到的不是玩家看到的畫面：
+// js/duel-figures.js realign() 把人偶縮放到固定 CSS 像素高，視口高一倍、人偶像素高不變 → 人偶佔畫面高從 50% 腰斬成 24%，
+// 已知可辨的虎姑婆指甲在那份材料上兩位讀者皆「認不出」（實測：720×405／844×390／844×390@2x 皆 47–55%，1560×720 為 24%）。
+const SHOT = { width: 844, height: 390 }; // CSS 視口＝手機橫式（不得改成 2× 像素視口，理由見上）
+const SHOT_DSF = 2; // 超取樣倍率：像素緩衝 1688×780
 const FIRE_AT = 12;
 
 function parseArgs(argv) {
@@ -82,7 +87,7 @@ async function serve(root, port) {
 async function shootOne(browser, base, c, tier, dt, tmpDir) {
   const ms = msOf(tier);
   const frames = framesOf(tier, dt);
-  const ctx = await browser.newContext({ viewport: SHOT });
+  const ctx = await browser.newContext({ viewport: SHOT, deviceScaleFactor: SHOT_DSF });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
@@ -119,7 +124,7 @@ async function compose(browser, shot, outFile, label) {
 html,body{margin:0;padding:0;background:#000;width:${SHEET.w}px;height:${SHEET.h}px;overflow:hidden}
 .g{display:grid;grid-template-columns:${CELL.w}px ${CELL.w}px;grid-template-rows:${CELL.h}px ${CELL.h}px ${CELL.h}px;width:${SHEET.w}px;height:${SHEET.h}px}
 .g div{position:relative;width:${CELL.w}px;height:${CELL.h}px;overflow:hidden}
-img{width:${CELL.w}px;height:${CELL.h}px;display:block}
+img{width:${CELL.w}px;height:${CELL.h}px;display:block;object-fit:cover}
 .t{position:absolute;left:6px;top:4px;color:#ff0;font:16px/1.2 monospace;text-shadow:0 0 3px #000}
 </style><div class="g">${imgs.map((d, i) => `<div><img src="${d}">${label ? `<div class="t">${label} · #${i + 1} ${shot.frames[i].ms}ms</div>` : ''}</div>`).join('')}</div>`;
   const tmp = outFile + '.html';
@@ -171,7 +176,7 @@ async function main() {
       console.log(`  ${code}.png ← ${s.trait} t${s.tier}`);
     }
     fs.writeFileSync(path.join(outDir, 'mapping-HIDDEN.json'), JSON.stringify({
-      seed, tiers, dt, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label, mapping,
+      seed, tiers, dt, shot: { ...SHOT, deviceScaleFactor: SHOT_DSF }, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label, mapping,
     }, null, 1));
   } finally { await browser.close(); srv.kill(); }
   fs.rmSync(tmpDir, { recursive: true, force: true });
