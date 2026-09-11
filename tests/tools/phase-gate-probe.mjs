@@ -192,6 +192,12 @@ async function caseTitheBackdrop(page, seed) {
   await page.waitForTimeout(150);
   rec.modalUp = await page.evaluate(`(() => { const m = document.getElementById('modal');
     return !!(m && getComputedStyle(m).display !== 'none' && document.getElementById('titheKeep')); })()`);
+  /* ★量測前先等守衛視窗過去★（v0.53.5 起，合成的 el.click() 也會武裝相位閘）：
+     driveUntil 是用 el.click() 推畫面的，最後那一下會把相位閘武裝起來；治具緊接著送的真滑鼠點擊
+     若落在 500ms 內就會被吞，量到的會是「連第一下都沒生效」。真人從「畫面變了」到「手指按到按鈕」
+     不可能低於 500ms，所以這只是把治具調回人的節奏——判準一格沒動（第一下有沒有生效仍由
+     finalAmt／sacrificed 這些行為斷言在守，被吞就會紅）。 */
+  await page.waitForTimeout(700);
   /* 點 #modal 的背景（左上角區域，一定不在 #modalbox 上）
      ★計時原點要在「點下去」那一刻★：凍結檔寫的是「點完背景 ⇒ promise ≤1s 內 resolve」，
      從 showTitheAsk() 被呼叫起算會把治具自己的 round-trip 也算進去（實測 1161ms＝假紅）。 */
@@ -275,7 +281,15 @@ async function caseShrineDoubleTap(page, seed) {
   const pt = await centerOf(page, '#mainbtn');
   /* 推到「🕯️ 請神」那一頁（按鈕可按），然後真滑鼠快按兩下 */
   await driveUntil(page, /請神/, 'C2 請神鈕', rec.path);
+  /* ★量測前先等守衛視窗過去★（v0.53.5 起，合成的 el.click() 也會武裝相位閘）：
+     driveUntil 是用 el.click() 推畫面的，最後那一下會把相位閘武裝起來；治具緊接著送的真滑鼠點擊
+     若落在 500ms 內就會被吞，量到的會是「連第一下都沒生效」。真人從「畫面變了」到「手指按到按鈕」
+     不可能低於 500ms，所以這只是把治具調回人的節奏——判準一格沒動（第一下有沒有生效仍由
+     finalAmt／sacrificed 這些行為斷言在守，被吞就會紅）。 */
+  await page.waitForTimeout(700);
   rec.before = await page.evaluate(ST);
+  rec.phaseBefore = await page.evaluate(`(() => (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null)()`).catch(() => null);
+  rec.clicksBefore = await page.evaluate(`(() => (window.__clicks || []).length)()`).catch(() => 0);
   await page.mouse.click(pt.x, pt.y);
   await page.waitForTimeout(GAP_FAST);
   rec.wakesBefore2nd = (await page.evaluate(ST)).wakes;
@@ -335,7 +349,15 @@ async function caseHandoffDoubleTap(page, seed, hotspot) {
   rec.handoffUp = await page.evaluate(`(() => { const h = document.getElementById('handoff');
     return !!(h && getComputedStyle(h).display !== 'none'); })()`);
   const pt = hotspot || await centerOf(page, '#hoBtn');
+  /* ★量測前先等守衛視窗過去★（v0.53.5 起，合成的 el.click() 也會武裝相位閘）：
+     driveUntil 是用 el.click() 推畫面的，最後那一下會把相位閘武裝起來；治具緊接著送的真滑鼠點擊
+     若落在 500ms 內就會被吞，量到的會是「連第一下都沒生效」。真人從「畫面變了」到「手指按到按鈕」
+     不可能低於 500ms，所以這只是把治具調回人的節奏——判準一格沒動（第一下有沒有生效仍由
+     finalAmt／sacrificed 這些行為斷言在守，被吞就會紅）。 */
+  await page.waitForTimeout(700);
   rec.before = await page.evaluate(ST);
+  rec.phaseBefore = await page.evaluate(`(() => (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null)()`).catch(() => null);
+  rec.clicksBefore = await page.evaluate(`(() => (window.__clicks || []).length)()`).catch(() => 0);
   /* ★兩下之間不做任何跨行程取樣★：每一次 Node↔瀏覽器往返都可能卡在主執行緒後面，
      實測會把「間隔 120ms」撐過 500ms 視窗而忽紅忽綠（第一下確實有武裝，30～179ms 都量到過）。
      要的診斷改成事後從 window.__clicks 算。 */
@@ -366,6 +388,12 @@ async function caseRepeatTaps(page, seed) {
   if (has < 2) return rec;
   const cap = await page.evaluate(`(() => Math.min(CFG.INC_MAX, incCap(S.players[ACTIVE])))()`);
   rec.cap = cap;
+  /* ★量測前先等守衛視窗過去★（v0.53.5 起，合成的 el.click() 也會武裝相位閘）：
+     driveUntil 是用 el.click() 推畫面的，最後那一下會把相位閘武裝起來；治具緊接著送的真滑鼠點擊
+     若落在 500ms 內就會被吞，量到的會是「連第一下都沒生效」。真人從「畫面變了」到「手指按到按鈕」
+     不可能低於 500ms，所以這只是把治具調回人的節奏——判準一格沒動（第一下有沒有生效仍由
+     finalAmt／sacrificed 這些行為斷言在守，被吞就會紅）。 */
+  await page.waitForTimeout(700);
   for (let k = 0; k < Math.min(3, cap); k++) {
     /* 每一下都重新量位置：按下去之後版面會位移（那正是 F4 的成因） */
     const box = await page.evaluate(`(() => { const bs=[...document.querySelectorAll('.incbar button')];
@@ -378,6 +406,171 @@ async function caseRepeatTaps(page, seed) {
     rec.taps.push({ k, amt });
   }
   rec.finalAmt = await page.evaluate(`(() => (typeof INC !== 'undefined' && INC) ? INC.amt : null)()`);
+  return rec;
+}
+
+/* ═════ D1：★連按兩下獻祭放血只能算一次★（v0.53.5；凍結檔 2026-09-11-acceptance-samebtn-remeaning.md）
+   #bloodBtn 在第一下之後**原地**把文字改成新價錢（自損 BLOOD_COST×(n+1)：2→4→6），
+   而 id／class／inline onclick 三項一格沒變 ⇒ v0.53.4 的相位閘簽名看不到 ⇒ 不武裝 ⇒
+   第二下用**他沒看過的新價錢**又放一次血（自己再扣、所有對手再各扣，直接改壽命、不可逆）。 */
+async function caseBloodDoubleTap(page, seed) {
+  const rec = { path: [] };
+  await newGame(page, seed);
+  await driveUntil(page, /蓋牌/, "D1 出價畫面", rec.path);
+  /* 把獻祭刀放進真人袋子（UI 掛點靠 bloodlet flag），重畫出價畫面讓 #bloodBtn 出現 */
+  rec.setup = await page.evaluate(`(() => {
+    const S = window.__yaoshi.S;
+    if (typeof POOL === "undefined") return { ok: 0, why: "no POOL" };
+    const it = POOL.find((x) => x.ab === "xianji");   /* 獻祭刀：POOL 用 ab 指到 ABILITIES.xianji，不是 id */
+    if (!it) return { ok: 0, why: "no xianji" };
+    S.players[0].bag.push({ ...it });
+    S.players[0].sacrificed = 0;
+    showMarket();
+    const b = document.getElementById("bloodBtn");
+    return { ok: 1, shown: !!b && b.style.display !== "none", label: b ? b.textContent : null,
+      cost: CFG.BLOOD_COST, drain: CFG.BLOOD_DRAIN };
+  })()`);
+  if (!rec.setup.ok || !rec.setup.shown) return rec;
+  rec.before = await page.evaluate(`(() => ({ lives: window.__yaoshi.S.players.map(p => p.life),
+    sac: window.__yaoshi.S.players[0].sacrificed | 0 }))()`);
+  rec.phaseBefore = await page.evaluate(`(() => (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null)()`).catch(() => null);
+  rec.clicksBefore = await page.evaluate(`(() => (window.__clicks || []).length)()`).catch(() => 0);
+  /* ★量測前先等守衛視窗過去★（v0.53.5 起，合成的 el.click() 也會武裝相位閘）：
+     driveUntil 是用 el.click() 推畫面的，最後那一下會把相位閘武裝起來；治具緊接著送的真滑鼠點擊
+     若落在 500ms 內就會被吞，量到的會是「連第一下都沒生效」。真人從「畫面變了」到「手指按到按鈕」
+     不可能低於 500ms，所以這只是把治具調回人的節奏——判準一格沒動（第一下有沒有生效仍由
+     finalAmt／sacrificed 這些行為斷言在守，被吞就會紅）。 */
+  await page.waitForTimeout(700);
+  const box = await page.locator("#bloodBtn").boundingBox();
+  const pt = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await page.mouse.click(pt.x, pt.y);
+  await page.waitForTimeout(GAP_FAST);
+  await page.mouse.click(pt.x, pt.y).catch(() => {});
+  await page.waitForTimeout(300);
+  rec.after = await page.evaluate(`(() => ({ lives: window.__yaoshi.S.players.map(p => p.life),
+    sac: window.__yaoshi.S.players[0].sacrificed | 0,
+    label: (() => { const b = document.getElementById("bloodBtn"); return b ? b.textContent : null; })() }))()`);
+  rec.gap = await page.evaluate(`(() => ({ clicks: window.__clicks.slice(),
+    phaseAt: (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null })) ()`).catch(() => null);
+  return rec;
+}
+
+/* ═════ D2：★熱座供奉佇列不得被代答★
+   兩位真人同夜都跨過供奉門檻 ⇒ S.titheAsk 有兩筆。showTitheAsk 的 step() 把**下一位的那一題**
+   畫進同一個 #modalbox、同一顆 #titheKeep；簽名三項逐位元組相同 ⇒ 不武裝 ⇒
+   第二下替下一位把唯一一次「送神回天」答掉（同一尊只問一次）。 */
+async function caseTitheQueueDoubleTap(page, seed) {
+  const rec = { path: [] };
+  await newGame(page, seed, { mode: "hotseat", roles: ["qingmian", "hongyi"], shrineNights: [1] });
+  /* 兩位真人各塞一尊傳說、抬高門檻讓兩人同夜都進 S.titheAsk（只為走到這條路，不動判定門檻） */
+  rec.setup = await page.evaluate(`(() => {
+    const S = window.__yaoshi.S;
+    if (typeof LEGENDS === "undefined") return { ok: 0 };
+    CFG.TITHE_WARN = 999;
+    S.players[0].bag.push({ ...LEGENDS[0], legend: true });
+    S.players[1].bag.push({ ...LEGENDS[1], legend: true });
+    return { ok: 1, n0: LEGENDS[0].n, n1: LEGENDS[1].n };
+  })()`);
+  /* 推到夜末讓提示視窗自己跳出來（不要按到 titheKeep，也不要按「再入妖市」） */
+  let up = false;
+  for (let i = 0; i < 1500; i++) {
+    up = await page.evaluate(`(() => { const m=document.getElementById("modal");
+      return !!(m && getComputedStyle(m).display !== "none" && document.getElementById("titheKeep")); })()`).catch(() => false);
+    if (up) break;
+    await page.evaluate(`(() => {
+      const h=document.getElementById("handoff");
+      if (h && getComputedStyle(h).display !== "none") { document.getElementById("hoBtn").click(); return; }
+      const b=document.getElementById("mainbtn");
+      if (b && !b.disabled && !/再入妖市/.test(b.textContent)) b.click();
+      const m=document.getElementById("modal");
+      if (m && getComputedStyle(m).display !== "none") {
+        const bs=[...document.querySelectorAll("#modalbox .legendPick")]; if (bs.length) bs[0].click();
+      }
+      const els=[...document.querySelectorAll("#stage button")];
+      const sb=els.find(e=>/passEvent|pickEventOpt|confirmEventNum|__introNext/.test(e.getAttribute("onclick")||""));
+      if (b && b.disabled && sb) sb.click(); })()`).catch(() => {});
+    await page.waitForTimeout(25);
+  }
+  rec.askedByItself = up;
+  if (!up) return rec;
+  rec.queueLen = await page.evaluate(`(() => (window.__yaoshi.S.titheAsk || []).length)()`);
+  rec.q1 = await page.evaluate(`(() => document.getElementById("modalbox").textContent.slice(0, 40))()`);
+  await page.waitForTimeout(700);           /* 讓上一下點擊的守衛視窗過去 */
+  rec.phaseBefore = await page.evaluate(`(() => (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null)()`).catch(() => null);
+  rec.clicksBefore = await page.evaluate(`(() => (window.__clicks || []).length)()`).catch(() => 0);
+  const box = await page.locator("#titheKeep").boundingBox();
+  const pt = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await page.mouse.click(pt.x, pt.y);
+  await page.waitForTimeout(GAP_FAST);
+  await page.mouse.click(pt.x, pt.y).catch(() => {});
+  await page.waitForTimeout(300);
+  rec.after = await page.evaluate(`(() => { const m=document.getElementById("modal");
+    return { modalOn: !!(m && getComputedStyle(m).display !== "none"),
+      hasKeep: !!document.getElementById("titheKeep"),
+      box: document.getElementById("modalbox").textContent.slice(0, 40) }; })()`);
+  rec.gap = await page.evaluate(`(() => ({ clicks: window.__clicks.slice(),
+    phaseAt: (typeof PHASE_AT === "number") ? Math.round(PHASE_AT) : null })) ()`).catch(() => null);
+  return rec;
+}
+
+/* ═════ E1：★鍵盤路徑（無座標的 click）也要被擋★（v0.53.5 覆審 F1）
+   按鈕聚焦後按 Enter／Space 產生的 click，`clientX/clientY` 都是 0。相位閘原本在
+   「吞」之後、「武裝」之前就 `return` 掉這類事件 ⇒ **只會被吞、永遠不會武裝**
+   ⇒ 按住 Enter 在放血鈕上＝D1 那個 bug 的完整替代入口（成本 2→4→6、對手每下各扣）。
+   這一條用 `page.keyboard.press("Enter")` 連按兩下（真鍵盤事件，不是合成 click）。 */
+async function caseBloodKeyboard(page, seed) {
+  const rec = { path: [] };
+  await newGame(page, seed);
+  await driveUntil(page, /蓋牌/, "E1 出價畫面", rec.path);
+  rec.setup = await page.evaluate(`(() => {
+    const S = window.__yaoshi.S;
+    const it = (typeof POOL !== "undefined") ? POOL.find((x) => x.ab === "xianji") : null;
+    if (!it) return { ok: 0 };
+    S.players[0].bag.push({ ...it });
+    S.players[0].sacrificed = 0;
+    showMarket();
+    const b = document.getElementById("bloodBtn");
+    return { ok: 1, shown: !!b && b.style.display !== "none", cost: CFG.BLOOD_COST, drain: CFG.BLOOD_DRAIN };
+  })()`);
+  if (!rec.setup.ok || !rec.setup.shown) return rec;
+  await page.waitForTimeout(700);           /* 讓 showMarket 造成的武裝過期 */
+  rec.before = await page.evaluate(`(() => ({ lives: window.__yaoshi.S.players.map(p => p.life),
+    sac: window.__yaoshi.S.players[0].sacrificed | 0 }))()`);
+  await page.focus("#bloodBtn");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(GAP_FAST);
+  await page.keyboard.press("Enter").catch(() => {});
+  await page.waitForTimeout(300);
+  rec.after = await page.evaluate(`(() => ({ lives: window.__yaoshi.S.players.map(p => p.life),
+    sac: window.__yaoshi.S.players[0].sacrificed | 0 }))()`);
+  return rec;
+}
+
+/* ═════ D3：出價視窗 #sheet 內連按「＋」三下也要逐下生效（與 C6 同一類：數字變、語意不變） ═════ */
+async function caseSheetRepeatTaps(page, seed) {
+  const rec = { path: [], taps: [] };
+  await newGame(page, seed);
+  await driveUntil(page, /蓋牌/, "D3 出價畫面", rec.path);
+  const opened = await page.evaluate(`(() => { if (typeof openSheet !== "function") return 0;
+    openSheet(0); const sh = document.getElementById("sheet");
+    return !!(sh && getComputedStyle(sh).display !== "none"); })()`);
+  rec.opened = opened;
+  if (!opened) return rec;
+  await page.waitForTimeout(700);           /* 開視窗本身是相位切換，等它過去 */
+  for (let k = 0; k < 3; k++) {
+    const box = await page.evaluate(`(() => { const bs = [...document.querySelectorAll("#sheetbox .stepper button")];
+      const plus = bs.find((b) => (b.getAttribute("onclick") || "").includes("bump(1)"));
+      if (!plus) return null; const r = plus.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+    if (!box) break;
+    await page.mouse.click(box.x, box.y);
+    await page.waitForTimeout(150);
+    rec.taps.push(await page.evaluate(`(() => { const a = document.getElementById("shAmt");
+      return a ? +a.textContent : null; })()`));
+  }
+  rec.finalAmt = await page.evaluate(`(() => { const a = document.getElementById("shAmt");
+    return a ? +a.textContent : null; })()`);
+  await page.evaluate(`(() => { if (typeof closeSheet === "function") closeSheet(); })()`).catch(() => {});
   return rec;
 }
 
@@ -412,9 +605,18 @@ async function caseLiveness(page, seed) {
 function gapVerdict(rec, guardMs) {
   const g = rec.gap;
   if (!g || g.phaseAt == null) return { measured: false };
+  /* ★被吞的判斷要用「這一輪進來幾筆」★（覆審 F8）：被相位閘吞掉的點擊不會進 __clicks，
+     所以第二下被吞時最後一筆其實是**第一下**，拿它去減 PHASE_AT 會得到負數而被誤標成
+     「沒被吞、但落在視窗內」。改成數這一輪新增了幾筆：<2 就是至少有一下被吞。 */
+  const added = g.clicks.length - (rec.clicksBefore | 0);
+  if (added < 2) return { measured: true, swallowed: true };
   const t2 = g.clicks.length ? g.clicks[g.clicks.length - 1] : null;
-  if (t2 == null) return { measured: true, swallowed: true };   /* 兩下都沒進來＝都被吞 */
-  return { measured: true, swallowed: false, gapMs: t2 - g.phaseAt, inWindow: (t2 - g.phaseAt) < guardMs };
+  if (t2 == null) return { measured: true, swallowed: true };
+  /* ★「閘根本沒武裝」是**真失敗**，不是量測沒成立★：PHASE_AT 跟第一下之前一模一樣
+     ⇒ 第一下沒被判成相位切換（舊版就是這樣）。不分辨的話會被當成「治具太慢」而白白重試三次。 */
+  if (rec.phaseBefore != null && g.phaseAt === rec.phaseBefore)
+    return { measured: true, swallowed: false, armed: false, notArmed: true };
+  return { measured: true, swallowed: false, armed: true, gapMs: t2 - g.phaseAt, inWindow: (t2 - g.phaseAt) < guardMs };
 }
 async function withGoodGap(runCase, page, seed, guardMs, extra) {
   let last = null;
@@ -425,7 +627,7 @@ async function withGoodGap(runCase, page, seed, guardMs, extra) {
     r.gapInfo = v;
     /* 被吞（第二下沒進 __clicks）＝量到了；沒被吞但落在視窗內＝也量到了（那是真失敗）；
        沒被吞又落在視窗外＝治具太慢，換一局重來。 */
-    if (!v.measured || v.swallowed || v.inWindow) return r;
+    if (!v.measured || v.swallowed || v.inWindow || v.notArmed) return r;
   }
   last.gapMissed = true;
   return last;
@@ -457,6 +659,10 @@ const main = async () => {
     out.c3 = await withGoodGap(caseHandoffDoubleTap, page, SEED, out.guardMs, out.hotspot);
     out.c4 = await caseLiveness(page, SEED);
     out.c6 = await caseRepeatTaps(page, SEED);
+    out.d1 = await withGoodGap(caseBloodDoubleTap, page, SEED, out.guardMs);
+    out.d2 = await withGoodGap(caseTitheQueueDoubleTap, page, SEED, out.guardMs);
+    out.d3 = await caseSheetRepeatTaps(page, SEED);
+    out.e1 = await caseBloodKeyboard(page, SEED);
 
     const c1 = out.c1, c1b = out.c1b, c2 = out.c2, c3 = out.c3, c4 = out.c4;
     out.checks = {
@@ -489,6 +695,46 @@ const main = async () => {
       /* 真座標連按燒香「＋」三下，每一下都要生效（相位閘誤判會靜靜吞掉第 2、3 下） */
       C6_repeat_taps_all_land: { pass: out.c6.incBtns >= 2 && out.c6.finalAmt === Math.min(3, out.c6.cap || 0),
         燒香上限: out.c6.cap, 逐下結果: JSON.stringify(out.c6.taps), 最後的INC: out.c6.finalAmt },
+      /* D1：第二下必須被吞 ⇒ 壽命只扣第一次的價錢、對手只扣一次 DRAIN、sacrificed 只加 1 */
+      D1_blood_second_ignored: (() => {
+        const d = out.d1;
+        if (!d.setup || !d.setup.ok || !d.setup.shown) return { pass: false, why: "放血鈕沒出現（量測失敗）", setup: d.setup };
+        const cost = d.setup.cost, drain = d.setup.drain;
+        const bb = d.before.lives, aa = d.after.lives;
+        const meLost = bb[0] - aa[0], foesLost = [1, 2, 3].map((i) => bb[i] - aa[i]);
+        return { pass: !d.gapMissed && meLost === cost && foesLost.every((x) => x === drain) && d.after.sac === 1,
+          自己少了: `${meLost}（第一次的價錢 ${cost}）`, 對手各少了: JSON.stringify(foesLost) + `（一次 ${drain}）`,
+          放血次數: d.after.sac, 鈕上的字: `${d.setup.label} → ${d.after.label}`,
+          量測: JSON.stringify(d.gapInfo) + (d.attempts > 1 ? `・第 ${d.attempts} 次量到` : "") };
+      })(),
+      /* D2：第二下必須被吞 ⇒ 第二位的那一題還在等他自己答 */
+      D2_tithe_queue_not_autoanswered: (() => {
+        const d = out.d2;
+        if (!d.askedByItself) return { pass: false, why: "提示視窗沒自己跳出來（量測失敗）", setup: d.setup };
+        /* ★`hasKeep` 恆真，不能當判準★（覆審 F6）：`fin()` 只把 #modal 設成 display:none，
+           `#modalbox.innerHTML` 一個字都沒清 ⇒ `#titheKeep` 在答完之後仍留在 DOM 裡。
+           改成「視窗還開著**而且**顯示的已經是**第二位**的那一題」（題目必須跟第一題不同）——
+           這樣也同時擋掉「第一下根本沒生效」那種假綠。 */
+        const movedOn = d.after.box !== d.q1;
+        return { pass: !d.gapMissed && d.after.modalOn === true && movedOn,
+          第二下後視窗還在: d.after.modalOn, 已換成第二位的題目: movedOn,
+          題目: `${d.q1} → ${d.after.box}`,
+          量測: JSON.stringify(d.gapInfo) + (d.attempts > 1 ? `・第 ${d.attempts} 次量到` : "") };
+      })(),
+      /* D3：出價視窗內連按「＋」三下逐下生效（數字變、語意不變 ⇒ 不得武裝） */
+      D3_sheet_repeat_taps: { pass: out.d3.opened === true && out.d3.taps.length === 3
+          && out.d3.taps[2] === out.d3.taps[0] + 2,
+        逐下結果: JSON.stringify(out.d3.taps), 最後的金額: out.d3.finalAmt },
+      /* E1：鍵盤（無座標）路徑的第二下也必須被吞 */
+      E1_blood_keyboard_second_ignored: (() => {
+        const d = out.e1;
+        if (!d.setup || !d.setup.ok || !d.setup.shown) return { pass: false, why: '放血鈕沒出現（量測失敗）' };
+        const bb = d.before.lives, aa = d.after.lives;
+        const meLost = bb[0] - aa[0], foesLost = [1, 2, 3].map((i) => bb[i] - aa[i]);
+        return { pass: meLost === d.setup.cost && foesLost.every((x) => x === d.setup.drain) && d.after.sac === 1,
+          自己少了: `${meLost}（第一次的價錢 ${d.setup.cost}）`, 對手各少了: JSON.stringify(foesLost),
+          放血次數: d.after.sac };
+      })(),
       C4_liveness: { pass: c4.round >= 2 && c4.seats.length === 2,
         solo走到第幾夜: c4.round, 熱座兩席: JSON.stringify(c4.seats), audioWake次數: c4.wakes },
     };
@@ -535,43 +781,75 @@ const mutate = async () => {
   const m4 = cut('try{ audioWake(); }catch(_){}', 'M4 被吞那一下補叫 audioWake');
   /* M3：讓 sigAt 恆回不同字串 ⇒ 每一下點擊都被判成相位切換、整個畫面永遠在吸收
      ⇒ 正常的重複操作（C6 連按燒香）必須紅。守的是「偵測不得過度武裝」。 */
+  const SIG_LINE = 'let s=(el.id||"")+"|"';
   const m3src = src.slice();
-  const j3 = m3src.findIndex((l) => l.includes('return (el.id||"")+"|"'));
-  if (j3 < 0) throw new Error('找不到 sigAt 的 return 那一行');
+  const j3 = m3src.findIndex((l) => l.includes(SIG_LINE));
+  if (j3 < 0) throw new Error('找不到 sigAt 組簽名的那一行');
   const gone3 = m3src[j3].trim();
-  m3src[j3] = '    return String(Math.random());\n';
+  m3src[j3] = '    let s=String(Math.random());\n';
+  /* M5：把 v0.53.5 補進簽名的**兩段**拿掉（元素自己的文字、#modal 問句的雜湊），
+     其餘一字不動 ⇒ 「同一顆按鈕原地改語意」那一類又看不到 ⇒ D1／D2 必須紅。 */
+  const m5src = src.slice();
+  const j5 = m5src.findIndex((l) => l.includes(SIG_LINE));
+  m5src[j5] = '    let s=(el.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(el.className||"");\n';
+  const j5b = m5src.findIndex((l) => l.includes('el.closest("#modal")'));
+  if (j5b < 0) throw new Error('找不到 #modal 雜湊那一行');
+  const gone5 = m5src[j5b].trim();
+  m5src.splice(j5b, 1);
+  /* M6：把「沒有座標就 return」那條行為加回去（v0.53.5 之前的樣子）
+     ⇒ 鍵盤啟動的 click 只會被吞、永遠不武裝 ⇒ E1 必須紅。守的是覆審 F1 那條旁路。 */
+  const m6src = src.slice();
+  const j6 = m6src.findIndex((l) => l.includes('const byPoint=(x>0||y>0);'));
+  if (j6 < 0) throw new Error('找不到 byPoint 那一行');
+  const gone6 = m6src[j6].trim();
+  m6src[j6] = '    if(!(x>0||y>0)) return;\n    const byPoint=true;\n';
   const f1 = 'old-mut-nophasegate.html', f2 = 'old-mut-notithebg.html',
-        f3 = 'old-mut-sigalways.html', f4 = 'old-mut-nowake.html';
+        f3 = 'old-mut-sigalways.html', f4 = 'old-mut-nowake.html', f5 = 'old-mut-sig3only.html',
+        f6 = 'old-mut-nokeyboard.html';
   fs.writeFileSync(path.join(ROOT, f1), m1.out, 'utf8');
   fs.writeFileSync(path.join(ROOT, f2), m2.out, 'utf8');
   fs.writeFileSync(path.join(ROOT, f3), m3src.join(''), 'utf8');
   fs.writeFileSync(path.join(ROOT, f4), m4.out, 'utf8');
+  fs.writeFileSync(path.join(ROOT, f5), m5src.join(''), 'utf8');
+  fs.writeFileSync(path.join(ROOT, f6), m6src.join(''), 'utf8');
   let ok = false;
   try {
     console.log('M1 刪掉：' + m1.gone.slice(0, 55) + '\nM2 刪掉：' + m2.gone.slice(0, 55)
       + '\nM3 改掉：' + gone3.slice(0, 45) + ' → return String(Math.random());'
-      + '\nM4 刪掉：' + m4.gone.slice(0, 55) + '\n');
+      + '\nM4 刪掉：' + m4.gone.slice(0, 55)
+      + '\nM5 簽名退回三項，並刪掉：' + gone5.slice(0, 45)
+      + '\nM6 改掉：' + gone6.slice(0, 40) + ' → 無座標直接 return' + '\n');
     const r1 = await runChild(f1, PORT + 60);
     const r2 = await runChild(f2, PORT + 61);
     const r3 = await runChild(f3, PORT + 62);
     const r4 = await runChild(f4, PORT + 63);
+    const r5 = await runChild(f5, PORT + 64);
+    const r6 = await runChild(f6, PORT + 65);
     const red = (r, k) => new RegExp('紅 FAIL ' + k).test(r.out);
     const c2 = red(r1, 'C2_shrine_pick_survives'), c3 = red(r1, 'C3_handoff_no_stray_mark');
     const c1 = red(r2, 'C1_tithe_backdrop_resolves');
     const c6 = red(r3, 'C6_repeat_taps_all_land');
     const c5 = red(r4, 'C5_audiowake_survives');
-    for (const [tag, r] of [['M1', r1], ['M2', r2], ['M3', r3], ['M4', r4]])
+    const d1 = red(r5, 'D1_blood_second_ignored'), d2 = red(r5, 'D2_tithe_queue_not_autoanswered');
+    const e1 = red(r6, 'E1_blood_keyboard_second_ignored');
+    for (const [tag, r] of [['M1', r1], ['M2', r2], ['M3', r3], ['M4', r4], ['M5', r5], ['M6', r6]])
       console.log(r.out.split('\n').filter((l) => /紅 FAIL|★/.test(l)).map((l) => `  ${tag} ` + l.trim()).join('\n'));
-    ok = c2 && c3 && c1 && c6 && c5;
+    const d3 = red(r3, 'D3_sheet_repeat_taps');   /* 覆審 F7：凍結檔 D6 寫明 M3 ⇒ C6／D3 都要紅，原本漏算 */
+    ok = c2 && c3 && c1 && c6 && d3 && c5 && d1 && d2 && e1;
     console.log(JSON.stringify({ mode: 'mutate',
       M1: { mutation: '刪掉相位閘的吞', expect: 'C2/C3 紅', got: { C2: c2 ? '紅 ✅' : '沒紅 ❌', C3: c3 ? '紅 ✅' : '沒紅 ❌' } },
       M2: { mutation: '刪掉 showTitheAsk 的背景保險', expect: 'C1 紅', got: c1 ? '紅 ✅' : '沒紅 ❌' },
-      M3: { mutation: 'sigAt 恆變（偵測過度武裝）', expect: 'C6 紅', got: c6 ? '紅 ✅' : '沒紅 ❌' },
+      M3: { mutation: 'sigAt 恆變（偵測過度武裝）', expect: 'C6／D3 紅',
+        got: { C6: c6 ? '紅 ✅' : '沒紅 ❌', D3: d3 ? '紅 ✅' : '沒紅 ❌' } },
       M4: { mutation: '刪掉被吞那一下補叫的 audioWake', expect: 'C5 紅', got: c5 ? '紅 ✅' : '沒紅 ❌' },
+      M5: { mutation: '簽名退回三項（拿掉元素文字與 #modal 問句雜湊）', expect: 'D1/D2 紅',
+        got: { D1: d1 ? '紅 ✅' : '沒紅 ❌', D2: d2 ? '紅 ✅' : '沒紅 ❌' } },
+      M6: { mutation: '無座標的 click 直接 return（鍵盤路徑不武裝）', expect: 'E1 紅',
+        got: e1 ? '紅 ✅' : '沒紅 ❌' },
       verdict: ok ? '突變驗紅 ✅' : '突變沒驗紅 ❌（這組綠燈不可信）' }));
   } finally {
     /* 原檔沒動過，「還原」＝刪掉暫存突變體。★清完才 exit★ */
-    for (const x of [f1, f2, f3, f4]) fs.rmSync(path.join(ROOT, x), { force: true });
+    for (const x of [f1, f2, f3, f4, f5, f6]) fs.rmSync(path.join(ROOT, x), { force: true });
   }
   process.exit(ok ? 0 : 1);
 };
