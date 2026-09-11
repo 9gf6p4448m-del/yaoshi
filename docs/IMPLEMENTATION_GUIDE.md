@@ -1698,3 +1698,92 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 `layout-shot` 順帶量請神夜前一夜三張待請卡的 `scrollWidth>clientWidth`（尊名／系別 chip／招式名一個都不許被切），切到就非零離開。
 **埠用 96xx 段**（95xx 是請神卷的）。量基準要一個靜態根：把基準 commit 的 `index.html` 放進一個目錄、`js/`／`assets/` 用 junction 接回來，
 `--root=` 指過去（治具全程不動 worktree 的 `index.html`）。
+
+### 11.29 招式可辨性卷 **0.55** 批 0（2026-09-12，語彙＋積木 API＋MAT_SOLID）——接手前先知道這十件事
+
+規格＝`docs/proposals/2026-09-11-plan-fx-legibility.md`（§1 檔案清單／§2 介面寫死／§6 逐招診斷表／§7 三系語彙表／§8 裁定）；
+驗收凍結＝`docs/experiments/2026-09-11-acceptance-fx-legibility.md`（L0–L12）；
+批 0 工作計畫＝`docs/experiments/2026-09-12-plan-fx-legibility-b0.md`；實跑報告＝`docs/experiments/2026-09-12-fx-legibility-b0-report.md`。
+**批 0 只做地基與四支示範招，另外 23 支沒動**；批 1／2／3 才逐系換（祖靈／香火／陰氣各 9 支）。
+`index.html` 一格未動（VERSION 留到合併時定 0.55）。
+
+1. **這一卷在修什麼**：2026-09-11 的盲讀實測（兩位 context-free 讀者，`docs/experiments/2026-09-11-fx-blindread-r{1,2,3}/`）——
+   27 支招的**完整版就有 14 支兩位都認不出**。三個機制成因，全部是「共用語彙」：
+   白 `orb` 光球 15／27、腳下 `ring`／`disc` 19／27、裸 `beam` 白虛線 9／27（**這組數字是批 0 自己重數的**，
+   計畫 §6 記的 14／17／8 是 0.54 併入前的 `main`，短版上線後又多了幾支）。
+   加上加色材質＋bloom 把系色推白、5 支的法寶本體根本不在 GLB 裡。
+
+2. **單一事實來源＝`js/trait-fx/vocab.js`**（`FX_PAL`／`BEAT_FRAC`＋`beatOf`／`ICON`／`PHASE_GATE`／`EMBLEM_OF`／`DEPRECATED`）。
+   人類可讀版是 `docs/design/ART_BIBLE.md` §10（設計理由的權威）與 `docs/experiments/2026-09-11-fx-vocab.md`（逐格對照），
+   **後者與 `vocab.js` 由 `tests/fxvocab.test.mjs` 釘在一起，不一致判紅**（凍結檔 L12）。改任一邊都要同時改另外兩份。
+   ★**三個系別檔不 import `vocab.js`**★——值由 `makeStage()` 掛到 `st` 上（`st.colors`／`st.beat`／`st.kind`）。
+   理由：系別檔是被 `import(file + V)` 帶 cache-busting query 載進來的，它們若自己 `import './vocab.js'`
+   會多出一份沒有 query 的 module instance。編舞裡**不得再出現任何色碼字面值**。
+
+3. **`BEAT` 是比例不是毫秒**（踩過一次才改的）。第一版寫成 `BEAT = {2:{…settle:[760,900]}}`，
+   0.54 的 F1 閘門（`tests/fxtier.test.mjs` 掃 runtime 的 900 字面值）當場紅——它說得對，
+   那是 `PW_FX.TRAIT_MS_BY_TIER[2]` 的複製品。現在 `vocab.js` 只有 `BEAT_FRAC`（三級各三個切點），
+   毫秒窗由 `beatOf(tier, run.ms)` 用**真正在跑的時長**乘回去；`fxvocab` 另有一條斷言
+   「`vocab.js` 裡不得出現 260／900／1400 任一字面值」。要改節拍**改比例**，不要寫毫秒。
+
+4. **`MAT_SOLID` 是第三支材質模板，但 program 數不增**。徽記本體走 `NormalBlending`——
+   加色的東西一旦越過 bloom 門檻就往白色去，系色在畫面上活不下來，這就是「顏色分不出、全是白」的機制成因
+   （解法是換材質與換形狀，**不是調 bloom 或 EXPOSURE**，ART_BIBLE §8 明寫那兩個一動整張牌桌要重驗）。
+   ★實測發現★：`blending`／`opacity`／`color` 都是 render state 與 uniform，**不進 program cacheKey**，
+   所以 `MAT_SOLID` 與 `MAT_GLOW` 共用同一支 shader——**材質模板是 3 支、program 仍是 2 支**，
+   `traitfx-drive` 三個 tier 的 `programsGrew` 全部 0。計畫 §2.1 預期的「2→3 支 program」沒有發生，不必為它付錢。
+   預熱物件仍照加（`warmSolid`），代價是常駐 +1 個 draw call。
+
+5. **六個新積木**（`js/trait-fx.js`，名字照計畫 §2.3 寫死）：
+   `st.icon(kind,pos,o)` 一片朝鏡頭的法寶剪影／`st.icons(kind,positions,o)` 同 kind ≥3 份走 InstancedMesh（1 個 draw call）／
+   `st.trail(obj,from,to,o)` 飛行物＋拖尾（取代裸 beam）／`st.mark(fig,kind,o)` 蓋在受招方身上並跟著走／
+   `st.colors`／`st.beat`／`st.kind`／`st.phase(name)`。另外 `st.fade`／新增的 `st.alpha` 會走 `userData.fxParts`
+   把「本體＋ink 底板（＋描邊）」三片一起淡——只淡本體會留下一片孤零零的黑底板。
+   ★`o.outline` 預設畫的是 **ink 色的實心底板**，不是 `MAT_LINE` 描邊★：加色的細線正是盲讀抱怨的「白虛線」，
+   而且 1px 線在 780×360 的盲讀格上連面積都量不到。真的要 `MAT_LINE` 外框就開 `o.rimLine`。
+   `o.flat` 把徽記壓平貼桌（陰氣的水漬／暗斑、香火的貼桌陣），壓平的就不逐幀 billboard。
+
+6. **徽記 geometry 是全場共用的**（`js/trait-fx/emblems.js` 的 `geomOf` Map 快取，一個 kind 建一次）。
+   因此 `finish()` 的清場保險絲改成**跳過 `geometry.userData.fxShared` 的**——照原樣 dispose 掉，
+   下一次用到同一個 kind 的招會在 GPU 上拿到空 buffer。加新 kind 時記得這件事。
+   複雜度上限 ≤24 個外框頂點（`fxvocab` 在守）；`coin` 是唯一挖洞的（外圓內方，方孔是它唯一的辨識點）。
+
+7. **`st.phase` 不是「喊了就算」**。打點只是打點，記不記進 `run.sig.phases` 由**打點當下那一段的實際條件**決定
+   （門檻在 `vocab.js` 的 `PHASE_GATE`）。三個實作細節是踩出來的：
+   (a) **打點要放在前一段 tween 的 `done` 裡**——編舞函式是在 `run.vt=0` 時同步跑完的，
+       寫在函式頂層的 `st.phase('react')` 會在第 0 毫秒就結算；
+   (b) **travel 的基準要在打點當下抓**，不能留給逐幀評估惰性抓：打點發生在 `done` 裡，
+       同一幀後面還有飛行 tween 會先改掉位置（實測千里眼因此從 1.38 掉到 0.70，硬生生低於門檻）；
+   (c) **react 量「打點之後變了多少」，而且場上只有施術者一個人時就量他自己**——
+       量絕對值會被 windup 留下的位移弄成恆真；一律排掉施術者則對自益招（獻祭刀在治具裡只有 1 尊）恆假。
+       `sig.phaseDetail[].solo` 會標出是哪一種情況。
+
+8. **短版與完整版是同一支函式**。`SHORT[trId] = MOVES[trId]`，時間軸全部從 `st.beat` 換算。
+   0.54 的「27 支各寫一條原生短版」是既有的分岔源，本卷不再往上疊第二層。
+   系別檔的 `export default {…}` 因此改寫成 `const MOVES = {…}; export default MOVES;`。
+   ★寫時間軸的兩條硬紀律（0.54 那一節已經寫過，這裡再提是因為又踩了一次）★：
+   **最後一條補間結束在 `st.ms × 0.88`**（`rate` 公式在 dt=16.7ms 下的分母是 `ms − max(endMargin×k, dt×1.5)`，
+   tier 1 只有 235ms，horizon 超過就 `rate>1`、F2 的 `rateOK` 紅）；
+   **`st.flinch` 一定要帶 `ms`**——預設是 `TFX.flinchMs×k`（tier 1 下 69ms），從 react 起算會把 horizon 推到 249。
+
+9. **L3 對比閘門怎麼量**（`tests/tools/fx-contrast.mjs` ＋ `fx-contrast-metrics.py`）：
+   凍幀 A/B 差圖，**同一次載入、同一格畫面、兩幀之間只有 `visible` 一個變數**（抓手是 `st.spawn` 打的
+   `userData.fxKind`，治具端是 `__tfx.fxVis(on)`）。判定：`|ΔLuma|≥6` 的特效像素 ≥ 全畫面 **0.8%**
+   **且** 這些像素的 CIE76 ΔE 中位 ≥ **28**。`fxVis` 回傳 0 直接判 DEAD——那代表根本沒量到東西。
+   ★量測位置★：治具頁是真實牌桌與夜紫天，但 **bloom threshold 0.5、產品 `js/renderer.js` 是 0.7**；
+   門檻低＝更容易爆白，所以在這裡過是保守的。要量產品端那一格得走 `duel-drive` 的真實對決場景（批 1–3 的正式 L3）。
+
+10. **盲讀材料的兩個坑**（`tests/tools/blindread-sheet.mjs`）：
+    ★HUD 會洩題★——治具頁左上角那行 debug 文字寫著招名與 ab，批 0 第一版六格全帶，
+    等於在盲讀材料上直接印答案；截圖前一定要 `addStyleTag` 把 `#hud` 藏掉。
+    ★幀位寫死在本檔的 `FRAME_AT`★（`BEAT[tier]` 的 windup 中點／travel 起／中／末／react 起／末），
+    其中「travel 末」與「react 起」在 `BEAT` 上是同一個瞬間，各自往自己那一段內縮 5%／15% 才不會有兩格一樣。
+    規格：6 幀 2×3、每格 780×360、總圖 1560×1080，短版與完整版混洗成匿名編號，
+    對應表 `mapping-HIDDEN.json` **讀者不得看**。`--label` 只給修者自己看。
+
+**治具**：`fx-contrast.mjs`（L3 凍幀 A/B）／`fx-contrast-metrics.py`（面積％＋CIE76 ΔE 中位）／
+`blindread-sheet.mjs`（6 幀 2×3 盲讀材料）／`tests/fxvocab.test.mjs`（文件↔`vocab.js` 對齊，`--mutate=1/2/3` 三個突變體）。
+**埠用 884x／887x 段**（`fx-contrast` 預設 8845、`blindread-sheet` 預設 8846）。
+**Playwright 治具一律單獨跑**，兩支並發會讓彼此的 `http.server` 假紅。
+`tests/tools/dmg-readability.mjs` **在 worktree 跑不起來**（只有一段 playwright 候選路徑，R2 覆審 N8 那個坑這支還沒補）——
+批 0 沒跑它，要跑得先補第二段候選路徑。

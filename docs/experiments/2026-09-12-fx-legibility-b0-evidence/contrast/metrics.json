@@ -1,0 +1,79 @@
+{
+ "summary": {
+  "gate": {
+   "area_pct_min": 0.8,
+   "de_median_min": 28.0,
+   "luma_eps": 6.0
+  },
+  "n": 4,
+  "pass": 4,
+  "failed": [],
+  "view": {
+   "width": 720,
+   "height": 405
+  },
+  "bloom": {
+   "on": true,
+   "strength": 1.05,
+   "threshold": 0.5,
+   "knee": 0.3,
+   "radius": 1.7,
+   "scale": 0.5,
+   "edge": true
+  }
+ },
+ "rows": [
+  {
+   "trait": "eliteSelfCut",
+   "tier": 2,
+   "at_ms": 430,
+   "hidden": 2,
+   "dead": false,
+   "ok": true,
+   "area_pct": 1.189,
+   "px": 3467,
+   "total": 291600,
+   "de_median": 63.35,
+   "de_p90": 63.68
+  },
+  {
+   "trait": "wardImmuneLost",
+   "tier": 2,
+   "at_ms": 430,
+   "hidden": 4,
+   "dead": false,
+   "ok": true,
+   "area_pct": 2.2795,
+   "px": 6647,
+   "total": 291600,
+   "de_median": 109.5,
+   "de_p90": 122.66
+  },
+  {
+   "trait": "biteGamble",
+   "tier": 2,
+   "at_ms": 430,
+   "hidden": 3,
+   "dead": false,
+   "ok": true,
+   "area_pct": 2.4174,
+   "px": 7049,
+   "total": 291600,
+   "de_median": 65.03,
+   "de_p90": 83.09
+  },
+  {
+   "trait": "hauntLost",
+   "tier": 2,
+   "at_ms": 430,
+   "hidden": 5,
+   "dead": false,
+   "ok": true,
+   "area_pct": 2.6241,
+   "px": 7652,
+   "total": 291600,
+   "de_median": 82.02,
+   "de_p90": 85.64
+  }
+ ]
+}

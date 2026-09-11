@@ -1,0 +1,250 @@
+{
+ "perf": {
+  "loadMs": 187,
+  "rendersPerSec": 262.7,
+  "rafMedianFps": 59.9,
+  "rafP95Ms": 16.8,
+  "rafFrames": 132,
+  "drawCallsPerFrame": 878,
+  "trianglesPerFrame": 333796,
+  "renderPassesPerFrame": 10,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "visible": 14,
+  "total": 16,
+  "skins": 16
+ },
+ "errors": [],
+ "fxc": {
+  "burn": 5,
+  "burnDom": 1,
+  "burnFig": 4,
+  "trait": 0,
+  "traitFig": 0,
+  "beat": 6,
+  "duels": 2,
+  "focus": 8,
+  "dmgFloat": 13,
+  "traits": {},
+  "beats": {
+   "一拍・撞": 2,
+   "二拍・護": 2,
+   "三拍・祟": 2
+  },
+  "tiers": {
+   "1": 4,
+   "2": 2,
+   "3": 0
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 1,
+      "kind": "hit",
+      "actor": 0,
+      "target": 0,
+      "ms": 650
+     },
+     {
+      "beat": 1,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "A",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 10
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 2,
+      "shown": [],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 4,
+    "burnCalls": 4,
+    "warBurn": 4,
+    "burnDom": 0,
+    "burnFig": 4,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 1,
+      "kind": "hit",
+      "actor": 0,
+      "target": 0,
+      "ms": 650
+     },
+     {
+      "beat": 1,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     },
+     {
+      "beat": 2,
+      "kind": "hit",
+      "actor": 0,
+      "target": 2,
+      "ms": 650
+     },
+     {
+      "beat": 2,
+      "kind": "burn",
+      "actor": 2,
+      "target": null,
+      "ms": 600
+     },
+     {
+      "beat": 3,
+      "kind": "hit",
+      "actor": 0,
+      "target": 1,
+      "ms": 650
+     },
+     {
+      "beat": 3,
+      "kind": "burn",
+      "actor": 1,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 8
+       },
+       {
+        "kind": "splash",
+        "side": "B",
+        "actor": 0,
+        "target": 1,
+        "amount": 4
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 2,
+        "amount": 8
+       },
+       {
+        "kind": "splash",
+        "side": "B",
+        "actor": 0,
+        "target": 3,
+        "amount": 4
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 2
+       }
+      ]
+     },
+     {
+      "beat": 3,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 1,
+        "amount": 8
+       },
+       {
+        "kind": "splash",
+        "side": "B",
+        "actor": 0,
+        "target": 3,
+        "amount": 4
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 1
+       },
+       {
+        "side": "A",
+        "target": 3
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "load": {
+   "ms": 42,
+   "total": 5,
+   "loaded": 5,
+   "timedOut": false,
+   "readyAt": 1789151353401
+  }
+ }
+}
