@@ -91,6 +91,9 @@ async function shootOne(browser, base, c, tier, dt, tmpDir) {
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
+  // ★HUD 一定要藏★：治具頁左上角那行 debug 文字寫著招名與 ab（'eliteSelfCut xianjixl ready …'），
+  //   不藏就等於在盲讀材料上直接印答案（批 0 第一版真的印出去了，a11.png 六格全帶）。
+  await page.addStyleTag({ content: '#hud{display:none!important}' });
   await page.evaluate((n) => window.__tfx.stepA(n), FIRE_AT + 2);
   await page.evaluate(() => window.__tfx.resetB());
   await page.evaluate((n) => window.__tfx.stepB(n), FIRE_AT);

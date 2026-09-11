@@ -444,8 +444,8 @@ const MOVES = {
     // 傷口要落在體外一點：擺進 Chest 骨的位置會被自己的身體擋掉（材質有 depthTest），什麼都看不到
     const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.18);
     neck.y += 0.06;
-    const A = neck.clone().addScaledVector(st.dir, -0.70); A.y += 0.42; // 刀的起點：後上方
-    const Z = neck.clone().addScaledVector(st.dir, 0.70); Z.y -= 0.30; // 刀的終點：前下方
+    const A = neck.clone().addScaledVector(st.dir, -0.52); A.y += 0.34; // 刀的起點：後上方（再往後就離鹿太遠、讀起來像不相干的漂浮物）
+    const Z = neck.clone().addScaledVector(st.dir, 0.82); Z.y -= 0.30; // 刀的終點：前下方（整段仍要跨過 travel 門檻的 40%）
     const SZ = 0.56;
     /* ★配色與計畫 §6 的建議相反，理由是實測★：計畫建議「近黑實心 ink ＋靛藍 key 描邊」，
        但 L3 實測（凍幀 A/B 差圖）在暗紅桌＋夜紫天上 **CIE76 ΔE 中位只有 25.13、低於門檻 28**

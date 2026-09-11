@@ -1,0 +1,237 @@
+{
+ "seed": 20260912,
+ "tiers": [
+  1,
+  2
+ ],
+ "dt": 16.666666666666668,
+ "cell": {
+  "w": 780,
+  "h": 360
+ },
+ "sheet": {
+  "w": 1560,
+  "h": 1080
+ },
+ "frameAt": [
+  {
+   "seg": "windup",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0
+  },
+  {
+   "seg": "travel",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0.95
+  },
+  {
+   "seg": "react",
+   "f": 0.15
+  },
+  {
+   "seg": "react",
+   "f": 0.95
+  }
+ ],
+ "labelled": false,
+ "mapping": [
+  {
+   "code": "a01",
+   "trait": "eliteSelfCut",
+   "ab": "xianji",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a01.png"
+  },
+  {
+   "code": "a02",
+   "trait": "eliteVsSwarm",
+   "ab": "nail",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a02.png"
+  },
+  {
+   "code": "a03",
+   "trait": "eliteOpenShot",
+   "ab": "bow",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a03.png"
+  },
+  {
+   "code": "a04",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a04.png"
+  },
+  {
+   "code": "a05",
+   "trait": "hauntLost",
+   "ab": "redhat",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a05.png"
+  },
+  {
+   "code": "a06",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a06.png"
+  },
+  {
+   "code": "a07",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a07.png"
+  },
+  {
+   "code": "a08",
+   "trait": "eliteVsSwarm",
+   "ab": "nail",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a08.png"
+  },
+  {
+   "code": "a09",
+   "trait": "eliteOpenShot",
+   "ab": "bow",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a09.png"
+  },
+  {
+   "code": "a10",
+   "trait": "hauntLost",
+   "ab": "redhat",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a10.png"
+  },
+  {
+   "code": "a11",
+   "trait": "eliteSelfCut",
+   "ab": "xianji",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a11.png"
+  },
+  {
+   "code": "a12",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 1,
+   "ms": 260,
+   "frames": [
+    3,
+    5,
+    8,
+    11,
+    12,
+    14
+   ],
+   "file": "docs/experiments/2026-09-12-fx-legibility-b0-evidence/sheets-after/a12.png"
+  }
+ ]
+}
