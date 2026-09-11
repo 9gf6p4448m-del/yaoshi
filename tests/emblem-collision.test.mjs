@@ -11,7 +11,16 @@
    實測五組落在 435 對的第 227／337／374／292／241 名，而 bell~lamp 排第 4。
    Hu moments 更差（第 193–305 名，bell~lamp 第 15）。
    ⇒ **這支測試的紅不等於「讀者會認錯」**，它只回答「這兩個剪影在低解析度下重疊多少」。
-      人眼閘門仍然是 L4 盲讀，不得拿本檔的綠去宣稱剪影不會互撞（那會是零鑑別力的檢查）。 */
+      人眼閘門仍然是 L4 盲讀，不得拿本檔的綠去宣稱剪影不會互撞（那會是零鑑別力的檢查）。
+
+   ★為什麼第一版只守同系，現在跨系也守（覆審 r2 N5）★
+   第一版的閘門只過濾 `p.sameFac`，理由是「同一隊上下相鄰出現的機率最高」。但實測 IoU ≥0.80 的 16 對裡
+   **13 對是跨系**，而且全表最高的 `bell~shade = 0.9290`（千里眼銅鈴 vs 過陰咒）就是跨系——
+   對決場上正面相對的本來就是不同系的兩隊，跨系互撞比同系更貼近玩家真的會遇到的情境。
+   所以第 4／5 條改成**同系與跨系各有一張債表**（`KNOWN_DEBT`／`CROSS_DEBT`），規則相同：
+   超標的必須在表裡、表裡的每一對都必須現在仍然超標（死豁免判紅）。
+   兩張表分開而不是合成一張，是因為**處置優先序不同**：同系要在批 1 前置回修，
+   跨系目前只當記錄與回歸護欄（Q8 的 GLB 回修小卷才會動剪影本體）。 */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -36,6 +45,24 @@ const KNOWN_DEBT = [
   ['urn', 'drop'],    // 飼鬼甕 vs 黃色小雨衣：兩個都是「上窄下寬、底部收圓」的塊
   ['bell', 'lamp'],   // 千里眼銅鈴 vs 福壽綿長：兩個都是「上尖下外撇」的器物
   ['drop', 'shade'],  // 黃色小雨衣 vs 過陰咒：兩個都是「上尖下鈍」的水滴／兜帽
+];
+/** 跨系近似清單（覆審 r2 N5）。**只是記錄與回歸護欄，不是批 1 前置回修項**——
+ *  剪影本體要動是 Q8 的 GLB 回修小卷。規則與 KNOWN_DEBT 相同：超標的必須在表裡、表裡的每一對
+ *  都必須現在仍然超標（死豁免判紅），所以它一樣只能縮不能長。 */
+const CROSS_DEBT = [
+  ['bell', 'shade'],    // 0.9290 香火/陰氣：★全表最高★ 千里眼銅鈴 vs 過陰咒，兩個都是「上尖下外撇」
+  ['crag', 'urn'],      // 0.8480 祖靈/陰氣：山神岩塊 vs 飼鬼甕
+  ['rhomb', 'talis'],   // 0.8333 祖靈/香火：百步蛇紋菱帶 vs 香灰方符
+  ['lamp', 'shade'],    // 0.8258 香火/陰氣
+  ['talis', 'tablet'],  // 0.8202 香火/傳說：香灰符 vs 有應公牌位
+  ['bead', 'drop'],     // 0.8182 祖靈/陰氣
+  ['bead', 'urn'],      // 0.8161 祖靈/陰氣
+  ['bead', 'sundisc'],  // 0.8136 祖靈/傳說
+  ['seal', 'urn'],      // 0.8118 香火/陰氣
+  ['bell', 'urn'],      // 0.8068 香火/陰氣
+  ['crag', 'sundisc'],  // 0.8034 祖靈/傳說
+  ['sun', 'sundisc'],   // 0.8011 祖靈/傳說：射日的太陽 vs 殘日（語意上本來就同源）
+  ['knife', 'tablet'],  // 0.8000 祖靈/傳說
 ];
 const key = (a, b) => [a, b].sort().join('~');
 
@@ -93,6 +120,17 @@ t(`同系 IoU ≥${GATE} 的配對全部在批 1 前置回修清單裡`, () => {
 t('回修清單裡的每一對現在仍然真的超標（死豁免判紅）', () => {
   const dead = KNOWN_DEBT.filter(([a, b]) => { const p = get(a, b); return !p || p.iou < GATE; });
   if (dead.length) throw new Error('這幾對已經不超標了，請把它們從 KNOWN_DEBT 刪掉：' + dead.map(([a, b]) => { const p = get(a, b); return `${a}~${b}=${p ? p.iou : '不存在'}`; }).join(' '));
+});
+
+t(`跨系 IoU ≥${GATE} 的配對全部在跨系記錄清單裡（覆審 r2 N5）`, () => {
+  const over = pairs.filter((p) => !p.sameFac && p.iou >= GATE);
+  const allow = new Set(CROSS_DEBT.map(([a2, b2]) => key(a2, b2)));
+  const surprise = over.filter((p) => !allow.has(key(p.a, p.b)));
+  if (surprise.length) throw new Error('新的跨系互撞（不在 CROSS_DEBT 裡）：' + surprise.map((p) => `${p.a}~${p.b}=${p.iou}`).join(' '));
+});
+t('跨系記錄清單裡的每一對現在仍然真的超標（死豁免判紅）', () => {
+  const dead = CROSS_DEBT.filter(([a2, b2]) => { const p = get(a2, b2); return !p || p.iou < GATE; });
+  if (dead.length) throw new Error('這幾對已經不超標了，請把它們從 CROSS_DEBT 刪掉：' + dead.map(([a2, b2]) => { const p = get(a2, b2); return `${a2}~${b2}=${p ? p.iou : '不存在'}`; }).join(' '));
 });
 
 /* ── 5. 報告：全部紅配對（批 1 前置回修的材料，不進判定） ───────────────── */
