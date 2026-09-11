@@ -113,7 +113,6 @@ const MOVES = {
     const lost = (st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm') : st.target).slice(0, 2);
     const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
     const fwd = ghosts.map((g) => st.toward(g, new THREE.Vector3()));
-    const SZ = 0.40;
     // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點
     const point = (g, k) => {
       const open = Math.max(0, k);
@@ -135,7 +134,7 @@ const MOVES = {
       const g = ghosts[Math.min(i, ghosts.length - 1)];
       const from = st.top(g, new THREE.Vector3()); from.y += 0.14;
       const to = st.top(f, new THREE.Vector3()); to.y += 0.13;
-      return { f, from, to, mesh: st.icon(st.kind, from, { size: SZ, color: C.hot, inkColor: C.ink, opacity: 0 }) };
+      return { f, from, to, mesh: st.icon(st.kind, from, { color: C.hot, inkColor: C.ink, opacity: 0 }) };
     });
     // 地面錯亂腳印：同一個 kind 壓平貼桌、近黑不規則（陰氣的「不規則暗斑」，InstancedMesh = 1 個 draw call）
     const prints = [];
@@ -148,7 +147,7 @@ const MOVES = {
         rolls.push(st.rnd() * Math.PI * 2);
       }
     });
-    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, size: 0.20, color: C.ink, opacity: 0 }) : null;
+    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, size: st.iconFlatSize, color: C.ink, opacity: 0 }) : null;
 
     st.phase('windup');
     /* ① 帽尖後仰蓄勢（windup）：陰氣＝出招前一拍完全靜止、拍子卡頓，四尊錯開 */
@@ -167,7 +166,7 @@ const MOVES = {
     });
     // 帽徽記在蓄勢末才浮現（陰氣不補間：一格到位）
     flying.forEach((F, i) => st.tween({ ms: W * 0.28, delay: W * 0.62 + i * W * 0.05, ease: 'out', update(t, e) {
-      st.alpha(F.mesh, e); F.mesh.scale.setScalar(SZ * (0.55 + 0.45 * e));
+      st.alpha(F.mesh, e); F.mesh.scale.setScalar(st.iconSize * (0.55 + 0.45 * e));
     }, done() { if (i === 0) st.phase('travel'); } }));
     /* ② 紅帽飛過去扣在頭上（travel）——原本這一段完全沒有飛行物 */
     flying.forEach((F, i) => st.trail(F.mesh, F.from, F.to, {

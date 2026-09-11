@@ -257,8 +257,7 @@ const MOVES = {
     const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
     src.y += 0.10;
     const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里
-    const SZ = 0.46;
-    const bell = st.icon(st.kind, src, { size: SZ, color: C.key, inkColor: C.ink, opacity: 0 });
+    const bell = st.icon(st.kind, src, { color: C.key, inkColor: C.ink, opacity: 0 });
     const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
 
     st.phase('windup');
@@ -270,7 +269,7 @@ const MOVES = {
       st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
       st.rim(ringer, 1 + 1.2 * e);
       st.alpha(bell, Math.min(1, e * 2.2));
-      bell.scale.setScalar(SZ * (0.4 + 0.6 * e));
+      bell.scale.setScalar(st.iconSize * (0.4 + 0.6 * e));
     } });
     st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
       update(t) {
@@ -405,8 +404,7 @@ const MOVES = {
     if (!brow.lengthSq()) st.worldOf(cat, null, brow);
     const start = brow.clone().addScaledVector(st.dir, 0.16); start.y += 0.22;
     const hit = prey ? st.worldOf(prey, null, new THREE.Vector3()) : start.clone().addScaledVector(st.dir, 1.4);
-    const SZ = 0.62;
-    const seal = st.icon(st.kind, start, { size: SZ, color: C.hot, inkColor: C.ink, opacity: 0 });
+    const seal = st.icon(st.kind, start, { color: C.hot, inkColor: C.ink, opacity: 0 });
     const stamp = prey ? st.mark(prey, st.kind, { opacity: 0, color: C.hot }) : null;
 
     st.phase('windup');
@@ -421,7 +419,7 @@ const MOVES = {
         st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
         st.rim(cat, 1 + 1.0 * e);
         st.alpha(seal, Math.min(1, e * 2));
-        seal.scale.setScalar(SZ * (0.35 + 0.75 * e)); // 過衝一點再收，印才有「蓋下來」的重量
+        seal.scale.setScalar(st.iconSize * (0.35 + 0.75 * e)); // 過衝一點再收，印才有「蓋下來」的重量
         seal.userData.fxRoll = 0.55 * (1 - e);
       },
       done() { st.phase('travel'); } });

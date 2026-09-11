@@ -44,8 +44,28 @@ export function beatOf(tier, ms) {
   return { windup: [0, a], travel: [a, b], react: [b, c], settle: [c, Math.round(ms)] };
 }
 
-/** 徽記的尺寸常數（世界單位）。size＝法寶本體、markSize＝蓋在受招／受益方身上的印記。 */
-export const ICON = { size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30 };
+/** 徽記的尺寸常數（世界單位）。size＝法寶本體的**預設值**、markSize＝蓋在受招／受益方身上的印記。
+ *  ★尺寸的單一事實來源★（覆審 r1 C1）：批 0 第一版四支示範招在編舞裡各自寫死
+ *  `const SZ = 0.56／0.46／0.62／0.40`，於是凍結檔 L3 指名的突變「`ICON.size` 改 0.02 必須紅」
+ *  對這四支**完全打不到**——實測面積與 ΔE 逐位數不變、exit 0，那是一場恆綠的儀式。
+ *  現在逐招尺寸一律住在 byKind／flatByKind 這兩張表裡，編舞只能讀 `st.iconSize`／`st.iconFlatSize`；
+ *  `tests/fxvocab.test.mjs` 的「編舞不得出現尺寸字面值」掃描（--mutate=4 驗紅）守住這條紀律。
+ *  ★L3 的 canary 打在 `sizeOf()` 的回傳值上★：把它改成固定回 0.02，用到徽記的招必須全部判紅
+ *  （byKind 有覆寫的四支也逃不掉；只改 `size` 只打得到走預設值的那 23 支）。 */
+export const ICON = {
+  size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30,
+  /** 逐 kind 的本體尺寸覆寫（沒列出的 kind 走 size 預設）。
+   *  四個數字＝批 0 四支示範招原本寫死的 SZ，搬家不改值：
+   *  knife 獻祭刀 0.56／bell 千里眼銅鈴 0.46／seal 虎爺印 0.62／hat 魔神仔紅帽 0.40。 */
+  byKind: { knife: 0.56, bell: 0.46, seal: 0.62, hat: 0.40 },
+  /** 逐 kind 的「貼桌副件」尺寸（st.icons 的 flat:true：陰氣的水漬／錯亂腳印、香火的貼桌陣）。
+   *  沒列出就回 sizeOf()。hat 0.20＝魔神仔紅帽的地面腳印，同樣是搬家不改值。 */
+  flatByKind: { hat: 0.20 },
+  /** 這個 kind 的徽記本體尺寸（世界單位）。 */
+  sizeOf(kind) { const v = this.byKind[kind]; return v === undefined ? this.size : v; },
+  /** 這個 kind 貼桌副件的尺寸（世界單位）。 */
+  flatSizeOf(kind) { const v = this.flatByKind[kind]; return v === undefined ? this.sizeOf(kind) : v; },
+};
 
 /** st.phase 的機械判準（ART_BIBLE §10.3；計畫 §2.3 寫死，不得放寬）。
  *  windupMs／reactMs 會乘上 run.k（tier 1 ≈0.289）等比縮放。 */

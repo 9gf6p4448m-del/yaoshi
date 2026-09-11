@@ -9,6 +9,7 @@
      1 = 改一個 EMBLEM_OF 的 kind（雙射被破壞＋與文件不符）
      2 = 改一個 FX_PAL 色碼
      3 = 改一個 BEAT 時窗
+     4 = 在編舞檔裡塞回一個尺寸字面值（`const SZ = 0.56;`）＝尺寸的第二份事實來源
    原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。
 
    為什麼不 import emblems.js：它 `import * as THREE from 'three'`，node 端沒有 importmap。
@@ -143,6 +144,70 @@ t('ICON 四個欄位與文件第 5 節相同', () => {
   ['size', 'outlineW', 'billboardTiltDeg', 'markSize'].forEach((k) => {
     if (!sec.includes('| `' + k + '` | `' + ICON[k] + '` |')) throw new Error(`文件第 5 節的 ${k} 不是 ${ICON[k]}`);
   });
+});
+t('ICON.sizeOf／flatSizeOf 是尺寸的單一事實來源（byKind 覆寫、其餘回預設）', () => {
+  if (typeof ICON.sizeOf !== 'function' || typeof ICON.flatSizeOf !== 'function') throw new Error('ICON 少了 sizeOf／flatSizeOf');
+  // 沒有覆寫的 kind 一律回預設；有覆寫的回表裡的值（表本身的值不在這裡釘死——那是設計參數，L3 在量它）
+  eq(ICON.sizeOf('claw'), ICON.size, '沒有覆寫的 kind 應回 ICON.size');
+  eq(ICON.flatSizeOf('claw'), ICON.size, '沒有 flat 覆寫的 kind 應回 sizeOf');
+  Object.keys(ICON.byKind).forEach((k) => {
+    if (!Object.values(EO).includes(k)) throw new Error(`ICON.byKind 有未知 kind ${k}（不在 EMBLEM_OF 裡）`);
+    eq(ICON.sizeOf(k), ICON.byKind[k], `sizeOf(${k})`);
+  });
+  Object.keys(ICON.flatByKind).forEach((k) => {
+    if (!Object.values(EO).includes(k)) throw new Error(`ICON.flatByKind 有未知 kind ${k}（不在 EMBLEM_OF 裡）`);
+    eq(ICON.flatSizeOf(k), ICON.flatByKind[k], `flatSizeOf(${k})`);
+  });
+});
+t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
+  const sec = doc.slice(doc.indexOf('## 5.'), doc.indexOf('## 6.'));
+  // | `kind` | `本體` | `貼桌` | 說明 |（貼桌那欄是 — 代表沒有覆寫）
+  const lines = sec.split(/\r?\n/).filter((l) => /^\| `[a-z0-9]+` \| `[\d.]+` \| /.test(l) && l.split('|').length === 6)
+    .map((l) => l.split('|').map((c) => c.trim()).slice(1, -1));
+  eq(lines.length, Object.keys(ICON.byKind).length, '文件第 5 節覆寫表的列數');
+  const seen = new Set();
+  lines.forEach((r) => {
+    const kind = tick(r[0]);
+    seen.add(kind);
+    if (ICON.byKind[kind] === undefined) throw new Error(`文件有 ${kind}，ICON.byKind 沒有`);
+    eq(String(ICON.byKind[kind]), tick(r[1]), `byKind.${kind}`);
+    const flat = r[2] === '—' ? undefined : tick(r[2]);
+    eq(ICON.flatByKind[kind] === undefined ? undefined : String(ICON.flatByKind[kind]), flat, `flatByKind.${kind}`);
+  });
+  Object.keys(ICON.byKind).forEach((k) => { if (!seen.has(k)) throw new Error(`ICON.byKind 有 ${k}，文件第 5 節沒有`); });
+  Object.keys(ICON.flatByKind).forEach((k) => { if (!seen.has(k)) throw new Error(`ICON.flatByKind 有 ${k}，文件第 5 節沒有`); });
+});
+/* ★尺寸的分岔防線（覆審 r1 C1）★
+   批 0 第一版四支示範招各自寫 `const SZ = 0.56/0.46/0.62/0.40`，於是凍結檔 L3 指名的
+   「`ICON.size` 改 0.02 必須紅」實測**逐位數不變**＝恆綠的儀式。尺寸收斂進 vocab.js 的
+   ICON.byKind／flatByKind 之後，這條掃描擋住它再長出來：編舞檔（vocab.js 除外）不得出現
+   尺寸字面值。**按危險的效果寫，不按已知入口寫**（`02 §6.1` 第 7 條）——分母＝js/trait-fx/ 下
+   除 vocab.js 外的**所有** .js（目前 4 個：emblems／xianghuo／yinqi／zuling），不是只盯那四支招。
+   注意 `scale.setScalar(0.25)` 這種**不是**徽記尺寸（那是 23 支未改招的 ring／disc／orb 縮放），
+   不在掃描範圍——掃的是「餵給 st.icon／st.icons 的 size」與「名叫 SZ／SIZE 的常數」這兩條路。 */
+t('編舞檔不得出現徽記尺寸字面值（尺寸只能來自 vocab.js 的 ICON）', () => {
+  const dir = path.join(ROOT, 'js/trait-fx');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js') && f !== 'vocab.js').sort();
+  if (files.length < 4) throw new Error(`js/trait-fx 只掃到 ${files.length} 個編舞檔（預期 ≥4，分母歸零了？）`);
+  const PATTERNS = [
+    { re: /\bsizes?\s*:\s*-?\d/g, why: 'size: <數字>（餵給 st.icon／st.icons 的尺寸字面值）' },
+    { re: /\b(?:SZ|SIZE)\b\s*=\s*-?\d/g, why: 'const SZ = <數字>（尺寸的第二份事實來源）' },
+  ];
+  const hits = [];
+  for (const f of files) {
+    let src = fs.readFileSync(path.join(dir, f), 'utf8');
+    if (MUT === 4 && f === 'zuling.js') src = src.replace('    const A = neck.clone()', '    const SZ = 0.56;\n    const A = neck.clone()'); // 突變：把字面值塞回去
+    const noComment = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+    for (const p of PATTERNS) {
+      p.re.lastIndex = 0;
+      let m;
+      while ((m = p.re.exec(noComment))) {
+        const line = noComment.slice(0, m.index).split('\n').length;
+        hits.push(`${f}:${line} ${m[0].trim()}（${p.why}）`);
+      }
+    }
+  }
+  if (hits.length) throw new Error(`編舞裡有尺寸字面值 ${hits.length} 處：` + hits.join(' ／ '));
 });
 t('DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同', () => {
   const sec = doc.slice(doc.indexOf('## 6.'));

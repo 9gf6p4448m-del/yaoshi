@@ -480,13 +480,18 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       beat: beatOf(run.tier, run.ms),
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
       kind: EMBLEM_OF[det.trId] || null,
+      /** 這一招徽記本體的尺寸（世界單位）。**唯一來源＝vocab.js 的 ICON.byKind／size**——
+       *  編舞要放大縮小一律乘這個值，不得再寫 `const SZ = 0.56` 那種字面值（覆審 r1 C1）。 */
+      iconSize: ICON.sizeOf(EMBLEM_OF[det.trId] || null),
+      /** 這一招貼桌副件（水漬／腳印／貼桌陣）的尺寸；來源同上，ICON.flatByKind。 */
+      iconFlatSize: ICON.flatSizeOf(EMBLEM_OF[det.trId] || null),
       /** 徽記：一片朝鏡頭的法寶剪影。
-       *  o = { size=ICON.size, color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
+       *  o = { size=ICON.sizeOf(kind), color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
        *  outline＝在本體後面墊一片 ink 色的實心底板（把亮色從暗紅桌／夜紫天上切出來）；
        *  ★這裡刻意用 MAT_SOLID 底板而不是 MAT_LINE 描邊★——加色的細線正是盲讀抱怨的「白虛線」，
        *  而且 1px 線在 780×360 的盲讀格上連面積都量不到。要真的 MAT_LINE 外框就開 rimLine。 */
       icon(kind, pos, o = {}) {
-        const size = o.size === undefined ? ICON.size : o.size;
+        const size = o.size === undefined ? ICON.sizeOf(kind) : o.size;
         const op = o.opacity === undefined ? 1 : o.opacity;
         const mat = MAT_SOLID.clone();
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
@@ -519,7 +524,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /** 同一 kind ≥3 份走這支：N 枚徽記 = 1 個 draw call（群體招的 draw call 預算靠它）。
        *  positions 是 Vector3[]（會被記住並逐幀重排朝向；要移動就改陣列裡的向量）。 */
       icons(kind, positions, o = {}) {
-        const size = o.size === undefined ? ICON.size : o.size;
+        const size = o.size === undefined ? (o.flat ? ICON.flatSizeOf(kind) : ICON.sizeOf(kind)) : o.size;
         const mat = MAT_SOLID.clone();
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
         mat.opacity = o.opacity === undefined ? 1 : o.opacity;
