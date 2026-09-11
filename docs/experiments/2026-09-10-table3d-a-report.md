@@ -1,7 +1,8 @@
 # 0.56a 版面卷 實跑報告（拍賣桌整片掏空，2026-09-10；**二版**回應冷讀覆審 R1）
 
 > **版號**：計畫檔與凍結檔寫的「0.55a／0.55b」＝本檔的 **0.56a／0.56b**（0.54／0.55 另有其卷，主對話 2026-09-11 改號）。同一卷、同一份驗收，門檻一字未動。
-> **二版**（commit `7fc8fb1` 起）修掉冷讀覆審 R1 的 CRITICAL-1／HIGH-1／MEDIUM-1／MEDIUM-2，並落實使用者裁乙。逐條三態見本檔末段「覆審 R1 逐條三態」。
+> **二版**（`7fc8fb1` 起）修掉冷讀覆審 R1 的 CRITICAL-1／HIGH-1／MEDIUM-1／MEDIUM-2，並落實使用者裁乙；
+> **三版**（`d81060f` 起）修掉冷讀覆審 R2 的 HIGH-A／MEDIUM-A／LOW-B／LOW-C／LOW-E。逐條三態見本檔末段兩節。
 > 卷＝ROADMAP_V2 Top 1 的 **版面卷**（桌面先平面；托盤／Raycaster／木紋香灰是上桌卷）。
 > 規格＝`docs/proposals/2026-09-10-plan-table3d.md`；驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6**；T7–T12 屬 0.56b）。
 > 分母清單＝`docs/experiments/2026-09-10-table3d-a-worklog.md`；證據＝`docs/experiments/2026-09-10-table3d-a-evidence/`。
@@ -17,8 +18,8 @@
 |---|---|---|---|
 | **T0** 引擎逐位元組相等 | **綠** | seeds 1..20 `equal:true`（357285 bytes 兩邊相同）；`--mutate` `differs:true` | `evidence/T0-trace-eq.txt` |
 | **T1** kill switch 雙向 | **綠** | `?table3d=0`：`120px 588px 120px`／hollow=false／`#tray` none／rail 子元素 0,0／`#market .mcard`=4；預設：`168px 492px 168px`／hollow=true／`#tray` block／rail 子元素 2,2／`#market .mcard`=0（側欄 4） | `evidence/T4-legend-drive-new.txt`、`evidence/t3d-new.json` |
-| **T2** `#felt` 直向恆 0 | **綠** | 12 格**全 0**（基準 11 格 0＋1 格 54）；配套 `scrollHeight` 12 格**全 252 ≤ 260** | `evidence/T2-T3-felt-probe-new.txt`、`felt-new.json` |
-| **T3** 側欄與北列不溢出 | **綠** | `#west` 12 格 0／`#east` 12 格 0／`#north` 12 格 0（**基準 `#north` 本來就是 11**，本卷順手修掉） | 同上 |
+| **T2** `#felt` 直向恆 0 | **綠** | **三版把取樣拉到整局**（seeds 1,2,3 × `--rounds=12`）：**50 格全 0**；配套 `scrollHeight` **50 格全 252 ≤ 260**（基準 11 格 0＋1 格 54） | `evidence/T2-T3-felt-probe-new.txt`、`felt-new.json` |
+| **T3** 側欄與北列不溢出 | **綠** | `#west`／`#east`／`#north` 各 **50 格全 0**（含**第 7 夜**——R2 抓到的 17px 就在那一格；**基準 `#north` 本來就是 11**，本卷順手修掉） | 同上 |
 | **T4** 橫向溢出 0＋0 error | **綠** | seeds 1..6 跑完 6 局：橫向溢出**橫式 0 筆、直式 0 筆**；`console error 0／pageerror 0／requestfailed 0`；治具總判定 `✅ 通過` | `evidence/T4-legend-drive-new.txt` |
 | **T5** 觸控命中回歸 | **綠** | 基準清單 177 個可測元素**全部命中**（177／177），`trayTap` 被呼叫 **0** 次；**鑑別力突變驗紅**：`#tray{top:0;z-index:9}` ⇒ 174／177、`trayTap` **3** 次、exit 1 | `evidence/T5-base-84b1a0c.txt`、`T4-legend-drive-new.txt`、`T5-mutation-check.txt` |
 | **T6** 直式蓋板行為不變 | **綠** | 390×844：`#rotateHint`=flex／`120px 134px 120px`／`.rail`=none／`#table` 橫向溢出 0／`#felt` backdrop-filter=`blur(7px)`；**對基準逐項相同** | `evidence/T4-legend-drive-new.txt`、`t3d-base.json` vs `t3d-new.json` |
@@ -274,3 +275,33 @@ node tests/tools/legend-drive.mjs …/legend-drive-new.json --all --seeds=1,2,3,
 **這一類「被 stub 掉的東西本身就是缺陷所在」的盲區，結構上閘門看不見。**
 二版的 `--modal` 是專門補這一塊的：它**不 stub 任何東西**，真的把面板打開再量命中測試。
 0.56b 若再加任何 proxy／stub，先問一句「我 stub 掉的那支函式，會不會就是我要驗的東西」。
+
+---
+
+## 覆審 R2 逐條三態（三版，`d81060f` 起）
+
+> 覆審全文＝`scratchpad/review-table3d-a-r2.md`（冷讀、worktree 唯讀）。
+> R2 的結論是「R1 五條全部真的修好、T0–T6 親跑真綠」，但**裁乙的『讓寬』帶進一個新的版面回歸**（HIGH-A），
+> 另有 1 個 MEDIUM 與 5 個 LOW。下表是我對每一條的處置。
+
+| R2 條目 | 三態 | 做了什麼／為什麼算數 |
+|---|---|---|
+| **HIGH-A** 第 7 夜 `#north` 溢出 17px（出價）／4px（盯上） | **真的修好** | **成因是機械的**：第 7 夜同時是規則夜（`RULE_NIGHTS [3,7]`）與 wide 夜（`SHRINE_NIGHTS [5,8,11]` 的前一夜），預告框那一夜要多印一整段規則說明；裁乙的讓寬把它縮到 179.4px 之後排成 **89.8px**，撐爆固定 56px 的 `#north`（`overflow:visible` ⇒ 第一行衝出畫面上緣、底下壓到座位卡、規則說明句中斷）。**修法＝規則夜不讓寬**：`fillRails` 掛 `.shwide` 的條件從「`#shrines.wide`」收緊成「`#shrines.wide` **且** 預告框裡沒有 `.rulein`」，退回 343.8px。判準直接問**渲染出來的 DOM**，不另抄一份「哪幾夜是規則夜／wide」的規則（兩邊的唯一事實來源分別是 `ruleForRound` 與 `shrinesHTML`）。**配套把閘門的覆蓋範圍補上**（見下一列）。**取捨講白**：那一夜香火榜退回 254px、只有 `.shmove` 會被切——規則讀不到比招式名被切嚴重得多（與 R2 §6.2 的獨立建議①相同）。 |
+| **HIGH-A 配套** `felt-probe --rounds` 預設 3 → 7 | **真的修好（加嚴，自行記錄）** | 第 7 夜本來就在 T2／T3 的取樣範圍外，所以這個縫沒有任何閘門守著。預設拉到 **7**（`02 §2.1`：這是**提高**難度，自行記錄即可）；另加「局末（主按鈕變『再入妖市』）就收工」的守衛，`--rounds=12` 才跑得完整局而不會點到 `location.reload()` 逾時。**本次官方跑的是 `--seeds=1,2,3 --rounds=12`（整局）**：四個容器各 **50 格全 0**、`#felt` `scrollHeight` 50 格全 252 ≤ 260、`EXIT=0`。 |
+| **MEDIUM-A** `--handoff` 缺活性斷言 | **真的修好** | 判定式加 `sealedCount > 0`：只驗「殘留 0」是歸零斷言，`openSheet`／`bump`／`closeSheet` 任何一支改名都會讓這一輪根本沒封出徽章、殘留自然是 0 ⇒ 恆綠（`02 §6.1` 第 1 條）。另外依 R2「未確認」那一條，改成**掏空與 `?table3d=0` 兩條路都跑**，兩條都要「封出 1 顆、交棒當下殘留 0」才算過。 |
+| **LOW-B** 「讓寬反而可能收回一行」與實測相反 | **真的修好** | CSS 註解與報告都換成實測：請神夜前一夜出價頁 343.8px/29.4px（**2 行**）→ 179.4px/43.1px（**3 行**）、當夜 15.7px（**1 行**）→ 43.1px（**3 行**）。讓寬是**多出行**，只是一般夜的 56px 吃得下；第 7 夜吃不下，那正是 HIGH-A。 |
+| **LOW-C** 裁乙斷言三欄只有 `.shmove` 有鑑別力 | **真的修好（鑑別力實測過）** | `g()` 找不到元素回 `null` ＋ 判定 `r[k] && r[k].cut` ⇒ **缺席＝視為沒被切**；inline 的 `.shfac` 在非 flex 的 `.shname` 裡 `scrollWidth/clientWidth` 都是 0、`0 > 0.5` 恆假。現在：**必填欄位（`.shname`／`.shn`／`.shfac`／`.shmove`）缺席或量不到（0/0）一律算紅**，`.shtaken` 為選配；`.shname` 本身也納入量測；那一夜 `#north` 溢出非 0 也算紅。**突變驗紅**：從 HEAD **只拿掉 `#northShr .shname{display:flex…}` 這一個宣告**（原檔先 `cp` 一份備份、跑完用備份還原，不做反向 sed），斷言立刻報 **6 個欄位紅**（三張卡的 `.shn`／`.shfac` 全部「量不到（0/0）」）——**這正是舊版會漏報成 `shfac 0/0 ✅` 的那兩欄**。 |
+| **LOW-E** GUIDE §11.28 條號亂掉 | **真的修好** | 順序排回 **1–11**（原本 1–7、9、10、8），標題改「十一件事」，並新增第 11 條「北列 56px 是固定的，而且第 7 夜最緊」把 HIGH-A 的成因與 `--rounds=7` 的理由寫給接手。 |
+| **LOW-D** `--modal` 把「helpBtn 不可見」也判紅 | **沒修到（刻意，記錄）** | R2 指出 `bad` 的條件含 `!r.pts.length`，所以「開面板時把 `？` 收起來」那種修法會被判紅。**本卷沒走那條路**（走的是 `isolation:isolate`），而且現行語意「`？` 要在、而且要被面板蓋住」比「不得贏得命中」**更嚴**，我認為現在這樣是對的。若 0.56b 真的要改成隱藏 `？`，記得**一起**改這道閘門的語意——不要靜默放寬。 |
+| **MEDIUM-3（沿用）** `VERSION` 仍 `0.53` | **沒修到（刻意）** | 版號由主對話合併時定。第三次記在這裡：**合併 PR 不含首頁版本字串＝沒有送達證明**。 |
+| R2 對 R1 五條的「真的修好」判定 | **接受** | 包含他做的單變數突變（從 HEAD 只拔掉 `isolation:isolate` 就回紅）——那比我自己的三邊對照更強，我沒有再重做一次。 |
+| R2 §7.1 的「第 1 輪 103 個 requestfailed」 | **接受歸因，並照做** | 那是治具自己起的 `python -m http.server` 被三套 Playwright 併發壓垮（`pageerrors` 是 0、失敗全是自家 fixture server 的 GLB 請求）。**本次三版的官方那一輪是單獨跑的、沒有任何併發**。R2 給下一手的建議（把「連自家 fixture server 失敗」與「產品自己的錯誤」分成兩個計數器）我記在這裡，**本卷不動**——那會動到 `legend-drive` 的既有判定式，屬於 0.56b 的範圍。 |
+
+### HIGH-A 的修法為什麼不是「表面修好」
+
+- **不是把溢出藏起來**：`#north` 沒有加 `overflow:hidden`，`.preview` 也沒有被截斷或縮字級——
+  規則夜的預告框**退回 343.8px 的原寬**，內容一個字沒少（`#northPrev` 56／`.preview` 52.8）。
+- **不是只改門檻**：凍結檔一個字沒動；改的是**閘門的覆蓋範圍**（`--rounds` 3 → 7、官方跑到整局），
+  那是**提高**難度——同一份門檻現在要在 50 格上成立，不是 12 格。
+- **反面也驗了**：三版之前的那一版（`90b5274`）在第 7 夜是 17px／4px，R2 逐頁量過；
+  三版在**同一顆 seed、同一夜**是 0（本卷 `T2-T3-felt-probe-new.txt` 的 `seed 1 第 7 夜` 兩行）。
