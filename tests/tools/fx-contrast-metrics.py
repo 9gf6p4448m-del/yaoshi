@@ -95,7 +95,10 @@ def main():
         print(json.dumps(row, ensure_ascii=False))
     summary = {'gate': {'area_pct_min': AREA_MIN, 'de_median_min': DE_MIN, 'luma_eps': LUMA_EPS},
                'n': len(rows), 'pass': len(rows) - len(bad), 'failed': bad,
-               'view': shots.get('view'), 'bloom': shots['cases'][0].get('bloomCfg') if shots['cases'] else None}
+               'view': shots.get('view'), 'seed': shots.get('seed'),
+               'product_bloom': shots.get('productBloom'), 'bthr_override': shots.get('bthrOverride'),
+               'programs': shots['cases'][0].get('programs') if shots['cases'] else None,
+               'bloom': shots['cases'][0].get('bloomCfg') if shots['cases'] else None}
     print(json.dumps(summary, ensure_ascii=False))
     if jsonout:
         with open(jsonout, 'w', encoding='utf-8') as f:

@@ -88,7 +88,18 @@ scene.fog.density = FOG_DENSITY.duel;
 // 軟體 GL（SwiftShader）不開 bloom：render target 那條路在它上面 shader 編不過（同 renderer.js 的判斷）
 function glName() { try { const gl = renderer.getContext(); const ext = gl.getExtension('WEBGL_debug_renderer_info'); return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''; } catch (e) { return ''; } }
 const SOFT_GL = /swiftshader|software|llvmpipe|basic render/i.test(glName());
-const bloom = (BLOOM_ON && !SOFT_GL) ? createBloom(renderer, { strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5 }) : null;
+/* ★bloom 參數＝量測位置（覆審 r1 H3／H4）★
+   這五個數字的**權威是 js/renderer.js 的 `BLOOM`**（對決場景用的那一組）。v0.55 批 0 以前這裡的
+   threshold 是 0.5、產品是 0.7，於是 L3 量到的特效面積被高估（實測 wardImmuneLost 2.2795%→1.5051%，
+   −34%），而治具檔頭還寫著「門檻低＝保守」——方向剛好相反。現在預設值逐一對齊產品，
+   且 `tests/tools/fx-contrast.mjs` 每次跑都會解析 `js/renderer.js` 的 BLOOM 與這一頁**回報的 live 值**
+   對照，不一致就當場停（那支治具才是量測位置的守衛，這裡只是落點）。
+   `?bthr=`／`?bstr=`／`?bknee=`／`?brad=`／`?bscale=` 是覆寫鉤，只給「證明 bloomCfg() 真的讀 live 值」
+   的反向實驗用（帶了就不比對產品）。 */
+const BQ = (k, d) => { const v = parseFloat(q.get(k)); return Number.isFinite(v) ? v : d; };
+const bloom = (BLOOM_ON && !SOFT_GL) ? createBloom(renderer, {
+  strength: BQ('bstr', 1.05), threshold: BQ('bthr', 0.7), knee: BQ('bknee', 0.3), radius: BQ('brad', 1.7), scale: BQ('bscale', 0.5),
+}) : null;
 if (bloom) bloom.setSize(window.innerWidth, window.innerHeight);
 // 深度邊緣線（後處理卷 P-3）：預覽頁預設跟正式頁一樣開著，?edge=0 關掉——招式治具因此每一幀都在跑新的 COMPOSITE
 if (bloom) bloom.setEdge(q.get('edge') !== '0');
@@ -96,7 +107,8 @@ const rig = createFigureLightRig({ scale: 1.7 }); rig.position.y = 0.15; rig.set
 rig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
 
 const RIM_BY_FAC = { zuling: FACTION_RIM.zuli, xianghuo: FACTION_RIM.xianghu, yinqi: FACTION_RIM.yinqi };
-let fxSeed = 7;
+const FX_SEED0 = parseInt(q.get('seed') || '7', 10) || 7; // ?seed=：逐尊系別粒子的種子起點（L3 要記下 seed）
+let fxSeed = FX_SEED0;
 const duelFigures = createDuelFigures(scene, camera, {
   makeFigure: (u) => {
     if (!u || !u.ab) return makeLayeredFigure();
@@ -186,8 +198,16 @@ window.__tfx = {
     scene.traverse((o) => { const k = o.userData && o.userData.fxKind; if (k && /^(emblem:|trail$|mark:)/.test(k)) { o.visible = !!on; n++; } });
     return n;
   },
-  /** 這一頁真正用的 bloom 參數（L3 要記下量測位置，不能靠猜） */
-  bloomCfg() { return bloom ? { on: true, strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5, edge: q.get('edge') !== '0' } : { on: false }; },
+  /** 這一頁真正用的 bloom 參數（L3 要記下量測位置，不能靠猜）。
+   *  ★覆審 r1 H4★：舊版回傳的是**寫死的字面值**，改了真正的 threshold 它照樣回報 0.5——
+   *  一份宣稱「記下量測位置」的診斷自己就是偵測不到分岔的第二份複製品。
+   *  現在一律從 **live 物件**讀回：`bloom.cfg` 是 createBloom 內部真正拿去建 uniform 的那個物件，
+   *  `bloom.edgeOn` 是「這一幀到底有沒有在畫邊緣線」的 getter（拿不到 DepthTexture 時恆 false）。 */
+  bloomCfg() { return bloom ? Object.assign({ on: true }, bloom.cfg, { edge: bloom.edgeOn }) : { on: false }; },
+  /** 這一頁的亂數種子（L3 要記下 seed）：`?seed=` 帶進來，預設 7。
+   *  它餵的是 attachFactionFx 的逐尊種子；trait-fx 自己的 run.seed 由 seedCounter 從 11 起算、
+   *  每次載入都從同一點重來（同一組參數兩次跑出來的 metrics 逐位數相同＝實測的決定性證據）。 */
+  seed: FX_SEED0,
   render() { render(); return renderer.info.programs ? renderer.info.programs.length : -1; },
   sig() { return traitFx.lastSig(); },
   stats() { return Object.assign({}, traitFx.stats); },

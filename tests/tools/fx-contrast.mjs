@@ -1,6 +1,7 @@
 // L3 對比閘門的凍幀 A/B 治具（v0.55 招式可辨性卷，凍結檔 `2026-09-11-acceptance-fx-legibility.md` L3）。
 //
 // 用法：node tests/tools/fx-contrast.mjs <輸出目錄> [--only=trId,trId] [--tier=2] [--port=8845] [--dt=16.6667]
+//                                        [--seed=7] [--bthr=<只給反向實驗的 bloom threshold 覆寫>]
 //
 // 量什麼：**徽記／拖尾／印記在暗紅桌面＋紫夜空上到底看不看得見**。
 // 為什麼不用色票算 ΔE：加色混合＋bloom 之後畫面上的顏色不等於色票值——那是重建的模型，不是真實路徑
@@ -17,9 +18,19 @@
 //       兩張圖會逐位元組相同、差圖面積 0，而「0 < 0.8%」看起來像單純沒過，實際是量錯了對象。
 //
 // ★量測位置（`02 §6.1` 第 5 條，報告要照抄）★：治具頁的場景＝js/scene-env.js 的真實牌桌
-// （TABLE_COLOR 0x6b3418、ENV.SKY_STOPS 夜紫天）＋對決機位，但 **bloom threshold 是 0.5，
-// 產品 js/renderer.js 是 0.7**。門檻低＝亮部萃取更早介入＝更容易爆白，所以在這裡過是**保守**的
-// （產品端只會更不白）。要量產品端那一格要走 duel-drive 的真實對決場景，那是批 1–3 的正式 L3。
+// （TABLE_COLOR 0x6b3418、ENV.SKY_STOPS 夜紫天）＋對決機位。**視口 844×390 @2x**（＝使用者手機的
+// CSS 尺寸與 DPR，同 blindread-sheet.mjs 的理由：治具視口 ≠ 玩家視口就會量錯人物佔比）、
+// **bloom 五個參數逐一對齊產品 js/renderer.js 的 `BLOOM`**（本檔每次跑都解析那個檔，
+// 與治具頁回報的 **live** bloomCfg 逐鍵比對，不一致當場 throw）、**seed 記進 shots.json**。
+//
+// ★「治具 bloom 門檻低＝保守」這句宣稱已刪（覆審 r1 H4）★：它沒有實測支持，而且方向是反的。
+// 雙向實測（覆審 r1 §3 H4，四支示範招、只改 threshold 0.5→0.7）：
+//   wardImmuneLost 2.2795% → 1.5051%（−34%）／eliteSelfCut 1.189% → 1.189%
+//   biteGamble 2.4174% → 2.4126%／hauntLost 2.6241% → 2.6241%
+// bloom 門檻低＝徽記的光暈擴散到更多像素 ⇒ 差圖**面積被高估**，對 ΔE 也許保守，對面積不是。
+//
+// 本批量的仍是**治具棚**（bloom 與視口已對齊產品），**不是 duel-drive 的真實對決場景**——
+// 凍結檔 L3 要求的那一格（走 duel-drive、演該招、派 ys:hitstop）是批 1–3 的正式 L3。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,7 +48,30 @@ const { chromium } = (() => {
 })();
 
 const FIRE_AT = 12;
-const VIEW = { width: 720, height: 405 }; // 與 traitfx-drive 同一個視窗尺寸（面積百分比才可比）
+/* 視口＝使用者手機那一格（CSS 844×390、DPR 2），同 tests/tools/blindread-sheet.mjs。
+   ★為什麼不留 720×405（覆審 r1 H3）★：L4-pre 第 1 輪的教訓就是「治具視口 ≠ 玩家視口」——
+   duel-figures 的人偶是**固定 CSS 像素高**（FIG.pixelH 176），視口高一倍佔比就腰斬，
+   於是同一招在治具上佔的畫面比例和玩家看到的不是同一件事。面積門檻是「佔全畫面的百分比」，
+   量錯視口就等於量錯門檻。★改視口會改 area_pct 的絕對值，舊值不可跨視口比對★。 */
+const VIEW = { width: 844, height: 390, deviceScaleFactor: 2 };
+const DEFAULT_SEED = 7; // 治具頁 ?seed= 的預設；實際值由頁面回報（__tfx.seed），不靠這裡宣稱
+
+/** 產品對決場景真正用的 bloom 參數＝js/renderer.js 的 `BLOOM` 字面值（唯一來源，本檔不另抄一份）。 */
+function productBloom(root) {
+  const src = fs.readFileSync(path.join(root, 'js/renderer.js'), 'utf8');
+  const m = src.match(/const BLOOM = \{([^}]*)\}/);
+  if (!m) throw new Error('js/renderer.js 裡找不到 `const BLOOM = {...}`：量測位置的來源沒了，不准往下跑');
+  const out = {};
+  for (const kv of m[1].split(',')) {
+    const p = kv.split(':');
+    if (p.length !== 2) continue;
+    out[p[0].trim()] = parseFloat(p[1]);
+  }
+  for (const k of ['strength', 'threshold', 'knee', 'radius', 'scale']) {
+    if (!Number.isFinite(out[k])) throw new Error(`js/renderer.js 的 BLOOM 少了 ${k}`);
+  }
+  return out;
+}
 
 function parseArgs(argv) {
   const pos = []; const opt = {};
@@ -65,7 +99,10 @@ async function shoot(browser, base, c, opt, outDir) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}`;
+  const seed = parseInt(opt.seed || String(DEFAULT_SEED), 10);
+  // bloom 覆寫鉤：只給「證明 bloomCfg() 真的讀 live 值」的反向實驗用；帶了就跳過與產品的比對。
+  const bOver = opt.bthr === undefined ? '' : `&bthr=${opt.bthr}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}&seed=${seed}${bOver}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -73,6 +110,16 @@ async function shoot(browser, base, c, opt, outDir) {
   //   不藏就等於在盲讀材料上直接印答案（批 0 第一版真的印出去了，a11.png 六格全帶）。
   await page.addStyleTag({ content: '#hud{display:none!important}' });
   const bloomCfg = await page.evaluate(() => window.__tfx.bloomCfg());
+  const pageSeed = await page.evaluate(() => window.__tfx.seed);
+  /* ★量測位置的守衛（覆審 r1 H3／H4）★：治具頁回報的 **live** bloom 必須與產品 js/renderer.js
+     的 BLOOM 逐鍵相同。差一個數字，L3 的綠燈就與玩家看到的畫面脫鉤——L4-pre 第 1 輪同一個坑。
+     只有明確帶 --bthr=（反向實驗）時才放行不一致。 */
+  if (bloomCfg.on && opt.bthr === undefined) {
+    const bad = Object.keys(opt.product).filter((k) => bloomCfg[k] !== opt.product[k]);
+    if (bad.length) {
+      throw new Error(`治具 bloom 與產品 js/renderer.js 的 BLOOM 分岔：${bad.map((k) => `${k} 治具 ${bloomCfg[k]} vs 產品 ${opt.product[k]}`).join('／')}`);
+    }
+  }
   await page.evaluate((n) => window.__tfx.stepA(n), FIRE_AT + 2);
   await page.evaluate(() => window.__tfx.resetB());
   await page.evaluate((n) => window.__tfx.stepB(n), FIRE_AT);
@@ -88,8 +135,11 @@ async function shoot(browser, base, c, opt, outDir) {
   await page.screenshot({ path: fileB });
   await page.evaluate(() => window.__tfx.fxVis(true)); // 還原（同一頁不再用，但不留副作用）
   const sig = await page.evaluate(() => window.__tfx.sig());
+  // M3：program 數改成實測（凍結檔 L8「材質模板固定 3 支、全部預熱」與 Q10「program 2→3」的對照）
+  const programs = await page.evaluate(() => window.__tfx.programs());
+  const programList = await page.evaluate(() => window.__tfx.programList());
   await ctx.close();
-  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, handled: fired.handled, hidden, fileA, fileB, bloomCfg, errors, meshes: sig ? sig.meshes : null };
+  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, errors, meshes: sig ? sig.meshes : null };
 }
 
 async function main() {
@@ -102,6 +152,8 @@ async function main() {
   if (opt.only) { const s = new Set(String(opt.only).split(',')); cases = cases.filter((c) => s.has(c.trait)); }
   if (!cases.length) throw new Error('--only 篩掉了全部的招');
   fs.mkdirSync(outDir, { recursive: true });
+  opt.product = productBloom(ROOT); // 量測位置的權威：產品 js/renderer.js 的 BLOOM
+  console.log(`量測位置：視口 ${VIEW.width}×${VIEW.height}@${VIEW.deviceScaleFactor}x · seed ${opt.seed || DEFAULT_SEED} · 產品 bloom ${JSON.stringify(opt.product)}${opt.bthr === undefined ? '' : ` · ★--bthr=${opt.bthr} 覆寫（跳過產品比對）★`}`);
   const srv = await serve(ROOT, port);
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   const out = [];
@@ -114,7 +166,7 @@ async function main() {
     }
   } finally { await browser.close(); srv.kill(); }
   const meta = path.join(outDir, 'shots.json');
-  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, cases: out }, null, 1));
+  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), cases: out }, null, 1));
   console.log(`\n${out.length} 套 · ${meta}\n接著跑：python tests/tools/fx-contrast-metrics.py ${path.relative(ROOT, outDir)}`);
 }
 
