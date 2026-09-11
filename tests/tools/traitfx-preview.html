@@ -178,6 +178,16 @@ window.__tfx = {
     return out;
   },
   cancel() { document.dispatchEvent(new CustomEvent('ys:fx-trait-cancel', { detail: {} })); },
+  /** v0.55 L3 對比閘門：只切「徽記／拖尾／印記」的 visible，**其餘一切不動**（同一次載入、同一格畫面，
+   *  兩幀之間只有這一個變數）。抓手是 js/trait-fx.js 的 st.spawn 打在物件上的 userData.fxKind。
+   *  回傳被切到的物件數——0 代表這一招根本沒有新語彙，量出來的差圖沒有意義，治具要判紅。 */
+  fxVis(on) {
+    let n = 0;
+    scene.traverse((o) => { const k = o.userData && o.userData.fxKind; if (k && /^(emblem:|trail$|mark:)/.test(k)) { o.visible = !!on; n++; } });
+    return n;
+  },
+  /** 這一頁真正用的 bloom 參數（L3 要記下量測位置，不能靠猜） */
+  bloomCfg() { return bloom ? { on: true, strength: 1.05, threshold: 0.5, knee: 0.3, radius: 1.7, scale: 0.5, edge: q.get('edge') !== '0' } : { on: false }; },
   render() { render(); return renderer.info.programs ? renderer.info.programs.length : -1; },
   sig() { return traitFx.lastSig(); },
   stats() { return Object.assign({}, traitFx.stats); },

@@ -113,7 +113,7 @@ const MOVES = {
     const lost = (st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm') : st.target).slice(0, 2);
     const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
     const fwd = ghosts.map((g) => st.toward(g, new THREE.Vector3()));
-    const SZ = 0.26;
+    const SZ = 0.40;
     // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點
     const point = (g, k) => {
       const open = Math.max(0, k);
@@ -148,7 +148,7 @@ const MOVES = {
         rolls.push(st.rnd() * Math.PI * 2);
       }
     });
-    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, size: 0.13, color: C.ink, opacity: 0 }) : null;
+    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, size: 0.20, color: C.ink, opacity: 0 }) : null;
 
     st.phase('windup');
     /* ① 帽尖後仰蓄勢（windup）：陰氣＝出招前一拍完全靜止、拍子卡頓，四尊錯開 */

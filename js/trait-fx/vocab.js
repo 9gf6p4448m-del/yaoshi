@@ -31,7 +31,7 @@ export const BEAT = {
 };
 
 /** 徽記的尺寸常數（世界單位）。size＝法寶本體、markSize＝蓋在受招／受益方身上的印記。 */
-export const ICON = { size: 0.28, outlineW: 0.02, billboardTiltDeg: 12, markSize: 0.20 };
+export const ICON = { size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30 };
 
 /** st.phase 的機械判準（ART_BIBLE §10.3；計畫 §2.3 寫死，不得放寬）。
  *  windupMs／reactMs 會乘上 run.k（tier 1 ≈0.289）等比縮放。 */

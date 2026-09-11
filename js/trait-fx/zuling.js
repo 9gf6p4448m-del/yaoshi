@@ -446,8 +446,13 @@ const MOVES = {
     neck.y += 0.06;
     const A = neck.clone().addScaledVector(st.dir, -0.70); A.y += 0.42; // 刀的起點：後上方
     const Z = neck.clone().addScaledVector(st.dir, 0.70); Z.y -= 0.30; // 刀的終點：前下方
-    const SZ = 0.34;
-    const knife = st.icon(st.kind, A, { size: SZ, color: C.ink, inkColor: C.key, opacity: 0, roll: -1.1 });
+    const SZ = 0.56;
+    /* ★配色與計畫 §6 的建議相反，理由是實測★：計畫建議「近黑實心 ink ＋靛藍 key 描邊」，
+       但 L3 實測（凍幀 A/B 差圖）在暗紅桌＋夜紫天上 **CIE76 ΔE 中位只有 25.13、低於門檻 28**
+       ——近黑本體放在暗背景上本來就沒有對比可言。門檻一字不動，改的是實作：
+       翻成本系標準配色（靛藍 key 本體＋ink 底板）之後 ΔE 中位 63.35。
+       「黑曜石」的身分由剪影承擔（ART_BIBLE §7：低多邊形下剪影是僅剩的辨識手段）。 */
+    const knife = st.icon(st.kind, A, { size: SZ, color: C.key, inkColor: C.ink, opacity: 0, roll: -1.1 });
     const bless = mates.length ? mates : [];
     const marks = bless.map((f) => st.mark(f, st.kind, { opacity: 0, color: C.key }));
 

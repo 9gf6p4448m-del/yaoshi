@@ -257,7 +257,7 @@ const MOVES = {
     const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
     src.y += 0.10;
     const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里
-    const SZ = 0.32;
+    const SZ = 0.46;
     const bell = st.icon(st.kind, src, { size: SZ, color: C.key, inkColor: C.ink, opacity: 0 });
     const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
 
@@ -405,7 +405,7 @@ const MOVES = {
     if (!brow.lengthSq()) st.worldOf(cat, null, brow);
     const start = brow.clone().addScaledVector(st.dir, 0.16); start.y += 0.22;
     const hit = prey ? st.worldOf(prey, null, new THREE.Vector3()) : start.clone().addScaledVector(st.dir, 1.4);
-    const SZ = 0.30;
+    const SZ = 0.62;
     const seal = st.icon(st.kind, start, { size: SZ, color: C.hot, inkColor: C.ink, opacity: 0 });
     const stamp = prey ? st.mark(prey, st.kind, { opacity: 0, color: C.hot }) : null;
 
