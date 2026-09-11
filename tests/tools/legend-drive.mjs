@@ -4,6 +4,7 @@
 //                                          [--base=<felt-probe 對基準量的 json>] [--slack=52]
 //                                          [--sel=<橫向溢出選擇器清單>] [--taps] [--tapsonly]
 //                                          [--tapseeds=1,3] [--taprounds=3] [--tapbase=<基準 json>] [--tapout=<json>]
+//                                          [--tapdbg]（印 [DEBUG-tp7] 相位閘歸因）[--tapnowait]（退回舊量法，對照組）
 //   --sel=      橫向溢出量哪些容器（**收斂**：#market 退役、#railW／#railE 上線之後不逐支複製選擇器，改吃這個旗標）
 //   --taps      觸控命中回歸（掏空卷 v0.55a 凍結檔 T5）：對第 1～3 夜出價頁與盯上頁的**每一個** `#table [onclick]`
 //               各 tap 一次，驗「這一 tap 有沒有讓對應的處理函式被呼叫」，並驗 #tray 沒有吃掉任何一個
@@ -151,6 +152,43 @@ const TAP_ENUM = `(() => {
       vis: r.width>0 && r.height>0 && getComputedStyle(e).visibility!=='hidden' };
   });
 })()`;
+
+/* ===== tap 探針與相位閘的時序（v0.56b 治具修；GUIDE §11.28、凍結檔 2026-09-11-acceptance-phase-gate.md）=====
+   產品端的相位閘 `armPhaseGate` 在「手指底下那塊互動面的簽名變了」時武裝 `MAIN_GUARD_MS=500`，
+   期間 document 的 capture 監聽把**整層**點擊吸收掉（`phaseSwallow`）。tap 掃描的驅動方式是
+   「按主鈕換頁 → 12ms 後就開始逐一 tap」——第一下正好落在這個視窗裡，**被閘門正確吸收**，
+   卻被舊版治具記成「沒命中」。歸因見報告 `2026-09-10-table3d-a-report.md`「合併樹補驗」。
+   ★改的是量法，不是產品★：每一下 tap 之前先問產品「閘門還要關多久」（`MAIN_GUARD_MS` 與
+   `PHASE_AT`／`MAIN_SWAP_AT` 都從頁面讀，治具不寫死、也不縮短），等它開了再打。
+   閘門仍在、仍會吸收真的連點；只是探針不再假裝自己是連點的第二下。 */
+const GATE_LEFT = `(() => { try {
+  const n = gNow();
+  return Math.max(0, MAIN_GUARD_MS - (n - PHASE_AT), MAIN_GUARD_MS - (n - MAIN_SWAP_AT));
+} catch (e) { return 0; } })()`;
+/* --tapdbg 用：這一下 tap 當下的閘門狀態與手指底下那塊面（歸因用，預設不跑） */
+const GATE_SNAP = `((p) => { try {
+  const n = gNow(), el = document.elementFromPoint(p.x, p.y), a = el && el.closest ? el.closest('[onclick]') : null;
+  return { now: +n.toFixed(1), phaseAt: +PHASE_AT.toFixed(1), swapAt: +MAIN_SWAP_AT.toFixed(1),
+    dPhase: +(n - PHASE_AT).toFixed(1), dSwap: +(n - MAIN_SWAP_AT).toFixed(1), guard: MAIN_GUARD_MS,
+    armed: (n - PHASE_AT) < MAIN_GUARD_MS || (n - MAIN_SWAP_AT) < MAIN_GUARD_MS,
+    under: el ? String(el.id || (el.className || '').toString().trim() || el.tagName).slice(0, 28) : '(null)',
+    onclick: a ? (a.getAttribute('onclick') || '').replace(/\\s+/g, ' ').slice(0, 40) : '' };
+} catch (e) { return { err: String(e) }; } })`;
+/* 等到閘門開了為止，回傳**總共等了幾毫秒**（0＝問的當下閘門已經開了、這一道沒出力；
+   −1＝`--tapnowait` 退回舊量法：換頁後立刻點，歸因與鑑別力對照組用，日常不帶）。
+   回毫秒而不是回圈數，是為了讓證據說得出話——圈數看不出「等了 490ms」和「一次都沒等」的差別。
+   `tries` 是上限不是保證：閘門若一直重新武裝，等滿 8 輪就照打，那一下該紅還是紅。 */
+async function waitGate(page, extraMs = 40, tries = 8) {
+  if (opt.tapnowait) return -1;
+  let total = 0;
+  for (let i = 0; i < tries; i++) {
+    const left = await page.evaluate(GATE_LEFT);
+    if (!(left > 0)) return total;
+    await page.waitForTimeout(left + extraMs);
+    total += left + extraMs;
+  }
+  return total;
+}
 
 /* ===== T1 kill switch 雙向＋T6 直式蓋板行為（掏空卷 v0.55a）=====
    T1：`?table3d=0` 四項全是 v0.53 的值、預設（不帶旗標）四項全反——**只驗開不驗關＝反向探針**（02 §6.1 第 1 條），
@@ -355,12 +393,23 @@ async function runTaps(browser, port) {
       if (!st.d && (isBid || isMark) && !seen[key]) {
         seen[key] = 1;
         rec.pages++;
+        /* 換頁那一下點擊剛把相位閘武裝起來 ⇒ 先等它開，再裝 stub、列元素、逐一 tap。
+           **這一道才是真正在等的那一道**（進頁面時閘門通常還開著）；每一下 tap 前那一道是保險。 */
+        const pw = await waitGate(page);
+        (rec.pageWaits = rec.pageWaits || []).push({ page: `${seed}|${key}`, waitedMs: pw });
+        if (opt.tapdbg) console.log(`[DEBUG-tp7] PAGE ${seed}|${key} 進頁面後等閘門 ${pw}ms`);
         rec.stubbed = await page.evaluate(TAP_INSTALL);
         const els = await page.evaluate(TAP_ENUM);
         for (const el of els) {
           if (!el.vis || el.dis) { rec.rows.push({ key: `${seed}|${key}|${el.sig}`, vis: el.vis, dis: el.dis, hit: null, expect: el.expect }); continue; }
           await page.evaluate('(() => { window.__tapCount = {}; window.__tapArgs = {}; })()');
-          await page.touchscreen.tap(Math.max(1, Math.min(843, el.x)), Math.max(1, Math.min(389, el.y)));
+          /* 每一下都問一次：stub 不改簽名、理論上掃描中不會再武裝，但「理論上」不是證據——
+             真的又武裝了（產品自己重繪換了那塊面）就等它開，而不是把那一下記成沒命中。
+             實測這一道 177 下全部回 0（＝掃描中閘門一次都沒再武裝），它是保險不是主力。 */
+          const waited = await waitGate(page);
+          const tx = Math.max(1, Math.min(843, el.x)), ty = Math.max(1, Math.min(389, el.y));
+          const dbg = opt.tapdbg ? await page.evaluate(`${GATE_SNAP}({x:${tx},y:${ty}})`) : null;
+          await page.touchscreen.tap(tx, ty);
           await page.waitForTimeout(25);
           const cnt = await page.evaluate('(() => window.__tapCount || {})()');
           const args = await page.evaluate('(() => window.__tapArgs || {})()');
@@ -373,8 +422,13 @@ async function runTaps(browser, port) {
           const tray = cnt.trayTap | 0;
           rec.trayTaps += tray;
           if (el.want != null && called && !argOk) rec.argMiss = (rec.argMiss || 0) + 1;
-          rec.rows.push({ key: `${seed}|${key}|${el.sig}`, vis: true, dis: false, hit, called, expect: el.expect,
-            want: el.want, gotArg, tray, got: Object.keys(cnt).join(',') });
+          const row = { key: `${seed}|${key}|${el.sig}`, vis: true, dis: false, hit, called, expect: el.expect,
+            want: el.want, gotArg, tray, got: Object.keys(cnt).join(',') };
+          if (dbg) { row.dbg = dbg; row.waited = waited;
+            console.log(`[DEBUG-tp7] ${hit ? 'HIT ' : 'MISS'} ${row.key}`
+              + ` dPhase=${dbg.dPhase} dSwap=${dbg.dSwap} guard=${dbg.guard} armed=${dbg.armed}`
+              + ` waited=${waited} under=${dbg.under} onclick=${dbg.onclick}`); }
+          rec.rows.push(row);
         }
         await page.evaluate(TAP_RESTORE);
       }
