@@ -523,7 +523,7 @@ GUIDE §11.27 已對齊收尾版（第 6 條改成「Tier 3 ＝ 完整版＋CINE
 ## F9 範圍（**綠**，修訂三補列後）
 ```
 git diff --stat adbb124..HEAD -- . ':(exclude)docs/experiments/2026-09-10-fx-tiers-evidence'
-→ 28 files changed, 3645 insertions(+), 77 deletions(-)
+→ 28 files changed（插入行數會隨最後一次文件 commit 微幅變動，以合併前實跑為準）
 ```
 共 **28 個檔**（五版 27 ＋ 收尾版新增的 `tests/tools/duel-rects.mjs`），全部在計畫檔第 1 節
 （修訂三的完整清單 ＋ 修訂七補列的 `duel-rects.mjs`，逐檔理由見計畫檔）：
