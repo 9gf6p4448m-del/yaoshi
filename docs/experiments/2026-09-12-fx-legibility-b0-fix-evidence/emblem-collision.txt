@@ -1,0 +1,30 @@
+徽記剪影互撞：30 個 kind ／ 435 對 ／ 同系門檻 0.8
+  PASS  自我對照＝1.0（30/30）
+  PASS  自我擾動（放大 1.5 倍）必須全部掉到 ≤0.50
+  PASS  相似度有動態範圍（最小 <0.20、最大 >0.85）
+  PASS  人眼公認不像的一對（bolt 雷女之火 vs seal 虎爺印）必須 ≤0.60
+        人眼互撞五組：knife~blade=0.5(第 227 名) seal~tornflag=0.3784(第 337 名) seal~chair=0.3275(第 374 名) hat~wave=0.4247(第 292 名) hat~banner5=0.4864(第 241 名)
+        bell 同系最高：bell~lamp=0.8352（第 4 名）
+  PASS  校準記錄：五組人眼互撞的最小值 < bell 同系的最大值（＝純幾何無法校準到人眼）
+  PASS  同系 IoU ≥0.8 的配對全部在批 1 前置回修清單裡
+  PASS  回修清單裡的每一對現在仍然真的超標（死豁免判紅）
+
+【報告，不進判定】IoU ≥0.8 的配對共 16 對（同系 3 對）：
+   0.9290 bell      shade     跨系 xianghuo/yinqi
+   0.8698 urn       drop      同系 yinqi
+   0.8480 crag      urn       跨系 zuling/yinqi
+   0.8352 bell      lamp      同系 xianghuo
+   0.8333 rhomb     talis     跨系 zuling/xianghuo
+   0.8258 lamp      shade     跨系 xianghuo/yinqi
+   0.8202 talis     tablet    跨系 xianghuo/legend
+   0.8182 bead      drop      跨系 zuling/yinqi
+   0.8161 bead      urn       跨系 zuling/yinqi
+   0.8136 bead      sundisc   跨系 zuling/legend
+   0.8118 seal      urn       跨系 xianghuo/yinqi
+   0.8068 bell      urn       跨系 xianghuo/yinqi
+   0.8034 crag      sundisc   跨系 zuling/legend
+   0.8011 sun       sundisc   跨系 zuling/legend
+   0.8000 knife     tablet    跨系 zuling/legend
+   0.8000 drop      shade     同系 yinqi
+
+結果：7 綠 ／ 0 紅

@@ -23,8 +23,14 @@ import { fileURLToPath } from 'node:url';
 import { drive, serve, parseArgs } from './duel-drive.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
-const { chromium } = req('playwright');
+/* R1 覆審 H5（v0.55 批 0）：worktree 裡沒有 tools/（那是主 repo 的目錄），
+   只寫一條路就直接 MODULE_NOT_FOUND ⇒ L10 整條在 worktree 上跑不起來。
+   同 repo 的 duel-drive／traitfx-drive／fx-contrast 都是兩段候選，這支補齊。 */
+const { chromium } = (() => {
+  const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
+  for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
+  throw new Error('找不到 playwright：worktree 需要 tools/anyCreature 或設 NODE_PATH');
+})();
 
 // ── 頁面端錄音機 ───────────────────────────────────────────────────────────
 // 注意：這段字串裡不得出現反引號與 ${}，整包用單引號字串拼。
