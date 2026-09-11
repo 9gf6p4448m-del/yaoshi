@@ -27,6 +27,8 @@ for(const a of argv){ const m=a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if(m) opt[m
    第 7 夜是 `RULE_NIGHTS [3,7]` 與 `SHRINE_NIGHTS [5,8,11]` 的前一夜**同時成立**的那一格，
    也是北列高度最緊的一夜；預設只跑到第 3 夜的話這個縫永遠沒有閘門守著（R2 就是從這裡抓到 17px 溢出的）。 */
 const PORT=+(opt.port||8858), ROUNDS=+(opt.rounds||7), TAG=opt.tag||'mine';
+/* --steps=<上限>：每一顆 seed 的內層步數上限（四版，覆審 R3 MEDIUM-F）。跑滿會**明白印出「沒打完」**，不再靜默。 */
+const STEPS=+(opt.steps||1500);
 /* --sel=<逗號分隔的選擇器>：**預設就是掏空版現行的四個容器**（0.56a 二版，覆審 MEDIUM-1）。
    沿革：一版的預設是 `#felt` 一個，下一手不帶旗標跑就只量到四分之一而不自知。
    多容器時 JSON 表的鍵一律帶容器前綴（`#felt|seed|round|page`），legend-drive 的 --base= 兩種鍵都吃。 */
@@ -62,20 +64,26 @@ const main=async()=>{
     await page.waitForFunction('typeof window.__yaoshi === "object"',{timeout:20000});
     const ver=await page.evaluate('VERSION');
     console.log(`# 版面直向探針　tag=${TAG}　頁面 VERSION=${ver}　seeds=${SEEDS.join(',')}　sel=${SELS.join(',')}　844×390 dpr=2　root=${SERVE_ROOT}`);
-    const out={};
+    const out={}; const ends=[];
     for(const SEED of SEEDS){
       await page.evaluate(sd=>{ CFG.T=1;
         const F=window.__yaoshi.PW_FX; for(const k of Object.keys(F)) if(/_MS$/.test(k)) F[k]=1;
         window.__yaoshi.newGame('solo',sd,['qingmian']); },SEED);
       const seen={};
-      for(let i=0;i<1500;i++){
+      /* 四版（覆審 R3 MEDIUM-F）：內層迴圈跑滿 STEPS 就**靜默**離開，量到的夜數看起來像「整局」其實是截斷——
+         與 R1-MEDIUM-1 修掉的「治具靜默失敗」同一類。現在把三種收工理由記下來、收尾明白印出來；
+         `--steps=` 可以放寬上限。**不改任何門檻**：截斷不會讓紅變綠（量到的格子照樣逐格判），只是不再假裝跑完了。 */
+      let why='（還在跑）', lastR=0;
+      for(let i=0;i<STEPS;i++){
         await page.waitForTimeout(12);
         const st=await page.evaluate(`(()=>{const b=document.getElementById('mainbtn');const S=window.__yaoshi.S;
           return {t:b?b.textContent:'',d:b?b.disabled:true,r:S?S.round:0};})()`);
-        if(st.r>ROUNDS) break;
+        lastR=st.r||lastR;
+        if(st.r>ROUNDS){ why=`跑到 --rounds=${ROUNDS} 的上限（第 ${st.r} 夜）`; break; }
         /* 局末（主按鈕變「再入妖市」，按下去是 location.reload()）就收工——
            `--rounds=12` 時 `st.r>ROUNDS` 永遠不成立，不擋的話會一路點到重載、然後 click 逾時（三版踩過）。 */
-        if(/再入妖市/.test(st.t)) break;
+        if(/再入妖市/.test(st.t)){ why=`這一局打完了（局末，第 ${st.r} 夜）`; break; }
+        if(i===STEPS-1) why=`**步數跑滿 ${STEPS} 仍未結束（這一局沒打完，停在第 ${st.r} 夜）**`;
         const page2=/蓋牌/.test(st.t)?'出價':'盯上';
         const key=`${st.r}｜${st.t}`;
         if(!st.d && !seen[key] && /蓋牌|不盯任何一件/.test(st.t)){
@@ -96,7 +104,14 @@ const main=async()=>{
         if(!st.d) await page.click('#mainbtn');
         else await page.evaluate(`(()=>{const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled);if(e)e.click();})()`);
       }
+      ends.push({seed:SEED,why,lastR});
+      console.log(`- seed ${SEED} 收工：${why}`);
     }
+    /* 四版（R3 MEDIUM-F）：把「這一局怎麼收工的」印在收尾表旁邊——
+       報告不得再把「跑滿步數就停」寫成「整局」。 */
+    console.log(`- **每一顆 seed 的收工理由**：${ends.map(e=>`seed ${e.seed} → ${e.why}`).join('；')}`);
+    if(ends.some(e=>/步數跑滿/.test(e.why)))
+      console.log(`  ★注意：上面有 seed 是**步數跑滿**才停的，那一局沒打完——要跑完整局請加大 --steps=（目前 ${STEPS}）。`);
     /* 收尾一眼表：每個容器的格數、最大溢出、非 0 的格數（T2／T3 直接讀這三個數字） */
     for(const sel of SELS){
       const keys=Object.keys(out).filter(k=>SELS.length>1?k.indexOf(sel+'|')===0:true);

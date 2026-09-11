@@ -51,6 +51,10 @@ const GIVEUP_SEED = +(opt.giveup || SEEDS[1] || SEEDS[0]);
    --slack=<px>＝香火榜／待請卡展開的高度寬限（預設 52）。沒帶 --base 就沒有基準可比，一律不算通過。 */
 const BASE_V = opt.base && fs.existsSync(opt.base) ? JSON.parse(fs.readFileSync(opt.base, 'utf8')) : {};
 const BASE_SLACK = +(opt.slack || 52);
+/* --vrounds=<夜數>：直向取樣要走到第幾夜（四版，覆審 R3 MEDIUM-E）。預設 **8**——
+   規則夜是 3／7、wide 夜是 4,5,7,8，第 7 夜（兩者同時成立）與第 8 夜（請神當夜）都要在裡面。
+   原本是寫死的 3，第 7 夜因此從來沒有閘門守著。這是**加嚴**（同一份門檻要在更多夜上成立）。 */
+const VROUNDS = +(opt.vrounds || 8);
 /* 橫向溢出的選擇器清單（掏空卷 v0.55a 凍結檔 T4 的 12 個＋兩個舊容器當加嚴）。
    `#market` 這個 id 在掏空頁退役 ⇒ 清單改吃 --sel（收斂），不逐支治具各寫一份新選擇器。
    清單裡查不到的選擇器自然跳過（基準版沒有 #railW／掏空版沒有 #market，同一份清單兩邊都跑得動）。 */
@@ -84,12 +88,21 @@ const OVERFLOW = `(() => {
   return rows;
 })()`.replace('__SELS__', JSON.stringify(SEL_LIST));
 
-/* #felt 的直向溢出：#felt 是 overflow-y:auto，捲得動不代表看得到——
-   844×390 這個尺寸下把市集卡的部隊預覽整行推到看不見，就是版面沒放下。 */
+/* 直向溢出。`#felt` 是 overflow-y:auto，捲得動不代表看得到——844×390 這個尺寸下把市集卡的部隊預覽
+   整行推到看不見，就是版面沒放下。
+   ★四版（覆審 R3 MEDIUM-E）加量 `#north`／`#west`／`#east`★：掏空之後吃高度的地方搬到了北列與側欄，
+   但直到三版為止，**第 7 夜（規則夜 × wide 夜）的北列溢出沒有任何閘門會紅**——
+   `felt-probe` 是純診斷（只印不判）、`legend-drive` 的直向只量 `#felt` 且只取樣第 1～3 夜、
+   `layout-shot` 的 `northOver` 斷言只走「最早那個請神夜的前一夜」＝第 4 夜。
+   `#north`／`#west`／`#east` 是**固定高度的格**（56／256），沒有捲軸也沒有 overflow:hidden，
+   溢出＝字真的跑到格子外面（R2 在二版量到第 7 夜 17px 時，第一行整行衝出畫面上緣）⇒ **>0 即紅**。 */
 const VOVERFLOW = `(() => {
-  const f = document.getElementById('felt');
-  if (!f) return null;
-  return { scrollH: f.scrollHeight, clientH: f.clientHeight, over: f.scrollHeight - f.clientHeight };
+  const out = {};
+  for (const sel of ['#felt', '#north', '#west', '#east']) {
+    const e = document.querySelector(sel);
+    out[sel] = e ? { scrollH: e.scrollHeight, clientH: e.clientHeight, over: e.scrollHeight - e.clientHeight } : null;
+  }
+  return out;
 })()`;
 
 /* ===== T5 觸控命中回歸（掏空卷 v0.55a）=====
@@ -377,7 +390,7 @@ const main = async () => {
   const srv = await serve(SERVE_ROOT, PORT);
   const chromium = loadChromium();
   const browser = await chromium.launch();
-  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], voverflow: [], vrows: [],
+  const rec = { seeds: [], errors: [], pageerrors: [], requestfailed: [], overflow: [], voverflow: [], voverflow2: [], vrows: [],
     portraitOverflow: [], taken: 0, dawn: 0, dawnShrines: 0, skips: 0, picks: 0, carry: 0, carryEg: [], games: [] };
   try {
     if (opt.t3d) rec.t3d = await runT3d(browser, PORT);
@@ -445,10 +458,14 @@ const main = async () => {
           lastKey = key;
           const ov = await page.evaluate(OVERFLOW);
           if (ov.length) rec.overflow.push({ seed, step, txt: st.txt, ov });
-          // 直向：只在第 1～3 夜的出價頁與盯上頁取樣；**第 1 夜的每一頁必須是 0**，
-          // 其餘頁只要不比基準同格＋BASE_SLACK 差。基準由 --base=<json> 帶進來；沒帶就只印不判。
-          if (st.round >= 1 && st.round <= 3 && !st.dis && /蓋牌|不盯任何一件/.test(st.txt)) {
-            const vo = await page.evaluate(VOVERFLOW);
+          // 直向：在第 1～VROUNDS 夜（四版起預設 **8**，涵蓋規則夜 3／7 與 wide 夜 4,5,7,8）的出價頁與盯上頁取樣。
+          //  ① `#felt`：**第 1 夜的每一頁必須是 0**，其餘頁不比基準同格＋BASE_SLACK 差（基準由 --base= 帶進來；
+          //     沒帶就只印不判）。第 4 夜以後沒有基準鍵，照舊只印不判——**這一條的門檻一個字沒動**。
+          //  ② `#north`／`#west`／`#east`（四版新增，覆審 R3 MEDIUM-E）：固定高度的格，**溢出 >0 一律紅**，
+          //     不吃基準也不吃 slack。這是純新增的加嚴，沒有放寬任何既有條件。
+          if (st.round >= 1 && st.round <= VROUNDS && !st.dis && /蓋牌|不盯任何一件/.test(st.txt)) {
+            const all = await page.evaluate(VOVERFLOW);
+            const vo = all['#felt'];
             rec.vsamples = (rec.vsamples || 0) + 1;
             const vkey = `${seed}|${st.round}|${/蓋牌/.test(st.txt) ? '出價' : '盯上'}`;
             /* --base= 的鍵：felt-probe 單容器時是 `seed|round|page`、多容器時是 `#felt|seed|round|page`，兩種都吃 */
@@ -457,6 +474,12 @@ const main = async () => {
             const judged = (base != null);
             rec.vrows.push({ key: vkey, over: vo ? vo.over : null, base: base == null ? null : base, cap, judged });
             if (judged && vo && vo.over > cap) rec.voverflow.push({ seed, round: st.round, txt: st.txt, cap, base, ...vo });
+            for (const sel of ['#north', '#west', '#east']) {
+              const m = all[sel];
+              if (!m) { rec.vmissing = (rec.vmissing || []); rec.vmissing.push(`${sel}|${vkey}`); continue; }
+              rec.vsamples2 = (rec.vsamples2 || 0) + 1;
+              if (m.over > 0) rec.voverflow2.push({ sel, key: vkey, round: st.round, txt: st.txt, ...m });
+            }
           }
         }
         // 覆審沿用：六顆種子挑一顆在拿到傳說之後按一次袋子面板的「送神回天」，
@@ -650,6 +673,8 @@ const main = async () => {
   const okPath = rec.taken > 0 && rec.picks > 0 && rec.carry > 0 && !rec.pickMismatch;
   const okOv = rec.overflow.length === 0 && rec.portraitOverflow.length === 0;
   const okVert = rec.voverflow.length === 0 && (rec.vsamples || 0) > 0 && Object.keys(BASE_V).length > 0;
+  /* 四版（R3 MEDIUM-E）：北列與側欄是固定高度的格，溢出 >0 一律紅。含活性斷言（真的量到過樣本）。 */
+  const okVert2 = rec.voverflow2.length === 0 && (rec.vsamples2 || 0) > 0 && !(rec.vmissing || []).length;
   const okCover = !!(rec.portraitCover && rec.portraitCover.rotateHint && rec.portraitCover.shrinesHidden);
   const okHot = !rec.hotseat || (rec.hotseat.sawIncbar && rec.hotseat.handoffShown && rec.hotseat.incbarAtHandoff === 0);
   /* R1-CRITICAL-1：#modal 開著時 #helpBtn 不得贏得命中測試 */
@@ -769,13 +794,19 @@ const main = async () => {
   console.log(`- 直式蓋板行為：#rotateHint 顯示＝${rec.portraitCover && rec.portraitCover.rotateHint}、#shrines 收起＝${rec.portraitCover && rec.portraitCover.shrinesHidden} → ${okCover ? '✅' : '❌'}`);
   console.log(`- 橫向溢出：橫式 ${rec.overflow.length} 筆、直式 ${rec.portraitOverflow.length} 筆 → ${okOv ? '✅' : '❌'}`);
   if (!okOv) [...rec.overflow.slice(0, 5), ...rec.portraitOverflow.slice(0, 5)].forEach((o) => console.log('    ' + JSON.stringify(o)));
-  console.log(`- **直向**（#felt scrollHeight − clientHeight；第 1 夜每頁＝0、其餘頁 ≤ 基準同格＋${BASE_SLACK}px）：`
+  console.log(`- **直向・北列與側欄**（#north／#west／#east 的 scrollHeight − clientHeight，**一律必須 0**；`
+    + `取樣第 1～${VROUNDS} 夜的出價頁與盯上頁）：取樣 ${rec.vsamples2 || 0} 格、**溢出 >0 的 ${rec.voverflow2.length} 格**`
+    + `${(rec.vmissing || []).length ? `、量不到的 ${rec.vmissing.length} 格` : ''} → ${okVert2 ? '✅' : '❌'}`);
+  rec.voverflow2.slice(0, 12).forEach((r) => console.log(`    ❌ ${r.sel} ${r.key}（第 ${r.round} 夜「${r.txt}」）：`
+    + `scrollH ${r.scrollH} / clientH ${r.clientH} → 溢出 ${r.over}`));
+  if ((rec.vmissing || []).length) console.log('    量不到：' + rec.vmissing.slice(0, 8).join('　'));
+  console.log(`- **直向・#felt**（scrollHeight − clientHeight；第 1 夜每頁＝0、其餘頁 ≤ 基準同格＋${BASE_SLACK}px）：`
     + `取樣 ${rec.vsamples || 0} 次、超標 ${rec.voverflow.length} 次`
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
   const all = opt.tapsonly ? (okTaps && okT1 && okT6 && okModal && okHandoff2)
-    : (okErr && okPath && okOv && okVert && okCover && okHot && okTaps && okT1 && okT6 && okModal && okHandoff2);
+    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okT1 && okT6 && okModal && okHandoff2);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };
