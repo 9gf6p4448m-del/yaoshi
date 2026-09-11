@@ -26,7 +26,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
 import { casesFromIndex } from './traitfx-drive.mjs';
-import { BEAT } from '../../js/trait-fx/vocab.js';
+import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium } = (() => {
@@ -60,7 +60,7 @@ function shuffle(arr, rnd) { const a = arr.slice(); for (let i = a.length - 1; i
 
 /** 這一 tier 的六個幀號（嚴格遞增；260ms 只有 ~16 幀，撞號就往後推一格） */
 export function framesOf(tier, dt) {
-  const b = BEAT[tier];
+  const b = beatOf(tier, msOf(tier));
   const out = [];
   let prev = 0;
   for (const p of FRAME_AT) {

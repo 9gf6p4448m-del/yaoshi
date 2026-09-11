@@ -22,13 +22,27 @@ export const FX_PAL = {
   yinqi: { key: 0xbdf0dc, hot: 0xff2f3a, line: 0x6fae90, ink: 0x04120c },
 };
 
-/** 因果三段的節拍表（ms），對應 0.54 的三級時長 260／900／1400。
+/** 因果三段的切點，寫成**時長的比例**（不是毫秒），三個數字＝windup 末／travel 末／react 末。
+ *  ★為什麼是比例不是毫秒★：招式時長的唯一事實來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`
+ *  （治具側 `tests/tools/fx-consts.mjs`）。在這裡再寫一份毫秒表就是第二份複製品，改了那邊這裡會
+ *  靜默沿用舊值——0.54 的 F1 閘門（`tests/fxtier.test.mjs` 掃 runtime 的字面值）第一版就抓到了。
+ *  改成比例之後，節拍窗由 `beatOf(tier, run.ms)` 從**真正在跑的時長**算出來。
  *  settle 是唯一可以省的一段；windup／travel／react 三段都不能省（ART_BIBLE §10.3）。 */
-export const BEAT = {
-  1: { windup: [0, 90], travel: [90, 180], react: [180, 240], settle: [240, 260] },
-  2: { windup: [0, 300], travel: [300, 560], react: [560, 760], settle: [760, 900] },
-  3: { windup: [0, 460], travel: [460, 860], react: [860, 1180], settle: [1180, 1400] },
+export const BEAT_FRAC = {
+  1: [0.3462, 0.6923, 0.9231], // 短版 → 90／180／240
+  2: [0.3333, 0.6222, 0.8444], // 完整版 → 300／560／760
+  3: [0.3286, 0.6143, 0.8429], // 三尊 → 460／860／1180
 };
+
+/** 把比例乘回實際時長，得到 {windup, travel, react, settle} 四個 [起, 迄] 毫秒窗。
+ *  tier 不合法就 throw（不給預設值——預設值就是下一個靜默分岔）。 */
+export function beatOf(tier, ms) {
+  const f = BEAT_FRAC[tier];
+  if (!f) throw new Error(`vocab: 沒有 tier=${tier} 的節拍表（合法值 ${Object.keys(BEAT_FRAC).join('/')}）`);
+  if (!Number.isFinite(ms) || ms <= 0) throw new Error(`vocab: beatOf 收到不合法的時長 ${ms}`);
+  const a = Math.round(f[0] * ms), b = Math.round(f[1] * ms), c = Math.round(f[2] * ms);
+  return { windup: [0, a], travel: [a, b], react: [b, c], settle: [c, Math.round(ms)] };
+}
 
 /** 徽記的尺寸常數（世界單位）。size＝法寶本體、markSize＝蓋在受招／受益方身上的印記。 */
 export const ICON = { size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30 };

@@ -27,7 +27,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
 import { casesFromIndex } from './traitfx-drive.mjs';
-import { BEAT } from '../../js/trait-fx/vocab.js';
+import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium } = (() => {
@@ -55,7 +55,7 @@ async function shoot(browser, base, c, opt, outDir) {
   const tier = parseInt(opt.tier || '2', 10);
   const ms = msOf(tier);
   const dt = parseFloat(opt.dt || (1000 / 60));
-  const beat = BEAT[tier];
+  const beat = beatOf(tier, ms);
   // 凍幀點＝travel 中點（凍結檔 L3 第 1 步寫死，不得逐招調）
   const atMs = (beat.travel[0] + beat.travel[1]) / 2;
   const atFrame = Math.max(1, Math.round(atMs / dt));

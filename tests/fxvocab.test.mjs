@@ -16,7 +16,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FX_PAL, BEAT, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC } from '../js/trait-fx/vocab.js';
+import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC } from '../js/trait-fx/vocab.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -31,7 +31,7 @@ const eq = (a, b, m) => { if (a !== b) throw new Error(`${m}：得到 ${JSON.str
 
 /* 突變體：只動記憶體裡的副本 */
 const PAL = JSON.parse(JSON.stringify(FX_PAL));
-const BT = JSON.parse(JSON.stringify(BEAT));
+const BT = { 1: beatOf(1, 260), 2: beatOf(2, 900), 3: beatOf(3, 1400) }; // 三個總長來自文件第 2 節的「總長」欄，下面逐格比對
 const EO = Object.assign({}, EMBLEM_OF);
 if (MUT === 1) EO.eliteSelfCut = 'sun'; // 與 eliteOpenShot 撞 kind ⇒ 雙射破了
 if (MUT === 2) PAL.xianghuo.key = 0xf08060; // 退回舊的淡橘粉
@@ -71,6 +71,21 @@ t('BEAT 三級四段與文件第 2 節逐格相同', () => {
     ['windup', 'travel', 'react', 'settle'].forEach((seg, j) => eq(b[seg].join('-'), tick(r[j + 2]), `BEAT[${tier}].${seg}`));
     eq(String(b.settle[1]), r[1], `tier ${tier} 的總長`);
   });
+});
+
+t('BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）', () => {
+  eq(Object.keys(BEAT_FRAC).sort().join(','), '1,2,3', 'BEAT_FRAC 的 tier 集合');
+  for (const k of [1, 2, 3]) {
+    const f = BEAT_FRAC[k];
+    eq(f.length, 3, `tier ${k} 的切點數`);
+    if (!(f[0] > 0 && f[0] < f[1] && f[1] < f[2] && f[2] < 1)) throw new Error(`tier ${k} 的切點不是遞增的 (0,1) 區間值：${f}`);
+  }
+  // 分岔防線：vocab.js 裡不得再出現任何三級時長的字面值（那是 PW_FX 的專屬）
+  const src = fs.readFileSync(path.join(ROOT, 'js/trait-fx/vocab.js'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  for (const n of ['260', '900', '1400']) {
+    if (new RegExp('\\b' + n + '\\b').test(src)) throw new Error(`vocab.js 出現招式時長字面值 ${n}（唯一來源是 index.html 的 PW_FX.TRAIT_MS_BY_TIER）`);
+  }
 });
 
 /* ── 3. 因果三段門檻（PHASE_GATE）──────────────────────────────── */

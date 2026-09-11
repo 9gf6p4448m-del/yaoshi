@@ -26,7 +26,7 @@ const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 // v0.55 招式可辨性卷：特效語彙與法寶徽記的【單一事實來源】。
 // 這兩支是 27 支招共用的地基，**不做 catch 退路**——載不到就讓本模組整個爆，
 // 給預設色票／預設形狀等於讓「每一卷重新發明一次語彙」那個分岔重新長回來（ART_BIBLE §10 開頭）。
-const { FX_PAL, BEAT, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx/vocab.js' + V);
+const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx/vocab.js' + V);
 const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
 const loadMoves = (file) => import(file + V).then((m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {} }), () => ({ full: {}, short: {} }));
@@ -477,7 +477,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /** 本系色票 {key, hot, line, ink}（key＝徽記本體、hot＝命中、line＝連線與拖尾、ink＝暗部描邊） */
       colors: FX_PAL[det.fac] || FX_PAL.zuling,
       /** 這一招的節拍窗（ms）：{windup:[a,b], travel:[a,b], react:[a,b], settle:[a,b]}，依 tier 換表 */
-      beat: BEAT[run.tier] || BEAT[2],
+      beat: beatOf(run.tier, run.ms),
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
       kind: EMBLEM_OF[det.trId] || null,
       /** 徽記：一片朝鏡頭的法寶剪影。
