@@ -330,8 +330,11 @@ async function scanHandoffHotspot(page, seed) {
       for (let dx = 2; dx < width - 2; dx += 4) {
         const el = document.elementFromPoint(x + dx, y + dy);
         if (!el) continue;
-        const hit = el.closest('[onclick*="pickMark"]');
-        if (hit) return { x: x + dx, y: y + dy, onclick: hit.getAttribute('onclick'), cls: el.className };
+        /* 0.56a 掏空後 .mcard 搬到 #railW／#railE，#hoBtn 底下不再壓著卡（合併樹補驗抓到 C3 恆紅）。
+           危險的效果是「第二下落在**任何**可互動元素上」，不只 pickMark ⇒ 改掃所有 [onclick]，
+           排除交棒鈕與遮罩本身；掃不到＝這條落點已由版面消除（由建構），改用鈕中心點連按。 */
+        const hit = el.closest('[onclick]');
+        if (hit && !hit.closest('#handoff') && hit.id !== 'hoBtn') return { x: x + dx, y: y + dy, onclick: hit.getAttribute('onclick'), cls: el.className };
       }
     }
     return null;
@@ -371,6 +374,9 @@ async function caseHandoffDoubleTap(page, seed, hotspot) {
   /* 第二下若生效，它會落在 .mcard 上 ⇒ S.marks[ACTIVE] 從 undefined 變成一個數字 */
   rec.markedAfter = await page.evaluate(`(() => { const S = window.__yaoshi.S;
     return (S && S.marks) ? (S.marks[ACTIVE] === undefined ? 'undefined' : String(S.marks[ACTIVE])) : null; })()`);
+  /* 落點若是 openSheet 之類，第二下生效的效果是出價視窗被打開 ⇒ 一併量 */
+  rec.sheetOpen = await page.evaluate(`(() => { const sh = document.getElementById('sheet');
+    return !!(sh && getComputedStyle(sh).display !== 'none'); })()`).catch(() => null);
   return rec;
 }
 
@@ -681,9 +687,11 @@ const main = async () => {
         第二下後還在選尊視窗: c2.after.modalOn, 選項張數: c2.after.picks,
         尊的歸屬: `${c2.before.shrines} → ${c2.after.shrines}` },
       /* hotspot=null 代表掃不到危險落點 ⇒ 這次量測沒成立，直接紅（不讓它因為點到空白而偷偷綠） */
-      C3_handoff_no_stray_mark: { pass: !c3.gapMissed && !!out.hotspot && c3.handoffUp === true && c3.markedAfter === 'undefined',
+      /* hotspot=null 現在代表「#hoBtn 底下沒有任何可互動元素」（0.56a 版面），危險由建構消除；仍以中心點連按，
+         斷言第二下沒盯上、沒開出價視窗。凍結檔 2026-09-11-acceptance-phase-gate.md §2.1 修訂（例外條：新版面上原條件恆紅）。 */
+      C3_handoff_no_stray_mark: { pass: !c3.gapMissed && c3.handoffUp === true && c3.markedAfter === 'undefined' && c3.sheetOpen !== true,
         量測: JSON.stringify(c3.gapInfo) + (c3.attempts > 1 ? `・第 ${c3.attempts} 次量到` : ''),
-        交棒遮罩有出現: c3.handoffUp, 危險落點: out.hotspot ? `${Math.round(out.hotspot.x)},${Math.round(out.hotspot.y)} → ${out.hotspot.onclick}` : '掃不到（量測失敗）',
+        交棒遮罩有出現: c3.handoffUp, 危險落點: out.hotspot ? `${Math.round(out.hotspot.x)},${Math.round(out.hotspot.y)} → ${out.hotspot.onclick}` : '無（#hoBtn 底下無可互動元素，由版面消除；以中心點連按）',
         第二下後的盯上: c3.markedAfter, marks: c3.after.marks },
       /* 被吞掉的那一下也要叫到 audioWake（相位閘用 stopImmediatePropagation，不補叫就會斷掉 iOS 解鎖） */
       C5_audiowake_survives: { pass: out.hasPhaseGate === false || (c2.wakesAfter2nd === c2.wakesBefore2nd + 1),
