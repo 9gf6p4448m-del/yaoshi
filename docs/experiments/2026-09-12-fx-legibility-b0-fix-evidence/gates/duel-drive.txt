@@ -1,0 +1,12 @@
+# duel-drive 4 場（seed 7）＝凍結檔 L9「零錯」，本批修補後重跑（2026-09-12）
+$ node tests/tools/duel-drive.mjs "http://127.0.0.1:8885/index.html?paperwar=1&fxcount=1&seed=7" \
+       scratchpad/fix-r1/gates/duel.json --duels=4 --port=8885
+{"out":"…/duel.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,
+ "trait":4,"traitFig":4,"load":{"ms":47,"total":15,"loaded":15,"timedOut":false},"ver":"v0.56a"}
+
+$ node tests/tools/duel-drive.mjs "http://127.0.0.1:8886/index.html?paperwar=1&fxcount=1&seed=7&fxtier=0" \
+       scratchpad/fix-r1/gates/duel-off.json --duels=4 --port=8886
+{"out":"…/duel-off.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,
+ "trait":4,"traitFig":4,"load":{"ms":51,"total":15,"loaded":15,"timedOut":false},"ver":"v0.56a"}
+
+→ 兩份 errors 0、burn 6／trait 4／traitFig 4 與批 0 報告 B0-5 逐欄相同。
