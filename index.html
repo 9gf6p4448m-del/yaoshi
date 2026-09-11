@@ -1970,7 +1970,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.53", VERSION_NOTE="請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.53.1", VERSION_NOTE="修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -4355,6 +4355,7 @@ function revealEventUI(){
   $("mainbtn").disabled=false;
 }
 function startBidUI(){
+  BIDS_OPEN=true;   /* 本席的密封標從這裡開始收（盯上宣告也算在內：pickMark 之後要回得到市場） */
   /* 盯上宣告（§5.8）：真人先釘再出價；已釘過（熱座交棒回來）就直接進市場 */
   if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); return; }
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
@@ -4465,6 +4466,7 @@ function showHandoff(pid, cont){
   $("handoff").style.display="flex";
 }
 function showMarket(){
+  if(!BIDS_OPEN) return;   /* 交卷／開標之後不重畫出價畫面（否則 #mainbtn 會被重新綁回 submitHumanBids＝相位倒退） */
   SKIP=false; $("skipbtn").style.display="none";
   renderSeats();
   const ap=S.players[ACTIVE];
@@ -4546,7 +4548,9 @@ function incbarHTML(ap){
     +`<button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>`
     +`<span class="mut">${nxt==null?"局末結清":(left>0?`第 ${nxt} 夜`:"<b>今夜請神</b>")}・你 ${h}／敵 ${lead}</span></span>`;
 }
-function incBump(d){ if(!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }
+/* ★閘也設在 mutator 這一端★（v0.53.1 覆審 F3）：showMarket 的閘擋的是「重畫」，
+   但 incBump 是**先改 INC.amt 再重畫**——只擋 renderer 的話，封籤內容仍會被改。 */
+function incBump(d){ if(!BIDS_OPEN||!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }
 /* 押寶夜的「一注」輸入條（非押寶夜回空字串，其餘夜的出價流程完全不變） */
 function stakeHTML(ap){
   if(!YB) return "";
@@ -4603,6 +4607,19 @@ function mcardHTML(it,i){
   </div>`;
 }
 let sheetIdx=null, YB=null, INC=null; /* INC＝本席這一夜的燒香（請神 3.0）：{amt}（不綁尊）；null＝沒有尊可請 */
+/* ★出價相位閘（v0.53.1，2026-09-11 真機回饋「開標後按燒香會再競標一次、扣兩次壽命」）★
+   BIDS_OPEN＝「現在這一席的密封標還收不收」。true 只出現在 startBidUI 之後、交卷（或開標）之前。
+   ★防線按「危險的效果」寫，不按「已知的入口」寫★：危險的效果是**本夜的出價被結算第二次**
+   （submitHumanBids → startReveal → resolveAuction 再跑一遍、信封重收一次香火），
+   不是「燒香那顆鈕被按到」——所以閘設在 submitHumanBids（重入就直接不收）與 showMarket
+   （交卷後任何人再叫它都不重畫出價畫面、不把 #mainbtn 重新綁回 submitHumanBids）這兩處效果點上。
+   分母（實際 grep 數出來的，不是憑印象）：能重新叫出出價畫面的是 showMarket 的 **7** 個呼叫點
+   （startBidUI／pickMark／doSacrifice／incBump／ybBump／ybFlip／ybToggle），能進開標的只有
+   submitHumanBids 與 startRevealDirect——兩道閘全涵蓋。
+   ★已知取捨（涵蓋而非收斂）★：引擎的 resolveAuction 本身沒有「本夜已結算」的冪等旗標，保護全在 UI 層。
+   要收斂得動引擎（S.auctionDone===S.round），那會牽動 headless 三條迴圈與 trace 等價，代價大於這個 bug；
+   真人路徑的分母已由上面兩道閘＋交卷清場歸到 1。 */
+let BIDS_OPEN=false;
 function openSheet(i){
   sheetIdx=i;
   const it=S.market[i],b=myBids[i];
@@ -4708,7 +4725,13 @@ function updateBudget(){
   $("mainbtn").disabled=tot>cap;
 }
 function submitHumanBids(){
+  if(!BIDS_OPEN) return;   /* 重入閘：同一席的封籤只收一次，本夜的出價不會被結算第二次 */
+  BIDS_OPEN=false;
   hideBloodBtn();   /* 交卷後不再是出價階段，底部列的放血鈕收起來 */
+  /* 燒香列也要收（v0.53.1）：它在 #south／#budget 裡，而 #south 不像 #stage 會被開標演出整個重畫，
+     不撤掉的話那兩顆「＋／−」會活過開標、停在「本夜成交總覽」畫面上被按到。
+     用的是 showHandoff 同一條清場慣例（querySelector "#south .incbar"），不另寫一套。 */
+  document.querySelectorAll("#south .incbar").forEach(el=>el.remove());
   /* 押寶夜：交卷時才把「一注 X ＋ 勾選」展開成引擎吃的 bids 形狀（同一個 X 出現在每件勾選上） */
   if(YB) myBids=S.market.map((it,i)=>
     /* stake:true＝「這一列是真人在 UI 已經封好的一注」，toSingleStake 看到它就不加總、不夾上限 */
@@ -4729,6 +4752,7 @@ function submitHumanBids(){
 /* ================= 開標演出 ================= */
 function startRevealDirect(){ startReveal(); }
 async function startReveal(){
+  BIDS_OPEN=false;   /* 不論從哪條路進開標（交卷／人類全滅的 startRevealDirect），出價一律關閉 */
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
   const reveal=resolveAuction();

@@ -1348,3 +1348,26 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 10. **局末結清那一條是主對話自定的**（提案 §二 6 有星號標記，未經使用者逐條裁定）。
     ★但「H1 紅就拿掉局末退還」這根槓桿**實測無效**（n=2000：+7.65→+8.05pp），因為它只影響落空者、贏家的香火本來就歸零；別再拉它。★
 11. **使用者 2026-09-10 裁甲的兩個數值**：`INC_TITHE` 1→2、`SHRINE_NIGHTS` [4,7,10]→[5,8,11]。第一輪 n=10000 閘門 H1（燒滿−splitter +9.88pp）與 H3（局長中位 9 夜、greedy −6pp）紅；歸因＝3.0 關掉請神局長 11、2.0 也是 11、3.0 開著 9——縮短來自「自選」讓第 4 夜得主拿到最配系的尊滾雪球，不是燒太多（每局燒 21 < 2.0 的 26.75）。供奉 2 治 H1、延後一夜治 H3，兩者合併 n=2000 七策略全進帶（燒滿 −0.8pp、greedy −1.3、中位 10）。凍結檔 §2.1 修訂一有完整表。**回天彈窗使用者裁定留著**（09-10：真人也可能不按「要」）。
+12. **★開標後燒香曾重觸發整夜結算（v0.53.1 修，2026-09-11 真機回報「同一夜競標兩次、扣兩次壽命」）★**
+    **根因**：燒香列自 09-07 覆審起併進底列 `#budget`（在 `#south`），而 `#south` **不像 `#stage` 會被開標演出重畫**——
+    那兩顆「＋／−」因此活過開標，停在「🏮 本夜成交總覽」畫面上還按得動；`incBump()` 無條件呼叫 `showMarket()`，
+    `showMarket()` 又把 `#mainbtn` 重新綁回 `submitHumanBids`（`index.html` 的 `showMarket` 尾段）⇒ 相位倒退回出價，
+    再按一次「蓋牌開標」就讓同一夜的 `resolveAuction` 跑第二次、信封 `S.incense` 重收一次香火 ⇒ 壽命扣兩次。
+    **修法**：加相位旗標 `BIDS_OPEN`（宣告在 `sheetIdx/YB/INC` 旁）。`startBidUI` 開、`submitHumanBids` 與
+    `startReveal` 關；`submitHumanBids` 重入直接 return，`showMarket` 在關閉時不重畫（把 6 個 `showMarket`
+    呼叫點一次涵蓋），並比照 `showHandoff` 的清場慣例移除 `#south .incbar`（讓鈕**不存在**，不是按了沒反應）。
+    **防線按危險的效果寫**：守的是「本夜出價被結算第二次」，不是「燒香那顆鈕被按到」。
+    `incBump` 自己也帶閘（覆審 F3）：它是**先改 `INC.amt` 再重畫**，只擋 renderer 的話封籤內容仍會被改。
+    **治具**：`tests/tools/reveal-reentry-probe.mjs`（真實 UI、solo＋hotseat，單一指令，埠 95xx 段）。
+    對 `c866b01` 紅在 A1／A2／A3／A6／A7 的行為斷言、對修好的版本 8/8 綠；A4 兩條（出價階段「＋」仍加得動、
+    燒的香真的扣壽命）在**兩個版本都綠**＝探針有活性。`trace-eq` 對 `c866b01` **equal**（只動 UI 流程，引擎零位移）。
+    ★**A7 是覆審逼出來的**★：一開始只有 A1／A6，而它們的綠燈 100% 來自「按鈕被移除」——`BIDS_OPEN`
+    那道閘一行都沒被執行到，刪掉它探針照樣全綠。A7 改成在總覽畫面**直接呼叫**
+    `showMarket()`／`incBump(1)`／`submitHumanBids()`，量的是閘擋不擋得住。鑑別力用兩個「只刪一行」的
+    突變體驗過：刪掉 `showMarket` 的閘 ⇒ A7／A4-2／A8 紅；刪掉交卷清場（閘留著）⇒ 仍全綠
+    （使用者那一下真的按到了：`plus2.ok=1`、`incBtns=2`，是閘擋下的）。**改這一段一定要一併跑突變體**。
+    **未修的既存同族缺陷（覆審 F4，MEDIUM，非本次造成）**：`nextRound`（夜末「進入下一夜」）第一行沒有
+    `disabled=true`，solo 下整串 `nextRound→beginRound→proceedToBids→startBidUI→showMarket` 是同步的，
+    跑完 `#mainbtn` 已變成「蓋牌開標」＋`onclick=submitHumanBids` 且被 `updateBudget` 設回可按——
+    在同一個位置快按兩下，第二下就以 0 出價、0 燒香交卷開標（`BIDS_OPEN` 此刻**合法地是 true**，擋不到）。
+    效果是「整夜白費」不是「扣兩次壽命」；`index.html:4353`（異事夜「前往拍賣」）同型。待使用者裁定再修。
