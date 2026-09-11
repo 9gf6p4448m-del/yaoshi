@@ -52,22 +52,31 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #lbTop{top:0}
 #lbBot{bottom:0}
 #lbTop.on,#lbBot.on{height:8vh}
-/* ★R2 覆審 N1／R3 覆審 H-1 重修★：黑條提到 z-index:41 之後會蓋掉對決自己的字幕——
-   實測 tier 3 那一拍 #duelBeat 被上條蓋 82.4%、#duelSub 被下條蓋 100%。那是全場最重要的一拍。
-   ★三版用「#duel 內縮 8vh」是無效的修法★（R3 實測修前修後 #duelBeat 幾何逐值相同）：
-   #duel 是 `flex-direction:column; justify-content:center; overflow:hidden`，而真實對決的內容本來就
-   塞不下（scrollHeight 390→416 > clientHeight 390）。**內容溢出時居中對齊的是內容盒中心**，
-   上下加等量 padding 之後中心點還是同一個（(31.2+358.8)/2 == (0+390)/2 == 195），一格都不會動，
-   只是把溢出量從 26px 變成 52px（只有壞處）。
-   ★真正的修法★：黑條開著時把三塊字幕**移出 flex 流**（position:absolute），直接釘在兩條黑條之間的安全區。
-   ① 移出流之後 #duel 的內容高度變小，剩下的（舞台）照舊居中，溢出反而減輕；
-   ② 字幕的位置由 top/bottom 直接決定，不再受「內容塞不塞得下」影響。
-   安全區＝黑條高度 8vh 再往內留一點：上緣 calc(8vh + 6px)、下緣兩行由下往上疊。
-   為什麼不是把字幕的 z-index 提上去：#duel 自己是 z-index:40 的 fixed，**它建立了堆疊上下文**，
-   裡面的子元素再怎麼調 z-index 都出不去 40 那一層。 */
-#duel.lbox #duelBeat{position:absolute;left:0;right:0;top:calc(8vh + 6px);margin:0}
-#duel.lbox #duelResult{position:absolute;left:0;right:0;bottom:calc(8vh + 28px);margin:0}
-#duel.lbox #duelSub{position:absolute;left:0;right:0;bottom:calc(8vh + 8px);margin:0}
+/* ★黑條開著時，對決內容整塊縮進兩條黑條之間★（R2 N1 → R3 H-1 → R4 H-1/H2 第三次重修）
+   走過的兩條死路，寫下來免得再試一次：
+   ① 三版「#duel{padding:8vh 0}」＝完全的 no-op。#duel 是 `justify-content:center` + `overflow:hidden`，
+      真實對決內容本來就塞不下（scrollHeight 394 > clientHeight 390）；**內容溢出時居中對齊的是內容盒中心**，
+      上下加等量 padding 之後中心點不變（(31.2+358.8)/2 == (0+390)/2 == 195），字幕一格都沒動、只多裁 26px。
+   ② 四版「把 #duelBeat／#duelResult／#duelSub 三塊移出 flex 流（absolute）」＝只救了三分之一，
+      而且**把別的東西推進黑條裡**：那三塊離開後剩下的內容重新居中、整條流下移 7px，
+      溢出消失又讓 #duelMove 從一行長回兩行 ⇒ #duelMove 被下黑條蓋 15–30%、#beatLamps 被上黑條蓋 75%。
+      逐個元素 absolute 挪位是「防線按已知入口寫」，每補一個就擠到下一個。
+   ★這一版：讓 padding 真的生效★——padding 之所以無效，唯一原因是「內容縮不下去」，
+   而縮不下去是因為 flex item 的 `min-height:auto` 擋住了 #duelArena 收縮。
+   給 arena 一組 `flex:1 1 0; min-height:0`，它就會吃掉（也只吃掉）剩餘空間：
+   內容總高 == content box 高（327.6）⇒ 不再溢出 ⇒ padding 把**所有流內元素**一起壓進安全區，
+   不論現在有幾塊、將來誰再加一塊。分母歸一，不是逐個補洞。
+   驗收在 lbox-probe 的 L7：掃 #duel 底下**所有可見子孫**與兩條黑條的交集，全部必須是 0。 */
+#duel.lbox{transform:scale(.80);box-shadow:0 0 0 100vmax #000}
+/* .80 的來源（不是湊出來的）：黑條佔上下各 8vh ⇒ 安全區是 84vh；
+   但 #duel 的**內容本來就比視窗高**（真實對決 scrollHeight 394 > clientHeight 390，
+   而且 #duelMove 一行／兩行會讓它再浮動幾 px），居中溢出時內容實際範圍是 [−2, 392] 而不是 [0, 390]。
+   所以縮放係數要算在「內容高」上而不是「視窗高」上：0.84 只夠 390 的內容，實測拍燈仍超出 1.7px。
+   取 .80 ＝ 327.6 / 409：對 409px 高的內容（比實測 394 再留 15px 餘裕）仍然塞得進安全區，
+   #duelMove 長成兩行、或將來多一列字幕也不會又擠出去。
+   box-shadow 的 100vmax 實心外框把縮放後露出來的四周塗黑 ⇒ 真正的 letterbox（不是只有上下兩條）。
+   3D 妖不受影響地跟著走：duel-figures 是讀 .fighter 欄位的 getBoundingClientRect 對齊的，
+   而 rect 會反映 transform ⇒ 妖與 DOM 版面一起等比縮放，不會脫節。 */
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -5080,8 +5089,9 @@ function pwLetterbox(on){
     const a=$("lbTop"), b=$("lbBot");
     if(a) a.classList.toggle("on",!!on);
     if(b) b.classList.toggle("on",!!on);
-    /* R2 N1：黑條開著時對決內容內縮，字幕才不會被壓在黑條底下（見 #duel.lbox 的註解）。
-       兩者一定要同一支開關切——分開切就會有「黑條開了但字幕還沒讓位」的那幾幀。 */
+/* 黑條開著時同步給 #duel 掛 lbox class：對決內容整塊等比縮進兩條黑條之間（見 #duel.lbox 的註解）。
+       兩者一定要同一支開關切——分開切就會有「黑條開了但內容還沒讓位」的那幾幀。
+       （R4 覆審：三版的「內縮 padding」與四版的「逐個字幕 absolute」都被否掉了，別再往回試。） */
     const d=$("duel");
     if(d) d.classList.toggle("lbox",!!on);
   }catch(e){}

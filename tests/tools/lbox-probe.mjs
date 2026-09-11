@@ -137,79 +137,86 @@ try {
     return { off, on, off2 };
   });
 
-  /* L7（R2 覆審 N1／R3 覆審 H-2 重寫）：黑條蓋不蓋得到字幕。
-     ★三版的 L7 量在一個不存在的版面上★：它把 #duel 設成 display:block ＋ 空的 #duelArena，
-     真實路徑是 display:flex（column、justify-content:center、overflow:hidden）＋內容 425px 塞進 390px。
-     兩者的差別正是決定這個 bug 成敗的那一段（居中 flex ＋ 內容溢出），所以那支探針對真正的失效模式零鑑別力
-     ——下黑條那一半從頭到尾碰不到任何元素，修法沒效它照樣綠（02 §6.1 第 3 條、第 5 條）。
-     現在改成走**真實對決路徑**：用 duel-drive 的 onDuel 掛點（對決演出進行中）派 tier 3 ＋ 開黑條，
-     等 transition（.22s）穩定後量三個字幕與**上下兩條**黑條的交集面積，844×390 與 390×844 各一次。 */
+  /* L7（R2 N1／R3 H-2／R4 H-3 第三次重寫）：黑條蓋不蓋得到**任何看得見的東西**。
+     ★前兩版都是「防線按已知入口寫」★（02 §6.1 第 7 條）：
+       三版量在 display:block ＋空 arena 的假版面上；
+       四版換到真實版面，但**元素集合仍錯**——只量 #duelBeat／#duelSub／#duelResult 三個，
+       其中 #duelSub／#duelResult 在真實路徑上「黑條開著時恆空」（結果行要三拍演完才寫字，那時黑條早收了），
+       靠注入假文字才量得到；而真正當下有字又被蓋的 #duelMove（15–30%）與 #beatLamps（75%）一個都沒量。
+     ★這一版改成列舉分母★：掃 #duel 底下**所有可見子孫**（getBoundingClientRect 面積 >0、
+     computed visibility 非 hidden、opacity >0.01、display 非 none），凡與上下兩條黑條相交面積 >0 一律紅。
+     白名單只有「本來就該滿版、自己不畫東西的容器」，逐個寫理由；容器的**子孫仍然逐個檢查**。
+     不注入任何文字——當下沒字的元素本來就不會有面積，不該拿它來充樣本。
+     取樣：真實對局的 tier 3 拍（黑條由遊戲自己開）、黑條全開後 300／700／800ms、三場、844×390 與 390×844。 */
+  const VISIBLE_WHITELIST = {
+    // 滿版容器，自己不畫任何像素（背景/邊框都沒有），只負責排版；它的子孫仍逐個檢查
+    duelArena: '滿版排版容器（width:100%、無背景無邊框）',
+    dmgLayer: '跳字層：position:absolute inset:0 的空層，跳字本身是它的子孫，逐個檢查',
+    duel: '被測容器本身',
+  };
   const captionProbe = async (w, h) => {
     const ctx3 = await browser.newContext({ viewport: { width: w, height: h } });
     const p3 = await ctx3.newPage();
     p3.on('pageerror', (e) => errors.push(`caption${w}x${h}: ` + String((e && e.message) || e)));
     p3.on('console', (m) => { if (m.type() === 'error') errors.push(`caption${w}x${h} console: ` + m.text()); });
     /* 直式（390×844）：#rotateHint（z-index:99、inset:0）在 portrait 是 flex，整片蓋住畫面，
-       遊戲根本玩不下去（drive 會點不到按鈕而逾時）。那個尺寸看不到對決 ⇒ 也就沒有「黑條蓋字幕」這個問題。
-       所以直式只開頁面確認蓋板在，不跑對決。 */
+       遊戲玩不下去（drive 會點不到按鈕而逾時）。那個尺寸看不到對決 ⇒ 沒有「黑條蓋字幕」這個問題。 */
     if (h > w) {
       await p3.goto(`http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7`, { waitUntil: 'load' });
       await p3.waitForTimeout(800);
       const r = await p3.evaluate(() => ({ rotateHint: getComputedStyle(document.getElementById('rotateHint')).display,
         duDisp: getComputedStyle(document.getElementById('duel')).display }));
       await ctx3.close();
-      return { on: r, off: r, note: '直式：rotateHint 蓋板全螢幕，對決不可見，不量交集' };
+      return { samples: [], rotateHint: r.rotateHint, duDisp: r.duDisp, note: '直式：rotateHint 蓋板全螢幕，對決不可見，不量交集' };
     }
-    let out = null;
-    await drive(p3, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7`, {
-      duels: 2,
-      onDuel: async (pg, n) => {
-        if (n !== 2 || out) return;
-        await pg.waitForTimeout(700); // 進場 orbit 走完、字幕已經有內容
-        const measure = async (on) => pg.evaluate(async ({ on, ms, base }) => {
-          window.__yaoshi.pwLetterbox(on);
-          if (on) document.dispatchEvent(new CustomEvent('ys:fx-trait', { detail: { trId: 'probe', side: 'A', foeSide: 'B', fac: 'zuling', power: 0.8, ms, tier: 3, cinema: true, baseMs: base, handled: false, done: null } }));
-          await new Promise((r) => setTimeout(r, 420)); // CSS transition .22s ＋ 餘裕
-          const ids = ['duelBeat', 'duelSub', 'duelResult'];
-          /* #duelSub（燒毀說明）與 #duelResult（勝負行）只在拍末／收場才有內容，量的當下多半是空的。
-             空元素 height 0 就量不到交集——**那正是 r2 實測「#duelSub 被下條蓋 100%」的那一項**。
-             所以對空的元素塞一段與真實內容同型的文字（版面仍是真實的 flex＋溢出，只是保證元素佔得到位）。
-             有塞的會標 injected:true，判定照樣算它。 */
-          const FILL = { duelSub: '🔥 陰間當鋪 燒掉 1/1 隻 → −8 壽命', duelResult: '陰間當鋪 勝！閭山法師 −8 壽命' };
-          const injected = {};
-          ids.forEach((id) => {
-            const el = document.getElementById(id);
-            if (el && !el.textContent.trim() && FILL[id]) { el.textContent = FILL[id]; injected[id] = true; }
-          });
-          await new Promise((r) => requestAnimationFrame(r)); // 讓版面重算
-          const bars = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect());
-          const ov = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-          const d = document.getElementById('duel');
-          const res = { bars: bars.map((b) => [+b.top.toFixed(1), +b.bottom.toFixed(1)]),
-            duDisp: getComputedStyle(d).display, duCls: d.className,
-            scrollH: d.scrollHeight, clientH: d.clientHeight,
-            rotateHint: getComputedStyle(document.getElementById('rotateHint')).display };
-          ids.forEach((id) => {
-            const el = document.getElementById(id);
-            const r = el ? el.getBoundingClientRect() : null;
-            if (!r || r.height === 0 || r.width === 0) { res[id] = { skipped: true, area: 0, pct: 0, txt: el ? el.textContent.trim().slice(0, 12) : null }; return; }
-            const area = bars.reduce((acc, b) => acc + ov(r, b), 0);
-            res[id] = { injected: !!injected[id], top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1), h: +r.height.toFixed(1),
-              area: +area.toFixed(1), pct: +(area / (r.width * r.height) * 100).toFixed(1), txt: el.textContent.trim().slice(0, 12) };
-          });
-          return res;
-        }, { on, ms: msOf(3), base: TIER_BASE_MS });
-        const on = await measure(true);
-        await pg.evaluate(() => { window.__yaoshi.pwLetterbox(false); document.dispatchEvent(new CustomEvent('ys:fx-trait-cancel', { detail: {} })); });
-        await pg.waitForTimeout(500);
-        const off = await measure(false);
-        out = { on, off };
-      },
+    /* 橫式：真的玩到有 tier 3 的拍。黑條由**遊戲自己開**（pwPlayBeat），不是探針呼叫 API——
+       這樣「?closeup=0 會不會開」與「開了之後蓋到誰」走的都是真實路徑。
+       用 MutationObserver 等 #lbTop 變 on，再於 300/700/800ms 取樣。 */
+    await p3.addInitScript(() => {
+      window.__lbSamples = [];
+      const WL = { duelArena: 1, dmgLayer: 1, duel: 1 };
+      const vis = (el) => {
+        const cs = getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) <= 0.01) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      };
+      window.__lbScan = (tag) => {
+        const duel = document.getElementById('duel');
+        const bars = ['lbTop', 'lbBot'].map((id) => document.getElementById(id).getBoundingClientRect());
+        const ov = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+        const hits = [], seen = [];
+        duel.querySelectorAll('*').forEach((el) => {
+          if (!vis(el)) return;
+          const id = el.id || '';
+          const r = el.getBoundingClientRect();
+          const key = id || (el.className && String(el.className).split(' ')[0]) || el.tagName.toLowerCase();
+          seen.push(key);
+          if (WL[id]) return; // 白名單容器本身跳過，它的子孫已經在這個迴圈裡各自被檢查
+          const area = bars.reduce((acc, b) => acc + ov(r, b), 0);
+          if (area > 0) hits.push({ key, top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1), h: +r.height.toFixed(1),
+            area: +area.toFixed(1), pct: +(area / (r.width * r.height) * 100).toFixed(1), txt: (el.textContent || '').trim().slice(0, 14) });
+        });
+        window.__lbSamples.push({ tag, bars: bars.map((b) => [+b.top.toFixed(1), +b.bottom.toFixed(1)]),
+          duCls: duel.className, scrollH: duel.scrollHeight, clientH: duel.clientHeight,
+          seenN: seen.length, hits });
+      };
+      document.addEventListener('DOMContentLoaded', () => {
+        const top = document.getElementById('lbTop');
+        if (!top) return;
+        new MutationObserver(() => {
+          if (!top.classList.contains('on')) return;
+          [300, 700, 800].forEach((ms) => setTimeout(() => { try { window.__lbScan('on+' + ms); } catch (e) { /* 收場後元素可能已清 */ } }, ms));
+        }).observe(top, { attributes: true, attributeFilter: ['class'] });
+      });
     });
+    await drive(p3, `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=7`, { duels: 16 });
+    const got = await p3.evaluate(() => ({ samples: window.__lbSamples || [], tiers: (window.__ysFxCount || {}).tiers || null }));
     await ctx3.close();
-    return out || { on: null, off: null, note: '沒有量到（第 2 場對決沒觸發？）' };
+    return got;
   };
   res.L7 = { land: await captionProbe(844, 390), port: await captionProbe(390, 844) };
+
 
   // L1／L2：對每個 tier 派一次 ys:fx-trait，逐幀取樣 cinemaOn()
   const probe = async (tier, ms) => page.evaluate(async ({ tier, ms, base }) => {
@@ -339,14 +346,15 @@ const v = {
   L6: res.L6.on.top <= 10 && res.L6.on.bot <= 10
     && res.L6.on.top < res.L6.off.top && res.L6.on.bot < res.L6.off.bot
     && Math.abs(res.L6.on.mid - res.L6.off.mid) < 2,
-  /* L7（R2 N1／R3 H-2）：**真實對決版面上**，黑條開著時三個字幕與上下兩條黑條的交集面積都要 0。
-     直式（390×844）另外處理：#rotateHint（z-index:99、inset:0）在 portrait 是 flex，整片蓋住對決
-     ⇒ 那個尺寸看不到對決、也就沒有被黑條蓋到字幕的問題；量到 rotateHint 是 flex 就記錄並跳過交集判定。 */
+  /* L7（R4 H-3）：黑條開著時，#duel 底下**任何可見子孫**與上下黑條的交集面積都必須是 0。
+     樣本＝真實對局裡每一個 tier 3 拍的 300／700／800ms 三個時點；要有樣本才算數（0 樣本不算過）。
+     直式沒有對決版面（rotateHint 蓋板），記錄後跳過。 */
   L7: (() => {
     const judge = (r) => {
-      if (!r || !r.on) return false;
-      if (r.on.rotateHint === 'flex') return true; // 直式：整片蓋板，對決不可見
-      return ['duelBeat', 'duelSub', 'duelResult'].every((k) => (r.on[k] || {}).area === 0 && (r.off[k] || {}).area === 0);
+      if (!r) return false;
+      if (r.rotateHint === 'flex') return true;            // 直式：整片蓋板，對決不可見
+      if (!r.samples || r.samples.length === 0) return false; // 沒樣本＝不算過
+      return r.samples.every((s) => s.hits.length === 0);
     };
     return judge(res.L7.land) && judge(res.L7.port);
   })(),

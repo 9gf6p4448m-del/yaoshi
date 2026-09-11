@@ -53,104 +53,180 @@
   },
   "L7": {
    "land": {
-    "on": {
-     "bars": [
-      [
-       0,
-       31.2
+    "samples": [
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
       ],
-      [
-       358.8,
-       390
-      ]
-     ],
-     "duDisp": "flex",
-     "duCls": "on pw lbox",
-     "scrollH": 390,
-     "clientH": 390,
-     "rotateHint": "none",
-     "duelBeat": {
-      "injected": false,
-      "top": 37.2,
-      "bottom": 58.2,
-      "h": 21,
-      "area": 0,
-      "pct": 0,
-      "txt": "一拍・撞"
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 70,
+      "hits": []
      },
-     "duelSub": {
-      "injected": true,
-      "top": 332.8,
-      "bottom": 350.8,
-      "h": 18,
-      "area": 0,
-      "pct": 0,
-      "txt": "🔥 陰間當鋪 燒掉 1"
-     },
-     "duelResult": {
-      "injected": true,
-      "top": 304.8,
-      "bottom": 330.8,
-      "h": 26,
-      "area": 0,
-      "pct": 0,
-      "txt": "陰間當鋪 勝！閭山法師 "
-     }
-    },
-    "off": {
-     "bars": [
-      [
-       0,
-       0
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
       ],
-      [
-       390,
-       390
-      ]
-     ],
-     "duDisp": "flex",
-     "duCls": "on pw",
-     "scrollH": 390,
-     "clientH": 390,
-     "rotateHint": "none",
-     "duelBeat": {
-      "injected": false,
-      "top": 9,
-      "bottom": 30,
-      "h": 21,
-      "area": 0,
-      "pct": 0,
-      "txt": "二拍・護"
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 73,
+      "hits": []
      },
-     "duelSub": {
-      "injected": false,
-      "top": 372,
-      "bottom": 390,
-      "h": 18,
-      "area": 0,
-      "pct": 0,
-      "txt": "🔥 陰間當鋪 燒掉 1"
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 73,
+      "hits": []
      },
-     "duelResult": {
-      "injected": false,
-      "top": 342,
-      "bottom": 368,
-      "h": 26,
-      "area": 0,
-      "pct": 0,
-      "txt": "陰間當鋪 勝！閭山法師 "
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 66,
+      "hits": []
+     },
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 69,
+      "hits": []
+     },
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 69,
+      "hits": []
+     },
+     {
+      "tag": "on+300",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 50,
+      "hits": []
+     },
+     {
+      "tag": "on+700",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 53,
+      "hits": []
+     },
+     {
+      "tag": "on+800",
+      "bars": [
+       [
+        0,
+        31.2
+       ],
+       [
+        358.8,
+        390
+       ]
+      ],
+      "duCls": "on pw lbox",
+      "scrollH": 394,
+      "clientH": 390,
+      "seenN": 53,
+      "hits": []
      }
+    ],
+    "tiers": {
+     "1": 25,
+     "2": 14,
+     "3": 3
     }
    },
    "port": {
-    "on": {
-     "rotateHint": "flex",
-     "duDisp": "none"
-    },
-    "off": {
-     "rotateHint": "flex",
-     "duDisp": "none"
-    },
+    "samples": [],
+    "rotateHint": "flex",
+    "duDisp": "none",
     "note": "直式：rotateHint 蓋板全螢幕，對決不可見，不量交集"
    }
   },
@@ -164,7 +240,7 @@
   },
   "tier2": {
    "ms": 900,
-   "samples": 91,
+   "samples": 89,
    "onCount": 0,
    "maxK": 0,
    "onDuring": 0,
@@ -172,10 +248,10 @@
   },
   "tier3": {
    "ms": 1400,
-   "samples": 119,
-   "onCount": 103,
+   "samples": 120,
+   "onCount": 104,
    "maxK": 1,
-   "onDuring": 84,
+   "onDuring": 85,
    "onAtTail": 0
   },
   "L5": {
@@ -183,31 +259,31 @@
     "kAtCancel": 1,
     "onAfter300": 0,
     "samples": 41,
-    "lastOnT": 316
+    "lastOnT": 318
    },
    "ys:duel-end": {
     "kAtCancel": 1,
     "onAfter300": 0,
-    "samples": 43,
-    "lastOnT": 312
+    "samples": 42,
+    "lastOnT": 317
    },
    "ys:table": {
     "kAtCancel": 1,
     "onAfter300": 0,
     "samples": 43,
-    "lastOnT": 331
+    "lastOnT": 316
    }
   },
   "L6": {
    "off": {
-    "top": 29.44,
-    "bot": 40.42,
-    "mid": 54.14
+    "top": 29.37,
+    "bot": 40.94,
+    "mid": 52.95
    },
    "on": {
     "top": 0,
     "bot": 0,
-    "mid": 54.7
+    "mid": 53.12
    }
   },
   "L8": {
