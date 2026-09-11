@@ -103,6 +103,25 @@ async function driveUntil(page, re, tag, path) {
   throw new Error(`driveUntil 卡住（${tag}），最後畫面：` + JSON.stringify(await page.evaluate(ST)));
 }
 
+/* ★一定要重試★（v0.53.3 之後）：主鈕現在有連點守衛——上一下若在自己的同步執行裡把主鈕換了手，
+   接下來 MAIN_GUARD_MS 內的點擊會被吞掉。治具跑得比人快，常常正好撞在那個視窗裡，
+   所以「按一下就假設它生效」會靜默走偏（實測：熱座第一席交卷被吞 ⇒ 第二席根本沒換人，
+   同一席被按了兩次「＋」，A6 量到 0→1／1→2）。這一支按到畫面真的變了為止。
+   注意：它只讓**驅動**變可靠，判準一格沒動；真正卡死仍由 A8_no_stall 抓（突變體 M1 實測會紅）。 */
+async function clickMainUntilTakes(page, tag) {
+  const b0 = await page.evaluate(ST);
+  for (let i = 0; i < 40; i++) {
+    await page.click('#mainbtn').catch(() => {});
+    await page.waitForTimeout(60);
+    const s = await page.evaluate(ST).catch(() => null);
+    if (!s) return null;
+    const ho = await page.evaluate(`(() => { const h = document.getElementById('handoff');
+      return !!(h && getComputedStyle(h).display !== 'none'); })()`).catch(() => false);
+    if (ho || s.txt !== b0.txt || s.dis !== b0.dis || s.hasMarket !== b0.hasMarket) return s;
+  }
+  throw new Error(`clickMainUntilTakes 沒生效（${tag}）`);
+}
+
 /* 跑一局到第 1 夜結束（請神演出跑完、#mainbtn＝開戰）。bump2=true 就在成交總覽多按一次「＋」。 */
 async function playNight1(page, seed, bump2) {
   const rec = { seed, bump2, path: [] };
@@ -127,7 +146,7 @@ async function playNight1(page, seed, bump2) {
   rec.incAmtAfter = (await page.evaluate(ST)).incAmt;
 
   // ③ 蓋牌開標 → 一路推到「本夜成交總覽」（#mainbtn＝🕯️ 請神／開戰）
-  await page.click('#mainbtn');
+  await clickMainUntilTakes(page, '蓋牌開標');
   rec.path.push(`${bid.round}|蓋牌開標`);
   const done = await driveUntil(page, /請神|開戰/, '成交總覽', rec.path);
   rec.atSummary = { txt: done.txt, lives: done.lives, ra: done.ra, incEnv: done.incEnv, incBtns: done.incBtns, incPlusDisabled: done.incPlusDisabled, hasMarket: done.hasMarket };
@@ -142,7 +161,7 @@ async function playNight1(page, seed, bump2) {
     // 照著畫面往下走（使用者會做的事）：畫面退回出價就再按一次蓋牌開標，再推到總覽
     if (rec.A1_rewound) {
       const st2 = await driveUntil(page, /請神|開戰|蓋牌/, '第二輪', rec.path);
-      if (/蓋牌/.test(st2.txt)) { await page.click('#mainbtn'); rec.path.push(`${st2.round}|蓋牌開標(第二次)`); }
+      if (/蓋牌/.test(st2.txt)) { await clickMainUntilTakes(page, '蓋牌開標(第二次)'); rec.path.push(`${st2.round}|蓋牌開標(第二次)`); }
       const done2 = await driveUntil(page, /請神|開戰/, '第二次成交總覽', rec.path);
       rec.atSummary2 = { txt: done2.txt, lives: done2.lives, ra: done2.ra, incEnv: done2.incEnv };
     }
@@ -194,7 +213,7 @@ async function playHotseatNight1(page, seed) {
     await page.waitForTimeout(30);
     const after = (await page.evaluate(ST)).incAmt;
     rec.seats.push({ seat, active: bid.txt, before, after, plus: p });
-    await page.click('#mainbtn');
+    await clickMainUntilTakes(page, `熱座第 ${seat + 1} 席交卷`);
     rec.path.push(`${bid.round}|${bid.txt}`);
   }
   const sum = await driveUntil(page, /請神|開戰/, '熱座成交總覽', rec.path);
@@ -310,8 +329,9 @@ const mutate = async () => {
     const r2 = await runChild(f2, PORT + 61);
     const a7red = /紅 FAIL A7_gate_holds/.test(r1.out);
     const m2green = r2.code === 0;
-    console.log(r1.out.split('\n').filter((l) => /A7_gate_holds|A4_2|A8_no_stall|★/.test(l)).map((l) => '  M1 ' + l.trim()).join('\n'));
-    console.log(r2.out.split('\n').filter((l) => /A1_no_rewind|A7_gate_holds|★/.test(l)).map((l) => '  M2 ' + l.trim()).join('\n'));
+    /* 兩個子行程的**所有**紅燈都印出來（只挑幾條看會漏掉真正的失敗原因，踩過一次） */
+    console.log(r1.out.split('\n').filter((l) => /紅 FAIL|A7_gate_holds|★/.test(l)).map((l) => '  M1 ' + l.trim()).join('\n'));
+    console.log(r2.out.split('\n').filter((l) => /紅 FAIL|A1_no_rewind|A7_gate_holds|★/.test(l)).map((l) => '  M2 ' + l.trim()).join('\n'));
     ok = a7red && m2green;
     console.log(JSON.stringify({ mode: 'mutate', M1: { expect: 'A7 紅', got: a7red ? 'A7 紅 ✅' : 'A7 沒紅 ❌（閘沒有鑑別力）', exit: r1.code },
       M2: { expect: '仍全綠', got: m2green ? '全綠 ✅（是閘擋下的，不是靠移除按鈕）' : '有紅 ❌', exit: r2.code },
