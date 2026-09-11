@@ -1349,7 +1349,7 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     ★但「H1 紅就拿掉局末退還」這根槓桿**實測無效**（n=2000：+7.65→+8.05pp），因為它只影響落空者、贏家的香火本來就歸零；別再拉它。★
 11. **使用者 2026-09-10 裁甲的兩個數值**：`INC_TITHE` 1→2、`SHRINE_NIGHTS` [4,7,10]→[5,8,11]。第一輪 n=10000 閘門 H1（燒滿−splitter +9.88pp）與 H3（局長中位 9 夜、greedy −6pp）紅；歸因＝3.0 關掉請神局長 11、2.0 也是 11、3.0 開著 9——縮短來自「自選」讓第 4 夜得主拿到最配系的尊滾雪球，不是燒太多（每局燒 21 < 2.0 的 26.75）。供奉 2 治 H1、延後一夜治 H3，兩者合併 n=2000 七策略全進帶（燒滿 −0.8pp、greedy −1.3、中位 10）。凍結檔 §2.1 修訂一有完整表。**回天彈窗使用者裁定留著**（09-10：真人也可能不按「要」）。
 
-### 11.28 拍賣桌整片掏空 **0.56a**「版面卷」（2026-09-10，桌面先平面）——接手前先知道這十件事
+### 11.28 拍賣桌整片掏空 **0.56a**「版面卷」（2026-09-10，桌面先平面）——接手前先知道這十一件事
 
 規格＝`docs/proposals/2026-09-10-plan-table3d.md`（§1 檔案清單／§2 介面已寫死／§3 不做什麼／§7 裁定）；
 驗收凍結＝`docs/experiments/2026-09-10-acceptance-table3d.md`（**T0–T6 是本卷，T7–T12 屬上桌卷**）；
@@ -1379,6 +1379,9 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
    但什麼都不做。`#felt.hollow #stage` 疊在 `#tray` 之上（z-index 2 對 1）且 `pointer-events:none`、
    子元素才 `auto` ⇒ 桌心空白處的 tap 落到 `#tray`、押寶夜的 stepper 仍然點得到。
    **0.56b 接手時：`#tray` 的 z-index 不得高過 `#veil` 的 6**（否則開標黑幕蓋不住），也不得高過 `#stage` 的 2。
+8. **觸控白名單兩處字串（`index.html:34` CSS 與 `:6430` JS）一字未動**：`#tray` 是 `#felt` 的子元素，
+   `closest("#felt,…")` 沿祖先鏈找 ⇒ 仍然命中。新增的只有 `#tray{touch-action:manipulation}`。
+   白名單真的要變成三處的情境只有一種：做拖曳轉桌／捏合縮放（本卷 §3 明令不做）。
 9. **★`#felt.hollow` 一定要有 `isolation:isolate`★**（二版修的 CRITICAL）：v0.53 的 `#felt` 靠 `backdrop-filter`
    順便建立了**堆疊環境**，把 `#helpBtn` 的 `z-index:25` 關在 `#felt` 裡；掏空拿掉 backdrop-filter 之後那個環境消失，
    25 逃到根環境、**贏過 `#modal` 的 20**，`？` 鈕就壓在袋子／角色資訊／說明面板上並吃掉那一塊的點擊
@@ -1387,10 +1390,14 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
    對堆疊環境沒有。動 `#felt.hollow` 的任何一條時不要順手把它拿掉；`legend-drive --modal` 就是守它的。
 10. **牌桌上「清掉上一位的私有東西」一律用 `#table ` 前綴，不要用 `#stage `**（二版修的 HIGH）：
    熱座交棒的雙保險清場（`showHandoff`）在掏空後對 `#railW`／`#railE` 的 `.mybid`／`.pickbox` 一顆都不命中。
-   `legend-drive --handoff` 走真實路徑（封一筆「押 2」→ 蓋牌 → 交棒當下數）守它。
-8. **觸控白名單兩處字串（`index.html:34` CSS 與 `:6430` JS）一字未動**：`#tray` 是 `#felt` 的子元素，
-   `closest("#felt,…")` 沿祖先鏈找 ⇒ 仍然命中。新增的只有 `#tray{touch-action:manipulation}`。
-   白名單真的要變成三處的情境只有一種：做拖曳轉桌／捏合縮放（本卷 §3 明令不做）。
+   `legend-drive --handoff` 走真實路徑（封一筆「押 2」→ 蓋牌 → 交棒當下數；掏空與 `?table3d=0` 兩條路都跑）守它，
+   判定式含**活性斷言**「這一輪真的封出過一顆 `.mybid`」——只驗「殘留 0」是歸零斷言，會恆綠。
+11. **★北列 56px 是固定的，而且第 7 夜最緊★**（三版修的 HIGH-A）：`#north` 是 `grid-template-rows:56px 1fr 62px`
+   的固定列、`overflow:visible`，撐爆會直接衝出畫面上緣並壓到座位卡。**第 7 夜同時是規則夜（`RULE_NIGHTS [3,7]`）
+   與 wide 夜（`SHRINE_NIGHTS [5,8,11]` 的前一夜）**，預告框那一夜要多印一整段規則說明，是全局最高的一格
+   （343.8px 寬時 52.8／56，只剩 3.2px 餘裕）。所以裁乙的「讓寬」**對規則夜不生效**
+   （`fillRails` 掛 `.shwide` 的條件是「`#shrines.wide` **且** 預告框裡沒有 `.rulein`」）。
+   動北列任何字級、內距或欄寬之前，先跑 `felt-probe --rounds=7`（**預設已經是 7**）——`--rounds=3` 的話這一格永遠看不到。
 
 **治具**：`felt-probe --sel=`（一支量四個容器，T2／T3）／`legend-drive --sel=`（橫向溢出清單，T4）／
 `legend-drive --taps`（逐一 tap 命中回歸＋字面引數，T5；`--tapsonly` 只跑這段拿基準）／`legend-drive --t3d`（kill switch 與直式 computed 值，T1／T6）／

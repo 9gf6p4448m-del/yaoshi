@@ -93,10 +93,19 @@ const main=async()=>{
        量的是 `scrollWidth > clientWidth`，不是看圖。 */
     shwide=await page.evaluate(`(()=>{
       const sh=document.getElementById('shrines');
+      /* 0.56a 三版（覆審 R2 LOW-C）：一版的 g() 找不到元素就回 null，而收尾判定是 \`r[k] && r[k].cut\`
+         ⇒ **欄位缺席＝被當成沒被切**；而且 inline 的 .shfac 在非 flex 的 .shname 裡 scrollWidth／clientWidth
+         都回 0、\`0 > 0.5\` 恆假 ⇒ 三欄裡只有 .shmove 真的有鑑別力。
+         現在：**必填欄位（.shname／.shn／.shfac／.shmove）缺席或量不到，一律算 cut（紅）**；
+         .shtaken 是選配（只有被請走的尊才有），有才判。 */
       const rows=[...document.querySelectorAll('.shcard')].map(c=>{
-        const g=s=>{const e=c.querySelector(s); if(!e) return null;
-          return {sw:e.scrollWidth,cw:e.clientWidth,cut:e.scrollWidth>e.clientWidth+0.5,txt:(e.textContent||'').trim().slice(0,10)};};
-        return {w:+c.getBoundingClientRect().width.toFixed(1),shn:g('.shn'),shfac:g('.shfac'),shmove:g('.shmove'),shtaken:g('.shtaken')};
+        const g=(s,req)=>{const e=c.querySelector(s);
+          if(!e) return {miss:true,req:!!req,cut:!!req,why:'缺席'};
+          const sw=e.scrollWidth, cw=e.clientWidth;
+          if(req && sw===0 && cw===0) return {sw,cw,req:true,cut:true,why:'量不到（0/0，八成不是 block／flex 項目）',txt:(e.textContent||'').trim().slice(0,10)};
+          return {sw,cw,req:!!req,cut:sw>cw+0.5,txt:(e.textContent||'').trim().slice(0,10)};};
+        return {w:+c.getBoundingClientRect().width.toFixed(1),
+          shname:g('.shname',1),shn:g('.shn',1),shfac:g('.shfac',1),shmove:g('.shmove',1),shtaken:g('.shtaken',0)};
       });
       const slot=document.getElementById('northShr');
       return {mode:sh?(sh.className||''):'(no #shrines)', slotW:slot?+slot.getBoundingClientRect().width.toFixed(1):null,
@@ -114,15 +123,22 @@ const main=async()=>{
   } finally { await browser.close(); srv.kill(); }
   console.log('# 版面截圖（請神 2.0，G7／G11）');
   shots.forEach(s=>console.log('- '+path.relative(ROOT,s)));
+  const SHK=['shname','shn','shfac','shmove','shtaken'];
   if(shwide){
-    const cut=shwide.rows.flatMap(r=>['shn','shfac','shmove','shtaken'].filter(k=>r[k]&&r[k].cut).map(k=>`${k}("${r[k].txt}" ${r[k].sw}/${r[k].cw})`));
+    const cut=shwide.rows.flatMap(r=>SHK.filter(k=>r[k]&&r[k].cut)
+      .map(k=>`${k}(${r[k].why?r[k].why:`"${r[k].txt}" ${r[k].sw}/${r[k].cw}`})`));
     console.log(`- 請神夜前一夜的待請卡（#shrines class="${shwide.mode}"，北列格 ${shwide.slotW}px，#north 直向溢出 ${shwide.northOver}）：`
-      +`三張卡寬 ${shwide.rows.map(r=>r.w).join('/')}　**被切掉的欄位 ${cut.length} 個** ${cut.length?'❌ '+cut.join('　'):'✅'}`);
+      +`三張卡寬 ${shwide.rows.map(r=>r.w).join('/')}　**被切掉／量不到的欄位 ${cut.length} 個** ${cut.length?'❌ '+cut.join('　'):'✅'}`);
     shwide.rows.forEach((r,i)=>console.log(`    卡 ${i+1}：`
-      +['shn','shfac','shmove','shtaken'].map(k=>r[k]?`${k} ${r[k].sw}/${r[k].cw}${r[k].cut?'❌':'✅'}`:`${k} —`).join('　')));
+      +SHK.map(k=>{const v=r[k]; if(!v) return `${k} —`;
+        if(v.miss) return `${k} ${v.req?'缺席❌':'—（選配）'}`;
+        return `${k} ${v.sw}/${v.cw}${v.cut?'❌'+(v.why?`(${v.why})`:''):'✅'}`;}).join('　')));
   }
   console.log(`- console error ${errs.length} ${errs.length?'❌':'✅'}`);
   errs.slice(0,5).forEach(e=>console.log('    '+e));
-  if(shwide && shwide.rows.some(r=>['shn','shfac','shmove','shtaken'].some(k=>r[k]&&r[k].cut))) process.exitCode=1;
+  if(!shwide){ console.log('- ❌ 沒量到請神夜前一夜的待請卡（那一張根本沒走到）'); process.exitCode=1; }
+  else if(shwide.rows.length===0){ console.log('- ❌ 待請卡一張都沒有'); process.exitCode=1; }
+  else if(shwide.rows.some(r=>SHK.some(k=>r[k]&&r[k].cut))) process.exitCode=1;
+  else if(shwide.northOver!==0){ console.log(`- ❌ 那一夜 #north 直向溢出 ${shwide.northOver}`); process.exitCode=1; }
 };
 main().catch(e=>{ console.error(e); process.exit(2); });

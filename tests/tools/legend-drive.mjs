@@ -267,13 +267,13 @@ async function runModal(browser, port) {
    走真實路徑：熱座開局 → 出價頁 → `openSheet(0)` 封一筆「押 2」 → 按蓋牌 → 交棒畫面出現的那一刻，
    牌桌上**任何一顆私有徽章都不許留著**（`#table .mybid,.pickbox,.wishbar,.stakebar,.incbar`）。
    掏空之後卡片在 `#railW`／`#railE`，舊的 `#stage ` 前綴一顆都不命中 ⇒ 這一支就是守它的。 */
-async function runHandoff(browser, port) {
+async function runHandoff(browser, port, query) {
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   const page = await ctx.newPage();
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e)));
-  await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${port}/index.html${query || ''}`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
   await page.evaluate(() => { CFG.T = 1;
     const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
@@ -288,7 +288,7 @@ async function runHandoff(browser, port) {
       where: all.map(e=>{ const p=e.closest('#railW,#railE,#stage,#south,#northPrev,#northShr');
         return (p?p.id:'?')+':'+(e.className||'').toString().split(' ')[0]+'="'+(e.textContent||'').trim().slice(0,6)+'"'; }) };
   })()`;
-  const rec = { sealedIn: null, atHandoff: null, sealedCount: null, pageerrors: errs, reached: false };
+  const rec = { query: query || '（預設・掏空）', sealedIn: null, atHandoff: null, sealedCount: null, pageerrors: errs, reached: false };
   for (let i = 0; i < 1200; i++) {
     await page.waitForTimeout(12);
     const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const ho=document.getElementById('handoff');
@@ -382,7 +382,9 @@ const main = async () => {
   try {
     if (opt.t3d) rec.t3d = await runT3d(browser, PORT);
     if (opt.modal) rec.modal = await runModal(browser, PORT);
-    if (opt.handoff) rec.handoff2 = await runHandoff(browser, PORT);
+    /* 兩條路都跑（三版，覆審 R2 列為未確認）：掏空版（卡片在 #railW／#railE）與 `?table3d=0`（卡片在 #stage 的 #market）。
+       清場選擇器是同一份 `#table ` 前綴，兩條路都要證明它有效。 */
+    if (opt.handoff) rec.handoff2 = [await runHandoff(browser, PORT, ''), await runHandoff(browser, PORT, '?table3d=0')];
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
     if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
@@ -670,13 +672,20 @@ const main = async () => {
   /* R1-HIGH-1：熱座交棒時牌桌上不得留下上一位的私有徽章 */
   let okHandoff2 = true;
   if (opt.handoff) {
-    const h = rec.handoff2 || {};
-    okHandoff2 = !!(h.reached && h.atHandoff && h.atHandoff.total === 0 && (h.pageerrors || []).length === 0);
-    console.log(`- **R1-HIGH-1 熱座交棒清場**（封一筆「押 2」→ 蓋牌 → 交棒畫面出現當下）：`
-      + `封在 ${h.sealedIn ? h.sealedIn.where + ' 的 ' + h.sealedIn.txt : '（沒封到）'}（封標後 #table .mybid ${h.sealedCount}）　`
-      + `交棒當下殘留 **${h.atHandoff ? h.atHandoff.total : '—'}** 個（看得見 ${h.atHandoff ? h.atHandoff.visible : '—'}）`
+    const runs = [].concat(rec.handoff2 || []);
+    /* ★活性斷言 `sealedCount > 0`★（三版，覆審 R2 MEDIUM-A）：只要求「殘留 0」是**歸零斷言**，
+       `openSheet/bump/closeSheet` 任何一支改名或改語意都會讓這一輪根本沒封出徽章、殘留自然是 0 ⇒ 恆綠。
+       所以判定式綁上「這一輪真的封出過一顆 .mybid」（`02 §6.1` 第 1 條：歸零斷言要另附活性證據）。 */
+    okHandoff2 = runs.length > 0 && runs.every((h) => h.reached && h.atHandoff && h.atHandoff.total === 0
+      && (h.sealedCount | 0) > 0 && (h.pageerrors || []).length === 0);
+    console.log(`- **R1-HIGH-1 熱座交棒清場**（封一筆「押 2」→ 蓋牌 → 交棒畫面出現當下；掏空與 ?table3d=0 兩條路都跑）：`
       + ` → ${okHandoff2 ? '✅' : '❌'}`);
-    if (h.atHandoff && h.atHandoff.total) console.log('    殘留：' + h.atHandoff.where.join('　'));
+    runs.forEach((h) => {
+      console.log(`    ${h.query}：封在 ${h.sealedIn ? h.sealedIn.where + ' 的「' + h.sealedIn.txt + '」' : '（沒封到）'}`
+        + `　**封標後 #table .mybid ${h.sealedCount}（活性斷言：必須 >0）**`
+        + `　交棒當下殘留 **${h.atHandoff ? h.atHandoff.total : '—'}** 個（看得見 ${h.atHandoff ? h.atHandoff.visible : '—'}）`);
+      if (h.atHandoff && h.atHandoff.total) console.log('        殘留：' + h.atHandoff.where.join('　'));
+    });
   }
   /* T1／T6 判定 */
   let okT1 = true, okT6 = true;

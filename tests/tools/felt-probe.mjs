@@ -23,7 +23,10 @@ function loadChromium(){
 }
 const argv=process.argv.slice(2); const opt={};
 for(const a of argv){ const m=a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if(m) opt[m[1]]=m[2]===undefined?true:m[2]; }
-const PORT=+(opt.port||8858), ROUNDS=+(opt.rounds||3), TAG=opt.tag||'mine';
+/* --rounds 預設 3 → **7**（三版，覆審 R2 HIGH-A 的配套；加嚴，自行記錄）：
+   第 7 夜是 `RULE_NIGHTS [3,7]` 與 `SHRINE_NIGHTS [5,8,11]` 的前一夜**同時成立**的那一格，
+   也是北列高度最緊的一夜；預設只跑到第 3 夜的話這個縫永遠沒有閘門守著（R2 就是從這裡抓到 17px 溢出的）。 */
+const PORT=+(opt.port||8858), ROUNDS=+(opt.rounds||7), TAG=opt.tag||'mine';
 /* --sel=<逗號分隔的選擇器>：**預設就是掏空版現行的四個容器**（0.56a 二版，覆審 MEDIUM-1）。
    沿革：一版的預設是 `#felt` 一個，下一手不帶旗標跑就只量到四分之一而不自知。
    多容器時 JSON 表的鍵一律帶容器前綴（`#felt|seed|round|page`），legend-drive 的 --base= 兩種鍵都吃。 */
@@ -70,6 +73,9 @@ const main=async()=>{
         const st=await page.evaluate(`(()=>{const b=document.getElementById('mainbtn');const S=window.__yaoshi.S;
           return {t:b?b.textContent:'',d:b?b.disabled:true,r:S?S.round:0};})()`);
         if(st.r>ROUNDS) break;
+        /* 局末（主按鈕變「再入妖市」，按下去是 location.reload()）就收工——
+           `--rounds=12` 時 `st.r>ROUNDS` 永遠不成立，不擋的話會一路點到重載、然後 click 逾時（三版踩過）。 */
+        if(/再入妖市/.test(st.t)) break;
         const page2=/蓋牌/.test(st.t)?'出價':'盯上';
         const key=`${st.r}｜${st.t}`;
         if(!st.d && !seen[key] && /蓋牌|不盯任何一件/.test(st.t)){

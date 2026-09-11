@@ -120,9 +120,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   #table.t3d #northShr .shname,#table.t3d #northShr .shfac,
   #table.t3d #northShr .shmove,#table.t3d #northShr .shtaken{font-size:8px}
   /* 使用者裁乙（0.56a 二版）：**請神夜前一夜與當夜**（`#shrines.wide`，也就是玩家要決定燒不燒香的那兩夜）
-     把預告框的寬讓給香火榜——三張待請卡的尊名／系別 chip／招式名是那個決定的唯一輸入，
-     不該被 ellipsis 吃掉。只有那兩夜生效（`#north.shwide` 由 fillRails 依 `#shrines.wide` 掛上）。
-     預告框在那兩夜本來就是兩行，讓寬反而可能收回一行。 */
+     把預告框的寬讓給香火榜——三張待請卡的尊名／系別 chip／招式名是那個決定的唯一輸入，不該被 ellipsis 吃掉。
+     ★三版（覆審 R2 HIGH-A）加了一條例外：**規則夜不讓寬**★。實測（seed 1／2 逐值相同）：
+       讓寬後預告框 179.4px，一般夜排 43.1px（3 行）沒事；但**第 7 夜同時是規則夜（RULE_NIGHTS [3,7]）
+       與 wide 夜（SHRINE_NIGHTS [5,8,11] 的前一夜）**，多一段「今夜市集規則：…」在 179.4px 下排成 **89.8px**，
+       把固定 56px 的北列撐爆 **17px**（出價）／**4px**（盯上）——`#north` 是 `overflow:visible`，
+       第一行整行衝出畫面上緣、底下壓到西家座位卡、規則說明在句子中間斷掉。
+       規則夜正是玩家最需要讀那段字的一夜 ⇒ **規則說明優先於招式名**（那一夜香火榜退回 254px，只有 .shmove 會被切）。
+     ★實測的行數（別再寫「讓寬會收回一行」，那句是錯的，R2 LOW-B）★：
+       請神夜前一夜出價頁 343.8px/29.4px(2 行) → 179.4px/43.1px(**3 行**)；當夜 15.7px(1 行) → 43.1px(**3 行**)。
+       讓寬是**多出行**，只是一般夜的 56px 吃得下；第 7 夜吃不下，所以才有上面那條例外。 */
   #table.t3d #north.shwide #northPrev{flex:0.6 1 0}
   #table.t3d #north.shwide #northShr{flex:1.4 1 0}
   /* chip 不參與縮排，只縮尊名（覆審 LOW-1 的配套：光讓寬只解決招式名，chip 還是會被切） */
@@ -2227,8 +2234,14 @@ function fillRails(prevHTML,shrHTML,cardFn){
   /* 請神夜前一夜與當夜（香火榜是 wide）給北列掛 `.shwide`，CSS 才知道要把預告框的寬讓給香火榜
      （使用者裁乙）。判準直接問渲染出來的 DOM，不另抄一份「哪兩夜是 wide」的規則——
      wide 的唯一事實來源是 shrinesHTML 裡的 `left<=1`。 */
-  const n=$("north");
-  if(n) n.classList.toggle("shwide", !!(($("northShr")||{}).querySelector && $("northShr").querySelector("#shrines.wide")));
+  const n=$("north"), shr=$("northShr"), pv=$("northPrev");
+  /* ★讓寬的條件是「wide 夜 **而且** 預告框裡沒有規則說明」★（三版，覆審 R2 HIGH-A）。
+     `.rulein` 就是「今夜市集規則：…」那一段（index.html 的兩處預告框樣板各一）；它在 179.4px 下
+     會把預告框排成 89.8px、撐爆 56px 的北列。判準直接問**渲染出來的 DOM**，不另抄一份
+     「哪幾夜是規則夜」或「哪幾夜是 wide」的規則——兩邊的唯一事實來源分別是 ruleForRound 與 shrinesHTML。 */
+  const wide=!!(shr&&shr.querySelector&&shr.querySelector("#shrines.wide"));
+  const hasRule=!!(pv&&pv.querySelector&&pv.querySelector(".rulein"));
+  if(n) n.classList.toggle("shwide", wide&&!hasRule);
 }
 /* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
    0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
