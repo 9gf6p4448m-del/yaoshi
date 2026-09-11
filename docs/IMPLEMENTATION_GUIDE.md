@@ -1366,8 +1366,54 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     `showMarket()`／`incBump(1)`／`submitHumanBids()`，量的是閘擋不擋得住。鑑別力用兩個「只刪一行」的
     突變體驗過：刪掉 `showMarket` 的閘 ⇒ A7／A4-2／A8 紅；刪掉交卷清場（閘留著）⇒ 仍全綠
     （使用者那一下真的按到了：`plus2.ok=1`、`incBtns=2`，是閘擋下的）。**改這一段一定要一併跑突變體**。
-    **未修的既存同族缺陷（覆審 F4，MEDIUM，非本次造成）**：`nextRound`（夜末「進入下一夜」）第一行沒有
-    `disabled=true`，solo 下整串 `nextRound→beginRound→proceedToBids→startBidUI→showMarket` 是同步的，
-    跑完 `#mainbtn` 已變成「蓋牌開標」＋`onclick=submitHumanBids` 且被 `updateBudget` 設回可按——
-    在同一個位置快按兩下，第二下就以 0 出價、0 燒香交卷開標（`BIDS_OPEN` 此刻**合法地是 true**，擋不到）。
-    效果是「整夜白費」不是「扣兩次壽命」；`index.html:4353`（異事夜「前往拍賣」）同型。待使用者裁定再修。
+    **同族缺陷（覆審 F4）已於 v0.53.3 修掉**，詳見下面第 13 條。
+13. **★主鈕在相位切換的那一下吃到第二次點擊（v0.53.3 修，2026-09-11；覆審 F4 追修）★**
+    **根因**：`#mainbtn` 是整局唯一的主鈕，一路被重複綁到不同動作上。有些 handler 在**自己的同步執行裡**
+    就把它換了手並留在可按——使用者還沒看到新標籤，第二下就落在新動作上。
+    分母（grep 數出來，**同步**換手且留在可按）**N=4**：
+    ① 「進入下一夜」`nextRound`（`index.html:5657`）→`beginRound`→`beginRoundCore`→`proceedToBids`→
+    `startBidUI`→`showMarkUI`／`showMarket` ⇒ 第二下把**盯上宣告整個跳過**（`S.marks[0]` 被寫成 null）；
+    ② 「不盯任何一件」（4409 的 arrow →`pickMark(null)`）→`showMarket` ⇒ 第二下＝`submitHumanBids`＝
+    **0 出價、0 燒香交卷開標（整夜白費）**；③ 「前往拍賣」（4353，異事夜）同②；
+    ④ 「看最終結果」`endGame`→綁 `()=>location.reload()` ⇒ 第二下**整頁重載、局直接沒了**。
+    **修法（收斂，不是逐一堵入口）**：`waitMain` 前面加一段守衛——把 `#mainbtn` 的 `onclick` 用
+    `Object.defineProperty` 換成自家存取器、由自家 `click` listener 派送。所有 `$("mainbtn").onclick=…`
+    由建構上都經過這裡，之後新增第 5、第 6 個入口自動吃到。判準是
+    **「這一下點擊在自己的同步堆疊裡把主鈕換了手」** ⇒ 記 `MAIN_SWAP_AT`，之後 `MAIN_GUARD_MS=500`（＝Windows
+    預設雙擊間隔）內、**按下時刻**（`e.timeStamp`，不是 listener 跑到的時刻）落在視窗內的點擊直接吞掉。
+    用 `e.timeStamp` 是因為相位切換的 handler 會同步重畫市集＋更新 3D，實測可阻塞主執行緒 ~440ms；
+    排隊中的第二下解凍後才派送，用 `Date.now()` 去比早就超出視窗、擋不到（覆審實測 701ms）。
+    ★`waitMain` 那串的實測結論（**別照直覺推，這裡原本寫錯過**）★：「蓋牌開標」→`submitHumanBids`→
+    `startReveal` 在第一個 `await` 之前就同步呼叫了 `waitMain("開標 ▸")`（那句 `await sleep` 包在
+    `if(S.bleedLog.length)` 裡、平常不執行）⇒ **第一下「開標 ▸」會被吞**（可接受：使用者剛按完蓋牌）；
+    第二次以後的「下一件拍品 ▸」才真的在 `await` 之後 ⇒ 不武裝，連按推演出照舊。探針 B6 逐項驗這兩句。
+    ★不用 `stopImmediatePropagation`★：那會連帶擋掉 document 上的 `audioWake`（iOS 解鎖音訊那條）。
+    ★headless 安全★：`tests/tools/load.mjs` 的 document stub 讓 `getElementById` 回 null，守衛直接 return，
+    引擎三條迴圈一格不受影響（`trace-eq` 對 v0.53.2 **equal**）。
+    **治具**：`tests/tools/mainbtn-dblclick-probe.mjs`（真實 UI、B1–B8、內建 `--mutate` 兩個突變體）。
+    B6＝開標演出的武裝行為逐項驗；**B7＝把主執行緒卡住 700ms、期間送真滑鼠點擊，驗 `e.timeStamp` 那條路**；
+    B8＝異事夜「前往拍賣」入口（`CFG.EVENT_NIGHTS=[1]` 只為走到那條路，不動門檻）。
+    `--mutate` 兩個突變體：M1 刪掉守衛那一行 ⇒ B1/B2/B3 紅；M2 只把 `e.timeStamp` 換回 `nowMs()` ⇒ **B7 紅**
+    （正常速度的雙擊兩種寫法都擋得到，只有「凍住＋排隊」分得出來，所以 B7 一定要配 M2 才有證明力）。
+    對 `05b9036` 連跑 3 次都紅在 B1／B2／B3／B8；對本版連跑 5 次全綠；兩個突變體如上。
+    ★**這支探針的兩個坑，改之前先讀**★：
+    (a) 判準要寫「**第二下不得生效**」（第一下後與第二下後的畫面逐欄相同），不要去猜第二下會落在哪個動作——
+    第一版猜「會交卷」，實際第二夜先進盯上宣告頁，於是**對壞掉的實作也會綠**＝零鑑別力；
+    (b) 兩下之間的間隔**必須由頁面自己的 `setTimeout` 控**（整個雙擊包在單一 `page.evaluate` 裡）。
+    用 `page.click`／`page.mouse.click` 跨行程來回會卡在主執行緒（Three.js 重繪、GC）後面，實測把 120ms
+    撐到 785ms、衝出 500ms 視窗而忽紅忽綠。探針另有 `gapOk` 前提斷言：第二下沒落在視窗內就直接紅，
+    不讓它因為錯過視窗而偷偷綠。B3 的「有沒有重載」要數 `framenavigated`，不能只看事後快照
+    （`location.reload()` 是非同步的，只看快照會忽紅忽綠）。
+    ★**這道守衛守得到的只有「第二下落在 `#mainbtn` 上」那一半**★（fresh-context 對抗覆審實測，
+    **三條都不是 v0.53.3 造成的，也都不在 v0.53.3 的任務範圍，待使用者裁定要不要續修**）：
+    第二下是**依座標**落地的，換手之後那個位置若蓋的是別的東西，守衛完全碰不到。
+    ① 連按兩下「🕯️ 請神」——`startShrine` 同步開 `#modal`（`inset:0`），主鈕正中心
+    `elementFromPoint` 回的是 `#modal` 背景，第二下＝`legendPick(null)`＝**放棄自己挑尊**、退回 AI 規則。
+    ② 熱座連按兩下交棒鈕 `#hoBtn`——`cont()=startBidUI` 同步重繪，`#hoBtn` 的面積有 **66%（190/286 取樣點）**
+    落在 `.mcard` 上，第二下＝`pickMark(i)`＝**替玩家公開宣告一件他沒選的盯上**（吃虛張稅、影響信譽）；
+    這一下不是打在 `#mainbtn` 上，`dispatching` 為 false ⇒ 守衛連武裝都沒有。
+    ③ `showTitheAsk`（供奉危急提示）**沒有** `showLegendPick` 那道「背景點一下也要 resolve」的保險
+    （`#modal` 的 inline onclick 走 `closeModal` 只把視窗藏起來）⇒ 點背景會讓 promise 永不 resolve，
+    `startBattle` 的 `await showTitheAsk()` 就是**整局永久卡死**，只能重載。
+    真要根治得把閘設在「相位切換」本身（切換瞬間讓整個互動層吸收 500ms），而不是單一按鈕；
+    ③ 則比照 `showLegendPick` 補一道 resolve 保險即可。
