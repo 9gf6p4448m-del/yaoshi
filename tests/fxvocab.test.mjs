@@ -9,7 +9,8 @@
      1 = 改一個 EMBLEM_OF 的 kind（雙射被破壞＋與文件不符）
      2 = 改一個 FX_PAL 色碼
      3 = 改一個 BEAT 時窗
-     4 = 在編舞檔裡塞回一個尺寸字面值（`const SZ = 0.56;`）＝尺寸的第二份事實來源
+     4 = 在編舞檔裡塞回覆審 r2 實測的繞法（`const S = 0.56;` ＋ `setScalar(S * …)`）＝尺寸的第二份事實來源
+         （r1 的第一版掃描只認 `const SZ|SIZE`，改個變數名就繞過，見 §「尺寸防線」那段註解）
    原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。
 
    為什麼不 import emblems.js：它 `import * as THREE from 'three'`，node 端沒有 importmap。
@@ -204,7 +205,7 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
 
    ★分母（動手前 grep 數出來，不憑印象）★：js/trait-fx/ 下除 vocab.js 外的全部 .js（目前 4 個：
    emblems／xianghuo／yinqi／zuling），去註解後——
-     `size:`／`sizes:` 這個鍵      **0 處**（唯一那處 yinqi.js:150 已改走預設值）
+     `size:` 這個鍵              **0 處**（唯一那處 yinqi.js:150 已改走預設值）
      `.scale.setScalar(`          **79 處**
      `.scale.set(`                **0 處**
    79 處裡真正屬於「徽記 mesh」的只有 5 處（其餘 74 處是 23 支未改招的 ring／disc／orb／光球縮放，
@@ -212,7 +213,7 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
 
    ★兩條路各自怎麼守★
    (a) `o.size`：`js/trait-fx.js` 的 `icon()`／`icons()`／`mark()` **一律拒收**（傳了就 throw，
-       訊息指回 `ICON.byKind`）——這條路由建構上消失。這裡再掃一次 `size:`／`sizes:` 鍵當第二道。
+       訊息指回 `ICON.byKind`）——這條路由建構上消失。這裡再掃一次 `size:` 這個鍵當第二道。
    (b) 直接對徽記 mesh 縮放：先從原始碼找出所有由 `st.icon(`／`st.icons(`／`st.mark(` 產生的名字
        （含 `mesh: st.icon(…)` 這種屬性、`.map(… st.mark(…))` 這種陣列），再要求它們的
        `scale.setScalar(`／`scale.set(` **引數裡必須出現** `st.iconSize`／`st.iconFlatSize`／
@@ -258,8 +259,10 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必�
     }
     const noComment = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
     const lineOf = (i) => noComment.slice(0, i).split('\n').length;
-    // (a) size:／sizes: 這個鍵在編舞裡一處都不准有（入口已 throw，這是第二道）
-    for (const m of noComment.matchAll(/\bsizes?\s*:/g)) {
+    /* (a) `size:` 這個鍵在編舞裡一處都不准有（入口已 throw，這是第二道）。
+       ★`sizes:`（複數）**不在禁列**★：那是 st.icons 的逐實例**相對**倍率（`size * o.sizes[i]`），
+       ICON 的值仍在乘積裡，不構成第二份來源；連它一起禁是把防線做死（禁到不該禁的東西）。 */
+    for (const m of noComment.matchAll(/\bsize\s*:/g)) {
       hits.push(`${f}:${lineOf(m.index)} ${m[0].trim()}（st.icon／st.icons／st.mark 的 o.size 已拒收，編舞不得再出現這個鍵）`);
     }
     // (b) 徽記 mesh 的縮放：引數必須引用 ICON 來源
