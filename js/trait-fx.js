@@ -23,6 +23,11 @@ import * as THREE from 'three';
 
 const V = new URL(import.meta.url).search;
 const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
+// v0.55 招式可辨性卷：特效語彙與法寶徽記的【單一事實來源】。
+// 這兩支是 27 支招共用的地基，**不做 catch 退路**——載不到就讓本模組整個爆，
+// 給預設色票／預設形狀等於讓「每一卷重新發明一次語彙」那個分岔重新長回來（ART_BIBLE §10 開頭）。
+const { FX_PAL, BEAT, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx/vocab.js' + V);
+const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
 const loadMoves = (file) => import(file + V).then((m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {} }), () => ({ full: {}, short: {} }));
 const [ZULING, XIANGHUO, YINQI] = await Promise.all([
@@ -107,6 +112,20 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   // 材質模板：clone 出來的 program cache key 相同，27 套怎麼用都只有這兩支 shader
   const MAT_GLOW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false });
   const MAT_LINE = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false });
+  /* ★v0.55 第三支模板：非加色的實心材質★（凍結檔 Q10）
+     盲讀「顏色分不出、全是白的」的機制成因：加色混合的東西一旦亮度越過 bloom 門檻（js/bloom.js:175
+     threshold 0.55、strength 1.15）就往白色去，**系色在畫面上根本活不下來**。徽記本體因此走 NormalBlending。
+     解法是換材質與換形狀，不是調 bloom 或 EXPOSURE（ART_BIBLE §8 明寫那兩個一動整張牌桌要重驗）。
+     注意：blending／opacity／color 都是 render state 與 uniform，**不進 program cacheKey**，
+     所以這支的 shader program 與 MAT_GLOW 共用——材質模板是 3 支，program 數不增（實測見批 0 報告）。 */
+  const MAT_SOLID = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.NormalBlending, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false });
+  // 徽記朝鏡頭：相機四元數再往下壓 ICON.billboardTiltDeg（正俯視時完全正對會像貼紙，壓一點才有厚度）
+  const TILT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -THREE.MathUtils.degToRad(ICON.billboardTiltDeg));
+  const _bq = new THREE.Quaternion();
+  const _rq = new THREE.Quaternion();
+  const _m4 = new THREE.Matrix4();
+  const _s3 = new THREE.Vector3();
+  const ZAX = new THREE.Vector3(0, 0, 1);
   // 預熱：renderer.compile() 只編「直接輸出」那一支，對決走 bloom 的 render target（linear 色彩空間）是另一支
   // program，粒子池在第一次 burst 之前也沒編過——實測（scratchpad/progdiag2）演到一半 render 會 +1～+2。
   // 所以改成兩個暖身物件關掉 frustumCulled 常駐桌底：每一幀（含 bloom 那條路）都真的被畫，兩種變體在第一場
@@ -116,8 +135,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const warmLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0.01, 0)]), MAT_LINE);
   // 粒子池的暖身：一顆停在 PARK 的點，材質 clone 自池子（同一支 program），畫不出東西但每幀都被畫
   const warmPts = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, -999, 0]), 3)).setAttribute('color', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3)), burst.points.material.clone());
-  warmMesh.frustumCulled = false; warmLine.frustumCulled = false; warmPts.frustumCulled = false;
-  warm.add(warmMesh, warmLine, warmPts);
+  // v0.55：第三支模板照樣預熱（就算它與 MAT_GLOW 共用 program，NormalBlending 這條 state 路徑
+  // 第一次畫時仍可能讓 renderer 補編 transparent 佇列；成本是常駐一個 0.01² 的 plane）
+  const warmSolid = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), MAT_SOLID);
+  warmMesh.frustumCulled = false; warmLine.frustumCulled = false; warmPts.frustumCulled = false; warmSolid.frustumCulled = false;
+  warm.add(warmMesh, warmLine, warmPts, warmSolid);
   warm.position.y = -30; // 桌面底下、鏡頭永遠看不到
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
@@ -199,6 +221,66 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     return out.multiplyScalar(1 / figs.length);
   }
 
+  /* ── v0.55 因果三段的機械判定（ART_BIBLE §10.3；門檻在 vocab.js 的 PHASE_GATE，不得放寬）──
+     st.phase(name) 只是打點，**記不記進 run.sig.phases 由打點當下那一段的實際條件是否成立決定**。
+     這就是「防喊了就算」：編舞說它有 windup，但如果骨骼／model 一動都沒動，這一段不記。 */
+  /** 取這一套演出裡符合 pred 的 figure，骨骼覆寫與 model 覆寫的最大絕對值 */
+  function metricOf(run, pred) {
+    let bone = 0, model = 0;
+    run.wraps.forEach((w) => {
+      if (!pred(w.fig)) return;
+      w.over.forEach((o) => {
+        bone = Math.max(bone, Math.abs(o.rot.x), Math.abs(o.rot.y), Math.abs(o.rot.z), Math.abs(o.pos.x), Math.abs(o.pos.y), Math.abs(o.pos.z));
+      });
+      model = Math.max(model, w.mo.p.length(), Math.abs(w.mo.s - 1));
+    });
+    return { bone, model };
+  }
+  function evalPhases(run) {
+    for (const c of run.phaseClaims) {
+      if (c.ok || run.vt > c.until) continue;
+      if (c.name === 'windup') {
+        // 出招方自己的骨骼／model 真的動了（只有 rim 變化不算——rim 不寫進 over／mo）
+        const m = metricOf(run, (f) => run.actorSet.has(f));
+        c.bone = Math.max(c.bone, m.bone); c.model = Math.max(c.model, m.model);
+        if (c.bone >= PHASE_GATE.windupBone || c.model >= PHASE_GATE.windupModel) c.ok = true;
+      } else if (c.name === 'travel') {
+        // spawn 出來的東西真的跑了一段路（原地脹大的環、罩、光球位移為 0，自然不算）
+        let best = 0;
+        for (const m of run.meshes) {
+          if (!m || !m.position) continue;
+          const b = c.base.get(m);
+          if (!b) { c.base.set(m, m.position.clone()); continue; }
+          const d = m.position.distanceTo(b);
+          if (d > best) best = d;
+        }
+        c.moved = Math.max(c.moved, best);
+        if (c.moved >= c.need) c.ok = true;
+      } else {
+        // 受招方／受益方有反應：出招方自己的收勢不算，所以排掉 caster
+        const m = metricOf(run, (f) => f !== run.caster);
+        c.model = Math.max(c.model, m.model);
+        if (c.model >= PHASE_GATE.reactDelta) c.ok = true;
+      }
+    }
+  }
+  /** 徽記朝鏡頭（可帶自轉 userData.fxRoll） */
+  function faceCamera(obj) {
+    obj.quaternion.copy(camera.quaternion);
+    if (obj.userData.fxRoll) { _rq.setFromAxisAngle(ZAX, obj.userData.fxRoll); obj.quaternion.multiply(_rq); }
+    obj.quaternion.multiply(TILT_Q);
+  }
+  /** InstancedMesh 的每個實例各自朝鏡頭（群體招用；N 枚徽記仍是 1 個 draw call） */
+  function faceCameraInstanced(im) {
+    const d = im.userData.fxIcons;
+    if (!d) return;
+    _bq.copy(camera.quaternion);
+    if (d.roll) { _rq.setFromAxisAngle(ZAX, d.roll); _bq.multiply(_rq); }
+    _bq.multiply(TILT_Q);
+    for (let i = 0; i < d.pos.length; i++) { _m4.compose(d.pos[i], _bq, _s3.setScalar(d.size * (d.scale === undefined ? 1 : d.scale))); im.setMatrixAt(i, _m4); }
+    im.instanceMatrix.needsUpdate = true;
+  }
+
   /* ── 舞台：交給編舞函式的工具箱 ── */
   function makeStage(run, actor, target, det) {
     const colorObj = new THREE.Color(SPARK_COLOR[det.fac] || SPARK_COLOR.lantern);
@@ -210,6 +292,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const inTarget = new Set(target);
     const touch = (fig) => { if (inTarget.has(fig)) run.sig.target = true; };
     const wrapOf = (fig) => { touch(fig); return wrapFig(fig, run); };
+    // v0.55 因果三段用的兩個基準：出招方名單與「到目標的距離」（travel 要求位移 ≥ 這段的 40%）
+    run.actorSet = new Set(actor);
+    run.travelDist = Math.max(0.5, cA.distanceTo(cB));
+    /** 第一個被真的動到骨骼／model 的出招方＝這一招的施術者。
+     *  react 段量的是「除了他以外的人有沒有反應」——他自己的收勢不構成受招方的反應。 */
+    const markCaster = (fig) => { if (!run.caster && !inTarget.has(fig)) run.caster = fig; };
 
     const st = {
       /** 這一招的時長（ms）、系色鍵與 hex、力道、是否 reduced-motion */
@@ -250,25 +338,25 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /* ── 覆寫（reduced 時位移類全部 no-op） ── */
       rot(fig, boneName, x, y, z) {
         const b = st.bone(fig, boneName); if (!b) return false;
-        run.sig.bones.add(boneName);
+        run.sig.bones.add(boneName); markCaster(fig);
         if (run.reduced) return true;
         overOf(wrapOf(fig), b).rot.set(x || 0, y || 0, z || 0); return true;
       },
       shift(fig, boneName, x, y, z) {
         const b = st.bone(fig, boneName); if (!b) return false;
-        run.sig.bones.add(boneName);
+        run.sig.bones.add(boneName); markCaster(fig);
         if (run.reduced) return true;
         overOf(wrapOf(fig), b).pos.set(x || 0, y || 0, z || 0); return true;
       },
       scaleBone(fig, boneName, k) {
         const b = st.bone(fig, boneName); if (!b) return false;
-        run.sig.bones.add(boneName);
+        run.sig.bones.add(boneName); markCaster(fig);
         if (run.reduced) return true;
         overOf(wrapOf(fig), b).scl = k; return true;
       },
-      move(fig, x, y, z) { run.sig.bones.add('@model'); if (run.reduced) return; wrapOf(fig).mo.p.set(x || 0, y || 0, z || 0); },
-      spin(fig, x, y, z) { run.sig.bones.add('@model'); if (run.reduced) return; wrapOf(fig).mo.r.set(x || 0, y || 0, z || 0); },
-      scale(fig, k) { run.sig.bones.add('@model'); if (run.reduced) return; wrapOf(fig).mo.s = k; },
+      move(fig, x, y, z) { run.sig.bones.add('@model'); markCaster(fig); if (run.reduced) return; wrapOf(fig).mo.p.set(x || 0, y || 0, z || 0); },
+      spin(fig, x, y, z) { run.sig.bones.add('@model'); markCaster(fig); if (run.reduced) return; wrapOf(fig).mo.r.set(x || 0, y || 0, z || 0); },
+      scale(fig, k) { run.sig.bones.add('@model'); markCaster(fig); if (run.reduced) return; wrapOf(fig).mo.s = k; },
       rim(fig, mul) { run.sig.bones.add('@rim'); wrapOf(fig).rimMul = mul; },
       /* ── 時序 ── */
       /** tween({ms, delay, ease, update(t, e), done}) */
@@ -288,7 +376,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
-      spawn(obj, kind) { run.sig.meshes.add(kind || 'mesh'); scene.add(obj); run.meshes.push(obj); return obj; },
+      // userData.fxKind 是 L3 對比閘門的抓手：fx-contrast 只准切徽記／拖尾／印記的 visible，其餘一切不動
+      spawn(obj, kind) { const k = kind || 'mesh'; run.sig.meshes.add(k); obj.userData.fxKind = k; scene.add(obj); run.meshes.push(obj); return obj; },
       /** 貼桌面的環（RingGeometry），中心在 pos（世界座標） */
       ring(pos, radius, width, o = {}) {
         const g = new THREE.RingGeometry(Math.max(0.01, radius - (width || 0.06)), radius, 40);
@@ -364,6 +453,129 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         run.inFlinch = false;
         if (o.burst !== false && figs.length) { const p = st.worldOf(figs[0], null); st.at(delay, () => st.burst(p, { power: 0.5 * k, n: 30 })); }
       },
+      /* ══ v0.55 招式可辨性卷的積木（計畫 §2.3，名字寫死）══════════════════════════
+         語彙與門檻在 js/trait-fx/vocab.js、剪影頂點表在 js/trait-fx/emblems.js，
+         人類可讀版在 ART_BIBLE §10。**編舞裡不得再出現任何色碼字面值**——一律走 st.colors。 */
+      /** 本系色票 {key, hot, line, ink}（key＝徽記本體、hot＝命中、line＝連線與拖尾、ink＝暗部描邊） */
+      colors: FX_PAL[det.fac] || FX_PAL.zuling,
+      /** 這一招的節拍窗（ms）：{windup:[a,b], travel:[a,b], react:[a,b], settle:[a,b]}，依 tier 換表 */
+      beat: BEAT[run.tier] || BEAT[2],
+      /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
+      kind: EMBLEM_OF[det.trId] || null,
+      /** 徽記：一片朝鏡頭的法寶剪影。
+       *  o = { size=ICON.size, color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
+       *  outline＝在本體後面墊一片 ink 色的實心底板（把亮色從暗紅桌／夜紫天上切出來）；
+       *  ★這裡刻意用 MAT_SOLID 底板而不是 MAT_LINE 描邊★——加色的細線正是盲讀抱怨的「白虛線」，
+       *  而且 1px 線在 780×360 的盲讀格上連面積都量不到。要真的 MAT_LINE 外框就開 rimLine。 */
+      icon(kind, pos, o = {}) {
+        const size = o.size === undefined ? ICON.size : o.size;
+        const op = o.opacity === undefined ? 1 : o.opacity;
+        const mat = MAT_SOLID.clone();
+        mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
+        mat.opacity = op;
+        const mesh = new THREE.Mesh(EMBLEMS.geomOf(kind), mat);
+        mesh.scale.setScalar(size);
+        if (pos) mesh.position.copy(pos);
+        mesh.userData.fxRoll = o.roll || 0;
+        if (o.outline !== false) {
+          const back = new THREE.Mesh(EMBLEMS.geomOf(kind), MAT_SOLID.clone());
+          back.material.color.setHex(o.inkColor === undefined ? st.colors.ink : o.inkColor);
+          back.material.opacity = op;
+          back.scale.setScalar(1 + ICON.outlineW / Math.max(0.02, size));
+          back.position.z = -0.012; // 本體之後一點點（本體是 DoubleSide 平片，靠 z 順序壓住）
+          mesh.add(back);
+        }
+        if (o.rimLine) {
+          const line = new THREE.LineLoop(EMBLEMS.outlineOf(kind), MAT_LINE.clone());
+          line.material.color.setHex(st.colors.line); line.material.opacity = op;
+          line.position.z = 0.012;
+          mesh.add(line);
+        }
+        st.spawn(mesh, 'emblem:' + kind);
+        run.sig.emblems.add(kind);
+        run.bb.push(mesh);
+        faceCamera(mesh);
+        return mesh;
+      },
+      /** 同一 kind ≥3 份走這支：N 枚徽記 = 1 個 draw call（群體招的 draw call 預算靠它）。
+       *  positions 是 Vector3[]（會被記住並逐幀重排朝向；要移動就改陣列裡的向量）。 */
+      icons(kind, positions, o = {}) {
+        const size = o.size === undefined ? ICON.size : o.size;
+        const mat = MAT_SOLID.clone();
+        mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
+        mat.opacity = o.opacity === undefined ? 1 : o.opacity;
+        const im = new THREE.InstancedMesh(EMBLEMS.geomOf(kind), mat, Math.max(1, positions.length));
+        im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1 };
+        im.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉
+        st.spawn(im, 'emblem:' + kind);
+        run.sig.emblems.add(kind);
+        run.bbi.push(im);
+        faceCameraInstanced(im);
+        return im;
+      },
+      /** 飛行物＋拖尾：把 obj 從 from 飛到 to，尾巴是綁在它身上的 MAT_LINE。
+       *  取代現在滿場飛的裸 beam（裸白細線 9/27，讀者原話「看不清飛的是什麼東西」）。
+       *  o = { ms, delay, ease, arc, spin, trail=true, segs=12, color=st.colors.line, done, update } */
+      trail(obj, from, to, o = {}) {
+        const a = from.clone(), b = to.clone(), arc = o.arc || 0, spin = o.spin || 0;
+        const segs = Math.max(2, o.segs || 12);
+        let line = null, buf = null;
+        if (o.trail !== false) {
+          buf = new Float32Array(segs * 3);
+          for (let i = 0; i < segs; i++) { buf[i * 3] = a.x; buf[i * 3 + 1] = a.y; buf[i * 3 + 2] = a.z; }
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.BufferAttribute(buf, 3));
+          line = new THREE.Line(g, st.lineMat(o.color === undefined ? st.colors.line : o.color, o.opacity === undefined ? 0.85 : o.opacity));
+          st.spawn(line, 'trail');
+        }
+        return st.tween({
+          ms: o.ms || run.ms * 0.35, delay: o.delay || 0, ease: o.ease || 'out', done: o.done,
+          update(t, e) {
+            obj.position.lerpVectors(a, b, e);
+            if (arc) obj.position.y += arc * Math.sin(Math.PI * e);
+            if (spin) obj.userData.fxRoll = spin * e;
+            if (buf) {
+              buf.copyWithin(0, 3); // 尾巴往前推一格，最後一格寫當前位置
+              buf[buf.length - 3] = obj.position.x; buf[buf.length - 2] = obj.position.y; buf[buf.length - 1] = obj.position.z;
+              line.geometry.attributes.position.needsUpdate = true;
+            }
+            if (o.update) o.update(t, e);
+          },
+        });
+      },
+      /** 印記：在受招／受益方身上蓋一枚徽記並跟著它走（因果第三段的「證據」）。
+       *  o = { size=ICON.markSize, color, at='chest'|'top'|'foot', off:Vector3, opacity } */
+      mark(fig, kind, o = {}) {
+        const at = o.at || 'chest';
+        const off = o.off || null;
+        const get = (out) => {
+          if (at === 'top') st.top(fig, out);
+          else if (at === 'foot') st.foot(fig, out);
+          else st.worldOf(fig, 'Chest', out);
+          if (off) out.add(off);
+          return out;
+        };
+        const p = get(new THREE.Vector3());
+        const mesh = st.icon(kind, p, { size: o.size === undefined ? ICON.markSize : o.size, color: o.color, opacity: o.opacity, outline: o.outline });
+        // st.icon 已經 spawn＋登記 billboard 了；這裡只多打一個 mark 標記與加一條「跟著走」。
+        // ★不得把 'emblem:<kind>' 從簽章刪掉★：同一招常常是「手上一枚徽記＋受招方身上一枚印記」，
+        //   刪掉會讓 L1 的「tier 1／2 都要有 emblem」在這種招上假綠。
+        run.sig.meshes.add('mark:' + kind);
+        mesh.userData.fxKind = 'mark:' + kind;
+        run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
+        touch(fig);
+        return mesh;
+      },
+      /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
+      phase(name) {
+        if (name !== 'windup' && name !== 'travel' && name !== 'react') return false;
+        const c = { name, at: run.vt, ok: false, bone: 0, model: 0, moved: 0, need: 0, until: Infinity, base: null };
+        if (name === 'windup') c.until = run.vt + PHASE_GATE.windupMs * run.k;
+        else if (name === 'react') c.until = run.vt + PHASE_GATE.reactMs * run.k;
+        else { c.need = PHASE_GATE.travelFrac * run.travelDist; c.base = new Map(); }
+        run.phaseClaims.push(c);
+        return true;
+      },
       cancelled() { return run.done; },
     };
     return st;
@@ -389,7 +601,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       vt: 0, horizon: 0, rate: 1, // 虛擬時間／目前排到的最遠點／加速倍率（1＝照編舞原節奏）
       acts: 0, inFlinch: false, // F10：非 flinch 的補間條數
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
-      sig: { trId: det.trId, bones: new Set(), meshes: new Set(), target: false },
+      // v0.55：徽記逐幀朝鏡頭（bb＝單枚 Mesh、bbi＝群體 InstancedMesh）、印記跟著受招方走、因果三段的打點
+      phaseClaims: [], bb: [], bbi: [], follow: [], caster: null, actorSet: null, travelDist: 1,
+      sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
     run.maxRate = 1; // 這一套實際用過的最高加速倍率（F2 的 rateOK：短版不得 >1.0）
@@ -408,10 +622,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     run.meshes.forEach((m) => {
       scene.remove(m);
       // 遞迴：spawn 進來的 Group（如斬瘟的劍光樞軸）子節點也要釋放（覆審 MEDIUM-1）
-      try { m.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); }); } catch (e) { /* 已釋放 */ }
+      // ★v0.55：徽記的 geometry 是「一個 kind 建一次、全場共用」的（emblems.js 的 Map 快取），
+      //   dispose 掉它會讓下一次用到同一個 kind 的招在 GPU 上拿到空 buffer。共用的一律跳過。
+      try { m.traverse((c) => { if (c.isInstancedMesh) c.dispose(); if (c.geometry && !(c.geometry.userData && c.geometry.userData.fxShared)) c.geometry.dispose(); if (c.material) c.material.dispose(); }); } catch (e) { /* 已釋放 */ }
     });
     run.meshes.length = 0;
     run.tweens.length = 0; run.timers.length = 0;
+    run.bb.length = 0; run.bbi.length = 0; run.follow.length = 0;
     run.wraps.forEach((w) => {
       w.runs.delete(run);
       if (!w.runs.size) { unwrap(w); return; }
@@ -424,7 +641,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     if (run.sped) stats.sped++;
     lastSig = { trId: run.sig.trId, bones: Array.from(run.sig.bones).sort(), meshes: Array.from(run.sig.meshes).sort(), target: run.sig.target, t: Math.round(run.t), horizon: Math.round(run.horizon), sped: !!run.sped, cut: !!run.cut,
       // v0.54 機械驗收：ms／tier 防「--tier=1 其實還在跑 900」、maxRate 防「靠加速硬擠」、acts＝F10 的動作數
-      ms: run.ms, tier: run.tier, maxRate: +run.maxRate.toFixed(4), acts: run.acts };
+      ms: run.ms, tier: run.tier, maxRate: +run.maxRate.toFixed(4), acts: run.acts,
+      // v0.55 L1／L2 的機械抓手：徽記 kind（雙射）與「實際成立」的因果段
+      emblems: Array.from(run.sig.emblems).sort(),
+      phases: run.phaseClaims.filter((c) => c.ok).map((c) => c.name).filter((n, i, a) => a.indexOf(n) === i),
+      phaseDetail: run.phaseClaims.map((c) => ({ name: c.name, ok: c.ok, bone: +c.bone.toFixed(4), model: +c.model.toFixed(4), moved: +c.moved.toFixed(4), need: +c.need.toFixed(4) })) };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }
@@ -460,6 +681,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       }
       run.tweens = run.tweens.filter((tw) => !tw.dead);
       run.wraps.forEach(apply);
+      // v0.55：徽記朝鏡頭、印記跟著受招方走、因果三段逐幀判定（順序在 apply 之後，量到的是這一幀的覆寫值）
+      for (let i = 0; i < run.bb.length; i++) faceCamera(run.bb[i]);
+      for (let i = 0; i < run.bbi.length; i++) faceCameraInstanced(run.bbi[i]);
+      for (let i = 0; i < run.follow.length; i++) { const f = run.follow[i]; f.get(f.tmp); f.mesh.position.copy(f.tmp); }
+      if (run.phaseClaims.length) evalPhases(run);
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險
       if (run.t >= run.fuse) { stats.fused++; finish(run); }
       else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) { stats.cut++; run.cut = true; } finish(run); }
@@ -486,6 +712,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     wrapped() { return wraps.size; },
     /** 燈組離基準位多遠（驗收 C-2） */
     rigOffset() { return rig ? rig.position.distanceTo(rigBase) : 0; },
+    /** v0.55 診斷：材質模板數（MAT_GLOW／MAT_LINE／MAT_SOLID＝3，其中 SOLID 與 GLOW 共用 program）
+     *  與徽記剪影的頂點／三角形統計（ART_BIBLE §10.2 第 3 條：≤24 頂點、≤22 三角形） */
+    matTemplates: 3,
+    emblemStats() { try { return EMBLEMS.stats(); } catch (e) { return null; } },
     burstPoints: burst.points,
   };
 }
