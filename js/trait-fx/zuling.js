@@ -272,6 +272,16 @@ const MOVES = {
     };
     writeBand(0);
 
+    /* ── L3 量得到的那一件：**帶頭的那一枚菱形**（`st.paperStamp` 實體）──
+       ★為什麼非有不可★：`fxVis`（L3 的量測對象）**不切 `prop:`／`floor:` 兩個前綴**
+       （`st.paperProps` 的註解寫得很清楚），所以「主道具只有 InstancedMesh 群」的招在 P3 上
+       量到的面積是 **0.0%**——實測 `wardHpFront2`／`eliteArmor`／`swarmHalfSplash`／`wardHpAll1`
+       四支都是這樣紅的。香火批 1 的五營旗早就踩過同一個坑（「中央那一面走 st.paperStamp，
+       也是 L3 唯一量得到的那一件」），這一批四支照同一條補。 */
+    const head = st.paperStamp(st.kind, A, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -18 });
+    head.scale.setScalar(st.iconSize * 0.45);
+
     // ── 每一尊身上的菱紋印（anchor allies；施招者也吃到 hp+2，所以他身上也有一枚）──
     const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Body10', new THREE.Vector3()),
       { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
@@ -293,6 +303,8 @@ const MOVES = {
           st.rim(g, 1 + 1.1 * e);
         });
         st.alpha(band.obj, Math.min(1, e * 1.9));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.45 + 0.72 * e)); // P3 第 2 輪：0.45+0.45e 時 area 0.7495／門檻 0.8；0.78 時 §A3 ratio 0.672 微超，收到 0.72
         for (let i = 0; i < RH; i++) knots[i].s = Math.max(0, Math.min(1, (e - 0.08 * i) * 2.4));
         writeBand(0);
       },
@@ -301,6 +313,8 @@ const MOVES = {
     /* ② 鋪帶（travel）：菱紋帶從牆上方落到本方那一線上，五枚同時沿橫向展開。 */
     st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
       band.obj.position.lerpVectors(A, Z, e);
+      // 帶頭那一枚跟著群體走，再往鏡頭推一點（世界尺寸不動、畫面像素變多＝香火批 1 的 TOWARD_CAM 手段）
+      head.position.copy(band.obj.position).add(st.camOff(1.6));
       writeBand(e);
     },
     done() {
@@ -317,6 +331,7 @@ const MOVES = {
       });
     } });
     st.fade(band.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 托起（react）：本方每一尊上抬＋邊光，身上的菱紋印蓋上再淡去。 */
     marks.forEach((m, i) => {
@@ -395,6 +410,11 @@ const MOVES = {
     };
     writeRing(0);
 
+    // ── L3 量得到的那一件：帶頭的那一塊岩（`st.paperStamp` 實體；`fxVis` 不切 `prop:` 前綴，見 wardHpFront2 的註解）──
+    const head = st.paperStamp(st.kind, A, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.22, warp: 0.10, tiltDeg: 8, yawDeg: -18 });
+    head.scale.setScalar(st.iconSize * 0.45);
+
     // ── 每一尊頭上的岩印（anchor allies；desc 是「全體」，施招者自己也吃到）──
     const marks = st.actor.map((f) => st.paperStamp(st.kind, st.top(f, new THREE.Vector3()),
       { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.12, tiltDeg: 12, yawDeg: -22,
@@ -417,6 +437,8 @@ const MOVES = {
           st.rim(b, 1 + 0.6 * e);
         });
         st.alpha(rocks.obj, Math.min(1, e * 1.9));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.45 + 0.45 * e));
         for (let i = 0; i < CR; i++) ring[i].s = Math.max(0, Math.min(1, (e - 0.07 * i) * 2.4));
         writeRing(0);
       },
@@ -425,6 +447,7 @@ const MOVES = {
     /* ② 合圍（travel）：六塊岩從側上方壓進來，同時攤成一圈罩住本方。 */
     st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
       rocks.obj.position.lerpVectors(A, Z, e);
+      head.position.copy(rocks.obj.position).add(st.camOff(1.6));
       writeRing(e);
     },
     done() {
@@ -443,6 +466,7 @@ const MOVES = {
       });
     } });
     st.fade(rocks.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 托起（react）：本方每一尊上抬＋邊光，頭上的岩印蓋上再淡去。 */
     marks.forEach((m, i) => {
@@ -525,7 +549,8 @@ const MOVES = {
           st.rim(g, 1 + 1.2 * e);
         });
         st.alpha(stone, Math.min(1, e * 1.9));
-        stone.scale.setScalar(st.iconSize * (0.45 + 0.50 * e));
+        // P3 第 1 輪 ΔE 中位 25.13／門檻 28：`ink` 墨線邊在小尺寸下佔比太高、把靛藍面壓掉了——放大讓面板佔多數
+        stone.scale.setScalar(st.iconSize * (0.45 + 0.76 * e)); // 0.80 時 §A3 ratio 0.674 微超，收到 0.76
       },
       done() { st.phase('travel'); } });
 
@@ -613,6 +638,11 @@ const MOVES = {
     };
     writeBolts(0);
 
+    // ── L3 量得到的那一件：主雷片（`st.paperStamp` 實體；`fxVis` 不切 `prop:` 前綴）──
+    const head = st.paperStamp(st.kind, seed, { anchor: 'foe', role: 'stamp', color: C.hot, inkColor: C.ink,
+      opacity: 0, depth: 0.16, warp: 0.16, tiltDeg: 6, yawDeg: -14 });
+    head.scale.setScalar(st.iconSize * 0.45);
+
     // ── 被燒那隻身上的雷印（anchor foe）──
     const mark = prey ? st.paperStamp(st.kind, to, { anchor: 'foe', color: C.hot, inkColor: C.ink,
       opacity: 0, depth: 0.16, warp: 0.14, tiltDeg: 12, yawDeg: -20, follow: prey, at: 'top', off: st.camOff(1) }) : null;
@@ -629,6 +659,9 @@ const MOVES = {
         st.rim(bird, 1 + 1.2 * e);
         st.worldOf(bird, 'EmberSeed', bolts.obj.position); bolts.obj.position.add(st.camOff(0.9));
         st.alpha(bolts.obj, Math.min(1, e * 1.9));
+        head.position.copy(bolts.obj.position).add(st.camOff(1.2));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.45 + 0.85 * e)); // P3 第 2 輪：0.45+0.50e 時 area 0.7337／門檻 0.8
         for (let i = 0; i < BZ; i++) jags[i].s = Math.max(0, Math.min(1, (e - 0.10 * i) * 2.6));
         writeBolts(0);
       },
@@ -637,7 +670,7 @@ const MOVES = {
     /* ② 劈下（travel）：四片鋸齒雷從火種炸開、直落那一隻頭上（打擊類保留拖尾）。 */
     const from = seed.clone();
     st.trail(bolts.obj, from, to, { ms: TL, delay: T0, ease: 'strike', color: C.line, opacity: 0.75,
-      update(t, e) { writeBolts(e); },
+      update(t, e) { head.position.copy(bolts.obj.position).add(st.camOff(1.2)); writeBolts(e); },
       done() {
         /* ★衝擊拍★：翼撐滿＝雷片落到那一隻頭上＝那一隻同幀被壓下（三件同一拍，§A2） */
         st.phase('react');
@@ -651,6 +684,7 @@ const MOVES = {
       st.rim(bird, 1 + 1.2 - 0.8 * e);
     } });
     st.fade(bolts.obj, { ms: RL * 0.45, delay: R0 + RL * 0.25, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.45, delay: R0 + RL * 0.25, from: 1, to: 0 });
     /* ★`st.flinch` 一律頂層排（短版三條紀律第 2 條）★ 壓＝等比縮＋骨骼抖，給大 strength。 */
     if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.9, burst: false });
     if (prey) st.tween({ ms: RL * 0.85, delay: R0, ease: 'snap', update(t, e) { st.scale(prey, 1 - 0.16 * st.EASE.pulse(e)); } });
@@ -704,7 +738,7 @@ const MOVES = {
 
     // ── 丙 三道平行浪弧（1 draw call；群體位移掛 InstancedMesh 物件本身，§A5）──
     const WV = 3;
-    const waves = st.paperProps(st.kind, WV, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.50, depth: 0.14, warp: 0.10 }); // k 1.05 那一版三道弧糊成一大片藍、佔掉半個畫面（自評第 1 輪）
+    const waves = st.paperProps(st.kind, WV, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.62, depth: 0.14, warp: 0.10 }); // k 1.05 那一版三道弧糊成一大片藍、佔掉半個畫面（自評第 1 輪）
     waves.obj.position.copy(A);
     const _e = new THREE.Euler();
     const rows = [];
@@ -719,6 +753,14 @@ const MOVES = {
       waves.write();
     };
     writeWaves(0);
+
+    /* ── L3 量得到的那一件：最前面那一道浪弧（`st.paperStamp` 實體；`fxVis` 不切 `prop:` 前綴）──
+       ★這一支的尺寸與 L3 面積互斥（香火批 1 §4.3 記過的形狀）★：拼板舟 `figH` 只有 0.8054，
+       §A3 上限＝0.537 世界單位，而 L3 要 ≥0.8% 畫面面積。做法同破軍旗：**先往鏡頭推**
+       （世界尺寸不動、畫面像素變多），不夠再放大並照 Q5 記錄在案。 */
+    const head = st.paperStamp(st.kind, A, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.16, warp: 0.10, tiltDeg: 8, yawDeg: -18 });
+    head.scale.setScalar(st.iconSize * 0.35);
 
     // ── 每一艘身上的浪印（anchor allies）──
     const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
@@ -739,6 +781,8 @@ const MOVES = {
           st.rim(b, 1 + 1.0 * e);
         });
         st.alpha(waves.obj, Math.min(1, e * 1.9));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.35 + 0.62 * e)); // §A3：拼板舟 figH 0.8054 是全 27 隻最矮，上限 0.537；面積改靠推近鏡頭補
         for (let i = 0; i < WV; i++) rows[i].s = Math.max(0, Math.min(1, (e - 0.10 * i) * 2.6));
         writeWaves(0);
       },
@@ -747,6 +791,7 @@ const MOVES = {
     /* ② 鋪浪（travel）：三道平行弧從側後方推進來、鋪在本隊腳下那一線。 */
     st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
       waves.obj.position.lerpVectors(A, Z, e);
+      head.position.copy(waves.obj.position).add(st.camOff(2.6)); // 矮的那一尊只能靠推近鏡頭湊面積（2.4 時 area 0.6359）
       writeWaves(e);
     },
     done() {
@@ -763,6 +808,7 @@ const MOVES = {
       });
     } });
     st.fade(waves.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 躍起（react）：本方每一艘上抬＋邊光，身上的浪印蓋上再淡去。 */
     marks.forEach((m, i) => {
@@ -838,6 +884,11 @@ const MOVES = {
     };
     writeTusks(0);
 
+    // ── L3 量得到的那一件：主獠牙（`st.paperStamp` 實體；`fxVis` 不切 `prop:` 前綴）──
+    const head = st.paperStamp(st.kind, disc, { anchor: 'foe', role: 'stamp', color: C.line, inkColor: C.ink,
+      opacity: 0, depth: 0.18, warp: 0.12, tiltDeg: 8, yawDeg: -18 });
+    head.scale.setScalar(st.iconSize * 0.42);
+
     // ── 打中那隻身上的牙痕印（anchor foe）──
     const mark = prey ? st.paperStamp(st.kind, to, { anchor: 'foe', color: C.line, inkColor: C.ink,
       opacity: 0, depth: 0.16, warp: 0.14, tiltDeg: 12, yawDeg: -20, follow: prey, at: 'chest', off: st.camOff(1) }) : null;
@@ -855,6 +906,9 @@ const MOVES = {
         st.rim(boar, 1 + 1.3 * e);
         st.worldOf(boar, 'DiscFace', tusks.obj.position); tusks.obj.position.add(st.camOff(0.9));
         st.alpha(tusks.obj, Math.min(1, e * 1.9));
+        head.position.copy(tusks.obj.position).add(st.camOff(4.2));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.42 + 0.39 * e)); // §A3 上限 0.745；面積改靠推近鏡頭補
         for (let i = 0; i < TK; i++) pair[i].s = Math.max(0, Math.min(1, (e - 0.12 * i) * 2.6));
         writeTusks(0);
       },
@@ -863,7 +917,7 @@ const MOVES = {
     /* ② 扎（travel）：兩根獠牙從牙盤射出、扎進對手（打擊類保留拖尾）。 */
     const from = disc.clone();
     st.trail(tusks.obj, from, to, { ms: TL, delay: T0, ease: 'strike', color: C.line, opacity: 0.8,
-      update(t, e) { writeTusks(e); },
+      update(t, e) { head.position.copy(tusks.obj.position).add(st.camOff(4.2)); writeTusks(e); },
       done() {
         /* ★衝擊拍★：牙盤轉亮到頂＝獠牙扎中＝對手同幀後退（三件同一拍，§A2） */
         st.phase('react');
@@ -882,9 +936,11 @@ const MOVES = {
        這是全 27 支唯一反向飛行的道具（因果方向＝反擊）。 */
     st.tween({ ms: RL * 0.55, delay: R0 + RL * 0.12, ease: 'out', update(t, e) {
       tusks.obj.position.lerpVectors(to, back, e);
+      head.position.copy(tusks.obj.position).add(st.camOff(4.2));
       writeTusks(1 - 0.5 * e);
     } });
     st.fade(tusks.obj, { ms: RL * 0.3, delay: R0 + RL * 0.65, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.3, delay: R0 + RL * 0.65, from: 1, to: 0 });
     if (mark) {
       st.fade(mark, { ms: RL * 0.3, delay: R0, from: 0, to: 1 });
       st.fade(mark, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
@@ -1125,6 +1181,11 @@ const MOVES = {
     };
     writeRing(0, 0);
 
+    // ── L3 量得到的那一件：心口那一顆琉璃珠（`st.paperStamp` 實體；`fxVis` 不切 `prop:` 前綴）──
+    const head = st.paperStamp(st.kind, A, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.20, warp: 0.08, tiltDeg: 8, yawDeg: -18 });
+    head.scale.setScalar(st.iconSize * 0.45);
+
     // ── 每一尊身上的珠印（anchor allies）──
     const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
       { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
@@ -1142,6 +1203,8 @@ const MOVES = {
         st.rot(snake, 'Head0', -0.24 * e);
         st.rim(snake, 1 + 1.1 * e);
         st.alpha(ring.obj, Math.min(1, e * 1.9));
+        st.alpha(head, Math.min(1, e * 1.9));
+        head.scale.setScalar(st.iconSize * (0.45 + 0.45 * e));
         for (let i = 0; i < BD; i++) orbs[i].s = Math.max(0, Math.min(1, (e - 0.06 * i) * 2.4));
         writeRing(0, e * 1.2);
       },
@@ -1150,6 +1213,7 @@ const MOVES = {
     /* ② 合攏（travel）：珠圈從側上方繞進來、旋轉著攤開合圍本隊。 */
     st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
       ring.obj.position.lerpVectors(A, Z, e);
+      head.position.copy(ring.obj.position).add(st.camOff(1.6));
       writeRing(e, 1.2 + e * 2.4);
     },
     done() {
@@ -1165,6 +1229,7 @@ const MOVES = {
       st.rim(snake, 1 + 1.1 + 1.7 * e);
     } });
     st.fade(ring.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+    st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 護心（react）：本方每一尊上抬＋邊光，身上的珠印蓋上再淡去。 */
     marks.forEach((m, i) => {
