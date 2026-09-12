@@ -344,56 +344,131 @@ const MOVES = {
       st.move(lead, 0, 0.09 * up, 0);
     } });
   },
-  /* 山神庇佑・山起（shanshen，護法×2）：全體 hp+1（含護法、作祟）。
-     編舞：四足屈膝沉身、背上山岩隆起（0–250ms 醞釀）→ 抬頭仰天、整尊上頂、山岩漲到最大（250ms）
-          → 腳下地紋圓盤擴散、頭頂一顆山神之光升起 → 岩落、獸伏回原姿（到 820ms）。 */
+  /* 山神庇佑・山起（shanshen，護法×2）：一拍全體 hp+1（含護法、作祟）。
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 9 列＋§B1＋§A9；
+     `MOVE_SPEC.wardHpAll1 = { 甲, 沉, 升, stance:'下沉', anchor:'allies' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝沉**：四肢 `*1Kn` 屈膝沉身＋`CragBack`／`CragMid`／`CragFore` 背岩隆起加倍。
+       **道具**＝甲 骨牙石器：**岩塊**（`crag` ×6，`st.paperProps` 的 `shape:'emblem'`＝1 draw call）
+         從側上方壓進場、**繞成一圈**合圍本方；＋每一尊頭上一枚**岩印**。
+         ★頭頂白球退役★（現況讀者 A 兩版都把它讀成千里眼銅鈴，ART_BIBLE §10.5）；
+         ★腳下光盤也退役★（`disc` 限縮成香火的「陣」）。
+       **受益方反應＝升**：本方每一尊 `st.move` 上抬＋邊光。
+
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down）≠ react「升」（up）；腳下**垂直光柱**。
+     ★拖線★：增益招 `trail: false`。★落點 anchor＝`allies`★（desc「全體 hp+1」）。 */
   wardHpAll1(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const wards = st.byBody(st.actor, 'ward');
     const herd = wards.length ? wards : st.actor;
-    herd.forEach((b, bi) => {
-      const lag = bi * 70;
-      const foot = st.foot(b, new THREE.Vector3());
-      const crown = st.top(b, new THREE.Vector3());
-      st.tween({ ms: 250, delay: lag, ease: 'out', update(t, e) {
-        st.rot(b, 'LFront1Kn', 0.42 * e); st.rot(b, 'RFront1Kn', 0.42 * e);
-        st.rot(b, 'LBack1Kn', 0.38 * e); st.rot(b, 'RBack1Kn', 0.38 * e);
-        st.rot(b, 'Barrel', 0.14 * e); st.rot(b, 'Chest', 0.1 * e);
-        st.rot(b, 'NeckRoot', 0.22 * e); st.rot(b, 'Neck1', 0); st.rot(b, 'Neck2', 0);
-        st.rot(b, 'HeadRoot', 0.3 * e); st.rot(b, 'Muzzle', 0);
-        st.scaleBone(b, 'CragBack', 1 + 0.3 * e);
-        st.scaleBone(b, 'CragMid', 1 + 0.42 * e);
-        st.scaleBone(b, 'CragFore', 1 + 0.34 * e);
-        st.move(b, 0, -0.05 * e, 0);
-        st.rim(b, 1 + 0.5 * e);
-      } });
-      st.at(lag + 250, () => {
-        const disc = st.disc(foot, 0.3, { opacity: 0.55 });
-        disc.scale.setScalar(0.3);
-        st.tween({ ms: 480, ease: 'outQuint', update(t, e) { disc.scale.setScalar(0.3 + 1.6 * e); disc.material.opacity = 0.55 * (1 - 0.95 * e); } });
-        const light = st.orb(crown, 0.09, { opacity: 0.95 });
-        light.scale.setScalar(0.25);
-        const rise = crown.clone(); rise.y += 0.55;
-        st.fly(light, crown, rise, { ms: 430, ease: 'out' });
-        st.grow(light, { ms: 220, from: 0.25, to: 1.35 });
-        st.fade(light, { ms: 300, delay: 210, from: 0.95, to: 0 });
-        st.burst(crown, { power: 0.6, n: 32 });
+    const lead = herd[0];
+    const mates = st.actor.filter((f) => f !== lead);
+    const crown = st.top(lead, new THREE.Vector3());
+    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    // 起點在遠離中線那一側的高處（§A9-3：不跨中線、不從敵方出發）
+    const A = crown.clone(); A.addScaledVector(perp, 1.85); A.y += 0.75; A.add(st.camOff(1.0));
+    const Z = new THREE.Vector3();
+    st.actor.forEach((f) => { const p = st.top(f, new THREE.Vector3()); Z.add(p); });
+    Z.multiplyScalar(1 / Math.max(1, st.actor.length));
+    Z.y -= 0.10;
+    Z.add(st.camOff(1.8));
+
+    // ── 甲 岩塊：六塊繞一圈（1 draw call；群體位移掛 InstancedMesh 物件本身，§A5）──
+    const CR = 6;
+    const rocks = st.paperProps(st.kind, CR, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.42, depth: 0.22, warp: 0.10 });
+    rocks.obj.position.copy(A);
+    const _e = new THREE.Euler();
+    const ring = [];
+    for (let i = 0; i < CR; i++) ring.push({ th: (i / CR) * Math.PI * 2, rz: 0.5 * i, s: 0 });
+    const writeRing = (k) => {
+      for (let i = 0; i < CR; i++) {
+        const g = ring[i], it = rocks.items[i];
+        // k=0 疊在一起 → k=1 攤成一圈（半徑 0.62；圈是**橫躺**的，不是腳下光環）
+        const r = 0.06 + 0.92 * k; // k 0.95 那一版六塊岩糊成一團藍（自評第 1 輪）：縮小 k、拉開半徑才讀得出「六塊」
+        it.p.set(Math.cos(g.th) * r, Math.sin(g.th) * r * 0.62, 0);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz + k * 0.8));
+        it.s = g.s;
+      }
+      rocks.write();
+    };
+    writeRing(0);
+
+    // ── 每一尊頭上的岩印（anchor allies；desc 是「全體」，施招者自己也吃到）──
+    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.top(f, new THREE.Vector3()),
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.12, tiltDeg: 12, yawDeg: -22,
+        follow: f, at: 'top', off: st.camOff(1) }));
+
+    /* ① 沉身（windup）：四肢屈膝、背岩隆起；岩塊在側上方亮相。 */
+    st.groundMark(lead, { h: 1.26, w: 0.28, taper: 0.42, peak: 0.95, push: 0.85 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(lead, '下沉', e);
+        herd.forEach((b) => {
+          st.rot(b, 'LFront1Kn', 0.44 * e); st.rot(b, 'RFront1Kn', 0.44 * e);
+          st.rot(b, 'LBack1Kn', 0.40 * e); st.rot(b, 'RBack1Kn', 0.40 * e);
+          st.rot(b, 'Barrel', 0.14 * e); st.rot(b, 'Chest', 0.10 * e);
+          st.rot(b, 'NeckRoot', 0.22 * e); st.rot(b, 'HeadRoot', 0.30 * e);
+          st.scaleBone(b, 'CragBack', 1 + 0.34 * e);
+          st.scaleBone(b, 'CragMid', 1 + 0.46 * e);
+          st.scaleBone(b, 'CragFore', 1 + 0.38 * e);
+          st.rim(b, 1 + 0.6 * e);
+        });
+        st.alpha(rocks.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < CR; i++) ring[i].s = Math.max(0, Math.min(1, (e - 0.07 * i) * 2.4));
+        writeRing(0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 合圍（travel）：六塊岩從側上方壓進來，同時攤成一圈罩住本方。 */
+    st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
+      rocks.obj.position.lerpVectors(A, Z, e);
+      writeRing(e);
+    },
+    done() {
+      /* ★衝擊拍★：背岩隆到頂＝六塊岩合圍＝全體同幀亮邊上抬（三件同一拍，§A2） */
+      st.phase('react');
+      st.burst(Z, { power: 0.75, n: 44, color: C.hot });
+      st.punch(0.36);
+    } });
+    // 山起：背岩在衝擊拍前一格再漲一次（祖靈＝靜→瞬發）
+    st.tween({ ms: TL * 0.5, delay: T0 + TL * 0.45, ease: 'snap', update(t, e) {
+      herd.forEach((b) => {
+        st.scaleBone(b, 'CragBack', 1 + 0.34 + 0.30 * e);
+        st.scaleBone(b, 'CragMid', 1 + 0.46 + 0.42 * e);
+        st.scaleBone(b, 'CragFore', 1 + 0.38 + 0.34 * e);
+        st.rim(b, 1 + 0.6 + 1.6 * e);
       });
-      // 山起：r 是「醞釀久、急收」的山勢；k 是屈膝姿態的退場
-      st.tween({ ms: 500, delay: lag + 250, ease: 'linear', update(t) {
-        const k = 1 - st.EASE.out(t);
-        const r = st.EASE.wind(Math.min(1, t / 0.8));
-        st.rot(b, 'LFront1Kn', 0.42 * k - 0.2 * r); st.rot(b, 'RFront1Kn', 0.42 * k - 0.2 * r);
-        st.rot(b, 'LBack1Kn', 0.38 * k - 0.16 * r); st.rot(b, 'RBack1Kn', 0.38 * k - 0.16 * r);
-        st.rot(b, 'Barrel', 0.14 * k); st.rot(b, 'Chest', 0.1 * k - 0.12 * r);
-        st.rot(b, 'NeckRoot', 0.22 * k - 0.34 * r); st.rot(b, 'Neck1', -0.28 * r); st.rot(b, 'Neck2', -0.24 * r);
-        st.rot(b, 'HeadRoot', 0.3 * k - 0.4 * r); st.rot(b, 'Muzzle', -0.16 * r);
-        st.scaleBone(b, 'CragBack', 1 + 0.3 * k + 0.36 * r);
-        st.scaleBone(b, 'CragMid', 1 + 0.42 * k + 0.52 * r);
-        st.scaleBone(b, 'CragFore', 1 + 0.34 * k + 0.42 * r);
-        st.move(b, 0, -0.05 * k + 0.12 * r, 0);
-        st.rim(b, 1 + 0.5 * k + 1.4 * r);
-      } });
+    } });
+    st.fade(rocks.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+
+    /* ③ 托起（react）：本方每一尊上抬＋邊光，頭上的岩印蓋上再淡去。 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    } }));
+
+    /* 收勢：屈膝與背岩回位，施招者跟著被托起（他也在「全體」裡）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.55));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
+      herd.forEach((b) => {
+        st.rot(b, 'LFront1Kn', 0.44 * k); st.rot(b, 'RFront1Kn', 0.44 * k);
+        st.rot(b, 'LBack1Kn', 0.40 * k); st.rot(b, 'RBack1Kn', 0.40 * k);
+        st.rot(b, 'Barrel', 0.14 * k); st.rot(b, 'Chest', 0.10 * k);
+        st.rot(b, 'NeckRoot', 0.22 * k); st.rot(b, 'HeadRoot', 0.30 * k);
+        st.scaleBone(b, 'CragBack', 1 + 0.64 * k);
+        st.scaleBone(b, 'CragMid', 1 + 0.88 * k);
+        st.scaleBone(b, 'CragFore', 1 + 0.72 * k);
+        st.rim(b, 1 + 2.2 * k + 1.2 * up);
+      });
+      st.move(lead, 0, 0.09 * up, 0);
+    } });
   },
 
   /* 祖靈之眼・祖靈先手（eye，護法×2）：本方前鋒先結算。
@@ -841,32 +916,8 @@ export const SHORT = {
   /* wardHpFront2｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
   wardHpFront2: MOVES.wardHpFront2,
 
-  /* 山神庇佑｜辨識：背上山岩隆起＋腳下地紋圓盤擴散 */
-  wardHpAll1(st) {
-    const K = st.ms / 260;
-    const g = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const foot = st.foot(g, new THREE.Vector3());
-    const head = st.top(g, new THREE.Vector3());
-    const disc = st.disc(foot, 0.5, { opacity: 0 });
-    const light = st.orb(head, 0.09, { opacity: 0 });
-    disc.scale.setScalar(0.25);
-    st.tween({ ms: 90 * K, ease: 'out', update(t, e) { // 沉身、背上山岩隆起
-      st.scaleBone(g, 'CragBack', 1 + 0.3 * e); st.scaleBone(g, 'CragMid', 1 + 0.34 * e); st.scaleBone(g, 'CragFore', 1 + 0.24 * e);
-      st.rot(g, 'Barrel', -0.06 * e); st.rot(g, 'NeckRoot', -0.14 * e); st.rot(g, 'HeadRoot', -0.2 * e);
-      st.move(g, 0, -0.05 * e, 0); st.rim(g, 1 + 0.7 * e);
-    } });
-    st.grow(disc, { ms: 100 * K, delay: 85 * K, from: 0.25, to: 1.6 }); // 腳下地紋圓盤擴散
-    st.fade(disc, { ms: 100 * K, delay: 85 * K, from: 0.55, to: 0 });
-    st.grow(light, { ms: 70 * K, delay: 85 * K, from: 0.3, to: 1.2 }); // 頭頂山神之光
-    st.fade(light, { ms: 55 * K, delay: 85 * K, from: 0, to: 0.9 });
-    st.fade(light, { ms: 65 * K, delay: 160 * K, from: 0.9, to: 0 });
-    st.tween({ ms: 70 * K, delay: 160 * K, ease: 'back', update(t, e) { // 岩落、獸伏回原姿
-      const k = 1 - e;
-      st.scaleBone(g, 'CragBack', 1 + 0.3 * k); st.scaleBone(g, 'CragMid', 1 + 0.34 * k); st.scaleBone(g, 'CragFore', 1 + 0.24 * k);
-      st.rot(g, 'Barrel', -0.06 * k); st.rot(g, 'NeckRoot', -0.14 * k); st.rot(g, 'HeadRoot', -0.2 * k);
-      st.move(g, 0, -0.05 * k, 0); st.rim(g, 1 + 0.7 * k);
-    } });
-  },
+  /* wardHpAll1｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  wardHpAll1: MOVES.wardHpAll1,
 
   /* 祖靈先手｜辨識：★一顆睜圓的大眼★ ＋ 一道注視射過去 ＋ **被盯到的那一隻退縮**
      （盲讀 r2：短 1/2 vs 完整 3/3。低分共同特徵是「效果只在自己身上、沒有指向、受方沒反應」，

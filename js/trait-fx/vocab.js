@@ -305,7 +305,7 @@ export const MOVE_SPEC = {
   swarmThorn: { prop: '甲', act: '沉', react: '退' }, // 獠牙反向彈回；§C「刨」正規化成沉
   // ★祖靈範本招（2026-09-13 階段 A）★ 割祭＝頸下彎屈身就刃 ⇒ stance 下沉（down）≠ react 升（up）
   eliteSelfCut: { prop: '甲', act: '割', react: '升', stance: '下沉', anchor: 'allies' }, // 黑曜石刃；自傷、本隊上抬
-  wardHpAll1: { prop: '甲', act: '沉', react: '升' }, // 六塊岩繞一圈；屈膝沉身
+  wardHpAll1: { prop: '甲', act: '沉', react: '升', stance: '下沉', anchor: 'allies' }, // 六塊岩繞一圈；屈膝沉身（下沉 down ≠ 升 up）
   /* ── 香火系 9 支（本卷批 1；stance 於 2026-09-13 階段 A 補上，見上面第四欄那段）── */
   wardAtkAll1: { prop: '乙', act: '掃', react: '升', stance: '前傾', anchor: 'allies' }, // 金紅大旗掃過整排；旗手前傾把旗送出
   eliteCleave: { prop: '丁', act: '掃', react: '退', stance: '舉臂', anchor: 'foes' }, // 斬擊弧；舉劍蓄勢（react 退＝back，不同型）
