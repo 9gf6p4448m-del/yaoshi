@@ -7,7 +7,7 @@
 //
 // 用法：
 //   node tests/tools/proto-record.mjs <輸出目錄> --tier=2 [--proto=tigerA] [--trait=biteGamble]
-//        [--step=1] [--fps=20] [--port=8871] [--keep] [--nogif]
+//        [--step=1] [--fps=20] [--port=8871] [--keep] [--nogif] [--tag=<檔名後綴>]
 //   --step  每幾幀存一張（1＝每幀；tier 2 有 54 幀）
 //   --fps   GIF／WebM 的播放幀率（實際演出是 60fps，設低於 60 就是慢動作，檔名會標明）
 //
@@ -113,7 +113,8 @@ async function main() {
   };
 
   // 合成 GIF／WebM（ffmpeg 不在就留 PNG 序列，並在 summary 標明）
-  const tag = `${trait}-${proto || 'base'}-t${tier}`;
+  // --tag=<字串>：接在檔名後面（虎爺印原型卷用 `-hu` 標「印面字換成虎之後」的那一版）
+  const tag = `${trait}-${proto || 'base'}-t${tier}${opt.tag ? '-' + String(opt.tag) : ''}`;
   const ff = opt.nogif ? null : ffmpegPath();
   summary.ffmpeg = !!ff;
   if (ff) {

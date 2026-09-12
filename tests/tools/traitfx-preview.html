@@ -234,7 +234,13 @@ window.__tfx = {
       const parts = (o.userData.fxParts) || (o.material ? [o] : []);
       out.push({ kind: k, vis: o.visible, x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3),
         ndcX: +ndc.x.toFixed(2), ndcY: +ndc.y.toFixed(2), scl: +o.scale.x.toFixed(3),
-        op: parts.length ? +parts.map((q) => q.material.opacity).reduce((a, b) => Math.max(a, b), 0).toFixed(2) : null });
+        op: parts.length ? +parts.map((q) => q.material.opacity).reduce((a, b) => Math.max(a, b), 0).toFixed(2) : null,
+        // 複合物（st.paperStamp 是 Group：本體／印面／字）逐片列色與三角形數——
+        // 「印面上看不到字」有「沒建出來／被蓋住／顏色被 bloom 吃掉」三種成因，截圖同樣分不出來
+        kids: o.children.filter((c) => c.material).map((c) => ({
+          t: c.type, c: '#' + c.material.color.getHexString(), op: +c.material.opacity.toFixed(2), vis: c.visible,
+          tris: c.geometry && c.geometry.index ? c.geometry.index.count / 3 : (c.geometry && c.geometry.attributes.position ? c.geometry.attributes.position.count / 3 : 0),
+        })) });
     });
     return out;
   },
