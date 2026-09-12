@@ -310,20 +310,25 @@ $ git diff 417b197..HEAD --stat -- index.html js/
 
 ```
 $ git diff 417b197..HEAD --stat | tail -4
- .../2026-09-12-l10-determinism-report.md           | 375 +++++++++++++++++++++
- tests/tools/README.md                              |  33 ++
- tests/tools/dmg-readability.mjs                    | 268 ++++++++++++++-
- 29 files changed, 2002 insertions(+), 15 deletions(-)
-      ← 其餘 26 個全部是 docs/experiments/2026-09-12-l10-determinism-evidence/** 的證據檔
+ .../2026-09-12-l10-determinism-report.md           | 492 +++++++++++++++++++++
+ tests/tools/README.md                              |  41 ++
+ tests/tools/dmg-readability.mjs                    | 328 +++++++++++++-
+ 31 files changed, 2337 insertions(+), 20 deletions(-)
+      ← 其餘 28 個全部是 docs/experiments/2026-09-12-l10-determinism-evidence/** 的證據檔
 
 $ git diff 417b197..HEAD --stat -- index.html js/
 （空）
+
+$ git diff 417b197..HEAD -- tests/tools/dmg-readability.mjs \
+  | grep -E '^[-+].*(MASK_TH|MOVE_MAX|BASE_FONT|FONT_MIN|BACK_MAX|BURN_MAX|CTRL_MAX|>= 25|>= 0\.70|function judgePix|function silhouette|maskDeltaOnMask|function redness|function ringAvg|const contrast)'
+（空 — 量法與門檻零 diff）
 
 $ git status --short
 （空）
 ```
 
-commit 序：`9a03db9` 治具 → `1427ff2` README → `31e818d` 報告與證據。
+commit 序：`9a03db9` 治具 → `1427ff2` README → `31e818d` 報告與證據
+→ `4b271a7` 補 diff 表 → `72c1eb1` 依 read-back 加註 → `a5569c1` 處理對抗覆審的 findings。
 
 ### 驗收 6　規則測試全綠 🟢
 
