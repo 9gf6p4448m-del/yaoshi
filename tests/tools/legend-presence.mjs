@@ -43,10 +43,12 @@ const { chromium } = (() => {
   throw new Error('找不到 playwright：worktree 需要 tools/anyCreature 或設 NODE_PATH');
 })();
 
+/* body／fac／count／sn 逐格對齊 index.html 的 LEGENDS 表（治具是合成 ys:duel，不走 pwArmyView，
+   所以這裡要自己帶；帶錯 sn 的話名牌會落到 makeLegendKit 的 fallback「尊」，那是假綠的來源之一）。 */
 const LEGEND_META = {
-  canri: { body: 'elite', fac: 'zuling', count: 1 },
-  dashiye: { body: 'ward', fac: 'xianghuo', count: 1 },
-  youyinggong: { body: 'haunt', fac: 'yinqi', count: 2 },
+  canri: { body: 'elite', fac: 'zuling', count: 1, sn: '殘日' },
+  dashiye: { body: 'ward', fac: 'xianghuo', count: 1, sn: '大士爺' },
+  youyinggong: { body: 'haunt', fac: 'yinqi', count: 2, sn: '有應公' },
 };
 // 陪打的 7（或 6）隻：固定名單、固定順序，兩個版本用同一份（改前改後才比得起來）
 const FILLER = [
@@ -87,7 +89,7 @@ const SETUP_FN = `async ({ legend, meta, filler }) => {
   // ── 名冊：A 側＝傳說 ＋ 陪打；B 側＝陪打 8。總數固定 8（＝ PW_FX.MAXFIG 的場上上限）──
   const need = 8 - meta.count;
   const unitsA = [];
-  for (let k = 0; k < meta.count; k++) unitsA.push({ id: unitsA.length, body: meta.body, fac: meta.fac, ab: legend, lg: true });
+  for (let k = 0; k < meta.count; k++) unitsA.push({ id: unitsA.length, body: meta.body, fac: meta.fac, ab: legend, lg: true, sn: meta.sn });
   for (let k = 0; k < need; k++) { const f = filler[k]; unitsA.push({ id: unitsA.length, body: f.body, fac: f.fac, ab: f.ab }); }
   const unitsB = filler.slice(0, 8).map((f, i) => ({ id: i, body: f.body, fac: f.fac, ab: f.ab }));
   const det = { a: cur.a, b: cur.b, armies: [{ units: unitsA }, { units: unitsB }], maxFig: 8 };

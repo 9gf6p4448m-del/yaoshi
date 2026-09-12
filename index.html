@@ -2013,14 +2013,19 @@ const POOL = [
 /* 傳說共鳴（請神 2.0，2026-09-07 使用者裁定）：傳說在共鳴計算裡**視為 2 件**（本體 1 件＋eff 的 onFacCount +1），
    沿用雷女之火／五營旗既有的 hook，不開新掛點、不加「同系全體 atk 光環」那種第二套加成。
    共鳴上限 CFG.PW_RES_CAP（3）不動。effect 走 collectEffects 的 it.eff 那條（傳說沒有 ab）。 */
+/* `sn`＝頭頂尊名牌上印的短名（「請神存在感」卷 2026-09-13）。★純演出欄位，引擎一行都不讀★，
+   與 `tier` 同一種性質（不進 collectEffects／applyHooks，trace 逐位元組不受影響）。
+   ★明文偏離派工書「尊名兩字」★：「大士」「有應」在中文裡是不完整詞，砍成兩字直接傷辨識，
+   所以取 2–3 字；「兩字」讀成尺寸指引。這一條待使用者簽字，理由見凍結檔
+   docs/experiments/2026-09-13-acceptance-legend-presence.md §1 第 6 點。 */
 const LEGENDS = [
-  {n:"殘日",f:"zuling",p:12,legend:true,m:"canri",d:"被射中右眼、失去厲光墜成月亮的那顆太陽",
+  {n:"殘日",sn:"殘日",f:"zuling",p:12,legend:true,m:"canri",d:"被射中右眼、失去厲光墜成月亮的那顆太陽",
     eff:{id:"legendZuling",name:"祖靈共鳴",hooks:{onFacCount(ctx){ if(ctx.faction==="zuling") ctx.count++; }}},
     unit:{body:"elite",count:1,atk:9,hp:12,trait:"eliteBlind"}},
-  {n:"大士爺紙尊",f:"xianghuo",p:12,legend:true,m:"dashiye",d:"青面獠牙吐舌、頭頂觀音的紙紮鬼王",
+  {n:"大士爺紙尊",sn:"大士爺",f:"xianghuo",p:12,legend:true,m:"dashiye",d:"青面獠牙吐舌、頭頂觀音的紙紮鬼王",
     eff:{id:"legendXianghuo",name:"香火共鳴",hooks:{onFacCount(ctx){ if(ctx.faction==="xianghuo") ctx.count++; }}},
     unit:{body:"ward",count:1,atk:3,hp:16,trait:"wardGuardAll"}},
-  {n:"有應公",f:"yinqi",p:12,legend:true,m:"youyinggong",d:"路旁小祠裡的無主枯骨，有求必應",
+  {n:"有應公",sn:"有應公",f:"yinqi",p:12,legend:true,m:"youyinggong",d:"路旁小祠裡的無主枯骨，有求必應",
     eff:{id:"legendYinqi",name:"陰氣共鳴",hooks:{onFacCount(ctx){ if(ctx.faction==="yinqi") ctx.count++; }}},
     unit:{body:"haunt",count:2,atk:0,hp:9,trait:"hauntAnswer"}},
 ];
@@ -5377,6 +5382,22 @@ function pwTierOf(t){ const n=t|0; return (n===1||n===2||n===3)?n:2; }
 const PW_LEGEND_ABS=new Set(LEGENDS.map(x=>x.m).filter(Boolean));
 /* 這一筆 burn 燒掉的是不是傳說尊。burn 事件的 side 就是**被燒的那一方**（pwRec 上方註解），
    target 是該側的單位 id；views 是 [viewA, viewB]，units 的 id 在排序前指派、不重排。 */
+/* 請神存在感卷（2026-09-13）：某一尊傳說**在戰場上第一次現身**的那一場，給一次低角度仰視機位
+   （沿用 CINEMA 與 tier 3 的 1400ms，不新增第二套鏡頭語言）；同一尊之後再上場都不再切。
+   「首次」記在下面這個 Set 裡——**純演出**：不進 S、不耗亂數、不影響 trace，重載即歸零。
+   跳過（SKIP）與關掉近景（?closeup=0）時整支 no-op，與其餘切鏡同一條紀律。 */
+const PW_LEGEND_SEEN=new Set();
+function pwLegendEnter(det){
+  if(!det||!det.armies||!pwCloseup()||SKIP) return;
+  for(let i=0;i<det.armies.length;i++){
+    for(const u of (det.armies[i].units||[])){
+      if(!u.lg||!u.ab||PW_LEGEND_SEEN.has(u.ab)) continue;
+      PW_LEGEND_SEEN.add(u.ab);
+      fx3d("ys:legend-enter",{side:i?"B":"A",unit:u.id,ab:u.ab,ms:PW_FX.TRAIT_MS_BY_TIER[3]});
+      return; /* 一場最多切一次 */
+    }
+  }
+}
 function pwIsLegendUnit(views,side,unitId){
   if(!views||unitId==null) return false;
   const v=views[side==="B"?1:0];
@@ -5448,8 +5469,12 @@ function pwArmyView(p){
      不猜。以前用 ab→名字的反查表會撞名：傳說三尊借既有模型鍵（殘日借 bow），反查回來會顯示「射日神弓」。 */
   const src=(p.bag||[]).filter(x=>!x.curse);
   const nameOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.n)?x.n:""; };
+  /* 「這一隊是不是傳說」與它的頭頂短名（請神存在感卷 2026-09-13）。**純演出欄位**：引擎不讀、
+     不進 buildArmy 的 teams（動 teams 會讓 trace 的等價斷言失去意義），只沿 nameOf 同一條對位
+     （src[t.idx] 核 ab）從**袋子那件法寶自己的 legend／sn** 讀出來——不另外維護一份 ab 白名單。 */
+  const lgOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.legend)?x:null; };
   /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
-  a.teams.forEach(t=>{ const nm=nameOf(t); t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,nm,t:t.idx})); });
+  a.teams.forEach(t=>{ const nm=nameOf(t), L=lgOf(t); t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,nm,t:t.idx,lg:!!L,sn:L?(L.sn||L.n||""):""})); });
   units.forEach((u,i)=>{ u.id=i; });
   /* 陣列卷（2026-09-07 使用者裁乙）：顯示順序依拍序 BEAT_FAC（祖靈→香火→陰氣，無系肉身殿後），同系內維持取得順序。
      id 在排序「前」指派且不重排——beats 的 actor／target 是 pwSide 的單位索引，DOM 晶片 pwc-${tag}-${id} 與 3D figureOf(side,id) 都靠它對位；
@@ -5966,7 +5991,9 @@ async function playDuel(f){
      不截斷是故意的：DOM 那半邊（pwArenaHTML／pwBurnOne）本來就認全名冊，3D 若只認前 MAXFIG 隻，
      多出來的單位燒光後畫面就會出現「紙紮燒完了但 HUD 隻數還沒歸零」的落差（凍結檔 D 卷 (a)）。 */
   if(views){
-    duelDetail.armies=views.map(v=>({units:v.units.map(u=>({id:u.id,body:u.body,fac:u.fac,ab:u.ab===undefined?null:u.ab}))}));
+    /* lg／sn＝「請神存在感」卷（2026-09-13）：3D 那半邊靠 lg 決定傳說站位／體型／基座／常駐光效，
+       靠 sn 印頭頂尊名牌。純演出欄位，引擎不讀（同 tier）。 */
+    duelDetail.armies=views.map(v=>({units:v.units.map(u=>({id:u.id,body:u.body,fac:u.fac,ab:u.ab===undefined?null:u.ab,lg:!!u.lg,sn:u.sn||""}))}));
     duelDetail.maxFig=PW_FX.MAXFIG;
   }
   /* 先清上一場的陣列與字幕（接線卷審查 H-3）：等 3D 妖載入那幾秒不能停在上一場的名字與隻數牌上，
@@ -5978,6 +6005,7 @@ async function playDuel(f){
   sfx("whoosh",{rnd:S.rngUi()});
   if(views){
     await pwAwaitFigures(duelDetail); /* 接線卷：等本場的 3D 妖載完再開三拍（有載入條；3D 沒載入＝空操作） */
+    pwLegendEnter(duelDetail); /* 請神存在感卷：這一尊傳說第一次上戰場 → 一次低角度仰視 */
     await playDuelWar(f,views); /* ON：三拍時間軸（上一段） */
   }else{
   const wtag=id=>id===windPid(S.round)?`<span style="color:var(--gold)">・${windName(S.round)}+${CFG.WIND_POWER}</span>`:"";

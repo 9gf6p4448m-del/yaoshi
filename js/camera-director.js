@@ -340,6 +340,22 @@ export function createCameraDirector(camera, lanterns) {
     }
   }
 
+  /** 【積木接收端】ys:legend-enter（請神存在感卷 2026-09-13）：某一尊傳說第一次上戰場，
+   *  給一次低角度仰視。**沿用 CINEMA 那一組常數與同一條包絡**（不新增第二套鏡頭語言），
+   *  所以 ys:fx-trait-cancel／ys:duel-end／ys:table／ys:end 的 endCinema 也一併收得掉它。
+   *  ms 缺了就 throw——與 onTrait 同一條紀律（時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來，
+   *  給 `||1400` 的退路等於在本檔開第二個時長來源）。 */
+  function onLegendEnter(e) {
+    if (prefersReduced()) return;
+    const d = (e && e.detail) || {};
+    if (!Number.isFinite(d.ms) || d.ms <= 0) throw new Error('ys:legend-enter 缺 detail.ms');
+    cinemaK0 = cinemaK; // 前一次還沒回完就直接接續（同 onTrait 的 tier 3 分支）
+    cinemaAt = performance.now();
+    cinemaMs = Math.max(1, Number(d.ms));
+    cinemaFall = false;
+    cinemaOn = true;
+  }
+
   /** 【積木接收端】ys:fx-focus（v0.45 近景切鏡）：推近到 detail 指的那一（兩）尊，ms 之後回全景。
    *  只讀 side／actor／foeSide／target／ms；prefers-reduced-motion 一律不切（同 orbit／lean）。 */
   function onFocus(e) {
@@ -467,6 +483,7 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:fx-trait', onTrait);
+  document.addEventListener('ys:legend-enter', onLegendEnter);
   document.addEventListener('ys:fx-focus', onFocus);
   // 提前收切鏡（v0.45 二版，審查 MEDIUM-3）：招式要在全景、不退暗的舞台上演，
   // 所以 index.html 在招式那一筆先派這個事件。跟 ys:fx-trait-cancel 不同：它不碰 orbit／lean。
