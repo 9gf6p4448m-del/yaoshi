@@ -1,0 +1,165 @@
+{
+ "note": "★讀者不得看★。P4 盲讀的真值表（2026-09-13 香火系批 1）。",
+ "source": [
+  "index.html 的 ABILITIES（unit.trait 的效果欄與 desc）",
+  "js/trait-fx/vocab.js 的 MOVE_SPEC"
+ ],
+ "options": {
+  "effect": [
+   "打擊",
+   "防護增益",
+   "偷取",
+   "詛咒削弱"
+  ],
+  "target": [
+   "敵方單一",
+   "敵方多個",
+   "我方單一",
+   "我方多個",
+   "自己"
+  ],
+  "faction": [
+   "祖靈",
+   "香火",
+   "陰氣"
+  ]
+ },
+ "pass": "照 plan-fx-performance.md §5 的 P4：三對 fresh 讀者、每格三題全對才算對，三對中 ≥2 對兩位皆全對。alt 視為正解。",
+ "materials": {
+  "A": {
+   "dir": "p4-material-A-booth",
+   "shots": 18,
+   "desc": "1v1 治具棚，9 支 × t1+t2"
+  },
+  "B": {
+   "dir": "p4-material-B-closeup",
+   "shots": 9,
+   "desc": "tier 2 近景（camdist 2.4），9 支 × t2"
+  }
+ },
+ "rows": [
+  {
+   "trId": "wardImmuneLost",
+   "name": "千里眼銅鈴",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.wardImmuneLost desc「本方免疫迷途」＋`immuneLost:true`：作用在本方全體、不造成傷害；MOVE_SPEC.react=升（受益方）。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "丁",
+    "act": "震",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "eliteCleave",
+   "name": "王爺劍",
+   "effect": "打擊",
+   "target": "敵方多個",
+   "alt": {
+    "effect": "防護增益"
+   },
+   "why": "ABILITIES.eliteCleave desc「本隊精英的濺射改為全額」＋`cleaveFull:true`：**機制上是我方 buff、畫面上是對整排的打擊**（MOVE_SPEC.react=退，受招方是敵方整排）。真值取畫面語意（打擊／敵方多個），`alt.effect=防護增益` 接受從機制讀的答案。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "丁",
+    "act": "掃",
+    "react": "退"
+   }
+  },
+  {
+   "trId": "wardAtkAll1",
+   "name": "媽祖令旗",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.wardAtkAll1 desc「二拍：本方全體 atk+1」＋`atkAll:1`：加在本方全體身上；MOVE_SPEC.react=升。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "掃",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "wardAbsorb4",
+   "name": "送王船",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.wardAbsorb4 desc「二拍：吸收對面本拍首 4 點傷害」＋`absorb:4`：擋在本方前面吸傷、不造成傷害；MOVE_SPEC.react=升。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "降",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "swarmRally",
+   "name": "五營旗",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.swarmRally desc「二拍：本隊已有折損則全體 hp+1」＋`rallyHp:1`：回血給本隊全體；MOVE_SPEC.react=升。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "拍",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "biteGamble",
+   "name": "虎爺印",
+   "effect": "打擊",
+   "target": "敵方單一",
+   "why": "ABILITIES.biteGamble desc「被擊中時 15% 反咬 3 點」＋`bite:0.15,biteDmg:3`：對一隻造成傷害；MOVE_SPEC.react=壓（受招方被壓住）。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "甲",
+    "act": "撲",
+    "react": "壓"
+   }
+  },
+  {
+   "trId": "wardHpFirst",
+   "name": "香灰符",
+   "effect": "防護增益",
+   "target": "我方單一",
+   "why": "ABILITIES.wardHpFirst desc「二拍：前鋒首隻 hp+1」＋`hpFirst:1`：只加在**首隻**身上；MOVE_SPEC.react=升。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "丙",
+    "act": "降",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "wardRegen1",
+   "name": "福壽綿長",
+   "effect": "防護增益",
+   "target": "我方單一",
+   "why": "ABILITIES.wardRegen1 desc「每拍回 1 hp 給最傷的一隻」＋`regen:1`：只回一隻；MOVE_SPEC.react=升。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "丁",
+    "act": "降",
+    "react": "升"
+   }
+  },
+  {
+   "trId": "swarmLastStand",
+   "name": "破軍旗",
+   "effect": "防護增益",
+   "target": "自己",
+   "alt": {
+    "target": "我方單一"
+   },
+   "why": "ABILITIES.swarmLastStand desc「本隊只剩 1 隻時 atk+1」＋`lastStand:1`：觸發時場上只剩自己那一隻，演出的反應也在自身（§C2「全 27 支唯一沒有第三方的招」）。`alt.target=我方單一` 接受把「最後那一隻」讀成我方單一。",
+   "faction": "香火",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "拍",
+    "react": "升"
+   }
+  }
+ ]
+}

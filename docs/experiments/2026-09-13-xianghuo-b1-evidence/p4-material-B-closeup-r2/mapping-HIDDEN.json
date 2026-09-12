@@ -1,0 +1,213 @@
+{
+ "seed": 20260912,
+ "tiers": [
+  2
+ ],
+ "dt": 16.666666666666668,
+ "shot": {
+  "width": 844,
+  "height": 390,
+  "deviceScaleFactor": 2
+ },
+ "cell": {
+  "w": 780,
+  "h": 360
+ },
+ "sheet": {
+  "w": 1560,
+  "h": 1080
+ },
+ "frameAt": [
+  {
+   "seg": "windup",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0
+  },
+  {
+   "seg": "travel",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0.95
+  },
+  {
+   "seg": "react",
+   "f": 0.15
+  },
+  {
+   "seg": "react",
+   "f": 0.95
+  }
+ ],
+ "labelled": false,
+ "mapping": [
+  {
+   "code": "a01",
+   "trait": "eliteCleave",
+   "ab": "sword",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a01.png",
+   "trId": "eliteCleave",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a02",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a02.png",
+   "trId": "biteGamble",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a03",
+   "trait": "swarmLastStand",
+   "ab": "pojun",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a03.png",
+   "trId": "swarmLastStand",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a04",
+   "trait": "swarmRally",
+   "ab": "wuying",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a04.png",
+   "trId": "swarmRally",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a05",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a05.png",
+   "trId": "wardRegen1",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a06",
+   "trait": "wardAtkAll1",
+   "ab": "flag",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a06.png",
+   "trId": "wardAtkAll1",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a07",
+   "trait": "wardHpFirst",
+   "ab": "ashcharm",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a07.png",
+   "trId": "wardHpFirst",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a08",
+   "trait": "wardAbsorb4",
+   "ab": "wangchuan",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a08.png",
+   "trId": "wardAbsorb4",
+   "material": "B-closeup-r2"
+  },
+  {
+   "code": "a09",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-material-B-closeup-r2/a09.png",
+   "trId": "wardImmuneLost",
+   "material": "B-closeup-r2"
+  }
+ ],
+ "material": "B-closeup-r2",
+ "layout": "2v2（我方 count=2＋敵方 bow:elite:zuling:1,raincoat:ward:yinqi:1）"
+}

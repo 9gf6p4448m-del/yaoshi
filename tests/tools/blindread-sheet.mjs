@@ -1,6 +1,9 @@
 // 盲讀材料產生器（v0.55 招式可辨性卷，凍結檔 `2026-09-11-acceptance-fx-legibility.md` L4／L4-pre、Q12）。
 //
 // 用法：node tests/tools/blindread-sheet.mjs <輸出目錄> [--only=trId,..] [--tiers=1,2] [--seed=20260912]
+//                                            [--camdist=<公尺>]  ← 只給「tier 2 近景」那一種材料用
+//   --camdist  轉給治具頁的 ?camdist=（對決機位的 dist，預設 4.2）。**不帶＝原本的機位，材料規格不變**；
+//              2026-09-12 製作人裁定 P4 材料改兩種：1v1 治具棚（不帶）＋ tier 2 近景（帶 2.4）。
 //                                            [--port=8846] [--label] [--dt=16.6667] [--fxvocab=1]
 //   --fxvocab=1  拍 v0.55 的徽記剪影版；不帶＝index.html PW_FX.VOCAB_ON 的預設 false＝0.54 演出。
 //
@@ -30,6 +33,13 @@ import { casesFromIndex, fxvocabQ } from './traitfx-drive.mjs';
 import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const CAMQ = (() => { const v = process.argv.find((x) => x.startsWith('--camdist=')); return v ? '&camdist=' + encodeURIComponent(v.slice(10)) : ''; })();
+/* ★P4 第 2 輪材料（2v2）★：`--count=` 覆寫我方尊數（施招者＋同系友軍）、`--foe=` 覆寫敵方名單
+   （格式同治具頁的 ?foe=：`ab:body:fac:n` 逗號分隔）。**不帶＝POOL 的原始配置**，第 1 輪材料的規格不變。
+   第 1 輪六位讀者對「對象題」的錯全部集中在只有 1–2 尊的那幾支——場上沒有第二個人時，
+   「我方多個 vs 我方單一」在畫面上根本不可能分辨（報告 §5）。 */
+const COUNTQ = (() => { const v = process.argv.find((x) => x.startsWith('--count=')); return v ? parseInt(v.slice(8), 10) || 0 : 0; })();
+const FOEQ = (() => { const v = process.argv.find((x) => x.startsWith('--foe=')); return v ? '&foe=' + encodeURIComponent(v.slice(6)) : ''; })();
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -96,7 +106,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);

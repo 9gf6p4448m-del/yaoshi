@@ -921,6 +921,19 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       colors: FX_PAL[det.fac] || FX_PAL.zuling,
       /** 這一招的節拍窗（ms）：{windup:[a,b], travel:[a,b], react:[a,b], settle:[a,b]}，依 tier 換表 */
       beat: beatOf(run.tier, run.ms),
+      /** ★由桌心**指向鏡頭**的水平單位向量（世界空間）★
+       *  道具要「往鏡頭推一點」才不會埋進紙紮模型裡（MAT_SOLID 開 depthTest，埋進去那半會被切掉），
+       *  編舞一律寫 `p.addScaledVector(st.camDir, k)`。
+       *  ★不得再寫成世界常數★（覆審 r1 HIGH-1）：對決機位由座位決定
+       *  （`js/camera-director.js:29 SEAT_YAW=[0,180,270,90]`、`:157 duelYaw()`），
+       *  南北對局是 yaw 90°（＝治具棚那一個），**西東對局是 0°**、南西是 315°。
+       *  舞台本身是相機相對的（`js/duel-figures.js:683-685` 同一條算式），常數不轉、人物轉，
+       *  那個位移就變成橫向——實測西東等效方向下 `wardHpFirst` 的 L3 面積
+       *  由 0.9682% 掉到 0.1741%、`wardRegen1` 由 1.4461% 掉到 0.5159%，兩支跌破 P3 的 0.8%。 */
+      camDir: (() => {
+        const az = Math.atan2(camera.position.x, camera.position.z);
+        return new THREE.Vector3(Math.sin(az), 0, Math.cos(az));
+      })(),
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
       kind: EMBLEM_OF[det.trId] || null,
       /** 這一招徽記本體的尺寸（世界單位）。**唯一來源＝vocab.js 的 ICON.byKind／size**——
@@ -1229,7 +1242,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  厚度與翹曲兩條照做，所以它仍是「實體」而不是平面 billboard（§3 的禁區守得住）。
        *
        *  o = { shape:'flake'|'emblem', color, opacity, depth, warp, k, ratio }
-       *    shape  'flake'（預設）＝紙片矩形，給金箔／香灰／紙錢這種顆粒流（丙 香火家族）；
+       *    floor  true＝這一群是腳下語彙（貼桌方陣／光環），不是道具；只影響 fxKind 前綴與尺寸記錄表的分類
+ *    shape  'flake'（預設）＝紙片矩形，給金箔／香灰／紙錢這種顆粒流（丙 香火家族）；
        *           'emblem'＝走該 kind 的外框頂點表，給旗／帆／珠／岩塊這種「看得出是什麼」的小件。
        *    k      相對倍率，單件尺寸 ＝ `ICON.markSizeOf(kind) × k`。**不是尺寸的第二份來源**：
        *           ICON 的值仍在乘積裡（同 st.icons 的 `sizes` 那一條，見 fxvocab.test.mjs 的註解）。
@@ -1275,7 +1289,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
            README 的「已知未涵蓋」★——單件尺寸的唯一來源是 `ICON.markSizeOf(kind) × o.k`，
            由本函式一處算完寫進 instanceMatrix，編舞拿不到那個乘積去改。 */
         BLOCK_MADE.add(im);
-        st.spawn(im, 'prop:' + kind);
+        /* `o.floor`＝這一群是**腳下語彙**（香火的貼桌方陣／光環）而不是道具：
+           §A3 的尺寸上限管的是「單件**道具**」，貼桌陣本來就該比本體寬（同 st.ring 的處置）。
+           前綴分開之後 tests/tools/prop-size.mjs 會把它歸到 `type=other`、不進 OVER 統計；
+           `fxVis`（L3 的量測對象）兩個前綴都不切，所以對比閘門量到的東西沒有變。 */
+        st.spawn(im, (o.floor ? 'floor:' : 'prop:') + kind);
         return { obj: im, items, write, size };
       },
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
