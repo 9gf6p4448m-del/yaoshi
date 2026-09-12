@@ -1,0 +1,185 @@
+{
+ "perf": {
+  "loadMs": 1474,
+  "rendersPerSec": 301.1,
+  "rafMedianFps": 59.9,
+  "rafP95Ms": 16.7,
+  "rafFrames": 152,
+  "drawCallsPerFrame": 986,
+  "trianglesPerFrame": 354620,
+  "renderPassesPerFrame": 10,
+  "gl": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "visible": 16,
+  "total": 16,
+  "skins": 16
+ },
+ "errors": [],
+ "fxc": {
+  "burn": 1,
+  "burnDom": 1,
+  "burnFig": 0,
+  "trait": 2,
+  "traitFig": 0,
+  "beat": 6,
+  "duels": 2,
+  "focus": 1,
+  "dmgFloat": 9,
+  "traits": {
+   "wardFirst": 1,
+   "hauntDread1": 1
+  },
+  "beats": {
+   "一拍・撞": 2,
+   "二拍・護": 2,
+   "三拍・祟": 2
+  },
+  "tiers": {
+   "1": 4,
+   "2": 2,
+   "3": 0
+  },
+  "fights": [
+   {
+    "round": 1,
+    "a": 0,
+    "b": 3,
+    "burnEv": 1,
+    "burnCalls": 1,
+    "warBurn": 1,
+    "burnDom": 1,
+    "burnFig": 0,
+    "traitEv": 0,
+    "traitCap": 0,
+    "focus": [
+     {
+      "beat": 2,
+      "kind": "burn",
+      "actor": 0,
+      "target": null,
+      "ms": 600
+     }
+    ],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 2
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "hit",
+        "side": "B",
+        "actor": 0,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": [
+       {
+        "side": "A",
+        "target": 0
+       }
+      ]
+     },
+     {
+      "beat": 3,
+      "shown": [],
+      "burns": []
+     }
+    ]
+   },
+   {
+    "round": 1,
+    "a": 1,
+    "b": 2,
+    "burnEv": 0,
+    "burnCalls": 0,
+    "warBurn": 0,
+    "burnDom": 0,
+    "burnFig": 0,
+    "traitEv": 2,
+    "traitCap": 2,
+    "focus": [],
+    "beatsShown": [
+     {
+      "beat": 1,
+      "shown": [
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 4,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 5,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 2,
+      "shown": [
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 4,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 5,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     },
+     {
+      "beat": 3,
+      "shown": [
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 4,
+        "target": 0,
+        "amount": 1
+       },
+       {
+        "kind": "ward",
+        "side": "A",
+        "actor": 5,
+        "target": 0,
+        "amount": 1
+       }
+      ],
+      "burns": []
+     }
+    ]
+   }
+  ],
+  "load": {
+   "ms": 82,
+   "total": 10,
+   "loaded": 0,
+   "timedOut": false,
+   "readyAt": 1789202708839
+  }
+ }
+}

@@ -376,6 +376,22 @@ function boxSoup(specs) {
   return g;
 }
 
+/** 把幾個只有 position／normal 的幾何併成一顆（省 draw call；G4 的 1000 上限很緊）。 */
+function mergePosNor(list) {
+  const pos = [], nor = [];
+  for (const g0 of list) {
+    const g = g0.index ? g0.toNonIndexed() : g0;
+    pos.push(...g.attributes.position.array);
+    nor.push(...g.attributes.normal.array);
+    if (g !== g0) g.dispose();
+    g0.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return out;
+}
+
 /** 日輪的裂芒緣：n 片三角形芒，**角距與長度都不等分**（ART_BIBLE §9：等分放射就是輪子）。平躺在 y 高度。 */
 function crackRays(rIn, rOut, n, y, seed) {
   const rnd = lcg(seed);
@@ -456,19 +472,22 @@ function makeLegendKit(ab, sn) {
   const base = new THREE.Group();
   base.name = 'legend-base';
   if (K.base === 'sun') {
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.74, LIFT_UNIT, 16), paperMat);
-    disc.position.y = -LIFT_UNIT / 2;
-    geos.push(disc.geometry); base.add(disc);
-    const rayMat = new THREE.MeshStandardMaterial({ color: K.cool, roughness: 0.85, metalness: 0, flatShading: true, side: THREE.DoubleSide });
-    mats.push(rayMat);
-    const rays = new THREE.Mesh(crackRays(0.60, 0.92, 11, -0.022, 20260913), rayMat);
-    geos.push(rays.geometry); base.add(rays);
+    // 圓盤與裂芒緣併成一顆（G4 的 draw call 上限很緊，能併就併）
+    const disc = new THREE.CylinderGeometry(0.66, 0.74, LIFT_UNIT, 16);
+    disc.translate(0, -LIFT_UNIT / 2, 0);
+    const g = mergePosNor([disc, crackRays(0.60, 0.92, 11, -0.022, 20260913)]);
+    const m = new THREE.Mesh(g, paperMat);
+    m.material.side = THREE.DoubleSide; // 裂芒是單面三角形，俯角下要兩面都畫
+    geos.push(g); base.add(m);
   } else if (K.base === 'palanquin') {
     const g = boxSoup([
       { w: 1.16, h: 0.13, d: 1.16, x: 0, y: -0.065, z: 0 }, // 方台
       ...[-0.47, 0.47].flatMap((px) => [-0.47, 0.47].map((pz) => ({ w: 0.09, h: 0.17, d: 0.09, x: px, y: -0.215, z: pz }))), // 四柱
       { w: 1.02, h: 0.05, d: 0.06, x: 0, y: -0.25, z: -0.47 }, { w: 1.02, h: 0.05, d: 0.06, x: 0, y: -0.25, z: 0.47 }, // 短欄
       { w: 0.06, h: 0.05, d: 1.02, x: -0.47, y: -0.25, z: 0 }, { w: 0.06, h: 0.05, d: 1.02, x: 0.47, y: -0.25, z: 0 },
+      // 身後那一炷香的香枝：跟基座同一顆幾何、同一顆材質（朱漆），只有頂端火頭是獨立的 Sprite。
+      // 併進來是為了省 draw call（G4 上限 1000，滿編 8v8 的基準已經 966）。
+      { w: 0.045, h: 1.45, d: 0.045, x: 0.02, y: -LIFT_UNIT + 0.72, z: -0.46 },
     ]);
     const m = new THREE.Mesh(g, paperMat);
     geos.push(g); base.add(m);
@@ -503,9 +522,6 @@ function makeLegendKit(ab, sn) {
     geos.push(geo); mats.push(m);
     breathe = { mat: m, lo: 0.44, hi: 0.72, hz: 0.22 };
   } else if (K.aura === 'incense') {
-    const stick = new THREE.Mesh(new THREE.BoxGeometry(0.045, 1.45, 0.045), new THREE.MeshStandardMaterial({ color: K.ink, roughness: 1, metalness: 0, flatShading: true }));
-    stick.position.set(0.02, -LIFT_UNIT + 0.72, -0.46); // 身後一炷香（模型正面＝+Z）
-    geos.push(stick.geometry); mats.push(stick.material); aura.add(stick);
     const tipTex = radialTex(hex(K.hot, 1), hex(K.cool, 0.5));
     const tipMat = new THREE.SpriteMaterial({ map: tipTex, transparent: true, opacity: 0.85, depthWrite: false,
       blending: THREE.NormalBlending, toneMapped: false, fog: false });
@@ -1202,11 +1218,13 @@ export function createDuelFigures(scene, camera, opts = {}) {
         if (u.lg && f.__lkit && f.__lkit.plateY !== undefined) {
           const P = f.__lkit.plate;
           P.position.set(0, f.__lkit.plateY, 0);
-          camera.updateMatrixWorld();
-          f.group.updateMatrixWorld();
-          tmpNdcA.set(0, f.__lkit.plateY, 0).applyMatrix4(f.group.matrixWorld).project(camera);
+          // ★用 updateMatrix()（本地、O(1)）而不是 updateMatrixWorld()★：後者會遞迴整棵骨架，
+          // 一幀對每尊傳說各走一次，實測 8v8 的 rendersPerSec 比值掉到 0.947（G4 門檻 0.95）。
+          // f.group 是直接 scene.add 上去的，父層是身分矩陣 ⇒ matrix 與 matrixWorld 逐值相同。
+          f.group.updateMatrix();
+          tmpNdcA.set(0, f.__lkit.plateY, 0).applyMatrix4(f.group.matrix).project(camera);
           if (tmpNdcA.y > PLATE_SAFE_NDC) {
-            tmpNdcB.set(0, f.__lkit.plateY - 0.5, 0).applyMatrix4(f.group.matrixWorld).project(camera);
+            tmpNdcB.set(0, f.__lkit.plateY - 0.5, 0).applyMatrix4(f.group.matrix).project(camera);
             const slope = (tmpNdcA.y - tmpNdcB.y) / 0.5; // 本地 1 單位換多少 NDC.y
             if (slope > 1e-6) P.position.y = f.__lkit.plateY - (tmpNdcA.y - PLATE_SAFE_NDC) / slope;
           }

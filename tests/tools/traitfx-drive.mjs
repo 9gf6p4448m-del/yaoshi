@@ -123,7 +123,10 @@ export function casesFromIndex(html) {
   // ★v0.54 修：請神 2.0（2026-09-07）在 d 與 unit 之間插了一整段 eff:{...hooks...}，舊 regex 從那天起
   //   一套都抓不到（跑起來只印一行「LEGENDS 反查到 0 套」的 warn，三尊靜默漏測近一個月）。
   //   改成不假設 d 與 unit 相鄰：從 legend:true 起，非貪婪吃到第一個 unit:{...}。★
-  const reL = /\{n:"([^"]+)",f:"([a-z]+)",p:-?\d+,legend:true,m:"([a-z_]+)",[\s\S]*?unit:\{body:"([a-z]+)",count:(\d+),atk:\d+,hp:\d+,trait:"([A-Za-z0-9]+)"\}\}/g;
+  // ★2026-09-13 請神存在感卷：LEGENDS 在 n 與 f 之間插了一個純演出欄位 `sn`（頭頂尊名牌的短名），
+  //   舊 regex 當場抓到 0 套——這道 `!== 3` 的斷言把它擋紅了（正是它該做的事）。這裡只放寬「n 與 f
+  //   之間可以有 sn」，**3 套的下限與其餘欄位一格不動**。 */
+  const reL = /\{n:"([^"]+)",(?:sn:"[^"]*",)?f:"([a-z]+)",p:-?\d+,legend:true,m:"([a-z_]+)",[\s\S]*?unit:\{body:"([a-z]+)",count:(\d+),atk:\d+,hp:\d+,trait:"([A-Za-z0-9]+)"\}\}/g;
   while ((m = reL.exec(html))) out.push({ name: m[1], ab: m[3], fac: m[2], body: m[4], count: parseInt(m[5], 10), trait: m[6], legend: true });
   return out;
 }
