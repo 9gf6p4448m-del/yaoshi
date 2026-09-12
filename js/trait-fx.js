@@ -47,7 +47,7 @@ export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short
    載不到就維持現況（原型是給製作人挑的實驗品，不得有能力弄壞正式演出）。
    登記點放這裡而不是 xianghuo.js：那支檔是 27 支正式招的落點，實驗品混進去下一卷就分不出誰是正式版。 */
 const FX_PROTO = (() => { try { return new URLSearchParams(location.search).get('proto') || ''; } catch (e) { return ''; } })();
-if (/^tiger[ABC]$/.test(FX_PROTO)) {
+if (/^tiger[ABCD]$/.test(FX_PROTO)) {
   const P = await import('./trait-fx/proto/tiger.js' + V).then((m) => m.PROTOS, () => null);
   if (P && typeof P[FX_PROTO] === 'function') { TRAIT_MOVES.biteGamble = P[FX_PROTO]; TRAIT_MOVES_SHORT.biteGamble = P[FX_PROTO]; }
 }
@@ -166,6 +166,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   // v0.55：第三支模板照樣預熱（就算它與 MAT_GLOW 共用 program，NormalBlending 這條 state 路徑
   // 第一次畫時仍可能讓 renderer 補編 transparent 佇列；成本是常駐一個 0.01² 的 plane）
   const warmSolid = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), MAT_SOLID);
+  /* ★2026-09-12 量到但**刻意不修**的一件事（原型卷不夾帶產品層變更）★
+     three 對 instancing 是另一支 shader 變體（USE_INSTANCING），不是同一支 program。
+     實測（tests/tools/proto-record.mjs）：**現況**的魔神仔紅帽 hauntLost（`js/trait-fx/yinqi.js:150`
+     走 `st.icons` ⇒ InstancedMesh）在演出中 program 由 20 跳到 22、演完又掉回去——
+     所以 traitfx-drive 的 `programsGrew`（比的是演出前後）看不到它，但玩家第一次看到那一招時
+     那兩支 shader 是**當場編的**。這是既有狀況，不是虎爺印原型帶進來的。
+     試修過：比照另外三支模板常駐一顆 0.01² 的 instanced 暖身物件，確實讓 idle 與峰值的 program 數
+     相等（D：23→23、hauntLost：24→24，不再當場編），**代價是常駐 +4 支 program、+2 draw call**。
+     那是產品層的取捨（手機上少一次編譯停頓 vs 每一幀多兩個 call），交裁，不夾在原型卷裡改。 */
   warmMesh.frustumCulled = false; warmLine.frustumCulled = false; warmPts.frustumCulled = false; warmSolid.frustumCulled = false;
   warm.add(warmMesh, warmLine, warmPts, warmSolid);
   warm.position.y = -30; // 桌面底下、鏡頭永遠看不到
@@ -680,25 +689,37 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         mFace.material.opacity = op;
         const grp = new THREE.Group();
         grp.add(mBody, mFace);
-        /* o.glyph：印面上的篆紋（ink 色）。沒有它的話，一枚 0.2–0.5 世界單位的印在 780×360 上
+        /* o.glyph：印面上的字（ink 色）。沒有它的話，一枚 0.2–0.5 世界單位的印在 780×360 上
            只是一塊紅色色塊——「有厚度的紅色塊」和「印」之間差的就是這幾筆。
-           形狀＝「王」（虎額上的那個字，也是印章最好認的字形）：三橫一豎，四個矩形合成**一個** geometry
-           （ShapeGeometry 吃 shape 陣列），所以只多一個 draw call。 */
+           ★2026-09-12 製作人裁定：字一律是「虎」★（原型第一版寫的是「王」，是虎額上那個字，
+           但那不是虎爺**印**上會刻的東西；印上刻的是神名）。
+           筆畫全部用矩形拼，N 個 shape 合成**一個** ShapeGeometry（ShapeGeometry 吃 shape 陣列），
+           所以不論幾畫都只多一個 draw call。 */
         let mGlyph = null;
         if (o.glyph) {
-          // 第 3 輪：w 0.50 讓「王」橫向被拉扁成「≡」（seal 的方印身本來就是寬 1.56×高 0.75 的扁框）。
-          // 改成接近正方的字面，三橫一豎才讀得出是個字。
-          /* 第 3 輪第 2 次：字面**要落在縮小後的印面之內**。seal 的方印身 y∈[-0.90,-0.15]，
-             印面又縮了 0.74 ⇒ 實際可寫字的範圍約 y∈[-0.67,-0.11]。原本 cy −0.52／h 0.27 有半條下橫
-             掉到印面外，拍出來就是缺一橫的「≡」。 */
-          const g = o.glyph === true ? { cx: 0, cy: -0.40, w: 0.30, h: 0.20, t: 0.072 } : o.glyph;
-          const rect = (x0, y0, x1, y1) => new THREE.Shape([new THREE.Vector2(x0, y0), new THREE.Vector2(x1, y0), new THREE.Vector2(x1, y1), new THREE.Vector2(x0, y1)]);
-          const shapes = [
-            rect(g.cx - g.w, g.cy + g.h - g.t, g.cx + g.w, g.cy + g.h), // 上橫
-            rect(g.cx - g.w * 0.68, g.cy - g.t / 2, g.cx + g.w * 0.68, g.cy + g.t / 2), // 中橫
-            rect(g.cx - g.w, g.cy - g.h, g.cx + g.w, g.cy - g.h + g.t), // 下橫
-            rect(g.cx - g.t * 1.05, g.cy - g.h, g.cx + g.t * 1.05, g.cy + g.h), // 直（比橫畫粗一點，小尺寸下才不會被三條橫畫吃掉成「≡」）
+          /* 字面**要落在縮小後的印面之內**。seal 的方印身 y∈[-0.90,-0.15]，印面又縮了 0.74
+             ⇒ 實際可寫字的範圍約 y∈[-0.67,-0.11]；cy −0.40／h 0.22 剛好落在裡面。 */
+          const g = o.glyph === true || typeof o.glyph === 'string' ? { cx: 0, cy: -0.40, w: 0.30, h: 0.22 } : o.glyph;
+          /* 「虎」的筆畫表，座標是**字框的單位方** [-1,1]²（右手 y 朝上），由上面的 cx/cy/w/h 映到印面。
+             結構＝虍（上）＋几（下）：
+               ① 左上短豎 ② 長橫 ③ 左長豎（厂的撇拉直，低多邊形不做曲線）
+               ④ 內上橫 ⑤ 中短豎 ⑥ 內下橫 ⑦ 右豎鉤 ⑧ 左下腳（儿左）⑨ 右下腳底
+             九畫在 780×360 的格子上仍是「一個方塊字」而不是符號，這是要的效果——
+             讀者要讀出的是「印上刻著字」，不是逐筆辨認。 */
+          const HU = [
+            [-0.56, 0.60, -0.32, 1.00], // ① 左上短豎
+            [-0.90, 0.34, 0.64, 0.56], // ② 長橫
+            [-0.90, -0.62, -0.66, 0.56], // ③ 左長豎
+            [-0.42, 0.00, 0.64, 0.20], // ④ 內上橫
+            [-0.12, 0.00, 0.10, 0.42], // ⑤ 中短豎
+            [-0.42, -0.40, 0.84, -0.20], // ⑥ 內下橫
+            [0.60, -0.40, 0.84, 0.20], // ⑦ 右豎鉤
+            [-0.34, -1.00, -0.10, -0.40], // ⑧ 左下腳
+            [0.60, -1.00, 0.84, -0.40], // ⑨ 右下腳
+            [0.24, -1.00, 0.84, -0.80], // ⑨b 右下腳底（几的橫折）
           ];
+          const rect = (x0, y0, x1, y1) => new THREE.Shape([new THREE.Vector2(x0, y0), new THREE.Vector2(x1, y0), new THREE.Vector2(x1, y1), new THREE.Vector2(x0, y1)]);
+          const shapes = HU.map(([x0, y0, x1, y1]) => rect(g.cx + x0 * g.w, g.cy + y0 * g.h, g.cx + x1 * g.w, g.cy + y1 * g.h));
           const gg = new THREE.ShapeGeometry(shapes);
           gg.translate(0, 0, depth / 2 + 0.022);
           bow(gg);

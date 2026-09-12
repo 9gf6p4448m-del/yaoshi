@@ -283,5 +283,156 @@ function tigerC(st) {
   st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) { recover(st, cat, fwd, DIST * 0.9, 1 - e); st.rim(cat, 1 + 3.0 * (1 - e)); } });
 }
 
-export const PROTOS = { tigerA, tigerB, tigerC };
+/* ══════════════════════════════════════════════════════════════════════════
+   D｜C 的華麗 ＋ B 的落地重音（2026-09-12 製作人裁定）
+   金箔顆粒流（C）＋咬中炸金色紙錢（C）＋印文由暗燒成硃紅（C）
+   ＋大印砸落、落地震動、香火貼桌陣、彈起留印文（B）。
+
+   ★兩個和 B 不一樣的作法★
+   ① **印面朝下與讀得到兼顧**：大印的俯仰角是**逐幀算的**（不是 spawn 當下凍住的固定值）——
+      橫移時 10°→30°、砸落時 30°→46°（印面朝下、仍有 44° 的面對著鏡頭），
+      落地那一刻 2 幀內拉回 6°＝**正面對鏡頭**，之後才彈起。
+   ② **金箔走 InstancedMesh**：九片＝1 個 draw call（C 版是九個各自的 Mesh，那是 C 貴在哪的主因）。
+      逐片的出場錯開改用「縮放從 0 長出來」做，材質只有一支（整條流一起淡出）。
+
+   時間軸（具名切點；報告要算「落印拍在 t1 佔幾 ms」）：
+     蓄勢       0        → W*0.78         t1(300ms) 0–81      t2(900ms) 0–234
+     大印橫移   W*0.78   → T0+TL*0.35     t1 81–140           t2 234–391
+     大印砸落   ↑        → B.travel[1]    t1 140–208（68ms）  t2 391–560（169ms）
+     落地重音   R0       → LAST           t1 208–264（56ms）  t2 560–792（232ms）
+   ══════════════════════════════════════════════════════════════════════════ */
+function tigerD(st) {
+  const { cat, prey, LAST, fwd, B, W, T0, TL, R0, RL, jaw, hit } = cast(st);
+  const C = st.colors;
+  const DIST = 0.80;
+  const tW = W * 0.78; // 蓄勢壓縮：讓出來的時間全部給落印拍
+  const tCarry = T0 + TL * 0.35; // 橫移結束＝砸落開始
+  const tLand = B.travel[1]; // 砸落結束＝react 起點
+  void jaw;
+
+  // ── 大印（B 的重音）：俯仰逐幀算，不用 paperStamp 凍住的那個固定傾角 ──
+  const head = st.top(cat, new THREE.Vector3()); head.y += 0.06; head.addScaledVector(st.dir, 0.18);
+  const over = hit.clone(); over.y += 0.40;
+  const land = hit.clone(); land.y += 0.10;
+  /* ★迴圈第 2 輪的結論：大印不能做成「鎏金印面＋暗字」★
+     鎏金 C.key（#ffc21e）越過 bloom 門檻（js/renderer.js BLOOM.threshold 0.7）之後往白色去，
+     光暈的半徑比字的筆畫還寬，放大看就是一塊**沒有字的金磚**（scratchpad/rec-D/zoom-land.png 第 1 版）。
+     把字加粗到 w 0.40 仍然吃不住——這是 ART_BIBLE §10.2 第 5 條那個機制的另一個面向：
+     **越亮的東西越留不住細節**。解法一樣是換配置而不是調 bloom：
+       印面＝ink 暗底（留得住細節）、印身與厚度＝鎏金（亮，遠看認得出是金印）、字＝鎏金（會發光的那個才是主角）。
+     這也正好是實體印章的樣子：金邊、暗印面、陽刻的字。 */
+  const big = st.paperStamp(st.kind, head, { role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.key, opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.40, w: 0.52, h: 0.25 } });
+  big.scale.setScalar(st.iconSize * 0.78);
+  const qBig = big.quaternion.clone(); // 只朝鏡頭、還沒加俯仰的基準
+  const pitchTo = (deg, roll) => { big.quaternion.copy(qBig); big.rotateX(THREE.MathUtils.degToRad(deg)); if (roll) big.rotateZ(roll); };
+  pitchTo(6);
+
+  // ── 印文（C 的機制）：先是暗的，落地那一刻由 ink 燒成 hot ──
+  const seal = prey ? st.paperStamp(st.kind, hit, { color: C.ink, inkColor: C.ink, glyphColor: C.line, opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -24, glyph: true, follow: prey, off: TOWARD_CAM }) : null;
+  if (seal) seal.scale.setScalar(st.markSize * 1.2);
+  const face = seal ? seal.userData.fxFace : null;
+  const cInk = new THREE.Color(C.ink), cHot = new THREE.Color(C.hot);
+  const chime = st.ring(st.foot(prey || cat, new THREE.Vector3()), 0.36, 0.06, { color: C.key, opacity: 0 }); // 香火貼桌陣
+
+  // ── 金箔顆粒流（C 的量級，但九片＝1 個 draw call）──
+  const FOILS = 9;
+  const spine = st.worldOf(cat, 'Spine', new THREE.Vector3());
+  const foils = [];
+  for (let i = 0; i < FOILS; i++) {
+    const f = i / (FOILS - 1);
+    const from = spine.clone().addScaledVector(st.dir, -0.34 + 0.72 * f);
+    from.x += (st.rnd() - 0.5) * 0.22;
+    from.y += 0.06 + 0.26 * Math.sin(Math.PI * f);
+    const to = hit.clone();
+    to.x += (st.rnd() - 0.5) * 0.30; to.y += 0.10 + (st.rnd() - 0.5) * 0.26; to.z += (st.rnd() - 0.5) * 0.30;
+    foils.push({ from, to, p: from.clone(), rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.8 * st.rnd(), s: 0, t0: 0.10 * i });
+  }
+  const foilIm = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.105, 0.145), st.solid(C.key, 0.95), FOILS);
+  foilIm.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉
+  st.spawn(foilIm, 'foil');
+  const _m4 = new THREE.Matrix4(), _q4 = new THREE.Quaternion(), _eu = new THREE.Euler(), _sc = new THREE.Vector3();
+  const writeFoils = () => {
+    for (let i = 0; i < FOILS; i++) {
+      const o = foils[i];
+      _eu.set(0, o.ry, o.rz); _q4.setFromEuler(_eu);
+      _m4.compose(o.p, _q4, _sc.setScalar(o.s));
+      foilIm.setMatrixAt(i, _m4);
+    }
+    foilIm.instanceMatrix.needsUpdate = true;
+  };
+  writeFoils();
+
+  /* ① 蓄勢：蹲伏做足（B 那個 windup 餘裕只剩 0.003 的教訓——幅度 0.85，不是踩線的 0.45），
+        香火燒旺（邊光 3.0），金箔一片片從虎背長出來，大印在虎頭前浮現 */
+  st.phase('windup');
+  st.tween({ ms: tW, ease: 'out', update(t, e) {
+    crouch(st, cat, fwd, 0.85, e);
+    st.rim(cat, 1 + 3.0 * e);
+    st.alpha(big, Math.min(1, e * 2.2));
+    big.scale.setScalar(st.iconSize * (0.36 + 0.42 * e));
+    big.position.copy(head); big.position.y += 0.08 * Math.sin(Math.PI * e);
+    pitchTo(6 + 4 * e);
+    for (let i = 0; i < FOILS; i++) { const o = foils[i]; o.s = Math.max(0, Math.min(1, (e - o.t0) * 2.6)); o.p.copy(o.from); o.p.y += 0.09 * e; o.rz += 0.05 * o.s; }
+    writeFoils();
+  }, done() { st.phase('travel'); } });
+
+  /* ② 橫移：大印從虎頭飄到獵物頭頂，同時把印面壓下去（10°→30°）；虎撲出 */
+  st.tween({ ms: tCarry - tW, delay: tW, ease: 'out', update(t, e) {
+    big.position.lerpVectors(head, over, e);
+    big.position.y += 0.14 * Math.sin(Math.PI * e);
+    pitchTo(8 + 14 * e, 0.05 * (1 - e));
+  } });
+  st.tween({ ms: TL * 0.70, delay: T0, ease: 'outQuint', update(t, e) { lunge(st, cat, fwd, DIST, 0.22, 0.85, e); } });
+  /* ③ 砸落：印面朝下（30°→46°，仍有 44° 面對鏡頭）、越落越大；金箔被拉成一條流跟著飛過去 */
+  st.tween({ ms: tLand - tCarry, delay: tCarry, ease: 'in',
+    update(t, e) {
+      big.position.lerpVectors(over, land, e);
+      big.scale.setScalar(st.iconSize * (0.78 + 0.18 * e));
+      pitchTo(22 + 16 * e);
+    },
+    done() {
+      st.phase('react');
+      st.burst(land, { power: 1.5, n: 90, color: C.hot }); // 重音
+      st.burst(land, { power: 0.9, n: 45, color: C.key }); // 金色紙錢
+      st.punch(0.95);
+    } });
+  st.tween({ ms: (tLand - tW) * 0.92, delay: tW, ease: 'in', update(t, e) {
+    for (let i = 0; i < FOILS; i++) {
+      const o = foils[i];
+      const k = Math.max(0, Math.min(1, (e - o.t0 * 0.6) / 0.7));
+      o.p.lerpVectors(o.from, o.to, k); o.p.y += 0.14 * Math.sin(Math.PI * k); o.rz += 0.16; o.s = 1;
+    }
+    writeFoils();
+  } });
+  st.tween({ ms: TL * 0.30, delay: T0 + TL * 0.70, ease: 'outQuint', update(t, e) { snapJaw(st, cat, 0.85, e); } });
+
+  /* ④ 落地重音（react）：前 2 幀把印面轉正對鏡頭＝「蓋章那一格」，之後彈起淡出；
+        同一段裡貼桌陣漲開、印文由暗燒成硃紅、獵物被壓住 */
+  const HOLD = Math.max(33, RL * 0.30); // 正面亮相至少 2 幀（60fps）
+  st.tween({ ms: HOLD, delay: R0, ease: 'out', update(t, e) {
+    pitchTo(38 - 34 * e); // 38°→4°：印面轉正
+    big.scale.setScalar(st.iconSize * (1.05 - 0.10 * e));
+    big.position.y = land.y - 0.03 * Math.sin(Math.PI * e); // 壓一下
+  } });
+  st.tween({ ms: RL - HOLD, delay: R0 + HOLD, ease: 'back', update(t, e) {
+    big.position.y = land.y + 0.16 * Math.sin(Math.PI * e);
+    big.scale.setScalar(st.iconSize * (0.95 - 0.32 * e));
+  } });
+  st.fade(big, { ms: (RL - HOLD) * 0.8, delay: R0 + HOLD + (RL - HOLD) * 0.2, from: 1, to: 0 });
+  st.tween({ ms: RL * 0.75, delay: R0, ease: 'out', update(t, e) { chime.scale.setScalar(0.4 + 1.6 * e); } });
+  st.fade(chime, { ms: RL * 0.75, delay: R0, from: 0.9, to: 0 });
+  st.fade(foilIm, { ms: RL * 0.6, delay: R0, from: 0.95, to: 0 });
+  if (seal && face) {
+    st.fade(seal, { ms: RL * 0.18, delay: R0, from: 0, to: 1 });
+    st.tween({ ms: RL * 0.85, delay: R0, ease: 'out', update(t, e) {
+      face.material.color.copy(cInk).lerp(cHot, Math.min(1, e * 1.25)); // 印文被燒出來
+      seal.scale.setScalar(st.markSize * (2.8 - 1.1 * e));
+    } });
+  }
+  preyHit(st, prey, R0, RL, 0.18);
+
+  st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) { recover(st, cat, fwd, DIST * 0.9, 1 - e); st.rim(cat, 1 + 3.0 * (1 - e)); } });
+}
+
+export const PROTOS = { tigerA, tigerB, tigerC, tigerD };
 export default PROTOS;
