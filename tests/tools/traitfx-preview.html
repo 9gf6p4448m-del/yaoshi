@@ -86,7 +86,11 @@ scene.fog.density = FOG_DENSITY.duel;
    ★`?camdist=` 只給「tier 2 近景」那一種盲讀材料用（2026-09-12 製作人裁定：P4 材料改兩種）★
    **不帶參數＝4.2＝原本的對決機位，一個位元組都不變**；L3（fx-contrast）與治具棚那一種材料
    都不帶它，所以凍結的量測位置沒有被動到。 */
-{ const tilt = THREE.MathUtils.degToRad(24), yaw = THREE.MathUtils.degToRad(90),
+{ const tilt = THREE.MathUtils.degToRad(24),
+    /* ★`?camyaw=` 只給「換一個對局方位重量」用（覆審 r1 HIGH-1）★：對決機位的 yaw 由座位決定
+       （camera-director 的 SEAT_YAW／duelYaw）——南北 90°（預設＝L3 凍結的那一個）、西東 0°、南西 315°。
+       **不帶參數＝90°＝原本的量測位置一個位元組不變**；fx-contrast 的正式跑不帶它。 */
+    yaw = THREE.MathUtils.degToRad(((parseFloat(q.get('camyaw') || '90') || 0) % 360 + 360) % 360),
     dist = Math.max(1.2, Math.min(6, parseFloat(q.get('camdist') || '4.2') || 4.2)), horiz = Math.cos(tilt) * dist;
   camera.position.set(Math.sin(yaw) * horiz, Math.sin(tilt) * dist, Math.cos(yaw) * horiz); camera.lookAt(0, 0.35, 0); }
 // 軟體 GL（SwiftShader）不開 bloom：render target 那條路在它上面 shader 編不過（同 renderer.js 的判斷）

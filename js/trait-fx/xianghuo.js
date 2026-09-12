@@ -25,9 +25,17 @@ function xhBeat(st, frac) {
   return { B, W: B.windup[1], T0: B.travel[0], TL: B.travel[1] - B.travel[0], R0: B.react[0], LAST, RL: LAST - B.react[0] };
 }
 
-/** 印記往鏡頭方向的偏移。對決機位在世界 +X（camera-director 的 DUEL_SHOT，yaw 90°），
- *  印記不往 +X 推就有一半埋進受招方模型裡——MAT_SOLID 開 depthTest，埋進去的那半會被切掉。 */
-const TOWARD_CAM = new THREE.Vector3(0.26, 0.07, 0);
+/** 往鏡頭推 k 個「基本偏移」（水平 0.26 ＋ 高 0.07，＝這一批原本那個 `TOWARD_CAM` 常數的長度）。
+ *  道具不往鏡頭推就有一半埋進紙紮模型裡——`MAT_SOLID` 開 `depthTest`，埋進去的那半會被切掉。
+ *
+ *  ★2026-09-13 覆審 r1 HIGH-1：這裡原本是**世界空間常數** `(0.26, 0.07, 0)`★
+ *  對決機位由座位決定（`js/camera-director.js:29 SEAT_YAW=[0,180,270,90]`、`:157 duelYaw()`）：
+ *  南北對局 90°（＝治具棚寫死的那一個）、**西東對局 0°**、南西 315°。而對決舞台本身是**相機相對**的
+ *  （`js/duel-figures.js:683-685`），相機轉了人物跟著轉、常數不轉 ⇒ 那個位移變成**橫向**，
+ *  道具被推到側面、被本體遮住。實測（把常數換成西東等效方向，其餘一字不動）：
+ *  `wardHpFirst` 的 L3 面積 0.9682%→**0.1741%**、`wardRegen1` 1.4461%→**0.5159%**，兩支跌破 P3 的 0.8%。
+ *  現在方向一律取自 `st.camDir`（`js/trait-fx.js` 由 `camera.position` 算，與 duel-figures 同一條算式）。 */
+function camOff(st, k) { return new THREE.Vector3().copy(st.camDir).multiplyScalar(0.26 * k).setY(0.07 * k); }
 
 /** 取角色與四個時間切點：出招的虎、被咬的獵物、朝向、windup 末／travel 起迄／react 起。 */
 function tgCast(st) {
@@ -92,11 +100,16 @@ function tgRecover(st, cat, fwd, dist, k) {
 }
 
 /** 受招方的「壓」（香火反應家族）：st.flinch 只給退縮，這一支補「被咬住」的體感
- *  ——等比壓縮＋骨骼高頻抖＋邊光暴亮三件一起上（Q3 裁定：本卷不做非等比壓扁）。 */
+ *  ——等比壓縮＋骨骼高頻抖＋邊光暴亮三件一起上（Q3 裁定：本卷不做非等比壓扁）。
+ *  ★2026-09-13 P4 回修★：再加**大幅擊退**——`st.move` 往「背對施招方」推半步。
+ *  第 1 輪六位讀者只有 3/18 把虎爺印讀成「打擊」，其中一個成因是受招方只有原地縮一下、
+ *  沒有「被撞開」的位移；`st.move` 是 group 空間，所以方向取 `st.toward(prey)`（獵物朝敵＝朝虎）的**反向**。 */
 function tgPreyHit(st, prey, R0, RL, depth) {
   if (!prey) return;
+  const back = st.toward(prey, new THREE.Vector3()).multiplyScalar(-1);
   st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 2.4, burst: false });
   st.tween({ ms: RL * 0.9, delay: R0, ease: 'snap', update(t, e) {
+    st.move(prey, back.x * 0.34 * e, 0, back.z * 0.34 * e); // 半步擊退
     st.scale(prey, 1 - depth * e);
     st.rot(prey, 'Chest', 0.26 * e * Math.sin(e * 26)); // 抖
     st.rot(prey, 'HeadRoot', 0.22 * e * Math.sin(e * 19));
@@ -289,7 +302,7 @@ const MOVES = {
     /* 旗掃的那一段往鏡頭推一個身位：對決機位在世界 +X，推近之後同樣的世界尺寸在畫面上更大。
        ★這是 P3 與 §A3 打架時的解★——大旗要再放大才夠 0.8% 面積，但 `flag` 這一尊 figH 只有 1.42、
        放大就破 2/3 的尺寸上限。改成「旗掃過本方陣前」（本來就該離鏡頭近）：世界尺寸不動、像素變多。 */
-    from.addScaledVector(TOWARD_CAM, 1.6); to.addScaledVector(TOWARD_CAM, 1.6);
+    from.add(camOff(st, 1.6)); to.add(camOff(st, 1.6));
 
     // ── 乙 大旗：鎏金面＋硃紅墨線的絹旗厚片（不是加色平面）──
     const banner = st.paperStamp(st.kind, mast, { role: 'stamp', color: C.key, inkColor: C.hot,
@@ -299,7 +312,7 @@ const MOVES = {
     // ── 受益方頭上的旗印（react 的證據，跟著那一尊走）──
     const marks = mine.map((f) => {
       const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
-        opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: TOWARD_CAM });
+        opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.0);
       return m;
     });
@@ -338,8 +351,14 @@ const MOVES = {
       } });
 
     /* ③ 聞令（react）：側踏半步再回、邊光同亮、頭頂各蓋一枚旗印 */
-    const stag = RL * 0.36 / Math.max(1, mine.length);
-    mine.forEach((f, i) => {
+    /* ★覆審 r1 HIGH-2：react 不得是 (solo)★
+       `evalPhases` 一旦在某一幀滿足門檻就把那一格凍住（`js/trait-fx.js` 的 `if (c.ok …) continue`），
+       所以只要**施招者自己**排在 stagger 的第一個，第一格 react 幀就只有他動過 ⇒ `solo=true`，
+       凍結檔 L2 的假綠清單第 3 條（「增益招的 react 要量在受益方身上」）等於沒驗到。
+       排序改成**非施招者優先**：第一格就有受益方的位移，`--count=2` 下 `reactSolo=false`。 */
+    const order = mine.filter((f) => f !== lead).concat(mine.filter((f) => f === lead));
+    const stag = RL * 0.36 / Math.max(1, order.length);
+    order.forEach((f, i) => {
       const fwd = st.toward(f, new THREE.Vector3());
       const lat = new THREE.Vector3(fwd.z, 0, -fwd.x);
       const k = (i % 2 ? -1 : 1) * (0.12 + 0.05 * st.rnd());
@@ -349,8 +368,9 @@ const MOVES = {
       } });
     });
     marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.20, delay: R0 + i * stag, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.46, delay: R0 + i * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.55 - 0.70 * e)); } });
+      const oi = order.indexOf(mine[i]); // 印記跟著同一個順序，才不會「先蓋印後側踏」
+      st.fade(m, { ms: RL * 0.20, delay: R0 + oi * stag, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.46, delay: R0 + oi * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.55 - 0.70 * e)); } });
       st.fade(m, { ms: RL * 0.34, delay: R0 + RL * 0.62, from: 1, to: 0 });
     });
     st.tween({ ms: RL * 0.5, delay: R0, ease: 'out', update(t, e) { banner.scale.setScalar(st.iconSize * (1.00 - 0.38 * e)); } });
@@ -401,7 +421,12 @@ const MOVES = {
        「船前滑、帆擋在陣前」——語意也比較對。再往鏡頭推一點（同媽祖令旗）。 */
     /* ★方向要用 `st.dir`（世界空間朝對面）不是 `st.toward()`★：後者回傳的是 **group 空間**的朝向，
        給 `st.move` 用的；直接加到世界座標上會把帆推到畫面另一側（實測：帆飛到離敵方最遠的那一邊）。 */
-    guardAt.addScaledVector(st.dir, 1.35).addScaledVector(TOWARD_CAM, 1.0); // 1.35：0.85 時實測位移 1.0893 < 門檻 1.2481
+    /* ★2026-09-13 P4 第 1 輪回修（11/18 讀成「打擊」）★
+       原本帆群飛到 `質心 + st.dir*1.35`＝敵方那一側，讀者把「吸收傷害」讀成往對面丟東西。
+       改成**在我方前緣升起、罩住我方**：落點只往前 0.30（仍在我方半場），
+       travel 的位移改走「先升起（riseAt，高度差）再張開罩下」兩段——敵方半場零落點。 */
+    guardAt.addScaledVector(st.dir, 0.30).add(camOff(st, 1.4));
+    const riseAt = guardAt.clone(); riseAt.y += 1.15;
 
     /* ── 乙 四面金箔帆：圍成同心方框（`st.paperProps`，1 draw call）──
        四面帆各站方框的一邊、面朝外；`writeSails(r, s)` 的 r＝方框半徑、s＝帆的大小。 */
@@ -438,7 +463,7 @@ const MOVES = {
 
     const marks = ships.map((f) => {
       const m = st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
-        opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -22, follow: f, off: TOWARD_CAM });
+        opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -22, follow: f, off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.0);
       return m;
     });
@@ -476,11 +501,14 @@ const MOVES = {
         st.move(ships[1], f2.x * 0.17 * e, 0, f2.z * 0.17 * e); st.rim(ships[1], 1 + 1.0 * e);
       } });
     }
+    /** 兩段飛法：前 55% 從桅頂**升起**到 riseAt（高度差就是 travel 的位移來源），
+     *  後 45% 張開罩到我方前緣。全程不越過中線。 */
+    const flyAt = (e, out) => (e < 0.55 ? out.lerpVectors(mastTop, riseAt, e / 0.55) : out.lerpVectors(riseAt, guardAt, (e - 0.55) / 0.45));
     st.tween({ ms: TL, delay: T0, ease: 'out',
       update(t, e) {
-        sails.obj.position.lerpVectors(mastTop, guardAt, e);
+        flyAt(e, sails.obj.position);
         writeSails(0.08 + 0.62 * e, 0.35 + 0.65 * e); // 一小疊 → 張開成方框
-        mainSail.position.lerpVectors(mastTop, guardAt, e).addScaledVector(st.dir, 0.62 * e); // 正面那一片站在方框最前（朝對面）
+        flyAt(e, mainSail.position).addScaledVector(st.dir, 0.30 * e); // 正面那一片站在方框最前（仍在我方半場）
         mainSail.scale.setScalar(st.iconSize * (0.85 + 0.30 * e));
       },
       done() {
@@ -549,7 +577,7 @@ const MOVES = {
     if (!src.lengthSq()) st.worldOf(ringer, null, src);
     src.y += 0.10;
     const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里（travel 的位移來源）
-    const home = st.top(bless[0], new THREE.Vector3()).add(TOWARD_CAM); // 折返落點＝第一位同伴頭上
+    const home = st.top(bless[0], new THREE.Vector3()).add(camOff(st, 1)); // 折返落點＝第一位同伴頭上
 
     // ── 丁 銅鈴：鎏金面＋墨線邊的實體（不是平面剪影）──
     const handbell = st.paperStamp(st.kind, src, { role: 'stamp', color: C.key, inkColor: C.ink,
@@ -580,7 +608,7 @@ const MOVES = {
     // ── 受益方頭上的鈴印（react 的「證據」，跟著那一尊走）──
     const blessMarks = bless.map((f) => {
       const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.ink,
-        opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: TOWARD_CAM });
+        opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.1);
       return m;
     });
@@ -692,9 +720,15 @@ const MOVES = {
     hub.multiplyScalar(1 / troops.length);
     hub.y = st.tableY;
     /* 0.55→1.5：五方陣擺到**本隊前方**（調兵到陣前），順便給 travel 足夠的位移（門檻 travelDist×0.40，
-       0.55 時實測整段漏掉）；TOWARD_CAM 2.4＝推近鏡頭，`wuying` 的兵只有 figH 1.06、
+       0.55 時實測整段漏掉）；camOff(st, 2.4)＝推近鏡頭，`wuying` 的兵只有 figH 1.06、
        旗照 §A3 縮到 2/3 之後在 844×390 上只剩 0.55% 面積（門檻 0.8%）——推近讓像素變多、世界尺寸不動。 */
-    const ring0 = hub.clone().addScaledVector(st.dir, 1.5).addScaledVector(TOWARD_CAM, 2.4);
+    /* ★2026-09-13 P4 第 1 輪回修（18/18 讀成「打擊敵方」）★
+       原本把五方陣擺到 `hub + st.dir*1.5`＝**本隊前方**，在 1v1 的材料上那個位置就是敵方半場，
+       六位讀者全部把「調兵」讀成打擊。改成擺在**我方這一側、受益方腳下**（`-st.dir*0.55`），
+       敵方半場**零落點**（衝擊拍的 st.burst 也跟著移過來）。
+       travel 的位移改由「旗從旗頂往斜後方散到腳下」提供（高度差＋水平距離）。
+       這一條同時解掉覆審 r1 MEDIUM-3：那片貼桌方陣現在真的在人腳下。 */
+    const ring0 = hub.clone().addScaledVector(st.dir, -0.55).add(camOff(st, 1.6));
 
     /* ── 乙 五面小旗：**五面都走 `st.paperStamp`**（實體，不是 InstancedMesh 群）──
        ★為什麼不照 §A6 的「同型道具 ≥3 份一律走 InstancedMesh」★：那一條的目的是 draw call 預算，
@@ -851,7 +885,7 @@ const MOVES = {
        於是這裡合法的 `imprint.scale.setScalar(st.markSize * …)`（紙紮道具不在尺寸鎖裡，
        沒有 `st.iconScale` 可走）會被判成「尺寸的第二份來源」。實測過：叫 `seal` 時該條判紅 2 處。 */
     const imprint = prey ? st.paperStamp(st.kind, hit, { color: C.ink, inkColor: C.ink, glyphColor: C.line,
-      opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -26, glyph: true, follow: prey, off: TOWARD_CAM }) : null;
+      opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -26, glyph: true, follow: prey, off: camOff(st, 1) }) : null;
     if (imprint) imprint.scale.setScalar(st.markSize * 1.2);
     const face = imprint ? imprint.userData.fxFace : null;
     const chime = st.ring(st.foot(prey || cat, new THREE.Vector3()), 0.36, 0.06, { color: C.key, opacity: 0 }); // 貼桌陣＝香火專屬腳下語彙
@@ -936,12 +970,40 @@ const MOVES = {
     st.tween({ ms: RL * 0.70, delay: R0, ease: 'out', update(t, e) { chime.scale.setScalar(0.4 + 1.6 * e); } });
     st.fade(chime, { ms: RL * 0.70, delay: R0, from: 0.9, to: 0 });
     st.fade(foil.obj, { ms: RL * 0.55, delay: R0, from: 0.95, to: 0 });
+    /* ★2026-09-13 P4 回修：印文**縮小＋延後半拍**★
+       第 1 輪 18 份答卷裡有 5 份把這一招讀成「詛咒削弱」，印文（一枚蓋在對手身上的方印）
+       是最像「貼符咒」的元素。處置：① 峰值由 `markSize × 2.8` 收到 `× 1.5`（仍在 markSizeOf 的量級內）；
+       ② 出現時間延後 `RL × 0.32`（t2 ≈60ms、t1 ≈20ms）——衝擊拍那一格先讓「咬中＋爪痕＋擊退」說話，
+       印文是**事後的證據**不是招式本身。大印的落點與時間一個字沒動（E 定稿）。 */
+    const lateR = R0 + RL * 0.32;
     if (imprint && face) {
-      st.fade(imprint, { ms: RL * 0.16, delay: R0, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.80, delay: R0, ease: 'out', update(t, e) {
+      st.fade(imprint, { ms: RL * 0.16, delay: lateR, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.48, delay: lateR, ease: 'out', update(t, e) {
         face.material.color.copy(cInk).lerp(cHot, Math.min(1, e * 1.3)); // 印文「燒」出來
-        imprint.scale.setScalar(st.markSize * (2.8 - 1.1 * e));
+        imprint.scale.setScalar(st.markSize * (1.5 - 0.5 * e));
       } });
+    }
+    /* ★2026-09-13 P4 回修：撕裂爪痕★——咬中那一拍在獵物胸前拉出**三道硃紅短弧**，
+       `st.paperProps` 三片細長紙條＝1 個 draw call，出現後往外拉開（撕裂感）再淡出。
+       這是「咬擊為主」的主證據：第 1 輪讀者看到的只有「一枚印落下」，沒有打擊的痕跡。 */
+    if (prey) {
+      const CLAWS = 3;
+      const claw = st.paperProps(st.kind, CLAWS, { color: C.hot, opacity: 0, k: 1.15, ratio: 0.16, depth: 0.10, warp: 0.22 });
+      claw.obj.position.copy(hit).add(camOff(st, 1.5));
+      const _ec = new THREE.Euler();
+      const writeClaws = (k) => {
+        for (let i = 0; i < CLAWS; i++) {
+          const it = claw.items[i];
+          it.p.set((i - 1) * 0.16 * (1 + 0.7 * k), -0.06 + 0.10 * (i % 2), 0);
+          it.q.setFromEuler(_ec.set(0, Math.PI * 0.5, 0.42 + 0.10 * i));
+          it.s = 0.45 + 0.75 * k;
+        }
+        claw.write();
+      };
+      writeClaws(0);
+      st.fade(claw.obj, { ms: RL * 0.14, delay: R0, from: 0, to: 0.95 });
+      st.tween({ ms: RL * 0.55, delay: R0, ease: 'out', update(t, e) { writeClaws(e); } });
+      st.fade(claw.obj, { ms: RL * 0.40, delay: R0 + RL * 0.45, from: 0.95, to: 0 });
     }
     tgPreyHit(st, prey, R0, RL, 0.14);
 
@@ -969,9 +1031,9 @@ const MOVES = {
     const mate = st.actor.find((f) => f !== monk) || monk;
     const palm = st.worldOf(monk, 'RHand1Ha', new THREE.Vector3());
     if (!palm.lengthSq()) { st.worldOf(monk, null, palm); palm.y += 0.35; }
-    const head = st.top(mate, new THREE.Vector3()).add(TOWARD_CAM);
+    const head = st.top(mate, new THREE.Vector3()).add(camOff(st, 1));
     /* 灰流與符先往前送一段再落到前鋒頭上（`evalPhases` 量的是位移，原地灑落量不到）。 */
-    const via = palm.clone().lerp(head, 0.5).addScaledVector(st.dir, 0.85).addScaledVector(TOWARD_CAM, 1.2);
+    const via = palm.clone().lerp(head, 0.5).addScaledVector(st.dir, 0.85).add(camOff(st, 1.2));
     via.y += 0.35;
 
     // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
@@ -1042,7 +1104,7 @@ const MOVES = {
     st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) { talis.scale.setScalar(st.iconSize * (0.85 + 0.30 * e)); } });
 
     /* ③ 前鋒受益（react）：符從半空落到前鋒身上並黏住、那一尊上抬亮邊；灰散掉 */
-    st.stick(talis, mate, { at: 'chest', off: TOWARD_CAM });
+    st.stick(talis, mate, { at: 'chest', off: camOff(st, 1) });
     st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { talis.scale.setScalar(st.iconSize * (1.15 - 0.45 * e)); } });
     st.fade(talis, { ms: RL * 0.4, delay: R0 + RL * 0.55, from: 1, to: 0 });
     st.fade(ash.obj, { ms: RL * 0.5, delay: R0, from: 0.95, to: 0 });
@@ -1079,10 +1141,10 @@ const MOVES = {
     const hurt = st.actor.find((f) => f !== lamp) || lamp;
     const src = st.worldOf(lamp, 'FlmR', new THREE.Vector3());
     if (!src.lengthSq()) { st.top(lamp, src); }
-    const dst = st.top(hurt, new THREE.Vector3()).add(TOWARD_CAM);
+    const dst = st.top(hurt, new THREE.Vector3()).add(camOff(st, 1));
     /* 燈焰不直線飛過去：先往前送一段（脫離燈罩、飄到陣中），再落到那一尊頭上。
        ★前半那一段是 travel 的位移來源★（門檻 travelDist×0.40）。 */
-    const via = src.clone().lerp(dst, 0.45).addScaledVector(st.dir, 0.95).addScaledVector(TOWARD_CAM, 1.4);
+    const via = src.clone().lerp(dst, 0.45).addScaledVector(st.dir, 0.95).add(camOff(st, 1.4));
     via.y += 0.42;
 
     // ── 丁 燈焰：鎏金面＋硃紅墨線的火舌實體（不是球）──
@@ -1092,7 +1154,7 @@ const MOVES = {
 
     // ── 受益方頭上的燈印 ──
     const seal2 = st.paperStamp(st.kind, dst, { color: C.key, inkColor: C.hot,
-      opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: hurt, at: 'top', off: TOWARD_CAM });
+      opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: hurt, at: 'top', off: camOff(st, 1) });
     seal2.scale.setScalar(st.markSize * 1.0);
 
     /* ① 燈焰暴漲（windup）：燈芯拉長、整尊低頭送出 */
@@ -1171,10 +1233,10 @@ const MOVES = {
     if (!chest.lengthSq()) st.worldOf(man, null, chest);
     /* 殘旗「在身後展開」：先被矛尖挑到高處（這一段給 travel 的位移），再落到身後站定。
        ★沒有第三方＝`run.travelDist` 退成 1.0、門檻 0.40★，所以挑起來那一段要夠高。 */
-    /* 挑起來那一段：往**前**多、往上少。飛太高（y+0.95、TOWARD_CAM 2.4）時旗會跑到畫面上緣外，
+    /* 挑起來那一段：往**前**多、往上少。飛太高（y+0.95、camOff(st, 2.4)）時旗會跑到畫面上緣外，
        實測面積反而從 0.4457% 掉到 0.3637%——推近鏡頭要留在畫面裡才有用。 */
-    const up = tip.clone(); up.y += 0.55; up.addScaledVector(st.dir, 1.30).addScaledVector(TOWARD_CAM, 1.2);
-    const back = chest.clone().addScaledVector(st.dir, -0.42).addScaledVector(TOWARD_CAM, 1.3);
+    const up = tip.clone(); up.y += 0.55; up.addScaledVector(st.dir, 1.30).add(camOff(st, 1.2));
+    const back = chest.clone().addScaledVector(st.dir, -0.42).add(camOff(st, 1.3));
     back.y += 0.30;
 
     // ── 乙 殘破軍旗：缺角旗面、高飽和硃紅（hot 當面、ink 當邊，整支裡最紅的一件）──
@@ -1216,7 +1278,7 @@ const MOVES = {
     st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) {
       /* ★這一支的 P3 與 §A3 真的互斥，處置寫在這裡★：`pojun` 是全 9 支裡最矮的一尊（figH 1.0019），
          旗縮到 2/3 上限（峰值 0.69）時 L3 只有 **area 0.4457%**（門檻 0.8），而它只有**一件**道具、
-         不像五營旗可以靠五面湊面積。推近鏡頭（TOWARD_CAM 1.0→2.4）補一部分，剩下的只能放大：
+         不像五營旗可以靠五面湊面積。推近鏡頭（camOff 1.0→2.4）補一部分，剩下的只能放大：
          峰值 0.85 ⇒ Q5 實測 ratio 約 0.82，**超過 2/3、記錄在案交裁**（Q5 明文：記錄項不擋批）。 */
       torn.scale.setScalar(st.iconSize * (0.62 + 0.33 * e));
       torn.userData.fxRoll = 0.30 * Math.sin(e * Math.PI * 2); // 殘旗一路翻
@@ -1228,8 +1290,16 @@ const MOVES = {
       st.rot(man, 'SpearMid', 0.10 * s); st.rot(man, 'SpearTip', 0.14 * s);
     } });
 
-    /* ③ 撐住（react）：★反應在自身★——邊光暴亮、整尊前傾、殘旗在身後定住再收 */
-    st.tween({ ms: RL * 0.9, delay: R0, ease: 'snap', update(t, e) {
+    /* ③ 撐住（react）：★反應**主要**在自身★——邊光暴亮、整尊前傾、殘旗在身後定住再收
+       ★覆審 r1 HIGH-2★：只動施招者時 `evalPhases` 把 react 記成 `(solo)`＝「這一格沒有證據」。
+       真實觸發條件是「本隊只剩 1 隻」，那時本來就沒有同伴，所以 solo 是**設計**不是缺陷；
+       但治具的 `--count=2` 是測試情境——場上還有同伴時讓他們**先**亮邊、微抬半寸
+       （殘旗插心本來就是鼓舞全隊的動作），react 就不再凍在施招者自己那一幀。 */
+    const mates2 = st.actor.filter((f) => f !== man);
+    mates2.forEach((f, i) => st.tween({ ms: RL * 0.7, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.05 * e, 0); st.rim(f, 1 + 1.7 * e);
+    } }));
+    st.tween({ ms: RL * 0.9, delay: R0 + (mates2.length ? RL * 0.04 : 0), ease: 'snap', update(t, e) {
       st.move(man, fwd.x * 0.16 * e, 0, fwd.z * 0.16 * e);
       st.scale(man, 1 + 0.04 * e);
       st.rot(man, 'Chest', 0.26 + 0.10 * e); st.rot(man, 'HeadRoot', 0.12 + 0.16 * e);

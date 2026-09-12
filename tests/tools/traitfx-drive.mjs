@@ -68,18 +68,63 @@ const { chromium } = (() => {
    用 2 空白縮排的 `  trId(st) {` 切出每一支的函式體，看它有沒有呼叫 st.icon／st.icons／st.mark。
    ★只在 `--fxvocab=1` 下成立★：預設（`PW_FX.VOCAB_ON=false`）跑的是 0.54 本體，
    那一版本來就沒有徽記 ⇒ `n/a` 是正確狀態；判紅會是假警報，而假警報會訓練使用者忽略訊號。 */
-export function emblemCasesFromSource(root) {
+/** 去掉區塊註解與行註解（★覆審 r1 MEDIUM-1★：不剝註解的話，`xianghuo.js` 裡一段**說明文字**
+ *  含字面 `const seal = st.icon(…)`，會讓 `biteGamble`（E 正式版，實際一個 st.icon 都沒呼叫）
+ *  被推導成「用到徽記的招」——後果一是 `fx-contrast --only=biteGamble` 判假警報（治具自己的註解寫過
+ *  「假警報會訓練使用者忽略這個訊號」），後果二是活性下限對那一格失去鑑別力
+ *  （把 V055 那份改名，biteGamble 仍留在名單裡、下限照樣通過）。 */
+function stripComments(src) {
+  return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+}
+
+/** 逐招掃原始碼，回傳「函式體裡出現過 re 的招名」（**已剝註解**）。 */
+function movesMatching(root, re) {
   const out = new Set();
   for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
-    let src = fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8');
+    let src = stripComments(fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8'));
     const cut = src.indexOf('export const V054');
     if (cut > 0) src = src.slice(0, cut);
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
     heads.forEach((h, i) => {
       const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
-      if (/\bst\.(icon|icons|mark)\s*\(/.test(body)) out.add(h[1]);
+      if (re.test(body)) out.add(h[1]);
     });
   }
+  return out;
+}
+
+/** ★P2 的適用範圍（覆審 r1 HIGH-3）★：原始碼裡**真的呼叫過** `st.phase(` 的招。
+ *  沒有打點的招（27 支裡還沒轉正、走 0.54 演出的那些）不在名單裡——那不是它們的缺陷，是還沒做。
+ *  ★活性下限★：本批轉正的 9 支香火招必須都在名單裡；少一支＝打點被刪光或解析壞了，當場 throw
+ *  （沒有這個下限，「把 st.phase 整組刪掉」會讓 P2 的斷言靜默失效＝同一個病換個形狀）。 */
+export function phaseCasesFromSource(root) {
+  const list = [...movesMatching(root, /\bst\.phase\s*\(/)].sort();
+  const MUST = ['biteGamble', 'eliteCleave', 'swarmLastStand', 'swarmRally',
+    'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
+  const missing = MUST.filter((t) => list.indexOf(t) < 0);
+  if (missing.length) {
+    throw new Error(`phaseCasesFromSource 解析壞了或打點被刪光：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
+      + `缺少必含的 ${missing.join(' ')}。`);
+  }
+  return list;
+}
+
+/** 預設路徑（`VOCAB_ON=false`、不帶 `--fxvocab=1`）下被 `V054` 覆蓋掉的招。
+ *  它們跑的是 0.54 的演出（沒有 `st.phase` 打點），所以 P2 的斷言在預設路徑上不適用——
+ *  ★這不是放寬★：同一支招帶 `--fxvocab=1` 時跑的是有打點的那一份，照樣被約束。 */
+export function v054CasesFromSource(root) {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    const src = stripComments(fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8'));
+    const cut = src.indexOf('export const V054');
+    if (cut < 0) continue;
+    for (const m of src.slice(cut).matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054\s*\(st\)\s*\{/gm)) out.add(m[1]);
+  }
+  return [...out].sort();
+}
+
+export function emblemCasesFromSource(root) {
+  const out = movesMatching(root, /\bst\.(icon|icons|mark)\s*\(/);
   const list = [...out].sort();
   /* ★活性下限（覆審 r3 N-3）★：這支推導取代的是手工名單，而手工名單被判有問題的理由就是
      「忘了加就沒有紅」。推導壞掉（縮排變了、`export const V054` 切點位移、正則失配）會**靜默**回 `[]`，
@@ -232,6 +277,30 @@ async function runCase(browser, base, c, opt) {
      場上有隊友時 react 就會量在受益方身上（reactSolo=false）。 */
   const reactClaim = sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === 'react') : null;
   const reactSolo = reactClaim ? !!reactClaim.solo : null;
+  /* ★P2（因果三段）的機械斷言（覆審 r1 HIGH-3）★
+     凍結檔 L2 寫「tier 1 每支 ≥2 段、tier 2 每支 ＝3 段」、計畫 §5 的 P2 寫「phase gate **機械判**」，
+     但在這一條加進 pass 之前，那兩句話**沒有任何紅燈**：實測把 `swarmRally` 的 `st.phase('react')`
+     整行註解掉，這支治具照樣印 PASS、exit 0，唯一的變化是 `--sigdump` 那一行少了 `react:1`
+     ——「三段」是人工讀 sigdump 讀出來的，不是量出來的。
+     ★這一條只會讓「段數不夠／該有的段沒打點」的招變紅，不會讓任何壞實作變綠★：
+     它是在既有的 pass 上**再 AND 一個條件**，沒有放寬任何既有項；
+     `phaseDetail` 是引擎端 evalPhases 逐段量出來的（bone/model/moved vs need），不是喊了就算。
+     `--count=2` 時另加一條：react 不得是 solo（solo＝那一格只有施招者自己動過，
+     凍結檔 L2 的假綠清單第 3 條講的就是這個情境，見上面 reactSolo 那段註解）。 */
+  const phaseOf = (n) => (sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === n) : null);
+  const phaseOK = (n) => { const c = phaseOf(n); return !!(c && c.ok); };
+  const needThree = tier === 2 || tier === 3;
+  const countN = Math.max(1, parseInt(opt.count || '0', 10) || 0);
+  /* ★適用範圍★：只約束**原始碼裡真的呼叫過 `st.phase(`** 的招（`phaseCasesFromSource`）。
+     27 支裡還沒轉正、走 0.54 演出的那些一個打點都沒有——那不是它們的缺陷，是還沒做，
+     把它們一起判紅會讓這條斷言一週內被改掉（＝把防線做死）。
+     刪光打點想繞過去的那一條由 `phaseCasesFromSource` 的活性下限擋（少一支就 throw）。 */
+  const vocabOn = fxvocabQ(opt) !== '';
+  const inPhaseScope = (opt.phaseMoves || []).indexOf(c.trait) >= 0
+    && !(!vocabOn && (opt.v054Moves || []).indexOf(c.trait) >= 0);
+  const phasesOK = !inPhaseScope ? true : (needThree
+    ? (phaseOK('windup') && phaseOK('travel') && phaseOK('react') && !(countN >= 2 && reactSolo))
+    : (['windup', 'travel', 'react'].filter((n) => phaseOK(n)).length >= 2));
   /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
      引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
      和「積木自己最後一次合法寫進去的值」比對；違規記進 stats，治具在這裡判。
@@ -266,7 +335,7 @@ async function runCase(browser, base, c, opt) {
   const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
     && !!fxvocabQ(opt) && !opt.throw && !opt.block;
   const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, sizeGuard, sizeState, tweenOK, sizeOK };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -284,7 +353,7 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -313,6 +382,8 @@ async function main() {
   }
   if (opt.only) { const set = new Set(String(opt.only).split(',')); cases = cases.filter((c) => set.has(c.trait)); }
   opt.emblemMoves = emblemCasesFromSource(root); // 逐套判定要用（r2 L2）
+  opt.phaseMoves = phaseCasesFromSource(root); // P2 的適用範圍（覆審 r1 HIGH-3）：只約束「真的有打點」的招
+  opt.v054Moves = v054CasesFromSource(root); // 預設路徑下走 0.54 演出的那幾支，P2 在那條路上不適用
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(root, port);
   if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);

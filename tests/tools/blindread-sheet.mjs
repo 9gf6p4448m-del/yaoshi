@@ -34,6 +34,12 @@ import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const CAMQ = (() => { const v = process.argv.find((x) => x.startsWith('--camdist=')); return v ? '&camdist=' + encodeURIComponent(v.slice(10)) : ''; })();
+/* ★P4 第 2 輪材料（2v2）★：`--count=` 覆寫我方尊數（施招者＋同系友軍）、`--foe=` 覆寫敵方名單
+   （格式同治具頁的 ?foe=：`ab:body:fac:n` 逗號分隔）。**不帶＝POOL 的原始配置**，第 1 輪材料的規格不變。
+   第 1 輪六位讀者對「對象題」的錯全部集中在只有 1–2 尊的那幾支——場上沒有第二個人時，
+   「我方多個 vs 我方單一」在畫面上根本不可能分辨（報告 §5）。 */
+const COUNTQ = (() => { const v = process.argv.find((x) => x.startsWith('--count=')); return v ? parseInt(v.slice(8), 10) || 0 : 0; })();
+const FOEQ = (() => { const v = process.argv.find((x) => x.startsWith('--foe=')); return v ? '&foe=' + encodeURIComponent(v.slice(6)) : ''; })();
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -100,7 +106,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);

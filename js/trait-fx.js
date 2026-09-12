@@ -921,6 +921,19 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       colors: FX_PAL[det.fac] || FX_PAL.zuling,
       /** 這一招的節拍窗（ms）：{windup:[a,b], travel:[a,b], react:[a,b], settle:[a,b]}，依 tier 換表 */
       beat: beatOf(run.tier, run.ms),
+      /** ★由桌心**指向鏡頭**的水平單位向量（世界空間）★
+       *  道具要「往鏡頭推一點」才不會埋進紙紮模型裡（MAT_SOLID 開 depthTest，埋進去那半會被切掉），
+       *  編舞一律寫 `p.addScaledVector(st.camDir, k)`。
+       *  ★不得再寫成世界常數★（覆審 r1 HIGH-1）：對決機位由座位決定
+       *  （`js/camera-director.js:29 SEAT_YAW=[0,180,270,90]`、`:157 duelYaw()`），
+       *  南北對局是 yaw 90°（＝治具棚那一個），**西東對局是 0°**、南西是 315°。
+       *  舞台本身是相機相對的（`js/duel-figures.js:683-685` 同一條算式），常數不轉、人物轉，
+       *  那個位移就變成橫向——實測西東等效方向下 `wardHpFirst` 的 L3 面積
+       *  由 0.9682% 掉到 0.1741%、`wardRegen1` 由 1.4461% 掉到 0.5159%，兩支跌破 P3 的 0.8%。 */
+      camDir: (() => {
+        const az = Math.atan2(camera.position.x, camera.position.z);
+        return new THREE.Vector3(Math.sin(az), 0, Math.cos(az));
+      })(),
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
       kind: EMBLEM_OF[det.trId] || null,
       /** 這一招徽記本體的尺寸（世界單位）。**唯一來源＝vocab.js 的 ICON.byKind／size**——
