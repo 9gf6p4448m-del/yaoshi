@@ -99,7 +99,7 @@ function movesMatching(root, re) {
  *  （沒有這個下限，「把 st.phase 整組刪掉」會讓 P2 的斷言靜默失效＝同一個病換個形狀）。 */
 export function phaseCasesFromSource(root) {
   const list = [...movesMatching(root, /\bst\.phase\s*\(/)].sort();
-  const MUST = ['biteGamble', 'eliteCleave', 'swarmLastStand', 'swarmRally',
+  const MUST = ['biteGamble', 'eliteCleave', 'eliteSelfCut', 'swarmLastStand', 'swarmRally',
     'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
   const missing = MUST.filter((t) => list.indexOf(t) < 0);
   if (missing.length) {
@@ -307,6 +307,19 @@ async function runCase(browser, base, c, opt) {
   const phasesOK = !inPhaseScope ? true : (needThree
     ? (phaseOK('windup') && phaseOK('travel') && phaseOK('react') && !(countN >= 2 && reactSolo))
     : (['windup', 'travel', 'react'].filter((n) => phaseOK(n)).length >= 2));
+  /* ★身分可辨語彙的執行期斷言（2026-09-13 祖靈批階段 A，語彙檔 §A9）★
+     香火批 1 P4 三輪的紅集中在 Q2「作用對象」：2v2 同系同型下讀者分不出誰施招、誰受益。
+     語彙的修法是「施招者在**蓄勢段**就有專屬姿態＋腳下系別光語彙」，這一條是它的機械抓手：
+       stance.kind   擺了哪一型（`vocab.js` 的 `STANCE_VOCAB`）——null＝根本沒擺
+       stance.peak   幅度峰值，要 ≥ `STANCE_GATE.minPeak`（引擎端把門檻一起送出來，治具不另寫一份）
+       stance.ground 腳下語彙是哪一種（`FAC_GROUND`）——null＝沒立起來
+       onTarget／extra 有沒有人把姿態套到受招方／第二個人身上（積木會 throw，這裡留帳）
+     ★適用範圍與 phasesOK 同一條★：只約束原始碼裡真的呼叫過 `st.phase(` 的招（＝已轉正的），
+     還沒鋪的 17 支不在範圍內；刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的
+     「已轉正的招必須呼叫 st.stance／st.groundMark」那條擋（那裡是原始碼掃描，這裡是執行期效果）。 */
+  const sc = (sig && sig.stance) || null;
+  const stanceOK = !inPhaseScope ? true : !!(sc && sc.kind && sc.ground
+    && sc.peak >= (sc.minPeak === undefined ? 0.12 : sc.minPeak) && !sc.onTarget && (sc.extra | 0) === 0);
   /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
      引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
      和「積木自己最後一次合法寫進去的值」比對；違規記進 stats，治具在這裡判。
@@ -341,7 +354,7 @@ async function runCase(browser, base, c, opt) {
   const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
     && !!fxvocabQ(opt) && !opt.throw && !opt.block;
   const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -359,7 +372,7 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && stanceOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }

@@ -211,7 +211,40 @@ export const FAC_VOCAB = {
   },
 };
 
-/** trId → { prop, act, react }：一招一組「道具家族／本體動作／受招反應」的登記表（Q9 的 schema）。
+/** ★身分可辨語彙（2026-09-13 祖靈批第一支，語彙檔 §A9 的程式版）★
+ *  病因（香火批 1 P4 三輪、六位讀者自述，報告 §8）：2v2 裡我方兩尊同系同型、站得近，
+ *  讀者分不出「誰施招、誰受益」——道具落在哪一尊，那一尊就被當成施招者，
+ *  於是增益招一律被答成「自己」（我方單一 0/18、我方多個 1–2/18）。
+ *  修法是**在蓄勢段就把施招者標出來**，而且標法要與受益／受招方的反應**不同型**。
+ *
+ *  `axis`＝這個姿態往哪個方向動。P1 的機械檢查比的就是它：
+ *  施招姿態的 `axis` 不得等於同一支招受益／受招反應的 `axis`（`REACT_AXIS`）——
+ *  同型＝讀者把「他在蓄力」與「他被托起來」讀成同一件事，那正是第 3 輪的紅。
+ *  `lean`／`move`／`scl` 是 `st.stance()` 實際套到 model 上的幅度（弧度／世界單位／倍率），
+ *  `amp` 是這個姿態的合成幅度，給 `STANCE_GATE.minPeak` 判「有沒有真的擺出來」。
+ *  ★這是唯一一份幅度表★：`st.stance` 只讀這裡，編舞只能給 0..1 的進度與 `strength`。 */
+export const STANCE_VOCAB = {
+  前傾: { axis: 'fore', lean: 0.26, move: [0, 0, 0.13], scl: 1, amp: 0.26 },
+  舉臂: { axis: 'up', lean: -0.15, move: [0, 0.17, 0], scl: 1.04, amp: 0.22 },
+  下沉: { axis: 'down', lean: 0.09, move: [0, -0.14, 0], scl: 0.955, amp: 0.20 },
+};
+
+/** 受招／受益反應的「型」。三系的反應家族（`FAC_VOCAB[*].reacts`）全部要在這張表裡，
+ *  否則 P1 的「不同型」檢查會對著 undefined 跑（兩個 undefined 相等＝那條檢查恆綠）。 */
+export const REACT_AXIS = { 升: 'up', 退: 'back', 壓: 'down', 轉: 'spin', 被拖: 'fore', 抖: 'shake' };
+
+/** 施招姿態的幅度下限：`st.stance` 記錄的峰值（`STANCE_VOCAB[kind].amp × strength × e`）
+ *  要 ≥ 這個值，這一招才算真的擺出過姿態。`PHASE_GATE.windupModel` 是 0.04＝「動了沒」，
+ *  這裡要的是「讀得出來」，所以訂在 0.12（最小的 `下沉` 0.20 打七折仍過得去）。
+ *  ★不是判「動了沒」的第二份門檻★：windup 走 `PHASE_GATE`，本條另外量「施招姿態」這件事。 */
+export const STANCE_GATE = { minPeak: 0.12 };
+
+/** 三系的腳下光語彙（ART_BIBLE §10.1／語彙檔 §B）。`st.groundMark()` 照這張表分派，
+ *  而且**由建構上**做到「蓄勢就亮、衝擊拍熄」——亮滅的時間軸寫在積木裡，編舞改不到。
+ *  陰氣的 `stain` 還沒有積木（陰氣批才做），分派到它時 `st.groundMark` 會當場 throw，不給靜默退路。 */
+export const FAC_GROUND = { zuling: 'pillar', xianghuo: 'ring', yinqi: 'stain' };
+
+/** trId → { prop, act, react, stance?, selfReact? }：一招一組「道具家族／本體動作／受招反應」的登記表（Q9 的 schema）。
  *  逐招的完整理由與畫面描述在 `docs/design/2026-09-12-fx-vocab-draft.md` §C（27 列），
  *  **這裡只登記那三個受白名單約束的欄位**，散文不抄過來（抄＝第二份事實來源）。
  *  三尊三招不在表內（Q8：語彙納入、閘門不納入；§C 也明寫不在 27 列裡）。
@@ -225,7 +258,13 @@ export const FAC_VOCAB = {
  *    eliteVsSwarm  §C「退」→ `抖`（陰氣的反應家族沒有「退」；取最接近的骨骼高頻小幅）
  *    swarmFeed1    §C「升」→ `被拖`（陰氣家族沒有「升」；§C 同一列另寫「被吸那隻被拖向甕口」，取這個受招方反應）
  *  正規化的方向一律是「往 §B／§10.7 的白名單收」，不是把新詞加進白名單——加詞會讓白名單逐卷變寬，
- *  等於這條檢查一年後只剩形式。 */
+ *  等於這條檢查一年後只剩形式。
+ *
+ *  ★第四欄 `stance`（2026-09-13 身分可辨語彙，語彙檔 §A9）★
+ *  只有**已轉正**的招（原始碼裡真的呼叫過 `st.phase(`）才必填——17 支還沒鋪的招現在填等於憑空發明
+ *  17 個設計。`tests/fxvocab.test.mjs` 的必填名單是**從原始碼推導**的，所以下一批轉正時忘了填會當場紅。
+ *  `selfReact: true`＝這一招的反應在**自身**（§C 明寫「全 27 支唯一沒有第三方」的破軍旗），
+ *  「施招姿態與受益反應不得同型」那條對它不適用——它本來就只有一個人。 */
 export const MOVE_SPEC = {
   /* ── 祖靈系 9 支 ── */
   eliteOpenShot: { prop: '丁', act: '張', react: '退' }, // 太陽球＋箭矢；弦鬆手＝張，最壯那隻退
@@ -235,18 +274,19 @@ export const MOVE_SPEC = {
   boltGamble: { prop: '丁', act: '張', react: '壓' }, // 鋸齒雷片；§C「撐」＝張（雙翼撐開）
   swarmHalfSplash: { prop: '丙', act: '躍', react: '升' }, // 三道平行浪弧；三舟同時躍起
   swarmThorn: { prop: '甲', act: '沉', react: '退' }, // 獠牙反向彈回；§C「刨」正規化成沉
-  eliteSelfCut: { prop: '甲', act: '割', react: '升' }, // 黑曜石刃（祖靈範本招）；自傷、本隊上抬
+  // ★祖靈範本招（2026-09-13 階段 A）★ 割祭＝頸下彎屈身就刃 ⇒ stance 下沉（down）≠ react 升（up）
+  eliteSelfCut: { prop: '甲', act: '割', react: '升', stance: '下沉' }, // 黑曜石刃；自傷、本隊上抬
   wardHpAll1: { prop: '甲', act: '沉', react: '升' }, // 六塊岩繞一圈；屈膝沉身
-  /* ── 香火系 9 支（本卷批 1）── */
-  wardAtkAll1: { prop: '乙', act: '掃', react: '升' }, // 金紅大旗掃過整排
-  eliteCleave: { prop: '丁', act: '掃', react: '退' }, // 斬擊弧；§C「劈」＝「劍弧橫過整排」＝掃
-  wardAbsorb4: { prop: '乙', act: '降', react: '升' }, // 四面金箔帆圍成同心方框；船身前滑
-  wardImmuneLost: { prop: '丁', act: '震', react: '升' }, // 銅鈴＋方框鈴波；全系唯一只有受益方
-  swarmRally: { prop: '乙', act: '拍', react: '升' }, // 五面小旗插五方；頓足落地
-  biteGamble: { prop: '甲', act: '撲', react: '壓' }, // ★E 定稿＝本批範本招★ 大印落下＝咬中，獵物被壓
-  wardHpFirst: { prop: '丙', act: '降', react: '升' }, // 金灰顆粒流＋金色方符；傾倒送出
-  wardRegen1: { prop: '丁', act: '降', react: '升' }, // 燈焰脫離燈罩下落
-  swarmLastStand: { prop: '乙', act: '拍', react: '升' }, // 殘旗（缺角）；§C「扎」正規化成拍，反應在自身
+  /* ── 香火系 9 支（本卷批 1；stance 於 2026-09-13 階段 A 補上，見上面第四欄那段）── */
+  wardAtkAll1: { prop: '乙', act: '掃', react: '升', stance: '前傾' }, // 金紅大旗掃過整排；旗手前傾把旗送出
+  eliteCleave: { prop: '丁', act: '掃', react: '退', stance: '舉臂' }, // 斬擊弧；舉劍蓄勢（react 退＝back，不同型）
+  wardAbsorb4: { prop: '乙', act: '降', react: '升', stance: '前傾' }, // 四面金箔帆圍成同心方框；船身前滑
+  wardImmuneLost: { prop: '丁', act: '震', react: '升', stance: '下沉' }, // 銅鈴＋方框鈴波；沉身甩鈴
+  swarmRally: { prop: '乙', act: '拍', react: '升', stance: '下沉' }, // 五面小旗插五方；頓足沉身
+  biteGamble: { prop: '甲', act: '撲', react: '壓', stance: '前傾' }, // ★E 定稿＝香火範本招★ 蹲伏前傾＝撲的蓄勢（react 壓＝down，不同型）
+  wardHpFirst: { prop: '丙', act: '降', react: '升', stance: '前傾' }, // 金灰顆粒流＋金色方符；低頭前傾傾倒
+  wardRegen1: { prop: '丁', act: '降', react: '升', stance: '下沉' }, // 燈焰脫離燈罩下落；整尊沉身送出
+  swarmLastStand: { prop: '乙', act: '拍', react: '升', stance: '舉臂', selfReact: true }, // 殘旗（缺角）；倒矛過頂＝舉臂，反應在自身
   /* ── 陰氣系 9 支 ── */
   hauntLost: { prop: '甲', act: '探', react: '轉' }, // 紅帽戴到對手頭上（陰氣範本招）；原地打轉
   hauntSteal: { prop: '甲', act: '垂', react: '被拖' }, // 銀簪去而復返；目標被拖半步

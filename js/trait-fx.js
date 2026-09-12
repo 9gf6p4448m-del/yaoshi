@@ -26,7 +26,7 @@ const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 // v0.55 招式可辨性卷：特效語彙與法寶徽記的【單一事實來源】。
 // 這兩支是 27 支招共用的地基，**不做 catch 退路**——載不到就讓本模組整個爆，
 // 給預設色票／預設形狀等於讓「每一卷重新發明一次語彙」那個分岔重新長回來（ART_BIBLE §10 開頭）。
-const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx/vocab.js' + V);
+const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF, STANCE_VOCAB, STANCE_GATE, FAC_GROUND } = await import('./trait-fx/vocab.js' + V);
 const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
 const loadMoves = (file) => import(file + V).then(
@@ -604,6 +604,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         over: new Map(), // bone → {rot: Euler, pos: Vector3, scl: number}
         base: model ? { p: model.position.clone(), r: model.rotation.clone(), s: model.scale.clone() } : null,
         mo: { p: new THREE.Vector3(), r: new THREE.Euler(), s: 1 },
+        /* ★施招姿態是**獨立的加成通道**（2026-09-13 身分可辨語彙）★
+           不共用 `mo`：① 既有編舞多半已經在同一條 tween 裡寫 `st.move`／`st.spin`／`st.scale`，
+           共用就是後寫的把先寫的蓋掉（`mo` 是 set 不是 add）；② `evalPhases` 的 windup／react
+           量的是 `mo`——把姿態算進去會讓 react 那條在「施招者自己擺姿勢」時就成立＝恆真。
+           所以姿態走 `sta`，由 `apply()` 疊在 `mo` 之上，量測與判定一格不動。 */
+        sta: { p: new THREE.Vector3(), r: new THREE.Euler(), s: 1 },
       };
       fig.update = (dt) => { restore(w); if (typeof w.origUpdate === 'function') w.origUpdate.call(fig, dt); capture(w); };
       fig.setRim = (op) => w.origSetRim.call(fig, (op === undefined ? 1 : op) * w.rimMul);
@@ -633,9 +639,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     if (w.model) {
       const m = w.model;
-      m.position.copy(w.base.p).add(w.mo.p);
-      m.rotation.set(w.base.r.x + w.mo.r.x, w.base.r.y + w.mo.r.y, w.base.r.z + w.mo.r.z);
-      m.scale.copy(w.base.s).multiplyScalar(w.mo.s);
+      // 施招姿態（sta）疊在編舞的 model 覆寫（mo）之上，兩條通道互不覆寫（見 wrapFig 的註解）
+      m.position.copy(w.base.p).add(w.mo.p).add(w.sta.p);
+      m.rotation.set(w.base.r.x + w.mo.r.x + w.sta.r.x, w.base.r.y + w.mo.r.y + w.sta.r.y, w.base.r.z + w.mo.r.z + w.sta.r.z);
+      m.scale.copy(w.base.s).multiplyScalar(w.mo.s * w.sta.s);
     }
   }
   function unwrap(w) {
@@ -934,6 +941,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const az = Math.atan2(camera.position.x, camera.position.z);
         return new THREE.Vector3(Math.sin(az), 0, Math.cos(az));
       })(),
+      /** 往鏡頭推 k 個「基本偏移」（水平 0.26 ＋ 高 0.07）。道具不往鏡頭推就有一半埋進紙紮模型裡
+       *  （`MAT_SOLID` 開 `depthTest`，埋進去那半會被切掉）。
+       *  ★2026-09-13 由 `js/trait-fx/xianghuo.js` 的 `camOff(st, k)` 上升到 st★：
+       *  祖靈批要用同一件事，複製第二份到 zuling.js 就是下一個分岔（同 `camDir` 覆審 r1 HIGH-1 的教訓：
+       *  那次的病就是「方向被寫成第二份常數」）。xianghuo.js 的 `camOff` 現在只是這一支的轉呼叫。 */
+      camOff(k) { return new THREE.Vector3().copy(st.camDir).multiplyScalar(0.26 * k).setY(0.07 * k); },
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
       kind: EMBLEM_OF[det.trId] || null,
       /** 這一招徽記本體的尺寸（世界單位）。**唯一來源＝vocab.js 的 ICON.byKind／size**——
@@ -1296,6 +1309,110 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         st.spawn(im, (o.floor ? 'floor:' : 'prop:') + kind);
         return { obj: im, items, write, size };
       },
+      /** ★施招姿態（2026-09-13 身分可辨語彙，語彙檔 §A9 第 1 條）★
+       *  `kind` 取自 `vocab.js` 的 `STANCE_VOCAB`（前傾／舉臂／下沉），`e` 是 0..1 的進度
+       *  （編舞在蓄勢那條 tween 的 `update(t, e)` 裡逐幀餵）。
+       *
+       *  由**建構上**成立的三件（不靠事後檢查，`02 §6.1` 第 7 條的「收斂」）：
+       *   ① **只有施招者**：傳受招方進來當場 throw；一招內換第二個人也 throw。
+       *   ② **幅度只有一份來源**：`STANCE_VOCAB[kind]` 的 `lean`／`move`／`scl`，
+       *      編舞只能給 0..1 的 `e` 與 `o.strength`（夾在 0..1），寫不出第二份幅度。
+       *   ③ **不污染因果三段**：走 `w.sta` 這條獨立通道，`evalPhases` 量的 `w.mo` 一格不動。
+       *  `o.strength` 預設 1；`reduced` 時位移類 no-op（同 st.move），但峰值照記——
+       *  記的是「編舞有沒有排這件事」，不是「畫面上動了多少」。 */
+      stance(fig, kind, e, o = {}) {
+        const spec = STANCE_VOCAB[kind];
+        if (!spec) throw new Error(`st.stance：不認得的施招姿態「${kind}」（合法值 ${Object.keys(STANCE_VOCAB).join('／')}，見 vocab.js 的 STANCE_VOCAB）`);
+        if (!fig) return false;
+        if (inTarget.has(fig)) {
+          run.stance.onTarget = true;
+          throw new Error('st.stance：施招姿態只能給施招方——受招方擺出施招姿態，讀者就分不出誰施招（語彙檔 §A9 第 1 條）');
+        }
+        if (run.stance.fig && run.stance.fig !== fig) {
+          run.stance.extra++;
+          throw new Error('st.stance：一招只能有一個施招者擺姿態（第二個人擺＝身分訊號失效，語彙檔 §A9 第 1 條）');
+        }
+        run.stance.fig = fig; run.stance.kind = kind;
+        const k = Math.max(0, Math.min(1, o.strength === undefined ? 1 : o.strength));
+        const u = Math.max(0, Math.min(1, Number.isFinite(e) ? e : 0)) * k;
+        if (u > 0) run.stance.peak = Math.max(run.stance.peak, spec.amp * u);
+        const f = st.toward(fig, _v); // group 空間、水平、單位向量（朝對面）
+        // 前傾／後仰＝繞「側向軸」轉；側向軸＝(f.z, 0, −f.x)
+        const a = spec.lean * u;
+        const w = wrapOf(fig);
+        run.sig.bones.add('@stance'); markCaster(fig);
+        if (run.reduced) return true;
+        w.sta.r.set(a * f.z, 0, -a * f.x);
+        w.sta.p.set(f.x * spec.move[2] * u, spec.move[1] * u, f.z * spec.move[2] * u);
+        w.sta.s = 1 + (spec.scl - 1) * u;
+        return true;
+      },
+      /** ★祖靈腳下垂直光柱（語彙檔 §A8 指定的新積木；§B1 的腳下語彙）★
+       *  紙紮語法：上窄下寬的細長片**擠出厚度**＋露出一圈 `ink` 當墨線邊，
+       *  **不用加色材質當主體**（`MAT_GLOW` 一越過 bloom 門檻就往白色去，靛藍活不下來，§A4）。
+       *  朝向凍在 spawn 當下、只轉 yaw（柱要站直，不能跟著鏡頭俯仰倒下去）。
+       *  `h`＝世界單位高度；`o = { w, depth, warp, taper, color, inkColor, opacity, yawDeg }`。 */
+      pillar(pos, h, o = {}) {
+        const hh = Math.max(0.2, Number.isFinite(h) ? h : 1);
+        const bw = o.w === undefined ? 0.17 : o.w;
+        const top = bw * (o.taper === undefined ? 0.52 : o.taper);
+        const depth = o.depth === undefined ? 0.05 : o.depth;
+        const warp = o.warp === undefined ? 0.10 : o.warp;
+        const op = o.opacity === undefined ? 1 : o.opacity;
+        const half = (y) => (bw + (top - bw) * (y / hh)) / 2;
+        const mk = (inset) => new THREE.Shape([
+          new THREE.Vector2(-half(0) + inset, inset * 0.6),
+          new THREE.Vector2(half(0) - inset, inset * 0.6),
+          new THREE.Vector2(half(hh) - inset * 0.6, hh - inset * 0.6),
+          new THREE.Vector2(-half(hh) + inset * 0.6, hh - inset * 0.6),
+        ]);
+        const gBody = new THREE.ExtrudeGeometry(mk(0), { depth, bevelEnabled: false, curveSegments: 1, steps: 1 });
+        gBody.translate(0, 0, -depth / 2);
+        paperBow(gBody, warp);
+        const gFace = new THREE.ShapeGeometry(mk(bw * 0.17));
+        gFace.translate(0, 0, depth / 2 + 0.008);
+        paperBow(gFace, warp);
+        const mBody = new THREE.Mesh(gBody, MAT_SOLID.clone());
+        mBody.material.color.setHex(o.inkColor === undefined ? st.colors.ink : o.inkColor);
+        mBody.material.opacity = op;
+        const mFace = new THREE.Mesh(gFace, MAT_SOLID.clone());
+        mFace.material.color.setHex(o.color === undefined ? st.colors.key : o.color);
+        mFace.material.opacity = op;
+        const grp = new THREE.Group();
+        grp.add(mBody, mFace);
+        BLOCK_MADE.add(mBody); BLOCK_MADE.add(mFace); // 不是徽記剪影，場景掃描放行（同 paperStamp）
+        grp.position.set(pos.x, TFX.tableY, pos.z);
+        // 只轉 yaw：柱子要站直。yaw 取自 st.camDir（＝鏡頭方位角），所以正面永遠朝觀眾
+        grp.rotation.y = Math.atan2(st.camDir.x, st.camDir.z) + THREE.MathUtils.degToRad(o.yawDeg === undefined ? 0 : o.yawDeg);
+        grp.userData.fxParts = [mBody, mFace];
+        return st.spawn(grp, 'floor:pillar');
+      },
+      /** ★腳下系別光語彙（語彙檔 §A9 第 1 條）★：把「這一尊是施招者」畫在他腳下。
+       *  分派由 `vocab.js` 的 `FAC_GROUND` 決定（祖靈＝光柱／香火＝貼桌環／陰氣＝暗斑，尚未實作）。
+       *
+       *  ★「蓄勢就亮、衝擊拍熄」是由建構上成立的★：亮滅的時間軸寫在這支積木裡，
+       *  編舞給不出第二份——`st.beat` 的 windup 段淡入、travel 段末（＝`react[0]`＝衝擊拍）歸零。
+       *  這就是收斂：不是寫一條「請記得熄掉」的規則再去檢查 27 支有沒有照做。
+       *  `o = { fig 必填, r, h, peak }`；回傳那個 mesh（編舞不需要再碰它）。 */
+      groundMark(fig, o = {}) {
+        const kind = FAC_GROUND[det.fac];
+        if (!kind) throw new Error(`st.groundMark：系別 ${det.fac} 沒有腳下光語彙（見 vocab.js 的 FAC_GROUND）`);
+        if (kind === 'stain') throw new Error('st.groundMark：陰氣的 st.stain 還沒有積木（語彙檔 §A8 列為陰氣批的前置），不給靜默退路');
+        if (!fig) return null;
+        const peak = o.peak === undefined ? 0.85 : o.peak;
+        const p = st.foot(fig, new THREE.Vector3());
+        let mesh;
+        if (kind === 'pillar') mesh = st.pillar(p, o.h === undefined ? 1.05 : o.h, { color: st.colors.key, inkColor: st.colors.ink, opacity: 0 });
+        else mesh = st.ring(p, o.r === undefined ? 0.34 : o.r, 0.055, { color: st.colors.key, opacity: 0 });
+        const B = st.beat;
+        const upMs = Math.max(1, B.windup[1]);
+        const travelMs = Math.max(1, B.react[0] - B.travel[0]);
+        st.fade(mesh, { ms: upMs * 0.8, delay: upMs * 0.12, from: 0, to: peak, ease: 'out' });
+        // 收尾點＝delay + ms ＝ travel[0] + travelMs ＝ react[0] ＝ 衝擊拍那一瞬間
+        st.fade(mesh, { ms: travelMs * 0.55, delay: B.travel[0] + travelMs * 0.45, from: peak, to: 0, ease: 'in' });
+        run.stance.ground = kind;
+        return mesh;
+      },
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
       phase(name) {
         if (name !== 'windup' && name !== 'travel' && name !== 'react') return false;
@@ -1339,6 +1456,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       // v0.55：徽記逐幀朝鏡頭（bb＝單枚 Mesh、bbi＝群體 InstancedMesh）、印記跟著受招方走、因果三段的打點
       phaseClaims: [], bb: [], bbi: [], follow: [], sized: [], caster: null, actorSet: null, travelDist: 1,
+      /* v0.55.7 身分可辨語彙：這一招的施招姿態（誰擺的／哪一型／峰值幅度）與腳下光語彙。
+         治具讀 lastSig.stance 判 stanceOK＝「真的擺出來了、而且只有施招者有」。 */
+      stance: { kind: null, fig: null, peak: 0, ground: null, onTarget: false, extra: 0 },
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
@@ -1372,6 +1492,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       // 別套的 tween 下一幀會重寫自己要的值（覆審 LOW-3）
       w.over.forEach((o) => { o.rot.set(0, 0, 0); o.pos.set(0, 0, 0); o.scl = 1; });
       w.mo.p.set(0, 0, 0); w.mo.r.set(0, 0, 0); w.mo.s = 1; w.rimMul = 1;
+      w.sta.p.set(0, 0, 0); w.sta.r.set(0, 0, 0); w.sta.s = 1;
     });
     run.wraps.clear();
     if (run.sped) stats.sped++;
@@ -1382,7 +1503,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       emblems: Array.from(run.sig.emblems).sort(),
       phases: run.phaseClaims.filter((c) => c.ok).map((c) => c.name).filter((n, i, a) => a.indexOf(n) === i),
       phaseDetail: run.phaseClaims.map((c) => ({ name: c.name, ok: c.ok, bone: +c.bone.toFixed(4), model: +c.model.toFixed(4), moved: +c.moved.toFixed(4), need: +c.need.toFixed(4), solo: !!c.solo })),
-      travelDist: +run.travelDist.toFixed(3) };
+      travelDist: +run.travelDist.toFixed(3),
+      /* v0.55.7 身分可辨語彙的機械抓手（治具的 stanceOK）：
+         kind＝擺了哪一型、peak＝幅度峰值（比 STANCE_GATE.minPeak）、ground＝腳下語彙是哪一種、
+         onTarget／extra＝有沒有人試過把姿態套到受招方／第二個人身上（積木會 throw，這裡留帳）。 */
+      stance: { kind: run.stance.kind, peak: +run.stance.peak.toFixed(4), ground: run.stance.ground,
+        onTarget: !!run.stance.onTarget, extra: run.stance.extra | 0, minPeak: STANCE_GATE.minPeak } };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }

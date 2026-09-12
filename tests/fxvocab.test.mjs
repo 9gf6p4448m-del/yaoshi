@@ -21,7 +21,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC, FAC_VOCAB, MOVE_SPEC } from '../js/trait-fx/vocab.js';
+import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC, FAC_VOCAB, MOVE_SPEC,
+  STANCE_VOCAB, REACT_AXIS, STANCE_GATE, FAC_GROUND } from '../js/trait-fx/vocab.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -45,6 +46,10 @@ const MS = JSON.parse(JSON.stringify(MOVE_SPEC));
 /* ★號碼從 21 起★：4–20 是 v0.55.3 N11 尺寸防線的十七條繞法（合併時撞號，P1 這兩條往後挪）。 */
 if (MUT === 21) MS.biteGamble.act = '探'; // 陰氣的動詞出現在香火招上
 if (MUT === 22) delete MS.wardRegen1; // 少一支招
+/* ★23–25＝身分可辨語彙（§A9）三條檢查各自的鑑別力★（2026-09-13 祖靈批階段 A） */
+if (MUT === 23) MS.eliteSelfCut.stance = '舉臂'; // 與 react「升」同型（up vs up）＝讀者分不出蓄勢與受益
+if (MUT === 24) delete MS.biteGamble.stance; // 已轉正的招漏填 stance
+const MUT25 = MUT === 25; // 編舞裡把一支已轉正的招的 st.stance 拿掉（在記憶體裡改原始碼）
 if (MUT) console.log(`★突變模式 ${MUT}：以下必須有紅★`);
 
 const doc = fs.readFileSync(DOC, 'utf8');
@@ -182,6 +187,122 @@ t('MOVE_SPEC 覆蓋 27 支招、不含三尊（P1 ③）', () => {
   eq(want.length, 27, '27 支招（30 列扣掉三尊）');
   eq(Object.keys(MS).sort().join(','), want.join(','), 'MOVE_SPEC 的 trId 集合');
   legends.forEach((id) => { if (MS[id]) throw new Error(`MOVE_SPEC 不該有三尊 ${id}（Q8：語彙納入、閘門不納入）`); });
+});
+
+/* ── 4c. 身分可辨語彙（§A9，2026-09-13 祖靈批階段 A）──────────────────
+   病因＝`docs/experiments/2026-09-13-xianghuo-b1-report.md` §8：P4 三輪的紅集中在 Q2「作用對象」，
+   六位讀者自述「2v2 裡兩尊同系同型、站得近，道具落在哪一尊就當誰施招」⇒ 增益招一律答「自己」。
+   語彙的修法有三條，這一節是它的機械版：
+     ① 已轉正的招必須登記 `stance`（施招姿態），取值在 `STANCE_VOCAB` 白名單內；
+     ② 施招姿態的 `axis` 不得等於同一支招受益／受招反應的 `axis`（同型＝讀者分不出蓄勢與受益）；
+     ③ 已轉正的招的編舞必須真的呼叫 `st.stance(` 與 `st.groundMark(`（登記了卻沒演＝一張沒人看的表）。
+   ★「已轉正」是從原始碼推導的，不是手工名單★——手工名單忘了加就沒有紅（`traitfx-drive`
+   的 `emblemCasesFromSource` 覆審 r3 N-3 同一條教訓）。下限＝本階段的 10 支必須都推導得出來。 */
+
+/** 三個系別檔裡「已轉正」的招：函式體真的呼叫過 `st.phase(`，且不在 `V054`／`V055` 退路段裡。
+ *  ★與 `tests/tools/traitfx-drive.mjs` 的 `phaseCasesFromSource` 是同一條推導★，
+ *  但那一支在模組載入時就 require playwright（單元測試不該拖進瀏覽器），所以這裡另寫一份輕量版；
+ *  兩邊都有活性下限（少一支就 throw），分岔了會有一邊紅。 */
+function convertedMoves() {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    let src = fs.readFileSync(path.join(ROOT, 'js/trait-fx', f), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+    if (MUT25 && f === 'xianghuo.js') {
+      const from = "st.stance(monk, '前傾', e);";
+      if (!src.includes(from)) throw new Error('突變 25 的錨點不在了：' + from);
+      src = src.replace(from, ' ');
+    }
+    const cut = src.search(/export const V05[45]/);
+    /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
+       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
+       所以退路段裡出現過的 trId 一律排掉（`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。 */
+    const retired = new Set([...(cut > 0 ? src.slice(cut) : '').matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054(?:short)?\s*\(st\)\s*\{/gm)].map((m) => m[1]));
+    if (cut > 0) src = src.slice(0, cut);
+    const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
+    heads.forEach((h, i) => {
+      const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
+      if (/\bst\.phase\s*\(/.test(body) && !retired.has(h[1])) out.add(h[1]);
+    });
+  }
+  return out;
+}
+/** 已轉正那一支招的函式體（給 ③ 用；同一條解析路徑） */
+function bodyOf(trId) {
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    let src = fs.readFileSync(path.join(ROOT, 'js/trait-fx', f), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+    if (MUT25 && f === 'xianghuo.js') src = src.replace("st.stance(monk, '前傾', e);", ' ');
+    const cut = src.search(/export const V05[45]/);
+    /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
+       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
+       所以退路段裡出現過的 trId 一律排掉（`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。 */
+    const retired = new Set([...(cut > 0 ? src.slice(cut) : '').matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054(?:short)?\s*\(st\)\s*\{/gm)].map((m) => m[1]));
+    if (cut > 0) src = src.slice(0, cut);
+    const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
+    for (let i = 0; i < heads.length; i++) {
+      if (heads[i][1] !== trId) continue;
+      return src.slice(heads[i].index, i + 1 < heads.length ? heads[i + 1].index : src.length);
+    }
+  }
+  return null;
+}
+/** 本階段（2026-09-13）已轉正的 10 支：香火 9 ＋ 祖靈範本招獻祭刀。推導少一支就是解析壞了。 */
+const CONVERTED_MUST = ['biteGamble', 'eliteCleave', 'eliteSelfCut', 'swarmLastStand', 'swarmRally',
+  'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
+
+t('STANCE_VOCAB／REACT_AXIS／FAC_GROUND 三張表自身完整（沒有 undefined 可以讓「不同型」恆綠）', () => {
+  Object.entries(STANCE_VOCAB).forEach(([k, v]) => {
+    if (!v.axis) throw new Error(`施招姿態 ${k} 沒有 axis`);
+    if (!Number.isFinite(v.amp) || v.amp <= 0) throw new Error(`施招姿態 ${k} 的 amp 不是正數`);
+    if (v.amp < STANCE_GATE.minPeak) throw new Error(`施招姿態 ${k} 的 amp ${v.amp} 低於 STANCE_GATE.minPeak ${STANCE_GATE.minPeak}＝這一型永遠過不了門檻`);
+  });
+  // 三系反應家族的每一個字都要在 REACT_AXIS 裡：漏一個，那一支的「不同型」就是 undefined!==axis 的假綠／假紅
+  Object.entries(FAC_VOCAB).forEach(([fac, v]) => v.reacts.forEach((r) => {
+    if (!REACT_AXIS[r]) throw new Error(`${fac} 的反應「${r}」不在 REACT_AXIS 裡（那條「不同型」檢查會對著 undefined 跑）`);
+  }));
+  eq(Object.keys(FAC_GROUND).sort().join(','), 'xianghuo,yinqi,zuling', 'FAC_GROUND 的系別集合');
+});
+
+t('已轉正的招都登記了 stance，且取值在白名單內（§A9 ①）', () => {
+  const conv = convertedMoves();
+  const missing = CONVERTED_MUST.filter((t2) => !conv.has(t2));
+  if (missing.length) throw new Error(`「已轉正」的推導壞了：推導出 ${[...conv].sort().join(' ') || '無'}，缺少 ${missing.join(' ')}`);
+  const bad = [];
+  conv.forEach((id) => {
+    if (!MS[id]) return; // 三尊三招不在 MOVE_SPEC（Q8）
+    const s = MS[id].stance;
+    if (!s) bad.push(`${id} 沒有 stance（已轉正的招必須登記施招姿態，§A9 ①）`);
+    else if (!STANCE_VOCAB[s]) bad.push(`${id}.stance="${s}" 不在 STANCE_VOCAB（${Object.keys(STANCE_VOCAB).join('／')}）`);
+  });
+  if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
+t('施招姿態與受益／受招反應不同型（§A9 ②）', () => {
+  const bad = [];
+  Object.keys(MS).forEach((id) => {
+    const s = MS[id];
+    if (!s.stance || !STANCE_VOCAB[s.stance]) return; // 沒填的由上一條擋
+    if (s.selfReact) return; // 反應在自身的招（破軍旗）本來就只有一個人，不適用
+    const a = STANCE_VOCAB[s.stance].axis, b = REACT_AXIS[s.react];
+    if (a === b) bad.push(`${id}：施招姿態「${s.stance}」與反應「${s.react}」同型（${a}）——讀者把「他在蓄勢」讀成「他被托起來」，正是 P4 r3 的紅`);
+  });
+  if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
+t('已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③）', () => {
+  const bad = [];
+  let seen = 0;
+  CONVERTED_MUST.forEach((id) => {
+    const body = bodyOf(id);
+    if (!body) { bad.push(`${id}：切不出函式體（解析壞了）`); return; }
+    seen++;
+    if (!/\bst\.stance\s*\(/.test(body)) bad.push(`${id} 沒有呼叫 st.stance（登記表填了卻沒演＝一張沒人看的表）`);
+    if (!/\bst\.groundMark\s*\(/.test(body)) bad.push(`${id} 沒有呼叫 st.groundMark（腳下系別光語彙是身分訊號的另一半）`);
+  });
+  // 活性：切得出來的函式體數不得歸零（解析壞掉時上面兩條會對著空字串跑）
+  if (seen < CONVERTED_MUST.length) bad.push(`只切出 ${seen}/${CONVERTED_MUST.length} 支函式體`);
+  if (bad.length) throw new Error(bad.join(' ／ '));
 });
 
 /* ── 5. 剪影：kind 集合相同、頂點數 ≤24 ─────────────────────────── */
