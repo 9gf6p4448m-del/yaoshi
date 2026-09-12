@@ -294,13 +294,17 @@ function argsFrom(src, openIdx) {
   return src.slice(openIdx + 1);
 }
 
-/** 這個檔裡所有「拿得到徽記 mesh」的名字（變數、屬性、陣列元素都算） */
+/** 這個檔裡所有「拿得到徽記／紙紮道具 mesh」的名字（變數、屬性、陣列元素都算）
+ *  ★2026-09-12 演出卷加嚴★：入口從三支（icon／icons／mark）擴到五支，補上 `paperStamp`／`paperProps`。
+ *  分母是用 grep 數出來的：轉正之後 js/trait-fx/ 下走 `st.paperStamp(` 的有 2 處、`st.paperProps(` 1 處，
+ *  它們產生的 mesh 一樣會被 `scale.setScalar(<數字>)` 縮放 ⇒ 同一個危險效果（尺寸的第二份來源）
+ *  的另外兩條入口。只堵三支就是「按已知入口寫防線」（`02 §6.1` 第 7 條的反例）。 */
 function emblemNames(src) {
   const names = new Set();
   // const knife = st.icon(… ／ const stamp = prey ? st.mark(… ／ const marks = bless.map((f) => st.mark(…
-  for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[^;]*?\bst\.(?:icon|icons|mark)\s*\(/g)) names.add(m[1]);
+  for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[^;]*?\bst\.(?:icon|icons|mark|paperStamp|paperProps)\s*\(/g)) names.add(m[1]);
   // mesh: st.icon(…（物件屬性；yinqi 的 flying[].mesh 就是這樣來的）
-  for (const m of src.matchAll(/([A-Za-z_$][\w$]*)\s*:\s*st\.(?:icon|icons|mark)\s*\(/g)) names.add(m[1]);
+  for (const m of src.matchAll(/([A-Za-z_$][\w$]*)\s*:\s*st\.(?:icon|icons|mark|paperStamp|paperProps)\s*\(/g)) names.add(m[1]);
   return names;
 }
 

@@ -30,8 +30,8 @@ const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx
 const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
 const loadMoves = (file) => import(file + V).then(
-  (m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {}, v054: m.V054 || {}, v054Short: m.V054_SHORT || {} }),
-  () => ({ full: {}, short: {}, v054: {}, v054Short: {} }));
+  (m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {}, v054: m.V054 || {}, v054Short: m.V054_SHORT || {}, v055: m.V055 || {}, v055Short: m.V055_SHORT || {} }),
+  () => ({ full: {}, short: {}, v054: {}, v054Short: {}, v055: {}, v055Short: {} }));
 const [ZULING, XIANGHUO, YINQI] = await Promise.all([
   loadMoves('./trait-fx/zuling.js'),
   loadMoves('./trait-fx/xianghuo.js'),
@@ -52,19 +52,27 @@ const VOCAB_ON = (() => {
   } catch (e) { return false; }
 })();
 
-/** `_v054`／`_v054short` 後綴只是為了讓 0.54 本體與同檔的 0.55 同名函式並存（也讓 fn-hash 切成兩個區塊）；
- *  登記時剝掉後綴換回 trId。**分派只在這裡做一次**，四支招的函式本體裡一個開關判斷都沒有。 */
-const byTrId = (tbl) => Object.fromEntries(Object.keys(tbl).map((k) => [k.replace(/_v054(short)?$/, ''), tbl[k]]));
-/* VOCAB_ON=false（預設／線上）→ 四支示範招用 0.54 本體覆蓋掉 0.55 的徽記剪影版；
-   VOCAB_ON=true（?fxvocab=1）→ 什麼都不覆蓋，跑的就是 0.55。其餘 23 支招與三尊兩邊完全一樣。 */
+/** `_v054`／`_v055`（＋`short`）後綴只是為了讓同一支 trId 的兩三份演出並存在同一個檔裡
+ *  （也讓 fn-hash 切成不同區塊）；登記時剝掉後綴換回 trId。
+ *  **分派只在這裡做一次**，那幾支招的函式本體裡一個開關判斷都沒有。 */
+const byTrId = (tbl) => Object.fromEntries(Object.keys(tbl).map((k) => [k.replace(/_v05[45](short)?$/, ''), tbl[k]]));
+/* 三張表怎麼疊（2026-09-12 招式演出卷批 1 起）：
+     MOVES／SHORT            27 支的**正式**演出。批 1 之後 biteGamble 住在這裡（E 轉正）。
+     V054／V054_SHORT        VOCAB_ON=false 時覆蓋——0.55 徽記剪影版被製作人否掉之後「先退回 0.54」的退路，
+                             剩三支示範招（eliteSelfCut／wardImmuneLost／hauntLost）；
+                             轉正一支就從這裡移除一支（虎爺印已移除，0.54 版見 git show 6a839de）。
+     V055／V055_SHORT        VOCAB_ON=true（?fxvocab=1）時覆蓋——徽記剪影版，留給治具與 L3 canary。
+   所以預設路徑（線上）＝正式演出＋還沒轉正那幾支的 0.54 退路；`?fxvocab=1` ＝正式演出＋徽記版對照組。 */
 const V054_FULL = VOCAB_ON ? {} : byTrId(Object.assign({}, ZULING.v054, XIANGHUO.v054, YINQI.v054));
 const V054_SHORT = VOCAB_ON ? {} : byTrId(Object.assign({}, ZULING.v054Short, XIANGHUO.v054Short, YINQI.v054Short));
+const V055_FULL = VOCAB_ON ? byTrId(Object.assign({}, ZULING.v055, XIANGHUO.v055, YINQI.v055)) : {};
+const V055_SHORT = VOCAB_ON ? byTrId(Object.assign({}, ZULING.v055Short, XIANGHUO.v055Short, YINQI.v055Short)) : {};
 
 /** trId → 編舞函式(stage)。三個系別檔各自導出自己那一系的招；鍵名＝index.html TRAITS 的 id。 */
-export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING.full, XIANGHUO.full, YINQI.full, V054_FULL);
+export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING.full, XIANGHUO.full, YINQI.full, V054_FULL, V055_FULL);
 /** trId → tier 1 的 260ms 短版編舞（v0.54）。三個系別檔各 export const SHORT；三尊三招沒有短版（恆 tier 3）。
  *  缺席時 start() 退回完整版——那不是恆綠退路：完整版塞不進 260ms 會 stats.cut++，治具的 clean 立刻紅。 */
-export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short, XIANGHUO.short, YINQI.short, V054_SHORT);
+export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short, XIANGHUO.short, YINQI.short, V054_SHORT, V055_SHORT);
 /** 這一次載入跑的是哪一版（治具／診斷用；遊戲一行都不讀它）。 */
 export const FX_VOCAB_ON = VOCAB_ON;
 
@@ -126,6 +134,26 @@ const _q = new THREE.Quaternion();
 function makeLcg(seed) {
   let s = (seed >>> 0) || 1;
   return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+/* ── 紙紮道具的兩個共用零件（st.paperStamp 與 st.paperProps 都用；ART_BIBLE §10.2 的紙紮規範）── */
+/** 把 emblems.js 的扁平座標陣列（x0,y0,x1,y1,…）轉成 Vector2[]。 */
+function paperPts(arr) { const p = []; for (let i = 0; i < arr.length; i += 2) p.push(new THREE.Vector2(arr[i], arr[i + 1])); return p; }
+/** 紙的翹曲：頂點依 x²／y 微幅推 z。**同一條曲線要套在同一件道具的每一片上**（本體、面板、字），
+ *  兩片才貼得住——這也是它必須是共用函式而不是各寫一份的理由。 */
+function paperBow(g, warp) {
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) + warp * (p.getX(i) * p.getX(i) * 0.8 - 0.28 + p.getY(i) * 0.10));
+  p.needsUpdate = true;
+}
+/** 該 kind 的外框（＋內孔）→ THREE.Shape。emblems.js 的頂點表是**唯一來源**（Q10：頂點表保留、平面用法廢掉）。 */
+function paperShape(EMB, kind, who) {
+  const spec = EMB[kind];
+  if (!spec) throw new Error(`${who}: 沒有 kind="${kind}"（合法值見 js/trait-fx/vocab.js 的 EMBLEM_OF）`);
+  const flat = Array.isArray(spec) ? spec : spec.o;
+  const shape = new THREE.Shape(paperPts(flat));
+  if (!Array.isArray(spec) && spec.h) shape.holes.push(new THREE.Path(paperPts(spec.h)));
+  return shape;
 }
 
 function prefersReduced() {
@@ -687,19 +715,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       paperStamp(kind, pos, o = {}) {
         const size = iconSizeSrc('st.paperStamp', kind, o, o.role === 'stamp' ? ICON.sizeOf(kind) : ICON.markSizeOf(kind));
         const op = o.opacity === undefined ? 1 : o.opacity;
-        const spec = EMBLEMS.EMBLEM[kind];
-        if (!spec) throw new Error(`st.paperStamp: 沒有 kind="${kind}"（合法值見 js/trait-fx/vocab.js 的 EMBLEM_OF）`);
-        const flat = Array.isArray(spec) ? spec : spec.o;
-        const toPts = (arr) => { const p = []; for (let i = 0; i < arr.length; i += 2) p.push(new THREE.Vector2(arr[i], arr[i + 1])); return p; };
-        const shape = new THREE.Shape(toPts(flat));
-        if (!Array.isArray(spec) && spec.h) shape.holes.push(new THREE.Path(toPts(spec.h)));
+        const shape = paperShape(EMBLEMS.EMBLEM, kind, 'st.paperStamp');
         const depth = o.depth === undefined ? 0.18 : o.depth; // 單位方座標；乘 size 後 ≈0.03–0.11 世界單位
         const warp = o.warp === undefined ? 0.14 : o.warp;
-        const bow = (g) => { // 紙的翹曲：同一條曲線同時套在本體與面板上，兩片才貼得住
-          const p = g.attributes.position;
-          for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) + warp * (p.getX(i) * p.getX(i) * 0.8 - 0.28 + p.getY(i) * 0.10));
-          p.needsUpdate = true;
-        };
+        const bow = (g) => paperBow(g, warp); // 翹曲的公式是共用零件（本體／面板／字三片要貼得住）
         const gBody = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1, steps: 1 });
         gBody.translate(0, 0, -depth / 2);
         bow(gBody);
@@ -785,6 +804,68 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
         touch(fig);
         return mesh;
+      },
+      /** ★群體紙紮道具（2026-09-12 招式演出卷，語彙檔 §A8 指定的新積木）★
+       *  N 件同型小道具 ＝ **1 個 draw call**（A6 的預算：每招峰值 ≤ idle+25）。
+       *
+       *  與 st.icons 的三個差別：
+       *   ① **有厚度＋翹曲**（ExtrudeGeometry ＋ paperBow，紙紮規範 §A4 第 1／3 條），
+       *      不是 st.icons 那種平面 ShapeGeometry ＋ 底板。
+       *   ② **群體位移掛在 InstancedMesh 物件本身**（`obj.position`），實例只帶局部散開量。
+       *      ★這不是效能潔癖，是因果三段的 travel 量得到★：`evalPhases()` 量的是 `mesh.position`，
+       *      而 InstancedMesh 的 position 永遠停在原點、實例位移藏在 matrix 裡（§A5 那個踩過的坑）。
+       *      27 支招裡凡是「一群道具飛過去」的都照這個寫法，不再逐招手刻（E 原型手刻過一次）。
+       *   ③ **不進 run.bbi**：群體小件不逐幀朝鏡頭（逐幀正對鏡頭就是「貼紙」的成因），
+       *      朝向由編舞寫進 items[i].q。
+       *
+       *  ★單件小道具**不做**面板墨線邊（§A4 第 2 條的例外，本卷交製作人覆核）★
+       *  墨線邊要「ink 本體 ＋ 縮 0.74 的 key 面板」兩片，而 InstancedMesh 一個材質只畫得出一種顏色
+       *  ⇒ 兩片就是 2 個 draw call、幾何量也加倍，違反 ① 的立意。而這種小件在 844×390 上只有 10px 上下，
+       *  那一圈邊本來就看不到——E 定稿的九片金箔就是單色薄片，製作人已簽。
+       *  厚度與翹曲兩條照做，所以它仍是「實體」而不是平面 billboard（§3 的禁區守得住）。
+       *
+       *  o = { shape:'flake'|'emblem', color, opacity, depth, warp, k, ratio }
+       *    shape  'flake'（預設）＝紙片矩形，給金箔／香灰／紙錢這種顆粒流（丙 香火家族）；
+       *           'emblem'＝走該 kind 的外框頂點表，給旗／帆／珠／岩塊這種「看得出是什麼」的小件。
+       *    k      相對倍率，單件尺寸 ＝ `ICON.markSizeOf(kind) × k`。**不是尺寸的第二份來源**：
+       *           ICON 的值仍在乘積裡（同 st.icons 的 `sizes` 那一條，見 fxvocab.test.mjs 的註解）。
+       *    ratio  flake 的寬高比（預設 0.72 ＝ E 的金箔 0.105/0.145）。
+       *  回傳 { obj, items, write, size }：
+       *    obj    InstancedMesh（已 spawn，fxKind='prop:<kind>'）——**群體位移改 obj.position**
+       *    items  長度 n 的陣列：{ p:Vector3 局部位置, q:Quaternion 朝向, s:縮放倍率（0＝還沒出現）}
+       *    write() 把 items 寫進 instanceMatrix（改完 items 要叫一次） */
+      paperProps(kind, n, o = {}) {
+        const size = iconSizeSrc('st.paperProps', kind, o, ICON.markSizeOf(kind)) * (o.k === undefined ? 1 : o.k);
+        const count = Math.max(1, n | 0);
+        const depth = o.depth === undefined ? 0.16 : o.depth;
+        const warp = o.warp === undefined ? 0.14 : o.warp;
+        let shape;
+        if (o.shape === 'emblem') shape = paperShape(EMBLEMS.EMBLEM, kind, 'st.paperProps');
+        else {
+          const w = (o.ratio === undefined ? 0.72 : o.ratio) * 0.5;
+          shape = new THREE.Shape([new THREE.Vector2(-w, -0.5), new THREE.Vector2(w, -0.5), new THREE.Vector2(w, 0.5), new THREE.Vector2(-w, 0.5)]);
+        }
+        const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1, steps: 1 });
+        geo.translate(0, 0, -depth / 2);
+        paperBow(geo, warp);
+        const mat = MAT_SOLID.clone();
+        mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
+        mat.opacity = o.opacity === undefined ? 1 : o.opacity;
+        const im = new THREE.InstancedMesh(geo, mat, count);
+        im.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉（同 st.icons）
+        const items = [];
+        for (let i = 0; i < count; i++) items.push({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 0 });
+        const write = () => {
+          for (let i = 0; i < count; i++) {
+            const it = items[i];
+            _m4.compose(it.p, it.q, _s3.setScalar(size * it.s));
+            im.setMatrixAt(i, _m4);
+          }
+          im.instanceMatrix.needsUpdate = true;
+        };
+        write(); // 開場全部 s=0＝看不見，編舞再逐幀長出來
+        st.spawn(im, 'prop:' + kind);
+        return { obj: im, items, write, size };
       },
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
       phase(name) {
