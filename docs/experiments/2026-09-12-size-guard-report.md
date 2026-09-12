@@ -157,7 +157,7 @@ N12 的鑑別力證據是上面那兩項（三個值的真實路徑取值＋`mar
 `suite.txt` 逐檔：aistake 8／conscap 5／duel-desync 7／emblem-collision 9／fxtier 14／fxvocab 16／
 legend 32／lineup-order 8／nightrules 16／review 28／roles-balance 32／wish16 36，**失敗全 0**。
 
-**★`trace-eq` 對本卷零鑑別力，照實記★**（GUIDE §11.26-14）：`index.html` 零 diff，
+**★`trace-eq` 對本卷零鑑別力，照實記★**（GUIDE §11.29 第 14 點，`docs/IMPLEMENTATION_GUIDE.md:1829`）：`index.html` 零 diff，
 而 `load.mjs` 只抽 `index.html` 的第一個 `<script>` 在 node 裡跑、**完全不載入 `js/`**，
 所以「逐位元組相等」在這一卷是恆真。對 `js/trait-fx*` 有鑑別力的等價證據是上表的
 L3 四格逐位數相同、與 27＋3 支 `traitfx-drive` 全綠。
@@ -178,7 +178,7 @@ L3 四格逐位數相同、與 27＋3 支 `traitfx-drive` 全綠。
 第一輪用**區塊**順序（先跑完 3 次新版、再跑 3 次基準），比值 **0.9518**（壓在 0.95 線上、全距不重疊）。
 改成**交錯**（base／new 一輪一支，共 7 輪）之後，同一份程式碼的新版落在 480.6–546.2，
 把區塊那 3 跑（480.8／491.3／491.7）整個包進去 ⇒ 波動來源是**環境時序（機器狀態）**，不是受測物：
-同一棵樹、同一份程式碼在不同時段就能差 13%。採用的是交錯那一組（GUIDE §11.26 量測紀律：
+同一棵樹、同一份程式碼在不同時段就能差 13%。採用的是交錯那一組（GUIDE §11.27「量測紀律（二版學到的）」，`docs/IMPLEMENTATION_GUIDE.md:817-820`：
 「交錯跑、看中位的中位與全距有沒有重疊」）。
 
 | 組 | n | `rendersPerSec` 中位 | 全距 | 比值 |
@@ -225,11 +225,11 @@ L3 四格逐位數相同、與 27＋3 支 `traitfx-drive` 全綠。
 
 **四支示範招的 L3 數字與修補報告 §2.2 現值欄逐位數相同**（§3 的表）⇒ 那四支是純重構。
 
-### 範圍外、留給呼叫端的一件事
+### 範圍外、留給呼叫端的一件事 —— **修補批已納入範圍並改掉（見 §8 LOW-1）**
 
-`docs/IMPLEMENTATION_GUIDE.md` §11.26 第 11 點仍寫「L3 的 canary 打在 `ICON.sizeOf()` 的回傳值上」，
-本卷範圍不含該檔，**沒有改**。那句話現在與 `tests/tools/README.md`／`vocab.js` 註解分岔了，
-合併時要一併改成 `ICON._resolve()`（同時該點的「掃描＝`size: <數字>`／`const SZ = <數字>`」也已過時）。
+~~`docs/IMPLEMENTATION_GUIDE.md` §11.26 第 11 點仍寫「L3 的 canary 打在 `ICON.sizeOf()` 的回傳值上」~~
+★章節號本身也寫錯了（覆審 r4 LOW-1）：實際是 **§11.29 第 11 點**（`docs/IMPLEMENTATION_GUIDE.md:1798-1805`）。
+修補批已把它改成 `ICON._resolve()`、把過時的掃描規則改掉，並補上 MEDIUM-4 的已知限制。
 
 ---
 
@@ -256,3 +256,174 @@ $ node tests/tools/duel-perf.mjs perf scratchpad/sg/perf-base<i>.json --uncap --
 ```
 
 `scratchpad/` 在 `.gitignore` 內（中間產物不版控）；要重跑的人照上面的指令重建即可。
+
+
+---
+
+# 8. 修補批（覆審 r1 ＝對抗式覆審 r4，2026-09-12）
+
+> 起點 `0117315`。覆審報告原文 `scratchpad/review-size-guard-r1.md`（scratchpad 在 .gitignore 內）。
+> 覆審結論：**N12 真的修好；N11 表面修好（HIGH）**——覆審員自己設計四條繞法，三道防線全綠，
+> 其中一條讓 L3 canary 跑出 `ok:true` ＝恆綠儀式復現。
+
+## 8.0 逐條三態
+
+| # | 項目 | 三態 | 證據 |
+|---|---|---|---|
+| **HIGH-1** | 「涵蓋自然 100%」是假的；四條繞法（父層 Group／換 geometry／自寫 matrix／`defineProperty` 蓋 accessor）全綠 | **真的修好** | §8.1 收斂＋§8.2 按效果寫的世界尺寸稽核；十一條繞法逐條實跑全紅（`bypass11.md`）；決定性繞法 F 的 canary 由 `ok:true` 翻成 `pass 0`（`decisive-F.md`）；三處「100%」字樣已刪（§8.6） |
+| **MEDIUM-1** | 違規的 throw 被吞掉、還靜默殺死整條 tween | **真的修好** | `js/trait-fx.js` 三個 `catch` 改走 `noteThrow()`，記進 `stats.tweenErrors`／`tweenErrorMsg`，三支治具納入判定（§8.3）。實測：繞法 E（`defineProperty` 蓋 accessor，丟的是 TypeError 不經記帳線）靠這一條變紅 |
+| **MEDIUM-2** | 23 套 `made=0` 卻 `sizeOK:true`＝空真 | **真的修好** | 三態 `n/a`／`ok`／`fail` ＋ `EMBLEM_CASES` 名單；`--tier=1` 實跑印 `ok 4／n/a 23／fail 0`；把示範招的徽記拿掉 ⇒ `★用到徽記的招卻是 n/a` ＋ exit 1（`medium2-empty-truth.md`） |
+| **MEDIUM-3** | 正式 L3 走的 `duel-drive` 不讀這筆記帳 | **真的修好** | `duel-drive.mjs` 從 `window.__yaoshi3d.traitFx.sizeGuard()` 取回、寫進 `out.json` 的 `sizeState`、fail 時 exit 非 0。**真實對決實跑到 `ok`**：14 場、鎖上 92 of 產出 92、稽核 1872 次（§8.4） |
+| **MEDIUM-4** | L3 凍幀 430ms 量不到印記／貼桌陣 | **表面修好（限制照實寫下來，殘留由別的防線補）** | L3 這一格的鑑別力沒有變；改的是把限制寫進 `tests/tools/README.md` 與 GUIDE §11.29 第 11 點，並說明世界尺寸稽核**不依賴凍幀**、印記與貼桌陣（含 InstancedMesh 逐實例）都在它的涵蓋裡（§8.5） |
+| **LOW-1** | 報告三處章節引用錯 | **真的修好** | §5／§6／§7 的 `§11.26` 改成 `§11.29 第 14 點`／`§11.27`；GUIDE §11.29 第 11 點本身也改了（§8.6） |
+| **LOW-2** | `fxIcons.scale` 是沒鎖的可寫倍率欄 | **真的修好** | `auditInstances()` 每幀檢查它是有限數且落在 `ICON.scaleRange`，否則判違規 |
+| 覆審 §4.5 未確認的疑慮 | `im.setMatrixAt(i, m)` 繞得過鎖與掃描 | **真的修好** | `auditInstances()` 逐 instance `decompose()`，對 `fxIcons.size × 相對倍率` 比對 |
+
+## 8.1 收斂：把「會改變世界尺寸的屬性」全部鎖死
+
+`js/trait-fx.js` 的 `lockIconScale()`（`:189-236`）現在鎖的是一組屬性，不是一顆 Vector3：
+
+| 鎖住的東西 | 擋掉的繞法 | 形式 |
+|---|---|---|
+| `scale` 這個屬性本身 | `Object.defineProperty(knife,'scale',{value:new Vector3(0.02)})` | `writable:false, configurable:false` |
+| `scale.x`／`y`／`z` | r3 七條（別名／`multiplyScalar`／`scale.x=`／子節點與索引…） | accessor，**`configurable:false`**（r3 寫 `true`＝繞法 E 的入口） |
+| `geometry` | r4 **B**（置換 geometry） | accessor（不是 `writable:false`——後者丟的 TypeError 不帶語意） |
+| `matrixAutoUpdate`／`matrixWorldAutoUpdate` | r4 **C**／**F**（自寫 `matrix`／`matrixWorld`） | accessor，只准是 `true` |
+| `userData.fxIconBase`／`fxIconKind` | 改基準再呼叫合法 API | `writable:false, configurable:false` |
+| `userData.fxIcons.size` | 群體徽記改逐幀重排用的尺寸 | `writable:false` |
+
+合法入口 `st.iconScale(mesh, k)` 另加**倍率區間** `ICON.scaleRange = [0.2, 2.2]`（`vocab.js`）
+——沒有它，`st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門，合法入口自己變成第二份來源。
+四支示範招實際用到 0.35～1.9，區間留了餘裕；要超出代表這個 kind 的**尺寸**該改，請改三張表。
+
+## 8.2 按效果寫：每幀量世界尺寸（`auditSizes`）
+
+`js/trait-fx.js:241-300`，排在 run 每幀更新的最後（量到的是這一幀真正要送去畫的世界矩陣）：
+
+1. `geometry` 身分＝`emblems.js` 的共用幾何（換了就判紅，即使鎖被繞過）；
+2. `updateWorldMatrix(true, true)` → `matrixWorld.decompose()` 取**世界縮放**，
+   必須等於「積木自己最後一次合法寫進去的值」沿祖先鏈的連乘；
+3. 祖先鏈上**未登記**的節點縮放必須是 1（r4 繞法 A 的父層 Group 就是踩這條）；
+4. InstancedMesh 逐 instance `decompose()`，對 `fxIcons.size × 相對倍率` 比對（`setMatrixAt` 那條路）；
+5. 診斷欄：世界寬度（世界縮放 × geometry 單位寬，**旋轉無關**）與 `Box3.setFromObject` 的對角線（抽樣）。
+
+**★判定為什麼不直接用 `Box3.setFromObject` 的跨距（與任務書字面的差異，理由寫在這裡）★**
+徽記是逐幀朝鏡頭的 billboard，旋轉中物件的世界 AABB 跨距隨朝向變（同尺寸能差到 √2 倍）。
+要用它當判準就得把容差放寬到「連 0.93 倍的繞法都放行」——那正是 r4 決定性繞法 F 的倍率
+（寫死 0.52 對 `base 0.56`）。所以判定用旋轉無關的量，`Box3` 只留在診斷欄。
+`updateWorldMatrix(true, true)` 與 `Box3.setFromObject` 兩支 API 都照任務書用了。
+
+**★量測位置為什麼在引擎裡而不是在治具裡（第二個差異）★**
+任務書寫「在 `traitfx-drive.mjs` 與 `duel-drive.mjs` 加世界包圍盒斷言」。實作放在
+`js/trait-fx.js`，由三支治具讀 `stats`／`traitFx.sizeGuard()`。三個理由：
+① 治具那一側**拿不到那些物件**——`traitfx-preview.html` 與 `index.html` 都在本批的「不動」清單裡，
+沒有把徽記清單暴露出來的 API；② 寫在引擎裡才量得到**每一幀**（治具只能在幾個取樣點量，
+而繞法 A／C 的效果可能只在某幾幀成立）；③ 一份實作、三支治具共用，不會出現兩份會分岔的斷言
+——這正是整卷在做的「單一事實來源」。治具那一側做的是判定與活性檢查（三態）。
+
+**通用性**（製作人交代「之後要沿用到紙紮道具」）：稽核吃的是 `SIZED` 這份登記表，
+`lockIconScale(run, obj, base, kind, geom)` 是通用的登記入口——之後的紙紮道具只要在自己的
+工廠裡呼叫它就進入同一道防線。**本批只接 `st.icon`／`st.icons`／`st.mark` 三條路**。
+
+## 8.3 十一條繞法全紅（＋決定性繞法 F）
+
+完整輸出：`docs/experiments/2026-09-12-size-guard-evidence/bypass11.md`、`decisive-F.md`。
+做法同前批：備份副本 → **加行**（①是把 `o.size` 塞回建構式）→ 跑兩支治具 → copy 備份副本還原（md5 核對）
+→ 重跑 `fxvocab` 確認回綠（每條都貼了）。
+
+| # | 繞法 | 掃描 exit | 執行期 exit | 判紅的是哪一道 |
+|---|---|---|---|---|
+| 1 | ①`{size:S}`（建構式） | **1** | **1** | 入口 throw（`handled=false`）＋`EMBLEM_CASES` 的 `n/a` 判紅＋掃描 |
+| 2 | ②`setScalar(S * …)` | **1** | **1** | 執行期鎖＋掃描 |
+| 3 | ③`setScalar(0.56 * …)` | **1** | **1** | 執行期鎖＋掃描 |
+| 4 | ④別名後 `setScalar` | **1** | **1** | 執行期鎖＋掃描 |
+| 5 | ⑤`multiplyScalar` | **1** | **1** | 執行期鎖＋掃描 |
+| 6 | ⑥`scale.x =` | **1** | **1** | 執行期鎖＋掃描 |
+| 7 | ⑦子節點／索引取用 | **1** | **1** | 執行期鎖＋掃描 |
+| 8 | **A 父層縮放 Group**（r4） | **1** | **1** | **世界尺寸稽核**（未登記祖先縮放 ≠ 1）＋掃描（`.add(knife)`／`knife.parent`） |
+| 9 | **B 置換 geometry**（r4） | **1** | **1** | `geometry` accessor ＋稽核的 geometry 身分＋掃描（`knife.traverse`） |
+| 10 | **C `matrixAutoUpdate=false` ＋自寫 matrix**（r4） | **1** | **1** | `matrixAutoUpdate` accessor ＋掃描 |
+| 11 | **E `defineProperty` 蓋掉 accessor**（r4） | **1** | **1** | `configurable:false` ⇒ TypeError，由 **MEDIUM-1 的 `tweenErrors`** 記起來＋掃描 |
+| 12 | **F 每幀 compose 絕對值 0.52**（r4 決定性實驗） | **1** | **1** | `matrixAutoUpdate` accessor（違規 1 次）＋掃描 |
+| 13 | F2 只寫 `matrix`、不關 `matrixAutoUpdate`（對照組） | **1** | **0** | 只有掃描。**執行期綠是對的**：`matrixAutoUpdate` 仍是 true ⇒ `updateMatrix()` 每幀把手寫矩陣蓋回去，**效果根本沒發生**，稽核量到的世界尺寸與健康態相同 |
+
+**★決定性實驗的翻轉（`decisive-F.md`）★**
+
+| | r3（覆審 r4 實測） | 本批 |
+|---|---|---|
+| F ＋ 健康態 | `area_pct 1.0132／de 61.31／ok:true` | `size=fail`、違規 1 次、`fx-contrast` **exit 1**；像素 `area 0.4059／ok:false／pass 0` |
+| F ＋ L3 canary（`_resolve()=>0.02`） | **與健康態逐位數相同**、`GATE pass 1` ⇒ 恆綠儀式 | `area 0.0425／ok:false／**pass 0**`、`fx-contrast` exit 1 |
+
+⇒ 健康態與 canary 態**不再逐位數相同**（0.4059 vs 0.0425），canary 恢復鑑別力。
+
+## 8.4 三支治具都讀這筆記帳（MEDIUM-3）
+
+| 治具 | 讀法 | 實跑 |
+|---|---|---|
+| `traitfx-drive.mjs` | `__tfx.stats()` | `--tier=1` **27/27 pass**、`ok 4／n/a 23／fail 0`、稽核 240 次；`--tier=3` **3/3 pass**、`n/a 3` ＋★未量到★ |
+| `fx-contrast.mjs` | `__tfx.stats()` | 四支 `size=ok`、稽核 390 次；`pass 4` |
+| `duel-drive.mjs`（**批 1–3 的正式 L3**） | `window.__yaoshi3d.traitFx.sizeGuard()`（`js/renderer.js:182` 已把 traitFx 掛上，不動 `index.html`） | 真實對決 14 場：`徽記世界尺寸斷言：ok　違規 0／鎖上 92 of 產出 92／稽核 1872／tween 安靜死掉 0`，世界寬度 `{"knife":[0.24,0.448],"hat":[0.578957,0.784],"hat:instanced":[0.392,0.392]…}` |
+
+`duel-drive` 先跑 `--duels=4` 時是 `n/a`（那四場沒抽到用徽記的招），治具**照實印「未量到，不得當成通過」**；
+加到 `--duels=16`（實際打了 14 場）才量到 `ok`。這一段是「驗在對方的接收端」的實證，不是結構推論。
+
+## 8.5 MEDIUM-4：L3 的已知限制寫進文件
+
+`tests/tools/README.md` 與 `docs/IMPLEMENTATION_GUIDE.md` §11.29 第 11 點都加了：
+L3 凍在 `travel` 中點，**印記（`markByKind`）與貼桌陣（`flatByKind`）在 `react` 段才淡入**，
+那一刻幾乎不貢獻像素（`biteGamble` 在 canary 下整張差圖只剩 4 px）⇒ 以它們為主視覺的招，
+L3 那一格對「尺寸來源」零鑑別力；**這條殘留由世界尺寸稽核補**（每幀量、不依賴凍幀、不依賴像素，
+印記與貼桌陣含 InstancedMesh 逐實例都在涵蓋裡）。要在 L3 也看得到就得另挑時點或另加一格。
+
+**★沒有動凍結檔本身★**：`docs/experiments/2026-09-11-acceptance-fx-legibility.md` 是判準檔，
+本批只在「引用處」（README、GUIDE、本報告）寫下這條限制，沒有改它一個字
+（`02 §2.1`：判準檔要改得走同意程序）。要不要把這條收進凍結檔的 §2.1 修訂紀錄，交呼叫端裁。
+
+## 8.6 HIGH-1 的宣稱字樣
+
+三處「分母歸一／涵蓋自然 100%／把還沒有人想到的第五條一起收掉」全部刪掉並改寫成據實的範圍：
+`js/trait-fx/vocab.js`（改成逐條列出 r4 四條繞法與現在的四道防線）、
+`tests/fxvocab.test.mjs`（明寫「那句是假的，已刪：鎖住一個屬性 ≠ 收斂一個效果」）、
+`tests/tools/README.md`（改寫成四道防線各自守得住什麼）。
+本報告 §2 那句也在本節一併作廢——**能說的只有「①②④按入口寫、③按效果寫，新的繞法要由③接住」**。
+
+## 8.7 驗收重跑（原七條＋第 8 條）
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 分母 | 未變（§1；本批沒有新增／刪除編舞裡的縮放點） |
+| 2 | 鑑別力 | **十一條繞法＋F 全紅**（§8.3 表；`bypass11.md`、`decisive-F.md`），每條都用備份副本還原並重驗回綠 |
+| 3 | N12 | 未動；`_resolve` canary 仍 `pass 0`、三值同時變 0.02（`n12-canary-values.txt`） |
+| 4 | 健康態 | `node tests/fxvocab.test.mjs` **16 綠 0 紅**；12 檔測試套全 exit 0（`r4-suite.txt`）；`traitfx-drive --tier=1` **27/27**、`--tier=3` **3/3**、err=0；`trace-eq` 對 `417b197` `equal:true` |
+| 5 | 效能 | 交錯 9 輪：base 中位 **533.3**（n=13，全距 489.3–548.2）／new 中位 **521.0**（n=8，全距 457.5–575.1），比值 **0.9768 ≥0.95**，全距大幅重疊（`r4-perf.txt`） |
+| 6 | 範圍 | `git diff --stat 417b197..HEAD`（§8.8），新增 `duel-drive.mjs`（覆審 MEDIUM-3 要求）與 `docs/IMPLEMENTATION_GUIDE.md`（LOW-1 納入） |
+| 7 | commit | 逐步 commit、繁體中文、**未合併、未 push** |
+| 8 | 十一條突變全紅表 | §8.3 |
+
+**L3 四支逐位數（與修補報告 §2.2 現值欄比對）**：
+`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`
+——**四格全部逐位數相同**（`r4-l3-current-metrics.txt`）⇒ 每幀稽核對畫面零影響。
+canary（`_resolve()=>0.02`）**`pass 0`、四支全 `ok:false`**（`r4-l3-canary-metrics.txt`）。
+
+**★draw call 照實記★**（`r4-perf.txt`）：依 `visible` 分層後
+`visible=16` 本樹 [964, 970] 落在基準 [957…1016] 內；
+`visible=15` 本樹 [926, 926, 928, 928, 930, **946**] 對基準 [926, 926, 928, 928, 930, 930]
+——**有一個樣本 946 超出基準全距 16 個 call**。兩件事一起說：
+① 機制上這道防線**不產生任何可畫的東西**（只讀矩陣、不建 mesh／material／geometry），
+② `visible` 是場景組成的粗略代理（GUIDE §11.27 修訂八自己寫過「燒掉一尊 ≈30 個 draw call」），
+單一樣本落在 6 樣本窄帶外不足以判定變化。**這一格記為「未完全落在基準全距內」，不宣稱通過。**
+
+## 8.8 修補批的改動清單
+
+| 檔案 | 對應 | 改了什麼 |
+|---|---|---|
+| `js/trait-fx.js` | HIGH-1／MEDIUM-1／LOW-2 | `lockIconScale` 擴成鎖一組屬性（`configurable:false`）、新增 `auditSizes`／`auditInstances`／`expectedWorldScale`／`unitWidthOf`／`sizeGuard()`、`noteThrow()`、`run.sized`、`stats` 六個新欄位、`st.iconScale` 加倍率區間 |
+| `js/trait-fx/vocab.js` | HIGH-1 | 新增 `ICON.scaleRange`；刪掉「涵蓋 100%」的宣稱，改寫成 r4 四條繞法與四道防線 |
+| `tests/fxvocab.test.mjs` | HIGH-1 | 掃描規則由 `.scale` 擴成 `scale/geometry/matrix/matrixWorld/matrixAutoUpdate/matrixWorldAutoUpdate/parent/children/traverse` ＋ 禁 `.add(徽記)`；`--mutate` 由 7 條擴成 **11 條** |
+| `tests/tools/traitfx-drive.mjs` | MEDIUM-1／2 | 三態 `sizeState`、`EMBLEM_CASES` 名單、`tweenErrors`、世界寬度診斷欄、彙總與 exit code |
+| `tests/tools/fx-contrast.mjs` | MEDIUM-1／2 | 同上（L3 每一套都用徽記，所以 `made===0` 在這支就是 `fail`） |
+| `tests/tools/duel-drive.mjs` | **MEDIUM-3** | 收工時讀 `window.__yaoshi3d.traitFx.sizeGuard()`，`sizeState` 落 `out.json`，fail 時 exit 非 0 |
+| `tests/tools/README.md` | HIGH-1／MEDIUM-4 | 四道防線改寫、三態說明、L3 的已知限制 |
+| `docs/IMPLEMENTATION_GUIDE.md` | **LOW-1** | §11.29 第 11 點：canary 改 `_resolve()`、掃描規則改寫、指向 README 當權威、補 MEDIUM-4 限制 |
+| 本報告 | LOW-1 | 三處章節引用改正；新增本節 |
+| `…-evidence/bypass11.md`／`decisive-F.md`／`medium2-empty-truth.md`／`r4-*.txt` | 證據 | 十一條繞法、決定性實驗、空真突變、L3 現值／canary、測試套、效能 |

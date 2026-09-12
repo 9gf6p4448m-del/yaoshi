@@ -208,16 +208,24 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
        而且它們是**加行**不是改行，活性下限 `emblemScale < 5` 也不會響。
    r3（本段）：**首選收斂，不是補涵蓋**（`02 §6.1` 第 7 條的優先序）——
        `js/trait-fx.js` 的 `lockIconScale()` 在**執行期**把徽記 mesh 的 `scale`（x／y／z 三個 accessor）
-       鎖死，three.js 所有 Vector3 變動方法最後都是對 x／y／z 賦值 ⇒ 分母歸一、涵蓋自然 100%，
+       鎖死（three.js 所有 Vector3 變動方法最後都是對 x／y／z 賦值），
        任何外部寫入當場 throw 並記進 `stats.sizeViolations`（治具端 `traitfx-drive`／`fx-contrast` 在判）。
        編舞唯一的合法縮放介面是 `st.iconScale(mesh, 相對倍率)`（ICON 的值永遠在乘積裡）。
+       ★r3 在這裡寫了「分母歸一、涵蓋自然 100%」——那句是假的，已刪★：鎖住一個屬性 ≠ 收斂一個效果，
+       世界尺寸還受父層縮放／geometry／自寫 matrix 影響（見下一段 r4）。
 
-   ⇒ **本掃描退居第二道**，規則也跟著換成按效果寫的版本：
+   ★r4 又補了一輪★：r3 的 (b) 只盯 `.scale`，覆審員實測另外四條照樣改得動世界尺寸而三道防線全綠
+   （A 父層 Group 縮放、B 置換 geometry、C 自寫 matrix、E defineProperty 蓋掉 accessor）。
+   真正的扼口是 `js/trait-fx.js` 的 `lockIconScale` ＋ `auditSizes`（執行期量**世界尺寸**本身）。
+   本掃描同步把規則從「`.scale`」擴成「**所有會改變世界尺寸的成員**」。
+
+   ⇒ **本掃描是第三道**（第一道＝入口拒收 `o.size`，第二道＝執行期鎖與世界尺寸稽核），規則：
       (a) 編舞不得出現 `size:` 這個鍵（入口已 throw，這是第二道）；
-      (b) 編舞**不得直接碰徽記 mesh 的 `.scale`**——不論用哪個方法、哪個別名、哪層成員或索引；
-      (c) 編舞不得把徽記餵給 `st.grow()`（那支寫的是**絕對**縮放，等於第二份來源）。
-      (b) 的比對對象是「從徽記名字出發、抵達 `.scale` 的任何成員鏈」，不是列舉方法名——
-      這樣 r3 那四條繞法與「還沒有人想到的第五條」都落在同一條規則裡。
+      (b) 編舞**不得直接碰徽記的** `scale`／`geometry`／`matrix`／`matrixWorld`／
+          `matrixAutoUpdate`／`matrixWorldAutoUpdate`／`parent`——不論用哪個方法、哪個別名、
+          哪層成員或索引（比對的是「從徽記名字出發抵達那個成員的任何成員鏈」，不是列舉方法名）；
+      (c) 編舞不得把徽記餵給 `st.grow()`（那支寫的是**絕對**縮放），
+          也不得把徽記 `add()` 到別的節點底下（父層縮放就是那樣進來的，r4 繞法 A）。
 
    ★分母（動手前 grep 數出來，不憑印象；指令與輸出在 docs/experiments/2026-09-12-size-guard-evidence/）★
    `js/trait-fx/` 下除 vocab.js 外的全部 .js（目前 4 個：emblems／xianghuo／yinqi／zuling），去註解後——
@@ -231,7 +239,7 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
    `st.icon(`／`st.icons(`／`st.mark(` 的呼叫點 **8 處**（4 支示範招），
    `st.iconScale(` 的呼叫點 **5 處**（＝收斂前那 5 處直接縮放）。
 
-   `--mutate=4..10` 是 r3 七條繞法各自的回歸案例（原檔全程唯讀，只動記憶體裡的副本）。 */
+   `--mutate=4..14` 是十一條繞法各自的回歸案例（r3 七條＋r4 四條；原檔全程唯讀，只動記憶體裡的副本）。 */
 
 /** 這個檔裡所有「拿得到徽記 mesh」的名字（變數、屬性、陣列元素、**別名**都算）。
  *  別名要做到不動點：`const m2 = knife;` 之後 `m2` 也是徽記（r3 繞法④）。 */
@@ -252,13 +260,18 @@ function emblemNames(src) {
   return names;
 }
 
-/** 從名字 n 出發、經過任意成員／索引之後抵達 `.scale` 的寫法（含 `n.scale` 本身） */
-function scaleReach(n) {
+/** 會改變徽記世界尺寸的成員（r4：不只 scale——父層、geometry、手寫 matrix 都是同一個效果） */
+const SIZE_MEMBERS = ['scale', 'geometry', 'matrix', 'matrixWorld', 'matrixAutoUpdate', 'matrixWorldAutoUpdate',
+  // parent／children／traverse 不是尺寸本身，但它們是「繞到尺寸」的三條通道：
+  // 重新掛載（父層縮放）、抓子節點改、traverse 進去改 geometry。編舞沒有合法理由碰它們。
+  'parent', 'children', 'traverse'];
+/** 從名字 n 出發、經過任意成員／索引之後抵達上列任一成員的寫法（含 `n.scale` 本身） */
+function sizeReach(n) {
   const id = n.replace(/\$/g, '\\$');
-  return new RegExp('\\b' + id + '\\s*(?:\\.\\s*[A-Za-z_$][\\w$]*|\\[[^\\]\\n]*\\])*\\s*\\.\\s*scale\\b', 'g');
+  return new RegExp('\\b' + id + '\\s*(?:\\.\\s*[A-Za-z_$][\\w$]*|\\[[^\\]\\n]*\\])*\\s*\\.\\s*(' + SIZE_MEMBERS.join('|') + ')\\b', 'g');
 }
 
-t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得直接碰 scale ＋ 不得餵進 st.grow）', () => {
+t('徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得碰 scale／geometry／matrix／parent ＋ 不得 grow／add）', () => {
   const dir = path.join(ROOT, 'js/trait-fx');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js') && f !== 'vocab.js').sort();
   if (files.length < 4) throw new Error(`js/trait-fx 只掃到 ${files.length} 個編舞檔（預期 ≥4，分母歸零了？）`);
@@ -268,7 +281,7 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不�
     let src = fs.readFileSync(path.join(dir, f), 'utf8');
     /* 突變：r3 §N11 實測的七條繞法，逐條塞回 zuling.js 的獻祭刀。
        原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。 */
-    if (MUT >= 4 && MUT <= 10 && f === 'zuling.js') {
+    if (MUT >= 4 && MUT <= 14 && f === 'zuling.js') {
       const from = 'st.iconScale(knife, 0.5 + 0.5 * e);';
       if (!src.includes(from)) throw new Error(`突變 ${MUT} 的錨點不在了：` + from);
       const BYPASS = {
@@ -279,6 +292,11 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不�
         8: 'knife.scale.multiplyScalar(0.02 / st.iconSize);', //            ⑤ multiplyScalar
         9: 'knife.scale.x = 0.02; knife.scale.y = 0.02; knife.scale.z = 0.02;', // ⑥ scale.x=
         10: 'knife.children[0].scale.setScalar(0.02); marks[0].scale.setScalar(0.02);', // ⑦ 子節點／索引
+        /* ── 覆審 r4 自己設計的四條（r3 三道防線對它們全綠）── */
+        11: 'const wrapG = new THREE.Group(); wrapG.scale.setScalar(0.06); knife.parent.add(wrapG); wrapG.add(knife);', // A 父層 Group
+        12: 'knife.traverse((o) => { if (o.geometry) o.geometry = new THREE.PlaneGeometry(0.05, 0.05); });', // B 置換 geometry
+        13: 'knife.matrixAutoUpdate = false; knife.matrix.multiply(new THREE.Matrix4().makeScale(0.05, 0.05, 0.05));', // C 自寫 matrix
+        14: "Object.defineProperty(knife.scale, 'x', { value: 0.02 });", // E defineProperty 蓋掉 accessor
       };
       // 繞法是**加行**不是改行（r3 N11 原話）：合法的 st.iconScale 留著，旁邊多一條第二來源。
       src = src.replace(from, from + ' ' + BYPASS[MUT]);
@@ -297,12 +315,17 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不�
     const names = emblemNames(noComment);
     nameTotal += names.size;
     for (const n of names) {
-      for (const m of noComment.matchAll(scaleReach(n))) {
-        hits.push(`${f}:${lineOf(m.index)} ${m[0]}（徽記 mesh 的 scale 只能由 st.iconScale 寫；`
-          + '直接碰它＝尺寸的第二份來源，執行期也會被 lockIconScale throw）');
+      for (const m of noComment.matchAll(sizeReach(n))) {
+        hits.push(`${f}:${lineOf(m.index)} ${m[0]}（徽記的世界尺寸只能由 st.iconScale 寫；`
+          + `直接碰 ${m[1]} ＝尺寸的第二份來源，執行期也會被 lockIconScale／auditSizes 抓到）`);
       }
-      for (const m of noComment.matchAll(new RegExp('\\bst\\.grow\\s*\\(\\s*' + n.replace(/\$/g, '\\$') + '\\b', 'g'))) {
+      const id = n.replace(/\$/g, '\\$');
+      for (const m of noComment.matchAll(new RegExp('\\bst\\.grow\\s*\\(\\s*' + id + '\\b', 'g'))) {
         hits.push(`${f}:${lineOf(m.index)} st.grow(${n}…（st.grow 寫的是絕對縮放；徽記請用 st.iconScale）`);
+      }
+      // r4 繞法 A：把徽記掛到別的節點底下，父層縮放就進來了
+      for (const m of noComment.matchAll(new RegExp('\\.\\s*add\\s*\\(\\s*' + id + '\\b', 'g'))) {
+        hits.push(`${f}:${lineOf(m.index)} .add(${n}…（徽記不得被重新掛載：父層縮放＝世界尺寸的第二份來源，覆審 r4 繞法 A）`);
       }
     }
   }

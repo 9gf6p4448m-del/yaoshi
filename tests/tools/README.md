@@ -11,25 +11,61 @@
 腳本裡的 `index.html` 路徑是絕對路徑（`C:/Users/shung/OneDrive/桌面/妖市/index.html`），搬 repo 要改。
 實驗報告與驗收凍結檔在 `docs/experiments/`。
 
-## 徽記尺寸的防線與 L3 canary（v0.55 招式可辨性卷，覆審 r3 N11／N12）
+## 徽記世界尺寸的防線與 L3 canary（v0.55 招式可辨性卷，覆審 r3 N11／N12 → r4 修補批）
 
-危險的**效果**＝「徽記的實際世界尺寸出現第二份來源」。防線有三道，**前兩道是收斂，第三道才是掃描**：
+危險的**效果**＝「徽記在**世界空間**的實際尺寸，來自 ICON 表以外的第二份來源」。
+★r3 那一版只鎖了 `Object3D.scale`，卻宣稱「涵蓋 100%」；覆審 r4 實測四條繞法（父層 Group 縮放／
+置換 `geometry`／自寫 `matrix`／`Object.defineProperty` 蓋掉 accessor）三道防線全綠，
+其中一條讓 L3 canary 跑出 `ok:true`＝恆綠儀式復現。★ 現在的防線是：
 
 1. **入口拒收**（`js/trait-fx.js` 的 `iconSizeSrc`）：`st.icon()`／`st.icons()`／`st.mark()` 傳 `o.size` 就 throw。
-2. **執行期鎖**（`js/trait-fx.js` 的 `lockIconScale`）：徽記 mesh（含 ink 底板／描邊子節點、`st.icons` 的
-   InstancedMesh 與它的 `userData.fxIcons.size`）的 `scale` 被換成 accessor，外部任何寫入當場 throw
-   並記進 `stats.sizeViolations`。three.js 所有 Vector3 變動方法最後都是對 `x`／`y`／`z` 賦值，
-   所以別名、`multiplyScalar`、`scale.x=`、子節點與索引取用**同一個扼口全收**。
-   編舞唯一的合法縮放介面是 **`st.iconScale(mesh, 相對倍率)`**（＝ ICON 表給的基準 × 倍率）。
-3. **原始碼掃描**（`tests/fxvocab.test.mjs`）：編舞不得出現 `size:` 這個鍵、不得直接碰徽記 mesh 的
-   `.scale`（任何成員鏈／別名／索引）、不得把徽記餵給 `st.grow()`。
-   `--mutate=4..10` 是七條繞法各自的回歸案例（原檔全程唯讀，不做反向 sed）：
+2. **執行期鎖**（`lockIconScale`）：徽記（本體、ink 底板與描邊子節點、`st.icons` 的 InstancedMesh）
+   凡是會改變世界尺寸的屬性一律鎖成 accessor／不可再定義（**`configurable: false`**）：
+   `scale` 這個屬性本身與它的 `x`／`y`／`z`、`geometry`、`matrixAutoUpdate`、`matrixWorldAutoUpdate`、
+   `userData.fxIconBase`／`fxIconKind`、`userData.fxIcons.size`。寫了就記帳＋throw。
+   編舞唯一的合法縮放介面是 **`st.iconScale(mesh, 相對倍率)`**（＝ ICON 表基準 × 倍率，
+   倍率必須落在 `ICON.scaleRange`——否則 `st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門）。
+3. **世界尺寸稽核**（`auditSizes`，**按效果寫的那一道**）：每一幀對每個徽記
+   `updateWorldMatrix(true, true)` → `matrixWorld.decompose()` 取世界縮放，和「積木自己最後一次
+   合法寫進去的值（祖先鏈連乘）」比對，另查 `geometry` 身分、未登記祖先的縮放必須是 1、
+   InstancedMesh 逐實例矩陣。**父層 Group、換 geometry、自寫 matrix 都逃不掉。**
+   ★判定為什麼不用 `Box3.setFromObject` 的跨距★：徽記是逐幀朝鏡頭的 billboard，旋轉中物件的
+   世界 AABB 跨距隨朝向變（同尺寸能差 √2 倍），要用它判就得鬆到能放行 0.93 倍的繞法。
+   判定用旋轉無關的「世界縮放 × geometry 單位寬」，`Box3` 的對角線只當診斷欄抽樣記錄。
+4. **原始碼掃描**（`tests/fxvocab.test.mjs`，第四道）：編舞不得出現 `size:` 這個鍵、不得碰徽記的
+   `scale`／`geometry`／`matrix`／`matrixWorld`／`matrixAutoUpdate`／`parent`／`children`／`traverse`
+   （任何成員鏈、別名、索引都算）、不得 `st.grow(徽記)` 或 `.add(徽記)`。
+   `--mutate=4..14` 是**十一條**繞法各自的回歸案例（原檔全程唯讀，不做反向 sed）：
    4＝`const S` ＋ `setScalar(S*…)`／5＝`{size:…}`／6＝`setScalar(0.56*…)`／7＝別名／
-   8＝`multiplyScalar`／9＝`scale.x=`／10＝子節點與索引取用。
+   8＝`multiplyScalar`／9＝`scale.x=`／10＝子節點與索引取用／
+   **11＝父層 Group 縮放／12＝置換 geometry／13＝自寫 matrix／14＝`defineProperty` 蓋掉 accessor**。
 
-**執行期斷言**：`traitfx-drive.mjs` 與 `fx-contrast.mjs` 每一套都讀回 `__tfx.stats()`，
-`sizeViolations > 0` 或 `iconLocked !== iconMade` 一律判紅（後者是活性：鎖沒掛上去時 locked 會小於 made）。
-整跑 `iconMade === 0` 會印「未量到」——那一跑不得當成這條斷言通過。
+**執行期斷言（三支治具都讀）**：`traitfx-drive.mjs`、`fx-contrast.mjs` 讀 `__tfx.stats()`，
+`duel-drive.mjs` 讀 `window.__yaoshi3d.traitFx.sizeGuard()`（**批 1–3 的正式 L3 走的是 duel-drive**）。
+判定是**三態**——`n/a`（這一套沒產出徽記，不計進總判定）／`ok`／`fail`：
+`violations > 0`、`iconLocked !== iconMade`、`sizeAudits === 0`、`tweenErrors > 0` 任一成立就是 `fail`。
+★`made === 0` 一律不得當成通過★（r4 MEDIUM-2：那是空真）；`traitfx-drive` 另有 `EMBLEM_CASES` 名單，
+用到徽記語彙的招掉到 `n/a` 就判紅——**批 1–3 每把一支招換成新語彙就要把 trId 加進那份名單**。
+`tweenErrors`（r4 MEDIUM-1）＝編舞在 `tween`／`timer`／`done` 裡丟出來的例外：
+那三個 `catch` 的用意是「一段壞了不擋整招」，不是「一段壞了沒人知道」。
+
+### L3 canary（尺寸的單一來源突變 → 用到徽記的招必須全紅）
+
+```bash
+# 1) 把三張尺寸表的共同出口換掉（一行、一個檔）：
+#    js/trait-fx/vocab.js 的 `_resolve(kind, tableName, dflt) { … }` → `_resolve() { return 0.02; }`
+# 2) 跑同一組參數
+node tests/tools/fx-contrast.mjs <outdir> --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost
+python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支全 ok:false
+# 3) 用改壞前的備份副本還原 vocab.js（不做反向編輯），再跑一次確認回到現值
+```
+
+★**L3 canary 只驗得到「凍幀當下畫面上的主體」**（r4 MEDIUM-4，已知限制）★
+凍幀點是 `travel` 中點（凍結檔寫死），而**印記（`markByKind`）與貼桌陣（`flatByKind`）在
+`react` 段才淡入**，那一刻幾乎不貢獻像素（實測 `biteGamble` 在 canary 下整張差圖只剩 4 px）。
+⇒ 批 1–3 若以印記或貼桌陣為主視覺，**L3 這一格對「尺寸來源」零鑑別力**。
+這條殘留由第 3 點的**世界尺寸稽核**補上：它每幀量每個徽記、不依賴凍幀、不依賴像素，
+印記與貼桌陣（含 InstancedMesh 逐實例）都在它的涵蓋裡。要在 L3 也看得到就得另挑時點或另加一格。
 
 ### L3 canary（尺寸的單一來源突變 → 用到徽記的招必須全紅）
 

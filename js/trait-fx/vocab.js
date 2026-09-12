@@ -57,15 +57,28 @@ export function beatOf(tier, ms) {
  *  危險效果＝**徽記的實際世界尺寸出現第二份來源**。r2 的兩道防線是
  *  (a) 三支入口拒收 `o.size`（建構上消失，仍在）＋(b) 測試掃描「縮放引數必須引用 ICON」。
  *  r3 實測 (b) 有四條繞法（別名／`multiplyScalar`／`scale.x=`／子節點與索引取用）靜默漏掉，
- *  因為它按**已知語法形狀**寫。現在改成：
- *    **`st.icon()`／`st.icons()`／`st.mark()` 回傳的 mesh，它的 `scale` 在執行期被鎖死**
- *    （`js/trait-fx.js` 的 `lockIconScale`：把 Vector3 的 x／y／z 換成 accessor，
- *      three.js 的 `set`／`setScalar`／`copy`／`multiplyScalar`／`applyMatrix4` 通通要經過它們，
- *      直接 `.scale.x = …` 也一樣）——外部任何寫入**當場 throw 並記進 `stats.sizeViolations`**。
- *    編舞要做「呼吸縮放」只有一條合法路：`st.iconScale(mesh, k)`，它算的是
- *    `ICON 表給的基準 × k`，ICON 的值**永遠在乘積裡**，k 是相對倍率不是第二份來源。
- *  掃描（`tests/fxvocab.test.mjs`）退居第二道：改成「編舞不得直接碰徽記 mesh 的 `.scale`」——
- *  這是按**效果**寫的（任何成員鏈、別名、索引取用都算），不是列舉方法名。
+ *  因為它按**已知語法形狀**寫。
+ *
+ *  ★r4 修補批：r3 自己也只做到一半，而且宣稱過頭了★
+ *  r3 鎖的是 `Object3D.scale` 那顆 Vector3，卻在這裡寫「分母歸一、涵蓋自然 100%」。
+ *  覆審 r4 實測**另外四條**繞法，r3 的三道防線全綠：
+ *    A 把徽記 add 進一個縮放過的父 Group（世界寬 0.5186 → 0.0353）
+ *    B 置換 `geometry`（→ 0.0185）　C `matrixAutoUpdate=false` ＋自寫 `matrix`（→ 0.0259）
+ *    E `Object.defineProperty` 蓋掉被鎖的 accessor（r3 寫了 `configurable: true`）
+ *  其中 C 的變形（每幀 `matrix.compose(…, Vector3(0.52))`）讓尺寸與本表**完全脫鉤**，
+ *  L3 canary 之下 `ok:true`——恆綠儀式原樣復現。教訓：**鎖住一個屬性 ≠ 收斂一個效果**。
+ *
+ *  ★現況（四道防線，權威描述在 `tests/tools/README.md`，這裡只給要點）★
+ *    ① 入口拒收 `o.size`；
+ *    ② 執行期鎖：`scale`（含屬性本身與 x／y／z）、`geometry`、`matrixAutoUpdate`、
+ *       `matrixWorldAutoUpdate`、`userData.fxIconBase`／`fxIconKind` 一律 `configurable: false`；
+ *    ③ **每幀世界尺寸稽核**（`js/trait-fx.js` 的 `auditSizes`）——量效果本身：
+ *       `updateWorldMatrix` → `matrixWorld.decompose()` 的世界縮放，必須等於積木自己最後一次
+ *       合法寫進去的值（祖先鏈連乘），另查 geometry 身分與未登記祖先的縮放。A／B／C 都逃不掉；
+ *    ④ 原始碼掃描（`tests/fxvocab.test.mjs`）：編舞不得碰徽記的 scale／geometry／matrix／parent…。
+ *  編舞唯一的合法縮放介面是 `st.iconScale(mesh, k)`＝`ICON 表基準 × k`，k 須落在 `scaleRange`。
+ *  ★**不要再寫「涵蓋 100%」**★：能說的只有「這四道各自守得住什麼」，
+ *  以及「①②④ 按入口寫、③ 按效果寫，新的繞法要由 ③ 接住」。
  *
  *  ★覆審 r3 N12：canary 的共同入口＝`ICON._resolve()`★
  *  L3 的 canary 要「一次打到三張表」，所以 `sizeOf`／`flatSizeOf`／`markSizeOf` 一律走 `_resolve`。
@@ -74,6 +87,11 @@ export function beatOf(tier, ms) {
  *  主視覺是貼桌陣（`flatByKind`）或印記（`markByKind`）的招也逃不掉。 */
 export const ICON = {
   size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30,
+  /** ★`st.iconScale(mesh, k)` 合法的相對倍率區間（覆審 r4 修補批）★
+   *  它不是尺寸，是「呼吸縮放」允許的倍率上下限——四支示範招實際用到 0.35～1.9。
+   *  沒有這個區間，`st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門（合法入口自己變成第二份來源）。
+   *  要超出區間代表這個 kind 的**尺寸**該改，請改 byKind／flatByKind／markByKind，不要調這裡。 */
+  scaleRange: [0.2, 2.2],
   /** 逐 kind 的本體尺寸覆寫（沒列出的 kind 走 size 預設）。
    *  四個數字＝批 0 四支示範招原本寫死的 SZ，搬家不改值：
    *  knife 獻祭刀 0.56／bell 千里眼銅鈴 0.46／seal 虎爺印 0.62／hat 魔神仔紅帽 0.40。 */

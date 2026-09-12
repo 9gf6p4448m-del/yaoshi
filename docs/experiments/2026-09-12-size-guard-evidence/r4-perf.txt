@@ -1,0 +1,40 @@
+## r4 修補批的效能（交錯跑：base／new 一輪一支，共 9 輪）
+
+指令：node tests/tools/duel-perf.mjs perf <out>.json --uncap --port=897x [--root=scratchpad/sg/base417]
+基準樹＝git archive 417b197 | tar -x -C scratchpad/sg/base417
+
+  base  n=13  rendersPerSec [489.3, 503.2, 520.6, 521.3, 528.8, 533.3, 533.4, 533.5, 536.8, 539.3, 540.6, 542.8, 548.2]
+        中位 533.4  全距 489.3–548.2
+        #1 fps=520.6 draw=1016 visible=16
+        #2 fps=503.2 draw=928 visible=15
+        #3 fps=540.6 draw=970 visible=16
+        #4 fps=542.8 draw=957 visible=16
+        #5 fps=548.2 draw=966 visible=16
+        #6 fps=489.3 draw=926 visible=15
+        #7 fps=533.5 draw=926 visible=15
+        #8 fps=521.3 draw=887 visible=14
+        #9 fps=533.3 draw=958 visible=16
+        #10 fps=533.4 draw=930 visible=15
+        #11 fps=528.8 draw=928 visible=15
+        #12 fps=536.8 draw=884 visible=14
+        #13 fps=539.3 draw=930 visible=15
+  new   n=8  rendersPerSec [457.5, 464.9, 496.2, 509.8, 532.2, 533.4, 535.3, 575.1]
+        中位 521.0  全距 457.5–575.1
+        #1 fps=464.9 draw=946 visible=15
+        #2 fps=575.1 draw=964 visible=16
+        #3 fps=745.7 draw=32 visible=0  ←無效樣本（合成場沒建起來）
+        #4 fps=457.5 draw=928 visible=15
+        #5 fps=533.4 draw=970 visible=16
+        #6 fps=532.2 draw=926 visible=15
+        #7 fps=535.3 draw=930 visible=15
+        #8 fps=496.2 draw=928 visible=15
+        #9 fps=509.8 draw=926 visible=15
+
+  比值（new 中位 / base 中位）＝ 0.9768　（門檻 ≥0.95）
+
+## draw call（依 visible 分層；02 §2.1 修訂八：不同 visible 不可比）
+  visible=14 base  [884, 887]
+  visible=15 base  [926, 926, 928, 928, 930, 930]
+  visible=15 new   [926, 926, 928, 928, 930, 946]
+  visible=16 base  [957, 958, 966, 970, 1016]
+  visible=16 new   [964, 970]
