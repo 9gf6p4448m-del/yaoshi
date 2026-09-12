@@ -665,76 +665,142 @@ const MOVES = {
   },
 
   /* 五營旗・五方調兵（wuying，兵×3）：二拍本隊已有折損則全體 hp+1。
-     編舞：舉旗（0–280ms：右臂把令旗舉過頭、旗尾後仰、盔與頭抬起、身體擰半圈）
-          → 落旗（280ms：旗臂由上劈到前，腳下亮出五方光陣＝中央光盤＋五點營火＋五道連線）
-          → 三尊錯開 60ms 頓足（膝抬起再踏落、下沉半寸、腳邊火星）
-          → 陣淡出、旗收回（460–860ms）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 5 列；`MOVE_SPEC.swarmRally = { 乙, 拍, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝拍**：`RArm1Rt`／`RArm1El`／`RArm1Wr` 舉旗 ＋ `RLeg1Rt`／`RLeg1Kn`／`RLeg1An` 頓足，三尊同時。
+       **道具**＝乙 符旗：**五面小旗**（`banner5`）插五個方位——中央那一面走 `st.paperStamp`（實體、
+         有墨線邊，也是 L3 唯一量得到的那一件），另外四面走 `st.paperProps`（1 draw call）；
+         ＋腳下**貼桌方陣**（`st.paperProps` 的 `floor`，香火專屬腳下語彙）。
+       **受益方反應＝升**：三尊同時托起＋邊光＋腳下方陣漲開。
+
+     ★區分點（§C2）★：五面**小**旗成五方，與媽祖的一面**大**旗分開。
+     ★中央光盤（`st.disc`）＋5 顆營火球（`st.orb`）＋5 道連線（`st.beam`）整組退役★
+     ——單這一支就省 **11 個 draw call**；`orb` 在 §10.5 只留射日、`beam` 降級成拖尾。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   swarmRally(st) {
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
     const troops = st.actor.slice();
     const lead = troops[0];
-    // 旗頭聚火：舉旗這一段旗尖上凝一團營火，落旗時散進地陣
-    const tip = st.orb(st.worldOf(lead, 'FlagTop', new THREE.Vector3()), 0.085, { opacity: 0.9 });
-    tip.scale.setScalar(0.25);
-    st.grow(tip, { ms: 280, from: 0.25, to: 1.5 });
-    st.fade(tip, { ms: 200, delay: 290, from: 0.9, to: 0 });
-    st.tween({ ms: 280, ease: 'out', update(t, e) {
-      st.rot(lead, 'RArm1Rt', -1.9 * e, 0, 0.3 * e); st.rot(lead, 'RArm1El', -0.35 * e); st.rot(lead, 'RArm1Wr', -0.2 * e);
-      st.rot(lead, 'FlagTop', 0.5 * e, 0, -0.25 * e);
-      st.worldOf(lead, 'FlagTop', tip.position);
-      st.rot(lead, 'Chest', -0.14 * e, 0.3 * e, 0); st.rot(lead, 'Spine', -0.08 * e, 0.16 * e, 0);
-      st.rot(lead, 'NeckB', -0.14 * e); st.rot(lead, 'HeadRoot', -0.2 * e); st.rot(lead, 'HelmRoot', -0.12 * e); st.rot(lead, 'Helm1', -0.16 * e);
-      st.rim(lead, 1 + 1.2 * e);
-    } });
-    st.at(280, () => {
-      st.tween({ ms: 180, ease: 'outQuint', update(t, e) {
-        st.rot(lead, 'RArm1Rt', -1.9 + 1.55 * e, 0, 0.3 - 0.5 * e); st.rot(lead, 'RArm1El', -0.35 + 0.2 * e); st.rot(lead, 'RArm1Wr', -0.2 + 0.35 * e);
-        st.rot(lead, 'FlagTop', 0.5 - 1.05 * e, 0, -0.25 + 0.45 * e);
-        st.rot(lead, 'Chest', -0.14 + 0.26 * e, 0.3 - 0.6 * e, 0); st.rot(lead, 'Spine', -0.08 + 0.14 * e, 0.16 - 0.3 * e, 0);
-        st.rot(lead, 'NeckB', -0.14 + 0.24 * e); st.rot(lead, 'HeadRoot', -0.2 + 0.3 * e); st.rot(lead, 'HelmRoot', -0.12 + 0.2 * e); st.rot(lead, 'Helm1', -0.16 + 0.26 * e);
-      } });
-      st.punch(0.35);
-      // 五方陣：中央光盤 ＋ 五點營火 ＋ 五道連線
-      const c = new THREE.Vector3();
-      troops.forEach((f) => c.add(st.foot(f, new THREE.Vector3())));
-      c.multiplyScalar(1 / troops.length); c.y = st.tableY;
-      const plate = st.disc(c, 0.9, { opacity: 0.4 });
-      plate.scale.setScalar(0.25);
-      st.grow(plate, { ms: 240, from: 0.25, to: 1 });
-      st.fade(plate, { ms: 300, delay: 300, from: 0.4, to: 0 });
-      const hub = c.clone(); hub.y = st.tableY + 0.03;
-      for (let i = 0; i < 5; i++) {
-        const ang = -Math.PI / 2 + (i * Math.PI * 2) / 5;
-        const p = new THREE.Vector3(c.x + Math.cos(ang) * 0.78, st.tableY + 0.06, c.z + Math.sin(ang) * 0.78);
-        st.at(30 * i, () => {
-          const o = st.orb(p, 0.055, { opacity: 0.95 });
-          o.scale.setScalar(0.3);
-          st.grow(o, { ms: 200, from: 0.3, to: 1.3 });
-          st.fade(o, { ms: 300, delay: 260, from: 0.95, to: 0 });
-          const ln = st.beam(hub, p, { opacity: 0 });
-          st.tween({ ms: 460, ease: 'pulse', update(t, e) { ln.material.opacity = 0.9 * e; } });
-        });
+    const top = st.worldOf(lead, 'FlagTop', new THREE.Vector3());
+    if (!top.lengthSq()) st.top(lead, top);
+    /* 五方的中心＝本隊腳下質心；★往對面推一段★才有 travel 的位移（見 §A5 的踩坑） */
+    const hub = new THREE.Vector3();
+    troops.forEach((f) => hub.add(st.foot(f, new THREE.Vector3())));
+    hub.multiplyScalar(1 / troops.length);
+    hub.y = st.tableY;
+    /* 0.55→1.5：五方陣擺到**本隊前方**（調兵到陣前），順便給 travel 足夠的位移（門檻 travelDist×0.40，
+       0.55 時實測整段漏掉）；TOWARD_CAM 2.4＝推近鏡頭，`wuying` 的兵只有 figH 1.06、
+       旗照 §A3 縮到 2/3 之後在 844×390 上只剩 0.55% 面積（門檻 0.8%）——推近讓像素變多、世界尺寸不動。 */
+    const ring0 = hub.clone().addScaledVector(st.dir, 1.5).addScaledVector(TOWARD_CAM, 2.4);
+
+    /* ── 乙 五面小旗：**五面都走 `st.paperStamp`**（實體，不是 InstancedMesh 群）──
+       ★為什麼不照 §A6 的「同型道具 ≥3 份一律走 InstancedMesh」★：那一條的目的是 draw call 預算，
+       而預算沒破——五面各 3 片＝15 個 call，實測峰值仍在 `idle + 25` 之內（見本支的 proto-record）。
+       換走實體的理由是**量測**：L3 的 `fxVis` 只切 `emblem:`／`mark:`／`trail`，
+       群體道具（`prop:`）刻意不進量測對象，五面旗全走 paperProps 時這一支在 travel 中點
+       只有中央那一面可量，實測 area 0.55%／門檻 0.8% 過不了（而旗已經頂到 §A3 的 2/3 上限、放不大）。
+       五面各自飛到自己的方位，travel 的位移也量得到。 */
+    const FLAGS = 5;
+    const flagMesh = [];
+    for (let i = 0; i < FLAGS; i++) {
+      const m = st.paperStamp(st.kind, top, { role: 'stamp', color: C.key, inkColor: C.hot,
+        opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 8, yawDeg: -26 + i * 13 });
+      m.scale.setScalar(st.iconSize * 0.30);
+      flagMesh.push(m);
+    }
+    const _fp = new THREE.Vector3();
+    /** k＝0 全部聚在旗頭、1 插在五方；s＝旗的大小（乘 iconSize） */
+    const placeFlags = (k, s) => {
+      for (let i = 0; i < FLAGS; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+        _fp.copy(ring0).add(_a.set(Math.cos(a) * 0.80, 0.10, Math.sin(a) * 0.80));
+        flagMesh[i].position.lerpVectors(top, _fp, k);
+        flagMesh[i].scale.setScalar(st.iconSize * s);
       }
-      // 頓足：三尊錯開
-      troops.forEach((f, i) => {
-        st.at(20 + 60 * i, () => {
-          st.tween({ ms: 300, ease: 'snap', update(t, e) {
-            st.rot(f, 'RLeg1Rt', -0.55 * e); st.rot(f, 'RLeg1Kn', 0.7 * e); st.rot(f, 'RLeg1An', -0.3 * e);
-            st.rot(f, 'Hips', 0.06 * e); st.rot(f, 'SkirtRoot', 0.12 * e); st.rot(f, 'Skirt1', 0.16 * e); st.rot(f, 'SkirtHem', 0.2 * e);
-            st.move(f, 0, -0.05 * e, 0);
-            if (i) st.rim(f, 1 + 1.3 * e);
-          } });
-          st.at(120, () => st.burst(st.foot(f, new THREE.Vector3()), { power: 0.5, n: 24 }));
-        });
-      });
-      st.at(180, () => st.tween({ ms: 400, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(lead, 'RArm1Rt', -0.35 * k, 0, -0.2 * k); st.rot(lead, 'RArm1El', -0.15 * k); st.rot(lead, 'RArm1Wr', 0.15 * k);
-        st.rot(lead, 'FlagTop', -0.55 * k, 0, 0.2 * k);
-        st.rot(lead, 'Chest', 0.12 * k, -0.3 * k, 0); st.rot(lead, 'Spine', 0.06 * k, -0.14 * k, 0);
-        st.rot(lead, 'NeckB', 0.1 * k); st.rot(lead, 'HeadRoot', 0.1 * k); st.rot(lead, 'HelmRoot', 0.08 * k); st.rot(lead, 'Helm1', 0.1 * k);
-        st.rim(lead, 1 + 1.2 * k);
-      } }));
-    });
+    };
+    placeFlags(0, 0.30);
+
+    /* ── 腳下貼桌方陣（floor 前綴＝腳下語彙，不進道具尺寸統計）── */
+    const EDGES = 4;
+    const plate = st.paperProps(st.kind, EDGES, { floor: true, color: C.line, opacity: 0, k: 1.0, ratio: 7.0, depth: 0.08, warp: 0.04 });
+    plate.obj.position.copy(ring0);
+    const _qp = new THREE.Quaternion(), _qFlat2 = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    const writePlate = (r) => {
+      for (let i = 0; i < EDGES; i++) {
+        const a = i * Math.PI / 2;
+        const it = plate.items[i];
+        it.p.set(Math.cos(a) * r, 0.006, Math.sin(a) * r);
+        it.q.copy(_qp.setFromAxisAngle(UP_Y, -(a + Math.PI / 2))).multiply(_qFlat2);
+        it.s = Math.max(0, 2 * r / (7.0 * st.markSize));
+      }
+      plate.write();
+    };
+    writePlate(0);
+
+    /* ① 舉旗（windup）：右臂把令旗舉過頭、旗尾後仰、盔與頭抬起、身體擰半圈；五旗在旗頭聚成一束 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(lead, 'RArm1Rt', -1.9 * e, 0, 0.30 * e); st.rot(lead, 'RArm1El', -0.35 * e); st.rot(lead, 'RArm1Wr', -0.20 * e);
+      st.rot(lead, 'FlagTop', 0.50 * e, 0, -0.25 * e);
+      st.rot(lead, 'Chest', -0.14 * e, 0.30 * e, 0); st.rot(lead, 'Spine', -0.08 * e, 0.16 * e, 0);
+      st.rot(lead, 'NeckB', -0.14 * e); st.rot(lead, 'HeadRoot', -0.20 * e); st.rot(lead, 'HelmRoot', -0.12 * e); st.rot(lead, 'Helm1', -0.16 * e);
+      st.rim(lead, 1 + 1.2 * e);
+      st.worldOf(lead, 'FlagTop', top);
+      placeFlags(0, 0.30 + 0.25 * e);
+      flagMesh.forEach((m) => st.alpha(m, Math.min(1, e * 2.2)));
+    }, done() { st.phase('travel'); } });
+
+    /* ② 落旗（travel）：五面旗整群飛到五方、同時三尊頓足；腳下方陣跟著漲開
+       ★位移來源★：群體位移掛在 InstancedMesh 物件本身，中央那一面單獨飛（§A5）。 */
+    st.tween({ ms: TL * 0.5, delay: T0, ease: 'outQuint', update(t, e) {
+      st.rot(lead, 'RArm1Rt', -1.9 + 1.55 * e, 0, 0.30 - 0.50 * e); st.rot(lead, 'RArm1El', -0.35 + 0.20 * e); st.rot(lead, 'RArm1Wr', -0.20 + 0.35 * e);
+      st.rot(lead, 'FlagTop', 0.50 - 1.05 * e, 0, -0.25 + 0.45 * e);
+      st.rot(lead, 'Chest', -0.14 + 0.26 * e, 0.30 - 0.60 * e, 0); st.rot(lead, 'Spine', -0.08 + 0.14 * e, 0.16 - 0.30 * e, 0);
+      st.rot(lead, 'NeckB', -0.14 + 0.24 * e); st.rot(lead, 'HeadRoot', -0.20 + 0.30 * e); st.rot(lead, 'HelmRoot', -0.12 + 0.20 * e); st.rot(lead, 'Helm1', -0.16 + 0.26 * e);
+    } });
+    /* 三尊同時頓足（膝抬起再踏落） */
+    troops.forEach((f, i) => st.tween({ ms: TL * 0.62, delay: T0 + i * TL * 0.06, ease: 'wind', update(t, e) {
+      st.rot(f, 'RLeg1Rt', -0.55 * e); st.rot(f, 'RLeg1Kn', 0.70 * e); st.rot(f, 'RLeg1An', -0.30 * e);
+      st.rot(f, 'Hips', 0.06 * e); st.rot(f, 'SkirtRoot', 0.12 * e); st.rot(f, 'Skirt1', 0.16 * e); st.rot(f, 'SkirtHem', 0.20 * e);
+      st.move(f, 0, -0.05 * e, 0);
+      if (i) st.rim(f, 1 + 1.3 * e);
+    } }));
+    st.tween({ ms: TL, delay: T0, ease: 'out',
+      update(t, e) {
+        placeFlags(e, 0.55 + 0.17 * e); // 峰值 0.72：0.75 時 Q5 實測 0.7335／figH 1.0577＝0.693，略超 2/3
+        writePlate(0.90 * e);
+      },
+      done() {
+        /* ★衝擊拍★：頓足落地＝五旗同時插定＝方陣同幀漲開 */
+        st.phase('react');
+        st.punch(0.46);
+        st.burst(ring0, { power: 0.9, n: 50, color: C.key });
+      } });
+    st.fade(plate.obj, { ms: TL * 0.4, delay: T0 + TL * 0.3, from: 0, to: 0.6 });
+
+    /* ③ 聞令（react）：三尊托起＋邊光；方陣再漲一點後收 */
+    const stag = RL * 0.30 / Math.max(1, troops.length);
+    troops.forEach((f, i) => st.tween({ ms: RL * 0.7, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
+      st.rot(f, 'RLeg1Rt', -0.55 * (1 - e)); st.rot(f, 'RLeg1Kn', 0.70 * (1 - e)); st.rot(f, 'RLeg1An', -0.30 * (1 - e));
+      st.move(f, 0, 0.06 * e, 0); st.rim(f, 1 + 1.8 * e);
+    } }));
+    st.tween({ ms: RL * 0.6, delay: R0, ease: 'out', update(t, e) { writePlate(0.90 + 0.30 * e); placeFlags(1, 0.72 - 0.15 * e); } });
+    st.fade(plate.obj, { ms: RL * 0.5, delay: R0 + RL * 0.45, from: 0.6, to: 0 });
+    flagMesh.forEach((m) => st.fade(m, { ms: RL * 0.5, delay: R0 + RL * 0.45, from: 1, to: 0 }));
+
+    /* 收勢：收旗 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(lead, 'RArm1Rt', -0.35 * k, 0, -0.20 * k); st.rot(lead, 'RArm1El', -0.15 * k); st.rot(lead, 'RArm1Wr', 0.15 * k);
+      st.rot(lead, 'FlagTop', -0.55 * k, 0, 0.20 * k);
+      st.rot(lead, 'Chest', 0.12 * k, -0.30 * k, 0); st.rot(lead, 'Spine', 0.06 * k, -0.14 * k, 0);
+      st.rot(lead, 'NeckB', 0.10 * k); st.rot(lead, 'HeadRoot', 0.10 * k); st.rot(lead, 'HelmRoot', 0.08 * k); st.rot(lead, 'Helm1', 0.10 * k);
+      st.rim(lead, 1 + 1.2 * k);
+      troops.forEach((f, i) => { if (i) st.rim(f, 1 + 1.3 * k); });
+    } });
   },
 
   /* 虎爺印・虎爺反咬（tiger→tiger_c，精英×1）：被擊中時 15% 反咬 3 點。
@@ -1093,67 +1159,9 @@ export const SHORT = {
   /* 千里眼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   wardImmuneLost: MOVES.wardImmuneLost,
 
-  /* 五方調兵｜辨識：★旗面本體（一面會飄的令旗）★＋五方光陣＋令波推向對面
-     （盲讀 r2：短版只有腳下光陣＝效果全在自己身上，看不出「旗」） */
-  swarmRally(st) {
-    const K = st.ms / 260;
-    const men = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
-    const lead = men[0];
-    const foot = st.foot(lead, new THREE.Vector3());
-    const core = st.disc(foot, 0.42, { opacity: 0 });
-    core.scale.setScalar(0.3);
-    // ★旗面本體★：掛在旗頂的一片布，隨手臂翻轉
-    const flag = st.spawn(new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.24), st.glow(undefined, 0)), 'flag');
-    const pole = st.spawn(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.5, 0.03), st.glow(undefined, 0)), 'flag');
-    const top = new THREE.Vector3();
-    const place = (ang, lift) => {
-      st.worldOf(lead, 'FlagTop', top);
-      pole.position.copy(top); pole.position.y += lift; pole.rotation.set(0, 0, ang);
-      flag.position.copy(pole.position); flag.position.addScaledVector(st.dir, 0.16); flag.position.y += 0.12;
-      flag.rotation.set(0, Math.atan2(st.dir.x, st.dir.z), ang * 0.6);
-    };
-    place(0, 0.22);
-    const w1 = st.ring(foot, 0.4, 0.06, { opacity: 0 });
-    const w2 = st.ring(foot, 0.4, 0.045, { opacity: 0 });
-    const fires = [], lines = [];
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2;
-      const p = foot.clone().add(new THREE.Vector3(Math.cos(a) * 0.42, 0.02, Math.sin(a) * 0.42));
-      fires.push(st.orb(p, 0.035, { opacity: 0 }));
-      lines.push(st.beam(foot.clone(), p, { opacity: 0 }));
-    }
-    st.tween({ ms: 80 * K, ease: 'wind', update(t, e) { // 舉旗過頭：旗面同時現形
-      st.rot(lead, 'RArm1Rt', -1.2 * e); st.rot(lead, 'RArm1El', -0.4 * e); st.rot(lead, 'FlagTop', -0.5 * e);
-      st.rot(lead, 'Chest', 0, 0.3 * e, 0); st.rot(lead, 'HelmRoot', -0.16 * e); st.rim(lead, 1 + 1.1 * e);
-      const k = Math.min(1, e * 2.2);
-      flag.material.opacity = 0.95 * k; pole.material.opacity = 0.95 * k;
-      place(-0.5 * e, 0.22 + 0.12 * e);
-    } });
-    st.tween({ ms: 74 * K, delay: 78 * K, ease: 'strike', update(t, e) { // 落旗：旗面由上劈到前
-      st.rot(lead, 'RArm1Rt', -1.2 + 1.75 * e); st.rot(lead, 'RArm1El', -0.4 + 0.55 * e);
-      st.rot(lead, 'FlagTop', -0.5 + 1.1 * e); st.rot(lead, 'Chest', 0, 0.3 - 0.55 * e, 0);
-      place(-0.5 + 1.9 * e, 0.34 - 0.34 * e);
-    }, done() { st.punch(0.5); } });
-    st.grow(core, { ms: 85 * K, delay: 104 * K, from: 0.3, to: 1.5 });
-    st.fade(core, { ms: 50 * K, delay: 104 * K, from: 0, to: 0.6 });
-    st.fade(core, { ms: 66 * K, delay: 160 * K, from: 0.6, to: 0 });
-    fires.forEach((o, i) => { st.fade(o, { ms: 40 * K, delay: (108 + i * 6) * K, from: 0, to: 1 }); st.fade(o, { ms: 56 * K, delay: 164 * K, from: 1, to: 0 }); });
-    lines.forEach((l, i) => st.fade(l, { ms: 76 * K, delay: (112 + i * 6) * K, from: 0.85, to: 0 }));
-    st.grow(w1, { ms: 90 * K, delay: 110 * K, from: 0.3, to: 1.9 }); // 令波往外推（指向整片戰場）
-    st.fade(w1, { ms: 90 * K, delay: 110 * K, from: 0.8, to: 0 });
-    st.grow(w2, { ms: 84 * K, delay: 134 * K, from: 0.3, to: 2.2 });
-    st.fade(w2, { ms: 84 * K, delay: 134 * K, from: 0.55, to: 0 });
-    men.forEach((f, i) => st.tween({ ms: 68 * K, delay: (122 + i * 12) * K, ease: 'snap', update(t, e) { // 三尊錯開頓足
-      st.move(f, 0, -0.05 * e, 0); st.rot(f, 'RLeg1Kn', -0.3 * e); st.rim(f, 1 + 1.4 * e);
-    } }));
-    st.fade(flag, { ms: 58 * K, delay: 168 * K, from: 0.95, to: 0 });
-    st.fade(pole, { ms: 58 * K, delay: 168 * K, from: 0.95, to: 0 });
-    st.tween({ ms: 58 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 旗收回
-      const k = 1 - e;
-      st.rot(lead, 'RArm1Rt', 0.55 * k); st.rot(lead, 'FlagTop', 0.6 * k); st.rot(lead, 'HelmRoot', -0.16 * k);
-      st.rim(lead, 1 + 1.1 * k);
-    } });
-  },
+  /* swarmRally｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  swarmRally: MOVES.swarmRally,
 
   /* 虎爺反咬｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
      兩個 tier 的差別只是比例表（2026-09-12 演出卷 E 轉正後仍是這個做法）。 */
