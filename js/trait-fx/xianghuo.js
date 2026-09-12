@@ -120,6 +120,39 @@ function tgPreyHit(st, prey, R0, RL, depth) {
     st.rim(prey, 1 + 3.2 * e);
   } });
 }
+/** ★增益招「逐尊送到」（2026-09-13 P4 新三輪第 1 輪回修）★
+ *  與 `js/trait-fx/zuling.js` 的 `zlDeliver` 同一件事、同一套理由（那邊的檔頭註解是權威，
+ *  這裡不抄第二份）。本系會用到它的是送王船與千里眼銅鈴這兩支「我方多個」。
+ *  ★為什麼兩個檔各一份而不上升到 `st`★：它排的是**這一卷的編舞紀律**（落點、節拍、lean），
+ *  不是 27 支共用的積木；上升到 `st` 等於把編舞決定寫進引擎（§A9-5 的量測才是引擎的事）。 */
+function xhDeliver(st, from, figs, B, o = {}) {
+  const C = st.colors;
+  return figs.map((f) => {
+    const to = st.worldOf(f, 'Chest', new THREE.Vector3());
+    if (!to.lengthSq()) st.worldOf(f, null, to);
+    const others = figs.filter((g) => g !== f);
+    const lean = new THREE.Vector3();
+    if (others.length) {
+      const c = new THREE.Vector3();
+      others.forEach((g) => c.add(g.group.position));
+      c.multiplyScalar(1 / others.length);
+      lean.copy(f.group.position).sub(c); lean.y = 0;
+      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(o.lean === undefined ? 0.88 : o.lean); else lean.set(0, 0, 0);
+    }
+    to.add(camOff(st, 1)).add(lean);
+    const m = st.paperStamp(st.kind, from, { anchor: o.anchor || 'allies',
+      color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.hot : o.inkColor,
+      opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22 });
+    m.scale.setScalar(st.markSize * (o.k === undefined ? 1.15 : o.k));
+    st.fade(m, { ms: B.TL * 0.35, delay: B.T0, from: 0, to: 1 });
+    st.trail(m, from, to, { ms: B.TL, delay: B.T0, ease: 'outQuint', trail: false,
+      arc: o.arc === undefined ? 0.30 : o.arc,
+      done() { st.stick(m, f, { at: 'chest', off: camOff(st, 1).add(lean) }); } });
+    st.fade(m, { ms: B.RL * 0.45, delay: B.R0 + B.RL * 0.55, from: 1, to: 0 });
+    return m;
+  });
+}
+
 const MOVES = {
   /* 大士爺紙尊・普渡（dashiye，護法×1；傳說三尊美術卷 2026-09-07）：本方全體 hp+2。
      編舞（香火＝緩慢、先蓄後落，像抬轎）：0–320ms 整尊下沉、舌垂、頭低（蓄）
@@ -493,12 +526,10 @@ const MOVES = {
       opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 8, yawDeg: -16 });
     mainSail.scale.setScalar(st.iconSize * 0.45);
 
-    const marks = ships.map((f) => {
-      const m = st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
-        opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -22, follow: f, off: camOff(st, 1) });
-      m.scale.setScalar(st.markSize * 1.0);
-      return m;
-    });
+    /* ── 本隊每一尊各收到一枚**飛過去**的船印（P4 r1 回修 A）──
+       改前是原地黏在每一尊身上的印記：anchor 量測恆真、畫面上也看不到「送到」這件事，
+       讀者 12/18 答「自己」。照令旗（唯一 18/18 的那一支）的作法逐尊送過去，落地對齊衝擊拍。 */
+    const marks = xhDeliver(st, mastTop, ships, { T0, TL, R0, RL }, { k: 1.15 });
 
     /* ① 離岸（windup）：船尾翹起、四節桅逐節挺直、人偶依序轉身、桅頂燃香火；帆在桅上長出來 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
@@ -558,15 +589,11 @@ const MOVES = {
     st.fade(sails.obj, { ms: RL * 0.5, delay: R0 + RL * 0.42, from: 0.95, to: 0 });
     st.tween({ ms: RL * 0.62, delay: R0, ease: 'out', update(t, e) { mainSail.scale.setScalar(st.iconSize * (1.15 - 0.30 * e)); } });
     st.fade(mainSail, { ms: RL * 0.5, delay: R0 + RL * 0.42, from: 1, to: 0 });
-    const stag = RL * 0.30 / Math.max(1, ships.length);
-    ships.forEach((f, i) => st.tween({ ms: RL * 0.7, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.05 * e, 0); st.rim(f, 1 + 1.8 * e);
+    /* ★反應同拍★（P4 r1 回修 A）：改前逐尊 stagger，讀成「一個一個來」；
+       「我方多個」要的是同一拍全體都有反應。船印的淡入淡出由 xhDeliver 一併排好。 */
+    ships.forEach((f) => st.tween({ ms: RL * 0.7, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.05 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.20, delay: R0 + i * stag, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.46, delay: R0 + i * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.7 - 0.7 * e)); } });
-      st.fade(m, { ms: RL * 0.34, delay: R0 + RL * 0.60, from: 1, to: 0 });
-    });
 
     /* 收勢：船退回原位、桅火收 */
     st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
