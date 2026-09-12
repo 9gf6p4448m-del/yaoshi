@@ -495,3 +495,76 @@ node --test tests/*.test.mjs
 
 **worktree**：`C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-af605d875c0e0e52d`
 （基準 `417b197`）。**未合併回 main、未 push。**
+
+---
+
+## 8　Q2：在現行 main（0.55.1）上重量 seed 1 的 Δ200（修訂六 ③）
+
+> 裁定原文（凍結檔 §2.1 修訂六 ③）：「seed 1 `Δ200=5.85>5` 的決定性紅先在現行 main
+> （0.55.1，四支示範招已退回 0.54）重量一次；仍紅才追因，**重量前不判 L10 紅**。」
+> 本節**只重量與追因，不判、不修**（門檻、seed、duels、案例集一格未動）。
+
+### 8.1 條件
+
+本 worktree 已 `git merge main`（fast-forward 到 `50df83a`，`VERSION="0.55.1"`）。
+基準樹 `git worktree add --detach scratchpad/l10/base6a839de 6a839de`，
+其 `index.html` md5 ＝ `cae859bf91ea11f45fa9367ffc24ca10`（與修補報告 §7.2 記的同一份）。
+
+```bash
+# main 0.55.1
+node tests/tools/dmg-readability.mjs pix scratchpad/l10/q2main-s1-<i> \
+     --seed=1 --duels=8 --port=910<i> --maxfloat=50 --maxhit=20
+# 基準 6a839de（靜態檔從基準樹取，治具程式仍是本樹的）
+node tests/tools/dmg-readability.mjs pix scratchpad/l10/q2base-s1-<i> \
+     --seed=1 --duels=8 --port=911<i> --maxfloat=50 --maxhit=20 \
+     --root=scratchpad/l10/base6a839de
+```
+
+### 8.2 結果：**Δ200 仍是 5.85，而且三棵樹逐位數相同**
+
+| 樹 | 5 跑 md5 | R1 | R2main | R2sub | `maskN` | 中位 | ≥25 比例 | **Δ200** |
+|---|---|---|---|---|---|---|---|---|
+| main 0.55.1（`50df83a`） | `a736939c588e3f76b1a526219799e76b` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+| 基準 `6a839de` | `425731d0d1e57026026348f7dff314c5` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+| v0.55（`417b197`，§4 那一輪） | `5edb3d513b53217eaf1db18e7424eda8` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+
+**5 跑逐位元組相同**在兩棵樹上都成立（決定性沒有因為換樹而破）。
+兩棵樹的 `metrics.txt` 整份只差 3 行：
+
+```
+$ diff q2main-s1-1/metrics.txt q2base-s1-1/metrics.txt
+10c10  < versionOk=true          > versionOk=null        ← --root 時本來就不比版本
+30c30  < sum.ctrlMax=4.49        > sum.ctrlMax=4.48
+56c56  < sum.skipFlash=31.46     > sum.skipFlash=31.38
+```
+
+v0.55 與 0.55.1 之間也只差 2 行（`sum.p50` 6.93→6.96、`sum.skipFlash` 31.37→31.46）。
+
+> **結論（只陳述，不判）**：`Δ200 = 5.85` 在**基準 `6a839de` 上一模一樣**
+> ⇒ 它**與招式可辨性卷（徽記／`vocab.js`／四支示範招）完全無關**，
+> 0.55.1 把示範招退回 0.54 演出也沒有讓它動半位數。
+
+### 8.3 追因：這 5.85 是哪一筆貢獻的
+
+逐筆表在 `evidence/q2-main-0551/attribution.txt`（24 輪刺激全列）。重點：
+
+- 24 輪裡，進得了 `valid`（過 `tinyMask`／`moved`／`offDuel` 三道閘且非燒毀）的有 **13 筆**。
+- 這 13 筆裡 **只有一筆超過 +5**——**`run 20`，`Δ200 = 5.85`**；第二大是 `run 26` 的 **2.70**。
+  `back200MaskAbsMax` 是「對一組樣本取 max」的統計量，所以貢獻 100% 來自這一筆。
+- **`run 20` 也是 13 筆裡唯一 `move200 > 5` 的**（`move200 = 13.8` px）：
+  另外 12 筆 `move200 ≤ 5`，`Δ200` 全落在 **−1.58 ~ +2.70**，離門檻很遠。
+  `corr(move200, Δ200)` ＝ **0.642**（n=13）。
+- `run 20` 的位移為什麼沒被閘擋掉：**位移閘門只套在 +40ms 那一格**（`mv40 = 3.2 ≤ MOVE_MAX(4)`，過關）；
+  `Δ200` 那一條子判準**從 2026-09-10 使用者裁乙起就沒有位移閘門**（`move200` 只記錄不判，
+  見 `judgePix` 該處註解）。`run 20` 正好是那個決定會漏掉的形狀。
+- 分群（可判樣本）：`layered/swarm` n=5 全部是**負的**（−1.58 ~ −0.15）；
+  `creature/haunt` n=8 是唯一有正值的一群（0.22 ~ 5.85），`run 20`／`run 26` 都是 A 側 unit 3 的 haunt。
+- **「哪支招」這個軸在這裡不存在**（照實寫）：R2 的刺激是治具自己派的合成 `ys:fx-hit`
+  （`--synth` 預設開），只帶 `side`／`unit`／`ms`，**不帶 `trId`**、也不是任何一支招的演出事件
+  ⇒ `Δ200` 不歸屬於任何一支招。能歸的兩個軸是「被打的是哪一尊」與「+200ms 之間移動了多少」，
+  上面兩點就是。
+- 另記（不判）：燒毀組的 `run 44` 的 `Δ200` 是 **9.54**，比 `run 20` 還大——
+  但燒毀組照規矩只判 `|Δ40| ≤ 10`（它是 3.19，過），`Δ200` 對燒毀組**本來就不判**。
+
+**本節到此為止**：不判 L10 紅、不改 `BACK_MAX`、不加位移閘門、不剔任何樣本。
+要怎麼處置這一筆交使用者裁。
