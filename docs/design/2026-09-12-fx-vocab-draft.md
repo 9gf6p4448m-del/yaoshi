@@ -47,7 +47,7 @@
 
 ### A3 道具尺寸上限
 
-**單件道具的世界尺寸 ≤ 施招本體高的 1/2**（`2026-09-12-plan-fx-performance.md` §3 禁區第 2 條）。
+**單件道具的世界尺寸 ≤ 施招本體高的 2/3（2026-09-12 範本簽字時由 1/2 放寬，實測虎爺印大印 1.19／虎高 1.77）**（`2026-09-12-plan-fx-performance.md` §3 禁區第 2 條）。
 尺寸的唯一來源是 `vocab.js` 的 `ICON.byKind`／`markByKind`；編舞只能乘 `st.iconSize`／`st.markSize`，
 `st.icon`／`st.icons`／`st.mark`／`st.paperStamp` 一律拒收 `o.size`（傳了 throw）。
 
