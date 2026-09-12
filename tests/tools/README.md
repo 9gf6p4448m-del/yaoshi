@@ -133,8 +133,17 @@ renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/re
   三支治具現在都把稽核次數依量測位置分開印成 `u<update>+d<draw>`，
   `traitfx-drive` 在 `made>0 且 draw===0` 時另印一行「★draw 量測位置本跑未觸發★」。
   **(ii) 的主場是 `fx-contrast` 與 `duel-drive`（真實 renderer 迴圈）。**
-- **`st.paperStamp`（0.55.2 E 分支的紙紮印）不在尺寸鎖裡**：本卷只接 `st.icon`／`st.icons`／`st.mark`
-  三條路。它自己建的三片在場景掃描的放行名單（`BLOCK_MADE`）裡，不會被誤判成手造徽記。
+- **`st.paperStamp`／`st.paperProps`（紙紮道具）不在尺寸鎖裡**：尺寸鎖只接 `st.icon`／`st.icons`／`st.mark`
+  三條路。它們自己建的 mesh（`paperStamp` 的三片、`paperProps` 的 InstancedMesh）在場景掃描的
+  放行名單（`BLOCK_MADE`）裡，不會被誤判成手造徽記。
+  **2026-09-13 招式演出卷批 1 的現況**：`biteGamble` 正式版用這兩支演出，所以它的大印／印文／金箔
+  **走的是 `.scale.setScalar(st.iconSize * …)` 而不是 `st.iconScale`**（後者只吃 SIZED 的物件，
+  餵紙紮道具會 throw）。於是 `tests/fxvocab.test.mjs` 的原始碼掃描也**維持只認那三支入口**
+  ——把 `paperStamp`／`paperProps` 加進 `emblemNames()` 會讓這些合法寫法整批判紅，
+  而它們沒有合法的替代寫法可走。**這一條是有意識留著的缺口，不是漏掉**：
+  單件尺寸仍收斂在 `ICON.sizeOf`／`markSizeOf` 一處（兩支積木都呼叫 `iconSizeSrc` 拒收 `o.size`），
+  但「編舞乘上任意倍率」這一層目前沒有機械防線。要補的方向同 N-5：在積木的工廠裡呼叫
+  `lockIconScale(...)` 把它們接進鎖與稽核，那要先讓 `st.iconScale` 支援 Group 與 InstancedMesh。
 - 場景掃描按 **geometry 內容指紋**認徽記（覆審 r3 N-1：改前用 uuid，`geometry.clone()` 整組穿過去）。
   它抓得到「多了一顆假徽記」，但**像素閘門抓不到**——一顆用合法尺寸渲染的假徽記，
   `fx-contrast-metrics.py` 的 `area_pct` 分不出它是誰造的。紅在 `fx-contrast` 自己的 exit code。

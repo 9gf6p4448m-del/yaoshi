@@ -183,6 +183,82 @@ export const EMBLEM_OF = {
   hauntAnswer: 'tablet', // 有應公 youyinggong
 };
 
+/** 三系的白名單：本體動作動詞庫／道具家族／受招反應家族。
+ *  人類可讀的權威＝`docs/design/ART_BIBLE.md` §10.7（＝`2026-09-12-fx-vocab-draft.md` §B），
+ *  這裡是它的程式版，`MOVE_SPEC` 的三個欄位只能取這三張表裡的值（P1 機械檢查，見 tests/fxvocab.test.mjs）。
+ *  ★為什麼要白名單而不是自由字串★：「一招一組動作＋道具＋反應」如果可以隨手填新詞，
+ *  27 支填完就會有 27 種講法——那正是 vocab.js 這個檔要擋的分岔（檔頭第二段）。
+ *  props 的鍵＝家族代號（§10.7 的甲乙丙丁），值只是給人看的名字，機械檢查只看鍵。 */
+export const FAC_VOCAB = {
+  zuling: {
+    props: { 甲: '骨牙石器', 乙: '織紋與珠', 丙: '木器', 丁: '日與雷' },
+    acts: ['張', '扎', '躍', '割', '沉'],
+    reacts: ['退', '升', '壓'],
+    /** 丁「日與雷」是限縮家族（Q4 裁定）：只有這兩支可以用，其餘祖靈招用丁＝判紅。 */
+    propOnly: { 丁: ['eliteOpenShot', 'boltGamble'] },
+  },
+  xianghuo: {
+    props: { 甲: '印', 乙: '符旗', 丙: '香火', 丁: '儀仗金器' },
+    acts: ['撲', '拍', '震', '降', '掃'],
+    reacts: ['壓', '退', '升'],
+    propOnly: {},
+  },
+  yinqi: {
+    props: { 甲: '人身遺物', 乙: '濕物', 丙: '鬼火與魂片' }, // 陰氣沒有丁
+    acts: ['探', '垂', '滯', '甩', '吸'],
+    reacts: ['轉', '被拖', '抖', '壓'],
+    propOnly: {},
+  },
+};
+
+/** trId → { prop, act, react }：一招一組「道具家族／本體動作／受招反應」的登記表（Q9 的 schema）。
+ *  逐招的完整理由與畫面描述在 `docs/design/2026-09-12-fx-vocab-draft.md` §C（27 列），
+ *  **這裡只登記那三個受白名單約束的欄位**，散文不抄過來（抄＝第二份事實來源）。
+ *  三尊三招不在表內（Q8：語彙納入、閘門不納入；§C 也明寫不在 27 列裡）。
+ *
+ *  ★§C 的散文動詞怎麼正規化到 §B 的動詞庫（實作時發現的八處，交製作人覆核）★
+ *  §C 自己已標「＝某某的變體」的三處：繞＝張（eliteArmor）／撐＝張（boltGamble）／搖＝滯（hauntSee）。
+ *  §C 用了庫裡沒有的字、由本表正規化的五處：
+ *    swarmThorn    §C「刨」→ `沉`（低頭刨地＋拱背＝屈膝沉身那一類）
+ *    eliteCleave   §C「劈」→ `掃`（香火「掃」的定義原文就是「旗面／劍弧橫過整排」）
+ *    swarmLastStand §C「扎」→ `拍`（「扎」是祖靈的動詞；倒矛過頂往下插＝香火「拍」的砸落）
+ *    eliteVsSwarm  §C「退」→ `抖`（陰氣的反應家族沒有「退」；取最接近的骨骼高頻小幅）
+ *    swarmFeed1    §C「升」→ `被拖`（陰氣家族沒有「升」；§C 同一列另寫「被吸那隻被拖向甕口」，取這個受招方反應）
+ *  正規化的方向一律是「往 §B／§10.7 的白名單收」，不是把新詞加進白名單——加詞會讓白名單逐卷變寬，
+ *  等於這條檢查一年後只剩形式。 */
+export const MOVE_SPEC = {
+  /* ── 祖靈系 9 支 ── */
+  eliteOpenShot: { prop: '丁', act: '張', react: '退' }, // 太陽球＋箭矢；弦鬆手＝張，最壯那隻退
+  wardHpFront2: { prop: '乙', act: '扎', react: '升' }, // 菱紋帶沿盾牆展開；紮地＋前鋒托起
+  eliteArmor: { prop: '乙', act: '張', react: '升' }, // 琉璃珠圈繞身；§C「繞」＝張的蛇形變體
+  wardFirst: { prop: '甲', act: '張', react: '升' }, // 石雕眼＋腳下光柱；眼瞼全開＝張，前鋒搶半步
+  boltGamble: { prop: '丁', act: '張', react: '壓' }, // 鋸齒雷片；§C「撐」＝張（雙翼撐開）
+  swarmHalfSplash: { prop: '丙', act: '躍', react: '升' }, // 三道平行浪弧；三舟同時躍起
+  swarmThorn: { prop: '甲', act: '沉', react: '退' }, // 獠牙反向彈回；§C「刨」正規化成沉
+  eliteSelfCut: { prop: '甲', act: '割', react: '升' }, // 黑曜石刃（祖靈範本招）；自傷、本隊上抬
+  wardHpAll1: { prop: '甲', act: '沉', react: '升' }, // 六塊岩繞一圈；屈膝沉身
+  /* ── 香火系 9 支（本卷批 1）── */
+  wardAtkAll1: { prop: '乙', act: '掃', react: '升' }, // 金紅大旗掃過整排
+  eliteCleave: { prop: '丁', act: '掃', react: '退' }, // 斬擊弧；§C「劈」＝「劍弧橫過整排」＝掃
+  wardAbsorb4: { prop: '乙', act: '降', react: '升' }, // 四面金箔帆圍成同心方框；船身前滑
+  wardImmuneLost: { prop: '丁', act: '震', react: '升' }, // 銅鈴＋方框鈴波；全系唯一只有受益方
+  swarmRally: { prop: '乙', act: '拍', react: '升' }, // 五面小旗插五方；頓足落地
+  biteGamble: { prop: '甲', act: '撲', react: '壓' }, // ★E 定稿＝本批範本招★ 大印落下＝咬中，獵物被壓
+  wardHpFirst: { prop: '丙', act: '降', react: '升' }, // 金灰顆粒流＋金色方符；傾倒送出
+  wardRegen1: { prop: '丁', act: '降', react: '升' }, // 燈焰脫離燈罩下落
+  swarmLastStand: { prop: '乙', act: '拍', react: '升' }, // 殘旗（缺角）；§C「扎」正規化成拍，反應在自身
+  /* ── 陰氣系 9 支 ── */
+  hauntLost: { prop: '甲', act: '探', react: '轉' }, // 紅帽戴到對手頭上（陰氣範本招）；原地打轉
+  hauntSteal: { prop: '甲', act: '垂', react: '被拖' }, // 銀簪去而復返；目標被拖半步
+  hauntSee: { prop: '甲', act: '滯', react: '抖' }, // 憑空多一張竹椅；§C「搖」＝滯的變體
+  hauntDread1: { prop: '乙', act: '滯', react: '壓' }, // 雨滴群落下＋地面水漬；閃現位移
+  hauntSwap: { prop: '乙', act: '甩', react: '被拖' }, // 粗濕繩；對面被拖、本方沉沒
+  eliteVsSwarm: { prop: '甲', act: '探', react: '抖' }, // 爪片（盲讀標竿，動作不動）；§C「退」正規化成抖
+  swarmPierce: { prop: '甲', act: '探', react: '抖' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
+  hauntFearX2: { prop: '丙', act: '滯', react: '壓' }, // 虛影片＋腳下暗斑；群體縮
+  swarmFeed1: { prop: '丙', act: '吸', react: '被拖' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」
+};
+
 /** 退役／限縮清單（ART_BIBLE §10.5）。
  *  批 0 只標記不刪——27 支裡有 23 支還在用，批 1／2／3 逐招換掉之後才准把 st.dome 等拿掉。
  *  scope：'retired'＝全系退役；'xianghuo-only'＝限縮成香火系專用。 */

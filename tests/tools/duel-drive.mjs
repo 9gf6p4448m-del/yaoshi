@@ -1,6 +1,9 @@
 // 《紙紮夜戰》接線卷（2026-09-05）：用 Playwright 真的把一局玩到對決，錄下 3D 接線的證據。
 // 用法：node tests/tools/duel-drive.mjs "<url>" <out.json> [--duels=4] [--root=<靜態根目錄>] [--port=8831]
 //                                       [--shots=<png 前綴>] [--no3d] [--loadmax=<ms>]
+//                                       [--traitshot=<trId>] [--traitfrac=0.70]
+//   --traitshot  在真實對決裡截下那一支招的衝擊拍（到點派 ys:hitstop 凍幀 4 秒再截，見 drive() 裡的註解）；
+//                檔名＝<--shots 前綴>-<trId>.png。招不一定每場都出，抓不到就把 --duels 開大。
 //   url   例：http://127.0.0.1:8831/index.html?paperwar=1&fxcount=1（埠要跟 --port 一致）
 //   --root  http.server 的根目錄（預設＝repo 根；驗鑑別力時給 add71c4 的 worktree）
 //   --no3d  擋掉 js/renderer.js（3D 不載）→ 驗 DOM 退路（W-A6）
@@ -141,6 +144,18 @@ export async function drive(page, url, opts = {}) {
     let armed=true; const sk=()=>{ const b=document.getElementById('skipbtn'); if(!b) return; const on=b.style.display!=='none'&&b.offsetParent!==null;
       if(on&&armed){ armed=false; window.__recSkipped=true; b.click(); } else if(!on) armed=true; };
     new MutationObserver(sk).observe(document.body,{attributes:true,subtree:true,attributeFilter:['style','class']}); });`);
+  /* --traitshot=<trId>（2026-09-12 演出卷）：在**真實對決**裡截下某一支招的衝擊拍。
+     招式只演 300／900ms，而這支治具的主迴圈是 250ms 輪詢——直接截會錯過。
+     所以照 L3 對比閘門那條路（凍幀）做：招式派出後排一個 timer，到衝擊拍時
+     派 `ys:hitstop` 把 3D 的 dt 歸零 4 秒，畫面停在那一格，主迴圈下一輪就截得到。
+     ★只截這一張、只停一次★（`__traitShotAt` 設過就不再武裝），對決流程其餘部分照跑。 */
+  if (opts.traitshot) await page.addInitScript(`document.addEventListener('DOMContentLoaded',()=>{
+    const TR=${JSON.stringify(String(opts.traitshot))}, FRAC=${Number(opts.traitfrac) || 0.70};
+    document.addEventListener('ys:fx-trait',(e)=>{
+      const d=e&&e.detail; if(!d||d.trId!==TR||window.__traitShotAt) return;
+      setTimeout(()=>{ document.dispatchEvent(new CustomEvent('ys:hitstop',{detail:{ms:4000}})); window.__traitShotAt=Date.now(); }, Math.round(d.ms*FRAC));
+    });
+  });`);
   if (opts.no3d) await page.route('**/js/renderer.js*', (route) => route.abort());
   if (opts.noglb) await page.route('**/assets/creatures/*.glb', (route) => route.abort()); // 審查 C-2：GLB 全 404 時對決不得卡死
   await page.goto(url, { waitUntil: 'load' });
@@ -163,7 +178,7 @@ export async function drive(page, url, opts = {}) {
       const F = window.__ysFxCount || {};
       const R = window.__rec || {};
       const sk = document.getElementById('skipbtn');
-      return { mainText: mb ? mb.textContent : '', mainOk: vis(mb), hoOk: vis(ho), stageOk: !!sb, skipOk: !!sk && sk.style.display !== 'none' && sk.offsetParent !== null, duels: F.duels || 0, marks: R.marks || {}, ndu: (R.duels || []).length };
+      return { mainText: mb ? mb.textContent : '', mainOk: vis(mb), hoOk: vis(ho), stageOk: !!sb, skipOk: !!sk && sk.style.display !== 'none' && sk.offsetParent !== null, duels: F.duels || 0, marks: R.marks || {}, ndu: (R.duels || []).length, tshot: !!window.__traitShotAt };
     });
     duelsSeen = st.ndu;
     if (opts.onDuel && st.ndu > 0 && !shots['__ondu' + st.ndu]) { shots['__ondu' + st.ndu] = true; await opts.onDuel(page, st.ndu); }
@@ -176,6 +191,12 @@ export async function drive(page, url, opts = {}) {
           shots[k + 'File'] = file;
         }
       }
+    }
+    if (opts.traitshot && st.tshot && !shots.traitShot) { // 畫面正凍在那一招的衝擊拍上
+      shots.traitShot = true;
+      shots.traitShotFile = `${opts.shots || 'traitshot'}-${opts.traitshot}.png`;
+      await page.screenshot({ path: shots.traitShotFile });
+      await page.evaluate(() => document.dispatchEvent(new CustomEvent('ys:hitstop', { detail: { ms: 0 } }))); // 立刻解凍，對決照跑
     }
     if (st.duels >= want && duelsSeen >= want) break;
     if (/再入妖市/.test(st.mainText)) break; // 一局打完了還沒湊到場數：到此為止
@@ -221,7 +242,7 @@ if (isMain) {
   try {
     const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
     const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
-    const r = await drive(page, url, { duels: Number(opt.duels || 4), shots: opt.shots, no3d: !!opt.no3d, noglb: !!opt.noglb, loadmax: opt.loadmax, skip: !!opt.skip });
+    const r = await drive(page, url, { duels: Number(opt.duels || 4), shots: opt.shots, no3d: !!opt.no3d, noglb: !!opt.noglb, loadmax: opt.loadmax, skip: !!opt.skip, traitshot: opt.traitshot, traitfrac: opt.traitfrac });
     fs.writeFileSync(out, JSON.stringify(r, null, 1));
     const d = r.rec.duels;
     const abOk = d.every((x) => !x.armies || x.armies.every((s) => s.every((u) => u.hasAb)));
