@@ -221,7 +221,7 @@ read-back 也確認 **§A9 與 ART_BIBLE §10.3 沒有規則不一致**（後者
 | **H1** | HIGH | `st.groundMark` **一條約束都沒有**：可以點在受招方腳下、可以兩尊各點一次，`stanceOK` 全綠（`st.foot` 連 `wrapOf` 都不走，一點痕跡不留） | 補上與 `st.stance` 同樣的三條 throw（受招方／第二尊／與姿態不同尊），並新增 `stance.groundSame` 進 `stanceOK` | 10 支 `groundSame=true` |
 | **H2** | HIGH | 姿態與「道具落在誰身上」零綁定；`lastSig.stance` 不含 fig，治具連事後比對都做不到 | `st.stance` **不再呼叫 `markCaster`**（避免循環論證），新增 `stance.casterMatch`＝「擺姿態的那一尊 === 引擎獨立認定的 `run.caster`（骨骼／model 真的被動到、且不在目標名單裡）」，進 `stanceOK` | 10 支 `casterMatch=true`。**殘留**：仍不綁「道具 anchor」（見 §1.8 第 4 題） |
 | **H3** | HIGH | ★真的畫錯了★ 香火 9 支的姿態**永不收回**（只有祖靈範本招手寫了收回），windup tween 死掉後 `w.sta` 停在滿幅一路到收工；「下沉」的 −0.14 大於受益上抬的 +0.05～0.07 ⇒ **受益方（治具 count=1 時就是施招者自己）畫面上往下沉**，而 `evalPhases` 只量 `w.mo`、量不到 | 姿態的收回**做進引擎**：`st.stance` 第一次被呼叫時註冊一條包絡 tween（`w.staK` 1→0），收尾點＝`react[0]`＝衝擊拍，與腳下光熄掉同一時點；`apply()` 把 `sta` 乘上 `staK`。27 支一律相同，祖靈那行手寫收回**刪掉** | 三張 sheet 重拍：react 段施招者回正並跟著上抬（改前是沉下去）；t1/t2/t3、`--count=2`、`--fxvocab=1` 五跑全綠 |
-| **H4** | HIGH | 「在**蓄勢段**」一條檢查都沒有：`stance.peak` 是全程峰值、不帶時戳，把 `st.stance` 整段搬到 react 也全綠 | 記 `stance.peakAt`（峰值出現的虛擬時刻），新增 `stance.windupOK`＝`peakAt ≤ react[0]`，進 `stanceOK` | 10 支 `peakAt=300`（`wardImmuneLost` 133）／`reactAt=560`，`windupOK=true` |
+| **H4** | HIGH | 「在**蓄勢段**」一條檢查都沒有：`stance.peak` 是全程峰值、不帶時戳，把 `st.stance` 整段搬到 react 也全綠 | 記 `stance.peakAt`（峰值出現的虛擬時刻），新增 `stance.windupOK`＝`peakAt ≤ react[0]`，進 `stanceOK`（★這是**當時**的門檻，第 2／3 輪又收緊過兩次，現值見 §1.1 ⑬★） | 10 支 `peakAt=300`（`wardImmuneLost` 133）／`reactAt=560`，`windupOK=true` |
 | **H5** | HIGH | §A9 ③ 迭代的是**手工名單** `CONVERTED_MUST`，而同節註解寫「不是手工名單」；第 11 支起漏填即靜默放行，而 `traitfx-drive` 的註解又說「這條由原始碼掃描擋」——兩邊互相指望 | ③ 改成迭代 `convertedMoves()`（推導），`CONVERTED_MUST` 只當活性下限 | 突變 25／28 各自驗紅 |
 | **H6** | HIGH | `selfReact` 是 ② 的**一鍵豁免**，只是手填布林、不與任何東西比對，也沒有突變守它（在 `eliteSelfCut` 加上去就能讓突變 23 由紅變綠） | 新增一條測試把它釘在語彙檔 §C 的宣稱上：`selfReact` 為真的集合必須**恰好**是 `swarmLastStand`，且語彙檔裡要真的有「全 27 支唯一沒有第三方」那句話 | **突變 26**（在 `eliteSelfCut` 加 `selfReact: true`）驗紅 |
 
@@ -270,7 +270,7 @@ prompt 是「**反駁我已修好**」並逐條要「真的修好／表面修好
 |---|---|---|---|---|
 | **N1** | HIGH | ★**報告與自己在同一個 commit 裡重新產生的證據檔當場矛盾**★：H3 的修法讓「舉臂」的 `scl 1.04` 在量測幀已收回 ⇒ `figH` 1.1635→1.1229，殘旗 ratio **0.789→0.818**、腳下環 0.584→0.606，而報告兩處仍寫 0.789 並宣稱「本階段未動它」。它本來就 `OVER`、不擋批，所以**沒有紅燈接住** | 兩處改正並寫明成因（§1.5 那段引言、§1.8 第 7 點），另把「要不要順手把殘旗縮回 2/3 內」列進待裁 | `prop-size` t1／t2 重跑，報告數字與證據檔一致 |
 | **N2** | MEDIUM | 姿態包絡的收回終點**不是 `react[0]`**，而是「第一次呼叫 `st.stance` 當下的 `run.vt` ＋ `react[0]`」——`st.tween` 的 `start = run.vt + delay` 而 delay 用絕對 `st.beat`，而 `st.stance` 依設計一定從 tween 的 `update` 裡呼叫（`vt` 永不為 0）。它實測驗證了這條算式（延後版 horizon 1193＝633+560，逐值吻合）。⑮「由建構上成立」是過度宣稱 | `delay` 改成 `Math.max(0, B.travel[0] + TT*0.45 - run.vt)`，終點真的落在 `react[0]` | 五跑全綠；⑮ 的措辭已修正，並把「沒有斷言在量收回」寫進殘留 |
-| **N3** | MEDIUM | `windupOK` 的門檻是 `peakAt ≤ react[0]`＝**寬了一整個 travel 段**，而宣稱是「在蓄勢段」；`B.windup[1]` 就在同一個物件裡，而今天 10 支全部都過 | 收緊到 `peakAt ≤ windup[1] + 一個實際的虛擬時間步長`。★那個容差是**必要的**★：tier 1 實測 `peakAt=117` 而 `windup[1]=104`——windup 那條 tween 的最後一次 update 必然落在下一幀，嚴格 `≤104` 對**任何正確實作**都恆假（`02 §6.1` 第 6 條的不變量掃描；不加容差時 tier 1 當場 **18/27**） | tier 1 **27/27**（`slack=16.7`＝一幀）；把姿態搬到 react 段仍然紅（`peakAt=743`） |
+| **N3** | MEDIUM | `windupOK` 的門檻是 `peakAt ≤ react[0]`＝**寬了一整個 travel 段**，而宣稱是「在蓄勢段」；`B.windup[1]` 就在同一個物件裡，而今天 10 支全部都過 | 收緊到 `peakAt ≤ windup[1] + 一個實際的虛擬時間步長`（★第 3 輪又改用「量到峰值那一幀」的步長並夾在 `react[0]` 以內，現值見 §1.1 ⑬ 與 §1.6e★）。★那個容差是**必要的**★：tier 1 實測 `peakAt=117` 而 `windup[1]=104`——windup 那條 tween 的最後一次 update 必然落在下一幀，嚴格 `≤104` 對**任何正確實作**都恆假（`02 §6.1` 第 6 條的不變量掃描；不加容差時 tier 1 當場 **18/27**） | tier 1 **27/27**（`slack=16.7`＝一幀）；把姿態搬到 react 段仍然紅（`peakAt=743`） |
 | **N4** | LOW | `run.inBlock` 是裸的 set/reset，例外會讓旗標卡在 `true` | 包成 `try/finally` | — |
 | **L4 續** | LOW | 第一版的未知旗標檢查是**三項黑名單**（`--mate_gap=`／`--mateGapp=` 照樣靜默忽略）——「按已知的入口寫，不按危險的效果寫」 | 改成**白名單**：12 個認得的旗標，其餘一律 throw | 實跑 `--mate_gap=2` → 當場 throw；`--mateGap=1.9` 照跑並記進 `spec` |
 | **M4 續** | LOW | `spec` 漏記 `fxvocab`（比 `mateGap` 更決定性），`count` 記的是「有沒有覆寫」而不是每案實際尊數 | 補 `fxvocab` 與 `counts`（逐案） | 實測 `{"mateGap":"1.9","camdist":null,"countOverride":2,"counts":{"eliteSelfCut":2},"foe":"xianji:elite:zuling:2","fxvocab":false,"proto":null}` |
@@ -406,23 +406,30 @@ t1 **208→120.7**、t2 **560→316.7**、t3 **860→476.7**（−42%／−43%�
 | M7 | MEDIUM | 本階段把祖靈範本招的道具也從「有鎖」的 `st.icon` 搬進 `st.paperStamp` 這個缺口。目前寫法乘積裡還留著 `st.iconSize`（**不構成第二份來源**），但若哪天寫成 `obsid.scale.setScalar(0.56)`，三道防線一條都不會響 | 同 M6。另記：`fxvocab.test.mjs` 印的「徽記 mesh 被直接縮放 0 處」是在**只認三支入口**的分母下算的，不是全域結論 |
 | M8 | MEDIUM | `w.sta` 也是 set 不是 add ⇒ 同一尊被兩套招同時包裝時（hitstop 造成的重疊），後一套的姿態會蓋掉前一套；兩套的 `stanceOK` 都綠，畫面上只有一個生效 | 「當初不共用 `mo` 的理由在 `sta` 上原樣重現」這句話是對的。收工歸零已處理，缺的是同時演出期間；要修得給 `sta` 做成 per-run 的疊加層 ⇒ 引擎層，交裁 |
 | L1／L5／L6 | LOW | 共用暫存 `_v` 的易碎寫法／`--reduced` 那一跑的 `stanceOK` 是空真（與 `st.move` 一致且已聲明）／Euler 三軸相加近似繞軸旋轉（與既有 `mo.r` 同一個近似） | 三條都不影響正確性，記錄不修 |
+| r3 N2 殘 | MEDIUM | **沒有任何斷言在「量」姿態的收回**（`grep staK` 在治具與測試零命中；`metricOf` 只讀 `w.over`／`w.mo`）。clamp 那條分支現在會自己響（`lateStart`），但「收回有沒有真的發生」仍只由建構保證、沒有量測 | 要量得讓治具讀 `w.staK` 的軌跡，那是治具的新判準結構；三輪已達上限，交裁 |
+| r3 N3-5 ② | MEDIUM | 低幀率下 `windupOK` 會**靜默退化**成 `react[0]`（`Math.min` 的另一半生效），而 `windupSlack` 雖有輸出、**沒有判準在看它** | 同上。現行所有落檔證據都是預設幀距（slack＝一幀），退化只在 `--dt=50/100` 那種低幀率跑法才會發生，而那些跑法 `rateOK` 已紅 |
+| r3 程序 | — | **覆審期間我動過被審的檔**（`cb7d99a` 落在第 3 輪量測中途），而且只改碼沒同步報告 ⇒ N1 那個形狀同一天內復發 | 已同步。**教訓**：`02 §7` 的「覆審員量到移動中的目標」這次真的發生了，下一輪要嘛等它收工再動、要嘛當場通知 |
 
 ### 1.9 範圍（`git diff --stat 616f7ff..`，逐檔對應）
 
 | 檔 | 行 | 對應哪條需求 |
 |---|---|---|
 | `js/trait-fx/vocab.js` | +53 −13 | 派工 1：`STANCE_VOCAB`／`REACT_AXIS`／`STANCE_GATE`／`FAC_GROUND` 四張表＋`MOVE_SPEC` 的 `stance`／`selfReact` |
-| `js/trait-fx.js` | +137 −5 | 派工 1／2：`st.stance`（＋`w.sta` 通道與 `apply()`）、`st.pillar`、`st.groundMark`、`st.camOff`、`lastSig.stance` |
-| `js/trait-fx/zuling.js` | +211 −127 | 派工 3：新 `eliteSelfCut` ＋ `zlBeat`；批 0 徽記版搬進 `V055`／`V055_SHORT`；`V054` 退路移除 |
+| `js/trait-fx.js` | +261 −8 | 派工 1／2：`st.stance`（＋`w.sta` 通道與 `apply()`）、`st.pillar`、`st.groundMark`、`st.camOff`、`lastSig.stance` |
+| `js/trait-fx/zuling.js` | +212 −127 | 派工 3：新 `eliteSelfCut` ＋ `zlBeat`；批 0 徽記版搬進 `V055`／`V055_SHORT`；`V054` 退路移除 |
 | `js/trait-fx/xianghuo.js` | +33 −2 | 派工 4：9 支各加 `st.groundMark`＋`st.stance`（18 行）；`camOff` 改成轉呼叫 |
 | `js/duel-figures.js` | +9 −2 | 派工 1 最後一條：`createDuelFigures` 的 `opts.stepMul`（**預設 1＝正式頁一個位元組不變**） |
-| `tests/fxvocab.test.mjs` | +122 −1 | 派工 1：P1 四條新檢查＋突變 23／24／25 |
-| `tests/tools/traitfx-drive.mjs` | +42 −3 | 派工 1：`stanceOK` 進總判定、`v055CasesFromSource`、`phaseCasesFromSource` 的 MUST 加 `eliteSelfCut` |
-| `tests/tools/blindread-sheet.mjs` | +8 −1 | 派工 1 最後一條：`--mateGap` 轉送 |
+| `tests/fxvocab.test.mjs` | +199 −1 | 派工 1：P1 四條新檢查＋突變 23／24／25 |
+| `tests/tools/traitfx-drive.mjs` | +57 −5 | 派工 1：`stanceOK` 進總判定、`v055CasesFromSource`、`phaseCasesFromSource` 的 MUST 加 `eliteSelfCut` |
+| `tests/tools/blindread-sheet.mjs` | +37 −2 | 派工 1 最後一條：`--mateGap` 轉送 |
 | `tests/tools/traitfx-preview.html` | +5 | 同上：`?mategap=` 接到 `stepMul` |
 | `docs/design/2026-09-12-fx-vocab-draft.md` | +新 §A9 | 派工 1：語彙草案 |
 | `docs/design/ART_BIBLE.md` | §10.3 +一小段 | 派工 1 |
-| `docs/experiments/2026-09-13-zuling-b2-*` | 新增 | 本報告＋交付物 |
+| `docs/proposals/2026-09-11-plan-fx-legibility.md` | 1 行 | 覆審 r3 的 L4 副作用：那條落檔指令帶的 `--frames`／`--cell` 本支從來沒讀過，白名單化後會 throw，改成實際有效的形式 |
+| `docs/experiments/2026-09-13-zuling-b2-*` | 新增 | 本報告＋交付物（含三輪覆審清單、`gates.txt`、28 條突變輸出） |
+
+> 行數含**三輪對抗式覆審的修補**（`js/trait-fx.js` 由 +137 增到 +261、`tests/fxvocab.test.mjs` 由 +122 增到 +199），
+> 逐條在 §1.6c／§1.6d／§1.6e。
 
 **`index.html` 一行未動**（P0 `bytesOld == bytesNew == 357285`、`equal:true`）。
 **門檻／seed／視口／`PHASE_GATE`／`TRAIT_MS_BY_TIER`／P4 真值表一格未動。**
