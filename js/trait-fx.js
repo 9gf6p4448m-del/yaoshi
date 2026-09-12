@@ -232,8 +232,20 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     if (rec) rec.want = v;
   }
   const NOOP = function () {};
-  /** 已知屬於徽記的 geometry uuid（r2 M1：拿來抓「不經三支入口手造的第二顆徽記」） */
-  const GEOM_UUIDS = new Set();
+  /* ★已知屬於徽記的 geometry「內容指紋」★（r2 M1 的抓手；★r3 N-1 由 uuid 改成指紋★）
+     r2 那一版收的是登記當下那顆 geometry 的 `uuid`，所以 helper 裡一個
+     `new THREE.Mesh(o.geometry.clone(), …)` 就整組穿過去——clone 出來的是新 uuid、對不上，
+     那顆手造徽記不在 SIZED、不上鎖、不被稽核，實測 L3 canary 由 `pass 0` 翻成 `pass 1`
+     （面積 0.9728 → 7.2327，canary 下 6.3194／ok:true）＝恆綠儀式復現。
+     改成按**內容**認：`geomSig`（頂點數＋座標校驗和）＋單位寬，clone 出來的兩者都一樣。
+     `GEOM_COUNTS` 是便宜的前置過濾（先比頂點陣列長度，對不上就不算指紋），
+     免得每次 scene.traverse 都對全場每顆 mesh 算一遍校驗和。 */
+  const GEOM_SIGS = new Set();
+  const GEOM_COUNTS = new Set();
+  /* 積木自己造的、**不在尺寸鎖涵蓋內**但確實會用到徽記輪廓的 mesh（目前只有 st.paperStamp 的三片）。
+     它們不是「手造的第二顆徽記」，所以場景掃描要放行；放行名單是模組私有的 WeakSet，
+     編舞碰不到它，也就加不進來。★paperStamp 目前不在尺寸鎖裡，列在 README 的已知未涵蓋★。 */
+  const BLOCK_MADE = new WeakSet();
   /** geometry 的內容指紋（頂點數＋座標校驗和）；r2 M2：只驗身分擋不住就地改內容 */
   function geomSig(geom) {
     if (!geom || !geom.attributes || !geom.attributes.position) return null;
@@ -321,7 +333,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          這裡把頂點數與座標校驗和凍住，稽核逐次比對。 */
       geomSig: geomSig(geom) };
     SIZED.set(obj, rec);
-    GEOM_UUIDS.add(geom && geom.uuid);
+    if (rec.geomSig !== null) { GEOM_SIGS.add(rec.geomSig); GEOM_COUNTS.add(geom.attributes.position.array.length); }
     run.sized.push(rec);
     stats.iconLocked++;
     return obj;
@@ -369,6 +381,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const o = rec.obj;
     if (!o.parent) return; // 已經清場
     stats.sizeAudits++;
+    if (where === 'draw') stats.auditsDraw++; else stats.auditsUpdate++;
     // ① geometry 身分（鎖住了，這裡再量一次；換了就算鎖被繞過也抓得到）
     if (rec.geom && o.geometry !== rec.geom) {
       sizeViolation(`徽記 ${rec.kind} 的 geometry 被換掉了（覆審 r4 繞法 B）：世界尺寸＝縮放 × geometry 單位寬，`
@@ -443,13 +456,16 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   }
   const SCENE_SCAN_EVERY = 6;
   function scanStrayEmblems() {
-    if (!GEOM_UUIDS.size) return;
+    if (!GEOM_SIGS.size) return;
     scene.traverse((o) => {
-      if (!o.geometry || SIZED.has(o)) return;
-      if (!GEOM_UUIDS.has(o.geometry.uuid)) return;
+      if (!o.geometry || SIZED.has(o) || BLOCK_MADE.has(o)) return;
+      const pos = o.geometry.attributes && o.geometry.attributes.position;
+      if (!pos || !GEOM_COUNTS.has(pos.array.length)) return; // 便宜的前置過濾：頂點數對不上就不是徽記
+      if (!GEOM_SIGS.has(geomSig(o.geometry))) return;        // 按內容認（r3 N-1：uuid 被 clone 穿過去）
       sizeViolation(`場上有一顆用徽記剪影、卻沒有經過 st.icon／st.icons／st.mark 的 mesh`
         + `（${o.type}，fxKind=${(o.userData && o.userData.fxKind) || '無'}）：`
-        + '它不在尺寸鎖與稽核的涵蓋裡，等於一條完全在防線外的第二份來源（覆審 r2 M1）。');
+        + '它不在尺寸鎖與稽核的涵蓋裡，等於一條完全在防線外的第二份來源'
+        + '（覆審 r2 M1；r3 N-1：連 geometry.clone() 出來的也算，認的是內容不是 uuid）。');
     });
   }
   function auditInstances(rec, worldK) {
@@ -490,7 +506,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   /** 徽記尺寸的機械診斷（治具讀這一份；js/renderer.js 已把 traitFx 掛在 window.__yaoshi3d 上） */
   function sizeGuard() {
     return { violations: stats.sizeViolations, made: stats.iconMade, locked: stats.iconLocked,
-      audits: stats.sizeAudits, msg: stats.sizeViolationMsg,
+      audits: stats.sizeAudits, auditsUpdate: stats.auditsUpdate, auditsDraw: stats.auditsDraw,
+      msg: stats.sizeViolationMsg,
       tweenErrors: stats.tweenErrors, tweenErrorMsg: stats.tweenErrorMsg,
       worldRange: stats.sizeWorldRange, boxDiag: stats.sizeBoxDiag, range: ICON.scaleRange.slice() };
   }
@@ -533,7 +550,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0,
     sizeViolations: 0, sizeViolationMsg: null, iconMade: 0, iconLocked: 0,
     // r4 修補批：稽核次數（物件×幀）＝活性；世界寬度區間與 Box3 對角線＝診斷欄（不進判定）
-    sizeAudits: 0, sizeWorldRange: {}, sizeBoxDiag: {},
+    /* r3 N-2：稽核次數要**標量測位置**（`02 §6.1` 第 5 條：代理指標「沒響」只在它的量測位置上有效）。
+       實測 traitfx-drive 的治具頁逐幀 step() 但不逐幀 render()，draw 那個位置**一次都沒觸發**，
+       而彙總行只印一個「稽核 N 次」看起來像兩個位置都量過了。 */
+    sizeAudits: 0, auditsUpdate: 0, auditsDraw: 0, sizeWorldRange: {}, sizeBoxDiag: {},
     // r4 MEDIUM-1：編舞在 tween／timer／done 裡丟出來的例外不再靜默消失（含被鎖屬性的 TypeError）
     tweenErrors: 0, tweenErrorMsg: null };
   const runs = new Set();
@@ -1095,6 +1115,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         mFace.material.opacity = op;
         const grp = new THREE.Group();
         grp.add(mBody, mFace);
+        // r3 N-1：場景掃描按 geometry 內容認徽記，paperStamp 自己建的那幾片要放行（它不是手造的第二顆徽記）
+        BLOCK_MADE.add(mBody); BLOCK_MADE.add(mFace);
         /* o.glyph：印面上的字（ink 色）。沒有它的話，一枚 0.2–0.5 世界單位的印在 780×360 上
            只是一塊紅色色塊——「有厚度的紅色塊」和「印」之間差的就是這幾筆。
            ★2026-09-12 製作人裁定：字一律是「虎」★（原型第一版寫的是「王」，是虎額上那個字，
@@ -1132,6 +1154,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           mGlyph = new THREE.Mesh(gg, MAT_SOLID.clone());
           mGlyph.material.color.setHex(o.glyphColor === undefined ? (o.inkColor === undefined ? st.colors.ink : o.inkColor) : o.glyphColor);
           mGlyph.material.opacity = op;
+          BLOCK_MADE.add(mGlyph);
           grp.add(mGlyph);
         }
         grp.scale.setScalar(size);

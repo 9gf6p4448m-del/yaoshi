@@ -32,6 +32,9 @@
 //                 'n/a'＝這一套沒有產出徽記（23 支未改招、--throw／--block，以及 v0.55.1 之後
 //                       **不帶 --fxvocab=1 時的四支示範招**（跑的是 0.54 本體）都是這一態，不進總判定）
 //                 'ok' ＝violations===0 且 iconLocked===iconMade 且 sizeAudits>0
+//                 逐套印的 `u<N>+d<M>` 是**依量測位置分開的稽核次數**（r3 N-2）：
+//                 u＝traitFx.update 末、d＝onAfterRender（剛送進 GPU）。這支治具的 d 恆為 0
+//                 （治具頁逐幀 step() 但不逐幀 render()），draw 位置的主場是 fx-contrast／duel-drive
 //                 'fail'＝其中任一不成立，或拿不到 stats
 //                 量的是**效果**：js/trait-fx.js 的 auditSizes() 每幀對每個徽記做
 //                 updateWorldMatrix(true,true)＋matrixWorld.decompose()，把世界縮放對「積木自己
@@ -77,7 +80,21 @@ export function emblemCasesFromSource(root) {
       if (/\bst\.(icon|icons|mark)\s*\(/.test(body)) out.add(h[1]);
     });
   }
-  return [...out].sort();
+  const list = [...out].sort();
+  /* ★活性下限（覆審 r3 N-3）★：這支推導取代的是手工名單，而手工名單被判有問題的理由就是
+     「忘了加就沒有紅」。推導壞掉（縮排變了、`export const V054` 切點位移、正則失配）會**靜默**回 `[]`，
+     `sg.expected`／`sg.missing` 跟著變空 ⇒ 「用到徽記卻 n/a」那條判紅恆不成立，同一個病換個形狀。
+     對照：`tests/fxvocab.test.mjs` 同一族掃描有三個活性下限，這支原本一個都沒有。
+     下限＝批 0 的四支示範招必須在名單裡（它們是 0.55 語彙唯一在用的四支）；
+     批 1–3 鋪開之後只會變多，不會變少。少一支就是解析壞了，當場 throw，不留靜默退路。 */
+  const MUST = ['biteGamble', 'eliteSelfCut', 'hauntLost', 'wardImmuneLost'];
+  const missing = MUST.filter((t) => list.indexOf(t) < 0);
+  if (missing.length) {
+    throw new Error(`emblemCasesFromSource 解析壞了：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
+      + `缺少必含的 ${missing.join(' ')}。這支推導沒有活性下限時會靜默回空陣列，`
+      + '「用到徽記卻 n/a」那條判紅就恆不成立（覆審 r3 N-3）。');
+  }
+  return list;
 }
 
 const EPS = 1e-3;
@@ -222,6 +239,8 @@ async function runCase(browser, base, c, opt) {
     made: stats ? (stats.iconMade | 0) : -1,
     locked: stats ? (stats.iconLocked | 0) : -1,
     audits: stats ? (stats.sizeAudits | 0) : -1,
+    auditsUpdate: stats ? (stats.auditsUpdate | 0) : -1,
+    auditsDraw: stats ? (stats.auditsDraw | 0) : -1,
     msg: stats ? (stats.sizeViolationMsg || null) : null,
     worldRange: stats ? (stats.sizeWorldRange || null) : null,
     boxDiag: stats ? (stats.sizeBoxDiag || null) : null,
@@ -299,7 +318,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} size=${v.sizeState}(${v.sizeGuard.violations}v/${v.sizeGuard.locked}of${v.sizeGuard.made}/${v.sizeGuard.audits}a) twErr=${v.sizeGuard.tweenErrors} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} size=${v.sizeState}(${v.sizeGuard.violations}v/${v.sizeGuard.locked}of${v.sizeGuard.made}/u${v.sizeGuard.auditsUpdate}+d${v.sizeGuard.auditsDraw}) twErr=${v.sizeGuard.tweenErrors} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }
@@ -326,7 +345,9 @@ async function main() {
     made: a.made + Math.max(0, r.verdict.sizeGuard.made),
     locked: a.locked + Math.max(0, r.verdict.sizeGuard.locked),
     audits: a.audits + Math.max(0, r.verdict.sizeGuard.audits),
-  }), { violations: 0, made: 0, locked: 0, audits: 0 });
+    auditsUpdate: a.auditsUpdate + Math.max(0, r.verdict.sizeGuard.auditsUpdate),
+    auditsDraw: a.auditsDraw + Math.max(0, r.verdict.sizeGuard.auditsDraw),
+  }), { violations: 0, made: 0, locked: 0, audits: 0, auditsUpdate: 0, auditsDraw: 0 });
   const sgHit = results.find((r) => r.verdict.sizeGuard.msg);
   sg.msg = sgHit ? sgHit.verdict.sizeGuard.msg : null;
   sg.states = { ok: 0, 'n/a': 0, fail: 0 };
@@ -350,8 +371,16 @@ async function main() {
   const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, sizeGuard: sg, opts: opt };
   console.log(`\n徽記世界尺寸斷言${sg.fxvocab ? '（--fxvocab=1：0.55 徽記版）' : '（預設 0.54 演出，四支示範招本來就沒有徽記 ⇒ n\u002fa 是正確狀態）'}：`
     + `ok ${sg.states.ok}／n\u002fa ${sg.states['n/a']}／fail ${sg.states.fail}`
-    + `　（違規 ${sg.violations} 次、鎖上 ${sg.locked} of 產出 ${sg.made}、稽核 ${sg.audits} 次）`
+    + `　（違規 ${sg.violations} 次、鎖上 ${sg.locked} of 產出 ${sg.made}、`
+    + `稽核 update ${sg.auditsUpdate} 次／draw ${sg.auditsDraw} 次）`
     + `${sg.measured ? '' : '　★這一跑沒有任何招產出徽記＝這條斷言未量到，不得當成通過★'}`);
+  /* r3 N-2：draw 那個量測位置在這支治具上**一次都不會觸發**（治具頁逐幀 step() 但不逐幀 render()）。
+     不標出來的話，單一個「稽核 N 次」看起來像兩個位置都量過了——`02 §6.1` 第 5 條：
+     代理指標「沒響」只在它的量測位置上有效。draw 位置的主場是 fx-contrast 與 duel-drive。 */
+  if (sg.made > 0 && sg.auditsDraw === 0) {
+    console.log('  ★draw 量測位置本跑未觸發（traitfx-preview 逐幀 step() 但不逐幀 render()）：'
+      + '這一跑只證明了 update 那個位置；draw 位置請看 fx-contrast／duel-drive★');
+  }
   if (sg.worldRange) console.log('  世界寬度區間（診斷，不進判定）：' + JSON.stringify(sg.worldRange));
   if (sg.msg) console.log('  ! ' + String(sg.msg).slice(0, 300));
   if (sg.failed.length) console.log('  fail 的套：' + sg.failed.join(' '));

@@ -129,7 +129,15 @@ renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/re
   紙紮道具之後要接進來，就在自己的工廠裡呼叫 `lockIconScale(run, obj, base, kind, geom, host)`。
 - 掃描按名字追蹤，helper 包一層就避得開（見上）。
 - `traitfx-drive` 的治具頁逐幀 `step()` 但**不逐幀 `render()`**，所以量測位置 (ii) 在那支治具上
-  只會在少數幾格觸發；`fx-contrast` 與 `duel-drive`（真實 renderer 迴圈）才是 (ii) 的主場。
+  **一次都不會觸發**（覆審 r3 N-2 實測 0 格；之前寫「少數幾格」是錯的）。
+  三支治具現在都把稽核次數依量測位置分開印成 `u<update>+d<draw>`，
+  `traitfx-drive` 在 `made>0 且 draw===0` 時另印一行「★draw 量測位置本跑未觸發★」。
+  **(ii) 的主場是 `fx-contrast` 與 `duel-drive`（真實 renderer 迴圈）。**
+- **`st.paperStamp`（0.55.2 E 分支的紙紮印）不在尺寸鎖裡**：本卷只接 `st.icon`／`st.icons`／`st.mark`
+  三條路。它自己建的三片在場景掃描的放行名單（`BLOCK_MADE`）裡，不會被誤判成手造徽記。
+- 場景掃描按 **geometry 內容指紋**認徽記（覆審 r3 N-1：改前用 uuid，`geometry.clone()` 整組穿過去）。
+  它抓得到「多了一顆假徽記」，但**像素閘門抓不到**——一顆用合法尺寸渲染的假徽記，
+  `fx-contrast-metrics.py` 的 `area_pct` 分不出它是誰造的。紅在 `fx-contrast` 自己的 exit code。
 
 **執行期斷言（三支治具都讀）**：`traitfx-drive.mjs`、`fx-contrast.mjs` 讀 `__tfx.stats()`，
 `duel-drive.mjs` 讀 `window.__yaoshi3d.traitFx.sizeGuard()`（**批 1–3 的正式 L3 走的是 duel-drive**）。

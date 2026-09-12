@@ -229,7 +229,8 @@ if (isMain) {
       burn: r.fxc && r.fxc.burn, burnFig: r.fxc && r.fxc.burnFig, burnDom: r.fxc && r.fxc.burnDom, trait: r.fxc && r.fxc.trait, traitFig: r.fxc && r.fxc.traitFig, load: r.fxc && r.fxc.load, ver: r.ver,
       duelsMs: d.map((x) => [x.dur, (x.trait1 || 0) - (x.trait0 || 0), (x.traitFig1 || 0) - (x.traitFig0 || 0), x.skipped ? 'S' : '']) }));
     console.log(`徽記世界尺寸斷言：${r.sizeState}` + (r.sizeGuard
-      ? `　違規 ${r.sizeGuard.violations}／鎖上 ${r.sizeGuard.locked} of 產出 ${r.sizeGuard.made}／稽核 ${r.sizeGuard.audits}／tween 安靜死掉 ${r.sizeGuard.tweenErrors}`
+      ? `　違規 ${r.sizeGuard.violations}／鎖上 ${r.sizeGuard.locked} of 產出 ${r.sizeGuard.made}`
+        + `／稽核 update ${r.sizeGuard.auditsUpdate}＋draw ${r.sizeGuard.auditsDraw}／tween 安靜死掉 ${r.sizeGuard.tweenErrors}`
         + (r.sizeGuard.worldRange ? '　世界寬度 ' + JSON.stringify(r.sizeGuard.worldRange) : '')
       : '　（拿不到 traitFx.sizeGuard()）')
       + (r.sizeState === 'n/a' ? '　★這一跑沒演到用徽記的招＝未量到，不得當成通過★' : '')

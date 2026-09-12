@@ -179,7 +179,9 @@ async function shoot(browser, base, c, opt, outDir) {
   // N11：徽記尺寸鎖的執行期記帳（violations>0 或 locked!==made ⇒ 這一套判 FAIL）
   const st = await page.evaluate(() => window.__tfx.stats());
   const sizeGuard = { violations: st ? (st.sizeViolations | 0) : -1, made: st ? (st.iconMade | 0) : -1, locked: st ? (st.iconLocked | 0) : -1,
-    audits: st ? (st.sizeAudits | 0) : -1, msg: st ? (st.sizeViolationMsg || null) : null, worldRange: st ? (st.sizeWorldRange || null) : null,
+    audits: st ? (st.sizeAudits | 0) : -1,
+    // r3 N-2：稽核次數要標量測位置（u＝traitFx.update 末、d＝onAfterRender＝剛送進 GPU）
+    auditsUpdate: st ? (st.auditsUpdate | 0) : -1, auditsDraw: st ? (st.auditsDraw | 0) : -1, msg: st ? (st.sizeViolationMsg || null) : null, worldRange: st ? (st.sizeWorldRange || null) : null,
     tweenErrors: st ? (st.tweenErrors | 0) : -1, tweenErrorMsg: st ? (st.tweenErrorMsg || null) : null };
   /* 三態（r4 MEDIUM-2）：L3 每一套都是「用到徽記的招」，所以 made===0 在這支治具裡**就是 fail**
      ——凍幀量的就是徽記，沒有徽記代表這一格量錯了對象（與 hidden===0 同一個道理）。
@@ -211,7 +213,7 @@ async function main() {
     for (const c of cases) {
       const r = await shoot(browser, `http://127.0.0.1:${port}`, c, opt, outDir);
       out.push(r);
-      console.log(`${r.hidden > 0 && r.handled && r.sizeOK && !r.errors.length ? ' ok ' : 'FAIL'} ${c.trait.padEnd(16)} t${r.tier} 凍在 ${r.atMs}ms(第 ${r.atFrame} 幀) 切掉 ${r.hidden} 個特效物件 handled=${r.handled} size=${r.sizeState}(${r.sizeGuard.violations}v/${r.sizeGuard.locked}of${r.sizeGuard.made}/${r.sizeGuard.audits}a) err=${r.errors.length}`);
+      console.log(`${r.hidden > 0 && r.handled && r.sizeOK && !r.errors.length ? ' ok ' : 'FAIL'} ${c.trait.padEnd(16)} t${r.tier} 凍在 ${r.atMs}ms(第 ${r.atFrame} 幀) 切掉 ${r.hidden} 個特效物件 handled=${r.handled} size=${r.sizeState}(${r.sizeGuard.violations}v/${r.sizeGuard.locked}of${r.sizeGuard.made}/u${r.sizeGuard.auditsUpdate}+d${r.sizeGuard.auditsDraw}) err=${r.errors.length}`);
       if (r.sizeGuard.msg) console.log('   ! ' + String(r.sizeGuard.msg).slice(0, 220));
       if (r.sizeGuard.tweenErrorMsg) console.log('   ! tween 安靜死掉：' + String(r.sizeGuard.tweenErrorMsg).slice(0, 220));
       r.errors.slice(0, 2).forEach((e) => console.log('   ! ' + e.slice(0, 180)));
@@ -221,11 +223,11 @@ async function main() {
   // N4：沒有 bloom 的那一跑要在 summary 上留紅字，不能只在 stdout 一閃而過
   const nobloom = out.some((r) => !r.bloomCfg || r.bloomCfg.on !== true);
   // N11：整跑的尺寸鎖彙總（made===0 ⇒ 這一跑沒量到，不得當成通過）
-  const sizeGuard = out.reduce((a, r) => ({ violations: a.violations + Math.max(0, r.sizeGuard.violations), made: a.made + Math.max(0, r.sizeGuard.made), locked: a.locked + Math.max(0, r.sizeGuard.locked), audits: a.audits + Math.max(0, r.sizeGuard.audits) }), { violations: 0, made: 0, locked: 0, audits: 0 });
+  const sizeGuard = out.reduce((a, r) => ({ violations: a.violations + Math.max(0, r.sizeGuard.violations), made: a.made + Math.max(0, r.sizeGuard.made), locked: a.locked + Math.max(0, r.sizeGuard.locked), audits: a.audits + Math.max(0, r.sizeGuard.audits), auditsUpdate: a.auditsUpdate + Math.max(0, r.sizeGuard.auditsUpdate), auditsDraw: a.auditsDraw + Math.max(0, r.sizeGuard.auditsDraw) }), { violations: 0, made: 0, locked: 0, audits: 0, auditsUpdate: 0, auditsDraw: 0 });
   sizeGuard.measured = sizeGuard.made > 0;
   sizeGuard.failed = out.filter((r) => r.sizeState !== 'ok').map((r) => r.trait);
   fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), nobloom, sizeGuard, cases: out }, null, 1));
-  console.log(`徽記世界尺寸斷言：違規 ${sizeGuard.violations} 次／鎖上 ${sizeGuard.locked} of 產出 ${sizeGuard.made}／稽核 ${sizeGuard.audits} 次`
+  console.log(`徽記世界尺寸斷言：違規 ${sizeGuard.violations} 次／鎖上 ${sizeGuard.locked} of 產出 ${sizeGuard.made}／稽核 update ${sizeGuard.auditsUpdate}＋draw ${sizeGuard.auditsDraw} 次`
     + `${sizeGuard.measured ? '' : '　★未量到★'}${sizeGuard.failed.length ? '　fail：' + sizeGuard.failed.join(' ') : ''}`);
   if (sizeGuard.failed.length) { console.log('★★ 徽記世界尺寸有第二份來源（或鎖／稽核沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1; }
   console.log(`\n${out.length} 套 · ${meta}${nobloom ? '\n★★ nobloom:true —— 這份量測沒有 bloom，不是產品的量測位置，不得當成 L3 通過 ★★' : ''}`);

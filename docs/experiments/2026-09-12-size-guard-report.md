@@ -619,3 +619,107 @@ r4 的稽核掛在 `traitFx.update` 的最後，而 `render()` 內還會**再重
 **合併 main**：本批起點先 `git merge main`（`6defe13`，含覆審指名的 `8340657`）——
 **零衝突**（main 這幾個 commit 只動文件與 `dmg-readability.mjs`）；
 `index.html`／`emblems.js`／`fx-contrast-metrics.py`／`fx-consts.mjs`／`duel-perf.mjs` 對 main **零 diff**。
+
+
+---
+
+# 11. r3 修補（甲：只修三條；使用者裁定的範圍限定例外）
+
+> 起點 `ab2451d` → 先 `git merge main`（`f8f7c98`，0.55.2 語彙定稿／tier 1 300ms／27 支比例化／
+> E 分支的 `st.paperStamp`／`st.solid`／`st.stick` 與 `?proto=`）——**零衝突**。
+> 覆審報告 `scratchpad/review-size-guard-r3.md`。這是第 4 輪，**使用者裁甲：只修 N-1／N-2／N-3**
+> （超過 `02 §6.1` 附則三輪上限的例外，範圍限定）。N-4 只記錄。
+
+## 11.0 三條三態
+
+| # | 項目 | 三態 | 接住它的是哪一道 | 證據 |
+|---|---|---|---|---|
+| **N-1**（HIGH） | `scanStrayEmblems` 用 `uuid` 認身分，`geometry.clone()` 整組穿過去 | **真的修好** | **③ 的場景掃描**（改用 `geomSig` 內容指紋＋單位寬；`GEOM_COUNTS` 做便宜前置過濾） | `r7-n1-n3.md`：`traitfx-drive` **exit 1／違規 147**、`fx-contrast` **exit 1／違規 57**（健康態與 canary 兩跑都紅），訊息指名「連 `geometry.clone()` 出來的也算，認的是內容不是 uuid」 |
+| **N-2**（MEDIUM） | 「稽核 N 次」未標量測位置；draw 位置在治具頁實測 0 格 | **真的修好** | 治具側（不動防線本體） | `stats` 拆成 `auditsUpdate`／`auditsDraw`，三支治具都分開印；`traitfx-drive --fxvocab=1` 印 `稽核 update 270 次／draw 0 次` ＋ **★draw 量測位置本跑未觸發★**；`fx-contrast` 印 `update 390＋draw 15` |
+| **N-3**（MEDIUM） | `emblemCasesFromSource()` 無活性下限，解析壞掉回 `[]` 恆綠 | **真的修好** | 治具側 | 把正則的縮排改成 4 空白（解析全失配）⇒ **throw、exit 1**，訊息列出缺少的四支；還原後推導回 `biteGamble eliteSelfCut hauntLost wardImmuneLost` |
+| N-4（LOW） | `ICON.scaleRange [0.2, 2.2]`、`SCENE_SCAN_EVERY = 6` 是本卷自訂、不在任何凍結檔 | **記錄，未處置**（裁定甲的範圍外） | — | 見 §11.4「待凍結清單」 |
+
+## 11.1 N-1：uuid 認身分 → 內容指紋
+
+`GEOM_UUIDS` 收的是登記當下那顆 geometry 的 `uuid`，所以 helper 裡一個
+`new THREE.Mesh(o.geometry.clone(), o.material.clone())` 就整組穿過去——clone 是新 uuid、對不上，
+那顆手造徽記不在 `SIZED`、不上鎖、不被 `auditOne`／`auditAtDraw` 量。
+覆審實測：四道防線全綠、面積 0.9728 → 7.2327、**canary 下 `ok:true`／`pass 1`**（恆綠儀式復現）。
+
+**修法**：改用**既有的** `geomSig()`（頂點數＋座標校驗和）＋單位寬認身分——clone 兩者都一樣。
+為了不讓每次 `scene.traverse` 都對全場每顆 mesh 算校驗和，加一層便宜的前置過濾
+`GEOM_COUNTS`（先比 position 陣列長度，對不上就直接跳過）。
+
+**連帶（合併 main 帶進來的新積木）**：`st.paperStamp`（E 分支）自己建 `ShapeGeometry` 再
+`scale(0.74)`＋`bow()` 翹曲，內容與共用剪影不同、指紋不會撞；但為了不讓未來的參數組合誤觸，
+它造的三片（body／face／glyph）進模組私有的 `BLOCK_MADE` 放行名單。
+**`st.paperStamp` 目前不在尺寸鎖裡**（本卷只接 `st.icon`／`st.icons`／`st.mark` 三條路），
+已列進 README 的「已知未涵蓋」。
+
+**★照實記：這條的紅來自尺寸防線，不是像素閘門★**
+繞法下 `fx-contrast` **exit 1**（違規 57 次、訊息指名成因），但 `fx-contrast-metrics.py` 的像素
+summary 在健康態與 canary 都是 `pass 1`（area 3.5481／2.6349，那顆假徽記自己就把面積撐過門檻）。
+也就是說：**L3 的整個程序是紅的**（README 的程序是先跑 `fx-contrast`，它 exit 1 就停），
+但**單看像素那一張表看不出來**——一顆用合法尺寸渲染的假徽記，像素閘門本來就分不出它是誰造的。
+這正是尺寸防線要獨立存在的理由，也與 r1 的 E、r2 的 L1 同型（「效果／判紅」是兩件事）。
+**不採**「掃到 stray 就把它 `visible=false`」那種做法：那會讓誤判在產品上直接吃掉美術。
+
+## 11.2 N-2：稽核次數要標量測位置
+
+`02 §6.1` 第 5 條：代理指標「沒響」只在它的量測位置上有效。
+`traitfx-drive` 的治具頁逐幀 `step()` 但**不逐幀 `render()`**，所以 `onAfterRender` 那個位置
+在那支治具上**一次都不會觸發**（不是報告 §10.4 寫的「只觸發幾格」——那句話已作廢）。
+`stats.sizeAudits` 拆成 `auditsUpdate`／`auditsDraw`（`sizeGuard()` 一起吐），三支治具逐套印
+`u<N>+d<M>`；`traitfx-drive` 在 `made>0 且 auditsDraw===0` 時額外印一行
+「★draw 量測位置本跑未觸發……draw 位置請看 fx-contrast／duel-drive★」。
+實測：`traitfx-drive --fxvocab=1` `update 270／draw 0`；`fx-contrast` `update 390＋draw 15`。
+
+## 11.3 N-3：推導器的活性下限
+
+`emblemCasesFromSource()` 取代手工名單，而手工名單被判有問題的理由就是「忘了加就沒有紅」。
+推導壞掉（縮排變了、`export const V054` 切點位移、正則失配）會**靜默**回 `[]`，
+`sg.expected`／`sg.missing` 跟著變空 ⇒ 同一個病換了形狀。
+加一行下限：**批 0 的四支示範招必須在名單裡**，缺一支就 throw（不留靜默退路）。
+批 1–3 鋪開之後名單只會變多不會變少。
+
+## 11.4 N-4（記錄，未處置）——★待凍結清單★
+
+以下是本卷自訂、**不在任何凍結檔**的數字。它們都是**加嚴用的旋鈕**（不是放寬既有門檻），
+但按 `02 §2.1` 的精神，它們一旦被當成判準就該有落點：
+
+| 常數 | 值 | 位置 | 作用 |
+|---|---|---|---|
+| `ICON.scaleRange` | `[0.2, 2.2]` | `js/trait-fx/vocab.js` | `st.iconScale` 與 `o.sizes` 的合法相對倍率區間（四支示範招實際用到 0.35–1.9） |
+| `SCENE_SCAN_EVERY` | `6` | `js/trait-fx.js` | 每幾次稽核做一次 `scene.traverse`（「多了一顆 mesh」不是逐幀變化的事） |
+| 稽核容差 | `1e-6 × max(1, |want|)` | `js/trait-fx.js` 的 `near()` | 世界縮放比對的相對容差 |
+
+**交呼叫端裁**：要不要把這三個收進 `docs/experiments/2026-09-11-acceptance-fx-legibility.md` 的 §2.1 修訂紀錄。
+本批**沒有動凍結檔**。
+
+## 11.5 驗收重跑
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 合併 | `git merge main`（`f8f7c98`） | **零衝突**；`index.html`／`emblems.js`／`fx-contrast-metrics.py`／`duel-perf.mjs` 對 main 零 diff |
+| N-1 鑑別力 | `geometry.clone()` 繞法（`--fxvocab=1`） | 掃描 exit 0（按名字寫，追不到 helper）／**`traitfx-drive` exit 1、違規 147**／**`fx-contrast` exit 1、違規 57**（健康態與 canary 兩跑都紅）；像素 summary 兩跑都 `pass 1`（§11.1 照實記） |
+| N-3 鑑別力 | 把推導器正則改壞（2→4 空白縮排） | **throw、exit 1**，訊息列出缺少的四支；還原後推導回四支 |
+| 健康態（`--fxvocab=1`） | `traitfx-drive --tier=1 --fxvocab=1` | **27/27 pass**、**違規 0**、`ok 4／n/a 23／fail 0`、`稽核 update 270／draw 0` ＋未觸發提示 |
+| 健康態（預設 0.54） | `traitfx-drive --tier=1` | **27/27 pass**、**違規 0**、`n/a 27`、exit 0（**不誤報**） |
+| 語彙單元測試 | `node tests/fxvocab.test.mjs` | **16 綠 ／ 0 紅** |
+| 規則測試套 | 12 檔 | **12/12 exit 0**（`r7-suite.txt`） |
+| 引擎等價 | `trace-eq` 對 `f8f7c98` 的 index.html | `{"equal":true}`、`bytesOld=bytesNew=357285` |
+| L3 四支（`--fxvocab=1`） | `fx-contrast` ＋ `metrics.py` | `pass 4`，四格**與 §2.2／§8.7／§9.3／§10.5 逐位數相同**：`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`（`r7-l3-current-metrics.txt`）；`稽核 update 390＋draw 15` |
+
+**沒跑的（裁定甲的範圍限定）**：效能（本批只動掃描的比對方式與治具輸出，沒有新增每幀工作——
+指紋只在 `scene.traverse` 命中頂點數時才算）、十七條 `--mutate` 全表（上一批已全紅，本批未動掃描規則）、
+`duel-drive` 的 seed 跑。**這三項在本批沒有重跑，不宣稱它們現在是綠的。**
+
+## 11.6 本批的改動
+
+| 檔案 | 改了什麼 |
+|---|---|
+| `js/trait-fx.js` | `GEOM_UUIDS` → `GEOM_SIGS`＋`GEOM_COUNTS`（N-1）；`scanStrayEmblems` 改按內容指紋；新增 `BLOCK_MADE` 放行名單並把 `st.paperStamp` 的三片加進去；`stats` 拆 `auditsUpdate`／`auditsDraw`，`sizeGuard()` 一起吐（N-2） |
+| `tests/tools/traitfx-drive.mjs` | `emblemCasesFromSource()` 加活性下限（N-3）；逐套與彙總印 `u+d`、`draw 未觸發` 提示（N-2） |
+| `tests/tools/fx-contrast.mjs`／`duel-drive.mjs` | 讀回並分開印 `auditsUpdate`／`auditsDraw`（N-2） |
+| 本報告 | 本節（含 §11.4 待凍結清單） |
+| `…-evidence/r7-*` | N-1／N-3 鑑別力、測試套、L3 現值 |
