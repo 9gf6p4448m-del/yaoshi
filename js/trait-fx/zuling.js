@@ -670,48 +670,121 @@ const MOVES = {
       st.rim(bird, 1 + 0.4 * k);
     } });
   },
-
   /* 拼板舟・飛魚躍（boat，小兵×3）：本隊受到的濺射減半。
-     編舞：三舟錯開 60ms——船首壓浪下沉、側鰭收攏（0–180ms）→ 躍離水面（船身仰角、鰭全張、左右錯開）
-          → 落水（腳下漣漪環擴散＋一圈水花圓盤）→ 舟身回平（到 890ms）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 6 列＋§B1＋§A9；
+     `MOVE_SPEC.swarmHalfSplash = { 丙, 躍, 升, stance:'下沉', anchor:'allies' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝躍**：`BowBase`／`BowTip` 抬首＋`LFin1*`／`RFin1*` 划水，整體 `st.move` 躍離水面。
+       **道具**＝丙 木器：**三道平行浪弧**（`wave` ×3，`st.paperProps` 的 `shape:'emblem'`＝1 draw call），
+         從側後方推進來、鋪在本隊那一線下方；＋每一艘身上一枚浪印。
+         ★漣漪環與水花圓盤退役★（`ring`／`disc` 限縮成香火的「陣」）。
+       **受益方反應＝升**：本方三舟同時 `st.move` 抬起＋邊光。
+
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down，躍之前先壓浪）≠ react「升」（up）；腳下**垂直光柱**。
+     ★拖線★：增益招 `trail: false`。★落點 anchor＝`allies`★（desc「本隊受到的濺射減半」）。
+     ★造型互撞（ART_BIBLE §10.6）★：拼板舟↔山豬牙飾是模型層的撞，演出層只能硬拉開——
+     這一支走**三道平行弧**（木器），山豬牙飾走**兩根獠牙**（骨牙石器），家族與數量都不同。 */
   swarmHalfSplash(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const school = st.byBody(st.actor, 'swarm');
     const fleet = school.length ? school : st.actor;
-    fleet.forEach((b, i) => {
-      const lag = i * 60;
-      const foot = st.foot(b, new THREE.Vector3());
-      const sway = (i % 2 === 0) ? 1 : -1;
-      st.tween({ ms: 180, delay: lag, ease: 'out', update(t, e) {
-        st.rot(b, 'BowBase', 0.16 * e); st.rot(b, 'BowTip', 0.22 * e);
-        st.rot(b, 'Stern', -0.12 * e); st.rot(b, 'SternTip', -0.16 * e);
-        st.rot(b, 'LFin1Rt', 0, 0, 0.3 * e); st.rot(b, 'RFin1Rt', 0, 0, -0.3 * e);
-        st.rot(b, 'LFin1Md', 0, 0, 0.34 * e); st.rot(b, 'RFin1Md', 0, 0, -0.34 * e);
-        st.move(b, 0, -0.045 * e, 0);
-        st.rim(b, 1 + 0.4 * e);
-      } });
-      st.tween({ ms: 360, delay: lag + 180, ease: 'linear', update(t) {
-        const k = 1 - st.EASE.out(Math.min(1, t / 0.35));
-        const j = st.EASE.pulse(t);
-        const a = st.EASE.snap(Math.min(1, t / 0.85));
-        st.rot(b, 'Mid', -0.1 * a);
-        st.rot(b, 'BowBase', 0.16 * k - 0.3 * a); st.rot(b, 'BowTip', 0.22 * k - 0.44 * a);
-        st.rot(b, 'Stern', -0.12 * k + 0.2 * a); st.rot(b, 'SternTip', -0.16 * k + 0.26 * a);
-        st.rot(b, 'LFin1Rt', 0, 0, 0.3 * k - 0.6 * j); st.rot(b, 'RFin1Rt', 0, 0, -0.3 * k + 0.6 * j);
-        st.rot(b, 'LFin1Md', 0, 0, 0.34 * k - 0.72 * j); st.rot(b, 'RFin1Md', 0, 0, -0.34 * k + 0.72 * j);
-        st.rot(b, 'LFin1Tp', 0, 0, -0.5 * j); st.rot(b, 'RFin1Tp', 0, 0, 0.5 * j);
-        st.move(b, sway * 0.07 * j, -0.045 * k + 0.52 * j, 0.13 * j);
-        st.spin(b, -0.6 * a, sway * 0.18 * j, 0);
-        st.rim(b, 1 + 0.4 * k + 1.5 * j);
-      } });
-      st.at(lag + 540, () => {
-        const ring = st.ring(foot, 0.22, 0.04, { opacity: 0.85 });
-        ring.scale.setScalar(0.4);
-        st.tween({ ms: 230, ease: 'outQuint', update(t, e) { ring.scale.setScalar(0.4 + 1.5 * e); ring.material.opacity = 0.85 * (1 - e); } });
-        const foam = st.disc(foot, 0.16, { opacity: 0.5 });
-        st.tween({ ms: 210, ease: 'out', update(t, e) { foam.scale.setScalar(1 + 1.1 * e); foam.material.opacity = 0.5 * (1 - e); } });
-        st.burst(foot, { power: 0.45, n: 22 });
+    const lead = fleet[0];
+    const mates = st.actor.filter((f) => f !== lead);
+    const bowAt = st.worldOf(lead, 'BowBase', new THREE.Vector3());
+    if (!bowAt.lengthSq()) st.worldOf(lead, null, bowAt);
+    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const A = bowAt.clone(); A.addScaledVector(perp, 1.95); A.y += 0.65; A.add(st.camOff(1.0));
+    const Z = new THREE.Vector3();
+    st.actor.forEach((f) => { const p = st.worldOf(f, null, new THREE.Vector3()); Z.add(p); });
+    Z.multiplyScalar(1 / Math.max(1, st.actor.length));
+    Z.y = st.tableY + 0.30;
+    Z.add(st.camOff(2.0));
+
+    // ── 丙 三道平行浪弧（1 draw call；群體位移掛 InstancedMesh 物件本身，§A5）──
+    const WV = 3;
+    const waves = st.paperProps(st.kind, WV, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.50, depth: 0.14, warp: 0.10 }); // k 1.05 那一版三道弧糊成一大片藍、佔掉半個畫面（自評第 1 輪）
+    waves.obj.position.copy(A);
+    const _e = new THREE.Euler();
+    const rows = [];
+    for (let i = 0; i < WV; i++) rows.push({ y: (i - 1) * 0.20, rz: 0.05 * (i - 1), s: 0 });
+    const writeWaves = (k) => {
+      for (let i = 0; i < WV; i++) {
+        const g = rows[i], it = waves.items[i];
+        it.p.set(0, g.y * (0.3 + 1.0 * k), (i - 1) * 0.05);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz));
+        it.s = g.s;
+      }
+      waves.write();
+    };
+    writeWaves(0);
+
+    // ── 每一艘身上的浪印（anchor allies）──
+    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
+        follow: f, at: 'chest', off: st.camOff(1) }));
+
+    /* ① 壓浪（windup）：船首下沉、側鰭收攏；浪弧在側後方亮相。 */
+    st.groundMark(lead, { h: 1.16, w: 0.26, taper: 0.42, peak: 0.95, push: 0.70 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(lead, '下沉', e);
+        fleet.forEach((b) => {
+          st.rot(b, 'BowBase', 0.24 * e); st.rot(b, 'BowTip', 0.20 * e);
+          st.rot(b, 'LFin1A', -0.30 * e); st.rot(b, 'RFin1A', 0.30 * e);
+          st.rot(b, 'LFin1B', -0.22 * e); st.rot(b, 'RFin1B', 0.22 * e);
+          st.move(b, 0, -0.05 * e, 0);
+          st.rim(b, 1 + 1.0 * e);
+        });
+        st.alpha(waves.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < WV; i++) rows[i].s = Math.max(0, Math.min(1, (e - 0.10 * i) * 2.6));
+        writeWaves(0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 鋪浪（travel）：三道平行弧從側後方推進來、鋪在本隊腳下那一線。 */
+    st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
+      waves.obj.position.lerpVectors(A, Z, e);
+      writeWaves(e);
+    },
+    done() {
+      /* ★衝擊拍★：三舟躍到頂＝浪弧鋪開＝全隊同幀抬起（三件同一拍，§A2） */
+      st.phase('react');
+      st.burst(Z, { power: 0.8, n: 46, color: C.hot });
+      st.punch(0.36);
+    } });
+    // 躍：船首猛抬、鰭全張（祖靈＝靜→瞬發）
+    st.tween({ ms: TL * 0.5, delay: T0 + TL * 0.45, ease: 'snap', update(t, e) {
+      fleet.forEach((b) => {
+        st.rot(b, 'BowBase', 0.24 - 0.56 * e); st.rot(b, 'BowTip', 0.20 - 0.44 * e);
+        st.rot(b, 'LFin1A', -0.30 - 0.36 * e); st.rot(b, 'RFin1A', 0.30 + 0.36 * e);
       });
+    } });
+    st.fade(waves.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+
+    /* ③ 躍起（react）：本方每一艘上抬＋邊光，身上的浪印蓋上再淡去。 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.05, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.05, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.13 * e, 0); st.rim(f, 1 + 1.9 * e);
+    } }));
+
+    /* 收勢：舟身回平，施招者跟著躍起（他也在本隊裡）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.55));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
+      fleet.forEach((b) => {
+        st.rot(b, 'BowBase', -0.32 * k); st.rot(b, 'BowTip', -0.24 * k);
+        st.rot(b, 'LFin1A', -0.66 * k); st.rot(b, 'RFin1A', 0.66 * k);
+        st.rot(b, 'LFin1B', -0.22 * k); st.rot(b, 'RFin1B', 0.22 * k);
+        st.rim(b, 1 + 1.0 * k + 1.2 * up);
+      });
+      st.move(lead, 0, 0.13 * up, 0);
+    } });
   },
 
   /* 山豬牙飾・獠牙反擊（boartusk，小兵×1）：本隊每拍第一次被擊中時反傷 2。
@@ -1017,36 +1090,8 @@ export const SHORT = {
   /* boltGamble｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
   boltGamble: MOVES.boltGamble,
 
-  /* 飛魚躍｜辨識：舟身躍離水面＋落水漣漪環 */
-  swarmHalfSplash(st) {
-    const K = st.ms / 260;
-    const boats = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
-    boats.forEach((b, i) => {
-      const lag = i * 18 * K;
-      st.tween({ ms: 80 * K, delay: lag, ease: 'in', update(t, e) { // 船首壓浪下沉、側鰭收攏
-        st.rot(b, 'BowBase', 0.16 * e); st.rot(b, 'Stern', -0.1 * e);
-        st.rot(b, 'LFin1Rt', 0, 0, 0.3 * e); st.rot(b, 'RFin1Rt', 0, 0, -0.3 * e);
-        st.move(b, 0, -0.03 * e, 0);
-      } });
-      st.tween({ ms: 110 * K, delay: 80 * K + lag, ease: 'pulse', update(t, e) { // 躍離水面（鰭全張）
-        st.move(b, 0, 0.24 * e, 0.06 * e);
-        st.rot(b, 'BowBase', 0.16 * (1 - e) - 0.28 * e); st.rot(b, 'BowTip', -0.2 * e);
-        st.rot(b, 'LFin1Rt', 0, 0, 0.3 - 0.7 * e); st.rot(b, 'RFin1Rt', 0, 0, -0.3 + 0.7 * e);
-        st.rim(b, 1 + 0.8 * e);
-      } });
-    });
-    const foot = st.foot(boats[0], new THREE.Vector3());
-    const ripple = st.ring(foot, 0.34, 0.05, { opacity: 0 });
-    const splash = st.disc(foot, 0.3, { opacity: 0 });
-    st.grow(ripple, { ms: 90 * K, delay: 140 * K, from: 0.3, to: 1.8 }); // 落水漣漪環
-    st.fade(ripple, { ms: 90 * K, delay: 140 * K, from: 0.75, to: 0 });
-    st.grow(splash, { ms: 70 * K, delay: 140 * K, from: 0.2, to: 1.2 });
-    st.fade(splash, { ms: 70 * K, delay: 140 * K, from: 0.5, to: 0 });
-    st.tween({ ms: 60 * K, delay: 170 * K, ease: 'out', update(t, e) { // 舟身回平
-      const k = 1 - e;
-      boats.forEach((b) => { st.move(b, 0, 0.07 * k, 0); st.rot(b, 'BowTip', -0.2 * k); st.rim(b, 1 + 0.8 * k); });
-    } });
-  },
+  /* swarmHalfSplash｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  swarmHalfSplash: MOVES.swarmHalfSplash,
 
   /* 獠牙反擊｜辨識：低頭挑牙、牙尖射出一道獠光 */
   swarmThorn(st) {
