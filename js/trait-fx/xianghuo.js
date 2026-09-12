@@ -260,52 +260,110 @@ const MOVES = {
   },
 
   /* 媽祖令旗・令旗改陣（flag，護法×2）：二拍本方全體 atk+1。
-     編舞：壓身舉旗（0–300ms：旗桿後倒、肩背下沉、獸首抬起張口、尾豎）
-          → 揮旗下令（300ms：旗桿由後猛甩到前，兩道令波自旗下推過本方整排）
-          → 全體聞令（各尊錯開 60ms 側踏半步再歸位、邊光同時亮起、頭頂各起一撮金火星）
-          → 收旗（470–850ms 回位）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 1 列；`MOVE_SPEC.wardAtkAll1 = { 乙, 掃, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝掃**：`FlagMast` 後倒蓄 → 猛甩，`Withers`／`Chest`／`HeadRoot`／`TailRoot` 跟著甩過整排。
+       **道具**＝乙 符旗：**一面金紅大旗**（`flag`，`st.paperStamp` 絹旗厚片＋鎏金面＋硃紅墨線＋翹曲），
+         ★**從常駐旗桿上展開脫離**★ 再掃過本方整排。
+       **受益方反應＝升**：各尊側踏半步（現況已有）＋**頭頂蓋一枚旗印**＋邊光。
+
+     ★區分點（§C2）★：一面**大**旗掃過，與五營旗的五面**小**旗分開；
+     ★令波環（兩道 `st.ring` 自旗下推出）整組退役★——19/27 支共用的腳下光環正是盲讀 B 類失敗的成因。
+     ★旗必須脫離常駐旗桿★：不脫離就是 A 類失敗（常駐造型當特效，兩位讀者各猜錯兩次）。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   wardAtkAll1(st) {
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
     const mine = st.actor.slice();
     const lead = mine[0];
-    st.tween({ ms: 300, ease: 'out', update(t, e) {
-      st.rot(lead, 'FlagMast', 0.6 * e, 0, -0.38 * e);
-      st.rot(lead, 'Withers', -0.18 * e); st.rot(lead, 'Chest', -0.1 * e);
-      st.rot(lead, 'HeadRoot', -0.24 * e); st.rot(lead, 'JawRoot', 0.34 * e); st.rot(lead, 'Jaw1', 0.2 * e);
-      st.rot(lead, 'TailRoot', 0.42 * e); st.rot(lead, 'Tail1', 0.3 * e); st.rot(lead, 'Tail2', 0.2 * e);
-    } });
-    st.at(300, () => {
-      st.tween({ ms: 170, ease: 'outQuint', update(t, e) {
-        st.rot(lead, 'FlagMast', 0.6 - 1.45 * e, 0, -0.38 + 0.72 * e);
-        st.rot(lead, 'Withers', -0.18 + 0.34 * e); st.rot(lead, 'Chest', -0.1 + 0.22 * e);
-        st.rot(lead, 'HeadRoot', -0.24 + 0.38 * e); st.rot(lead, 'JawRoot', 0.34 - 0.34 * e); st.rot(lead, 'Jaw1', 0.2 - 0.2 * e);
-        st.rot(lead, 'TailRoot', 0.42 - 0.5 * e); st.rot(lead, 'Tail1', 0.3 - 0.4 * e); st.rot(lead, 'Tail2', 0.2 - 0.3 * e);
-      } });
-      st.punch(0.3);
-      // 令波：兩道環自旗下推出，掃過本方整排
-      const foot = st.foot(lead, new THREE.Vector3());
-      [0, 95].forEach((d) => st.at(d, () => {
-        const r = st.ring(foot, 0.3, 0.05, { opacity: 0.9 });
-        st.tween({ ms: 360, ease: 'out', update(t, e) { r.scale.setScalar(1 + 5.4 * e); r.material.opacity = 0.9 * (1 - e); } });
-      }));
-      // 聞令換位：側踏半步再回，邊光同亮
-      mine.forEach((f, i) => {
-        const fwd = st.toward(f, new THREE.Vector3());
-        const lat = new THREE.Vector3(fwd.z, 0, -fwd.x);
-        const k = (i % 2 ? -1 : 1) * (0.12 + 0.05 * st.rnd());
-        const held = i === 0 ? 0.9 : 0;
-        st.tween({ ms: 420, delay: 60 * i, ease: 'pulse', update(t, e) {
-          st.move(f, lat.x * k * e + fwd.x * 0.07 * e, 0, lat.z * k * e + fwd.z * 0.07 * e);
-          st.rim(f, 1 + held * (1 - t) + 1.5 * e);
-        } });
-        st.at(60 * i + 50, () => st.burst(st.top(f, new THREE.Vector3()), { power: 0.45, n: 22 }));
-      });
-      st.at(170, () => st.tween({ ms: 380, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(lead, 'FlagMast', -0.85 * k, 0, 0.34 * k);
-        st.rot(lead, 'Withers', 0.16 * k); st.rot(lead, 'Chest', 0.12 * k);
-        st.rot(lead, 'HeadRoot', 0.14 * k); st.rot(lead, 'TailRoot', -0.08 * k); st.rot(lead, 'Tail1', -0.1 * k); st.rot(lead, 'Tail2', -0.1 * k);
-      } }));
+    const mast = st.worldOf(lead, 'FlagMast', new THREE.Vector3());
+    if (!mast.lengthSq()) { st.top(lead, mast); }
+    mast.y += 0.18;
+    /* 掃過本方整排：從隊伍的一端劃到另一端（只有一尊時就以它為中心左右各半步）。 */
+    const pts = mine.map((f) => st.worldOf(f, null, new THREE.Vector3()));
+    const from = pts[0].clone(), to = pts[pts.length - 1].clone();
+    if (pts.length < 2) { from.z -= 0.62; to.z += 0.62; }
+    from.y += 0.50; to.y += 0.50;
+    /* 旗掃的那一段往鏡頭推一個身位：對決機位在世界 +X，推近之後同樣的世界尺寸在畫面上更大。
+       ★這是 P3 與 §A3 打架時的解★——大旗要再放大才夠 0.8% 面積，但 `flag` 這一尊 figH 只有 1.42、
+       放大就破 2/3 的尺寸上限。改成「旗掃過本方陣前」（本來就該離鏡頭近）：世界尺寸不動、像素變多。 */
+    from.addScaledVector(TOWARD_CAM, 1.6); to.addScaledVector(TOWARD_CAM, 1.6);
+
+    // ── 乙 大旗：鎏金面＋硃紅墨線的絹旗厚片（不是加色平面）──
+    const banner = st.paperStamp(st.kind, mast, { role: 'stamp', color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 6, yawDeg: -20 });
+    banner.scale.setScalar(st.iconSize * 0.30);
+
+    // ── 受益方頭上的旗印（react 的證據，跟著那一尊走）──
+    const marks = mine.map((f) => {
+      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
+        opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: TOWARD_CAM });
+      m.scale.setScalar(st.markSize * 1.0);
+      return m;
     });
+
+    /* ① 壓身舉旗（windup）：旗桿後倒蓄、獸首抬起張口、尾豎；旗面在桿頭「展開」 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(lead, 'FlagMast', 0.6 * e, 0, -0.38 * e);
+      st.rot(lead, 'Withers', -0.18 * e); st.rot(lead, 'Chest', -0.10 * e);
+      st.rot(lead, 'HeadRoot', -0.24 * e); st.rot(lead, 'JawRoot', 0.34 * e); st.rot(lead, 'Jaw1', 0.20 * e);
+      st.rot(lead, 'TailRoot', 0.42 * e); st.rot(lead, 'Tail1', 0.30 * e); st.rot(lead, 'Tail2', 0.20 * e);
+      st.rim(lead, 1 + 1.4 * e);
+      st.alpha(banner, Math.min(1, e * 2.2));
+      banner.scale.setScalar(st.iconSize * (0.30 + 0.50 * e)); // 展開＝從桿上長出來
+      banner.userData.fxRoll = 0.30 * (1 - e);
+    }, done() { st.phase('travel'); } });
+
+    /* ② 猛甩（travel）：旗脫離旗桿、掃過本方整排 */
+    st.tween({ ms: TL * 0.42, delay: T0, ease: 'outQuint', update(t, e) {
+      st.rot(lead, 'FlagMast', 0.6 - 1.45 * e, 0, -0.38 + 0.72 * e);
+      st.rot(lead, 'Withers', -0.18 + 0.34 * e); st.rot(lead, 'Chest', -0.10 + 0.22 * e);
+      st.rot(lead, 'HeadRoot', -0.24 + 0.38 * e); st.rot(lead, 'JawRoot', 0.34 - 0.34 * e); st.rot(lead, 'Jaw1', 0.20 - 0.20 * e);
+      st.rot(lead, 'TailRoot', 0.42 - 0.50 * e); st.rot(lead, 'Tail1', 0.30 - 0.40 * e); st.rot(lead, 'Tail2', 0.20 - 0.30 * e);
+    } });
+    /* 旗先離桿往前甩出去（這一段給 travel 的位移），再橫掃整排 */
+    st.trail(banner, mast, from, { ms: TL * 0.44, delay: T0, ease: 'out', trail: false, arc: 0.16 });
+    /* 峰值收在 1.00×iconSize：Q5 治具實測 1.22 倍時大旗的世界包圍盒 1.1508 對 figH 1.4201＝**0.81**，
+       明顯超過 §A3 的 2/3（flag 這一尊本來就矮）。記錄項不擋批，但明顯超過要自己抓。 */
+    st.tween({ ms: TL * 0.44, delay: T0, ease: 'out', update(t, e) { banner.scale.setScalar(st.iconSize * (0.80 + 0.20 * e)); } });
+    st.trail(banner, from, to, { ms: TL * 0.56, delay: T0 + TL * 0.44, ease: 'inout', color: C.line, opacity: 0.28, segs: 12, spin: 0.7,
+      done() {
+        /* ★衝擊拍★：旗面展到滿＝掃過整排＝各尊同幀側踏 */
+        st.phase('react');
+        st.punch(0.40);
+        st.burst(to, { power: 0.8, n: 44, color: C.key });
+      } });
+
+    /* ③ 聞令（react）：側踏半步再回、邊光同亮、頭頂各蓋一枚旗印 */
+    const stag = RL * 0.36 / Math.max(1, mine.length);
+    mine.forEach((f, i) => {
+      const fwd = st.toward(f, new THREE.Vector3());
+      const lat = new THREE.Vector3(fwd.z, 0, -fwd.x);
+      const k = (i % 2 ? -1 : 1) * (0.12 + 0.05 * st.rnd());
+      st.tween({ ms: RL * 0.6, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
+        st.move(f, lat.x * k * e + fwd.x * 0.07 * e, 0, lat.z * k * e + fwd.z * 0.07 * e);
+        st.rim(f, 1 + 1.5 * e);
+      } });
+    });
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.20, delay: R0 + i * stag, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.46, delay: R0 + i * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.55 - 0.70 * e)); } });
+      st.fade(m, { ms: RL * 0.34, delay: R0 + RL * 0.62, from: 1, to: 0 });
+    });
+    st.tween({ ms: RL * 0.5, delay: R0, ease: 'out', update(t, e) { banner.scale.setScalar(st.iconSize * (1.00 - 0.38 * e)); } });
+    st.fade(banner, { ms: RL * 0.5, delay: R0 + RL * 0.18, from: 1, to: 0 });
+
+    /* 收勢：收旗 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(lead, 'FlagMast', -0.85 * k, 0, 0.34 * k);
+      st.rot(lead, 'Withers', 0.16 * k); st.rot(lead, 'Chest', 0.12 * k);
+      st.rot(lead, 'HeadRoot', 0.14 * k); st.rot(lead, 'TailRoot', -0.08 * k); st.rot(lead, 'Tail1', -0.10 * k); st.rot(lead, 'Tail2', -0.10 * k);
+      st.rim(lead, 1 + 1.4 * k);
+    } });
   },
 
   /* 送王船・送王船（wangchuan，護法×2）：二拍吸收對面本拍首 4 點傷害。
@@ -945,50 +1003,9 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
   eliteCleave: MOVES.eliteCleave,
 
-  /* 令旗改陣｜辨識：★旗面本體★由後猛甩到前＋兩道令波推過本方整排
-     （盲讀 r2：短版只有骨骼在轉、看不到旗；補一面真的旗） */
-  wardAtkAll1(st) {
-    const K = st.ms / 260;
-    const flagUnit = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const foot = st.foot(flagUnit, new THREE.Vector3());
-    const w1 = st.ring(foot, 0.4, 0.055, { opacity: 0 });
-    const w2 = st.ring(foot, 0.4, 0.045, { opacity: 0 });
-    // ★旗面本體★：掛在 FlagMast 上的一片布
-    const cloth = st.spawn(new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.28), st.glow(undefined, 0)), 'flag');
-    const mastP = new THREE.Vector3();
-    const place = (ang) => {
-      st.worldOf(flagUnit, 'FlagMast', mastP);
-      cloth.position.copy(mastP); cloth.position.y += 0.26;
-      cloth.position.addScaledVector(st.dir, 0.1 + 0.18 * Math.sin(ang));
-      cloth.rotation.set(0, Math.atan2(st.dir.x, st.dir.z), ang * 0.5);
-    };
-    place(0);
-    st.tween({ ms: 84 * K, ease: 'wind', update(t, e) { // 壓身舉旗：旗面現形、旗桿後倒
-      st.rot(flagUnit, 'FlagMast', -0.7 * e); st.rot(flagUnit, 'Withers', 0.1 * e); st.rot(flagUnit, 'Chest', 0.12 * e);
-      st.rot(flagUnit, 'HeadRoot', -0.2 * e); st.rot(flagUnit, 'Jaw1', 0.26 * e); st.rot(flagUnit, 'TailRoot', -0.2 * e);
-      st.rim(flagUnit, 1 + 1 * e);
-      cloth.material.opacity = Math.min(1, e * 2.3);
-      place(-0.7 * e);
-    } });
-    st.tween({ ms: 72 * K, delay: 82 * K, ease: 'strike', update(t, e) { // 揮旗下令：旗桿由後猛甩到前
-      st.rot(flagUnit, 'FlagMast', -0.7 + 1.5 * e); st.rot(flagUnit, 'Chest', 0.12 - 0.24 * e);
-      st.rot(flagUnit, 'HeadRoot', -0.2 + 0.24 * e); st.rot(flagUnit, 'Tail1', 0.24 * e);
-      place(-0.7 + 1.5 * e);
-    }, done() { st.punch(0.4); } });
-    st.grow(w1, { ms: 90 * K, delay: 106 * K, from: 0.3, to: 1.7 }); // 兩道令波推過本方整排
-    st.fade(w1, { ms: 90 * K, delay: 106 * K, from: 0.8, to: 0 });
-    st.grow(w2, { ms: 88 * K, delay: 132 * K, from: 0.3, to: 2 });
-    st.fade(w2, { ms: 88 * K, delay: 132 * K, from: 0.6, to: 0 });
-    st.actor.forEach((f, i) => st.tween({ ms: 76 * K, delay: (114 + i * 12) * K, ease: 'snap', update(t, e) { // 全體聞令側踏
-      st.move(f, 0.07 * e, 0, 0); st.rim(f, 1 + 1.6 * e);
-    } }));
-    st.fade(cloth, { ms: 58 * K, delay: 166 * K, from: 1, to: 0 });
-    st.tween({ ms: 62 * K, delay: 164 * K, ease: 'inout', update(t, e) { // 收旗
-      const k = 1 - e;
-      st.rot(flagUnit, 'FlagMast', 0.8 * k); st.rot(flagUnit, 'Withers', 0.1 * k); st.rot(flagUnit, 'Jaw1', 0.26 * k);
-      st.rot(flagUnit, 'Tail1', 0.24 * k); st.rot(flagUnit, 'TailRoot', -0.2 * k); st.rim(flagUnit, 1 + 1 * k);
-    } });
-  },
+  /* wardAtkAll1｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  wardAtkAll1: MOVES.wardAtkAll1,
 
   /* 送王船｜辨識：★船推出去★＋**撞開一道水牆打向對面**（對面退縮）；金罩縮成配角
      （盲讀 r2：低分共同特徵是「效果只在自己身上」；讀者 C 另外說「淡白半圓罩與地上光環分不出」，
