@@ -473,7 +473,7 @@ const MOVES = {
        ★不得再往前拉★：增益招的飛行物不得跨中線（P4 r2 的兩個結構性語彙問題之一）。 */
     /* ★A 的高度是看圖調出來的★：`+0.46` 那一版在 844×390 上**被畫面上緣切掉**
        （`sheet-t2` 前兩格只看得到刃的一角，`xianji` 的包圍盒高 2.24、Neck2 本來就高）。
-       降到 `+0.18` 之後整枚刃都在畫面裡，travel 位移仍有 ~1.5 世界單位（門檻 0.4×travelDist）。 */
+       兩輪看圖收到 `-0.22／+0.12` 之後整枚刃都在畫面裡，travel 位移仍有 ~1.5 世界單位（門檻 0.4×travelDist）。 */
     const A = neck.clone().addScaledVector(st.dir, -0.22); A.y += 0.12;
     const Z = neck.clone().addScaledVector(st.dir, 0.40); Z.y = st.tableY + 0.14;
 
@@ -488,7 +488,7 @@ const MOVES = {
 
     // ── 紙血條：割開時從頸口飄出的一束窄紙條（1 個 draw call；群體位移掛在 InstancedMesh 物件本身）──
     const BL = 7;
-    // k 0.62 那一版在 sheet 上一格都看不到（單件 0.186 世界單位）；1.15／ratio 0.30 才讀得出是一束紙條
+    // k 0.62 那一版在 sheet 上一格都看不到（單件 0.186 世界單位）；1.15 又太大（糊成一塊淺色方塊），收在 0.85／ratio 0.22
     const gore = st.paperProps(st.kind, BL, { color: C.hot, opacity: 0, k: 0.85, ratio: 0.22, depth: 0.10, warp: 0.24 });
     gore.obj.position.copy(neck);
     const _e = new THREE.Euler();
