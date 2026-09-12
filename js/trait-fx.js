@@ -129,13 +129,73 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      （st.icon／st.icons／st.mark）**一律拒收**：傳了就 throw，而不是靜默沿用。
      ——不寫成「忽略 o.size」是因為靜默忽略會讓編舞以為自己調到了尺寸，下一卷又長回來；
      throw 才會在 traitfx-drive／duel-drive 的 handled=false 上當場現形（L9 零錯會抓）。
-     另一條路（直接 mesh.scale.setScalar(<數字>)）由 tests/fxvocab.test.mjs 的掃描守。 */
+     另一條路（直接對 mesh 的 scale 寫值）由下面的 lockIconScale 在**執行期**鎖死（覆審 r3 N11）。 */
   function iconSizeSrc(who, kind, o, size) {
     if (o && 'size' in o) {
       throw new Error(`${who} 不接受 o.size（徽記尺寸的唯一來源是 js/trait-fx/vocab.js 的 ICON.byKind／flatByKind／markByKind；`
-        + `要改 ${kind} 的尺寸就改那張表，編舞要放大縮小請乘 st.iconSize／st.iconFlatSize／st.markSize）`);
+        + `要改 ${kind} 的尺寸就改那張表，編舞要放大縮小請用 st.iconScale(mesh, 相對倍率)）`);
     }
     return size;
+  }
+  /* ══ ★徽記尺寸的執行期鎖（覆審 r3 N11：收斂，不是涵蓋）★ ═══════════════════════════════
+     r2 的第二道是 tests/fxvocab.test.mjs 的原始碼掃描，它按**已知語法形狀**寫
+     （`NAME.scale.setScalar(` ／ `NAME.scale.set(`），r3 實測四條繞法一律靜默跳過：
+       ① 別名 `const m2 = knife; m2.scale.setScalar(0.02)`
+       ② `knife.scale.multiplyScalar(0.02 / st.iconSize)`
+       ③ `knife.scale.x = knife.scale.y = knife.scale.z = 0.02`
+       ④ 索引／子節點取用 `marks[0].scale…`、`knife.children[0].scale…`
+     這裡改成按**效果**寫：徽記 mesh 的 `scale` 這個 Vector3，x／y／z 換成 accessor，
+     **three.js 的每一個 Vector3 變動方法（set／setScalar／copy／multiplyScalar／applyMatrix4／
+     fromArray／lerp…）最後都是對 this.x／this.y／this.z 賦值**，所以這一個扼口把上面四條
+     連同「還沒有人想到的第五條」一起收掉——分母歸一，涵蓋自然 100%。
+     讀取完全不受影響（renderer 的 updateMatrix 只讀不寫）。
+
+     合法的動畫怎麼辦：四支示範招都有「呼吸縮放」（`st.iconSize * (0.5 + 0.5*e)`）。
+     那是**相對倍率**，ICON 的值仍在乘積裡，不是第二份來源——改走 `st.iconScale(mesh, k)`，
+     由積木自己乘 `mesh.userData.fxIconBase`（＝建構當下 ICON 表給的值，唯讀）。
+     ⇒ 編舞再也拿不到「把絕對尺寸寫進去」的手把。
+
+     為什麼是 throw 而不是靜默覆蓋：靜默覆蓋會讓編舞以為自己調到了尺寸（同 o.size 那條的理由），
+     而且下一幀才被蓋掉＝這一幀畫面上真的用了第二份來源。throw 讓它當場現形。
+     為什麼還要記帳：run 的 tween 迴圈對 update 是 try/catch（一段壞了不擋整招），
+     光 throw 會被吃掉；`stats.sizeViolations` 讓 traitfx-drive／fx-contrast 看得見（那是執行期斷言）。
+     活性：`stats.iconMade`（產出的徽記物件數）與 `stats.iconLocked`（真的鎖上的數）必須相等，
+     兩者都 0 也要在治具端另外判——鎖沒掛上去時 locked 會 < made，這條掃描不會變恆綠。 */
+  let scaleUnlocked = false;
+  /** 只有這支能寫徽記的 scale（積木內部用；編舞碰不到它） */
+  function setLockedScale(obj, v) {
+    scaleUnlocked = true;
+    try { obj.scale.setScalar(v); } finally { scaleUnlocked = false; }
+  }
+  function lockIconScale(obj, base, kind) {
+    const vec = obj.scale;
+    if (vec.__fxLocked) return obj;
+    let x = vec.x, y = vec.y, z = vec.z;
+    const bad = (axis, val) => {
+      stats.sizeViolations++;
+      const msg = `徽記 ${kind} 的 scale.${axis} 被直接寫成 ${val}：徽記的世界尺寸只有一份來源`
+        + '（js/trait-fx/vocab.js 的 ICON.byKind／flatByKind／markByKind）。'
+        + '要做呼吸縮放請用 st.iconScale(mesh, 相對倍率)，要改這個 kind 的尺寸請改那張表。';
+      if (!stats.sizeViolationMsg) stats.sizeViolationMsg = msg; // tween 的 try/catch 會吃掉 throw，這裡留痕給治具
+      throw new Error(msg);
+    };
+    const mk = (axis, get, set) => ({
+      configurable: true,
+      enumerable: true,
+      get,
+      set(val) { if (!scaleUnlocked) bad(axis, val); set(val); },
+    });
+    Object.defineProperties(vec, {
+      x: mk('x', () => x, (v) => { x = v; }),
+      y: mk('y', () => y, (v) => { y = v; }),
+      z: mk('z', () => z, (v) => { z = v; }),
+      __fxLocked: { value: true, enumerable: false },
+    });
+    // 基準與 kind 唯讀：否則「改掉 fxIconBase 再呼叫 st.iconScale」就是新的第二份來源
+    Object.defineProperty(obj.userData, 'fxIconBase', { value: base, enumerable: true });
+    Object.defineProperty(obj.userData, 'fxIconKind', { value: kind, enumerable: true });
+    stats.iconLocked++;
+    return obj;
   }
   // 徽記朝鏡頭：相機四元數再往下壓 ICON.billboardTiltDeg（正俯視時完全正對會像貼紙，壓一點才有厚度）
   const TILT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -THREE.MathUtils.degToRad(ICON.billboardTiltDeg));
@@ -162,7 +222,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
 
-  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0 };
+  /* sizeViolations／iconMade／iconLocked＝徽記尺寸鎖的執行期斷言（覆審 r3 N11）。
+     治具判紅的條件：sizeViolations > 0（有人繞過 ICON 表）或 iconLocked !== iconMade（鎖沒掛上去＝防線失效）。 */
+  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0,
+    sizeViolations: 0, sizeViolationMsg: null, iconMade: 0, iconLocked: 0 };
   const runs = new Set();
   const wraps = new Map(); // figure → wrap
   let seedCounter = 11;
@@ -505,6 +568,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       iconFlatSize: ICON.flatSizeOf(EMBLEM_OF[det.trId] || null),
       /** 這一招印記（st.mark 蓋在受招／受益方身上那枚）的尺寸；來源同上，ICON.markByKind。 */
       markSize: ICON.markSizeOf(EMBLEM_OF[det.trId] || null),
+      /** ★徽記縮放的唯一合法入口（覆審 r3 N11）★
+       *  `k` 是**相對倍率**，實際世界尺寸＝`ICON` 表給的基準 × k——ICON 的值永遠在乘積裡。
+       *  編舞寫 `st.iconScale(knife, 0.5 + 0.5 * e)`，等價於舊寫法 `st.iconSize * (0.5 + 0.5 * e)`
+       *  （基準就是 `st.iconSize`／`st.iconFlatSize`／`st.markSize` 那一組，逐位數相同）。
+       *  直接寫 `mesh.scale.*` 會被 lockIconScale 當場 throw ＋ 記進 stats.sizeViolations。 */
+      iconScale(mesh, k) {
+        const base = mesh && mesh.userData ? mesh.userData.fxIconBase : undefined;
+        if (base === undefined) {
+          throw new Error('st.iconScale 只吃 st.icon／st.icons／st.mark 產出的徽記（它的尺寸基準來自 vocab.js 的 ICON 表）；'
+            + '別的 mesh 請用 st.grow');
+        }
+        const m = k === undefined ? 1 : k;
+        if (!Number.isFinite(m)) throw new Error(`st.iconScale 的倍率不是有限數：${m}`);
+        setLockedScale(mesh, base * m);
+        return mesh;
+      },
       /** 徽記：一片朝鏡頭的法寶剪影。
        *  o = { size=ICON.sizeOf(kind), color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
        *  outline＝在本體後面墊一片 ink 色的實心底板（把亮色從暗紅桌／夜紫天上切出來）；
@@ -535,6 +614,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           mesh.add(line);
         }
         mesh.userData.fxParts = [mesh].concat(mesh.children.filter((c) => c.material)); // st.fade／st.alpha 三片一起動
+        /* ★尺寸鎖（覆審 r3 N11）★：本體與底板／描邊子節點全部鎖住。
+           子節點也要鎖是因為「`knife.children[0].scale.setScalar(…)`」同樣改得動畫面上的尺寸
+           （底板被撐大就是 r2 §7.1 末表那個「ΔE 糊掉」的機制）——防線按效果寫，不按入口寫。 */
+        stats.iconMade++;
+        lockIconScale(mesh, size, kind);
+        mesh.children.forEach((c) => { stats.iconMade++; lockIconScale(c, c.scale.x, kind + ':part'); });
         st.spawn(mesh, 'emblem:' + kind);
         run.sig.emblems.add(kind);
         if (o.flat) { mesh.rotation.x = -Math.PI / 2; mesh.rotation.z = o.roll || 0; } // 貼桌（陰氣的水漬／暗斑、香火的貼桌陣）：不朝鏡頭
@@ -550,7 +635,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         mat.opacity = o.opacity === undefined ? 1 : o.opacity;
         const im = new THREE.InstancedMesh(EMBLEMS.geomOf(kind), mat, Math.max(1, positions.length));
         im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1, rolls: o.rolls || null };
+        /* ★尺寸鎖（覆審 r3 N11）★：群體徽記的尺寸有兩個出口，兩個都要收——
+           ① `im.scale`（整批一起放大，基準 1＝純相對倍率）；
+           ② `userData.fxIcons.size`（逐幀重排時乘進矩陣的那個值，直接改它就是第二份來源）→ 唯讀。 */
+        Object.defineProperty(im.userData.fxIcons, 'size', { value: size, enumerable: true });
         im.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉
+        stats.iconMade++;
+        lockIconScale(im, 1, kind + ':instanced');
         st.spawn(im, 'emblem:' + kind);
         run.sig.emblems.add(kind);
         if (o.flat) { // 貼桌：一次把 N 個實例壓平，之後不逐幀重排（省掉整批 billboard 的成本）

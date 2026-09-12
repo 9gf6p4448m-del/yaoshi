@@ -269,7 +269,7 @@ const MOVES = {
       st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
       st.rim(ringer, 1 + 1.2 * e);
       st.alpha(bell, Math.min(1, e * 2.2));
-      bell.scale.setScalar(st.iconSize * (0.4 + 0.6 * e));
+      st.iconScale(bell, 0.4 + 0.6 * e);
     } });
     st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
       update(t) {
@@ -419,7 +419,7 @@ const MOVES = {
         st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
         st.rim(cat, 1 + 1.0 * e);
         st.alpha(seal, Math.min(1, e * 2));
-        seal.scale.setScalar(st.iconSize * (0.35 + 0.75 * e)); // 過衝一點再收，印才有「蓋下來」的重量
+        st.iconScale(seal, 0.35 + 0.75 * e); // 過衝一點再收，印才有「蓋下來」的重量
         seal.userData.fxRoll = 0.55 * (1 - e);
       },
       done() { st.phase('travel'); } });
@@ -445,7 +445,7 @@ const MOVES = {
     st.fade(seal, { ms: RL * 0.35, delay: R0, from: 1, to: 0 });
     if (stamp) {
       st.fade(stamp, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { stamp.scale.setScalar(st.markSize * (1.9 - 0.9 * e)); } });
+      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { st.iconScale(stamp, 1.9 - 0.9 * e); } });
       st.fade(stamp, { ms: RL * 0.45, delay: R0 + RL * 0.55, from: 1, to: 0 });
     }
     // ★flinch 一定要帶 ms★：預設是 TFX.flinchMs×k，tier 1 下是 69ms，從 react 起算會把 horizon 推到 249＞235 ⇒ rate>1

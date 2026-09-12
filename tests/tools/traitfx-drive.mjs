@@ -23,6 +23,9 @@
 //     msOK        頁面實際跑的 run.ms 等於 fx-consts 的 msOf(tier)（防「--tier=1 其實還在跑 900」）
 //     rateOK      run.maxRate ≤1.0（tier 1 專用：短版必須原生塞進 260ms，不得靠加速硬擠）
 //     actionsOK   非 flinch 的補間條數 ≥2（F10：防「只剩一個閃光」的偷懶短版）
+//     sizeOK      徽記尺寸鎖（覆審 r3 N11）：stats.sizeViolations===0 且 stats.iconLocked===stats.iconMade
+//                 ——「編舞繞過 ICON 表直接寫 mesh.scale」在執行期被 lockIconScale throw ＋記帳，
+//                 這一條就是那筆記帳的斷言（tween 的 try/catch 會吃掉 throw，pageerror 看不到）
 //     fillOK      sig.horizon >= run.ms * 0.85（R1 覆審 M1：擋「演完之後乾等」——一版三尊的
 //                 horizon 只有 929／1067／1013 對 run.ms 1400，最後三分之一畫面上沒東西在動，
 //                 而 clean／onTime／within 全是上界，一條都擋不住）
@@ -166,7 +169,22 @@ async function runCase(browser, base, c, opt) {
      場上有隊友時 react 就會量在受益方身上（reactSolo=false）。 */
   const reactClaim = sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === 'react') : null;
   const reactSolo = reactClaim ? !!reactClaim.solo : null;
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo };
+  /* ★徽記尺寸鎖的執行期斷言（覆審 r3 N11）★
+     js/trait-fx.js 的 lockIconScale 把徽記 mesh 的 scale 鎖死，外部任何寫入 throw ＋記帳。
+     為什麼要在這裡判而不是只靠 throw：run 的 tween 迴圈對 update 是 try/catch（一段壞了不擋整招），
+     光 throw 會被吃掉、pageerror 也看不到——所以走 stats 這條記帳線。
+     ★為什麼不是「量 world scale 等於 ICON.sizeOf(kind)」★：四支示範招都有合法的呼吸縮放
+     （ICON 基準 × 相對倍率），那種等式在健康態就是假的（會變成恆紅的儀式）。
+     鎖保證的是「每一次寫入都以 ICON 表的基準為因數」，所以這裡判的是
+     ① violations === 0（沒有人繞過）② locked === made（鎖真的掛上去了＝這條斷言不會變恆綠）。 */
+  const sizeGuard = {
+    violations: stats ? (stats.sizeViolations | 0) : -1,
+    made: stats ? (stats.iconMade | 0) : -1,
+    locked: stats ? (stats.iconLocked | 0) : -1,
+    msg: stats ? (stats.sizeViolationMsg || null) : null,
+  };
+  const sizeOK = !!stats && sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made;
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, sizeGuard, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -184,7 +202,7 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && errors.length === 0 && programs1 - programs0 === 0;
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -224,7 +242,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} size=${v.sizeGuard.violations}/${v.sizeGuard.locked}of${v.sizeGuard.made} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }
@@ -242,7 +260,22 @@ async function main() {
   const actsTable = results.map((r) => ({ trait: r.case.trait, acts: r.verdict.acts, ok: r.verdict.actionsOK, maxRate: r.sig ? r.sig.maxRate : null, runMs: r.sig ? r.sig.ms : null, horizon: r.verdict.horizon, fill: r.verdict.fill }));
   // M1：react 量在出招方自己身上的那幾套（solo）＝「未在條文情境下驗證」，逐套列名
   const soloReact = results.filter((r) => r.verdict.reactSolo === true).map((r) => r.case.trait);
-  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, opts: opt };
+  /* N11 的執行期斷言彙總：violations 必須 0、locked 必須等於 made。
+     ★活性★：整跑的 made 若為 0，代表這一跑根本沒有任何招產出徽記——那時這條斷言沒有量到東西，
+     要標成「未量到」而不是「通過」（--throw／--block 那兩種模式本來就不會有徽記，不在此列）。 */
+  const sg = results.reduce((a, r) => ({
+    violations: a.violations + Math.max(0, r.verdict.sizeGuard.violations),
+    made: a.made + Math.max(0, r.verdict.sizeGuard.made),
+    locked: a.locked + Math.max(0, r.verdict.sizeGuard.locked),
+  }), { violations: 0, made: 0, locked: 0 });
+  const sgHit = results.find((r) => r.verdict.sizeGuard.msg);
+  sg.msg = sgHit ? sgHit.verdict.sizeGuard.msg : null;
+  sg.measured = sg.made > 0;
+  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, sizeGuard: sg, opts: opt };
+  console.log(`\n徽記尺寸鎖（N11 執行期斷言）：違規 ${sg.violations} 次／鎖上 ${sg.locked} 個 of 產出 ${sg.made} 個`
+    + `${sg.measured ? '' : '　★這一跑沒有任何招產出徽記＝這條斷言未量到，不得當成通過★'}`);
+  if (sg.msg) console.log('  ! ' + String(sg.msg).slice(0, 300));
+  if (sg.violations > 0 || sg.locked !== sg.made) { console.log('★★ 徽記尺寸有第二份來源（或鎖沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1; }
   console.log(`\nF10 動作數（非 flinch 的 tween／fly／fade／grow）：` + actsTable.map((a) => `${a.trait}=${a.acts}${a.ok ? '' : '✗'}`).join(' '));
   if (soloReact.length) {
     console.log(`\n★M1 未在條文情境下驗證（react 量在出招方自己身上，場上只有他一個人）：${soloReact.join(' ')}`);
