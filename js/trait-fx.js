@@ -927,12 +927,16 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     };
     const covered = mainWant.filter((f) => cover.has(f));
     const sep = mainWant.filter(sepOf);
+    /* ★「多個」要的是**至少兩尊不同的**，不是「全部 N 尊」★
+       P4 問的是「我方多個 vs 我方單一 vs 自己」——能把這三個分開的證據就是
+       「有兩尊以上各自收到東西」。要求「全部 N 尊」在**同系同型 3 尊排排站**時
+       幾何上不一定做得到（實測拼板舟 ×3：中間那一艘的佔地被前後兩艘夾住，
+       任何落點都不可能同時「在它身上」又「離前後兩艘各一個邊距」），
+       那會變成一條再對的實作也過不了的線（`02 §6.1` 第 6 條）。
+       2v2 的 P4 材料上「≥2 尊」與「全部」是同一件事。 */
     const need = !mainWant.length ? 0
-      : (spec === 'allies' ? sep.length
-        : (spec === 'foes' ? Math.min(2, sep.length || mainWant.length) : 1));
-    const coverOK = spec === 'allies'
-      ? sep.every((f) => cover.has(f))
-      : covered.length >= need;
+      : (spec === 'allies' || spec === 'foes' ? Math.min(2, sep.length || mainWant.length) : 1);
+    const coverOK = covered.length >= need;
     run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, missing, follows, landings,
       mainHit, mainScope: mainWant.length > 0,
       cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, rows, figs };

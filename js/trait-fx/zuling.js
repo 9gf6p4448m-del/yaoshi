@@ -795,10 +795,8 @@ const MOVES = {
       opacity: 0, depth: 0.16, warp: 0.10, tiltDeg: 8, yawDeg: -18 });
     head.scale.setScalar(st.iconSize * 0.35);
 
-    // ── 每一艘身上的浪印（anchor allies）──
-    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
-      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
-        follow: f, at: 'chest', off: st.camOff(1) }));
+    // ── 每一艘各收到一道**飛過去**的浪（P4 r1 回修 A；理由同百步蛇紋盾）──
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.05 });
 
     /* ① 壓浪（windup）：船首下沉、側鰭收攏；浪弧在側後方亮相。 */
     st.groundMark(lead, { h: 1.16, w: 0.26, taper: 0.42, peak: 0.95, push: 0.70 });
@@ -844,12 +842,9 @@ const MOVES = {
     st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 躍起（react）：本方每一艘上抬＋邊光，身上的浪印蓋上再淡去。 */
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.05, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
-    });
-    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.05, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.13 * e, 0); st.rim(f, 1 + 1.9 * e);
+    // ★反應同拍★（P4 r1 回修 A）
+    mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.13 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
 
     /* 收勢：舟身回平，施招者跟著躍起（他也在本隊裡）。 */
