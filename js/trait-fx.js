@@ -1605,7 +1605,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
              語彙說的是「在**蓄勢段**」，而 `react[0]` 寬了一整個 travel 段。
              更嚴的那條今天 10 支全部都過（`peakAt` 是 300＝`windup[1]`、`wardImmuneLost` 133），
              所以這是**加嚴**，不是訂一條過不了的線。 */
-          windupOK: run.stance.peakAt <= B.windup[1] + run.maxDvt,
+          /* ★容差要**夾在 `react[0]` 以內**（自查補的，不是覆審抓的）★
+             `maxDvt = max(ms × run.rate)`，而 `ms` 是真實幀距、`--dt=50` 這種低幀率測試會把它推到
+             50×2.2＝110ms ⇒ tier 1 的 `104 + 110 = 214` 會**比第一版的 `react[0]`（208）還寬**，
+             那就是把及格線搬淺了。夾住之後這條門檻**永遠不寬於第一版**，
+             而在正常幀距（16.7×rate ≤ 36.7）下它比第一版嚴得多（tier 1 140.7 vs 208）。 */
+          windupOK: run.stance.peakAt <= Math.min(B.react[0], B.windup[1] + run.maxDvt),
           windupEnd: B.windup[1], windupSlack: +run.maxDvt.toFixed(1), reactAt: B.react[0] };
       })() };
     stats.finished++;
