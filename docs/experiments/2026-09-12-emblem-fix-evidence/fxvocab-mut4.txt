@@ -1,0 +1,19 @@
+★突變模式 4：以下必須有紅★
+語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
+  PASS  FX_PAL 三系四色與文件第 1 節逐格相同
+  PASS  BEAT 三級四段與文件第 2 節逐格相同
+  PASS  BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）
+  PASS  PHASE_GATE 的六個數字都出現在文件第 3 節
+  PASS  EMBLEM_OF 是 trId ↔ kind 的雙射，30 對
+  PASS  EMBLEM_OF 與文件第 4 節逐列相同（trId／系／kind）
+  PASS  emblems.js 的 kind 集合等於 EMBLEM_OF 的 kind 集合
+  PASS  每個 kind 的外框頂點 ≤24（ART_BIBLE §10.2 第 3 條）
+  PASS  ICON 四個欄位與文件第 5 節相同
+  PASS  ICON.sizeOf／flatSizeOf 是尺寸的單一事實來源（byKind 覆寫、其餘回預設）
+  PASS  ICON.markSizeOf 是印記尺寸的單一事實來源，且與文件第 5 節的 markByKind 表逐列相同
+  PASS  ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同
+  FAIL  徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必須引用 ICON） — 徽記尺寸有第二份來源 1 處：zuling.js:432 knife.scale.setScalar(S * (0.5 + 0.5 * e)）（徽記 mesh 的縮放沒有引用 st.iconSize／st.iconFlatSize／st.markSize／ICON.*＝尺寸的第二份來源）
+  PASS  DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同
+  PASS  vocab.js 自己不含 TODO／佔位
+
+結果：14 綠 ／ 1 紅

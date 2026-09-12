@@ -1,0 +1,20 @@
+★突變模式 1：以下必須有紅★
+語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
+  PASS  FX_PAL 三系四色與文件第 1 節逐格相同
+  PASS  BEAT 三級四段與文件第 2 節逐格相同
+  PASS  BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）
+  PASS  PHASE_GATE 的六個數字都出現在文件第 3 節
+  FAIL  EMBLEM_OF 是 trId ↔ kind 的雙射，30 對 — 相異 kind 數（有重複＝雙射破了）：得到 29，預期 30
+  FAIL  EMBLEM_OF 與文件第 4 節逐列相同（trId／系／kind） — eliteSelfCut 的 kind：得到 "sun"，預期 "knife"
+  FAIL  emblems.js 的 kind 集合等於 EMBLEM_OF 的 kind 集合 — kind 集合：得到 "banner5,bead,bell,blade,boat,bolt,buoy,chair,claw,coin,crag,crown,drop,eye,flag,hat,knife,lamp,pin,rhomb,seal,shade,sun,sundisc,tablet,talis,tornflag,tusk,urn,wave"，預期 "banner5,bead,bell,blade,boat,bolt,buoy,chair,claw,coin,crag,crown,drop,eye,flag,hat,lamp,pin,rhomb,seal,shade,sun,sun,sundisc,tablet,talis,tornflag,tusk,urn,wave"
+  PASS  每個 kind 的外框頂點 ≤24（ART_BIBLE §10.2 第 3 條）
+  PASS  ICON 四個欄位與文件第 5 節相同
+  FAIL  ICON.sizeOf／flatSizeOf 是尺寸的單一事實來源（byKind 覆寫、其餘回預設） — ICON.byKind 有未知 kind knife（不在 EMBLEM_OF 裡）
+  PASS  ICON.markSizeOf 是印記尺寸的單一事實來源，且與文件第 5 節的 markByKind 表逐列相同
+  PASS  ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同
+        （分母：4 個編舞檔、79 處 scale 呼叫，其中 5 處落在徽記 mesh 上）
+  PASS  徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必須引用 ICON）
+  PASS  DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同
+  PASS  vocab.js 自己不含 TODO／佔位
+
+結果：11 綠 ／ 4 紅

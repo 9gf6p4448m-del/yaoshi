@@ -1,0 +1,32 @@
+★突變模式 1：以下必須有紅★
+徽記剪影互撞：30 個 kind ／ 435 對 ／ 同系門檻 0.8
+  PASS  自我對照＝1.0（30/30）
+  PASS  自我擾動（放大 1.5 倍）必須全部掉到 ≤0.50
+  PASS  相似度有動態範圍（最小 <0.20、最大 >0.85）
+  PASS  人眼公認不像的一對（bolt 雷女之火 vs seal 虎爺印）必須 ≤0.60
+        人眼互撞五組：knife~blade=0.4722(第 229 名) seal~tornflag=0.3583(第 345 名) seal~chair=0.3117(第 384 名) hat~wave=0.2651(第 414 名) hat~banner5=0.3306(第 366 名)
+        bell 同系最高：boat~bell=0.7692（第 29 名）
+  PASS  校準記錄：五組人眼互撞的最小值 < bell 同系的最大值（＝純幾何無法校準到人眼）
+  FAIL  同系 IoU ≥0.8 的配對全部在批 1 前置回修清單裡 — 新的同系互撞（不在回修清單裡）：talis~lamp=1
+  FAIL  回修清單裡的每一對現在仍然真的超標（死豁免判紅） — 這幾對已經不超標了，請把它們從 KNOWN_DEBT 刪掉：bell~lamp=0.6526
+  FAIL  跨系 IoU ≥0.8 的配對全部在跨系記錄清單裡（覆審 r2 N5） — 新的跨系互撞（不在 CROSS_DEBT 裡）：rhomb~lamp=0.8333 lamp~tablet=0.8202
+  FAIL  跨系記錄清單裡的每一對現在仍然真的超標（死豁免判紅） — 這幾對已經不超標了，請把它們從 CROSS_DEBT 刪掉：lamp~shade=0.6809
+
+【報告，不進判定】IoU ≥0.8 的配對共 15 對（同系 3 對）：
+   1.0000 talis     lamp      同系 xianghuo
+   0.9290 bell      shade     跨系 xianghuo/yinqi
+   0.8698 urn       drop      同系 yinqi
+   0.8480 crag      urn       跨系 zuling/yinqi
+   0.8333 rhomb     talis     跨系 zuling/xianghuo
+   0.8333 rhomb     lamp      跨系 zuling/xianghuo
+   0.8202 talis     tablet    跨系 xianghuo/legend
+   0.8202 lamp      tablet    跨系 xianghuo/legend
+   0.8182 bead      drop      跨系 zuling/yinqi
+   0.8161 bead      urn       跨系 zuling/yinqi
+   0.8136 bead      sundisc   跨系 zuling/legend
+   0.8068 bell      urn       跨系 xianghuo/yinqi
+   0.8034 crag      sundisc   跨系 zuling/legend
+   0.8011 sun       sundisc   跨系 zuling/legend
+   0.8000 drop      shade     同系 yinqi
+
+結果：5 綠 ／ 4 紅

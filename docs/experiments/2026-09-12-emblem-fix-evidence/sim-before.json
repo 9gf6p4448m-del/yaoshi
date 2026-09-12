@@ -1,0 +1,3486 @@
+{
+ "gate": 0.8,
+ "grid": 12,
+ "pairs": [
+  {
+   "a": "bell",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.929
+  },
+  {
+   "a": "urn",
+   "b": "drop",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.8698
+  },
+  {
+   "a": "crag",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.848
+  },
+  {
+   "a": "bell",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.8352
+  },
+  {
+   "a": "rhomb",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.8333
+  },
+  {
+   "a": "lamp",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.8258
+  },
+  {
+   "a": "talis",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.8202
+  },
+  {
+   "a": "bead",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.8182
+  },
+  {
+   "a": "bead",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.8161
+  },
+  {
+   "a": "bead",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.8136
+  },
+  {
+   "a": "seal",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.8118
+  },
+  {
+   "a": "bell",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.8068
+  },
+  {
+   "a": "crag",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.8034
+  },
+  {
+   "a": "sun",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.8011
+  },
+  {
+   "a": "knife",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.8
+  },
+  {
+   "a": "drop",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.8
+  },
+  {
+   "a": "talis",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7989
+  },
+  {
+   "a": "coin",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7965
+  },
+  {
+   "a": "eye",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7944
+  },
+  {
+   "a": "eye",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7933
+  },
+  {
+   "a": "crag",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7931
+  },
+  {
+   "a": "lamp",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.791
+  },
+  {
+   "a": "urn",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.791
+  },
+  {
+   "a": "banner5",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7901
+  },
+  {
+   "a": "bead",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7877
+  },
+  {
+   "a": "crag",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7833
+  },
+  {
+   "a": "sun",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7809
+  },
+  {
+   "a": "boat",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7802
+  },
+  {
+   "a": "bell",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.779
+  },
+  {
+   "a": "urn",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.7778
+  },
+  {
+   "a": "seal",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7727
+  },
+  {
+   "a": "boat",
+   "b": "bell",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7692
+  },
+  {
+   "a": "seal",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7684
+  },
+  {
+   "a": "lamp",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7637
+  },
+  {
+   "a": "sundisc",
+   "b": "crown",
+   "facA": "legend",
+   "facB": "legend",
+   "sameFac": true,
+   "iou": 0.7609
+  },
+  {
+   "a": "claw",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7596
+  },
+  {
+   "a": "sun",
+   "b": "bead",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7556
+  },
+  {
+   "a": "sun",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7556
+  },
+  {
+   "a": "flag",
+   "b": "banner5",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7553
+  },
+  {
+   "a": "bead",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.75
+  },
+  {
+   "a": "knife",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7471
+  },
+  {
+   "a": "seal",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7459
+  },
+  {
+   "a": "claw",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.7458
+  },
+  {
+   "a": "rhomb",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7447
+  },
+  {
+   "a": "bead",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7446
+  },
+  {
+   "a": "bell",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7444
+  },
+  {
+   "a": "shade",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7409
+  },
+  {
+   "a": "crag",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7401
+  },
+  {
+   "a": "crag",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7391
+  },
+  {
+   "a": "sun",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7333
+  },
+  {
+   "a": "claw",
+   "b": "urn",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.7322
+  },
+  {
+   "a": "bead",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7312
+  },
+  {
+   "a": "lamp",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7293
+  },
+  {
+   "a": "urn",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.7273
+  },
+  {
+   "a": "seal",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7263
+  },
+  {
+   "a": "crag",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7258
+  },
+  {
+   "a": "bead",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7234
+  },
+  {
+   "a": "crag",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7219
+  },
+  {
+   "a": "bead",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7204
+  },
+  {
+   "a": "eye",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7204
+  },
+  {
+   "a": "knife",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7198
+  },
+  {
+   "a": "sun",
+   "b": "eye",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7174
+  },
+  {
+   "a": "knife",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7174
+  },
+  {
+   "a": "boat",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.7166
+  },
+  {
+   "a": "talis",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7143
+  },
+  {
+   "a": "rhomb",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7135
+  },
+  {
+   "a": "rhomb",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.7111
+  },
+  {
+   "a": "bead",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7074
+  },
+  {
+   "a": "drop",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7074
+  },
+  {
+   "a": "knife",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.7065
+  },
+  {
+   "a": "bell",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7041
+  },
+  {
+   "a": "lamp",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.7037
+  },
+  {
+   "a": "hat",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7021
+  },
+  {
+   "a": "seal",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7011
+  },
+  {
+   "a": "urn",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.7011
+  },
+  {
+   "a": "crag",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.7
+  },
+  {
+   "a": "lamp",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.699
+  },
+  {
+   "a": "boat",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6989
+  },
+  {
+   "a": "crag",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6963
+  },
+  {
+   "a": "knife",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6957
+  },
+  {
+   "a": "crag",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6952
+  },
+  {
+   "a": "drop",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6939
+  },
+  {
+   "a": "sun",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6898
+  },
+  {
+   "a": "drop",
+   "b": "buoy",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6895
+  },
+  {
+   "a": "sun",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6889
+  },
+  {
+   "a": "sun",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6878
+  },
+  {
+   "a": "lamp",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6859
+  },
+  {
+   "a": "knife",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6828
+  },
+  {
+   "a": "talis",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6809
+  },
+  {
+   "a": "bead",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6806
+  },
+  {
+   "a": "flag",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.6791
+  },
+  {
+   "a": "claw",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6788
+  },
+  {
+   "a": "sun",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6772
+  },
+  {
+   "a": "urn",
+   "b": "buoy",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6772
+  },
+  {
+   "a": "sun",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6739
+  },
+  {
+   "a": "eye",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6739
+  },
+  {
+   "a": "knife",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6739
+  },
+  {
+   "a": "buoy",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6734
+  },
+  {
+   "a": "eye",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6719
+  },
+  {
+   "a": "lamp",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6684
+  },
+  {
+   "a": "bead",
+   "b": "eye",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.6667
+  },
+  {
+   "a": "crag",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6667
+  },
+  {
+   "a": "seal",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6667
+  },
+  {
+   "a": "buoy",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6667
+  },
+  {
+   "a": "bell",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6649
+  },
+  {
+   "a": "sun",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6632
+  },
+  {
+   "a": "bead",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6596
+  },
+  {
+   "a": "boat",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.658
+  },
+  {
+   "a": "coin",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6543
+  },
+  {
+   "a": "bell",
+   "b": "talis",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.6526
+  },
+  {
+   "a": "knife",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6522
+  },
+  {
+   "a": "bell",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.648
+  },
+  {
+   "a": "bell",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.648
+  },
+  {
+   "a": "drop",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6471
+  },
+  {
+   "a": "claw",
+   "b": "drop",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6462
+  },
+  {
+   "a": "eye",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6458
+  },
+  {
+   "a": "drop",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6425
+  },
+  {
+   "a": "boat",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.6421
+  },
+  {
+   "a": "flag",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6396
+  },
+  {
+   "a": "sun",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6392
+  },
+  {
+   "a": "talis",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.6387
+  },
+  {
+   "a": "boat",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6383
+  },
+  {
+   "a": "boat",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6378
+  },
+  {
+   "a": "boat",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6378
+  },
+  {
+   "a": "urn",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6359
+  },
+  {
+   "a": "eye",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6327
+  },
+  {
+   "a": "hat",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6308
+  },
+  {
+   "a": "boat",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6275
+  },
+  {
+   "a": "bead",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.625
+  },
+  {
+   "a": "claw",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.625
+  },
+  {
+   "a": "shade",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.625
+  },
+  {
+   "a": "urn",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6238
+  },
+  {
+   "a": "claw",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.6224
+  },
+  {
+   "a": "talis",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6211
+  },
+  {
+   "a": "lamp",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6178
+  },
+  {
+   "a": "sun",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6162
+  },
+  {
+   "a": "seal",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6154
+  },
+  {
+   "a": "bead",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.615
+  },
+  {
+   "a": "crag",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6131
+  },
+  {
+   "a": "rhomb",
+   "b": "bolt",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.6122
+  },
+  {
+   "a": "eye",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6098
+  },
+  {
+   "a": "banner5",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.6087
+  },
+  {
+   "a": "bead",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.6082
+  },
+  {
+   "a": "eye",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.6082
+  },
+  {
+   "a": "knife",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.6082
+  },
+  {
+   "a": "sun",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6051
+  },
+  {
+   "a": "bolt",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.605
+  },
+  {
+   "a": "boat",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.605
+  },
+  {
+   "a": "shade",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.605
+  },
+  {
+   "a": "rhomb",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.6041
+  },
+  {
+   "a": "seal",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.604
+  },
+  {
+   "a": "bell",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.603
+  },
+  {
+   "a": "bead",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5962
+  },
+  {
+   "a": "buoy",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5941
+  },
+  {
+   "a": "eye",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.593
+  },
+  {
+   "a": "bolt",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5918
+  },
+  {
+   "a": "knife",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5918
+  },
+  {
+   "a": "sun",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5902
+  },
+  {
+   "a": "bolt",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5862
+  },
+  {
+   "a": "rhomb",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5842
+  },
+  {
+   "a": "eye",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5842
+  },
+  {
+   "a": "bolt",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.5838
+  },
+  {
+   "a": "banner5",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5837
+  },
+  {
+   "a": "banner5",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5821
+  },
+  {
+   "a": "bell",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5816
+  },
+  {
+   "a": "sun",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5771
+  },
+  {
+   "a": "knife",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5765
+  },
+  {
+   "a": "boat",
+   "b": "talis",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.5758
+  },
+  {
+   "a": "wave",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5743
+  },
+  {
+   "a": "lamp",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5743
+  },
+  {
+   "a": "flag",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5735
+  },
+  {
+   "a": "bead",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5693
+  },
+  {
+   "a": "shade",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.5678
+  },
+  {
+   "a": "eye",
+   "b": "wave",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.5672
+  },
+  {
+   "a": "crag",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.566
+  },
+  {
+   "a": "knife",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.565
+  },
+  {
+   "a": "blade",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5616
+  },
+  {
+   "a": "banner5",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5613
+  },
+  {
+   "a": "bolt",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.561
+  },
+  {
+   "a": "buoy",
+   "b": "pin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.5604
+  },
+  {
+   "a": "blade",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.56
+  },
+  {
+   "a": "sun",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5567
+  },
+  {
+   "a": "sun",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.5556
+  },
+  {
+   "a": "rhomb",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5539
+  },
+  {
+   "a": "boat",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5539
+  },
+  {
+   "a": "drop",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5529
+  },
+  {
+   "a": "buoy",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.5528
+  },
+  {
+   "a": "bolt",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5514
+  },
+  {
+   "a": "talis",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.551
+  },
+  {
+   "a": "sun",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.55
+  },
+  {
+   "a": "seal",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5495
+  },
+  {
+   "a": "flag",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5477
+  },
+  {
+   "a": "bead",
+   "b": "bolt",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.5459
+  },
+  {
+   "a": "crag",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5459
+  },
+  {
+   "a": "crag",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5446
+  },
+  {
+   "a": "rhomb",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5437
+  },
+  {
+   "a": "eye",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5433
+  },
+  {
+   "a": "crag",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5421
+  },
+  {
+   "a": "claw",
+   "b": "buoy",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.5407
+  },
+  {
+   "a": "hat",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.5404
+  },
+  {
+   "a": "rhomb",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5362
+  },
+  {
+   "a": "lamp",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5355
+  },
+  {
+   "a": "rhomb",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.534
+  },
+  {
+   "a": "knife",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5317
+  },
+  {
+   "a": "bolt",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5283
+  },
+  {
+   "a": "bolt",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5266
+  },
+  {
+   "a": "bolt",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5261
+  },
+  {
+   "a": "knife",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5194
+  },
+  {
+   "a": "rhomb",
+   "b": "bead",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.5192
+  },
+  {
+   "a": "rhomb",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5192
+  },
+  {
+   "a": "eye",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5189
+  },
+  {
+   "a": "talis",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5169
+  },
+  {
+   "a": "rhomb",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5146
+  },
+  {
+   "a": "flag",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5142
+  },
+  {
+   "a": "bell",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5116
+  },
+  {
+   "a": "rhomb",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5098
+  },
+  {
+   "a": "eye",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5094
+  },
+  {
+   "a": "tornflag",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5072
+  },
+  {
+   "a": "bolt",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.507
+  },
+  {
+   "a": "talis",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5048
+  },
+  {
+   "a": "sun",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5046
+  },
+  {
+   "a": "boat",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5023
+  },
+  {
+   "a": "hat",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.5023
+  },
+  {
+   "a": "bead",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5
+  },
+  {
+   "a": "eye",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5
+  },
+  {
+   "a": "wave",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5
+  },
+  {
+   "a": "knife",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.5
+  },
+  {
+   "a": "tornflag",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.5
+  },
+  {
+   "a": "sundisc",
+   "b": "tablet",
+   "facA": "legend",
+   "facB": "legend",
+   "sameFac": true,
+   "iou": 0.5
+  },
+  {
+   "a": "wave",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4977
+  },
+  {
+   "a": "wave",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4976
+  },
+  {
+   "a": "bead",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4953
+  },
+  {
+   "a": "bolt",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4953
+  },
+  {
+   "a": "bolt",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4951
+  },
+  {
+   "a": "claw",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4933
+  },
+  {
+   "a": "shade",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4932
+  },
+  {
+   "a": "eye",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.493
+  },
+  {
+   "a": "flag",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4906
+  },
+  {
+   "a": "blade",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4884
+  },
+  {
+   "a": "eye",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4882
+  },
+  {
+   "a": "banner5",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4864
+  },
+  {
+   "a": "talis",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4856
+  },
+  {
+   "a": "knife",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4851
+  },
+  {
+   "a": "pin",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4844
+  },
+  {
+   "a": "banner5",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4818
+  },
+  {
+   "a": "flag",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4813
+  },
+  {
+   "a": "sun",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4808
+  },
+  {
+   "a": "tornflag",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4804
+  },
+  {
+   "a": "bolt",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4787
+  },
+  {
+   "a": "blade",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4766
+  },
+  {
+   "a": "lamp",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4749
+  },
+  {
+   "a": "bolt",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4747
+  },
+  {
+   "a": "bolt",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4725
+  },
+  {
+   "a": "blade",
+   "b": "talis",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4717
+  },
+  {
+   "a": "wave",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4709
+  },
+  {
+   "a": "sun",
+   "b": "bolt",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4698
+  },
+  {
+   "a": "wave",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4698
+  },
+  {
+   "a": "crag",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4679
+  },
+  {
+   "a": "tornflag",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4676
+  },
+  {
+   "a": "bead",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4673
+  },
+  {
+   "a": "blade",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4658
+  },
+  {
+   "a": "buoy",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.4654
+  },
+  {
+   "a": "crag",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4605
+  },
+  {
+   "a": "bolt",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4591
+  },
+  {
+   "a": "blade",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4591
+  },
+  {
+   "a": "flag",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4579
+  },
+  {
+   "a": "banner5",
+   "b": "seal",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.457
+  },
+  {
+   "a": "boat",
+   "b": "banner5",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4537
+  },
+  {
+   "a": "sun",
+   "b": "wave",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4533
+  },
+  {
+   "a": "blade",
+   "b": "sundisc",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4525
+  },
+  {
+   "a": "sun",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4495
+  },
+  {
+   "a": "rhomb",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4495
+  },
+  {
+   "a": "talis",
+   "b": "claw",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4491
+  },
+  {
+   "a": "eye",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4444
+  },
+  {
+   "a": "drop",
+   "b": "pin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.4439
+  },
+  {
+   "a": "talis",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4423
+  },
+  {
+   "a": "blade",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.442
+  },
+  {
+   "a": "eye",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4414
+  },
+  {
+   "a": "coin",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4414
+  },
+  {
+   "a": "buoy",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.44
+  },
+  {
+   "a": "blade",
+   "b": "coin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4393
+  },
+  {
+   "a": "knife",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4384
+  },
+  {
+   "a": "flag",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4378
+  },
+  {
+   "a": "boat",
+   "b": "flag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.435
+  },
+  {
+   "a": "rhomb",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.434
+  },
+  {
+   "a": "blade",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4336
+  },
+  {
+   "a": "blade",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.431
+  },
+  {
+   "a": "pin",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.4298
+  },
+  {
+   "a": "flag",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4286
+  },
+  {
+   "a": "blade",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4267
+  },
+  {
+   "a": "wave",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4253
+  },
+  {
+   "a": "wave",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4247
+  },
+  {
+   "a": "banner5",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4224
+  },
+  {
+   "a": "bolt",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4222
+  },
+  {
+   "a": "tornflag",
+   "b": "urn",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.422
+  },
+  {
+   "a": "bell",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4211
+  },
+  {
+   "a": "banner5",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4206
+  },
+  {
+   "a": "flag",
+   "b": "lamp",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4204
+  },
+  {
+   "a": "bead",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4185
+  },
+  {
+   "a": "eye",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4182
+  },
+  {
+   "a": "blade",
+   "b": "boat",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4159
+  },
+  {
+   "a": "rhomb",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.4152
+  },
+  {
+   "a": "boat",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4144
+  },
+  {
+   "a": "seal",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4144
+  },
+  {
+   "a": "sun",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4133
+  },
+  {
+   "a": "urn",
+   "b": "pin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.4133
+  },
+  {
+   "a": "bead",
+   "b": "wave",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.4126
+  },
+  {
+   "a": "blade",
+   "b": "bell",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4123
+  },
+  {
+   "a": "boat",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4123
+  },
+  {
+   "a": "flag",
+   "b": "bell",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4123
+  },
+  {
+   "a": "rhomb",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4099
+  },
+  {
+   "a": "tusk",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4079
+  },
+  {
+   "a": "bell",
+   "b": "banner5",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4068
+  },
+  {
+   "a": "lamp",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.4063
+  },
+  {
+   "a": "wave",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4045
+  },
+  {
+   "a": "bead",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.4035
+  },
+  {
+   "a": "rhomb",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4027
+  },
+  {
+   "a": "bolt",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4027
+  },
+  {
+   "a": "flag",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4026
+  },
+  {
+   "a": "banner5",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.4
+  },
+  {
+   "a": "tusk",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3991
+  },
+  {
+   "a": "banner5",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3975
+  },
+  {
+   "a": "tusk",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3973
+  },
+  {
+   "a": "eye",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.395
+  },
+  {
+   "a": "sun",
+   "b": "rhomb",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3929
+  },
+  {
+   "a": "tusk",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3922
+  },
+  {
+   "a": "claw",
+   "b": "pin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.3922
+  },
+  {
+   "a": "bell",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.3921
+  },
+  {
+   "a": "crown",
+   "b": "tablet",
+   "facA": "legend",
+   "facB": "legend",
+   "sameFac": true,
+   "iou": 0.39
+  },
+  {
+   "a": "tornflag",
+   "b": "drop",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3894
+  },
+  {
+   "a": "crag",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3879
+  },
+  {
+   "a": "wave",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3822
+  },
+  {
+   "a": "tusk",
+   "b": "crag",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.381
+  },
+  {
+   "a": "pin",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3803
+  },
+  {
+   "a": "eye",
+   "b": "bolt",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3793
+  },
+  {
+   "a": "tusk",
+   "b": "claw",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3793
+  },
+  {
+   "a": "seal",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.3784
+  },
+  {
+   "a": "pin",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.3778
+  },
+  {
+   "a": "wave",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3767
+  },
+  {
+   "a": "tusk",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3766
+  },
+  {
+   "a": "tornflag",
+   "b": "shade",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3766
+  },
+  {
+   "a": "tusk",
+   "b": "urn",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3755
+  },
+  {
+   "a": "talis",
+   "b": "crown",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3755
+  },
+  {
+   "a": "banner5",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3734
+  },
+  {
+   "a": "tornflag",
+   "b": "hat",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.37
+  },
+  {
+   "a": "sun",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3696
+  },
+  {
+   "a": "tornflag",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3696
+  },
+  {
+   "a": "bead",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3691
+  },
+  {
+   "a": "sun",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3689
+  },
+  {
+   "a": "tusk",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3675
+  },
+  {
+   "a": "tornflag",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3661
+  },
+  {
+   "a": "chair",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3636
+  },
+  {
+   "a": "tusk",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3632
+  },
+  {
+   "a": "flag",
+   "b": "buoy",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3602
+  },
+  {
+   "a": "tusk",
+   "b": "seal",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3581
+  },
+  {
+   "a": "tusk",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3559
+  },
+  {
+   "a": "claw",
+   "b": "chair",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.355
+  },
+  {
+   "a": "bolt",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3515
+  },
+  {
+   "a": "tusk",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.351
+  },
+  {
+   "a": "bolt",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3476
+  },
+  {
+   "a": "blade",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3473
+  },
+  {
+   "a": "blade",
+   "b": "banner5",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.3469
+  },
+  {
+   "a": "wave",
+   "b": "drop",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3462
+  },
+  {
+   "a": "pin",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.346
+  },
+  {
+   "a": "tornflag",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3447
+  },
+  {
+   "a": "wave",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3406
+  },
+  {
+   "a": "tusk",
+   "b": "coin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3406
+  },
+  {
+   "a": "tusk",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3405
+  },
+  {
+   "a": "wave",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3404
+  },
+  {
+   "a": "chair",
+   "b": "coin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.3393
+  },
+  {
+   "a": "rhomb",
+   "b": "eye",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.339
+  },
+  {
+   "a": "chair",
+   "b": "hat",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.3319
+  },
+  {
+   "a": "tusk",
+   "b": "sundisc",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3278
+  },
+  {
+   "a": "seal",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3275
+  },
+  {
+   "a": "chair",
+   "b": "sundisc",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3263
+  },
+  {
+   "a": "bolt",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3253
+  },
+  {
+   "a": "wave",
+   "b": "boat",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3235
+  },
+  {
+   "a": "tusk",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3234
+  },
+  {
+   "a": "banner5",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3227
+  },
+  {
+   "a": "knife",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.322
+  },
+  {
+   "a": "chair",
+   "b": "urn",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.3219
+  },
+  {
+   "a": "tusk",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.321
+  },
+  {
+   "a": "eye",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3197
+  },
+  {
+   "a": "knife",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3197
+  },
+  {
+   "a": "flag",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3175
+  },
+  {
+   "a": "wave",
+   "b": "lamp",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3167
+  },
+  {
+   "a": "crag",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3165
+  },
+  {
+   "a": "banner5",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3154
+  },
+  {
+   "a": "knife",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.3133
+  },
+  {
+   "a": "rhomb",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3128
+  },
+  {
+   "a": "bolt",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.3128
+  },
+  {
+   "a": "blade",
+   "b": "flag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.3115
+  },
+  {
+   "a": "tusk",
+   "b": "hat",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3112
+  },
+  {
+   "a": "tornflag",
+   "b": "tablet",
+   "facA": "xianghuo",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3092
+  },
+  {
+   "a": "wave",
+   "b": "buoy",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3058
+  },
+  {
+   "a": "blade",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3054
+  },
+  {
+   "a": "pin",
+   "b": "crown",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.3052
+  },
+  {
+   "a": "eye",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.3
+  },
+  {
+   "a": "wave",
+   "b": "bell",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2992
+  },
+  {
+   "a": "lamp",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2988
+  },
+  {
+   "a": "eye",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.2967
+  },
+  {
+   "a": "tusk",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2967
+  },
+  {
+   "a": "bead",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2946
+  },
+  {
+   "a": "chair",
+   "b": "drop",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.2946
+  },
+  {
+   "a": "wave",
+   "b": "shade",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2915
+  },
+  {
+   "a": "rhomb",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.291
+  },
+  {
+   "a": "bolt",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2903
+  },
+  {
+   "a": "boat",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2893
+  },
+  {
+   "a": "flag",
+   "b": "talis",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.2893
+  },
+  {
+   "a": "flag",
+   "b": "pin",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.288
+  },
+  {
+   "a": "banner5",
+   "b": "talis",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.288
+  },
+  {
+   "a": "bell",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2816
+  },
+  {
+   "a": "talis",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.2803
+  },
+  {
+   "a": "tusk",
+   "b": "crown",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.2778
+  },
+  {
+   "a": "chair",
+   "b": "shade",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.2742
+  },
+  {
+   "a": "rhomb",
+   "b": "banner5",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2538
+  },
+  {
+   "a": "rhomb",
+   "b": "flag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.249
+  },
+  {
+   "a": "blade",
+   "b": "tornflag",
+   "facA": "xianghuo",
+   "facB": "xianghuo",
+   "sameFac": true,
+   "iou": 0.246
+  },
+  {
+   "a": "rhomb",
+   "b": "tornflag",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.245
+  },
+  {
+   "a": "wave",
+   "b": "knife",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.2379
+  },
+  {
+   "a": "chair",
+   "b": "tablet",
+   "facA": "yinqi",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.2366
+  },
+  {
+   "a": "bolt",
+   "b": "wave",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.2353
+  },
+  {
+   "a": "tusk",
+   "b": "blade",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2317
+  },
+  {
+   "a": "bolt",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2283
+  },
+  {
+   "a": "chair",
+   "b": "buoy",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.2275
+  },
+  {
+   "a": "wave",
+   "b": "tusk",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.2266
+  },
+  {
+   "a": "knife",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2258
+  },
+  {
+   "a": "tusk",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.2244
+  },
+  {
+   "a": "wave",
+   "b": "talis",
+   "facA": "zuling",
+   "facB": "xianghuo",
+   "sameFac": false,
+   "iou": 0.2231
+  },
+  {
+   "a": "chair",
+   "b": "pin",
+   "facA": "yinqi",
+   "facB": "yinqi",
+   "sameFac": true,
+   "iou": 0.2124
+  },
+  {
+   "a": "wave",
+   "b": "tablet",
+   "facA": "zuling",
+   "facB": "legend",
+   "sameFac": false,
+   "iou": 0.2111
+  },
+  {
+   "a": "rhomb",
+   "b": "wave",
+   "facA": "zuling",
+   "facB": "zuling",
+   "sameFac": true,
+   "iou": 0.2054
+  },
+  {
+   "a": "wave",
+   "b": "pin",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.1962
+  },
+  {
+   "a": "rhomb",
+   "b": "chair",
+   "facA": "zuling",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.1756
+  },
+  {
+   "a": "talis",
+   "b": "chair",
+   "facA": "xianghuo",
+   "facB": "yinqi",
+   "sameFac": false,
+   "iou": 0.1737
+  }
+ ]
+}
