@@ -727,6 +727,14 @@ async function runPix(browser) {
   const synth = opt.synth === undefined ? true : opt.synth !== '0';
   const maxFloat = Number(opt.maxfloat || 40);
   const maxHit = Number(opt.maxhit || 10);
+  /* 取樣時點的兩個參數（Q1，凍結檔 §2.1 修訂六 ②）：鏡頭連續 camStill 幀的逐幀位移都
+     ≤ camEps（世界單位）才算「推鏡停穩」。**不是判準門檻**（7 個門檻常數一格未動），
+     值的由來是實測的停穩段長度分布，見 README 與 L10 決定性報告 §9.2。 */
+  const camEps = Number(opt.cameps || 0.002);   // 鏡頭逐幀位移（世界單位）：只用在診斷直方圖
+  const boxEps = Number(opt.boxeps || 1);      // 方框逐幀位移上限（px）：MOVE_MAX 是 40ms 內 4px，40ms≈2.4 幀 ⇒ 每幀 1px 有餘裕
+  const boxStill = Number(opt.boxstill || 6);  // 要連續停穩幾幀（6 幀 ≈ 100ms）才准開凍幀序列
+  const candMax = Number(opt.candmax || 120);  // 同一個候選盯最多幾幀（2 秒）還不穩就換一個
+  const warmup = Number(opt.warmup === undefined ? 0 : opt.warmup); // 開場多久之內不量（ms）；見 tryFire 的 duelWarmup
   const PIX_PROBE = `(() => {
     const M = window.__dmg;
     M.cfg = { on: true, synth: ${synth}, maxFloat: ${maxFloat}, maxHit: ${maxHit} };
@@ -775,52 +783,144 @@ async function runPix(browser) {
         .sort((p, q) => q.a - p.a);
       return rows;
     };
-    M.tryFire = (via) => {
-      if (!M.cfg.on || M.busy || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return false;
-      if (!M.duelOn || performance.now() - M.duelT < 1600) return false;
-      if (via !== 'hitstop' && performance.now() - M.lastFloatT < 700) return false; // 剛冒出跳字：讓 R1 的取樣先做完（hitstop 是好時機，不讓）
+    /* 每一道閘擋掉幾次（只記錄、不進判準）：取樣時點一改，就要看得見「是誰在擋」，
+       不然 via=0 只會變成一句「拿不到樣本」。 */
+    M.rej = {};
+    const no = (k) => { M.rej[k] = (M.rej[k] || 0) + 1; return false; };
+    // 方框整個在畫面內（含 20px 邊）——與 pickTarget 的篩選同一條，追蹤中的候選也要一直滿足
+    M.onScreen = (b) => !!b && b.x0 > -20 && b.x1 < innerWidth + 20 && b.y0 > -20 && b.y1 < innerHeight + 20;
+    /* pick 給了就打那一對指定的尊（取樣時點盯著同一對看它停穩，見下面的 watch）；
+       沒給就照舊「這一刻畫面上最大的那一尊」。兩條路的資格檢查完全一樣。 */
+    M.tryFire = (via, pick) => {
+      if (!M.cfg.on || M.nHit >= M.cfg.maxHit || !M.cfg.synth) return no('off/quota');
+      if (M.busy) return no('busy');
+      /* 冷卻：沿用舊法計時器那條路的 220ms 節奏（setTimeout(tick, 220)）。
+         改的是「什麼時候算好時機」，**不是「多久試一次」**——刺激的速率與舊法同一個數。 */
+      if (performance.now() - (M.lastFireT === undefined ? -1e9 : M.lastFireT) < 220) return no('cooldown');
+      if (!M.duelOn) return no('noDuel');
+      if (performance.now() - M.duelT < WARMUP) return no('duelWarmup');
+      if (via !== 'hitstop' && performance.now() - M.lastFloatT < 700) return no('recentFloat'); // 剛冒出跳字：讓 R1 的取樣先做完
       const ov = document.getElementById('duel');
-      if (!ov || getComputedStyle(ov).opacity !== '1') return false; // 淡入淡出中不量
-      const side = (M.nHit % 2) ? 'B' : 'A', foe = side === 'B' ? 'A' : 'B';
-      const rows = M.pickTarget(side), frows = M.pickTarget(foe);
-      if (!rows.length || rows[0].a < 4000 || !frows.length) return false; // 太小的尊：方框裡幾乎都是背景
+      if (!ov || getComputedStyle(ov).opacity !== '1') return no('fading'); // 淡入淡出中不量
+      const side = pick ? pick.side : ((M.nHit % 2) ? 'B' : 'A'), foe = side === 'B' ? 'A' : 'B';
+      let tu, cu, t, c;
+      if (pick) {
+        tu = pick.u; cu = pick.fu;
+        if (M.burnt.has(side + ':' + tu) || M.burnt.has(foe + ':' + cu)) return no('burntCand');
+        t = M.figBox(side, tu); c = M.figBox(foe, cu);
+        if (!M.onScreen(t)) return no('noRows');
+        if ((t.x1 - t.x0) * (t.y1 - t.y0) < 4000) return no('smallArea');
+        if (!M.onScreen(c)) return no('noFoe');
+      } else {
+        const rows = M.pickTarget(side), frows = M.pickTarget(foe);
+        if (!rows.length) return no('noRows');
+        if (rows[0].a < 4000) return no('smallArea'); // 太小的尊：方框裡幾乎都是背景
+        if (!frows.length) return no('noFoe'); // 對照組那一欄整個不在畫面內
+        tu = rows[0].u; t = rows[0].b; cu = frows[0].u; c = frows[0].b;
+      }
       // 對照組取**對面那一欄**最大的一尊：同一欄的兩尊在畫面上會互相疊到（擠堆時方框幾乎重合）。
-      const t = rows[0].b, c = frows[0].b;
       const overlap = !(c.x1 < t.x0 || c.x0 > t.x1 || c.y1 < t.y0 || c.y0 > t.y1);
-      if (overlap) return false;
+      if (overlap) return no('overlap');
       M.nHit++;
-      M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe, via: via || 'timer' });
+      M.lastFireT = performance.now();
+      M.fire(side, tu, { control: cu, ctrlSide: foe, via: via || 'timer', still: M.boxStill, camStill: M.camStill });
+      M.boxStill = 0; M.cand = null; // 下一次要重新挑候選、重新累積停穩幀數
       return true;
     };
-    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零
-       （js/renderer.js:197），命中前那一幀與閃紅那一幀才是同一個機位；
-       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。
+    /* ═══ 取樣時點：**推鏡停穩之後才凍幀**（Q1，凍結檔 §2.1 修訂六 ②，使用者有條件同意）═══
 
-       ★2026-09-12 更正（L10 決定性小卷 §5，實測推翻）★：這裡原本寫「hitstop 期間**鏡頭完全不動**」，
-       **那句是錯的**。dt 歸零擋不住鏡頭——js/camera-director.js:367／:397 的
-       focusEnvelope(now)／cinemaEnvelope(now) 吃的是**絕對時間** now − focusAt，
-       而 js/renderer.js:201 每幀都把絕對 now 一起傳進 director.update(dt, now)。
-       更糟的是 index.html:4313 的 HITSTOP_DMG 與 :4336 的 FOCUS_DMG 是同一個門檻（都是 3）
-       ⇒ **會觸發 hitstop 的那一下，同時也會觸發 pwFocus 推鏡**。
-       實測：seed 3（duels=8）的 4 筆 hitstop 刺激，新舊法各 5 跑共 40 次觀察，
-       位移閘門 100% 命中（那一幀的方框位移遠超上限）、可判樣本數恆為 0。
-       ⇒ 「釘在 hitstop 就不會混到鏡頭位移」這個理由不成立，取樣來源要重訂——
-       但那會提高通過機率，依 02 §2.1 交使用者裁（見 L10 決定性報告 §7 Q1）。
-       在裁定之前這段程式碼刻意不動，只把這段已被證偽的理由更正掉。 */
-    M.viaHitstop = 0; M.viaTimer = 0;
-    document.addEventListener('ys:hitstop', () => {
-      if (!M.duelOn) return;
-      M.lastHitstop = performance.now();
-      setTimeout(() => { if (M.tryFire('hitstop')) M.viaHitstop++; }, 8);
-    });
-    document.addEventListener('ys:duel', () => {
-      const tick = () => {
-        // hitstop 在最近 1.5 秒內出現過就交給它，計時器不插隊
-        if (!(performance.now() - (M.lastHitstop || -1e9) < 1500)) { if (M.tryFire('timer')) M.viaTimer++; }
-        if (M.nHit < M.cfg.maxHit) setTimeout(tick, 220);
-      };
-      setTimeout(tick, 1700);
-    });
+       ── 舊法為什麼要換 ──
+       舊法（2026-09-12 之前）把刺激釘在 ys:hitstop，寫的理由是「hitstop 期間 renderer 的
+       dt 歸零、鏡頭完全不動」。**那個理由是錯的**（L10 決定性報告 §5 實測推翻）：
+         ・js/renderer.js:197 確實在 hitstop 期間把 dt 歸零，
+         ・但 js/camera-director.js:367／:397 的 focusEnvelope(now)／cinemaEnvelope(now)
+           吃的是**絕對時間** now − focusAt，而 js/renderer.js:201 每幀都把絕對 now
+           一起傳進 director.update(dt, now) ⇒ **hitstop 期間鏡頭的推近包絡照走**；
+         ・index.html:4313 的 HITSTOP_DMG 與 :4336 的 FOCUS_DMG 是同一個門檻（都是 3），
+           產品註解自己寫「同一個『這一下夠重』的門檻」⇒ **會停格的那一下必定同時推鏡**。
+       實測後果：seed 3（duels=8）的 4 筆 hitstop 刺激，新舊法各 5 跑共 40 次觀察，
+       位移閘門 40/40 命中、可判樣本恆為 0（fail-closed 空過）。
+
+       ── 新法：等「要量的那一尊的螢幕方框」停穩 ──
+       「推鏡停穩」的可觀測代理**不取鏡頭座標，取被打的那一尊的螢幕方框**，兩個理由：
+         ① 量測真正吃的是方框（剪影遮罩畫在方框裡、位移閘門量的也是方框），
+            鏡頭停穩只是它的其中一個原因；人形自己在撲、在退的那幾幀鏡頭是靜的，方框照樣在動。
+         ② 實測：純鏡頭停穩在 seed 3 上與「場上有尊可打」幾乎不共存——
+            duelOn 期間逐幀位移 ≤0.002 的那幾段，診斷出來 liveUnits 是 **0**
+            （camera [2.7131, 1.7083, 2.7131]、boxes []），亦即那是圖上沒有尊的空檔。
+            拿它當閘門的結果是 via.still = 0、一個樣本都取不到。
+       做法：每幀算一次「這一刻會被選中的那一尊」的方框，連續 BOX_STILL 幀的逐幀位移
+       都 ≤ BOX_EPS 才准開凍幀序列；換目標就重新累積。
+
+       ── 這一段沒有動到的東西 ──
+       ・7 個門檻常數（MASK_TH／MOVE_MAX／BASE_FONT／FONT_MIN／BACK_MAX／BURN_MAX／CTRL_MAX）
+         與主門檻（中位 ≥25、≥25 比例 ≥0.70）一格未動；seed 集與 duels 數未動。
+       ・位移閘門仍在，而且仍是**事後**判定——它現在是第二道防線，不是唯一一道。
+       ・刺激的**速率**沒變：冷卻沿用舊計時器那條路的 220ms（見 tryFire 的 cooldown）。
+       ・tryFire 的其餘閘（duelOn／開場 1600ms／剛冒跳字 700ms／淡入淡出／太小／方框重疊）原樣保留。
+       BOX_STILL／BOX_EPS 不是判準門檻，是取樣時點的參數；值的由來見 README 與報告 §9.2。 */
+    const CAM_EPS = ${camEps}, BOX_EPS = ${boxEps}, BOX_STILL = ${boxStill}, CAND_MAX = ${candMax}, WARMUP = ${warmup};
+    M.viaHitstop = 0; M.viaTimer = 0; M.viaStill = 0;
+    M.camStill = 0; M.camPrev = null; M.stillMax = 0;
+    M.cand = null; M.boxStill = 0; M.boxPrev = null; M.cboxPrev = null; M.boxStillMax = 0; M.boxHist = {}; M.bdHist = {};
+    /* 診斷（只記錄、不進判準）：對決演出中鏡頭的逐幀位移分布、方框停穩的段長分布。 */
+    M.dHist = {}; M.camStillDuel = 0; M.stillHistDuel = {};
+    const DBK = [0, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1];
+    document.addEventListener('ys:hitstop', () => { M.lastHitstop = performance.now(); }); // 只記錄，不再當取樣時點
+    const watch = () => {
+      // ── 鏡頭（診斷用）──
+      const p = M.camPos();
+      if (p && M.camPrev) {
+        const d = Math.max(Math.abs(p[0] - M.camPrev[0]), Math.abs(p[1] - M.camPrev[1]), Math.abs(p[2] - M.camPrev[2]));
+        if (M.duelOn) {
+          let k = 'gt'; for (const t of DBK) if (d <= t) { k = String(t); break; }
+          M.dHist[k] = (M.dHist[k] || 0) + 1;
+          if (d <= CAM_EPS) M.camStillDuel++;
+          else { if (M.camStillDuel) { const b2 = Math.min(M.camStillDuel, 40); M.stillHistDuel[b2] = (M.stillHistDuel[b2] || 0) + 1; } M.camStillDuel = 0; }
+        }
+        M.camStill = d <= CAM_EPS ? M.camStill + 1 : 0;
+        if (M.camStill > M.stillMax) M.stillMax = M.camStill;
+      }
+      M.camPrev = p;
+      /* ── 方框停穩（真正的取樣時點）──
+         ★盯著同一對尊看★：先挑一次候選（這一刻畫面上最大的那一尊＋對面那一欄最大的一尊），
+         挑定之後就**只量這兩尊自己的方框**，連續 BOX_STILL 幀逐幀位移都 ≤ BOX_EPS 才開凍幀序列。
+         為什麼不能每幀重挑：實測 seed 3 上「這一刻最大的是哪一尊」幾乎每幀都在換
+         （整場對決裡前後兩幀同一對的只有 415 幀），每換一次就重新累積、永遠累積不滿。
+         為什麼兩尊一起要求：對照組那一尊是 R2「對照尊不得跟著紅」那條子判準的量測對象，
+         推鏡的停段裡它常常整個在畫面外（實測 rej.noFoe = 257）——兩尊一起要求，
+         閘門自然會等到**鏡頭回位之後的全景**，那才是「推鏡停穩」在量測上真正成立的時刻。
+         候選盯超過 CAND_MAX 幀還不穩就換一個，免得卡在一尊永遠在動的身上。 */
+      if (M.duelOn && M.cfg.on && !M.busy) {
+        const side = (M.nHit % 2) ? 'B' : 'A', foe = side === 'B' ? 'A' : 'B';
+        const mv = (x, y) => Math.max(Math.abs(x.x0 - y.x0), Math.abs(x.y0 - y.y0), Math.abs(x.x1 - y.x1), Math.abs(x.y1 - y.y1));
+        const drop = () => { M.cand = null; M.boxStill = 0; M.boxPrev = null; M.cboxPrev = null; };
+        if (M.cand && (M.cand.side !== side || ++M.cand.age > CAND_MAX)) drop();
+        if (!M.cand) {
+          const rows = M.pickTarget(side), frows = M.pickTarget(foe);
+          if (rows.length && rows[0].a >= 4000 && frows.length) {
+            M.cand = { side: side, u: rows[0].u, fu: frows[0].u, age: 0 };
+            M.boxPrev = rows[0].b; M.cboxPrev = frows[0].b; M.boxStill = 0;
+          }
+        } else {
+          const b = M.figBox(side, M.cand.u), c = M.figBox(foe, M.cand.fu);
+          if (!b || !c) drop();
+          else {
+            if (M.boxPrev && M.cboxPrev) {
+              const dm = Math.max(mv(b, M.boxPrev), mv(c, M.cboxPrev));
+              let kk = 'gt'; for (const t2 of [0, 0.5, 1, 2, 3, 4, 6, 10, 20]) if (dm <= t2) { kk = String(t2); break; }
+              M.bdHist[kk] = (M.bdHist[kk] || 0) + 1; // 診斷：BOX_EPS 就是從這張分布挑的
+              if (dm <= BOX_EPS) { M.boxStill++; if (M.boxStill > M.boxStillMax) M.boxStillMax = M.boxStill; }
+              else { if (M.boxStill) { const b3 = Math.min(M.boxStill, 40); M.boxHist[b3] = (M.boxHist[b3] || 0) + 1; } M.boxStill = 0; }
+            }
+            M.boxPrev = b; M.cboxPrev = c;
+            if (M.boxStill >= BOX_STILL) { if (M.tryFire('still', M.cand)) M.viaStill++; }
+          }
+        }
+      } else { M.cand = null; M.boxStill = 0; M.boxPrev = null; M.cboxPrev = null; }
+      requestAnimationFrame(watch);
+    };
+    requestAnimationFrame(watch);
     // 燒毀中的尊不得閃紅：燒到一半對同一尊派一顆 hit（真實路徑上的守衛探針）
     document.addEventListener('ys:fx-burn', (e) => {
       const d = e.detail || {};
@@ -1099,7 +1199,11 @@ async function runPix(browser) {
     if (PUMPED) await page.evaluate((k) => window.__frz.pumpN(k), BATCH).catch(() => {});
     else await page.waitForTimeout(40);
   }
-  samples.via = await page.evaluate(() => ({ hitstop: window.__dmg.viaHitstop || 0, timer: window.__dmg.viaTimer || 0 })).catch(() => null);
+  samples.via = await page.evaluate(() => ({ hitstop: window.__dmg.viaHitstop || 0, timer: window.__dmg.viaTimer || 0, still: window.__dmg.viaStill || 0 })).catch(() => null);
+  /* 取樣時點的診斷：鏡頭「連續靜止幾幀」的段長分布與最長段（只記錄，不進任何判準）。 */
+  samples.still = await page.evaluate(() => ({ camStillMax: window.__dmg.stillMax || 0, camDuelHist: window.__dmg.stillHistDuel || {},
+    camDeltaHist: window.__dmg.dHist || {}, boxStillMax: window.__dmg.boxStillMax || 0, boxHist: window.__dmg.boxHist || {},
+    rej: window.__dmg.rej || {}, boxDeltaPair: window.__dmg.bdHist || {} })).catch(() => null);
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
     froze: window.__frz.froze, note: window.__dmg.note, ver: (document.getElementById('verLine') || {}).textContent }));
   // 服到的到底是哪一版？serve() 起 http.server 時**不會檢查埠有沒有被別人佔著**——
@@ -1121,19 +1225,35 @@ async function runPix(browser) {
   if (meta.versionOk === false) console.log(`!! 版本不符：期望 v${expectVer}，實際 ${String(meta.ver || '').slice(0, 30)} —— 這個埠多半被別的 http.server 佔著，數字全部作廢`);
   const v = judgePix(samples);
   fs.writeFileSync(path.join(outdir, 'pix.json'), JSON.stringify({ url: url, seed: seed, duels: duels, synth: synth, verdict: v, samples: samples, shots: shots, meta: meta, errors: r.errors }, null, 1));
+  /* 帳目用的兩個數（算法與 judgePix 的分組同一條：依 run 分組、只看 step 0 那一列）。 */
+  const dropN = Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0);
+  const noSil = (() => {
+    const byRun = new Map();
+    for (const r of samples.flashes) if (!byRun.has(r.run)) byRun.set(r.run, r);
+    let n = 0;
+    for (const r of byRun.values()) if (r.step === 0 && r.maskD === undefined) n++;
+    return n;
+  })();
   /* 指標檔（L10 決定性小卷）：判定 ＋ 全部統計量 ＋ 樣本數／活性。一行一項、排序固定，
      跑 N 次 md5 一比就知道取樣有沒有決定性——不必拿整份 pix.json（裡面有檔名與逐樣本明細）比。 */
   fs.writeFileSync(path.join(outdir, 'metrics.txt'),
     ['clock=' + meta.clock, 'tickMs=' + meta.tickMs, 'batch=' + meta.batch, 'seed=' + seed, 'duels=' + duels,
       'ticks=' + meta.ticks, 'froze=' + meta.froze, 'errors=' + r.errors.length,
       'swallowed=' + meta.swallowed, 'versionOk=' + meta.versionOk,
+      'boxEps=' + boxEps, 'boxStill=' + boxStill, 'candMax=' + candMax, 'warmup=' + warmup, 'camEps=' + camEps,
       'floatsSampled=' + samples.floats.length, 'flashRuns=' + samples.flashes.length,
-      /* 【對抗覆審 (1a)】帳目：拿不到剪影的那幾輪在 judgePix 裡是靜默 continue、不進 maskDropped，
-         整批壞掉時 maskN=0 但 errors=0、md5 照樣逐跑相同。量法（judgePix）不在本卷範圍，
-         所以不改它，改成把恆等式印出來——對不上就是有樣本靜默消失了。 */
+      /* 【對抗覆審 (1a)】帳目：拿不到剪影的那幾輪在 judgePix:「maskD === undefined ⇒ continue」
+         那一行是**靜默**掉出統計的，既不進 maskN 也不進 maskDropped（why==='noMask' 其實不可達）。
+         整批壞掉時會出現「maskN=0 但 errors=0、md5 照樣逐跑相同」的假綠。
+         量法（judgePix）不在本卷範圍（改它會毀掉「量法零 diff」那條證據，已列入凍結檔修訂六 ⑤ 的待辦），
+         所以這裡**不改 judgePix**，改成在治具這一側自己把帳算完整：
+           flashRuns == maskN + burnMaskN + Σ maskDropped + noSil
+         noSil 就是那幾輪靜默掉出去的（拿不到剪影／凍幀當下方框已經是 null）。
+         ★noSil 只是把原本看不見的東西變成看得見，不改任何判定★——res.* 一格沒動。 */
       'acct.flashRuns=' + samples.flashes.length,
-      'acct.sum=' + (v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0)),
-      'acct.ok=' + (samples.flashes.length === v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0))]
+      'acct.noSil=' + noSil,
+      'acct.sum=' + (v.summary.maskN + v.summary.burnMaskN + dropN + noSil),
+      'acct.ok=' + (samples.flashes.length === v.summary.maskN + v.summary.burnMaskN + dropN + noSil)]
       .concat(Object.entries(v.res).sort().map(([k, x]) => 'res.' + k + '=' + x))
       .concat(Object.entries(v.summary).sort().map(([k, x]) => 'sum.' + k + '=' + JSON.stringify(x)))
       .concat(['bad=' + JSON.stringify(v.bad)]).join('\n') + '\n');
