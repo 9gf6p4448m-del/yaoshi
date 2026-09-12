@@ -924,27 +924,31 @@ export const V054 = {
 };
 
 export const V054_SHORT = {
+  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
+  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
+  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
   eliteSelfCut_v054short(st) {
+    const K = st.ms / 260;
     const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const chest = st.worldOf(deer, 'Chest', new THREE.Vector3());
     const blood = st.orb(chest, 0.055, { opacity: 0 });
     blood.scale.setScalar(0.3);
-    st.tween({ ms: 90, ease: 'in', update(t, e) { // 俯首就刃：頸逐節下彎、邊光先暗
+    st.tween({ ms: 90 * K, ease: 'in', update(t, e) { // 俯首就刃：頸逐節下彎、邊光先暗
       st.rot(deer, 'NeckRoot', 0.26 * e); st.rot(deer, 'Neck2', 0.22 * e); st.rot(deer, 'HeadRoot', 0.3 * e);
       st.rot(deer, 'TailRoot', -0.18 * e); st.rim(deer, 1 - 0.75 * e);
     } });
-    st.tween({ ms: 70, delay: 88, ease: 'snap', update(t, e) { // 割：頭橫甩、邊光暴亮到三倍
+    st.tween({ ms: 70 * K, delay: 88 * K, ease: 'snap', update(t, e) { // 割：頭橫甩、邊光暴亮到三倍
       st.rot(deer, 'HeadRoot', 0.3, 0.5 * e, 0); st.rot(deer, 'Neck2', 0.22 * (1 - e));
       st.rim(deer, 0.25 + 3.1 * e);
     }, done() { st.punch(0.42); st.burst(chest, { power: 0.7, n: 34, color: 0xd83a2a }); } });
-    st.fade(blood, { ms: 45, delay: 88, from: 0, to: 1 });
-    st.grow(blood, { ms: 90, delay: 88, from: 0.3, to: 1.5 });
-    st.fade(blood, { ms: 60, delay: 150, from: 1, to: 0 });
+    st.fade(blood, { ms: 45 * K, delay: 88 * K, from: 0, to: 1 });
+    st.grow(blood, { ms: 90 * K, delay: 88 * K, from: 0.3, to: 1.5 });
+    st.fade(blood, { ms: 60 * K, delay: 150 * K, from: 1, to: 0 });
     const up = st.top(deer, new THREE.Vector3());
     const rite = st.beam(chest.clone(), up, { opacity: 0 });
-    st.fade(rite, { ms: 65, delay: 130, from: 0.95, to: 0 }); // 祭光自心口竄上頭頂
-    st.actor.forEach((f, i) => st.tween({ ms: 70, delay: 140 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } }));
-    st.tween({ ms: 65, delay: 160, ease: 'inout', update(t, e) { // 頭頸回正
+    st.fade(rite, { ms: 65 * K, delay: 130 * K, from: 0.95, to: 0 }); // 祭光自心口竄上頭頂
+    st.actor.forEach((f, i) => st.tween({ ms: 70 * K, delay: (140 + i * 10) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } }));
+    st.tween({ ms: 65 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 頭頸回正
       const k = 1 - e;
       st.rot(deer, 'NeckRoot', 0.26 * k); st.rot(deer, 'HeadRoot', 0.3 * k, 0.5 * k, 0); st.rot(deer, 'TailRoot', -0.18 * k);
     } });

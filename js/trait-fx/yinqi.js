@@ -918,7 +918,11 @@ export const V054 = {
 };
 
 export const V054_SHORT = {
+  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
+  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
+  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
   hauntLost_v054short(st) {
+    const K = st.ms / 260;
     const hats = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
     const lost = st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm').slice(0, 3) : st.target.slice(0, 2);
     const fires = lost.map((f, i) => {
@@ -927,28 +931,28 @@ export const V054_SHORT = {
       return { o, base: st.top(f, new THREE.Vector3()), ph: i * 1.7 };
     });
     hats.forEach((g, i) => {
-      st.tween({ ms: 80, delay: i * 10, ease: 'out', update(t, e) { // 帽尖後仰蓄勢、霧裾外散
+      st.tween({ ms: 80 * K, delay: i * 10 * K, ease: 'out', update(t, e) { // 帽尖後仰蓄勢、霧裾外散
         st.rot(g, 'HatRoot', -0.3 * e); st.rot(g, 'Hat1', -0.24 * e); st.rot(g, 'HatTip', -0.3 * e);
         st.rot(g, 'NeckB', -0.16 * e); st.rot(g, 'Mist1', 0, 0, 0.2 * e); st.rim(g, 1 + 0.6 * e);
       } });
-      st.tween({ ms: 78, delay: 80 + i * 10, ease: 'strike', update(t, e) { // 往前猛地一點：帽尖前指、張口
+      st.tween({ ms: 78 * K, delay: (80 + i * 10) * K, ease: 'strike', update(t, e) { // 往前猛地一點：帽尖前指、張口
         st.rot(g, 'HatRoot', -0.3 + 0.72 * e); st.rot(g, 'HatTip', -0.3 + 0.66 * e);
         st.rot(g, 'JawRoot', 0.3 * e); st.rot(g, 'NeckB', -0.16 + 0.3 * e);
         st.move(g, 0, 0, 0.09 * e);
       } });
     });
     fires.forEach((F, i) => { // 鬼火繞圈飛
-      st.fade(F.o, { ms: 40, delay: 96 + i * 10, from: 0, to: 1 });
-      st.tween({ ms: 104, delay: 96 + i * 10, ease: 'linear', update(t, e) {
+      st.fade(F.o, { ms: 40 * K, delay: (96 + i * 10) * K, from: 0, to: 1 });
+      st.tween({ ms: 104 * K, delay: (96 + i * 10) * K, ease: 'linear', update(t, e) {
         const a = F.ph + e * Math.PI * 2.4;
         F.o.position.set(F.base.x + Math.cos(a) * 0.17, F.base.y + 0.06 + 0.03 * Math.sin(a * 2), F.base.z + Math.sin(a) * 0.17);
       } });
-      st.fade(F.o, { ms: 46, delay: 182, from: 1, to: 0 });
+      st.fade(F.o, { ms: 46 * K, delay: 182 * K, from: 1, to: 0 });
     });
-    lost.forEach((f, i) => st.tween({ ms: 100, delay: 100 + i * 10, ease: 'inout', update(t, e) { // 原地打轉、邊光發虛
+    lost.forEach((f, i) => st.tween({ ms: 100 * K, delay: (100 + i * 10) * K, ease: 'inout', update(t, e) { // 原地打轉、邊光發虛
       st.spin(f, 0, Math.PI * 1.1 * e, 0); st.rim(f, 1 - 0.45 * Math.sin(Math.PI * e));
     } }));
-    st.tween({ ms: 60, delay: 168, ease: 'inout', update(t, e) { // 帽落回
+    st.tween({ ms: 60 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 帽落回
       const k = 1 - e;
       hats.forEach((g) => {
         st.rot(g, 'HatRoot', 0.42 * k); st.rot(g, 'HatTip', 0.36 * k); st.rot(g, 'JawRoot', 0.3 * k);

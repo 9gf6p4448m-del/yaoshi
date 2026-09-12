@@ -1097,58 +1097,63 @@ export const V054 = {
 };
 
 export const V054_SHORT = {
+  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
+  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
+  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
   wardImmuneLost_v054short(st) {
+    const K = st.ms / 260;
     const bell = st.byBody(st.actor, 'ward')[0] || st.actor[0];
     const foot = st.foot(bell, new THREE.Vector3());
     const w1 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
     const w2 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
     const mate = st.actor[1] || null;
     const link = mate ? st.beam(st.worldOf(bell, 'BellLip', new THREE.Vector3()), st.worldOf(mate, null, new THREE.Vector3()), { opacity: 0 }) : null;
-    st.tween({ ms: 80, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
+    st.tween({ ms: 80 * K, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
       st.rot(bell, 'ArmURoot', -0.9 * e); st.rot(bell, 'ArmUElbow', -0.35 * e);
       st.rot(bell, 'BellRoot', -0.3 * e); st.rot(bell, 'Chest', 0, 0.16 * e, 0); st.rim(bell, 1 + 0.7 * e);
     } });
-    st.tween({ ms: 95, delay: 78, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
+    st.tween({ ms: 95 * K, delay: 78 * K, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
       const s = Math.sin(e * Math.PI * 3);
       st.rot(bell, 'BellRoot', -0.3 + 0.1 * e, 0, 0.34 * s); st.rot(bell, 'BellLip', 0, 0, 0.22 * s);
       st.rot(bell, 'Skirt1', 0, 0, 0.12 * s); st.rim(bell, 1.7 + 0.6 * Math.abs(s));
     } });
-    st.grow(w1, { ms: 85, delay: 96, from: 0.3, to: 1.5 }); // 鈴波往外擴
-    st.fade(w1, { ms: 85, delay: 96, from: 0.7, to: 0 });
-    st.grow(w2, { ms: 85, delay: 128, from: 0.3, to: 1.8 });
-    st.fade(w2, { ms: 85, delay: 128, from: 0.5, to: 0 });
-    if (link) st.fade(link, { ms: 70, delay: 130, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
-    st.actor.forEach((f, i) => st.tween({ ms: 75, delay: 130 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
-    st.tween({ ms: 68, delay: 160, ease: 'inout', update(t, e) { // 放下
+    st.grow(w1, { ms: 85 * K, delay: 96 * K, from: 0.3, to: 1.5 }); // 鈴波往外擴
+    st.fade(w1, { ms: 85 * K, delay: 96 * K, from: 0.7, to: 0 });
+    st.grow(w2, { ms: 85 * K, delay: 128 * K, from: 0.3, to: 1.8 });
+    st.fade(w2, { ms: 85 * K, delay: 128 * K, from: 0.5, to: 0 });
+    if (link) st.fade(link, { ms: 70 * K, delay: 130 * K, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
+    st.actor.forEach((f, i) => st.tween({ ms: 75 * K, delay: (130 + i * 10) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
+    st.tween({ ms: 68 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 放下
       const k = 1 - e;
       st.rot(bell, 'ArmURoot', -0.9 * k); st.rot(bell, 'ArmUElbow', -0.35 * k);
       st.rot(bell, 'BellRoot', -0.2 * k); st.rot(bell, 'Chest', 0, 0.16 * k, 0);
     } });
   },
   biteGamble_v054short(st) {
+    const K = st.ms / 260;
     const tiger = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const prey = st.biggest(st.target) || st.target[0] || null;
     const jaw = st.worldOf(tiger, 'JawTip', new THREE.Vector3());
     const at = prey ? st.worldOf(prey, null, new THREE.Vector3()) : jaw.clone().addScaledVector(st.dir, 1.4);
     const m1 = st.bolt(at.clone().add(new THREE.Vector3(-0.16, 0.16, 0)), at.clone().add(new THREE.Vector3(0.16, -0.16, 0)), { jag: 0.05, segs: 4, seed: 2, opacity: 0 });
     const m2 = st.bolt(at.clone().add(new THREE.Vector3(0.16, 0.14, 0)), at.clone().add(new THREE.Vector3(-0.14, -0.18, 0)), { jag: 0.05, segs: 4, seed: 8, opacity: 0 });
-    st.tween({ ms: 80, ease: 'in', update(t, e) { // 伏身張口：後臀壓低、脊背弓起、下顎大張
+    st.tween({ ms: 80 * K, ease: 'in', update(t, e) { // 伏身張口：後臀壓低、脊背弓起、下顎大張
       st.rot(tiger, 'Rump', 0.2 * e); st.rot(tiger, 'Spine', -0.14 * e); st.rot(tiger, 'NeckB', 0.16 * e);
       st.rot(tiger, 'JawRoot', 0.34 * e); st.rot(tiger, 'Jaw1', 0.24 * e); st.rot(tiger, 'TailRoot', -0.3 * e);
       st.move(tiger, 0, 0, -0.06 * e); st.rim(tiger, 1 + 0.6 * e);
     } });
-    st.tween({ ms: 75, delay: 78, ease: 'strike', update(t, e) { // 撲：整尊躍出、頭往前刺
+    st.tween({ ms: 75 * K, delay: 78 * K, ease: 'strike', update(t, e) { // 撲：整尊躍出、頭往前刺
       st.move(tiger, 0, 0.05 * Math.sin(Math.PI * e), 0.28 * e);
       st.rot(tiger, 'Rump', 0.2 - 0.3 * e); st.rot(tiger, 'NeckB', 0.16 - 0.3 * e); st.rot(tiger, 'HeadRoot', -0.18 * e);
       st.rim(tiger, 1.6 + 1.5 * e);
     } });
-    st.tween({ ms: 45, delay: 148, ease: 'out', update(t, e) { // 咬：下顎猛闔
+    st.tween({ ms: 45 * K, delay: 148 * K, ease: 'out', update(t, e) { // 咬：下顎猛闔
       st.rot(tiger, 'JawRoot', 0.34 * (1 - e)); st.rot(tiger, 'Jaw1', 0.24 * (1 - e));
     }, done() { st.burst(at, { power: 0.95, n: 44 }); st.punch(0.6); } });
-    st.fade(m1, { ms: 58, delay: 150, from: 1, to: 0 }); // 兩道咬痕光
-    st.fade(m2, { ms: 58, delay: 158, from: 1, to: 0 });
-    if (prey) st.flinch([prey], { delay: 150, strength: 1.4, burst: false });
-    st.tween({ ms: 62, delay: 168, ease: 'inout', update(t, e) { // 鬆口退回
+    st.fade(m1, { ms: 58 * K, delay: 150 * K, from: 1, to: 0 }); // 兩道咬痕光
+    st.fade(m2, { ms: 58 * K, delay: 158 * K, from: 1, to: 0 });
+    if (prey) st.flinch([prey], { delay: 150 * K, strength: 1.4, burst: false });
+    st.tween({ ms: 62 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 鬆口退回
       const k = 1 - e;
       st.move(tiger, 0, 0, 0.28 * k); st.rot(tiger, 'HeadRoot', -0.18 * k); st.rot(tiger, 'Spine', -0.14 * k);
       st.rot(tiger, 'TailRoot', -0.3 * k); st.rim(tiger, 1 + 2.1 * k);

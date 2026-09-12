@@ -118,3 +118,50 @@ js/trait-fx/zuling.js   | ...
 
 只動三系檔，`index.html`／`tests/tools/fx-consts.mjs`／`vocab.js`／`emblems.js`／治具
 一律未動（300ms 的驗證用副本改回並還原）。
+
+## 追補：V054_SHORT 四支（預設路徑，`PW_FX.VOCAB_ON=false`）
+
+### 背景
+
+上面 23 支＋批 0 四支都在 `SHORT`／`MOVES` 匯出裡，只有 `--fxvocab=1` 才會走到——這是
+v0.55 招式可辨性卷的版本。但**線上現況預設 `PW_FX.VOCAB_ON=false`**（製作人 2026-09-12
+盲讀後判定 0.55 徽記剪影方向做錯，退回 0.54 演出），預設路徑跑的是三系檔尾的
+`V054_SHORT`：`eliteSelfCut_v054short`／`wardImmuneLost_v054short`／
+`biteGamble_v054short`／`hauntLost_v054short`。這四支同樣是寫死 260 的絕對毫秒，
+260→300 常數改動後預設路徑（不帶 `--fxvocab=1`）也會 `fillOK` 紅。
+
+檔案原有註解「**不得在這裡改任何一行**」是針對 `V054`／`V054_SHORT`的**演出內容**
+（防止有人趁機改動畫面、讓「退回 0.54」這個宣稱失真）；本次追補只做純比例縮放
+（`const K = st.ms / 260`，字面 `ms`／`delay` 乘 `K`，其餘逐字不動），已在四支各自
+上方加註記說明這個範圍限定的例外。**`V054`（900ms 完整版）本身完全不動**——`git diff`
+只落在四支 `V054_SHORT` 函式內。
+
+### 4 支清單與時點換算
+
+| 招式 | 檔案 | 原始毫秒（260 基準） |
+|---|---|---|
+| `eliteSelfCut_v054short` | zuling.js | 45, 60, 65, 70, 88, 90, 130, 140+i·10, 150, 160 |
+| `wardImmuneLost_v054short` | xianghuo.js | 68, 70, 75, 78, 80, 85, 95, 96, 128, 130, 130+i·10, 160 |
+| `biteGamble_v054short` | xianghuo.js | 45, 58, 62, 75, 78, 80, 148, 150, 158, 168 |
+| `hauntLost_v054short` | yinqi.js | 40, 46, 60, 78, 80, 96+i·10, 100+i·10, 104, 168, 182, i·10 |
+
+（同上，逐項都是 `值 * K`；`K` 定義同一套。）
+
+### 驗收證據
+
+1. **260 下等價**：
+   - **預設路徑**（不帶 `--fxvocab=1`）：`node tests/tools/traitfx-drive.mjs ... --tier=1`
+     本樹與基準樹（`6defe13`）各 **27/27 pass**，`diff` **exit=0**（0 行差）。
+   - **`--fxvocab=1` 路徑**（回歸確認：加了 V054_SHORT 這批修改後仍不影響 SHORT 匯出）：
+     再跑一次，本樹與基準樹各 **27/27 pass**，`diff` **exit=0**（0 行差）。
+2. **300 下填滿**（常數暫改副本、驗完還原）：
+   - **預設路徑**：**27/27 PASS**（`fillOK`／`rateOK`／`actionsOK` 全綠，0 error）。
+   - **`--fxvocab=1` 路徑**：**27/27 PASS**（同上）。
+3. **trace-eq**：`{"equal":true}`（`index.html` 逐位元組未動）。
+4. **規則測試 12 套**：全綠（同上，108 案例 0 失敗）。
+
+### 範圍（本追補）
+
+`git diff --stat`（本追補的變更集）：只動 `js/trait-fx/zuling.js`（1 支）、
+`js/trait-fx/xianghuo.js`（2 支）、`js/trait-fx/yinqi.js`（1 支）的 `V054_SHORT`
+區塊；`V054`／`index.html`／`fx-consts.mjs`／治具一律未動。
