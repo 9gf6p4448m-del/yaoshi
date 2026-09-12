@@ -85,7 +85,11 @@ t('BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）'
   // 分岔防線：vocab.js 裡不得再出現任何三級時長的字面值（那是 PW_FX 的專屬）
   const src = fs.readFileSync(path.join(ROOT, 'js/trait-fx/vocab.js'), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
-  for (const n of ['260', '900', '1400']) {
+  /* ★2026-09-12：tier 1 短版 260→300（凍結檔 §2.1 修訂，使用者裁定）★
+     這一列是**鏡像常數**——它列的是「PW_FX.TRAIT_MS_BY_TIER 現在有哪些值」，跟著單一來源走。
+     處置是**加嚴**（把 300 加進去、260 留著），不是換掉：留著 260 只會多擋一個過時的字面值，
+     任何一份實作都不會因為這一行變得比較容易過。 */
+  for (const n of ['260', '300', '900', '1400']) {
     if (new RegExp('\\b' + n + '\\b').test(src)) throw new Error(`vocab.js 出現招式時長字面值 ${n}（唯一來源是 index.html 的 PW_FX.TRAIT_MS_BY_TIER）`);
   }
 });

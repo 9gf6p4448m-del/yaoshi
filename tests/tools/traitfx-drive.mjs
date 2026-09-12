@@ -5,6 +5,8 @@
 // --fxvocab=1  打開 v0.55 招式語彙（四支示範招的徽記剪影版）。不帶＝index.html 的
 //         PW_FX.VOCAB_ON 預設值 false＝0.54 演出。傳法比照 --tier／--nobloom：接在治具頁的
 //         查詢字串上（js/trait-fx.js 在治具頁讀的就是 location.search，見該檔的 VOCAB_ON）。
+//                                            [--proto=tigerA|tigerB|tigerC]
+// --proto 只是把同名網址參數轉給治具頁（虎爺印原型卷 2026-09-12）：**純轉送**，判定邏輯一行不動。
 // --root  http.server 的根目錄與 index.html 的來源（預設＝repo 根）。照 duel-drive.mjs:5 的寫法補的
 //         （覆審 r2 N3）：--sigdump 要拿來當「js/trait-fx* 有沒有被動到」的等價證據，就得能對
 //         **基準樹**跑同一支治具（基準 SHA 的治具本身沒有 --sigdump，只能由本樹的治具去跑它的靜態檔）。
@@ -92,7 +94,7 @@ async function runCase(browser, base, c, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}`;
   if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完
