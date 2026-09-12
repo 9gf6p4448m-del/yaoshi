@@ -211,62 +211,139 @@ const MOVES = {
   },
 
   /* 百步蛇紋盾・鱗紋護體（shield，護法×2）：一拍前鋒全體 hp+2。
-     編舞：蛇身鱗紋一節一節亮上去、三片盾牆向外張開、冠首上抬（0–290ms 醞釀）
-          → 蛇頭前探吐信、半圓護罩從蛇身罩下（290ms）、腳下鱗環擴散
-          → 罩淡去、鱗紋退光、盾牆與蛇身回位（到 890ms 收勢）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 2 列＋§B1＋§A9；
+     `MOVE_SPEC.wardHpFront2 = { 乙, 扎, 升, stance:'下沉', anchor:'allies' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝扎**：`Base`／`Root` 下沉紮地＋`Wall1`–`Wall3` 一格張開、
+         `Neck2`–`Neck3`／`Head0`／`Jaw`／`Snout` 蛇頭前探吐信（祖靈＝靜→瞬發，一格到位）。
+       **道具**＝乙 織紋與珠：**菱紋帶**（`rhomb` ×5，`st.paperProps` 的 `shape:'emblem'`＝1 draw call），
+         從盾牆上方升起、**沿前鋒那一線鋪開**落到本方每一尊身上；＋各尊身上一枚**菱紋印**。
+         ★不是 `dome`★：半圓護罩在祖靈系退役（讀者 A 把巴冷的罩讀成山神庇佑，ART_BIBLE §10.5）。
+       **受益方反應＝升**：本方前鋒 `st.move` 上抬＋邊光。
+
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down）≠ react「升」（up）；腳下**垂直光柱**。
+     ★拖線★：增益招一律 `trail: false`（§A9-3）。
+     ★落點 anchor＝`allies`★：菱紋帶與菱紋印都落在本方身上（裁定①）。 */
   wardHpFront2(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const wards = st.byBody(st.actor, 'ward');
     const line = wards.length ? wards : st.actor;
-    line.forEach((g, gi) => {
-      const lag = gi * 70;
-      const mid = st.worldOf(g, 'Body10', new THREE.Vector3());
-      const foot = st.foot(g, new THREE.Vector3());
-      // 鱗紋行進波：由尾往頭一節一節鼓起（back＝整體殘量，收勢時當衰減用）
-      const scales = (e, back) => {
-        for (let i = 0; i <= 20; i += 2) {
-          const ph = Math.max(0, Math.min(1, e * 1.7 - i / 30)) * back;
-          st.scaleBone(g, 'Body' + i, 1 + 0.16 * ph);
-          st.rot(g, 'Body' + i, 0, 0, 0.06 * Math.sin(i * 0.8) * ph);
-        }
-      };
-      st.tween({ ms: 240, delay: lag, ease: 'out', update(t, e) {
-        scales(e, 1);
-        st.rot(g, 'Wall1', -0.28 * e, -0.22 * e, 0);
-        st.rot(g, 'Wall2', -0.34 * e, 0, 0);
-        st.rot(g, 'Wall3', -0.28 * e, 0.22 * e, 0);
-        st.rot(g, 'Crown', -0.2 * e, 0, 0);
-        st.rot(g, 'Neck2', -0.16 * e, 0, 0);
-        st.rim(g, 1 + 1.2 * e);
-      } });
-      st.at(lag + 240, () => {
-        const dome = st.dome(mid, 0.62, { opacity: 0.5 });
-        dome.scale.setScalar(0.25);
-        st.grow(dome, { ms: 200, from: 0.25, to: 1, ease: 'out' });
-        st.fade(dome, { ms: 300, delay: 300, from: 0.5, to: 0 });
-        const ring = st.ring(foot, 0.34, 0.05, { opacity: 0.9 });
-        ring.scale.setScalar(0.35);
-        st.tween({ ms: 420, ease: 'outQuint', update(t, e) { ring.scale.setScalar(0.35 + 1.15 * e); ring.material.opacity = 0.9 * (1 - e); } });
-        st.burst(mid, { power: 0.5, n: 26 });
-      });
-      // 吐信＋收勢：醞釀姿態退場（k），蛇頭前探一下就回（s）
-      st.tween({ ms: 580, delay: lag + 240, ease: 'linear', update(t) {
-        const k = 1 - st.EASE.out(t);
-        const s = st.EASE.snap(Math.min(1, t / 0.55));
-        scales(1, k);
-        st.rot(g, 'Wall1', -0.28 * k, -0.22 * k, 0);
-        st.rot(g, 'Wall2', -0.34 * k, 0, 0);
-        st.rot(g, 'Wall3', -0.28 * k, 0.22 * k, 0);
-        st.rot(g, 'Crown', -0.2 * k, 0, 0);
-        st.rot(g, 'Neck2', -0.16 * k + 0.34 * s, 0, 0);
-        st.rot(g, 'Neck3', 0.3 * s, 0, 0);
-        st.rot(g, 'Head0', 0.26 * s, 0, 0);
-        st.rot(g, 'Jaw', 0.5 * s, 0, 0);
-        st.rot(g, 'Snout', 0.2 * s, 0, 0);
-        st.rim(g, 1 + 1.2 * k + 0.9 * s);
-      } });
+    const lead = line[0];
+    const mates = st.actor.filter((f) => f !== lead);
+    const wall = st.worldOf(lead, 'Wall2', new THREE.Vector3());
+    if (!wall.lengthSq()) st.worldOf(lead, null, wall);
+    // 帶子的起點在盾牆**正上方**（不跨中線、不從敵方出發，§A9-3）
+    /* ★起點的兩輪實測（自評）★
+       ① `wall + y0.95`：travel 只走 1.0875、門檻 1.2481（＝0.40×travelDist）⇒ phase 紅。
+       ② `wall + y1.25`：過得了門檻，但帶子整條**跑出畫面左上角**（`sheet-t2` 前兩格只剩一塊藍）。
+       改成從**側面**掃進來：`perp` 是水平面上垂直於 `st.dir` 的方向（遠離中線那一側），
+       帶子沿著盾牆那一線橫掃進場＝§C「菱紋帶沿盾牆展開」，位移也拿得到（實測 1.4+）。 */
+    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const A = wall.clone(); A.addScaledVector(perp, 1.70); A.y += 0.85; A.addScaledVector(st.dir, -0.25); A.add(st.camOff(1.0));
+    // 落點＝本方那一線的中點（`allies` 解出的就是這一群，含施招者自己：desc「前鋒全體」）
+    const Z = new THREE.Vector3();
+    st.actor.forEach((f) => {
+      const p = st.worldOf(f, 'Body10', new THREE.Vector3());
+      if (!p.lengthSq()) st.worldOf(f, null, p);
+      Z.add(p);
     });
-  },
+    Z.multiplyScalar(1 / Math.max(1, st.actor.length));
+    Z.y = wall.y + 0.10;
+    Z.add(st.camOff(2.0)); // 帶子要落在牆的**鏡頭側**，不然整條被盾牆吃掉（自評第 2 輪）
 
+    // ── 乙 菱紋帶：五枚菱形沿盾牆一線展開（1 draw call；群體位移掛 InstancedMesh 物件本身，§A5）──
+    const RH = 5;
+    const band = st.paperProps(st.kind, RH, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.85, depth: 0.18, warp: 0.12 });
+    band.obj.position.copy(A);
+    const _e = new THREE.Euler();
+    const knots = [];
+    for (let i = 0; i < RH; i++) knots.push({ x: (i - (RH - 1) / 2), rz: 0.10 * (i - 2), s: 0 });
+    const writeBand = (k) => {
+      for (let i = 0; i < RH; i++) {
+        const g = knots[i], it = band.items[i];
+        // k=0 疊在一起（還沒展開）→ k=1 沿橫向鋪成一條帶
+        it.p.set(g.x * (0.08 + 0.30 * k), -0.05 * Math.abs(g.x) * k, 0);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * k));
+        it.s = g.s;
+      }
+      band.write();
+    };
+    writeBand(0);
+
+    // ── 每一尊身上的菱紋印（anchor allies；施招者也吃到 hp+2，所以他身上也有一枚）──
+    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Body10', new THREE.Vector3()),
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
+        follow: f, at: 'chest', off: st.camOff(1) }));
+
+    /* ① 紮地張牆（windup）：整尊下沉生根、三片盾牆一格張開；菱紋帶在牆上方亮相。 */
+    /* 柱要往鏡頭再推遠一點：盾牆又寬又矮，預設的 0.34 會讓柱整根躲在牆後面（自評第 2 輪）。 */
+    st.groundMark(lead, { h: 1.24, w: 0.30, taper: 0.42, peak: 0.95, push: 0.95 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(lead, '下沉', e);
+        line.forEach((g) => {
+          st.rot(g, 'Wall1', -0.30 * e, -0.26 * e, 0);
+          st.rot(g, 'Wall2', -0.36 * e, 0, 0);
+          st.rot(g, 'Wall3', -0.30 * e, 0.26 * e, 0);
+          st.rot(g, 'Base', 0.10 * e); st.rot(g, 'Root', 0.12 * e);
+          st.rot(g, 'Crown', -0.18 * e);
+          st.rim(g, 1 + 1.1 * e);
+        });
+        st.alpha(band.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < RH; i++) knots[i].s = Math.max(0, Math.min(1, (e - 0.08 * i) * 2.4));
+        writeBand(0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 鋪帶（travel）：菱紋帶從牆上方落到本方那一線上，五枚同時沿橫向展開。 */
+    st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
+      band.obj.position.lerpVectors(A, Z, e);
+      writeBand(e);
+    },
+    done() {
+      /* ★衝擊拍★：牆張到位＝菱紋帶鋪滿＝前鋒同幀托起（三件同一拍，§A2） */
+      st.phase('react');
+      st.burst(Z, { power: 0.7, n: 40, color: C.hot });
+      st.punch(0.34);
+    } });
+    // 吐信：蛇頭在衝擊拍前一點猛探出去（靜→瞬發）
+    st.tween({ ms: TL * 0.55, delay: T0 + TL * 0.4, ease: 'snap', update(t, e) {
+      line.forEach((g) => {
+        st.rot(g, 'Neck2', 0.26 * e); st.rot(g, 'Neck3', 0.30 * e);
+        st.rot(g, 'Head0', 0.24 * e); st.rot(g, 'Jaw', 0.46 * e); st.rot(g, 'Snout', 0.18 * e);
+      });
+    } });
+    st.fade(band.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+
+    /* ③ 托起（react）：本方每一尊上抬＋邊光，身上的菱紋印蓋上再淡去。 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
+    });
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    } }));
+
+    /* 收勢：牆與蛇頭回位，施招者跟著被托起（他也是前鋒之一）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.5));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
+      line.forEach((g) => {
+        st.rot(g, 'Wall1', -0.30 * k, -0.26 * k, 0);
+        st.rot(g, 'Wall2', -0.36 * k, 0, 0);
+        st.rot(g, 'Wall3', -0.30 * k, 0.26 * k, 0);
+        st.rot(g, 'Base', 0.10 * k); st.rot(g, 'Root', 0.12 * k);
+        st.rot(g, 'Crown', -0.18 * k);
+        st.rot(g, 'Neck2', 0.26 * k); st.rot(g, 'Neck3', 0.30 * k);
+        st.rot(g, 'Head0', 0.24 * k); st.rot(g, 'Jaw', 0.46 * k); st.rot(g, 'Snout', 0.18 * k);
+        st.rim(g, 1 + 1.1 * k + 1.2 * up);
+      });
+      st.move(lead, 0, 0.09 * up, 0);
+    } });
+  },
   /* 山神庇佑・山起（shanshen，護法×2）：全體 hp+1（含護法、作祟）。
      編舞：四足屈膝沉身、背上山岩隆起（0–250ms 醞釀）→ 抬頭仰天、整尊上頂、山岩漲到最大（250ms）
           → 腳下地紋圓盤擴散、頭頂一顆山神之光升起 → 岩落、獸伏回原姿（到 820ms）。 */
@@ -761,39 +838,8 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-13 演出卷祖靈批階段 B 起，祖靈系逐支改成這個做法）。 */
   eliteOpenShot: MOVES.eliteOpenShot,
 
-  /* 鱗紋護體｜辨識：蛇身鱗紋一節一節亮上去＋半圓護罩罩下 */
-  wardHpFront2(st) {
-    const K = st.ms / 260;
-    const wards = st.byBody(st.actor, 'ward');
-    const line = wards.length ? wards : st.actor;
-    const g = line[0];
-    const mid = st.worldOf(g, 'Body10', new THREE.Vector3());
-    const foot = st.foot(g, new THREE.Vector3());
-    const dome = st.dome(mid, 0.8, { opacity: 0 });
-    const ring = st.ring(foot, 0.42, 0.07, { opacity: 0 });
-    dome.scale.setScalar(0.35);
-    st.tween({ ms: 90 * K, ease: 'out', update(t, e) { // 鱗紋行進波：由尾往頭一節一節鼓起
-      line.forEach((f) => {
-        for (let i = 0; i <= 20; i += 4) {
-          const ph = Math.max(0, Math.min(1, e * 1.7 - i / 30));
-          st.scaleBone(f, 'Body' + i, 1 + 0.16 * ph);
-        }
-        st.rot(f, 'Crown', -0.12 * e); st.rot(f, 'Jaw', 0.18 * e); st.rim(f, 1 + 0.9 * e);
-      });
-    } });
-    st.grow(dome, { ms: 85 * K, delay: 85 * K, from: 0.35, to: 1.15 }); // 半圓護罩罩下
-    st.fade(dome, { ms: 60 * K, delay: 85 * K, from: 0, to: 0.45 });
-    st.fade(dome, { ms: 65 * K, delay: 160 * K, from: 0.45, to: 0 });
-    st.grow(ring, { ms: 95 * K, delay: 85 * K, from: 0.3, to: 1.5 });
-    st.fade(ring, { ms: 95 * K, delay: 85 * K, from: 0.7, to: 0 });
-    st.tween({ ms: 70 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 鱗紋退光、蛇身回位
-      const k = 1 - e;
-      line.forEach((f) => {
-        for (let i = 0; i <= 20; i += 4) st.scaleBone(f, 'Body' + i, 1 + 0.16 * k);
-        st.rot(f, 'Crown', -0.12 * k); st.rot(f, 'Jaw', 0.18 * k); st.rim(f, 1 + 0.9 * k);
-      });
-    } });
-  },
+  /* wardHpFront2｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  wardHpFront2: MOVES.wardHpFront2,
 
   /* 山神庇佑｜辨識：背上山岩隆起＋腳下地紋圓盤擴散 */
   wardHpAll1(st) {
