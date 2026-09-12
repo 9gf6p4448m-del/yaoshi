@@ -1,0 +1,31 @@
+§3② 的探針：scratchpad/l10/probe.mjs（只 tick 60 次就截圖，不點任何按鈕、不派刺激）
+用途：把「3D 層在第幾個 tick 才上線」這件事單獨抽出來驗，不摻對決與凍幀協定。
+
+指令
+  node scratchpad/l10/probe.mjs <out.png> 60 <port>
+
+─────────────── 修掉前（goto 'load' 之後直接開始 tick）───────────────
+run a: {"boot":{"y3d":false,"net":0,"ticks":0},"after":{"y3d":true ,"ticks":60,"vt":999.9999999999991,"prog":65}}
+run b: {"boot":{"y3d":false,"net":1,"ticks":0},"after":{"y3d":false,"ticks":60,"vt":999.9999999999991,"prog":null}}
+
+b2da51de904664da3aaab8182253538b *scratchpad/l10/p60a.png
+0bf2eef98a8c4b894c7f79543a88a722 *scratchpad/l10/p60b.png
+
+python scratchpad/l10/pngdiff.py p60a.png p60b.png
+  size 844 390 diffpx 188820 of 329160 (57.36%) maxdelta 122
+  bbox [0, 0, 843, 389]
+  hist top [(2, 75273), (3, 60546), (1, 29285), (4, 9389), (5, 3455), (7, 1850), (6, 1749), (9, 1119)]
+
+判讀：同樣 60 個 tick，一跑的 renderer 已經畫了 65 幀（prog=65）、另一跑 __yaoshi3d 根本
+還沒建立（y3d=false、prog=null）。差異遍及整張畫面（bbox 就是整個 viewport）。
+原因：index.html:6936 是用 createElement 動態塞 <script type="module" src="js/renderer.js">，
+load 事件不等它；three@0.158.0（unpkg）與 js/*.js 的動態 import() 也不是 fetch/XHR，
+頁面端的 net 閘看不到。
+
+─────────────── 修掉後（先等 __yaoshi3d 上線＋網路靜止，期間虛擬時間停在 0）───────────────
+run a: {"boot":{"y3d":true,"net":0,"ticks":0},"after":{"y3d":true,"ticks":60,"vt":999.9999999999991,"prog":65}}
+run b: {"boot":{"y3d":true,"net":0,"ticks":0},"after":{"y3d":true,"ticks":60,"vt":999.9999999999991,"prog":65}}
+
+b2da51de904664da3aaab8182253538b *scratchpad/l10/q60a.png
+b2da51de904664da3aaab8182253538b *scratchpad/l10/q60b.png
+→ 逐位元組相同。

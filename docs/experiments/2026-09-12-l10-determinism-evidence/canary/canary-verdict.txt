@@ -1,0 +1,37 @@
+驗收 3（乙）產品端突變 canary —— L10 R1 必須轉紅
+
+突變（只改一行，改壞前先備份 index.html 到 scratchpad/l10/backup/index.html.orig）
+  index.html:499
+  -   font-size:calc(17px * var(--dmgs,1.6));color:var(--dmg-hit);
+  +   font-size:calc(17px * var(--dmgs,1.6) * 0.5);color:var(--dmg-hit);
+  $ git diff --stat -- index.html
+   index.html | 2 +-
+   1 file changed, 1 insertion(+), 1 deletion(-)
+
+指令（與驗收 1 完全同一條）
+  node tests/tools/dmg-readability.mjs pix scratchpad/l10/canary-s1 \
+       --seed=1 --duels=8 --port=9021 --maxfloat=50 --maxhit=20
+
+輸出
+  VERDICT R1=FAIL R2=FAIL R2main=PASS R2sub=FAIL R5pix=FAIL
+  R1 對比度 4.39 < 4.5 seq=9 cls=dmgfloat fac-xianghuo ring=62.4,56.3,62.8
+  R1 字級 seq=1 hit 13.6px < 27.2px
+  R1 字級 seq=2 hit 13.6px < 27.2px
+  R1 字級 seq=6 hit 13.6px < 27.2px
+  R1 字級 seq=9 hit 13.6px < 27.2px
+  R1 字級 seq=10 hit 13.6px < 27.2px
+  R2 +200ms 仍在紅 Δ=5.85（門檻 ≤ +5，單向；修訂 2-C）
+
+判讀
+  ・健康態的 hit 字級是 27.2px（＝17 × 1.6），突變後 13.6px ⇒ R1 依「字級 ≥ 基準 ×1.6」判紅。
+  ・紅在**行為斷言**（字級），不是 AttributeError 之類的旁枝錯誤。
+  ・反面（健康態會綠）同時成立：驗收 1 的 10 跑 R1=true。
+  ・R2main 在突變下仍 PASS，符合預期——這個突變只動跳字字級，不動「被打的尊閃紅」。
+
+還原（用改壞前的備份副本，不是反向 sed）
+  $ cp scratchpad/l10/backup/index.html.orig index.html
+  $ md5sum index.html scratchpad/l10/backup/index.html.orig
+  a8037c15c4b64b91c86b8f46addd2c18 *index.html
+  a8037c15c4b64b91c86b8f46addd2c18 *scratchpad/l10/backup/index.html.orig
+  $ git diff --stat -- index.html js/
+  （空）
