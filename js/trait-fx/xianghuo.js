@@ -1176,7 +1176,10 @@ const MOVES = {
 
     /* ① 捧灰到胸（windup）：兩隻手把灰捧到胸前，低頭；灰在掌心一粒粒長出來 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
-    st.groundMark(monk);
+    /* ★腳下光語彙加亮加大（P4 r1 回修 B）★：讀者沒把施招姿態／腳下光當「誰在施招」的線索
+       （我方單一 10/18 答「自己」）。貼桌環的半徑由 0.34 → 0.52、亮度峰值 0.85 → 1.0，
+       蓄勢段就要一眼看得出「是這一尊在出招」。 */
+    st.groundMark(monk, { r: 0.52, peak: 1.0 });
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
       st.stance(monk, '前傾', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
@@ -1236,8 +1239,10 @@ const MOVES = {
     st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { talis.scale.setScalar(st.iconSize * (1.15 - 0.45 * e)); } });
     st.fade(talis, { ms: RL * 0.4, delay: R0 + RL * 0.55, from: 1, to: 0 });
     st.fade(ash.obj, { ms: RL * 0.5, delay: R0, from: 0.95, to: 0 });
+    /* ★受益方的反應要更明確★（P4 r1 回修 B）：同伴**落地之後**才升（delay R0＝符到位那一刻），
+       施招者從頭到尾只有蓄勢與送出，沒有任何受益反應——這兩件是「誰施招／誰受益」的分水嶺。 */
     st.tween({ ms: RL * 0.8, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(mate, 0, 0.07 * e, 0); st.rim(mate, 1 + 2.0 * e);
+      st.move(mate, 0, 0.115 * e, 0); st.rim(mate, 1 + 2.9 * e);
     } });
 
     /* 收勢：收手 */
@@ -1284,8 +1289,10 @@ const MOVES = {
     /* ★位移改往「我方後方」而不是往上★：單靠垂直升起要 1.25 以上才過 travel 的門檻，
        而那個高度已經出畫面上緣——實測 L3 面積掉到 0.0%／0.3965%／0.2069%（門檻 0.8%）。
        往 `-st.dir` 走既不跨中線、又留在畫面裡。 */
-    const via = src.clone().lerp(dst, 0.40).addScaledVector(st.dir, -1.05).add(camOff(st, 1.4));
-    via.y += 0.50;
+    /* ★傳遞弧改短（P4 r1 回修 B）★：改前繞到 `-st.dir` 1.05 那麼遠，弧長到讀不出
+       「從這一尊送到那一尊」。收成 0.45 之後是一條**同側、短**的傳遞弧（仍不跨中線、不從敵方來）。 */
+    const via = src.clone().lerp(dst, 0.40).addScaledVector(st.dir, -0.45).add(camOff(st, 1.4));
+    via.y += 0.42;
 
     // ── 丁 燈焰：鎏金面＋硃紅墨線的火舌實體（不是球）──
     const flame = st.paperStamp(st.kind, src, { anchor: 'ally', role: 'stamp', color: C.key, inkColor: C.hot,
@@ -1299,7 +1306,8 @@ const MOVES = {
 
     /* ① 燈焰暴漲（windup）：燈芯拉長、整尊低頭送出 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
-    st.groundMark(lamp);
+    // ★腳下光語彙加亮加大（P4 r1 回修 B，理由同香灰符）★
+    st.groundMark(lamp, { r: 0.52, peak: 1.0 });
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
       st.stance(lamp, '下沉', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
@@ -1336,8 +1344,9 @@ const MOVES = {
     st.fade(seal2, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
     st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { seal2.scale.setScalar(st.markSize * (1.9 - 0.8 * e)); } });
     st.fade(seal2, { ms: RL * 0.36, delay: R0 + RL * 0.6, from: 1, to: 0 });
+    // ★受益方落地之後才升、幅度加大（P4 r1 回修 B）；施招者全程沒有受益反應
     st.tween({ ms: RL * 0.85, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(hurt, 0, 0.075 * e, 0); st.rim(hurt, 1 + 2.1 * e);
+      st.move(hurt, 0, 0.12 * e, 0); st.rim(hurt, 1 + 2.9 * e);
     } });
 
     /* 收勢：抬頭、燈芯回位 */
