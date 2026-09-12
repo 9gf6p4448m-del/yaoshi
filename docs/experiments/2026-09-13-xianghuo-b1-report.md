@@ -137,7 +137,14 @@ node tests/tools/prop-size.mjs docs/experiments/2026-09-13-xianghuo-b1-evidence/
   正式演出住進 `MOVES`。這樣：**預設路徑＝正式演出**（批 1 之後 8 支轉正照樣往 `MOVES` 放）、
   `?fxvocab=1` ＝徽記版對照組、`?proto=tigerA–E` 原型保留不動（`js/trait-fx.js:82-88`）。
   0.54 版本永久可取：`git show 6a839de:js/trait-fx/xianghuo.js`。
-- 兩條路徑都實測跑過（見 P8）。
+- 三條路徑都實測跑過：預設（P8 的 27/27）、`?fxvocab=1`（P8 的 27/27，`biteGamble` 的
+  `sig` 帶 `trail`、`acts=9` ⇒ 確實跑的是徽記版）、`?proto=tigerE`：
+  ```
+  node tests/tools/traitfx-drive.mjs scratchpad/proto-e.json --only=biteGamble --tier=1 --proto=tigerE --port=8905
+  PASS t1/300ms … maxD=2.2953 err=0 prog+0 sig=28b/burst+emblem:seal+foil+mark:seal+ring/T
+  ```
+  原型的簽章帶 `foil`（手刻的 InstancedMesh）、正式版帶 `prop:seal`（積木），
+  其餘逐值相同——原型沒被轉正弄壞，而且這是「轉正沒改到任何一格動作」的第三份證據。
 
 **演出內容與 E 定稿逐值相同**，只有金箔那一段換成積木：
 `st.paperProps(st.kind, 9, { color: C.key, opacity: 0, k: 0.725, depth: 0.16, warp: 0.14 })`
@@ -292,6 +299,8 @@ node tests/tools/duel-drive.mjs "…?paperwar=1&fxcount=1&seed=7&fxtier=0" scrat
 | `…/biteGamble/sheet-t2.png` | 6 幀連拍，t2＝900ms |
 | `…/biteGamble/t1-12fps.gif` | t1 慢動作（5× 慢） |
 | `…/biteGamble/t2-20fps.gif` | t2 慢動作（3× 慢） |
+| `…/biteGamble/zoom-travel-t2.png` | §1.5 自評看的那一張：travel 中（大印落下中、金箔在虎身上），2× 放大 |
+| `…/biteGamble/zoom-impact-t2.png` | §1.5 自評看的那一張：衝擊拍（大印轉正＋印文燒紅＋獵物被壓），2× 放大 |
 | `…/duel/real-seed3-biteGamble.png` | ★**真實對決**裡虎爺印的衝擊拍（844×390@2x）★ |
 | `…/contrast-t1/`、`…/contrast-t2/` | P3 的 A／B 凍幀與 `shots.json` |
 | `…/propsize/prop-size-t{1,2}.{tsv,json}` | Q5 尺寸記錄表 |
@@ -464,6 +473,7 @@ P8 那兩跑沒有帶它，走的是與基準完全相同的路徑。
 ## 2. 下一步（要製作人先做的事）
 
 1. **看 §1.4 的 sheet 與 GIF，簽字或退回**——計畫 §4 流程：範本招簽字後才准鋪其餘 8 支。
+   ★**下面第 2 點是簽字前的但書，請先看完再簽**★（那兩件事會改變「簽字代表什麼」）。
 2. **先讀 §1.6 第 4 條再簽**（不是裁定項，是簽字前該知道的事）：
    **這一卷所有閘門都量在「單尊對單尊」的治具棚裡，而玩家看到的是滿編。**
    `…/duel/real-seed3-biteGamble.png` 那張真實對決（19 隻 vs 16 隻）上，讀得到的只有字幕與那枚紅印文，
