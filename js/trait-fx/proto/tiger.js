@@ -155,7 +155,7 @@ function tigerA(st) {
 function tigerB(st) {
   const { cat, prey, LAST, fwd, W, T0, TL, R0, RL, hit } = cast(st);
   const C = st.colors;
-  const DIST = 0.42; // 虎只輕撲：本體讓位給印
+  const DIST = 0.46; // 虎只輕撲：本體讓位給印
   // 第 2 輪：+0.30 把大印推出畫面上緣（對決機位 tilt 24°、dist 4.2，頭頂再往上就出框）。
   // 改成「頭前一點、只高一點」，並往鏡頭方向拉一些，讓它在第一格就整片看得到。
   const head = st.top(cat, new THREE.Vector3()); head.y += 0.06; head.addScaledVector(st.dir, 0.18);
@@ -169,8 +169,11 @@ function tigerB(st) {
 
   st.phase('windup');
   st.tween({ ms: W, ease: 'out', update(t, e) {
-    crouch(st, cat, fwd, 0.45, e);
-    st.rot(cat, 'HeadRoot', 0.16 * 0.45 * e - 0.24 * e); // 抬頭看印
+    /* 0.45 → 0.60：PHASE_GATE.windupBone 是 0.08，而 windup 只量打點後 120ms×k 的窗
+       （tier 2 的窗只走到這條 tween 的 e≈0.4）⇒ 0.45 幅度量到 0.083，只剩 0.003 的餘裕。
+       這不是把門檻搬下來，是把**動作做足**：0.60 仍然明顯小於 A 的滿幅（本版的立場是虎讓位給印）。 */
+    crouch(st, cat, fwd, 0.60, e);
+    st.rot(cat, 'HeadRoot', 0.16 * 0.60 * e - 0.24 * e); // 抬頭看印
     st.rim(cat, 1 + 1.2 * e);
     st.alpha(big, Math.min(1, e * 2.0));
     big.scale.setScalar(st.iconSize * (0.34 + 0.42 * e));

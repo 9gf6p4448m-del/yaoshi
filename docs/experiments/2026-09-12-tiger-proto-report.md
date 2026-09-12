@@ -105,14 +105,19 @@ node tests/tools/traitfx-drive.mjs <out> --only=biteGamble --tier=<1|2> --proto=
 
 `PHASE_GATE` 三段（`windup`／`travel`／`react`）**三版六跑全部成立**（不是「喊了就算」，是量出來的）：
 
-| 跑 | phases | windup bone／model | travel 位移／門檻 | react delta／門檻 |
+| 跑 | phases | windup bone（門檻 0.08）／model（0.04） | travel 位移／門檻 | react delta（門檻 0.03） |
 |---|---|---|---|---|
-| A t1 | windup,travel,react | 0.355／0.098 | 1.774／1.248 | 0.180／0.03 |
-| A t2 | windup,travel,react | 0.128／0.035 | 1.326／1.248 | 0.094／0.03 |
-| B t1 | windup,travel,react | 0.160／0.044 | 1.817／1.248 | 0.180／0.03 |
-| B t2 | windup,travel,react | 0.107／0.029 | 2.024／1.248 | 0.094／0.03 |
-| C t1 | windup,travel,react | 0.277／0.076 | 1.839／1.248 | 0.180／0.03 |
-| C t2 | windup,travel,react | 0.100／0.028 | 1.635／1.248 | 0.094／0.03 |
+| A t1 | windup,travel,react | 0.2846／0.0784 | 2.0174／1.2481 | 0.2401 |
+| A t2 | windup,travel,react | 0.0977／0.0269 | 1.2838／1.2481 | 0.1250 |
+| B t1 | windup,travel,react | 0.1708／0.0471 | 1.7254／1.2481 | 0.2401 |
+| B t2 | windup,travel,react | 0.1107／0.0305 | 1.9217／1.2481 | 0.1250 |
+| C t1 | windup,travel,react | 0.2220／0.0612 | 1.8261／1.2481 | 0.2401 |
+| C t2 | windup,travel,react | 0.1440／0.0397 | 1.6236／1.2481 | 0.1250 |
+
+> **B 版的 windup 一度只剩 0.003 的餘裕**（蹲伏幅度 0.45 時 t2 量到 0.083 對門檻 0.080）。
+> 處置是**把動作做足**——蹲伏 0.45→0.60、跨距 0.42→0.46，量到 0.1107；
+> **不是**把門檻搬下來（`PHASE_GATE` 一個數字都沒動，`js/trait-fx/vocab.js` 不在本卷的 diff 裡）。
+> 0.60 仍明顯小於 A 的滿幅 1.0，「虎讓位給印」這個立場沒有改。
 
 回歸（不帶 `--proto`，確認沒弄壞別人）：
 ```
