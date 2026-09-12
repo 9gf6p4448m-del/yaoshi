@@ -296,7 +296,7 @@ export const ANCHOR_KIND = {
  *  「施招姿態與受益反應不得同型」那條對它不適用——它本來就只有一個人。 */
 export const MOVE_SPEC = {
   /* ── 祖靈系 9 支 ── */
-  eliteOpenShot: { prop: '丁', act: '張', react: '退' }, // 太陽球＋箭矢；弦鬆手＝張，最壯那隻退
+  eliteOpenShot: { prop: '丁', act: '張', react: '退', stance: '舉臂', anchor: 'foe' }, // 金色日盤＋箭矢；弦鬆手＝張（舉臂 up ≠ 退 back），最壯那隻退
   wardHpFront2: { prop: '乙', act: '扎', react: '升' }, // 菱紋帶沿盾牆展開；紮地＋前鋒托起
   eliteArmor: { prop: '乙', act: '張', react: '升' }, // 琉璃珠圈繞身；§C「繞」＝張的蛇形變體
   wardFirst: { prop: '甲', act: '張', react: '升' }, // 石雕眼＋腳下光柱；眼瞼全開＝張，前鋒搶半步

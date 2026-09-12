@@ -84,41 +84,130 @@ const MOVES = {
   },
 
   /* 射日神弓・射日（bow，精英×1）：一拍開場，對面最壯的一隻 −1。
-     編舞：抬頭拉弓（0–320ms：Neck2/Neck3/HeadRoot 逐節後仰、尾巴翹起、邊光漸亮，弓弦 SunNock 上凝出一顆小太陽）
-          → 放箭（320ms：頭猛甩回過衝再回正；太陽 190ms 直射到對面最壯那隻胸口，留一條瞬亮即滅的軌跡）
-          → 命中（金火星、那一隻退縮、鏡頭小推）→ 收弓（頭頸回正，到 800ms）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 1 列＋§B1＋§A9；
+     `MOVE_SPEC.eliteOpenShot = { 丁, 張, 退, stance:'舉臂', anchor:'foe' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝張**：`LBowGrip1Bo`／`RBowGrip1Bo` 外撐拉滿＋`Neck2`／`Neck3`／`HeadRoot` 後仰，
+         一格到位（祖靈＝靜→瞬發）；衝擊拍弦鬆手、頭猛甩回。
+       **道具**＝丁 日與雷（限縮家族，只有射日與雷女能用）：**金色日盤**（`sun`，`st.paperStamp` 實體，
+         八芒盤面走 `hot` 土金、`ink` 近黑當墨線邊）＋**三支箭矢厚片**（`st.paperProps`，1 draw call）。
+         ★這一支是全 27 支唯一保留「球」語意的招★（ART_BIBLE §10.5），但**不是 `st.orb` 加色光球**——
+         舊版那顆白球正是「14/27 共用同一顆白光球」的來源，讀者 A 短版把雷女之火讀成射日。
+         現在它是一枚**有厚度、有墨線邊的金色日盤**：留住「日」的身分，拿掉「白球」的共用語彙。
+       **受招方反應＝退**：最壯那隻 `st.flinch` ＋胸口蓋日印。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up）≠ react「退」（back）；腳下**垂直光柱**。
+     ★拖尾★：打擊類，`st.trail` 留著，方向「施招者 → 目標」（§A9-3）。
+     ★道具落點 anchor＝`foe`★：日盤、箭、日印三件都落在被射中那一隻身上（裁定①）。 */
   eliteOpenShot(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const bow = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const prey = st.biggest(st.target) || st.target[0] || null;
     const nock = st.worldOf(bow, 'SunNock', new THREE.Vector3());
-    const sun = st.orb(nock, 0.075, { opacity: 0.95 });
-    sun.scale.setScalar(0.2);
-    st.grow(sun, { ms: 300, from: 0.2, to: 1 });
-    st.tween({ ms: 320, ease: 'out', update(t, e) {
-      st.rot(bow, 'Neck2', -0.14 * e); st.rot(bow, 'Neck3', -0.2 * e); st.rot(bow, 'HeadRoot', -0.34 * e);
-      st.rot(bow, 'TailRoot', 0.25 * e);
-      st.rim(bow, 1 + 0.8 * e);
-      st.worldOf(bow, 'SunNock', sun.position); // 太陽跟著弓弦一起抬
+    if (!nock.lengthSq()) { st.worldOf(bow, null, nock); nock.y += 0.5; }
+    /* ★看圖調的（自評第 1 輪）★：`SunNock` 在弓的最高處，日盤擺上去之後在 844×390 上
+       **被畫面上緣切掉一角**（`sheet-t2` 前兩格）。壓低 0.30 之後整枚盤都在畫面裡，
+       travel 的位移由到對面的水平距離承擔，不受影響。 */
+    nock.y -= 0.55;
+    nock.add(st.camOff(0.8));
+    const to = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : nock.clone().addScaledVector(st.dir, 2.2);
+    if (prey && !to.lengthSq()) st.worldOf(prey, null, to);
+    to.add(st.camOff(1));
+
+    // ── 丁 金色日盤：暗墨線邊＋土金盤面（§A4「暗面留細節、亮邊界定身分」的反向用法：這一件的身分就是「金」）──
+    const disc = st.paperStamp(st.kind, nock, { anchor: 'foe', role: 'stamp', color: C.hot, inkColor: C.ink,
+      opacity: 0, depth: 0.22, warp: 0.06, tiltDeg: 4, yawDeg: -10 });
+    disc.scale.setScalar(st.iconSize * 0.45);
+
+    // ── 三支箭矢厚片：跟著日盤一起飛（群體位移掛在 InstancedMesh 物件本身，§A5）──
+    const ARR = 3;
+    /* k 1.25／ratio 0.12 那一版在 sheet 上**一格都看不到**（單件 0.375×0.045 世界單位）——
+       同紙血條第 1 輪的坑。放到 1.9／0.18 才讀得出「盤旁邊還有幾支細長的箭」。 */
+    const arrows = st.paperProps(st.kind, ARR, { anchor: 'foe', color: C.line, opacity: 0, k: 2.4, ratio: 0.09, depth: 0.08, warp: 0.06 });
+    arrows.obj.position.copy(nock);
+    const _e = new THREE.Euler();
+    const sticks = [];
+    for (let i = 0; i < ARR; i++) sticks.push({ off: new THREE.Vector3((i - 1) * 0.30, -0.12 - (i - 1) * 0.12, 0), rz: 1.57 + (i - 1) * 0.24, s: 0 });
+    const writeArrows = (k) => {
+      for (let i = 0; i < ARR; i++) {
+        const a = sticks[i], it = arrows.items[i];
+        it.p.copy(a.off).multiplyScalar(1 + 1.6 * k);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, a.rz));
+        it.s = a.s;
+      }
+      arrows.write();
+    };
+    writeArrows(0);
+
+    // ── 受招方胸口的日印（anchor foe；施招者身上什麼都不留）──
+    const mark = prey ? st.paperStamp(st.kind, to, { anchor: 'foe', color: C.hot, inkColor: C.ink,
+      opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -20, follow: prey, at: 'chest', off: st.camOff(1) }) : null;
+
+    /* ① 拉弓（windup）：弓臂外撐、頸逐節後仰，日盤在弦上亮相＝出招瞬間的新增元素。
+       施招姿態（舉臂）與腳下光柱同時立起來——身分訊號一定要早於道具落點。 */
+    st.groundMark(bow, { h: 1.32, w: 0.26, taper: 0.42, peak: 0.95 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(bow, '舉臂', e);
+        st.rot(bow, 'LBowGrip1Bo', 0, -0.30 * e, 0); st.rot(bow, 'RBowGrip1Bo', 0, 0.30 * e, 0);
+        st.rot(bow, 'Neck2', -0.16 * e); st.rot(bow, 'Neck3', -0.22 * e); st.rot(bow, 'HeadRoot', -0.36 * e);
+        st.rot(bow, 'TailRoot', 0.26 * e);
+        st.rim(bow, 1 + 0.9 * e);
+        // 盤跟著弓弦抬（**壓低量要跟 `nock` 同一份**，忘了就只有第 0 幀在對的高度——第 2 輪看圖抓到）
+        st.worldOf(bow, 'SunNock', disc.position); disc.position.y -= 0.55; disc.position.add(st.camOff(0.8));
+        arrows.obj.position.copy(disc.position);
+        st.alpha(disc, Math.min(1, e * 1.9));
+        disc.scale.setScalar(st.iconSize * (0.45 + 0.50 * e));
+        for (let i = 0; i < ARR; i++) sticks[i].s = Math.max(0, Math.min(1, (e - 0.12 * i) * 2.4));
+        writeArrows(0);
+      },
+      done() { st.phase('travel'); } });
+    st.fade(arrows.obj, { ms: W * 0.5, delay: W * 0.35, from: 0, to: 0.95 });
+
+    /* ② 放箭（travel）：日盤直射到對面最壯那隻胸口，箭跟著飛，拖尾在後（打擊類才有拖尾）。 */
+    const from = nock.clone();
+    st.trail(disc, from, to, { ms: TL, delay: T0, ease: 'strike', spin: 1.4, color: C.line, opacity: 0.8,
+      done() {
+        /* ★衝擊拍★：弦鬆手＝日盤抵達＝那一隻同幀後退（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(to, { power: 0.95, n: 62, color: C.hot });
+        st.punch(0.46);
+      } });
+    /* ★`st.flinch` 一律在頂層用 `delay` 排，不寫在 `done()` 裡★（短版三條紀律的第 2 條）：
+       回呼是在 vt≈R0 才跑，那時再排一條 `flinchMs × k` 的 tween 會把 horizon 推到 297／300
+       ⇒ `rateOK` 紅（＝靠加速硬擠）。實測就是這樣紅過一次。 */
+    if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.35, burst: false });
+    st.tween({ ms: TL, delay: T0, ease: 'strike', update(t, e) {
+      arrows.obj.position.lerpVectors(from, to, e);
+      writeArrows(e);
     } });
-    st.at(320, () => {
-      const to = prey ? st.worldOf(prey, null, new THREE.Vector3()) : nock.clone().addScaledVector(st.dir, 2.2);
-      const from = sun.position.clone();
-      const trail = st.beam(from, to, { opacity: 0 });
-      st.fly(sun, from, to, { ms: 190, ease: 'out', arc: 0.12, done() {
-        st.burst(to, { power: 0.95, n: 70 });
-        st.punch(0.45);
-        trail.material.opacity = 0.9; st.fade(trail, { ms: 220, from: 0.9, to: 0 });
-        st.fade(sun, { ms: 120, to: 0 });
-        if (prey) st.flinch([prey], { strength: 1.3, burst: false });
-      } });
-      // 放箭：頭頸從後仰猛甩到前傾，再回正
-      st.tween({ ms: 480, ease: 'snap', update(t, e) {
-        const k = 1 - t;
-        st.rot(bow, 'Neck2', -0.14 * k + 0.1 * e); st.rot(bow, 'Neck3', -0.2 * k + 0.14 * e); st.rot(bow, 'HeadRoot', -0.34 * k + 0.22 * e);
-        st.rot(bow, 'TailRoot', 0.25 * k);
-        st.rim(bow, 1 + 0.8 * k);
-      } });
-    });
+    // 鬆手：弓臂收、頭猛甩回過衝（祖靈＝靜→瞬發，衝擊拍一格從 0 到滿）
+    st.tween({ ms: TL * 0.7, delay: T0 + TL * 0.25, ease: 'snap', update(t, e) {
+      st.rot(bow, 'LBowGrip1Bo', 0, -0.30 * (1 - e), 0); st.rot(bow, 'RBowGrip1Bo', 0, 0.30 * (1 - e), 0);
+      st.rot(bow, 'Neck3', -0.22 + 0.34 * e); st.rot(bow, 'HeadRoot', -0.36 + 0.52 * e);
+      st.rim(bow, 1 + 0.9 - 0.6 * e);
+    } });
+    st.fade(disc, { ms: RL * 0.5, delay: R0 + RL * 0.3, from: 1, to: 0 });
+    st.fade(arrows.obj, { ms: RL * 0.45, delay: R0 + RL * 0.2, from: 0.95, to: 0 });
+
+    /* ③ 中箭（react）：胸口的日印蓋上再淡去；那一隻退（`st.flinch` 已在衝擊拍排下）。 */
+    if (mark) {
+      st.fade(mark, { ms: RL * 0.3, delay: R0, from: 0, to: 1 });
+      st.fade(mark, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
+      st.tween({ ms: RL * 0.6, delay: R0, ease: 'back', update(t, e) { mark.scale.setScalar(st.markSize * (1.5 - 0.5 * e)); } });
+    }
+
+    // 收勢：弓與頸回正
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.6));
+      st.rot(bow, 'Neck2', -0.16 * k); st.rot(bow, 'Neck3', (-0.22 + 0.34) * k); st.rot(bow, 'HeadRoot', (-0.36 + 0.52) * k);
+      st.rot(bow, 'TailRoot', 0.26 * k);
+      st.rot(bow, 'LBowGrip1Bo', 0, 0, 0); st.rot(bow, 'RBowGrip1Bo', 0, 0, 0);
+      st.rim(bow, 1 + 0.3 * k);
+    } });
   },
 
   /* 百步蛇紋盾・鱗紋護體（shield，護法×2）：一拍前鋒全體 hp+2。
@@ -668,32 +757,9 @@ export default MOVES;
       直接設 material 的動作（那些不進排程，不推 horizon）。
    3. **不要用 st.at**：它會替回呼預留 atReserve×k 的虛擬額度，260ms 下等於白丟 46ms 預算。 */
 export const SHORT = {
-  /* 射日｜辨識：弓弦上凝出的小太陽直射對面最壯那隻 */
-  eliteOpenShot(st) {
-    const K = st.ms / 260;
-    const bow = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const prey = st.biggest(st.target) || st.target[0] || null;
-    const nock = st.worldOf(bow, 'SunNock', new THREE.Vector3());
-    const to = prey ? st.worldOf(prey, null, new THREE.Vector3()) : nock.clone().addScaledVector(st.dir, 2.2);
-    const sun = st.orb(nock, 0.075, { opacity: 0.95 });
-    sun.scale.setScalar(0.25);
-    const trail = st.beam(nock.clone(), to, { opacity: 0 });
-    st.grow(sun, { ms: 85 * K, from: 0.25, to: 1 });
-    st.tween({ ms: 85 * K, ease: 'out', update(t, e) { // 抬頭拉弓
-      st.rot(bow, 'Neck3', -0.2 * e); st.rot(bow, 'HeadRoot', -0.34 * e); st.rot(bow, 'TailRoot', 0.25 * e);
-      st.rim(bow, 1 + 0.8 * e); st.worldOf(bow, 'SunNock', sun.position);
-    } });
-    st.fly(sun, nock.clone(), to, { ms: 80 * K, delay: 85 * K, ease: 'out', arc: 0.1,
-      done() { st.burst(to, { power: 0.95, n: 45 }); st.punch(0.45); } });
-    st.fade(trail, { ms: 55 * K, delay: 165 * K, from: 0.9, to: 0 });
-    st.fade(sun, { ms: 45 * K, delay: 165 * K, from: 0.95, to: 0 });
-    if (prey) st.flinch([prey], { delay: 155 * K, strength: 1.2, burst: false });
-    st.tween({ ms: 70 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 收弓
-      const k = 1 - e;
-      st.rot(bow, 'Neck3', -0.2 * k); st.rot(bow, 'HeadRoot', -0.34 * k); st.rot(bow, 'TailRoot', 0.25 * k);
-      st.rim(bow, 1 + 0.8 * k);
-    } });
-  },
+  /* eliteOpenShot｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷祖靈批階段 B 起，祖靈系逐支改成這個做法）。 */
+  eliteOpenShot: MOVES.eliteOpenShot,
 
   /* 鱗紋護體｜辨識：蛇身鱗紋一節一節亮上去＋半圓護罩罩下 */
   wardHpFront2(st) {
