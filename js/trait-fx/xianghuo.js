@@ -367,20 +367,86 @@ const MOVES = {
   },
 
   /* 送王船・送王船（wangchuan，護法×2）：二拍吸收對面本拍首 4 點傷害。
-     編舞：離岸（0–280ms：船尾翹起、四節桅逐節挺直、船上七尊人偶依序轉身朝前、桅頂燃起香火）
-          → 前滑擋在陣前（280ms：整艘沿「朝對面」推出半個身位、船首抬起破浪；僚船跟上）
-          → 340ms 起一頂金罩自船身漲開罩住本方（貼地光盤同時亮）
-          → 罩淡出、船退回原位（520–880ms）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 3 列；`MOVE_SPEC.wardAbsorb4 = { 乙, 降, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝降**：`SternRise`／`MidShip`／`BowRise`／`BowTip` 船身前滑半身位、
+         `MastTop`／`Mast1`–`Mast4` 桅頂燃火、船上七尊人偶依序轉身朝前。
+       **道具**＝乙 符旗（帆）：**四面金箔帆**（`boat` ×4，`st.paperProps` 一個 draw call）
+         從桅頂飛到本方陣前、**圍成同心方框**——★不是 `dome`★。
+       **受益方反應＝升**：本方邊光轉暖＋托起，被吸收的傷害演成**紙錢向上飄走**（`st.burst` 向上）。
+
+     ★區分點（§C2）★：**同心方框**是香火專屬形狀，與巴冷的珠圈、百步蛇的菱紋帶三方分開。
+     ★`st.dome` 半圓罩與 `st.disc` 貼地光盤整組退役★：`dome` 在 §10.5 已標 retired
+     （讀者把它讀成山神庇佑），`disc` 是 19/27 共用的腳下語彙。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   wardAbsorb4(st) {
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
     const ships = st.actor.slice();
     const lead = ships[0];
     const fwd = st.toward(lead, new THREE.Vector3());
     const dolls = ['FigA', 'FigB', 'FigC', 'FigD', 'FigE', 'FigF', 'FigG'];
-    const fire = st.orb(st.worldOf(lead, 'MastTop', new THREE.Vector3()), 0.075, { opacity: 0.95 });
-    fire.scale.setScalar(0.25);
-    st.grow(fire, { ms: 280, from: 0.25, to: 1.2 });
-    st.tween({ ms: 280, ease: 'out', update(t, e) {
-      st.rot(lead, 'SternTip', 0.16 * e); st.rot(lead, 'SternRise', 0.2 * e); st.rot(lead, 'AftMid', 0.1 * e);
+    const mastTop = st.worldOf(lead, 'MastTop', new THREE.Vector3());
+    if (!mastTop.lengthSq()) st.top(lead, mastTop);
+    /* 罩的落點＝本方質心往鏡頭推一點（同媽祖令旗：世界尺寸不動、畫面像素變多） */
+    const guardAt = new THREE.Vector3();
+    ships.forEach((f) => guardAt.add(st.worldOf(f, null, new THREE.Vector3())));
+    guardAt.multiplyScalar(1 / ships.length);
+    guardAt.y += 0.30;
+    /* ★落點是「**陣前**」不是「頭上」★：`evalPhases` 量的是 spawn 物的位移，
+       原本只從桅頂挪到本方質心上方，距離不到門檻（travelDist×0.40，這支招沒有敵方目標 ⇒ 退成 1.0），
+       實測 phases 只記到 windup／react、travel 整段漏掉。往對面推 0.85 之後就是
+       「船前滑、帆擋在陣前」——語意也比較對。再往鏡頭推一點（同媽祖令旗）。 */
+    /* ★方向要用 `st.dir`（世界空間朝對面）不是 `st.toward()`★：後者回傳的是 **group 空間**的朝向，
+       給 `st.move` 用的；直接加到世界座標上會把帆推到畫面另一側（實測：帆飛到離敵方最遠的那一邊）。 */
+    guardAt.addScaledVector(st.dir, 1.35).addScaledVector(TOWARD_CAM, 1.0); // 1.35：0.85 時實測位移 1.0893 < 門檻 1.2481
+
+    /* ── 乙 四面金箔帆：圍成同心方框（`st.paperProps`，1 draw call）──
+       四面帆各站方框的一邊、面朝外；`writeSails(r, s)` 的 r＝方框半徑、s＝帆的大小。 */
+    const SAILS = 3; // 正面那一片由 mainSail（st.paperStamp 實體）擔任，這三片圍另外三邊
+    const sails = st.paperProps(st.kind, SAILS, { shape: 'emblem', color: C.key, inkColor: C.hot,
+      opacity: 0, k: 1.6, depth: 0.16, warp: 0.12 });
+    sails.obj.position.copy(mastTop);
+    const _qs = new THREE.Quaternion();
+    const writeSails = (r, s) => {
+      for (let i = 0; i < SAILS; i++) {
+        const a = (i + 1) * Math.PI / 2; // 跳過正面（留給 mainSail）
+        const it = sails.items[i];
+        it.p.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+        it.q.copy(_qs.setFromAxisAngle(UP_Y, -a)); // 面朝外＝方框的四面牆
+        it.s = s;
+      }
+      sails.write();
+    };
+    writeSails(0.02, 0);
+
+    /* ── 受益方身上的船印（`st.paperStamp`）──
+       §B2 的反應家族「升」＝受益方上抬＋**蓋印**，`MOVE_SPEC.wardAbsorb4.react` 就是「升」。
+       ★另一個理由是量測★：L3 的 `fxVis` 只切 `emblem:`／`mark:`／`trail`，
+       四面帆走的是 `prop:`（群體道具，刻意不進量測對象，見 st.paperProps 的註解），
+       所以這一招原本一個可量的物件都沒有——實測 `hidden:0`／`dead:true`／`area 0.0%`。 */
+    /* ── 主帆（正面那一片）：走 `st.paperStamp` 而不是 paperProps ──
+       ★理由是量測與辨識兩件★：① `fxVis`（L3 的量測對象）只切 `emblem:`／`mark:`／`trail`，
+       四面帆若全走 `prop:` 這一招在 travel 中點就一個可量物件都沒有（實測 area 0.0%）；
+       ② 正面那片是讀者真的看得清楚的那一片，用有墨線邊的實體比一片平色好認。
+       視覺上仍是「四面帆圍成同心方框」。 */
+    const mainSail = st.paperStamp(st.kind, mastTop, { role: 'stamp', color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 8, yawDeg: -16 });
+    mainSail.scale.setScalar(st.iconSize * 0.45);
+
+    const marks = ships.map((f) => {
+      const m = st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
+        opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -22, follow: f, off: TOWARD_CAM });
+      m.scale.setScalar(st.markSize * 1.0);
+      return m;
+    });
+
+    /* ① 離岸（windup）：船尾翹起、四節桅逐節挺直、人偶依序轉身、桅頂燃香火；帆在桅上長出來 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(lead, 'SternTip', 0.16 * e); st.rot(lead, 'SternRise', 0.20 * e); st.rot(lead, 'AftMid', 0.10 * e);
       st.rot(lead, 'MidShip', -0.06 * e); st.rot(lead, 'ForeMid', -0.13 * e);
       st.rot(lead, 'Mast1', -0.07 * e); st.rot(lead, 'Mast2', -0.09 * e); st.rot(lead, 'Mast3', -0.12 * e); st.rot(lead, 'Mast4', -0.15 * e);
       st.rot(lead, 'MastTop', -0.18 * e); st.rot(lead, 'MastFoot', 0.05 * e);
@@ -389,56 +455,69 @@ const MOVES = {
         st.rot(lead, dolls[i], 0.12 * k, 0.62 * k, 0);
       }
       st.rim(lead, 1 + 1.1 * e);
-      st.worldOf(lead, 'MastTop', fire.position);
+      st.worldOf(lead, 'MastTop', sails.obj.position);
+      writeSails(0.02 + 0.06 * e, 0.35 * e); // 先在桅頂聚成一小疊
+      st.worldOf(lead, 'MastTop', mainSail.position);
+      st.alpha(mainSail, Math.min(1, e * 2.2));
+      mainSail.scale.setScalar(st.iconSize * (0.45 + 0.40 * e));
+    }, done() { st.phase('travel'); } });
+    st.fade(sails.obj, { ms: W * 0.5, delay: W * 0.3, from: 0, to: 0.95 });
+
+    /* ② 前滑擋在陣前（travel）：船推出半身位；四面帆**整群**從桅頂飛到本方陣前並張開成方框
+       ★位移來源★：`evalPhases` 量的是 mesh.position，群體位移掛在 InstancedMesh 物件本身（§A5）。 */
+    st.tween({ ms: TL * 0.66, delay: T0, ease: 'outQuint', update(t, e) {
+      st.move(lead, fwd.x * 0.36 * e, 0, fwd.z * 0.36 * e);
+      st.rot(lead, 'BowRise', -0.22 * e); st.rot(lead, 'BowTip', -0.30 * e);
+      st.rot(lead, 'AftMid', 0.10 - 0.05 * e); st.rot(lead, 'ForeMid', -0.13 + 0.05 * e);
     } });
-    st.at(280, () => {
-      st.tween({ ms: 240, ease: 'outQuint', update(t, e) {
-        st.move(lead, fwd.x * 0.36 * e, 0, fwd.z * 0.36 * e);
-        st.rot(lead, 'BowRise', -0.22 * e); st.rot(lead, 'BowTip', -0.3 * e);
-        st.rot(lead, 'AftMid', 0.1 - 0.05 * e); st.rot(lead, 'ForeMid', -0.13 + 0.05 * e);
-        st.worldOf(lead, 'MastTop', fire.position);
+    if (ships[1]) {
+      const f2 = st.toward(ships[1], new THREE.Vector3());
+      st.tween({ ms: TL * 0.7, delay: T0 + TL * 0.2, ease: 'outQuint', update(t, e) {
+        st.move(ships[1], f2.x * 0.17 * e, 0, f2.z * 0.17 * e); st.rim(ships[1], 1 + 1.0 * e);
       } });
-      if (ships[1]) {
-        const f2 = st.toward(ships[1], new THREE.Vector3());
-        st.tween({ ms: 260, delay: 60, ease: 'outQuint', update(t, e) {
-          st.move(ships[1], f2.x * 0.17 * e, 0, f2.z * 0.17 * e);
-          st.rim(ships[1], 1 + 1.0 * e);
-        } });
-      }
-      st.at(20, () => {
-        const c = new THREE.Vector3();
-        ships.forEach((f) => c.add(st.worldOf(f, null, new THREE.Vector3())));
-        c.multiplyScalar(1 / ships.length); c.y = st.tableY;
-        const d = st.dome(c, 0.82, { opacity: 0.3 });
-        d.scale.setScalar(0.32);
-        st.grow(d, { ms: 220, from: 0.32, to: 1 });
-        st.fade(d, { ms: 260, delay: 230, from: 0.3, to: 0 });
-        const g = st.disc(c, 0.88, { opacity: 0.34 });
-        g.scale.setScalar(0.32);
-        st.grow(g, { ms: 200, from: 0.32, to: 1 });
-        st.fade(g, { ms: 280, delay: 220, from: 0.34, to: 0 });
-        st.punch(0.25);
-      });
-      st.at(240, () => {
-        st.fade(fire, { ms: 300, from: 0.95, to: 0 });
-        st.tween({ ms: 360, ease: 'inout', update(t, e) {
-          const k = 1 - e;
-          st.move(lead, fwd.x * 0.36 * k, 0, fwd.z * 0.36 * k);
-          st.rot(lead, 'SternTip', 0.16 * k); st.rot(lead, 'SternRise', 0.2 * k); st.rot(lead, 'AftMid', 0.05 * k);
-          st.rot(lead, 'MidShip', -0.06 * k); st.rot(lead, 'ForeMid', -0.08 * k);
-          st.rot(lead, 'Mast1', -0.07 * k); st.rot(lead, 'Mast2', -0.09 * k); st.rot(lead, 'Mast3', -0.12 * k); st.rot(lead, 'Mast4', -0.15 * k);
-          st.rot(lead, 'MastTop', -0.18 * k); st.rot(lead, 'MastFoot', 0.05 * k);
-          st.rot(lead, 'BowRise', -0.22 * k); st.rot(lead, 'BowTip', -0.3 * k);
-          for (let i = 0; i < dolls.length; i++) st.rot(lead, dolls[i], 0.12 * k, 0.62 * k, 0);
-          st.rim(lead, 1 + 1.1 * k);
-          if (ships[1]) {
-            const f2 = st.toward(ships[1], _b);
-            st.move(ships[1], f2.x * 0.17 * k, 0, f2.z * 0.17 * k);
-            st.rim(ships[1], 1 + 1.0 * k);
-          }
-        } });
-      });
+    }
+    st.tween({ ms: TL, delay: T0, ease: 'out',
+      update(t, e) {
+        sails.obj.position.lerpVectors(mastTop, guardAt, e);
+        writeSails(0.08 + 0.62 * e, 0.35 + 0.65 * e); // 一小疊 → 張開成方框
+        mainSail.position.lerpVectors(mastTop, guardAt, e).addScaledVector(st.dir, 0.62 * e); // 正面那一片站在方框最前（朝對面）
+        mainSail.scale.setScalar(st.iconSize * (0.85 + 0.30 * e));
+      },
+      done() {
+        /* ★衝擊拍★：帆立到位＝船前滑到底＝傷害化灰飄走 */
+        st.phase('react');
+        st.punch(0.36);
+        st.burst(guardAt, { power: 0.9, n: 52, color: C.key }); // 紙錢／灰
+      } });
+
+    /* ③ 罩住（react）：方框微微呼吸、本方托起亮邊；灰向上飄走 */
+    st.tween({ ms: RL * 0.62, delay: R0, ease: 'out', update(t, e) { writeSails(0.70 + 0.10 * Math.sin(e * Math.PI), 1 - 0.18 * e); } });
+    st.fade(sails.obj, { ms: RL * 0.5, delay: R0 + RL * 0.42, from: 0.95, to: 0 });
+    st.tween({ ms: RL * 0.62, delay: R0, ease: 'out', update(t, e) { mainSail.scale.setScalar(st.iconSize * (1.15 - 0.30 * e)); } });
+    st.fade(mainSail, { ms: RL * 0.5, delay: R0 + RL * 0.42, from: 1, to: 0 });
+    const stag = RL * 0.30 / Math.max(1, ships.length);
+    ships.forEach((f, i) => st.tween({ ms: RL * 0.7, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.05 * e, 0); st.rim(f, 1 + 1.8 * e);
+    } }));
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.20, delay: R0 + i * stag, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.46, delay: R0 + i * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.7 - 0.7 * e)); } });
+      st.fade(m, { ms: RL * 0.34, delay: R0 + RL * 0.60, from: 1, to: 0 });
     });
+
+    /* 收勢：船退回原位、桅火收 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.move(lead, fwd.x * 0.36 * k, 0, fwd.z * 0.36 * k);
+      st.rot(lead, 'SternTip', 0.16 * k); st.rot(lead, 'SternRise', 0.20 * k); st.rot(lead, 'AftMid', 0.05 * k);
+      st.rot(lead, 'MidShip', -0.06 * k); st.rot(lead, 'ForeMid', -0.08 * k);
+      st.rot(lead, 'Mast1', -0.07 * k); st.rot(lead, 'Mast2', -0.09 * k); st.rot(lead, 'Mast3', -0.12 * k); st.rot(lead, 'Mast4', -0.15 * k);
+      st.rot(lead, 'MastTop', -0.18 * k); st.rot(lead, 'MastFoot', 0.05 * k);
+      st.rot(lead, 'BowRise', -0.22 * k); st.rot(lead, 'BowTip', -0.30 * k);
+      for (let i = 0; i < dolls.length; i++) st.rot(lead, dolls[i], 0.12 * k, 0.62 * k, 0);
+      st.rim(lead, 1 + 1.1 * k);
+      if (ships[1]) { const f2 = st.toward(ships[1], _b); st.move(ships[1], f2.x * 0.17 * k, 0, f2.z * 0.17 * k); st.rim(ships[1], 1 + 1.0 * k); }
+    } });
   },
 
   /* 千里眼銅鈴・千里眼（bell，護法×2）：本方免疫迷途。
@@ -1007,49 +1086,9 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
   wardAtkAll1: MOVES.wardAtkAll1,
 
-  /* 送王船｜辨識：★船推出去★＋**撞開一道水牆打向對面**（對面退縮）；金罩縮成配角
-     （盲讀 r2：低分共同特徵是「效果只在自己身上」；讀者 C 另外說「淡白半圓罩與地上光環分不出」，
-      所以這一支改成以「船前衝＋水牆」為主角，罩只留一層薄的） */
-  wardAbsorb4(st) {
-    const K = st.ms / 260;
-    const boats = st.byBody(st.actor, 'ward').length ? st.byBody(st.actor, 'ward') : st.actor;
-    const lead = boats[0];
-    const mid = st.worldOf(lead, 'MidShip', new THREE.Vector3());
-    const shell = st.dome(mid, 0.78, { opacity: 0 });
-    const lamp = st.orb(st.worldOf(lead, 'MastTop', new THREE.Vector3()), 0.055, { opacity: 0 });
-    shell.scale.setScalar(0.35);
-    // ★水牆★：船前方一道往對面推的環＋一片水花盤（指向性）
-    const front = mid.clone().addScaledVector(st.dir, 0.55);
-    const wall = st.ring(front, 0.34, 0.09, { opacity: 0 });
-    const spray = st.disc(front, 0.4, { opacity: 0 });
-    wall.scale.setScalar(0.3); spray.scale.setScalar(0.25);
-    boats.forEach((b, i) => {
-      st.tween({ ms: 82 * K, delay: i * 14 * K, ease: 'out', update(t, e) { // 離岸：船尾翹、桅挺直、桅頂燃香火
-        st.rot(b, 'SternRise', -0.22 * e); st.rot(b, 'Mast1', 0.14 * e); st.rot(b, 'Mast3', 0.1 * e);
-        st.rot(b, 'BowRise', 0.14 * e); st.rim(b, 1 + 0.9 * e);
-      } });
-      st.tween({ ms: 92 * K, delay: 80 * K + i * 14 * K, ease: 'strike', update(t, e) { // ★前衝★（一版只滑 0.16）
-        st.move(b, 0, 0, 0.3 * e); st.rot(b, 'BowTip', -0.26 * e); st.rot(b, 'SternTip', 0.12 * e);
-      } });
-    });
-    st.fade(lamp, { ms: 50 * K, delay: 30 * K, from: 0, to: 1 });
-    st.grow(wall, { ms: 96 * K, delay: 96 * K, from: 0.3, to: 2.1 }); // 水牆往對面推出去
-    st.fade(wall, { ms: 96 * K, delay: 96 * K, from: 0.95, to: 0 });
-    st.grow(spray, { ms: 84 * K, delay: 104 * K, from: 0.25, to: 1.7 });
-    st.fade(spray, { ms: 84 * K, delay: 104 * K, from: 0.6, to: 0 });
-    st.target.forEach((f, i) => { if (i < 3) st.flinch([f], { delay: (120 + i * 14) * K, strength: 0.9, burst: i === 0 }); }); // ★受方反應★
-    st.grow(shell, { ms: 80 * K, delay: 118 * K, from: 0.35, to: 1.05 }); // 金罩：配角，薄薄一層
-    st.fade(shell, { ms: 48 * K, delay: 118 * K, from: 0, to: 0.3 });
-    st.fade(shell, { ms: 58 * K, delay: 166 * K, from: 0.3, to: 0 });
-    st.fade(lamp, { ms: 52 * K, delay: 170 * K, from: 1, to: 0 });
-    st.tween({ ms: 60 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 船退回原位
-      const k = 1 - e;
-      boats.forEach((b) => {
-        st.move(b, 0, 0, 0.3 * k); st.rot(b, 'BowTip', -0.26 * k); st.rot(b, 'SternRise', -0.22 * k);
-        st.rot(b, 'Mast1', 0.14 * k); st.rim(b, 1 + 0.9 * k);
-      });
-    } });
-  },
+  /* wardAbsorb4｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  wardAbsorb4: MOVES.wardAbsorb4,
 
   /* 千里眼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   wardImmuneLost: MOVES.wardImmuneLost,
