@@ -11,6 +11,8 @@
      3 = 改一個 BEAT 時窗
      4 = 在編舞檔裡塞回覆審 r2 實測的繞法（`const S = 0.56;` ＋ `setScalar(S * …)`）＝尺寸的第二份事實來源
          （r1 的第一版掃描只認 `const SZ|SIZE`，改個變數名就繞過，見 §「尺寸防線」那段註解）
+     5 = 把 `MOVE_SPEC.biteGamble.act` 改成別系的動詞（`探`＝陰氣）＝P1 的白名單被繞過
+     6 = 從 `MOVE_SPEC` 拔掉一支招（`wardRegen1`）＝P1 的「27 支全覆蓋」被繞過
    原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。
 
    為什麼不 import emblems.js：它 `import * as THREE from 'three'`，node 端沒有 importmap。
@@ -18,7 +20,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC } from '../js/trait-fx/vocab.js';
+import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC, FAC_VOCAB, MOVE_SPEC } from '../js/trait-fx/vocab.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -38,6 +40,9 @@ const EO = Object.assign({}, EMBLEM_OF);
 if (MUT === 1) EO.eliteSelfCut = 'sun'; // 與 eliteOpenShot 撞 kind ⇒ 雙射破了
 if (MUT === 2) PAL.xianghuo.key = 0xf08060; // 退回舊的淡橘粉
 if (MUT === 3) BT[1].travel = [90, 200]; // 時窗與文件分岔
+const MS = JSON.parse(JSON.stringify(MOVE_SPEC));
+if (MUT === 5) MS.biteGamble.act = '探'; // 陰氣的動詞出現在香火招上
+if (MUT === 6) delete MS.wardRegen1; // 少一支招
 if (MUT) console.log(`★突變模式 ${MUT}：以下必須有紅★`);
 
 const doc = fs.readFileSync(DOC, 'utf8');
@@ -120,6 +125,61 @@ t('EMBLEM_OF 與文件第 4 節逐列相同（trId／系／kind）', () => {
     eq(EO[id], kind, `${id} 的 kind`);
   });
   Object.keys(EO).forEach((id) => { if (!seen.has(id)) throw new Error(`vocab.js 有 ${id}，文件第 4 節沒有`); });
+});
+
+/* ── 4b. 招式演出登記表 MOVE_SPEC（P1，2026-09-12 演出卷）────────────
+   閘門定義＝`docs/proposals/2026-09-12-plan-fx-performance.md` §5 的 P1
+   「一招一組『動作＋道具＋反應』，登記表可機械檢查」；schema 與三條檢查＝同檔 §7.2 Q9。
+   白名單的人類版在 `docs/design/ART_BIBLE.md` §10.7（散文，不進機械比對），程式版是 `FAC_VOCAB`。
+   ★這三條守的是什麼★：不是「填了東西」，是「填的東西屬於這一系」——
+   香火招填了陰氣的動詞（`--mutate=5`）或少填一支（`--mutate=6`）都必須紅，
+   否則 P1 就只是一張沒人檢查的清單，27 支鋪完會長出 27 種講法（＝vocab.js 這個檔要擋的分岔）。
+   trId → 系別**不另抄一份**：直接讀文件第 4 節那張表（招名欄有「（傳說）」的三列＝三尊，Q8 不納入）。 */
+
+/** 文件第 4 節的逐列：[trId, 招名, 系, kind]（與上面那個測試同一條解析路徑） */
+function doc4Rows() {
+  return doc.split(/\r?\n/).filter((l) => /^\| `[A-Za-z0-9]+` \| /.test(l) && l.split('|').length === 6)
+    .map((l) => l.split('|').map((c) => c.trim()).slice(1, -1))
+    .filter((r) => /^`(zuling|xianghuo|yinqi)`$/.test(r[2]));
+}
+
+t('FAC_VOCAB 是三系各一組白名單（動詞庫／道具家族／反應家族都非空）', () => {
+  eq(Object.keys(FAC_VOCAB).sort().join(','), 'xianghuo,yinqi,zuling', 'FAC_VOCAB 的系別集合');
+  Object.entries(FAC_VOCAB).forEach(([fac, v]) => {
+    if (!Object.keys(v.props).length) throw new Error(`${fac} 的道具家族是空的`);
+    if (!v.acts.length || !v.reacts.length) throw new Error(`${fac} 的動詞庫或反應家族是空的`);
+    // 家族代號只能是甲乙丙丁（陰氣沒有丁，但不得出現第五個代號）
+    Object.keys(v.props).forEach((k) => { if (!'甲乙丙丁'.includes(k) || k.length !== 1) throw new Error(`${fac} 出現不合法的家族代號 ${k}`); });
+    Object.keys(v.propOnly || {}).forEach((k) => { if (!(k in v.props)) throw new Error(`${fac}.propOnly 限縮了不存在的家族 ${k}`); });
+  });
+});
+
+t('MOVE_SPEC 三欄都非空，且取值落在該系白名單內（P1 ①②）', () => {
+  const facOf = Object.fromEntries(doc4Rows().map((r) => [tick(r[0]), tick(r[2])]));
+  const bad = [];
+  Object.keys(MS).forEach((id) => {
+    const s = MS[id], fac = facOf[id];
+    if (!fac) { bad.push(`${id}：文件第 4 節沒有這支招，查不到它屬於哪一系`); return; }
+    const V = FAC_VOCAB[fac];
+    ['prop', 'act', 'react'].forEach((k) => { if (typeof s[k] !== 'string' || !s[k].trim()) bad.push(`${id}.${k} 是空的`); });
+    if (s.prop && !(s.prop in V.props)) bad.push(`${id}.prop="${s.prop}" 不在 ${fac} 的道具家族（${Object.keys(V.props).join('／')}）`);
+    if (s.act && !V.acts.includes(s.act)) bad.push(`${id}.act="${s.act}" 不在 ${fac} 的動詞庫（${V.acts.join('／')}）`);
+    if (s.react && !V.reacts.includes(s.react)) bad.push(`${id}.react="${s.react}" 不在 ${fac} 的反應家族（${V.reacts.join('／')}）`);
+    // 限縮家族（Q4 的祖靈「丁 日與雷」只給射日與雷女）：加嚴項，不是新判準
+    const only = (V.propOnly || {})[s.prop];
+    if (only && !only.includes(id)) bad.push(`${id}.prop="${s.prop}" 是 ${fac} 的限縮家族，只有 ${only.join('／')} 可用`);
+  });
+  if (bad.length) throw new Error(`MOVE_SPEC 有 ${bad.length} 處越界：` + bad.join(' ／ '));
+});
+
+t('MOVE_SPEC 覆蓋 27 支招、不含三尊（P1 ③）', () => {
+  const rows = doc4Rows();
+  const legends = rows.filter((r) => /（傳說）/.test(r[1])).map((r) => tick(r[0]));
+  eq(legends.length, 3, '文件第 4 節標「（傳說）」的列數（Q8：三尊不納入 MOVE_SPEC）');
+  const want = rows.filter((r) => !/（傳說）/.test(r[1])).map((r) => tick(r[0])).sort();
+  eq(want.length, 27, '27 支招（30 列扣掉三尊）');
+  eq(Object.keys(MS).sort().join(','), want.join(','), 'MOVE_SPEC 的 trId 集合');
+  legends.forEach((id) => { if (MS[id]) throw new Error(`MOVE_SPEC 不該有三尊 ${id}（Q8：語彙納入、閘門不納入）`); });
 });
 
 /* ── 5. 剪影：kind 集合相同、頂點數 ≤24 ─────────────────────────── */
