@@ -24,6 +24,46 @@ function zlBeat(st, frac) {
   return { B, W: B.windup[1], T0: B.travel[0], TL: B.travel[1] - B.travel[0], R0: B.react[0], LAST, RL: LAST - B.react[0] };
 }
 
+/** ★增益招「逐尊送到」（2026-09-13 P4 新三輪第 1 輪回修）★
+ *  第 1 輪 18 支只過 5 支，紅全部集中在 Q2「作用對象」；而**唯一從 1/18 跳到 18/18** 的是
+ *  媽祖令旗——它的旗**掃過每一尊我方**。其餘「我方多個」的招把特效罩在施招者那一格裡，
+ *  讀者一律答「自己」（百步蛇紋盾 11、祖靈之眼 15、拼板舟 13、送王船 12、山神庇佑 6……）。
+ *
+ *  這支零件做的就是令旗那件事：**每一尊我方各收到一件從施招者那邊飛過來的實體道具**。
+ *  三條刻意的設計：
+ *   ① **不 stagger**——全部在同一個衝擊拍落地。錯開就讀成「一個一個來」，不是「全體」。
+ *   ② **是飛過去的落點，不是原地黏上的印記**（`st.paperStamp` 不帶 `follow`，落地才 `st.stick`）：
+ *      黏上去的東西在 anchor 量測裡是恆真的（覆審 r1 H-2c），在畫面上也看不到「送達」這件事。
+ *   ③ **落點往那一尊那一側再推一段**（`lean`＝遠離其他受益者的方向）：2v2 下兩尊的佔地重疊，
+ *      落在中間就是覆審 r1 H-1 判紅的那種「分不出是誰的」。沒有第二個人時 `lean` 是零向量。 */
+function zlDeliver(st, from, figs, B, o = {}) {
+  const C = st.colors;
+  return figs.map((f) => {
+    const to = st.worldOf(f, 'Chest', new THREE.Vector3());
+    if (!to.lengthSq()) st.worldOf(f, null, to);
+    const others = figs.filter((g) => g !== f);
+    const lean = new THREE.Vector3();
+    if (others.length) {
+      const c = new THREE.Vector3();
+      others.forEach((g) => c.add(g.group.position));
+      c.multiplyScalar(1 / others.length);
+      lean.copy(f.group.position).sub(c); lean.y = 0;
+      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.88); else lean.set(0, 0, 0);
+    }
+    to.add(st.camOff(1)).add(lean);
+    const m = st.paperStamp(st.kind, from, { anchor: o.anchor || 'allies',
+      color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.ink : o.inkColor,
+      opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22 });
+    m.scale.setScalar(st.markSize * (o.k === undefined ? 1.15 : o.k));
+    st.fade(m, { ms: B.TL * 0.35, delay: B.T0, from: 0, to: 1 });
+    st.trail(m, from, to, { ms: B.TL, delay: B.T0, ease: 'outQuint', trail: false,
+      arc: o.arc === undefined ? 0.30 : o.arc,
+      done() { st.stick(m, f, { at: 'chest', off: st.camOff(1).add(lean) }); } });
+    st.fade(m, { ms: B.RL * 0.45, delay: B.R0 + B.RL * 0.55, from: 1, to: 0 });
+    return m;
+  });
+}
+
 const MOVES = {
   /* 殘日・餘暉灼目（canri，精英×1；傳說三尊美術卷 2026-09-07）：第 1 拍開打前，對面前鋒 atk −2。
      編舞（祖靈＝靜如樹、動時瞬發）：0–260ms 只有日盤反向慢轉、邊光漸亮，獸身幾乎不動（蓄）

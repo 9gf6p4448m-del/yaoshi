@@ -795,7 +795,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
    *  不寫兩份——兩份就是下一個「改了一邊、另一邊靜默沿用舊判準」。
    *  ★`landings > 0`（覆審 r1 H-2c）★：整支招只登記 `follow` 印記、沒有任何實體落點＝零鑑別力，判紅。 */
   function anchorOK(r) {
-    return !!(r && r.n > 0 && r.bad === 0 && r.landings > 0 && (r.mainScope ? r.mainHit > 0 : true));
+    return !!(r && r.n > 0 && r.bad === 0 && r.landings > 0 && (r.mainScope ? r.mainHit > 0 : true)
+      && r.coverOK !== false);
   }
   function sampleAnchors(run) {
     const spec = run.anchorSpec;
@@ -815,6 +816,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const rows = [];
     const pts = [];
     let bad = 0, skipped = 0, mainHit = 0, missing = 0, follows = 0, landings = 0;
+    /* ★逐尊覆蓋（2026-09-13 P4 新三輪第 1 輪之後加嚴）★
+       第 1 輪 18 支的紅集中在 Q2「作用對象」，而**唯一從 1/18 跳到 18/18** 的是媽祖令旗——
+       它的旗**掃過每一尊我方**。其餘「我方多個」的招把特效罩在施招者一格裡，
+       讀者一律答「自己」（百步蛇紋盾 11、祖靈之眼 15、拼板舟 13、送王船 12……）。
+       所以「我方多個」不只要「落在我方」，還要**每一尊都真的有一件道具碰到**。
+       `attr(p)`＝這個取樣點**決定性地**屬於哪一尊（贏過其他每一尊至少一個邊距），分不出就是 null。
+       這是既有 anchor 判準的**加嚴**（`02 §2.1`：細化與加嚴自行記錄），不動任何既有門檻。 */
+    const cover = new Set();
+    const attr = (x, z) => {
+      let best = null, bd = Infinity, second = Infinity;
+      for (const e of boxes) {
+        const d = boxDistXZ(e.box, x, z);
+        if (d < bd) { second = bd; bd = d; best = e.fig; } else if (d < second) second = d;
+      }
+      return (best && bd + ANCHOR_MARGIN <= second) ? best : null;
+    };
     for (const a of run.anchors) {
       const want = resolveAnchor(run, a.anchor);
       const other = boxes.map((e) => e.fig).filter((f) => want.indexOf(f) < 0);
@@ -828,6 +845,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         if (!want.length) { skipped++; rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: null, ok: null }); continue; }
         const ok = want.indexOf(a.follow) >= 0;
         if (!ok) bad++;
+        if (ok) cover.add(a.follow); // 黏在那一尊身上的印記，算那一尊被碰到了
         rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: whoOf(a.follow), ok });
         continue;
       }
@@ -853,6 +871,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          分不出 P4 真正在問的「我方**哪一尊**」（覆審未突變正式碼就找到反例）。
          群體道具**每一個看得到的實例都要過**（H-2b）。 */
       let ok = true, wWorst = 0, oWorst = Infinity, hit = null, hitD = Infinity;
+      const att = new Set(); // 這一件**決定性地**碰到了哪幾尊（給留帳看，判定用 run 級的 cover）
       for (const p of pts) {
         const dW = dTo(want, p.x, p.z), dO = dTo(other, p.x, p.z);
         if (!(dW + ANCHOR_MARGIN <= dO)) ok = false;
@@ -860,6 +879,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const nf = nearestFig(boxes, p.x, p.z);
         const nd = boxDistXZ(boxOf(nf), p.x, p.z);
         if (nd < hitD) { hitD = nd; hit = nf; }
+        const at = attr(p.x, p.z);
+        if (at) { cover.add(at); att.add(whoOf(at)); }
       }
       if (!ok) bad++;
       // 主道具：這一件的**每一個**取樣點都要落在真值那一側，而且同樣要贏過邊距
@@ -872,7 +893,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /* 留帳：`n` 個取樣點裡**最壞**的那一個（wd＝到 anchor 側的最遠、od＝到其餘人的最近），
          判紅時看得出「差多少、往哪邊挪」。 */
       rows.push({ anchor: a.anchor, kind: a.kind, type: 'land', pts: pts.length,
-        hit: hit ? whoOf(hit) : null, ok,
+        hit: hit ? whoOf(hit) : null, att: [...att].join('+') || null, ok,
         wd: +wWorst.toFixed(3), od: +(Number.isFinite(oWorst) ? oWorst : -1).toFixed(3),
         gap: +(Number.isFinite(oWorst) ? oWorst - wWorst : 999).toFixed(3), margin: ANCHOR_MARGIN });
     }
@@ -885,8 +906,36 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         // 佔地（xz 投影）：判紅時要看得出「兩尊的框有沒有重疊、還有多少空間可以挪」
         box: b ? [+b.min.x.toFixed(2), +b.min.z.toFixed(2), +b.max.x.toFixed(2), +b.max.z.toFixed(2)] : null };
     });
+    /* 覆蓋判定：`allies`＝**每一尊**我方都要被碰到（令旗那條 18/18 的訊號）；
+       `foes`＝至少兩尊敵方（場上只有一尊時退成一尊——那不是放寬，是場上沒有第二個人）；
+       其餘（單一目標／自身）＝至少一尊。`mainScope` 為假時整條跳過。 */
+    /* ★只要求「站位上分得出來」的那幾尊（`02 §6.1` 第 6 條：不訂恆假的門檻）★
+       治具棚 `--mateGap=1` 下有些模型（例如 `eye` 護法×2）的佔地重疊到
+       **任何一點都不可能**同時「在 X 身上」又「離 Y 有一個邊距」——那時候要求逐尊覆蓋
+       就是一條再對的實作也過不了的線。`sep(X)`＝X 的佔地**四個角**裡至少有一個
+       離其餘每一尊都 ≥ `ANCHOR_MARGIN`；分不出來的那幾尊不計進 `coverNeed`，但數字照實印。
+       P4 材料帶 `--mateGap=1.9`，兩尊會分開 ⇒ 那邊這條是全額生效的。 */
+    const sepOf = (f) => {
+      const b = boxOf(f);
+      if (!b) return false;
+      const others = boxes.map((e) => e.fig).filter((g) => g !== f && mainWant.indexOf(g) >= 0);
+      if (!others.length) return true;
+      const corners = [[b.min.x, b.min.z], [b.min.x, b.max.z], [b.max.x, b.min.z], [b.max.x, b.max.z],
+        [(b.min.x + b.max.x) / 2, b.min.z], [(b.min.x + b.max.x) / 2, b.max.z],
+        [b.min.x, (b.min.z + b.max.z) / 2], [b.max.x, (b.min.z + b.max.z) / 2]];
+      return corners.some(([x, z]) => dTo(others, x, z) >= ANCHOR_MARGIN);
+    };
+    const covered = mainWant.filter((f) => cover.has(f));
+    const sep = mainWant.filter(sepOf);
+    const need = !mainWant.length ? 0
+      : (spec === 'allies' ? sep.length
+        : (spec === 'foes' ? Math.min(2, sep.length || mainWant.length) : 1));
+    const coverOK = spec === 'allies'
+      ? sep.every((f) => cover.has(f))
+      : covered.length >= need;
     run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, missing, follows, landings,
-      mainHit, mainScope: mainWant.length > 0, rows, figs };
+      mainHit, mainScope: mainWant.length > 0,
+      cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, rows, figs };
   }
 
   /** 徽記朝鏡頭（可帶自轉 userData.fxRoll） */
