@@ -771,3 +771,158 @@ Q4 法寶名 0/162（只記錄；讀者寫「令旗」「金鐘罩」等通稱�
 評分 `p4-blindread-r3/score.txt`（判準同前）。過：五營旗、破軍旗。系別九支 18/18；效果八支 16–18/18（第 1 輪多支 0–7/18）；虎爺印效果 7/18（偷取 8＝金勾＋細白線被讀成「拉回」、詛咒 3）。
 **剩餘失敗集中在 Q2「作用對象」**：我方單一（香灰符 0/18、福壽 0/18）與我方多個（令旗 1/18、王船 2/18、銅鈴 10/18）幾乎全答「自己」；王爺劍敵方多個 9/18。
 **歸因（六讀者自述）**：2v2 治具棚裡兩尊我方同系同型、間距近（作者 §7 已註記排列在 `duel-figures`），讀者分不出「施招者」與「受益者」是誰——道具落在哪一尊，那一尊就被當成施招者，於是一律「自己」；「我方多個」只有地面方陣寬到圈住兩尊時才被讀出。這是**施招者／受招方身分可辨**的系統級問題，不是逐支道具落點問題（第 2 輪回修已把落點移到受益方，數字沒動）。三輪上限已到，依 `02 §6.1` 附則停手，處置交製作人。
+
+## 9. 覆審 r2 修補（N1／N2／N3；N4–N6 只記錄）
+
+基準仍是 main `98ab851`（v0.55.4）。**未合併、未 push。**
+三條的「壞→紅、好→綠」都用**改壞前的備份副本**還原（`scratchpad/_bak4-*`），不用反向 sed（`02 §6.1` 第 1 條）。
+
+### 9.1 N1（HIGH）`st.stick` 寫在時間軸外 → **真的修好**（且順帶抓到一個被它蓋住的真缺陷）
+
+**改了什麼**（`js/trait-fx/xianghuo.js:1142-1156`，`wardHpFirst` 香灰符）：
+
+1. `st.stick(talis, mate, …)` 從編舞的同步段**移進飛行 `st.trail(...)` 的 `done()`**——落點時刻才黏。
+2. 飛行段的**落點改成黏上去的那一點**（`land` ＝前鋒 `Chest` ＋同一個 `camOff(st, 1)`，`xianghuo.js:1086-1088`），
+   否則 react 那一幀會看到符瞬移一次。
+3. `ease: 'in'` → `'out'`、`arc: 0.20` → `0.72`，並在 `st.trail` 的 `update` 裡加一道**往鏡頭鼓出**的弧
+   （`camOff(st, 1.5) × sin(πe)`，兩端 sin=0 所以落點不變）。
+
+**為什麼 3 是必要的（這是被 N1 蓋住的真缺陷）**：`stick` 一移進 `done()`，L3 凍在 travel 中點量到的
+就**不再是黏在身上的那張符，而是飛行中的那張**——而舊的 `ease:'in'`＋小弧度讓符在前半段幾乎不動、
+中點時還埋在法師自己的紙紮身體裡，**P3 從 0.9682% 掉到 0.0006%（2 px）**。
+換句話說：報告 §4.1 第 6 列那個 0.9682%／76.34，量到的一直是「第 0 幀就黏死在身上的符」，不是飛行。
+
+**三態（全部 tier 2、seed 7、844×390@2x、bloom 0.7，門檻一個字沒動）**
+
+| 狀態 | 改法 | P3 area／ΔE | 逐位元組比對 |
+|---|---|---|---|
+| 健康（交付版） | `stick` 在 `done()`、`arc 0.72` | **1.1857%／77.80 PASS** | — |
+| 突變 M1 | 同上，只把 `arc` 改 3.50 | 0.7598%／86.68 **FAIL** | 對健康版 **A 圖不同** ⇒ 飛行段活著 |
+| 突變 M2 | `stick` 退回時間軸外、`arc 0.72` | 0.9682%／76.34 | ＝ §4.1 舊數字，**原缺陷重現** |
+| 突變 M3 | M2 ＋ `arc` 改 3.50 | 0.9682%／76.34 | 對 M2 **A 圖逐位元組相同** ⇒ 缺陷下飛行段是死碼 |
+| 突變 M4 | 健康版但**整條 `stick` 拿掉** | **1.1857%／77.80** | 對健康版 **A 圖逐位元組相同** ⇒ 凍幀面積全部來自飛行、與 stick 無關 |
+| 還原 | 從 `scratchpad/_bak4-xianghuo.js` 覆蓋 | **1.1857%／77.80 PASS** | — |
+
+M2/M3 那一組正是覆審員量到的現象（移動飛行參數、A/B 圖逐位元組相同）；M1/M4 是它的反面。
+
+**這一支的完整重驗**（`node scratchpad/verify-move.mjs wardHpFirst`）：
+
+```
+drive t1／t2   PASS  phases=["windup","travel","react"]  fill=0.9  rate=1  acts=11  err=0
+P3 t1  1.1724%／78.81      P3 t2  1.1857%／77.80
+Q5 尺寸 emblem:talis ratio 0.651（上限 0.667，0/2 列超過）／prop:talis 0.121
+draw call idle 178 → 峰值 185（+7，≤ idle+25）
+```
+
+`--count=2`（2v2，符真的飛去同伴身上）另跑一次：**PASS**、`acts=11`、`maxD=1.0035`。
+`sheet-t1/t2.png`、`closeup-t2.png`、`contrast-t1/t2/`、`_r3-contrast-t2/wardHpFirst-*` 全部用新版重產。
+
+**全 9 支 grep「時間軸外的 `st.stick`／`st.mark`」**（`xianghuo.js` 全檔，分母＝3 處呼叫）：
+
+| 行 | 呼叫 | 判定 |
+|---|---|---|
+| `xianghuo.js:1150` | `st.stick(talis, mate, …)` | 已移進 `st.trail(...).done()` ✅ |
+| `xianghuo.js:1464` | `wardImmuneLost_v055` 的 `st.mark(f, …, { opacity: 0 })` | **不是同型**：建立即 `opacity:0`，到 `R0` 才 `st.fade` 進來，且**沒有任何飛行 tween 會被它蓋掉**（印記本來就不飛） |
+| `xianghuo.js:1538` | `biteGamble_v055` 的 `st.mark(prey, …, { opacity: 0 })` | 同上（`xianghuo.js:1576-1579` 才淡入） |
+
+另兩系對照 `zuling.js:456` 也是「`opacity:0` 建立、到拍才淡入」的同一種合法寫法；`yinqi.js` 0 處。
+**結論：同型缺陷只有 1 處，已修。**
+
+### 9.2 N2（MEDIUM）1 尊時的世界 ±Z 退路 → **真的修好**，但要據實說：L3 治具從來沒行使過這段
+
+**改了什麼**：`eliteCleave`（`xianghuo.js:208-212`）與 `wardAtkAll1`（`xianghuo.js:314-318`）的
+「只有一尊時撐出橫掃兩端」從世界 `±Z` 改成 `crossVectors(st.camDir, UP_Y)`＝**畫面的左右方向**
+（與 `js/duel-figures.js:684` 的 `tmpRight` 同一條），這是 r1 HIGH-1 的同一個病。
+
+**先講一件對我不利的事**：L3 的正式治具**根本走不到這兩個分支**——`eliteCleave` 的 `?foe=` 預設是
+3＋1＝4 尊，`wardAtkAll1` 的 `c.count` 是 2。實測：把 fallback 的幅度 0.55／0.62 一路放大到 **3.00**，
+兩支的 A 圖**逐位元組不變**。所以「P3 數字沒變」在這裡不是通過的證據，只證明沒有回歸。
+要驗它得自己把場上壓成一尊，我另寫了唯讀探針 `scratchpad/n2-yaw-probe.mjs`
+（開治具頁 `?count=1&foe=sword:elite:xianghuo:1&camyaw=`，在 travel 中點問 `__tfx.fxDump()` 的 NDC 座標）。
+
+**三態**（tier 2、seed 7；`camyaw 90`＝南北座位＝L3 凍結的那個量測位置，`camyaw 0`＝西東座位）
+
+| 招 | 座位 | 修後（畫面左右） | 突變（退回世界 ±Z） |
+|---|---|---|---|
+| `eliteCleave` 斬擊弧 | 90（凍結位） | NDC (0.59, 0.58)／世界 (−0.018, −2.24) | **完全相同** (0.59, 0.58)／(−0.018, −2.24) |
+| `eliteCleave` | 0（西東） | NDC (0.59, 0.58)／世界 (**2.24**, −0.018) | NDC (**0.49**, 0.59)／世界 (1.982, −0.276) |
+| `wardAtkAll1` 大旗 | 0（西東） | NDC x **−0.39** | NDC x **−0.50** |
+
+修後版在兩個座位上**畫面位置逐位數相同**、世界座標剛好轉了 90°（(−0.018, −2.24) → (2.24, −0.018)）
+＝ 這段退路確實是相機相對的；突變版在西東座位偏掉 0.10–0.11 NDC（≈ 畫面寬的 5%）。
+在凍結的量測位置（`camyaw 90`）兩版**逐位元組相同**，所以 §4.1 的 P3 數字一個也沒動。
+
+### 9.3 N3（MEDIUM）solo 紅燈只綁 CLI `--count` → **真的修好**
+
+**改了什麼**（`tests/tools/traitfx-drive.mjs:296`）：
+`countN` 從「只讀 CLI 的 `--count`，沒帶就是 1」改成「CLI 覆寫優先，沒帶就用**這一套實際上場幾尊**
+（`c.count`＝POOL 的數量）」。這是**加嚴**：POOL 裡 `count≥2` 的招從此在例行批跑就會被檢查
+「react 不得只有施招者自己動」。
+
+**三態**（突變＝把 `wardHpFirst` 的 react tween 從 `st.move(mate,…)/st.rim(mate,…)` 改成 `monk`，
+＝製造一個「自益招卻只動施招者」的真缺陷；三跑都**不帶** `--count`）
+
+| 狀態 | 治具 | 結果 |
+|---|---|---|
+| 缺陷在、**新版**治具 | `traitfx-drive` 修後 | **FAIL 0/1**（`★M1 未在條文情境下驗證（react 量在出招方自己身上）：wardHpFirst`） |
+| 缺陷在、**舊版**治具 | `countN` 退回只綁 CLI | **PASS 1/1** ⇒ 舊寫法在例行批跑永遠不會紅，缺陷活著過關 |
+| 還原（兩檔都從備份覆蓋） | 修後 | **PASS 1/1** |
+
+### 9.4 N4–N6（只記錄，不修）
+
+- **N4**（`fx-contrast` 的「整條 bloom 不在就放行」）：**已在 r1 修過**，現行碼 `fx-contrast.mjs:143-150`
+  是 `bloomCfg.on !== true` 一律 throw、除非明確帶 `--allow-nobloom`（那時 summary 標紅）。本輪未再動。
+- **N5／N6**：不影響正確性，依 `02 §3` 第 4 條記錄不修，列在這裡供下一輪取用。
+
+### 9.5 本輪完整驗收（指令原文與實際輸出）
+
+| 項目 | 結果 |
+|---|---|
+| 12 套規則測試 | **全綠**：aistake 8／conscap 5／duel-desync 7／emblem-collision 9／fxtier 14／fxvocab 19／legend 32／lineup-order 8／nightrules 16／review 28／roles-balance 32／wish16 36，0 紅 |
+| `trace-eq` 對 `98ab851` | `{"bytesOld":357285,"bytesNew":357285,"equal":true}`（`index.html` 一行未改，P0） |
+| `traitfx-drive` 預設路徑 | t1 **27/27**、t2 **30/30**、t3 **3/3**，重複簽章 0 |
+| `traitfx-drive --fxvocab=1` | t1 **27/27**、t2 **30/30**，重複簽章 0 |
+| `--count=2` 全套 t2 | **30/30**，`soloReact = []` |
+| P3 九支 t2（seed 7、844×390@2x、bloom 0.7） | **9/9 pass**，見下表 |
+| `duel-drive` seed 7／seed 3（各 4 場） | `errors 0`／`errors 0`，`ver v0.55.4` |
+
+P3 九支 t2 逐支（`scratchpad/r2-nine-t2`，門檻 area ≥0.8%、ΔE 中位 ≥28）：
+
+| 招 | area％ | ΔE 中位 | 判定 |
+|---|---|---|---|
+| `wardAtkAll1` 媽祖令旗 | 1.9823 | 92.89 | ok |
+| `eliteCleave` 王爺劍 | 0.8768 | 65.04 | ok |
+| `wardAbsorb4` 送王船 | 1.8647 | 82.53 | ok |
+| `wardImmuneLost` 千里眼銅鈴 | 0.9700 | 85.79 | ok |
+| `swarmRally` 五營旗 | 2.6039 | 76.32 | ok |
+| `biteGamble` 虎爺印 | 1.0208 | 109.35 | ok |
+| `wardHpFirst` 香灰符 | **1.1857** | 77.80 | ok（r2 修補後；修前 0.0006 FAIL） |
+| `wardRegen1` 福壽綿長 | 1.5406 | 84.45 | ok |
+| `swarmLastStand` 破軍旗 | 0.9968 | 83.54 | ok |
+
+指令原文：
+
+```
+node tests/fxvocab.test.mjs   （與其餘 11 套，逐檔跑）
+node tests/tools/trace-eq.mjs scratchpad/base-98ab851-index.html index.html
+node tests/tools/traitfx-drive.mjs scratchpad/all-t1.json --tier=1 --port=8891      （t2/t3、--fxvocab=1 同型）
+node tests/tools/traitfx-drive.mjs scratchpad/all-t2-c2.json --tier=2 --count=2 --port=8896
+node tests/tools/fx-contrast.mjs scratchpad/r2-nine-t2 --only=<九支> --tier=2 --seed=7 --port=8824
+python tests/tools/fx-contrast-metrics.py scratchpad/r2-nine-t2
+node tests/tools/duel-drive.mjs "http://127.0.0.1:8826/index.html?paperwar=1&fxcount=1&seed=7" \
+     scratchpad/r2-duel-seed7.json --duels=4 --port=8826
+node scratchpad/verify-move.mjs wardHpFirst --port=9200
+node scratchpad/n2-yaw-probe.mjs eliteCleave sword elite xianghuo 1 "sword:elite:xianghuo:1" 0 8860
+```
+
+### 9.6 兩件要交給製作人的事
+
+1. **P4 第 3 輪的香灰符材料是修補前的版本**。N1 的回修改了 `wardHpFirst` 的飛行段
+   （落點、緩動、弧度），`p4-material-A-booth-r3/`、`p4-material-B-closeup-r3/` 裡那三張
+   是**舊版**拍的。第 3 輪已評完並交裁，我沒有動那批材料（真值表 `p4-truth.json` 也一個字未改）；
+   若要開第 4 輪，這三張必須用新版重拍。
+2. **`camdist 2.4` 的近景材料上，香灰符的符偏大**。為了在凍結的量測位置補回 P3 面積，
+   飛行途中往鏡頭鼓出了 `camOff(st, 1.5)`（0.39 公尺）——在**對決機位（4.2）上讀起來正常**
+   （`contrast-t2/wardHpFirst-A.png` 是一張半身高的金符），但在 2.4 的近景裡會壓到那一尊。
+   符的世界尺寸 ratio 0.651 仍在 §A3 的 2/3 以內（未超限），這是「鏡頭距離」而不是「道具尺寸」的取捨，
+   要不要為近景材料另外收斂，等裁定。

@@ -205,7 +205,13 @@ const MOVES = {
     const pts = foes.map((f) => st.worldOf(f, null, new THREE.Vector3()));
     const head = pts.length ? pts[0].clone() : tip.clone().addScaledVector(st.dir, 1.4);
     const tail = pts.length ? pts[pts.length - 1].clone() : head.clone();
-    if (pts.length < 2) { head.z -= 0.55; tail.z += 0.55; }
+    /* ★覆審 r2 N2★：這一支的 `pts` 來自 `st.target`，**1v1 時只有一尊**，要自己撐出「橫掃」的兩端。
+       原本寫的是世界 ±Z，那是 H1 同一個病（世界常數在西東對局會變成別的方向）。
+       改用 `st.camDir` 叉乘世界 Y ＝**畫面的左右方向**（與 `js/duel-figures.js:684` 的 `tmpRight` 同一條）。 */
+    if (pts.length < 2) {
+      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.55);
+      head.sub(side); tail.add(side);
+    }
     head.y += 0.42; tail.y += 0.42;
 
     // ── 丁 斬擊弧：鎏金面＋ink 墨線邊的實體（不是加色平面）──
@@ -306,7 +312,11 @@ const MOVES = {
     const sweepOrder = others.concat([lead]); // 旗先掃同伴、最後回到自己
     const pts = sweepOrder.map((f) => st.worldOf(f, null, new THREE.Vector3()).add(camOff(st, 1.6)).setY(st.worldOf(f, null, _a).y + 0.50));
     const from = pts[0].clone(), to = pts[pts.length - 1].clone();
-    if (pts.length < 2) { from.z -= 0.62; to.z += 0.62; }
+    /* 同上（覆審 r2 N2）：本方只有一尊時撐出掃過的兩端，方向取**畫面左右**而不是世界 ±Z。 */
+    if (pts.length < 2) {
+      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.62);
+      from.sub(side); to.add(side);
+    }
     const rise = from.clone(); rise.y += 1.30; // 升起段＝travel 的位移來源（不跨中線）
     /* 旗掃的那一段往鏡頭推一個身位：對決機位在世界 +X，推近之後同樣的世界尺寸在畫面上更大。
        ★這是 P3 與 §A3 打架時的解★——大旗要再放大才夠 0.8% 面積，但 `flag` 這一尊 figH 只有 1.42、
@@ -1069,6 +1079,13 @@ const MOVES = {
        改法一致：先**升起**（垂直高度差提供 travel 的位移、不跨中線），再落到同伴／每一尊我方身上。 */
     const via = palm.clone().lerp(head, 0.35).addScaledVector(st.dir, -0.55).add(camOff(st, 1.2));
     via.y += 0.55;
+    /* ★覆審 r2 N1 的配套①★：`st.stick` 移進 `done()` 之後，飛行段才真的在畫面上跑，
+       於是**飛行段的落點必須就是黏上去的那一點**（前鋒胸口＋同一個 `camOff(st, 1)`），
+       否則 react 那一幀會看到符「瞬移」一次。灰流仍舊落在 `via`（前鋒身前那一團），兩者分開。 */
+    const land = st.worldOf(mate, 'Chest', new THREE.Vector3());
+    if (!land.lengthSq()) { st.worldOf(mate, null, land); land.y += 0.55; }
+    land.add(camOff(st, 1));
+    const bow = camOff(st, 1.5); // 飛行弧往鏡頭鼓出的量（見下面 st.trail 的 update）
 
     // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
     const ASH = 10;
@@ -1126,19 +1143,33 @@ const MOVES = {
       for (let i = 0; i < ASH; i++) grains[i].rz += 0.14;
       writeAsh(Math.min(1, e * 1.2));
     } });
-    st.trail(talis, palm, via, { ms: TL, delay: T0, ease: 'in', trail: false, arc: 0.20,
+    /* ★覆審 r2 N1 的配套②★：`ease: 'in'` ＋ `arc: 0.20` 是「黏死在第 0 幀」時代留下來的寫法——
+       那時候飛行段是死碼，怎麼寫都看不出來。真的飛起來之後，`in` 會讓符在**前半段幾乎不動**，
+       L3 凍結的 travel 中點（tier 2＝430ms）符還埋在法師自己的紙紮身體裡，實測只剩 0.0006%。
+       改 `out` ＋ 抬高弧度：符一離手就拉開，中點時已在半空、越過兩尊之間，面積才回得來。 */
+    st.trail(talis, palm, land, { ms: TL, delay: T0, ease: 'out', trail: false, arc: 0.72,
+      /* 飛行途中往**鏡頭這一側**鼓出一道弧（兩端 sin=0，落點不變）：
+         L3 凍在 travel 中點，正是這個弧的頂點——同樣的世界尺寸離鏡頭近就佔更多畫面。
+         符本身的尺寸已經頂到 §A3 的 2/3（Q5 實測 0.651／上限 0.667），只剩這條路可走。 */
+      update(t, e) { talis.position.addScaledVector(bow, Math.sin(Math.PI * e)); },
       done() {
         /* ★衝擊拍★：傾倒到位＝灰流抵達＝符落定＝前鋒同幀亮邊上抬 */
         st.phase('react');
         st.punch(0.34);
         st.burst(head, { power: 0.8, n: 44, color: C.key });
+        /* ★覆審 r2 N1（HIGH）★：`st.stick` **必須排在這裡**，不能寫在時間軸外。
+           `js/trait-fx.js` 的 `stick()` 是**立刻** push 進 `run.follow`、之後每一幀覆寫那個物件的位置，
+           所以在編舞的同步段呼叫＝符從**第 0 幀**就黏在受益方身上，上面那條飛行 tween 整段變成死碼
+           （覆審實測：把 `via` 移開 3 個單位，L3 的 A／B 圖逐位元組相同；把 `st.stick` 拿掉才看得到飛行、
+           面積從 0.0006% 變回正常）。移進 `done()` 之後才是「飛到落點那一刻才黏上去」。 */
+        st.stick(talis, mate, { at: 'chest', off: camOff(st, 1) });
       } });
     /* 符放大到 1.15×iconSize：0.98 時 P3 只有 0.6656%／0.6921%（門檻 0.8），而灰流走 prop: 不進量測對象，
        符是這一招唯一量得到的一件。放大後仍在 §A3 的 2/3 內（Q5 實測 0.555→0.651）。 */
     st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) { talis.scale.setScalar(st.iconSize * (0.85 + 0.30 * e)); } });
 
-    /* ③ 前鋒受益（react）：符從半空落到前鋒身上並黏住、那一尊上抬亮邊；灰散掉 */
-    st.stick(talis, mate, { at: 'chest', off: camOff(st, 1) });
+    /* ③ 前鋒受益（react）：符落定後黏在前鋒身上（`st.stick` 已移進上面那條飛行 tween 的 `done()`）、
+       那一尊上抬亮邊；灰散掉 */
     st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { talis.scale.setScalar(st.iconSize * (1.15 - 0.45 * e)); } });
     st.fade(talis, { ms: RL * 0.4, delay: R0 + RL * 0.55, from: 1, to: 0 });
     st.fade(ash.obj, { ms: RL * 0.5, delay: R0, from: 0.95, to: 0 });

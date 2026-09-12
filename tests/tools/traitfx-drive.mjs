@@ -290,7 +290,10 @@ async function runCase(browser, base, c, opt) {
   const phaseOf = (n) => (sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === n) : null);
   const phaseOK = (n) => { const c = phaseOf(n); return !!(c && c.ok); };
   const needThree = tier === 2 || tier === 3;
-  const countN = Math.max(1, parseInt(opt.count || '0', 10) || 0);
+  /* ★覆審 r2 N3★：solo 的紅燈原本只綁 CLI 的 `--count`，例行批跑（不帶那個旗標）永遠不會紅。
+     改成取「**這一套實際上場幾尊**」——CLI 覆寫優先，沒帶就用案例自己的 `c.count`（POOL 的數量）。
+     這是**加嚴**：POOL 裡 count≥2 的招（護法×2、兵×3）從此在例行批跑就會被檢查 react 不是 solo。 */
+  const countN = Math.max(1, parseInt(opt.count || '0', 10) || (c.count | 0) || 1);
   /* ★適用範圍★：只約束**原始碼裡真的呼叫過 `st.phase(`** 的招（`phaseCasesFromSource`）。
      27 支裡還沒轉正、走 0.54 演出的那些一個打點都沒有——那不是它們的缺陷，是還沒做，
      把它們一起判紅會讓這條斷言一週內被改掉（＝把防線做死）。
