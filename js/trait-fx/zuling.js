@@ -1062,14 +1062,37 @@ const MOVES = {
   },
 
   /* 巴冷公主珠鍊・琉璃護心（balen，精英×1）：本隊每拍第一次受擊 −2（保底 1）。
-     編舞：珠鍊一顆一顆亮上去（Trunk 由內往外、蛇身跟著鼓一節）＋ 昂首（0–280ms）
-          → 心口一顆琉璃珠亮起、半圓護心罩罩下（280ms）→ 本隊每尊腳下浮一圈琉璃環
-          → 罩與珠淡去、蛇口一開一合、身段回落（到 880ms）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 3 列＋§B1＋§A9；
+     `MOVE_SPEC.eliteArmor = { 乙, 張, 升, stance:'前傾', anchor:'allies' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝張**（§C「繞」＝張的蛇形變體）：`Trunk0`–`Trunk4` 盤繞一圈＋
+         `Body0`–`Body20` 波形行進、`Neck1`／`Jaw` 抬頭。
+       **道具**＝乙 織紋與珠：**琉璃珠圈**（`bead` ×7，`st.paperProps` 的 `shape:'emblem'`＝1 draw call）
+         **繞身旋轉後合攏**落到本隊身上；＋每一尊身上一枚珠印。
+         ★`dome` 半圓護罩在祖靈系退役★（讀者 A 短版直接把它讀成山神庇佑，ART_BIBLE §10.5）；
+         腳下的琉璃**環**也一併拿掉（`ring` 限縮成香火的「陣」）。
+       **受益方反應＝升**：本方每一尊 `st.move` 上抬＋邊光。
+
+     ★身分可辨（§A9）★ 施招姿態＝**前傾**（fore）≠ react「升」（up）；腳下**垂直光柱**。
+     ★拖線★：增益招 `trail: false`。★落點 anchor＝`allies`★（desc「本隊每拍第一次受擊 −2」）。 */
   eliteArmor(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const cast = st.byBody(st.actor, 'elite');
     const snake = cast.length ? cast[0] : st.actor[0];
+    const mates = st.actor.filter((f) => f !== snake);
     const heart = st.worldOf(snake, 'Trunk2', new THREE.Vector3());
-    // 珠鍊行進波：Trunk 五顆逐顆點亮，蛇身每三節跟著鼓一下
+    if (!heart.lengthSq()) st.worldOf(snake, null, heart);
+    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const A = heart.clone(); A.addScaledVector(perp, 2.35); A.y += 0.75; // perp 1.95 時 travel 1.2929/門檻 1.2481 太貼線，加餘裕 A.add(st.camOff(1.0));
+    const Z = new THREE.Vector3();
+    st.actor.forEach((f) => { const p = st.worldOf(f, null, new THREE.Vector3()); Z.add(p); });
+    Z.multiplyScalar(1 / Math.max(1, st.actor.length));
+    Z.y = heart.y + 0.06;
+    Z.add(st.camOff(1.9));
+
+    // 珠鍊行進波：Trunk 五顆逐顆點亮，蛇身每三節跟著鼓一下（本體動作，沿用批 0 的幅度）
     const beads = (e, back) => {
       for (let i = 0; i <= 4; i++) {
         const ph = Math.max(0, Math.min(1, e * 2.2 - i * 0.35)) * back;
@@ -1081,41 +1104,90 @@ const MOVES = {
         st.scaleBone(snake, 'Body' + i, 1 + 0.12 * ph);
       }
     };
-    st.tween({ ms: 230, ease: 'out', update(t, e) {
-      beads(e, 1);
-      st.rot(snake, 'Neck0', -0.2 * e); st.rot(snake, 'Neck1', -0.22 * e);
-      st.rot(snake, 'Neck2', -0.2 * e); st.rot(snake, 'Neck3', -0.18 * e);
-      st.rot(snake, 'Head0', -0.24 * e);
-      st.rim(snake, 1 + 1 * e);
+
+    // ── 乙 琉璃珠圈：七顆繞一圈（1 draw call；群體位移掛 InstancedMesh 物件本身，§A5）──
+    const BD = 7;
+    const ring = st.paperProps(st.kind, BD, { anchor: 'allies', shape: 'emblem', color: C.key, opacity: 0, k: 0.40, depth: 0.20, warp: 0.08 });
+    ring.obj.position.copy(A);
+    const _e = new THREE.Euler();
+    const orbs = [];
+    for (let i = 0; i < BD; i++) orbs.push({ th: (i / BD) * Math.PI * 2, s: 0 });
+    const writeRing = (k, spin) => {
+      for (let i = 0; i < BD; i++) {
+        const g = orbs[i], it = ring.items[i];
+        // k=0 疊在一起 → k=1 攤成一圈（繞身旋轉：角度隨 spin 前進）
+        const r = 0.05 + 0.58 * k, th = g.th + spin;
+        it.p.set(Math.cos(th) * r, Math.sin(th) * r * 0.55, 0);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, th));
+        it.s = g.s;
+      }
+      ring.write();
+    };
+    writeRing(0, 0);
+
+    // ── 每一尊身上的珠印（anchor allies）──
+    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
+        follow: f, at: 'chest', off: st.camOff(1) }));
+
+    /* ① 盤繞（windup）：珠鍊逐顆亮上去、蛇身鼓節、昂首；珠圈在側上方亮相。 */
+    st.groundMark(snake, { h: 1.28, w: 0.26, taper: 0.42, peak: 0.95, push: 0.80 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(snake, '前傾', e);
+        beads(e, 1);
+        st.rot(snake, 'Neck0', -0.20 * e); st.rot(snake, 'Neck1', -0.22 * e);
+        st.rot(snake, 'Neck2', -0.20 * e); st.rot(snake, 'Neck3', -0.18 * e);
+        st.rot(snake, 'Head0', -0.24 * e);
+        st.rim(snake, 1 + 1.1 * e);
+        st.alpha(ring.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < BD; i++) orbs[i].s = Math.max(0, Math.min(1, (e - 0.06 * i) * 2.4));
+        writeRing(0, e * 1.2);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 合攏（travel）：珠圈從側上方繞進來、旋轉著攤開合圍本隊。 */
+    st.tween({ ms: TL, delay: T0, ease: 'outQuint', update(t, e) {
+      ring.obj.position.lerpVectors(A, Z, e);
+      writeRing(e, 1.2 + e * 2.4);
+    },
+    done() {
+      /* ★衝擊拍★：蛇身盤到位＝珠圈合攏＝受益方同幀亮邊（三件同一拍，§A2） */
+      st.phase('react');
+      st.burst(Z, { power: 0.8, n: 46, color: C.hot });
+      st.punch(0.36);
     } });
-    st.at(230, () => {
-      const shell = st.dome(heart, 0.55, { opacity: 0.46 });
-      shell.scale.setScalar(0.25);
-      st.grow(shell, { ms: 190, from: 0.25, to: 1 });
-      st.fade(shell, { ms: 320, delay: 320, from: 0.46, to: 0 });
-      const bead = st.orb(heart, 0.1, { opacity: 0.95 });
-      bead.scale.setScalar(0.3);
-      st.grow(bead, { ms: 200, from: 0.3, to: 1.25 });
-      st.fade(bead, { ms: 300, delay: 220, from: 0.95, to: 0 });
-      st.burst(heart, { power: 0.6, n: 34 });
-      st.actor.forEach((f, i) => {
-        const ring = st.ring(st.foot(f, new THREE.Vector3()), 0.28, 0.05, { opacity: 0.85 });
-        ring.scale.setScalar(0.5);
-        st.tween({ ms: 420, delay: 60 + i * 60, ease: 'outQuint', update(t, e) { ring.scale.setScalar(0.5 + 0.9 * e); ring.material.opacity = 0.85 * (1 - 0.9 * e); } });
-      });
+    // 昂首張口（祖靈＝靜→瞬發）
+    st.tween({ ms: TL * 0.5, delay: T0 + TL * 0.45, ease: 'snap', update(t, e) {
+      st.rot(snake, 'Neck0', -0.20 - 0.18 * e); st.rot(snake, 'Head0', -0.24 - 0.20 * e);
+      st.rot(snake, 'Jaw', 0.46 * e, 0, 0); st.rot(snake, 'Snout', 0.16 * e, 0, 0); st.rot(snake, 'SnoutTip', 0.12 * e, 0, 0);
+      st.rim(snake, 1 + 1.1 + 1.7 * e);
+    } });
+    st.fade(ring.obj, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 0.95, to: 0 });
+
+    /* ③ 護心（react）：本方每一尊上抬＋邊光，身上的珠印蓋上再淡去。 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
-    st.tween({ ms: 640, delay: 230, ease: 'linear', update(t) {
-      const k = 1 - st.EASE.out(Math.min(1, t / 0.45));
-      const g = st.EASE.snap(Math.min(1, t / 0.5));
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    } }));
+
+    /* 收勢：珠鍊退光、蛇口一開一合、身段回落（施招者也在本隊裡，跟著被托起）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.5));
       const jaw = st.EASE.pulse(Math.min(1, t / 0.55));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
       beads(1, k);
-      st.rot(snake, 'Neck0', -0.2 * k - 0.16 * g); st.rot(snake, 'Neck1', -0.22 * k - 0.14 * g);
-      st.rot(snake, 'Neck2', -0.2 * k - 0.12 * g); st.rot(snake, 'Neck3', -0.18 * k - 0.1 * g);
-      st.rot(snake, 'Head0', -0.24 * k - 0.18 * g);
+      st.rot(snake, 'Neck0', -0.38 * k); st.rot(snake, 'Neck1', -0.22 * k);
+      st.rot(snake, 'Neck2', -0.20 * k); st.rot(snake, 'Neck3', -0.18 * k);
+      st.rot(snake, 'Head0', -0.44 * k);
       st.rot(snake, 'Jaw', 0.44 * jaw, 0, 0);
       st.rot(snake, 'Snout', 0.16 * jaw, 0, 0); st.rot(snake, 'SnoutTip', 0.12 * jaw, 0, 0);
-      st.scale(snake, 1 + 0.06 * g);
-      st.rim(snake, 1 + 1 * k + 1.5 * g);
+      st.move(snake, 0, 0.09 * up, 0);
+      st.rim(snake, 1 + 2.8 * k + 1.2 * up);
     } });
   },
 };
@@ -1162,45 +1234,8 @@ export const SHORT = {
      只有節拍不同。三套各寫一份就是下一個分岔源（計畫 §7「與 0.54 的接縫」）。 */
   eliteSelfCut: MOVES.eliteSelfCut,
 
-  /* 琉璃護心｜辨識：★一串真的珠鍊★一顆一顆亮上去＋心口琉璃珠護心罩 */
-  eliteArmor(st) {
-    const K = st.ms / 260;
-    const snake = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const heart = st.worldOf(snake, 'Body', new THREE.Vector3());
-    const top = st.top(snake, new THREE.Vector3());
-    const bead = st.orb(heart, 0.05, { opacity: 0 });
-    const shell = st.dome(heart, 0.62, { opacity: 0 });
-    const foot = st.foot(snake, new THREE.Vector3());
-    const halo = st.ring(foot, 0.34, 0.045, { opacity: 0 });
-    bead.scale.setScalar(0.3); shell.scale.setScalar(0.4);
-    const chain = [];
-    for (let i = 0; i < 9; i++) {
-      const u = i / 8;
-      const p = heart.clone().lerp(top, u);
-      p.x += Math.sin(u * Math.PI) * 0.16; p.y += Math.sin(u * Math.PI) * 0.05;
-      chain.push(st.orb(p, 0.028, { opacity: 0 }));
-    }
-    st.tween({ ms: 90 * K, ease: 'out', update(t, e) { // 珠鍊由內往外一顆一顆亮、昂首
-      st.scaleBone(snake, 'Trunk', 1 + 0.12 * Math.min(1, e * 2));
-      st.scaleBone(snake, 'Trunk2', 1 + 0.14 * Math.max(0, e * 2 - 1));
-      st.rot(snake, 'Neck1', -0.16 * e); st.rot(snake, 'Jaw', 0.2 * e); st.rim(snake, 1 + 1 * e);
-      chain.forEach((o, i) => { const k = Math.max(0, Math.min(1, e * 9 - i)); o.material.opacity = k; o.scale.setScalar(0.6 + 0.7 * k); });
-    } });
-    st.fade(bead, { ms: 55 * K, delay: 82 * K, from: 0, to: 1 }); // 心口琉璃珠亮起
-    st.grow(bead, { ms: 80 * K, delay: 82 * K, from: 0.3, to: 1.3 });
-    st.grow(shell, { ms: 85 * K, delay: 92 * K, from: 0.4, to: 1.15 }); // 護心罩罩下
-    st.fade(shell, { ms: 55 * K, delay: 92 * K, from: 0, to: 0.42 });
-    st.fade(shell, { ms: 65 * K, delay: 155 * K, from: 0.42, to: 0 });
-    st.fade(bead, { ms: 60 * K, delay: 160 * K, from: 1, to: 0 });
-    st.grow(halo, { ms: 95 * K, delay: 100 * K, from: 0.3, to: 1.5 });
-    st.fade(halo, { ms: 95 * K, delay: 100 * K, from: 0.65, to: 0 });
-    chain.forEach((o, i) => st.fade(o, { ms: 54 * K, delay: (150 + i * 2) * K, from: 1, to: 0 }));
-    st.tween({ ms: 65 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 蛇口一開一合、身段回落
-      const k = 1 - e;
-      st.scaleBone(snake, 'Trunk', 1 + 0.12 * k); st.scaleBone(snake, 'Trunk2', 1 + 0.14 * k);
-      st.rot(snake, 'Neck1', -0.16 * k); st.rot(snake, 'Jaw', 0.2 * k * (1 - e)); st.rim(snake, 1 + 1 * k);
-    } });
-  },
+  /* eliteArmor｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  eliteArmor: MOVES.eliteArmor,
 };
 
 

@@ -298,7 +298,7 @@ export const MOVE_SPEC = {
   /* ── 祖靈系 9 支 ── */
   eliteOpenShot: { prop: '丁', act: '張', react: '退', stance: '舉臂', anchor: 'foe' }, // 金色日盤＋箭矢；弦鬆手＝張（舉臂 up ≠ 退 back），最壯那隻退
   wardHpFront2: { prop: '乙', act: '扎', react: '升', stance: '下沉', anchor: 'allies' }, // 菱紋帶沿盾牆展開；紮地（下沉 down ≠ 升 up）＋前鋒托起
-  eliteArmor: { prop: '乙', act: '張', react: '升' }, // 琉璃珠圈繞身；§C「繞」＝張的蛇形變體
+  eliteArmor: { prop: '乙', act: '張', react: '升', stance: '前傾', anchor: 'allies' }, // 琉璃珠圈繞身；§C「繞」＝張（前傾 fore ≠ 升 up）
   wardFirst: { prop: '甲', act: '張', react: '升', stance: '下沉', anchor: 'allies' }, // 石雕眼＋腳下光柱；眼瞼全開＝張（下沉 down ≠ 升 up）
   boltGamble: { prop: '丁', act: '張', react: '壓', stance: '舉臂', anchor: 'foe' }, // 鋸齒雷片；§C「撐」＝張（舉臂 up ≠ 壓 down）
   swarmHalfSplash: { prop: '丙', act: '躍', react: '升', stance: '下沉', anchor: 'allies' }, // 三道平行浪弧；躍前先壓浪（下沉 down ≠ 升 up）
