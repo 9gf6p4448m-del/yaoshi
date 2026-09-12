@@ -141,6 +141,12 @@ f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-5/metrics.txt
 
 證據：`docs/experiments/2026-09-12-l10-determinism-evidence/pump/`（10 份 `metrics.txt` ＋ `md5.txt`）。
 
+**`metrics.txt` 的範圍是加嚴不是放寬**：任務書要的是「R1／R2 數字與 `maskN` 逐位元組相同」，
+`metrics.txt` 裝的是**整份 `verdict.res` ＋整份 `verdict.summary` ＋ `ticks`／`froze`／
+`maskDropped` 的逐項計數 ＋ `bad[]` 全文**——比要求的多，比對通過的門檻只會更難不會更鬆。
+它的鑑別力也實測過：開發途中兩跑只差「同一幀的背景像素」（`maskMin` 32.97 vs 32.81），
+`metrics.txt` 的 md5 就已經不同。
+
 ### 驗收 2　活性 🔴（**未達**，卡在哪見 §5）
 
 - **取樣幀數**：seed 1 = **77** 格凍幀（`froze`，`shots` 亦 77）；seed 3 = **45**。兩者 >0。
@@ -328,6 +334,7 @@ $ node --test tests/*.test.mjs
 放寬「700ms 不讓插隊」、加大 `maxhit`／`duels`——**都會提高通過機率**，屬 `02 §2.1`
 「移動及格線」（`duels 8→20` 這一條 §7.2 N6 已經明寫過是候選的及格線移動、未採用）。
 依 `03 R3` 第 6 條，列在 §7 交裁。
+**⇒ 本卷對 seed 3 這一格「刻意不修，已經停手」——它不是本卷的待辦，是使用者裁完才動的下一步。**
 
 ---
 
@@ -342,10 +349,23 @@ $ node --test tests/*.test.mjs
 4. **`dom` 模式**維持舊時鐘，沒有決定性保證（L10 不讀它）。
 5. **只在這一台機器上驗過**：決定性依賴同一顆 GPU／驅動下 WebGL 逐位元組可重現。
    換機器重跑 md5 可能不同（但同機 5/5 相同已足以支撐「取樣不再受機器忙閒影響」這個宣稱）。
+6. **本 worktree 的基準 `417b197` 已經不是 main 的頭**：合併時要注意 main 多了 4 個 commit
+   （`cd9cc6c`／`67c3d07`／`5306a8d`／`38bf02e`），其中 `38bf02e`「凍結檔修訂五」③ 把四支示範招
+   **預設退回 0.54 演出**、`?fxvocab=1` 才看 0.55 徽記版（VERSION 0.55.1）。
+   - **合併本身乾淨**：`git diff 417b197 main -- tests/tools/dmg-readability.mjs` 為空，
+     main 沒有動過這支治具。
+   - **但本報告 §4 的數字是在 `417b197` 上量的**；main 的預設演出既然換了，
+     在 main 上重跑 R1／R2 會是另一組數字，不能直接拿本報告的數字去對。
+     （決定性這件事不受影響——它是治具的性質，不是某一組數字。）
 
 ---
 
 ## 7　交裁（本卷不動，列給使用者決定）
+
+> **這一節全部是「還沒做、等裁定」**。本卷**沒有**改過凍結檔
+> `docs/experiments/2026-09-11-acceptance-fx-legibility.md`，也沒有改過任何門檻——
+> §1 的改動清單就是本卷動過的全部檔案（`tests/tools/dmg-readability.mjs`、
+> `tests/tools/README.md`、本報告與證據目錄）。下表「建議答案」欄是**提案**，不是已完成的動作。
 
 | # | 題 | 建議答案 |
 |---|---|---|
