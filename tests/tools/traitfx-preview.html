@@ -82,8 +82,12 @@ renderer.setSize(window.innerWidth, window.innerHeight, false);
 
 const { scene, camera, lanterns } = createSceneEnv(window.innerWidth / Math.max(1, window.innerHeight));
 scene.fog.density = FOG_DENSITY.duel;
-// 對決機位（camera-director 的 DUEL_SHOT：dist 4.2、tilt 24°、lookY 0.35；南北兩席 → yaw 90°）
-{ const tilt = THREE.MathUtils.degToRad(24), yaw = THREE.MathUtils.degToRad(90), dist = 4.2, horiz = Math.cos(tilt) * dist;
+/* 對決機位（camera-director 的 DUEL_SHOT：dist 4.2、tilt 24°、lookY 0.35；南北兩席 → yaw 90°）
+   ★`?camdist=` 只給「tier 2 近景」那一種盲讀材料用（2026-09-12 製作人裁定：P4 材料改兩種）★
+   **不帶參數＝4.2＝原本的對決機位，一個位元組都不變**；L3（fx-contrast）與治具棚那一種材料
+   都不帶它，所以凍結的量測位置沒有被動到。 */
+{ const tilt = THREE.MathUtils.degToRad(24), yaw = THREE.MathUtils.degToRad(90),
+    dist = Math.max(1.2, Math.min(6, parseFloat(q.get('camdist') || '4.2') || 4.2)), horiz = Math.cos(tilt) * dist;
   camera.position.set(Math.sin(yaw) * horiz, Math.sin(tilt) * dist, Math.cos(yaw) * horiz); camera.lookAt(0, 0.35, 0); }
 // 軟體 GL（SwiftShader）不開 bloom：render target 那條路在它上面 shader 編不過（同 renderer.js 的判斷）
 function glName() { try { const gl = renderer.getContext(); const ext = gl.getExtension('WEBGL_debug_renderer_info'); return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''; } catch (e) { return ''; } }
