@@ -138,6 +138,30 @@ renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/re
 - 場景掃描按 **geometry 內容指紋**認徽記（覆審 r3 N-1：改前用 uuid，`geometry.clone()` 整組穿過去）。
   它抓得到「多了一顆假徽記」，但**像素閘門抓不到**——一顆用合法尺寸渲染的假徽記，
   `fx-contrast-metrics.py` 的 `area_pct` 分不出它是誰造的。紅在 `fx-contrast` 自己的 exit code。
+- ★**N-5（HIGH，覆審 r4，未修）：場景掃描只認「一位元組不差的複製品」**★
+  `geomSig()` 是**零容差**的（頂點數＋座標校驗和）。實測三個變體**四道防線＋L3 像素閘門全綠**：
+  ① `geometry.clone()` ＋ `geometry.scale(1.0001, 1.0001, 1)`
+  ② `clone()` ＋ 只把 `position.array[0]` 加 `1e-4`
+  ③ 整支招**完全不呼叫** `st.icon`／`st.icons`／`st.mark`、手抄頂點自建同剪影
+  ——畫面上是一顆世界縮放 **1.6** 的假徽記（`ICON.byKind.knife` 是 0.56，三張表裡沒有這個數），
+  L3 差圖面積 **3.5466%**（健康態 0.9728%），而 `traitfx-drive`／`fx-contrast`／`duel-drive`
+  與 `metrics` 全部 exit 0。③ 另有一個結構成因：`js/trait-fx.js` 的
+  **`if (run.sized.length) auditSizes(run)`** 讓「這一支招沒登記任何徽記」時**連掃描都不跑**。
+  ★這不是本卷打開的洞★（改前用 uuid 認身分，三個變體一樣全綠），但**它是 HIGH 等級的繞法**，
+  在這裡照實列出來，不得再宣稱「按效果寫的那一道會接住新的繞法」。
+  往下走的方向（招式演出卷把防線擴到 `st.paperStamp`／紙紮道具時一併處理）：
+  **首選收斂**——`st.spawn` 是編舞唯一的進場口，在那裡擋「geometry 不是積木造的、卻長得像徽記」的 mesh，
+  分母歸一；退而求其次才是把指紋改成容差比對（頂點數＋面積／外框近似）並拿掉 `run.sized.length` 這個前置條件。
+- ★**N-6（MEDIUM，覆審 r4，未修）：`duel-drive --seed=7` 只量得到 `hat` 一個 kind**★
+  實測 seed 7／12 場的 `世界寬度` 只有 `hat`／`hat:part`／`hat:instanced`。
+  把繞法放進 `eliteSelfCut` 時 `traitfx-drive` 與 `fx-contrast` 都 exit 1，而 **`duel-drive --seed=7` exit 0**；
+  同一條繞法搬進 `hauntLost` 才 exit 1。⇒ **正式 L3 對四支示範招裡的其他三支零鑑別力**。
+  下一卷要嘛多跑幾顆 seed 直到覆蓋到的 kind 集合等於推導出的名單，要嘛讓 `duel-drive` 印出
+  「本跑量到哪些 kind／哪幾支沒量到」——**別讓 exit 0 看起來像全覆蓋**。
+- ★**N-7（LOW，覆審 r4，未修）：`emblemCasesFromSource()` 的活性下限只釘得住批 0 那四支**★
+  `MUST` 寫死四支、檔案清單寫死三個系別檔。批 1–3 之後若解析只漏掉**新加的**招
+  （縮排不同、或新開第四個系別檔），四支仍在 ⇒ 下限通過、新招靜默 `n/a`＝同一個病換形狀。
+  **批 1–3 每次鋪開就要把新招加進 `MUST`**（或改成「推導出的支數 ≥ 上次落檔的支數」）。
 
 **執行期斷言（三支治具都讀）**：`traitfx-drive.mjs`、`fx-contrast.mjs` 讀 `__tfx.stats()`，
 `duel-drive.mjs` 讀 `window.__yaoshi3d.traitFx.sizeGuard()`（**批 1–3 的正式 L3 走的是 duel-drive**）。
