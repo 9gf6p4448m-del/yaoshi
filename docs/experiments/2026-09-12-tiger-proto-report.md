@@ -1,7 +1,9 @@
-# 虎爺印（biteGamble）演出原型 A／B／C — 交裁報告（2026-09-12）
+# 虎爺印（biteGamble）演出原型 A／B／C／D — 交裁報告（2026-09-12）
 
-> **這一卷的產出是三個候選版本，不是一個決定。** 挑哪一版是品味題（`03 R6`），由製作人裁。
-> 三版都**不是預設**：不帶 `?proto=` 時，`biteGamble` 與 v0.55 現況**逐欄位相同**（證據見 §4.1）。
+> **這一卷的產出是候選版本，不是一個決定。** 挑哪一版是品味題（`03 R6`），由製作人裁。
+> 上半部（§1–§5b）是 A／B／C 三版；**§6 起是 2026-09-12 晚的追加**：tier 1 改 300ms、印面字改「虎」、
+> 以及製作人裁定的 **D 版**（C 的華麗＋B 的落地重音）。
+> 四版都**不是預設**：不帶 `?proto=` 時，`biteGamble` 與 v0.55 現況**逐欄位相同**（證據見 §4.1／§7.7）。
 >
 > 基準 SHA：`417b1972691de989ea4781fa1d4d53e896142846`（v0.55，main HEAD）
 > worktree：`C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a0917744177b854a1`
@@ -48,7 +50,7 @@
 1. **不是 billboard**：朝向在 spawn 當下凍住（鏡頭方向再壓一個俯仰／偏擺），之後只跟位置走 ⇒ 看得到厚度側邊。
 2. **有厚度**：`ExtrudeGeometry` 擠出 `ink` 色本體，正面再疊一片**縮到 0.74** 的 `key`／`hot` 色面板 ⇒ 露出來的那一圈 ink 就是**墨線描邊**，而本體的側面就是**厚度**。
 3. **翹曲**：頂點依 `x²`／`y` 推 z，紙不是平的。
-4. **印面有字**：`o.glyph` 在印面上壓一個 `ink` 色的「王」（虎額上那個字，也是印章最好認的字形）。四個矩形合成**一個** `ShapeGeometry`，只多一個 draw call。
+4. **印面有字**：`o.glyph` 在印面上壓一個字（初版是「王」，**2026-09-12 製作人裁定改「虎」**，見 §7.5）。N 個矩形筆畫合成**一個** `ShapeGeometry`，不論幾畫都只多一個 draw call。
 
 材質仍是 `MAT_SOLID.clone()`（`NormalBlending`、平塗硬邊＝`ART_BIBLE §9`「紙」的三件幾何訊號之一），
 與現有三支模板共用 program ⇒ **`programsGrew` 全程 0，shader program 數不變（19 支）**。
@@ -134,7 +136,7 @@ node tests/legend.test.mjs            → 32 過 / 0 失敗
 
 目錄：`docs/experiments/2026-09-12-tiger-proto-evidence/`
 
-| 版 | 6 幀連拍 t1（260ms） | 6 幀連拍 t2（900ms） | 動態（慢動作 GIF） | 動態（原速 WebM） |
+| 版 | 6 幀連拍 t1（當時是 260ms；§6 之後改 300ms 已重出） | 6 幀連拍 t2（900ms） | 動態（慢動作 GIF） | 動態（原速 WebM） |
 |---|---|---|---|---|
 | A | `A/sheet-t1.png` | `A/sheet-t2.png` | `A/biteGamble-tigerA-t1-12fps.gif`、`A/biteGamble-tigerA-t2-20fps.gif` | `A/biteGamble-tigerA-t1-60fps.webm`、`A/biteGamble-tigerA-t2-60fps.webm` |
 | B | `B/sheet-t1.png` | `B/sheet-t2.png` | `B/biteGamble-tigerB-t1-12fps.gif`、`B/biteGamble-tigerB-t2-20fps.gif` | `B/biteGamble-tigerB-t1-60fps.webm`、`B/biteGamble-tigerB-t2-60fps.webm` |
@@ -262,7 +264,7 @@ node tests/tools/duel-perf.mjs perf scratchpad/perf-base.json --root=scratchpad/
 
 ---
 
-## 6. 我看到還粗的地方（誠實清單）
+## 5b. 我看到還粗的地方（A／B／C；D 版另見 §7.9）
 
 1. **`seal` 的剪影本身就像一塊招牌**：方印身（寬 1.56 × 高 0.75）＋頂上一個小印鈕，
    在任何角度都接近「掛牌／價標」。這是 `js/trait-fx/emblems.js` 的凍結頂點表，
@@ -279,7 +281,280 @@ node tests/tools/duel-perf.mjs perf scratchpad/perf-base.json --root=scratchpad/
 
 ---
 
-## 7. 範圍（`git diff --stat`）
+---
+
+# 追加（2026-09-12 晚）：tier 1 改 300ms ＋ D 版
+
+## 6. tier 1 短版 260ms → 300ms（凍結檔 §2.1 修訂，使用者裁定）
+
+### 6.1 改了哪一處
+
+| 檔 | 改動 | 性質 |
+|---|---|---|
+| `index.html:4327` | `PW_FX.TRAIT_MS_BY_TIER:{1:260→300,2:900,3:1400}` | **單一事實來源**（runtime 唯一一處） |
+| `tests/tools/fx-consts.mjs:14` | `TRAIT_MS_BY_TIER = { 1: 300, … }` | **鏡像常數**——該檔檔頭自己寫「要新的數值就改 index.html，這裡跟著改」，而 `assertPageConsts()` 每次跑治具都把兩邊逐鍵比對、不一致就 throw。不同步改的話所有治具當場停 |
+| `tests/fxvocab.test.mjs:88` | 禁止字面值清單 `['260','900','1400']` → `['260','300','900','1400']` | **鏡像常數，且處置是加嚴**：這一列列的是「PW_FX 現在有哪些值」，跟著單一來源走；把 300 加進去而**不拿掉 260**，是嚴格的超集合——沒有任何一份實作會因為這一行變得比較容易過 |
+| `js/trait-fx/vocab.js:32` | 註解 `短版 → 90／180／240` 改 `104／208／277` | 純註解（`BEAT_FRAC` 是**比例**不是毫秒，一個數字都沒動；切點自己跟著時長走） |
+
+**驗證權威**：`git show origin/main:docs/experiments/2026-09-10-acceptance-fx-tiers.md` 的
+「§2.1 修訂（2026-09-12 晚，使用者裁定「直接做 300，確保動作都讀得到」）」一節，
+內含「原標準錯在哪／為什麼現在才知道／使用者針對本條明確同意」三項（`02 §2.1` 要求的程序）。
+我沒有合併 main，只用 `git show` 讀 remote ref 核對原文。
+
+**沒有別的地方寫死 260**：`grep -rn "260" tests/ js/ index.html` 的其餘命中全是註解、
+無關的數字（`20260912` 種子、`waitForTimeout(2600)`、`burstPool`）或說明文字，逐條看過。
+
+### 6.2 `trace-eq`：改了 index.html，引擎仍逐位元組相等
+
+```
+node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html
+{"old":"scratchpad/base-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+```
+
+這一次 `index.html` **真的動了一格**（前面幾節那次是零 diff、這條恆真），所以這個綠燈這回有內容：
+它證明 `TRAIT_MS_BY_TIER` 是純演出常數，引擎的 `trace()` 讀不到它。
+
+### 6.3 ★27 支既有短版在 300 下：4 綠 / 23 紅★
+
+```
+node tests/tools/traitfx-drive.mjs scratchpad/t300-t1.json --tier=1
+4/27 pass · 重複簽章 0
+```
+
+**23 支全部只紅在同一項：`fillOK`**（`sig.horizon / run.ms ≥ 0.85`）。
+其餘每一項——`rateOK`（F2 短版原生合身）、`actionsOK`（F10 品質下限）、`onTime`、`clean`、
+`restored`、`within`、`focus`、`msOK`、`reducedOK`——**27 支全綠，一支都沒紅**。
+
+機制是一句話：**那 23 支的短版時間軸是寫死的絕對毫秒**（`st.tween({ms:80, delay:78})` 這種），
+原生就是照 260 排的；時長變 300 之後它們仍在 222–244ms 收工，**最後 56–78ms 畫面上沒東西在動**。
+另外 4 支綠的（`eliteSelfCut`／`wardImmuneLost`／`biteGamble`／`hauntLost`）正好是 v0.55 批 0
+改寫成走 `st.beat` **比例**的那四支示範招——比例自動跟著 300 走，horizon 264–266、fill 0.88。
+
+**歸因證據（不是本卷的程式碼造成的）**：把**基準樹**（`417b197`，`git archive` 解出來的副本）的
+`PW_FX` 也改成 300 之後跑同一支治具，同樣是 **4/27**，而且 sigdump 與本樹**逐位元組相同**：
+
+```
+node tests/tools/traitfx-drive.mjs … --tier=1 --sigdump=… --root=scratchpad/basetree   → 4/27
+diff scratchpad/sig-base300-t1.tsv scratchpad/sig-new300-t1.tsv                        → 0 行差異
+```
+
+★另一個要講清楚的事實★：`phase gate` 三段在 300 下只有 4 支成立——
+但那 23 支在 **260 下也一樣不成立**（基準樹實測同為 4/27），因為它們**根本沒呼叫 `st.phase()`**
+（批 0 只改寫了 4 支）。**這不是 300 造成的回歸**，不要算進這次的帳。
+
+| 紅的招（23 支，全部只紅 `fillOK`） | horizon(ms) | fill（門檻 0.85） |
+|---|---|---|
+| `eliteOpenShot` | 235 | 0.783 |
+| `wardHpFront2` | 230 | 0.767 |
+| `eliteArmor` | 225 | 0.75 |
+| `wardFirst` | 228 | 0.76 |
+| `boltGamble` | 222 | 0.74 |
+| `swarmHalfSplash` | 230 | 0.767 |
+| `swarmThorn` | 232 | 0.773 |
+| `wardHpAll1` | 230 | 0.767 |
+| `wardAtkAll1` | 226 | 0.753 |
+| `eliteCleave` | 232 | 0.773 |
+| `wardAbsorb4` | 228 | 0.76 |
+| `swarmRally` | 226 | 0.753 |
+| `wardHpFirst` | 227 | 0.757 |
+| `wardRegen1` | 230 | 0.767 |
+| `swarmLastStand` | 231 | 0.77 |
+| `hauntSteal` | 230 | 0.767 |
+| `hauntSee` | 228 | 0.76 |
+| `hauntDread1` | 228 | 0.76 |
+| `hauntSwap` | 228 | 0.76 |
+| `eliteVsSwarm` | 244 | 0.813 |
+| `swarmPierce` | 228 | 0.76 |
+| `hauntFearX2` | 228 | 0.76 |
+| `swarmFeed1` | 230 | 0.767 |
+
+**沒有動它們，也沒有動判準**（`fillOK` 的 0.85 一個字元沒改）。回修歸各批：
+批 1 祖靈 9 支、批 2 香火 8 支（`biteGamble` 已綠）、批 3 陰氣 8 支（`hauntLost` 已綠）——
+每一支的修法都一樣：把絕對毫秒換成 `st.beat` 的比例，與那四支示範招同一個做法。
+
+### 6.4 其餘測試
+
+```
+node tests/fxtier.test.mjs           → 14 綠 ／ 0 紅
+node tests/fxvocab.test.mjs          → 15 綠 ／ 0 紅
+node tests/emblem-collision.test.mjs → 9 綠 ／ 0 紅
+node tests/review.test.mjs           → 通過 28　失敗 0
+node tests/nightrules.test.mjs       → 16 綠 ／ 0 紅
+node tests/duel-desync.test.mjs      → 7 綠 ／ 0 紅
+node tests/lineup-order.test.mjs     → 8 綠 ／ 0 紅
+node tests/legend.test.mjs           → 32 過 / 0 失敗
+node tests/aistake.test.mjs          → 通過 8　失敗 0
+node tests/conscap.test.mjs          → 通過 5　失敗 0
+node tests/roles-balance.test.mjs    → 32 過 / 0 失敗
+node tests/wish16.test.mjs           → PASS=36 FAIL=0
+node tests/tools/traitfx-drive.mjs … --tier=2  → 30/30 pass（完整版不受影響）
+node tests/tools/traitfx-drive.mjs … --tier=3  → 3/3  pass
+```
+
+---
+
+## 7. D 版（`?proto=tigerD`）
+
+### 7.1 它是什麼
+
+C 的華麗（金箔顆粒流、咬中炸金色紙錢、印文由暗燒成硃紅）
+＋ B 的落地重音（大印砸落、落地震動、香火貼桌陣、彈起留印文）。
+
+兩個和 B 不一樣的作法：
+
+1. **印面朝下與讀得到兼顧**：大印的俯仰角**逐幀算**（`pitchTo()`，不是 `paperStamp` spawn 當下凍住的固定值）：
+   橫移 8°→22°、砸落 22°→38°（印面朝下、仍有 52° 面對著鏡頭）、
+   落地**前 2 幀拉回 4°＝正面對鏡頭**（「蓋章那一格」），之後才彈起淡出。
+2. **金箔走 `InstancedMesh`**：九片＝**1 個 draw call**（C 版是九個各自的 `Mesh`，那正是 C 貴在哪）。
+   逐片出場的錯開改用「縮放從 0 長出來」做。
+
+### 7.2 ★t1（300ms）的落印拍佔幾 ms——交裁★
+
+實測時間軸（`js/trait-fx/proto/tiger.js` 的具名切點 × `BEAT_FRAC[1]` × 300）：
+
+| 段 | t1（300ms） | 幀數 @60fps | t2（900ms） |
+|---|---|---|---|
+| 蓄勢（蹲伏＋大印浮現＋金箔長出） | 0–81.1ms | 4.9 | 0–234ms |
+| 大印橫移到獵物頭頂 | 81.1–140.4ms（59.3ms） | 3.6 | 234–391ms |
+| **大印砸落（印面朝下 22°→38°）** | **140.4–208ms（67.6ms）** | **4.1** | 391–560ms（169ms） |
+| **正面亮相（印面轉正 38°→4°）** | **208–241ms（33.0ms）** | **2.0** | 560–630ms（69.6ms） |
+| 大印彈起淡出 | 241–264ms（23.0ms） | 1.4 | 630–792ms |
+| **印文由暗燒成硃紅**（與上兩段重疊） | **208–255.6ms（47.6ms）** | **2.9** | 560–757ms（197ms） |
+| **落印拍合計（砸落起 → 燒完）** | **140.4–255.6ms ＝ 115.2ms（佔 38.4%）** | **6.9** | 391–757ms（366ms） |
+
+**我認為需要多少**：這一拍要送出**三件資訊**，每件至少 3 幀（50ms）才會被眼睛登記——
+① 印面朝下砸下來 ② 正面亮相（「蓋章」那一格）③ 印文燒紅。
+現在只有 ①（4.1 幀）勉強夠，② 只有 **2.0 幀**、③ 2.9 幀，都在下限之下。
+**需要約 184ms（砸落 68 ＋ 正面 58 ＋ 燒印 58），比現在多 ~70ms。**
+
+兩條路，**都交裁、我沒有自己選**：
+
+| 選項 | 做法 | 代價 |
+|---|---|---|
+| 甲 | t1 再從 300 → **370ms** | 每場對決再 +7%；且又要動單一來源＋27 支重跑一次 |
+| 乙 | **砍掉「橫移」那 59.3ms**：大印不從虎頭出發，直接在獵物頭頂上方生成 | 省下的 59ms 剛好補上缺口，t1 不必再動；代價是「這枚印是虎爺的」少了一個鏡頭語言（印不再從虎身上出來），要靠色票與金箔流承擔 |
+
+**現況（本卷交付的這一版）走的是「300ms、落印拍 115ms」**——三拍都在、但 ②③ 偏短。
+連拍 `D/sheet-t1.png` 的第 5 格就是那 2 幀的正面亮相，讀得到；動態要放慢 5 倍（12fps GIF）才看得清。
+
+### 7.3 機械驗收
+
+```
+node tests/tools/traitfx-drive.mjs scratchpad/Dfin-t1.json --only=biteGamble --tier=1 --proto=tigerD
+PASS biteGamble  tiger  t1/300ms msOK=true rate=1 fill=0.88 acts=16 handled=true alive=true restored=true
+                        onTime=true clean=true focus=true end=29 maxD=2.3108 err=0 prog+0
+                        sig=28b/burst+emblem:seal+foil+mark:seal+ring/T
+node tests/tools/traitfx-drive.mjs scratchpad/Dfin-t2.json --only=biteGamble --tier=2 --proto=tigerD
+PASS biteGamble  tiger  t2/900ms … fill=0.88 acts=16 … err=0 prog+0（同一組簽章）
+```
+
+phase gate（門檻 windupBone 0.08／windupModel 0.04／travel 0.40×距離／react 0.03）：
+
+| 跑 | phases | windup bone／model | travel 位移／門檻 | react delta |
+|---|---|---|---|---|
+| D t1 | windup,travel,react | 0.2627／0.0724 | 2.2964／1.2481 | 0.3321 |
+| D t2 | windup,travel,react | 0.1048／0.0289 | 1.6902／1.2481 | 0.1250 |
+
+（B 那個「餘裕只剩 0.003」的教訓照樣適用：D 的蹲伏幅度是 **0.85**，不是踩線的 0.45，
+t2 的 windup bone 量到 0.1048，對門檻 0.08 有 0.025 的餘裕。）
+
+### 7.4 視覺迴圈（三輪）
+
+#### 第 1 輪
+**看圖**：`scratchpad/rec-D/montage.png`（t1 逐幀 11 格）。
+**發現**：① 砸落全程大印被壓成一根窄條（俯仰 30°→46° 疊上機位本身 24° 的俯角）；
+② 落地峰值 1.16×iconSize（≈0.72 世界單位）整個蓋住獵物，反而看不到「誰被蓋印」。
+**修**：俯仰改 22°→38°；落地峰值 1.16→0.96。
+
+#### 第 2 輪
+**看圖**：`scratchpad/rec-D/zoom-land.png`（落地四格 2× 放大）。
+**發現**：大印是**一塊沒有字的金磚**——鎏金 `#ffc21e` 越過 bloom 門檻（`js/renderer.js` `BLOOM.threshold 0.7`）
+之後往白色去，光暈半徑比筆畫還寬，把 ink 色的字整個吃掉；把字加粗到 `w 0.40` 仍然吃不住。
+**修**：不是調 bloom（`ART_BIBLE §8` 明寫那個一動整張牌桌要重驗），是**換配置**——
+印面＝ink 暗底（留得住細節）、印身與厚度＝鎏金（遠看認得出是金印）、字＝鎏金（會發光的那個才是主角）。
+這剛好也是實體印章的樣子：金邊、暗印面、陽刻的字。
+
+#### 第 3 輪
+**看圖**：`scratchpad/rec-D/zoom-land.png` 第 2 版，仍看不到字。
+**量**（不用猜的）：`window.__tfx.fxDump()` 補了「複合物逐片列色與三角形數」之後，探針印出
+
+```
+emblem:seal[… kids=[{"c":"#ffc21e","tris":36},{"c":"#2a1004","tris":8},{"c":"#ffc21e","tris":20}]]
+```
+
+三片都建出來了、`visible` 全 true、`opacity` 全 1——**字不是沒畫，是印身在螢幕上只有 ~18px 高**
+（`seal` 的方印身是 1.56×0.75 的扁框，整枚只有 0.48 世界單位）。
+**修**：字面跟著印身的比例拉寬壓扁（`w 0.52／h 0.25`）、落地峰值 0.96→1.05。
+**再看**：`scratchpad/rec-D/zoom2.png` —— 大印的金字與獵物身上那枚硃紅印文的「虎」都讀得出來。
+
+### 7.5 印面字：「王」→「虎」（A／B／C 一併換）
+
+`js/trait-fx.js` 的 `o.glyph` 從四畫的「王」換成十畫的「虎」（虍＋几，矩形拼筆）。
+仍然是 **N 個 shape 合成一個 `ShapeGeometry`**，所以不論幾畫都只多一個 draw call（實測 20 個三角形）。
+A／B／C 的印文一併換掉，連拍與 t2 GIF 都重出（GIF 檔名帶 `-hu`）。
+
+**誠實話**：在 780×360 的格子上，這枚印讀得到的是「**印上刻著一個字**」，
+不是「這個字是虎」——`seal` 的方印身是 2:1 的扁框，十畫的字塞進去每一筆只有 1–2px。
+要真的讀出「虎」得改 `js/trait-fx/emblems.js` 的 `seal` 頂點表（印身改接近正方），那是批 0 的凍結表。
+
+### 7.6 效能（`proto-record`，量整幀；idle 151 calls / 50,664 tris）
+
+| 版 | 招式峰值 draw call | 增量 | 峰值三角形 | shader program（idle → 峰值） |
+|---|---|---|---|---|
+| 0.55 現況 | 161 | +10 | 50,728 | 19 → 19 |
+| A | 158 | +7 | 50,792 | 19 → 19 |
+| B | 166 | +15 | 51,080 | 19 → 19 |
+| C | 176 | +25 | 50,828 | 19 → 19 |
+| **D** | **168** | **+17** | 51,116 | **19 → 21** |
+
+**D 的 168 ≤ C 的 176 ✅**（目標達成）：D 比 C 多了「大印＋貼桌陣」共 4 個物件，
+但九片金箔由 9 個 draw call 收斂成 1 個，淨值仍比 C 低 8。
+
+**★D 的 program 19→21 要講清楚★**：`InstancedMesh` 在 three 是另一支 shader 變體（`USE_INSTANCING`），
+演出中當場編、演完又釋放——所以 `traitfx-drive` 的 `programsGrew`（比的是演出前後）看不到它，讀數仍是 0。
+**這是既有狀況，不是 D 帶進來的**：現況的魔神仔紅帽 `hauntLost`（`js/trait-fx/yinqi.js:150` 走 `st.icons`）
+實測同樣是 **20 → 22**。試修過（比照另外三支材質模板常駐一顆 0.01² 的 instanced 暖身物件），
+確實讓 idle 與峰值相等（D 23→23、hauntLost 24→24，不再當場編），
+**代價是常駐 +4 支 program、+2 draw call**——那是產品層的取捨（手機少一次編譯停頓 vs 每幀多兩個 call），
+**交裁，沒有把它夾在原型卷裡改**（量到的數字與取捨留在 `js/trait-fx.js` 暖身區的註解裡）。
+
+### 7.7 等價性（sigdump：本卷的程式碼有沒有動到別的招）
+
+★關鍵設計★：`260→300` 是**裁定的常數**，`js/trait-fx.js` 的新積木是**本卷的程式碼**。
+要分開這兩個變數，比對的兩棵樹就得**常數相同、只有程式碼不同**——
+所以把量測用的基準樹副本（`scratchpad/basetree`）的 `PW_FX` 也改成 300。
+
+```
+diff scratchpad/sig-base300-t2.tsv scratchpad/sig-new300-t2.tsv   → 0 行差異（30/30 pass 兩邊都是）
+diff scratchpad/sig-base300-t1.tsv scratchpad/sig-new300-t1.tsv   → 0 行差異（4/27 pass 兩邊都是）
+```
+
+鑑別力（同一支治具帶 `--proto=` 時 diff 只吐 biteGamble 一行）前面已驗過，仍然成立。
+
+### 7.8 交付檔案
+
+| 版 | 連拍 t1 | 連拍 t2 | 慢動作 GIF | 原速 WebM |
+|---|---|---|---|---|
+| **D** | `D/sheet-t1.png` | `D/sheet-t2.png` | `D/biteGamble-tigerD-t1-12fps.gif`、`D/biteGamble-tigerD-t2-20fps.gif` | `D/biteGamble-tigerD-t1-60fps.webm`、`D/biteGamble-tigerD-t2-60fps.webm` |
+| A（換虎字） | `A/sheet-t1.png` | `A/sheet-t2.png` | `A/biteGamble-tigerA-t2-hu-20fps.gif` | 沿用 `A/biteGamble-tigerA-t*-60fps.webm` |
+| B（換虎字） | `B/sheet-t1.png` | `B/sheet-t2.png` | `B/biteGamble-tigerB-t2-hu-20fps.gif` | 同上 |
+| C（換虎字） | `C/sheet-t1.png` | `C/sheet-t2.png` | `C/biteGamble-tigerC-t2-hu-20fps.gif` | 同上 |
+
+A／B／C 的 `sheet-t*.png` 都已用「虎」字＋300ms 重出（連拍只保留最新那一份，所以檔名沒加 `-hu`）。
+`base/` 底下是 0.55 現況的對照，維持 260ms 那一版不動——它的用途就是「改之前長什麼樣」。
+
+### 7.9 D 版我看到還粗的地方
+
+1. **正面亮相只有 2 幀**（見 §7.2），t1 上「蓋章那一格」是踩在下限上的。
+2. **「虎」字在 t1 的印身上只讀得到「有個字」**（見 §7.5），要真的讀出字得改凍結的 `seal` 頂點表。
+3. **大印落地時會擋住獵物上半身 1–2 幀**（峰值 1.05×iconSize ≈ 0.65 世界單位）。印文在它前面、讀得到，但構圖上是壓著的。
+4. **金箔在撲出的頭 3 幀會穿過虎身**（`depthTest` 讓它們忽隱忽現）——要修得把生成點往鏡頭方向推，或改成撲出**之後**才生。
+5. **InstancedMesh 的 shader 當場編**（見 §7.6），已量到、已寫明取捨、未修。
+6. §5b 那七條對 D 一樣成立：受招方只能等比壓縮、滿編時只有一尊在動、沒跑盲讀。
+
+---
+
+## 8. 範圍（`git diff --stat`）
 
 完整輸出見 §4.5（程式碼與治具）；證據目錄另有 28 個檔（6 張連拍、6 段 GIF、6 段 WebM、8 份逐幀 record.json、2 段現況對照 GIF）。動到的**程式碼／治具**只有六個檔：
 
@@ -299,7 +574,7 @@ node tests/tools/duel-perf.mjs perf scratchpad/perf-base.json --root=scratchpad/
 
 ---
 
-## 8. 製作人要裁的三題
+## 9. 製作人要裁的題
 
 | # | 題目 | 我的看法（不是建議答案，這是品味題） |
 |---|---|---|
