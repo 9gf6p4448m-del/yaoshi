@@ -222,10 +222,12 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
    ★分母（動手前 grep 數出來，不憑印象；指令與輸出在 docs/experiments/2026-09-12-size-guard-evidence/）★
    `js/trait-fx/` 下除 vocab.js 外的全部 .js（目前 4 個：emblems／xianghuo／yinqi／zuling），去註解後——
      `size:` 這個鍵                      **0 處**
-     `.scale.setScalar(`                  **73 處**（收斂前 78 處裡有 5 處是徽記，已全部改走 st.iconScale）
+     `.scale.setScalar(`                  收斂前 **73 處** → 收斂後 **68 處**（差的 5 處就是徽記，已改走 st.iconScale）
      `.scale.set(`／`.multiplyScalar(`／`.scale.[xyz]=`／`.copy(` 等   **各 0 處**
-   73 處全部是 23 支未改招的 ring／disc／orb／光球縮放，**不是**本條要防的危險效果
+   剩下的 68 處全部是 23 支未改招的 ring／disc／orb／光球縮放，**不是**本條要防的危險效果
    （徽記 mesh 一個都不在裡面——那正是收斂之後應有的狀態）。
+   本測試自己印的分母（去註解後、`X.scale` 的成員／索引／賦值寫法）＝ **74 處**，與上面的 grep
+   不同口徑（grep 含註解、只數 setScalar），兩份都貼在證據目錄裡。
    `st.icon(`／`st.icons(`／`st.mark(` 的呼叫點 **8 處**（4 支示範招），
    `st.iconScale(` 的呼叫點 **5 處**（＝收斂前那 5 處直接縮放）。
 
