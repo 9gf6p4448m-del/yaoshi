@@ -10,7 +10,7 @@
  */
 
 /** 招式演出時長（ms）：1＝一般拍短版／2＝擊殺拍或決定性最後一拍（完整版）／3＝三尊大招 */
-export const TRAIT_MS_BY_TIER = { 1: 260, 2: 900, 3: 1400 };
+export const TRAIT_MS_BY_TIER = { 1: 300, 2: 900, 3: 1400 };
 
 /** 拍末等待下限（ms），依該拍的 tier */
 export const BEAT_MIN_MS_BY_TIER = { 1: 300, 2: 900, 3: 1400 };

@@ -209,6 +209,41 @@ window.__tfx = {
    *  每次載入都從同一點重來（同一組參數兩次跑出來的 metrics 逐位數相同＝實測的決定性證據）。 */
   seed: FX_SEED0,
   render() { render(); return renderer.info.programs ? renderer.info.programs.length : -1; },
+  /** 虎爺印原型卷（2026-09-12）：畫一幀並回報**整幀**的 draw call／三角形數。
+   *  autoReset 預設 true 會讓 info 只留最後一趟（bloom 的合成 pass＝1 call），量到的不是整幀——
+   *  同 duel-perf.mjs 的作法：自己關掉 autoReset、reset 之後再畫。純唯讀診斷，不動任何判定。 */
+  renderMeasured() {
+    renderer.info.autoReset = false; renderer.info.reset();
+    render();
+    const r = renderer.info.render;
+    const out = { calls: r.calls, tris: r.triangles, programs: renderer.info.programs ? renderer.info.programs.length : -1 };
+    renderer.info.autoReset = true;
+    return out;
+  },
+  /** 虎爺印原型卷（2026-09-12）唯讀診斷：場上每個 fxKind 物件的世界座標／縮放／透明度／有沒有進畫面。
+   *  「看不到那枚印」有四種成因（出框／被遮／透明度 0／縮放太小），靠截圖分不出是哪一種。 */
+  fxDump() {
+    const out = [];
+    const p = new THREE.Vector3();
+    const proj = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    scene.traverse((o) => {
+      const k = o.userData && o.userData.fxKind;
+      if (!k) return;
+      o.getWorldPosition(p);
+      const ndc = p.clone().applyMatrix4(proj);
+      const parts = (o.userData.fxParts) || (o.material ? [o] : []);
+      out.push({ kind: k, vis: o.visible, x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3),
+        ndcX: +ndc.x.toFixed(2), ndcY: +ndc.y.toFixed(2), scl: +o.scale.x.toFixed(3),
+        op: parts.length ? +parts.map((q) => q.material.opacity).reduce((a, b) => Math.max(a, b), 0).toFixed(2) : null,
+        // 複合物（st.paperStamp 是 Group：本體／印面／字）逐片列色與三角形數——
+        // 「印面上看不到字」有「沒建出來／被蓋住／顏色被 bloom 吃掉」三種成因，截圖同樣分不出來
+        kids: o.children.filter((c) => c.material).map((c) => ({
+          t: c.type, c: '#' + c.material.color.getHexString(), op: +c.material.opacity.toFixed(2), vis: c.visible,
+          tris: c.geometry && c.geometry.index ? c.geometry.index.count / 3 : (c.geometry && c.geometry.attributes.position ? c.geometry.attributes.position.count / 3 : 0),
+        })) });
+    });
+    return out;
+  },
   sig() { return traitFx.lastSig(); },
   stats() { return Object.assign({}, traitFx.stats); },
   programs() { return renderer.info.programs ? renderer.info.programs.length : -1; },

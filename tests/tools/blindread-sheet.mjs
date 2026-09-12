@@ -54,6 +54,9 @@ export const SHEET = { w: CELL.w * 2, h: CELL.h * 3 }; // 1560×1080
 const SHOT = { width: 844, height: 390 }; // CSS 視口＝手機橫式（不得改成 2× 像素視口，理由見上）
 const SHOT_DSF = 2; // 超取樣倍率：像素緩衝 1688×780
 const FIRE_AT = 12;
+// --proto=tigerA|tigerB|tigerC（虎爺印原型卷 2026-09-12）：**純轉送**給治具頁；
+// 幀位（FRAME_AT）、格寬、視口、匿名混洗一律不動——那些才是這支治具的判準。
+let PROTO = '';
 
 function parseArgs(argv) {
   const pos = []; const opt = {};
@@ -93,7 +96,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -144,6 +147,7 @@ async function main() {
   const dt = parseFloat(opt.dt || (1000 / 60));
   const seed = parseInt(opt.seed || '20260912', 10);
   const tiers = String(opt.tiers || '1,2').split(',').map((x) => parseInt(x, 10));
+  PROTO = String(opt.proto || '');
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assertPageConsts(pageConstsFromHtml(html));
   let cases = casesFromIndex(html).filter((c) => !c.legend);

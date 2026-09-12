@@ -68,6 +68,16 @@ export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short
 /** 這一次載入跑的是哪一版（治具／診斷用；遊戲一行都不讀它）。 */
 export const FX_VOCAB_ON = VOCAB_ON;
 
+/* ★虎爺印原型卷（2026-09-12）★：`?proto=tigerA|tigerB|tigerC` 把 biteGamble 換成三個候選原型之一。
+   **不帶參數＝現況，一個位元組都不變**（下面的 if 整段不執行）。原型檔獨立在 js/trait-fx/proto/，
+   載不到就維持現況（原型是給製作人挑的實驗品，不得有能力弄壞正式演出）。
+   登記點放這裡而不是 xianghuo.js：那支檔是 27 支正式招的落點，實驗品混進去下一卷就分不出誰是正式版。 */
+const FX_PROTO = (() => { try { return new URLSearchParams(location.search).get('proto') || ''; } catch (e) { return ''; } })();
+if (/^tiger[ABCDE]$/.test(FX_PROTO)) {
+  const P = await import('./trait-fx/proto/tiger.js' + V).then((m) => m.PROTOS, () => null);
+  if (P && typeof P[FX_PROTO] === 'function') { TRAIT_MOVES.biteGamble = P[FX_PROTO]; TRAIT_MOVES_SHORT.biteGamble = P[FX_PROTO]; }
+}
+
 // 全部【試玩必調】
 export const TFX = {
   fuseMul: 2, // 保險絲：演出最長 ms×fuseMul
@@ -503,6 +513,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   // v0.55：第三支模板照樣預熱（就算它與 MAT_GLOW 共用 program，NormalBlending 這條 state 路徑
   // 第一次畫時仍可能讓 renderer 補編 transparent 佇列；成本是常駐一個 0.01² 的 plane）
   const warmSolid = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), MAT_SOLID);
+  /* ★2026-09-12 量到但**刻意不修**的一件事（原型卷不夾帶產品層變更）★
+     three 對 instancing 是另一支 shader 變體（USE_INSTANCING），不是同一支 program。
+     實測（tests/tools/proto-record.mjs）：**現況**的魔神仔紅帽 hauntLost（`js/trait-fx/yinqi.js:150`
+     走 `st.icons` ⇒ InstancedMesh）在演出中 program 由 20 跳到 22、演完又掉回去——
+     所以 traitfx-drive 的 `programsGrew`（比的是演出前後）看不到它，但玩家第一次看到那一招時
+     那兩支 shader 是**當場編的**。這是既有狀況，不是虎爺印原型帶進來的。
+     試修過：比照另外三支模板常駐一顆 0.01² 的 instanced 暖身物件，確實讓 idle 與峰值的 program 數
+     相等（D：23→23、hauntLost：24→24，不再當場編），**代價是常駐 +4 支 program、+2 draw call**。
+     那是產品層的取捨（手機上少一次編譯停頓 vs 每一幀多兩個 call），交裁，不夾在原型卷裡改。 */
   warmMesh.frustumCulled = false; warmLine.frustumCulled = false; warmPts.frustumCulled = false; warmSolid.frustumCulled = false;
   warm.add(warmMesh, warmLine, warmPts, warmSolid);
   warm.position.y = -30; // 桌面底下、鏡頭永遠看不到
@@ -761,6 +780,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /* ── mesh ── */
       glow(color, opacity) { const m = MAT_GLOW.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       lineMat(color, opacity) { const m = MAT_LINE.clone(); m.color.setHex(color === undefined ? st.color : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
+      /** 實心（非加色）材質，給「要留得住系色」的紙紮小物用（金箔片、紙錢、印文本體）。
+       *  加色的東西一越過 bloom 門檻就往白色去——ART_BIBLE §10.2 第 5 條的機制成因。 */
+      solid(color, opacity) { const m = MAT_SOLID.clone(); m.color.setHex(color === undefined ? st.colors.key : color); m.opacity = opacity === undefined ? 1 : opacity; return m; },
       // userData.fxKind 是 L3 對比閘門的抓手：fx-contrast 只准切徽記／拖尾／印記的 visible，其餘一切不動
       spawn(obj, kind) { const k = kind || 'mesh'; run.sig.meshes.add(k); obj.userData.fxKind = k; scene.add(obj); run.meshes.push(obj); return obj; },
       /** 貼桌面的環（RingGeometry），中心在 pos（世界座標） */
@@ -1023,6 +1045,123 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         //   刪掉會讓 L1 的「tier 1／2 都要有 emblem」在這種招上假綠。
         run.sig.meshes.add('mark:' + kind);
         mesh.userData.fxKind = 'mark:' + kind;
+        run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
+        touch(fig);
+        return mesh;
+      },
+      /** ★紙紮印文（2026-09-12 虎爺印原型卷）★：有厚度、有墨線邊、微翹曲的一枚**實體**印，
+       *  取代「平面單色 billboard 貼在紙紮 3D 上」那種剪貼畫感（製作人對 0.55 徽記剪影的判定）。
+       *
+       *  與 st.icon／st.mark 的三個差別：
+       *    ① **不是 billboard**：朝向在 spawn 當下凍住（鏡頭方向＋固定俯仰／偏擺），之後只跟著位置走，
+       *       所以轉頭看得到它的厚度側邊——逐幀正對鏡頭正是「貼紙」的成因。
+       *    ② **有厚度**：`ExtrudeGeometry` 擠出 ink 色的本體，正面再疊一片縮小的 key／hot 色面板，
+       *       露出來的那一圈 ink 就是墨線描邊（ART_BIBLE §10.1 徽記材質「MAT_SOLID 實心本體＋描邊」）。
+       *    ③ **翹曲**：頂點依 x²／y 微幅推 z，紙不是平的。
+       *  材質仍是 MAT_SOLID.clone()（NormalBlending、平塗硬邊＝ART_BIBLE §9「紙」的三件幾何訊號之一），
+       *  與現有三支模板共用 program（programsGrew 維持 0）。
+       *
+       *  o = { role:'mark'|'stamp', color, inkColor, opacity, depth, warp, tiltDeg, yawDeg, roll,
+       *        follow:figure, at:'chest'|'top'|'foot', off:Vector3 }
+       *  尺寸同樣**不在 o 裡**（傳 o.size 會 throw）：role==='stamp' 走 ICON.sizeOf、否則 ICON.markSizeOf。 */
+      paperStamp(kind, pos, o = {}) {
+        const size = iconSizeSrc('st.paperStamp', kind, o, o.role === 'stamp' ? ICON.sizeOf(kind) : ICON.markSizeOf(kind));
+        const op = o.opacity === undefined ? 1 : o.opacity;
+        const spec = EMBLEMS.EMBLEM[kind];
+        if (!spec) throw new Error(`st.paperStamp: 沒有 kind="${kind}"（合法值見 js/trait-fx/vocab.js 的 EMBLEM_OF）`);
+        const flat = Array.isArray(spec) ? spec : spec.o;
+        const toPts = (arr) => { const p = []; for (let i = 0; i < arr.length; i += 2) p.push(new THREE.Vector2(arr[i], arr[i + 1])); return p; };
+        const shape = new THREE.Shape(toPts(flat));
+        if (!Array.isArray(spec) && spec.h) shape.holes.push(new THREE.Path(toPts(spec.h)));
+        const depth = o.depth === undefined ? 0.18 : o.depth; // 單位方座標；乘 size 後 ≈0.03–0.11 世界單位
+        const warp = o.warp === undefined ? 0.14 : o.warp;
+        const bow = (g) => { // 紙的翹曲：同一條曲線同時套在本體與面板上，兩片才貼得住
+          const p = g.attributes.position;
+          for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) + warp * (p.getX(i) * p.getX(i) * 0.8 - 0.28 + p.getY(i) * 0.10));
+          p.needsUpdate = true;
+        };
+        const gBody = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1, steps: 1 });
+        gBody.translate(0, 0, -depth / 2);
+        bow(gBody);
+        const gFace = new THREE.ShapeGeometry(shape); // 自己建一份：EMBLEMS.geomOf 是全場共用的，不能拿來改頂點
+        gFace.scale(0.74, 0.74, 1); // 縮一圈 → 露出來的 ink 本體就是描邊（第 3 輪：0.80 的邊太細，遠看沒有「墨線」）
+        gFace.translate(0, 0, depth / 2 + 0.012);
+        bow(gFace);
+        const mBody = new THREE.Mesh(gBody, MAT_SOLID.clone());
+        mBody.material.color.setHex(o.inkColor === undefined ? st.colors.ink : o.inkColor);
+        mBody.material.opacity = op;
+        const mFace = new THREE.Mesh(gFace, MAT_SOLID.clone());
+        mFace.material.color.setHex(o.color === undefined ? st.colors.key : o.color);
+        mFace.material.opacity = op;
+        const grp = new THREE.Group();
+        grp.add(mBody, mFace);
+        /* o.glyph：印面上的字（ink 色）。沒有它的話，一枚 0.2–0.5 世界單位的印在 780×360 上
+           只是一塊紅色色塊——「有厚度的紅色塊」和「印」之間差的就是這幾筆。
+           ★2026-09-12 製作人裁定：字一律是「虎」★（原型第一版寫的是「王」，是虎額上那個字，
+           但那不是虎爺**印**上會刻的東西；印上刻的是神名）。
+           筆畫全部用矩形拼，N 個 shape 合成**一個** ShapeGeometry（ShapeGeometry 吃 shape 陣列），
+           所以不論幾畫都只多一個 draw call。 */
+        let mGlyph = null;
+        if (o.glyph) {
+          /* 字面**要落在縮小後的印面之內**。seal 的方印身 y∈[-0.90,-0.15]，印面又縮了 0.74
+             ⇒ 實際可寫字的範圍約 y∈[-0.67,-0.11]；cy −0.40／h 0.22 剛好落在裡面。 */
+          const g = o.glyph === true || typeof o.glyph === 'string' ? { cx: 0, cy: -0.40, w: 0.30, h: 0.22 } : o.glyph;
+          /* 「虎」的筆畫表，座標是**字框的單位方** [-1,1]²（右手 y 朝上），由上面的 cx/cy/w/h 映到印面。
+             結構＝虍（上）＋几（下）：
+               ① 左上短豎 ② 長橫 ③ 左長豎（厂的撇拉直，低多邊形不做曲線）
+               ④ 內上橫 ⑤ 中短豎 ⑥ 內下橫 ⑦ 右豎鉤 ⑧ 左下腳（儿左）⑨ 右下腳底
+             九畫在 780×360 的格子上仍是「一個方塊字」而不是符號，這是要的效果——
+             讀者要讀出的是「印上刻著字」，不是逐筆辨認。 */
+          const HU = [
+            [-0.56, 0.60, -0.32, 1.00], // ① 左上短豎
+            [-0.90, 0.34, 0.64, 0.56], // ② 長橫
+            [-0.90, -0.62, -0.66, 0.56], // ③ 左長豎
+            [-0.42, 0.00, 0.64, 0.20], // ④ 內上橫
+            [-0.12, 0.00, 0.10, 0.42], // ⑤ 中短豎
+            [-0.42, -0.40, 0.84, -0.20], // ⑥ 內下橫
+            [0.60, -0.40, 0.84, 0.20], // ⑦ 右豎鉤
+            [-0.34, -1.00, -0.10, -0.40], // ⑧ 左下腳
+            [0.60, -1.00, 0.84, -0.40], // ⑨ 右下腳
+            [0.24, -1.00, 0.84, -0.80], // ⑨b 右下腳底（几的橫折）
+          ];
+          const rect = (x0, y0, x1, y1) => new THREE.Shape([new THREE.Vector2(x0, y0), new THREE.Vector2(x1, y0), new THREE.Vector2(x1, y1), new THREE.Vector2(x0, y1)]);
+          const shapes = HU.map(([x0, y0, x1, y1]) => rect(g.cx + x0 * g.w, g.cy + y0 * g.h, g.cx + x1 * g.w, g.cy + y1 * g.h));
+          const gg = new THREE.ShapeGeometry(shapes);
+          gg.translate(0, 0, depth / 2 + 0.022);
+          bow(gg);
+          mGlyph = new THREE.Mesh(gg, MAT_SOLID.clone());
+          mGlyph.material.color.setHex(o.glyphColor === undefined ? (o.inkColor === undefined ? st.colors.ink : o.inkColor) : o.glyphColor);
+          mGlyph.material.opacity = op;
+          grp.add(mGlyph);
+        }
+        grp.scale.setScalar(size);
+        if (pos) grp.position.copy(pos);
+        // 朝向凍在 spawn 當下：大致朝鏡頭，再壓一個俯仰與偏擺讓厚度側邊露出來（不逐幀重排＝不是 billboard）
+        grp.quaternion.copy(camera.quaternion);
+        grp.rotateX(-THREE.MathUtils.degToRad(o.tiltDeg === undefined ? 16 : o.tiltDeg));
+        grp.rotateY(THREE.MathUtils.degToRad(o.yawDeg === undefined ? -24 : o.yawDeg));
+        if (o.roll) grp.rotateZ(o.roll);
+        grp.userData.fxParts = mGlyph ? [mBody, mFace, mGlyph] : [mBody, mFace]; // st.fade／st.alpha 三片一起
+        grp.userData.fxFace = mFace; // 編舞要改面板顏色（例：印文「燒」出來）時的把手
+        st.spawn(grp, (o.follow ? 'mark:' : 'emblem:') + kind);
+        // 同 st.mark 的註解：印記也要留下 'emblem:<kind>'，否則「tier 1／2 都要有 emblem」在只有印記的招上假綠
+        run.sig.meshes.add('emblem:' + kind);
+        run.sig.emblems.add(kind);
+        if (o.follow) st.stick(grp, o.follow, o);
+        return grp;
+      },
+      /** 把一個已 spawn 的物件黏在某尊身上（之後逐幀跟著那個部位走）。
+       *  飛行物**落下來就變成印記**時用它——不然「飛的那一枚」與「留下的那一枚」要各生一份，draw call 加倍。 */
+      stick(mesh, fig, o = {}) {
+        const at = o.at || 'chest', off = o.off || null;
+        const get = (out) => {
+          if (at === 'top') st.top(fig, out);
+          else if (at === 'foot') st.foot(fig, out);
+          else st.worldOf(fig, 'Chest', out);
+          if (off) out.add(off);
+          return out;
+        };
+        get(mesh.position);
         run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
         touch(fig);
         return mesh;
