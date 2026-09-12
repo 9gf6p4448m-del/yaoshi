@@ -610,6 +610,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
            量的是 `mo`——把姿態算進去會讓 react 那條在「施招者自己擺姿勢」時就成立＝恆真。
            所以姿態走 `sta`，由 `apply()` 疊在 `mo` 之上，量測與判定一格不動。 */
         sta: { p: new THREE.Vector3(), r: new THREE.Euler(), s: 1 },
+        /** 施招姿態的**包絡**（覆審 H3）：1＝滿幅、0＝完全收回。由 `st.stance` 註冊的衰減 tween 寫，
+         *  收尾點＝衝擊拍（`react[0]`），與腳下光語彙熄掉的時點同一個。
+         *  ★為什麼要它★：香火 9 支只在 windup 的 tween 裡寫姿態，那條 tween 死掉之後 `w.sta` 會
+         *  **停在滿幅一路撐到收工**——「下沉」的 −0.14 比受益方上抬的 +0.05～0.07 還大，
+         *  畫面上受益方是**往下沉**的（而 `evalPhases` 只量 `w.mo`，量不到，那一格照樣綠）。
+         *  收回這件事不能靠「每支招記得寫一行」，所以做進引擎。 */
+        staK: 1,
       };
       fig.update = (dt) => { restore(w); if (typeof w.origUpdate === 'function') w.origUpdate.call(fig, dt); capture(w); };
       fig.setRim = (op) => w.origSetRim.call(fig, (op === undefined ? 1 : op) * w.rimMul);
@@ -639,10 +646,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     if (w.model) {
       const m = w.model;
-      // 施招姿態（sta）疊在編舞的 model 覆寫（mo）之上，兩條通道互不覆寫（見 wrapFig 的註解）
-      m.position.copy(w.base.p).add(w.mo.p).add(w.sta.p);
-      m.rotation.set(w.base.r.x + w.mo.r.x + w.sta.r.x, w.base.r.y + w.mo.r.y + w.sta.r.y, w.base.r.z + w.mo.r.z + w.sta.r.z);
-      m.scale.copy(w.base.s).multiplyScalar(w.mo.s * w.sta.s);
+      // 施招姿態（sta × 包絡 staK）疊在編舞的 model 覆寫（mo）之上，兩條通道互不覆寫（見 wrapFig 的註解）
+      const k = w.staK;
+      m.position.copy(w.base.p).add(w.mo.p).addScaledVector(w.sta.p, k);
+      m.rotation.set(w.base.r.x + w.mo.r.x + w.sta.r.x * k, w.base.r.y + w.mo.r.y + w.sta.r.y * k, w.base.r.z + w.mo.r.z + w.sta.r.z * k);
+      m.scale.copy(w.base.s).multiplyScalar(w.mo.s * (1 + (w.sta.s - 1) * k));
     }
   }
   function unwrap(w) {
@@ -827,7 +835,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const delay = Number.isFinite(o.delay) ? Math.max(0, o.delay) : 0, ms = Number.isFinite(o.ms) && o.ms > 0 ? o.ms : run.ms;
         // F10 的分子：時間軸註冊過的「非 flinch」補間條數（fly／fade／grow 都經過這裡）。
         // 受招退縮不算——它是每一招共用的通用反應，不構成這一招的辨識元素。
-        if (!run.inFlinch) run.acts++;
+        if (!run.inFlinch && !run.inBlock) run.acts++;
         const tw = { start: run.vt + delay, ms, ease: typeof o.ease === 'function' ? o.ease : EASE[o.ease || 'out'] || EASE.out, update: o.update || (() => {}), done: o.done || null, dead: false };
         run.horizon = Math.max(run.horizon, tw.start + ms);
         run.tweens.push(tw); return tw;
@@ -1332,18 +1340,42 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           run.stance.extra++;
           throw new Error('st.stance：一招只能有一個施招者擺姿態（第二個人擺＝身分訊號失效，語彙檔 §A9 第 1 條）');
         }
+        const w = wrapOf(fig);
+        if (!run.stance.fig) {
+          /* ★第一次呼叫時**由引擎**排好收回的時間軸（覆審 H3／H4）★
+             姿態在 `windup`、受益反應在 `react`，兩件要在時間上分得開——這件事不能靠
+             「每支招記得寫一行收回」（香火 9 支就是沒寫，姿態一路撐到收工、把受益方的上抬演成下沉）。
+             收尾點＝`react[0]`＝衝擊拍，與腳下光語彙熄掉的時點同一個。
+             ★`run.inBlock` 讓這條不計進 F10 的動作數★（覆審 C2：積木自己排的 tween 不算編舞的演出）。 */
+          const B = st.beat, TT = Math.max(1, B.react[0] - B.travel[0]);
+          run.inBlock = true;
+          st.tween({ ms: TT * 0.55, delay: B.travel[0] + TT * 0.45, ease: 'in', update(t, e2) { w.staK = 1 - e2; } });
+          run.inBlock = false;
+        }
         run.stance.fig = fig; run.stance.kind = kind;
         const k = Math.max(0, Math.min(1, o.strength === undefined ? 1 : o.strength));
         const u = Math.max(0, Math.min(1, Number.isFinite(e) ? e : 0)) * k;
-        if (u > 0) run.stance.peak = Math.max(run.stance.peak, spec.amp * u);
+        if (u > 0 && spec.amp * u > run.stance.peak) {
+          run.stance.peak = spec.amp * u;
+          run.stance.peakAt = run.vt; // 峰值出現在哪一刻（覆審 H4：沒有時戳的話，姿態搬到 react 段照樣綠）
+        }
         const f = st.toward(fig, _v); // group 空間、水平、單位向量（朝對面）
         // 前傾／後仰＝繞「側向軸」轉；側向軸＝(f.z, 0, −f.x)
         const a = spec.lean * u;
-        const w = wrapOf(fig);
-        run.sig.bones.add('@stance'); markCaster(fig);
+        /* ★刻意**不**呼叫 `markCaster`（覆審 H2）★：`run.caster` 要由「誰的骨骼／model 真的被動到」
+           獨立決定，治具才比對得出「擺姿態的那一尊 === 引擎認定的施招者」。
+           姿態自己去標 caster 就是循環論證——姿態給了誰，誰就變成施招者。 */
+        run.sig.bones.add('@stance');
         if (run.reduced) return true;
         w.sta.r.set(a * f.z, 0, -a * f.x);
-        w.sta.p.set(f.x * spec.move[2] * u, spec.move[1] * u, f.z * spec.move[2] * u);
+        /* `move` 是 [側向, 垂直, 前後]，前後沿 `f`、側向沿 `f` 的左手邊 `(−f.z, 0, f.x)`。
+           ★三個分量都要用到（覆審 L2）★：`move[0]` 以前被丟掉，於是「唯一一份幅度表」裡
+           加了側向值卻不生效也不會紅——那是一條寫了沒人讀的欄位。 */
+        w.sta.p.set(
+          f.x * spec.move[2] * u - f.z * spec.move[0] * u,
+          spec.move[1] * u,
+          f.z * spec.move[2] * u + f.x * spec.move[0] * u,
+        );
         w.sta.s = 1 + (spec.scl - 1) * u;
         return true;
       },
@@ -1391,14 +1423,37 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  分派由 `vocab.js` 的 `FAC_GROUND` 決定（祖靈＝光柱／香火＝貼桌環／陰氣＝暗斑，尚未實作）。
        *
        *  ★「蓄勢就亮、衝擊拍熄」是由建構上成立的★：亮滅的時間軸寫在這支積木裡，
-       *  編舞給不出第二份——`st.beat` 的 windup 段淡入、travel 段末（＝`react[0]`＝衝擊拍）歸零。
+       *  `st.beat` 的 windup 段淡入、travel 段末（＝`react[0]`＝衝擊拍）歸零。
        *  這就是收斂：不是寫一條「請記得熄掉」的規則再去檢查 27 支有沒有照做。
-       *  `o = { fig 必填, r, h, peak }`；回傳那個 mesh（編舞不需要再碰它）。 */
+       *  ★**不回傳 mesh**（覆審 M1）★：回傳它，編舞就能再排一條 fade 把它點回來，那句話就從
+       *  「由建構上成立」掉回「請記得不要碰」。回傳的是腳下語彙的 kind 字串。
+       *  ★已知限制★：`delay` 用的是 `st.beat` 的**絕對**毫秒，而 `st.tween` 的 delay 相對 `run.vt`
+       *  ⇒ 只在**招體同步段**呼叫才對得上（目前 10 支都是）。從 timer／tween 裡呼叫會整段平移，
+       *  沒有守衛——要用就自己確認 `run.vt` 還是 0。
+       *
+       *  `fig`＝施招者（位置參數，必填）；
+       *  `o = { r 環半徑, h 柱高, w 柱寬, taper 柱的上窄比, push 柱往鏡頭挪多少, peak 亮度峰值 }`。 */
       groundMark(fig, o = {}) {
         const kind = FAC_GROUND[det.fac];
         if (!kind) throw new Error(`st.groundMark：系別 ${det.fac} 沒有腳下光語彙（見 vocab.js 的 FAC_GROUND）`);
         if (kind === 'stain') throw new Error('st.groundMark：陰氣的 st.stain 還沒有積木（語彙檔 §A8 列為陰氣批的前置），不給靜默退路');
         if (!fig) return null;
+        /* ★與 `st.stance` 同樣的三條約束（覆審 H1）★：腳下光是「身分訊號的另一半」，
+           點錯人比沒點更糟——它會**指認錯的施招者**。改前這支一條檢查都沒有：
+           點在受招方腳下、或兩尊各點一次，`stanceOK` 全綠（`st.foot` 連 `wrapOf` 都不走，一點痕跡都不留）。 */
+        if (inTarget.has(fig)) {
+          run.stance.onTarget = true;
+          throw new Error('st.groundMark：腳下系別光語彙只能點在施招方腳下——點在受招方腳下就是指認錯的施招者（語彙檔 §A9 第 1 條）');
+        }
+        if (run.stance.groundFig && run.stance.groundFig !== fig) {
+          run.stance.extra++;
+          throw new Error('st.groundMark：一招只能有一個施招者（第二盞腳下光＝身分訊號失效，語彙檔 §A9 第 1 條）');
+        }
+        if (run.stance.fig && run.stance.fig !== fig) {
+          run.stance.extra++;
+          throw new Error('st.groundMark：腳下光與施招姿態必須在同一尊身上（兩個身分訊號指向不同人＝比沒有還糟）');
+        }
+        run.stance.groundFig = fig;
         const peak = o.peak === undefined ? 0.85 : o.peak;
         const p = st.foot(fig, new THREE.Vector3());
         let mesh;
@@ -1413,11 +1468,19 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const B = st.beat;
         const upMs = Math.max(1, B.windup[1]);
         const travelMs = Math.max(1, B.react[0] - B.travel[0]);
+        /* ★`run.inBlock`：積木自己排的 tween 不計進 F10 的動作數（覆審 C2）★
+           不隔開的話，「把整支招的演出刪光、只留一行 `st.groundMark(fig)`」也會讓 `acts` ≥2，
+           而 §A9 ③ 又強制每支已轉正的招都要呼叫它 ⇒ `actionsOK` 對每一支都恆真＝零鑑別力。 */
+        run.inBlock = true;
         st.fade(mesh, { ms: upMs * 0.8, delay: upMs * 0.12, from: 0, to: peak, ease: 'out' });
         // 收尾點＝delay + ms ＝ travel[0] + travelMs ＝ react[0] ＝ 衝擊拍那一瞬間
         st.fade(mesh, { ms: travelMs * 0.55, delay: B.travel[0] + travelMs * 0.45, from: peak, to: 0, ease: 'in' });
+        run.inBlock = false;
         run.stance.ground = kind;
-        return mesh;
+        /* ★不回傳 mesh（覆審 M1）★：回傳它，編舞就能再排一條 fade 把它在衝擊拍之後點回來，
+           「衝擊拍熄」那句話就從「由建構上成立」掉回「請記得不要碰」。亮滅的參數全在 `o` 裡，
+           編舞拿不到那個物件也調得動——**分母歸一，比補一條檢查徹底**（`02 §6.1` 第 7 條）。 */
+        return kind;
       },
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */
       phase(name) {
@@ -1458,13 +1521,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       trId: det.trId, t: 0, ms: Math.max(100, Number(det.ms)), tier, done: false,
       tweens: [], timers: [], meshes: [], wraps: new Set(), seed: seedCounter++,
       vt: 0, horizon: 0, rate: 1, // 虛擬時間／目前排到的最遠點／加速倍率（1＝照編舞原節奏）
-      acts: 0, inFlinch: false, // F10：非 flinch 的補間條數
+      // F10：非 flinch 的補間條數。inBlock＝**積木自己排的** tween 也不計（覆審 C2：
+      // st.groundMark／st.stance 內建的三條 tween 若計進去，"acts>=2" 對每支已轉正的招恆真）。
+      acts: 0, inFlinch: false, inBlock: false,
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       // v0.55：徽記逐幀朝鏡頭（bb＝單枚 Mesh、bbi＝群體 InstancedMesh）、印記跟著受招方走、因果三段的打點
       phaseClaims: [], bb: [], bbi: [], follow: [], sized: [], caster: null, actorSet: null, travelDist: 1,
       /* v0.55.7 身分可辨語彙：這一招的施招姿態（誰擺的／哪一型／峰值幅度）與腳下光語彙。
          治具讀 lastSig.stance 判 stanceOK＝「真的擺出來了、而且只有施招者有」。 */
-      stance: { kind: null, fig: null, peak: 0, ground: null, onTarget: false, extra: 0 },
+      stance: { kind: null, fig: null, groundFig: null, peak: 0, peakAt: Infinity, ground: null, onTarget: false, extra: 0 },
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
@@ -1498,7 +1563,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       // 別套的 tween 下一幀會重寫自己要的值（覆審 LOW-3）
       w.over.forEach((o) => { o.rot.set(0, 0, 0); o.pos.set(0, 0, 0); o.scl = 1; });
       w.mo.p.set(0, 0, 0); w.mo.r.set(0, 0, 0); w.mo.s = 1; w.rimMul = 1;
-      w.sta.p.set(0, 0, 0); w.sta.r.set(0, 0, 0); w.sta.s = 1;
+      w.sta.p.set(0, 0, 0); w.sta.r.set(0, 0, 0); w.sta.s = 1; w.staK = 1;
     });
     run.wraps.clear();
     if (run.sped) stats.sped++;
@@ -1512,9 +1577,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       travelDist: +run.travelDist.toFixed(3),
       /* v0.55.7 身分可辨語彙的機械抓手（治具的 stanceOK）：
          kind＝擺了哪一型、peak＝幅度峰值（比 STANCE_GATE.minPeak）、ground＝腳下語彙是哪一種、
-         onTarget／extra＝有沒有人試過把姿態套到受招方／第二個人身上（積木會 throw，這裡留帳）。 */
-      stance: { kind: run.stance.kind, peak: +run.stance.peak.toFixed(4), ground: run.stance.ground,
-        onTarget: !!run.stance.onTarget, extra: run.stance.extra | 0, minPeak: STANCE_GATE.minPeak } };
+         onTarget／extra＝有沒有人試過把姿態套到受招方／第二個人身上（積木會 throw，這裡留帳）。
+         ★casterMatch（覆審 H2）★：擺姿態的那一尊，是不是引擎**獨立**認定的施招者
+         （`run.caster`＝第一個骨骼／model 真的被動到、且不在目標名單裡的 figure）。
+         `st.stance` 刻意不呼叫 `markCaster`，所以這是兩條獨立的證據在對帳，不是循環論證。
+         ★windupOK（覆審 H4）★：姿態的峰值出現在衝擊拍**之前**（語彙說的是「在蓄勢段」，
+         沒有時戳的話，把 `st.stance` 整段搬到 react 也照樣綠）。
+         ★groundSame★：腳下光與姿態在同一尊身上。 */
+      stance: (() => {
+        const B = beatOf(run.tier, run.ms);
+        return { kind: run.stance.kind, peak: +run.stance.peak.toFixed(4), ground: run.stance.ground,
+          onTarget: !!run.stance.onTarget, extra: run.stance.extra | 0, minPeak: STANCE_GATE.minPeak,
+          casterMatch: !!(run.stance.fig && run.caster && run.stance.fig === run.caster),
+          groundSame: !!(run.stance.fig && run.stance.groundFig === run.stance.fig),
+          peakAt: Number.isFinite(run.stance.peakAt) ? Math.round(run.stance.peakAt) : null,
+          windupOK: run.stance.peakAt <= B.react[0], reactAt: B.react[0] };
+      })() };
     stats.finished++;
     if (run.resolve) run.resolve(true);
   }

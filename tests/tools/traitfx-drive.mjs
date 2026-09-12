@@ -87,7 +87,15 @@ function movesMatching(root, re) {
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
     heads.forEach((h, i) => {
       const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
-      if (re.test(body)) out.add(h[1]);
+      /* ★後綴要在這裡剝掉（覆審 C1，CRITICAL）★
+         `V054`／`V055` 裡的函式叫 `<trId>_v054`／`_v055`，而所有比對的另一邊都是**真 trId**
+         （`c.trait` 來自 index.html 的 POOL）。不剝就永不相等 ⇒ `needEmblem` 與 `sg.expected`
+         對那幾支**恆為假**，「用到徽記卻 n/a」那條防線靜默失效。
+         實測：改前 `emblemCasesFromSource` 回的是
+         `biteGamble_v055 eliteSelfCut_v055 hauntLost wardImmuneLost_v055` ⇒ 四支裡只有 1 支比對得到。
+         後綴在 `js/trait-fx.js` 的登記點本來就會被剝掉換回 trId，這裡跟它對齊。
+         （`v055CasesFromSource` 另外靠後綴**判身分**，那一支自己 match `_v055`，不受這裡影響。） */
+      if (re.test(body)) out.add(h[1].replace(/_v05[45]$/, ''));
     });
   }
   return out;
@@ -155,8 +163,11 @@ export function emblemCasesFromSource(root) {
      那正是 `02 §2.1` 例外條款說的「錯到無論實作對錯都不可能通過」。
      下限的**用意沒有變**：0.55 語彙那四支示範招各要有一份在名單裡（住 MOVES 或住 V055 都算），
      推導壞掉回空陣列照樣當場 throw。祖靈／陰氣那兩批轉正後也走同一條。 */
+  /* ★活性下限不得接受後綴（覆審 C1）★：改前寫的是 `|| list.indexOf(t + '_v055') < 0`，
+     於是「名單裡全是比對不到的後綴名」這個狀態下**下限照樣綠**——正是這段註解自己要防的病。
+     現在 `movesMatching` 已經把後綴剝掉，下限就只認真 trId：剝壞了會當場 throw。 */
   const MUST = ['biteGamble', 'eliteSelfCut', 'hauntLost', 'wardImmuneLost'];
-  const missing = MUST.filter((t) => list.indexOf(t) < 0 && list.indexOf(t + '_v055') < 0);
+  const missing = MUST.filter((t) => list.indexOf(t) < 0);
   if (missing.length) {
     throw new Error(`emblemCasesFromSource 解析壞了：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
       + `缺少必含的 ${missing.join(' ')}。這支推導沒有活性下限時會靜默回空陣列，`
@@ -344,7 +355,9 @@ async function runCase(browser, base, c, opt) {
     && (opt.v054Moves || []).indexOf(c.trait) < 0
     && !(vocabOn && (opt.v055Moves || []).indexOf(c.trait) >= 0);
   const stanceOK = !inStanceScope ? true : !!(sc && sc.kind && sc.ground
-    && sc.peak >= (sc.minPeak === undefined ? 0.12 : sc.minPeak) && !sc.onTarget && (sc.extra | 0) === 0);
+    && sc.peak >= (sc.minPeak === undefined ? 0.12 : sc.minPeak) && !sc.onTarget && (sc.extra | 0) === 0
+    // 覆審 H2／H4／H1 補的三條：姿態的人＝引擎獨立認定的施招者、峰值在衝擊拍之前、腳下光在同一尊身上
+    && sc.casterMatch === true && sc.windupOK === true && sc.groundSame === true);
   /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
      引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
      和「積木自己最後一次合法寫進去的值」比對；違規記進 stats，治具在這裡判。

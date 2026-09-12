@@ -22,7 +22,11 @@
   "auditsUpdate": 0,
   "auditsDraw": 0,
   "measured": false,
-  "failed": []
+  "failed": [
+   "eliteSelfCut",
+   "wardImmuneLost",
+   "biteGamble"
+  ]
  },
  "cases": [
   {
@@ -57,7 +61,7 @@
     "|6|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|7|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|8|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
-    "hide_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+    "hull_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
     "|10|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
     "|11|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|12|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -101,8 +105,8 @@
     "tweenErrors": 0,
     "tweenErrorMsg": null
    },
-   "sizeState": "n/a",
-   "sizeOK": true,
+   "sizeState": "fail",
+   "sizeOK": false,
    "errors": [],
    "meshes": null
   },
@@ -217,7 +221,7 @@
     "|6|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|7|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|8|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
-    "armor_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+    "hull_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
     "|10|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
     "|11|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|12|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -421,8 +425,8 @@
     "tweenErrors": 0,
     "tweenErrorMsg": null
    },
-   "sizeState": "n/a",
-   "sizeOK": true,
+   "sizeState": "fail",
+   "sizeOK": false,
    "errors": [],
    "meshes": null
   },
@@ -583,8 +587,8 @@
     "tweenErrors": 0,
     "tweenErrorMsg": null
    },
-   "sizeState": "n/a",
-   "sizeOK": true,
+   "sizeState": "fail",
+   "sizeOK": false,
    "errors": [],
    "meshes": null
   },
@@ -620,7 +624,7 @@
     "|6|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|7|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|8|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
-    "armor_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+    "ash_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
     "|10|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
     "|11|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|12|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
@@ -701,7 +705,7 @@
     "|6|basic,highp,srgb,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|7|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,135169,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|8|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,131075,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
-    "armor_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
+    "hull_body|9|physical,STANDARD,,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,2051,131091,srgb,yaoshi-creature-rim-burn-decal",
     "|10|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,135187,srgb,yaoshi-creature-outline",
     "|11|points,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,true,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3075,1,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",
     "|12|basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,4,3,0,1,0,0,0,0,0,0,1,0,0,0,0,3,4097,srgb,onBeforeCompile( /* shaderobject, renderer */ ) {}",

@@ -50,6 +50,10 @@ if (MUT === 22) delete MS.wardRegen1; // 少一支招
 if (MUT === 23) MS.eliteSelfCut.stance = '舉臂'; // 與 react「升」同型（up vs up）＝讀者分不出蓄勢與受益
 if (MUT === 24) delete MS.biteGamble.stance; // 已轉正的招漏填 stance
 const MUT25 = MUT === 25; // 編舞裡把一支已轉正的招的 st.stance 拿掉（在記憶體裡改原始碼）
+/* ★26–28＝覆審（H5／H6／M5）補的三條檢查各自的鑑別力★ */
+if (MUT === 26) MS.eliteSelfCut.selfReact = true; // 用一鍵豁免讓「不同型」對某一支失效
+if (MUT === 27) { STANCE_VOCAB.下沉 = Object.assign({}, STANCE_VOCAB.下沉, { amp: 0.02 }); } // 幅度表與語彙檔分岔
+const MUT28 = MUT === 28; // 編舞裡把一支已轉正的招的 st.groundMark 拿掉
 if (MUT) console.log(`★突變模式 ${MUT}：以下必須有紅★`);
 
 const doc = fs.readFileSync(DOC, 'utf8');
@@ -203,16 +207,29 @@ t('MOVE_SPEC 覆蓋 27 支招、不含三尊（P1 ③）', () => {
  *  ★與 `tests/tools/traitfx-drive.mjs` 的 `phaseCasesFromSource` 是同一條推導★，
  *  但那一支在模組載入時就 require playwright（單元測試不該拖進瀏覽器），所以這裡另寫一份輕量版；
  *  兩邊都有活性下限（少一支就 throw），分岔了會有一邊紅。 */
+/** 突變 25／28：在**記憶體裡**把一支已轉正招的 st.stance／st.groundMark 拿掉（原檔全程唯讀）。
+ *  ★錨點的替換一定要排在剝註解之後★（zuling.js 踩過的坑：註解裡出現同一個字面值時
+ *  `String.replace` 會改在註解上、再被剝掉，整批突變靜默變綠）。 */
+function mutateSrc(src, f) {
+  if (f !== 'xianghuo.js') return src;
+  if (MUT25) {
+    const from = "st.stance(monk, '前傾', e);";
+    if (!src.includes(from)) throw new Error('突變 25 的錨點不在了：' + from);
+    return src.replace(from, ' ');
+  }
+  if (MUT28) {
+    const from = 'st.groundMark(monk);';
+    if (!src.includes(from)) throw new Error('突變 28 的錨點不在了：' + from);
+    return src.replace(from, ' ');
+  }
+  return src;
+}
 function convertedMoves() {
   const out = new Set();
   for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
     let src = fs.readFileSync(path.join(ROOT, 'js/trait-fx', f), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
-    if (MUT25 && f === 'xianghuo.js') {
-      const from = "st.stance(monk, '前傾', e);";
-      if (!src.includes(from)) throw new Error('突變 25 的錨點不在了：' + from);
-      src = src.replace(from, ' ');
-    }
+    src = mutateSrc(src, f);
     const cut = src.search(/export const V05[45]/);
     /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
        由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
@@ -232,7 +249,7 @@ function bodyOf(trId) {
   for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
     let src = fs.readFileSync(path.join(ROOT, 'js/trait-fx', f), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
-    if (MUT25 && f === 'xianghuo.js') src = src.replace("st.stance(monk, '前傾', e);", ' ');
+    src = mutateSrc(src, f);
     const cut = src.search(/export const V05[45]/);
     /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
        由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
@@ -293,7 +310,15 @@ t('施招姿態與受益／受招反應不同型（§A9 ②）', () => {
 t('已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③）', () => {
   const bad = [];
   let seen = 0;
-  CONVERTED_MUST.forEach((id) => {
+  /* ★迭代**推導出來的** conv，不是手工名單（覆審 H5，HIGH）★
+     改前這一條迭代 `CONVERTED_MUST`，而同一節的註解卻寫「不是手工名單」——
+     第 11 支轉正時只要漏填就靜默放行，而 `traitfx-drive` 那邊的註解又寫「這一條由原始碼掃描擋」，
+     兩邊互相指望。現在 `CONVERTED_MUST` 只當**活性下限**（推導少一支就紅），約束對象是 conv 全體。 */
+  const conv2 = convertedMoves();
+  const miss2 = CONVERTED_MUST.filter((t2) => !conv2.has(t2));
+  if (miss2.length) throw new Error(`「已轉正」的推導壞了：缺少 ${miss2.join(' ')}`);
+  [...conv2].sort().forEach((id) => {
+    if (!MS[id]) return; // 三尊三招不在 MOVE_SPEC（Q8）
     const body = bodyOf(id);
     if (!body) { bad.push(`${id}：切不出函式體（解析壞了）`); return; }
     seen++;
@@ -303,6 +328,58 @@ t('已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③�
   // 活性：切得出來的函式體數不得歸零（解析壞掉時上面兩條會對著空字串跑）
   if (seen < CONVERTED_MUST.length) bad.push(`只切出 ${seen}/${CONVERTED_MUST.length} 支函式體`);
   if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
+t('selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）', () => {
+  /* ★覆審 H6★：`selfReact` 是「不同型」那條的一鍵豁免（`if (s.selfReact) return;`），
+     而它只是 MOVE_SPEC 裡一個手填布林——不與 `ABILITIES` 比對、不與編舞的 target 集合比對。
+     在任何一支招上加 `selfReact: true` 就能讓那一支逃掉 ②（實測：在 eliteSelfCut 加上去，
+     突變 23 會由紅變綠）。所以這裡把它釘在語彙檔 §C 的那句宣稱上：
+     「`swarmLastStand` 是全 27 支唯一沒有第三方的招」⇒ 集合必須**恰好**是這一支。
+     要再加一支＝那句宣稱變了，得先改語彙檔（而語彙檔改了這條會紅）。 */
+  const on = Object.keys(MS).filter((id) => MS[id].selfReact === true).sort();
+  eq(on.join(','), 'swarmLastStand', 'selfReact 為真的招（語彙檔 §C：全 27 支唯一沒有第三方的是破軍旗）');
+  const src = fs.readFileSync(path.join(ROOT, 'docs/design/2026-09-12-fx-vocab-draft.md'), 'utf8');
+  if (!/全 27 支唯一沒有第三方/.test(src)) throw new Error('語彙檔裡找不到「全 27 支唯一沒有第三方」那句宣稱——這條檢查失去依據');
+});
+
+t('STANCE_VOCAB 的幅度與 STANCE_GATE 與語彙檔 §A9 逐格相同（防「兩邊各一套」）', () => {
+  /* ★覆審 M5★：改前只驗「amp > 0」「amp ≥ minPeak」兩條**自我指涉**的式子——
+     把三個 amp 與 minPeak 一起乘 0.1 仍然全綠。這裡照 ICON 那一族的作法，
+     跟人類可讀的語彙檔逐格對：文件寫 0.26／0.22／0.20 與 minPeak 0.12。 */
+  const src = fs.readFileSync(path.join(ROOT, 'docs/design/2026-09-12-fx-vocab-draft.md'), 'utf8');
+  const sec = src.slice(src.indexOf('### A9 身分可辨語彙'), src.indexOf('## §B'));
+  if (!sec) throw new Error('語彙檔裡找不到 §A9 那一節');
+  eq(Object.keys(STANCE_VOCAB).join(','), '前傾,舉臂,下沉', 'STANCE_VOCAB 的三個姿態名');
+  // 文件那一行：「三型的 `amp` 分別是 0.26／0.22／0.20」
+  const amps = Object.keys(STANCE_VOCAB).map((k) => STANCE_VOCAB[k].amp.toFixed(2)).join('／');
+  if (!sec.includes(amps)) throw new Error(`語彙檔 §A9 沒有寫出三型的 amp「${amps}」（程式與文件分岔了）`);
+  if (!sec.includes(`**${STANCE_GATE.minPeak}**`)) throw new Error(`語彙檔 §A9 沒有寫出 minPeak「${STANCE_GATE.minPeak}」`);
+  // 軸的對照也要逐格出現在文件裡（漏一個，§A9 ② 的「不同型」在那一格就變成未定義行為）
+  Object.entries(STANCE_VOCAB).forEach(([k, v]) => {
+    if (!sec.includes(`${k}=${v.axis}`)) throw new Error(`語彙檔 §A9 沒有寫出「${k}=${v.axis}」`);
+  });
+  Object.entries(REACT_AXIS).forEach(([k, v]) => {
+    if (!sec.includes(`${k}=${v}`)) throw new Error(`語彙檔 §A9 沒有寫出「${k}=${v}」`);
+  });
+});
+
+t('還留著 V054 退路的招不得在 MOVE_SPEC 登記 stance（覆審 M9 的協調盲點）', () => {
+  /* 兩條排除規則都把「有 V054 退路」的招放掉（`traitfx-drive` 的 inStanceScope、
+     本檔 convertedMoves 的 retired）。所以下一批轉正時**忘了刪 V054 區段**的那一支，
+     會同時逃過執行期斷言與原始碼掃描。這條把兩者釘在一起：登記了 stance 就代表「已轉正」，
+     那 V054 退路必須已經移除。祖靈這批是「順手刪了才沒事」——那是慣例，不是機制。 */
+  const bad = [];
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    const src = fs.readFileSync(path.join(ROOT, 'js/trait-fx', f), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+    const cut = src.indexOf('export const V054');
+    if (cut < 0) continue;
+    for (const m of src.slice(cut).matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054(?:short)?\s*\(st\)\s*\{/gm)) {
+      if (MS[m[1]] && MS[m[1]].stance) bad.push(`${m[1]}（${f}）`);
+    }
+  }
+  if (bad.length) throw new Error(`這些招登記了 stance 卻還留著 V054 退路，會同時逃過兩道檢查：${bad.join('／')}`);
 });
 
 /* ── 5. 剪影：kind 集合相同、頂點數 ≤24 ─────────────────────────── */

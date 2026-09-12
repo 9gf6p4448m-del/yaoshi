@@ -46,7 +46,16 @@ const FOEQ = (() => { const v = process.argv.find((x) => x.startsWith('--foe='))
    為什麼要它：P4 第 3 輪的歸因是「2v2 裡我方兩尊同系同型、站得近，道具落在哪一尊就當誰施招」
    （`docs/experiments/2026-09-13-xianghuo-b1-report.md` §8）。拉開 ≥1 個身位是**材料規格**，
    P4 的三題與真值表一格不動（`02 §2.1`：這不是移動及格線，是讓那一題在畫面上答得出來）。 */
-const GAPQ = (() => { const v = process.argv.find((x) => x.startsWith('--mateGap=')); return v ? '&mategap=' + encodeURIComponent(v.slice(10)) : ''; })();
+const GAPV = (() => {
+  /* ★大小寫打錯不得靜默忽略（覆審 L4）★：`--mategap=2` 打成小寫時，舊寫法會**靜默**產出基準站位的
+     材料，而操作者以為拉開了——那正是「材料規格對不上」的靜默分岔。現在不分大小寫都接，
+     寫成別的拼法（`--mate-gap=`／`--gap=`）當場 throw。 */
+  const v = process.argv.find((x) => /^--mategap=/i.test(x));
+  const bad = process.argv.find((x) => /^--(mate-gap|gap|mategaps)=/i.test(x));
+  if (bad) throw new Error(`不認得的旗標 ${bad.split('=')[0]}——這一支只認 --mateGap=<倍率 1–3>`);
+  return v ? v.slice(v.indexOf('=') + 1) : '';
+})();
+const GAPQ = GAPV ? '&mategap=' + encodeURIComponent(GAPV) : '';
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -198,7 +207,12 @@ async function main() {
       console.log(`  ${code}.png ← ${s.trait} t${s.tier}`);
     }
     fs.writeFileSync(path.join(outDir, 'mapping-HIDDEN.json'), JSON.stringify({
-      seed, tiers, dt, shot: { ...SHOT, deviceScaleFactor: SHOT_DSF }, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label, mapping,
+      seed, tiers, dt, shot: { ...SHOT, deviceScaleFactor: SHOT_DSF }, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label,
+      /* ★材料規格要留下紀錄（覆審 M4）★：改前只記 seed／tiers／dt／視口／格寬，
+         **不記** 排列與機位那幾個旋鈕 ⇒ 下一輪盲讀無法事後證明「這一輪的材料與上一輪差在哪一格」。
+         `mateGap`／`camdist`／`count`／`foe` 四個都是本卷陸續加的規格參數，一起記進來。 */
+      spec: { mateGap: GAPV || null, camdist: CAMQ ? CAMQ.split('=')[1] : null, count: COUNTQ || null, foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, proto: PROTO || null },
+      mapping,
     }, null, 1));
   } finally { await browser.close(); srv.kill(); }
   fs.rmSync(tmpDir, { recursive: true, force: true });
