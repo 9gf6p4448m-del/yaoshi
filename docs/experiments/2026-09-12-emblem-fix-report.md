@@ -337,7 +337,25 @@ node tests/tools/trace-eq.mjs index.html --mutate
 - **未合併 main、未 push**。
 - 量測用的基準樹 `scratchpad/base417`（`git worktree add --detach … 417b197`）在 `.gitignore` 的 `scratchpad/` 底下，不進版控，量完移除。
 
-Commit 清單見 §9（本檔在最後一個 commit 一併寫入）。
+Commit（三步，繁體中文）：
+
+| SHA | 訊息首行 |
+|---|---|
+| `3b864e0` | 批 1 前置回修：刀／印／帽三枚徽記剪影（凍結檔 §2.1 修訂三 ④） |
+| `0134bd1` | 互撞測試：刪掉兩筆死豁免（回修後不再超標，是這張表「只能縮」的規則在執行） |
+| `d253252` | 回修報告與證據：L3 改前改後、突變驗紅、小盲讀材料（讀者判定不在本卷） |
+| `（本節補上 SHA 的那一筆）` | 報告補 commit 清單 |
+
+`git diff --stat 417b197..HEAD` 的程式碼部分（其餘 82 筆全部在 `docs/experiments/2026-09-12-emblem-fix-*` 底下，
+共 84 files changed, 10351 insertions(+), 6 deletions(-)）：
+
+```
+ js/trait-fx/emblems.js          | 6 +-
+ tests/emblem-collision.test.mjs | 9 ++-
+```
+
+**`js/` 只有 `emblems.js` 一個檔、`tests/` 只有 `emblem-collision.test.mjs` 一個檔；
+`js/trait-fx/vocab.js`、三個編舞檔、`index.html`、引擎、`VERSION` 一個位元組都沒出現在 diff 裡。**
 
 ---
 
