@@ -1061,76 +1061,88 @@ const MOVES = {
   },
 
   /* 福壽綿長・福壽綿長（fushou，護法×2）：每拍回 1 hp 給最傷的一隻。
-     編舞：燈火脹亮（0–320ms：FlmR 燈焰放大、雙眼高光脹開、頸與頭抬起、背脊與尾波動、頂冠張開）
-          → 一縷暖火離燈（320ms）→ 拋物線飄到同伴身上（340–620ms）
-          → 暖火沒入（620ms：一道光柱自腳底升起、三顆火星緩緩上飄）→ 燈火收斂（620–880ms）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 8 列；`MOVE_SPEC.wardRegen1 = { 丁, 降, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝降**：`FlmR` 燈焰暴漲 → **脫離燈罩**往同伴降下，`Nk0`／`Nk1`／`Hd0`／`Hd1` 低頭送出。
+       **道具**＝丁 儀仗金器：**燈焰**（`lamp`，`st.paperStamp` 鎏金厚片火舌）——★一件大道具★。
+       **受益方反應＝升**：最傷那隻上抬＋暖邊光＋頭上蓋燈印。
+
+     ★區分點（§C2）★：① **火舌形**，不是球（現況那顆白光球與四支撞）；
+     ② 與虎爺印的金箔流分開＝**一件大道具** vs **一群小片**——所以這一支刻意不用 `st.paperProps`。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   wardRegen1(st) {
-    const lamp = st.actor[0];
-    const hurt = st.actor[1] || st.actor[0];
-    const crowns = ['Cp0', 'Cp1', 'Cp2', 'Cp3'];
-    const brms = ['Brm0', 'Brm1', 'Brm2'];
-    // 燈火脹亮：燈罩上方先漲開一圈暖光暈（燈焰本身埋在腹下，光暈要浮到罩頂才看得見）
-    const crest = st.top(lamp, new THREE.Vector3()); crest.y += 0.12;
-    const halo = st.orb(crest, 0.19, { opacity: 0.6 });
-    halo.scale.setScalar(0.3);
-    st.grow(halo, { ms: 240, from: 0.3, to: 1.9 });
-    st.fade(halo, { ms: 240, delay: 210, from: 0.6, to: 0 });
-    st.tween({ ms: 260, ease: 'out', update(t, e) {
-      st.scaleBone(lamp, 'FlmR', 1 + 0.85 * e);
-      st.scaleBone(lamp, 'EyHiA', 1 + 0.6 * e); st.scaleBone(lamp, 'EyHiB', 1 + 0.6 * e);
-      st.rot(lamp, 'Nk0', -0.2 * e); st.rot(lamp, 'Nk1', -0.16 * e); st.rot(lamp, 'Hd0', -0.18 * e); st.rot(lamp, 'Hd1', -0.1 * e);
-      st.rot(lamp, 'Crest', -0.3 * e);
-      for (let i = 0; i < crowns.length; i++) st.rot(lamp, crowns[i], -0.14 * e, 0, (i % 2 ? -1 : 1) * 0.16 * e);
-      for (let i = 0; i < brms.length; i++) st.rot(lamp, brms[i], 0.1 * e * (1 + i * 0.3));
-      st.rot(lamp, 'Bd0', -0.07 * e); st.rot(lamp, 'Bd1', -0.09 * e); st.rot(lamp, 'Bd2', -0.11 * e);
-      st.rot(lamp, 'Tl0', 0.24 * e); st.rot(lamp, 'Tl1', 0.2 * e); st.rot(lamp, 'Tl2', 0.16 * e);
-      st.rim(lamp, 1 + 1.5 * e);
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
+    const lamp = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const hurt = st.actor.find((f) => f !== lamp) || lamp;
+    const src = st.worldOf(lamp, 'FlmR', new THREE.Vector3());
+    if (!src.lengthSq()) { st.top(lamp, src); }
+    const dst = st.top(hurt, new THREE.Vector3()).add(TOWARD_CAM);
+    /* 燈焰不直線飛過去：先往前送一段（脫離燈罩、飄到陣中），再落到那一尊頭上。
+       ★前半那一段是 travel 的位移來源★（門檻 travelDist×0.40）。 */
+    const via = src.clone().lerp(dst, 0.45).addScaledVector(st.dir, 0.95).addScaledVector(TOWARD_CAM, 1.4);
+    via.y += 0.42;
+
+    // ── 丁 燈焰：鎏金面＋硃紅墨線的火舌實體（不是球）──
+    const flame = st.paperStamp(st.kind, src, { role: 'stamp', color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.20, warp: 0.18, tiltDeg: 6, yawDeg: -16 });
+    flame.scale.setScalar(st.iconSize * 0.35);
+
+    // ── 受益方頭上的燈印 ──
+    const seal2 = st.paperStamp(st.kind, dst, { color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: hurt, at: 'top', off: TOWARD_CAM });
+    seal2.scale.setScalar(st.markSize * 1.0);
+
+    /* ① 燈焰暴漲（windup）：燈芯拉長、整尊低頭送出 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(lamp, 'FlmR', -0.28 * e); st.rot(lamp, 'Crest', -0.16 * e);
+      st.rot(lamp, 'Nk0', 0.18 * e); st.rot(lamp, 'Nk1', 0.14 * e); st.rot(lamp, 'Hd0', 0.20 * e); st.rot(lamp, 'Hd1', 0.12 * e);
+      st.rot(lamp, 'Sh0', -0.10 * e); st.rot(lamp, 'Sh1', -0.08 * e);
+      st.rim(lamp, 1 + 1.6 * e);
+      st.worldOf(lamp, 'FlmR', flame.position);
+      st.alpha(flame, Math.min(1, e * 2.4));
+      flame.scale.setScalar(st.iconSize * (0.35 + 0.55 * e)); // 暴漲
+      flame.userData.fxRoll = 0.26 * Math.sin(e * Math.PI * 2);
+    }, done() { st.phase('travel'); } });
+
+    /* ② 脫離燈罩、飄到同伴頭上（travel） */
+    st.trail(flame, src, via, { ms: TL * 0.56, delay: T0, ease: 'out', trail: false, arc: 0.26 });
+    st.trail(flame, via, dst, { ms: TL * 0.44, delay: T0 + TL * 0.56, ease: 'in', color: C.line, opacity: 0.30, segs: 10,
+      done() {
+        /* ★衝擊拍★：燈焰抵達＝那一尊同幀亮邊上抬＝燈印落定 */
+        st.phase('react');
+        st.punch(0.30);
+        st.burst(dst, { power: 0.8, n: 44, color: C.key });
+      } });
+    st.tween({ ms: TL, delay: T0, ease: 'linear', update(t, e) {
+      const k = e < 0.56 ? 0.90 + 0.32 * (e / 0.56) : 1.22 - 0.30 * ((e - 0.56) / 0.44);
+      flame.scale.setScalar(st.iconSize * k);
+      flame.userData.fxRoll = 0.22 * Math.sin(e * Math.PI * 3); // 火舌一路搖
     } });
-    st.at(220, () => {
-      // 一縷暖火先離燈上浮（浮過罩頂才看得見），再橫飄到同伴身上
-      const from = crest.clone();
-      const lift = crest.clone(); lift.y += 0.42;
-      const ember = st.orb(from, 0.1, { opacity: 1 });
-      ember.scale.setScalar(0.3);
-      st.grow(ember, { ms: 150, from: 0.3, to: 1.35 });
-      st.fly(ember, from, lift, { ms: 150, ease: 'out' });
-      st.at(160, () => {
-        const to = st.top(hurt, new THREE.Vector3()); to.y += 0.06;
-        st.fly(ember, lift, to, { ms: 220, ease: 'inout', arc: 0.3, done() {
-          st.burst(to, { power: 0.85, n: 48 });
-          st.fade(ember, { ms: 190, from: 1, to: 0 });
-          // 光柱：腳底升到頭頂
-          const f0 = st.foot(hurt, new THREE.Vector3());
-          const t0 = st.top(hurt, new THREE.Vector3());
-          const col = st.beam(f0, t0, { opacity: 0 });
-          st.tween({ ms: 300, ease: 'pulse', update(t, e) { col.material.opacity = 0.95 * e; } });
-          st.tween({ ms: 300, ease: 'pulse', update(t, e) { st.rim(hurt, 1 + 1.9 * e); } });
-          // 三顆火星緩緩上升
-          for (let i = 0; i < 3; i++) {
-            st.at(i * 40, () => {
-              const p = f0.clone();
-              p.x += (st.rnd() - 0.5) * 0.34; p.z += (st.rnd() - 0.5) * 0.34; p.y += 0.05;
-              const q = p.clone(); q.y += 0.62;
-              const spark = st.orb(p, 0.045, { opacity: 0.95 });
-              st.fly(spark, p, q, { ms: 200, ease: 'out' });
-              st.fade(spark, { ms: 200, delay: 15, from: 0.95, to: 0 });
-            });
-          }
-        } });
-      });
-      st.at(300, () => st.tween({ ms: 340, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.scaleBone(lamp, 'FlmR', 1 + 0.85 * k);
-        st.scaleBone(lamp, 'EyHiA', 1 + 0.6 * k); st.scaleBone(lamp, 'EyHiB', 1 + 0.6 * k);
-        st.rot(lamp, 'Nk0', -0.2 * k); st.rot(lamp, 'Nk1', -0.16 * k); st.rot(lamp, 'Hd0', -0.18 * k); st.rot(lamp, 'Hd1', -0.1 * k);
-        st.rot(lamp, 'Crest', -0.3 * k);
-        for (let i = 0; i < crowns.length; i++) st.rot(lamp, crowns[i], -0.14 * k, 0, (i % 2 ? -1 : 1) * 0.16 * k);
-        for (let i = 0; i < brms.length; i++) st.rot(lamp, brms[i], 0.1 * k * (1 + i * 0.3));
-        st.rot(lamp, 'Bd0', -0.07 * k); st.rot(lamp, 'Bd1', -0.09 * k); st.rot(lamp, 'Bd2', -0.11 * k);
-        st.rot(lamp, 'Tl0', 0.24 * k); st.rot(lamp, 'Tl1', 0.2 * k); st.rot(lamp, 'Tl2', 0.16 * k);
-        st.rim(lamp, 1 + 1.5 * k);
-      } }));
-    });
+    st.tween({ ms: TL * 0.6, delay: T0, ease: 'inout', update(t, e) {
+      st.rot(lamp, 'FlmR', -0.28 + 0.46 * e); st.rot(lamp, 'Nk0', 0.18 + 0.10 * e); st.rot(lamp, 'Hd0', 0.20 + 0.12 * e);
+    } });
+
+    /* ③ 受益（react）：那一尊上抬亮邊、頭上蓋燈印；燈焰化進印裡 */
+    st.fade(flame, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
+    st.fade(seal2, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
+    st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { seal2.scale.setScalar(st.markSize * (1.9 - 0.8 * e)); } });
+    st.fade(seal2, { ms: RL * 0.36, delay: R0 + RL * 0.6, from: 1, to: 0 });
+    st.tween({ ms: RL * 0.85, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(hurt, 0, 0.075 * e, 0); st.rim(hurt, 1 + 2.1 * e);
+    } });
+
+    /* 收勢：抬頭、燈芯回位 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(lamp, 'FlmR', 0.18 * k); st.rot(lamp, 'Crest', -0.16 * k);
+      st.rot(lamp, 'Nk0', 0.28 * k); st.rot(lamp, 'Nk1', 0.14 * k); st.rot(lamp, 'Hd0', 0.32 * k); st.rot(lamp, 'Hd1', 0.12 * k);
+      st.rot(lamp, 'Sh0', -0.10 * k); st.rot(lamp, 'Sh1', -0.08 * k);
+      st.rim(lamp, 1 + 1.6 * k);
+    } });
   },
 
   /* 破軍旗・殘旗插心（pojun，兵×1）：本隊只剩 1 隻時 atk+1。
@@ -1228,47 +1240,9 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
   wardHpFirst: MOVES.wardHpFirst,
 
-  /* 福壽綿長｜辨識：★燈本體（一顆脹到 1.9× 的大火球）★＋暖火飛到同伴身上炸開
-     （盲讀 r2：短版的火太小、飛太快。照雷女之火成功的做法：本體提前現形、燒滿整段） */
-  wardRegen1(st) {
-    const K = st.ms / 260;
-    const lamp = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const mate = st.actor[1] || lamp;
-    const flm = st.worldOf(lamp, 'FlmR', new THREE.Vector3());
-    const mateP = st.worldOf(mate, null, new THREE.Vector3());
-    const foot = st.foot(mate, new THREE.Vector3());
-    const top = st.top(mate, new THREE.Vector3());
-    // ★燈本體★：一顆大火球疊在燈焰上，35ms 就看得到，脹到 1.9×
-    const core = st.orb(flm, 0.085, { opacity: 0 });
-    const warm = st.orb(flm, 0.05, { opacity: 0 });
-    const pillar = st.beam(foot.clone(), top, { opacity: 0 });
-    const land = st.ring(foot, 0.3, 0.05, { opacity: 0 });
-    core.scale.setScalar(0.35); warm.scale.setScalar(0.3); land.scale.setScalar(0.3);
-    st.tween({ ms: 86 * K, ease: 'out', update(t, e) { // 燈火脹亮：本體先長出來
-      st.scaleBone(lamp, 'FlmR', 1 + 0.7 * e); st.scaleBone(lamp, 'Crest', 1 + 0.24 * e);
-      st.rot(lamp, 'Nk0', -0.14 * e); st.rot(lamp, 'Hd0', -0.16 * e); st.rot(lamp, 'Tl1', 0.16 * e);
-      st.rim(lamp, 1 + 1.3 * e);
-      const k = Math.min(1, e * 2.4);
-      core.material.opacity = 0.85 * k; core.scale.setScalar(0.35 + 1.55 * k);
-      st.worldOf(lamp, 'FlmR', core.position); st.worldOf(lamp, 'FlmR', warm.position);
-    } });
-    st.fade(warm, { ms: 40 * K, delay: 60 * K, from: 0, to: 1 });
-    st.grow(warm, { ms: 56 * K, delay: 60 * K, from: 0.3, to: 1.25 });
-    st.fly(warm, flm.clone(), mateP, { ms: 88 * K, delay: 84 * K, ease: 'inout', arc: 0.24, // 暖火飛到同伴身上
-      done() { st.burst(mateP, { power: 0.7, n: 34 }); st.punch(0.28); } });
-    st.fade(core, { ms: 62 * K, delay: 100 * K, from: 0.85, to: 0 });
-    st.fade(warm, { ms: 44 * K, delay: 172 * K, from: 1, to: 0 });
-    st.fade(pillar, { ms: 86 * K, delay: 140 * K, from: 0.9, to: 0 }); // 光柱自腳底升起
-    st.grow(land, { ms: 82 * K, delay: 148 * K, from: 0.3, to: 1.6 });
-    st.fade(land, { ms: 82 * K, delay: 148 * K, from: 0.7, to: 0 });
-    st.tween({ ms: 76 * K, delay: 150 * K, ease: 'pulse', update(t, e) { st.rim(mate, 1 + 1.9 * e); st.move(mate, 0, 0.04 * e, 0); } });
-    st.tween({ ms: 60 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 燈火收斂
-      const k = 1 - e;
-      st.scaleBone(lamp, 'FlmR', 1 + 0.7 * k); st.scaleBone(lamp, 'Crest', 1 + 0.24 * k);
-      st.rot(lamp, 'Nk0', -0.14 * k); st.rot(lamp, 'Hd0', -0.16 * k); st.rot(lamp, 'Tl1', 0.16 * k);
-      st.rim(lamp, 1 + 1.3 * k);
-    } });
-  },
+  /* wardRegen1｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  wardRegen1: MOVES.wardRegen1,
 
   /* 殘旗插心｜辨識：矛尖倒轉插進自己胸口＋腳下紅光暴亮 */
   swarmLastStand(st) {
