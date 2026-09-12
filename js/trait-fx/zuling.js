@@ -471,53 +471,103 @@ const MOVES = {
     } });
   },
 
-  /* 祖靈之眼・祖靈先手（eye，護法×2）：本方前鋒先結算。
-     編舞：眼瞼逐層掀開、眉壓低、眼球微縮（0–260ms 凝視）→ 猛地睜圓、邊光暴亮，
-          一道注視射向對面（320ms）→ 本方全體向前搶半步（去快回慢）→ 眼半闔、腳步收回（到 880ms）。 */
+  /* 祖靈之眼・祖靈先手（eye，護法×2）：一拍本方前鋒先結算。
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 4 列＋§B1＋§A9；
+     `MOVE_SPEC.wardFirst = { 甲, 張, 升, stance:'下沉', anchor:'allies' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝張**：`Sl0`–`Sl3` 眼瞼一格全開＋`Br0`–`Br2` 眉壓（本模型只有 7 根骨，動作全在眼上）。
+       **道具**＝甲 骨牙石器：**石雕眼**（`eye`，`st.paperStamp` 實體，靛藍面＋`ink` 墨線邊）
+         從遠離中線那一側升起、落到本方那一線上；＋每一尊身上一枚**眼印**。
+         ★原本的藍圓環退役★（撞陰陽眼銅錢，ART_BIBLE §10.5）。
+       **受益方反應＝升**：本方 `st.move` 上抬＋邊光（§C 的「搶半步」併進同一拍的托起）。
+
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down）≠ react「升」（up）；腳下**垂直光柱**
+     ——§C 明寫這一支是「唯一用垂直光柱演先手的招」。
+     ★拖線★：增益招 `trail: false`。★落點 anchor＝`allies`★
+     （`ABILITIES.wardFirst` 的 `first:true` 在 `index.html:3828` 是 `pwAny(X,"first")`＝**整隊**先結算）。 */
   wardFirst(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const wards = st.byBody(st.actor, 'ward');
     const seers = wards.length ? wards : st.actor;
-    const foeAt = st.target.length
-      ? st.worldOf(st.target[0], null, new THREE.Vector3())
-      : st.worldOf(seers[0], null, new THREE.Vector3()).addScaledVector(st.dir, 2.2);
-    seers.forEach((f, i) => {
-      const lag = i * 60;
-      const fwd = st.toward(f, new THREE.Vector3());
-      st.tween({ ms: 260, delay: lag, ease: 'out', update(t, e) {
-        st.rot(f, 'Sl0', -0.3 * e, 0, 0.05 * e);
-        st.rot(f, 'Sl1', -0.26 * e, 0, -0.05 * e);
-        st.rot(f, 'Sl2', 0.24 * e, 0, 0.05 * e);
-        st.rot(f, 'Sl3', 0.2 * e, 0, -0.05 * e);
-        st.rot(f, 'Br0', 0.16 * e); st.rot(f, 'Br1', 0.2 * e); st.rot(f, 'Br2', 0.16 * e);
-        st.scale(f, 1 - 0.05 * e);
-        st.rim(f, 1 + 0.6 * e);
+    const lead = seers[0];
+    const mates = st.actor.filter((f) => f !== lead);
+    const eyeAt = st.worldOf(lead, 'Sl0', new THREE.Vector3());
+    if (!eyeAt.lengthSq()) st.worldOf(lead, null, eyeAt);
+    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const A = eyeAt.clone(); A.addScaledVector(perp, 2.05); A.y += 0.75; A.add(st.camOff(1.0)); // perp 1.75 時 travel 1.2669/門檻 1.2481 太貼線，加餘裕
+    const Z = new THREE.Vector3();
+    st.actor.forEach((f) => { const p = st.top(f, new THREE.Vector3()); Z.add(p); });
+    Z.multiplyScalar(1 / Math.max(1, st.actor.length));
+    Z.y += 0.08;
+    Z.add(st.camOff(1.9));
+
+    // ── 甲 石雕眼：一件大道具（靛藍面＋ink 墨線邊）──
+    const stone = st.paperStamp(st.kind, A, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.24, warp: 0.10, tiltDeg: 6, yawDeg: -16 });
+    stone.scale.setScalar(st.iconSize * 0.45);
+
+    // ── 每一尊身上的眼印（anchor allies；整隊先結算，施招者自己也在內）──
+    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Chest', new THREE.Vector3()),
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
+        follow: f, at: 'chest', off: st.camOff(1) }));
+
+    /* ① 凝視（windup）：眼瞼逐層掀開、眉壓低；石雕眼在側上方亮相。 */
+    st.groundMark(lead, { h: 1.26, w: 0.28, taper: 0.42, peak: 0.95, push: 0.80 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(lead, '下沉', e);
+        seers.forEach((g) => {
+          st.rot(g, 'Sl0', -0.30 * e); st.rot(g, 'Sl1', -0.26 * e); st.rot(g, 'Sl2', -0.22 * e); st.rot(g, 'Sl3', -0.18 * e);
+          st.rot(g, 'Br0', 0.20 * e); st.rot(g, 'Br1', 0.16 * e); st.rot(g, 'Br2', 0.12 * e);
+          st.rim(g, 1 + 1.2 * e);
+        });
+        st.alpha(stone, Math.min(1, e * 1.9));
+        stone.scale.setScalar(st.iconSize * (0.45 + 0.50 * e));
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 睜開（travel）：石雕眼從側上方壓進來、落到本方那一線上。 */
+    st.trail(stone, A, Z, { ms: TL, delay: T0, ease: 'outQuint', trail: false, spin: 1.1,
+      done() {
+        /* ★衝擊拍★：眼瞼全開＝石眼落定＝本方同幀托起（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(Z, { power: 0.8, n: 46, color: C.hot });
+        st.punch(0.36);
       } });
-      st.tween({ ms: 560, delay: lag + 260, ease: 'linear', update(t) {
-        const k = 1 - st.EASE.out(Math.min(1, t / 0.55));
-        const o = st.EASE.snap(Math.min(1, t / 0.7));
-        const p = st.EASE.snap(Math.min(1, t / 0.95));
-        st.rot(f, 'Sl0', -0.3 * k - 0.5 * o, 0, 0.05 * k);
-        st.rot(f, 'Sl1', -0.26 * k - 0.44 * o, 0, -0.05 * k);
-        st.rot(f, 'Sl2', 0.24 * k + 0.42 * o, 0, 0.05 * k);
-        st.rot(f, 'Sl3', 0.2 * k + 0.38 * o, 0, -0.05 * k);
-        st.rot(f, 'Br0', 0.16 * k - 0.3 * o); st.rot(f, 'Br1', 0.2 * k - 0.34 * o); st.rot(f, 'Br2', 0.16 * k - 0.3 * o);
-        st.move(f, fwd.x * 0.24 * p, 0.03 * o, fwd.z * 0.24 * p);
-        st.scale(f, 1 - 0.05 * k + 0.18 * o);
-        st.rim(f, 1 + 0.6 * k + 1.8 * o);
-      } });
-    });
-    st.at(320, () => {
-      const from = st.worldOf(seers[0], 'Sl0', new THREE.Vector3());
-      const gaze = st.beam(from, foeAt, { opacity: 0.95 });
-      st.fade(gaze, { ms: 240, from: 0.95, to: 0 });
-      seers.forEach((f, i) => {
-        const ring = st.ring(st.foot(f, new THREE.Vector3()), 0.3, 0.045, { opacity: 0.85 });
-        ring.scale.setScalar(0.3);
-        st.tween({ ms: 440, delay: i * 60, ease: 'outQuint', update(t, e) { ring.scale.setScalar(0.3 + 1.5 * e); ring.material.opacity = 0.85 * (1 - e); } });
+    // 猛地睜圓（祖靈＝靜→瞬發，一格從 0 到滿）
+    st.tween({ ms: TL * 0.5, delay: T0 + TL * 0.45, ease: 'snap', update(t, e) {
+      seers.forEach((g) => {
+        st.rot(g, 'Sl0', -0.30 - 0.42 * e); st.rot(g, 'Sl1', -0.26 - 0.36 * e);
+        st.rot(g, 'Sl2', -0.22 - 0.30 * e); st.rot(g, 'Sl3', -0.18 - 0.24 * e);
+        st.rot(g, 'Br0', 0.20 - 0.30 * e);
+        st.rim(g, 1 + 1.2 + 2.0 * e);
       });
-      st.burst(from, { power: 0.55, n: 28 });
-      st.flinch(st.target.slice(0, 2), { strength: 0.55, stagger: 60, burst: false });
+    } });
+    st.fade(stone, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
+
+    /* ③ 先手（react）：本方每一尊上抬＋邊光，身上的眼印蓋上再淡去。 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    } }));
+
+    /* 收勢：眼半闔，施招者跟著被托起（他也在本隊裡）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.55));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
+      seers.forEach((g) => {
+        st.rot(g, 'Sl0', -0.72 * k); st.rot(g, 'Sl1', -0.62 * k); st.rot(g, 'Sl2', -0.52 * k); st.rot(g, 'Sl3', -0.42 * k);
+        st.rot(g, 'Br0', -0.10 * k); st.rot(g, 'Br1', 0.16 * k); st.rot(g, 'Br2', 0.12 * k);
+        st.rim(g, 1 + 3.2 * k + 1.2 * up);
+      });
+      st.move(lead, 0, 0.09 * up, 0);
+    } });
   },
 
   /* 雷女之火・天雷（thunder，精英×1）：一拍開始 15% 燒掉對面 1 隻小兵。
@@ -919,53 +969,8 @@ export const SHORT = {
   /* wardHpAll1｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
   wardHpAll1: MOVES.wardHpAll1,
 
-  /* 祖靈先手｜辨識：★一顆睜圓的大眼★ ＋ 一道注視射過去 ＋ **被盯到的那一隻退縮**
-     （盲讀 r2：短 1/2 vs 完整 3/3。低分共同特徵是「效果只在自己身上、沒有指向、受方沒反應」，
-      所以眼球提前到 35ms 就現形、注視光束燒滿 95→215ms、對面被指到的那一隻真的退一步） */
-  wardFirst(st) {
-    const K = st.ms / 260;
-    const eye = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const from = st.worldOf(eye, 'Sl0', new THREE.Vector3());
-    const foe = st.target[0] || null;
-    const aim = foe ? st.worldOf(foe, null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
-    const gaze = st.beam(from, aim, { opacity: 0 });
-    const gaze2 = st.beam(from.clone().add(new THREE.Vector3(0, 0.05, 0)), aim, { opacity: 0 });
-    const ring = st.ring(st.foot(eye, new THREE.Vector3()), 0.36, 0.05, { opacity: 0 });
-    const sclera = st.orb(from, 0.15, { opacity: 0 });
-    const pupil = st.orb(from.clone().addScaledVector(st.dir, 0.07), 0.06, { opacity: 0, color: 0x120a1e });
-    sclera.scale.setScalar(0.3); pupil.scale.setScalar(1.6);
-    st.tween({ ms: 88 * K, ease: 'in', update(t, e) { // 凝視：眼球本體先長出來（35ms 就看得到）
-      st.rot(eye, 'Sl0', 0.18 * e); st.rot(eye, 'Sl1', 0.14 * e); st.rot(eye, 'Br0', 0.2 * e); st.rot(eye, 'Br1', 0.16 * e);
-      st.scale(eye, 1 - 0.03 * e); st.rim(eye, 1 + 0.4 * e);
-      const k = Math.min(1, e * 2.5);
-      sclera.material.opacity = 0.75 * k; sclera.scale.setScalar(0.3 + 0.45 * k);
-      pupil.material.opacity = 0.9 * k;
-    } });
-    st.tween({ ms: 78 * K, delay: 88 * K, ease: 'out', update(t, e) { // 猛地睜圓：眼白暴脹、瞳孔縮成一點
-      const k = 1 - e;
-      st.rot(eye, 'Sl0', 0.18 * k - 0.26 * e); st.rot(eye, 'Sl1', 0.14 * k - 0.2 * e);
-      st.rot(eye, 'Br0', 0.2 * k - 0.12 * e); st.rot(eye, 'Br1', 0.16 * k - 0.1 * e);
-      st.scale(eye, 1 - 0.03 * k + 0.06 * e); st.rim(eye, 1 + 0.4 * k + 2.4 * e);
-      sclera.scale.setScalar(0.75 + 0.85 * e); pupil.scale.setScalar(1.6 - 1.05 * e);
-    }, done() { st.punch(0.35); } });
-    // 注視：兩條光束疊起來變粗，燒滿 95→215ms（一版只有 70ms，取樣幀常常錯過）
-    st.fade(gaze, { ms: 120 * K, delay: 95 * K, from: 1, to: 0 });
-    st.fade(gaze2, { ms: 108 * K, delay: 107 * K, from: 0.85, to: 0 });
-    st.grow(ring, { ms: 95 * K, delay: 100 * K, from: 0.3, to: 1.5 });
-    st.fade(ring, { ms: 95 * K, delay: 100 * K, from: 0.65, to: 0 });
-    if (foe) { // ★受方反應★：被盯到的那一隻退縮、邊光暴亮
-      st.flinch([foe], { delay: 112 * K, strength: 1.15, burst: true });
-      st.tween({ ms: 96 * K, delay: 112 * K, ease: 'pulse', update(t, e) { st.rim(foe, 1 + 2.6 * e); } });
-    }
-    st.actor.forEach((f, i) => st.tween({ ms: 84 * K, delay: (120 + i * 8) * K, ease: 'snap', update(t, e) { st.move(f, 0, 0, 0.09 * e); } }));
-    st.fade(sclera, { ms: 58 * K, delay: 168 * K, from: 0.75, to: 0 });
-    st.fade(pupil, { ms: 58 * K, delay: 168 * K, from: 0.9, to: 0 });
-    st.tween({ ms: 60 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 眼半闔
-      const k = 1 - e;
-      st.rot(eye, 'Sl0', -0.26 * k); st.rot(eye, 'Sl1', -0.2 * k); st.rot(eye, 'Br0', -0.12 * k); st.rot(eye, 'Br1', -0.1 * k);
-      st.scale(eye, 1 + 0.06 * k); st.rim(eye, 1 + 2.4 * k);
-    } });
-  },
+  /* wardFirst｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  wardFirst: MOVES.wardFirst,
 
   /* 天雷｜辨識：★三道劈下來的閃電★（本體＝雷本身，越早出現越好）＋胸前火種升空
      （盲讀 r1：一版的雷只在 150ms 後閃 62ms，讀者的取樣幀常常錯過） */
