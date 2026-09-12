@@ -36,6 +36,14 @@ node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存
 
 - 每次跑都會寫兩個檔：`<outdir>/pix.json`（逐樣本明細＋截圖索引）與 `<outdir>/metrics.txt`
   （判定＋全部統計量，一行一項、排序固定）。**驗決定性就 `md5sum <outdir>/metrics.txt`**。
+- `metrics.txt` 裡有兩欄是**健康檢查**，看數字前先看它們：
+  - `swallowed=`：虛擬時鐘接管 rAF／計時器之後，回呼裡被 try/catch 吞掉的例外數。
+    虛擬化之後這些例外**不會**變成 `pageerror`，所以 `errors=0` 不等於「遊戲跑正常」。**應為 0。**
+  - `acct.ok=`：`flashRuns == maskN + burnMaskN + Σ maskDropped` 的帳目恆等式。
+    拿不到剪影的那幾輪在 `judgePix` 裡是靜默 `continue`、不進 `maskDropped`，
+    整批壞掉時會出現「`maskN=0` 但 `errors=0`、md5 照樣逐跑相同」的假綠。**應為 `true`。**
+- **這支治具不能拿來驗連點守衛／相位閘**（`index.html:2262 armMainBtnGuard`、`:2331` 的相位閘）：
+  pump 模式把 `Event.prototype.timeStamp` 換成了虛擬時鐘，那正是這兩道守衛在比的東西，量了會假綠。
 - `pump` 模式開跑前會等 `__yaoshi3d` 上線＋網路靜止（這段期間虛擬時間停在 0）；
   等不到會在 `errors` 裡留一行，不會靜默放行。
 - `--batch` 預設 36（≈600ms 虛擬時間）**不得調到 500ms 以下**：index.html 的 `MAIN_GUARD_MS` 是 500，

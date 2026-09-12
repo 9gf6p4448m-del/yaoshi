@@ -5,7 +5,8 @@ worktree：`.claude/worktrees/agent-af605d875c0e0e52d`（基準 `417b197`）
 
 | 目錄 | 內容 | 怎麼讀 |
 |---|---|---|
-| `pump/` | **新法**（逐幀 pump 的虛擬時鐘，現行預設）seed 1／3 各 5 跑的 `metrics.txt` | 同 seed 的 5 份 md5 **全等** ⇒ 取樣決定性（驗收 1） |
+| `pump/` | **新法最終版**（逐幀 pump 的虛擬時鐘，現行預設；對抗覆審的 HIGH 已修）seed 1／3 各 5 跑的 `metrics.txt` | 同 seed 的 5 份 md5 **全等** ⇒ 取樣決定性（驗收 1）。另看 `swallowed=0`（沒有被吞掉的例外）與 `acct.ok=true`（沒有樣本靜默消失） |
+| `pump-before-2a-fix/` | 同上，但那是**對抗覆審抓到的 HIGH 修掉之前**那一輪（各取 1 份） | 與 `pump/` 對照可以看出：修掉「凍幀期間 CSS 動畫沿牆鐘跑」之後，seed 1 的像素統計量真的變了（`burnMax` 3.89→3.19、`maskMin` 32.97→32.92、R1 對比度 max 14.92→14.30），判定不變；seed 3 逐欄相同 |
 | `orig/orig-s1-*` | **舊法**（改前的原始治具檔案副本）seed 1 的 5 跑 | md5 **全不同**，`R2` 在 2🟢／3🔴 之間翻（驗收 3 甲） |
 | `orig/orig-s3-*` | 同上，seed 3 的 5 跑 | md5 全不同，但 `maskN=0` 穩定 ⇒ seed 3 的 0 樣本**舊法就有**，不是本卷造成的 |
 | `orig/wallclock-flag-*` | 現行治具加 `--wallclock=1`（seed 1 duels=2） | 證明同一顆二進位切得回舊時鐘（`clock=wallclock`） |

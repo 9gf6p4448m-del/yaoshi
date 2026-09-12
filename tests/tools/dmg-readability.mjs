@@ -171,7 +171,7 @@ const harnessSrc = (PUMP, DT) => `(() => {
   const SI = W.setInterval.bind(W), CI = W.clearInterval.bind(W);
   const PUMP = ${PUMP ? 'true' : 'false'}, DT = ${DT};
   const F = W.__frz = { pump: PUMP, dt: DT, vt: 0, ticks: 0, net: 0, hold: false, stopped: '',
-    on: false, off: 0, atP: 0, atD: 0, rafQ: [], timers: new Map(), id: 1, gen: 0, anims: [], froze: 0, EPOCH: 1767225600000 };
+    on: false, off: 0, atP: 0, atD: 0, rafQ: [], timers: new Map(), id: 1, gen: 0, anims: [], froze: 0, errs: 0, EPOCH: 1767225600000 };
   performance.now = () => (PUMP ? F.vt : (F.on ? F.atP : P0()) - F.off);
   Date.now = () => (PUMP ? F.EPOCH + F.vt : (F.on ? F.atD : D0()) - F.off);
   const vnow = () => performance.now();
@@ -252,7 +252,7 @@ const harnessSrc = (PUMP, DT) => `(() => {
       for (const [k, r] of F.timers) { if (r.gen >= g || r.due > F.vt) continue; if (!best || r.due < best.due || (r.due === best.due && k < bk)) { best = r; bk = k; } }
       if (!best) return;
       if (best.rep) best.due = F.vt + best.rep; else F.timers.delete(bk);
-      try { best.cb.apply(null, best.args); } catch (e) {}
+      try { best.cb.apply(null, best.args); } catch (e) { F.errs++; }
     }
   };
   /* WAAPI／CSS 動畫也要掛在虛擬時鐘上：跳字（.dmgfloat 的 el.animate）的 opacity 是 R1 取樣的
@@ -263,7 +263,7 @@ const harnessSrc = (PUMP, DT) => `(() => {
   const seenAni = new WeakSet();
   try { const AN = W.Element.prototype.animate; W.Element.prototype.animate = function () { const a = AN.apply(this, arguments); if (PUMP) { try { a.pause(); a.currentTime = 0; seenAni.add(a); } catch (e) {} } return a; }; } catch (e) {}
   F.animStep = (dt) => {
-    let list; try { list = document.getAnimations(); } catch (e) { return; }
+    let list; try { list = document.getAnimations(); } catch (e) { F.errs++; return; }
     for (const a of list) {
       try {
         const ps = a.playState;
@@ -274,11 +274,31 @@ const harnessSrc = (PUMP, DT) => `(() => {
         const tm = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
         const end = tm && isFinite(tm.endTime) ? tm.endTime : Infinity;
         if (ct >= end) a.finish(); else a.currentTime = ct;
-      } catch (e) {}
+      } catch (e) { F.errs++; }
     }
   };
+  /* 【對抗覆審 (2a)】純 pause、時間不前進的掃描。
+     凍幀期間 Node 端在截圖（一輪要拍 4 張、每張 100–250ms 牆鐘），這段時間**一格動畫都不能動**。
+     舊法的 freeze 會把 running 的全部 pause 起來；pump 模式原本直接早退，於是
+     「在凍住那一 tick 的 rAF 階段之後才被建立的 CSS 動畫」（例如 index.html:535 的
+     i.hurtedge 那支 hurtEdgeFade 150ms、:436/:572 的 flashfx）
+     會沿 document.timeline 的**真實**時間推進整個截圖視窗——那是新法唯一比舊法更鬆的地方。
+     所以 freeze／warp／每一次真實重畫的前後都掃一次；第一次看到的一律歸零（同 animStep 的規矩）。 */
+  F.pauseAll = () => {
+    let list; try { list = document.getAnimations(); } catch (e) { F.errs++; return 0; }
+    let n = 0;
+    for (const a of list) {
+      try {
+        const ps = a.playState;
+        if (ps === 'finished' || ps === 'idle') { seenAni.add(a); continue; }
+        if (ps === 'running') { a.pause(); n++; }
+        if (!seenAni.has(a)) { seenAni.add(a); a.currentTime = 0; }
+      } catch (e) { F.errs++; }
+    }
+    return n;
+  };
   F.freeze = () => {
-    if (PUMP) { if (F.hold) return false; F.hold = true; F.froze++; return true; }
+    if (PUMP) { if (F.hold) return false; F.pauseAll(); F.hold = true; F.froze++; return true; }
     if (F.on) return false;
     F.atP = P0(); F.atD = D0(); F.on = true; F.froze++;
     for (const r of F.timers.values()) { if (r.h) { CT(r.h); r.h = 0; } }
@@ -291,7 +311,7 @@ const harnessSrc = (PUMP, DT) => `(() => {
   F.step = () => {
     const q = F.rafQ.splice(0);
     const t = vnow();
-    q.forEach((x) => { try { x.cb(t); } catch (e) {} });
+    q.forEach((x) => { try { x.cb(t); } catch (e) { F.errs++; } });
     return q.length;
   };
   F.resume = () => {
@@ -439,11 +459,18 @@ const harnessSrc = (PUMP, DT) => `(() => {
      會拿到 t+ms」——閃紅的包絡與鏡頭的補間都是吃這個時間，所以這等於「往後 ms 毫秒的那一幀」，
      而且完全不看牆鐘。原本靠 setTimeout(40) 等真實時間，機器一忙那一格就落在 80–120ms、
      閃紅早就衰退掉（實測 hk 0.48／0 的樣本一大把）。 */
-  W.__frzWarp = (ms) => { if (PUMP) { if (!F.hold) return null; F.vt += Number(ms) || 0; return F.vt; } if (!F.on) return null; F.off -= Number(ms) || 0; return vnow(); };
+  W.__frzWarp = (ms) => { if (PUMP) { if (!F.hold) return null; F.pauseAll(); F.vt += Number(ms) || 0; return F.vt; } if (!F.on) return null; F.off -= Number(ms) || 0; return vnow(); };
+  /* 【對抗覆審 (2a)】前後各掃一次 pauseAll：前面擋「Node 端上一次 evaluate（例如派 ys:fx-hit）
+     建出來的動畫在這段往返裡沿牆鐘跑」，後面擋「這一幀的回呼自己建出來的動畫」。 */
   W.__frzStepReal = () => new Promise((res) => {
     const q = F.rafQ.splice(0);
     const t = vnow();
-    RAF(() => { q.forEach((x) => { try { x.cb(t); } catch (e) {} }); RAF(() => res(q.length)); });
+    if (PUMP) F.pauseAll();
+    RAF(() => {
+      q.forEach((x) => { try { x.cb(t); } catch (e) { F.errs++; } });
+      if (PUMP) F.pauseAll();
+      RAF(() => res(q.length));
+    });
   });
   W.__frzDraw = () => F.step();
 
@@ -765,9 +792,21 @@ async function runPix(browser) {
       M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe, via: via || 'timer' });
       return true;
     };
-    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零、鏡頭完全不動，
-       命中前那一幀與閃紅那一幀才是同一個機位；不然量到的差分裡混著鏡頭位移。
-       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。 */
+    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零
+       （js/renderer.js:197），命中前那一幀與閃紅那一幀才是同一個機位；
+       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。
+
+       ★2026-09-12 更正（L10 決定性小卷 §5，實測推翻）★：這裡原本寫「hitstop 期間**鏡頭完全不動**」，
+       **那句是錯的**。dt 歸零擋不住鏡頭——js/camera-director.js:367／:397 的
+       focusEnvelope(now)／cinemaEnvelope(now) 吃的是**絕對時間** now − focusAt，
+       而 js/renderer.js:201 每幀都把絕對 now 一起傳進 director.update(dt, now)。
+       更糟的是 index.html:4313 的 HITSTOP_DMG 與 :4336 的 FOCUS_DMG 是同一個門檻（都是 3）
+       ⇒ **會觸發 hitstop 的那一下，同時也會觸發 pwFocus 推鏡**。
+       實測：seed 3（duels=8）的 4 筆 hitstop 刺激，新舊法各 5 跑共 40 次觀察，
+       位移閘門 100% 命中（那一幀的方框位移遠超上限）、可判樣本數恆為 0。
+       ⇒ 「釘在 hitstop 就不會混到鏡頭位移」這個理由不成立，取樣來源要重訂——
+       但那會提高通過機率，依 02 §2.1 交使用者裁（見 L10 決定性報告 §7 Q1）。
+       在裁定之前這段程式碼刻意不動，只把這段已被證偽的理由更正掉。 */
     M.viaHitstop = 0; M.viaTimer = 0;
     document.addEventListener('ys:hitstop', () => {
       if (!M.duelOn) return;
@@ -1071,6 +1110,10 @@ async function runPix(browser) {
   meta.tickMs = TICK_MS; meta.batch = BATCH;
   meta.vt = await page.evaluate(() => window.__frz.vt).catch(() => null);
   meta.ticks = await page.evaluate(() => window.__frz.ticks).catch(() => null);
+  /* 【對抗覆審 (1b)】虛擬時鐘把 rAF 回呼與計時器從瀏覽器手上接過來之後，回呼裡丟的例外
+     就不會變成 pageerror ⇒ `errors=0` 對「遊戲有沒有正常跑」失去鑑別力。
+     所以把被吞掉的例外自己數起來、印進 metrics.txt（>0 就要當一回事）。 */
+  meta.swallowed = await page.evaluate(() => window.__frz.errs).catch(() => null);
   /* 版本比對：2026-09-11 起首頁那行在 PAPERWAR 開著時只有「v0.55」，後面沒有「・」
      ⇒ 原本的 includes('v'+ver+'・') 從那天起**恆為 false**，這道港口佔用的警報每跑必響、
      等於訓練看的人忽略它（零鑑別力的假警報）。改成「開頭是 v<版本> 且後面不是數字或點」。 */
@@ -1082,8 +1125,15 @@ async function runPix(browser) {
      跑 N 次 md5 一比就知道取樣有沒有決定性——不必拿整份 pix.json（裡面有檔名與逐樣本明細）比。 */
   fs.writeFileSync(path.join(outdir, 'metrics.txt'),
     ['clock=' + meta.clock, 'tickMs=' + meta.tickMs, 'batch=' + meta.batch, 'seed=' + seed, 'duels=' + duels,
-      'ticks=' + meta.ticks, 'froze=' + meta.froze, 'errors=' + r.errors.length, 'versionOk=' + meta.versionOk,
-      'floatsSampled=' + samples.floats.length, 'flashRuns=' + samples.flashes.length]
+      'ticks=' + meta.ticks, 'froze=' + meta.froze, 'errors=' + r.errors.length,
+      'swallowed=' + meta.swallowed, 'versionOk=' + meta.versionOk,
+      'floatsSampled=' + samples.floats.length, 'flashRuns=' + samples.flashes.length,
+      /* 【對抗覆審 (1a)】帳目：拿不到剪影的那幾輪在 judgePix 裡是靜默 continue、不進 maskDropped，
+         整批壞掉時 maskN=0 但 errors=0、md5 照樣逐跑相同。量法（judgePix）不在本卷範圍，
+         所以不改它，改成把恆等式印出來——對不上就是有樣本靜默消失了。 */
+      'acct.flashRuns=' + samples.flashes.length,
+      'acct.sum=' + (v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0)),
+      'acct.ok=' + (samples.flashes.length === v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0))]
       .concat(Object.entries(v.res).sort().map(([k, x]) => 'res.' + k + '=' + x))
       .concat(Object.entries(v.summary).sort().map(([k, x]) => 'sum.' + k + '=' + JSON.stringify(x)))
       .concat(['bad=' + JSON.stringify(v.bad)]).join('\n') + '\n');

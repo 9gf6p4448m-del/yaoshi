@@ -12,13 +12,21 @@
 
 **取樣已決定性（驗收 1 綠）。** 七條：1 🟢／2 **🔴（未達，seed 3 仍 `maskN=0`，根因見 §5）**／
 3 🟢（甲乙皆綠）／4 🟢／5 🟢／6 🟢／7 🟢。
+**更精確地說**：seed 1 是「決定性**且**有活性」；seed 3 是「決定性，但 R2 全欄 `null`、那份相等沒有活性」。
+本卷另跑了一輪 fresh-context 對抗式覆審（`opus`，只給 diff 與證據、任務是**反駁**這個宣稱），
+它抓到的 HIGH 已修並重驗（§3④），MEDIUM／LOW 的處置逐條列在 §5.5。
 
-- **seed 1（duels=8）**：連跑 5 次 `metrics.txt` md5 全等 `343dfcb03521ea7d7b3279d0b220d775`。
-- **seed 3（duels=8）**：連跑 5 次 md5 全等 `f6076cc85bb4751698d7d633e17be414`。
+- **seed 1（duels=8）**：連跑 5 次 `metrics.txt` md5 全等 `5edb3d513b53217eaf1db18e7424eda8`，
+  **而且有活性**（`maskN=13`、量到 46 個跳字、77 格凍幀、`swallowed=0`、帳目 `acct.ok=true`）。
+- **seed 3（duels=8）**：連跑 5 次 md5 全等 `3328873cc2664863ba54e300a8cd2109`，
+  **但這份相等在 R2 這條路上沒有活性**——`maskN=0`，`maskP50`／`maskGe25Ratio`／`ctrlMax`／
+  `back200MaskN`／`bySkin` 全是 `null`／`{}`／0（`02 §6.1` 第 1 條的「相等性斷言要另附活性證據」
+  在 seed 3 上不成立）。它有活性的部分只有 R1 那一半（量到 33 個跳字、45 格凍幀、字級簽章逐跑相同）。
 - **舊法同條件 5 跑**：md5 **5 份全不同**，`R2` 在 2🟢／3🔴 之間翻——與 §7.2 的現象一致。
 - **仍未解**：seed 3 的 `maskN=0` **不是取樣不決定性造成的**，它是 §5 說的結構性問題
-  （刺激釘在 `ys:hitstop`，而產品用**同一個門檻**同時觸發 `pwFocus` 推鏡）。
-  修它的每一種做法都會提高通過機率 ⇒ 依 `02 §2.1` 不自行動手，列在 §7 交裁。
+  （刺激釘在 `ys:hitstop`，而產品用**同一個門檻**同時觸發 `pwFocus` 推鏡；實測 40/40）。
+  我想得到的每一種修法都會提高通過機率 ⇒ 依 `02 §2.1` 不自行動手，列在 §7 交裁；
+  **`§2.1` 的「恆假例外」我沒有去驗**（要做的符號式掃描與它為什麼不提高通過機率，寫在 §5 末與 §7 Q5）。
 
 ---
 
@@ -35,18 +43,23 @@
 | `194–222` | 網路閘：`fetch`（含 `arrayBuffer/json/text/blob`）、`XMLHttpRequest.send`、`createImageBitmap`、`HTMLImageElement.src` 在飛時 `F.net>0`，虛擬時鐘停住 | GLB／貼圖回來的那一刻若逐跑落在不同 tick，後面整串取樣全錯開 |
 | `224–247` | `rAF`／`setTimeout`／`setInterval`（新包）改掛虛擬時鐘 | `setInterval` 舊法沒包（風聲 sfx 在用），pump 模式下它會照牆鐘燒 |
 | `248–263` | `F.fireDue()`：到期的虛擬計時器，同 tick 內新排的留到下一 tick | 避免 `setTimeout(fn,0)` 自我遞迴把一個 tick 卡死；同時到期依註冊序 |
-| `265–285` | `F.animStep(dt)`＋`Element.prototype.animate` 攔截：WAAPI／CSS 動畫全部 pause，逐 tick 推 `currentTime`，推到終點改叫 `finish()` | 跳字 `.dmgfloat` 是 `el.animate()` 畫的，它的 `opacity` 就是 R1 的取樣篩選條件（`op ≥ 0.8`）、它的 `rect` 就是量對比度的框。`finish()` 而不是硬設 `currentTime`，是為了讓 `onfinish` 照樣派（量表殘影的 `gh.remove` 與跳字回收吊在上面）。**第一次看到的動畫一律歸零**，不用它被牆鐘推過的那個值 |
-| `287–306` | `F.freeze`／`F.resume` 在 pump 模式改成切 `F.hold` | 世界本來就只在 tick 時前進，凍幀＝不 tick |
-| `307` | `F.tick()` ＝ `vt += DT` → 到期計時器 → 動畫 → 這一幀的 rAF 回呼 | 固定步長 1000/60 ms |
-| `308–322` | `F.pumpN(n)`：一批最多 n 個 tick，遇 `hold`／`net` 停下回報；**只有 hold 才走一次真實 rAF** | 直接呼叫 rAF 回呼在 render lifecycle 之外、合成器不交畫面出去（原治具 `__frzStepReal` 註解踩過）；但每批都走真實 rAF 又會多畫一幀 `dt=0`，而「批數」在網路停等時逐跑不同 ⇒ 只在要截圖時走 |
-| `442` | `__frzWarp(ms)` 補 pump 分支（`F.vt += ms`） | 保住舊語意：warp 只推「下一幀拿到的時刻」，不跑計時器、不推 WAAPI |
-| `528–533` | `openPage(browser, opt, extra, pump)` | dom 模式維持舊時鐘（L10 不用它） |
-| `540–551` | `TICK_MS = 1000/60`（凍結）、`PUMPED`、`BATCH = 36` | `BATCH×TICK_MS ≈ 600ms`，刻意大於 `index.html` 的 `MAIN_GUARD_MS=500`（見 §3） |
-| `930–1012` | `drivePumped()`：取代 `duel-drive.drive()` 的驅動迴圈 | 舊 drive 每 250ms **牆鐘**輪詢一次、看到鈕就按；新版每 `BATCH` 個**虛擬幀**檢查一次，點擊落在固定的 tick 序號上 |
-| `945–959` | 開跑前等 `__yaoshi3d` 上線＋網路靜止（此時虛擬時間停在 0） | 見 §3 第 ② 條 |
-| `1055–1062` | 收尾抽乾迴圈：pump 模式改成自己 tick | 牆鐘推不動任何東西 |
-| `1074–1079` | `versionOk` 的比對式修正 | 舊式 `includes('v'+ver+'・')`，但 2026-09-11 起首頁在 PAPERWAR 開著時只有 `v0.55`、後面沒有「・」⇒ **每跑必響的假警報**（零鑑別力，會訓練看的人忽略它）。改成「開頭是 `v<版本>` 且後面不是數字或點」；它不在 `verdict.res` 裡，不影響任何判定 |
-| `1081–1089` | 新增 `<outdir>/metrics.txt` | 判定＋全部統計量，一行一項、排序固定；驗決定性就 `md5sum` 它 |
+| `265–286` | `F.animStep(dt)`＋`Element.prototype.animate` 攔截：WAAPI／CSS 動畫全部 pause，逐 tick 推 `currentTime`，推到終點改叫 `finish()` | 跳字 `.dmgfloat` 是 `el.animate()` 畫的，它的 `opacity` 就是 R1 的取樣篩選條件（`op ≥ 0.8`）、它的 `rect` 就是量對比度的框。`finish()` 而不是硬設 `currentTime`，是為了讓 `onfinish` 照樣派（量表殘影的 `gh.remove` 與跳字回收吊在上面）。**第一次看到的動畫一律歸零**，不用它被牆鐘推過的那個值 |
+| `300–326` | `F.freeze`／`F.resume` 在 pump 模式改成切 `F.hold` | 世界本來就只在 tick 時前進，凍幀＝不 tick |
+| `327` | `F.tick()` ＝ `vt += DT` → 到期計時器 → 動畫 → 這一幀的 rAF 回呼 | 固定步長 1000/60 ms |
+| `334–348` | `F.pumpN(n)`：一批最多 n 個 tick，遇 `hold`／`net` 停下回報；**只有 hold 才走一次真實 rAF** | 直接呼叫 rAF 回呼在 render lifecycle 之外、合成器不交畫面出去（原治具 `__frzStepReal` 註解踩過）；但每批都走真實 rAF 又會多畫一幀 `dt=0`，而「批數」在網路停等時逐跑不同 ⇒ 只在要截圖時走 |
+| `462` | `__frzWarp(ms)` 補 pump 分支（`F.vt += ms`） | 保住舊語意：warp 只推「下一幀拿到的時刻」，不跑計時器、不推 WAAPI |
+| `555–560` | `openPage(browser, opt, extra, pump)` | dom 模式維持舊時鐘（L10 不用它） |
+| `567–578` | `TICK_MS = 1000/60`（凍結）、`PUMPED`、`BATCH = 36` | `BATCH×TICK_MS ≈ 600ms`，刻意大於 `index.html` 的 `MAIN_GUARD_MS=500`（見 §3） |
+| `969–1051` | `drivePumped()`：取代 `duel-drive.drive()` 的驅動迴圈 | 舊 drive 每 250ms **牆鐘**輪詢一次、看到鈕就按；新版每 `BATCH` 個**虛擬幀**檢查一次，點擊落在固定的 tick 序號上 |
+| `984–998` | 開跑前等 `__yaoshi3d` 上線＋網路靜止（此時虛擬時間停在 0） | 見 §3 第 ② 條 |
+| `1094–1101` | 收尾抽乾迴圈：pump 模式改成自己 tick | 牆鐘推不動任何東西 |
+| `1113–1122` | `versionOk` 的比對式修正 | 舊式 `includes('v'+ver+'・')`，但 2026-09-11 起首頁在 PAPERWAR 開著時只有 `v0.55`、後面沒有「・」⇒ **每跑必響的假警報**（零鑑別力，會訓練看的人忽略它）。改成「開頭是 `v<版本>` 且後面不是數字或點」；它不在 `verdict.res` 裡，不影響任何判定 |
+| `1124–1140` | 新增 `<outdir>/metrics.txt` | 判定＋全部統計量，一行一項、排序固定；驗決定性就 `md5sum` 它 |
+| `287–299` | **`F.pauseAll()`**（覆審 HIGH，見 §3④） | 純 pause、時間不前進；`F.freeze()`／`__frzWarp()`／`__frzStepReal()` 前後各掃一次，堵住「凍幀期間 CSS 動畫沿牆鐘跑」 |
+| `465–474` | `__frzStepReal()` 前後各掃一次 `pauseAll()` | 同上；前面擋 Node 端上一次 evaluate 建出來的動畫，後面擋這一幀回呼自己建的 |
+| `255`／`266`／`277`／`288`／`296`／`314`／`470`／`1113–1116` | `F.errs` 計數 ＋ `metrics.txt` 的 `swallowed=` | 覆審 (1b)：虛擬時鐘接管 rAF／計時器後，回呼裡的例外不會變成 `pageerror` ⇒ `errors=0` 失去鑑別力，自己數起來 |
+| `1131–1140` | `metrics.txt` 的 `acct.flashRuns`／`acct.sum`／`acct.ok` | 覆審 (1a)：把 `flashRuns == maskN + burnMaskN + Σ maskDropped` 的帳目印出來，對不上＝有樣本靜默消失（**不改 `judgePix`**） |
+| `795–811` | 更正 `M.tryFire` 上方那段已被 §5 證偽的註解 | 「hitstop 期間鏡頭完全不動」是錯的；只改註解，程式邏輯一行沒動 |
 
 **量法與門檻一行未動**——`git diff 417b197..HEAD -- tests/tools/dmg-readability.mjs` 裡
 `MASK_TH`／`MOVE_MAX`／`BASE_FONT`／`FONT_MIN`／`BACK_MAX`／`BURN_MAX`／`CTRL_MAX`／
@@ -70,7 +83,7 @@
 
 ---
 
-## 3　解決過程中量到的三件「§7.2 沒寫到」的事（都有實測）
+## 3　解決過程中量到的四件「§7.2 沒寫到」的事（都有實測）
 
 **① 第五處 wall-clock 耦合：`e.timeStamp` vs 虛擬 `performance.now`**
 `index.html:2253` 的 `gNow()` ＝ `performance.now()`（被治具換成虛擬），但主鈕連點守衛
@@ -104,6 +117,31 @@
 `versionOk` 全是 `false`，訊息寫「這個埠多半被別的 http.server 佔著，數字全部作廢」——
 而實際上版本是對的。修掉後新法 10 跑全 `true`。
 
+**④ 第六處耦合，由 fresh-context 對抗式覆審抓到（HIGH，已修並重驗）**
+pump 模式的 `F.freeze()` 原本只切 `F.hold` 就早退，**沒有**像舊法那樣先把所有動畫 pause 起來。
+而 `F.animStep` 只在 tick 裡跑 ⇒ **凍幀期間一次都不跑**。
+後果：「在凍住那一 tick 的 rAF 階段**之後**才被建立的 CSS 動畫」會沿 `document.timeline` 的
+**真實**時間，推進整個截圖視窗（一輪要拍 4 張、每張 100–250ms 牆鐘）。
+受影響的元素就在量測範圍內——`index.html:535` 的 `#duel i.hurtedge`（`inset:0` 全幅內陰影，
+會蓋到剪影遮罩像素）、`:436`／`:572` 的 `.flashfx`。
+**這是新法唯一一處比舊法更鬆的地方。**
+
+修法：新增 `F.pauseAll()`（純 pause、時間不前進），在 `F.freeze()`／`__frzWarp()`／
+`__frzStepReal()` 的前後各掃一次。
+
+**修掉之後重跑 5+5 跑，`metrics.txt` 仍各自逐位元組相同**，而且**數字真的變了**
+⇒ 證明這個洞不是紙上談兵：
+
+| 指標（seed 1） | 修 HIGH 前 | 修 HIGH 後 |
+|---|---|---|
+| `burnMaskAbsMax`／`burnMax` | 3.89 | **3.19** |
+| `maskMin`／`d40min`／`bySkin.layered.min` | 32.97 | **32.92** |
+| R1 對比度 `max` | 14.92 | **14.30** |
+| 判定（R1／R2main／R2sub／`maskN`／中位／`Δ200`） | 🟢／🟢／🔴／13／75.68／5.85 | **完全相同** |
+
+seed 3 則**逐欄完全相同**（它那 8 輪取樣的窗裡沒有 DOM 疊層動畫）。
+證據：`evidence/pump-before-2a-fix/` vs `evidence/pump/`。
+
 ---
 
 ## 4　驗收逐條
@@ -118,26 +156,35 @@ node tests/tools/dmg-readability.mjs pix scratchpad/l10/pump-s<SEED>-<i> \
 md5sum scratchpad/l10/pump-s<SEED>-*/metrics.txt
 ```
 
-```
-343dfcb03521ea7d7b3279d0b220d775 *scratchpad/l10/pump-s1-1/metrics.txt
-343dfcb03521ea7d7b3279d0b220d775 *scratchpad/l10/pump-s1-2/metrics.txt
-343dfcb03521ea7d7b3279d0b220d775 *scratchpad/l10/pump-s1-3/metrics.txt
-343dfcb03521ea7d7b3279d0b220d775 *scratchpad/l10/pump-s1-4/metrics.txt
-343dfcb03521ea7d7b3279d0b220d775 *scratchpad/l10/pump-s1-5/metrics.txt
+**最終版（對抗覆審抓到的 HIGH 修掉之後，`pump2-*`）：**
 
-f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-1/metrics.txt
-f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-2/metrics.txt
-f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-3/metrics.txt
-f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-4/metrics.txt
-f6076cc85bb4751698d7d633e17be414 *scratchpad/l10/pump-s3-5/metrics.txt
 ```
+5edb3d513b53217eaf1db18e7424eda8 *scratchpad/l10/pump2-s1-1/metrics.txt
+5edb3d513b53217eaf1db18e7424eda8 *scratchpad/l10/pump2-s1-2/metrics.txt
+5edb3d513b53217eaf1db18e7424eda8 *scratchpad/l10/pump2-s1-3/metrics.txt
+5edb3d513b53217eaf1db18e7424eda8 *scratchpad/l10/pump2-s1-4/metrics.txt
+5edb3d513b53217eaf1db18e7424eda8 *scratchpad/l10/pump2-s1-5/metrics.txt
+
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/pump2-s3-1/metrics.txt
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/pump2-s3-2/metrics.txt
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/pump2-s3-3/metrics.txt
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/pump2-s3-4/metrics.txt
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/pump2-s3-5/metrics.txt
+```
+
+（修 HIGH 之前的那一輪 5+5 跑同樣各自全等——`343dfcb0…`／`f6076cc8…`，
+ 留在 `evidence/pump-before-2a-fix/`，用途見 §3④。）
 
 逐跑數字（5/5 逐欄相同，含 `ticks`／`froze`／`maskDropped` 的逐項計數）：
 
-| seed | R1 | R2 | R2main | R2sub | R5pix | maskN | 中位 | ≥25 比例 | Δ200max | drop | ticks | froze |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | 13 | 75.68 | 1 | 5.85 | moved 5／tinyMask 2 | 6103 | 77 |
-| 3 | 🟢 | 🔴 | 🔴 | 🔴 | 🔴 | **0** | — | — | — | moved 4／tinyMask 1 | 6022 | 45 |
+| seed | R1 | R2 | R2main | R2sub | R5pix | maskN | 中位 | ≥25 比例 | Δ200max | drop | flashRuns | burnProbes | 量到的跳字 | ticks | froze | swallowed | acct.ok |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 🟢 | 🔴 | 🟢 | 🔴 | 🔴 | 13 | 75.68 | 1 | 5.85 | moved 5／tinyMask 2 | 24 | 4 | 46 | 6103 | 77 | 0 | true |
+| 3 | 🟢 | 🔴 | 🔴 | 🔴 | 🔴 | **0** | — | — | — | moved 4／tinyMask 1 | 8 | 3 | 33 | 6022 | 45 | 0 | true |
+
+`swallowed`＝虛擬時鐘接管 rAF／計時器之後被 try/catch 吞掉的例外數（覆審 (1b)）；
+`acct.ok`＝`flashRuns == maskN + burnMaskN + Σ maskDropped` 的帳目恆等式（覆審 (1a)）。
+兩欄都是本輪覆審後加的，兩個 seed 各 5 跑全部 `0`／`true`。
 
 證據：`docs/experiments/2026-09-12-l10-determinism-evidence/pump/`（10 份 `metrics.txt` ＋ `md5.txt`）。
 
@@ -330,11 +377,43 @@ $ node --test tests/*.test.mjs
 `M.tryFire` 的「剛冒出跳字 700ms 內不讓計時器插隊」把 timer 那條路整個餓死
 （`via {hitstop:4, timer:0}`），剩下的全落在推鏡窗裡。
 
+**經驗掃描（不是符號式恆假證明，照實標明）**：在 seed 3 上，「釘在 hitstop 的刺激必然落進推鏡窗」
+這件事的實測涵蓋是——每跑 4 筆 hitstop 刺激 × （新法 5 跑 ＋ 舊法 5 跑）＝ **40 次觀察，
+位移閘門 40/40 命中、`maskN` 恆為 0、`via` 恆為 `{hitstop:4, timer:0}`**。
+**但這只是經驗上的恆真，不是符號推導**（`02 §6.1` 第 6 條要的那種掃描還沒做——
+要做的話是固定 seed 3、逐筆記錄 `focusOn`／`focusAt` 的窗與取樣時刻的重疊，
+證明「只要釘在 hitstop，`mv40 > MOVE_MAX` 在 seed 3 上恆真」）。**做那個掃描本身不提高通過機率**，
+列進 §7 Q5 當可以先做的一步。
+
 **為什麼不自己修**：能讓 seed 3 拿到樣本的每一種做法——放寬 `MOVE_MAX`、把刺激避開推鏡窗、
 放寬「700ms 不讓插隊」、加大 `maxhit`／`duels`——**都會提高通過機率**，屬 `02 §2.1`
 「移動及格線」（`duels 8→20` 這一條 §7.2 N6 已經明寫過是候選的及格線移動、未採用）。
 依 `03 R3` 第 6 條，列在 §7 交裁。
 **⇒ 本卷對 seed 3 這一格「刻意不修，已經停手」——它不是本卷的待辦，是使用者裁完才動的下一步。**
+（覆審提醒：「每一種做法都會提高通過機率」這句在 `02 §2.1` 的**例外**面前不是絕對的——
+若那個掃描證明它**恆真**，`§2.1` 允許自行修正、事後回報。本卷沒做那個掃描，所以不走例外。）
+
+---
+
+## 5.5　對抗式覆審的處置（fresh `opus`，只給 diff 與證據、任務是「反駁這個宣稱」）
+
+`02 §3`：CRITICAL／HIGH 必修或簽准；MEDIUM／LOW 可自行判斷「不影響正確性、記錄不修」。
+
+| # | 覆審 finding | 嚴重度 | 處置 |
+|---|---|---|---|
+| 2a | pump 的 `freeze()` 不 pause 動畫 ⇒ 截圖視窗裡 CSS 動畫沿牆鐘跑 | **HIGH** | **已修**（`F.pauseAll()`）＋重驗 5+5 跑仍逐位元組相同，數字有變（§3④） |
+| 1b | `errors=0` 鑑別力接近零（rAF／timer 回呼的例外不會變 pageerror） | MEDIUM | **已補**：`F.errs` 計數，`metrics.txt` 印 `swallowed=`（兩 seed 各 5 跑全 0） |
+| 1a | 拿不到剪影的那幾輪在 `judgePix:1132` 靜默 `continue`、不進 `maskDropped`，`why==='noMask'` 不可達 | MEDIUM | **不改 `judgePix`**（量法不在本卷範圍，動它會毀掉驗收 4 的「量法零 diff」證據），改成**把帳目恆等式印出來**：`acct.flashRuns`／`acct.sum`／`acct.ok`。兩 seed 各 5 跑 `acct.ok=true`。**這是既有缺陷**（改前的檔案就是這樣），修它列進 §7 Q5 |
+| 4-附 | `judgePix:1231` 的 `rejBurn` 恆 0、`rejOffDuel` 恆等於樣本總數（讀到不存在的欄位） | LOW | **既有缺陷、不改**（同上，量法不動）。已在此記錄，證據對得上：s1 `rejOffDuel=24`＝`flashRuns`、s3 `=8`＝`flashRuns`。列進 §7 Q5 |
+| 5① | `M.tryFire` 上面那段「hitstop 期間鏡頭完全不動」的理由已被 §5 證偽 | MEDIUM | **已更正註解**（不動程式邏輯、不影響通過機率），並把實測寫進去 |
+| 5② | 報告把「我沒去驗它是不是恆假」講成「沒有別的路」 | MEDIUM | **已改寫 §7**：附上實測的經驗掃描（40/40），並明說那不是符號式恆假證明 |
+| 2b | net 閘蓋不到 ES module 的 `import()`（只靠 boot 等待與 Node 端批粒度的 `inflight`） | MEDIUM | **記錄不修**：三支 `loadMoves` 是 top-level await、在 `__yaoshi3d` 之前完成，被 boot 等待蓋住；GLB 走 XHR、貼圖走 `Image.src`／`createImageBitmap`，都在閘內。**實測 10 跑逐位元組相同**支持涵蓋是夠的；但這是「靠別的性質剛好蓋住」不是防線，列進 §7 Q5 |
+| 2c | `Event.prototype.timeStamp` 的 getter 回「讀取當下」而非「事件建立時刻」 | MEDIUM | **記錄不修**：pump 模式下同步 `el.click()` 沒有排隊 ⇒ 兩者等價。**但這代表這支治具不能拿來驗連點守衛／相位閘**（`index.html:2277`／`:2331`），會假綠——已寫進 README 與此處 |
+| 2d | Web Audio 的 `ctx.currentTime` 沒虛擬化 | LOW | **不修**：不回饋到畫面。`windStart` 的 `setInterval(7000)` 已虛擬化，所以它消耗 `S.rngUi()` 的次數是決定性的 |
+| 3-附 | 被剔掉的那 2 筆 `tinyMask` 的 `maskD` 根本沒被量出來過 ⇒ 是「沒有證據」不是「有證據說沒差」 | MEDIUM | **照實記錄**：新舊法 `maskGe25Ratio` 都是 1、`flashRuns` 都是 24、帳目兩邊都平；`tinyMask` 這個類別在**舊法的 seed 3 本來就有 2 筆**，不是本卷發明的 |
+| 6 | `F.animStep` 對 `playbackRate≠1`、`cancel()` 後再 `play()` 同一物件會弄錯 | LOW | **不修**：全 repo `grep playbackRate` 零命中；跳字雖走重用池但每次都是新的 Animation 物件（建立當下就被攔截歸零）。無用例 |
+| 4 | 量法與門檻有沒有被偷改 | — | 覆審**實跑核對後判定沒有**（grep exit 1、零命中），案例集與前一卷 §7.2「條件固定」逐字相同 |
+| 4-batch | `--batch` 沒附 `02 §2.1` 要的「改前／改後實測數字」 | LOW-MEDIUM | `BATCH` 是本卷**新增**的參數（版控裡查不到舊值 30，第一個 commit 起就是 36），不碰任何判準；理由可驗（`index.html:2251 MAIN_GUARD_MS=500`，30×16.667＝500.0000…貼著門檻）。照實記錄於此 |
 
 ---
 
@@ -373,16 +452,17 @@ $ node --test tests/*.test.mjs
 | Q2 | **seed 1 的 `Δ200 = 5.85 > 5` 現在是決定性紅**，要不要據此判 L10 紅？凍結檔自己在 `修訂 2-C` 的註解裡寫過「基準 v0.48 無閃紅功能也量到 +6.1，±5 低於量法雜訊底」 | ➡️ **先不判紅，改成量出雜訊底再訂**：在「產品沒有閃紅功能」的對照版本上跑同一支治具，量 `Δ200` 的分布當雜訊底，再決定 `BACK_MAX` 該是多少。這是**加嚴／校準**方向的工作，不是放寬，但仍動到門檻 ⇒ 要使用者同意 |
 | Q3 | 凍結檔 §2.1 修訂三 ⑤ 的「訊號不可信、記錄不判」要不要解除？ | ➡️ **部分解除**：取樣已決定性，`R1` 與 `R2main` 可以開始判（10 跑全綠、逐跑相同）；`R2sub` 與 seed 3 那一格等 Q1／Q2 裁完再解 |
 | Q4 | `--wallclock=1` 這條舊路要不要留？ | ➡️ **留**，它是唯一一條「同一顆二進位證明舊法不決定性」的路；README 已標明它不決定性 |
+| Q5 | **對抗覆審留下的既有缺陷要不要另開一卷修**（三件都在 `judgePix`／量法那一側，本卷刻意不碰）：① `judgePix:1132` 拿不到剪影的那幾輪靜默 `continue`、`why==='noMask'` 不可達 ② `judgePix:1231` 的 `rejBurn` 恆 0／`rejOffDuel` 恆等於樣本總數 ③ 做 §5 那個符號式恆假掃描 | ➡️ **另開一卷、三件一起做**。①②是**加嚴**（把靜默消失變成 fail-closed、把兩個零鑑別力欄位拿掉），③是純量測，三件都不提高通過機率，可自行做完再回報；但它們會動到 `judgePix`，動了就不能再用「量法零 diff」這條證據 ⇒ 不該夾在本卷裡做 |
 
 ---
 
 ## 8　怎麼複現 / 證據路徑
 
 ```bash
-# 決定性（本卷主閘門）
-sh scratchpad/l10/run5.sh pump 1 8980      # seed 1 ×5
-sh scratchpad/l10/run5.sh pump 3 8990      # seed 3 ×5
-md5sum scratchpad/l10/pump-s1-*/metrics.txt scratchpad/l10/pump-s3-*/metrics.txt
+# 決定性（本卷主閘門）——最終版的證據是 pump2-*（對抗覆審的 HIGH 修掉之後那一輪）
+sh scratchpad/l10/run5.sh pump2 1 9060     # seed 1 ×5
+sh scratchpad/l10/run5.sh pump2 3 9070     # seed 3 ×5
+md5sum scratchpad/l10/pump2-s1-*/metrics.txt scratchpad/l10/pump2-s3-*/metrics.txt
 
 # 鑑別力（甲）：改前的原始檔案副本
 cp scratchpad/l10/backup/dmg-readability.mjs.orig tests/tools/_dmg-orig.mjs
