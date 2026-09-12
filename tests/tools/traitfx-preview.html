@@ -244,6 +244,42 @@ window.__tfx = {
     });
     return out;
   },
+  /** ★道具尺寸記錄（2026-09-12 演出卷 Q5 的治具掛勾，給 tests/tools/prop-size.mjs）★ 唯讀診斷。
+   *  回報這一幀：① 每個 fxKind 物件的世界包圍盒 ② 每尊 figure 的包圍盒高。
+   *  規則要比的是「**單件**道具 ≤ 施招本體高的 1/2」（ART_BIBLE §10.2／語彙檔 §A3），
+   *  所以群體道具（InstancedMesh）另外算 `unit`＝單件幾何 × 該群最大實例縮放——
+   *  整群的世界包圍盒（`max`）量到的是「這一群散開多寬」，拿它去比會把每一支群體招都判成超標。 */
+  propSizes() {
+    const box = new THREE.Box3(), sz = new THREE.Vector3();
+    const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
+    const props = [];
+    scene.traverse((o) => {
+      const k = o.userData && o.userData.fxKind;
+      if (!k || !o.visible) return;
+      box.setFromObject(o);
+      if (box.isEmpty()) return;
+      box.getSize(sz);
+      const max = Math.max(sz.x, sz.y, sz.z);
+      let unit = max;
+      if (o.isInstancedMesh) {
+        if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+        const g = new THREE.Vector3(); o.geometry.boundingBox.getSize(g);
+        let ms = 0;
+        for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, _m); _m.decompose(_p, _q, _s); ms = Math.max(ms, _s.x, _s.y, _s.z); }
+        unit = Math.max(g.x, g.y, g.z) * ms * Math.max(o.scale.x, o.scale.y, o.scale.z);
+      }
+      props.push({ kind: k, w: +sz.x.toFixed(4), h: +sz.y.toFixed(4), d: +sz.z.toFixed(4), max: +max.toFixed(4), unit: +unit.toFixed(4), inst: !!o.isInstancedMesh });
+    });
+    const rows = [];
+    ['A', 'B'].forEach((side) => (duelFigures.figuresOf(side) || []).forEach((f) => {
+      if (!f || f.skin !== 'creature' || !f.group.visible) return;
+      box.setFromObject(f.group);
+      if (box.isEmpty()) return;
+      box.getSize(sz);
+      rows.push({ side, h: +sz.y.toFixed(4) });
+    }));
+    return { props, figs: rows };
+  },
   sig() { return traitFx.lastSig(); },
   stats() { return Object.assign({}, traitFx.stats); },
   programs() { return renderer.info.programs ? renderer.info.programs.length : -1; },
