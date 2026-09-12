@@ -1,0 +1,69 @@
+# 階段 B 批末閘門的實際輸出（2026-09-13，指令原文＋原始 stdout）
+# 基準＝main 76fc296（v0.55.7，階段 A）。本檔是報告 §2.6 那張表的落檔，不是第二份判準。
+
+== P0 trace-eq（git show 76fc296:index.html > scratchpad/base-index.html）==
+$ node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html
+{"old":"scratchpad/base-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+
+== P1／P2／P5／P6 traitfx-drive 全套 ==
+$ node tests/tools/traitfx-drive.mjs <out> --tier=1                27/27 pass · 重複簽章 0
+$ node tests/tools/traitfx-drive.mjs <out> --tier=2                30/30 pass · 重複簽章 0
+$ node tests/tools/traitfx-drive.mjs <out> --tier=3                3/3 pass · 重複簽章 0
+$ node tests/tools/traitfx-drive.mjs <out> --tier=1 --fxvocab=1    27/27 pass · 重複簽章 0
+$ node tests/tools/traitfx-drive.mjs <out> --tier=2 --fxvocab=1    30/30 pass · 重複簽章 0
+$ node tests/tools/traitfx-drive.mjs <out> --tier=2 --count=2      30/30 pass · 重複簽章 0
+
+== A6 draw call（proto-record --tier=2 --step=6 --fps=20 --nogif；預算 ≤ idle+25）==
+$ node tests/tools/proto-record.mjs <out> --trait=<trId> --tier=2 --step=6 --fps=20 --nogif
+{"trait":"eliteOpenShot","tier":2,"idleCalls":154,"peakCalls":170,"peakTris":50156,"programs":21,"errors":0}    +16
+{"trait":"wardHpFront2","tier":2,"idleCalls":164,"peakCalls":183,"peakTris":53170,"programs":21,"errors":0}     +19
+{"trait":"eliteArmor","tier":2,"idleCalls":164,"peakCalls":179,"peakTris":56360,"programs":21,"errors":0}       +15
+{"trait":"wardFirst","tier":2,"idleCalls":156,"peakCalls":173,"peakTris":50326,"programs":19,"errors":0}        +17
+{"trait":"boltGamble","tier":2,"idleCalls":154,"peakCalls":170,"peakTris":50960,"programs":21,"errors":0}       +16
+{"trait":"swarmHalfSplash","tier":2,"idleCalls":176,"peakCalls":199,"peakTris":74588,"programs":21,"errors":0}  +23
+{"trait":"swarmThorn","tier":2,"idleCalls":146,"peakCalls":162,"peakTris":55340,"programs":21,"errors":0}       +16
+{"trait":"wardHpAll1","tier":2,"idleCalls":176,"peakCalls":195,"peakTris":67706,"programs":21,"errors":0}       +19
+{"trait":"eliteSelfCut","tier":2,"idleCalls":150,"peakCalls":161,"peakTris":48994,"programs":21,"errors":0}     +11
+
+== P7 duel-perf（本樹 vs 基準樹 76fc296 的 git archive 樹）==
+$ node tests/tools/duel-perf.mjs perf <out> --seed=7
+{"perf":{"rafMedianFps":59.9,"rafP95Ms":16.7,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"visible":16,"total":16},"errors":0}
+$ node tests/tools/duel-perf.mjs perf <out> --seed=7 --root=scratchpad/base767
+{"perf":{"rafMedianFps":59.9,"rafP95Ms":16.8,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"visible":16,"total":16},"errors":0}
+⇒ fps 比值 59.9:59.9 = 1.00（≥0.95）；draw call 986:986（≤1000）；visible 16=16
+
+== P8 duel-drive seed 7 / seed 3（各 4 場）==
+$ node tests/tools/duel-drive.mjs "http://127.0.0.1:8896/index.html?paperwar=1&fxcount=1&seed=7" <out> --duels=4 --port=8896
+  errors []（0）　ver v0.55.7　fxc {"burn":6,"burnDom":3,"burnFig":3,"trait":4,"traitFig":3,"beat":12,"duels":4,…}
+$ node tests/tools/duel-drive.mjs "http://127.0.0.1:8897/index.html?paperwar=1&fxcount=1&seed=3" <out> --duels=4 --port=8897
+  errors []（0）　ver v0.55.7
+  兩跑的徽記世界尺寸斷言都是 n/a（★這一跑沒演到用徽記的招＝未量到，不得當成通過★）——
+  與階段 A 同一個結構性原因（README 的 N-6：預設路徑上已經沒有招走 st.icon 系列了）。
+
+== P8 12 套規則測試（每套最後一行）==
+aistake           通過 8　失敗 0
+conscap           通過 5　失敗 0
+duel-desync       結果：7 綠 ／ 0 紅
+emblem-collision  結果：9 綠 ／ 0 紅
+fxtier            結果：14 綠 ／ 0 紅
+fxvocab           結果：28 綠 ／ 0 紅
+legend            32 過 / 0 失敗
+lineup-order      結果：8 綠 ／ 0 紅
+nightrules        結果：16 綠 ／ 0 紅
+review            通過 28　失敗 0
+roles-balance     角色平衡卷單元測試：32 過 / 0 失敗
+wish16            結果：PASS=36 FAIL=0
+
+== P3 對比（844×390@2x、bloom 0.7、seed 7；門檻 area ≥0.8%／ΔE 中位 ≥28）==
+$ node tests/tools/fx-contrast.mjs <out> --tier=2 --seed=7 --only=<祖靈 9 支>
+$ python tests/tools/fx-contrast-metrics.py <out>     → "pass": 9, "failed": []
+$ node tests/tools/fx-contrast.mjs <out> --tier=1 --seed=7 --only=<祖靈 9 支>
+$ python tests/tools/fx-contrast-metrics.py <out>     → "pass": 9, "failed": []
+逐支數字見 p3b-t1/metrics.txt 與 p3b-t2/metrics.txt。
+
+== §A3 尺寸記錄（Q5，記錄項不擋批）==
+$ node tests/tools/prop-size.mjs <out> --tier=2 ／ --tier=1
+參考線 ratio ≤ 0.6667：道具 2／41 列超過（另有 46 列是腳下語彙／拖尾，不在這條規則的範圍）。errors=0
+兩列超標（t1／t2 相同）：
+  swarmHalfSplash  emblem:wave      figH 0.8054  峰值 0.8434  ratio 1.047  ← 本階段推上去的，交裁
+  swarmLastStand   emblem:tornflag  figH 1.1229  峰值 0.9184  ratio 0.818  ← 香火批的既有記錄項，本階段未動

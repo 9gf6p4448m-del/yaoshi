@@ -442,3 +442,280 @@ t1 **208→120.7**、t2 **560→316.7**、t3 **860→476.7**（−42%／−43%�
 2. 簽字後鋪祖靈其餘 8 支（`eliteOpenShot`／`wardHpFront2`／`eliteArmor`／`wardFirst`／`boltGamble`／
    `swarmHalfSplash`／`swarmThorn`／`wardHpAll1`），每支 P0–P3／P5–P8 ＋ sheet。
 3. 18 支（香火 9 ＋ 祖靈 9）一起交 **P4 新的三輪**，材料帶 `--mateGap=1.9`。
+
+---
+
+## 2. 階段 B（其餘 8 支祖靈招＋三件系統事，2026-09-13）
+
+> **worktree `agent-af83de3a890909c69`，基準＝main `76fc296`（v0.55.7，階段 A）。未合併、未 push。
+> `index.html` 一行未動、版號未上。門檻／seed／視口／`PHASE_GATE`／`TRAIT_MS_BY_TIER`／香火真值一格未動。**
+
+### 2.0 一句話
+
+8 支祖靈招全部轉正（P0–P3／P5–P8 全綠），並落地階段 A 簽字裁定的三件系統事：
+**道具落點 anchor**（裁定①，`casterMatch` 改綁落點）、**祖靈 P4 真值表**（裁定②）、
+**香火＋祖靈 18 支的新 P4 材料**（2v2、`--mateGap=1.9`）。
+anchor 這一條**當場抓到兩個真缺陷**（見 §2.2），那正是它要抓的東西。
+
+### 2.1 系統事①：道具落點 anchor（階段 A 簽字裁定①，H2 殘結案）
+
+階段 A 的 `casterMatch` 只綁「**骨骼動了誰**」，不綁「**道具落在誰身上**」——把姿態給隊友 A、
+道具生在隊友 B 手上，A9-1 的五條全綠（報告 §1.8 的「H2 殘」，階段 A 唯一未解的 HIGH）。
+
+| 層 | 落點 | 內容 |
+|---|---|---|
+| 語彙 | `docs/design/2026-09-12-fx-vocab-draft.md` **§A9-5**（新增）＋`ART_BIBLE.md` §10.3 第 4 條 | 六個取值、三條刻意的設計決定、已知未涵蓋 |
+| 白名單 | `js/trait-fx/vocab.js` 的 `ANCHOR_KIND` | `caster`／`self`／`ally`／`allies`／`foe`／`foes` |
+| 登記表 | 同檔 `MOVE_SPEC` 第五欄 `anchor`（18 支已轉正的都填了） | 這一招的道具**應該**落在誰身上 |
+| 積木入口 | `js/trait-fx.js` 的 `regAnchor` ＋ `paperStamp`／`paperProps`／`stick` 三處呼叫 | 逐件登記 `o.anchor`；取值不在白名單當場 throw |
+| 量測 | `js/trait-fx.js` 的 `figBoxOf`／`boxDistXZ`／`nearestFig`／`sampleAnchors`，掛在 `update` 迴圈 | 在**衝擊拍**（`react[0]`）量一次，取**水平最近的那一尊** |
+| 留帳 | `lastSig.anchors`（`spec`／`n`／`bad`／`skipped`／`mainHit`／`mainScope`／逐件 `rows`／`figs`） | 判紅時看得出「誰站在哪、差多少」 |
+| 判定 | `traitfx-drive` 的 `stanceOK` → `casterMatch`＝「姿態的尊＝施招者」**且**「道具落點＝anchor」 | 進 `verdict.pass` |
+| 原始碼側 | `tests/fxvocab.test.mjs` 新增兩條 | 已轉正必填 anchor、編舞真的交給積木；`ANCHOR_KIND` 與 §A9-5 逐格相同 |
+
+**三個刻意的設計決定**（寫在 §A9-5 裡，免得下一卷當成漏洞）：
+
+1. **量的時點由引擎定死在衝擊拍**，編舞沒有參數改得動——挑得動時點就等於挑得動答案。
+2. **「最近」量的是世界包圍盒的水平佔地，不是 `group.position`**。
+   `group.position` 是腳下那一點，而低多邊形四足獸的頭頸伸出去可以超過半個身長——
+   獻祭刀的刃掛在鹿的 `Neck2` 上，用腳下那一點量會判成「落在同伴身上」
+   （實測 caster 0.58 vs ally 0.29，而畫面上它明明長在鹿的脖子邊）。
+3. **判準是「有沒有比別人近」，不是「破完平手之後是誰」**。治具棚在 `--mateGap=1`
+   （＝P4 前三輪的站位）下同一邊兩尊的佔地本來就重疊，一件掛在脖子上的刃到兩尊的距離都是 0；
+   拿破平手的結果判紅，紅的是**站位**不是實作。所以判準是「到 anchor 那一側的距離 ＝ 全場最小值（±1e-6）」。
+   `amb`（幾尊並列最近）照實印出來。
+
+**主道具的判準是「落點」不是「登記的字串」**：要求的是「真值作用對象那一側真的有一件道具落下」。
+獻祭刀在治具棚只有 1 尊，`allies` 就只剩施招者本人，落在他身上的紙血條就是那一件——
+窄版（要求有一件**登記**成 `allies`）會讓這支招**無論實作對錯都做不出來**（`02 §6.1` 第 6 條）。
+
+**已知未涵蓋**：腳下語彙（`o.floor` 的貼桌陣、`st.pillar`）不登記 anchor——§A3 與本條管的都是
+「單件**道具**」，腳下語彙的身分由 A9-1 的 `groundSame` 管。
+
+#### 鑑別力（`02 §6.1` 第 1 條）——`anchor-mutations.txt`
+
+三條突變各自驗紅，**還原一律用改壞前的備份副本**（`scratchpad/_bak-vocab.js`／`_bak-zuling.js`），不用反向 sed：
+
+| 突變 | 改了什麼 | 結果 |
+|---|---|---|
+| 健康態（對照） | — | **3/3 pass** |
+| A | `MOVE_SPEC.biteGamble.anchor` `foe` → `allies`（宣告落我方、實際落敵方） | **0/1 pass** ✅紅 |
+| B | 射日的日盤登記成 `anchor: 'caster'`（道具明明飛去對面） | **0/1 pass** ✅紅 |
+| C | 百步蛇紋盾的菱紋帶落點搬回施招者身上（`lerpVectors(A, Z)` → `(A, A)`） | **0/1 pass** ✅紅 |
+| 還原後（健康態必須回綠） | — | **3/3 pass** ✅綠 |
+
+**反面也驗了**：健康態在突變前後各跑一次都是 3/3——這不是只驗「會不會紅」的反向探針。
+
+### 2.2 anchor 當場抓到的兩個真缺陷（都已修）
+
+| # | 招 | 症狀（機械訊號） | 修法 |
+|---|---|---|---|
+| 1 | `wardHpFirst` 香灰符（**香火批 1 已上線的招**） | `ally>caster✗`：金灰流只走到前鋒的 35% 再往後退 0.55，衝擊拍那一刻**水平最近的仍然是法師自己** | 灰流的終點改成前鋒頭上那一點，原本的 `via` 降級成弧的鼓出量（`xianghuo.js` 的 `ashBow`） |
+| 2 | `eliteSelfCut` 獻祭刀（階段 A 的範本招） | `--count=2` 下 `caster>ally✗`：刃插在鹿的佔地**外** 0.06、卻正好落在同伴的佔地裡——「插在自己頸邊的地上」在 2v2 裡讀成「插在同伴身上」 | 落點由 `+dir*0.40` 收成 `+0.18` |
+
+第 1 條是 P4 第 2 輪裁定「增益招的道具落點改到受益方」**沒有修乾淨**的那一支——
+這正是「只靠人眼看 sheet」與「有機械量測」的差別。
+
+### 2.3 系統事②：祖靈 P4 真值表
+
+`docs/experiments/2026-09-13-zuling-b2-evidence/p4-truth-zuling.json`（格式同香火 `p4-truth.json`，
+effect／target／faction／alt ≤1，依 `ABILITIES` 與 `MOVE_SPEC`）。**★讀者不得看★**。
+香火那一份**一格未動**。
+
+| 招 | effect | target | alt | 依據 |
+|---|---|---|---|---|
+| `eliteOpenShot` 射日神弓 | 打擊 | 敵方單一 | — | 「對面最壯的一隻 −1」 |
+| `wardHpFront2` 百步蛇紋盾 | 防護增益 | 我方多個 | — | 「前鋒**全體** hp+2」 |
+| `eliteArmor` 巴冷公主珠鍊 | 防護增益 | 我方多個 | — | 「**本隊**每拍第一次受擊 −2」 |
+| `wardFirst` 祖靈之眼 | 防護增益 | 我方多個 | target＝我方單一 | `first:true` 在 `index.html:3828` 是 `pwAny(X,"first")`＝**整隊**先結算；alt 接受把 desc 的「前鋒」讀成單一那一隻 |
+| `boltGamble` 雷女之火 | 打擊 | 敵方單一 | — | 「燒掉對面 **1 隻**小兵」 |
+| `swarmHalfSplash` 拼板舟 | 防護增益 | 我方多個 | — | 「**本隊**受到的濺射減半」 |
+| `swarmThorn` 山豬牙飾 | 打擊 | 敵方單一 | effect＝防護增益 | 機制是我方反擊被動、畫面是對打中我們那一隻的打擊（`index.html:3626` 把傷害記在 `att` 身上）——與香火 `eliteCleave` 同一條處置 |
+| `eliteSelfCut` 獻祭刀 | 防護增益 | 我方多個 | — | ★製作人階段 A 簽字裁定②★「照 ABILITIES 填」；「一拍自傷 1，**全場本隊** atk+2」 |
+| `wardHpAll1` 山神庇佑 | 防護增益 | 我方多個 | — | 「**全體** hp+1（含護法、作祟）」 |
+
+### 2.4 系統事③：P4 材料（香火 9 ＋ 祖靈 9 ＝ 18 支，新的三輪的第 1 輪）
+
+| 材料 | 路徑 | 內容 |
+|---|---|---|
+| A 2v2 治具棚 | `…-b2-evidence/p4-material-A-booth-x2/` | 18 支 × t1＋t2 ＝ **36 張**＋`mapping-HIDDEN.json` |
+| B 2v2 近景 | `…-b2-evidence/p4-material-B-closeup-x2/` | 18 支 × t2 ＝ **18 張**＋`mapping-HIDDEN.json`（`camdist 2.4`） |
+
+指令原文（兩份只差 `--tiers`／`--camdist`）：
+
+```
+node tests/tools/blindread-sheet.mjs <出> --only=<18 個 trId> --tiers=1,2 \
+  --count=2 --mateGap=1.9 --foe=raincoat:haunt:yinqi:1,nail:elite:yinqi:1 --port=8881
+```
+
+- 兩份都**不帶 `--label`**（是給讀者的材料）。
+- `mapping-HIDDEN.json` 逐列帶 `trId`／`tier`／`material`／`faction`，頂層記 `material`／`layout`／`spec`；
+  `trId` 集合與兩份真值表（香火 9 ＋ 祖靈 9）**逐一相同**（實跑核對：18/18）。
+- **敵方換成兩尊陰氣**（`raincoat` ＋ `nail`）：香火批 1 第 3 輪的敵方是 `bow:elite:zuling:1`，
+  而這一輪祖靈也在受測，敵方若是祖靈會把 Q3「哪一系」弄混。這是材料規格，P4 的三題與真值一格不動。
+- ★**讀者由主對話派，我沒有跑 P4**★：及格線（三對讀者、每格 Q1–Q3 全對、三對中 ≥2 對）照計畫 §5。
+
+### 2.5 階段 B 逐支表（8 支）
+
+節拍窗全部由 `st.beat` 換算，所以**衝擊拍的時點三個 tier 各只有一個值**：
+`react[0]` ＝ **t1 208ms／t2 560ms／t3 860ms**（`BEAT_FRAC`，本階段未動）。
+`draw call` ＝ `proto-record --tier=2` 的 `peakCalls − idleCalls`（預算 ≤ idle+25）。
+`anchor` 那一欄是 `--tier=2 --count=2` 那一跑的逐件落點（`>` 右邊＝實際落在誰身上）。
+
+| 招 | 本體動作（stance） | 道具（家族） | anchor（實測落點） | 受招／受益反應 | 衝擊拍 | draw call | P3 t2 area／ΔE |
+|---|---|---|---|---|---|---|---|
+| `eliteOpenShot` 射日神弓 | **張** 弓臂外撐＋頸後仰（舉臂 up） | 丁 **金色日盤**（`sun`，`paperStamp`）＋三支箭矢厚片（`paperProps`） | `foe` ／ 3 件全 `>foe` | **退** flinch＋胸口日印 | t2 560 | **+16** | 1.3398%／71.55 |
+| `wardHpFront2` 百步蛇紋盾 | **扎** 下沉紮地＋盾牆一格張開（下沉 down） | 乙 **菱紋帶**（`rhomb` ×5 `paperProps`＋帶頭一枚 `paperStamp`） | `allies` ／ 3 件全 OK | **升** 上抬＋菱紋印 | t2 560 | **+19** | 1.313%／55.8 |
+| `eliteArmor` 巴冷公主珠鍊 | **張**（繞）盤繞＋昂首（前傾 fore） | 乙 **琉璃珠圈**（`bead` ×7 `paperProps`＋心口一顆 `paperStamp`） | `allies` ／ 3 件全 OK | **升** 上抬＋珠印 | t2 560 | **+15** | 1.1043%／53.92 |
+| `wardFirst` 祖靈之眼 | **張** 眼瞼一格全開＋眉壓（下沉 down） | 甲 **石雕眼**（`eye`，`paperStamp`） | `allies` ／ 3 件全 OK | **升** 上抬＋眼印 | t2 560 | **+17** | 2.3141%／57.51 |
+| `boltGamble` 雷女之火 | **張**（撐）雙翼一格撐開＋仰頸（舉臂 up） | 丁 **鋸齒雷片**（`bolt` ×4 `paperProps`＋主雷片 `paperStamp`） | `foe` ／ 2 件全 `>foe` | **壓** 等比縮＋flinch＋雷印 | t2 560 | **+16** | 1.2113%／35.56 |
+| `swarmHalfSplash` 拼板舟 | **躍** 壓浪→猛抬首、鰭全張（下沉 down） | 丙 **三道平行浪弧**（`wave` ×3 `paperProps`＋最前一道 `paperStamp`） | `allies` ／ 3 件全 OK | **升** 上抬＋浪印 | t2 560 | **+23** | 1.3006%／58.47 |
+| `swarmThorn` 山豬牙飾 | **沉**（刨）低頭刨地＋拱背、牙盤轉亮（下沉 down） | 甲 **兩根獠牙**（`tusk` ×2 `paperProps`＋主獠牙 `paperStamp`） | `foe` ／ 2 件全 `>foe` | **退** flinch＋牙痕印 | t2 560 | **+16** | 1.0831%／61.48 |
+| `wardHpAll1` 山神庇佑 | **沉** 四肢屈膝＋背岩隆起加倍（下沉 down） | 甲 **岩塊繞一圈**（`crag` ×6 `paperProps`＋帶頭一塊 `paperStamp`） | `allies` ／ 3 件全 OK | **升** 上抬＋岩印 | t2 560 | **+19** | 2.0406%／55.8 |
+
+**還粗的地方（逐支）**：
+
+| 招 | 還粗 |
+|---|---|
+| `eliteOpenShot` | 三支箭矢在滿編視距下疊成一根淡藍色厚片，讀成「盤旁邊有東西」而不是「三支箭」 |
+| `wardHpFront2` | 五枚菱形在 `--mateGap=1` 下大半躲在盾牆後面；兩尊護法本來就重疊，看起來像一尊 |
+| `eliteArmor` | 琉璃珠與 `balen` 模型自己的藍色鱗片同色系（§10.6 的模型層互撞，演出層只拉得開形狀） |
+| `wardFirst` | 石雕眼的杏仁形與 `eye` 模型本身的大眼窩是同一個形（同上）；落點偏本體左上 |
+| `boltGamble` | 四片雷在中距離疊成一到兩片；ΔE 中位 35.56 是 9 支裡最低（土金對紫夜空） |
+| `swarmHalfSplash` | 三道弧疊成一片，讀成「一道浪」；**尺寸 ratio 1.047 超過 §A3 的 2/3**（見 §2.7） |
+| `swarmThorn` | 兩根獠牙在 travel 中段疊成一個「V」；反向彈回那一段在 t1（62ms 的 react）幾乎看不到 |
+| `wardHpAll1` | 六塊岩的外框都是稜角塊，與 `wardHpFront2` 的菱形在小尺寸下剪影接近 |
+
+**共通的一條**：祖靈的腳下光柱（`st.pillar`）與八件道具**同為靛藍**，
+travel 段常常兩者在畫面上疊在一起——形狀分得開、顏色不分。這是階段 A §1.8 第 5 點的同一條，範圍變大了。
+
+### 2.6 批末驗收（全部實跑，指令原文與原始 stdout 在 `gates-b.txt`）
+
+| 閘門 | 結果 |
+|---|---|
+| **P0 等價** `trace-eq` 對基準 `76fc296` | `{"bytesOld":357285,"bytesNew":357285,"equal":true}` ✅ |
+| **P1 登記表** `tests/fxvocab.test.mjs` | **28 綠／0 紅**（新增兩條：anchor 必填＋編舞真的交給積木、`ANCHOR_KIND` 與 §A9-5 逐格相同）✅ |
+| **P2／P5／P6** `traitfx-drive` | `--tier=1` **27/27**／`--tier=2` **30/30**／`--tier=3` **3/3**／`--tier=1 --fxvocab=1` **27/27**／`--tier=2 --fxvocab=1` **30/30**／`--tier=2 --count=2` **30/30** ✅ |
+| **P3 對比** `fx-contrast` ＋ metrics（844×390@2x、bloom 0.7、seed 7） | t2 **9/9**、t1 **9/9** ✅ |
+| **P4 盲讀** | **不在本階段**（材料已產，讀者由主對話派） |
+| **P7 效能** `duel-perf`（本樹 vs 基準樹 `76fc296`） | fps **59.9 : 59.9 ＝ 1.00**（≥0.95）；draw call **986 : 986**（≤1000）；visible 16=16 ✅ |
+| **A6 draw call** `proto-record --tier=2` | 8 支 **+15～+23**（預算 idle+25）✅ |
+| **P8 零錯＋規則測試** `duel-drive --seed=7`／`--seed=3` 各 4 場 ＋ 12 套 | errors **0／0**（`ver v0.55.7`）；12 套 **8／5／7／9／14／28／32／8／16／28／32／36 全綠** ✅ |
+
+### 2.7 §A3 尺寸記錄（Q5，記錄項不擋批）
+
+`…-b2-evidence/propsize/prop-size-t{1,2}.tsv`。t1／t2 各 41 列道具，**2 列超過 2/3**：
+
+| 招 | 件 | figH | 峰值 | ratio | 說明 |
+|---|---|---|---|---|---|
+| `swarmHalfSplash` | `emblem:wave` | 0.8054 | 0.8434 | **1.047** | ★本階段推上去的，交裁★ |
+| `swarmLastStand` | `emblem:tornflag` | 1.1229 | 0.9184 | 0.818 | 香火批的既有記錄項，本階段未動 |
+
+**為什麼 `swarmHalfSplash` 會超**：拼板舟的 `figH` 只有 **0.8054**，是全 27 隻裡最矮的一尊，
+§A3 的上限＝0.537 世界單位；而 L3 要求 **≥0.8% 的畫面面積**。這兩條在矮的那幾尊上互斥
+（香火批 1 §4.3 已記過同一個形狀，破軍旗是那一批的案例）。走的是破軍旗同一條路：
+**先推近鏡頭**（`st.camOff(2.6)`，世界尺寸不動、畫面像素變多）**再放大**。
+實測兩種組合：`0.35+0.26e` ＋ camOff 5.6 → ratio 0.628 合規但**浪弧卡在畫面左邊、沒有落到舟上**；
+`0.35+0.62e` ＋ camOff 2.6 → area 1.3006%、落點正確、ratio 1.047 超標。**取後者，照 Q5 記錄交裁。**
+
+另外本階段把 `ICON.markByKind` 加了一列 **`wave: 0.24`**（拼板舟的印記，預設 0.3 量出來 ratio 0.726），
+並同步 `docs/experiments/2026-09-11-fx-vocab.md` 第 5 節的表（`fxvocab.test.mjs` 逐列釘住那張表）。
+
+### 2.8 P3 的一個結構性發現（下一批會再踩）
+
+**`fxVis`（L3 的量測對象）不切 `prop:`／`floor:` 兩個前綴**，所以「主道具只有 `InstancedMesh` 群」
+的招在 P3 上量到的面積是 **0.0%**——第 1 輪 9 支只過 2 支，其中四支
+（`wardHpFront2`／`eliteArmor`／`swarmHalfSplash`／`wardHpAll1`）都是這樣紅的，
+另外兩支（`boltGamble`／`swarmThorn`）只量到拖尾的 0.09%。
+香火批 1 的五營旗早就踩過（「中央那一面走 `st.paperStamp`，也是 L3 唯一量得到的那一件」），
+但那是寫在編舞的註解裡、沒有進任何清單。修法是逐支補一件 `st.paperStamp` 主件
+（帶頭的菱形／心口琉璃珠／最前面那道浪弧／帶頭的岩塊／主雷片／主獠牙），
+順帶讓「一件大道具＋一群小件」的層次讀得更清楚。
+**陰氣批要注意**：凡是主道具只有 `st.paperProps` 群的招，P3 一定是 0.0%。
+
+### 2.9 視覺自評（`threejs-visual-loop`：每支一輪＋批末一輪）
+
+第零步（治具盤點）：本專案三樣齊全，沒有另建——截圖 `blindread-sheet.mjs`／`proto-record.mjs`、
+除錯鉤子 `window.__yaoshi3d`／`traitfx-preview.html`、效能 `duel-perf.mjs`／`proto-record.mjs`。
+
+逐支各一輪（拍→用 Read 打開圖看→改），實際改掉的東西：
+
+| 招 | 看圖看出來的 | 改法 |
+|---|---|---|
+| `eliteOpenShot` | ① 日盤被畫面上緣切掉 ② 箭矢一格都看不到 ③ 壓低量忘了同步進 windup 的逐幀 `worldOf`，只有第 0 幀在對的高度 | 壓低 0.55（兩處都改）、箭 `k` 1.25→2.4 |
+| `wardHpFront2` | ① 垂直升起 travel 只走 1.0875／門檻 1.2481 ② 拉高到 y+1.25 後整條帶子跑出畫面左上角 ③ 光柱整根躲在又寬又矮的盾牆後面 | 改成側向掃入（`perp` 1.70）、光柱 `push` 0.95 |
+| `wardHpAll1` | 六塊岩糊成一團藍 | `k` 0.95→0.42、半徑 0.56→0.92 |
+| `wardFirst` | travel 太貼線（1.2669／1.2481） | `perp` 1.75→2.05 |
+| `boltGamble` | 讀得出「鋸齒雷落在那一隻頭上」 | 無（一輪過） |
+| `swarmHalfSplash` | ① 三道弧糊成一大片藍、佔掉半個畫面 ② 為了 §A3 縮小＋推遠之後浪弧卡在畫面左邊沒落到舟上 | `k` 1.05→0.50；主件改 camOff 2.6＋放大（§2.7） |
+| `swarmThorn` | 讀得出「兩根獠牙飛出去、扎中、彈回」 | 無（一輪過） |
+| `eliteArmor` | travel 太貼線（1.2929／1.2481） | `perp` 1.95→2.35 |
+
+**批末一輪**（`batch-contact-t2.png`：8 支的 travel 中格並排）：
+八件道具的剪影確實各異（八芒日盤／菱形／珠圈／杏仁眼／鋸齒雷／浪弧／獠牙／稜角岩塊），
+色票統一在靛藍＋土金，打擊三支有拖尾、增益五支沒有——「一眼看出是祖靈系、而且八支互不相同」這一層成立。
+兩個還粗的：① 光柱與道具同為靛藍（§2.5 的共通條）② 菱形與岩塊在小尺寸下剪影接近。
+
+**效能**：桌機 `duel-perf` fps 59.9、draw call 986（visible 16）；招式峰值 +15～+23 draw call。
+**手機真機 fps 待試玩**（這是桌機數字）。
+
+### 2.10 交付物
+
+| 檔 | 內容 |
+|---|---|
+| `…-b2-evidence/<trId>/sheet-t1.png`／`sheet-t2.png`／`sheet-t2-closeup.png` | 8 支各三張（6 幀 2×3、每格 780×360，帶 `--label`；近景 `--camdist=2.4`） |
+| `…-b2-evidence/batch-contact-t2.png` | 批末整批看的那一張（8 支 travel 中格 4×2） |
+| `…-b2-evidence/p3b-t1/`、`p3b-t2/` | P3 的 A／B 凍幀、`shots.json`、`metrics.txt` |
+| `…-b2-evidence/propsize/prop-size-t{1,2}.tsv`／`.json` | §A3 尺寸記錄表 |
+| `…-b2-evidence/gates-b.txt` | P0／P1／P2／P3／P5–P8／A6／P7 的**指令原文與原始 stdout** |
+| `…-b2-evidence/anchor-mutations.txt` | anchor 三條突變的逐條驗紅輸出（健康態前後各一次） |
+| `…-b2-evidence/p4-truth-zuling.json` | ★讀者不得看★ 祖靈 9 支的 P4 真值表 |
+| `…-b2-evidence/p4-material-A-booth-x2/`、`p4-material-B-closeup-x2/` | 18 支 × 36 張／18 張＋`mapping-HIDDEN.json` |
+
+### 2.11 範圍（`git diff --stat 76fc296..`，逐檔對應）
+
+| 檔 | 對應哪條需求 |
+|---|---|
+| `js/trait-fx/vocab.js` | 系統事①：`ANCHOR_KIND`＋`MOVE_SPEC` 第五欄 `anchor`（18 支）＋8 支的 `stance`；`ICON.markByKind` 加 `wave` |
+| `js/trait-fx.js` | 系統事①：`regAnchor`／`sampleAnchors`／`resolveAnchor`／`figBoxOf`／`boxDistXZ`／`nearestFig`、三個積木入口收 `o.anchor`、`lastSig.anchors`、`casterMatch` 改綁 |
+| `js/trait-fx/zuling.js` | 8 支轉正（MOVES 換掉、SHORT 改成同一支函式）＋獻祭刀的落點回修 |
+| `js/trait-fx/xianghuo.js` | 9 支補 `anchor` 登記＋香灰符的金灰流落點回修（anchor 抓到的缺陷 1） |
+| `tests/fxvocab.test.mjs` | P1 新增兩條 |
+| `tests/tools/traitfx-drive.mjs` | `verdict.anchors` 留帳 |
+| `docs/design/2026-09-12-fx-vocab-draft.md` | §A9-5（新增） |
+| `docs/design/ART_BIBLE.md` | §10.3 第 4 條 |
+| `docs/experiments/2026-09-11-fx-vocab.md` | 第 5 節 `markByKind` 加一列（與 `ICON` 逐列對照的那張表） |
+| `docs/experiments/2026-09-13-zuling-b2-*` | 本節＋交付物 |
+
+**`index.html` 一行未動**（P0 `bytesOld == bytesNew == 357285`、`equal:true`）。
+**門檻／seed／視口／`PHASE_GATE`／`TRAIT_MS_BY_TIER`／香火 P4 真值一格未動。**
+唯一新增的判準是 anchor 那一條，它**不取代任何既有判準**（`casterMatch` 原本那一半照舊，本條是 AND 上去的）。
+
+### 2.12 我看到還粗的地方 / 交製作人裁
+
+1. ★**`swarmHalfSplash` 的浪弧 ratio 1.047 > §A3 的 2/3**★（§2.7）：拼板舟是全 27 隻最矮的一尊，
+   §A3 上限與 L3 面積在它身上互斥。走破軍旗同一條路，照 Q5 記錄交裁。
+2. ★**`swarmThorn` 的演出與 §C 散文不同**★：§C 寫「獠牙**從目標身上反向彈回**、衝擊拍『獠牙反向飛到一半』」。
+   裁定① 之後衝擊拍要量得出道具落在誰身上，而「飛到一半」在 2v2 裡量到誰完全看站位——那正是 P4 三輪的病因。
+   改成「衝擊拍扎進對手（anchor `foe` 量得到），`react` 段再反向彈回插在施招者腳前」。
+   §C 的區分點（唯一反向飛行＝反擊）保留在餘韻那一段。**要不要改回 §C 的原寫法，交裁。**
+3. ★**光柱與道具同為靛藍**★（§2.5 共通條）：階段 A §1.8 第 5 點的同一件事，範圍從 1 支變成 9 支。
+   可選解法是把光柱改走 `line`（`#7ea8ff` 較淡）或把道具面板改深。**兩者都會動到 P3 的數字，交裁。**
+4. **`--mateGap=1.9` 在護法×2 上仍然重疊**：P4 材料 A 的 `wardFirst` 那一張看得到兩尊幾乎疊在一起。
+   這是 `duel-figures` 的排列（階段 A 覆審 M2／M3 已記）；要真的拉開得動正式路徑的站位程式碼。
+5. **`p4-material` 的敵方換成兩尊陰氣**（§2.4）：香火批 1 第 3 輪用的是祖靈的射日神弓當敵方，
+   這一輪祖靈在受測所以換掉。**這是材料規格的改動，交製作人覆核。**
+6. **`swarmThorn` 的反向彈回在 t1 幾乎看不到**（t1 的 `react` 只有 62ms）——與階段 A「tier 1 只是氛圍」
+   的裁定一致，但「tier 1 主角拍短暫推鏡」那條待辦在這一支上一樣成立。
+7. **`duel-drive` 的徽記稽核在兩個 seed 上都是 `n/a`**（README 的 N-6）：預設路徑上已經沒有招走
+   `st.icon` 系列了，8 支轉正之後這個缺口比階段 A 更大。要量執行期那道防線請帶 `--fxvocab=1`。
+8. ★**本階段沒有跑對抗式覆審**★（`02 §6` 的第三列）：這一批的產出是 8 支編舞＋一條新機械檢查，
+   照實說明——**覆審員沒有冷讀過這份 diff**。要不要補一輪，交製作人定。
+
+### 2.13 下一步
+
+1. 製作人看 8 支的 `sheet-t1／t2／t2-closeup` 與 `batch-contact-t2.png` → 簽字（§2.12 的 1／2／3／5 四題要裁）。
+2. **18 支一起交 P4 新的三輪**：材料 A／B 已產（`p4-material-A-booth-x2`／`p4-material-B-closeup-x2`），
+   真值＝香火 `p4-truth.json` ＋ 祖靈 `p4-truth-zuling.json`，讀者由主對話派。
+3. 之後才是陰氣批（範本招 `hauntLost` 魔神仔紅帽）——那一批要先補 `st.stain` 積木，
+   並注意 §2.8 那條（主道具只有 `paperProps` 群 ⇒ P3 面積 0.0%）。
