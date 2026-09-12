@@ -1402,7 +1402,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const peak = o.peak === undefined ? 0.85 : o.peak;
         const p = st.foot(fig, new THREE.Vector3());
         let mesh;
-        if (kind === 'pillar') mesh = st.pillar(p, o.h === undefined ? 1.05 : o.h, { color: st.colors.key, inkColor: st.colors.ink, opacity: 0 });
+        if (kind === 'pillar') {
+          /* 柱要往鏡頭這一側挪半步：貼著腳底的中心點會被本體整根吃掉（`MAT_SOLID` 開 depthTest），
+             實測第一版在 `sheet-t1` 上只剩兩腿之間一條藍縫。往鏡頭挪之後它站在本體**前側**，
+             仍然在這一尊腳邊、讀得出是「他腳下的東西」。 */
+          p.addScaledVector(st.camDir, o.push === undefined ? 0.34 : o.push);
+          mesh = st.pillar(p, o.h === undefined ? 1.05 : o.h, { color: st.colors.key, inkColor: st.colors.ink, opacity: 0, w: o.w, taper: o.taper });
+        }
         else mesh = st.ring(p, o.r === undefined ? 0.34 : o.r, 0.055, { color: st.colors.key, opacity: 0 });
         const B = st.beat;
         const upMs = Math.max(1, B.windup[1]);

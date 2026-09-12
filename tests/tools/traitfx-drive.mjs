@@ -123,6 +123,22 @@ export function v054CasesFromSource(root) {
   return [...out].sort();
 }
 
+/** `--fxvocab=1` 路徑（`VOCAB_ON=true`）下被 `V055` 覆蓋掉的招（＝v0.55 批 0 的徽記剪影版）。
+ *  它們是**轉正之前**那一版演出，身分可辨語彙（`st.stance`／`st.groundMark`，2026-09-13）比它們晚，
+ *  所以 `stanceOK` 在那條路上不適用——★這不是放寬★：同一支招不帶 `--fxvocab=1` 時跑的是
+ *  轉正後那一份，照樣被約束（與上面 `v054CasesFromSource` 對 P2 的處置完全同一條）。
+ *  刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的原始碼掃描擋（少一支就紅）。 */
+export function v055CasesFromSource(root) {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    const src = stripComments(fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8'));
+    const cut = src.indexOf('export const V055');
+    if (cut < 0) continue;
+    for (const m of src.slice(cut).matchAll(/^ {2}([A-Za-z_$][\w$]*)_v055\s*\(st\)\s*\{/gm)) out.add(m[1]);
+  }
+  return [...out].sort();
+}
+
 export function emblemCasesFromSource(root) {
   const out = movesMatching(root, /\bst\.(icon|icons|mark)\s*\(/);
   const list = [...out].sort();
@@ -318,7 +334,16 @@ async function runCase(browser, base, c, opt) {
      還沒鋪的 17 支不在範圍內；刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的
      「已轉正的招必須呼叫 st.stance／st.groundMark」那條擋（那裡是原始碼掃描，這裡是執行期效果）。 */
   const sc = (sig && sig.stance) || null;
-  const stanceOK = !inPhaseScope ? true : !!(sc && sc.kind && sc.ground
+  /* ★「有打點」不等於「已轉正」★：
+     ① 還留著 `V054` 退路的招（`hauntLost`——陰氣批還沒開）住在 MOVES 的是**批 0 徽記版**，
+        它有 `st.phase` 打點但沒有身分可辨語彙（那一版比它早）；`--fxvocab=1` 時跑到的就是它。
+     ② `--fxvocab=1` 跑的是 `V055`（批 0 徽記版），同理不在範圍內。
+     兩條都**不是放寬**：同一支招轉正之後 V054 退路會被移除、預設路徑跑的是有姿態的那一份，照樣被約束。
+     刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的原始碼掃描擋（少一支就紅）。 */
+  const inStanceScope = inPhaseScope
+    && (opt.v054Moves || []).indexOf(c.trait) < 0
+    && !(vocabOn && (opt.v055Moves || []).indexOf(c.trait) >= 0);
+  const stanceOK = !inStanceScope ? true : !!(sc && sc.kind && sc.ground
     && sc.peak >= (sc.minPeak === undefined ? 0.12 : sc.minPeak) && !sc.onTarget && (sc.extra | 0) === 0);
   /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
      引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
@@ -403,6 +428,7 @@ async function main() {
   opt.emblemMoves = emblemCasesFromSource(root); // 逐套判定要用（r2 L2）
   opt.phaseMoves = phaseCasesFromSource(root); // P2 的適用範圍（覆審 r1 HIGH-3）：只約束「真的有打點」的招
   opt.v054Moves = v054CasesFromSource(root); // 預設路徑下走 0.54 演出的那幾支，P2 在那條路上不適用
+  opt.v055Moves = v055CasesFromSource(root); // --fxvocab=1 下走批 0 徽記版的那幾支，stanceOK 在那條路上不適用
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(root, port);
   if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);

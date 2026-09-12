@@ -1,6 +1,7 @@
 // 盲讀材料產生器（v0.55 招式可辨性卷，凍結檔 `2026-09-11-acceptance-fx-legibility.md` L4／L4-pre、Q12）。
 //
 // 用法：node tests/tools/blindread-sheet.mjs <輸出目錄> [--only=trId,..] [--tiers=1,2] [--seed=20260912]
+//                                            [--mateGap=<倍率 1–3>]  ← 2v2 材料把同伴與施招者拉開（不帶＝1＝不變）
 //                                            [--camdist=<公尺>]  ← 只給「tier 2 近景」那一種材料用
 //   --camdist  轉給治具頁的 ?camdist=（對決機位的 dist，預設 4.2）。**不帶＝原本的機位，材料規格不變**；
 //              2026-09-12 製作人裁定 P4 材料改兩種：1v1 治具棚（不帶）＋ tier 2 近景（帶 2.4）。
@@ -40,6 +41,12 @@ const CAMQ = (() => { const v = process.argv.find((x) => x.startsWith('--camdist
    「我方多個 vs 我方單一」在畫面上根本不可能分辨（報告 §5）。 */
 const COUNTQ = (() => { const v = process.argv.find((x) => x.startsWith('--count=')); return v ? parseInt(v.slice(8), 10) || 0 : 0; })();
 const FOEQ = (() => { const v = process.argv.find((x) => x.startsWith('--foe=')); return v ? '&foe=' + encodeURIComponent(v.slice(6)) : ''; })();
+/* ★P4 材料規格（2026-09-13 祖靈批階段 A）★：`--mateGap=<倍率>` 把同一邊相鄰兩尊的水平間距
+   乘上這個倍率（轉送成治具頁的 `?mategap=`，夾 1–3）。**不帶＝1＝第 1–3 輪材料的站位一個位元組不變。**
+   為什麼要它：P4 第 3 輪的歸因是「2v2 裡我方兩尊同系同型、站得近，道具落在哪一尊就當誰施招」
+   （`docs/experiments/2026-09-13-xianghuo-b1-report.md` §8）。拉開 ≥1 個身位是**材料規格**，
+   P4 的三題與真值表一格不動（`02 §2.1`：這不是移動及格線，是讓那一題在畫面上答得出來）。 */
+const GAPQ = (() => { const v = process.argv.find((x) => x.startsWith('--mateGap=')); return v ? '&mategap=' + encodeURIComponent(v.slice(10)) : ''; })();
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -106,7 +113,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}${GAPQ}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);

@@ -467,21 +467,29 @@ const MOVES = {
     // 傷口要落在體外一點：擺進 Chest 骨的位置會被自己的身體擋掉（材質有 depthTest），什麼都看不到
     const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.16);
     neck.y += 0.06;
-    neck.add(st.camOff(1));
+    neck.add(st.camOff(0.7));
     /* 刃的起訖：後上方 → 頸口 → **前下方插地**。整段位移 ≈1.4 世界單位，
        travel 門檻是 `0.40 × travelDist`（出招方到目標的距離），滿編對決約 0.9 ⇒ 過得去。
        ★不得再往前拉★：增益招的飛行物不得跨中線（P4 r2 的兩個結構性語彙問題之一）。 */
-    const A = neck.clone().addScaledVector(st.dir, -0.34); A.y += 0.46;
+    /* ★A 的高度是看圖調出來的★：`+0.46` 那一版在 844×390 上**被畫面上緣切掉**
+       （`sheet-t2` 前兩格只看得到刃的一角，`xianji` 的包圍盒高 2.24、Neck2 本來就高）。
+       降到 `+0.18` 之後整枚刃都在畫面裡，travel 位移仍有 ~1.5 世界單位（門檻 0.4×travelDist）。 */
+    const A = neck.clone().addScaledVector(st.dir, -0.22); A.y += 0.12;
     const Z = neck.clone().addScaledVector(st.dir, 0.40); Z.y = st.tableY + 0.14;
 
     // ── 甲 黑曜石刃：暗刃面＋靛藍刃身（墨線邊就是露出來的那一圈 key）──
     const obsid = st.paperStamp(st.kind, A, { role: 'stamp', color: C.ink, inkColor: C.key,
       opacity: 0, depth: 0.24, warp: 0.10, tiltDeg: 8, yawDeg: -18, roll: -1.1 });
-    obsid.scale.setScalar(st.iconSize * 0.55);
+    /* ★尺寸是量出來的，不是挑的★：0.55 那一版 P3 t2 只有 **0.3439%**（門檻 0.8%、ΔE 51.89 本來就過）。
+       L3 凍在 travel 中點，那一刻刃的大小＝windup 末那個值，所以放大要放在下面那條 windup 的 tween 上。
+       §A3 的上限（≤ 施招本體高 2/3）由 `tests/tools/prop-size.mjs` 記錄，數字寫進報告。 */
+    obsid.scale.setScalar(st.iconSize * 0.45);
+    const bow = st.camOff(1.6); // 飛行弧往鏡頭鼓出的量（兩端 sin=0 ⇒ 起點與落點不變，同香灰符的作法）
 
     // ── 紙血條：割開時從頸口飄出的一束窄紙條（1 個 draw call；群體位移掛在 InstancedMesh 物件本身）──
     const BL = 7;
-    const gore = st.paperProps(st.kind, BL, { color: C.hot, opacity: 0, k: 0.62, ratio: 0.24, depth: 0.10, warp: 0.24 });
+    // k 0.62 那一版在 sheet 上一格都看不到（單件 0.186 世界單位）；1.15／ratio 0.30 才讀得出是一束紙條
+    const gore = st.paperProps(st.kind, BL, { color: C.hot, opacity: 0, k: 0.85, ratio: 0.22, depth: 0.10, warp: 0.24 });
     gore.obj.position.copy(neck);
     const _e = new THREE.Euler();
     const strips = [];
@@ -510,7 +518,9 @@ const MOVES = {
 
     /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；刃在頸邊亮相＝出招瞬間的新增元素。
        **施招姿態（下沉）與腳下光柱同時在這一段立起來**——身分訊號一定要早於道具落點。 */
-    st.groundMark(deer, { h: 1.15 });
+    /* 光柱的高與寬是看圖調的：h 1.15／w 0.17 那一版在滿編視距下細得像一根竿子（`sheet-t1` 幾乎看不到），
+       改成矮一點寬一點才讀得出「腳下立起一道光」。柱本身不是道具，不受 §A3 的 2/3 上限約束。 */
+    st.groundMark(deer, { h: 1.30, w: 0.26, taper: 0.42, peak: 0.95 });
     st.phase('windup');
     st.tween({ ms: W, ease: 'out',
       update(t, e) {
@@ -523,13 +533,14 @@ const MOVES = {
         st.move(deer, 0, -0.045 * e, 0);
         st.rim(deer, 1 - 0.7 * e);
         st.alpha(obsid, Math.min(1, e * 1.8));
-        obsid.scale.setScalar(st.iconSize * (0.30 + 0.25 * e));
+        obsid.scale.setScalar(st.iconSize * (0.45 + 0.50 * e));
       },
       done() { st.phase('travel'); } });
 
     /* ② 割（travel）：刃從後上方劃過頸口、插進頸邊的地上。
        **`trail: false`**——增益招不得有跨場拖線（P4 r2 裁定）；刃身自己的位移就是 travel 的載體。 */
     st.trail(obsid, A, Z, { ms: TL, delay: T0, ease: 'strike', trail: false, spin: 2.6,
+      update(t, e) { obsid.position.addScaledVector(bow, Math.sin(Math.PI * e)); },
       done() {
         /* ★衝擊拍★：刃插到底＝血條炸出＝本隊同幀亮邊上抬（三件同一拍，§A2） */
         st.phase('react');
