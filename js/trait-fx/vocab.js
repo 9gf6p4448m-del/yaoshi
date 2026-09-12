@@ -77,8 +77,18 @@ export function beatOf(tier, ms) {
  *       合法寫進去的值（祖先鏈連乘），另查 geometry 身分與未登記祖先的縮放。A／B／C 都逃不掉；
  *    ④ 原始碼掃描（`tests/fxvocab.test.mjs`）：編舞不得碰徽記的 scale／geometry／matrix／parent…。
  *  編舞唯一的合法縮放介面是 `st.iconScale(mesh, k)`＝`ICON 表基準 × k`，k 須落在 `scaleRange`。
- *  ★**不要再寫「涵蓋 100%」**★：能說的只有「這四道各自守得住什麼」，
- *  以及「①②④ 按入口寫、③ 按效果寫，新的繞法要由 ③ 接住」。
+ *
+ *  ★r2（第 2 輪覆審）：連「新的繞法要由 ③ 接住」這句也是假的，已刪★
+ *  ③ 當時掛在 `traitFx.update` 的最後，而 three 在 `render()` 內會**再重算一次** `matrixWorld`、
+ *  然後才呼叫 `onBeforeRender` ⇒ 在那個鉤子裡改矩陣，畫出來的是改過的、稽核量到的是沒改過的
+ *  （實測 L3 canary `area 0.8522／ok:true`，恆綠儀式第三次復現）。**按效果寫不會自動等於普遍成立，
+ *  量測位置錯了就什麼都不是。** 現在 ③ 掛在每一片徽記自己的 `onAfterRender` 上
+ *  ——three 的順序是 `onBeforeRender → modelViewMatrix ← matrixWorld → draw → onAfterRender`，
+ *  所以那裡的 `matrixWorld` 就是剛送進 GPU 的那一顆；兩個鉤子本身也一併鎖住。
+ *
+ *  ★能說的只有「每一道守得住什麼」，以及**已知未涵蓋**（權威清單在 `tests/tools/README.md`）★：
+ *    ③ 只看登記表上的物件（手造徽記由新增的場景掃描補）、只驗世界**縮放**與 geometry 內容指紋，
+ *    不驗材質／不驗位置／不驗畫面上真的長怎樣（那是 L3 與盲讀的事）。
  *
  *  ★覆審 r3 N12：canary 的共同入口＝`ICON._resolve()`★
  *  L3 的 canary 要「一次打到三張表」，所以 `sizeOf`／`flatSizeOf`／`markSizeOf` 一律走 `_resolve`。

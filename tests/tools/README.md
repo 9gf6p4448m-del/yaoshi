@@ -93,20 +93,43 @@ renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/re
    `userData.fxIconBase`／`fxIconKind`、`userData.fxIcons.size`。寫了就記帳＋throw。
    編舞唯一的合法縮放介面是 **`st.iconScale(mesh, 相對倍率)`**（＝ ICON 表基準 × 倍率，
    倍率必須落在 `ICON.scaleRange`——否則 `st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門）。
-3. **世界尺寸稽核**（`auditSizes`，**按效果寫的那一道**）：每一幀對每個徽記
-   `updateWorldMatrix(true, true)` → `matrixWorld.decompose()` 取世界縮放，和「積木自己最後一次
-   合法寫進去的值（祖先鏈連乘）」比對，另查 `geometry` 身分、未登記祖先的縮放必須是 1、
-   InstancedMesh 逐實例矩陣。**父層 Group、換 geometry、自寫 matrix 都逃不掉。**
+3. **世界尺寸稽核**（`auditOne`／`auditAtDraw`，**按效果寫的那一道**）：取世界縮放
+   （`matrixWorld.decompose()`），和「積木自己最後一次合法寫進去的值（祖先鏈連乘）」比對，
+   另查 `geometry` 的**身分與內容指紋**、祖先規則、InstancedMesh 逐實例矩陣與 `o.sizes` 區間。
+   ★**量測位置有兩個，缺一不可**（覆審 r2 H1 的教訓）★：
+   (i) `traitFx.update` 的最後（frame 內）、(ii) 每一片徽記自己的 **`onAfterRender`**。
+   three 的 renderObject 順序是 `onBeforeRender → modelViewMatrix ← matrixWorld → draw → onAfterRender`，
+   所以只有 (ii) 量得到「**真正送進 GPU 的那一顆矩陣**」。只做 (i) 時，在 `onBeforeRender` 裡改
+   `matrixWorld` 可以讓四道防線全綠而 L3 canary `ok:true`（實測 `area 0.8522` vs 健康 `0.8531`）。
    ★判定為什麼不用 `Box3.setFromObject` 的跨距★：徽記是逐幀朝鏡頭的 billboard，旋轉中物件的
    世界 AABB 跨距隨朝向變（同尺寸能差 √2 倍），要用它判就得鬆到能放行 0.93 倍的繞法。
    判定用旋轉無關的「世界縮放 × geometry 單位寬」，`Box3` 的對角線只當診斷欄抽樣記錄。
+   ★**場景掃描**★（覆審 r2 M1）：稽核本身只看登記表，所以另外每 6 次稽核 `scene.traverse` 一遍，
+   凡是 geometry 屬於徽記剪影、卻不在登記表上的 mesh 一律判紅（手造第二顆徽記那條路）。
 4. **原始碼掃描**（`tests/fxvocab.test.mjs`，第四道）：編舞不得出現 `size:` 這個鍵、不得碰徽記的
-   `scale`／`geometry`／`matrix`／`matrixWorld`／`matrixAutoUpdate`／`parent`／`children`／`traverse`
-   （任何成員鏈、別名、索引都算）、不得 `st.grow(徽記)` 或 `.add(徽記)`。
-   `--mutate=4..14` 是**十一條**繞法各自的回歸案例（原檔全程唯讀，不做反向 sed）：
+   `scale`／`geometry`／`matrix`／`matrixWorld`／`matrixAutoUpdate`／`matrixWorldAutoUpdate`／
+   **`onBeforeRender`／`onAfterRender`**／`parent`／`children`／`traverse`
+   （任何成員鏈、別名、索引都算）、不得 `st.grow(徽記)` 或 `.add(徽記)`、
+   不得直接碰 `ICON.`（含 import vocab.js）、**不得把 ICON 的來源放到除號右邊**
+   （`0.50 / st.iconFlatSize` 就是把 ICON 從乘積裡消掉＝絕對尺寸，覆審 r2 H2）。
+   `--mutate=4..20` 是**十七條**繞法各自的回歸案例（原檔全程唯讀，不做反向 sed）：
    4＝`const S` ＋ `setScalar(S*…)`／5＝`{size:…}`／6＝`setScalar(0.56*…)`／7＝別名／
    8＝`multiplyScalar`／9＝`scale.x=`／10＝子節點與索引取用／
-   **11＝父層 Group 縮放／12＝置換 geometry／13＝自寫 matrix／14＝`defineProperty` 蓋掉 accessor**。
+   11＝父層 Group 縮放／12＝置換 geometry／13＝自寫 matrix／14＝`defineProperty` 蓋掉 accessor／
+   **15＝`onBeforeRender` 改 matrixWorld／16＝`o.sizes` 把 ICON 除掉／17＝手造第二顆徽記／
+   18＝就地改共用剪影／19＝掛到另一顆徽記底下／20＝執行期改 ICON 表**。
+   ★掃描擋得到的是「直接寫」的那一形；15／17／18／19 用 helper 包一層就避得開名字追蹤
+   ——那幾條靠的是第 2、3 道（鎖與世界尺寸稽核）。**這是掃描的結構限制，不是待修的 bug。**
+
+### ★已知未涵蓋（照實列，別當它是 100%）★
+
+- 稽核只驗**世界縮放**與 **geometry 的內容指紋**：不驗材質、不驗位置、不驗畫面上真的長怎樣
+  （那是 L3 與盲讀的事）。
+- 稽核與掃描都只管**徽記**（`st.icon`／`st.icons`／`st.mark` 三條路，加上場景掃描抓同剪影的手造 mesh）。
+  紙紮道具之後要接進來，就在自己的工廠裡呼叫 `lockIconScale(run, obj, base, kind, geom, host)`。
+- 掃描按名字追蹤，helper 包一層就避得開（見上）。
+- `traitfx-drive` 的治具頁逐幀 `step()` 但**不逐幀 `render()`**，所以量測位置 (ii) 在那支治具上
+  只會在少數幾格觸發；`fx-contrast` 與 `duel-drive`（真實 renderer 迴圈）才是 (ii) 的主場。
 
 **執行期斷言（三支治具都讀）**：`traitfx-drive.mjs`、`fx-contrast.mjs` 讀 `__tfx.stats()`，
 `duel-drive.mjs` 讀 `window.__yaoshi3d.traitFx.sizeGuard()`（**批 1–3 的正式 L3 走的是 duel-drive**）。
@@ -118,6 +141,21 @@ renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/re
 0.54 本體（`V054`／`V054_SHORT`），那一版本來就沒有徽記 ⇒ `n/a` 是正確狀態，判紅會是假警報。
 所以這三支治具驗尺寸防線時一律帶 `--fxvocab=1`（`duel-drive` 是網址帶 `?fxvocab=1`）；
 預設狀態也要跑一次，證明 27/27、0 error、**不誤報**。
+★那份名單不是手工維護的（覆審 r2 L2）★：`emblemCasesFromSource()` 讀三個系別檔、切到 `V054` 之前、
+逐函式看有沒有呼叫三支入口——批 1–3 加新招不必記得改名單。逐套判定也會印 `FAIL`，
+不是只有 summary 與 exit code 紅。
+
+### ★正式 L3（`duel-drive`）一定要固定 seed★（覆審 r2 M4）
+
+`duel-drive` 有沒有量到徽記，取決於那一局抽到誰。實測**不帶 seed 跑 16 場對決、44 次 trait 事件，
+四支示範招一支都沒抽到** ⇒ `n/a`。所以：`--fxvocab=1` 之下 `made === 0` **一律判紅並 exit 非 0**
+（「exit 0」不等於「量到了」），正式量測固定帶種子：
+
+```bash
+node tests/tools/duel-drive.mjs \
+  "http://127.0.0.1:8963/index.html?paperwar=1&fxcount=1&fxvocab=1&seed=7" out.json --duels=12 --port=8963
+# 實測 seed=7 抽得到用徽記的招（覆審 r2：鎖上 11 of 11、稽核 572 次、ok）
+```
 `tweenErrors`（r4 MEDIUM-1）＝編舞在 `tween`／`timer`／`done` 裡丟出來的例外：
 那三個 `catch` 的用意是「一段壞了不擋整招」，不是「一段壞了沒人知道」。
 
