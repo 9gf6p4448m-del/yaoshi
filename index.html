@@ -4324,7 +4324,7 @@ const PW_FX={
        3＝三尊大招（完整版＋CINEMA 低角度仰視機位）。
      **別處不得再寫死招式毫秒**：js/trait-fx.js 與 js/camera-director.js 一律吃事件帶的 detail.ms，
      沒帶就 throw（退路已刪，理由見 GUIDE §11.27）；治具讀 tests/tools/fx-consts.mjs。 */
-  TRAIT_MS_BY_TIER:{1:260,2:900,3:1400},
+  TRAIT_MS_BY_TIER:{1:300,2:900,3:1400},
   TIER_BASE_MS:900,   /* 三常數（flinchMs／atReserve／endMargin）等比縮放的基準＝v0.53 的 TRAIT_MS */
   TIER_ON:true,       /* ?fxtier=0 → false：所有拍走 tier 2（＝v0.53 行為：900、無 CINEMA） */
   LOAD_MAX_MS:12000,  /* 接線卷：等 3D 妖的 GLB 載入最多等多久，逾時照演（妖晚到晚現身） */
