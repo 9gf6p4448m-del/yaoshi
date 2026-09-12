@@ -198,7 +198,21 @@ t1 的第 6 格（`react` 末＝237ms）**在演出 horizon（229ms）之後**�
 
 ### 4.5 條件 5：`git diff --stat`
 
-見 §7（commit 之後補的實際輸出）。
+程式碼與治具（證據檔與報告的 28 個檔另見 §7 表）：
+
+```
+git diff --stat 417b197..HEAD -- js tests
+js/trait-fx.js                   | 118 ++++++++++++++++
+ js/trait-fx/proto/tiger.js       | 284 +++++++++++++++++++++++++++++++++++++++
+ tests/tools/blindread-sheet.mjs  |   6 +-
+ tests/tools/proto-record.mjs     | 142 ++++++++++++++++++++
+ tests/tools/traitfx-drive.mjs    |   4 +-
+ tests/tools/traitfx-preview.html |  29 ++++
+ 6 files changed, 581 insertions(+), 2 deletions(-)
+```
+
+`tests/tools/` 兩支既有治具的 6+4 行變動**全部是網址模板多接一個 `&proto=`、加一行註解與一個 `let PROTO`**，逐行核對見 `git diff 417b197..HEAD -- tests/tools/traitfx-drive.mjs tests/tools/blindread-sheet.mjs`——判定邏輯、門檻、`FRAME_AT`／`CELL`／`SHEET`／`SHOT`／混洗種子一個字元沒動。
+`js/trait-fx.js` 的 118 行**全部是新增**（0 刪除）：三個新積木與 `?proto=` 的 if 區塊，既有 27 支招走的路徑一行沒碰（sigdump 逐招 0 行差異是這句話的證據，見 §4.1）。
 
 ---
 
@@ -262,7 +276,7 @@ node tests/tools/duel-perf.mjs perf scratchpad/perf-base.json --root=scratchpad/
 
 ## 7. 範圍（`git diff --stat`）
 
-見 commit 紀錄與本檔同批 commit 的輸出；動到的檔案只有六個：
+完整輸出見 §4.5（程式碼與治具）；證據目錄另有 28 個檔（6 張連拍、6 段 GIF、6 段 WebM、8 份逐幀 record.json、2 段現況對照 GIF）。動到的**程式碼／治具**只有六個檔：
 
 | 檔 | 改了什麼 | 對應需求 |
 |---|---|---|
