@@ -27,6 +27,30 @@ node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存
   ```
   `duels`／`maxfloat`／`maxhit`／門檻數字**凍結**，要動照 `02 §2.1` 走同意程序。
 
+**取樣時點：推鏡停穩之後才凍幀（2026-09-12 Q1，凍結檔 §2.1 修訂六 ②）**
+
+R2 的刺激（合成 `ys:fx-hit`）**不再釘在 `ys:hitstop`**。舊法那條路的理由是「hitstop 期間
+renderer 的 dt 歸零、鏡頭完全不動」——**實測是錯的**：`js/renderer.js:197` 只把 dt 歸零，
+但 `js/camera-director.js:367`／`:397` 的 focus／cinema 包絡吃的是**絕對時間**，
+而 `index.html:4313 HITSTOP_DMG` 與 `:4336 FOCUS_DMG` 是同一個門檻（都是 3）
+⇒ **會停格的那一下必定同時推鏡**，量到的差分裡永遠混著鏡頭位移。
+
+現行做法：每幀盯住**一對**尊（這一刻畫面上最大的那一尊＋對面那一欄最大的一尊），
+連續 `--boxstill` 幀、兩尊的螢幕方框逐幀位移都 ≤ `--boxeps` px，才開凍幀序列。
+
+| 參數 | 預設 | 意思 |
+|---|---|---|
+| `--boxstill` | 6 | 要連續停穩幾幀（≈100ms） |
+| `--boxeps` | 1 | 每幀方框位移上限（px）。`MOVE_MAX` 是 40ms 內 4px，40ms ≈ 2.4 幀 ⇒ 每幀 1px 留有餘裕 |
+| `--candmax` | 120 | 同一個候選盯最多幾幀（2 秒）還不穩就換一個 |
+| `--warmup` | 0 | 對決開場多久之內不量（ms）。舊法是 1600，那是「進場整個畫面都在變」的**代理**；現在由停穩量測直接處理，淡入淡出另有 `#duel` opacity 的硬閘 |
+
+**這些不是判準門檻**——7 個門檻常數（`MASK_TH`／`MOVE_MAX`／`BASE_FONT`／`FONT_MIN`／
+`BACK_MAX`／`BURN_MAX`／`CTRL_MAX`）、主門檻（中位 ≥25、≥25 比例 ≥0.70）、`seed` 集與 `duels`
+數一格未動；位移閘門（`MOVE_MAX`）也留著，它現在是**第二道**防線而不是唯一一道。
+刺激的**速率**也沒變：`tryFire` 的冷卻沿用舊計時器那條路的 220ms。
+改法與改前改後的數字見 `docs/experiments/2026-09-12-l10-determinism-report.md` §9。
+
 **時鐘（2026-09-12 L10 決定性小卷）**
 
 | 模式 | 怎麼跑 | 取樣決定性 |
@@ -39,9 +63,12 @@ node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存
 - `metrics.txt` 裡有兩欄是**健康檢查**，看數字前先看它們：
   - `swallowed=`：虛擬時鐘接管 rAF／計時器之後，回呼裡被 try/catch 吞掉的例外數。
     虛擬化之後這些例外**不會**變成 `pageerror`，所以 `errors=0` 不等於「遊戲跑正常」。**應為 0。**
-  - `acct.ok=`：`flashRuns == maskN + burnMaskN + Σ maskDropped` 的帳目恆等式。
+  - `acct.ok=`：`flashRuns == maskN + burnMaskN + Σ maskDropped + noSil` 的帳目恆等式。
     拿不到剪影的那幾輪在 `judgePix` 裡是靜默 `continue`、不進 `maskDropped`，
     整批壞掉時會出現「`maskN=0` 但 `errors=0`、md5 照樣逐跑相同」的假綠。**應為 `true`。**
+  - `acct.noSil=`：上面那個「靜默掉出統計」的筆數（凍幀當下方框已是 `null`／拿不到剪影）。
+    **不是 0 就要看一眼**——它不影響判定，但每一筆都是一個沒量到的樣本。
+    治具只負責把它算出來；`judgePix` 那一側的修法列在凍結檔 §2.1 修訂六 ⑤ 的待辦。
 - **這支治具不能拿來驗連點守衛／相位閘**（`index.html:2262 armMainBtnGuard`、`:2331` 的相位閘）：
   pump 模式把 `Event.prototype.timeStamp` 換成了虛擬時鐘，那正是這兩道守衛在比的東西，量了會假綠。
 - `pump` 模式開跑前會等 `__yaoshi3d` 上線＋網路靜止（這段期間虛擬時間停在 0）；
