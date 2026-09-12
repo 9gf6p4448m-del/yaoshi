@@ -15,6 +15,15 @@ import * as THREE from 'three';
 
 const _a = new THREE.Vector3();
 
+/** 三拍窗換算（與 `js/trait-fx/xianghuo.js` 的 `xhBeat` 同一條式子，各系一支小零件）。
+ *  `frac`＝`LAST / st.ms`（預設 0.90＝語彙檔 §A5 建議值：往嚴的方向走，多出來的 2% 全給衝擊拍）。
+ *  ★不得在這裡寫任何毫秒字面值★：時長的唯一來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`。 */
+function zlBeat(st, frac) {
+  const B = st.beat;
+  const LAST = st.ms * (frac === undefined ? 0.90 : frac);
+  return { B, W: B.windup[1], T0: B.travel[0], TL: B.travel[1] - B.travel[0], R0: B.react[0], LAST, RL: LAST - B.react[0] };
+}
+
 const MOVES = {
   /* 殘日・餘暉灼目（canri，精英×1；傳說三尊美術卷 2026-09-07）：第 1 拍開打前，對面前鋒 atk −2。
      編舞（祖靈＝靜如樹、動時瞬發）：0–260ms 只有日盤反向慢轉、邊光漸亮，獸身幾乎不動（蓄）
@@ -426,39 +435,96 @@ const MOVES = {
   },
 
   /* 獻祭刀・割祭（xianji，精英×1）：一拍自傷 1，全場本隊 atk+2。
-     ★v0.55 招式可辨性卷 批 0 示範招（祖靈）★
-     盲讀 r1 的病因（計畫 §6 第 8 列）：`xianji` 的 GLB 骨骼表裡**完全沒有刀**（只有一隻鹿），
-       短版三格「幾乎一模一樣、畫面上完全沒有特效」（讀者 B 給 1 分），完整版兩位分別猜成椅仔姑與山神庇佑
-       ⇒ 失敗類型 F（法寶不在模型裡）＋D（出招瞬間沒有新增元素）。
-     改法（ART_BIBLE §10）：
-       ① windup：出招瞬間在頸邊生出一把**黑曜石刃徽記**（近黑 ink 實心＋靛藍 key 底板——ink 色就是為這一支設的）；
-       ② travel：載體是**刀本身**，從後上方橫劃過頸口收到前下方，拖尾是刀的殘影（不是一條獨立的白線）；
-       ③ react：本隊每尊蓋一枚 knife 印記並被托起半寸；治具裡只有 1 尊時量鹿自己的挺立。
-     退役語彙：原本的胸口白 `orb`（15/27 撞）與升天的裸 `beam`（9/27 撞）本支全數拿掉。
-     ★tier 1／2／3 共用這一支★：所有時點都從 `st.beat`（＝vocab.js 的 BEAT[tier]）換算，不另寫短版分岔。 */
+     ★2026-09-13 招式演出卷・祖靈系批 2 階段 A（**祖靈範本招**，計畫 §7.2 Q1）★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C1 第 8 列＋§A9（身分可辨）；
+     `MOVE_SPEC.eliteSelfCut = { 甲, 割, 升, stance:'下沉' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝割**：`NeckRoot`／`Neck1`–`Neck3`／`HeadRoot` 頸下彎＋`LFront1El`／`RFront1El`／`*1Wr`
+         前肢收、`Withers` 一格抽動；衝擊拍頭橫甩。
+       **道具**＝甲 骨牙石器：**黑曜石刃**（`knife`，`st.paperStamp` 實體——**暗刃面（`ink` 近黑）＋
+         靛藍刃身（`key`）當墨線邊**，§A4「暗面留細節、亮邊界定身分」；橫劃一道弧後**插在頸邊地上**）
+         ＋**紙血條**（`st.paperProps` 一束窄紙條從頸口飄出＝自傷的證據，落在**施招者自己**身上）。
+       **受益方反應＝升**：本隊每尊上抬＋暖邊光；**同伴**各蓋一枚刃印，**施招者身上是血條不是刃印**。
+
+     ★身分可辨（§A9，本階段新增的系統級語彙）★
+       ① 施招姿態＝**下沉**（`st.stance(deer, '下沉', e)`）：與受益反應「升」不同型（down vs up），
+          這正是香火批 1 P4 第 3 輪的紅（2v2 同系同型下讀者分不出誰施招、道具落在誰身上就當誰施招）。
+       ② 腳下語彙＝**垂直光柱**（`st.groundMark` → `st.pillar`，祖靈專屬；`ring`／`disc` 在本系退役）。
+          亮滅由積木自己排：蓄勢就亮、**衝擊拍熄**，編舞給不出第二份時間軸。
+       ③ **不得有跨場拖線**：刃是增益招的道具，`st.trail` 一律 `trail: false`
+          （P4 r2／r3 實測：細白線一出現就被讀成「偷取」）。刃仍要真的飛一段（§A5 read-back 第 5 條）。
+
+     ★真值（交製作人覆核）★：`ABILITIES.eliteSelfCut` 是「一拍自傷 1，**全場本隊** atk+2」
+     ⇒ 效果＝防護增益、對象＝**我方多個**。派工書寫的是「對象＝自己」，兩者不同；
+     本演出對兩者都留了訊號（自傷在施招者、增益落在全隊每一尊），真值由製作人定，本檔不自行改真值表。
+     ★tier 1／2／3 共用這一支★：所有時點都從 `st.beat` 換算，不另寫短版分岔。 */
   eliteSelfCut(st) {
-    const B = st.beat, C = st.colors, LAST = st.ms * 0.88; // LAST：horizon 上限（rate ≤1.0 且 fill ≥0.85）
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const mates = st.actor.filter((f) => f !== deer);
-    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
     // 傷口要落在體外一點：擺進 Chest 骨的位置會被自己的身體擋掉（材質有 depthTest），什麼都看不到
-    const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.18);
+    const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.16);
     neck.y += 0.06;
-    const A = neck.clone().addScaledVector(st.dir, -0.52); A.y += 0.34; // 刀的起點：後上方（再往後就離鹿太遠、讀起來像不相干的漂浮物）
-    const Z = neck.clone().addScaledVector(st.dir, 0.82); Z.y -= 0.30; // 刀的終點：前下方（整段仍要跨過 travel 門檻的 40%）
-    /* ★配色與計畫 §6 的建議相反，理由是實測★：計畫建議「近黑實心 ink ＋靛藍 key 描邊」，
-       但 L3 實測（凍幀 A/B 差圖）在暗紅桌＋夜紫天上 **CIE76 ΔE 中位只有 25.13、低於門檻 28**
-       ——近黑本體放在暗背景上本來就沒有對比可言。門檻一字不動，改的是實作：
-       翻成本系標準配色（靛藍 key 本體＋ink 底板）之後 ΔE 中位 63.35。
-       「黑曜石」的身分由剪影承擔（ART_BIBLE §7：低多邊形下剪影是僅剩的辨識手段）。 */
-    const knife = st.icon(st.kind, A, { color: C.key, inkColor: C.ink, opacity: 0, roll: -1.1 });
-    const bless = mates.length ? mates : [];
-    const marks = bless.map((f) => st.mark(f, st.kind, { opacity: 0, color: C.key }));
+    neck.add(st.camOff(0.7));
+    /* 刃的起訖：後上方 → 頸口 → **前下方插地**。整段位移 ≈1.4 世界單位，
+       travel 門檻是 `0.40 × travelDist`（出招方到目標的距離），滿編對決約 0.9 ⇒ 過得去。
+       ★不得再往前拉★：增益招的飛行物不得跨中線（P4 r2 的兩個結構性語彙問題之一）。 */
+    /* ★A 的高度是看圖調出來的★：`+0.46` 那一版在 844×390 上**被畫面上緣切掉**
+       （`sheet-t2` 前兩格只看得到刃的一角，`xianji` 的包圍盒高 2.24、Neck2 本來就高）。
+       兩輪看圖收到 `-0.22／+0.12` 之後整枚刃都在畫面裡，travel 位移仍有 ~1.5 世界單位（門檻 0.4×travelDist）。 */
+    const A = neck.clone().addScaledVector(st.dir, -0.22); A.y += 0.12;
+    const Z = neck.clone().addScaledVector(st.dir, 0.40); Z.y = st.tableY + 0.14;
 
+    // ── 甲 黑曜石刃：暗刃面＋靛藍刃身（墨線邊就是露出來的那一圈 key）──
+    const obsid = st.paperStamp(st.kind, A, { role: 'stamp', color: C.ink, inkColor: C.key,
+      opacity: 0, depth: 0.24, warp: 0.10, tiltDeg: 8, yawDeg: -18, roll: -1.1 });
+    /* ★尺寸是量出來的，不是挑的★：0.55 那一版 P3 t2 只有 **0.3439%**（門檻 0.8%、ΔE 51.89 本來就過）。
+       L3 凍在 travel 中點，那一刻刃的大小＝windup 末那個值，所以放大要放在下面那條 windup 的 tween 上。
+       §A3 的上限（≤ 施招本體高 2/3）由 `tests/tools/prop-size.mjs` 記錄，數字寫進報告。 */
+    obsid.scale.setScalar(st.iconSize * 0.45);
+    const bow = st.camOff(1.6); // 飛行弧往鏡頭鼓出的量（兩端 sin=0 ⇒ 起點與落點不變，同香灰符的作法）
+
+    // ── 紙血條：割開時從頸口飄出的一束窄紙條（1 個 draw call；群體位移掛在 InstancedMesh 物件本身）──
+    const BL = 7;
+    // k 0.62 那一版在 sheet 上一格都看不到（單件 0.186 世界單位）；1.15 又太大（糊成一塊淺色方塊），收在 0.85／ratio 0.22
+    const gore = st.paperProps(st.kind, BL, { color: C.hot, opacity: 0, k: 0.85, ratio: 0.22, depth: 0.10, warp: 0.24 });
+    gore.obj.position.copy(neck);
+    const _e = new THREE.Euler();
+    const strips = [];
+    for (let i = 0; i < BL; i++) {
+      strips.push({
+        a: new THREE.Vector3((st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.06, (st.rnd() - 0.5) * 0.10),
+        b: new THREE.Vector3((st.rnd() - 0.5) * 0.44, -0.16 - 0.34 * st.rnd(), (st.rnd() - 0.5) * 0.44),
+        rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
+      });
+    }
+    const writeGore = (k) => {
+      for (let i = 0; i < BL; i++) {
+        const g = strips[i], it = gore.items[i];
+        it.p.lerpVectors(g.a, g.b, k);
+        it.q.setFromEuler(_e.set(0, g.ry, g.rz));
+        it.s = g.s;
+      }
+      gore.write();
+    };
+    writeGore(0);
+
+    // ── 同伴身上的刃印（施招者自己沒有：他身上是血條）──
+    const marks = mates.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Chest', new THREE.Vector3()),
+      { color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -20,
+        follow: f, at: 'chest', off: st.camOff(1) }));
+
+    /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；刃在頸邊亮相＝出招瞬間的新增元素。
+       **施招姿態（下沉）與腳下光柱同時在這一段立起來**——身分訊號一定要早於道具落點。 */
+    /* 光柱的高與寬是看圖調的：h 1.15／w 0.17 那一版在滿編視距下細得像一根竿子（`sheet-t1` 幾乎看不到），
+       改成矮一點寬一點才讀得出「腳下立起一道光」。柱本身不是道具，不受 §A3 的 2/3 上限約束。 */
+    st.groundMark(deer, { h: 1.30, w: 0.26, taper: 0.42, peak: 0.95 });
     st.phase('windup');
-    /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；黑曜石刃在頸邊亮相＝出招瞬間的新增元素 */
     st.tween({ ms: W, ease: 'out',
       update(t, e) {
+        st.stance(deer, '下沉', e); // §A9：施招者專屬姿態（走 w.sta 獨立通道，不動因果三段的量測）
         st.rot(deer, 'NeckRoot', 0.30 * e); st.rot(deer, 'Neck1', 0.28 * e); st.rot(deer, 'Neck2', 0.26 * e); st.rot(deer, 'Neck3', 0.24 * e);
         st.rot(deer, 'HeadRoot', 0.36 * e); st.rot(deer, 'Skull', 0.20 * e); st.rot(deer, 'Muzzle', 0.14 * e);
         st.rot(deer, 'LFront1El', -0.22 * e); st.rot(deer, 'RFront1El', -0.22 * e);
@@ -466,29 +532,52 @@ const MOVES = {
         st.rot(deer, 'TailRoot', 0.30 * e); st.rot(deer, 'Tail1', 0.24 * e); st.rot(deer, 'Withers', 0.10 * e);
         st.move(deer, 0, -0.045 * e, 0);
         st.rim(deer, 1 - 0.7 * e);
-        st.alpha(knife, Math.min(1, e * 1.8));
-        st.iconScale(knife, 0.5 + 0.5 * e);
-        knife.userData.fxRoll = -1.1 + 0.35 * e;
+        st.alpha(obsid, Math.min(1, e * 1.8));
+        obsid.scale.setScalar(st.iconSize * (0.45 + 0.50 * e));
       },
       done() { st.phase('travel'); } });
-    /* ② 割（travel）：刀劃過頸口。st.trail 的尾巴綁在刀身上，取代退役的裸 beam */
-    st.trail(knife, A, Z, { ms: TL, delay: T0, ease: 'strike', spin: 2.6, color: C.key, opacity: 0.8, segs: 10,
-      done() { st.phase('react'); st.burst(neck, { power: 0.95, n: 54, color: C.hot }); st.punch(0.42); } });
-    /* 割的重音：頭橫甩、邊光從最暗暴亮到三倍（祖靈＝靜→瞬發） */
+
+    /* ② 割（travel）：刃從後上方劃過頸口、插進頸邊的地上。
+       **`trail: false`**——增益招不得有跨場拖線（P4 r2 裁定）；刃身自己的位移就是 travel 的載體。 */
+    st.trail(obsid, A, Z, { ms: TL, delay: T0, ease: 'strike', trail: false, spin: 2.6,
+      update(t, e) { obsid.position.addScaledVector(bow, Math.sin(Math.PI * e)); },
+      done() {
+        /* ★衝擊拍★：刃插到底＝血條炸出＝本隊同幀亮邊上抬（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(neck, { power: 0.95, n: 54, color: C.hot });
+        st.punch(0.42);
+      } });
+    /* 割的重音：頭橫甩、邊光從最暗暴亮到三倍（祖靈＝靜→瞬發）。
+       ★施招姿態的收回**不寫在這裡**★（覆審 H3）：它由 `st.stance` 註冊的包絡自己收在衝擊拍上，
+       27 支一律相同——靠「每支招記得寫一行」的話，香火 9 支就是沒寫（姿態一路撐到收工，
+       「下沉」的 −0.14 把受益方的上抬 +0.07 演成往下沉）。 */
     st.tween({ ms: TL * 0.6, delay: T0 + TL * 0.32, ease: 'snap', update(t, e) {
       st.rot(deer, 'HeadRoot', 0.36, 0.52 * e, 0); st.rot(deer, 'Neck2', 0.26 * (1 - 0.7 * e)); st.rot(deer, 'Neck3', 0.24 * (1 - 0.7 * e));
       st.rim(deer, 0.3 + 3.0 * e);
     } });
-    st.fade(knife, { ms: RL * 0.5, delay: R0, from: 1, to: 0 });
-    /* ③ 祝福（react）：本隊每尊身上蓋一枚 knife 印記、被托起半寸——增益招的因果證據在受益方身上 */
+    // 血條：割到一半開始從頸口飄出，衝擊拍達到最大
+    st.fade(gore.obj, { ms: TL * 0.3, delay: T0 + TL * 0.45, from: 0, to: 0.95 });
+    st.tween({ ms: TL * 0.55 + RL * 0.6, delay: T0 + TL * 0.45, ease: 'out', update(t, e) {
+      for (let i = 0; i < BL; i++) { strips[i].s = Math.max(0, Math.min(1, (e * 2.2 - 0.10 * i))); strips[i].rz += 0.10; }
+      writeGore(e);
+    } });
+    st.fade(gore.obj, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 0.95, to: 0 });
+    // 刃插在地上之後留一下再淡掉（不再飛回去、不留印在別人身上）
+    st.fade(obsid, { ms: RL * 0.45, delay: R0 + RL * 0.25, from: 1, to: 0 });
+
+    /* ③ 祝福（react）：本隊每尊被托起半寸＋暖邊光；同伴各蓋一枚刃印。
+       ★施招者也上抬★（ABILITIES「全場本隊 atk+2」），但他的身分已經由 windup 的
+       下沉姿態＋腳下光柱標掉了，兩件在時間上分離（§A9 第 2 條的例外）。 */
     marks.forEach((m, i) => {
       st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
       st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
-    bless.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.075 * e, 0); st.rim(f, 1 + 1.7 * e);
+    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.085 * e, 0); st.rim(f, 1 + 1.9 * e);
     } }));
-    /* 收勢：鹿回正。只有他一尊時（治具的 xianji 就是 count=1），祝福也演在他自己身上 */
+
+    /* 收勢：鹿回正並跟著被托起（他也是受益方）。只有他一尊時（治具的 xianji 就是 count=1）
+       這一段就是全部的 react——`evalPhases` 在 `sawOther===false` 時量的正是他自己。 */
     st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
       const k = 1 - st.EASE.out(Math.min(1, t / 0.45));
       const up = st.EASE.pulse(Math.min(1, t / 0.8));
@@ -497,8 +586,8 @@ const MOVES = {
       st.rot(deer, 'LFront1El', -0.22 * k); st.rot(deer, 'RFront1El', -0.22 * k);
       st.rot(deer, 'LFront1Wr', 0.20 * k); st.rot(deer, 'RFront1Wr', 0.20 * k);
       st.rot(deer, 'TailRoot', 0.30 * k - 0.26 * up); st.rot(deer, 'Tail1', 0.24 * k - 0.20 * up); st.rot(deer, 'Withers', 0.10 * k - 0.10 * up);
-      st.move(deer, 0, -0.045 * k + (bless.length ? 0.02 : 0.085) * up, 0);
-      st.rim(deer, 1 + 2.3 * k + 1.2 * up);
+      st.move(deer, 0, -0.045 * k + 0.085 * up, 0);
+      st.rim(deer, 1 + 2.3 * k + 1.4 * up);
     } });
   },
 
@@ -856,101 +945,97 @@ export const SHORT = {
   },
 };
 
-/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
-   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
-   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
-   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
-   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
 
-   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
-   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
-   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
-   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
-
-export const V054 = {
-  eliteSelfCut_v054(st) {
-    const cast = st.byBody(st.actor, 'elite');
-    const deer = cast.length ? cast[0] : st.actor[0];
+/* ══════════ v0.55 批 0 徽記剪影版（`?fxvocab=1` 時登記的那一份）══════════
+   祖靈範本招 `eliteSelfCut` 於 2026-09-13 轉正（招式演出卷・祖靈批階段 A），正式版住在上面的 MOVES。
+   這一份**原地保留給治具與 L3 canary**：`tests/fxvocab.test.mjs --mutate=4..20` 的十七條繞法
+   全部錨在它 windup 段那一行「刃的呼吸縮放」上（本 repo 唯一一處祖靈系的合法徽記縮放）。
+   ★這裡刻意**不寫出那一行的原文**★：`src.replace()` 取的是第一個相符處，註解裡出現同一個字面值
+   就會讓突變改在註解上、被 `noComment` 一併剝掉 ⇒ 十七條繞法全部靜默變綠（實測 4–20 全 GREEN）。
+   同一個坑 `tests/tools/traitfx-drive.mjs` 覆審 r1 MEDIUM-1 也踩過一次。
+   ★這一段的本體逐字取自 v0.55.6 的 MOVES.eliteSelfCut，只改了函式名那一行★
+   （`_v055` 後綴在登記點 js/trait-fx.js 剝掉換回 trId，分派只做一次）。
+   0.54 的退路（`V054`／`V054_SHORT`）連同轉正一起移除——見 git show 616f7ff:js/trait-fx/zuling.js。 */
+export const V055 = {
+  /* 獻祭刀・割祭 v0.55 批 0 徽記剪影版（`?fxvocab=1` 才登記）。
+     ★v0.55 招式可辨性卷 批 0 示範招（祖靈）★
+     盲讀 r1 的病因（計畫 §6 第 8 列）：`xianji` 的 GLB 骨骼表裡**完全沒有刀**（只有一隻鹿），
+       短版三格「幾乎一模一樣、畫面上完全沒有特效」（讀者 B 給 1 分），完整版兩位分別猜成椅仔姑與山神庇佑
+       ⇒ 失敗類型 F（法寶不在模型裡）＋D（出招瞬間沒有新增元素）。
+     改法（ART_BIBLE §10）：
+       ① windup：出招瞬間在頸邊生出一把**黑曜石刃徽記**（近黑 ink 實心＋靛藍 key 底板——ink 色就是為這一支設的）；
+       ② travel：載體是**刀本身**，從後上方橫劃過頸口收到前下方，拖尾是刀的殘影（不是一條獨立的白線）；
+       ③ react：本隊每尊蓋一枚 knife 印記並被托起半寸；治具裡只有 1 尊時量鹿自己的挺立。
+     退役語彙：原本的胸口白 `orb`（15/27 撞）與升天的裸 `beam`（9/27 撞）本支全數拿掉。
+     ★tier 1／2／3 共用這一支★：所有時點都從 `st.beat`（＝vocab.js 的 BEAT[tier]）換算，不另寫短版分岔。 */
+  eliteSelfCut_v055(st) {
+    const B = st.beat, C = st.colors, LAST = st.ms * 0.88; // LAST：horizon 上限（rate ≤1.0 且 fill ≥0.85）
+    const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const mates = st.actor.filter((f) => f !== deer);
+    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
     // 傷口要落在體外一點：擺進 Chest 骨的位置會被自己的身體擋掉（材質有 depthTest），什麼都看不到
-    const chest = st.worldOf(deer, 'Chest', new THREE.Vector3()).addScaledVector(st.dir, 0.24);
-    chest.y += 0.06;
-    st.tween({ ms: 300, ease: 'out', update(t, e) {
-      st.rot(deer, 'NeckRoot', 0.3 * e); st.rot(deer, 'Neck1', 0.28 * e); st.rot(deer, 'Neck2', 0.26 * e); st.rot(deer, 'Neck3', 0.24 * e);
-      st.rot(deer, 'HeadRoot', 0.36 * e); st.rot(deer, 'Skull', 0.2 * e); st.rot(deer, 'Muzzle', 0.14 * e);
-      st.rot(deer, 'LFront1El', -0.22 * e); st.rot(deer, 'RFront1El', -0.22 * e);
-      st.rot(deer, 'LFront1Wr', 0.2 * e); st.rot(deer, 'RFront1Wr', 0.2 * e);
-      st.rot(deer, 'TailRoot', 0.3 * e); st.rot(deer, 'Tail1', 0.24 * e); st.rot(deer, 'TailTip', 0);
-      st.rot(deer, 'Withers', 0.1 * e);
-      st.move(deer, 0, -0.04 * e, 0);
-      st.rim(deer, 1 - 0.7 * e);
+    const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.18);
+    neck.y += 0.06;
+    const A = neck.clone().addScaledVector(st.dir, -0.52); A.y += 0.34; // 刀的起點：後上方（再往後就離鹿太遠、讀起來像不相干的漂浮物）
+    const Z = neck.clone().addScaledVector(st.dir, 0.82); Z.y -= 0.30; // 刀的終點：前下方（整段仍要跨過 travel 門檻的 40%）
+    /* ★配色與計畫 §6 的建議相反，理由是實測★：計畫建議「近黑實心 ink ＋靛藍 key 描邊」，
+       但 L3 實測（凍幀 A/B 差圖）在暗紅桌＋夜紫天上 **CIE76 ΔE 中位只有 25.13、低於門檻 28**
+       ——近黑本體放在暗背景上本來就沒有對比可言。門檻一字不動，改的是實作：
+       翻成本系標準配色（靛藍 key 本體＋ink 底板）之後 ΔE 中位 63.35。
+       「黑曜石」的身分由剪影承擔（ART_BIBLE §7：低多邊形下剪影是僅剩的辨識手段）。 */
+    const knife = st.icon(st.kind, A, { color: C.key, inkColor: C.ink, opacity: 0, roll: -1.1 });
+    const bless = mates.length ? mates : [];
+    const marks = bless.map((f) => st.mark(f, st.kind, { opacity: 0, color: C.key }));
+
+    st.phase('windup');
+    /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；黑曜石刃在頸邊亮相＝出招瞬間的新增元素 */
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.rot(deer, 'NeckRoot', 0.30 * e); st.rot(deer, 'Neck1', 0.28 * e); st.rot(deer, 'Neck2', 0.26 * e); st.rot(deer, 'Neck3', 0.24 * e);
+        st.rot(deer, 'HeadRoot', 0.36 * e); st.rot(deer, 'Skull', 0.20 * e); st.rot(deer, 'Muzzle', 0.14 * e);
+        st.rot(deer, 'LFront1El', -0.22 * e); st.rot(deer, 'RFront1El', -0.22 * e);
+        st.rot(deer, 'LFront1Wr', 0.20 * e); st.rot(deer, 'RFront1Wr', 0.20 * e);
+        st.rot(deer, 'TailRoot', 0.30 * e); st.rot(deer, 'Tail1', 0.24 * e); st.rot(deer, 'Withers', 0.10 * e);
+        st.move(deer, 0, -0.045 * e, 0);
+        st.rim(deer, 1 - 0.7 * e);
+        st.alpha(knife, Math.min(1, e * 1.8));
+        st.iconScale(knife, 0.5 + 0.5 * e);
+        knife.userData.fxRoll = -1.1 + 0.35 * e;
+      },
+      done() { st.phase('travel'); } });
+    /* ② 割（travel）：刀劃過頸口。st.trail 的尾巴綁在刀身上，取代退役的裸 beam */
+    st.trail(knife, A, Z, { ms: TL, delay: T0, ease: 'strike', spin: 2.6, color: C.key, opacity: 0.8, segs: 10,
+      done() { st.phase('react'); st.burst(neck, { power: 0.95, n: 54, color: C.hot }); st.punch(0.42); } });
+    /* 割的重音：頭橫甩、邊光從最暗暴亮到三倍（祖靈＝靜→瞬發） */
+    st.tween({ ms: TL * 0.6, delay: T0 + TL * 0.32, ease: 'snap', update(t, e) {
+      st.rot(deer, 'HeadRoot', 0.36, 0.52 * e, 0); st.rot(deer, 'Neck2', 0.26 * (1 - 0.7 * e)); st.rot(deer, 'Neck3', 0.24 * (1 - 0.7 * e));
+      st.rim(deer, 0.3 + 3.0 * e);
     } });
-    st.at(300, () => {
-      const wound = st.orb(chest, 0.085, { opacity: 0.95 });
-      wound.scale.setScalar(0.3);
-      st.grow(wound, { ms: 130, from: 0.3, to: 1.5 });
-      st.fade(wound, { ms: 260, delay: 120, from: 0.95, to: 0 });
-      st.burst(chest, { power: 0.9, n: 52 });
-      st.punch(0.3);
-      st.at(90, () => {
-        st.actor.forEach((f, i) => {
-          const a = st.worldOf(f, null, new THREE.Vector3());
-          const b = st.top(f, new THREE.Vector3()); b.y += 0.5;
-          const ray = st.beam(a, b, { opacity: 0.9 });
-          st.fade(ray, { ms: 320, delay: i * 40, from: 0.9, to: 0 });
-          if (f !== deer) st.tween({ ms: 380, delay: i * 40, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } });
-        });
-        st.burst(chest, { power: 0.4, n: 20 });
-      });
+    st.fade(knife, { ms: RL * 0.5, delay: R0, from: 1, to: 0 });
+    /* ③ 祝福（react）：本隊每尊身上蓋一枚 knife 印記、被托起半寸——增益招的因果證據在受益方身上 */
+    marks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
     });
-    st.tween({ ms: 580, delay: 300, ease: 'linear', update(t) {
-      const k = 1 - st.EASE.out(Math.min(1, t / 0.4));
-      const s = st.EASE.snap(Math.min(1, t / 0.32));
-      const bless = st.EASE.pulse(Math.min(1, Math.max(0, (t - 0.18) / 0.82)));
-      st.rot(deer, 'NeckRoot', 0.3 * k, -0.34 * s, 0);
-      st.rot(deer, 'Neck1', 0.28 * k, -0.3 * s, 0);
-      st.rot(deer, 'Neck2', 0.26 * k, -0.26 * s, 0);
-      st.rot(deer, 'Neck3', 0.24 * k, -0.22 * s, 0);
-      st.rot(deer, 'HeadRoot', 0.36 * k - 0.2 * s, -0.3 * s, 0);
-      st.rot(deer, 'Skull', 0.2 * k, -0.24 * s, 0);
-      st.rot(deer, 'Muzzle', 0.14 * k, -0.16 * s, 0);
-      st.rot(deer, 'LFront1El', -0.22 * k); st.rot(deer, 'RFront1El', -0.22 * k + 0.3 * s);
-      st.rot(deer, 'LFront1Wr', 0.2 * k); st.rot(deer, 'RFront1Wr', 0.2 * k);
-      st.rot(deer, 'TailRoot', 0.3 * k - 0.3 * bless); st.rot(deer, 'Tail1', 0.24 * k - 0.24 * bless); st.rot(deer, 'TailTip', -0.2 * bless);
-      st.rot(deer, 'Withers', 0.1 * k - 0.1 * bless);
-      st.move(deer, 0, -0.04 * k + 0.05 * bless, 0);
-      st.rim(deer, 1 - 0.7 * k + 3 * s + 1.2 * bless);
+    bless.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.075 * e, 0); st.rim(f, 1 + 1.7 * e);
+    } }));
+    /* 收勢：鹿回正。只有他一尊時（治具的 xianji 就是 count=1），祝福也演在他自己身上 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.45));
+      const up = st.EASE.pulse(Math.min(1, t / 0.8));
+      st.rot(deer, 'NeckRoot', 0.30 * k); st.rot(deer, 'Neck1', 0.28 * k); st.rot(deer, 'Neck2', 0.26 * k); st.rot(deer, 'Neck3', 0.24 * k);
+      st.rot(deer, 'HeadRoot', 0.36 * k, 0.52 * k, 0); st.rot(deer, 'Skull', 0.20 * k); st.rot(deer, 'Muzzle', 0.14 * k);
+      st.rot(deer, 'LFront1El', -0.22 * k); st.rot(deer, 'RFront1El', -0.22 * k);
+      st.rot(deer, 'LFront1Wr', 0.20 * k); st.rot(deer, 'RFront1Wr', 0.20 * k);
+      st.rot(deer, 'TailRoot', 0.30 * k - 0.26 * up); st.rot(deer, 'Tail1', 0.24 * k - 0.20 * up); st.rot(deer, 'Withers', 0.10 * k - 0.10 * up);
+      st.move(deer, 0, -0.045 * k + (bless.length ? 0.02 : 0.085) * up, 0);
+      st.rim(deer, 1 + 2.3 * k + 1.2 * up);
     } });
   },
 };
 
-export const V054_SHORT = {
-  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
-  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
-  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
-  eliteSelfCut_v054short(st) {
-    const K = st.ms / 260;
-    const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const chest = st.worldOf(deer, 'Chest', new THREE.Vector3());
-    const blood = st.orb(chest, 0.055, { opacity: 0 });
-    blood.scale.setScalar(0.3);
-    st.tween({ ms: 90 * K, ease: 'in', update(t, e) { // 俯首就刃：頸逐節下彎、邊光先暗
-      st.rot(deer, 'NeckRoot', 0.26 * e); st.rot(deer, 'Neck2', 0.22 * e); st.rot(deer, 'HeadRoot', 0.3 * e);
-      st.rot(deer, 'TailRoot', -0.18 * e); st.rim(deer, 1 - 0.75 * e);
-    } });
-    st.tween({ ms: 70 * K, delay: 88 * K, ease: 'snap', update(t, e) { // 割：頭橫甩、邊光暴亮到三倍
-      st.rot(deer, 'HeadRoot', 0.3, 0.5 * e, 0); st.rot(deer, 'Neck2', 0.22 * (1 - e));
-      st.rim(deer, 0.25 + 3.1 * e);
-    }, done() { st.punch(0.42); st.burst(chest, { power: 0.7, n: 34, color: 0xd83a2a }); } });
-    st.fade(blood, { ms: 45 * K, delay: 88 * K, from: 0, to: 1 });
-    st.grow(blood, { ms: 90 * K, delay: 88 * K, from: 0.3, to: 1.5 });
-    st.fade(blood, { ms: 60 * K, delay: 150 * K, from: 1, to: 0 });
-    const up = st.top(deer, new THREE.Vector3());
-    const rite = st.beam(chest.clone(), up, { opacity: 0 });
-    st.fade(rite, { ms: 65 * K, delay: 130 * K, from: 0.95, to: 0 }); // 祭光自心口竄上頭頂
-    st.actor.forEach((f, i) => st.tween({ ms: 70 * K, delay: (140 + i * 10) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } }));
-    st.tween({ ms: 65 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 頭頸回正
-      const k = 1 - e;
-      st.rot(deer, 'NeckRoot', 0.26 * k); st.rot(deer, 'HeadRoot', 0.3 * k, 0.5 * k, 0); st.rot(deer, 'TailRoot', -0.18 * k);
-    } });
-  },
+export const V055_SHORT = {
+  // 短版與完整版共用同一支（徽記版原本就沒有 eliteSelfCut 的專屬短版，tier 1 退回完整版）
+  eliteSelfCut_v055short: V055.eliteSelfCut_v055,
 };

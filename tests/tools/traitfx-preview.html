@@ -117,7 +117,12 @@ rig.rotation.y = Math.atan2(camera.position.x, camera.position.z);
 const RIM_BY_FAC = { zuling: FACTION_RIM.zuli, xianghuo: FACTION_RIM.xianghu, yinqi: FACTION_RIM.yinqi };
 const FX_SEED0 = parseInt(q.get('seed') || '7', 10) || 7; // ?seed=：逐尊系別粒子的種子起點（L3 要記下 seed）
 let fxSeed = FX_SEED0;
+/* ★`?mategap=` 只給「2v2 盲讀材料把同伴與施招者拉開」用（2026-09-13 祖靈批階段 A）★
+   夾 1–3、**不帶＝1＝原本的站位一個位元組不變**；L3（fx-contrast）、prop-size 與 traitfx-drive
+   都不帶它。它是 P4 的**材料規格**（讓「我方單一／我方多個／自己」在畫面上分得開），不是判準。 */
+const MATEGAP = Math.max(1, Math.min(3, parseFloat(q.get('mategap') || '1') || 1));
 const duelFigures = createDuelFigures(scene, camera, {
+  stepMul: MATEGAP,
   makeFigure: (u) => {
     if (!u || !u.ab) return makeLayeredFigure();
     const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab, '../../assets/creatures/'), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac });

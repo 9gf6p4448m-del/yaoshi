@@ -592,6 +592,13 @@ function makeLegendKit(ab, sn) {
 export function createDuelFigures(scene, camera, opts = {}) {
   const assetsBase = opts.assetsBase || 'assets/characters/';
   const factory = opts.makeFigure || makeLayeredFigure; // 換皮就換這個（見上面的介面說明）
+  /** ★同排間距倍率（2026-09-13 P4 材料規格，**只給治具**）★
+   *  `opts.stepMul` 乘在「同一邊相鄰兩尊的水平間距」上（`FIG.rowStepPx`／`rowStepPx3d` 換算出來的 step）。
+   *  **預設 1＝一個位元組都不變**；正式頁不傳這個欄位，只有 `tests/tools/traitfx-preview.html`
+   *  在 `?mategap=` 帶進來時才 ≠1。
+   *  為什麼要它：香火批 1 P4 第 3 輪的歸因是「2v2 治具棚裡我方兩尊站得太近，讀者分不出誰施招」
+   *  （報告 §8）。把同伴拉開 ≥1 個身位是**材料規格**，不是判準——P4 的三題與真值一格不動。 */
+  const stepMul = Number.isFinite(opts.stepMul) && opts.stepMul > 0 ? opts.stepMul : 1;
   const keyOf = opts.figureKey || ((u) => (u && u.ab ? String(u.ab) : ''));
   // 兩邊各一個「紙紮池」：[0]＝畫面左（ys:duel 的 a）、[1]＝畫面右（b）。
   // 池按 keyOf(unit) 分：{ key → [figure...] }；figure.__busy＝本場已配位。
@@ -990,7 +997,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         // 三件精英（腳印各 0.6）同排時 W 只剩 0.73、s 會被壓到 0.34；極端視窗 W=0 兩尊會重疊——多一排就解。
         const layout = (rows, fit) => {
           const crowdEff = crowd * fit;
-          const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowdEff;
+          const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowdEff * stepMul;
           const footOf = (jj) => footBase(jj) * crowdEff;
           // 傳說在場且排得出第 LGROW 排時：那一排 m＝傳說數（同方兩尊以上就並排），其餘尊平分剩下的排
           const useLg = lgIdx.length > 0 && rows > LGROW && plainIdx.length >= rows - 1;
@@ -1108,7 +1115,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         }
 
         const sc = is3d ? figScale3d : figScale;
-        const step = (is3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
+        const step = (is3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd * stepMul;
         const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * sc;
         let bs = bodyScaleOf(u) * (plan ? plan.crowd : crowd); // n≥3 時 crowd 含這一側的 fit（塞不下才 <1）
         // 傳說的畫面高度保險絲（見 FIG.legendPxMax）：整尊＋基座換算成 CSS 像素，超過上限就等比壓回來

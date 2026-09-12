@@ -1,6 +1,7 @@
 // 盲讀材料產生器（v0.55 招式可辨性卷，凍結檔 `2026-09-11-acceptance-fx-legibility.md` L4／L4-pre、Q12）。
 //
 // 用法：node tests/tools/blindread-sheet.mjs <輸出目錄> [--only=trId,..] [--tiers=1,2] [--seed=20260912]
+//                                            [--mateGap=<倍率 1–3>]  ← 2v2 材料把同伴與施招者拉開（不帶＝1＝不變）
 //                                            [--camdist=<公尺>]  ← 只給「tier 2 近景」那一種材料用
 //   --camdist  轉給治具頁的 ?camdist=（對決機位的 dist，預設 4.2）。**不帶＝原本的機位，材料規格不變**；
 //              2026-09-12 製作人裁定 P4 材料改兩種：1v1 治具棚（不帶）＋ tier 2 近景（帶 2.4）。
@@ -40,6 +41,31 @@ const CAMQ = (() => { const v = process.argv.find((x) => x.startsWith('--camdist
    「我方多個 vs 我方單一」在畫面上根本不可能分辨（報告 §5）。 */
 const COUNTQ = (() => { const v = process.argv.find((x) => x.startsWith('--count=')); return v ? parseInt(v.slice(8), 10) || 0 : 0; })();
 const FOEQ = (() => { const v = process.argv.find((x) => x.startsWith('--foe=')); return v ? '&foe=' + encodeURIComponent(v.slice(6)) : ''; })();
+/* ★P4 材料規格（2026-09-13 祖靈批階段 A）★：`--mateGap=<倍率>` 把同一邊相鄰兩尊的水平間距
+   乘上這個倍率（轉送成治具頁的 `?mategap=`，夾 1–3）。**不帶＝1＝第 1–3 輪材料的站位一個位元組不變。**
+   為什麼要它：P4 第 3 輪的歸因是「2v2 裡我方兩尊同系同型、站得近，道具落在哪一尊就當誰施招」
+   （`docs/experiments/2026-09-13-xianghuo-b1-report.md` §8）。拉開 ≥1 個身位是**材料規格**，
+   P4 的三題與真值表一格不動（`02 §2.1`：這不是移動及格線，是讓那一題在畫面上答得出來）。 */
+const GAPV = (() => {
+  /* ★大小寫打錯不得靜默忽略（覆審 L4）★：`--mategap=2` 打成小寫時，舊寫法會**靜默**產出基準站位的
+     材料，而操作者以為拉開了——那正是「材料規格對不上」的靜默分岔。現在不分大小寫都接，
+     寫成別的拼法（`--mate-gap=`／`--gap=`）當場 throw。 */
+  /* ★按**效果**寫，不按已知的拼錯法寫（覆審 r2 L4，`02 §6.1` 第 7 條）★
+     第一版是 `--(mate-gap|gap|mategaps)=` 三項**黑名單**——`--mate_gap=`／`--mateGapp=` 照樣靜默忽略。
+     危險的效果是「旗標打錯 ⇒ 產出的材料規格與操作者以為的不同」，所以改成**白名單**：
+     凡是本支不認得的 `--xxx` 一律當場 throw。分母＝這一支真的吃的旗標，就是下面這一張表。 */
+  const KNOWN = ['only', 'tiers', 'seed', 'camdist', 'mategap', 'count', 'foe', 'port', 'label', 'dt', 'fxvocab', 'proto'];
+  const unknown = process.argv.slice(2).filter((x) => x.startsWith('--'))
+    .map((x) => x.replace(/^--/, '').split('=')[0].toLowerCase())
+    .filter((k) => KNOWN.indexOf(k) < 0);
+  if (unknown.length) {
+    throw new Error(`不認得的旗標 --${unknown.join('／--')}——這一支只認 ${KNOWN.map((k) => '--' + k).join(' ')}；`
+      + '打錯會靜默產出不同規格的材料，所以一律當場停（覆審 r2 L4）。');
+  }
+  const v = process.argv.find((x) => /^--mategap=/i.test(x));
+  return v ? v.slice(v.indexOf('=') + 1) : '';
+})();
+const GAPQ = GAPV ? '&mategap=' + encodeURIComponent(GAPV) : '';
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -106,7 +132,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}${GAPQ}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -191,7 +217,16 @@ async function main() {
       console.log(`  ${code}.png ← ${s.trait} t${s.tier}`);
     }
     fs.writeFileSync(path.join(outDir, 'mapping-HIDDEN.json'), JSON.stringify({
-      seed, tiers, dt, shot: { ...SHOT, deviceScaleFactor: SHOT_DSF }, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label, mapping,
+      seed, tiers, dt, shot: { ...SHOT, deviceScaleFactor: SHOT_DSF }, cell: CELL, sheet: SHEET, frameAt: FRAME_AT, labelled: !!opt.label,
+      /* ★材料規格要留下紀錄（覆審 M4）★：改前只記 seed／tiers／dt／視口／格寬，
+         **不記** 排列與機位那幾個旋鈕 ⇒ 下一輪盲讀無法事後證明「這一輪的材料與上一輪差在哪一格」。
+         `mateGap`／`camdist`／`count`／`foe` 四個都是本卷陸續加的規格參數，一起記進來。 */
+      /* `fxvocab` 比 `mateGap` 更決定性（它決定拍的是哪一版演出），`counts` 記**每一案實際用的尊數**
+         而不是「有沒有覆寫」——覆審 r2 對 M4 的兩點補正。 */
+      spec: { mateGap: GAPV || null, camdist: CAMQ ? CAMQ.split('=')[1] : null, countOverride: COUNTQ || null,
+        counts: Object.fromEntries(cases.map((c) => [c.trait, COUNTQ || c.count])),
+        foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, fxvocab: fxvocabQ(opt) !== '', proto: PROTO || null },
+      mapping,
     }, null, 1));
   } finally { await browser.close(); srv.kill(); }
   fs.rmSync(tmpDir, { recursive: true, force: true });

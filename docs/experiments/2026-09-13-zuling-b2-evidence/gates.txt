@@ -1,0 +1,44 @@
+# 階段 A 閘門的實際輸出（2026-09-13，指令原文＋原始 stdout）
+# 基準＝main 616f7ff（v0.55.6）。本檔是 §1.5 那張表的落檔，不是第二份判準。
+
+== P0 trace-eq（git show 616f7ff:index.html > scratchpad/base-index.html）==
+$ node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html
+{"old":"scratchpad/base-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+
+== A6 draw call（proto-record，量招式真的在演的那一幀）==
+$ node tests/tools/proto-record.mjs <out> --tier=2 --trait=eliteSelfCut --step=6 --fps=20 --nogif
+{"trait":"eliteSelfCut","proto":null,"tier":2,"ms":900,"frames":58,"step":6,"fps":20,"idleCalls":150,"idleTris":48680,"peakCalls":161,"peakCallsAtFrame":34,"peakTris":48994,"peakTrisAtFrame":0,"programs":21,"errors":0,"ffmpeg":false}
+
+== P7 duel-perf（本樹）==
+$ node tests/tools/duel-perf.mjs perf <out> --seed=7
+{"out":"scratchpad/_gate-perf.json","perf":{"loadMs":156,"rendersPerSec":300.2,"rafMedianFps":59.9,"rafP95Ms":16.8,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+
+== P7 duel-perf（基準樹 616f7ff，git archive 解出）==
+$ node tests/tools/duel-perf.mjs perf <out> --seed=7 --root=scratchpad/base616
+{"out":"scratchpad/_gate-perf-base.json","perf":{"loadMs":778,"rendersPerSec":299.6,"rafMedianFps":59.9,"rafP95Ms":16.7,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+
+== P8 duel-drive seed 7 / seed 3（各 4 場）==
+$ node tests/tools/duel-drive.mjs "...&seed=7" <out> --duels=4
+{"out":"scratchpad/_gate-dd7.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,"trait":4,"traitFig":3,"load":{"ms":68,"total":15,"loaded":15,"timedOut":false,"readyAt":1789235027454},"ver":"v0.55.6","duelsMs":[[4594,0,0,""],[5316,1,1,""],[4724,0,0,""],[7317,3,2,""]]}
+$ node tests/tools/duel-drive.mjs "...&seed=3" <out> --duels=4
+{"out":"scratchpad/_gate-dd3.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,"trait":2,"traitFig":2,"load":{"ms":43,"total":5,"loaded":5,"timedOut":false,"readyAt":1789235081089},"ver":"v0.55.6","duelsMs":[[4353,0,0,""],[4296,0,0,""],[4716,0,0,""],[5214,2,2,""]]}
+
+== P8 12 套規則測試（每套最後一行）==
+aistake            通過 8　失敗 0
+conscap            通過 5　失敗 0
+duel-desync        結果：7 綠 ／ 0 紅
+emblem-collision   結果：9 綠 ／ 0 紅
+fxtier             結果：14 綠 ／ 0 紅
+fxvocab            結果：26 綠 ／ 0 紅
+legend             32 過 / 0 失敗
+lineup-order       結果：8 綠 ／ 0 紅
+nightrules         結果：16 綠 ／ 0 紅
+review             通過 28　失敗 0
+roles-balance      角色平衡卷單元測試：32 過 / 0 失敗
+wish16             結果：PASS=36 FAIL=0
+
+== 低幀率對照（--dt=50 --tier=1）：本樹與基準樹都是 0/27，紅在 rateOK＝既有性質 ==
+$ node tests/tools/traitfx-drive.mjs <out> --tier=1 --dt=50
+0/27 pass · 重複簽章 0 · scratchpad/_gate-dt50.json
+$ node tests/tools/traitfx-drive.mjs <out> --tier=1 --dt=50 --root=scratchpad/base616
+0/27 pass · 重複簽章 0 · scratchpad/_gate-dt50b.json

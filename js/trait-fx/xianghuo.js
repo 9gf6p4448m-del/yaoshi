@@ -34,8 +34,12 @@ function xhBeat(st, frac) {
  *  （`js/duel-figures.js:683-685`），相機轉了人物跟著轉、常數不轉 ⇒ 那個位移變成**橫向**，
  *  道具被推到側面、被本體遮住。實測（把常數換成西東等效方向，其餘一字不動）：
  *  `wardHpFirst` 的 L3 面積 0.9682%→**0.1741%**、`wardRegen1` 1.4461%→**0.5159%**，兩支跌破 P3 的 0.8%。
- *  現在方向一律取自 `st.camDir`（`js/trait-fx.js` 由 `camera.position` 算，與 duel-figures 同一條算式）。 */
-function camOff(st, k) { return new THREE.Vector3().copy(st.camDir).multiplyScalar(0.26 * k).setY(0.07 * k); }
+ *  現在方向一律取自 `st.camDir`（`js/trait-fx.js` 由 `camera.position` 算，與 duel-figures 同一條算式）。
+ *
+ *  ★2026-09-13 祖靈批階段 A：本體上升到 `st.camOff(k)`（js/trait-fx.js）★
+ *  三系都要用同一件事，留在這一個系別檔就會被複製成第二份（`camDir` 那次的病）。
+ *  這裡只留一支轉呼叫，本檔 9 支招的寫法一個字未動。 */
+function camOff(st, k) { return st.camOff(k); }
 
 /** 取角色與四個時間切點：出招的虎、被咬的獵物、朝向、windup 末／travel 起迄／react 起。 */
 function tgCast(st) {
@@ -220,8 +224,11 @@ const MOVES = {
     arc.scale.setScalar(st.iconSize * 0.55);
 
     /* ① 舉劍（windup）：右臂高舉、胸口後仰側擰、邊光大亮；弧在劍尖長出來 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(gen);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(gen, '舉臂', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(gen, 'RArm1Rt', -1.1 * e, 0, 0.25 * e); st.rot(gen, 'RArm1El', -0.5 * e);
       st.rot(gen, 'Chest', -0.12 * e, -0.30 * e, 0); st.rot(gen, 'HeadRoot', -0.10 * e);
       st.rot(gen, 'BladeRoot', -0.22 * e); st.rot(gen, 'Blade1', -0.16 * e); st.rot(gen, 'Blade2', -0.12 * e); st.rot(gen, 'BladeTip', -0.10 * e);
@@ -337,8 +344,11 @@ const MOVES = {
     });
 
     /* ① 壓身舉旗（windup）：旗桿後倒蓄、獸首抬起張口、尾豎；旗面在桿頭「展開」 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(lead);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(lead, '前傾', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(lead, 'FlagMast', 0.6 * e, 0, -0.38 * e);
       st.rot(lead, 'Withers', -0.18 * e); st.rot(lead, 'Chest', -0.10 * e);
       st.rot(lead, 'HeadRoot', -0.24 * e); st.rot(lead, 'JawRoot', 0.34 * e); st.rot(lead, 'Jaw1', 0.20 * e);
@@ -491,8 +501,11 @@ const MOVES = {
     });
 
     /* ① 離岸（windup）：船尾翹起、四節桅逐節挺直、人偶依序轉身、桅頂燃香火；帆在桅上長出來 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(lead);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(lead, '前傾', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(lead, 'SternTip', 0.16 * e); st.rot(lead, 'SternRise', 0.20 * e); st.rot(lead, 'AftMid', 0.10 * e);
       st.rot(lead, 'MidShip', -0.06 * e); st.rot(lead, 'ForeMid', -0.13 * e);
       st.rot(lead, 'Mast1', -0.07 * e); st.rot(lead, 'Mast2', -0.09 * e); st.rot(lead, 'Mast3', -0.12 * e); st.rot(lead, 'Mast4', -0.15 * e);
@@ -651,8 +664,11 @@ const MOVES = {
     });
 
     /* ① 蓄勢（windup）＝震的前半：舉鈴，鈴在手上長出來 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(ringer);
     st.phase('windup');
     st.tween({ ms: W * 0.42, ease: 'out', update(t, e) {
+      st.stance(ringer, '下沉', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.30 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
       st.rot(ringer, 'ArmDRoot', 0.30 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.20 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
       st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
@@ -812,8 +828,11 @@ const MOVES = {
     writePlate(0);
 
     /* ① 舉旗（windup）：右臂把令旗舉過頭、旗尾後仰、盔與頭抬起、身體擰半圈；五旗在旗頭聚成一束 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(lead);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(lead, '下沉', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(lead, 'RArm1Rt', -1.9 * e, 0, 0.30 * e); st.rot(lead, 'RArm1El', -0.35 * e); st.rot(lead, 'RArm1Wr', -0.20 * e);
       st.rot(lead, 'FlagTop', 0.50 * e, 0, -0.25 * e);
       st.rot(lead, 'Chest', -0.14 * e, 0.30 * e, 0); st.rot(lead, 'Spine', -0.08 * e, 0.16 * e, 0);
@@ -953,8 +972,11 @@ const MOVES = {
     writeFoils(0);
 
     /* ① 蓄勢（windup）：蹲伏 0.78、香火燒旺、金箔一片片從虎背長出來 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(cat, { r: 0.44 });
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(cat, '前傾', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       tgCrouch(st, cat, fwd, 0.78, e);
       st.rim(cat, 1 + 3.0 * e);
       for (let i = 0; i < FOILS; i++) { const o = local[i]; o.s = Math.max(0, Math.min(1, (e - 0.10 * i) * 2.6)); o.rz += 0.05 * o.s; }
@@ -1117,8 +1139,11 @@ const MOVES = {
     talis.scale.setScalar(st.iconSize * 0.40);
 
     /* ① 捧灰到胸（windup）：兩隻手把灰捧到胸前，低頭；灰在掌心一粒粒長出來 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(monk);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(monk, '前傾', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(monk, 'RShldr1Sh', -0.42 * e); st.rot(monk, 'RElbow1El', -0.85 * e); st.rot(monk, 'RHand1Ha', -0.30 * e);
       st.rot(monk, 'BShldr', -0.30 * e); st.rot(monk, 'BElbow', -0.62 * e); st.rot(monk, 'BHand', -0.24 * e);
       st.rot(monk, 'Chest', 0.10 * e); st.rot(monk, 'Neck', 0.16 * e); st.rot(monk, 'Head', 0.20 * e);
@@ -1229,8 +1254,11 @@ const MOVES = {
     seal2.scale.setScalar(st.markSize * 1.0);
 
     /* ① 燈焰暴漲（windup）：燈芯拉長、整尊低頭送出 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(lamp);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(lamp, '下沉', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(lamp, 'FlmR', -0.28 * e); st.rot(lamp, 'Crest', -0.16 * e);
       st.rot(lamp, 'Nk0', 0.18 * e); st.rot(lamp, 'Nk1', 0.14 * e); st.rot(lamp, 'Hd0', 0.20 * e); st.rot(lamp, 'Hd1', 0.12 * e);
       st.rot(lamp, 'Sh0', -0.10 * e); st.rot(lamp, 'Sh1', -0.08 * e);
@@ -1327,8 +1355,11 @@ const MOVES = {
     torn.scale.setScalar(st.iconSize * 0.35);
 
     /* ① 倒矛過頂（windup）：雙臂把矛倒過頭頂、矛尖朝下對準心口 */
+    /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
+    st.groundMark(man);
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.stance(man, '舉臂', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
       st.rot(man, 'LArm1Rt', -1.35 * e, 0, 0.22 * e); st.rot(man, 'RArm1Rt', -1.35 * e, 0, -0.22 * e);
       st.rot(man, 'LArm1El', -0.45 * e); st.rot(man, 'RArm1El', -0.45 * e);
       st.rot(man, 'PoleRoot', 0.55 * e); st.rot(man, 'PoleMid', 0.30 * e); st.rot(man, 'PoleTop', 0.18 * e);

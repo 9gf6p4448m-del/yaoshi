@@ -87,7 +87,15 @@ function movesMatching(root, re) {
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
     heads.forEach((h, i) => {
       const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
-      if (re.test(body)) out.add(h[1]);
+      /* ★後綴要在這裡剝掉（覆審 C1，CRITICAL）★
+         `V054`／`V055` 裡的函式叫 `<trId>_v054`／`_v055`，而所有比對的另一邊都是**真 trId**
+         （`c.trait` 來自 index.html 的 POOL）。不剝就永不相等 ⇒ `needEmblem` 與 `sg.expected`
+         對那幾支**恆為假**，「用到徽記卻 n/a」那條防線靜默失效。
+         實測：改前 `emblemCasesFromSource` 回的是
+         `biteGamble_v055 eliteSelfCut_v055 hauntLost wardImmuneLost_v055` ⇒ 四支裡只有 1 支比對得到。
+         後綴在 `js/trait-fx.js` 的登記點本來就會被剝掉換回 trId，這裡跟它對齊。
+         （`v055CasesFromSource` 另外靠後綴**判身分**，那一支自己 match `_v055`，不受這裡影響。） */
+      if (re.test(body)) out.add(h[1].replace(/_v05[45]$/, ''));
     });
   }
   return out;
@@ -99,7 +107,7 @@ function movesMatching(root, re) {
  *  （沒有這個下限，「把 st.phase 整組刪掉」會讓 P2 的斷言靜默失效＝同一個病換個形狀）。 */
 export function phaseCasesFromSource(root) {
   const list = [...movesMatching(root, /\bst\.phase\s*\(/)].sort();
-  const MUST = ['biteGamble', 'eliteCleave', 'swarmLastStand', 'swarmRally',
+  const MUST = ['biteGamble', 'eliteCleave', 'eliteSelfCut', 'swarmLastStand', 'swarmRally',
     'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
   const missing = MUST.filter((t) => list.indexOf(t) < 0);
   if (missing.length) {
@@ -123,6 +131,22 @@ export function v054CasesFromSource(root) {
   return [...out].sort();
 }
 
+/** `--fxvocab=1` 路徑（`VOCAB_ON=true`）下被 `V055` 覆蓋掉的招（＝v0.55 批 0 的徽記剪影版）。
+ *  它們是**轉正之前**那一版演出，身分可辨語彙（`st.stance`／`st.groundMark`，2026-09-13）比它們晚，
+ *  所以 `stanceOK` 在那條路上不適用——★這不是放寬★：同一支招不帶 `--fxvocab=1` 時跑的是
+ *  轉正後那一份，照樣被約束（與上面 `v054CasesFromSource` 對 P2 的處置完全同一條）。
+ *  刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的原始碼掃描擋（少一支就紅）。 */
+export function v055CasesFromSource(root) {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    const src = stripComments(fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8'));
+    const cut = src.indexOf('export const V055');
+    if (cut < 0) continue;
+    for (const m of src.slice(cut).matchAll(/^ {2}([A-Za-z_$][\w$]*)_v055\s*\(st\)\s*\{/gm)) out.add(m[1]);
+  }
+  return [...out].sort();
+}
+
 export function emblemCasesFromSource(root) {
   const out = movesMatching(root, /\bst\.(icon|icons|mark)\s*\(/);
   const list = [...out].sort();
@@ -139,8 +163,11 @@ export function emblemCasesFromSource(root) {
      那正是 `02 §2.1` 例外條款說的「錯到無論實作對錯都不可能通過」。
      下限的**用意沒有變**：0.55 語彙那四支示範招各要有一份在名單裡（住 MOVES 或住 V055 都算），
      推導壞掉回空陣列照樣當場 throw。祖靈／陰氣那兩批轉正後也走同一條。 */
+  /* ★活性下限不得接受後綴（覆審 C1）★：改前寫的是 `|| list.indexOf(t + '_v055') < 0`，
+     於是「名單裡全是比對不到的後綴名」這個狀態下**下限照樣綠**——正是這段註解自己要防的病。
+     現在 `movesMatching` 已經把後綴剝掉，下限就只認真 trId：剝壞了會當場 throw。 */
   const MUST = ['biteGamble', 'eliteSelfCut', 'hauntLost', 'wardImmuneLost'];
-  const missing = MUST.filter((t) => list.indexOf(t) < 0 && list.indexOf(t + '_v055') < 0);
+  const missing = MUST.filter((t) => list.indexOf(t) < 0);
   if (missing.length) {
     throw new Error(`emblemCasesFromSource 解析壞了：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
       + `缺少必含的 ${missing.join(' ')}。這支推導沒有活性下限時會靜默回空陣列，`
@@ -307,6 +334,30 @@ async function runCase(browser, base, c, opt) {
   const phasesOK = !inPhaseScope ? true : (needThree
     ? (phaseOK('windup') && phaseOK('travel') && phaseOK('react') && !(countN >= 2 && reactSolo))
     : (['windup', 'travel', 'react'].filter((n) => phaseOK(n)).length >= 2));
+  /* ★身分可辨語彙的執行期斷言（2026-09-13 祖靈批階段 A，語彙檔 §A9）★
+     香火批 1 P4 三輪的紅集中在 Q2「作用對象」：2v2 同系同型下讀者分不出誰施招、誰受益。
+     語彙的修法是「施招者在**蓄勢段**就有專屬姿態＋腳下系別光語彙」，這一條是它的機械抓手：
+       stance.kind   擺了哪一型（`vocab.js` 的 `STANCE_VOCAB`）——null＝根本沒擺
+       stance.peak   幅度峰值，要 ≥ `STANCE_GATE.minPeak`（引擎端把門檻一起送出來，治具不另寫一份）
+       stance.ground 腳下語彙是哪一種（`FAC_GROUND`）——null＝沒立起來
+       onTarget／extra 有沒有人把姿態套到受招方／第二個人身上（積木會 throw，這裡留帳）
+     ★適用範圍與 phasesOK 同一條★：只約束原始碼裡真的呼叫過 `st.phase(` 的招（＝已轉正的），
+     還沒鋪的 17 支不在範圍內；刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的
+     「已轉正的招必須呼叫 st.stance／st.groundMark」那條擋（那裡是原始碼掃描，這裡是執行期效果）。 */
+  const sc = (sig && sig.stance) || null;
+  /* ★「有打點」不等於「已轉正」★：
+     ① 還留著 `V054` 退路的招（`hauntLost`——陰氣批還沒開）住在 MOVES 的是**批 0 徽記版**，
+        它有 `st.phase` 打點但沒有身分可辨語彙（那一版比它早）；`--fxvocab=1` 時跑到的就是它。
+     ② `--fxvocab=1` 跑的是 `V055`（批 0 徽記版），同理不在範圍內。
+     兩條都**不是放寬**：同一支招轉正之後 V054 退路會被移除、預設路徑跑的是有姿態的那一份，照樣被約束。
+     刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的原始碼掃描擋（少一支就紅）。 */
+  const inStanceScope = inPhaseScope
+    && (opt.v054Moves || []).indexOf(c.trait) < 0
+    && !(vocabOn && (opt.v055Moves || []).indexOf(c.trait) >= 0);
+  const stanceOK = !inStanceScope ? true : !!(sc && sc.kind && sc.ground
+    && sc.peak >= (sc.minPeak === undefined ? 0.12 : sc.minPeak) && !sc.onTarget && (sc.extra | 0) === 0
+    // 覆審 H2／H4／H1 補的三條：姿態的人＝引擎獨立認定的施招者、峰值在衝擊拍之前、腳下光在同一尊身上
+    && sc.casterMatch === true && sc.windupOK === true && sc.groundSame === true);
   /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
      引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
      和「積木自己最後一次合法寫進去的值」比對；違規記進 stats，治具在這裡判。
@@ -341,7 +392,7 @@ async function runCase(browser, base, c, opt) {
   const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
     && !!fxvocabQ(opt) && !opt.throw && !opt.block;
   const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -359,7 +410,7 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && stanceOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -390,6 +441,7 @@ async function main() {
   opt.emblemMoves = emblemCasesFromSource(root); // 逐套判定要用（r2 L2）
   opt.phaseMoves = phaseCasesFromSource(root); // P2 的適用範圍（覆審 r1 HIGH-3）：只約束「真的有打點」的招
   opt.v054Moves = v054CasesFromSource(root); // 預設路徑下走 0.54 演出的那幾支，P2 在那條路上不適用
+  opt.v055Moves = v055CasesFromSource(root); // --fxvocab=1 下走批 0 徽記版的那幾支，stanceOK 在那條路上不適用
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(root, port);
   if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);
