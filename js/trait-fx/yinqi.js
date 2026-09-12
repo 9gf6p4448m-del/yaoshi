@@ -838,3 +838,114 @@ export const SHORT = {
     } });
   },
 };
+
+/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
+   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
+   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
+   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
+   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
+
+   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
+   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
+   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
+   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
+
+export const V054 = {
+  hauntLost_v054(st) {
+    const ghosts = st.actor;
+    const lost = st.byBody(st.target, 'swarm');
+    const fwd = ghosts.map((g) => st.toward(g, new THREE.Vector3()));
+    // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點
+    const point = (g, k) => {
+      const open = Math.max(0, k);
+      st.rot(g, 'HatRoot', 0.44 * k, 0.26 * k, 0);
+      st.rot(g, 'Hat1', 0.36 * k, 0.32 * k, 0);
+      st.rot(g, 'HatTip', 0.48 * k, 0.42 * k, 0);
+      st.rot(g, 'NeckB', 0.12 * k); st.rot(g, 'Neck2', 0.14 * k);
+      st.rot(g, 'HeadRoot', 0.24 * k, 0.20 * k, 0); st.rot(g, 'Skull', 0.12 * k);
+      st.rot(g, 'JawRoot', 0.30 * open); st.rot(g, 'Jaw1', 0.26 * open); st.rot(g, 'JawTip', 0.22 * open);
+      st.rot(g, 'MistRoot', -0.18 * k, 0.30 * k, 0);
+      st.rot(g, 'Mist1', -0.22 * k, 0.36 * k, 0);
+      st.rot(g, 'Mist2', -0.24 * k, 0.40 * k, 0);
+      st.rot(g, 'MistTip', -0.28 * k, 0.46 * k, 0);
+      st.rot(g, 'RArmRoot1Rt', -0.55 * k, 0, -0.28 * k); st.rot(g, 'RElbow1El', -0.42 * k); st.rot(g, 'RWrist1Wr', -0.26 * k);
+      st.rot(g, 'LArmRoot1Rt', -0.28 * k, 0, 0.20 * k); st.rot(g, 'LElbow1El', -0.20 * k);
+    };
+    ghosts.forEach((g, i) => {
+      const d = fwd[i];
+      st.tween({ ms: 240, delay: i * 35, ease: 'out', update(t, e) { point(g, -0.62 * e); st.rim(g, 1 + 0.5 * e); } });
+      st.tween({ ms: 190, delay: 240 + i * 35, ease: 'strike', update(t, e) {
+        const k = -0.62 + 1.58 * e;
+        point(g, k); st.move(g, d.x * 0.11 * Math.max(0, k), 0, d.z * 0.11 * Math.max(0, k));
+        st.rim(g, 1 + 0.5 + 0.9 * e);
+      } });
+      st.tween({ ms: 250, delay: 520 + i * 35, ease: 'inout', update(t, e) {
+        const k = 0.96 * (1 - e);
+        point(g, k); st.move(g, d.x * 0.11 * k, 0, d.z * 0.11 * k); st.rim(g, 1 + 1.4 * (1 - e));
+      } });
+    });
+    st.at(250, () => {
+      lost.forEach((f, j) => {
+        const seat = st.worldOf(f, null, new THREE.Vector3());
+        const fire = st.orb(seat, 0.052, { opacity: 0 });
+        fire.scale.setScalar(0.35);
+        const r = 0.20 + 0.05 * st.rnd(), a0 = st.rnd() * Math.PI * 2;
+        st.tween({ ms: 420, delay: j * 35, ease: 'linear', update(t) {
+          const a = a0 + t * Math.PI * 3.4, w = Math.sin(Math.PI * t);
+          st.worldOf(f, null, fire.position);
+          fire.position.y += 0.30 + 0.05 * Math.sin(t * Math.PI * 4);
+          fire.position.x += Math.cos(a) * r; fire.position.z += Math.sin(a) * r;
+          fire.material.opacity = 0.95 * w;
+          fire.scale.setScalar(0.35 + 0.8 * w);
+        } });
+        // 迷失：原地轉向、越轉越找不到路
+        st.tween({ ms: 420, delay: 40 + j * 35, ease: 'linear', update(t) {
+          const w = Math.sin(Math.PI * t);
+          st.spin(f, 0, w * (0.55 + 0.18 * j) * Math.sin(t * Math.PI * 2.5), 0);
+          st.rim(f, 1 + 0.55 * w);
+        } });
+      });
+    });
+  },
+};
+
+export const V054_SHORT = {
+  hauntLost_v054short(st) {
+    const hats = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
+    const lost = st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm').slice(0, 3) : st.target.slice(0, 2);
+    const fires = lost.map((f, i) => {
+      const o = st.orb(st.top(f, new THREE.Vector3()), 0.035, { opacity: 0 });
+      o.scale.setScalar(0.8);
+      return { o, base: st.top(f, new THREE.Vector3()), ph: i * 1.7 };
+    });
+    hats.forEach((g, i) => {
+      st.tween({ ms: 80, delay: i * 10, ease: 'out', update(t, e) { // 帽尖後仰蓄勢、霧裾外散
+        st.rot(g, 'HatRoot', -0.3 * e); st.rot(g, 'Hat1', -0.24 * e); st.rot(g, 'HatTip', -0.3 * e);
+        st.rot(g, 'NeckB', -0.16 * e); st.rot(g, 'Mist1', 0, 0, 0.2 * e); st.rim(g, 1 + 0.6 * e);
+      } });
+      st.tween({ ms: 78, delay: 80 + i * 10, ease: 'strike', update(t, e) { // 往前猛地一點：帽尖前指、張口
+        st.rot(g, 'HatRoot', -0.3 + 0.72 * e); st.rot(g, 'HatTip', -0.3 + 0.66 * e);
+        st.rot(g, 'JawRoot', 0.3 * e); st.rot(g, 'NeckB', -0.16 + 0.3 * e);
+        st.move(g, 0, 0, 0.09 * e);
+      } });
+    });
+    fires.forEach((F, i) => { // 鬼火繞圈飛
+      st.fade(F.o, { ms: 40, delay: 96 + i * 10, from: 0, to: 1 });
+      st.tween({ ms: 104, delay: 96 + i * 10, ease: 'linear', update(t, e) {
+        const a = F.ph + e * Math.PI * 2.4;
+        F.o.position.set(F.base.x + Math.cos(a) * 0.17, F.base.y + 0.06 + 0.03 * Math.sin(a * 2), F.base.z + Math.sin(a) * 0.17);
+      } });
+      st.fade(F.o, { ms: 46, delay: 182, from: 1, to: 0 });
+    });
+    lost.forEach((f, i) => st.tween({ ms: 100, delay: 100 + i * 10, ease: 'inout', update(t, e) { // 原地打轉、邊光發虛
+      st.spin(f, 0, Math.PI * 1.1 * e, 0); st.rim(f, 1 - 0.45 * Math.sin(Math.PI * e));
+    } }));
+    st.tween({ ms: 60, delay: 168, ease: 'inout', update(t, e) { // 帽落回
+      const k = 1 - e;
+      hats.forEach((g) => {
+        st.rot(g, 'HatRoot', 0.42 * k); st.rot(g, 'HatTip', 0.36 * k); st.rot(g, 'JawRoot', 0.3 * k);
+        st.rot(g, 'NeckB', 0.14 * k); st.rot(g, 'Mist1', 0, 0, 0.2 * k); st.move(g, 0, 0, 0.09 * k); st.rim(g, 1 + 0.6 * k);
+      });
+    } });
+  },
+};

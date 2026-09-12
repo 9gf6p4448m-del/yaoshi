@@ -977,3 +977,174 @@ export const SHORT = {
     } });
   },
 };
+
+/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
+   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
+   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
+   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
+   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
+
+   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
+   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
+   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
+   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
+
+export const V054 = {
+  wardImmuneLost_v054(st) {
+    const ringer = st.actor[0];
+    const mates = st.actor.slice();
+    st.tween({ ms: 780, ease: 'wind', update(t, e) { st.rim(ringer, 1 + 1.7 * e); } });
+    st.tween({ ms: 260, ease: 'out', update(t, e) {
+      st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.3 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
+      st.rot(ringer, 'ArmDRoot', 0.3 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.2 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
+      st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
+      st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
+    } });
+    st.at(260, () => {
+      st.burst(st.worldOf(ringer, 'BellTop', new THREE.Vector3()), { power: 0.5, n: 26 });
+      st.tween({ ms: 420, ease: 'linear', update(t) {
+        const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.5);
+        st.rot(ringer, 'ArmURoot', -1.2, 0, 0.3 + 0.26 * s); st.rot(ringer, 'ArmUWrist', -0.28, 0, 0.5 * s); st.rot(ringer, 'ArmUHand', 0, 0, 0.4 * s);
+        st.rot(ringer, 'BellRoot', -0.32, 0, 0.55 * s); st.rot(ringer, 'BellStem', -0.22, 0, 0.45 * s); st.rot(ringer, 'BellWaist', 0, 0, 0.35 * s);
+        st.rot(ringer, 'BellLip', 0, 0, 0.5 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.7 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.9 * s);
+        st.rot(ringer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(ringer, 'Skirt1', 0, 0, 0.13 * s); st.rot(ringer, 'SkirtHem', 0, 0, 0.18 * s);
+      } });
+      [0, 95, 190].forEach((d) => st.at(d, () => {
+        const p = st.worldOf(ringer, 'BellRoot', new THREE.Vector3()); p.y = st.tableY;
+        const r = st.ring(p, 0.26, 0.045, { opacity: 0.85 });
+        st.tween({ ms: 400, ease: 'out', update(t, e) { r.scale.setScalar(1 + 6 * e); r.material.opacity = 0.85 * (1 - e * e); } });
+      }));
+      if (mates[1]) {
+        const a = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
+        const b = st.top(mates[1], new THREE.Vector3());
+        const ln = st.beam(a, b, { opacity: 0 });
+        st.tween({ ms: 340, delay: 110, ease: 'pulse', update(t, e) { ln.material.opacity = 0.95 * e; } });
+        st.tween({ ms: 480, delay: 110, ease: 'pulse', update(t, e) { st.rim(mates[1], 1 + 1.6 * e); } });
+      }
+      st.at(420, () => st.tween({ ms: 200, ease: 'inout', update(t, e) {
+        const k = 1 - e;
+        st.rot(ringer, 'ArmURoot', -1.2 * k, 0, 0.3 * k); st.rot(ringer, 'ArmUElbow', -0.55 * k); st.rot(ringer, 'ArmUWrist', -0.28 * k); st.rot(ringer, 'ArmUHand', 0);
+        st.rot(ringer, 'ArmDRoot', 0.3 * k, 0, -0.22 * k); st.rot(ringer, 'ArmDElbow', -0.2 * k); st.rot(ringer, 'AxeHead', 0.25 * k);
+        st.rot(ringer, 'Chest', -0.12 * k, -0.24 * k, 0); st.rot(ringer, 'NeckB', -0.18 * k); st.rot(ringer, 'Spine', -0.08 * k);
+        st.rot(ringer, 'BellRoot', -0.32 * k); st.rot(ringer, 'BellStem', -0.22 * k); st.rot(ringer, 'BellShoulder', -0.12 * k);
+        st.rot(ringer, 'BellWaist', 0); st.rot(ringer, 'BellLip', 0); st.rot(ringer, 'LipRoot', 0); st.rot(ringer, 'LipMid', 0); st.rot(ringer, 'LipEdge', 0);
+        st.rot(ringer, 'SkirtRoot', 0); st.rot(ringer, 'Skirt1', 0); st.rot(ringer, 'SkirtHem', 0);
+      } }));
+    });
+  },
+  biteGamble_v054(st) {
+    const cat = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const fwd = st.toward(cat, new THREE.Vector3());
+    st.tween({ ms: 240, ease: 'out', update(t, e) {
+      st.rot(cat, 'Rump', 0.3 * e); st.rot(cat, 'Hips', 0.24 * e); st.rot(cat, 'Spine', -0.16 * e); st.rot(cat, 'Chest', -0.2 * e);
+      st.rot(cat, 'NeckB', -0.3 * e); st.rot(cat, 'Neck2', -0.22 * e); st.rot(cat, 'HeadRoot', 0.12 * e);
+      st.rot(cat, 'JawRoot', 0.55 * e); st.rot(cat, 'Jaw1', 0.35 * e); st.rot(cat, 'JawTip', 0.25 * e);
+      st.rot(cat, 'TailRoot', -0.4 * e); st.rot(cat, 'Tail1', -0.3 * e); st.rot(cat, 'Tail2', -0.22 * e); st.rot(cat, 'TailTip', -0.18 * e);
+      st.rot(cat, 'LBack1Kn', 0.4 * e); st.rot(cat, 'RBack1Kn', 0.4 * e);
+      st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
+      st.rim(cat, 1 + 1.0 * e);
+    } });
+    st.at(240, () => {
+      st.tween({ ms: 150, ease: 'outQuint', update(t, e) {
+        st.move(cat, fwd.x * (-0.09 + 0.51 * e), -0.03 + 0.05 * e, fwd.z * (-0.09 + 0.51 * e));
+        st.rot(cat, 'Rump', 0.3 - 0.34 * e); st.rot(cat, 'Hips', 0.24 - 0.28 * e); st.rot(cat, 'Spine', -0.16 + 0.24 * e); st.rot(cat, 'Chest', -0.2 + 0.3 * e);
+        st.rot(cat, 'NeckB', -0.3 + 0.44 * e); st.rot(cat, 'Neck2', -0.22 + 0.34 * e);
+        st.rot(cat, 'LFrontRoot1Rt', -0.9 * e); st.rot(cat, 'LFrontElbow1El', 0.5 * e); st.rot(cat, 'LFrontToe1To', -0.3 * e);
+        st.rot(cat, 'RFrontRoot1Rt', -0.75 * e); st.rot(cat, 'RFrontElbow1El', 0.42 * e); st.rot(cat, 'RFrontToe1To', -0.3 * e);
+        st.rot(cat, 'LBack1Kn', 0.4 - 0.55 * e); st.rot(cat, 'RBack1Kn', 0.4 - 0.55 * e);
+        st.rot(cat, 'JawRoot', 0.55 + 0.28 * e); st.rot(cat, 'Jaw1', 0.35 + 0.2 * e); st.rot(cat, 'JawTip', 0.25 + 0.14 * e);
+      } });
+      st.at(150, () => {
+        // 咬合
+        st.tween({ ms: 90, ease: 'outQuint', update(t, e) {
+          st.rot(cat, 'JawRoot', 0.83 - 0.95 * e); st.rot(cat, 'Jaw1', 0.55 - 0.62 * e); st.rot(cat, 'JawTip', 0.39 - 0.44 * e);
+          st.rot(cat, 'Muzzle', -0.12 * e); st.rot(cat, 'Nose', -0.1 * e); st.rot(cat, 'Brow', -0.18 * e);
+          st.rot(cat, 'HeadRoot', 0.12 + 0.2 * e);
+        } });
+        const bite = st.worldOf(cat, 'JawTip', new THREE.Vector3());
+        const hit = prey ? st.worldOf(prey, null, new THREE.Vector3()) : bite.clone().addScaledVector(st.dir, 0.5);
+        for (let i = 0; i < 2; i++) {
+          const mark = st.bolt(bite, hit, { jag: 0.3, segs: 5, seed: 90 + i * 17, opacity: 1 });
+          st.fade(mark, { ms: 200 + 60 * i, from: 1, to: 0 });
+        }
+        st.burst(hit, { power: 1.0, n: 60 });
+        st.punch(0.45);
+        if (prey) st.flinch([prey], { strength: 1.5, burst: false });
+      });
+      st.at(190, () => st.tween({ ms: 450, ease: 'inout', update(t, e) {
+        const k = 1 - e;
+        st.move(cat, fwd.x * 0.42 * k, 0.02 * k, fwd.z * 0.42 * k);
+        st.rot(cat, 'Rump', -0.04 * k); st.rot(cat, 'Hips', -0.04 * k); st.rot(cat, 'Spine', 0.08 * k); st.rot(cat, 'Chest', 0.1 * k);
+        st.rot(cat, 'NeckB', 0.14 * k); st.rot(cat, 'Neck2', 0.12 * k); st.rot(cat, 'HeadRoot', 0.32 * k);
+        st.rot(cat, 'JawRoot', -0.12 * k); st.rot(cat, 'Jaw1', -0.07 * k); st.rot(cat, 'JawTip', -0.05 * k);
+        st.rot(cat, 'Muzzle', -0.12 * k); st.rot(cat, 'Nose', -0.1 * k); st.rot(cat, 'Brow', -0.18 * k);
+        st.rot(cat, 'TailRoot', -0.4 * k); st.rot(cat, 'Tail1', -0.3 * k); st.rot(cat, 'Tail2', -0.22 * k); st.rot(cat, 'TailTip', -0.18 * k);
+        st.rot(cat, 'LFrontRoot1Rt', -0.9 * k); st.rot(cat, 'LFrontElbow1El', 0.5 * k); st.rot(cat, 'LFrontToe1To', -0.3 * k);
+        st.rot(cat, 'RFrontRoot1Rt', -0.75 * k); st.rot(cat, 'RFrontElbow1El', 0.42 * k); st.rot(cat, 'RFrontToe1To', -0.3 * k);
+        st.rot(cat, 'LBack1Kn', -0.15 * k); st.rot(cat, 'RBack1Kn', -0.15 * k);
+        st.rim(cat, 1 + 1.0 * k);
+      } }));
+    });
+  },
+};
+
+export const V054_SHORT = {
+  wardImmuneLost_v054short(st) {
+    const bell = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const foot = st.foot(bell, new THREE.Vector3());
+    const w1 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
+    const w2 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
+    const mate = st.actor[1] || null;
+    const link = mate ? st.beam(st.worldOf(bell, 'BellLip', new THREE.Vector3()), st.worldOf(mate, null, new THREE.Vector3()), { opacity: 0 }) : null;
+    st.tween({ ms: 80, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
+      st.rot(bell, 'ArmURoot', -0.9 * e); st.rot(bell, 'ArmUElbow', -0.35 * e);
+      st.rot(bell, 'BellRoot', -0.3 * e); st.rot(bell, 'Chest', 0, 0.16 * e, 0); st.rim(bell, 1 + 0.7 * e);
+    } });
+    st.tween({ ms: 95, delay: 78, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
+      const s = Math.sin(e * Math.PI * 3);
+      st.rot(bell, 'BellRoot', -0.3 + 0.1 * e, 0, 0.34 * s); st.rot(bell, 'BellLip', 0, 0, 0.22 * s);
+      st.rot(bell, 'Skirt1', 0, 0, 0.12 * s); st.rim(bell, 1.7 + 0.6 * Math.abs(s));
+    } });
+    st.grow(w1, { ms: 85, delay: 96, from: 0.3, to: 1.5 }); // 鈴波往外擴
+    st.fade(w1, { ms: 85, delay: 96, from: 0.7, to: 0 });
+    st.grow(w2, { ms: 85, delay: 128, from: 0.3, to: 1.8 });
+    st.fade(w2, { ms: 85, delay: 128, from: 0.5, to: 0 });
+    if (link) st.fade(link, { ms: 70, delay: 130, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
+    st.actor.forEach((f, i) => st.tween({ ms: 75, delay: 130 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
+    st.tween({ ms: 68, delay: 160, ease: 'inout', update(t, e) { // 放下
+      const k = 1 - e;
+      st.rot(bell, 'ArmURoot', -0.9 * k); st.rot(bell, 'ArmUElbow', -0.35 * k);
+      st.rot(bell, 'BellRoot', -0.2 * k); st.rot(bell, 'Chest', 0, 0.16 * k, 0);
+    } });
+  },
+  biteGamble_v054short(st) {
+    const tiger = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const jaw = st.worldOf(tiger, 'JawTip', new THREE.Vector3());
+    const at = prey ? st.worldOf(prey, null, new THREE.Vector3()) : jaw.clone().addScaledVector(st.dir, 1.4);
+    const m1 = st.bolt(at.clone().add(new THREE.Vector3(-0.16, 0.16, 0)), at.clone().add(new THREE.Vector3(0.16, -0.16, 0)), { jag: 0.05, segs: 4, seed: 2, opacity: 0 });
+    const m2 = st.bolt(at.clone().add(new THREE.Vector3(0.16, 0.14, 0)), at.clone().add(new THREE.Vector3(-0.14, -0.18, 0)), { jag: 0.05, segs: 4, seed: 8, opacity: 0 });
+    st.tween({ ms: 80, ease: 'in', update(t, e) { // 伏身張口：後臀壓低、脊背弓起、下顎大張
+      st.rot(tiger, 'Rump', 0.2 * e); st.rot(tiger, 'Spine', -0.14 * e); st.rot(tiger, 'NeckB', 0.16 * e);
+      st.rot(tiger, 'JawRoot', 0.34 * e); st.rot(tiger, 'Jaw1', 0.24 * e); st.rot(tiger, 'TailRoot', -0.3 * e);
+      st.move(tiger, 0, 0, -0.06 * e); st.rim(tiger, 1 + 0.6 * e);
+    } });
+    st.tween({ ms: 75, delay: 78, ease: 'strike', update(t, e) { // 撲：整尊躍出、頭往前刺
+      st.move(tiger, 0, 0.05 * Math.sin(Math.PI * e), 0.28 * e);
+      st.rot(tiger, 'Rump', 0.2 - 0.3 * e); st.rot(tiger, 'NeckB', 0.16 - 0.3 * e); st.rot(tiger, 'HeadRoot', -0.18 * e);
+      st.rim(tiger, 1.6 + 1.5 * e);
+    } });
+    st.tween({ ms: 45, delay: 148, ease: 'out', update(t, e) { // 咬：下顎猛闔
+      st.rot(tiger, 'JawRoot', 0.34 * (1 - e)); st.rot(tiger, 'Jaw1', 0.24 * (1 - e));
+    }, done() { st.burst(at, { power: 0.95, n: 44 }); st.punch(0.6); } });
+    st.fade(m1, { ms: 58, delay: 150, from: 1, to: 0 }); // 兩道咬痕光
+    st.fade(m2, { ms: 58, delay: 158, from: 1, to: 0 });
+    if (prey) st.flinch([prey], { delay: 150, strength: 1.4, burst: false });
+    st.tween({ ms: 62, delay: 168, ease: 'inout', update(t, e) { // 鬆口退回
+      const k = 1 - e;
+      st.move(tiger, 0, 0, 0.28 * k); st.rot(tiger, 'HeadRoot', -0.18 * k); st.rot(tiger, 'Spine', -0.14 * k);
+      st.rot(tiger, 'TailRoot', -0.3 * k); st.rim(tiger, 1 + 2.1 * k);
+    } });
+  },
+};

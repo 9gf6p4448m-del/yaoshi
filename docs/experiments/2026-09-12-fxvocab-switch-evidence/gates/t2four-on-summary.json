@@ -1,0 +1,60 @@
+{
+ "total": 4,
+ "pass": 4,
+ "dupSignatures": 0,
+ "t1": {
+  "missing": [],
+  "extra": []
+ },
+ "softGl": false,
+ "tier": 2,
+ "ms": 900,
+ "actsTable": [
+  {
+   "trait": "eliteSelfCut",
+   "acts": 5,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 900,
+   "horizon": 792,
+   "fill": 0.88
+  },
+  {
+   "trait": "wardImmuneLost",
+   "acts": 9,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 900,
+   "horizon": 792,
+   "fill": 0.88
+  },
+  {
+   "trait": "biteGamble",
+   "acts": 9,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 900,
+   "horizon": 792,
+   "fill": 0.88
+  },
+  {
+   "trait": "hauntLost",
+   "acts": 24,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 900,
+   "horizon": 799,
+   "fill": 0.888
+  }
+ ],
+ "soloReact": [
+  "eliteSelfCut"
+ ],
+ "opts": {
+  "tier": "2",
+  "fxvocab": "1",
+  "only": "eliteSelfCut,biteGamble,wardImmuneLost,hauntLost",
+  "port": "8869",
+  "sigdump": "docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/sig-t2four-on.txt"
+ }
+}

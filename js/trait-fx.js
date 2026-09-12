@@ -29,18 +29,44 @@ const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF } = await import('./trait-fx/vocab.js' + V);
 const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
-const loadMoves = (file) => import(file + V).then((m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {} }), () => ({ full: {}, short: {} }));
+const loadMoves = (file) => import(file + V).then(
+  (m) => ({ full: m.default || m.MOVES || {}, short: m.SHORT || {}, v054: m.V054 || {}, v054Short: m.V054_SHORT || {} }),
+  () => ({ full: {}, short: {}, v054: {}, v054Short: {} }));
 const [ZULING, XIANGHUO, YINQI] = await Promise.all([
   loadMoves('./trait-fx/zuling.js'),
   loadMoves('./trait-fx/xianghuo.js'),
   loadMoves('./trait-fx/yinqi.js'),
 ]);
 
+/* ★v0.55.1 招式語彙開關（VOCAB_ON）★
+   開關的【唯一來源】是 index.html 的 `PW_FX.VOCAB_ON`（預設 false）。3D 層看不到 PW_FX
+   （它是 classic script 的 const），所以 index.html 把值接在 renderer.js 的模組查詢字串上
+   （`js/renderer.js?v=<VERSION>&fxvocab=0|1`），而查詢字串由各模組用 import.meta.url 接力傳下來
+   ——也就是本檔的 `V`。治具頁（tests/tools/traitfx-preview.html）是直接 import 本檔、`V` 是空的，
+   那種情形才退到該頁自己的 `location.search`（治具用 `?fxvocab=1` 打開）。
+   兩條路都取不到就是 false＝0.54 演出，與正式頁的預設一致。 */
+const VOCAB_ON = (() => {
+  try {
+    const src = V || (typeof location !== 'undefined' ? (location.search || '') : '');
+    return new URLSearchParams(src).get('fxvocab') === '1';
+  } catch (e) { return false; }
+})();
+
+/** `_v054`／`_v054short` 後綴只是為了讓 0.54 本體與同檔的 0.55 同名函式並存（也讓 fn-hash 切成兩個區塊）；
+ *  登記時剝掉後綴換回 trId。**分派只在這裡做一次**，四支招的函式本體裡一個開關判斷都沒有。 */
+const byTrId = (tbl) => Object.fromEntries(Object.keys(tbl).map((k) => [k.replace(/_v054(short)?$/, ''), tbl[k]]));
+/* VOCAB_ON=false（預設／線上）→ 四支示範招用 0.54 本體覆蓋掉 0.55 的徽記剪影版；
+   VOCAB_ON=true（?fxvocab=1）→ 什麼都不覆蓋，跑的就是 0.55。其餘 23 支招與三尊兩邊完全一樣。 */
+const V054_FULL = VOCAB_ON ? {} : byTrId(Object.assign({}, ZULING.v054, XIANGHUO.v054, YINQI.v054));
+const V054_SHORT = VOCAB_ON ? {} : byTrId(Object.assign({}, ZULING.v054Short, XIANGHUO.v054Short, YINQI.v054Short));
+
 /** trId → 編舞函式(stage)。三個系別檔各自導出自己那一系的招；鍵名＝index.html TRAITS 的 id。 */
-export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING.full, XIANGHUO.full, YINQI.full);
+export const TRAIT_MOVES = Object.assign(Object.create(null), ZULING.full, XIANGHUO.full, YINQI.full, V054_FULL);
 /** trId → tier 1 的 260ms 短版編舞（v0.54）。三個系別檔各 export const SHORT；三尊三招沒有短版（恆 tier 3）。
  *  缺席時 start() 退回完整版——那不是恆綠退路：完整版塞不進 260ms 會 stats.cut++，治具的 clean 立刻紅。 */
-export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short, XIANGHUO.short, YINQI.short);
+export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short, XIANGHUO.short, YINQI.short, V054_SHORT);
+/** 這一次載入跑的是哪一版（治具／診斷用；遊戲一行都不讀它）。 */
+export const FX_VOCAB_ON = VOCAB_ON;
 
 // 全部【試玩必調】
 export const TFX = {

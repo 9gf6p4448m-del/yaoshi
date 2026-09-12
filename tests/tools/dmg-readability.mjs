@@ -155,29 +155,150 @@ function redness(im, r) {
 }
 
 /* ─────────── 頁面端：虛擬時鐘 ＋ 探針 ─────────── */
-const HARNESS = `(() => {
+/* 【L10 取樣決定性小卷（2026-09-12）】時鐘有兩種，由 `--wallclock=1` 切換：
+   ・pump（**預設**）：整場對決由治具逐幀 pump 的虛擬時鐘驅動。rAF／setTimeout／setInterval／
+     performance.now／Date.now／WAAPI 與 CSS 動畫全部掛在 F.vt 上，牆鐘一格都推不動遊戲；
+     每個 tick 固定前進 DT 毫秒，所以「第 N 幀畫的是什麼」是 tick 序號的函數，與機器忙不忙無關。
+     修補報告 §7.2 列的四處 wall-clock 耦合（M.tryFire 的三道閘、setTimeout(tick,220) 輪詢、
+     ys:hitstop 的派送時刻、M.pickTarget 取「那一瞬畫面上最大的一尊」）吃的都是 performance.now，
+     時鐘一虛擬化就一起變決定性——所以刺激派送那一段一行都沒改（量法不變，只換取樣位置）。
+   ・wallclock：舊法，只在凍幀那一瞬停時鐘，兩次凍結之間走真實時間。留著當鑑別力對照
+     （同一顆二進位、同一組門檻，切過去就該量到不決定性）。 */
+const harnessSrc = (PUMP, DT) => `(() => {
   const W = window, P0 = performance.now.bind(performance), D0 = Date.now.bind(Date);
   const RAF = W.requestAnimationFrame.bind(W), CAF = W.cancelAnimationFrame.bind(W);
   const ST = W.setTimeout.bind(W), CT = W.clearTimeout.bind(W);
-  const F = W.__frz = { on: false, off: 0, atP: 0, atD: 0, rafQ: [], timers: new Map(), id: 1, anims: [], froze: 0 };
-  performance.now = () => (F.on ? F.atP : P0()) - F.off;
-  Date.now = () => (F.on ? F.atD : D0()) - F.off;
+  const SI = W.setInterval.bind(W), CI = W.clearInterval.bind(W);
+  const PUMP = ${PUMP ? 'true' : 'false'}, DT = ${DT};
+  const F = W.__frz = { pump: PUMP, dt: DT, vt: 0, ticks: 0, net: 0, hold: false, stopped: '',
+    on: false, off: 0, atP: 0, atD: 0, rafQ: [], timers: new Map(), id: 1, gen: 0, anims: [], froze: 0, errs: 0, EPOCH: 1767225600000 };
+  performance.now = () => (PUMP ? F.vt : (F.on ? F.atP : P0()) - F.off);
+  Date.now = () => (PUMP ? F.EPOCH + F.vt : (F.on ? F.atD : D0()) - F.off);
   const vnow = () => performance.now();
+
+  /* 亂數：環境粒子（js/particles.js 的線香煙與燈籠火星，共 15 處 Math.random）逐跑不同，
+     會讓跳字背後那圈 8px 環帶（R1）與那一尊的剪影遮罩像素（R2）跟著抖。pump 模式換成固定
+     種子的 xorshift32。這一支亂數**與待驗行為無關**——它只決定背景粒子的初值，不決定
+     字級／分色／被打的尊閃不閃紅；依 02 §6.2「查明隨機源與待驗行為無關，固定種子合法」。
+     玩法流（S.rng／S.rngUi）本來就由 URL 的 seed 決定，這裡一格沒碰。 */
+  if (PUMP) { let rs = 0x9e3779b9 >>> 0; W.Math.random = () => { rs ^= rs << 13; rs >>>= 0; rs ^= rs >>> 17; rs ^= rs << 5; rs >>>= 0; return rs / 4294967296; }; }
+
+  /* ★事件時戳也要換成虛擬時鐘★：index.html 的主鈕連點守衛與相位閘比的是 gStamp(e)＝e.timeStamp
+     （瀏覽器寫的**真實**單調時鐘）減掉 MAIN_SWAP_AT／PHASE_AT（＝gNow()＝被我們換成虛擬的
+     performance.now）。虛擬時間一旦跑在牆鐘前面，這個差就變成大負數 ⇒ 恆 < MAIN_GUARD_MS ⇒
+     **每一下點擊都被吞掉**，遊戲卡住、治具只好一直空轉；而「虛擬領先牆鐘多少」正是機器忙不忙決定的
+     ⇒ 這是第五處 wall-clock 耦合（修補報告 §7.2 只列了四處）。把 timeStamp 換成虛擬時鐘之後，
+     守衛回到它原本的語意（「使用者是不是在相位切換後 500ms 內按的」），只是尺規換成虛擬毫秒。 */
+  if (PUMP) { try { Object.defineProperty(W.Event.prototype, 'timeStamp', { configurable: true, get: function () { return F.vt; } }); } catch (e) {} }
+
+  /* 網路閘：pump 模式下只要還有請求在飛就不前進虛擬時鐘。GLB／貼圖回來的那一刻若逐跑落在
+     不同的 tick 上，後面整串取樣就全錯開；停著等＝回來時虛擬時間還在原地，逐跑相同。 */
+  const netUp = () => { F.net++; };
+  const netDown = () => { F.net--; };
+  if (PUMP) {
+    const OF = W.fetch;
+    if (OF) W.fetch = function () {
+      netUp(); let d1 = false; const dec = () => { if (d1) return; d1 = true; netDown(); };
+      let p; try { p = OF.apply(this, arguments); } catch (e) { dec(); throw e; }
+      return Promise.resolve(p).then((res) => {
+        try { ['arrayBuffer', 'json', 'text', 'blob'].forEach((m) => { const o = res[m] && res[m].bind(res); if (o) res[m] = function () { netUp(); return Promise.resolve(o.apply(null, arguments)).then((v) => { netDown(); return v; }, (e) => { netDown(); throw e; }); }; }); } catch (e) {}
+        dec(); return res;
+      }, (e) => { dec(); throw e; });
+    };
+    try {
+      const XS = W.XMLHttpRequest.prototype.send;
+      W.XMLHttpRequest.prototype.send = function () { netUp(); let d2 = false; const dec = () => { if (d2) return; d2 = true; netDown(); };
+        this.addEventListener('loadend', dec); return XS.apply(this, arguments); };
+    } catch (e) {}
+    const CIB = W.createImageBitmap;
+    if (CIB) W.createImageBitmap = function () { netUp(); return Promise.resolve(CIB.apply(this, arguments)).then((v) => { netDown(); return v; }, (e) => { netDown(); throw e; }); };
+    try {
+      const DS = Object.getOwnPropertyDescriptor(W.HTMLImageElement.prototype, 'src');
+      Object.defineProperty(W.HTMLImageElement.prototype, 'src', { configurable: true,
+        get: function () { return DS.get.call(this); },
+        set: function (v) { netUp(); let d3 = false; const dec = () => { if (d3) return; d3 = true; netDown(); };
+          this.addEventListener('load', dec); this.addEventListener('error', dec); DS.set.call(this, v); } });
+    } catch (e) {}
+  }
   // rAF 的時戳一定要換成虛擬時鐘：renderer.js 的 frame(now) 直接把它當 performance.now 用
   // （duel-figures 的閃紅／退暗包絡都拿它跟 performance.now() 記的 t0 相減）。
   // 不換的話 off 一累積，第一次凍結之後所有包絡都會被算成「早就結束」——閃紅永遠量不到。
-  W.requestAnimationFrame = (cb) => { const w = () => cb(vnow()); if (!F.on) return RAF(w); const id = F.id++; F.rafQ.push({ id: id, cb: w }); return -id; };
+  W.requestAnimationFrame = (cb) => { const w = () => cb(vnow()); if (!PUMP && !F.on) return RAF(w); const id = F.id++; F.rafQ.push({ id: id, cb: w }); return -id; };
   W.cancelAnimationFrame = (h) => { if (h < 0) { F.rafQ = F.rafQ.filter((x) => x.id !== -h); return; } CAF(h); };
   W.setTimeout = function (cb, ms) {
     const args = [].slice.call(arguments, 2), id = F.id++;
-    const rec = { ms: Math.max(0, ms | 0), start: vnow(), h: 0 };
+    const rec = { ms: Math.max(0, ms | 0), start: vnow(), h: 0, cb: cb, args: args, gen: F.gen };
+    rec.due = rec.start + rec.ms;
     rec.arm = () => { rec.h = ST(() => { F.timers.delete(id); cb.apply(null, args); }, Math.max(0, rec.ms - (vnow() - rec.start))); };
     F.timers.set(id, rec);
-    if (!F.on) rec.arm();
+    if (!PUMP && !F.on) rec.arm();
     return -id;
   };
   W.clearTimeout = (h) => { if (h < 0) { const r = F.timers.get(-h); if (r) { if (r.h) CT(r.h); F.timers.delete(-h); } return; } CT(h); };
+  /* setInterval 舊法沒包（只有風聲 sfx 在用）；pump 模式一定要包，不然它照牆鐘燒。 */
+  W.setInterval = function (cb, ms) {
+    if (!PUMP) return SI.apply(W, arguments);
+    const args = [].slice.call(arguments, 2), id = F.id++, p = Math.max(1, ms | 0);
+    F.timers.set(id, { rep: p, due: vnow() + p, cb: cb, args: args, gen: F.gen, h: 0 });
+    return -id;
+  };
+  W.clearInterval = (h) => { if (h < 0) { F.timers.delete(-h); return; } CI(h); };
+  /* 到期的虛擬計時器：同一個 tick 內新排的（gen 相同）留到下一 tick 才跑，
+     這樣 setTimeout(fn,0) 的自我遞迴不會把一個 tick 卡成無窮迴圈。同時到期依註冊序（id）跑。 */
+  F.fireDue = () => {
+    const g = ++F.gen;
+    for (let guard = 0; guard < 4000; guard++) {
+      let bk = null, best = null;
+      for (const [k, r] of F.timers) { if (r.gen >= g || r.due > F.vt) continue; if (!best || r.due < best.due || (r.due === best.due && k < bk)) { best = r; bk = k; } }
+      if (!best) return;
+      if (best.rep) best.due = F.vt + best.rep; else F.timers.delete(bk);
+      try { best.cb.apply(null, best.args); } catch (e) { F.errs++; }
+    }
+  };
+  /* WAAPI／CSS 動畫也要掛在虛擬時鐘上：跳字（.dmgfloat 的 el.animate）的 opacity 是 R1 取樣的
+     篩選條件（op ≥ 0.8）、它的 rect 就是量對比度的框——讓它跟著牆鐘走等於把量測位置交給
+     機器忙不忙決定。做法＝全部 pause，逐 tick 把 currentTime 推 DT；推到終點改叫 finish()，
+     這樣 onfinish 照樣派（量表殘影的 gh.remove 與跳字回收都吊在 onfinish 上）。
+     ★第一次看到的動畫一律歸零★——不用它被牆鐘推過的那個值，那正是不決定性的來源。 */
+  const seenAni = new WeakSet();
+  try { const AN = W.Element.prototype.animate; W.Element.prototype.animate = function () { const a = AN.apply(this, arguments); if (PUMP) { try { a.pause(); a.currentTime = 0; seenAni.add(a); } catch (e) {} } return a; }; } catch (e) {}
+  F.animStep = (dt) => {
+    let list; try { list = document.getAnimations(); } catch (e) { F.errs++; return; }
+    for (const a of list) {
+      try {
+        const ps = a.playState;
+        if (ps === 'finished' || ps === 'idle') { seenAni.add(a); continue; }
+        if (ps === 'running') a.pause();
+        if (!seenAni.has(a)) { seenAni.add(a); a.currentTime = 0; continue; }
+        const ct = (typeof a.currentTime === 'number' ? a.currentTime : 0) + dt;
+        const tm = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
+        const end = tm && isFinite(tm.endTime) ? tm.endTime : Infinity;
+        if (ct >= end) a.finish(); else a.currentTime = ct;
+      } catch (e) { F.errs++; }
+    }
+  };
+  /* 【對抗覆審 (2a)】純 pause、時間不前進的掃描。
+     凍幀期間 Node 端在截圖（一輪要拍 4 張、每張 100–250ms 牆鐘），這段時間**一格動畫都不能動**。
+     舊法的 freeze 會把 running 的全部 pause 起來；pump 模式原本直接早退，於是
+     「在凍住那一 tick 的 rAF 階段之後才被建立的 CSS 動畫」（例如 index.html:535 的
+     i.hurtedge 那支 hurtEdgeFade 150ms、:436/:572 的 flashfx）
+     會沿 document.timeline 的**真實**時間推進整個截圖視窗——那是新法唯一比舊法更鬆的地方。
+     所以 freeze／warp／每一次真實重畫的前後都掃一次；第一次看到的一律歸零（同 animStep 的規矩）。 */
+  F.pauseAll = () => {
+    let list; try { list = document.getAnimations(); } catch (e) { F.errs++; return 0; }
+    let n = 0;
+    for (const a of list) {
+      try {
+        const ps = a.playState;
+        if (ps === 'finished' || ps === 'idle') { seenAni.add(a); continue; }
+        if (ps === 'running') { a.pause(); n++; }
+        if (!seenAni.has(a)) { seenAni.add(a); a.currentTime = 0; }
+      } catch (e) { F.errs++; }
+    }
+    return n;
+  };
   F.freeze = () => {
+    if (PUMP) { if (F.hold) return false; F.pauseAll(); F.hold = true; F.froze++; return true; }
     if (F.on) return false;
     F.atP = P0(); F.atD = D0(); F.on = true; F.froze++;
     for (const r of F.timers.values()) { if (r.h) { CT(r.h); r.h = 0; } }
@@ -190,16 +311,37 @@ const HARNESS = `(() => {
   F.step = () => {
     const q = F.rafQ.splice(0);
     const t = vnow();
-    q.forEach((x) => { try { x.cb(t); } catch (e) {} });
+    q.forEach((x) => { try { x.cb(t); } catch (e) { F.errs++; } });
     return q.length;
   };
   F.resume = () => {
+    if (PUMP) { if (!F.hold) return false; F.hold = false; return true; }
     if (!F.on) return false;
     F.off += P0() - F.atP; F.on = false;
     F.anims.forEach((a) => { try { a.play(); } catch (e) {} }); F.anims = [];
     for (const r of F.timers.values()) if (!r.h) r.arm();
     const q = F.rafQ.splice(0); q.forEach((x) => RAF(x.cb));
     return true;
+  };
+  /* 一個 tick＝固定前進 DT 毫秒：到期計時器 → 動畫 → 這一幀的 rAF 回呼。 */
+  F.tick = () => { F.vt += DT; F.ticks++; F.fireDue(); F.animStep(DT); F.step(); };
+  /* Node 端逐批呼叫：最多 n 個 tick，遇到凍幀（hold）或還有請求在飛（net）就停下來回報。
+     ★每個 tick 之間要沖微任務★：對決演出是一長串 await pwSleep()，同步迴圈裡那些續段
+     永遠排不進來、遊戲會整個停住。沖幾輪是固定的常數，所以仍然決定性。
+     ★只有 hold（有樣本在等截圖）才走一次真實 rAF★：直接呼叫 rAF 回呼是在 render lifecycle
+     之外，合成器不交畫面出去，Node 端會截到上一張（原治具 __frzStepReal 的註解踩過同一個坑）；
+     但每一批都走一次真實 rAF 又會多畫一幀 dt=0，而「批數」在網路停等時逐跑不同 ⇒ 只在 hold 時走。 */
+  F.pumpN = async (n) => {
+    let i = 0; F.stopped = '';
+    while (i < n) {
+      if (F.hold) { F.stopped = 'hold'; break; }
+      if (F.net > 0) { F.stopped = 'net'; break; }
+      F.tick(); i++;
+      for (let k = 0; k < 12; k++) await null;
+    }
+    if (!F.stopped) F.stopped = 'done';
+    if (F.hold) { try { await W.__frzStepReal(); } catch (e) {} }
+    return { n: i, ticks: F.ticks, vt: F.vt, stopped: F.stopped, hold: F.hold, net: F.net };
   };
 
   // ── 探針 ──
@@ -317,11 +459,18 @@ const HARNESS = `(() => {
      會拿到 t+ms」——閃紅的包絡與鏡頭的補間都是吃這個時間，所以這等於「往後 ms 毫秒的那一幀」，
      而且完全不看牆鐘。原本靠 setTimeout(40) 等真實時間，機器一忙那一格就落在 80–120ms、
      閃紅早就衰退掉（實測 hk 0.48／0 的樣本一大把）。 */
-  W.__frzWarp = (ms) => { if (!F.on) return null; F.off -= Number(ms) || 0; return vnow(); };
+  W.__frzWarp = (ms) => { if (PUMP) { if (!F.hold) return null; F.pauseAll(); F.vt += Number(ms) || 0; return F.vt; } if (!F.on) return null; F.off -= Number(ms) || 0; return vnow(); };
+  /* 【對抗覆審 (2a)】前後各掃一次 pauseAll：前面擋「Node 端上一次 evaluate（例如派 ys:fx-hit）
+     建出來的動畫在這段往返裡沿牆鐘跑」，後面擋「這一幀的回呼自己建出來的動畫」。 */
   W.__frzStepReal = () => new Promise((res) => {
     const q = F.rafQ.splice(0);
     const t = vnow();
-    RAF(() => { q.forEach((x) => { try { x.cb(t); } catch (e) {} }); RAF(() => res(q.length)); });
+    if (PUMP) F.pauseAll();
+    RAF(() => {
+      q.forEach((x) => { try { x.cb(t); } catch (e) { F.errs++; } });
+      if (PUMP) F.pauseAll();
+      RAF(() => res(q.length));
+    });
   });
   W.__frzDraw = () => F.step();
 
@@ -403,9 +552,9 @@ const DOM_PROBE = `(() => {
 })();`;
 
 /* ─────────── 共用：起頁面 ─────────── */
-async function openPage(browser, opt, extra) {
+async function openPage(browser, opt, extra, pump) {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
-  await page.addInitScript(HARNESS);
+  await page.addInitScript(harnessSrc(!!pump, TICK_MS));
   if (extra) await page.addInitScript(extra);
   return page;
 }
@@ -419,6 +568,14 @@ const root = opt.root ? path.resolve(opt.root) : ROOT;
 const seed = Number(opt.seed || 1);
 const duels = Number(opt.duels || (mode === 'pix' ? 6 : 10));
 const url = opt.url || `http://127.0.0.1:${port}/index.html?paperwar=1&fxcount=1&seed=${seed}`;
+/* 虛擬時鐘的固定步長（ms）。凍結：不得為了讓某一條判準過而調它——改了等於換取樣位置，
+   要動就照 02 §2.1 走同意程序並附改前／改後實測。16.666…＝60fps，與產品在真機上的幀率同量級。 */
+const TICK_MS = 1000 / 60;
+const PUMPED = !(opt.wallclock === true || opt.wallclock === '1'); // pix 預設走 pump 虛擬時鐘
+/* 每批 tick 數（狀態輪詢與點擊的粒度；固定＝決定性）。36×16.67ms ≈ 600ms，
+   刻意大於 index.html 的 MAIN_GUARD_MS(500)：小於它的話每一下點擊都會被連點守衛吞掉
+   （舊法 drive() 輪詢 250ms、實際生效的點擊間隔同樣是 500ms，不是 250ms）。 */
+const BATCH = Number(opt.batch || 36);
 
 // 工作區 index.html 宣告的版本（--root 指到別的 worktree 時不比對）
 const expectVer = (() => { try { const m = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').match(/const VERSION="([0-9.]+)"/); return m ? m[1] : null; } catch (e) { return null; } })();
@@ -635,9 +792,21 @@ async function runPix(browser) {
       M.fire(side, rows[0].u, { control: frows[0].u, ctrlSide: foe, via: via || 'timer' });
       return true;
     };
-    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零、鏡頭完全不動，
-       命中前那一幀與閃紅那一幀才是同一個機位；不然量到的差分裡混著鏡頭位移。
-       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。 */
+    /* 取樣時機釘在 hitstop（覆審 HIGH-1）：ys:hitstop 期間 renderer 的 dt 歸零
+       （js/renderer.js:197），命中前那一幀與閃紅那一幀才是同一個機位；
+       沒等到 hitstop（例如整場沒有夠重的交鋒）才退回計時器輪詢，並在 JSON 裡標明來源。
+
+       ★2026-09-12 更正（L10 決定性小卷 §5，實測推翻）★：這裡原本寫「hitstop 期間**鏡頭完全不動**」，
+       **那句是錯的**。dt 歸零擋不住鏡頭——js/camera-director.js:367／:397 的
+       focusEnvelope(now)／cinemaEnvelope(now) 吃的是**絕對時間** now − focusAt，
+       而 js/renderer.js:201 每幀都把絕對 now 一起傳進 director.update(dt, now)。
+       更糟的是 index.html:4313 的 HITSTOP_DMG 與 :4336 的 FOCUS_DMG 是同一個門檻（都是 3）
+       ⇒ **會觸發 hitstop 的那一下，同時也會觸發 pwFocus 推鏡**。
+       實測：seed 3（duels=8）的 4 筆 hitstop 刺激，新舊法各 5 跑共 40 次觀察，
+       位移閘門 100% 命中（那一幀的方框位移遠超上限）、可判樣本數恆為 0。
+       ⇒ 「釘在 hitstop 就不會混到鏡頭位移」這個理由不成立，取樣來源要重訂——
+       但那會提高通過機率，依 02 §2.1 交使用者裁（見 L10 決定性報告 §7 Q1）。
+       在裁定之前這段程式碼刻意不動，只把這段已被證偽的理由更正掉。 */
     M.viaHitstop = 0; M.viaTimer = 0;
     document.addEventListener('ys:hitstop', () => {
       if (!M.duelOn) return;
@@ -689,7 +858,7 @@ async function runPix(browser) {
       });
     };
   })();`;
-  const page = await openPage(browser, opt, PIX_PROBE);
+  const page = await openPage(browser, opt, PIX_PROBE, PUMPED);
   const shots = [];
   const samples = { floats: [], flashes: [], skip: [] };
   const shotDir = path.join(outdir, 'frames');
@@ -796,8 +965,98 @@ async function runPix(browser) {
   };
 
   let skipDone = false;
+
+  /* ═══ pump 模式的驅動器（L10 決定性小卷）═══
+     duel-drive 的 drive() 是「每 250ms 牆鐘輪詢一次、看到鈕就按」：按鈕落在遊戲的哪一刻
+     由真實幀率決定，整場的取樣位置跟著漂。這裡換成「每 BATCH 個虛擬幀檢查一次狀態」，
+     點擊一律落在固定的 tick 序號上；除了網路（停等，不推時鐘）之外沒有任何牆鐘輸入。
+     ★量法一行沒改★：凍幀、截圖、剪影、遮罩、judgePix 全部沿用原路徑，換的只有取樣位置。 */
+  async function drivePumped() {
+    const errs = [];
+    page.on('pageerror', (e) => errs.push('pageerror: ' + String(e)));
+    page.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+    page.on('requestfailed', (rq) => errs.push('requestfailed: ' + rq.url() + ' ' + ((rq.failure() || {}).errorText)));
+    let inflight = 0;
+    page.on('request', () => { inflight++; });
+    page.on('requestfinished', () => { inflight--; });
+    page.on('requestfailed', () => { inflight--; });
+    await page.goto(url, { waitUntil: 'load' });
+    /* ★開跑前一定要等 3D 層整個上線，這段期間一個 tick 都不能推★
+       index.html:6936 是用 createElement 動態塞 <script type="module"> 進去的 ⇒ load 事件**不等它**，
+       三角函式庫（unpkg 的 three）與 js/*.js 的動態 import 也不是 fetch／XHR ⇒ 頁面端的 net 閘看不到。
+       不等就開始 tick 的話，__yaoshi3d 會在**逐跑不同的第幾幀**才出現，整場的粒子年齡／鏡頭補間
+       就整片偏掉（實測：同樣 60 個 tick，一跑 renderer 已畫 65 幀、另一跑 3D 根本還沒上線，
+       截圖 57% 的像素不同）。等的時候虛擬時間停在 0，所以等多久都不影響後面的取樣位置。 */
+    {
+      let quiet = 0, ok = false;
+      for (let i = 0; i < 4000; i++) {
+        const up = await page.evaluate(() => !!(window.__yaoshi3d && window.__yaoshi3d.duelFigures) && window.__frz.net === 0).catch(() => false);
+        if (up && inflight <= 0) { if (++quiet >= 12) { ok = true; break; } } else quiet = 0;
+        await page.waitForTimeout(25);
+      }
+      if (!ok) errs.push('pump: 3D 層在開跑前沒有上線（__yaoshi3d 未就緒或網路未靜止）');
+    }
+    const clickFns = {
+      entry: () => { const b = [...document.querySelectorAll('button')].find((x) => x.offsetParent !== null && !x.disabled && /單人入市/.test(x.textContent)); if (b) b.click(); },
+      card: () => { const c = document.querySelector('#selGrid .rcard'); if (c) c.click(); },
+      selBtn: () => { const b = document.getElementById('selBtn'); if (b && !b.disabled) b.click(); },
+      stage: () => { const b = [...document.querySelectorAll('#stage .bigbtn')].find((x) => x.offsetParent !== null && !x.disabled); if (b) b.click(); },
+      ho: () => { const b = document.getElementById('hoBtn'); if (b) b.click(); },
+      main: () => { const b = document.getElementById('mainbtn'); if (b) b.click(); },
+    };
+    let nd = 0, ends = 0, duelVt0 = 0, stall = 0, cardDone = false, vt = 0, batches = 0;
+    for (let b = 0; b < 400000; b++) {
+      if (inflight > 0) { await page.waitForTimeout(8); if (++stall > 6000) { errs.push('pump: 網路停等逾時（inflight=' + inflight + '）'); break; } continue; }
+      const pr = await page.evaluate((k) => window.__frz.pumpN(k), BATCH).catch(() => null);
+      if (!pr) break;
+      if (pr.stopped === 'net') { await page.waitForTimeout(8); if (++stall > 6000) { errs.push('pump: 頁面端 net 閘停等逾時'); break; } continue; }
+      stall = 0; vt = pr.vt; batches++;
+      if (pr.hold) { await pump(page); continue; }
+      const st = await page.evaluate(() => {
+        const vis = (el) => !!el && el.offsetParent !== null && !el.disabled;
+        const mb = document.getElementById('mainbtn');
+        const M = window.__dmg;
+        return { mainText: mb ? mb.textContent : '', mainOk: vis(mb), hoOk: vis(document.getElementById('hoBtn')),
+          stageOk: [...document.querySelectorAll('#stage .bigbtn')].some(vis),
+          entry: [...document.querySelectorAll('button')].some((x) => vis(x) && /單人入市/.test(x.textContent)),
+          sel: !!document.querySelector('#selectScr.on'), card: !!document.querySelector('#selGrid .rcard'),
+          selOk: vis(document.getElementById('selBtn')),
+          duels: M.duelN || 0, ends: (M.note.ends || 0), busy: M.busy };
+      }).catch(() => null);
+      if (!st) break;
+      if (st.duels > nd) { // 這一場開演：把取樣打開（與舊 onDuel 同一條）
+        nd = st.duels; duelVt0 = vt;
+        await page.evaluate((c) => { window.__dmg.cfg.on = true; window.__dmg.cfg.maxFloat = c.f; window.__dmg.cfg.maxHit = c.h; }, { f: maxFloat, h: maxHit }).catch(() => {});
+      }
+      if (st.ends > ends) { ends = st.ends; await page.evaluate(() => { window.__dmg.cfg.on = false; }).catch(() => {}); }
+      if (st.duels >= duels && st.ends >= duels) break;
+      // R5 像素版：最後一場演到一半（虛擬時間 4000ms）才觸發，doSkip 要有東西可以清
+      if (nd >= duels && !skipDone && !st.busy && vt - duelVt0 > 4000) {
+        skipDone = await page.evaluate(() => (window.__dmgSkipPix ? window.__dmgSkipPix() : false)).catch(() => false);
+      }
+      if (/再入妖市/.test(st.mainText)) break; // 一局打完了還沒湊到場數
+      if (st.entry) await page.evaluate(clickFns.entry).catch(() => {});
+      else if (st.sel && st.card && !cardDone) { cardDone = true; await page.evaluate(clickFns.card).catch(() => {}); }
+      else if (st.sel && st.selOk) await page.evaluate(clickFns.selBtn).catch(() => {});
+      else if (st.stageOk) await page.evaluate(clickFns.stage).catch(() => {});
+      else if (st.hoOk) await page.evaluate(clickFns.ho).catch(() => {});
+      else if (st.mainOk) await page.evaluate(clickFns.main).catch(() => {});
+    }
+    await page.evaluate(() => { window.__dmg.cfg.on = false; }).catch(() => {});
+    // 收尾：把還沒走完的凍幀序列抽乾（同舊法，只是推進改成 pump 而不是等牆鐘）
+    for (let i = 0; i < 400; i++) {
+      await pump(page);
+      const busy = await page.evaluate(() => window.__dmg.busy).catch(() => false);
+      if (!busy) break;
+      if (inflight <= 0) await page.evaluate((k) => window.__frz.pumpN(k), BATCH).catch(() => {});
+      else await page.waitForTimeout(8);
+    }
+    return { errors: errs, ticks: vt / TICK_MS, vt: vt, batches: batches };
+  }
+
+  // ── 舊法（--wallclock=1）：只在凍幀那一瞬停時鐘，兩次凍結之間走真實時間 ──
   // drive 預設 300s 就收手；凍幀讓牆鐘遠長於遊戲時間（一場對決要 2–4 分鐘），不放寬會只跑到兩三場
-  const r = await drive(page, url, { duels: duels, timeoutMs: 2400000, onDuel: async (pg, n) => {
+  const r = PUMPED ? await drivePumped() : await drive(page, url, { duels: duels, timeoutMs: 2400000, onDuel: async (pg, n) => {
     const t0 = Date.now();
     // 進場先把取樣打開（上一場退出時關掉了，見迴圈後）
     await pg.evaluate((c) => { window.__dmg.cfg.on = true; window.__dmg.cfg.maxFloat = c.f; window.__dmg.cfg.maxHit = c.h; }, { f: maxFloat, h: maxHit }).catch(() => {});
@@ -832,11 +1091,13 @@ async function runPix(browser) {
   }
   // 收尾統一把還沒走完的凍幀序列抽乾：按下跳過會讓對決立刻收場，drive 的迴圈就結束了，
   // 但世界是凍住的（虛擬時鐘），序列停在原地等人來截圖——不抽乾就只剩第一格。
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < (PUMPED ? 400 : 60); i++) {
     await pump(page);
     const busy = await page.evaluate(() => window.__dmg.busy).catch(() => false);
     if (!busy) break;
-    await page.waitForTimeout(40);
+    // pump 模式下牆鐘推不動任何東西：要往前得自己 tick（序列的 40／340ms 間隔都是虛擬時間）
+    if (PUMPED) await page.evaluate((k) => window.__frz.pumpN(k), BATCH).catch(() => {});
+    else await page.waitForTimeout(40);
   }
   samples.via = await page.evaluate(() => ({ hitstop: window.__dmg.viaHitstop || 0, timer: window.__dmg.viaTimer || 0 })).catch(() => null);
   const meta = await page.evaluate(() => ({ floats: window.__dmg.floats.length, hits: window.__dmg.hits.length, burns: window.__dmg.burns.length,
@@ -845,10 +1106,37 @@ async function runPix(browser) {
   // 之前有一支被 kill 掉的錄影留下 root 指到基準 worktree 的 server 佔著同一個埠，
   // 新版那一支就整場都在量基準（實測 v2-pix-1 的 verLine 是 v0.48，字級全 17px、一次閃紅都沒有）。
   meta.expectVersion = expectVer;
-  meta.versionOk = !opt.root ? (expectVer && String(meta.ver || '').includes('v' + expectVer + '・')) : null;
+  meta.clock = PUMPED ? 'pump' : 'wallclock';
+  meta.tickMs = TICK_MS; meta.batch = BATCH;
+  meta.vt = await page.evaluate(() => window.__frz.vt).catch(() => null);
+  meta.ticks = await page.evaluate(() => window.__frz.ticks).catch(() => null);
+  /* 【對抗覆審 (1b)】虛擬時鐘把 rAF 回呼與計時器從瀏覽器手上接過來之後，回呼裡丟的例外
+     就不會變成 pageerror ⇒ `errors=0` 對「遊戲有沒有正常跑」失去鑑別力。
+     所以把被吞掉的例外自己數起來、印進 metrics.txt（>0 就要當一回事）。 */
+  meta.swallowed = await page.evaluate(() => window.__frz.errs).catch(() => null);
+  /* 版本比對：2026-09-11 起首頁那行在 PAPERWAR 開著時只有「v0.55」，後面沒有「・」
+     ⇒ 原本的 includes('v'+ver+'・') 從那天起**恆為 false**，這道港口佔用的警報每跑必響、
+     等於訓練看的人忽略它（零鑑別力的假警報）。改成「開頭是 v<版本> 且後面不是數字或點」。 */
+  meta.versionOk = !opt.root ? (!!expectVer && new RegExp('^v' + expectVer.replace(/\./g, '\\.') + '(?![0-9.])').test(String(meta.ver || ''))) : null;
   if (meta.versionOk === false) console.log(`!! 版本不符：期望 v${expectVer}，實際 ${String(meta.ver || '').slice(0, 30)} —— 這個埠多半被別的 http.server 佔著，數字全部作廢`);
   const v = judgePix(samples);
   fs.writeFileSync(path.join(outdir, 'pix.json'), JSON.stringify({ url: url, seed: seed, duels: duels, synth: synth, verdict: v, samples: samples, shots: shots, meta: meta, errors: r.errors }, null, 1));
+  /* 指標檔（L10 決定性小卷）：判定 ＋ 全部統計量 ＋ 樣本數／活性。一行一項、排序固定，
+     跑 N 次 md5 一比就知道取樣有沒有決定性——不必拿整份 pix.json（裡面有檔名與逐樣本明細）比。 */
+  fs.writeFileSync(path.join(outdir, 'metrics.txt'),
+    ['clock=' + meta.clock, 'tickMs=' + meta.tickMs, 'batch=' + meta.batch, 'seed=' + seed, 'duels=' + duels,
+      'ticks=' + meta.ticks, 'froze=' + meta.froze, 'errors=' + r.errors.length,
+      'swallowed=' + meta.swallowed, 'versionOk=' + meta.versionOk,
+      'floatsSampled=' + samples.floats.length, 'flashRuns=' + samples.flashes.length,
+      /* 【對抗覆審 (1a)】帳目：拿不到剪影的那幾輪在 judgePix 裡是靜默 continue、不進 maskDropped，
+         整批壞掉時 maskN=0 但 errors=0、md5 照樣逐跑相同。量法（judgePix）不在本卷範圍，
+         所以不改它，改成把恆等式印出來——對不上就是有樣本靜默消失了。 */
+      'acct.flashRuns=' + samples.flashes.length,
+      'acct.sum=' + (v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0)),
+      'acct.ok=' + (samples.flashes.length === v.summary.maskN + v.summary.burnMaskN + Object.values(v.summary.maskDropped || {}).reduce((a, b) => a + b, 0))]
+      .concat(Object.entries(v.res).sort().map(([k, x]) => 'res.' + k + '=' + x))
+      .concat(Object.entries(v.summary).sort().map(([k, x]) => 'sum.' + k + '=' + JSON.stringify(x)))
+      .concat(['bad=' + JSON.stringify(v.bad)]).join('\n') + '\n');
   console.log(JSON.stringify({ outdir: outdir, seed: seed, froze: meta.froze, errors: r.errors.length, versionOk: meta.versionOk, ...v.summary }));
   console.log('VERDICT ' + Object.entries(v.res).map(([k, x]) => `${k}=${x === null ? '（新尺規，門檻未訂）' : x ? 'PASS' : 'FAIL'}`).join(' '));
   if (v.bad.length) console.log(v.bad.slice(0, 12).join('\n'));
