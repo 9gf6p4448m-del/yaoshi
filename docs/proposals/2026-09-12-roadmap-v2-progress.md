@@ -89,3 +89,6 @@
 - 蒐證 agent：Explore（sonnet），2026-09-12；方法＝`git log --oneline --all -i --grep=<關鍵字>`、`grep -n` index.html／js/、docs/experiments 與 docs/proposals 檔名與首段、`index.html:2091` VERSION_NOTE。
 - 每個「未動」列都寫明查過的關鍵字與檔案；每個「已上線」列都有 SHA 或 檔案:行號。
 - 主對話覆核：§6.1 燈光層、0.55b/0.55c → 0.56b 併卷、letterbox 去向三處補充（見 §1 補充）。
+
+## 5. 待辦（不屬任何藍圖項，順手記）
+- `judgePix`（`tests/tools/dmg-readability.mjs`）側三件既有缺陷，見 `docs/experiments/2026-09-12-l10-determinism-report.md` §5.5；排在招式演出卷之後（修訂六 ⑤）。
