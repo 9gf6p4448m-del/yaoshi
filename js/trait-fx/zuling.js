@@ -304,7 +304,7 @@ const MOVES = {
       for (let i = 0; i < RH; i++) {
         const g = knots[i], it = band.items[i];
         // k=0 疊在一起（還沒展開）→ k=1 沿橫向鋪成一條帶
-        it.p.set(g.x * (0.08 + 0.30 * k), -0.05 * Math.abs(g.x) * k, 0);
+        it.p.set(g.x * (0.08 + 0.46 * k), -0.05 * Math.abs(g.x) * k, 0); // 鋪開後跨距 ≈1.84 ⇒ 兩尊都在帶子底下（P4 r1 回修 A）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * k));
         it.s = g.s;
       }
@@ -322,10 +322,10 @@ const MOVES = {
       opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -18 });
     head.scale.setScalar(st.iconSize * 0.45);
 
-    // ── 每一尊身上的菱紋印（anchor allies；施招者也吃到 hp+2，所以他身上也有一枚）──
-    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Body10', new THREE.Vector3()),
-      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
-        follow: f, at: 'chest', off: st.camOff(1) }));
+    /* ── 每一尊各收到一枚**飛過去**的菱紋（P4 r1 回修 A）──
+       改前是原地黏在每一尊身上的印記：anchor 量測恆真、畫面上也看不到「送到」這件事，
+       讀者 11/18 答「自己」。現在照令旗的作法逐尊送過去，而且落地時間全部對齊衝擊拍。 */
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25 });
 
     /* ① 紮地張牆（windup）：整尊下沉生根、三片盾牆一格張開；菱紋帶在牆上方亮相。 */
     /* 柱要往鏡頭再推遠一點：盾牆又寬又矮，預設的 0.34 會讓柱整根躲在牆後面（自評第 2 輪）。 */
@@ -374,12 +374,10 @@ const MOVES = {
     st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 托起（react）：本方每一尊上抬＋邊光，身上的菱紋印蓋上再淡去。 */
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
-    });
-    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    /* ★反應同拍★（P4 r1 回修 A）：改前逐尊 stagger `i * RL * 0.06`，讀成「一個一個來」；
+       「我方多個」要的是**同一拍全體都有反應**。施招者的托起在收勢那條 tween 裡（delay 也是 R0）。 */
+    mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
 
     /* 收勢：牆與蛇頭回位，施招者跟著被托起（他也是前鋒之一）。 */
