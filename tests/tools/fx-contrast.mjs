@@ -57,7 +57,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
-import { casesFromIndex, fxvocabQ } from './traitfx-drive.mjs';
+import { casesFromIndex, fxvocabQ, emblemCasesFromSource } from './traitfx-drive.mjs';
 import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -187,9 +187,21 @@ async function shoot(browser, base, c, opt, outDir) {
      ——凍幀量的就是徽記，沒有徽記代表這一格量錯了對象（與 hidden===0 同一個道理）。
      ★v0.55.1 之後這支治具**一定要帶 `--fxvocab=1`**★：不帶＝0.54 演出，四支示範招沒有徽記／拖尾／印記，
      `fxVis` 回 0、`iconMade` 也是 0，本治具會（正確地）整排判紅。 */
-  const sizeState = !st ? 'fail' : sizeGuard.made === 0 ? 'fail'
+  /* ★2026-09-13 演出卷批 1：`usesEmblem` 這一層是**修一條對轉正招恆紅的條件**，不是放寬★
+     上面那段原文寫死「L3 每一套都是用到徽記的招」——那在 r4 當下成立（L3 只跑四支徽記示範招）。
+     招式演出卷把招一支一支轉正之後，正式演出走 `st.paperStamp`／`st.paperProps`、
+     **不產生任何平面徽記**，`iconMade` 必然是 0 ⇒ 不論實作對錯都判 fail，
+     那正是 `02 §2.1` 例外條款說的「錯到無論實作對錯都不可能通過」。
+     改成從原始碼推導（`emblemCasesFromSource`，與 traitfx-drive 同一份，不另抄名單）：
+       · 這一跑實際走的那一份演出**有**呼叫 `st.icon`／`st.icons`／`st.mark` ⇒ `made===0` 照舊 fail
+         （鎖沒掛上、量錯對象，仍然抓得到）；
+       · 沒有呼叫 ⇒ `made===0` 是**正確狀態**，判 `n/a`，不影響 L3 的對比判定。
+     `--fxvocab=1` 時跑的是 `V055` 那一份，所以要認 `<trId>_v055`。 */
+  const emblemMoves = emblemCasesFromSource(ROOT);
+  const usesEmblem = emblemMoves.indexOf(fxvocabQ(opt) ? c.trait + '_v055' : c.trait) >= 0;
+  const sizeState = !st ? 'fail' : sizeGuard.made === 0 ? (usesEmblem ? 'fail' : 'n/a')
     : (sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made && sizeGuard.audits > 0 && sizeGuard.tweenErrors === 0) ? 'ok' : 'fail';
-  const sizeOK = sizeState === 'ok';
+  const sizeOK = sizeState === 'ok' || sizeState === 'n/a';
   await ctx.close();
   return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, matPrograms, sizeGuard, sizeState, sizeOK, errors, meshes: sig ? sig.meshes : null };
 }
@@ -225,7 +237,7 @@ async function main() {
   // N11：整跑的尺寸鎖彙總（made===0 ⇒ 這一跑沒量到，不得當成通過）
   const sizeGuard = out.reduce((a, r) => ({ violations: a.violations + Math.max(0, r.sizeGuard.violations), made: a.made + Math.max(0, r.sizeGuard.made), locked: a.locked + Math.max(0, r.sizeGuard.locked), audits: a.audits + Math.max(0, r.sizeGuard.audits), auditsUpdate: a.auditsUpdate + Math.max(0, r.sizeGuard.auditsUpdate), auditsDraw: a.auditsDraw + Math.max(0, r.sizeGuard.auditsDraw) }), { violations: 0, made: 0, locked: 0, audits: 0, auditsUpdate: 0, auditsDraw: 0 });
   sizeGuard.measured = sizeGuard.made > 0;
-  sizeGuard.failed = out.filter((r) => r.sizeState !== 'ok').map((r) => r.trait);
+  sizeGuard.failed = out.filter((r) => r.sizeState === 'fail').map((r) => r.trait); // 'n/a'＝這一支不走平面徽記
   fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), nobloom, sizeGuard, cases: out }, null, 1));
   console.log(`徽記世界尺寸斷言：違規 ${sizeGuard.violations} 次／鎖上 ${sizeGuard.locked} of 產出 ${sizeGuard.made}／稽核 update ${sizeGuard.auditsUpdate}＋draw ${sizeGuard.auditsDraw} 次`
     + `${sizeGuard.measured ? '' : '　★未量到★'}${sizeGuard.failed.length ? '　fail：' + sizeGuard.failed.join(' ') : ''}`);

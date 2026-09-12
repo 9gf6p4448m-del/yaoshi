@@ -13,6 +13,18 @@ const _b = new THREE.Vector3();
    原型檔 js/trait-fx/proto/tiger.js 的 A–E 五版原地保留（`?proto=tigerA..E`），它是製作人挑版的紀錄，
    **不是正式演出的來源**；兩邊之後各走各的，這裡的數值以本檔為準。 */
 
+/* ══ 香火系 9 支共用的兩個小零件（2026-09-13 招式演出卷批 1）══ */
+const UP_Y = new THREE.Vector3(0, 1, 0);
+const AX_X = new THREE.Vector3(1, 0, 0);
+/** 三拍窗換算：`st.beat` 給 windup／travel／react 的毫秒窗，這裡只多算「收勢抵達點」。
+ *  `frac`＝`LAST / st.ms`（預設 0.90＝語彙檔 §A5 建議值：往嚴的方向走，多出來的 2% 全給衝擊拍）。
+ *  ★不得在這裡寫任何毫秒字面值★：時長的唯一來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`。 */
+function xhBeat(st, frac) {
+  const B = st.beat;
+  const LAST = st.ms * (frac === undefined ? 0.90 : frac);
+  return { B, W: B.windup[1], T0: B.travel[0], TL: B.travel[1] - B.travel[0], R0: B.react[0], LAST, RL: LAST - B.react[0] };
+}
+
 /** 印記往鏡頭方向的偏移。對決機位在世界 +X（camera-director 的 DUEL_SHOT，yaw 90°），
  *  印記不往 +X 推就有一半埋進受招方模型裡——MAT_SOLID 開 depthTest，埋進去的那半會被切掉。 */
 const TOWARD_CAM = new THREE.Vector3(0.26, 0.07, 0);
@@ -324,39 +336,82 @@ const MOVES = {
   },
 
   /* 千里眼銅鈴・千里眼（bell，護法×2）：本方免疫迷途。
-     ★v0.55 招式可辨性卷 批 0 示範招（香火）★
-     盲讀 r1 的病因（計畫 §6 第 13 列）：**A 猜五營旗、B 猜虎爺印，兩版皆錯**；
-       A 短版 2 分「只有幾點橘色火星，看不出做了什麼」
-       ⇒ 失敗類型 D（短版只剩骨骼＋火星）＋B（三圈鈴波環撞掉 19/27 的腳下光環語彙）。
-       而且效果本身是**被動免疫**，本來就沒有可演的因果。
-     改法（ART_BIBLE §10）：
-       ① windup：舉鈴、搖鈴，同時鈴身上方浮出一枚**放大的銅鈴徽記**（鎏金實心＋ink 底板）；
-       ② travel：鈴聲「望出千里」——徽記朝對面**飛出去一段**再折返（這是把被動效果演成看得見的動作；
-          三圈貼桌鈴波環整組退役，不再與另外 18 支撞）；
-       ③ react：折返之後在**每一位同伴頭上蓋一枚銅鈴印記**並托起半寸＝「這幾尊被護到了」。
-     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
+     ★2026-09-13 招式演出卷・香火系批 1（階段 B 第 1 支）★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 4 列；`MOVE_SPEC.wardImmuneLost = { 丁, 震, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝震**：`ArmURoot`／`ArmUElbow`／`ArmUWrist` 舉鈴 → 三次甩鈴，
+                        `BellLip`／`LipRoot`／`LipMid`／`LipEdge` 鈴口逐節加幅度地抖。
+       **道具**＝丁 儀仗金器：**銅鈴**（`st.paperStamp`，鎏金面＋ink 墨線邊＋厚度＋翹曲，
+                「望出千里」飛出去再折返）＋乙 **同心方框鈴波**（`st.paperProps` 兩圈 × 四邊＝
+                8 片長條，貼桌向外推；香火專屬腳下語彙）。
+       **受益方反應＝升**：同伴托起半寸＋邊光＋**頭上蓋一枚鈴印**（把被動效果演成看得見的反應）。
+
+     ★保住「金黃鈴」★：六位盲讀讀者裡**唯一穩定認出的元素**就是這枚鎏金鈴（計畫 §1 第 1 點），
+     所以鈴面走 `C.key` 鎏金、墨線邊走 `ink`——**這一支不照 §A4 的「暗面留細節、亮邊界定身分」**：
+     那條是為了讓印面上的**字**讀得出來，銅鈴沒有字，剪影本身就是身分，暗面反而把它藏掉。
+
+     ★全系唯一沒有受招方的招★（效果是被動免疫）：`react` 只能量在**受益方**身上，同一組門檻。
+     ★三圈貼桌圓環退役★：原本那三圈與另外 18 支的腳下光環撞（盲讀 B 類失敗），改成同心方框。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支★：時間軸一律由 `st.beat`／`st.ms` 換算。 */
   wardImmuneLost(st) {
-    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
     const ringer = st.byBody(st.actor, 'ward')[0] || st.actor[0];
     const mates = st.actor.filter((f) => f !== ringer);
-    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
+    const bless = mates.length ? mates : [ringer];
     const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
+    if (!src.lengthSq()) st.worldOf(ringer, null, src);
     src.y += 0.10;
-    const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里
-    const bell = st.icon(st.kind, src, { color: C.key, inkColor: C.ink, opacity: 0 });
-    const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
+    const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里（travel 的位移來源）
+    const home = st.top(bless[0], new THREE.Vector3()).add(TOWARD_CAM); // 折返落點＝第一位同伴頭上
 
+    // ── 丁 銅鈴：鎏金面＋墨線邊的實體（不是平面剪影）──
+    const handbell = st.paperStamp(st.kind, src, { role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.22, warp: 0.10, tiltDeg: 10, yawDeg: -18 });
+    handbell.scale.setScalar(st.iconSize * 0.40);
+
+    // ── 乙 同心方框鈴波：兩圈 × 四邊＝8 片長條，1 個 draw call（貼桌、向外推）──
+    const RINGS = 2, SIDES = 4, EDGES = RINGS * SIDES;
+    const foot = st.foot(ringer, new THREE.Vector3());
+    const wave = st.paperProps(st.kind, EDGES, { floor: true, color: C.key, opacity: 0, k: 1.0, ratio: 8.0, depth: 0.10, warp: 0.05 });
+    wave.obj.position.copy(foot);
+    const _qa = new THREE.Quaternion(), _qFlat = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    /** r0／r1＝內外兩圈的半徑；邊長跟著半徑等比（s = 2r / (ratio × markSize)） */
+    const writeWave = (r0, r1) => {
+      for (let i = 0; i < EDGES; i++) {
+        const ring = i >> 2, side = i & 3, r = ring ? r1 : r0;
+        const a = side * Math.PI / 2;
+        const it = wave.items[i];
+        it.p.set(Math.cos(a) * r, 0.004 * (ring + 1), Math.sin(a) * r);
+        _qa.setFromAxisAngle(UP_Y, -(a + Math.PI / 2)); // 長邊垂直於半徑方向＝四邊圍成方框
+        it.q.copy(_qa).multiply(_qFlat);
+        it.s = Math.max(0, 2 * r / (8.0 * st.markSize));
+      }
+      wave.write();
+    };
+    writeWave(0, 0);
+
+    // ── 受益方頭上的鈴印（react 的「證據」，跟著那一尊走）──
+    const blessMarks = bless.map((f) => {
+      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.ink,
+        opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: TOWARD_CAM });
+      m.scale.setScalar(st.markSize * 1.1);
+      return m;
+    });
+
+    /* ① 蓄勢（windup）＝震的前半：舉鈴，鈴在手上長出來 */
     st.phase('windup');
-    /* ① 舉鈴＋搖鈴（windup）：上臂高舉、鈴身三次左右甩；徽記同時在鈴上長出來 */
     st.tween({ ms: W * 0.42, ease: 'out', update(t, e) {
       st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.30 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
       st.rot(ringer, 'ArmDRoot', 0.30 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.20 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
       st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
       st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
       st.rim(ringer, 1 + 1.2 * e);
-      st.alpha(bell, Math.min(1, e * 2.2));
-      st.iconScale(bell, 0.4 + 0.6 * e);
+      st.alpha(handbell, Math.min(1, e * 2.2));
+      handbell.scale.setScalar(st.iconSize * (0.40 + 0.34 * e));
     } });
+    /* ②-a 震的後半（windup 末）：三次甩鈴，鈴口逐節加幅度（LipEdge 最大） */
     st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
       update(t) {
         const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.4);
@@ -364,25 +419,53 @@ const MOVES = {
         st.rot(ringer, 'BellRoot', -0.32, 0, 0.55 * s); st.rot(ringer, 'BellStem', -0.22, 0, 0.45 * s); st.rot(ringer, 'BellWaist', 0, 0, 0.35 * s);
         st.rot(ringer, 'BellLip', 0, 0, 0.50 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.70 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.90 * s);
         st.rot(ringer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(ringer, 'Skirt1', 0, 0, 0.13 * s); st.rot(ringer, 'SkirtHem', 0, 0, 0.18 * s);
-        bell.userData.fxRoll = 0.35 * s;
+        handbell.userData.fxRoll = 0.35 * s;
       },
       done() { st.phase('travel'); st.burst(src, { power: 0.55, n: 28, color: C.line }); } });
-    /* ② 望出千里（travel）：徽記飛出去 */
-    st.trail(bell, src, far, { ms: TL * 0.52, delay: T0, ease: 'out', color: C.line, opacity: 0.9, segs: 12 });
-    /* 折返：回到出招方頭上，再化成同伴身上的印記。
-       ★中間留 0.1×TL 的停格★：飛到最遠點就立刻折返時，逐幀取樣很可能整幀跳過最遠點，
-       travel 的位移量測會少掉最後一小段（實測 tier 2 只量到 1.28／門檻 1.25，壓在線上）。 */
-    st.trail(bell, far, src, { ms: TL * 0.38, delay: T0 + TL * 0.62, ease: 'in', color: C.line, opacity: 0.75, segs: 12,
-      done() { st.phase('react'); st.punch(0.22); } });
-    st.fade(bell, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
-    /* ③ 護到誰看得見（react）：同伴頭上各蓋一枚銅鈴印記並被托起半寸 */
-    guard.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.24, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.4, delay: R0 + RL * 0.58, from: 1, to: 0 });
+
+    /* ② 望出千里（travel）：鈴飛出去 →（停一格）→ 折返到同伴頭上；方框鈴波同時向外推 */
+    st.trail(handbell, src, far, { ms: TL * 0.52, delay: T0, ease: 'out', color: C.line, opacity: 0.55, segs: 12 });
+    /* ★中間留 0.1×TL 的停格★（0.55 量到的坑，原封保留）：飛到最遠點就立刻折返時，
+       逐幀取樣很可能整幀跳過最遠點，travel 的位移量測會少掉最後一小段。 */
+    st.trail(handbell, far, home, { ms: TL * 0.38, delay: T0 + TL * 0.62, ease: 'in', color: C.line, opacity: 0.45, segs: 12,
+      done() {
+        /* ★衝擊拍★：鈴抵達同伴頭上＝方框推到最遠＝同伴同幀被托起 */
+        st.phase('react');
+        st.burst(home, { power: 0.7, n: 40, color: C.key });
+        st.punch(0.34);
+      } });
+    st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) { writeWave(0.26 + 0.44 * e, 0.08 + 0.42 * e); } });
+    st.fade(wave.obj, { ms: TL * 0.3, delay: T0, from: 0, to: 0.62 });
+    /* 鈴一邊飛一邊**放大**：「望出千里」＝聲音傳得越遠、鈴在畫面上越大。
+       ★這一條是 P3 逼出來的★：L3 的凍幀寫死在 travel 中點，那一格畫面上只有飛行中的鈴與拖尾，
+       原本 0.74 倍的鈴在 844×390 上只有 **0.6021%** 面積／ΔE 中位 **26.86**（門檻 0.8%／28，兩項都差一點）。
+       放大到 1.15 倍之後實測 **area 1.3127%／ΔE 中位 30.68**（t2）。**門檻一個字沒改，改的是這一招的演出**。
+       ★ΔE 只比門檻高 2.7，不寬裕★：鈴是鎏金面（`C.key`）對暗紅桌面，色相接近是先天限制；
+       要再拉開只能加大或換配色，兩者都會動到已經簽字的「金黃鈴」這個可辨元素，所以停在這裡並記錄。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear', update(t, e) {
+      const k = e < 0.62 ? 0.74 + 0.41 * (e / 0.62) : 1.15 - 0.50 * ((e - 0.62) / 0.38); // 去程放大、回程縮回
+      handbell.scale.setScalar(st.iconSize * k);
+      handbell.userData.fxRoll = 0.22 * Math.sin(e * Math.PI * 2); // 飛行中微轉，不要一路給鏡頭看同一面
+    } });
+
+    /* ③ 護到誰看得見（react）：鈴化進同伴頭上的鈴印、同伴托起半寸 */
+    /* ★第 2 輪看圖改的★：鈴的朝向是 spawn 當下凍住的（`st.paperStamp` 不 billboard），
+       折返飛回同伴頭上時鏡頭看到的是它的**背面**＝一整塊 ink 暗色，連拍上讀成「頭上一個黑塊」。
+       所以折返段就讓鈴淡出、由同伴頭上那枚正面朝鏡頭的鈴印接手。
+       P3 的凍幀在 travel 中點（去程、鈴最大最正面那一段），不受這個淡出影響。 */
+    st.fade(handbell, { ms: TL * 0.38, delay: T0 + TL * 0.62, from: 1, to: 0.18 });
+    st.fade(handbell, { ms: RL * 0.26, delay: R0, from: 0.18, to: 0 });
+    st.tween({ ms: RL * 0.55, delay: R0, ease: 'out', update(t, e) { writeWave(0.70 + 0.35 * e, 0.50 + 0.35 * e); } });
+    st.fade(wave.obj, { ms: RL * 0.55, delay: R0, from: 0.62, to: 0 });
+    blessMarks.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.22, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
+      st.tween({ ms: RL * 0.5, delay: R0 + i * RL * 0.08, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.9 - 0.8 * e)); } });
+      st.fade(m, { ms: RL * 0.38, delay: R0 + RL * 0.6, from: 1, to: 0 });
     });
-    (mates.length ? mates : [ringer]).forEach((f, i) => st.tween({ ms: RL * 0.9, delay: R0 + i * RL * 0.08, ease: 'pulse', update(t, e) {
+    bless.forEach((f, i) => st.tween({ ms: RL * 0.9, delay: R0 + i * RL * 0.08, ease: 'pulse', update(t, e) {
       st.move(f, 0, 0.07 * e, 0); st.rim(f, 1 + 1.6 * e);
     } }));
+
     /* 收勢：放下 */
     st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
       const k = 1 - e;
@@ -1134,98 +1217,6 @@ export const SHORT = {
   },
 };
 
-/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
-   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
-   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
-   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
-   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
-
-   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
-   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
-   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
-   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
-
-export const V054 = {
-  wardImmuneLost_v054(st) {
-    const ringer = st.actor[0];
-    const mates = st.actor.slice();
-    st.tween({ ms: 780, ease: 'wind', update(t, e) { st.rim(ringer, 1 + 1.7 * e); } });
-    st.tween({ ms: 260, ease: 'out', update(t, e) {
-      st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.3 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
-      st.rot(ringer, 'ArmDRoot', 0.3 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.2 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
-      st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
-      st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
-    } });
-    st.at(260, () => {
-      st.burst(st.worldOf(ringer, 'BellTop', new THREE.Vector3()), { power: 0.5, n: 26 });
-      st.tween({ ms: 420, ease: 'linear', update(t) {
-        const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.5);
-        st.rot(ringer, 'ArmURoot', -1.2, 0, 0.3 + 0.26 * s); st.rot(ringer, 'ArmUWrist', -0.28, 0, 0.5 * s); st.rot(ringer, 'ArmUHand', 0, 0, 0.4 * s);
-        st.rot(ringer, 'BellRoot', -0.32, 0, 0.55 * s); st.rot(ringer, 'BellStem', -0.22, 0, 0.45 * s); st.rot(ringer, 'BellWaist', 0, 0, 0.35 * s);
-        st.rot(ringer, 'BellLip', 0, 0, 0.5 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.7 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.9 * s);
-        st.rot(ringer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(ringer, 'Skirt1', 0, 0, 0.13 * s); st.rot(ringer, 'SkirtHem', 0, 0, 0.18 * s);
-      } });
-      [0, 95, 190].forEach((d) => st.at(d, () => {
-        const p = st.worldOf(ringer, 'BellRoot', new THREE.Vector3()); p.y = st.tableY;
-        const r = st.ring(p, 0.26, 0.045, { opacity: 0.85 });
-        st.tween({ ms: 400, ease: 'out', update(t, e) { r.scale.setScalar(1 + 6 * e); r.material.opacity = 0.85 * (1 - e * e); } });
-      }));
-      if (mates[1]) {
-        const a = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
-        const b = st.top(mates[1], new THREE.Vector3());
-        const ln = st.beam(a, b, { opacity: 0 });
-        st.tween({ ms: 340, delay: 110, ease: 'pulse', update(t, e) { ln.material.opacity = 0.95 * e; } });
-        st.tween({ ms: 480, delay: 110, ease: 'pulse', update(t, e) { st.rim(mates[1], 1 + 1.6 * e); } });
-      }
-      st.at(420, () => st.tween({ ms: 200, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(ringer, 'ArmURoot', -1.2 * k, 0, 0.3 * k); st.rot(ringer, 'ArmUElbow', -0.55 * k); st.rot(ringer, 'ArmUWrist', -0.28 * k); st.rot(ringer, 'ArmUHand', 0);
-        st.rot(ringer, 'ArmDRoot', 0.3 * k, 0, -0.22 * k); st.rot(ringer, 'ArmDElbow', -0.2 * k); st.rot(ringer, 'AxeHead', 0.25 * k);
-        st.rot(ringer, 'Chest', -0.12 * k, -0.24 * k, 0); st.rot(ringer, 'NeckB', -0.18 * k); st.rot(ringer, 'Spine', -0.08 * k);
-        st.rot(ringer, 'BellRoot', -0.32 * k); st.rot(ringer, 'BellStem', -0.22 * k); st.rot(ringer, 'BellShoulder', -0.12 * k);
-        st.rot(ringer, 'BellWaist', 0); st.rot(ringer, 'BellLip', 0); st.rot(ringer, 'LipRoot', 0); st.rot(ringer, 'LipMid', 0); st.rot(ringer, 'LipEdge', 0);
-        st.rot(ringer, 'SkirtRoot', 0); st.rot(ringer, 'Skirt1', 0); st.rot(ringer, 'SkirtHem', 0);
-      } }));
-    });
-  },
-};
-
-export const V054_SHORT = {
-  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
-  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
-  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
-  wardImmuneLost_v054short(st) {
-    const K = st.ms / 260;
-    const bell = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const foot = st.foot(bell, new THREE.Vector3());
-    const w1 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
-    const w2 = st.ring(foot, 0.33, 0.04, { opacity: 0 });
-    const mate = st.actor[1] || null;
-    const link = mate ? st.beam(st.worldOf(bell, 'BellLip', new THREE.Vector3()), st.worldOf(mate, null, new THREE.Vector3()), { opacity: 0 }) : null;
-    st.tween({ ms: 80 * K, ease: 'out', update(t, e) { // 舉鈴：上臂高舉、鈴身後傾
-      st.rot(bell, 'ArmURoot', -0.9 * e); st.rot(bell, 'ArmUElbow', -0.35 * e);
-      st.rot(bell, 'BellRoot', -0.3 * e); st.rot(bell, 'Chest', 0, 0.16 * e, 0); st.rim(bell, 1 + 0.7 * e);
-    } });
-    st.tween({ ms: 95 * K, delay: 78 * K, ease: 'linear', update(t, e) { // 搖鈴：鈴身三次左右甩
-      const s = Math.sin(e * Math.PI * 3);
-      st.rot(bell, 'BellRoot', -0.3 + 0.1 * e, 0, 0.34 * s); st.rot(bell, 'BellLip', 0, 0, 0.22 * s);
-      st.rot(bell, 'Skirt1', 0, 0, 0.12 * s); st.rim(bell, 1.7 + 0.6 * Math.abs(s));
-    } });
-    st.grow(w1, { ms: 85 * K, delay: 96 * K, from: 0.3, to: 1.5 }); // 鈴波往外擴
-    st.fade(w1, { ms: 85 * K, delay: 96 * K, from: 0.7, to: 0 });
-    st.grow(w2, { ms: 85 * K, delay: 128 * K, from: 0.3, to: 1.8 });
-    st.fade(w2, { ms: 85 * K, delay: 128 * K, from: 0.5, to: 0 });
-    if (link) st.fade(link, { ms: 70 * K, delay: 130 * K, from: 0.8, to: 0 }); // 一條光從鈴串到同伴
-    st.actor.forEach((f, i) => st.tween({ ms: 75 * K, delay: (130 + i * 10) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.2 * e); } }));
-    st.tween({ ms: 68 * K, delay: 160 * K, ease: 'inout', update(t, e) { // 放下
-      const k = 1 - e;
-      st.rot(bell, 'ArmURoot', -0.9 * k); st.rot(bell, 'ArmUElbow', -0.35 * k);
-      st.rot(bell, 'BellRoot', -0.2 * k); st.rot(bell, 'Chest', 0, 0.16 * k, 0);
-    } });
-  },
-};
-
-
 /* ★v0.55 的徽記剪影版虎爺印（`?fxvocab=1` 才跑得到）★
    2026-09-12 方向重定之後，預設路徑的 biteGamble 換成了上面那支演出版（E 轉正），
    這一份原地保留給**治具與 L3 canary**（fx-contrast／blindread-sheet 的 --fxvocab=1）：
@@ -1238,6 +1229,79 @@ export const V054_SHORT = {
    0.54 的虎爺印（`biteGamble_v054`／`_v054short`）已於本卷移除——那一版的角色是「先退回上一版」，
    演出版轉正之後就不需要那條退路了；要回頭看：git show 6a839de:js/trait-fx/xianghuo.js。 */
 export const V055 = {
+  /* 千里眼銅鈴・千里眼（bell，護法×2）：本方免疫迷途。
+     ★v0.55 招式可辨性卷 批 0 示範招（香火）★
+     盲讀 r1 的病因（計畫 §6 第 13 列）：**A 猜五營旗、B 猜虎爺印，兩版皆錯**；
+       A 短版 2 分「只有幾點橘色火星，看不出做了什麼」
+       ⇒ 失敗類型 D（短版只剩骨骼＋火星）＋B（三圈鈴波環撞掉 19/27 的腳下光環語彙）。
+       而且效果本身是**被動免疫**，本來就沒有可演的因果。
+     改法（ART_BIBLE §10）：
+       ① windup：舉鈴、搖鈴，同時鈴身上方浮出一枚**放大的銅鈴徽記**（鎏金實心＋ink 底板）；
+       ② travel：鈴聲「望出千里」——徽記朝對面**飛出去一段**再折返（這是把被動效果演成看得見的動作；
+          三圈貼桌鈴波環整組退役，不再與另外 18 支撞）；
+       ③ react：折返之後在**每一位同伴頭上蓋一枚銅鈴印記**並托起半寸＝「這幾尊被護到了」。
+     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
+  wardImmuneLost_v055(st) {
+    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
+    const ringer = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const mates = st.actor.filter((f) => f !== ringer);
+    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
+    const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
+    src.y += 0.10;
+    const far = src.clone().addScaledVector(st.dir, 1.55); far.y += 0.30; // 望出千里
+    const bell = st.icon(st.kind, src, { color: C.key, inkColor: C.ink, opacity: 0 });
+    const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
+
+    st.phase('windup');
+    /* ① 舉鈴＋搖鈴（windup）：上臂高舉、鈴身三次左右甩；徽記同時在鈴上長出來 */
+    st.tween({ ms: W * 0.42, ease: 'out', update(t, e) {
+      st.rot(ringer, 'ArmURoot', -1.2 * e, 0, 0.30 * e); st.rot(ringer, 'ArmUElbow', -0.55 * e); st.rot(ringer, 'ArmUWrist', -0.28 * e);
+      st.rot(ringer, 'ArmDRoot', 0.30 * e, 0, -0.22 * e); st.rot(ringer, 'ArmDElbow', -0.20 * e); st.rot(ringer, 'AxeHead', 0.25 * e);
+      st.rot(ringer, 'Chest', -0.12 * e, -0.24 * e, 0); st.rot(ringer, 'NeckB', -0.18 * e); st.rot(ringer, 'Spine', -0.08 * e);
+      st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
+      st.rim(ringer, 1 + 1.2 * e);
+      st.alpha(bell, Math.min(1, e * 2.2));
+      st.iconScale(bell, 0.4 + 0.6 * e);
+    } });
+    st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
+      update(t) {
+        const s = Math.sin(t * Math.PI * 3) * (1 - t * 0.4);
+        st.rot(ringer, 'ArmURoot', -1.2, 0, 0.30 + 0.26 * s); st.rot(ringer, 'ArmUWrist', -0.28, 0, 0.50 * s); st.rot(ringer, 'ArmUHand', 0, 0, 0.40 * s);
+        st.rot(ringer, 'BellRoot', -0.32, 0, 0.55 * s); st.rot(ringer, 'BellStem', -0.22, 0, 0.45 * s); st.rot(ringer, 'BellWaist', 0, 0, 0.35 * s);
+        st.rot(ringer, 'BellLip', 0, 0, 0.50 * s); st.rot(ringer, 'LipRoot', 0, 0, 0.55 * s); st.rot(ringer, 'LipMid', 0, 0, 0.70 * s); st.rot(ringer, 'LipEdge', 0, 0, 0.90 * s);
+        st.rot(ringer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(ringer, 'Skirt1', 0, 0, 0.13 * s); st.rot(ringer, 'SkirtHem', 0, 0, 0.18 * s);
+        bell.userData.fxRoll = 0.35 * s;
+      },
+      done() { st.phase('travel'); st.burst(src, { power: 0.55, n: 28, color: C.line }); } });
+    /* ② 望出千里（travel）：徽記飛出去 */
+    st.trail(bell, src, far, { ms: TL * 0.52, delay: T0, ease: 'out', color: C.line, opacity: 0.9, segs: 12 });
+    /* 折返：回到出招方頭上，再化成同伴身上的印記。
+       ★中間留 0.1×TL 的停格★：飛到最遠點就立刻折返時，逐幀取樣很可能整幀跳過最遠點，
+       travel 的位移量測會少掉最後一小段（實測 tier 2 只量到 1.28／門檻 1.25，壓在線上）。 */
+    st.trail(bell, far, src, { ms: TL * 0.38, delay: T0 + TL * 0.62, ease: 'in', color: C.line, opacity: 0.75, segs: 12,
+      done() { st.phase('react'); st.punch(0.22); } });
+    st.fade(bell, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
+    /* ③ 護到誰看得見（react）：同伴頭上各蓋一枚銅鈴印記並被托起半寸 */
+    guard.forEach((m, i) => {
+      st.fade(m, { ms: RL * 0.24, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.4, delay: R0 + RL * 0.58, from: 1, to: 0 });
+    });
+    (mates.length ? mates : [ringer]).forEach((f, i) => st.tween({ ms: RL * 0.9, delay: R0 + i * RL * 0.08, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.07 * e, 0); st.rim(f, 1 + 1.6 * e);
+    } }));
+    /* 收勢：放下 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(ringer, 'ArmURoot', -1.2 * k, 0, 0.30 * k); st.rot(ringer, 'ArmUElbow', -0.55 * k); st.rot(ringer, 'ArmUWrist', -0.28 * k); st.rot(ringer, 'ArmUHand', 0);
+      st.rot(ringer, 'ArmDRoot', 0.30 * k, 0, -0.22 * k); st.rot(ringer, 'ArmDElbow', -0.20 * k); st.rot(ringer, 'AxeHead', 0.25 * k);
+      st.rot(ringer, 'Chest', -0.12 * k, -0.24 * k, 0); st.rot(ringer, 'NeckB', -0.18 * k); st.rot(ringer, 'Spine', -0.08 * k);
+      st.rot(ringer, 'BellRoot', -0.32 * k); st.rot(ringer, 'BellStem', -0.22 * k); st.rot(ringer, 'BellShoulder', -0.12 * k);
+      st.rot(ringer, 'BellWaist', 0); st.rot(ringer, 'BellLip', 0); st.rot(ringer, 'LipRoot', 0); st.rot(ringer, 'LipMid', 0); st.rot(ringer, 'LipEdge', 0);
+      st.rot(ringer, 'SkirtRoot', 0); st.rot(ringer, 'Skirt1', 0); st.rot(ringer, 'SkirtHem', 0);
+      st.rim(ringer, 1 + 1.2 * k);
+    } });
+  },
+
   /* 虎爺印・虎爺反咬（tiger→tiger_c，精英×1）：被擊中時 15% 反咬 3 點。
      ★v0.55 招式可辨性卷 批 0 示範招（香火）★
      盲讀 r1 的病因（計畫 §6 第 17 列）：**兩位讀者、兩個版本全部讀成「山豬」**
@@ -1323,4 +1387,7 @@ export const V055 = {
 };
 
 /** tier 1 短版＝完整版同一支（0.55 當時就是這樣登記的）。 */
-export const V055_SHORT = { biteGamble_v055: V055.biteGamble_v055 };
+export const V055_SHORT = {
+  biteGamble_v055: V055.biteGamble_v055,
+  wardImmuneLost_v055: V055.wardImmuneLost_v055,
+};

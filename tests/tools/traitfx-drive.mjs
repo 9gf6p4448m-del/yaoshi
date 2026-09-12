@@ -87,8 +87,15 @@ export function emblemCasesFromSource(root) {
      對照：`tests/fxvocab.test.mjs` 同一族掃描有三個活性下限，這支原本一個都沒有。
      下限＝批 0 的四支示範招必須在名單裡（它們是 0.55 語彙唯一在用的四支）；
      批 1–3 鋪開之後只會變多，不會變少。少一支就是解析壞了，當場 throw，不留靜默退路。 */
+  /* ★2026-09-13 演出卷批 1：`|| <trId>_v055` 這一段是**修一條已經恆假的條件**，不是放寬★
+     招式演出卷把招一支一支轉正（`st.paperStamp`／`st.paperProps` 取代平面徽記），
+     0.55 的徽記版原地改名搬進 `V055`。轉正之後 `biteGamble`／`wardImmuneLost` 這兩個名字
+     **再也不可能**出現在「有呼叫 st.icon／icons／mark 的函式」名單裡——不論實作對錯都過不了，
+     那正是 `02 §2.1` 例外條款說的「錯到無論實作對錯都不可能通過」。
+     下限的**用意沒有變**：0.55 語彙那四支示範招各要有一份在名單裡（住 MOVES 或住 V055 都算），
+     推導壞掉回空陣列照樣當場 throw。祖靈／陰氣那兩批轉正後也走同一條。 */
   const MUST = ['biteGamble', 'eliteSelfCut', 'hauntLost', 'wardImmuneLost'];
-  const missing = MUST.filter((t) => list.indexOf(t) < 0);
+  const missing = MUST.filter((t) => list.indexOf(t) < 0 && list.indexOf(t + '_v055') < 0);
   if (missing.length) {
     throw new Error(`emblemCasesFromSource 解析壞了：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
       + `缺少必含的 ${missing.join(' ')}。這支推導沒有活性下限時會靜默回空陣列，`

@@ -1229,7 +1229,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  厚度與翹曲兩條照做，所以它仍是「實體」而不是平面 billboard（§3 的禁區守得住）。
        *
        *  o = { shape:'flake'|'emblem', color, opacity, depth, warp, k, ratio }
-       *    shape  'flake'（預設）＝紙片矩形，給金箔／香灰／紙錢這種顆粒流（丙 香火家族）；
+       *    floor  true＝這一群是腳下語彙（貼桌方陣／光環），不是道具；只影響 fxKind 前綴與尺寸記錄表的分類
+ *    shape  'flake'（預設）＝紙片矩形，給金箔／香灰／紙錢這種顆粒流（丙 香火家族）；
        *           'emblem'＝走該 kind 的外框頂點表，給旗／帆／珠／岩塊這種「看得出是什麼」的小件。
        *    k      相對倍率，單件尺寸 ＝ `ICON.markSizeOf(kind) × k`。**不是尺寸的第二份來源**：
        *           ICON 的值仍在乘積裡（同 st.icons 的 `sizes` 那一條，見 fxvocab.test.mjs 的註解）。
@@ -1275,7 +1276,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
            README 的「已知未涵蓋」★——單件尺寸的唯一來源是 `ICON.markSizeOf(kind) × o.k`，
            由本函式一處算完寫進 instanceMatrix，編舞拿不到那個乘積去改。 */
         BLOCK_MADE.add(im);
-        st.spawn(im, 'prop:' + kind);
+        /* `o.floor`＝這一群是**腳下語彙**（香火的貼桌方陣／光環）而不是道具：
+           §A3 的尺寸上限管的是「單件**道具**」，貼桌陣本來就該比本體寬（同 st.ring 的處置）。
+           前綴分開之後 tests/tools/prop-size.mjs 會把它歸到 `type=other`、不進 OVER 統計；
+           `fxVis`（L3 的量測對象）兩個前綴都不切，所以對比閘門量到的東西沒有變。 */
+        st.spawn(im, (o.floor ? 'floor:' : 'prop:') + kind);
         return { obj: im, items, write, size };
       },
       /** 因果三段的打點。記不記進 run.sig.phases 由**實際條件**決定（vocab.js 的 PHASE_GATE），不是喊了就算。 */

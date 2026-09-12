@@ -41,7 +41,7 @@ const LIMIT = 2 / 3; // 記錄用的參考線＝本體高的 2/3（§A3，2026-0
 /** 規則管的是「**道具**」。腳下語彙（香火的貼桌陣 ring／disc、祖靈的光柱、陰氣的暗斑）與拖尾
  *  不在 §A3 的約束裡——貼桌陣本來就該比本體寬（它是「腳下那一圈」），拿 1/2 去比它一定超標，
  *  連它一起算會讓這張表的 OVER 欄失去意義。非道具的列照樣輸出（欄位 `type`），只是不進 OVER 統計。 */
-const IS_PROP = /^(emblem:|mark:|prop:)/;
+const IS_PROP = /^(emblem:|mark:|prop:)/; // `floor:`（腳下語彙，st.paperProps 的 o.floor）不在內，同 ring／disc
 
 function parseArgs(argv) {
   const pos = []; const opt = {};
