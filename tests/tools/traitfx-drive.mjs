@@ -27,7 +27,8 @@
 //     rateOK      run.maxRate ≤1.0（tier 1 專用：短版必須原生塞進 260ms，不得靠加速硬擠）
 //     actionsOK   非 flinch 的補間條數 ≥2（F10：防「只剩一個閃光」的偷懶短版）
 //     sizeState   徽記世界尺寸斷言，**三態**（覆審 r4 MEDIUM-2：made=0 時判 ok 是空真）：
-//                 'n/a'＝這一套沒有產出徽記（23 支未改招、--throw／--block 都是這一態，不進總判定）
+//                 'n/a'＝這一套沒有產出徽記（23 支未改招、--throw／--block，以及 v0.55.1 之後
+//                       **不帶 --fxvocab=1 時的四支示範招**（跑的是 0.54 本體）都是這一態，不進總判定）
 //                 'ok' ＝violations===0 且 iconLocked===iconMade 且 sizeAudits>0
 //                 'fail'＝其中任一不成立，或拿不到 stats
 //                 量的是**效果**：js/trait-fx.js 的 auditSizes() 每幀對每個徽記做
@@ -57,7 +58,10 @@ const { chromium } = (() => {
 
 /* 目前真的會產出徽記（st.icon／st.icons／st.mark）的招——批 0 的四支示範招。
    r4 MEDIUM-2：沒有這份名單，「這一套沒產出徽記」與「這一套通過」會被混成同一個綠。
-   ★批 1–3 每把一支招換成新語彙就要加進來★，否則那一支的尺寸防線失效時整跑仍是綠的。 */
+   ★批 1–3 每把一支招換成新語彙就要加進來★，否則那一支的尺寸防線失效時整跑仍是綠的。
+   ★v0.55.1 之後這份名單**只在 `--fxvocab=1` 下成立**★：預設（`PW_FX.VOCAB_ON=false`）這四支
+   跑的是 0.54 本體（`V054`／`V054_SHORT`），那一版**本來就沒有徽記** ⇒ `n/a` 是正確狀態，
+   不是防線失效。把它判紅會是假警報，而假警報會訓練使用者忽略這個訊號。 */
 const EMBLEM_CASES = ['eliteSelfCut', 'wardImmuneLost', 'biteGamble', 'hauntLost'];
 
 const EPS = 1e-3;
@@ -309,7 +313,9 @@ async function main() {
   sg.measured = sg.states.ok + sg.states.fail > 0;
   sg.failed = results.filter((r) => r.verdict.sizeState === 'fail').map((r) => r.case.trait);
   // 用到徽記語彙的招（批 1–3 逐支加進來）：跑到它們卻沒量到＝防線在那支上失效
-  sg.expected = EMBLEM_CASES.filter((t) => results.some((r) => r.case.trait === t));
+  /* `--fxvocab=1` 才有 0.55 的徽記；不帶＝0.54 演出，四支示範招沒有徽記，n/a 是對的。 */
+  sg.fxvocab = !!fxvocabQ(opt);
+  sg.expected = sg.fxvocab ? EMBLEM_CASES.filter((t) => results.some((r) => r.case.trait === t)) : [];
   sg.missing = (opt.throw || opt.block) ? [] : sg.expected.filter((t) => {
     const r = results.find((x) => x.case.trait === t);
     return r && r.verdict.sizeState === 'n/a';
@@ -320,7 +326,8 @@ async function main() {
   sg.tweenErrorMsg = twHit ? twHit.verdict.sizeGuard.tweenErrorMsg : null;
   sg.tweenErrorCases = results.filter((r) => r.verdict.sizeGuard.tweenErrors > 0).map((r) => r.case.trait);
   const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, sizeGuard: sg, opts: opt };
-  console.log(`\n徽記世界尺寸斷言：ok ${sg.states.ok}／n\u002fa ${sg.states['n/a']}／fail ${sg.states.fail}`
+  console.log(`\n徽記世界尺寸斷言${sg.fxvocab ? '（--fxvocab=1：0.55 徽記版）' : '（預設 0.54 演出，四支示範招本來就沒有徽記 ⇒ n\u002fa 是正確狀態）'}：`
+    + `ok ${sg.states.ok}／n\u002fa ${sg.states['n/a']}／fail ${sg.states.fail}`
     + `　（違規 ${sg.violations} 次、鎖上 ${sg.locked} of 產出 ${sg.made}、稽核 ${sg.audits} 次）`
     + `${sg.measured ? '' : '　★這一跑沒有任何招產出徽記＝這條斷言未量到，不得當成通過★'}`);
   if (sg.worldRange) console.log('  世界寬度區間（診斷，不進判定）：' + JSON.stringify(sg.worldRange));

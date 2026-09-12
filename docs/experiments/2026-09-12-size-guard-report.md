@@ -427,3 +427,73 @@ canary（`_resolve()=>0.02`）**`pass 0`、四支全 `ok:false`**（`r4-l3-canar
 | `docs/IMPLEMENTATION_GUIDE.md` | **LOW-1** | §11.29 第 11 點：canary 改 `_resolve()`、掃描規則改寫、指向 README 當權威、補 MEDIUM-4 限制 |
 | 本報告 | LOW-1 | 三處章節引用改正；新增本節 |
 | `…-evidence/bypass11.md`／`decisive-F.md`／`medium2-empty-truth.md`／`r4-*.txt` | 證據 | 十一條繞法、決定性實驗、空真突變、L3 現值／canary、測試套、效能 |
+
+
+---
+
+# 9. 合併 main 後重驗（main ＝ `50df83a`，v0.55.1 `?fxvocab` 開關）
+
+合併 commit `9afc9f5`（`git merge main`，**自動合併、零衝突**——main 動的是 `js/trait-fx.js` 的
+登記點（`VOCAB_ON` 分派、`V054`／`V054_SHORT` 兩張表）與三系檔尾新增的四支 0.54 本體，
+本批動的是 `createTraitFx` 內部與那四支 **0.55** 本體裡的 5 處縮放，兩邊沒有重疊的行）。
+
+## 9.1 「兩邊都要活」的語意核對（自動合併 ≠ 合併正確）
+
+| 要求 | 核對方式 | 結果 |
+|---|---|---|
+| 0.54 本體（`_v054`）**不接**尺寸鎖 | `grep -n 'st\.icon\|st\.mark\|st\.icons'` 三系檔，只看 `V054` 區塊（行號 >840） | **0 處**——0.54 本體根本不呼叫三支入口，因此不會登記進 `SIZED`、不上鎖、不被稽核 |
+| 0.55 本體維持 `st.iconScale` | `denominator.sh` 第 3／4 段 | 5 處 `st.iconScale` 都在；「直接碰徽記 `.scale`」仍是 **0 處** |
+| 掃描不被 0.54 本體誤傷 | `node tests/fxvocab.test.mjs` | **16 綠 0 紅**（0.54 本體新增的 6 處 `scale.setScalar` 都不是徽記名字的成員鏈；分母 `.scale.setScalar(` 由 68 → **74**） |
+
+## 9.2 ★合併帶來的假警報，已修★
+
+`traitfx-drive` 的 `EMBLEM_CASES`（r4 MEDIUM-2）原本是「四支示範招若 `n/a` 就判紅」。
+v0.55.1 之後**預設 `PW_FX.VOCAB_ON=false`，那四支跑的是 0.54 本體、本來就沒有徽記**
+⇒ 不修的話預設狀態每一跑都會紅。**假警報會訓練使用者忽略這個訊號**（`02 §6.1` 第 1 條），
+所以改成：`EMBLEM_CASES` 的判紅**只在 `--fxvocab=1` 下成立**（`sg.fxvocab`），
+輸出行也改成會說明自己在哪個狀態：
+
+```
+（預設）徽記世界尺寸斷言（預設 0.54 演出，四支示範招本來就沒有徽記 ⇒ n/a 是正確狀態）：ok 0／n/a 27／fail 0
+（開關）徽記世界尺寸斷言（--fxvocab=1：0.55 徽記版）：ok 4／n/a 23／fail 0
+```
+
+`fx-contrast` 不改判定（它本來就要求 `hidden > 0`，main 的檔頭也寫明「不帶 `--fxvocab=1` 就判紅」），
+只把「這支治具一定要帶 `--fxvocab=1`」寫進註解與 README。
+`duel-drive` 不改判定：預設網址跑出 `n/a` 是**正確**的「未量到」，要量就帶 `?fxvocab=1`。
+
+## 9.3 重驗結果
+
+| # | 項目 | 指令 | 結果 |
+|---|---|---|---|
+| 1 | 語彙單元測試 | `node tests/fxvocab.test.mjs` | **16 綠 ／ 0 紅**，exit 0 |
+| 2 | 規則測試套（12 檔） | `scratchpad/sg/suite.py` | **12/12 exit 0**（`r5-suite.txt`） |
+| 3 | `traitfx-drive` **預設**（0.54 演出） | `--tier=1 --port=8801` | **27/27 pass**、`err=0`、`ok 0／n/a 27／fail 0`、**exit 0（不誤報）** |
+| 4 | `traitfx-drive` **`--fxvocab=1`** | `--tier=1 --port=8802 --fxvocab=1` | **27/27 pass**、`err=0`、`ok 4／n/a 23／fail 0`、鎖上 15 of 15、稽核 240 次 |
+| 5 | `traitfx-drive` 三尊 | `--tier=3 --fxvocab=1` | **3/3 pass**、`n/a 3` ＋★未量到★（三尊未鋪語彙） |
+| 6 | 引擎等價 | `git show 50df83a:index.html > …; node tests/tools/trace-eq.mjs …` | `{"equal":true}`、`bytesOld == bytesNew == 357285`（本批一個位元組都沒動 `index.html`） |
+| 7 | L3 四支（`--fxvocab=1`） | `fx-contrast --fxvocab=1` ＋ `fx-contrast-metrics.py` | `pass 4`，四格**與 §2.2／§8.7 逐位數相同**：`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`（`r5-l3-current-metrics.txt`）；四套 `size=ok`、稽核 390 次 |
+| 8 | `duel-drive`（真實產品場景） | `…/index.html?paperwar=1&fxcount=1&fxvocab=1 --duels=16` | **`ok`**、違規 0、**鎖上 16 of 產出 16**、稽核 256、tween 安靜死掉 0（`r5-duel-drive.txt`） |
+| 9 | 繞法抽驗 A／C／F | `fxvocab` ＋ `traitfx-drive --fxvocab=1` | **三條全紅**（掃描 exit 1 ＋執行期 exit 1），還原後 16 綠（`r5-bypass-ACF.md`） |
+
+**★照實記：第 8 項那一局只打了 6 場對決就結束★**（`duels:6`，不是要求的 16）——`--duels=16` 是上限，
+一局的夜數有限，遊戲自己走完就停。斷言仍**量到了**（`made=16 > 0`、稽核 256 次）所以判 `ok` 成立；
+「16 場」這個數字沒達成，記在這裡不含糊帶過。合併前那一跑（`0117315` 之後、合併之前）打到 14 場、
+鎖上 92 of 92、稽核 1872 次，同樣是 `ok`。
+
+**繞法抽驗的前提（合併後才出現的坑，寫下來免得下一輪踩）**：繞法是塞進 **0.55 本體**的，
+而預設跑 0.54 本體 ⇒ **不帶 `--fxvocab=1` 那段程式碼根本不會被執行**，執行期那一道會「正確地」不響。
+那不是防線失效，是沒測到。`scratchpad/sg2/bypass11.py` 已把 `--fxvocab=1` 寫死進命令。
+
+## 9.4 合併批的改動
+
+| 檔案 | 改了什麼 |
+|---|---|
+| `tests/tools/traitfx-drive.mjs` | `EMBLEM_CASES` 的判紅加 `--fxvocab=1` 前提（`sg.fxvocab`）；輸出行標明所在狀態；檔頭三態說明補上 0.55.1 的情形 |
+| `tests/tools/fx-contrast.mjs` | 註解補「這支治具一定要帶 `--fxvocab=1`」（判定未動） |
+| `tests/tools/README.md` | 合併時我的 r4 段落與原有的「L3 canary」小節重複了一份，已合成一份；canary 指令補 `--fxvocab=1`；三態那段補 0.55.1 的前提 |
+| `docs/experiments/2026-09-12-size-guard-report.md` | 本節 |
+| `…-evidence/r5-*.{md,txt}` | 合併後的重驗輸出 |
+
+**沒有動**：`index.html`、`js/trait-fx.js` 的 `VOCAB_ON`／`V054` 分派、三系檔的 `V054` 區塊、
+`dmg-readability.mjs`、`blindread-sheet.mjs`（全部原樣吃 main 的版本）。

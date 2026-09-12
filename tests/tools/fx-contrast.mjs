@@ -182,7 +182,9 @@ async function shoot(browser, base, c, opt, outDir) {
     audits: st ? (st.sizeAudits | 0) : -1, msg: st ? (st.sizeViolationMsg || null) : null, worldRange: st ? (st.sizeWorldRange || null) : null,
     tweenErrors: st ? (st.tweenErrors | 0) : -1, tweenErrorMsg: st ? (st.tweenErrorMsg || null) : null };
   /* 三態（r4 MEDIUM-2）：L3 每一套都是「用到徽記的招」，所以 made===0 在這支治具裡**就是 fail**
-     ——凍幀量的就是徽記，沒有徽記代表這一格量錯了對象（與 hidden===0 同一個道理）。 */
+     ——凍幀量的就是徽記，沒有徽記代表這一格量錯了對象（與 hidden===0 同一個道理）。
+     ★v0.55.1 之後這支治具**一定要帶 `--fxvocab=1`**★：不帶＝0.54 演出，四支示範招沒有徽記／拖尾／印記，
+     `fxVis` 回 0、`iconMade` 也是 0，本治具會（正確地）整排判紅。 */
   const sizeState = !st ? 'fail' : sizeGuard.made === 0 ? 'fail'
     : (sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made && sizeGuard.audits > 0 && sizeGuard.tweenErrors === 0) ? 'ok' : 'fail';
   const sizeOK = sizeState === 'ok';

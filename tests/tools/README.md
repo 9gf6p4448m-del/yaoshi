@@ -87,6 +87,10 @@ node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存
 `violations > 0`、`iconLocked !== iconMade`、`sizeAudits === 0`、`tweenErrors > 0` 任一成立就是 `fail`。
 ★`made === 0` 一律不得當成通過★（r4 MEDIUM-2：那是空真）；`traitfx-drive` 另有 `EMBLEM_CASES` 名單，
 用到徽記語彙的招掉到 `n/a` 就判紅——**批 1–3 每把一支招換成新語彙就要把 trId 加進那份名單**。
+★v0.55.1 之後那份名單**只在 `--fxvocab=1` 下成立**★：預設（`PW_FX.VOCAB_ON=false`）四支示範招跑的是
+0.54 本體（`V054`／`V054_SHORT`），那一版本來就沒有徽記 ⇒ `n/a` 是正確狀態，判紅會是假警報。
+所以這三支治具驗尺寸防線時一律帶 `--fxvocab=1`（`duel-drive` 是網址帶 `?fxvocab=1`）；
+預設狀態也要跑一次，證明 27/27、0 error、**不誤報**。
 `tweenErrors`（r4 MEDIUM-1）＝編舞在 `tween`／`timer`／`done` 裡丟出來的例外：
 那三個 `catch` 的用意是「一段壞了不擋整招」，不是「一段壞了沒人知道」。
 
@@ -95,8 +99,8 @@ node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存
 ```bash
 # 1) 把三張尺寸表的共同出口換掉（一行、一個檔）：
 #    js/trait-fx/vocab.js 的 `_resolve(kind, tableName, dflt) { … }` → `_resolve() { return 0.02; }`
-# 2) 跑同一組參數
-node tests/tools/fx-contrast.mjs <outdir> --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost
+# 2) 跑同一組參數（★v0.55.1 之後一定要帶 --fxvocab=1★，不帶＝0.54 演出、根本沒有徽記）
+node tests/tools/fx-contrast.mjs <outdir> --fxvocab=1 --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost
 python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支全 ok:false
 # 3) 用改壞前的備份副本還原 vocab.js（不做反向編輯），再跑一次確認回到現值
 ```
@@ -108,16 +112,6 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 這條殘留由第 3 點的**世界尺寸稽核**補上：它每幀量每個徽記、不依賴凍幀、不依賴像素，
 印記與貼桌陣（含 InstancedMesh 逐實例）都在它的涵蓋裡。要在 L3 也看得到就得另挑時點或另加一格。
 
-### L3 canary（尺寸的單一來源突變 → 用到徽記的招必須全紅）
-
-```bash
-# 1) 把三張尺寸表的共同出口換掉（一行、一個檔）：
-#    js/trait-fx/vocab.js 的 `_resolve(kind, tableName, dflt) { … }` → `_resolve() { return 0.02; }`
-# 2) 跑同一組參數
-node tests/tools/fx-contrast.mjs <outdir> --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost
-python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支全 ok:false
-# 3) 用改壞前的備份副本還原 vocab.js（不做反向編輯），再跑一次確認回到現值
-```
 
 ★**canary 一定要打 `_resolve`，不要打 `sizeOf()`**★（覆審 r3 N12）：`markSizeOf`（印記）與有覆寫的
 `flatSizeOf`（貼桌陣）都**不經過** `sizeOf`，打 `sizeOf()` 對 `ICON.markByKind`（`seal` 0.20）與

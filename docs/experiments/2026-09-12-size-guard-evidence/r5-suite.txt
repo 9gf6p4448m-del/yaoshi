@@ -1,0 +1,24 @@
+$ node tests\aistake.test.mjs
+  exit=0  通過 8　失敗 0
+$ node tests\conscap.test.mjs
+  exit=0  通過 5　失敗 0
+$ node tests\duel-desync.test.mjs
+  exit=0  結果：7 綠 ／ 0 紅
+$ node tests\emblem-collision.test.mjs
+  exit=0  結果：9 綠 ／ 0 紅
+$ node tests\fxtier.test.mjs
+  exit=0  結果：14 綠 ／ 0 紅
+$ node tests\fxvocab.test.mjs
+  exit=0  結果：16 綠 ／ 0 紅
+$ node tests\legend.test.mjs
+  exit=0  32 過 / 0 失敗
+$ node tests\lineup-order.test.mjs
+  exit=0  結果：8 綠 ／ 0 紅
+$ node tests\nightrules.test.mjs
+  exit=0  結果：16 綠 ／ 0 紅
+$ node tests\review.test.mjs
+  exit=0  通過 28　失敗 0
+$ node tests\roles-balance.test.mjs
+  exit=0  角色平衡卷單元測試：32 過 / 0 失敗
+$ node tests\wish16.test.mjs
+  exit=0  結果：PASS=36 FAIL=0
