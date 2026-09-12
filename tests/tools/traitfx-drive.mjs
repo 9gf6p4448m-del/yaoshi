@@ -56,13 +56,27 @@ const { chromium } = (() => {
   throw new Error('找不到 playwright：worktree 需要 tools/anyCreature 或設 NODE_PATH');
 })();
 
-/* 目前真的會產出徽記（st.icon／st.icons／st.mark）的招——批 0 的四支示範招。
-   r4 MEDIUM-2：沒有這份名單，「這一套沒產出徽記」與「這一套通過」會被混成同一個綠。
-   ★批 1–3 每把一支招換成新語彙就要加進來★，否則那一支的尺寸防線失效時整跑仍是綠的。
-   ★v0.55.1 之後這份名單**只在 `--fxvocab=1` 下成立**★：預設（`PW_FX.VOCAB_ON=false`）這四支
-   跑的是 0.54 本體（`V054`／`V054_SHORT`），那一版**本來就沒有徽記** ⇒ `n/a` 是正確狀態，
-   不是防線失效。把它判紅會是假警報，而假警報會訓練使用者忽略這個訊號。 */
-const EMBLEM_CASES = ['eliteSelfCut', 'wardImmuneLost', 'biteGamble', 'hauntLost'];
+/* 「這一支招會不會產出徽記」——★從原始碼推導，不再靠手工名單★（覆審 r2 L2）。
+   r4 MEDIUM-2 的修法是一份寫死的 `EMBLEM_CASES`，但批 1–3 只要忘了把新招加進去，
+   那一支的防線失效時一個紅都不會有——手工名單本身就是下一個靜默漏測。
+   作法：讀三個系別檔，切到 `export const V054` 之前（0.54 本體不算），
+   用 2 空白縮排的 `  trId(st) {` 切出每一支的函式體，看它有沒有呼叫 st.icon／st.icons／st.mark。
+   ★只在 `--fxvocab=1` 下成立★：預設（`PW_FX.VOCAB_ON=false`）跑的是 0.54 本體，
+   那一版本來就沒有徽記 ⇒ `n/a` 是正確狀態；判紅會是假警報，而假警報會訓練使用者忽略訊號。 */
+export function emblemCasesFromSource(root) {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    let src = fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8');
+    const cut = src.indexOf('export const V054');
+    if (cut > 0) src = src.slice(0, cut);
+    const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
+    heads.forEach((h, i) => {
+      const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
+      if (/\bst\.(icon|icons|mark)\s*\(/.test(body)) out.add(h[1]);
+    });
+  }
+  return [...out].sort();
+}
 
 const EPS = 1e-3;
 const FIRE_AT = 12; // 第幾幀出招（前面幾幀讓 idle 站穩）
@@ -219,7 +233,11 @@ async function runCase(browser, base, c, opt) {
   /* tweenErrors 與 sizeState 分開判：前者管「編舞有沒有安靜地死掉一段」，
      每一套（含 23 支沒有徽記的）都要是 0，所以不走三態。 */
   const tweenOK = !!stats && sizeGuard.tweenErrors === 0;
-  const sizeOK = sizeState !== 'fail' && tweenOK;
+  /* r2 L2：紅不能只出現在 summary 與 exit code——「用到徽記的招卻沒產出徽記」那一套自己要印 FAIL。
+     `opt.emblemMoves` 由 main() 從原始碼推導後塞進來（`--only` 子集跑也照樣有效）。 */
+  const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
+    && !!fxvocabQ(opt) && !opt.throw && !opt.block;
+  const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
   const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
@@ -266,6 +284,7 @@ async function main() {
     else if (tier === 3) cases = cases.filter((c) => c.legend);
   }
   if (opt.only) { const set = new Set(String(opt.only).split(',')); cases = cases.filter((c) => set.has(c.trait)); }
+  opt.emblemMoves = emblemCasesFromSource(root); // 逐套判定要用（r2 L2）
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(root, port);
   if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);
@@ -315,7 +334,8 @@ async function main() {
   // 用到徽記語彙的招（批 1–3 逐支加進來）：跑到它們卻沒量到＝防線在那支上失效
   /* `--fxvocab=1` 才有 0.55 的徽記；不帶＝0.54 演出，四支示範招沒有徽記，n/a 是對的。 */
   sg.fxvocab = !!fxvocabQ(opt);
-  sg.expected = sg.fxvocab ? EMBLEM_CASES.filter((t) => results.some((r) => r.case.trait === t)) : [];
+  sg.emblemMoves = emblemCasesFromSource(root); // 從原始碼推導（r2 L2），不是手工名單
+  sg.expected = sg.fxvocab ? sg.emblemMoves.filter((t) => results.some((r) => r.case.trait === t)) : [];
   sg.missing = (opt.throw || opt.block) ? [] : sg.expected.filter((t) => {
     const r = results.find((x) => x.case.trait === t);
     return r && r.verdict.sizeState === 'n/a';
@@ -333,6 +353,7 @@ async function main() {
   if (sg.worldRange) console.log('  世界寬度區間（診斷，不進判定）：' + JSON.stringify(sg.worldRange));
   if (sg.msg) console.log('  ! ' + String(sg.msg).slice(0, 300));
   if (sg.failed.length) console.log('  fail 的套：' + sg.failed.join(' '));
+  console.log(`  用到徽記語彙的招（由原始碼推導，非手工名單）：${sg.emblemMoves.join(' ') || '（無）'}`);
   if (sg.missing.length) console.log('  ★用到徽記的招卻是 n/a：' + sg.missing.join(' ') + '（防線在那幾支上失效）');
   if (sg.tweenErrors) {
     console.log(`  ★編舞在 tween／timer／done 裡安靜死掉 ${sg.tweenErrors} 次（${sg.tweenErrorCases.join(' ')}）：` + String(sg.tweenErrorMsg).slice(0, 240));

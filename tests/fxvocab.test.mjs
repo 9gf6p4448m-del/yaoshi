@@ -239,7 +239,10 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
    `st.icon(`／`st.icons(`／`st.mark(` 的呼叫點 **8 處**（4 支示範招），
    `st.iconScale(` 的呼叫點 **5 處**（＝收斂前那 5 處直接縮放）。
 
-   `--mutate=4..14` 是十一條繞法各自的回歸案例（r3 七條＋r4 四條；原檔全程唯讀，只動記憶體裡的副本）。 */
+   `--mutate=4..20` 是**十七條**繞法各自的回歸案例（r3 七條＋r4 四條＋r2 六條；
+   原檔全程唯讀，只動記憶體裡的副本）。★掃描擋得到的是「直接寫」的那一形；
+   覆審 r2 的 H1／M1／M2／M3 用 helper 包一層就避得開名字追蹤——**那幾條靠的是執行期那兩道**
+   （鎖與世界尺寸稽核），報告 §10 的表逐條寫明是哪一道接住的。 */
 
 /** 這個檔裡所有「拿得到徽記 mesh」的名字（變數、屬性、陣列元素、**別名**都算）。
  *  別名要做到不動點：`const m2 = knife;` 之後 `m2` 也是徽記（r3 繞法④）。 */
@@ -262,6 +265,9 @@ function emblemNames(src) {
 
 /** 會改變徽記世界尺寸的成員（r4：不只 scale——父層、geometry、手寫 matrix 都是同一個效果） */
 const SIZE_MEMBERS = ['scale', 'geometry', 'matrix', 'matrixWorld', 'matrixAutoUpdate', 'matrixWorldAutoUpdate',
+  // r2 H1：three 的 renderObject 是 onBeforeRender → modelViewMatrix ← matrixWorld → draw → onAfterRender，
+  // 這兩個鉤子是「在稽核之後、送去畫之前」改矩陣的最後機會。
+  'onBeforeRender', 'onAfterRender',
   // parent／children／traverse 不是尺寸本身，但它們是「繞到尺寸」的三條通道：
   // 重新掛載（父層縮放）、抓子節點改、traverse 進去改 geometry。編舞沒有合法理由碰它們。
   'parent', 'children', 'traverse'];
@@ -281,7 +287,7 @@ t('徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得�
     let src = fs.readFileSync(path.join(dir, f), 'utf8');
     /* 突變：r3 §N11 實測的七條繞法，逐條塞回 zuling.js 的獻祭刀。
        原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。 */
-    if (MUT >= 4 && MUT <= 14 && f === 'zuling.js') {
+    if (MUT >= 4 && MUT <= 20 && f === 'zuling.js') {
       const from = 'st.iconScale(knife, 0.5 + 0.5 * e);';
       if (!src.includes(from)) throw new Error(`突變 ${MUT} 的錨點不在了：` + from);
       const BYPASS = {
@@ -297,6 +303,13 @@ t('徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得�
         12: 'knife.traverse((o) => { if (o.geometry) o.geometry = new THREE.PlaneGeometry(0.05, 0.05); });', // B 置換 geometry
         13: 'knife.matrixAutoUpdate = false; knife.matrix.multiply(new THREE.Matrix4().makeScale(0.05, 0.05, 0.05));', // C 自寫 matrix
         14: "Object.defineProperty(knife.scale, 'x', { value: 0.02 });", // E defineProperty 蓋掉 accessor
+        /* ── 覆審 r2（第 2 輪）自己設計的六條 ── */
+        15: 'knife.onBeforeRender = function () { this.matrixWorld.scale(new THREE.Vector3(0.05, 0.05, 0.05)); };', // H1 送畫前改 matrixWorld
+        16: 'st.icons(st.kind, [A], { flat: true, sizes: [0.50 / st.iconFlatSize] });', //                           H2 o.sizes 把 ICON 除掉
+        17: 'const m2 = new THREE.Mesh(knife.geometry, knife.material); m2.scale.setScalar(0.52); st.spawn(m2, "emblem:" + st.kind);', // M1 手造第二顆徽記
+        18: 'knife.geometry.scale(0.5, 0.5, 0.5);', //                                                               M2 就地改共用剪影
+        19: 'marks[0].add(knife);', //                                                                               M3 掛到另一顆徽記底下
+        20: 'ICON.byKind.knife = 0.02;', //                                                                          L1 執行期改表
       };
       // 繞法是**加行**不是改行（r3 N11 原話）：合法的 st.iconScale 留著，旁邊多一條第二來源。
       src = src.replace(from, from + ' ' + BYPASS[MUT]);
@@ -304,10 +317,30 @@ t('徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得�
     const noComment = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
     const lineOf = (i) => noComment.slice(0, i).split('\n').length;
     /* (a) `size:` 這個鍵在編舞裡一處都不准有（入口已 throw，這是第二道）。
-       ★`sizes:`（複數）**不在禁列**★：那是 st.icons 的逐實例**相對**倍率（`size * o.sizes[i]`），
-       ICON 的值仍在乘積裡，不構成第二份來源；連它一起禁是把防線做死（禁到不該禁的東西）。 */
+       ★`sizes:`（複數）仍不在禁列，但理由改寫了（覆審 r2 H2）★：它是 `st.icons` 的逐實例**相對**倍率，
+       舊註解寫「ICON 的值仍在乘積裡，不構成第二份來源」——**那句話不成立**：
+       `sizes: prints.map(() => 0.50 / st.iconFlatSize)` 把 ICON 的值**除掉**，乘積就是寫死的絕對尺寸
+       （實測貼桌徽記 0.2 → 0.5，當時四道防線全綠）。現在它由**入口的區間檢查**守
+       （`st.icons` 逐項比對 `ICON.scaleRange`，超出就 throw）＋稽核第二道，
+       掃描這邊則補上 (e)：不得把 ICON 來源放到除號右邊。 */
     for (const m of noComment.matchAll(/\bsize\s*:/g)) {
       hits.push(`${f}:${lineOf(m.index)} ${m[0].trim()}（st.icon／st.icons／st.mark 的 o.size 已拒收，編舞不得再出現這個鍵）`);
+    }
+    /* (d) 編舞不得直接碰 `ICON`（含動態 import vocab.js）——執行期改表那條路（覆審 r2 L1）。
+       三個系別檔設計上就不 import vocab.js（值由 makeStage 掛到 st 上），所以這一條在健康態恆 0。 */
+    for (const m of noComment.matchAll(/\bICON\s*[.[]/g)) {
+      hits.push(`${f}:${lineOf(m.index)} ICON.…（編舞不得直接碰 ICON 表：值一律由 st 掛進來，`
+        + '執行期改表是「檔案內容 ≠ 執行期真值」的入口，覆審 r2 L1）');
+    }
+    for (const m of noComment.matchAll(/import\s*\(\s*['"`][^'"`]*vocab\.js/g)) {
+      hits.push(`${f}:${lineOf(m.index)} import(vocab.js…（三個系別檔不 import 本表，見 vocab.js 檔頭）`);
+    }
+    /* (e) ★把 ICON 的值從乘積裡消掉★（覆審 r2 H2 的一般化）：
+       `0.50 / st.iconFlatSize`、`0.02 / base` 這種寫法讓「相對倍率」變成絕對尺寸。
+       規則按效果寫：ICON 的任何來源都不得出現在除號右邊。 */
+    for (const m of noComment.matchAll(/\/\s*(st\.iconFlatSize|st\.iconSize|st\.markSize|ICON\.[A-Za-z_$][\w$]*)/g)) {
+      hits.push(`${f}:${lineOf(m.index)} ／${m[1]}（把 ICON 的值當除數＝把它從乘積裡消掉，`
+        + '剩下的就是寫死的絕對尺寸，覆審 r2 H2）');
     }
     for (const _m of noComment.matchAll(/[A-Za-z_$][\w$]*\s*\.\s*scale\s*[.[=]/g)) scaleTotal++;
     for (const _m of noComment.matchAll(/\bst\.iconScale\s*\(/g)) iconScaleCalls++;

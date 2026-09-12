@@ -199,8 +199,13 @@ export async function drive(page, url, opts = {}) {
     return { rec: window.__rec, fxc: window.__ysFxCount || null, ys3d: !!window.__yaoshi3d, gl: window.__yaoshi3d ? window.__yaoshi3d.glName : null, ver: (document.getElementById('verLine') || {}).textContent, sizeGuard: sg };
   });
   const sg = rec.sizeGuard;
+  /* ★r2 M4：`--fxvocab=1`（網址帶 `fxvocab=1`）時「沒量到」就是紅★
+     覆審 r2 實測：不帶 seed 跑 16 場對決、44 次 trait 事件，四支示範招一支都沒抽到 ⇒ `n/a`、exit 0。
+     「exit 0」不等於「量到了」；凍結檔 L3 指名的正式量測走這一支，所以這裡把它判紅，
+     並要求正式 L3 固定 `&seed=<抽得到徽記招的種子>`（README 記了實測的那一顆）。 */
+  rec.fxvocab = /(\?|&)fxvocab=1(&|$)/.test(url);
   rec.sizeState = !sg ? (rec.ys3d ? 'fail' : 'n/a')
-    : sg.made === 0 ? 'n/a'
+    : sg.made === 0 ? (rec.fxvocab ? 'fail' : 'n/a')
       : (sg.violations === 0 && sg.locked === sg.made && sg.audits > 0 && sg.tweenErrors === 0) ? 'ok' : 'fail';
   return { ...rec, url, errors: errs, lastMainText: lastText, shots, elapsedMs: Date.now() - t0 }; // R1 M6：url（含 seed）落檔，數字才複現得了
 }
@@ -227,7 +232,9 @@ if (isMain) {
       ? `　違規 ${r.sizeGuard.violations}／鎖上 ${r.sizeGuard.locked} of 產出 ${r.sizeGuard.made}／稽核 ${r.sizeGuard.audits}／tween 安靜死掉 ${r.sizeGuard.tweenErrors}`
         + (r.sizeGuard.worldRange ? '　世界寬度 ' + JSON.stringify(r.sizeGuard.worldRange) : '')
       : '　（拿不到 traitFx.sizeGuard()）')
-      + (r.sizeState === 'n/a' ? '　★這一跑沒演到用徽記的招＝未量到，不得當成通過★' : ''));
+      + (r.sizeState === 'n/a' ? '　★這一跑沒演到用徽記的招＝未量到，不得當成通過★' : '')
+      + (r.sizeState === 'fail' && r.sizeGuard && r.sizeGuard.made === 0
+        ? '　★★ 帶了 fxvocab=1 卻一次都沒量到＝判紅（覆審 r2 M4）：正式 L3 要固定 &seed=，見 tests/tools/README.md ★★' : ''));
     if (r.sizeGuard && r.sizeGuard.msg) console.log('  ! ' + String(r.sizeGuard.msg).slice(0, 300));
     if (r.sizeGuard && r.sizeGuard.tweenErrorMsg) console.log('  ! tween 安靜死掉：' + String(r.sizeGuard.tweenErrorMsg).slice(0, 300));
     if (r.sizeState === 'fail') { console.log('★★ 徽記世界尺寸有第二份來源（或鎖／稽核沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1; }

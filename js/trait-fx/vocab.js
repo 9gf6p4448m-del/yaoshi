@@ -118,6 +118,14 @@ export const ICON = {
   markSizeOf(kind) { return this._resolve(kind, 'markByKind', this.markSize); },
 };
 
+/* ★r2 L1：三張尺寸表與倍率區間凍住★
+   覆審 r2 實測：編舞動態 import 拿到的是**同一個 module instance**，`ICON.byKind.knife = 0.02`
+   執行期改得動、四道防線全綠。判斷上那不算「第二份來源」（改的就是那張唯一的表，canary 打
+   `_resolve` 也壓得住），但「檔案內容＝執行期真值」本來沒有任何防線在守——`tests/fxvocab.test.mjs`
+   釘的是檔案，執行期改表不在它的視野裡。凍成不可變最便宜。
+   ★不凍 ICON 本身★：L3 canary 要換掉 `_resolve`，凍了 canary 就做不了。 */
+Object.freeze(ICON.byKind); Object.freeze(ICON.flatByKind); Object.freeze(ICON.markByKind); Object.freeze(ICON.scaleRange);
+
 /** st.phase 的機械判準（ART_BIBLE §10.3；計畫 §2.3 寫死，不得放寬）。
  *  windupMs／reactMs 會乘上 run.k（tier 1 ≈0.289）等比縮放。 */
 export const PHASE_GATE = {
