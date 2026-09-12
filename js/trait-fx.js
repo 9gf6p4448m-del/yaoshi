@@ -1348,9 +1348,18 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
              收尾點＝`react[0]`＝衝擊拍，與腳下光語彙熄掉的時點同一個。
              ★`run.inBlock` 讓這條不計進 F10 的動作數★（覆審 C2：積木自己排的 tween 不算編舞的演出）。 */
           const B = st.beat, TT = Math.max(1, B.react[0] - B.travel[0]);
+          /* ★`delay` 要扣掉當下的 `run.vt`（覆審 r2 N2）★
+             `st.tween` 把 `start` 算成 `run.vt + delay`，而 `st.stance` **依設計一定是從 tween 的
+             `update` 裡呼叫的** ⇒ 第一次呼叫時 `run.vt` 永遠不是 0，直接用絕對毫秒當 delay 會讓
+             收尾點變成「第一次呼叫的 vt ＋ react[0]」（覆審實測：把姿態 tween 的 delay 改成 `R0+60`，
+             那一跑的 horizon 1193 ＝ vt_first 633 ＋ react[0] 560，逐值吻合）。
+             扣掉之後終點**真的**落在 `react[0]`，與腳下光熄掉同一時點——這樣 ⑮「由建構上成立」才成立。 */
+          const off = Math.max(0, B.travel[0] + TT * 0.45 - run.vt);
           run.inBlock = true;
-          st.tween({ ms: TT * 0.55, delay: B.travel[0] + TT * 0.45, ease: 'in', update(t, e2) { w.staK = 1 - e2; } });
-          run.inBlock = false;
+          try {
+            // try/finally：這兩行丟例外時旗標不得卡在 true（覆審 r2 N4），否則編舞自己的 tween 全不計入
+            st.tween({ ms: TT * 0.55, delay: off, ease: 'in', update(t, e2) { w.staK = 1 - e2; } });
+          } finally { run.inBlock = false; }
         }
         run.stance.fig = fig; run.stance.kind = kind;
         const k = Math.max(0, Math.min(1, o.strength === undefined ? 1 : o.strength));
@@ -1534,6 +1543,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
     run.maxRate = 1; // 這一套實際用過的最高加速倍率（F2 的 rateOK：短版不得 >1.0）
+    run.maxDvt = 0; // 實際用過的最大虛擬時間步長（windupOK 的取樣容差）
     run.fuse = run.ms * TFX.fuseMul;
     run.promise = new Promise((r) => { run.resolve = r; });
     const stage = makeStage(run, actor, target, det);
@@ -1591,7 +1601,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           casterMatch: !!(run.stance.fig && run.caster && run.stance.fig === run.caster),
           groundSame: !!(run.stance.fig && run.stance.groundFig === run.stance.fig),
           peakAt: Number.isFinite(run.stance.peakAt) ? Math.round(run.stance.peakAt) : null,
-          windupOK: run.stance.peakAt <= B.react[0], reactAt: B.react[0] };
+          /* 門檻取 `windup[1]`（＝蓄勢段末＝`travel[0]`），不是 `react[0]`（覆審 r2 N3）：
+             語彙說的是「在**蓄勢段**」，而 `react[0]` 寬了一整個 travel 段。
+             更嚴的那條今天 10 支全部都過（`peakAt` 是 300＝`windup[1]`、`wardImmuneLost` 133），
+             所以這是**加嚴**，不是訂一條過不了的線。 */
+          windupOK: run.stance.peakAt <= B.windup[1] + run.maxDvt,
+          windupEnd: B.windup[1], windupSlack: +run.maxDvt.toFixed(1), reactAt: B.react[0] };
       })() };
     stats.finished++;
     if (run.resolve) run.resolve(true);
@@ -1627,6 +1642,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       const cap = (run.ms - run.t) <= ms * 2 ? Infinity : TFX.rateMax;
       run.rate = remainW > 1 ? Math.min(cap, Math.max(1, (run.horizon - run.vt) / remainW)) : Math.min(cap, Math.max(1, run.rate));
       if (!Number.isFinite(run.rate)) run.rate = 1;
+      /* 這一套實際用過的最大虛擬時間步長。給 windupOK 當**取樣容差**用（覆審 r2 N3 的續集）：
+         `peakAt` 是逐幀取樣出來的，windup 那條 tween 的最後一次 update 必然落在
+         「`windup[1]` 的下一幀」（tier 1 實測 104 → 117），嚴格 `<= windup[1]` 對**任何正確實作**
+         都過不了＝恆假（`02 §6.1` 第 6 條）。容差取一個實際步長，不是取一整個 travel 段。 */
+      run.maxDvt = Math.max(run.maxDvt, ms * run.rate);
       run.vt += ms * run.rate;
       if (run.rate > run.maxRate) run.maxRate = run.rate;
       if (run.rate > 1.0001) run.sped = true;

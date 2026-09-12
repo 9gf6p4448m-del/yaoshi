@@ -50,9 +50,19 @@ const GAPV = (() => {
   /* ★大小寫打錯不得靜默忽略（覆審 L4）★：`--mategap=2` 打成小寫時，舊寫法會**靜默**產出基準站位的
      材料，而操作者以為拉開了——那正是「材料規格對不上」的靜默分岔。現在不分大小寫都接，
      寫成別的拼法（`--mate-gap=`／`--gap=`）當場 throw。 */
+  /* ★按**效果**寫，不按已知的拼錯法寫（覆審 r2 L4，`02 §6.1` 第 7 條）★
+     第一版是 `--(mate-gap|gap|mategaps)=` 三項**黑名單**——`--mate_gap=`／`--mateGapp=` 照樣靜默忽略。
+     危險的效果是「旗標打錯 ⇒ 產出的材料規格與操作者以為的不同」，所以改成**白名單**：
+     凡是本支不認得的 `--xxx` 一律當場 throw。分母＝這一支真的吃的旗標，就是下面這一張表。 */
+  const KNOWN = ['only', 'tiers', 'seed', 'camdist', 'mategap', 'count', 'foe', 'port', 'label', 'dt', 'fxvocab', 'proto'];
+  const unknown = process.argv.slice(2).filter((x) => x.startsWith('--'))
+    .map((x) => x.replace(/^--/, '').split('=')[0].toLowerCase())
+    .filter((k) => KNOWN.indexOf(k) < 0);
+  if (unknown.length) {
+    throw new Error(`不認得的旗標 --${unknown.join('／--')}——這一支只認 ${KNOWN.map((k) => '--' + k).join(' ')}；`
+      + '打錯會靜默產出不同規格的材料，所以一律當場停（覆審 r2 L4）。');
+  }
   const v = process.argv.find((x) => /^--mategap=/i.test(x));
-  const bad = process.argv.find((x) => /^--(mate-gap|gap|mategaps)=/i.test(x));
-  if (bad) throw new Error(`不認得的旗標 ${bad.split('=')[0]}——這一支只認 --mateGap=<倍率 1–3>`);
   return v ? v.slice(v.indexOf('=') + 1) : '';
 })();
 const GAPQ = GAPV ? '&mategap=' + encodeURIComponent(GAPV) : '';
@@ -211,7 +221,11 @@ async function main() {
       /* ★材料規格要留下紀錄（覆審 M4）★：改前只記 seed／tiers／dt／視口／格寬，
          **不記** 排列與機位那幾個旋鈕 ⇒ 下一輪盲讀無法事後證明「這一輪的材料與上一輪差在哪一格」。
          `mateGap`／`camdist`／`count`／`foe` 四個都是本卷陸續加的規格參數，一起記進來。 */
-      spec: { mateGap: GAPV || null, camdist: CAMQ ? CAMQ.split('=')[1] : null, count: COUNTQ || null, foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, proto: PROTO || null },
+      /* `fxvocab` 比 `mateGap` 更決定性（它決定拍的是哪一版演出），`counts` 記**每一案實際用的尊數**
+         而不是「有沒有覆寫」——覆審 r2 對 M4 的兩點補正。 */
+      spec: { mateGap: GAPV || null, camdist: CAMQ ? CAMQ.split('=')[1] : null, countOverride: COUNTQ || null,
+        counts: Object.fromEntries(cases.map((c) => [c.trait, COUNTQ || c.count])),
+        foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, fxvocab: fxvocabQ(opt) !== '', proto: PROTO || null },
       mapping,
     }, null, 1));
   } finally { await browser.close(); srv.kill(); }
