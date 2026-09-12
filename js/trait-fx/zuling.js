@@ -48,7 +48,9 @@ function zlDeliver(st, from, figs, B, o = {}) {
       others.forEach((g) => c.add(g.group.position));
       c.multiplyScalar(1 / others.length);
       lean.copy(f.group.position).sub(c); lean.y = 0;
-      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.88); else lean.set(0, 0, 0);
+      // `o.lean`＝推出去的量（預設 0.88）。模型的佔地越大越要推——`eye` 護法×2 在 0.88 下
+      // 施招者那一份仍然落在兩尊的重疊區裡（實測 att=null），所以那一支給 1.45。
+      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(o.lean === undefined ? 0.88 : o.lean); else lean.set(0, 0, 0);
     }
     to.add(st.camOff(1)).add(lean);
     const m = st.paperStamp(st.kind, from, { anchor: o.anchor || 'allies',
@@ -565,10 +567,8 @@ const MOVES = {
       opacity: 0, depth: 0.24, warp: 0.10, tiltDeg: 6, yawDeg: -16 });
     stone.scale.setScalar(st.iconSize * 0.45);
 
-    // ── 每一尊身上的眼印（anchor allies；整隊先結算，施招者自己也在內）──
-    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Chest', new THREE.Vector3()),
-      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
-        follow: f, at: 'chest', off: st.camOff(1) }));
+    // ── 每一尊各收到一枚**飛過去**的眼（P4 r1 回修 A；理由同百步蛇紋盾）──
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25, lean: 1.45 }); // eye 護法×2 的佔地特別大，0.88 推不出重疊區（實測 att=null）
 
     /* ① 凝視（windup）：眼瞼逐層掀開、眉壓低；石雕眼在側上方亮相。 */
     st.groundMark(lead, { h: 1.26, w: 0.28, taper: 0.42, peak: 0.95, push: 0.80 });
@@ -607,12 +607,9 @@ const MOVES = {
     st.fade(stone, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 先手（react）：本方每一尊上抬＋邊光，身上的眼印蓋上再淡去。 */
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
-    });
-    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    // ★反應同拍★（P4 r1 回修 A）
+    mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
 
     /* 收勢：眼半闔，施招者跟著被托起（他也在本隊裡）。 */
