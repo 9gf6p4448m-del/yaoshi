@@ -495,3 +495,254 @@ node --test tests/*.test.mjs
 
 **worktree**：`C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-af605d875c0e0e52d`
 （基準 `417b197`）。**未合併回 main、未 push。**
+
+---
+
+## 8　Q2：在現行 main（0.55.1）上重量 seed 1 的 Δ200（修訂六 ③）
+
+> 裁定原文（凍結檔 §2.1 修訂六 ③）：「seed 1 `Δ200=5.85>5` 的決定性紅先在現行 main
+> （0.55.1，四支示範招已退回 0.54）重量一次；仍紅才追因，**重量前不判 L10 紅**。」
+> 本節**只重量與追因，不判、不修**（門檻、seed、duels、案例集一格未動）。
+
+### 8.1 條件
+
+本 worktree 已 `git merge main`（fast-forward 到 `50df83a`，`VERSION="0.55.1"`）。
+基準樹 `git worktree add --detach scratchpad/l10/base6a839de 6a839de`，
+其 `index.html` md5 ＝ `cae859bf91ea11f45fa9367ffc24ca10`（與修補報告 §7.2 記的同一份）。
+
+```bash
+# main 0.55.1
+node tests/tools/dmg-readability.mjs pix scratchpad/l10/q2main-s1-<i> \
+     --seed=1 --duels=8 --port=910<i> --maxfloat=50 --maxhit=20
+# 基準 6a839de（靜態檔從基準樹取，治具程式仍是本樹的）
+node tests/tools/dmg-readability.mjs pix scratchpad/l10/q2base-s1-<i> \
+     --seed=1 --duels=8 --port=911<i> --maxfloat=50 --maxhit=20 \
+     --root=scratchpad/l10/base6a839de
+```
+
+### 8.2 結果：**Δ200 仍是 5.85，而且三棵樹逐位數相同**
+
+| 樹 | 5 跑 md5 | R1 | R2main | R2sub | `maskN` | 中位 | ≥25 比例 | **Δ200** |
+|---|---|---|---|---|---|---|---|---|
+| main 0.55.1（`50df83a`） | `a736939c588e3f76b1a526219799e76b` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+| 基準 `6a839de` | `425731d0d1e57026026348f7dff314c5` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+| v0.55（`417b197`，§4 那一輪） | `5edb3d513b53217eaf1db18e7424eda8` ×5 | 🟢 | 🟢 | 🔴 | 13 | 75.68 | 1 | **5.85** |
+
+**5 跑逐位元組相同**在兩棵樹上都成立（決定性沒有因為換樹而破）。
+兩棵樹的 `metrics.txt` 整份只差 3 行：
+
+```
+$ diff q2main-s1-1/metrics.txt q2base-s1-1/metrics.txt
+10c10  < versionOk=true          > versionOk=null        ← --root 時本來就不比版本
+30c30  < sum.ctrlMax=4.49        > sum.ctrlMax=4.48
+56c56  < sum.skipFlash=31.46     > sum.skipFlash=31.38
+```
+
+v0.55 與 0.55.1 之間也只差 2 行（`sum.p50` 6.93→6.96、`sum.skipFlash` 31.37→31.46）。
+
+> **結論（只陳述，不判）**：`Δ200 = 5.85` 在**基準 `6a839de` 上一模一樣**
+> ⇒ 它**與招式可辨性卷（徽記／`vocab.js`／四支示範招）完全無關**，
+> 0.55.1 把示範招退回 0.54 演出也沒有讓它動半位數。
+
+### 8.3 追因：這 5.85 是哪一筆貢獻的
+
+逐筆表在 `evidence/q2-main-0551/attribution.txt`（24 輪刺激全列）。重點：
+
+- 24 輪裡，進得了 `valid`（過 `tinyMask`／`moved`／`offDuel` 三道閘且非燒毀）的有 **13 筆**。
+- 這 13 筆裡 **只有一筆超過 +5**——**`run 20`，`Δ200 = 5.85`**；第二大是 `run 26` 的 **2.70**。
+  `back200MaskAbsMax` 是「對一組樣本取 max」的統計量，所以貢獻 100% 來自這一筆。
+- **`run 20` 也是 13 筆裡唯一 `move200 > 5` 的**（`move200 = 13.8` px）：
+  另外 12 筆 `move200 ≤ 5`，`Δ200` 全落在 **−1.58 ~ +2.70**，離門檻很遠。
+  `corr(move200, Δ200)` ＝ **0.642**（n=13）。
+- `run 20` 的位移為什麼沒被閘擋掉：**位移閘門只套在 +40ms 那一格**（`mv40 = 3.2 ≤ MOVE_MAX(4)`，過關）；
+  `Δ200` 那一條子判準**從 2026-09-10 使用者裁乙起就沒有位移閘門**（`move200` 只記錄不判，
+  見 `judgePix` 該處註解）。`run 20` 正好是那個決定會漏掉的形狀。
+- 分群（可判樣本）：`layered/swarm` n=5 全部是**負的**（−1.58 ~ −0.15）；
+  `creature/haunt` n=8 是唯一有正值的一群（0.22 ~ 5.85），`run 20`／`run 26` 都是 A 側 unit 3 的 haunt。
+- **「哪支招」這個軸在這裡不存在**（照實寫）：R2 的刺激是治具自己派的合成 `ys:fx-hit`
+  （`--synth` 預設開），只帶 `side`／`unit`／`ms`，**不帶 `trId`**、也不是任何一支招的演出事件
+  ⇒ `Δ200` 不歸屬於任何一支招。能歸的兩個軸是「被打的是哪一尊」與「+200ms 之間移動了多少」，
+  上面兩點就是。
+- 另記（不判）：燒毀組的 `run 44` 的 `Δ200` 是 **9.54**，比 `run 20` 還大——
+  但燒毀組照規矩只判 `|Δ40| ≤ 10`（它是 3.19，過），`Δ200` 對燒毀組**本來就不判**。
+
+**本節到此為止**：不判 L10 紅、不改 `BACK_MAX`、不加位移閘門、不剔任何樣本。
+要怎麼處置這一筆交使用者裁。
+
+---
+
+## 9　Q1：取樣時點改成「推鏡停穩後再凍幀」（修訂六 ②，有條件同意）
+
+> 裁定原文（凍結檔 §2.1 修訂六 ②）：「治具改成『推鏡停穩後再凍幀』屬提高通過機率，使用者同意改，
+> **條件**：改前改後 seed 1 的 R1／R2 數字並排落檔，且 seed 3 由 0 個可判樣本變為 >0；
+> 未滿足條件前不生效。」
+> 另依任務書：(c) 突變驗紅再跑一次、(d) `--wallclock=1` 保留、(e) README 寫明取樣時點與理由。
+> **不得動 7 個門檻常數、seed 集、duels 數——實測見 §9.5。**
+
+### 9.1 改了什麼（`tests/tools/dmg-readability.mjs`）
+
+| 行號 | 改動 |
+|---|---|
+| `734–737` | 四個新參數：`--boxeps`(1px)／`--boxstill`(6 幀)／`--candmax`(120 幀)／`--warmup`(0ms) |
+| `791` | `M.onScreen(b)`：方框整個在畫面內（含 20px 邊），與 `pickTarget` 的篩選同一條 |
+| `794–828` | `M.tryFire(via, pick)` 多收一個 `pick`：指定要打哪一對尊（資格檢查與不指定時完全一樣）；新增 `cooldown`（220ms，沿用舊計時器的節奏）與逐項 `M.rej` 計數 |
+| `830–861` | 取樣時點的說明（含舊理由為什麼是錯的） |
+| `885–920` | `watch()`：每幀盯住同一對尊，量它們自己的方框逐幀位移；連續 `BOX_STILL` 幀 ≤ `BOX_EPS` 才開凍幀序列 |
+| `1230–1237`／`1254` | `acct.noSil`：把「靜默掉出統計」那幾輪算出來，帳目恆等式補完整 |
+
+**移除的**：`ys:hitstop` +8ms 的觸發、`setTimeout(tick, 220)` 的輪詢、
+「hitstop 最近 1.5 秒內出現過就不讓計時器插隊」那條規則。
+`ys:hitstop` 的監聽器留著，但**只記錄 `M.lastHitstop`，不再當取樣時點**。
+
+### 9.2 參數怎麼訂的（不是憑感覺）
+
+- **`BOX_EPS = 1 px/幀`**：`MOVE_MAX` 是「+40ms 那一幀相對命中前不得位移 > 4px」，
+  40ms ≈ 2.4 幀 ⇒ 每幀 1px 推出去是 2.4px，對 4px 的門檻留約 40% 餘裕。
+- **`BOX_STILL = 6 幀（≈100ms）`**：要涵蓋整個 +40ms 窗（2.4 幀）還要有前置觀察，取 2.5 倍。
+- **為什麼代理不取「鏡頭座標」而取「那一尊的螢幕方框」**——兩條實測依據：
+  1. 量測真正吃的是方框（剪影遮罩畫在方框裡、位移閘門量的也是方框）；鏡頭停穩只是它的其中一個原因。
+  2. 直接拿鏡頭當閘門**實測拿不到任何樣本**：seed 3 上 `duelOn` 期間逐幀位移 ≤0.002 的那幾段，
+     診斷出來 `liveUnits` 是 **0**（`camera [2.7131, 1.7083, 2.7131]`、`boxes []`）——
+     那是圖上沒有尊的空檔。實跑結果 `via.still = 0`、`maskN = 0`。
+- **為什麼要盯住同一對、不能每幀重挑**：實測 seed 3 上「這一刻最大的是哪一尊」幾乎每幀都在換，
+  整場對決裡前後兩幀同一對的只有 **415 幀**；每換一次就重新累積，永遠累積不滿 6 幀。
+- **為什麼兩尊一起要求**：對照組那一尊是 R2「對照尊不得跟著紅」那條子判準的量測對象。
+  只要求被打那一尊停穩的話，實測 `rej.noFoe = 257`——推鏡的停段裡對照組整個在畫面外。
+  兩尊一起要求之後，閘門自然會等到**鏡頭回位之後的全景**才開。**這比只要求一尊更嚴。**
+- **`--warmup` 由 1600ms 改為 0**：★這一條要單獨講★。1600ms 那道閘的理由是
+  「不在進場／收場的淡入淡出上量：那時整個畫面都在變」——它是**另一個代理**，
+  而「整個畫面都在變」現在由停穩量測**直接**處理；淡入淡出另有 `#duel` 的 `opacity === '1'` 硬閘沒動。
+  不改它的話 seed 3 一個樣本都拿不到：實測 `rej` 只剩 `{duelWarmup: 71, recentFloat: 9}`，
+  亦即**停穩的窗全部落在開場 1600ms 內**。這一改同樣提高通過機率，與取樣時點同一批、同一條同意。
+
+### 9.3 條件 (a)：改前改後 seed 1 的數字並排 🟢
+
+同一棵 main 0.55.1、同一個 seed、各 5 跑、**兩邊都逐位元組相同**。
+改前＝`48d599a` 的治具（pump 虛擬時鐘 ＋ 舊的 hitstop 取樣時點），改後＝現行。
+
+| 指標 | **改前**（`a736939c…`×5） | **改後**（`cace748a…`×5） |
+|---|---|---|
+| `res.R1` | 🟢 | 🟢 |
+| R1 字級簽章 | hit 27.2／kill 35.36／unit 17 | **逐位數相同** |
+| `res.R2main` | 🟢 | 🟢 |
+| `res.R2sub` | **🔴** | **🟢** |
+| `res.R2` | 🔴 | **🟢** |
+| `maskN` | 13 | **16** |
+| 中位 | 75.68 | 77.94 |
+| ≥25 比例 | 1 | 1 |
+| **`Δ200`** | **5.85** | **4.31** |
+| `maskDropped` | `{moved:5, tinyMask:2}` | `{moved:3}` |
+| `move40` 中位 | 0.4 px | 0.3 px |
+| `ctrlMax` | 4.49 | 0.68 |
+| `via` | `{hitstop:7, timer:13}` | `{still:20}` |
+| 量到的跳字 | 46 | 48 |
+| 凍幀格數 | 77 | 79 |
+| `flashRuns` | 24 | 24 |
+| `burnMaskN` | 4 | 4 |
+| `swallowed`／`acct.ok` | 0／true | 0／true（`acct.noSil=1`，見 §9.6） |
+
+> ★**必須看見的一句**★：**`Δ200` 從 5.85 掉到 4.31，seed 1 的 `R2` 因此由 🔴 翻 🟢。**
+> §8.3 追出來那一筆（`run 20`，`move200 = 13.8 px`）正是新閘門會擋掉的形狀
+> ⇒ **這一改讓 Q2 那個紅消失了**。這就是修訂六 ② 說的「提高通過機率」，
+> 不是產品變好了，是取樣點換了。本報告把它放在最顯眼的地方，不藏在表格裡。
+
+### 9.4 條件 (b)：seed 3 由 0 變 >0，且 5 跑逐位元組相同 🟢
+
+```
+# 改前（48d599a 的治具，同一棵 main 0.55.1）
+3328873cc2664863ba54e300a8cd2109 *scratchpad/l10/preq1-s3-{1..5}/metrics.txt   ← 5 份全等
+# 改後
+1d0db14c77d53fdbd885507a629064ca *scratchpad/l10/q1f-s3-{1..5}/metrics.txt      ← 5 份全等
+```
+
+| 指標（seed 3） | 改前 | 改後 |
+|---|---|---|
+| **`maskN`** | **0** | **7** ✅ |
+| `res.R2main`／`R2sub`／`R2` | 🔴／🔴／🔴 | **🟢／🟢／🟢** |
+| 中位／≥25 比例 | —／— | 35.01／1 |
+| `Δ200` | —（0 樣本，fail-closed） | 0.59 |
+| `maskDropped` | `{moved:4, tinyMask:1}` | `{tinyMask:1}`（**`moved` 歸零**） |
+| `via` | `{hitstop:4, timer:0}` | `{still:7}` |
+| `flashRuns`／`burnMaskN` | 8／3 | 11／3 |
+| `ctrlMax` | —（無樣本） | 0.12 |
+| `swallowed`／`acct.ok` | 0／true | 0／true |
+
+`moved` 從 4 掉到 0、`move40` 中位 0.3 px——閘門做的正是它宣稱要做的事。
+
+### 9.5 「不得動的東西」實測 🟢
+
+```
+$ git diff 50df83a -- tests/tools/dmg-readability.mjs \
+  | grep -E '^[-+].*(MASK_TH|MOVE_MAX|BASE_FONT|FONT_MIN|BACK_MAX|BURN_MAX|CTRL_MAX|>= 25|>= 0\.70|function judgePix|function silhouette|maskDeltaOnMask|function redness|function ringAvg|const contrast)'
++  const boxEps = Number(opt.boxeps || 1);      // 方框逐幀位移上限（px）：MOVE_MAX 是 40ms 內 4px…
++       ・7 個門檻常數（MASK_TH／MOVE_MAX／BASE_FONT／FONT_MIN／BACK_MAX／BURN_MAX／CTRL_MAX）
+
+$ git diff 50df83a --stat -- index.html js/
+（空）
+```
+
+**命中的兩行都是註解**（一行是 `--boxeps` 的取值理由、一行是取樣時點那段說明裡的列舉），
+沒有任何一行是門檻的定義或判定式；`MOVE_MAX` 的定義（`:72`）與 `judgePix` 的判定式
+（`:1207` 的 `mMed >= 25 && mRatio >= 0.70`、`:1176` 的 `BACK_MAX/BURN_MAX/CTRL_MAX`）
+在 diff 裡一行都沒出現。
+
+seed 集（1／3）、`duels`（8）、`maxfloat`（50）、`maxhit`（20）與前一卷 §7.2 的「條件固定」逐字相同。
+`judgePix` 一行未動（`acct.noSil` 是治具這一側算的，不在 `judgePix` 裡）。
+
+### 9.6 條件 (c)：突變驗紅 🟢
+
+```bash
+# index.html:499  font-size:calc(17px * var(--dmgs,1.6))  →  … * 0.5
+node tests/tools/dmg-readability.mjs pix scratchpad/l10/q1fcanary-s1 \
+     --seed=1 --duels=8 --port=9211 --maxfloat=50 --maxhit=20
+→ res.R1=false  res.R2=true  res.R2main=true  res.R2sub=true  res.R5pix=false
+  R1 字級 seq=1 hit 13.6px < 27.2px（健康態 27.2px）…共 5 筆
+  R1 對比度 3.94 < 4.5 seq=11
+# 還原（改壞前的備份副本）
+cp scratchpad/l10/backup/index.html.0551 index.html
+→ md5 98265091c892f8cbae6550789a8c4102（與備份一致）；git diff --stat -- index.html js/ 為空
+```
+
+**鑑別力沒丟**：紅在行為斷言（字級），R2 不受這個突變影響（它只動跳字字級）＝符合預期。
+
+**★誠實記錄：`acct.noSil = 1`★**（改後 seed 1，5 跑都一樣）
+新取樣點下有 **1 輪**刺激在凍幀當下 `figBox` 回 `null`（那一尊那一幀不可見），
+拿不到剪影 ⇒ 它在 `judgePix` 的 `maskD === undefined ⇒ continue` 那一行**靜默**掉出統計。
+這正是對抗覆審 (1a) 講的既有缺陷（凍結檔修訂六 ⑤ 的待辦）。
+本卷**不改 `judgePix`**，改成在治具這一側把帳算完整並印出來：
+`flashRuns(24) == maskN(16) + burnMaskN(4) + Σ maskDropped(3) + noSil(1)` ⇒ `acct.ok=true`。
+**這筆樣本仍然沒有被量到**——`noSil` 只是把它從看不見變成看得見，不改任何判定。
+
+### 9.7 條件 (d)：`--wallclock=1` 保留為診斷 🟢
+
+```
+$ node tests/tools/dmg-readability.mjs pix scratchpad/l10/q1wc-s1 --seed=1 --duels=2 \
+       --port=9162 --maxfloat=50 --maxhit=20 --wallclock=1
+$ head -1 scratchpad/l10/q1wc-s1/metrics.txt
+clock=wallclock
+```
+跑得起來、`clock=wallclock`、不進任何閘門（修訂六 ④）。
+
+### 9.8 條件 (e)：README 🟢
+
+`tests/tools/README.md` 新增「取樣時點：推鏡停穩之後才凍幀」一節——
+舊法為什麼錯、現行做法、四個參數的意思與預設、以及「這些不是判準門檻」那一段；
+`acct.noSil` 的讀法也補進健康檢查那兩條。
+
+### 9.9 規則測試
+
+```
+$ node --test tests/*.test.mjs
+ℹ tests 12
+ℹ pass 12
+ℹ fail 0
+```
+
+### 9.10 這一節**沒有**做的事
+
+1. **沒有重驗 seed 3 的「改前」在 5 跑以外的條件**：改前的 seed 3 在 main 0.55.1 上的 md5
+   （`3328873c…`）與在 `417b197` 上跑出來的**完全相同**，所以 0.55.1 對 seed 3 沒有影響。
+2. **`R5pix` 仍 🔴**（`skipAfter300` 為 `null`），與改前相同，不在 L10 條文內。
+3. **沒有動 `judgePix`**（見 §9.6），三件既有缺陷仍在待辦。
+4. **新取樣點沒有跑過對抗式覆審**——上一輪的覆審是針對虛擬時鐘那批改動做的。
+   本節的 (a)(b)(c) 是任務書指定的驗收，不等於覆審。

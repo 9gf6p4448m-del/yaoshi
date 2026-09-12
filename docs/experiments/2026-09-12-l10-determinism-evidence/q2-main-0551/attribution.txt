@@ -1,0 +1,59 @@
+Q2 追因：seed 1 的 Δ200 = 5.85 是哪一筆貢獻的（main 0.55.1 樹，pump 模式，逐跑相同）
+
+指令
+  node tests/tools/dmg-readability.mjs pix scratchpad/l10/q2main-s1-<i> \
+       --seed=1 --duels=8 --port=910<i> --maxfloat=50 --maxhit=20
+  （基準對照多帶 --root=scratchpad/l10/base6a839de）
+
+判準原文（未動）：judgePix 的 BACK_MAX = 5，badBack = valid.filter(x => x.maskD200 > 5)，
+valid = usable(過 tinyMask / moved / offDuel 三道閘) 且 !burning。
+
+─── 24 輪刺激的逐筆（依 Δ200 由大到小；why = 這一輪進不進 valid）───
+run via      burn  side/unit skin/body        Δ40     Δ200    maskFrac silN   move40 move200 why
+42  hitstop  -     A/4  creature/swarm        76.18   15.25   0.37    7093    8.2    25.6   moved      ← 被閘擋掉
+27  timer    -     B/1  creature/haunt        42.93   11.98   0.31    4988   33.1    80.6   moved      ← 被閘擋掉
+44  -        burn  A/0  creature/haunt         3.19    9.54   0.25    3543    3.2    19.4   usable(burning)  ← 燒毀組只判 |Δ40| ≤ 10，Δ200 不判
+20  timer    -     A/3  creature/haunt        81.15  ★5.85★  0.19    4735    3.2    13.8   usable     ← ★唯一超過 +5 的可判樣本★
+50  hitstop  -     A/5  creature/swarm        57.22    5.55   0.37    4667   76.4   135.0   moved      ← 被閘擋掉
+26  timer    -     A/3  creature/haunt        95.96    2.70   0.19    3590    0.4     2.6   usable
+6   timer    -     B/1  creature/haunt        75.68    1.58   0.35    5286    0.8     4.0   usable
+29  -        burn  B/0  creature/haunt         2.04    1.26   0.30   12824    6.4    14.8   usable(burning)
+10  timer    -     B/1  creature/haunt        77.08    1.18   0.36    5296    0.7     3.8   usable
+25  timer    -     B/1  creature/haunt        91.26    1.14   0.32    5031    0.4     2.6   usable
+4   timer    -     B/1  creature/haunt        62.78    0.75   0.37    5370    0.3     0.3   usable
+8   timer    -     B/1  creature/haunt        78.83    0.74   0.35    5319    0.4     0.9   usable
+51  hitstop  -     B/0  creature/elite        22.65    0.46   0.08    9847   26.6    66.5   tinyMask   ← 被閘擋掉
+19  timer    -     B/1  creature/haunt        89.57    0.22   0.31    4935    0.4     1.0   usable
+3   timer    -     A/0  layered/swarm         33.78   -0.15   0.43    6139    0.2     0.6   usable
+5   timer    -     A/0  layered/swarm         34.12   -0.36   0.43    6111    0.1     0.7   usable
+13  hitstop  -     A/0  layered/swarm         39.71   -0.52   0.46   10314    3.5     4.3   usable
+9   timer    -     A/0  layered/swarm         32.92   -1.08   0.42    5970    0.1     4.5   usable
+7   timer    -     A/0  layered/swarm         33.22   -1.58   0.42    6009    0.1     4.9   usable
+43  hitstop  -     B/0  creature/elite        11.77   -2.80   0.04    2183  112.8   242.7   tinyMask   ← 被閘擋掉
+14  -        burn  A/0  layered/swarm          0.59   -4.73   0.40   14880   23.6    59.4   usable(burning)
+35  -        burn  A/0  layered/swarm         -0.81   -6.53   0.49   13146   15.4    52.3   usable(burning)
+28  hitstop  -     A/0  creature/ward         21.65   -9.44   0.11    3308  256.6   475.6   moved      ← 被閘擋掉
+34  hitstop  -     B/7  creature/ward         -7.87  -13.12   0.17    3501  202.4   450.1   moved      ← 被閘擋掉
+
+─── 統計 ───
+可判樣本（valid，非燒毀）n = 13
+超過 +5 的：**只有 run 20 一筆**（5.85）；第二大是 run 26 的 2.70
+corr(move200, Δ200) = **0.642**（n=13）
+move200 ≤ 5 的 12 筆：Δ200 落在 −1.58 ~ +2.70（全部離門檻很遠）
+move200 > 5 的 1 筆：就是 run 20（move200 = 13.8）
+
+依皮／體型分群（可判樣本）
+  layered/swarm   n=5  min −1.58  中位 −0.52  max −0.15   ← 全部是負的
+  creature/haunt  n=8  min  0.22  中位  1.18  max  5.85   ← 唯一有正值的一群
+
+─── 「哪支招」這個問法在這裡不適用（照實寫）───
+R2 的刺激是**治具自己派的合成 ys:fx-hit**（--synth 預設開，見 dmg-readability 檔頭），
+不是任何一支招式的演出事件；它只帶 side/unit/ms，不帶 trId。
+所以 Δ200 這個數字**不歸屬於任何一支招**，能歸的軸是「被打的是哪一尊（皮／體型）」
+與「那一尊在 +200ms 之間移動了多少」。上面兩張表就是這兩個軸。
+
+─── 貢獻最多的像素統計量 ───
+back200MaskAbsMax（= max |maskD200|，即報告與 metrics.txt 印的「Δ200」）
+  ← 它是**對一組樣本取 max**的統計量，所以「貢獻最多」＝那一筆最大的樣本，也就是 run 20。
+  拿掉 run 20 之後這一欄會變成 2.70（< 5），R2sub 就會綠。
+  但這**不是主張該拿掉它**——這裡只追因、不判、不修（任務書要求）。
