@@ -166,7 +166,8 @@ t2 全表 18 列裡只有 1 列超標＝`swarmLastStand` 的殘旗 **0.789**（�
 4. **`--mateGap` 的雙向實測**（材料規格，不是判準）：
    `--count=2 --foe=xianji:elite:zuling:2` 同一組參數，
    `--mateGap` 不帶 ⇒ 我方兩尊**幾乎完全重疊、看起來像一尊**；`--mateGap=1.9` ⇒ 兩尊分得開、
-   施招者由光柱指認得出。兩張圖：`scratchpad/gap1/a01.png`（1.0）／`scratchpad/gap/a01.png`（1.9）。
+   施招者由光柱指認得出。兩張圖：`…-b2-evidence/mategap/gap-1.0.png` ／ `…/gap-1.9.png`
+   （指令：`blindread-sheet … --only=eliteSelfCut --tiers=2 --count=2 --foe=xianji:elite:zuling:2 [--mateGap=1.9] --label`）。
 
 5. **`w.sta` 為什麼要獨立通道（否則會恆真）**：`evalPhases` 的 `windup`／`react` 量的是 `w.mo`。
    姿態若寫進 `w.mo`，react 那條在「施招者自己擺姿勢」時就成立 ⇒ 恆真；而且既有編舞多半已經在同一條
@@ -181,7 +182,8 @@ t2 全表 18 列裡只有 1 列超標＝`swarmLastStand` 的殘旗 **0.789**（�
 | `…/eliteSelfCut/sheet-t2.png` | 6 幀連拍，t2＝900ms |
 | `…/eliteSelfCut/sheet-t2-closeup.png` | t2 近景（`--camdist=2.4`） |
 | `…/eliteSelfCut/real-seed3-eliteSelfCut.png` | ★**真實對決**裡獻祭刀的衝擊拍（seed 3、20 場、`--traitshot`）★ |
-| `…/eliteSelfCut/rec-t2/` | `proto-record` 的逐幀 PNG ＋ draw call 記錄 JSON |
+| `…/eliteSelfCut/rec-t2/eliteSelfCut-base-t2-record.json` | `proto-record` 的 draw call／三角形記錄（逐幀 PNG 已刪，畫面看 sheet 那三張） |
+| `…/mategap/gap-1.0.png`、`…/gap-1.9.png` | `--mateGap` 的雙向對照（§1.6 第 4 點） |
 | `…/p3-t1/`、`…/p3-t2/` | P3 的 A／B 凍幀、`shots.json`、`metrics.txt` |
 | `…/prop-size/` | Q5 尺寸記錄表（t1／t2 的 tsv＋json） |
 
