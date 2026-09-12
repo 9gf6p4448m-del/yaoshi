@@ -302,7 +302,7 @@ export const MOVE_SPEC = {
   wardFirst: { prop: '甲', act: '張', react: '升', stance: '下沉', anchor: 'allies' }, // 石雕眼＋腳下光柱；眼瞼全開＝張（下沉 down ≠ 升 up）
   boltGamble: { prop: '丁', act: '張', react: '壓', stance: '舉臂', anchor: 'foe' }, // 鋸齒雷片；§C「撐」＝張（舉臂 up ≠ 壓 down）
   swarmHalfSplash: { prop: '丙', act: '躍', react: '升', stance: '下沉', anchor: 'allies' }, // 三道平行浪弧；躍前先壓浪（下沉 down ≠ 升 up）
-  swarmThorn: { prop: '甲', act: '沉', react: '退' }, // 獠牙反向彈回；§C「刨」正規化成沉
+  swarmThorn: { prop: '甲', act: '沉', react: '退', stance: '下沉', anchor: 'foe' }, // 獠牙扎中後反向彈回；§C「刨」正規化成沉（下沉 down ≠ 退 back）
   // ★祖靈範本招（2026-09-13 階段 A）★ 割祭＝頸下彎屈身就刃 ⇒ stance 下沉（down）≠ react 升（up）
   eliteSelfCut: { prop: '甲', act: '割', react: '升', stance: '下沉', anchor: 'allies' }, // 黑曜石刃；自傷、本隊上抬
   wardHpAll1: { prop: '甲', act: '沉', react: '升', stance: '下沉', anchor: 'allies' }, // 六塊岩繞一圈；屈膝沉身（下沉 down ≠ 升 up）

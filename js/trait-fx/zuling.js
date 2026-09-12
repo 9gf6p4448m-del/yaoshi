@@ -788,55 +788,116 @@ const MOVES = {
   },
 
   /* 山豬牙飾・獠牙反擊（boartusk，小兵×1）：本隊每拍第一次被擊中時反傷 2。
-     編舞：低頭挑牙——頭壓到胸前、前蹄刨地、耳朵後貼、牙盤慢轉發亮（0–260ms，地上刨出一圈土痕）
-          → 頂撞（整尊前衝、頭往上挑）→ 牙尖射出一道獠光刺中對面最壯那隻（410ms）
-          → 退回原位、耳朵彈回（到 860ms）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 7 列＋§B1＋§A9；
+     `MOVE_SPEC.swarmThorn = { 甲, 沉, 退, stance:'下沉', anchor:'foe' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝沉**（§C「刨」正規化成沉）：低頭 `NeckRoot`／`HeadRoot`／`Skull`／`Muzzle` 刨地
+         ＋`Withers`／`Barrel` 拱背、`DiscRoot`／`DiscFace` 牙盤轉亮。
+       **道具**＝甲 骨牙石器：**兩根獠牙**（`tusk` ×2，`st.paperProps` 的 `shape:'emblem'`＝1 draw call）
+         ＋打中那隻身上一枚**牙痕印**。
+       **受招方反應＝退**：`st.flinch` 擊退。
+
+     ★一處與 §C 散文不同，交製作人覆核★：§C 寫「獠牙**從目標身上反向彈回出招方**、衝擊拍
+     『獠牙反向飛到一半』」。階段 A 簽字裁定① 之後，**衝擊拍那一瞬要量得出道具落在誰身上**，
+     而「飛到一半」在 2v2 裡量到的是誰完全看站位——那正是 P4 三輪的病因。
+     所以改成：獠牙在**衝擊拍扎進對手**（anchor `foe` 量得到），隨即在 `react` 段**反向彈回**
+     插在施招者腳前。§C 的區分點（唯一反向飛行＝反擊的因果方向）保留在餘韻那一段。
+     ★拖線★：打擊類保留。★落點 anchor＝`foe`★。
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down）≠ react「退」（back）；腳下**垂直光柱**。 */
   swarmThorn(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const pack = st.byBody(st.actor, 'swarm');
-    const hog = pack.length ? pack[0] : st.actor[0];
-    const foe = st.biggest(st.target) || st.target[0] || null;
-    const fwd = st.toward(hog, new THREE.Vector3());
-    const foot = st.foot(hog, new THREE.Vector3());
-    st.tween({ ms: 260, ease: 'out', update(t, e) {
-      st.rot(hog, 'NeckRoot', 0.3 * e); st.rot(hog, 'NeckMid', 0.26 * e); st.rot(hog, 'HeadRoot', 0.34 * e);
-      st.rot(hog, 'Skull', 0.16 * e); st.rot(hog, 'Muzzle', 0.12 * e);
-      st.rot(hog, 'LEar1Ea', -0.4 * e, 0.2 * e, 0); st.rot(hog, 'REar1Ea', -0.4 * e, -0.2 * e, 0);
-      st.rot(hog, 'LFront1Kn', 0.5 * e); st.rot(hog, 'RFront1Kn', 0.2 * e);
-      st.rot(hog, 'LBack1Kn', 0.3 * e); st.rot(hog, 'RBack1Kn', 0.3 * e);
-      st.rot(hog, 'Withers', 0.12 * e); st.rot(hog, 'Barrel', 0.1 * e);
-      st.rot(hog, 'DiscRoot', 0, 2.4 * e, 0);
-      st.scaleBone(hog, 'DiscFace', 1 + 0.5 * e);
-      st.move(hog, -fwd.x * 0.06 * e, 0, -fwd.z * 0.06 * e);
-      st.rim(hog, 1 + 0.9 * e);
+    const boar = pack.length ? pack[0] : st.actor[0];
+    const prey = st.biggest(st.target) || st.target[0] || null;
+    const disc = st.worldOf(boar, 'DiscFace', new THREE.Vector3());
+    if (!disc.lengthSq()) { st.worldOf(boar, null, disc); disc.y += 0.35; }
+    disc.add(st.camOff(0.9));
+    const to = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : disc.clone().addScaledVector(st.dir, 2.2);
+    if (prey && !to.lengthSq()) st.worldOf(prey, null, to);
+    to.add(st.camOff(1.1));
+    // 彈回的落點：施招者腳前（反擊的因果方向；不跨中線）
+    const back = st.foot(boar, new THREE.Vector3()).addScaledVector(st.dir, 0.26).add(st.camOff(1.4));
+    back.y += 0.16;
+
+    // ── 甲 兩根獠牙（1 draw call）──
+    const TK = 2;
+    const tusks = st.paperProps(st.kind, TK, { anchor: 'foe', shape: 'emblem', color: C.line, inkColor: C.ink, opacity: 0, k: 0.85, depth: 0.18, warp: 0.12 });
+    tusks.obj.position.copy(disc);
+    const _e = new THREE.Euler();
+    const pair = [{ x: -0.20, rz: 0.30, s: 0 }, { x: 0.20, rz: -0.30, s: 0 }];
+    const writeTusks = (k) => {
+      for (let i = 0; i < TK; i++) {
+        const g = pair[i], it = tusks.items[i];
+        it.p.set(g.x * (0.4 + 1.1 * k), 0, 0);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * (0.4 + 1.6 * k)));
+        it.s = g.s;
+      }
+      tusks.write();
+    };
+    writeTusks(0);
+
+    // ── 打中那隻身上的牙痕印（anchor foe）──
+    const mark = prey ? st.paperStamp(st.kind, to, { anchor: 'foe', color: C.line, inkColor: C.ink,
+      opacity: 0, depth: 0.16, warp: 0.14, tiltDeg: 12, yawDeg: -20, follow: prey, at: 'chest', off: st.camOff(1) }) : null;
+
+    /* ① 刨地（windup）：低頭刨地、拱背，牙盤轉亮；獠牙在牙盤上亮相。 */
+    st.groundMark(boar, { h: 1.14, w: 0.26, taper: 0.42, peak: 0.95, push: 0.70 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(boar, '下沉', e);
+        st.rot(boar, 'NeckRoot', 0.30 * e); st.rot(boar, 'HeadRoot', 0.34 * e);
+        st.rot(boar, 'Skull', 0.22 * e); st.rot(boar, 'Muzzle', 0.16 * e);
+        st.rot(boar, 'Withers', -0.16 * e); st.rot(boar, 'Barrel', -0.12 * e);
+        st.rot(boar, 'DiscRoot', 0, 0, -0.9 * e); st.rot(boar, 'DiscFace', 0, 0, 0.7 * e);
+        st.rim(boar, 1 + 1.3 * e);
+        st.worldOf(boar, 'DiscFace', tusks.obj.position); tusks.obj.position.add(st.camOff(0.9));
+        st.alpha(tusks.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < TK; i++) pair[i].s = Math.max(0, Math.min(1, (e - 0.12 * i) * 2.6));
+        writeTusks(0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 扎（travel）：兩根獠牙從牙盤射出、扎進對手（打擊類保留拖尾）。 */
+    const from = disc.clone();
+    st.trail(tusks.obj, from, to, { ms: TL, delay: T0, ease: 'strike', color: C.line, opacity: 0.8,
+      update(t, e) { writeTusks(e); },
+      done() {
+        /* ★衝擊拍★：牙盤轉亮到頂＝獠牙扎中＝對手同幀後退（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(to, { power: 0.9, n: 52, color: C.hot });
+        st.punch(0.42);
+      } });
+    // 頂撞（祖靈＝靜→瞬發）：頭往上挑
+    st.tween({ ms: TL * 0.55, delay: T0 + TL * 0.4, ease: 'snap', update(t, e) {
+      st.rot(boar, 'NeckRoot', 0.30 - 0.60 * e); st.rot(boar, 'HeadRoot', 0.34 - 0.66 * e);
+      st.rot(boar, 'Skull', 0.22 - 0.40 * e);
+      st.rim(boar, 1 + 1.3 + 1.6 * e);
     } });
-    st.at(260, () => {
-      const dirt = st.disc(foot, 0.26, { opacity: 0.5 });
-      dirt.scale.setScalar(0.3);
-      st.tween({ ms: 360, ease: 'outQuint', update(t, e) { dirt.scale.setScalar(0.3 + 1.3 * e); dirt.material.opacity = 0.5 * (1 - e); } });
-    });
-    st.at(410, () => {
-      const tip = st.worldOf(hog, 'Nose', new THREE.Vector3());
-      const to = foe ? st.worldOf(foe, null, new THREE.Vector3()) : tip.clone().addScaledVector(st.dir, 1.6);
-      const spike = st.bolt(tip, to, { jag: 0.07, segs: 5, opacity: 1 });
-      st.fade(spike, { ms: 200, from: 1, to: 0 });
-      st.burst(to, { power: 0.85, n: 46 });
-      st.punch(0.35);
-      if (foe) st.flinch([foe], { strength: 1.2, burst: false });
-    });
-    st.tween({ ms: 600, delay: 260, ease: 'linear', update(t) {
-      const k = 1 - st.EASE.out(Math.min(1, t / 0.3));
-      const c = st.EASE.snap(Math.min(1, t / 0.78));
-      const up = st.EASE.pulse(Math.min(1, t / 0.62));
-      st.rot(hog, 'NeckRoot', 0.3 * k - 0.3 * up); st.rot(hog, 'NeckMid', 0.26 * k - 0.26 * up);
-      st.rot(hog, 'HeadRoot', 0.34 * k - 0.42 * up); st.rot(hog, 'Skull', 0.16 * k - 0.2 * up); st.rot(hog, 'Muzzle', 0.12 * k - 0.14 * up);
-      st.rot(hog, 'LEar1Ea', -0.4 * k, 0.2 * k, 0.3 * up); st.rot(hog, 'REar1Ea', -0.4 * k, -0.2 * k, -0.3 * up);
-      st.rot(hog, 'LFront1Kn', 0.5 * k - 0.4 * c); st.rot(hog, 'RFront1Kn', 0.2 * k - 0.4 * c);
-      st.rot(hog, 'LBack1Kn', 0.3 * k + 0.2 * c); st.rot(hog, 'RBack1Kn', 0.3 * k + 0.2 * c);
-      st.rot(hog, 'Withers', 0.12 * k - 0.16 * up); st.rot(hog, 'Barrel', 0.1 * k - 0.1 * up);
-      st.rot(hog, 'DiscRoot', 0, 2.4 * k + 7.5 * c, 0);
-      st.scaleBone(hog, 'DiscFace', 1 + 0.5 * k + 0.7 * c);
-      st.move(hog, fwd.x * (0.34 * c - 0.06 * k), 0.04 * up, fwd.z * (0.34 * c - 0.06 * k));
-      st.rim(hog, 1 + 0.9 * k + 1.5 * c);
+    if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.5, burst: false });
+
+    /* ③ 反彈（react）：★§C 的區分點★——獠牙從對手身上**反向彈回**、插在施招者腳前，
+       這是全 27 支唯一反向飛行的道具（因果方向＝反擊）。 */
+    st.tween({ ms: RL * 0.55, delay: R0 + RL * 0.12, ease: 'out', update(t, e) {
+      tusks.obj.position.lerpVectors(to, back, e);
+      writeTusks(1 - 0.5 * e);
+    } });
+    st.fade(tusks.obj, { ms: RL * 0.3, delay: R0 + RL * 0.65, from: 0.95, to: 0 });
+    if (mark) {
+      st.fade(mark, { ms: RL * 0.3, delay: R0, from: 0, to: 1 });
+      st.fade(mark, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
+    }
+
+    // 收勢：頭頸與牙盤回正
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.6));
+      st.rot(boar, 'NeckRoot', -0.30 * k); st.rot(boar, 'HeadRoot', -0.32 * k);
+      st.rot(boar, 'Skull', -0.18 * k); st.rot(boar, 'Muzzle', 0.16 * k);
+      st.rot(boar, 'Withers', -0.16 * k); st.rot(boar, 'Barrel', -0.12 * k);
+      st.rot(boar, 'DiscRoot', 0, 0, -0.9 * k); st.rot(boar, 'DiscFace', 0, 0, 0.7 * k);
+      st.rim(boar, 1 + 2.9 * k);
     } });
   },
 
@@ -1093,36 +1154,8 @@ export const SHORT = {
   /* swarmHalfSplash｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
   swarmHalfSplash: MOVES.swarmHalfSplash,
 
-  /* 獠牙反擊｜辨識：低頭挑牙、牙尖射出一道獠光 */
-  swarmThorn(st) {
-    const K = st.ms / 260;
-    const hog = st.actor[0];
-    const prey = st.biggest(st.target) || st.target[0] || null;
-    const nose = st.worldOf(hog, 'Nose', new THREE.Vector3());
-    const to = prey ? st.worldOf(prey, null, new THREE.Vector3()) : nose.clone().addScaledVector(st.dir, 1.8);
-    const dirt = st.disc(st.foot(hog, new THREE.Vector3()), 0.28, { opacity: 0 });
-    st.tween({ ms: 85 * K, ease: 'out', update(t, e) { // 低頭挑牙、刨地、牙盤慢轉
-      st.rot(hog, 'NeckRoot', 0.24 * e); st.rot(hog, 'HeadRoot', 0.2 * e); st.rot(hog, 'Skull', 0.14 * e);
-      st.rot(hog, 'DiscFace', 0, 1.6 * e, 0); st.move(hog, 0, 0, -0.05 * e); st.rim(hog, 1 + 0.6 * e);
-    } });
-    st.fade(dirt, { ms: 85 * K, from: 0.45, to: 0 });
-    st.tween({ ms: 85 * K, delay: 85 * K, ease: 'strike', update(t, e) { // 頂撞：前衝、頭往上挑
-      st.move(hog, 0, 0.02 * e, 0.22 * e);
-      st.rot(hog, 'NeckRoot', 0.24 - 0.5 * e); st.rot(hog, 'HeadRoot', 0.2 - 0.44 * e); st.rot(hog, 'Skull', 0.14 - 0.3 * e);
-      st.rim(hog, 1.6 + 1.4 * e);
-    } });
-    // 牙尖射出一道獠光：同 boltGamble，mesh 頂層先建好、opacity 0，靠 delay 才現形
-    const tusk = st.bolt(nose, to, { jag: 0.08, segs: 5, seed: 5, opacity: 0 });
-    st.fade(tusk, { ms: 58 * K, delay: 150 * K, from: 1, to: 0 });
-    st.tween({ ms: 40 * K, delay: 150 * K, ease: 'out', update(t, e) { st.rim(hog, 3 - 0.6 * e); },
-      done() { st.burst(to, { power: 0.8, n: 36 }); st.punch(0.4); } });
-    if (prey) st.flinch([prey], { delay: 152 * K, strength: 1.15, burst: false });
-    st.tween({ ms: 65 * K, delay: 165 * K, ease: 'inout', update(t, e) { // 退回原位
-      const k = 1 - e;
-      st.move(hog, 0, 0.02 * k, 0.22 * k); st.rot(hog, 'NeckRoot', -0.26 * k); st.rot(hog, 'HeadRoot', -0.24 * k);
-      st.rot(hog, 'Skull', -0.16 * k); st.rim(hog, 1 + 2 * k);
-    } });
-  },
+  /* swarmThorn｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  swarmThorn: MOVES.swarmThorn,
 
   /* 割祭｜tier 1 短版 = 完整版**同一支函式**（v0.55）。
      時間軸全部從 st.beat＝BEAT[tier] 換算，260／900／1400 走同一份新元素（徽記、拖尾、印記），
