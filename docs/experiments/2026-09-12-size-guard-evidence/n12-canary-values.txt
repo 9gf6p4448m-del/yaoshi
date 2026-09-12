@@ -1,0 +1,24 @@
+# N12：canary 一次蓋三表（2026-09-12）
+
+## 健康態（vocab.js 未改）
+$ node -e "import(vocab.js).then(({ICON})=>...)"
+  sizeOf(knife)     = 0.56
+  flatSizeOf(hat)   = 0.2
+  markSizeOf(seal)  = 0.2
+
+## 舊 canary（只改 sizeOf() —— 覆審 r3 N12 抓到的那個缺口；在同一份新 vocab.js 上做）
+$ node -e "...ICON.sizeOf=()=>0.02; 印三個值"
+  sizeOf(knife)     = 0.02
+  flatSizeOf(hat)   = 0.2   ← 沒被打到
+  markSizeOf(seal)  = 0.2   ← 沒被打到
+
+## 新 canary（改共同出口 ICON._resolve，＝README 寫的程序）
+$ 把 `_resolve(kind, tableName, dflt) {…}` 換成 `_resolve() { return 0.02; }` 後：
+  sizeOf(knife)     = 0.02
+  flatSizeOf(hat)   = 0.02
+  markSizeOf(seal)  = 0.02
+
+## 用改壞前的備份副本還原後（不做反向 sed）
+  sizeOf(knife)     = 0.56
+  flatSizeOf(hat)   = 0.2
+  markSizeOf(seal)  = 0.2

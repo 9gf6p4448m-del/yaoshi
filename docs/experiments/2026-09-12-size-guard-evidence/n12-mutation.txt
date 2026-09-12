@@ -1,0 +1,4 @@
+markSizeOf 繞過 _resolve → exit 1
+  FAIL  ICON._resolve 是三張尺寸表的共同出口（L3 canary 一次蓋三表，覆審 r3 N12） — canary 下的 markSizeOf(seal)（有 markByKind 覆寫，舊寫法打不到）：得到 0.2，預期 0.02
+  結果：15 綠 ／ 1 紅
+還原後 → exit 0 / 結果：16 綠 ／ 0 紅

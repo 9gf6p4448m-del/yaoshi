@@ -8,6 +8,8 @@
 //   --root  http.server 的根目錄（預設＝repo 根；驗鑑別力時給 add71c4 的 worktree）
 //   --no3d  擋掉 js/renderer.js（3D 不載）→ 驗 DOM 退路（W-A6）
 //   --loadmax  進頁前把 PW_FX.LOAD_MAX_MS 改掉（W-A5 逾時分支用 1）
+// 另外（覆審 r4 MEDIUM-3）：收工時從 window.__yaoshi3d.traitFx.sizeGuard() 取回徽記世界尺寸斷言，
+// 三態寫進 out.json 的 sizeState（'ok'／'n\u002fa'＝這一跑沒演到有徽記的招／'fail'），fail 時 exit 非 0。
 // 錄的東西（全部落在 out.json）：console／pageerror／requestfailed；每場 ys:duel 的 armies（含 ab）；
 // ys:duel-loading 序列；每個 ys:fx-burn 的 handled 與燒完後該尊 visible；lunge 前後勝方的 clip；
 // 對決中兩次 animTime 取樣；#duelBeat 首次非空與 FXC.load.readyAt 的時戳；FXC 計數器。
@@ -207,7 +209,25 @@ export async function drive(page, url, opts = {}) {
     }
     await page.waitForTimeout(250);
   }
-  const rec = await page.evaluate(() => ({ rec: window.__rec, fxc: window.__ysFxCount || null, ys3d: !!window.__yaoshi3d, gl: window.__yaoshi3d ? window.__yaoshi3d.glName : null, ver: (document.getElementById('verLine') || {}).textContent }));
+  /* ★徽記世界尺寸斷言（覆審 r4 MEDIUM-3）★
+     凍結檔 L3 指名「批 1–3 的正式 L3 走 duel-drive」，而這支治具原本完全不讀那筆記帳
+     ⇒ 正式 L3 那一格對 N11 零涵蓋。現在從 window.__yaoshi3d.traitFx.sizeGuard() 取回
+     （js/renderer.js:182 已經把 traitFx 掛上去了，不必動 index.html）。
+     三態同 traitfx-drive：made===0＝這一跑沒演到有徽記的招（'n/a'，不得當成通過）。 */
+  const rec = await page.evaluate(() => {
+    let sg = null;
+    try { const t = window.__yaoshi3d && window.__yaoshi3d.traitFx; sg = t && typeof t.sizeGuard === 'function' ? t.sizeGuard() : null; } catch (e) { sg = null; }
+    return { rec: window.__rec, fxc: window.__ysFxCount || null, ys3d: !!window.__yaoshi3d, gl: window.__yaoshi3d ? window.__yaoshi3d.glName : null, ver: (document.getElementById('verLine') || {}).textContent, sizeGuard: sg };
+  });
+  const sg = rec.sizeGuard;
+  /* ★r2 M4：`--fxvocab=1`（網址帶 `fxvocab=1`）時「沒量到」就是紅★
+     覆審 r2 實測：不帶 seed 跑 16 場對決、44 次 trait 事件，四支示範招一支都沒抽到 ⇒ `n/a`、exit 0。
+     「exit 0」不等於「量到了」；凍結檔 L3 指名的正式量測走這一支，所以這裡把它判紅，
+     並要求正式 L3 固定 `&seed=<抽得到徽記招的種子>`（README 記了實測的那一顆）。 */
+  rec.fxvocab = /(\?|&)fxvocab=1(&|$)/.test(url);
+  rec.sizeState = !sg ? (rec.ys3d ? 'fail' : 'n/a')
+    : sg.made === 0 ? (rec.fxvocab ? 'fail' : 'n/a')
+      : (sg.violations === 0 && sg.locked === sg.made && sg.audits > 0 && sg.tweenErrors === 0) ? 'ok' : 'fail';
   return { ...rec, url, errors: errs, lastMainText: lastText, shots, elapsedMs: Date.now() - t0 }; // R1 M6：url（含 seed）落檔，數字才複現得了
 }
 
@@ -229,6 +249,17 @@ if (isMain) {
     console.log(JSON.stringify({ out, duels: d.length, errors: r.errors.length, ys3d: r.ys3d, abOnAllUnits: abOk,
       burn: r.fxc && r.fxc.burn, burnFig: r.fxc && r.fxc.burnFig, burnDom: r.fxc && r.fxc.burnDom, trait: r.fxc && r.fxc.trait, traitFig: r.fxc && r.fxc.traitFig, load: r.fxc && r.fxc.load, ver: r.ver,
       duelsMs: d.map((x) => [x.dur, (x.trait1 || 0) - (x.trait0 || 0), (x.traitFig1 || 0) - (x.traitFig0 || 0), x.skipped ? 'S' : '']) }));
+    console.log(`徽記世界尺寸斷言：${r.sizeState}` + (r.sizeGuard
+      ? `　違規 ${r.sizeGuard.violations}／鎖上 ${r.sizeGuard.locked} of 產出 ${r.sizeGuard.made}`
+        + `／稽核 update ${r.sizeGuard.auditsUpdate}＋draw ${r.sizeGuard.auditsDraw}／tween 安靜死掉 ${r.sizeGuard.tweenErrors}`
+        + (r.sizeGuard.worldRange ? '　世界寬度 ' + JSON.stringify(r.sizeGuard.worldRange) : '')
+      : '　（拿不到 traitFx.sizeGuard()）')
+      + (r.sizeState === 'n/a' ? '　★這一跑沒演到用徽記的招＝未量到，不得當成通過★' : '')
+      + (r.sizeState === 'fail' && r.sizeGuard && r.sizeGuard.made === 0
+        ? '　★★ 帶了 fxvocab=1 卻一次都沒量到＝判紅（覆審 r2 M4）：正式 L3 要固定 &seed=，見 tests/tools/README.md ★★' : ''));
+    if (r.sizeGuard && r.sizeGuard.msg) console.log('  ! ' + String(r.sizeGuard.msg).slice(0, 300));
+    if (r.sizeGuard && r.sizeGuard.tweenErrorMsg) console.log('  ! tween 安靜死掉：' + String(r.sizeGuard.tweenErrorMsg).slice(0, 300));
+    if (r.sizeState === 'fail') { console.log('★★ 徽記世界尺寸有第二份來源（或鎖／稽核沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1; }
     if (r.errors.length) console.log(r.errors.slice(0, 10).join('\n'));
     await browser.close();
   } finally { srv.kill(); }

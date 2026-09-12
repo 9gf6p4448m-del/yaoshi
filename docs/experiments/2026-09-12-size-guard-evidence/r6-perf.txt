@@ -1,0 +1,27 @@
+## r2 修補批的效能（交錯跑：base／new 一輪一支，共 5 輪；基準＝main 6defe13）
+
+指令：node tests/tools/duel-perf.mjs perf <out>.json --uncap --port=898x [--root=scratchpad/sg3/base]
+基準樹＝git archive main（6defe13）| tar -x -C scratchpad/sg3/base
+
+  base  n=5  rendersPerSec [466, 507, 539.3, 540, 548.2]
+        中位 539.3  全距 466.0–548.2
+        #1 fps=548.2 draw=968 visible=16
+        #2 fps=540 draw=968 visible=16
+        #3 fps=507 draw=958 visible=16
+        #4 fps=466 draw=878 visible=14
+        #5 fps=539.3 draw=968 visible=16
+  new   n=5  rendersPerSec [510.1, 519.3, 524.4, 533.6, 551.8]
+        中位 524.4  全距 510.1–551.8
+        #1 fps=519.3 draw=926 visible=15
+        #2 fps=533.6 draw=968 visible=16
+        #3 fps=524.4 draw=966 visible=16
+        #4 fps=551.8 draw=978 visible=16
+        #5 fps=510.1 draw=946 visible=15
+
+  比值（new 中位 / base 中位）＝ 0.9724　（門檻 ≥0.95）
+
+## draw call（依 visible 分層；02 §2.1 修訂八：不同 visible 不可比）
+  visible=14 base  [878]
+  visible=15 new   [926, 946]
+  visible=16 base  [958, 968, 968, 968]
+  visible=16 new   [966, 968, 978]

@@ -53,17 +53,55 @@ export function beatOf(tier, ms) {
  *  ★L3 的 canary 打在 `sizeOf()` 的回傳值上★：把它改成固定回 0.02，用到徽記的招必須全部判紅
  *  （byKind 有覆寫的四支也逃不掉；只改 `size` 只打得到走預設值的那 23 支）。
  *
- *  ★覆審 r2 N1／N7：防線改成按「危險的效果」寫★
- *  危險效果＝**徽記的實際世界尺寸出現第二份來源**。它能發生的路徑只有兩條：
- *    (a) 把數字餵進 `st.icon()`／`st.icons()`／`st.mark()` 的 `o.size`
- *        → 三支**一律拒收 `o.size`**（傳了就 throw，訊息指回本表），這條路由建構上消失；
- *    (b) 直接對徽記 mesh 做 `scale.setScalar(<數字>)`／`scale.set(...)`
- *        → `tests/fxvocab.test.mjs` 的掃描要求「徽記 mesh 的縮放引數必須引用
- *          `st.iconSize`／`st.iconFlatSize`／`st.markSize`／`ICON.*`」，否則判紅。
- *  r2 實測的三種繞法（`const S = 0.56` ＋ `{size:S}`／`setScalar(S * …)`／`setScalar(0.56 * …)`）
- *  因此各自被 throw 或掃描擋下（`--mutate=4` 就是其中一種的回歸案例）。 */
+ *  ★覆審 r3 N11：防線從「涵蓋」改成「收斂」★（前身是 r2 N1／N7 的按已知語法形狀掃描）
+ *  危險效果＝**徽記的實際世界尺寸出現第二份來源**。r2 的兩道防線是
+ *  (a) 三支入口拒收 `o.size`（建構上消失，仍在）＋(b) 測試掃描「縮放引數必須引用 ICON」。
+ *  r3 實測 (b) 有四條繞法（別名／`multiplyScalar`／`scale.x=`／子節點與索引取用）靜默漏掉，
+ *  因為它按**已知語法形狀**寫。
+ *
+ *  ★r4 修補批：r3 自己也只做到一半，而且宣稱過頭了★
+ *  r3 鎖的是 `Object3D.scale` 那顆 Vector3，卻在這裡寫「分母歸一、涵蓋自然 100%」。
+ *  覆審 r4 實測**另外四條**繞法，r3 的三道防線全綠：
+ *    A 把徽記 add 進一個縮放過的父 Group（世界寬 0.5186 → 0.0353）
+ *    B 置換 `geometry`（→ 0.0185）　C `matrixAutoUpdate=false` ＋自寫 `matrix`（→ 0.0259）
+ *    E `Object.defineProperty` 蓋掉被鎖的 accessor（r3 寫了 `configurable: true`）
+ *  其中 C 的變形（每幀 `matrix.compose(…, Vector3(0.52))`）讓尺寸與本表**完全脫鉤**，
+ *  L3 canary 之下 `ok:true`——恆綠儀式原樣復現。教訓：**鎖住一個屬性 ≠ 收斂一個效果**。
+ *
+ *  ★現況（四道防線，權威描述在 `tests/tools/README.md`，這裡只給要點）★
+ *    ① 入口拒收 `o.size`；
+ *    ② 執行期鎖：`scale`（含屬性本身與 x／y／z）、`geometry`、`matrixAutoUpdate`、
+ *       `matrixWorldAutoUpdate`、`userData.fxIconBase`／`fxIconKind` 一律 `configurable: false`；
+ *    ③ **每幀世界尺寸稽核**（`js/trait-fx.js` 的 `auditSizes`）——量效果本身：
+ *       `updateWorldMatrix` → `matrixWorld.decompose()` 的世界縮放，必須等於積木自己最後一次
+ *       合法寫進去的值（祖先鏈連乘），另查 geometry 身分與未登記祖先的縮放。A／B／C 都逃不掉；
+ *    ④ 原始碼掃描（`tests/fxvocab.test.mjs`）：編舞不得碰徽記的 scale／geometry／matrix／parent…。
+ *  編舞唯一的合法縮放介面是 `st.iconScale(mesh, k)`＝`ICON 表基準 × k`，k 須落在 `scaleRange`。
+ *
+ *  ★r2（第 2 輪覆審）：連「新的繞法要由 ③ 接住」這句也是假的，已刪★
+ *  ③ 當時掛在 `traitFx.update` 的最後，而 three 在 `render()` 內會**再重算一次** `matrixWorld`、
+ *  然後才呼叫 `onBeforeRender` ⇒ 在那個鉤子裡改矩陣，畫出來的是改過的、稽核量到的是沒改過的
+ *  （實測 L3 canary `area 0.8522／ok:true`，恆綠儀式第三次復現）。**按效果寫不會自動等於普遍成立，
+ *  量測位置錯了就什麼都不是。** 現在 ③ 掛在每一片徽記自己的 `onAfterRender` 上
+ *  ——three 的順序是 `onBeforeRender → modelViewMatrix ← matrixWorld → draw → onAfterRender`，
+ *  所以那裡的 `matrixWorld` 就是剛送進 GPU 的那一顆；兩個鉤子本身也一併鎖住。
+ *
+ *  ★能說的只有「每一道守得住什麼」，以及**已知未涵蓋**（權威清單在 `tests/tools/README.md`）★：
+ *    ③ 只看登記表上的物件（手造徽記由新增的場景掃描補）、只驗世界**縮放**與 geometry 內容指紋，
+ *    不驗材質／不驗位置／不驗畫面上真的長怎樣（那是 L3 與盲讀的事）。
+ *
+ *  ★覆審 r3 N12：canary 的共同入口＝`ICON._resolve()`★
+ *  L3 的 canary 要「一次打到三張表」，所以 `sizeOf`／`flatSizeOf`／`markSizeOf` 一律走 `_resolve`。
+ *  canary 程序（`tests/tools/README.md` 與 `tests/tools/fx-contrast.mjs` 檔頭同一份）：
+ *  把 `_resolve` 改成 `_resolve() { return 0.02; }`，三者同時變 0.02，
+ *  主視覺是貼桌陣（`flatByKind`）或印記（`markByKind`）的招也逃不掉。 */
 export const ICON = {
   size: 0.44, outlineW: 0.05, billboardTiltDeg: 12, markSize: 0.30,
+  /** ★`st.iconScale(mesh, k)` 合法的相對倍率區間（覆審 r4 修補批）★
+   *  它不是尺寸，是「呼吸縮放」允許的倍率上下限——四支示範招實際用到 0.35～1.9。
+   *  沒有這個區間，`st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門（合法入口自己變成第二份來源）。
+   *  要超出區間代表這個 kind 的**尺寸**該改，請改 byKind／flatByKind／markByKind，不要調這裡。 */
+  scaleRange: [0.2, 2.2],
   /** 逐 kind 的本體尺寸覆寫（沒列出的 kind 走 size 預設）。
    *  四個數字＝批 0 四支示範招原本寫死的 SZ，搬家不改值：
    *  knife 獻祭刀 0.56／bell 千里眼銅鈴 0.46／seal 虎爺印 0.62／hat 魔神仔紅帽 0.40。 */
@@ -75,13 +113,28 @@ export const ICON = {
    *  seal 0.20＝虎爺印原本寫在編舞裡的 `stamp.scale.setScalar(0.2 * (1.9 - 0.9*e))` 那個 0.2
    *  （覆審 r2 N1/N7 抓到的最後一處第二來源），搬家不改值：實際演出仍是 0.2 ×(1.9→1.0)。 */
   markByKind: { seal: 0.20 },
+  /** ★三張表的共同出口（覆審 r3 N12）★——`sizeOf`／`flatSizeOf`／`markSizeOf` 一律經過這裡。
+   *  L3 的 canary 就打在它身上（改成固定回 `0.02`），一行、一個檔，三張表一起中。
+   *  ★不得讓任何一支繞過 `_resolve` 直接讀表★：那就是 N12 抓到的病——canary 打 `sizeOf()` 時
+   *  `markByKind`（seal 0.20）與有覆寫的 `flatByKind`（hat 0.20）完全沒被打到，
+   *  主視覺是印記或貼桌陣的招在 canary 下照樣綠。
+   *  `tests/fxvocab.test.mjs` 有一條測試在釘這件事（換掉 `_resolve` ⇒ 三者都要跟著變）。 */
+  _resolve(kind, tableName, dflt) { const v = this[tableName][kind]; return v === undefined ? dflt : v; },
   /** 這個 kind 的徽記本體尺寸（世界單位）。 */
-  sizeOf(kind) { const v = this.byKind[kind]; return v === undefined ? this.size : v; },
-  /** 這個 kind 貼桌副件的尺寸（世界單位）。 */
-  flatSizeOf(kind) { const v = this.flatByKind[kind]; return v === undefined ? this.sizeOf(kind) : v; },
+  sizeOf(kind) { return this._resolve(kind, 'byKind', this.size); },
+  /** 這個 kind 貼桌副件的尺寸（世界單位）；沒有 flat 覆寫就退回本體尺寸（同樣經 `_resolve`）。 */
+  flatSizeOf(kind) { return this._resolve(kind, 'flatByKind', this.sizeOf(kind)); },
   /** 這個 kind 印記的尺寸（世界單位）。與 sizeOf 同一張表家族＝印記不再是繞過本檔的第二條路（N7）。 */
-  markSizeOf(kind) { const v = this.markByKind[kind]; return v === undefined ? this.markSize : v; },
+  markSizeOf(kind) { return this._resolve(kind, 'markByKind', this.markSize); },
 };
+
+/* ★r2 L1：三張尺寸表與倍率區間凍住★
+   覆審 r2 實測：編舞動態 import 拿到的是**同一個 module instance**，`ICON.byKind.knife = 0.02`
+   執行期改得動、四道防線全綠。判斷上那不算「第二份來源」（改的就是那張唯一的表，canary 打
+   `_resolve` 也壓得住），但「檔案內容＝執行期真值」本來沒有任何防線在守——`tests/fxvocab.test.mjs`
+   釘的是檔案，執行期改表不在它的視野裡。凍成不可變最便宜。
+   ★不凍 ICON 本身★：L3 canary 要換掉 `_resolve`，凍了 canary 就做不了。 */
+Object.freeze(ICON.byKind); Object.freeze(ICON.flatByKind); Object.freeze(ICON.markByKind); Object.freeze(ICON.scaleRange);
 
 /** st.phase 的機械判準（ART_BIBLE §10.3；計畫 §2.3 寫死，不得放寬）。
  *  windupMs／reactMs 會乘上 run.k（tier 1 ≈0.289）等比縮放。 */

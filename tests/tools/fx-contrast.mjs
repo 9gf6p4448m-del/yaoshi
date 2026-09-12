@@ -37,6 +37,18 @@
 //   biteGamble 2.4174% → 2.4126%／hauntLost 2.6241% → 2.6241%
 // bloom 門檻低＝徽記的光暈擴散到更多像素 ⇒ 差圖**面積被高估**，對 ΔE 也許保守，對面積不是。
 //
+// ★L3 canary 的程序（凍結檔 L3；覆審 r3 N12 之後改打共同入口）★
+//   把 js/trait-fx/vocab.js 的 `ICON._resolve(kind, tableName, dflt)` 整支換成 `_resolve() { return 0.02; }`，
+//   跑同一組參數，用到徽記的招**必須全部判紅**（面積跌破 0.8%）。跑完 `git checkout -- js/trait-fx/vocab.js`。
+//   ★為什麼是 `_resolve` 而不是 `sizeOf()`（覆審 r3 N12）★：`markSizeOf`（印記）與有覆寫的
+//   `flatSizeOf`（貼桌陣）都不經過 `sizeOf`，canary 打 `sizeOf()` 對 `ICON.markByKind`（seal 0.20）與
+//   `ICON.flatByKind`（hat 0.20）**完全打不到**——主視覺是印記或貼桌陣的招在 canary 下照樣綠。
+//   `_resolve` 是三張表的共同出口，一行蓋三表；`tests/fxvocab.test.mjs` 有一條測試在釘這件事。
+//
+// ★徽記尺寸鎖（覆審 r3 N11）★：本檔每一套都讀回 `__tfx.stats()` 的 `sizeViolations`／`iconMade`／
+//   `iconLocked`，違規 >0 或 `iconLocked !== iconMade` 一律判 FAIL 並寫進 shots.json——
+//   繞過 ICON 表直接寫 `mesh.scale` 在執行期會被 throw，但 tween 的 try/catch 會吃掉它，只能靠記帳看見。
+//
 // 本批量的仍是**治具棚**（bloom 與視口已對齊產品），**不是 duel-drive 的真實對決場景**——
 // 凍結檔 L3 要求的那一格（走 duel-drive、演該招、派 ys:hitstop）是批 1–3 的正式 L3。
 import { spawn } from 'node:child_process';
@@ -164,8 +176,22 @@ async function shoot(browser, base, c, opt, outDir) {
   const programs = await page.evaluate(() => window.__tfx.programs());
   const programList = await page.evaluate(() => window.__tfx.programList());
   const matPrograms = await page.evaluate(() => window.__tfx.matPrograms());
+  // N11：徽記尺寸鎖的執行期記帳（violations>0 或 locked!==made ⇒ 這一套判 FAIL）
+  const st = await page.evaluate(() => window.__tfx.stats());
+  const sizeGuard = { violations: st ? (st.sizeViolations | 0) : -1, made: st ? (st.iconMade | 0) : -1, locked: st ? (st.iconLocked | 0) : -1,
+    audits: st ? (st.sizeAudits | 0) : -1,
+    // r3 N-2：稽核次數要標量測位置（u＝traitFx.update 末、d＝onAfterRender＝剛送進 GPU）
+    auditsUpdate: st ? (st.auditsUpdate | 0) : -1, auditsDraw: st ? (st.auditsDraw | 0) : -1, msg: st ? (st.sizeViolationMsg || null) : null, worldRange: st ? (st.sizeWorldRange || null) : null,
+    tweenErrors: st ? (st.tweenErrors | 0) : -1, tweenErrorMsg: st ? (st.tweenErrorMsg || null) : null };
+  /* 三態（r4 MEDIUM-2）：L3 每一套都是「用到徽記的招」，所以 made===0 在這支治具裡**就是 fail**
+     ——凍幀量的就是徽記，沒有徽記代表這一格量錯了對象（與 hidden===0 同一個道理）。
+     ★v0.55.1 之後這支治具**一定要帶 `--fxvocab=1`**★：不帶＝0.54 演出，四支示範招沒有徽記／拖尾／印記，
+     `fxVis` 回 0、`iconMade` 也是 0，本治具會（正確地）整排判紅。 */
+  const sizeState = !st ? 'fail' : sizeGuard.made === 0 ? 'fail'
+    : (sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made && sizeGuard.audits > 0 && sizeGuard.tweenErrors === 0) ? 'ok' : 'fail';
+  const sizeOK = sizeState === 'ok';
   await ctx.close();
-  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, matPrograms, errors, meshes: sig ? sig.meshes : null };
+  return { trait: c.trait, ab: c.ab, tier, ms, atMs, atFrame, seed: pageSeed, handled: fired.handled, hidden, fileA, fileB, bloomCfg, programs, programList, matPrograms, sizeGuard, sizeState, sizeOK, errors, meshes: sig ? sig.meshes : null };
 }
 
 async function main() {
@@ -187,14 +213,23 @@ async function main() {
     for (const c of cases) {
       const r = await shoot(browser, `http://127.0.0.1:${port}`, c, opt, outDir);
       out.push(r);
-      console.log(`${r.hidden > 0 && r.handled && !r.errors.length ? ' ok ' : 'FAIL'} ${c.trait.padEnd(16)} t${r.tier} 凍在 ${r.atMs}ms(第 ${r.atFrame} 幀) 切掉 ${r.hidden} 個特效物件 handled=${r.handled} err=${r.errors.length}`);
+      console.log(`${r.hidden > 0 && r.handled && r.sizeOK && !r.errors.length ? ' ok ' : 'FAIL'} ${c.trait.padEnd(16)} t${r.tier} 凍在 ${r.atMs}ms(第 ${r.atFrame} 幀) 切掉 ${r.hidden} 個特效物件 handled=${r.handled} size=${r.sizeState}(${r.sizeGuard.violations}v/${r.sizeGuard.locked}of${r.sizeGuard.made}/u${r.sizeGuard.auditsUpdate}+d${r.sizeGuard.auditsDraw}) err=${r.errors.length}`);
+      if (r.sizeGuard.msg) console.log('   ! ' + String(r.sizeGuard.msg).slice(0, 220));
+      if (r.sizeGuard.tweenErrorMsg) console.log('   ! tween 安靜死掉：' + String(r.sizeGuard.tweenErrorMsg).slice(0, 220));
       r.errors.slice(0, 2).forEach((e) => console.log('   ! ' + e.slice(0, 180)));
     }
   } finally { await browser.close(); srv.kill(); }
   const meta = path.join(outDir, 'shots.json');
   // N4：沒有 bloom 的那一跑要在 summary 上留紅字，不能只在 stdout 一閃而過
   const nobloom = out.some((r) => !r.bloomCfg || r.bloomCfg.on !== true);
-  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), nobloom, cases: out }, null, 1));
+  // N11：整跑的尺寸鎖彙總（made===0 ⇒ 這一跑沒量到，不得當成通過）
+  const sizeGuard = out.reduce((a, r) => ({ violations: a.violations + Math.max(0, r.sizeGuard.violations), made: a.made + Math.max(0, r.sizeGuard.made), locked: a.locked + Math.max(0, r.sizeGuard.locked), audits: a.audits + Math.max(0, r.sizeGuard.audits), auditsUpdate: a.auditsUpdate + Math.max(0, r.sizeGuard.auditsUpdate), auditsDraw: a.auditsDraw + Math.max(0, r.sizeGuard.auditsDraw) }), { violations: 0, made: 0, locked: 0, audits: 0, auditsUpdate: 0, auditsDraw: 0 });
+  sizeGuard.measured = sizeGuard.made > 0;
+  sizeGuard.failed = out.filter((r) => r.sizeState !== 'ok').map((r) => r.trait);
+  fs.writeFileSync(meta, JSON.stringify({ view: VIEW, seed: out.length ? out[0].seed : null, productBloom: opt.product, bthrOverride: opt.bthr === undefined ? null : parseFloat(opt.bthr), nobloom, sizeGuard, cases: out }, null, 1));
+  console.log(`徽記世界尺寸斷言：違規 ${sizeGuard.violations} 次／鎖上 ${sizeGuard.locked} of 產出 ${sizeGuard.made}／稽核 update ${sizeGuard.auditsUpdate}＋draw ${sizeGuard.auditsDraw} 次`
+    + `${sizeGuard.measured ? '' : '　★未量到★'}${sizeGuard.failed.length ? '　fail：' + sizeGuard.failed.join(' ') : ''}`);
+  if (sizeGuard.failed.length) { console.log('★★ 徽記世界尺寸有第二份來源（或鎖／稽核沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1; }
   console.log(`\n${out.length} 套 · ${meta}${nobloom ? '\n★★ nobloom:true —— 這份量測沒有 bloom，不是產品的量測位置，不得當成 L3 通過 ★★' : ''}`);
   console.log(`接著跑：python tests/tools/fx-contrast-metrics.py ${path.relative(ROOT, outDir)}`);
 }

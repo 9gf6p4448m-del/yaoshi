@@ -11,8 +11,9 @@
      3 = 改一個 BEAT 時窗
      4 = 在編舞檔裡塞回覆審 r2 實測的繞法（`const S = 0.56;` ＋ `setScalar(S * …)`）＝尺寸的第二份事實來源
          （r1 的第一版掃描只認 `const SZ|SIZE`，改個變數名就繞過，見 §「尺寸防線」那段註解）
-     5 = 把 `MOVE_SPEC.biteGamble.act` 改成別系的動詞（`探`＝陰氣）＝P1 的白名單被繞過
-     6 = 從 `MOVE_SPEC` 拔掉一支招（`wardRegen1`）＝P1 的「27 支全覆蓋」被繞過
+     4–20 = 徽記尺寸防線的十七條繞法（v0.55.3 N11；逐條見下面「尺寸防線」那段的 BYPASS 表）
+     21 = 把 `MOVE_SPEC.biteGamble.act` 改成別系的動詞（`探`＝陰氣）＝P1 的白名單被繞過
+     22 = 從 `MOVE_SPEC` 拔掉一支招（`wardRegen1`）＝P1 的「27 支全覆蓋」被繞過
    原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。
 
    為什麼不 import emblems.js：它 `import * as THREE from 'three'`，node 端沒有 importmap。
@@ -41,8 +42,9 @@ if (MUT === 1) EO.eliteSelfCut = 'sun'; // 與 eliteOpenShot 撞 kind ⇒ 雙射
 if (MUT === 2) PAL.xianghuo.key = 0xf08060; // 退回舊的淡橘粉
 if (MUT === 3) BT[1].travel = [90, 200]; // 時窗與文件分岔
 const MS = JSON.parse(JSON.stringify(MOVE_SPEC));
-if (MUT === 5) MS.biteGamble.act = '探'; // 陰氣的動詞出現在香火招上
-if (MUT === 6) delete MS.wardRegen1; // 少一支招
+/* ★號碼從 21 起★：4–20 是 v0.55.3 N11 尺寸防線的十七條繞法（合併時撞號，P1 這兩條往後挪）。 */
+if (MUT === 21) MS.biteGamble.act = '探'; // 陰氣的動詞出現在香火招上
+if (MUT === 22) delete MS.wardRegen1; // 少一支招
 if (MUT) console.log(`★突變模式 ${MUT}：以下必須有紅★`);
 
 const doc = fs.readFileSync(DOC, 'utf8');
@@ -260,108 +262,196 @@ t('ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同', () => {
   Object.keys(ICON.byKind).forEach((k) => { if (!seen.has(k)) throw new Error(`ICON.byKind 有 ${k}，文件第 5 節沒有`); });
   Object.keys(ICON.flatByKind).forEach((k) => { if (!seen.has(k)) throw new Error(`ICON.flatByKind 有 ${k}，文件第 5 節沒有`); });
 });
-/* ★尺寸防線：按「危險的效果」寫（覆審 r1 C1 → 覆審 r2 N1／N7、`02 §6.1` 第 7 條）★
+/* ★尺寸防線：按「危險的效果」寫（覆審 r1 C1 → r2 N1／N7 → ★r3 N11 改成收斂★、`02 §6.1` 第 7 條）★
 
    危險的**效果**＝「徽記的實際世界尺寸出現第二份來源」——只要它成立，凍結檔 L3 指名的突變
-   （`ICON.sizeOf()` 改 0.02）對那支招就完全打不到，綠燈與待驗行為脫鉤（r1 C1 的「恆綠儀式」）。
-   r1 的第一版防線是按**已知入口**寫的（只認 `size: <數字>` 與 `const SZ|SIZE = <數字>`），
-   覆審 r2 實測 30 秒就繞得過：把常數改名成 `const S`、或直接 `setScalar(0.56 * …)`，掃描完全沒反應。
+   （`ICON._resolve()` 改 0.02）對那支招就完全打不到，綠燈與待驗行為脫鉤（r1 C1 的「恆綠儀式」）。
 
-   ★分母（動手前 grep 數出來，不憑印象）★：js/trait-fx/ 下除 vocab.js 外的全部 .js（目前 4 個：
-   emblems／xianghuo／yinqi／zuling），去註解後——
-     `size:` 這個鍵              **0 處**（唯一那處 yinqi.js:150 已改走預設值）
-     `.scale.setScalar(`          **79 處**
-     `.scale.set(`                **0 處**
-   79 處裡真正屬於「徽記 mesh」的只有 5 處（其餘 74 處是 23 支未改招的 ring／disc／orb／光球縮放，
-   那不是本條要防的危險效果，全判紅只會讓這條掃描恆紅、一週內被改掉＝把防線做死）。
+   ★沿革（為什麼這一段被改寫三次）★
+   r1：按已知入口寫（只認 `size: <數字>` 與 `const SZ|SIZE = <數字>`）→ 改個變數名就繞過。
+   r2：改成「徽記 mesh 的縮放引數必須引用 `st.iconSize`／`ICON.*`」→ 仍按**已知語法形狀**寫，
+       r3 實測四條繞法（別名／`multiplyScalar`／`scale.x=`／子節點與索引取用）一律 `continue` 靜默跳過，
+       而且它們是**加行**不是改行，活性下限 `emblemScale < 5` 也不會響。
+   r3（本段）：**首選收斂，不是補涵蓋**（`02 §6.1` 第 7 條的優先序）——
+       `js/trait-fx.js` 的 `lockIconScale()` 在**執行期**把徽記 mesh 的 `scale`（x／y／z 三個 accessor）
+       鎖死（three.js 所有 Vector3 變動方法最後都是對 x／y／z 賦值），
+       任何外部寫入當場 throw 並記進 `stats.sizeViolations`（治具端 `traitfx-drive`／`fx-contrast` 在判）。
+       編舞唯一的合法縮放介面是 `st.iconScale(mesh, 相對倍率)`（ICON 的值永遠在乘積裡）。
+       ★r3 在這裡寫了「分母歸一、涵蓋自然 100%」——那句是假的，已刪★：鎖住一個屬性 ≠ 收斂一個效果，
+       世界尺寸還受父層縮放／geometry／自寫 matrix 影響（見下一段 r4）。
 
-   ★兩條路各自怎麼守★
-   (a) `o.size`：`js/trait-fx.js` 的 `icon()`／`icons()`／`mark()` **一律拒收**（傳了就 throw，
-       訊息指回 `ICON.byKind`）——這條路由建構上消失。這裡再掃一次 `size:` 這個鍵當第二道。
-   (b) 直接對徽記 mesh 縮放：先從原始碼找出所有由 `st.icon(`／`st.icons(`／`st.mark(` 產生的名字
-       （含 `mesh: st.icon(…)` 這種屬性、`.map(… st.mark(…))` 這種陣列），再要求它們的
-       `scale.setScalar(`／`scale.set(` **引數裡必須出現** `st.iconSize`／`st.iconFlatSize`／
-       `st.markSize`／`ICON.*` 其中之一；只有數字或別處來的常數＝第二份來源，判紅。
-   `--mutate=4` 就是 r2 實測的繞法之一（`const S = 0.56` ＋ `setScalar(S * …)`）的回歸案例。 */
+   ★r4 又補了一輪★：r3 的 (b) 只盯 `.scale`，覆審員實測另外四條照樣改得動世界尺寸而三道防線全綠
+   （A 父層 Group 縮放、B 置換 geometry、C 自寫 matrix、E defineProperty 蓋掉 accessor）。
+   真正的扼口是 `js/trait-fx.js` 的 `lockIconScale` ＋ `auditSizes`（執行期量**世界尺寸**本身）。
+   本掃描同步把規則從「`.scale`」擴成「**所有會改變世界尺寸的成員**」。
 
-/** 從 `(` 起算的平衡括號取引數（跨行也吃得到；掃描不做完整 parse，這一層就夠） */
-function argsFrom(src, openIdx) {
-  let d = 0;
-  for (let i = openIdx; i < src.length; i++) {
-    if (src[i] === '(') d++;
-    else if (src[i] === ')') { d--; if (!d) return src.slice(openIdx + 1, i); }
-  }
-  return src.slice(openIdx + 1);
-}
+   ⇒ **本掃描是第三道**（第一道＝入口拒收 `o.size`，第二道＝執行期鎖與世界尺寸稽核），規則：
+      (a) 編舞不得出現 `size:` 這個鍵（入口已 throw，這是第二道）；
+      (b) 編舞**不得直接碰徽記的** `scale`／`geometry`／`matrix`／`matrixWorld`／
+          `matrixAutoUpdate`／`matrixWorldAutoUpdate`／`parent`——不論用哪個方法、哪個別名、
+          哪層成員或索引（比對的是「從徽記名字出發抵達那個成員的任何成員鏈」，不是列舉方法名）；
+      (c) 編舞不得把徽記餵給 `st.grow()`（那支寫的是**絕對**縮放），
+          也不得把徽記 `add()` 到別的節點底下（父層縮放就是那樣進來的，r4 繞法 A）。
 
-/** 這個檔裡所有「拿得到徽記／紙紮道具 mesh」的名字（變數、屬性、陣列元素都算）
- *  ★2026-09-12 演出卷加嚴★：入口從三支（icon／icons／mark）擴到五支，補上 `paperStamp`／`paperProps`。
- *  分母是用 grep 數出來的：轉正之後 js/trait-fx/ 下走 `st.paperStamp(` 的有 2 處、`st.paperProps(` 1 處，
- *  它們產生的 mesh 一樣會被 `scale.setScalar(<數字>)` 縮放 ⇒ 同一個危險效果（尺寸的第二份來源）
- *  的另外兩條入口。只堵三支就是「按已知入口寫防線」（`02 §6.1` 第 7 條的反例）。 */
+   ★分母（動手前 grep 數出來，不憑印象；指令與輸出在 docs/experiments/2026-09-12-size-guard-evidence/）★
+   `js/trait-fx/` 下除 vocab.js 外的全部 .js（目前 4 個：emblems／xianghuo／yinqi／zuling），去註解後——
+     `size:` 這個鍵                      **0 處**
+     `.scale.setScalar(`                  收斂前 **73 處** → 收斂後 **68 處**（差的 5 處就是徽記，已改走 st.iconScale）
+     `.scale.set(`／`.multiplyScalar(`／`.scale.[xyz]=`／`.copy(` 等   **各 0 處**
+   剩下的 68 處全部是 23 支未改招的 ring／disc／orb／光球縮放，**不是**本條要防的危險效果
+   （徽記 mesh 一個都不在裡面——那正是收斂之後應有的狀態）。
+   本測試自己印的分母（去註解後、`X.scale` 的成員／索引／賦值寫法）＝ **74 處**，與上面的 grep
+   不同口徑（grep 含註解、只數 setScalar），兩份都貼在證據目錄裡。
+   `st.icon(`／`st.icons(`／`st.mark(` 的呼叫點 **8 處**（4 支示範招），
+   `st.iconScale(` 的呼叫點 **5 處**（＝收斂前那 5 處直接縮放）。
+
+   `--mutate=4..20` 是**十七條**繞法各自的回歸案例（r3 七條＋r4 四條＋r2 六條；
+   原檔全程唯讀，只動記憶體裡的副本）。★掃描擋得到的是「直接寫」的那一形；
+   覆審 r2 的 H1／M1／M2／M3 用 helper 包一層就避得開名字追蹤——**那幾條靠的是執行期那兩道**
+   （鎖與世界尺寸稽核），報告 §10 的表逐條寫明是哪一道接住的。 */
+
+/** 這個檔裡所有「拿得到徽記 mesh」的名字（變數、屬性、陣列元素、**別名**都算）。
+ *  別名要做到不動點：`const m2 = knife;` 之後 `m2` 也是徽記（r3 繞法④）。 */
 function emblemNames(src) {
   const names = new Set();
   // const knife = st.icon(… ／ const stamp = prey ? st.mark(… ／ const marks = bless.map((f) => st.mark(…
-  for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[^;]*?\bst\.(?:icon|icons|mark|paperStamp|paperProps)\s*\(/g)) names.add(m[1]);
+  for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[^;]*?\bst\.(?:icon|icons|mark)\s*\(/g)) names.add(m[1]);
   // mesh: st.icon(…（物件屬性；yinqi 的 flying[].mesh 就是這樣來的）
-  for (const m of src.matchAll(/([A-Za-z_$][\w$]*)\s*:\s*st\.(?:icon|icons|mark|paperStamp|paperProps)\s*\(/g)) names.add(m[1]);
+  for (const m of src.matchAll(/([A-Za-z_$][\w$]*)\s*:\s*st\.(?:icon|icons|mark)\s*\(/g)) names.add(m[1]);
+  // 別名：`const m2 = knife;`／`let m2 = knife.children[0];`／`const m2 = marks[0];` —— 迭代到不動點
+  for (let pass = 0; pass < 8; pass++) {
+    const before = names.size;
+    for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\s*((?:\.\s*[A-Za-z_$][\w$]*|\[[^\]\n]*\])*)\s*;/g)) {
+      if (names.has(m[2])) names.add(m[1]);
+    }
+    if (names.size === before) break;
+  }
   return names;
 }
 
-const SIZE_SRC = /\b(?:st\.iconSize|st\.iconFlatSize|st\.markSize|ICON\.[A-Za-z_$][\w$]*)\b/;
+/** 會改變徽記世界尺寸的成員（r4：不只 scale——父層、geometry、手寫 matrix 都是同一個效果） */
+const SIZE_MEMBERS = ['scale', 'geometry', 'matrix', 'matrixWorld', 'matrixAutoUpdate', 'matrixWorldAutoUpdate',
+  // r2 H1：three 的 renderObject 是 onBeforeRender → modelViewMatrix ← matrixWorld → draw → onAfterRender，
+  // 這兩個鉤子是「在稽核之後、送去畫之前」改矩陣的最後機會。
+  'onBeforeRender', 'onAfterRender',
+  // parent／children／traverse 不是尺寸本身，但它們是「繞到尺寸」的三條通道：
+  // 重新掛載（父層縮放）、抓子節點改、traverse 進去改 geometry。編舞沒有合法理由碰它們。
+  'parent', 'children', 'traverse'];
+/** 從名字 n 出發、經過任意成員／索引之後抵達上列任一成員的寫法（含 `n.scale` 本身） */
+function sizeReach(n) {
+  const id = n.replace(/\$/g, '\\$');
+  return new RegExp('\\b' + id + '\\s*(?:\\.\\s*[A-Za-z_$][\\w$]*|\\[[^\\]\\n]*\\])*\\s*\\.\\s*(' + SIZE_MEMBERS.join('|') + ')\\b', 'g');
+}
 
-t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必須引用 ICON）', () => {
+t('徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得碰 scale／geometry／matrix／parent ＋ 不得 grow／add）', () => {
   const dir = path.join(ROOT, 'js/trait-fx');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js') && f !== 'vocab.js').sort();
   if (files.length < 4) throw new Error(`js/trait-fx 只掃到 ${files.length} 個編舞檔（預期 ≥4，分母歸零了？）`);
   const hits = [];
-  let scaleTotal = 0, emblemScale = 0;
+  let scaleTotal = 0, nameTotal = 0, iconScaleCalls = 0;
   for (const f of files) {
     let src = fs.readFileSync(path.join(dir, f), 'utf8');
-    /* 突變：r2 §2 C1③「繞過 B」——常數改名成 S（舊掃描認不得 SZ 以外的名字）＋ 直接餵進 setScalar。
-       原檔全程唯讀，只動記憶體裡的副本，不做反向 sed。 */
-    /* 突變 7：繞過 B 的**間接層**版本——`st.paperProps` 回傳的是包裝物，
-       在它的 `.obj` 上直接 setScalar 一個數字，就是尺寸的第二份來源。 */
-    if (MUT === 7 && f === 'xianghuo.js') {
-      const from = '    writeFoils(0);';
-      if (!src.includes(from)) throw new Error('突變 7 的錨點不在了：' + from);
-      src = src.replace(from, from + '\n    foil.obj.scale.setScalar(0.56);');
-    }
-    if (MUT === 4 && f === 'zuling.js') {
-      const from = 'knife.scale.setScalar(st.iconSize * (0.5 + 0.5 * e));';
-      if (!src.includes(from)) throw new Error('突變 4 的錨點不在了：' + from);
-      src = src.replace(from, 'const S = 0.56; knife.scale.setScalar(S * (0.5 + 0.5 * e));');
+    /* 突變：r3 §N11 實測的七條繞法，逐條塞回 zuling.js 的獻祭刀。
+       原檔全程唯讀（讀進字串後在記憶體裡改），不做反向 sed。 */
+    if (MUT >= 4 && MUT <= 20 && f === 'zuling.js') {
+      const from = 'st.iconScale(knife, 0.5 + 0.5 * e);';
+      if (!src.includes(from)) throw new Error(`突變 ${MUT} 的錨點不在了：` + from);
+      const BYPASS = {
+        4: 'const S = 0.56; knife.scale.setScalar(S * (0.5 + 0.5 * e));', // ② 常數改名＋setScalar
+        5: 'st.icon(st.kind, A, { size: 0.56 });', //                       ① o.size
+        6: 'knife.scale.setScalar(0.56 * (0.5 + 0.5 * e));', //             ③ 字面值直接進 setScalar
+        7: 'const m2 = knife; m2.scale.setScalar(0.02);', //                ④ 別名
+        8: 'knife.scale.multiplyScalar(0.02 / st.iconSize);', //            ⑤ multiplyScalar
+        9: 'knife.scale.x = 0.02; knife.scale.y = 0.02; knife.scale.z = 0.02;', // ⑥ scale.x=
+        10: 'knife.children[0].scale.setScalar(0.02); marks[0].scale.setScalar(0.02);', // ⑦ 子節點／索引
+        /* ── 覆審 r4 自己設計的四條（r3 三道防線對它們全綠）── */
+        11: 'const wrapG = new THREE.Group(); wrapG.scale.setScalar(0.06); knife.parent.add(wrapG); wrapG.add(knife);', // A 父層 Group
+        12: 'knife.traverse((o) => { if (o.geometry) o.geometry = new THREE.PlaneGeometry(0.05, 0.05); });', // B 置換 geometry
+        13: 'knife.matrixAutoUpdate = false; knife.matrix.multiply(new THREE.Matrix4().makeScale(0.05, 0.05, 0.05));', // C 自寫 matrix
+        14: "Object.defineProperty(knife.scale, 'x', { value: 0.02 });", // E defineProperty 蓋掉 accessor
+        /* ── 覆審 r2（第 2 輪）自己設計的六條 ── */
+        15: 'knife.onBeforeRender = function () { this.matrixWorld.scale(new THREE.Vector3(0.05, 0.05, 0.05)); };', // H1 送畫前改 matrixWorld
+        16: 'st.icons(st.kind, [A], { flat: true, sizes: [0.50 / st.iconFlatSize] });', //                           H2 o.sizes 把 ICON 除掉
+        17: 'const m2 = new THREE.Mesh(knife.geometry, knife.material); m2.scale.setScalar(0.52); st.spawn(m2, "emblem:" + st.kind);', // M1 手造第二顆徽記
+        18: 'knife.geometry.scale(0.5, 0.5, 0.5);', //                                                               M2 就地改共用剪影
+        19: 'marks[0].add(knife);', //                                                                               M3 掛到另一顆徽記底下
+        20: 'ICON.byKind.knife = 0.02;', //                                                                          L1 執行期改表
+      };
+      // 繞法是**加行**不是改行（r3 N11 原話）：合法的 st.iconScale 留著，旁邊多一條第二來源。
+      src = src.replace(from, from + ' ' + BYPASS[MUT]);
     }
     const noComment = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
     const lineOf = (i) => noComment.slice(0, i).split('\n').length;
     /* (a) `size:` 這個鍵在編舞裡一處都不准有（入口已 throw，這是第二道）。
-       ★`sizes:`（複數）**不在禁列**★：那是 st.icons 的逐實例**相對**倍率（`size * o.sizes[i]`），
-       ICON 的值仍在乘積裡，不構成第二份來源；連它一起禁是把防線做死（禁到不該禁的東西）。 */
+       ★`sizes:`（複數）仍不在禁列，但理由改寫了（覆審 r2 H2）★：它是 `st.icons` 的逐實例**相對**倍率，
+       舊註解寫「ICON 的值仍在乘積裡，不構成第二份來源」——**那句話不成立**：
+       `sizes: prints.map(() => 0.50 / st.iconFlatSize)` 把 ICON 的值**除掉**，乘積就是寫死的絕對尺寸
+       （實測貼桌徽記 0.2 → 0.5，當時四道防線全綠）。現在它由**入口的區間檢查**守
+       （`st.icons` 逐項比對 `ICON.scaleRange`，超出就 throw）＋稽核第二道，
+       掃描這邊則補上 (e)：不得把 ICON 來源放到除號右邊。 */
     for (const m of noComment.matchAll(/\bsize\s*:/g)) {
       hits.push(`${f}:${lineOf(m.index)} ${m[0].trim()}（st.icon／st.icons／st.mark 的 o.size 已拒收，編舞不得再出現這個鍵）`);
     }
-    // (b) 徽記 mesh 的縮放：引數必須引用 ICON 來源
+    /* (d) 編舞不得直接碰 `ICON`（含動態 import vocab.js）——執行期改表那條路（覆審 r2 L1）。
+       三個系別檔設計上就不 import vocab.js（值由 makeStage 掛到 st 上），所以這一條在健康態恆 0。 */
+    for (const m of noComment.matchAll(/\bICON\s*[.[]/g)) {
+      hits.push(`${f}:${lineOf(m.index)} ICON.…（編舞不得直接碰 ICON 表：值一律由 st 掛進來，`
+        + '執行期改表是「檔案內容 ≠ 執行期真值」的入口，覆審 r2 L1）');
+    }
+    for (const m of noComment.matchAll(/import\s*\(\s*['"`][^'"`]*vocab\.js/g)) {
+      hits.push(`${f}:${lineOf(m.index)} import(vocab.js…（三個系別檔不 import 本表，見 vocab.js 檔頭）`);
+    }
+    /* (e) ★把 ICON 的值從乘積裡消掉★（覆審 r2 H2 的一般化）：
+       `0.50 / st.iconFlatSize`、`0.02 / base` 這種寫法讓「相對倍率」變成絕對尺寸。
+       規則按效果寫：ICON 的任何來源都不得出現在除號右邊。 */
+    for (const m of noComment.matchAll(/\/\s*(st\.iconFlatSize|st\.iconSize|st\.markSize|ICON\.[A-Za-z_$][\w$]*)/g)) {
+      hits.push(`${f}:${lineOf(m.index)} ／${m[1]}（把 ICON 的值當除數＝把它從乘積裡消掉，`
+        + '剩下的就是寫死的絕對尺寸，覆審 r2 H2）');
+    }
+    for (const _m of noComment.matchAll(/[A-Za-z_$][\w$]*\s*\.\s*scale\s*[.[=]/g)) scaleTotal++;
+    for (const _m of noComment.matchAll(/\bst\.iconScale\s*\(/g)) iconScaleCalls++;
+    // (b)(c) 徽記名字 → 任何抵達 .scale 的成員鏈／任何被餵進 st.grow 的地方
     const names = emblemNames(noComment);
-    /* `(?:\.obj)?`＝**間接層**（覆審 2026-09-13 的 MEDIUM）：`st.paperProps` 是這五個入口裡唯一
-       回傳包裝物 `{obj, items, write, size}` 而不是 mesh 本身的一支，所以編舞寫的是
-       `foil.obj.scale.setScalar(…)`。舊的正則只認「名字直接接 .scale」，會把 m[1] 抓成 `obj`
-       ——`obj` 不在 emblemNames 裡 ⇒ 整條規則靜默放行，正是它要擋的那個危險效果換個形狀就繞過。
-       `--mutate=7` 是這個繞法的回歸案例。 */
-    for (const m of noComment.matchAll(/([A-Za-z_$][\w$]*)(?:\s*\.\s*obj)?\s*\.\s*scale\s*\.\s*(setScalar|set)\s*\(/g)) {
-      scaleTotal++;
-      if (!names.has(m[1])) continue; // 非徽記 mesh（ring／disc／orb…）不是本條要守的效果
-      emblemScale++;
-      const args = argsFrom(noComment, m.index + m[0].length - 1);
-      if (!SIZE_SRC.test(args)) {
-        hits.push(`${f}:${lineOf(m.index)} ${m[1]}.scale.${m[2]}(${args.trim().slice(0, 60)}）` +
-          '（徽記 mesh 的縮放沒有引用 st.iconSize／st.iconFlatSize／st.markSize／ICON.*＝尺寸的第二份來源）');
+    nameTotal += names.size;
+    for (const n of names) {
+      for (const m of noComment.matchAll(sizeReach(n))) {
+        hits.push(`${f}:${lineOf(m.index)} ${m[0]}（徽記的世界尺寸只能由 st.iconScale 寫；`
+          + `直接碰 ${m[1]} ＝尺寸的第二份來源，執行期也會被 lockIconScale／auditSizes 抓到）`);
+      }
+      const id = n.replace(/\$/g, '\\$');
+      for (const m of noComment.matchAll(new RegExp('\\bst\\.grow\\s*\\(\\s*' + id + '\\b', 'g'))) {
+        hits.push(`${f}:${lineOf(m.index)} st.grow(${n}…（st.grow 寫的是絕對縮放；徽記請用 st.iconScale）`);
+      }
+      // r4 繞法 A：把徽記掛到別的節點底下，父層縮放就進來了
+      for (const m of noComment.matchAll(new RegExp('\\.\\s*add\\s*\\(\\s*' + id + '\\b', 'g'))) {
+        hits.push(`${f}:${lineOf(m.index)} .add(${n}…（徽記不得被重新掛載：父層縮放＝世界尺寸的第二份來源，覆審 r4 繞法 A）`);
       }
     }
   }
-  // 活性：分母不得歸零（掃不到任何徽記 mesh 的縮放＝這條掃描已經對著空氣跑）
-  if (emblemScale < 5) throw new Error(`只掃到 ${emblemScale} 處徽記 mesh 的縮放（預期 ≥5；名字解析壞了＝這條掃描變成恆綠）`);
+  /* 活性：三個分母都不得歸零（`02 §6.1` 第 1 條的反面——健康狀態下這條要綠得有內容）。
+     ① 掃到的徽記名字數：名字解析壞掉 ⇒ (b)(c) 兩條規則就會對著空氣跑；
+     ② st.iconScale 的呼叫點數：收斂之後這 5 處就是「合法縮放」的全部，掉下去代表編舞繞回去了；
+     ③ 編舞檔數：目錄結構被搬走。 */
+  // ★行為斷言排在活性斷言前面★（`02 §6.1` 第 1 條：紅要紅在「真的有第二份來源」，不是旁枝的計數）
   if (hits.length) throw new Error(`徽記尺寸有第二份來源 ${hits.length} 處：` + hits.join(' ／ '));
-  console.log(`        （分母：${files.length} 個編舞檔、${scaleTotal} 處 scale 呼叫，其中 ${emblemScale} 處落在徽記 mesh 上）`);
+  if (nameTotal < 5) throw new Error(`只解析出 ${nameTotal} 個徽記名字（預期 ≥5；名字解析壞了＝這條掃描變成恆綠）`);
+  if (iconScaleCalls < 5) throw new Error(`只掃到 ${iconScaleCalls} 處 st.iconScale（預期 ≥5；徽記的合法縮放介面沒人用了？）`);
+  console.log(`        （分母：${files.length} 個編舞檔、${scaleTotal} 處 scale 寫法、${nameTotal} 個徽記名字、${iconScaleCalls} 處 st.iconScale；徽記 mesh 被直接縮放 0 處）`);
+});
+t('ICON._resolve 是三張尺寸表的共同出口（L3 canary 一次蓋三表，覆審 r3 N12）', () => {
+  if (typeof ICON._resolve !== 'function') throw new Error('ICON 少了 _resolve（canary 沒有共同入口＝打 sizeOf 打不到 flat／mark）');
+  const orig = ICON._resolve;
+  try {
+    ICON._resolve = () => 0.02; // ＝ L3 canary 的那一行
+    eq(ICON.sizeOf('knife'), 0.02, 'canary 下的 sizeOf(knife)');
+    eq(ICON.flatSizeOf('hat'), 0.02, 'canary 下的 flatSizeOf(hat)（有 flatByKind 覆寫，舊寫法打不到）');
+    eq(ICON.markSizeOf('seal'), 0.02, 'canary 下的 markSizeOf(seal)（有 markByKind 覆寫，舊寫法打不到）');
+    eq(ICON.sizeOf('claw'), 0.02, 'canary 下走預設值的 kind');
+  } finally { ICON._resolve = orig; }
+  // 還原之後回到健康值（反面也要驗：健康態這組證據要變綠）
+  eq(ICON.sizeOf('knife'), ICON.byKind.knife, '還原後的 sizeOf(knife)');
+  eq(ICON.flatSizeOf('hat'), ICON.flatByKind.hat, '還原後的 flatSizeOf(hat)');
+  eq(ICON.markSizeOf('seal'), ICON.markByKind.seal, '還原後的 markSizeOf(seal)');
 });
 t('DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同', () => {
   const sec = doc.slice(doc.indexOf('## 6.'));

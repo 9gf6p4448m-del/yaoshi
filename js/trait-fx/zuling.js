@@ -467,7 +467,7 @@ const MOVES = {
         st.move(deer, 0, -0.045 * e, 0);
         st.rim(deer, 1 - 0.7 * e);
         st.alpha(knife, Math.min(1, e * 1.8));
-        knife.scale.setScalar(st.iconSize * (0.5 + 0.5 * e));
+        st.iconScale(knife, 0.5 + 0.5 * e);
         knife.userData.fxRoll = -1.1 + 0.35 * e;
       },
       done() { st.phase('travel'); } });

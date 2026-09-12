@@ -1793,15 +1793,22 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
     規格：6 幀 2×3、每格 780×360、總圖 1560×1080，短版與完整版混洗成匿名編號，
     對應表 `mapping-HIDDEN.json` **讀者不得看**。`--label` 只給修者自己看。
 
-11. **徽記尺寸的單一事實來源＝`ICON.byKind`／`ICON.flatByKind`**（覆審 r1 C1 之後才變成這樣）。
+11. **徽記世界尺寸的單一事實來源＝`ICON.byKind`／`flatByKind`／`markByKind`**
+    （覆審 r1 C1 → r2 N1／N7 → r3 N11／N12 → **r4 修補批**，改過四次，下面是現況）。
     批 0 第一版四支示範招在編舞裡各自寫 `const SZ = 0.56／0.46／0.62／0.40`，
-    於是凍結檔 L3 指名的突變「`ICON.size` 改 0.02 必須紅」對這四支**完全打不到**——
-    實測面積與 ΔE 逐位數不變、`exit 0`，那是一場恆綠的儀式。
-    現在編舞只能讀 `st.iconSize`／`st.iconFlatSize`（＝`ICON.sizeOf(kind)`／`ICON.flatSizeOf(kind)`），
-    `tests/fxvocab.test.mjs` 有一條掃描：**`js/trait-fx/` 下除 `vocab.js` 外的所有 .js 不得出現尺寸字面值**
-    （`size: <數字>`／`const SZ = <數字>`），`--mutate=4` 把字面值塞回去驗紅。
-    ★L3 的 canary 打在 `ICON.sizeOf()` 的回傳值上★（改成固定回 0.02 ⇒ 用到徽記的招全紅）；
-    只改 `ICON.size` 只打得到走預設值的那 23 支。逐招要調尺寸就改表，不要回去寫字面值。
+    於是凍結檔 L3 指名的突變對這四支**完全打不到**（面積與 ΔE 逐位數不變、`exit 0`）＝恆綠的儀式。
+    現在編舞**只能**用 `st.iconScale(mesh, 相對倍率)`（＝ ICON 表基準 × 倍率，倍率須落在
+    `ICON.scaleRange`），`st.iconSize`／`st.iconFlatSize`／`st.markSize` 只是那個基準的唯讀出口。
+    四道防線與各自守得住什麼，**權威在 `tests/tools/README.md` 的「徽記世界尺寸的防線與 L3 canary」**
+    （這裡只寫指路，不再抄一份會分岔的副本）：入口拒收 `o.size` ／ 執行期鎖（`scale`、`geometry`、
+    `matrixAutoUpdate` 等一律 `configurable:false`）／ **每幀世界尺寸稽核**（`auditSizes`，
+    按效果寫，父層 Group 縮放、換 geometry、自寫 matrix 都抓得到）／ 原始碼掃描
+    （`tests/fxvocab.test.mjs`，`--mutate=4..14` 是十一條繞法的回歸案例）。
+    ★L3 的 canary 打在 `ICON._resolve()` 上★（改成固定回 `0.02` ⇒ 用到徽記的招全紅）。
+    **不要打 `sizeOf()`**：`markSizeOf`／有覆寫的 `flatSizeOf` 不經過它，印記與貼桌陣打不到（r3 N12）。
+    ★已知限制（r4 MEDIUM-4）★：L3 凍在 `travel` 中點，印記與貼桌陣那時還沒淡入、幾乎不貢獻像素
+    ⇒ 以它們為主視覺的招，L3 這一格對尺寸來源零鑑別力，靠世界尺寸稽核那一道補。
+    逐招要調尺寸就改那三張表，不要回去寫字面值。
 
 12. **驗「另外 23 支沒被動到」要用逐函式 md5，不是 grep 函式名**（覆審 r1 LOW3）。
     `node tests/tools/fn-hash.mjs <舊 ref> [新 ref|WORKTREE]` 把三個系別檔切成

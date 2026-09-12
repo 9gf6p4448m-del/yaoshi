@@ -1,0 +1,40 @@
+== 1. js/trait-fx/ 下所有 scale 寫法（含 23 支未改招的 ring／disc／orb，不是全部都屬於徽記）==
+  \.scale\.setScalar\(  → 68 處
+  \.scale\.set\(  → 0 處
+  \.scale\.multiplyScalar\(  → 0 處
+  \.scale\.[xyz][ 	]*[-+*/]?=  → 1 處
+  \.scale\.(copy|setX|setY|setZ|setComponent|fromArray|lerp|multiply|applyMatrix4)\(  → 0 處
+
+== 2. 徽記入口的呼叫點（st.icon／st.icons／st.mark）==
+js/trait-fx/zuling.js:454:    const knife = st.icon(st.kind, A, { color: C.key, inkColor: C.ink, opacity: 0, roll: -1.1 });
+js/trait-fx/zuling.js:456:    const marks = bless.map((f) => st.mark(f, st.kind, { opacity: 0, color: C.key }));
+js/trait-fx/xianghuo.js:260:    const bell = st.icon(st.kind, src, { color: C.key, inkColor: C.ink, opacity: 0 });
+js/trait-fx/xianghuo.js:261:    const guard = (mates.length ? mates : [ringer]).map((f) => st.mark(f, st.kind, { at: 'top', opacity: 0, color: C.key }));
+js/trait-fx/xianghuo.js:407:    const seal = st.icon(st.kind, start, { color: C.hot, inkColor: C.ink, opacity: 0 });
+js/trait-fx/xianghuo.js:408:    const stamp = prey ? st.mark(prey, st.kind, { opacity: 0, color: C.hot }) : null;
+js/trait-fx/yinqi.js:137:      return { f, from, to, mesh: st.icon(st.kind, from, { color: C.hot, inkColor: C.ink, opacity: 0 }) };
+js/trait-fx/yinqi.js:150:    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, color: C.ink, opacity: 0 }) : null;
+
+== 3. 編舞裡引用 ICON 尺寸來源的地方（＝徽記 mesh 真正被縮放的那幾處）==
+js/trait-fx/zuling.js:470:        st.iconScale(knife, 0.5 + 0.5 * e);
+js/trait-fx/xianghuo.js:272:      st.iconScale(bell, 0.4 + 0.6 * e);
+js/trait-fx/xianghuo.js:422:        st.iconScale(seal, 0.35 + 0.75 * e); // 過衝一點再收，印才有「蓋下來」的重量
+js/trait-fx/xianghuo.js:448:      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { st.iconScale(stamp, 1.9 - 0.9 * e); } });
+js/trait-fx/yinqi.js:169:      st.alpha(F.mesh, e); st.iconScale(F.mesh, 0.55 + 0.45 * e);
+
+== 4. 直接碰徽記 mesh 的 .scale（收斂之後這一項必須是 0）==
+  （0 處）
+
+== 5. js/trait-fx.js（積木本身）裡對徽記 mesh 的 scale 寫入 ==
+142:     （`NAME.scale.setScalar(` ／ `NAME.scale.set(`），r3 實測四條繞法一律靜默跳過：
+143:       ① 別名 `const m2 = knife; m2.scale.setScalar(0.02)`
+144:       ② `knife.scale.multiplyScalar(0.02 / st.iconSize)`
+168:    try { obj.scale.setScalar(v); } finally { scaleUnlocked = false; }
+258:    w.pre.forEach((pre, bone) => { bone.quaternion.copy(pre.q); bone.position.copy(pre.p); bone.scale.copy(pre.s); });
+273:      if (o.scl !== 1) bone.scale.copy(pre.s).multiplyScalar(o.scl); else bone.scale.copy(pre.s);
+279:      m.scale.copy(w.base.s).multiplyScalar(w.mo.s);
+284:    if (w.model) { w.model.position.copy(w.base.p); w.model.rotation.copy(w.base.r); w.model.scale.copy(w.base.s); }
+534:        return st.tween({ ms: o.ms || run.ms * 0.5, delay: o.delay || 0, ease: o.ease || 'out', done: o.done, update(t, e) { obj.scale.setScalar(from + (to - from) * e); } });
+599:        mesh.scale.setScalar(size);
+606:          back.scale.setScalar(1 + ICON.outlineW / Math.max(0.02, size));
+618:           子節點也要鎖是因為「`knife.children[0].scale.setScalar(…)`」同樣改得動畫面上的尺寸

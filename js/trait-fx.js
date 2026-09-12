@@ -193,13 +193,352 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      （st.icon／st.icons／st.mark）**一律拒收**：傳了就 throw，而不是靜默沿用。
      ——不寫成「忽略 o.size」是因為靜默忽略會讓編舞以為自己調到了尺寸，下一卷又長回來；
      throw 才會在 traitfx-drive／duel-drive 的 handled=false 上當場現形（L9 零錯會抓）。
-     另一條路（直接 mesh.scale.setScalar(<數字>)）由 tests/fxvocab.test.mjs 的掃描守。 */
+     另一條路（直接對 mesh 的 scale 寫值）由下面的 lockIconScale 在**執行期**鎖死（覆審 r3 N11）。 */
   function iconSizeSrc(who, kind, o, size) {
     if (o && 'size' in o) {
       throw new Error(`${who} 不接受 o.size（徽記尺寸的唯一來源是 js/trait-fx/vocab.js 的 ICON.byKind／flatByKind／markByKind；`
-        + `要改 ${kind} 的尺寸就改那張表，編舞要放大縮小請乘 st.iconSize／st.iconFlatSize／st.markSize）`);
+        + `要改 ${kind} 的尺寸就改那張表，編舞要放大縮小請用 st.iconScale(mesh, 相對倍率)）`);
     }
     return size;
+  }
+  /* ══ ★徽記世界尺寸的單一來源：鎖 ＋ 稽核（r3 N11 → ★r4 HIGH-1 修補批★）★ ══════════════
+     危險的**效果**＝「徽記在**世界空間**的實際尺寸，來自 ICON 表以外的第二份來源」。
+
+     ★r3 那一版錯在哪（覆審 r4 實測，四條繞法三道防線全綠）★
+     r3 只鎖了 `Object3D.scale` 那顆 Vector3，然後宣稱「分母歸一、涵蓋自然 100%」。
+     但世界尺寸不只由 `obj.scale` 決定，覆審員實測繞得過的有四條：
+       A 把徽記 add 進一個縮放過的父 Group（世界寬 0.5186 → 0.0353）
+       B 置換 `geometry`（→ 0.0185）
+       C `matrixAutoUpdate = false` ＋ 自己寫 `obj.matrix`（→ 0.0259）
+       E `Object.defineProperty` 把被鎖的 accessor 蓋掉（r3 寫了 `configurable: true`）
+     其中 C 的變形 F（每幀 `matrix.compose(…, new Vector3(0.52))`）讓尺寸與 ICON 表**完全脫鉤**，
+     L3 canary（`_resolve()=>0.02`）之下 `area_pct 1.0132／ok:true` ——恆綠儀式原樣復現。
+
+     ★本批的修法：兩層★
+     ① **鎖（按入口收斂，防止效果發生）**——凡是會改變世界尺寸的**屬性**一律鎖成
+        accessor 或不可寫、不可再定義（`configurable: false`），寫了就記帳＋throw：
+          `obj.scale` 這個屬性本身、它的 `x`／`y`／`z`、`geometry`、
+          `matrixAutoUpdate`、`matrixWorldAutoUpdate`、`userData.fxIconBase`／`fxIconKind`。
+        `configurable: false` 讓 E 那條（`Object.defineProperty` 蓋回去）直接 TypeError。
+     ② **稽核（按效果寫，抓沒想到的第 N 條）**——`auditSizes()` 每一幀對每個登記過的物件量
+        **世界尺寸**本身，和「積木自己最後一次合法寫進去的值」比對：
+          `updateWorldMatrix(true, true)` → `matrixWorld.decompose()` 取世界縮放，
+          再乘上**當下這顆 geometry** 的單位寬度＝世界寬度；
+          期望值＝祖先鏈上每個登記物件的 `want` 連乘（未登記的祖先縮放必須是 1）。
+        A（父層縮放）、B（換 geometry）、C／F（自寫 matrix）、以及任何還沒被想到的路
+        都會讓「量到的世界尺寸 ≠ 積木寫進去的值」⇒ 判紅。
+        InstancedMesh 另外逐 instance 解出縮放，對 `fxIcons.size × 相對倍率` 比對
+        （`im.setMatrixAt()` 那條路，覆審 r4 §4.5 列為未確認的疑慮，本批一併收掉）。
+        ★為什麼判定不用 `Box3.setFromObject` 的 x 跨距★：徽記是逐幀朝鏡頭的 billboard，
+        旋轉中的物件其**世界 AABB** 的跨距隨朝向變（同一個尺寸能差到 √2 倍），要用它判就得
+        放寬到鬆得能放行 0.93 倍的繞法——那正是要防的那種鬆。所以判定用**旋轉無關**的
+        「世界縮放 × geometry 單位寬」，`Box3.setFromObject` 的對角線只當診斷欄一起記。
+
+     ★合法的動畫★：四支示範招都有呼吸縮放。唯一入口是 `st.iconScale(mesh, k)`，
+     算的是 `mesh.userData.fxIconBase × k`（ICON 的值永遠在乘積裡），
+     且 `k` 必須落在 `ICON.scaleRange`——否則 `st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門。
+
+     ★記帳為什麼必要★：run 的 tween 迴圈對 update 是 `try/catch`（一段壞了不擋整招），
+     光 throw 會被吃掉、`pageerror` 也看不到。`stats.sizeViolations` 讓
+     `traitfx-drive`／`duel-drive`／`fx-contrast` 三支治具都看得見（那是執行期斷言）。
+     稽核那一層**只記帳不 throw**（它跑在引擎主迴圈裡，throw 會拖垮整個 3D 層）。
+
+     ★活性★：`iconMade`（產出的徽記物件數）＝`iconLocked`（真的鎖上的數），
+     且 `made > 0` 時 `sizeAudits > 0`（稽核真的跑過）。治具端逐套判三態，見 traitfx-drive。 */
+  const SIZED = new WeakMap(); // obj → {kind, base, want, geom, flat, sizes}
+  let scaleUnlocked = false;
+  function sizeViolation(msg) {
+    stats.sizeViolations++;
+    if (!stats.sizeViolationMsg) stats.sizeViolationMsg = msg;
+    return msg;
+  }
+  /** 只有這支能寫徽記的 scale（積木內部用；編舞碰不到它） */
+  function setLockedScale(obj, v) {
+    scaleUnlocked = true;
+    try { obj.scale.setScalar(v); } finally { scaleUnlocked = false; }
+    const rec = SIZED.get(obj);
+    if (rec) rec.want = v;
+  }
+  const NOOP = function () {};
+  /* ★已知屬於徽記的 geometry「內容指紋」★（r2 M1 的抓手；★r3 N-1 由 uuid 改成指紋★）
+     r2 那一版收的是登記當下那顆 geometry 的 `uuid`，所以 helper 裡一個
+     `new THREE.Mesh(o.geometry.clone(), …)` 就整組穿過去——clone 出來的是新 uuid、對不上，
+     那顆手造徽記不在 SIZED、不上鎖、不被稽核，實測 L3 canary 由 `pass 0` 翻成 `pass 1`
+     （面積 0.9728 → 7.2327，canary 下 6.3194／ok:true）＝恆綠儀式復現。
+     改成按**內容**認：`geomSig`（頂點數＋座標校驗和）＋單位寬，clone 出來的兩者都一樣。
+     `GEOM_COUNTS` 是便宜的前置過濾（先比頂點陣列長度，對不上就不算指紋），
+     免得每次 scene.traverse 都對全場每顆 mesh 算一遍校驗和。 */
+  const GEOM_SIGS = new Set();
+  const GEOM_COUNTS = new Set();
+  /* 積木自己造的、**不在尺寸鎖涵蓋內**但確實會用到徽記輪廓的 mesh
+     （`st.paperStamp` 的三片＋`st.paperProps` 的 InstancedMesh；2026-09-13 演出卷加入後者）。
+     它們不是「手造的第二顆徽記」，所以場景掃描要放行；放行名單是模組私有的 WeakSet，
+     編舞碰不到它，也就加不進來。★這兩支都不在尺寸鎖裡，列在 README 的已知未涵蓋★。 */
+  const BLOCK_MADE = new WeakSet();
+  /** geometry 的內容指紋（頂點數＋座標校驗和）；r2 M2：只驗身分擋不住就地改內容 */
+  function geomSig(geom) {
+    if (!geom || !geom.attributes || !geom.attributes.position) return null;
+    const a = geom.attributes.position.array;
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) sum = (sum * 31 + a[i]) % 1e12;
+    return a.length + ':' + sum.toFixed(6);
+  }
+  /** 這顆 geometry 在 scale=1 時的寬度（x 跨距）——世界寬度＝世界縮放 × 這個值 */
+  function unitWidthOf(geom) {
+    if (!geom) return 0;
+    if (!geom.boundingBox) { try { geom.computeBoundingBox(); } catch (e) { return 0; } }
+    const b = geom.boundingBox;
+    return b ? b.max.x - b.min.x : 0;
+  }
+  /** 把會改變世界尺寸的屬性全部鎖起來，並登記進稽核名單 */
+  function lockIconScale(run, obj, base, kind, geom, host) {
+    if (SIZED.has(obj)) return obj;
+    const vec = obj.scale;
+    let x = vec.x, y = vec.y, z = vec.z;
+    const bad = (what, val) => {
+      throw new Error(sizeViolation(`徽記 ${kind} 的 ${what} 被直接寫成 ${val}：徽記的世界尺寸只有一份來源`
+        + '（js/trait-fx/vocab.js 的 ICON.byKind／flatByKind／markByKind）。'
+        + '要做呼吸縮放請用 st.iconScale(mesh, 相對倍率)，要改這個 kind 的尺寸請改那張表。'));
+    };
+    const ax = (axis, get, set) => ({
+      configurable: false, // ★r4 E：configurable:true 時 Object.defineProperty 蓋得掉這層鎖★
+      enumerable: true,
+      get,
+      set(val) { if (!scaleUnlocked) bad('scale.' + axis, val); set(val); },
+    });
+    Object.defineProperties(vec, {
+      x: ax('x', () => x, (v) => { x = v; }),
+      y: ax('y', () => y, (v) => { y = v; }),
+      z: ax('z', () => z, (v) => { z = v; }),
+    });
+    // 整顆 Vector3 被換掉也是一條路（`Object.defineProperty(obj,'scale',{value:new Vector3(0.02)})`）
+    Object.defineProperty(obj, 'scale', { value: vec, writable: false, configurable: false, enumerable: true });
+    // r4 B：置換 geometry ⇒ 同一個 scale 下世界尺寸整個換掉（accessor 而不是 writable:false，
+    // 是為了讓違規**說得出自己是哪一條**：writable:false 丟的 TypeError 不帶語意）
+    if (geom) {
+      Object.defineProperty(obj, 'geometry', {
+        configurable: false, enumerable: true,
+        get() { return geom; },
+        set(v) { if (v !== geom) bad('geometry', v && v.type); },
+      });
+    }
+    // r4 C／F：關掉 matrixAutoUpdate 之後自己寫 matrix／matrixWorld
+    const flag = (name) => Object.defineProperty(obj, name, {
+      configurable: false, enumerable: true,
+      get() { return true; },
+      set(v) { if (v !== true) bad(name, v); },
+    });
+    flag('matrixAutoUpdate');
+    if ('matrixWorldAutoUpdate' in obj) flag('matrixWorldAutoUpdate');
+    /* ★r2 H1：`onBeforeRender` 與 `onAfterRender` 是「在稽核之後、送去畫之前」的最後兩個鉤子★
+       three 的 renderObject 是：`onBeforeRender()` → `modelViewMatrix = camera.matrixWorldInverse × matrixWorld`
+       → draw → `onAfterRender()`。所以在 `onBeforeRender` 裡改 `matrixWorld`，畫出來的是改過的、
+       而 `traitFx.update` 末那一輪稽核量到的是沒改過的——覆審 r2 實測 L3 canary `ok:true`（恆綠儀式復現）。
+       兩件事一起做：① 這兩個鉤子鎖成 accessor（寫了就記帳＋throw）；
+       ② `onAfterRender` 的 getter 回傳**積木自己的稽核**——那是「剛剛送進 GPU 的那顆矩陣」的量測位置，
+       不論是誰、在哪一個鉤子裡動了 matrixWorld，都會被這一次量到。 */
+    Object.defineProperty(obj, 'onBeforeRender', {
+      configurable: false, enumerable: true,
+      get() { return NOOP; },
+      set(v) { if (v !== NOOP) bad('onBeforeRender', v && (v.name || 'fn')); },
+    });
+    Object.defineProperty(obj, 'onAfterRender', {
+      configurable: false, enumerable: true,
+      get() { return auditAtDraw; },
+      set(v) { if (v !== auditAtDraw) bad('onAfterRender', v && (v.name || 'fn')); },
+    });
+    // 基準與 kind 唯讀：否則「改掉 fxIconBase 再呼叫 st.iconScale」就是新的第二份來源
+    Object.defineProperty(obj.userData, 'fxIconBase', { value: base, writable: false, configurable: false, enumerable: true });
+    Object.defineProperty(obj.userData, 'fxIconKind', { value: kind, writable: false, configurable: false, enumerable: true });
+    const rec = { obj, kind, base, want: vec.x, geom: geom || null, unitW: unitWidthOf(geom),
+      instanced: !!obj.isInstancedMesh,
+      /* r2 M3：`host` 是「這一片合法掛在誰底下」。只有 `st.icon` 自己造的底板／描邊子節點有 host；
+         其餘徽記的父節點必須是**沒登記過的、縮放為 1** 的節點（實務上就是 scene）。
+         沒有這一欄時，「把徽記 add 到另一顆徽記底下」會被當成合法連乘（實測 0.56 → 0.31357）。 */
+      host: host || null,
+      /* r2 M2：稽核原本只驗 geometry 的**身分**（uuid 相同），不驗**內容**。
+         `geometry.scale(k,k,k)` 就地改共用剪影（emblems.js 是一個 kind 建一次、全場共用），
+         身分沒變、`rec.unitW` 又是建立時的快取 ⇒ 四道防線全綠、面積 0.9728→1.0284。
+         這裡把頂點數與座標校驗和凍住，稽核逐次比對。 */
+      geomSig: geomSig(geom) };
+    SIZED.set(obj, rec);
+    if (rec.geomSig !== null) { GEOM_SIGS.add(rec.geomSig); GEOM_COUNTS.add(geom.attributes.position.array.length); }
+    run.sized.push(rec);
+    stats.iconLocked++;
+    return obj;
+  }
+  const _ap = new THREE.Vector3();
+  const _aq = new THREE.Quaternion();
+  const _as = new THREE.Vector3();
+  const _abox = new THREE.Box3();
+  const near = (a, b) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
+  /** 祖先鏈上的期望世界縮放。
+   *  規則（r4 A ＋ **r2 M3**）：**唯一允許的登記祖先，是這一片自己的 `host`**
+   *  （`st.icon` 建的本體，底板／描邊掛在它底下）；其餘祖先一律不得是徽記、且縮放必須是 1。
+   *  舊版把「任何登記過的祖先」的 want 乘進期望值 ⇒ 把徽記 add 到另一顆徽記底下時，
+   *  世界縮放變成兩個表值的乘積（實測 0.56×0.56＝0.31357，三張表裡沒有這個數）而稽核照樣對得上。 */
+  function expectedWorldScale(rec) {
+    let k = rec.want;
+    let n = rec.obj.parent;
+    if (rec.host) {
+      if (n !== rec.host) {
+        sizeViolation(`徽記 ${rec.kind} 的子片被搬離它的本體（父節點不是建立時的 host）：`
+          + '底板／描邊只能掛在自己那一片徽記底下（覆審 r2 M3）。');
+        return null;
+      }
+      const hr = SIZED.get(n);
+      k *= hr ? hr.want : 1;
+      n = n.parent;
+    }
+    for (; n; n = n.parent) {
+      if (SIZED.has(n)) {
+        sizeViolation(`徽記 ${rec.kind} 掛在另一個徽記（${SIZED.get(n).kind}）底下：`
+          + '世界尺寸會變成兩個表值的乘積，那個數字不在 ICON 的任何一張表裡（覆審 r2 M3）。');
+        return null;
+      }
+      if (!near(n.scale.x, 1) || !near(n.scale.y, 1) || !near(n.scale.z, 1)) {
+        sizeViolation(`徽記 ${rec.kind} 掛在一個被縮放過的父節點底下（${n.type} scale=${n.scale.x}）：`
+          + '徽記的世界尺寸必須只由 ICON 表決定，不得靠父層縮放（覆審 r4 繞法 A）。');
+        return null;
+      }
+    }
+    return k;
+  }
+  /** ★按效果寫的那一道★：量一個登記物件的**世界尺寸**，和積木寫進去的值比對。
+   *  `where` 只進診斷欄：'update'＝traitFx.update 末（frame 內），'draw'＝onAfterRender（剛送進 GPU）。 */
+  function auditOne(rec, where) {
+    const o = rec.obj;
+    if (!o.parent) return; // 已經清場
+    stats.sizeAudits++;
+    if (where === 'draw') stats.auditsDraw++; else stats.auditsUpdate++;
+    // ① geometry 身分（鎖住了，這裡再量一次；換了就算鎖被繞過也抓得到）
+    if (rec.geom && o.geometry !== rec.geom) {
+      sizeViolation(`徽記 ${rec.kind} 的 geometry 被換掉了（覆審 r4 繞法 B）：世界尺寸＝縮放 × geometry 單位寬，`
+        + '換 geometry 等於換尺寸，來源必須是 emblems.js 的共用幾何。');
+      return;
+    }
+    /* ①b **geometry 的內容**（r2 M2）：身分相同不代表形狀相同。
+       `geometry.scale(k,k,k)` 就地改的是 emblems.js 那份**全場共用**的剪影，
+       身分沒變、`rec.unitW` 又是建立時的快取 ⇒ 舊版四道防線全綠、面積 0.9728→1.0284。 */
+    if (rec.geomSig !== null) {
+      const live = unitWidthOf(o.geometry);
+      if (!near(live, rec.unitW) || geomSig(o.geometry) !== rec.geomSig) {
+        sizeViolation(`徽記 ${rec.kind} 的 geometry **內容**被就地改過（單位寬 ${rec.unitW.toFixed(6)} → ${live.toFixed(6)}）：`
+          + 'emblems.js 的剪影是一個 kind 建一次、全場共用，改它等於改所有同 kind 徽記的尺寸（覆審 r2 M2）。');
+        return;
+      }
+    }
+    const want = expectedWorldScale(rec);
+    if (want === null) return;
+    o.matrixWorld.decompose(_ap, _aq, _as);
+    // ② 世界縮放必須等於積木自己最後一次合法寫進去的值（含祖先鏈）
+    if (!near(_as.x, want) || !near(_as.y, want) || !near(_as.z, want)) {
+      sizeViolation(`徽記 ${rec.kind} 的**世界**縮放是 ${_as.x.toFixed(6)}，積木寫進去的是 ${want.toFixed(6)}`
+        + `（量測位置 ${where}；差值來自 ICON 表以外的第二份來源——自寫 matrix／matrixWorld／父層縮放／`
+        + '繞過鎖的寫入，覆審 r4 繞法 A／C／F、r2 H1）。');
+      return;
+    }
+    // ③ 逐 instance（st.icons 的 InstancedMesh；im.setMatrixAt 與 o.sizes 那兩條路）
+    if (rec.instanced) auditInstances(rec, want);
+    /* ④ 診斷欄：世界寬度（旋轉無關）與 Box3 對角線。
+       ★InstancedMesh 的物件縮放恆為 1（尺寸在實例矩陣裡）★，所以它報的是
+       `fxIcons.size × 逐實例倍率的極值 × geometry 單位寬`——不然那一欄會永遠印 1×unitW。 */
+    let k = _as.x;
+    if (rec.instanced && o.userData.fxIcons) {
+      const d = o.userData.fxIcons;
+      let mx = d.scale === undefined ? 1 : d.scale;
+      if (d.sizes) for (let i = 0; i < d.sizes.length; i++) mx = Math.max(mx, d.sizes[i]);
+      k = _as.x * d.size * mx;
+    }
+    const w = k * (rec.unitW || unitWidthOf(o.geometry));
+    const r = stats.sizeWorldRange[rec.kind] || (stats.sizeWorldRange[rec.kind] = [w, w]);
+    if (w < r[0]) r[0] = +w.toFixed(6);
+    if (w > r[1]) r[1] = +w.toFixed(6);
+    if (stats.sizeAudits % 37 === 1) { // Box3 只抽樣記錄（診斷用，不進判定）
+      _abox.setFromObject(o);
+      stats.sizeBoxDiag[rec.kind] = +_abox.getSize(_ap).length().toFixed(6);
+    }
+  }
+  /* ★r2 H1 的量測位置★：three 的 renderObject 順序是
+       onBeforeRender() → modelViewMatrix = camera.matrixWorldInverse × matrixWorld → draw → onAfterRender()
+     所以 `onAfterRender` 裡的 `this.matrixWorld` **就是剛剛送進 GPU 的那一顆**。
+     任何發生在「traitFx.update 之後、draw 之前」的改動（`onBeforeRender` 鉤子、別人的鉤子、
+     render 內的 updateMatrixWorld 重算）都逃不過這一次量測。
+     這支**只記帳不 throw**：它跑在 renderer 的迴圈裡，throw 會拖垮整個 3D 層。 */
+  function auditAtDraw() {
+    const rec = SIZED.get(this);
+    if (rec) auditOne(rec, 'draw');
+  }
+  /** update 末的那一輪（frame 內）＋ 場景掃描 */
+  function auditSizes(run) {
+    for (let i = 0; i < run.sized.length; i++) {
+      const rec = run.sized[i];
+      if (rec.obj.parent) rec.obj.updateWorldMatrix(true, true);
+      auditOne(rec, 'update');
+    }
+    /* ★r2 M1：稽核原本只看 `SIZED` 這份登記表★——編舞自己 `new THREE.Mesh(<同一份剪影幾何>)`
+       再 `st.spawn` 出來的第二顆徽記全程隱形（實測 canary 面積由 0.0595 被它抬到 0.4041）。
+       這裡改成按**效果**找：場上凡是 geometry 屬於徽記幾何、卻沒登記進 `SIZED` 的 mesh，一律判紅。
+       每 SCENE_SCAN_EVERY 次稽核掃一遍（scene.traverse 不便宜，而「多了一顆 mesh」不是逐幀變化的事）。 */
+    run.scanTick = (run.scanTick || 0) + 1;
+    if (run.scanTick % SCENE_SCAN_EVERY === 1) scanStrayEmblems();
+  }
+  const SCENE_SCAN_EVERY = 6;
+  function scanStrayEmblems() {
+    if (!GEOM_SIGS.size) return;
+    scene.traverse((o) => {
+      if (!o.geometry || SIZED.has(o) || BLOCK_MADE.has(o)) return;
+      const pos = o.geometry.attributes && o.geometry.attributes.position;
+      if (!pos || !GEOM_COUNTS.has(pos.array.length)) return; // 便宜的前置過濾：頂點數對不上就不是徽記
+      if (!GEOM_SIGS.has(geomSig(o.geometry))) return;        // 按內容認（r3 N-1：uuid 被 clone 穿過去）
+      sizeViolation(`場上有一顆用徽記剪影、卻沒有經過 st.icon／st.icons／st.mark 的 mesh`
+        + `（${o.type}，fxKind=${(o.userData && o.userData.fxKind) || '無'}）：`
+        + '它不在尺寸鎖與稽核的涵蓋裡，等於一條完全在防線外的第二份來源'
+        + '（覆審 r2 M1；r3 N-1：連 geometry.clone() 出來的也算，認的是內容不是 uuid）。');
+    });
+  }
+  function auditInstances(rec, worldK) {
+    const d = rec.obj.userData.fxIcons;
+    if (!d) return;
+    const inRange = (v) => Number.isFinite(v) && v >= ICON.scaleRange[0] && v <= ICON.scaleRange[1];
+    const mul = d.scale === undefined ? 1 : d.scale;
+    if (!inRange(mul)) {
+      sizeViolation(`群體徽記 ${rec.kind} 的 fxIcons.scale＝${mul} 不在合法倍率區間 `
+        + `${ICON.scaleRange.join('~')}（那是相對倍率，不是絕對尺寸）。`);
+      return;
+    }
+    /* ★r2 H2：`o.sizes` 是逐實例的相對倍率，舊版**沒有**區間檢查★
+       ——`sizes: prints.map(() => 0.50 / st.iconFlatSize)` 把 ICON 的值除掉，乘積就是寫死的絕對尺寸，
+       而稽核的期望值用的是同一組數字 ⇒ 自我指涉、永遠相等（實測 0.2 → 0.5，四道防線全綠）。
+       與 `st.iconScale(m, 0.02/base)` 是同一個後門，開在另一扇門上。 */
+    if (d.sizes) {
+      for (let i = 0; i < d.sizes.length; i++) {
+        const v = d.sizes[i] === undefined ? 1 : d.sizes[i];
+        if (!inRange(v)) {
+          sizeViolation(`群體徽記 ${rec.kind} 第 ${i} 個實例的 o.sizes＝${v} 不在合法倍率區間 `
+            + `${ICON.scaleRange.join('~')}（覆審 r2 H2：把 st.iconFlatSize 除掉就是絕對尺寸的後門）。`);
+          return;
+        }
+      }
+    }
+    for (let i = 0; i < d.pos.length; i++) {
+      rec.obj.getMatrixAt(i, _m4);
+      _m4.decompose(_ap, _aq, _as);
+      const want = worldK * d.size * (rec.flat && d.sizes ? (d.sizes[i] === undefined ? 1 : d.sizes[i]) : mul);
+      if (!near(_as.x, want)) {
+        sizeViolation(`群體徽記 ${rec.kind} 第 ${i} 個實例的世界縮放是 ${_as.x.toFixed(6)}，`
+          + `ICON 表算出來的是 ${want.toFixed(6)}（setMatrixAt 直接寫矩陣＝第二份來源）。`);
+        return;
+      }
+    }
+  }
+  /** 徽記尺寸的機械診斷（治具讀這一份；js/renderer.js 已把 traitFx 掛在 window.__yaoshi3d 上） */
+  function sizeGuard() {
+    return { violations: stats.sizeViolations, made: stats.iconMade, locked: stats.iconLocked,
+      audits: stats.sizeAudits, auditsUpdate: stats.auditsUpdate, auditsDraw: stats.auditsDraw,
+      msg: stats.sizeViolationMsg,
+      tweenErrors: stats.tweenErrors, tweenErrorMsg: stats.tweenErrorMsg,
+      worldRange: stats.sizeWorldRange, boxDiag: stats.sizeBoxDiag, range: ICON.scaleRange.slice() };
   }
   // 徽記朝鏡頭：相機四元數再往下壓 ICON.billboardTiltDeg（正俯視時完全正對會像貼紙，壓一點才有厚度）
   const TILT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -THREE.MathUtils.degToRad(ICON.billboardTiltDeg));
@@ -235,7 +574,17 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   scene.add(warm);
   if (opts.renderer) { try { opts.renderer.compile(scene, camera); } catch (e) { /* 直接輸出那一支順手先編 */ } }
 
-  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0 };
+  /* sizeViolations／iconMade／iconLocked＝徽記尺寸鎖的執行期斷言（覆審 r3 N11）。
+     治具判紅的條件：sizeViolations > 0（有人繞過 ICON 表）或 iconLocked !== iconMade（鎖沒掛上去＝防線失效）。 */
+  const stats = { asked: 0, handled: 0, fallback: 0, thrown: 0, fused: 0, cut: 0 /* 收工時還有 tween/timer 沒演完 */, sped: 0 /* 被加速過的套數 */, finished: 0,
+    sizeViolations: 0, sizeViolationMsg: null, iconMade: 0, iconLocked: 0,
+    // r4 修補批：稽核次數（物件×幀）＝活性；世界寬度區間與 Box3 對角線＝診斷欄（不進判定）
+    /* r3 N-2：稽核次數要**標量測位置**（`02 §6.1` 第 5 條：代理指標「沒響」只在它的量測位置上有效）。
+       實測 traitfx-drive 的治具頁逐幀 step() 但不逐幀 render()，draw 那個位置**一次都沒觸發**，
+       而彙總行只印一個「稽核 N 次」看起來像兩個位置都量過了。 */
+    sizeAudits: 0, auditsUpdate: 0, auditsDraw: 0, sizeWorldRange: {}, sizeBoxDiag: {},
+    // r4 MEDIUM-1：編舞在 tween／timer／done 裡丟出來的例外不再靜默消失（含被鎖屬性的 TypeError）
+    tweenErrors: 0, tweenErrorMsg: null };
   const runs = new Set();
   const wraps = new Map(); // figure → wrap
   let seedCounter = 11;
@@ -581,6 +930,29 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       iconFlatSize: ICON.flatSizeOf(EMBLEM_OF[det.trId] || null),
       /** 這一招印記（st.mark 蓋在受招／受益方身上那枚）的尺寸；來源同上，ICON.markByKind。 */
       markSize: ICON.markSizeOf(EMBLEM_OF[det.trId] || null),
+      /** ★徽記縮放的唯一合法入口（覆審 r3 N11）★
+       *  `k` 是**相對倍率**，實際世界尺寸＝`ICON` 表給的基準 × k——ICON 的值永遠在乘積裡。
+       *  編舞寫 `st.iconScale(knife, 0.5 + 0.5 * e)`，等價於舊寫法 `st.iconSize * (0.5 + 0.5 * e)`
+       *  （基準就是 `st.iconSize`／`st.iconFlatSize`／`st.markSize` 那一組，逐位數相同）。
+       *  直接寫 `mesh.scale.*` 會被 lockIconScale 當場 throw ＋ 記進 stats.sizeViolations。 */
+      iconScale(mesh, k) {
+        const base = mesh && mesh.userData ? mesh.userData.fxIconBase : undefined;
+        if (base === undefined) {
+          throw new Error('st.iconScale 只吃 st.icon／st.icons／st.mark 產出的徽記（它的尺寸基準來自 vocab.js 的 ICON 表）；'
+            + '別的 mesh 請用 st.grow');
+        }
+        const m = k === undefined ? 1 : k;
+        if (!Number.isFinite(m)) throw new Error(`st.iconScale 的倍率不是有限數：${m}`);
+        /* ★倍率要有上下限（覆審 r4）★：沒有它，`st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門
+           ——合法入口自己變成第二份來源。超出區間代表這個 kind 的尺寸該改，請改 ICON 的三張表。 */
+        if (m < ICON.scaleRange[0] || m > ICON.scaleRange[1]) {
+          throw new Error(sizeViolation(`st.iconScale 的倍率 ${m} 超出合法區間 ${ICON.scaleRange.join('~')}`
+            + `（徽記 ${mesh.userData.fxIconKind}）。那不是呼吸縮放，是把絕對尺寸寫進來；`
+            + '要改這個 kind 的尺寸請改 js/trait-fx/vocab.js 的 byKind／flatByKind／markByKind。'));
+        }
+        setLockedScale(mesh, base * m);
+        return mesh;
+      },
       /** 徽記：一片朝鏡頭的法寶剪影。
        *  o = { size=ICON.sizeOf(kind), color=st.colors.key, opacity=1, outline=true, rimLine=false, roll=0 }
        *  outline＝在本體後面墊一片 ink 色的實心底板（把亮色從暗紅桌／夜紫天上切出來）；
@@ -611,6 +983,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           mesh.add(line);
         }
         mesh.userData.fxParts = [mesh].concat(mesh.children.filter((c) => c.material)); // st.fade／st.alpha 三片一起動
+        /* ★尺寸鎖（覆審 r3 N11）★：本體與底板／描邊子節點全部鎖住。
+           子節點也要鎖是因為「`knife.children[0].scale.setScalar(…)`」同樣改得動畫面上的尺寸
+           （底板被撐大就是 r2 §7.1 末表那個「ΔE 糊掉」的機制）——防線按效果寫，不按入口寫。 */
+        stats.iconMade++;
+        lockIconScale(run, mesh, size, kind, mesh.geometry);
+        mesh.children.forEach((c) => { stats.iconMade++; lockIconScale(run, c, c.scale.x, kind + ':part', c.geometry, mesh); });
         st.spawn(mesh, 'emblem:' + kind);
         run.sig.emblems.add(kind);
         if (o.flat) { mesh.rotation.x = -Math.PI / 2; mesh.rotation.z = o.roll || 0; } // 貼桌（陰氣的水漬／暗斑、香火的貼桌陣）：不朝鏡頭
@@ -621,12 +999,35 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  positions 是 Vector3[]（會被記住並逐幀重排朝向；要移動就改陣列裡的向量）。 */
       icons(kind, positions, o = {}) {
         const size = iconSizeSrc('st.icons', kind, o, o.flat ? ICON.flatSizeOf(kind) : ICON.sizeOf(kind));
+        /* ★r2 H2：`o.sizes` 的區間檢查要在入口做（稽核是第二道）★
+           它是逐實例的**相對**倍率，ICON 的值必須留在乘積裡；把 st.iconFlatSize 除掉就是
+           絕對尺寸的後門（實測把貼桌徽記由 0.2 推到 0.5，舊版四道防線全綠）。 */
+        if (o.sizes) {
+          if (!Array.isArray(o.sizes)) throw new Error('st.icons 的 o.sizes 必須是陣列');
+          for (let i = 0; i < o.sizes.length; i++) {
+            const v = o.sizes[i] === undefined ? 1 : o.sizes[i];
+            if (!Number.isFinite(v) || v < ICON.scaleRange[0] || v > ICON.scaleRange[1]) {
+              throw new Error(sizeViolation(`st.icons 的 o.sizes[${i}]＝${v} 不在合法倍率區間 `
+                + `${ICON.scaleRange.join('~')}（徽記 ${kind}）。那是逐實例的相對倍率，不是絕對尺寸；`
+                + '要改這個 kind 的尺寸請改 js/trait-fx/vocab.js 的 flatByKind／byKind。'));
+            }
+          }
+        }
         const mat = MAT_SOLID.clone();
         mat.color.setHex(o.color === undefined ? st.colors.key : o.color);
         mat.opacity = o.opacity === undefined ? 1 : o.opacity;
         const im = new THREE.InstancedMesh(EMBLEMS.geomOf(kind), mat, Math.max(1, positions.length));
-        im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1, rolls: o.rolls || null };
+        im.userData.fxIcons = { pos: positions.map((p) => p.clone()), size, roll: o.roll || 0, scale: 1, rolls: o.rolls || null,
+          // r4 修補批：逐實例稽核要知道 flat 那條路乘的是哪一組相對倍率（行為不變，只是把它記下來）
+          sizes: o.sizes || null };
+        /* ★尺寸鎖（覆審 r3 N11）★：群體徽記的尺寸有兩個出口，兩個都要收——
+           ① `im.scale`（整批一起放大，基準 1＝純相對倍率）；
+           ② `userData.fxIcons.size`（逐幀重排時乘進矩陣的那個值，直接改它就是第二份來源）→ 唯讀。 */
+        Object.defineProperty(im.userData.fxIcons, 'size', { value: size, enumerable: true });
         im.frustumCulled = false; // 實例中心在原點，包圍盒對不上，不關會被整批剔掉
+        stats.iconMade++;
+        lockIconScale(run, im, 1, kind + ':instanced', im.geometry);
+        SIZED.get(im).flat = !!o.flat; // 逐實例稽核：flat 走 o.sizes 那組相對倍率，非 flat 走 d.scale
         st.spawn(im, 'emblem:' + kind);
         run.sig.emblems.add(kind);
         if (o.flat) { // 貼桌：一次把 N 個實例壓平，之後不逐幀重排（省掉整批 billboard 的成本）
@@ -734,6 +1135,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         mFace.material.opacity = op;
         const grp = new THREE.Group();
         grp.add(mBody, mFace);
+        // r3 N-1：場景掃描按 geometry 內容認徽記，paperStamp 自己建的那幾片要放行（它不是手造的第二顆徽記）
+        BLOCK_MADE.add(mBody); BLOCK_MADE.add(mFace);
         /* o.glyph：印面上的字（ink 色）。沒有它的話，一枚 0.2–0.5 世界單位的印在 780×360 上
            只是一塊紅色色塊——「有厚度的紅色塊」和「印」之間差的就是這幾筆。
            ★2026-09-12 製作人裁定：字一律是「虎」★（原型第一版寫的是「王」，是虎額上那個字，
@@ -771,6 +1174,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           mGlyph = new THREE.Mesh(gg, MAT_SOLID.clone());
           mGlyph.material.color.setHex(o.glyphColor === undefined ? (o.inkColor === undefined ? st.colors.ink : o.inkColor) : o.glyphColor);
           mGlyph.material.opacity = op;
+          BLOCK_MADE.add(mGlyph);
           grp.add(mGlyph);
         }
         grp.scale.setScalar(size);
@@ -864,6 +1268,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           im.instanceMatrix.needsUpdate = true;
         };
         write(); // 開場全部 s=0＝看不見，編舞再逐幀長出來
+        /* ★場景掃描的放行（r3 N-1 的同一條）★：`shape:'emblem'` 走的是 `EMBLEM[kind]` 的外框頂點表，
+           擠出之後頂點陣列與剪影那份不同（指紋照理對不上），但**這條放行不靠「照理」**——
+           它與 st.paperStamp 的三片是同一類東西：積木自己造的、確實用到徽記輪廓、不是手造的第二顆徽記。
+           ★它同樣**不在尺寸鎖裡**（`st.iconScale` 只吃 SIZED 的物件），與 paperStamp 一起列在
+           README 的「已知未涵蓋」★——單件尺寸的唯一來源是 `ICON.markSizeOf(kind) × o.k`，
+           由本函式一處算完寫進 instanceMatrix，編舞拿不到那個乘積去改。 */
+        BLOCK_MADE.add(im);
         st.spawn(im, 'prop:' + kind);
         return { obj: im, items, write, size };
       },
@@ -909,7 +1320,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       acts: 0, inFlinch: false, // F10：非 flinch 的補間條數
       reduced: det.reduced === undefined ? prefersReduced() : !!det.reduced,
       // v0.55：徽記逐幀朝鏡頭（bb＝單枚 Mesh、bbi＝群體 InstancedMesh）、印記跟著受招方走、因果三段的打點
-      phaseClaims: [], bb: [], bbi: [], follow: [], caster: null, actorSet: null, travelDist: 1,
+      phaseClaims: [], bb: [], bbi: [], follow: [], sized: [], caster: null, actorSet: null, travelDist: 1,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
@@ -935,7 +1346,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     run.meshes.length = 0;
     run.tweens.length = 0; run.timers.length = 0;
-    run.bb.length = 0; run.bbi.length = 0; run.follow.length = 0;
+    run.bb.length = 0; run.bbi.length = 0; run.follow.length = 0; run.sized.length = 0;
     run.wraps.forEach((w) => {
       w.runs.delete(run);
       if (!w.runs.size) { unwrap(w); return; }
@@ -959,6 +1370,18 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   }
   function cancelAll() { Array.from(runs).forEach(finish); if (rig) rig.position.copy(rigBase); /* SKIP：燈組立刻回位 */ }
 
+  /* ★覆審 r4 MEDIUM-1★：這三個 catch 的用意是「一段壞了不擋整招」，**不是**「一段壞了沒人知道」。
+     舊版靜默吞掉的後果實測得到：違規那一幀起整條 tween 停演（maxD 由 1.7502 掉到 1.2581），
+     而 alive／restored／clean／fill／err 全綠——換一支不讀 sizeGuard 的治具就完全看不見。
+     更糟的是被鎖的屬性（scale／geometry／matrixAutoUpdate 的 `configurable:false`）被
+     `Object.defineProperty` 硬蓋時丟的是 **TypeError**，不經過我們的記帳線。
+     現在一律記進 `stats.tweenErrors`／`tweenErrorMsg`，三支治具都把它納入總判定。
+     行為不變（該段仍然只死那一條，整招照演），變的只是「看得見」。 */
+  function noteThrow(run, where, e) {
+    stats.tweenErrors++;
+    if (!stats.tweenErrorMsg) stats.tweenErrorMsg = `[${run.trId}/${where}] ` + String((e && e.message) || e).slice(0, 400);
+  }
+
   function update(dt) {
     burst.update(dt);
     // 出招側打光：有招在演就往 rigGoal 收斂，沒有就回 base（指數收斂，focusLerp 決定快慢）
@@ -979,13 +1402,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       run.vt += ms * run.rate;
       if (run.rate > run.maxRate) run.maxRate = run.rate;
       if (run.rate > 1.0001) run.sped = true;
-      for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { /* 一段壞了不擋整招 */ } }
+      for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { noteThrow(run, 'timer', e); } }
       run.timers = run.timers.filter((tm) => !tm.fired);
       for (const tw of run.tweens) {
         if (run.vt < tw.start) continue;
         const t = Math.min(1, (run.vt - tw.start) / tw.ms);
-        try { tw.update(t, tw.ease(t)); } catch (e) { tw.dead = true; }
-        if (t >= 1) { tw.dead = true; if (tw.done) { try { tw.done(); } catch (e) { /* 同上 */ } } }
+        try { tw.update(t, tw.ease(t)); } catch (e) { tw.dead = true; noteThrow(run, 'tween', e); }
+        if (t >= 1) { tw.dead = true; if (tw.done) { try { tw.done(); } catch (e) { noteThrow(run, 'done', e); } } }
       }
       run.tweens = run.tweens.filter((tw) => !tw.dead);
       run.wraps.forEach(apply);
@@ -994,6 +1417,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       for (let i = 0; i < run.bbi.length; i++) faceCameraInstanced(run.bbi[i]);
       for (let i = 0; i < run.follow.length; i++) { const f = run.follow[i]; f.get(f.tmp); f.mesh.position.copy(f.tmp); }
       if (run.phaseClaims.length) evalPhases(run);
+      // ★按效果寫的那一道（覆審 r4 HIGH-1）★：排在最後，量到的是這一幀真正要送去畫的世界矩陣
+      if (run.sized.length) auditSizes(run);
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險
       if (run.t >= run.fuse) { stats.fused++; finish(run); }
       else if (run.t >= run.ms) { if (run.tweens.length || run.timers.length) { stats.cut++; run.cut = true; } finish(run); }
@@ -1036,6 +1461,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       const ids = rows.map((x) => x.program).filter((x) => x !== null);
       return { templates: MAT_TEMPLATES.length, rows, measured: ids.length, distinct: new Set(ids).size };
     },
+    /** r4 修補批：徽記世界尺寸的執行期斷言（三支治具都讀這一份）。
+     *  判紅條件：violations>0 ／ locked!==made ／（made>0 時）audits===0。 */
+    sizeGuard,
     emblemStats() { try { return EMBLEMS.stats(); } catch (e) { return null; } },
     burstPoints: burst.points,
   };

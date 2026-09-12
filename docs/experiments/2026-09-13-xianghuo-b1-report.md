@@ -498,3 +498,104 @@ P8 那兩跑沒有帶它，走的是與基準完全相同的路徑。
    | 己 | `ring`（貼桌陣）不算進尺寸表的 OVER 欄，是**我的分類判斷**，§B2 沒有明文豁免——要不要把腳下語彙也納入尺寸上限 | §1.1③ |
    | 庚 | `programs 19→21`（`InstancedMesh` 的 shader 變體在玩家第一次看到那一招時**當場編**）＝既有狀況，本卷沒修。試修過的代價是常駐 +4 支 program／+2 draw call（`js/trait-fx.js:206-216`）。**鋪完 9 支之後群體道具變多，這件事只會更常發生**——要不要在階段 B 一起處理 | §1.6 第 7 條 |
 4. 簽字之後的階段 B：鋪香火其餘 8 支 → 全 9 支再走一次 P0–P8 ＋ **P4 盲讀**（本階段沒跑）。
+
+---
+
+## 3. 簽字與裁定（2026-09-12 晚）＋ 併回 main（v0.55.3）
+
+> ★§1／§2 是**簽字前**的紀錄，一字不改地留著★（改掉就看不出當時交上去的是什麼）。這一節是簽字之後的事。
+
+### 3.1 製作人的裁定
+
+| # | 題目（§2 的編號） | 裁定 |
+|---|---|---|
+| 甲 | 大印尺寸超過上限 | **上限由「≤ 本體高 1/2」放寬成「≤ 2/3」**，量法定為**世界包圍盒**；仍是**記錄項不擋批**。大印 0.676 仍略高於 0.667，記錄在案 |
+| — | §2 第 2 點的滿編問題 | **tier 1 只是氛圍**，法寶身分靠 **tier 2／3 近景與印文**承擔；**P4 盲讀材料改兩種：1v1 治具棚 ＋ tier 2 近景**。另「tier 1 主角拍短暫推鏡」記待辦，批 1 鋪完真機看整場再裁 |
+| 乙／丙／丁／戊／己／庚 | 其餘六項 | 未裁，留到階段 B 一起看（已記在計畫 §7.3） |
+
+裁定落點：`ART_BIBLE.md` §10.2 第 4 條、`2026-09-12-fx-vocab-draft.md` §A3、
+`plan-fx-performance.md` §3／§7.2 Q5／§7.3、`tests/tools/prop-size.mjs`（`LIMIT` 0.5→2/3）、
+`tests/tools/traitfx-preview.html:249` 的掛勾註解。
+**`LIMIT` 只決定表上標不標 `OVER`、不決定 exit code**（那支治具永遠 exit 0），
+所以改它不是移動及格線——沒有任何一份實作會因為這一行從紅變綠。
+
+### 3.2 併回 main（`09153d0` v0.55.3 ＋ `48d821f`）
+
+main 這段期間上了 **N11／N12 徽記尺寸防線最終版**（執行期鎖＋`onAfterRender` 稽核＋場景掃描、
+`st.iconScale` 成為徽記縮放的唯一入口、`fxvocab` 的繞法回歸案例擴到 `--mutate=4..20`）。
+`git merge main` 四處衝突，解法與理由：
+
+| 衝突 | 解法 |
+|---|---|
+| `js/trait-fx/xianghuo.js`（`biteGamble` 本體） | 取**我的 E 正式版**；main 對這支招的兩處 `st.iconScale`（`seal`／`stamp`）**跟著 0.55 徽記版一起搬進 `V055`**——不搬就等於 `?fxvocab=1` 那條路繞過了尺寸鎖。`wardImmuneLost` 的那一處由 git 自動合併 |
+| `tests/fxvocab.test.mjs`（四塊） | **一律取 main**：它的 `emblemNames` 有別名不動點、`SIZE_MEMBERS` 七個成員、分母註解完整，是我那版的超集。我這一輪加的「5 入口擴充」與 `(?:\.obj)?` **撤回**（理由見下） |
+| `docs/proposals/…-plan-fx-performance.md` | 兩段都留（main 的簽字裁定列 ＋ 我的 §7.3），並把 §7.3 改寫成「簽字後」的狀態 |
+
+**★為什麼撤回原始碼掃描的 5 入口擴充（這是我上一輪加嚴、現在自己拿掉的東西）★**
+main 的 N11 把徽記縮放收斂成唯一入口 `st.iconScale(mesh, k)`，而它**只吃 `SIZED` 裡的物件**
+（`st.icon`／`st.icons`／`st.mark` 產的）。`st.paperStamp`／`st.paperProps` 不在尺寸鎖裡
+（main 自己把它列在 `tests/tools/README.md` 的「已知未涵蓋」，`BLOCK_MADE` 只讓場景掃描放行它們）。
+所以正式版 E 的大印／印文只能寫 `big.scale.setScalar(st.iconSize * …)`——
+**把這兩支加進 `emblemNames()` 會讓這些合法寫法整批判紅，而它們沒有合法的替代寫法可走**。
+README 那一條已改寫，明講這是**有意識留著的缺口**與補法（在積木的工廠裡呼叫 `lockIconScale(...)`，
+那要先讓 `st.iconScale` 支援 Group 與 InstancedMesh）。
+我補的是**場景掃描的放行**：`st.paperProps` 的 InstancedMesh 加進 `BLOCK_MADE`
+（`js/trait-fx.js` 的 `paperProps` 末段），與 `paperStamp` 的三片同一類處置——**掃描一行都沒關掉**。
+
+P1 的兩個突變號碼與 main 的 `4..20` 撞號，改成 **`--mutate=21／22`**。
+
+### 3.3 合併後重跑（全部實跑）
+
+| 項目 | 指令 | 結果 |
+|---|---|---|
+| `fxvocab` | `node tests/fxvocab.test.mjs` | **19 綠 0 紅**（main 的 16 案 ＋ 我的 P1 三案） |
+| P1 鑑別力 | `--mutate=21` ／ `--mutate=22` | 各 **18 綠 1 紅** |
+| N11 鑑別力抽樣 | `--mutate=4` ／ `12` ／ `17` ／ `20` | 各 **18 綠 1 紅**（合併沒弄壞 main 的繞法回歸） |
+| `fxtier` | `node tests/fxtier.test.mjs` | **14 綠 0 紅** |
+| 12 套規則測試 | aistake 8／conscap 5／duel-desync 7／emblem-collision 9／fxtier 14／fxvocab 19／legend 32／lineup-order 8／nightrules 16／review 28／roles-balance 32／wish16 36 | **全綠** |
+| P0 `trace-eq` | `node tests/tools/trace-eq.mjs scratchpad/base-09153d0.html index.html` | `{"seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}` |
+| `traitfx-drive` t1 預設路徑 | `--tier=1 --port=8911` | **27/27 pass**，重複簽章 0 |
+| `traitfx-drive` t1 徽記路徑 | `--tier=1 --fxvocab=1 --port=8912` | **27/27 pass** |
+| `traitfx-drive` t2 範本招 | `--only=biteGamble --tier=2 --port=8913` | **PASS** `fill=0.9 rate=1 acts=17 maxD=2.3239 err=0 prog+0 size=n/a(0v/0of0/u0+d0)`（`maxD` 與合併前逐值相同＝動作沒被合併改到） |
+| `duel-drive` seed 3 | `--duels=4 --port=8914` | `{"duels":4,"errors":0,"ver":"v0.55.3"}` |
+| L3 四支（徽記路徑） | `fx-contrast.mjs --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost --fxvocab=1 --port=8845` ＋ `fx-contrast-metrics.py` | **與 N11 的 `r7-l3-current-metrics.txt` 逐位元組相同**（`diff` 空輸出）；四支 `pass 4`、違規 0、鎖上 15/15、稽核 `u390+d15` |
+
+**★兩件要照實講的★**
+
+1. **`duel-drive --seed=3`（預設路徑）的徽記稽核「未量到」**：治具自己印
+   `★這一跑沒演到用徽記的招＝未量到，不得當成通過★`。
+   原因是結構性的——預設路徑下會進 `SIZED` 的只有走 `st.icon`／`st.icons`／`st.mark` 的招，
+   而那四支示範招在預設路徑被 `V054`（三支）與 E 正式版（虎爺印）覆蓋掉了。
+   這是 main 已記在 README 的 **N-6**（`duel-drive` 對正式路徑的 kind 覆蓋率不足），不是本次合併造成的。
+   **補跑一條把它量到**（帶 `fxvocab=1`，治具在這個模式下「沒量到就判紅」）：
+
+   ```
+   node tests/tools/duel-drive.mjs "<url>&seed=3&fxvocab=1" scratchpad/m-duel3-vocab.json --duels=20 --port=8916
+   {"duels":20,"errors":0,"ver":"v0.55.3"}
+   徽記世界尺寸斷言：ok　違規 0／鎖上 132 of 產出 132／稽核 update 4556＋draw 4424／tween 安靜死掉 0
+   世界寬度 {"knife":[0.24,0.448],"knife:part":[0.28,0.488],"seal":[0.285058,1.06392],"seal:part":[0.356323,1.14972]}
+   ```
+
+   `seal` 出現在世界寬度表裡 ⇒ **搬進 `V055` 的 0.55 徽記版虎爺印仍在尺寸鎖的涵蓋內**
+   （那兩處 `st.iconScale` 跟著搬對了；若漏搬，這一跑會是「違規 > 0」）。
+
+2. **E 正式版在 `traitfx-drive` 上是 `size=n/a(0v/0of0/u0+d0)`**：它不走 `st.icon` 系列，
+   所以一個物件都沒進 `SIZED`。這與 §3.2 講的「紙紮道具不在尺寸鎖裡」是同一件事的兩面——
+   **不是防線壞了，是它本來就沒涵蓋這一支**，涵蓋範圍與補法寫在 `tests/tools/README.md` 的已知未涵蓋。
+
+### 3.4 一處合併時發現、必須改的東西（記在這裡免得下一個人改回去）
+
+E 正式版裡那枚印文的變數名從 `seal` 改成 **`imprint`**。
+`tests/fxvocab.test.mjs` 的尺寸掃描是**純文字、不分作用域**的：同一個檔案裡只要有任何一處
+`const seal = st.icon(…)`（檔尾的 `V055.biteGamble_v055` 正好有），`seal` 這個名字全檔都會被當成徽記，
+於是 E 版裡合法的 `imprint.scale.setScalar(st.markSize * …)` 會被判成「尺寸的第二份來源」。
+**實測**：叫 `seal` 時那條規則判紅 2 處（`xianghuo.js` 的兩處 `seal.scale`），改名後 19 綠 0 紅。
+理由已寫在該變數宣告上方的註解裡。
+
+### 3.5 合併後的範圍
+
+`index.html` 相對 `09153d0` 的 diff 為**空**（版號仍是 main 的 v0.55.3；本卷沒有動它）。
+凍結檔與九支閘門治具（`fx-contrast.mjs`／`fx-contrast-metrics.py`／`traitfx-drive.mjs`／
+`fx-consts.mjs`／`blindread-sheet.mjs`／`duel-perf.mjs`／`trace-eq.mjs`／`proto-record.mjs`／
+`2026-09-11-acceptance-fx-legibility.md`）相對 `09153d0` 一行未動；
+`tests/tools/duel-drive.mjs` 只多 `--traitshot`（不帶旗標時完全不執行）。

@@ -166,7 +166,7 @@ const MOVES = {
     });
     // 帽徽記在蓄勢末才浮現（陰氣不補間：一格到位）
     flying.forEach((F, i) => st.tween({ ms: W * 0.28, delay: W * 0.62 + i * W * 0.05, ease: 'out', update(t, e) {
-      st.alpha(F.mesh, e); F.mesh.scale.setScalar(st.iconSize * (0.55 + 0.45 * e));
+      st.alpha(F.mesh, e); st.iconScale(F.mesh, 0.55 + 0.45 * e);
     }, done() { if (i === 0) st.phase('travel'); } }));
     /* ② 紅帽飛過去扣在頭上（travel）——原本這一段完全沒有飛行物 */
     flying.forEach((F, i) => st.trail(F.mesh, F.from, F.to, {

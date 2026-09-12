@@ -28,6 +28,19 @@
 //     msOK        頁面實際跑的 run.ms 等於 fx-consts 的 msOf(tier)（防「--tier=1 其實還在跑 900」）
 //     rateOK      run.maxRate ≤1.0（tier 1 專用：短版必須原生塞進 260ms，不得靠加速硬擠）
 //     actionsOK   非 flinch 的補間條數 ≥2（F10：防「只剩一個閃光」的偷懶短版）
+//     sizeState   徽記世界尺寸斷言，**三態**（覆審 r4 MEDIUM-2：made=0 時判 ok 是空真）：
+//                 'n/a'＝這一套沒有產出徽記（23 支未改招、--throw／--block，以及 v0.55.1 之後
+//                       **不帶 --fxvocab=1 時的四支示範招**（跑的是 0.54 本體）都是這一態，不進總判定）
+//                 'ok' ＝violations===0 且 iconLocked===iconMade 且 sizeAudits>0
+//                 逐套印的 `u<N>+d<M>` 是**依量測位置分開的稽核次數**（r3 N-2）：
+//                 u＝traitFx.update 末、d＝onAfterRender（剛送進 GPU）。這支治具的 d 恆為 0
+//                 （治具頁逐幀 step() 但不逐幀 render()），draw 位置的主場是 fx-contrast／duel-drive
+//                 'fail'＝其中任一不成立，或拿不到 stats
+//                 量的是**效果**：js/trait-fx.js 的 auditSizes() 每幀對每個徽記做
+//                 updateWorldMatrix(true,true)＋matrixWorld.decompose()，把世界縮放對「積木自己
+//                 最後一次合法寫進去的值（祖先鏈連乘）」比對，並檢查 geometry 身分與父層縮放。
+//                 父層 Group 縮放／置換 geometry／自寫 matrix／繞過 scale 鎖四條路都逃不掉。
+//                 記帳線是必要的：tween 的 try/catch 會吃掉 throw，pageerror 看不到
 //     fillOK      sig.horizon >= run.ms * 0.85（R1 覆審 M1：擋「演完之後乾等」——一版三尊的
 //                 horizon 只有 929／1067／1013 對 run.ms 1400，最後三分之一畫面上沒東西在動，
 //                 而 clean／onTime／within 全是上界，一條都擋不住）
@@ -47,6 +60,42 @@ const { chromium } = (() => {
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
   throw new Error('找不到 playwright：worktree 需要 tools/anyCreature 或設 NODE_PATH');
 })();
+
+/* 「這一支招會不會產出徽記」——★從原始碼推導，不再靠手工名單★（覆審 r2 L2）。
+   r4 MEDIUM-2 的修法是一份寫死的 `EMBLEM_CASES`，但批 1–3 只要忘了把新招加進去，
+   那一支的防線失效時一個紅都不會有——手工名單本身就是下一個靜默漏測。
+   作法：讀三個系別檔，切到 `export const V054` 之前（0.54 本體不算），
+   用 2 空白縮排的 `  trId(st) {` 切出每一支的函式體，看它有沒有呼叫 st.icon／st.icons／st.mark。
+   ★只在 `--fxvocab=1` 下成立★：預設（`PW_FX.VOCAB_ON=false`）跑的是 0.54 本體，
+   那一版本來就沒有徽記 ⇒ `n/a` 是正確狀態；判紅會是假警報，而假警報會訓練使用者忽略訊號。 */
+export function emblemCasesFromSource(root) {
+  const out = new Set();
+  for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
+    let src = fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8');
+    const cut = src.indexOf('export const V054');
+    if (cut > 0) src = src.slice(0, cut);
+    const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
+    heads.forEach((h, i) => {
+      const body = src.slice(h.index, i + 1 < heads.length ? heads[i + 1].index : src.length);
+      if (/\bst\.(icon|icons|mark)\s*\(/.test(body)) out.add(h[1]);
+    });
+  }
+  const list = [...out].sort();
+  /* ★活性下限（覆審 r3 N-3）★：這支推導取代的是手工名單，而手工名單被判有問題的理由就是
+     「忘了加就沒有紅」。推導壞掉（縮排變了、`export const V054` 切點位移、正則失配）會**靜默**回 `[]`，
+     `sg.expected`／`sg.missing` 跟著變空 ⇒ 「用到徽記卻 n/a」那條判紅恆不成立，同一個病換個形狀。
+     對照：`tests/fxvocab.test.mjs` 同一族掃描有三個活性下限，這支原本一個都沒有。
+     下限＝批 0 的四支示範招必須在名單裡（它們是 0.55 語彙唯一在用的四支）；
+     批 1–3 鋪開之後只會變多，不會變少。少一支就是解析壞了，當場 throw，不留靜默退路。 */
+  const MUST = ['biteGamble', 'eliteSelfCut', 'hauntLost', 'wardImmuneLost'];
+  const missing = MUST.filter((t) => list.indexOf(t) < 0);
+  if (missing.length) {
+    throw new Error(`emblemCasesFromSource 解析壞了：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
+      + `缺少必含的 ${missing.join(' ')}。這支推導沒有活性下限時會靜默回空陣列，`
+      + '「用到徽記卻 n/a」那條判紅就恆不成立（覆審 r3 N-3）。');
+  }
+  return list;
+}
 
 const EPS = 1e-3;
 const FIRE_AT = 12; // 第幾幀出招（前面幾幀讓 idle 站穩）
@@ -176,7 +225,41 @@ async function runCase(browser, base, c, opt) {
      場上有隊友時 react 就會量在受益方身上（reactSolo=false）。 */
   const reactClaim = sig && sig.phaseDetail ? sig.phaseDetail.find((c) => c.name === 'react') : null;
   const reactSolo = reactClaim ? !!reactClaim.solo : null;
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo };
+  /* ★徽記**世界尺寸**的執行期斷言（覆審 r3 N11 → r4 HIGH-1 修補批）★
+     引擎端 js/trait-fx.js 的 auditSizes() 每幀量效果本身（世界縮放 × geometry 單位寬），
+     和「積木自己最後一次合法寫進去的值」比對；違規記進 stats，治具在這裡判。
+     為什麼記帳線是必要的：run 的 tween 迴圈對 update 是 try/catch（一段壞了不擋整招），
+     光 throw 會被吃掉、pageerror 也看不到。
+     ★為什麼斷言不是「world scale === ICON.sizeOf(kind)」★：四支示範招都有合法的呼吸縮放
+     （ICON 基準 × 相對倍率），那種等式在健康態就是假的（會變成恆紅的儀式）。
+     ★三態（r4 MEDIUM-2）★：made===0 時 violations===0 且 locked===made 恆成立＝空真，
+     所以那一套判 'n/a'（沒量到），不計進總判定；四支示範招若掉到 'n/a' 由 main() 判紅。 */
+  const sizeGuard = {
+    violations: stats ? (stats.sizeViolations | 0) : -1,
+    made: stats ? (stats.iconMade | 0) : -1,
+    locked: stats ? (stats.iconLocked | 0) : -1,
+    audits: stats ? (stats.sizeAudits | 0) : -1,
+    auditsUpdate: stats ? (stats.auditsUpdate | 0) : -1,
+    auditsDraw: stats ? (stats.auditsDraw | 0) : -1,
+    msg: stats ? (stats.sizeViolationMsg || null) : null,
+    worldRange: stats ? (stats.sizeWorldRange || null) : null,
+    boxDiag: stats ? (stats.sizeBoxDiag || null) : null,
+    // r4 MEDIUM-1：編舞在 tween／timer／done 裡丟出來的例外（含被鎖屬性被 defineProperty 硬蓋的 TypeError）
+    tweenErrors: stats ? (stats.tweenErrors | 0) : -1,
+    tweenErrorMsg: stats ? (stats.tweenErrorMsg || null) : null,
+  };
+  const sizeState = !stats ? 'fail'
+    : sizeGuard.made === 0 ? 'n/a'
+      : (sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made && sizeGuard.audits > 0) ? 'ok' : 'fail';
+  /* tweenErrors 與 sizeState 分開判：前者管「編舞有沒有安靜地死掉一段」，
+     每一套（含 23 支沒有徽記的）都要是 0，所以不走三態。 */
+  const tweenOK = !!stats && sizeGuard.tweenErrors === 0;
+  /* r2 L2：紅不能只出現在 summary 與 exit code——「用到徽記的招卻沒產出徽記」那一套自己要印 FAIL。
+     `opt.emblemMoves` 由 main() 從原始碼推導後塞進來（`--only` 子集跑也照樣有效）。 */
+  const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
+    && !!fxvocabQ(opt) && !opt.throw && !opt.block;
+  const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -194,7 +277,7 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && errors.length === 0 && programs1 - programs0 === 0;
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -222,6 +305,7 @@ async function main() {
     else if (tier === 3) cases = cases.filter((c) => c.legend);
   }
   if (opt.only) { const set = new Set(String(opt.only).split(',')); cases = cases.filter((c) => set.has(c.trait)); }
+  opt.emblemMoves = emblemCasesFromSource(root); // 逐套判定要用（r2 L2）
   if (opt.shots) fs.mkdirSync(opt.shots, { recursive: true });
   const srv = await serve(root, port);
   if (root !== ROOT) console.log(`★--root=${root}（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★`);
@@ -234,7 +318,7 @@ async function main() {
       r.ms = Date.now() - t0;
       results.push(r);
       const v = r.verdict;
-      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
+      console.log(`${v.pass ? 'PASS' : 'FAIL'} ${c.trait.padEnd(16)} ${c.ab.padEnd(12)} t${v.tier}/${v.ms}ms msOK=${v.msOK} rate=${r.sig ? r.sig.maxRate : '-'} fill=${v.fill} acts=${v.acts} handled=${v.handled} alive=${v.alive} restored=${v.restored} onTime=${v.onTime} clean=${v.clean} focus=${v.focus} size=${v.sizeState}(${v.sizeGuard.violations}v/${v.sizeGuard.locked}of${v.sizeGuard.made}/u${v.sizeGuard.auditsUpdate}+d${v.sizeGuard.auditsDraw}) twErr=${v.sizeGuard.tweenErrors} end=${v.endFrame} maxD=${v.maxD} err=${v.errors} prog+${v.programsGrew} sig=${r.sig ? r.sig.bones.length + 'b/' + r.sig.meshes.join('+') + (r.sig.target ? '/T' : '') : '-'} ${r.ms}ms`);
       if (r.errors.length) r.errors.slice(0, 3).forEach((e) => console.log('   ! ' + e.slice(0, 200)));
       if (r.newPrograms && r.newPrograms.length) r.newPrograms.forEach((e) => console.log('   +program ' + e));
     }
@@ -252,7 +336,62 @@ async function main() {
   const actsTable = results.map((r) => ({ trait: r.case.trait, acts: r.verdict.acts, ok: r.verdict.actionsOK, maxRate: r.sig ? r.sig.maxRate : null, runMs: r.sig ? r.sig.ms : null, horizon: r.verdict.horizon, fill: r.verdict.fill }));
   // M1：react 量在出招方自己身上的那幾套（solo）＝「未在條文情境下驗證」，逐套列名
   const soloReact = results.filter((r) => r.verdict.reactSolo === true).map((r) => r.case.trait);
-  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, opts: opt };
+  /* ★徽記世界尺寸斷言的彙總（r4 MEDIUM-2：三態，不拿空真當通過）★
+     逐套三態；總判定只對 made>0 的套算；**四支示範招若沒量到就判紅**——
+     「這一套沒產出徽記」與「這一套通過」是兩件事，混在一起就是空真。
+     批 1–3 每把一支招換成新語彙，就要把它的 trId 加進 EMBLEM_CASES。 */
+  const sg = results.reduce((a, r) => ({
+    violations: a.violations + Math.max(0, r.verdict.sizeGuard.violations),
+    made: a.made + Math.max(0, r.verdict.sizeGuard.made),
+    locked: a.locked + Math.max(0, r.verdict.sizeGuard.locked),
+    audits: a.audits + Math.max(0, r.verdict.sizeGuard.audits),
+    auditsUpdate: a.auditsUpdate + Math.max(0, r.verdict.sizeGuard.auditsUpdate),
+    auditsDraw: a.auditsDraw + Math.max(0, r.verdict.sizeGuard.auditsDraw),
+  }), { violations: 0, made: 0, locked: 0, audits: 0, auditsUpdate: 0, auditsDraw: 0 });
+  const sgHit = results.find((r) => r.verdict.sizeGuard.msg);
+  sg.msg = sgHit ? sgHit.verdict.sizeGuard.msg : null;
+  sg.states = { ok: 0, 'n/a': 0, fail: 0 };
+  results.forEach((r) => { sg.states[r.verdict.sizeState]++; });
+  sg.measured = sg.states.ok + sg.states.fail > 0;
+  sg.failed = results.filter((r) => r.verdict.sizeState === 'fail').map((r) => r.case.trait);
+  // 用到徽記語彙的招（批 1–3 逐支加進來）：跑到它們卻沒量到＝防線在那支上失效
+  /* `--fxvocab=1` 才有 0.55 的徽記；不帶＝0.54 演出，四支示範招沒有徽記，n/a 是對的。 */
+  sg.fxvocab = !!fxvocabQ(opt);
+  sg.emblemMoves = emblemCasesFromSource(root); // 從原始碼推導（r2 L2），不是手工名單
+  sg.expected = sg.fxvocab ? sg.emblemMoves.filter((t) => results.some((r) => r.case.trait === t)) : [];
+  sg.missing = (opt.throw || opt.block) ? [] : sg.expected.filter((t) => {
+    const r = results.find((x) => x.case.trait === t);
+    return r && r.verdict.sizeState === 'n/a';
+  });
+  sg.worldRange = (results.find((r) => r.verdict.sizeGuard.worldRange && Object.keys(r.verdict.sizeGuard.worldRange).length) || { verdict: { sizeGuard: {} } }).verdict.sizeGuard.worldRange || null;
+  sg.tweenErrors = results.reduce((a, r) => a + Math.max(0, r.verdict.sizeGuard.tweenErrors), 0);
+  const twHit = results.find((r) => r.verdict.sizeGuard.tweenErrorMsg);
+  sg.tweenErrorMsg = twHit ? twHit.verdict.sizeGuard.tweenErrorMsg : null;
+  sg.tweenErrorCases = results.filter((r) => r.verdict.sizeGuard.tweenErrors > 0).map((r) => r.case.trait);
+  const summary = { total: results.length, pass: results.filter((r) => r.verdict.pass).length, dupSignatures: dupSig.length, t1, softGl: results.length ? results[0].softGl : null, tier, ms: msOf(tier), actsTable, soloReact, sizeGuard: sg, opts: opt };
+  console.log(`\n徽記世界尺寸斷言${sg.fxvocab ? '（--fxvocab=1：0.55 徽記版）' : '（預設 0.54 演出，四支示範招本來就沒有徽記 ⇒ n\u002fa 是正確狀態）'}：`
+    + `ok ${sg.states.ok}／n\u002fa ${sg.states['n/a']}／fail ${sg.states.fail}`
+    + `　（違規 ${sg.violations} 次、鎖上 ${sg.locked} of 產出 ${sg.made}、`
+    + `稽核 update ${sg.auditsUpdate} 次／draw ${sg.auditsDraw} 次）`
+    + `${sg.measured ? '' : '　★這一跑沒有任何招產出徽記＝這條斷言未量到，不得當成通過★'}`);
+  /* r3 N-2：draw 那個量測位置在這支治具上**一次都不會觸發**（治具頁逐幀 step() 但不逐幀 render()）。
+     不標出來的話，單一個「稽核 N 次」看起來像兩個位置都量過了——`02 §6.1` 第 5 條：
+     代理指標「沒響」只在它的量測位置上有效。draw 位置的主場是 fx-contrast 與 duel-drive。 */
+  if (sg.made > 0 && sg.auditsDraw === 0) {
+    console.log('  ★draw 量測位置本跑未觸發（traitfx-preview 逐幀 step() 但不逐幀 render()）：'
+      + '這一跑只證明了 update 那個位置；draw 位置請看 fx-contrast／duel-drive★');
+  }
+  if (sg.worldRange) console.log('  世界寬度區間（診斷，不進判定）：' + JSON.stringify(sg.worldRange));
+  if (sg.msg) console.log('  ! ' + String(sg.msg).slice(0, 300));
+  if (sg.failed.length) console.log('  fail 的套：' + sg.failed.join(' '));
+  console.log(`  用到徽記語彙的招（由原始碼推導，非手工名單）：${sg.emblemMoves.join(' ') || '（無）'}`);
+  if (sg.missing.length) console.log('  ★用到徽記的招卻是 n/a：' + sg.missing.join(' ') + '（防線在那幾支上失效）');
+  if (sg.tweenErrors) {
+    console.log(`  ★編舞在 tween／timer／done 裡安靜死掉 ${sg.tweenErrors} 次（${sg.tweenErrorCases.join(' ')}）：` + String(sg.tweenErrorMsg).slice(0, 240));
+  }
+  if (sg.violations > 0 || sg.states.fail > 0 || sg.missing.length || sg.tweenErrors > 0) {
+    console.log('★★ 徽記世界尺寸有第二份來源（或鎖／稽核沒掛上去）——N11 防線判紅 ★★'); process.exitCode = 1;
+  }
   console.log(`\nF10 動作數（非 flinch 的 tween／fly／fade／grow）：` + actsTable.map((a) => `${a.trait}=${a.acts}${a.ok ? '' : '✗'}`).join(' '));
   if (soloReact.length) {
     console.log(`\n★M1 未在條文情境下驗證（react 量在出招方自己身上，場上只有他一個人）：${soloReact.join(' ')}`);

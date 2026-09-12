@@ -1,0 +1,771 @@
+# 徽記尺寸防線收斂報告（覆審 r3 N11／N12，2026-09-12）
+
+> 基準＝main `417b197`（v0.55）。工作樹＝`.claude/worktrees/agent-ae64830f5be869b94`（**未合併、未 push**）。
+> 證據目錄 `docs/experiments/2026-09-12-size-guard-evidence/`。
+
+**一句話**：N11 用的是**收斂**（執行期把徽記 mesh 的 `scale` 鎖死，掃描退居第二道）；
+N12 **一次蓋三表**（`sizeOf`／`flatSizeOf`／`markSizeOf` 全走共同出口 `ICON._resolve`）；
+七條繞法**全紅**（每條都貼了是哪一道防線紅的）；健康態四項全綠、效能不退。
+
+---
+
+## 1. 分母（動手前先數，`02 §6.1` 第 7 條）
+
+指令原文＝`docs/experiments/2026-09-12-size-guard-evidence/denominator.sh`
+（`sh docs/experiments/2026-09-12-size-guard-evidence/denominator.sh`）。
+輸出：收斂前 `denominator-before.txt`、收斂後 `denominator-after.txt`。
+
+| 危險動作（`js/trait-fx/` 下全部 .js，含 `vocab.js`／`emblems.js`；grep 含註解） | 收斂前 | 收斂後 |
+|---|---|---|
+| `.scale.setScalar(` | **73** | **68** |
+| `.scale.set(` | 0 | 0 |
+| `.scale.multiplyScalar(` | 0 | 0 |
+| `.scale.[xyz] =` | 0 | 1（只有 `vocab.js` 註解裡引述繞法⑥的那一行） |
+| `.scale.copy/setX/setY/setZ/setComponent/fromArray/lerp/multiply/applyMatrix4(` | 0 | 0 |
+
+- **`st.icon(`／`st.icons(`／`st.mark(` 的呼叫點：8 處**（`zuling.js:454,456`／`xianghuo.js:260,261,407,408`／`yinqi.js:137,150`）。
+- **真正屬於「徽記 mesh 的縮放」的：5 處**（`zuling.js:470`／`xianghuo.js:272,422,448`／`yinqi.js:169`）。
+  收斂後這 5 處全部改走 `st.iconScale(...)`，`.scale.setScalar(` 因此由 73 掉到 68（差值 5，逐處對得上）。
+- 剩下的 68 處全部是 23 支未改招的 ring／disc／orb／光球縮放——**不是**本條要防的危險效果；
+  把它們一起判紅只會讓防線恆紅、一週內被拆掉。
+- 測試自己印的分母（去註解、`X.scale` 的成員／索引／賦值寫法）＝ **74 處**，
+  與上表不同口徑（上表含註解且只數 `setScalar`），兩份都在證據目錄裡。
+- **「直接碰徽記 mesh 的 `.scale`」：收斂前 5 處 → 收斂後 0 處**（`denominator-after.txt` 第 4 段）。
+
+### 收斂 vs 涵蓋的取捨
+
+N11 的危險效果＝「徽記 mesh 的世界尺寸來自 ICON 表以外的第二份來源」。
+**首選收斂**（`02 §6.1` 第 7 條的優先序）：`js/trait-fx.js` 的 `lockIconScale()` 把
+`st.icon()`／`st.icons()`／`st.mark()` 產出的物件的 `scale` 這個 `THREE.Vector3` 的 `x`／`y`／`z`
+換成 accessor。**three.js 的每一個 Vector3 變動方法（`set`／`setScalar`／`copy`／`multiplyScalar`／
+`applyMatrix4`／`fromArray`／`lerp`…）最後都是對 `this.x`／`this.y`／`this.z` 賦值**，
+直接寫 `.scale.x =` 也一樣——所以 r3 列的四條繞法（別名、`multiplyScalar`、`scale.x=`、
+子節點／索引取用）連同「還沒有人想到的第五條」落在**同一個扼口**上，分母歸一、涵蓋自然 100%。
+鎖的範圍：徽記本體、它的 ink 底板與描邊子節點、`st.icons` 的 `InstancedMesh`，
+以及 `InstancedMesh` 的 `userData.fxIcons.size`（那是逐幀重排時乘進矩陣的值，改它同樣是第二份來源）。
+`userData.fxIconBase`／`fxIconKind` 也設成唯讀，堵掉「改基準再呼叫合法 API」這條。
+
+**合法動畫怎麼辦**：四支示範招都有「呼吸縮放」（`st.iconSize * (0.5 + 0.5*e)`），
+那是**相對倍率**、ICON 的值仍在乘積裡，不構成第二份來源。
+新增 `st.iconScale(mesh, k)` 當唯一合法介面，它算的是 `mesh.userData.fxIconBase * k`，
+而 `fxIconBase` 就是建構當下 `ICON` 表給的值 ⇒ **編舞再也拿不到「把絕對尺寸寫進去」的手把**。
+`st.grow()`（寫絕對縮放的通用積木）套在徽記上會被鎖 throw，掃描也另外禁。
+
+**為什麼鎖是 throw ＋ 記帳兩件事都做**：`js/trait-fx.js` 的 tween 迴圈對 `update` 是 `try/catch`
+（一段壞了不擋整招），光 throw 會被吃掉、`pageerror` 也看不到。
+所以違規同時記進 `stats.sizeViolations`／`stats.sizeViolationMsg`，
+由 `traitfx-drive`／`fx-contrast` 讀 `__tfx.stats()` 判紅——那就是執行期斷言。
+
+**執行期斷言的形狀（為什麼不是「world scale === ICON.sizeOf(kind)」）**：
+四支示範招的呼吸縮放在健康態就讓 world scale ≠ 基準，那種等式會是恆紅的儀式。
+鎖保證的是「每一次寫入都以 ICON 表的基準為因數」，所以斷言判的是
+① `sizeViolations === 0`（沒有人繞過）② `iconLocked === iconMade`（鎖真的掛上去了＝這條不會變恆綠）。
+整跑 `iconMade === 0`（例如 `--tier=3`：三尊還沒鋪語彙）會印「★未量到★」，不得當成通過。
+
+---
+
+## 2. N11 鑑別力：七條繞法全紅
+
+完整輸出（含每條的還原核對）＝`docs/experiments/2026-09-12-size-guard-evidence/bypass7.md`。
+做法：`cp js/trait-fx/zuling.js scratchpad/sg/zuling.bak.js` 備份 →
+②～⑦**加行**（合法的 `st.iconScale` 留著，旁邊多一條第二來源）、①把 `o.size` 塞回建構式 →
+跑兩道防線 → **用備份副本 copy 回去還原**（md5 核對，不做反向 sed）→ 重跑 `fxvocab` 確認回綠。
+
+| 繞法 | 掃描（`node tests/fxvocab.test.mjs`） | 執行期（`traitfx-drive --only=eliteSelfCut`） | 判紅的是哪一道 |
+|---|---|---|---|
+| ①`{size:S}` | **exit 1**　`zuling.js:416 size:（…o.size 已拒收…）` | **case FAIL**（`handled=false`、`size=0/0of0`、`★未量到★`）；process exit 0 | **建構式 throw**（`iconSizeSrc`）＋掃描 |
+| ②`setScalar(S * …)` | **exit 1**　`zuling.js:432 knife.scale` | **exit 1**　`違規 1 次`、`scale.x 被直接寫成 0.324122085048011` | 執行期斷言＋掃描 |
+| ③`setScalar(0.56 * …)` | **exit 1**　`zuling.js:432 knife.scale` | **exit 1**　同上 | 執行期斷言＋掃描 |
+| ④別名後 `setScalar` | **exit 1**　`zuling.js:432 m2.scale` | **exit 1**　`scale.x 被直接寫成 0.02` | 執行期斷言＋掃描 |
+| ⑤`multiplyScalar` | **exit 1**　`zuling.js:432 knife.scale` | **exit 1**　`scale.x 被直接寫成 0.011575788751714677` | 執行期斷言＋掃描 |
+| ⑥`scale.x=` | **exit 1**　3 處 `knife.scale` | **exit 1**　`scale.x 被直接寫成 0.02` | 執行期斷言＋掃描 |
+| ⑦子節點／索引取用 | **exit 1**　`knife.children[0].scale`、`marks[0].scale` | **exit 1**　`徽記 knife:part 的 scale.x 被直接寫成 0.02` | 執行期斷言＋掃描 |
+
+**還原**：七次每次都貼了「還原後 `node tests/fxvocab.test.mjs` → exit 0／16 綠 0 紅」。
+
+**照實記錄兩件事**：
+1. **①在執行期是「沒演成」而不是「尺寸被擋」**——`st.icon` 在建構式 throw ⇒ `fn(stage)` 整支掛掉 ⇒
+   `handled=false`、`stats.thrown=1`，`traitfx-drive` 那一套判 FAIL（`0/1 pass`），
+   但 `traitfx-drive` 的**行程** exit code 沿用既有慣例（逐套 FAIL 不改行程碼），所以那一跑 exit 0。
+   ①的 exit 1 來自掃描那一道。
+2. **①那一跑的尺寸鎖印的是「★未量到★」**——沒有任何徽記被造出來，`iconMade=0`。
+   這正是活性條款設計要講的話：那一跑**沒有量到**這條斷言，不是「通過」。
+
+**掃描自身的鑑別力（in-memory 突變體，原檔唯讀）**：`--mutate=4..10` 就是這七條，
+七個全部 **exit 1**，而且紅在**行為斷言**（「徽記尺寸有第二份來源 N 處」）而不是旁枝的活性計數
+——活性檢查已刻意排在行為斷言之後（`02 §6.1` 第 1 條）。
+
+---
+
+## 3. N12 鑑別力：canary 一次蓋三表
+
+值的證據＝`docs/experiments/2026-09-12-size-guard-evidence/n12-canary-values.txt`（走真實 `vocab.js`，不是重建的模型）：
+
+```
+健康態          sizeOf(knife)=0.56   flatSizeOf(hat)=0.2    markSizeOf(seal)=0.2
+舊 canary（只改 sizeOf）  =0.02            =0.2  ← 沒被打到      =0.2  ← 沒被打到
+新 canary（改 _resolve）  =0.02            =0.02              =0.02
+用備份副本還原後          =0.56            =0.2               =0.2
+```
+
+**改法**：`sizeOf`／`flatSizeOf`／`markSizeOf` 一律改成呼叫 `ICON._resolve(kind, tableName, dflt)`，
+canary 打 `_resolve`（一行、一個檔）就三張表一起中。程序寫進 `tests/tools/README.md`
+與 `js/trait-fx/vocab.js` 的 `_resolve` 註解、`tests/tools/fx-contrast.mjs` 檔頭。
+
+**這條規則自己有沒有鑑別力**（`n12-mutation.txt`）：把 `markSizeOf` 改回「直接讀表、不經 `_resolve`」的舊寫法，
+新增的測試 **exit 1**：`canary 下的 markSizeOf(seal)…得到 0.2，預期 0.02`；還原後 16 綠 0 紅。
+
+### L3（844×390@2x、bloom 0.7、seed 7；量測位置未動）
+
+`node tests/tools/fx-contrast.mjs <out> --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost`
+＋`python tests/tools/fx-contrast-metrics.py <out>`
+（`l3-current-metrics.txt`／`l3-canary-metrics.txt`）：
+
+| 招 | 本樹現值 | 修補報告 §2.2／§7.1 現值欄 | 逐位數 | canary（`_resolve`→0.02） |
+|---|---|---|---|---|
+| eliteSelfCut | **0.9728% / ΔE 63.35 / px 3202** ✅ | 0.9728 / 63.35 / 3202 | **相同** | 0.0595% / 54.12 ❌ |
+| wardImmuneLost | **1.2210% / 107.27 / px 4019** ✅ | 1.2210 / 107.27 / 4019 | **相同** | 0.0507% / 84.85 ❌ |
+| biteGamble | **1.9519% / 64.53 / px 6425** ✅ | 1.9519 / 64.53 / 6425 | **相同** | 0.0012% / 47.02 ❌ |
+| hauntLost | **2.1682% / 82.02 / px 7137** ✅ | 2.1682 / 82.02 / 7137 | **相同** | 0.0623% / 32.83 ❌ |
+| 總表 | `pass 4` | — | | **`pass 0`、四支全 failed** |
+
+⇒ N11／N12 的改法對演出是**零變動**（純重構），canary **4/4 紅**。
+四套的 `size=0/…of…` 全是 `違規 0 次／鎖上 15 of 產出 15`。
+
+**★誠實記錄：這四支的 L3 數字分辨不出新舊 canary★**
+凍幀點是 `travel` 中點（凍結檔寫死、本卷不得調），而 `hauntLost` 的貼桌腳印（`flatByKind.hat`）
+與 `biteGamble` 的印記（`markByKind.seal`）都在 **react 段**才淡入，凍幀當下 `opacity=0`、不進差圖。
+所以這四支在**舊 canary 下本來就紅**（紅來自走 `sizeOf` 的飛行徽記），
+新 canary 的四格數字與 r2 §7.1 的 canary 欄逐位數相同——**L3 對「N12 有沒有修好」零鑑別力**。
+N12 的鑑別力證據是上面那兩項（三個值的真實路徑取值＋`markSizeOf` 繞過 `_resolve` 時測試變紅）。
+批 1–3 只要有一支招在 travel 中點的主視覺是貼桌陣或印記，舊 canary 就會對它綠——那才是 N12 要防的洞。
+
+---
+
+## 4. 健康態不退
+
+| 項目 | 指令 | 結果 |
+|---|---|---|
+| 語彙單元測試 | `node tests/fxvocab.test.mjs` | **16 綠 ／ 0 紅**，exit 0 |
+| 同上（任務書指定的形式） | `node --test tests/fxvocab.test.mjs` | `pass 1 / fail 0`，exit 0 |
+| 規則測試套（12 檔） | `scratchpad/sg/suite.py`（逐檔 `node tests/*.test.mjs`） | **12/12 exit 0**，見 `suite.txt` |
+| 演出治具 27 支 | `node tests/tools/traitfx-drive.mjs … --tier=1 --port=8881` | **27/27 pass**、`err=0`、重複簽章 0；尺寸鎖 `違規 0／鎖上 15 of 15` |
+| 演出治具 3 尊 | `node tests/tools/traitfx-drive.mjs … --tier=3 --port=8882` | **3/3 pass**、`err=0`；尺寸鎖 `0 of 0` ＋**★未量到★**（三尊尚未鋪語彙） |
+| 四支示範招（tier 2） | `… --tier=2 --only=eliteSelfCut,wardImmuneLost,biteGamble,hauntLost` | **4/4 pass**、`size=0/15of15` |
+| 引擎等價 | `git show 417b197:index.html > scratchpad/sg/old.html; node tests/tools/trace-eq.mjs scratchpad/sg/old.html index.html` | `{"equal":true}`、seeds 1..20 逐位元組相等 |
+
+`suite.txt` 逐檔：aistake 8／conscap 5／duel-desync 7／emblem-collision 9／fxtier 14／fxvocab 16／
+legend 32／lineup-order 8／nightrules 16／review 28／roles-balance 32／wish16 36，**失敗全 0**。
+
+**★`trace-eq` 對本卷零鑑別力，照實記★**（GUIDE §11.29 第 14 點，`docs/IMPLEMENTATION_GUIDE.md:1829`）：`index.html` 零 diff，
+而 `load.mjs` 只抽 `index.html` 的第一個 `<script>` 在 node 裡跑、**完全不載入 `js/`**，
+所以「逐位元組相等」在這一卷是恆真。對 `js/trait-fx*` 有鑑別力的等價證據是上表的
+L3 四格逐位數相同、與 27＋3 支 `traitfx-drive` 全綠。
+
+---
+
+## 5. 效能不退
+
+**沒有加每幀重設**：鎖走的是 accessor（讀取完全不攔），不是「每幀把 scale 寫回去」。
+理論成本只有「≤5 個物件的 `scale.x/y/z` 讀取變成 getter」，而且只在 27 支裡的 4 支演出期間存在。
+即使如此仍照凍結檔量了 `duel-perf`。
+
+基準樹＝`git archive 417b197 | tar -x -C scratchpad/sg/base417`（不用 `git worktree`，本 agent 被隔離）。
+指令：`node tests/tools/duel-perf.mjs perf <out>.json --uncap --port=888x [--root=scratchpad/sg/base417]`。
+全部數字在 `perf.txt`。
+
+**★訊號忽紅忽綠，先歸因再用（`02 §6.2`）★**
+第一輪用**區塊**順序（先跑完 3 次新版、再跑 3 次基準），比值 **0.9518**（壓在 0.95 線上、全距不重疊）。
+改成**交錯**（base／new 一輪一支，共 7 輪）之後，同一份程式碼的新版落在 480.6–546.2，
+把區塊那 3 跑（480.8／491.3／491.7）整個包進去 ⇒ 波動來源是**環境時序（機器狀態）**，不是受測物：
+同一棵樹、同一份程式碼在不同時段就能差 13%。採用的是交錯那一組（GUIDE §11.27「量測紀律（二版學到的）」，`docs/IMPLEMENTATION_GUIDE.md:817-820`：
+「交錯跑、看中位的中位與全距有沒有重疊」）。
+
+| 組 | n | `rendersPerSec` 中位 | 全距 | 比值 |
+|---|---|---|---|---|
+| 基準 `417b197` | 6 | **525.3** | 487.1–546.6 | — |
+| 本樹 | 7 | **529.6** | 480.6–546.2 | **1.0082 ≥ 0.95 ✅** |
+| （區塊組，受汙染、僅記錄） | 3 / 3 | 516.2 / 491.3 | — | 0.9518 |
+
+交錯組的兩個全距幾乎完全重疊 ⇒ **量不到差異**。
+
+**draw call（依 `visible` 分層；`02 §2.1` 修訂八：不同 `visible` 不可比）**
+
+| `visible` | 基準 | 本樹 |
+|---|---|---|
+| 15 | 926, 927, 930, 931, 931, 932 | 908, 928, 930 |
+| 16 | 961, 970 | 962, 966, 968, 968, 968, 968, 970 |
+
+兩層的本樹最大值都**沒有超過**基準最大值（930 ≤ 932、970 ≤ 970）⇒ **不增**。
+（`visible=14` 只有基準有一個樣本 890，不成對，不入比對。）
+`renderPassesPerFrame` 兩邊都是 10、`gl` 兩邊同為 ANGLE/D3D11 AMD 780M。
+
+---
+
+## 6. 改動清單與範圍對應
+
+`git diff --stat 417b197..HEAD`（見 §7 實際輸出）逐檔對應任務書範圍：
+
+| 檔案 | 對應範圍條 | 改了什麼 |
+|---|---|---|
+| `js/trait-fx/vocab.js` | 積木／`ICON`（**數字一個沒動**） | `_resolve` 共同出口（N12）＋改寫尺寸防線註解（N11） |
+| `js/trait-fx.js`（`makeStage`／`st.icon` 所在檔） | 積木本身 | `lockIconScale()`／`setLockedScale()`／`st.iconScale()`／`stats.sizeViolations`·`iconMade`·`iconLocked`·`sizeViolationMsg`；`icon()`／`icons()` 掛鎖；`iconSizeSrc` 訊息改指 `st.iconScale` |
+| `js/trait-fx/zuling.js` | 四支示範招之一（`eliteSelfCut`） | 1 行：`knife.scale.setScalar(st.iconSize * (…))` → `st.iconScale(knife, …)` |
+| `js/trait-fx/xianghuo.js` | 四支示範招之二三（`wardImmuneLost`／`biteGamble`） | 3 行：`bell`／`seal`／`stamp` 同上 |
+| `js/trait-fx/yinqi.js` | 四支示範招之四（`hauntLost`） | 1 行：`F.mesh` 同上 |
+| `tests/fxvocab.test.mjs` | 掃描 | 規則改成按效果寫（成員鏈／別名／索引／`st.grow`）；`--mutate=4..10` 七條繞法；新增 `_resolve` 共同出口測試；行為斷言排到活性之前 |
+| `tests/tools/traitfx-drive.mjs` | 執行期斷言 | 每套讀回 `stats` 判 `sizeOK`，納入 `verdict.pass`；逐套與彙總印 `size=違規/鎖上of產出`；違規時 `process.exitCode=1` |
+| `tests/tools/fx-contrast.mjs` | canary 程序＋執行期斷言 | 檔頭寫入 canary 打 `_resolve` 的程序與理由；每套讀回 `stats` 判 FAIL；`shots.json` 多記 `sizeGuard` |
+| `tests/tools/README.md` | 文件 | 三道防線的總覽＋L3 canary 程序 |
+| `docs/experiments/2026-09-12-size-guard-report.md`／`-evidence/` | 新增報告與證據 | 本檔與實跑輸出 |
+
+**沒動**：`index.html`（`trace-eq` 逐位元組相等）、引擎、`ICON` 的任何數字
+（`size 0.44`／`byKind 0.56,0.46,0.62,0.40`／`flatByKind hat 0.20`／`markByKind seal 0.20` 一字未改）、
+其他 23 支招、任何門檻／seed／視口（L3 門檻 0.8%／ΔE 28、seed 7、844×390@2x 都是原值）。
+
+**四支示範招的 L3 數字與修補報告 §2.2 現值欄逐位數相同**（§3 的表）⇒ 那四支是純重構。
+
+### 範圍外、留給呼叫端的一件事 —— **修補批已納入範圍並改掉（見 §8 LOW-1）**
+
+~~`docs/IMPLEMENTATION_GUIDE.md` §11.26 第 11 點仍寫「L3 的 canary 打在 `ICON.sizeOf()` 的回傳值上」~~
+★章節號本身也寫錯了（覆審 r4 LOW-1）：實際是 **§11.29 第 11 點**（`docs/IMPLEMENTATION_GUIDE.md:1798-1805`）。
+修補批已把它改成 `ICON._resolve()`、把過時的掃描規則改掉，並補上 MEDIUM-4 的已知限制。
+
+---
+
+## 7. 指令原文與最終狀態
+
+```
+$ git diff --stat 417b197..HEAD
+（見下方實際輸出）
+
+$ sh docs/experiments/2026-09-12-size-guard-evidence/denominator.sh
+$ node tests/fxvocab.test.mjs                       → 16 綠 ／ 0 紅（exit 0）
+$ node --test tests/fxvocab.test.mjs                → pass 1 / fail 0（exit 0）
+$ node tests/fxvocab.test.mjs --mutate=4..10        → 七條各 exit 1（行為斷言）
+$ node tests/tools/traitfx-drive.mjs scratchpad/sg/drive-t1.json --tier=1 --port=8881   → 27/27 pass
+$ node tests/tools/traitfx-drive.mjs scratchpad/sg/drive-t3.json --tier=3 --port=8882   → 3/3 pass
+$ node tests/tools/fx-contrast.mjs scratchpad/sg/l3/current --port=8845 --only=<四支>
+$ python tests/tools/fx-contrast-metrics.py scratchpad/sg/l3/current                    → pass 4
+$ node tests/tools/fx-contrast.mjs scratchpad/sg/l3/canary  --port=8847 --only=<四支>   （canary 套在 _resolve）
+$ python tests/tools/fx-contrast-metrics.py scratchpad/sg/l3/canary                     → pass 0
+$ git show 417b197:index.html > scratchpad/sg/old.html
+$ node tests/tools/trace-eq.mjs scratchpad/sg/old.html index.html                       → equal:true
+$ node tests/tools/duel-perf.mjs perf scratchpad/sg/perf-new<i>.json  --uncap --port=8884
+$ node tests/tools/duel-perf.mjs perf scratchpad/sg/perf-base<i>.json --uncap --port=8885 --root=scratchpad/sg/base417
+```
+
+`scratchpad/` 在 `.gitignore` 內（中間產物不版控）；要重跑的人照上面的指令重建即可。
+
+
+---
+
+# 8. 修補批（覆審 r1 ＝對抗式覆審 r4，2026-09-12）
+
+> 起點 `0117315`。覆審報告原文 `scratchpad/review-size-guard-r1.md`（scratchpad 在 .gitignore 內）。
+> 覆審結論：**N12 真的修好；N11 表面修好（HIGH）**——覆審員自己設計四條繞法，三道防線全綠，
+> 其中一條讓 L3 canary 跑出 `ok:true` ＝恆綠儀式復現。
+
+## 8.0 逐條三態
+
+| # | 項目 | 三態 | 證據 |
+|---|---|---|---|
+| **HIGH-1** | 「涵蓋自然 100%」是假的；四條繞法（父層 Group／換 geometry／自寫 matrix／`defineProperty` 蓋 accessor）全綠 | **真的修好** | §8.1 收斂＋§8.2 按效果寫的世界尺寸稽核；十一條繞法逐條實跑全紅（`bypass11.md`）；決定性繞法 F 的 canary 由 `ok:true` 翻成 `pass 0`（`decisive-F.md`）；三處「100%」字樣已刪（§8.6） |
+| **MEDIUM-1** | 違規的 throw 被吞掉、還靜默殺死整條 tween | **真的修好** | `js/trait-fx.js` 三個 `catch` 改走 `noteThrow()`，記進 `stats.tweenErrors`／`tweenErrorMsg`，三支治具納入判定（§8.3）。實測：繞法 E（`defineProperty` 蓋 accessor，丟的是 TypeError 不經記帳線）靠這一條變紅 |
+| **MEDIUM-2** | 23 套 `made=0` 卻 `sizeOK:true`＝空真 | **真的修好** | 三態 `n/a`／`ok`／`fail` ＋ `EMBLEM_CASES` 名單；`--tier=1` 實跑印 `ok 4／n/a 23／fail 0`；把示範招的徽記拿掉 ⇒ `★用到徽記的招卻是 n/a` ＋ exit 1（`medium2-empty-truth.md`） |
+| **MEDIUM-3** | 正式 L3 走的 `duel-drive` 不讀這筆記帳 | **真的修好** | `duel-drive.mjs` 從 `window.__yaoshi3d.traitFx.sizeGuard()` 取回、寫進 `out.json` 的 `sizeState`、fail 時 exit 非 0。**真實對決實跑到 `ok`**：14 場、鎖上 92 of 產出 92、稽核 1872 次（§8.4） |
+| **MEDIUM-4** | L3 凍幀 430ms 量不到印記／貼桌陣 | **表面修好（限制照實寫下來，殘留由別的防線補）** | L3 這一格的鑑別力沒有變；改的是把限制寫進 `tests/tools/README.md` 與 GUIDE §11.29 第 11 點，並說明世界尺寸稽核**不依賴凍幀**、印記與貼桌陣（含 InstancedMesh 逐實例）都在它的涵蓋裡（§8.5） |
+| **LOW-1** | 報告三處章節引用錯 | **真的修好** | §5／§6／§7 的 `§11.26` 改成 `§11.29 第 14 點`／`§11.27`；GUIDE §11.29 第 11 點本身也改了（§8.6） |
+| **LOW-2** | `fxIcons.scale` 是沒鎖的可寫倍率欄 | **真的修好** | `auditInstances()` 每幀檢查它是有限數且落在 `ICON.scaleRange`，否則判違規 |
+| 覆審 §4.5 未確認的疑慮 | `im.setMatrixAt(i, m)` 繞得過鎖與掃描 | **真的修好** | `auditInstances()` 逐 instance `decompose()`，對 `fxIcons.size × 相對倍率` 比對 |
+
+## 8.1 收斂：把「會改變世界尺寸的屬性」全部鎖死
+
+`js/trait-fx.js` 的 `lockIconScale()`（`:189-236`）現在鎖的是一組屬性，不是一顆 Vector3：
+
+| 鎖住的東西 | 擋掉的繞法 | 形式 |
+|---|---|---|
+| `scale` 這個屬性本身 | `Object.defineProperty(knife,'scale',{value:new Vector3(0.02)})` | `writable:false, configurable:false` |
+| `scale.x`／`y`／`z` | r3 七條（別名／`multiplyScalar`／`scale.x=`／子節點與索引…） | accessor，**`configurable:false`**（r3 寫 `true`＝繞法 E 的入口） |
+| `geometry` | r4 **B**（置換 geometry） | accessor（不是 `writable:false`——後者丟的 TypeError 不帶語意） |
+| `matrixAutoUpdate`／`matrixWorldAutoUpdate` | r4 **C**／**F**（自寫 `matrix`／`matrixWorld`） | accessor，只准是 `true` |
+| `userData.fxIconBase`／`fxIconKind` | 改基準再呼叫合法 API | `writable:false, configurable:false` |
+| `userData.fxIcons.size` | 群體徽記改逐幀重排用的尺寸 | `writable:false` |
+
+合法入口 `st.iconScale(mesh, k)` 另加**倍率區間** `ICON.scaleRange = [0.2, 2.2]`（`vocab.js`）
+——沒有它，`st.iconScale(m, 0.02 / base)` 就是絕對尺寸的後門，合法入口自己變成第二份來源。
+四支示範招實際用到 0.35～1.9，區間留了餘裕；要超出代表這個 kind 的**尺寸**該改，請改三張表。
+
+## 8.2 按效果寫：每幀量世界尺寸（`auditSizes`）
+
+`js/trait-fx.js:241-300`，排在 run 每幀更新的最後（量到的是這一幀真正要送去畫的世界矩陣）：
+
+1. `geometry` 身分＝`emblems.js` 的共用幾何（換了就判紅，即使鎖被繞過）；
+2. `updateWorldMatrix(true, true)` → `matrixWorld.decompose()` 取**世界縮放**，
+   必須等於「積木自己最後一次合法寫進去的值」沿祖先鏈的連乘；
+3. 祖先鏈上**未登記**的節點縮放必須是 1（r4 繞法 A 的父層 Group 就是踩這條）；
+4. InstancedMesh 逐 instance `decompose()`，對 `fxIcons.size × 相對倍率` 比對（`setMatrixAt` 那條路）；
+5. 診斷欄：世界寬度（世界縮放 × geometry 單位寬，**旋轉無關**）與 `Box3.setFromObject` 的對角線（抽樣）。
+
+**★判定為什麼不直接用 `Box3.setFromObject` 的跨距（與任務書字面的差異，理由寫在這裡）★**
+徽記是逐幀朝鏡頭的 billboard，旋轉中物件的世界 AABB 跨距隨朝向變（同尺寸能差到 √2 倍）。
+要用它當判準就得把容差放寬到「連 0.93 倍的繞法都放行」——那正是 r4 決定性繞法 F 的倍率
+（寫死 0.52 對 `base 0.56`）。所以判定用旋轉無關的量，`Box3` 只留在診斷欄。
+`updateWorldMatrix(true, true)` 與 `Box3.setFromObject` 兩支 API 都照任務書用了。
+
+**★量測位置為什麼在引擎裡而不是在治具裡（第二個差異）★**
+任務書寫「在 `traitfx-drive.mjs` 與 `duel-drive.mjs` 加世界包圍盒斷言」。實作放在
+`js/trait-fx.js`，由三支治具讀 `stats`／`traitFx.sizeGuard()`。三個理由：
+① 治具那一側**拿不到那些物件**——`traitfx-preview.html` 與 `index.html` 都在本批的「不動」清單裡，
+沒有把徽記清單暴露出來的 API；② 寫在引擎裡才量得到**每一幀**（治具只能在幾個取樣點量，
+而繞法 A／C 的效果可能只在某幾幀成立）；③ 一份實作、三支治具共用，不會出現兩份會分岔的斷言
+——這正是整卷在做的「單一事實來源」。治具那一側做的是判定與活性檢查（三態）。
+
+**通用性**（製作人交代「之後要沿用到紙紮道具」）：稽核吃的是 `SIZED` 這份登記表，
+`lockIconScale(run, obj, base, kind, geom)` 是通用的登記入口——之後的紙紮道具只要在自己的
+工廠裡呼叫它就進入同一道防線。**本批只接 `st.icon`／`st.icons`／`st.mark` 三條路**。
+
+## 8.3 十一條繞法全紅（＋決定性繞法 F）
+
+完整輸出：`docs/experiments/2026-09-12-size-guard-evidence/bypass11.md`、`decisive-F.md`。
+做法同前批：備份副本 → **加行**（①是把 `o.size` 塞回建構式）→ 跑兩支治具 → copy 備份副本還原（md5 核對）
+→ 重跑 `fxvocab` 確認回綠（每條都貼了）。
+
+| # | 繞法 | 掃描 exit | 執行期 exit | 判紅的是哪一道 |
+|---|---|---|---|---|
+| 1 | ①`{size:S}`（建構式） | **1** | **1** | 入口 throw（`handled=false`）＋`EMBLEM_CASES` 的 `n/a` 判紅＋掃描 |
+| 2 | ②`setScalar(S * …)` | **1** | **1** | 執行期鎖＋掃描 |
+| 3 | ③`setScalar(0.56 * …)` | **1** | **1** | 執行期鎖＋掃描 |
+| 4 | ④別名後 `setScalar` | **1** | **1** | 執行期鎖＋掃描 |
+| 5 | ⑤`multiplyScalar` | **1** | **1** | 執行期鎖＋掃描 |
+| 6 | ⑥`scale.x =` | **1** | **1** | 執行期鎖＋掃描 |
+| 7 | ⑦子節點／索引取用 | **1** | **1** | 執行期鎖＋掃描 |
+| 8 | **A 父層縮放 Group**（r4） | **1** | **1** | **世界尺寸稽核**（未登記祖先縮放 ≠ 1）＋掃描（`.add(knife)`／`knife.parent`） |
+| 9 | **B 置換 geometry**（r4） | **1** | **1** | `geometry` accessor ＋稽核的 geometry 身分＋掃描（`knife.traverse`） |
+| 10 | **C `matrixAutoUpdate=false` ＋自寫 matrix**（r4） | **1** | **1** | `matrixAutoUpdate` accessor ＋掃描 |
+| 11 | **E `defineProperty` 蓋掉 accessor**（r4） | **1** | **1** | `configurable:false` ⇒ TypeError，由 **MEDIUM-1 的 `tweenErrors`** 記起來＋掃描 |
+| 12 | **F 每幀 compose 絕對值 0.52**（r4 決定性實驗） | **1** | **1** | `matrixAutoUpdate` accessor（違規 1 次）＋掃描 |
+| 13 | F2 只寫 `matrix`、不關 `matrixAutoUpdate`（對照組） | **1** | **0** | 只有掃描。**執行期綠是對的**：`matrixAutoUpdate` 仍是 true ⇒ `updateMatrix()` 每幀把手寫矩陣蓋回去，**效果根本沒發生**，稽核量到的世界尺寸與健康態相同 |
+
+**★決定性實驗的翻轉（`decisive-F.md`）★**
+
+| | r3（覆審 r4 實測） | 本批 |
+|---|---|---|
+| F ＋ 健康態 | `area_pct 1.0132／de 61.31／ok:true` | `size=fail`、違規 1 次、`fx-contrast` **exit 1**；像素 `area 0.4059／ok:false／pass 0` |
+| F ＋ L3 canary（`_resolve()=>0.02`） | **與健康態逐位數相同**、`GATE pass 1` ⇒ 恆綠儀式 | `area 0.0425／ok:false／**pass 0**`、`fx-contrast` exit 1 |
+
+⇒ 健康態與 canary 態**不再逐位數相同**（0.4059 vs 0.0425），canary 恢復鑑別力。
+
+## 8.4 三支治具都讀這筆記帳（MEDIUM-3）
+
+| 治具 | 讀法 | 實跑 |
+|---|---|---|
+| `traitfx-drive.mjs` | `__tfx.stats()` | `--tier=1` **27/27 pass**、`ok 4／n/a 23／fail 0`、稽核 240 次；`--tier=3` **3/3 pass**、`n/a 3` ＋★未量到★ |
+| `fx-contrast.mjs` | `__tfx.stats()` | 四支 `size=ok`、稽核 390 次；`pass 4` |
+| `duel-drive.mjs`（**批 1–3 的正式 L3**） | `window.__yaoshi3d.traitFx.sizeGuard()`（`js/renderer.js:182` 已把 traitFx 掛上，不動 `index.html`） | 真實對決 14 場：`徽記世界尺寸斷言：ok　違規 0／鎖上 92 of 產出 92／稽核 1872／tween 安靜死掉 0`，世界寬度 `{"knife":[0.24,0.448],"hat":[0.578957,0.784],"hat:instanced":[0.392,0.392]…}` |
+
+`duel-drive` 先跑 `--duels=4` 時是 `n/a`（那四場沒抽到用徽記的招），治具**照實印「未量到，不得當成通過」**；
+加到 `--duels=16`（實際打了 14 場）才量到 `ok`。這一段是「驗在對方的接收端」的實證，不是結構推論。
+
+## 8.5 MEDIUM-4：L3 的已知限制寫進文件
+
+`tests/tools/README.md` 與 `docs/IMPLEMENTATION_GUIDE.md` §11.29 第 11 點都加了：
+L3 凍在 `travel` 中點，**印記（`markByKind`）與貼桌陣（`flatByKind`）在 `react` 段才淡入**，
+那一刻幾乎不貢獻像素（`biteGamble` 在 canary 下整張差圖只剩 4 px）⇒ 以它們為主視覺的招，
+L3 那一格對「尺寸來源」零鑑別力；**這條殘留由世界尺寸稽核補**（每幀量、不依賴凍幀、不依賴像素，
+印記與貼桌陣含 InstancedMesh 逐實例都在涵蓋裡）。要在 L3 也看得到就得另挑時點或另加一格。
+
+**★沒有動凍結檔本身★**：`docs/experiments/2026-09-11-acceptance-fx-legibility.md` 是判準檔，
+本批只在「引用處」（README、GUIDE、本報告）寫下這條限制，沒有改它一個字
+（`02 §2.1`：判準檔要改得走同意程序）。要不要把這條收進凍結檔的 §2.1 修訂紀錄，交呼叫端裁。
+
+## 8.6 HIGH-1 的宣稱字樣
+
+三處「分母歸一／涵蓋自然 100%／把還沒有人想到的第五條一起收掉」全部刪掉並改寫成據實的範圍：
+`js/trait-fx/vocab.js`（改成逐條列出 r4 四條繞法與現在的四道防線）、
+`tests/fxvocab.test.mjs`（明寫「那句是假的，已刪：鎖住一個屬性 ≠ 收斂一個效果」）、
+`tests/tools/README.md`（改寫成四道防線各自守得住什麼）。
+本報告 §2 那句也在本節一併作廢——**能說的只有「①②④按入口寫、③按效果寫，新的繞法要由③接住」**。
+
+## 8.7 驗收重跑（原七條＋第 8 條）
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 分母 | 未變（§1；本批沒有新增／刪除編舞裡的縮放點） |
+| 2 | 鑑別力 | **十一條繞法＋F 全紅**（§8.3 表；`bypass11.md`、`decisive-F.md`），每條都用備份副本還原並重驗回綠 |
+| 3 | N12 | 未動；`_resolve` canary 仍 `pass 0`、三值同時變 0.02（`n12-canary-values.txt`） |
+| 4 | 健康態 | `node tests/fxvocab.test.mjs` **16 綠 0 紅**；12 檔測試套全 exit 0（`r4-suite.txt`）；`traitfx-drive --tier=1` **27/27**、`--tier=3` **3/3**、err=0；`trace-eq` 對 `417b197` `equal:true` |
+| 5 | 效能 | 交錯 9 輪：base 中位 **533.3**（n=13，全距 489.3–548.2）／new 中位 **521.0**（n=8，全距 457.5–575.1），比值 **0.9768 ≥0.95**，全距大幅重疊（`r4-perf.txt`） |
+| 6 | 範圍 | `git diff --stat 417b197..HEAD`（§8.8），新增 `duel-drive.mjs`（覆審 MEDIUM-3 要求）與 `docs/IMPLEMENTATION_GUIDE.md`（LOW-1 納入） |
+| 7 | commit | 逐步 commit、繁體中文、**未合併、未 push** |
+| 8 | 十一條突變全紅表 | §8.3 |
+
+**L3 四支逐位數（與修補報告 §2.2 現值欄比對）**：
+`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`
+——**四格全部逐位數相同**（`r4-l3-current-metrics.txt`）⇒ 每幀稽核對畫面零影響。
+canary（`_resolve()=>0.02`）**`pass 0`、四支全 `ok:false`**（`r4-l3-canary-metrics.txt`）。
+
+**★draw call 照實記★**（`r4-perf.txt`）：依 `visible` 分層後
+`visible=16` 本樹 [964, 970] 落在基準 [957…1016] 內；
+`visible=15` 本樹 [926, 926, 928, 928, 930, **946**] 對基準 [926, 926, 928, 928, 930, 930]
+——**有一個樣本 946 超出基準全距 16 個 call**。兩件事一起說：
+① 機制上這道防線**不產生任何可畫的東西**（只讀矩陣、不建 mesh／material／geometry），
+② `visible` 是場景組成的粗略代理（GUIDE §11.27 修訂八自己寫過「燒掉一尊 ≈30 個 draw call」），
+單一樣本落在 6 樣本窄帶外不足以判定變化。**這一格記為「未完全落在基準全距內」，不宣稱通過。**
+
+## 8.8 修補批的改動清單
+
+| 檔案 | 對應 | 改了什麼 |
+|---|---|---|
+| `js/trait-fx.js` | HIGH-1／MEDIUM-1／LOW-2 | `lockIconScale` 擴成鎖一組屬性（`configurable:false`）、新增 `auditSizes`／`auditInstances`／`expectedWorldScale`／`unitWidthOf`／`sizeGuard()`、`noteThrow()`、`run.sized`、`stats` 六個新欄位、`st.iconScale` 加倍率區間 |
+| `js/trait-fx/vocab.js` | HIGH-1 | 新增 `ICON.scaleRange`；刪掉「涵蓋 100%」的宣稱，改寫成 r4 四條繞法與四道防線 |
+| `tests/fxvocab.test.mjs` | HIGH-1 | 掃描規則由 `.scale` 擴成 `scale/geometry/matrix/matrixWorld/matrixAutoUpdate/matrixWorldAutoUpdate/parent/children/traverse` ＋ 禁 `.add(徽記)`；`--mutate` 由 7 條擴成 **11 條** |
+| `tests/tools/traitfx-drive.mjs` | MEDIUM-1／2 | 三態 `sizeState`、`EMBLEM_CASES` 名單、`tweenErrors`、世界寬度診斷欄、彙總與 exit code |
+| `tests/tools/fx-contrast.mjs` | MEDIUM-1／2 | 同上（L3 每一套都用徽記，所以 `made===0` 在這支就是 `fail`） |
+| `tests/tools/duel-drive.mjs` | **MEDIUM-3** | 收工時讀 `window.__yaoshi3d.traitFx.sizeGuard()`，`sizeState` 落 `out.json`，fail 時 exit 非 0 |
+| `tests/tools/README.md` | HIGH-1／MEDIUM-4 | 四道防線改寫、三態說明、L3 的已知限制 |
+| `docs/IMPLEMENTATION_GUIDE.md` | **LOW-1** | §11.29 第 11 點：canary 改 `_resolve()`、掃描規則改寫、指向 README 當權威、補 MEDIUM-4 限制 |
+| 本報告 | LOW-1 | 三處章節引用改正；新增本節 |
+| `…-evidence/bypass11.md`／`decisive-F.md`／`medium2-empty-truth.md`／`r4-*.txt` | 證據 | 十一條繞法、決定性實驗、空真突變、L3 現值／canary、測試套、效能 |
+
+
+---
+
+# 9. 合併 main 後重驗（main ＝ `50df83a`，v0.55.1 `?fxvocab` 開關）
+
+合併 commit `9afc9f5`（`git merge main`，**自動合併、零衝突**——main 動的是 `js/trait-fx.js` 的
+登記點（`VOCAB_ON` 分派、`V054`／`V054_SHORT` 兩張表）與三系檔尾新增的四支 0.54 本體，
+本批動的是 `createTraitFx` 內部與那四支 **0.55** 本體裡的 5 處縮放，兩邊沒有重疊的行）。
+
+## 9.1 「兩邊都要活」的語意核對（自動合併 ≠ 合併正確）
+
+| 要求 | 核對方式 | 結果 |
+|---|---|---|
+| 0.54 本體（`_v054`）**不接**尺寸鎖 | `grep -n 'st\.icon\|st\.mark\|st\.icons'` 三系檔，只看 `V054` 區塊（行號 >840） | **0 處**——0.54 本體根本不呼叫三支入口，因此不會登記進 `SIZED`、不上鎖、不被稽核 |
+| 0.55 本體維持 `st.iconScale` | `denominator.sh` 第 3／4 段 | 5 處 `st.iconScale` 都在；「直接碰徽記 `.scale`」仍是 **0 處** |
+| 掃描不被 0.54 本體誤傷 | `node tests/fxvocab.test.mjs` | **16 綠 0 紅**（0.54 本體新增的 6 處 `scale.setScalar` 都不是徽記名字的成員鏈；分母 `.scale.setScalar(` 由 68 → **74**） |
+
+## 9.2 ★合併帶來的假警報，已修★
+
+`traitfx-drive` 的 `EMBLEM_CASES`（r4 MEDIUM-2）原本是「四支示範招若 `n/a` 就判紅」。
+v0.55.1 之後**預設 `PW_FX.VOCAB_ON=false`，那四支跑的是 0.54 本體、本來就沒有徽記**
+⇒ 不修的話預設狀態每一跑都會紅。**假警報會訓練使用者忽略這個訊號**（`02 §6.1` 第 1 條），
+所以改成：`EMBLEM_CASES` 的判紅**只在 `--fxvocab=1` 下成立**（`sg.fxvocab`），
+輸出行也改成會說明自己在哪個狀態：
+
+```
+（預設）徽記世界尺寸斷言（預設 0.54 演出，四支示範招本來就沒有徽記 ⇒ n/a 是正確狀態）：ok 0／n/a 27／fail 0
+（開關）徽記世界尺寸斷言（--fxvocab=1：0.55 徽記版）：ok 4／n/a 23／fail 0
+```
+
+`fx-contrast` 不改判定（它本來就要求 `hidden > 0`，main 的檔頭也寫明「不帶 `--fxvocab=1` 就判紅」），
+只把「這支治具一定要帶 `--fxvocab=1`」寫進註解與 README。
+`duel-drive` 不改判定：預設網址跑出 `n/a` 是**正確**的「未量到」，要量就帶 `?fxvocab=1`。
+
+## 9.3 重驗結果
+
+| # | 項目 | 指令 | 結果 |
+|---|---|---|---|
+| 1 | 語彙單元測試 | `node tests/fxvocab.test.mjs` | **16 綠 ／ 0 紅**，exit 0 |
+| 2 | 規則測試套（12 檔） | `scratchpad/sg/suite.py` | **12/12 exit 0**（`r5-suite.txt`） |
+| 3 | `traitfx-drive` **預設**（0.54 演出） | `--tier=1 --port=8801` | **27/27 pass**、`err=0`、`ok 0／n/a 27／fail 0`、**exit 0（不誤報）** |
+| 4 | `traitfx-drive` **`--fxvocab=1`** | `--tier=1 --port=8802 --fxvocab=1` | **27/27 pass**、`err=0`、`ok 4／n/a 23／fail 0`、鎖上 15 of 15、稽核 240 次 |
+| 5 | `traitfx-drive` 三尊 | `--tier=3 --fxvocab=1` | **3/3 pass**、`n/a 3` ＋★未量到★（三尊未鋪語彙） |
+| 6 | 引擎等價 | `git show 50df83a:index.html > …; node tests/tools/trace-eq.mjs …` | `{"equal":true}`、`bytesOld == bytesNew == 357285`（本批一個位元組都沒動 `index.html`） |
+| 7 | L3 四支（`--fxvocab=1`） | `fx-contrast --fxvocab=1` ＋ `fx-contrast-metrics.py` | `pass 4`，四格**與 §2.2／§8.7 逐位數相同**：`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`（`r5-l3-current-metrics.txt`）；四套 `size=ok`、稽核 390 次 |
+| 8 | `duel-drive`（真實產品場景） | `…/index.html?paperwar=1&fxcount=1&fxvocab=1 --duels=16` | **`ok`**、違規 0、**鎖上 16 of 產出 16**、稽核 256、tween 安靜死掉 0（`r5-duel-drive.txt`） |
+| 9 | 繞法抽驗 A／C／F | `fxvocab` ＋ `traitfx-drive --fxvocab=1` | **三條全紅**（掃描 exit 1 ＋執行期 exit 1），還原後 16 綠（`r5-bypass-ACF.md`） |
+
+**★照實記：第 8 項那一局只打了 6 場對決就結束★**（`duels:6`，不是要求的 16）——`--duels=16` 是上限，
+一局的夜數有限，遊戲自己走完就停。斷言仍**量到了**（`made=16 > 0`、稽核 256 次）所以判 `ok` 成立；
+「16 場」這個數字沒達成，記在這裡不含糊帶過。合併前那一跑（`0117315` 之後、合併之前）打到 14 場、
+鎖上 92 of 92、稽核 1872 次，同樣是 `ok`。
+
+**繞法抽驗的前提（合併後才出現的坑，寫下來免得下一輪踩）**：繞法是塞進 **0.55 本體**的，
+而預設跑 0.54 本體 ⇒ **不帶 `--fxvocab=1` 那段程式碼根本不會被執行**，執行期那一道會「正確地」不響。
+那不是防線失效，是沒測到。`scratchpad/sg2/bypass11.py` 已把 `--fxvocab=1` 寫死進命令。
+
+## 9.4 合併批的改動
+
+| 檔案 | 改了什麼 |
+|---|---|
+| `tests/tools/traitfx-drive.mjs` | `EMBLEM_CASES` 的判紅加 `--fxvocab=1` 前提（`sg.fxvocab`）；輸出行標明所在狀態；檔頭三態說明補上 0.55.1 的情形 |
+| `tests/tools/fx-contrast.mjs` | 註解補「這支治具一定要帶 `--fxvocab=1`」（判定未動） |
+| `tests/tools/README.md` | 合併時我的 r4 段落與原有的「L3 canary」小節重複了一份，已合成一份；canary 指令補 `--fxvocab=1`；三態那段補 0.55.1 的前提 |
+| `docs/experiments/2026-09-12-size-guard-report.md` | 本節 |
+| `…-evidence/r5-*.{md,txt}` | 合併後的重驗輸出 |
+
+**沒有動**：`index.html`、`js/trait-fx.js` 的 `VOCAB_ON`／`V054` 分派、三系檔的 `V054` 區塊、
+`dmg-readability.mjs`、`blindread-sheet.mjs`（全部原樣吃 main 的版本）。
+
+
+---
+
+# 10. r2 修補（對抗式覆審第 2 輪；`02 §6.1` 附則的**第 3 輪**）
+
+> 起點 `53b539f`。覆審報告 `scratchpad/review-size-guard-r2.md`（339 行，scratchpad 在 .gitignore 內）。
+> 覆審結論：r1 點名的 A/B/C/E/F、MEDIUM-1/2/3、LOW-1、合併正確性、效能**全部真的修好**；
+> 新抓 2 HIGH ＋ 4 MEDIUM ＋ 2 LOW。**這是最後一輪修補**——r3 仍有未解就停手交裁。
+
+## 10.0 逐條三態
+
+| # | 項目 | 三態 | 接住它的是哪一道 | 證據 |
+|---|---|---|---|---|
+| **R2-H1** | `onBeforeRender` 在稽核之後、送畫之前改 `matrixWorld`（L3 canary `ok:true`，恆綠儀式第三次復現） | **真的修好** | **① 鎖**（`onBeforeRender`／`onAfterRender` 一併鎖成 accessor）＋**③ 稽核的第二個量測位置**（掛在 `onAfterRender`＝剛送進 GPU 的那顆矩陣） | `r6-bypass-r2six.md` H1：掃描 exit 0、**執行期 exit 1** |
+| **R2-H2** | `st.icons` 的 `o.sizes` 沒有 `scaleRange` 檢查＝絕對尺寸後門 | **真的修好** | **① 入口區間檢查**（`st.icons` 建構時逐項比對，超出就 throw）＋**③ 稽核逐實例**＋**④ 掃描新規則**「不得把 ICON 來源放到除號右邊」 | `r6-bypass-r2six.md` H2：掃描 exit 1、執行期 exit 1 |
+| **R2-M1** | 手造第二顆徽記（不經三支入口）全程隱形 | **真的修好** | **③ 的場景掃描**：每 6 次稽核 `scene.traverse`，geometry 屬於徽記剪影卻不在登記表的 mesh 一律判紅 | `r6-bypass-r2six.md` M1：執行期 exit 1 |
+| **R2-M2** | 只驗 geometry 身分不驗內容（`geometry.scale()` 就地改共用剪影） | **真的修好** | **③ 的 geometry 內容指紋**（登記時凍住頂點數＋座標校驗和＋單位寬，逐次比對） | `r6-bypass-r2six.md` M2：執行期 exit 1 |
+| **R2-M3** | 已登記祖先的縮放被當合法連乘（0.56 → 0.31357） | **真的修好** | **③ 的祖先規則收緊**：唯一允許的登記祖先是這一片自己的 `host`（`st.icon` 建的本體），其餘祖先不得是徽記、且縮放必須為 1 | `r6-bypass-r2six.md` M3（`--count=2` 才有隊友、marks 才非空）：執行期 exit 1 |
+| **R2-M4** | `duel-drive` 有沒有量到全看隨機牌組，`n/a` 仍 exit 0 | **真的修好** | `--fxvocab=1` 時 `made===0` 判 `fail` ＋ exit 非 0；README 記下實測抽得到的種子 | `--duels=1 --seed=7`（那一場 0 次 trait）→ `fail`、**EXIT=1**；`--duels=12 --seed=7` → `ok`、鎖上 11 of 11、稽核 **1121** 次 |
+| **R2-L1** | 執行期改 `ICON` 表沒有防線察覺 | **真的修好** | `Object.freeze` 三張表與 `scaleRange`（**不凍 `ICON` 本身**，canary 要換 `_resolve`）＋掃描禁 `ICON.`／`import(vocab.js)` | `r6-l1-freeze.txt`：賦值後 `byKind.knife` 仍 0.56、四者 `isFrozen=true`；`r6-bypass-r2six.md` L1 掃描 exit 1 |
+| **R2-L2** | 空真的修法仰賴手工名單；`made=0` 時逐套仍印 `PASS` | **真的修好** | `emblemCasesFromSource()` 從三個系別檔推導（切到 `V054` 之前、逐函式看有沒有呼叫三支入口）；逐套判定也納入 ⇒ 那一套自己印 `FAIL` | `--tier=1 --fxvocab=1` 印「用到徽記語彙的招（由原始碼推導，非手工名單）：biteGamble eliteSelfCut hauntLost wardImmuneLost」 |
+| 覆審的一句更正 | 報告 §8.3 第 11 列寫「E 靠 `tweenErrors` 變紅」 | **照實更正** | E 真正的防線是 `configurable:false` ⇒ **效果不發生**；覆審員的 E 自己包了 try/catch，`tweenErrors=0`、全綠但尺寸也沒動。記帳只是附加訊號 | 見本節末 |
+
+## 10.1 R2-H1：量測位置錯了，按效果寫也沒有用
+
+three 的 `renderObject` 順序是
+`onBeforeRender() → modelViewMatrix = camera.matrixWorldInverse × matrixWorld → draw → onAfterRender()`。
+r4 的稽核掛在 `traitFx.update` 的最後，而 `render()` 內還會**再重算一次** `matrixWorld`、
+**然後才**呼叫 `onBeforeRender` ⇒ 在那個鉤子裡改矩陣，**畫出來的是改過的、稽核量到的是沒改過的**。
+覆審實測：四道防線全綠、L3 canary `area 0.8522／ok:true`（健康 0.8531，差 3 px）。
+
+**修法兩層**：
+1. `onBeforeRender`／`onAfterRender` 和 `matrixAutoUpdate` 同類（都是「讓引擎在稽核之後改變送畫矩陣」的鉤子），
+   一併鎖成 accessor：寫了就記帳＋throw。
+2. `onAfterRender` 的 getter 回傳**積木自己的稽核**（`auditAtDraw`）——那裡的 `this.matrixWorld`
+   就是剛送進 GPU 的那一顆。不論是誰、在哪一個鉤子裡動了它，都會被這一次量到。
+   兩個量測位置並存：`update` 末（frame 內）＋ `onAfterRender`（draw 後）。
+
+**這一節的教訓要寫進文件，不是寫進 commit message**：「按效果寫」不會自動等於「普遍成立」，
+**量測位置錯了就什麼都不是**。`vocab.js`、`tests/tools/README.md` 的宣稱已照這條改寫，
+並新增「已知未涵蓋」清單（見 §10.4）。
+
+## 10.2 R2-H2：合法選項上多寫一個鍵就是後門
+
+`sizes: prints.map(() => 0.50 / st.iconFlatSize)` —— 把 ICON 的值**除掉**，乘積就是寫死的絕對尺寸；
+而稽核的期望值用的就是同一組數字（自我指涉），所以永遠相等。這條**不需要任何 helper 技巧**，
+是在文件鼓勵使用的選項上多寫一個鍵——修補的優先序因此排第一。
+
+三處一起收：入口逐項檢查 `ICON.scaleRange`（超出就 throw）／稽核逐實例再檢查一次／
+掃描新增按效果寫的規則「**ICON 的任何來源都不得出現在除號右邊**」
+（`/ st.iconSize`、`/ st.iconFlatSize`、`/ st.markSize`、`/ ICON.*`）。
+`tests/fxvocab.test.mjs` 裡那段「`sizes:` 不在禁列，因為 ICON 的值仍在乘積裡」的**理由已改寫**
+——除得掉就不成立。
+
+## 10.3 十七條繞法（r3 七條＋r4 四條＋r2 六條）
+
+`--mutate=4..20` 全部 **exit 1**（healthy 16 綠 0 紅）。
+執行期那一輪（`r6-bypass-r2six.md`，照覆審 r2 原文含 helper 包裝）：
+
+| # | 繞法 | 掃描 exit | 執行期 exit | 判紅的是哪一道 |
+|---|---|---|---|---|
+| H1 | `onBeforeRender` 改 `matrixWorld`（helper） | 0 | **1** | 執行期（鎖 ＋ `onAfterRender` 量測） |
+| H2 | `o.sizes` 把 `st.iconFlatSize` 除掉 | **1** | **1** | 入口區間 ＋ 稽核 ＋ 掃描 |
+| M1 | 手造第二顆徽記（helper 包 `new Mesh`） | 0 | **1** | 執行期（場景掃描） |
+| M2 | 就地改共用剪影 geometry（helper） | 0 | **1** | 執行期（geometry 內容指紋） |
+| M3 | 掛到另一顆已登記的徽記底下（helper 包 `.add`，`--count=2`） | 0 | **1** | 執行期（祖先規則） |
+| L1 | 執行期改 `ICON` 表 | **1** | 0 | 掃描 ＋ `Object.freeze`（**效果不發生**，見下） |
+
+**★照實記兩件★**
+1. **掃描對 H1／M1／M2／M3 是綠的**——覆審員刻意用 helper 包一層避開名字追蹤。
+   掃描按名字寫，這是它的**結構限制**，不是待修的 bug；那四條靠的是執行期那兩道。
+   `--mutate=15/17/18/19` 的直接寫法掃描抓得到，所以回歸案例仍在。
+2. **L1 的執行期是綠的，因為效果沒發生**：`Object.freeze(ICON.byKind)` 之後賦值是 no-op
+   （`r6-l1-freeze.txt`：改完 `byKind.knife` 仍是 0.56，四個物件 `isFrozen=true`）。
+   「效果不發生」與「被判紅」是兩件事，這裡是前者——同 r1 的 E。
+
+## 10.4 已知未涵蓋（權威清單在 `tests/tools/README.md`）
+
+- 稽核只驗**世界縮放**與 **geometry 內容指紋**：不驗材質、不驗位置、不驗畫面上真的長怎樣。
+- 稽核與掃描只管**徽記**三條路，加上場景掃描抓「同剪影的手造 mesh」。紙紮道具要接進來，
+  就在自己的工廠裡呼叫 `lockIconScale(run, obj, base, kind, geom, host)`。
+- 掃描按名字追蹤，**helper 包一層就避得開**。
+- `traitfx-drive` 的治具頁逐幀 `step()` 但**不逐幀 `render()`**，所以 `onAfterRender` 那個量測位置
+  在那支治具上只會在少數幾格觸發；`fx-contrast` 與 `duel-drive`（真實 renderer 迴圈）才是它的主場
+  ——實測稽核次數 `duel-drive seed=7` 由 572 升到 **1121**。
+
+## 10.5 驗收重跑（原七條＋繞法表）
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 分母 | 未變（本批沒有新增／刪除編舞裡的縮放點） |
+| 2 | 鑑別力 | `--mutate=4..20` **十七條全 exit 1**；覆審 r2 六條照原文重跑（§10.3 表），每條備份副本還原＋md5 核對、還原後 16 綠 |
+| 3 | N12 | canary（`_resolve()=>0.02`）`pass 0`、四支全 `ok:false`（`r6-l3-canary-metrics.txt`） |
+| 4 | 健康態 | `fxvocab` **16 綠 0 紅**；12 套規則測試全 exit 0（`r6-suite.txt`）；`traitfx-drive --fxvocab=1` **27/27、違規 0、ok 4／n/a 23／fail 0**；預設 **27/27、n/a 27、exit 0（不誤報）**；`--tier=3` **3/3** |
+| 5 | 引擎等價 | `trace-eq` 對 main（`6defe13`）的 index.html `{"equal":true}`、`bytesOld=bytesNew=357285` |
+| 6 | L3 四支（`--fxvocab=1`） | `pass 4`，四格**與 §2.2／§8.7／§9.3 逐位數相同**：`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`（`r6-l3-current-metrics.txt`）；稽核次數由 390 升到 **405**（多出來的 15 次就是 `onAfterRender` 那個新量測位置） |
+| 7 | 效能 | 交錯 5 輪（基準＝`git archive main`）：base 中位 **539.3**（全距 466.0–548.2）／new 中位 **524.4**（510.1–551.8），比值 **0.9724 ≥ 0.95**，全距重疊（`r6-perf.txt`） |
+| 8 | 正式 L3（`duel-drive`） | `?fxvocab=1&seed=7 --duels=12` → **`ok`**、鎖上 11 of 11、稽核 **1121**、tween 安靜死掉 0 |
+
+**★draw call 照實記★**（`r6-perf.txt`）：`visible=16` 本樹 [966, 968, **978**] 對基準 [958, 968, 968, 968]
+——**有一個樣本 978 超出基準全距 10 個 call**（r4 那一輪也有一個類似的樣本）。
+機制上這道防線**不產生任何可畫的東西**（只讀矩陣、不建 mesh／material／geometry），
+`visible` 又是場景組成的粗略代理（GUIDE §11.27 修訂八：燒掉一尊 ≈30 個 draw call）。
+**這一格仍記為「未完全落在基準全距內」，不宣稱通過。**
+
+## 10.6 本批的改動
+
+| 檔案 | 改了什麼 |
+|---|---|
+| `js/trait-fx.js` | `lockIconScale` 多鎖 `onBeforeRender`／`onAfterRender`（H1）、記 `host`（M3）與 `geomSig`（M2）；稽核拆成 `auditOne(rec, where)`＋`auditAtDraw`（掛在 `onAfterRender`）；新增 `scanStrayEmblems`（M1）、`geomSig`／`GEOM_UUIDS`；`expectedWorldScale` 祖先規則收緊（M3）；`auditInstances` 加 `o.sizes` 區間（H2）；`st.icons` 入口加 `o.sizes` 區間（H2） |
+| `js/trait-fx/vocab.js` | `Object.freeze` 三張表與 `scaleRange`（L1）；刪掉「新的繞法要由 ③ 接住」的宣稱，改成據實描述＋指向 README 的已知未涵蓋清單 |
+| `tests/fxvocab.test.mjs` | `SIZE_MEMBERS` 加 `onBeforeRender`／`onAfterRender`；新增規則 (d) 不得碰 `ICON.`／`import(vocab.js)`、(e) ICON 來源不得當除數；`sizes:` 那段理由改寫；`--mutate` 由 11 條擴成 **17 條** |
+| `tests/tools/traitfx-drive.mjs` | `emblemCasesFromSource()` 取代手工名單（L2）；逐套判定納入「用到徽記卻 n/a」 |
+| `tests/tools/duel-drive.mjs` | `--fxvocab=1` 時 `made===0` 判紅 ＋ exit 非 0（M4） |
+| `tests/tools/README.md` | 四道→五段（含兩個量測位置、場景掃描）、**已知未涵蓋**清單、`--mutate=4..20`、正式 L3 的 seed SOP |
+| 本報告 | 本節 |
+| `…-evidence/r6-*` | 繞法六條、freeze 探針、L3 現值／canary、測試套、效能 |
+
+**合併 main**：本批起點先 `git merge main`（`6defe13`，含覆審指名的 `8340657`）——
+**零衝突**（main 這幾個 commit 只動文件與 `dmg-readability.mjs`）；
+`index.html`／`emblems.js`／`fx-contrast-metrics.py`／`fx-consts.mjs`／`duel-perf.mjs` 對 main **零 diff**。
+
+
+---
+
+# 11. r3 修補（甲：只修三條；使用者裁定的範圍限定例外）
+
+> 起點 `ab2451d` → 先 `git merge main`（`f8f7c98`，0.55.2 語彙定稿／tier 1 300ms／27 支比例化／
+> E 分支的 `st.paperStamp`／`st.solid`／`st.stick` 與 `?proto=`）——**零衝突**。
+> 覆審報告 `scratchpad/review-size-guard-r3.md`。這是第 4 輪，**使用者裁甲：只修 N-1／N-2／N-3**
+> （超過 `02 §6.1` 附則三輪上限的例外，範圍限定）。N-4 只記錄。
+
+## 11.0 三條三態
+
+| # | 項目 | 三態 | 接住它的是哪一道 | 證據 |
+|---|---|---|---|---|
+| **N-1**（HIGH） | `scanStrayEmblems` 用 `uuid` 認身分，`geometry.clone()` 整組穿過去 | **真的修好** | **③ 的場景掃描**（改用 `geomSig` 內容指紋＋單位寬；`GEOM_COUNTS` 做便宜前置過濾） | `r7-n1-n3.md`：`traitfx-drive` **exit 1／違規 147**、`fx-contrast` **exit 1／違規 57**（健康態與 canary 兩跑都紅），訊息指名「連 `geometry.clone()` 出來的也算，認的是內容不是 uuid」 |
+| **N-2**（MEDIUM） | 「稽核 N 次」未標量測位置；draw 位置在治具頁實測 0 格 | **真的修好** | 治具側（不動防線本體） | `stats` 拆成 `auditsUpdate`／`auditsDraw`，三支治具都分開印；`traitfx-drive --fxvocab=1` 印 `稽核 update 270 次／draw 0 次` ＋ **★draw 量測位置本跑未觸發★**；`fx-contrast` 印 `update 390＋draw 15` |
+| **N-3**（MEDIUM） | `emblemCasesFromSource()` 無活性下限，解析壞掉回 `[]` 恆綠 | **真的修好** | 治具側 | 把正則的縮排改成 4 空白（解析全失配）⇒ **throw、exit 1**，訊息列出缺少的四支；還原後推導回 `biteGamble eliteSelfCut hauntLost wardImmuneLost` |
+| N-4（LOW） | `ICON.scaleRange [0.2, 2.2]`、`SCENE_SCAN_EVERY = 6` 是本卷自訂、不在任何凍結檔 | **記錄，未處置**（裁定甲的範圍外） | — | 見 §11.4「待凍結清單」 |
+
+## 11.1 N-1：uuid 認身分 → 內容指紋
+
+`GEOM_UUIDS` 收的是登記當下那顆 geometry 的 `uuid`，所以 helper 裡一個
+`new THREE.Mesh(o.geometry.clone(), o.material.clone())` 就整組穿過去——clone 是新 uuid、對不上，
+那顆手造徽記不在 `SIZED`、不上鎖、不被 `auditOne`／`auditAtDraw` 量。
+覆審實測：四道防線全綠、面積 0.9728 → 7.2327、**canary 下 `ok:true`／`pass 1`**（恆綠儀式復現）。
+
+**修法**：改用**既有的** `geomSig()`（頂點數＋座標校驗和）＋單位寬認身分——clone 兩者都一樣。
+為了不讓每次 `scene.traverse` 都對全場每顆 mesh 算校驗和，加一層便宜的前置過濾
+`GEOM_COUNTS`（先比 position 陣列長度，對不上就直接跳過）。
+
+**連帶（合併 main 帶進來的新積木）**：`st.paperStamp`（E 分支）自己建 `ShapeGeometry` 再
+`scale(0.74)`＋`bow()` 翹曲，內容與共用剪影不同、指紋不會撞；但為了不讓未來的參數組合誤觸，
+它造的三片（body／face／glyph）進模組私有的 `BLOCK_MADE` 放行名單。
+**`st.paperStamp` 目前不在尺寸鎖裡**（本卷只接 `st.icon`／`st.icons`／`st.mark` 三條路），
+已列進 README 的「已知未涵蓋」。
+
+**★照實記：這條的紅來自尺寸防線，不是像素閘門★**
+繞法下 `fx-contrast` **exit 1**（違規 57 次、訊息指名成因），但 `fx-contrast-metrics.py` 的像素
+summary 在健康態與 canary 都是 `pass 1`（area 3.5481／2.6349，那顆假徽記自己就把面積撐過門檻）。
+也就是說：**L3 的整個程序是紅的**（README 的程序是先跑 `fx-contrast`，它 exit 1 就停），
+但**單看像素那一張表看不出來**——一顆用合法尺寸渲染的假徽記，像素閘門本來就分不出它是誰造的。
+這正是尺寸防線要獨立存在的理由，也與 r1 的 E、r2 的 L1 同型（「效果／判紅」是兩件事）。
+**不採**「掃到 stray 就把它 `visible=false`」那種做法：那會讓誤判在產品上直接吃掉美術。
+
+## 11.2 N-2：稽核次數要標量測位置
+
+`02 §6.1` 第 5 條：代理指標「沒響」只在它的量測位置上有效。
+`traitfx-drive` 的治具頁逐幀 `step()` 但**不逐幀 `render()`**，所以 `onAfterRender` 那個位置
+在那支治具上**一次都不會觸發**（不是報告 §10.4 寫的「只觸發幾格」——那句話已作廢）。
+`stats.sizeAudits` 拆成 `auditsUpdate`／`auditsDraw`（`sizeGuard()` 一起吐），三支治具逐套印
+`u<N>+d<M>`；`traitfx-drive` 在 `made>0 且 auditsDraw===0` 時額外印一行
+「★draw 量測位置本跑未觸發……draw 位置請看 fx-contrast／duel-drive★」。
+實測：`traitfx-drive --fxvocab=1` `update 270／draw 0`；`fx-contrast` `update 390＋draw 15`。
+
+## 11.3 N-3：推導器的活性下限
+
+`emblemCasesFromSource()` 取代手工名單，而手工名單被判有問題的理由就是「忘了加就沒有紅」。
+推導壞掉（縮排變了、`export const V054` 切點位移、正則失配）會**靜默**回 `[]`，
+`sg.expected`／`sg.missing` 跟著變空 ⇒ 同一個病換了形狀。
+加一行下限：**批 0 的四支示範招必須在名單裡**，缺一支就 throw（不留靜默退路）。
+批 1–3 鋪開之後名單只會變多不會變少。
+
+## 11.4 N-4（記錄，未處置）——★待凍結清單★
+
+以下是本卷自訂、**不在任何凍結檔**的數字。它們都是**加嚴用的旋鈕**（不是放寬既有門檻），
+但按 `02 §2.1` 的精神，它們一旦被當成判準就該有落點：
+
+| 常數 | 值 | 位置 | 作用 |
+|---|---|---|---|
+| `ICON.scaleRange` | `[0.2, 2.2]` | `js/trait-fx/vocab.js` | `st.iconScale` 與 `o.sizes` 的合法相對倍率區間（四支示範招實際用到 0.35–1.9） |
+| `SCENE_SCAN_EVERY` | `6` | `js/trait-fx.js` | 每幾次稽核做一次 `scene.traverse`（「多了一顆 mesh」不是逐幀變化的事） |
+| 稽核容差 | `1e-6 × max(1, |want|)` | `js/trait-fx.js` 的 `near()` | 世界縮放比對的相對容差 |
+
+**交呼叫端裁**：要不要把這三個收進 `docs/experiments/2026-09-11-acceptance-fx-legibility.md` 的 §2.1 修訂紀錄。
+本批**沒有動凍結檔**。
+
+## 11.5 驗收重跑
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 合併 | `git merge main`（`f8f7c98`） | **零衝突**；`index.html`／`emblems.js`／`fx-contrast-metrics.py`／`duel-perf.mjs` 對 main 零 diff |
+| N-1 鑑別力 | `geometry.clone()` 繞法（`--fxvocab=1`） | 掃描 exit 0（按名字寫，追不到 helper）／**`traitfx-drive` exit 1、違規 147**／**`fx-contrast` exit 1、違規 57**（健康態與 canary 兩跑都紅）；像素 summary 兩跑都 `pass 1`（§11.1 照實記） |
+| N-3 鑑別力 | 把推導器正則改壞（2→4 空白縮排） | **throw、exit 1**，訊息列出缺少的四支；還原後推導回四支 |
+| 健康態（`--fxvocab=1`） | `traitfx-drive --tier=1 --fxvocab=1` | **27/27 pass**、**違規 0**、`ok 4／n/a 23／fail 0`、`稽核 update 270／draw 0` ＋未觸發提示 |
+| 健康態（預設 0.54） | `traitfx-drive --tier=1` | **27/27 pass**、**違規 0**、`n/a 27`、exit 0（**不誤報**） |
+| 語彙單元測試 | `node tests/fxvocab.test.mjs` | **16 綠 ／ 0 紅** |
+| 規則測試套 | 12 檔 | **12/12 exit 0**（`r7-suite.txt`） |
+| 引擎等價 | `trace-eq` 對 `f8f7c98` 的 index.html | `{"equal":true}`、`bytesOld=bytesNew=357285` |
+| L3 四支（`--fxvocab=1`） | `fx-contrast` ＋ `metrics.py` | `pass 4`，四格**與 §2.2／§8.7／§9.3／§10.5 逐位數相同**：`0.9728/63.35/3202`、`1.2210/107.27/4019`、`1.9519/64.53/6425`、`2.1682/82.02/7137`（`r7-l3-current-metrics.txt`）；`稽核 update 390＋draw 15` |
+
+**沒跑的（裁定甲的範圍限定）**：效能（本批只動掃描的比對方式與治具輸出，沒有新增每幀工作——
+指紋只在 `scene.traverse` 命中頂點數時才算）、十七條 `--mutate` 全表（上一批已全紅，本批未動掃描規則）、
+`duel-drive` 的 seed 跑。**這三項在本批沒有重跑，不宣稱它們現在是綠的。**
+
+## 11.5b ★N-8 更正：`r7-n1-n3.md` 的違規次數以覆審 r4 的重現為準★
+
+覆審 r4 用 `r7-n1-n3.md` 裡**落檔的那一行繞法原文**重跑，得到 `traitfx-drive` 違規 **10**、
+`fx-contrast` 違規 **5**（結論相同：exit 1、訊息逐字相同），而我落檔的是 **147** 與 **57**；
+且 57 大於那一跑的總稽核次數（`u52+d2`＝54）。**數字不可重現，照實更正**。
+
+**成因（我查回去的）**：注入用的錨點是 `js/trait-fx/zuling.js:470` 的
+`st.iconScale(knife, 0.5 + 0.5 * e);`，那一行**在 windup tween 的 `update(t, e)` 回呼裡**，
+所以我「加行」加出來的 `st.spawn(m3, …)` 是**每幀跑一次**——一場演出約 55 幀就堆出 55 顆假徽記，
+而場景掃描每 6 次稽核掃一遍、每次把當時場上所有假徽記各記一筆 ⇒ 累加到 147／57。
+覆審員重建的是**一次性**版本（一顆），所以是 10／5。
+（順帶解釋「違規 > 稽核次數」：`scanStrayEmblems` 的違規**不增加** `sizeAudits`，兩個計數器本來就不同源。）
+
+**以哪一組為準**：紅綠結論兩版一致（都是 exit 1、訊息相同），**數字以覆審 r4 的 10／5 為準**
+（那是落檔那一行原文的一次性語意）。教訓：**證據落檔要記「實際跑的那一版」**，
+不能只貼要插入的那一行而不寫插在哪裡——插入點會改變語意。
+`r7-n1-n3.md` 保持原樣不動（那是當時的實跑輸出），由本節註明差異與成因。
+
+## 11.6 本批的改動
+
+| 檔案 | 改了什麼 |
+|---|---|
+| `js/trait-fx.js` | `GEOM_UUIDS` → `GEOM_SIGS`＋`GEOM_COUNTS`（N-1）；`scanStrayEmblems` 改按內容指紋；新增 `BLOCK_MADE` 放行名單並把 `st.paperStamp` 的三片加進去；`stats` 拆 `auditsUpdate`／`auditsDraw`，`sizeGuard()` 一起吐（N-2） |
+| `tests/tools/traitfx-drive.mjs` | `emblemCasesFromSource()` 加活性下限（N-3）；逐套與彙總印 `u+d`、`draw 未觸發` 提示（N-2） |
+| `tests/tools/fx-contrast.mjs`／`duel-drive.mjs` | 讀回並分開印 `auditsUpdate`／`auditsDraw`（N-2） |
+| 本報告 | 本節（含 §11.4 待凍結清單） |
+| `…-evidence/r7-*` | N-1／N-3 鑑別力、測試套、L3 現值 |
+
+
+---
+
+# 12. 結論（覆審 r4）
+
+**r4 小覆審判：可合併，條件只有文件。** N-1／N-2／N-3 三條逐條實測成立，
+健康態、12 套規則測試、`trace-eq`、L3 四格逐位數、十七條 `--mutate`、效能全綠，判準檔零 diff，
+**沒有任何退步**。本批（最後一筆）只動文件、不動程式碼：
+
+1. `tests/tools/README.md` 的「已知未涵蓋」補 **N-5**（場景掃描的內容指紋零容差；
+   `clone()` 後 `geometry.scale(1.0001,…)` 或單一頂點 +1e-4 即穿過，三支治具＋像素閘門全綠，
+   世界縮放 1.6 的假徽記 L3 面積 **3.5466%** vs 健康 **0.9728%**；以及
+   `if (run.sized.length) auditSizes(run)` 讓整支招不呼叫三個入口時連掃描都不跑）、
+   **N-6**（`duel-drive --seed=7` 只量得到 `hat`，正式 L3 對其他三支零鑑別力）、
+   **N-7**（活性下限只釘批 0 四支）。
+2. 報告 §11.5b 的 **N-8** 更正（數字以覆審 r4 的 10／5 為準，成因＝注入點在逐幀 `update()` 裡）。
+3. §11.4 的**待凍結清單**保留（`ICON.scaleRange [0.2,2.2]`／`SCENE_SCAN_EVERY 6`／稽核容差 `1e-6`）。
+
+**N-5／N-6 留待招式演出卷**把防線擴到 `st.paperStamp`／紙紮道具時一併處理：
+方向是**收斂**（`st.spawn` 是編舞唯一的進場口，在那裡擋「geometry 不是積木造的、卻長得像徽記」的 mesh，
+分母歸一），退而求其次才是把指紋改成**容差比對**（頂點數＋面積／外框近似，或改量世界包圍盒對幾何單位寬）
+並拿掉 `run.sized.length` 這個前置條件；N-6 則是正式 L3 要多 seed 或印出「本跑量到哪些 kind」。
+**N-5 不是本卷打開的洞**（改前用 uuid 認身分，同樣三個變體一樣全綠）——這一批是把網收窄，不是把洞打開。
+
+★整卷四輪覆審下來最該記住的一句★：**「按效果寫」不等於「普遍成立」。**
+每一輪被抓到的都是同一個形狀——量測位置、認身分的方式、涵蓋的分母各錯了一次，
+而每一次的宣稱都寫成了「這一道會接住新的繞法」。文件現在只寫**每一道守得住什麼**與**已知未涵蓋**。

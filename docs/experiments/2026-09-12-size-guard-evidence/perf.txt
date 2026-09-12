@@ -1,0 +1,35 @@
+## 交錯（採用）
+  base  n=6  rendersPerSec [487.1, 490.9, 518.7, 531.9, 532.7, 546.6]  中位 525.3  全距 487.1–546.6
+      #4  fps=531.9  draw=931  visible=15
+      #5  fps=None  draw=None  visible=None  ←無效樣本（合成場沒建起來）
+      #6  fps=518.7  draw=926  visible=15
+      #7  fps=490.9  draw=930  visible=15
+      #8  fps=546.6  draw=970  visible=16
+      #9  fps=487.1  draw=927  visible=15
+      #10  fps=532.7  draw=890  visible=14
+  new   n=7  rendersPerSec [480.6, 526.3, 526.3, 529.6, 535.7, 536.5, 546.2]  中位 529.6  全距 480.6–546.2
+      #4  fps=536.5  draw=968  visible=16
+      #5  fps=526.3  draw=962  visible=16
+      #6  fps=535.7  draw=968  visible=16
+      #7  fps=526.3  draw=966  visible=16
+      #8  fps=546.2  draw=968  visible=16
+      #9  fps=529.6  draw=968  visible=16
+      #10  fps=480.6  draw=930  visible=15
+  比值（new 中位 / base 中位）＝ 1.0082
+
+## 區塊（受汙染，僅記錄）
+  base  n=3  rendersPerSec [507.5, 516.2, 529.8]  中位 516.2  全距 507.5–529.8
+      #1  fps=516.2  draw=931  visible=15
+      #2  fps=507.5  draw=961  visible=16
+      #3  fps=529.8  draw=932  visible=15
+  new   n=3  rendersPerSec [480.8, 491.3, 491.7]  中位 491.3  全距 480.8–491.7
+      #1  fps=491.3  draw=928  visible=15
+      #2  fps=480.8  draw=970  visible=16
+      #3  fps=491.7  draw=908  visible=15
+  比值（new 中位 / base 中位）＝ 0.9518
+
+## draw call（依 visible 分層，02/修訂八：同 visible 樣本才可比）
+  visible=15 base  [926, 927, 930, 931, 931, 932]
+  visible=15 new   [908, 928, 930]
+  visible=16 base  [961, 970]
+  visible=16 new   [962, 966, 968, 968, 968, 968, 970]

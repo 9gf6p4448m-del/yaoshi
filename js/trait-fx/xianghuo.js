@@ -355,7 +355,7 @@ const MOVES = {
       st.rot(ringer, 'BellRoot', -0.32 * e); st.rot(ringer, 'BellStem', -0.22 * e); st.rot(ringer, 'BellShoulder', -0.12 * e);
       st.rim(ringer, 1 + 1.2 * e);
       st.alpha(bell, Math.min(1, e * 2.2));
-      bell.scale.setScalar(st.iconSize * (0.4 + 0.6 * e));
+      st.iconScale(bell, 0.4 + 0.6 * e);
     } });
     st.tween({ ms: W * 0.6, delay: W * 0.4, ease: 'linear',
       update(t) {
@@ -510,11 +510,16 @@ const MOVES = {
     const pitchTo = (deg) => { big.quaternion.copy(qBig); big.rotateX(THREE.MathUtils.degToRad(deg)); };
     pitchTo(30);
 
-    // ── 印文：落地那一刻才出現，由暗燒成硃紅，之後留在獵物身上（o.follow 走 st.stick）──
-    const seal = prey ? st.paperStamp(st.kind, hit, { color: C.ink, inkColor: C.ink, glyphColor: C.line,
+    /* ── 印文：落地那一刻才出現，由暗燒成硃紅，之後留在獵物身上（o.follow 走 st.stick）──
+       ★變數名是 `imprint` 不是 `seal`，這一點不能改回去★：`tests/fxvocab.test.mjs` 的尺寸掃描
+       是**純文字、不分作用域**的——同一個檔案裡只要有任何一處 `const seal = st.icon(…)`
+       （檔尾 `V055.biteGamble_v055` 就有），`seal` 這個名字全檔都會被當成徽記，
+       於是這裡合法的 `imprint.scale.setScalar(st.markSize * …)`（紙紮道具不在尺寸鎖裡，
+       沒有 `st.iconScale` 可走）會被判成「尺寸的第二份來源」。實測過：叫 `seal` 時該條判紅 2 處。 */
+    const imprint = prey ? st.paperStamp(st.kind, hit, { color: C.ink, inkColor: C.ink, glyphColor: C.line,
       opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -26, glyph: true, follow: prey, off: TOWARD_CAM }) : null;
-    if (seal) seal.scale.setScalar(st.markSize * 1.2);
-    const face = seal ? seal.userData.fxFace : null;
+    if (imprint) imprint.scale.setScalar(st.markSize * 1.2);
+    const face = imprint ? imprint.userData.fxFace : null;
     const chime = st.ring(st.foot(prey || cat, new THREE.Vector3()), 0.36, 0.06, { color: C.key, opacity: 0 }); // 貼桌陣＝香火專屬腳下語彙
 
     /* ── 金箔顆粒流（丙 香火）：九片＝1 個 draw call，**群體位移掛在 InstancedMesh 物件本身** ──
@@ -597,11 +602,11 @@ const MOVES = {
     st.tween({ ms: RL * 0.70, delay: R0, ease: 'out', update(t, e) { chime.scale.setScalar(0.4 + 1.6 * e); } });
     st.fade(chime, { ms: RL * 0.70, delay: R0, from: 0.9, to: 0 });
     st.fade(foil.obj, { ms: RL * 0.55, delay: R0, from: 0.95, to: 0 });
-    if (seal && face) {
-      st.fade(seal, { ms: RL * 0.16, delay: R0, from: 0, to: 1 });
+    if (imprint && face) {
+      st.fade(imprint, { ms: RL * 0.16, delay: R0, from: 0, to: 1 });
       st.tween({ ms: RL * 0.80, delay: R0, ease: 'out', update(t, e) {
         face.material.color.copy(cInk).lerp(cHot, Math.min(1, e * 1.3)); // 印文「燒」出來
-        seal.scale.setScalar(st.markSize * (2.8 - 1.1 * e));
+        imprint.scale.setScalar(st.markSize * (2.8 - 1.1 * e));
       } });
     }
     tgPreyHit(st, prey, R0, RL, 0.14);
@@ -1225,7 +1230,10 @@ export const V054_SHORT = {
    2026-09-12 方向重定之後，預設路徑的 biteGamble 換成了上面那支演出版（E 轉正），
    這一份原地保留給**治具與 L3 canary**（fx-contrast／blindread-sheet 的 --fxvocab=1）：
    它是「純色 billboard 貼在紙紮 3D 上」那條路的實體，兩輪盲讀 0/3 的對照組。
-   ★本體逐字取自 0.55（原 MOVES.biteGamble），只改了函式名那一行★；`_v055` 後綴的作用同 `_v054`：
+   ★本體取自 0.55（原 MOVES.biteGamble）★，搬過來之後只動了三行：函式名那一行，
+   ＋ v0.55.3（N11 徽記尺寸防線）把 `seal`／`stamp` 的兩處 `scale.setScalar(st.iconSize * …)`
+   收斂成 `st.iconScale(…)` 那兩行——**那是 main 對這支招做的改，跟著本體一起搬**，
+   不搬就等於這一支在 `?fxvocab=1` 下繞過了尺寸鎖。`_v055` 後綴的作用同 `_v054`：
    讓兩份同名演出並存，登記點（js/trait-fx.js）剝掉後綴換回 trId，分派只做一次。
    0.54 的虎爺印（`biteGamble_v054`／`_v054short`）已於本卷移除——那一版的角色是「先退回上一版」，
    演出版轉正之後就不需要那條退路了；要回頭看：git show 6a839de:js/trait-fx/xianghuo.js。 */
@@ -1266,7 +1274,7 @@ export const V055 = {
         st.move(cat, -fwd.x * 0.09 * e, -0.03 * e, -fwd.z * 0.09 * e);
         st.rim(cat, 1 + 1.0 * e);
         st.alpha(seal, Math.min(1, e * 2));
-        seal.scale.setScalar(st.iconSize * (0.35 + 0.75 * e)); // 過衝一點再收，印才有「蓋下來」的重量
+        st.iconScale(seal, 0.35 + 0.75 * e); // 過衝一點再收，印才有「蓋下來」的重量
         seal.userData.fxRoll = 0.55 * (1 - e);
       },
       done() { st.phase('travel'); } });
@@ -1292,7 +1300,7 @@ export const V055 = {
     st.fade(seal, { ms: RL * 0.35, delay: R0, from: 1, to: 0 });
     if (stamp) {
       st.fade(stamp, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
-      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { stamp.scale.setScalar(st.markSize * (1.9 - 0.9 * e)); } });
+      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { st.iconScale(stamp, 1.9 - 0.9 * e); } });
       st.fade(stamp, { ms: RL * 0.45, delay: R0 + RL * 0.55, from: 1, to: 0 });
     }
     // ★flinch 一定要帶 ms★：預設是 TFX.flinchMs×k，tier 1 下是 69ms，從 react 起算會把 horizon 推到 249＞235 ⇒ rate>1
