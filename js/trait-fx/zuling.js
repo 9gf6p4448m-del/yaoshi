@@ -1071,10 +1071,11 @@ const MOVES = {
     };
     writeGore(0);
 
-    // ── 同伴身上的刃印（施招者自己沒有：他身上是血條）──
-    const marks = mates.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Chest', new THREE.Vector3()),
-      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -20,
-        follow: f, at: 'chest', off: st.camOff(1) }));
+    /* ── 本隊每一尊各收到一枚**從頸口飛過去**的刃印（P4 r1 回修 A）──
+       改前是「同伴身上原地黏一枚印、施招者身上只有血條」：讀者 8/18 答「自己」、9/18 答「我方單一」。
+       現在照令旗的作法逐尊送過去（**含施招者自己**，`ABILITIES` 是「全場本隊 atk+2」），
+       落地時間全部對齊衝擊拍。血條仍然只在施招者身上——那是自傷的證據，不是增益。 */
+    const marks = zlDeliver(st, neck, st.actor, { T0, TL, R0, RL }, { k: 1.15 });
 
     /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；刃在頸邊亮相＝出招瞬間的新增元素。
        **施招姿態（下沉）與腳下光柱同時在這一段立起來**——身分訊號一定要早於道具落點。 */
@@ -1128,12 +1129,9 @@ const MOVES = {
     /* ③ 祝福（react）：本隊每尊被托起半寸＋暖邊光；同伴各蓋一枚刃印。
        ★施招者也上抬★（ABILITIES「全場本隊 atk+2」），但他的身分已經由 windup 的
        下沉姿態＋腳下光柱標掉了，兩件在時間上分離（§A9 第 2 條的例外）。 */
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
-    });
-    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.085 * e, 0); st.rim(f, 1 + 1.9 * e);
+    // ★反應同拍★（P4 r1 回修 A）：stagger 拿掉，「全場本隊」要的是同一拍全體都有反應
+    mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.085 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
 
     /* 收勢：鹿回正並跟著被托起（他也是受益方）。只有他一尊時（治具的 xianji 就是 count=1）
