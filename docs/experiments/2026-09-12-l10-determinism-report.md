@@ -252,8 +252,25 @@ $ git diff 417b197..HEAD --stat -- index.html js/
 （空）
 ```
 
-（本檔與 `docs/experiments/2026-09-12-l10-determinism-evidence/` 在最後一個 commit 才進去，
- 屆時 `--stat` 會多這兩項；`index.html js/` 那一條仍為空。）
+把本檔與 `docs/experiments/2026-09-12-l10-determinism-evidence/` 也 commit 進去之後的最終狀態
+（`31e818d`）：
+
+```
+$ git diff 417b197..HEAD --stat | tail -4
+ .../2026-09-12-l10-determinism-report.md           | 375 +++++++++++++++++++++
+ tests/tools/README.md                              |  33 ++
+ tests/tools/dmg-readability.mjs                    | 268 ++++++++++++++-
+ 29 files changed, 2002 insertions(+), 15 deletions(-)
+      ← 其餘 26 個全部是 docs/experiments/2026-09-12-l10-determinism-evidence/** 的證據檔
+
+$ git diff 417b197..HEAD --stat -- index.html js/
+（空）
+
+$ git status --short
+（空）
+```
+
+commit 序：`9a03db9` 治具 → `1427ff2` README → `31e818d` 報告與證據。
 
 ### 驗收 6　規則測試全綠 🟢
 
