@@ -147,7 +147,11 @@ function xhDeliver(st, from, figs, B, o = {}) {
     st.fade(m, { ms: B.TL * 0.35, delay: B.T0, from: 0, to: 1 });
     st.trail(m, from, to, { ms: B.TL, delay: B.T0, ease: 'outQuint', trail: false,
       arc: o.arc === undefined ? 0.30 : o.arc,
-      done() { st.stick(m, f, { at: 'chest', off: camOff(st, 1).add(lean) }); } });
+      done() {
+        st.stick(m, f, { at: 'chest', off: camOff(st, 1).add(lean) });
+        // `o.burst`＝落地各自炸一次（打擊類要有「可數的著彈點」，P4 r1 回修 D）
+        if (o.burst) st.burst(to, { power: o.burst.power || 0.9, n: o.burst.n || 40, color: o.burst.color === undefined ? C.hot : o.burst.color });
+      } });
     st.fade(m, { ms: B.RL * 0.45, delay: B.R0 + B.RL * 0.55, from: 1, to: 0 });
     return m;
   });
@@ -1395,7 +1399,19 @@ const MOVES = {
     /* ★位移改往「我方後方」而不是往上★：單靠垂直升起要 1.25 以上才過 travel 的門檻，
        而那個高度已經出畫面上緣——實測 L3 面積掉到 0.0%／0.3965%／0.2069%（門檻 0.8%）。
        往 `-st.dir` 走既不跨中線、又留在畫面裡。 */
-    const up = tip.clone(); up.y += 0.35; up.addScaledVector(st.dir, -1.35).add(camOff(st, 1.2));
+    /* ★收緊在自身（P4 r1 回修 C）★：真值是「自己」，但讀者 10/18 答「我方多個」。
+       改前殘旗往 `-st.dir` 飛 1.35 —— 2v2 下同伴就站在後面，旗掃過去就被讀成「也給了他」。
+       現在把水平行程收成 0.55／0.22，位移改由**垂直**承擔（travel 門檻照樣過），
+       整條軌跡都壓在施招者自己的佔地上方。 */
+    /* ★收緊在自身（P4 r1 回修 C）★ 真值是「自己」，讀者 10/18 答「我方多個」。
+       ★先查清楚哪一段真的會碰到同伴，不要動沒問題的那一段★：
+       殘旗走的是 `-st.dir`（正背對敵方），而 2v2 的同伴站在**斜前方**
+       （實測施招者 (-0.32,1.88)、同伴 (0.32,1.32)）——**旗的軌跡一路遠離同伴**。
+       實測動它的四種組合都把別的東西弄壞：-0.55 → travel 1.0933／門檻 1.2481；
+       再抬高 → 整支飛出畫面 area 0.0；-1.10 → travel 1.108；-1.42＋推近鏡頭 2.8 → area 0.0088。
+       所以**旗的軌跡一個位元組不動**，改的只有真正會蓋到同伴的兩件：
+       衝擊拍那一團粒子（power 1.0／n 56 從胸口炸開，2v2 下噴得到隔壁）與腳下貼桌環的半徑。 */
+    const up = tip.clone(); up.y += 0.35; up.addScaledVector(st.dir, -1.35).add(camOff(st, 1.2)); // -1.10 時 travel 1.108／門檻 1.2481；旗走的是正背對敵方那一側，離同伴只會更遠，所以這一段拉回來
     const back = chest.clone().addScaledVector(st.dir, -0.42).add(camOff(st, 1.3));
     back.y += 0.30;
 
@@ -1409,7 +1425,7 @@ const MOVES = {
 
     /* ① 倒矛過頂（windup）：雙臂把矛倒過頭頂、矛尖朝下對準心口 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
-    st.groundMark(man);
+    st.groundMark(man, { r: 0.28 }); // 收小：真值是「自己」，貼桌環不得延伸到同伴（P4 r1 回修 C）
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
       st.stance(man, '舉臂', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
@@ -1436,7 +1452,7 @@ const MOVES = {
         /* ★衝擊拍★：矛插到底＝殘旗在身後展開＝自身邊光爆＋前傾撐住 */
         st.phase('react');
         st.punch(0.55);
-        st.burst(chest, { power: 1.0, n: 56, color: C.hot });
+        st.burst(chest, { power: 0.55, n: 40, color: C.hot }); // 收緊：power 1.0 在 2v2 下噴得到隔壁那一尊（P4 r1 回修 C）
       } });
     st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) {
       /* ★這一支的 P3 與 §A3 真的互斥，處置寫在這裡★：`pojun` 是全 9 支裡最矮的一尊（figH 1.0019），
