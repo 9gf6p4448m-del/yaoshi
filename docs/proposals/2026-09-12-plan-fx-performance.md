@@ -84,10 +84,13 @@ worktree `agent-af4b6dd83859a028a`（**未合併、未 push**，`index.html` 一
 
 | 前置 | 落點 |
 |---|---|
-| ① `st.paperStamp`／`st.solid`／`st.stick` | 基準 `f8f7c98` 上已在 `js/trait-fx.js:715`／`:485`／`:794`，本階段驗證 `programsGrew=0` 並抽出共用零件 |
-| ② `MOVE_SPEC` ＋ P1 機械檢查 | `js/trait-fx/vocab.js:176`（＋`:139` 白名單）、`tests/fxvocab.test.mjs:130-196` |
-| ③ Q5 尺寸記錄治具 | `tests/tools/prop-size.mjs`（＋掛勾 `traitfx-preview.html:252`） |
-| ＋ `st.paperProps`（香火批要用） | `js/trait-fx.js:837` |
+| ① `st.paperStamp`／`st.solid`／`st.stick` | `js/trait-fx.js:1116`／`:834`／`:1198`（基準上就有；本階段驗證 `programsGrew=0` 並抽出共用零件 `paperPts`／`paperBow`／`paperShape`） |
+| ② `MOVE_SPEC` ＋ P1 機械檢查 | `js/trait-fx/vocab.js:229`（＋`:192` 的 `FAC_VOCAB` 白名單）、`tests/fxvocab.test.mjs:132` 起三條 |
+| ③ Q5 尺寸記錄治具 | `tests/tools/prop-size.mjs`（＋掛勾 `tests/tools/traitfx-preview.html:253`） |
+| ＋ `st.paperProps`（香火批要用） | `js/trait-fx.js:1241`（末段把 InstancedMesh 加進 `BLOCK_MADE`＝場景掃描放行） |
+| ＋ E 正式版／徽記版的落點 | `js/trait-fx/xianghuo.js:493`（`MOVES.biteGamble`）／`:1240` `V055`／`:1326` `V055_SHORT` |
+
+> 行號是 **merge main（`09153d0`）之後**的；合併細節與重跑數字見報告 §3。
 
 **簽字後的三件裁定已落在上面那一列**（尺寸上限 1/2→2/3、P4 材料兩種、tier 1 推鏡記待辦）。
 尚未裁、留給階段 B 一起看的：語彙檔 §C 八處動詞正規化裡的後兩列（`eliteVsSwarm`／`swarmFeed1`）、
