@@ -22,7 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC, FAC_VOCAB, MOVE_SPEC,
-  STANCE_VOCAB, REACT_AXIS, STANCE_GATE, FAC_GROUND } from '../js/trait-fx/vocab.js';
+  STANCE_VOCAB, REACT_AXIS, STANCE_GATE, FAC_GROUND, ANCHOR_KIND } from '../js/trait-fx/vocab.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -328,6 +328,42 @@ t('已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③�
   // 活性：切得出來的函式體數不得歸零（解析壞掉時上面兩條會對著空字串跑）
   if (seen < CONVERTED_MUST.length) bad.push(`只切出 ${seen}/${CONVERTED_MUST.length} 支函式體`);
   if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
+t('已轉正的招都登記了道具落點 anchor，取值在白名單內，而且編舞真的登記了至少一件（裁定①）', () => {
+  /* ★P1 新增的那一條（2026-09-13 階段 A 簽字裁定①）★
+     階段 A 的 `casterMatch` 只綁「骨骼動的那一尊 === 引擎認定的施招者」，**不綁道具落在誰身上**
+     （報告 §1.8「H2 殘」）。這一條是它的原始碼側：登記表要填 anchor、編舞要真的把 anchor 交給積木。
+     執行期那一側在 `js/trait-fx.js` 的 `sampleAnchors`（衝擊拍量最近的那一尊）＋
+     `traitfx-drive` 的 `casterMatch`。兩邊都從原始碼推導「已轉正」，不是手工名單。 */
+  const conv = convertedMoves();
+  const miss = CONVERTED_MUST.filter((t2) => !conv.has(t2));
+  if (miss.length) throw new Error(`「已轉正」的推導壞了：缺少 ${miss.join(' ')}`);
+  const bad = [];
+  let seen = 0;
+  [...conv].sort().forEach((id) => {
+    if (!MS[id]) return; // 三尊三招不在 MOVE_SPEC（Q8）
+    const a = MS[id].anchor;
+    if (!a) { bad.push(`${id} 沒有登記 anchor（已轉正的招必須宣告道具落在誰身上，裁定①）`); return; }
+    if (!ANCHOR_KIND[a]) { bad.push(`${id}.anchor="${a}" 不在 ANCHOR_KIND（${Object.keys(ANCHOR_KIND).join('／')}）`); return; }
+    const body = bodyOf(id);
+    if (!body) { bad.push(`${id}：切不出函式體（解析壞了）`); return; }
+    seen++;
+    // 登記表填了卻沒交給積木＝那一招執行期一件都量不到（`anchors.n===0` ⇒ `casterMatch` 判紅），
+    // 但原始碼這一側也要有紅燈，否則「填了字串就算」。
+    if (!/\banchor:\s*'/.test(body)) bad.push(`${id} 的編舞沒有把 anchor 交給任何一件道具（st.paperStamp／st.paperProps／st.stick 的 o.anchor）`);
+  });
+  if (seen < CONVERTED_MUST.length) bad.push(`只切出 ${seen}/${CONVERTED_MUST.length} 支函式體`);
+  if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
+t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各一套」）', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'docs/design/2026-09-12-fx-vocab-draft.md'), 'utf8');
+  const sec = src.slice(src.indexOf('### A9 身分可辨語彙'), src.indexOf('## §B'));
+  eq(Object.keys(ANCHOR_KIND).join(','), 'caster,self,ally,allies,foe,foes', 'ANCHOR_KIND 的六個取值');
+  Object.keys(ANCHOR_KIND).forEach((k) => {
+    if (!sec.includes('`' + k + '`')) throw new Error(`語彙檔 §A9 沒有寫出 anchor 取值「${k}」（程式與文件分岔了）`);
+  });
 });
 
 t('selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）', () => {

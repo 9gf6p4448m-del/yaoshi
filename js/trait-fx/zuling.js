@@ -475,10 +475,13 @@ const MOVES = {
        （`sheet-t2` 前兩格只看得到刃的一角，`xianji` 的包圍盒高 2.24、Neck2 本來就高）。
        兩輪看圖收到 `-0.22／+0.12` 之後整枚刃都在畫面裡，travel 位移仍有 ~1.5 世界單位（門檻 0.4×travelDist）。 */
     const A = neck.clone().addScaledVector(st.dir, -0.22); A.y += 0.12;
-    const Z = neck.clone().addScaledVector(st.dir, 0.40); Z.y = st.tableY + 0.14;
+    /* ★階段 B（裁定①）把 `+0.40` 收成 `+0.18`★：`--count=2` 的落點量測抓到刃插在鹿的**佔地之外**
+       0.06、卻正好落在同伴的佔地裡（`caster>ally✗`）——「插在自己頸邊的地上」在 2v2 裡讀成
+       「插在同伴身上」。收回來之後刃仍在鹿的前腳前方，travel 的位移由高度差（頸高 → 桌面）承擔。 */
+    const Z = neck.clone().addScaledVector(st.dir, 0.18); Z.y = st.tableY + 0.14;
 
     // ── 甲 黑曜石刃：暗刃面＋靛藍刃身（墨線邊就是露出來的那一圈 key）──
-    const obsid = st.paperStamp(st.kind, A, { role: 'stamp', color: C.ink, inkColor: C.key,
+    const obsid = st.paperStamp(st.kind, A, { anchor: 'caster', role: 'stamp', color: C.ink, inkColor: C.key,
       opacity: 0, depth: 0.24, warp: 0.10, tiltDeg: 8, yawDeg: -18, roll: -1.1 });
     /* ★尺寸是量出來的，不是挑的★：0.55 那一版 P3 t2 只有 **0.3439%**（門檻 0.8%、ΔE 51.89 本來就過）。
        L3 凍在 travel 中點，那一刻刃的大小＝windup 末那個值，所以放大要放在下面那條 windup 的 tween 上。
@@ -489,7 +492,7 @@ const MOVES = {
     // ── 紙血條：割開時從頸口飄出的一束窄紙條（1 個 draw call；群體位移掛在 InstancedMesh 物件本身）──
     const BL = 7;
     // k 0.62 那一版在 sheet 上一格都看不到（單件 0.186 世界單位）；1.15 又太大（糊成一塊淺色方塊），收在 0.85／ratio 0.22
-    const gore = st.paperProps(st.kind, BL, { color: C.hot, opacity: 0, k: 0.85, ratio: 0.22, depth: 0.10, warp: 0.24 });
+    const gore = st.paperProps(st.kind, BL, { anchor: 'caster', color: C.hot, opacity: 0, k: 0.85, ratio: 0.22, depth: 0.10, warp: 0.24 });
     gore.obj.position.copy(neck);
     const _e = new THREE.Euler();
     const strips = [];
@@ -513,7 +516,7 @@ const MOVES = {
 
     // ── 同伴身上的刃印（施招者自己沒有：他身上是血條）──
     const marks = mates.map((f) => st.paperStamp(st.kind, st.worldOf(f, 'Chest', new THREE.Vector3()),
-      { color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -20,
+      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -20,
         follow: f, at: 'chest', off: st.camOff(1) }));
 
     /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；刃在頸邊亮相＝出招瞬間的新增元素。

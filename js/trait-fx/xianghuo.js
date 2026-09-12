@@ -219,7 +219,7 @@ const MOVES = {
     head.y += 0.42; tail.y += 0.42;
 
     // ── 丁 斬擊弧：鎏金面＋ink 墨線邊的實體（不是加色平面）──
-    const arc = st.paperStamp(st.kind, tip, { role: 'stamp', color: C.key, inkColor: C.ink,
+    const arc = st.paperStamp(st.kind, tip, { anchor: 'foes', role: 'stamp', color: C.key, inkColor: C.ink,
       opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -14 });
     arc.scale.setScalar(st.iconSize * 0.55);
 
@@ -331,13 +331,13 @@ const MOVES = {
     from.add(camOff(st, 1.6)); to.add(camOff(st, 1.6));
 
     // ── 乙 大旗：鎏金面＋硃紅墨線的絹旗厚片（不是加色平面）──
-    const banner = st.paperStamp(st.kind, mast, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const banner = st.paperStamp(st.kind, mast, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 6, yawDeg: -20 });
     banner.scale.setScalar(st.iconSize * 0.30);
 
     // ── 受益方頭上的旗印（react 的證據，跟著那一尊走）──
     const marks = mine.map((f) => {
-      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
+      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.0);
       return m;
@@ -463,7 +463,7 @@ const MOVES = {
     /* ── 乙 四面金箔帆：圍成同心方框（`st.paperProps`，1 draw call）──
        四面帆各站方框的一邊、面朝外；`writeSails(r, s)` 的 r＝方框半徑、s＝帆的大小。 */
     const SAILS = 3; // 正面那一片由 mainSail（st.paperStamp 實體）擔任，這三片圍另外三邊
-    const sails = st.paperProps(st.kind, SAILS, { shape: 'emblem', color: C.key, inkColor: C.hot,
+    const sails = st.paperProps(st.kind, SAILS, { anchor: 'allies', shape: 'emblem', color: C.key, inkColor: C.hot,
       opacity: 0, k: 1.6, depth: 0.16, warp: 0.12 });
     sails.obj.position.copy(mastTop);
     const _qs = new THREE.Quaternion();
@@ -489,12 +489,12 @@ const MOVES = {
        四面帆若全走 `prop:` 這一招在 travel 中點就一個可量物件都沒有（實測 area 0.0%）；
        ② 正面那片是讀者真的看得清楚的那一片，用有墨線邊的實體比一片平色好認。
        視覺上仍是「四面帆圍成同心方框」。 */
-    const mainSail = st.paperStamp(st.kind, mastTop, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const mainSail = st.paperStamp(st.kind, mastTop, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 8, yawDeg: -16 });
     mainSail.scale.setScalar(st.iconSize * 0.45);
 
     const marks = ships.map((f) => {
-      const m = st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
+      const m = st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 12, yawDeg: -22, follow: f, off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.0);
       return m;
@@ -626,7 +626,7 @@ const MOVES = {
     /* 墨線邊由 `ink` 改 `hot`（硃紅）：鈴改走我方這一側之後背景從夜空換成暗紅褐桌面，
        鎏金對桌面色相太近，L3 的 ΔE 中位掉到 22.75／24.8（門檻 28）。硃紅邊把輪廓從桌面上切出來，
        **鎏金面（「金黃鈴」那個已驗證的可辨元素）一個字沒動**；同一招在破軍旗上已用過這個解。 */
-    const handbell = st.paperStamp(st.kind, src, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const handbell = st.paperStamp(st.kind, src, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.22, warp: 0.10, tiltDeg: 10, yawDeg: -18 });
     handbell.scale.setScalar(st.iconSize * 0.40);
 
@@ -657,7 +657,7 @@ const MOVES = {
 
     // ── 受益方頭上的鈴印（react 的「證據」，跟著那一尊走）──
     const blessMarks = bless.map((f) => {
-      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { color: C.key, inkColor: C.hot,
+      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
       m.scale.setScalar(st.markSize * 1.1);
       return m;
@@ -793,7 +793,7 @@ const MOVES = {
     const FLAGS = 5;
     const flagMesh = [];
     for (let i = 0; i < FLAGS; i++) {
-      const m = st.paperStamp(st.kind, top, { role: 'stamp', color: C.key, inkColor: C.hot,
+      const m = st.paperStamp(st.kind, top, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 8, yawDeg: -26 + i * 13 });
       m.scale.setScalar(st.iconSize * 0.30);
       flagMesh.push(m);
@@ -926,7 +926,7 @@ const MOVES = {
        所以暗面留細節、亮邊界定身分——鎏金印面會被 bloom 吃掉字。 */
     const land = hit.clone(); land.y += 0.10;
     const sky = land.clone(); sky.y += 0.62; // 再高就出畫面上緣（對決機位 tilt 24°／dist 4.2）
-    const big = st.paperStamp(st.kind, sky, { role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
+    const big = st.paperStamp(st.kind, sky, { anchor: 'foe', role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
       opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.42, w: 0.66, h: 0.32 } });
     big.scale.setScalar(st.iconSize * 0.80);
     const qBig = big.quaternion.clone();
@@ -957,7 +957,7 @@ const MOVES = {
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.8 * st.rnd(), s: 0,
       });
     }
-    const foil = st.paperProps(st.kind, FOILS, { color: C.key, opacity: 0, k: FOIL_K, depth: 0.16, warp: 0.14 });
+    const foil = st.paperProps(st.kind, FOILS, { anchor: 'foe', color: C.key, opacity: 0, k: FOIL_K, depth: 0.16, warp: 0.14 });
     foil.obj.position.copy(spine);
     const _eu = new THREE.Euler();
     const writeFoils = (k) => { // k＝0 貼在虎背、1 散在獵物身上（局部座標；群體位移由 foil.obj.position 帶）
@@ -1026,7 +1026,7 @@ const MOVES = {
     /* ★裁定「甲」：大印砸下後**彈開飛散**★——正面亮相那一拍之後碎成三片紙紮往外飛、淡出，不留印。
        三片走 `st.paperProps`（1 個 draw call），從大印的落點散開；`st.stick` 一個都沒有＝獵物身上不留東西。 */
     const SHARDS = 3;
-    const shard = st.paperProps(st.kind, SHARDS, { color: C.key, opacity: 0, k: 1.05, ratio: 0.55, depth: 0.16, warp: 0.18 });
+    const shard = st.paperProps(st.kind, SHARDS, { anchor: 'foe', color: C.key, opacity: 0, k: 1.05, ratio: 0.55, depth: 0.16, warp: 0.18 });
     shard.obj.position.copy(land);
     const _es = new THREE.Euler();
     const shardTo = [];
@@ -1051,7 +1051,7 @@ const MOVES = {
        這是「咬擊為主」的主證據：第 1 輪讀者看到的只有「一枚印落下」，沒有打擊的痕跡。 */
     if (prey) {
       const CLAWS = 3;
-      const claw = st.paperProps(st.kind, CLAWS, { color: C.hot, opacity: 0, k: 1.15, ratio: 0.16, depth: 0.10, warp: 0.22 });
+      const claw = st.paperProps(st.kind, CLAWS, { anchor: 'foe', color: C.hot, opacity: 0, k: 1.15, ratio: 0.16, depth: 0.10, warp: 0.22 });
       claw.obj.position.copy(hit).add(camOff(st, 1.5));
       const _ec = new THREE.Euler();
       const writeClaws = (k) => {
@@ -1099,11 +1099,14 @@ const MOVES = {
     /* ★2026-09-13 P4 第 2 輪回修★：道具的落點要在**受益方身上**，不是施招者身上。
        第 2 輪六位讀者在 2v2 下對象題一致答「自己」（同伴零反應），成因就是所有東西都畫在施招者這一格。
        改法一致：先**升起**（垂直高度差提供 travel 的位移、不跨中線），再落到同伴／每一尊我方身上。 */
-    const via = palm.clone().lerp(head, 0.35).addScaledVector(st.dir, -0.55).add(camOff(st, 1.2));
-    via.y += 0.55;
+    /* ★2026-09-13 階段 B，道具落點 anchor（裁定①）★：`via` 原本是灰流的**終點**
+       （只走到前鋒的 35%、再往後退 0.55），於是衝擊拍那一刻灰流**水平最近的仍然是法師自己**
+       ——`anchors` 的機械量測當場判紅（`ally>caster✗`），正是 r2 想修卻沒修乾淨的那一件。
+       現在 `via` 降級成**弧的鼓出量**（起訖兩端 sin=0，不動落點），灰流的終點改成前鋒頭上那一點。 */
+    const ashBow = camOff(st, 1.2).addScaledVector(st.dir, -0.55); ashBow.y += 0.55;
     /* ★覆審 r2 N1 的配套①★：`st.stick` 移進 `done()` 之後，飛行段才真的在畫面上跑，
        於是**飛行段的落點必須就是黏上去的那一點**（前鋒胸口＋同一個 `camOff(st, 1)`），
-       否則 react 那一幀會看到符「瞬移」一次。灰流仍舊落在 `via`（前鋒身前那一團），兩者分開。 */
+       否則 react 那一幀會看到符「瞬移」一次。灰流落在 `head`（前鋒頭上），與符的胸口落點分開。 */
     const land = st.worldOf(mate, 'Chest', new THREE.Vector3());
     if (!land.lengthSq()) { st.worldOf(mate, null, land); land.y += 0.55; }
     land.add(camOff(st, 1));
@@ -1111,7 +1114,7 @@ const MOVES = {
 
     // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
     const ASH = 10;
-    const ash = st.paperProps(st.kind, ASH, { color: C.key, opacity: 0, k: 0.62, ratio: 0.85, depth: 0.14, warp: 0.16 });
+    const ash = st.paperProps(st.kind, ASH, { anchor: 'ally', color: C.key, opacity: 0, k: 0.62, ratio: 0.85, depth: 0.14, warp: 0.16 });
     ash.obj.position.copy(palm);
     const _ea = new THREE.Euler();
     const grains = [];
@@ -1134,7 +1137,7 @@ const MOVES = {
     writeAsh(0);
 
     // ── 乙 金色方符：一張，從掌心送出、落到前鋒身上並留住 ──
-    const talis = st.paperStamp(st.kind, palm, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const talis = st.paperStamp(st.kind, palm, { anchor: 'ally', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
     talis.scale.setScalar(st.iconSize * 0.40);
 
@@ -1164,7 +1167,9 @@ const MOVES = {
       st.rot(monk, 'Chest', 0.10 + 0.14 * e); st.rot(monk, 'Neck', 0.16 + 0.10 * e); st.rot(monk, 'Head', 0.20 + 0.12 * e);
     } });
     st.tween({ ms: TL, delay: T0, ease: 'in', update(t, e) {
-      ash.obj.position.lerpVectors(palm, via, Math.min(1, e * 1.15));
+      const k = Math.min(1, e * 1.15);
+      ash.obj.position.lerpVectors(palm, head, k);
+      ash.obj.position.addScaledVector(ashBow, Math.sin(Math.PI * k)); // 弧：兩端 sin=0 ⇒ 落點就是前鋒頭上
       for (let i = 0; i < ASH; i++) grains[i].rz += 0.14;
       writeAsh(Math.min(1, e * 1.2));
     } });
@@ -1244,12 +1249,12 @@ const MOVES = {
     via.y += 0.50;
 
     // ── 丁 燈焰：鎏金面＋硃紅墨線的火舌實體（不是球）──
-    const flame = st.paperStamp(st.kind, src, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const flame = st.paperStamp(st.kind, src, { anchor: 'ally', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.20, warp: 0.18, tiltDeg: 6, yawDeg: -16 });
     flame.scale.setScalar(st.iconSize * 0.35);
 
     // ── 受益方頭上的燈印 ──
-    const seal2 = st.paperStamp(st.kind, dst, { color: C.key, inkColor: C.hot,
+    const seal2 = st.paperStamp(st.kind, dst, { anchor: 'ally', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: hurt, at: 'top', off: camOff(st, 1) });
     seal2.scale.setScalar(st.markSize * 1.0);
 
@@ -1350,7 +1355,7 @@ const MOVES = {
     /* ★配色與 §C2 的「高飽和硃紅」有出入，交製作人覆核★：硃紅 `#ff5a3c` 對暗紅褐桌面 `#6b3418`
        色相太近，整面硃紅時 L3 實測 **ΔE 中位 25.22 < 門檻 28**（面積 1.38% 是夠的）。
        改成**鎏金面＋硃紅墨線邊**——紅仍在（邊），而且這才是 §B2 香火材質那條「暗面 ink、亮邊鎏金」的寫法。 */
-    const torn = st.paperStamp(st.kind, tip, { role: 'stamp', color: C.key, inkColor: C.hot,
+    const torn = st.paperStamp(st.kind, tip, { anchor: 'self', role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.20, tiltDeg: 10, yawDeg: -22 });
     torn.scale.setScalar(st.iconSize * 0.35);
 

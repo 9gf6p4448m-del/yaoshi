@@ -26,7 +26,7 @@ const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
 // v0.55 招式可辨性卷：特效語彙與法寶徽記的【單一事實來源】。
 // 這兩支是 27 支招共用的地基，**不做 catch 退路**——載不到就讓本模組整個爆，
 // 給預設色票／預設形狀等於讓「每一卷重新發明一次語彙」那個分岔重新長回來（ART_BIBLE §10 開頭）。
-const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF, STANCE_VOCAB, STANCE_GATE, FAC_GROUND } = await import('./trait-fx/vocab.js' + V);
+const { FX_PAL, beatOf, ICON, PHASE_GATE, EMBLEM_OF, STANCE_VOCAB, STANCE_GATE, FAC_GROUND, ANCHOR_KIND, MOVE_SPEC } = await import('./trait-fx/vocab.js' + V);
 const EMBLEMS = await import('./trait-fx/emblems.js' + V);
 // 一個系別檔壞掉（語法錯／404）只丟那一系的招（退回 fallback），不得拖垮本模組→renderer.js→整個 3D 層
 const loadMoves = (file) => import(file + V).then(
@@ -129,6 +129,7 @@ export const EASE = {
 const UP = new THREE.Vector3(0, 1, 0);
 const _v = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
+const _av = new THREE.Vector3(); // 道具落點 anchor 量測用（sampleAnchors／nearestFig）
 const _q = new THREE.Quaternion();
 
 function makeLcg(seed) {
@@ -732,6 +733,97 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       }
     }
   }
+  /* ── 道具落點 anchor 的機械量測（2026-09-13 祖靈批階段 B，階段 A 簽字裁定①）──
+     階段 A 的 `casterMatch` 只綁「骨骼動的那一尊 === 引擎獨立認定的施招者」，**不綁道具落在誰身上**
+     （報告 §1.8「H2 殘」）。而 P4 三輪的紅正是「道具落在哪一尊，讀者就把那一尊當成作用對象」。
+     這裡補上第三條腿：積木逐件登記 anchor，引擎在**衝擊拍**量每件道具水平最近的那一尊。
+     ★時點由引擎定死★：`react[0]`（與腳下光熄掉同一瞬）。編舞挑得動時點就等於挑得動答案。 */
+  /** anchor → 這一招裡它解出的 figure 集合（`null`＝場上沒有這種人，那一件跳過並留帳）。 */
+  function resolveAnchor(run, anchor) {
+    const actors = [...run.actorSet];
+    switch (anchor) {
+      case 'caster': case 'self': return run.caster ? [run.caster] : [];
+      case 'ally': return actors.filter((f) => f !== run.caster);
+      case 'allies': return actors;
+      case 'foe': case 'foes': return [...run.targetSet];
+      default: return [];
+    }
+  }
+  /** 一尊在衝擊拍那一刻的**水平佔地**（世界包圍盒投影到 xz）。
+   *  ★為什麼不是 `group.position`★：`group.position` 是**腳下那一點**，而低多邊形四足獸的頭頸
+   *  伸出去可以超過半個身長——獻祭刀的刃就掛在鹿的 `Neck2` 上，用腳下那一點量會判成「落在同伴身上」
+   *  （實測 caster 0.58 vs ally 0.29，而畫面上它明明長在鹿的脖子邊）。
+   *  用佔地之後「落在誰身上」量的是**這件道具有沒有壓在那一尊的身體範圍裡**，
+   *  與讀者在圖上看到的是同一件事（`02 §6.1` 第 5 條：量測位置要與現象同一件事）。 */
+  function figBoxOf(f) {
+    const b = new THREE.Box3().setFromObject(f.group);
+    if (!Number.isFinite(b.min.x) || b.isEmpty()) { b.setFromCenterAndSize(f.group.position, _v2.set(0.6, 0.6, 0.6)); }
+    return b;
+  }
+  /** 點到水平矩形（box 的 xz 投影）的距離；在裡面＝0。 */
+  function boxDistXZ(b, x, z) {
+    const dx = Math.max(b.min.x - x, 0, x - b.max.x);
+    const dz = Math.max(b.min.z - z, 0, z - b.max.z);
+    return Math.hypot(dx, dz);
+  }
+  /** 這一件道具**水平**最近的那一尊（含敵我全部在場的人）。
+   *  ★水平（xz）而不是三維★：道具常常停在頭頂或腰際，帶 y 進去會讓「落在誰身上」被高度主導。
+   *  兩件道具同時壓在兩尊的佔地上（距離都是 0）時，用**中心**距離破平手。 */
+  function nearestFig(boxes, obj) {
+    obj.getWorldPosition(_av);
+    let best = null, bd = Infinity, bc = Infinity;
+    for (const e of boxes) {
+      const d = boxDistXZ(e.box, _av.x, _av.z);
+      const c = Math.hypot((e.box.min.x + e.box.max.x) / 2 - _av.x, (e.box.min.z + e.box.max.z) / 2 - _av.z);
+      if (d < bd - 1e-6 || (Math.abs(d - bd) <= 1e-6 && c < bc)) { bd = d; bc = c; best = e.fig; }
+    }
+    return best;
+  }
+  function sampleAnchors(run) {
+    const spec = run.anchorSpec;
+    /* `mainWant`＝`MOVE_SPEC[trId].anchor` 解出的那一側。**主道具的判準是「落點」不是「登記的字串」**：
+       要求的是「真值作用對象那一側真的有一件道具落下來」，不是「有人填了同一個字」。
+       （獻祭刀在治具棚只有 1 尊，`allies` 就只剩施招者本人，落在他身上的紙血條就是那一件。） */
+    const mainWant = spec ? resolveAnchor(run, spec) : [];
+    const boxes = [...run.actorSet, ...run.targetSet].filter((f) => f && f.group).map((f) => ({ fig: f, box: figBoxOf(f) }));
+    const boxOf = (f) => (boxes.find((e) => e.fig === f) || {}).box;
+    const rows = [];
+    let bad = 0, skipped = 0, mainHit = 0;
+    for (const a of run.anchors) {
+      if (!a.obj || !a.obj.parent) continue; // 已經清掉的（衝擊拍之前就 fade 完的）不算
+      const want = resolveAnchor(run, a.anchor);
+      if (!want.length) { skipped++; rows.push({ anchor: a.anchor, kind: a.kind, hit: null, ok: null }); continue; }
+      const hit = nearestFig(boxes, a.obj); // `hit`＝破完平手之後的那一尊，只是給人看的
+      /* ★判準是「有沒有比別人近」，不是「破平手之後是誰」★
+         治具棚在 `--mateGap=1`（＝P4 前三輪的站位）下，同一邊兩尊的水平佔地**本來就重疊**
+         ——一件掛在鹿脖子上的刃，到兩尊的距離都是 0。那時候拿破平手的結果判紅，
+         紅的是**站位**不是實作（`02 §2.1`：那會是一條對正確實作也判紅的門檻）。
+         所以判準改成：道具到 anchor 那一側的距離，必須是全場的最小值（±1e-6）。
+         真正的失敗（道具明顯落在別人身上、離 anchor 那一側還有一段）照樣紅——
+         `wardHpFirst` 的金灰流就是這樣被抓到的（ally 0 vs caster 0.30，改前 caster 0 vs ally 0.31）。 */
+      const dAll = boxes.map((e) => boxDistXZ(e.box, _av.x, _av.z));
+      const dMin = Math.min(...dAll);
+      const dWant = Math.min(...want.map((f) => { const b = boxOf(f); return b ? boxDistXZ(b, _av.x, _av.z) : Infinity; }));
+      const ok = dWant <= dMin + 1e-6;
+      if (!ok) bad++;
+      const dMain = mainWant.length ? Math.min(...mainWant.map((f) => { const b = boxOf(f); return b ? boxDistXZ(b, _av.x, _av.z) : Infinity; })) : Infinity;
+      if (dMain <= dMin + 1e-6) mainHit++;
+      const amb = dAll.filter((d) => d <= dMin + 1e-6).length; // 幾尊並列最近（站位重疊時 >1）
+      /* `p`＝這一件道具在衝擊拍的世界座標（xz 取兩位小數）、`d`＝到命中那一尊的水平距離。
+         判紅時要看得出「差多少」，不然只知道紅、不知道往哪邊挪（階段 A 的教訓：留帳要留得夠用）。 */
+      rows.push({ anchor: a.anchor, kind: a.kind, hit: hit ? (hit === run.caster ? 'caster' : (run.actorSet.has(hit) ? 'ally' : 'foe')) : null, ok,
+        p: [+_av.x.toFixed(2), +_av.z.toFixed(2)], d: +dMin.toFixed(2), wd: +dWant.toFixed(2), amb });
+    }
+    /* `mainScope`＝這一招宣告的 anchor 在這一跑解得出人來嗎（治具棚只有 1 尊時 `ally` 解出空集合）。
+       解不出人時這條跳過並留帳——不是放寬，是場上沒有那個人，任何實作都做不出來。 */
+    // `figs`＝衝擊拍那一刻場上每一尊的水平站位（判紅時要看得出「誰站在哪」，不然只能憑猜）
+    const figs = [...run.actorSet, ...run.targetSet].map((f) => ({
+      who: f === run.caster ? 'caster' : (run.actorSet.has(f) ? 'ally' : 'foe'),
+      p: [+f.group.position.x.toFixed(2), +f.group.position.z.toFixed(2)],
+    }));
+    run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, mainHit, mainScope: mainWant.length > 0, rows, figs };
+  }
+
   /** 徽記朝鏡頭（可帶自轉 userData.fxRoll） */
   function faceCamera(obj) {
     obj.quaternion.copy(camera.quaternion);
@@ -770,7 +862,19 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const wrapOf = (fig) => { touch(fig); return wrapFig(fig, run); };
     // v0.55 因果三段用的兩個基準：出招方名單與「到目標的距離」（travel 要求位移 ≥ 這段的 40%）
     run.actorSet = new Set(actor);
+    run.targetSet = inTarget; // anchor 量測要解「敵方」那一側（sampleAnchors）
     run.travelDist = Math.max(0.5, cA.distanceTo(cB));
+    /** 登記一件道具的落點 anchor（`st.paperStamp`／`st.paperProps`／`st.stick` 三個入口共用）。
+     *  ★取值只能來自 `ANCHOR_KIND`★：自由字串＝27 支填完就有 27 種講法，那正是 vocab.js 要擋的分岔。
+     *  ★不接受「量的時點」參數★：時點由引擎定死在衝擊拍，挑得動時點就等於挑得動答案。 */
+    const regAnchor = (obj, o, kind) => {
+      if (!o || o.anchor === undefined || o.anchor === null) return;
+      if (!ANCHOR_KIND[o.anchor]) {
+        throw new Error(`道具落點 anchor 不認得「${o.anchor}」（合法值 ${Object.keys(ANCHOR_KIND).join('／')}，`
+          + '見 js/trait-fx/vocab.js 的 ANCHOR_KIND）');
+      }
+      run.anchors.push({ obj, anchor: o.anchor, kind: kind || null });
+    };
     /** 第一個被真的動到骨骼／model 的出招方＝這一招的施術者。
      *  react 段量的是「除了他以外的人有沒有反應」——他自己的收勢不構成受招方的反應。 */
     const markCaster = (fig) => { if (!run.caster && !inTarget.has(fig)) run.caster = fig; };
@@ -1233,6 +1337,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         // 同 st.mark 的註解：印記也要留下 'emblem:<kind>'，否則「tier 1／2 都要有 emblem」在只有印記的招上假綠
         run.sig.meshes.add('emblem:' + kind);
         run.sig.emblems.add(kind);
+        // 道具落點 anchor（裁定①）；`o.anchor` 沒填就不登記。帶 `follow` 的那一枚交給 st.stick 登記（免得登記兩次）
+        if (!o.follow) regAnchor(grp, o, 'emblem:' + kind);
         if (o.follow) st.stick(grp, o.follow, o);
         return grp;
       },
@@ -1249,6 +1355,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         };
         get(mesh.position);
         run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
+        regAnchor(mesh, o, 'stick'); // 黏上去的那一枚也要登記落點 anchor（裁定①）
         touch(fig);
         return mesh;
       },
@@ -1324,6 +1431,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
            前綴分開之後 tests/tools/prop-size.mjs 會把它歸到 `type=other`、不進 OVER 統計；
            `fxVis`（L3 的量測對象）兩個前綴都不切，所以對比閘門量到的東西沒有變。 */
         st.spawn(im, (o.floor ? 'floor:' : 'prop:') + kind);
+        regAnchor(im, o, (o.floor ? 'floor:' : 'prop:') + kind); // 群體道具的落點 anchor（量的是 obj.position）
         return { obj: im, items, write, size };
       },
       /** ★施招姿態（2026-09-13 身分可辨語彙，語彙檔 §A9 第 1 條）★
@@ -1551,6 +1659,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       /* v0.55.7 身分可辨語彙：這一招的施招姿態（誰擺的／哪一型／峰值幅度）與腳下光語彙。
          治具讀 lastSig.stance 判 stanceOK＝「真的擺出來了、而且只有施招者有」。 */
       stance: { kind: null, fig: null, groundFig: null, peak: 0, peakAt: Infinity, peakDvt: 0, ground: null, onTarget: false, extra: 0, lateStart: false },
+      /* v0.55.8 道具落點 anchor（階段 A 簽字裁定①）：積木逐件登記，引擎在衝擊拍量一次。
+         `anchorSpec`＝`MOVE_SPEC[trId].anchor`（這一招宣告的主道具落點）。 */
+      anchors: [], anchorSpec: (MOVE_SPEC[det.trId] || {}).anchor || null, anchorDone: false, anchorResult: null, targetSet: null,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
@@ -1606,11 +1717,26 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          ★windupOK（覆審 H4）★：姿態的峰值出現在衝擊拍**之前**（語彙說的是「在蓄勢段」，
          沒有時戳的話，把 `st.stance` 整段搬到 react 也照樣綠）。
          ★groundSame★：腳下光與姿態在同一尊身上。 */
+      /* ★道具落點 anchor（v0.55.8，階段 A 簽字裁定①）★
+         `ok`＝這一跑每一件登記過 anchor 的道具，在衝擊拍都落在它宣告的那一側，
+         而且 `MOVE_SPEC[trId].anchor` 那一側**真的有一件**道具落下（`mainScope` 為真時才要求）。
+         `skipped`＝那一件的 anchor 在這一跑解出空集合（治具棚只有 1 尊時的 `ally`），照實留帳不當成綠。 */
+      anchors: (() => {
+        const r = run.anchorResult;
+        if (!r) return { spec: run.anchorSpec || null, sampled: false, n: run.anchors.length, bad: 0, skipped: 0, mainHit: 0, mainScope: false, ok: false, rows: [] };
+        const ok = r.n > 0 && r.bad === 0 && (r.mainScope ? r.mainHit > 0 : true);
+        return { ...r, sampled: true, ok };
+      })(),
       stance: (() => {
         const B = beatOf(run.tier, run.ms);
+        /* ★`casterMatch` 由裁定① 改綁兩件事★：① 擺姿態的那一尊 === 引擎獨立認定的施招者
+           ② 道具落點與登記的 anchor 一致。階段 A 只有 ①，於是「姿態給隊友 A、道具生在隊友 B 手上」
+           所有檢查仍綠（報告 §1.8 的 H2 殘，唯一未解的 HIGH）。 */
+        const aOK = !!(run.anchorResult && run.anchorResult.n > 0 && run.anchorResult.bad === 0
+          && (run.anchorResult.mainScope ? run.anchorResult.mainHit > 0 : true));
         return { kind: run.stance.kind, peak: +run.stance.peak.toFixed(4), ground: run.stance.ground,
           onTarget: !!run.stance.onTarget, extra: run.stance.extra | 0, minPeak: STANCE_GATE.minPeak,
-          casterMatch: !!(run.stance.fig && run.caster && run.stance.fig === run.caster),
+          casterMatch: !!(run.stance.fig && run.caster && run.stance.fig === run.caster) && aOK,
           groundSame: !!(run.stance.fig && run.stance.groundFig === run.stance.fig),
           peakAt: Number.isFinite(run.stance.peakAt) ? Math.round(run.stance.peakAt) : null,
           /* 門檻取 `windup[1]`（＝蓄勢段末＝`travel[0]`），不是 `react[0]`（覆審 r2 N3）：
@@ -1688,6 +1814,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       for (let i = 0; i < run.bbi.length; i++) faceCameraInstanced(run.bbi[i]);
       for (let i = 0; i < run.follow.length; i++) { const f = run.follow[i]; f.get(f.tmp); f.mesh.position.copy(f.tmp); }
       if (run.phaseClaims.length) evalPhases(run);
+      /* ★道具落點 anchor：只量一次，量在衝擊拍（裁定①）★
+         `react[0]` 是三件事收在一起的那一瞬（§A2），也是腳下光熄掉的時點。
+         排在 `follow` 更新之後：黏在受益方身上的那幾枚，量到的是這一幀真的跟過去的位置。 */
+      if (!run.anchorDone && run.anchors.length && run.vt >= beatOf(run.tier, run.ms).react[0]) {
+        run.anchorDone = true;
+        try { sampleAnchors(run); } catch (e) { noteThrow(run, 'anchor', e); }
+      }
       // ★按效果寫的那一道（覆審 r4 HIGH-1）★：排在最後，量到的是這一幀真正要送去畫的世界矩陣
       if (run.sized.length) auditSizes(run);
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險

@@ -244,7 +244,36 @@ export const STANCE_GATE = { minPeak: 0.12 };
  *  陰氣的 `stain` 還沒有積木（陰氣批才做），分派到它時 `st.groundMark` 會當場 throw，不給靜默退路。 */
 export const FAC_GROUND = { zuling: 'pillar', xianghuo: 'ring', yinqi: 'stain' };
 
-/** trId → { prop, act, react, stance?, selfReact? }：一招一組「道具家族／本體動作／受招反應」的登記表（Q9 的 schema）。
+/** ★道具落點 anchor（2026-09-13 祖靈批階段 B，階段 A 簽字裁定①）★
+ *  病因：階段 A 的 `casterMatch` 只綁「骨骼動的那一尊 === 引擎獨立認定的施招者」，
+ *  **不綁「道具落在誰身上」**——把姿態給隊友 A、道具生在隊友 B 手上，所有檢查仍綠
+ *  （報告 §1.8「H2 殘」，階段 A 唯一未解的 HIGH）。而 P4 三輪的紅正是
+ *  「道具落在哪一尊，讀者就把那一尊當成作用對象」，所以道具落點是身分訊號的**第三條腿**。
+ *
+ *  `MOVE_SPEC[trId].anchor`＝這一招的道具**應該落在誰身上**（＝真值作用對象的那一側）。
+ *  積木（`st.paperStamp`／`st.paperProps`／`st.stick`）逐件登記 `o.anchor`，引擎在**衝擊拍**
+ *  （`react[0]`，與腳下光熄掉同一瞬）量每一件道具**水平最近的那一尊**，與 anchor 解出的集合比對。
+ *  ★量的時點由引擎定死在衝擊拍★——編舞挑得動時點就等於挑得動答案。
+ *
+ *  六個取值（解出的 figure 集合＝`js/trait-fx.js` 的 `resolveAnchor`）：
+ *    caster  施招者自己——道具是他**自身動作**的一部分（自傷的血、插在他腳前的刃）
+ *    self    施招者自己——**真值的作用對象就是他**（§C「全 27 支唯一沒有第三方」的破軍旗）
+ *    ally    我方單一——施招者**以外**的那一尊受益者（場上沒有同伴時這一件跳過並留帳）
+ *    allies  我方多個——本隊每一尊（**含**施招者：「全體 atk+1」這種效果他自己也吃到）
+ *    foe     敵方單一
+ *    foes    敵方多個
+ *  `caster` 與 `self` 解出同一個集合，分成兩個名字是為了**讀得出理由**：
+ *  前者是「這件道具屬於施招者的動作」，後者是「這一招的作用對象就是施招者」。 */
+export const ANCHOR_KIND = {
+  caster: '施招者自己（道具是他自身動作的一部分）',
+  self: '施招者自己（真值的作用對象就是他）',
+  ally: '我方單一（施招者以外的那一尊受益者）',
+  allies: '我方多個（本隊每一尊，含施招者）',
+  foe: '敵方單一',
+  foes: '敵方多個',
+};
+
+/** trId → { prop, act, react, stance?, selfReact?, anchor? }：一招一組「道具家族／本體動作／受招反應」的登記表（Q9 的 schema）。
  *  逐招的完整理由與畫面描述在 `docs/design/2026-09-12-fx-vocab-draft.md` §C（27 列），
  *  **這裡只登記那三個受白名單約束的欄位**，散文不抄過來（抄＝第二份事實來源）。
  *  三尊三招不在表內（Q8：語彙納入、閘門不納入；§C 也明寫不在 27 列裡）。
@@ -275,18 +304,18 @@ export const MOVE_SPEC = {
   swarmHalfSplash: { prop: '丙', act: '躍', react: '升' }, // 三道平行浪弧；三舟同時躍起
   swarmThorn: { prop: '甲', act: '沉', react: '退' }, // 獠牙反向彈回；§C「刨」正規化成沉
   // ★祖靈範本招（2026-09-13 階段 A）★ 割祭＝頸下彎屈身就刃 ⇒ stance 下沉（down）≠ react 升（up）
-  eliteSelfCut: { prop: '甲', act: '割', react: '升', stance: '下沉' }, // 黑曜石刃；自傷、本隊上抬
+  eliteSelfCut: { prop: '甲', act: '割', react: '升', stance: '下沉', anchor: 'allies' }, // 黑曜石刃；自傷、本隊上抬
   wardHpAll1: { prop: '甲', act: '沉', react: '升' }, // 六塊岩繞一圈；屈膝沉身
   /* ── 香火系 9 支（本卷批 1；stance 於 2026-09-13 階段 A 補上，見上面第四欄那段）── */
-  wardAtkAll1: { prop: '乙', act: '掃', react: '升', stance: '前傾' }, // 金紅大旗掃過整排；旗手前傾把旗送出
-  eliteCleave: { prop: '丁', act: '掃', react: '退', stance: '舉臂' }, // 斬擊弧；舉劍蓄勢（react 退＝back，不同型）
-  wardAbsorb4: { prop: '乙', act: '降', react: '升', stance: '前傾' }, // 四面金箔帆圍成同心方框；船身前滑
-  wardImmuneLost: { prop: '丁', act: '震', react: '升', stance: '下沉' }, // 銅鈴＋方框鈴波；沉身甩鈴
-  swarmRally: { prop: '乙', act: '拍', react: '升', stance: '下沉' }, // 五面小旗插五方；頓足沉身
-  biteGamble: { prop: '甲', act: '撲', react: '壓', stance: '前傾' }, // ★E 定稿＝香火範本招★ 蹲伏前傾＝撲的蓄勢（react 壓＝down，不同型）
-  wardHpFirst: { prop: '丙', act: '降', react: '升', stance: '前傾' }, // 金灰顆粒流＋金色方符；低頭前傾傾倒
-  wardRegen1: { prop: '丁', act: '降', react: '升', stance: '下沉' }, // 燈焰脫離燈罩下落；整尊沉身送出
-  swarmLastStand: { prop: '乙', act: '拍', react: '升', stance: '舉臂', selfReact: true }, // 殘旗（缺角）；倒矛過頂＝舉臂，反應在自身
+  wardAtkAll1: { prop: '乙', act: '掃', react: '升', stance: '前傾', anchor: 'allies' }, // 金紅大旗掃過整排；旗手前傾把旗送出
+  eliteCleave: { prop: '丁', act: '掃', react: '退', stance: '舉臂', anchor: 'foes' }, // 斬擊弧；舉劍蓄勢（react 退＝back，不同型）
+  wardAbsorb4: { prop: '乙', act: '降', react: '升', stance: '前傾', anchor: 'allies' }, // 四面金箔帆圍成同心方框；船身前滑
+  wardImmuneLost: { prop: '丁', act: '震', react: '升', stance: '下沉', anchor: 'allies' }, // 銅鈴＋方框鈴波；沉身甩鈴
+  swarmRally: { prop: '乙', act: '拍', react: '升', stance: '下沉', anchor: 'allies' }, // 五面小旗插五方；頓足沉身
+  biteGamble: { prop: '甲', act: '撲', react: '壓', stance: '前傾', anchor: 'foe' }, // ★E 定稿＝香火範本招★ 蹲伏前傾＝撲的蓄勢（react 壓＝down，不同型）
+  wardHpFirst: { prop: '丙', act: '降', react: '升', stance: '前傾', anchor: 'ally' }, // 金灰顆粒流＋金色方符；低頭前傾傾倒
+  wardRegen1: { prop: '丁', act: '降', react: '升', stance: '下沉', anchor: 'ally' }, // 燈焰脫離燈罩下落；整尊沉身送出
+  swarmLastStand: { prop: '乙', act: '拍', react: '升', stance: '舉臂', anchor: 'self', selfReact: true }, // 殘旗（缺角）；倒矛過頂＝舉臂，反應在自身
   /* ── 陰氣系 9 支 ── */
   hauntLost: { prop: '甲', act: '探', react: '轉' }, // 紅帽戴到對手頭上（陰氣範本招）；原地打轉
   hauntSteal: { prop: '甲', act: '垂', react: '被拖' }, // 銀簪去而復返；目標被拖半步
