@@ -105,11 +105,20 @@ node tests/tools/prop-size.mjs docs/experiments/2026-09-13-xianghuo-b1-evidence/
   我沒有自己選——這是「規則本身該怎麼量」的裁定，不是實作細節。
 - `ring`（貼桌陣）標 `type=other` 不進 OVER 統計。
   **為什麼它超標是我自己決定排除、而大印超標要交裁**（同一張表、同一條線，處置層級不同，先講清楚）：
-  §A3／ART_BIBLE §10.2 那條規則的主詞是「**單件道具**」，而 `ring` 不是道具，是**腳下語彙**
-  （§B2「貼桌方陣／光環，全 27 支裡只有香火能用」）——它本來就該比本體寬，這是它的定義，
-  不是它違規。把它算進 OVER 欄，每一支有腳下語彙的招都會恆紅，那條欄位就失去意義。
-  大印不同：它**就是**規則要管的那件東西，所以它超標必須交裁，我不能自己判它沒事。
-  如果製作人認為腳下語彙也該有尺寸上限，那是**新增一條規則**（§B2 目前沒有），要另訂、另簽。
+
+  規則原文（`2026-09-12-fx-vocab-draft.md` §A3 第一句，逐字）：
+  > **單件道具的世界尺寸 ≤ 施招本體高的 1/2**（`2026-09-12-plan-fx-performance.md` §3 禁區第 2 條）。
+
+  主詞是「**單件道具**」。`ring` 不是道具，是**腳下語彙**——§B2 香火那一列的「腳下語彙」欄逐字是
+  > **貼桌方陣／光環**（`st.ring`／`st.disc`，全 27 支裡**只有本系能用**）
+
+  ★這裡要誠實標一件事★：**§B2 並沒有明文寫「腳下語彙不受尺寸上限約束」**。
+  「貼桌陣本來就該比本體寬」是**我的判斷**，不是文件裡的既定豁免——
+  理由是它的作用就是在腳下鋪開一圈，拿「≤ 本體高 1/2」去比它，
+  每一支有腳下語彙的招都會恆紅，那條欄位就失去意義（恆假的判準＝沒有判準，`02 §6.1` 第 6 條）。
+  大印不同：它**就是**規則主詞指的那件東西，所以它超標必須交裁，我不能自己判它沒事。
+  **如果製作人不同意我這個分類**，處置有兩條：把腳下語彙也納入這條規則（那要另訂上限、另簽），
+  或在 §B2／§A3 補一句明文豁免。兩條都是改規則，不是改實作。
 
 ### 1.2 虎爺印 E 轉正：分派怎麼做的
 
@@ -372,6 +381,34 @@ fps／draw call `duel-perf.mjs`＋`__tfx.renderMeasured()`。本階段只加了�
 **結論**：轉正忠實重現 E，唯一的視覺差異是金箔多了厚度與翹曲（往 §A4 的規格走）。
 第 1 輪列的粗點原封記在 §1.6，交製作人在簽字時一併看。
 
+### 1.5b 對抗式覆審（fresh context 冷讀 diff）
+
+派了一個沒有本卷對話史的審查員冷讀 `git diff f8f7c98..HEAD -- js/ tests/`，
+題目是「**找出這個改動會弄壞什麼**」（不是「看看有沒有問題」），指名五個面向：
+弄壞其他 26 支招／分派有洞／新積木的資源與正確性／靜默降級／`--traitshot` 污染量測。
+
+結果 **0 CRITICAL、0 HIGH**；MEDIUM 1、LOW 1，兩件都在下面處置：
+
+| 級 | finding | 處置 |
+|---|---|---|
+| **MEDIUM** | 尺寸防線的掃描對 `st.paperProps` 的**間接層**有盲點：它回傳的是包裝物 `{obj, items, write, size}`，編舞寫的是 `foil.obj.scale.setScalar(…)`，舊正則會把名字抓成 `obj`（不在名單裡）⇒ 靜默放行。目前沒有人這樣寫，但這正是那條防線這一輪剛加嚴要擋的效果換個形狀 | **已修**（`tests/fxvocab.test.mjs:338`：正則加 `(?:\.obj)?`）＋**加回歸案例** `--mutate=7`（在編舞裡塞 `foil.obj.scale.setScalar(0.56)`） |
+| LOW | `st.paperProps` 的 `items` 改完要手動叫 `write()`，忘了只會讓道具卡住不動、不會報錯 | **不修，記錄**：JSDoc 已明寫；目前唯一呼叫方每次改完都有叫。要做成自動就得逐幀 diff 或改成 proxy，成本高於收益 |
+
+修完的驗證（雙向，`02 §6.1` 第 1 條）：
+
+```
+node tests/fxvocab.test.mjs            → 18 綠 0 紅（分母：4 個編舞檔、92 處 scale 呼叫，11 處落在道具 mesh 上）
+node tests/fxvocab.test.mjs --mutate=7 → 17 綠 1 紅
+   FAIL 徽記 mesh 的尺寸不得有第二份來源 — xianghuo.js:485 foil.scale.setScalar(0.56）
+node tests/fxvocab.test.mjs --mutate=4 → 17 綠 1 紅（原有的繞法回歸案例沒被弄壞）
+```
+
+審查員另外逐項確認（我照抄它查了什麼，不是它的結論本身）：
+`byTrId` 的 `_v05[45](short)?$` 對 30 個 trId 沒有誤傷、`V054_FULL`／`V055_FULL` 由 `VOCAB_ON` 三元互斥不會同時命中、
+`loadMoves` 的載入失敗退路已同步補 `v055` 空表、`finish()` 對 `InstancedMesh` 有 `dispose()`、
+`--traitshot` 的凍幀走的是既有 `ys:hitstop` 路徑（`js/renderer.js:150-197`，`lastT` 每幀更新、解凍不會跳一大步）
+且整段包在 `if (opts.traitshot)` 裡，不帶旗標時完全不執行。
+
 ### 1.6 我看到還粗的地方
 
 1. **大印的世界尺寸超過「本體高 1/2」36%**（§1.1③）——規則怎麼量、要不要改，交裁（三個方向見上）。
@@ -402,6 +439,26 @@ fps／draw call `duel-perf.mjs`＋`__tfx.renderMeasured()`。本階段只加了�
 
 `index.html` 的 diff 為**空**（含 `VERSION`）。其餘 8 支香火招、祖靈 9 支、陰氣 9 支一行未動。
 
+**判準沒有被動過的對照**（`03 R2` 第 2 項要的是 diff，不是「我心裡想過了」）：
+
+```
+git diff --stat f8f7c98..HEAD -- docs/experiments/2026-09-11-acceptance-fx-legibility.md \
+  tests/tools/fx-contrast.mjs tests/tools/fx-contrast-metrics.py tests/tools/traitfx-drive.mjs \
+  tests/tools/fx-consts.mjs tests/tools/blindread-sheet.mjs tests/tools/duel-perf.mjs \
+  tests/tools/trace-eq.mjs tests/tools/proto-record.mjs
+（空輸出＝凍結檔與九支閘門治具一行未動）
+
+git diff f8f7c98..HEAD -- js/trait-fx/vocab.js | grep -E "PHASE_GATE|BEAT_FRAC|travelFrac|windupMs|reactMs|ICON =|byKind|markByKind"
+（空輸出＝門檻、節拍比例、尺寸表都沒動；vocab.js 的 diff 只有新增的 FAC_VOCAB／MOVE_SPEC 兩塊）
+```
+
+`tests/fxvocab.test.mjs` 有改，但**只往嚴的方向**：新增 P1 三條、新增突變 5／6、
+尺寸防線的掃描入口從三支擴到五支（`paperStamp`／`paperProps` 補進去）。
+沒有放寬任何既有斷言——原本 15 條一條沒動，現在 18 條全綠。
+
+`tests/tools/duel-drive.mjs` 有改，但加的是 `--traitshot`（**只在帶這個旗標時**才注入凍幀）；
+P8 那兩跑沒有帶它，走的是與基準完全相同的路徑。
+
 ---
 
 ## 2. 下一步（要製作人先做的事）
@@ -413,6 +470,13 @@ fps／draw call `duel-perf.mjs`＋`__tfx.renderMeasured()`。本階段只加了�
    大印與金箔幾乎看不出來。P0–P8 全綠**不等於**「玩家看得懂這一招」——那一題要等 P4 盲讀，
    而 P4 的材料也是治具棚的 6 幀連拍，一樣不含滿編。如果製作人要的是「滿編下也讀得出」，
    那是本卷閘門目前**量不到**的東西，要另外開一條（例如滿編盲讀），現在講比 8 支鋪完再講便宜。
+
+   **同一類的第二件（§1.6 第 6 條，簽字前一樣要知道）**：
+   **§1.5 那兩輪「看圖」是我自己的目視，不是讀者實測。** 製作人看 §1.4 的 sheet／GIF
+   也是同一件事——**看得懂 ≠ 陌生讀者看得懂**：您與我都知道這一招是「虎爺蓋印」，
+   知道了就再也沒辦法用不知道的眼睛看它。那一題只有 P4 盲讀（fresh、無上下文的讀者、
+   三題問「在做什麼／打到誰／哪一系」）答得了，而 P4 本階段**一次都沒跑**。
+   所以這次簽的是「**這個方向可以往下鋪**」，不是「這一招已經可辨」。
 3. 要裁的清單（五項，逐項都附了選項與代價）：
    | # | 題目 | 在哪 |
    |---|---|---|
@@ -421,4 +485,6 @@ fps／draw call `duel-perf.mjs`＋`__tfx.renderMeasured()`。本階段只加了�
    | 丙 | 金箔在 travel 前段幾乎不動（`ease:'in'`），讀不出「一串飛過去」——要改得動 E 已簽的曲線 | §1.6 第 3 條 |
    | 丁 | `st.paperProps` 不做面板墨線邊（§A4 第 2 條的例外） | §1.2 末、§1.6 第 5 條 |
    | 戊 | 語彙檔 §C 八處動詞正規化裡的**後兩列**（`eliteVsSwarm`「退」→`抖`、`swarmFeed1`「升」→`被拖`）——要不要改成擴充陰氣的反應家族 | §1.1② |
+   | 己 | `ring`（貼桌陣）不算進尺寸表的 OVER 欄，是**我的分類判斷**，§B2 沒有明文豁免——要不要把腳下語彙也納入尺寸上限 | §1.1③ |
+   | 庚 | `programs 19→21`（`InstancedMesh` 的 shader 變體在玩家第一次看到那一招時**當場編**）＝既有狀況，本卷沒修。試修過的代價是常駐 +4 支 program／+2 draw call（`js/trait-fx.js:206-216`）。**鋪完 9 支之後群體道具變多，這件事只會更常發生**——要不要在階段 B 一起處理 | §1.6 第 7 條 |
 4. 簽字之後的階段 B：鋪香火其餘 8 支 → 全 9 支再走一次 P0–P8 ＋ **P4 盲讀**（本階段沒跑）。

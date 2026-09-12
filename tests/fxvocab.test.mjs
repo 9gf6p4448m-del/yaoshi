@@ -320,6 +320,13 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必�
     let src = fs.readFileSync(path.join(dir, f), 'utf8');
     /* 突變：r2 §2 C1③「繞過 B」——常數改名成 S（舊掃描認不得 SZ 以外的名字）＋ 直接餵進 setScalar。
        原檔全程唯讀，只動記憶體裡的副本，不做反向 sed。 */
+    /* 突變 7：繞過 B 的**間接層**版本——`st.paperProps` 回傳的是包裝物，
+       在它的 `.obj` 上直接 setScalar 一個數字，就是尺寸的第二份來源。 */
+    if (MUT === 7 && f === 'xianghuo.js') {
+      const from = '    writeFoils(0);';
+      if (!src.includes(from)) throw new Error('突變 7 的錨點不在了：' + from);
+      src = src.replace(from, from + '\n    foil.obj.scale.setScalar(0.56);');
+    }
     if (MUT === 4 && f === 'zuling.js') {
       const from = 'knife.scale.setScalar(st.iconSize * (0.5 + 0.5 * e));';
       if (!src.includes(from)) throw new Error('突變 4 的錨點不在了：' + from);
@@ -335,7 +342,12 @@ t('徽記 mesh 的尺寸不得有第二份來源（o.size 拒收 ＋ 縮放必�
     }
     // (b) 徽記 mesh 的縮放：引數必須引用 ICON 來源
     const names = emblemNames(noComment);
-    for (const m of noComment.matchAll(/([A-Za-z_$][\w$]*)\s*\.\s*scale\s*\.\s*(setScalar|set)\s*\(/g)) {
+    /* `(?:\.obj)?`＝**間接層**（覆審 2026-09-13 的 MEDIUM）：`st.paperProps` 是這五個入口裡唯一
+       回傳包裝物 `{obj, items, write, size}` 而不是 mesh 本身的一支，所以編舞寫的是
+       `foil.obj.scale.setScalar(…)`。舊的正則只認「名字直接接 .scale」，會把 m[1] 抓成 `obj`
+       ——`obj` 不在 emblemNames 裡 ⇒ 整條規則靜默放行，正是它要擋的那個危險效果換個形狀就繞過。
+       `--mutate=7` 是這個繞法的回歸案例。 */
+    for (const m of noComment.matchAll(/([A-Za-z_$][\w$]*)(?:\s*\.\s*obj)?\s*\.\s*scale\s*\.\s*(setScalar|set)\s*\(/g)) {
       scaleTotal++;
       if (!names.has(m[1])) continue; // 非徽記 mesh（ring／disc／orb…）不是本條要守的效果
       emblemScale++;
