@@ -434,5 +434,145 @@ function tigerD(st) {
   st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) { recover(st, cat, fwd, DIST * 0.9, 1 - e); st.rim(cat, 1 + 3.0 * (1 - e)); } });
 }
 
-export const PROTOS = { tigerA, tigerB, tigerC, tigerD };
+/* ══════════════════════════════════════════════════════════════════════════
+   E｜C 的動作 ＋ B 的蓋印，但兩者**收在同一個衝擊拍**（2026-09-12 製作人裁定：
+   「能不能動作維持 C 的華麗、只在最後是 B 的蓋印」）
+
+   與 C 逐項相同：蹲伏 0.78、撲 DIST 0.88／arc 0.22、邊光 3.0、九片金箔顆粒流、
+   咬中炸兩波（硃紅＋鎏金紙錢）、印文由暗燒成硃紅、收勢。
+   與 D 不同的三件事：
+   ① **大印不從虎頭橫移**——在虎起跳的**同一刻**（`T0`）於獵物**正上方**生成，垂直落下。
+   ② **落地時刻＝咬中時刻**（都在 `R0`＝`B.travel[1]`）：震動、貼桌陣、紙錢炸、印文燒紅
+      全部疊在這一拍，不是 D 那種「砸落」與「咬合」兩個先後的重音。
+   ③ **金箔走 InstancedMesh，但移動的是 `InstancedMesh` 物件本身**（實例只帶局部散開量）。
+      ★這一條不是效能潔癖，是為了讓因果三段的 travel 量得到★：`evalPhases()` 量的是
+      `mesh.position`，而 InstancedMesh 的 position 永遠停在原點、實例位移藏在 matrix 裡——
+      D 版能過 travel 是靠大印的**橫移**，E 的大印只垂直落下（落差 0.62 < 門檻 1.25），
+      那條路沒了。把整個 foil 群當一個會飛的物件搬，1 個 draw call 又量得到位移。
+
+   收勢抵達點：`LAST = ms*0.90`（C／D 是 0.88）。多出來的 2% 全給「正面亮相」那一拍，
+   讓它從 2.0 幀變成 3.0 幀。**這不是動判準**：`fillOK` 的門檻 0.85 一個字元沒改，
+   0.90 只是把原本空著的時間用掉（fill 0.88→0.90 是往嚴的方向走）；
+   上限則卡在 tier 1 的 `rateOK ≤1.0`——橫在 0.9167×ms，0.90 是貼著它取的。
+   ══════════════════════════════════════════════════════════════════════════ */
+function tigerE(st) {
+  const { cat, prey, fwd, B, W, T0, TL, R0, jaw, hit } = cast(st);
+  void jaw;
+  const C = st.colors;
+  const DIST = 0.88; // ＝C
+  const LAST = st.ms * 0.90;
+  const RL = LAST - R0;
+  const cInk = new THREE.Color(C.ink), cHot = new THREE.Color(C.hot);
+
+  /* ── 大印（B 的蓋印）：獵物正上方垂直落下，落地＝咬中 ──
+     配置＝「暗印面＋鎏金印身＋鎏金陽刻『虎』字」（§7 迴圈量到的：鎏金印面會被 bloom 吃掉字）。 */
+  const land = hit.clone(); land.y += 0.10;
+  const sky = land.clone(); sky.y += 0.62; // 再高就出畫面上緣（對決機位 tilt 24°／dist 4.2）
+  const big = st.paperStamp(st.kind, sky, { role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
+    opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.42, w: 0.66, h: 0.32 } });
+  big.scale.setScalar(st.iconSize * 0.80);
+  const qBig = big.quaternion.clone();
+  const pitchTo = (deg) => { big.quaternion.copy(qBig); big.rotateX(THREE.MathUtils.degToRad(deg)); };
+  pitchTo(30);
+
+  // ── 印文（C 的機制）：落地那一刻才出現，由暗燒成硃紅，之後留在獵物身上 ──
+  const seal = prey ? st.paperStamp(st.kind, hit, { color: C.ink, inkColor: C.ink, glyphColor: C.line,
+    opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -24, glyph: true, follow: prey, off: TOWARD_CAM }) : null;
+  if (seal) seal.scale.setScalar(st.markSize * 1.2);
+  const face = seal ? seal.userData.fxFace : null;
+  const chime = st.ring(st.foot(prey || cat, new THREE.Vector3()), 0.36, 0.06, { color: C.key, opacity: 0 });
+
+  // ── 金箔顆粒流（＝C 的九片，但整群當一個物件搬；見檔頭 ③）──
+  const FOILS = 9;
+  const spine = st.worldOf(cat, 'Spine', new THREE.Vector3());
+  const foilTo = hit.clone(); foilTo.y += 0.10;
+  const local = [];
+  for (let i = 0; i < FOILS; i++) {
+    const f = i / (FOILS - 1);
+    local.push({
+      a: new THREE.Vector3((st.rnd() - 0.5) * 0.22, 0.06 + 0.26 * Math.sin(Math.PI * f), 0).addScaledVector(st.dir, -0.34 + 0.72 * f),
+      b: new THREE.Vector3((st.rnd() - 0.5) * 0.30, (st.rnd() - 0.5) * 0.26, (st.rnd() - 0.5) * 0.30),
+      rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.8 * st.rnd(), s: 0, t0: 0.10 * i, p: new THREE.Vector3(),
+    });
+  }
+  const foilIm = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.105, 0.145), st.solid(C.key, 0), FOILS);
+  foilIm.frustumCulled = false;
+  foilIm.position.copy(spine);
+  st.spawn(foilIm, 'foil');
+  const _m4 = new THREE.Matrix4(), _q4 = new THREE.Quaternion(), _eu = new THREE.Euler(), _sc = new THREE.Vector3();
+  const writeFoils = (k) => { // k＝0 貼在虎背、1 散在獵物身上（局部座標，群體位移由 foilIm.position 帶）
+    for (let i = 0; i < FOILS; i++) {
+      const o = local[i];
+      o.p.lerpVectors(o.a, o.b, k);
+      _eu.set(0, o.ry, o.rz); _q4.setFromEuler(_eu);
+      _m4.compose(o.p, _q4, _sc.setScalar(o.s));
+      foilIm.setMatrixAt(i, _m4);
+    }
+    foilIm.instanceMatrix.needsUpdate = true;
+  };
+  writeFoils(0);
+
+  /* ① 蓄勢（＝C）：蹲伏 0.78、香火燒旺、金箔一片片從虎背長出來 */
+  st.phase('windup');
+  st.tween({ ms: W, ease: 'out', update(t, e) {
+    crouch(st, cat, fwd, 0.78, e);
+    st.rim(cat, 1 + 3.0 * e);
+    for (let i = 0; i < FOILS; i++) { const o = local[i]; o.s = Math.max(0, Math.min(1, (e - o.t0) * 2.6)); o.rz += 0.05 * o.s; }
+    foilIm.position.copy(spine); foilIm.position.y += 0.09 * e;
+    writeFoils(0);
+  }, done() { st.phase('travel'); } });
+  st.fade(foilIm, { ms: W * 0.5, delay: W * 0.25, from: 0, to: 0.95 });
+
+  /* ② 撲（＝C）＋ 大印同步垂直落下：兩條線在 R0 交會 */
+  st.tween({ ms: TL * 0.68, delay: T0, ease: 'outQuint', update(t, e) { lunge(st, cat, fwd, DIST, 0.22, 0.85, e); } });
+  st.fade(big, { ms: TL * 0.22, delay: T0, from: 0, to: 1 }); // 起跳的同一刻現身
+  st.tween({ ms: TL, delay: T0, ease: 'in',
+    update(t, e) {
+      big.position.lerpVectors(sky, land, e);
+      big.scale.setScalar(st.iconSize * (0.80 + 0.22 * e));
+      pitchTo(30 + 12 * e); // 落下過程印面斜 30°→42°：看得出它是一枚印，不是一塊板
+    },
+    done() {
+      /* ★衝擊拍★：落地＝咬中，全部疊在這一刻 */
+      st.phase('react');
+      st.burst(land, { power: 1.4, n: 90, color: C.hot });
+      st.burst(land, { power: 0.9, n: 45, color: C.key }); // 金色紙錢（＝C）
+      st.punch(0.95);
+    } });
+  st.tween({ ms: TL * 0.92, delay: T0, ease: 'in', update(t, e) { // 金箔整群飛過去（travel 的位移來源）
+    foilIm.position.lerpVectors(spine, foilTo, e);
+    for (let i = 0; i < FOILS; i++) local[i].rz += 0.16;
+    writeFoils(Math.min(1, e * 1.15));
+  } });
+  st.tween({ ms: TL * 0.32, delay: T0 + TL * 0.68, ease: 'outQuint', update(t, e) { snapJaw(st, cat, 0.85, e); } });
+
+  /* ③ 衝擊拍（react）：正面亮相 3 幀 → 彈起淡出；貼桌陣、印文燒紅、獵物被壓住都在這一拍 */
+  const HOLD = Math.max(50, RL * 0.55); // 正面亮相 ≥3 幀（60fps）——D 只有 2 幀，這是 E 多要的那 2%
+  st.tween({ ms: HOLD, delay: R0, ease: 'out', update(t, e) {
+    pitchTo(42 - 38 * e); // 42°→4°：印面轉正對鏡頭＝「蓋章那一格」
+    big.scale.setScalar(st.iconSize * (1.02 - 0.08 * e));
+    big.position.y = land.y - 0.03 * Math.sin(Math.PI * e);
+  } });
+  st.tween({ ms: RL - HOLD, delay: R0 + HOLD, ease: 'back', update(t, e) {
+    big.position.y = land.y + 0.18 * Math.sin(Math.PI * e);
+    big.scale.setScalar(st.iconSize * (0.94 - 0.34 * e));
+  } });
+  st.fade(big, { ms: RL - HOLD, delay: R0 + HOLD, from: 1, to: 0 });
+  st.tween({ ms: RL * 0.70, delay: R0, ease: 'out', update(t, e) { chime.scale.setScalar(0.4 + 1.6 * e); } });
+  st.fade(chime, { ms: RL * 0.70, delay: R0, from: 0.9, to: 0 });
+  st.fade(foilIm, { ms: RL * 0.55, delay: R0, from: 0.95, to: 0 });
+  if (seal && face) {
+    st.fade(seal, { ms: RL * 0.16, delay: R0, from: 0, to: 1 });
+    st.tween({ ms: RL * 0.80, delay: R0, ease: 'out', update(t, e) {
+      face.material.color.copy(cInk).lerp(cHot, Math.min(1, e * 1.3)); // ＝C 的「燒出來」
+      seal.scale.setScalar(st.markSize * (2.8 - 1.1 * e));
+    } });
+  }
+  preyHit(st, prey, R0, RL, 0.14);
+
+  st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) { recover(st, cat, fwd, DIST * 0.9, 1 - e); st.rim(cat, 1 + 3.0 * (1 - e)); } });
+  void B;
+}
+
+export const PROTOS = { tigerA, tigerB, tigerC, tigerD, tigerE };
 export default PROTOS;

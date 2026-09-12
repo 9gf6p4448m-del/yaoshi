@@ -47,7 +47,7 @@ export const TRAIT_MOVES_SHORT = Object.assign(Object.create(null), ZULING.short
    載不到就維持現況（原型是給製作人挑的實驗品，不得有能力弄壞正式演出）。
    登記點放這裡而不是 xianghuo.js：那支檔是 27 支正式招的落點，實驗品混進去下一卷就分不出誰是正式版。 */
 const FX_PROTO = (() => { try { return new URLSearchParams(location.search).get('proto') || ''; } catch (e) { return ''; } })();
-if (/^tiger[ABCD]$/.test(FX_PROTO)) {
+if (/^tiger[ABCDE]$/.test(FX_PROTO)) {
   const P = await import('./trait-fx/proto/tiger.js' + V).then((m) => m.PROTOS, () => null);
   if (P && typeof P[FX_PROTO] === 'function') { TRAIT_MOVES.biteGamble = P[FX_PROTO]; TRAIT_MOVES_SHORT.biteGamble = P[FX_PROTO]; }
 }
