@@ -1146,64 +1146,109 @@ const MOVES = {
   },
 
   /* 破軍旗・殘旗插心（pojun，兵×1）：本隊只剩 1 隻時 atk+1。
-     編舞：倒矛過頂（0–300ms：雙臂把矛尖翻轉朝下高舉、身體後仰、旗桿後傾、冠顫）
-          → 插心（300ms：雙臂猛力下壓，矛尖落在自己胸口，胸前屈、頭後仰、整尊下沉）
-          → 一震（360ms：腳下一圈紅光暴亮、胸口一團光炸開、火星、punch、邊光衝到 3.4 倍）
-          → 旗桿餘顫（遞減抖動 420ms）→ 收勢（500–880ms）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 9 列；`MOVE_SPEC.swarmLastStand = { 乙, 拍, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝拍**（§C 散文寫「扎」，但那是**祖靈**的動詞；倒矛過頂往下插＝香火「拍」的砸落）：
+         `LArm1Rt`／`RArm1Rt` 倒矛過頂 → `SpearTip` 插心，`PoleRoot`／`PoleMid`／`PoleTop` 餘顫。
+       **道具**＝乙 符旗：**殘破軍旗**（`tornflag`，缺角旗面、高飽和硃紅，在身後展開）。
+       **受招方反應＝升（在自身）**：★全 27 支唯一沒有第三方的招★——扎中瞬間邊光暴亮、
+         整尊 `st.move` 前傾撐住，`react` 只能量在**自己**身上（同一組門檻）。
+
+     ★區分點（§C2／Q7 裁定）★：「**規則形被撕掉一角**」是**香火專屬**，只給這一支——
+     完整的東西被弄壞（香火）與本來就沒有固定邊界（陰氣）是兩件事。
+     ★腳下紅 `disc` 光池退役★：它與福壽綿長糊在一起，讀者 A 誤讀。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   swarmLastStand(st) {
-    const bearer = st.byBody(st.actor, 'swarm')[0] || st.actor[0];
-    st.tween({ ms: 300, ease: 'out', update(t, e) {
-      st.rot(bearer, 'LArm1Rt', -2.1 * e, 0, 0.25 * e); st.rot(bearer, 'LArm1El', -0.5 * e); st.rot(bearer, 'LArm1Wr', -0.3 * e);
-      st.rot(bearer, 'RArm1Rt', -2.0 * e, 0, -0.25 * e); st.rot(bearer, 'RArm1El', -0.45 * e); st.rot(bearer, 'RArm1Wr', -0.3 * e);
-      st.rot(bearer, 'SpearRoot', 1.5 * e); st.rot(bearer, 'SpearMid', 0.5 * e); st.rot(bearer, 'SpearTip', 0.3 * e);
-      st.rot(bearer, 'PoleRoot', -0.3 * e); st.rot(bearer, 'PoleMid', -0.2 * e); st.rot(bearer, 'PoleTop', -0.14 * e);
-      st.rot(bearer, 'Chest', -0.22 * e); st.rot(bearer, 'Spine', -0.14 * e); st.rot(bearer, 'NeckB', -0.2 * e); st.rot(bearer, 'HeadRoot', -0.26 * e);
-      st.rot(bearer, 'CrownRoot', -0.16 * e); st.rot(bearer, 'Crown1', -0.2 * e); st.rot(bearer, 'CrownTip', -0.26 * e);
-      st.rim(bearer, 1 + 0.8 * e);
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
+    const man = st.byBody(st.actor, 'swarm')[0] || st.actor[0];
+    const fwd = st.toward(man, new THREE.Vector3());
+    const tip = st.worldOf(man, 'SpearTip', new THREE.Vector3());
+    if (!tip.lengthSq()) { st.top(man, tip); }
+    const chest = st.worldOf(man, 'Chest', new THREE.Vector3());
+    if (!chest.lengthSq()) st.worldOf(man, null, chest);
+    /* 殘旗「在身後展開」：先被矛尖挑到高處（這一段給 travel 的位移），再落到身後站定。
+       ★沒有第三方＝`run.travelDist` 退成 1.0、門檻 0.40★，所以挑起來那一段要夠高。 */
+    /* 挑起來那一段：往**前**多、往上少。飛太高（y+0.95、TOWARD_CAM 2.4）時旗會跑到畫面上緣外，
+       實測面積反而從 0.4457% 掉到 0.3637%——推近鏡頭要留在畫面裡才有用。 */
+    const up = tip.clone(); up.y += 0.55; up.addScaledVector(st.dir, 1.30).addScaledVector(TOWARD_CAM, 1.2);
+    const back = chest.clone().addScaledVector(st.dir, -0.42).addScaledVector(TOWARD_CAM, 1.3);
+    back.y += 0.30;
+
+    // ── 乙 殘破軍旗：缺角旗面、高飽和硃紅（hot 當面、ink 當邊，整支裡最紅的一件）──
+    /* ★配色與 §C2 的「高飽和硃紅」有出入，交製作人覆核★：硃紅 `#ff5a3c` 對暗紅褐桌面 `#6b3418`
+       色相太近，整面硃紅時 L3 實測 **ΔE 中位 25.22 < 門檻 28**（面積 1.38% 是夠的）。
+       改成**鎏金面＋硃紅墨線邊**——紅仍在（邊），而且這才是 §B2 香火材質那條「暗面 ink、亮邊鎏金」的寫法。 */
+    const torn = st.paperStamp(st.kind, tip, { role: 'stamp', color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.18, warp: 0.20, tiltDeg: 10, yawDeg: -22 });
+    torn.scale.setScalar(st.iconSize * 0.35);
+
+    /* ① 倒矛過頂（windup）：雙臂把矛倒過頭頂、矛尖朝下對準心口 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(man, 'LArm1Rt', -1.35 * e, 0, 0.22 * e); st.rot(man, 'RArm1Rt', -1.35 * e, 0, -0.22 * e);
+      st.rot(man, 'LArm1El', -0.45 * e); st.rot(man, 'RArm1El', -0.45 * e);
+      st.rot(man, 'PoleRoot', 0.55 * e); st.rot(man, 'PoleMid', 0.30 * e); st.rot(man, 'PoleTop', 0.18 * e);
+      st.rot(man, 'Chest', -0.20 * e); st.rot(man, 'NeckB', -0.16 * e); st.rot(man, 'HeadRoot', -0.22 * e);
+      st.rim(man, 1 + 1.5 * e);
+      st.worldOf(man, 'SpearTip', torn.position);
+      st.alpha(torn, Math.min(1, e * 2.4));
+      torn.scale.setScalar(st.iconSize * (0.34 + 0.24 * e));
+    }, done() { st.phase('travel'); } });
+
+    /* ② 插心（travel）：矛猛地往下插；殘旗被挑起來再落到身後展開 */
+    st.tween({ ms: TL * 0.46, delay: T0, ease: 'in', update(t, e) {
+      st.rot(man, 'LArm1Rt', -1.35 + 1.10 * e, 0, 0.22 - 0.10 * e); st.rot(man, 'RArm1Rt', -1.35 + 1.10 * e, 0, -0.22 + 0.10 * e);
+      st.rot(man, 'LArm1El', -0.45 + 0.25 * e); st.rot(man, 'RArm1El', -0.45 + 0.25 * e);
+      st.rot(man, 'PoleRoot', 0.55 - 0.95 * e); st.rot(man, 'PoleMid', 0.30 - 0.52 * e); st.rot(man, 'PoleTop', 0.18 - 0.30 * e);
+      st.rot(man, 'Chest', -0.20 + 0.46 * e); st.rot(man, 'NeckB', -0.16 + 0.30 * e); st.rot(man, 'HeadRoot', -0.22 + 0.34 * e);
     } });
-    st.at(300, () => {
-      st.tween({ ms: 150, ease: 'outQuint', update(t, e) {
-        st.rot(bearer, 'LArm1Rt', -2.1 + 1.55 * e, 0, 0.25 - 0.35 * e); st.rot(bearer, 'LArm1El', -0.5 + 0.95 * e); st.rot(bearer, 'LArm1Wr', -0.3 + 0.3 * e);
-        st.rot(bearer, 'RArm1Rt', -2.0 + 1.5 * e, 0, -0.25 + 0.35 * e); st.rot(bearer, 'RArm1El', -0.45 + 0.9 * e); st.rot(bearer, 'RArm1Wr', -0.3 + 0.3 * e);
-        st.rot(bearer, 'SpearRoot', 1.5 + 0.75 * e); st.rot(bearer, 'SpearMid', 0.5 + 0.3 * e); st.rot(bearer, 'SpearTip', 0.3 + 0.2 * e);
-        st.rot(bearer, 'Chest', -0.22 + 0.65 * e); st.rot(bearer, 'Spine', -0.14 + 0.34 * e);
-        st.rot(bearer, 'NeckB', -0.2 - 0.2 * e); st.rot(bearer, 'HeadRoot', -0.26 - 0.28 * e);
-        st.move(bearer, 0, -0.075 * e, 0);
+    st.trail(torn, tip, up, { ms: TL * 0.5, delay: T0, ease: 'out', trail: false, arc: 0.18 });
+    st.trail(torn, up, back, { ms: TL * 0.5, delay: T0 + TL * 0.5, ease: 'in', color: C.line, opacity: 0.26, segs: 10,
+      done() {
+        /* ★衝擊拍★：矛插到底＝殘旗在身後展開＝自身邊光爆＋前傾撐住 */
+        st.phase('react');
+        st.punch(0.55);
+        st.burst(chest, { power: 1.0, n: 56, color: C.hot });
       } });
-      st.at(60, () => {
-        // 一震：腳下紅光、胸口炸開
-        const foot = st.foot(bearer, new THREE.Vector3());
-        const glowDisc = st.disc(foot, 0.62, { opacity: 0.6 });
-        glowDisc.scale.setScalar(0.35);
-        st.grow(glowDisc, { ms: 180, from: 0.35, to: 1.35 });
-        st.fade(glowDisc, { ms: 300, delay: 150, from: 0.6, to: 0 });
-        const heart = st.worldOf(bearer, 'Chest', new THREE.Vector3());
-        const core = st.orb(heart, 0.11, { opacity: 1 });
-        core.scale.setScalar(0.25);
-        st.grow(core, { ms: 220, from: 0.25, to: 2.1 });
-        st.fade(core, { ms: 260, delay: 90, from: 1, to: 0 });
-        st.burst(heart, { power: 0.95, n: 55 });
-        st.punch(0.4);
-        st.tween({ ms: 420, ease: 'snap', update(t, e) { st.rim(bearer, 1 + 2.4 * e); } });
-        // 旗桿餘顫
-        st.tween({ ms: 420, ease: 'linear', update(t) {
-          const s = Math.sin(t * Math.PI * 7) * (1 - t) * (1 - t);
-          st.rot(bearer, 'PoleRoot', -0.3 * (1 - t) + 0.16 * s, 0, 0.2 * s);
-          st.rot(bearer, 'PoleMid', -0.2 * (1 - t) + 0.2 * s, 0, 0.28 * s);
-          st.rot(bearer, 'PoleTop', -0.14 * (1 - t) + 0.26 * s, 0, 0.36 * s);
-          st.rot(bearer, 'CrownRoot', -0.16 * (1 - t), 0, 0.1 * s); st.rot(bearer, 'Crown1', -0.2 * (1 - t), 0, 0.14 * s); st.rot(bearer, 'CrownTip', -0.26 * (1 - t), 0, 0.2 * s);
-          st.rot(bearer, 'SkirtRoot', 0, 0, 0.09 * s); st.rot(bearer, 'Skirt1', 0, 0, 0.13 * s); st.rot(bearer, 'SkirtHem', 0, 0, 0.17 * s);
-        } });
-      });
-      st.at(200, () => st.tween({ ms: 380, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(bearer, 'LArm1Rt', -0.55 * k, 0, -0.1 * k); st.rot(bearer, 'LArm1El', 0.45 * k); st.rot(bearer, 'LArm1Wr', 0);
-        st.rot(bearer, 'RArm1Rt', -0.5 * k, 0, 0.1 * k); st.rot(bearer, 'RArm1El', 0.45 * k); st.rot(bearer, 'RArm1Wr', 0);
-        st.rot(bearer, 'SpearRoot', 2.25 * k); st.rot(bearer, 'SpearMid', 0.8 * k); st.rot(bearer, 'SpearTip', 0.5 * k);
-        st.rot(bearer, 'Chest', 0.43 * k); st.rot(bearer, 'Spine', 0.2 * k); st.rot(bearer, 'NeckB', -0.4 * k); st.rot(bearer, 'HeadRoot', -0.54 * k);
-        st.move(bearer, 0, -0.075 * k, 0);
-      } }));
-    });
+    st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) {
+      /* ★這一支的 P3 與 §A3 真的互斥，處置寫在這裡★：`pojun` 是全 9 支裡最矮的一尊（figH 1.0019），
+         旗縮到 2/3 上限（峰值 0.69）時 L3 只有 **area 0.4457%**（門檻 0.8），而它只有**一件**道具、
+         不像五營旗可以靠五面湊面積。推近鏡頭（TOWARD_CAM 1.0→2.4）補一部分，剩下的只能放大：
+         峰值 0.85 ⇒ Q5 實測 ratio 約 0.82，**超過 2/3、記錄在案交裁**（Q5 明文：記錄項不擋批）。 */
+      torn.scale.setScalar(st.iconSize * (0.62 + 0.33 * e));
+      torn.userData.fxRoll = 0.30 * Math.sin(e * Math.PI * 2); // 殘旗一路翻
+    } });
+    /* 矛桿餘顫（插中之後才有意義，所以排在 travel 末） */
+    st.tween({ ms: TL * 0.3, delay: T0 + TL * 0.7, ease: 'out', update(t, e) {
+      const s = Math.sin(t * Math.PI * 4) * (1 - t);
+      st.rot(man, 'PoleRoot', -0.40 + 0.20 * s); st.rot(man, 'PoleMid', -0.22 + 0.26 * s); st.rot(man, 'PoleTop', -0.12 + 0.32 * s);
+      st.rot(man, 'SpearMid', 0.10 * s); st.rot(man, 'SpearTip', 0.14 * s);
+    } });
+
+    /* ③ 撐住（react）：★反應在自身★——邊光暴亮、整尊前傾、殘旗在身後定住再收 */
+    st.tween({ ms: RL * 0.9, delay: R0, ease: 'snap', update(t, e) {
+      st.move(man, fwd.x * 0.16 * e, 0, fwd.z * 0.16 * e);
+      st.scale(man, 1 + 0.04 * e);
+      st.rot(man, 'Chest', 0.26 + 0.10 * e); st.rot(man, 'HeadRoot', 0.12 + 0.16 * e);
+      st.rim(man, 1 + 3.4 * e);
+    } });
+    st.tween({ ms: RL * 0.6, delay: R0, ease: 'out', update(t, e) { torn.scale.setScalar(st.iconSize * (0.95 - 0.24 * e)); } });
+    st.fade(torn, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
+
+    /* 收勢：矛拔回、身體回位 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.move(man, fwd.x * 0.16 * k, 0, fwd.z * 0.16 * k);
+      st.scale(man, 1 + 0.04 * k);
+      st.rot(man, 'LArm1Rt', -0.25 * k, 0, 0.12 * k); st.rot(man, 'RArm1Rt', -0.25 * k, 0, -0.12 * k);
+      st.rot(man, 'LArm1El', -0.20 * k); st.rot(man, 'RArm1El', -0.20 * k);
+      st.rot(man, 'PoleRoot', -0.40 * k); st.rot(man, 'PoleMid', -0.22 * k); st.rot(man, 'PoleTop', -0.12 * k);
+      st.rot(man, 'Chest', 0.36 * k); st.rot(man, 'NeckB', 0.14 * k); st.rot(man, 'HeadRoot', 0.28 * k);
+      st.rim(man, 1 + 3.4 * k);
+    } });
   },
 };
 export default MOVES;
@@ -1244,42 +1289,9 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
   wardRegen1: MOVES.wardRegen1,
 
-  /* 殘旗插心｜辨識：矛尖倒轉插進自己胸口＋腳下紅光暴亮 */
-  swarmLastStand(st) {
-    const K = st.ms / 260;
-    const man = st.actor[0];
-    const foot = st.foot(man, new THREE.Vector3());
-    const chest = st.worldOf(man, 'Chest', new THREE.Vector3());
-    const blaze = st.disc(foot, 0.38, { opacity: 0 });
-    const burstOrb = st.orb(chest, 0.06, { opacity: 0 });
-    blaze.scale.setScalar(0.35); burstOrb.scale.setScalar(0.3);
-    st.tween({ ms: 88 * K, ease: 'wind', update(t, e) { // 倒矛過頂：雙臂把矛尖翻轉朝下高舉、身體後仰
-      st.rot(man, 'LArm1Rt', -1.25 * e); st.rot(man, 'RArm1Rt', -1.25 * e);
-      st.rot(man, 'SpearRoot', 2.2 * e); st.rot(man, 'PoleTop', -0.3 * e);
-      st.rot(man, 'Chest', -0.2 * e); st.rot(man, 'CrownTip', -0.24 * e); st.rim(man, 1 + 0.5 * e);
-    } });
-    st.tween({ ms: 62 * K, delay: 86 * K, ease: 'in', update(t, e) { // 插心：雙臂猛力下壓、整尊下沉
-      st.rot(man, 'LArm1Rt', -1.25 + 1.5 * e); st.rot(man, 'RArm1Rt', -1.25 + 1.5 * e);
-      st.rot(man, 'Chest', -0.2 + 0.55 * e); st.rot(man, 'HeadRoot', -0.3 * e);
-      st.move(man, 0, -0.07 * e, 0);
-    }, done() { st.burst(chest, { power: 1.1, n: 52, color: 0xd8382c }); st.punch(0.7); } });
-    st.fade(burstOrb, { ms: 40 * K, delay: 146 * K, from: 0, to: 1 }); // 胸口一團光炸開
-    st.grow(burstOrb, { ms: 85 * K, delay: 146 * K, from: 0.3, to: 2.1 });
-    st.fade(burstOrb, { ms: 55 * K, delay: 172 * K, from: 1, to: 0 });
-    st.grow(blaze, { ms: 82 * K, delay: 148 * K, from: 0.35, to: 1.7 }); // 腳下一圈紅光暴亮
-    st.fade(blaze, { ms: 82 * K, delay: 148 * K, from: 0.8, to: 0 });
-    st.tween({ ms: 78 * K, delay: 150 * K, ease: 'out', update(t, e) { // 旗桿餘顫＋邊光衝到 3.4 倍
-      const damp = (1 - e) * (1 - e);
-      st.rot(man, 'PoleMid', 0, 0, 0.2 * damp * Math.sin(e * 22));
-      st.rot(man, 'CrownTip', 0.18 * damp * Math.sin(e * 18));
-      st.rim(man, 1 + 2.4 * (1 - e));
-    } });
-    st.tween({ ms: 58 * K, delay: 170 * K, ease: 'inout', update(t, e) { // 收勢
-      const k = 1 - e;
-      st.rot(man, 'LArm1Rt', 0.25 * k); st.rot(man, 'RArm1Rt', 0.25 * k); st.rot(man, 'SpearRoot', 2.2 * k);
-      st.rot(man, 'Chest', 0.35 * k); st.rot(man, 'HeadRoot', -0.3 * k); st.move(man, 0, -0.07 * k, 0);
-    } });
-  },
+  /* swarmLastStand｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  swarmLastStand: MOVES.swarmLastStand,
 };
 
 /* ★v0.55 的徽記剪影版虎爺印（`?fxvocab=1` 才跑得到）★
