@@ -180,8 +180,11 @@ cp js/trait-fx/vocab.js scratchpad/vocab-backup.js
 #   把 ICON.size 改成 0.02 → 重跑 S3，預期 L3 紅；然後 cp scratchpad/vocab-backup.js js/trait-fx/vocab.js
 
 # ── S4 盲讀材料（本卷新治具）＋兩位 fresh 讀者 ────────────────────────────
-node tests/tools/blindread-sheet.mjs scratchpad/shots-t1 scratchpad/shots-t2 \
-     docs/experiments/2026-09-11-fx-blindread-r2 --seed=20260911 --frames=6 --cell=780x360
+node tests/tools/blindread-sheet.mjs docs/experiments/2026-09-11-fx-blindread-r2 --seed=20260911
+# ★2026-09-13 更正★：舊版這一行帶 `--frames=6 --cell=780x360`，而這支治具**從來沒有讀過**那兩個旗標
+# （6 格幀位與 780×360 格寬照凍結檔 L4 寫死在 FRAME_AT／CELL，不得逐招調）——一直是靜默忽略。
+# 祖靈批階段 A 把旗標檢查改成白名單之後它們會**當場 throw**，所以這裡把指令改成實際有效的形式
+# （多餘的兩個位置參數也拿掉：這支只吃一個輸出目錄）。
 # 讀者由主對話另派兩個 context-free opus subagent，不繼承本卷任何對話史
 
 # ── S5 對決真實路徑：節奏、零錯、可讀性不退 ──────────────────────────────

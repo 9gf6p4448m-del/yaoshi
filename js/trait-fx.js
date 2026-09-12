@@ -750,6 +750,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   }
 
   /* ── 舞台：交給編舞函式的工具箱 ── */
+  /** ★積木自己排的 tween 不計進 F10 的動作數（覆審 C2；r3 N4 改成收斂版）★
+   *  第一版是兩處各寫一次 `run.inBlock = true; … ; run.inBlock = false;`，其中**只有一處**包了
+   *  `try/finally`——那就是「按已知的入口寫，不按危險的效果寫」（`02 §6.1` 第 7 條）的反例。
+   *  收成這一支之後，「寫得出沒有 finally 的 inBlock」由建構上消失，分母＝1。 */
+  function inBlockOf(run) {
+    return (fn) => { run.inBlock = true; try { return fn(); } finally { run.inBlock = false; } };
+  }
+
   function makeStage(run, actor, target, det) {
     const colorObj = new THREE.Color(SPARK_COLOR[det.fac] || SPARK_COLOR.lantern);
     const cA = centroid(actor);
@@ -766,6 +774,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     /** 第一個被真的動到骨骼／model 的出招方＝這一招的施術者。
      *  react 段量的是「除了他以外的人有沒有反應」——他自己的收勢不構成受招方的反應。 */
     const markCaster = (fig) => { if (!run.caster && !inTarget.has(fig)) run.caster = fig; };
+    const inBlock = inBlockOf(run); // 積木自己排的 tween 不計進 F10（見 inBlockOf 的註解）
 
     const st = {
       /** 這一招的時長（ms）、系色鍵與 hex、力道、是否 reduced-motion */
@@ -1354,12 +1363,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
              收尾點變成「第一次呼叫的 vt ＋ react[0]」（覆審實測：把姿態 tween 的 delay 改成 `R0+60`，
              那一跑的 horizon 1193 ＝ vt_first 633 ＋ react[0] 560，逐值吻合）。
              扣掉之後終點**真的**落在 `react[0]`，與腳下光熄掉同一時點——這樣 ⑮「由建構上成立」才成立。 */
-          const off = Math.max(0, B.travel[0] + TT * 0.45 - run.vt);
-          run.inBlock = true;
-          try {
-            // try/finally：這兩行丟例外時旗標不得卡在 true（覆審 r2 N4），否則編舞自己的 tween 全不計入
-            st.tween({ ms: TT * 0.55, delay: off, ease: 'in', update(t, e2) { w.staK = 1 - e2; } });
-          } finally { run.inBlock = false; }
+          /* ★clamp 觸發＝這一招太晚才擺姿態，收回會越過衝擊拍（覆審 r3 N2）★
+             `Math.max(0, …)` 本身是必要的（delay 不能是負數），但它是一個**會改變語意的分支**：
+             觸發時 tween 長度不變、整段往後推 ⇒ 衝擊拍當下 `staK` 還沒歸零，正是 H3 那個症狀的弱化版。
+             現在它**自己會響**：記進 `run.stance.lateStart`，由治具的 `stanceOK` 判紅，
+             不再只靠 `windupOK` 間接接住（那條在低幀率下會退化成寬門檻）。 */
+          const want = B.travel[0] + TT * 0.45 - run.vt;
+          if (want < 0) run.stance.lateStart = true;
+          inBlock(() => st.tween({ ms: TT * 0.55, delay: Math.max(0, want), ease: 'in', update(t, e2) { w.staK = 1 - e2; } }));
         }
         run.stance.fig = fig; run.stance.kind = kind;
         const k = Math.max(0, Math.min(1, o.strength === undefined ? 1 : o.strength));
@@ -1367,6 +1378,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         if (u > 0 && spec.amp * u > run.stance.peak) {
           run.stance.peak = spec.amp * u;
           run.stance.peakAt = run.vt; // 峰值出現在哪一刻（覆審 H4：沒有時戳的話，姿態搬到 react 段照樣綠）
+          run.stance.peakDvt = run.dvt; // 那一幀的步長＝這一格的取樣容差（覆審 r3 N3-5）
         }
         const f = st.toward(fig, _v); // group 空間、水平、單位向量（朝對面）
         // 前傾／後仰＝繞「側向軸」轉；側向軸＝(f.z, 0, −f.x)
@@ -1480,11 +1492,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         /* ★`run.inBlock`：積木自己排的 tween 不計進 F10 的動作數（覆審 C2）★
            不隔開的話，「把整支招的演出刪光、只留一行 `st.groundMark(fig)`」也會讓 `acts` ≥2，
            而 §A9 ③ 又強制每支已轉正的招都要呼叫它 ⇒ `actionsOK` 對每一支都恆真＝零鑑別力。 */
-        run.inBlock = true;
-        st.fade(mesh, { ms: upMs * 0.8, delay: upMs * 0.12, from: 0, to: peak, ease: 'out' });
-        // 收尾點＝delay + ms ＝ travel[0] + travelMs ＝ react[0] ＝ 衝擊拍那一瞬間
-        st.fade(mesh, { ms: travelMs * 0.55, delay: B.travel[0] + travelMs * 0.45, from: peak, to: 0, ease: 'in' });
-        run.inBlock = false;
+        inBlock(() => {
+          st.fade(mesh, { ms: upMs * 0.8, delay: upMs * 0.12, from: 0, to: peak, ease: 'out' });
+          // 收尾點＝delay + ms ＝ travel[0] + travelMs ＝ react[0] ＝ 衝擊拍那一瞬間
+          st.fade(mesh, { ms: travelMs * 0.55, delay: B.travel[0] + travelMs * 0.45, from: peak, to: 0, ease: 'in' });
+        });
         run.stance.ground = kind;
         /* ★不回傳 mesh（覆審 M1）★：回傳它，編舞就能再排一條 fade 把它在衝擊拍之後點回來，
            「衝擊拍熄」那句話就從「由建構上成立」掉回「請記得不要碰」。亮滅的參數全在 `o` 裡，
@@ -1538,12 +1550,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       phaseClaims: [], bb: [], bbi: [], follow: [], sized: [], caster: null, actorSet: null, travelDist: 1,
       /* v0.55.7 身分可辨語彙：這一招的施招姿態（誰擺的／哪一型／峰值幅度）與腳下光語彙。
          治具讀 lastSig.stance 判 stanceOK＝「真的擺出來了、而且只有施招者有」。 */
-      stance: { kind: null, fig: null, groundFig: null, peak: 0, peakAt: Infinity, ground: null, onTarget: false, extra: 0 },
+      stance: { kind: null, fig: null, groundFig: null, peak: 0, peakAt: Infinity, peakDvt: 0, ground: null, onTarget: false, extra: 0, lateStart: false },
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
     run.k = run.ms / Number(det.baseMs); // 三個絕對常數的等比係數（tier 1 ≈0.289、tier 2 =1、tier 3 ≈1.556）
     run.maxRate = 1; // 這一套實際用過的最高加速倍率（F2 的 rateOK：短版不得 >1.0）
-    run.maxDvt = 0; // 實際用過的最大虛擬時間步長（windupOK 的取樣容差）
+    run.maxDvt = 0; run.dvt = 0; // 最大／當幀的虛擬時間步長（windupOK 的取樣容差取當幀那個）
     run.fuse = run.ms * TFX.fuseMul;
     run.promise = new Promise((r) => { run.resolve = r; });
     const stage = makeStage(run, actor, target, det);
@@ -1610,8 +1622,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
              50×2.2＝110ms ⇒ tier 1 的 `104 + 110 = 214` 會**比第一版的 `react[0]`（208）還寬**，
              那就是把及格線搬淺了。夾住之後這條門檻**永遠不寬於第一版**，
              而在正常幀距（16.7×rate ≤ 36.7）下它比第一版嚴得多（tier 1 140.7 vs 208）。 */
-          windupOK: run.stance.peakAt <= Math.min(B.react[0], B.windup[1] + run.maxDvt),
-          windupEnd: B.windup[1], windupSlack: +run.maxDvt.toFixed(1), reactAt: B.react[0] };
+          windupOK: run.stance.peakAt <= Math.min(B.react[0], B.windup[1] + run.stance.peakDvt)
+            && !run.stance.lateStart,
+          lateStart: !!run.stance.lateStart,
+          windupEnd: B.windup[1], windupSlack: +run.stance.peakDvt.toFixed(1), reactAt: B.react[0] };
       })() };
     stats.finished++;
     if (run.resolve) run.resolve(true);
@@ -1651,8 +1665,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          `peakAt` 是逐幀取樣出來的，windup 那條 tween 的最後一次 update 必然落在
          「`windup[1]` 的下一幀」（tier 1 實測 104 → 117），嚴格 `<= windup[1]` 對**任何正確實作**
          都過不了＝恆假（`02 §6.1` 第 6 條）。容差取一個實際步長，不是取一整個 travel 段。 */
-      run.maxDvt = Math.max(run.maxDvt, ms * run.rate);
-      run.vt += ms * run.rate;
+      /* 這一幀的虛擬時間步長。`peakAt` 的取樣容差要取**量到峰值那一幀**的步長，
+         不是整套的最大值（覆審 r3 N3-5）——用整套的 max 等於讓「收工前的 rate 尖峰」
+         回頭放寬蓄勢段的判準，那是用後面的事去鬆前面的門檻。 */
+      run.dvt = ms * run.rate;
+      run.maxDvt = Math.max(run.maxDvt, run.dvt);
+      run.vt += run.dvt;
       if (run.rate > run.maxRate) run.maxRate = run.rate;
       if (run.rate > 1.0001) run.sped = true;
       for (const tm of run.timers) if (!tm.fired && run.vt >= tm.at) { tm.fired = true; try { tm.fn(); } catch (e) { noteThrow(run, 'timer', e); } }

@@ -35,7 +35,7 @@
 | ⑩ | 拖線只准打擊類、方向只准「施招者→目標」 | 增益招 `st.trail(..., trail: false)` | **目前沒有機械檢查**（照實列，見 §1.8 第 3 題） |
 | ⑪ | 治具棚 2v2 同伴間距 ≥1 個身位 | `blindread-sheet --mateGap=<1–3>`（不帶＝1＝不變） | **材料規格，不是判準**（P4 三題與真值一格不動） |
 | ⑫ | 擺姿態的那一尊＝引擎**獨立**認定的施招者 | `stance.casterMatch`＝`run.stance.fig === run.caster`（`st.stance` 刻意不 `markCaster`，兩條證據對帳） | `stanceOK`（覆審 H2） |
-| ⑬ | 姿態的峰值出現在**蓄勢段之內** | `stance.windupOK`＝`peakAt ≤ windup[1] + 一個實際的虛擬時間步長`（覆審 r2 N3 把門檻由 `react[0]` 收緊到 `windup[1]`；容差是**取樣**造成的，不是設計放寬——windup 那條 tween 的最後一次 update 必然落在下一幀，tier 1 實測 104→117，嚴格 `≤104` 對任何正確實作都恆假） | `stanceOK`（覆審 H4／r2 N3） |
+| ⑬ | 姿態的峰值出現在**蓄勢段之內** | `stance.windupOK`＝`peakAt ≤ min(react[0], windup[1] + 量到峰值那一幀的步長)` 且 `!lateStart`（覆審 r2 N3 把門檻由 `react[0]` 收緊到 `windup[1]`；容差是**取樣**造成的，不是設計放寬——windup 那條 tween 的最後一次 update 必然落在下一幀，tier 1 實測 104→117，嚴格 `≤104` 對任何正確實作都恆假） | `stanceOK`（覆審 H4／r2 N3） |
 | ⑭ | 腳下光與姿態**在同一尊身上** | `stance.groundSame`；`st.groundMark` 另有三條 throw（受招方／第二尊／與姿態不同尊） | `stanceOK`（覆審 H1） |
 | ⑮ | 姿態**一定會在衝擊拍收回** | `st.stance` 第一次被呼叫時由**引擎**註冊包絡 tween（`w.staK` 1→0），`delay` 扣掉當下的 `run.vt` ⇒ 收尾點**真的**是 `react[0]`（覆審 r2 N2：第一版用絕對毫秒當 delay，而 `st.stance` 依設計一定從 tween 的 update 裡呼叫、`run.vt` 永不為 0，終點被往後推了一幀） | **由建構上成立**（覆審 H3；編舞寫不出「不收回」）。**殘留**：沒有任何斷言在**量**收回（`metricOf` 只讀 `w.over`／`w.mo`），見 §1.8 |
 | ⑯ | `selfReact` 這個一鍵豁免不得長出第二支 | 集合必須恰好是 `swarmLastStand`，且語彙檔要有那句宣稱 | `tests/fxvocab.test.mjs:333`（突變 26） |
@@ -100,15 +100,15 @@ MOVES，只改函式名那一行）＋`:1038` `V055_SHORT`。**0.54 退路（`V0
 
 | 閘門 | 指令 | 結果 |
 |---|---|---|
-| **P0 等價** | `node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html`（`git show 616f7ff:index.html`） | `{"seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}` ✅ |
-| **P1 登記表** | `node tests/fxvocab.test.mjs` | **26 綠／0 紅**（新增七條：§A9 ①⑥⑦⑧⑨＋selfReact 豁免守衛＋幅度表對照＋V054／stance 協調）✅ |
+| **P0 等價**（原始輸出見 `gates.txt`） | `node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html`（`git show 616f7ff:index.html`） | `{"seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}` ✅ |
+| **P1 登記表**（原始輸出見 `…-b2-evidence/gates.txt`） | `node tests/fxvocab.test.mjs` | **26 綠／0 紅**（新增七條：§A9 ①⑥⑦⑧⑨＋selfReact 豁免守衛＋幅度表對照＋V054／stance 協調）✅ |
 | **P2 phase gate** | `traitfx-drive --tier=1／2／3` | **27/27**／**30/30**／**3/3**，`phasesOK` 全 true ✅ |
 | **P3 對比** | `fx-contrast` ＋ `fx-contrast-metrics.py`（10 支 × t1／t2；844×390@2x、bloom 0.7、seed 7） | t2 **10/10**、t1 **10/10** ✅ |
 | **P4 盲讀** | — | **不在本階段**（裁定：香火＋祖靈一起重跑新的三輪） |
 | **P5 短版合身** | `traitfx-drive --tier=1` | 27/27，`eliteSelfCut` `rate=1`／`fill=0.9`／`msOK=true` ✅ |
 | **P6 短版下限** | 同上的 `actionsOK` | `eliteSelfCut` acts=**8**（≥2）✅ ——積木自己排的三條 tween 已排除（覆審 C2；**同設定下「有包絡、無 `inBlock`」是 11**，8 是修後、10 是整批修補之前還沒有包絡時的數——三個數字互相一致 8+2=10、8+3=11，別把「−2」讀成「這道守衛排掉 2 條」）|
-| **P7 效能** | `duel-perf perf --seed=7`（本樹 vs 基準 `616f7ff` 的 `git archive` 樹） | fps **59.9 : 59.9 ＝ 1.00**（≥0.95）；draw call **986 : 986**（≤1000）；visible 16=16 ✅ |
-| **P8 零錯＋規則測試** | `duel-drive --seed=7`／`--seed=3` 各 4 場 ＋ 12 套規則測試 | errors **0／0**（`ver v0.55.6`）；12 套 **8／5／7／9／14／26／32／8／16／28／32／36 全綠** ✅ |
+| **P7 效能**（原始輸出見 `gates.txt`） | `duel-perf perf --seed=7`（本樹 vs 基準 `616f7ff` 的 `git archive` 樹） | fps **59.9 : 59.9 ＝ 1.00**（≥0.95）；draw call **986 : 986**（≤1000）；visible 16=16 ✅ |
+| **P8 零錯＋規則測試**（原始輸出見 `gates.txt`） | `duel-drive --seed=7`／`--seed=3` 各 4 場 ＋ 12 套規則測試 | errors **0／0**（`ver v0.55.6`）；12 套 **8／5／7／9／14／26／32／8／16／28／32／36 全綠** ✅ |
 
 補充實跑：
 
@@ -137,7 +137,7 @@ node tests/tools/traitfx-drive.mjs … --tier=2 --count=2     → 30/30，soloRe
 另兩支（`wardAtkAll1` 1.9686→1.9699、`wardHpFirst` 1.2486→1.2471）在第四位小數上微動，
 成因與 §1.8 第 7 點同一個：姿態的收回讓量測幀的本體位置差了一點；兩支離門檻都還有一倍以上的餘裕。
 
-**draw call（A6，≤ idle+25）**：`proto-record --trait=eliteSelfCut --tier=2 --step=2`
+**draw call（A6，≤ idle+25）**（原始輸出見 `gates.txt`）：`proto-record --trait=eliteSelfCut --tier=2 --step=6`
 ⇒ `idleCalls:150`、`peakCalls:161`（**+11**）、`peakTris:48994`、`programs:21`、`errors:0`。
 
 **§A3 尺寸記錄（Q5，記錄項不擋批）**——`…-b2-evidence/prop-size/prop-size-t{1,2}.tsv`：
@@ -292,6 +292,41 @@ draw call idle 150 → peak **161（+11）**、`programs:21`；三張 sheet、�
 「10 支全 true」它只驗了 3 支＋`--fxvocab=1` 的 4 支；P0／P7／P8 它沒重跑。
 ——這三項由我在上面那一段重驗補上（畫面＝重拍的三張 sheet，`§1.7` 的自評有逐格描述）。
 
+### 1.6e 覆審第 3 輪（**上限輪**，`02 §6.1` 附則）
+
+範圍只有第 2 輪那 5 條新問題，外加「有沒有把及格線搬淺」與「修 A 壞 B」。它**實跑了** 12 次治具、
+28 條突變逐條重跑，並在 gitignore 的樹副本上做反向突變。落檔 `…-b2-evidence/adv-review-r3.md`。
+
+**判定：3 條真的修好（N1／N3／L4-M4 續）、2 條表面修好（N2／N4）、0 條沒修到。**
+**「N3 是不是放寬」＝不是，是加嚴**，而且它自己做了一條決定性的突變來證明：
+把姿態峰值挪到 **travel 段中段**（`delay: T0+60`）⇒ `peakAt 500`，**新門檻 316.7 判紅、舊門檻 560 會放它綠**
+——同一個違規，第 1 輪的門檻放過、第 2 輪的判紅。逐 tier 的收緊幅度：
+t1 **208→120.7**、t2 **560→316.7**、t3 **860→476.7**（−42%／−43%／−45%）。
+它也重現了「不加容差 tier 1 會 18/27」（9 條紅全是 `peakAt 117 vs windupEnd 104`＝差一次取樣），
+並推導出嚴格 `≤ windup[1]` **對任何正確實作都恆假**——容差取一個步長是消掉量化誤差所需的最小值。
+
+**它抓到的問題，全部處理完**：
+
+| # | 級 | 它抓到什麼 | 處置 |
+|---|---|---|---|
+| ★程序 | — | **覆審期間我動了被審的檔**（`cb7d99a` 的容差夾限落在它量測中途），而且只改碼沒同步報告 ⇒ **N1 那個「報告與程式分岔」的形狀同一天內復發一次** | 已在本節與 §1.1 ⑬ 同步；**教訓記在這裡**：`02 §7` 說的「覆審員量到移動中的目標」這次真的發生了，下一輪要嘛等覆審收工再動、要嘛當場通知它 |
+| **N4** | LOW | r2 點名**兩處** `run.inBlock`，只包了 `st.stance` 那一處；`st.groundMark` 的兩條 fade **仍是裸的 set/reset** ——正是這一批自己反覆引用的「按已知的入口寫，不按危險的效果寫」 | **收斂**成 `inBlockOf(run)` helper（`js/trait-fx.js`），兩處都改用它 ⇒「寫得出沒有 finally 的 inBlock」由建構上消失，**分母＝1** |
+| **N2** | MEDIUM | `Math.max(0, …)` 是一個**沒說明、沒守衛的第二分支**：`vt_first` 超過 t1 150.8／t2 417／t3 640 時觸發，收回終點**越過衝擊拍**（H3 症狀的弱化版）。唯一掩護是 N3 的門檻，而且是間接的 | clamp 觸發時記 `run.stance.lateStart`，**直接進 `stanceOK`** ⇒ 它自己會響，不再只靠另一條門檻間接接住 |
+| **N3-5 ①** | MEDIUM | 容差取的是**整套的最大步長**，不是量到峰值那一幀的 ⇒「收工前的 rate 尖峰**回頭放寬**蓄勢段的門檻」 | 改記 `run.stance.peakDvt`＝峰值那一幀的步長，`windupOK` 用它。**用後面的事鬆前面的判準**這個結構拿掉了 |
+| **L4 副作用** | LOW | `docs/proposals/2026-09-11-plan-fx-legibility.md:183` 那條落檔指令帶 `--frames=6 --cell=780x360`，白名單化之後會 throw——它查證過那兩個旗標**這支從來沒讀過**（幀位與格寬照凍結檔寫死），throw 是正確效果 | 那一行已更正成實際有效的形式，並註明原委 |
+| 無法確認 ③ | — | draw call／`duel-perf`／`trace-eq`／`duel-drive` **只有報告散文，證據目錄沒有落檔** | 新增 `…-b2-evidence/gates.txt`：這幾條的**指令原文＋原始 stdout**（含基準樹的 `duel-perf` 對照，以及 `--dt=50` 在本樹與基準樹都是 0/27 的低幀率對照） |
+
+**N3-5 ② 與 N2 的殘留**（記錄，交裁）：低幀率下 `windupOK` 會退化成 `react[0]`（`Math.min` 的另一半生效），
+而 `windupSlack` 雖有輸出、沒有判準在看它；`grep staK` 在治具與測試**零命中**＝沒有任何斷言在**量**收回。
+兩條都要動到治具的判準結構，本階段不自己加。
+
+**第 3 輪之後的全套重驗（實跑）**：`fxvocab` 26 綠／0 紅、28 條突變逐條驗紅；
+`traitfx-drive` t1 **27/27**／t2 **30/30**／t3 **3/3**／`--count=2` **30/30**／
+`--fxvocab=1` t1 **27/27**・t2 **30/30**；其餘閘門的原始輸出見 `gates.txt`。
+
+**三輪已達上限**（`02 §6.1` 附則）。未解的清單＝§1.8 的待裁項，其中 **H2 殘留是唯一的 HIGH**
+（`casterMatch` 綁「骨骼動了誰」，不是「道具落在誰身上」），照 `02 §3` 第 4 條**不由我標成可接受風險**。
+
 ### 1.7 視覺交付與自評
 
 | 檔 | 內容 |
@@ -304,6 +339,8 @@ draw call idle 150 → peak **161（+11）**、`programs:21`；三張 sheet、�
 | `…/mategap/gap-1.0.png`、`…/gap-1.9.png` | `--mateGap` 的雙向對照（§1.6 第 4 點） |
 | `…/adv-review.md` | ★對抗式覆審員的完整清單（2 CRITICAL／6 HIGH／9 MEDIUM／6 LOW，逐條檔案:行號）★ |
 | `…/adv-review-r2.md` | ★第 2 輪「反駁已修好」的三態判定（6 真的修好／2 表面修好／0 沒修到＋5 條新問題）★ |
+| `…/adv-review-r3.md` | ★第 3 輪（上限輪）的三態判定（3 真的修好／2 表面修好／0 沒修到；N3 加嚴的數字與決定性突變）★ |
+| `…/gates.txt` | P0 trace-eq／A6 draw call／P7 duel-perf（本樹＋基準樹）／P8 duel-drive 兩 seed／12 套規則測試／低幀率對照的**指令原文與原始 stdout** |
 | `…/fxvocab-mutations.txt` | 28 條突變的逐條驗紅輸出（健康態綠） |
 | `…/p3-t1/`、`…/p3-t2/` | P3 的 A／B 凍幀、`shots.json`、`metrics.txt` |
 | `…/prop-size/` | Q5 尺寸記錄表（t1／t2 的 tsv＋json） |
