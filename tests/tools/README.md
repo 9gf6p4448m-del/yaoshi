@@ -8,5 +8,38 @@
 - `wish16-balance.mjs [n]`：24 張逐張達成率、座位 0（aiLike）條件勝率、三策略位移（8 張 vs 24 張）。
 - `wish16-ablate.mjs [n]`／`wish16-dilute.mjs [n]`：位移歸因實驗（逐張消融、拆 hooks、拆獎勵、稀釋對照）。結論見 `docs/experiments/2026-09-02-wish16-balance.md`。
 
+
+## `dmg-readability.mjs`（L10「既有可讀性不退」的量測治具）
+
+```
+node tests/tools/dmg-readability.mjs pix  <outdir> [--seed=1] [--duels=8] [--port=9001]
+                                                   [--maxfloat=50] [--maxhit=20] [--root=<靜態根目錄>]
+                                                   [--wallclock=1] [--batch=36]
+node tests/tools/dmg-readability.mjs dom  <out.json> [--seed=1] [--duels=10] [--port=9002]
+node tests/tools/dmg-readability.mjs judge <outdir...>      # 離線重判已存的 pix.json，不開瀏覽器
+```
+
+- `pix`＝R1（跳字字級／分色／對比度）、R2（被打的尊閃紅，剪影遮罩內的紅偏量）、R5 像素版。
+- `dom`＝R3／R4／R5 與 `ys:fx-hit` 對演出交鋒的逐筆對位。
+- **L10 的標準跑法**（與凍結檔 `docs/experiments/2026-09-11-acceptance-fx-legibility.md` 對應）：
+  ```
+  node tests/tools/dmg-readability.mjs pix <outdir> --seed=<1|3> --duels=8 --port=<埠> --maxfloat=50 --maxhit=20
+  ```
+  `duels`／`maxfloat`／`maxhit`／門檻數字**凍結**，要動照 `02 §2.1` 走同意程序。
+
+**時鐘（2026-09-12 L10 決定性小卷）**
+
+| 模式 | 怎麼跑 | 取樣決定性 |
+|---|---|---|
+| `pump`（**預設**） | 整場由治具逐幀 pump 的虛擬時鐘驅動（`--batch` 個 tick 一批，`tickMs=1000/60`） | ★是★：同 seed 連跑 5 次 `metrics.txt` 逐位元組相同 |
+| `wallclock`（`--wallclock=1`） | 舊法：只在凍幀那一瞬停時鐘，兩次凍結之間走真實時間 | 否（留著當鑑別力對照，見 `docs/experiments/2026-09-12-l10-determinism-report.md`） |
+
+- 每次跑都會寫兩個檔：`<outdir>/pix.json`（逐樣本明細＋截圖索引）與 `<outdir>/metrics.txt`
+  （判定＋全部統計量，一行一項、排序固定）。**驗決定性就 `md5sum <outdir>/metrics.txt`**。
+- `pump` 模式開跑前會等 `__yaoshi3d` 上線＋網路靜止（這段期間虛擬時間停在 0）；
+  等不到會在 `errors` 裡留一行，不會靜默放行。
+- `--batch` 預設 36（≈600ms 虛擬時間）**不得調到 500ms 以下**：index.html 的 `MAIN_GUARD_MS` 是 500，
+  小於它的話每一下點擊都會被連點守衛吞掉。
+
 腳本裡的 `index.html` 路徑是絕對路徑（`C:/Users/shung/OneDrive/桌面/妖市/index.html`），搬 repo 要改。
 實驗報告與驗收凍結檔在 `docs/experiments/`。
