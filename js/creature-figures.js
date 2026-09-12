@@ -574,9 +574,15 @@ export function makeCreatureFigure(opts = {}) {
     const raw = new THREE.Box3().setFromObject(model);
     const burnY = [raw.min.y, raw.max.y];
     const rawH = raw.max.y - raw.min.y;
-    const norm = rawH > NORM.maxH ? NORM.maxH / rawH : 1;
+    // 只縮不放（見 NORM 上方註解）。**唯一例外：傳說三尊**（請神存在感卷 2026-09-13，`opts.normUp`）——
+    // 它們是全桌只有一份的神，矮到 0.944（dashiye）／0.802（youyinggong）在滿編 8v8 裡讀不出身分，
+    // 所以放大到同一個 NORM.maxH。旗標只由 js/renderer.js 的 makeFigure 在 `u.lg` 時傳，27 隻走原路。
+    const norm = (rawH > NORM.maxH || opts.normUp) ? NORM.maxH / rawH : 1;
     model.scale.setScalar(norm);
-    if (raw.min.y < 0) model.position.y = -raw.min.y * norm;
+    // min.y>0 不動＝haunt 的飄浮設計（見 NORM 上方註解）。**傳說例外**：三尊一律實體、站在腳下那座
+    // 紙紮基座上，模型自帶的那點離地量（youyinggong 正規化後 0.145）會讓它跟基座脫開、也把頭頂
+    // 往外推到視口外（實測 390px 視口 topY=0＝切頭）。所以 normUp 的同時一併踩回 y=0。
+    if (raw.min.y < 0 || opts.normUp) model.position.y = -raw.min.y * norm;
     model.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(model);
     bbox = box;

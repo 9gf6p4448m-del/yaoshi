@@ -41,7 +41,7 @@ if (!mode || !out) { console.error('need <bounds|perf> <out.json>'); process.exi
    參數要按「效果」擋，不是按「已知的入口」擋（02 §6.1 第 7 條的同型陷阱）。 */
 const KNOWN_FLAGS = {
   bounds: ['port', 'root', 'gl', 'uncap'],
-  perf: ['port', 'root', 'n', 'heavy', 'gl', 'uncap', 'seed'],
+  perf: ['port', 'root', 'n', 'heavy', 'gl', 'uncap', 'seed', 'lgboth'],
   buoy: ['port', 'root', 'gl', 'uncap'],
   lineup: ['port', 'root', 'gl', 'uncap'],
 };
@@ -97,14 +97,28 @@ if (mode === 'bounds') {
       duels: 2,
       onDuel: async (pg, n) => {
         if (n !== 2) return; // 第 2 場：第 1 場已把 shader 編掉、部分 GLB 進快取
-        perf = await pg.evaluate(async ({ heavy, fac, N }) => {
+        perf = await pg.evaluate(async ({ heavy, fac, N, lgboth }) => {
           const Y3 = window.__yaoshi3d;
           const S = window.__yaoshi.S;
           const cur = window.__rec.duels[window.__rec.duels.length - 1];
-          const units = (side) => heavy.slice(0, N).map((ab, i) => ({ id: i, body: 'elite', fac: fac[ab], ab }));
+          /* lg／sn（請神存在感卷 2026-09-13）：三尊要帶傳說旗標，量到的才是「有基座＋常駐光效＋名牌」
+             的那一版。不帶的話新版跑的是一般妖那條路，F6／G4 對本卷新增的 draw call 零鑑別力。
+             基準樹讀不到 lg／sn（那一版沒有這兩個欄位），所以同一份 detail 對兩邊都成立。 */
+          const LG = { canri: '殘日', dashiye: '大士爺', youyinggong: '有應公' };
+          /* 預設只有 A 側掛傳說旗標：全桌只有三尊、一尊只在一個人袋裡，**兩側同時各有三尊在遊戲裡不可能發生**。
+             --lgboth=1 是刻意灌水的悲觀上界（六尊配件），兩個數字都印出來，不挑對自己有利的那個。 */
+          const units = (side) => heavy.slice(0, N).map((ab, i) => { const on = !!LG[ab] && (lgboth || side === 'A'); return { id: i, body: 'elite', fac: fac[ab], ab, lg: on, sn: on ? LG[ab] : '' }; });
           const det = { a: cur.a, b: cur.b, armies: [{ units: units('A') }, { units: units('B') }] };
+          /* ★把 3D 層與還在跑的真實對決隔開★（2026-09-13）：不隔的話真實時間軸的 ys:fx-burn 會在量測
+             期間燒掉我們排上去的尊，`visible` 於是在 13～16 之間跳，fps 與 draw call 都變成「那一跑剛好
+             燒了幾尊」的函數——實測同一份程式碼 visible=13 的那一跑比 visible=16 快 10%，比值完全不可信。
+             只讓本治具自己派的那一顆 ys:duel 通過，其餘 ys: 事件一律吞掉；改前改後兩邊同一套隔離。 */
+          const origDispatch = document.dispatchEvent.bind(document);
+          document.dispatchEvent = (ev) => (ev && /^ys:/.test(ev.type) && !ev.__perf ? true : origDispatch(ev));
           const t0 = performance.now();
-          document.dispatchEvent(new CustomEvent('ys:duel', { detail: det }));
+          const ev0 = new CustomEvent('ys:duel', { detail: det });
+          ev0.__perf = true;
+          origDispatch(ev0);
           await det.ready;
           const loadMs = performance.now() - t0;
           // 等所有尊真的現身（aligned＋ready）再開始量
@@ -129,7 +143,7 @@ if (mode === 'bounds') {
           return { loadMs: Math.round(loadMs), rendersPerSec: +((f1 - f0) / ((te - ts) / 1000)).toFixed(1), rafMedianFps: +(1000 / med).toFixed(1), rafP95Ms: +p95.toFixed(1),
             rafFrames: raf.length, drawCallsPerFrame: calls, trianglesPerFrame: tris, renderPassesPerFrame: passes, gl: Y3.glName,
             visible: figs.filter((f) => f.group.visible).length, total: figs.length, skins: figs.map((f) => f.skin).filter((x) => x === 'creature').length };
-        }, { heavy: HEAVY_USE, fac: FAC, N });
+        }, { heavy: HEAVY_USE, fac: FAC, N, lgboth: opt.lgboth === '1' || opt.lgboth === true });
       },
     });
     fs.writeFileSync(out, JSON.stringify({ perf, errors: r.errors, fxc: r.fxc }, null, 1));

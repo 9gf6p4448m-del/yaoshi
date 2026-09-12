@@ -114,7 +114,8 @@ function init() {
     makeFigure: (u) => {
       if (!u || !u.ab) return makeLayeredFigure();
       // faction 是給描邊用的（後處理卷 P-1：外殼描邊色＝該系 FACTION_RIM 的加深版，常駐）
-      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac });
+      // normUp＝傳說三尊才放大到 NORM.maxH（請神存在感卷 2026-09-13；27 隻一律只縮不放）
+      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac, normUp: !!u.lg });
       attachFactionFx(f, u.fac, { seed: fxSeed++ });
       return f;
     },

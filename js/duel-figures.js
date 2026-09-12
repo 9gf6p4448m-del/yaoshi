@@ -61,7 +61,19 @@ const FIG = {
   // slow1-01-lineup.png 兩版），拉到 50：三尊剛好各自看得見臉，八尊靠 crowdShrink 收回畫面內
   rowDepth: 0.1, // 前後交錯的深度（世界單位），免得整排完全重疊看不出隻數
   // 體型差：群體＝多而小、精英＝一尊大、作祟＝半透明飄浮、護法＝略小的紙人
-  bodyScale: { swarm: 0.6, elite: 1.15, ward: 0.86, haunt: 0.82 },
+  // legend＝傳說三尊（請神存在感卷 2026-09-13）：**不看 body**，三尊一律走這一格。
+  // 改前三尊跟一般妖共用倍率（殘日 elite 1.15／大士爺 ward 0.86／有應公 haunt 0.82），
+  // 加上「小前大後」的排序，矮的兩尊排前排、殘日被推到後排被擋掉 65–67%（基準量測見
+  // docs/experiments/2026-09-13-legend-presence-evidence/before/）。
+  bodyScale: { swarm: 0.6, elite: 1.15, ward: 0.86, haunt: 0.82, legend: 1.35 },
+  // 傳說腳下紙紮基座把整尊抬高多少（單位＝這一尊自己的 sc×bs，所以視窗大小改變時比例不變）。
+  // 起點 0.30 由派工書給、允許 0.25–0.45 實測後定（凍結檔 §1 第 4 點），G1 門檻本身不動。
+  legendLift: 0.42,
+  // 傳說的畫面高度保險絲（CSS 像素，含基座抬起來那一段）。creaturePx 150 是對「精英 ×1.15」調出來的
+  // （見 :73 那條註解：190 時精英在 390px 高的畫面被切頭），傳說 ×1.35 再加基座就會超出去——
+  // 實測 8v8 下有應公（該側排法剛好不必縮 fit）頭頂落在 y=0，整顆頭被視口上緣切掉。
+  // 這一格只會**把傳說壓小**、永遠不會放大它（Math.min），跟 creaturePx 是同一種保險絲。
+  legendPxMax: 172,
   crowdShrink: 0.05, // 每多一尊整排再縮多少（下限 crowdMin），免得八尊擠成一團
   crowdMin: 0.62,
   hauntFloat: 0.3, // 作祟離地飄多高（世界單位×scale）
@@ -102,6 +114,10 @@ const FIG = {
   brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
 };
 
+/** 這一尊的體型倍率：傳說一律走 `legend` 那一格（**不看 body**），其餘照 body（請神存在感卷 2026-09-13）。
+ *  站位規劃（footBase）與主迴圈的 bs 共用這一支，不得各寫一套。 */
+const bodyScaleOf = (u) => FIG.bodyScale[u && u.lg ? 'legend' : (u && u.body)] || 1;
+
 const NATURAL_H = FIG.headY + FIG.headR; // 人形在 scale=1 時的世界高度（頭頂）
 const RIM_COLOR = 0xf0a840; // 燈籠光暈（對齊 assets/theme.css 的 --c-lantern-glow）
 const HIT_RED = 0xff2a14; // 批 2-a：被打的那一尊閃的紅（暖紅，不是純紅——純紅在 ACES 下會糊成一團）
@@ -110,6 +126,10 @@ const HIT_C = new THREE.Color(HIT_RED);
 const INK = 0x1a0a0a; // 版畫粗描邊（對齊角色 SVG 的 --c-ink）
 const CLOTH_FALLBACK = 0x7a3020;
 const SHADOW_COLOR = 0x05030c;
+
+/* 尊名牌可以擺到多高（NDC.y，1＝視口上緣）。紙籤本身的半高在對決機位下約佔 0.08 NDC，
+   留一點餘裕取 0.88——超過就被上緣切掉，那正是使用者會看到「只剩半張紙」的那一版。 */
+const PLATE_SAFE_NDC = 0.88;
 
 const clothCache = new Map(); // roleId → 袍子色（從該角色 SVG 的 --cloth 讀出來）
 
@@ -313,6 +333,254 @@ async function clothOf(roleId, assetsBase) {
   const hex = m ? parseInt(m[1].slice(1).padEnd(6, m[1].slice(1)), 16) : CLOTH_FALLBACK;
   clothCache.set(roleId, hex);
   return hex;
+}
+
+/* ═══════════ 傳說三尊的常駐配件（請神存在感卷，2026-09-13）═══════════
+   三件掛在 `f.group` 底下——跟著這一尊的縮放、站位、面向走，不必另外每幀對位：
+     ① `legend-base`   腳下紙紮基座（日輪台／神轎座／骨堆），把頭肩抬過前排
+     ② `legend-aura`   常駐光效（餘暉盤／一炷香／鬼火群）
+     ③ `legend-plate`  頭頂尊名牌（Sprite，恆面向鏡頭；文字由 index.html 的 LEGENDS.sn 帶進來）
+   ★名字一律以 `legend-` 開頭★：G1 的遮擋量測用這個前綴把配件排除在「這一尊的剪影」之外
+   （`tests/tools/legend-presence.mjs` 的 SKIP），基座不得灌水稀釋遮擋比例。
+   材質紀律（ART_BIBLE §9／§10.1）：基座＝受光的 MeshStandardMaterial＋flatShading（平塗色塊硬邊、
+   低多邊形）；光效＝MeshBasicMaterial＋NormalBlending＋`toneMapped:false`（＝js/trait-fx.js:160
+   `MAT_SOLID` 同一組語法），顏色一律壓在 bloom 門檻（js/renderer.js:34 `BLOOM.threshold` 0.7）以下
+   ——常駐的東西不該一直在溢光。
+   語彙避讓：大士爺用的是**一炷香**（實體香枝＋頂端火頭），不是垂直光柱——§10.1 把「垂直光柱」
+   列為祖靈專屬；有應公的鬼火點是 §10.1 陰氣的專屬語彙。 */
+/* 基座在**本地**座標裡佔的高度。主迴圈把整尊抬高 `FIG.legendLift × sc×bs×fshr`（世界單位），
+   基座頂面在本地 y=0、往下佔 LIFT_UNIT，兩者取同一個數，基座底面才剛好落在桌面上——
+   所以這裡直接讀 FIG.legendLift，不另抄一個數字（改 lift 不必記得同步改這裡）。 */
+const LIFT_UNIT = FIG.legendLift;
+function lcg(seed) { let s = (seed >>> 0) || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+
+/** 一堆軸對齊方塊併成單一 geometry（1 個 draw call）。`ry` 繞 Y 轉：法線是軸向的，一起轉即可。 */
+function boxSoup(specs) {
+  const src = new THREE.BoxGeometry(1, 1, 1);
+  const sp = src.attributes.position.array, sn = src.attributes.normal.array, si = src.index.array;
+  const pos = [], nor = [];
+  for (const s of specs) {
+    const c = Math.cos(s.ry || 0), sI = Math.sin(s.ry || 0);
+    for (let k = 0; k < si.length; k++) {
+      const v = si[k];
+      const x = sp[v * 3] * s.w, y = sp[v * 3 + 1] * s.h, z = sp[v * 3 + 2] * s.d;
+      pos.push(x * c + z * sI + s.x, y + s.y, -x * sI + z * c + s.z);
+      const nx = sn[v * 3], ny = sn[v * 3 + 1], nz = sn[v * 3 + 2];
+      nor.push(nx * c + nz * sI, ny, -nx * sI + nz * c);
+    }
+  }
+  src.dispose();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return g;
+}
+
+/** 把幾個只有 position／normal 的幾何併成一顆（省 draw call；G4 的 1000 上限很緊）。 */
+function mergePosNor(list) {
+  const pos = [], nor = [];
+  for (const g0 of list) {
+    const g = g0.index ? g0.toNonIndexed() : g0;
+    pos.push(...g.attributes.position.array);
+    nor.push(...g.attributes.normal.array);
+    if (g !== g0) g.dispose();
+    g0.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return out;
+}
+
+/** 日輪的裂芒緣：n 片三角形芒，**角距與長度都不等分**（ART_BIBLE §9：等分放射就是輪子）。平躺在 y 高度。 */
+function crackRays(rIn, rOut, n, y, seed) {
+  const rnd = lcg(seed);
+  const pos = [], nor = [];
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2 + rnd() * 0.16;
+    const a1 = ((i + 1) / n) * Math.PI * 2 - rnd() * 0.16;
+    const am = (a0 + a1) / 2 + (rnd() - 0.5) * 0.10;
+    const rt = rIn + (rOut - rIn) * (0.35 + rnd() * 0.95);
+    pos.push(Math.cos(a0) * rIn, y, Math.sin(a0) * rIn,
+      Math.cos(a1) * rIn, y, Math.sin(a1) * rIn,
+      Math.cos(am) * rt, y, Math.sin(am) * rt);
+    for (let k = 0; k < 3; k++) nor.push(0, 1, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return g;
+}
+
+/** 徑向漸層圓貼圖（餘暉盤用）。中心 hot、外圈 cool、最外透明。 */
+function radialTex(hot, cool) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, hot); g.addColorStop(0.30, hot); g.addColorStop(0.62, cool); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** 尊名紙籤貼圖：米黃紙底＋系色邊框＋墨字。文字來自 LEGENDS.sn（index.html 是唯一事實來源）。 */
+function plateTex(text, edgeHex) {
+  const W = 256, H = 104;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const edge = '#' + edgeHex.toString(16).padStart(6, '0');
+  // 版畫紙籤：暖紙底（sRGB 205 ⇒ 線性 0.61，在 bloom 0.7 以下）＋上下系色橫帶＋粗墨邊。
+  // 只靠一圈細系色邊在 844×390 上讀不出顏色（第一輪自評：整張變成灰標籤），所以系色改成帶狀。
+  x.fillStyle = '#cdb98c';
+  x.beginPath(); x.moveTo(8, 0); x.lineTo(W - 8, 0); x.lineTo(W, H * 0.5); x.lineTo(W - 8, H); x.lineTo(8, H); x.lineTo(0, H * 0.5); x.closePath(); x.fill();
+  x.save(); x.clip();
+  x.fillStyle = edge; x.fillRect(0, 0, W, 11); x.fillRect(0, H - 11, W, 11);
+  x.restore();
+  x.lineWidth = 6; x.strokeStyle = '#140806'; x.stroke();
+  x.fillStyle = '#1a0a0a';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  const n = Math.max(1, (text || '').length);
+  x.font = `bold ${Math.round(n <= 2 ? 66 : 54)}px "Noto Serif TC","Songti TC",serif`;
+  x.fillText(text || '尊', W / 2, H / 2 + 3);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/* 三尊各自的配件譜。鍵＝模型鍵（LEGENDS.m）。查不到的傳說（將來的第四尊）走 `fallback`，
+   不會因為沒登記就完全沒有存在感訊號。顏色取 ART_BIBLE §10.1 三系主色的壓暗版（< bloom 0.7）。 */
+const LEGEND_KIT = {
+  canri: { base: 'sun', paper: 0x5a2418, ink: 0x1a0a0a, hot: 0xd0a058, cool: 0x6e2418, edge: 0x3f6fd8, aura: 'afterglow' },
+  dashiye: { base: 'palanquin', paper: 0x6b2a18, ink: 0x2a1004, hot: 0xc8941a, cool: 0xc04a30, edge: 0xc8941a, aura: 'incense' },
+  youyinggong: { base: 'bones', paper: 0x9a9284, ink: 0x2a2a26, hot: 0xa8ccbc, cool: 0x4a6a5c, edge: 0xa8ccbc, aura: 'wisps' },
+  fallback: { base: 'palanquin', paper: 0x5a4a38, ink: 0x1a1410, hot: 0xc0a070, cool: 0x60482e, edge: 0xc0a070, aura: 'afterglow' },
+};
+
+/** 建一尊傳說的整組配件（基座＋光效＋名牌），回傳 { group, update(now), dispose() }。 */
+function makeLegendKit(ab, sn) {
+  const K = LEGEND_KIT[ab] || LEGEND_KIT.fallback;
+  const root = new THREE.Group();
+  root.name = 'legend-kit';
+  const geos = [], mats = [];
+  const paperMat = new THREE.MeshStandardMaterial({ color: K.paper, roughness: 0.92, metalness: 0, flatShading: true });
+  mats.push(paperMat);
+
+  // ── ① 基座：頂面切齊 y=0（＝這一尊的腳底），往下佔 LIFT_UNIT ──
+  const base = new THREE.Group();
+  base.name = 'legend-base';
+  if (K.base === 'sun') {
+    // 圓盤與裂芒緣併成一顆（G4 的 draw call 上限很緊，能併就併）
+    const disc = new THREE.CylinderGeometry(0.66, 0.74, LIFT_UNIT, 16);
+    disc.translate(0, -LIFT_UNIT / 2, 0);
+    const g = mergePosNor([disc, crackRays(0.60, 0.92, 11, -0.022, 20260913)]);
+    const m = new THREE.Mesh(g, paperMat);
+    m.material.side = THREE.DoubleSide; // 裂芒是單面三角形，俯角下要兩面都畫
+    geos.push(g); base.add(m);
+  } else if (K.base === 'palanquin') {
+    const g = boxSoup([
+      { w: 1.16, h: 0.13, d: 1.16, x: 0, y: -0.065, z: 0 }, // 方台
+      ...[-0.47, 0.47].flatMap((px) => [-0.47, 0.47].map((pz) => ({ w: 0.09, h: 0.17, d: 0.09, x: px, y: -0.215, z: pz }))), // 四柱
+      { w: 1.02, h: 0.05, d: 0.06, x: 0, y: -0.25, z: -0.47 }, { w: 1.02, h: 0.05, d: 0.06, x: 0, y: -0.25, z: 0.47 }, // 短欄
+      { w: 0.06, h: 0.05, d: 1.02, x: -0.47, y: -0.25, z: 0 }, { w: 0.06, h: 0.05, d: 1.02, x: 0.47, y: -0.25, z: 0 },
+      // 身後那一炷香的香枝：跟基座同一顆幾何、同一顆材質（朱漆），只有頂端火頭是獨立的 Sprite。
+      // 併進來是為了省 draw call（G4 上限 1000，滿編 8v8 的基準已經 966）。
+      { w: 0.045, h: 1.45, d: 0.045, x: 0.02, y: -LIFT_UNIT + 0.72, z: -0.46 },
+    ]);
+    const m = new THREE.Mesh(g, paperMat);
+    geos.push(g); base.add(m);
+  } else {
+    const rnd = lcg(920913);
+    const specs = [];
+    for (let i = 0; i < 9; i++) {
+      const a = rnd() * Math.PI * 2, r = 0.10 + rnd() * 0.48;
+      specs.push({ w: 0.13 + rnd() * 0.30, h: 0.07 + rnd() * 0.09, d: 0.09 + rnd() * 0.13,
+        x: Math.cos(a) * r, y: -LIFT_UNIT + 0.05 + rnd() * (LIFT_UNIT - 0.10), z: Math.sin(a) * r, ry: rnd() * Math.PI });
+    }
+    const g = boxSoup(specs);
+    const m = new THREE.Mesh(g, paperMat);
+    geos.push(g); base.add(m);
+  }
+  root.add(base);
+
+  // ── ② 常駐光效 ──
+  const aura = new THREE.Group();
+  aura.name = 'legend-aura';
+  let breathe = null, wisps = null;
+  const hex = (h, a) => `rgba(${(h >> 16) & 255},${(h >> 8) & 255},${h & 255},${a})`;
+  if (K.aura === 'afterglow') {
+    const tex = radialTex(hex(K.hot, 1), hex(K.cool, 0.85));
+    const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.62, depthWrite: false,
+      blending: THREE.NormalBlending, toneMapped: false, fog: false, side: THREE.DoubleSide });
+    const geo = new THREE.PlaneGeometry(2.6, 2.6);
+    const disc = new THREE.Mesh(geo, m);
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = -LIFT_UNIT + 0.014; // 貼著桌面、在基座外圍
+    aura.add(disc);
+    geos.push(geo); mats.push(m);
+    breathe = { mat: m, lo: 0.44, hi: 0.72, hz: 0.22 };
+  } else if (K.aura === 'incense') {
+    const tipTex = radialTex(hex(K.hot, 1), hex(K.cool, 0.5));
+    const tipMat = new THREE.SpriteMaterial({ map: tipTex, transparent: true, opacity: 0.85, depthWrite: false,
+      blending: THREE.NormalBlending, toneMapped: false, fog: false });
+    const tip = new THREE.Sprite(tipMat);
+    tip.scale.set(0.42, 0.42, 1);
+    tip.position.set(0.02, -LIFT_UNIT + 1.46, -0.46);
+    aura.add(tip);
+    mats.push(tipMat);
+    breathe = { mat: tipMat, lo: 0.55, hi: 0.95, hz: 0.35 };
+  } else {
+    const geo = new THREE.SphereGeometry(0.046, 8, 6);
+    const m = new THREE.MeshBasicMaterial({ color: K.hot, transparent: true, opacity: 0.80, depthWrite: false,
+      blending: THREE.NormalBlending, toneMapped: false, fog: false });
+    const N = 4;
+    const inst = new THREE.InstancedMesh(geo, m, N);
+    inst.frustumCulled = false;
+    aura.add(inst);
+    geos.push(geo); mats.push(m);
+    const rnd = lcg(77013);
+    // 繞身半徑貼著身體（第一輪自評：0.42–0.72 那一版飄到兩軍中間，像灰泡泡不像鬼火）
+    wisps = { inst, N, seed: Array.from({ length: N }, () => ({ r: 0.26 + rnd() * 0.20, y: 0.28 + rnd() * 0.72, hz: 0.10 + rnd() * 0.16, ph: rnd() * 6.283, bob: 0.05 + rnd() * 0.08 })), m4: new THREE.Matrix4(), v3: new THREE.Vector3() };
+  }
+  root.add(aura);
+
+  // ── ③ 頭頂尊名牌（Sprite：父層怎麼轉都恆面向鏡頭）──
+  const pTex = plateTex(sn, K.edge);
+  // 名牌是 HUD：`depthTest:false` ＋ 高 renderOrder。被上緣夾限往下壓的那幾尊（滿編時的有應公）
+  // 位置會落進自己的身體裡，開深度測試就整張被身體吃掉——實測那一版畫面上完全看不到名牌。
+  const pMat = new THREE.SpriteMaterial({ map: pTex, transparent: true, depthWrite: false, depthTest: false, toneMapped: false, fog: false });
+  const plate = new THREE.Sprite(pMat);
+  plate.name = 'legend-plate';
+  plate.scale.set(0.56, 0.227, 1);
+  plate.renderOrder = 999;
+  root.add(plate);
+  mats.push(pMat);
+
+  return {
+    group: root,
+    plate,
+    /** 每幀：光效呼吸／鬼火繞身；名牌高度由呼叫端依包圍盒設一次。 */
+    update(now) {
+      const t = now * 0.001;
+      if (breathe) { const k = 0.5 + 0.5 * Math.sin(t * breathe.hz * 6.2832); breathe.mat.opacity = breathe.lo + (breathe.hi - breathe.lo) * k; }
+      if (wisps) {
+        for (let i = 0; i < wisps.N; i++) {
+          const s = wisps.seed[i];
+          const a = s.ph + t * s.hz * 6.2832;
+          wisps.v3.set(Math.cos(a) * s.r, s.y + Math.sin(t * 1.1 + s.ph) * s.bob, Math.sin(a) * s.r);
+          wisps.m4.makeTranslation(wisps.v3.x, wisps.v3.y, wisps.v3.z);
+          wisps.inst.setMatrixAt(i, wisps.m4);
+        }
+        wisps.inst.instanceMatrix.needsUpdate = true;
+      }
+    },
+    dispose() {
+      geos.forEach((g) => g.dispose());
+      mats.forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); }); // 貼圖跟著自己那顆材質走，不另外再 dispose 一次
+    },
+  };
 }
 
 /**
@@ -619,6 +887,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
   document.addEventListener('ys:fx-burn', onFigBurn);
   document.addEventListener('ys:duel-end', onDuelEnd);
 
+  const tmpNdcA = new THREE.Vector3(); // 尊名牌上緣夾限用的暫存（每幀重用，不在迴圈裡 new）
+  const tmpNdcB = new THREE.Vector3();
   const tmpRight = new THREE.Vector3();
   const tmpFwd = new THREE.Vector3(); // 「朝鏡頭」的水平向量，用來把整排排出前後深度
   const offset = [-FIG.spread, FIG.spread]; // 兩人離畫面中心的水平距離（世界單位）
@@ -704,19 +974,35 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const is3dRow = any3d;
         // 腳印半徑從幾何與已知縮放算（影子幾何半徑 × 這尊的 sc × bodyScale × 這一側的 crowd×fit），不讀上一幀的 shadow.scale：
         // 上一幀值在池子新建時是 1、又含上一輪的 fit，會讓首幀選錯排數（覆審第 2 輪 H-2 ③）與循環依賴
-        const footBase = (jj) => { const g = slots[i][jj]; const u0 = list[jj]; if (!g) return 0.3; const rad = g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42; const sc0 = g.skin === 'creature' ? figScale3d : figScale; return rad * sc0 * (FIG.bodyScale[u0.body] || 1); };
+        const footBase = (jj) => { const g = slots[i][jj]; const u0 = list[jj]; if (!g) return 0.3; const rad = g.shadow.geometry.parameters ? g.shadow.geometry.parameters.radius : 0.42; const sc0 = g.skin === 'creature' ? figScale3d : figScale; return rad * sc0 * bodyScaleOf(u0); };
         const lo = FIG.centerGap, hi = FIG.rimMax, want = Math.abs(offset[i]);
         // 站位順序：小的前排、大的後排（依 bodyScale：群體 0.6 → 作祟 0.82 → 護法 0.86 → 精英 1.15），同體型保留名冊順序。
         // 只動站位不動名冊 j／unit id（beats 的 actor/target 與 DOM 隻數牌都靠 id），所以這裡是一個排列 order[slot]=j。
-        const order = list.map((_, jj) => jj).sort((a, b) => ((FIG.bodyScale[list[a].body] || 1) - (FIG.bodyScale[list[b].body] || 1)) || (a - b));
+        const baseOrder = list.map((_, jj) => jj).sort((a, b) => (bodyScaleOf(list[a]) - bodyScaleOf(list[b])) || (a - b));
+        // 傳說列（請神存在感卷 2026-09-13）：傳說**不參與**「小前大後」的體型排序——
+        // 改前殘日（elite 1.15）被這條規則推到最後一排，8v8 下被擋掉 65–67%（基準見凍結檔）。
+        // 改後三尊整排獨占第 LGROW 排並置中：前排留給群體，第二排中央最不被擋、也最靠鏡頭中軸。
+        // 排不出第二排（rows ≤ LGROW，＝n===3 的一排制）時 useLg 為 false，走 baseOrder，位置與改前逐項相同。
+        const LGROW = 1;
+        const lgIdx = list.map((_, jj) => jj).filter((jj) => !!list[jj].lg);
+        const plainIdx = list.map((_, jj) => jj).filter((jj) => !list[jj].lg).sort((a, b) => (bodyScaleOf(list[a]) - bodyScaleOf(list[b])) || (a - b));
         // 排數自適應（覆審 H-2）：從 n=3 一排／其餘每排 perRow 起算，哪一排塞不進 rowMinStep 就多一排重排，直到每排都 ≥ rowMinStep 或一排一尊。
         // 三件精英（腳印各 0.6）同排時 W 只剩 0.73、s 會被壓到 0.34；極端視窗 W=0 兩尊會重疊——多一排就解。
         const layout = (rows, fit) => {
           const crowdEff = crowd * fit;
           const step0 = (any3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowdEff;
           const footOf = (jj) => footBase(jj) * crowdEff;
+          // 傳說在場且排得出第 LGROW 排時：那一排 m＝傳說數（同方兩尊以上就並排），其餘尊平分剩下的排
+          const useLg = lgIdx.length > 0 && rows > LGROW && plainIdx.length >= rows - 1;
           const sizes = [];
-          { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
+          if (useLg) {
+            const rest = plainIdx.length, other = rows - 1, bs0 = Math.floor(rest / other), ex0 = rest % other;
+            let q = 0;
+            for (let r = 0; r < rows; r++) { if (r === LGROW) sizes.push(lgIdx.length); else { sizes.push(bs0 + (q < ex0 ? 1 : 0)); q++; } }
+          } else { const base = Math.floor(n / rows), extra = n % rows; for (let r = 0; r < rows; r++) sizes.push(base + (r < extra ? 1 : 0)); }
+          const order = [];
+          if (useLg) { let p = 0; for (let r = 0; r < rows; r++) { if (r === LGROW) order.push(...lgIdx); else for (let k = 0; k < sizes[r]; k++) order.push(plainIdx[p++]); } }
+          else order.push(...baseOrder);
           const gap = rows > 1 ? Math.min(FIG.rowGap3d, FIG.rowSpanMax / (rows - 1)) : 0;
           const P = { rows, sizes, gap, fit, crowd: crowdEff, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true };
           let slot = 0;
@@ -729,12 +1015,17 @@ export function createDuelFigures(scene, camera, opts = {}) {
             // 最外那尊中心的橫向上限：腳印外緣要在半徑 rimMax 的圓內 → sqrt((rimMax−fOut)²−depth²)，與下面撞擊夾限同一條式子
             const hiOut = Math.sqrt(Math.max(0, (hi - fOut) * (hi - fOut) - depthR * depthR));
             const W = Math.max(0, hiOut - lo - fIn); // 這一排兩端腳印中心能拉開的最大距離
-            const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, FIG.rowMinStep));
-            if (m > 1 && s < FIG.rowMinStep) P.ok = false;
+            // 傳說列的最小間距另外加一條：**相鄰兩尊的腳印不得互相重疊**（fIn+fOut）。
+            // rowMinStep 0.55 是照一般妖的尺寸訂的，傳說 ×1.35 的腳印兩顆加起來就超過它 ⇒ 兩尊有應公
+            // （haunt×2，同一排兩尊）會左右交疊、互相遮住對方（實測那一格是三尊裡唯一過不了 ≤10% 的）。
+            const sMin = (useLg && r === LGROW) ? Math.max(FIG.rowMinStep, fIn + fOut) : FIG.rowMinStep;
+            const s = m <= 1 ? step0 : Math.min(W / (2 * need), Math.max(step0, sMin));
+            if (m > 1 && s < sMin) P.ok = false;
             if (lo + fIn + need * s > hiOut - need * s) P.ok = false; // 連一尊都塞不進可用區間（會壓到中線或桌緣）
             let c = Math.max(lo + fIn + need * s, Math.min(want, hiOut - need * s)); // 盡量貼欄位中心，不夠就往外滑
             if (lo + fIn + need * s > hiOut - need * s) c = (lo + fIn + hiOut) / 2;
-            if (r % 2) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hiOut - (c + need * s))); // 奇數排往外錯半格（塞得下才錯）
+            // 奇數排往外錯半格（塞得下才錯）。★傳說列不錯半格★——錯開就把它推離鏡頭中軸，那正是本卷要的東西
+            if (r % 2 && !(useLg && r === LGROW)) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hiOut - (c + need * s)));
             P.steps.push(s); P.centers.push(c);
             for (let k = 0; k < m; k++) { const j0 = order[slot + k]; P.rowOf[j0] = r; P.idxOf[j0] = k; }
             slot += m;
@@ -819,8 +1110,17 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const sc = is3d ? figScale3d : figScale;
         const step = (is3d ? FIG.rowStepPx3d : FIG.rowStepPx) * pxWorld * crowd;
         const push = (dir === 1 ? -side * FIG.lungeIn : dir === -1 ? side * FIG.lungeBack : 0) * kick * hitPower * sc;
-        const bs = (FIG.bodyScale[u.body] || 1) * (plan ? plan.crowd : crowd); // n≥3 時 crowd 含這一側的 fit（塞不下才 <1）
-        const haunt = u.body === 'haunt';
+        let bs = bodyScaleOf(u) * (plan ? plan.crowd : crowd); // n≥3 時 crowd 含這一側的 fit（塞不下才 <1）
+        // 傳說的畫面高度保險絲（見 FIG.legendPxMax）：整尊＋基座換算成 CSS 像素，超過上限就等比壓回來
+        if (u.lg && pxWorld > 0) {
+          const hPx = (FIG.creatureH + FIG.legendLift) * sc * bs / pxWorld;
+          if (hPx > FIG.legendPxMax) bs *= FIG.legendPxMax / hPx;
+        }
+        // ★傳說一律實體★（請神存在感卷 2026-09-13）：有應公是 haunt，改前跟著吃半透明（貼片退路）、
+        // 離地飄、**而且不落影**（`f.shadow.visible = !haunt`，基準量測 shadow=false）。三尊是請下來的神，
+        // 不是飄過去的孤魂——把 haunt 這個旗標對傳說關掉，半透明／浮空／無影三件一次都不套，
+        // 它也就站得住腳下那座基座。
+        const haunt = u.body === 'haunt' && !u.lg;
         // 近景切鏡：非主角的尊退暗＋縮一點；**燒毀中的尊（bt!=null）完全不受影響**——
         // 它的 opacity 沿燒毀曲線走，退暗會把化灰演成一半就變淡、復原又會讓它突然變回實心（凍結檔 P3）。
         // 批 2-a：被打的那一尊閃紅。燒毀中的尊（bt!=null）不閃——它的亮滅歸燒毀曲線管（凍結檔 R2）。
@@ -833,6 +1133,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
         const focusOff = focusK > 0 && bt == null && !focusKeeps(i, u.id);
         const fdim = focusOff ? 1 - (1 - FOCUS.dim) * focusK : 1;
         const fshr = focusOff ? 1 - (1 - FOCUS.shrink) * focusK : 1;
+        // 基座把整尊抬高多少（跟著這一尊的縮放走，視窗大小改變時比例不變；近景退縮時一起縮，
+        // 不然腳會離開基座頂面）。★必須排在 fshr 之後★——放在它前面是 TDZ。
+        const lift = u.lg ? FIG.legendLift * sc * bs * fshr : 0;
         // 一整排以自己那一欄的中心對稱排開，前後交錯避免完全重疊
         let lane, depth;
         if (plan) {
@@ -853,7 +1156,8 @@ export function createDuelFigures(scene, camera, opts = {}) {
         { const foot = (f.shadow.geometry.parameters ? f.shadow.geometry.parameters.radius : 0.42) * sc * bs; const rr = Math.max(0, FIG.rimMax - foot); const lim = Math.sqrt(Math.max(0, rr * rr - depth * depth)); const stat = side * (offset[i] + lane); if (side * x > lim && side * x > stat) x = side * Math.max(lim, stat); }
         const grounded = is3d && typeof f.groundFx === 'function' && !!f.groundFx();
         // 有腳下環境（水面）的不上下漂：水面跟著漂會沉到桌面下（實測 groupY 0.112～0.192，桌頂 0.15）
-        const bobAmp = grounded ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;
+        // 傳說不上下漂：它站在一座實心基座上，漂起來會跟基座脫開（基座本身不漂）
+        const bobAmp = (grounded || u.lg) ? 0 : (haunt ? FIG.hauntBob : FIG.bobAmp) * sc * bs;
         const bob = Math.sin(now * 0.001 * Math.PI * 2 * FIG.bobHz + j * 1.7 + i * 0.9) * bobAmp;
 
         f.group.scale.setScalar(sc * bs * fshr);
@@ -865,9 +1169,21 @@ export function createDuelFigures(scene, camera, opts = {}) {
         // 3D 妖有腳下環境（buoy 的水面）時不再離地飄：水面掛在 group 底下，飄起來就是一灘懸空的水（審查 H-2）；
         // 浮標本身的 min.y 0.04 已經讓它浮在水面上
         // 內建燒毀的上飄：有水面的不飄（水會離桌，覆審 H-2 殘留）；3D 皮的單位是 sc 不是紙紮的 figScale
-        f.group.position.y = FIG.footY + bob
+        f.group.position.y = FIG.footY + bob + lift
           + (haunt && !grounded ? FIG.hauntFloat * (is3d ? FIG.hauntFloat3d : 1) * sc * bs : 0)
           + (grounded ? 0 : bu * FIG.burnRise * sc);
+        // 傳說的常駐配件（基座／光效／名牌）：第一次用到才建，掛在 f.group 底下跟著縮放與面向走。
+        // 基座頂面在本地 y=0（＝腳底），所以它剛好填滿被 lift 抬起來的那一段。
+        if (u.lg) {
+          if (!f.__lkit) {
+            f.__lkit = makeLegendKit(f.ab || (u.ab || ''), u.sn || '');
+            f.group.add(f.__lkit.group);
+            const bnd = typeof f.bounds === 'function' ? f.bounds() : null;
+            f.__lkit.plateY = (bnd ? bnd.max.y : NATURAL_H) + 0.14; // 理想高度＝頭頂再上去一點（本地單位）
+          }
+          f.__lkit.group.visible = true;
+          f.__lkit.update(now);
+        } else if (f.__lkit) { f.__lkit.group.visible = false; }
         if (is3d) {
           // 3D 妖面向對手（模型正面＝+Z）：左邊的朝畫面右、右邊的朝畫面左，再往鏡頭轉 faceTurn3d 度
           // 讓臉看得見。被打中的那一方以腳底為樞紐歪出去；不加紙紮那個 lean（四足獸側傾像翻倒）。
@@ -896,6 +1212,23 @@ export function createDuelFigures(scene, camera, opts = {}) {
           f.setRim(bt == null ? Math.min(1, rimBase * hrim) : (rimBase + 0.7 * Math.sin(bu * Math.PI)) * (1 - bu));
         }
 
+        // 尊名牌的上緣安全區：滿編時傳說幾乎頂到視口上緣，名牌掛在頭頂上方會被切掉（實測 844×390 下
+        // 只剩半張紙籤）。把理想位置投影到 NDC，越過安全線就往下壓——**只往下、不往上**，所以畫面
+        // 塞得下時位置與不夾一模一樣。線性修正用兩點投影現算斜率，每幀重算、不累積漂移。
+        if (u.lg && f.__lkit && f.__lkit.plateY !== undefined) {
+          const P = f.__lkit.plate;
+          P.position.set(0, f.__lkit.plateY, 0);
+          // ★用 updateMatrix()（本地、O(1)）而不是 updateMatrixWorld()★：後者會遞迴整棵骨架，
+          // 一幀對每尊傳說各走一次，實測 8v8 的 rendersPerSec 比值掉到 0.947（G4 門檻 0.95）。
+          // f.group 是直接 scene.add 上去的，父層是身分矩陣 ⇒ matrix 與 matrixWorld 逐值相同。
+          f.group.updateMatrix();
+          tmpNdcA.set(0, f.__lkit.plateY, 0).applyMatrix4(f.group.matrix).project(camera);
+          if (tmpNdcA.y > PLATE_SAFE_NDC) {
+            tmpNdcB.set(0, f.__lkit.plateY - 0.5, 0).applyMatrix4(f.group.matrix).project(camera);
+            const slope = (tmpNdcA.y - tmpNdcB.y) / 0.5; // 本地 1 單位換多少 NDC.y
+            if (slope > 1e-6) P.position.y = f.__lkit.plateY - (tmpNdcA.y - PLATE_SAFE_NDC) / slope;
+          }
+        }
         f.shadow.position.set(f.group.position.x, 0.152, f.group.position.z);
         f.shadow.visible = !haunt; // 飄浮的影子不落地
 
