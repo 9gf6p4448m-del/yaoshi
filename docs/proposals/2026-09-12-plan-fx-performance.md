@@ -74,3 +74,20 @@
 worktree `agent-a0917744177b854a1` 轉正進 `js/trait-fx.js`＋常駐預熱（`programsGrew` 維持 0）
 ② `vocab.js` 建 `MOVE_SPEC` 登記表並補 P1 的機械檢查 ③ Q5 的尺寸記錄治具。
 `st.pillar`（祖靈）／`st.stain`（陰氣）／`st.paperProps`（群體道具）在各自那一批動手前補齊。
+
+### 7.3 批 1 階段 A 的狀態（2026-09-13，範本招簽字前）
+
+**三件前置全部完成**，虎爺印 E 已轉正，P0–P8 除 P4（盲讀，照 §4 流程要等 8 支鋪完）之外全綠。
+報告＝`docs/experiments/2026-09-13-xianghuo-b1-report.md`，交付物＝`…-b1-evidence/`，
+worktree `agent-af4b6dd83859a028a`（**未合併、未 push**，`index.html` 一行未動、版號未上）。
+
+| 前置 | 落點 |
+|---|---|
+| ① `st.paperStamp`／`st.solid`／`st.stick` | 基準 `f8f7c98` 上已在 `js/trait-fx.js:715`／`:485`／`:794`，本階段驗證 `programsGrew=0` 並抽出共用零件 |
+| ② `MOVE_SPEC` ＋ P1 機械檢查 | `js/trait-fx/vocab.js:176`（＋`:139` 白名單）、`tests/fxvocab.test.mjs:130-196` |
+| ③ Q5 尺寸記錄治具 | `tests/tools/prop-size.mjs`（＋掛勾 `traitfx-preview.html:252`） |
+| ＋ `st.paperProps`（香火批要用） | `js/trait-fx.js:837` |
+
+**下一步＝製作人看 sheet／GIF 簽字**（§4 流程：範本招簽字後才准鋪其餘 8 支）。
+同時要裁的：大印尺寸超過「本體高 1/2」36%（規則要量 scale 還是量包圍盒）、
+語彙檔 §C 八處動詞正規化裡的兩處、`st.paperProps` 不做墨線邊的規格例外。
