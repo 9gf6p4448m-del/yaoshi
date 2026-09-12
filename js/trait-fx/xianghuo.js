@@ -949,58 +949,115 @@ const MOVES = {
   },
 
   /* 香灰符・香灰符（ashcharm，護法×2）：二拍前鋒首隻 hp+1。
-     編舞：符紙飄揚（0–620ms：整條 FuD 符鏈依序波動、牆符與六柱線香顫）
-          → 右臂把香灰捧到胸前、身體微俯（0–300ms）→ 一撮金灰自掌心升起（300ms）
-          → 拋物線飄到本方最前一隻的頭頂（340–600ms）
-          → 灰落下（頭頂火星、腳下一圈金環漲開、那一隻邊光亮起、被托起半寸）→ 收手（620–880ms）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 7 列；`MOVE_SPEC.wardHpFirst = { 丙, 降, 升 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝降**：`BHand`／`RHand1Ha`／`RElbow1El` 捧灰到胸 → 往前鋒頭頂傾倒，
+         `Chest`／`Neck`／`Head` 低頭送出。
+       **道具**＝丙 香火：**金灰顆粒流**（`st.paperProps` 一群紙片，★不是白煙、不是球★）
+         ＋乙 **金色方符**（`talis`，`st.paperStamp` 實體，**一張落下來的符**）。
+       **受益方反應＝升**：前鋒上抬＋亮邊＋身上蓋方符。
+
+     ★區分點（§C2）★：① 顆粒流不是球——現況的白光球與另外 4 支撞；
+     ② 符是**落下來的一張**，與常駐在身上的符鏈（`FuD*`／`JossT*`）分開，這是 A 類失敗的唯一解。
+     ★tier 1（300ms）／tier 2（900ms）共用這一支函式★。 */
   wardHpFirst(st) {
-    const line = st.actor.slice().sort((f1, f2) => st.worldOf(f2, null, _a).dot(st.dir) - st.worldOf(f1, null, _b).dot(st.dir));
-    const front = line[0];
-    const monk = line[line.length - 1];
-    const chain = ['FuD1', 'FuD3', 'FuD5', 'FuD8', 'FuD9', 'FuD10', 'FuD12', 'FuD14', 'FuD15', 'FuD16', 'FuD19', 'FuD20', 'FuD21', 'FuD22'];
-    const joss = ['JossT1', 'JossT2', 'JossT3', 'JossT4', 'JossT5', 'JossT6'];
-    const walls = ['WalA1', 'WalA2', 'WalA3', 'WalA4', 'WalA5', 'WalB1', 'WalB2', 'WalB3', 'WalB4', 'WalB5'];
-    st.tween({ ms: 620, ease: 'linear', update(t) {
-      const w = Math.min(1, t * 3) * (1 - Math.max(0, (t - 0.72) / 0.28));
-      for (let i = 0; i < chain.length; i++) {
-        const s = Math.sin(t * Math.PI * 4 - i * 0.55) * w;
-        st.rot(monk, chain[i], 0.18 * s, 0.12 * s, 0.26 * s);
-      }
-      for (let i = 0; i < walls.length; i++) st.rot(monk, walls[i], 0, 0, 0.13 * Math.sin(t * Math.PI * 3 - i * 0.4) * w);
-      for (let i = 0; i < joss.length; i++) st.rot(monk, joss[i], 0.1 * Math.sin(t * Math.PI * 5 - i * 0.7) * w, 0, 0);
-      st.rot(monk, 'BrowFu', 0.16 * Math.sin(t * Math.PI * 4) * w);
-      st.rot(monk, 'FuX10', 0.14 * Math.sin(t * Math.PI * 4 + 2) * w);
-    } });
-    st.tween({ ms: 240, ease: 'out', update(t, e) {
-      st.rot(monk, 'RShldr1Sh', -0.85 * e, 0, 0.28 * e); st.rot(monk, 'RElbow1El', -0.75 * e); st.rot(monk, 'RHand1Ha', -0.3 * e);
-      st.rot(monk, 'BShldr', -0.35 * e); st.rot(monk, 'BElbow', -0.4 * e); st.rot(monk, 'BHand', -0.2 * e);
-      st.rot(monk, 'Chest', 0.1 * e, -0.18 * e, 0); st.rot(monk, 'Hip', 0.06 * e); st.rot(monk, 'Neck', 0.12 * e); st.rot(monk, 'Head', 0.16 * e); st.rot(monk, 'Crown', 0.1 * e);
-      st.rim(monk, 1 + 1.1 * e);
-    } });
-    st.at(240, () => {
-      const from = st.worldOf(monk, 'HandFu', new THREE.Vector3()); from.y += 0.08;
-      const ash = st.orb(from, 0.085, { opacity: 1 });
-      ash.scale.setScalar(0.25);
-      st.grow(ash, { ms: 150, from: 0.25, to: 1.45 });
-      st.at(40, () => {
-        const to = st.top(front, new THREE.Vector3()); to.y += 0.1;
-        st.fly(ash, from, to, { ms: 280, ease: 'inout', arc: 0.6, done() {
-          st.burst(to, { power: 0.9, n: 55 });
-          st.fade(ash, { ms: 190, from: 1, to: 0 });
-          const foot = st.foot(front, new THREE.Vector3());
-          const r = st.ring(foot, 0.3, 0.06, { opacity: 0.95 });
-          st.tween({ ms: 300, ease: 'out', update(t, e) { r.scale.setScalar(1 + 2.2 * e); r.material.opacity = 0.95 * (1 - e); } });
-          st.tween({ ms: 300, ease: 'pulse', update(t, e) { st.rim(front, 1 + 2.0 * e); st.move(front, 0, 0.04 * e, 0); } });
-        } });
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
+    const monk = st.byBody(st.actor, 'ward')[0] || st.actor[0];
+    const mate = st.actor.find((f) => f !== monk) || monk;
+    const palm = st.worldOf(monk, 'RHand1Ha', new THREE.Vector3());
+    if (!palm.lengthSq()) { st.worldOf(monk, null, palm); palm.y += 0.35; }
+    const head = st.top(mate, new THREE.Vector3()).add(TOWARD_CAM);
+    /* 灰流與符先往前送一段再落到前鋒頭上（`evalPhases` 量的是位移，原地灑落量不到）。 */
+    const via = palm.clone().lerp(head, 0.5).addScaledVector(st.dir, 0.85).addScaledVector(TOWARD_CAM, 1.2);
+    via.y += 0.35;
+
+    // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
+    const ASH = 10;
+    const ash = st.paperProps(st.kind, ASH, { color: C.key, opacity: 0, k: 0.62, ratio: 0.85, depth: 0.14, warp: 0.16 });
+    ash.obj.position.copy(palm);
+    const _ea = new THREE.Euler();
+    const grains = [];
+    for (let i = 0; i < ASH; i++) {
+      grains.push({
+        a: new THREE.Vector3((st.rnd() - 0.5) * 0.16, (st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.16),
+        b: new THREE.Vector3((st.rnd() - 0.5) * 0.42, -0.10 - 0.30 * st.rnd(), (st.rnd() - 0.5) * 0.42),
+        rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
       });
-      st.at(360, () => st.tween({ ms: 380, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(monk, 'RShldr1Sh', -0.85 * k, 0, 0.28 * k); st.rot(monk, 'RElbow1El', -0.75 * k); st.rot(monk, 'RHand1Ha', -0.3 * k);
-        st.rot(monk, 'BShldr', -0.35 * k); st.rot(monk, 'BElbow', -0.4 * k); st.rot(monk, 'BHand', -0.2 * k);
-        st.rot(monk, 'Chest', 0.1 * k, -0.18 * k, 0); st.rot(monk, 'Hip', 0.06 * k); st.rot(monk, 'Neck', 0.12 * k); st.rot(monk, 'Head', 0.16 * k); st.rot(monk, 'Crown', 0.1 * k);
-        st.rim(monk, 1 + 1.1 * k);
-      } }));
-    });
+    }
+    const writeAsh = (k) => {
+      for (let i = 0; i < ASH; i++) {
+        const g = grains[i], it = ash.items[i];
+        it.p.lerpVectors(g.a, g.b, k);
+        it.q.setFromEuler(_ea.set(0, g.ry, g.rz));
+        it.s = g.s;
+      }
+      ash.write();
+    };
+    writeAsh(0);
+
+    // ── 乙 金色方符：一張，從掌心送出、落到前鋒身上並留住 ──
+    const talis = st.paperStamp(st.kind, palm, { role: 'stamp', color: C.key, inkColor: C.hot,
+      opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
+    talis.scale.setScalar(st.iconSize * 0.40);
+
+    /* ① 捧灰到胸（windup）：兩隻手把灰捧到胸前，低頭；灰在掌心一粒粒長出來 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
+      st.rot(monk, 'RShldr1Sh', -0.42 * e); st.rot(monk, 'RElbow1El', -0.85 * e); st.rot(monk, 'RHand1Ha', -0.30 * e);
+      st.rot(monk, 'BShldr', -0.30 * e); st.rot(monk, 'BElbow', -0.62 * e); st.rot(monk, 'BHand', -0.24 * e);
+      st.rot(monk, 'Chest', 0.10 * e); st.rot(monk, 'Neck', 0.16 * e); st.rot(monk, 'Head', 0.20 * e);
+      st.rim(monk, 1 + 1.3 * e);
+      st.worldOf(monk, 'RHand1Ha', ash.obj.position);
+      st.worldOf(monk, 'RHand1Ha', talis.position);
+      for (let i = 0; i < ASH; i++) grains[i].s = Math.max(0, Math.min(1, (e - 0.07 * i) * 2.6));
+      writeAsh(0);
+      st.alpha(talis, Math.min(1, e * 2.2));
+      talis.scale.setScalar(st.iconSize * (0.40 + 0.45 * e));
+    }, done() { st.phase('travel'); } });
+    st.fade(ash.obj, { ms: W * 0.5, delay: W * 0.3, from: 0, to: 0.95 });
+
+    /* ② 傾倒（travel）：手往前鋒頭頂傾倒，灰流與符一起送過去 */
+    st.tween({ ms: TL * 0.6, delay: T0, ease: 'outQuint', update(t, e) {
+      st.rot(monk, 'RShldr1Sh', -0.42 + 0.90 * e); st.rot(monk, 'RElbow1El', -0.85 + 0.55 * e); st.rot(monk, 'RHand1Ha', -0.30 - 0.55 * e);
+      st.rot(monk, 'BShldr', -0.30 + 0.50 * e); st.rot(monk, 'BElbow', -0.62 + 0.36 * e); st.rot(monk, 'BHand', -0.24 - 0.30 * e);
+      st.rot(monk, 'Chest', 0.10 + 0.14 * e); st.rot(monk, 'Neck', 0.16 + 0.10 * e); st.rot(monk, 'Head', 0.20 + 0.12 * e);
+    } });
+    st.tween({ ms: TL, delay: T0, ease: 'in', update(t, e) {
+      ash.obj.position.lerpVectors(palm, via, Math.min(1, e * 1.15));
+      for (let i = 0; i < ASH; i++) grains[i].rz += 0.14;
+      writeAsh(Math.min(1, e * 1.2));
+    } });
+    st.trail(talis, palm, via, { ms: TL, delay: T0, ease: 'in', trail: false, arc: 0.20,
+      done() {
+        /* ★衝擊拍★：傾倒到位＝灰流抵達＝符落定＝前鋒同幀亮邊上抬 */
+        st.phase('react');
+        st.punch(0.34);
+        st.burst(head, { power: 0.8, n: 44, color: C.key });
+      } });
+    /* 符放大到 1.15×iconSize：0.98 時 P3 只有 0.6656%／0.6921%（門檻 0.8），而灰流走 prop: 不進量測對象，
+       符是這一招唯一量得到的一件。放大後仍在 §A3 的 2/3 內（Q5 實測 0.555→0.651）。 */
+    st.tween({ ms: TL, delay: T0, ease: 'out', update(t, e) { talis.scale.setScalar(st.iconSize * (0.85 + 0.30 * e)); } });
+
+    /* ③ 前鋒受益（react）：符從半空落到前鋒身上並黏住、那一尊上抬亮邊；灰散掉 */
+    st.stick(talis, mate, { at: 'chest', off: TOWARD_CAM });
+    st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { talis.scale.setScalar(st.iconSize * (1.15 - 0.45 * e)); } });
+    st.fade(talis, { ms: RL * 0.4, delay: R0 + RL * 0.55, from: 1, to: 0 });
+    st.fade(ash.obj, { ms: RL * 0.5, delay: R0, from: 0.95, to: 0 });
+    st.tween({ ms: RL * 0.8, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(mate, 0, 0.07 * e, 0); st.rim(mate, 1 + 2.0 * e);
+    } });
+
+    /* 收勢：收手 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(monk, 'RShldr1Sh', 0.48 * k); st.rot(monk, 'RElbow1El', -0.30 * k); st.rot(monk, 'RHand1Ha', -0.85 * k);
+      st.rot(monk, 'BShldr', 0.20 * k); st.rot(monk, 'BElbow', -0.26 * k); st.rot(monk, 'BHand', -0.54 * k);
+      st.rot(monk, 'Chest', 0.24 * k); st.rot(monk, 'Neck', 0.26 * k); st.rot(monk, 'Head', 0.32 * k);
+      st.rim(monk, 1 + 1.3 * k);
+    } });
   },
 
   /* 福壽綿長・福壽綿長（fushou，護法×2）：每拍回 1 hp 給最傷的一隻。
@@ -1167,35 +1224,9 @@ export const SHORT = {
      兩個 tier 的差別只是比例表（2026-09-12 演出卷 E 轉正後仍是這個做法）。 */
   biteGamble: MOVES.biteGamble,
 
-  /* 香灰符｜辨識：掌心一撮金灰拋物線飄到本方最前一隻的頭頂 */
-  wardHpFirst(st) {
-    const K = st.ms / 260;
-    const monk = st.byBody(st.actor, 'ward')[0] || st.actor[0];
-    const mate = st.actor[1] || monk;
-    const palm = st.worldOf(monk, 'RHand1Ha', new THREE.Vector3());
-    const head = st.top(mate, new THREE.Vector3());
-    const ash = st.orb(palm, 0.045, { opacity: 0 });
-    const halo = st.ring(st.foot(mate, new THREE.Vector3()), 0.3, 0.04, { opacity: 0 });
-    ash.scale.setScalar(0.35);
-    st.tween({ ms: 80 * K, ease: 'out', update(t, e) { // 右臂把香灰捧到胸前、身體微俯
-      st.rot(monk, 'RShldr1Sh', -0.5 * e); st.rot(monk, 'RElbow1El', -0.6 * e); st.rot(monk, 'Chest', 0.12 * e);
-      st.rot(monk, 'BrowFu', 0, 0, 0.2 * e); st.rot(monk, 'Neck', 0.1 * e); st.rim(monk, 1 + 0.6 * e);
-      st.worldOf(monk, 'RHand1Ha', ash.position);
-    } });
-    st.fade(ash, { ms: 45 * K, delay: 60 * K, from: 0, to: 1 }); // 一撮金灰自掌心升起
-    st.grow(ash, { ms: 60 * K, delay: 60 * K, from: 0.35, to: 1.1 });
-    st.fly(ash, palm.clone(), head, { ms: 80 * K, delay: 82 * K, ease: 'inout', arc: 0.22, // 拋物線飄到頭頂
-      done() { st.burst(head, { power: 0.5, n: 26 }); } });
-    st.fade(ash, { ms: 48 * K, delay: 160 * K, from: 1, to: 0 });
-    st.grow(halo, { ms: 82 * K, delay: 145 * K, from: 0.3, to: 1.4 }); // 腳下一圈金環漲開
-    st.fade(halo, { ms: 82 * K, delay: 145 * K, from: 0.7, to: 0 });
-    st.tween({ ms: 72 * K, delay: 155 * K, ease: 'pulse', update(t, e) { st.move(mate, 0, 0.04 * e, 0); st.rim(mate, 1 + 1.5 * e); } });
-    st.tween({ ms: 62 * K, delay: 162 * K, ease: 'inout', update(t, e) { // 收手
-      const k = 1 - e;
-      st.rot(monk, 'RShldr1Sh', -0.5 * k); st.rot(monk, 'RElbow1El', -0.6 * k); st.rot(monk, 'Chest', 0.12 * k);
-      st.rot(monk, 'BrowFu', 0, 0, 0.2 * k); st.rim(monk, 1 + 0.6 * k);
-    } });
-  },
+  /* wardHpFirst｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  wardHpFirst: MOVES.wardHpFirst,
 
   /* 福壽綿長｜辨識：★燈本體（一顆脹到 1.9× 的大火球）★＋暖火飛到同伴身上炸開
      （盲讀 r2：短版的火太小、飛太快。照雷女之火成功的做法：本體提前現形、燒滿整段） */
