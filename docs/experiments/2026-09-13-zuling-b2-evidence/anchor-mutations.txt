@@ -1,10 +1,18 @@
-=== 健康態（對照）===
-3/3 pass · 重複簽章 0 · scratchpad/_mu0.json
-=== 突變 A：MOVE_SPEC.biteGamble.anchor 'foe' → 'allies'（宣告落在我方，實際落在敵方）===
-0/1 pass · 重複簽章 0 · scratchpad/_mu1.json
-=== 突變 B：射日的日盤登記成 anchor 'caster'（道具明明飛去對面）===
-0/1 pass · 重複簽章 0 · scratchpad/_mu2.json
-=== 突變 C：百步蛇紋盾的菱紋帶落點搬回施招者身上（Z → A 附近）===
-0/1 pass · 重複簽章 0 · scratchpad/_mu3.json
+=== 健康態（對照，--count=2）===
+5/5 pass · 重複簽章 0 · scratchpad/_mu.json
+=== A：MOVE_SPEC.biteGamble.anchor 'foe' → 'allies'（宣告落我方、實際落敵方）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== B：射日的日盤登記成 anchor 'caster'（道具明明飛去對面）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== C：百步蛇紋盾的菱紋帶落點搬回施招者身上（lerpVectors(A, Z) → (A, A)）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== D（H-2a）：衝擊拍把日盤從畫面上拿掉（disc.visible = false）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== E（H-1）：香灰符的落點退回兩尊佔地的重疊區（lean 0.50 → 0）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== F（H-2b）：射日的箭矢把一支實例散回我方（局部 +z 3.0）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
+=== G（H-2c）：祖靈之眼只留 follow 印記（石雕眼的 anchor 登記拿掉）===
+0/1 pass · 重複簽章 0 · scratchpad/_mu.json
 === 還原後（健康態必須回綠）===
-3/3 pass · 重複簽章 0 · scratchpad/_mu4.json
+5/5 pass · 重複簽章 0 · scratchpad/_mu.json

@@ -1094,7 +1094,13 @@ const MOVES = {
     const mate = st.actor.find((f) => f !== monk) || monk;
     const palm = st.worldOf(monk, 'RHand1Ha', new THREE.Vector3());
     if (!palm.lengthSq()) { st.worldOf(monk, null, palm); palm.y += 0.35; }
-    const head = st.top(mate, new THREE.Vector3()).add(camOff(st, 1));
+    /* ★覆審 r1 H-1：落點要**決定性地**落在受益方那一側★
+       治具棚 2v2 下同一邊兩尊的水平佔地本來就重疊，落在重疊區裡的道具讀者分不出是誰的
+       （實測這一支的 gap 只有 0.061–0.118，門檻 ANCHOR_MARGIN=0.18）。
+       `lean`＝從施招者指向受益方的水平單位向量；沒有同伴時是零向量（count=1 的站位一個位元組不變）。 */
+    const lean = mate.group.position.clone().sub(monk.group.position); lean.y = 0;
+    if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.50); else lean.set(0, 0, 0);
+    const head = st.top(mate, new THREE.Vector3()).add(camOff(st, 1)).add(lean);
     /* 灰流與符先往前送一段再落到前鋒頭上（`evalPhases` 量的是位移，原地灑落量不到）。 */
     /* ★2026-09-13 P4 第 2 輪回修★：道具的落點要在**受益方身上**，不是施招者身上。
        第 2 輪六位讀者在 2v2 下對象題一致答「自己」（同伴零反應），成因就是所有東西都畫在施招者這一格。
@@ -1109,7 +1115,7 @@ const MOVES = {
        否則 react 那一幀會看到符「瞬移」一次。灰流落在 `head`（前鋒頭上），與符的胸口落點分開。 */
     const land = st.worldOf(mate, 'Chest', new THREE.Vector3());
     if (!land.lengthSq()) { st.worldOf(mate, null, land); land.y += 0.55; }
-    land.add(camOff(st, 1));
+    land.add(camOff(st, 1)).add(lean); // 同 head：符也要決定性地落在前鋒那一側（覆審 r1 H-1）
     const bow = camOff(st, 1.5); // 飛行弧往鏡頭鼓出的量（見下面 st.trail 的 update）
 
     // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
@@ -1192,7 +1198,7 @@ const MOVES = {
            所以在編舞的同步段呼叫＝符從**第 0 幀**就黏在受益方身上，上面那條飛行 tween 整段變成死碼
            （覆審實測：把 `via` 移開 3 個單位，L3 的 A／B 圖逐位元組相同；把 `st.stick` 拿掉才看得到飛行、
            面積從 0.0006% 變回正常）。移進 `done()` 之後才是「飛到落點那一刻才黏上去」。 */
-        st.stick(talis, mate, { at: 'chest', off: camOff(st, 1) });
+        st.stick(talis, mate, { at: 'chest', off: camOff(st, 1).add(lean) }); // lean 同飛行落點（覆審 r1 H-1：黏上去之後逐幀被覆寫，這裡不加就白調了）
       } });
     /* 符放大到 1.15×iconSize：0.98 時 P3 只有 0.6656%／0.6921%（門檻 0.8），而灰流走 prop: 不進量測對象，
        符是這一招唯一量得到的一件。放大後仍在 §A3 的 2/3 內（Q5 實測 0.555→0.651）。 */
@@ -1236,7 +1242,13 @@ const MOVES = {
     const hurt = st.actor.find((f) => f !== lamp) || lamp;
     const src = st.worldOf(lamp, 'FlmR', new THREE.Vector3());
     if (!src.lengthSq()) { st.top(lamp, src); }
-    const dst = st.top(hurt, new THREE.Vector3()).add(camOff(st, 1));
+    /* ★覆審 r1 H-1：落點要**決定性地**落在受益方那一側★
+       治具棚 2v2 下同一邊兩尊的水平佔地本來就重疊，落在重疊區裡的道具讀者分不出是誰的
+       （實測這一支的 gap 只有 0.061–0.118，門檻 ANCHOR_MARGIN=0.18）。
+       `lean`＝從施招者指向受益方的水平單位向量；沒有同伴時是零向量（count=1 的站位一個位元組不變）。 */
+    const lean = hurt.group.position.clone().sub(lamp.group.position); lean.y = 0;
+    if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.50); else lean.set(0, 0, 0);
+    const dst = st.top(hurt, new THREE.Vector3()).add(camOff(st, 1)).add(lean);
     /* 燈焰不直線飛過去：先往前送一段（脫離燈罩、飄到陣中），再落到那一尊頭上。
        ★前半那一段是 travel 的位移來源★（門檻 travelDist×0.40）。 */
     /* ★2026-09-13 P4 第 2 輪回修★：道具的落點要在**受益方身上**，不是施招者身上。

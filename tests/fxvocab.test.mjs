@@ -22,7 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { FX_PAL, BEAT_FRAC, beatOf, ICON, PHASE_GATE, EMBLEM_OF, DEPRECATED, RETIRED_BY_FAC, FAC_VOCAB, MOVE_SPEC,
-  STANCE_VOCAB, REACT_AXIS, STANCE_GATE, FAC_GROUND, ANCHOR_KIND } from '../js/trait-fx/vocab.js';
+  STANCE_VOCAB, REACT_AXIS, STANCE_GATE, FAC_GROUND, ANCHOR_KIND, ANCHOR_MARGIN } from '../js/trait-fx/vocab.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -364,6 +364,11 @@ t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各�
   Object.keys(ANCHOR_KIND).forEach((k) => {
     if (!sec.includes('`' + k + '`')) throw new Error(`語彙檔 §A9 沒有寫出 anchor 取值「${k}」（程式與文件分岔了）`);
   });
+  /* ★覆審 r1 M-1★：邊距是**判準的一部分**，文件與程式分岔就等於「文件寫一套、機器判另一套」
+     ——覆審抓到的 H-1 正是這個形狀（文件寫「最近那一尊必須在集合裡」、程式判「平手就算過」）。
+     照 STANCE_GATE.minPeak 那一條的作法，把數字釘在語彙檔上。 */
+  if (!sec.includes('`' + ANCHOR_MARGIN + '`')) throw new Error(`語彙檔 §A9-5 沒有寫出 ANCHOR_MARGIN「${ANCHOR_MARGIN}」`);
+  if (!sec.includes('dWant + ANCHOR_MARGIN <= dOther')) throw new Error('語彙檔 §A9-5 沒有寫出判準式 `dWant + ANCHOR_MARGIN <= dOther`');
 });
 
 t('selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）', () => {

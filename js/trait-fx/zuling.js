@@ -991,6 +991,15 @@ const MOVES = {
     const neck = st.worldOf(deer, 'Neck2', new THREE.Vector3()).addScaledVector(st.dir, 0.16);
     neck.y += 0.06;
     neck.add(st.camOff(0.7));
+    /* ★覆審 r1 H-1：自傷的兩件（刃與血條）要**決定性地**落在施招者那一側★
+       治具棚 2v2 下同一邊兩尊的水平佔地本來就重疊（實測施招者 x∈[-1.00,0.31]、同伴 x∈[-0.34,0.95]），
+       而 `Neck2` 正好落在重疊區裡 ⇒ `gap 0`、`ANCHOR_MARGIN`（0.18）過不了，
+       畫面上也真的分不出「刃插在自己頸邊」還是「插在同伴身上」。
+       `lean`＝從同伴指向施招者的水平單位向量（沒有同伴時是零向量，count=1 的站位一個位元組不變）。 */
+    const lean = mates.length ? deer.group.position.clone().sub(mates[0].group.position) : new THREE.Vector3();
+    lean.y = 0;
+    if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(1.05); else lean.set(0, 0, 0);
+    neck.add(lean);
     /* 刃的起訖：後上方 → 頸口 → **前下方插地**。整段位移 ≈1.4 世界單位，
        travel 門檻是 `0.40 × travelDist`（出招方到目標的距離），滿編對決約 0.9 ⇒ 過得去。
        ★不得再往前拉★：增益招的飛行物不得跨中線（P4 r2 的兩個結構性語彙問題之一）。 */
@@ -1022,7 +1031,7 @@ const MOVES = {
     for (let i = 0; i < BL; i++) {
       strips.push({
         a: new THREE.Vector3((st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.06, (st.rnd() - 0.5) * 0.10),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.44, -0.16 - 0.34 * st.rnd(), (st.rnd() - 0.5) * 0.44),
+        b: new THREE.Vector3((st.rnd() - 0.5) * 0.26, -0.16 - 0.34 * st.rnd(), (st.rnd() - 0.5) * 0.26),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
       });
     }
