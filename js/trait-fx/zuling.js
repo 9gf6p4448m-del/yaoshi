@@ -1209,7 +1209,7 @@ const MOVES = {
       for (let i = 0; i < BD; i++) {
         const g = orbs[i], it = ring.items[i];
         // k=0 疊在一起 → k=1 攤成一圈（繞身旋轉：角度隨 spin 前進）
-        const r = 0.05 + 0.58 * k, th = g.th + spin;
+        const r = 0.05 + 1.05 * k, th = g.th + spin; // 珠圈要繞住兩尊（P4 r1 回修 A：讀者 9/18 答「自己」）
         it.p.set(Math.cos(th) * r, Math.sin(th) * r * 0.55, 0);
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, th));
         it.s = g.s;
@@ -1223,10 +1223,8 @@ const MOVES = {
       opacity: 0, depth: 0.20, warp: 0.08, tiltDeg: 8, yawDeg: -18 });
     head.scale.setScalar(st.iconSize * 0.45);
 
-    // ── 每一尊身上的珠印（anchor allies）──
-    const marks = st.actor.map((f) => st.paperStamp(st.kind, st.worldOf(f, null, new THREE.Vector3()),
-      { anchor: 'allies', color: C.key, inkColor: C.ink, opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22,
-        follow: f, at: 'chest', off: st.camOff(1) }));
+    // ── 每一尊各收到一顆**飛過去**的琉璃珠（P4 r1 回修 A；理由同百步蛇紋盾）──
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.15 });
 
     /* ① 盤繞（windup）：珠鍊逐顆亮上去、蛇身鼓節、昂首；珠圈在側上方亮相。 */
     st.groundMark(snake, { h: 1.28, w: 0.26, taper: 0.42, peak: 0.95, push: 0.80 });
@@ -1269,12 +1267,9 @@ const MOVES = {
     st.fade(head, { ms: RL * 0.5, delay: R0 + RL * 0.35, from: 1, to: 0 });
 
     /* ③ 護心（react）：本方每一尊上抬＋邊光，身上的珠印蓋上再淡去。 */
-    marks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.3, delay: R0 + i * RL * 0.06, from: 0, to: 1 });
-      st.fade(m, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
-    });
-    mates.forEach((f, i) => st.tween({ ms: RL * 0.92, delay: R0 + i * RL * 0.06, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 1.9 * e);
+    // ★反應同拍★（P4 r1 回修 A）
+    mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
+      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
     } }));
 
     /* 收勢：珠鍊退光、蛇口一開一合、身段回落（施招者也在本隊裡，跟著被托起）。 */
