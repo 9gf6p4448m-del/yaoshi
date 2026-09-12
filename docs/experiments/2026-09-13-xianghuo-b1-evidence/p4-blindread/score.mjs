@@ -4,7 +4,7 @@
    每支招：三格皆多數 ✅ ＝ 該招過。批 1 P4 通過＝9 支全過；否則列出未過的招與格。Q4 法寶名只記錄不判。 */
 import fs from 'node:fs'; import path from 'node:path';
 const root=process.argv[2]; const EV=path.join(root,'docs/experiments/2026-09-13-xianghuo-b1-evidence');
-const truth=Object.fromEntries(JSON.parse(fs.readFileSync(path.join(EV,'p4-truth.json'),'utf8')).map(t=>[t.trId,t]));
+const _tj=JSON.parse(fs.readFileSync(path.join(EV,'p4-truth.json'),'utf8')); const truth=Object.fromEntries((_tj.rows||_tj).map(t=>[t.trId,t]));
 const ok=(t,r,k)=>r[k]===t[k]||(t.alt&&t.alt[k]&&r[k]===t.alt[k]);
 const cell={}; const pairs=['p1','p2','p3'];
 for(const p of pairs){
