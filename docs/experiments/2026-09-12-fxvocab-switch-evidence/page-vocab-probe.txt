@@ -1,0 +1,5 @@
+PASS index.html（不帶參數）  renderer?v=0.55.1&fxvocab=0  FX_VOCAB_ON=false（預期 false） 招數=30 短版即完整版={"eliteSelfCut":false,"biteGamble":false,"wardImmuneLost":false,"hauntLost":false} err=0
+PASS index.html?fxvocab=0  renderer?v=0.55.1&fxvocab=0  FX_VOCAB_ON=false（預期 false） 招數=30 短版即完整版={"eliteSelfCut":false,"biteGamble":false,"wardImmuneLost":false,"hauntLost":false} err=0
+PASS index.html?fxvocab=1  renderer?v=0.55.1&fxvocab=1  FX_VOCAB_ON=true（預期 true） 招數=30 短版即完整版={"eliteSelfCut":true,"biteGamble":true,"wardImmuneLost":true,"hauntLost":true} err=0
+
+三組全部符合預期

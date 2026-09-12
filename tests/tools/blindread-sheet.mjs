@@ -1,7 +1,8 @@
 // 盲讀材料產生器（v0.55 招式可辨性卷，凍結檔 `2026-09-11-acceptance-fx-legibility.md` L4／L4-pre、Q12）。
 //
 // 用法：node tests/tools/blindread-sheet.mjs <輸出目錄> [--only=trId,..] [--tiers=1,2] [--seed=20260912]
-//                                            [--port=8846] [--label] [--dt=16.6667]
+//                                            [--port=8846] [--label] [--dt=16.6667] [--fxvocab=1]
+//   --fxvocab=1  拍 v0.55 的徽記剪影版；不帶＝index.html PW_FX.VOCAB_ON 的預設 false＝0.54 演出。
 //
 // 規格（Q12，**訂完即凍結，不得逐招調**）：
 //   一支招一張圖，**6 幀 2×3 排列、每格 780×360、總圖 1560×1080**（0.54 那版是 3 格 × 370px）。
@@ -25,7 +26,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
-import { casesFromIndex } from './traitfx-drive.mjs';
+import { casesFromIndex, fxvocabQ } from './traitfx-drive.mjs';
 import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -84,7 +85,7 @@ async function serve(root, port) {
   return srv;
 }
 
-async function shootOne(browser, base, c, tier, dt, tmpDir) {
+async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const ms = msOf(tier);
   const frames = framesOf(tier, dt);
   const ctx = await browser.newContext({ viewport: SHOT, deviceScaleFactor: SHOT_DSF });
@@ -92,7 +93,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -157,7 +158,7 @@ async function main() {
   try {
     for (const c of cases) {
       for (const t of tiers) {
-        const s = await shootOne(browser, `http://127.0.0.1:${port}`, c, t, dt, tmpDir);
+        const s = await shootOne(browser, `http://127.0.0.1:${port}`, c, t, dt, tmpDir, opt);
         shots.push(s);
         console.log(`  拍 ${c.trait.padEnd(16)} t${t} 幀 ${s.frames.map((f) => f.n).join(',')} handled=${s.handled} err=${s.errors.length}`);
         s.errors.slice(0, 2).forEach((e) => console.log('   ! ' + e.slice(0, 160)));

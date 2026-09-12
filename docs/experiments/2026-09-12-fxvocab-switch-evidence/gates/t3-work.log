@@ -1,0 +1,8 @@
+PASS eliteBlind       canri        t3/1400ms msOK=true rate=1 fill=0.921 acts=12 handled=true alive=true restored=true onTime=true clean=true focus=true end=95 maxD=0.8166 err=0 prog+0 sig=6b/beam+burst+dome+orb+ring/T 1553ms
+PASS wardGuardAll     dashiye      t3/1400ms msOK=true rate=1 fill=0.926 acts=12 handled=true alive=true restored=true onTime=true clean=true focus=true end=95 maxD=0.8673 err=0 prog+0 sig=9b/dome+ring 1108ms
+PASS hauntAnswer      youyinggong  t3/1400ms msOK=true rate=1 fill=0.924 acts=30 handled=true alive=true restored=true onTime=true clean=true focus=true end=95 maxD=0.4556 err=0 prog+0 sig=9b/burst+disc+orb+ring/T 1250ms
+
+F10 動作數（非 flinch 的 tween／fly／fade／grow）：eliteBlind=12 wardGuardAll=12 hauntAnswer=30
+sig 序列 → docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/sig-t3-work.txt（3 行；批 1–3 用 diff 比這份，不要只比 trace-eq）
+
+3/3 pass · 重複簽章 0 · docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/t3-work.json

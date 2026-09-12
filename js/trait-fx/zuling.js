@@ -847,3 +847,98 @@ export const SHORT = {
     } });
   },
 };
+
+/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
+   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
+   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
+   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
+   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
+
+   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
+   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
+   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
+   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
+
+export const V054 = {
+  eliteSelfCut_v054(st) {
+    const cast = st.byBody(st.actor, 'elite');
+    const deer = cast.length ? cast[0] : st.actor[0];
+    // 傷口要落在體外一點：擺進 Chest 骨的位置會被自己的身體擋掉（材質有 depthTest），什麼都看不到
+    const chest = st.worldOf(deer, 'Chest', new THREE.Vector3()).addScaledVector(st.dir, 0.24);
+    chest.y += 0.06;
+    st.tween({ ms: 300, ease: 'out', update(t, e) {
+      st.rot(deer, 'NeckRoot', 0.3 * e); st.rot(deer, 'Neck1', 0.28 * e); st.rot(deer, 'Neck2', 0.26 * e); st.rot(deer, 'Neck3', 0.24 * e);
+      st.rot(deer, 'HeadRoot', 0.36 * e); st.rot(deer, 'Skull', 0.2 * e); st.rot(deer, 'Muzzle', 0.14 * e);
+      st.rot(deer, 'LFront1El', -0.22 * e); st.rot(deer, 'RFront1El', -0.22 * e);
+      st.rot(deer, 'LFront1Wr', 0.2 * e); st.rot(deer, 'RFront1Wr', 0.2 * e);
+      st.rot(deer, 'TailRoot', 0.3 * e); st.rot(deer, 'Tail1', 0.24 * e); st.rot(deer, 'TailTip', 0);
+      st.rot(deer, 'Withers', 0.1 * e);
+      st.move(deer, 0, -0.04 * e, 0);
+      st.rim(deer, 1 - 0.7 * e);
+    } });
+    st.at(300, () => {
+      const wound = st.orb(chest, 0.085, { opacity: 0.95 });
+      wound.scale.setScalar(0.3);
+      st.grow(wound, { ms: 130, from: 0.3, to: 1.5 });
+      st.fade(wound, { ms: 260, delay: 120, from: 0.95, to: 0 });
+      st.burst(chest, { power: 0.9, n: 52 });
+      st.punch(0.3);
+      st.at(90, () => {
+        st.actor.forEach((f, i) => {
+          const a = st.worldOf(f, null, new THREE.Vector3());
+          const b = st.top(f, new THREE.Vector3()); b.y += 0.5;
+          const ray = st.beam(a, b, { opacity: 0.9 });
+          st.fade(ray, { ms: 320, delay: i * 40, from: 0.9, to: 0 });
+          if (f !== deer) st.tween({ ms: 380, delay: i * 40, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } });
+        });
+        st.burst(chest, { power: 0.4, n: 20 });
+      });
+    });
+    st.tween({ ms: 580, delay: 300, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.4));
+      const s = st.EASE.snap(Math.min(1, t / 0.32));
+      const bless = st.EASE.pulse(Math.min(1, Math.max(0, (t - 0.18) / 0.82)));
+      st.rot(deer, 'NeckRoot', 0.3 * k, -0.34 * s, 0);
+      st.rot(deer, 'Neck1', 0.28 * k, -0.3 * s, 0);
+      st.rot(deer, 'Neck2', 0.26 * k, -0.26 * s, 0);
+      st.rot(deer, 'Neck3', 0.24 * k, -0.22 * s, 0);
+      st.rot(deer, 'HeadRoot', 0.36 * k - 0.2 * s, -0.3 * s, 0);
+      st.rot(deer, 'Skull', 0.2 * k, -0.24 * s, 0);
+      st.rot(deer, 'Muzzle', 0.14 * k, -0.16 * s, 0);
+      st.rot(deer, 'LFront1El', -0.22 * k); st.rot(deer, 'RFront1El', -0.22 * k + 0.3 * s);
+      st.rot(deer, 'LFront1Wr', 0.2 * k); st.rot(deer, 'RFront1Wr', 0.2 * k);
+      st.rot(deer, 'TailRoot', 0.3 * k - 0.3 * bless); st.rot(deer, 'Tail1', 0.24 * k - 0.24 * bless); st.rot(deer, 'TailTip', -0.2 * bless);
+      st.rot(deer, 'Withers', 0.1 * k - 0.1 * bless);
+      st.move(deer, 0, -0.04 * k + 0.05 * bless, 0);
+      st.rim(deer, 1 - 0.7 * k + 3 * s + 1.2 * bless);
+    } });
+  },
+};
+
+export const V054_SHORT = {
+  eliteSelfCut_v054short(st) {
+    const deer = st.byBody(st.actor, 'elite')[0] || st.actor[0];
+    const chest = st.worldOf(deer, 'Chest', new THREE.Vector3());
+    const blood = st.orb(chest, 0.055, { opacity: 0 });
+    blood.scale.setScalar(0.3);
+    st.tween({ ms: 90, ease: 'in', update(t, e) { // 俯首就刃：頸逐節下彎、邊光先暗
+      st.rot(deer, 'NeckRoot', 0.26 * e); st.rot(deer, 'Neck2', 0.22 * e); st.rot(deer, 'HeadRoot', 0.3 * e);
+      st.rot(deer, 'TailRoot', -0.18 * e); st.rim(deer, 1 - 0.75 * e);
+    } });
+    st.tween({ ms: 70, delay: 88, ease: 'snap', update(t, e) { // 割：頭橫甩、邊光暴亮到三倍
+      st.rot(deer, 'HeadRoot', 0.3, 0.5 * e, 0); st.rot(deer, 'Neck2', 0.22 * (1 - e));
+      st.rim(deer, 0.25 + 3.1 * e);
+    }, done() { st.punch(0.42); st.burst(chest, { power: 0.7, n: 34, color: 0xd83a2a }); } });
+    st.fade(blood, { ms: 45, delay: 88, from: 0, to: 1 });
+    st.grow(blood, { ms: 90, delay: 88, from: 0.3, to: 1.5 });
+    st.fade(blood, { ms: 60, delay: 150, from: 1, to: 0 });
+    const up = st.top(deer, new THREE.Vector3());
+    const rite = st.beam(chest.clone(), up, { opacity: 0 });
+    st.fade(rite, { ms: 65, delay: 130, from: 0.95, to: 0 }); // 祭光自心口竄上頭頂
+    st.actor.forEach((f, i) => st.tween({ ms: 70, delay: 140 + i * 10, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.6 * e); } }));
+    st.tween({ ms: 65, delay: 160, ease: 'inout', update(t, e) { // 頭頸回正
+      const k = 1 - e;
+      st.rot(deer, 'NeckRoot', 0.26 * k); st.rot(deer, 'HeadRoot', 0.3 * k, 0.5 * k, 0); st.rot(deer, 'TailRoot', -0.18 * k);
+    } });
+  },
+};

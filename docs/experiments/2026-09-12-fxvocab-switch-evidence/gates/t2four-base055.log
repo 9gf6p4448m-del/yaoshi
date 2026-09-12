@@ -1,0 +1,13 @@
+★--root=C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-add254abd18f6312a\scratchpad\base417b197（靜態檔與 index.html 都從這裡取；治具程式仍是本樹的）★
+PASS eliteSelfCut     xianji       t2/900ms msOK=true rate=1 fill=0.88 acts=5 handled=true alive=true restored=true onTime=true clean=true focus=true end=66 maxD=1.7502 err=0 prog+0 sig=16b/burst+emblem:knife+trail 1881ms
+PASS wardImmuneLost   bell         t2/900ms msOK=true rate=1 fill=0.88 acts=9 handled=true alive=true restored=true onTime=true clean=true focus=true end=66 maxD=1.7464 err=0 prog+0 sig=23b/burst+emblem:bell+mark:bell+trail 2084ms
+PASS biteGamble       tiger        t2/900ms msOK=true rate=1 fill=0.88 acts=9 handled=true alive=true restored=true onTime=true clean=true focus=true end=66 maxD=2.3123 err=0 prog+0 sig=28b/burst+emblem:seal+mark:seal+trail/T 1290ms
+PASS hauntLost        redhat       t2/900ms msOK=true rate=1 fill=0.888 acts=24 handled=true alive=true restored=true onTime=true clean=true focus=true end=66 maxD=1.2687 err=0 prog+0 sig=21b/burst+emblem:hat+trail/T 1765ms
+
+F10 動作數（非 flinch 的 tween／fly／fade／grow）：eliteSelfCut=5 wardImmuneLost=9 biteGamble=9 hauntLost=24
+
+★M1 未在條文情境下驗證（react 量在出招方自己身上，場上只有他一個人）：eliteSelfCut
+  自益招要量在受益方身上，請另跑一次 --only=<trId> --count=2（凍結檔 L2 假綠清單第 3 條）
+sig 序列 → docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/sig-t2four-base055.txt（4 行；批 1–3 用 diff 比這份，不要只比 trace-eq）
+
+4/4 pass · 重複簽章 0 · docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/t2four-base055.json

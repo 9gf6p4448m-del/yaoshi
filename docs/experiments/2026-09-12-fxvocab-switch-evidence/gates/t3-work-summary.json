@@ -1,0 +1,47 @@
+{
+ "total": 3,
+ "pass": 3,
+ "dupSignatures": 0,
+ "t1": {
+  "missing": [],
+  "extra": []
+ },
+ "softGl": false,
+ "tier": 3,
+ "ms": 1400,
+ "actsTable": [
+  {
+   "trait": "eliteBlind",
+   "acts": 12,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 1400,
+   "horizon": 1290,
+   "fill": 0.921
+  },
+  {
+   "trait": "wardGuardAll",
+   "acts": 12,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 1400,
+   "horizon": 1296,
+   "fill": 0.926
+  },
+  {
+   "trait": "hauntAnswer",
+   "acts": 30,
+   "ok": true,
+   "maxRate": 1,
+   "runMs": 1400,
+   "horizon": 1294,
+   "fill": 0.924
+  }
+ ],
+ "soloReact": [],
+ "opts": {
+  "tier": "3",
+  "port": "8864",
+  "sigdump": "docs/experiments/2026-09-12-fxvocab-switch-evidence/gates/sig-t3-work.txt"
+ }
+}

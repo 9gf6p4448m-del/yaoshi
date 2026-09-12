@@ -3,6 +3,8 @@
 // 用法：node tests/tools/fx-contrast.mjs <輸出目錄> [--only=trId,trId] [--tier=2] [--port=8845] [--dt=16.6667]
 //                                        [--seed=7] [--bthr=<只給反向實驗的 bloom threshold 覆寫>]
 //                                        [--nobloom]（治具頁 ?bloom=0，只給反證守衛用）
+//                                        [--fxvocab=1]（量 v0.55 的徽記剪影版；不帶＝0.54 演出，
+//                                         那一版沒有徽記／拖尾／印記，fxVis 會回 0 ⇒ 本治具判紅）
 //                                        [--allow-nobloom]（★放行「根本沒有 bloom」的量測位置，summary 標紅★）
 //
 // 量什麼：**徽記／拖尾／印記在暗紅桌面＋紫夜空上到底看不看得見**。
@@ -43,7 +45,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
-import { casesFromIndex } from './traitfx-drive.mjs';
+import { casesFromIndex, fxvocabQ } from './traitfx-drive.mjs';
 import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -110,7 +112,7 @@ async function shoot(browser, base, c, opt, outDir) {
   // bloom 覆寫鉤：只給「證明 bloomCfg() 真的讀 live 值」的反向實驗用；帶了就跳過與產品的比對。
   const bOver = opt.bthr === undefined ? '' : `&bthr=${opt.bthr}`;
   const noB = opt.nobloom ? '&bloom=0' : ''; // 只給「反證守衛真的會擋」用
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}&seed=${seed}${bOver}${noB}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}&seed=${seed}${bOver}${noB}${fxvocabQ(opt)}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
