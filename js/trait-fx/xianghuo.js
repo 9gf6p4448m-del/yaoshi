@@ -165,50 +165,98 @@ const MOVES = {
   },
 
   /* 王爺劍・斬瘟（sword，精英×1）：本隊精英的濺射改為全額。
-     編舞：舉劍（0–260ms：右臂高舉、胸口後仰側擰、劍身邊光大亮）
-          → 斬（260ms：臂胸猛甩到前下方、整尊往前踏半步、鏡頭小推；一片劍光以腳下為軸 200ms 掃過對面整排）
-          → 對面每一隻依序火星＋退縮（間隔 45ms）→ 收劍（440–860ms 回位）。 */
+     ★2026-09-13 招式演出卷・香火系批 1★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C2 第 2 列；`MOVE_SPEC.eliteCleave = { 丁, 掃, 退 }`。
+
+     三件（計畫 §3）：
+       **本體動作＝掃**（§C 散文寫「劈」，正規化到香火動詞庫的「掃」＝旗面／劍弧橫過整排）：
+         `RArm1Rt`／`RArm1El` 舉劍蓄 → 一格劈落，`Chest` 側擰、整尊往前踏半步。
+       **道具**＝丁 儀仗金器：**斬擊弧**（`blade`，鎏金厚片弧，`st.paperStamp` 實體＋`st.trail` 殘影）
+         ——先從劍尖飛到對面，再**橫掃過整排**。
+       **受招方反應＝退**：整排逐隻 `st.flinch` stagger＋火星。
+
+     ★短版不得砍掉斬擊弧★（§C2 區分點）：全 27 支裡短版掉最多的一支，
+     0.54 的做法是把 410ms 的劍光整段砍掉、兩位讀者短版都認不出。
+     現在 t1／t2 共用這一支函式、時間軸全由 `st.beat` 換算 ⇒ **短版不可能單獨砍掉某一段**。
+     ★手刻的加色劍光平面（`PlaneGeometry` ＋ `st.glow`，繞腳下軸旋轉）整組退役★：
+     那是「純色無光照 billboard 當主視覺」（§3 禁區第 1 條），換成有厚度的紙紮弧。 */
   eliteCleave(st) {
+    const { W, T0, TL, R0, LAST, RL } = xhBeat(st, 0.90);
+    const C = st.colors;
     const gen = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const foes = st.target.slice();
-    st.tween({ ms: 260, ease: 'out', update(t, e) {
+    const toward = st.toward(gen, new THREE.Vector3());
+    const tip = st.worldOf(gen, 'BladeTip', new THREE.Vector3());
+    if (!tip.lengthSq()) { st.worldOf(gen, null, tip); tip.y += 0.45; }
+    /* 整排的兩端：弧要「橫過整排」，所以落點取對面最外側的兩隻（只有一隻時就退成它自己 ±0.5）。 */
+    const pts = foes.map((f) => st.worldOf(f, null, new THREE.Vector3()));
+    const head = pts.length ? pts[0].clone() : tip.clone().addScaledVector(st.dir, 1.4);
+    const tail = pts.length ? pts[pts.length - 1].clone() : head.clone();
+    if (pts.length < 2) { head.z -= 0.55; tail.z += 0.55; }
+    head.y += 0.42; tail.y += 0.42;
+
+    // ── 丁 斬擊弧：鎏金面＋ink 墨線邊的實體（不是加色平面）──
+    const arc = st.paperStamp(st.kind, tip, { role: 'stamp', color: C.key, inkColor: C.ink,
+      opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -14 });
+    arc.scale.setScalar(st.iconSize * 0.55);
+
+    /* ① 舉劍（windup）：右臂高舉、胸口後仰側擰、邊光大亮；弧在劍尖長出來 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out', update(t, e) {
       st.rot(gen, 'RArm1Rt', -1.1 * e, 0, 0.25 * e); st.rot(gen, 'RArm1El', -0.5 * e);
-      st.rot(gen, 'Chest', -0.12 * e, -0.3 * e, 0); st.rot(gen, 'HeadRoot', -0.1 * e);
-      st.rim(gen, 1 + 1.2 * e);
+      st.rot(gen, 'Chest', -0.12 * e, -0.30 * e, 0); st.rot(gen, 'HeadRoot', -0.10 * e);
+      st.rot(gen, 'BladeRoot', -0.22 * e); st.rot(gen, 'Blade1', -0.16 * e); st.rot(gen, 'Blade2', -0.12 * e); st.rot(gen, 'BladeTip', -0.10 * e);
+      st.rim(gen, 1 + 2.4 * e); // 劍身邊光暴亮（整尊 rim；逐骨邊光引擎層做不到）
+      st.alpha(arc, Math.min(1, e * 2.4));
+      arc.scale.setScalar(st.iconSize * (0.55 + 0.35 * e));
+    }, done() { st.phase('travel'); } });
+
+    /* ② 劈落＋弧飛到對面（travel 前段）→ 橫掃整排（travel 後段）
+       ★位移來源★：`evalPhases` 量的是 mesh.position，所以弧要真的跨過兩軍之間那一段
+       （只靠「橫掃整排」在 1v1 下位移不夠，門檻是 travelDist×0.40）。 */
+    st.tween({ ms: TL * 0.34, delay: T0, ease: 'in', update(t, e) {
+      st.rot(gen, 'RArm1Rt', -1.1 + 1.9 * e, 0, 0.25 - 0.60 * e); st.rot(gen, 'RArm1El', -0.5 + 0.3 * e);
+      st.rot(gen, 'Chest', -0.12 + 0.30 * e, -0.30 + 0.75 * e, 0); st.rot(gen, 'HeadRoot', -0.10 + 0.20 * e);
+      st.rot(gen, 'BladeRoot', -0.22 + 0.46 * e); st.rot(gen, 'Blade1', -0.16 + 0.34 * e); st.rot(gen, 'Blade2', -0.12 + 0.26 * e); st.rot(gen, 'BladeTip', -0.10 + 0.22 * e);
+      st.move(gen, toward.x * 0.20 * e, 0, toward.z * 0.20 * e);
     } });
-    st.at(260, () => {
-      const foot = st.foot(gen, new THREE.Vector3());
-      const toward = st.toward(gen, new THREE.Vector3());
-      const far = foes.length ? foes.reduce((m, f) => Math.max(m, foot.distanceTo(st.worldOf(f, null, _a))), 0) : 1.4;
-      const reach = Math.max(1.2, far + 0.4);
-      // 劍光：一片長條薄面，軸在出招者腳下，掃過「朝對面」±52° 的扇形
-      const pivot = st.spawn(new THREE.Group(), 'slash');
-      pivot.position.set(foot.x, st.tableY + 0.02, foot.z);
-      const blade = new THREE.Mesh(new THREE.PlaneGeometry(reach, 0.16), st.glow(undefined, 0.85));
-      blade.geometry.translate(reach / 2, 0, 0);
-      blade.rotation.x = -Math.PI / 2;
-      pivot.add(blade);
-      gen.group.localToWorld(_b.copy(toward)).sub(gen.group.getWorldPosition(_a)); _b.y = 0; _b.normalize();
-      const ang = Math.atan2(-_b.z, _b.x);
-      const a0 = ang + 0.9, a1 = ang - 0.9;
-      pivot.rotation.y = a0;
-      st.tween({ ms: 200, ease: 'out', update(t, e) { pivot.rotation.y = a0 + (a1 - a0) * e; blade.material.opacity = 0.85 * (1 - t * t); } });
-      st.tween({ ms: 180, ease: 'out', update(t, e) {
-        st.rot(gen, 'RArm1Rt', -1.1 + 1.9 * e, 0, 0.25 - 0.6 * e); st.rot(gen, 'RArm1El', -0.5 + 0.3 * e);
-        st.rot(gen, 'Chest', -0.12 + 0.3 * e, -0.3 + 0.75 * e, 0); st.rot(gen, 'HeadRoot', -0.1 + 0.2 * e);
-        st.move(gen, toward.x * 0.2 * e, 0, toward.z * 0.2 * e);
+    /* 第 1 輪看圖改的：飛過去那一段**不畫拖尾**。`st.trail` 的線是 WebGL 的 1px LineBasic，
+       從出招方一路連到對面就是盲讀原話的「一條白色虛線」（§B2 禁：MAT_LINE 只能當殘影、不能當主體）。
+       橫掃那一段留著——那條才是「斬擊的軌跡」，是這一招的辨識點，但透明度再降一階。 */
+    st.trail(arc, tip, head, { ms: TL * 0.46, delay: T0, ease: 'in', trail: false, arc: 0.12 });
+    st.tween({ ms: TL * 0.46, delay: T0, ease: 'in', update(t, e) { arc.scale.setScalar(st.iconSize * (0.90 + 0.42 * e)); } });
+    /* 橫掃：從整排的一端劃到另一端；`spin` 讓弧跟著掃的方向轉，不是平移一塊板 */
+    st.trail(arc, head, tail, { ms: TL * 0.54, delay: T0 + TL * 0.46, ease: 'out', color: C.line, opacity: 0.30, segs: 12, spin: 0.9,
+      done() {
+        /* ★衝擊拍★：劍到底＝弧掃過整排＝第一隻同幀後退 */
+        st.phase('react');
+        st.punch(0.62);
+        st.burst(head, { power: 1.0, n: 60, color: C.hot });
       } });
-      st.punch(0.5);
-      foes.forEach((f, i) => st.at(60 + i * 45, () => st.burst(st.worldOf(f, null, new THREE.Vector3()), { power: 0.7, n: 40 })));
-      st.flinch(foes, { delay: 60, stagger: 45, strength: 1, burst: false });
-      st.at(180, () => st.tween({ ms: 420, ease: 'inout', update(t, e) {
-        const k = 1 - e;
-        st.rot(gen, 'RArm1Rt', 0.8 * k, 0, -0.35 * k); st.rot(gen, 'RArm1El', -0.2 * k);
-        st.rot(gen, 'Chest', 0.18 * k, 0.45 * k, 0); st.rot(gen, 'HeadRoot', 0.1 * k);
-        st.move(gen, toward.x * 0.2 * k, 0, toward.z * 0.2 * k);
-        st.rim(gen, 1 + 1.2 * k);
-      } }));
-    });
+
+    /* ③ 整排逐隻退（react）＋火星；弧在掃完之後才淡出 */
+    /* stagger 用**整段 react 的 40% 去分給 N 隻**，不是每隻固定一個比例：
+       8v8 時固定比例會把最後一隻推到 react 之外，t1 下 `fill` 超過 0.90、`maxRate` 破 1.0
+       （實測 rate 1.0315／fill 0.947 判紅）。逐隻的火星也拿掉了——`st.at` 每叫一次就替
+       「回呼裡即將排的 tween」預留 `TFX.atReserve`（160ms×k），8 隻就是把 horizon 推爆的主因；
+       衝擊拍那一發 `st.burst` 已經在 `done()` 裡，整排的「退」靠 flinch＋縮＋邊光表現。 */
+    const stag = RL * 0.40 / Math.max(1, foes.length);
+    st.flinch(foes, { delay: R0, ms: RL * 0.6, stagger: stag, strength: 1.4, burst: false });
+    foes.forEach((f, i) => st.tween({ ms: RL * 0.5, delay: R0 + i * stag, ease: 'snap', update(t, e) {
+      st.scale(f, 1 - 0.07 * e); st.rim(f, 1 + 2.2 * e);
+    } }));
+    st.tween({ ms: RL * 0.5, delay: R0, ease: 'out', update(t, e) { arc.scale.setScalar(st.iconSize * (1.32 - 0.5 * e)); } });
+    st.fade(arc, { ms: RL * 0.5, delay: R0 + RL * 0.2, from: 1, to: 0 });
+
+    /* 收勢：收劍 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout', update(t, e) {
+      const k = 1 - e;
+      st.rot(gen, 'RArm1Rt', 0.8 * k, 0, -0.35 * k); st.rot(gen, 'RArm1El', -0.2 * k);
+      st.rot(gen, 'Chest', 0.18 * k, 0.45 * k, 0); st.rot(gen, 'HeadRoot', 0.10 * k);
+      st.rot(gen, 'BladeRoot', 0.24 * k); st.rot(gen, 'Blade1', 0.18 * k); st.rot(gen, 'Blade2', 0.14 * k); st.rot(gen, 'BladeTip', 0.12 * k);
+      st.move(gen, toward.x * 0.20 * k, 0, toward.z * 0.20 * k);
+      st.rim(gen, 1 + 2.4 * k);
+    } });
   },
 
   /* 媽祖令旗・令旗改陣（flag，護法×2）：二拍本方全體 atk+1。
@@ -893,61 +941,9 @@ export default MOVES;
    用 delay 排定、不用 st.at、回呼裡只放 burst／punch）。辨識元素表在
    docs/experiments/2026-09-10-plan-fx-tiers.md §5。 */
 export const SHORT = {
-  /* 斬瘟｜辨識：★劍本體★＋**紅刃衝刺拖出的寬軌跡**＋對面整排依序退縮
-     （盲讀 r2：短 2/2 vs 完整 4/3。讀者 C 點名完整版的特徵是「紅刃衝刺拖出寬軌跡」，
-      二版的短版只有原地揮＋腳下光弧，所以補上衝刺與軌跡帶） */
-  eliteCleave(st) {
-    const K = st.ms / 260;
-    const gen = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const foot = st.foot(gen, new THREE.Vector3());
-    const arc = st.disc(foot, 0.75, { opacity: 0 });
-    arc.scale.setScalar(0.3);
-    const blade = st.spawn(new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.66, 0.045), st.glow(undefined, 0)), 'blade');
-    const hilt = st.spawn(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.05), st.glow(undefined, 0)), 'blade');
-    const hand = new THREE.Vector3();
-    const place = (ang, lift, fwd) => {
-      st.worldOf(gen, 'RArm1El', hand);
-      blade.position.copy(hand); blade.position.y += lift;
-      blade.position.addScaledVector(st.dir, fwd || 0);
-      blade.rotation.set(0, 0, ang);
-      hilt.position.copy(blade.position); hilt.position.y -= 0.3 * Math.cos(ang);
-      hilt.rotation.set(0, 0, ang);
-    };
-    place(0, 0.34, 0);
-    // ★衝刺軌跡★：從自己腳邊拉到對面的一條寬帶（讀者 C 說的「拖出寬軌跡」）
-    const foeC = st.target.length ? st.worldOf(st.target[0], null, new THREE.Vector3()) : foot.clone().addScaledVector(st.dir, 1.6);
-    const trailA = st.beam(foot.clone().add(new THREE.Vector3(0, 0.5, 0)), foeC, { opacity: 0 });
-    const trailB = st.beam(foot.clone().add(new THREE.Vector3(0, 0.34, 0)), foeC.clone().add(new THREE.Vector3(0, -0.1, 0)), { opacity: 0 });
-    const trailC = st.beam(foot.clone().add(new THREE.Vector3(0, 0.66, 0)), foeC.clone().add(new THREE.Vector3(0, 0.12, 0)), { opacity: 0 });
-    st.tween({ ms: 80 * K, ease: 'wind', update(t, e) { // 舉劍：劍身同時現形
-      st.rot(gen, 'RArm1Rt', -1.15 * e, 0, -0.3 * e); st.rot(gen, 'RArm1El', -0.5 * e);
-      st.rot(gen, 'Chest', -0.16 * e, 0.24 * e, 0); st.rot(gen, 'HeadRoot', -0.12 * e);
-      st.rim(gen, 1 + 1.3 * e);
-      blade.material.opacity = Math.min(1, e * 2.4); hilt.material.opacity = Math.min(1, e * 2.4);
-      place(-0.35 * e, 0.34 + 0.1 * e, 0);
-    } });
-    st.tween({ ms: 86 * K, delay: 78 * K, ease: 'strike', update(t, e) { // ★衝刺★：整尊往對面衝出去，劍跟著劈
-      st.rot(gen, 'RArm1Rt', -1.15 + 1.9 * e, 0, -0.3 + 0.6 * e); st.rot(gen, 'RArm1El', -0.5 + 0.7 * e);
-      st.rot(gen, 'Chest', -0.16 + 0.36 * e, 0.24 - 0.5 * e, 0);
-      st.move(gen, 0, 0, 0.34 * e); // 一版只前踏 0.13，這裡是真的衝過去
-      place(-0.35 + 2.5 * e, 0.44 - 0.5 * e, 0.3 * e);
-    }, done() { st.punch(0.6); } });
-    // 三條軌跡錯開淡出＝一條會拖尾的寬帶
-    st.fade(trailA, { ms: 96 * K, delay: 96 * K, from: 1, to: 0 });
-    st.fade(trailB, { ms: 92 * K, delay: 104 * K, from: 0.9, to: 0 });
-    st.fade(trailC, { ms: 92 * K, delay: 112 * K, from: 0.8, to: 0 });
-    st.grow(arc, { ms: 92 * K, delay: 100 * K, from: 0.3, to: 1.8 });
-    st.fade(arc, { ms: 92 * K, delay: 100 * K, from: 0.7, to: 0 });
-    st.target.forEach((f, i) => { if (i < 4) st.flinch([f], { delay: (116 + i * 12) * K, strength: 1.05, burst: i < 2 }); });
-    st.fade(blade, { ms: 62 * K, delay: 166 * K, from: 1, to: 0 });
-    st.fade(hilt, { ms: 62 * K, delay: 166 * K, from: 1, to: 0 });
-    st.tween({ ms: 62 * K, delay: 166 * K, ease: 'inout', update(t, e) { // 收劍、退回原位
-      const k = 1 - e;
-      st.rot(gen, 'RArm1Rt', 0.75 * k, 0, 0.3 * k); st.rot(gen, 'RArm1El', 0.2 * k);
-      st.rot(gen, 'Chest', 0.2 * k, -0.26 * k, 0); st.rot(gen, 'HeadRoot', -0.12 * k);
-      st.move(gen, 0, 0, 0.34 * k); st.rim(gen, 1 + 1.3 * k);
-    } });
-  },
+  /* eliteCleave｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**：時間軸全由 st.beat／st.ms 換算，
+     兩個 tier 的差別只是比例表（2026-09-13 演出卷批 1 起，香火系逐支改成這個做法）。 */
+  eliteCleave: MOVES.eliteCleave,
 
   /* 令旗改陣｜辨識：★旗面本體★由後猛甩到前＋兩道令波推過本方整排
      （盲讀 r2：短版只有骨骼在轉、看不到旗；補一面真的旗） */
