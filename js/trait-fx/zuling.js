@@ -569,63 +569,105 @@ const MOVES = {
       st.move(lead, 0, 0.09 * up, 0);
     } });
   },
-
   /* 雷女之火・天雷（thunder，精英×1）：一拍開始 15% 燒掉對面 1 隻小兵。
-     編舞：雙翼向外撐開、仰頸、尾羽扇開、胸前火種脹亮（0–240ms 醞釀）
-          → 火種升到那一隻小兵頭頂上方（240ms）→ 兩道天雷從高處劈下（340ms），火星、鏡頭小推、那一隻退縮
-          → 猛然收翅下拍、頸尾回正（到 840ms）。 */
+     ★2026-09-13 祖靈批階段 B 轉正★（語彙檔 §C1 第 5 列＋§B1＋§A9；
+     `MOVE_SPEC.boltGamble = { 丁, 張, 壓, stance:'舉臂', anchor:'foe' }`）
+
+     三件（計畫 §3）：
+       **本體動作＝張**（§C「撐」＝張的變體）：`LWingA1Wi`／`RWingA1Wi` 雙翼一格撐開＋
+         `NeckRoot`／`Neck1`／`Neck2` 仰頸、`Tail*` 甩尾。
+       **道具**＝丁 日與雷（限縮家族）：**鋸齒雷片**（`bolt` ×4，`st.paperProps` 的 `shape:'emblem'`
+         ＝1 draw call）從 `EmberSeed` 炸開後**落到那一隻頭上**；＋那一隻身上一枚雷印。
+         ★不得有球升空★（§C 區分點：現況的圓球升空與射日直接撞，讀者 A 短版整支讀成射日神弓）。
+       **受招方反應＝壓**：被燒那隻等比縮＋骨骼抖（`st.flinch` 帶大 strength）。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up）≠ react「壓」（down）；腳下**垂直光柱**。
+     ★拖線★：打擊類，保留，方向「施招者 → 目標」。★落點 anchor＝`foe`★。 */
   boltGamble(st) {
+    const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
+    const C = st.colors;
     const bird = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const swarm = st.byBody(st.target, 'swarm');
     const prey = swarm.length ? swarm[Math.min(swarm.length - 1, Math.floor(st.rnd() * swarm.length))] : (st.target[0] || null);
-    st.tween({ ms: 240, ease: 'out', update(t, e) {
-      st.rot(bird, 'LWingA1Wi', 0, 0, 0.8 * e);
-      st.rot(bird, 'RWingA1Wi', 0, 0, -0.8 * e);
-      st.rot(bird, 'NeckRoot', -0.24 * e); st.rot(bird, 'Neck1', -0.26 * e); st.rot(bird, 'Neck2', -0.2 * e);
-      st.rot(bird, 'HeadRoot', -0.34 * e); st.rot(bird, 'Brow', -0.14 * e);
-      st.rot(bird, 'TailRoot', 0.2 * e); st.rot(bird, 'Tail1', 0.16 * e); st.rot(bird, 'Tail2', 0.14 * e);
-      st.rot(bird, 'Tail3', 0.12 * e); st.rot(bird, 'TailTip', 0.1 * e);
-      st.rot(bird, 'LLeg1Th', -0.18 * e); st.rot(bird, 'RLeg1Th', -0.18 * e);
-      st.scaleBone(bird, 'EmberSeed', 1 + 1.4 * e);
-      st.move(bird, 0, 0.07 * e, 0);
-      st.rim(bird, 1 + 1.4 * e);
+    const seed = st.worldOf(bird, 'EmberSeed', new THREE.Vector3());
+    if (!seed.lengthSq()) { st.worldOf(bird, null, seed); seed.y += 0.45; }
+    seed.add(st.camOff(0.9));
+    const to = prey ? st.top(prey, new THREE.Vector3()) : seed.clone().addScaledVector(st.dir, 2.2);
+    to.add(st.camOff(1.2));
+
+    // ── 丁 鋸齒雷片：四片從火種炸開、一起落到那一隻頭上（1 draw call）──
+    const BZ = 4;
+    const bolts = st.paperProps(st.kind, BZ, { anchor: 'foe', shape: 'emblem', color: C.hot, opacity: 0, k: 0.75, depth: 0.14, warp: 0.16 });
+    bolts.obj.position.copy(seed);
+    const _e = new THREE.Euler();
+    const jags = [];
+    for (let i = 0; i < BZ; i++) jags.push({ x: (i - 1.5) * 0.26, y: 0.12 * (i % 2 ? 1 : -1), rz: 0.22 * (i - 1.5), s: 0 });
+    const writeBolts = (k) => {
+      for (let i = 0; i < BZ; i++) {
+        const g = jags[i], it = bolts.items[i];
+        it.p.set(g.x * (0.2 + 1.1 * k), g.y * (0.2 + 1.6 * k), 0);
+        it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * (0.3 + 1.4 * k)));
+        it.s = g.s;
+      }
+      bolts.write();
+    };
+    writeBolts(0);
+
+    // ── 被燒那隻身上的雷印（anchor foe）──
+    const mark = prey ? st.paperStamp(st.kind, to, { anchor: 'foe', color: C.hot, inkColor: C.ink,
+      opacity: 0, depth: 0.16, warp: 0.14, tiltDeg: 12, yawDeg: -20, follow: prey, at: 'top', off: st.camOff(1) }) : null;
+
+    /* ① 撐翼（windup）：雙翼一格撐開、仰頸甩尾；雷片在火種上亮相。 */
+    st.groundMark(bird, { h: 1.30, w: 0.26, taper: 0.42, peak: 0.95 });
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(bird, '舉臂', e);
+        st.rot(bird, 'LWingA1Wi', 0, 0, 0.62 * e); st.rot(bird, 'RWingA1Wi', 0, 0, -0.62 * e);
+        st.rot(bird, 'NeckRoot', -0.22 * e); st.rot(bird, 'Neck1', -0.24 * e); st.rot(bird, 'Neck2', -0.20 * e);
+        st.rot(bird, 'TailRoot', 0.24 * e); st.rot(bird, 'Tail1', 0.20 * e);
+        st.rim(bird, 1 + 1.2 * e);
+        st.worldOf(bird, 'EmberSeed', bolts.obj.position); bolts.obj.position.add(st.camOff(0.9));
+        st.alpha(bolts.obj, Math.min(1, e * 1.9));
+        for (let i = 0; i < BZ; i++) jags[i].s = Math.max(0, Math.min(1, (e - 0.10 * i) * 2.6));
+        writeBolts(0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 劈下（travel）：四片鋸齒雷從火種炸開、直落那一隻頭上（打擊類保留拖尾）。 */
+    const from = seed.clone();
+    st.trail(bolts.obj, from, to, { ms: TL, delay: T0, ease: 'strike', color: C.line, opacity: 0.75,
+      update(t, e) { writeBolts(e); },
+      done() {
+        /* ★衝擊拍★：翼撐滿＝雷片落到那一隻頭上＝那一隻同幀被壓下（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(to, { power: 0.95, n: 58, color: C.hot });
+        st.punch(0.44);
+      } });
+    // 收翅下拍（祖靈＝靜→瞬發）
+    st.tween({ ms: TL * 0.6, delay: T0 + TL * 0.35, ease: 'snap', update(t, e) {
+      st.rot(bird, 'LWingA1Wi', 0, 0, 0.62 - 0.90 * e); st.rot(bird, 'RWingA1Wi', 0, 0, -0.62 + 0.90 * e);
+      st.rot(bird, 'NeckRoot', -0.22 + 0.34 * e); st.rot(bird, 'Neck1', -0.24 + 0.34 * e);
+      st.rim(bird, 1 + 1.2 - 0.8 * e);
     } });
-    st.at(240, () => {
-      const hit = new THREE.Vector3();
-      if (prey) st.worldOf(prey, null, hit);
-      else { st.worldOf(bird, null, hit); hit.addScaledVector(st.dir, 1.8); }
-      // 雷源要斜著落下：st.bolt 對「純垂直」的線段算不出側向抖動（側向量退化成 0），會變成一根直棒
-      const high = hit.clone().addScaledVector(st.dir, -0.55); high.y += 1.35;
-      const seedPos = st.worldOf(bird, 'EmberSeed', new THREE.Vector3());
-      const seed = st.orb(seedPos, 0.1, { opacity: 0.9 });
-      seed.scale.setScalar(0.3);
-      st.grow(seed, { ms: 100, from: 0.3, to: 1.2 });
-      st.fly(seed, seedPos, high, { ms: 100, ease: 'outQuint' });
-      st.at(100, () => {
-        const a = st.bolt(high, hit, { jag: 0.62, segs: 11, opacity: 1 });
-        st.fade(a, { ms: 210, from: 1, to: 0 });
-        const b = st.bolt(high, hit, { jag: 0.34, segs: 7, seed: 91, opacity: 0.8 });
-        st.fade(b, { ms: 280, from: 0.8, to: 0 });
-        st.fade(seed, { ms: 130, from: 0.9, to: 0 });
-        st.burst(hit, { power: 1.1, n: 76 });
-        st.punch(0.5);
-        if (prey) st.flinch([prey], { strength: 1.5, burst: false });
-      });
-    });
-    st.tween({ ms: 600, delay: 240, ease: 'linear', update(t) {
-      // 翅膀撐開的姿態要撐到雷劈完（k 延後才開始退），收翅（f）再更晚一步
-      const k = 1 - st.EASE.out(Math.min(1, Math.max(0, (t - 0.22) / 0.78)));
-      const f = st.EASE.snap(Math.min(1, Math.max(0, (t - 0.25) / 0.75)));
-      st.rot(bird, 'LWingA1Wi', 0, 0, 0.8 * k - 0.6 * f);
-      st.rot(bird, 'RWingA1Wi', 0, 0, -0.8 * k + 0.6 * f);
-      st.rot(bird, 'NeckRoot', -0.24 * k + 0.26 * f); st.rot(bird, 'Neck1', -0.26 * k + 0.22 * f); st.rot(bird, 'Neck2', -0.2 * k + 0.18 * f);
-      st.rot(bird, 'HeadRoot', -0.34 * k + 0.3 * f); st.rot(bird, 'Brow', -0.14 * k + 0.16 * f);
-      st.rot(bird, 'TailRoot', 0.2 * k - 0.14 * f); st.rot(bird, 'Tail1', 0.16 * k); st.rot(bird, 'Tail2', 0.14 * k);
-      st.rot(bird, 'Tail3', 0.12 * k); st.rot(bird, 'TailTip', 0.1 * k);
-      st.rot(bird, 'LLeg1Th', -0.18 * k + 0.2 * f); st.rot(bird, 'RLeg1Th', -0.18 * k + 0.2 * f);
-      st.scaleBone(bird, 'EmberSeed', 1 + 1.4 * k);
-      st.move(bird, 0, 0.07 * k - 0.06 * f, 0);
-      st.rim(bird, 1 + 1.4 * k + 0.9 * f);
+    st.fade(bolts.obj, { ms: RL * 0.45, delay: R0 + RL * 0.25, from: 0.95, to: 0 });
+    /* ★`st.flinch` 一律頂層排（短版三條紀律第 2 條）★ 壓＝等比縮＋骨骼抖，給大 strength。 */
+    if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.9, burst: false });
+    if (prey) st.tween({ ms: RL * 0.85, delay: R0, ease: 'snap', update(t, e) { st.scale(prey, 1 - 0.16 * st.EASE.pulse(e)); } });
+
+    /* ③ 燃盡（react）：頭上的雷印蓋上再淡去。 */
+    if (mark) {
+      st.fade(mark, { ms: RL * 0.3, delay: R0, from: 0, to: 1 });
+      st.fade(mark, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 1, to: 0 });
+    }
+
+    // 收勢：翼與頸尾回正
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 1 - st.EASE.out(Math.min(1, t / 0.6));
+      st.rot(bird, 'LWingA1Wi', 0, 0, -0.28 * k); st.rot(bird, 'RWingA1Wi', 0, 0, 0.28 * k);
+      st.rot(bird, 'NeckRoot', 0.12 * k); st.rot(bird, 'Neck1', 0.10 * k); st.rot(bird, 'Neck2', -0.20 * k);
+      st.rot(bird, 'TailRoot', 0.24 * k); st.rot(bird, 'Tail1', 0.20 * k);
+      st.rim(bird, 1 + 0.4 * k);
     } });
   },
 
@@ -972,41 +1014,8 @@ export const SHORT = {
   /* wardFirst｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
   wardFirst: MOVES.wardFirst,
 
-  /* 天雷｜辨識：★三道劈下來的閃電★（本體＝雷本身，越早出現越好）＋胸前火種升空
-     （盲讀 r1：一版的雷只在 150ms 後閃 62ms，讀者的取樣幀常常錯過） */
-  boltGamble(st) {
-    const K = st.ms / 260;
-    const bird = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const prey = st.byBody(st.target, 'swarm')[0] || st.target[0] || null;
-    const seed = st.worldOf(bird, 'EmberSeed', new THREE.Vector3());
-    const mark = prey ? st.worldOf(prey, null, new THREE.Vector3()) : seed.clone().addScaledVector(st.dir, 1.8);
-    const sky = mark.clone(); sky.y += 1.5;
-    const ember = st.orb(seed, 0.06, { opacity: 0.9 });
-    ember.scale.setScalar(0.3);
-    /* 三道雷頂層先建好（opacity 0），從 78ms 起依序現形——整個中段畫面上都有雷。 */
-    const bolts = [
-      st.bolt(sky, mark, { jag: 0.34, segs: 9, seed: 3, opacity: 0 }),
-      st.bolt(sky.clone().add(new THREE.Vector3(0.16, 0, -0.12)), mark, { jag: 0.4, segs: 9, seed: 9, opacity: 0 }),
-      st.bolt(sky.clone().add(new THREE.Vector3(-0.14, 0.1, 0.1)), mark, { jag: 0.3, segs: 9, seed: 17, opacity: 0 }),
-    ];
-    st.tween({ ms: 78 * K, ease: 'out', update(t, e) { // 撐翼仰頸、胸前火種脹亮
-      st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * e);
-      st.rot(bird, 'NeckRoot', -0.16 * e); st.rot(bird, 'HeadRoot', -0.22 * e); st.rot(bird, 'TailRoot', 0.2 * e);
-      st.rim(bird, 1 + 1.1 * e); ember.scale.setScalar(0.3 + 0.9 * e);
-    } });
-    st.fly(ember, seed.clone(), sky, { ms: 62 * K, delay: 74 * K, ease: 'out', arc: 0.2,
-      done() { st.burst(mark, { power: 1, n: 50 }); st.punch(0.5); } });
-    st.fade(ember, { ms: 30 * K, delay: 138 * K, from: 0.9, to: 0 });
-    // 三道雷各燒 92ms、間隔 26ms：78→170、104→196、130→222，中段任何一幀都看得到雷
-    bolts.forEach((b, i) => st.fade(b, { ms: 92 * K, delay: (78 + i * 26) * K, from: 1, to: 0 }));
-    if (prey) st.flinch([prey], { delay: 140 * K, strength: 1.3, burst: false });
-    st.tween({ ms: 72 * K, delay: 150 * K, ease: 'snap', update(t, e) { // 猛然收翅下拍
-      const k = 1 - e;
-      st.rot(bird, 'LWingA1Wi', 0, 0, -0.5 * k + 0.3 * e); st.rot(bird, 'RWingA1Wi', 0, 0, 0.5 * k - 0.3 * e);
-      st.rot(bird, 'NeckRoot', -0.16 * k); st.rot(bird, 'HeadRoot', -0.22 * k); st.rot(bird, 'TailRoot', 0.2 * k);
-      st.rim(bird, 1 + 1.1 * k);
-    } });
-  },
+  /* boltGamble｜tier 1 短版（300ms）＝完整版（900ms）**同一支函式**（階段 B 轉正，時間軸走 st.beat）。 */
+  boltGamble: MOVES.boltGamble,
 
   /* 飛魚躍｜辨識：舟身躍離水面＋落水漣漪環 */
   swarmHalfSplash(st) {
