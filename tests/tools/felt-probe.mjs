@@ -38,6 +38,7 @@ const SELS=String(opt.sel||'#felt,#west,#east,#north').split(',').map(x=>x.trim(
 const SERVE_ROOT=opt.root||ROOT;
 /* --seeds=1,3（凍結檔 §2.1 修訂四二版的量測條件：844×390、**dpr=2**、seeds 1 與 3）；--seed= 是單顆的舊寫法 */
 const SEEDS=(opt.seeds||String(opt.seed||1)).split(',').map(Number);
+const PORTRAIT=!!opt.portrait;   /* 直式量測（上桌卷第二段 U1）：390x844，其餘一字不變 */
 const JSONOUT=opt.json||null;   /* 落成 {"<seed>|<round>|出價|盯上": over} 的表，給 legend-drive.mjs 當 --base= */
 
 const MEASURE=(sels)=>`(() => {
@@ -57,13 +58,18 @@ const main=async()=>{
   await new Promise(r=>setTimeout(r,900));
   const browser=await loadChromium().launch();
   try{
-    const ctx=await browser.newContext({viewport:{width:844,height:390},deviceScaleFactor:2});
+    /* `--portrait`（上桌卷第二段，凍結檔 U1「四容器**橫直式**溢出 0」）：同一套流程改在 390×844 量。
+       ★不是另寫一支探針★——量的東西、判準、輸出格式一字不變，只有 viewport 換一組。
+       直式產品會蓋 `#rotateHint`，但 `#felt`／`#west`／`#east`／`#north` 仍然存在且有高度，
+       scrollHeight−clientHeight 照樣量得到（蓋板不影響版面計算）。 */
+    const ctx=await browser.newContext(PORTRAIT?{viewport:{width:390,height:844},deviceScaleFactor:2}
+                                               :{viewport:{width:844,height:390},deviceScaleFactor:2});
     await ctx.addInitScript(()=>{try{localStorage.setItem('yaoshi_intro_v1','1');}catch(e){}});
     const page=await ctx.newPage();
     await page.goto(`http://127.0.0.1:${PORT}/index.html`,{waitUntil:'load'});
     await page.waitForFunction('typeof window.__yaoshi === "object"',{timeout:20000});
     const ver=await page.evaluate('VERSION');
-    console.log(`# 版面直向探針　tag=${TAG}　頁面 VERSION=${ver}　seeds=${SEEDS.join(',')}　sel=${SELS.join(',')}　844×390 dpr=2　root=${SERVE_ROOT}`);
+    console.log(`# 版面直向探針　tag=${TAG}　頁面 VERSION=${ver}　seeds=${SEEDS.join(',')}　sel=${SELS.join(',')}　${PORTRAIT?"390×844":"844×390"} dpr=2　root=${SERVE_ROOT}`);
     const out={}; const ends=[];
     for(const SEED of SEEDS){
       await page.evaluate(sd=>{ CFG.T=1;
@@ -101,7 +107,12 @@ const main=async()=>{
             console.log(`    子元素高度：${m.kids.map(k=>`${k.id} ${k.h}`).join('　')}`);
           }
         }
-        if(!st.d) await page.click('#mainbtn');
+        /* 直式：產品會蓋一層滿版的 #rotateHint 要玩家轉橫，**任何真實點擊都被它攔下**
+           （實測 Playwright 逐次重試到逾時）。量的是版面高度不是命中測試，所以直式改用
+           `el.click()` 直接派事件繞過命中——★這不是把判準搬淺★：溢出值是 scrollHeight−clientHeight，
+           怎麼走到那一頁不影響它；橫式那一條仍然走真實點擊，一行未動。 */
+        if(!st.d){ if(PORTRAIT) await page.evaluate(`(()=>{const b=document.getElementById('mainbtn'); if(b) b.click();})()`);
+                   else await page.click('#mainbtn'); }
         else await page.evaluate(`(()=>{const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled);if(e)e.click();})()`);
       }
       ends.push({seed:SEED,why,lastR});

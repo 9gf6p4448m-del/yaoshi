@@ -19,6 +19,8 @@ const V = new URL(import.meta.url).search;
 const { makeCreatureFigure, creatureGlbUrl, FACTION_RIM } = await import('./creature-figures.js' + V);
 /* 頂點色幾何的建構器與決定性亂數收斂在 scene-env（環境幾何的家），本檔不另抄一份。 */
 const { vcBuilder, seedRnd: rnd } = await import('./scene-env.js' + V);
+/* 桌上道具（v0.56b 第二段）：籌碼／令牌／信物。掛進本檔的 group ⇒ 對決時整組跟著收。 */
+const { createTableProps } = await import('./table-props.js' + V);
 
 /* POOL 的系名是 zuling/xianghuo/yinqi，FACTION_RIM 的鍵是 zuli/xianghu/yinqi（兩套拼法並存，
    與 renderer.js 的 RIM_BY_FAC 同一份對照）。 */
@@ -73,7 +75,33 @@ export const TRAY = {
     rise: 0.30, // 一顆火苗升多高就重生
     speed: 0.20, // 上升速度（世界單位／秒）
   },
+
+  /** ── 直式分支（v0.56b 第二段）──────────────────────────────────────
+   *  直式視野只有 390 寬、相機 aspect < 1，橫式的 XS ±1.35 兩端整個掉出畫面
+   *  （實測：外側兩格的 NDC x 落在 ±1.4 之外）。所以**槽距與縮放各給一組直式值**，
+   *  紅布用**非均勻 scale** 收窄（不重建幾何：0 新 geometry、0 新 draw call），
+   *  籌碼／令牌／信物另由 `table-props` 的 `SEAT.P` 與 `DROP_Z.P` 跟著收。
+   *  `HITK`＝命中盒的等比縮放（直式 `#tray` 是 display:none、點不到，但 `slotScreen`
+   *  與治具照樣要問得到那一格在螢幕哪裡，所以命中盒也得跟著縮）。 */
+  /* 直式的水平視野只有半角 12.2°（fov 50 是**垂直**的，390/844 的 aspect 把水平壓到 tan25×0.462）
+     ⇒ 托盤那一排在 z=0.06 的深度上，畫面邊緣只對應到世界 x=±0.75。
+     外側兩格的中心因此不能超過 ±0.60（還要留模型自己的半寬）；p2 實測再收到 ±0.50，
+     才連帶讓擺在槽前的籌碼（槽 x ± 0.1）也留在畫面內。這一組是量出來的，不是猜的。 */
+  P: {
+    XS: [-0.50, -0.167, 0.167, 0.50],
+    SCALE: 0.40,
+    Z: 0.06,
+    CLOTH_SX: 0.42, CLOTH_SZ: 0.72,
+    HITK: 0.56,
+  },
 };
+
+/** 目前這個朝向要用哪一組版面常數。判準只問相機的長寬比（`resizeSceneEnv` 每次 resize 會更新它）。 */
+function layoutOf(portrait) {
+  return portrait
+    ? { XS: TRAY.P.XS, SCALE: TRAY.P.SCALE, Z: TRAY.P.Z, HITK: TRAY.P.HITK, SX: TRAY.P.CLOTH_SX, SZ: TRAY.P.CLOTH_SZ, mode: 'P' }
+    : { XS: TRAY.XS, SCALE: TRAY.SCALE, Z: TRAY.Z, HITK: 1, SX: 1, SZ: 1, mode: 'L' };
+}
 
 /* ── 紅布托盤：3.6×1.2 的圓角布面，布緣垂墜一圈短 fin 當布褶 ──────────────
  * 紙紮語法（ART_BIBLE）：不貼圖，靠「摺面 ＋ 摺處壓暗」的頂點色做出布的厚度。 */
@@ -246,11 +274,16 @@ export function createTableTray(scene, camera, opts = {}) {
   group.add(cloth);
   scene.add(group);
 
+  /** 現行版面（橫式／直式）。唯一的事實來源，全檔的槽位座標一律問它，不留第二份。 */
+  let L = layoutOf((camera.aspect || 1) < 1);
+  const slotX = (i) => L.XS[i];
+
   const N = TRAY.XS.length;
   /** 每一格的狀態。fig＝真 3D 妖（有 GLB）；pile＝詛咒占位；兩者互斥。 */
   const slots = TRAY.XS.map((x, i) => ({
-    i, x, key: null, curse: false, fac: null,
+    i, key: null, curse: false, fac: null,
     fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, played: false,
+    jolt: 0, bb: null,
   }));
   /** 命中代理盒：**刻意不加進 scene**（不畫、不佔 draw call），只給 Raycaster 用。
       世界矩陣在 update() 裡自己維護。 */
@@ -258,11 +291,12 @@ export function createTableTray(scene, camera, opts = {}) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
     m.name = 'tray-hit-' + s.i;
     m.userData.slot = s.i;
-    m.position.set(s.x, TRAY.Y + TRAY.HIT.h / 2, TRAY.Z);
-    m.scale.set(TRAY.HIT.w + TRAY.HIT.pad * 2, TRAY.HIT.h, TRAY.HIT.d + TRAY.HIT.pad * 2);
-    m.updateMatrixWorld(true);
     return m;
   });
+  /* 桌上道具層：掛在 `group` 裡面 ⇒ `setVisible(false)`（對決）一次收掉整組，不必逐支記得。
+     `onSlam`＝令牌落地那一刻，把那一格的拍品往下頓一下（落地震動；純視覺，不碰任何狀態）。 */
+  const props = createTableProps(group, { onSlam: (slot) => { const s = slots[slot]; if (s) s.jolt = 1; } });
+  relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
   let visible = true;
@@ -298,19 +332,48 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile = null;
     }
     s.key = null; s.curse = false; s.fac = null; s.ready = false; s.hoverK = 0; s.spin = 0;
-    s.rimK = -1; s.played = false;
+    s.rimK = -1; s.played = false; s.jolt = 0; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
        在 GLB 載完之前命中盒還是符紙堆那個小盒——玩家點得到的範圍比看到的小一截。 */
     resetProxy(s);
   }
 
-  /** 命中代理盒回到「還不知道這一格要放什麼」的預設大小 */
+  /** 命中代理盒回到「還不知道這一格要放什麼」的預設大小（直式一律再乘 `HITK`） */
   function resetProxy(s) {
-    const p = proxies[s.i];
-    p.position.set(s.x, TRAY.Y + TRAY.HIT.h / 2, TRAY.Z);
-    p.scale.set(TRAY.HIT.w + TRAY.HIT.pad * 2, TRAY.HIT.h, TRAY.HIT.d + TRAY.HIT.pad * 2);
+    const p = proxies[s.i], k = L.HITK;
+    p.position.set(slotX(s.i), TRAY.Y + TRAY.HIT.h * k / 2, L.Z);
+    p.scale.set((TRAY.HIT.w + TRAY.HIT.pad * 2) * k, TRAY.HIT.h * k, (TRAY.HIT.d + TRAY.HIT.pad * 2) * k);
     p.updateMatrixWorld(true);
+  }
+  /** 這一格現在該用多大的命中盒：`bb`＝GLB 的包圍盒（有就收緊）、`pile`＝詛咒占位（矮很多）。 */
+  function fitProxy(s) {
+    const p = proxies[s.i], k = L.HITK;
+    if (s.pile) {
+      p.position.set(slotX(s.i), TRAY.Y + 0.16 * k, L.Z);
+      p.scale.set((0.5 + TRAY.HIT.pad * 2) * k, 0.32 * k, (0.42 + TRAY.HIT.pad * 2) * k);
+      p.updateMatrixWorld(true);
+      return;
+    }
+    if (!s.bb) { resetProxy(s); return; }
+    const bb = s.bb;
+    const w = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * L.SCALE;
+    const h = (bb.max.y - bb.min.y) * L.SCALE;
+    p.position.set(slotX(s.i), TRAY.Y + h / 2, L.Z);
+    p.scale.set(Math.max(0.3 * k, w) + TRAY.HIT.pad * 2 * k, Math.max(0.3 * k, h), Math.max(0.3 * k, w) + TRAY.HIT.pad * 2 * k);
+    p.updateMatrixWorld(true);
+  }
+  /** 轉向（或第一次進場）之後把整組版面重鋪一次：紅布、四格、命中盒、道具層。 */
+  function relayout() {
+    cloth.scale.set(L.SX, 1, L.SZ);
+    for (const s of slots) {
+      const node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
+      /* 詛咒占位的符紙堆是照世界尺寸寫死的（`CURSE.w` 那組），不像妖是由 `SCALE` 正規化過的
+         ⇒ 直式要縮的是「相對橫式的比例」，不是直接吃 `SCALE`。 */
+      if (node) { node.position.x = slotX(s.i); node.position.z = L.Z; node.scale.setScalar(s.fig ? L.SCALE : L.SCALE / TRAY.SCALE); }
+      fitProxy(s);
+    }
+    props.setLayout(L.mode, L.XS, TRAY.Y, L.Z, L.SCALE);
   }
 
   function fillSlot(s, it) {
@@ -320,15 +383,14 @@ export function createTableTray(scene, camera, opts = {}) {
     s.spin = TRAY.YAW[s.i] || 0;
     if (s.curse || !s.key) {
       const p = makeCursePile(1301 + s.i * 37);
-      p.group.position.set(s.x, TRAY.Y, TRAY.Z);
+      p.group.position.set(slotX(s.i), TRAY.Y, L.Z);
+      p.group.scale.setScalar(L.SCALE / TRAY.SCALE);
       p.group.rotation.y = s.spin;
       group.add(p.group);
       s.pile = p;
       s.ready = true;
       // 命中盒收成占位物的大小（一疊符紙比一尊妖矮很多）
-      proxies[s.i].position.set(s.x, TRAY.Y + 0.16, TRAY.Z);
-      proxies[s.i].scale.set(0.5 + TRAY.HIT.pad * 2, 0.32, 0.42 + TRAY.HIT.pad * 2);
-      proxies[s.i].updateMatrixWorld(true);
+      fitProxy(s);
       return Promise.resolve();
     }
     /* groundFx:'none'：`CREATURE_GROUND` 會自動給水鬼浮標掛一灘水（那是它在**戰場**上的識別），
@@ -339,8 +401,8 @@ export function createTableTray(scene, camera, opts = {}) {
       rimColor: RIM_BY_FAC[s.fac], faction: s.fac, groundFx: 'none',
     });
     s.fig = f;
-    f.group.scale.setScalar(TRAY.SCALE);
-    f.group.position.set(s.x, TRAY.Y, TRAY.Z);
+    f.group.scale.setScalar(L.SCALE);
+    f.group.position.set(slotX(s.i), TRAY.Y, L.Z);
     f.group.rotation.y = s.spin;
     group.add(f.group);
     const key = s.key;
@@ -352,21 +414,20 @@ export function createTableTray(scene, camera, opts = {}) {
       // 描邊外殼：預設只有 hover 的那一件掛（見 TRAY.OUTLINE 的註解）；?table3d=lite 一律不掛
       applyOutline(s);
       if (f.play) f.play('idle', { fade: 0 });
-      const bb = f.bounds();
-      if (bb) {
-        const w = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * TRAY.SCALE;
-        const h = (bb.max.y - bb.min.y) * TRAY.SCALE;
-        const p = proxies[s.i];
-        p.position.set(s.x, TRAY.Y + h / 2, TRAY.Z);
-        p.scale.set(Math.max(0.3, w) + TRAY.HIT.pad * 2, Math.max(0.3, h), Math.max(0.3, w) + TRAY.HIT.pad * 2);
-        p.updateMatrixWorld(true);
-      }
+      s.bb = f.bounds() || null;
+      fitProxy(s);
       s.ready = true;
     }, () => { s.ready = true; /* GLB 404：這一格空著，但不擋整個托盤 */ });
   }
 
   const api = {
     group,
+    /** 桌上道具層（籌碼／令牌／信物）。治具與 renderer 的 listener 走這個出口。 */
+    props,
+    /** 現在是橫式還是直式版面（'L'／'P'；治具驗直式分支用） */
+    mode() { return L.mode; },
+    /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
+    slotXs() { return L.XS.slice(); },
     /** 今夜的 4 件。list = [{key, curse, fac}]；key = it.ab || it.m（★不是只有 ab★，計畫 §6 Q3）。 */
     setItems(list) {
       const arr = Array.isArray(list) ? list : [];
@@ -440,6 +501,11 @@ export function createTableTray(scene, camera, opts = {}) {
     visible() { return visible; },
     update(dt) {
       if (!visible) return;
+      /* 轉向偵測：`resizeSceneEnv` 在 resize 時更新 `camera.aspect`，這裡只比一個布林，
+         真的翻面了才重鋪（每幀一次浮點比較，量不到的成本）。 */
+      const wantP = (camera.aspect || 1) < 1;
+      if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
+      props.update(dt);
       for (const s of slots) {
         const want = (s.i === hover) ? 1 : 0;
         if (s.hoverK !== want) {
@@ -455,7 +521,15 @@ export function createTableTray(scene, camera, opts = {}) {
           if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2;
           s.spin = base + d * Math.max(0, 1 - dt / TRAY.HOVER_MS);
         }
-        const y = TRAY.Y + TRAY.HOVER_LIFT * ease;
+        /* 落地震動（第二段）：令牌拍下去的那一刻 `onSlam` 把 `jolt` 設成 1，
+           這裡讓那一格的拍品往下頓一下再彈回來（衰減的阻尼振盪，0.35 秒收乾淨）。
+           **只動這一格的 y**：不碰相機、不碰別格，也不寫任何狀態。 */
+        let shake = 0;
+        if (s.jolt > 0) {
+          s.jolt = Math.max(0, s.jolt - dt / 0.35);
+          shake = -Math.sin((1 - s.jolt) * Math.PI * 3.2) * 0.030 * s.jolt;
+        }
+        const y = TRAY.Y + TRAY.HOVER_LIFT * ease + shake;
         if (s.fig) {
           s.fig.group.position.y = y;
           s.fig.group.rotation.y = s.spin;
@@ -472,6 +546,7 @@ export function createTableTray(scene, camera, opts = {}) {
     },
     dispose() {
       slots.forEach(clearSlot);
+      props.dispose();
       group.remove(cloth);
       cloth.geometry.dispose(); cloth.material.dispose();
       proxies.forEach((p) => { p.geometry.dispose(); p.material.dispose(); });

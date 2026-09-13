@@ -2450,7 +2450,39 @@ let TRAY_PHASE=null;
 function market3dItems(){
   return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null }));
 }
-function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),round:S?S.round:0}); }
+/* 四席各是誰（v0.56b 第二段：席角信物）。id＝DIRS 的 0..3，role＝ROLES 的 id。
+   純讀取：不耗亂數、不寫任何賽局欄位——與 market3dItems 同一條紀律。
+   ★為什麼夾在 ys:market 裡而不另開事件★：信物要換的時機（開了新的一局、換了座位）
+   一定伴隨著一次 showMarket／showMarkUI，多開一個事件只是多一條要記得派的路。 */
+function market3dSeats(){
+  return (S&&S.players?S.players:[]).map(p=>({ id:p.id, role:p.roleId||null, alive:!!p.alive }));
+}
+function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dSeats(),round:S?S.round:0}); }
+/* ===== 競標的實體痕跡（v0.56b 上桌卷第二段）=====
+   兩個新派發點都是**純演出**：不讀寫任何賽局欄位、不耗玩法亂數（`S.rng`），
+   3D 層只拿 slot／seat 決定「從哪推到哪」、拿 amount 決定「推幾枚」。
+   3D 沒載入時 fx3d 是空操作，DOM 那半邊照樣成立（同 :4383 那條）。 */
+/* amount 0＝把那一席那一格的錢收回去（出價歸零、熱座交棒清場都走這條，不另開一個事件）。 */
+function pushBid3d(seat,slot,amount){ fx3d("ys:bid",{slot:slot|0,amount:Math.max(0,amount|0),seat:seat|0}); }
+/* 熱座交棒／任何「這一刻桌上不該有任何人的錢」的時候：四席四格全部歸零。
+   ★為什麼要有這一支★（自評 r1）：封籤之後桌上留著自己的銅錢是給自己看的回饋，
+   但熱座下一位接過手機時那疊錢還在——那是**私有出價外洩**，與 showHandoff 既有的
+   「雙保險清場」守的是同一件事，所以掛在同一個地方、走同一條紀律。 */
+function clearBids3d(){ if(!S||!S.market) return; S.players.forEach(p=>S.market.forEach((_,i)=>pushBid3d(p.id,i,0))); }
+/* 盯上：一夜一席只拍一次（同 STAMPED 的慣例，記在 UI 端、不進 S）——
+   熱座一夜會走兩次 showMarket，不記的話 AI 的令牌會被重拍一遍。 */
+const MARKED3D={};
+function pushMark3d(seat,slot){
+  if(!S||slot==null||seat==null) return;
+  const k=S.round+":"+seat; if(MARKED3D[k]) return; MARKED3D[k]=1;
+  fx3d("ys:mark",{slot:slot|0,seat:seat|0});
+  sfx("woodslam"); /* 木撞擊音（sfx 合成器新增的聲部；不帶 rnd＝完全決定性） */
+}
+/* 已經公開的盯上（自己的＋對手的）一次補齊：出價頁進來時桌上就該看得到誰拍了哪一格。 */
+function pushMarks3d(){
+  if(!S||!S.marks||!CFG.MARK_ON) return;
+  Object.keys(S.marks).forEach(id=>{ const i=S.marks[id]; if(i!=null&&S.players[+id]&&S.players[+id].alive) pushMark3d(+id,i); });
+}
 /* `?tray3d=0`＝本卷的 kill switch（桌上不擺模型）。**它也必須把命中層一起關掉**
    （外部覆審 H-1）：關掉之後桌心只剩一塊空紅布，但 `tray.hitTest` 只看幾何代理盒、
    不看「這一格上面有沒有東西」——四個代理盒在建構時就依 `TRAY.XS` 擺好了 ⇒
@@ -4593,7 +4625,9 @@ function veil(on){ const v=$("veil"); if(v) v.classList.toggle("on",!!on); }
 /* 開標後：得標者座位燈籠光、落標者（活著的）壓暗。座位卡由 renderSeats() 整個重畫時自然清掉；#south 在 renderSeats 裡手動清 */
 function revealGlow(r){
   if(!r||!r.winner) return;
-  fx3d("ys:reveal",{winner:r.winner.p.id}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
+  /* `slot`＝這一件在今夜市集的第幾格（v0.56b 第二段：3D 層據此把得標者的錢留在桌上、其餘收回）。
+     `S.market.indexOf(r.it)` 是純讀取；查不到（理論上不會）就送 null，3D 層看到 null 就不動。 */
+  fx3d("ys:reveal",{winner:r.winner.p.id,slot:(S&&S.market?S.market.indexOf(r.it):-1)}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
@@ -4953,6 +4987,7 @@ function markHintHTML(ap){
 }
 function pickMark(i){
   S.marks[ACTIVE]=i;
+  if(i!=null) pushMark3d(ACTIVE,i); /* v0.56b 第二段：血玉令牌從自己席位重重拍在那一格的托盤前（純演出） */
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   initIncense();
@@ -4989,6 +5024,7 @@ function showHandoff(pid, cont){
      `#table` 一次涵蓋 #stage、兩條 rail 與北列兩塊，對 0.55b 的右側抽屜也免疫。
      這是「防線按危險的效果寫，不按已知的入口寫」：要清的是**牌桌上任何一顆私有徽章**，不是「#stage 裡的」。 */
   document.querySelectorAll("#table .wishbar,#table .stakebar,#table .incbar,#table .mybid,#table .pickbox,#south .incbar").forEach(el=>el.remove());
+  clearBids3d(); /* v0.56b 第二段：桌上的銅錢也是私有出價（幾枚＝幾壽命），交棒前一起收 */
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
   $("hoAv").innerHTML=avHTML(p);
@@ -5025,7 +5061,12 @@ function showMarket(){
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
   setHollow(hollow);
   setFeltPrivateContext(ap,hollow);
-  if(hollow){ fillRails(prev,shrinesHTML(),mcardHTML); TRAY_PHASE="bid"; pushMarket3d(); }
+  if(hollow){
+    fillRails(prev,shrinesHTML(),mcardHTML);
+    TRAY_PHASE="bid";
+    pushMarket3d();
+    pushMarks3d();
+  }
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";
@@ -5241,6 +5282,12 @@ function closeSheet(){
   /* 出價視窗關了 ⇒ 桌上那一格不再是「正在看的那一件」，收掉 hover（描邊與鏡頭微推一起退）。
      ★這是 #sheet 唯一的關閉點★，所以收在這裡涵蓋所有入口（確定鈕、背景、ESC 之類日後新增的）。 */
   trayLeave();
+  /* v0.56b 第二段：這一格封了多少壽命，桌上就推幾枚銅錢——**封籤的當下就看得到**。
+     ★為什麼不是只在 submitHumanBids 推★（自評 r1）：單人局按下「蓋牌開標」會**同步**進開標，
+     `setHollow(false)` 當場把玻璃面板蓋回桌心 ⇒ 照規格只在交卷那一刻推的話，玩家**一次都看不到
+     自己的錢推出去**（實測 r1-bid.png 拍到的是開標前公告頁）。交卷那一次照推（規格字面），
+     這裡多推一次是讓它真的被看見；`props.bid` 同一席同一格是覆寫，不會疊兩份。 */
+  pushBid3d(ACTIVE,sheetIdx,myBids[sheetIdx]?myBids[sheetIdx].amt:0);
   const wrap=$("mc"+sheetIdx);
   if(wrap)wrap.outerHTML=mcardHTML(S.market[sheetIdx],sheetIdx);
   updateBudget();
@@ -5283,6 +5330,9 @@ function submitHumanBids(){
     (YB.pick[i]&&YB.amt>0&&!it.curse)?{amt:YB.amt,type:YB.type,intent:"keep",target:null,stake:true}
                                      :{amt:0,type:YB.type,intent:"keep",target:null,stake:true});
   S.humanBids[ACTIVE]=myBids;
+  /* v0.56b 第二段：封籤的同一刻把壽命銅錢從自己席位推出去（幾命幾枚，>8 改成一串）。
+     讀的是**剛封好的那份 myBids**（本來就在手上的區域變數），不回頭讀 S、不耗亂數。 */
+  myBids.forEach((b,i)=>pushBid3d(ACTIVE,i,b&&b.amt));
   /* 燒香封進同一個信封（第 4 卷）：null＝今夜不拜。LEGEND_ON=false 時 S.incense 根本不存在，這行不執行。 */
   if(CFG.LEGEND_ON&&S.incense) S.incense[ACTIVE]=(INC&&INC.amt>0)?{amt:INC.amt}:null;
   const hs=aliveHumans();
@@ -5301,6 +5351,13 @@ async function startReveal(){
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
   const reveal=resolveAuction();
+  /* v0.56b 第二段：AI 的錢在**開標這一刻**一次推出（密封標在開標前不得洩漏，所以不能早推）。
+     只推 `e.p.ai` 的——真人那幾筆在自己封籤的當下就推過了（submitHumanBids）。
+     純演出：讀的是 resolveAuction 回來的那份 reveal，不寫回、不耗亂數。 */
+  /* ★推的是**每一筆**、不只 AI 那幾筆★：熱座交棒時桌上的錢被清過一輪（clearBids3d，防外洩），
+     真人自己封的那幾筆到這裡才補回來；開標本來就是全部攤開的那一刻。 */
+  reveal.forEach(r=>{ const i=S.market.indexOf(r.it); if(i<0) return;
+    r.entries.forEach(e=>pushBid3d(e.p.id,i,e.amt)); });
   /* 開標渲染的可視程度交給 hook 決定。showTypes 預設 false（ARCH_SPEC §9 待辦 8：
      標書型態改為隱藏資訊，只有普渡爐主的 onReveal 會打開它）。
      viewer 傳「活著的真人」陣列：solo＝[南家]（與舊行為等價）；熱座＝兩位真人共看同一畫面，

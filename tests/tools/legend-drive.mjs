@@ -470,12 +470,27 @@ async function runTraySlots(browser, port) {
     {
       const gap = await page.evaluate(`(() => MAIN_GUARD_MS)()`);
       const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(2))()`);
+      /* 逐下記「按下時刻／進入 handler／離開 handler」——紅了才說得出是「沒武裝」還是
+         「第一下的 handler 卡太久、第二下已經在守衛窗外」（`02 §6.2` 的歸因要求）。 */
+      await page.evaluate(`(() => { window.__TT=[]; const o=window.trayTap;
+        window.trayTap=function(e){ const a=performance.now(); const r=o.apply(this,arguments);
+          window.__TT.push({ stamp:+gStamp(e).toFixed(1), enter:+a.toFixed(1), exit:+performance.now().toFixed(1), phase:TRAY_PHASE }); return r; }; })()`);
       await waitGate(page);
-      await page.touchscreen.tap(pt.x, pt.y);          // 第一下：真的宣告盯上，換成出價頁
-      await page.waitForTimeout(80);                   // 80ms ≪ 500ms：還在守衛窗內
-      const phase1 = await page.evaluate(`(() => TRAY_PHASE)()`);
-      await page.touchscreen.tap(pt.x, pt.y);          // 第二下：必須被吞
-      await page.waitForTimeout(120);
+      /* ★兩下之間不得有任何 `page.evaluate` 往返★（上桌卷第二段實測修正，`02 §6.2` 歸因）：
+         原本在兩下中間讀一次 `TRAY_PHASE`，加上 `waitForTimeout(80)`，實際送到頁面的
+         **按下時刻間隔**是 456ms（基準樹）～659ms（本樹）——註解寫「80ms ≪ 500ms」，
+         但治具根本沒送出守衛窗內的第二下，量到的是 CDP 往返延遲而不是守衛本身。
+         改法兩件：① 兩下之間零往返、等待縮到 20ms ② 下面加**前提斷言** `stimulusGap`，
+         真的沒送進窗內就報「前提不成立」而不是報守衛壞了。相位改讀 handler 裡記下的那一筆。 */
+      /* ★兩下要「同時排進 CDP」★：`await page.touchscreen.tap()` 一次的往返在這個頁面上實測
+         要 450～590ms（3D 全速在跑、通道忙），一前一後 await 的話第二下的**按下時刻**
+         必然落在守衛窗外——那量的是通道延遲，不是守衛。不 await 第一下、直接把第二下也排進去，
+         兩個 `Input.dispatchTouchEvent` 才會背靠背送達。 */
+      const tapA = page.touchscreen.tap(pt.x, pt.y);   // 第一下：真的宣告盯上，換成出價頁
+      const tapB = page.touchscreen.tap(pt.x, pt.y);   // 第二下：必須被吞
+      await Promise.all([tapA, tapB]);
+      await page.waitForTimeout(150);
+      const phase1 = await page.evaluate(`(() => ((window.__TT||[])[0]||{}).phase || TRAY_PHASE)()`);
       const swallowed = await page.evaluate(`(() => { const s=document.getElementById('sheet');
         return !(s && getComputedStyle(s).display !== 'none'); })()`);
       await page.waitForTimeout(gap + 200);            // 等守衛窗過去
@@ -485,8 +500,17 @@ async function runTraySlots(browser, port) {
         return { open: !!(s && getComputedStyle(s).display !== 'none'), title: h ? (h.textContent||'').trim() : null }; })()`);
       await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
       await page.waitForTimeout(120);
-      rec.doubleTap = { guardMs: gap, phaseAfterFirst: phase1, swallowed, reopened,
-        ok: phase1 === 'bid' && swallowed === true && reopened.open === true };
+      /* 歸因欄位（上桌卷第二段加，`02 §6.2`：訊號紅了要說得出「紅在哪一步」）：
+         `armed`＝第一下有沒有真的武裝（`TRAY_TAP_AT`／`PHASE_AT` 被寫進去）、
+         `taps`＝每一下的**按下時刻**與當時的兩個閘門值。少了這些，紅燈只能靠猜。 */
+      const gate = await page.evaluate(`(() => ({ trayTapAt: +TRAY_TAP_AT.toFixed(1), phaseAt: +PHASE_AT.toFixed(1), now: +gNow().toFixed(1), phase: TRAY_PHASE, taps: window.__TT||[] }))()`);
+      /* `stimulusGap`＝**兩下的按下時刻差**（不是治具打算等多久）。≥ guardMs 就代表這一輪
+         根本沒送出連點，`ok` 一律 false 並把數字印出來——不得靜默當成守衛壞了，也不得當成通過。 */
+      const tt = (gate.taps || []);
+      const stimulusGap = (tt.length >= 2) ? +(tt[1].stamp - tt[0].stamp).toFixed(1) : null;
+      const premise = stimulusGap != null && stimulusGap < gap;
+      rec.doubleTap = { guardMs: gap, stimulusGap, premise, phaseAfterFirst: phase1, swallowed, reopened, gate,
+        ok: premise && phase1 === 'bid' && swallowed === true && reopened.open === true };
     }
     /* ② 出價頁（同一夜，pickMark(null) 之後）：走真的 openSheet，比 #sheetbox 的標題 */
     await page.evaluate(`(() => pickMark(null))()`);
