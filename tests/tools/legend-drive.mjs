@@ -455,6 +455,71 @@ async function runTraySlots(browser, port) {
   return rec;
 }
 
+/* ===== T4（上桌卷 v0.56b）：連續 12 夜的 GLB 載入／釋放帳 =====
+   每一夜的出價頁記一次 `renderer.info.memory.geometries／textures` 與該夜四格掛的是什麼。
+   已知的結構事實（計畫 §6 Q4 末段）：`creature-figures.js` 的 `glbCache` **永不淘汰**，
+   本卷不做 LRU ⇒ 成長上界是「整局走過的**不同** GLB 顆數」，不是「夜數 × 4」。
+   所以這一段同時印兩個數字：**逐夜增量**（拍品換一批該不該漲）與**不同 GLB 顆數**（上界對不對得上）。 */
+async function runTrayMem(browser, port, query) {
+  const rec = { rows: [], errors: [], seed: +(opt.memseed || 1), nights: +(opt.memrounds || 12), query: query || '（預設）' };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html${query || ''}`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate((sd) => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']); }, rec.seed);
+    const seen = {};
+    /* 驅動與讀狀態合併成**一次** evaluate（原本是 waitForTimeout＋讀＋點三趟往返，
+       實測每圈約 150ms ⇒ 走完 12 夜要半小時）。點擊用頁內 `el.click()`：
+       它是 untrusted 且沒有座標，相位閘的 `armIfSwitched` 對這種事件直接 return（index.html:2350），
+       所以既不會武裝閘門、也不會被閘門吞掉——量記憶體不需要走真人的觸控路徑（那是 T2 的事）。 */
+    const DRIVE = `(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+      const t=b?b.textContent:'', d=b?b.disabled:true, r=S?S.round:0;
+      const measure = /蓋牌/.test(t) && !d;
+      if (!measure) {
+        if (!d) b.click();
+        else { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e) e.click(); }
+      }
+      return { t, d, r, measure }; })()`;
+    for (let i = 0; i < 12000; i++) {
+      const st = await page.evaluate(DRIVE);
+      if (/再入妖市/.test(st.t)) break;
+      if (st.measure && !seen[st.r]) {
+        seen[st.r] = 1;
+        await page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if (t && t.loaded) await t.loaded(); })()`);
+        await page.waitForTimeout(250);
+        rec.rows.push(await page.evaluate(`(() => { const Y3=window.__yaoshi3d; const m=Y3.renderer.info.memory;
+          return { round: window.__yaoshi.S.round, geometries: m.geometries, textures: m.textures,
+            keys: Y3.tray.items().map(x => x.curse ? '(詛咒)' : (x.key||'—')), ready: Y3.tray.readyCount() }; })()`));
+        if (rec.rows.length >= rec.nights) break;
+        await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); if (b && !b.disabled) b.click(); })()`);
+      }
+    }
+    /* ★釋放本身有沒有效★（鑑別力：逐夜成長混著「新 GLB 進快取」與「舊實例沒放掉」兩件事，
+       分不開的話這一格對漏水零鑑別力）。做法：**同一批拍品**清空再擺回去 5 次，
+       glbCache 已經有這幾顆 ⇒ 每一輪不該有任何新的 geometry／texture。還在漲就是實例沒放掉。 */
+    rec.cycle = await page.evaluate(`(async () => {
+      const Y3=window.__yaoshi3d, t=Y3.tray, m=Y3.renderer.info.memory;
+      const list=t.items().map(x=>({key:x.key, curse:x.curse, fac:x.fac}));
+      const out=[{ step:'起點', geometries:m.geometries, textures:m.textures }];
+      for (let k=0;k<5;k++){
+        await t.setItems([]);
+        await t.setItems(list);
+        await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+        out.push({ step:'第'+(k+1)+'輪', geometries:m.geometries, textures:m.textures });
+      }
+      return { list, rows: out };
+    })()`);
+  } finally { await ctx.close(); }
+  return rec;
+}
+
 async function runTaps(browser, port) {
   const rec = { rows: [], trayTaps: 0, pages: 0, stubbed: null };
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
@@ -538,6 +603,10 @@ const main = async () => {
     if (opt.handoff) rec.handoff2 = [await runHandoff(browser, PORT, ''), await runHandoff(browser, PORT, '?table3d=0')];
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
     if (opt.trayslots) rec.trayslots = await runTraySlots(browser, PORT);
+    /* T4 兩條路都跑：預設（托盤上線）與 `?tray3d=0`（對照組）。
+       ★沒有對照組的話這一格分不出「成長是托盤造成的」還是「這一版本來就會長」★
+       （`02 §6.1` 第 1 條的反面：健康狀態下這個證據會不會變綠）。 */
+    if (opt.traymem) rec.traymem = [await runTrayMem(browser, PORT, ''), await runTrayMem(browser, PORT, '?tray3d=0')];
     if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
@@ -941,6 +1010,31 @@ const main = async () => {
     s.mark.forEach((r) => console.log(`    盯上 槽${r.slot} (${r.pt.x},${r.pt.y}) 「${r.name}」→ pickMark(${r.args.join('|') || '—'}) ${r.ok ? '✅' : '❌'}`));
     s.blank.forEach((r) => console.log(`    空白 (${r.x},${r.y}) → hitTest ${r.hitTest}、觸發 ${r.calls} 次 ${r.ok ? '✅' : '❌'}`));
     s.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
+  /* T4：連續 12 夜的記憶體帳 */
+  let okMem = true;
+  for (const m of (opt.traymem ? (rec.traymem || []) : [])) {
+    const uniq = new Set();
+    m.rows.forEach((r) => r.keys.forEach((k) => { if (k !== '—' && k !== '(詛咒)') uniq.add(k); }));
+    const n1 = m.rows[0], last = m.rows[m.rows.length - 1];
+    const dG = n1 && last ? last.geometries - n1.geometries : null;
+    const dT = n1 && last ? last.textures - n1.textures : null;
+    okMem = okMem && m.rows.length >= m.nights && m.errors.length === 0;
+    console.log(`- **T4 GLB 載入釋放**（${m.query}　seed ${m.seed}，走到第 ${m.rows.length}/${m.nights} 夜；error ${m.errors.length}）：`
+      + `geometries ${n1 ? n1.geometries : '—'} → ${last ? last.geometries : '—'}（+${dG}）　`
+      + `textures ${n1 ? n1.textures : '—'} → ${last ? last.textures : '—'}（+${dT}）　`
+      + `整局走過 ${uniq.size} 顆不同 GLB（glbCache 永不淘汰，成長上界就是它） → ${okMem ? '✅ 跑完且 0 error' : '❌'}`);
+    m.rows.forEach((r) => console.log(`    第 ${r.round} 夜：geo ${r.geometries}　tex ${r.textures}　上線 ${r.ready}/4　[${r.keys.join(' ')}]`));
+    if (m.cycle) {
+      const c = m.cycle.rows;
+      const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
+      const cycleOk = gN === g0 && tN === t0;
+      okMem = okMem && cycleOk;
+      console.log(`    ★釋放鑑別力★ 同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
+        + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
+      console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
+    }
+    m.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
   }
   console.log(`# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION ${rec.version}　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天 ${g.dawnShrines} 尊・沒人有資格 ${g.skips} 夜・燒香 ${g.burned} 夜）`).join('；'));

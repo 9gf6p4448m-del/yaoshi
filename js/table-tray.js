@@ -259,8 +259,14 @@ export function createTableTray(scene, camera, opts = {}) {
 
   function clearSlot(s) {
     if (s.fig) {
-      group.remove(s.fig.group);
-      s.fig.dispose();
+      const f = s.fig;
+      group.remove(f.group);
+      /* ★等 GLB 載完再 dispose★：`makeCreatureFigure` 是在 `readyPromise` 的 then 裡才
+         clone 材質、掛外殼（creature-figures.js:585-627）。載到一半就 dispose 的話，
+         那些材質是在 dispose **之後**才被建出來的 ⇒ 永遠沒人放。玩家在托盤還沒載完就換頁
+         （一夜十幾次 showMarket、或直接按下一夜）就會踩到。
+         group 已經先移出場景，所以這段延遲期間它不畫、不佔 draw call。 */
+      f.loaded().then(() => f.dispose(), () => { /* GLB 404：本來就沒東西可放 */ });
       s.fig = null;
     }
     if (s.pile) {
