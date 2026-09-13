@@ -635,8 +635,8 @@ $ node tests/tools/scene-shot.mjs /tmp/t3d-f5 --perf --runs=5 --port=9891   # �
 **視覺代價（照實記，交製作人裁）**：非 hover 的三件**沒有陣營描邊色**了，陣營辨識在牌桌上
 改由卡片的系別 chip 與邊光色承擔。另一個已知限制：**觸控裝置沒有 hover**——
 手機上 `pointermove` 只在手指按著時發，所以實務上手機玩家看不到那圈描邊。
-要補的話最小改法是在 `trayTap` 命中當下先 `setHover(i)`（讓按下去那一瞬間亮起來），
-本卷沒做，記待辦。
+**★已於 §7.4 補上★**（製作人裁定的合併前小補）：`trayTap` 命中當下先 `setHover(i)`，
+`#sheet` 開著期間保持，`closeSheet()` 收回。
 
 ## 7.2 T4：對照組改成「托盤邊際貢獻」→ **三條判定全過**
 
@@ -678,9 +678,50 @@ $ node tests/tools/duel-perf.mjs buoy …/g2-duel.json --port=9905      → erro
 （盯上頁 hover 中，掛描邊那一件浮起）／`r8-traycurse.png`（詛咒品在托盤）／`g2-duel.png`（對決頁沒擋到人偶）。
 `r7-n1.png` 留著當**反例**（只拿掉外殼、沒補邊光 ⇒ 四尊全部消失）。
 
-## 6.8 iPhone `?fps=1` 三張：記待辦（使用者側）
+## 7.4 觸控點亮（2026-09-13 裁定的合併前小補）
 
-## 6.8 iPhone `?fps=1` 三張：記待辦（使用者側）
+**問題**：觸控裝置**沒有 hover**——`pointermove` 只在手指**按著**時發，所以手機玩家從來不會經過
+`trayHover` ⇒ 描邊（改成只掛 hover 那一件之後）與鏡頭微推在手機上永遠看不到。
+
+**改法**（`index.html`）：
+1. `trayTap` 命中當下先 `tray.setHover(i)`，再派 `openSheet`／`pickMark`——按下去的那一刻就點亮。
+2. `trayLeave()` 加一條例外：**`#sheet` 開著就不收**。★這條一定要寫在 `trayLeave` 裡而不是各呼叫點★——
+   觸控的 `pointerup` 因為**隱式指標捕捉**（觸控有、滑鼠沒有）會送回 `#tray`，不擋的話手指點亮的
+   那一格會在**抬手的同一瞬間**滅掉。
+3. `closeSheet()` 呼叫 `trayLeave()` 收回去。那是 `#sheet` 的**唯一關閉點**，所以確定鈕、背景、
+   日後新增的關閉入口全部涵蓋；它呼叫時 `display` 已經是 `none`，不受第 2 點的例外影響。
+
+**治具新增第八項**（`runTraySlots`），三個時點缺一不可：
+```
+觸控 tap 點亮→開著保持→關後收 ✅
+  → tap 後 #sheet 開著時 hover === 2（**不是 −1**）、trayK > 0（鏡頭微推跟上了）
+  → closeSheet() 之後 hover === −1、trayK === 0
+```
+**突變驗紅**（拿掉 `trayTap` 裡那一行 `setHover(i)`，備份副本還原）：
+```
+觸控 tap 點亮→開著保持→關後收 ❌({"slot":2,"held":{"sheetOpen":true,"hover":-1,"trayK":0,
+                                  "outlines":[0,0,0,0]},"after":{"hover":-1,"trayK":0},"ok":false})
+```
+`hover:-1`、`outlines` 全 0 ⇒ 正是「手機看不到描邊」那個症狀，這一條抓得到。
+
+**重跑確認沒退**
+```
+$ node tests/tools/legend-drive.mjs /tmp/ld-f3.json --taps --trayslots --tapsonly --tapbase=… --port=9915
+  T5 觸控命中 177／177（基準 177）　引數對不上 0　trayTap 0 次 → ✅
+  T2 托盤槽位 出價 4/4　盯上 4/4　空白 3/3　GLB 檔名 4/4　hover 雙向 ✅　#sheet 後收 hover ✅
+    **連點守衛 ✅**　**觸控 tap 點亮→開著保持→關後收 ✅**　error 0 → ✅
+  console error 0、pageerror 0、requestfailed 0　判定：✅ 通過
+$ node tests/tools/scene-shot.mjs /tmp/t3d-t --perf --runs=1 --port=9913
+  預設 無hover 68 calls／19679 tris｜**最壞 hover 槽 1：81 calls／25403 tris**（outlines [0,13,0,0]）
+  ⇒ 與 §7.1 的 5 次量測**同一格、逐值相同**，沒有變動
+$ node tests/tools/trace-eq.mjs <f9dd83d 的 index.html> index.html   → equal:true          T0 ✅
+$ node tests/tools/trace-eq.mjs index.html --mutate                   → differs:true        T0 ✅
+$ for f in tests/*.test.mjs; do node "$f"; done                       → 12/12 全綠          T6 ✅
+$ node tests/tools/felt-probe.mjs … --port=9914  → 四容器各 12 格全 0                      T1 ✅
+$ node tests/tools/traitfx-drive.mjs /tmp/tfx-f3.json --tier=2 --port=9916 → 30/30 pass     T6 ✅
+```
+
+## 7.5 iPhone `?fps=1` 三張：記待辦（使用者側）
 
 同機同頁（盯上頁）三張：`?fps=1&table3d=0`（分母，09-10 已回填 55–58）／`?fps=1`／`?fps=1&table3d=lite`。
 **沒有這三張，0.56b 依 Q4 的裁定不得宣告完成**（計畫 §7 Q4 的代價那一句）。

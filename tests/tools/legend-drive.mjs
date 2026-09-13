@@ -506,6 +506,29 @@ async function runTraySlots(browser, port) {
       await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
       await page.waitForTimeout(120);
     }
+    /* ★觸控路徑：tap 當場點亮、開著 #sheet 期間保持、關掉之後收★（2026-09-13 裁定）
+       觸控裝置沒有 hover（`pointermove` 只在手指按著時發），所以手機玩家永遠不會經過 `trayHover`
+       ⇒ 描邊（只掛 hover 那一件）與鏡頭微推看不到。這一段驗三個時點，缺一不可：
+       ① tap 之後、`#sheet` 開著時 `hover === i`（**不是 −1**——觸控的 `pointerup` 因為隱式指標捕捉
+          會送回 `#tray`，沒擋的話按下去點亮的那一格會在抬手的同一瞬間滅掉）
+       ② 同一時點 `trayK > 0`（鏡頭微推真的有跟上）
+       ③ `closeSheet()` 之後 `hover === -1` 且 `trayK` 收回 0 */
+    {
+      const slot = 2;
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${slot}))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(450);
+      const held = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const t=window.__yaoshi3d.tray;
+        return { sheetOpen: !!(s && getComputedStyle(s).display !== 'none'), hover: t.hover(),
+          trayK: window.__yaoshi3d.director.trayK(), outlines: t.items().map(x=>x.outlines) }; })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(3200);
+      const after = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.touchHover = { slot, held, after,
+        ok: held.sheetOpen === true && held.hover === slot && held.trayK > 0
+          && after.hover === -1 && after.trayK === 0 };
+    }
     /* ★滑鼠路徑：hover → 按下去開 #sheet → 關掉 → hover 必須已經收掉★（覆審 r2 HIGH-D 繞法 1）
        上面那四下走的是 `touchscreen.tap`，摸不到這條路：`#sheet`（fixed inset:0、z 30）在
        `pointerdown` 的同步執行裡就蓋住游標原地那個點 ⇒ `pointerup` 重新命中測試打到 `#sheet`、
@@ -1100,7 +1123,7 @@ const main = async () => {
     okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
       && blankOk === s.blank.length && keys.length > 0 && keyOk === keys.length
       && !!(s.push && s.push.ok) && !!(s.sheetHover && s.sheetHover.ok)
-      && !!(s.doubleTap && s.doubleTap.ok) && s.errors.length === 0;
+      && !!(s.doubleTap && s.doubleTap.ok) && !!(s.touchHover && s.touchHover.ok) && s.errors.length === 0;
     console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
       + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
       + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　`
@@ -1108,6 +1131,7 @@ const main = async () => {
       + `hover 微推雙向 ${s.push ? (s.push.ok ? '✅' : `❌(on ${JSON.stringify(s.push.on)} / off ${JSON.stringify(s.push.off)})`) : '—'}　`
       + `滑鼠點開 #sheet 後 hover 有收 ${s.sheetHover ? (s.sheetHover.ok ? '✅' : `❌(${JSON.stringify(s.sheetHover)})`) : '—'}　`
       + `連點守衛（第二下被吞、過窗後開得出來）${s.doubleTap ? (s.doubleTap.ok ? '✅' : `❌(${JSON.stringify(s.doubleTap)})`) : '—'}　`
+      + `觸控 tap 點亮→開著保持→關後收 ${s.touchHover ? (s.touchHover.ok ? '✅' : `❌(${JSON.stringify(s.touchHover)})`) : '—'}　`
       + `error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
     keys.forEach((r) => console.log(`    鍵 槽${r.slot}「${r.n}」${r.curse ? '（詛咒）' : ''} 要 ${r.want || '占位物'} → ${r.got || (r.gotCurse ? '占位物' : 'null')} ${r.ok ? '✅' : '❌'}`));
     s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));

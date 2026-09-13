@@ -2476,6 +2476,10 @@ function trayTap(ev){
   const now=gStamp(ev);
   if(now-PHASE_AT<MAIN_GUARD_MS||now-TRAY_TAP_AT<MAIN_GUARD_MS) return;
   const before=TRAY_PHASE;
+  /* ★觸控裝置沒有 hover★：`pointermove` 只在手指**按著**的時候發，所以手機玩家從來不會經過
+     `trayHover` ⇒ 描邊（只掛 hover 那一件）與鏡頭微推在手機上永遠看不到。
+     按下去的當場點亮那一格，手機才拿得到跟滑鼠一樣的回饋。 */
+  try{ const Y3=window.__yaoshi3d; if(Y3&&Y3.tray) Y3.tray.setHover(i); }catch(e){}
   if(TRAY_PHASE==="bid") openSheet(i);
   else if(TRAY_PHASE==="mark") pickMark(i);
   /* 相位真的變了才武裝——而且**兩道一起武裝**：
@@ -2484,15 +2488,16 @@ function trayTap(ev){
      但換手發生在 pointerdown、早於 click 的 capture 取樣，相位閘自己看不到這個切換）。
      防線按**效果**寫（「使用者沒看過的動作被執行」），不按入口寫。 */
   if(TRAY_PHASE!==before){ TRAY_TAP_AT=now; PHASE_AT=now; }
-  /* ★點下去之後一律收 hover★（覆審 r2 HIGH-D 繞法 1，桌機滑鼠**每一次**用托盤下標都會踩到）：
-     `openSheet` 會讓 `#sheet`（fixed inset:0、z 30）當場蓋住整個視窗，包含游標**原地**那個點。
-     於是接下來的 `pointerup` 重新命中測試打到 `#sheet`、不會送到 `#tray` 的監聽；而游標沒有移動，
-     瀏覽器也不會補發 `pointerout`／`pointerleave` ⇒ 三個「結束」事件一個都不發，
-     `hover` 永遠卡在那一格、鏡頭永遠帶著微推（`closeSheet` 也沒有收它）。
-     防線按**效果**寫：只要這一下真的做了事，就把 hover 收掉——不管接下來蓋上來的是
-     `#sheet`、`#modal` 還是換頁，都涵蓋。 */
+  /* hover 什麼時候收（覆審 r2 HIGH-D：`openSheet` 讓 `#sheet`（fixed inset:0、z 30）當場蓋住
+     游標**原地**那個點 ⇒ 之後的 `pointerup` 打到 `#sheet`、不會送到 `#tray`，游標沒動也不補
+     `pointerleave`，三個「結束」事件一個都不發 ⇒ 不主動收就永遠卡住）：
+       ① **開了 `#sheet`** ⇒ **保持**那一格 hover——出價視窗裡看的就是它，桌上那尊該亮著；
+          收在 `closeSheet()`（唯一的關閉點），不靠瀏覽器會不會重算 hover 鏈。
+       ② **沒開視窗**（盯上頁 `pickMark` 換頁、或相位不對什麼都沒做）⇒ 當場收。 */
   trayLeave();
 }
+/** `#sheet` 現在開著嗎（`openSheet` 設 display:flex、`closeSheet` 設 none） */
+function sheetOpen(){ const s=$("sheet"); return !!(s&&s.style.display!=="none"&&s.style.display!==""); }
 function trayHover(ev){
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
   try{ Y3.tray.setHover(trayHitAt(ev)); }catch(e){}
@@ -2501,8 +2506,13 @@ function trayHover(ev){
    `director.setTrayPush(true)`，把鏡頭往桌心多壓 TRAY_PUSH.dist。而 `pointermove` 只在 `#tray`
    **上面**才發——滑過一格之後把游標移到 `#mainbtn`（或觸控直接抬手）就再也不會有 pointermove 落在
    `#tray` 上，`hover` 於是永遠卡在那一格、鏡頭永遠帶著 0.2 的偏移，整段出價流程都收不回來。
-   收斂在這一支：任何「離開／結束」的指標事件都歸零，不逐頁補。 */
+   收斂在這一支：任何「離開／結束」的指標事件都歸零，不逐頁補。
+   ★唯一的例外：出價視窗開著時不收★——那一格正是視窗裡在看的東西，桌上該亮著（描邊＋鏡頭微推）。
+   這個例外**一定要寫在這裡而不是各呼叫點**：觸控的 `pointerup` 因為**隱式指標捕捉**會送回 `#tray`
+   （觸控有捕捉、滑鼠沒有），不擋的話手指按下去點亮的那一格在抬手的同一瞬間就滅了。
+   `closeSheet()` 呼叫這一支時 `display` 已經是 `none`，所以那條路照收，不受例外影響。 */
 function trayLeave(){
+  if(sheetOpen()) return;
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
   try{ Y3.tray.setHover(-1); }catch(e){}
 }
@@ -5176,6 +5186,9 @@ function paintSheet(){
 }
 function closeSheet(){
   $("sheet").style.display="none";
+  /* 出價視窗關了 ⇒ 桌上那一格不再是「正在看的那一件」，收掉 hover（描邊與鏡頭微推一起退）。
+     ★這是 #sheet 唯一的關閉點★，所以收在這裡涵蓋所有入口（確定鈕、背景、ESC 之類日後新增的）。 */
+  trayLeave();
   const wrap=$("mc"+sheetIdx);
   if(wrap)wrap.outerHTML=mcardHTML(S.market[sheetIdx],sheetIdx);
   updateBudget();
