@@ -25,7 +25,7 @@
 `hauntLost` 轉正之後，三個系別檔裡**再也沒有任何 `V054` 退路**——四支示範招全部走正式演出。
 P0–P8 除 P4（盲讀，照裁定要等陰氣 9 支鋪完與香火＋祖靈一起重跑）之外全綠。
 
-### 1.1 新積木 `st.stain(pos, o)`（`js/trait-fx.js:1826`）
+### 1.1 新積木 `st.stain(pos, o)`（`js/trait-fx.js:1830`）
 
 | 要求（語彙檔 §A8／§B3／ART_BIBLE §10.1） | 做法 |
 |---|---|
@@ -35,12 +35,12 @@ P0–P8 除 P4（盲讀，照裁定要等陰氣 9 支鋪完與香火＋祖靈一
 | **貼桌** | `rotation.x = -π/2`、`y = TFX.tableY + 0.005`；`rotation.z` 給編舞轉方向（Euler XYZ ⇒ 先轉 z 再躺平） |
 | **是「暗」斑（覆審 H3 改）** | 本體 `ink #04120c`（sRGB 相對亮度 Y≈**0.0077**）、描邊 `line` 苔綠。★第一版本體用 `line` 是錯的★：理由只比了「`line` < `key` < bloom 門檻」，但 `#6fae90` 的 Y≈**0.353**對桌面 `#6b3418` 的 Y≈**0.057** 是**比桌面亮 3.8 倍的亮斑**——那不是語彙要的暗斑。現在有機械斷言釘住（`tests/fxvocab.test.mjs`：`stain` 系別的本體色相對亮度必須低於 `scene-env.js` 的 `TABLE_COLOR`），突變 M14 驗紅。兩層都遠低於 `BLOOM.threshold` 0.7 |
 | **材質模板常駐預熱** | 兩層都走 `MAT_SOLID.clone()`，與現有三支模板共用 program。實測 `prog+0`（六跑逐套），`fx-contrast` 的 `mat_programs` 仍是 `templates 3／measured 3／distinct 2` |
-| **接進身分可辨** | `st.groundMark`（`:1876`）的分派表新增 `stain` 分支（`:1911`）：暗斑是**平的**，本體遮不掉它的前半（柱要立起來才需要挪 0.34），所以往鏡頭只挪 `push` 0.14–0.18。亮滅仍由積木自己排：`windup` 淡入、`travel` 末（＝`react[0]`＝衝擊拍）歸零，**不回傳 mesh**（覆審 M1 那一條照舊） |
+| **接進身分可辨** | `st.groundMark`（`:1880`）的分派表新增 `stain` 分支（`:1915`）：暗斑是**平的**，本體遮不掉它的前半（柱要立起來才需要挪 0.34），所以往鏡頭只挪 `push` 0.14–0.18。亮滅仍由積木自己排：`windup` 淡入、`travel` 末（＝`react[0]`＝衝擊拍）歸零，**不回傳 mesh**（覆審 M1 那一條照舊） |
 
 **`st.groundMark` 原本那條「`stain` 還沒有積木就 throw」換成白名單**：
 `FAC_GROUND` 之後再加新語彙、卻沒有對應積木時仍然當場 throw（不給靜默退路）。
 
-### 1.2 範本招：魔神仔紅帽 `hauntLost`（`js/trait-fx/yinqi.js:153`）
+### 1.2 範本招：魔神仔紅帽 `hauntLost`（`js/trait-fx/yinqi.js:156`）
 
 | 三件 | 做法 |
 |---|---|
@@ -50,11 +50,12 @@ P0–P8 除 P4（盲讀，照裁定要等陰氣 9 支鋪完與香火＋祖靈一
 | **身分可辨** | 施招姿態＝**前傾**（fore）≠ react「轉」（spin）；腳下＝**不規則暗斑**（`st.groundMark` → `st.stain`，`r 0.46`／`peak 0.70`／`push 0.18`），蓄勢亮、衝擊拍熄 |
 | **拖線** | **無**（`trail: false`）——§A9-3 的拖尾只給打擊類，而本招是詛咒削弱。「中間看不到飛行物」那個病由帽子**本身**的位移修，不是再拉一條白線（那是 27 支裡最泛濫的語彙） |
 
-**三個共用零件**（`yinqi.js:10`／`:21`／`:26`，各系一支小零件，比照 `zlBeat`／`xhBeat`）：
+**三個共用零件**（`yinqi.js:10`／`:24`／`:29`，各系一支小零件，比照 `zlBeat`／`xhBeat`）：
 
 - `yqBeat(st, frac)`：三拍窗換算，`LAST = st.ms × 0.90`（§A5 建議值，0.88→0.90，多出來的 2% 給衝擊拍）。
-- `JOLT(e)`：**卡頓三段跳**。切點刻意不是均分（0.34／0.86）——均分成 1/3 的話道具在 travel 的
-  2/3 就到位了，§A2「三件收在同一個衝擊拍」就散掉。
+- `JOLT`：**卡頓三段跳的位置表** `[0.30, 0.64, 1]`。飛行段只走前兩階，**第三階（到位）由 tween 的
+  `done()` 給**——`done()` 在 `react[0]` 當幀跑，所以四件收在同一拍（覆審 H8；切在 travel 的 0.86 時，
+  t2 下距衝擊拍 36.4ms＝2.18 幀，那就是 §A2 說的「兩個重音」）。
 - `COIL(e)`：**蓄勢的卡頓＋出招前一拍完全靜止**。`e ≥ 0.42` 之後回傳值不再變 ⇒ tween 還在跑、
   畫面上一動都不動。★不另排一段空 tween★：靜止那一拍是本系的辨識元素，寫在同一條進度函式裡，
   編舞就給不出兩份時間軸（同 `st.groundMark` 亮滅由積木自己排那一條）。
@@ -68,12 +69,13 @@ P0–P8 除 P4（盲讀，照裁定要等陰氣 9 支鋪完與香火＋祖靈一
 **本階段一格真值表都沒有動**（P4 照裁定要等陰氣 9 支鋪完），上面這一段是**提案**，交製作人在陰氣批
 P4 真值表時裁；`alt` 建議收「敵方多個」（滿編對決裡一隊是 2–4 尊，讀者會數尊數）。
 
-**0.55 徽記版原地保留**：`yinqi.js:955` `export const V055`（`hauntLost_v055`，本體逐字取自
-v0.55.8 的 `MOVES.hauntLost`，只改函式名那一行）＋`:1070` `V055_SHORT`。
+**0.55 徽記版原地保留**：`yinqi.js:1008` `export const V055`（`hauntLost_v055`，本體逐字取自
+v0.55.8 的 `MOVES.hauntLost`，只改函式名那一行）＋`:1123` `V055_SHORT`。
 **0.54 退路（`V054`／`V054_SHORT`）連同轉正一起移除**（同前兩批的作法）。
 ★這一步讓三個系別檔的 `V054` 全部消失★：`V054_FULL`／`V054_SHORT` 現在恆為空物件，
 `traitfx-drive` 的 `v054CasesFromSource` 恆回 `[]`。機制留著給下一卷，三處相關註解已同步更正
-（`js/trait-fx.js:61`、`tests/fxvocab.test.mjs:234`／`:256`、`tests/tools/traitfx-drive.mjs:352`）。
+（`js/trait-fx.js` 的三張表疊法那一段、`tests/fxvocab.test.mjs` 的 `convertedMoves`／`bodyOf`、
+`tests/tools/traitfx-drive.mjs` 的 `inStanceScope`）。
 
 ### 1.3 P0–P8 逐條（全部實跑，指令原文與原始 stdout 在 `…-b3-evidence/gates.txt`）
 

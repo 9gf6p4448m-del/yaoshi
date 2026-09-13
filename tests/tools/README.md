@@ -228,3 +228,39 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 - R-1（MEDIUM）：`sampleAnchors` 的 follow 印記分支不做在場檢查即 `cover.add()`；千里眼銅鈴／媽祖令旗第二尊覆蓋只靠 follow，印記 `visible=false` 仍 pass。修法：follow 分支套同一組在場五條。排入陰氣批。
 - R-2（MEDIUM）：`foe`（敵方單一）整格豁免逐尊覆蓋，證據由主道具承擔；`gates-b-r3.txt` 顯示只有虎爺印 cover 0，建議改 `need=1` 逐案記錄。排入陰氣批。
 - 語彙 §A9-5 分母表數字過期（實測 61/51/10）；`anchor-mutations.mjs` 寫死 worktree 路徑。
+
+### ★R-3（CRITICAL，2026-09-13 陰氣批階段 A 覆審 C1，**未修**）★
+`js/trait-fx.js` 的 `regAnchor` 對**沒有帶 `o.anchor`** 的 `st.stick` 呼叫**直接 return**
+⇒ 引擎不知道一件以 **land 型**登記的主道具後來被黏上去了。
+§A9-5 明文「`follow` 印記不能當主道具（黏上去的東西在落點量測裡**恆真**）」，
+`js/trait-fx.js:1090` 也真的有一條 throw 在守——但那條守的是**登記當下的入口**，不是**效果**。
+繞過的寫法只要兩行：先 `st.paperStamp(..., { anchor, main: true })`，再用不帶 `o.anchor` 的 `st.stick`。
+**實測代價**（`hauntLost` 修補前）：把飛行整段拿掉，`mainOK`／`mainD`／`gap`／`anchors.ok`
+與健康態**逐字相同**——anchor 整格零鑑別力。
+**建議修法（按效果寫）**：`sampleAnchors` 判 land／follow 改看 `run.follow.some((w) => w.mesh === a.obj)`，
+而不是登記當下的 `followFig`；`anchorOK` 的 `mainScope` 分支加「主道具不得在 `run.follow` 裡」。
+**驗收**：對任何一支已轉正的招，把它主道具的飛行拿掉之後 `anchors.ok` 必須翻成 false。
+> 陰氣批階段 A 在**編舞側**先繞開了（黏著延後到衝擊拍之後、到位那一階由 `trail` 的 `done()` 給），
+> 所以那一支的證據站得住；**引擎側這一條仍在**，其餘 18 支已轉正的招都還走原路。
+
+### ★R-4（HIGH，2026-09-13 陰氣批階段 A 覆審 M10／M12，**未修**）★
+`js/trait-fx.js` 的 `phase()` 對 `windup`／`react` 都設了 `c.until`，**只有 `travel` 留 `Infinity`**
+⇒ 衝擊拍**之後**才發生的位移（例如 `st.stick` 的首次瞬移、`zlDeliver`／`xhDeliver` 的印記落點）
+會回頭補上 `travel` 的分子。實測：`hauntLost` 把飛行整段拿掉，`travel.moved` 仍有 **2.8844**
+（門檻 1.2533）；把黏著也拿掉才掉到 0.7404。
+**建議修法**：給 `travel` 的 claim 一個 `c.until = B.react[0]`，或讓 `st.stick` 的首次瞬移不計進分子。
+**會動到 19 支已轉正的招**，所以要單獨開一輪跑完整回歸。
+
+### ★R-5（HIGH，2026-09-13 陰氣批階段 A 覆審 C2，**已修**）★
+`movesMatching` 原本用 `src.indexOf('export const V054')` 當退路段的切點。四支示範招全部轉正之後
+**三個系別檔都沒有 `V054`** ⇒ 那一行恆為 -1、切點成死碼 ⇒ `V055` 整段被當成正式演出。
+後果：`fx-contrast` 的 `usesEmblem` 在**預設路徑**恆為 true，而轉正後的演出本來就不產生平面徽記
+⇒ `made===0` 判 fail、**整支治具 exit 1**（`hauntLost`／`eliteSelfCut`／`biteGamble` 皆然，
+而 P3 的報告只貼了下游 `fx-contrast-metrics.py` 的 JSON，沒貼工具自己的 verdict 與 exit code）。
+同一行的另一半也壞了：`--fxvocab=1` 查的是 `c.trait + '_v055'`，而 `movesMatching` 早就把後綴剝掉
+⇒ canary 那一格**恆為 false**。
+**已修**：`movesMatching` 加 `section` 參數（`'moves'`／`'v055'`／`'all'`），新增
+`movesEmblemCasesFromSource`，`fx-contrast` 兩條路各查各的那一份。
+**殘留（MEDIUM，未修）**：`movesMatching` 與 `tests/fxvocab.test.mjs` 的 `convertedMoves` 是
+**兩份**同名推導（一邊 `indexOf('V054')`、一邊 `/export const V05[45]/`），兩邊註解都寫「同一條推導」。
+要合併得連 `emblemCasesFromSource` 的活性下限一起重訂。
