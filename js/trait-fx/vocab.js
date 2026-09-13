@@ -350,7 +350,8 @@ export const MOVE_SPEC = {
   hauntSee: { prop: '甲', act: '滯', react: '抖', stance: '舉臂', anchor: 'allies' }, // 憑空多一張竹椅；§C「搖」＝滯的變體
   // 兜帽抬起＝舉臂（up）≠ react 壓（down）；anchor＝foes：「對面**群體**再 −1 atk」⇒ 咒／敵方多個
   hauntDread1: { prop: '乙', act: '滯', react: '壓', stance: '舉臂', anchor: 'foes' }, // 雨滴群落下＋地面水漬；閃現位移
-  hauntSwap: { prop: '乙', act: '甩', react: '被拖' }, // 粗濕繩；對面被拖、本方沉沒
+  // 繩往後上方盪起＝舉臂（up）≠ react 被拖（fore）；anchor＝foe：繩勾的是對面那一隻（本方沉沒是 react 段的副件）
+  hauntSwap: { prop: '乙', act: '甩', react: '被拖', stance: '舉臂', anchor: 'foe' }, // 粗濕繩；對面被拖、本方沉沒
   eliteVsSwarm: { prop: '甲', act: '探', react: '抖' }, // 爪片（盲讀標竿，動作不動）；§C「退」正規化成抖
   swarmPierce: { prop: '甲', act: '探', react: '抖' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
   hauntFearX2: { prop: '丙', act: '滯', react: '壓' }, // 虛影片＋腳下暗斑；群體縮

@@ -907,19 +907,35 @@ const MOVES = {
     } });
   },
 
-  /* 水鬼浮標・抓交替（buoy，作祟×4）：燒掉對面 1 隻小兵，本方也燒 1 隻。
-     編舞：繩子往後盪起蓄力（0–385ms，四尊錯開 35ms：RopeA–F 甩開、雙臂後拉）
-          → 甩繩（300ms 起 strike：領頭那尊整條繩往前拋出、半步前傾）
-          → 勾住（330ms：一條抖動的繩線從 KnotTop 連到對面一隻小兵，那隻被拖半步、邊光暴亮）
-          → 抓交替（390ms：本方最後一尊自己沉下去，腳下一圈漣漪擴出去、邊光被水吞掉）
-          → 收（540ms 起：繩落回）。 */
+  /* 水鬼浮標・抓交替（buoy，作祟×4）：三拍燒掉對面 1 隻小兵、本方也燒 1 隻。
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 5 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntSwap = { 乙, 甩, 被拖, stance:'舉臂', anchor:'foe' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝甩**：`RSh1Sh`／`RElbow1El`／`RWrist1Wr`／`RopeA`–`RopeF` 繩往後盪（`COIL` 兩階）→
+         **完全靜止一拍** → 猛甩（`JOLT` 三階），`KnotTop`／`KnotBot` 繩結跟著。
+       **道具**＝乙 濕物：**帶結的粗濕繩浮標**（`buoy`，`st.paperStamp`；**不是白虛線**——
+         §C3 兩位讀者都提到「一條白色虛線」，那是全場最泛濫的語彙）勾中對面那一隻（主道具）；
+         ＋本方沉沒那一尊腳邊的**水柱**（`st.paperProps` ×3 立片，往上竄）。
+       **受招／受益反應＝被拖**：對面被勾中那一隻往出招方 `st.move` 半步（四階離散）；
+         **本方最後一尊同幀開始下沉**（往下 `st.move`）——§C3「唯一兩邊同時有反應的招」。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up，繩往後上方盪起）≠ react「被拖」（fore）；
+     腳下＝不規則暗斑（`st.groundMark`）。**無跨場拖線**（`trail: false`）：繩子本身就是那件道具。
+     ★落點 anchor＝`foe`★：`ABILITIES.hauntSwap` 是「燒掉**對面 1 隻**小兵、本方也燒 1 隻」——
+     兩邊都有，但**道具**（繩）勾的是對面那一隻，所以 anchor 取 `foe`；
+     本方沉沒那一件是 `react` 段的副件、不登記 anchor。真值表提案：效果＝咒、對象＝敵方單一（交裁）。 */
   hauntSwap(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const buoys = st.actor;
     const thrower = buoys[0];
     const sinker = buoys[buoys.length - 1];
     const swarm = st.byBody(st.target, 'swarm');
-    const prey = swarm[0] || st.target[0] || null;
+    const pool = swarm.length ? swarm : st.target;
+    const prey = yqRoomy(st, pool, pool.length ? st.worldOf(pool[0], 'Chest', _a).y : 0);
     const ropes = ['RopeA', 'RopeB', 'RopeC', 'RopeD', 'RopeE', 'RopeF'];
+    // k<0：繩往後上方盪起（蓄勢）；k>0：往前猛甩
     const swing = (b, k) => {
       ropes.forEach((r, i) => st.rot(b, r, 0.55 * k * (0.55 + 0.14 * i), 0.30 * k * (i % 2 ? 1 : -1), 0));
       st.rot(b, 'KnotTop', 0.40 * k); st.rot(b, 'KnotBot', 0.30 * k);
@@ -930,47 +946,124 @@ const MOVES = {
       st.rot(b, 'WeedRoot', -0.22 * k); st.rot(b, 'Weed1', -0.30 * k); st.rot(b, 'WeedTip', -0.40 * k);
     };
     const fwd = st.toward(thrower, new THREE.Vector3());
-    buoys.forEach((b, i) => {
-      st.tween({ ms: 280, delay: i * 35, ease: 'out', update(t, e) { swing(b, -0.60 * e); st.rim(b, 1 + 0.5 * e); } });
-      const home = b === thrower ? 0.95 : -0.60;
-      st.tween({ ms: 250, delay: 540 + i * 35, ease: 'inout', update(t, e) {
-        const k = home * (1 - e); swing(b, k);
-        if (b === thrower) st.move(b, fwd.x * 0.12 * (1 - e), 0, fwd.z * 0.12 * (1 - e));
-        st.rim(b, 1 + 0.6 * (1 - e));
-      } });
-    });
-    st.at(300, () => {
-      st.tween({ ms: 210, ease: 'strike', update(t, e) {
-        swing(thrower, -0.60 + 1.55 * e);
-        st.move(thrower, fwd.x * 0.12 * e, 0, fwd.z * 0.12 * e);
-        st.rim(thrower, 1 + 1.4 * e);
-      } });
-    });
-    st.at(330, () => {
+
+    // ── 乙 濕繩浮標：從繩結甩出、勾住對面那一隻 ──
+    const from = st.worldOf(thrower, 'KnotTop', new THREE.Vector3()); from.y += 0.16; from.add(st.camOff(0.6));
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
       if (!prey) return;
-      const from = st.worldOf(thrower, 'KnotTop', new THREE.Vector3());
-      const to = st.worldOf(prey, null, new THREE.Vector3());
-      const rope = st.bolt(from, to, { jag: 0.07, segs: 14, opacity: 0, seed: 41 });
-      st.tween({ ms: 380, ease: 'linear', update(t) { rope.material.opacity = 0.92 * Math.sin(Math.PI * t); } });
-      st.burst(to, { power: 0.62, n: 30 });
-      st.punch(0.3);
-      const pull = st.toward(prey, new THREE.Vector3()); // prey 朝出招方＝被拖過去的方向
-      st.tween({ ms: 420, delay: 60, ease: 'pulse', update(t, e) {
-        st.move(prey, pull.x * 0.23 * e, 0, pull.z * 0.23 * e); st.rim(prey, 1 + 1.6 * e);
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5); // 往胸口收：仍在佔地裡，但讀起來是「勾在他身上」不是「浮在桌上」
+      to.y = chest0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const rope = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.18, tiltDeg: 14, yawDeg: -22 });
+    rope.scale.setScalar(st.iconSize * 0.92);
+
+    /* 本方沉沒那一尊腳邊竄起的水柱（乙 濕物）：三片立片，**只往上長、`z` 恆為 0**
+       ⇒ 在 `st.dir` 上的投影是 0，本招是打擊類（`anchor: 'foe'`）也不會踩到 §A9-6 的回流斷言。 */
+    const WC = 3;
+    const col = st.paperProps(st.kind, WC, { color: C.line, opacity: 0, k: 0.8, ratio: 0.34, depth: 0.18, warp: 0.16 });
+    st.foot(sinker, col.obj.position); col.obj.position.add(st.camOff(0.5));
+    const _e = new THREE.Euler();
+    const cseed = [];
+    for (let i = 0; i < WC; i++) cseed.push({ s: (i - 1) * 0.17, up: 0.34 + 0.26 * st.rnd(), fz: 0.05 + 0.09 * st.rnd(), rz: (st.rnd() - 0.5) * 0.5 });
+    const COL_STEP = [0.36, 0.74, 1];
+    const writeCol = (k) => {
+      for (let i = 0; i < WC; i++) {
+        const s = cseed[i], it = col.items[i];
+        /* `z` 只准 **≥0**（往敵方那一側濺）：它讓回流斷言**真的被行使到**（`absMax > 0`），
+           而不是靠「只往上長、根本沒有水平位移」拿到空真的綠燈（覆審 r5 §5.2 點名的那一種）。 */
+        st.stageVec(s.s, s.up * k, s.fz * k, it.p);
+        it.q.setFromEuler(_e.set(0, 0, s.rz));
+        it.s = k <= 0 ? 0 : 1;
+      }
+      col.write();
+    };
+    writeCol(0);
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(thrower, { r: 0.44, rot: 2.6, push: 0.16, peak: 0.68 });
+
+    /* ① 繩往後盪（windup）：兩階到底 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(thrower, '舉臂', k); // §A9：施招者專屬姿態
+        buoys.forEach((b, i) => swing(b, -0.62 * k * (i ? 0.8 : 1)));
+        buoys.forEach((b) => st.rim(b, 1 + 0.5 * k));
+        st.alpha(rope, k >= 1 ? 1 : (k >= 0.72 ? 0.5 : 0));
+        rope.position.copy(from); rope.position.y += 0.10 * k;
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 甩（travel）：整條繩往前拋出、領頭那尊半步前傾。三階卡頓，第三階由 `yqFly` 的 `done()` 給。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        buoys.forEach((b, i) => swing(b, (-0.62 + 1.55 * j) * (i ? 0.8 : 1)));
+        st.move(thrower, fwd.x * 0.13 * j, 0, fwd.z * 0.13 * j);
+        buoys.forEach((b) => st.rim(b, 1.5 + 1.0 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀
+        buoys.forEach((b, i) => swing(b, 0.93 * (i ? 0.8 : 1)));
+        st.move(thrower, fwd.x * 0.13, 0, fwd.z * 0.13);
+        buoys.forEach((b) => st.rim(b, 2.5));
       } });
-    });
-    st.at(390, () => {
-      const foot = st.foot(sinker, new THREE.Vector3());
-      const ripple = st.ring(foot, 0.34, 0.045, { opacity: 0.82 });
-      ripple.scale.setScalar(0.32);
-      st.grow(ripple, { ms: 350, from: 0.32, to: 1.45 });
-      st.fade(ripple, { ms: 340, delay: 100, from: 0.82, to: 0 });
-      st.tween({ ms: 340, ease: 'pulse', update(t, e) {
-        st.move(sinker, 0, -0.15 * e, 0);
-        st.rot(sinker, 'Waist', 0.20 * e); st.rot(sinker, 'Neck', 0.24 * e); st.rot(sinker, 'Head1', 0.28 * e); st.rot(sinker, 'Crown', 0.18 * e);
-        st.rim(sinker, 1 - 0.4 * e);
+
+    yqFly(st, rope, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.24, roll: 0.34,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：四件同一拍★ ①繩甩到底 ②繩結勾中（落點一格到位）③本方那一尊腳邊水柱竄起
+           ④對面同幀被拖、本方同幀開始下沉。 */
+        st.phase('react');
+        st.burst(to, { power: 0.6, n: 28, color: C.hot });
+        st.punch(0.32);
+        st.alpha(col.obj, 0.9);
+        writeCol(COL_STEP[0]);
+        // 黏著延後一格（同前三支：同幀呼叫會讓 anchor 與「繩有沒有真的甩出去」脫鉤）
+        if (prey) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(prey, 'Chest', new THREE.Vector3());
+          st.stick(rope, prey, { at: 'chest', off: to.clone().sub(c) });
+        } });
       } });
-    });
+    // 水柱：衝擊拍當幀出現，之後再走兩階竄到頂——三階都是離散的
+    st.tween({ ms: RL * 0.7, delay: R0, ease: 'linear', update(t) { writeCol(COL_STEP[Math.min(2, Math.floor(t * 3))]); } });
+    st.fade(col.obj, { ms: RL * 0.3, delay: R0 + RL * 0.64, from: 0.9, to: 0 });
+
+    /* ③ 兩邊同時有反應（react）＝這一支的區分點。
+       對面被勾中那一隻**被拖**半步（四階離散）；本方最後一尊**沉下去**（往下的離散位移）。 */
+    const DRAG = [0.11, 0.24, 0.19, 0];
+    const SINK = [0.06, 0.13, 0.17, 0.19];
+    st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+      const n = Math.min(3, Math.floor(t * 4));
+      if (prey) {
+        const pull = st.toward(prey, _a); // prey 朝出招方＝被拖過去的方向
+        st.move(prey, pull.x * DRAG[n], 0, pull.z * DRAG[n]);
+        st.rim(prey, 1 + 1.6 * (n < 3 ? 1 : 0));
+      }
+      if (sinker !== thrower) {
+        st.move(sinker, 0, -SINK[n], 0);
+        st.rot(sinker, 'Waist', 0.20 * (n / 3)); st.rot(sinker, 'Neck', 0.24 * (n / 3)); st.rot(sinker, 'Head1', 0.28 * (n / 3));
+        st.rim(sinker, 1 - 0.4 * (n / 3));
+      }
+    } });
+
+    /* 收勢：繩落回。★也是卡頓三階★（§B3 禁平滑補間）。 */
+    const SETTLE = [0.58, 0.24, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      buoys.forEach((b, i) => { if (b !== sinker) swing(b, 0.93 * k * (i ? 0.8 : 1)); });
+      st.move(thrower, fwd.x * 0.13 * k, 0, fwd.z * 0.13 * k);
+      buoys.forEach((b) => { if (b !== sinker) st.rim(b, 1 + 1.4 * k); });
+    } });
   },
 
   /* 虎姑婆指甲・咬手指（nail，精英×1）：打群體目標額外 +2。
@@ -1202,41 +1295,8 @@ export const SHORT = {
   /* 恐懼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntDread1: MOVES.hauntDread1,
 
-  /* 抓交替｜辨識：繩子甩出勾住對面＋本方自己沉下去的漣漪 */
-  hauntSwap(st) {
-    const K = st.ms / 260;
-    const bys = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lead = bys[0];
-    const sink = bys[bys.length - 1];
-    const knot = st.worldOf(lead, 'KnotTop', new THREE.Vector3());
-    const prey = st.byBody(st.target, 'swarm')[0] || st.target[0] || null;
-    const at = prey ? st.worldOf(prey, null, new THREE.Vector3()) : knot.clone().addScaledVector(st.dir, 1.6);
-    const rope = st.bolt(knot, at, { jag: 0.18, segs: 9, seed: 6, opacity: 0 }); // 一條抖動的繩線
-    const ripple = st.ring(st.foot(sink, new THREE.Vector3()), 0.3, 0.045, { opacity: 0 });
-    bys.forEach((g, i) => st.tween({ ms: 84 * K, delay: i * 9 * K, ease: 'wind', update(t, e) { // 繩子往後盪起蓄力
-      st.rot(g, 'RSh1Sh', -0.5 * e); st.rot(g, 'RElbow1El', -0.35 * e); st.rot(g, 'LSh1Sh', -0.4 * e);
-      st.rot(g, 'Chest', -0.12 * e); st.rot(g, 'Weed1', 0, 0, 0.22 * e); st.rim(g, 1 + 0.6 * e);
-    } }));
-    st.tween({ ms: 70 * K, delay: 82 * K, ease: 'strike', update(t, e) { // 甩繩：整條繩往前拋出、半步前傾
-      st.rot(lead, 'RSh1Sh', -0.5 + 1.1 * e); st.rot(lead, 'RElbow1El', -0.35 + 0.6 * e);
-      st.rot(lead, 'Chest', -0.12 + 0.26 * e); st.move(lead, 0, 0, 0.11 * e);
-    }, done() { st.punch(0.4); } });
-    st.fade(rope, { ms: 92 * K, delay: 96 * K, from: 0.95, to: 0 }); // 勾住
-    if (prey) {
-      st.tween({ ms: 74 * K, delay: 104 * K, ease: 'out', update(t, e) { st.move(prey, 0, 0, -0.14 * e); st.rim(prey, 1 + 2 * e); } });
-      st.flinch([prey], { delay: 108 * K, strength: 1.1, burst: true });
-    }
-    st.tween({ ms: 82 * K, delay: 132 * K, ease: 'in', update(t, e) { // 本方最後一尊自己沉下去
-      st.move(sink, 0, -0.16 * e, 0); st.rim(sink, 1 - 0.6 * e);
-    } });
-    st.grow(ripple, { ms: 76 * K, delay: 152 * K, from: 0.3, to: 1.7 }); // 腳下一圈漣漪擴出去
-    st.fade(ripple, { ms: 76 * K, delay: 152 * K, from: 0.7, to: 0 });
-    st.tween({ ms: 58 * K, delay: 170 * K, ease: 'inout', update(t, e) { // 繩落回
-      const k = 1 - e;
-      bys.forEach((g) => { st.rot(g, 'RSh1Sh', 0.6 * k); st.rot(g, 'LSh1Sh', -0.4 * k); st.rot(g, 'Weed1', 0, 0, 0.22 * k); });
-      st.move(lead, 0, 0, 0.11 * k); st.move(sink, 0, -0.16 * k, 0);
-    } });
-  },
+  /* 抓交替｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  hauntSwap: MOVES.hauntSwap,
 
   /* 咬手指｜辨識：長爪從高處掃下＋對面小兵依序噴火星 */
   eliteVsSwarm(st) {
