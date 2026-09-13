@@ -753,15 +753,33 @@ const MOVES = {
   },
 
   /* 黃色小雨衣・恐懼（raincoat，作祟×4）：三拍對面群體再 −1 atk。
-     編舞：兜帽緩緩抬起（0–560ms，四尊錯開 30ms，慢，醞釀最久的一套）
-          → 錯開閃現靠近半步（300ms 起，每尊 150ms 一步，邊光同時閃一下）
-          → 一圈暗陰氣從對面腳下掃出去（280ms），對面群體整個縮小退縮
-          → 收（580ms 起：兜帽落、退回原位）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 4 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntDread1 = { 乙, 滯, 壓, stance:'舉臂', anchor:'foes' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝滯**：`HoodRoot`／`Hood1`／`HoodTop` 兜帽抬起（`COIL` 兩階）→ **完全靜止一拍** →
+         **閃現**靠近半步（`JOLT` 三階的離散位移＝位移不補間），`Skirt1`／`Skirt2`／`SkirtTip` 滯後擺。
+       **道具**＝乙 濕物：**雨滴**（`drop`）——主滴落在被淋得最重的那一尊身上（主道具），
+         其餘兩尊各一滴（`yqDeliver`，§A9-5 的 `foes` 要求至少兩尊敵方被決定性地碰到），
+         ＋六顆小雨滴（`st.paperProps` ＝ 1 個 draw call）從同一片天落下；
+         ＋**敵方腳下的不規則水漬**（`st.stain`，衝擊拍才鋪開）。
+       **受招方反應＝壓**：群體等比縮（`st.scale`）＋邊光轉冷，**四個離散台階**。
+
+     ★兩處 `st.stain` 怎麼分（§C3 明寫的那一條）★：施招者腳下那一片是**身分訊號**
+     （`st.groundMark`，蓄勢就亮、衝擊拍熄）；敵方腳下那一片是**招的效果**（直接呼叫 `st.stain`，
+     衝擊拍才鋪開、比較大）。兩者在**時間上不重疊、面積與落點都不同**，
+     不會讓讀者把敵方那一尊誤讀成施招者（§A9-1 的 `groundSame` 只認施招者那一片）。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up，兜帽抬起）≠ react「壓」（down）。
+     ★落點 anchor＝`foes`★：`ABILITIES.hauntDread1` 是「三拍：**對面群體**再 −1 atk」⇒
+     效果＝詛咒削弱、對象＝敵方多個。 */
   hauntDread1(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const coats = st.actor;
-    const foes = st.target;
-    const swarm = st.byBody(foes, 'swarm');
-    const shrinkers = swarm.length ? swarm : foes;
+    const coat = coats[0];
+    const swarm = st.byBody(st.target, 'swarm');
+    const foes = swarm.length ? swarm : st.target;
     const step = coats.map((c) => st.toward(c, new THREE.Vector3()));
     const hood = (c, k) => {
       st.rot(c, 'HoodRoot', -0.46 * k); st.rot(c, 'Hood1', -0.36 * k); st.rot(c, 'HoodTop', -0.30 * k);
@@ -771,30 +789,122 @@ const MOVES = {
       st.rot(c, 'LSlvRoot1Rt', -0.30 * k, 0, 0.22 * k); st.rot(c, 'LSlvElbow1El', -0.26 * k); st.rot(c, 'LSlvCuff1Sl', -0.20 * k);
       st.rot(c, 'RSlvRoot1Rt', -0.30 * k, 0, -0.22 * k); st.rot(c, 'RSlvElbow1El', -0.26 * k); st.rot(c, 'RSlvCuff1Sl', -0.20 * k);
     };
-    coats.forEach((c, i) => {
-      const d = step[i];
-      st.tween({ ms: 470, delay: i * 30, ease: 'out', update(t, e) { hood(c, e); st.rim(c, 1 + 0.7 * e); } });
-      st.tween({ ms: 150, delay: 300 + i * 30, ease: 'out', update(t, e) {
-        st.move(c, d.x * 0.18 * e, 0, d.z * 0.18 * e); st.rim(c, 1.7 + 1.2 * Math.sin(Math.PI * t));
+
+    // ── 乙 雨滴：從施招者頭上那片天落到對面 ──
+    const prey = yqRoomy(st, foes, foes.length ? st.worldOf(foes[0], 'Chest', _a).y : 0);
+    const from = yqLaunch(st, st.top(coat, new THREE.Vector3()), [0.95, 0.75, 0.55, 0.35], 0.52, 0.36);
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
+      if (!prey) return;
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5); // 往胸口收：仍在佔地裡，但讀起來是「淋在他身上」不是「浮在桌上」
+      to.y = chest0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const drop = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 10, yawDeg: -18 });
+    drop.scale.setScalar(st.iconSize * 0.90);
+    // 其餘敵方各一滴（`foes` 要求至少兩尊被決定性地碰到）
+    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.5 });
+
+    /* 六顆小雨滴＝同一片天落下的群體道具（1 個 draw call）。
+       ★逐實例位移走 `st.stageVec`，`z` 夾在 ≥0★：本招是打擊類（`anchor: 'foes'`），
+       衝擊拍之後任何道具往我方走就判紅（§A9-6）；橫向走 `st.sideDir`，在 `st.dir` 上的投影恆為 0。 */
+    const RN = 6;
+    const rain = st.paperProps(st.kind, RN, { color: C.line, opacity: 0, k: 0.9, ratio: 0.5, depth: 0.18, warp: 0.16 });
+    const cF = new THREE.Vector3();
+    foes.forEach((f) => cF.add(st.worldOf(f, null, _a)));
+    if (foes.length) cF.multiplyScalar(1 / foes.length);
+    rain.obj.position.copy(cF); rain.obj.position.y += 0.34; rain.obj.position.add(st.camOff(0.5));
+    const _e = new THREE.Euler();
+    const rseed = [];
+    for (let i = 0; i < RN; i++) rseed.push({ s: (i - 2.5) * 0.30, fz: 0.10 * st.rnd(), up: 0.62 + 0.30 * st.rnd(), rz: st.rnd() * 0.4 });
+    const RAIN_STEP = [0.30, 0.68, 1];
+    const writeRain = (k) => {
+      for (let i = 0; i < RN; i++) {
+        const s = rseed[i], it = rain.items[i];
+        st.stageVec(s.s, s.up * (1 - k), s.fz * k, it.p); // 由上往下落：k 越大越低
+        it.q.setFromEuler(_e.set(0, 0, s.rz));
+        it.s = k <= 0 ? 0 : 1;
+      }
+      rain.write();
+    };
+    writeRain(0);
+
+    // 施招者腳下的身分訊號：蓄勢就亮、衝擊拍熄（亮滅寫在積木裡）
+    st.groundMark(coat, { r: 0.42, rot: 0.35, push: 0.16, peak: 0.66 });
+
+    /* ① 兜帽抬起（windup）：兩階到底 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(coat, '舉臂', k); // §A9：施招者專屬姿態
+        coats.forEach((c, i) => hood(c, k * (i ? 0.8 : 1)));
+        coats.forEach((c) => st.rim(c, 1 + 0.6 * k));
+        st.alpha(drop, k >= 1 ? 1 : (k >= 0.72 ? 0.5 : 0));
+        drop.position.copy(from); drop.position.y += 0.08 * k;
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 滯（travel）：**閃現**靠近半步——位移是三個離散台階，中間沒有任何插值。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        coats.forEach((c, i) => { const d = step[i]; st.move(c, d.x * 0.20 * j, 0, d.z * 0.20 * j); st.rim(c, 1.6 + 1.0 * j); });
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀
+        coats.forEach((c, i) => { const d = step[i]; st.move(c, d.x * 0.20, 0, d.z * 0.20); st.rim(c, 2.6); });
       } });
-      st.tween({ ms: 220, delay: 580 + i * 30, ease: 'inout', update(t, e) {
-        const k = 1 - e; hood(c, k); st.move(c, d.x * 0.18 * k, 0, d.z * 0.18 * k); st.rim(c, 1 + 0.7 * k);
+
+    yqFly(st, drop, from, aim, to, { T0, TL }, { bow: st.camOff(1.6), rise: 0.30, roll: 0,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：四件同一拍★ ①閃現到位 ②主滴落到那一尊身上 ③六顆小雨滴落下＋腳下水漬鋪開
+           ④對面群體同幀開始縮。 */
+        st.phase('react');
+        st.burst(to, { power: 0.52, n: 26, color: C.key });
+        st.punch(0.28);
+        st.alpha(rain.obj, 0.92);
+        writeRain(RAIN_STEP[0]);
+        /* ★敵方腳下的水漬＝招的**效果**，不是身分訊號★：直接呼叫 `st.stain`（不是 `st.groundMark`），
+           衝擊拍才鋪開，與施招者那一片在時間上完全不重疊。 */
+        const wet = st.stain(cF, { r: 0.78, rot: 1.8, color: C.ink, inkColor: C.line, opacity: 0 });
+        /* ★這兩條排在 `done()` 裡，所以 delay 是相對「衝擊拍真正跑到的那一幀」★：t1 的 `react[0]`
+           是 208ms，而 dt=16.67 的取樣讓 `done()` 實際落在 216.7 ⇒ 尾巴再拖 0.95×RL 就會超過
+           `LAST`（實測 horizon 276 對 LAST 270，`maxRate 1.0097`、tier 1 的 `rateOK` 判紅）。
+           收到 0.65×RL 之後短版原生塞得進去，沒有動任何門檻。 */
+        st.fade(wet, { ms: RL * 0.25, from: 0, to: 0.72, ease: 'linear' });
+        st.fade(wet, { ms: RL * 0.30, delay: RL * 0.35, from: 0.72, to: 0, ease: 'linear' });
+        // 黏著延後一格（同前兩支：同幀呼叫會讓 anchor 與「雨滴有沒有真的落下」脫鉤）
+        if (prey) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(prey, 'Chest', new THREE.Vector3());
+          st.stick(drop, prey, { at: 'chest', off: to.clone().sub(c) });
+        } });
       } });
-    });
-    st.at(280, () => {
-      const c0 = new THREE.Vector3();
-      foes.forEach((f) => c0.add(st.worldOf(f, null, _a)));
-      if (foes.length) c0.multiplyScalar(1 / foes.length);
-      c0.y = st.tableY;
-      const sweep = st.ring(c0, 0.98, 0.07, { opacity: 0.88 });
-      sweep.scale.setScalar(0.28);
-      st.grow(sweep, { ms: 340, from: 0.28, to: 1.32 });
-      st.fade(sweep, { ms: 340, delay: 120, from: 0.88, to: 0 });
-      st.flinch(foes, { stagger: 40, strength: 0.85, burst: false });
-      shrinkers.forEach((f, j) => {
-        st.tween({ ms: 440, delay: j * 35, ease: 'pulse', update(t, e) { st.scale(f, 1 - 0.21 * e); st.rim(f, 1 + 0.9 * e); } });
-      });
-    });
+    // 雨滴群：衝擊拍當幀出現，之後再走兩階落到底——三階都是離散的，沒有 easing
+    st.tween({ ms: RL * 0.7, delay: R0, ease: 'linear', update(t) { writeRain(RAIN_STEP[Math.min(2, Math.floor(t * 3))]); } });
+    st.fade(rain.obj, { ms: RL * 0.3, delay: R0 + RL * 0.66, from: 0.92, to: 0 });
+
+    /* ③ 壓（react）：群體等比縮＋邊光轉冷，**四個離散台階**。
+       `PHASE_GATE.react` 量的是 `move`／`scale` delta，所以縮放這條就是反應本身。 */
+    const PRESS = [0.09, 0.18, 0.22, 0];
+    st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+      const n = Math.min(3, Math.floor(t * 4)), a = PRESS[n];
+      foes.forEach((f) => { st.scale(f, 1 - a); st.rim(f, 1 + 4.5 * a); });
+    } });
+
+    /* 收勢：兜帽落回、退回原位。★也是卡頓三階★（§B3 禁平滑補間）。 */
+    const SETTLE = [0.60, 0.26, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      coats.forEach((c, i) => { const d = step[i]; hood(c, k * (i ? 0.8 : 1)); st.move(c, d.x * 0.20 * k, 0, d.z * 0.20 * k); st.rim(c, 1 + 1.5 * k); });
+    } });
   },
 
   /* 水鬼浮標・抓交替（buoy，作祟×4）：燒掉對面 1 隻小兵，本方也燒 1 隻。
@@ -1089,38 +1199,8 @@ export const SHORT = {
   /* 看穿｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntSee: MOVES.hauntSee,
 
-  /* 恐懼｜辨識：兜帽抬起＋暗陰氣圈從對面腳下掃出、對面縮小 */
-  hauntDread1(st) {
-    const K = st.ms / 260;
-    const coats = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const foes = st.target;
-    const mid = foes.length ? st.foot(foes[0], new THREE.Vector3()) : st.foot(coats[0], new THREE.Vector3());
-    const dark = st.ring(mid, 0.38, 0.06, { opacity: 0, color: 0x2a1b3d });
-    const dark2 = st.ring(mid, 0.38, 0.035, { opacity: 0, color: 0x2a1b3d });
-    coats.forEach((g, i) => {
-      st.tween({ ms: 96 * K, delay: i * 8 * K, ease: 'inout', update(t, e) { // 兜帽緩緩抬起（陰氣＝最慢的醞釀）
-        st.rot(g, 'HoodRoot', -0.26 * e); st.rot(g, 'Hood1', -0.2 * e); st.rot(g, 'HoodTop', -0.16 * e);
-        st.rot(g, 'Yoke', -0.08 * e); st.rot(g, 'Skirt1', 0, 0, 0.14 * e); st.rim(g, 1 + 0.5 * e);
-      } });
-      st.tween({ ms: 60 * K, delay: (92 + i * 14) * K, ease: 'snap', update(t, e) { // 錯開閃現靠近半步
-        st.move(g, 0, 0, 0.1 * e); st.rim(g, 1.5 + 1.4 * Math.sin(Math.PI * e));
-      } });
-    });
-    st.grow(dark, { ms: 100 * K, delay: 96 * K, from: 0.3, to: 2 }); // 一圈暗陰氣從對面腳下掃出去
-    st.fade(dark, { ms: 100 * K, delay: 96 * K, from: 0.85, to: 0 });
-    st.grow(dark2, { ms: 92 * K, delay: 124 * K, from: 0.3, to: 1.6 });
-    st.fade(dark2, { ms: 92 * K, delay: 124 * K, from: 0.6, to: 0 });
-    foes.forEach((f, i) => st.tween({ ms: 96 * K, delay: (104 + i * 8) * K, ease: 'pulse', update(t, e) { // 對面群體整個縮小退縮
-      st.scale(f, 1 - 0.11 * e); st.move(f, 0, 0, -0.05 * e); st.rim(f, 1 - 0.3 * e);
-    } }));
-    st.tween({ ms: 58 * K, delay: 170 * K, ease: 'inout', update(t, e) { // 兜帽落、退回原位
-      const k = 1 - e;
-      coats.forEach((g) => {
-        st.rot(g, 'HoodRoot', -0.26 * k); st.rot(g, 'Hood1', -0.2 * k); st.rot(g, 'HoodTop', -0.16 * k);
-        st.rot(g, 'Skirt1', 0, 0, 0.14 * k); st.move(g, 0, 0, 0.1 * k); st.rim(g, 1 + 0.5 * k);
-      });
-    } });
-  },
+  /* 恐懼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  hauntDread1: MOVES.hauntDread1,
 
   /* 抓交替｜辨識：繩子甩出勾住對面＋本方自己沉下去的漣漪 */
   hauntSwap(st) {
