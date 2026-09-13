@@ -645,7 +645,11 @@ const MOVES = {
     const C = st.colors;
     const ringer = st.byBody(st.actor, 'ward')[0] || st.actor[0];
     const mates = st.actor.filter((f) => f !== ringer);
-    const bless = mates.length ? mates : [ringer];
+    /* ★「本方免疫」是全隊，施招者自己也在內（P4 r1 回修，逐尊覆蓋）★
+       改前 `bless` 只有同伴，施招者身上一件道具都沒有 ⇒ anchor 的逐尊覆蓋量到 cover 1/2。
+       這一支第 1 輪是**過的**（千里眼是 5 支過的其中一支），所以只補「施招者也收到一份」，
+       其餘一個位元組不動——不拿一支已經讀對的招去換別的寫法。 */
+    const bless = st.actor.length ? st.actor.slice() : [ringer];
     const src = st.worldOf(ringer, 'BellRoot', new THREE.Vector3());
     if (!src.lengthSq()) st.worldOf(ringer, null, src);
     src.y += 0.10;
