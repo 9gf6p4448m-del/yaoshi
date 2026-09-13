@@ -131,6 +131,7 @@ const _v = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _av = new THREE.Vector3(); // 道具落點 anchor 量測用（sampleAnchors／nearestFig）
 const _asp = new THREE.Vector3(); // st.bodySpot 取樣用
+const FLAT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); // 立著的紙片放平（局部旋轉，見 st.flatQ）
 const _fv = new THREE.Vector3();  // 回流量測用
 const _fpts = [];
 /** 回流判定的數值容差（世界單位）。★不是「允許回流多少」★：它只吸收浮點與逐幀取樣的抖動，
@@ -555,7 +556,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const _rq = new THREE.Quaternion();
   const _m4 = new THREE.Matrix4();
   const _s3 = new THREE.Vector3();
-  const ZAX = new THREE.Vector3(0, 0, 1);
+  const ZAX = new THREE.Vector3(0, 0, 1); // axis-ok: 徽記自轉的旋轉軸（局部），不是位移
   // 預熱：renderer.compile() 只編「直接輸出」那一支，對決走 bloom 的 render target（linear 色彩空間）是另一支
   // program，粒子池在第一次 burst 之前也沒編過——實測（scratchpad/progdiag2）演到一半 render 會 +1～+2。
   // 所以改成兩個暖身物件關掉 frustumCulled 常駐桌底：每一幀（含 bloom 那條路）都真的被畫，兩種變體在第一場
@@ -868,11 +869,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       if (run.followSet && run.followSet.has(m)) continue;
       flowPoints(m, _fpts);
       let rec = run.flowMap.get(m);
-      if (!rec) { run.flowMap.set(m, { kind, base: _fpts.map((q) => q.clone()), worst: 0, at: 0 }); continue; }
+      if (!rec) { run.flowMap.set(m, { kind, base: _fpts.map((q) => q.clone()), worst: 0, at: 0, absMax: 0 }); continue; }
       const n = Math.min(rec.base.length, _fpts.length);
       for (let i = 0; i < n; i++) {
         const d = _fv.subVectors(_fpts[i], rec.base[i]).dot(run.dirVec);
         if (d < rec.worst) { rec.worst = d; rec.at = Math.round(run.vt); }
+        /* `absMax`＝沿 `st.dir` 的**位移絕對值**上限（覆審 r5 §5.2 的「空真」提醒）：
+           `worst = 0` 有兩種可能——「動了但沒往回」與「根本沒動」。後者的綠燈是空真，
+           報告要寫得出「這一跑真的行使到這條斷言的是哪幾支」，所以把它一起留帳。 */
+        if (Math.abs(d) > rec.absMax) rec.absMax = Math.abs(d);
       }
     }
   }
@@ -896,10 +901,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   }
   /** 收成一筆：最深的那一次回流是誰、多少、什麼時候。 */
   function flowResult(run) {
-    let worst = 0, kind = null, at = 0;
-    run.flowMap.forEach((r) => { if (r.worst < worst) { worst = r.worst; kind = r.kind; at = r.at; } });
+    let worst = 0, kind = null, at = 0, absMax = 0;
+    run.flowMap.forEach((r) => { if (r.worst < worst) { worst = r.worst; kind = r.kind; at = r.at; } if (r.absMax > absMax) absMax = r.absMax; });
     const scope = run.anchorSpec === "foe" || run.anchorSpec === "foes"; // 打擊類＝真值作用對象在敵方那一側
-    return { scope, n: run.flowMap.size, worst: +worst.toFixed(3), kind, at,
+    return { scope, n: run.flowMap.size, worst: +worst.toFixed(3), absMax: +absMax.toFixed(3), kind, at,
       ok: scope ? worst >= -FLOW_EPS : null, eps: FLOW_EPS };
   }
   /** anchor 這一格的總判定（`lastSig.anchors.ok` 與 `stance.casterMatch` 共用**同一支**，
@@ -1129,7 +1134,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   function makeStage(run, actor, target, det) {
     const colorObj = new THREE.Color(SPARK_COLOR[det.fac] || SPARK_COLOR.lantern);
     const cA = centroid(actor);
-    const cB = target.length ? centroid(target) : cA.clone().add(new THREE.Vector3(1, 0, 0));
+    const cB = target.length ? centroid(target) : cA.clone().add(new THREE.Vector3(1, 0, 0)); // axis-ok: 場上沒有敵方時的退化值，「我→敵」這個方向本來就不存在
     const dir = cB.clone().sub(cA); dir.y = 0;
     if (dir.lengthSq() < 1e-6) dir.set(1, 0, 0);
     dir.normalize();
@@ -1414,6 +1419,25 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  （虎爺印三片碎片有一片朝我方 -0.058、山豬牙飾彈開淨朝我方 -0.18）。
        *  `cross(st.dir, UP)` 與對決軸正交 ⇒ 它在 `st.dir` 上的投影恆為 0，怎麼散都不會回流。 */
       sideDir: (() => new THREE.Vector3().crossVectors(dir, UP).normalize())(),
+      /** ★「舞台座標 → 世界位移」的唯一出口（覆審 r5 HIGH-A）★
+       *  `x`＝橫向（＋往 `st.sideDir`）、`y`＝高、`z`＝朝敵方（＋往 `st.dir`）。
+       *  ★為什麼要有這一支★：群體道具的逐實例位移（`it.p`）是**容器的局部座標**，
+       *  而容器沒有旋轉 ⇒ 局部就是世界。把橫向寫成世界 X（`it.p.set(k, y, 0)`）的話，
+       *  它與「我→敵」的夾角**由座位決定**——那正是 r4 HIGH-1 判死 `cross(camDir, UP)` 的同一個病：
+       *  覆審 r5 實測虎爺印的爪痕在六個真實 `duelYaw` 裡有五個回流（−0.075～−0.106），
+       *  而治具只量了 yaw 90°（那一個剛好是 0）。
+       *  ⇒ **三系編舞裡不得再出現以世界軸當橫向的位移**（`tests/fxvocab.test.mjs` 有一條掃描在擋）。 */
+      /** 「把立著的紙片放平貼在桌上」的**局部**旋轉（繞自己的 X 轉 −90°）。
+       *  ★這不是方向語彙★：它乘在 yaw 之後（`q.copy(qYaw).multiply(st.flatQ)`），
+       *  作用在物件自己的座標系上，與座位無關。收成一支的理由是讓三系檔裡
+       *  **一個世界軸常數都不剩**（覆審 r5 HIGH-A 的掃描只放行 `UP`）。 */
+      flatQ: FLAT_Q,
+      stageVec(x, y, z, out) {
+        const v = out || new THREE.Vector3();
+        v.copy(st.sideDir).multiplyScalar(x || 0).addScaledVector(st.dir, z || 0);
+        v.y = y || 0;
+        return v;
+      },
       /** 這個世界座標在不在鏡頭的視錐裡。
        *  ★與 anchor「在場」的第 5 條是**同一支**★（`sampleAnchors` 裡的 `_afr.containsPoint`）：
        *  編舞挑落點時要問的是同一個問題——「這一點觀眾看得到嗎」。分成兩份寫，就會像實測到的
@@ -2127,12 +2151,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
           r.hurtN = run.hurtSet.size;
           r.hurtHit = !!(r.mainFigRef && run.hurtSet.has(r.mainFigRef));
           r.hurtCover = (r.coverFigs || []).some((f) => run.hurtSet.has(f));
-          /* 主道具**歸屬得出來**（`attMain`）時，就要求它落在**受擊的那一尊**身上；
-             歸屬不出來（擠成一團／道具被推近鏡頭而落在兩尊中間）時退一步：
-             至少要有**一件**道具決定性地落在受擊的那一尊身上。
-             ★兩條都擋得住「印落在錯的那一尊」★：把主道具改落到別的敵方時，
-             要嘛它歸屬到那一尊（`hurtHit` false ⇒ 紅），要嘛沒有任何道具落在受擊者身上（`hurtCover` false ⇒ 紅）。 */
-          if (r.coverNeed > 0) r.coverOK = r.attMain ? r.hurtHit : r.hurtCover;
+          /* ★一律要求「主道具歸屬得出來、而且就是受擊的那一尊」（覆審 r5 MEDIUM-A）★
+             改前有一條退路：主道具歸屬不出來時，只要**任何一件**道具落在受擊者身上就算過。
+             覆審實測那條退路在 `eliteOpenShot` 上是零鑑別力——把日盤射到另一尊敵方，
+             靠貼在 prey 身上的 follow 印記，`hurtCover` 照樣 true、整支照樣綠（突變 Q3）。
+             現在歸屬不出來就是紅：編舞要把落點做到「分得出來」（三支 foe 招都已用 `st.bodySpot` 收好）。
+             `hurtCover` 只留著當留帳欄位，不再進判定。 */
+          if (r.coverNeed > 0) r.coverOK = r.attMain === true && r.hurtHit === true;
         }
         if (!r) return { spec: run.anchorSpec || null, sampled: false, n: run.anchors.length, bad: 0, skipped: 0, missing: 0, follows: 0, landings: 0, mainDeclared: false, mainShown: false, mainOK: false, mainScope: false, cover: 0, coverNeed: 0, coverSep: 0, coverOK: false, ok: false, rows: [] };
         const { coverFigs, mainFigRef, ...rest } = r; // figure 物件不進 sig（不可序列化）

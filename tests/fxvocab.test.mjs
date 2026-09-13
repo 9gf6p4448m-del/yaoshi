@@ -363,6 +363,48 @@ t('已轉正的招都登記了道具落點 anchor，取值在白名單內，而�
   if (bad.length) throw new Error(bad.join(' ／ '));
 });
 
+
+t('三系編舞與引擎裡不得把「橫向」寫成世界軸（覆審 r5 HIGH-A 的掃描）', () => {
+  /* ★病因★：群體道具的逐實例位移（`it.p`）是容器的局部座標，而容器沒有旋轉 ⇒ 局部就是世界；
+     舞台卻是**相機相對**的（`st.dir` 隨座位轉）。把橫向寫成世界 X／Z，它與「我→敵」的夾角
+     就由座位決定——覆審 r5 實測虎爺印的爪痕在六個真實 `duelYaw` 裡有五個回流（−0.075～−0.106），
+     而治具只量 yaw 90°（剛好是 0）那一個座位。
+     ★這是按**危險的效果**寫的掃描（`02 §6.1` 第 7 條）★：不管哪一支招、哪一個積木，
+     只要位移的橫向分量是世界軸常數就當場紅。唯一放行的是 `UP`（(0,1,0) 是高度，不是橫向），
+     以及**由舞台基底推出來**的寫法（`st.dir`／`st.sideDir`／`st.stageVec`／`st.camDir`／`fwd`／`perp`／`lat`）。 */
+  const FILES = ['js/trait-fx/zuling.js', 'js/trait-fx/xianghuo.js', 'js/trait-fx/yinqi.js', 'js/trait-fx.js'];
+  const STAGE = /st\.(dir|sideDir|camDir|stageVec|top|foot|worldOf|camOff)|\bfwd\b|\bperp\b|\blat\b|\bside\b|\bUP\b/;
+  const bad = [];
+  let scanned = 0;
+  FILES.forEach((rel) => {
+    const f = path.join(ROOT, rel);
+    if (!fs.existsSync(f)) return; // 陰氣批還沒有 yinqi.js
+    scanned++;
+    const isFaction = /trait-fx\/(zuling|xianghuo|yinqi)\.js$/.test(rel);
+    fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      const at = `${rel}:${i + 1}`;
+      if (line.trim().startsWith('*') || line.trim().startsWith('//')) return; // 註解不掃
+      /* 旋轉軸不是位移：`setFromAxisAngle(new THREE.Vector3(1,0,0), …)` 是「把紙片放平」那一類**局部**旋轉。
+         `axis-ok:` 是明著標記的例外（要寫理由，會出現在 diff 裡讓覆審看見）。 */
+      if (/setFromAxisAngle|axis-ok:/.test(line)) return;
+      /* ① 三系檔裡不得再有 `.p.set(`：逐實例位移一律走 `st.stageVec`（唯一出口）。
+            `it.p.copy(<由 stageVec 組出來的向量>)` 仍然可以。 */
+      if (isFaction && /\.p\.set\(/.test(line)) bad.push(`${at} 用了 .p.set(（逐實例位移請走 st.stageVec）`);
+      /* ② 任何檔裡，`new THREE.Vector3(a, b, c)` 的 **x 或 z** 只要不是字面 0，
+            就必須看得到舞台基底；否則那是一條寫死的世界軸。 */
+      const m = line.match(/new THREE\.Vector3\(([^)]*)\)/);
+      if (!m || !m[1].trim()) return;
+      const args = m[1].split(',');
+      if (args.length < 3) return;
+      const x = args[0].trim(), z = args.slice(2).join(",").trim();
+      const nonZero = (v) => v !== '0' && v !== '0.0' && v !== '';
+      if ((nonZero(x) || nonZero(z)) && !STAGE.test(line)) bad.push(`${at} 的 Vector3 橫向是世界軸常數：${line.trim().slice(0, 90)}`);
+    });
+  });
+  if (scanned < 3) throw new Error(`只掃到 ${scanned} 個檔（掃描壞了）`);
+  if (bad.length) throw new Error(bad.join(' ／ '));
+});
+
 t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各一套」）', () => {
   const src = fs.readFileSync(path.join(ROOT, 'docs/design/2026-09-12-fx-vocab-draft.md'), 'utf8');
   const sec = src.slice(src.indexOf('### A9 身分可辨語彙'), src.indexOf('## §B'));

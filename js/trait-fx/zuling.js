@@ -39,6 +39,21 @@ function zlBeat(st, frac) {
  *      而且在衝擊拍那一幀（`st.trail` 的 `done()`）用當下的站位重挑一次。 */
 /** 衝擊拍那一刻用**當下**的站位重挑一次落點，回傳 `st.stick` 要的 off（＝落點 − 那一尊胸口）。
  *  挑的規則整條在 `st.bodySpot`（唯一來源）；這裡只負責換算成 off。 */
+/** 從敵方名單裡挑「身上還放得下一枚**分得出來**的道具」的那一隻（覆審 r5 MEDIUM-A）。
+ *  `foe` 這一格現在要求主道具**歸屬得出來、而且＝受擊的那一尊**；治具棚四尊敵方前後兩排重疊，
+ *  挑到被夾在中間的那一隻時，牠身上的最大餘裕只有 0.13–0.22（門檻 `ANCHOR_MARGIN` 0.18），
+ *  道具再怎麼放都歸屬不出來。`st.spotRoom` 量的就是這件事，與判定端的 `sepOf` 同一支掃描。
+ *  ★原本的偏好沒有丟★：同一級（餘裕差 ≤0.02）裡若有原本要挑的那一隻，仍然挑牠。 */
+function roomyPrey(st, list, prefer) {
+  if (!list || list.length < 2) return (list && list[0]) || prefer || null;
+  const roomOf = (f) => st.spotRoom(f, st.worldOf(f, 'Chest', new THREE.Vector3()).y || 1);
+  let br = -Infinity;
+  for (const f of list) br = Math.max(br, roomOf(f));
+  const top = list.filter((f) => roomOf(f) >= br - 0.02);
+  if (prefer && top.indexOf(prefer) >= 0) return prefer;
+  return st.biggest(top) || top[0];
+}
+
 /** 往鏡頭推一段，但**不得推出畫面**：清單由大到小試，第一個還在視錐裡的就用它。
  *  ★為什麼需要（P4 第 3 輪回修 (e) 連帶抓到）★：山豬牙飾的主獠牙靠 `camOff(4.2)` 推近鏡頭補 L3 面積，
  *  而那是在**治具預設站位**上調出來的；換成 P4 材料的站位（`--mate=auto --mategap=1.9 --foe=…`）
@@ -174,7 +189,7 @@ const MOVES = {
     const { W, T0, TL, R0, LAST, RL } = zlBeat(st, 0.90);
     const C = st.colors;
     const bow = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const prey = st.biggest(st.target) || st.target[0] || null;
+    const prey = roomyPrey(st, st.target, st.biggest(st.target)); // 挑「身上放得下一枚分得出來的道具」的那一隻（覆審 r5 MEDIUM-A）
     const nock = st.worldOf(bow, 'SunNock', new THREE.Vector3());
     if (!nock.lengthSq()) { st.worldOf(bow, null, nock); nock.y += 0.5; }
     /* ★看圖調的（自評第 1 輪）★：`SunNock` 在弓的最高處，日盤擺上去之後在 844×390 上
@@ -199,7 +214,8 @@ const MOVES = {
     arrows.obj.position.copy(nock);
     const _e = new THREE.Euler();
     const sticks = [];
-    for (let i = 0; i < ARR; i++) sticks.push({ off: new THREE.Vector3((i - 1) * 0.30, -0.12 - (i - 1) * 0.12, 0), rz: 1.57 + (i - 1) * 0.24, s: 0 });
+    // 三支箭沿**舞台橫向**排開（覆審 r5 HIGH-A：不得寫成世界 X）
+    for (let i = 0; i < ARR; i++) sticks.push({ off: st.stageVec((i - 1) * 0.30, -0.12 - (i - 1) * 0.12, 0), rz: 1.57 + (i - 1) * 0.24, s: 0 });
     const writeArrows = (k) => {
       for (let i = 0; i < ARR; i++) {
         const a = sticks[i], it = arrows.items[i];
@@ -243,6 +259,10 @@ const MOVES = {
       done() {
         /* ★衝擊拍★：弦鬆手＝日盤抵達＝那一隻同幀後退（三件同一拍，§A2） */
         st.phase('react');
+        /* ★主道具要**歸屬得出來**（覆審 r5 MEDIUM-A）★：日盤原本停在 `to`（獵物胸口＋camOff），
+           在治具棚四尊擠在一起時歸屬不出來（`attMain=false`）——而 `foe` 這一格現在要求
+           「主道具歸屬得出來、而且＝受擊的那一尊」。在這一幀用當下的站位收進獵物自己的佔地。 */
+        if (prey) st.bodySpot(prey, disc.position);
         st.burst(to, { power: 0.95, n: 62, color: C.hot });
         st.punch(0.46);
       } });
@@ -310,7 +330,7 @@ const MOVES = {
        ② `wall + y1.25`：過得了門檻，但帶子整條**跑出畫面左上角**（`sheet-t2` 前兩格只剩一塊藍）。
        改成從**側面**掃進來：`perp` 是水平面上垂直於 `st.dir` 的方向（遠離中線那一側），
        帶子沿著盾牆那一線橫掃進場＝§C「菱紋帶沿盾牆展開」，位移也拿得到（實測 1.4+）。 */
-    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const perp = st.sideDir; // ＝(-dir.z,0,dir.x)，改走唯一的舞台基底（覆審 r5 HIGH-A）
     const A = wall.clone(); A.addScaledVector(perp, 1.70); A.y += 0.85; A.addScaledVector(st.dir, -0.25); A.add(st.camOff(1.0));
     // 落點＝本方那一線的中點（`allies` 解出的就是這一群，含施招者自己：desc「前鋒全體」）
     const Z = new THREE.Vector3();
@@ -334,7 +354,7 @@ const MOVES = {
       for (let i = 0; i < RH; i++) {
         const g = knots[i], it = band.items[i];
         // k=0 疊在一起（還沒展開）→ k=1 沿橫向鋪成一條帶
-        it.p.set(g.x * (0.08 + 0.46 * k), -0.05 * Math.abs(g.x) * k, 0); // 鋪開後跨距 ≈1.84 ⇒ 兩尊都在帶子底下（P4 r1 回修 A）
+        st.stageVec(g.x * (0.08 + 0.46 * k), -0.05 * Math.abs(g.x) * k, 0, it.p); // 鋪開後跨距 ≈1.84 ⇒ 兩尊都在帶子底下；橫向走舞台基底（r5 HIGH-A）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * k));
         it.s = g.s;
       }
@@ -449,7 +469,7 @@ const MOVES = {
     const lead = herd[0];
     const mates = st.actor.filter((f) => f !== lead);
     const crown = st.top(lead, new THREE.Vector3());
-    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const perp = st.sideDir; // ＝(-dir.z,0,dir.x)，改走唯一的舞台基底（覆審 r5 HIGH-A）
     // 起點在遠離中線那一側的高處（§A9-3：不跨中線、不從敵方出發）
     const A = crown.clone(); A.addScaledVector(perp, 1.85); A.y += 0.75; A.add(st.camOff(1.0));
     const Z = new THREE.Vector3();
@@ -470,7 +490,7 @@ const MOVES = {
         const g = ring[i], it = rocks.items[i];
         // k=0 疊在一起 → k=1 攤成一圈（半徑 0.62；圈是**橫躺**的，不是腳下光環）
         const r = 0.06 + 1.35 * k; // 半徑要圈住兩尊（P4 r1 回修 A：讀者 6/18 答「自己」，圈只罩住施招者）
-        it.p.set(Math.cos(g.th) * r, Math.sin(g.th) * r * 0.62, 0);
+        st.stageVec(Math.cos(g.th) * r, Math.sin(g.th) * r * 0.62, 0, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz + k * 0.8));
         it.s = g.s;
       }
@@ -582,7 +602,7 @@ const MOVES = {
     const mates = st.actor.filter((f) => f !== lead);
     const eyeAt = st.worldOf(lead, 'Sl0', new THREE.Vector3());
     if (!eyeAt.lengthSq()) st.worldOf(lead, null, eyeAt);
-    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const perp = st.sideDir; // ＝(-dir.z,0,dir.x)，改走唯一的舞台基底（覆審 r5 HIGH-A）
     const A = eyeAt.clone(); A.addScaledVector(perp, 2.05); A.y += 0.75; A.add(st.camOff(1.0)); // perp 1.75 時 travel 1.2669/門檻 1.2481 太貼線，加餘裕
     const Z = new THREE.Vector3();
     st.actor.forEach((f) => { const p = st.top(f, new THREE.Vector3()); Z.add(p); });
@@ -688,7 +708,7 @@ const MOVES = {
     const writeBolts = (k) => {
       for (let i = 0; i < BZ; i++) {
         const g = jags[i], it = bolts.items[i];
-        it.p.set(g.x * (0.2 + 1.1 * k), g.y * (0.2 + 1.6 * k), 0);
+        st.stageVec(g.x * (0.2 + 1.1 * k), g.y * (0.2 + 1.6 * k), 0, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * (0.3 + 1.4 * k)));
         it.s = g.s;
       }
@@ -792,7 +812,7 @@ const MOVES = {
     const mates = st.actor.filter((f) => f !== lead);
     const bowAt = st.worldOf(lead, 'BowBase', new THREE.Vector3());
     if (!bowAt.lengthSq()) st.worldOf(lead, null, bowAt);
-    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const perp = st.sideDir; // ＝(-dir.z,0,dir.x)，改走唯一的舞台基底（覆審 r5 HIGH-A）
     const A = bowAt.clone(); A.addScaledVector(perp, 1.95); A.y += 0.65; A.add(st.camOff(1.0));
     const Z = new THREE.Vector3();
     st.actor.forEach((f) => { const p = st.worldOf(f, null, new THREE.Vector3()); Z.add(p); });
@@ -810,7 +830,7 @@ const MOVES = {
     const writeWaves = (k) => {
       for (let i = 0; i < WV; i++) {
         const g = rows[i], it = waves.items[i];
-        it.p.set(0, g.y * (0.3 + 1.0 * k), (i - 1) * 0.05);
+        st.stageVec(0, g.y * (0.3 + 1.0 * k), (i - 1) * 0.05, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz));
         it.s = g.s;
       }
@@ -915,7 +935,7 @@ const MOVES = {
     const C = st.colors;
     const pack = st.byBody(st.actor, 'swarm');
     const boar = pack.length ? pack[0] : st.actor[0];
-    const prey = st.biggest(st.target) || st.target[0] || null;
+    const prey = roomyPrey(st, st.target, st.biggest(st.target)); // 挑「身上放得下一枚分得出來的道具」的那一隻（覆審 r5 MEDIUM-A）
     const disc = st.worldOf(boar, 'DiscFace', new THREE.Vector3());
     if (!disc.lengthSq()) { st.worldOf(boar, null, disc); disc.y += 0.35; }
     disc.add(st.camOff(0.9));
@@ -933,7 +953,7 @@ const MOVES = {
        「東西從對手身上往我方回來」就是偷取的那個動作（第 2 輪 6/18 讀成偷取）。
        改成往**畫面左右**彈開、再往敵方深處帶一點：整段軌跡沒有任何一格朝我方。 */
     const sideT = st.sideDir; // 與對決軸垂直（覆審 r4 HIGH-1：改前這一條與 st.dir 平行，0.34 全變成「朝我方」）
-    const back = to.clone().addScaledVector(sideT, 0.34).addScaledVector(st.dir, 0.16).add(st.camOff(1.2));
+    const back = to.clone().addScaledVector(sideT, 0.34).addScaledVector(st.dir, 0.16).add(st.camOff(1.2)); // 衝擊拍會依落點重算一次（見下面的 done）
     back.y = st.tableY + 0.12;
 
     // ── 甲 兩根獠牙（1 draw call）──
@@ -945,7 +965,7 @@ const MOVES = {
     const writeTusks = (k) => {
       for (let i = 0; i < TK; i++) {
         const g = pair[i], it = tusks.items[i];
-        it.p.set(g.x * (0.4 + 1.1 * k), 0, 0);
+        st.stageVec(g.x * (0.4 + 1.1 * k), 0, 0, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, g.rz * (0.4 + 1.6 * k)));
         it.s = g.s;
       }
@@ -990,6 +1010,18 @@ const MOVES = {
       done() {
         /* ★衝擊拍★：牙盤轉亮到頂＝獠牙扎中＝對手同幀後退（三件同一拍，§A2） */
         st.phase('react');
+        /* ★扎中的那一點收進獵物自己的佔地（覆審 r5 MEDIUM-A）★
+           `foe` 現在要求主道具**歸屬得出來、而且＝受擊的那一尊**；獠牙原本扎在胸口＋camOff，
+           治具棚四尊擠在一起時歸屬不出來（`att=null`）。這一幀把落點、獠牙群與主獠牙一起收到
+           `st.bodySpot` 挑的那一點——react 段的反彈也是從這一點起算（`to` 是同一個物件），
+           所以不會製造「瞬移」（那會被回流斷言抓紅，實測 −0.342）。 */
+        if (prey) {
+          st.bodySpot(prey, to); tusks.obj.position.copy(to); head.position.copy(to);
+          /* 反彈的終點要跟著新的落點重算：`back` 是在 t=0 由**舊的** `to` 複製出來的，
+             落點收過去之後那一段就多了一截朝我方的位移（實測 −0.214，被回流斷言抓到）。 */
+          back.copy(to).addScaledVector(sideT, 0.34).addScaledVector(st.dir, 0.16).add(st.camOff(1.2));
+          back.y = st.tableY + 0.12;
+        }
         st.burst(to, { power: 0.9, n: 52, color: C.hot });
         st.punch(0.42);
       } });
@@ -1005,7 +1037,7 @@ const MOVES = {
        這是全 27 支唯一反向飛行的道具（因果方向＝反擊），但**不回到施招者**（P4 r1 回修 F）。 */
     st.tween({ ms: RL * 0.55, delay: R0 + RL * 0.12, ease: 'out', update(t, e) {
       tusks.obj.position.lerpVectors(to, back, e);
-      head.position.copy(camPush(st, tusks.obj.position, [4.2, 3.2, 2.4, 1.6, 0.9]));
+      head.position.copy(tusks.obj.position); // react 段跟著獠牙走（推近鏡頭的量已在 travel 末收斂到 0）
       writeTusks(1 - 0.5 * e);
     } });
     st.fade(tusks.obj, { ms: RL * 0.3, delay: R0 + RL * 0.65, from: 0.95, to: 0 });
@@ -1098,8 +1130,8 @@ const MOVES = {
     const strips = [];
     for (let i = 0; i < BL; i++) {
       strips.push({
-        a: new THREE.Vector3((st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.06, (st.rnd() - 0.5) * 0.10),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.26, -0.16 - 0.34 * st.rnd(), (st.rnd() - 0.5) * 0.26),
+        a: st.stageVec((st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.06, (st.rnd() - 0.5) * 0.10), // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        b: st.stageVec((st.rnd() - 0.5) * 0.26, -0.16 - 0.34 * st.rnd(), (st.rnd() - 0.5) * 0.26),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
       });
     }
@@ -1215,7 +1247,7 @@ const MOVES = {
     const mates = st.actor.filter((f) => f !== snake);
     const heart = st.worldOf(snake, 'Trunk2', new THREE.Vector3());
     if (!heart.lengthSq()) st.worldOf(snake, null, heart);
-    const perp = new THREE.Vector3(-st.dir.z, 0, st.dir.x);
+    const perp = st.sideDir; // ＝(-dir.z,0,dir.x)，改走唯一的舞台基底（覆審 r5 HIGH-A）
     const A = heart.clone(); A.addScaledVector(perp, 2.35); A.y += 0.75; // perp 1.95 時 travel 1.2929/門檻 1.2481 太貼線，加餘裕 A.add(st.camOff(1.0));
     const Z = new THREE.Vector3();
     st.actor.forEach((f) => { const p = st.worldOf(f, null, new THREE.Vector3()); Z.add(p); });
@@ -1248,7 +1280,7 @@ const MOVES = {
         const g = orbs[i], it = ring.items[i];
         // k=0 疊在一起 → k=1 攤成一圈（繞身旋轉：角度隨 spin 前進）
         const r = 0.05 + 1.05 * k, th = g.th + spin; // 珠圈要繞住兩尊（P4 r1 回修 A：讀者 9/18 答「自己」）
-        it.p.set(Math.cos(th) * r, Math.sin(th) * r * 0.55, 0);
+        st.stageVec(Math.cos(th) * r, Math.sin(th) * r * 0.55, 0, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
         it.q.setFromEuler(_e.set(0, Math.PI * 0.5, th));
         it.s = g.s;
       }

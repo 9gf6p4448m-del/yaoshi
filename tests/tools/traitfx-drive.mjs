@@ -186,8 +186,13 @@ let DT_MS = 1000 / 60; // --dt=<ms> 覆寫（治具頁同步吃 &dt=）
 
 /** 本支真的吃的旗標（＝白名單的分母）。加新旗標時**一定要同時加進這張表**，
  *  否則它會被當成打錯而當場停——那正是這道守衛要的行為（覆審 r4 MEDIUM-3）。 */
-const KNOWN_FLAGS = ['tier', 'count', 'only', 'mate', 'mategap', 'foe', 'fxvocab', 'proto',
+const KNOWN_FLAGS = ['tier', 'count', 'only', 'mate', 'mategap', 'foe', 'fxvocab', 'proto', 'camyaw',
   'dt', 'port', 'shots', 'sigdump', 'root', 'block', 'cancel', 'reduced', 'throw', 'nobloom'];
+/* ★`--camyaw=<度>`（覆審 r5 HIGH-A）★：對決機位的 yaw 由座位決定
+   （`js/camera-director.js:29 SEAT_YAW` ＋ `:157 duelYaw()` ⇒ 六個真實值 90／315／45／225／135／0），
+   而**舞台是相機相對的**——不帶它時治具永遠量 90°那一個座位。
+   覆審 r5 實測：虎爺印的爪痕在另外五個座位都回流（−0.075～−0.106），而八條路徑全綠，
+   因為那八條是「同一個座位量了八次」。回流／P3 的驗收現在要逐 yaw 各跑一次。 */
 function parseArgs(argv) {
   return parseFlags(argv, KNOWN_FLAGS, "traitfx-drive");
 }
@@ -231,7 +236,7 @@ async function runCase(browser, base, c, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}${mateQuery(opt.mate || '', c)}${opt.mategap ? '&mategap=' + encodeURIComponent(opt.mategap) : ''}${opt.foe ? '&foe=' + encodeURIComponent(opt.foe) : ''}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}${mateQuery(opt.mate || '', c)}${opt.mategap ? '&mategap=' + encodeURIComponent(opt.mategap) : ''}${opt.foe ? '&foe=' + encodeURIComponent(opt.foe) : ''}${opt.camyaw ? '&camyaw=' + encodeURIComponent(opt.camyaw) : ''}`;
   if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完
@@ -569,7 +574,8 @@ async function main() {
     const scoped = results.filter((r) => r.verdict && r.verdict.flow && r.verdict.flow.scope);
     const bad = scoped.filter((r) => r.verdict.flow.ok === false);
     const deepest = scoped.reduce((m, r) => Math.min(m, r.verdict.flow.worst), 0);
-    console.log(`衝擊拍之後的回流（打擊類 ${scoped.length} 支）：紅 ${bad.length}　最深 ${deepest}`
+    console.log(`衝擊拍之後的回流（yaw ${opt.camyaw || 90}°，打擊類 ${scoped.length} 支`
+      + `，其中有軌跡可量 ${scoped.filter((r) => (r.verdict.flow.absMax || 0) > 0.01).length} 支）：紅 ${bad.length}　最深 ${deepest}`
       + (bad.length ? '　' + bad.map((r) => `${r.case.trait} ${r.verdict.flow.worst}（${r.verdict.flow.kind}）`).join('／') : ''));
   }
   console.log(`\n${summary.pass}/${summary.total} pass · 重複簽章 ${dupSig.length} · ${out}`);

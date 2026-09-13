@@ -17,7 +17,7 @@ const _b = new THREE.Vector3();
 
 /* ══ 香火系 9 支共用的兩個小零件（2026-09-13 招式演出卷批 1）══ */
 const UP_Y = new THREE.Vector3(0, 1, 0);
-const AX_X = new THREE.Vector3(1, 0, 0);
+// AX_X 退場（覆審 r5 HIGH-A）：放平那一下改用 `st.flatQ`（引擎的共用常數，局部旋轉、與座位無關）
 /** 三拍窗換算：`st.beat` 給 windup／travel／react 的毫秒窗，這裡只多算「收勢抵達點」。
  *  `frac`＝`LAST / st.ms`（預設 0.90＝語彙檔 §A5 建議值：往嚴的方向走，多出來的 2% 全給衝擊拍）。
  *  ★不得在這裡寫任何毫秒字面值★：時長的唯一來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`。 */
@@ -502,7 +502,7 @@ const MOVES = {
     const stag = RL * 0.36 / Math.max(1, order.length);
     order.forEach((f, i) => {
       const fwd = st.toward(f, new THREE.Vector3());
-      const lat = new THREE.Vector3(fwd.z, 0, -fwd.x);
+      const lat = st.sideDir.clone().multiplyScalar(-1); // ＝(fwd.z,0,-fwd.x)，改走唯一的舞台基底
       const k = (i % 2 ? -1 : 1) * (0.12 + 0.05 * st.rnd());
       st.tween({ ms: RL * 0.6, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
         st.move(f, lat.x * k * e + fwd.x * 0.07 * e, 0, lat.z * k * e + fwd.z * 0.07 * e);
@@ -583,8 +583,8 @@ const MOVES = {
       for (let i = 0; i < SAILS; i++) {
         const a = (i + 1) * Math.PI / 2; // 跳過正面（留給 mainSail）
         const it = sails.items[i];
-        it.p.set(Math.cos(a) * r, 0, Math.sin(a) * r);
-        it.q.copy(_qs.setFromAxisAngle(UP_Y, -a)); // 面朝外＝方框的四面牆
+        st.stageVec(Math.cos(a) * r, 0, Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        it.q.copy(_qs.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI / 2)); // 面朝外：角度由**世界位移**反推，換座位照樣朝外
         it.s = s;
       }
       sails.write();
@@ -749,15 +749,15 @@ const MOVES = {
     foot.multiplyScalar(1 / Math.max(1, st.actor.length));
     const wave = st.paperProps(st.kind, EDGES, { floor: true, color: C.key, opacity: 0, k: 1.0, ratio: 8.0, depth: 0.10, warp: 0.05 });
     wave.obj.position.copy(foot);
-    const _qa = new THREE.Quaternion(), _qFlat = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    const _qa = new THREE.Quaternion(), _qFlat = st.flatQ;
     /** r0／r1＝內外兩圈的半徑；邊長跟著半徑等比（s = 2r / (ratio × markSize)） */
     const writeWave = (r0, r1) => {
       for (let i = 0; i < EDGES; i++) {
         const ring = i >> 2, side = i & 3, r = ring ? r1 : r0;
         const a = side * Math.PI / 2;
         const it = wave.items[i];
-        it.p.set(Math.cos(a) * r, 0.004 * (ring + 1), Math.sin(a) * r);
-        _qa.setFromAxisAngle(UP_Y, -(a + Math.PI / 2)); // 長邊垂直於半徑方向＝四邊圍成方框
+        st.stageVec(Math.cos(a) * r, 0.004 * (ring + 1), Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        _qa.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI); // 長邊垂直於半徑方向：角度由世界位移反推
         it.q.copy(_qa).multiply(_qFlat);
         it.s = Math.max(0, 2 * r / (8.0 * st.markSize));
       }
@@ -939,13 +939,13 @@ const MOVES = {
     const EDGES = 4;
     const plate = st.paperProps(st.kind, EDGES, { floor: true, color: C.line, opacity: 0, k: 1.0, ratio: 7.0, depth: 0.08, warp: 0.04 });
     plate.obj.position.copy(ring0);
-    const _qp = new THREE.Quaternion(), _qFlat2 = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    const _qp = new THREE.Quaternion(), _qFlat2 = st.flatQ;
     const writePlate = (r) => {
       for (let i = 0; i < EDGES; i++) {
         const a = i * Math.PI / 2;
         const it = plate.items[i];
-        it.p.set(Math.cos(a) * r, 0.006, Math.sin(a) * r);
-        it.q.copy(_qp.setFromAxisAngle(UP_Y, -(a + Math.PI / 2))).multiply(_qFlat2);
+        st.stageVec(Math.cos(a) * r, 0.006, Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        it.q.copy(_qp.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI)).multiply(_qFlat2);
         it.s = Math.max(0, 2 * r / (7.0 * st.markSize));
       }
       plate.write();
@@ -1092,8 +1092,8 @@ const MOVES = {
     for (let i = 0; i < FOILS; i++) {
       const f = i / (FOILS - 1);
       local.push({
-        a: new THREE.Vector3((st.rnd() - 0.5) * 0.22, 0.06 + 0.26 * Math.sin(Math.PI * f), 0).addScaledVector(st.dir, -0.34 + 0.72 * f),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.30, (st.rnd() - 0.5) * 0.26, (st.rnd() - 0.5) * 0.30),
+        a: st.stageVec((st.rnd() - 0.5) * 0.22, 0.06 + 0.26 * Math.sin(Math.PI * f), -0.34 + 0.72 * f), // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        b: st.stageVec((st.rnd() - 0.5) * 0.30, (st.rnd() - 0.5) * 0.26, (st.rnd() - 0.5) * 0.30),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.8 * st.rnd(), s: 0,
       });
     }
@@ -1183,7 +1183,7 @@ const MOVES = {
     shard.obj.position.copy(land);
     const _es = new THREE.Euler();
     const shardTo = [];
-    const side = st.sideDir; // 與對決軸**垂直**的橫向（覆審 r4 HIGH-1：改前用 cross(camDir,UP)＝對決軸本身）
+    // 橫向基底走 `st.stageVec`（內部就是 `st.sideDir`；覆審 r4 HIGH-1／r5 HIGH-A）
     /* ★不得有任何一片往我方飛（P4 第 3 輪回修 (c)）★
        碎片原本是全向亂灑（±0.45），其中有幾片會往施招者那一側飛——
        在這套語彙裡「東西從對手身上回到我方」就是**偷取**（第 2 輪 7/18 讀成偷取）。
@@ -1191,13 +1191,13 @@ const MOVES = {
     for (let i = 0; i < SHARDS; i++) {
       const lat = (st.rnd() - 0.5) * 0.9;          // 橫向：在 st.dir 上的投影恆為 0，散多遠都不回流
       const fwd = 0.10 + 0.55 * st.rnd();          // 往敵方深處：一律正值
-      shardTo.push({ x: lat * side.x + fwd * st.dir.x, y: 0.18 + 0.42 * st.rnd(),
-        z: lat * side.z + fwd * st.dir.z, rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });
+      // 位移一律經 `st.stageVec`（覆審 r5 HIGH-A：三系檔裡不得再出現 `it.p.set(` 那種世界軸寫法）
+      shardTo.push({ v: st.stageVec(lat, 0.18 + 0.42 * st.rnd(), fwd), rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });
     }
     const writeShards = (k) => {
       for (let i = 0; i < SHARDS; i++) {
         const g = shardTo[i], it = shard.items[i];
-        it.p.set(g.x * k, g.y * k - 0.10 * k * k, g.z * k);
+        it.p.copy(g.v).multiplyScalar(k); it.p.y -= 0.10 * k * k; // g.v 由 st.stageVec 組出來（見 shardTo）
         it.q.setFromEuler(_es.set(0, g.ry, g.rz + 2.2 * k));
         it.s = 0.85 - 0.25 * k;
       }
@@ -1218,7 +1218,11 @@ const MOVES = {
       const writeClaws = (k) => {
         for (let i = 0; i < CLAWS; i++) {
           const it = claw.items[i];
-          it.p.set((i - 1) * 0.16 * (1 + 0.7 * k), -0.06 + 0.10 * (i % 2), 0);
+          /* ★橫向必須是舞台的橫向，不是世界 X（覆審 r5 HIGH-A）★
+             這一行原本把三道爪痕沿世界 X 拉開；容器沒有旋轉 ⇒ 局部就是世界，
+             於是它與「我→敵」的夾角由座位決定：六個真實 duelYaw 裡有五個量到回流
+             （0° −0.106、45／135／225／315 各 −0.075），只有治具唯一量的 90° 是 0。 */
+          st.stageVec((i - 1) * 0.16 * (1 + 0.7 * k), -0.06 + 0.10 * (i % 2), 0, it.p);
           it.q.setFromEuler(_ec.set(0, Math.PI * 0.5, 0.42 + 0.10 * i));
           it.s = 0.45 + 0.75 * k;
         }
@@ -1289,8 +1293,8 @@ const MOVES = {
     const grains = [];
     for (let i = 0; i < ASH; i++) {
       grains.push({
-        a: new THREE.Vector3((st.rnd() - 0.5) * 0.16, (st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.16),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.42, -0.10 - 0.30 * st.rnd(), (st.rnd() - 0.5) * 0.42),
+        a: st.stageVec((st.rnd() - 0.5) * 0.16, (st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.16), // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        b: st.stageVec((st.rnd() - 0.5) * 0.42, -0.10 - 0.30 * st.rnd(), (st.rnd() - 0.5) * 0.42),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
       });
     }
