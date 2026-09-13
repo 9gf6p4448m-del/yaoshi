@@ -408,6 +408,17 @@ async function runTraySlots(browser, port) {
       window.pickMark=function(){ window.__pmArgs.push(arguments.length?String(arguments[0]):''); }; })()`);
     const names = await page.evaluate(`(() => window.__yaoshi.S.market.map(x=>x.n))()`);
     rec.items = await page.evaluate(`(() => window.__yaoshi3d.tray.items())()`);
+    /* ★逐槽對照 GLB 檔名★（自評時自己抓到的假綠，**加嚴，自行記錄**）：
+       只驗「tap 開出正確的 #sheet」的話，把 `market3dItems` 的 `it.ab||it.m` 改成只讀 `it.ab`
+       仍然全綠——那 4 件只有 `m` 的法寶（巴冷公主珠鍊／山豬牙飾／香灰符／陰陽眼銅錢）會靜默
+       變成「詛咒占位符紙堆」，而 tap 照樣叫得到 openSheet(i)。seed 1 第 1 夜正好有 `yinyangcoin`，
+       所以這一條在這組參數下真的擋得到。 */
+    rec.keys = await page.evaluate(`(() => {
+      const S=window.__yaoshi.S, it=window.__yaoshi3d.tray.items();
+      return S.market.map((m,i)=>({ slot:i, n:m.n, curse:!!m.curse,
+        want: m.curse ? null : ('assets/creatures/' + (m.ab || m.m) + '.glb'),
+        got: it[i] ? it[i].glb : null, gotCurse: it[i] ? it[i].curse : null })); })()`);
+    rec.keys.forEach((k) => { k.ok = k.curse ? (k.got === null && k.gotCurse === true) : (k.got === k.want); });
     for (let i = 0; i < names.length; i++) {
       const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
       await page.evaluate('(() => { window.__pmArgs = []; })()');
@@ -431,6 +442,19 @@ async function runTraySlots(browser, port) {
       await page.waitForTimeout(50);
       const got = await page.evaluate('(() => window.__pmArgs.slice())()');
       rec.blank.push({ x: +x.toFixed(1), y: +y.toFixed(1), hitTest: hit, calls: got.length, ok: hit === -1 && got.length === 0 });
+    }
+    /* ★hover 的鏡頭微推要雙向★（覆審 HIGH-D 的迴歸案例；`02 §6.1` 第 1 條的反面）：
+       只驗「滑上去會推」＝反向探針，真正會壞的是「手離開之後收不回來」。
+       兩邊都量：滑到槽 1 上 → `director.trayK()` 必須 > 0；指標離開 `#tray` → 必須回到 0。 */
+    {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(1))()`);
+      await page.mouse.move(pt.x, pt.y);
+      await page.waitForTimeout(700);
+      const on = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      await page.mouse.move(4, 4); // 移出 #tray（左上角是 #west 的座位卡）
+      await page.waitForTimeout(900);
+      const off = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.push = { on, off, ok: on.hover === 1 && on.trayK > 0 && off.hover === -1 && off.trayK === 0 };
     }
     await page.evaluate(`(() => { if (window.__pmOrig) window.pickMark=window.__pmOrig; })()`);
     /* ② 出價頁（同一夜，pickMark(null) 之後）：走真的 openSheet，比 #sheetbox 的標題 */
@@ -1008,11 +1032,17 @@ const main = async () => {
   if (opt.trayslots) {
     const s = rec.trayslots || { bid: [], mark: [], blank: [], errors: [] };
     const bidOk = s.bid.filter((r) => r.ok).length, markOk = s.mark.filter((r) => r.ok).length, blankOk = s.blank.filter((r) => r.ok).length;
+    const keys = s.keys || [], keyOk = keys.filter((r) => r.ok).length;
     okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
-      && blankOk === s.blank.length && s.errors.length === 0;
+      && blankOk === s.blank.length && keys.length > 0 && keyOk === keys.length
+      && !!(s.push && s.push.ok) && s.errors.length === 0;
     console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
       + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
-      + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
+      + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　`
+      + `逐槽 GLB 檔名 ${keyOk}/${keys.length} 對　`
+      + `hover 微推雙向 ${s.push ? (s.push.ok ? '✅' : `❌(on ${JSON.stringify(s.push.on)} / off ${JSON.stringify(s.push.off)})`) : '—'}　`
+      + `error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
+    keys.forEach((r) => console.log(`    鍵 槽${r.slot}「${r.n}」${r.curse ? '（詛咒）' : ''} 要 ${r.want || '占位物'} → ${r.got || (r.gotCurse ? '占位物' : 'null')} ${r.ok ? '✅' : '❌'}`));
     s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));
     s.mark.forEach((r) => console.log(`    盯上 槽${r.slot} (${r.pt.x},${r.pt.y}) 「${r.name}」→ pickMark(${r.args.join('|') || '—'}) ${r.ok ? '✅' : '❌'}`));
     s.blank.forEach((r) => console.log(`    空白 (${r.x},${r.y}) → hitTest ${r.hitTest}、觸發 ${r.calls} 次 ${r.ok ? '✅' : '❌'}`));

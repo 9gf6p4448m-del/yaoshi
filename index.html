@@ -2456,15 +2456,39 @@ function trayHitAt(ev){
 /* ★凍結檔 T2 會數這支被呼叫幾次★：tap 落在既有可點元素（.mcard／#skipbtn／#helpBtn／#south 任何鈕）
    上時必須是 0——#tray 不得吃掉任何一個原本點得到的東西。
    點在托盤的空白處（hitTest 回 −1）也一樣不做事。 */
+/* ★托盤也要吃同一道「第二下落在你沒看過的動作上」的守衛★（覆審 HIGH-B）：
+   `armPhaseGate`（:2309）是掛在 document 的 **click** 上的，而 `#tray` 收的是 **pointerdown**
+   ——同一次點擊裡 pointerdown 先於 click，所以 `trayTap` 會在閘門有機會判斷之前就同步跑完。
+   而且就算改聽 click 也擋不到：閘門的簽名（`sigOf`）比的是落點元素的 id／class／inline onclick／文字，
+   `#tray` 從頭到尾是**同一顆空 div**，盯上頁切到出價頁前後**逐位元組相同** ⇒ 永遠不會武裝。
+   ⇒ 這裡按**效果**補一道同型的守衛（不是按入口）：
+     ① 全域相位閘正在武裝中（別人剛換掉手指底下那塊面）→ 這一下不收
+     ② 這一下**自己**把托盤下面那件事換掉了（盯上 → 出價）→ 接下來 MAIN_GUARD_MS 內托盤不收
+   同一頁連點不同格（出價頁連開兩件的出價視窗）不受影響：`openSheet` 不改 `TRAY_PHASE`。
+   `MAIN_GUARD_MS` 沿用同一個常數，不另訂一份數字。 */
+let TRAY_TAP_AT=-1e9;
 function trayTap(ev){
   const i=trayHitAt(ev);
   if(i<0) return;
+  const now=gNow();
+  if(now-PHASE_AT<MAIN_GUARD_MS||now-TRAY_TAP_AT<MAIN_GUARD_MS) return;
+  const before=TRAY_PHASE;
   if(TRAY_PHASE==="bid") openSheet(i);
   else if(TRAY_PHASE==="mark") pickMark(i);
+  if(TRAY_PHASE!==before) TRAY_TAP_AT=now;
 }
 function trayHover(ev){
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
   try{ Y3.tray.setHover(trayHitAt(ev)); }catch(e){}
+}
+/* ★手指／游標離開托盤一定要把 hover 收掉★（覆審 HIGH-D）：`setHover(i>=0)` 會叫
+   `director.setTrayPush(true)`，把鏡頭往桌心多壓 TRAY_PUSH.dist。而 `pointermove` 只在 `#tray`
+   **上面**才發——滑過一格之後把游標移到 `#mainbtn`（或觸控直接抬手）就再也不會有 pointermove 落在
+   `#tray` 上，`hover` 於是永遠卡在那一格、鏡頭永遠帶著 0.2 的偏移，整段出價流程都收不回來。
+   收斂在這一支：任何「離開／結束」的指標事件都歸零，不逐頁補。 */
+function trayLeave(){
+  const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
+  try{ Y3.tray.setHover(-1); }catch(e){}
 }
 /* 種子化亂數：同一顆種子必須重現整局。S.rng = 玩法流（洗牌、AI 抖動、平標決勝、事件）；
    S.rngUi = 純演出流（台詞挑選），與玩法分開才不會讓「有沒有播動畫」改變賽局結果。 */
@@ -6986,7 +7010,10 @@ function initSimTool(){
 if(!SIM_MODE&&TABLE3D){
   const tb=$("table"); if(tb) tb.classList.add("t3d");
   const tr=$("tray");
-  if(tr){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e)); }
+  if(tr){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e));
+    /* 三個「結束」事件都要收 hover（覆審 HIGH-D）：滑鼠移開走 pointerleave、觸控抬手走 pointerup、
+       系統中斷（來電、手勢接管）走 pointercancel。少掛一個就會有一條路讓鏡頭偏移卡住。 */
+    ["pointerleave","pointerup","pointercancel"].forEach(t=>tr.addEventListener(t,()=>trayLeave())); }
 }
 if(SIM_MODE) initSimTool();
 else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("verLine");
