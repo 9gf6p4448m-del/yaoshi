@@ -2470,12 +2470,20 @@ let TRAY_TAP_AT=-1e9;
 function trayTap(ev){
   const i=trayHitAt(ev);
   if(i<0) return;
-  const now=gNow();
+  /* 用**按下時刻**（`gStamp`，已換算到 performance 時間軸）而不是「現在」——理由同 :2259 那段：
+     相位切換的 handler 會同步阻塞主執行緒數百毫秒，排隊中的第二下要等解凍才派送，
+     用「現在」去比早就超出 500ms 的視窗、擋不到，而使用者其實是在畫面凍住那段按的。 */
+  const now=gStamp(ev);
   if(now-PHASE_AT<MAIN_GUARD_MS||now-TRAY_TAP_AT<MAIN_GUARD_MS) return;
   const before=TRAY_PHASE;
   if(TRAY_PHASE==="bid") openSheet(i);
   else if(TRAY_PHASE==="mark") pickMark(i);
-  if(TRAY_PHASE!==before) TRAY_TAP_AT=now;
+  /* 相位真的變了才武裝——而且**兩道一起武裝**：
+     `TRAY_TAP_AT` 擋接下來落在托盤上的第二下；`PHASE_AT` 擋落在**別處**的第二下
+     （第一下點托盤宣告盯上、第二下落到側欄那張卡上 ⇒ 那張卡剛從 pickMark 換成 openSheet，
+     但換手發生在 pointerdown、早於 click 的 capture 取樣，相位閘自己看不到這個切換）。
+     防線按**效果**寫（「使用者沒看過的動作被執行」），不按入口寫。 */
+  if(TRAY_PHASE!==before){ TRAY_TAP_AT=now; PHASE_AT=now; }
 }
 function trayHover(ev){
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
