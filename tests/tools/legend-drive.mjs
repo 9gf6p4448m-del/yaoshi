@@ -8,7 +8,10 @@
 //   --sel=      橫向溢出量哪些容器（**收斂**：#market 退役、#railW／#railE 上線之後不逐支複製選擇器，改吃這個旗標）
 //   --taps      觸控命中回歸（掏空卷 v0.55a 凍結檔 T5）：對第 1～3 夜出價頁與盯上頁的**每一個** `#table [onclick]`
 //               各 tap 一次，驗「這一 tap 有沒有讓對應的處理函式被呼叫」，並驗 #tray 沒有吃掉任何一個
-//   --tapsonly  只跑 --taps／--t3d／--modal／--handoff 那幾段（量基準時用，不必把整局玩完）
+//   --tapsonly  只跑 --taps／--trayslots／--t3d／--modal／--handoff 那幾段（量基準時用，不必把整局玩完）
+//   --trayslots 上桌卷 v0.56b 凍結檔 T2 新增段：用產品自己的 tray.slotScreen(i) 取座標，對桌心托盤的
+//               四個槽位各 tap 一次——出價頁要開出**那一件**的 #sheet 標題、盯上頁 pickMark 的引數要對、
+//               托盤空白處要回 −1 且不觸發任何處理函式（只驗「有沒有被呼叫」＝四槽全誤判成槽 0 也會綠）
 //   --modal     R1-CRITICAL-1：真的打開袋子／三席 ⓘ／說明四種面板，在 #helpBtn 矩形上取樣 elementFromPoint
 //               五點全部必須落在 #modal 裡（--modalout=<json> 落明細）
 //   --handoff   R1-HIGH-1：熱座封一筆「押 2」→ 蓋牌 → 交棒畫面出現當下，牌桌上私有徽章殘留必須 0
@@ -371,6 +374,341 @@ async function runHandoff(browser, port, query) {
   return rec;
 }
 
+/* ===== T2 新增段（上桌卷 v0.56b）：#tray 上的四個槽位真的點得到，而且開的是那一件 =====
+   ★不是只驗「有沒有被呼叫」★（凍結檔 T2 的假綠清單）：四槽全部誤判成槽 0 也會讓
+   「openSheet 被呼叫了」成立。所以出價頁比對**開出來的 `#sheetbox h3` 標題**與 `S.market[i].n`
+   逐槽相同；盯上頁改用計數 proxy 比 `pickMark` 的**第一個引數**（真的呼叫 pickMark 會改賽局狀態）。
+   座標一律由產品自己的 `tray.slotScreen(i)` 給，治具不另抄一份投影算式——欄寬一改、機位一動，
+   這一段立刻紅（計畫 §6 Q3 明寫這條）。 */
+async function runTraySlots(browser, port) {
+  const rec = { seed: TAP_SEEDS[0], bid: [], mark: [], blank: [], errors: [], items: null, ready: null };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate((sd) => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']); }, rec.seed);
+    const state = () => page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+      return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+    const step = async () => { const st = await state();
+      if (!st.d) await page.click('#mainbtn');
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+      await page.waitForTimeout(15); };
+    const waitTray = () => page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if (t && t.loaded) await t.loaded(); })()`);
+    /* ① 盯上頁（第 1 夜）：pickMark 換成計數 proxy，四槽各 tap 一次比引數 */
+    for (let i = 0; i < 600; i++) { const st = await state(); if (st.r === 1 && /不盯任何一件/.test(st.t) && !st.d) break; await step(); }
+    await waitTray(); await page.waitForTimeout(500);
+    await page.evaluate(`(() => { window.__pmOrig=window.pickMark; window.__pmArgs=[];
+      window.pickMark=function(){ window.__pmArgs.push(arguments.length?String(arguments[0]):''); }; })()`);
+    const names = await page.evaluate(`(() => window.__yaoshi.S.market.map(x=>x.n))()`);
+    rec.items = await page.evaluate(`(() => window.__yaoshi3d.tray.items())()`);
+    /* ★逐槽對照 GLB 檔名★（自評時自己抓到的假綠，**加嚴，自行記錄**）：
+       只驗「tap 開出正確的 #sheet」的話，把 `market3dItems` 的 `it.ab||it.m` 改成只讀 `it.ab`
+       仍然全綠——那 4 件只有 `m` 的法寶（巴冷公主珠鍊／山豬牙飾／香灰符／陰陽眼銅錢）會靜默
+       變成「詛咒占位符紙堆」，而 tap 照樣叫得到 openSheet(i)。seed 1 第 1 夜正好有 `yinyangcoin`，
+       所以這一條在這組參數下真的擋得到。 */
+    rec.keys = await page.evaluate(`(() => {
+      const S=window.__yaoshi.S, it=window.__yaoshi3d.tray.items();
+      return S.market.map((m,i)=>({ slot:i, n:m.n, curse:!!m.curse,
+        want: m.curse ? null : ('assets/creatures/' + (m.ab || m.m) + '.glb'),
+        got: it[i] ? it[i].glb : null, gotCurse: it[i] ? it[i].curse : null })); })()`);
+    rec.keys.forEach((k) => { k.ok = k.curse ? (k.got === null && k.gotCurse === true) : (k.got === k.want); });
+    for (let i = 0; i < names.length; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      await page.evaluate('(() => { window.__pmArgs = []; })()');
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(60);
+      const got = await page.evaluate('(() => window.__pmArgs.slice())()');
+      rec.mark.push({ slot: i, name: names[i], pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) }, args: got,
+        ok: got.length === 1 && got[0] === String(i) });
+    }
+    /* ①b #tray 的空白處（托盤前緣以下，模型與占位物都不在那裡）：hitTest 必須回 −1、不得叫到任何處理函式 */
+    const rectBlank = await page.evaluate(`(() => { const r=document.getElementById('tray').getBoundingClientRect();
+      return [[r.left+8, r.bottom-8],[r.right-8, r.bottom-8],[(r.left+r.right)/2, r.bottom-8]]; })()`);
+    for (const [x, y] of rectBlank) {
+      await page.evaluate('(() => { window.__pmArgs = []; })()');
+      const hit = await page.evaluate(`(() => { const c=window.__yaoshi3d.camera; void c;
+        const u=(${x}/(window.innerWidth||1))*2-1, v=-((${y}/(window.innerHeight||1))*2-1);
+        return window.__yaoshi3d.tray.hitTest(u,v); })()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, x)), Math.max(1, Math.min(389, y)));
+      await page.waitForTimeout(50);
+      const got = await page.evaluate('(() => window.__pmArgs.slice())()');
+      rec.blank.push({ x: +x.toFixed(1), y: +y.toFixed(1), hitTest: hit, calls: got.length, ok: hit === -1 && got.length === 0 });
+    }
+    /* ★hover 的鏡頭微推要雙向★（覆審 HIGH-D 的迴歸案例；`02 §6.1` 第 1 條的反面）：
+       只驗「滑上去會推」＝反向探針，真正會壞的是「手離開之後收不回來」。
+       兩邊都量：滑到槽 1 上 → `director.trayK()` 必須 > 0；指標離開 `#tray` → 必須回到 0。 */
+    {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(1))()`);
+      await page.mouse.move(pt.x, pt.y);
+      await page.waitForTimeout(700);
+      const on = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      await page.mouse.move(4, 4); // 移出 #tray（左上角是 #west 的座位卡）
+      /* 3.2 秒不是「等到過為止」：`TRAY_PUSH.rate=3.2` 是每秒的收斂速度，而 camera-director
+         只在 `|trayWant-trayK| < 1e-4` 時才踩死歸零 ⇒ 從 0.93 收到 1e-4 需要約 2.8 秒。
+         ★這個等待不會讓壞掉的實作變成通過★：真的漏掉 `setHover(-1)` 時 `trayWant` 恆為 1，
+         `trayK` 會停在 1 不動，等多久都是紅的（實測 900ms 那一版量到 0.0266＝正在收，只是還沒到）。 */
+      await page.waitForTimeout(3200);
+      const off = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.push = { on, off, ok: on.hover === 1 && on.trayK > 0 && off.hover === -1 && off.trayK === 0 };
+    }
+    await page.evaluate(`(() => { if (window.__pmOrig) window.pickMark=window.__pmOrig; })()`);
+    /* ★托盤連點守衛的真實路徑驗證★（覆審 r2 指出上面那段用了 `pickMark` 替身 ⇒ 相位永遠不切換
+       ⇒ 守衛從頭到尾不會武裝，那段綠燈對這件事零鑑別力）。
+       這一段**不裝替身**：在盯上頁對同一格連點兩下（間隔 <MAIN_GUARD_MS），
+       第一下是真的 `pickMark(i)`（相位 mark→bid、頁面換成出價頁），
+       **第二下必須被吞**（不得開出 `#sheet`）；等過了守衛窗再點一次**必須開得出來**。
+       雙向都驗，只驗「被吞」會讓一個「托盤整個壞掉、什麼都不做」的實作也綠。 */
+    {
+      const gap = await page.evaluate(`(() => MAIN_GUARD_MS)()`);
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(2))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(pt.x, pt.y);          // 第一下：真的宣告盯上，換成出價頁
+      await page.waitForTimeout(80);                   // 80ms ≪ 500ms：還在守衛窗內
+      const phase1 = await page.evaluate(`(() => TRAY_PHASE)()`);
+      await page.touchscreen.tap(pt.x, pt.y);          // 第二下：必須被吞
+      await page.waitForTimeout(120);
+      const swallowed = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+        return !(s && getComputedStyle(s).display !== 'none'); })()`);
+      await page.waitForTimeout(gap + 200);            // 等守衛窗過去
+      await page.touchscreen.tap(pt.x, pt.y);          // 第三下：必須開得出來
+      await page.waitForTimeout(150);
+      const reopened = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const h=document.querySelector('#sheetbox h3');
+        return { open: !!(s && getComputedStyle(s).display !== 'none'), title: h ? (h.textContent||'').trim() : null }; })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(120);
+      rec.doubleTap = { guardMs: gap, phaseAfterFirst: phase1, swallowed, reopened,
+        ok: phase1 === 'bid' && swallowed === true && reopened.open === true };
+    }
+    /* ② 出價頁（同一夜，pickMark(null) 之後）：走真的 openSheet，比 #sheetbox 的標題 */
+    await page.evaluate(`(() => pickMark(null))()`);
+    await page.waitForTimeout(300);
+    await waitTray(); await page.waitForTimeout(400);
+    rec.ready = await page.evaluate(`(() => window.__yaoshi3d.tray.readyCount())()`);
+    for (let i = 0; i < names.length; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(90);
+      const sh = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const h=document.querySelector('#sheetbox h3');
+        return { open: !!(s && getComputedStyle(s).display !== 'none'), title: h ? (h.textContent||'').trim() : null }; })()`);
+      rec.bid.push({ slot: i, want: names[i], open: sh.open, title: sh.title,
+        pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) },
+        ok: !!sh.open && !!sh.title && sh.title.indexOf(names[i]) >= 0 });
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(120);
+    }
+    /* ★觸控路徑：tap 當場點亮、開著 #sheet 期間保持、關掉之後收★（2026-09-13 裁定）
+       觸控裝置沒有 hover（`pointermove` 只在手指按著時發），所以手機玩家永遠不會經過 `trayHover`
+       ⇒ 描邊（只掛 hover 那一件）與鏡頭微推看不到。這一段驗三個時點，缺一不可：
+       ① tap 之後、`#sheet` 開著時 `hover === i`（**不是 −1**——觸控的 `pointerup` 因為隱式指標捕捉
+          會送回 `#tray`，沒擋的話按下去點亮的那一格會在抬手的同一瞬間滅掉）
+       ② 同一時點 `trayK > 0`（鏡頭微推真的有跟上）
+       ③ `closeSheet()` 之後 `hover === -1` 且 `trayK` 收回 0 */
+    {
+      const slot = 2;
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${slot}))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(450);
+      const held = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const t=window.__yaoshi3d.tray;
+        return { sheetOpen: !!(s && getComputedStyle(s).display !== 'none'), hover: t.hover(),
+          trayK: window.__yaoshi3d.director.trayK(), outlines: t.items().map(x=>x.outlines) }; })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(3200);
+      const after = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.touchHover = { slot, held, after,
+        ok: held.sheetOpen === true && held.hover === slot && held.trayK > 0
+          && after.hover === -1 && after.trayK === 0 };
+    }
+    /* ★滑鼠路徑：hover → 按下去開 #sheet → 關掉 → hover 必須已經收掉★（覆審 r2 HIGH-D 繞法 1）
+       上面那四下走的是 `touchscreen.tap`，摸不到這條路：`#sheet`（fixed inset:0、z 30）在
+       `pointerdown` 的同步執行裡就蓋住游標原地那個點 ⇒ `pointerup` 重新命中測試打到 `#sheet`、
+       不會送到 `#tray`；而游標沒動，`pointerleave` 也不會補發。三個「結束」事件一個都不發。
+       所以這一格要用**真的滑鼠**（move → down → up），不能用 tap。 */
+    {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(0))()`);
+      await page.mouse.move(pt.x, pt.y);
+      await page.waitForTimeout(400);
+      const beforeClick = await page.evaluate(`(() => window.__yaoshi3d.tray.hover())()`);
+      await waitGate(page);
+      await page.mouse.down(); await page.mouse.up(); // 按下去開 #sheet，放開時游標原地不動
+      await page.waitForTimeout(250);
+      const opened = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+        return !!(s && getComputedStyle(s).display !== 'none'); })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(3200); // 同上：等 TRAY_PUSH.rate 收斂到踩死歸零的門檻
+      const after = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.sheetHover = { beforeClick, opened, after, ok: beforeClick === 0 && opened && after.hover === -1 && after.trayK === 0 };
+    }
+  } finally { await ctx.close(); }
+  return rec;
+}
+
+/* ===== T4（上桌卷 v0.56b）：連續 12 夜的 GLB 載入／釋放帳 =====
+   每一夜的出價頁記一次 `renderer.info.memory.geometries／textures` 與該夜四格掛的是什麼。
+   已知的結構事實（計畫 §6 Q4 末段）：`creature-figures.js` 的 `glbCache` **永不淘汰**，
+   本卷不做 LRU ⇒ 成長上界是「整局走過的**不同** GLB 顆數」，不是「夜數 × 4」。
+   所以這一段同時印兩個數字：**逐夜增量**（拍品換一批該不該漲）與**不同 GLB 顆數**（上界對不對得上）。 */
+async function runTrayMem(browser, port, query) {
+  const rec = { rows: [], errors: [], seed: +(opt.memseed || 1), nights: +(opt.memrounds || 12), query: query || '（預設）' };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html${query || ''}`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate((sd) => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']); }, rec.seed);
+    const seen = {};
+    /* 驅動與讀狀態合併成**一次** evaluate（原本是 waitForTimeout＋讀＋點三趟往返，
+       實測每圈約 150ms ⇒ 走完 12 夜要半小時）。點擊用頁內 `el.click()`：
+       它是 untrusted 且沒有座標，相位閘的 `armIfSwitched` 對這種事件直接 return（index.html:2350），
+       所以既不會武裝閘門、也不會被閘門吞掉——量記憶體不需要走真人的觸控路徑（那是 T2 的事）。 */
+    const DRIVE = `(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+      const t=b?b.textContent:'', d=b?b.disabled:true, r=S?S.round:0;
+      const measure = /蓋牌/.test(t) && !d;
+      if (!measure) {
+        /* ★#modal／#sheet／#handoff 也要點得掉★（實測：不點的話第 8 夜的「壽命危急，繼續供奉？」
+           會把驅動永遠卡在那裡——兩次跑都停在第 7 夜，看起來像「這一局只有 7 夜」的靜默失敗）。
+           順序：主鈕 → stage → 交棒 → modal → sheet，先近後遠。 */
+        const pick = (sel) => [...document.querySelectorAll(sel)].find(x => !x.disabled && x.offsetParent !== null);
+        if (!d) b.click();
+        else {
+          const e = pick('#stage button') || pick('#hoBtn') || pick('#modalbox button') || pick('#sheetbox button');
+          if (e) e.click();
+        }
+      }
+      return { t, d, r, measure }; })()`;
+    /* 收工理由（比照 felt-probe.mjs 的 `why`）：不記的話「只走到第 7 夜」看起來像
+       「這一局只有 7 夜」——那是靜默失敗。三種收工各自記下來，收尾表明白印出。 */
+    rec.why = '（還在跑）'; rec.lastT = ''; rec.lastR = 0;
+    for (let i = 0; i < 12000; i++) {
+      const st = await page.evaluate(DRIVE);
+      rec.lastT = st.t; rec.lastR = st.r || rec.lastR;
+      if (/再入妖市/.test(st.t)) { rec.why = `這一局打完了（局末，第 ${st.r} 夜）`; break; }
+      if (i === 11999) rec.why = `**步數跑滿 12000 仍未結束（停在第 ${st.r} 夜「${st.t}」）**`;
+      if (st.measure && !seen[st.r]) {
+        seen[st.r] = 1;
+        await page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if (t && t.loaded) await t.loaded(); })()`);
+        await page.waitForTimeout(250);
+        rec.rows.push(await page.evaluate(`(() => { const Y3=window.__yaoshi3d; const m=Y3.renderer.info.memory;
+          return { round: window.__yaoshi.S.round, geometries: m.geometries, textures: m.textures,
+            keys: Y3.tray.items().map(x => x.curse ? '(詛咒)' : (x.key||'—')), ready: Y3.tray.readyCount() }; })()`));
+        if (rec.rows.length >= rec.nights) { rec.why = `跑滿 --memrounds=${rec.nights} 夜`; break; }
+      }
+      /* ★記錄過的夜也要繼續往前點★：`measure` 的條件是「按鈕寫著蓋牌且可按」，記錄過之後它**恆真**，
+         而 DRIVE 只在 `!measure` 時才點 ⇒ 那一夜的第一下若沒推動畫面（相位閘吞掉、或那一下剛好
+         落在換手窗裡），迴圈就再也不會點任何東西、原地空轉到步數跑滿。
+         實測：兩次跑都停在第 7 夜「蓋牌開標」，`why` 印出來才看到是**治具自己卡住**，不是這一局只有 7 夜。 */
+      if (st.measure) await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); if (b && !b.disabled) b.click(); })()`);
+      /* 每圈之間留一點時間：整支迴圈是 evaluate 直連、一圈只要 ~20ms，而產品的連點守衛
+         （`MAIN_GUARD_MS`＝500）與各種 `await sleep()` 的演出需要時間往前走。
+         實測不留的話會停在第 8 夜「進入下一夜」——**不是遊戲卡住，是驅動把自己塞住**。 */
+      if (i % 4 === 3) await page.waitForTimeout(140);
+    }
+    /* ★釋放本身有沒有效★（鑑別力：逐夜成長混著「新 GLB 進快取」與「舊實例沒放掉」兩件事，
+       分不開的話這一格對漏水零鑑別力）。做法：**同一批拍品**清空再擺回去 5 次，
+       glbCache 已經有這幾顆 ⇒ 每一輪不該有任何新的 geometry／texture。還在漲就是實例沒放掉。 */
+    /* ★三種組成各跑一輪★（外部覆審 C-1）：上一版只在「走到的最後一夜」跑一次，而 `--memrounds=12`
+       的最後一夜（第 7 夜）四格**全是詛咒占位物**（`makeCursePile`）⇒
+       `makeCreatureFigure`／`figure.dispose()` **一次都沒被行使**，那個 +0/+0 的綠燈與待驗的
+       釋放路徑完全脫鉤（`02 §6.1`：綠燈跟這個 bug 有關嗎）。
+       現在逐一驗：**真 GLB ×4**（釋放路徑的主場）／**混合**（兩尊＋兩堆）／**全詛咒**。
+       真 GLB 那一組由治具自己挑，不依賴「走到的那一夜剛好是什麼」。 */
+    rec.cycle = await page.evaluate(`(async () => {
+      const Y3=window.__yaoshi3d, t=Y3.tray, m=Y3.renderer.info.memory;
+      const live=t.items().filter(x=>x.key).map(x=>({key:x.key, curse:false, fac:x.fac}));
+      const GLB=[{key:'guoyin',curse:false,fac:'yinqi'},{key:'nail',curse:false,fac:'yinqi'},
+                 {key:'bell',curse:false,fac:'xianghuo'},{key:'shield',curse:false,fac:'zuling'}];
+      const CUR=[{key:null,curse:true},{key:null,curse:true},{key:null,curse:true},{key:null,curse:true}];
+      const real = live.length >= 4 ? live.slice(0,4) : GLB;
+      const sets = [
+        { name:'真 GLB ×4', list: real },
+        { name:'混合（2 尊＋2 堆）', list: real.slice(0,2).concat(CUR.slice(0,2)) },
+        { name:'全詛咒 ×4', list: CUR },
+      ];
+      const out=[];
+      for (const s of sets){
+        await t.setItems(s.list);                      // 先擺一次把 GLB 進快取（首載不算漏）
+        await t.loaded();
+        await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+        const rows=[{ step:'起點', geometries:m.geometries, textures:m.textures }];
+        for (let k=0;k<5;k++){
+          await t.setItems([]);
+          await t.setItems(s.list);
+          await t.loaded();
+          await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+          rows.push({ step:'第'+(k+1)+'輪', geometries:m.geometries, textures:m.textures });
+        }
+        out.push({ name:s.name, live:s.list.filter(x=>x.key).length, rows });
+      }
+      return { sets: out };
+    })()`);
+  } finally { await ctx.close(); }
+  return rec;
+}
+
+/* ===== H-1（外部覆審）：`?tray3d=0` 下點桌心**不得**觸發任何賽局動作 =====
+   kill switch 的語意是「這一層整個不在」，不是「這一層看不見」。關掉之後桌心只剩一塊空紅布，
+   但 `tray.hitTest` 只看幾何代理盒、不看那一格上面有沒有東西 ⇒ 點空紅布照樣回得到槽位，
+   於是 `pickMark(i)`（**公開宣告、不可逆**）會被叫出來。
+   這一段走**真實路徑**：`?tray3d=0` 開一局到盯上頁，對四個槽位的螢幕座標各 tap 一次，
+   斷言 `S.marks` 逐值不變、`#sheet` 沒開。 */
+async function runKillTap(browser, port) {
+  const rec = { taps: [], errors: [], before: null, after: null, sheet: false, listeners: null };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html?tray3d=0`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate(() => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', 1, ['qingmian']); });
+    for (let i = 0; i < 600; i++) {
+      const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+        return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+      if (st.r === 1 && /不盯任何一件/.test(st.t) && !st.d) break;
+      if (!st.d) await page.click('#mainbtn');
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+      await page.waitForTimeout(12);
+    }
+    await page.waitForTimeout(500);
+    rec.before = await page.evaluate(`(() => JSON.stringify(window.__yaoshi.S.marks))()`);
+    /* 座標仍然由 `tray.slotScreen(i)` 給——kill switch 下托盤物件還在（只是沒擺東西），
+       所以這四個點正是「玩家會去戳的那四個位置」。 */
+    for (let i = 0; i < 4; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      const hit = await page.evaluate(`(() => { const u=(${pt.x}/(window.innerWidth||1))*2-1, v=-((${pt.y}/(window.innerHeight||1))*2-1);
+        return window.__yaoshi3d.tray.hitTest(u,v); })()`);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(90);
+      rec.taps.push({ slot: i, pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) }, hitTest: hit });
+    }
+    rec.after = await page.evaluate(`(() => JSON.stringify(window.__yaoshi.S.marks))()`);
+    rec.sheet = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+      return !!(s && getComputedStyle(s).display !== 'none'); })()`);
+  } finally { await ctx.close(); }
+  rec.ok = rec.before !== null && rec.before === rec.after && rec.sheet === false && rec.errors.length === 0;
+  return rec;
+}
+
 async function runTaps(browser, port) {
   const rec = { rows: [], trayTaps: 0, pages: 0, stubbed: null };
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
@@ -453,6 +791,12 @@ const main = async () => {
        清場選擇器是同一份 `#table ` 前綴，兩條路都要證明它有效。 */
     if (opt.handoff) rec.handoff2 = [await runHandoff(browser, PORT, ''), await runHandoff(browser, PORT, '?table3d=0')];
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
+    if (opt.trayslots) rec.trayslots = await runTraySlots(browser, PORT);
+    if (opt.trayslots) rec.killtap = await runKillTap(browser, PORT);
+    /* T4 兩條路都跑：預設（托盤上線）與 `?tray3d=0`（對照組）。
+       ★沒有對照組的話這一格分不出「成長是托盤造成的」還是「這一版本來就會長」★
+       （`02 §6.1` 第 1 條的反面：健康狀態下這個證據會不會變綠）。 */
+    if (opt.traymem) rec.traymem = [await runTrayMem(browser, PORT, ''), await runTrayMem(browser, PORT, '?tray3d=0')];
     if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
@@ -842,6 +1186,112 @@ const main = async () => {
     if (tapMiss.length) console.log('    沒命中：' + tapMiss.slice(0, 12).join('　'));
     if (TAP_OUT) console.log('    tap 明細 → ' + TAP_OUT);
   }
+  /* T2 新增段（上桌卷 v0.56b）：#tray 的四個槽位 */
+  let okTray = true;
+  if (opt.trayslots) {
+    const s = rec.trayslots || { bid: [], mark: [], blank: [], errors: [] };
+    const bidOk = s.bid.filter((r) => r.ok).length, markOk = s.mark.filter((r) => r.ok).length, blankOk = s.blank.filter((r) => r.ok).length;
+    const keys = s.keys || [], keyOk = keys.filter((r) => r.ok).length;
+    okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
+      && blankOk === s.blank.length && keys.length > 0 && keyOk === keys.length
+      && !!(s.push && s.push.ok) && !!(s.sheetHover && s.sheetHover.ok)
+      && !!(s.doubleTap && s.doubleTap.ok) && !!(s.touchHover && s.touchHover.ok) && s.errors.length === 0;
+    console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
+      + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
+      + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　`
+      + `逐槽 GLB 檔名 ${keyOk}/${keys.length} 對　`
+      + `hover 微推雙向 ${s.push ? (s.push.ok ? '✅' : `❌(on ${JSON.stringify(s.push.on)} / off ${JSON.stringify(s.push.off)})`) : '—'}　`
+      + `滑鼠點開 #sheet 後 hover 有收 ${s.sheetHover ? (s.sheetHover.ok ? '✅' : `❌(${JSON.stringify(s.sheetHover)})`) : '—'}　`
+      + `連點守衛（第二下被吞、過窗後開得出來）${s.doubleTap ? (s.doubleTap.ok ? '✅' : `❌(${JSON.stringify(s.doubleTap)})`) : '—'}　`
+      + `觸控 tap 點亮→開著保持→關後收 ${s.touchHover ? (s.touchHover.ok ? '✅' : `❌(${JSON.stringify(s.touchHover)})`) : '—'}　`
+      + `error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
+    keys.forEach((r) => console.log(`    鍵 槽${r.slot}「${r.n}」${r.curse ? '（詛咒）' : ''} 要 ${r.want || '占位物'} → ${r.got || (r.gotCurse ? '占位物' : 'null')} ${r.ok ? '✅' : '❌'}`));
+    s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));
+    s.mark.forEach((r) => console.log(`    盯上 槽${r.slot} (${r.pt.x},${r.pt.y}) 「${r.name}」→ pickMark(${r.args.join('|') || '—'}) ${r.ok ? '✅' : '❌'}`));
+    s.blank.forEach((r) => console.log(`    空白 (${r.x},${r.y}) → hitTest ${r.hitTest}、觸發 ${r.calls} 次 ${r.ok ? '✅' : '❌'}`));
+    s.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
+  /* H-1：`?tray3d=0` 下點桌心不得觸發任何賽局動作 */
+  let okKill = true;
+  if (opt.trayslots) {
+    const k = rec.killtap || { taps: [], errors: [] };
+    okKill = !!k.ok;
+    console.log(`- **H-1 kill switch（?tray3d=0）下點桌心**：S.marks ${k.before} → ${k.after}`
+      + `（${k.before === k.after ? '逐值不變 ✅' : '**變了 ❌**'}）　#sheet ${k.sheet ? '**開了 ❌**' : '沒開 ✅'}　`
+      + `error ${k.errors.length} → ${okKill ? '✅' : '❌'}`);
+    k.taps.forEach((t) => console.log(`    槽${t.slot} (${t.pt.x},${t.pt.y}) → hitTest ${t.hitTest}`));
+    k.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
+  /* T4：連續 12 夜的記憶體帳 */
+  let okMem = true;
+  for (const m of (opt.traymem ? (rec.traymem || []) : [])) {
+    const uniq = new Set();
+    m.rows.forEach((r) => r.keys.forEach((k) => { if (k !== '—' && k !== '(詛咒)') uniq.add(k); }));
+    const n1 = m.rows[0], last = m.rows[m.rows.length - 1];
+    const dG = n1 && last ? last.geometries - n1.geometries : null;
+    const dT = n1 && last ? last.textures - n1.textures : null;
+    /* T4 §2.1 修訂一（2026-09-13）：判定＝①同一批拍品清空再擺回 5 輪記憶體零成長
+       ②`?tray3d=0` 對照組不長 ③0 error。**逐夜增量降成記錄項**（`glbCache` 不淘汰是本卷規格，
+       原本那條「≤拍品數」恆假，理由寫在凍結檔的修訂紀錄裡）。 */
+    okMem = okMem && m.errors.length === 0;
+    console.log(`- **T4 GLB 載入釋放**（${m.query}　seed ${m.seed}，走到第 ${m.rows.length}/${m.nights} 夜`
+      + `　收工理由：${m.why}　最後停在「${m.lastT}」；error ${m.errors.length}）　【逐夜增量＝記錄項，不判】：`
+      + `geometries ${n1 ? n1.geometries : '—'} → ${last ? last.geometries : '—'}（+${dG}）　`
+      + `textures ${n1 ? n1.textures : '—'} → ${last ? last.textures : '—'}（+${dT}）　`
+      + `整局走過 ${uniq.size} 顆不同 GLB（glbCache 永不淘汰，成長上界就是它）`);
+    m.rows.forEach((r) => console.log(`    第 ${r.round} 夜：geo ${r.geometries}　tex ${r.textures}　上線 ${r.ready}/4　[${r.keys.join(' ')}]`));
+    if (m.cycle && m.cycle.sets) {
+      for (const st of m.cycle.sets) {
+        const c = st.rows;
+        const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
+        /* ★活性：這一組真的行使到 makeCreatureFigure／figure.dispose() 了嗎★
+           （02 §6.1：相等性斷言要另附活性證據）。live===0 的那一組（全詛咒）只走占位物那條路，
+           對「GLB 實例有沒有放掉」**零鑑別力**——照印，但不列入判定。
+           外部覆審 C-1 就是被這個坑到：上一版只在「走到的最後一夜」跑一次，而那一夜四格剛好全是
+           詛咒占位物，`makeCreatureFigure`／`dispose()` 一次都沒被行使，+0/+0 的綠燈與待驗行為脫鉤。 */
+        const counts = st.live > 0;
+        const cycleOk = gN === g0 && tN === t0;
+        if (counts) okMem = okMem && cycleOk;
+        console.log(`    ★釋放鑑別力・${st.name}★（真 GLB ${st.live}/4${counts ? '' : '，**零鑑別力，不列入判定**'}）：`
+          + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
+        console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
+      }
+    }
+    m.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
+  /* T4 §2.1 修訂一補充（2026-09-13）：**托盤的邊際貢獻**＝預設 − `?tray3d=0` 的增量。
+     原本的對照寫法（「對照組完全不長」）量不到托盤——實測對照組桌上 0/4 件也照樣長，
+     因為每夜的**對決**自己會把 GLB 載進同一個 `glbCache`。要分離托盤的那一份只能相減。
+     上限依據＝「每件 GLB 的資產數」，由第 1 夜兩條路的 offset 推：
+       (預設第 1 夜 − 對照第 1 夜) ÷ 該夜非詛咒件數。 */
+  if (opt.traymem && (rec.traymem || []).length === 2) {
+    const [A, B] = rec.traymem; // A＝預設、B＝?tray3d=0
+    const dOf = (m) => { const a = m.rows[0], z = m.rows[m.rows.length - 1];
+      return (a && z) ? { g: z.geometries - a.geometries, t: z.textures - a.textures, n: m.rows.length } : null; };
+    const da = dOf(A), db = dOf(B);
+    const n1 = A.rows[0] && B.rows[0] ? { g: A.rows[0].geometries - B.rows[0].geometries, t: A.rows[0].textures - B.rows[0].textures } : null;
+    const items1 = A.rows[0] ? A.rows[0].keys.filter((k) => k !== '—' && k !== '(詛咒)').length : 0;
+    if (da && db && n1 && items1 > 0) {
+      const per = { g: n1.g / items1, t: n1.t / items1 };
+      const nights = Math.min(da.n, db.n);
+      const cap = { g: nights * 4 * per.g, t: nights * 4 * per.t };
+      const marg = { g: da.g - db.g, t: da.t - db.t };
+      const ok = marg.g <= cap.g && marg.t <= cap.t;
+      okMem = okMem && ok;
+      console.log(`- **T4 托盤邊際貢獻**（預設 − 對照，兩條路都走到第 ${nights} 夜）：`
+        + `geometries ${da.g} − ${db.g} ＝ **${marg.g >= 0 ? '+' : ''}${marg.g}**`
+        + `　textures ${da.t} − ${db.t} ＝ **${marg.t >= 0 ? '+' : ''}${marg.t}**`
+        + `　（兩條路的終值：geo ${A.rows[A.rows.length - 1].geometries}／${B.rows[B.rows.length - 1].geometries}、`
+        + `tex ${A.rows[A.rows.length - 1].textures}／${B.rows[B.rows.length - 1].textures}）`);
+      console.log(`    每件 GLB 的資產數（第 1 夜 offset ${n1.g}/${n1.t} ÷ ${items1} 件）＝ `
+        + `**${per.g.toFixed(1)} geometries／${per.t.toFixed(1)} textures**`);
+      console.log(`    上限＝夜數 ${nights} × 4 件 × 每件 ＝ **${cap.g.toFixed(0)} geometries／${cap.t.toFixed(0)} textures**`
+        + ` → ${ok ? '✅ 在上限內' : '❌ 超過上限'}`);
+    } else {
+      console.log('- **T4 托盤邊際貢獻**：兩條路的取樣不足（其中一條沒走到第 1 夜），**無法確認**');
+      okMem = false;
+    }
+  }
   console.log(`# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION ${rec.version}　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天 ${g.dawnShrines} 尊・沒人有資格 ${g.skips} 夜・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　真人選尊 ${JSON.stringify(g.picked)}　按鈕出現次數 ${JSON.stringify(g.txts)}`));
@@ -871,8 +1321,8 @@ const main = async () => {
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
-  const all = opt.tapsonly ? (okTaps && okT1 && okT6 && okModal && okHandoff2)
-    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okT1 && okT6 && okModal && okHandoff2);
+  const all = opt.tapsonly ? (okTaps && okTray && okKill && okMem && okT1 && okT6 && okModal && okHandoff2)
+    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okTray && okKill && okMem && okT1 && okT6 && okModal && okHandoff2);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };

@@ -32,6 +32,14 @@ const PORT = Number(opt.port || 8895);
 const SRC_ROOT = opt.root ? path.resolve(opt.root) : ROOT;
 const W = Number(opt.w || 844), H = Number(opt.h || 390);
 const GATE = !!opt.gate;
+/* `--perf`（上桌卷 v0.56b，凍結檔 T3）：牌桌機位的 A/B 效能閘門。
+   `--runs=5` ＝ 三個變體（?tray3d=0／預設／?table3d=lite）**同一支瀏覽器交錯**各量 5 次取中位——
+   桌機同一組設定跨 run 的基準實測落在 ±30%（計畫 §6 Q4 第 5 點），只認交錯＋中位
+   （`02 §6.2`：先歸因再處置——歸到量測環境，處置是交錯與中位，不是加 retry 或拉長 timeout）。
+   ★所有數字一律換算成「每幀」★：`info.reset()` 之後等**兩次** rAF ⇒ 讀到的是兩幀的和，要除以 2。 */
+const PERF = !!opt.perf;
+const RUNS = Number(opt.runs || 5);
+const SEED = Number(opt.seed || 1);
 
 function serve(root, port) {
   const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -92,7 +100,186 @@ async function probeFar(page, kind) {
   })(${PROBE})`);
 }
 
+/* ── `--perf` 的一次取樣：開一局走到第 1 夜出價頁，等托盤的 GLB 到位再量 ──────────
+ *  假綠清單（凍結檔 T3）逐條在這裡堵：
+ *   ① 不用 `info.autoReset` 的預設值讀（那只留最後一趟 render＝bloom 合成的 1 個 call）
+ *   ② 兩次 rAF 的和一律除以 2
+ *   ③ `?tray3d=0` 是對照組，不拿它的數字當預設值
+ *   ④ 回報 `tray.items()` 的 `visible`／`outlines`：模型 `visible=false` 時 delta 會是 0＝假綠
+ *      （`makeCreatureFigure` 的 group.visible 預設就是 false，creature-figures.js:567） */
+async function perfSample(browser, url) {
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+  page.on('requestfailed', (r) => errs.push('requestfailed: ' + r.url()));
+  try {
+    await page.goto(url, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d', { timeout: 20000 });
+    await page.evaluate((sd) => {
+      CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']);
+    }, SEED);
+    let reached = false;
+    for (let i = 0; i < 400 && !reached; i++) {
+      await page.waitForTimeout(12);
+      const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+        return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+      if (/蓋牌/.test(st.t) && !st.d && st.r === 1) { reached = true; break; }
+      if (!st.d) await page.click('#mainbtn').catch(() => {});
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+    }
+    if (!reached) throw new Error('沒走到第 1 夜出價頁（量測前提不成立，不得靜默放行）：' + url);
+    await page.evaluate(`(async () => { const t=window.__yaoshi3d&&window.__yaoshi3d.tray; if(t&&t.loaded) await t.loaded(); })()`);
+    await page.waitForTimeout(1100); // 等鏡頭補間與燈籠閃爍穩定
+    /* ★描邊只掛 hover 那一件之後，「預設」有兩個狀態，兩個都要量★（2026-09-13 裁定）：
+       沒有 hover（玩家手不在托盤上）＝最省；hover 中＝**最壞情況**，閘門要看的是它。
+       只量沒 hover 的那一個會讓「描邊多貴」整個從帳上消失——那是把判準搬淺。 */
+    const measure = async () => page.evaluate(async () => {
+      const Y3 = window.__yaoshi3d; const info = Y3.renderer.info;
+      const f0 = info.render.frame; const ts = performance.now();
+      await new Promise((r) => setTimeout(r, 1500));
+      const f1 = info.render.frame; const te = performance.now();
+      info.autoReset = false; info.reset();
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const calls = info.render.calls, tris = info.render.triangles, passes = info.render.frame - f1;
+      info.autoReset = true;
+      const t = Y3.tray;
+      /* 三角形分母表（上桌卷 v0.56b）：把場上**畫得到的**每一顆 mesh 依「屬於誰」歸類加總。
+         ★這是量出來的，不是算出來的★——要減幾何之前得先知道每一類各佔多少，
+         否則「先減非主角的」只是憑印象（`02 §6.1` 第 7 條：先寫下分母）。
+         分類靠物件自己的 name 與祖先鏈，不另抄一份清單。 */
+      const budget = {};
+      const triOf = (o) => {
+        const g = o.geometry; if (!g) return 0;
+        if (g.index) return g.index.count / 3;
+        return g.attributes && g.attributes.position ? g.attributes.position.count / 3 : 0;
+      };
+      const bucketOf = (o) => {
+        for (let n = o; n; n = n.parent) {
+          if (n.name === 'tray-cloth') return '紅布托盤';
+          if (n.name === 'tray-curse' || n.name === 'tray-curse-fire') return '詛咒占位';
+          if (n.name === 'table-tray') return o.name === 'outline' ? '托盤描邊外殼' : '托盤拍品本體';
+          if (n.name === 'table') return '木紋桌面';
+          if (n.name === 'table-decor') return '香灰＋符咒';
+          if (n.name === 'sky-dome') return '夜空穹頂';
+          if (n.name === 'far') return '遠景剪影';
+        }
+        return '其他（既有）';
+      };
+      Y3.scene.traverse((o) => {
+        if (!o.isMesh && !o.isPoints) return;
+        for (let n = o; n; n = n.parent) if (!n.visible) return; // 畫不到的不計
+        const b = bucketOf(o);
+        budget[b] = (budget[b] || 0) + (o.isPoints ? 0 : triOf(o));
+      });
+      Object.keys(budget).forEach((k) => { budget[k] = Math.round(budget[k]); });
+      return {
+        budget,
+        rendersPerSec: +((f1 - f0) / ((te - ts) / 1000)).toFixed(1),
+        calls: calls / 2, tris: tris / 2, passes: passes / 2,
+        geometries: info.memory.geometries, textures: info.memory.textures,
+        items: t && t.items ? t.items() : null,
+        trayVisible: t && t.visible ? t.visible() : null,
+        hollow: !!(document.getElementById('felt') || {}).classList && document.getElementById('felt').classList.contains('hollow'),
+      };
+    });
+    const m = await measure();
+    /* hover 中（最壞情況）：用產品自己的 setHover，不是直接去翻 shell 的 visible——
+       翻旗標等於繞過被測的那條路（`02 §6.1` 第 3 條：不得 mock 掉勝負手）。
+       ★四格逐一 hover、取三角形最多的那一格★：外殼數是逐尊不同的（實測 7～18 顆），
+       只 hover 槽 0 量到的是**最省的那一格**，那不是最壞情況。 */
+    let worst = null;
+    for (let i = 0; i < 4; i++) {
+      const got = await page.evaluate(`(() => { const t=window.__yaoshi3d.tray;
+        if (t && t.setHover) { t.setHover(${i}); return t.hover(); } return -1; })()`);
+      await page.waitForTimeout(400);
+      const r = await measure();
+      r.hoverSlot = got;
+      if (!worst || r.tris > worst.tris) worst = r;
+    }
+    m.onHover = worst;
+    await page.evaluate(`(() => { const t=window.__yaoshi3d.tray; if (t && t.setHover) t.setHover(-1); })()`);
+    m.errors = errs;
+    return m;
+  } finally { await ctx.close(); }
+}
+
+const median = (a) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+
+async function perfMain() {
+  const srv = await serve(SRC_ROOT, PORT);
+  try {
+    /* ★一定要 uncapped★（凍結檔 T3 的假綠清單第一條同源）：不關 vsync 的話三個變體的 renders/s
+       都是 58~60（撞螢幕更新率），比值恆為 ~0.99＝**零鑑別力**（實測：預設 0.988／lite 0.981）。
+       `--disable-gpu-vsync --disable-frame-rate-limit` 之後量到的才是「跑得動幾幀」。
+       同 duel-perf.mjs:60 的 `--uncap`，這裡直接內建、不給關（這支只有量效能一個用途）。 */
+    const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit'] });
+    const VAR = [
+      { tag: 'tray3d=0', q: '?tray3d=0' },
+      { tag: 'default', q: '' },
+      { tag: 'table3d=lite', q: '?table3d=lite' },
+    ];
+    const samples = {}; VAR.forEach((v) => { samples[v.tag] = []; });
+    for (let r = 0; r < RUNS; r++) {
+      for (const v of VAR) {
+        samples[v.tag].push(await perfSample(browser, `http://127.0.0.1:${PORT}/index.html${v.q}`));
+      }
+    }
+    const out = {};
+    for (const v of VAR) {
+      const S = samples[v.tag];
+      out[v.tag] = {
+        callsPerFrame: median(S.map((x) => x.calls)),
+        trianglesPerFrame: median(S.map((x) => x.tris)),
+        passesPerFrame: median(S.map((x) => x.passes)),
+        rendersPerSecMedian: median(S.map((x) => x.rendersPerSec)),
+        rendersPerSecAll: S.map((x) => x.rendersPerSec),
+        callsAll: S.map((x) => x.calls),
+        budget: S[S.length - 1].budget,
+        /* hover 中＝最壞情況（描邊掛在那一件上）。閘門看的是這一組。 */
+        onHover: {
+          callsPerFrame: median(S.map((x) => x.onHover.calls)),
+          trianglesPerFrame: median(S.map((x) => x.onHover.tris)),
+          passesPerFrame: median(S.map((x) => x.onHover.passes)),
+          rendersPerSecMedian: median(S.map((x) => x.onHover.rendersPerSec)),
+          rendersPerSecAll: S.map((x) => x.onHover.rendersPerSec),
+          hoverSlot: S[S.length - 1].onHover.hoverSlot,
+          outlines: S[S.length - 1].onHover.items ? S[S.length - 1].onHover.items.map((i) => i.outlines) : null,
+          budget: S[S.length - 1].onHover.budget,
+        },
+        geometries: S[S.length - 1].geometries, textures: S[S.length - 1].textures,
+        hollow: S[S.length - 1].hollow,
+        trayVisible: S[S.length - 1].trayVisible,
+        items: S[S.length - 1].items,
+        errors: S.reduce((n, x) => n + x.errors.length, 0),
+        errorSample: S.flatMap((x) => x.errors).slice(0, 5),
+      };
+    }
+    const base = out['tray3d=0'].rendersPerSecMedian;
+    const pair = (nums) => nums.map((v, i) => +(v / samples['tray3d=0'][i].rendersPerSec).toFixed(4));
+    out.ratio = {
+      default: +(out.default.rendersPerSecMedian / base).toFixed(4),
+      defaultOnHover: +(out.default.onHover.rendersPerSecMedian / base).toFixed(4),
+      lite: +(out['table3d=lite'].rendersPerSecMedian / base).toFixed(4),
+      // 逐次配對（同一 run 內的分子÷分母），全距用它看——中位藏不住跨線
+      defaultPaired: pair(out.default.rendersPerSecAll),
+      defaultOnHoverPaired: pair(out.default.onHover.rendersPerSecAll),
+      litePaired: pair(out['table3d=lite'].rendersPerSecAll),
+    };
+    await browser.close();
+    console.log(JSON.stringify({ mode: 'perf', runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out }, null, 1));
+    const errN = VAR.reduce((n, v) => n + out[v.tag].errors, 0);
+    process.exit(errN === 0 ? 0 : 1);
+  } finally { srv.kill(); }
+}
+
 async function main() {
+  if (PERF) return perfMain();
   const srv = await serve(SRC_ROOT, PORT);
   const errs = []; const shots = []; const gate = {};
   try {

@@ -544,6 +544,7 @@ export function makeCreatureFigure(opts = {}) {
   let mixer = null;
   let model = null;
   let loaded = false;
+  let disposed = false; // dispose() 冪等：托盤換格與對決換場兩條路都會叫到
   let rimScale = 1;
   let hitK = 0; // 批 2-a：受擊閃紅強度（0＝原本的系色邊光）
   const bodyMats = []; // 這隻身上所有本體材質（閃紅要動它們的 color；外殼描邊不在內）
@@ -823,17 +824,51 @@ export function makeCreatureFigure(opts = {}) {
       group.visible = true;
       shadow.visible = true;
     },
-    /** 釋放這一隻獨佔的材質與幾何（GLB 本身由 glbCache 共用，不在這裡釋放） */
+    /**
+     * 釋放這一隻獨佔的資源。
+     *
+     * ★哪些能放、哪些不能★（2026-09-13，外部覆審 C-1；凍結檔 §2.1 修訂二）
+     * - **skeleton：能放，而且非放不可。** `SkeletonUtils.clone`（`:26`／`:571`）每個實例都**重建一副骨架**，
+     *   而 three 會給每副骨架配一張 `boneTexture`（DataTexture，`WebGLRenderer` 在畫第一幀時建）。
+     *   不放就是每尊漏一張以上——實測托盤同一批拍品清空再擺回 5 輪，
+     *   `renderer.info.memory.textures` **每輪 +50**（四尊 × 約 12.5 張）。這是 C-1 的根因。
+     * - **geometry：不能放。** `SkeletonUtils.clone` 與外殼都**共用**來源 GLB 的 geometry，
+     *   而 `glbCache`（`:123`）還要拿它生下一個實例；放了會讓同款的下一尊畫不出來。
+     * - **texture：不能放。** `m.clone()`（`dressMaterial`）複製的是**參照**，貼圖仍是 GLB 那幾張，同上。
+     * - **material：能放**（`dressMaterial` 逐實例 clone 過）。★唯一例外是模組層共用的
+     *   `OUTLINE_SKIP_MAT`（`:404`）★——它不屬於任何一尊，放了會影響之後所有 ghost 外殼。
+     *
+     * 同一顆物件會被走訪到多次（外殼與本體共用同一副 skeleton、整尊共用一顆外殼材質），所以逐類去重；
+     * 呼叫端有兩條路會叫到（托盤換格、對決換場），所以做成**冪等**。
+     */
     dispose() {
+      if (disposed) return;
+      disposed = true;
       // 灰燼掛在 group.parent（scene）而非 group：釋放時要從那裡拿掉（v0.43.2）
       if (ash) { if (ash.points.parent) ash.points.parent.remove(ash.points); ash.points.geometry.dispose(); ash.points.material.dispose(); ash = null; }
       if (fx) { group.remove(fx.points); fx.dispose(); fx = null; }
       if (ground) { group.remove(ground.group); ground.dispose(); ground = null; }
-      group.traverse((o) => {
-        if (!o.isMesh) return;
+      const seenMat = new Set(); const seenSkel = new Set();
+      const putMat = (m) => {
+        if (!m || m === OUTLINE_SKIP_MAT || seenMat.has(m)) return;
+        seenMat.add(m); m.dispose();
+      };
+      const putSkel = (sk) => {
+        if (!sk || seenSkel.has(sk) || typeof sk.dispose !== 'function') return;
+        seenSkel.add(sk); sk.dispose();
+      };
+      const sweep = (o) => {
+        if (o.isSkinnedMesh) putSkel(o.skeleton);
+        if (o.isInstancedMesh && typeof o.dispose === 'function') o.dispose();
+        if (!o.isMesh && !o.isPoints && !o.isLine && !o.isSprite) return;
         const mats = Array.isArray(o.material) ? o.material : [o.material];
-        mats.forEach((m) => m.dispose());
-      });
+        mats.forEach(putMat);
+      };
+      group.traverse(sweep);
+      /* 外殼在燒毀之後會被設成 visible=false，但仍掛在本體底下 ⇒ traverse 走得到；
+         這一圈是保險：萬一呼叫端先把 model 從 group 卸下來，外殼與它們的骨架仍然放得到。 */
+      shells.forEach(sweep);
+      if (model) model.traverse(sweep);
       shadow.geometry.dispose();
       shadow.material.dispose();
     },

@@ -116,6 +116,186 @@ function createSkyDome() {
   return mesh;
 }
 
+/* ── 頂點色幾何的共用工具（v0.56b 上桌卷）────────────────────────────────
+ * 木紋／香灰／符咒殘卷／紅布托盤全部走「幾何＋頂點色、不貼圖」（ART_BIBLE，使用者裁 Q7 甲）。
+ * 建構器與決定性亂數放這裡當**單一來源**，js/table-tray.js 直接 import，不各抄一份。 */
+
+/** 決定性亂數（3D 層一律不用 Math.random；同一顆種子每次重現同一批幾何）。 */
+export function seedRnd(seed) {
+  let s = (seed >>> 0) || 1;
+  return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+/** 把一堆帶頂點色的三角形推進同一份 BufferGeometry（一組＝一個 draw call）。
+ *  不做 index：flatShading 要的就是逐面法線，computeVertexNormals 對非索引幾何正好給每面一條。 */
+export function vcBuilder() {
+  const P = []; const C = []; const c = new THREE.Color();
+  /** col 可以是 hex 數字／CSS 字串／THREE.Color。給 Color 時直接用它的線性值——
+   *  `new THREE.Color(0x6a1414)` 在 ColorManagement 之下存的就是線性值，頂點色屬性要的也是線性，
+   *  中間再繞一趟 sRGB 只會多一次來回捨入。 */
+  const put = (p, col) => {
+    if (col && col.isColor) c.copy(col); else c.set(col);
+    P.push(p[0], p[1], p[2]); C.push(c.r, c.g, c.b);
+  };
+  return {
+    tri(a, b, d, ha, hb, hd) { put(a, ha); put(b, hb === undefined ? ha : hb); put(d, hd === undefined ? ha : hd); },
+    /** 四邊形（a b d e 依序繞一圈），拆兩個三角形；顏色可逐頂點給 */
+    quad(a, b, d, e, ha, hb, hd, he) {
+      const A = ha, B = hb === undefined ? ha : hb, D = hd === undefined ? A : hd, E = he === undefined ? B : he;
+      put(a, A); put(b, B); put(d, D);
+      put(a, A); put(d, D); put(e, E);
+    },
+    count() { return P.length / 3; },
+    build(name, matOpts) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(P), 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(C), 3));
+      geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial(Object.assign({
+        vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0.02,
+      }, matOpts || {})));
+      mesh.name = name;
+      return mesh;
+    },
+  };
+}
+
+/* ── 老檜木供桌桌面（v0.56b；藍圖 §6.1「木紋反光」的頂點色版）──────────────
+ * 取代原本的 `CylinderGeometry(3.4,3.4,0.3,8)`：外形尺寸（半徑 3.4、高 0.3、桌頂 y=0.15）
+ * **一格不動**，換的是「這塊木頭看得出是木頭」——16 個徑向扇區 × 10 圈同心環，
+ * 頂點色沿半徑用一維噪聲在深紅褐／近黑／暖橘褐三色之間插值＝年輪；
+ * 環與環之間壓出 ≤0.004 的淺刻痕（只往下凹，桌頂最高仍是 0.15，托盤與香灰才疊得上去）；
+ * 桌緣加一圈斜面線腳，斜面吃到燈籠光就有厚度。draw call：1（**取代**原本的 1，淨增 0）。 */
+/* 段數（2026-09-13 幾何預算）：**試過 12×8（368→228 tris），回退**。
+   我原本以為「年輪是頂點色畫的，段數減了密度不變」——**實測是錯的**：年輪的顏色是逐「圈」取樣
+   `wave(r)` 得到的，圈數就是取樣率。8 圈把 5.4 週期的年輪取樣到走樣，成圖上桌面變成一片
+   沒有紋路的暗色（對照 `r4-n1.png` 與 `r5-n1.png`）。木紋是本卷的交付項，
+   而那 140 個三角形對 33000 的門檻（缺口 1582）也救不回來 ⇒ 回到 16×10。 */
+const WOOD = {
+  seg: 16, rings: 10,
+  colors: [TABLE_COLOR, 0x4a2010, 0x8a4a24], // 主色（＝v0.55 的桌面色，單一來源）／深年輪／淺年輪
+  side: 0x3b1c0d, // 桌側比桌面暗
+  lip: 0x7d4020, // 線腳斜面：吃光的那一圈
+  groove: 0.004, // 刻痕深度（只往下）
+  lipR: 0.06, lipDrop: 0.025, // 線腳往內收多少、落差多少
+};
+/* `?table3d=lite` 的環境降級（覆審 M-1）：lite 之前只關 hover 外殼，而**非 hover 時它與預設逐值相同**
+   （68 calls／19679 tris 兩邊一樣）＝降級鈕在最常見的狀態下等於沒作用。
+   現在 lite 另外把環境幾何也降一階：木紋段數 16×10 → 12×8 且**刻痕關掉**（只剩年輪顏色）、
+   香灰與符咒殘卷整個不建（連那 1 個 draw call 一起省）。數字貼在報告 §8.3。 */
+const WOOD_LITE = { seg: 12, rings: 8, groove: 0 };
+function makeWoodTable(liteMode) {
+  const b = vcBuilder();
+  const R = seedRnd(20260913);
+  const TOP = 0.15, BOT = -0.15;
+  const SEG = liteMode ? WOOD_LITE.seg : WOOD.seg;
+  const RINGS = liteMode ? WOOD_LITE.rings : WOOD.rings;
+  const GROOVE = liteMode ? WOOD_LITE.groove : WOOD.groove;
+  const base = new THREE.Color(WOOD.colors[0]);
+  const dark = new THREE.Color(WOOD.colors[1]);
+  const lite = new THREE.Color(WOOD.colors[2]);
+  const inner = TABLE_RADIUS - WOOD.lipR;
+  /** 年輪：沿半徑的一維噪聲，兩個不同頻率的正弦疊起來就不會規律得像同心圓靶紙。
+   *  頻率從 9.3 降到 5.4（第一版年輪比十圈同心環還密，在牌桌機位下整片糊成一坨）、
+   *  對比從 ×1.7／×1.25 拉到 ×2.0／×1.9，並整體提亮 8%——桌面本來就只吃到四盞燈籠的邊光，
+   *  不拉開明暗差距的話「木紋」在成圖上一條都看不見（自評 r1 B）。 */
+  const wave = (r) => 0.5 + 0.5 * Math.sin(r * 5.4 + Math.sin(r * 2.3) * 1.9);
+  const grain = (r) => {
+    const n = wave(r);
+    const c = n < 0.5 ? base.clone().lerp(dark, (0.5 - n) * 2.0) : base.clone().lerp(lite, (n - 0.5) * 1.9);
+    return c.multiplyScalar(1.08 * (0.93 + R() * 0.14)); // 每個頂點一點點雜訊＝木頭的斑
+  };
+  const gy = (r) => TOP - GROOVE * wave(r);
+  const ang = (i) => (i / SEG) * Math.PI * 2;
+  const rr = (k) => inner * Math.pow(k / RINGS, 0.92); // 外圈密一點，年輪才不會全部擠在中心
+  const pt = (k, i) => { const r = rr(k), a = ang(i); return [Math.sin(a) * r, gy(r), Math.cos(a) * r]; };
+  // 桌面：同心環 × 扇區
+  for (let k = 0; k < RINGS; k++) {
+    for (let i = 0; i < SEG; i++) {
+      const a = pt(k, i), b2 = pt(k, i + 1), c2 = pt(k + 1, i + 1), d2 = pt(k + 1, i);
+      const cIn = grain(rr(k)), cOut = grain(rr(k + 1));
+      if (k === 0) b.tri(a, c2, d2, cIn, cOut, cOut); // 最內圈退化成三角形（a 與 b2 同一點）
+      else b.quad(a, b2, c2, d2, cIn, cIn, cOut, cOut);
+    }
+  }
+  // 桌緣線腳：inner→TABLE_RADIUS 的斜面，再垂直落到桌底
+  for (let i = 0; i < SEG; i++) {
+    const a0 = ang(i), a1 = ang(i + 1);
+    const pI = (a) => [Math.sin(a) * inner, gy(inner), Math.cos(a) * inner];
+    const pO = (a) => [Math.sin(a) * TABLE_RADIUS, TOP - WOOD.lipDrop, Math.cos(a) * TABLE_RADIUS];
+    const pB = (a) => [Math.sin(a) * TABLE_RADIUS, BOT, Math.cos(a) * TABLE_RADIUS];
+    b.quad(pI(a0), pI(a1), pO(a1), pO(a0), WOOD.lip);
+    b.quad(pO(a0), pO(a1), pB(a1), pB(a0), WOOD.side);
+  }
+  // 桌底不做：牌桌／開標／對決／局末四個機位的相機一律在 y>1.5，永遠看不到底面（少 16 個三角形）
+  const mesh = b.build('table', { roughness: 0.82, metalness: 0.04 });
+  return mesh;
+}
+
+/* ── 桌角香灰與符咒殘卷（v0.56b；藍圖 §6.1）─────────────────────────────
+ * 兩樣合併成**一個** mesh（同材質、都靜態、都不 update）⇒ 淨增 1 draw call，不是 2。
+ * 位置是算出來的：把 (x, 0.15, z) 反投影到 844×390 牌桌機位，確認落在掏空窗
+ * （螢幕 x 176..668、y 92..320）之內，而且避開紅布托盤的腳印（|x|≤1.8、|z|≤0.6）。 */
+/* 第一版（香灰半徑 0.30／片長 0.05／近白 #e0dad0，符咒 0.30×0.11）盲看讀成「桌上撒了一地白色碎紙屑
+   ＋一塊米色木板」（自評 r1 C／D）：在這個機位下一片 0.05 的三角形就有 12px，散開 0.3 半徑更是一大攤。
+   收成「一撮」與「一小卷」：半徑 ×0.42、片長 ×0.45、亮度壓到不搶拍品，符咒也收一半並加大捲度。 */
+const DECOR = {
+  ashY: 0.1512, talY: 0.1515, // 桌頂 0.15 ＜ 香灰 ＜ 符咒 ＜ 紅布 0.152（疊序寫死，不靠 depth 賭）
+  /* 2026-09-13 幾何預算（製作人裁定「先減非主角的」）：每撮香灰 22→14 片、符咒殘卷 3→2 張、
+     每張的縱向段數 6→4，三角形 174 → 90。香灰片數少了就把每片放大一點，佔的面積不變；
+     符咒留下的兩張是**畫面裡真的看得到**的那兩張（第三張 [-0.55,1.20] 在托盤正前方、
+     被紅布與拍品的下緣切掉大半，實測 r4 的圖上只露出一角）。 */
+  ash: [[-1.30, 1.02, 0.17], [1.42, 0.88, 0.15], [0.15, -1.18, 0.13]], // [x, z, 半徑]
+  ashN: 14,
+  ashColors: [0xb3aba0, 0x8e887f, 0xcbc4b8],
+  tal: [[-1.55, -0.72, 0.55], [1.35, -1.02, -0.35]], // [x, z, 朝向 rad]
+  talSeg: 4,
+  talL: 0.17, talW: 0.055,
+  paper: 0xb9a874, paperDark: 0x938552, cinnabar: 0x8e1c1c,
+};
+function makeTableDecor() {
+  const b = vcBuilder();
+  const R = seedRnd(5521);
+  // ① 香灰：每撮 18 片小扁三角形疊在一起，灰白、不發光（ART_BIBLE §5「香灰＝灰白 arc 帶」的桌面版）
+  for (const [cx, cz, rad] of DECOR.ash) {
+    for (let i = 0; i < DECOR.ashN; i++) {
+      const a = R() * Math.PI * 2;
+      const d = rad * R() * R(); // R()² 而不是 √R()：往中心集中＝一「撮」，不是均勻撒一片
+      const x = cx + Math.sin(a) * d, z = cz + Math.cos(a) * d;
+      const s = 0.016 + R() * 0.021; // 片數 22→14 之後每片放大 ~1.25 倍，一撮佔的面積不變
+      const rot = R() * Math.PI * 2;
+      const y = DECOR.ashY + (1 - d / rad) * 0.006 + R() * 0.002; // 中間堆得高一點點，邊緣薄
+      const col = new THREE.Color(DECOR.ashColors[i % 3]).multiplyScalar(0.82 + R() * 0.3);
+      const p = (t) => [x + Math.sin(rot + t) * s, y, z + Math.cos(rot + t) * s];
+      b.tri(p(0), p(2.2), p(4.3), col);
+    }
+  }
+  // ② 泛黃硃砂符咒殘卷：三片微捲的紙（平的一段＋往上捲起的一段），中間一道硃砂紅直帶
+  for (const [cx, cz, rot] of DECOR.tal) {
+    const co = Math.cos(rot), si = Math.sin(rot);
+    const L = DECOR.talL, W = DECOR.talW;
+    // u 沿長邊 −1..1、v 沿短邊 −1..1；u>0.45 的那一段往上捲
+    const P = (u, v) => {
+      const curl = u > 0.25 ? (u - 0.25) / 0.75 : 0;
+      const lu = u - curl * curl * 0.42; // 捲起來會往回縮（幅度加大：小尺寸下捲不夠就只是一片平紙）
+      const y = DECOR.talY + curl * curl * 0.075;
+      return [cx + lu * L * co - v * W * si, y, cz + lu * L * si + v * W * co];
+    };
+    // 硃砂帶收窄成一道細直帶（第一版佔了三分之一寬，讀成「木板上的紅漆」）
+    const strips = [[-1, -0.18, DECOR.paper], [-0.18, 0.18, DECOR.cinnabar], [0.18, 1, DECOR.paperDark]];
+    const SEG = DECOR.talSeg;
+    for (let k = 0; k < SEG; k++) {
+      const u0 = -1 + k * (2 / SEG), u1 = -1 + (k + 1) * (2 / SEG);
+      for (const [v0, v1, hex] of strips) {
+        const c = new THREE.Color(hex).multiplyScalar(0.9 + R() * 0.2);
+        b.quad(P(u0, v0), P(u1, v0), P(u1, v1), P(u0, v1), c);
+      }
+    }
+  }
+  const mesh = b.build('table-decor', { side: THREE.DoubleSide, roughness: 0.95 });
+  return mesh;
+}
+
 /** 剪影建構器：把一連串四邊形推進同一份 BufferGeometry（一片剪影＝一個 draw call）。 */
 function silhouette() {
   const P = []; const C = [];
@@ -236,7 +416,8 @@ function place(mesh, deg, dist, ys) {
   return mesh;
 }
 
-export function createSceneEnv(aspect) {
+export function createSceneEnv(aspect, opts = {}) {
+  const liteMode = !!opts.lite; // ?table3d=lite：環境幾何降一階（覆審 M-1）
   const scene = new THREE.Scene();
   // 背景仍設純色當退路（穹頂沒建起來時畫面不會是黑的），顏色＝地平色，跟霧同一色
   scene.background = new THREE.Color(ENV.SKY_FOG);
@@ -254,11 +435,13 @@ export function createSceneEnv(aspect) {
   const far = createFarSilhouettes();
   scene.add(far);
 
-  const table = new THREE.Mesh(
-    new THREE.CylinderGeometry(TABLE_RADIUS, TABLE_RADIUS, 0.3, 8),
-    new THREE.MeshStandardMaterial({ color: TABLE_COLOR, roughness: 0.85, metalness: 0.05 })
-  );
+  // v0.56b：純色八角柱 → 頂點色年輪＋線腳（外形尺寸一格不動，見 makeWoodTable 註解）
+  const table = makeWoodTable(liteMode);
   scene.add(table);
+  // 桌角香灰與符咒殘卷（兩樣合併成一個 mesh，淨增 1 draw call）
+  /* lite：香灰與符咒殘卷整個不建（連那 1 個 draw call 一起省，覆審 M-1） */
+  const decor = liteMode ? null : makeTableDecor();
+  if (decor) scene.add(decor);
 
   const ambient = new THREE.AmbientLight(ENV.AMBIENT_COLOR, ENV.AMBIENT_INT);
   scene.add(ambient);
@@ -278,7 +461,7 @@ export function createSceneEnv(aspect) {
     return light;
   });
 
-  return { scene, camera, table, ambient, hemi, sky, far, lanterns, centerPoint };
+  return { scene, camera, table, decor, ambient, hemi, sky, far, lanterns, centerPoint };
 }
 
 export function resizeSceneEnv(camera, aspect) {
