@@ -1,0 +1,94 @@
+# 驗收凍結：拍賣桌 3D 實體化第一段 v0.56b（2026-09-13）
+
+> 卷別：ROADMAP_V2 §6.2／§7 Top 1 步驟 2、3 的**第一段**——桌心紅布托盤把當夜拍品的 3D 模型擺上桌、
+> Raycaster 點檢視、桌面木紋與桌角香灰符咒。籌碼／血玉令牌／席位信物是**第二段，本卷不做**。
+> 規格權威：`docs/proposals/2026-09-10-plan-table3d.md`（§1 標 0.55b 的列、§2 介面、§3 不做什麼、§4 ④、§6／§7）；
+> 使用者裁定：`docs/experiments/2026-09-10-acceptance-table3d.md` 檔頭（Q1 甲／Q2 甲＋丙／Q3 丙／Q4 甲／Q5–Q9）；
+> 美術守則：`docs/design/ART_BIBLE.md`（無貼圖、紙紮／老廟神案質感；Q7 甲＝木紋／香灰用頂點色＋幾何）。
+> **基準＝`main` `f9dd83d`（v0.55.7）**，本檔訂於該 SHA、repo 一個位元組未動時。
+> 訂下即凍結（`02 §2.1`）。要改只有「原標準錯在哪、為什麼現在才知道」＋使用者針對那一條的明確同意一條路。
+> **沒帶基準的一律不算通過。**
+
+## 範圍（做什麼）
+
+1. `js/table-tray.js`（新檔）：`createTableTray(scene, camera, opts)` → `tray.{group,setItems,hitTest,setHover,update,slotScreen}`；
+   `TRAY` 常數表照計畫 §2.4 起值；紅布托盤（`CLOTH`，頂點色，布緣翹曲＝紙紮語法）；4 槽位；
+   模型走 `creature-figures` 同一套 GLB 載入與釋放（`key = it.ab || it.m`）；詛咒品身上冒紫黑陰火
+   （不越 bloom 門檻 0.7）；hover 浮空微旋（`HOVER_SPIN`／`HOVER_LIFT`）＋自發光邊光；
+   描邊外殼可由 `?table3d=lite` 關。
+2. `index.html`：`#tray` 透明命中層接 `trayTap`／`trayHover`（NDC → `tray.hitTest` → `openSheet(i)`／`pickMark(i)`）；
+   `showMarket`／盯上頁進入時派 `fx3d("ys:market",{items,round})`（不耗亂數、不讀寫賽局欄位）；
+   `?tray3d=0` kill switch；拍賣頁鏡頭對托盤微推、對決頁還原。
+3. `js/scene-env.js`：桌面**木紋**（頂點色深淺條紋＋幾何刻痕，不貼圖）、桌角**香灰**幾撮與**符咒殘卷**兩三張。
+4. `js/renderer.js`：建立 tray、每幀 `update(dt)`、`__yaoshi3d.tray` 出口。
+5. 直式版面：本卷**不做**托盤（維持 0.56a 直式），`#tray` 在直式不存在意義。
+
+不做：籌碼／血玉令牌／席位信物（第二段）；不改事件模型；不做拖曳／捏合；不開陰影；不動引擎；
+不動策略數值（硬規則 3）；不改 `#sheet`／`#modal`／`#duel` 疊層；不修 ART_BIBLE；`VERSION` 不動。
+
+---
+
+## 閘門 T0–T6（動手前訂定，數字不得動）
+
+### T0 引擎零變動
+```
+node tests/tools/trace-eq.mjs <f9dd83d 的 index.html> index.html     → equal:true、exit 0
+node tests/tools/trace-eq.mjs index.html --mutate                     → differs:true、exit 0
+```
+*假綠*：只比 seed 1；砍 `trace()` 欄位再比；跳過 `--mutate` 那半邊（相等性斷言本身沒有證明力，`02 §6.1` 第 1 條）。
+
+### T1 版面不退
+```
+node tests/tools/felt-probe.mjs --seeds=1,3 --rounds=3 --sel=#felt,#west,#east,#north --json=<out>
+```
+`#felt`／`#west`／`#east`／`#north` 四個容器各 **12 格全 0**（2 seeds × 3 夜 × 出價／盯上兩頁）。
+＝0.56a 基準同值（0.56a 已把四個容器收到恆 0）。
+*假綠*：對 `.rail` 或 `#tray` 加 `overflow:hidden` 把內容切掉——配套人眼在 T5 的截圖上看四張側欄卡完整。
+
+### T2 tap 命中回歸（逐一 tap，不是數數量）
+```
+node tests/tools/legend-drive.mjs <out> --taps --tapsonly --tapbase=<f9dd83d 的 tapout json>
+```
+- 逐一 tap **177／177 命中**（N＝基準 `f9dd83d` 實測 clickableCount＝**177**，2026-09-13 量，
+  `--tapout` 落檔；另有停用 6 個、隱藏 24 個不計），基準清單漏掉 0 個、沒命中 0 個，引數對不上 0 個。
+- `0 console error／pageerror／requestfailed`。
+- **新增（本卷）**：`#tray` 上點 4 個槽位（治具用 `tray.slotScreen(i)` 取螢幕座標點下去），
+  各開對應的 `openSheet(i)`／`pickMark(i)`，且**開出來的 `#sheet` 標題就是該槽那一件法寶**
+  （逐槽對照 `S.market[i]` 的名稱，不是只驗「有沒有被呼叫」）。四槽全對才算過。
+- tap 落在既有可點元素（`.mcard`／`#skipbtn`／`#helpBtn`／`#south` 任何鈕）上時 `trayTap` 呼叫次數 **= 0**。
+*假綠*：只數 `[onclick]` 的元素數量；四槽全部誤判成槽 0；只驗「被呼叫」不驗 sheet 標題。
+
+### T3 效能（每幀值；`scene-shot --gate --perf` 牌桌機位，844×390 dpr=2、uncapped）
+**全部換算成每幀值**（`info.autoReset=false; info.reset();` 之後等**兩次** rAF ⇒ 讀到的是兩幀的和，**除以 2**）。
+- 預設（描邊開）：`draw calls` ≤ **135**、`triangles` ≤ **33000**、render `passes/frame` ＝ **1**
+- `renders/s` 比值（預設 ÷ `?tray3d=0`，同一頁交錯各 5 次取中位）≥ **0.40**
+- `?table3d=lite`：draw calls **明顯下降**（記數字，與預設同表對照）
+- 對決頁 draw call 與基準 `f9dd83d` **持平（±5）**：基準值由 `duel-perf perf --uncap` 於 2026-09-13
+  在 `f9dd83d` 量得（**基準 `drawCallsPerFrame` = 978**，`renderPassesPerFrame` = 2、`visible/total` = 16/16、
+  `rafMedianFps` = 112.4；該欄位是兩幀和 ⇒ 每幀 489）。判定用 `drawCallsPerFrame`，容差 ±5。
+*假綠*：量到 bloom 合成那一趟的 1 個 call（沒有 `autoReset=false; reset();`）；**忘了除以 2**；
+在 `?tray3d=0` 下量預設值；把模型 `visible=false` 之後才量
+（`makeCreatureFigure` 的 `group.visible` 預設 **false**，`creature-figures.js:567`）。
+
+### T4 GLB 載入釋放
+連續 **12 夜**（`legend-drive` 全局或等效驅動），`renderer.info.memory.geometries／textures`
+**開局末 vs 第 1 夜末差 ≤ 拍品數**（12 夜 × 4 件的上界；`glbCache` 永不淘汰是已知事實，本卷不做 LRU），
+且 **0 error／pageerror**。
+*假綠*：只量第 1 夜；只量 `geometries` 不量 `textures`；把托盤關掉之後才量。
+
+### T5 視覺交付
+橫式 844×390 截圖 **3 張**（① 出價頁 ② 盯上頁 hover 中 ③ 詛咒品在托盤）＋**對決頁一張**證明托盤沒擋到人偶；
+`threejs-visual-loop` 自評**兩輪**（截圖存檔後用 Read 實際打開看，逐條對畫質清單）；製作人看圖簽字。
+*假綠*：只交好看的那一張；只看檔案存在不打開看。
+
+### T6 範圍
+`git diff --stat <f9dd83d>..` 只准：
+`js/table-tray.js`（新）、`index.html`（DOM／CSS／派發／tap；**`VERSION` 不動**）、`js/scene-env.js`、
+`js/renderer.js`、`js/camera-director.js`（若動）、`tests/tools/*`（治具）、`docs/*`（文件）。
+`js/trait-fx*`／`js/duel-figures.js`／`js/creature-figures.js`／引擎（`index.html` 的規則碼）**零 diff**。
+另：**12 套規則測試全綠**；`traitfx-drive` t2 **30/30 不退**（3D 層改動不得影響對決）。
+
+---
+
+## §2.1 修訂紀錄
+（無）
