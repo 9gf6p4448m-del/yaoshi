@@ -8,7 +8,10 @@
 //   --sel=      橫向溢出量哪些容器（**收斂**：#market 退役、#railW／#railE 上線之後不逐支複製選擇器，改吃這個旗標）
 //   --taps      觸控命中回歸（掏空卷 v0.55a 凍結檔 T5）：對第 1～3 夜出價頁與盯上頁的**每一個** `#table [onclick]`
 //               各 tap 一次，驗「這一 tap 有沒有讓對應的處理函式被呼叫」，並驗 #tray 沒有吃掉任何一個
-//   --tapsonly  只跑 --taps／--t3d／--modal／--handoff 那幾段（量基準時用，不必把整局玩完）
+//   --tapsonly  只跑 --taps／--trayslots／--t3d／--modal／--handoff 那幾段（量基準時用，不必把整局玩完）
+//   --trayslots 上桌卷 v0.56b 凍結檔 T2 新增段：用產品自己的 tray.slotScreen(i) 取座標，對桌心托盤的
+//               四個槽位各 tap 一次——出價頁要開出**那一件**的 #sheet 標題、盯上頁 pickMark 的引數要對、
+//               托盤空白處要回 −1 且不觸發任何處理函式（只驗「有沒有被呼叫」＝四槽全誤判成槽 0 也會綠）
 //   --modal     R1-CRITICAL-1：真的打開袋子／三席 ⓘ／說明四種面板，在 #helpBtn 矩形上取樣 elementFromPoint
 //               五點全部必須落在 #modal 裡（--modalout=<json> 落明細）
 //   --handoff   R1-HIGH-1：熱座封一筆「押 2」→ 蓋牌 → 交棒畫面出現當下，牌桌上私有徽章殘留必須 0
@@ -371,6 +374,87 @@ async function runHandoff(browser, port, query) {
   return rec;
 }
 
+/* ===== T2 新增段（上桌卷 v0.56b）：#tray 上的四個槽位真的點得到，而且開的是那一件 =====
+   ★不是只驗「有沒有被呼叫」★（凍結檔 T2 的假綠清單）：四槽全部誤判成槽 0 也會讓
+   「openSheet 被呼叫了」成立。所以出價頁比對**開出來的 `#sheetbox h3` 標題**與 `S.market[i].n`
+   逐槽相同；盯上頁改用計數 proxy 比 `pickMark` 的**第一個引數**（真的呼叫 pickMark 會改賽局狀態）。
+   座標一律由產品自己的 `tray.slotScreen(i)` 給，治具不另抄一份投影算式——欄寬一改、機位一動，
+   這一段立刻紅（計畫 §6 Q3 明寫這條）。 */
+async function runTraySlots(browser, port) {
+  const rec = { seed: TAP_SEEDS[0], bid: [], mark: [], blank: [], errors: [], items: null, ready: null };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate((sd) => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', sd, ['qingmian']); }, rec.seed);
+    const state = () => page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+      return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+    const step = async () => { const st = await state();
+      if (!st.d) await page.click('#mainbtn');
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+      await page.waitForTimeout(15); };
+    const waitTray = () => page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if (t && t.loaded) await t.loaded(); })()`);
+    /* ① 盯上頁（第 1 夜）：pickMark 換成計數 proxy，四槽各 tap 一次比引數 */
+    for (let i = 0; i < 600; i++) { const st = await state(); if (st.r === 1 && /不盯任何一件/.test(st.t) && !st.d) break; await step(); }
+    await waitTray(); await page.waitForTimeout(500);
+    await page.evaluate(`(() => { window.__pmOrig=window.pickMark; window.__pmArgs=[];
+      window.pickMark=function(){ window.__pmArgs.push(arguments.length?String(arguments[0]):''); }; })()`);
+    const names = await page.evaluate(`(() => window.__yaoshi.S.market.map(x=>x.n))()`);
+    rec.items = await page.evaluate(`(() => window.__yaoshi3d.tray.items())()`);
+    for (let i = 0; i < names.length; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      await page.evaluate('(() => { window.__pmArgs = []; })()');
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(60);
+      const got = await page.evaluate('(() => window.__pmArgs.slice())()');
+      rec.mark.push({ slot: i, name: names[i], pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) }, args: got,
+        ok: got.length === 1 && got[0] === String(i) });
+    }
+    /* ①b #tray 的空白處（托盤前緣以下，模型與占位物都不在那裡）：hitTest 必須回 −1、不得叫到任何處理函式 */
+    const rectBlank = await page.evaluate(`(() => { const r=document.getElementById('tray').getBoundingClientRect();
+      return [[r.left+8, r.bottom-8],[r.right-8, r.bottom-8],[(r.left+r.right)/2, r.bottom-8]]; })()`);
+    for (const [x, y] of rectBlank) {
+      await page.evaluate('(() => { window.__pmArgs = []; })()');
+      const hit = await page.evaluate(`(() => { const c=window.__yaoshi3d.camera; void c;
+        const u=(${x}/(window.innerWidth||1))*2-1, v=-((${y}/(window.innerHeight||1))*2-1);
+        return window.__yaoshi3d.tray.hitTest(u,v); })()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, x)), Math.max(1, Math.min(389, y)));
+      await page.waitForTimeout(50);
+      const got = await page.evaluate('(() => window.__pmArgs.slice())()');
+      rec.blank.push({ x: +x.toFixed(1), y: +y.toFixed(1), hitTest: hit, calls: got.length, ok: hit === -1 && got.length === 0 });
+    }
+    await page.evaluate(`(() => { if (window.__pmOrig) window.pickMark=window.__pmOrig; })()`);
+    /* ② 出價頁（同一夜，pickMark(null) 之後）：走真的 openSheet，比 #sheetbox 的標題 */
+    await page.evaluate(`(() => pickMark(null))()`);
+    await page.waitForTimeout(300);
+    await waitTray(); await page.waitForTimeout(400);
+    rec.ready = await page.evaluate(`(() => window.__yaoshi3d.tray.readyCount())()`);
+    for (let i = 0; i < names.length; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(90);
+      const sh = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const h=document.querySelector('#sheetbox h3');
+        return { open: !!(s && getComputedStyle(s).display !== 'none'), title: h ? (h.textContent||'').trim() : null }; })()`);
+      rec.bid.push({ slot: i, want: names[i], open: sh.open, title: sh.title,
+        pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) },
+        ok: !!sh.open && !!sh.title && sh.title.indexOf(names[i]) >= 0 });
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(120);
+    }
+  } finally { await ctx.close(); }
+  return rec;
+}
+
 async function runTaps(browser, port) {
   const rec = { rows: [], trayTaps: 0, pages: 0, stubbed: null };
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
@@ -453,6 +537,7 @@ const main = async () => {
        清場選擇器是同一份 `#table ` 前綴，兩條路都要證明它有效。 */
     if (opt.handoff) rec.handoff2 = [await runHandoff(browser, PORT, ''), await runHandoff(browser, PORT, '?table3d=0')];
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
+    if (opt.trayslots) rec.trayslots = await runTraySlots(browser, PORT);
     if (!opt.tapsonly) {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
@@ -842,6 +927,21 @@ const main = async () => {
     if (tapMiss.length) console.log('    沒命中：' + tapMiss.slice(0, 12).join('　'));
     if (TAP_OUT) console.log('    tap 明細 → ' + TAP_OUT);
   }
+  /* T2 新增段（上桌卷 v0.56b）：#tray 的四個槽位 */
+  let okTray = true;
+  if (opt.trayslots) {
+    const s = rec.trayslots || { bid: [], mark: [], blank: [], errors: [] };
+    const bidOk = s.bid.filter((r) => r.ok).length, markOk = s.mark.filter((r) => r.ok).length, blankOk = s.blank.filter((r) => r.ok).length;
+    okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
+      && blankOk === s.blank.length && s.errors.length === 0;
+    console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
+      + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
+      + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
+    s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));
+    s.mark.forEach((r) => console.log(`    盯上 槽${r.slot} (${r.pt.x},${r.pt.y}) 「${r.name}」→ pickMark(${r.args.join('|') || '—'}) ${r.ok ? '✅' : '❌'}`));
+    s.blank.forEach((r) => console.log(`    空白 (${r.x},${r.y}) → hitTest ${r.hitTest}、觸發 ${r.calls} 次 ${r.ok ? '✅' : '❌'}`));
+    s.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
   console.log(`# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION ${rec.version}　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天 ${g.dawnShrines} 尊・沒人有資格 ${g.skips} 夜・燒香 ${g.burned} 夜）`).join('；'));
   rec.games.forEach((g) => console.log(`  · seed ${g.seed} 停在「${g.stuck}」　真人選尊 ${JSON.stringify(g.picked)}　按鈕出現次數 ${JSON.stringify(g.txts)}`));
@@ -871,8 +971,8 @@ const main = async () => {
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
-  const all = opt.tapsonly ? (okTaps && okT1 && okT6 && okModal && okHandoff2)
-    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okT1 && okT6 && okModal && okHandoff2);
+  const all = opt.tapsonly ? (okTaps && okTray && okT1 && okT6 && okModal && okHandoff2)
+    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okTray && okT1 && okT6 && okModal && okHandoff2);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };

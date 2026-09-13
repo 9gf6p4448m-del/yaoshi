@@ -79,6 +79,19 @@ const main=async()=>{
     /* ② 第 2 夜盯上宣告頁（說明收成一行） */
     for(let i=0;i<600;i++){ const st=await state(); if(st.round===2&&/不盯任何一件/.test(st.t)) break; await step(); }
     await page.waitForTimeout(300); await shot('mark2');
+    /* ②b `--tray`（上桌卷 v0.56b 凍結檔 T5）：托盤的兩張人眼證據。
+       ★不另開一支截圖治具★：這裡本來就已經走到盯上頁／出價頁了，多兩張圖比新寫一支便宜（02 §6.1 第 7 條）。 */
+    if(opt.tray){
+      /* hover 中：對槽 1 的螢幕座標做 pointermove（走真的 #tray → trayHover → tray.setHover），
+         不是直接呼叫 setHover——拍的要是玩家真的做得到的那個畫面。 */
+      const pt=await page.evaluate(`(()=>{const t=window.__yaoshi3d&&window.__yaoshi3d.tray;return t&&t.slotScreen?t.slotScreen(1):null;})()`);
+      if(!pt) throw new Error('拿不到 tray.slotScreen(1)：托盤沒上線，這一張不得靜默跳過');
+      await page.mouse.move(pt.x,pt.y); await page.waitForTimeout(700);
+      const hv=await page.evaluate(`(()=>{const t=window.__yaoshi3d.tray;return {hover:t.hover(),items:t.items()};})()`);
+      if(hv.hover!==1) throw new Error(`pointermove 落在 slotScreen(1) 上卻沒 hover 到（hover=${hv.hover}）——命中層或投影對不上`);
+      await shot('trayhover');
+      await page.mouse.move(4,4); await page.waitForTimeout(400);
+    }
     /* ③ 請神夜前一夜的出價頁（最早那一龕的 night−1） */
     for(let i=0;i<2000;i++){
       const st=await state();
@@ -117,6 +130,20 @@ const main=async()=>{
       let best=0; S.players.forEach(p=>{ if(p.bag.length>S.players[best].bag.length) best=p.id; });
       showBag(best); })()`); await page.waitForTimeout(250); await shot('bag');
     await page.evaluate(`(()=>{ closeModal(); })()`); await page.waitForTimeout(120);
+    /* ③c `--tray` 的第二張：詛咒品站上托盤。往後走到市集裡真的有詛咒品的那一個出價頁再拍；
+       找不到就明講，不靜默跳過（整局都沒抽到詛咒品是可能的，換一顆 --seed=）。 */
+    if(opt.tray){
+      let found=false;
+      for(let i=0;i<3000;i++){
+        const st=await state();
+        const has=await page.evaluate(`(()=>{const S=window.__yaoshi.S;return !!(S&&S.market&&S.market.some(x=>x.curse));})()`);
+        if(has&&/蓋牌/.test(st.t)&&!st.d){ found=true; break; }
+        if(/再入妖市/.test(st.t)) break;
+        await step();
+      }
+      if(found){ await page.waitForTimeout(500); await shot('traycurse'); }
+      else console.log(`- ★--tray：seed ${SEED} 整局的出價頁都沒出現詛咒品，-traycurse.png 沒拍成（換一顆 --seed= 再試）`);
+    }
     /* ④ 直式 */
     await page.setViewportSize({width:390,height:844}); await page.waitForTimeout(400); await shot('portrait');
     await ctx.close();

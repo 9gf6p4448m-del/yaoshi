@@ -24,6 +24,12 @@ const SHOTS = {
 
 const DUEL_SHOT = { dist: 4.2, tilt: 24, lookY: 0.35, ms: 700 }; // 對決：壓低但仍看得到桌面，太低只會看到夜空
 
+/* 托盤 hover 微推（v0.56b 上桌卷）：手指停在某一件拍品上時，鏡頭朝桌心多壓 dist 一點點。
+ * 與 PUNCH／LEAN 同型——**疊在當下那個機位上的一組偏移量**，`trayK` 歸零時算出來的位置
+ * 與沒有這段程式碼時逐項相同（加 0／減 0 不改浮點值），所以對決與開標的畫面一格不變。
+ * 幅度刻意小：托盤在畫面中央，推太多會把側欄的卡片擠出視野。全部【試玩必調】。 */
+const TRAY_PUSH = { dist: 0.20, rate: 3.2 };
+
 // 座位 id → yaw。與 scene-env 的 SEAT_POS、bridge-players 的 SEAT_ORDER 同一套編號：
 // 0 南 1 北 2 西 3 東
 const SEAT_YAW = [0, 180, 270, 90];
@@ -176,6 +182,8 @@ export function createCameraDirector(camera, lanterns) {
   let leanU = 1; // 招式輕推的進度，1＝已回位（＝沒有偏移）
   let leanSign = 0; // +1 往畫面右（side 'B'）、−1 往畫面左（side 'A'）
   let leanMs = 1; // 這一次輕推的回位時間（一律取 ys:fx-trait 的 detail.ms；leanU 初值 1＝沒有偏移，這個初值不會被讀到）
+  let trayK = 0; // 托盤 hover 微推的現值（0＝沒有偏移）
+  let trayWant = 0; // 目標值（1＝手指停在某一格上）
   let forceWrite = false; // 偏移被「清零」的那一幀要補寫一次位置，見 clearOrbitLean
   // 折回段還沒跑完。寫入區塊的條件是 t < 1，所以「t 剛好到 1」的那一幀不會寫，補間會凍在
   // 前一步、離目標差約 0.001–0.0024 度（v0.34 每次 goto 都有的既有行為，一般看不出來）。
@@ -513,6 +521,11 @@ export function createCameraDirector(camera, lanterns) {
     cinemaK = cinemaEnvelope(now);
     if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
     if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
+    // 托盤 hover 微推：往目標收斂；差距小到看不見就直接歸位，免得永遠有個 1e-9 的殘留讓寫入區塊每幀都跑
+    if (trayK !== trayWant) {
+      trayK += (trayWant - trayK) * Math.min(1, dt * TRAY_PUSH.rate);
+      if (Math.abs(trayWant - trayK) < 1e-4) trayK = trayWant;
+    }
 
     // 機位補間與三層偏移每幀都算一次。三層都沒在跑時偏移恆為 0，
     // 算出來的位置與舊版「只在 t<1 時寫」逐項相同（SHOTS.table 就是 scene-env 的初始機位）。
@@ -524,7 +537,7 @@ export function createCameraDirector(camera, lanterns) {
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
     // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn) {
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn || trayK > 0) {
       forceWrite = false;
       if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
@@ -547,8 +560,11 @@ export function createCameraDirector(camera, lanterns) {
       const fTilt0 = focusK > 0 ? curTilt + (FOCUS.tilt - curTilt) * focusK : curTilt;
       // ⑥ cinema（tier 3 大招）：疊在 ⑤ 之後、punch 之前，同樣只縮 dist／壓 tilt。
       //    cinemaK=0 時與 fDist0／fTilt0 逐值相同（加 0／減 0），tier 1／2 的畫面因此逐項不變。
-      const fDist = cinemaK > 0 ? fDist0 + (CINEMA.dist - fDist0) * cinemaK : fDist0;
+      const fDist1 = cinemaK > 0 ? fDist0 + (CINEMA.dist - fDist0) * cinemaK : fDist0;
       const fTilt = cinemaK > 0 ? fTilt0 + (CINEMA.tilt - fTilt0) * cinemaK : fTilt0;
+      // ⑦ tray（托盤 hover 微推）：疊在 ⑥ 之後、punch 之前，只縮 dist。
+      //    trayK=0 時與 fDist1 逐值相同（減 0），對決／開標／局末的畫面因此逐項不變。
+      const fDist = trayK > 0 ? fDist1 - TRAY_PUSH.dist * trayK : fDist1;
       const tilt = fTilt * DEG;
       const yaw = curYaw * DEG;
       const lookY = curLookY;
@@ -582,5 +598,8 @@ export function createCameraDirector(camera, lanterns) {
     /** 這一幀 CINEMA 有沒有在作用（凍結檔 F5：CINEMA 只准在 tier 3 出現）。純記錄，遊戲不讀。 */
     cinemaOn() { return cinemaOn || cinemaK > 0; },
     cinemaK() { return cinemaK; },
+    /** 托盤 hover 微推開關（js/table-tray.js 的 setHover 呼叫；on=false 就自己收回去） */
+    setTrayPush(on) { trayWant = on ? 1 : 0; },
+    trayK() { return trayK; },
   };
 }

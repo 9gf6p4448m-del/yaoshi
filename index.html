@@ -682,7 +682,8 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 </div>
 <div id="table">
   <!-- 掏空卷 v0.55a：三個座位容器各自拆成「座位卡（renderSeats 獨佔）＋內容（setHollow／showMarket 獨佔）」，
-       兩邊互不覆蓋（計畫 §2.1／§7 風險 4）。#tray 是掏空後桌心的透明命中層，0.55b 才接 Raycaster。 -->
+       兩邊互不覆蓋（計畫 §2.1／§7 風險 4）。#tray 是掏空後桌心的透明命中層，
+       v0.56b 起接上 Raycaster（trayTap／trayHover → __yaoshi3d.tray.hitTest）。 -->
   <div id="north"><div id="northPrev"></div><div id="northSeat"></div><div id="northShr"></div></div>
   <div id="west"><div id="westSeat"></div><div id="railW" class="rail"></div></div>
   <div id="felt">
@@ -2394,6 +2395,10 @@ function setHollow(on){
   if(!hollow){
     ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
     const n=$("north"); if(n) n.classList.remove("shwide"); /* 讓寬只在掏空頁的 wide 兩夜生效 */
+    /* v0.56b：非掏空頁桌心沒有托盤可點，相位歸零並把 3D 層的 hover 收掉——
+       這四個容器與這個相位的生命週期全由這一支在管（收斂，不逐頁補清空）。 */
+    TRAY_PHASE=null;
+    try{ const Y3=window.__yaoshi3d; if(Y3&&Y3.tray) Y3.tray.setHover(-1); }catch(e){}
   }
 }
 /* 側欄卡列的兩張卡。卡片內容一字不改——內部仍呼叫既有的 mcardHTML／markCardHTML，
@@ -2423,12 +2428,44 @@ function fillRails(prevHTML,shrHTML,cardFn){
   const hasRule=!!(pv&&pv.querySelector&&pv.querySelector(".rulein"));
   if(n) n.classList.toggle("shwide", wide&&!hasRule);
 }
-/* #tray＝掏空後桌心的透明命中層。**0.55a 桌上還沒有 3D 托盤 ⇒ 點空白不做事**；
-   0.55b 會在這裡算 NDC → __yaoshi3d.tray.hitTest(u,v) → 依相位分派 openSheet(i)／pickMark(i)。
-   ★凍結檔 T5 會數這支被呼叫幾次★：tap 落在既有可點元素（.mcard／#skipbtn／#helpBtn／#south 任何鈕）
-   上時必須是 0——#tray 不得吃掉任何一個原本點得到的東西。 */
-function trayTap(ev){ /* 0.55a：無托盤，不做事 */ }
-function trayHover(ev){ /* 0.55a：無托盤，不做事 */ }
+/* ===== 桌心托盤的輸入端與資料推送（v0.56b 上桌卷）=====
+   ★Raycaster 的輸入端在演出層，不在 3D 層★（計畫 §6 Q3）：canvas 是 pointer-events:none 且 z −2，
+   所以命中測試由 #tray 這個透明層收，算成 NDC 丟給 3D 層問「這是第幾格」，**分派留在這裡**——
+   3D 層不知道什麼是「出價」與「盯上」，圖層契約才守得住。
+   TRAY_PHASE＝現在這一頁點下去該做什麼：出價頁 "bid"（openSheet）／盯上頁 "mark"（pickMark）／
+   其餘頁 null（桌心沒有托盤可點）。唯一的寫入點是 showMarket／showMarkUI／setHollow 三處。 */
+let TRAY_PHASE=null;
+/* 今夜市集 → 3D 層的清單。**模型鍵是 `it.ab || it.m`**（★不是只有 ab★，計畫 §6 Q3）：
+   POOL 27 件裡有 4 件（巴冷公主珠鍊／山豬牙飾／香灰符／陰陽眼銅錢）沒有 ab 只有 m，
+   只讀 ab 的話那 4 件會靜默變成空槽。詛咒品兩個都沒有 ⇒ key null，3D 層擺占位的符紙堆。
+   純讀取：不耗亂數、不寫任何賽局欄位（trace 因此與基準逐位元組相等）。 */
+function market3dItems(){
+  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null }));
+}
+function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),round:S?S.round:0}); }
+/** NDC ←視窗座標。canvas 是 fixed 0,0 滿版（renderer.js:62），所以視窗座標就是 canvas 座標。 */
+function trayHitAt(ev){
+  if(!TRAY_PHASE) return -1;
+  const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return -1;
+  try{
+    const u=(ev.clientX/(window.innerWidth||1))*2-1;
+    const v=-((ev.clientY/(window.innerHeight||1))*2-1);
+    return Y3.tray.hitTest(u,v);
+  }catch(e){ return -1; }
+}
+/* ★凍結檔 T2 會數這支被呼叫幾次★：tap 落在既有可點元素（.mcard／#skipbtn／#helpBtn／#south 任何鈕）
+   上時必須是 0——#tray 不得吃掉任何一個原本點得到的東西。
+   點在托盤的空白處（hitTest 回 −1）也一樣不做事。 */
+function trayTap(ev){
+  const i=trayHitAt(ev);
+  if(i<0) return;
+  if(TRAY_PHASE==="bid") openSheet(i);
+  else if(TRAY_PHASE==="mark") pickMark(i);
+}
+function trayHover(ev){
+  const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;
+  try{ Y3.tray.setHover(trayHitAt(ev)); }catch(e){}
+}
 /* 種子化亂數：同一顆種子必須重現整局。S.rng = 玩法流（洗牌、AI 抖動、平標決勝、事件）；
    S.rngUi = 純演出流（台詞挑選），與玩法分開才不會讓「有沒有播動畫」改變賽局結果。 */
 function mulberry32(a){
@@ -4795,7 +4832,7 @@ function showMarkUI(){
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
   setHollow(hollow);
-  if(hollow) fillRails(prev,shrinesHTML(),markCardHTML);
+  if(hollow){ fillRails(prev,shrinesHTML(),markCardHTML); TRAY_PHASE="mark"; pushMarket3d(); }
   /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
      牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
   const bd=$("budget"); bd.innerHTML=markHintHTML(ap); bd.className="";
@@ -4890,7 +4927,7 @@ function showMarket(){
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
   setHollow(hollow);
-  if(hollow) fillRails(prev,shrinesHTML(),mcardHTML);
+  if(hollow){ fillRails(prev,shrinesHTML(),mcardHTML); TRAY_PHASE="bid"; pushMarket3d(); }
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
   $("mainbtn").textContent=isLast?"蓋牌開標":"蓋牌，交給下一位";

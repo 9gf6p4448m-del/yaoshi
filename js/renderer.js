@@ -20,6 +20,7 @@ const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
 const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
+const { createTableTray, TRAY } = await import('./table-tray.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -38,6 +39,18 @@ const BLOOM = { strength: 1.05, threshold: 0.7, knee: 0.3, radius: 1.7, scale: 0
 // 治具讀 window.__yaoshi3d.edgeOn 判斷這一版到底有沒有在畫線。
 const EDGE_URL_ON = (() => {
   try { return new URLSearchParams(typeof location !== 'undefined' ? (location.search || '') : '').get('edge') !== '0'; } catch (e) { return true; }
+})();
+
+/* ── 桌心托盤的兩個旗標（v0.56b 上桌卷；解析法同上）───────────────────────
+ *   ?tray3d=0     本卷的 kill switch：版面照 0.56a，桌上不擺任何模型（setItems 變空操作）
+ *   ?table3d=lite 降級鈕（使用者裁 Q3 丙）：模型不掛描邊外殼，draw call 明顯下降
+ * `?table3d=0`（0.56a 的版面 kill switch）由 index.html 那一側管：它不派 ys:market，
+ * 托盤自然是空的——兩層各管各的，出事可以只關一層。 */
+const TRAY_URL = (() => {
+  try {
+    const q = new URLSearchParams(typeof location !== 'undefined' ? (location.search || '') : '');
+    return { on: q.get('tray3d') !== '0', lite: q.get('table3d') === 'lite' };
+  } catch (e) { return { on: true, lite: false }; }
 })();
 
 /** 取得 GPU 名稱（拿不到就回空字串，當成「不是軟體 GL」照常開 bloom）。 */
@@ -137,6 +150,20 @@ function init() {
   scene.add(createOutlineWarmup());
   let stageOn = 0;
 
+  /* ── 桌心托盤（v0.56b）──────────────────────────────────────────────
+   * 資料流是**單向的**：演出層（index.html）在 showMarket／盯上頁派 `ys:market`，
+   * 這裡的 listener 餵給 tray.setItems；3D 層不回頭讀 S、不耗亂數。
+   * 對決時整組收掉（同一張桌子要讓給 8v8），ys:duel-end／ys:table 再放回來。 */
+  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, director });
+  document.addEventListener('ys:market', (e) => {
+    if (!TRAY_URL.on) return; // kill switch：版面照舊，桌上空的
+    const d = (e && e.detail) || {};
+    tray.setItems(Array.isArray(d.items) ? d.items : []);
+    tray.setVisible(true);
+  });
+  document.addEventListener('ys:duel', () => tray.setVisible(false));
+  document.addEventListener('ys:duel-end', () => tray.setVisible(true));
+
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）
   const bloom = createBloom(renderer, BLOOM);
   bloom.setSize(window.innerWidth, window.innerHeight);
@@ -180,7 +207,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, tray, TRAY, trayFlags: TRAY_URL, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
     // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
     get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },
@@ -214,6 +241,7 @@ function init() {
     impact.update(dt);
     duelFigures.update(dt, now);
     traitFx.update(dt); // 骨骼 delta 要疊在 mixer 之後（duelFigures.update 裡），所以排在它後面
+    tray.update(dt); // 桌心托盤：hover 浮空微旋與詛咒陰火（收起來時自己早退）
     // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
     const kind = playerBridge.update(now);
