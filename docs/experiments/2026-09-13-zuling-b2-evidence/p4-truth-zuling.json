@@ -1,0 +1,183 @@
+{
+ "note": "★讀者不得看★。P4 盲讀的真值表（2026-09-13 祖靈系批 2 階段 B）。香火 9 支的真值在 docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-truth.json，那一份一格未動。",
+ "source": [
+  "index.html 的 ABILITIES（unit.trait 的效果欄與 desc）",
+  "js/trait-fx/vocab.js 的 MOVE_SPEC（prop／act／react／stance／anchor）"
+ ],
+ "options": {
+  "effect": [
+   "打擊",
+   "防護增益",
+   "偷取",
+   "詛咒削弱"
+  ],
+  "target": [
+   "敵方單一",
+   "敵方多個",
+   "我方單一",
+   "我方多個",
+   "自己"
+  ],
+  "faction": [
+   "祖靈",
+   "香火",
+   "陰氣"
+  ]
+ },
+ "pass": "照 plan-fx-performance.md §5 的 P4：三對 fresh 讀者、每格三題全對才算對，三對中 ≥2 對兩位皆全對。alt 視為正解。",
+ "materials": {
+  "A": {
+   "dir": "p4-material-A-booth-x2",
+   "shots": 36,
+   "desc": "2v2 治具棚（--count=2 --mateGap=1.9），18 支（香火 9 ＋ 祖靈 9）× t1+t2"
+  },
+  "B": {
+   "dir": "p4-material-B-closeup-x2",
+   "shots": 18,
+   "desc": "2v2 tier 2 近景（--camdist=2.4），18 支 × t2"
+  }
+ },
+ "rows": [
+  {
+   "trId": "eliteOpenShot",
+   "name": "射日神弓",
+   "effect": "打擊",
+   "target": "敵方單一",
+   "why": "ABILITIES.eliteOpenShot desc「一拍開場：對面最壯的一隻 −1」＋`openShot:1`：對一隻造成傷害；MOVE_SPEC.react=退（受招方是敵方那一隻）。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "丁",
+    "act": "張",
+    "react": "退",
+    "stance": "舉臂",
+    "anchor": "foe"
+   }
+  },
+  {
+   "trId": "wardHpFront2",
+   "name": "百步蛇紋盾",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.wardHpFront2 desc「一拍：前鋒**全體** hp+2」＋`hpFront:2`：加在本方前鋒全體身上、不造成傷害；MOVE_SPEC.react=升。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "扎",
+    "react": "升",
+    "stance": "下沉",
+    "anchor": "allies"
+   }
+  },
+  {
+   "trId": "eliteArmor",
+   "name": "巴冷公主珠鍊",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.eliteArmor desc「**本隊**每拍第一次受擊 −2（保底 1）」＋`armor:2`：減傷加在本隊全體身上；MOVE_SPEC.react=升。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "乙",
+    "act": "張",
+    "react": "升",
+    "stance": "前傾",
+    "anchor": "allies"
+   }
+  },
+  {
+   "trId": "wardFirst",
+   "name": "祖靈之眼",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "alt": {
+    "target": "我方單一"
+   },
+   "why": "ABILITIES.wardFirst desc「一拍：本方前鋒先結算」＋`first:true`。判定在 index.html:3828 是 `pwAny(X,\"first\")` ⇒ **整隊**先結算（不是只有一隻），所以真值取我方多個。`alt.target=我方單一` 接受把 desc 的「前鋒」讀成單一那一隻。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "甲",
+    "act": "張",
+    "react": "升",
+    "stance": "下沉",
+    "anchor": "allies"
+   }
+  },
+  {
+   "trId": "boltGamble",
+   "name": "雷女之火",
+   "effect": "打擊",
+   "target": "敵方單一",
+   "why": "ABILITIES.boltGamble desc「一拍開始 15% 燒掉對面 **1 隻**小兵」＋`bolt:0.15`：對一隻造成傷害；MOVE_SPEC.react=壓（受招方被壓住）。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "丁",
+    "act": "張",
+    "react": "壓",
+    "stance": "舉臂",
+    "anchor": "foe"
+   }
+  },
+  {
+   "trId": "swarmHalfSplash",
+   "name": "拼板舟",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.swarmHalfSplash desc「**本隊**受到的濺射減半」＋`halfSplash:true`：減傷加在本隊身上、不造成傷害；MOVE_SPEC.react=升。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "丙",
+    "act": "躍",
+    "react": "升",
+    "stance": "下沉",
+    "anchor": "allies"
+   }
+  },
+  {
+   "trId": "swarmThorn",
+   "name": "山豬牙飾",
+   "effect": "打擊",
+   "target": "敵方單一",
+   "alt": {
+    "effect": "防護增益"
+   },
+   "why": "ABILITIES.swarmThorn desc「本隊每拍第一次被擊中時反傷 2」＋`thorn:2`：**機制上是我方的反擊被動、畫面上是對打中我們那一隻的打擊**（index.html:3626 的 pwDeal 把傷害記在 att 身上；MOVE_SPEC.react=退，受招方是敵方那一隻）。真值取畫面語意（打擊／敵方單一），`alt.effect=防護增益` 接受從機制讀的答案——與香火 eliteCleave 同一條處置。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "甲",
+    "act": "沉",
+    "react": "退",
+    "stance": "下沉",
+    "anchor": "foe"
+   }
+  },
+  {
+   "trId": "eliteSelfCut",
+   "name": "獻祭刀",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.eliteSelfCut desc「一拍自傷 1，**全場本隊** atk+2」＋`selfCut:1,selfCutAtk:2`：增益加在本隊全體（施招者也吃到）。★這一格是製作人 2026-09-13 階段 A 簽字裁定②「祖靈 P4 真值照 ABILITIES 填（獻祭刀＝防護增益／我方多個）」，不是本階段自己定的★。MOVE_SPEC.react=升。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "甲",
+    "act": "割",
+    "react": "升",
+    "stance": "下沉",
+    "anchor": "allies"
+   }
+  },
+  {
+   "trId": "wardHpAll1",
+   "name": "山神庇佑",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.wardHpAll1 desc「一拍：**全體** hp+1（含護法、作祟）」＋`hpAll:1`：回血給本隊全體；MOVE_SPEC.react=升。",
+   "faction": "祖靈",
+   "moveSpec": {
+    "prop": "甲",
+    "act": "沉",
+    "react": "升",
+    "stance": "下沉",
+    "anchor": "allies"
+   }
+  }
+ ]
+}

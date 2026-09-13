@@ -1,0 +1,94 @@
+# 祖靈批階段 B・覆審 r2 修補批末閘門（全套重跑）
+# 程式碼 SHA：f859c06cc0c54965599394e9a08dfe33be352685
+# 這一份是**修補全部落地之後**重跑的，不是沿用前一輪的數字。
+
+== P0 trace-eq（引擎零 diff）==
+$ node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html
+  {"old":"scratchpad/base-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+
+== P2／P5／P6 traitfx-drive 全套 ==
+  --tier=1                27/27 pass · 重複簽章 0 · scratchpad/_g1.json
+  --tier=2                30/30 pass · 重複簽章 0 · scratchpad/_g2.json
+  --tier=3                3/3 pass · 重複簽章 0 · scratchpad/_g3.json
+  --tier=1 --fxvocab=1    27/27 pass · 重複簽章 0 · scratchpad/_gv1.json
+  --tier=2 --fxvocab=1    30/30 pass · 重複簽章 0 · scratchpad/_gv2.json
+  --tier=2 --count=2      30/30 pass · 重複簽章 0 · scratchpad/_gc2.json
+  ★--count=3（3v3）由覆審 r2 當時的 22/30 → 30/30；--count=2 維持 30/30。
+
+== anchor 逐支（--tier=2 --count=2 ／ --count=3；第一欄＝count）==
+2 eliteOpenShot      spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=2/0(sep 4) main=OK d=0 ok=1
+2 wardHpFront2       spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 eliteArmor         spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 wardFirst          spec=allies n=3 land=3 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 boltGamble         spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=1/0(sep 4) main=OK d=0 ok=1
+2 swarmHalfSplash    spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0.053 ok=1
+2 swarmThorn         spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=1/0(sep 4) main=OK d=0 ok=1
+2 eliteSelfCut       spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 wardHpAll1         spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 wardAtkAll1        spec=allies n=3 land=1 fol=2 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 eliteCleave        spec=foes n=3 land=3 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 4) main=OK d=0 ok=1
+2 wardAbsorb4        spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 wardImmuneLost     spec=allies n=3 land=1 fol=2 bad=0 skip=0 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 swarmRally         spec=allies n=7 land=5 fol=2 bad=0 skip=1 miss=0 cover=2/2(sep 2) main=OK d=0 ok=1
+2 biteGamble         spec=foe n=4 land=4 fol=0 bad=0 skip=1 miss=0 cover=0/0(sep 4) main=OK d=0.178 ok=1
+2 wardHpFirst        spec=ally n=2 land=2 fol=0 bad=0 skip=0 miss=0 cover=1/1(sep 1) main=OK d=0 ok=1
+2 wardRegen1         spec=ally n=2 land=1 fol=1 bad=0 skip=0 miss=0 cover=1/1(sep 1) main=OK d=0 ok=1
+2 swarmLastStand     spec=self n=1 land=1 fol=0 bad=0 skip=0 miss=0 cover=1/1(sep 1) main=OK d=0.052 ok=1
+3 eliteOpenShot      spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=2/0(sep 4) main=OK d=0 ok=1
+3 wardHpFront2       spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 eliteArmor         spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 wardFirst          spec=allies n=4 land=4 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 boltGamble         spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=1/0(sep 3) main=OK d=0 ok=1
+3 swarmHalfSplash    spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0.164 ok=1
+3 swarmThorn         spec=foe n=3 land=2 fol=1 bad=0 skip=0 miss=0 cover=1/0(sep 4) main=OK d=0 ok=1
+3 eliteSelfCut       spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 wardHpAll1         spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 wardAtkAll1        spec=allies n=4 land=1 fol=3 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 eliteCleave        spec=foes n=3 land=3 fol=0 bad=0 skip=0 miss=0 cover=2/2(sep 4) main=OK d=0 ok=1
+3 wardAbsorb4        spec=allies n=5 land=5 fol=0 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 wardImmuneLost     spec=allies n=4 land=1 fol=3 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0 ok=1
+3 swarmRally         spec=allies n=8 land=5 fol=3 bad=0 skip=0 miss=0 cover=3/3(sep 3) main=OK d=0.074 ok=1
+3 biteGamble         spec=foe n=4 land=4 fol=0 bad=0 skip=1 miss=0 cover=1/0(sep 4) main=OK d=0.179 ok=1
+3 wardHpFirst        spec=ally n=2 land=2 fol=0 bad=0 skip=0 miss=0 cover=1/1(sep 2) main=OK d=0 ok=1
+3 wardRegen1         spec=ally n=2 land=1 fol=1 bad=0 skip=0 miss=0 cover=1/1(sep 2) main=OK d=0 ok=1
+3 swarmLastStand     spec=self n=1 land=1 fol=0 bad=0 skip=0 miss=0 cover=1/1(sep 1) main=OK d=0 ok=1
+
+  合計：count=2 共 61 件登記（實體落點 51／follow 印記 10／解不出人跳過 2），bad 0、missing 0；
+        count=3 共 71 件（58／13／1），bad 0、missing 0。18 支的 anchorOK 全為 1。
+
+== anchor 鑑別力（9 條突變）==
+  見同目錄 anchor-mutations.txt（同一個 SHA 上跑的）：A–G 七條＋覆審 r2 指名的 h／i 兩條，
+  9 條全紅、健康態前後皆綠。腳本 anchor-mutations.mjs（字串配不到就整支中止）。
+
+== P3 fx-contrast（18 支，t2 ／ t1）==
+  "pass": 18, "failed": []
+  "pass": 18, "failed": []
+  兩個 tier 都是 18/18（門檻：area ≥0.8%、ΔE 中位 ≥28）。
+
+== P7 duel-perf（本樹 ／ 基準樹 76fc296）==
+  {"out":"scratchpad/_perf.json","perf":{"loadMs":1129,"rendersPerSec":300,"rafMedianFps":59.9,"rafP95Ms":16.7,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+  {"out":"scratchpad/_perfb.json","perf":{"loadMs":1113,"rendersPerSec":300.5,"rafMedianFps":59.9,"rafP95Ms":16.7,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+  ⇒ fps 59.9:59.9、draw call 986:986、visible 16:16，errors 0。
+
+== P8 duel-drive seed 7 ／ seed 3（各 4 場）==
+  errors []（0）　ver v0.55.7　duels 4 ／ errors []（0）　ver v0.55.7　duels 4
+  兩跑的徽記世界尺寸斷言都是 n/a（README 的 N-6，與前幾輪同一個結構性原因）。
+
+== P8 12 套規則測試（每套最後一行）==
+  aistake           通過 8　失敗 0
+  conscap           通過 5　失敗 0
+  duel-desync       結果：7 綠 ／ 0 紅
+  emblem-collision  結果：9 綠 ／ 0 紅
+  fxtier            結果：14 綠 ／ 0 紅
+  fxvocab           結果：28 綠 ／ 0 紅
+  legend            32 過 / 0 失敗
+  lineup-order      結果：8 綠 ／ 0 紅
+  nightrules        結果：16 綠 ／ 0 紅
+  review            通過 28　失敗 0
+  roles-balance     角色平衡卷單元測試：32 過 / 0 失敗
+  wish16            結果：PASS=36 FAIL=0
+
+== §A3 尺寸記錄（Q5，記錄項不擋批）==
+  參考線 ratio ≤ 0.6666666666666666（§A3，**記錄項不擋批**）：道具 2／36 列超過（另有 46 列是腳下語彙／拖尾，不在這條規則的範圍）。errors=0
+  參考線 ratio ≤ 0.6666666666666666（§A3，**記錄項不擋批**）：道具 2／36 列超過（另有 46 列是腳下語彙／拖尾，不在這條規則的範圍）。errors=0
+  超過的兩件與前一輪相同（拼板舟的浪弧 1.047、破軍旗的殘旗 0.818），已在報告 §2 記錄交裁。

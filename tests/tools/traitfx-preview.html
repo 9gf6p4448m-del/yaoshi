@@ -61,6 +61,11 @@ const BODY = q.get('body') || 'elite';
 const FAC = q.get('fac') || 'zuling';
 const COUNT = Math.max(1, Math.min(8, parseInt(q.get('count') || '1', 10) || 1));
 const FOE = (q.get('foe') || 'boat:swarm:zuling:3,sword:elite:xianghuo:1').split(',').map((s) => { const [ab, body, fac, n] = s.split(':'); return { ab, body, fac, n: parseInt(n || '1', 10) || 1 }; });
+/* ★`?mate=ab:body`（2026-09-13 P4 第 2 輪材料規格）★
+   我方第 2 尊起改用**與施招者不同體型的同系模型**。理由（製作人指示）：2v2 材料裡
+   兩尊同型同色站在一起，讀者連「這是兩尊」都要辨半天，更別說分施招者與受益者。
+   ★這是材料規格，不是判準★：不帶＝與施招者同型，第 1 輪材料的站位與模型一個位元組不變。 */
+const MATE = (() => { const v = q.get('mate'); if (!v) return null; const [ab, body] = v.split(':'); return ab ? { ab, body: body || BODY } : null; })();
 const THROW = q.get('throw') === '1';
 const BLOOM_ON = q.get('bloom') !== '0';
 // v0.54：ms 與 tier 一律由呼叫端（traitfx-drive.mjs，讀 tests/tools/fx-consts.mjs）帶進來。
@@ -135,7 +140,11 @@ if (THROW) TRAIT_MOVES[TRAIT] = () => { throw new Error('injected'); };
 
 // 名冊（同 index.html pwArmyView 的形狀）：A＝出招方、B＝對面
 const armies = [{ units: [] }, { units: [] }];
-for (let i = 0; i < COUNT; i++) armies[0].units.push({ id: i, body: BODY, fac: FAC, ab: AB });
+// 第 0 尊永遠是施招者（編舞的 `byBody(...)[0]` 取到的就是他）；第 2 尊起才套 `?mate=`
+for (let i = 0; i < COUNT; i++) {
+  const m = (i > 0 && MATE) ? MATE : { ab: AB, body: BODY };
+  armies[0].units.push({ id: i, body: m.body, fac: FAC, ab: m.ab });
+}
 let id = 0;
 FOE.forEach((t) => { for (let i = 0; i < t.n; i++) armies[1].units.push({ id: id++, body: t.body, fac: t.fac, ab: t.ab }); });
 

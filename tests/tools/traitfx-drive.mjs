@@ -392,7 +392,7 @@ async function runCase(browser, base, c, opt) {
   const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
     && !!fxvocabQ(opt) && !opt.throw && !opt.block;
   const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, anchors: (sig && sig.anchors) || null, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;

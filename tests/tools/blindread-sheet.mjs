@@ -5,6 +5,7 @@
 //                                            [--camdist=<公尺>]  ← 只給「tier 2 近景」那一種材料用
 //   --camdist  轉給治具頁的 ?camdist=（對決機位的 dist，預設 4.2）。**不帶＝原本的機位，材料規格不變**；
 //              2026-09-12 製作人裁定 P4 材料改兩種：1v1 治具棚（不帶）＋ tier 2 近景（帶 2.4）。
+//                                            [--mate=auto|<ab>:<body>]  ← 我方第 2 尊起換成不同體型的同系模型（材料規格）
 //                                            [--port=8846] [--label] [--dt=16.6667] [--fxvocab=1]
 //   --fxvocab=1  拍 v0.55 的徽記剪影版；不帶＝index.html PW_FX.VOCAB_ON 的預設 false＝0.54 演出。
 //
@@ -54,7 +55,7 @@ const GAPV = (() => {
      第一版是 `--(mate-gap|gap|mategaps)=` 三項**黑名單**——`--mate_gap=`／`--mateGapp=` 照樣靜默忽略。
      危險的效果是「旗標打錯 ⇒ 產出的材料規格與操作者以為的不同」，所以改成**白名單**：
      凡是本支不認得的 `--xxx` 一律當場 throw。分母＝這一支真的吃的旗標，就是下面這一張表。 */
-  const KNOWN = ['only', 'tiers', 'seed', 'camdist', 'mategap', 'count', 'foe', 'port', 'label', 'dt', 'fxvocab', 'proto'];
+  const KNOWN = ['only', 'tiers', 'seed', 'camdist', 'mategap', 'count', 'foe', 'mate', 'port', 'label', 'dt', 'fxvocab', 'proto'];
   const unknown = process.argv.slice(2).filter((x) => x.startsWith('--'))
     .map((x) => x.replace(/^--/, '').split('=')[0].toLowerCase())
     .filter((k) => KNOWN.indexOf(k) < 0);
@@ -66,6 +67,25 @@ const GAPV = (() => {
   return v ? v.slice(v.indexOf('=') + 1) : '';
 })();
 const GAPQ = GAPV ? '&mategap=' + encodeURIComponent(GAPV) : '';
+/* ★`--mate=auto`（2026-09-13 P4 第 2 輪材料規格，製作人指示）★
+   我方第 2 尊起改用**與施招者不同體型的同系模型**：2v2 材料裡兩尊同型同色站在一起，
+   讀者連「這是兩尊」都要辨半天，更別說分施招者與受益者。
+   下表逐案挑（同系、`body` 與施招者不同、`ab` 也不同）；**這是材料規格，不是判準**，
+   不帶 `--mate` 就與第 1 輪材料一個位元組不變。 */
+const MATE_BY_FAC = {
+  zuling: { elite: 'shield:ward', ward: 'bow:elite', swarm: 'shield:ward', haunt: 'bow:elite' },
+  xianghuo: { elite: 'flag:ward', ward: 'sword:elite', swarm: 'flag:ward', haunt: 'sword:elite' },
+  yinqi: { elite: 'redhat:haunt', ward: 'redhat:haunt', swarm: 'nail:elite', haunt: 'nail:elite' },
+};
+const MATEV = (() => { const v = process.argv.find((x) => /^--mate=/i.test(x)); return v ? v.slice(v.indexOf('=') + 1) : ''; })();
+function mateQ(c) {
+  if (!MATEV) return '';
+  if (MATEV !== 'auto') return '&mate=' + encodeURIComponent(MATEV);
+  const t = (MATE_BY_FAC[c.fac] || {})[c.body];
+  if (!t) throw new Error(`--mate=auto 沒有 ${c.fac}／${c.body} 的同伴模型（見 blindread-sheet.mjs 的 MATE_BY_FAC）`);
+  if (t.split(':')[0] === c.ab) throw new Error(`--mate=auto 為 ${c.trait} 挑到與施招者同一個模型（${t}）——那就失去「兩尊分得出來」的意義`);
+  return '&mate=' + encodeURIComponent(t);
+}
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }
@@ -132,7 +152,7 @@ async function shootOne(browser, base, c, tier, dt, tmpDir, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String((e && e.message) || e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}${GAPQ}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${COUNTQ || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${dt}${fxvocabQ(opt)}${PROTO ? '&proto=' + PROTO : ''}${CAMQ}${FOEQ}${GAPQ}${mateQ(c)}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__tfx, null, { timeout: 30000 });
   await page.evaluate(() => window.__tfx.ready);
@@ -225,7 +245,7 @@ async function main() {
          而不是「有沒有覆寫」——覆審 r2 對 M4 的兩點補正。 */
       spec: { mateGap: GAPV || null, camdist: CAMQ ? CAMQ.split('=')[1] : null, countOverride: COUNTQ || null,
         counts: Object.fromEntries(cases.map((c) => [c.trait, COUNTQ || c.count])),
-        foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, fxvocab: fxvocabQ(opt) !== '', proto: PROTO || null },
+        foe: FOEQ ? decodeURIComponent(FOEQ.split('=')[1]) : null, mate: MATEV || null, fxvocab: fxvocabQ(opt) !== '', proto: PROTO || null },
       mapping,
     }, null, 1));
   } finally { await browser.close(); srv.kill(); }
