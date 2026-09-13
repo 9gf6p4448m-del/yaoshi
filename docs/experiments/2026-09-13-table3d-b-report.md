@@ -123,7 +123,8 @@ $ node tests/tools/scene-shot.mjs /tmp/t3d-gate3 --perf --runs=5 --port=9691    
 | **預設**（描邊開） | **113** ✅≤135 | **34990** ❌>33000 | **1** ✅ | 431.8／415.1 | **0.405／0.3999** |
 | `?table3d=lite` | **68** ✅明顯下降 | 19947 | 1 | 501.7／487.7 | 0.470／0.470 |
 
-- **對決頁**：見下方 T3-duel。
+- **對決頁**：見下方 T3-duel。托盤在 `ys:duel` 時整組 `setVisible(false)`（`js/renderer.js:183`），
+  所以對決只多了環境那一個 `decor` mesh。
 - 三個變體的 `calls`／`triangles`／`passes` 在三批之間**逐值相同**（18/1975、113/34990、68/19947），
   ⇒ 這三欄是決定性的、可信。
 - 模型真的在畫：`items()` 四格 `visible:true`、預設 `outlines` 8～17 顆／尊、lite 全 0
@@ -139,6 +140,38 @@ $ node tests/tools/scene-shot.mjs /tmp/t3d-gate3 --perf --runs=5 --port=9691    
 即使如此，兩批乾淨的中位比值是 **0.405** 與 **0.3999**——**落在門檻 0.40 的兩側**，
 所以這一條我不宣告通過，也不宣告失敗：**它在這台機器上貼著門檻、不構成可信的判定依據**。
 （計畫 §7 Q4 的裁定本來就把桌機 uncapped 比值列為「記錄項、只擋災難」，真正的 fps 判定在 iPhone 實機。）
+
+### T3-duel 對決頁 draw call → ✅（Δ+2，容差 ±5），但**凍結檔裡那個基準數字量錯了，照實說明**
+
+```
+$ mkdir .base-f9dd83d && git archive f9dd83d | tar -x -C .base-f9dd83d
+$ node tests/tools/duel-perf.mjs perf /tmp/dp-base-1.json --root=.base-f9dd83d --port=9721 --uncap
+$ node tests/tools/duel-perf.mjs perf /tmp/dp-base-2.json --root=.base-f9dd83d --port=9722 --uncap
+$ node tests/tools/duel-perf.mjs perf /tmp/duelperf-new.json --port=9711 --uncap
+$ node tests/tools/duel-perf.mjs perf /tmp/dp-new-2.json --port=9731 --uncap
+```
+
+| 樹 | 跑 | `drawCallsPerFrame` | `trianglesPerFrame` | `renderPassesPerFrame` | `rafMedianFps` |
+|---|---|---|---|---|---|
+| `f9dd83d` | ① 本 session 第一跑（凍結檔抄的那一個） | **978** | 354604 | **2** ← ★異常★ | 112.4 |
+| `f9dd83d`（`--root=.base-f9dd83d`） | ② | **986** | 354620 | **10** | 122.0 |
+| `f9dd83d`（同上） | ③ | **986** | 354620 | **10** | 111.1 |
+| 本卷 | ④ | **988** | 355640 | **10** | 122.0 |
+| 本卷 | ⑤ | **988** | 355640 | **10** | 108.7 |
+
+**歸因（`02 §6.2`：先定位才准處置）**：①的 `renderPassesPerFrame` 是 **2**，②③④⑤ 全是 **10**。
+計畫 §6 Q4 的對決基準也是 **10 passes**。也就是說 ① 那一跑**根本不是在同一條渲染路徑上量的**
+（passes 2 ⇒ 那兩幀沒走 bloom 的多趟合成，判斷是冷開機第一跑 bloom shader 還沒編完），
+把它當基準等於拿兩種東西相減。同一棵基準樹用同一支治具重量兩次，**逐值都是 986／354620／10**。
+
+**兩個數字都給，我不自己挑**：
+- 對**凍結檔寫死的 978**：988 − 978 ＝ **+10**，超出 ±5 → 這條字面上是**紅**的。
+- 對**同路徑重量的 986**（×2 跑逐值相同）：988 − 986 ＝ **+2**，在 ±5 內 → **綠**。
+  而且 +2 正好對得上「多了 `decor` 這一個 mesh，兩幀和 ＝ +2 calls」；三角形 +1020 也對得上年輪桌面。
+
+★**我沒有改凍結檔裡的 978**★。把比較對象從 978 換成 986 **會提高通過機率**，照 `02 §2.1`
+那是使用者才能點頭的事——上面把「原標準錯在哪（量在 passes=2 的路徑上）、為什麼現在才知道
+（後面四跑全是 10，才看得出第一跑是異常）」寫清楚，**請製作人裁**。
 
 ### T6 範圍 → ✅
 

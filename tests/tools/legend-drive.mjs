@@ -483,8 +483,15 @@ async function runTrayMem(browser, port, query) {
       const t=b?b.textContent:'', d=b?b.disabled:true, r=S?S.round:0;
       const measure = /蓋牌/.test(t) && !d;
       if (!measure) {
+        /* ★#modal／#sheet／#handoff 也要點得掉★（實測：不點的話第 8 夜的「壽命危急，繼續供奉？」
+           會把驅動永遠卡在那裡——兩次跑都停在第 7 夜，看起來像「這一局只有 7 夜」的靜默失敗）。
+           順序：主鈕 → stage → 交棒 → modal → sheet，先近後遠。 */
+        const pick = (sel) => [...document.querySelectorAll(sel)].find(x => !x.disabled && x.offsetParent !== null);
         if (!d) b.click();
-        else { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e) e.click(); }
+        else {
+          const e = pick('#stage button') || pick('#hoBtn') || pick('#modalbox button') || pick('#sheetbox button');
+          if (e) e.click();
+        }
       }
       return { t, d, r, measure }; })()`;
     for (let i = 0; i < 12000; i++) {

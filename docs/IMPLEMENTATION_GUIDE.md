@@ -1859,3 +1859,39 @@ seg filter）；desc 慣例仍是「X流（起始N）。被動：…。AI 時…
 `tests/tools/dmg-readability.mjs`／`closeup-drive.mjs` 的第二段 playwright 候選路徑**已補**（覆審 r1 H5），
 worktree 裡跑得動了；L10 的實跑結果與「基準本來就紅」那件事見
 `docs/experiments/2026-09-12-fx-legibility-b0-fix-report.md`。
+
+### 11.30 拍賣桌 3D 實體化第一段 **0.56b**（2026-09-13）——接手前先知道這九件事
+
+凍結檔 `docs/experiments/2026-09-13-acceptance-table3d-b.md`；報告 `docs/experiments/2026-09-13-table3d-b-report.md`；
+計畫 `docs/proposals/2026-09-10-plan-table3d.md`（§1 標 0.55b 的列、§2 介面、§6 Q3）。
+
+1. **圖層契約**：演出層（`index.html`）**單向推** `ys:market`＋`{items:[{key,curse,fac}], round}` →
+   `js/renderer.js` 的 listener → `tray.setItems(list)`。3D 層**不回頭讀 `S`／`CFG`**、不耗亂數。
+   Raycaster 的輸入端也在演出層：`#tray` 收 `pointerdown` → 算 NDC → `tray.hitTest(u,v)` 回槽位 →
+   **由 `index.html` 依 `TRAY_PHASE` 分派** `openSheet(i)`（出價頁）／`pickMark(i)`（盯上頁）。
+   3D 層只回答幾何問題，不知道什麼是「出價」。
+2. **模型鍵是 `it.ab || it.m`，不是只有 `ab`**。POOL 27 件裡 4 件（巴冷公主珠鍊／山豬牙飾／香灰符／
+   陰陽眼銅錢）沒有 `ab` 只有 `m`；只讀 `ab` 那 4 件會**靜默變成空槽**而測試照樣綠。
+3. **`makeCreatureFigure` 回傳的 `group.visible` 預設是 `false`**（`js/creature-figures.js:567`）。
+   忘了打開就會量到「托盤不用錢」的假綠（delta＝0）。
+4. **托盤的拍品一律 `groundFx:'none'`**：`CREATURE_GROUND` 會自動給水鬼浮標掛一灘水（那是牠在戰場上的
+   識別），擺到老檜木供桌上就是桌子中央一攤藍色水窪（r1 截圖實拍到）。
+5. **`TRAY_PHASE` 只有三個寫入點**：`showMarket`（"bid"）、`showMarkUI`（"mark"）、`setHollow(false)`（null）。
+   要加新的掏空頁就要一起加，否則那一頁點托盤不做事（或做錯事）。
+6. **換格時要等 GLB 載完再 `dispose`**：`makeCreatureFigure` 是在 `readyPromise` 的 then 裡才 clone 材質、
+   掛外殼；載到一半就 dispose，那些材質是 dispose **之後**才建出來的 ⇒ 永遠沒人放
+   （`js/table-tray.js` 的 `clearSlot` 已經這樣寫）。
+7. **`glbCache`（`js/creature-figures.js:123`）永不淘汰**，所以逐夜的 `renderer.info.memory` 一定會漲——
+   那是快取，不是漏水。**分辨的方法**：同一批拍品清空再擺回去 5 次，記憶體必須零成長
+   （`legend-drive --traymem` 的「釋放鑑別力」那一段）。要真的壓下去得給 `glbCache` 加 LRU，**那是下一卷**。
+8. **三個旗標各管一層**：`?table3d=0`＝0.56a 的版面 kill switch（不掏空、卡片回 `#stage`，因此也不派 `ys:market`）；
+   `?tray3d=0`＝本卷的 kill switch（版面照舊、桌上不擺模型）；`?table3d=lite`＝模型不掛描邊外殼
+   （draw calls 113 → 68、三角形 34990 → 19947）。
+9. **效能量法**：`scene-shot --perf` 一定是 **uncapped**（`--disable-gpu-vsync --disable-frame-rate-limit`）——
+   不關 vsync 三個變體都是 58~60 renders/s，比值恆 ~0.99＝零鑑別力（實測）。
+   **所有數字除以 2**（`info.reset()` 之後等兩次 rAF ⇒ 兩幀的和）。
+   **Playwright 治具一律單獨跑**：實測兩支並行時 iGPU 被搶，載重那一邊的 renders/s 掉到 40%，
+   對照組（18 draw calls，不是 GPU-bound）完全不受影響 ⇒ 比值整條塌掉，而三個決定性欄位
+   （calls／triangles／passes）逐值不變——**先看決定性欄位有沒有一致，再決定要不要信比值**。
+   對決那一格同理：`duel-perf` 的 `renderPassesPerFrame` 不是 10 的那一跑不能拿來比 `drawCallsPerFrame`
+   （實測踩過：冷開機第一跑量到 passes=2／978 calls，同一棵樹重量是 passes=10／988）。
