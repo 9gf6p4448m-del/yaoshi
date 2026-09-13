@@ -175,11 +175,113 @@ async function runMem(browser) {
   } finally { await ctx.close(); }
 }
 
+/* ── `--chipaudit=<夜數>`：籌碼池夠不夠（r1 覆審 HIGH-1 的紅／綠證據）─────────────
+ *  走**真實產品路徑**（solo 逐夜點 `#mainbtn` 玩完），只在 `props.bid` 上掛一層**記錄用**的
+ *  wrapper（不改行為、不裝替身），每一夜開標之後比對：
+ *    ① 這一夜一共要求推幾枚（Σ min(amount, MAX)，>MAX 的算 STRING.n 枚）
+ *    ② 桌上實際幾枚（`stats().chips`）③ 有沒有被砍掉（`stats().dropped`）
+ *  ④ 逐筆 (seat,slot) 的 want→on 是否相符
+ *  修前（池子 32）：seed 1 第 3 夜要 40 枚、桌上 32、dropped 8 ⇒ 紅。 */
+async function runChipAudit(browser, nights) {
+  const { ctx, page, errs } = await openPage(browser, '');
+  try {
+    await page.waitForTimeout(300);
+    await page.evaluate(`(() => {
+      const P = window.__yaoshi3d.tray.props;
+      window.__bidCalls = [];
+      const o = P.bid.bind(P);
+      P.bid = function (seat, slot, amount) { window.__bidCalls.push({ seat, slot, amount }); return o(seat, slot, amount); };
+    })()`);
+    const rows = []; let lastRound = -1;
+    for (let guard = 0; guard < 6000 && rows.length < nights; guard++) {
+      const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+        return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+      if (/再入妖市/.test(st.t)) break; // 局末：不要按下去（那是 location.reload()）
+      if (/開標 ▸/.test(st.t) && !st.d && st.r !== lastRound) {
+        lastRound = st.r;
+        // 開標的推送已經跑完（startReveal 同步派完所有 ys:bid）
+        const got = await page.evaluate(`(() => {
+          const P = window.__yaoshi3d.tray.props, s = P.stats();
+          const calls = window.__bidCalls.slice(); window.__bidCalls.length = 0;
+          const MAX = window.__yaoshi3d.PROPS.CHIP.MAX, SN = window.__yaoshi3d.PROPS.CHIP.STRING.n;
+          // 只算開標那一批（每筆 amount>0）；同一 (seat,slot) 後蓋前
+          const last = {};
+          calls.forEach(c => { if (c.amount > 0) last[c.seat + ':' + c.slot] = c.amount; });
+          const want = Object.keys(last).reduce((n, k) => n + (last[k] > MAX ? SN : Math.min(MAX, last[k])), 0);
+          return { want, chips: s.chips, dropped: s.dropped, pool: s.chipPool, bids: s.bids,
+                   entries: Object.keys(last).map(k => k + '=' + last[k]) };
+        })()`);
+        got.round = st.r;
+        got.mismatch = got.bids.filter((b) => b.on !== (b.stand ? 8 : Math.min(8, b.want)));
+        rows.push(got);
+      }
+      if (!st.d) await page.click('#mainbtn').catch(() => {});
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+      await page.waitForTimeout(12);
+    }
+    return { rows, errors: errs };
+  } finally { await ctx.close(); }
+}
+
+/* ── `--slam`：木撞擊音有沒有接到**真正的落地事件**（r1 覆審 HIGH-3 的紅／綠證據）──
+ *  `ys:mark-slam` 只能由 table-props 的 token 動畫到位那一幀發出；因此量 `sfx − slam`，
+ *  而不是量 `sfx − mark`（起飛計時器在低 fps／rAF 暫停時會和真正落地脫鉤）。
+ *  批次同時落地可合成一聲，但每一聲都必須貼在至少一個 slam 上。 */
+async function runSlam(browser) {
+  const { ctx, page, errs } = await openPage(browser, '');
+  try {
+    if (!await toMarkPage(page)) throw new Error('沒走到第 1 夜盯上頁（量測前提不成立）');
+    await page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if(t&&t.loaded) await t.loaded(); })()`);
+    await page.waitForTimeout(500);
+    await page.evaluate(`(() => {
+      window.__ev = [];
+      document.addEventListener('ys:mark-slam', () => window.__ev.push({ k: 'slam', t: +performance.now().toFixed(1) }));
+      const P = window.__yaoshi3d.tray.props;
+      const om = P.mark.bind(P);
+      P.mark = function () { window.__ev.push({ k: 'mark', t: +performance.now().toFixed(1) }); return om.apply(null, arguments); };
+      const op = YS_SFX.play.bind(YS_SFX);
+      YS_SFX.play = function (n) { if (n === 'woodslam') window.__ev.push({ k: 'sfx', t: +performance.now().toFixed(1) }); return op.apply(null, arguments); };
+      window.__slamMs = window.__yaoshi3d.PROPS.TOKEN.SLAM_MS * 1000;
+    })()`);
+    // 真人自己宣告一格：pickMark → 一枚令牌 ＋ 一聲；接著 showMarket 補推其餘三枚 ⇒ 再一聲
+    await page.evaluate(`(() => { pickMark(2); })()`);
+    await page.waitForTimeout(1400);
+    const ev = await page.evaluate(`(() => ({ ev: window.__ev, slamMs: window.__slamMs }))()`);
+    const marks = ev.ev.filter((e) => e.k === 'mark');
+    const slams = ev.ev.filter((e) => e.k === 'slam');
+    const sfxs = ev.ev.filter((e) => e.k === 'sfx');
+    const first = slams.length ? slams[0].t : null;
+    const lags = sfxs.map((s) => {
+      // 每一聲對「離它最近、且在它之前」的真正落地時刻。
+      const before = slams.filter((m) => m.t <= s.t);
+      return before.length ? +(s.t - before[before.length - 1].t).toFixed(1) : null;
+    });
+    return { slamMs: ev.slamMs, marks: marks.length, slams: slams.length, plays: sfxs.length, lags, firstSlamAt: first, ev: ev.ev, errors: errs };
+  } finally { await ctx.close(); }
+}
+
 async function main() {
   const srv = await serve(SRC_ROOT, PORT);
   const rec = { viewport: `${W}x${H} dpr2`, portrait: PORTRAIT, seed: SEED, shots: [] };
   try {
     const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+    if (opt.slam) {
+      rec.slam = await runSlam(browser);
+      await browser.close();
+      console.log(JSON.stringify(rec, null, 1));
+      const s = rec.slam;
+      const ok = s.errors.length === 0 && s.slams > 0 && s.plays > 0
+        && s.lags.every((l) => l !== null && Math.abs(l) <= 80)
+        && s.plays <= 2; // 真人那一枚一聲 ＋ 批次補推一聲
+      process.exit(ok ? 0 : 1);
+    }
+    if (opt.chipaudit) {
+      rec.chipAudit = await runChipAudit(browser, Number(opt.chipaudit) || 4);
+      await browser.close();
+      console.log(JSON.stringify(rec, null, 1));
+      const bad = rec.chipAudit.rows.filter((r) => r.dropped > 0 || r.chips !== r.want || r.mismatch.length);
+      process.exit(bad.length === 0 && rec.chipAudit.errors.length === 0 ? 0 : 1);
+    }
     if (opt.mem) {
       rec.mem = await runMem(browser);
       await browser.close();
@@ -323,15 +425,26 @@ async function main() {
       /* (a) 產品的 hitTest 只打 proxies；把道具層的物件名單與 raycaster 打得到的名單對一次 */
       const propNames=[]; props.traverse(o=>{ if(o.isMesh) propNames.push(o.name); });
       /* (b) 對每一件道具的世界中心投影成 NDC，叫產品自己的 hitTest —— 回 −1 才算沒攔截 */
+      /* (b) ★逐 instance★（r1 修補後加嚴）：舊版只投影 InstancedMesh 的**第 0 枚**，
+         32 枚錢／4 枚令牌裡只要有一枚落在命中盒的射線上就漏掉了（本輪就是這樣漏掉令牌的）。
+         現在對**每一枚**取世界中心 → NDC → 叫產品自己的 hitTest，回報最壞的那一枚。 */
       const cam=Y3.camera, V3=cam.position.constructor, v=new V3();
+      const M4=cam.matrixWorld.constructor;
       const probes=[];
       props.children.forEach(o=>{
         if(!o.isMesh) return;
-        if(o.isInstancedMesh && o.count<=0) return;
-        o.getWorldPosition(v);
-        if(o.isInstancedMesh){ const M=new (cam.matrixWorld.constructor)(); o.getMatrixAt(0,M); v.setFromMatrixPosition(M); o.localToWorld(v); }
-        v.project(cam);
-        probes.push({ name:o.name, u:+v.x.toFixed(3), w:+v.y.toFixed(3), hit: tray.hitTest(v.x, v.y) });
+        const n=o.isInstancedMesh?o.count:1;
+        if(n<=0) return;
+        let worst=null, bad=0;
+        for(let i=0;i<n;i++){
+          if(o.isInstancedMesh){ const M=new M4(); o.getMatrixAt(i,M); v.setFromMatrixPosition(M); o.localToWorld(v); }
+          else o.getWorldPosition(v);
+          v.project(cam);
+          const h=tray.hitTest(v.x, v.y);
+          if(h>=0) bad++;
+          if(!worst||h>worst.hit) worst={ u:+v.x.toFixed(3), w:+v.y.toFixed(3), hit:h };
+        }
+        probes.push({ name:o.name, n, badInstances:bad, u:worst.u, w:worst.w, hit:worst.hit });
       });
       return { propNames, probes };
     })()`);
