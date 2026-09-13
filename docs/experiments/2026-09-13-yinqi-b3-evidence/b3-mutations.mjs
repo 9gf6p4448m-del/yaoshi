@@ -54,13 +54,16 @@ const MUT = [
     from: "    st.groundMark(ghost, { r: 0.46,", to: "    st.groundMark(lost, { r: 0.46," },
   { id: 'M9', gate: 'drive', why: '受招方只轉不動（只有 spin 不算反應，react 三段量 move／scale）', file: YQ,
     from: "        st.move(lost, sway.x * SWAY[n], 0, sway.z * SWAY[n]);", to: '        ' },
+  /* M10 是照實留著的**未驗紅**；歸因由 M11 隔離出來，寫在報告 §1.5。 */
   { id: 'M10', gate: 'drive', why: '帽子原地生成不飛（travel 段的載體沒了）', file: YQ,
     from: "        hat.position.lerpVectors(from, to, j);", to: "        hat.position.copy(from);" },
+  { id: 'M11', gate: 'drive', why: '拿掉衝擊拍那一行黏著（隔離「是誰在餵 travel 的分子」）', file: YQ,
+    from: "          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", to: '          ' },
 ];
 
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
 const bakDir = path.join(ROOT, 'scratchpad');
-let port = 8960;
+let port = 9100;
 const rows = [];
 for (const m of MUT) {
   if (ONLY.length && ONLY.indexOf(m.id) < 0) continue;

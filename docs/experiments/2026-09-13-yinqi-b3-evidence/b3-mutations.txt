@@ -1,0 +1,13 @@
+M1 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  MOVE_SPEC 拿掉 stance（已轉正的招漏填施招姿態）
+M2 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  MOVE_SPEC 拿掉 anchor（沒宣告道具落在誰身上）
+M3 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  編舞拿掉 st.groundMark（登記了腳下語彙卻沒演）
+M4 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  編舞拿掉 st.stance（施招姿態沒演）
+M5 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  道具不標 main（主道具消失，落點證據被副件墊高）
+M6 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  主道具改宣告 caster（帽子戴到對手頭上卻說落在自己身上）
+M7 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  衝擊拍把主道具藏起來（opacity 歸 0＝在場五條的第 4 條）
+M8 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  腳下語彙點到受招方腳下（指認錯的施招者）
+M9 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  受招方只轉不動（只有 spin 不算反應，react 三段量 move／scale）
+M10 [drive] 健康 GREEN → 突變 GREEN → 還原 GREEN  ❌  帽子原地生成不飛（travel 段的載體沒了）
+
+10 條，驗紅 9／10
+未驗紅：M10

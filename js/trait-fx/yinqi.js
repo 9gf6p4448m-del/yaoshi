@@ -252,8 +252,16 @@ const MOVES = {
         if (n !== jolted) { jolted = n; hat.rotateZ(0.44); }
         const j = JOLT(e);
         hat.position.lerpVectors(from, to, j);
-        hat.position.y += 0.24 * Math.sin(Math.PI * j);
-        hat.position.addScaledVector(bow, Math.sin(Math.PI * j));
+        /* ★鼓弧只掛在**中間那一跳**上（`n === 1`）★ 兩個理由：
+           ① 陰氣禁平滑補間——`sin(π·j)` 那一版在第一跳就鼓出 0.81，是一條連續的弧；
+           ② **鑑別力**（`02 §6.1` 第 1 條）：突變 M10「帽子原地生成不飛」第一版**沒有驗紅**，
+              因為每一跳都鼓的那條弧自己就走了 ~0.7 世界單位，湊得過 `travel` 的
+              `0.40 × travelDist`——也就是「有沒有真的飛」這件事，證據有一半是鏡頭偏移給的。
+              收成一跳之後，第一跳與最後一跳完全沒有偏移，M10 當場轉紅（見 b3-mutations.txt）。
+           L3 的凍幀點是 travel 中點（＝就是這一跳），所以 P3 的面積一個像素都沒少。 */
+        const m = n === 1 ? 1 : 0;
+        hat.position.y += 0.24 * m;
+        hat.position.addScaledVector(bow, m);
       },
       done() {
         /* ★衝擊拍★：帽子扣上頭＝魂片散出＝那一尊同幀開始打轉（三件同一拍，§A2） */
