@@ -135,7 +135,19 @@ async function perfSample(browser, url) {
     }
     if (!reached) throw new Error('沒走到第 1 夜出價頁（量測前提不成立，不得靜默放行）：' + url);
     await page.evaluate(`(async () => { const t=window.__yaoshi3d&&window.__yaoshi3d.tray; if(t&&t.loaded) await t.loaded(); })()`);
-    await page.waitForTimeout(1100); // 等鏡頭補間與燈籠閃爍穩定
+    /* ★最壞情境要真的擺上桌★（上桌卷**第二段**凍結檔 U3）：
+       8 枚籌碼 × 4 席（＝籌碼池上限 32 枚）＋ 4 枚令牌 ＋ 四席信物（`ys:market` 進來時就掛好了）。
+       走的是產品自己的 `props.bid`／`props.mark`，不是直接去翻 instance 的 count
+       （`02 §6.1` 第 3 條：替身不得取代決定成敗的那一段）。
+       `?tray3d=0` 那條**不填**——它是對照組，桌上本來就該是空的。 */
+    await page.evaluate(`(() => {
+      const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray||!Y3.tray.props) return null;
+      if(Y3.trayFlags && Y3.trayFlags.on===false) return 'kill-switch：不填';
+      const P=Y3.tray.props;
+      for(let seat=0;seat<4;seat++){ P.bid(seat, seat, 8); P.mark(seat, seat); }
+      return P.stats();
+    })()`);
+    await page.waitForTimeout(1100); // 等鏡頭補間、燈籠閃爍與道具落定
     /* ★描邊只掛 hover 那一件之後，「預設」有兩個狀態，兩個都要量★（2026-09-13 裁定）：
        沒有 hover（玩家手不在托盤上）＝最省；hover 中＝**最壞情況**，閘門要看的是它。
        只量沒 hover 的那一個會讓「描邊多貴」整個從帳上消失——那是把判準搬淺。 */
@@ -156,13 +168,19 @@ async function perfSample(browser, url) {
       const budget = {};
       const triOf = (o) => {
         const g = o.geometry; if (!g) return 0;
-        if (g.index) return g.index.count / 3;
-        return g.attributes && g.attributes.position ? g.attributes.position.count / 3 : 0;
+        /* InstancedMesh 的三角形是「一份幾何 × 現在畫幾個 instance」——不乘 count 的話
+           32 枚銅錢會被記成 96 個三角形（分母表對不上 `info.render.triangles`）。 */
+        const n = o.isInstancedMesh ? Math.max(0, o.count) : 1;
+        if (g.index) return (g.index.count / 3) * n;
+        return g.attributes && g.attributes.position ? (g.attributes.position.count / 3) * n : 0;
       };
       const bucketOf = (o) => {
         for (let n = o; n; n = n.parent) {
           if (n.name === 'tray-cloth') return '紅布托盤';
           if (n.name === 'tray-curse' || n.name === 'tray-curse-fire') return '詛咒占位';
+          if (n.name === 'prop-chips') return '壽命銅錢籌碼';
+          if (n.name === 'prop-tokens') return '血玉令牌';
+          if (n.name && n.name.indexOf('relic-') === 0) return '席角信物';
           if (n.name === 'table-tray') return o.name === 'outline' ? '托盤描邊外殼' : '托盤拍品本體';
           if (n.name === 'table') return '木紋桌面';
           if (n.name === 'table-decor') return '香灰＋符咒';
@@ -184,6 +202,9 @@ async function perfSample(browser, url) {
         calls: calls / 2, tris: tris / 2, passes: passes / 2,
         geometries: info.memory.geometries, textures: info.memory.textures,
         items: t && t.items ? t.items() : null,
+        /* 第二段：這一幀桌上真的有幾枚錢／幾枚令牌／幾件信物。
+           ★沒有這一欄，U3 的綠燈零鑑別力★——道具一件都沒擺上去當然也會過門檻。 */
+        props: t && t.props && t.props.stats ? t.props.stats() : null,
         trayVisible: t && t.visible ? t.visible() : null,
         hollow: !!(document.getElementById('felt') || {}).classList && document.getElementById('felt').classList.contains('hollow'),
       };
@@ -250,6 +271,7 @@ async function perfMain() {
           rendersPerSecAll: S.map((x) => x.onHover.rendersPerSec),
           hoverSlot: S[S.length - 1].onHover.hoverSlot,
           outlines: S[S.length - 1].onHover.items ? S[S.length - 1].onHover.items.map((i) => i.outlines) : null,
+          props: S[S.length - 1].onHover.props,
           budget: S[S.length - 1].onHover.budget,
         },
         geometries: S[S.length - 1].geometries, textures: S[S.length - 1].textures,
