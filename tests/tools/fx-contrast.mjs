@@ -59,7 +59,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { msOf, TIER_BASE_MS, assertPageConsts, pageConstsFromHtml } from './fx-consts.mjs';
-import { casesFromIndex, fxvocabQ, emblemCasesFromSource } from './traitfx-drive.mjs';
+import { casesFromIndex, fxvocabQ, emblemCasesFromSource, movesEmblemCasesFromSource } from './traitfx-drive.mjs';
 import { beatOf } from '../../js/trait-fx/vocab.js';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -199,8 +199,16 @@ async function shoot(browser, base, c, opt, outDir) {
          （鎖沒掛上、量錯對象，仍然抓得到）；
        · 沒有呼叫 ⇒ `made===0` 是**正確狀態**，判 `n/a`，不影響 L3 的對比判定。
      `--fxvocab=1` 時跑的是 `V055` 那一份，所以要認 `<trId>_v055`。 */
-  const emblemMoves = emblemCasesFromSource(ROOT);
-  const usesEmblem = emblemMoves.indexOf(fxvocabQ(opt) ? c.trait + '_v055' : c.trait) >= 0;
+  /* ★2026-09-13 陰氣批階段 A 覆審 C2：兩條路各查各的那一份★
+     改前是一份名單查兩條路，而 `movesMatching` 早就把 `_v055` 後綴剝掉了，於是：
+       · 預設路徑查裸 `c.trait`，名單裡卻混進了**徽記版**的招名（三個系別檔都沒有 `V054` 之後，
+         切點失效、`V055` 整段被當成正式演出）⇒ 轉正後的招恆為 `usesEmblem=true`、
+         `made===0` 判 fail ⇒ **整支治具 exit 1**（實測 hauntLost 與 eliteSelfCut 皆然）；
+       · `--fxvocab=1` 查 `c.trait + '_v055'`，後綴已被剝掉 ⇒ **恆為 false**，canary 那一格失效。
+     兩條都是「查錯名單」造成的，不是門檻問題，所以修的是查法不是門檻。 */
+  const usesEmblem = fxvocabQ(opt)
+    ? emblemCasesFromSource(ROOT).indexOf(c.trait) >= 0      // 徽記版那一份（帶活性下限）
+    : movesEmblemCasesFromSource(ROOT).indexOf(c.trait) >= 0; // 正式演出那一份（轉正後本來就空）
   const sizeState = !st ? 'fail' : sizeGuard.made === 0 ? (usesEmblem ? 'fail' : 'n/a')
     : (sizeGuard.violations === 0 && sizeGuard.locked === sizeGuard.made && sizeGuard.audits > 0 && sizeGuard.tweenErrors === 0) ? 'ok' : 'fail';
   const sizeOK = sizeState === 'ok' || sizeState === 'n/a';

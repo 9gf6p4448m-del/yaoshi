@@ -731,5 +731,34 @@ t('vocab.js 自己不含 TODO／佔位', () => {
   if (/TODO|FIXME|0x000000/.test(src)) throw new Error('vocab.js 裡有 TODO／FIXME／佔位色');
 });
 
+/* ── 8. 腳下語彙「暗斑」要真的比桌面暗（2026-09-13 陰氣批階段 A 覆審 H3）──
+   病因：`st.stain` 第一版的本體色是 `line`（苔綠 `#6fae90`），而挑它的理由只比了
+   「`line` 比 `key` 暗、也低於 bloom 門檻」——那推不出 §B3／§10.1 要的「暗斑」。
+   實測 sRGB 相對亮度：`#6fae90` Y≈0.353、桌面 `#6b3418` Y≈0.057 ⇒ 它比桌面**亮** 3.8 倍。
+   ★量的是效果，不是入口★：直接比「這一系腳下語彙本體色」與 `js/scene-env.js` 的 `TABLE_COLOR`。 */
+t('腳下語彙是 stain 的系別，本體色的相對亮度必須低於桌面（§B3「暗斑」）', () => {
+  const lum = (hex) => {
+    const f = (c) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+    return 0.2126 * f((hex >> 16) & 255) + 0.7152 * f((hex >> 8) & 255) + 0.0722 * f(hex & 255);
+  };
+  const env = fs.readFileSync(path.join(ROOT, 'js/scene-env.js'), 'utf8');
+  const m = env.match(/const TABLE_COLOR\s*=\s*(0x[0-9a-fA-F]+)/);
+  if (!m) throw new Error('js/scene-env.js 找不到 TABLE_COLOR（這條檢查的分母不見了）');
+  const table = lum(parseInt(m[1], 16));
+  const fx = fs.readFileSync(path.join(ROOT, 'js/trait-fx.js'), 'utf8');
+  /* `st.groundMark` 的 stain 分派那一行：本體色必須是 `st.colors.ink`（不是 line／key／hot）。 */
+  const call = fx.match(/st\.stain\(p,\s*\{[^}]*\}/);
+  if (!call) throw new Error('js/trait-fx.js 的 st.groundMark 裡找不到 st.stain 的分派呼叫');
+  if (!/color:\s*st\.colors\.ink\b/.test(call[0])) {
+    throw new Error(`st.groundMark 的 stain 分派本體色不是 st.colors.ink：${call[0]}`);
+  }
+  const fac = Object.keys(FAC_GROUND).filter((k) => FAC_GROUND[k] === 'stain');
+  if (!fac.length) throw new Error('FAC_GROUND 裡沒有任何系別用 stain（這條檢查會恆真）');
+  fac.forEach((k) => {
+    const y = lum(FX_PAL[k].ink);
+    if (!(y < table)) throw new Error(`${k} 的 ink 相對亮度 ${y.toFixed(4)} 不低於桌面 ${table.toFixed(4)}＝那不是暗斑`);
+  });
+});
+
 console.log(`\n結果：${pass} 綠 ／ ${fail} 紅`);
 process.exit(fail ? 1 : 0);

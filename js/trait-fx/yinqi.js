@@ -14,11 +14,14 @@ function yqBeat(st, frac) {
 }
 
 /** ★卡頓三段跳（§B3 陰氣節奏「不補間、拍子錯開」；2026-09-13 陰氣批階段 A）★
- *  把 0..1 的線性進度切成**三個離散台階**——不是把補間變慢，是整段**沒有中間值**。
- *  ★切點刻意不是均分★：最後一階落在 0.86，第三跳與衝擊拍幾乎同幀。均分成 1/3 的話
- *  道具在 travel 的 2/3 就到位了，§A2「本體動作到位／道具落點／受招反應收在同一個衝擊拍」就散掉。
+ *  三個離散台階的**位置表**——不是把補間變慢，是整段**沒有中間值**。
+ *  ★第三階（到位）不在飛行段裡，由 tween 的 `done()` 給★（覆審 H9）：
+ *  §A1 的衝擊拍是 `react` 的**起點那一瞬間**；把第三階切在 travel 的 0.86 時，t2 下距衝擊拍
+ *  36.4ms＝2.2 幀，那正是 §A2 說的「兩個重音」。`done()` 在 `react[0]` 當幀跑，所以
+ *  本體到位／道具落點／魂片散出／受招反應四件落在同一拍。
+ *  飛行段只走 `[0]`／`[1]`；`[2]` 是 `done()` 用的那一格。
  *  三系裡只有陰氣用它：祖靈是「靜→瞬發」、香火是「蓄—落—餘」，混用就是踩別系的禁區。 */
-const JOLT = (e) => (e < 0.34 ? 0.30 : (e < 0.86 ? 0.64 : 1));
+const JOLT = [0.30, 0.64, 1];
 /** ★蓄勢段的卡頓＋「出招前一拍完全靜止」（§B3）★
  *  兩跳到底，`e ≥ 0.42` 之後回傳的值**不再變** ⇒ tween 還在跑，畫面上一動都不動。
  *  ★為什麼不另排一段空 tween★：靜止那一拍是這一系的辨識元素，寫在同一條進度函式裡，
@@ -130,7 +133,7 @@ const MOVES = {
 
      三件（計畫 §3）：
        **本體動作＝探**：`HatRoot`／`Hat1`／`HatTip` 帽尖後仰（兩跳到底）→**完全靜止一拍**→
-         猛前點（`JOLT` 三個離散位移），`JawRoot`／`Jaw1`／`JawTip` 張口、`Mist*` 霧裾滯後外散。
+         猛前點（`JOLT` 三個離散位移，第三階落在衝擊拍當幀），`JawRoot`／`Jaw1`／`JawTip` 張口、`Mist*` 霧裾滯後外散。
        **道具**＝甲 人身遺物：**紅帽**（`hat`，`st.paperStamp` 實體——面板 `hot #ff2f3a`＝
          §B3「那一點刺眼的紅」，`ink` 近黑本體露出來的那一圈就是外描邊）從施招者**頭上飄起**
          （§10.2 第 6 條：GLB 上那頂常駐的帽子不算新增元素，要另外飄一頂出來），
@@ -197,13 +200,19 @@ const MOVES = {
        而「戴住」正是這一招的身分。單片也從 0.62 放大到 1.0：0.62 在 780×360 上只有幾個像素寬，
        讀起來就是盲讀抱怨過的「白色細點」，不是紙片。 */
     const SH = 4;
-    const shards = st.paperProps(st.kind, SH, { anchor: 'foe', color: C.key, opacity: 0, k: 1, ratio: 0.66, depth: 0.12, warp: 0.22 });
+    /* `depth 0.18`／`warp 0.16` 是 §A4 第 1／3 條的區間（0.18–0.26／0.08–0.18）；
+       第一版寫 0.12／0.22 兩項都在區間外（覆審 H6-3，那兩個區間目前沒有機械檢查）。
+       ★單件小道具不做面板墨線邊★是 `st.paperProps` 明文的規格例外（該積木的 JSDoc），
+       所以 §B3 對丙家族「冷屍白青＋ink 外描邊」在這一件上由**帽子**那一件承擔——照實記在報告。 */
+    const shards = st.paperProps(st.kind, SH, { anchor: 'foe', color: C.key, opacity: 0, k: 1, ratio: 0.66, depth: 0.18, warp: 0.16 });
     if (lost) { st.worldOf(lost, 'Chest', shards.obj.position); shards.obj.position.add(st.camOff(0.5)); }
     const _e = new THREE.Euler();
     const seeds = [];
     for (let i = 0; i < SH; i++) {
       seeds.push({ a: (st.rnd() - 0.5) * 1.2 + i * 1.57, r: 0.26 + 0.20 * st.rnd(), up: -0.02 + 0.16 * st.rnd(), rz: st.rnd() * 3 });
     }
+    /** 魂片的散開也是**三階**（覆審 H6-1：`ease:'out'` 的連續內插是陰氣的禁區「平滑補間的位移」）。 */
+    const SHARD_STEP = [0.38, 0.72, 1];
     const writeShards = (k) => {
       for (let i = 0; i < SH; i++) {
         const s = seeds[i], it = shards.items[i];
@@ -235,51 +244,75 @@ const MOVES = {
       },
       done() { st.phase('travel'); } });
 
-    /* ② 探（travel）：帽尖猛前點，本體與帽子走**同一個** `JOLT` ⇒ 第三跳與衝擊拍同幀（§A2）。 */
-    st.tween({ ms: TL, delay: T0, ease: 'linear', update(t, e) {
-      const j = JOLT(e);
-      point(ghost, -0.62 + 1.58 * j);
-      st.move(ghost, fwd.x * 0.13 * j, 0, fwd.z * 0.13 * j);
-      st.rim(ghost, 1.6 + 1.0 * j);
-    } });
+    /* ② 探（travel）：帽尖猛前點。
+       ★飛行段只走**前兩階**，第三階（到位）寫在 `done()` 裡（覆審 H9）★
+       §A1 的衝擊拍是 `react` 的**起點那一瞬間**；舊版第三階切在 `0.86 × TL`，t2 下距衝擊拍
+       36.4ms＝**2.2 幀**——那正是 §A2 說的「兩個重音」。改成由 `done()` 給那一格之後，
+       本體到位／道具落點／魂片散出／受招反應四件都落在 `react[0]` 當幀。
+       ★四尊一起演（覆審 H7）★：`redhat` 是 `count: 4`，轉正的第一版只動 `ghosts[0]`，
+       滿編下另外三尊全程不動（基準版是四尊錯開）。姿態／腳下光／道具仍然**只給 `ghost`**
+       ——那是身分訊號，多一份就失效（`st.stance`／`st.groundMark` 會當場 throw）。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        ghosts.forEach((g, i) => point(g, -0.62 + 1.58 * j * (i ? 0.82 : 1)));
+        st.move(ghost, fwd.x * 0.13 * j, 0, fwd.z * 0.13 * j);
+        ghosts.forEach((g) => st.rim(g, 1.6 + 1.0 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀（不補間）
+        ghosts.forEach((g, i) => point(g, 0.96 * (i ? 0.82 : 1)));
+        st.move(ghost, fwd.x * 0.13, 0, fwd.z * 0.13);
+        ghosts.forEach((g) => st.rim(g, 2.6));
+      } });
     /* 紅帽卡頓跳到受招方頭上。**`trail: false`**：詛咒招不拉跨場白線（§A9-3）。
        每一跳轉一格 `rotateZ`，跳與跳之間完全不轉——朝向仍然凍在 spawn 當下那一顆四元數上疊轉，
        不是逐幀正對鏡頭（§A4 第 4 條）。 */
     let jolted = -1;
     st.trail(hat, from, to, { ms: TL, delay: T0, ease: 'linear', trail: false,
       update(t, e) {
-        const n = e < 0.34 ? 0 : (e < 0.86 ? 1 : 2);
+        const n = e < 0.40 ? 0 : 1;
         if (n !== jolted) { jolted = n; hat.rotateZ(0.44); }
-        const j = JOLT(e);
-        hat.position.lerpVectors(from, to, j);
-        /* ★鼓弧只掛在**中間那一跳**上（`n === 1`）★ 兩個理由：
-           ① 陰氣禁平滑補間——`sin(π·j)` 那一版在第一跳就鼓出 0.81，是一條連續的弧；
-           ② 讓鏡頭偏移**不要替飛行作證**：每一跳都鼓的那條弧自己就走了 ~0.7 世界單位，
-              那是「有沒有真的飛」這件事不該拿到的分子。收成一跳之後，第一跳與最後一跳完全沒有偏移。
-           ★**這一改沒有讓突變 M10 轉紅**（實測，別把它讀成修好了）★：M10「帽子原地生成不飛」
-           至今仍是綠的，真正的原因是 `st.phase('travel')` 的 claim **沒有時間上限**
-           （`js/trait-fx.js` 的 `phase()`：`windup`／`react` 都設 `c.until`，只有 `travel` 留 Infinity），
-           於是下面 `done()` 裡 `st.stick` 的瞬移回頭補上了分子（M10 實測 `moved 2.8844`／門檻 1.2533；
-           把黏著也拿掉的 M12 才剩 0.7404 ⇒ 紅）。那是引擎層、19 支已轉正的招共用，本階段不動它，
-           交裁見報告 §1.7 第 3 題。逐條輸出在 `…-b3-evidence/b3-mutations.txt`。
-           L3 的凍幀點是 travel 中點（＝就是這一跳），所以 P3 的面積一個像素都沒少。 */
-        const m = n === 1 ? 1 : 0;
+        hat.position.lerpVectors(from, to, JOLT[n]);
+        /* ★鼓弧只掛在**第二階**上（`n === 1`）★：陰氣禁平滑補間，`sin(π·j)` 那一版是一條連續的弧。
+           ★它買的是 P3 的螢幕面積，不是飛行的證據★（覆審 H3 的更正）：收斂之後鏡頭偏移對
+           `travel` 分子的貢獻**不減反增**（實測 M12：連續弧 0.6653 → 只掛一階 0.7404，門檻 1.2533）。
+           「帽子有沒有真的飛」現在由**第三階寫在 `done()` 裡**這件事承擔（見下），不是由這條弧。
+           L3 的凍幀點是 travel 中點（＝第二階），所以 P3 量到的仍然是鼓出來的那一格。 */
+        /* ★鼓弧只在第二階的**前段**（`e < 0.80`）★：看圖第 4 輪——把第三階挪進 `done()` 之後，
+           第二階變得很長，而鼓到底的帽子在 `travel 末` 那一格離鏡頭太近、看到的是它的 `ink` 背面，
+           在 sheet 上是一團近黑的塊。放掉鼓弧之後那一格回到正面的紅帽。
+           L3 的凍幀點在 travel **中點**（`e = 0.5`），仍然在鼓弧裡，所以 P3 量到的沒有變。 */
+        const m = n === 1 && e < 0.80 ? 1 : 0;
         hat.position.y += 0.24 * m;
         hat.position.addScaledVector(bow, m);
       },
       done() {
-        /* ★衝擊拍★：帽子扣上頭＝魂片散出＝那一尊同幀開始打轉（三件同一拍，§A2） */
+        /* ★衝擊拍（`react[0]`）：四件同一拍★ ①本體到位（上面那條 tween 的 done）
+           ②帽子第三階一格到位 ③魂片散出 ④那一尊同幀開始打轉（下面的 react tween，delay R0）。
+           ★帽子的落點由**它自己的位移**給，不是由黏著給★（覆審 C1）：`hat.position.copy(to)`
+           就是第三跳；鼓弧在這一格是 0，所以 anchor 量到的是真正的落點。 */
+        hat.position.copy(to);
+        hat.rotateZ(0.44);
         st.phase('react');
         st.burst(to, { power: 0.62, n: 30, color: C.hot });
         st.punch(0.34);
-        if (lost) {
+        st.alpha(shards.obj, 0.95);
+        writeShards(SHARD_STEP[0]);
+        /* ★黏著**延後**到衝擊拍之後（覆審 C1，CRITICAL）★
+           `sampleAnchors` 的時點寫死在 `react[0]`，而 `st.stick` 會把道具**瞬移**到那一尊身上
+           ——在同一幀呼叫它，`mainOK`／`mainD`／`gap` 就與「帽子有沒有飛」脫鉤：
+           覆審實測把飛行整段拿掉（突變 M10），anchor 的每一格與健康態**逐字相同**。
+           延後一格之後，衝擊拍量到的是帽子自己飛到的位置；黏著只負責「之後跟著頭走」。
+           ★引擎側那條更根本的洞仍在★：`regAnchor` 對沒有 `o.anchor` 的 `st.stick` 直接 return，
+           所以引擎不知道一件 land 型主道具後來被黏上去了——那要改 `sampleAnchors`，
+           本階段依派工書不碰（另一個分支在修），照實記在報告 §1.4／§1.7。 */
+        if (lost) st.at(12, () => {
           const top = st.top(lost, new THREE.Vector3());
           st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });
-        }
+        });
       } });
-    // 魂片在第三跳那一刻就開始散（衝擊拍當幀已經在畫面上，不是 react 才補一筆）
-    st.fade(shards.obj, { ms: TL * 0.14, delay: T0 + TL * 0.86, from: 0, to: 0.95 });
-    st.tween({ ms: TL * 0.14 + RL * 0.75, delay: T0 + TL * 0.86, ease: 'out', update(t, e) { writeShards(e); } });
+    // 魂片：衝擊拍當幀出現（上面的 done），之後再走兩階散開——三階都是離散的，沒有 easing
+    st.tween({ ms: RL * 0.75, delay: R0, ease: 'linear', update(t) { writeShards(SHARD_STEP[Math.min(2, Math.floor(t * 3))]); } });
     st.fade(shards.obj, { ms: RL * 0.3, delay: R0 + RL * 0.66, from: 0.95, to: 0 });
 
     /* ③ 迷途（react）：原地打轉＝陰氣獨有的受招反應「轉」。
@@ -305,12 +338,15 @@ const MOVES = {
        ——t1 的 `RL` 只有 **62ms**，任何落在 `RL` 裡的淡出都會吃掉那一格。
        所以這裡不排淡出：`traitFx` 收工時本來就會把這一招 spawn 的 mesh 全部移除
        （`restored` 那一格量的就是這件事），少一條 tween 也讓 horizon 仍然收在 `LAST`。 */
-    // 收勢：施招者的帽尖落回、前傾姿態由 st.stance 註冊的包絡自己收在衝擊拍上（覆審 H3，這裡不寫第二份）
+    /* 收勢：帽尖落回。★也是卡頓三階★（覆審 H6-1：舊版 `k = 0.96 × (1 − min(1, t×1.35))` 是
+       逐幀連續內插，t2 下是一段 185ms 的**平滑位移**——那是 §B3／§10.7 陰氣的禁區。）
+       施招姿態的收回不寫在這裡：由 `st.stance` 註冊的包絡自己收在衝擊拍上（祖靈批覆審 H3）。 */
+    const SETTLE = [0.62, 0.24, 0];
     st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
-      const k = 0.96 * (1 - Math.min(1, t * 1.35));
-      point(ghost, k);
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      ghosts.forEach((g, i) => point(g, k * (i ? 0.82 : 1)));
       st.move(ghost, fwd.x * 0.13 * k, 0, fwd.z * 0.13 * k);
-      st.rim(ghost, 1 + 1.6 * k);
+      ghosts.forEach((g) => st.rim(g, 1 + 1.6 * k));
     } });
   },
 

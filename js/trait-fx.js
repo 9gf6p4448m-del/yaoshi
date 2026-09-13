@@ -1815,10 +1815,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  ★輪廓寫死成表、不吃 `st.rnd`★：吃亂數的話同一支招每次跑形狀都不同，
        *  P3 的 A/B 差圖與 sheet 就失去可重複性；要變化給 `o.rot` 轉它。
        *
-       *  ★為什麼本體是 `line`（苔綠）而不是 `key`（冷屍白青）★：
-       *  ① 語彙要的是「暗斑」——`key #bdf0dc` 的相對亮度 0.88 在桌面 `#6b3418`（0.24）上是**亮斑**；
-       *  ② `BLOOM.threshold` 是 0.7，`key` 越得過去、`line #6fae90`（0.58）越不過去
-       *     ⇒ 用 `line` 才守得住 §A4「不越 bloom」那條（越過去就往白色去、系色活不下來）。
+       *  ★顏色：本體 `ink`、描邊 `line`（2026-09-13 覆審 H3 改）★
+       *  第一版本體用 `line`（苔綠 `#6fae90`），理由只比了「`line` < `key` < bloom 門檻」——
+       *  **那段推理推不出「暗斑」**：`#6fae90` 的 sRGB 相對亮度 Y≈0.353、桌面 `#6b3418` Y≈0.057，
+       *  斑比桌面**亮** 3.8 倍，畫出來是一塊亮青綠團塊，不是 §B3／§10.1 要的「濕、無主的不規則**暗斑**」。
+       *  現在本體是 `ink #04120c`（Y≈0.0077，**比桌面暗**），描邊改用 `line` 苔綠——
+       *  暗斑本體＋一圈濕苔的邊，兩者都遠在 `BLOOM.threshold` 0.7 之下。
+       *  ★這一條有機械檢查★：`tests/fxvocab.test.mjs` 釘「`FAC_GROUND` 為 `stain` 的系別，
+       *  其腳下語彙本體色的相對亮度必須低於 `js/scene-env.js` 的 `TABLE_COLOR`」。
        *  兩層都走 `MAT_SOLID`（平塗硬邊、`NormalBlending`），不是加色材質。
        *
        *  `pos`＝貼桌位置（只取 xz，y 由 `TFX.tableY` 決定）；
@@ -1844,10 +1848,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         const parts = [[0, 0, r, 0], [r * 1.16, r * 0.34, r * 0.30, 5], [-r * 0.86, -r * 0.72, r * 0.22, 11]];
         const mk = (inset) => new THREE.ShapeGeometry(parts.map((p) => blob(p[0], p[1], p[2], inset * (p[2] / r), p[3])));
         const mEdge = new THREE.Mesh(mk(0), MAT_SOLID.clone());
-        mEdge.material.color.setHex(o.inkColor === undefined ? st.colors.ink : o.inkColor);
+        mEdge.material.color.setHex(o.inkColor === undefined ? st.colors.line : o.inkColor);
         mEdge.material.opacity = op;
         const mBody = new THREE.Mesh(mk(w), MAT_SOLID.clone());
-        mBody.material.color.setHex(o.color === undefined ? st.colors.line : o.color);
+        mBody.material.color.setHex(o.color === undefined ? st.colors.ink : o.color);
         mBody.material.opacity = op;
         mEdge.position.z = -0.0012; // 兩片都躺平之後這一軸就是「離桌面多高」：描邊在下、本體在上
         const grp = new THREE.Group();
@@ -1910,9 +1914,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         }
         else if (kind === 'stain') {
           /* 暗斑是**平的**，本體遮不掉它的前半（柱是立起來的，才要挪 0.34），所以往鏡頭只挪一小段，
-             讓它仍然壓在腳底下、讀得出是「他腳下的東西」。色票走 `line`（苔綠）＋`ink` 外描邊，見 `st.stain`。 */
+             讓它仍然壓在腳底下、讀得出是「他腳下的東西」。
+             色票＝`ink` 暗斑本體＋`line` 苔綠外描邊（覆審 H3：本體必須比桌面**暗**，見 `st.stain`）。 */
           p.addScaledVector(st.camDir, o.push === undefined ? 0.14 : o.push);
-          mesh = st.stain(p, { r: o.r === undefined ? 0.42 : o.r, color: st.colors.line, inkColor: st.colors.ink, opacity: 0, rot: o.rot });
+          mesh = st.stain(p, { r: o.r === undefined ? 0.42 : o.r, color: st.colors.ink, inkColor: st.colors.line, opacity: 0, rot: o.rot });
         }
         else mesh = st.ring(p, o.r === undefined ? 0.34 : o.r, 0.055, { color: st.colors.key, opacity: 0 });
         const B = st.beat;

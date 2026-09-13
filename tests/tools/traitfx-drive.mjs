@@ -77,11 +77,30 @@ function stripComments(src) {
   return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
 }
 
-/** 逐招掃原始碼，回傳「函式體裡出現過 re 的招名」（**已剝註解**）。 */
-function movesMatching(root, re) {
+/** 逐招掃原始碼，回傳「函式體裡出現過 re 的招名」（**已剝註解**）。
+ *  `section`（2026-09-13 陰氣批階段 A 覆審 C2）：
+ *    `'all'`（預設，行為與改前相同）＝整個檔；
+ *    `'moves'`＝只看正式演出（切到第一個 `export const V05[45]` 之前）；
+ *    `'v055'`＝只看 `V055`／`V055_SHORT` 那一段（`?fxvocab=1` 實際跑的那一份）。
+ *  ★為什麼要分段★：改前用 `indexOf('export const V054')` 當切點，而四支示範招全部轉正之後
+ *  **三個系別檔都沒有 `V054` 了** ⇒ 那一行恆為 -1、`if (cut > 0)` 恆假 ⇒ `V055` 整段被當成正式演出，
+ *  `emblemCasesFromSource` 回的其實是「徽記版用到徽記的招」。`fx-contrast` 的 `usesEmblem`
+ *  在**預設路徑**因此恆為 true，而轉正後的正式演出本來就不產生平面徽記（走 `st.paperStamp`）
+ *  ⇒ `made===0` 判 fail、**整支治具 exit 1**（實測 `hauntLost` 與 `eliteSelfCut` 皆然）。
+ *  這不是放寬：分段之後兩條路各自查自己那一份，`--fxvocab=1` 的 canary 反而從「恆不成立」修回有效
+ *  （改前查的是 `c.trait + '_v055'`，而名單裡的後綴早就被剝掉了 ⇒ 那一格恆為 false）。 */
+function movesMatching(root, re, section) {
   const out = new Set();
+  const sec = section || 'all';
   for (const f of ['zuling.js', 'xianghuo.js', 'yinqi.js']) {
     let src = stripComments(fs.readFileSync(path.join(root, 'js/trait-fx', f), 'utf8'));
+    if (sec === 'moves') {
+      const c = src.search(/export const V05[45]/);
+      if (c > 0) src = src.slice(0, c);
+    } else if (sec === 'v055') {
+      const c = src.indexOf('export const V055');
+      src = c > 0 ? src.slice(c) : '';
+    }
     const cut = src.indexOf('export const V054');
     if (cut > 0) src = src.slice(0, cut);
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
@@ -149,6 +168,15 @@ export function v055CasesFromSource(root) {
     for (const m of src.slice(cut).matchAll(/^ {2}([A-Za-z_$][\w$]*)_v055\s*\(st\)\s*\{/gm)) out.add(m[1]);
   }
   return [...out].sort();
+}
+
+/** ★正式演出（`MOVES`／`SHORT`）裡用到平面徽記的招（覆審 C2）★
+ *  27 支全部轉正之後這一份**本來就是空的**（道具一律走 `st.paperStamp`／`st.paperProps`），
+ *  所以它**沒有活性下限**——下限掛在 `emblemCasesFromSource`（徽記版那一份）上。
+ *  `fx-contrast` 的預設路徑查這一份：空集合＝「預設路徑沒有任何招該產出徽記」，
+ *  `made===0` 因此是**正確狀態**（判 `n/a`），不是 fail。 */
+export function movesEmblemCasesFromSource(root) {
+  return [...movesMatching(root, /\bst\.(icon|icons|mark)\s*\(/, 'moves')].sort();
 }
 
 export function emblemCasesFromSource(root) {

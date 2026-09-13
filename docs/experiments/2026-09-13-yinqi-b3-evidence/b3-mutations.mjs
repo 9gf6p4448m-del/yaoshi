@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const YQ = path.join(ROOT, 'js/trait-fx/yinqi.js');
 const VOCAB = path.join(ROOT, 'js/trait-fx/vocab.js');
+const FX = path.join(ROOT, 'js/trait-fx.js');
 
 /** 跑一個閘門，回傳 'GREEN'／'RED'。 */
 function gate(kind, port) {
@@ -54,21 +55,36 @@ const MUT = [
     from: "    st.groundMark(ghost, { r: 0.46,", to: "    st.groundMark(lost, { r: 0.46," },
   { id: 'M9', gate: 'drive', why: '受招方只轉不動（只有 spin 不算反應，react 三段量 move／scale）', file: YQ,
     from: "        st.move(lost, sway.x * SWAY[n], 0, sway.z * SWAY[n]);", to: '        ' },
-  /* M10 是照實留著的**未驗紅**；歸因由 M11 隔離出來，寫在報告 §1.5。 */
-  { id: 'M10', gate: 'drive', why: '帽子原地生成不飛（travel 段的載體沒了）', file: YQ,
-    from: "        hat.position.lerpVectors(from, to, j);", to: "        hat.position.copy(from);" },
-  { id: 'M11', gate: 'drive', why: '只拿掉衝擊拍那一行黏著（飛行還在）——照設計**不該**紅', file: YQ,
+  /* ★M10 在覆審修補之前是**綠的**（＝沒有鑑別力），現在會紅★
+     改前：黏著 `st.stick` 寫在 `done()` 裡、與 `sampleAnchors` 的量測時點（`react[0]`）同一幀
+     ⇒ 帽子飛不飛，`mainOK`／`mainD`／`gap` 逐字相同（覆審 C1 的實測）。
+     改後：黏著延後一格、到位那一格改由 `done()` 的 `hat.position.copy(to)` 給
+     ⇒ 衝擊拍量到的是帽子自己飛到的位置。 */
+  { id: 'M10', gate: 'drive', why: '帽子原地生成、也不在衝擊拍到位（飛行整段沒了）', file: YQ,
+    pairs: [['        hat.position.lerpVectors(from, to, JOLT[n]);', '        hat.position.copy(from);'],
+      ['        hat.position.copy(to);', '        hat.position.copy(from);']] },
+  { id: 'M11', gate: 'drive', why: '只拿掉衝擊拍之後那一行黏著（飛行還在）——照設計不該紅', file: YQ,
     from: "          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", to: '          ' },
+  /* M13（覆審 C1 的驗收）：只拿掉「第三階到位」那一行，飛行仍走到 JOLT[1]=0.64
+     ⇒ 帽子停在兩邊中間。改前（黏著寫在 done() 裡）這一格是綠的——st.stick 會把它瞬移到
+     受招方頭上，mainOK／gap 與帽子飛到哪完全脫鉤。黏著延後之後它必須紅。 */
+  { id: 'M13', gate: 'drive', why: '帽子飛到一半就停（不在衝擊拍到位）＝落點證據脫鉤的那一格', file: YQ,
+    from: '        hat.position.copy(to);', to: '        void to;' },
+  /* M14（覆審 H3 的驗收）：腳下暗斑的本體色改成 key（冷屍白青）＝比桌面亮的亮斑。 */
+  { id: 'M14', gate: 'P1', why: '腳下暗斑的本體色改成比桌面亮的 key（不再是暗斑）', file: FX,
+    from: "color: st.colors.ink, inkColor: st.colors.line, opacity: 0, rot: o.rot }",
+    to: "color: st.colors.key, inkColor: st.colors.line, opacity: 0, rot: o.rot }" },
 ];
 
-/* ★M12＝M10 ＋ M11 一起上（兩行都改）★
-   它是 M10 那一格的歸因實驗：飛行與黏著**都**拿掉之後 `travel` 才紅
-   （實測 `moved 0.7404 < need 1.2533`，剩下的 0.74 就是鏡頭鼓弧）。
-   ⇒ M10 單獨不紅的原因是 `st.phase('travel')` 的 claim 沒有時間上限，
-   衝擊拍那一刻 `st.stick` 的瞬移回頭補上了分子（實測 `moved 2.8844`）。 */
-const M12 = { id: 'M12', gate: 'drive', why: 'M10＋M11：飛行與黏著都拿掉（travel 才紅）', file: YQ,
-  pairs: [['        hat.position.lerpVectors(from, to, j);', '        hat.position.copy(from);'],
-    ["          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", '          void top;']] };
+/* M12＝M10 的對照實驗：M10 之外再把黏著也拿掉，用來隔離「是誰在餵 travel 的分子」。
+   實測（黏著還寫在 done() 裡的那一版）：M10 moved 2.8844、M12 只剩 0.7404（門檻 1.2533）
+   ⇒ travel 的分子是 st.stick 的瞬移補的。st.phase('travel') 的 claim 沒有時間上限
+   （js/trait-fx.js 的 phase()：windup／react 都設 c.until，只有 travel 留 Infinity），
+   那是引擎層、19 支已轉正的招共用，本階段依派工書不碰。 */
+const M12 = { id: 'M12', gate: 'drive', why: 'M10＋M11：飛行、到位、黏著全部拿掉（travel 才紅）', file: YQ,
+  pairs: [['        hat.position.lerpVectors(from, to, JOLT[n]);', '        hat.position.copy(from);'],
+    ['        hat.position.copy(to);', '        hat.position.copy(from);'],
+    ["          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", '          ']] };
 MUT.push(M12);
 
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
@@ -94,10 +110,10 @@ for (const m of MUT) {
   rows.push({ id: m.id, gate: m.gate, before, after, back, ok: before === 'GREEN' && after === 'RED' && back === 'GREEN', why: m.why });
   console.log(`${m.id} [${m.gate}] 健康 ${before} → 突變 ${after} → 還原 ${back}  ${before === 'GREEN' && after === 'RED' && back === 'GREEN' ? '✅' : '❌'}  ${m.why}`);
 }
-/* ★M10／M11 是**照設計不會紅**的兩格★（歸因見 M12 上面那段註解）：
-   它們不算「防線漏掉」，算「這一格的鑑別力由誰承擔」的實驗紀錄，所以不進 exit code。
-   ★不得把它們從清單裡拿掉★——拿掉就等於沒人記得 `travel` 的分子可以被 `st.stick` 餵。 */
-const KNOWN_GREEN = ['M10', 'M11'];
+/* ★M11 是**照設計不會紅**的那一格★（對照組）：只拿掉黏著、飛行還在，那本來就是合格的實作。
+   它不算「防線漏掉」，是「這一格在量什麼」的對照，所以不進 exit code。
+   ★不得把它從清單裡拿掉★——沒有這個對照組，M10／M13 的紅就分不出是哪一段造成的。 */
+const KNOWN_GREEN = ['M11'];
 const bad = rows.filter((r) => !r.ok && KNOWN_GREEN.indexOf(r.id) < 0);
 const known = rows.filter((r) => !r.ok && KNOWN_GREEN.indexOf(r.id) >= 0);
 console.log(`\n${rows.length} 條，驗紅 ${rows.filter((r) => r.ok).length}／${rows.length}`
