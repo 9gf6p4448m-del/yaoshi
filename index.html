@@ -44,6 +44,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
 @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
 @media (orientation:portrait){ #rotateHint{display:flex} }
+/* 直式：`#north` 的對話泡（`.bubble` bottom:-12px）與 ⓘ 鈕（`.roleInfoBtn` bottom:-7px）掛在座位卡**外側**，
+   會把固定 56px 的北列撐出 11px（`scrollHeight 67 / clientHeight 56`）。橫式早就修好了——
+   :103-104 那兩條——但它們被關在 :68 的 `@media (orientation:landscape)` 裡面，直式吃不到。
+   這是「直式與 kill switch 由建構上回到 v0.53」（:63-64）那條刻意設計的副作用，所以基準 0771e04
+   量到一模一樣的 11px。這裡補一段**直式專用**的同型修正：兩個 media query 互斥 ⇒
+   橫式一個字元都碰不到（U1 橫式與 U2 的 177/177 不受影響）。
+   ★限制寫明★：選擇器帶 `.t3d`，所以 `?table3d=0`（沒有 `.t3d`）的直式仍是 11px——
+   要連 kill switch 一起收就得改到 v0.53 直式的外觀，那一步留給製作人另裁。 */
+@media (orientation:portrait){
+  #table.t3d #north .seat .roleInfoBtn{bottom:1px}
+  #table.t3d #north .bubble{left:calc(100% + 6px);top:50%;bottom:auto;transform:translateY(-50%)}
+}
 .title{text-align:center;padding:22px 20px;height:100%;display:flex;flex-direction:column;justify-content:center}
 .title h1{font-size:38px;color:var(--gold);letter-spacing:12px;margin-bottom:6px}
 .title p{color:var(--dim);font-size:13px;line-height:1.7}
@@ -2470,18 +2482,41 @@ function pushBid3d(seat,slot,amount){ fx3d("ys:bid",{slot:slot|0,amount:Math.max
    「雙保險清場」守的是同一件事，所以掛在同一個地方、走同一條紀律。 */
 function clearBids3d(){ if(!S||!S.market) return; S.players.forEach(p=>S.market.forEach((_,i)=>pushBid3d(p.id,i,0))); }
 /* 盯上：一夜一席只拍一次（同 STAMPED 的慣例，記在 UI 端、不進 S）——
-   熱座一夜會走兩次 showMarket，不記的話 AI 的令牌會被重拍一遍。 */
-const MARKED3D={};
-function pushMark3d(seat,slot){
-  if(!S||slot==null||seat==null) return;
-  const k=S.round+":"+seat; if(MARKED3D[k]) return; MARKED3D[k]=1;
-  fx3d("ys:mark",{slot:slot|0,seat:seat|0});
-  sfx("woodslam"); /* 木撞擊音（sfx 合成器新增的聲部；不帶 rnd＝完全決定性） */
+   熱座一夜會走兩次 showMarket，不記的話 AI 的令牌會被重拍一遍。
+   ★換夜（或重開一局）就清★（覆審 r1 LOW-2）：原本這張表永遠不清，鍵是 `round:seat`，
+   目前只因為局末綁 `location.reload()` 才踩不到；哪天加了「不重載就再開一局」，
+   同一個 round 編號的令牌會一枚都不出現。記一個 `MARK3D_ROUND` 比對即可，0 成本。 */
+const MARKED3D={}; let MARK3D_ROUND=-1;
+function mark3dRoll(){ if(!S||S.round===MARK3D_ROUND) return; MARK3D_ROUND=S.round; for(const k in MARKED3D) delete MARKED3D[k]; }
+/* ★木撞擊音必須由**真正落地的那一幀**觸發★（覆審 r1 HIGH-3）：令牌的動畫是 rAF／dt 累積，
+   不能用 300ms timer 猜落地（掉幀或分頁停住時兩個時鐘會脫鉤）。table-tray 在 table-props 的
+   token 到位回呼才派 `ys:mark-slam`；同批令牌落地會在同一個 macrotask 合成一聲，保住「一批一聲」。
+   只有 3D 托盤不存在／關閉時才直接發聲，避免 kill switch 靜音。 */
+let SLAM_SFX_TIMER=0;
+function slamSfx(){
+  if(SKIP||SLAM_SFX_TIMER) return;
+  SLAM_SFX_TIMER=setTimeout(()=>{ SLAM_SFX_TIMER=0; sfx("woodslam"); },0);
 }
-/* 已經公開的盯上（自己的＋對手的）一次補齊：出價頁進來時桌上就該看得到誰拍了哪一格。 */
+function trayWillEmitSlam(){ try{ return !!(TRAY3D&&window.__yaoshi3d&&window.__yaoshi3d.tray); }catch(e){ return false; } }
+document.addEventListener("ys:mark-slam",slamSfx);
+/* `silent`＝這一發不自己發聲（批次補推時由呼叫端統一排一聲，見 pushMarks3d）。 */
+function pushMark3d(seat,slot,silent){
+  if(!S||slot==null||seat==null) return false;
+  mark3dRoll();
+  const k=S.round+":"+seat; if(MARKED3D[k]) return false; MARKED3D[k]=1;
+  fx3d("ys:mark",{slot:slot|0,seat:seat|0});
+  if(!silent&&!trayWillEmitSlam()) slamSfx();
+  return true;
+}
+/* 已經公開的盯上（自己的＋對手的）一次補齊：出價頁進來時桌上就該看得到誰拍了哪一格。
+   ★一批只響一聲★（覆審 r1 MEDIUM-5）：solo 每一夜固定有 3 隻 AI 的令牌在這裡一次補推，
+   舊版逐枚各叫一次 `sfx`，四聲在 0.7ms 內同相位疊加（單聲 peak 已經 0.84）。
+   四枚是同時落地的，本來就該是一聲。 */
 function pushMarks3d(){
   if(!S||!S.marks||!CFG.MARK_ON) return;
-  Object.keys(S.marks).forEach(id=>{ const i=S.marks[id]; if(i!=null&&S.players[+id]&&S.players[+id].alive) pushMark3d(+id,i); });
+  let n=0;
+  Object.keys(S.marks).forEach(id=>{ const i=S.marks[id]; if(i!=null&&S.players[+id]&&S.players[+id].alive&&pushMark3d(+id,i,true)) n++; });
+  if(n>0&&!trayWillEmitSlam()) slamSfx();
 }
 /* `?tray3d=0`＝本卷的 kill switch（桌上不擺模型）。**它也必須把命中層一起關掉**
    （外部覆審 H-1）：關掉之後桌心只剩一塊空紅布，但 `tray.hitTest` 只看幾何代理盒、
@@ -4626,8 +4661,9 @@ function veil(on){ const v=$("veil"); if(v) v.classList.toggle("on",!!on); }
 function revealGlow(r){
   if(!r||!r.winner) return;
   /* `slot`＝這一件在今夜市集的第幾格（v0.56b 第二段：3D 層據此把得標者的錢留在桌上、其餘收回）。
-     `S.market.indexOf(r.it)` 是純讀取；查不到（理論上不會）就送 null，3D 層看到 null 就不動。 */
-  fx3d("ys:reveal",{winner:r.winner.p.id,slot:(S&&S.market?S.market.indexOf(r.it):-1)}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
+     `S.market.indexOf(r.it)` 是純讀取；查不到（理論上不會）**送 null**，3D 層看到 null 就不動。
+     （覆審 r1 LOW-1：舊版送的是 −1，與這行註解不一致，靠 `settle(-1)` 的迴圈空轉吸收。） */
+  fx3d("ys:reveal",{winner:r.winner.p.id,slot:(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})()}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
