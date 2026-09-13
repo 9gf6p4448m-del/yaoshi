@@ -106,11 +106,28 @@ function yqDeliver(st, from, figs, B, o = {}) {
     const aim = to.clone();
     // 淡入一格到位（`e < 0.40` 是 JOLT 第一階的切點，與飛行同一組台階）
     st.tween({ ms: B.TL, delay: B.T0, ease: 'linear', update(t, e) { st.alpha(m, e < 0.40 ? 0 : 1); } });
-    yqFly(st, m, from, aim, to, B, { bow: st.camOff(o.bowK === undefined ? 1.4 : o.bowK), rise: o.rise === undefined ? 0.16 : o.rise,
+    yqFly(st, m, from, aim, to, B, { bow: st.camOff(o.bowK === undefined ? 1.4 : o.bowK), rise: o.rise === undefined ? 0.16 : o.rise, roll: o.roll,
       pre() { st.bodySpot(f, to); },
       done() { st.stick(m, f, { at: 'chest', off: to.clone().sub(chest0) }); if (o.done) o.done(f, m); } });
     return m;
   });
+}
+
+/** 道具的起點：從候選的後退量裡挑**第一個整件都還在畫面上**的（同 `zuling.js` 的 `camPush`；
+ *  判準用 `st.inView`，與 anchor「在場」第 5 條是同一支）。
+ *  ★為什麼要這一支★（看圖第 1／2 輪）：起點往 `-st.dir` 拉得越遠，`PHASE_GATE.travel` 的分子越大
+ *  （§A9-3 也要求增益招「不跨中線、不從敵方出發」），但拉出畫面之後**蓄勢那兩格就看不到道具從哪裡來**
+ *  ——而「那件東西是我方自己升起來的」正是 P4 對象題要讀的訊號。兩件事共用一個旋鈕，所以拿畫面當上界。
+ *  `up`＝再抬高多少；`half`＝道具的半高（整件要在畫面裡，不是只有中心點）。 */
+function yqLaunch(st, base, backs, up, half) {
+  let last = null;
+  for (const b of backs) {
+    const p = base.clone().addScaledVector(st.dir, -b).add(st.camOff(0.8));
+    p.y = base.y + (up || 0);
+    last = p;
+    if (st.inView(p) && st.inView(_a.copy(p).setY(p.y + (half || 0)))) return p;
+  }
+  return last;
 }
 
 /** 從名單裡挑「身上還放得下一件**分得出來**的道具」的那一尊（同 `zuling.js` 的 `roomyPrey`）。
@@ -600,45 +617,139 @@ const MOVES = {
   },
 
   /* 椅仔姑竹椅・看穿（chair，作祟×3）：本方圍毆額外 +1。
-     編舞：竹椅前後搖（0–300ms，三尊錯開 40ms：SeatRoot/PostA/PostB 一來一回問事）
-          → 椎頭一抬（300ms 起 strike：NeckRoot/Head1/HeadTop 挑起來，邊光亮）
-          → 看穿（340ms 起：椅腳下一圈問事的環擴出去，一條細線從椅頭指到對面每一隻，被指到的邊光點亮一下）
-          → 收（560ms 起：頭落回）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 3 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntSee = { 甲, 滯, 抖, stance:'舉臂', anchor:'allies' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝滯**（§C 的「搖」是它的變體）：`SeatRoot`／`SeatMid`／`SeatFront`／`PostA`／`PostB`
+         前後搖兩下（`COIL` 兩階）→ **完全靜止一拍** → `Crest`／`NeckRoot`／`Head1`／`HeadTop`
+         椅頭**突然**抬起（`JOLT` 三階，第三階落在衝擊拍當幀）。
+       **道具**＝甲 人身遺物：**憑空多出一張竹椅**（`chair`，藤編厚片＋`ink` 墨線邊）從問事的那一尊
+         頭頂後上方**浮出來**、卡頓跳到同伴身上坐定（主道具）；其餘每一尊我方各收到一枚**椅印**
+         （`yqDeliver`）——§A9-5 的 `allies` 要求**每一尊站位上分得出來的我方都被碰到**。
+       **受益方反應＝抖**：骨骼高頻小幅＋`st.move` 的四階離散抖動（`PHASE_GATE.react` 量的是
+         `move`／`scale` delta，只抖骨骼量不到）。
+
+     ★§C3 的「抖動細絲指向每一隻」沒有做（照實記）★：§A9-3（晚於 §C3）把 `st.trail`／`MAT_LINE`
+     限給**打擊類**——增益招拉一條細白線過去，P4 第 2／3 輪實測被讀成「偷取」。
+     「看穿」的因果改由**椅子自己飛過去坐到同伴身上**承擔，那也是 §A9-3 對增益招指定的動作
+     （升起 → 落到受益方，不跨中線、不從敵方出發）。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up）≠ react「抖」（shake）；腳下＝不規則暗斑。
+     ★落點 anchor＝`allies`★：`ABILITIES.hauntSee` 是「**本方**圍毆額外 +1」⇒ 效果＝護、對象＝我方多個
+     （含施招者本人——§A9-2 的例外照祖靈批階段 A 簽字裁定③：真值包含施招者時他可以有受益反應）。 */
   hauntSee(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const chairs = st.actor;
     const seer = chairs[0];
-    const foes = st.target;
+    const mates = chairs.filter((c) => c !== seer);
+    // 問事的前後搖（`s` 正負＝椅身前後）
     const rock = (c, s) => {
       st.rot(c, 'SeatRoot', 0.30 * s); st.rot(c, 'SeatMid', 0.17 * s); st.rot(c, 'SeatFront', 0.23 * s);
       st.rot(c, 'PostA', 0.21 * s); st.rot(c, 'PostB', 0.21 * s);
       st.rot(c, 'Waist', -0.14 * s);
     };
+    // 椅頭抬起（`k` 0→1）
     const lift = (c, k) => {
       st.rot(c, 'NeckRoot', -0.52 * k); st.rot(c, 'Head1', -0.38 * k); st.rot(c, 'HeadTop', -0.30 * k);
       st.rot(c, 'Crest', -0.26 * k); st.rot(c, 'Yoke', -0.16 * k); st.rot(c, 'Chest', -0.13 * k);
     };
-    chairs.forEach((c, i) => {
-      st.tween({ ms: 300, delay: i * 40, ease: 'linear', update(t) {
-        rock(c, Math.sin(t * Math.PI * 3) * Math.sin(Math.PI * t)); st.rim(c, 1 + 0.35 * Math.sin(Math.PI * t));
+    /* ★搖也是卡頓的★：兩個離散角度，第三階與第二階相同 ⇒ tween 還在跑、畫面上一動都不動，
+       那一拍的靜止就是 §B3 的「出招前一拍完全靜止」（同 `COIL` 的寫法，不另排空 tween）。 */
+    const ROCK = [0.60, -0.88, -0.88];
+
+    /* 道具從**頭頂後上方**浮出來：§A9-3 對增益招的兩條通則是「落點在受益方身上、飛行路徑不跨中線、
+       不從敵方出發」，而起點拉高又往 `-st.dir` 退一段還有第二個作用——`PHASE_GATE.travel` 要求
+       spawn 物真的走 ≥40% 的「我到敵」距離，起點貼著受益方就湊不出那一段（香火批 1 的實測解法）。 */
+    /* ★後退量的上界是「還在畫面上」（看圖第 1／2 輪）★：第一版 `y+=0.66／-0.92` 把椅子切在畫面
+       上緣外、第二版 `-1.15` 切在左緣外。缺的那一段位移改由飛行途中的抬高（`yqFly` 的 `rise`）補
+       ——`PHASE_GATE.travel` 量的是「離起點最遠曾經到過多少」，抬高一樣算數，
+       而抬高只發生在第二階，不影響蓄勢那兩格。 */
+    const from = yqLaunch(st, st.top(seer, new THREE.Vector3()), [1.15, 0.95, 0.78, 0.60], 0.26, 0.40);
+    const host = mates.length ? yqRoomy(st, mates, st.worldOf(mates[0], 'Chest', _a).y) : seer;
+    const chest0 = st.worldOf(host, 'Chest', new THREE.Vector3());
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
+      st.worldOf(host, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(host, to);
+      to.lerp(chest0, 0.45); // 往胸口收：留在佔地裡（dW 仍是 0），但讀起來是「坐到他身上」不是「浮在桌上」
+      to.y = chest0.y;
+      to.add(st.camOff(0.5));
+    };
+    land();
+    const chair = st.paperStamp(st.kind, from, { anchor: 'allies', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.12, tiltDeg: 8, yawDeg: -22 });
+    chair.scale.setScalar(st.iconSize * 0.90); // §A3：世界包圍盒 ratio 實測 0.64（figH 1.39），在 2/3 之內
+    // 其餘每一尊我方各收一枚椅印（逐尊覆蓋；不 stagger，全部落在同一個衝擊拍）
+    yqDeliver(st, from, chairs.filter((c) => c !== host), { T0, TL }, { anchor: 'allies', k: 1.3, bowK: 1.2, rise: 0.70, roll: 0 }); // k 1.3＝0.39，與主道具 0.396 同一級（祖靈批 P4 r3 (a)：副件不得比主道具小太多）
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(seer, { r: 0.46, rot: 2.1, push: 0.16, peak: 0.70 });
+
+    /* ① 問事（windup）：前後搖兩下 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const n = COILN(e), k = COIL(e);
+        st.stance(seer, '舉臂', k); // §A9：施招者專屬姿態
+        chairs.forEach((c, i) => rock(c, ROCK[n] * (i ? 0.78 : 1)));
+        chairs.forEach((c) => st.rim(c, 1 + 0.5 * k));
+        // 椅子從他頭頂後上方浮出來：一格到位（不補間）
+        st.alpha(chair, k >= 1 ? 1 : (k >= 0.72 ? 0.55 : 0));
+        chair.position.copy(from); chair.position.y += 0.10 * k;
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 滯（travel）：椅頭突然抬起。飛行段只走前兩階，第三階由 `yqFly` 的 `done()` 給。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        chairs.forEach((c, i) => { rock(c, -0.88 * (1 - j) * (i ? 0.78 : 1)); lift(c, j * (i ? 0.78 : 1)); });
+        chairs.forEach((c) => st.rim(c, 1.4 + 0.9 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀
+        chairs.forEach((c, i) => { rock(c, 0); lift(c, i ? 0.78 : 1); });
+        chairs.forEach((c) => st.rim(c, 2.3));
       } });
-      st.tween({ ms: 220, delay: 300 + i * 40, ease: 'strike', update(t, e) { lift(c, e); st.rim(c, 1 + 1.1 * e); } });
-      st.tween({ ms: 260, delay: 560 + i * 40, ease: 'inout', update(t, e) { lift(c, 1 - e); st.rim(c, 1 + 1.1 * (1 - e)); } });
-    });
-    st.at(340, () => {
-      const from = st.worldOf(seer, 'HeadTop', new THREE.Vector3());
-      const circle = st.ring(st.foot(seer, new THREE.Vector3()), 0.44, 0.05, { opacity: 0.85 });
-      circle.scale.setScalar(0.35);
-      st.grow(circle, { ms: 320, from: 0.35, to: 1.3 });
-      st.fade(circle, { ms: 330, delay: 110, from: 0.85, to: 0 });
-      st.burst(from, { power: 0.45, n: 24 });
-      foes.forEach((f, j) => {
-        const to = st.worldOf(f, null, new THREE.Vector3());
-        const sight = st.beam(from, to, { opacity: 0 });
-        st.tween({ ms: 320, delay: j * 40, ease: 'linear', update(t) { sight.material.opacity = 0.92 * Math.sin(Math.PI * t); } });
-        st.tween({ ms: 280, delay: 60 + j * 40, ease: 'linear', update(t) { st.rim(f, 1 + 1.6 * Math.sin(Math.PI * t)); } });
+
+    /* `roll: 0`＝椅子**不翻滾**（看圖第 1 輪：轉起來的椅子剪影讀成一個「ㄈ」，不是家具）。 */
+    yqFly(st, chair, from, aim, to, { T0, TL }, { bow: st.camOff(1.6), rise: 0.80, roll: 0,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：三件同一拍★ ①椅頭抬到底 ②椅子坐定在同伴身上 ③我方每一尊同幀開始抖。 */
+        st.phase('react');
+        st.burst(to, { power: 0.5, n: 24, color: C.key });
+        st.punch(0.26);
+        // 黏著延後一格（同 hauntSteal：同幀呼叫會讓 anchor 與「椅子有沒有真的飛」脫鉤）
+        st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(host, 'Chest', new THREE.Vector3());
+          st.stick(chair, host, { at: 'chest', off: to.clone().sub(c) });
+        } });
+      } });
+
+    /* ③ 抖（react）：**四個離散台階**的高頻小幅，階與階之間一動都不動。
+       骨骼與 `st.move` 一起抖——`PHASE_GATE.react` 量的是 `move`／`scale` delta，只抖骨骼量不到。 */
+    const SHAKE = [0.065, -0.055, 0.045, 0];
+    st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+      const n = Math.min(3, Math.floor(t * 4)), a = SHAKE[n];
+      chairs.forEach((c, i) => {
+        const side = st.stageVec((i % 2 ? 1 : -1) * a, 0, 0, _a);
+        st.move(c, side.x, 0, side.z);
+        st.rot(c, 'Crest', -0.26 + a * 2.2); st.rot(c, 'HeadTop', -0.30 + a * 1.8);
+        st.rim(c, 1 + 1.4 * (n < 3 ? 1 : 0));
       });
-      st.flinch(foes, { delay: 60, stagger: 40, strength: 0.4, burst: false });
-    });
+    } });
+
+    /* 收勢：椅頭落回。★也是卡頓三階★（§B3 禁平滑補間）。 */
+    const SETTLE = [0.58, 0.24, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      chairs.forEach((c, i) => lift(c, k * (i ? 0.78 : 1)));
+      chairs.forEach((c) => st.rim(c, 1 + 1.3 * k));
+    } });
   },
 
   /* 黃色小雨衣・恐懼（raincoat，作祟×4）：三拍對面群體再 −1 atk。
@@ -975,35 +1086,8 @@ export const SHORT = {
   /* 迷途｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntLost: MOVES.hauntLost,
 
-  /* 看穿｜辨識：椅頭一抬＋一條細線指到對面每一隻 */
-  hauntSee(st) {
-    const K = st.ms / 260;
-    const chairs = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lead = chairs[0];
-    const eyeP = st.worldOf(lead, 'HeadTop', new THREE.Vector3());
-    const ring = st.ring(st.foot(lead, new THREE.Vector3()), 0.32, 0.04, { opacity: 0 });
-    const lines = st.target.slice(0, 4).map((f, i) => ({ l: st.beam(eyeP.clone(), st.worldOf(f, null, new THREE.Vector3()), { opacity: 0 }), f, i }));
-    chairs.forEach((g, i) => st.tween({ ms: 86 * K, delay: i * 10 * K, ease: 'inout', update(t, e) { // 竹椅前後搖（一來一回問事）
-      const s = Math.sin(e * Math.PI * 2);
-      st.rot(g, 'SeatRoot', 0.18 * s); st.rot(g, 'PostA', -0.12 * s); st.rot(g, 'PostB', 0.12 * s);
-      st.rot(g, 'Waist', 0.08 * s); st.rim(g, 1 + 0.5 * Math.abs(s));
-    } }));
-    st.tween({ ms: 74 * K, delay: 84 * K, ease: 'strike', update(t, e) { // 椅頭一抬、邊光亮
-      st.rot(lead, 'NeckRoot', -0.3 * e); st.rot(lead, 'Head1', -0.26 * e); st.rot(lead, 'HeadTop', -0.2 * e);
-      st.rot(lead, 'Crest', -0.18 * e); st.rim(lead, 1 + 2 * e);
-    } });
-    st.grow(ring, { ms: 92 * K, delay: 104 * K, from: 0.3, to: 1.7 }); // 椅腳下問事的環擴出去
-    st.fade(ring, { ms: 92 * K, delay: 104 * K, from: 0.7, to: 0 });
-    lines.forEach(({ l, f, i }) => { // 一條細線從椅頭指到對面每一隻
-      st.fade(l, { ms: 70 * K, delay: (108 + i * 12) * K, from: 0.85, to: 0 });
-      st.tween({ ms: 66 * K, delay: (112 + i * 12) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.4 * e); } });
-    });
-    st.tween({ ms: 62 * K, delay: 166 * K, ease: 'inout', update(t, e) { // 頭落回
-      const k = 1 - e;
-      st.rot(lead, 'NeckRoot', -0.3 * k); st.rot(lead, 'Head1', -0.26 * k); st.rot(lead, 'HeadTop', -0.2 * k);
-      st.rot(lead, 'Crest', -0.18 * k); st.rim(lead, 1 + 2 * k);
-    } });
-  },
+  /* 看穿｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  hauntSee: MOVES.hauntSee,
 
   /* 恐懼｜辨識：兜帽抬起＋暗陰氣圈從對面腳下掃出、對面縮小 */
   hauntDread1(st) {
