@@ -117,3 +117,36 @@ P0–P3／P5–P8 全綠（P4 照裁定要香火＋祖靈一起重跑，不在�
 派工書寫「自己」，本階段**未動任何真值表**）；② §A9-2 的例外被放寬成「真值包含施招者」要覆核；
 ③「拖線只准打擊類」目前**沒有機械檢查**，要補得先給 `MOVE_SPEC` 加效果類別欄（會動到真值邊界）。
 - **祖靈批階段 A 簽字（2026-09-13，使用者「範本過、照建議」）**：範本獻祭刀過；①H2 殘留（`casterMatch` 綁骨骼不綁道具落點）→ 階段 B 每支道具登記 anchor（施招者／受益方）並進 P1 機械檢查；②祖靈 P4 真值照 ABILITIES 填（獻祭刀＝防護增益／我方多個）；③§A9-2 例外採「真值含施招者時施招者可有受益反應」（修恆假非降標）。記錄項：拖線「只准打擊類」暫無機械檢查（需 MOVE_SPEC 效果類別欄）、破軍旗 ratio 0.818。上線 v0.55.7。
+
+### 7.5 陰氣批 3 階段 A 的狀態（2026-09-13，**待製作人簽字**）
+
+陰氣批的兩件前置一次做完：**新積木 `st.stain`**（語彙檔 §A8 三個新積木的最後一個）
+＋**範本招魔神仔紅帽 `hauntLost` 轉正**（Q1 指定的陰氣範本，現況全系最差的一支）。
+`hauntLost` 轉正之後，三個系別檔裡**再也沒有任何 `V054` 退路**——四支示範招全部走正式演出。
+報告＝`docs/experiments/2026-09-13-yinqi-b3-report.md`，交付物＝`…-b3-evidence/`，
+worktree `agent-a7cde5f94bae38220`（**未合併、未 push**，`index.html` 一行未動、版號未上）。
+P0–P8 除 P4（照裁定要等陰氣 9 支鋪完，與香火＋祖靈一起重跑新的三輪）之外全綠。
+
+| 落點 | 內容 |
+|---|---|
+| `st.stain` | `js/trait-fx.js:1830`（＋`st.groundMark` 的 `stain` 分派 `:1915`、白名單 throw） |
+| 範本招 | `js/trait-fx/yinqi.js:156`；共用零件 `yqBeat`／`JOLT`／`COIL`（`:10`／`:24`／`:29`） |
+| 登記表 | `js/trait-fx/vocab.js:346`（`MOVE_SPEC.hauntLost` 補 `stance: '前傾'`／`anchor: 'foe'`） |
+| 徽記版原地保留 | `yinqi.js:1008` `V055`／`:1123` `V055_SHORT`；`V054` 兩段移除 |
+
+**對抗式覆審已跑並修補完畢**（fresh `opus` 冷讀 diff）：**2 CRITICAL／7 HIGH／9 MEDIUM／5 LOW**，
+兩條 CRITICAL 與五條 HIGH 已修並各自附驗收（報告 §2.1），其餘照實記在 §2.2 交裁。
+其中 **C2 是既有缺陷**：`fx-contrast`（P3 的閘門工具）在 `V054` 全部移除之後 **exit 1**，
+前兩批的 `eliteSelfCut`／`biteGamble` 一樣紅——修的是「兩條路各查各的名單」，沒有動任何門檻，
+`--fxvocab=1` 的 canary 也從恆假修回有效。
+
+**交製作人裁的十四題**：報告 §1.7 的五題（紅帽 §A3 ratio 0.779 超線的結構成因、2v2 材料的同伴
+體型擋住施招者、`travel` 的 claim 沒有時間上限、陰氣 `轉`／`抖` 讓「不同型」恆真、`hauntLost` 的
+P4 真值提案＝詛咒削弱／敵方單一）＋§2.2 的九列（含 `sampleAnchors` 的 land／follow 按效果重判、
+§C3 指定的「乙 地面錯亂腳印」被換成「丙 魂片」、`st.stain` 的 `r` 沒有上限）。
+**引擎側兩條已登記進 `tests/tools/README.md` 的「已知未涵蓋」**（R-3 CRITICAL／R-4 HIGH，
+都附建議修法與可機械判定的驗收；依派工書本階段不碰 `sampleAnchors` 與 anchor 判定）。
+
+**下一步＝階段 B**：簽字後鋪陰氣其餘 8 支（`hauntSteal`／`hauntSee`／`hauntDread1`／`hauntSwap`／
+`eliteVsSwarm`／`swarmPierce`／`hauntFearX2`／`swarmFeed1`），照語彙檔 §C3 與 §B3；
+`eliteVsSwarm` 是**盲讀標竿、動作與節拍一格不動**。27 支全部鋪完之後統一交 P4。
