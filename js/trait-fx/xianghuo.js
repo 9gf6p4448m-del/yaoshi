@@ -1,6 +1,8 @@
 // 妖市 — 卷 C3 招式編舞・香火系（9 套，2026-09-05）
 // 舞台 API 與規則見 zuling.js 檔頭；骨骼名見 docs/experiments/2026-09-05-traitfx-bones.md。
 import * as THREE from 'three';
+// `ANCHOR_MARGIN`＝道具落點的邊距（唯一來源 vocab.js）。虎爺印挑獵物時要問「牠身上放不放得下一枚分得出來的印」。
+import { ANCHOR_MARGIN } from './vocab.js';
 
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
@@ -15,7 +17,7 @@ const _b = new THREE.Vector3();
 
 /* ══ 香火系 9 支共用的兩個小零件（2026-09-13 招式演出卷批 1）══ */
 const UP_Y = new THREE.Vector3(0, 1, 0);
-const AX_X = new THREE.Vector3(1, 0, 0);
+// AX_X 退場（覆審 r5 HIGH-A）：放平那一下改用 `st.flatQ`（引擎的共用常數，局部旋轉、與座位無關）
 /** 三拍窗換算：`st.beat` 給 windup／travel／react 的毫秒窗，這裡只多算「收勢抵達點」。
  *  `frac`＝`LAST / st.ms`（預設 0.90＝語彙檔 §A5 建議值：往嚴的方向走，多出來的 2% 全給衝擊拍）。
  *  ★不得在這裡寫任何毫秒字面值★：時長的唯一來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`。 */
@@ -43,8 +45,26 @@ function camOff(st, k) { return st.camOff(k); }
 
 /** 取角色與四個時間切點：出招的虎、被咬的獵物、朝向、windup 末／travel 起迄／react 起。 */
 function tgCast(st) {
+  /* ★撲向「站得開、看得清」的那一隻；同樣開的才挑最壯的（覆審 r3 R-2）★
+     改前一律挑最壯的（`st.biggest`），而治具棚的四尊敵方前後兩排互相重疊——
+     挑到被夾在中間的那一隻時，牠身上**沒有任何一點**離其他每一尊 ≥ `ANCHOR_MARGIN`
+     又還在畫面裡（實測最好只有 0.172），大印再怎麼放都分不出咬的是誰（`cover 0/1`）。
+     `st.spotRoom` 量的就是「這一尊還有多少自己的空間」，與判定端的 `sepOf` 同一支掃描。
+     「最壯」的讀法沒有丟：餘裕相同（差 ≤0.02）時仍然挑最壯的那一隻。 */
   const cat = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-  const prey = st.biggest(st.target) || st.target[0] || null;
+  const prey = (() => {
+    const list = st.target.slice();
+    if (list.length < 2) return list[0] || null;
+    const roomOf = (f) => st.spotRoom(f, st.worldOf(f, null, new THREE.Vector3()).y + 0.10);
+    /* ★為什麼是「最空的」而不是「最壯的」★：被撲的那一隻在衝擊拍**被虎整隻壓住**，
+       判定端要求道具離施招者也有一個邊距（`dWant + ANCHOR_MARGIN <= dOther`），
+       挑最壯的（治具棚站最前面那一隻）實測 `od` 只有 0.079–0.177 ⇒ 怎麼放都判紅。
+       挑「自己還有空間」的那一隻，`od` 才回得到 1.3 以上。L3 的面積改用飛行弧補（見下）。 */
+    let br = -Infinity;
+    for (const f of list) br = Math.max(br, roomOf(f));
+    const top = list.filter((f) => roomOf(f) >= br - 0.02); // 餘裕差 ≤0.02 算同一級
+    return st.biggest(top) || top[0];                        // 同一級裡仍然撲最壯的
+  })();
   const B = st.beat;
   return {
     cat, prey, B,
@@ -267,7 +287,7 @@ const MOVES = {
        原本寫的是世界 ±Z，那是 H1 同一個病（世界常數在西東對局會變成別的方向）。
        改用 `st.camDir` 叉乘世界 Y ＝**畫面的左右方向**（與 `js/duel-figures.js:684` 的 `tmpRight` 同一條）。 */
     if (pts.length < 2) {
-      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.55);
+      const side = st.sideDir.clone().multiplyScalar(0.55); // 與對決軸垂直（覆審 r4 HIGH-1：cross(camDir,UP) 在對決機位下就是對決軸本身）
       head.sub(side); tail.add(side);
     }
     head.y += 0.42; tail.y += 0.42;
@@ -398,12 +418,18 @@ const MOVES = {
        第 2 輪六位讀者在 2v2 下對象題一致答「自己」（同伴零反應），成因就是所有東西都畫在施招者這一格。
        改法一致：先**升起**（垂直高度差提供 travel 的位移、不跨中線），再落到同伴／每一尊我方身上。 */
     const others = mine.filter((f) => f !== lead);
-    const sweepOrder = others.concat([lead]); // 旗先掃同伴、最後回到自己
+    /* ★旗要停在**同伴**身上，不是回到自己（P4 第 3 輪回修 (b)）★
+       第 1 輪 18/18 讀對，第 2 輪掉到 6/18；用 `--mate=auto`（第 2 輪起的材料規格）實測：
+       覆審 r2 把終點收進「`sweepOrder` 最後那一尊」＝**施招者**，於是那面全場最大的旗
+       在衝擊拍停在施招者身上（`att=caster`），同伴身上只剩一枚小旗印 ⇒ 讀者答「自己」。
+       改成**從自己的桿上甩出去、掃過去、停在最後一尊同伴身上**：
+       「誰把旗給了誰」在畫面上就是一條從我指向他的線。 */
+    const sweepOrder = others.length ? [lead].concat(others) : [lead];
     const pts = sweepOrder.map((f) => st.worldOf(f, null, new THREE.Vector3()).add(camOff(st, 1.6)).setY(st.worldOf(f, null, _a).y + 0.50));
     const from = pts[0].clone(), to = pts[pts.length - 1].clone();
     /* 同上（覆審 r2 N2）：本方只有一尊時撐出掃過的兩端，方向取**畫面左右**而不是世界 ±Z。 */
     if (pts.length < 2) {
-      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.62);
+      const side = st.sideDir.clone().multiplyScalar(0.62); // 同上（覆審 r4 HIGH-1）
       from.sub(side); to.add(side);
     }
     const rise = from.clone(); rise.y += 1.30; // 升起段＝travel 的位移來源（不跨中線）
@@ -414,7 +440,7 @@ const MOVES = {
     /* ★覆審 r2 N-3★：`to` 是衝擊拍那一刻大旗停的地方，也是主道具唯一被量到的一點。
        3v3 時它落在兩尊之間（實測到最近的我方 0.184 > `ANCHOR_MARGIN` 0.18，差 0.004 判紅）。
        收進 `sweepOrder` 最後那一尊自己的佔地裡：掃過整排的讀法不變，終點變成「停在他身上」。 */
-    st.bodySpot(sweepOrder[sweepOrder.length - 1], to);
+    st.bodySpot(sweepOrder[sweepOrder.length - 1], to); // ＝最後一尊同伴（只有自己時就是自己）
 
     // ── 乙 大旗：鎏金面＋硃紅墨線的絹旗厚片（不是加色平面）──
     const banner = st.paperStamp(st.kind, mast, { anchor: 'allies', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
@@ -476,7 +502,7 @@ const MOVES = {
     const stag = RL * 0.36 / Math.max(1, order.length);
     order.forEach((f, i) => {
       const fwd = st.toward(f, new THREE.Vector3());
-      const lat = new THREE.Vector3(fwd.z, 0, -fwd.x);
+      const lat = st.sideDir.clone().multiplyScalar(-1); // ＝(fwd.z,0,-fwd.x)，改走唯一的舞台基底
       const k = (i % 2 ? -1 : 1) * (0.12 + 0.05 * st.rnd());
       st.tween({ ms: RL * 0.6, delay: R0 + i * stag, ease: 'pulse', update(t, e) {
         st.move(f, lat.x * k * e + fwd.x * 0.07 * e, 0, lat.z * k * e + fwd.z * 0.07 * e);
@@ -485,7 +511,7 @@ const MOVES = {
     });
     marks.forEach((m, i) => {
       const oi = order.indexOf(mine[i]); // 印記跟著同一個順序，才不會「先蓋印後側踏」
-      st.fade(m, { ms: RL * 0.20, delay: R0 + oi * stag, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.20, delay: R0, from: 0, to: 1 }); // 同一拍現身（覆審 r3 R-1 配套）
       st.tween({ ms: RL * 0.46, delay: R0 + oi * stag, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.55 - 0.70 * e)); } });
       st.fade(m, { ms: RL * 0.34, delay: R0 + RL * 0.62, from: 1, to: 0 });
     });
@@ -557,8 +583,8 @@ const MOVES = {
       for (let i = 0; i < SAILS; i++) {
         const a = (i + 1) * Math.PI / 2; // 跳過正面（留給 mainSail）
         const it = sails.items[i];
-        it.p.set(Math.cos(a) * r, 0, Math.sin(a) * r);
-        it.q.copy(_qs.setFromAxisAngle(UP_Y, -a)); // 面朝外＝方框的四面牆
+        st.stageVec(Math.cos(a) * r, 0, Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        it.q.copy(_qs.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI / 2)); // 面朝外：角度由**世界位移**反推，換座位照樣朝外
         it.s = s;
       }
       sails.write();
@@ -723,15 +749,15 @@ const MOVES = {
     foot.multiplyScalar(1 / Math.max(1, st.actor.length));
     const wave = st.paperProps(st.kind, EDGES, { floor: true, color: C.key, opacity: 0, k: 1.0, ratio: 8.0, depth: 0.10, warp: 0.05 });
     wave.obj.position.copy(foot);
-    const _qa = new THREE.Quaternion(), _qFlat = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    const _qa = new THREE.Quaternion(), _qFlat = st.flatQ;
     /** r0／r1＝內外兩圈的半徑；邊長跟著半徑等比（s = 2r / (ratio × markSize)） */
     const writeWave = (r0, r1) => {
       for (let i = 0; i < EDGES; i++) {
         const ring = i >> 2, side = i & 3, r = ring ? r1 : r0;
         const a = side * Math.PI / 2;
         const it = wave.items[i];
-        it.p.set(Math.cos(a) * r, 0.004 * (ring + 1), Math.sin(a) * r);
-        _qa.setFromAxisAngle(UP_Y, -(a + Math.PI / 2)); // 長邊垂直於半徑方向＝四邊圍成方框
+        st.stageVec(Math.cos(a) * r, 0.004 * (ring + 1), Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        _qa.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI); // 長邊垂直於半徑方向：角度由世界位移反推
         it.q.copy(_qa).multiply(_qFlat);
         it.s = Math.max(0, 2 * r / (8.0 * st.markSize));
       }
@@ -812,7 +838,7 @@ const MOVES = {
     st.tween({ ms: RL * 0.55, delay: R0, ease: 'out', update(t, e) { writeWave(0.70 + 0.35 * e, 0.50 + 0.35 * e); } });
     st.fade(wave.obj, { ms: RL * 0.55, delay: R0, from: 0.62, to: 0 });
     blessMarks.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.22, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.22, delay: R0, from: 0, to: 1 }); // 同一拍現身（覆審 r3 R-1 配套）
       st.tween({ ms: RL * 0.5, delay: R0 + i * RL * 0.08, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.9 - 0.8 * e)); } });
       st.fade(m, { ms: RL * 0.38, delay: R0 + RL * 0.6, from: 1, to: 0 });
     });
@@ -894,7 +920,7 @@ const MOVES = {
     const rallyMarks = troops.map((f) => {
       const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
-      m.scale.setScalar(st.markSize * 1.0);
+      m.scale.setScalar(st.markSize * 1.0); // §A3：wuying 的 figH 只有 1.06，放到旗那麼大時 ratio 0.995（實測），收回預設
       return m;
     });
     const _fp = new THREE.Vector3();
@@ -913,13 +939,13 @@ const MOVES = {
     const EDGES = 4;
     const plate = st.paperProps(st.kind, EDGES, { floor: true, color: C.line, opacity: 0, k: 1.0, ratio: 7.0, depth: 0.08, warp: 0.04 });
     plate.obj.position.copy(ring0);
-    const _qp = new THREE.Quaternion(), _qFlat2 = new THREE.Quaternion().setFromAxisAngle(AX_X, -Math.PI / 2);
+    const _qp = new THREE.Quaternion(), _qFlat2 = st.flatQ;
     const writePlate = (r) => {
       for (let i = 0; i < EDGES; i++) {
         const a = i * Math.PI / 2;
         const it = plate.items[i];
-        it.p.set(Math.cos(a) * r, 0.006, Math.sin(a) * r);
-        it.q.copy(_qp.setFromAxisAngle(UP_Y, -(a + Math.PI / 2))).multiply(_qFlat2);
+        st.stageVec(Math.cos(a) * r, 0.006, Math.sin(a) * r, it.p); // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        it.q.copy(_qp.setFromAxisAngle(UP_Y, Math.atan2(it.p.x, it.p.z) - Math.PI)).multiply(_qFlat2);
         it.s = Math.max(0, 2 * r / (7.0 * st.markSize));
       }
       plate.write();
@@ -977,6 +1003,11 @@ const MOVES = {
       st.move(f, 0, 0.06 * e, 0); st.rim(f, 1 + 1.8 * e);
     } }));
     st.tween({ ms: RL * 0.6, delay: R0, ease: 'out', update(t, e) { writePlate(0.90 + 0.30 * e); placeFlags(1, 0.72 - 0.15 * e); } });
+    rallyMarks.forEach((m) => {
+      st.fade(m, { ms: RL * 0.24, delay: R0, from: 0, to: 1 }); // 三尊同一拍現身（§A2）
+      st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { m.scale.setScalar(st.markSize * (1.02 - 0.10 * e)); } }); // 峰值收到 1.15：wuying figH 1.0645，1.7 時 §A3 ratio 0.942
+      st.fade(m, { ms: RL * 0.36, delay: R0 + RL * 0.6, from: 1, to: 0 });
+    });
     st.fade(plate.obj, { ms: RL * 0.5, delay: R0 + RL * 0.45, from: 0.6, to: 0 });
     flagMesh.forEach((m) => st.fade(m, { ms: RL * 0.5, delay: R0 + RL * 0.45, from: 1, to: 0 }));
 
@@ -1023,29 +1054,21 @@ const MOVES = {
     /* ── 大印：獵物正上方垂直落下，落地＝咬中 ──
        配置＝「暗印面＋鎏金印身＋鎏金陽刻『虎』字」：越亮的東西越留不住細節（§A4），
        所以暗面留細節、亮邊界定身分——鎏金印面會被 bloom 吃掉字。 */
-    /* ★落點要**決定性地**落在被咬那一隻身上（P4 r1 回修 E）★
+    /* ★落點要**決定性地**落在被咬那一隻身上（P4 r1 回修 E；覆審 r3 R-2 收尾）★
        敵方四尊在治具棚裡擠成一團，大印落在 `hit`（獵物本體）時到隔壁那幾尊的距離也是 0，
        anchor 的逐尊覆蓋量到 `cover 0/1`——畫面上同樣分不出咬的是哪一隻。
-       `lean`＝從其餘敵方指向獵物的水平單位向量，把落點往獵物那一側推一段。 */
+       ★手刻的「往最近那一隻的反方向推 0.85」退場★：它讓主道具只剩 `d=0.178` 的餘裕
+       （門檻 `ANCHOR_MARGIN` 0.18，剩 0.002），而 `st.bodySpot` 的挑點擺動就有 ~0.1
+       ——那不是「落在獵物身上」，是「浮在獵物旁邊，剛好還沒被判紅」。
+       改用 `st.bodySpot`：留在獵物**自己的佔地裡**（到它的距離＝0）、挑離其他每一尊最遠
+       又在畫面上的那一點；實測餘裕由 0.002 變成 ≥0.30。 */
     const land = hit.clone(); land.y += 0.10;
-    if (prey) {
-      /* 推的方向取「**離獵物最近的那一隻**其餘敵方」的反向——取全體重心在獵物剛好站中間時
-         會算出接近零的向量（實測 tier 2 不帶 --count 時 cover 仍是 0/1）。 */
-      let near = null, nd = Infinity;
-      for (const f of st.target) {
-        if (f === prey) continue;
-        const d = f.group.position.distanceToSquared(prey.group.position);
-        if (d < nd) { nd = d; near = f; }
-      }
-      if (near) {
-        const lean = prey.group.position.clone().sub(near.group.position); lean.y = 0;
-        if (lean.lengthSq() > 1e-6) land.add(lean.normalize().multiplyScalar(0.85));
-      }
-    }
+    if (prey) st.bodySpot(prey, land);
     const sky = land.clone(); sky.y += 0.62; // 再高就出畫面上緣（對決機位 tilt 24°／dist 4.2）
     const big = st.paperStamp(st.kind, sky, { anchor: 'foe', main: true, role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
       opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.42, w: 0.66, h: 0.32 } });
     big.scale.setScalar(st.iconSize * 0.80);
+    const sealBow = camOff(st, 2.2); // 飛行弧往鏡頭鼓出的量（起訖兩端 sin=0 ⇒ 不動落點）
     const qBig = big.quaternion.clone();
     const pitchTo = (deg) => { big.quaternion.copy(qBig); big.rotateX(THREE.MathUtils.degToRad(deg)); };
     pitchTo(30);
@@ -1069,8 +1092,8 @@ const MOVES = {
     for (let i = 0; i < FOILS; i++) {
       const f = i / (FOILS - 1);
       local.push({
-        a: new THREE.Vector3((st.rnd() - 0.5) * 0.22, 0.06 + 0.26 * Math.sin(Math.PI * f), 0).addScaledVector(st.dir, -0.34 + 0.72 * f),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.30, (st.rnd() - 0.5) * 0.26, (st.rnd() - 0.5) * 0.30),
+        a: st.stageVec((st.rnd() - 0.5) * 0.22, 0.06 + 0.26 * Math.sin(Math.PI * f), -0.34 + 0.72 * f), // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        b: st.stageVec((st.rnd() - 0.5) * 0.30, (st.rnd() - 0.5) * 0.26, (st.rnd() - 0.5) * 0.30),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.8 * st.rnd(), s: 0,
       });
     }
@@ -1108,12 +1131,22 @@ const MOVES = {
     st.tween({ ms: TL, delay: T0, ease: 'in',
       update(t, e) {
         big.position.lerpVectors(sky, land, e);
-        big.scale.setScalar(st.iconSize * (0.80 + 0.22 * e));
+        /* ★飛行途中往鏡頭鼓出一道弧（兩端 sin=0，落點一格不動）★：
+           獵物改挑「自己還有空間」的那一隻之後離鏡頭遠了些，L3（凍在 travel 中點）
+           實測面積 0.7683 < 門檻 0.8。同樣的世界尺寸推近鏡頭就佔更多畫面，
+           這條與香灰符、長明燈用的是同一招。 */
+        big.position.addScaledVector(sealBow, Math.sin(Math.PI * e));
+        big.scale.setScalar(st.iconSize * (0.86 + 0.22 * e));
         pitchTo(30 + 12 * e); // 落下過程印面斜 30°→42°：看得出它是一枚印，不是一塊板
       },
       done() {
         /* ★衝擊拍★：落地＝咬中，全部疊在這一刻 */
         st.phase('react');
+        /* ★落點在衝擊拍**重挑一次**（覆審 r3 R-2）★：編舞排在 t=0，那時虎還蹲在自己那一側；
+           到了衝擊拍**虎整隻壓在獵物身上**（撲咬的必然），t=0 挑好的那一角早被虎的框蓋住
+           （實測獵物的最大餘裕 0.200，而 t=0 選的點在衝擊拍量到 att=null）。
+           `st.bodySpot` 在這一幀重挑，與量測看到的是同一份幾何。 */
+        if (prey) { st.bodySpot(prey, land); big.position.copy(land); } // 重挑：判定端也要求大印離**施招者**一個邊距，所以虎自己照樣要閃開
         /* ★受擊火花照王爺劍那條（P4 r1 回修 E）★：王爺劍讀成「打擊」18/18，
            它的衝擊拍只有一種粒子——硃紅命中色。這一支改前多疊一層**金色**紙錢，
            那是「偷取」2/18 與「防護增益」4/18 的來源（金色在這套語彙裡讀起來像「給東西」）。
@@ -1150,13 +1183,21 @@ const MOVES = {
     shard.obj.position.copy(land);
     const _es = new THREE.Euler();
     const shardTo = [];
+    // 橫向基底走 `st.stageVec`（內部就是 `st.sideDir`；覆審 r4 HIGH-1／r5 HIGH-A）
+    /* ★不得有任何一片往我方飛（P4 第 3 輪回修 (c)）★
+       碎片原本是全向亂灑（±0.45），其中有幾片會往施招者那一側飛——
+       在這套語彙裡「東西從對手身上回到我方」就是**偷取**（第 2 輪 7/18 讀成偷取）。
+       把散開方向壓成「遠離施招者」的半平面：與 `st.dir`（我→敵）同向的分量一律 ≥0。 */
     for (let i = 0; i < SHARDS; i++) {
-      shardTo.push({ x: (st.rnd() - 0.5) * 0.9, y: 0.18 + 0.42 * st.rnd(), z: (st.rnd() - 0.5) * 0.9, rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });
+      const lat = (st.rnd() - 0.5) * 0.9;          // 橫向：在 st.dir 上的投影恆為 0，散多遠都不回流
+      const fwd = 0.10 + 0.55 * st.rnd();          // 往敵方深處：一律正值
+      // 位移一律經 `st.stageVec`（覆審 r5 HIGH-A：三系檔裡不得再出現 `it.p.set(` 那種世界軸寫法）
+      shardTo.push({ v: st.stageVec(lat, 0.18 + 0.42 * st.rnd(), fwd), rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });
     }
     const writeShards = (k) => {
       for (let i = 0; i < SHARDS; i++) {
         const g = shardTo[i], it = shard.items[i];
-        it.p.set(g.x * k, g.y * k - 0.10 * k * k, g.z * k);
+        it.p.copy(g.v).multiplyScalar(k); it.p.y -= 0.10 * k * k; // g.v 由 st.stageVec 組出來（見 shardTo）
         it.q.setFromEuler(_es.set(0, g.ry, g.rz + 2.2 * k));
         it.s = 0.85 - 0.25 * k;
       }
@@ -1177,7 +1218,11 @@ const MOVES = {
       const writeClaws = (k) => {
         for (let i = 0; i < CLAWS; i++) {
           const it = claw.items[i];
-          it.p.set((i - 1) * 0.16 * (1 + 0.7 * k), -0.06 + 0.10 * (i % 2), 0);
+          /* ★橫向必須是舞台的橫向，不是世界 X（覆審 r5 HIGH-A）★
+             這一行原本把三道爪痕沿世界 X 拉開；容器沒有旋轉 ⇒ 局部就是世界，
+             於是它與「我→敵」的夾角由座位決定：六個真實 duelYaw 裡有五個量到回流
+             （0° −0.106、45／135／225／315 各 −0.075），只有治具唯一量的 90° 是 0。 */
+          st.stageVec((i - 1) * 0.16 * (1 + 0.7 * k), -0.06 + 0.10 * (i % 2), 0, it.p);
           it.q.setFromEuler(_ec.set(0, Math.PI * 0.5, 0.42 + 0.10 * i));
           it.s = 0.45 + 0.75 * k;
         }
@@ -1248,8 +1293,8 @@ const MOVES = {
     const grains = [];
     for (let i = 0; i < ASH; i++) {
       grains.push({
-        a: new THREE.Vector3((st.rnd() - 0.5) * 0.16, (st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.16),
-        b: new THREE.Vector3((st.rnd() - 0.5) * 0.42, -0.10 - 0.30 * st.rnd(), (st.rnd() - 0.5) * 0.42),
+        a: st.stageVec((st.rnd() - 0.5) * 0.16, (st.rnd() - 0.5) * 0.10, (st.rnd() - 0.5) * 0.16), // 舞台基底（覆審 r5 HIGH-A：橫向不得寫成世界軸）
+        b: st.stageVec((st.rnd() - 0.5) * 0.42, -0.10 - 0.30 * st.rnd(), (st.rnd() - 0.5) * 0.42),
         rz: st.rnd() * 3, ry: Math.PI * 0.5 + 0.9 * st.rnd(), s: 0,
       });
     }
@@ -1337,7 +1382,7 @@ const MOVES = {
     /* ★受益方的反應要更明確★（P4 r1 回修 B）：同伴**落地之後**才升（delay R0＝符到位那一刻），
        施招者從頭到尾只有蓄勢與送出，沒有任何受益反應——這兩件是「誰施招／誰受益」的分水嶺。 */
     st.tween({ ms: RL * 0.8, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(mate, 0, 0.115 * e, 0); st.rim(mate, 1 + 2.9 * e);
+      st.move(mate, 0, 0.17 * e, 0); st.rim(mate, 1 + 3.2 * e); // P4 r3 (d)：受益反應拉到語彙上限
     } });
 
     /* 收勢：收手 */
@@ -1373,9 +1418,11 @@ const MOVES = {
        治具棚 2v2 下同一邊兩尊的水平佔地本來就重疊，落在重疊區裡的道具讀者分不出是誰的
        （實測這一支的 gap 只有 0.061–0.118，門檻 ANCHOR_MARGIN=0.18）。
        `lean`＝從施招者指向受益方的水平單位向量；沒有同伴時是零向量（count=1 的站位一個位元組不變）。 */
-    const lean = hurt.group.position.clone().sub(lamp.group.position); lean.y = 0;
-    if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.50); else lean.set(0, 0, 0);
-    const dst = st.top(hurt, new THREE.Vector3()).add(camOff(st, 1)).add(lean);
+    /* ★手刻的 0.50 推力退場，改 `st.bodySpot`（P4 第 3 輪回修 (d)）★
+       用 `--mate=auto` 實測：同伴換成別的體型之後，固定量推不到新同伴的佔地上
+       （燈焰主道具 `wd=0.287` > `ANCHOR_MARGIN` 0.18，判紅）——固定量只對某一種體型成立。
+       `st.bodySpot` 挑的是「那一尊自己佔地裡最空、又在畫面上」的一點，體型換了照樣成立。 */
+    const dst = st.bodySpot(hurt, st.top(hurt, new THREE.Vector3()).add(camOff(st, 1)));
     /* 燈焰不直線飛過去：先往前送一段（脫離燈罩、飄到陣中），再落到那一尊頭上。
        ★前半那一段是 travel 的位移來源★（門檻 travelDist×0.40）。 */
     /* ★2026-09-13 P4 第 2 輪回修★：道具的落點要在**受益方身上**，不是施招者身上。
@@ -1441,7 +1488,7 @@ const MOVES = {
     st.fade(seal2, { ms: RL * 0.36, delay: R0 + RL * 0.6, from: 1, to: 0 });
     // ★受益方落地之後才升、幅度加大（P4 r1 回修 B）；施招者全程沒有受益反應
     st.tween({ ms: RL * 0.85, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(hurt, 0, 0.12 * e, 0); st.rim(hurt, 1 + 2.9 * e);
+      st.move(hurt, 0, 0.17 * e, 0); st.rim(hurt, 1 + 3.2 * e); // P4 r3 (d)：受益反應拉到語彙上限
     } });
 
     /* 收勢：抬頭、燈芯回位 */
@@ -1704,7 +1751,7 @@ export const V055 = {
     st.fade(bell, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
     /* ③ 護到誰看得見（react）：同伴頭上各蓋一枚銅鈴印記並被托起半寸 */
     guard.forEach((m, i) => {
-      st.fade(m, { ms: RL * 0.24, delay: R0 + i * RL * 0.08, from: 0, to: 1 });
+      st.fade(m, { ms: RL * 0.24, delay: R0, from: 0, to: 1 }); // 同一拍現身（覆審 r3 R-1 配套）
       st.fade(m, { ms: RL * 0.4, delay: R0 + RL * 0.58, from: 1, to: 0 });
     });
     (mates.length ? mates : [ringer]).forEach((f, i) => st.tween({ ms: RL * 0.9, delay: R0 + i * RL * 0.08, ease: 'pulse', update(t, e) {

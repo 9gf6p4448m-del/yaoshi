@@ -9,8 +9,10 @@ M8 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  腳下語彙點到
 M9 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  受招方只轉不動（只有 spin 不算反應，react 三段量 move／scale）
 M10 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  帽子原地生成、也不在衝擊拍到位（飛行整段沒了）
 M11 [drive] 健康 GREEN → 突變 GREEN → 還原 GREEN  ❌  只拿掉衝擊拍之後那一行黏著（飛行還在）——照設計不該紅
-M13 [drive] 健康 GREEN → 突變 GREEN → 還原 GREEN  ❌  帽子飛到一半就停（不在衝擊拍到位）＝落點證據脫鉤的那一格
+M13 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  帽子飛到一半就停（不在衝擊拍到位）＝落點證據脫鉤的那一格
 M14 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  腳下暗斑的本體色改成比桌面亮的 key（不再是暗斑）
+M15 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  魂片往我方散（v0.55.9 的「衝擊拍後不得回流」）
+M16 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  帽子戴在 A、受擊位移搬到 B（foe 綁受擊者）
 M12 [drive] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  M10＋M11：飛行、到位、黏著全部拿掉（travel 才紅）
 
-14 條，驗紅 12／14（另有 M11／M13 是照實留著的已知未驗紅，見檔內註解）
+16 條，驗紅 15／16（另有 M11 是照實留著的已知未驗紅，見檔內註解）

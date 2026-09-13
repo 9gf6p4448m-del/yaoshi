@@ -7,7 +7,8 @@
 > §3／§10.2／§10.3／§10.7。前兩批＝`2026-09-13-xianghuo-b1-report.md`／`2026-09-13-zuling-b2-report.md`。
 >
 > **worktree `C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a7cde5f94bae38220`
-> （分支 `worktree-agent-a7cde5f94bae38220`），基準＝main `ea2a38f`（v0.55.8，祖靈批階段 B）。
+> （分支 `worktree-agent-a7cde5f94bae38220`），起始基準＝main `ea2a38f`（v0.55.8，祖靈批階段 B）。
+> **2026-09-13 已把 main `8a242b0`（v0.55.9，祖靈批收尾）併進來並全套重驗——見 §3。**
 > 未合併、未 push。`index.html` 一行未動、版號未上。**
 >
 > **對抗式覆審已跑並修補完畢**（fresh `opus` 冷讀 diff，清單＝`…-b3-evidence/adv-review.md`，
@@ -345,3 +346,74 @@ fresh `opus` 冷讀 `ea2a38f..HEAD` 的 diff＋權威文件，實跑重現每一
 | M9 | 「帽子不淡出」讓它在收工那一幀消失，三張 sheet 都取樣不到 | 是刻意的（§1.6 第 3 輪）：t1 的 `RL` 只有 62ms，任何落在 `RL` 裡的淡出都會吃掉 sheet 第 6 格 |
 | M6 | 突變沒有一條跑 `fx-contrast` | 本輪已加 M14（走 P1）與 M10／M13（走 drive 的 anchor）；`fx-contrast` 那條路的鑑別力目前靠 L3 canary（`README` 的既有程序），沒有併進這支腳本 |
 
+
+---
+
+## 3. 合併 main（v0.55.9）後重驗（2026-09-13）
+
+### 3.0 一句話
+
+祖靈批收尾合進 main 之後（`8a242b0` v0.55.9：anchor 主道具／在場五條／逐尊覆蓋／`foe` 綁受擊者、
+**衝擊拍後不得回流**斷言、`st.stageVec` 舞台座標唯一出口＋世界軸掃描、`--camyaw` 六座位、
+`fx-cli.mjs`／`fx-mate.mjs`），把 main 併進本 worktree。
+**兩邊都活**：我的 `st.stain`／`hauntLost` 轉正／`V054` 移除／「暗斑比桌面暗」那條斷言／活性下限 19
+全部保留；main 的 anchor／回流／`stageVec` 全部保留。`hauntLost` 依新語彙改了三處，**全套重驗全綠**。
+
+### 3.1 合併本身
+
+- `git merge main`：只有 **`tests/tools/README.md` 一個衝突**（兩邊各自往「已知未涵蓋」加了一段）。
+  解法是**兩段都留**——我的 R-3／R-4／R-5 與 main 的 r6 N1／N2 講的是不同的洞。
+- `js/trait-fx.js`／`tests/fxvocab.test.mjs`／`tests/tools/traitfx-drive.mjs` 自動合併乾淨；
+  `js/trait-fx/yinqi.js` 只有我這邊動過。
+- `index.html` 對 main **一行未動**（版號仍是 main 的 v0.55.9；本階段不上版號）。
+
+### 3.2 `hauntLost` 依 v0.55.9 的新語彙改了三處
+
+| # | 改了什麼 | 為什麼（哪一條新斷言） |
+|---|---|---|
+| 1 | 魂片的逐實例位移改走 **`st.stageVec`**，而且 **z 分量夾在 ≥0** | ① `tests/fxvocab.test.mjs` 的**世界軸掃描**：三系檔裡不得再有逐實例位移直接寫世界 xyz（`it.p` 是容器局部座標、容器不旋轉 ⇒ 局部就是世界，而舞台是相機相對的）。② **回流斷言**：本招 `anchor: 'foe'` ⇒ 打擊類，衝擊拍之後任何道具往我方走就判紅。`x` 走 `st.sideDir`（與對決軸正交、投影恆為 0），`z` 只准往敵方散 |
+| 2 | 落點加 **`st.bodySpot`**（衝擊拍那一幀再夾一次），挑目標的 `st.spotRoom` 改在**帽子要落的高度**上量 | `foe` 這一格在 v0.55.9 變成 `attMain && hurtHit`：主道具的落點要**決定性地**歸屬到一尊，而且那一尊要真的有受擊反應。不夾的話治具棚四尊敵方擠在一起，`attr()` 歸屬不出來（實測合併後第一跑 `attMain=false`／`cover 0/1`） |
+| 3 | **飛行段瞄「頭頂中心」（`aim`）、落點才用夾過的 `to`** | 兩者的量測位置不同：anchor 凍在**衝擊拍**（要決定性落點）、L3 凍在 **travel 中點**（要螢幕面積）。第一版兩段共用夾過的點，整條飛行路徑跟著偏，**P3 由 1.022% 掉到 0.7109%**（門檻 0.8）。★沒有動門檻，動的是「哪一段用哪一個點」★ |
+
+**踩到的一個小坑照實記**：世界軸掃描是**逐行字串比對**，我在註解裡寫出了那個方法名的字面值
+⇒ 掃描判紅在**註解**上（`yinqi.js:218`）。這正是 repo 裡踩過兩次的同一個坑（`traitfx-drive` 覆審 r1
+MEDIUM-1、`zuling.js` 的 V055 註解）。改法是把註解改寫成不含那個字面值，並在原地標明理由。
+
+### 3.3 重驗（全部實跑，最終 SHA）
+
+| 閘門 | 指令 | 結果 |
+|---|---|---|
+| P0 trace-eq **對 main** | `git show main:index.html > …` ＋ `trace-eq` | `{"seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}` ✅；`git diff main -- index.html` 空 |
+| P1 `fxvocab.test.mjs` | `node tests/fxvocab.test.mjs` | **30 綠 0 紅**（我的「暗斑比桌面暗」＋main 的世界軸掃描都在裡面）✅ |
+| P2／P5／P6 drive 全套 | 七跑 | `--tier=1` **27/27**、`--tier=2` **30/30**、`--tier=3` **3/3**、`--fxvocab=1` t1 **27/27**／t2 **30/30**、`--count=2` **30/30**、`--count=3` **30/30** ✅ |
+| **回流斷言 六座位** | `drive --tier=2 --count=2 --camyaw=<90／315／45／225／135／0> --only=<打擊類 6 支>` | 六個座位 **6/6 pass**、**紅 0／最深 0**；每一跑「有軌跡可量 **3 支**」（祖靈批時是 2 支⇒本招的魂片真的進了分母，不是空真）✅ |
+| P3 對比 | `fx-contrast --only=hauntLost --tier=2／1` ＋ metrics | 工具自己 ` ok `／**exit 0**；t2 t1 皆 **area 1.022%**（門檻 0.8）／**ΔE 中位 35.65**（門檻 28）✅ |
+| A6 draw call | `proto-record --trait=hauntLost --tier=2 --step=6` | `idleCalls 256` → `peakCalls 267`＝**+11**（≤ idle+25）；`programs 22`、`errors 0` ✅ |
+| §A3 尺寸 | `prop-size --tier=2／1` | `emblem:hat` 峰值 0.8811／ratio **0.779**（OVER，記錄項不擋批，成因見 §1.3）；`prop:hat` 0.300／0.265 ✅；`floor:stain` 1.5844（腳下語彙不在這條規則範圍） |
+| P7 效能 | `duel-perf perf --seed=7`（本樹 ／ main 的 `git archive` 樹） | fps **59.9 : 59.9 ＝ 1.00**（≥0.95）；draw call **986 : 986**（≤1000）；visible 16:16；errors 0 ✅ |
+| P8 12 套規則測試 | 逐套 | **30／8／5／7／9／14／32／8／16／28／32／36 全綠** ✅ |
+| 鑑別力 | `b3-mutations.mjs` | **16 條，驗紅 15**（`exit 0`）✅ |
+
+**`hauntLost` 的 anchor 明細（`--tier=2`）**：
+`ok true`／`mainOK true`／**`attMain true`**／**`hurtHit true`**／`hurtN 1`／`cover 1/1`／`coverOK true`／
+`gap 1.749｜2.098`（門檻 `ANCHOR_MARGIN` 0.18）。
+**`flow`**：`{"scope":true,"n":2,"worst":0,"absMax":0.116,"kind":"prop:hat","at":700,"ok":true,"eps":0.01}`
+——`absMax 0.116` 代表這條斷言**真的被行使到**（`worst=0` 不是「根本沒動」的空真）。
+
+### 3.4 突變表的變化（16 條，驗紅 15）
+
+| # | 變化 | 說明 |
+|---|---|---|
+| **M13** | **綠 → 紅** | 「帽子只飛到 64% 就停」。合併前 `mainD 0.102 ≤ 0.18` 所以是綠的（照實記在上一版 §1.5）；合併後落點由 `st.bodySpot` 夾進那一尊自己的佔地、`foe` 又加了 `attMain && hurtHit` ⇒ 停在半路就歸屬不出來 |
+| **M15**（新） | 紅 ✅ | 魂片的 z 分量拿掉夾限 ⇒ 一半實例往我方散 ⇒ **回流斷言**判紅。這是 v0.55.9 那條新斷言在本招上的鑑別力 |
+| **M16**（新） | 紅 ✅ | 帽子照樣戴在 A、**受擊位移搬到 B** ⇒ `hurtHit` 假。這是「`foe` 綁受擊者」那條的鑑別力。★第一版的 M16 設計壞了★：它把挑目標的排序反過來，但反應跟著換到同一尊 ⇒ 兩件事仍綁在一起、當然不紅。那不是防線的缺口，是突變沒打在待驗的行為上，已重寫 |
+| M11 | 仍綠（對照組） | 只拿掉黏著、飛行還在——照設計本來就不該紅，留著才分得出 M10／M13 的紅是哪一段造成的 |
+
+### 3.5 §2.2「沒有修」那幾列的現況
+
+- **C1 殘（`regAnchor` 按入口不按效果）**：main 沒有動這一條，`tests/tools/README.md` 的 **R-3** 仍然成立。
+  本階段一樣不碰（派工書指名）。
+- **M13**：v0.55.9 之後**已經不成立**（見 §3.4），從待裁清單移除。
+- **R-4（`travel` 的 claim 沒有時間上限）**：main 沒有動，仍然成立。
+- 其餘（§C3 的「乙 地面錯亂腳印」換成「丙 魂片」、`st.stain` 的 `r` 沒有上限、t1 的 react 六階
+  各 10.3ms、真實對決的衝擊拍沒抓到）**一律未變**，仍在 §2.2 等裁。

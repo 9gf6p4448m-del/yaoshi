@@ -264,3 +264,6 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 **殘留（MEDIUM，未修）**：`movesMatching` 與 `tests/fxvocab.test.mjs` 的 `convertedMoves` 是
 **兩份**同名推導（一邊 `indexOf('V054')`、一邊 `/export const V05[45]/`），兩邊註解都寫「同一條推導」。
 要合併得連 `emblemCasesFromSource` 的活性下限一起重訂。
+
+### （0.55.9 r6 覆審記錄，祖靈批收尾）
+- （0.55.9 r6 覆審記錄）N1（MEDIUM）：世界軸掃描為逐行字串比對，可被 `// axis-ok:` 整行豁免、行內純變數名 `lat/side/fwd/perp/UP` 放行、`Vector3(` 跨行三種寫法繞過；接住它們的是回流斷言，但 `traitfx-drive` 預設只量 yaw 90，六座位掃描未進閘門腳本——待辦：把 `--camyaw` 六值進 P8 例行跑。N2（LOW）：`coverNeed=0`（受擊者站位分不出）時 `hurtHit` 要求靜默消失。

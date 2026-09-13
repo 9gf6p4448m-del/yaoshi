@@ -162,8 +162,17 @@ const MOVES = {
        挑「最近的」會挑到與同伴疊在一起的那一隻，帽子戴上去仍然分不出是誰的（§A9-5 的 `attr`）。 */
     const pool = st.target.filter((f) => !(f.unit && f.unit.body === 'elite'));
     const foes = pool.length ? pool : st.target;
+    /* ★挑「站得開」的那一尊，而且在**帽子要落的那個高度**上量（同虎爺印覆審 r3 R-2 的作法）★
+       v0.55.9 起 `foe` 這一格要求 `attMain && hurtHit`：主道具的落點必須**決定性地**歸屬到一尊，
+       而且那一尊就是真的有受擊反應的那一尊。治具棚四尊敵方前後兩排互相重疊，挑到被夾在中間的
+       那一隻時，牠身上沒有任何一點離其他每一尊 ≥ `ANCHOR_MARGIN` ⇒ 帽子戴得再準也判紅。
+       `st.spotRoom` 與判定端的 `sepOf` 是同一支掃描。 */
     let lost = foes[0] || null;
-    foes.forEach((f) => { if (lost && f !== lost && st.spotRoom(f) > st.spotRoom(lost)) lost = f; });
+    if (foes.length > 1) {
+      const roomOf = (f) => st.spotRoom(f, st.top(f, new THREE.Vector3()).y);
+      let best = -Infinity;
+      foes.forEach((f) => { const r = roomOf(f); if (r > best) { best = r; lost = f; } });
+    }
     const fwd = st.toward(ghost, new THREE.Vector3());
     // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點（幅度沿用 0.54，時間軸整支重排到 §A1 的三拍窗上）
     const point = (g, k) => {
@@ -186,6 +195,13 @@ const MOVES = {
     const from = st.top(ghost, new THREE.Vector3()); from.y += 0.16; from.add(st.camOff(0.5));
     const to = lost ? st.top(lost, new THREE.Vector3()) : from.clone();
     if (lost) { to.y += 0.10; to.add(st.camOff(0.5)); }
+    /* ★飛行段瞄頭頂中心（`aim`），**落點**才由 `st.bodySpot` 夾（`to`）★
+       兩者分開的理由是量測位置不同：anchor 凍在**衝擊拍**，要的是「決定性地落在那一尊身上」
+       ⇒ 非夾不可（不夾則 `attMain=false`）；而 L3 凍在 **travel 中點**，那一格要的是螢幕面積。
+       第一版兩者共用夾過的點，整條飛行路徑跟著偏掉，P3 由 1.022% 掉到 **0.7109%**（門檻 0.8）。
+       ★沒有動門檻★：動的是「哪一段用哪一個點」。 */
+    const aim = to.clone();
+    if (lost) st.bodySpot(lost, to);
     const hat = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
       color: C.hot, inkColor: C.ink, opacity: 0, depth: 0.22, warp: 0.16, tiltDeg: 10, yawDeg: -20 });
     hat.scale.setScalar(st.iconSize * 0.55);
@@ -213,10 +229,18 @@ const MOVES = {
     }
     /** 魂片的散開也是**三階**（覆審 H6-1：`ease:'out'` 的連續內插是陰氣的禁區「平滑補間的位移」）。 */
     const SHARD_STEP = [0.38, 0.72, 1];
+    /* ★逐實例位移一律走 `st.stageVec`（v0.55.9 覆審 r5 HIGH-A）★
+       `it.p` 是容器的**局部**座標，而容器沒有旋轉 ⇒ 局部就是世界；舞台卻是相機相對的
+       （`st.dir` 隨座位轉）。第一版直接寫進局部 xyz（cos·r／up／sin·r）＝把橫向釘在世界 X／Z 上，
+       它與「我→敵」的夾角由座位決定——虎爺印的爪痕就是這樣在六個真實 `duelYaw` 裡有五個回流。
+       ★這幾行刻意不寫出那個方法名★：掃描是逐行字串比對，註解裡出現同一個字面值就會被判紅
+       （這一條本身就是那個坑的實例，第一版的註解真的紅過一次）。
+       ★`z` 分量夾在 ≥0★：`x` 走 `st.sideDir`（與對決軸正交，投影恆為 0，怎麼散都不回流）、
+       `z` 只准往敵方那一側散。本招是打擊類（`anchor: 'foe'`）⇒ 衝擊拍之後回流我方就判紅。 */
     const writeShards = (k) => {
       for (let i = 0; i < SH; i++) {
         const s = seeds[i], it = shards.items[i];
-        it.p.set(Math.cos(s.a) * s.r * k, s.up * k, Math.sin(s.a) * s.r * k);
+        st.stageVec(Math.cos(s.a) * s.r * k, s.up * k, Math.max(0, Math.sin(s.a)) * s.r * 0.45 * k, it.p);
         it.q.setFromEuler(_e.set(0, s.a, s.rz));
         it.s = k <= 0 ? 0 : 1;
       }
@@ -272,7 +296,7 @@ const MOVES = {
       update(t, e) {
         const n = e < 0.40 ? 0 : 1;
         if (n !== jolted) { jolted = n; hat.rotateZ(0.44); }
-        hat.position.lerpVectors(from, to, JOLT[n]);
+        hat.position.lerpVectors(from, aim, JOLT[n]);
         /* ★鼓弧只掛在**第二階**上（`n === 1`）★：陰氣禁平滑補間，`sin(π·j)` 那一版是一條連續的弧。
            ★它買的是 P3 的螢幕面積，不是飛行的證據★（覆審 H3 的更正）：收斂之後鏡頭偏移對
            `travel` 分子的貢獻**不減反增**（實測 M12：連續弧 0.6653 → 只掛一階 0.7404，門檻 1.2533）。
@@ -291,6 +315,8 @@ const MOVES = {
            ②帽子第三階一格到位 ③魂片散出 ④那一尊同幀開始打轉（下面的 react tween，delay R0）。
            ★帽子的落點由**它自己的位移**給，不是由黏著給★（覆審 C1）：`hat.position.copy(to)`
            就是第三跳；鼓弧在這一格是 0，所以 anchor 量到的是真正的落點。 */
+        /* 衝擊拍那一幀用**當下**的站位再夾一次（編舞是在 t=0 排的，那時受招方還沒動）。 */
+        if (lost) st.bodySpot(lost, to);
         hat.position.copy(to);
         hat.rotateZ(0.44);
         st.phase('react');

@@ -61,22 +61,35 @@ const MUT = [
      改後：黏著延後一格、到位那一格改由 `done()` 的 `hat.position.copy(to)` 給
      ⇒ 衝擊拍量到的是帽子自己飛到的位置。 */
   { id: 'M10', gate: 'drive', why: '帽子原地生成、也不在衝擊拍到位（飛行整段沒了）', file: YQ,
-    pairs: [['        hat.position.lerpVectors(from, to, JOLT[n]);', '        hat.position.copy(from);'],
+    pairs: [['        hat.position.lerpVectors(from, aim, JOLT[n]);', '        hat.position.copy(from);'],
       ['        hat.position.copy(to);', '        hat.position.copy(from);']] },
   { id: 'M11', gate: 'drive', why: '只拿掉衝擊拍之後那一行黏著（飛行還在）——照設計不該紅', file: YQ,
     from: "          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", to: '          ' },
-  /* ★M13 也是照實留著的未驗紅（對照組之二）★
-     設計意圖：只拿掉「第三階到位」那一行，飛行仍走到 `JOLT[1] = 0.64` ⇒ 帽子停在半路。
-     實測**仍然綠**，而且量得出原因：`mainD = 0.102`，門檻 `ANCHOR_MARGIN` 是 **0.18**
-     ——在治具棚這個站位下，飛到 64% 就已經**貼到敵方的水平佔地**了（那一尊的框很大）。
-     ⇒ anchor 這一格分得出「有沒有到敵方那一側」（M10 驗紅），
-       分不出「有沒有完全到位」。照實記，不要把它讀成 M10 那一格失效。 */
+  /* ★M13：只拿掉「第三階到位」那一行，飛行仍走到 `JOLT[1] = 0.64` ⇒ 帽子停在半路。★
+     合併 v0.55.9 之前這一條是**綠的**（`mainD = 0.102` ≤ `ANCHOR_MARGIN` 0.18——在那個落點下，
+     飛到 64% 就已經貼到敵方的水平佔地）。合併之後落點改由 `st.bodySpot` 夾進那一尊自己的佔地，
+     而 `foe` 這一格也加上了 `attMain && hurtHit` ⇒ 停在半路就歸屬不出來，**現在會紅**。 */
   { id: 'M13', gate: 'drive', why: '帽子飛到一半就停（不在衝擊拍到位）＝落點證據脫鉤的那一格', file: YQ,
     from: '        hat.position.copy(to);', to: '        void to;' },
   /* M14（覆審 H3 的驗收）：腳下暗斑的本體色改成 key（冷屍白青）＝比桌面亮的亮斑。 */
   { id: 'M14', gate: 'P1', why: '腳下暗斑的本體色改成比桌面亮的 key（不再是暗斑）', file: FX,
     from: "color: st.colors.ink, inkColor: st.colors.line, opacity: 0, rot: o.rot }",
     to: "color: st.colors.key, inkColor: st.colors.line, opacity: 0, rot: o.rot }" },
+  /* ★M15（v0.55.9 回流斷言的驗收）★：魂片的 z 分量拿掉夾限 ⇒ 一半實例往我方散。
+     本招是打擊類（anchor:'foe'）⇒ 衝擊拍之後回流我方就該紅。 */
+  { id: 'M15', gate: 'drive', why: '魂片往我方散（v0.55.9 的「衝擊拍後不得回流」）', file: YQ,
+    from: 'Math.max(0, Math.sin(s.a)) * s.r * 0.45 * k, it.p',
+    to: 'Math.sin(s.a) * s.r * 1.6 * k, it.p' },
+  /* ★M16（v0.55.9 `foe` 綁受擊者的驗收）★：帽子**照樣**戴在 `lost` 頭上，但把**受擊位移**
+     搬到另一尊敵方身上 ⇒ `hurtSet` 裡的不是主道具落點那一尊 ⇒ `hurtHit` 假。
+     與 M9 不同：M9 打的是 react 三段（只轉不動、整支沒有受招反應），
+     這一條打的是「主道具落在**真的被打的那一尊**身上嗎」——`st.spin` 只動 `mo.r`，
+     而 `trackHurt` 量的是 `mo.p`／`mo.s`，所以搬走 `st.move` 就足以拆開這兩件事。
+     ★第一版的 M16 是**設計壞了**（照實記）★：它把挑目標的排序反過來，但反應也跟著換到同一尊
+     ⇒ 兩件事仍然綁在一起、當然不紅。那不是防線的缺口，是突變沒有打在待驗的行為上。 */
+  { id: 'M16', gate: 'drive', why: '帽子戴在 A、受擊位移搬到 B（foe 綁受擊者）', file: YQ,
+    from: '        st.move(lost, sway.x * SWAY[n], 0, sway.z * SWAY[n]);',
+    to: '        st.move(foes.find((f) => f !== lost) || lost, sway.x * SWAY[n], 0, sway.z * SWAY[n]);' },
 ];
 
 /* M12＝M10 的對照實驗：M10 之外再把黏著也拿掉，用來隔離「是誰在餵 travel 的分子」。
@@ -85,7 +98,7 @@ const MUT = [
    （js/trait-fx.js 的 phase()：windup／react 都設 c.until，只有 travel 留 Infinity），
    那是引擎層、19 支已轉正的招共用，本階段依派工書不碰。 */
 const M12 = { id: 'M12', gate: 'drive', why: 'M10＋M11：飛行、到位、黏著全部拿掉（travel 才紅）', file: YQ,
-  pairs: [['        hat.position.lerpVectors(from, to, JOLT[n]);', '        hat.position.copy(from);'],
+  pairs: [['        hat.position.lerpVectors(from, aim, JOLT[n]);', '        hat.position.copy(from);'],
     ['        hat.position.copy(to);', '        hat.position.copy(from);'],
     ["          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });", '          ']] };
 MUT.push(M12);
@@ -116,7 +129,7 @@ for (const m of MUT) {
 /* ★M11 是**照設計不會紅**的那一格★（對照組）：只拿掉黏著、飛行還在，那本來就是合格的實作。
    它不算「防線漏掉」，是「這一格在量什麼」的對照，所以不進 exit code。
    ★不得把它從清單裡拿掉★——沒有這個對照組，M10／M13 的紅就分不出是哪一段造成的。 */
-const KNOWN_GREEN = ['M11', 'M13'];
+const KNOWN_GREEN = ['M11'];
 const bad = rows.filter((r) => !r.ok && KNOWN_GREEN.indexOf(r.id) < 0);
 const known = rows.filter((r) => !r.ok && KNOWN_GREEN.indexOf(r.id) >= 0);
 console.log(`\n${rows.length} 條，驗紅 ${rows.filter((r) => r.ok).length}／${rows.length}`

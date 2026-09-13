@@ -1,0 +1,74 @@
+# 祖靈批階段 B・覆審 r4 修補：批末閘門（全套重跑）
+# 程式碼 SHA：2c1e2a2c107aad2d059997625d051a623ba1f867
+# 基準：main ea2a38f（v0.55.8）。index.html 與 main **逐位元組相同**（VERSION 已還原，覆審 r4 LOW-1）。
+
+== P0 trace-eq（對 main 的 index.html）==
+  {"old":"scratchpad/base-main-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+
+== traitfx-drive 全套（每條路徑兩行：回流摘要＋pass）==
+  --- --tier=1
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  27/27 pass · 重複簽章 0 · scratchpad/_g1.json
+  --- --tier=2
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  30/30 pass · 重複簽章 0 · scratchpad/_g2.json
+  --- --tier=3
+  衝擊拍之後的回流（打擊類 0 支）：紅 0　最深 0
+  3/3 pass · 重複簽章 0 · scratchpad/_g3.json
+  --- --tier=1 --fxvocab=1
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  27/27 pass · 重複簽章 0 · scratchpad/_gv1.json
+  --- --tier=2 --fxvocab=1
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  30/30 pass · 重複簽章 0 · scratchpad/_gv2.json
+  --- --tier=2 --count=2
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  30/30 pass · 重複簽章 0 · scratchpad/_gc2.json
+  --- --tier=2 --count=3
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  30/30 pass · 重複簽章 0 · scratchpad/_gc3.json
+  --- P4 材料站位
+  衝擊拍之後的回流（打擊類 5 支）：紅 0　最深 0
+  30/30 pass · 重複簽章 0 · scratchpad/_gmat.json
+  ★回流（覆審 r4 HIGH-1 的新斷言）★：八條路徑全部「打擊類 5 支：紅 0、最深 0」。
+  ★同一條斷言在 (c)(e) **改前**的碼上：swarmThorn -0.18（prop:tusk）、biteGamble -0.058（prop:seal）★
+    （見同目錄 flow-before.txt；兩個數字與覆審 r4 用探針量到的逐位數相同）
+
+== P1 fxvocab ==
+  結果：28 綠 ／ 0 紅
+
+== P3 fx-contrast（18 支，t2 ／ t1）==
+  "pass": 18, "failed": []
+  "pass": 18, "failed": []
+  ★N11 那一格（覆審 r4 MEDIUM-2）★：兩個 tier 的 shots.json 都是
+    sizeGuard = {"measured":false,"failed":["eliteSelfCut","wardImmuneLost","biteGamble"]}
+    成因：fx-contrast 判 usesEmblem 走 movesMatching（會剝掉 `_v055` 後綴）⇒ 三態顛倒。
+    **不是本批引入、本批也沒修碼**；照實記為已知未涵蓋，不再當成綠燈（報告 §7.1／§7.3）。
+
+== P7 duel-perf（本樹 ／ 基準樹 76fc296）==
+  {"out":"scratchpad/_perf.json","perf":{"loadMs":128,"rendersPerSec":300.3,"rafMedianFps":59.9,"rafP95Ms":16.8,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+  {"out":"scratchpad/_perfb.json","perf":{"loadMs":985,"rendersPerSec":301.1,"rafMedianFps":59.9,"rafP95Ms":16.8,"rafFrames":152,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+  ⇒ draw call 986:986、fps 59.9:59.9、visible 16:16、errors 0。
+
+== P8 duel-drive seed 7 ／ seed 3（各 4 場）==
+  errors []（0）　ver v0.55.8　duels 4 ／ errors []（0）　ver v0.55.8　duels 4
+
+== P8 12 套規則測試（每套最後一行）==
+  aistake           通過 8　失敗 0
+  conscap           通過 5　失敗 0
+  duel-desync       結果：7 綠 ／ 0 紅
+  emblem-collision  結果：9 綠 ／ 0 紅
+  fxtier            結果：14 綠 ／ 0 紅
+  fxvocab           結果：28 綠 ／ 0 紅
+  legend            32 過 / 0 失敗
+  lineup-order      結果：8 綠 ／ 0 紅
+  nightrules        結果：16 綠 ／ 0 紅
+  review            通過 28　失敗 0
+  roles-balance     角色平衡卷單元測試：32 過 / 0 失敗
+  wish16            結果：PASS=36 FAIL=0
+
+== §A3 尺寸記錄（Q5，記錄項不擋批）==
+  道具 2／36 列超過（拼板舟 emblem:wave 1.047、破軍旗 emblem:tornflag 0.818），errors=0（t2 與 t1 相同）。
+
+== anchor／回流 鑑別力 ==
+  15 條突變全紅、健康態前後皆綠（同一個 SHA）：見 anchor-mutations.txt。

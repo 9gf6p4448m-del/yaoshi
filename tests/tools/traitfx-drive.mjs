@@ -1,6 +1,8 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
 // 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8] [--dt=50]
 //                                            [--shots=<png 目錄>] [--port=8841] [--tier=2] [--nobloom] [--block=<ab>]
+//   --mate=auto|<ab>:<body> ／ --mategap=<倍率> ／ --foe=<名單>：與 blindread-sheet 同名同義（P4 材料規格）。
+//   量測要跑在**材料實際的站位**上才有意義——P4 第 3 輪回修 (b) 就是這樣抓到「旗停在施招者身上」的。
 //                                            [--sigdump=<sig 序列檔>] [--root=<靜態根目錄>] [--fxvocab=1]
 // --fxvocab=1  打開 v0.55 招式語彙（四支示範招的徽記剪影版）。不帶＝index.html 的
 //         PW_FX.VOCAB_ON 預設值 false＝0.54 演出。傳法比照 --tier／--nobloom：接在治具頁的
@@ -46,6 +48,8 @@
 //                 而 clean／onTime／within 全是上界，一條都擋不住）
 // 依賴：tools/anyCreature/node_modules/playwright；自起 python http.server。
 import { spawn } from 'node:child_process';
+import { mateQuery } from './fx-mate.mjs';
+import { parseFlags } from './fx-cli.mjs'; // 旗標白名單（與 blindread-sheet 同一支） // P4 材料規格的同伴表（與 blindread-sheet 同一份）
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -212,10 +216,17 @@ const EPS = 1e-3;
 const FIRE_AT = 12; // 第幾幀出招（前面幾幀讓 idle 站穩）
 let DT_MS = 1000 / 60; // --dt=<ms> 覆寫（治具頁同步吃 &dt=）
 
+/** 本支真的吃的旗標（＝白名單的分母）。加新旗標時**一定要同時加進這張表**，
+ *  否則它會被當成打錯而當場停——那正是這道守衛要的行為（覆審 r4 MEDIUM-3）。 */
+const KNOWN_FLAGS = ['tier', 'count', 'only', 'mate', 'mategap', 'foe', 'fxvocab', 'proto', 'camyaw',
+  'dt', 'port', 'shots', 'sigdump', 'root', 'block', 'cancel', 'reduced', 'throw', 'nobloom'];
+/* ★`--camyaw=<度>`（覆審 r5 HIGH-A）★：對決機位的 yaw 由座位決定
+   （`js/camera-director.js:29 SEAT_YAW` ＋ `:157 duelYaw()` ⇒ 六個真實值 90／315／45／225／135／0），
+   而**舞台是相機相對的**——不帶它時治具永遠量 90°那一個座位。
+   覆審 r5 實測：虎爺印的爪痕在另外五個座位都回流（−0.075～−0.106），而八條路徑全綠，
+   因為那八條是「同一個座位量了八次」。回流／P3 的驗收現在要逐 yaw 各跑一次。 */
 function parseArgs(argv) {
-  const pos = []; const opt = {};
-  for (const a of argv) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/i); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; else pos.push(a); }
-  return { pos, opt };
+  return parseFlags(argv, KNOWN_FLAGS, "traitfx-drive");
 }
 
 /** `--fxvocab=1` → 治具頁的 `&fxvocab=1`（v0.55 徽記剪影版）；不帶或 `--fxvocab=0` → 不加參數
@@ -257,7 +268,7 @@ async function runCase(browser, base, c, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}${mateQuery(opt.mate || '', c)}${opt.mategap ? '&mategap=' + encodeURIComponent(opt.mategap) : ''}${opt.foe ? '&foe=' + encodeURIComponent(opt.foe) : ''}${opt.camyaw ? '&camyaw=' + encodeURIComponent(opt.camyaw) : ''}`;
   if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完
@@ -426,7 +437,7 @@ async function runCase(browser, base, c, opt) {
   const needEmblem = !!(opt.emblemMoves && opt.emblemMoves.indexOf(c.trait) >= 0)
     && !!fxvocabQ(opt) && !opt.throw && !opt.block;
   const sizeOK = sizeState !== 'fail' && tweenOK && !(needEmblem && sizeState === 'n/a');
-  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, anchors: (sig && sig.anchors) || null, phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
+  const verdict = { handled: fired.handled, hasMove: fired.hasMove, alive, restored, within, onTime, clean, reducedOK, focus, tier, ms, msOK, rateOK, acts, actionsOK, horizon: sig ? sig.horizon : null, fill: +fill.toFixed(3), fillOK, endFrame, maxD: +maxD.toFixed(4), errors: errors.length, programsGrew: programs1 - programs0, reactSolo, phasesOK, stanceOK, stance: sc, anchors: (sig && sig.anchors) || null, flow: (sig && sig.flow) || null, flowOK: !(sig && sig.flow && sig.flow.ok === false), phases: sig && sig.phaseDetail ? sig.phaseDetail.map((c) => `${c.name}:${c.ok ? 1 : 0}${c.solo ? '(solo)' : ''}`).join(',') : null, sizeGuard, sizeState, tweenOK, sizeOK };
   const blockActor = opt.block && String(opt.block) === c.ab;
   verdict.blocked = opt.block || null;
   if (opt.throw || blockActor) verdict.pass = !fired.handled && restored && errors.filter((e) => !/\.glb|Failed to load resource|ERR_FAILED/.test(e)).length === 0;
@@ -444,7 +455,10 @@ async function runCase(browser, base, c, opt) {
        actionsOK（F10 的「≥2 個非 flinch 動作」）仍只約束 tier 1 的短版。 */
     const shortOK = (tier === 1 ? (rateOK && actionsOK) : true) && (tier === 3 ? rateOK : true);
     // fillOK 對每個 tier 都要求：短版填滿 260、完整版填滿 900、大招填滿 1400
-    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && stanceOK && sizeOK && errors.length === 0 && programs1 - programs0 === 0;
+    /* ★flowOK（覆審 r4 HIGH-1）★：打擊類招在衝擊拍之後，所有道具（群體道具逐一實例）
+       在「我→敵」軸上的位移都不得為負——「東西從對手身上回到我方」在這套語彙裡就是**偷取**。
+       判定寫在引擎（`js/trait-fx.js` 的 `trackFlow`／`flowResult`），這裡只把它納入 pass。 */
+    verdict.pass = fired.handled && alive && restored && within && onTime && clean && reducedOK && focus && msOK && shortOK && fillOK && phasesOK && stanceOK && sizeOK && verdict.flowOK && errors.length === 0 && programs1 - programs0 === 0;
   }
   return { case: c, url, nA, fired, verdict, sig, stats, errors, shots, moves, softGl, newPrograms, frames: frames.map((f) => [f.i, f.d, f.mesh, f.burst ? 1 : 0, f.active, f.wrapped, f.rig]) };
 }
@@ -588,6 +602,16 @@ async function main() {
     console.log(`sig 序列 → ${opt.sigdump}（${lines.length} 行；批 1–3 用 diff 比這份，不要只比 trace-eq）`);
   }
   fs.writeFileSync(out, JSON.stringify({ summary, results }, null, 1));
+  /* 衝擊拍之後的回流（覆審 r4 HIGH-1）：打擊類招的道具只能往敵方深處走。
+     印出來的是「最深的那一次」，紅的直接點名是誰、幾個世界單位。 */
+  {
+    const scoped = results.filter((r) => r.verdict && r.verdict.flow && r.verdict.flow.scope);
+    const bad = scoped.filter((r) => r.verdict.flow.ok === false);
+    const deepest = scoped.reduce((m, r) => Math.min(m, r.verdict.flow.worst), 0);
+    console.log(`衝擊拍之後的回流（yaw ${opt.camyaw || 90}°，打擊類 ${scoped.length} 支`
+      + `，其中有軌跡可量 ${scoped.filter((r) => (r.verdict.flow.absMax || 0) > 0.01).length} 支）：紅 ${bad.length}　最深 ${deepest}`
+      + (bad.length ? '　' + bad.map((r) => `${r.case.trait} ${r.verdict.flow.worst}（${r.verdict.flow.kind}）`).join('／') : ''));
+  }
   console.log(`\n${summary.pass}/${summary.total} pass · 重複簽章 ${dupSig.length} · ${out}`);
   void moves;
 }

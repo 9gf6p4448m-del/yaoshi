@@ -131,6 +131,12 @@ const _v = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _av = new THREE.Vector3(); // 道具落點 anchor 量測用（sampleAnchors／nearestFig）
 const _asp = new THREE.Vector3(); // st.bodySpot 取樣用
+const FLAT_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); // 立著的紙片放平（局部旋轉，見 st.flatQ）
+const _fv = new THREE.Vector3();  // 回流量測用
+const _fpts = [];
+/** 回流判定的數值容差（世界單位）。★不是「允許回流多少」★：它只吸收浮點與逐幀取樣的抖動，
+ *  實測健康態 27 支的最深回流是 0（逐位數），(c)(e) 改前是 -0.058／-0.18 ⇒ 這個值怎麼訂都判得出來。 */
+const FLOW_EPS = 0.01;
 const _av2 = new THREE.Vector3(); const _aq = new THREE.Quaternion(); const _as = new THREE.Vector3();
 const _afr = new THREE.Frustum(); const _am4 = new THREE.Matrix4(); // anchor 的「在場」五條（覆審 r2 N-1）
 const _q = new THREE.Quaternion();
@@ -550,7 +556,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   const _rq = new THREE.Quaternion();
   const _m4 = new THREE.Matrix4();
   const _s3 = new THREE.Vector3();
-  const ZAX = new THREE.Vector3(0, 0, 1);
+  const ZAX = new THREE.Vector3(0, 0, 1); // axis-ok: 徽記自轉的旋轉軸（局部），不是位移
   // 預熱：renderer.compile() 只編「直接輸出」那一支，對決走 bloom 的 render target（linear 色彩空間）是另一支
   // program，粒子池在第一次 burst 之前也沒編過——實測（scratchpad/progdiag2）演到一半 render 會 +1～+2。
   // 所以改成兩個暖身物件關掉 frustumCulled 常駐桌底：每一幀（含 bloom 那條路）都真的被畫，兩種變體在第一場
@@ -828,6 +834,79 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     out.push(new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld));
     return out;
   }
+  /** 這一件道具在這一幀的取樣點（**索引穩定**版：群體道具連還沒長出來的實例也照順序給）。
+   *  `anchorPoints` 會濾掉 `s <= 0.02` 的實例，索引會跳號，不能拿來逐幀比對同一顆。 */
+  function flowPoints(obj, out) {
+    out.length = 0;
+    obj.updateWorldMatrix(true, false);
+    const items = obj.userData && obj.userData.fxAnchorItems;
+    if (obj.isInstancedMesh && items) {
+      for (let i = 0; i < items.length; i++) out.push(new THREE.Vector3().copy(items[i].p).applyMatrix4(obj.matrixWorld));
+      return out;
+    }
+    out.push(new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld));
+    return out;
+  }
+  /** ★打擊類招在衝擊拍之後不得有「回流我方」的道具（覆審 r4 HIGH-1）★
+   *  病因：(c)(e) 用 `cross(camDir, UP)` 當「畫面左右」，而舞台是相機相對的 ⇒ 那條軸與
+   *  「我→敵」**完全平行**（實測內積 -1），半平面限制形同不存在：虎爺印三片碎片有一片朝我方
+   *  -0.058、山豬牙飾的彈開終點淨朝我方 -0.18。而既有的閘門一條都看不到它——
+   *  anchor 只量衝擊拍那一幀、P3 凍在 travel 中點，**react 之後的軌跡沒有任何人在看**。
+   *  這一支按**危險的效果**寫（`02 §6.1` 第 7 條）：不管編舞用哪一條基底、哪一個積木生出來的，
+   *  只要衝擊拍之後有任何一件道具（含群體道具的**逐一實例**）往我方走，就記下最深的那一次。
+   *  ★不算腳下語彙與拖尾★：`floor:` 是貼在地上的陣（不是飛行道具）、`trail` 是飛行段的殘影。 */
+  function trackFlow(run) {
+    if (!run.anchorDone || !run.dirVec) return;
+    for (const m of run.meshes) {
+      if (!m || !m.parent) continue;
+      const kind = (m.userData && m.userData.fxKind) || "";
+      if (/^floor:/.test(kind) || kind === "trail") continue;
+      /* ★黏在某一尊身上的印記不算（與 anchor 的 follow 同一條理由，覆審 r1 H-2c）★
+         它逐幀被引擎覆寫成「那一尊身上的某個部位」，量它＝量那一尊自己的受擊動作：
+         實測射日的日印 -0.085，來源是獵物中箭時胸口骨骼往後擺，不是「有東西飛回我方」。
+         這一支要抓的是**自己有軌跡的飛行道具**。★分母講清楚：黏上去的那一類量不到★，
+         它們落在誰身上由 anchor 的 follow 分支管（而且那一支現在也要過在場五條）。 */
+      if (run.followSet && run.followSet.has(m)) continue;
+      flowPoints(m, _fpts);
+      let rec = run.flowMap.get(m);
+      if (!rec) { run.flowMap.set(m, { kind, base: _fpts.map((q) => q.clone()), worst: 0, at: 0, absMax: 0 }); continue; }
+      const n = Math.min(rec.base.length, _fpts.length);
+      for (let i = 0; i < n; i++) {
+        const d = _fv.subVectors(_fpts[i], rec.base[i]).dot(run.dirVec);
+        if (d < rec.worst) { rec.worst = d; rec.at = Math.round(run.vt); }
+        /* `absMax`＝沿 `st.dir` 的**位移絕對值**上限（覆審 r5 §5.2 的「空真」提醒）：
+           `worst = 0` 有兩種可能——「動了但沒往回」與「根本沒動」。後者的綠燈是空真，
+           報告要寫得出「這一跑真的行使到這條斷言的是哪幾支」，所以把它一起留帳。 */
+        if (Math.abs(d) > rec.absMax) rec.absMax = Math.abs(d);
+      }
+    }
+  }
+  /** ★誰是「被打的那一尊」——由引擎自己看出來，不是編舞說了算（覆審 r4 MEDIUM-1）★
+   *  `mainFig` 是從**落點反推**的（主道具水平最近的那一尊），所以「印落在錯的那一尊敵人身上」
+   *  在改前是綠的（覆審自加突變 m：把大印改落到離獵物最遠的另一尊敵方 ⇒ 仍 cover 1/1）。
+   *  這裡改量**受擊反應**：衝擊拍那一幀先抓每一尊受招方的 model 位移／縮放當基準，
+   *  之後任何一尊動了就進 `hurtSet`——`st.flinch`（退）、壓、抖都會動到 `w.mo`，
+   *  而它們是**受招方**的反應通道，編舞不可能只靠搬道具就讓某一尊進這個集合。
+   *  ⇒ `foe` 這一格問的變成「主道具落在**真的被打的那一尊**身上嗎」。 */
+  function trackHurt(run) {
+    if (!run.anchorDone || !run.targetSet) return;
+    run.wraps.forEach((w) => {
+      const fig = w.fig; // run.wraps 是 wrap 的 Set（不是 figure→wrap 的 Map）
+      if (!fig || !run.targetSet.has(fig)) return;
+      const cur = { p: w.mo.p.clone(), s: w.mo.s };
+      const base = run.hurtBase.get(fig);
+      if (!base) { run.hurtBase.set(fig, cur); return; }
+      if (cur.p.distanceTo(base.p) > 0.01 || Math.abs(cur.s - base.s) > 0.005) run.hurtSet.add(fig);
+    });
+  }
+  /** 收成一筆：最深的那一次回流是誰、多少、什麼時候。 */
+  function flowResult(run) {
+    let worst = 0, kind = null, at = 0, absMax = 0;
+    run.flowMap.forEach((r) => { if (r.worst < worst) { worst = r.worst; kind = r.kind; at = r.at; } if (r.absMax > absMax) absMax = r.absMax; });
+    const scope = run.anchorSpec === "foe" || run.anchorSpec === "foes"; // 打擊類＝真值作用對象在敵方那一側
+    return { scope, n: run.flowMap.size, worst: +worst.toFixed(3), absMax: +absMax.toFixed(3), kind, at,
+      ok: scope ? worst >= -FLOW_EPS : null, eps: FLOW_EPS };
+  }
   /** anchor 這一格的總判定（`lastSig.anchors.ok` 與 `stance.casterMatch` 共用**同一支**，
    *  不寫兩份——兩份就是下一個「改了一邊、另一邊靜默沿用舊判準」。
    *  ★`mainOK`（覆審 r2 N-4）★：每一支已轉正的招要登記**一件主道具**（`main: true`，
@@ -858,7 +937,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const rows = [];
     const pts = [];
     let bad = 0, skipped = 0, missing = 0, follows = 0, landings = 0;
-    let mainDeclared = false, mainShown = false, mainOK = false, mainD = null;
+    let mainDeclared = false, mainShown = false, mainOK = false, mainD = null, mainFig = null, mainY, mainAtt = false;
     /* ★逐尊覆蓋（P4 新三輪第 1 輪之後加嚴；覆審 r2 N-3 再加「要真的貼到那一尊」）★
        `attr(p)`＝這個取樣點**決定性地**屬於哪一尊，兩個條件都要成立：
          ① 離那一尊的佔地 **≤ `ANCHOR_MARGIN`**（覆審 r2 N-3：改前只比相對距離，
@@ -883,9 +962,20 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       if (a.follow) {
         follows++;
         if (!want.length) { skipped++; rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: null, ok: null }); continue; }
+        /* ★follow 也要過「在場」五條（覆審 r3 R-1）★
+           改前這一條路**完全不做在場檢查**就 `cover.add()` ⇒ 逐尊覆蓋可以由**畫面上看不到**的印記滿足。
+           覆審實測：把千里眼的鈴印與媽祖令旗的旗印各加一行 `m.visible = false`，
+           兩支仍是 `cover 2/2`、`anchorOK=1`（那兩支第二尊的覆蓋本來就只靠 follow）。
+           這正是 `02 §6.1` 第 7 條的「按已知入口寫、沒按危險效果寫」——`cover` 有兩個入口，
+           N-1 那次只堵了 landing 那一個。不在場＝留帳跳過、**不計 `cover`**（follow 不判紅：
+           它本來就可能排在 react 段才浮出來，判紅是錯的門檻；但它不能再替那一尊背書）。 */
+        if (!anchorShown(a.obj)) {
+          skipped++; rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow-gone', hit: whoOf(a.follow), ok: null });
+          continue;
+        }
         const ok = want.indexOf(a.follow) >= 0;
         if (!ok) bad++;
-        if (ok) cover.add(a.follow); // 黏在那一尊身上的印記，算那一尊被碰到了
+        if (ok) cover.add(a.follow); // 黏在那一尊身上、而且看得到的印記，算那一尊被碰到了
         rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: whoOf(a.follow), ok });
         continue;
       }
@@ -934,6 +1024,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          其餘道具不再能替它充數——改前只要 `landings > 0` 就算，把主道具的登記拿掉照樣綠。 */
       if (a.main) {
         mainShown = true;
+        /* ★「這一招打到誰」用**決定性歸屬**（`attr`），不是「水平最近」（覆審 r4 MEDIUM-1）★
+           最近的那一尊會被「往鏡頭推一段」帶偏（山豬牙飾的主獠牙推了 1.09，最近的變成隔壁那一隻），
+           而 `attr` 問的是「這個點貼到誰、而且贏過其他每一尊一個邊距」——那才是讀者看到的那一尊。
+           歸屬不出來（擠在一起）才退回最近的那一尊，並由 `hurtHit` 那一格照實反映。 */
+        mainFig = attAny || hit;
+        mainAtt = !!attAny;
+        mainY = pts[0].y;
         /* ★主道具的判準＝「在場 ＋ 每個取樣點都贏過非真值那一側一個邊距 ＋ 真的貼到真值那一側」★
            **不要求「唯一歸屬」**：治具棚同一側好幾尊擠在一起時，
            「贏過同一側的鄰居一個邊距」是站位造成的紅，不是實作造成的
@@ -950,18 +1047,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     }
     /* ★只要求「站位上分得出來」的那幾尊（`02 §6.1` 第 6 條：不訂恆假的門檻）★
        `sep(X)`＝X 的佔地取樣點裡至少有一個離其餘每一尊都 ≥ `ANCHOR_MARGIN`。 */
-    const sepOf = (f) => {
+    /** 「這一尊站位上分得出來嗎」＝**編舞真的挑得到**一個點：在它自己的佔地裡、
+     *  離場上其他每一尊 ≥ `ANCHOR_MARGIN`、而且**在畫面上**（不在畫面上的道具本來就量不到）。
+     *  ★用的是 `st.bodySpot` 的同一支掃描★（`run.spotScan`），不是另寫一份框角判斷：
+     *  覆審 r3 R-2 的病就是兩份不一致——框角版說分得出來，挑點版最好只有 0.172／或在畫面外。
+     *  `02 §6.1` 第 6 條要的是「不要訂恆假的門檻」，而恆假與否只有挑點的那一支說了算。 */
+    const sepOf = (f, y) => {
       const b = boxOf(f);
       if (!b) return false;
-      const others = boxes.map((e) => e.fig).filter((g) => g !== f && mainWant.indexOf(g) >= 0);
-      if (!others.length) return true;
-      const corners = [[b.min.x, b.min.z], [b.min.x, b.max.z], [b.max.x, b.min.z], [b.max.x, b.max.z],
-        [(b.min.x + b.max.x) / 2, b.min.z], [(b.min.x + b.max.x) / 2, b.max.z],
-        [b.min.x, (b.min.z + b.max.z) / 2], [b.max.x, (b.min.z + b.max.z) / 2]];
-      return corners.some(([x, z]) => dTo(others, x, z) >= ANCHOR_MARGIN);
+      if (boxes.length <= 1) return true;
+      /* `y`＝這一招的道具實際落在多高（有主道具就用它的高度）。視錐是 3D 的：
+         同一塊佔地在胸口高度看得到、貼著桌面的後排就出框（實測虎爺印的大印貼地落下）。 */
+      const r = run.spotScan ? run.spotScan(f, y === undefined ? (b.min.y + b.max.y) / 2 : y) : null;
+      return !!(r && r.inView && r.clear >= ANCHOR_MARGIN);
     };
     const covered = mainWant.filter((f) => cover.has(f));
-    const sep = mainWant.filter(sepOf);
+    const sep = mainWant.filter((f) => sepOf(f)); // ★不要寫成 filter(sepOf)★：Array.filter 會把 index 當第二個參數餵進 y
     /* ★逐尊覆蓋的判準（覆審 r2：把「≥2 尊」改回「全部 sep 尊」，並補足單數的語意）★
          allies  我方多個：**每一尊**站位上分得出來的我方都要被碰到
          ally    我方單一：**恰好一尊**非施招者被碰到，而且施招者不得被碰到
@@ -971,19 +1072,24 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        `sepOf` 先擋掉「站位上根本分不出來」的情形，所以這幾條不是恆假的門檻。 */
     const nonCasterCovered = [...cover].filter((f) => run.actorSet.has(f) && f !== run.caster);
     const casterCovered = cover.has(run.caster);
-    let coverOK = true, need = 0;
+    let coverOK = true, need = 0, foeSep = null;
     if (mainWant.length) {
       if (spec === 'allies') { need = sep.length; coverOK = sep.every((f) => cover.has(f)); }
       else if (spec === 'ally') { need = 1; coverOK = nonCasterCovered.length === 1 && !casterCovered; }
       else if (spec === 'self' || spec === 'caster') { need = 1; coverOK = casterCovered && nonCasterCovered.length === 0; }
       else if (spec === 'foes') { need = Math.min(2, sep.length || mainWant.length); coverOK = covered.length >= need; }
-      /* `foe`（敵方單一）**不加「至多一尊」**：治具棚四尊敵方擠成一團，命中那一隻的旁邊
-         常常也落在邊距內，要求「只有一尊」是站位造成的紅（實測 eliteOpenShot cover 2）。
-         覆審 r2 只要求把 `ally`／`allies`／`self` 的語意補足，這一格照舊。 */
-      /* `foe`（敵方單一）**不要求逐尊覆蓋**：治具棚四尊敵方前後兩排互相重疊，
-         實測把大印往獵物那一側推到它自己的佔地邊緣，仍然同時落在**另一尊**的佔地裡
-         （biteGamble att=null）——那是站位造成的紅，不是實作造成的（02 §6.1 第 6 條）。
-         這一格的證據由 mainOK（主道具真的貼到那一側）承擔。★已知未涵蓋，照實記在報告 §5★ */
+      /* ★`foe`（敵方單一）＝至少一尊敵方被**決定性地**碰到（覆審 r3 R-2）★
+         改前是整格豁免（`need = 0`），理由寫「治具棚四尊敵方擠成一團」——但自己的證據就否證了
+         這個一般化：`--count=2` 下 `eliteOpenShot` cover 2、`boltGamble` 1、`swarmThorn` 1，
+         只有 `biteGamble` 是 0。「至少一尊」對 4 支裡的 3 支**不是恆假門檻**，
+         而 `02 §6.1` 第 6 條要的是「不要訂恆假的門檻」，不是「有一支過不了就整格拿掉」。
+         **不加「至多一尊」**：命中那一隻的旁邊常常也落在邊距內，要求「只有一尊」才是站位造成的紅
+         （實測 eliteOpenShot cover 2）。 */
+      /* ★`foe`＝**被打中的那一尊**要被決定性地碰到（覆審 r3 R-2）★
+         `sep.length` 問的是「有沒有**某一尊**敵方分得出來」，而這一格要問的是
+         「**我打的那一尊**分不分得出來」——虎爺印的獵物在衝擊拍被虎本體整個罩住（撲咬的必然），
+         其餘三尊分得出來也救不了它。分得出來就要求覆蓋，分不出來就逐案記在 `foeSep` 裡。 */
+      else if (spec === 'foe') { foeSep = !!(mainFig && sepOf(mainFig, mainY)); need = foeSep ? 1 : 0; coverOK = covered.length >= need; }
       else { need = 0; coverOK = true; }
     }
     // `figs`＝衝擊拍那一刻場上每一尊的水平站位與佔地（判紅時要看得出「誰站在哪、還有多少空間可以挪」）
@@ -994,7 +1100,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, missing, follows, landings,
       mainDeclared, mainShown, mainOK, mainD, mainScope: mainWant.length > 0,
-      cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, rows, figs };
+      coverFigs: covered, mainFigRef: mainFig, attMain: mainAtt,
+      cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, foeSep,
+      mainFigWho: mainFig ? whoOf(mainFig) : null, rows, figs };
   }
 
   /** 徽記朝鏡頭（可帶自轉 userData.fxRoll） */
@@ -1026,7 +1134,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   function makeStage(run, actor, target, det) {
     const colorObj = new THREE.Color(SPARK_COLOR[det.fac] || SPARK_COLOR.lantern);
     const cA = centroid(actor);
-    const cB = target.length ? centroid(target) : cA.clone().add(new THREE.Vector3(1, 0, 0));
+    const cB = target.length ? centroid(target) : cA.clone().add(new THREE.Vector3(1, 0, 0)); // axis-ok: 場上沒有敵方時的退化值，「我→敵」這個方向本來就不存在
     const dir = cB.clone().sub(cA); dir.y = 0;
     if (dir.lengthSq() < 1e-6) dir.set(1, 0, 0);
     dir.normalize();
@@ -1040,27 +1148,42 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      *  （實測 eliteArmor 的 P3 由 area 1.67／ΔE 39.5 掉到 1.27／25.1）。
      *  ★畫面外的點只當退路★：整塊佔地都在畫面外時仍要回一個**在自己身上**的點，
      *  不能退回呼叫端那個沒驗過的座標（實測王爺劍就是這樣把斬痕留在 2.0 的推力落點上）。 */
-    function spotScan(fig, y) {
+    /* ★同一支掃描給兩個人用★：編舞挑落點（`st.bodySpot`）與判定端的 `sepOf`。
+       分兩份寫就會像覆審 r3 R-2 抓到的那樣：`sepOf`（框角、只比同側、不管在不在畫面上）
+       說「分得出來」，而落點**實際挑得到**的最好一點只有 0.172、或者在畫面外量不到。 */
+    function spotScan(fig, y, ignore) {
       if (!fig || !fig.group) return null;
+      /* ★先把這一幀已經累積的 wrap 套上去再量（覆審 r3 交裁②）★
+         `done()` 跑在 `run.wraps.forEach(apply)` **之前**，所以直接量到的是**上一幀**的姿態；
+         實測虎爺印差 0.155（挑點時獵物那一塊佔地最空只有 0.172，量測時同一塊有 0.327）。
+         `apply()` 是冪等的（把 base＋累積值寫成絕對變換），這裡先套一次，引擎稍後照樣會再套。 */
+      run.wraps.forEach(apply);
       const me = figBoxOf(fig);
       if (me.isEmpty()) return null;
-      const rest = [...actor, ...target].filter((g) => g && g !== fig && g.group).map(figBoxOf);
+      const rest = [...actor, ...target].filter((g) => g && g !== fig && g.group && !(ignore && ignore.indexOf(g) >= 0)).map(figBoxOf);
       if (!rest.length) return null;
       const cx = (me.min.x + me.max.x) / 2, cz = (me.min.z + me.max.z) / 2;
-      const k = 0.92; // 往中心縮一點：取樣點確定還在自己的框裡（到自己的距離＝0），不會剛好卡在邊界
+      /* 兩層縮放（覆審 r3 R-2）：0.99 才碰得到**框的邊角**，而 `sepOf` 問的正是「這一尊的框角
+         有沒有一個離其餘每一尊 ≥ 邊距」——只鋪 0.92 的網格會把那一角讓掉，
+         於是「站位上分得出來」與「落點挑得出來」對不起來（實測虎爺印的獵物：
+         `sepOf` 說分得出來，0.92 網格的最大餘裕只有 0.166 < 0.18 ⇒ 恆假）。
+         0.92 那一層留著：擠不開時它比貼邊的點穩（受招方一縮就不會掉出自己的框）。 */
       const N = 6;    // 7×7：角、邊中點、中心都在裡面，夠挑出「空得最開」的那一角
       let best = null, bs = -Infinity, alt = null, as = -Infinity;
-      for (let i = 0; i <= N; i++) {
-        for (let j = 0; j <= N; j++) {
-          const x = cx + (me.min.x + (me.max.x - me.min.x) * (i / N) - cx) * k;
-          const z = cz + (me.min.z + (me.max.z - me.min.z) * (j / N) - cz) * k;
-          let d = Infinity;
-          for (const b of rest) d = Math.min(d, boxDistXZ(b, x, z));
-          const score = Math.floor(Math.min(d, 1.00) / 0.01) * 10
-            + (x - cx) * st.camDir.x + (z - cz) * st.camDir.z;
-          const hit = { x, z, clear: d };
-          if (st.inView(_asp.set(x, y, z))) { if (score > bs) { bs = score; best = hit; } }
-          else if (score > as) { as = score; alt = hit; }
+      for (const k of [0.99, 0.92]) {
+        for (let i = 0; i <= N; i++) {
+          for (let j = 0; j <= N; j++) {
+            const x = cx + (me.min.x + (me.max.x - me.min.x) * (i / N) - cx) * k;
+            const z = cz + (me.min.z + (me.max.z - me.min.z) * (j / N) - cz) * k;
+            let d = Infinity;
+            for (const b of rest) d = Math.min(d, boxDistXZ(b, x, z));
+            const score = Math.floor(Math.min(d, 1.00) / 0.01) * 10
+              + (x - cx) * st.camDir.x + (z - cz) * st.camDir.z;
+            const seen = st.inView(_asp.set(x, y, z));
+            const hit = { x, z, clear: d, inView: seen };
+            if (seen) { if (score > bs) { bs = score; best = hit; } }
+            else if (score > as) { as = score; alt = hit; }
+          }
         }
       }
       return best || alt;
@@ -1068,9 +1191,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const touch = (fig) => { if (inTarget.has(fig)) run.sig.target = true; };
     const wrapOf = (fig) => { touch(fig); return wrapFig(fig, run); };
     // v0.55 因果三段用的兩個基準：出招方名單與「到目標的距離」（travel 要求位移 ≥ 這段的 40%）
+    run.spotScan = (fig, y, ignore) => spotScan(fig, y, ignore); // 判定端的 sepOf 用同一支（見下）
     run.actorSet = new Set(actor);
     run.targetSet = inTarget; // anchor 量測要解「敵方」那一側（sampleAnchors）
     run.travelDist = Math.max(0.5, cA.distanceTo(cB));
+    run.dirVec = dir.clone(); // 我→敵 的水平單位向量（給回流判定；與 st.dir 同一個值）
     /** 登記一件道具的落點 anchor（`st.paperStamp`／`st.paperProps`／`st.stick` 三個入口共用）。
      *  ★取值只能來自 `ANCHOR_KIND`★：自由字串＝27 支填完就有 27 種講法，那正是 vocab.js 要擋的分岔。
      *  ★不接受「量的時點」參數★：時點由引擎定死在衝擊拍，挑得動時點就等於挑得動答案。 */
@@ -1286,6 +1411,33 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  祖靈批要用同一件事，複製第二份到 zuling.js 就是下一個分岔（同 `camDir` 覆審 r1 HIGH-1 的教訓：
        *  那次的病就是「方向被寫成第二份常數」）。xianghuo.js 的 `camOff` 現在只是這一支的轉呼叫。 */
       camOff(k) { return new THREE.Vector3().copy(st.camDir).multiplyScalar(0.26 * k).setY(0.07 * k); },
+      /** ★與「我→敵」那一條軸**垂直**的水平單位向量（覆審 r4 HIGH-1）★
+       *  要「散開來又不准回流我方」時用這一條，**不要用 `cross(camDir, UP)`**：
+       *  舞台是相機相對的（`js/duel-figures.js` 的 rig 跟著座位轉），所以 `cross(camDir, UP)`
+       *  在任何座位下都與 `st.dir` **平行**（實測內積 -1，不是近似值）——
+       *  拿它當「畫面左右」散開，散出去的其實是「往我方／往敵方」，半平面限制形同不存在
+       *  （虎爺印三片碎片有一片朝我方 -0.058、山豬牙飾彈開淨朝我方 -0.18）。
+       *  `cross(st.dir, UP)` 與對決軸正交 ⇒ 它在 `st.dir` 上的投影恆為 0，怎麼散都不會回流。 */
+      sideDir: (() => new THREE.Vector3().crossVectors(dir, UP).normalize())(),
+      /** ★「舞台座標 → 世界位移」的唯一出口（覆審 r5 HIGH-A）★
+       *  `x`＝橫向（＋往 `st.sideDir`）、`y`＝高、`z`＝朝敵方（＋往 `st.dir`）。
+       *  ★為什麼要有這一支★：群體道具的逐實例位移（`it.p`）是**容器的局部座標**，
+       *  而容器沒有旋轉 ⇒ 局部就是世界。把橫向寫成世界 X（`it.p.set(k, y, 0)`）的話，
+       *  它與「我→敵」的夾角**由座位決定**——那正是 r4 HIGH-1 判死 `cross(camDir, UP)` 的同一個病：
+       *  覆審 r5 實測虎爺印的爪痕在六個真實 `duelYaw` 裡有五個回流（−0.075～−0.106），
+       *  而治具只量了 yaw 90°（那一個剛好是 0）。
+       *  ⇒ **三系編舞裡不得再出現以世界軸當橫向的位移**（`tests/fxvocab.test.mjs` 有一條掃描在擋）。 */
+      /** 「把立著的紙片放平貼在桌上」的**局部**旋轉（繞自己的 X 轉 −90°）。
+       *  ★這不是方向語彙★：它乘在 yaw 之後（`q.copy(qYaw).multiply(st.flatQ)`），
+       *  作用在物件自己的座標系上，與座位無關。收成一支的理由是讓三系檔裡
+       *  **一個世界軸常數都不剩**（覆審 r5 HIGH-A 的掃描只放行 `UP`）。 */
+      flatQ: FLAT_Q,
+      stageVec(x, y, z, out) {
+        const v = out || new THREE.Vector3();
+        v.copy(st.sideDir).multiplyScalar(x || 0).addScaledVector(st.dir, z || 0);
+        v.y = y || 0;
+        return v;
+      },
       /** 這個世界座標在不在鏡頭的視錐裡。
        *  ★與 anchor「在場」的第 5 條是**同一支**★（`sampleAnchors` 裡的 `_afr.containsPoint`）：
        *  編舞挑落點時要問的是同一個問題——「這一點觀眾看得到嗎」。分成兩份寫，就會像實測到的
@@ -1308,8 +1460,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  ★挑的時機★：編舞是在 t=0 排的，那時每一尊的框是「手還沒舉起來」的樣子；
        *    量在 `react[0]`。會黏上去的道具一律在 `st.trail` 的 `done()`（＝衝擊拍那一幀，
        *    而且排在 `sampleAnchors` 之前）再挑一次，挑的人與量的人看到同一份幾何。 */
-      bodySpot(fig, p) {
-        const r = spotScan(fig, p ? p.y : 0);
+      /** `ignore`＝挑點時**不把這幾尊算進「要閃開誰」**（選填）。
+       *  ★這不是判定的後門★：判定端 `attr()`／`sepOf()` 一律比全場，忽略誰都不影響判紅；
+       *  忽略錯了只會挑到更差的點、然後被判紅。它要解的是**姿態時序**：
+       *  虎爺印的虎在挑點那一瞬（`done()` 早於同幀的 wrap）整隻壓在獵物上，
+       *  量測那一瞬它已經不在那裡了（實測挑點看到的最大餘裕 0.172，量測時同一塊佔地有 0.327）。 */
+      bodySpot(fig, p, ignore) {
+        const r = spotScan(fig, p ? p.y : 0, ignore);
         if (r && p) { p.x = r.x; p.z = r.z; }
         return p;
       },
@@ -1317,8 +1474,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  給編舞挑「要打哪幾尊」用：治具棚裡四尊敵方前後兩排互相重疊，挑到被夾在中間的那一尊
        *  ＝那一塊斬痕再怎麼放都分不出是誰的（實測王爺劍 3v3 `cover 1/2`）。
        *  ★不得拿來當判準★：它是**編舞**的取捨依據，判定端有自己的 `sepOf`。 */
-      spotRoom(fig, y) {
-        const r = spotScan(fig, y === undefined ? 0 : y);
+      spotRoom(fig, y, ignore) {
+        const r = spotScan(fig, y === undefined ? 0 : y, ignore);
         return r ? r.clear : 0;
       },
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
@@ -1495,6 +1652,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         run.sig.meshes.add('mark:' + kind);
         mesh.userData.fxKind = 'mark:' + kind;
         run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
+        run.followSet.add(mesh); // 回流量測要跳過「黏在某一尊身上」的印記（覆審 r4 HIGH-1 的分母）
         touch(fig);
         return mesh;
       },
@@ -1608,6 +1766,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         };
         get(mesh.position);
         run.follow.push({ mesh, get, tmp: new THREE.Vector3() });
+        run.followSet.add(mesh); // 回流量測要跳過「黏在某一尊身上」的印記（覆審 r4 HIGH-1 的分母）
         regAnchor(mesh, o, 'stick', fig); // 黏上去的那一枚：判「黏的那一尊在不在 anchor 集合裡」（覆審 r1 H-2c）
         touch(fig);
         return mesh;
@@ -1987,6 +2146,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       stance: { kind: null, fig: null, groundFig: null, peak: 0, peakAt: Infinity, peakDvt: 0, ground: null, onTarget: false, extra: 0, lateStart: false },
       /* v0.55.8 道具落點 anchor（階段 A 簽字裁定①）：積木逐件登記，引擎在衝擊拍量一次。
          `anchorSpec`＝`MOVE_SPEC[trId].anchor`（這一招宣告的主道具落點）。 */
+      flowMap: new Map(), followSet: new Set(), dirVec: null,
+      hurtSet: new Set(), hurtBase: new Map(), // 衝擊拍之後**真的有受擊反應**的受招方（覆審 r4 MEDIUM-1）
       anchors: [], anchorMainSeen: false, anchorSpec: (MOVE_SPEC[det.trId] || {}).anchor || null, anchorDone: false, anchorResult: null, targetSet: null,
       sig: { trId: det.trId, bones: new Set(), meshes: new Set(), emblems: new Set(), target: false },
     };
@@ -2047,10 +2208,30 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          `ok`＝這一跑每一件登記過 anchor 的道具，在衝擊拍都落在它宣告的那一側，
          而且 `MOVE_SPEC[trId].anchor` 那一側**真的有一件**道具落下（`mainScope` 為真時才要求）。
          `skipped`＝那一件的 anchor 在這一跑解出空集合（治具棚只有 1 尊時的 `ally`），照實留帳不當成綠。 */
+      /* ★衝擊拍之後的回流（v0.55.9，覆審 r4 HIGH-1）★
+         `worst`＝所有道具（群體道具逐一實例）在「我→敵」軸上相對衝擊拍那一幀的**最深負位移**，
+         `scope`＝這一招是不是打擊類（`MOVE_SPEC.anchor` 解出敵方那一側），
+         `ok`＝打擊類時 `worst >= -FLOW_EPS`。腳下語彙（`floor:`）與拖尾（`trail`）不在分母裡。 */
+      flow: flowResult(run),
       anchors: (() => {
         const r = run.anchorResult;
+        /* ★foe 綁受擊反應（覆審 r4 MEDIUM-1）★：`hurtSet` 要跑完整段 react 才知道，
+           所以這一格在收尾時才定案；取樣（誰被碰到、主道具在哪）仍然凍在衝擊拍那一幀。 */
+        if (r && r.spec === "foe") {
+          r.hurtN = run.hurtSet.size;
+          r.hurtHit = !!(r.mainFigRef && run.hurtSet.has(r.mainFigRef));
+          r.hurtCover = (r.coverFigs || []).some((f) => run.hurtSet.has(f));
+          /* ★一律要求「主道具歸屬得出來、而且就是受擊的那一尊」（覆審 r5 MEDIUM-A）★
+             改前有一條退路：主道具歸屬不出來時，只要**任何一件**道具落在受擊者身上就算過。
+             覆審實測那條退路在 `eliteOpenShot` 上是零鑑別力——把日盤射到另一尊敵方，
+             靠貼在 prey 身上的 follow 印記，`hurtCover` 照樣 true、整支照樣綠（突變 Q3）。
+             現在歸屬不出來就是紅：編舞要把落點做到「分得出來」（三支 foe 招都已用 `st.bodySpot` 收好）。
+             `hurtCover` 只留著當留帳欄位，不再進判定。 */
+          if (r.coverNeed > 0) r.coverOK = r.attMain === true && r.hurtHit === true;
+        }
         if (!r) return { spec: run.anchorSpec || null, sampled: false, n: run.anchors.length, bad: 0, skipped: 0, missing: 0, follows: 0, landings: 0, mainDeclared: false, mainShown: false, mainOK: false, mainScope: false, cover: 0, coverNeed: 0, coverSep: 0, coverOK: false, ok: false, rows: [] };
-        return { ...r, sampled: true, ok: anchorOK(r) };
+        const { coverFigs, mainFigRef, ...rest } = r; // figure 物件不進 sig（不可序列化）
+        return { ...rest, sampled: true, ok: anchorOK(r) };
       })(),
       stance: (() => {
         const B = beatOf(run.tier, run.ms);
@@ -2145,6 +2326,9 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         run.anchorDone = true;
         try { sampleAnchors(run); } catch (e) { noteThrow(run, 'anchor', e); }
       }
+      // 衝擊拍之後逐幀量「道具往哪一邊走」（覆審 r4 HIGH-1；第一次呼叫只記基準）
+      try { trackFlow(run); } catch (e) { noteThrow(run, 'flow', e); }
+      try { trackHurt(run); } catch (e) { noteThrow(run, 'hurt', e); }
       // ★按效果寫的那一道（覆審 r4 HIGH-1）★：排在最後，量到的是這一幀真正要送去畫的世界矩陣
       if (run.sized.length) auditSizes(run);
       // 時間到就收工（排程已壓縮進預算，剩下的只會是同一幀補到 t=1 的尾巴）；fuse 留作最後保險

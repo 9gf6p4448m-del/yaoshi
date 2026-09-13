@@ -6,9 +6,15 @@
      ① 還原一律用**改壞前的備份副本**（`02 §6.1` 第 1 條），不用反向 sed；
      ② 每一條突變的字串**找不到就整支中止**——覆審 r2 的 N-4 就是「sed 沒配到、靜默不改、綠燈」。 */
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const ROOT = 'C:/Users/shung/OneDrive/桌面/妖市/.claude/worktrees/agent-af83de3a890909c69';
+/* ★repo 根由**本檔位置**推出來（覆審 r3 R-4）★：改前寫死成產出這份證據的那個 worktree 的
+   絕對路徑，合併進 main 之後這支就跑不起來＝這份鑑別力證據不可重跑。 */
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, '..', '..', '..');  // …/docs/experiments/<卷>-evidence/ → repo 根
+if (!fs.existsSync(path.join(ROOT, 'js/trait-fx.js'))) throw new Error(`解不出 repo 根（試了 ${ROOT}）——請從 repo 內執行`);
 process.chdir(ROOT);
 const FILES = ['js/trait-fx/vocab.js', 'js/trait-fx/zuling.js', 'js/trait-fx/xianghuo.js'];
 const BAK = FILES.map((f) => 'scratchpad/_mubak-' + f.split('/').pop());
@@ -21,7 +27,10 @@ const drive = (only, count) => {
   const line = out.trim().split('\n').filter((l) => l.includes('pass')).pop() || out.trim().split('\n').pop();
   const m = line.match(/(\d+)\/(\d+) pass/);
   const anch = JSON.parse(fs.readFileSync('scratchpad/_mu.json', 'utf8')).results
-    .map((r) => { const a = (r.verdict || {}).anchors || {}; return r.case.trait + ' anchorOK=' + (a.ok ? 1 : 0) + ' bad=' + a.bad + ' miss=' + a.missing + ' cover=' + a.cover + '/' + a.coverNeed + ' mainDecl=' + a.mainDeclared + ' mainOK=' + a.mainOK; });
+    .map((r) => { const v = r.verdict || {}; const a = v.anchors || {}; const f = v.flow || {};
+      return r.case.trait + ' anchorOK=' + (a.ok ? 1 : 0) + ' bad=' + a.bad + ' miss=' + a.missing + ' cover=' + a.cover + '/' + a.coverNeed
+        + ' mainOK=' + a.mainOK + (a.spec === 'foe' ? ' hurtHit=' + a.hurtHit + ' hurtCover=' + a.hurtCover : '')
+        + (f.scope ? ' flow=' + f.worst + (f.ok ? '' : '（回流！）') : ''); });
   return { line: line.trim(), pass: m ? +m[1] : -1, of: m ? +m[2] : -1, anch };
 };
 
@@ -35,9 +44,9 @@ const MUT = [
     find: "const disc = st.paperStamp(st.kind, nock, { anchor: 'foe', main: true",
     repl: "const disc = st.paperStamp(st.kind, nock, { anchor: 'caster', main: true" },
   { id: 'C', only: 'wardRegen1', count: 2, file: 'js/trait-fx/xianghuo.js',
-    desc: "長明燈（我方單一）的落點搬回施招者身上（st.top(hurt) → st.top(lamp)）",
-    find: "const dst = st.top(hurt, new THREE.Vector3()).add(camOff(st, 1)).add(lean);",
-    repl: "const dst = st.top(lamp, new THREE.Vector3()).add(camOff(st, 1)).add(lean);" },
+    desc: "長明燈（我方單一）的落點搬回施招者身上（hurt → lamp）",
+    find: "const dst = st.bodySpot(hurt, st.top(hurt, new THREE.Vector3()).add(camOff(st, 1)));",
+    repl: "const dst = st.bodySpot(lamp, st.top(lamp, new THREE.Vector3()).add(camOff(st, 1)));" },
   { id: 'D', only: 'eliteOpenShot', count: 2, file: 'js/trait-fx/zuling.js',
     desc: '衝擊拍把日盤從畫面上拿掉（disc.visible = false）',
     find: "        st.burst(to, { power: 0.95, n: 62, color: C.hot });",
@@ -62,17 +71,45 @@ const MUT = [
     desc: "「我方單一」的香灰符同時送給第二尊我方（覆審 r2 的新繞法 i）",
     find: "    talis.scale.setScalar(st.iconSize * 0.40);",
     repl: "    talis.scale.setScalar(st.iconSize * 0.40);\n    {\n      const mate2 = st.actor.find((f) => f !== monk && f !== mate) || mate;\n      const m2 = st.paperStamp(st.kind, st.top(mate2, new THREE.Vector3()), { anchor: 'ally', color: C.key, inkColor: C.hot,\n        opacity: 0.9, depth: 0.18, warp: 0.14, follow: mate2, at: 'top', off: camOff(st, 1) });\n      m2.scale.setScalar(st.markSize);\n    }" },
+  { id: 'J', only: 'wardImmuneLost', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '千里眼的鈴印**看不見**（m.visible = false）——逐尊覆蓋只靠 follow 印記的那兩支（覆審 r3 R-1）',
+    find: "      m.scale.setScalar(st.markSize * 1.1);",
+    repl: "      m.scale.setScalar(st.markSize * 1.1);\n      m.visible = false;" },
+  { id: 'K', only: 'biteGamble', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '虎爺印的大印落在**兩隻敵方中間**（分不出咬的是誰）——foe 那一格不再整格豁免（覆審 r3 R-2）',
+    find: "        if (prey) { st.bodySpot(prey, land); big.position.copy(land); }",
+    repl: "        if (prey) {\n          let near = null, nd = Infinity;\n          for (const f of st.target) { if (f === prey) continue; const d = f.group.position.distanceToSquared(prey.group.position); if (d < nd) { nd = d; near = f; } }\n          if (near) { land.lerp(near.group.position, 0.5); land.y = big.position.y; }\n          big.position.copy(land);\n        }" },
+  { id: 'L', only: 'wardImmuneLost', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '千里眼的鈴印改走 **opacity 路線**看不見（fade to:1 → to:0，完全不碰 visible；覆審 r4 自加 (l)）',
+    find: "      st.fade(m, { ms: RL * 0.22, delay: R0, from: 0, to: 1 }); // 同一拍現身（覆審 r3 R-1 配套）",
+    repl: "      st.fade(m, { ms: RL * 0.22, delay: R0, from: 0, to: 0 }); // 同一拍現身（覆審 r3 R-1 配套）" },
+  { id: 'M', only: 'biteGamble', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '虎爺印的大印落在**離獵物最遠的另一尊敵方**身上（打錯人；覆審 r4 自加 (m)／MEDIUM-1）',
+    find: "        if (prey) { st.bodySpot(prey, land); big.position.copy(land); } // 重挑：判定端也要求大印離**施招者**一個邊距，所以虎自己照樣要閃開",
+    repl: "        if (prey) {\n          let far = null, fd = -1;\n          for (const f of st.target) { if (f === prey) continue; const d = f.group.position.distanceToSquared(prey.group.position); if (d > fd) { fd = d; far = f; } }\n          const who = far || prey;\n          land.set(who.group.position.x, land.y, who.group.position.z);\n          st.bodySpot(who, land);\n          big.position.copy(land);\n        }" },
+  { id: 'N', only: 'swarmThorn', count: 2, file: 'js/trait-fx/zuling.js',
+    desc: '山豬牙飾的彈開退回 (e) **改前**那一版（cross(camDir,UP) 當橫向＝其實是對決軸）——回流斷言要紅',
+    find: "    const sideT = st.sideDir; // 與對決軸垂直（覆審 r4 HIGH-1：改前這一條與 st.dir 平行，0.34 全變成「朝我方」）",
+    repl: "    const sideT = new THREE.Vector3(-st.camDir.z, 0, st.camDir.x).normalize();" },
+  { id: 'O', only: 'biteGamble', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '虎爺印的碎片退回 (c) **改前**那一版（cross(camDir,UP) 當橫向＝其實是對決軸）——回流斷言要紅',
+    find: "      shardTo.push({ v: st.stageVec(lat, 0.18 + 0.42 * st.rnd(), fwd), rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });",
+    repl: "      shardTo.push({ v: new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(lat).addScaledVector(st.dir, fwd).setY(0.18 + 0.42 * st.rnd()), rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });" },
+  { id: 'Q', only: 'eliteOpenShot', count: 2, file: 'js/trait-fx/zuling.js',
+    desc: '射日的日盤射到**另一尊敵方**的胸口（受擊的仍是 prey）——覆審 r5 的 Q3，驗 foe 那一格的鬆路徑',
+    find: "        if (prey) st.bodySpot(prey, disc.position);",
+    repl: "        if (prey) {\n          let far = null, fd = -1;\n          for (const f of st.target) { if (f === prey) continue; const d = f.group.position.distanceToSquared(prey.group.position); if (d > fd) { fd = d; far = f; } }\n          const who = far || prey;\n          disc.position.set(who.group.position.x, disc.position.y, who.group.position.z);\n          st.bodySpot(who, disc.position);\n        }" },
 ];
 
 const lines = [];
 const say = (s) => { console.log(s); lines.push(s); };
 const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-say('# anchor 鑑別力突變（覆審 r2 最終碼）');
+say('# anchor／回流 鑑別力突變（覆審 r5 最終碼）：A–K 十一條＋(l)(m)＋回流的 N／O ＋ 覆審 r5 的 Q3 ＝ 16 條');
 say('# 程式碼 SHA（未提交的工作樹改動見同批 commit）：' + sha);
 say('# 判準：健康態綠、每一條突變紅；還原用備份副本。');
 say('');
 say('=== 健康態（對照）===');
-const h2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst', 2);
+const h2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost,swarmThorn', 2);
 say('--count=2  ' + h2.line);
 h2.anch.forEach((a) => say('    ' + a));
 const h3 = drive('wardHpFirst', 3);
@@ -88,7 +125,10 @@ for (const m of MUT) {
   let s = fs.readFileSync(m.file, 'utf8');
   const nl = s.includes('\r\n') ? '\r\n' : '\n';
   const find = m.find.split('\n').join(nl), repl = m.repl.split('\n').join(nl);
-  if (!s.includes(find)) { restore(); throw new Error(`突變 ${m.id} 的字串在現碼上找不到——這正是 N-4 的病，整支中止：\n${m.find}`); }
+  const hits = s.split(find).length - 1;
+  /* ★出現次數必須**恰好 1**（覆審 r3 R-4）★：`String.replace` 只換第一處，
+     字串出現兩次時會靜默只改一處 ⇒ 突變比宣稱的小、紅燈的來源就對不上了。 */
+  if (hits !== 1) { restore(); throw new Error(`突變 ${m.id} 的字串在現碼上出現 ${hits} 次（要恰好 1 次），整支中止：\n${m.find}`); }
   fs.writeFileSync(m.file, s.replace(find, repl));
   const r = drive(m.only, m.count);
   say('');
@@ -100,12 +140,12 @@ for (const m of MUT) {
 }
 say('');
 say('=== 還原後（健康態必須回綠）===');
-const b2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst', 2);
+const b2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost,swarmThorn', 2);
 say('--count=2  ' + b2.line);
 const b3 = drive('wardHpFirst', 3);
 say('--count=3  ' + b3.line);
 if (b2.pass !== b2.of || b3.pass !== b3.of) allRed = false;
 say('');
-say(allRed ? '總結：9 條全紅、健康態前後皆綠 ⇒ 這一格有鑑別力。' : '總結：!! 有條目沒達標，見上。');
+say(allRed ? '總結：16 條全紅、健康態前後皆綠 ⇒ 這兩格都有鑑別力。' : '總結：!! 有條目沒達標，見上。');
 fs.writeFileSync('scratchpad/_mutations.txt', lines.join('\n') + '\n');
 console.log('\n-> scratchpad/_mutations.txt');
