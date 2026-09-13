@@ -888,9 +888,14 @@ const MOVES = {
     const to = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : disc.clone().addScaledVector(st.dir, 2.2);
     if (prey && !to.lengthSq()) st.worldOf(prey, null, to);
     to.add(st.camOff(1.1));
-    // 彈回的落點：施招者腳前（反擊的因果方向；不跨中線）
-    const back = st.foot(boar, new THREE.Vector3()).addScaledVector(st.dir, 0.26).add(st.camOff(1.4));
-    back.y += 0.16;
+    /* ★彈開落地，不回到施招者（P4 r1 回修 F）★
+       第 1 輪效果只有 11/18 讀成打擊，其中 **6/18 讀成「偷取」**——獠牙從對手身上
+       一路飛回施招者，就是「把東西拿回來」那個動作。現在改成**彈開落在對手腳邊的地上**：
+       扎中仍然是衝擊拍（anchor `foe` 量得到），餘韻那一段只是牙從獵物身上彈開、掉在他旁邊，
+       不再有任何「回到施招方」的位移。§C 的區分點（反向飛行＝反擊的因果方向）由
+       「牙從對手身上往回彈開」這個**方向**承擔，落點不再跨回我方。 */
+    const back = to.clone().addScaledVector(st.dir, -0.30).add(st.camOff(1.2));
+    back.y = st.tableY + 0.12;
 
     // ── 甲 兩根獠牙（1 draw call）──
     const TK = 2;
@@ -957,8 +962,8 @@ const MOVES = {
     } });
     if (prey) st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 1.5, burst: false });
 
-    /* ③ 反彈（react）：★§C 的區分點★——獠牙從對手身上**反向彈回**、插在施招者腳前，
-       這是全 27 支唯一反向飛行的道具（因果方向＝反擊）。 */
+    /* ③ 反彈（react）：★§C 的區分點★——獠牙從對手身上**反向彈回**、落在他腳邊的地上。
+       這是全 27 支唯一反向飛行的道具（因果方向＝反擊），但**不回到施招者**（P4 r1 回修 F）。 */
     st.tween({ ms: RL * 0.55, delay: R0 + RL * 0.12, ease: 'out', update(t, e) {
       tusks.obj.position.lerpVectors(to, back, e);
       head.position.copy(tusks.obj.position).add(st.camOff(4.2));
