@@ -3593,6 +3593,16 @@ function unitRowText(it,owner,mode){
   return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
     (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</div>`;
 }
+/* 玩家可見的夜戰判定口徑。開場教學與拍品詳情共用，避免 UI 又各自抄成兩套舊規則。 */
+function paperWarRuleText(){
+  return "紙紮夜戰：先比存活紙紮，再比剩餘血量；仍同分才看風位。";
+}
+function paperWarMarketHint(owner,it){
+  if(!CFG.PAPERWAR_ON||!owner||!it||it.curse) return "";
+  const after={...owner,bag:[...(owner.bag||[]),it]};
+  const lv=pwResLv(after,it.f);
+  return `🪖 ${paperWarRuleText()}${lv>0?` 拿下後${FAC[it.f].n}共鳴：該系那一拍 hp+${lv}。`:""}`;
+}
 /* 袋子面板的「部隊預覽」：逐件一行＋最上方總計一行（總隻數・總攻・總血・共鳴 hp）。
    總計走同一支 buildArmy(p.bag)（整袋一次展開），共鳴等級走 pwResLv（＝引擎在 pwSide 用的那一支）。 */
 function bagPreviewHTML(p){
@@ -4668,7 +4678,7 @@ function introPages(){ return [
   `<div style="font-size:30px">🏮</div><h2 style="font-size:17px;margin:6px 0">歡迎來到妖市</h2>
    <div style="font-size:13px;line-height:1.9;text-align:left">你的<b style="color:var(--gold)">壽命</b>既是<b>錢包</b>也是<b>血條</b>：出價花壽命、挨打掉壽命。<br>撐過 ${CFG.ROUNDS} 夜——<b>活到最後</b>、或天亮時<b>壽命最高</b>的人贏。</div>`,
   `<div style="font-size:30px">🌙</div><h2 style="font-size:17px;margin:6px 0">每一夜四步</h2>
-   <div style="font-size:13px;line-height:1.9;text-align:left">① 抽<b>今夜心願</b>：只有你看得到的秘密小目標，夜末達成加壽命<br>② <b>妖市出價</b>：密封出壽命搶法寶（點拍品出價）<br>③ <b>開標</b>：價高者得，法寶入袋加戰力<br>④ <b>結算戰</b>：抽對手比戰力，輸家扣壽命</div>`,
+   <div style="font-size:13px;line-height:1.9;text-align:left">① 抽<b>今夜心願</b>：只有你看得到的秘密小目標，夜末達成加壽命<br>② <b>妖市出價</b>：密封出壽命搶法寶（點拍品出價）<br>③ <b>開標</b>：價高者得，法寶入袋召出紙紮<br>④ <b>結算戰</b>：固定輪轉配對；<b>${paperWarRuleText()}</b> 輸家扣壽命</div>`,
   `<div style="font-size:30px">⛩</div><h2 style="font-size:17px;margin:6px 0">妖市異事</h2>
    <div style="font-size:13px;line-height:1.9;text-align:left">第 ${CFG.EVENT_NIGHTS.join("／")} 夜妖市出大事（前一夜有耳語預告）：全場一起做<b>密封抉擇</b>，膽識與算計各憑本事。${CFG.LEGEND_ON?"":"<br><br>看不懂任何名詞？右上角 <b style=\"color:var(--gold)\">？</b> 隨時可查。"}</div>`,
   /* 第四卡：請神（請神 2.0 使用者裁定加的一頁）。數字全由 CFG 帶出，不另寫一份。
@@ -5139,7 +5149,8 @@ function openSheet(i){
   const ap=S.players[ACTIVE];
   const foes=S.players.filter(p=>p.alive&&p.id!==ACTIVE);
   const c=ap.bag.filter(x=>x.f===it.f&&!x.curse).length;
-  const syn=(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
+  const syn=!CFG.PAPERWAR_ON&&(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
+  const pwHint=paperWarMarketHint(ap,it);
   /* 收祟夜：買下銷毀本夜禁用——選項直接不給，並把預設意圖改成毒標（避免出了標卻被引擎作廢） */
   const noDest=it.curse&&noDestroyNight();
   /* 預設對象與引擎的自動轉毒標同一份選法（strongestFoe），玩家仍可自己改 */
@@ -5151,7 +5162,7 @@ function openSheet(i){
     <h3>${itemIcoInline(it)}${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
     ${/* 部隊預覽全文（招式名＋一句效果）改放這裡：卡面只留數字（覆審 HIGH-1 乙，使用者裁定） */""}
     ${unitRowText(it,ap,"full")}
-    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":"・戰力 +"+it.p}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
+    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
         <button onclick="bump(-1)">−</button><span class="amt" id="shAmt">${b.amt}</span><button onclick="bump(1)">＋</button>
