@@ -1,13 +1,15 @@
-# anchor 鑑別力突變（覆審 r2 最終碼）
-# 程式碼 SHA（這一份就是在這個 commit 的樹上跑出來的）：f859c06cc0c54965599394e9a08dfe33be352685
+# anchor 鑑別力突變（覆審 r3 最終碼；A–I 九條＋R-1／R-2 兩條＝11 條）
+# 程式碼 SHA（這一份就是在這個 commit 的樹上跑出來的）：68e664282d7526744acba74f085c654ffd566a96
 # 判準：健康態綠、每一條突變紅；還原一律用改壞前的備份副本（02 §6.1 第 1 條）。
-# 突變清單與腳本：scratchpad/mutate.mjs（每一條的字串找不到就整支中止——覆審 r2 N-4 就是「sed 沒配到、靜默不改、綠燈」）。
+# 腳本：同目錄 anchor-mutations.mjs（repo 根由本檔位置解出；每條突變的字串必須恰好出現 1 次，
+#       出現 0 次或 2 次一律整支中止——覆審 r2 N-4 與 r3 R-4 各抓過一次這個病）。
 
 === 健康態（對照）===
---count=2  5/5 pass · 重複簽章 0 · scratchpad/_mu.json
-    eliteOpenShot anchorOK=1 bad=0 miss=0 cover=2/0 mainDecl=true mainOK=true
+--count=2  6/6 pass · 重複簽章 0 · scratchpad/_mu.json
+    eliteOpenShot anchorOK=1 bad=0 miss=0 cover=2/1 mainDecl=true mainOK=true
     wardFirst anchorOK=1 bad=0 miss=0 cover=2/2 mainDecl=true mainOK=true
-    biteGamble anchorOK=1 bad=0 miss=0 cover=0/0 mainDecl=true mainOK=true
+    wardImmuneLost anchorOK=1 bad=0 miss=0 cover=2/2 mainDecl=true mainOK=true
+    biteGamble anchorOK=1 bad=0 miss=0 cover=1/1 mainDecl=true mainOK=true
     wardHpFirst anchorOK=1 bad=0 miss=0 cover=1/1 mainDecl=true mainOK=true
     wardRegen1 anchorOK=1 bad=0 miss=0 cover=1/1 mainDecl=true mainOK=true
 --count=3  1/1 pass · 重複簽章 0 · scratchpad/_mu.json
@@ -19,9 +21,9 @@
 
 === B（--count=2）：射日的日盤登記成 anchor 'caster'（道具明明飛去對面） ===
   0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
-    eliteOpenShot anchorOK=0 bad=1 miss=0 cover=2/0 mainDecl=true mainOK=false
+    eliteOpenShot anchorOK=0 bad=1 miss=0 cover=2/1 mainDecl=true mainOK=false
 
-=== C（--count=2）：長明燈（我方單一）的落點搬回施招者身上（st.top(hurt) → st.top(lamp)） ===
+=== C（--count=2）：長明燈（我方單一）的落點搬回施招者身上（hurt → lamp） ===
   0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
     wardRegen1 anchorOK=0 bad=1 miss=0 cover=1/1 mainDecl=true mainOK=false
 
@@ -35,7 +37,7 @@
 
 === F（--count=2）：射日的箭矢把一支實例散回我方（局部 +z 3.0） ===
   0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
-    eliteOpenShot anchorOK=0 bad=1 miss=0 cover=1/0 mainDecl=true mainOK=true
+    eliteOpenShot anchorOK=0 bad=1 miss=0 cover=1/1 mainDecl=true mainOK=true
 
 === G（--count=2）：祖靈之眼的主道具（石雕眼）不登記 anchor，只剩 follow 印記 ===
   0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
@@ -49,8 +51,16 @@
   0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
     wardHpFirst anchorOK=0 bad=0 miss=0 cover=2/1 mainDecl=true mainOK=true
 
+=== J（--count=2）：千里眼的鈴印**看不見**（m.visible = false）——逐尊覆蓋只靠 follow 印記的那兩支（覆審 r3 R-1） ===
+  0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
+    wardImmuneLost anchorOK=0 bad=0 miss=0 cover=0/2 mainDecl=true mainOK=true
+
+=== K（--count=2）：虎爺印的大印落在**兩隻敵方中間**（分不出咬的是誰）——foe 那一格不再整格豁免（覆審 r3 R-2） ===
+  0/1 pass · 重複簽章 0 · scratchpad/_mu.json   ← 紅（要的結果）
+    biteGamble anchorOK=0 bad=0 miss=0 cover=0/1 mainDecl=true mainOK=true
+
 === 還原後（健康態必須回綠）===
---count=2  5/5 pass · 重複簽章 0 · scratchpad/_mu.json
+--count=2  6/6 pass · 重複簽章 0 · scratchpad/_mu.json
 --count=3  1/1 pass · 重複簽章 0 · scratchpad/_mu.json
 
-總結：9 條全紅、健康態前後皆綠 ⇒ 這一格有鑑別力。
+總結：11 條全紅、健康態前後皆綠 ⇒ 這一格有鑑別力。

@@ -1,0 +1,46 @@
+# 「逐尊覆蓋」的要求在這一輪有沒有變鬆：main（ea2a38f）vs 本批，逐支對照
+# 跑法：兩棵樹各跑 `traitfx-drive --tier=2 --count=2` 與 `--count=3`（各 30/30 全綠），
+#       逐支印 spec／cover／need／sep。前 18 列＝--count=2，後 18 列＝--count=3。
+# 判準（`02 §2.1`）：任何讓通過機率上升的改動都是移動及格線。下面只有兩種列：
+#   ① 完全相同（allies／ally／self／foes 全部 36 列裡的 28 列）
+#   ② need 由 0 變 1（foe 那四支）＝**加嚴**；biteGamble 連 cover 都由 0 變 1（真的做到了）
+
+  main                                                        →  本批
+  ★ eliteOpenShot      foe cover=2 need=0 sep=4 ok=1         → eliteOpenShot      foe cover=2 need=1 sep=4 ok=1
+   = wardHpFront2       allies cover=2 need=2 sep=2 ok=1      → wardHpFront2       allies cover=2 need=2 sep=2 ok=1
+   = eliteArmor         allies cover=2 need=2 sep=2 ok=1      → eliteArmor         allies cover=2 need=2 sep=2 ok=1
+   = wardFirst          allies cover=2 need=2 sep=2 ok=1      → wardFirst          allies cover=2 need=2 sep=2 ok=1
+  ★ boltGamble         foe cover=1 need=0 sep=4 ok=1         → boltGamble         foe cover=1 need=1 sep=4 ok=1
+   = swarmHalfSplash    allies cover=2 need=2 sep=2 ok=1      → swarmHalfSplash    allies cover=2 need=2 sep=2 ok=1
+  ★ swarmThorn         foe cover=1 need=0 sep=4 ok=1         → swarmThorn         foe cover=1 need=1 sep=4 ok=1
+   = eliteSelfCut       allies cover=2 need=2 sep=2 ok=1      → eliteSelfCut       allies cover=2 need=2 sep=2 ok=1
+   = wardHpAll1         allies cover=2 need=2 sep=2 ok=1      → wardHpAll1         allies cover=2 need=2 sep=2 ok=1
+   = wardAtkAll1        allies cover=2 need=2 sep=2 ok=1      → wardAtkAll1        allies cover=2 need=2 sep=2 ok=1
+   = eliteCleave        foes cover=2 need=2 sep=4 ok=1        → eliteCleave        foes cover=2 need=2 sep=4 ok=1
+   = wardAbsorb4        allies cover=2 need=2 sep=2 ok=1      → wardAbsorb4        allies cover=2 need=2 sep=2 ok=1
+   = wardImmuneLost     allies cover=2 need=2 sep=2 ok=1      → wardImmuneLost     allies cover=2 need=2 sep=2 ok=1
+   = swarmRally         allies cover=2 need=2 sep=2 ok=1      → swarmRally         allies cover=2 need=2 sep=2 ok=1
+  ★ biteGamble         foe cover=0 need=0 sep=4 ok=1         → biteGamble         foe cover=1 need=1 sep=3 ok=1
+   = wardHpFirst        ally cover=1 need=1 sep=1 ok=1        → wardHpFirst        ally cover=1 need=1 sep=1 ok=1
+   = wardRegen1         ally cover=1 need=1 sep=1 ok=1        → wardRegen1         ally cover=1 need=1 sep=1 ok=1
+   = swarmLastStand     self cover=1 need=1 sep=1 ok=1        → swarmLastStand     self cover=1 need=1 sep=1 ok=1
+  ★ eliteOpenShot      foe cover=2 need=0 sep=4 ok=1         → eliteOpenShot      foe cover=2 need=1 sep=4 ok=1
+   = wardHpFront2       allies cover=3 need=3 sep=3 ok=1      → wardHpFront2       allies cover=3 need=3 sep=3 ok=1
+   = eliteArmor         allies cover=3 need=3 sep=3 ok=1      → eliteArmor         allies cover=3 need=3 sep=3 ok=1
+   = wardFirst          allies cover=3 need=3 sep=3 ok=1      → wardFirst          allies cover=3 need=3 sep=3 ok=1
+  ★ boltGamble         foe cover=1 need=0 sep=3 ok=1         → boltGamble         foe cover=1 need=1 sep=3 ok=1
+   = swarmHalfSplash    allies cover=3 need=3 sep=3 ok=1      → swarmHalfSplash    allies cover=3 need=3 sep=3 ok=1
+  ★ swarmThorn         foe cover=1 need=0 sep=4 ok=1         → swarmThorn         foe cover=1 need=1 sep=4 ok=1
+   = eliteSelfCut       allies cover=3 need=3 sep=3 ok=1      → eliteSelfCut       allies cover=3 need=3 sep=3 ok=1
+   = wardHpAll1         allies cover=3 need=3 sep=3 ok=1      → wardHpAll1         allies cover=3 need=3 sep=3 ok=1
+   = wardAtkAll1        allies cover=3 need=3 sep=3 ok=1      → wardAtkAll1        allies cover=3 need=3 sep=3 ok=1
+   = eliteCleave        foes cover=2 need=2 sep=4 ok=1        → eliteCleave        foes cover=2 need=2 sep=4 ok=1
+   = wardAbsorb4        allies cover=3 need=3 sep=3 ok=1      → wardAbsorb4        allies cover=3 need=3 sep=3 ok=1
+   = wardImmuneLost     allies cover=3 need=3 sep=3 ok=1      → wardImmuneLost     allies cover=3 need=3 sep=3 ok=1
+   = swarmRally         allies cover=3 need=3 sep=3 ok=1      → swarmRally         allies cover=3 need=3 sep=3 ok=1
+  ★ biteGamble         foe cover=1 need=0 sep=4 ok=1         → biteGamble         foe cover=1 need=1 sep=2 ok=1
+   = wardHpFirst        ally cover=1 need=1 sep=2 ok=1        → wardHpFirst        ally cover=1 need=1 sep=2 ok=1
+   = wardRegen1         ally cover=1 need=1 sep=2 ok=1        → wardRegen1         ally cover=1 need=1 sep=2 ok=1
+   = swarmLastStand     self cover=1 need=1 sep=1 ok=1        → swarmLastStand     self cover=1 need=1 sep=1 ok=1
+
+合計 36 列，其中 28 列逐字相同、8 列不同（全部是 foe 那一格由 need 0 → 1）。

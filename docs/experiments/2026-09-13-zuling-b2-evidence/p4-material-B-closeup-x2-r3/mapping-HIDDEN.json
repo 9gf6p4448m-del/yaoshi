@@ -1,0 +1,422 @@
+{
+ "seed": 20260912,
+ "tiers": [
+  2
+ ],
+ "dt": 16.666666666666668,
+ "shot": {
+  "width": 844,
+  "height": 390,
+  "deviceScaleFactor": 2
+ },
+ "cell": {
+  "w": 780,
+  "h": 360
+ },
+ "sheet": {
+  "w": 1560,
+  "h": 1080
+ },
+ "frameAt": [
+  {
+   "seg": "windup",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0
+  },
+  {
+   "seg": "travel",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0.95
+  },
+  {
+   "seg": "react",
+   "f": 0.15
+  },
+  {
+   "seg": "react",
+   "f": 0.95
+  }
+ ],
+ "labelled": false,
+ "spec": {
+  "mateGap": "1.9",
+  "camdist": "2.4",
+  "countOverride": 2,
+  "counts": {
+   "eliteOpenShot": 2,
+   "wardHpFront2": 2,
+   "eliteArmor": 2,
+   "wardFirst": 2,
+   "boltGamble": 2,
+   "swarmHalfSplash": 2,
+   "swarmThorn": 2,
+   "eliteSelfCut": 2,
+   "wardHpAll1": 2,
+   "wardAtkAll1": 2,
+   "eliteCleave": 2,
+   "wardAbsorb4": 2,
+   "wardImmuneLost": 2,
+   "swarmRally": 2,
+   "biteGamble": 2,
+   "wardHpFirst": 2,
+   "wardRegen1": 2,
+   "swarmLastStand": 2
+  },
+  "foe": "raincoat:haunt:yinqi:1,nail:elite:yinqi:1",
+  "mate": "auto",
+  "fxvocab": false,
+  "proto": null
+ },
+ "mapping": [
+  {
+   "code": "a01",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a01.png",
+   "trId": "wardImmuneLost",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a02",
+   "trait": "swarmThorn",
+   "ab": "boartusk",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a02.png",
+   "trId": "swarmThorn",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a03",
+   "trait": "eliteArmor",
+   "ab": "balen",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a03.png",
+   "trId": "eliteArmor",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a04",
+   "trait": "wardFirst",
+   "ab": "eye",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a04.png",
+   "trId": "wardFirst",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a05",
+   "trait": "wardAbsorb4",
+   "ab": "wangchuan",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a05.png",
+   "trId": "wardAbsorb4",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a06",
+   "trait": "swarmLastStand",
+   "ab": "pojun",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a06.png",
+   "trId": "swarmLastStand",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a07",
+   "trait": "swarmHalfSplash",
+   "ab": "boat",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a07.png",
+   "trId": "swarmHalfSplash",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a08",
+   "trait": "eliteCleave",
+   "ab": "sword",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a08.png",
+   "trId": "eliteCleave",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a09",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a09.png",
+   "trId": "wardRegen1",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a10",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a10.png",
+   "trId": "biteGamble",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a11",
+   "trait": "wardHpFront2",
+   "ab": "shield",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a11.png",
+   "trId": "wardHpFront2",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a12",
+   "trait": "wardHpFirst",
+   "ab": "ashcharm",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a12.png",
+   "trId": "wardHpFirst",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a13",
+   "trait": "wardAtkAll1",
+   "ab": "flag",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a13.png",
+   "trId": "wardAtkAll1",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a14",
+   "trait": "wardHpAll1",
+   "ab": "shanshen",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a14.png",
+   "trId": "wardHpAll1",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a15",
+   "trait": "eliteOpenShot",
+   "ab": "bow",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a15.png",
+   "trId": "eliteOpenShot",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a16",
+   "trait": "swarmRally",
+   "ab": "wuying",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a16.png",
+   "trId": "swarmRally",
+   "material": "B-closeup-x2-r3",
+   "faction": "香火"
+  },
+  {
+   "code": "a17",
+   "trait": "boltGamble",
+   "ab": "thunder",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a17.png",
+   "trId": "boltGamble",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  },
+  {
+   "code": "a18",
+   "trait": "eliteSelfCut",
+   "ab": "xianji",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-zuling-b2-evidence/p4-material-B-closeup-x2-r3/a18.png",
+   "trId": "eliteSelfCut",
+   "material": "B-closeup-x2-r3",
+   "faction": "祖靈"
+  }
+ ],
+ "material": "B-closeup-x2-r3",
+ "layout": "2v2（我方 count=2、--mateGap=1.9、--mate=auto＝同伴改用不同體型的同系模型；敵方 raincoat:haunt:yinqi:1,nail:elite:yinqi:1） 近景 camdist=2.4"
+}
