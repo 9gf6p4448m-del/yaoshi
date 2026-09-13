@@ -228,3 +228,4 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 - R-1（MEDIUM）：`sampleAnchors` 的 follow 印記分支不做在場檢查即 `cover.add()`；千里眼銅鈴／媽祖令旗第二尊覆蓋只靠 follow，印記 `visible=false` 仍 pass。修法：follow 分支套同一組在場五條。排入陰氣批。
 - R-2（MEDIUM）：`foe`（敵方單一）整格豁免逐尊覆蓋，證據由主道具承擔；`gates-b-r3.txt` 顯示只有虎爺印 cover 0，建議改 `need=1` 逐案記錄。排入陰氣批。
 - 語彙 §A9-5 分母表數字過期（實測 61/51/10）；`anchor-mutations.mjs` 寫死 worktree 路徑。
+- （0.55.9 r6 覆審記錄）N1（MEDIUM）：世界軸掃描為逐行字串比對，可被 `// axis-ok:` 整行豁免、行內純變數名 `lat/side/fwd/perp/UP` 放行、`Vector3(` 跨行三種寫法繞過；接住它們的是回流斷言，但 `traitfx-drive` 預設只量 yaw 90，六座位掃描未進閘門腳本——待辦：把 `--camyaw` 六值進 P8 例行跑。N2（LOW）：`coverNeed=0`（受擊者站位分不出）時 `hurtHit` 要求靜默消失。
