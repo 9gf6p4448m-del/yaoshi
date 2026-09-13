@@ -340,8 +340,10 @@ export const MOVE_SPEC = {
   wardHpFirst: { prop: '丙', act: '降', react: '升', stance: '前傾', anchor: 'ally' }, // 金灰顆粒流＋金色方符；低頭前傾傾倒
   wardRegen1: { prop: '丁', act: '降', react: '升', stance: '下沉', anchor: 'ally' }, // 燈焰脫離燈罩下落；整尊沉身送出
   swarmLastStand: { prop: '乙', act: '拍', react: '升', stance: '舉臂', anchor: 'self', selfReact: true }, // 殘旗（缺角）；倒矛過頂＝舉臂，反應在自身
-  /* ── 陰氣系 9 支 ── */
-  hauntLost: { prop: '甲', act: '探', react: '轉' }, // 紅帽戴到對手頭上（陰氣範本招）；原地打轉
+  /* ── 陰氣系 9 支（本卷批 3）── */
+  // ★陰氣範本招（2026-09-13 階段 A）★ 探＝帽尖前伸再猛點 ⇒ stance 前傾（fore）≠ react 轉（spin）；
+  // anchor＝foe：ABILITIES 是「對面 **1 隊**不出手（對精英無效）」⇒ 詛咒削弱／敵方單一，一頂帽子只戴一尊
+  hauntLost: { prop: '甲', act: '探', react: '轉', stance: '前傾', anchor: 'foe' }, // 紅帽戴到對手頭上；原地打轉
   hauntSteal: { prop: '甲', act: '垂', react: '被拖' }, // 銀簪去而復返；目標被拖半步
   hauntSee: { prop: '甲', act: '滯', react: '抖' }, // 憑空多一張竹椅；§C「搖」＝滯的變體
   hauntDread1: { prop: '乙', act: '滯', react: '壓' }, // 雨滴群落下＋地面水漬；閃現位移

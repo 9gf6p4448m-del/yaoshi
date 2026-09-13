@@ -4,6 +4,27 @@ import * as THREE from 'three';
 
 const _a = new THREE.Vector3();
 
+/** 三拍窗換算（與 `js/trait-fx/zuling.js` 的 `zlBeat`／`xianghuo.js` 的 `xhBeat` 同一條式子，各系一支小零件）。
+ *  `frac`＝`LAST / st.ms`（預設 0.90＝語彙檔 §A5 建議值：往嚴的方向走，多出來的 2% 全給衝擊拍）。
+ *  ★不得在這裡寫任何毫秒字面值★：時長的唯一來源是 index.html 的 `PW_FX.TRAIT_MS_BY_TIER`。 */
+function yqBeat(st, frac) {
+  const B = st.beat;
+  const LAST = st.ms * (frac === undefined ? 0.90 : frac);
+  return { B, W: B.windup[1], T0: B.travel[0], TL: B.travel[1] - B.travel[0], R0: B.react[0], LAST, RL: LAST - B.react[0] };
+}
+
+/** ★卡頓三段跳（§B3 陰氣節奏「不補間、拍子錯開」；2026-09-13 陰氣批階段 A）★
+ *  把 0..1 的線性進度切成**三個離散台階**——不是把補間變慢，是整段**沒有中間值**。
+ *  ★切點刻意不是均分★：最後一階落在 0.86，第三跳與衝擊拍幾乎同幀。均分成 1/3 的話
+ *  道具在 travel 的 2/3 就到位了，§A2「本體動作到位／道具落點／受招反應收在同一個衝擊拍」就散掉。
+ *  三系裡只有陰氣用它：祖靈是「靜→瞬發」、香火是「蓄—落—餘」，混用就是踩別系的禁區。 */
+const JOLT = (e) => (e < 0.34 ? 0.30 : (e < 0.86 ? 0.64 : 1));
+/** ★蓄勢段的卡頓＋「出招前一拍完全靜止」（§B3）★
+ *  兩跳到底，`e ≥ 0.42` 之後回傳的值**不再變** ⇒ tween 還在跑，畫面上一動都不動。
+ *  ★為什麼不另排一段空 tween★：靜止那一拍是這一系的辨識元素，寫在同一條進度函式裡，
+ *  編舞就給不出「兩份時間軸」（同 `st.groundMark` 的亮滅由積木自己排那一條）。 */
+const COIL = (e) => (e < 0.21 ? 0.40 : (e < 0.42 ? 0.72 : 1));
+
 const MOVES = {
   /* 有應公・有求必應（youyinggong，作祟×2；傳說三尊美術卷 2026-09-07）：第 3 拍作祟時，
      對面每有一件詛咒品就多燒一隻。
@@ -97,23 +118,51 @@ const MOVES = {
   },
 
   /* 魔神仔紅帽・迷途（redhat，作祟×4）：三拍對面 1 隊不出手（對精英無效）。
-     ★v0.55 招式可辨性卷 批 0 示範招（陰氣）★
-     盲讀 r1 的病因（計畫 §6 第 26 列）：**A 短版「認不出」、B 短版「中間看不到任何飛行物」**；
-       A 完整版猜成水鬼浮標 ⇒ 失敗類型 E（因果斷裂：沒有飛行物，只有原地繞圈的 0.052 小球）＋C（對比不足）。
-     改法（ART_BIBLE §10）：
-       ① windup：帽尖後仰蓄勢的同時，領頭那尊頭上浮出一頂**紅帽徽記**
-          （陰氣授權的「那一點刺眼的紅」hot 色＋ink 底板，這是本卷唯一准用刺眼紅的位置）；
-       ② travel：紅帽**真的飛過去**扣在被迷那隻頭上（原本完全沒有飛行物，這一段就是 E 的修法）；
-       ③ react：被迷的原地打轉**並踉蹌位移**（只有 spin 不算反應，因果門檻量的是 move／scale），
-          地面留下一串**不規則的暗斑腳印**（陰氣的腳下語彙；原本那圈 ring 與過陰咒的兩圈暗環直接撞，整組退役）。
-     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
+     ★2026-09-13 招式演出卷・陰氣系批 3 階段 A（**陰氣範本招**，計畫 §7.2 Q1）★
+     語彙：`2026-09-12-fx-vocab-draft.md` §C3 第 1 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntLost = { 甲, 探, 轉, stance:'前傾', anchor:'foe' }`。
+
+     ★為什麼它是範本★（語彙檔 §D 批 3）：現況是全系最差的一支（失敗類型 E＝因果斷裂，
+     沒有任何飛行物、只有原地繞圈的 0.052 小球，兩位讀者短版都認不出）。它一次定死陰氣三件事：
+       ① **卡頓三段跳＋出招前一拍完全靜止**怎麼在 t1 的 104ms 蓄勢窗裡演得出來（`COIL`／`JOLT`）；
+       ② **「轉」**這個全系獨有的受招反應；
+       ③ **「那一點刺眼的紅」只准落在一件道具上**——本招就是那頂帽子。
+
+     三件（計畫 §3）：
+       **本體動作＝探**：`HatRoot`／`Hat1`／`HatTip` 帽尖後仰（兩跳到底）→**完全靜止一拍**→
+         猛前點（`JOLT` 三個離散位移），`JawRoot`／`Jaw1`／`JawTip` 張口、`Mist*` 霧裾滯後外散。
+       **道具**＝甲 人身遺物：**紅帽**（`hat`，`st.paperStamp` 實體——面板 `hot #ff2f3a`＝
+         §B3「那一點刺眼的紅」，`ink` 近黑本體露出來的那一圈就是外描邊）從施招者**頭上飄起**
+         （§10.2 第 6 條：GLB 上那頂常駐的帽子不算新增元素，要另外飄一頂出來），
+         **卡頓跳到受招方頭上戴住**；＋丙 鬼火與魂片：衝擊拍從被迷那尊身上散出的**魂片**
+         （`st.paperProps`，冷屍白青，1 個 draw call）。
+       **受招方反應＝轉**：`st.spin` 原地打轉，**六個離散角度、階與階之間完全不動**（§B3 禁平滑補間）
+         ＋迷途晃（只有 spin 不算反應，`PHASE_GATE.react` 量的是 `move`／`scale` delta）。
+
+     ★身分可辨（§A9）★
+       ① 施招姿態＝**前傾**（fore）≠ react「轉」（spin），而且姿態也走卡頓、在靜止那一拍一起凍住；
+       ② 腳下語彙＝**不規則暗斑／水漬**（`st.groundMark` → `st.stain`，陰氣專屬；
+          `ring`／`disc` 在本系退役）。亮滅由積木自己排：蓄勢就亮、**衝擊拍熄**。
+       ③ **不得有跨場拖線**（`trail: false`）：§A9-3 的拖尾只給打擊類，而本招是**詛咒削弱**；
+          「中間看不到飛行物」那個病由帽子**本身**的位移修，不是再拉一條白線（那是 27 支裡最泛濫的語彙）。
+     ★落點 anchor＝`foe`★：`ABILITIES.hauntLost` 是「對面 **1 隊**不出手（對精英無效）」⇒
+       效果＝詛咒削弱、對象＝**敵方單一**。所以帽子只有一頂、只戴到一尊頭上，
+       而且挑的是 `st.spotRoom` 最大的那一尊（落在兩尊中間就是讀者分不出是誰的那種紅）。
+       ★真值表本身不在本階段動★（P4 照裁定要到陰氣批鋪完才跑），依據寫在報告 §1。
+     ★tier 1／2／3 共用這一支★：所有時點都從 `st.beat` 換算，不另寫短版分岔。 */
   hauntLost(st) {
-    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const ghosts = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lost = (st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm') : st.target).slice(0, 2);
-    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
-    const fwd = ghosts.map((g) => st.toward(g, new THREE.Vector3()));
-    // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點
+    const ghost = ghosts[0];
+    /* 「對精英無效」⇒ 先排掉精英；再從剩下的挑 `st.spotRoom` 最大的那一尊——
+       挑「最近的」會挑到與同伴疊在一起的那一隻，帽子戴上去仍然分不出是誰的（§A9-5 的 `attr`）。 */
+    const pool = st.target.filter((f) => !(f.unit && f.unit.body === 'elite'));
+    const foes = pool.length ? pool : st.target;
+    let lost = foes[0] || null;
+    foes.forEach((f) => { if (lost && f !== lost && st.spotRoom(f) > st.spotRoom(lost)) lost = f; });
+    const fwd = st.toward(ghost, new THREE.Vector3());
+    // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點（幅度沿用 0.54，時間軸整支重排到 §A1 的三拍窗上）
     const point = (g, k) => {
       const open = Math.max(0, k);
       st.rot(g, 'HatRoot', 0.44 * k, 0.26 * k, 0);
@@ -129,78 +178,115 @@ const MOVES = {
       st.rot(g, 'RArmRoot1Rt', -0.55 * k, 0, -0.28 * k); st.rot(g, 'RElbow1El', -0.42 * k); st.rot(g, 'RWrist1Wr', -0.26 * k);
       st.rot(g, 'LArmRoot1Rt', -0.28 * k, 0, 0.20 * k); st.rot(g, 'LElbow1El', -0.20 * k);
     };
-    // 飛出去的紅帽：一隻被迷的獵物配一頂（上限 2 頂，draw call 預算）
-    const flying = lost.map((f, i) => {
-      const g = ghosts[Math.min(i, ghosts.length - 1)];
-      const from = st.top(g, new THREE.Vector3()); from.y += 0.14;
-      const to = st.top(f, new THREE.Vector3()); to.y += 0.13;
-      return { f, from, to, mesh: st.icon(st.kind, from, { color: C.hot, inkColor: C.ink, opacity: 0 }) };
-    });
-    // 地面錯亂腳印：同一個 kind 壓平貼桌、近黑不規則（陰氣的「不規則暗斑」，InstancedMesh = 1 個 draw call）
-    const prints = [];
-    const rolls = [];
-    lost.forEach((f) => {
-      const seat = st.foot(f, new THREE.Vector3());
-      for (let j = 0; j < 3; j++) {
-        const a = st.rnd() * Math.PI * 2, r = 0.14 + 0.22 * st.rnd();
-        prints.push(new THREE.Vector3(seat.x + Math.cos(a) * r, st.tableY + 0.004, seat.z + Math.sin(a) * r));
-        rolls.push(st.rnd() * Math.PI * 2);
-      }
-    });
-    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, color: C.ink, opacity: 0 }) : null;
 
-    st.phase('windup');
-    /* ① 帽尖後仰蓄勢（windup）：陰氣＝出招前一拍完全靜止、拍子卡頓，四尊錯開 */
-    ghosts.forEach((g, i) => {
-      st.tween({ ms: W * 0.9, delay: i * W * 0.06, ease: 'out', update(t, e) { point(g, -0.62 * e); st.rim(g, 1 + 0.5 * e); } });
-      st.tween({ ms: TL * 0.5, delay: T0 + i * W * 0.06, ease: 'strike', update(t, e) { // 往前猛地一點
-        const k = -0.62 + 1.58 * e;
-        point(g, k); st.move(g, fwd[i].x * 0.11 * Math.max(0, k), 0, fwd[i].z * 0.11 * Math.max(0, k));
-        st.rim(g, 1.5 + 0.9 * e);
-      } });
-      // 收勢的錯開要從 ms 裡扣回來，否則最後一尊的 horizon 會超出 LAST（tier 1 下 rate 立刻 >1）
-      st.tween({ ms: LAST - R0 - i * W * 0.03, delay: R0 + i * W * 0.03, ease: 'inout', update(t, e) { // 帽落回
-        const k = 0.96 * (1 - e);
-        point(g, k); st.move(g, fwd[i].x * 0.11 * k, 0, fwd[i].z * 0.11 * k); st.rim(g, 1 + 1.4 * (1 - e));
-      } });
-    });
-    // 帽徽記在蓄勢末才浮現（陰氣不補間：一格到位）
-    flying.forEach((F, i) => st.tween({ ms: W * 0.28, delay: W * 0.62 + i * W * 0.05, ease: 'out', update(t, e) {
-      st.alpha(F.mesh, e); st.iconScale(F.mesh, 0.55 + 0.45 * e);
-    }, done() { if (i === 0) st.phase('travel'); } }));
-    /* ② 紅帽飛過去扣在頭上（travel）——原本這一段完全沒有飛行物 */
-    flying.forEach((F, i) => st.trail(F.mesh, F.from, F.to, {
-      ms: TL * 0.68, delay: T0 + TL * 0.22 + i * TL * 0.1, ease: 'in', arc: 0.26, spin: 3.1,
-      color: C.line, opacity: 0.8, segs: 10,
-      done() {
-        if (i === 0) st.phase('react');
-        st.burst(F.to, { power: 0.55, n: 26, color: C.hot });
-      },
-    }));
-    /* ③ 迷途（react）：原地打轉＋踉蹌位移＋地面錯亂腳印浮出來 */
-    if (stain) {
-      st.fade(stain, { ms: RL * 0.3, delay: R0, from: 0, to: 0.9 });
-      st.fade(stain, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 0.9, to: 0 });
+    // ── 甲 紅帽：hot 面板（全招唯一的那一點刺眼的紅）＋ ink 本體露出來的那一圈＝外描邊 ──
+    const from = st.top(ghost, new THREE.Vector3()); from.y += 0.16; from.add(st.camOff(0.5));
+    const to = lost ? st.top(lost, new THREE.Vector3()) : from.clone();
+    if (lost) { to.y += 0.10; to.add(st.camOff(0.5)); }
+    const hat = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
+      color: C.hot, inkColor: C.ink, opacity: 0, depth: 0.22, warp: 0.16, tiltDeg: 10, yawDeg: -20 });
+    hat.scale.setScalar(st.iconSize * 0.55);
+
+    // ── 丙 魂片：衝擊拍從被迷那尊身上散出來（InstancedMesh ＝ 1 個 draw call）──
+    const SH = 5;
+    const shards = st.paperProps(st.kind, SH, { anchor: 'foe', color: C.key, opacity: 0, k: 0.62, ratio: 0.5, depth: 0.10, warp: 0.22 });
+    if (lost) shards.obj.position.copy(to);
+    const _e = new THREE.Euler();
+    const seeds = [];
+    for (let i = 0; i < SH; i++) {
+      seeds.push({ a: (st.rnd() - 0.5) * 1.4 + i * 1.25, r: 0.16 + 0.16 * st.rnd(), up: 0.05 + 0.20 * st.rnd(), rz: st.rnd() * 3 });
     }
-    lost.forEach((f, i) => {
-      const sway = st.toward(f, new THREE.Vector3());
-      st.tween({ ms: RL * 0.95, delay: R0 + i * RL * 0.08, ease: 'linear', update(t) {
-        const w = Math.sin(Math.PI * t);
-        st.spin(f, 0, w * (0.62 + 0.2 * i) * Math.sin(t * Math.PI * 2.5), 0);
-        // 踉蹌：只有轉圈不算反應（因果門檻量 move／scale），迷路的人會走歪
-        st.move(f, sway.x * 0.075 * w * Math.sin(t * Math.PI * 3), 0, sway.z * 0.075 * w * Math.sin(t * Math.PI * 3));
-        st.rim(f, 1 - 0.45 * w);
-      } });
-      // 頭上那頂帽子跟著它晃（印記的功能，但沿用飛過來的那一頂，不再多開一個 mesh）
-      const F = flying[i];
-      if (F) {
-        st.tween({ ms: RL * 0.62, delay: R0 + i * RL * 0.08, ease: 'linear', update(t) {
-          st.top(f, F.mesh.position); F.mesh.position.y += 0.13 + 0.03 * Math.sin(t * Math.PI * 4);
-          F.mesh.userData.fxRoll = 3.1 + t * Math.PI * 2;
-        } });
-        st.fade(F.mesh, { ms: RL * 0.32, delay: R0 + RL * 0.63, from: 1, to: 0 });
+    const writeShards = (k) => {
+      for (let i = 0; i < SH; i++) {
+        const s = seeds[i], it = shards.items[i];
+        it.p.set(Math.cos(s.a) * s.r * k, -0.10 + s.up * k, Math.sin(s.a) * s.r * k);
+        it.q.setFromEuler(_e.set(0, s.a, s.rz));
+        it.s = k <= 0 ? 0 : 1;
       }
-    });
+      shards.write();
+    };
+    writeShards(0);
+
+    // 腳下不規則暗斑／水漬：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡，編舞給不出第二份）
+    st.groundMark(ghost, { r: 0.46, rot: 0.62, push: 0.18, peak: 0.92 });
+
+    /* ① 帽尖後仰（windup）：**兩跳到底，然後完全靜止一拍**（§B3 陰氣節奏）。
+       `COIL(e)` 在 e≥0.42 之後不再變 ⇒ tween 還在跑，畫面上一動都不動——
+       那一拍的靜止就是「出招前一拍完全靜止」，不是靠另外排一段空 tween。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(ghost, '前傾', k); // §A9：施招者專屬姿態（走 w.sta 獨立通道，不動因果三段的量測）
+        point(ghost, -0.62 * k);
+        st.rim(ghost, 1 + 0.6 * k);
+        // 紅帽從他頭上飄起來：跟著同一組台階一格到位（不補間）
+        st.alpha(hat, k >= 1 ? 1 : (k >= 0.72 ? 0.6 : 0));
+        hat.position.copy(from); hat.position.y += 0.12 * k;
+        hat.scale.setScalar(st.iconSize * (0.55 + 0.40 * k));
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 探（travel）：帽尖猛前點，本體與帽子走**同一個** `JOLT` ⇒ 第三跳與衝擊拍同幀（§A2）。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear', update(t, e) {
+      const j = JOLT(e);
+      point(ghost, -0.62 + 1.58 * j);
+      st.move(ghost, fwd.x * 0.13 * j, 0, fwd.z * 0.13 * j);
+      st.rim(ghost, 1.6 + 1.0 * j);
+    } });
+    /* 紅帽卡頓跳到受招方頭上。**`trail: false`**：詛咒招不拉跨場白線（§A9-3）。
+       每一跳轉一格 `rotateZ`，跳與跳之間完全不轉——朝向仍然凍在 spawn 當下那一顆四元數上疊轉，
+       不是逐幀正對鏡頭（§A4 第 4 條）。 */
+    let jolted = -1;
+    st.trail(hat, from, to, { ms: TL, delay: T0, ease: 'linear', trail: false,
+      update(t, e) {
+        const n = e < 0.34 ? 0 : (e < 0.86 ? 1 : 2);
+        if (n !== jolted) { jolted = n; hat.rotateZ(0.44); }
+        const j = JOLT(e);
+        hat.position.lerpVectors(from, to, j);
+        hat.position.y += 0.24 * Math.sin(Math.PI * j);
+      },
+      done() {
+        /* ★衝擊拍★：帽子扣上頭＝魂片散出＝那一尊同幀開始打轉（三件同一拍，§A2） */
+        st.phase('react');
+        st.burst(to, { power: 0.62, n: 30, color: C.hot });
+        st.punch(0.34);
+        if (lost) {
+          const top = st.top(lost, new THREE.Vector3());
+          st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });
+        }
+      } });
+    // 魂片在第三跳那一刻就開始散（衝擊拍當幀已經在畫面上，不是 react 才補一筆）
+    st.fade(shards.obj, { ms: TL * 0.14, delay: T0 + TL * 0.86, from: 0, to: 0.95 });
+    st.tween({ ms: TL * 0.14 + RL * 0.75, delay: T0 + TL * 0.86, ease: 'out', update(t, e) { writeShards(e); } });
+    st.fade(shards.obj, { ms: RL * 0.3, delay: R0 + RL * 0.66, from: 0.95, to: 0 });
+
+    /* ③ 迷途（react）：原地打轉＝陰氣獨有的受招反應「轉」。
+       **六個離散角度**（`TURN`），階與階之間一動都不動＝卡頓不補間；
+       `SWAY` 是踉蹌位移——只有 spin 不算反應（`PHASE_GATE.react` 量 `move`／`scale` delta），
+       而且迷路的人本來就會走歪。兩張表都以 0 收尾，收勢不另排一段。 */
+    const TURN = [0.95, 2.05, 3.15, 2.30, 0.80, 0];
+    const SWAY = [0.095, -0.075, 0.085, -0.055, 0.030, 0];
+    let turned = -1;
+    if (lost) {
+      const sway = st.toward(lost, new THREE.Vector3());
+      st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+        const n = Math.min(5, Math.floor(t * 6));
+        if (n !== turned) { turned = n; hat.rotateZ(0.26); } // 頭上那頂帽子跟著一格一格歪
+        st.spin(lost, 0, TURN[n], 0);
+        st.move(lost, sway.x * SWAY[n], 0, sway.z * SWAY[n]);
+        st.rim(lost, 1 - 0.45 * Math.sin(Math.PI * t));
+      } });
+    }
+    // 帽子留在頭上、最後淡掉（不再飛回去；「戴住」本身就是三拍不出手的證據）
+    st.fade(hat, { ms: RL * 0.34, delay: R0 + RL * 0.6, from: 1, to: 0 });
+    // 收勢：施招者的帽尖落回、前傾姿態由 st.stance 註冊的包絡自己收在衝擊拍上（覆審 H3，這裡不寫第二份）
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = 0.96 * (1 - Math.min(1, t * 1.35));
+      point(ghost, k);
+      st.move(ghost, fwd.x * 0.13 * k, 0, fwd.z * 0.13 * k);
+      st.rim(ghost, 1 + 1.6 * k);
+    } });
   },
 
   /* 椅仔姑竹椅・看穿（chair，作祟×3）：本方圍毆額外 +1。
@@ -847,21 +933,37 @@ export const SHORT = {
   },
 };
 
-/* ══════════ v0.54 原版（開關 `PW_FX.VOCAB_ON=false` ＝預設時登記的就是這一份）══════════
-   v0.55 批 0 把這一系的示範招改成「徽記剪影」版本（上面 MOVES／SHORT 裡的那一份）。
-   製作人看了實際畫面判定**這個方向做錯了**：平面單色 billboard 貼在紙紮 3D 上像剪貼畫，
-   兩輪盲讀 0/3。線上因此先退回 0.54 的演出，0.55 版本原地保留在 `?fxvocab=1` 後面
-   給治具與後續參考（方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md）。
-
-   ★這一段的本體逐字取自 `6a839de`，只改了函式名那一行★（`_v054`／`_v054short` 後綴是為了
-   不與同檔的 0.55 同名函式相撞，也讓 `tests/tools/fn-hash.mjs` 把兩份切成不同區塊）。
-   **不得在這裡改任何一行**：它是「退回 0.54」這個宣稱的實體，動了它就不是 0.54 了。
-   後綴在登記點（js/trait-fx.js）剝掉換回 trId——分派只做一次，四支函式內一個 if 都沒有。 */
-
-export const V054 = {
-  hauntLost_v054(st) {
-    const ghosts = st.actor;
-    const lost = st.byBody(st.target, 'swarm');
+/* ══════════ v0.55 批 0 徽記剪影版（`?fxvocab=1` 時登記的那一份）══════════
+   陰氣範本招 `hauntLost` 於 2026-09-13 轉正（招式演出卷・陰氣批階段 A），正式版住在上面的 MOVES。
+   這一份**原地保留給治具與 L3 canary**：`tests/tools/fx-contrast.mjs` 檔頭那份 canary 程序
+   指名的四支示範招之一就是它（`tests/tools/README.md` 的 N-6 另記著「`duel-drive --seed=7`
+   只量得到 `hat` 一個 kind」——正式 L3 對徽記尺寸的鑑別力目前就掛在這一支上）。
+   ★這一段的本體逐字取自 v0.55.8 的 `MOVES.hauntLost`，只改了函式名那一行★
+   （`_v055` 後綴在登記點 js/trait-fx.js 剝掉換回 trId，分派只做一次，函式內一個 if 都沒有）。
+   0.54 的退路（`V054`／`V054_SHORT`）連同轉正一起移除——見 `git show ea2a38f:js/trait-fx/yinqi.js`。 */
+export const V055 = {
+  /* 魔神仔紅帽・迷途 v0.55 批 0 徽記剪影版（`?fxvocab=1` 才登記）。
+     ★v0.55 招式可辨性卷 批 0 示範招（陰氣）★
+     盲讀 r1 的病因（計畫 §6 第 26 列）：**A 短版「認不出」、B 短版「中間看不到任何飛行物」**；
+       A 完整版猜成水鬼浮標 ⇒ 失敗類型 E（因果斷裂：沒有飛行物，只有原地繞圈的 0.052 小球）＋C（對比不足）。
+     它與轉正版的差別＝**徽記剪影 vs 紙紮實體**：這一份的帽與腳印走 `st.icon`／`st.icons`
+     （平面單色 billboard），轉正版走 `st.paperStamp`／`st.paperProps` 與 `st.stain`。 */
+  /* 魔神仔紅帽・迷途（redhat，作祟×4）：三拍對面 1 隊不出手（對精英無效）。
+     ★v0.55 招式可辨性卷 批 0 示範招（陰氣）★
+     盲讀 r1 的病因（計畫 §6 第 26 列）：**A 短版「認不出」、B 短版「中間看不到任何飛行物」**；
+       A 完整版猜成水鬼浮標 ⇒ 失敗類型 E（因果斷裂：沒有飛行物，只有原地繞圈的 0.052 小球）＋C（對比不足）。
+     改法（ART_BIBLE §10）：
+       ① windup：帽尖後仰蓄勢的同時，領頭那尊頭上浮出一頂**紅帽徽記**
+          （陰氣授權的「那一點刺眼的紅」hot 色＋ink 底板，這是本卷唯一准用刺眼紅的位置）；
+       ② travel：紅帽**真的飛過去**扣在被迷那隻頭上（原本完全沒有飛行物，這一段就是 E 的修法）；
+       ③ react：被迷的原地打轉**並踉蹌位移**（只有 spin 不算反應，因果門檻量的是 move／scale），
+          地面留下一串**不規則的暗斑腳印**（陰氣的腳下語彙；原本那圈 ring 與過陰咒的兩圈暗環直接撞，整組退役）。
+     ★tier 1／2／3 共用這一支★（時間軸由 st.beat 換算）。 */
+  hauntLost_v055(st) {
+    const B = st.beat, C = st.colors, LAST = st.ms * 0.88;
+    const ghosts = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
+    const lost = (st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm') : st.target).slice(0, 2);
+    const W = B.windup[1], T0 = B.travel[0], TL = B.travel[1] - B.travel[0], R0 = B.react[0], RL = LAST - B.react[0];
     const fwd = ghosts.map((g) => st.toward(g, new THREE.Vector3()));
     // k<0：帽尖後仰蓄勢；k>0：帽尖往前一點
     const point = (g, k) => {
@@ -879,85 +981,82 @@ export const V054 = {
       st.rot(g, 'RArmRoot1Rt', -0.55 * k, 0, -0.28 * k); st.rot(g, 'RElbow1El', -0.42 * k); st.rot(g, 'RWrist1Wr', -0.26 * k);
       st.rot(g, 'LArmRoot1Rt', -0.28 * k, 0, 0.20 * k); st.rot(g, 'LElbow1El', -0.20 * k);
     };
+    // 飛出去的紅帽：一隻被迷的獵物配一頂（上限 2 頂，draw call 預算）
+    const flying = lost.map((f, i) => {
+      const g = ghosts[Math.min(i, ghosts.length - 1)];
+      const from = st.top(g, new THREE.Vector3()); from.y += 0.14;
+      const to = st.top(f, new THREE.Vector3()); to.y += 0.13;
+      return { f, from, to, mesh: st.icon(st.kind, from, { color: C.hot, inkColor: C.ink, opacity: 0 }) };
+    });
+    // 地面錯亂腳印：同一個 kind 壓平貼桌、近黑不規則（陰氣的「不規則暗斑」，InstancedMesh = 1 個 draw call）
+    const prints = [];
+    const rolls = [];
+    lost.forEach((f) => {
+      const seat = st.foot(f, new THREE.Vector3());
+      for (let j = 0; j < 3; j++) {
+        const a = st.rnd() * Math.PI * 2, r = 0.14 + 0.22 * st.rnd();
+        prints.push(new THREE.Vector3(seat.x + Math.cos(a) * r, st.tableY + 0.004, seat.z + Math.sin(a) * r));
+        rolls.push(st.rnd() * Math.PI * 2);
+      }
+    });
+    const stain = prints.length ? st.icons(st.kind, prints, { flat: true, rolls, color: C.ink, opacity: 0 }) : null;
+
+    st.phase('windup');
+    /* ① 帽尖後仰蓄勢（windup）：陰氣＝出招前一拍完全靜止、拍子卡頓，四尊錯開 */
     ghosts.forEach((g, i) => {
-      const d = fwd[i];
-      st.tween({ ms: 240, delay: i * 35, ease: 'out', update(t, e) { point(g, -0.62 * e); st.rim(g, 1 + 0.5 * e); } });
-      st.tween({ ms: 190, delay: 240 + i * 35, ease: 'strike', update(t, e) {
+      st.tween({ ms: W * 0.9, delay: i * W * 0.06, ease: 'out', update(t, e) { point(g, -0.62 * e); st.rim(g, 1 + 0.5 * e); } });
+      st.tween({ ms: TL * 0.5, delay: T0 + i * W * 0.06, ease: 'strike', update(t, e) { // 往前猛地一點
         const k = -0.62 + 1.58 * e;
-        point(g, k); st.move(g, d.x * 0.11 * Math.max(0, k), 0, d.z * 0.11 * Math.max(0, k));
-        st.rim(g, 1 + 0.5 + 0.9 * e);
+        point(g, k); st.move(g, fwd[i].x * 0.11 * Math.max(0, k), 0, fwd[i].z * 0.11 * Math.max(0, k));
+        st.rim(g, 1.5 + 0.9 * e);
       } });
-      st.tween({ ms: 250, delay: 520 + i * 35, ease: 'inout', update(t, e) {
+      // 收勢的錯開要從 ms 裡扣回來，否則最後一尊的 horizon 會超出 LAST（tier 1 下 rate 立刻 >1）
+      st.tween({ ms: LAST - R0 - i * W * 0.03, delay: R0 + i * W * 0.03, ease: 'inout', update(t, e) { // 帽落回
         const k = 0.96 * (1 - e);
-        point(g, k); st.move(g, d.x * 0.11 * k, 0, d.z * 0.11 * k); st.rim(g, 1 + 1.4 * (1 - e));
+        point(g, k); st.move(g, fwd[i].x * 0.11 * k, 0, fwd[i].z * 0.11 * k); st.rim(g, 1 + 1.4 * (1 - e));
       } });
     });
-    st.at(250, () => {
-      lost.forEach((f, j) => {
-        const seat = st.worldOf(f, null, new THREE.Vector3());
-        const fire = st.orb(seat, 0.052, { opacity: 0 });
-        fire.scale.setScalar(0.35);
-        const r = 0.20 + 0.05 * st.rnd(), a0 = st.rnd() * Math.PI * 2;
-        st.tween({ ms: 420, delay: j * 35, ease: 'linear', update(t) {
-          const a = a0 + t * Math.PI * 3.4, w = Math.sin(Math.PI * t);
-          st.worldOf(f, null, fire.position);
-          fire.position.y += 0.30 + 0.05 * Math.sin(t * Math.PI * 4);
-          fire.position.x += Math.cos(a) * r; fire.position.z += Math.sin(a) * r;
-          fire.material.opacity = 0.95 * w;
-          fire.scale.setScalar(0.35 + 0.8 * w);
+    // 帽徽記在蓄勢末才浮現（陰氣不補間：一格到位）
+    flying.forEach((F, i) => st.tween({ ms: W * 0.28, delay: W * 0.62 + i * W * 0.05, ease: 'out', update(t, e) {
+      st.alpha(F.mesh, e); st.iconScale(F.mesh, 0.55 + 0.45 * e);
+    }, done() { if (i === 0) st.phase('travel'); } }));
+    /* ② 紅帽飛過去扣在頭上（travel）——原本這一段完全沒有飛行物 */
+    flying.forEach((F, i) => st.trail(F.mesh, F.from, F.to, {
+      ms: TL * 0.68, delay: T0 + TL * 0.22 + i * TL * 0.1, ease: 'in', arc: 0.26, spin: 3.1,
+      color: C.line, opacity: 0.8, segs: 10,
+      done() {
+        if (i === 0) st.phase('react');
+        st.burst(F.to, { power: 0.55, n: 26, color: C.hot });
+      },
+    }));
+    /* ③ 迷途（react）：原地打轉＋踉蹌位移＋地面錯亂腳印浮出來 */
+    if (stain) {
+      st.fade(stain, { ms: RL * 0.3, delay: R0, from: 0, to: 0.9 });
+      st.fade(stain, { ms: RL * 0.45, delay: R0 + RL * 0.5, from: 0.9, to: 0 });
+    }
+    lost.forEach((f, i) => {
+      const sway = st.toward(f, new THREE.Vector3());
+      st.tween({ ms: RL * 0.95, delay: R0 + i * RL * 0.08, ease: 'linear', update(t) {
+        const w = Math.sin(Math.PI * t);
+        st.spin(f, 0, w * (0.62 + 0.2 * i) * Math.sin(t * Math.PI * 2.5), 0);
+        // 踉蹌：只有轉圈不算反應（因果門檻量 move／scale），迷路的人會走歪
+        st.move(f, sway.x * 0.075 * w * Math.sin(t * Math.PI * 3), 0, sway.z * 0.075 * w * Math.sin(t * Math.PI * 3));
+        st.rim(f, 1 - 0.45 * w);
+      } });
+      // 頭上那頂帽子跟著它晃（印記的功能，但沿用飛過來的那一頂，不再多開一個 mesh）
+      const F = flying[i];
+      if (F) {
+        st.tween({ ms: RL * 0.62, delay: R0 + i * RL * 0.08, ease: 'linear', update(t) {
+          st.top(f, F.mesh.position); F.mesh.position.y += 0.13 + 0.03 * Math.sin(t * Math.PI * 4);
+          F.mesh.userData.fxRoll = 3.1 + t * Math.PI * 2;
         } });
-        // 迷失：原地轉向、越轉越找不到路
-        st.tween({ ms: 420, delay: 40 + j * 35, ease: 'linear', update(t) {
-          const w = Math.sin(Math.PI * t);
-          st.spin(f, 0, w * (0.55 + 0.18 * j) * Math.sin(t * Math.PI * 2.5), 0);
-          st.rim(f, 1 + 0.55 * w);
-        } });
-      });
+        st.fade(F.mesh, { ms: RL * 0.32, delay: R0 + RL * 0.63, from: 1, to: 0 });
+      }
     });
   },
 };
 
-export const V054_SHORT = {
-  // ★2026-09-12 使用者裁定 260→300ms 配套修訂：本體其餘逐字不動，只加 K 並把字面
-  // ms／delay 乘 K（上方「不得改任何一行」是針對 V054 完整版與這四支的『演出內容』，
-  // 不含這個純比例縮放；四支都只做這一件事，見 docs/experiments/2026-09-12-t1-proportional-report.md）
-  hauntLost_v054short(st) {
-    const K = st.ms / 260;
-    const hats = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lost = st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm').slice(0, 3) : st.target.slice(0, 2);
-    const fires = lost.map((f, i) => {
-      const o = st.orb(st.top(f, new THREE.Vector3()), 0.035, { opacity: 0 });
-      o.scale.setScalar(0.8);
-      return { o, base: st.top(f, new THREE.Vector3()), ph: i * 1.7 };
-    });
-    hats.forEach((g, i) => {
-      st.tween({ ms: 80 * K, delay: i * 10 * K, ease: 'out', update(t, e) { // 帽尖後仰蓄勢、霧裾外散
-        st.rot(g, 'HatRoot', -0.3 * e); st.rot(g, 'Hat1', -0.24 * e); st.rot(g, 'HatTip', -0.3 * e);
-        st.rot(g, 'NeckB', -0.16 * e); st.rot(g, 'Mist1', 0, 0, 0.2 * e); st.rim(g, 1 + 0.6 * e);
-      } });
-      st.tween({ ms: 78 * K, delay: (80 + i * 10) * K, ease: 'strike', update(t, e) { // 往前猛地一點：帽尖前指、張口
-        st.rot(g, 'HatRoot', -0.3 + 0.72 * e); st.rot(g, 'HatTip', -0.3 + 0.66 * e);
-        st.rot(g, 'JawRoot', 0.3 * e); st.rot(g, 'NeckB', -0.16 + 0.3 * e);
-        st.move(g, 0, 0, 0.09 * e);
-      } });
-    });
-    fires.forEach((F, i) => { // 鬼火繞圈飛
-      st.fade(F.o, { ms: 40 * K, delay: (96 + i * 10) * K, from: 0, to: 1 });
-      st.tween({ ms: 104 * K, delay: (96 + i * 10) * K, ease: 'linear', update(t, e) {
-        const a = F.ph + e * Math.PI * 2.4;
-        F.o.position.set(F.base.x + Math.cos(a) * 0.17, F.base.y + 0.06 + 0.03 * Math.sin(a * 2), F.base.z + Math.sin(a) * 0.17);
-      } });
-      st.fade(F.o, { ms: 46 * K, delay: 182 * K, from: 1, to: 0 });
-    });
-    lost.forEach((f, i) => st.tween({ ms: 100 * K, delay: (100 + i * 10) * K, ease: 'inout', update(t, e) { // 原地打轉、邊光發虛
-      st.spin(f, 0, Math.PI * 1.1 * e, 0); st.rim(f, 1 - 0.45 * Math.sin(Math.PI * e));
-    } }));
-    st.tween({ ms: 60 * K, delay: 168 * K, ease: 'inout', update(t, e) { // 帽落回
-      const k = 1 - e;
-      hats.forEach((g) => {
-        st.rot(g, 'HatRoot', 0.42 * k); st.rot(g, 'HatTip', 0.36 * k); st.rot(g, 'JawRoot', 0.3 * k);
-        st.rot(g, 'NeckB', 0.14 * k); st.rot(g, 'Mist1', 0, 0, 0.2 * k); st.move(g, 0, 0, 0.09 * k); st.rim(g, 1 + 0.6 * k);
-      });
-    } });
-  },
+export const V055_SHORT = {
+  // 短版與完整版共用同一支（徽記版原本就沒有 hauntLost 的專屬短版，tier 1 走同一份時間軸）
+  hauntLost_v055short: V055.hauntLost_v055,
 };

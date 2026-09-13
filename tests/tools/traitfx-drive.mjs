@@ -107,8 +107,12 @@ function movesMatching(root, re) {
  *  （沒有這個下限，「把 st.phase 整組刪掉」會讓 P2 的斷言靜默失效＝同一個病換個形狀）。 */
 export function phaseCasesFromSource(root) {
   const list = [...movesMatching(root, /\bst\.phase\s*\(/)].sort();
-  const MUST = ['biteGamble', 'eliteCleave', 'eliteSelfCut', 'swarmLastStand', 'swarmRally',
-    'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
+  /* ★下限每鋪開一批就要跟著長★（README 的 N-7）：停在舊支數時新招靜默掉出名單＝同一個病換形狀。
+     2026-09-13 陰氣批階段 A 一次補齊：祖靈批階段 B 的 8 支（當時漏補）＋陰氣範本招 `hauntLost`。 */
+  const MUST = ['biteGamble', 'boltGamble', 'eliteArmor', 'eliteCleave', 'eliteOpenShot',
+    'eliteSelfCut', 'hauntLost', 'swarmHalfSplash', 'swarmLastStand', 'swarmRally', 'swarmThorn',
+    'wardAbsorb4', 'wardAtkAll1', 'wardFirst', 'wardHpAll1', 'wardHpFirst', 'wardHpFront2',
+    'wardImmuneLost', 'wardRegen1'];
   const missing = MUST.filter((t) => list.indexOf(t) < 0);
   if (missing.length) {
     throw new Error(`phaseCasesFromSource 解析壞了或打點被刪光：推導出 ${list.length} 支（${list.join(' ') || '無'}），`
@@ -346,8 +350,10 @@ async function runCase(browser, base, c, opt) {
      「已轉正的招必須呼叫 st.stance／st.groundMark」那條擋（那裡是原始碼掃描，這裡是執行期效果）。 */
   const sc = (sig && sig.stance) || null;
   /* ★「有打點」不等於「已轉正」★：
-     ① 還留著 `V054` 退路的招（`hauntLost`——陰氣批還沒開）住在 MOVES 的是**批 0 徽記版**，
-        它有 `st.phase` 打點但沒有身分可辨語彙（那一版比它早）；`--fxvocab=1` 時跑到的就是它。
+     ① 還留著 `V054` 退路的招住在 MOVES 的是**批 0 徽記版**，它有 `st.phase` 打點但沒有身分可辨語彙
+        （那一版比它早）。★2026-09-13 陰氣批階段 A 之後，全 27 支裡已經沒有任何 `V054` 退路★
+        （最後一支 `hauntLost` 隨轉正移除）——這一格現在恆為空集合，**留著是給下一卷的**：
+        再有招退回舊演出時它自動生效，拿掉就得在轉正的那一批重新發明一次。
      ② `--fxvocab=1` 跑的是 `V055`（批 0 徽記版），同理不在範圍內。
      兩條都**不是放寬**：同一支招轉正之後 V054 退路會被移除、預設路徑跑的是有姿態的那一份，照樣被約束。
      刪光 `st.stance` 想繞過去的由 `tests/fxvocab.test.mjs` 的原始碼掃描擋（少一支就紅）。 */

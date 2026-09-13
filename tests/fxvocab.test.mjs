@@ -232,8 +232,10 @@ function convertedMoves() {
     src = mutateSrc(src, f);
     const cut = src.search(/export const V05[45]/);
     /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
-       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
-       所以退路段裡出現過的 trId 一律排掉（`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。 */
+       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。所以退路段裡出現過的 trId 一律排掉
+       （`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。
+       ★2026-09-13 陰氣批階段 A 之後已經沒有任何 `V054` 退路★（最後一支 `hauntLost` 隨轉正移除），
+       這條排除現在是空集合——留著是給下一卷，拿掉就得在下一批重新發明一次。 */
     const retired = new Set([...(cut > 0 ? src.slice(cut) : '').matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054(?:short)?\s*\(st\)\s*\{/gm)].map((m) => m[1]));
     if (cut > 0) src = src.slice(0, cut);
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
@@ -252,8 +254,10 @@ function bodyOf(trId) {
     src = mutateSrc(src, f);
     const cut = src.search(/export const V05[45]/);
     /* ★「有 st.phase」還不等於「已轉正」★：批 0 的徽記版也打點，而它們**住在 MOVES 裡、
-       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。`hauntLost` 就是這一態——陰氣批還沒開。
-       所以退路段裡出現過的 trId 一律排掉（`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。 */
+       由 `V054` 覆蓋**（預設路徑跑的是 0.54 本體）。所以退路段裡出現過的 trId 一律排掉
+       （`traitfx-drive` 那邊是用 `v054CasesFromSource` 做同一件事）。
+       ★2026-09-13 陰氣批階段 A 之後已經沒有任何 `V054` 退路★（最後一支 `hauntLost` 隨轉正移除），
+       這條排除現在是空集合——留著是給下一卷，拿掉就得在下一批重新發明一次。 */
     const retired = new Set([...(cut > 0 ? src.slice(cut) : '').matchAll(/^ {2}([A-Za-z_$][\w$]*)_v054(?:short)?\s*\(st\)\s*\{/gm)].map((m) => m[1]));
     if (cut > 0) src = src.slice(0, cut);
     const heads = [...src.matchAll(/^ {2}([A-Za-z_$][\w$]*)\s*\(st\)\s*\{/gm)];
@@ -264,9 +268,14 @@ function bodyOf(trId) {
   }
   return null;
 }
-/** 本階段（2026-09-13）已轉正的 10 支：香火 9 ＋ 祖靈範本招獻祭刀。推導少一支就是解析壞了。 */
-const CONVERTED_MUST = ['biteGamble', 'eliteCleave', 'eliteSelfCut', 'swarmLastStand', 'swarmRally',
-  'wardAbsorb4', 'wardAtkAll1', 'wardHpFirst', 'wardImmuneLost', 'wardRegen1'];
+/** 已轉正的 19 支：香火 9 ＋ 祖靈 9 ＋ 陰氣範本招魔神仔紅帽。推導少一支就是解析壞了。
+ *  ★這份下限每鋪開一批就要跟著長★（`tests/tools/README.md` 的 N-7 記的就是這條病：
+ *  下限停在舊的支數時，新招靜默 `n/a`＝同一個病換形狀）。
+ *  2026-09-13 陰氣批階段 A 一次補齊兩段：祖靈批階段 B 轉正的 8 支（當時漏補）＋本階段的 `hauntLost`。 */
+const CONVERTED_MUST = ['biteGamble', 'boltGamble', 'eliteArmor', 'eliteCleave', 'eliteOpenShot',
+  'eliteSelfCut', 'hauntLost', 'swarmHalfSplash', 'swarmLastStand', 'swarmRally', 'swarmThorn',
+  'wardAbsorb4', 'wardAtkAll1', 'wardFirst', 'wardHpAll1', 'wardHpFirst', 'wardHpFront2',
+  'wardImmuneLost', 'wardRegen1'];
 
 t('STANCE_VOCAB／REACT_AXIS／FAC_GROUND 三張表自身完整（沒有 undefined 可以讓「不同型」恆綠）', () => {
   Object.entries(STANCE_VOCAB).forEach(([k, v]) => {

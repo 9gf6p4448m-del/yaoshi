@@ -58,9 +58,9 @@ const VOCAB_ON = (() => {
 const byTrId = (tbl) => Object.fromEntries(Object.keys(tbl).map((k) => [k.replace(/_v05[45](short)?$/, ''), tbl[k]]));
 /* 三張表怎麼疊（2026-09-12 招式演出卷批 1 起）：
      MOVES／SHORT            27 支的**正式**演出。批 1 之後 biteGamble 住在這裡（E 轉正）。
-     V054／V054_SHORT        VOCAB_ON=false 時覆蓋——0.55 徽記剪影版被製作人否掉之後「先退回 0.54」的退路，
-                             剩三支示範招（eliteSelfCut／wardImmuneLost／hauntLost）；
-                             轉正一支就從這裡移除一支（虎爺印已移除，0.54 版見 git show 6a839de）。
+     V054／V054_SHORT        VOCAB_ON=false 時覆蓋——0.55 徽記剪影版被製作人否掉之後「先退回 0.54」的退路。
+                             轉正一支就從這裡移除一支；**2026-09-13 陰氣批階段 A 起四支示範招全部轉正，
+                             這兩張表已是空的**（0.54 版見 git show 6a839de）。機制留著給下一卷。
      V055／V055_SHORT        VOCAB_ON=true（?fxvocab=1）時覆蓋——徽記剪影版，留給治具與 L3 canary。
    所以預設路徑（線上）＝正式演出＋還沒轉正那幾支的 0.54 退路；`?fxvocab=1` ＝正式演出＋徽記版對照組。 */
 const V054_FULL = VOCAB_ON ? {} : byTrId(Object.assign({}, ZULING.v054, XIANGHUO.v054, YINQI.v054));
