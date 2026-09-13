@@ -585,8 +585,16 @@ async function runTrayMem(browser, port, query) {
           return { round: window.__yaoshi.S.round, geometries: m.geometries, textures: m.textures,
             keys: Y3.tray.items().map(x => x.curse ? '(詛咒)' : (x.key||'—')), ready: Y3.tray.readyCount() }; })()`));
         if (rec.rows.length >= rec.nights) { rec.why = `跑滿 --memrounds=${rec.nights} 夜`; break; }
-        await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); if (b && !b.disabled) b.click(); })()`);
       }
+      /* ★記錄過的夜也要繼續往前點★：`measure` 的條件是「按鈕寫著蓋牌且可按」，記錄過之後它**恆真**，
+         而 DRIVE 只在 `!measure` 時才點 ⇒ 那一夜的第一下若沒推動畫面（相位閘吞掉、或那一下剛好
+         落在換手窗裡），迴圈就再也不會點任何東西、原地空轉到步數跑滿。
+         實測：兩次跑都停在第 7 夜「蓋牌開標」，`why` 印出來才看到是**治具自己卡住**，不是這一局只有 7 夜。 */
+      if (st.measure) await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); if (b && !b.disabled) b.click(); })()`);
+      /* 每圈之間留一點時間：整支迴圈是 evaluate 直連、一圈只要 ~20ms，而產品的連點守衛
+         （`MAIN_GUARD_MS`＝500）與各種 `await sleep()` 的演出需要時間往前走。
+         實測不留的話會停在第 8 夜「進入下一夜」——**不是遊戲卡住，是驅動把自己塞住**。 */
+      if (i % 4 === 3) await page.waitForTimeout(140);
     }
     /* ★釋放本身有沒有效★（鑑別力：逐夜成長混著「新 GLB 進快取」與「舊實例沒放掉」兩件事，
        分不開的話這一格對漏水零鑑別力）。做法：**同一批拍品**清空再擺回去 5 次，
