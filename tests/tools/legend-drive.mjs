@@ -1279,7 +1279,10 @@ const main = async () => {
       const ok = marg.g <= cap.g && marg.t <= cap.t;
       okMem = okMem && ok;
       console.log(`- **T4 托盤邊際貢獻**（預設 − 對照，兩條路都走到第 ${nights} 夜）：`
-        + `geometries ${da.g} − ${db.g} ＝ **+${marg.g}**　textures ${da.t} − ${db.t} ＝ **+${marg.t}**`);
+        + `geometries ${da.g} − ${db.g} ＝ **${marg.g >= 0 ? '+' : ''}${marg.g}**`
+        + `　textures ${da.t} − ${db.t} ＝ **${marg.t >= 0 ? '+' : ''}${marg.t}**`
+        + `　（兩條路的終值：geo ${A.rows[A.rows.length - 1].geometries}／${B.rows[B.rows.length - 1].geometries}、`
+        + `tex ${A.rows[A.rows.length - 1].textures}／${B.rows[B.rows.length - 1].textures}）`);
       console.log(`    每件 GLB 的資產數（第 1 夜 offset ${n1.g}/${n1.t} ÷ ${items1} 件）＝ `
         + `**${per.g.toFixed(1)} geometries／${per.t.toFixed(1)} textures**`);
       console.log(`    上限＝夜數 ${nights} × 4 件 × 每件 ＝ **${cap.g.toFixed(0)} geometries／${cap.t.toFixed(0)} textures**`
