@@ -42,6 +42,7 @@ try {
   assert(/輪轉|配對/.test(intro) && /存活.*紙紮/.test(intro) && /剩餘血量/.test(intro),
     'RED: 新手第二卡未交代固定配對、先比存活紙紮、再比剩餘血量');
 
+  await page.evaluate(() => localStorage.setItem('yaoshi_intro_v1', '1'));
   await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
   for (let step = 0; step < 500; step += 1) {
     const state = await page.evaluate(() => ({ label: document.getElementById('mainbtn').textContent, disabled: document.getElementById('mainbtn').disabled }));
