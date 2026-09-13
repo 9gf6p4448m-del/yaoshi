@@ -2484,6 +2484,14 @@ function trayTap(ev){
      但換手發生在 pointerdown、早於 click 的 capture 取樣，相位閘自己看不到這個切換）。
      防線按**效果**寫（「使用者沒看過的動作被執行」），不按入口寫。 */
   if(TRAY_PHASE!==before){ TRAY_TAP_AT=now; PHASE_AT=now; }
+  /* ★點下去之後一律收 hover★（覆審 r2 HIGH-D 繞法 1，桌機滑鼠**每一次**用托盤下標都會踩到）：
+     `openSheet` 會讓 `#sheet`（fixed inset:0、z 30）當場蓋住整個視窗，包含游標**原地**那個點。
+     於是接下來的 `pointerup` 重新命中測試打到 `#sheet`、不會送到 `#tray` 的監聽；而游標沒有移動，
+     瀏覽器也不會補發 `pointerout`／`pointerleave` ⇒ 三個「結束」事件一個都不發，
+     `hover` 永遠卡在那一格、鏡頭永遠帶著微推（`closeSheet` 也沒有收它）。
+     防線按**效果**寫：只要這一下真的做了事，就把 hover 收掉——不管接下來蓋上來的是
+     `#sheet`、`#modal` 還是換頁，都涵蓋。 */
+  trayLeave();
 }
 function trayHover(ev){
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return;

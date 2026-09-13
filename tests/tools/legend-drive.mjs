@@ -479,6 +479,26 @@ async function runTraySlots(browser, port) {
       await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
       await page.waitForTimeout(120);
     }
+    /* ★滑鼠路徑：hover → 按下去開 #sheet → 關掉 → hover 必須已經收掉★（覆審 r2 HIGH-D 繞法 1）
+       上面那四下走的是 `touchscreen.tap`，摸不到這條路：`#sheet`（fixed inset:0、z 30）在
+       `pointerdown` 的同步執行裡就蓋住游標原地那個點 ⇒ `pointerup` 重新命中測試打到 `#sheet`、
+       不會送到 `#tray`；而游標沒動，`pointerleave` 也不會補發。三個「結束」事件一個都不發。
+       所以這一格要用**真的滑鼠**（move → down → up），不能用 tap。 */
+    {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(0))()`);
+      await page.mouse.move(pt.x, pt.y);
+      await page.waitForTimeout(400);
+      const beforeClick = await page.evaluate(`(() => window.__yaoshi3d.tray.hover())()`);
+      await waitGate(page);
+      await page.mouse.down(); await page.mouse.up(); // 按下去開 #sheet，放開時游標原地不動
+      await page.waitForTimeout(250);
+      const opened = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+        return !!(s && getComputedStyle(s).display !== 'none'); })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(3200); // 同上：等 TRAY_PUSH.rate 收斂到踩死歸零的門檻
+      const after = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
+      rec.sheetHover = { beforeClick, opened, after, ok: beforeClick === 0 && opened && after.hover === -1 && after.trayK === 0 };
+    }
   } finally { await ctx.close(); }
   return rec;
 }
@@ -1039,12 +1059,13 @@ const main = async () => {
     const keys = s.keys || [], keyOk = keys.filter((r) => r.ok).length;
     okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
       && blankOk === s.blank.length && keys.length > 0 && keyOk === keys.length
-      && !!(s.push && s.push.ok) && s.errors.length === 0;
+      && !!(s.push && s.push.ok) && !!(s.sheetHover && s.sheetHover.ok) && s.errors.length === 0;
     console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
       + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
       + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　`
       + `逐槽 GLB 檔名 ${keyOk}/${keys.length} 對　`
       + `hover 微推雙向 ${s.push ? (s.push.ok ? '✅' : `❌(on ${JSON.stringify(s.push.on)} / off ${JSON.stringify(s.push.off)})`) : '—'}　`
+      + `滑鼠點開 #sheet 後 hover 有收 ${s.sheetHover ? (s.sheetHover.ok ? '✅' : `❌(${JSON.stringify(s.sheetHover)})`) : '—'}　`
       + `error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
     keys.forEach((r) => console.log(`    鍵 槽${r.slot}「${r.n}」${r.curse ? '（詛咒）' : ''} 要 ${r.want || '占位物'} → ${r.got || (r.gotCurse ? '占位物' : 'null')} ${r.ok ? '✅' : '❌'}`));
     s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));
