@@ -166,6 +166,11 @@ export function vcBuilder() {
  * 頂點色沿半徑用一維噪聲在深紅褐／近黑／暖橘褐三色之間插值＝年輪；
  * 環與環之間壓出 ≤0.004 的淺刻痕（只往下凹，桌頂最高仍是 0.15，托盤與香灰才疊得上去）；
  * 桌緣加一圈斜面線腳，斜面吃到燈籠光就有厚度。draw call：1（**取代**原本的 1，淨增 0）。 */
+/* 段數（2026-09-13 幾何預算）：**試過 12×8（368→228 tris），回退**。
+   我原本以為「年輪是頂點色畫的，段數減了密度不變」——**實測是錯的**：年輪的顏色是逐「圈」取樣
+   `wave(r)` 得到的，圈數就是取樣率。8 圈把 5.4 週期的年輪取樣到走樣，成圖上桌面變成一片
+   沒有紋路的暗色（對照 `r4-n1.png` 與 `r5-n1.png`）。木紋是本卷的交付項，
+   而那 140 個三角形對 33000 的門檻（缺口 1582）也救不回來 ⇒ 回到 16×10。 */
 const WOOD = {
   seg: 16, rings: 10,
   colors: [TABLE_COLOR, 0x4a2010, 0x8a4a24], // 主色（＝v0.55 的桌面色，單一來源）／深年輪／淺年輪
@@ -228,10 +233,15 @@ function makeWoodTable() {
    收成「一撮」與「一小卷」：半徑 ×0.42、片長 ×0.45、亮度壓到不搶拍品，符咒也收一半並加大捲度。 */
 const DECOR = {
   ashY: 0.1512, talY: 0.1515, // 桌頂 0.15 ＜ 香灰 ＜ 符咒 ＜ 紅布 0.152（疊序寫死，不靠 depth 賭）
+  /* 2026-09-13 幾何預算（製作人裁定「先減非主角的」）：每撮香灰 22→14 片、符咒殘卷 3→2 張、
+     每張的縱向段數 6→4，三角形 174 → 90。香灰片數少了就把每片放大一點，佔的面積不變；
+     符咒留下的兩張是**畫面裡真的看得到**的那兩張（第三張 [-0.55,1.20] 在托盤正前方、
+     被紅布與拍品的下緣切掉大半，實測 r4 的圖上只露出一角）。 */
   ash: [[-1.30, 1.02, 0.17], [1.42, 0.88, 0.15], [0.15, -1.18, 0.13]], // [x, z, 半徑]
-  ashN: 22,
+  ashN: 14,
   ashColors: [0xb3aba0, 0x8e887f, 0xcbc4b8],
-  tal: [[-1.55, -0.72, 0.55], [1.35, -1.02, -0.35], [-0.55, 1.20, 1.95]], // [x, z, 朝向 rad]
+  tal: [[-1.55, -0.72, 0.55], [1.35, -1.02, -0.35]], // [x, z, 朝向 rad]
+  talSeg: 4,
   talL: 0.17, talW: 0.055,
   paper: 0xb9a874, paperDark: 0x938552, cinnabar: 0x8e1c1c,
 };
@@ -244,7 +254,7 @@ function makeTableDecor() {
       const a = R() * Math.PI * 2;
       const d = rad * R() * R(); // R()² 而不是 √R()：往中心集中＝一「撮」，不是均勻撒一片
       const x = cx + Math.sin(a) * d, z = cz + Math.cos(a) * d;
-      const s = 0.013 + R() * 0.017;
+      const s = 0.016 + R() * 0.021; // 片數 22→14 之後每片放大 ~1.25 倍，一撮佔的面積不變
       const rot = R() * Math.PI * 2;
       const y = DECOR.ashY + (1 - d / rad) * 0.006 + R() * 0.002; // 中間堆得高一點點，邊緣薄
       const col = new THREE.Color(DECOR.ashColors[i % 3]).multiplyScalar(0.82 + R() * 0.3);
@@ -265,8 +275,9 @@ function makeTableDecor() {
     };
     // 硃砂帶收窄成一道細直帶（第一版佔了三分之一寬，讀成「木板上的紅漆」）
     const strips = [[-1, -0.18, DECOR.paper], [-0.18, 0.18, DECOR.cinnabar], [0.18, 1, DECOR.paperDark]];
-    for (let k = 0; k < 6; k++) {
-      const u0 = -1 + k * (2 / 6), u1 = -1 + (k + 1) * (2 / 6);
+    const SEG = DECOR.talSeg;
+    for (let k = 0; k < SEG; k++) {
+      const u0 = -1 + k * (2 / SEG), u1 = -1 + (k + 1) * (2 / SEG);
       for (const [v0, v1, hex] of strips) {
         const c = new THREE.Color(hex).multiplyScalar(0.9 + R() * 0.2);
         b.quad(P(u0, v0), P(u1, v0), P(u1, v1), P(u0, v1), c);

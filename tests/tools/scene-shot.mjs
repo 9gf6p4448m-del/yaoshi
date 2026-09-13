@@ -146,7 +146,37 @@ async function perfSample(browser, url) {
       const calls = info.render.calls, tris = info.render.triangles, passes = info.render.frame - f1;
       info.autoReset = true;
       const t = Y3.tray;
+      /* 三角形分母表（上桌卷 v0.56b）：把場上**畫得到的**每一顆 mesh 依「屬於誰」歸類加總。
+         ★這是量出來的，不是算出來的★——要減幾何之前得先知道每一類各佔多少，
+         否則「先減非主角的」只是憑印象（`02 §6.1` 第 7 條：先寫下分母）。
+         分類靠物件自己的 name 與祖先鏈，不另抄一份清單。 */
+      const budget = {};
+      const triOf = (o) => {
+        const g = o.geometry; if (!g) return 0;
+        if (g.index) return g.index.count / 3;
+        return g.attributes && g.attributes.position ? g.attributes.position.count / 3 : 0;
+      };
+      const bucketOf = (o) => {
+        for (let n = o; n; n = n.parent) {
+          if (n.name === 'tray-cloth') return '紅布托盤';
+          if (n.name === 'tray-curse' || n.name === 'tray-curse-fire') return '詛咒占位';
+          if (n.name === 'table-tray') return o.name === 'outline' ? '托盤描邊外殼' : '托盤拍品本體';
+          if (n.name === 'table') return '木紋桌面';
+          if (n.name === 'table-decor') return '香灰＋符咒';
+          if (n.name === 'sky-dome') return '夜空穹頂';
+          if (n.name === 'far') return '遠景剪影';
+        }
+        return '其他（既有）';
+      };
+      Y3.scene.traverse((o) => {
+        if (!o.isMesh && !o.isPoints) return;
+        for (let n = o; n; n = n.parent) if (!n.visible) return; // 畫不到的不計
+        const b = bucketOf(o);
+        budget[b] = (budget[b] || 0) + (o.isPoints ? 0 : triOf(o));
+      });
+      Object.keys(budget).forEach((k) => { budget[k] = Math.round(budget[k]); });
       return {
+        budget,
         rendersPerSec: +((f1 - f0) / ((te - ts) / 1000)).toFixed(1),
         calls: calls / 2, tris: tris / 2, passes: passes / 2,
         geometries: info.memory.geometries, textures: info.memory.textures,
@@ -191,6 +221,7 @@ async function perfMain() {
         rendersPerSecMedian: median(S.map((x) => x.rendersPerSec)),
         rendersPerSecAll: S.map((x) => x.rendersPerSec),
         callsAll: S.map((x) => x.calls),
+        budget: S[S.length - 1].budget,
         geometries: S[S.length - 1].geometries, textures: S[S.length - 1].textures,
         hollow: S[S.length - 1].hollow,
         trayVisible: S[S.length - 1].trayVisible,

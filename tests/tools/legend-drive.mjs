@@ -461,6 +461,33 @@ async function runTraySlots(browser, port) {
       rec.push = { on, off, ok: on.hover === 1 && on.trayK > 0 && off.hover === -1 && off.trayK === 0 };
     }
     await page.evaluate(`(() => { if (window.__pmOrig) window.pickMark=window.__pmOrig; })()`);
+    /* ★托盤連點守衛的真實路徑驗證★（覆審 r2 指出上面那段用了 `pickMark` 替身 ⇒ 相位永遠不切換
+       ⇒ 守衛從頭到尾不會武裝，那段綠燈對這件事零鑑別力）。
+       這一段**不裝替身**：在盯上頁對同一格連點兩下（間隔 <MAIN_GUARD_MS），
+       第一下是真的 `pickMark(i)`（相位 mark→bid、頁面換成出價頁），
+       **第二下必須被吞**（不得開出 `#sheet`）；等過了守衛窗再點一次**必須開得出來**。
+       雙向都驗，只驗「被吞」會讓一個「托盤整個壞掉、什麼都不做」的實作也綠。 */
+    {
+      const gap = await page.evaluate(`(() => MAIN_GUARD_MS)()`);
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(2))()`);
+      await waitGate(page);
+      await page.touchscreen.tap(pt.x, pt.y);          // 第一下：真的宣告盯上，換成出價頁
+      await page.waitForTimeout(80);                   // 80ms ≪ 500ms：還在守衛窗內
+      const phase1 = await page.evaluate(`(() => TRAY_PHASE)()`);
+      await page.touchscreen.tap(pt.x, pt.y);          // 第二下：必須被吞
+      await page.waitForTimeout(120);
+      const swallowed = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+        return !(s && getComputedStyle(s).display !== 'none'); })()`);
+      await page.waitForTimeout(gap + 200);            // 等守衛窗過去
+      await page.touchscreen.tap(pt.x, pt.y);          // 第三下：必須開得出來
+      await page.waitForTimeout(150);
+      const reopened = await page.evaluate(`(() => { const s=document.getElementById('sheet'); const h=document.querySelector('#sheetbox h3');
+        return { open: !!(s && getComputedStyle(s).display !== 'none'), title: h ? (h.textContent||'').trim() : null }; })()`);
+      await page.evaluate(`(() => { if (typeof closeSheet === 'function') closeSheet(); })()`);
+      await page.waitForTimeout(120);
+      rec.doubleTap = { guardMs: gap, phaseAfterFirst: phase1, swallowed, reopened,
+        ok: phase1 === 'bid' && swallowed === true && reopened.open === true };
+    }
     /* ② 出價頁（同一夜，pickMark(null) 之後）：走真的 openSheet，比 #sheetbox 的標題 */
     await page.evaluate(`(() => pickMark(null))()`);
     await page.waitForTimeout(300);
@@ -542,9 +569,14 @@ async function runTrayMem(browser, port, query) {
         }
       }
       return { t, d, r, measure }; })()`;
+    /* 收工理由（比照 felt-probe.mjs 的 `why`）：不記的話「只走到第 7 夜」看起來像
+       「這一局只有 7 夜」——那是靜默失敗。三種收工各自記下來，收尾表明白印出。 */
+    rec.why = '（還在跑）'; rec.lastT = ''; rec.lastR = 0;
     for (let i = 0; i < 12000; i++) {
       const st = await page.evaluate(DRIVE);
-      if (/再入妖市/.test(st.t)) break;
+      rec.lastT = st.t; rec.lastR = st.r || rec.lastR;
+      if (/再入妖市/.test(st.t)) { rec.why = `這一局打完了（局末，第 ${st.r} 夜）`; break; }
+      if (i === 11999) rec.why = `**步數跑滿 12000 仍未結束（停在第 ${st.r} 夜「${st.t}」）**`;
       if (st.measure && !seen[st.r]) {
         seen[st.r] = 1;
         await page.evaluate(`(async () => { const t=window.__yaoshi3d.tray; if (t && t.loaded) await t.loaded(); })()`);
@@ -552,7 +584,7 @@ async function runTrayMem(browser, port, query) {
         rec.rows.push(await page.evaluate(`(() => { const Y3=window.__yaoshi3d; const m=Y3.renderer.info.memory;
           return { round: window.__yaoshi.S.round, geometries: m.geometries, textures: m.textures,
             keys: Y3.tray.items().map(x => x.curse ? '(詛咒)' : (x.key||'—')), ready: Y3.tray.readyCount() }; })()`));
-        if (rec.rows.length >= rec.nights) break;
+        if (rec.rows.length >= rec.nights) { rec.why = `跑滿 --memrounds=${rec.nights} 夜`; break; }
         await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); if (b && !b.disabled) b.click(); })()`);
       }
     }
@@ -1059,13 +1091,15 @@ const main = async () => {
     const keys = s.keys || [], keyOk = keys.filter((r) => r.ok).length;
     okTray = s.bid.length > 0 && bidOk === s.bid.length && s.mark.length === s.bid.length && markOk === s.mark.length
       && blankOk === s.blank.length && keys.length > 0 && keyOk === keys.length
-      && !!(s.push && s.push.ok) && !!(s.sheetHover && s.sheetHover.ok) && s.errors.length === 0;
+      && !!(s.push && s.push.ok) && !!(s.sheetHover && s.sheetHover.ok)
+      && !!(s.doubleTap && s.doubleTap.ok) && s.errors.length === 0;
     console.log(`- **T2 托盤槽位 tap**（seed ${s.seed}，座標由產品的 tray.slotScreen(i) 給；托盤上線 ${s.ready}/4 格）：`
       + `出價頁 ${bidOk}/${s.bid.length} 開出正確的 #sheet 標題　盯上頁 ${markOk}/${s.mark.length} 的 pickMark 引數正確　`
       + `空白處 ${blankOk}/${s.blank.length} 回 −1 且不觸發　`
       + `逐槽 GLB 檔名 ${keyOk}/${keys.length} 對　`
       + `hover 微推雙向 ${s.push ? (s.push.ok ? '✅' : `❌(on ${JSON.stringify(s.push.on)} / off ${JSON.stringify(s.push.off)})`) : '—'}　`
       + `滑鼠點開 #sheet 後 hover 有收 ${s.sheetHover ? (s.sheetHover.ok ? '✅' : `❌(${JSON.stringify(s.sheetHover)})`) : '—'}　`
+      + `連點守衛（第二下被吞、過窗後開得出來）${s.doubleTap ? (s.doubleTap.ok ? '✅' : `❌(${JSON.stringify(s.doubleTap)})`) : '—'}　`
       + `error ${s.errors.length} → ${okTray ? '✅' : '❌'}`);
     keys.forEach((r) => console.log(`    鍵 槽${r.slot}「${r.n}」${r.curse ? '（詛咒）' : ''} 要 ${r.want || '占位物'} → ${r.got || (r.gotCurse ? '占位物' : 'null')} ${r.ok ? '✅' : '❌'}`));
     s.bid.forEach((r) => console.log(`    出價 槽${r.slot} (${r.pt.x},${r.pt.y}) 要「${r.want}」→ #sheet ${r.open ? '開' : '沒開'}「${r.title}」${r.ok ? '✅' : '❌'}`));
@@ -1081,18 +1115,25 @@ const main = async () => {
     const n1 = m.rows[0], last = m.rows[m.rows.length - 1];
     const dG = n1 && last ? last.geometries - n1.geometries : null;
     const dT = n1 && last ? last.textures - n1.textures : null;
-    okMem = okMem && m.rows.length >= m.nights && m.errors.length === 0;
-    console.log(`- **T4 GLB 載入釋放**（${m.query}　seed ${m.seed}，走到第 ${m.rows.length}/${m.nights} 夜；error ${m.errors.length}）：`
+    /* T4 §2.1 修訂一（2026-09-13）：判定＝①同一批拍品清空再擺回 5 輪記憶體零成長
+       ②`?tray3d=0` 對照組不長 ③0 error。**逐夜增量降成記錄項**（`glbCache` 不淘汰是本卷規格，
+       原本那條「≤拍品數」恆假，理由寫在凍結檔的修訂紀錄裡）。 */
+    okMem = okMem && m.errors.length === 0;
+    console.log(`- **T4 GLB 載入釋放**（${m.query}　seed ${m.seed}，走到第 ${m.rows.length}/${m.nights} 夜`
+      + `　收工理由：${m.why}　最後停在「${m.lastT}」；error ${m.errors.length}）　【逐夜增量＝記錄項，不判】：`
       + `geometries ${n1 ? n1.geometries : '—'} → ${last ? last.geometries : '—'}（+${dG}）　`
       + `textures ${n1 ? n1.textures : '—'} → ${last ? last.textures : '—'}（+${dT}）　`
-      + `整局走過 ${uniq.size} 顆不同 GLB（glbCache 永不淘汰，成長上界就是它） → ${okMem ? '✅ 跑完且 0 error' : '❌'}`);
+      + `整局走過 ${uniq.size} 顆不同 GLB（glbCache 永不淘汰，成長上界就是它）`);
     m.rows.forEach((r) => console.log(`    第 ${r.round} 夜：geo ${r.geometries}　tex ${r.textures}　上線 ${r.ready}/4　[${r.keys.join(' ')}]`));
     if (m.cycle) {
       const c = m.cycle.rows;
       const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
-      const cycleOk = gN === g0 && tN === t0;
+      /* 對照組（`?tray3d=0`）沒有拍品，`items()` 回的四格 key 全是 null，餵回去會被當成
+         「詛咒占位物」而長出新幾何——那不是漏水，是測試餵錯料。對照組改判「逐夜完全不長」。 */
+      const isCtrl = /tray3d=0/.test(m.query);
+      const cycleOk = isCtrl ? (dG === 0 && dT === 0) : (gN === g0 && tN === t0);
       okMem = okMem && cycleOk;
-      console.log(`    ★釋放鑑別力★ 同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
+      console.log(`    ★釋放鑑別力★ ${isCtrl ? '（對照組：判的是逐夜完全不長）' : ''}同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
         + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
       console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
     }
