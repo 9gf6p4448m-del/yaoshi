@@ -295,7 +295,11 @@ export function createTableTray(scene, camera, opts = {}) {
   });
   /* 桌上道具層：掛在 `group` 裡面 ⇒ `setVisible(false)`（對決）一次收掉整組，不必逐支記得。
      `onSlam`＝令牌落地那一刻，把那一格的拍品往下頓一下（落地震動；純視覺，不碰任何狀態）。 */
-  const props = createTableProps(group, { onSlam: (slot) => { const s = slots[slot]; if (s) s.jolt = 1; } });
+  const props = createTableProps(group, { onSlam: (slot) => {
+    const s = slots[slot]; if (s) s.jolt = 1;
+    /* 這一刻由 table-props 的 token `t >= 1` 呼叫，才是物理落地；UI 音效不得再用 timer 猜。 */
+    document.dispatchEvent(new CustomEvent('ys:mark-slam', { detail: { slot } }));
+  } });
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
