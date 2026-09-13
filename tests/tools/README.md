@@ -223,3 +223,8 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 `flatSizeOf`（貼桌陣）都**不經過** `sizeOf`，打 `sizeOf()` 對 `ICON.markByKind`（`seal` 0.20）與
 `ICON.flatByKind`（`hat` 0.20）完全打不到——主視覺是印記或貼桌陣的招在那種 canary 下照樣綠。
 `_resolve` 是三張表的共同出口，一行蓋三表；`tests/fxvocab.test.mjs` 有一條測試在釘「三者都要跟著變」。
+
+## 已知未涵蓋（anchor 檢查，2026-09-13 r3 覆審記錄）
+- R-1（MEDIUM）：`sampleAnchors` 的 follow 印記分支不做在場檢查即 `cover.add()`；千里眼銅鈴／媽祖令旗第二尊覆蓋只靠 follow，印記 `visible=false` 仍 pass。修法：follow 分支套同一組在場五條。排入陰氣批。
+- R-2（MEDIUM）：`foe`（敵方單一）整格豁免逐尊覆蓋，證據由主道具承擔；`gates-b-r3.txt` 顯示只有虎爺印 cover 0，建議改 `need=1` 逐案記錄。排入陰氣批。
+- 語彙 §A9-5 分母表數字過期（實測 61/51/10）；`anchor-mutations.mjs` 寫死 worktree 路徑。
