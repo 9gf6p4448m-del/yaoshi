@@ -26,6 +26,7 @@
 //   幀位必須寫死在本檔（凍結檔 L4「寫死在 blindread-sheet.mjs，不得逐招調」），
 //   而 traitfx-drive 的三格截圖點是它自己那一套（0.54 的 20%／45%／75%），兩者不共用。
 import { spawn } from 'node:child_process';
+import { mateQuery } from './fx-mate.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -68,24 +69,11 @@ const GAPV = (() => {
 })();
 const GAPQ = GAPV ? '&mategap=' + encodeURIComponent(GAPV) : '';
 /* ★`--mate=auto`（2026-09-13 P4 第 2 輪材料規格，製作人指示）★
-   我方第 2 尊起改用**與施招者不同體型的同系模型**：2v2 材料裡兩尊同型同色站在一起，
-   讀者連「這是兩尊」都要辨半天，更別說分施招者與受益者。
-   下表逐案挑（同系、`body` 與施招者不同、`ab` 也不同）；**這是材料規格，不是判準**，
-   不帶 `--mate` 就與第 1 輪材料一個位元組不變。 */
-const MATE_BY_FAC = {
-  zuling: { elite: 'shield:ward', ward: 'bow:elite', swarm: 'shield:ward', haunt: 'bow:elite' },
-  xianghuo: { elite: 'flag:ward', ward: 'sword:elite', swarm: 'flag:ward', haunt: 'sword:elite' },
-  yinqi: { elite: 'redhat:haunt', ward: 'redhat:haunt', swarm: 'nail:elite', haunt: 'nail:elite' },
-};
+   我方第 2 尊起改用**與施招者不同體型的同系模型**。對照表搬到 `tests/tools/fx-mate.mjs`，
+   與 `traitfx-drive.mjs` 共用**同一份**——材料換了同伴、量測沒換就是兩邊各說各話
+   （P4 第 3 輪回修 (b) 要的正是「換同伴之後旗掃還碰不碰得到同伴」這個量測）。 */
 const MATEV = (() => { const v = process.argv.find((x) => /^--mate=/i.test(x)); return v ? v.slice(v.indexOf('=') + 1) : ''; })();
-function mateQ(c) {
-  if (!MATEV) return '';
-  if (MATEV !== 'auto') return '&mate=' + encodeURIComponent(MATEV);
-  const t = (MATE_BY_FAC[c.fac] || {})[c.body];
-  if (!t) throw new Error(`--mate=auto 沒有 ${c.fac}／${c.body} 的同伴模型（見 blindread-sheet.mjs 的 MATE_BY_FAC）`);
-  if (t.split(':')[0] === c.ab) throw new Error(`--mate=auto 為 ${c.trait} 挑到與施招者同一個模型（${t}）——那就失去「兩尊分得出來」的意義`);
-  return '&mate=' + encodeURIComponent(t);
-}
+const mateQ = (c) => mateQuery(MATEV, c);
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) { try { return createRequire(c)('playwright'); } catch (e) { /* 下一個 */ } }

@@ -1,6 +1,8 @@
 // 卷 C3（2026-09-05）：27 套招式演出的機械驗收（T-1／T-2／T-3／T-4③／T-7／T-8）＋ 三格截圖。
 // 用法：node tests/tools/traitfx-drive.mjs <out.json> [--only=trId,trId] [--reduced] [--throw] [--cancel=15] [--count=8] [--dt=50]
 //                                            [--shots=<png 目錄>] [--port=8841] [--tier=2] [--nobloom] [--block=<ab>]
+//   --mate=auto|<ab>:<body> ／ --mategap=<倍率> ／ --foe=<名單>：與 blindread-sheet 同名同義（P4 材料規格）。
+//   量測要跑在**材料實際的站位**上才有意義——P4 第 3 輪回修 (b) 就是這樣抓到「旗停在施招者身上」的。
 //                                            [--sigdump=<sig 序列檔>] [--root=<靜態根目錄>] [--fxvocab=1]
 // --fxvocab=1  打開 v0.55 招式語彙（四支示範招的徽記剪影版）。不帶＝index.html 的
 //         PW_FX.VOCAB_ON 預設值 false＝0.54 演出。傳法比照 --tier／--nobloom：接在治具頁的
@@ -46,6 +48,7 @@
 //                 而 clean／onTime／within 全是上界，一條都擋不住）
 // 依賴：tools/anyCreature/node_modules/playwright；自起 python http.server。
 import { spawn } from 'node:child_process';
+import { mateQuery } from './fx-mate.mjs'; // P4 材料規格的同伴表（與 blindread-sheet 同一份）
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -225,7 +228,7 @@ async function runCase(browser, base, c, opt) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
-  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}`;
+  const url = `${base}/tests/tools/traitfx-preview.html?trait=${c.trait}&ab=${c.ab}&body=${c.body}&fac=${c.fac}&count=${opt.count || c.count}&ms=${ms}&tier=${tier}&base=${TIER_BASE_MS}&dt=${DT_MS}${opt.throw ? '&throw=1' : ''}${opt.nobloom ? '&bloom=0' : ''}${fxvocabQ(opt)}${opt.proto ? '&proto=' + opt.proto : ''}${mateQuery(opt.mate || '', c)}${opt.mategap ? '&mategap=' + encodeURIComponent(opt.mategap) : ''}${opt.foe ? '&foe=' + encodeURIComponent(opt.foe) : ''}`;
   if (opt.block) await page.route(`**/assets/creatures/${opt.block}.glb`, (route) => route.abort());
   await page.goto(url, { waitUntil: 'load' });
   // module script 有 top-level await（CDN 的 three ＋ 動態 import），load 之後才慢慢評估完

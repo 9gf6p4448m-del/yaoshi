@@ -39,6 +39,16 @@ function zlBeat(st, frac) {
  *      而且在衝擊拍那一幀（`st.trail` 的 `done()`）用當下的站位重挑一次。 */
 /** 衝擊拍那一刻用**當下**的站位重挑一次落點，回傳 `st.stick` 要的 off（＝落點 − 那一尊胸口）。
  *  挑的規則整條在 `st.bodySpot`（唯一來源）；這裡只負責換算成 off。 */
+/** 往鏡頭推一段，但**不得推出畫面**：清單由大到小試，第一個還在視錐裡的就用它。
+ *  ★為什麼需要（P4 第 3 輪回修 (e) 連帶抓到）★：山豬牙飾的主獠牙靠 `camOff(4.2)` 推近鏡頭補 L3 面積，
+ *  而那是在**治具預設站位**上調出來的；換成 P4 材料的站位（`--mate=auto --mategap=1.9 --foe=…`）
+ *  同樣的推力會把它推出畫面 ⇒ 衝擊拍量到「主道具不在場」（`missing`），讀者也看不到它。
+ *  `st.inView` 與判定端「在場」的第 5 條是同一支。 */
+function camPush(st, p, ks) {
+  for (const k of ks) { const q = p.clone().add(st.camOff(k)); if (st.inView(q)) return q; }
+  return p.clone();
+}
+
 function bodySpotOff(st, f, fallback) {
   const c = st.worldOf(f, 'Chest', new THREE.Vector3());
   if (!c.lengthSq()) st.worldOf(f, null, c);
@@ -72,7 +82,9 @@ function zlDeliver(st, from, figs, B, o = {}) {
     const m = st.paperStamp(st.kind, from, { anchor: o.anchor || 'allies',
       color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.ink : o.inkColor,
       opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22 });
-    m.scale.setScalar(st.markSize * (o.k === undefined ? 1.15 : o.k));
+    /* ★不得比施招者那一件小（P4 r3 (a)）★：`o.like`＝主道具的峰值世界尺寸。
+       尺寸的唯一來源仍是 vocab 的 `ICON`（`st.markSize`／`st.iconSize`），這裡只取兩者的大者。 */
+    m.scale.setScalar(Math.max(st.markSize * (o.k === undefined ? 1.15 : o.k), o.like || 0));
     st.fade(m, { ms: B.TL * 0.35, delay: B.T0, from: 0, to: 1 });
     st.trail(m, from, to, { ms: B.TL, delay: B.T0, ease: 'outQuint', trail: false,
       arc: o.arc === undefined ? 0.30 : o.arc,
@@ -343,7 +355,7 @@ const MOVES = {
     /* ── 每一尊各收到一枚**飛過去**的菱紋（P4 r1 回修 A）──
        改前是原地黏在每一尊身上的印記：anchor 量測恆真、畫面上也看不到「送到」這件事，
        讀者 11/18 答「自己」。現在照令旗的作法逐尊送過去，而且落地時間全部對齊衝擊拍。 */
-    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25 });
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25, like: st.iconSize * 1.17 });
 
     /* ① 紮地張牆（windup）：整尊下沉生根、三片盾牆一格張開；菱紋帶在牆上方亮相。 */
     /* 柱要往鏡頭再推遠一點：盾牆又寬又矮，預設的 0.34 會讓柱整根躲在牆後面（自評第 2 輪）。 */
@@ -395,7 +407,7 @@ const MOVES = {
     /* ★反應同拍★（P4 r1 回修 A）：改前逐尊 stagger `i * RL * 0.06`，讀成「一個一個來」；
        「我方多個」要的是**同一拍全體都有反應**。施招者的托起在收勢那條 tween 裡（delay 也是 R0）。 */
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：升的幅度拉到語彙上限（舉臂 move.y 0.17），邊光同步
     } }));
 
     /* 收勢：牆與蛇頭回位，施招者跟著被托起（他也是前鋒之一）。 */
@@ -472,7 +484,7 @@ const MOVES = {
     head.scale.setScalar(st.iconSize * 0.45);
 
     // ── 每一尊各收到一塊**飛過去**的岩（P4 r1 回修 A；理由同百步蛇紋盾）──
-    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25 });
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25, like: st.iconSize * 0.90 });
 
     /* ① 沉身（windup）：四肢屈膝、背岩隆起；岩塊在側上方亮相。 */
     st.groundMark(lead, { h: 1.26, w: 0.28, taper: 0.42, peak: 0.95, push: 0.85 });
@@ -525,7 +537,7 @@ const MOVES = {
     /* ③ 托起（react）：本方每一尊上抬＋邊光，頭上的岩印蓋上再淡去。 */
     // ★反應同拍★（P4 r1 回修 A）
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：升的幅度拉到語彙上限（舉臂 move.y 0.17），邊光同步
     } }));
 
     /* 收勢：屈膝與背岩回位，施招者跟著被托起（他也在「全體」裡）。 */
@@ -584,7 +596,7 @@ const MOVES = {
     stone.scale.setScalar(st.iconSize * 0.45);
 
     // ── 每一尊各收到一枚**飛過去**的眼（P4 r1 回修 A；理由同百步蛇紋盾）──
-    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25 }); // 逐支手調的 lean 退場（覆審 r2 N-3）：落點改由 st.bodySpot 挑，起步推力用預設的 2.0 就夠
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.25, like: st.iconSize * 1.21 }); // 逐支手調的 lean 退場（覆審 r2 N-3）：落點改由 st.bodySpot 挑，起步推力用預設的 2.0 就夠
 
     /* ① 凝視（windup）：眼瞼逐層掀開、眉壓低；石雕眼在側上方亮相。 */
     st.groundMark(lead, { h: 1.26, w: 0.28, taper: 0.42, peak: 0.95, push: 0.80 });
@@ -625,7 +637,7 @@ const MOVES = {
     /* ③ 先手（react）：本方每一尊上抬＋邊光，身上的眼印蓋上再淡去。 */
     // ★反應同拍★（P4 r1 回修 A）
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：升的幅度拉到語彙上限（舉臂 move.y 0.17），邊光同步
     } }));
 
     /* 收勢：眼半闔，施招者跟著被托起（他也在本隊裡）。 */
@@ -809,7 +821,7 @@ const MOVES = {
     head.scale.setScalar(st.iconSize * 0.35);
 
     // ── 每一艘各收到一道**飛過去**的浪（P4 r1 回修 A；理由同百步蛇紋盾）──
-    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.05 });
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.05, like: st.iconSize * 0.97 });
 
     /* ① 壓浪（windup）：船首下沉、側鰭收攏；浪弧在側後方亮相。 */
     st.groundMark(lead, { h: 1.16, w: 0.26, taper: 0.42, peak: 0.95, push: 0.70 });
@@ -857,7 +869,7 @@ const MOVES = {
     /* ③ 躍起（react）：本方每一艘上抬＋邊光，身上的浪印蓋上再淡去。 */
     // ★反應同拍★（P4 r1 回修 A）
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.13 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：同上
     } }));
 
     /* 收勢：舟身回平，施招者跟著躍起（他也在本隊裡）。 */
@@ -910,7 +922,12 @@ const MOVES = {
        扎中仍然是衝擊拍（anchor `foe` 量得到），餘韻那一段只是牙從獵物身上彈開、掉在他旁邊，
        不再有任何「回到施招方」的位移。§C 的區分點（反向飛行＝反擊的因果方向）由
        「牙從對手身上往回彈開」這個**方向**承擔，落點不再跨回我方。 */
-    const back = to.clone().addScaledVector(st.dir, -0.30).add(st.camOff(1.2));
+    /* ★彈開的方向不得指向施招者（P4 第 3 輪回修 (e)）★
+       r1 只把距離收短（-0.30），**方向仍是 `-st.dir`＝往我方**——
+       「東西從對手身上往我方回來」就是偷取的那個動作（第 2 輪 6/18 讀成偷取）。
+       改成往**畫面左右**彈開、再往敵方深處帶一點：整段軌跡沒有任何一格朝我方。 */
+    const sideT = new THREE.Vector3(-st.camDir.z, 0, st.camDir.x).normalize();
+    const back = to.clone().addScaledVector(sideT, 0.34).addScaledVector(st.dir, 0.16).add(st.camOff(1.2));
     back.y = st.tableY + 0.12;
 
     // ── 甲 兩根獠牙（1 draw call）──
@@ -952,7 +969,7 @@ const MOVES = {
         st.rim(boar, 1 + 1.3 * e);
         st.worldOf(boar, 'DiscFace', tusks.obj.position); tusks.obj.position.add(st.camOff(0.9));
         st.alpha(tusks.obj, Math.min(1, e * 1.9));
-        head.position.copy(tusks.obj.position).add(st.camOff(4.2));
+        head.position.copy(camPush(st, tusks.obj.position, [4.2, 3.2, 2.4, 1.6, 0.9]));
         st.alpha(head, Math.min(1, e * 1.9));
         head.scale.setScalar(st.iconSize * (0.42 + 0.39 * e)); // §A3 上限 0.745；面積改靠推近鏡頭補
         for (let i = 0; i < TK; i++) pair[i].s = Math.max(0, Math.min(1, (e - 0.12 * i) * 2.6));
@@ -963,7 +980,7 @@ const MOVES = {
     /* ② 扎（travel）：兩根獠牙從牙盤射出、扎進對手（打擊類保留拖尾）。 */
     const from = disc.clone();
     st.trail(tusks.obj, from, to, { ms: TL, delay: T0, ease: 'strike', color: C.line, opacity: 0.8,
-      update(t, e) { head.position.copy(tusks.obj.position).add(st.camOff(4.2)); writeTusks(e); },
+      update(t, e) { head.position.copy(camPush(st, tusks.obj.position, [4.2, 3.2, 2.4, 1.6, 0.9])); writeTusks(e); },
       done() {
         /* ★衝擊拍★：牙盤轉亮到頂＝獠牙扎中＝對手同幀後退（三件同一拍，§A2） */
         st.phase('react');
@@ -982,7 +999,7 @@ const MOVES = {
        這是全 27 支唯一反向飛行的道具（因果方向＝反擊），但**不回到施招者**（P4 r1 回修 F）。 */
     st.tween({ ms: RL * 0.55, delay: R0 + RL * 0.12, ease: 'out', update(t, e) {
       tusks.obj.position.lerpVectors(to, back, e);
-      head.position.copy(tusks.obj.position).add(st.camOff(4.2));
+      head.position.copy(camPush(st, tusks.obj.position, [4.2, 3.2, 2.4, 1.6, 0.9]));
       writeTusks(1 - 0.5 * e);
     } });
     st.fade(tusks.obj, { ms: RL * 0.3, delay: R0 + RL * 0.65, from: 0.95, to: 0 });
@@ -1095,7 +1112,7 @@ const MOVES = {
        改前是「同伴身上原地黏一枚印、施招者身上只有血條」：讀者 8/18 答「自己」、9/18 答「我方單一」。
        現在照令旗的作法逐尊送過去（**含施招者自己**，`ABILITIES` 是「全場本隊 atk+2」），
        落地時間全部對齊衝擊拍。血條仍然只在施招者身上——那是自傷的證據，不是增益。 */
-    const marks = zlDeliver(st, neck, st.actor, { T0, TL, R0, RL }, { k: 1.15 });
+    const marks = zlDeliver(st, neck, st.actor, { T0, TL, R0, RL }, { k: 1.15, like: st.iconSize * 0.95 });
 
     /* ① 俯首就刃（windup）：頸逐節下彎、邊光先暗；刃在頸邊亮相＝出招瞬間的新增元素。
        **施招姿態（下沉）與腳下光柱同時在這一段立起來**——身分訊號一定要早於道具落點。 */
@@ -1151,7 +1168,7 @@ const MOVES = {
        下沉姿態＋腳下光柱標掉了，兩件在時間上分離（§A9 第 2 條的例外）。 */
     // ★反應同拍★（P4 r1 回修 A）：stagger 拿掉，「全場本隊」要的是同一拍全體都有反應
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.085 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：同上
     } }));
 
     /* 收勢：鹿回正並跟著被托起（他也是受益方）。只有他一尊時（治具的 xianji 就是 count=1）
@@ -1239,7 +1256,7 @@ const MOVES = {
     head.scale.setScalar(st.iconSize * 0.45);
 
     // ── 每一尊各收到一顆**飛過去**的琉璃珠（P4 r1 回修 A；理由同百步蛇紋盾）──
-    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.15 });
+    const marks = zlDeliver(st, A, st.actor, { T0, TL, R0, RL }, { k: 1.15, like: st.iconSize * 0.90 });
 
     /* ① 盤繞（windup）：珠鍊逐顆亮上去、蛇身鼓節、昂首；珠圈在側上方亮相。 */
     st.groundMark(snake, { h: 1.28, w: 0.26, taper: 0.42, peak: 0.95, push: 0.80 });
@@ -1289,7 +1306,7 @@ const MOVES = {
     /* ③ 護心（react）：本方每一尊上抬＋邊光，身上的珠印蓋上再淡去。 */
     // ★反應同拍★（P4 r1 回修 A）
     mates.forEach((f) => st.tween({ ms: RL * 0.92, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(f, 0, 0.09 * e, 0); st.rim(f, 1 + 2.4 * e);
+      st.move(f, 0, 0.17 * e, 0); st.rim(f, 1 + 3.2 * e); // P4 r3 (a)：升的幅度拉到語彙上限（舉臂 move.y 0.17），邊光同步
     } }));
 
     /* 收勢：珠鍊退光、蛇口一開一合、身段回落（施招者也在本隊裡，跟著被托起）。 */

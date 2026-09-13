@@ -380,6 +380,9 @@ t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各�
   if (!sec.includes('`main: true`')) throw new Error('語彙檔 §A9-5 沒有寫出主道具的 `main: true`（覆審 r2 N-4）');
   if (!sec.includes('世界縮放 ≥ `0.05`') || !sec.includes('有效 opacity ≥ `0.05`')) throw new Error('語彙檔 §A9-5 沒有寫出「在場」的兩個門檻 0.05（覆審 r2 N-1）');
   if (!sec.includes('視錐')) throw new Error('語彙檔 §A9-5 沒有寫出「在場」的第 5 條（鏡頭視錐）');
+  /* ★覆審 r3 R-1★：`cover` 有兩個入口（實體落點與 follow 印記），文件要寫出**兩個都要在場**，
+     不然下一輪只會照著文件補一半的防線（那正是 R-1 的成因）。 */
+  if (!sec.includes('follow-gone')) throw new Error('語彙檔 §A9-5 沒有寫出 follow 印記不在場的處置（覆審 r3 R-1）');
   ['`allies`＝', '`ally`＝', '`foes`＝'].forEach((k) => {
     if (!sec.includes(k)) throw new Error(`語彙檔 §A9-5 沒有寫出逐尊覆蓋的語意「${k}」（覆審 r2 的繞法 i）`);
   });

@@ -858,7 +858,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const rows = [];
     const pts = [];
     let bad = 0, skipped = 0, missing = 0, follows = 0, landings = 0;
-    let mainDeclared = false, mainShown = false, mainOK = false, mainD = null;
+    let mainDeclared = false, mainShown = false, mainOK = false, mainD = null, mainFig = null, mainY;
     /* ★逐尊覆蓋（P4 新三輪第 1 輪之後加嚴；覆審 r2 N-3 再加「要真的貼到那一尊」）★
        `attr(p)`＝這個取樣點**決定性地**屬於哪一尊，兩個條件都要成立：
          ① 離那一尊的佔地 **≤ `ANCHOR_MARGIN`**（覆審 r2 N-3：改前只比相對距離，
@@ -883,9 +883,20 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
       if (a.follow) {
         follows++;
         if (!want.length) { skipped++; rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: null, ok: null }); continue; }
+        /* ★follow 也要過「在場」五條（覆審 r3 R-1）★
+           改前這一條路**完全不做在場檢查**就 `cover.add()` ⇒ 逐尊覆蓋可以由**畫面上看不到**的印記滿足。
+           覆審實測：把千里眼的鈴印與媽祖令旗的旗印各加一行 `m.visible = false`，
+           兩支仍是 `cover 2/2`、`anchorOK=1`（那兩支第二尊的覆蓋本來就只靠 follow）。
+           這正是 `02 §6.1` 第 7 條的「按已知入口寫、沒按危險效果寫」——`cover` 有兩個入口，
+           N-1 那次只堵了 landing 那一個。不在場＝留帳跳過、**不計 `cover`**（follow 不判紅：
+           它本來就可能排在 react 段才浮出來，判紅是錯的門檻；但它不能再替那一尊背書）。 */
+        if (!anchorShown(a.obj)) {
+          skipped++; rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow-gone', hit: whoOf(a.follow), ok: null });
+          continue;
+        }
         const ok = want.indexOf(a.follow) >= 0;
         if (!ok) bad++;
-        if (ok) cover.add(a.follow); // 黏在那一尊身上的印記，算那一尊被碰到了
+        if (ok) cover.add(a.follow); // 黏在那一尊身上、而且看得到的印記，算那一尊被碰到了
         rows.push({ anchor: a.anchor, kind: a.kind, type: 'follow', hit: whoOf(a.follow), ok });
         continue;
       }
@@ -934,6 +945,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
          其餘道具不再能替它充數——改前只要 `landings > 0` 就算，把主道具的登記拿掉照樣綠。 */
       if (a.main) {
         mainShown = true;
+        mainFig = hit; // 這一招實際打到／送到的那一尊（水平最近，只給 foe 那一格判「分不分得出來」）
+        mainY = pts[0].y;
         /* ★主道具的判準＝「在場 ＋ 每個取樣點都贏過非真值那一側一個邊距 ＋ 真的貼到真值那一側」★
            **不要求「唯一歸屬」**：治具棚同一側好幾尊擠在一起時，
            「贏過同一側的鄰居一個邊距」是站位造成的紅，不是實作造成的
@@ -950,18 +963,22 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     }
     /* ★只要求「站位上分得出來」的那幾尊（`02 §6.1` 第 6 條：不訂恆假的門檻）★
        `sep(X)`＝X 的佔地取樣點裡至少有一個離其餘每一尊都 ≥ `ANCHOR_MARGIN`。 */
-    const sepOf = (f) => {
+    /** 「這一尊站位上分得出來嗎」＝**編舞真的挑得到**一個點：在它自己的佔地裡、
+     *  離場上其他每一尊 ≥ `ANCHOR_MARGIN`、而且**在畫面上**（不在畫面上的道具本來就量不到）。
+     *  ★用的是 `st.bodySpot` 的同一支掃描★（`run.spotScan`），不是另寫一份框角判斷：
+     *  覆審 r3 R-2 的病就是兩份不一致——框角版說分得出來，挑點版最好只有 0.172／或在畫面外。
+     *  `02 §6.1` 第 6 條要的是「不要訂恆假的門檻」，而恆假與否只有挑點的那一支說了算。 */
+    const sepOf = (f, y) => {
       const b = boxOf(f);
       if (!b) return false;
-      const others = boxes.map((e) => e.fig).filter((g) => g !== f && mainWant.indexOf(g) >= 0);
-      if (!others.length) return true;
-      const corners = [[b.min.x, b.min.z], [b.min.x, b.max.z], [b.max.x, b.min.z], [b.max.x, b.max.z],
-        [(b.min.x + b.max.x) / 2, b.min.z], [(b.min.x + b.max.x) / 2, b.max.z],
-        [b.min.x, (b.min.z + b.max.z) / 2], [b.max.x, (b.min.z + b.max.z) / 2]];
-      return corners.some(([x, z]) => dTo(others, x, z) >= ANCHOR_MARGIN);
+      if (boxes.length <= 1) return true;
+      /* `y`＝這一招的道具實際落在多高（有主道具就用它的高度）。視錐是 3D 的：
+         同一塊佔地在胸口高度看得到、貼著桌面的後排就出框（實測虎爺印的大印貼地落下）。 */
+      const r = run.spotScan ? run.spotScan(f, y === undefined ? (b.min.y + b.max.y) / 2 : y) : null;
+      return !!(r && r.inView && r.clear >= ANCHOR_MARGIN);
     };
     const covered = mainWant.filter((f) => cover.has(f));
-    const sep = mainWant.filter(sepOf);
+    const sep = mainWant.filter((f) => sepOf(f)); // ★不要寫成 filter(sepOf)★：Array.filter 會把 index 當第二個參數餵進 y
     /* ★逐尊覆蓋的判準（覆審 r2：把「≥2 尊」改回「全部 sep 尊」，並補足單數的語意）★
          allies  我方多個：**每一尊**站位上分得出來的我方都要被碰到
          ally    我方單一：**恰好一尊**非施招者被碰到，而且施招者不得被碰到
@@ -971,19 +988,24 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        `sepOf` 先擋掉「站位上根本分不出來」的情形，所以這幾條不是恆假的門檻。 */
     const nonCasterCovered = [...cover].filter((f) => run.actorSet.has(f) && f !== run.caster);
     const casterCovered = cover.has(run.caster);
-    let coverOK = true, need = 0;
+    let coverOK = true, need = 0, foeSep = null;
     if (mainWant.length) {
       if (spec === 'allies') { need = sep.length; coverOK = sep.every((f) => cover.has(f)); }
       else if (spec === 'ally') { need = 1; coverOK = nonCasterCovered.length === 1 && !casterCovered; }
       else if (spec === 'self' || spec === 'caster') { need = 1; coverOK = casterCovered && nonCasterCovered.length === 0; }
       else if (spec === 'foes') { need = Math.min(2, sep.length || mainWant.length); coverOK = covered.length >= need; }
-      /* `foe`（敵方單一）**不加「至多一尊」**：治具棚四尊敵方擠成一團，命中那一隻的旁邊
-         常常也落在邊距內，要求「只有一尊」是站位造成的紅（實測 eliteOpenShot cover 2）。
-         覆審 r2 只要求把 `ally`／`allies`／`self` 的語意補足，這一格照舊。 */
-      /* `foe`（敵方單一）**不要求逐尊覆蓋**：治具棚四尊敵方前後兩排互相重疊，
-         實測把大印往獵物那一側推到它自己的佔地邊緣，仍然同時落在**另一尊**的佔地裡
-         （biteGamble att=null）——那是站位造成的紅，不是實作造成的（02 §6.1 第 6 條）。
-         這一格的證據由 mainOK（主道具真的貼到那一側）承擔。★已知未涵蓋，照實記在報告 §5★ */
+      /* ★`foe`（敵方單一）＝至少一尊敵方被**決定性地**碰到（覆審 r3 R-2）★
+         改前是整格豁免（`need = 0`），理由寫「治具棚四尊敵方擠成一團」——但自己的證據就否證了
+         這個一般化：`--count=2` 下 `eliteOpenShot` cover 2、`boltGamble` 1、`swarmThorn` 1，
+         只有 `biteGamble` 是 0。「至少一尊」對 4 支裡的 3 支**不是恆假門檻**，
+         而 `02 §6.1` 第 6 條要的是「不要訂恆假的門檻」，不是「有一支過不了就整格拿掉」。
+         **不加「至多一尊」**：命中那一隻的旁邊常常也落在邊距內，要求「只有一尊」才是站位造成的紅
+         （實測 eliteOpenShot cover 2）。 */
+      /* ★`foe`＝**被打中的那一尊**要被決定性地碰到（覆審 r3 R-2）★
+         `sep.length` 問的是「有沒有**某一尊**敵方分得出來」，而這一格要問的是
+         「**我打的那一尊**分不分得出來」——虎爺印的獵物在衝擊拍被虎本體整個罩住（撲咬的必然），
+         其餘三尊分得出來也救不了它。分得出來就要求覆蓋，分不出來就逐案記在 `foeSep` 裡。 */
+      else if (spec === 'foe') { foeSep = !!(mainFig && sepOf(mainFig, mainY)); need = foeSep ? 1 : 0; coverOK = covered.length >= need; }
       else { need = 0; coverOK = true; }
     }
     // `figs`＝衝擊拍那一刻場上每一尊的水平站位與佔地（判紅時要看得出「誰站在哪、還有多少空間可以挪」）
@@ -994,7 +1016,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     });
     run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, missing, follows, landings,
       mainDeclared, mainShown, mainOK, mainD, mainScope: mainWant.length > 0,
-      cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, rows, figs };
+      cover: covered.length, coverNeed: need, coverSep: sep.length, coverOK, foeSep,
+      mainFigWho: mainFig ? whoOf(mainFig) : null, rows, figs };
   }
 
   /** 徽記朝鏡頭（可帶自轉 userData.fxRoll） */
@@ -1040,27 +1063,42 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      *  （實測 eliteArmor 的 P3 由 area 1.67／ΔE 39.5 掉到 1.27／25.1）。
      *  ★畫面外的點只當退路★：整塊佔地都在畫面外時仍要回一個**在自己身上**的點，
      *  不能退回呼叫端那個沒驗過的座標（實測王爺劍就是這樣把斬痕留在 2.0 的推力落點上）。 */
-    function spotScan(fig, y) {
+    /* ★同一支掃描給兩個人用★：編舞挑落點（`st.bodySpot`）與判定端的 `sepOf`。
+       分兩份寫就會像覆審 r3 R-2 抓到的那樣：`sepOf`（框角、只比同側、不管在不在畫面上）
+       說「分得出來」，而落點**實際挑得到**的最好一點只有 0.172、或者在畫面外量不到。 */
+    function spotScan(fig, y, ignore) {
       if (!fig || !fig.group) return null;
+      /* ★先把這一幀已經累積的 wrap 套上去再量（覆審 r3 交裁②）★
+         `done()` 跑在 `run.wraps.forEach(apply)` **之前**，所以直接量到的是**上一幀**的姿態；
+         實測虎爺印差 0.155（挑點時獵物那一塊佔地最空只有 0.172，量測時同一塊有 0.327）。
+         `apply()` 是冪等的（把 base＋累積值寫成絕對變換），這裡先套一次，引擎稍後照樣會再套。 */
+      run.wraps.forEach(apply);
       const me = figBoxOf(fig);
       if (me.isEmpty()) return null;
-      const rest = [...actor, ...target].filter((g) => g && g !== fig && g.group).map(figBoxOf);
+      const rest = [...actor, ...target].filter((g) => g && g !== fig && g.group && !(ignore && ignore.indexOf(g) >= 0)).map(figBoxOf);
       if (!rest.length) return null;
       const cx = (me.min.x + me.max.x) / 2, cz = (me.min.z + me.max.z) / 2;
-      const k = 0.92; // 往中心縮一點：取樣點確定還在自己的框裡（到自己的距離＝0），不會剛好卡在邊界
+      /* 兩層縮放（覆審 r3 R-2）：0.99 才碰得到**框的邊角**，而 `sepOf` 問的正是「這一尊的框角
+         有沒有一個離其餘每一尊 ≥ 邊距」——只鋪 0.92 的網格會把那一角讓掉，
+         於是「站位上分得出來」與「落點挑得出來」對不起來（實測虎爺印的獵物：
+         `sepOf` 說分得出來，0.92 網格的最大餘裕只有 0.166 < 0.18 ⇒ 恆假）。
+         0.92 那一層留著：擠不開時它比貼邊的點穩（受招方一縮就不會掉出自己的框）。 */
       const N = 6;    // 7×7：角、邊中點、中心都在裡面，夠挑出「空得最開」的那一角
       let best = null, bs = -Infinity, alt = null, as = -Infinity;
-      for (let i = 0; i <= N; i++) {
-        for (let j = 0; j <= N; j++) {
-          const x = cx + (me.min.x + (me.max.x - me.min.x) * (i / N) - cx) * k;
-          const z = cz + (me.min.z + (me.max.z - me.min.z) * (j / N) - cz) * k;
-          let d = Infinity;
-          for (const b of rest) d = Math.min(d, boxDistXZ(b, x, z));
-          const score = Math.floor(Math.min(d, 1.00) / 0.01) * 10
-            + (x - cx) * st.camDir.x + (z - cz) * st.camDir.z;
-          const hit = { x, z, clear: d };
-          if (st.inView(_asp.set(x, y, z))) { if (score > bs) { bs = score; best = hit; } }
-          else if (score > as) { as = score; alt = hit; }
+      for (const k of [0.99, 0.92]) {
+        for (let i = 0; i <= N; i++) {
+          for (let j = 0; j <= N; j++) {
+            const x = cx + (me.min.x + (me.max.x - me.min.x) * (i / N) - cx) * k;
+            const z = cz + (me.min.z + (me.max.z - me.min.z) * (j / N) - cz) * k;
+            let d = Infinity;
+            for (const b of rest) d = Math.min(d, boxDistXZ(b, x, z));
+            const score = Math.floor(Math.min(d, 1.00) / 0.01) * 10
+              + (x - cx) * st.camDir.x + (z - cz) * st.camDir.z;
+            const seen = st.inView(_asp.set(x, y, z));
+            const hit = { x, z, clear: d, inView: seen };
+            if (seen) { if (score > bs) { bs = score; best = hit; } }
+            else if (score > as) { as = score; alt = hit; }
+          }
         }
       }
       return best || alt;
@@ -1068,6 +1106,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     const touch = (fig) => { if (inTarget.has(fig)) run.sig.target = true; };
     const wrapOf = (fig) => { touch(fig); return wrapFig(fig, run); };
     // v0.55 因果三段用的兩個基準：出招方名單與「到目標的距離」（travel 要求位移 ≥ 這段的 40%）
+    run.spotScan = (fig, y, ignore) => spotScan(fig, y, ignore); // 判定端的 sepOf 用同一支（見下）
     run.actorSet = new Set(actor);
     run.targetSet = inTarget; // anchor 量測要解「敵方」那一側（sampleAnchors）
     run.travelDist = Math.max(0.5, cA.distanceTo(cB));
@@ -1308,8 +1347,13 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  ★挑的時機★：編舞是在 t=0 排的，那時每一尊的框是「手還沒舉起來」的樣子；
        *    量在 `react[0]`。會黏上去的道具一律在 `st.trail` 的 `done()`（＝衝擊拍那一幀，
        *    而且排在 `sampleAnchors` 之前）再挑一次，挑的人與量的人看到同一份幾何。 */
-      bodySpot(fig, p) {
-        const r = spotScan(fig, p ? p.y : 0);
+      /** `ignore`＝挑點時**不把這幾尊算進「要閃開誰」**（選填）。
+       *  ★這不是判定的後門★：判定端 `attr()`／`sepOf()` 一律比全場，忽略誰都不影響判紅；
+       *  忽略錯了只會挑到更差的點、然後被判紅。它要解的是**姿態時序**：
+       *  虎爺印的虎在挑點那一瞬（`done()` 早於同幀的 wrap）整隻壓在獵物上，
+       *  量測那一瞬它已經不在那裡了（實測挑點看到的最大餘裕 0.172，量測時同一塊佔地有 0.327）。 */
+      bodySpot(fig, p, ignore) {
+        const r = spotScan(fig, p ? p.y : 0, ignore);
         if (r && p) { p.x = r.x; p.z = r.z; }
         return p;
       },
@@ -1317,8 +1361,8 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  給編舞挑「要打哪幾尊」用：治具棚裡四尊敵方前後兩排互相重疊，挑到被夾在中間的那一尊
        *  ＝那一塊斬痕再怎麼放都分不出是誰的（實測王爺劍 3v3 `cover 1/2`）。
        *  ★不得拿來當判準★：它是**編舞**的取捨依據，判定端有自己的 `sepOf`。 */
-      spotRoom(fig, y) {
-        const r = spotScan(fig, y === undefined ? 0 : y);
+      spotRoom(fig, y, ignore) {
+        const r = spotScan(fig, y === undefined ? 0 : y, ignore);
         return r ? r.clear : 0;
       },
       /** 這一招的法寶徽記 kind（EMBLEM_OF 的雙射；編舞一律寫 st.icon(st.kind, …)，不要自己填字串） */
