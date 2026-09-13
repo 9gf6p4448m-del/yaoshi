@@ -1,6 +1,8 @@
 # 陰氣批階段 A 批末閘門（全套實跑；指令原文＋原始 stdout）
 # 基準＝main ea2a38f（v0.55.8）。worktree agent-a7cde5f94bae38220，未合併、未 push。
-# 每一格都是在**交付的那一版程式碼**上重跑的（P3 的兩次、drive 的兩次都以最後一次為準）。
+# 每一格都是在**交付的那一版程式碼**（對抗式覆審修補之後的最終 SHA）上重跑的。
+# ★上一版的這份檔案有兩處是舊版數字★（覆審 H1 抓到）：drive 的 acts 與 phaseDetail 的 travel.moved。
+# 現在的數字全部是最終 SHA 上的實跑，指令原文照抄在每一段的 $ 行。
 
 == P0 trace-eq（引擎零 diff）==
 $ git show ea2a38f:index.html > scratchpad/base-index.html
@@ -27,14 +29,17 @@ $ node tests/tools/traitfx-drive.mjs scratchpad/_gc3.json --tier=2 --count=3    
        end=66 maxD=1.1703 err=0 prog+0 sig=22b/burst+emblem:hat+floor:stain+prop:hat/T
 逐套（hauntLost，t1）：
   PASS hauntLost redhat t1/300ms msOK=true rate=1 fill=0.9 acts=8 ... err=0 prog+0
-  （acts 由 9 掉到 8＝看圖第 3 輪把帽子那條淡出整條拿掉；門檻是 ≥2）
+  （acts 的變化：9 → 8（拿掉帽子的淡出）→ 7（覆審修補把魂片那兩條併成一條）→ 8（黏著改短 tween）。門檻 ≥2）
+  ★tier 1 在修補途中曾經 26/27★：黏著第一版用 st.at(12,…)，而 st.at 會把 TFX.atReserve×run.k
+    也算進 horizon（實測 282 > LAST 270 ⇒ maxRate 1.12、rateOK 紅）。改成 12ms 的空 tween 後 27/27。
 
   ★prog+0＝programsGrew 0（st.stain 走 MAT_SOLID.clone()，與現有三支材質模板共用 program）★
 
-phaseDetail（t2，健康態）：
+phaseDetail（t2，★健康態★）：
   windup ok=true bone=0.1364（門檻 0.08）
-  travel ok=true moved=2.8844 need=1.2533（travelDist 3.133 × 0.40）
+  travel ok=true moved=1.721  need=1.2533（travelDist 3.133 × 0.40）
   react  ok=true model=0.095（門檻 0.03）
+  ★上一版這裡寫 moved=2.8844 是**突變 M10 的數字**、標成健康態，覆審 H1 抓到，已更正★
 
 stance（t2）：
   {"kind":"前傾","peak":0.26,"ground":"stain","onTarget":false,"extra":0,"minPeak":0.12,
@@ -43,13 +48,19 @@ stance（t2）：
 stance（t1）：peakAt=50、reactAt=208、windupOK=true
 
 anchors（spec=foe）：
-  --count=1  n=2 land=2 fol=0 bad=0 skip=0 miss=0 main=OK d=0 cover=0/0 gap 2.053／1.915 ok=1
+  不帶 --count（＝redhat 的 count:4，**不是 1**；覆審 M4 更正）
+             n=2 land=2 fol=0 bad=0 skip=0 miss=0 main=OK d=0 cover=0/0 gap 2.088／1.966 ok=1
   --count=2  n=2 land=2 fol=0 bad=0 skip=0 miss=0 main=OK d=0 cover=0/0 gap 2.077／1.913 ok=1
   --count=3  n=2 land=2 fol=0 bad=0 skip=0 miss=0 main=OK d=0 cover=0/0 gap 1.460／1.287 ok=1
   （`foe` 照設計不要求逐尊覆蓋＝cover 0/0；證據由 mainOK 承擔。§A9-5 的已知未涵蓋）
 
 == P3 對比（fx-contrast ＋ metrics；844×390@2x、bloom 0.7、seed 7）==
-$ node tests/tools/fx-contrast.mjs <out> --only=hauntLost --tier=2
+$ node tests/tools/fx-contrast.mjs <out> --only=hauntLost --tier=2 ; echo $?
+   ok  hauntLost        t2 凍在 430ms(第 26 幀) 切掉 1 個特效物件 handled=true size=n/a(0v/0of0/u0+d0) err=0
+  exit = 0
+  ★這一行與 exit code 是覆審 C2 之後才貼的★：上一版只貼了下游 metrics 的 JSON，
+    而工具自己那時是 FAIL／exit 1（成因與修法見報告 §2.1 C2）。
+    `--fxvocab=1` 那條路現在也真的量到了：size=ok(0v/5of5/u130+d5)。
 $ python tests/tools/fx-contrast-metrics.py <out>
   {"trait":"hauntLost","tier":2,"at_ms":430,"hidden":1,"dead":false,"ok":true,
    "area_pct":1.022,"px":3364,"total":329160,"de_median":35.65,"de_p90":83.37}
@@ -110,14 +121,18 @@ $ node tests/tools/duel-drive.mjs ".../index.html?paperwar=1&fxcount=1&seed=3" s
   roles-balance     角色平衡卷單元測試：32 過 / 0 失敗
   wish16            結果：PASS=36 FAIL=0
 
-== 鑑別力（12 條突變，逐條輸出在 b3-mutations.txt）==
-$ node docs/experiments/2026-09-13-yinqi-b3-evidence/b3-mutations.mjs
-  12 條，驗紅 10／12（M10／M11 是照實留著的已知未驗紅，歸因見報告 §1.5）
-  M12（M10＋M11 一起上）：travel moved 0.7404 < need 1.2533 ⇒ 紅
+== 鑑別力（14 條突變，逐條輸出在 b3-mutations.txt）==
+$ node docs/experiments/2026-09-13-yinqi-b3-evidence/b3-mutations.mjs ; echo $?
+  14 條，驗紅 12／14（M11／M13 是照實留著的對照組與已知未驗紅，歸因見報告 §1.5）
+  exit = 0
+  ★M10「帽子原地生成、也不在衝擊拍到位」由**綠翻紅**★＝覆審 C1 修補的驗收
+    （改前：黏著與量測時點同一幀，帽子飛不飛 anchor 每一格逐字相同）。
+  M13「只飛到 64% 就停」仍綠：mainD 0.102 ≤ ANCHOR_MARGIN 0.18＝站位造成的，照實記。
+  M14「腳下暗斑改成比桌面亮的 key」驗紅＝覆審 H4 新加那條斷言的鑑別力。
 
 == 真實對決的衝擊拍截圖：★沒抓到★ ==
 $ node tests/tools/duel-drive.mjs "...&seed=<3|5|11|2>" <out> --duels=20~25 \
     --traitshot=hauntLost --shots=<...>/hauntLost/real-seed<n>
-  四顆種子都沒有截到——redhat 有進陣（seed 3 的 20 場裡出現 16 次），
+  四顆種子（3／5／11／2）都沒有截到——redhat 有進陣（seed 3 的 20 場裡出現 16 次），
   但那幾場沒有派出 trId=hauntLost 的 ys:fx-trait 事件。
   交付的是同一批跑出來的 lineup／attack／burn 三張。**這一格沒有做到，不是「差不多」。**

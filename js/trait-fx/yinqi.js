@@ -306,10 +306,13 @@ const MOVES = {
            ★引擎側那條更根本的洞仍在★：`regAnchor` 對沒有 `o.anchor` 的 `st.stick` 直接 return，
            所以引擎不知道一件 land 型主道具後來被黏上去了——那要改 `sampleAnchors`，
            本階段依派工書不碰（另一個分支在修），照實記在報告 §1.4／§1.7。 */
-        if (lost) st.at(12, () => {
+        /* ★用短 tween 而不是 `st.at`★：`st.at` 會把 `TFX.atReserve × run.k` 也算進 horizon
+           （t1 實測 horizon 208+12+72 = 282 > `LAST` 270 ⇒ `maxRate 1.12`、`rateOK` 判紅）。
+           一條 12ms 的空 tween 只把 horizon 推到 `R0+12`，短版照樣原生塞得進去。 */
+        if (lost) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
           const top = st.top(lost, new THREE.Vector3());
           st.stick(hat, lost, { at: 'top', off: to.clone().sub(top) });
-        });
+        } });
       } });
     // 魂片：衝擊拍當幀出現（上面的 done），之後再走兩階散開——三階都是離散的，沒有 easing
     st.tween({ ms: RL * 0.75, delay: R0, ease: 'linear', update(t) { writeShards(SHARD_STEP[Math.min(2, Math.floor(t * 3))]); } });
