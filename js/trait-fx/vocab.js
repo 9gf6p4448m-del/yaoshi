@@ -352,7 +352,8 @@ export const MOVE_SPEC = {
   hauntDread1: { prop: '乙', act: '滯', react: '壓', stance: '舉臂', anchor: 'foes' }, // 雨滴群落下＋地面水漬；閃現位移
   // 繩往後上方盪起＝舉臂（up）≠ react 被拖（fore）；anchor＝foe：繩勾的是對面那一隻（本方沉沒是 react 段的副件）
   hauntSwap: { prop: '乙', act: '甩', react: '被拖', stance: '舉臂', anchor: 'foe' }, // 粗濕繩；對面被拖、本方沉沒
-  eliteVsSwarm: { prop: '甲', act: '探', react: '抖' }, // 爪片（盲讀標竿，動作不動）；§C「退」正規化成抖
+  // 長爪高舉＝舉臂（up）≠ react 抖（shake）；anchor＝foes：「打**群體目標**額外 +2」⇒ 打／敵方多個
+  eliteVsSwarm: { prop: '甲', act: '探', react: '抖', stance: '舉臂', anchor: 'foes' }, // 爪片（盲讀標竿，動作不動）；§C「退」正規化成抖
   swarmPierce: { prop: '甲', act: '探', react: '抖' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
   hauntFearX2: { prop: '丙', act: '滯', react: '壓' }, // 虛影片＋腳下暗斑；群體縮
   swarmFeed1: { prop: '丙', act: '吸', react: '被拖' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」

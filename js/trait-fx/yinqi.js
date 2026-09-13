@@ -1067,16 +1067,34 @@ const MOVES = {
   },
 
   /* 虎姑婆指甲・咬手指（nail，精英×1）：打群體目標額外 +2。
-     編舞：長爪高舉、罩子後仰、張口（0–300ms，爪尖凝一點光）
-          → 撲下（240ms 起 strike：爪從高處掃到身前、整尊前傾半步、鏡頭小推）
-          → 咬（380ms 起每 85ms 一隻：對面小兵依序噴火星並退縮）
-          → 舔爪收勢（620ms：爪抬到嘴邊、頭湊過去，到 900ms 全部回 0）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 6 列＋§B3＋§A9；
+     `MOVE_SPEC.eliteVsSwarm = { 甲, 探, 抖, stance:'舉臂', anchor:'foes' }`。
+
+     ★這一支是**盲讀標竿**（兩位讀者兩版全對，B 完整版給 5 分），§C3 明寫「動作與節拍一格不動」★
+     所以本次轉正**刻意保留三件**：① `pose()` 的骨骼幅度**逐行不動**（高舉／撲下／舔爪同一組係數）
+     ② 三段的**形狀**不動（慢慢舉起 `ease:'out'` → 猛撲 `ease:'strike'` → 逐隻錯開 → 舔爪收）
+     ③ 逐隻錯開的間距不動（`RL/list.length`＝原本 85ms 在 t2 下的等比值）。
+     **照實記三處非動不可的改動**（做不到就明說，不假裝「一格沒動」）：
+       (a) **絕對毫秒 → `st.beat` 換算**：原本寫死 240／380／620ms，那在 t1（300ms）下會整支衝出保險絲，
+           而 P2／P5 要求三段落在 `BEAT_FRAC` 的窗裡。同一條理由讓射日神弓（祖靈的標竿）在批 2 也照做了。
+       (b) **爪尖那顆 `st.orb` 光球換成有厚度的爪片**（`st.paperStamp`）——§C3 這一列自己指定的，
+           而且「白光球只留射日」是 ART_BIBLE §10.5 的退役清單。爪片在蓄勢段跟著 `ClawHand` 走，
+           撲下那一刻**掃過整排**（§C3 的「t1 衝擊拍承載」原文），落在被抓得最重的那一隻身上。
+       (c) **受招反應由 `st.flinch`（退）改成四階離散的「抖」**：陰氣的反應家族沒有「退」，
+           `MOVE_SPEC` 在批 1 前置時已把 §C 的「退」正規化成 `抖`（語彙檔 §E 附 5，交製作人覆核）。
+     ★§B3「禁平滑補間的位移」在本支只套在**道具**上（爪片走三階卡頓）★：本體動作照 §C3 保留原樣，
+     兩條凍結的條文在這一支上直接牴觸時，**逐招那一列（§C3）比通則（§B3）specific**，照實記、交裁。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up，長爪高舉）≠ react「抖」（shake）；腳下＝不規則暗斑。
+     ★落點 anchor＝`foes`★：`ABILITIES.eliteVsSwarm` 是「打**群體目標**額外 +2」⇒ 效果＝打、對象＝敵方多個。 */
   eliteVsSwarm(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const gran = st.byBody(st.actor, 'elite')[0] || st.actor[0];
     const swarm = st.byBody(st.target, 'swarm');
     const list = swarm.length ? swarm : st.target;
     const fwd = st.toward(gran, new THREE.Vector3());
-    // k>0：長爪高舉後仰蓄勢；k<0：爪撲下前伸。lick：舔爪
+    // k>0：長爪高舉後仰蓄勢；k<0：爪撲下前伸。lick：舔爪　★係數逐行沿用 0.54（標竿不動）★
     const pose = (k, lick) => {
       lick = lick || 0;
       const gape = Math.abs(k);
@@ -1092,37 +1110,98 @@ const MOVES = {
       st.rot(gran, 'CapeRoot', -0.22 * k); st.rot(gran, 'Cape1', -0.28 * k); st.rot(gran, 'CapeHem', -0.34 * k);
       st.rot(gran, 'RobeRoot', -0.10 * k); st.rot(gran, 'Robe1', -0.15 * k); st.rot(gran, 'RobeHem', -0.20 * k);
     };
-    const spark = st.orb(st.worldOf(gran, 'ClawHand', new THREE.Vector3()), 0.055, { opacity: 0 });
-    spark.scale.setScalar(0.3);
-    st.tween({ ms: 660, ease: 'linear', update(t) {
-      st.worldOf(gran, 'ClawHand', spark.position);
-      spark.material.opacity = 0.92 * Math.sin(Math.PI * Math.min(1, t * 1.1));
-      spark.scale.setScalar(0.3 + 0.95 * Math.min(1, t * 1.7));
-    } });
-    st.tween({ ms: 240, ease: 'out', update(t, e) { pose(e); st.move(gran, 0, 0.05 * e, 0); st.rim(gran, 1 + 0.9 * e); } });
-    st.at(240, () => {
-      st.tween({ ms: 200, ease: 'strike', update(t, e) {
+
+    // ── 甲 爪片（取代原本的爪尖光球）：蓄勢跟著 ClawHand，撲下時掃過整排 ──
+    const prey = yqRoomy(st, list, list.length ? st.worldOf(list[0], 'Chest', _a).y : 0);
+    const from = st.worldOf(gran, 'ClawHand', new THREE.Vector3());
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
+      if (!prey) return;
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5); // 往胸口收：仍在佔地裡，但讀起來是「抓在他身上」不是「浮在桌上」
+      to.y = chest0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const claw = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
+    claw.scale.setScalar(st.iconSize * 0.86);
+    // 其餘敵方各留一道爪痕（`foes` 要求至少兩尊被決定性地碰到）
+    yqDeliver(st, from, list.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.2 });
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(gran, { r: 0.50, rot: 0.9, push: 0.16, peak: 0.68 });
+
+    /* ① 長爪高舉（windup）：★形狀照標竿原樣（`ease:'out'` 的慢慢舉起），不改成卡頓★ */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'out',
+      update(t, e) {
+        st.stance(gran, '舉臂', e); // §A9：施招者專屬姿態
+        pose(e);
+        st.move(gran, 0, 0.05 * e, 0);
+        st.rim(gran, 1 + 0.9 * e);
+        // 爪片跟著爪尖走、逐格長大（取代原本那顆 orb 的 0→1.25 倍成長）
+        st.worldOf(gran, 'ClawHand', claw.position);
+        st.alpha(claw, e > 0.25 ? 0.92 : 0);
+        claw.scale.setScalar(st.iconSize * (0.30 + 0.56 * e));
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 撲下（travel）：★形狀照標竿原樣（`ease:'strike'`）★——本體從高處掃到身前、整尊前傾半步。 */
+    st.tween({ ms: TL, delay: T0, ease: 'strike',
+      update(t, e) {
         pose(1 - 2 * e);
         st.move(gran, fwd.x * 0.20 * e, 0.05 * (1 - e), fwd.z * 0.20 * e);
         st.rim(gran, 1 + 0.9 + 1.1 * e);
+      },
+      done() {
+        pose(-1);
+        st.move(gran, fwd.x * 0.20, 0, fwd.z * 0.20);
+        st.rim(gran, 3.0);
       } });
-      st.punch(0.42);
-    });
+
+    /* 爪片掃過整排：★這一件走陰氣的三階卡頓★（本體照標竿原樣，道具照 §B3）。 */
+    yqFly(st, claw, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.28, roll: 0.30,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：三件同一拍★ ①爪撲到底 ②爪片掃到那一隻身上 ③整排同幀開始抖。 */
+        st.phase('react');
+        st.punch(0.42); // 原樣保留：標竿的鏡頭小推
+        st.burst(to, { power: 0.72, n: 34, color: C.hot });
+        if (prey) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(prey, 'Chest', new THREE.Vector3());
+          st.stick(claw, prey, { at: 'chest', off: to.clone().sub(c) });
+        } });
+      } });
+
+    /* ③ 抖（react）：逐隻錯開的火星（間距照標竿的比例）＋**四階離散**的高頻小幅。
+       ★原本的 `st.flinch`（退）在陰氣的反應家族裡沒有對應詞★，`MOVE_SPEC` 已正規化成 `抖`。 */
+    const SHAKE = [0.075, -0.062, 0.050, 0];
+    /* ★錯開的量從 `ms` 裡扣回去★：`delay + ms` 一律收在 `R0 + RL`（＝`LAST`）。
+       不扣的話最後一隻的 horizon 會超過 `LAST`（實測 t1 `maxRate 1.0382`、`rateOK` 判紅）。 */
+    const gap = list.length ? (RL * 0.5) / (list.length + 1) : 0;
     list.forEach((f, j) => {
-      st.at(380 + j * 85, () => {
-        const p = st.worldOf(f, null, new THREE.Vector3());
-        st.burst(p, { power: 0.72, n: 34 });
-        st.flinch([f], { strength: 1.15, burst: false });
-      });
+      st.tween({ ms: RL - j * gap, delay: R0 + j * gap, ease: 'linear', update(t) {
+        const n = Math.min(3, Math.floor(t * 4)), a = SHAKE[n];
+        const side = st.stageVec((j % 2 ? 1 : -1) * a, 0, 0, _a);
+        st.move(f, side.x, 0, side.z);
+        st.rim(f, 1 + 2.2 * (n < 3 ? 1 : 0));
+      },
+        done() { st.burst(st.worldOf(f, null, _a), { power: 0.5, n: 18, color: C.hot }); } });
     });
-    st.at(620, () => {
-      st.tween({ ms: 250, ease: 'inout', update(t, e) {
+
+    /* 收勢：舔爪（★動作照標竿原樣★：爪抬到嘴邊、頭湊過去）。 */
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'inout',
+      update(t, e) {
         const k = -1 * (1 - e);
         pose(k, Math.sin(Math.PI * t));
         st.move(gran, fwd.x * 0.20 * (1 - e), 0, fwd.z * 0.20 * (1 - e));
         st.rim(gran, 1 + 2.0 * (1 - e));
       } });
-    });
   },
 
   /* 陰陽眼銅錢・陰陽眼（yinyangcoin，小兵×2）：本隊攻擊無視吸收。
@@ -1298,32 +1377,8 @@ export const SHORT = {
   /* 抓交替｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntSwap: MOVES.hauntSwap,
 
-  /* 咬手指｜辨識：長爪從高處掃下＋對面小兵依序噴火星 */
-  eliteVsSwarm(st) {
-    const K = st.ms / 260;
-    const gran = st.byBody(st.actor, 'elite')[0] || st.actor[0];
-    const swarm = st.byBody(st.target, 'swarm').length ? st.byBody(st.target, 'swarm') : st.target;
-    const claw = st.worldOf(gran, 'ClawHand', new THREE.Vector3());
-    const spark = st.orb(claw, 0.04, { opacity: 0 });
-    spark.scale.setScalar(0.5);
-    st.tween({ ms: 84 * K, ease: 'wind', update(t, e) { // 長爪高舉、罩子後仰、張口
-      st.rot(gran, 'ClawRoot', -1.1 * e); st.rot(gran, 'ClawElbow', -0.5 * e); st.rot(gran, 'ClawWrist', -0.3 * e);
-      st.rot(gran, 'HoodRoot', -0.22 * e); st.rot(gran, 'JawRoot', 0.28 * e); st.rim(gran, 1 + 0.9 * e);
-      st.worldOf(gran, 'ClawHand', spark.position);
-    } });
-    st.fade(spark, { ms: 45 * K, delay: 45 * K, from: 0, to: 1 }); // 爪尖凝一點光
-    st.tween({ ms: 76 * K, delay: 82 * K, ease: 'strike', update(t, e) { // 撲下：爪從高處掃到身前、前傾半步
-      st.rot(gran, 'ClawRoot', -1.1 + 1.65 * e); st.rot(gran, 'ClawElbow', -0.5 + 0.8 * e);
-      st.rot(gran, 'ClawWrist', -0.3 + 0.5 * e); st.rot(gran, 'Chest', 0.18 * e);
-      st.move(gran, 0, 0, 0.1 * e); st.worldOf(gran, 'ClawHand', spark.position);
-    }, done() { st.punch(0.5); } });
-    st.fade(spark, { ms: 42 * K, delay: 158 * K, from: 1, to: 0 });
-    swarm.slice(0, 4).forEach((f, i) => st.flinch([f], { delay: (120 + i * 22) * K, strength: 1.05, burst: true })); // 依序噴火星並退縮
-    st.tween({ ms: 64 * K, delay: 164 * K, ease: 'inout', update(t, e) { // 舔爪收勢：爪抬到嘴邊、頭湊過去
-      st.rot(gran, 'ClawRoot', 0.55 * (1 - e) - 0.5 * e); st.rot(gran, 'ClawElbow', 0.3 * (1 - e) - 0.6 * e);
-      st.rot(gran, 'HeadRoot', -0.18 * e); st.rot(gran, 'JawRoot', 0.28 * (1 - e)); st.rim(gran, 1 + 1.9 * (1 - e));
-    } });
-  },
+  /* 咬手指｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  eliteVsSwarm: MOVES.eliteVsSwarm,
 
   /* 陰陽眼｜辨識：銅錢貼上眼位旋亮＋直線穿透過對面身後 */
   swarmPierce(st) {
