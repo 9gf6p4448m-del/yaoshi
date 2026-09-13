@@ -272,7 +272,7 @@ function bodyOf(trId) {
  *  ★這份下限每鋪開一批就要跟著長★（`tests/tools/README.md` 的 N-7 記的就是這條病：
  *  下限停在舊的支數時，新招靜默 `n/a`＝同一個病換形狀）。
  *  2026-09-13 陰氣批階段 A 一次補齊兩段：祖靈批階段 B 轉正的 8 支（當時漏補）＋本階段的 `hauntLost`。 */
-const CONVERTED_MUST = ['biteGamble', 'boltGamble', 'eliteArmor', 'eliteCleave', 'eliteOpenShot', 'hauntFearX2', 'swarmPierce', 'eliteVsSwarm', 'hauntSwap', 'hauntDread1', 'hauntSteal', 'hauntSee',
+const CONVERTED_MUST = ['biteGamble', 'boltGamble', 'eliteArmor', 'eliteCleave', 'eliteOpenShot', 'swarmFeed1', 'hauntFearX2', 'swarmPierce', 'eliteVsSwarm', 'hauntSwap', 'hauntDread1', 'hauntSteal', 'hauntSee',
   'eliteSelfCut', 'hauntLost', 'swarmHalfSplash', 'swarmLastStand', 'swarmRally', 'swarmThorn',
   'wardAbsorb4', 'wardAtkAll1', 'wardFirst', 'wardHpAll1', 'wardHpFirst', 'wardHpFront2',
   'wardImmuneLost', 'wardRegen1'];

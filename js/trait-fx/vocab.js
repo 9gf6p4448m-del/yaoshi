@@ -359,7 +359,8 @@ export const MOVE_SPEC = {
   swarmPierce: { prop: '甲', act: '探', react: '抖', stance: '前傾', anchor: 'foe' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
   // 本尊俯身＝前傾（fore）≠ react 壓（down）；anchor＝foes：恐懼作用在對面群體 ⇒ 咒／敵方多個
   hauntFearX2: { prop: '丙', act: '滯', react: '壓', stance: '前傾', anchor: 'foes' }, // 虛影片＋腳下暗斑；群體縮
-  swarmFeed1: { prop: '丙', act: '吸', react: '被拖' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」
+  // 沉身捧甕＝下沉（down）≠ react 被拖（fore）；anchor＝allies：「拍末…→ **本方全體** hp+1」⇒ 護／我方多個
+  swarmFeed1: { prop: '丙', act: '吸', react: '被拖', stance: '下沉', anchor: 'allies' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」
 };
 
 /** 退役／限縮清單（ART_BIBLE §10.5）。

@@ -1479,13 +1479,37 @@ const MOVES = {
   },
 
   /* 飼鬼甕・餓鬼進食（sigui，小兵×2）：拍末對面有紙紮被燒 → 本方全體 hp+1。
-     編舞：甕口張開（0–300ms：LipRoot/LipMid/LipEdge 外翻脹大、喉頸後仰、雙臂抬起捧甕）
-          → 進食（250ms 起：對面每一隻頭頂飄來一顆灰火，帶弧線被吸進甕口，進去一顆甕身脹一下）
-          → 回暖（520ms：本方每一尊腳下一圈暖光擴開）
-          → 收（620ms：甕口閉上，邊光緩緩回穩）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 9 列＋§B3＋§A9；
+     `MOVE_SPEC.swarmFeed1 = { 丙, 吸, 被拖, stance:'下沉', anchor:'allies' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝吸**：`LipRoot`／`LipMid`／`LipEdge` 甕口外翻張開＋`ThroatRoot`／`ThroatTop` 抽動、
+         `UrnA`–`UrnC`／`UrnTop` 甕身脹（`COIL` 兩階 → **完全靜止一拍** → `JOLT` 三階張到最大）。
+       **道具**＝丙 鬼火與魂片：**小型甕複本**從對面身上**被吸進甕口**（`st.paperProps` ×3 群體
+         ＋一個主甕 `st.paperStamp`，方向性＝從外往內）；衝擊拍之後甕口再把**飽食的魂片**
+         送到本方每一尊身上（`yqDeliver`，§A9-5 的 `allies` 要求每一尊站位上分得出來的我方都被碰到）。
+       **受招／受益反應＝被拖**：被吸那一隻往甕口 `st.move`（四階離散）；本方全體同幀**上抬**＋邊光亮。
+
+     ★§C3 這一列的「道具**往施招方**飛」與 §A9-3「增益道具不從敵方出發」直接牴觸（照實記，交裁）★
+     §A9-3 那一條的病因是「東西從對面過來＝偷取」的讀法；但這一支的招意就是**吞食**
+     （§C3 明寫「唯一『道具往施招方飛』的陰氣招……靠甕口動作與飛行起點區分」），
+     方向本身就是它的區分點。取捨：**保留吞食的方向**，另外在衝擊拍把飽食魂片送到本方每一尊身上
+     ——讓「誰受益」由落點承擔（那正是 P4 對象題在讀的東西），而「從哪裡吃來的」由方向承擔。
+
+     ★身分可辨（§A9）★ 施招姿態＝**下沉**（down，沉身把甕捧穩）≠ react「被拖」（fore）；
+     腳下＝不規則暗斑（`st.groundMark`；§C3 原本寫的「腳下暖光」是香火的語彙，陰氣禁貼桌光環）。
+     ★落點 anchor＝`allies`★：`ABILITIES.swarmFeed1` 是「拍末對面有紙紮被燒 → **本方全體** hp+1」⇒
+     效果＝防護增益、對象＝我方多個（含施招者本人，§A9-2 的例外照祖靈批階段 A 簽字裁定③）。 */
   swarmFeed1(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const urns = st.actor;
+    const urn = urns[0];
+    const mates = urns.filter((u) => u !== urn);
     const foes = st.target;
+    const prey = yqRoomy(st, foes, foes.length ? st.worldOf(foes[0], 'Chest', _a).y : 0);
+    const mouthOf = (u, out) => st.worldOf(u, 'LipMid', out);
+    // k：甕口外翻張開、喉頸後仰、雙臂抬起捧甕、甕身脹　★係數沿用 0.54★
     const mouth = (u, k) => {
       st.rot(u, 'LipRoot', -0.42 * k); st.rot(u, 'LipMid', -0.36 * k); st.rot(u, 'LipEdge', -0.32 * k);
       st.scaleBone(u, 'LipEdge', 1 + 0.60 * k); st.scaleBone(u, 'LipMid', 1 + 0.38 * k);
@@ -1495,45 +1519,129 @@ const MOVES = {
       st.rot(u, 'Shoulders', -0.12 * k); st.rot(u, 'Chest', -0.10 * k); st.rot(u, 'Waist', -0.08 * k); st.rot(u, 'TorsoRoot', -0.06 * k);
       st.rot(u, 'LArm1Rt', -0.75 * k, 0, 0.35 * k); st.rot(u, 'LArm1El', -0.50 * k); st.rot(u, 'LArm1Ja', -0.24 * k); st.rot(u, 'LArm1Wr', -0.30 * k); st.rot(u, 'LArm1Ha', -0.22 * k);
       st.rot(u, 'RArm1Rt', -0.75 * k, 0, -0.35 * k); st.rot(u, 'RArm1El', -0.50 * k); st.rot(u, 'RArm1Ja', -0.24 * k); st.rot(u, 'RArm1Wr', -0.30 * k); st.rot(u, 'RArm1Ha', -0.22 * k);
+      st.scaleBone(u, 'PotLow', 1 + 0.17 * k); st.scaleBone(u, 'PotSeam', 1 + 0.14 * k);
+      st.scaleBone(u, 'UrnA', 1 + 0.13 * k); st.scaleBone(u, 'UrnB', 1 + 0.13 * k); st.scaleBone(u, 'UrnC', 1 + 0.11 * k); st.scaleBone(u, 'UrnTop', 1 + 0.09 * k);
     };
-    const swell = (u) => st.tween({ ms: 220, ease: 'pulse', update(t, e) {
-      st.scaleBone(u, 'PotBase', 1 + 0.10 * e); st.scaleBone(u, 'PotLow', 1 + 0.17 * e); st.scaleBone(u, 'PotSeam', 1 + 0.14 * e);
-      st.scaleBone(u, 'UrnA', 1 + 0.13 * e); st.scaleBone(u, 'UrnB', 1 + 0.13 * e); st.scaleBone(u, 'UrnC', 1 + 0.11 * e); st.scaleBone(u, 'UrnTop', 1 + 0.09 * e);
-    } });
-    urns.forEach((u, i) => {
-      st.tween({ ms: 300, delay: i * 45, ease: 'out', update(t, e) { mouth(u, e); st.rim(u, 1 + 0.6 * e); } });
-      st.tween({ ms: 260, delay: 620 + i * 40, ease: 'inout', update(t, e) {
-        mouth(u, 1 - e); st.rim(u, 1 + 0.6 * (1 - e) + 0.9 * Math.sin(Math.PI * t));
+
+    // ── 丙 主甕：從對面身上被吸進甕口，衝擊拍那一幀**落在甕口（＝施招者身上）** ──
+    const from = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()).add(st.camOff(0.6)) : mouthOf(urn, new THREE.Vector3());
+    const lip0 = mouthOf(urn, new THREE.Vector3());
+    const to = lip0.clone();
+    const aim = lip0.clone().add(st.camOff(0.6));
+    const land = () => {
+      mouthOf(urn, lip0);
+      to.copy(lip0);
+      st.bodySpot(urn, to);
+      to.lerp(lip0, 0.5); // 往甕口收：仍在佔地裡，但讀起來是「吸進他的甕口」不是「浮在桌上」
+      to.y = lip0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const pot = st.paperStamp(st.kind, from, { anchor: 'allies', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
+    pot.scale.setScalar(st.iconSize * 0.68); // §A3：sigui figH 0.976（矮），0.72 倍量出來 ratio 0.701（超線），收到 0.68＝0.646
+
+    /* 三個小甕複本：群體位移掛在 `InstancedMesh` 物件本身（§A5 那個踩過的坑），從對面那一側
+       整群被吸過來。逐實例的散開一律走 `st.stageVec`（唯一出口），橫向走 `st.sideDir`。 */
+    const PN = 3;
+    const pots = st.paperProps(st.kind, PN, { shape: 'emblem', color: C.line, opacity: 0, k: 0.95, depth: 0.18, warp: 0.14 });
+    const cF = new THREE.Vector3();
+    foes.forEach((f) => cF.add(st.worldOf(f, null, _a)));
+    if (foes.length) cF.multiplyScalar(1 / foes.length);
+    cF.add(st.camOff(0.6));
+    const _e = new THREE.Euler();
+    const pseed = [];
+    for (let i = 0; i < PN; i++) pseed.push({ s: (i - 1) * 0.34, up: 0.12 + 0.22 * st.rnd(), rz: st.rnd() * 2 });
+    const POT_STEP = [0.32, 0.70, 1];
+    /** `k`＝被吸進去的進度（0＝還在對面、1＝已經到甕口）。散開量隨 `k` 收斂＝往內吞。 */
+    const writePots = (k) => {
+      for (let i = 0; i < PN; i++) {
+        const s = pseed[i], it = pots.items[i];
+        st.stageVec(s.s * (1 - k * 0.8), s.up * (1 - k), 0, it.p);
+        it.q.setFromEuler(_e.set(0, 0, s.rz * (1 - k)));
+        it.s = k >= 1 ? 0 : 1; // 吞到底就消失（被吃掉了）
+      }
+      pots.write();
+    };
+    writePots(0);
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(urn, { r: 0.44, rot: 2.9, push: 0.16, peak: 0.68 });
+
+    /* ① 甕口張開（windup）：兩階到底 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(urn, '下沉', k); // §A9：施招者專屬姿態
+        urns.forEach((u, i) => mouth(u, k * (i ? 0.8 : 1)));
+        urns.forEach((u) => st.rim(u, 1 + 0.6 * k));
+        st.alpha(pot, k >= 1 ? 1 : (k >= 0.72 ? 0.5 : 0));
+        st.alpha(pots.obj, k >= 1 ? 0.9 : 0);
+        pot.position.copy(from);
+        pots.obj.position.copy(cF);
+        writePots(k >= 1 ? 0 : 0);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 吸（travel）：甕口張到最大、甕複本整群被吸過來。三階卡頓，第三階由 `yqFly` 的 `done()` 給。 */
+    const potFrom = cF.clone();
+    const potTo = lip0.clone();
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        urns.forEach((u, i) => mouth(u, (1 + 0.35 * j) * (i ? 0.8 : 1)));
+        urns.forEach((u) => st.rim(u, 1.6 + 1.0 * j));
+        // 整群當一個會飛的物件搬（`evalPhases` 量的是 `mesh.position`，實例位移藏在 matrix 裡）
+        pots.obj.position.lerpVectors(potFrom, potTo, j);
+        writePots(j * 0.9);
+      },
+      done() {
+        urns.forEach((u, i) => mouth(u, 1.35 * (i ? 0.8 : 1)));
+        urns.forEach((u) => st.rim(u, 2.6));
+        pots.obj.position.copy(potTo);
+        writePots(1); // 吞到底：三個小甕同幀消失
       } });
-    });
-    st.at(250, () => {
-      foes.forEach((f, j) => {
-        const u = urns[j % urns.length];
-        const from = st.top(f, new THREE.Vector3());
-        const to = st.worldOf(u, 'LipMid', new THREE.Vector3());
-        const ash = st.orb(from, 0.075, { opacity: 0 });
-        ash.scale.setScalar(0.35);
-        st.tween({ ms: 340, delay: j * 30, ease: 'linear', update(t) {
-          ash.material.opacity = 0.95 * Math.min(1, Math.sin(Math.PI * t) * 3);
-          ash.scale.setScalar(0.35 + 0.85 * Math.min(1, t * 3));
+
+    yqFly(st, pot, from, aim, to, { T0, TL }, { bow: st.camOff(1.6), rise: 0.22, roll: 0.32,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：四件同一拍★ ①甕口張到最大 ②主甕被吸到甕口（落點在施招者身上）
+           ③小甕複本同幀被吞掉 ④被吸那一隻同幀被拖、本方同幀亮邊上抬。 */
+        st.phase('react');
+        st.burst(to, { power: 0.56, n: 26, color: C.hot });
+        st.punch(0.28);
+        st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = mouthOf(urn, new THREE.Vector3());
+          st.stick(pot, urn, { at: 'chest', off: to.clone().sub(c) });
         } });
-        st.fly(ash, from, to, { ms: 340, delay: j * 30, ease: 'out', arc: 0.34, done() {
-          ash.material.opacity = 0;
-          st.burst(to, { power: 0.36, n: 18 });
-          swell(u);
-        } });
-      });
-      st.flinch(foes, { delay: 40, stagger: 35, strength: 0.5, burst: false });
-    });
-    st.at(520, () => {
-      urns.forEach((u, i) => {
-        const warm = st.disc(st.foot(u, new THREE.Vector3()), 0.42, { opacity: 0.55 });
-        warm.scale.setScalar(0.40);
-        st.grow(warm, { ms: 260, delay: i * 35, from: 0.40, to: 1.18 });
-        st.fade(warm, { ms: 260, delay: 60 + i * 35, from: 0.55, to: 0 });
-      });
-    });
+      } });
+    /* 衝擊拍之後甕口把**飽食的魂片**送到本方每一尊身上（逐尊覆蓋；`allies` 含施招者，
+       主甕已經落在他身上，所以這裡只送其餘那幾尊）。 */
+    yqDeliver(st, lip0.clone().add(st.camOff(0.6)), mates, { T0, TL }, { anchor: 'allies', k: 0.95, bowK: 1.2, rise: 0.35 });
+
+    /* ③ 被拖／升（react）：被吸那一隻往甕口四階離散地被拖；本方全體同幀上抬＋邊光亮。 */
+    const DRAG = [0.10, 0.21, 0.16, 0];
+    const LIFT = [0.05, 0.10, 0.07, 0];
+    st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+      const n = Math.min(3, Math.floor(t * 4));
+      if (prey) {
+        const pull = st.toward(prey, _a); // prey 朝出招方＝被吸過去的方向
+        st.move(prey, pull.x * DRAG[n], 0, pull.z * DRAG[n]);
+        st.rim(prey, 1 + 1.4 * (n < 3 ? 1 : 0));
+      }
+      urns.forEach((u) => { st.move(u, 0, LIFT[n], 0); st.rim(u, 1 + 2.4 * (n < 3 ? 1 : 0)); });
+    } });
+
+    /* 收勢：甕口閉上。★也是卡頓三階★（§B3 禁平滑補間）。 */
+    const SETTLE = [0.62, 0.26, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      urns.forEach((u, i) => mouth(u, 1.35 * k * (i ? 0.8 : 1)));
+      urns.forEach((u) => st.rim(u, 1 + 1.6 * k));
+    } });
   },
+
 };
 export default MOVES;
 
@@ -1567,40 +1675,9 @@ export const SHORT = {
   /* 恐懼加倍｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntFearX2: MOVES.hauntFearX2,
 
-  /* 餓鬼進食｜辨識：甕口張開＋灰火帶弧線被吸進甕、甕身脹一下 */
-  swarmFeed1(st) {
-    const K = st.ms / 260;
-    const urns = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
-    const lead = urns[0];
-    const mouth = st.worldOf(lead, 'LipRoot', new THREE.Vector3());
-    const ashes = st.target.slice(0, 3).map((f, i) => {
-      const from = st.top(f, new THREE.Vector3());
-      const o = st.orb(from, 0.038, { opacity: 0, color: 0x8a8f9a });
-      return { o, from, i };
-    });
-    const warmRing = st.disc(st.foot(lead, new THREE.Vector3()), 0.4, { opacity: 0 });
-    warmRing.scale.setScalar(0.3);
-    st.tween({ ms: 84 * K, ease: 'out', update(t, e) { // 甕口張開：唇外翻脹大、雙臂抬起捧甕
-      st.scaleBone(lead, 'LipRoot', 1 + 0.3 * e); st.scaleBone(lead, 'LipMid', 1 + 0.24 * e); st.scaleBone(lead, 'LipEdge', 1 + 0.34 * e);
-      st.rot(lead, 'ThroatRoot', -0.18 * e); st.rot(lead, 'LArm1Rt', -0.5 * e); st.rot(lead, 'RArm1Rt', -0.5 * e);
-      st.rim(lead, 1 + 0.8 * e);
-    } });
-    ashes.forEach(({ o, from, i }) => { // 灰火帶弧線被吸進甕口
-      st.fade(o, { ms: 34 * K, delay: (70 + i * 12) * K, from: 0, to: 1 });
-      st.fly(o, from, mouth, { ms: 76 * K, delay: (76 + i * 12) * K, ease: 'in', arc: 0.2 });
-      st.fade(o, { ms: 30 * K, delay: (152 + i * 12) * K, from: 1, to: 0 });
-      st.tween({ ms: 40 * K, delay: (154 + i * 12) * K, ease: 'pulse', update(t, e) { st.scale(lead, 1 + 0.07 * e); } }); // 進去一顆甕身脹一下
-    });
-    st.grow(warmRing, { ms: 82 * K, delay: 148 * K, from: 0.3, to: 1.6 }); // 回暖：本方腳下暖光擴開
-    st.fade(warmRing, { ms: 82 * K, delay: 148 * K, from: 0.55, to: 0 });
-    st.actor.forEach((f, i) => st.tween({ ms: 70 * K, delay: (150 + i * 10) * K, ease: 'pulse', update(t, e) { st.rim(f, 1 + 1.3 * e); } }));
-    st.tween({ ms: 58 * K, delay: 170 * K, ease: 'inout', update(t, e) { // 甕口閉上
-      const k = 1 - e;
-      st.scaleBone(lead, 'LipRoot', 1 + 0.3 * k); st.scaleBone(lead, 'LipMid', 1 + 0.24 * k); st.scaleBone(lead, 'LipEdge', 1 + 0.34 * k);
-      st.rot(lead, 'ThroatRoot', -0.18 * k); st.rot(lead, 'LArm1Rt', -0.5 * k); st.rot(lead, 'RArm1Rt', -0.5 * k);
-      st.rim(lead, 1 + 0.8 * k);
-    } });
-  },
+  /* 餓鬼進食｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  swarmFeed1: MOVES.swarmFeed1,
+
 };
 
 /* ══════════ v0.55 批 0 徽記剪影版（`?fxvocab=1` 時登記的那一份）══════════
