@@ -2216,8 +2216,10 @@ function checkForUpdate(force){
     const now=Date.now(); if(!force&&now-UPD_LAST<60000) return; UPD_LAST=now;
     const url=location.pathname.replace(/[^/]*$/,"")+"index.html?upd="+now;
     fetch(url,{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
-      const m=t.match(/const VERSION="([0-9.]+)"/); if(!m) return;
-      const cmp=(a,b)=>{ const x=a.split(".").map(Number), y=b.split(".").map(Number); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; };
+      const m=t.match(/const VERSION="([0-9A-Za-z.]+)"/); if(!m) return;
+      /* 版本段允許字母尾碼（0.56b＝56.02）：09-13 查出 0.56a 起 VERSION 帶字母，舊正則抓不到就整段 return，更新列從此不亮 */
+      const seg=s=>{ const k=/^(\d+)([A-Za-z]?)/.exec(s)||[]; return (Number(k[1])||0)+(k[2]?(k[2].toLowerCase().charCodeAt(0)-96)/100:0); };
+      const cmp=(a,b)=>{ const x=a.split(".").map(seg), y=b.split(".").map(seg); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; };
       if(cmp(m[1],VERSION)>0){ UPD_NEW=m[1]; const b=document.getElementById("updBar"); if(b){ b.textContent=`🆕 有新版 v${UPD_NEW}，點這裡更新`; b.classList.add("on"); } }
     }).catch(()=>{});
   }catch(e){}
