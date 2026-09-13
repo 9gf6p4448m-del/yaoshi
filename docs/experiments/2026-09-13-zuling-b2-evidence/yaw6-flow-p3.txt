@@ -1,0 +1,56 @@
+# 六個真實 duelYaw 各跑一次：回流斷言（drive）＋ L3 對比（fx-contrast），打擊類 5 支
+# 程式碼 SHA：a336ef7b3e81f74982e4442cf6c38994110dfa3f
+# 六個 yaw 的來源：js/camera-director.js:29 `SEAT_YAW=[0,180,270,90]` ＋ :157 `duelYaw()`
+#   對四席兩兩解出 ⇒ 90／315／45／225／135／0。
+# ★為什麼要逐座位跑★（覆審 r5 HIGH-A）：舞台是相機相對的，而治具不帶 `--camyaw` 時永遠是 90°。
+#   上一輪「八條路徑全綠」的實際涵蓋是「同一個座位量了八次」——虎爺印的爪痕在另外五個座位
+#   都回流（0° −0.106、45／135／225／315 各 −0.075），八條路徑一條都沒接住。
+
+== 逐 yaw 摘要（drive --tier=2 --count=2 --camyaw=<y> --only=<打擊類 5 支>）==
+  === yaw 90° ===
+  衝擊拍之後的回流（yaw 90°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw90.json
+  "pass": 5, "failed": []
+  === yaw 315° ===
+  衝擊拍之後的回流（yaw 315°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw315.json
+  "pass": 5, "failed": []
+  === yaw 45° ===
+  衝擊拍之後的回流（yaw 45°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw45.json
+  "pass": 5, "failed": []
+  === yaw 225° ===
+  衝擊拍之後的回流（yaw 225°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw225.json
+  "pass": 5, "failed": []
+  === yaw 135° ===
+  衝擊拍之後的回流（yaw 135°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw135.json
+  "pass": 5, "failed": []
+  === yaw 0° ===
+  衝擊拍之後的回流（yaw 0°，打擊類 5 支，其中有軌跡可量 2 支）：紅 0　最深 0
+  5/5 pass · 重複簽章 0 · scratchpad/_yaw0.json
+  "pass": 5, "failed": []
+
+== 逐支逐 yaw：flow.worst ／ flow.absMax（沿 st.dir 的位移絕對值上限）==
+  ★absMax 是「空真」的分母（覆審 r5 §5.2）★：worst=0 有兩種可能——「動了但沒往回」與「根本沒動」。
+  absMax=0 的那幾支是後者，它們的綠燈是空真；真正行使到這條斷言的是 absMax>0 的那幾支。
+
+  招                     90°     315°      45°     225°     135°       0°
+  eliteOpenShot          0/0      0/0      0/0      0/0      0/0      0/0
+  boltGamble             0/0      0/0      0/0      0/0      0/0      0/0
+  swarmThorn          0/0.16   0/0.16   0/0.16   0/0.16   0/0.16   0/0.16
+  eliteCleave            0/0      0/0      0/0      0/0      0/0      0/0
+  biteGamble         0/0.384  0/0.384  0/0.384  0/0.384  0/0.384  0/0.384
+
+  （格式＝worst/absMax。六個 yaw × 5 支 ＝ 30 格，worst 全部是 0；
+    absMax>0 的是 swarmThorn 與 biteGamble ⇒ 這條斷言在這一跑真正被行使到的是這兩支。）
+
+== L3 對比（fx-contrast --camyaw=<y> --only=<同 5 支>）==
+  "pass": 5, "failed": []
+  "pass": 5, "failed": []
+  "pass": 5, "failed": []
+  "pass": 5, "failed": []
+  "pass": 5, "failed": []
+  "pass": 5, "failed": []
+  六個 yaw 各 5/5，failed 皆空。
