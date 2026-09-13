@@ -188,18 +188,22 @@ const MOVES = {
     hat.scale.setScalar(st.iconSize * 0.55);
 
     // ── 丙 魂片：衝擊拍從被迷那尊身上散出來（InstancedMesh ＝ 1 個 draw call）──
-    const SH = 5;
-    const shards = st.paperProps(st.kind, SH, { anchor: 'foe', color: C.key, opacity: 0, k: 0.62, ratio: 0.5, depth: 0.10, warp: 0.22 });
-    if (lost) shards.obj.position.copy(to);
+    /* ★落點是**胸口**不是頭頂（第 1 輪看圖修）★：第一版生在 `to`（＝頭上那頂帽子的位置），
+       白青的魂片在 react 末整片蓋住紅帽，sheet 第 6 格看不到「戴著帽子」這件事——
+       而「戴住」正是這一招的身分。單片也從 0.62 放大到 1.0：0.62 在 780×360 上只有幾個像素寬，
+       讀起來就是盲讀抱怨過的「白色細點」，不是紙片。 */
+    const SH = 4;
+    const shards = st.paperProps(st.kind, SH, { anchor: 'foe', color: C.key, opacity: 0, k: 1, ratio: 0.66, depth: 0.12, warp: 0.22 });
+    if (lost) { st.worldOf(lost, 'Chest', shards.obj.position); shards.obj.position.add(st.camOff(0.5)); }
     const _e = new THREE.Euler();
     const seeds = [];
     for (let i = 0; i < SH; i++) {
-      seeds.push({ a: (st.rnd() - 0.5) * 1.4 + i * 1.25, r: 0.16 + 0.16 * st.rnd(), up: 0.05 + 0.20 * st.rnd(), rz: st.rnd() * 3 });
+      seeds.push({ a: (st.rnd() - 0.5) * 1.2 + i * 1.57, r: 0.26 + 0.20 * st.rnd(), up: -0.02 + 0.16 * st.rnd(), rz: st.rnd() * 3 });
     }
     const writeShards = (k) => {
       for (let i = 0; i < SH; i++) {
         const s = seeds[i], it = shards.items[i];
-        it.p.set(Math.cos(s.a) * s.r * k, -0.10 + s.up * k, Math.sin(s.a) * s.r * k);
+        it.p.set(Math.cos(s.a) * s.r * k, s.up * k, Math.sin(s.a) * s.r * k);
         it.q.setFromEuler(_e.set(0, s.a, s.rz));
         it.s = k <= 0 ? 0 : 1;
       }
@@ -208,7 +212,7 @@ const MOVES = {
     writeShards(0);
 
     // 腳下不規則暗斑／水漬：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡，編舞給不出第二份）
-    st.groundMark(ghost, { r: 0.46, rot: 0.62, push: 0.18, peak: 0.92 });
+    st.groundMark(ghost, { r: 0.46, rot: 0.62, push: 0.18, peak: 0.70 });
 
     /* ① 帽尖後仰（windup）：**兩跳到底，然後完全靜止一拍**（§B3 陰氣節奏）。
        `COIL(e)` 在 e≥0.42 之後不再變 ⇒ tween 還在跑，畫面上一動都不動——
@@ -278,8 +282,10 @@ const MOVES = {
         st.rim(lost, 1 - 0.45 * Math.sin(Math.PI * t));
       } });
     }
-    // 帽子留在頭上、最後淡掉（不再飛回去；「戴住」本身就是三拍不出手的證據）
-    st.fade(hat, { ms: RL * 0.34, delay: R0 + RL * 0.6, from: 1, to: 0 });
+    /* 帽子留在頭上、**最後一刻**才淡掉（不再飛回去）：「戴住」本身就是三拍不出手的證據，
+       所以它要活過 sheet 的第 6 格（react 末＝`react[1]` 內縮 15%）。第 1 輪的 `0.6／0.34` 讓它
+       在那一格只剩 0.79 又被魂片蓋住，看起來像「帽子消失了」。 */
+    st.fade(hat, { ms: RL * 0.16, delay: R0 + RL * 0.84, from: 1, to: 0 });
     // 收勢：施招者的帽尖落回、前傾姿態由 st.stance 註冊的包絡自己收在衝擊拍上（覆審 H3，這裡不寫第二份）
     st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
       const k = 0.96 * (1 - Math.min(1, t * 1.35));
