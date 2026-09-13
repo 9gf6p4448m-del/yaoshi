@@ -186,6 +186,10 @@ const MOVES = {
     const hat = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
       color: C.hot, inkColor: C.ink, opacity: 0, depth: 0.22, warp: 0.16, tiltDeg: 10, yawDeg: -20 });
     hat.scale.setScalar(st.iconSize * 0.55);
+    /* ★飛行途中往鏡頭鼓出一道弧（同獻祭刀／香灰符的作法）★：兩端 `sin=0` ⇒ **起點與落點一個位元組不變**
+       （衝擊拍的 anchor 量測看到的仍是頭頂那一點）。它買的是 **P3 的螢幕面積**：L3 凍在 travel 中點，
+       那一刻把帽子拉近鏡頭，面積上得去而**世界尺寸不動**——比放大道具便宜（§A3 的 2/3 上限是世界包圍盒）。 */
+    const bow = st.camOff(2.6);
 
     // ── 丙 魂片：衝擊拍從被迷那尊身上散出來（InstancedMesh ＝ 1 個 draw call）──
     /* ★落點是**胸口**不是頭頂（第 1 輪看圖修）★：第一版生在 `to`（＝頭上那頂帽子的位置），
@@ -227,7 +231,7 @@ const MOVES = {
         // 紅帽從他頭上飄起來：跟著同一組台階一格到位（不補間）
         st.alpha(hat, k >= 1 ? 1 : (k >= 0.72 ? 0.6 : 0));
         hat.position.copy(from); hat.position.y += 0.12 * k;
-        hat.scale.setScalar(st.iconSize * (0.55 + 0.40 * k));
+        hat.scale.setScalar(st.iconSize * (0.55 + 0.33 * k));
       },
       done() { st.phase('travel'); } });
 
@@ -249,6 +253,7 @@ const MOVES = {
         const j = JOLT(e);
         hat.position.lerpVectors(from, to, j);
         hat.position.y += 0.24 * Math.sin(Math.PI * j);
+        hat.position.addScaledVector(bow, Math.sin(Math.PI * j));
       },
       done() {
         /* ★衝擊拍★：帽子扣上頭＝魂片散出＝那一尊同幀開始打轉（三件同一拍，§A2） */
