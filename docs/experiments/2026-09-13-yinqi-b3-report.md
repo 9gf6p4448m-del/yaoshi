@@ -78,10 +78,10 @@ v0.55.8 的 `MOVES.hauntLost`，只改函式名那一行）＋`:1070` `V055_SHOR
 | **P0 等價** | `node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html`（`git show ea2a38f:index.html`） | `{"seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}` ✅ |
 | **P1 登記表** | `node tests/fxvocab.test.mjs` | **28 綠／0 紅**（`MOVE_SPEC.hauntLost` 補 `stance`／`anchor` 兩欄之後，§A9 ①⑥⑦⑧與裁定①那幾條都把它納進來了）✅ |
 | **P2 phase gate** | `traitfx-drive --tier=1／2／3`、`--fxvocab=1` t1／t2、`--count=2`／`--count=3` | **27/27**／**30/30**／**3/3**／**27/27**／**30/30**／**30/30**／**30/30**，`phasesOK` 全 true ✅ |
-| **P3 對比** | `fx-contrast --only=hauntLost --tier=2／1` ＋ `fx-contrast-metrics.py`（844×390@2x、bloom 0.7、seed 7） | t2／t1 皆 **area 0.9737%**（門檻 0.8）／**ΔE 中位 35.66**（門檻 28）✅ ——**第一次量是 0.7753% 紅**，修法見 §1.6 |
+| **P3 對比** | `fx-contrast --only=hauntLost --tier=2／1` ＋ `fx-contrast-metrics.py`（844×390@2x、bloom 0.7、seed 7） | t2／t1 皆 **area 1.022%**（門檻 0.8）／**ΔE 中位 35.65**（門檻 28）✅ ——這一格跑過三次：**0.7753%（紅）→ 0.9737% → 1.022%**（最終值），沒有動門檻、動的都是實作，見 §1.6 |
 | **P4 盲讀** | — | **不在本階段**（裁定：陰氣 9 支鋪完再與香火＋祖靈一起重跑新的三輪） |
 | **P5 短版合身** | `traitfx-drive --tier=1` | 27/27，`hauntLost` `rate=1`／`fill=0.9`／`msOK=true` ✅ |
-| **P6 短版下限** | 同上的 `actionsOK` | `hauntLost` acts=**9**（≥2）✅ |
+| **P6 短版下限** | 同上的 `actionsOK` | `hauntLost` acts=**8**（≥2）✅（看圖第 3 輪拿掉帽子的淡出之後由 9 變 8） |
 | **P7 效能** | `duel-perf perf --seed=7`（本樹 ／ 基準樹 `ea2a38f` 的 `git archive` 樹） | fps **59.9 : 59.9 ＝ 1.00**（≥0.95）；draw call **986 : 986**（≤1000）；visible 16=16；errors 0 ✅ |
 | **P8 零錯＋規則測試** | `duel-drive --seed=7`／`--seed=3` 各 4 場 ＋ 12 套規則測試 | errors **0／0**（`ver v0.55.8`）；12 套 **8／5／7／9／14／28／32／8／16／28／32／36 全綠** ✅ |
 | **A6 draw call** | `proto-record --trait=hauntLost --tier=2 --step=6` | `idleCalls 256` → `peakCalls 267` ＝ **+11**（預算 ≤ idle+25）；`peakTris 65,384`、`programs 22`、`errors 0` ✅ |
@@ -185,7 +185,12 @@ v0.55.8 的 `MOVES.hauntLost`，只改函式名那一行）＋`:1070` `V055_SHOR
   帽子的淡出改 `R0+0.84RL` 起（活過 react 末那一格）。六格逐格讀得出：
   暗斑亮起＋帽子從他頭上浮出 → 帽尖後仰、靜止 → 帽子卡頓跳到半空（往鏡頭鼓一下） →
   跳到對手頭上 → 衝擊拍：戴上＋火星＋魂片散出＋暗斑熄 → 對手打轉、帽子還戴著。
-- **第 3 輪**（P3 那一次）：道具倍率 0.95→0.88、鼓弧收成一跳之後重拍三張，讀法不變。
+- **第 3 輪**：道具倍率 0.95→0.88、鼓弧收成一跳（P3 那一次）；**再看 t1 的第 6 格，帽子不見了**——
+  `R0+0.84RL／0.16RL` 的淡出在 t2 沒事（第 6 格取樣 730ms、淡出 770ms 才開始），
+  但 **t1 的 `RL` 只有 62ms**（淡出 260→270ms、取樣 267ms）⇒ 那一格只剩 0.29。
+  改法：**帽子整條淡出拿掉**，戴到清場為止（清場本來就會移除 mesh，`restored` 量的就是這件事，
+  horizon 仍收在 `LAST`）。三張 sheet 重拍，t1 第 6 格現在讀得到頭上那頂帽子；
+  `acts` 由 9 變 8（門檻 ≥2）、P3 由 0.9737% 變 **1.022%**。
 
 **驗收清單對照**
 - ✅ 出招瞬間有**新增元素**（GLB 上那頂常駐的帽子不算——另外飄一頂出來，§10.2 第 6 條）
@@ -202,7 +207,8 @@ v0.55.8 的 `MOVES.hauntLost`，只改函式名那一行）＋`:1070` `V055_SHOR
 - ❌ **滿編真實對決那一張沒抓到**：見 §1.8 交付物那一列。
 
 **效能**：桌機 `duel-perf` fps 59.9、draw call 986（visible 16）；招式峰值 **+11** draw call。
-**手機真機 fps 待試玩**（這是桌機數字）。
+**手機真機 fps 待試玩**（這是桌機數字）——★這一格**本階段沒有做**，也沒有排程★：
+真機只有使用者量得到，照前兩批的作法留給試玩那一步。
 
 ### 1.7 我看到還粗的地方 / 交製作人裁
 

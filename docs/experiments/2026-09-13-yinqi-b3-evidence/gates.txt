@@ -22,11 +22,12 @@ $ node tests/tools/traitfx-drive.mjs scratchpad/_gc2.json --tier=2 --count=2    
 $ node tests/tools/traitfx-drive.mjs scratchpad/_gc3.json --tier=2 --count=3     → 30/30 pass · 重複簽章 0
 
 逐套（hauntLost，t2）：
-  PASS hauntLost redhat t2/900ms msOK=true rate=1 fill=0.9 acts=9 handled=true alive=true
+  PASS hauntLost redhat t2/900ms msOK=true rate=1 fill=0.9 acts=8 handled=true alive=true
        restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0
        end=66 maxD=1.1703 err=0 prog+0 sig=22b/burst+emblem:hat+floor:stain+prop:hat/T
 逐套（hauntLost，t1）：
-  PASS hauntLost redhat t1/300ms msOK=true rate=1 fill=0.9 acts=9 ... err=0 prog+0
+  PASS hauntLost redhat t1/300ms msOK=true rate=1 fill=0.9 acts=8 ... err=0 prog+0
+  （acts 由 9 掉到 8＝看圖第 3 輪把帽子那條淡出整條拿掉；門檻是 ≥2）
 
   ★prog+0＝programsGrew 0（st.stain 走 MAT_SOLID.clone()，與現有三支材質模板共用 program）★
 
@@ -51,15 +52,17 @@ anchors（spec=foe）：
 $ node tests/tools/fx-contrast.mjs <out> --only=hauntLost --tier=2
 $ python tests/tools/fx-contrast-metrics.py <out>
   {"trait":"hauntLost","tier":2,"at_ms":430,"hidden":1,"dead":false,"ok":true,
-   "area_pct":0.9737,"px":3205,"total":329160,"de_median":35.66,"de_p90":83.76}
+   "area_pct":1.022,"px":3364,"total":329160,"de_median":35.65,"de_p90":83.37}
   {"gate":{"area_pct_min":0.8,"de_median_min":28.0,"luma_eps":6.0},"n":1,"pass":1,"failed":[],
    "programs":22,"mat_programs":{"templates":3,"measured":3,"distinct":2}}
 $ 同上 --tier=1
-  {"trait":"hauntLost","tier":1,"at_ms":156,"ok":true,"area_pct":0.9737,"de_median":35.66}
+  {"trait":"hauntLost","tier":1,"at_ms":156,"ok":true,"area_pct":1.022,"de_median":35.65}
+  （這兩行是**最後一版程式碼**上重跑的；中間一版是 0.9737%，看圖第 3 輪拿掉帽子的淡出之後成 1.022%）
 
   ★第一次量是 area 0.7753%（紅，門檻 0.8）★——沒有動門檻，動的是實作：
     ① 道具峰值倍率 0.95→0.88（§A3 ratio 0.841→0.779）
     ② 飛行途中往鏡頭鼓出 st.camOff(2.6)（後來再收成「只掛中間那一跳」，面積不變）
+  ★這一格跑過三次★：0.7753（紅）→ 0.9737（上面兩件之後）→ 1.022（拿掉帽子淡出之後，最終值）。
 
 == A6 draw call（proto-record）==
 $ node tests/tools/proto-record.mjs <out> --tier=2 --trait=hauntLost --step=6 --nogif
