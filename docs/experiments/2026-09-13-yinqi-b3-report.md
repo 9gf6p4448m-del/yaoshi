@@ -602,7 +602,13 @@ MEDIUM-1、`zuling.js` 的 V055 註解）。改法是把註解改寫成不含那
 
 **`index.html` 零 diff**（P0 逐位元組相等）；門檻／seed／視口／`PHASE_GATE`／`TRAIT_MS_BY_TIER`／
 `ANCHOR_MARGIN`／`BEAT_FRAC`／真值表判準／香火 9 支／祖靈 9 支／`sampleAnchors` 的判準**一行未動**。
-`js/trait-fx.js` 的改動只有兩處：把已經存在的 `sepOf` 抽成函式（行為逐字相同）＋開一個唯讀的 `st.sep`。
+`js/trait-fx.js` 的改動只有兩處：把已經存在的 `sepOf` 抽成模組層 `figSep`＋開一個唯讀的 `st.sep`。
+★這一句要說得準★：抽出來的版本**不是逐字**——`boxOf(f)`（`sampleAnchors` 開頭算好的快取框）
+換成 `figBoxOf(f)`（當場重算，同一幀、同一份幾何，值相同）、`boxes.length <= 1`
+換成 `run.actorSet.size + run.targetSet.size <= 1`（兩者只在「有 figure 沒有 `.group`」時才會不同，
+而那種 figure 在舊版 `boxOf` 回 undefined ⇒ `return false`，新版 `!f.group` ⇒ 也是 `return false`）。
+**門檻（`ANCHOR_MARGIN`）與三個條件（`inView`／`clear`／掃描高度）一格未動**；
+突變 B13（把 `figSep` 改成恆真）在 `--mate` 站位判紅、其餘站位仍綠，證明它是活的。
 
 ### 4.10 下一步
 
