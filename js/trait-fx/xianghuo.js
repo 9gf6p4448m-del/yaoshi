@@ -259,6 +259,11 @@ const MOVES = {
     const arc = st.paperStamp(st.kind, tip, { anchor: 'foes', role: 'stamp', color: C.key, inkColor: C.ink,
       opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -14 });
     arc.scale.setScalar(st.iconSize * 0.55);
+    /* ★每一尊各一塊斬痕＋各自的受擊火花（P4 r1 回修 D）★
+       一把弧只有一個落點，衝擊拍那一瞬只證明得了「打到一個」。最前面兩尊各收到一塊
+       從劍尖飛出去的斬痕，落地各自炸一次火花——「敵方多個」才有兩個可數的著彈點。 */
+    const hits = xhDeliver(st, tip, foes.slice(0, 2), { T0, TL, R0, RL },
+      { anchor: 'foes', color: C.hot, inkColor: C.ink, k: 1.05, arc: 0.22, burst: { power: 0.9, n: 46 } });
 
     /* ① 舉劍（windup）：右臂高舉、胸口後仰側擰、邊光大亮；弧在劍尖長出來 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
@@ -304,7 +309,9 @@ const MOVES = {
        「回呼裡即將排的 tween」預留 `TFX.atReserve`（160ms×k），8 隻就是把 horizon 推爆的主因；
        衝擊拍那一發 `st.burst` 已經在 `done()` 裡，整排的「退」靠 flinch＋縮＋邊光表現。 */
     const stag = RL * 0.40 / Math.max(1, foes.length);
-    st.flinch(foes, { delay: R0, ms: RL * 0.6, stagger: stag, strength: 1.4, burst: false });
+    /* ★同拍打到兩尊（P4 r1 回修 D）★：改前逐隻 stagger，讀者 17/18 答「敵方單一」——
+       先一後二就是「打了一個」。「敵方多個」要的是同一拍兩尊都退。 */
+    st.flinch(foes, { delay: R0, ms: RL * 0.6, stagger: 0, strength: 1.6, burst: false });
     /* ★2026-09-13 P4 第 2 輪回修（「敵方多個」只有 8/18）★：**每一尊**敵人各一發受擊粒子。
        原本只有衝擊拍那一發打在 `head`（第一尊）身上，第二尊只有縮＋邊光、讀者讀不到「也被打到」。
        粒子掛在該尊自己那條 react tween 的 `done()` 上——不用 `st.at`，就不會吃 `TFX.atReserve`
