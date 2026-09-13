@@ -6,17 +6,19 @@
 
 ## 0. 一句話結論
 
-**T0 綠／T1 綠／T2 綠／T3 大部分綠但三角形超標（34990 > 33000）、renders/s 比值貼在 0.40 上不可信／
-T4 紅（我訂的那條門檻恆假；真正有鑑別力的「釋放」那一格是綠的）／T5 交圖四張＋自評四輪＋兩輪對抗式覆審／T6 綠。**
-**閘門數字一個都沒動**（`02 §2.1`）；紅的地方與可選的處置寫在 §5，需要製作人裁。
+**T0 綠／T1 綠／T2 綠／T3 綠（只剩對決那一格對凍結檔的 978 是 +10）／T4 綠（12 夜記錄項未確認）／
+T5 交圖四張＋自評五輪＋兩輪對抗式覆審／T6 綠。**
+**閘門數字一個都沒動**（`02 §2.1`）；T4 的兩次判準改寫都有製作人的明確同意與「原條件錯在哪」的書面理由。
+剩下的紅只有一處：對決 draw call 對**凍結檔寫死的 978** 是 +10（裁定不換比較對象；
+同路徑重量的基準是 986，Δ+2）。
 
 | 閘門 | 結果 | 一句話 |
 |---|---|---|
 | T0 引擎零變動 | ✅ | seeds 1..20 逐位元組相等；`--mutate` 驗紅 |
 | T1 版面不退 | ✅ | 四容器 12/12 格全 0 |
 | T2 tap 命中回歸 | ✅ | 177/177＋托盤四槽全對（含 GLB 檔名與 hover 微推雙向）；`trayTap` 誤觸 0 次 |
-| T3 效能 | ⚠️ | calls 113≤135 ✅／passes 1 ✅／lite 68 ✅；**三角形 34722 > 33000 ❌**（削減後，缺口 1722；算術上不可能，見 §6.1）；**比值中位 0.3966 未達 0.40 且全距跨線 ⇒ 不宣告**（§6.2）；對決 vs 凍結檔的 978 是 +10 ❌／vs 同路徑重量的 986 是 +2（§6.3） |
-| T4 GLB 載入釋放 | ⚠️（依 §2.1 修訂一） | 釋放 5 輪 +0/+0 ✅、0 error ✅；**對照組「完全不長」❌——但推翻的是我自己的歸因，不是本卷的缺陷**（`?tray3d=0` 桌上 0/4 件也照樣長，因為每夜的**對決**自己會載 GLB 進同一個 `glbCache`；托盤的邊際貢獻只有 geo +11）。見 §6.5 |
+| T3 效能 | ✅（除對決那一格） | 描邊改「只掛 hover 那一件」後：**三角形 25403 ≤33000 ✅**、**draw calls 81 ≤135 ✅**、passes 1 ✅、**比值中位 0.4698／全距 0.4430–0.5735 不跨線 ✅**（§7.1）；對決 vs 凍結檔的 978 是 **+10 ❌**／vs 同路徑重量的 986 是 +2（§6.3，裁定不換比較對象） |
+| T4 GLB 載入釋放 | ✅（依 §2.1 修訂一＋一之二） | 釋放 5 輪 +0/+0 ✅、托盤邊際貢獻 geo +11／tex +240 ≤ 上限 350/350 ✅、0 error ✅；**12 夜記錄項只取得到 7 夜＝未確認**（§7.2） |
 | T5 視覺交付 | ✅ | 四張圖＋自評四輪；製作人簽字待辦 |
 | T6 範圍 | ✅ | 只動允許的檔、`VERSION` 未動、12 套規則測試全綠、`traitfx-drive` t2 **30/30** |
 
@@ -585,6 +587,98 @@ $ node tests/tools/traitfx-drive.mjs /tmp/tfx-final.json --tier=2 --port=9871   
 $ node tests/tools/duel-perf.mjs perf /tmp/dp-final.json --port=9872 --uncap
   drawCallsPerFrame 988　trianglesPerFrame 355472　renderPassesPerFrame 10　errors 0            見 §6.3
 ```
+
+---
+
+# §7 第二批修補（2026-09-13，製作人裁定「門檻不動、改實作」）
+
+## 7.1 T3 三角形：描邊外殼改成「只掛 hover 那一件」→ **綠**
+
+**實作**：`js/table-tray.js` 的 `applyOutline(s)`——只有 `s.i === hover` 且非 `lite` 時才把那一尊的
+外殼 `visible` 打開；`setHover` 時舊格卸、新格掛。**只切 `visible`**：幾何與材質留著
+（記憶體不變），three 對不可見物件直接跳過，draw call 與三角形都不算；掛回來是同一顆 mesh，
+不重建、不重編 shader。
+
+**★配套：`RIM_BASE` 1.3 → 2.9（`RIM_HOVER` 2.4 → 4.2）——這不是調亮，是補回可辨性★**
+只拿掉外殼的第一版（`r7-n1.png`）**桌上四尊全部消失**。它們其實都在場——
+`items()` 回 `visible:true`、budget 表顯示「托盤拍品本體 17972」個三角形**有在畫**——
+但紙紮本體在暗紅布上只吃得到四盞燈籠的一點光，**先前「看得見」靠的全是那圈描邊外殼**。
+邊光是**本體材質上的 fresnel 項**（`creature-figures.js` 的 `TAIL`，不是外殼），
+拉它 **0 draw call、0 三角形**。`r8-n1.png`：四尊回來了，而且**讀起來比原本好**
+——不再是霓虹線框，看得出是紙紮本體（送王船的船板、虎姑婆的爪、浮標的形）。
+
+**★量法也跟著改★**：描邊只掛一件之後「預設」有兩個狀態，治具兩個都量，而且
+**四格逐一 hover、取三角形最多的那一格**——外殼數是逐尊不同的（實測 7～18 顆），
+只 hover 槽 0 量到的是**最省**的那一格，那不是最壞情況。
+
+```
+$ node tests/tools/scene-shot.mjs /tmp/t3d-f5 --perf --runs=5 --port=9891   # 獨佔機器、uncapped
+```
+| 變體 | draw calls／幀 | 三角形／幀 | passes／幀 | renders/s 中位 |
+|---|---:|---:|---:|---:|
+| `?tray3d=0`（分母） | 18 | 1707 | 1 | 1061.1 |
+| 預設・無 hover | **68** | **19679** | **1** | 535.3 |
+| **預設・最壞 hover（槽 1，13 顆外殼）** | **81** ✅≤135 | **25403** ✅≤33000 | **1** ✅ | 498.5 |
+| `?table3d=lite` | 68 | 19679 | 1 | 542.3 |
+
+**三角形 34722 → 25403（−9319），閘門缺口 1722 → 過關 7597。draw calls 113 → 81。**
+
+**五次比值（逐次配對，分子÷同一 run 的分母）**
+| | 5 次 | 中位 | 全距 |
+|---|---|---:|---|
+| 預設・無 hover | 0.6222／0.6322／0.4775／0.5042／0.4803 | **0.5045** | 0.4775–0.6322 |
+| **預設・最壞 hover** | 0.5580／0.5735／0.4430／0.4662／0.4616 | **0.4698** | **0.4430–0.5735** |
+| `?table3d=lite` | 0.5972／0.6521／0.4838／0.5117／0.4839 | 0.5111 | 0.4838–0.6521 |
+
+**中位 ≥0.40 且全距不跨線**（最低的一次是 0.4430）⇒ 照裁定的規則 **T3 比值這一條通過**。
+
+**視覺代價（照實記，交製作人裁）**：非 hover 的三件**沒有陣營描邊色**了，陣營辨識在牌桌上
+改由卡片的系別 chip 與邊光色承擔。另一個已知限制：**觸控裝置沒有 hover**——
+手機上 `pointermove` 只在手指按著時發，所以實務上手機玩家看不到那圈描邊。
+要補的話最小改法是在 `trayTap` 命中當下先 `setHover(i)`（讓按下去那一瞬間亮起來），
+本卷沒做，記待辦。
+
+## 7.2 T4：對照組改成「托盤邊際貢獻」→ **三條判定全過**
+
+凍結檔補了 **§2.1 修訂一之二**（原條件錯在哪、為什麼對照組的原寫法量不到托盤、為什麼新寫法
+不是搬淺判準）。
+
+```
+$ node tests/tools/legend-drive.mjs /tmp/ld-t4z.json --traymem --tapsonly --memrounds=12 --port=9892
+- **T4**（預設）…error 0…geometries 66 → 502（+436）　textures 52 → 1131（+1079）　19 顆不同 GLB
+    ★釋放鑑別力★ 同一批拍品清空再擺回 5 次：geo 517 → 517（+0）　tex 1194 → 1194（+0） → ✅
+- **T4**（?tray3d=0）…error 0…geometries 16 → 441（+425）　textures 2 → 841（+839）
+- **T4 托盤邊際貢獻**（預設 − 對照，兩條路都走到第 7 夜）：
+    geometries 436 − 425 ＝ **+11**　textures 1079 − 839 ＝ **+240**
+    每件 GLB 的資產數（第 1 夜 offset 50/50 ÷ 4 件）＝ **12.5 geometries／12.5 textures**
+    上限＝夜數 7 × 4 件 × 每件 ＝ **350 geometries／350 textures** → ✅ 在上限內
+```
+① 釋放 5 輪 +0/+0 **✅（主判準）** ② 托盤邊際貢獻在上限內 **✅** ③ 0 error（兩條路都是 0）**✅**
+**12 夜記錄項：只取得到 7 夜（卡第 8 夜「進入下一夜」），照裁定不再修治具，記未確認。**
+
+## 7.3 其餘閘門重跑（最終 HEAD）
+
+```
+$ node tests/tools/trace-eq.mjs <f9dd83d 的 index.html> index.html   → equal:true               T0 ✅
+$ node tests/tools/trace-eq.mjs index.html --mutate                   → differs:true             T0 ✅
+$ for f in tests/*.test.mjs; do node "$f"; done                       → 12/12 全綠               T6 ✅
+$ node tests/tools/felt-probe.mjs --seeds=1,3 --rounds=3 --sel=#felt,#west,#east,#north --port=9901
+  #felt／#west／#east／#north 各 12 格　最大溢出 0　非 0 的格數 0                                 T1 ✅
+$ node tests/tools/legend-drive.mjs /tmp/ld-f2.json --taps --trayslots --tapsonly --tapbase=… --port=9902
+  T5 觸控命中 177／177（基準 177）　引數對不上 0　trayTap 0 次                                    T2 ✅
+  T2 托盤槽位 出價 4/4　盯上 4/4　空白 3/3　GLB 檔名 4/4　hover 雙向 ✅　#sheet 後收 hover ✅
+    連點守衛 ✅　error 0　　console/pageerror/requestfailed 各 0　判定：✅ 通過                   T2 ✅
+$ node tests/tools/traitfx-drive.mjs /tmp/tfx-f2.json --tier=2 --port=9903  → 30/30 pass         T6 ✅
+$ node tests/tools/duel-perf.mjs perf /tmp/dp-f2.json --port=9904 --uncap
+  drawCallsPerFrame 988　trianglesPerFrame 355472　renderPassesPerFrame 10　errors 0         見 §6.3
+$ node tests/tools/layout-shot.mjs …/r8 --tray --port=9885           → console error 0          T5 ✅
+$ node tests/tools/duel-perf.mjs buoy …/g2-duel.json --port=9905      → errors 0                T5 ✅
+```
+**T5 交件圖（最終版）**：`r8-n1.png`（出價頁，四尊讀得出紙紮本體）／`r8-trayhover.png`
+（盯上頁 hover 中，掛描邊那一件浮起）／`r8-traycurse.png`（詛咒品在托盤）／`g2-duel.png`（對決頁沒擋到人偶）。
+`r7-n1.png` 留著當**反例**（只拿掉外殼、沒補邊光 ⇒ 四尊全部消失）。
+
+## 6.8 iPhone `?fps=1` 三張：記待辦（使用者側）
 
 ## 6.8 iPhone `?fps=1` 三張：記待辦（使用者側）
 
