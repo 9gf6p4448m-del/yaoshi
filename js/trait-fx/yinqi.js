@@ -26,7 +26,107 @@ const JOLT = [0.30, 0.64, 1];
  *  兩跳到底，`e ≥ 0.42` 之後回傳的值**不再變** ⇒ tween 還在跑，畫面上一動都不動。
  *  ★為什麼不另排一段空 tween★：靜止那一拍是這一系的辨識元素，寫在同一條進度函式裡，
  *  編舞就給不出「兩份時間軸」（同 `st.groundMark` 的亮滅由積木自己排那一條）。 */
-const COIL = (e) => (e < 0.21 ? 0.40 : (e < 0.42 ? 0.72 : 1));
+const COIL_STEP = [0.40, 0.72, 1];
+/** 蓄勢那三階的**台階索引**（0／1／2）。收成一支的理由同 `JOLT`：三系檔裡「第幾階」只有一個算法。 */
+const COILN = (e) => (e < 0.21 ? 0 : (e < 0.42 ? 1 : 2));
+const COIL = (e) => COIL_STEP[COILN(e)];
+
+/** ★飛行段的共同出口（2026-09-13 陰氣批階段 B）★
+ *  範本招 `hauntLost` 把「三階卡頓＋鼓弧＋第三階由 done() 給」逐行寫過一次；其餘 8 支照抄
+ *  就是 9 份複製品，而這一段同時承載 §A1 的衝擊拍、§A9-5 的落點、P3 的螢幕面積三件事——
+ *  改一份漏八份的代價太大。收成這一支之後，「陰氣的道具怎麼飛」只有一個落點
+ *  （`02 §6.1` 第 7 條的**首選收斂**：讓其餘複製品由建構上消失）。
+ *
+ *  `from → aim`  飛行段真的走的兩階（`JOLT[0]`／`JOLT[1]`）；
+ *  `to`          第三階（到位），由 `done()` 給 ⇒ 落在 `react[0]` 當幀（階段 A 覆審 H9：
+ *                切在 travel 的 0.86 時 t2 下距衝擊拍 2.2 幀＝§A2 說的「兩個重音」）。
+ *  ★`aim` 與 `to` 分開★：anchor 凍在**衝擊拍**（落點非夾進那一尊的佔地不可），
+ *  L3 凍在 **travel 中點**（那一格要的是螢幕面積）。兩段共用一個點會讓整條路徑跟著偏
+ *  （`hauntLost` 實測 P3 由 1.022% 掉到 0.7109%，門檻 0.8）。
+ *  ★鼓弧只掛在第二階的前段★：兩端為 0 ⇒ 起點與落點一個位元組不變，衝擊拍量到的是真正的落點；
+ *  它買的是 P3 的面積（把道具拉近鏡頭），不是「有沒有真的飛」——後者由第三階與 `aim` 承擔。
+ *
+ *  `o = { bow, rise, roll, trail, color, pre, done, update }`
+ *    `pre()` 在 `position.copy(to)` **之前**跑（給 `st.bodySpot` 用當下站位重夾一次）。 */
+function yqFly(st, mesh, from, aim, to, B, o = {}) {
+  const bow = o.bow === undefined ? st.camOff(2.2) : o.bow;
+  const rise = o.rise === undefined ? 0.22 : o.rise;
+  const roll = o.roll === undefined ? 0.44 : o.roll;
+  let jolted = -1;
+  return st.trail(mesh, from, to, {
+    ms: B.TL, delay: B.T0, ease: 'linear', trail: o.trail === true, color: o.color,
+    update(t, e) {
+      const n = e < 0.40 ? 0 : 1;
+      // 每一跳轉一格，跳與跳之間完全不轉（朝向仍凍在 spawn 那顆四元數上疊轉，不是逐幀正對鏡頭）
+      if (n !== jolted) { jolted = n; if (roll) mesh.rotateZ(roll); }
+      mesh.position.lerpVectors(from, aim, JOLT[n]);
+      const m = n === 1 && e < 0.80 ? 1 : 0;
+      mesh.position.y += rise * m;
+      mesh.position.addScaledVector(bow, m);
+      if (o.update) o.update(t, e, n);
+    },
+    done() {
+      if (o.pre) o.pre();
+      mesh.position.copy(to); // 第三階：一格到位，與衝擊拍同幀（不補間）
+      if (roll) mesh.rotateZ(roll);
+      if (o.done) o.done();
+    },
+  });
+}
+
+/** ★逐尊送達（同 `zlDeliver`／`xhDeliver` 那件事，差別只有節奏）★
+ *  受招／受益的**每一尊**各收到一件從施招者那邊飛過來的實體道具——§A9-5 的逐尊覆蓋
+ *  （`allies` 要每一尊 `sep` 的我方、`foes` 至少兩尊敵方）靠的就是它。
+ *  三條刻意的設計沿用祖靈批：① **不 stagger**（錯開會讀成「一個一個來」，不是「全體」）
+ *  ② 是**飛過去的落點**不是原地黏上的印記 ③ 落點一律由 `st.bodySpot` 挑，
+ *  並在衝擊拍那一幀（`yqFly` 的 `pre`）用當下站位重挑一次。
+ *  ★陰氣的差別★：飛行走 `yqFly` 的三階卡頓、淡入也是一格到位（§B3 禁平滑補間），
+ *  而且 `trail` 一律關（§A9-3 的拖尾只給打擊類，本函式兩種對象都會用到）。
+ *  ★主道具不在這裡★：`main: true` 一律寫在招自己的函式體裡（P1 的原始碼側掃的是那一支的函式體）。 */
+function yqDeliver(st, from, figs, B, o = {}) {
+  const C = st.colors;
+  return figs.map((f) => {
+    const chest0 = st.worldOf(f, o.at || 'Chest', new THREE.Vector3());
+    const to = chest0.clone().add(st.camOff(1));
+    const others = figs.filter((g) => g !== f);
+    if (others.length) {
+      /* `lean` 只剩「往哪一側起步」，決定落點的是 `st.bodySpot`（祖靈批覆審 r2 N-3）：
+         手調的推力做不到兩件事——推得夠遠才清得開重疊的同伴，推太遠又會離開受益方自己的佔地。 */
+      const c = new THREE.Vector3();
+      others.forEach((g) => c.add(g.group.position));
+      c.multiplyScalar(1 / others.length);
+      const lean = f.group.position.clone().sub(c); lean.y = 0;
+      if (lean.lengthSq() > 1e-6) to.add(lean.normalize().multiplyScalar(2.0));
+    }
+    st.bodySpot(f, to);
+    const m = st.paperStamp(st.kind, from, { anchor: o.anchor,
+      color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.ink : o.inkColor,
+      opacity: 0, depth: o.depth === undefined ? 0.20 : o.depth, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
+    m.scale.setScalar(st.markSize * (o.k === undefined ? 1.5 : o.k));
+    const aim = to.clone();
+    // 淡入一格到位（`e < 0.40` 是 JOLT 第一階的切點，與飛行同一組台階）
+    st.tween({ ms: B.TL, delay: B.T0, ease: 'linear', update(t, e) { st.alpha(m, e < 0.40 ? 0 : 1); } });
+    yqFly(st, m, from, aim, to, B, { bow: st.camOff(o.bowK === undefined ? 1.4 : o.bowK), rise: o.rise === undefined ? 0.16 : o.rise,
+      pre() { st.bodySpot(f, to); },
+      done() { st.stick(m, f, { at: 'chest', off: to.clone().sub(chest0) }); if (o.done) o.done(f, m); } });
+    return m;
+  });
+}
+
+/** 從名單裡挑「身上還放得下一件**分得出來**的道具」的那一尊（同 `zuling.js` 的 `roomyPrey`）。
+ *  治具棚四尊敵方前後兩排互相重疊，挑到被夾在中間的那一隻時，牠身上任何一點離其他每一尊
+ *  都 < `ANCHOR_MARGIN` ⇒ 道具放得再準，`attr()` 也歸屬不出來（§A9-5）。
+ *  `st.spotRoom` 與判定端的 `sepOf` 是同一支掃描。`y`＝道具實際落在多高（視錐是 3D 的）。 */
+function yqRoomy(st, list, y) {
+  if (!list || !list.length) return null;
+  if (list.length === 1) return list[0];
+  let best = null, br = -Infinity;
+  list.forEach((f) => {
+    const r = st.spotRoom(f, y === undefined ? st.worldOf(f, 'Chest', _a).y : y);
+    if (r > br) { br = r; best = f; }
+  });
+  return best || list[0];
+}
 
 const MOVES = {
   /* 有應公・有求必應（youyinggong，作祟×2；傳說三尊美術卷 2026-09-07）：第 3 拍作祟時，
@@ -86,38 +186,174 @@ const MOVES = {
   },
 
   /* 林投姐髮簪・偷命（hairpin，作祟×4）：三拍結束時敗方另 −1 壽命。
-     編舞：髮瀑揚起（0–420ms，四尊錯開 60ms：HairA–E 向上外翻、面紗掀、仰頭、雙手前探，整尊上浮）
-          → 偷命（240ms 起：對面每一隻胸口牽一條抖動的陰綢到最近的鬼，一顆命火順著綢子被吸到鬼的頭上，
-             到手那一刻鬼的邊光暴亮；對面逐隻輕退縮）→ 收（560ms 起：髮落、鬼沉回、邊光回穩）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝`2026-09-12-fx-vocab-draft.md` §C3 第 2 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntSteal = { 甲, 垂, 被拖, stance:'舉臂', anchor:'foe' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝垂**：`HairA`–`HairE` 髮瀑先**揚起**（`COIL` 兩跳到底 → 完全靜止一拍）→
+         `VeilRoot`／`Veil1`／`Veil2`／`VeilTip` 面紗垂落、`LArmRoot1Rt`／`RArmRoot1Rt` 前伸（`JOLT` 三階）。
+       **道具**＝甲 人身遺物：**銀簪**（`pin`，冷屍白青 `key` 面板＋`ink` 本體露出來的那一圈＝外描邊）
+         從髮間飛出、**戳進**受招方胸口並留在那裡（＝§C 那一列的「胸口留簪孔印」）；
+         ＋丙 鬼火與魂片：衝擊拍從同一個胸口**脫離**的三點**命火**（`st.paperProps`，
+         全招唯一的那一點刺眼的紅 `hot`）。
+       **受招方反應＝被拖**：往出招方 `st.move` 半步，**四個離散台階**、階與階之間一動都不動。
+
+     ★§C3 寫的是「帶著一顆命火**飛回**」，本支沒有做那一段（照實記，交製作人裁）★
+     §A9-6（2026-09-13 覆審 r4，晚於 §C3）把「衝擊拍之後有道具往我方走」定成**打擊類的紅燈**——
+     理由正是「東西從對手身上回到我方＝偷取」的讀法（P4 r2 虎爺印 7/18 被讀成偷取）。
+     本支 `anchor: 'foe'` ⇒ 落在那條斷言的範圍裡，任何飛回我方的道具都判紅。
+     取捨：**不動那條凍結的斷言**，改把「偷到了」拆成三件同幀發生的事——
+       ① 簪戳中並留在胸口 ② 命火**脫離目標**（§C 自己那一列的「t1 衝擊拍承載」就是這樣寫的）
+       ③ 目標**被拖**半步往出招方（受招方的 `model` 位移不在回流斷言的分母裡，那是「人」不是「道具」）。
+     失去的是「唯一去而復返的道具」這個區分點，換來的是斷言不被搬動。交製作人裁。
+
+     ★身分可辨（§A9）★ 施招姿態＝**舉臂**（up）≠ react「被拖」（fore）；
+     腳下＝不規則暗斑（`st.groundMark` → `st.stain`）；**無跨場拖線**（`trail: false`，§A9-3 的
+     拖尾只給打擊類，而「一條細白線從對面拉回來」正是 P4 讀成偷取的那個訊號——這一支不需要它）。
+     ★落點 anchor＝`foe`★：`ABILITIES.hauntSteal` 是「三拍結束時**敗方**另 −1 壽命」⇒
+     效果＝偷、對象＝敵方單一。真值表提案寫在 `p4-truth-yinqi.json`，本階段未動任何真值。 */
   hauntSteal(st) {
-    const ghosts = st.actor;
-    const foes = st.target;
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
+    const ghosts = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
+    const ghost = ghosts[0];
     const hair = ['HairA', 'HairB', 'HairC', 'HairD', 'HairE'];
+    /* 挑「身上還放得下一件分得出來的道具」的那一尊（`foe` 這一格要求主道具**決定性地**歸屬到一尊，
+       而且那一尊要真的有受擊反應）；量在**胸口**的高度上，因為簪就戳在那裡。 */
+    const prey = yqRoomy(st, st.target, st.target.length ? st.worldOf(st.target[0], 'Chest', _a).y : 0);
+    // k>0：髮瀑揚起（蓄勢）；k<0：面紗垂落、雙臂前伸（＝本體動作「垂」）
     const pose = (g, k) => {
       hair.forEach((h, i) => st.rot(g, h, -0.9 * k * (0.6 + 0.1 * i), 0, (i % 2 ? 1 : -1) * 0.35 * k));
-      st.rot(g, 'VeilTip', -0.5 * k); st.rot(g, 'HeadRoot', 0.18 * k);
-      st.rot(g, 'RArmRoot1Rt', -0.7 * k, 0, -0.4 * k); st.rot(g, 'LArmRoot1Rt', -0.7 * k, 0, 0.4 * k);
-      st.move(g, 0, 0.14 * k, 0);
+      st.rot(g, 'VeilRoot', -0.26 * k); st.rot(g, 'Veil1', -0.34 * k); st.rot(g, 'Veil2', -0.42 * k); st.rot(g, 'VeilTip', -0.5 * k);
+      st.rot(g, 'HeadRoot', 0.18 * k); st.rot(g, 'Skull', 0.10 * k); st.rot(g, 'NeckB', 0.12 * k);
+      st.rot(g, 'RArmRoot1Rt', -0.7 * k, 0, -0.4 * k); st.rot(g, 'RElbow1El', -0.44 * k); st.rot(g, 'RWrist1Wr', -0.26 * k);
+      st.rot(g, 'LArmRoot1Rt', -0.7 * k, 0, 0.4 * k); st.rot(g, 'LElbow1El', -0.44 * k); st.rot(g, 'LWrist1Wr', -0.26 * k);
+      st.move(g, 0, 0.14 * Math.max(0, k), 0);
     };
-    ghosts.forEach((g, i) => {
-      st.tween({ ms: 420, delay: i * 60, ease: 'out', update(t, e) { pose(g, e); st.rim(g, 1 + 0.4 * e); } });
-    });
-    const thief = (p) => { let best = ghosts[0], bd = Infinity; ghosts.forEach((g) => { const d = st.worldOf(g, 'HeadRoot', _a).distanceTo(p); if (d < bd) { bd = d; best = g; } }); return best; };
-    st.at(240, () => {
-      foes.forEach((f, i) => {
-        const from = st.worldOf(f, null, new THREE.Vector3());
-        const g = thief(from);
-        const to = st.worldOf(g, 'HeadRoot', new THREE.Vector3());
-        const silk = st.bolt(from, to, { jag: 0.05, segs: 12, opacity: 0, seed: 100 + i });
-        st.tween({ ms: 380, delay: i * 40, ease: 'linear', update(t) { silk.material.opacity = 0.75 * Math.sin(Math.PI * t); } });
-        const ember = st.orb(from, 0.045, { opacity: 0.95 });
-        st.fly(ember, from, to, { ms: 360, delay: 40 + i * 40, ease: 'inout', arc: 0.18, done() {
-          st.burst(to, { power: 0.4, n: 22 }); ember.material.opacity = 0; st.rim(g, 2.2);
+
+    // ── 甲 銀簪：從髮間飛出、戳進胸口 ──
+    const from = st.worldOf(ghost, 'RHand1Ha', new THREE.Vector3()); from.y += 0.12; from.add(st.camOff(0.6));
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6)); // 飛行段瞄胸口中心；落點才夾（量測位置不同，見 yqFly 的 JSDoc）
+    /** 落點：先夾進那一尊自己的佔地（`st.bodySpot`＝判定端同一支掃描），再**往胸口收一半**。
+     *  ★為什麼要收★（看圖第 1 輪）：`bodySpot` 挑的是「離場上其他每一尊最遠」的那一點，
+     *  也就是那一尊佔地的**外角**——判定上 `wd=0`（仍在佔地裡）沒錯，但畫面上是「桌面浮著一件東西」，
+     *  而讀者看到的「簪戳在誰身上」正是這件事（`02 §6.1` 第 5 條：量測位置要與現象同一件事）。
+     *  往胸口收只會讓 `dWant` 更小、`dOther` 更大 ⇒ **不是放寬判準，是往嚴的方向走**。 */
+    const land = () => {
+      if (!prey) return;
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5);
+      to.y = chest0.y;
+      to.add(st.camOff(0.4)); // 往鏡頭推一點，免得半截埋進紙紮本體裡（MAT_SOLID 開 depthTest）
+    };
+    land();
+    const pin = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.22, warp: 0.16, tiltDeg: 12, yawDeg: -26,
+      /* `roll` 讓簪身**順著飛行方向躺平**（看圖第 2 輪：立著飛時那顆簪首被 bloom 吹成一團白，
+         整支讀起來是棒槌不是針）。每一跳 `yqFly` 再加 0.38，衝擊拍時剛好回到斜插的角度。 */
+      roll: -2.0 });
+    /** 飛行段的尺寸：§A3 的世界包圍盒 ratio 實測 0.65（figH 1.35），在 2/3 之內。
+     *  ★衝擊拍之後縮小★（看圖第 1 輪）：戳進胸口那一枚要讀成「簪」，而 0.95 倍在 780×360 上
+     *  是一支比受招方還粗的棒槌。L3 凍在 travel 中點，所以縮小不影響 P3。 */
+    const PIN_FLY = st.iconSize * 0.95, PIN_STUCK = st.iconSize * 0.50;
+    pin.scale.setScalar(PIN_FLY);
+
+    // ── 丙 命火：衝擊拍從**被偷的那一尊胸口**脫離（InstancedMesh ＝ 1 個 draw call）──
+    /* ★只往上與橫向散，`z` 恆為 0★：`x` 走 `st.sideDir`（與對決軸正交，投影恆為 0），
+       所以怎麼散都不會回流我方（§A9-6）。逐實例位移一律走 `st.stageVec`（唯一出口）。 */
+    const EM = 3;
+    const embers = st.paperProps(st.kind, EM, { color: C.hot, opacity: 0, k: 1.1, ratio: 0.62, depth: 0.18, warp: 0.16 });
+    if (prey) { st.worldOf(prey, 'Chest', embers.obj.position); embers.obj.position.add(st.camOff(0.6)); }
+    const _e = new THREE.Euler();
+    const eseed = [];
+    for (let i = 0; i < EM; i++) eseed.push({ s: (i - 1) * 0.26 + (st.rnd() - 0.5) * 0.12, up: 0.14 + 0.20 * st.rnd(), fz: 0.06 + 0.14 * st.rnd(), rz: st.rnd() * 3 });
+    const EM_STEP = [0.34, 0.70, 1];
+    const writeEmbers = (k) => {
+      for (let i = 0; i < EM; i++) {
+        const s = eseed[i], it = embers.items[i];
+        /* `z` 只准 **≥0**（往敵方那一側飄）：它讓回流斷言**真的被行使到**（`absMax > 0`），
+           而不是靠「根本沒動」拿到空真的綠燈（祖靈批覆審 r5 §5.2 點名的那一種假綠）。 */
+        st.stageVec(s.s * (0.6 + k), s.up * k, s.fz * k, it.p);
+        it.q.setFromEuler(_e.set(0, 0, s.rz + k));
+        it.s = k <= 0 ? 0 : 1;
+      }
+      embers.write();
+    };
+    writeEmbers(0);
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡，編舞給不出第二份）
+    st.groundMark(ghost, { r: 0.44, rot: 1.25, push: 0.16, peak: 0.68 });
+
+    /* ① 髮瀑揚起（windup）：兩跳到底，然後**完全靜止一拍**（§B3）。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(ghost, '舉臂', k); // §A9：施招者專屬姿態（走 w.sta 獨立通道，不動因果三段的量測）
+        ghosts.forEach((g, i) => pose(g, 0.92 * k * (i ? 0.82 : 1)));
+        ghosts.forEach((g) => st.rim(g, 1 + 0.5 * k));
+        st.alpha(pin, k >= 1 ? 1 : (k >= 0.72 ? 0.55 : 0));
+        pin.position.copy(from); pin.position.y += 0.10 * k;
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 垂（travel）：面紗與髮瀑落下、雙臂前伸。飛行段只走前兩階，第三階由 `yqFly` 的 `done()` 給。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        ghosts.forEach((g, i) => pose(g, (0.92 - 1.70 * j) * (i ? 0.82 : 1)));
+        ghosts.forEach((g) => st.rim(g, 1.5 + 0.9 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀（不補間）
+        ghosts.forEach((g, i) => pose(g, -0.78 * (i ? 0.82 : 1)));
+        ghosts.forEach((g) => st.rim(g, 2.4));
+      } });
+
+    yqFly(st, pin, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.20, roll: 0.38,
+      pre() { land(); }, // 衝擊拍那一幀用**當下**的站位重挑一次（編舞是在 t=0 排的）
+      done() {
+        /* ★衝擊拍：四件同一拍★ ①雙臂前伸到位 ②簪戳中（落點一格到位）③命火脫離胸口 ④目標同幀被拖。 */
+        pin.scale.setScalar(PIN_STUCK);
+        st.phase('react');
+        st.burst(to, { power: 0.58, n: 28, color: C.hot });
+        st.punch(0.32);
+        st.alpha(embers.obj, 0.95);
+        writeEmbers(EM_STEP[0]);
+        /* ★黏著延後到衝擊拍**之後**（階段 A 覆審 C1，CRITICAL）★：`st.stick` 會把道具瞬移到
+           那一尊身上，同幀呼叫就會讓 anchor 與「簪有沒有真的飛」脫鉤。用 12ms 空 tween 而不是
+           `st.at`（後者會把 `TFX.atReserve × run.k` 也算進 horizon ⇒ 短版 `rateOK` 判紅）。 */
+        if (prey) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(prey, 'Chest', new THREE.Vector3());
+          st.stick(pin, prey, { at: 'chest', off: to.clone().sub(c) });
         } });
-      });
-      st.flinch(foes, { stagger: 40, strength: 0.7, burst: false });
-    });
-    ghosts.forEach((g, i) => st.at(560 + i * 40, () => st.tween({ ms: 320, ease: 'inout', update(t, e) { const k = 1 - e; pose(g, k); st.rim(g, 1 + 1.2 * k); } })));
+      } });
+    // 命火：衝擊拍當幀出現（上面的 done），之後再走兩階——三階都是離散的，沒有 easing
+    st.tween({ ms: RL * 0.72, delay: R0, ease: 'linear', update(t) { writeEmbers(EM_STEP[Math.min(2, Math.floor(t * 3))]); } });
+    st.fade(embers.obj, { ms: RL * 0.34, delay: R0 + RL * 0.62, from: 0.95, to: 0 });
+
+    /* ③ 被拖（react）：往出招方半步，**四個離散台階**，階與階之間一動都不動（§B3 禁平滑補間）。
+       `PHASE_GATE.react` 量的是 `move`／`scale` delta，所以這條位移就是反應本身。 */
+    const DRAG = [0.10, 0.22, 0.17, 0];
+    if (prey) {
+      const pull = st.toward(prey, new THREE.Vector3()); // prey 朝出招方＝被拖過去的方向
+      st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+        const n = Math.min(3, Math.floor(t * 4));
+        st.move(prey, pull.x * DRAG[n], 0, pull.z * DRAG[n]);
+        st.rim(prey, 1 + 1.5 * (n < 3 ? 1 : 0));
+      } });
+    }
+    /* 收勢：髮落回。★也是卡頓三階★（§B3／§10.7 陰氣禁「平滑補間的位移」）。
+       施招姿態的收回不寫在這裡：由 `st.stance` 註冊的包絡自己收在衝擊拍上。 */
+    const SETTLE = [0.55, 0.22, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      ghosts.forEach((g, i) => pose(g, -0.78 * k * (i ? 0.82 : 1)));
+      ghosts.forEach((g) => st.rim(g, 1 + 1.4 * k));
+    } });
   },
 
   /* 魔神仔紅帽・迷途（redhat，作祟×4）：三拍對面 1 隊不出手（對精英無效）。
@@ -291,34 +527,18 @@ const MOVES = {
     /* 紅帽卡頓跳到受招方頭上。**`trail: false`**：詛咒招不拉跨場白線（§A9-3）。
        每一跳轉一格 `rotateZ`，跳與跳之間完全不轉——朝向仍然凍在 spawn 當下那一顆四元數上疊轉，
        不是逐幀正對鏡頭（§A4 第 4 條）。 */
-    let jolted = -1;
-    st.trail(hat, from, to, { ms: TL, delay: T0, ease: 'linear', trail: false,
-      update(t, e) {
-        const n = e < 0.40 ? 0 : 1;
-        if (n !== jolted) { jolted = n; hat.rotateZ(0.44); }
-        hat.position.lerpVectors(from, aim, JOLT[n]);
-        /* ★鼓弧只掛在**第二階**上（`n === 1`）★：陰氣禁平滑補間，`sin(π·j)` 那一版是一條連續的弧。
-           ★它買的是 P3 的螢幕面積，不是飛行的證據★（覆審 H3 的更正）：收斂之後鏡頭偏移對
-           `travel` 分子的貢獻**不減反增**（實測 M12：連續弧 0.6653 → 只掛一階 0.7404，門檻 1.2533）。
-           「帽子有沒有真的飛」現在由**第三階寫在 `done()` 裡**這件事承擔（見下），不是由這條弧。
-           L3 的凍幀點是 travel 中點（＝第二階），所以 P3 量到的仍然是鼓出來的那一格。 */
-        /* ★鼓弧只在第二階的**前段**（`e < 0.80`）★：看圖第 4 輪——把第三階挪進 `done()` 之後，
-           第二階變得很長，而鼓到底的帽子在 `travel 末` 那一格離鏡頭太近、看到的是它的 `ink` 背面，
-           在 sheet 上是一團近黑的塊。放掉鼓弧之後那一格回到正面的紅帽。
-           L3 的凍幀點在 travel **中點**（`e = 0.5`），仍然在鼓弧裡，所以 P3 量到的沒有變。 */
-        const m = n === 1 && e < 0.80 ? 1 : 0;
-        hat.position.y += 0.24 * m;
-        hat.position.addScaledVector(bow, m);
-      },
+    /* ★三階卡頓的飛行整段收進 `yqFly`（2026-09-13 階段 B）★：那一段同時承載衝擊拍、落點與
+       P3 面積三件事，其餘 8 支照抄就是 9 份複製品。鼓弧為什麼只掛在第二階前段、`aim` 與 `to`
+       為什麼要分開，理由全在 `yqFly` 的 JSDoc（唯一落點）。本支的參數與收斂前逐位相同
+       （`bow = camOff(2.6)`／`rise 0.24`／`roll 0.44`／`trail:false`），`--sigdump` 逐位元組相等。 */
+    yqFly(st, hat, from, aim, to, { T0, TL }, { bow, rise: 0.24,
+      /* 衝擊拍那一幀用**當下**的站位再夾一次（編舞是在 t=0 排的，那時受招方還沒動）。 */
+      pre() { if (lost) st.bodySpot(lost, to); },
       done() {
         /* ★衝擊拍（`react[0]`）：四件同一拍★ ①本體到位（上面那條 tween 的 done）
-           ②帽子第三階一格到位 ③魂片散出 ④那一尊同幀開始打轉（下面的 react tween，delay R0）。
-           ★帽子的落點由**它自己的位移**給，不是由黏著給★（覆審 C1）：`hat.position.copy(to)`
-           就是第三跳；鼓弧在這一格是 0，所以 anchor 量到的是真正的落點。 */
-        /* 衝擊拍那一幀用**當下**的站位再夾一次（編舞是在 t=0 排的，那時受招方還沒動）。 */
-        if (lost) st.bodySpot(lost, to);
-        hat.position.copy(to);
-        hat.rotateZ(0.44);
+           ②帽子第三階一格到位（`yqFly` 的 `done` 已經把它放到 `to`）③魂片散出
+           ④那一尊同幀開始打轉（下面的 react tween，delay R0）。
+           ★帽子的落點由**它自己的位移**給，不是由黏著給★（覆審 C1）。 */
         st.phase('react');
         st.burst(to, { power: 0.62, n: 30, color: C.hot });
         st.punch(0.34);
@@ -749,44 +969,8 @@ export default MOVES;
    docs/experiments/2026-09-10-plan-fx-tiers.md §5。
    陰氣系的共同語氣（照完整版）：出手前先有一拍靜止、拍子卡頓，霧裾慢半拍才追上。 */
 export const SHORT = {
-  /* 偷命｜辨識：抖動的陰綢牽住對面＋命火順著綢子被吸走 */
-  hauntSteal(st) {
-    const K = st.ms / 260;
-    const ghosts = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lead = ghosts[0];
-    const hand = st.worldOf(lead, 'RArmRoot1Rt', new THREE.Vector3());
-    const marks = st.target.slice(0, 3);
-    const silks = [], lifes = [];
-    marks.forEach((f, i) => {
-      const p = st.worldOf(f, null, new THREE.Vector3());
-      silks.push(st.bolt(p, hand, { jag: 0.22, segs: 7, seed: 4 + i * 3, opacity: 0 })); // 抖動的陰綢
-      const orb = st.orb(p, 0.04, { opacity: 0 });
-      orb.scale.setScalar(0.6);
-      lifes.push({ orb, from: p });
-    });
-    ghosts.forEach((g, i) => st.tween({ ms: 88 * K, delay: i * 12 * K, ease: 'out', update(t, e) { // 髮瀑揚起、整尊上浮
-      st.rot(g, 'VeilTip', -0.4 * e); st.rot(g, 'HeadRoot', -0.24 * e);
-      st.rot(g, 'RArmRoot1Rt', -0.55 * e); st.rot(g, 'LArmRoot1Rt', -0.45 * e);
-      st.move(g, 0, 0.07 * e, 0); st.rim(g, 1 + 0.8 * e);
-    } }));
-    silks.forEach((b, i) => st.fade(b, { ms: 96 * K, delay: (84 + i * 10) * K, from: 0.9, to: 0 }));
-    lifes.forEach((L, i) => { // 命火順著綢子被吸到鬼的頭上
-      st.fade(L.orb, { ms: 30 * K, delay: (86 + i * 10) * K, from: 0, to: 1 });
-      st.fly(L.orb, L.from, st.top(lead, new THREE.Vector3()), { ms: 84 * K, delay: (90 + i * 10) * K, ease: 'in', arc: 0.14 });
-      st.fade(L.orb, { ms: 40 * K, delay: 180 * K, from: 1, to: 0 });
-    });
-    marks.forEach((f, i) => st.flinch([f], { delay: (100 + i * 12) * K, strength: 0.85, burst: i === 0 }));
-    st.tween({ ms: 60 * K, delay: 170 * K, ease: 'pulse', update(t, e) { st.rim(lead, 1.8 + 2 * e); },
-      done() { st.punch(0.35); } }); // 到手那一刻邊光暴亮
-    st.tween({ ms: 62 * K, delay: 165 * K, ease: 'inout', update(t, e) { // 髮落、鬼沉回
-      const k = 1 - e;
-      ghosts.forEach((g) => {
-        st.rot(g, 'VeilTip', -0.4 * k); st.rot(g, 'HeadRoot', -0.24 * k);
-        st.rot(g, 'RArmRoot1Rt', -0.55 * k); st.rot(g, 'LArmRoot1Rt', -0.45 * k);
-        st.move(g, 0, 0.07 * k, 0);
-      });
-    } });
-  },
+  /* 偷命｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  hauntSteal: MOVES.hauntSteal,
 
   /* 迷途｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   hauntLost: MOVES.hauntLost,

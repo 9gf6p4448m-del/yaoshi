@@ -344,7 +344,8 @@ export const MOVE_SPEC = {
   // ★陰氣範本招（2026-09-13 階段 A）★ 探＝帽尖前伸再猛點 ⇒ stance 前傾（fore）≠ react 轉（spin）；
   // anchor＝foe：ABILITIES 是「對面 **1 隊**不出手（對精英無效）」⇒ 詛咒削弱／敵方單一，一頂帽子只戴一尊
   hauntLost: { prop: '甲', act: '探', react: '轉', stance: '前傾', anchor: 'foe' }, // 紅帽戴到對手頭上；原地打轉
-  hauntSteal: { prop: '甲', act: '垂', react: '被拖' }, // 銀簪去而復返；目標被拖半步
+  // 揚髮蓄勢＝舉臂（up）≠ react 被拖（fore）；anchor＝foe：「三拍結束時**敗方**另 −1 壽命」⇒ 偷／敵方單一
+  hauntSteal: { prop: '甲', act: '垂', react: '被拖', stance: '舉臂', anchor: 'foe' }, // 銀簪戳中留在胸口；目標被拖半步
   hauntSee: { prop: '甲', act: '滯', react: '抖' }, // 憑空多一張竹椅；§C「搖」＝滯的變體
   hauntDread1: { prop: '乙', act: '滯', react: '壓' }, // 雨滴群落下＋地面水漬；閃現位移
   hauntSwap: { prop: '乙', act: '甩', react: '被拖' }, // 粗濕繩；對面被拖、本方沉沒
