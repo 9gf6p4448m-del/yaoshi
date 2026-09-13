@@ -8,7 +8,8 @@
 >
 > **worktree `C:\Users\shung\OneDrive\桌面\妖市\.claude\worktrees\agent-a7cde5f94bae38220`
 > （分支 `worktree-agent-a7cde5f94bae38220`），起始基準＝main `ea2a38f`（v0.55.8，祖靈批階段 B）。
-> **2026-09-13 已把 main `8a242b0`（v0.55.9，祖靈批收尾）併進來並全套重驗——見 §3。**
+> **2026-09-13 已把 main 併進來並全套重驗——見 §3**（併入的是 main 當下的頂 `0d34fa5`，
+> 其中 `8a242b0` 是 v0.55.9 祖靈批收尾那一筆，`0d34fa5` 是它上面的進度表文件）。
 > 未合併、未 push。`index.html` 一行未動、版號未上。**
 >
 > **對抗式覆審已跑並修補完畢**（fresh `opus` 冷讀 diff，清單＝`…-b3-evidence/adv-review.md`，
