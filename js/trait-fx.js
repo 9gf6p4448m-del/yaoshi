@@ -934,8 +934,14 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        任何落點都不可能同時「在它身上」又「離前後兩艘各一個邊距」），
        那會變成一條再對的實作也過不了的線（`02 §6.1` 第 6 條）。
        2v2 的 P4 材料上「≥2 尊」與「全部」是同一件事。 */
+    /* ★逐尊覆蓋只對**複數** spec 生效（`allies`／`foes`）★
+       單一目標（`foe`／`ally`／`self`／`caster`）不要求——`bad === 0` 與 `mainHit > 0` 已經說了
+       「道具決定性地落在那一側」，而 P4 對單一目標問的是「單一 vs 多個」，一個落點本來就讀成一個。
+       更要緊的是它在治具棚會變成**恆假**：敵方四尊擠成一團，佔地互相重疊，
+       實測虎爺印把大印往獵物那一側推 0.62／0.85 兩種都還是 `cover 0/1`
+       （而同一支在 `--count=2` 下是 1/1）——那是站位造成的，不是實作造成的（`02 §6.1` 第 6 條）。 */
     const need = !mainWant.length ? 0
-      : (spec === 'allies' || spec === 'foes' ? Math.min(2, sep.length || mainWant.length) : 1);
+      : (spec === 'allies' || spec === 'foes' ? Math.min(2, sep.length || mainWant.length) : 0);
     const coverOK = covered.length >= need;
     run.anchorResult = { spec: spec || null, n: rows.length, bad, skipped, missing, follows, landings,
       mainHit, mainScope: mainWant.length > 0,

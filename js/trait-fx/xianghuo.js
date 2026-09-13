@@ -113,7 +113,7 @@ function tgPreyHit(st, prey, R0, RL, depth) {
   const back = st.toward(prey, new THREE.Vector3()).multiplyScalar(-1);
   st.flinch([prey], { delay: R0, ms: RL * 0.8, strength: 2.4, burst: false });
   st.tween({ ms: RL * 0.9, delay: R0, ease: 'snap', update(t, e) {
-    st.move(prey, back.x * 0.34 * e, 0, back.z * 0.34 * e); // 半步擊退
+    st.move(prey, back.x * 0.52 * e, 0, back.z * 0.52 * e); // 擊退加大（P4 r1 回修 E：效果只有 9/18 讀成打擊）
     st.scale(prey, 1 - depth * e);
     st.rot(prey, 'Chest', 0.26 * e * Math.sin(e * 26)); // 抖
     st.rot(prey, 'HeadRoot', 0.22 * e * Math.sin(e * 19));
@@ -962,7 +962,25 @@ const MOVES = {
     /* ── 大印：獵物正上方垂直落下，落地＝咬中 ──
        配置＝「暗印面＋鎏金印身＋鎏金陽刻『虎』字」：越亮的東西越留不住細節（§A4），
        所以暗面留細節、亮邊界定身分——鎏金印面會被 bloom 吃掉字。 */
+    /* ★落點要**決定性地**落在被咬那一隻身上（P4 r1 回修 E）★
+       敵方四尊在治具棚裡擠成一團，大印落在 `hit`（獵物本體）時到隔壁那幾尊的距離也是 0，
+       anchor 的逐尊覆蓋量到 `cover 0/1`——畫面上同樣分不出咬的是哪一隻。
+       `lean`＝從其餘敵方指向獵物的水平單位向量，把落點往獵物那一側推一段。 */
     const land = hit.clone(); land.y += 0.10;
+    if (prey) {
+      /* 推的方向取「**離獵物最近的那一隻**其餘敵方」的反向——取全體重心在獵物剛好站中間時
+         會算出接近零的向量（實測 tier 2 不帶 --count 時 cover 仍是 0/1）。 */
+      let near = null, nd = Infinity;
+      for (const f of st.target) {
+        if (f === prey) continue;
+        const d = f.group.position.distanceToSquared(prey.group.position);
+        if (d < nd) { nd = d; near = f; }
+      }
+      if (near) {
+        const lean = prey.group.position.clone().sub(near.group.position); lean.y = 0;
+        if (lean.lengthSq() > 1e-6) land.add(lean.normalize().multiplyScalar(0.85));
+      }
+    }
     const sky = land.clone(); sky.y += 0.62; // 再高就出畫面上緣（對決機位 tilt 24°／dist 4.2）
     const big = st.paperStamp(st.kind, sky, { anchor: 'foe', role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
       opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.42, w: 0.66, h: 0.32 } });
@@ -1035,8 +1053,11 @@ const MOVES = {
       done() {
         /* ★衝擊拍★：落地＝咬中，全部疊在這一刻 */
         st.phase('react');
-        st.burst(land, { power: 1.4, n: 90, color: C.hot });
-        st.burst(land, { power: 0.9, n: 45, color: C.key }); // 金色紙錢
+        /* ★受擊火花照王爺劍那條（P4 r1 回修 E）★：王爺劍讀成「打擊」18/18，
+           它的衝擊拍只有一種粒子——硃紅命中色。這一支改前多疊一層**金色**紙錢，
+           那是「偷取」2/18 與「防護增益」4/18 的來源（金色在這套語彙裡讀起來像「給東西」）。
+           金色那一層整個拿掉，命中色加量。 */
+        st.burst(land, { power: 1.5, n: 110, color: C.hot });
         st.punch(0.95);
       } });
     st.tween({ ms: TL * 0.92, delay: T0, ease: 'in', update(t, e) { // 金箔整群飛過去（travel 的位移來源）
