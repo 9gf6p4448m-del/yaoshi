@@ -92,8 +92,9 @@ node tests/tools/legend-drive.mjs <out> --taps --tapsonly --tapbase=<f9dd83d 的
 ### T6 範圍
 `git diff --stat <f9dd83d>..` 只准：
 `js/table-tray.js`（新）、`index.html`（DOM／CSS／派發／tap；**`VERSION` 不動**）、`js/scene-env.js`、
-`js/renderer.js`、`js/camera-director.js`（若動）、`tests/tools/*`（治具）、`docs/*`（文件）。
-`js/trait-fx*`／`js/duel-figures.js`／`js/creature-figures.js`／引擎（`index.html` 的規則碼）**零 diff**。
+`js/renderer.js`、`js/camera-director.js`（若動）、`tests/tools/*`（治具）、`docs/*`（文件）、
+**`js/creature-figures.js` 的 `dispose()` 一支**（§2.1 修訂二，製作人明確放行）。
+`js/trait-fx*`／`js/duel-figures.js`／引擎（`index.html` 的規則碼）**零 diff**。
 另：**12 套規則測試全綠**；`traitfx-drive` t2 **30/30 不退**（3D 層改動不得影響對決）。
 
 ---
@@ -143,3 +144,27 @@ node tests/tools/legend-drive.mjs <out> --taps --tapsonly --tapbase=<f9dd83d 的
 **依據**：製作人 2026-09-13 的裁定原話：「T4 對照組：你的實測推翻了原假設（對決自己載 GLB 進
 `glbCache`），對照改成『托盤邊際貢獻』＝預設 − `?tray3d=0` 的 geo／tex 增量 ≤ 當夜拍品數 ×
 每件資產數（寫出每件 GLB 的 geo／tex 數當上限依據）……釋放 5 輪 +0/+0 維持主判準。」
+
+## §2.1 修訂二（2026-09-13，**製作人明確放行**）：T6 的範圍加一個檔 `js/creature-figures.js`
+
+**原條件**：T6 寫「`js/trait-fx*`／`js/duel-figures.js`／`js/creature-figures.js`／引擎 **零 diff**」。
+
+**為什麼要動它、為什麼現在才知道**：外部覆審 C-1 指出 T4 的綠燈**零鑑別力**——
+我的釋放測試跑在 `--memrounds=12` 走到的最後一夜（第 7 夜），而那一夜四格**全是詛咒占位物**
+（`makeCursePile`），`makeCreatureFigure`／`figure.dispose()` **一次都沒被行使**。
+改用 `--memrounds=1`（第 1 夜四格都是真 GLB）重跑，`textures` **每輪 +50**。
+根因在 `js/creature-figures.js` 的 `dispose()`：`SkeletonUtils.clone` 每個實例重建一副骨架，
+three 給每副骨架配一張 `boneTexture`，而 `dispose()` **沒有叫 `skeleton.dispose()`**。
+⇒ **根因落在禁動的檔裡**，不動它 T4 恆紅（而且那是真的在漏，不是判準問題）。
+
+**改了什麼**（只動 `dispose()` 這一支，其餘一行未動）：補 `skeleton.dispose()`；
+材質／InstancedMesh 逐類去重後釋放，**跳過模組層共用的 `OUTLINE_SKIP_MAT`**；
+`geometry` 與 `texture` **維持不放**（GLB 共用、`glbCache` 還要用）；`dispose()` 改成冪等。
+
+**判準是不是被搬淺**：**不會，是把一個真的漏水修掉**。配套把測試改成三種組成各跑 5 輪
+（真 GLB ×4／混合／全詛咒），並**標明「全詛咒」那一組零鑑別力、不列入判定**。
+突變驗紅：把 `skeleton.dispose()` 拿掉 → 真 GLB ×4 那一組 `tex 52→302`（每輪 +50）→ ❌。
+
+**依據**：製作人 2026-09-13 的裁定原話：「**我放行你動 `creature-figures.js` 的 `dispose()`**
+（T6 範圍改動，凍結檔記修訂二：原因＝根因在禁動檔內、不修則 T4 恆紅）」。
+**T0–T5 與 T6 的其餘各項一格未動**；`js/trait-fx*`／`js/duel-figures.js` 仍是零 diff。

@@ -77,7 +77,7 @@ export const TRAY = {
 
 /* ── 紅布托盤：3.6×1.2 的圓角布面，布緣垂墜一圈短 fin 當布褶 ──────────────
  * 紙紮語法（ART_BIBLE）：不貼圖，靠「摺面 ＋ 摺處壓暗」的頂點色做出布的厚度。 */
-function makeCloth() {
+function makeCloth(liteMode) {
   const { w, d, color, gold, emissive } = TRAY.CLOTH;
   const b = vcBuilder();
   const base = new THREE.Color(color);
@@ -89,7 +89,7 @@ function makeCloth() {
      2026-09-13 幾何預算（製作人裁定「先減非主角的」）：20×12 → 16×10，三角形 606 → 424。
      滾邊仍是最外一圈＝深度的 10%（8%→10%，肉眼分不出）；皺褶是**頂點色與 y 起伏**畫的，
      格子少了兩成起伏的取樣點變疏，但 wrinkle 的週期（sin 2.9x／4.3z）本來就遠大於一格。 */
-  const NX = 16, NZ = 10;
+  const NX = liteMode ? 12 : 16, NZ = liteMode ? 8 : 10;
   const R = rnd(9173);
   // 布面每一格的四個角：y 給一點皺褶起伏，頂點色在褶的低處壓暗
   const wrinkle = (x, z) => 0.0075 * Math.sin(x * 2.9 + 0.4) * Math.cos(z * 4.3) + 0.003 * Math.sin(x * 7.1 + z * 5.2);
@@ -239,9 +239,10 @@ export function createTableTray(scene, camera, opts = {}) {
   const group = new THREE.Group();
   group.name = 'table-tray';
   const outlineOn = opts.outline === undefined ? TRAY.OUTLINE : !!opts.outline;
+  const liteMode = !!opts.lite; // ?table3d=lite：布面段數降一階、陰火粒子減半（覆審 M-1）
   const director = opts.director || null;
 
-  const cloth = makeCloth();
+  const cloth = makeCloth(liteMode);
   group.add(cloth);
   scene.add(group);
 
@@ -298,6 +299,18 @@ export function createTableTray(scene, camera, opts = {}) {
     }
     s.key = null; s.curse = false; s.fac = null; s.ready = false; s.hoverK = 0; s.spin = 0;
     s.rimK = -1; s.played = false;
+    /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
+       （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
+       在 GLB 載完之前命中盒還是符紙堆那個小盒——玩家點得到的範圍比看到的小一截。 */
+    resetProxy(s);
+  }
+
+  /** 命中代理盒回到「還不知道這一格要放什麼」的預設大小 */
+  function resetProxy(s) {
+    const p = proxies[s.i];
+    p.position.set(s.x, TRAY.Y + TRAY.HIT.h / 2, TRAY.Z);
+    p.scale.set(TRAY.HIT.w + TRAY.HIT.pad * 2, TRAY.HIT.h, TRAY.HIT.d + TRAY.HIT.pad * 2);
+    p.updateMatrixWorld(true);
   }
 
   function fillSlot(s, it) {

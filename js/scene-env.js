@@ -179,10 +179,18 @@ const WOOD = {
   groove: 0.004, // 刻痕深度（只往下）
   lipR: 0.06, lipDrop: 0.025, // 線腳往內收多少、落差多少
 };
-function makeWoodTable() {
+/* `?table3d=lite` 的環境降級（覆審 M-1）：lite 之前只關 hover 外殼，而**非 hover 時它與預設逐值相同**
+   （68 calls／19679 tris 兩邊一樣）＝降級鈕在最常見的狀態下等於沒作用。
+   現在 lite 另外把環境幾何也降一階：木紋段數 16×10 → 12×8 且**刻痕關掉**（只剩年輪顏色）、
+   香灰與符咒殘卷整個不建（連那 1 個 draw call 一起省）。數字貼在報告 §8.3。 */
+const WOOD_LITE = { seg: 12, rings: 8, groove: 0 };
+function makeWoodTable(liteMode) {
   const b = vcBuilder();
   const R = seedRnd(20260913);
   const TOP = 0.15, BOT = -0.15;
+  const SEG = liteMode ? WOOD_LITE.seg : WOOD.seg;
+  const RINGS = liteMode ? WOOD_LITE.rings : WOOD.rings;
+  const GROOVE = liteMode ? WOOD_LITE.groove : WOOD.groove;
   const base = new THREE.Color(WOOD.colors[0]);
   const dark = new THREE.Color(WOOD.colors[1]);
   const lite = new THREE.Color(WOOD.colors[2]);
@@ -197,13 +205,13 @@ function makeWoodTable() {
     const c = n < 0.5 ? base.clone().lerp(dark, (0.5 - n) * 2.0) : base.clone().lerp(lite, (n - 0.5) * 1.9);
     return c.multiplyScalar(1.08 * (0.93 + R() * 0.14)); // 每個頂點一點點雜訊＝木頭的斑
   };
-  const gy = (r) => TOP - WOOD.groove * wave(r);
-  const ang = (i) => (i / WOOD.seg) * Math.PI * 2;
-  const rr = (k) => inner * Math.pow(k / WOOD.rings, 0.92); // 外圈密一點，年輪才不會全部擠在中心
+  const gy = (r) => TOP - GROOVE * wave(r);
+  const ang = (i) => (i / SEG) * Math.PI * 2;
+  const rr = (k) => inner * Math.pow(k / RINGS, 0.92); // 外圈密一點，年輪才不會全部擠在中心
   const pt = (k, i) => { const r = rr(k), a = ang(i); return [Math.sin(a) * r, gy(r), Math.cos(a) * r]; };
   // 桌面：同心環 × 扇區
-  for (let k = 0; k < WOOD.rings; k++) {
-    for (let i = 0; i < WOOD.seg; i++) {
+  for (let k = 0; k < RINGS; k++) {
+    for (let i = 0; i < SEG; i++) {
       const a = pt(k, i), b2 = pt(k, i + 1), c2 = pt(k + 1, i + 1), d2 = pt(k + 1, i);
       const cIn = grain(rr(k)), cOut = grain(rr(k + 1));
       if (k === 0) b.tri(a, c2, d2, cIn, cOut, cOut); // 最內圈退化成三角形（a 與 b2 同一點）
@@ -211,7 +219,7 @@ function makeWoodTable() {
     }
   }
   // 桌緣線腳：inner→TABLE_RADIUS 的斜面，再垂直落到桌底
-  for (let i = 0; i < WOOD.seg; i++) {
+  for (let i = 0; i < SEG; i++) {
     const a0 = ang(i), a1 = ang(i + 1);
     const pI = (a) => [Math.sin(a) * inner, gy(inner), Math.cos(a) * inner];
     const pO = (a) => [Math.sin(a) * TABLE_RADIUS, TOP - WOOD.lipDrop, Math.cos(a) * TABLE_RADIUS];
@@ -408,7 +416,8 @@ function place(mesh, deg, dist, ys) {
   return mesh;
 }
 
-export function createSceneEnv(aspect) {
+export function createSceneEnv(aspect, opts = {}) {
+  const liteMode = !!opts.lite; // ?table3d=lite：環境幾何降一階（覆審 M-1）
   const scene = new THREE.Scene();
   // 背景仍設純色當退路（穹頂沒建起來時畫面不會是黑的），顏色＝地平色，跟霧同一色
   scene.background = new THREE.Color(ENV.SKY_FOG);
@@ -427,11 +436,12 @@ export function createSceneEnv(aspect) {
   scene.add(far);
 
   // v0.56b：純色八角柱 → 頂點色年輪＋線腳（外形尺寸一格不動，見 makeWoodTable 註解）
-  const table = makeWoodTable();
+  const table = makeWoodTable(liteMode);
   scene.add(table);
   // 桌角香灰與符咒殘卷（兩樣合併成一個 mesh，淨增 1 draw call）
-  const decor = makeTableDecor();
-  scene.add(decor);
+  /* lite：香灰與符咒殘卷整個不建（連那 1 個 draw call 一起省，覆審 M-1） */
+  const decor = liteMode ? null : makeTableDecor();
+  if (decor) scene.add(decor);
 
   const ambient = new THREE.AmbientLight(ENV.AMBIENT_COLOR, ENV.AMBIENT_INT);
   scene.add(ambient);

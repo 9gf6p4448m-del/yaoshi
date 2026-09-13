@@ -2443,9 +2443,17 @@ function market3dItems(){
   return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null }));
 }
 function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),round:S?S.round:0}); }
+/* `?tray3d=0`＝本卷的 kill switch（桌上不擺模型）。**它也必須把命中層一起關掉**
+   （外部覆審 H-1）：關掉之後桌心只剩一塊空紅布，但 `tray.hitTest` 只看幾何代理盒、
+   不看「這一格上面有沒有東西」——四個代理盒在建構時就依 `TRAY.XS` 擺好了 ⇒
+   點空紅布照樣回得到槽位，於是 `pickMark(i)`（**公開宣告、不可逆**）或 `openSheet(i)` 照樣被叫。
+   kill switch 的語意是「這一層整個不在」，不是「這一層看不見」。
+   ★兩道一起關★（按效果寫，不賭哪一條入口）：① 下面的接線不掛 `trayTap`／`trayHover`
+   ② `trayHitAt` 直接回 −1——就算日後有人另外掛了監聽，也叫不出東西來。 */
+const TRAY3D=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("tray3d")!=="0"; }catch(e){ return true; } })();
 /** NDC ←視窗座標。canvas 是 fixed 0,0 滿版（renderer.js:62），所以視窗座標就是 canvas 座標。 */
 function trayHitAt(ev){
-  if(!TRAY_PHASE) return -1;
+  if(!TRAY3D||!TRAY_PHASE) return -1;
   const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray) return -1;
   try{
     const u=(ev.clientX/(window.innerWidth||1))*2-1;
@@ -7039,7 +7047,8 @@ function initSimTool(){
 if(!SIM_MODE&&TABLE3D){
   const tb=$("table"); if(tb) tb.classList.add("t3d");
   const tr=$("tray");
-  if(tr){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e));
+  /* `?tray3d=0` 時**一條監聽都不掛**（覆審 H-1）：桌上沒東西可點，命中層就不該活著 */
+  if(tr&&TRAY3D){ tr.addEventListener("pointerdown",e=>trayTap(e)); tr.addEventListener("pointermove",e=>trayHover(e));
     /* 三個「結束」事件都要收 hover（覆審 HIGH-D）：滑鼠移開走 pointerleave、觸控抬手走 pointerup、
        系統中斷（來電、手勢接管）走 pointercancel。少掛一個就會有一條路讓鏡頭偏移卡住。 */
     ["pointerleave","pointerup","pointercancel"].forEach(t=>tr.addEventListener(t,()=>trayLeave())); }

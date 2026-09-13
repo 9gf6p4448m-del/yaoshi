@@ -622,19 +622,90 @@ async function runTrayMem(browser, port, query) {
     /* ★釋放本身有沒有效★（鑑別力：逐夜成長混著「新 GLB 進快取」與「舊實例沒放掉」兩件事，
        分不開的話這一格對漏水零鑑別力）。做法：**同一批拍品**清空再擺回去 5 次，
        glbCache 已經有這幾顆 ⇒ 每一輪不該有任何新的 geometry／texture。還在漲就是實例沒放掉。 */
+    /* ★三種組成各跑一輪★（外部覆審 C-1）：上一版只在「走到的最後一夜」跑一次，而 `--memrounds=12`
+       的最後一夜（第 7 夜）四格**全是詛咒占位物**（`makeCursePile`）⇒
+       `makeCreatureFigure`／`figure.dispose()` **一次都沒被行使**，那個 +0/+0 的綠燈與待驗的
+       釋放路徑完全脫鉤（`02 §6.1`：綠燈跟這個 bug 有關嗎）。
+       現在逐一驗：**真 GLB ×4**（釋放路徑的主場）／**混合**（兩尊＋兩堆）／**全詛咒**。
+       真 GLB 那一組由治具自己挑，不依賴「走到的那一夜剛好是什麼」。 */
     rec.cycle = await page.evaluate(`(async () => {
       const Y3=window.__yaoshi3d, t=Y3.tray, m=Y3.renderer.info.memory;
-      const list=t.items().map(x=>({key:x.key, curse:x.curse, fac:x.fac}));
-      const out=[{ step:'起點', geometries:m.geometries, textures:m.textures }];
-      for (let k=0;k<5;k++){
-        await t.setItems([]);
-        await t.setItems(list);
+      const live=t.items().filter(x=>x.key).map(x=>({key:x.key, curse:false, fac:x.fac}));
+      const GLB=[{key:'guoyin',curse:false,fac:'yinqi'},{key:'nail',curse:false,fac:'yinqi'},
+                 {key:'bell',curse:false,fac:'xianghuo'},{key:'shield',curse:false,fac:'zuling'}];
+      const CUR=[{key:null,curse:true},{key:null,curse:true},{key:null,curse:true},{key:null,curse:true}];
+      const real = live.length >= 4 ? live.slice(0,4) : GLB;
+      const sets = [
+        { name:'真 GLB ×4', list: real },
+        { name:'混合（2 尊＋2 堆）', list: real.slice(0,2).concat(CUR.slice(0,2)) },
+        { name:'全詛咒 ×4', list: CUR },
+      ];
+      const out=[];
+      for (const s of sets){
+        await t.setItems(s.list);                      // 先擺一次把 GLB 進快取（首載不算漏）
+        await t.loaded();
         await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-        out.push({ step:'第'+(k+1)+'輪', geometries:m.geometries, textures:m.textures });
+        const rows=[{ step:'起點', geometries:m.geometries, textures:m.textures }];
+        for (let k=0;k<5;k++){
+          await t.setItems([]);
+          await t.setItems(s.list);
+          await t.loaded();
+          await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+          rows.push({ step:'第'+(k+1)+'輪', geometries:m.geometries, textures:m.textures });
+        }
+        out.push({ name:s.name, live:s.list.filter(x=>x.key).length, rows });
       }
-      return { list, rows: out };
+      return { sets: out };
     })()`);
   } finally { await ctx.close(); }
+  return rec;
+}
+
+/* ===== H-1（外部覆審）：`?tray3d=0` 下點桌心**不得**觸發任何賽局動作 =====
+   kill switch 的語意是「這一層整個不在」，不是「這一層看不見」。關掉之後桌心只剩一塊空紅布，
+   但 `tray.hitTest` 只看幾何代理盒、不看那一格上面有沒有東西 ⇒ 點空紅布照樣回得到槽位，
+   於是 `pickMark(i)`（**公開宣告、不可逆**）會被叫出來。
+   這一段走**真實路徑**：`?tray3d=0` 開一局到盯上頁，對四個槽位的螢幕座標各 tap 一次，
+   斷言 `S.marks` 逐值不變、`#sheet` 沒開。 */
+async function runKillTap(browser, port) {
+  const rec = { taps: [], errors: [], before: null, after: null, sheet: false, listeners: null };
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => rec.errors.push('pageerror: ' + String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') rec.errors.push('console: ' + m.text()); });
+  try {
+    await page.goto(`http://127.0.0.1:${port}/index.html?tray3d=0`, { waitUntil: 'load' });
+    await page.waitForFunction('typeof window.__yaoshi === "object"', { timeout: 20000 });
+    await page.waitForFunction('!!window.__yaoshi3d && !!window.__yaoshi3d.tray', { timeout: 20000 });
+    await page.evaluate(() => { CFG.T = 1;
+      const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
+      window.__yaoshi.newGame('solo', 1, ['qingmian']); });
+    for (let i = 0; i < 600; i++) {
+      const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); const S=window.__yaoshi.S;
+        return { t:b?b.textContent:'', d:b?b.disabled:true, r:S?S.round:0 }; })()`);
+      if (st.r === 1 && /不盯任何一件/.test(st.t) && !st.d) break;
+      if (!st.d) await page.click('#mainbtn');
+      else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button')].find(x=>!x.disabled); if(e)e.click(); })()`);
+      await page.waitForTimeout(12);
+    }
+    await page.waitForTimeout(500);
+    rec.before = await page.evaluate(`(() => JSON.stringify(window.__yaoshi.S.marks))()`);
+    /* 座標仍然由 `tray.slotScreen(i)` 給——kill switch 下托盤物件還在（只是沒擺東西），
+       所以這四個點正是「玩家會去戳的那四個位置」。 */
+    for (let i = 0; i < 4; i++) {
+      const pt = await page.evaluate(`(() => window.__yaoshi3d.tray.slotScreen(${i}))()`);
+      const hit = await page.evaluate(`(() => { const u=(${pt.x}/(window.innerWidth||1))*2-1, v=-((${pt.y}/(window.innerHeight||1))*2-1);
+        return window.__yaoshi3d.tray.hitTest(u,v); })()`);
+      await page.touchscreen.tap(Math.max(1, Math.min(843, pt.x)), Math.max(1, Math.min(389, pt.y)));
+      await page.waitForTimeout(90);
+      rec.taps.push({ slot: i, pt: { x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) }, hitTest: hit });
+    }
+    rec.after = await page.evaluate(`(() => JSON.stringify(window.__yaoshi.S.marks))()`);
+    rec.sheet = await page.evaluate(`(() => { const s=document.getElementById('sheet');
+      return !!(s && getComputedStyle(s).display !== 'none'); })()`);
+  } finally { await ctx.close(); }
+  rec.ok = rec.before !== null && rec.before === rec.after && rec.sheet === false && rec.errors.length === 0;
   return rec;
 }
 
@@ -721,6 +792,7 @@ const main = async () => {
     if (opt.handoff) rec.handoff2 = [await runHandoff(browser, PORT, ''), await runHandoff(browser, PORT, '?table3d=0')];
     if (opt.taps) rec.taps = await runTaps(browser, PORT);
     if (opt.trayslots) rec.trayslots = await runTraySlots(browser, PORT);
+    if (opt.trayslots) rec.killtap = await runKillTap(browser, PORT);
     /* T4 兩條路都跑：預設（托盤上線）與 `?tray3d=0`（對照組）。
        ★沒有對照組的話這一格分不出「成長是托盤造成的」還是「這一版本來就會長」★
        （`02 §6.1` 第 1 條的反面：健康狀態下這個證據會不會變綠）。 */
@@ -1139,6 +1211,17 @@ const main = async () => {
     s.blank.forEach((r) => console.log(`    空白 (${r.x},${r.y}) → hitTest ${r.hitTest}、觸發 ${r.calls} 次 ${r.ok ? '✅' : '❌'}`));
     s.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
   }
+  /* H-1：`?tray3d=0` 下點桌心不得觸發任何賽局動作 */
+  let okKill = true;
+  if (opt.trayslots) {
+    const k = rec.killtap || { taps: [], errors: [] };
+    okKill = !!k.ok;
+    console.log(`- **H-1 kill switch（?tray3d=0）下點桌心**：S.marks ${k.before} → ${k.after}`
+      + `（${k.before === k.after ? '逐值不變 ✅' : '**變了 ❌**'}）　#sheet ${k.sheet ? '**開了 ❌**' : '沒開 ✅'}　`
+      + `error ${k.errors.length} → ${okKill ? '✅' : '❌'}`);
+    k.taps.forEach((t) => console.log(`    槽${t.slot} (${t.pt.x},${t.pt.y}) → hitTest ${t.hitTest}`));
+    k.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
   /* T4：連續 12 夜的記憶體帳 */
   let okMem = true;
   for (const m of (opt.traymem ? (rec.traymem || []) : [])) {
@@ -1157,20 +1240,22 @@ const main = async () => {
       + `textures ${n1 ? n1.textures : '—'} → ${last ? last.textures : '—'}（+${dT}）　`
       + `整局走過 ${uniq.size} 顆不同 GLB（glbCache 永不淘汰，成長上界就是它）`);
     m.rows.forEach((r) => console.log(`    第 ${r.round} 夜：geo ${r.geometries}　tex ${r.textures}　上線 ${r.ready}/4　[${r.keys.join(' ')}]`));
-    if (m.cycle) {
-      const c = m.cycle.rows;
-      const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
-      /* 對照組（`?tray3d=0`）沒有拍品，`items()` 回的四格 key 全是 null，餵回去會被當成
-         「詛咒占位物」而長出新幾何——那不是漏水，是測試餵錯料。對照組改判「逐夜完全不長」。 */
-      /* 對照組（`?tray3d=0`）桌上沒有拍品，`items()` 四格 key 全是 null，餵回去會被當成
-         詛咒占位物而長出新幾何——那是**測試餵錯料**，不是漏水。對照組的這一格只印不判；
-         對照組真正的用途是下面那段「托盤邊際貢獻」的減數。 */
-      const isCtrl = /tray3d=0/.test(m.query);
-      const cycleOk = isCtrl ? true : (gN === g0 && tN === t0);
-      okMem = okMem && cycleOk;
-      console.log(`    ★釋放鑑別力★ ${isCtrl ? '（對照組：桌上沒拍品，這一格只印不判）' : ''}同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
-        + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
-      console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
+    if (m.cycle && m.cycle.sets) {
+      for (const st of m.cycle.sets) {
+        const c = st.rows;
+        const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
+        /* ★活性：這一組真的行使到 makeCreatureFigure／figure.dispose() 了嗎★
+           （02 §6.1：相等性斷言要另附活性證據）。live===0 的那一組（全詛咒）只走占位物那條路，
+           對「GLB 實例有沒有放掉」**零鑑別力**——照印，但不列入判定。
+           外部覆審 C-1 就是被這個坑到：上一版只在「走到的最後一夜」跑一次，而那一夜四格剛好全是
+           詛咒占位物，`makeCreatureFigure`／`dispose()` 一次都沒被行使，+0/+0 的綠燈與待驗行為脫鉤。 */
+        const counts = st.live > 0;
+        const cycleOk = gN === g0 && tN === t0;
+        if (counts) okMem = okMem && cycleOk;
+        console.log(`    ★釋放鑑別力・${st.name}★（真 GLB ${st.live}/4${counts ? '' : '，**零鑑別力，不列入判定**'}）：`
+          + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
+        console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
+      }
     }
     m.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
   }
@@ -1233,8 +1318,8 @@ const main = async () => {
     + `${Object.keys(BASE_V).length ? '' : '（**沒帶 --base=，沒有基準可比 ⇒ 不算通過**）'} → ${okVert ? '✅' : '❌'}`);
   rec.vrows.forEach((r) => console.log(`    ${r.key}：本卷 ${r.over}　基準 ${r.base == null ? '—' : r.base}　上限 ${r.cap}`
     + ` ${r.judged ? (r.over != null && r.over <= r.cap ? '✅' : '❌') : '（無基準・只印不判）'}`));
-  const all = opt.tapsonly ? (okTaps && okTray && okT1 && okT6 && okModal && okHandoff2)
-    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okTray && okT1 && okT6 && okModal && okHandoff2);
+  const all = opt.tapsonly ? (okTaps && okTray && okKill && okMem && okT1 && okT6 && okModal && okHandoff2)
+    : (okErr && okPath && okOv && okVert && okVert2 && okCover && okHot && okTaps && okTray && okKill && okMem && okT1 && okT6 && okModal && okHandoff2);
   console.log(`- 判定：${all ? '✅ 通過' : '❌ 未通過'}`);
   process.exit(all ? 0 : 1);
 };

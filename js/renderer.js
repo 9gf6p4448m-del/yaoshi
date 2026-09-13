@@ -105,7 +105,8 @@ function init() {
   renderer.toneMappingExposure = ENV.EXPOSURE;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  const { scene, camera, lanterns, far, sky } = createSceneEnv(window.innerWidth / window.innerHeight);
+  // `?table3d=lite`：環境幾何也降一階（覆審 M-1；只關 hover 外殼的話 lite 在非 hover 下與預設逐值相同）
+  const { scene, camera, lanterns, far, sky } = createSceneEnv(window.innerWidth / window.innerHeight, { lite: TRAY_URL.lite });
 
   const smoke = createIncenseSmoke(50);
   const embers = createEmbers(20);
@@ -154,7 +155,7 @@ function init() {
    * 資料流是**單向的**：演出層（index.html）在 showMarket／盯上頁派 `ys:market`，
    * 這裡的 listener 餵給 tray.setItems；3D 層不回頭讀 S、不耗亂數。
    * 對決時整組收掉（同一張桌子要讓給 8v8），ys:duel-end／ys:table 再放回來。 */
-  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, director });
+  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director });
   document.addEventListener('ys:market', (e) => {
     if (!TRAY_URL.on) return; // kill switch：版面照舊，桌上空的
     const d = (e && e.detail) || {};
