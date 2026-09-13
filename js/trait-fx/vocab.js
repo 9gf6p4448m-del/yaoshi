@@ -357,7 +357,8 @@ export const MOVE_SPEC = {
   // 上身前探＝前傾（fore）≠ react 抖（shake）；anchor＝foe：畫面上這一招做的是「銅錢穿過對面那一隻」
   // ★與 ABILITIES 的字面不一致（「本隊攻擊無視吸收」是我方增益），交 P4 真值表時裁；理由見 yinqi.js 該支檔頭
   swarmPierce: { prop: '甲', act: '探', react: '抖', stance: '前傾', anchor: 'foe' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
-  hauntFearX2: { prop: '丙', act: '滯', react: '壓' }, // 虛影片＋腳下暗斑；群體縮
+  // 本尊俯身＝前傾（fore）≠ react 壓（down）；anchor＝foes：恐懼作用在對面群體 ⇒ 咒／敵方多個
+  hauntFearX2: { prop: '丙', act: '滯', react: '壓', stance: '前傾', anchor: 'foes' }, // 虛影片＋腳下暗斑；群體縮
   swarmFeed1: { prop: '丙', act: '吸', react: '被拖' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」
 };
 

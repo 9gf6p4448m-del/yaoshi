@@ -1351,13 +1351,32 @@ const MOVES = {
   },
 
   /* 過陰咒・恐懼加倍（guoyin，作祟×4）：三拍恐懼倍率 ×2。
-     編舞：本尊低頭俯身、霧腳外散（0–375ms）
-          → 虛影分離（200ms 起：VRoot 整條往上抬起並旋開，虛影的頭手往後仰＝半條命踩到那邊）
-          → 兩圈暗環一前一後從本方腳下推出去（280ms／400ms）
-          → 對面縮得比單純恐懼更深（360ms，−30%）並退縮
-          → 收（640ms：虛影沉回本尊，姿態歸 0）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 8 列＋§B3＋§A9；
+     `MOVE_SPEC.hauntFearX2 = { 丙, 滯, 壓, stance:'前傾', anchor:'foes' }`。
+
+     三件（計畫 §3）：
+       **本體動作＝滯**：`Waist`／`Spine`／`Chest`／`HeadRoot` 本尊俯身（`COIL` 兩階 → **完全靜止一拍**）→
+         `VRoot`／`VSpine`／`VChest`／`VNeck`／`VHeadRoot` **虛影分離**抬起、拉到體外更遠（`JOLT` 三階）。
+       **道具**＝丙 鬼火與魂片：**虛影片**（`shade`）——一片貼在本尊自己的虛影上（`anchor: 'caster'`，
+         它是法寶身分，不是作用對象）＋**從虛影撕下來、壓到對面每一尊身上**的那幾片
+         （主道具＋`yqDeliver`，§A9-5 的 `foes` 要求至少兩尊敵方被決定性地碰到）；
+         ＋腳下不規則暗斑（`st.groundMark`）。
+       **受招方反應＝壓**：群體等比縮＋邊光轉冷，**四個離散台階**。
+
+     ★§C3 的道具全部落在施招者自己身上，這裡補了「壓到對面」那幾片（照實記）★：
+     真值的作用對象是**敵方多個**，而 P4 三輪六位讀者的自述一致——「道具落在哪一尊，那一尊就是作用對象」
+     （§A9-5 的病因）。全部道具都留在自己身上，對象題就只能答「自己」。
+     虛影片撕下來壓過去，既保住 §C3 的「自己分成兩個」，也讓作用對象在畫面上讀得出來。
+     ★兩圈暗環（`st.ring`）整組退役★：讀者 B 兩版都把它讀成百步蛇紋盾（§C3 這一列原文）。
+
+     ★身分可辨（§A9）★ 施招姿態＝**前傾**（fore，本尊俯身）≠ react「壓」（down）；腳下＝不規則暗斑。
+     ★落點 anchor＝`foes`★：`ABILITIES.hauntFearX2` 是「三拍：恐懼倍率 ×2」，恐懼作用在**對面群體**
+     ⇒ 效果＝詛咒削弱、對象＝敵方多個。 */
   hauntFearX2(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const casters = st.actor;
+    const caster = casters[0];
     const foes = st.target;
     const flesh = (g, k) => {
       st.rot(g, 'Waist', 0.14 * k); st.rot(g, 'Spine', 0.17 * k); st.rot(g, 'Chest', 0.15 * k);
@@ -1365,7 +1384,7 @@ const MOVES = {
       st.rot(g, 'ArmRoot', -0.45 * k, 0, 0.26 * k); st.rot(g, 'ArmElbow', -0.40 * k); st.rot(g, 'ArmWrist', -0.30 * k); st.rot(g, 'ArmHand', -0.24 * k);
       st.rot(g, 'MistRoot', -0.20 * k); st.rot(g, 'Mist1', -0.26 * k); st.rot(g, 'Mist2', -0.30 * k); st.rot(g, 'MistTip', -0.36 * k);
     };
-    const shade = (g, k) => {
+    const shadeOf = (g, k) => {
       st.shift(g, 'VRoot', 0, 0.42 * k, 0);
       st.rot(g, 'VRoot', -0.24 * k, 1.10 * k, 0);
       st.rot(g, 'VSpine', -0.20 * k); st.rot(g, 'VChest', -0.23 * k); st.rot(g, 'VNeck', -0.27 * k);
@@ -1373,32 +1392,90 @@ const MOVES = {
       st.rot(g, 'VArmRoot', -0.92 * k, 0, -0.30 * k); st.rot(g, 'VArmElbow', -0.60 * k); st.rot(g, 'VArmWrist', -0.42 * k); st.rot(g, 'VArmTip', -0.30 * k);
       st.scaleBone(g, 'VRoot', 1 + 0.25 * k);
     };
-    casters.forEach((g, i) => {
-      st.tween({ ms: 300, delay: i * 25, ease: 'out', update(t, e) { flesh(g, e); st.rim(g, 1 + 0.5 * e); } });
-      st.tween({ ms: 360, delay: 200 + i * 25, ease: 'out', update(t, e) { shade(g, e); st.rim(g, 1 + 0.5 + 1.1 * e); } });
-    });
-    st.at(280, () => {
-      const c0 = new THREE.Vector3();
-      casters.forEach((g) => c0.add(st.worldOf(g, null, _a)));
-      c0.multiplyScalar(1 / Math.max(1, casters.length));
-      c0.y = st.tableY;
-      [0, 120].forEach((d, i) => {
-        const halo = st.ring(c0, 0.70 + 0.26 * i, 0.06, { opacity: 0.8 });
-        halo.scale.setScalar(0.30);
-        st.grow(halo, { ms: 400, delay: d, from: 0.30, to: 1.35 });
-        st.fade(halo, { ms: 370, delay: d + 140, from: 0.8, to: 0 });
-      });
-      st.burst(c0, { power: 0.5, n: 26 });
-    });
-    st.at(360, () => {
-      st.flinch(foes, { stagger: 40, strength: 1.1, burst: false });
-      foes.forEach((f, j) => st.tween({ ms: 460, delay: j * 30, ease: 'pulse', update(t, e) { st.scale(f, 1 - 0.30 * e); st.rim(f, 1 + 1.1 * e); } }));
-    });
-    st.at(640, () => {
-      casters.forEach((g) => {
-        st.tween({ ms: 240, ease: 'inout', update(t, e) { const k = 1 - e; flesh(g, k); shade(g, k); st.rim(g, 1 + 1.6 * k); } });
-      });
-    });
+
+    // ── 丙 虛影片：一片留在本尊的虛影上（法寶身分），其餘撕下來壓到對面 ──
+    const self = st.paperStamp(st.kind, null, { anchor: 'caster', role: 'mark', follow: caster, at: 'chest',
+      off: st.camOff(1.2).setY(0.34), color: C.key, inkColor: C.ink, opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 10, yawDeg: -20 });
+    self.scale.setScalar(st.markSize * 1.20); // §A3：guoyin figH 1.155，1.6 倍量出來 ratio 0.859（超線），收到 1.20＝0.64
+
+    const prey = yqRoomy(st, foes, foes.length ? st.worldOf(foes[0], 'Chest', _a).y : 0);
+    const from = st.worldOf(caster, 'VChest', new THREE.Vector3()); from.y += 0.20; from.add(st.camOff(0.8));
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
+      if (!prey) return;
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5); // 往胸口收：仍在佔地裡，但讀起來是「壓在他身上」不是「浮在桌上」
+      to.y = chest0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const shard = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.20, warp: 0.18, tiltDeg: 12, yawDeg: -24 });
+    shard.scale.setScalar(st.iconSize * 0.68); // 同上：0.88 倍 ratio 0.862 → 0.68 倍 ratio 0.666 以內
+    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.05, bowK: 1.2, rise: 0.2 });
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(caster, { r: 0.48, rot: 0.2, push: 0.16, peak: 0.70 });
+
+    /* ① 俯身（windup）：兩階到底 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(caster, '前傾', k); // §A9：施招者專屬姿態
+        casters.forEach((g, i) => flesh(g, k * (i ? 0.8 : 1)));
+        casters.forEach((g) => st.rim(g, 1 + 0.5 * k));
+        st.alpha(self, k >= 1 ? 0.9 : (k >= 0.72 ? 0.5 : 0));
+        st.alpha(shard, k >= 1 ? 1 : (k >= 0.72 ? 0.5 : 0));
+        shard.position.copy(from);
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 滯（travel）：虛影分離、拉到體外更遠。三階卡頓，第三階由 `yqFly` 的 `done()` 給。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        casters.forEach((g, i) => shadeOf(g, j * (i ? 0.8 : 1)));
+        casters.forEach((g) => st.rim(g, 1.5 + 1.1 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀
+        casters.forEach((g, i) => shadeOf(g, i ? 0.8 : 1));
+        casters.forEach((g) => st.rim(g, 2.6));
+      } });
+
+    yqFly(st, shard, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.26, roll: 0.36,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：三件同一拍★ ①虛影拉到最遠 ②撕下來的虛影片壓到那一尊身上 ③對面群體同幀開始縮。 */
+        st.phase('react');
+        st.burst(to, { power: 0.54, n: 26, color: C.key });
+        st.punch(0.30);
+        // 黏著延後一格（同前幾支：同幀呼叫會讓 anchor 與「虛影片有沒有真的飛」脫鉤）
+        if (prey) st.tween({ ms: 12, ease: 'linear', update() {}, done() {
+          const c = st.worldOf(prey, 'Chest', new THREE.Vector3());
+          st.stick(shard, prey, { at: 'chest', off: to.clone().sub(c) });
+        } });
+      } });
+    st.fade(self, { ms: RL * 0.35, delay: R0 + RL * 0.55, from: 0.9, to: 0 });
+
+    /* ③ 壓（react）：群體等比縮 30%＋邊光轉冷，**四個離散台階**（§B3 禁平滑補間）。 */
+    const PRESS = [0.12, 0.24, 0.30, 0];
+    st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+      const n = Math.min(3, Math.floor(t * 4)), a = PRESS[n];
+      foes.forEach((f) => { st.scale(f, 1 - a); st.rim(f, 1 + 3.6 * a); });
+    } });
+
+    /* 收勢：虛影沉回本尊、姿態歸 0。★也是卡頓三階★ */
+    const SETTLE = [0.58, 0.24, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      casters.forEach((g, i) => { flesh(g, k * (i ? 0.8 : 1)); shadeOf(g, k * (i ? 0.8 : 1)); });
+      casters.forEach((g) => st.rim(g, 1 + 1.6 * k));
+    } });
   },
 
   /* 飼鬼甕・餓鬼進食（sigui，小兵×2）：拍末對面有紙紮被燒 → 本方全體 hp+1。
@@ -1487,39 +1564,8 @@ export const SHORT = {
   /* 陰陽眼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   swarmPierce: MOVES.swarmPierce,
 
-  /* 恐懼加倍｜辨識：虛影從本尊分離抬起＋兩圈暗環一前一後推出 */
-  hauntFearX2(st) {
-    const K = st.ms / 260;
-    const casts = st.byBody(st.actor, 'haunt').length ? st.byBody(st.actor, 'haunt') : st.actor;
-    const lead = casts[0];
-    const foot = st.foot(lead, new THREE.Vector3());
-    const r1 = st.ring(foot, 0.34, 0.05, { opacity: 0, color: 0x3a2450 });
-    const r2 = st.ring(foot, 0.34, 0.04, { opacity: 0, color: 0x3a2450 });
-    casts.forEach((g, i) => st.tween({ ms: 86 * K, delay: i * 8 * K, ease: 'in', update(t, e) { // 本尊低頭俯身、霧腳外散
-      st.rot(g, 'Waist', 0.16 * e); st.rot(g, 'Chest', 0.12 * e); st.rot(g, 'HeadRoot', 0.2 * e);
-      st.rot(g, 'Mist1', 0, 0, 0.24 * e); st.rot(g, 'Mist2', 0, 0, -0.2 * e); st.rim(g, 1 - 0.3 * e);
-    } }));
-    casts.forEach((g, i) => st.tween({ ms: 92 * K, delay: (78 + i * 8) * K, ease: 'out', update(t, e) { // 虛影分離：VRoot 整條抬起並旋開
-      st.shift(g, 'VRoot', 0, 0.16 * e, -0.1 * e); st.rot(g, 'VRoot', 0, 0.7 * e, 0);
-      st.rot(g, 'VHeadRoot', -0.3 * e); st.rot(g, 'VArmRoot', -0.4 * e); st.rot(g, 'VSpine', -0.16 * e);
-      st.rim(g, 0.7 + 2.1 * e);
-    } }));
-    st.grow(r1, { ms: 96 * K, delay: 92 * K, from: 0.3, to: 1.9 }); // 兩圈暗環一前一後推出去
-    st.fade(r1, { ms: 96 * K, delay: 92 * K, from: 0.8, to: 0 });
-    st.grow(r2, { ms: 92 * K, delay: 126 * K, from: 0.3, to: 2.2 });
-    st.fade(r2, { ms: 92 * K, delay: 126 * K, from: 0.6, to: 0 });
-    st.target.forEach((f, i) => st.tween({ ms: 92 * K, delay: (112 + i * 8) * K, ease: 'pulse', update(t, e) { // 縮得比單純恐懼更深（−30%）
-      st.scale(f, 1 - 0.3 * e); st.move(f, 0, 0, -0.06 * e); st.rim(f, 1 - 0.4 * e);
-    } }));
-    st.tween({ ms: 58 * K, delay: 170 * K, ease: 'inout', update(t, e) { // 虛影沉回本尊
-      const k = 1 - e;
-      casts.forEach((g) => {
-        st.shift(g, 'VRoot', 0, 0.16 * k, -0.1 * k); st.rot(g, 'VRoot', 0, 0.7 * k, 0);
-        st.rot(g, 'VHeadRoot', -0.3 * k); st.rot(g, 'VArmRoot', -0.4 * k);
-        st.rot(g, 'Waist', 0.16 * k); st.rot(g, 'HeadRoot', 0.2 * k); st.rim(g, 1 + 1.8 * k);
-      });
-    } });
-  },
+  /* 恐懼加倍｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  hauntFearX2: MOVES.hauntFearX2,
 
   /* 餓鬼進食｜辨識：甕口張開＋灰火帶弧線被吸進甕、甕身脹一下 */
   swarmFeed1(st) {
