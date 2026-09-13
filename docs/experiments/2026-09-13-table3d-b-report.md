@@ -6,10 +6,19 @@
 
 ## 0. 一句話結論
 
-**T0 綠／T1 綠／T2 綠／T3 三紅一黃（draw calls 綠、passes 綠、lite 綠；三角形 34990 > 33000 紅、
-renders/s 比值貼在 0.40 上不可信）／T4 紅（記憶體確實累積，但對照組證明成長**不是**托盤造成的）／
-T5 交圖四張＋自評三輪／T6 綠。**
-**閘門數字一個都沒動**（`§2.1`）；紅的兩條原因與可選的處置寫在 §5，需要製作人裁。
+**T0 綠／T1 綠／T2 綠／T3 大部分綠但三角形超標（34990 > 33000）、renders/s 比值貼在 0.40 上不可信／
+T4 紅（我訂的那條門檻恆假；真正有鑑別力的「釋放」那一格是綠的）／T5 交圖四張＋自評四輪＋兩輪對抗式覆審／T6 綠。**
+**閘門數字一個都沒動**（`02 §2.1`）；紅的地方與可選的處置寫在 §5，需要製作人裁。
+
+| 閘門 | 結果 | 一句話 |
+|---|---|---|
+| T0 引擎零變動 | ✅ | seeds 1..20 逐位元組相等；`--mutate` 驗紅 |
+| T1 版面不退 | ✅ | 四容器 12/12 格全 0 |
+| T2 tap 命中回歸 | ✅ | 177/177＋托盤四槽全對（含 GLB 檔名與 hover 微推雙向）；`trayTap` 誤觸 0 次 |
+| T3 效能 | ⚠️ | calls 113≤135 ✅／passes 1 ✅／lite 68 ✅／對決 Δ+2 ✅；**三角形 34990 > 33000 ❌**；比值 0.405／0.3999 貼線 |
+| T4 GLB 載入釋放 | ❌ | 釋放本身零成長 ✅；逐夜成長＝`glbCache` 永不淘汰（設計如此）；**門檻「≤拍品數」恆假**；治具只走到第 7 夜 |
+| T5 視覺交付 | ✅ | 四張圖＋自評四輪；製作人簽字待辦 |
+| T6 範圍 | ✅ | 只動允許的檔、`VERSION` 未動、12 套規則測試全綠、`traitfx-drive` t2 **30/30** |
 
 ---
 
@@ -108,6 +117,26 @@ $ node tests/tools/legend-drive.mjs /tmp/ld-tray.json --trayslots --tapsonly --p
     空白 (186,310)/(658,310)/(422,310) → hitTest −1、觸發 0 次 ✅
 - 判定：✅ 通過
 ```
+
+**覆審後補的兩條斷言，在最終版（`0ac2b72`）上重跑全綠**
+```
+$ node tests/tools/legend-drive.mjs /tmp/ld-tray3.json --trayslots --tapsonly --port=9762
+- **T2 托盤槽位 tap**…出價頁 4/4…盯上頁 4/4…空白處 3/3…**逐槽 GLB 檔名 4/4 對**…
+  **hover 微推雙向 ✅**…error 0 → ✅
+    鍵 槽0「過陰咒」→ assets/creatures/guoyin.glb ✅        鍵 槽1「陰陽眼銅錢」→ …/yinyangcoin.glb ✅
+    鍵 槽2「虎姑婆指甲」→ assets/creatures/nail.glb ✅      鍵 槽3「水鬼浮標」→ …/buoy.glb ✅
+```
+（槽 1 的「陰陽眼銅錢」**只有 `m` 沒有 `ab`**——這一格就是在守「只讀 `it.ab`」那條靜默假綠。）
+
+**★突變驗紅（`02 §6.1` 第 1 條：要證明這個證據抓得到壞掉的版本）★**
+把 `index.html:7024` 那一行（`pointerleave`／`pointerup`／`pointercancel` 的接線）**整行拿掉**再跑同一支治具：
+```
+- **T2 托盤槽位 tap**…hover 微推雙向 ❌(on {"hover":1,"trayK":0.9434} / off {"hover":1,"trayK":1})… → ❌
+- 判定：❌ 未通過
+```
+`trayK` 停在**整數 1**、`hover` 停在 1（健康版是 −1／0）⇒ 這一條有雙向鑑別力，不是反向探針。
+還原用的是**改壞前的備份副本**（`cp` 回去），不做反向編輯；還原後 `git diff -- index.html` 為空。
+
 座標一律由產品自己的 `tray.slotScreen(i)` 給，治具不另抄投影算式 ⇒ 欄寬一改、機位一動這一段立刻紅。
 
 ### T3 效能 → **calls ✅／passes ✅／lite ✅；三角形 ❌；renders/s 比值 ⚠️（貼線不可信）**
@@ -173,6 +202,43 @@ $ node tests/tools/duel-perf.mjs perf /tmp/dp-new-2.json --port=9731 --uncap
 那是使用者才能點頭的事——上面把「原標準錯在哪（量在 passes=2 的路徑上）、為什麼現在才知道
 （後面四跑全是 10，才看得出第一跑是異常）」寫清楚，**請製作人裁**。
 
+### T4 GLB 載入釋放 → ❌（照凍結檔的字面），但**紅的原因是我那條門檻本身恆假**，不是實作漏水
+
+```
+$ node tests/tools/legend-drive.mjs /tmp/ld-mem5.json --traymem --tapsonly --memrounds=12 --port=9741
+- **T4**（（預設）　seed 1，走到第 7/12 夜；error 0）：geometries 66 → 502（+436）　textures 52 → 1131（+1079）
+  整局走過 19 顆不同 GLB
+    第 1 夜：geo 66  tex 52   上線 4/4 [guoyin yinyangcoin nail buoy]
+    第 2 夜：geo 152 tex 196  上線 4/4 [wangchuan (詛咒) hairpin boartusk]
+    第 3 夜：geo 242 tex 390  上線 4/4 [xianji pojun eye sigui]
+    第 4 夜：geo 301 tex 610  上線 4/4 [bell (詛咒) hairpin boat]
+    第 5 夜：geo 361 tex 731  上線 4/4 [shield redhat (詛咒) fushou]
+    第 6 夜：geo 472 tex 993  上線 4/4 [sword wuying (詛咒) balen]
+    第 7 夜：geo 502 tex 1131 上線 4/4 [(詛咒) (詛咒) (詛咒) (詛咒)]
+    ★釋放鑑別力★ 同一批拍品清空再擺回 5 次：geo 502 → 502（+0）　tex 1131 → 1131（+0） → ✅ 釋放有效
+      起點 502/1131　第1輪 502/1131　第2輪 502/1131　第3輪 502/1131　第4輪 502/1131　第5輪 502/1131
+- **T4**（?tray3d=0 對照組）：geometries 16 → 16（+0）　textures 2 → 2（+0）　上線 0/4 → 完全不長
+```
+
+**三件事分開看**：
+1. **釋放路徑是對的（有鑑別力的那一格，綠）**：同一批拍品「清空再擺回」5 次，`geometries`／`textures`
+   **逐輪逐值不變**（502／1131）。兩次獨立跑都是 +0/+0。⇒ 換格時實例真的被放掉了。
+2. **逐夜的成長來自 `glbCache`（設計如此，不是漏水）**：對照組 `?tray3d=0` 從頭到尾 16／2 不動，
+   證明成長**確實來自托盤載 GLB**；而 `glbCache`（`js/creature-figures.js:123`）是一個
+   **永不淘汰的 Map**——計畫 §6 Q4 末段白紙黑字寫「0.55b 只記錄 `info.memory`，不做 LRU」。
+   ⇒ 成長的上界是「整局走過幾顆**不同**的 GLB」（這一局 19 顆），不是「夜數 × 4」。
+3. **★我訂的那條門檻恆假★**：凍結檔 T4 寫「開局末 vs 第 1 夜末差 ≤ 拍品數」。
+   任何符合本卷規格（不動 `creature-figures.js`、不做 LRU）的實作都不可能滿足它——
+   19 顆 GLB 進快取就是幾百個 geometry。照 `02 §2.1` 的例外條款這屬於
+   「錯到無論實作對錯都不可能通過」；但**我沒有自行改門檻**，而是**補了一條真的分得出好壞的量測**
+   （第 1 點），兩個數字都照實印出來，由製作人裁。
+
+**未達標的地方（照實說）**：驅動只走到**第 7 夜**（凍結檔要 12 夜）。
+第 7 夜的市集已經是**四件全詛咒**（牌堆 27 件被 4×7＝28 抽完），所以第 8–12 夜不會再有新 GLB 進快取
+——缺的那 5 夜對「記憶體會不會繼續漲」這個問題不承重，但**它仍然是治具沒跑滿，不是通過**。
+（已修掉一個卡點：驅動原本點不到 `#modal` 的「壽命危急，繼續供奉？」；修完仍停在第 7 夜，
+第二個卡點沒有查出來——`02 §6.2`：查不出來就明講，不拿它宣告完成。）
+
 ### T6 範圍 → ✅
 
 ```
@@ -201,6 +267,12 @@ aistake OK  conscap OK  duel-desync OK  emblem-collision OK  fxtier OK  fxvocab 
 legend OK  lineup-order OK  nightrules OK  review OK  roles-balance OK  wish16 OK      → 12/12 ✅
 ```
 
+**`traitfx-drive` t2（3D 層改動不得影響對決）**
+```
+$ node tests/tools/traitfx-drive.mjs /tmp/tfx-t2.json --tier=2 --port=9751
+30/30 pass · 重複簽章 0
+```
+
 ## 4. 視覺自評（`threejs-visual-loop`：截圖→Read 打開看→比對→修→再截圖）
 
 證據目錄 `docs/experiments/2026-09-13-table3d-b-evidence/`，每一輪都用 Read 實際打開圖看過，不是只看檔案存在。
@@ -217,7 +289,11 @@ legend OK  lineup-order OK  nightrules OK  review OK  roles-balance OK  wish16 O
   桌面看得出年輪與桌緣線腳，桌角三撮香灰與三片硃砂符咒殘卷。
 - `r4-trayhover.png`：第 2 夜盯上頁，游標停在槽 1（白虎煞）——占位符紙堆浮起、微旋，紫黑陰火往上飄。
 - `r4-traycurse.png`：第 4 夜出價頁，詛咒品（魔神仔的芭樂）在槽 1 的托盤上。
-- 對決頁：見 §3 的 T3-duel 與 `duel.png`。
+- `g1-duel.png`：對決頁（`duel-perf buoy` 派的合成 8 尊）——**桌上看不到紅布托盤**（`ys:duel` 把整組收掉了），
+  五尊人偶完全沒被擋；桌角的香灰與一片符咒殘卷仍在畫面左下（它們是常駐環境、不隨頁面收），
+  位置很低、不壓到任何一尊。
+- `g1-table.png`／`g1-table3d.png`：`scene-shot --gate` 的牌桌與「只留 canvas ＋暈角」那一張
+  （看得出木紋與桌緣線腳，不被 DOM 面板干擾）。
 - 側欄卡完整性：`r4-railW.png`／`r4-railE.png`（四樣資訊都在，沒有 ellipsis 到看不出招式名）。
 - 直式：`r4-portrait.png`（`#rotateHint` 照舊整片蓋住；`#tray{display:none}` 在直式仍然成立——
   掏空那組 CSS 全部關在 `@media (orientation:landscape)` 裡，`index.html:68`）。
@@ -226,6 +302,28 @@ legend OK  lineup-order OK  nightrules OK  review OK  roles-balance OK  wish16 O
 ① 金織滾邊的寬度與色溫（現在偏舊金／偏暗，也可以更亮更「新」）
 ② 拍品靜置時的邊光倍率 `RIM_BASE=1.3`（比對決亮，讓四尊不是黑剪影；再高會開始像描邊玩具）
 ③ 詛咒占位符紙堆的體積（現在明顯比四尊妖小一號，好處是「它不是活的」一眼看得出來）。
+
+## 4.5 對抗式覆審（fresh context，`02 §6` 驗證不自驗）
+
+**第一輪**（prompt 是「找出會壞掉的情境」，不是「看看有沒有問題」）：CRITICAL 0／**HIGH 2**／MEDIUM 3／LOW 2。
+兩條 HIGH 都是真的，已修（commit `0280fc5`／`0ac2b72`）：
+
+| # | 現象 | 為什麼會發生 | 修法 |
+|---|---|---|---|
+| HIGH-B | 在盯上頁快速點兩下托盤同一格：第一下 `pickMark(i)`（**公開宣告、不可逆**）同步把相位換成出價頁，第二下就變成 `openSheet(i)`——**玩家沒看過的動作被執行**，正是這個 repo 花好幾輪覆審才建立的那道防線要擋的事 | `#tray` 收的是 `pointerdown`，先於 `document` 上的 `click` 相位閘；而且 `sigOf`（`index.html:2326`）比的是落點元素的 id／class／inline onclick／文字，`#tray` 從頭到尾是**同一顆空 div**、切頁前後逐位元組相同 ⇒ 閘門**永遠不會武裝** | `trayTap` 按效果補一道同型守衛（沿用 `MAIN_GUARD_MS`，不另訂數字）：全域閘武裝中不收；自己換掉相位時**兩道一起武裝**（`TRAY_TAP_AT` 擋落在托盤的第二下、`PHASE_AT` 擋落在側欄卡片的第二下）。比的是**按下時刻** `gStamp(ev)`，與既有守衛同一個時基與同一套理由 |
+| HIGH-D | 滑過托盤一格再把游標移開（或觸控抬手），`hover` 永遠卡住 ⇒ 鏡頭永遠帶著 `TRAY_PUSH.dist` 的 0.2 偏移，整段出價流程都收不回來 | `pointermove` 只在 `#tray` **上面**才發；唯一會 `setHover(-1)` 的另一條路是 `ys:duel` | `#tray` 補掛 `pointerleave`／`pointerup`／`pointercancel` → `trayLeave()`（滑鼠移開／觸控抬手／系統中斷三條出口，少掛一個就留一條路） |
+
+**覆審同時指出「這些治具抓不到迴歸」**（MEDIUM，最有價值的一段），已補兩條鑑別力：
+- `runTraySlots` 加**逐槽 GLB 檔名對照**：擋掉「把 `it.ab||it.m` 改成只讀 `it.ab`」那條靜默假綠
+  （seed 1 第 1 夜正好有 `yinyangcoin`——只有 `m` 沒有 `ab`，改壞了它會變成詛咒占位物而 tap 照樣全對）。
+- `runTraySlots` 加 **hover 微推雙向**斷言：`director.trayK()` 在 hover 時 >0、指標離開後必須 **===0**。
+  只驗「推得動」是反向探針；真正會壞的是「收不回來」（HIGH-D 就是那一邊）。
+  覆審原話：「全套 T0–T6 沒有任何一支讀過 `director.trayK()` 或相機 `dist`」——現在有了。
+
+**覆審指出、但本卷不修的**：① 托盤模型不投影子（已知取捨，見 §5.4 第 4 條）
+② `fillSlot` 的 `if (s.curse || !s.key)` 在現有唯一呼叫者下 `s.curse` 恆被 `!s.key` 涵蓋（防禦性冗餘，非 bug）。
+
+**第二輪**（prompt 是「反駁我已修好這個宣稱」，逐條要三態）：結果見下方 §4.6。
 
 ## 5. 還粗的地方（含兩條紅燈的處置選項，需要製作人裁）
 

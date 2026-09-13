@@ -452,7 +452,11 @@ async function runTraySlots(browser, port) {
       await page.waitForTimeout(700);
       const on = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
       await page.mouse.move(4, 4); // 移出 #tray（左上角是 #west 的座位卡）
-      await page.waitForTimeout(900);
+      /* 3.2 秒不是「等到過為止」：`TRAY_PUSH.rate=3.2` 是每秒的收斂速度，而 camera-director
+         只在 `|trayWant-trayK| < 1e-4` 時才踩死歸零 ⇒ 從 0.93 收到 1e-4 需要約 2.8 秒。
+         ★這個等待不會讓壞掉的實作變成通過★：真的漏掉 `setHover(-1)` 時 `trayWant` 恆為 1，
+         `trayK` 會停在 1 不動，等多久都是紅的（實測 900ms 那一版量到 0.0266＝正在收，只是還沒到）。 */
+      await page.waitForTimeout(3200);
       const off = await page.evaluate(`(() => ({ hover: window.__yaoshi3d.tray.hover(), trayK: window.__yaoshi3d.director.trayK() }))()`);
       rec.push = { on, off, ok: on.hover === 1 && on.trayK > 0 && off.hover === -1 && off.trayK === 0 };
     }
