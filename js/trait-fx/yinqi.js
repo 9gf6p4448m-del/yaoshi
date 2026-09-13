@@ -1205,13 +1205,35 @@ const MOVES = {
   },
 
   /* 陰陽眼銅錢・陰陽眼（yinyangcoin，小兵×2）：本隊攻擊無視吸收。
-     編舞：兩手抬到眼前、銅錢貼上去旋亮（0–325ms：CoinA/CoinB 位移到眼位、轉兩圈、脹大）
-          → 穿透（280ms 起：每一枚銅錢射出一道直線，對準對面一隻再往後多穿 1.35 個身位——線不停在對面身上）
-          → 被穿的邊光瞬亮、火星、輕退（340ms 起）
-          → 收（600ms 起：手放下、銅錢再轉一圈歸位）。 */
+     ★2026-09-13 招式演出卷・陰氣批 3 階段 B★ 語彙＝§C3 第 7 列＋§B3＋§A9；
+     `MOVE_SPEC.swarmPierce = { 甲, 探, 抖, stance:'前傾', anchor:'foe' }`。
+
+     ★陰氣禁區的**明文例外**（§E Q6 已裁）★：「禁幾何規整的圓與方」**這一支的銅錢除外**——
+     `yinyangcoin` 的 GLB 有 `CoinA`／`CoinB` 兩根骨，外圓內方就是它的法寶身分，改形狀＝改法寶。
+     它是全系唯一的規整形，這反而是這一支的辨識點。
+
+     三件（計畫 §3）：
+       **本體動作＝探**：`LArm1Rt`／`LArm1El`／`RArm1Rt`／`RArm1El` 把 `CoinA`／`CoinB` 貼上眼皮，
+         `Brow`／`Crown` 旋亮（`COIL` 兩階 → **完全靜止一拍**）→ 上身前探（`JOLT` 三階）。
+       **道具**＝甲 人身遺物：**銅錢本體放大飛出**（`coin`，外圓內方厚片），
+         **穿過**目標再往前延伸——★這是全系唯一「穿透而過不停留」的道具，所以它不 `st.stick`★；
+         原本那條裸 `st.beam` 白線降級成銅錢自己的**殘影拖尾**（`st.trail` 的 `trail: true`，
+         §A9-3 的拖尾只給打擊類，本招正是打擊類）；＋被穿過那一隻身上留下的**方孔印**。
+       **受招方反應＝抖**：四階離散的高頻小幅。
+
+     ★身分可辨（§A9）★ 施招姿態＝**前傾**（fore）≠ react「抖」（shake）；腳下＝不規則暗斑。
+     ★落點 anchor＝`foe`★：§C3 這一列的招意欄寫「本隊攻擊無視吸收（**打**／穿透）」——
+     畫面上這一招做的事是「一枚銅錢穿過對面那一隻」，所以真值提案＝效果打、對象敵方單一。
+     ★這一列與 `ABILITIES` 的字面不一致（照實記，交裁）★：`ABILITIES.swarmPierce` 是
+     「**本隊**攻擊無視吸收」（我方增益）。窄版（anchor 取 `allies`）會讓銅錢必須落在自己人身上，
+     法寶身分（穿透）就做不出來——那是「無論實作對錯都不可能通過」的那一類。交製作人在 P4 真值表時裁。 */
   swarmPierce(st) {
+    const { W, T0, TL, R0, LAST, RL } = yqBeat(st, 0.90);
+    const C = st.colors;
     const seers = st.actor;
-    const foes = st.target;
+    const seer = seers[0];
+    const prey = yqRoomy(st, st.target, st.target.length ? st.worldOf(st.target[0], 'Chest', _a).y : 0);
+    // k：把銅錢貼上眼皮、雙臂抬起（蓄勢）；spin：銅錢自轉　★係數沿用 0.54★
     const eye = (g, k, spin) => {
       st.shift(g, 'CoinA', 0, 0.055 * k, 0.045 * k); st.shift(g, 'CoinB', 0, 0.055 * k, -0.045 * k);
       st.rot(g, 'CoinA', 0, spin, 0); st.rot(g, 'CoinB', 0, -spin, 0);
@@ -1224,26 +1246,108 @@ const MOVES = {
       st.rot(g, 'Chest', -0.09 * k); st.rot(g, 'Spine', -0.06 * k);
       st.scaleBone(g, 'BasePlate', 1 + 0.12 * k);
     };
-    seers.forEach((g, i) => {
-      st.tween({ ms: 280, delay: i * 45, ease: 'out', update(t, e) { eye(g, e, e * Math.PI * 4); st.rim(g, 1 + 1.0 * e); } });
-      st.tween({ ms: 280, delay: 600 + i * 45, ease: 'inout', update(t, e) { eye(g, 1 - e, Math.PI * 4 + e * Math.PI * 2); st.rim(g, 1 + 1.0 * (1 - e)); } });
-    });
-    st.at(280, () => {
-      seers.forEach((g, i) => {
-        const from = st.worldOf(g, i % 2 ? 'CoinB' : 'CoinA', new THREE.Vector3());
-        const mark = foes.length ? foes[i % foes.length] : null;
-        const aim = mark ? st.worldOf(mark, null, new THREE.Vector3()) : from.clone().addScaledVector(st.dir, 2);
-        const thru = aim.clone().sub(from);
-        const len = thru.length() || 1;
-        const to = from.clone().addScaledVector(thru.multiplyScalar(1 / len), len + 1.35); // 穿過去、不停在對面
-        const ray = st.beam(from, to, { opacity: 0 });
-        st.tween({ ms: 320, delay: i * 50, ease: 'linear', update(t) { ray.material.opacity = 0.95 * Math.sin(Math.PI * t); } });
-        if (mark) st.at(60 + i * 50, () => st.burst(aim, { power: 0.55, n: 26 }));
-      });
-      foes.forEach((f, j) => st.tween({ ms: 300, delay: 40 + j * 35, ease: 'linear', update(t) { st.rim(f, 1 + 1.8 * Math.sin(Math.PI * t)); } }));
-      st.flinch(foes, { delay: 60, stagger: 35, strength: 0.5, burst: false });
-      st.punch(0.28);
-    });
+    const fwd = st.toward(seer, new THREE.Vector3());
+
+    // ── 甲 銅錢：從眼位放大飛出、穿過目標再往前延伸 ──
+    const from = st.worldOf(seer, 'CoinA', new THREE.Vector3()); from.add(st.camOff(0.6));
+    const chest0 = prey ? st.worldOf(prey, 'Chest', new THREE.Vector3()) : from.clone();
+    const to = chest0.clone();
+    const aim = chest0.clone().add(st.camOff(0.6));
+    const land = () => {
+      if (!prey) return;
+      st.worldOf(prey, 'Chest', chest0);
+      to.copy(chest0);
+      st.bodySpot(prey, to);
+      to.lerp(chest0, 0.5); // 往胸口收：仍在佔地裡，衝擊拍那一幀銅錢正**在他身上**（穿過去的那一瞬）
+      to.y = chest0.y;
+      to.add(st.camOff(0.4));
+    };
+    land();
+    const coin = st.paperStamp(st.kind, from, { anchor: 'foe', main: true, role: 'stamp',
+      color: C.key, inkColor: C.ink, opacity: 0, depth: 0.22, warp: 0.10, tiltDeg: 6, yawDeg: -16 });
+    /* ★`yinyangcoin` 是全 27 支裡最矮的施招者之一（`figH` 0.935）★：0.88 倍量出來 §A3 ratio 1.086，
+       明顯超過 2/3 的參考線。收到 0.54 之後 ratio 0.65；掉下去的 P3 面積由飛行段的鏡頭推近補回來
+       （L3 凍在 travel 中點，推近只改螢幕面積、不改世界尺寸）。 */
+    coin.scale.setScalar(st.iconSize * 0.53);
+    // 被穿過那一隻身上留下的方孔印（follow 型：它黏在那一尊身上，不計主道具也不計 landings）
+    let hole = null;
+    if (prey) {
+      hole = st.paperStamp(st.kind, null, { anchor: 'foe', role: 'mark', follow: prey, at: 'chest',
+        off: st.camOff(0.5), color: C.ink, inkColor: C.hot, opacity: 0, depth: 0.18, warp: 0.12, tiltDeg: 8, yawDeg: -18 });
+      hole.scale.setScalar(st.markSize * 0.98); // 同上：0.30×0.98 量出來 ratio 0.66
+    }
+
+    // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
+    st.groundMark(seer, { r: 0.42, rot: 1.5, push: 0.16, peak: 0.66 });
+
+    /* ① 貼眼（windup）：兩階到底 → 完全靜止一拍。 */
+    st.phase('windup');
+    st.tween({ ms: W, ease: 'linear',
+      update(t, e) {
+        const k = COIL(e);
+        st.stance(seer, '前傾', k); // §A9：施招者專屬姿態
+        seers.forEach((g, i) => eye(g, k * (i ? 0.82 : 1), k * Math.PI * 2));
+        seers.forEach((g) => st.rim(g, 1 + 1.0 * k));
+        st.alpha(coin, k >= 1 ? 1 : (k >= 0.72 ? 0.55 : 0));
+        coin.position.copy(from);
+        coin.scale.setScalar(st.iconSize * (0.21 + 0.32 * k));
+      },
+      done() { st.phase('travel'); } });
+
+    /* ② 探（travel）：上身前探把銅錢送出去。三階卡頓，第三階由 `yqFly` 的 `done()` 給。 */
+    st.tween({ ms: TL, delay: T0, ease: 'linear',
+      update(t, e) {
+        const j = JOLT[e < 0.40 ? 0 : 1];
+        seers.forEach((g, i) => eye(g, (1 - 0.3 * j) * (i ? 0.82 : 1), (1 + 2 * j) * Math.PI * 2));
+        st.move(seer, fwd.x * 0.14 * j, 0, fwd.z * 0.14 * j);
+        seers.forEach((g) => st.rim(g, 1.8 + 1.0 * j));
+      },
+      done() { // 第三階：一格到位，與衝擊拍同幀
+        seers.forEach((g, i) => eye(g, 0.7 * (i ? 0.82 : 1), 3 * Math.PI * 2));
+        st.move(seer, fwd.x * 0.14, 0, fwd.z * 0.14);
+        seers.forEach((g) => st.rim(g, 2.8));
+      } });
+
+    /* 銅錢飛出：★`trail: true`★——原本那條裸白線降級成它自己的殘影（§A9-3 的拖尾只給打擊類）。 */
+    yqFly(st, coin, from, aim, to, { T0, TL }, { bow: st.camOff(3.4), rise: 0.16, roll: 0.52, trail: true, color: C.line,
+      pre() { land(); },
+      done() {
+        /* ★衝擊拍：三件同一拍★ ①上身探到底 ②銅錢正穿在那一隻身上 ③那一隻同幀開始抖＋方孔印浮出。 */
+        st.phase('react');
+        st.burst(to, { power: 0.58, n: 28, color: C.hot });
+        st.punch(0.30);
+        if (hole) st.fade(hole, { ms: RL * 0.25, from: 0, to: 0.95, ease: 'linear' });
+        /* ★穿透而過、不停留★：衝擊拍之後銅錢繼續往敵方那一側走（`+st.dir` ⇒ 回流斷言看到的是正值），
+           所以它**不** `st.stick`——這是全系唯一「不留下來」的道具，也是它的區分點。
+           延後 12ms 起跑的理由同前幾支：`sampleAnchors` 的時點寫死在 `react[0]`，
+           同幀就把它移走會讓落點與「銅錢有沒有真的飛到那一隻身上」脫鉤。 */
+        const thru = to.clone().addScaledVector(st.dir, 1.35);
+        st.tween({ ms: RL * 0.55, delay: 12, ease: 'linear', update(t) {
+          const n = Math.min(2, Math.floor(t * 3)); // 穿出去也是三階，沒有 easing
+          coin.position.lerpVectors(to, thru, [0.34, 0.70, 1][n]);
+        } });
+        st.fade(coin, { ms: RL * 0.3, delay: RL * 0.4, from: 1, to: 0, ease: 'linear' });
+      } });
+
+    /* ③ 抖（react）：被穿過那一隻四階離散的高頻小幅（`PHASE_GATE.react` 量 `move`／`scale` delta）。 */
+    const SHAKE = [0.070, -0.058, 0.046, 0];
+    if (prey) {
+      st.tween({ ms: RL, delay: R0, ease: 'linear', update(t) {
+        const n = Math.min(3, Math.floor(t * 4)), a = SHAKE[n];
+        const side = st.stageVec(a, 0, 0, _a);
+        st.move(prey, side.x, 0, side.z);
+        st.rim(prey, 1 + 2.0 * (n < 3 ? 1 : 0));
+      } });
+    }
+
+    /* 收勢：手放下、銅錢歸位。★也是卡頓三階★（§B3 禁平滑補間）。 */
+    const SETTLE = [0.55, 0.22, 0];
+    st.tween({ ms: LAST - R0, delay: R0, ease: 'linear', update(t) {
+      const k = SETTLE[Math.min(2, Math.floor(t * 3))];
+      seers.forEach((g, i) => eye(g, 0.7 * k * (i ? 0.82 : 1), (3 + k) * Math.PI * 2));
+      st.move(seer, fwd.x * 0.14 * k, 0, fwd.z * 0.14 * k);
+      seers.forEach((g) => st.rim(g, 1 + 1.8 * k));
+    } });
   },
 
   /* 過陰咒・恐懼加倍（guoyin，作祟×4）：三拍恐懼倍率 ×2。
@@ -1380,41 +1484,8 @@ export const SHORT = {
   /* 咬手指｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
   eliteVsSwarm: MOVES.eliteVsSwarm,
 
-  /* 陰陽眼｜辨識：銅錢貼上眼位旋亮＋直線穿透過對面身後 */
-  swarmPierce(st) {
-    const K = st.ms / 260;
-    const men = st.byBody(st.actor, 'swarm').length ? st.byBody(st.actor, 'swarm') : st.actor;
-    const lead = men[0];
-    const eyeP = st.worldOf(lead, 'Brow', new THREE.Vector3());
-    const foe = st.target[0] || null;
-    const at = foe ? st.worldOf(foe, null, new THREE.Vector3()) : eyeP.clone().addScaledVector(st.dir, 1.6);
-    const thru = at.clone().addScaledVector(st.dir, 1.35); // 線不停在對面身上，往後多穿 1.35 個身位
-    const rayA = st.beam(eyeP.clone(), thru, { opacity: 0 });
-    const rayB = men[1] ? st.beam(st.worldOf(men[1], 'Brow', new THREE.Vector3()), thru, { opacity: 0 }) : null;
-    men.forEach((g, i) => st.tween({ ms: 88 * K, delay: i * 10 * K, ease: 'out', update(t, e) { // 兩手抬到眼前、銅錢轉兩圈脹大
-      st.rot(g, 'LArm1Rt', -0.75 * e); st.rot(g, 'RArm1Rt', -0.75 * e);
-      st.rot(g, 'LArm1El', -0.55 * e); st.rot(g, 'RArm1El', -0.55 * e);
-      st.rot(g, 'CoinA', 0, Math.PI * 2 * e, 0); st.rot(g, 'CoinB', 0, -Math.PI * 2 * e, 0);
-      st.scaleBone(g, 'CoinA', 1 + 0.4 * e); st.scaleBone(g, 'CoinB', 1 + 0.4 * e);
-      st.rim(g, 1 + 1 * e);
-    } }));
-    st.fade(rayA, { ms: 86 * K, delay: 88 * K, from: 0.95, to: 0 }); // 穿透
-    if (rayB) st.fade(rayB, { ms: 86 * K, delay: 100 * K, from: 0.95, to: 0 });
-    if (foe) {
-      st.tween({ ms: 60 * K, delay: 100 * K, ease: 'pulse', update(t, e) { st.rim(foe, 1 + 2.4 * e); },
-        done() { st.burst(at, { power: 0.7, n: 32 }); st.punch(0.35); } });
-      st.flinch([foe], { delay: 104 * K, strength: 0.9, burst: false });
-    }
-    st.tween({ ms: 64 * K, delay: 164 * K, ease: 'inout', update(t, e) { // 手放下、銅錢再轉一圈歸位
-      const k = 1 - e;
-      men.forEach((g) => {
-        st.rot(g, 'LArm1Rt', -0.75 * k); st.rot(g, 'RArm1Rt', -0.75 * k);
-        st.rot(g, 'LArm1El', -0.55 * k); st.rot(g, 'RArm1El', -0.55 * k);
-        st.rot(g, 'CoinA', 0, Math.PI * 2 * k + Math.PI * e, 0); st.rot(g, 'CoinB', 0, -Math.PI * 2 * k - Math.PI * e, 0);
-        st.scaleBone(g, 'CoinA', 1 + 0.4 * k); st.scaleBone(g, 'CoinB', 1 + 0.4 * k); st.rim(g, 1 + 1 * k);
-      });
-    } });
-  },
+  /* 陰陽眼｜tier 1 短版 = 完整版**同一支函式**（v0.55，時間軸由 st.beat 換算） */
+  swarmPierce: MOVES.swarmPierce,
 
   /* 恐懼加倍｜辨識：虛影從本尊分離抬起＋兩圈暗環一前一後推出 */
   hauntFearX2(st) {

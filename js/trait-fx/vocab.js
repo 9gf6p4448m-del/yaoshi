@@ -354,7 +354,9 @@ export const MOVE_SPEC = {
   hauntSwap: { prop: '乙', act: '甩', react: '被拖', stance: '舉臂', anchor: 'foe' }, // 粗濕繩；對面被拖、本方沉沒
   // 長爪高舉＝舉臂（up）≠ react 抖（shake）；anchor＝foes：「打**群體目標**額外 +2」⇒ 打／敵方多個
   eliteVsSwarm: { prop: '甲', act: '探', react: '抖', stance: '舉臂', anchor: 'foes' }, // 爪片（盲讀標竿，動作不動）；§C「退」正規化成抖
-  swarmPierce: { prop: '甲', act: '探', react: '抖' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
+  // 上身前探＝前傾（fore）≠ react 抖（shake）；anchor＝foe：畫面上這一招做的是「銅錢穿過對面那一隻」
+  // ★與 ABILITIES 的字面不一致（「本隊攻擊無視吸收」是我方增益），交 P4 真值表時裁；理由見 yinqi.js 該支檔頭
+  swarmPierce: { prop: '甲', act: '探', react: '抖', stance: '前傾', anchor: 'foe' }, // 銅錢外圓內方（Q6 明文例外）；穿透而過
   hauntFearX2: { prop: '丙', act: '滯', react: '壓' }, // 虛影片＋腳下暗斑；群體縮
   swarmFeed1: { prop: '丙', act: '吸', react: '被拖' }, // 小甕複本被吸進甕口；§C「升」取同列的「被拖」
 };
