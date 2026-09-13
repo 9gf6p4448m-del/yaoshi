@@ -383,6 +383,17 @@ t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各�
   /* ★覆審 r3 R-1★：`cover` 有兩個入口（實體落點與 follow 印記），文件要寫出**兩個都要在場**，
      不然下一輪只會照著文件補一半的防線（那正是 R-1 的成因）。 */
   if (!sec.includes('follow-gone')) throw new Error('語彙檔 §A9-5 沒有寫出 follow 印記不在場的處置（覆審 r3 R-1）');
+  /* ★覆審 r4 HIGH-1★：「衝擊拍之後不得回流我方」是這一輪新加的判準，
+     而它的病因是**基底挑錯**（`cross(camDir, UP)` 在對決機位下＝對決軸本身）。
+     兩件都要釘在文件上：判準本身、以及「橫向要用 `st.sideDir`」這句話——
+     下一批鋪招的人只會照文件寫，文件沒寫就會再踩一次。 */
+  const flow = src.slice(src.indexOf('#### A9-6'), src.indexOf('#### A9-4'));
+  if (!flow || flow.length < 200) throw new Error('語彙檔缺 §A9-6（打擊類招衝擊拍之後不得回流，覆審 r4 HIGH-1）');
+  if (!flow.includes('st.sideDir')) throw new Error('語彙檔 §A9-6 沒有寫出橫向要用 `st.sideDir`');
+  if (!flow.includes('cross(camDir, UP)')) throw new Error('語彙檔 §A9-6 沒有寫出「不要用 cross(camDir, UP) 當畫面左右」的病因');
+  ['hurtSet', 'attMain', 'hurtCover'].forEach((k) => {
+    if (!sec.includes(k)) throw new Error(`語彙檔 §A9-5 沒有寫出 foe 綁受擊反應的欄位「${k}」（覆審 r4 MEDIUM-1）`);
+  });
   ['`allies`＝', '`ally`＝', '`foes`＝'].forEach((k) => {
     if (!sec.includes(k)) throw new Error(`語彙檔 §A9-5 沒有寫出逐尊覆蓋的語意「${k}」（覆審 r2 的繞法 i）`);
   });

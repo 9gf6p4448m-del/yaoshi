@@ -27,6 +27,7 @@
 //   而 traitfx-drive 的三格截圖點是它自己那一套（0.54 的 20%／45%／75%），兩者不共用。
 import { spawn } from 'node:child_process';
 import { mateQuery } from './fx-mate.mjs';
+import { assertKnownFlags } from './fx-cli.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -57,13 +58,8 @@ const GAPV = (() => {
      危險的效果是「旗標打錯 ⇒ 產出的材料規格與操作者以為的不同」，所以改成**白名單**：
      凡是本支不認得的 `--xxx` 一律當場 throw。分母＝這一支真的吃的旗標，就是下面這一張表。 */
   const KNOWN = ['only', 'tiers', 'seed', 'camdist', 'mategap', 'count', 'foe', 'mate', 'port', 'label', 'dt', 'fxvocab', 'proto'];
-  const unknown = process.argv.slice(2).filter((x) => x.startsWith('--'))
-    .map((x) => x.replace(/^--/, '').split('=')[0].toLowerCase())
-    .filter((k) => KNOWN.indexOf(k) < 0);
-  if (unknown.length) {
-    throw new Error(`不認得的旗標 --${unknown.join('／--')}——這一支只認 ${KNOWN.map((k) => '--' + k).join(' ')}；`
-      + '打錯會靜默產出不同規格的材料，所以一律當場停（覆審 r2 L4）。');
-  }
+  // 守衛本體搬到 tests/tools/fx-cli.mjs（覆審 r4 MEDIUM-3：drive 也要同一道，兩份會分岔）
+  assertKnownFlags(process.argv.slice(2), KNOWN, 'blindread-sheet');
   const v = process.argv.find((x) => /^--mategap=/i.test(x));
   return v ? v.slice(v.indexOf('=') + 1) : '';
 })();

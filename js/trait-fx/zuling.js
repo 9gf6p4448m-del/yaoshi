@@ -732,6 +732,12 @@ const MOVES = {
       done() {
         /* ★衝擊拍★：翼撐滿＝雷片落到那一隻頭上＝那一隻同幀被壓下（三件同一拍，§A2） */
         st.phase('react');
+        /* ★主道具收進**被燒的那一尊**自己的佔地（覆審 r4 MEDIUM-1 連帶抓到）★
+           `head` 一路跟著火球再加 `camOff(1.2)`；在 P4 材料的敵方名單下（raincoat／nail 兩尊、
+           站位與治具預設不同）那一推把它推進**另一尊**的佔地裡——`att` 歸屬到不是被燒的那一隻，
+           而 `st.flinch` 退的仍是被燒的那一隻 ⇒ 新的 `hurtHit` 判紅（實測材料站位 29/30）。
+           在這一幀用當下的站位重挑一次（`st.bodySpot` 只動 xz，火仍在牠身上）。 */
+        if (prey) st.bodySpot(prey, head.position);
         st.burst(to, { power: 0.95, n: 58, color: C.hot });
         st.punch(0.44);
       } });
@@ -926,7 +932,7 @@ const MOVES = {
        r1 只把距離收短（-0.30），**方向仍是 `-st.dir`＝往我方**——
        「東西從對手身上往我方回來」就是偷取的那個動作（第 2 輪 6/18 讀成偷取）。
        改成往**畫面左右**彈開、再往敵方深處帶一點：整段軌跡沒有任何一格朝我方。 */
-    const sideT = new THREE.Vector3(-st.camDir.z, 0, st.camDir.x).normalize();
+    const sideT = st.sideDir; // 與對決軸垂直（覆審 r4 HIGH-1：改前這一條與 st.dir 平行，0.34 全變成「朝我方」）
     const back = to.clone().addScaledVector(sideT, 0.34).addScaledVector(st.dir, 0.16).add(st.camOff(1.2));
     back.y = st.tableY + 0.12;
 

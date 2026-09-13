@@ -287,7 +287,7 @@ const MOVES = {
        原本寫的是世界 ±Z，那是 H1 同一個病（世界常數在西東對局會變成別的方向）。
        改用 `st.camDir` 叉乘世界 Y ＝**畫面的左右方向**（與 `js/duel-figures.js:684` 的 `tmpRight` 同一條）。 */
     if (pts.length < 2) {
-      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.55);
+      const side = st.sideDir.clone().multiplyScalar(0.55); // 與對決軸垂直（覆審 r4 HIGH-1：cross(camDir,UP) 在對決機位下就是對決軸本身）
       head.sub(side); tail.add(side);
     }
     head.y += 0.42; tail.y += 0.42;
@@ -429,7 +429,7 @@ const MOVES = {
     const from = pts[0].clone(), to = pts[pts.length - 1].clone();
     /* 同上（覆審 r2 N2）：本方只有一尊時撐出掃過的兩端，方向取**畫面左右**而不是世界 ±Z。 */
     if (pts.length < 2) {
-      const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize().multiplyScalar(0.62);
+      const side = st.sideDir.clone().multiplyScalar(0.62); // 同上（覆審 r4 HIGH-1）
       from.sub(side); to.add(side);
     }
     const rise = from.clone(); rise.y += 1.30; // 升起段＝travel 的位移來源（不跨中線）
@@ -1183,13 +1183,13 @@ const MOVES = {
     shard.obj.position.copy(land);
     const _es = new THREE.Euler();
     const shardTo = [];
-    const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize(); // 畫面左右（與王爺劍同一條）
+    const side = st.sideDir; // 與對決軸**垂直**的橫向（覆審 r4 HIGH-1：改前用 cross(camDir,UP)＝對決軸本身）
     /* ★不得有任何一片往我方飛（P4 第 3 輪回修 (c)）★
        碎片原本是全向亂灑（±0.45），其中有幾片會往施招者那一側飛——
        在這套語彙裡「東西從對手身上回到我方」就是**偷取**（第 2 輪 7/18 讀成偷取）。
        把散開方向壓成「遠離施招者」的半平面：與 `st.dir`（我→敵）同向的分量一律 ≥0。 */
     for (let i = 0; i < SHARDS; i++) {
-      const lat = (st.rnd() - 0.5) * 0.9;          // 畫面左右：不分我方敵方，隨便散
+      const lat = (st.rnd() - 0.5) * 0.9;          // 橫向：在 st.dir 上的投影恆為 0，散多遠都不回流
       const fwd = 0.10 + 0.55 * st.rnd();          // 往敵方深處：一律正值
       shardTo.push({ x: lat * side.x + fwd * st.dir.x, y: 0.18 + 0.42 * st.rnd(),
         z: lat * side.z + fwd * st.dir.z, rz: st.rnd() * 3, ry: Math.PI * 0.5 + st.rnd() });
