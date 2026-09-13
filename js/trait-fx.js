@@ -1804,8 +1804,63 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
         grp.userData.fxParts = [mBody, mFace];
         return st.spawn(grp, 'floor:pillar');
       },
+      /** ★陰氣腳下不規則暗斑／水漬（語彙檔 §A8 指定的新積木；§B3 的腳下語彙）★
+       *  §B3 的形狀語彙是「**邊緣不規則、末端下垂**」，禁區是「幾何規整的圓與方」——
+       *  所以它不能是 `st.ring`／`st.disc` 那種 `RingGeometry`／`CircleGeometry`
+       *  （那兩支已限縮成香火的「陣」，`DEPRECATED` 有案）。
+       *
+       *  做法：**半徑輪廓寫死成一張表**（`LOBE`，16 個 0.58–1.34 的倍率）＋兩塊偏心的小斑，
+       *  三塊外框合成**一個** `ShapeGeometry`（`ShapeGeometry` 吃 shape 陣列 ⇒ 不論幾塊都只一個 draw call），
+       *  同一張表往內縮一個定寬再合成第二個 ⇒ 露出來的那一圈就是 §B3 要的 **`ink` 外描邊**。
+       *  ★輪廓寫死成表、不吃 `st.rnd`★：吃亂數的話同一支招每次跑形狀都不同，
+       *  P3 的 A/B 差圖與 sheet 就失去可重複性；要變化給 `o.rot` 轉它。
+       *
+       *  ★為什麼本體是 `line`（苔綠）而不是 `key`（冷屍白青）★：
+       *  ① 語彙要的是「暗斑」——`key #bdf0dc` 的相對亮度 0.88 在桌面 `#6b3418`（0.24）上是**亮斑**；
+       *  ② `BLOOM.threshold` 是 0.7，`key` 越得過去、`line #6fae90`（0.58）越不過去
+       *     ⇒ 用 `line` 才守得住 §A4「不越 bloom」那條（越過去就往白色去、系色活不下來）。
+       *  兩層都走 `MAT_SOLID`（平塗硬邊、`NormalBlending`），不是加色材質。
+       *
+       *  `pos`＝貼桌位置（只取 xz，y 由 `TFX.tableY` 決定）；
+       *  `o = { r 主斑半徑, w 描邊寬, color 本體色, inkColor 描邊色, opacity, rot 平面內旋轉（弧度） }`。 */
+      stain(pos, o = {}) {
+        const r = Math.max(0.05, o.r === undefined ? 0.40 : o.r);
+        const w = o.w === undefined ? 0.052 : o.w;
+        const op = o.opacity === undefined ? 1 : o.opacity;
+        /* 邊緣不規則：16 個半徑倍率。1.34／1.26／1.12 那三處是**往外拖的那幾道**（末端下垂的平面版），
+           0.58／0.61／0.63 是被吸掉的凹口——規整圓的倍率表是「全部 1.00」，這張表刻意不是。 */
+        const LOBE = [1.00, 0.72, 0.86, 1.26, 0.63, 0.81, 1.12, 0.58, 0.95, 1.34, 0.69, 0.88, 0.74, 1.05, 0.61, 0.83];
+        /** 一塊斑的外框：`cx/cy` 是平面內的中心（已乘 r）、`rad` 半徑、`inset` 往內縮多少、`ph` 換一組相位（免得三塊長一樣）。 */
+        const blob = (cx, cy, rad, inset, ph) => {
+          const pts = [];
+          for (let i = 0; i < LOBE.length; i++) {
+            const a = (i / LOBE.length) * Math.PI * 2;
+            const rr = Math.max(rad * 0.20, rad * LOBE[(i + ph) % LOBE.length] - inset);
+            pts.push(new THREE.Vector2(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr));
+          }
+          return new THREE.Shape(pts);
+        };
+        // 主斑＋兩塊濺出去的小斑（「不規則暗斑」是複數；一塊圓的就回到被退役的 disc 了）
+        const parts = [[0, 0, r, 0], [r * 1.16, r * 0.34, r * 0.30, 5], [-r * 0.86, -r * 0.72, r * 0.22, 11]];
+        const mk = (inset) => new THREE.ShapeGeometry(parts.map((p) => blob(p[0], p[1], p[2], inset * (p[2] / r), p[3])));
+        const mEdge = new THREE.Mesh(mk(0), MAT_SOLID.clone());
+        mEdge.material.color.setHex(o.inkColor === undefined ? st.colors.ink : o.inkColor);
+        mEdge.material.opacity = op;
+        const mBody = new THREE.Mesh(mk(w), MAT_SOLID.clone());
+        mBody.material.color.setHex(o.color === undefined ? st.colors.line : o.color);
+        mBody.material.opacity = op;
+        mEdge.position.z = -0.0012; // 兩片都躺平之後這一軸就是「離桌面多高」：描邊在下、本體在上
+        const grp = new THREE.Group();
+        grp.add(mEdge, mBody); // 先加描邊、後加本體 ⇒ depthWrite:false 之下本體畫在描邊之上
+        BLOCK_MADE.add(mEdge); BLOCK_MADE.add(mBody); // 不是徽記剪影，場景掃描放行（同 st.pillar）
+        grp.position.set(pos.x, TFX.tableY + 0.005, pos.z);
+        grp.rotation.x = -Math.PI / 2; // 貼桌
+        grp.rotation.z = o.rot === undefined ? 0 : o.rot; // 平面內轉（Euler XYZ ⇒ 先轉 z 再躺平）
+        grp.userData.fxParts = [mEdge, mBody];
+        return st.spawn(grp, 'floor:stain');
+      },
       /** ★腳下系別光語彙（語彙檔 §A9 第 1 條）★：把「這一尊是施招者」畫在他腳下。
-       *  分派由 `vocab.js` 的 `FAC_GROUND` 決定（祖靈＝光柱／香火＝貼桌環／陰氣＝暗斑，尚未實作）。
+       *  分派由 `vocab.js` 的 `FAC_GROUND` 決定（祖靈＝光柱／香火＝貼桌環／陰氣＝不規則暗斑）。
        *
        *  ★「蓄勢就亮、衝擊拍熄」是由建構上成立的★：亮滅的時間軸寫在這支積木裡，
        *  `st.beat` 的 windup 段淡入、travel 段末（＝`react[0]`＝衝擊拍）歸零。
@@ -1817,11 +1872,15 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  沒有守衛——要用就自己確認 `run.vt` 還是 0。
        *
        *  `fig`＝施招者（位置參數，必填）；
-       *  `o = { r 環半徑, h 柱高, w 柱寬, taper 柱的上窄比, push 柱往鏡頭挪多少, peak 亮度峰值 }`。 */
+       *  `o = { r 環半徑／暗斑半徑, h 柱高, w 柱寬, taper 柱的上窄比, push 往鏡頭挪多少, rot 暗斑平面內旋轉, peak 亮度峰值 }`。 */
       groundMark(fig, o = {}) {
         const kind = FAC_GROUND[det.fac];
         if (!kind) throw new Error(`st.groundMark：系別 ${det.fac} 沒有腳下光語彙（見 vocab.js 的 FAC_GROUND）`);
-        if (kind === 'stain') throw new Error('st.groundMark：陰氣的 st.stain 還沒有積木（語彙檔 §A8 列為陰氣批的前置），不給靜默退路');
+        /* ★不給靜默退路★：`FAC_GROUND` 加了新語彙卻沒有對應的積木時當場 throw
+           （2026-09-13 之前 `stain` 就是這一態；陰氣批補上積木之後改成這張白名單）。 */
+        if (kind !== 'pillar' && kind !== 'ring' && kind !== 'stain') {
+          throw new Error(`st.groundMark：腳下光語彙「${kind}」還沒有積木（見 vocab.js 的 FAC_GROUND 與語彙檔 §A8）`);
+        }
         if (!fig) return null;
         /* ★與 `st.stance` 同樣的三條約束（覆審 H1）★：腳下光是「身分訊號的另一半」，
            點錯人比沒點更糟——它會**指認錯的施招者**。改前這支一條檢查都沒有：
@@ -1848,6 +1907,12 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
              仍然在這一尊腳邊、讀得出是「他腳下的東西」。 */
           p.addScaledVector(st.camDir, o.push === undefined ? 0.34 : o.push);
           mesh = st.pillar(p, o.h === undefined ? 1.05 : o.h, { color: st.colors.key, inkColor: st.colors.ink, opacity: 0, w: o.w, taper: o.taper });
+        }
+        else if (kind === 'stain') {
+          /* 暗斑是**平的**，本體遮不掉它的前半（柱是立起來的，才要挪 0.34），所以往鏡頭只挪一小段，
+             讓它仍然壓在腳底下、讀得出是「他腳下的東西」。色票走 `line`（苔綠）＋`ink` 外描邊，見 `st.stain`。 */
+          p.addScaledVector(st.camDir, o.push === undefined ? 0.14 : o.push);
+          mesh = st.stain(p, { r: o.r === undefined ? 0.42 : o.r, color: st.colors.line, inkColor: st.colors.ink, opacity: 0, rot: o.rot });
         }
         else mesh = st.ring(p, o.r === undefined ? 0.34 : o.r, 0.055, { color: st.colors.key, opacity: 0 });
         const B = st.beat;

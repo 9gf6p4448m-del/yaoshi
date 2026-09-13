@@ -244,7 +244,8 @@ export const STANCE_GATE = { minPeak: 0.12 };
 
 /** 三系的腳下光語彙（ART_BIBLE §10.1／語彙檔 §B）。`st.groundMark()` 照這張表分派，
  *  而且**由建構上**做到「蓄勢就亮、衝擊拍熄」——亮滅的時間軸寫在積木裡，編舞改不到。
- *  陰氣的 `stain` 還沒有積木（陰氣批才做），分派到它時 `st.groundMark` 會當場 throw，不給靜默退路。 */
+ *  ★2026-09-13 陰氣批階段 A★：`stain`（不規則暗斑／水漬）的積木已補上（`js/trait-fx.js` 的 `st.stain`）。
+ *  這張表加了新語彙卻沒有對應積木時，`st.groundMark` 仍會當場 throw，不給靜默退路。 */
 export const FAC_GROUND = { zuling: 'pillar', xianghuo: 'ring', yinqi: 'stain' };
 
 /** ★道具落點 anchor（2026-09-13 祖靈批階段 B，階段 A 簽字裁定①）★
