@@ -136,7 +136,10 @@ async function perfSample(browser, url) {
     if (!reached) throw new Error('沒走到第 1 夜出價頁（量測前提不成立，不得靜默放行）：' + url);
     await page.evaluate(`(async () => { const t=window.__yaoshi3d&&window.__yaoshi3d.tray; if(t&&t.loaded) await t.loaded(); })()`);
     await page.waitForTimeout(1100); // 等鏡頭補間與燈籠閃爍穩定
-    const m = await page.evaluate(async () => {
+    /* ★描邊只掛 hover 那一件之後，「預設」有兩個狀態，兩個都要量★（2026-09-13 裁定）：
+       沒有 hover（玩家手不在托盤上）＝最省；hover 中＝**最壞情況**，閘門要看的是它。
+       只量沒 hover 的那一個會讓「描邊多貴」整個從帳上消失——那是把判準搬淺。 */
+    const measure = async () => page.evaluate(async () => {
       const Y3 = window.__yaoshi3d; const info = Y3.renderer.info;
       const f0 = info.render.frame; const ts = performance.now();
       await new Promise((r) => setTimeout(r, 1500));
@@ -185,6 +188,22 @@ async function perfSample(browser, url) {
         hollow: !!(document.getElementById('felt') || {}).classList && document.getElementById('felt').classList.contains('hollow'),
       };
     });
+    const m = await measure();
+    /* hover 中（最壞情況）：用產品自己的 setHover，不是直接去翻 shell 的 visible——
+       翻旗標等於繞過被測的那條路（`02 §6.1` 第 3 條：不得 mock 掉勝負手）。
+       ★四格逐一 hover、取三角形最多的那一格★：外殼數是逐尊不同的（實測 7～18 顆），
+       只 hover 槽 0 量到的是**最省的那一格**，那不是最壞情況。 */
+    let worst = null;
+    for (let i = 0; i < 4; i++) {
+      const got = await page.evaluate(`(() => { const t=window.__yaoshi3d.tray;
+        if (t && t.setHover) { t.setHover(${i}); return t.hover(); } return -1; })()`);
+      await page.waitForTimeout(400);
+      const r = await measure();
+      r.hoverSlot = got;
+      if (!worst || r.tris > worst.tris) worst = r;
+    }
+    m.onHover = worst;
+    await page.evaluate(`(() => { const t=window.__yaoshi3d.tray; if (t && t.setHover) t.setHover(-1); })()`);
     m.errors = errs;
     return m;
   } finally { await ctx.close(); }
@@ -222,6 +241,17 @@ async function perfMain() {
         rendersPerSecAll: S.map((x) => x.rendersPerSec),
         callsAll: S.map((x) => x.calls),
         budget: S[S.length - 1].budget,
+        /* hover 中＝最壞情況（描邊掛在那一件上）。閘門看的是這一組。 */
+        onHover: {
+          callsPerFrame: median(S.map((x) => x.onHover.calls)),
+          trianglesPerFrame: median(S.map((x) => x.onHover.tris)),
+          passesPerFrame: median(S.map((x) => x.onHover.passes)),
+          rendersPerSecMedian: median(S.map((x) => x.onHover.rendersPerSec)),
+          rendersPerSecAll: S.map((x) => x.onHover.rendersPerSec),
+          hoverSlot: S[S.length - 1].onHover.hoverSlot,
+          outlines: S[S.length - 1].onHover.items ? S[S.length - 1].onHover.items.map((i) => i.outlines) : null,
+          budget: S[S.length - 1].onHover.budget,
+        },
         geometries: S[S.length - 1].geometries, textures: S[S.length - 1].textures,
         hollow: S[S.length - 1].hollow,
         trayVisible: S[S.length - 1].trayVisible,
@@ -231,9 +261,15 @@ async function perfMain() {
       };
     }
     const base = out['tray3d=0'].rendersPerSecMedian;
+    const pair = (nums) => nums.map((v, i) => +(v / samples['tray3d=0'][i].rendersPerSec).toFixed(4));
     out.ratio = {
-      default: +(out.default.rendersPerSecMedian / base).toFixed(3),
-      lite: +(out['table3d=lite'].rendersPerSecMedian / base).toFixed(3),
+      default: +(out.default.rendersPerSecMedian / base).toFixed(4),
+      defaultOnHover: +(out.default.onHover.rendersPerSecMedian / base).toFixed(4),
+      lite: +(out['table3d=lite'].rendersPerSecMedian / base).toFixed(4),
+      // 逐次配對（同一 run 內的分子÷分母），全距用它看——中位藏不住跨線
+      defaultPaired: pair(out.default.rendersPerSecAll),
+      defaultOnHoverPaired: pair(out.default.onHover.rendersPerSecAll),
+      litePaired: pair(out['table3d=lite'].rendersPerSecAll),
     };
     await browser.close();
     console.log(JSON.stringify({ mode: 'perf', runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out }, null, 1));

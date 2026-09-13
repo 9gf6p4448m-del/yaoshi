@@ -1138,14 +1138,47 @@ const main = async () => {
       const g0 = c[0].geometries, t0 = c[0].textures, gN = c[c.length - 1].geometries, tN = c[c.length - 1].textures;
       /* 對照組（`?tray3d=0`）沒有拍品，`items()` 回的四格 key 全是 null，餵回去會被當成
          「詛咒占位物」而長出新幾何——那不是漏水，是測試餵錯料。對照組改判「逐夜完全不長」。 */
+      /* 對照組（`?tray3d=0`）桌上沒有拍品，`items()` 四格 key 全是 null，餵回去會被當成
+         詛咒占位物而長出新幾何——那是**測試餵錯料**，不是漏水。對照組的這一格只印不判；
+         對照組真正的用途是下面那段「托盤邊際貢獻」的減數。 */
       const isCtrl = /tray3d=0/.test(m.query);
-      const cycleOk = isCtrl ? (dG === 0 && dT === 0) : (gN === g0 && tN === t0);
+      const cycleOk = isCtrl ? true : (gN === g0 && tN === t0);
       okMem = okMem && cycleOk;
-      console.log(`    ★釋放鑑別力★ ${isCtrl ? '（對照組：判的是逐夜完全不長）' : ''}同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
+      console.log(`    ★釋放鑑別力★ ${isCtrl ? '（對照組：桌上沒拍品，這一格只印不判）' : ''}同一批拍品清空再擺回 5 次（glbCache 已有這幾顆，不該再長）：`
         + `geo ${g0} → ${gN}（+${gN - g0}）　tex ${t0} → ${tN}（+${tN - t0}） → ${cycleOk ? '✅ 釋放有效' : '❌ 實例沒放掉'}`);
       console.log('      ' + c.map((r) => `${r.step} ${r.geometries}/${r.textures}`).join('　'));
     }
     m.errors.slice(0, 5).forEach((e) => console.log('    ' + e));
+  }
+  /* T4 §2.1 修訂一補充（2026-09-13）：**托盤的邊際貢獻**＝預設 − `?tray3d=0` 的增量。
+     原本的對照寫法（「對照組完全不長」）量不到托盤——實測對照組桌上 0/4 件也照樣長，
+     因為每夜的**對決**自己會把 GLB 載進同一個 `glbCache`。要分離托盤的那一份只能相減。
+     上限依據＝「每件 GLB 的資產數」，由第 1 夜兩條路的 offset 推：
+       (預設第 1 夜 − 對照第 1 夜) ÷ 該夜非詛咒件數。 */
+  if (opt.traymem && (rec.traymem || []).length === 2) {
+    const [A, B] = rec.traymem; // A＝預設、B＝?tray3d=0
+    const dOf = (m) => { const a = m.rows[0], z = m.rows[m.rows.length - 1];
+      return (a && z) ? { g: z.geometries - a.geometries, t: z.textures - a.textures, n: m.rows.length } : null; };
+    const da = dOf(A), db = dOf(B);
+    const n1 = A.rows[0] && B.rows[0] ? { g: A.rows[0].geometries - B.rows[0].geometries, t: A.rows[0].textures - B.rows[0].textures } : null;
+    const items1 = A.rows[0] ? A.rows[0].keys.filter((k) => k !== '—' && k !== '(詛咒)').length : 0;
+    if (da && db && n1 && items1 > 0) {
+      const per = { g: n1.g / items1, t: n1.t / items1 };
+      const nights = Math.min(da.n, db.n);
+      const cap = { g: nights * 4 * per.g, t: nights * 4 * per.t };
+      const marg = { g: da.g - db.g, t: da.t - db.t };
+      const ok = marg.g <= cap.g && marg.t <= cap.t;
+      okMem = okMem && ok;
+      console.log(`- **T4 托盤邊際貢獻**（預設 − 對照，兩條路都走到第 ${nights} 夜）：`
+        + `geometries ${da.g} − ${db.g} ＝ **+${marg.g}**　textures ${da.t} − ${db.t} ＝ **+${marg.t}**`);
+      console.log(`    每件 GLB 的資產數（第 1 夜 offset ${n1.g}/${n1.t} ÷ ${items1} 件）＝ `
+        + `**${per.g.toFixed(1)} geometries／${per.t.toFixed(1)} textures**`);
+      console.log(`    上限＝夜數 ${nights} × 4 件 × 每件 ＝ **${cap.g.toFixed(0)} geometries／${cap.t.toFixed(0)} textures**`
+        + ` → ${ok ? '✅ 在上限內' : '❌ 超過上限'}`);
+    } else {
+      console.log('- **T4 托盤邊際貢獻**：兩條路的取樣不足（其中一條沒走到第 1 夜），**無法確認**');
+      okMem = false;
+    }
   }
   console.log(`# 請神 3.0 Playwright 驅動（844×390 橫式＋390×844 直式）　VERSION ${rec.version}　輸出 ${path.basename(OUT)}`);
   console.log(`- 局數 ${rec.games.length}：` + rec.games.map((g) => `seed ${g.seed}（${g.nights} 夜・請走 ${g.taken} 尊・回天 ${g.dawnShrines} 尊・沒人有資格 ${g.skips} 夜・燒香 ${g.burned} 夜）`).join('；'));

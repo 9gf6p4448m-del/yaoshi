@@ -31,6 +31,11 @@ export const TRAY = {
   Z: 0.10,
   XS: [-1.35, -0.45, 0.45, 1.35], // CFG.MARKET 恆為 4（index.html:622）
   SCALE: 0.70, // 模型高 ≤1.2（creature-figures NORM.maxH）→ 世界高 ≤0.84 → 螢幕約 98px
+  /* 描邊外殼：**只掛在 hover 的那一件**（製作人 2026-09-13 裁定的視覺取捨）。
+     ★為什麼★：外殼是每顆本體 mesh 複製一份，四件全掛就是 15043 個三角形——占整張牌桌的 43%，
+     而 hover 本來就是「現在看的是這一件」的高亮語意，沒在看的三件不需要陣營描邊。
+     實測：四件全掛 34722 tris／113 calls；只掛 hover 那一件 ~23.4k／~79 calls。
+     `?table3d=lite` 時連 hover 那一件也不掛（＝降級鈕，使用者裁 Q3 丙）。 */
   OUTLINE: true, // ?table3d=lite 時 false（使用者裁 Q3 丙）
   HOVER_SPIN: 0.6, // rad/s
   HOVER_LIFT: 0.06,
@@ -43,10 +48,15 @@ export const TRAY = {
   HIT: { w: 0.62, h: 0.86, d: 0.52, pad: 0.07 },
   /** 四格各自的基準朝向（rad）：往畫面中央微轉，像擺出來給人看的陳列，不是四尊立正。 */
   YAW: [0.20, 0.07, -0.07, -0.20],
-  /** 邊光倍率（setRim 的參數；1＝對決時那一檔）。托盤上的拍品**靜置時就比對決亮一點**——
-   *  桌心只吃得到四盞燈籠的邊光，用對決那一檔的話四尊都是黑剪影（自評 r2）。 */
-  RIM_BASE: 1.3,
-  RIM_HOVER: 2.4,
+  /** 邊光倍率（setRim 的參數；1＝對決時那一檔）。托盤上的拍品**靜置時就比對決亮很多**。
+   *  ★1.3 → 2.9 是描邊改成「只掛 hover 那一件」的配套，不是調亮而已★：
+   *  實測 `r7-n1.png`——把其餘三件的描邊外殼拿掉之後，桌上**四尊全部消失**。
+   *  它們其實都在場（`items()` 回 `visible:true`、17972 個三角形有在畫），
+   *  但紙紮本體在暗紅布上只吃得到四盞燈籠的一點邊光，先前「看得見」靠的**全是那圈描邊外殼**。
+   *  邊光是**本體材質上的 fresnel 項**（`creature-figures.js` 的 `TAIL`），
+   *  拉它 **0 draw call、0 三角形**——正好補回外殼讓出來的那 11k 個三角形。 */
+  RIM_BASE: 2.9,
+  RIM_HOVER: 4.2,
   HOVER_MS: 0.16,
   /** 詛咒品占位：一疊綑起來的舊符紙＋紫黑陰火（ART_BIBLE §4「詛咒＝有作者的惡意、是物不是靈」） */
   /* 詛咒占位（自評 r1 E／F：第一版讀成「紙箱」、陰火是方塊像素）：
@@ -260,6 +270,15 @@ export function createTableTray(scene, camera, opts = {}) {
   const ndc = new THREE.Vector2();
   const tmp = new THREE.Vector3();
 
+  /** 這一格的描邊外殼該不該畫：`?table3d=lite` 一律不畫；否則只有 hover 的那一格畫。
+   *  ★關法是 `visible=false`★——幾何與材質留著（記憶體不變），three 對不可見的物件直接跳過，
+   *  draw call 與三角形就都不算；掛回來是同一顆 mesh，不重建、不重編 shader。 */
+  function applyOutline(s) {
+    if (!s.fig) return;
+    const on = outlineOn && s.i === hover;
+    s.fig.outlines().forEach((sh) => { sh.visible = on; });
+  }
+
   function clearSlot(s) {
     if (s.fig) {
       const f = s.fig;
@@ -317,8 +336,8 @@ export function createTableTray(scene, camera, opts = {}) {
       // ★makeCreatureFigure 的 group.visible 預設是 false★（creature-figures.js:567）——
       // 忘了打開會量到「托盤不用錢」的假綠（凍結檔 T3 假綠清單第 4 條）。
       f.group.visible = true;
-      // 描邊外殼：?table3d=lite 時整尊不掛描邊（使用者裁 Q3 丙的降級鈕）
-      if (!outlineOn) f.outlines().forEach((sh) => { sh.visible = false; });
+      // 描邊外殼：預設只有 hover 的那一件掛（見 TRAY.OUTLINE 的註解）；?table3d=lite 一律不掛
+      applyOutline(s);
       if (f.play) f.play('idle', { fade: 0 });
       const bb = f.bounds();
       if (bb) {
@@ -377,7 +396,11 @@ export function createTableTray(scene, camera, opts = {}) {
     setHover(i) {
       const k = (i >= 0 && i < N) ? i : -1;
       if (k === hover) return;
+      const prev = hover;
       hover = k;
+      // 描邊只跟著 hover 走：舊的那一格卸下、新的那一格掛上（兩格都只是切 visible）
+      if (prev >= 0) applyOutline(slots[prev]);
+      if (k >= 0) applyOutline(slots[k]);
       /* 被看的那一格才醒過來播 idle：整桌四尊都跑 mixer 是純粹浪費（牌桌是玩家 80% 的時間），
          hover 才播既省又是「它注意到你在看」的演出。播過就留著，不另寫停播路徑。 */
       if (k >= 0 && slots[k].fig && !slots[k].played && slots[k].ready) {
