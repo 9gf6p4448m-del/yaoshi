@@ -98,7 +98,38 @@ function yqDeliver(st, from, figs, B, o = {}) {
       const lean = f.group.position.clone().sub(c); lean.y = 0;
       if (lean.lengthSq() > 1e-6) to.add(lean.normalize().multiplyScalar(2.0));
     }
-    st.bodySpot(f, to);
+    /* ★掃描的高度要與判定端的 `sepOf` **同一個**（批末 `--mate=auto --mategap=1.9` 抓到的）★：
+       `sepOf(f)` 用的是那一尊**佔地的垂直中心**，而這裡原本用胸口高度去掃——視錐是 3D 的，
+       兩個高度挑到的點不一樣，於是「引擎說這一尊分得出來（`sep`）、編舞卻挑不到分得出來的點」
+       （實測 `hauntSee` 在那個站位下 `od 0.16 < ANCHOR_MARGIN 0.18` ⇒ `bad=1`）。
+       這正是祖靈批覆審 r3 R-2「兩份掃描不一致」那個坑換一個形狀。
+       對齊之後只改**高度**（anchor 只量水平），讓道具仍然掛在胸口的高度上。 */
+    /** ★「站位上分不出來的那一尊就不送」——決定的時點與引擎量測的時點**同一幀**★
+     *  （批末 `--mate=auto --mategap=1.9` 抓到的）：§A9-5 的逐尊覆蓋只要求 `sep` 的那幾尊，
+     *  但**每一件道具**都要過 `dWant + ANCHOR_MARGIN <= dOther`——送一件給分不出來的那一尊，
+     *  `coverOK` 會綠、`bad` 卻紅（實測 `hauntSee` 在 P4 材料站位下施招者的佔地被同伴整個蓋住、
+     *  離敵方前排只有 0.146）。
+     *  ★不能在 `t=0` 就篩★：姿態會變、佔地跟著變，`t=0` 分不出來的那一尊在衝擊拍可能分得出來
+     *  （實測 `swarmFeed1` 的同伴：篩在 t=0 ⇒ `cover 1/2` 判紅）。所以判斷排在 `pre()`：
+     *  與引擎的 `sepOf` 同一支函式（`st.sep`）、同一幀。分不出來就把這一件藏起來 ⇒
+     *  引擎的「在場五條」判它不在場、**留帳跳過**（副件不判紅），而 `coverNeed` 本來就不含那一尊。 */
+    let shown = true;
+    const clamp = () => {
+      shown = st.sep(f);
+      if (!shown) { st.alpha(m, 0); return; }
+      st.alpha(m, 1);
+      st.worldOf(f, null, to); // 佔地中心＝`sepOf` 掃描用的那個高度
+      st.bodySpot(f, to);
+      st.worldOf(f, o.at || 'Chest', chest0);
+      /* ★再往胸口收一段★：`st.bodySpot` 挑的是佔地的**外角**，而 `attr()`（逐尊覆蓋）另外要求
+         「離那一尊的佔地 ≤ `ANCHOR_MARGIN`」——挑點用的框（`spotScan` 套完當幀 wrap）與量測用的框
+         之間只要差一點，外角就會落在框外（實測 `swarmFeed1` 的同伴 `wd 0.196 > 0.18` ⇒ 不算覆蓋）。
+         往胸口收讓 `dWant` 更小，代價是離同一側的鄰居更近（`attr()` 的第二條要贏過次近的一個邊距）
+         ——兩件事在同一個旋鈕上，所以**逐招給**（`o.pull`），預設不收。 */
+      if (o.pull) to.lerp(chest0, o.pull);
+      to.y = chest0.y;
+    };
+    st.worldOf(f, null, to); st.bodySpot(f, to); to.y = chest0.y; // t=0 的初值；真正的落點在 `pre()` 重挑
     const m = st.paperStamp(st.kind, from, { anchor: o.anchor,
       color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.ink : o.inkColor,
       opacity: 0, depth: o.depth === undefined ? 0.20 : o.depth, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
@@ -107,8 +138,8 @@ function yqDeliver(st, from, figs, B, o = {}) {
     // 淡入一格到位（`e < 0.40` 是 JOLT 第一階的切點，與飛行同一組台階）
     st.tween({ ms: B.TL, delay: B.T0, ease: 'linear', update(t, e) { st.alpha(m, e < 0.40 ? 0 : 1); } });
     yqFly(st, m, from, aim, to, B, { bow: st.camOff(o.bowK === undefined ? 1.4 : o.bowK), rise: o.rise === undefined ? 0.16 : o.rise, roll: o.roll,
-      pre() { st.bodySpot(f, to); },
-      done() { st.stick(m, f, { at: 'chest', off: to.clone().sub(chest0) }); if (o.done) o.done(f, m); } });
+      pre() { clamp(); },
+      done() { if (shown) { st.stick(m, f, { at: 'chest', off: to.clone().sub(chest0) }); if (o.done) o.done(f, m); } } });
     return m;
   });
 }
@@ -683,8 +714,6 @@ const MOVES = {
     const chair = st.paperStamp(st.kind, from, { anchor: 'allies', main: true, role: 'stamp',
       color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.12, tiltDeg: 8, yawDeg: -22 });
     chair.scale.setScalar(st.iconSize * 0.90); // §A3：世界包圍盒 ratio 實測 0.64（figH 1.39），在 2/3 之內
-    // 其餘每一尊我方各收一枚椅印（逐尊覆蓋；不 stagger，全部落在同一個衝擊拍）
-    yqDeliver(st, from, chairs.filter((c) => c !== host), { T0, TL }, { anchor: 'allies', k: 1.3, bowK: 1.2, rise: 0.70, roll: 0 }); // k 1.3＝0.39，與主道具 0.396 同一級（祖靈批 P4 r3 (a)：副件不得比主道具小太多）
 
     // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
     st.groundMark(seer, { r: 0.46, rot: 2.1, push: 0.16, peak: 0.70 });
@@ -714,6 +743,14 @@ const MOVES = {
         chairs.forEach((c, i) => { rock(c, 0); lift(c, i ? 0.78 : 1); });
         chairs.forEach((c) => st.rim(c, 2.3));
       } });
+
+    /* ★`yqDeliver` 要排在本體 tween **之後**（批末 `--mate=auto --mategap=1.9` 抓到的）★：
+       tween 依註冊順序跑，衝擊拍那一幀本體的 `done()` 會把姿態寫到底、佔地跟著變；
+       排在前面的話 `clamp()` 掃到的是**上一個姿態**的佔地，而 `sampleAnchors` 量的是變完之後的
+       （實測椅印落在施招者身上時 `wd 0.024／od 0.146` ⇒ `bad=1`）。同一個坑在階段 A 的
+       「挑點時虎壓在獵物上」也踩過一次。
+       其餘每一尊我方各收一枚椅印（逐尊覆蓋；不 stagger，全部落在同一個衝擊拍）。 */
+    yqDeliver(st, from, chairs.filter((c) => c !== host), { T0, TL }, { anchor: 'allies', k: 1.3, bowK: 1.2, rise: 0.70, roll: 0 }); // k 1.3＝0.39，與主道具 0.396 同一級（祖靈批 P4 r3 (a)：副件不得比主道具小太多）
 
     /* `roll: 0`＝椅子**不翻滾**（看圖第 1 輪：轉起來的椅子剪影讀成一個「ㄈ」，不是家具）。 */
     yqFly(st, chair, from, aim, to, { T0, TL }, { bow: st.camOff(1.6), rise: 0.80, roll: 0,
@@ -809,8 +846,6 @@ const MOVES = {
     const drop = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
       color: C.key, inkColor: C.ink, opacity: 0, depth: 0.20, warp: 0.16, tiltDeg: 10, yawDeg: -18 });
     drop.scale.setScalar(st.iconSize * 0.90);
-    // 其餘敵方各一滴（`foes` 要求至少兩尊被決定性地碰到）
-    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.5 });
 
     /* 六顆小雨滴＝同一片天落下的群體道具（1 個 draw call）。
        ★逐實例位移走 `st.stageVec`，`z` 夾在 ≥0★：本招是打擊類（`anchor: 'foes'`），
@@ -861,6 +896,12 @@ const MOVES = {
       done() { // 第三階：一格到位，與衝擊拍同幀
         coats.forEach((c, i) => { const d = step[i]; st.move(c, d.x * 0.20, 0, d.z * 0.20); st.rim(c, 2.6); });
       } });
+
+    /* ★`yqDeliver` 排在本體 tween **之後**★：tween 依註冊順序跑，衝擊拍那一幀本體的 `done()`
+       會把姿態寫到底、佔地跟著變；排在前面的話 `clamp()` 掃到的是**上一個姿態**的佔地，
+       而 `sampleAnchors` 量的是變完之後的（同階段 A「挑點時虎壓在獵物上」那個坑）。 */
+    // 其餘敵方各一滴（`foes` 要求至少兩尊被決定性地碰到）
+    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.5 });
 
     yqFly(st, drop, from, aim, to, { T0, TL }, { bow: st.camOff(1.6), rise: 0.30, roll: 0,
       pre() { land(); },
@@ -1130,8 +1171,6 @@ const MOVES = {
     const claw = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
       color: C.key, inkColor: C.ink, opacity: 0, depth: 0.24, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
     claw.scale.setScalar(st.iconSize * 0.86);
-    // 其餘敵方各留一道爪痕（`foes` 要求至少兩尊被決定性地碰到）
-    yqDeliver(st, from, list.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.2 });
 
     // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
     st.groundMark(gran, { r: 0.50, rot: 0.9, push: 0.16, peak: 0.68 });
@@ -1163,6 +1202,12 @@ const MOVES = {
         st.move(gran, fwd.x * 0.20, 0, fwd.z * 0.20);
         st.rim(gran, 3.0);
       } });
+
+    /* ★`yqDeliver` 排在本體 tween **之後**★：tween 依註冊順序跑，衝擊拍那一幀本體的 `done()`
+       會把姿態寫到底、佔地跟著變；排在前面的話 `clamp()` 掃到的是**上一個姿態**的佔地，
+       而 `sampleAnchors` 量的是變完之後的（同階段 A「挑點時虎壓在獵物上」那個坑）。 */
+    // 其餘敵方各留一道爪痕（`foes` 要求至少兩尊被決定性地碰到）
+    yqDeliver(st, from, list.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.4, bowK: 1.2, rise: 0.2 });
 
     /* 爪片掃過整排：★這一件走陰氣的三階卡頓★（本體照標竿原樣，道具照 §B3）。 */
     yqFly(st, claw, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.28, roll: 0.30,
@@ -1416,7 +1461,6 @@ const MOVES = {
     const shard = st.paperStamp(st.kind, from, { anchor: 'foes', main: true, role: 'stamp',
       color: C.key, inkColor: C.ink, opacity: 0, depth: 0.20, warp: 0.18, tiltDeg: 12, yawDeg: -24 });
     shard.scale.setScalar(st.iconSize * 0.68); // 同上：0.88 倍 ratio 0.862 → 0.68 倍 ratio 0.666 以內
-    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.05, bowK: 1.2, rise: 0.2 });
 
     // 腳下不規則暗斑：蓄勢就亮、衝擊拍熄（亮滅的時間軸寫在積木裡）
     st.groundMark(caster, { r: 0.48, rot: 0.2, push: 0.16, peak: 0.70 });
@@ -1446,6 +1490,11 @@ const MOVES = {
         casters.forEach((g, i) => shadeOf(g, i ? 0.8 : 1));
         casters.forEach((g) => st.rim(g, 2.6));
       } });
+
+    /* ★`yqDeliver` 排在本體 tween **之後**★：tween 依註冊順序跑，衝擊拍那一幀本體的 `done()`
+       會把姿態寫到底、佔地跟著變；排在前面的話 `clamp()` 掃到的是**上一個姿態**的佔地，
+       而 `sampleAnchors` 量的是變完之後的（同階段 A「挑點時虎壓在獵物上」那個坑）。 */
+    yqDeliver(st, from, foes.filter((f) => f !== prey).slice(0, 2), { T0, TL }, { anchor: 'foes', k: 1.05, bowK: 1.2, rise: 0.2 });
 
     yqFly(st, shard, from, aim, to, { T0, TL }, { bow: st.camOff(1.8), rise: 0.26, roll: 0.36,
       pre() { land(); },
@@ -1618,7 +1667,7 @@ const MOVES = {
       } });
     /* 衝擊拍之後甕口把**飽食的魂片**送到本方每一尊身上（逐尊覆蓋；`allies` 含施招者，
        主甕已經落在他身上，所以這裡只送其餘那幾尊）。 */
-    yqDeliver(st, lip0.clone().add(st.camOff(0.6)), mates, { T0, TL }, { anchor: 'allies', k: 0.95, bowK: 1.2, rise: 0.35 });
+    yqDeliver(st, lip0.clone().add(st.camOff(0.6)), mates, { T0, TL }, { anchor: 'allies', k: 0.95, bowK: 1.2, rise: 0.35, pull: 0.4 }); // pull：甕身在衝擊拍脹到 1.35 倍，佔地的外角會落到框外（實測 wd 0.196 > 0.18）
 
     /* ③ 被拖／升（react）：被吸那一隻往甕口四階離散地被拖；本方全體同幀上抬＋邊光亮。 */
     const DRAG = [0.10, 0.21, 0.16, 0];

@@ -802,6 +802,20 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
     for (let o = obj; o; o = o.parent) { if (o.visible === false) return false; }
     return true;
   }
+  /** ★「這一尊站位上分得出來嗎」——判定端（`sampleAnchors` 的逐尊覆蓋）與編舞端（`st.sep`）**同一支**★
+   *  （2026-09-13 陰氣批階段 B；`02 §6.1` 第 7 條的收斂：分母歸一）。
+   *  ★為什麼要開給編舞★：`allies` 的逐尊覆蓋只要求「站位上分得出來」的那幾尊，但**每一件道具**
+   *  都要過 `dWant + ANCHOR_MARGIN <= dOther`。送一件給分不出來的那一尊 ⇒ `coverOK` 綠、`bad` 紅。
+   *  編舞要能先問這個問題，而問的必須是**判定端同一個判準**——抄一份 `0.18` 進編舞就是第二份來源，
+   *  那正是祖靈批覆審 r3 R-2「兩份掃描不一致」那個坑換一個形狀。
+   *  `y` 不給時用那一尊佔地的垂直中心（視錐是 3D 的，高度會換答案）。 */
+  function figSep(run, f, y) {
+    if (!f || !f.group) return false;
+    if (run.actorSet.size + run.targetSet.size <= 1) return true;
+    const b = figBoxOf(f);
+    const r = run.spotScan ? run.spotScan(f, y === undefined ? (b.min.y + b.max.y) / 2 : y) : null;
+    return !!(r && r.inView && r.clear >= ANCHOR_MARGIN);
+  }
   function anchorShown(obj) {
     if (!obj || !obj.parent) return false;
     if (!shownVisible(obj)) return false;
@@ -1052,15 +1066,10 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      *  ★用的是 `st.bodySpot` 的同一支掃描★（`run.spotScan`），不是另寫一份框角判斷：
      *  覆審 r3 R-2 的病就是兩份不一致——框角版說分得出來，挑點版最好只有 0.172／或在畫面外。
      *  `02 §6.1` 第 6 條要的是「不要訂恆假的門檻」，而恆假與否只有挑點的那一支說了算。 */
-    const sepOf = (f, y) => {
-      const b = boxOf(f);
-      if (!b) return false;
-      if (boxes.length <= 1) return true;
-      /* `y`＝這一招的道具實際落在多高（有主道具就用它的高度）。視錐是 3D 的：
-         同一塊佔地在胸口高度看得到、貼著桌面的後排就出框（實測虎爺印的大印貼地落下）。 */
-      const r = run.spotScan ? run.spotScan(f, y === undefined ? (b.min.y + b.max.y) / 2 : y) : null;
-      return !!(r && r.inView && r.clear >= ANCHOR_MARGIN);
-    };
+    /* `y`＝這一招的道具實際落在多高（有主道具就用它的高度）。視錐是 3D 的：
+       同一塊佔地在胸口高度看得到、貼著桌面的後排就出框（實測虎爺印的大印貼地落下）。
+       ★判定端與編舞端（`st.sep`）走**同一支** `figSep`★（2026-09-13 陰氣批階段 B 收斂）。 */
+    const sepOf = (f, y) => figSep(run, f, y);
     const covered = mainWant.filter((f) => cover.has(f));
     const sep = mainWant.filter((f) => sepOf(f)); // ★不要寫成 filter(sepOf)★：Array.filter 會把 index 當第二個參數餵進 y
     /* ★逐尊覆蓋的判準（覆審 r2：把「≥2 尊」改回「全部 sep 尊」，並補足單數的語意）★
@@ -1474,6 +1483,11 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
        *  給編舞挑「要打哪幾尊」用：治具棚裡四尊敵方前後兩排互相重疊，挑到被夾在中間的那一尊
        *  ＝那一塊斬痕再怎麼放都分不出是誰的（實測王爺劍 3v3 `cover 1/2`）。
        *  ★不得拿來當判準★：它是**編舞**的取捨依據，判定端有自己的 `sepOf`。 */
+      /** ★這一尊「站位上分得出來嗎」——與判定端逐尊覆蓋的 `sepOf` **同一支**（`figSep`）★
+       *  `allies`／`foes` 的逐尊覆蓋只要求「分得出來」的那幾尊，但**每一件道具**都要過
+       *  `dWant + ANCHOR_MARGIN <= dOther`；送一件給分不出來的那一尊＝`coverOK` 綠、`bad` 紅。
+       *  編舞用它先把那一尊排掉，判準與判定端逐字相同（不得在編舞裡抄一份 `0.18`）。 */
+      sep(fig, y) { return figSep(run, fig, y); },
       spotRoom(fig, y, ignore) {
         const r = spotScan(fig, y === undefined ? 0 : y, ignore);
         return r ? r.clear : 0;
