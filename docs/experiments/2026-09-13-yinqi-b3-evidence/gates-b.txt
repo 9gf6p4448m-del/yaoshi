@@ -1,0 +1,112 @@
+===== P0 trace-eq（對基準 982172d 的 index.html，seeds 1..20）=====
+$ git show 982172d:index.html > scratchpad/base-index.html
+$ node tests/tools/trace-eq.mjs scratchpad/base-index.html index.html
+{"old":"scratchpad/base-index.html","new":"index.html","seeds":"1..20","bytesOld":357285,"bytesNew":357285,"equal":true}
+$ git diff 982172d -- index.html   （下面應為空）
+
+===== P1 登記表 =====
+$ node tests/fxvocab.test.mjs
+
+結果：30 綠 ／ 0 紅
+
+===== P2／P5／P6 drive 全套 =====
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9700.json --tier=1 --port=9700
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+27/27 pass · 重複簽章 0 · scratchpad/g-9700.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9701.json --tier=2 --port=9701
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/g-9701.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9702.json --tier=3 --port=9702
+衝擊拍之後的回流（yaw 90°，打擊類 0 支，其中有軌跡可量 0 支）：紅 0　最深 0
+3/3 pass · 重複簽章 0 · scratchpad/g-9702.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9703.json --tier=1 --fxvocab=1 --port=9703
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 5 支）：紅 0　最深 0
+27/27 pass · 重複簽章 0 · scratchpad/g-9703.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9704.json --tier=2 --fxvocab=1 --port=9704
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 5 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/g-9704.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9705.json --tier=2 --count=2 --port=9705
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/g-9705.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9706.json --tier=2 --count=3 --port=9706
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/g-9706.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/g-9707.json --tier=2 --mate=auto --mategap=1.9 --port=9707
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=17 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3197 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 776ms
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+29/30 pass · 重複簽章 0 · scratchpad/g-9707.json
+
+===== 回流斷言：六個真實座位（SEAT_YAW／duelYaw）=====
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-90.json --tier=2 --count=2 --camyaw=90 --port=9710
+衝擊拍之後的回流（yaw 90°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/gy-90.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-315.json --tier=2 --count=2 --camyaw=315 --port=9711
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=13 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3758 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 1124ms
+FAIL swarmRally       wuying       t2/900ms msOK=true rate=1 fill=0.9 acts=22 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=1.2901 err=0 prog+0 sig=20b/burst+emblem:banner5+floor:banner5+mark:banner5+ring 1031ms
+衝擊拍之後的回流（yaw 315°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+28/30 pass · 重複簽章 0 · scratchpad/gy-315.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-45.json --tier=2 --count=2 --camyaw=45 --port=9712
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=13 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3758 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 1006ms
+衝擊拍之後的回流（yaw 45°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+29/30 pass · 重複簽章 0 · scratchpad/gy-45.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-225.json --tier=2 --count=2 --camyaw=225 --port=9713
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=13 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3758 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 960ms
+FAIL swarmRally       wuying       t2/900ms msOK=true rate=1 fill=0.9 acts=22 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=1.2901 err=0 prog+0 sig=20b/burst+emblem:banner5+floor:banner5+mark:banner5+ring 1003ms
+衝擊拍之後的回流（yaw 225°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+28/30 pass · 重複簽章 0 · scratchpad/gy-225.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-135.json --tier=2 --count=2 --camyaw=135 --port=9714
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=13 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3758 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 1545ms
+FAIL swarmRally       wuying       t2/900ms msOK=true rate=1 fill=0.9 acts=22 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=1.2901 err=0 prog+0 sig=20b/burst+emblem:banner5+floor:banner5+mark:banner5+ring 971ms
+衝擊拍之後的回流（yaw 135°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+28/30 pass · 重複簽章 0 · scratchpad/gy-135.json
+$ node tests/tools/traitfx-drive.mjs scratchpad/gy-0.json --tier=2 --count=2 --camyaw=0 --port=9715
+衝擊拍之後的回流（yaw 0°，打擊類 12 支，其中有軌跡可量 7 支）：紅 0　最深 0
+30/30 pass · 重複簽章 0 · scratchpad/gy-0.json
+
+===== P8 12 套規則測試 =====
+tests/aistake.test.mjs             通過 8　失敗 0
+tests/conscap.test.mjs             通過 5　失敗 0
+tests/duel-desync.test.mjs         結果：7 綠 ／ 0 紅
+tests/emblem-collision.test.mjs    結果：9 綠 ／ 0 紅
+tests/fxtier.test.mjs              結果：14 綠 ／ 0 紅
+tests/fxvocab.test.mjs             結果：30 綠 ／ 0 紅
+tests/legend.test.mjs              32 過 / 0 失敗
+tests/lineup-order.test.mjs        結果：8 綠 ／ 0 紅
+tests/nightrules.test.mjs          結果：16 綠 ／ 0 紅
+tests/review.test.mjs              通過 28　失敗 0
+tests/roles-balance.test.mjs       角色平衡卷單元測試：32 過 / 0 失敗
+tests/wish16.test.mjs              結果：PASS=36 FAIL=0
+
+===== P8 duel-drive（seed 7／3；另一跑 --fxvocab=1 驗尺寸防線）=====
+$ node tests/tools/duel-drive.mjs "…?paperwar=1&fxcount=1&seed=7" scratchpad/gd7.json --duels=4 --port=9730
+{"out":"scratchpad/gd7.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,"trait":4,"traitFig":4,"load":{"ms":43,"total":15,"loaded":15,"timedOut":false,"readyAt":1789314452941},"ver":"v0.55.10","duelsMs":[[4825,0,0,""],[5341,1,1,""],[4715,0,0,""],[7483,3,3,""]]}
+徽記世界尺寸斷言：n/a　違規 0／鎖上 0 of 產出 0／稽核 update 0＋draw 0／tween 安靜死掉 0　世界寬度 {}　★這一跑沒演到用徽記的招＝未量到，不得當成通過★
+$ node tests/tools/duel-drive.mjs "…?paperwar=1&fxcount=1&seed=3" scratchpad/gd3.json --duels=4 --port=9731
+{"out":"scratchpad/gd3.json","duels":4,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":6,"burnFig":3,"burnDom":3,"trait":2,"traitFig":2,"load":{"ms":49,"total":5,"loaded":5,"timedOut":false,"readyAt":1789314507734},"ver":"v0.55.10","duelsMs":[[4571,0,0,""],[4293,0,0,""],[4701,0,0,""],[5217,2,2,""]]}
+徽記世界尺寸斷言：n/a　違規 0／鎖上 0 of 產出 0／稽核 update 0＋draw 0／tween 安靜死掉 0　世界寬度 {}　★這一跑沒演到用徽記的招＝未量到，不得當成通過★
+$ node tests/tools/duel-drive.mjs "…&fxvocab=1&seed=7" scratchpad/gd7v.json --duels=12 --port=9732
+{"out":"scratchpad/gd7v.json","duels":12,"errors":0,"ys3d":true,"abOnAllUnits":true,"burn":40,"burnFig":32,"burnDom":8,"trait":39,"traitFig":39,"load":{"ms":39,"total":20,"loaded":20,"timedOut":false,"readyAt":1789314674195},"ver":"v0.55.10","duelsMs":[[4875,0,0,""],[5345,1,1,""],[4699,0,0,""],[7813,3,3,""],[5109,2,2,""],[6423,2,2,""],[4799,1,1,""],[9215,8,8,""],[4649,1,1,""],[12787,8,8,""],[6004,5,5,""],[13950,8,8,""]]}
+徽記世界尺寸斷言：ok　違規 0／鎖上 11 of 產出 11／稽核 update 552＋draw 541／tween 安靜死掉 0　世界寬度 {"hat":[0.578957,0.784],"hat:part":[0.651327,0.882],"hat:instanced":[0.0784000001257274,0.0784]}
+
+===== P7 效能（本樹 vs 基準 982172d 的 git archive 樹）=====
+$ node tests/tools/duel-perf.mjs perf scratchpad/gp-new.json --seed=7 --port=9740
+{"out":"scratchpad/gp-new.json","perf":{"loadMs":1160,"rendersPerSec":281.6,"rafMedianFps":59.9,"rafP95Ms":16.8,"rafFrames":142,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+$ node tests/tools/duel-perf.mjs perf scratchpad/gp-base.json --seed=7 --root=scratchpad/base982 --port=9741
+{"out":"scratchpad/gp-base.json","perf":{"loadMs":217,"rendersPerSec":299.9,"rafMedianFps":59.9,"rafP95Ms":16.8,"rafFrames":151,"drawCallsPerFrame":986,"trianglesPerFrame":354620,"renderPassesPerFrame":10,"gl":"ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)","visible":16,"total":16,"skins":16},"errors":0}
+
+===== §A3 尺寸記錄（全 27 支，記錄項不擋批）=====
+$ node tests/tools/prop-size.mjs docs/experiments/2026-09-13-yinqi-b3-evidence/propsize-all --tier=2 --port=9750
+trait	fac	tier	figH	kind	type	inst	unit	ratio	p50	ratio50	over	groupMax	atFrame	frames
+swarmHalfSplash	zuling	2	0.8054	emblem:wave	prop	-	0.8434	1.047	0.8322	1.033	OVER	0.8434	18	220
+swarmLastStand	xianghuo	2	1.1229	emblem:tornflag	prop	-	0.9184	0.818	0.6864	0.611	OVER	0.9184	33	55
+hauntLost	yinqi	2	1.1315	emblem:hat	prop	-	0.8811	0.779	0.8054	0.712	OVER	0.8811	42	55
+wardGuardAll	xianghuo	2	1.2269	dome	other	-	1.56	1.271	1.56	1.271		1.56	35	36
+
+===== 既有紅燈：在基準 982172d 上跑同一組參數（證明不是本階段造成的）=====
+$ node tests/tools/traitfx-drive.mjs … --tier=2 --mate=auto --mategap=1.9 --only=swarmHalfSplash --root=scratchpad/base982
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=17 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3197 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 2234ms
+0/1 pass · 重複簽章 0 · scratchpad/gb-mat.json
+$ node tests/tools/traitfx-drive.mjs … --tier=2 --count=2 --camyaw=315 --only=swarmHalfSplash,swarmRally --root=scratchpad/base982
+FAIL swarmHalfSplash  boat         t2/900ms msOK=true rate=1 fill=0.9 acts=13 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=0.3758 err=0 prog+0 sig=5b/burst+emblem:wave+floor:pillar+prop:wave 2276ms
+FAIL swarmRally       wuying       t2/900ms msOK=true rate=1 fill=0.9 acts=22 handled=true alive=true restored=true onTime=true clean=true focus=true size=n/a(0v/0of0/u0+d0) twErr=0 end=66 maxD=1.2901 err=0 prog+0 sig=20b/burst+emblem:banner5+floor:banner5+mark:banner5+ring 1231ms
+0/2 pass · 重複簽章 0 · scratchpad/gb-yaw.json

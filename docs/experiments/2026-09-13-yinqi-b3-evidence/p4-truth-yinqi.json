@@ -1,0 +1,117 @@
+{
+ "note": "★讀者不得看★。P4 盲讀的真值表（2026-09-13 陰氣系批 3 階段 B）。香火 9 支＝docs/experiments/2026-09-13-xianghuo-b1-evidence/p4-truth.json、祖靈 9 支＝docs/experiments/2026-09-13-zuling-b2-evidence/p4-truth-zuling.json，那兩份一格未動。",
+ "source": [
+  "index.html 的 ABILITIES（unit.trait 的效果欄與 desc）",
+  "js/trait-fx/vocab.js 的 MOVE_SPEC（prop／act／react／stance／anchor）",
+  "docs/design/2026-09-12-fx-vocab-draft.md §C3 的招意欄（括號裡的五選一）"
+ ],
+ "options": {
+  "effect": ["打擊", "防護增益", "偷取", "詛咒削弱"],
+  "target": ["敵方單一", "敵方多個", "我方單一", "我方多個", "自己"],
+  "faction": ["祖靈", "香火", "陰氣"]
+ },
+ "pass": "照 plan-fx-performance.md §5 的 P4：三對 fresh 讀者、每格三題全對才算對，三對中 ≥2 對兩位皆全對。alt 視為正解。",
+ "materials": {
+  "A": {
+   "dir": "p4-material-A-booth-x3",
+   "shots": 54,
+   "desc": "2v2 治具棚（--mate=auto --mateGap=1.9），27 支（香火 9 ＋ 祖靈 9 ＋ 陰氣 9）× t1+t2"
+  },
+  "B": {
+   "dir": "p4-material-B-closeup-x3",
+   "shots": 27,
+   "desc": "2v2 tier 2 近景（--camdist=2.4），27 支 × t2"
+  }
+ },
+ "openIssues": [
+  "swarmPierce：真值取 §C3 招意欄的「打／穿透」，與 ABILITIES 字面（「本隊攻擊無視吸收」＝我方增益）不一致。窄版會讓法寶身分（銅錢穿過對面）無論實作對錯都做不出來，所以本表取畫面語意並留 alt。**交製作人裁**。",
+  "hauntSwap：ABILITIES 兩邊都燒（對面 1 隻、本方 1 隻）。道具（繩）勾的是對面那一隻，所以 target 取敵方單一並留 alt。",
+  "hauntLost：階段 A 的提案（詛咒削弱／敵方單一），本階段一格未動，照實沿用並留 alt=敵方多個。"
+ ],
+ "rows": [
+  {
+   "trId": "hauntLost",
+   "name": "魔神仔紅帽",
+   "effect": "詛咒削弱",
+   "target": "敵方單一",
+   "alt": { "target": "敵方多個" },
+   "why": "ABILITIES.hauntLost desc「三拍：對面 1 隊不出手（對精英無效）」＋`lost:true`：讓對面一張卡的部隊停手、不造成傷害 ⇒ 詛咒削弱。「一隊」在 P4 材料裡每隊 count 都 >1，所以 alt 接受「敵方多個」。★階段 A 的提案，本階段一格未動★",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "甲", "act": "探", "react": "轉", "stance": "前傾", "anchor": "foe" }
+  },
+  {
+   "trId": "hauntSteal",
+   "name": "林投姐髮簪",
+   "effect": "偷取",
+   "target": "敵方單一",
+   "why": "ABILITIES.hauntSteal desc「三拍結束時**敗方**另 −1 壽命」＋`steal:1`：從對面身上拿走一點壽命 ⇒ 偷取、對象是敵方。MOVE_SPEC.react=被拖（受招方被拉向出招方）。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "甲", "act": "垂", "react": "被拖", "stance": "舉臂", "anchor": "foe" }
+  },
+  {
+   "trId": "hauntSee",
+   "name": "椅仔姑竹椅",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.hauntSee desc「**本方**圍毆額外 +1」＋`gang:1`：加在本隊身上、不直接造成傷害 ⇒ 防護增益／我方多個（§C3 招意欄同樣寫「護／打」，取前者）。MOVE_SPEC.anchor=allies。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "甲", "act": "滯", "react": "抖", "stance": "舉臂", "anchor": "allies" }
+  },
+  {
+   "trId": "hauntDread1",
+   "name": "黃色小雨衣",
+   "effect": "詛咒削弱",
+   "target": "敵方多個",
+   "why": "ABILITIES.hauntDread1 desc「三拍：**對面群體**再 −1 atk」＋`dread:1`：削弱對面群體的攻擊、不造成傷害 ⇒ 詛咒削弱／敵方多個。MOVE_SPEC.react=壓。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "乙", "act": "滯", "react": "壓", "stance": "舉臂", "anchor": "foes" }
+  },
+  {
+   "trId": "hauntSwap",
+   "name": "水鬼浮標",
+   "effect": "詛咒削弱",
+   "target": "敵方單一",
+   "alt": { "effect": "打擊" },
+   "why": "ABILITIES.hauntSwap desc「三拍：燒掉**對面 1 隻**小兵、本方也燒 1 隻」＋`swap:true`：抓交替＝把對面拉走、代價是自己也少一隻。畫面上道具（繩）勾的是對面那一隻 ⇒ target 敵方單一；effect 取「詛咒削弱」（§C3 招意欄的「咒／交換」），`alt.effect=打擊` 接受「燒掉一隻＝打」的讀法。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "乙", "act": "甩", "react": "被拖", "stance": "舉臂", "anchor": "foe" }
+  },
+  {
+   "trId": "eliteVsSwarm",
+   "name": "虎姑婆指甲",
+   "effect": "打擊",
+   "target": "敵方多個",
+   "why": "ABILITIES.eliteVsSwarm desc「打**群體目標**額外 +2」＋`vsSwarm:2`：對群體造成額外傷害 ⇒ 打擊／敵方多個。MOVE_SPEC.anchor=foes、react=抖。★這一支是盲讀標竿（兩位讀者兩版全對），本階段動作與節拍的形狀不動★",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "甲", "act": "探", "react": "抖", "stance": "舉臂", "anchor": "foes" }
+  },
+  {
+   "trId": "swarmPierce",
+   "name": "陰陽眼銅錢",
+   "effect": "打擊",
+   "target": "敵方單一",
+   "alt": { "effect": "防護增益", "target": "我方多個" },
+   "why": "★本表唯一與 ABILITIES 字面不一致的一格，交製作人裁★：`ABILITIES.swarmPierce` 是「**本隊**攻擊無視吸收」（`pierce:true`，我方增益）；§C3 招意欄寫的是「本隊攻擊無視吸收（**打**／穿透）」，畫面上這一招做的事就是一枚銅錢穿過對面那一隻。窄版（防護增益／我方多個）會要求銅錢落在自己人身上，法寶身分（外圓內方穿透）就**無論實作對錯都做不出來**。真值取畫面語意，`alt` 接受從機制讀的答案。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "甲", "act": "探", "react": "抖", "stance": "前傾", "anchor": "foe" }
+  },
+  {
+   "trId": "hauntFearX2",
+   "name": "過陰咒",
+   "effect": "詛咒削弱",
+   "target": "敵方多個",
+   "why": "ABILITIES.hauntFearX2 desc「三拍：恐懼倍率 ×2」＋`fearMul:2`：把加在對面群體身上的恐懼放大、不造成傷害 ⇒ 詛咒削弱／敵方多個。MOVE_SPEC.react=壓、anchor=foes。",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "丙", "act": "滯", "react": "壓", "stance": "前傾", "anchor": "foes" }
+  },
+  {
+   "trId": "swarmFeed1",
+   "name": "飼鬼甕",
+   "effect": "防護增益",
+   "target": "我方多個",
+   "why": "ABILITIES.swarmFeed1 desc「拍末對面有紙紮被燒 → **本方全體** hp+1」＋`feed:1`：回血給本隊全體（施招者也吃到）⇒ 防護增益／我方多個。MOVE_SPEC.anchor=allies。★吞食的方向（道具從對面飛回甕口）是 §C3 指定的區分點，不是偷取——受益落點在我方每一尊身上★",
+   "faction": "陰氣",
+   "moveSpec": { "prop": "丙", "act": "吸", "react": "被拖", "stance": "下沉", "anchor": "allies" }
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+B1 [drive:hauntSteal] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntSteal 的簪不標 main（主道具消失，落點證據被副件墊高）
+B2 [drive:hauntSteal] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntSteal 的命火往我方飄（打擊類衝擊拍後回流＝§A9-6）
+B3 [drive:hauntSee] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntSee 的竹椅宣告落在敵方（實際坐在同伴身上）
+B4 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntSee 的編舞拿掉 st.stance（登記了施招姿態卻沒演）
+B5 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntDread1 的編舞拿掉 st.groundMark（腳下語彙是身分訊號的另一半）
+B6 [drive:hauntDread1] 健康 GREEN → 突變 GREEN → 還原 GREEN  ❌  ★已知未驗紅★ hauntDread1 的群體不縮（react 由我方同伴的位移滿足）
+B6b [drive:hauntDread1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntDread1 的主滴宣告落在我方（實際落在敵方身上）
+B7 [drive:hauntSwap] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntSwap 在衝擊拍把繩藏起來（在場五條的第 4 條：有效 opacity）
+B8 [drive:eliteVsSwarm] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  eliteVsSwarm 的爪片原地生成、也不在衝擊拍到位（飛行整段沒了）
+B9 [drive:swarmPierce] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  swarmPierce 的銅錢穿出去改成往我方（§A9-6 的回流）
+B10 [drive:hauntFearX2] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  hauntFearX2 的虛影片宣告落在自己身上（真值對象是敵方多個）
+B11 [drive:swarmFeed1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  swarmFeed1 的主甕不夾進甕口的佔地（停在對面＝mainOK 假）
+B12 [P1] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  MOVE_SPEC 拿掉 swarmFeed1 的 anchor（已轉正的招沒宣告落點）
+B13 [mate:hauntSee] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  `st.sep` 改成恆真（編舞不再排掉分不出來的那一尊）
+B14 [mate:hauntSee] 健康 GREEN → 突變 RED → 還原 GREEN  ✅  yqDeliver 不再在衝擊拍藏起「分不出來那一尊」的道具
+（另有 B6 是照實留著的已知未驗紅，見檔內註解）
+
+15 條，驗紅 14／15

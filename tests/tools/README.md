@@ -267,3 +267,18 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 
 ### （0.55.9 r6 覆審記錄，祖靈批收尾）
 - （0.55.9 r6 覆審記錄）N1（MEDIUM）：世界軸掃描為逐行字串比對，可被 `// axis-ok:` 整行豁免、行內純變數名 `lat/side/fwd/perp/UP` 放行、`Vector3(` 跨行三種寫法繞過；接住它們的是回流斷言，但 `traitfx-drive` 預設只量 yaw 90，六座位掃描未進閘門腳本——待辦：把 `--camyaw` 六值進 P8 例行跑。N2（LOW）：`coverNeed=0`（受擊者站位分不出）時 `hurtHit` 要求靜默消失。
+
+### ★R-6（HIGH，2026-09-13 陰氣批階段 B 突變 B6，**未修**）★
+`js/trait-fx.js` 的 `evalPhases` 在 `react` 段量的是「除了 **`run.caster` 一個人**以外每一個 wrap」
+（`sawOther` 為真時只 `return` 掉 caster），而**同一張卡的其他幾尊也在 `run.wraps` 裡**。
+⇒ **多尊同型單位的招，這一格對「受招方有沒有反應」沒有鑑別力**：施招方那一側的閃現位移、
+收勢、`st.move` 都算數。
+**實測代價**（`docs/experiments/2026-09-13-yinqi-b3-evidence/bB-mutations.txt` 的 B6）：
+把 `hauntDread1`（`raincoat`，`count: 4`）受招方的等比縮**整條拿掉**，
+`traitfx-drive --tier=2 --only=hauntDread1` 仍是 **PASS**、`phases` 仍是 `react:1`。
+**建議修法（按效果寫）**：react 的 delta 只量 `run.targetSet`；場上沒有受招方時（自益招）
+才退回「量施招方自己」那條既有的退路——現行的 `sawOther` 判斷要從「有沒有別人」
+改成「有沒有**受招方**」。
+**驗收**：對任何一支有受招方的已轉正招，把受招方的 `move`／`scale` 反應拿掉之後 `phasesOK` 必須翻假；
+自益招（`eliteSelfCut`／`swarmLastStand`）仍要能過。
+**會動到 27 支已轉正的招**，所以要單獨開一輪跑完整回歸（同 R-4）。

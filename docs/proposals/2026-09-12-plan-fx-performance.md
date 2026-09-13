@@ -162,3 +162,31 @@ anchor 凍在衝擊拍、L3 凍在 travel 中點；共用會讓 P3 掉到 0.7109
 P3 t1／t2 **area 1.022%／ΔE 35.65**（工具 exit 0）、draw call **+11**、P7 fps 1.00／986:986、
 12 套規則測試全綠、突變 **16 條驗紅 15**（M13 由綠翻紅；新增 M15／M16 驗 v0.55.9 那兩條新斷言）。
 ★§2.2 的待裁清單少一列★：M13 在 v0.55.9 之後已經不成立，其餘（含 README 的 R-3／R-4）不變。
+
+### 7.6 陰氣批 3 階段 B 的狀態（2026-09-13，**待製作人簽字**）
+
+陰氣其餘 8 支（`hauntSteal`／`hauntSee`／`hauntDread1`／`hauntSwap`／`eliteVsSwarm`／
+`swarmPierce`／`hauntFearX2`／`swarmFeed1`）全部轉正 ⇒ **三系 27 支鋪完**。
+報告＝`docs/experiments/2026-09-13-yinqi-b3-report.md` **§4**，交付物＝`…-b3-evidence/`，
+worktree `agent-a431c82233fc2312c`（**未合併、未 push**，`index.html` 一行未動、版號未上）。
+P0–P3／P5–P8 全綠；P4 照裁定要 27 支一起跑新的三輪，**材料與真值表本階段已交付**。
+
+| 落點 | 內容 |
+|---|---|
+| 8 支轉正＋四件共用零件 | `js/trait-fx/yinqi.js`（`yqFly`／`yqDeliver`／`yqLaunch`／`yqRoomy`；範本招 `hauntLost` 的飛行段一併收進 `yqFly`，sigdump 逐位元組相同） |
+| 登記表 | `js/trait-fx/vocab.js` 的 `MOVE_SPEC` 八列補 `stance`／`anchor` |
+| 活性下限 | `tests/fxvocab.test.mjs` 的 `CONVERTED_MUST` 19→**27**（加嚴） |
+| 兩份判準收成一支 | `js/trait-fx.js`：`sampleAnchors` 的 `sepOf` 抽成模組層 `figSep`，並開唯讀的 `st.sep(fig, y)` 給編舞（不動任何門檻） |
+| P4 材料與真值表 | `…-b3-evidence/p4-truth-yinqi.json`（★讀者不得看★）、`p4-material-A-booth-x3/`（54 張）、`p4-material-B-closeup-x3/`（27 張）、`p4-mapping-HIDDEN.json` |
+
+**批末實測**：P0 對基準 `982172d` 逐位元組相等（`index.html` 零 diff）、P1 **30 綠**、
+drive 八跑（t1 27/27・t2 30/30・t3 3/3・`--fxvocab=1` 27/27 與 30/30・`--count=2`／`--count=3` 各 30/30）、
+**回流斷言六個真實座位全部「紅 0、最深 0」**（打擊類 6→**12 支**、有軌跡可量 3→**7 支**）、
+P3 八支 t1／t2 全 ok、P7 fps 1.00／986:986、12 套規則測試全綠、突變 **15 條驗紅 14**。
+
+**交製作人裁的八題**（報告 §4.7），其中三題是**新的**：
+① `evalPhases` 的 react 段對多尊同型單位沒有鑑別力（突變 B6 實測；已登記成 `tests/tools/README.md` 的 **R-6**）
+② 兩支**既有**的紅（`swarmHalfSplash`／`swarmRally` 在部分座位與 P4 材料站位判紅，**基準樹上同樣紅**）
+③ `swarmPierce` 的 anchor／真值與 `ABILITIES` 字面不一致（真值表已標 `alt`）。
+另有 §C3 與 §A9-3／§A9-6 直接牴觸的四處，**一律照後來的通則實作、不動任何凍結的斷言**，
+失去的東西逐條列在報告 §4.4。

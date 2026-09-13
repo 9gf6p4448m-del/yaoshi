@@ -1,0 +1,952 @@
+{
+ "seed": 20260912,
+ "tiers": [
+  1,
+  2
+ ],
+ "dt": 16.666666666666668,
+ "shot": {
+  "width": 844,
+  "height": 390,
+  "deviceScaleFactor": 2
+ },
+ "cell": {
+  "w": 780,
+  "h": 360
+ },
+ "sheet": {
+  "w": 1560,
+  "h": 1080
+ },
+ "frameAt": [
+  {
+   "seg": "windup",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0
+  },
+  {
+   "seg": "travel",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0.95
+  },
+  {
+   "seg": "react",
+   "f": 0.15
+  },
+  {
+   "seg": "react",
+   "f": 0.95
+  }
+ ],
+ "labelled": false,
+ "spec": {
+  "mateGap": "1.9",
+  "camdist": null,
+  "countOverride": null,
+  "counts": {
+   "eliteOpenShot": 1,
+   "wardHpFront2": 2,
+   "eliteArmor": 1,
+   "wardFirst": 2,
+   "boltGamble": 1,
+   "swarmHalfSplash": 3,
+   "swarmThorn": 1,
+   "eliteSelfCut": 1,
+   "wardHpAll1": 2,
+   "wardAtkAll1": 2,
+   "eliteCleave": 1,
+   "wardAbsorb4": 2,
+   "wardImmuneLost": 2,
+   "swarmRally": 3,
+   "biteGamble": 1,
+   "wardHpFirst": 2,
+   "wardRegen1": 2,
+   "swarmLastStand": 1,
+   "hauntLost": 4,
+   "hauntSteal": 4,
+   "hauntSee": 3,
+   "hauntDread1": 4,
+   "hauntSwap": 4,
+   "eliteVsSwarm": 1,
+   "swarmPierce": 2,
+   "hauntFearX2": 4,
+   "swarmFeed1": 2
+  },
+  "foe": null,
+  "mate": "auto",
+  "fxvocab": false,
+  "proto": null
+ },
+ "mapping": [
+  {
+   "code": "a01",
+   "trait": "hauntSwap",
+   "ab": "buoy",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a01.png"
+  },
+  {
+   "code": "a02",
+   "trait": "eliteOpenShot",
+   "ab": "bow",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a02.png"
+  },
+  {
+   "code": "a03",
+   "trait": "hauntFearX2",
+   "ab": "guoyin",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a03.png"
+  },
+  {
+   "code": "a04",
+   "trait": "hauntDread1",
+   "ab": "raincoat",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a04.png"
+  },
+  {
+   "code": "a05",
+   "trait": "boltGamble",
+   "ab": "thunder",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a05.png"
+  },
+  {
+   "code": "a06",
+   "trait": "swarmPierce",
+   "ab": "yinyangcoin",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a06.png"
+  },
+  {
+   "code": "a07",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a07.png"
+  },
+  {
+   "code": "a08",
+   "trait": "wardAtkAll1",
+   "ab": "flag",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a08.png"
+  },
+  {
+   "code": "a09",
+   "trait": "wardAtkAll1",
+   "ab": "flag",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a09.png"
+  },
+  {
+   "code": "a10",
+   "trait": "eliteVsSwarm",
+   "ab": "nail",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a10.png"
+  },
+  {
+   "code": "a11",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a11.png"
+  },
+  {
+   "code": "a12",
+   "trait": "wardAbsorb4",
+   "ab": "wangchuan",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a12.png"
+  },
+  {
+   "code": "a13",
+   "trait": "swarmFeed1",
+   "ab": "sigui",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a13.png"
+  },
+  {
+   "code": "a14",
+   "trait": "eliteVsSwarm",
+   "ab": "nail",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a14.png"
+  },
+  {
+   "code": "a15",
+   "trait": "swarmFeed1",
+   "ab": "sigui",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a15.png"
+  },
+  {
+   "code": "a16",
+   "trait": "eliteArmor",
+   "ab": "balen",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a16.png"
+  },
+  {
+   "code": "a17",
+   "trait": "swarmRally",
+   "ab": "wuying",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a17.png"
+  },
+  {
+   "code": "a18",
+   "trait": "eliteSelfCut",
+   "ab": "xianji",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a18.png"
+  },
+  {
+   "code": "a19",
+   "trait": "wardHpAll1",
+   "ab": "shanshen",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a19.png"
+  },
+  {
+   "code": "a20",
+   "trait": "eliteArmor",
+   "ab": "balen",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a20.png"
+  },
+  {
+   "code": "a21",
+   "trait": "hauntDread1",
+   "ab": "raincoat",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a21.png"
+  },
+  {
+   "code": "a22",
+   "trait": "swarmThorn",
+   "ab": "boartusk",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a22.png"
+  },
+  {
+   "code": "a23",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a23.png"
+  },
+  {
+   "code": "a24",
+   "trait": "wardImmuneLost",
+   "ab": "bell",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a24.png"
+  },
+  {
+   "code": "a25",
+   "trait": "wardFirst",
+   "ab": "eye",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a25.png"
+  },
+  {
+   "code": "a26",
+   "trait": "swarmHalfSplash",
+   "ab": "boat",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a26.png"
+  },
+  {
+   "code": "a27",
+   "trait": "hauntSee",
+   "ab": "chair",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a27.png"
+  },
+  {
+   "code": "a28",
+   "trait": "swarmLastStand",
+   "ab": "pojun",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a28.png"
+  },
+  {
+   "code": "a29",
+   "trait": "wardAbsorb4",
+   "ab": "wangchuan",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a29.png"
+  },
+  {
+   "code": "a30",
+   "trait": "hauntLost",
+   "ab": "redhat",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a30.png"
+  },
+  {
+   "code": "a31",
+   "trait": "swarmThorn",
+   "ab": "boartusk",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a31.png"
+  },
+  {
+   "code": "a32",
+   "trait": "wardHpFirst",
+   "ab": "ashcharm",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a32.png"
+  },
+  {
+   "code": "a33",
+   "trait": "hauntFearX2",
+   "ab": "guoyin",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a33.png"
+  },
+  {
+   "code": "a34",
+   "trait": "wardHpFront2",
+   "ab": "shield",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a34.png"
+  },
+  {
+   "code": "a35",
+   "trait": "hauntSteal",
+   "ab": "hairpin",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a35.png"
+  },
+  {
+   "code": "a36",
+   "trait": "hauntSteal",
+   "ab": "hairpin",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a36.png"
+  },
+  {
+   "code": "a37",
+   "trait": "wardHpAll1",
+   "ab": "shanshen",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a37.png"
+  },
+  {
+   "code": "a38",
+   "trait": "swarmRally",
+   "ab": "wuying",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a38.png"
+  },
+  {
+   "code": "a39",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a39.png"
+  },
+  {
+   "code": "a40",
+   "trait": "wardHpFirst",
+   "ab": "ashcharm",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a40.png"
+  },
+  {
+   "code": "a41",
+   "trait": "hauntSee",
+   "ab": "chair",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a41.png"
+  },
+  {
+   "code": "a42",
+   "trait": "wardFirst",
+   "ab": "eye",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a42.png"
+  },
+  {
+   "code": "a43",
+   "trait": "hauntLost",
+   "ab": "redhat",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a43.png"
+  },
+  {
+   "code": "a44",
+   "trait": "swarmHalfSplash",
+   "ab": "boat",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a44.png"
+  },
+  {
+   "code": "a45",
+   "trait": "eliteCleave",
+   "ab": "sword",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a45.png"
+  },
+  {
+   "code": "a46",
+   "trait": "wardHpFront2",
+   "ab": "shield",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a46.png"
+  },
+  {
+   "code": "a47",
+   "trait": "boltGamble",
+   "ab": "thunder",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a47.png"
+  },
+  {
+   "code": "a48",
+   "trait": "swarmPierce",
+   "ab": "yinyangcoin",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a48.png"
+  },
+  {
+   "code": "a49",
+   "trait": "swarmLastStand",
+   "ab": "pojun",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a49.png"
+  },
+  {
+   "code": "a50",
+   "trait": "biteGamble",
+   "ab": "tiger",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a50.png"
+  },
+  {
+   "code": "a51",
+   "trait": "eliteOpenShot",
+   "ab": "bow",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a51.png"
+  },
+  {
+   "code": "a52",
+   "trait": "hauntSwap",
+   "ab": "buoy",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a52.png"
+  },
+  {
+   "code": "a53",
+   "trait": "eliteSelfCut",
+   "ab": "xianji",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a53.png"
+  },
+  {
+   "code": "a54",
+   "trait": "eliteCleave",
+   "ab": "sword",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-13-yinqi-b3-evidence/p4-material-A-booth-x3/a54.png"
+  }
+ ]
+}
