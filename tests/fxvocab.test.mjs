@@ -352,6 +352,12 @@ t('已轉正的招都登記了道具落點 anchor，取值在白名單內，而�
     // 登記表填了卻沒交給積木＝那一招執行期一件都量不到（`anchors.n===0` ⇒ `casterMatch` 判紅），
     // 但原始碼這一側也要有紅燈，否則「填了字串就算」。
     if (!/\banchor:\s*'/.test(body)) bad.push(`${id} 的編舞沒有把 anchor 交給任何一件道具（st.paperStamp／st.paperProps／st.stick 的 o.anchor）`);
+    /* ★主道具（覆審 r2 N-4）★：執行期 `anchorOK` 要求 `mainDeclared`，但那一側只在**跑得到那一支**時才響。
+       原始碼這一側也要有紅燈——下一批鋪招時漏標，會安靜地把「主道具真的落地了」這一格變成恆真。
+       `regAnchor` 已擋掉「第二件 main」（丟例外），這裡擋的是「一件都沒有」與「明著標了兩件 true」。 */
+    const mains = body.match(/\bmain:\s*[^,\n]+/g) || [];
+    if (!mains.length) bad.push(`${id} 沒有任何一件道具標 main（覆審 r2 N-4：主道具＝L3 量得到的那一件，它必須登記 anchor、在衝擊拍在場、而且真的貼到真值那一側）`);
+    if (mains.filter((m) => /main:\s*true/.test(m)).length > 1) bad.push(`${id} 標了不只一件 main: true（執行期 regAnchor 會丟例外，原始碼這一側也要有紅燈）`);
   });
   if (seen < CONVERTED_MUST.length) bad.push(`只切出 ${seen}/${CONVERTED_MUST.length} 支函式體`);
   if (bad.length) throw new Error(bad.join(' ／ '));
@@ -369,6 +375,14 @@ t('ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各�
      照 STANCE_GATE.minPeak 那一條的作法，把數字釘在語彙檔上。 */
   if (!sec.includes('`' + ANCHOR_MARGIN + '`')) throw new Error(`語彙檔 §A9-5 沒有寫出 ANCHOR_MARGIN「${ANCHOR_MARGIN}」`);
   if (!sec.includes('dWant + ANCHOR_MARGIN <= dOther')) throw new Error('語彙檔 §A9-5 沒有寫出判準式 `dWant + ANCHOR_MARGIN <= dOther`');
+  /* ★覆審 r2 的三件也要釘在文件上★：主道具、「在場」的門檻數字、逐尊覆蓋的單複數語意。
+     理由同 M-1：判準散在程式裡而文件只寫一半，下一輪讀報告的人會照文件那一半做事。 */
+  if (!sec.includes('`main: true`')) throw new Error('語彙檔 §A9-5 沒有寫出主道具的 `main: true`（覆審 r2 N-4）');
+  if (!sec.includes('世界縮放 ≥ `0.05`') || !sec.includes('有效 opacity ≥ `0.05`')) throw new Error('語彙檔 §A9-5 沒有寫出「在場」的兩個門檻 0.05（覆審 r2 N-1）');
+  if (!sec.includes('視錐')) throw new Error('語彙檔 §A9-5 沒有寫出「在場」的第 5 條（鏡頭視錐）');
+  ['`allies`＝', '`ally`＝', '`foes`＝'].forEach((k) => {
+    if (!sec.includes(k)) throw new Error(`語彙檔 §A9-5 沒有寫出逐尊覆蓋的語意「${k}」（覆審 r2 的繞法 i）`);
+  });
 });
 
 t('selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）', () => {

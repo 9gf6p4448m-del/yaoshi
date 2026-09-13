@@ -125,6 +125,15 @@ function tgPreyHit(st, prey, R0, RL, depth) {
  *  這裡不抄第二份）。本系會用到它的是送王船與千里眼銅鈴這兩支「我方多個」。
  *  ★為什麼兩個檔各一份而不上升到 `st`★：它排的是**這一卷的編舞紀律**（落點、節拍、lean），
  *  不是 27 支共用的積木；上升到 `st` 等於把編舞決定寫進引擎（§A9-5 的量測才是引擎的事）。 */
+/** 衝擊拍那一刻用**當下**的站位重挑一次落點，回傳 `st.stick` 要的 off（＝落點 − 那一尊胸口）。
+ *  挑的規則整條在 `st.bodySpot`（唯一來源）；這裡只負責換算成 off。 */
+function bodySpotOff(st, f, fallback) {
+  const c = st.worldOf(f, 'Chest', new THREE.Vector3());
+  if (!c.lengthSq()) st.worldOf(f, null, c);
+  const p = c.clone().add(fallback);
+  st.bodySpot(f, p);
+  return p.sub(c);
+}
 function xhDeliver(st, from, figs, B, o = {}) {
   const C = st.colors;
   return figs.map((f) => {
@@ -137,9 +146,17 @@ function xhDeliver(st, from, figs, B, o = {}) {
       others.forEach((g) => c.add(g.group.position));
       c.multiplyScalar(1 / others.length);
       lean.copy(f.group.position).sub(c); lean.y = 0;
-      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(o.lean === undefined ? 0.88 : o.lean); else lean.set(0, 0, 0);
+      /* ★`lean` 只剩「往哪個方向起步」，決定落點的是 `st.bodySpot`（覆審 r2 N-3）★
+         手調的推力做不到兩件事：推得夠遠才清得開重疊的同伴，推太遠又會離開受益方自己的佔地
+         （實測 0.258–0.555 > `ANCHOR_MARGIN` 0.18）＝在判定端與畫面上都變成「桌上浮著一件東西」。
+         現在一律先推一段大的（2.0），再由 `st.bodySpot` 夾回**那一尊自己佔地裡最空、又在畫面上**
+         的那一點——推力多大都不影響結果，它只決定「從哪一側夾回去」。 */
+      if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(o.lean === undefined ? 2.0 : o.lean); else lean.set(0, 0, 0);
     }
+    const chest0 = to.clone();
     to.add(camOff(st, 1)).add(lean);
+    st.bodySpot(f, to);
+    const stickOff = to.clone().sub(chest0); // 與夾過的落點逐位一致（不是另算一份）
     const m = st.paperStamp(st.kind, from, { anchor: o.anchor || 'allies',
       color: o.color === undefined ? C.key : o.color, inkColor: o.inkColor === undefined ? C.hot : o.inkColor,
       opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 12, yawDeg: -22 });
@@ -148,7 +165,7 @@ function xhDeliver(st, from, figs, B, o = {}) {
     st.trail(m, from, to, { ms: B.TL, delay: B.T0, ease: 'outQuint', trail: false,
       arc: o.arc === undefined ? 0.30 : o.arc,
       done() {
-        st.stick(m, f, { at: 'chest', off: camOff(st, 1).add(lean) });
+        st.stick(m, f, { at: 'chest', off: bodySpotOff(st, f, stickOff) });
         // `o.burst`＝落地各自炸一次（打擊類要有「可數的著彈點」，P4 r1 回修 D）
         if (o.burst) st.burst(to, { power: o.burst.power || 0.9, n: o.burst.n || 40, color: o.burst.color === undefined ? C.hot : o.burst.color });
       } });
@@ -256,13 +273,34 @@ const MOVES = {
     head.y += 0.42; tail.y += 0.42;
 
     // ── 丁 斬擊弧：鎏金面＋ink 墨線邊的實體（不是加色平面）──
-    const arc = st.paperStamp(st.kind, tip, { anchor: 'foes', role: 'stamp', color: C.key, inkColor: C.ink,
+    const arc = st.paperStamp(st.kind, tip, { anchor: 'foes', main: true, role: 'stamp', color: C.key, inkColor: C.ink,
       opacity: 0, depth: 0.20, warp: 0.12, tiltDeg: 8, yawDeg: -14 });
     arc.scale.setScalar(st.iconSize * 0.55);
     /* ★每一尊各一塊斬痕＋各自的受擊火花（P4 r1 回修 D）★
        一把弧只有一個落點，衝擊拍那一瞬只證明得了「打到一個」。最前面兩尊各收到一塊
        從劍尖飛出去的斬痕，落地各自炸一次火花——「敵方多個」才有兩個可數的著彈點。 */
-    const hits = xhDeliver(st, tip, foes.slice(0, 2), { T0, TL, R0, RL },
+    /* ★挑**各自還有空間**的兩尊，不是名單前兩個、也不是彼此離最遠的兩尊★
+       治具棚的敵方是前後兩排、佔地互相重疊：取前兩個會挑到疊在一起的兩尊（實測 cover 1/2），
+       取「彼此離最遠」則會挑到**被夾在中間**的那一尊——它自己身上根本沒有一塊地方
+       離其他敵方 ≥ `ANCHOR_MARGIN`，斬痕再怎麼放都分不出是誰的（3v3 實測 cover 1/2）。
+       `st.spotRoom` 量的就是「這一尊還有多少自己的空間」，與判定端 `sepOf` 問的是同一件事。
+       餘裕相同時（例如 1v1／整排一樣寬）才比彼此的距離，保住「橫掃過整排」的讀法。 */
+    const pair = (() => {
+      if (foes.length < 2) return foes.slice(0, 1);
+      const room = new Map(foes.map((f) => [f, st.spotRoom(f, tip.y)]));
+      const rank = foes.slice().sort((a, b) => room.get(b) - room.get(a));
+      const top = rank.filter((f) => room.get(f) >= room.get(rank[1]) - 1e-6);
+      if (top.length <= 2) return rank.slice(0, 2);
+      let bi = 0, bj = 1, bd = -1;
+      for (let i = 0; i < top.length; i++) {
+        for (let j = i + 1; j < top.length; j++) {
+          const d = top[i].group.position.distanceToSquared(top[j].group.position);
+          if (d > bd) { bd = d; bi = i; bj = j; }
+        }
+      }
+      return [top[bi], top[bj]];
+    })();
+    const hits = xhDeliver(st, tip, pair, { T0, TL, R0, RL },
       { anchor: 'foes', color: C.hot, inkColor: C.ink, k: 1.05, arc: 0.22, burst: { power: 0.9, n: 46 } });
 
     /* ① 舉劍（windup）：右臂高舉、胸口後仰側擰、邊光大亮；弧在劍尖長出來 */
@@ -373,9 +411,13 @@ const MOVES = {
        ★這是 P3 與 §A3 打架時的解★——大旗要再放大才夠 0.8% 面積，但 `flag` 這一尊 figH 只有 1.42、
        放大就破 2/3 的尺寸上限。改成「旗掃過本方陣前」（本來就該離鏡頭近）：世界尺寸不動、像素變多。 */
     from.add(camOff(st, 1.6)); to.add(camOff(st, 1.6));
+    /* ★覆審 r2 N-3★：`to` 是衝擊拍那一刻大旗停的地方，也是主道具唯一被量到的一點。
+       3v3 時它落在兩尊之間（實測到最近的我方 0.184 > `ANCHOR_MARGIN` 0.18，差 0.004 判紅）。
+       收進 `sweepOrder` 最後那一尊自己的佔地裡：掃過整排的讀法不變，終點變成「停在他身上」。 */
+    st.bodySpot(sweepOrder[sweepOrder.length - 1], to);
 
     // ── 乙 大旗：鎏金面＋硃紅墨線的絹旗厚片（不是加色平面）──
-    const banner = st.paperStamp(st.kind, mast, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
+    const banner = st.paperStamp(st.kind, mast, { anchor: 'allies', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 6, yawDeg: -20 });
     banner.scale.setScalar(st.iconSize * 0.30);
 
@@ -533,7 +575,7 @@ const MOVES = {
        四面帆若全走 `prop:` 這一招在 travel 中點就一個可量物件都沒有（實測 area 0.0%）；
        ② 正面那片是讀者真的看得清楚的那一片，用有墨線邊的實體比一片平色好認。
        視覺上仍是「四面帆圍成同心方框」。 */
-    const mainSail = st.paperStamp(st.kind, mastTop, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
+    const mainSail = st.paperStamp(st.kind, mastTop, { anchor: 'allies', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 8, yawDeg: -16 });
     mainSail.scale.setScalar(st.iconSize * 0.45);
 
@@ -668,7 +710,7 @@ const MOVES = {
     /* 墨線邊由 `ink` 改 `hot`（硃紅）：鈴改走我方這一側之後背景從夜空換成暗紅褐桌面，
        鎏金對桌面色相太近，L3 的 ΔE 中位掉到 22.75／24.8（門檻 28）。硃紅邊把輪廓從桌面上切出來，
        **鎏金面（「金黃鈴」那個已驗證的可辨元素）一個字沒動**；同一招在破軍旗上已用過這個解。 */
-    const handbell = st.paperStamp(st.kind, src, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
+    const handbell = st.paperStamp(st.kind, src, { anchor: 'allies', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.22, warp: 0.10, tiltDeg: 10, yawDeg: -18 });
     handbell.scale.setScalar(st.iconSize * 0.40);
 
@@ -762,7 +804,11 @@ const MOVES = {
        所以折返段就讓鈴淡出、由同伴頭上那枚正面朝鏡頭的鈴印接手。
        P3 的凍幀在 travel 中點（去程、鈴最大最正面那一段），不受這個淡出影響。 */
     st.fade(handbell, { ms: TL * 0.38, delay: T0 + TL * 0.62, from: 1, to: 0.18 });
-    st.fade(handbell, { ms: RL * 0.26, delay: R0, from: 0.18, to: 0 });
+    /* ★鈴的最後一段淡出要**晚於衝擊拍那一幀**（覆審 r2 N-1 的配套）★
+       主道具在衝擊拍必須在場（有效 opacity ≥ 0.05）。原本 0.18→0 從 R0 就開始，
+       tier 1 的 RL 只有 62ms、一幀 16ms 就吃掉 26% ⇒ 量到的那一幀剩 0.018＝畫面上已經沒有了
+       （tier 2 的同一條剩 0.13 所以看不出來）。往後挪 0.22×RL，兩個 tier 都還看得到再開始收。 */
+    st.fade(handbell, { ms: RL * 0.30, delay: R0 + RL * 0.22, from: 0.18, to: 0 });
     st.tween({ ms: RL * 0.55, delay: R0, ease: 'out', update(t, e) { writeWave(0.70 + 0.35 * e, 0.50 + 0.35 * e); } });
     st.fade(wave.obj, { ms: RL * 0.55, delay: R0, from: 0.62, to: 0 });
     blessMarks.forEach((m, i) => {
@@ -835,11 +881,22 @@ const MOVES = {
     const FLAGS = 5;
     const flagMesh = [];
     for (let i = 0; i < FLAGS; i++) {
-      const m = st.paperStamp(st.kind, top, { anchor: 'allies', role: 'stamp', color: C.key, inkColor: C.hot,
+      // 五面裡的**中央那一面**是主道具（覆審 r2 N-4；也是 L3 量得最穩的那一面）
+      const m = st.paperStamp(st.kind, top, { anchor: 'allies', main: i === 0, role: 'stamp', color: C.key, inkColor: C.hot,
         opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 8, yawDeg: -26 + i * 13 });
       m.scale.setScalar(st.iconSize * 0.30);
       flagMesh.push(m);
     }
+    /* ── 受益方頭上的旗印（`follow`，react 的證據）──
+       ★覆審 r2 N-3★：五面旗插的是「五方」，位置由陣形決定，3v3 時第三尊身上分不到任何一面
+       （實測 cover 2/3）。`MOVE_SPEC.swarmRally.react` 是「升」＝上抬**＋蓋印**，
+       同家族的媽祖令旗與千里眼都有這一枚；補上之後「誰被調到」逐尊都有證據，陣形一個位元組不動。 */
+    const rallyMarks = troops.map((f) => {
+      const m = st.paperStamp(st.kind, st.top(f, new THREE.Vector3()), { anchor: 'allies', color: C.key, inkColor: C.hot,
+        opacity: 0, depth: 0.16, warp: 0.12, tiltDeg: 14, yawDeg: -24, follow: f, at: 'top', off: camOff(st, 1) });
+      m.scale.setScalar(st.markSize * 1.0);
+      return m;
+    });
     const _fp = new THREE.Vector3();
     /** k＝0 全部聚在旗頭、1 插在五方；s＝旗的大小（乘 iconSize） */
     const placeFlags = (k, s) => {
@@ -986,7 +1043,7 @@ const MOVES = {
       }
     }
     const sky = land.clone(); sky.y += 0.62; // 再高就出畫面上緣（對決機位 tilt 24°／dist 4.2）
-    const big = st.paperStamp(st.kind, sky, { anchor: 'foe', role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
+    const big = st.paperStamp(st.kind, sky, { anchor: 'foe', main: true, role: 'stamp', color: C.ink, inkColor: C.key, glyphColor: C.line,
       opacity: 0, depth: 0.26, warp: 0.08, tiltDeg: 0, yawDeg: -12, glyph: { cx: 0, cy: -0.42, w: 0.66, h: 0.32 } });
     big.scale.setScalar(st.iconSize * 0.80);
     const qBig = big.quaternion.clone();
@@ -1160,10 +1217,11 @@ const MOVES = {
     /* ★覆審 r1 H-1：落點要**決定性地**落在受益方那一側★
        治具棚 2v2 下同一邊兩尊的水平佔地本來就重疊，落在重疊區裡的道具讀者分不出是誰的
        （實測這一支的 gap 只有 0.061–0.118，門檻 ANCHOR_MARGIN=0.18）。
-       `lean`＝從施招者指向受益方的水平單位向量；沒有同伴時是零向量（count=1 的站位一個位元組不變）。 */
-    const lean = mate.group.position.clone().sub(monk.group.position); lean.y = 0;
-    if (lean.lengthSq() > 1e-6) lean.normalize().multiplyScalar(0.50); else lean.set(0, 0, 0);
-    const head = st.top(mate, new THREE.Vector3()).add(camOff(st, 1)).add(lean);
+       （原本的解是「往受益方推 0.50」，覆審 r2 N-3 之後由 `st.bodySpot` 接手，見下一段。） */
+    /* ★覆審 r2 N-3：原本那個「往前鋒推 0.50」退場★——固定量在 3v3 把灰流推到兩尊之間
+       （實測一片灰到隔壁只剩 0.179、差 0.001 判紅）。改用 `st.bodySpot`：
+       留在前鋒自己的佔地裡、挑離其他每一尊最遠又在畫面上的那一點。 */
+    const head = st.bodySpot(mate, st.top(mate, new THREE.Vector3()).add(camOff(st, 1)));
     /* 灰流與符先往前送一段再落到前鋒頭上（`evalPhases` 量的是位移，原地灑落量不到）。 */
     /* ★2026-09-13 P4 第 2 輪回修★：道具的落點要在**受益方身上**，不是施招者身上。
        第 2 輪六位讀者在 2v2 下對象題一致答「自己」（同伴零反應），成因就是所有東西都畫在施招者這一格。
@@ -1176,9 +1234,10 @@ const MOVES = {
     /* ★覆審 r2 N1 的配套①★：`st.stick` 移進 `done()` 之後，飛行段才真的在畫面上跑，
        於是**飛行段的落點必須就是黏上去的那一點**（前鋒胸口＋同一個 `camOff(st, 1)`），
        否則 react 那一幀會看到符「瞬移」一次。灰流落在 `head`（前鋒頭上），與符的胸口落點分開。 */
-    const land = st.worldOf(mate, 'Chest', new THREE.Vector3());
-    if (!land.lengthSq()) { st.worldOf(mate, null, land); land.y += 0.55; }
-    land.add(camOff(st, 1)).add(lean); // 同 head：符也要決定性地落在前鋒那一側（覆審 r1 H-1）
+    const mateChest = st.worldOf(mate, 'Chest', new THREE.Vector3());
+    if (!mateChest.lengthSq()) { st.worldOf(mate, null, mateChest); mateChest.y += 0.55; }
+    const land = st.bodySpot(mate, mateChest.clone().add(camOff(st, 1))); // 同 head：符也要決定性地落在前鋒那一側
+    const landOff = land.clone().sub(mateChest); // 黏上去的 off 與飛行落點逐位一致（不是另算一份）
     const bow = camOff(st, 1.5); // 飛行弧往鏡頭鼓出的量（見下面 st.trail 的 update）
 
     // ── 丙 金灰顆粒流：一群紙片＝1 個 draw call（群體位移掛 InstancedMesh 物件本身，§A5）──
@@ -1206,7 +1265,7 @@ const MOVES = {
     writeAsh(0);
 
     // ── 乙 金色方符：一張，從掌心送出、落到前鋒身上並留住 ──
-    const talis = st.paperStamp(st.kind, palm, { anchor: 'ally', role: 'stamp', color: C.key, inkColor: C.hot,
+    const talis = st.paperStamp(st.kind, palm, { anchor: 'ally', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.14, tiltDeg: 10, yawDeg: -20 });
     talis.scale.setScalar(st.iconSize * 0.40);
 
@@ -1264,7 +1323,7 @@ const MOVES = {
            所以在編舞的同步段呼叫＝符從**第 0 幀**就黏在受益方身上，上面那條飛行 tween 整段變成死碼
            （覆審實測：把 `via` 移開 3 個單位，L3 的 A／B 圖逐位元組相同；把 `st.stick` 拿掉才看得到飛行、
            面積從 0.0006% 變回正常）。移進 `done()` 之後才是「飛到落點那一刻才黏上去」。 */
-        st.stick(talis, mate, { at: 'chest', off: camOff(st, 1).add(lean) }); // lean 同飛行落點（覆審 r1 H-1：黏上去之後逐幀被覆寫，這裡不加就白調了）
+        st.stick(talis, mate, { at: 'chest', off: bodySpotOff(st, mate, landOff) }); // 黏上去之後逐幀被覆寫，off 不跟著挑就白調了
       } });
     /* 符放大到 1.15×iconSize：0.98 時 P3 只有 0.6656%／0.6921%（門檻 0.8），而灰流走 prop: 不進量測對象，
        符是這一招唯一量得到的一件。放大後仍在 §A3 的 2/3 內（Q5 實測 0.555→0.651）。 */
@@ -1331,7 +1390,7 @@ const MOVES = {
     via.y += 0.42;
 
     // ── 丁 燈焰：鎏金面＋硃紅墨線的火舌實體（不是球）──
-    const flame = st.paperStamp(st.kind, src, { anchor: 'ally', role: 'stamp', color: C.key, inkColor: C.hot,
+    const flame = st.paperStamp(st.kind, src, { anchor: 'ally', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.20, warp: 0.18, tiltDeg: 6, yawDeg: -16 });
     flame.scale.setScalar(st.iconSize * 0.35);
 
@@ -1446,12 +1505,16 @@ const MOVES = {
     const up = tip.clone(); up.y += 0.35; up.addScaledVector(st.dir, -1.35).add(camOff(st, 1.2)); // -1.10 時 travel 1.108／門檻 1.2481；旗走的是正背對敵方那一側，離同伴只會更遠，所以這一段拉回來
     const back = chest.clone().addScaledVector(st.dir, -0.42).add(camOff(st, 1.3));
     back.y += 0.30;
+    /* ★覆審 r2 N-3★：真值是「自己」，而身後 0.42 那一點在 3v3 正好落進後面那尊同伴的佔地
+       （實測 `wd 0 od 0`＝兩尊都碰到，`att=null`）。收進施招者自己的佔地裡：
+       「殘旗在身後展開」的讀法不變，位置變成他自己站的那一格。 */
+    st.bodySpot(man, back);
 
     // ── 乙 殘破軍旗：缺角旗面、高飽和硃紅（hot 當面、ink 當邊，整支裡最紅的一件）──
     /* ★配色與 §C2 的「高飽和硃紅」有出入，交製作人覆核★：硃紅 `#ff5a3c` 對暗紅褐桌面 `#6b3418`
        色相太近，整面硃紅時 L3 實測 **ΔE 中位 25.22 < 門檻 28**（面積 1.38% 是夠的）。
        改成**鎏金面＋硃紅墨線邊**——紅仍在（邊），而且這才是 §B2 香火材質那條「暗面 ink、亮邊鎏金」的寫法。 */
-    const torn = st.paperStamp(st.kind, tip, { anchor: 'self', role: 'stamp', color: C.key, inkColor: C.hot,
+    const torn = st.paperStamp(st.kind, tip, { anchor: 'self', main: true, role: 'stamp', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.20, tiltDeg: 10, yawDeg: -22 });
     torn.scale.setScalar(st.iconSize * 0.35);
 
