@@ -27,7 +27,10 @@ const drive = (only, count) => {
   const line = out.trim().split('\n').filter((l) => l.includes('pass')).pop() || out.trim().split('\n').pop();
   const m = line.match(/(\d+)\/(\d+) pass/);
   const anch = JSON.parse(fs.readFileSync('scratchpad/_mu.json', 'utf8')).results
-    .map((r) => { const a = (r.verdict || {}).anchors || {}; return r.case.trait + ' anchorOK=' + (a.ok ? 1 : 0) + ' bad=' + a.bad + ' miss=' + a.missing + ' cover=' + a.cover + '/' + a.coverNeed + ' mainDecl=' + a.mainDeclared + ' mainOK=' + a.mainOK; });
+    .map((r) => { const v = r.verdict || {}; const a = v.anchors || {}; const f = v.flow || {};
+      return r.case.trait + ' anchorOK=' + (a.ok ? 1 : 0) + ' bad=' + a.bad + ' miss=' + a.missing + ' cover=' + a.cover + '/' + a.coverNeed
+        + ' mainOK=' + a.mainOK + (a.spec === 'foe' ? ' hurtHit=' + a.hurtHit + ' hurtCover=' + a.hurtCover : '')
+        + (f.scope ? ' flow=' + f.worst + (f.ok ? '' : '（回流！）') : ''); });
   return { line: line.trim(), pass: m ? +m[1] : -1, of: m ? +m[2] : -1, anch };
 };
 
@@ -76,17 +79,33 @@ const MUT = [
     desc: '虎爺印的大印落在**兩隻敵方中間**（分不出咬的是誰）——foe 那一格不再整格豁免（覆審 r3 R-2）',
     find: "        if (prey) { st.bodySpot(prey, land); big.position.copy(land); }",
     repl: "        if (prey) {\n          let near = null, nd = Infinity;\n          for (const f of st.target) { if (f === prey) continue; const d = f.group.position.distanceToSquared(prey.group.position); if (d < nd) { nd = d; near = f; } }\n          if (near) { land.lerp(near.group.position, 0.5); land.y = big.position.y; }\n          big.position.copy(land);\n        }" },
+  { id: 'L', only: 'wardImmuneLost', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '千里眼的鈴印改走 **opacity 路線**看不見（fade to:1 → to:0，完全不碰 visible；覆審 r4 自加 (l)）',
+    find: "      st.fade(m, { ms: RL * 0.22, delay: R0, from: 0, to: 1 }); // 同一拍現身（覆審 r3 R-1 配套）",
+    repl: "      st.fade(m, { ms: RL * 0.22, delay: R0, from: 0, to: 0 }); // 同一拍現身（覆審 r3 R-1 配套）" },
+  { id: 'M', only: 'biteGamble', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '虎爺印的大印落在**離獵物最遠的另一尊敵方**身上（打錯人；覆審 r4 自加 (m)／MEDIUM-1）',
+    find: "        if (prey) { st.bodySpot(prey, land); big.position.copy(land); } // 重挑：判定端也要求大印離**施招者**一個邊距，所以虎自己照樣要閃開",
+    repl: "        if (prey) {\n          let far = null, fd = -1;\n          for (const f of st.target) { if (f === prey) continue; const d = f.group.position.distanceToSquared(prey.group.position); if (d > fd) { fd = d; far = f; } }\n          const who = far || prey;\n          land.set(who.group.position.x, land.y, who.group.position.z);\n          st.bodySpot(who, land);\n          big.position.copy(land);\n        }" },
+  { id: 'N', only: 'swarmThorn', count: 2, file: 'js/trait-fx/zuling.js',
+    desc: '山豬牙飾的彈開退回 (e) **改前**那一版（cross(camDir,UP) 當橫向＝其實是對決軸）——回流斷言要紅',
+    find: "    const sideT = st.sideDir; // 與對決軸垂直（覆審 r4 HIGH-1：改前這一條與 st.dir 平行，0.34 全變成「朝我方」）",
+    repl: "    const sideT = new THREE.Vector3(-st.camDir.z, 0, st.camDir.x).normalize();" },
+  { id: 'O', only: 'biteGamble', count: 2, file: 'js/trait-fx/xianghuo.js',
+    desc: '虎爺印的碎片退回 (c) **改前**那一版（同一條假的「畫面左右」）——回流斷言要紅',
+    find: "    const side = st.sideDir; // 與對決軸**垂直**的橫向（覆審 r4 HIGH-1：改前用 cross(camDir,UP)＝對決軸本身）",
+    repl: "    const side = new THREE.Vector3().crossVectors(st.camDir, UP_Y).normalize();" },
 ];
 
 const lines = [];
 const say = (s) => { console.log(s); lines.push(s); };
 const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-say('# anchor 鑑別力突變（覆審 r3 最終碼；A–I 九條＋R-1／R-2 兩條＝11 條）');
+say('# anchor／回流 鑑別力突變（覆審 r4 最終碼）：A–K 十一條＋(l)(m) 兩條＋回流斷言的 N／O 兩條＝15 條');
 say('# 程式碼 SHA（未提交的工作樹改動見同批 commit）：' + sha);
 say('# 判準：健康態綠、每一條突變紅；還原用備份副本。');
 say('');
 say('=== 健康態（對照）===');
-const h2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost', 2);
+const h2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost,swarmThorn', 2);
 say('--count=2  ' + h2.line);
 h2.anch.forEach((a) => say('    ' + a));
 const h3 = drive('wardHpFirst', 3);
@@ -117,12 +136,12 @@ for (const m of MUT) {
 }
 say('');
 say('=== 還原後（健康態必須回綠）===');
-const b2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost', 2);
+const b2 = drive('biteGamble,eliteOpenShot,wardRegen1,wardHpFirst,wardFirst,wardImmuneLost,swarmThorn', 2);
 say('--count=2  ' + b2.line);
 const b3 = drive('wardHpFirst', 3);
 say('--count=3  ' + b3.line);
 if (b2.pass !== b2.of || b3.pass !== b3.of) allRed = false;
 say('');
-say(allRed ? '總結：11 條全紅、健康態前後皆綠 ⇒ 這一格有鑑別力。' : '總結：!! 有條目沒達標，見上。');
+say(allRed ? '總結：15 條全紅、健康態前後皆綠 ⇒ 這兩格都有鑑別力。' : '總結：!! 有條目沒達標，見上。');
 fs.writeFileSync('scratchpad/_mutations.txt', lines.join('\n') + '\n');
 console.log('\n-> scratchpad/_mutations.txt');

@@ -1,0 +1,13 @@
+# 回流斷言在 (c)(e) **改前**的程式碼上實測（＝這條斷言的鑑別力，覆審 r4 HIGH-1）
+# 跑法：node tests/tools/traitfx-drive.mjs <out> --tier=2 --count=2
+# 判準：打擊類招（MOVE_SPEC.anchor 解出敵方那一側）在衝擊拍之後，
+#       所有道具（群體道具逐一實例、不含 floor:／trail／黏在身上的印記）在「我→敵」軸的位移 >= -0.01
+
+eliteOpenShot    worst=0 kind=null at=0ms n=2 ok=true
+boltGamble       worst=0 kind=null at=0ms n=2 ok=true
+swarmThorn       worst=-0.18 kind=prop:tusk at=733ms n=2 ok=false
+eliteCleave      worst=0 kind=null at=0ms n=2 ok=true
+biteGamble       worst=-0.058 kind=prop:seal at=817ms n=6 ok=false
+
+⇒ 兩支紅：swarmThorn -0.18（彈開方向淨朝我方）、biteGamble -0.058（三片碎片有一片朝我方）。
+  兩個數字與覆審 r4 用探針量到的 backAlongDir=-0.18／shardAlongDir=[-0.058,…] 逐位數相同。
