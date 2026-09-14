@@ -181,9 +181,8 @@ function init() {
     const d = (e && e.detail) || {};
     tray.props.mark(d.seat, d.slot);
   });
-  /* 開標：這一格得標的是誰 ⇒ 他的錢留在桌上，其餘各家的收回自己席位。
-     `ys:reveal` 是第一段就有的事件（打亮得標者的燈籠），第二段只多讀它的 `slot` 欄位。 */
-  document.addEventListener('ys:reveal', (e) => {
+  /* 開標結算：只收錢與送拍品，絕不能重送 `ys:reveal`，否則會把逐槽微距鏡頭拉回桌心。 */
+  document.addEventListener('ys:reveal-result', (e) => {
     if (!TRAY_URL.on) return;
     const d = (e && e.detail) || {};
     if (d.slot === undefined || d.slot === null) return;
