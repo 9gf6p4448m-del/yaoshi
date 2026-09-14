@@ -22,6 +22,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'),
+    /* Git worktree 位於 `.codex-worktrees/<name>` 時，專案共用的瀏覽器依賴在工作樹上兩層。 */
+    path.resolve(ROOT, '../../tools/anyCreature/package.json'),
     path.resolve(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) if (fsSync.existsSync(c)) return createRequire(c)('playwright');
   throw new Error('找不到 playwright（試過：' + cands.join('、') + '）');
