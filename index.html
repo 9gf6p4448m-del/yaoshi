@@ -4291,13 +4291,17 @@ function renderSeats(hlIds){
   $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
-  $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
+  if(CFG.PAPERWAR_ON){
+    const army=buildArmy(me.bag); let units=0,atk=0,hp=0;
+    army.teams.forEach(t=>t.units.forEach(u=>{units++;atk+=u.atk|0;hp+=u.max|0;}));
+    $("myPow").innerHTML=`部隊 <b style="color:var(--gold)">${units} 隻</b>・攻 ${atk}・血 ${hp}${me.alive?"":"・💀出局"}`;
+  }else $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
   /* 夜份：有預抓到月相就用 12 格圖示取代「第 N/12 夜」文字，沒抓到退回文字（美術層 §4）。
      兩者都與風位資訊同一列——#felt 高度預算零餘裕，不得新增一列。 */
   const nb=NIGHTSVG.svg||"";
   $("feltHead").innerHTML=(nb?`<span id="nightbar" title="第 ${S.round}/${CFG.ROUNDS} 夜">${nb}</span>`
                              :`<span>第 ${S.round}/${CFG.ROUNDS} 夜・</span>`)
-    +`<span>${windName(S.round)}（${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先）`
+    +`<span>${windName(S.round)}（${CFG.PAPERWAR_ON?`${DIRS[windPid(S.round)]}家同分優先・一拍前鋒 atk+1`:`${DIRS[windPid(S.round)]}家戰力+${CFG.WIND_POWER}、平標優先`})`
     +`${CFG.PAPERWAR_ON?`・${phaseText(S.round)}`:""}`  /* 月相增幅（公開資訊，與引擎同讀 PHASES 表） */
     +`${(()=>{const ev=eventForRound(S.round);return ev?`・${ev.icon}${ev.name}之夜`:""})()}`
     +`${(()=>{const rl=ruleForRound(S.round);return rl?`・${rl.icon}今夜市集規則：${rl.name}`:""})()}</span>`;
