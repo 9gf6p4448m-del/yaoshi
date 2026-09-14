@@ -657,6 +657,8 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .rvChip{display:inline-block;border-radius:5px;font-size:10px;padding:0 4px;margin-right:4px;color:#14101f;vertical-align:middle}
 .rvLine{font-size:12px;padding:2px 0}
 .rvWish{display:inline-block;margin:1px 8px 1px 0;font-size:12px}
+.rvExperiment{background:linear-gradient(135deg,rgba(83,53,126,.65),rgba(25,15,45,.82));border:1px solid var(--gold);border-radius:11px;padding:9px 10px;font-size:13px;line-height:1.45}
+.rvExperiment b{color:var(--gold)}
 .rvWish.ok{color:var(--green)} .rvWish.no{color:var(--dim)}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
@@ -4270,10 +4272,19 @@ function seatHTML(id,hl){
     <span class="dir">${DIRS[id]}</span>${wind}
     <div class="av">${avHTML(p)}</div>${markStampHTML(id)}
     <div><div class="nm">${p.name} ${faceOf(p)}</div>
-    <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${p.bag.length}件・力 ${showPow(p)}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
+    <div class="st">${lifeTxt}${S.debts&&S.debts[p.id]&&p.alive?`・<span style="color:#ff8484">🧧欠${S.debts[p.id].left}</span>`:""}<br>${CFG.PAPERWAR_ON?paperForceText(p):`${p.bag.length}件・力 ${showPow(p)}`}${(guanSeen()&&p.ai&&p.alive&&p.wish&&WISHES[p.wish.id])?`<br>🌒 ${WISHES[p.wish.id].name}`:""}</div></div>
     <div class="bubble" id="bub${id}"></div>
     <span class="roleInfoBtn" onclick="event.stopPropagation();showRoleInfo(${id})" title="角色資訊">ⓘ</span>
   </div>`;
+}
+function paperForceText(p){
+  const a=buildArmy(p.bag); let n=0,hp=0;
+  a.teams.forEach(t=>t.units.forEach(u=>{n++;hp+=u.max|0;}));
+  return `${n} 隻・血 ${hp}`;
+}
+function marketStatText(it){
+  if(!CFG.PAPERWAR_ON) return `${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}`;
+  const r=unitRow(it); return it.curse?"詛咒・纏身":(r?`第 ${r.beat} 拍・${r.bodyName}×${r.n}`:"紙紮效果");
 }
 function renderSeats(hlIds){
   const hl=id=>hlIds&&hlIds.includes(id);
@@ -4885,7 +4896,7 @@ function initIncense(){
 function markCardHTML(it,i){
   return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
       ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
-      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
@@ -5118,7 +5129,7 @@ function mcardHTML(it,i){
     return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
       ${box}${markBadgeHTML(i)}${itemIcoHTML(it)}
       <div class="nm">${it.n}</div>
-      <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${off?"🚫 本夜不開標":(it.ab?("✦ "+abDesc(it.ab)):it.d)}${!off&&it.drain?`・每夜 -${it.drain} 血`:""}</div>
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
@@ -6322,6 +6333,13 @@ function endGame(){
    所以北家改用陰氣亮綠、西家改用詛咒亮紫，四條線仍互相拉得開 */
 const RV_COL={0:"var(--c-gold,#e8c860)",1:"var(--c-yinqi-light,#70b080)",2:"var(--c-curse-light,#9060d0)",3:"var(--c-danger,#e04040)"};
 const RV_TYPE={cons:"保守",yaming:"押命"};
+function replayExperiment(H,p){
+  const failed=H.nights.flatMap(n=>n.wishes||[]).filter(w=>w.pid===p.id&&!w.done).length;
+  const a=buildArmy(p.bag); let units=0,hp=0; a.teams.forEach(t=>t.units.forEach(u=>{units++;hp+=u.max|0;}));
+  if(failed) return `這局有 <b>${failed}</b> 個心願沒完成。下一局試著先選一件能推進心願的拍品，再用剩餘壽命守住你的紙紮陣。`;
+  if(units<3) return `你最後只有 <b>${units} 隻紙紮</b>。下一局試著先補能在不同拍出手的紙紮，別把所有壽命壓在單一件大貨。`;
+  return `你的紙紮最後有 <b>${units} 隻／總血 ${hp}</b>。下一局試著跟著月相搶同系拍品，讓受惠那一拍成為你的反攻點。`;
+}
 function showReview(){
   bgm("review"); /* 從結果畫面進來時已經是這一首，重複呼叫是空操作 */
   finalizeHistory();
@@ -6382,7 +6400,8 @@ function showReview(){
     <div class="rvChart"><div class="rvLegend">${legend}</div><svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg">${grid}${xl}${lines}${ends}</svg></div>
     <div class="rvSec">逐夜得標</div>${nights}
     ${dawnRows?`<div class="rvSec">天亮回天（沒被請走的尊）</div>${dawnRows}`:""}
-    <div class="rvSec">心願回顧</div>${wishes}`;
+    <div class="rvSec">心願回顧</div>${wishes}
+    <div class="rvSec">下一局實驗</div><div class="rvExperiment">🎯 ${replayExperiment(H,P[0])}</div>`;
   $("review").style.display="block"; $("review").scrollTop=0;
 }
 function closeReview(){ $("review").style.display="none"; }
