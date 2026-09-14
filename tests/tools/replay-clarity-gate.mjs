@@ -91,14 +91,14 @@ try {
   assert(/🌑\s*朔月｜陰氣拍：全隊 HP \+1/.test(felt),
     'RED: 局勢列沒有用玩家可行動的格式說清楚本夜月相增幅');
 
-  /* 關掉紙紮夜戰時，月相不參與舊制戰力結算；不能留下任何「HP +1」的假提示。 */
-  const legacy = await context.newPage();
-  await legacy.goto(`http://127.0.0.1:${PORT}/index.html?table3d=1&paperwar=0`, { waitUntil: 'load' });
-  await legacy.waitForFunction('typeof window.__yaoshi === "object"');
-  const legacyMoon = await legacy.evaluate(() => moonBenefit({ n: '驗收陰氣', f: 'yinqi', p: 3 }, 1));
-  assert(!legacyMoon.active && !/HP \+1|今夜受惠/.test(legacyMoon.text),
-    'RED: 關閉紙紮夜戰時仍把月相 HP 加成說成可用策略 ' + JSON.stringify(legacyMoon));
-  await legacy.close();
+  /* 紙紮夜戰是正式核心規則，網址參數不得再把玩家退回不相容的舊戰力制。 */
+  const permanent = await context.newPage();
+  await permanent.goto(`http://127.0.0.1:${PORT}/index.html?table3d=1&paperwar=0`, { waitUntil: 'load' });
+  await permanent.waitForFunction('typeof window.__yaoshi === "object"');
+  const permanentMoon = await permanent.evaluate(() => ({ on: CFG.PAPERWAR_ON, moon: moonBenefit({ n: '驗收陰氣', f: 'yinqi', p: 3 }, 1) }));
+  assert(permanentMoon.on && permanentMoon.moon.active && /HP \+1|今夜受惠/.test(permanentMoon.moon.text),
+    'RED: ?paperwar=0 仍能關掉正式紙紮夜戰 ' + JSON.stringify(permanentMoon));
+  await permanent.close();
 
   await page.evaluate(() => showReview());
   const review = await page.locator('#reviewbox').innerText();
