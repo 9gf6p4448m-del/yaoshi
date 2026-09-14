@@ -11,7 +11,7 @@
         而且直接檢查 raycaster 的目標清單裡有沒有道具層的物件——
         只驗「點下去沒事」會被「剛好沒對準」蒙混過去，所以兩條都驗。
      ④ 每一件道具的 NDC 包圍盒：在不在畫面內、在不在掏空窗內（U5 的「看得到」）
-     ⑤ `?tray3d=0` 對照：道具層必須一件都不在場（U6 的 kill switch）
+     ⑤ `?tray3d=0` 與 `?table3d=0` 對照：道具層必須一件都不在場（U6 的 kill switch）
    純量測：不改任何檔、不碰版控。 */
 import { spawn } from 'node:child_process';
 import path from 'node:path';
@@ -468,7 +468,8 @@ async function main() {
     rec.errors = errs;
     await ctx.close();
 
-    // ⑥ ?tray3d=0 對照：道具層一件都不在場
+    // ⑥ 兩個 kill switch 都要沿真實盯上／封籤流程保持沒有第二段道具。
+    const propsAreClear = (stats) => stats && stats.chips === 0 && stats.tokens === 0 && (!stats.relics || stats.relics.length === 0);
     {
       const k = await openPage(browser, '?tray3d=0');
       await toMarkPage(k.page);
@@ -479,9 +480,32 @@ async function main() {
       rec.killErrors = k.errs;
       await k.ctx.close();
     }
+    {
+      const k = await openPage(browser, '?table3d=0');
+      await toMarkPage(k.page);
+      await k.page.waitForTimeout(600);
+      await k.page.evaluate(`(() => {
+        pickMark(2);
+        sheetIdx=0;
+        myBids[0]={amt:3,type:"cons",intent:"keep",target:null};
+        closeSheet();
+        submitHumanBids();
+      })()`).catch(() => {});
+      await k.page.waitForTimeout(700);
+      rec.tableKillSwitch = await k.page.evaluate(`(() => window.__yaoshi3d.tray.props.stats())()`);
+      rec.tableKillErrors = k.errs;
+      await k.ctx.close();
+    }
     await browser.close();
     console.log(JSON.stringify(rec, null, 1));
-    process.exit((rec.errors || []).length === 0 && (rec.killErrors || []).length === 0 ? 0 : 1);
+    const errors = [...(rec.errors || []), ...(rec.killErrors || []), ...(rec.tableKillErrors || [])];
+    if (!propsAreClear(rec.killSwitch)) errors.push('tray3d=0 仍留下第二段道具');
+    if (!propsAreClear(rec.tableKillSwitch)) errors.push('table3d=0 仍留下第二段道具');
+    if (errors.length) {
+      console.error(errors.join('\n'));
+      process.exit(1);
+    }
+    process.exit(0);
   } finally { srv.kill(); }
 }
 main().catch((e) => { console.error(e); process.exit(2); });

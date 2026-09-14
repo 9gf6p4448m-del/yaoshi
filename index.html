@@ -2475,7 +2475,7 @@ function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dS
    3D 層只拿 slot／seat 決定「從哪推到哪」、拿 amount 決定「推幾枚」。
    3D 沒載入時 fx3d 是空操作，DOM 那半邊照樣成立（同 :4383 那條）。 */
 /* amount 0＝把那一席那一格的錢收回去（出價歸零、熱座交棒清場都走這條，不另開一個事件）。 */
-function pushBid3d(seat,slot,amount){ fx3d("ys:bid",{slot:slot|0,amount:Math.max(0,amount|0),seat:seat|0}); }
+function pushBid3d(seat,slot,amount){ if(!TABLE3D) return; fx3d("ys:bid",{slot:slot|0,amount:Math.max(0,amount|0),seat:seat|0}); }
 /* 熱座交棒／任何「這一刻桌上不該有任何人的錢」的時候：四席四格全部歸零。
    ★為什麼要有這一支★（自評 r1）：封籤之後桌上留著自己的銅錢是給自己看的回饋，
    但熱座下一位接過手機時那疊錢還在——那是**私有出價外洩**，與 showHandoff 既有的
@@ -2501,7 +2501,7 @@ function trayWillEmitSlam(){ try{ return !!(TRAY3D&&window.__yaoshi3d&&window.__
 document.addEventListener("ys:mark-slam",slamSfx);
 /* `silent`＝這一發不自己發聲（批次補推時由呼叫端統一排一聲，見 pushMarks3d）。 */
 function pushMark3d(seat,slot,silent){
-  if(!S||slot==null||seat==null) return false;
+  if(!TABLE3D||!S||slot==null||seat==null) return false;
   mark3dRoll();
   const k=S.round+":"+seat; if(MARKED3D[k]) return false; MARKED3D[k]=1;
   fx3d("ys:mark",{slot:slot|0,seat:seat|0});
@@ -2513,7 +2513,7 @@ function pushMark3d(seat,slot,silent){
    舊版逐枚各叫一次 `sfx`，四聲在 0.7ms 內同相位疊加（單聲 peak 已經 0.84）。
    四枚是同時落地的，本來就該是一聲。 */
 function pushMarks3d(){
-  if(!S||!S.marks||!CFG.MARK_ON) return;
+  if(!TABLE3D||!S||!S.marks||!CFG.MARK_ON) return;
   let n=0;
   Object.keys(S.marks).forEach(id=>{ const i=S.marks[id]; if(i!=null&&S.players[+id]&&S.players[+id].alive&&pushMark3d(+id,i,true)) n++; });
   if(n>0&&!trayWillEmitSlam()) slamSfx();
