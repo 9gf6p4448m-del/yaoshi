@@ -578,6 +578,7 @@ export function createTableTray(scene, camera, opts = {}) {
       slots.forEach(clearSlot);
       props.dispose();
       group.remove(moonMarks);
+      moonMarks.dispose();
       moonGeo.dispose(); moonMat.dispose();
       group.remove(cloth);
       cloth.geometry.dispose(); cloth.material.dispose();
