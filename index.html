@@ -677,7 +677,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <h1>妖　市</h1>
   <p>深夜的妖怪牌桌，壽命就是你的籌碼。<br>
   競標祖靈、香火、陰氣三系法寶，把詛咒塞給別人，活到天亮。<br>
-  每夜風位輪轉（東→南→西→北），風位玩家當夜戰力＋3、平標優先。</p>
+  每夜風位輪轉（東→南→西→北）；紙紮夜戰同分時風位優先，第一拍前鋒另有加護。</p>
   <div class="btns">
     <button class="bigbtn" onclick="startEntry('solo')">單人入市</button>
     <button class="bigbtn alt" onclick="startEntry('hotseat')">雙人熱座</button>
@@ -6387,8 +6387,12 @@ function showBag(pid){
   const p=S.players[pid];
   let bonus="";
   for(const f of FACTIONS){
-    const c=facCount(p,f);
-    if(c>=CFG.SET_MIN)bonus+=`<div class="bagit"><span>共鳴：${FAC[f].n}×${c}</span><b class="heal">+${c*c}</b></div>`;
+    const c=facCount(p,f), lv=pwResLv(p,f);
+    if(!lv) continue;
+    const effect=CFG.PW_RES_MODE===1?`該系紙人 hp +${lv}`
+      :CFG.PW_RES_MODE===2?`該系本拍 atk +${Math.min(2,lv)}`
+      :`該系最多紙隊增員 +${lv}`;
+    bonus+=`<div class="bagit"><span>紙紮共鳴：${FAC[f].n}×${c}</span><b class="heal">${effect}</b></div>`;
   }
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}（${faceLbl(p)}）</h2>
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
