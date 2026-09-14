@@ -205,16 +205,16 @@ async function runChipAudit(browser, nights) {
         const got = await page.evaluate(`(() => {
           const P = window.__yaoshi3d.tray.props, s = P.stats();
           const calls = window.__bidCalls.slice(); window.__bidCalls.length = 0;
-          const MAX = window.__yaoshi3d.PROPS.CHIP.MAX, SN = window.__yaoshi3d.PROPS.CHIP.STRING.n;
+          const MAX = s.chipMax, SN = s.chipStringN;
           // 只算開標那一批（每筆 amount>0）；同一 (seat,slot) 後蓋前
           const last = {};
           calls.forEach(c => { if (c.amount > 0) last[c.seat + ':' + c.slot] = c.amount; });
           const want = Object.keys(last).reduce((n, k) => n + (last[k] > MAX ? SN : Math.min(MAX, last[k])), 0);
-          return { want, chips: s.chips, dropped: s.dropped, pool: s.chipPool, bids: s.bids,
+          return { want, chips: s.chips, dropped: s.dropped, pool: s.chipPool, max: MAX, bids: s.bids,
                    entries: Object.keys(last).map(k => k + '=' + last[k]) };
         })()`);
         got.round = st.r;
-        got.mismatch = got.bids.filter((b) => b.on !== (b.stand ? 8 : Math.min(8, b.want)));
+        got.mismatch = got.bids.filter((b) => b.on !== (b.stand ? got.max : Math.min(got.max, b.want)));
         rows.push(got);
       }
       if (!st.d) await page.click('#mainbtn').catch(() => {});

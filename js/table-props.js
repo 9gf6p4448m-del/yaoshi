@@ -38,6 +38,9 @@ export const PROPS = {
     T: 0.011, // 錢厚
     SEG: 12, // 外緣段數（96 tris／枚的來源）
     MAX: 8, // 一席一格最多推幾枚；**超過改成一串**（STRING）
+    /* 四席 × 四格 × 每格八枚：玩家選擇保住最多 128 枚的逐枚實體感。
+       InstancedMesh 仍是一個 draw call；增加的是最多 12,288 三角形，不是 128 次繪製。 */
+    POOL_MAX: 128,
     /* 古銅三階：錢面吃光、錢緣壓暗、方孔內壁最暗。第一版只給一個銅色，
        在暗紅布上讀成一顆顆橘點；分三階之後才看得出「這是一枚有厚度的錢」。 */
     face: 0x9c7434, edge: 0x5a4119, hole: 0x3a2a10,
@@ -356,10 +359,10 @@ export function createTableProps(parent, opts = {}) {
   parent.add(group);
   const onSlam = opts.onSlam || null;
 
-  // ── 籌碼池：1 顆 InstancedMesh 管 4 席 × 8 枚 ────────────────────────
+  // ── 籌碼池：1 顆 InstancedMesh 管四席四格、最多 128 枚 ──────────────
   const CH = PROPS.CHIP;
   const chipG = chipGeometry();
-  const CHIP_N = 4 * CH.MAX;
+  const CHIP_N = CH.POOL_MAX;
   const chips = new THREE.InstancedMesh(chipG.geo, chipG.mat, CHIP_N);
   chips.name = 'prop-chips';
   chips.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -397,6 +400,7 @@ export function createTableProps(parent, opts = {}) {
   let trayXS = [0, 0, 0, 0], trayY = 0.152, trayZ = 0.10, trayScale = 1;
   /** 每一枚籌碼：seat／slot／出發點／落點／飛行進度。**沒有任何賽局欄位**。 */
   const chipRec = [];
+  let droppedChips = 0;
   /** 每一席的令牌：slot（−1＝沒盯）／飛行進度／回彈。 */
   const tokRec = [0, 1, 2, 3].map((seat) => ({ seat, slot: -1, t: 0, bounce: 0, done: false, hit: false }));
   /** 四席信物：{ seat, role, mesh } */
@@ -544,8 +548,8 @@ export function createTableProps(parent, opts = {}) {
           yaw: (i * 0.7) % (Math.PI * 2), t: 0, delay: i * 0.035,
         });
       }
-      // 超出 32 枚（四席都推滿）時砍最舊的——池子是固定的，不動態長
-      while (chipRec.length > CHIP_N) chipRec.shift();
+      // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
+      while (chipRec.length > CHIP_N) { chipRec.shift(); droppedChips++; }
       writeChips();
       return n;
     },
@@ -583,6 +587,7 @@ export function createTableProps(parent, opts = {}) {
     /** 換一夜：桌上的錢與令牌全收。**不動信物**（那是常駐的）。 */
     clearRound() {
       chipRec.length = 0;
+      droppedChips = 0;
       for (const r of tokRec) { r.slot = -1; r.t = 0; r.bounce = 0; }
       writeChips(); writeTokens();
     },
@@ -590,6 +595,13 @@ export function createTableProps(parent, opts = {}) {
     stats() {
       return {
         chips: chips.count, chipTris: chipG.tris, chipsTotalTris: chips.count * chipG.tris,
+        chipPool: CHIP_N, chipMax: CH.MAX, chipStringN: CH.STRING.n, dropped: droppedChips,
+        bids: Object.values(chipRec.reduce((out, c) => {
+          const key = c.seat + ':' + c.slot;
+          const row = out[key] || (out[key] = { seat: c.seat, slot: c.slot, want: c.amt, on: 0, stand: c.stand });
+          row.on++;
+          return out;
+        }, {})),
         tokens: tokens.count, tokenTris: tokG.tris,
         relics: relics.filter(Boolean).map((r) => ({ seat: r.seat, role: r.role, name: RELIC_NAME[r.role] || '（退路素木牌）', tris: r.mesh.userData.tris })),
         mode,
