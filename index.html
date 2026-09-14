@@ -328,6 +328,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
+/* 3D 桌面時，心願是玩家的私人局勢資訊，不是另一張中央面板：收進夜份／風位列，
+   讓桌心只服務「看拍品、選拍品、出價」。保留完整文案與醒目的邊框，不把資訊縮成提示字。 */
+#feltHead .wishbar{flex:0 1 auto;max-width:min(100%,520px);margin:0;padding:2px 8px;font-size:10px;
+  background:rgba(8,5,16,.62);border-color:rgba(122,94,168,.78);text-shadow:none}
 /* 盯上徽章掛在卡角外側左上（與右上的 .mybid 對稱），不壓品名（v0.11 修正：原本 left:4px;top:4px 蓋住 .nm） */
 .markb{position:absolute;left:-4px;top:-7px;font-size:9.5px;line-height:12px;background:var(--panel2);border:1px solid #c9a24a;border-radius:8px;padding:0 5px;color:#ffd97a;z-index:2;white-space:nowrap}
 /* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
@@ -2601,6 +2605,13 @@ function wishBarHTML(p){
   const w=WISHES[p.wish.id];
   if(!w) return "";
   return `<div class="wishbar">🌒 今夜心願（僅你可見）：<b>${w.name}</b>｜${typeof w.desc==="function"?w.desc(p):w.desc}</div>`;
+}
+/* 3D 拍賣桌的資訊層級：私有心願與公開夜況同在 #feltHead；舊平面桌維持原本 stage 位置。
+   每次重畫都先移除舊節點，熱座交棒或重進出價頁不會殘留上一位玩家的秘密。 */
+function setFeltPrivateContext(p,hollow){
+  const head=$("feltHead"); if(!head) return;
+  head.querySelectorAll(".wishbar").forEach(el=>el.remove());
+  if(hollow) head.insertAdjacentHTML("beforeend",wishBarHTML(p));
 }
 /* ================= 盯上宣告（GAME_DESIGN §5.8）=================
    夜初（抽心願之後、異事之前）AI 依座位序各釘一件（耗 S.rng()），真人由 UI／策略的 mark() 決定；
@@ -4888,10 +4899,11 @@ function showMarkUI(){
      #stage 只留心願條 ⇒ 桌心乾淨。`?table3d=0` 走 else 那條，版面與 v0.53 逐像素相同。 */
   const hollow=TABLE3D;
   $("stage").innerHTML=`${hollow?"":prev}
-    ${wishBarHTML(ap)}
+    ${hollow?"":wishBarHTML(ap)}
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
   setHollow(hollow);
+  setFeltPrivateContext(ap,hollow);
   if(hollow){ fillRails(prev,shrinesHTML(),markCardHTML); TRAY_PHASE="mark"; pushMarket3d(); }
   /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
      牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
@@ -4982,11 +4994,12 @@ function showMarket(){
      #stage 只留心願條與押寶條（兩者都要能點，所以 #felt.hollow #stage 疊在 #tray 之上）。 */
   const hollow=TABLE3D;
   $("stage").innerHTML=`${hollow?"":prev}
-    ${wishBarHTML(ap)}
+    ${hollow?"":wishBarHTML(ap)}
     ${stakeHTML(ap)}
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
   setHollow(hollow);
+  setFeltPrivateContext(ap,hollow);
   if(hollow){ fillRails(prev,shrinesHTML(),mcardHTML); TRAY_PHASE="bid"; pushMarket3d(); }
   const hs=aliveHumans();
   const isLast=hs[hs.length-1].id===ACTIVE;
