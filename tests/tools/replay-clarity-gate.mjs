@@ -37,6 +37,10 @@ try {
   await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object"');
 
+  const title = await page.locator('#titleScr').innerText();
+  assert(!/風位玩家當夜戰力[＋+]/.test(title),
+    'RED: 首頁仍把風位說成當夜戰力加成，而紙紮夜戰只把它用在同分裁定');
+
   const intro = await page.evaluate(() => introPages()[1]);
   assert(!/抽對手比戰力/.test(intro), 'RED: 新手第二卡仍把夜戰說成「抽對手比戰力」');
   assert(/輪轉|配對/.test(intro) && /存活.*紙紮/.test(intro) && /剩餘血量/.test(intro),
@@ -55,6 +59,20 @@ try {
   assert(!/戰力 \+/.test(detail), 'RED: 拍品詳情仍把「戰力 +數字」當成主要購買資訊');
   assert(/紙紮夜戰/.test(detail) && /存活.*紙紮/.test(detail) && /剩餘血量/.test(detail),
     'RED: 拍品詳情未說明紙紮夜戰的實際勝負順序');
+
+  await page.evaluate(() => {
+    const p = S.players[ACTIVE];
+    p.bag = [
+      { n: '驗收陰氣甲', f: 'yinqi', p: 0 },
+      { n: '驗收陰氣乙', f: 'yinqi', p: 0 },
+    ];
+    showBag(ACTIVE);
+  });
+  const bag = await page.locator('#modalbox').innerText();
+  assert(!/共鳴：陰氣×2\s*\+4/.test(bag),
+    'RED: 袋子仍展示舊公式「同系件數平方」而不是實際紙紮共鳴效果');
+  assert(/紙紮共鳴：陰氣×2[\s\S]*hp \+1/.test(bag),
+    'RED: 袋子未展示目前啟用的紙紮共鳴效果');
   console.log('PASS replay clarity: intro and item detail describe the actual paper-war decision rule');
   await context.close();
 } finally {
