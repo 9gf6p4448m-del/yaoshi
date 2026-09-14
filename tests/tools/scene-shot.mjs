@@ -19,6 +19,7 @@ const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 /* worktree 裡沒有 tools/（那是主 repo 的目錄），所以往上找到第一個裝了 playwright 的地方 */
 const { chromium } = (() => {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'),
+    path.resolve(ROOT, '../../tools/anyCreature/package.json'),
     path.resolve(ROOT, '../../../tools/anyCreature/package.json')];
   for (const c of cands) if (fsSync.existsSync(c)) return createRequire(c)('playwright');
   throw new Error('找不到 playwright（試過：' + cands.join('、') + '）');
