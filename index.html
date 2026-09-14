@@ -385,6 +385,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .mcard:active{transform:scale(.97)}
 .mcard.curse{border-color:var(--curse)}
 .mcard.bided{border-color:var(--gold)}
+.mcard.moonFavored{border-color:#bdaeff;box-shadow:0 0 0 1px rgba(189,174,255,.3),0 0 13px rgba(120,97,255,.34)}
 .mcard .nm{font-weight:bold;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mcard .pw{font-size:11px;color:var(--gold)}
 .mcard .ab{font-size:10px;color:var(--dim);margin-top:2px;line-height:1.3}
@@ -401,6 +402,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .fchip{display:inline-block;font-size:9px;border-radius:5px;padding:0 4px;margin-left:3px;color:#14101f;font-weight:bold}
 .f-zuling{background:var(--zuling)} .f-xianghuo{background:var(--xianghuo)}
 .f-yinqi{background:var(--yinqi)} .f-curse{background:var(--curse);color:#fff}
+.moonCue{display:inline-block;margin-left:3px;padding:0 4px;border-radius:5px;background:rgba(162,145,255,.28);color:#e2d9ff;font-size:9px;font-weight:bold;white-space:nowrap}
+.moonDetail{margin:4px 0 7px;padding:6px 8px;border:1px solid rgba(189,174,255,.72);border-radius:8px;background:linear-gradient(90deg,rgba(82,58,145,.34),rgba(27,18,53,.45));color:#e5deff;font-size:12px;line-height:1.35}
+.moonDetail.off{border-color:var(--line);background:rgba(255,255,255,.035);color:var(--dim)}
+.bagMoon{font-size:11px;color:#e5deff;padding-top:3px}
 .stageCard{background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:8px 12px;
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
@@ -2460,7 +2465,7 @@ let TRAY_PHASE=null;
    只讀 ab 的話那 4 件會靜默變成空槽。詛咒品兩個都沒有 ⇒ key null，3D 層擺占位的符紙堆。
    純讀取：不耗亂數、不寫任何賽局欄位（trace 因此與基準逐位元組相等）。 */
 function market3dItems(){
-  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null }));
+  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null, moon: moonBenefit(it,S.round).active }));
 }
 /* 四席各是誰（v0.56b 第二段：席角信物）。id＝DIRS 的 0..3，role＝ROLES 的 id。
    純讀取：不耗亂數、不寫任何賽局欄位——與 market3dItems 同一條紀律。
@@ -3595,7 +3600,15 @@ const BEAT_NAME=["一拍・撞","二拍・護","三拍・祟"];
 function phaseText(round){
   const ph=phaseFor(round);
   /* 卷 D D3：月相改成該拍該系每隊 hp+1（原本 atk+1 對群體是乘數，A6 窮舉出現支配買法） */
-  return `${ph.icon} ${ph.name}：${ph.fac?`${FAC[ph.fac].n}拍 hp+1`:"三拍無增幅"}`;
+  return `${ph.icon} ${ph.name}｜${ph.fac?`${FAC[ph.fac].n}拍：全隊 HP +1`:"三拍：無增幅"}`;
+}
+/* 月相提示只讀既有單一事實來源：讓卡面、詳情與背包都回答同一個問題——這件現在買下來，本夜會不會立即吃到增幅。 */
+function moonBenefit(it,round){
+  const ph=phaseFor(round), r=unitRow(it);
+  const active=!!(ph.fac&&r&&!r.curse&&r.fac===ph.fac);
+  return {ph,r,active,text:active
+    ?`${ph.icon} 今夜受惠｜${FAC[ph.fac].n}拍：全隊 HP +1`
+    :`${ph.icon} ${ph.name}｜${ph.fac?`${FAC[ph.fac].n}拍受惠；這件本夜不加成`:"本夜三拍都沒有月相增幅"}`};
 }
 
 /* 袋子 → 紙紮陣。詛咒品不召喚、只記件數（每件讓本方前鋒全體 atk −1）；
@@ -3680,17 +3693,20 @@ function bagPreviewHTML(p){
   let n=0, atk=0, hp=0;
   a.teams.forEach(t=>t.units.forEach(u=>{ n++; atk+=u.atk|0; hp+=u.max|0; }));
   const res=FACTIONS.map(f=>({f,lv:pwResLv(p,f)})).filter(x=>x.lv>0);
+  const ph=phaseFor(S.round);
   const head=`<div class="bagit bagsum"><span>🪖 <b>部隊</b>　${n} 隻・總攻 ${atk}・總血 ${hp}</span>`
-    +`<b>${res.length?res.map(x=>`${FAC[x.f].n}共鳴 該系那一拍 hp+${x.lv}`).join("・"):"無共鳴"}</b></div>`;
+    +`<b>${res.length?res.map(x=>`${FAC[x.f].n}共鳴 該系那一拍 hp+${x.lv}`).join("・"):"無共鳴"}</b>`
+    +`<span class="bagMoon">${phaseText(S.round)}${ph.fac?`・現在買${FAC[ph.fac].n}拍品會立刻吃到這一拍增幅`:""}</span></div>`;
   const rows=p.bag.map(x=>{
     const r=unitRow(x);
     if(!r) return "";
     if(r.curse) return `<div class="bagit uprev mut"><span>${x.n}</span><span>🕸 不召喚${
       traitMax(p,"curseWard",0)>0?"・已淨化":"・纏身"}</span></div>`;
     /* 袋子面板保留全文（使用者裁定：卡面精簡、袋子完整） */
+    const moon=moonBenefit(x,S.round);
     return `<div class="bagit uprev"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span>`
       +`<span class="uline">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
-        r.move?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</span></div>`;
+        moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}${r.move?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</span></div>`;
   }).join("");
   return head+rows;
 }
@@ -5199,23 +5215,24 @@ function ybToggle(i){
 }
 function mcardHTML(it,i){
   const b=myBids[i];
+  const moon=moonBenefit(it,S.round);
   if(YB){
     /* 押寶夜：每件法寶一個勾選框；詛咒品該夜顯示「不開標」且點不動 */
     const off=it.curse;
     const box=off?"":`<span class="pickbox ${YB.pick[i]?"on":""}">${YB.pick[i]?"✓":""}</span>`;
-    return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
+    return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${moon.active?"moonFavored":""} ${off?"locked":""} ${YB.pick[i]?"bided":""}" id="mc${i}" ${off?"":`onclick="ybToggle(${i})"`}>
       ${box}${markBadgeHTML(i)}${itemIcoHTML(it)}
       <div class="nm">${it.n}</div>
-      <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+      <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span>${moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}</div>
       <div class="ab">${off?"🚫 本夜不開標":(it.ab?("✦ "+abDesc(it.ab)):it.d)}${!off&&it.drain?`・每夜 -${it.drain} 血`:""}</div>
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
   }
   const badge=b.amt>0?`<span class="mybid ${b.intent==="poison"?"poison":""}">${b.intent==="poison"?"毒":"押"} ${b.amt}</span>`:"";
-  return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
+  return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${moon.active?"moonFavored":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
     ${badge}${markBadgeHTML(i)}${itemIcoHTML(it)}
     <div class="nm">${it.n}</div>
-    <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+    <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span>${moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}</div>
     <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
     ${/* 部隊預覽一行（請神 2.0）：出價前就看得到這件法寶會召出什麼、幾拍出手、招式是什麼——與袋子面板同一支 */""}
     ${unitRowText(it,S.players[ACTIVE])}
@@ -5243,6 +5260,7 @@ function openSheet(i){
   const c=ap.bag.filter(x=>x.f===it.f&&!x.curse).length;
   const syn=!CFG.PAPERWAR_ON&&(!it.curse&&c>0)?`<br>💡 你已有 ${FAC[it.f].n} ×${c}，拿下後共鳴 ${(c+1>=CFG.SET_MIN)?`+${(c+1)*(c+1)}`:"尚未啟動"}`:"";
   const pwHint=paperWarMarketHint(ap,it);
+  const moon=moonBenefit(it,S.round);
   /* 收祟夜：買下銷毀本夜禁用——選項直接不給，並把預設意圖改成毒標（避免出了標卻被引擎作廢） */
   const noDest=it.curse&&noDestroyNight();
   /* 預設對象與引擎的自動轉毒標同一份選法（strongestFoe），玩家仍可自己改 */
@@ -5254,6 +5272,7 @@ function openSheet(i){
     <h3>${itemIcoInline(it)}${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
     ${/* 部隊預覽全文（招式名＋一句效果）改放這裡：卡面只留數字（覆審 HIGH-1 乙，使用者裁定） */""}
     ${unitRowText(it,ap,"full")}
+    ${it.curse?"":`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・它在第 ${moon.r.beat} 拍出手`:""}</div>`}
     <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
@@ -6416,7 +6435,8 @@ function endGame(){
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
-    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}（戰力 ${showPow(p)}）</div>`).join("")}
+    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}${CFG.PAPERWAR_ON?`（${paperForceText(p)}）`:`（戰力 ${showPow(p)}）`}</div>`).join("")}
+    ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}<button class="bigbtn alt" style="margin-top:7px;width:100%;height:32px" onclick="showReview()">看完整回顧</button></div>`:""}
     <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">本局回顧</button>
   </div>`;
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
@@ -6527,7 +6547,6 @@ function showBag(pid){
     ${/* 部隊預覽（請神 2.0）：使用者試玩「持兩尊仍 12/12 全燒、看不出為什麼輸」——袋子全是 atk 0 的作祟型與護法。
          逐件的隻數／攻／血／拍／招式與最上方的總計都走引擎同一支 buildArmy＋TRAITS，不另抄規則。 */""}
     ${bagPreviewHTML(p)}
-    <div class="bagit" style="border:none;margin-top:6px"><b>總戰力<span class="mut">（舊公式，紙紮夜戰不用它）</span></b><b style="color:var(--gold)">${showPow(p)}${pid===windPid(S.round)?`（+${CFG.WIND_POWER} ${windName(S.round)}）`:""}</b></div>
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }

@@ -281,7 +281,7 @@ export function createTableTray(scene, camera, opts = {}) {
   const N = TRAY.XS.length;
   /** 每一格的狀態。fig＝真 3D 妖（有 GLB）；pile＝詛咒占位；兩者互斥。 */
   const slots = TRAY.XS.map((x, i) => ({
-    i, key: null, curse: false, fac: null,
+    i, key: null, curse: false, fac: null, moon: false,
     fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, played: false,
     jolt: 0, bb: null,
   }));
@@ -293,6 +293,29 @@ export function createTableTray(scene, camera, opts = {}) {
     m.userData.slot = s.i;
     return m;
   });
+  /* 月相受惠：一個 InstancedMesh 管四格的淡紫月環；不添四次 draw call，也不搶 hover 描邊。 */
+  const moonGeo = new THREE.RingGeometry(0.25, 0.29, 20);
+  const moonMat = new THREE.MeshBasicMaterial({ color: 0xbeb1ff, transparent: true, opacity: 0.48, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+  const moonMarks = new THREE.InstancedMesh(moonGeo, moonMat, N);
+  moonMarks.name = 'tray-moon-benefit';
+  moonMarks.count = 0;
+  moonMarks.visible = false;
+  group.add(moonMarks);
+  const moonV = new THREE.Vector3(), moonQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), moonS = new THREE.Vector3(), moonM = new THREE.Matrix4();
+  function refreshMoonMarks() {
+    let n = 0;
+    for (const s of slots) {
+      if (!s.moon) continue;
+      const k = L.mode === 'P' ? 0.62 : 1;
+      moonV.set(slotX(s.i), TRAY.Y + 0.008, L.Z);
+      moonS.set(k, k, k);
+      moonM.compose(moonV, moonQ, moonS);
+      moonMarks.setMatrixAt(n++, moonM);
+    }
+    moonMarks.count = n;
+    moonMarks.visible = n > 0;
+    if (n) moonMarks.instanceMatrix.needsUpdate = true;
+  }
   /* 桌上道具層：掛在 `group` 裡面 ⇒ `setVisible(false)`（對決）一次收掉整組，不必逐支記得。
      `onSlam`＝令牌落地那一刻，把那一格的拍品往下頓一下（落地震動；純視覺，不碰任何狀態）。 */
   const props = createTableProps(group, { onSlam: (slot) => {
@@ -335,7 +358,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile.dispose();
       s.pile = null;
     }
-    s.key = null; s.curse = false; s.fac = null; s.ready = false; s.hoverK = 0; s.spin = 0;
+    s.key = null; s.curse = false; s.fac = null; s.moon = false; s.ready = false; s.hoverK = 0; s.spin = 0;
     s.rimK = -1; s.played = false; s.jolt = 0; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
@@ -377,6 +400,7 @@ export function createTableTray(scene, camera, opts = {}) {
       if (node) { node.position.x = slotX(s.i); node.position.z = L.Z; node.scale.setScalar(s.fig ? L.SCALE : L.SCALE / TRAY.SCALE); }
       fitProxy(s);
     }
+    refreshMoonMarks();
     props.setLayout(L.mode, L.XS, TRAY.Y, L.Z, L.SCALE);
   }
 
@@ -384,6 +408,7 @@ export function createTableTray(scene, camera, opts = {}) {
     s.key = it.key || null;
     s.curse = !!it.curse;
     s.fac = it.fac || null;
+    s.moon = !!it.moon;
     s.spin = TRAY.YAW[s.i] || 0;
     if (s.curse || !s.key) {
       const p = makeCursePile(1301 + s.i * 37);
@@ -432,7 +457,7 @@ export function createTableTray(scene, camera, opts = {}) {
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
     slotXs() { return L.XS.slice(); },
-    /** 今夜的 4 件。list = [{key, curse, fac}]；key = it.ab || it.m（★不是只有 ab★，計畫 §6 Q3）。 */
+    /** 今夜的 4 件。list = [{key, curse, fac, moon}]；moon 是演出層算好的本夜受惠標記。 */
     setItems(list) {
       const arr = Array.isArray(list) ? list : [];
       const jobs = [];
@@ -442,10 +467,11 @@ export function createTableTray(scene, camera, opts = {}) {
         if (!it) { if (s.key !== null || s.pile) clearSlot(s); continue; }
         const key = it.key || null;
         const curse = !!it.curse;
-        if (s.key === key && s.curse === curse && (s.fig || s.pile)) continue; // 同一件就留著，不重載
+        if (s.key === key && s.curse === curse && (s.fig || s.pile)) { s.moon = !!it.moon; continue; } // 同一件就留著，不重載
         clearSlot(s);
-        jobs.push(fillSlot(s, { key, curse, fac: it.fac }));
+        jobs.push(fillSlot(s, { key, curse, fac: it.fac, moon: it.moon }));
       }
+      refreshMoonMarks();
       pending = Promise.all(jobs);
       return pending;
     },
@@ -456,7 +482,7 @@ export function createTableTray(scene, camera, opts = {}) {
     /** 每一格現在掛的是什麼（T2 逐槽比對用；只讀，不給改） */
     items() {
       return slots.map((s) => ({
-        slot: s.i, key: s.key, curse: s.curse, fac: s.fac, ready: s.ready,
+        slot: s.i, key: s.key, curse: s.curse, fac: s.fac, moon: s.moon, ready: s.ready,
         glb: s.fig ? creatureGlbUrl(s.key) : null,
         visible: s.fig ? s.fig.group.visible : !!s.pile,
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,
