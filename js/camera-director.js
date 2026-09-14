@@ -286,6 +286,15 @@ export function createCameraDirector(camera, lanterns) {
     revealUntil = performance.now() + REVEAL_HOLD_MS;
   }
 
+  /* 開標逐件看槽位：不讀遊戲狀態，只接演出層已決定的 slot。四個短 yaw 偏移讓鏡頭真的掃過錢堆。 */
+  function onRevealSlot(e) {
+    if (prefersReduced()) return;
+    const d = (e && e.detail) || {}, slot = Math.max(0, Math.min(3, d.slot | 0));
+    clearOrbitLean();
+    goto({ dist: 2.82, tilt: 27, yaw: [-16, -5, 5, 16][slot], lookY: 0.22 }, Number(d.ms) || 650);
+    setEmphasis(null);
+  }
+
   function onDuel(e) {
     const d = (e && e.detail) || {};
     revealUntil = 0;
@@ -488,6 +497,7 @@ export function createCameraDirector(camera, lanterns) {
   }
 
   document.addEventListener('ys:reveal', onReveal);
+  document.addEventListener('ys:reveal-slot', onRevealSlot);
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:fx-trait', onTrait);

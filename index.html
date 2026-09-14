@@ -410,6 +410,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .stageCard .big{font-size:15px;font-weight:bold}
+.revealRibbon{position:absolute;right:10px;top:-38px;width:min(270px,30%);max-height:76px;overflow:hidden;padding:4px 7px;color:var(--ink);text-align:center;font-size:10px;line-height:1.16;border:1px solid rgba(232,179,75,.72);border-radius:8px;background:linear-gradient(90deg,rgba(25,12,31,.82),rgba(69,20,20,.76),rgba(25,12,31,.82));box-shadow:0 3px 18px rgba(0,0,0,.45)}
+.revealRibbon .big{font-weight:bold;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.revealRibbon .mut{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:2px;padding:2px 5px;font-size:10px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:18px;overflow:hidden}.revealRibbon .outcome{margin-top:2px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:10px}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
   border-radius:8px;font-size:12px;animation:slidein .3s}
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
@@ -4674,7 +4676,12 @@ function revealGlow(r){
   /* `slot`＝這一件在今夜市集的第幾格（v0.56b 第二段：3D 層據此把得標者的錢留在桌上、其餘收回）。
      `S.market.indexOf(r.it)` 是純讀取；查不到（理論上不會）**送 null**，3D 層看到 null 就不動。
      （覆審 r1 LOW-1：舊版送的是 −1，與這行註解不一致，靠 `settle(-1)` 的迴圈空轉吸收。） */
-  fx3d("ys:reveal",{winner:r.winner.p.id,slot:(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})()}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
+  /* 演出資料刻意把「競標得主」「毒標受害者」「買下銷毀」拆開：三者不是同一席。
+     不把它們塞回 resolveAuction 的結果，3D 層只讀這張短命的呈現收據。 */
+  const revealSlot=(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})();
+  fx3d("ys:reveal",{winner:r.winner.p.id,slot:revealSlot,
+    transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"?r.winner.target:null,
+    destroy:!!(r.it&&r.it.curse&&r.winner.intent!=="poison")}); /* 鏡頭壓向桌心、打亮得標者的燈籠 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
@@ -5416,11 +5423,12 @@ async function startReveal(){
   applyHooks("onReveal",rv,aliveHumans());
   /* 落標實付的註記文字：規則夜可用 loseLabel 換掉（如落魄夜的「落標全付」），引擎不寫規則 id */
   const loseLbl=(S.nightRule&&S.nightRule.loseLabel)||"落標費";
-  setHollow(false);   /* 掏空卷 v0.55a：開標揭盅回玻璃面板（#veil 的黑幕要有底才蓋得住） */
+  /* 揭盅就是讓玩家看 3D 錢堆比大小：保持托盤露出，絕不能再落黑幕。 */
+  setHollow(true); veil(false);
   const stage=$("stage");
   if(S.bleedLog&&S.bleedLog.length){
     renderSeats();
-    stage.innerHTML=`<div class="stageCard">${S.bleedLog.map(t=>`<div class="big" style="font-size:16px">${t}</div>`).join("")}</div>`;
+    stage.innerHTML=`<div class="revealRibbon">${S.bleedLog.map(t=>`<div class="big">${t}</div>`).join("")}</div>`;
     await sleep(CFG.T*1.4);
   }
   /* 開標前公告（2026-09-02 使用者裁定，回應「開標沒驚喜」）：先亮各件「幾人出價」再逐件開——
@@ -5429,7 +5437,7 @@ async function startReveal(){
   const meIn=r=>(S.mode!=="hotseat"&&r.entries.some(e=>!e.p.ai))?`<span class="mut" style="font-size:10px">（含你）</span>`:"";
   if(rv.showEntries){
     renderSeats();
-    stage.innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🔔 開標前公告・各件出價人數</div>
+    stage.innerHTML=`<div class="revealRibbon"><div class="big">🔔 開標前公告・各件出價人數</div>
       ${rv.reveal.map((r,i)=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}${markBadgeHTML(i)}</span><span>${nBid(r)}${meIn(r)}</span></div>`).join("")}
     </div>`;
     await waitMain("開標 ▸");
@@ -5437,14 +5445,14 @@ async function startReveal(){
   sfx("gong",{rnd:S.rngUi()}); /* 開市鑼 */
   for(const r of rv.reveal){
     renderSeats();
-    veil(true); await sleep(450); /* 開標揭曉①：先黑幕，燈籠再亮（art-integration-guide §5.1） */
-    stage.innerHTML=`<div class="stageCard anim-lantern-reveal" id="revealCard">
+    const revealSlot=S.market.indexOf(r.it);
+    fx3d("ys:reveal-slot",{slot:revealSlot,ms:Math.max(520,CFG.T*1.25)});
+    stage.innerHTML=`<div class="revealRibbon anim-lantern-reveal" id="revealCard">
       <div class="big">${itemIcoInline(r.it)}${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
       <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
       <div class="mut" style="font-size:12px">${rv.showEntries?nBid(r):""}</div>
       <div id="flyzone"></div><div id="outzone"></div>
     </div>`;
-    veil(false);
     await sleep(CFG.T*0.8);
     const fz=$("flyzone");
     if(!rv.showEntries){
@@ -5454,18 +5462,9 @@ async function startReveal(){
       fz.innerHTML=`<div class="bidfly"><span>無人出價</span><span>—</span></div>`;
       await sleep(CFG.T*0.7);
     }else{
-      const ordered=[...r.entries].sort((a,b)=>a.amt-b.amt);
-      for(const e of ordered){
-        fz.insertAdjacentHTML("beforeend",
-          `<div class="bidfly ${e===r.winner?"win":""}"><span><img class="bico" src="assets/ui/bid-token.svg" alt="">${DIRS[e.p.id]}家・${e.p.name}${e.intent==="poison"?" 🕸毒標":""}</span><span>${e.amt} 壽命${rv.showTypes&&e.type==="yaming"?"・押命":""}${
-            /* 實付顯示規則（2026-09-02 對抗覆審 HIGH-1/2）：
-               得標者一律顯示——得標實付=出價+掛號費，兩種型態同式，不洩漏標書型態；
-               落標者的實付兩型態算式不同（25% vs 50%），會被反推型態、廢掉普渡爐主的被動，
-               故只在「這筆是真人自己的」或 viewer 有 showTypes 權限（爐主）時顯示。 */
-            (e.cost>0&&(e===r.winner||!e.p.ai||rv.showTypes))?`・實付 ${e.cost}${(!e.p.ai)?`<span class="mut" style="font-size:10px">（${e===r.winner?"出價":loseLbl}${CFG.BID_FEE>0?"＋買路錢":""}）</span>`:""}`:""
-          }</span></div>`);
-        await sleep(CFG.T*0.65);
-      }
+      /* 錢堆已在桌上並排攤開；邊欄只說「正在比標」，避免又做出一張遮住托盤的 2D 收據。 */
+      fz.innerHTML=`<div class="bidfly"><span>⚖ ${r.entries.length} 人比標</span><span>看桌上銅錢</span></div>`;
+      await sleep(CFG.T*0.65);
     }
     $("outzone").innerHTML=`<div class="outcome">${r.outcome}</div>`;
     /* 險勝／惜敗（真人牽涉、差距 ≤1 才打）：讓「差一點」被看見，密封標的驚喜點就在這一行 */
@@ -5506,7 +5505,7 @@ async function startReveal(){
   /* 本夜成交總覽 */
   SKIP=false;
   renderSeats();
-  setHollow(false);   /* 掏空卷 v0.55a */
+  setHollow(true);
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div class="big">🏮 本夜成交總覽</div>
     ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・實付 ${r.winner.cost}`:""}）`:""}</span></div>`).join("")}
@@ -6431,8 +6430,8 @@ function endGame(){
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
     ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}${CFG.PAPERWAR_ON?`（${paperForceText(p)}）`:`（戰力 ${showPow(p)}）`}</div>`).join("")}
-    ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}<button class="bigbtn alt" style="margin-top:7px;width:100%;height:32px" onclick="showReview()">看完整回顧</button></div>`:""}
-    <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">本局回顧</button>
+    ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}</div>`:""}
+    <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">看完整回顧</button>
   </div>`;
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
@@ -6446,11 +6445,20 @@ function replayExperiment(H,p){
     const life=Math.max(0,p.life|0);
     return `你以 <b>${life} 壽命</b> 收局。下一局試著把壽命留給真正要搶的拍品，別為低價值競標耗盡籌碼。`;
   }
-  const failed=H.nights.flatMap(n=>n.wishes||[]).filter(w=>w.pid===p.id&&!w.done).length;
+  const ownWishes=H.nights.flatMap(n=>n.wishes||[]).filter(w=>w.pid===p.id);
+  const failed=ownWishes.filter(w=>!w.done).length;
   const a=buildArmy(p.bag); let units=0,hp=0; a.teams.forEach(t=>t.units.forEach(u=>{units++;hp+=u.max|0;}));
-  if(failed) return `這局有 <b>${failed}</b> 個心願沒完成。下一局試著先選一件能推進心願的拍品，再用剩餘壽命守住你的紙紮陣。`;
-  if(units<3) return `你最後只有 <b>${units} 隻紙紮</b>。下一局試著先補能在不同拍出手的紙紮，別把所有壽命壓在單一件大貨。`;
-  return `你的紙紮最後有 <b>${units} 隻／總血 ${hp}</b>。下一局試著跟著月相搶同系拍品，讓受惠那一拍成為你的反攻點。`;
+  const moonWins=H.nights.reduce((n,night)=>n+night.auction.filter(x=>x.winnerId===p.id&&x.fac&&moonBenefit({f:x.fac},night.round).active).length,0);
+  /* 只讀局末紀錄，三種可行策略缺口依嚴重度排序；心願不再硬搶第一名。 */
+  const experimentScores=[
+    {k:"army",score:units<3?90:units<5?46:0},
+    {k:"moon",score:units>=3&&moonWins===0?64:moonWins===0?28:0},
+    {k:"wish",score:failed>=Math.max(3,Math.ceil(ownWishes.length*.75))?52:failed>=2?25:0},
+  ].sort((x,y)=>y.score-x.score);
+  const best=experimentScores[0].k;
+  if(best==="army") return `你最後只有 <b>${units} 隻紙紮</b>。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。`;
+  if(best==="moon") return `你的部隊已成形（<b>${units} 隻／總血 ${hp}</b>），但還沒吃到月相受惠拍。下一局跟著月相搶同系拍品，創造反攻點。`;
+  return `這局有 <b>${failed}</b> 個心願沒完成。下一局只挑一個能立刻推進的心願，再保留壽命守住紙紮陣。`;
 }
 function showReview(){
   bgm("review"); /* 從結果畫面進來時已經是這一首，重複呼叫是空操作 */

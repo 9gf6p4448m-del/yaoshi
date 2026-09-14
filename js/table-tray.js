@@ -293,35 +293,76 @@ export function createTableTray(scene, camera, opts = {}) {
     m.userData.slot = s.i;
     return m;
   });
-  /* 月相受惠：一個 InstancedMesh 管四格的淡紫月環；不添四次 draw call，也不搶 hover 描邊。 */
-  const moonGeo = new THREE.RingGeometry(0.25, 0.29, 20);
-  const moonMat = new THREE.MeshBasicMaterial({ color: 0xbeb1ff, transparent: true, opacity: 0.48, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+  /* 硃砂法陣：把暗紅外圈與八方暖金爻象併進同一份幾何，仍是一筆 draw call。
+     這裡刻意不用八個獨立小方塊：桌上常駐四件拍品時，民俗感不該以 32 次小繪製交換。 */
+  const ringBase = new THREE.RingGeometry(0.23, 0.285, 16).toNonIndexed();
+  const runePos = Array.from(ringBase.attributes.position.array), runeCol = [];
+  const cinnabar = new THREE.Color(0x6d1d1c), trigram = new THREE.Color(0x9d762f);
+  for (let i = 0; i < runePos.length / 3; i++) runeCol.push(cinnabar.r, cinnabar.g, cinnabar.b);
+  const addRuneQuad = (a, b, c, d) => {
+    for (const p of [a, b, c, a, c, d]) { runePos.push(p[0], p[1], 0); runeCol.push(trigram.r, trigram.g, trigram.b); }
+  };
+  for (let j = 0; j < 8; j++) {
+    const a = j * Math.PI / 4, rx = Math.sin(a), ry = Math.cos(a), tx = ry, ty = -rx;
+    const cx = rx * 0.33, cy = ry * 0.33, halfL = 0.028, halfW = 0.007;
+    addRuneQuad(
+      [cx - tx * halfL - rx * halfW, cy - ty * halfL - ry * halfW],
+      [cx + tx * halfL - rx * halfW, cy + ty * halfL - ry * halfW],
+      [cx + tx * halfL + rx * halfW, cy + ty * halfL + ry * halfW],
+      [cx - tx * halfL + rx * halfW, cy - ty * halfL + ry * halfW],
+    );
+  }
+  const runeGeo = new THREE.BufferGeometry();
+  runeGeo.setAttribute('position', new THREE.Float32BufferAttribute(runePos, 3));
+  runeGeo.setAttribute('color', new THREE.Float32BufferAttribute(runeCol, 3));
+  ringBase.dispose();
+  const runeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.78, side: THREE.DoubleSide, depthWrite: false });
+  const runes = new THREE.InstancedMesh(runeGeo, runeMat, N);
+  runes.name = 'tray-cinnabar-runes'; runes.frustumCulled = false;
+  group.add(runes);
+  const moonGeo = new THREE.RingGeometry(0.17, 0.195, 16);
+  const moonMat = new THREE.MeshBasicMaterial({ color: 0xe8bd55, transparent: true, opacity: 0.70, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
   const moonMarks = new THREE.InstancedMesh(moonGeo, moonMat, N);
   moonMarks.name = 'tray-moon-benefit';
   moonMarks.count = 0;
   moonMarks.visible = false;
   group.add(moonMarks);
   const moonV = new THREE.Vector3(), moonQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), moonS = new THREE.Vector3(), moonM = new THREE.Matrix4();
+  const runePulse = [0, 0, 0, 0];
   function refreshMoonMarks() {
     let n = 0;
     for (const s of slots) {
-      if (!s.moon) continue;
       const k = L.mode === 'P' ? 0.62 : 1;
+      const pulse = 1 + runePulse[s.i] * 0.15;
       moonV.set(slotX(s.i), TRAY.Y + 0.008, L.Z);
-      moonS.set(k, k, k);
+      moonS.set(k * pulse, k * pulse, k);
       moonM.compose(moonV, moonQ, moonS);
+      runes.setMatrixAt(s.i, moonM);
+      /* 滿 128 枚時卡面「今夜受惠」與整座硃砂法陣仍保留；只收掉額外一筆加色內環，
+         避免它在透明錢堆壓力情境與接觸陰影競爭填色。 */
+      if (!s.moon || pressureOutlines) continue;
+      moonV.set(slotX(s.i), TRAY.Y + 0.011, L.Z); moonS.set(k * pulse, k * pulse, k); moonM.compose(moonV, moonQ, moonS);
       moonMarks.setMatrixAt(n++, moonM);
     }
+    runes.count = N; runes.visible = N > 0; runes.instanceMatrix.needsUpdate = true;
     moonMarks.count = n;
     moonMarks.visible = n > 0;
     if (n) moonMarks.instanceMatrix.needsUpdate = true;
   }
+  function pulseRune(slot) { if (slot >= 0 && slot < N) runePulse[slot] = 1; refreshMoonMarks(); }
   /* 桌上道具層：掛在 `group` 裡面 ⇒ `setVisible(false)`（對決）一次收掉整組，不必逐支記得。
      `onSlam`＝令牌落地那一刻，把那一格的拍品往下頓一下（落地震動；純視覺，不碰任何狀態）。 */
+  let pressureOutlines = false;
   const props = createTableProps(group, { onSlam: (slot) => {
     const s = slots[slot]; if (s) s.jolt = 1;
     /* 這一刻由 table-props 的 token `t >= 1` 呼叫，才是物理落地；UI 音效不得再用 timer 猜。 */
-    document.dispatchEvent(new CustomEvent('ys:mark-slam', { detail: { slot } }));
+    document.dispatchEvent(new CustomEvent('ys:mark-slam', { detail: { slot } })); pulseRune(slot);
+  }, onBid: (slot) => pulseRune(slot), onChange: () => syncPressureOutlines(), onSettle: (slot, winner, effect = {}) => {
+    const s = slots[slot]; if (!s) return;
+    pulseRune(slot);
+    if (s.curse && effect.destroy) playCurseBurn(slot);
+    else if (s.curse && Number.isInteger(effect.transferTarget)) playCurseTransfer(slot, effect.transferTarget);
+    else if (winner >= 0) playAward(slot, winner);
   } });
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
@@ -337,8 +378,18 @@ export function createTableTray(scene, camera, opts = {}) {
    *  draw call 與三角形就都不算；掛回來是同一顆 mesh，不重建、不重編 shader。 */
   function applyOutline(s) {
     if (!s.fig) return;
-    const on = outlineOn && s.i === hover;
+    const on = outlineOn && !pressureOutlines && s.i === hover;
     s.fig.outlines().forEach((sh) => { sh.visible = on; });
+  }
+  /* 128 枚已是「四席同夜全格滿標」的性能壓力情境；此時 hover 留模型抬升、旋轉與 rim 光，
+     但關掉逐 mesh 的外殼描邊，避免單一指標動作再多 13 次 draw call。
+     錢收回後立即恢復正常描邊，普通遊玩不受影響。 */
+  function syncPressureOutlines() {
+    const next = !!(props.chipCount && props.chipCount() >= 128);
+    if (next === pressureOutlines) return;
+    pressureOutlines = next;
+    slots.forEach(applyOutline);
+    refreshMoonMarks();
   }
 
   function clearSlot(s) {
@@ -359,7 +410,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile = null;
     }
     s.key = null; s.curse = false; s.fac = null; s.moon = false; s.ready = false; s.hoverK = 0; s.spin = 0;
-    s.rimK = -1; s.played = false; s.jolt = 0; s.bb = null;
+    s.rimK = -1; s.played = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
        在 GLB 載完之前命中盒還是符紙堆那個小盒——玩家點得到的範圍比看到的小一截。 */
@@ -449,6 +500,21 @@ export function createTableTray(scene, camera, opts = {}) {
     }, () => { s.ready = true; /* GLB 404：這一格空著，但不擋整個托盤 */ });
   }
 
+  /* 得標不改拍賣資料：暫時移動現有的 3D 展示模型，落到席位後隱藏，下一夜 setItems 會照既有生命週期換貨。 */
+  function playAward(slot, winner) {
+    const s = slots[slot]; if (!s || !s.fig || !s.fig.group.visible) return;
+    s.award = { t: 0, from: { x: s.fig.group.position.x, y: s.fig.group.position.y, z: s.fig.group.position.z }, winner };
+  }
+  /* 詛咒品不飛入任何人的袋：符紙堆以黑紫色陰火縮成灰燼，仍完全停留在渲染層。 */
+  function playCurseBurn(slot) {
+    const s = slots[slot]; if (!s || !s.pile) return;
+    s.burn = 0.001;
+  }
+  function playCurseTransfer(slot, target) {
+    const s = slots[slot]; if (!s || !s.pile) return;
+    s.curseAward = { t: 0, from: { x: s.pile.group.position.x, y: s.pile.group.position.y, z: s.pile.group.position.z }, target };
+  }
+
   const api = {
     group,
     /** 桌上道具層（籌碼／令牌／信物）。治具與 renderer 的 listener 走這個出口。 */
@@ -467,7 +533,8 @@ export function createTableTray(scene, camera, opts = {}) {
         if (!it) { if (s.key !== null || s.pile) clearSlot(s); continue; }
         const key = it.key || null;
         const curse = !!it.curse;
-        if (s.key === key && s.curse === curse && (s.fig || s.pile)) { s.moon = !!it.moon; continue; } // 同一件就留著，不重載
+        const node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
+        if (s.key === key && s.curse === curse && node && node.visible && !s.award && !s.burn && !s.curseAward) { s.moon = !!it.moon; continue; } // 同一件才可重用
         clearSlot(s);
         jobs.push(fillSlot(s, { key, curse, fac: it.fac, moon: it.moon }));
       }
@@ -536,6 +603,9 @@ export function createTableTray(scene, camera, opts = {}) {
       const wantP = (camera.aspect || 1) < 1;
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
+      let runeDirty = false;
+      for (let i = 0; i < N; i++) if (runePulse[i] > 0) { runePulse[i] = Math.max(0, runePulse[i] - dt / 0.72); runeDirty = true; }
+      if (runeDirty) refreshMoonMarks();
       for (const s of slots) {
         const want = (s.i === hover) ? 1 : 0;
         if (s.hoverK !== want) {
@@ -560,7 +630,29 @@ export function createTableTray(scene, camera, opts = {}) {
           shake = -Math.sin((1 - s.jolt) * Math.PI * 3.2) * 0.030 * s.jolt;
         }
         const y = TRAY.Y + TRAY.HOVER_LIFT * ease + shake;
-        if (s.fig) {
+        if (s.award && s.fig) {
+          const a = s.award; a.t = Math.min(1, a.t + dt / 0.86);
+          const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.winner);
+          s.fig.group.position.x = a.from.x + (dst.x - a.from.x) * e;
+          s.fig.group.position.z = a.from.z + (dst.z - a.from.z) * e;
+          s.fig.group.position.y = a.from.y + Math.sin(Math.PI * a.t) * 0.46 + (dst.y - a.from.y) * e;
+          s.fig.setRim(TRAY.RIM_HOVER + 1.2 * (1 - a.t));
+          s.fig.update(dt);
+          if (a.t >= 1) { s.fig.group.visible = false; s.award = null; }
+        } else if (s.curseAward && s.pile) {
+          const a = s.curseAward; a.t = Math.min(1, a.t + dt / 0.72);
+          const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.target);
+          s.pile.group.position.x = a.from.x + (dst.x - a.from.x) * e;
+          s.pile.group.position.z = a.from.z + (dst.z - a.from.z) * e;
+          s.pile.group.position.y = a.from.y + Math.sin(Math.PI * a.t) * 0.28 + (dst.y - a.from.y) * e;
+          if (a.t >= 1) { s.pile.group.visible = false; s.curseAward = null; }
+        } else if (s.burn !== undefined && s.pile) {
+          s.burn = Math.min(1, s.burn + dt / 0.62);
+          const q = 1 - s.burn;
+          s.pile.group.scale.setScalar((L.SCALE / TRAY.SCALE) * Math.max(0.04, q));
+          s.pile.group.position.y = TRAY.Y + s.burn * 0.16;
+          if (s.burn >= 1) { s.pile.group.visible = false; s.burn = undefined; }
+        } else if (s.fig) {
           s.fig.group.position.y = y;
           s.fig.group.rotation.y = s.spin;
           // 量化到 1/20 再寫：setRim 會把整尊每一支材質的 uniform 重寫一遍，沒變就不該付這個錢
@@ -578,8 +670,9 @@ export function createTableTray(scene, camera, opts = {}) {
       slots.forEach(clearSlot);
       props.dispose();
       group.remove(moonMarks);
+      group.remove(runes);
       moonMarks.dispose();
-      moonGeo.dispose(); moonMat.dispose();
+      moonGeo.dispose(); moonMat.dispose(); runeGeo.dispose(); runeMat.dispose(); runes.dispose();
       group.remove(cloth);
       cloth.geometry.dispose(); cloth.material.dispose();
       proxies.forEach((p) => { p.geometry.dispose(); p.material.dispose(); });

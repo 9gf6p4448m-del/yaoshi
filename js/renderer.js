@@ -187,7 +187,7 @@ function init() {
     if (!TRAY_URL.on) return;
     const d = (e && e.detail) || {};
     if (d.slot === undefined || d.slot === null) return;
-    tray.props.settle(d.slot, d.winner);
+      tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy });
   });
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));

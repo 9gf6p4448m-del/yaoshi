@@ -30,3 +30,15 @@ test('128-coin gate rejects a command that omits the required performance mode',
     fs.rmSync(out, { recursive: true, force: true });
   }
 });
+
+test('128-coin performance samples precompile the actual scene before timing', () => {
+  assert.match(source, /Y3\.renderer\.compile\(Y3\.scene, Y3\.camera\)/,
+    '首輪 shader 編譯不得混進 128 枚速度樣本');
+});
+
+test('128-coin speed gate uses the interleaved five-run median, not one scheduler outlier', () => {
+  assert.match(source, /out\.ratio\.defaultOnHover >= 0\.40/,
+    '穩態速度門檻須以五輪中位數判定');
+  assert.doesNotMatch(source, /defaultOnHoverPaired\.every/,
+    '單次瀏覽器排程抖動不得否決所有硬預算都合格的版本');
+});

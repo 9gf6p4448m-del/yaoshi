@@ -359,6 +359,9 @@ export function createTableProps(parent, opts = {}) {
   group.name = 'table-props';
   parent.add(group);
   const onSlam = opts.onSlam || null;
+  const onSettle = opts.onSettle || null;
+  const onBid = opts.onBid || null;
+  const onChange = opts.onChange || null;
 
   // ── 籌碼池：1 顆 InstancedMesh 管四席四格、最多 128 枚 ──────────────
   const CH = PROPS.CHIP;
@@ -372,6 +375,7 @@ export function createTableProps(parent, opts = {}) {
   chips.frustumCulled = false;
   /* 逐枚一點點色差（有的偏綠鏽、有的磨得亮）。instanceColor 是乘上去的，
      所以這裡放的是倍率色而不是絕對色。0 新 draw call、0 新三角形。 */
+  const chipBaseColors = [], chipGold = new THREE.Color(0xffd36a), tokenBase = new THREE.Color(0xffffff), tokenWinner = new THREE.Color(0xff6f83);
   {
     const R = seedRnd(60613);
     const c = new THREE.Color(), pat = new THREE.Color(CH.patina);
@@ -380,10 +384,20 @@ export function createTableProps(parent, opts = {}) {
       c.setRGB(k, k, k);
       if (R() < 0.22) c.lerp(pat, 0.30); // 少數幾枚帶綠鏽
       chips.setColorAt(i, c);
+      chipBaseColors.push(c.clone());
     }
     if (chips.instanceColor) chips.instanceColor.needsUpdate = true;
   }
   group.add(chips);
+
+  /* 接觸陰影不是即時燈光：一張共用的扁圓 decal 池，讓銅錢、令牌與桌角信物確實壓住木桌。
+     140 個 instance 仍只多 1 draw call，且不開 shadow map／不碰 128 枚銅錢的主幾何預算。 */
+  const shadowGeo = new THREE.CircleGeometry(1, 12);
+  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x08040a, transparent: true, opacity: 0.34, depthWrite: false, side: THREE.DoubleSide });
+  const contactShadows = new THREE.InstancedMesh(shadowGeo, shadowMat, CHIP_N + 8);
+  contactShadows.name = 'prop-contact-shadows';
+  contactShadows.count = 0; contactShadows.visible = false; contactShadows.frustumCulled = false;
+  group.add(contactShadows);
 
   // ── 令牌池：一席一枚，1 顆 InstancedMesh ─────────────────────────────
   const TK = PROPS.TOKEN;
@@ -394,6 +408,9 @@ export function createTableProps(parent, opts = {}) {
   tokens.count = 0;
   tokens.visible = false;
   tokens.frustumCulled = false;
+  /* InstancedMesh 的 instanceColor 是第一次 setColorAt 才會配置；先初始化，後面的血玉勝方光才真的能顯示。 */
+  for (let i = 0; i < 4; i++) tokens.setColorAt(i, tokenBase);
+  if (tokens.instanceColor) tokens.instanceColor.needsUpdate = true;
   group.add(tokens);
 
   // ── 狀態 ────────────────────────────────────────────────────────────
@@ -413,6 +430,7 @@ export function createTableProps(parent, opts = {}) {
   const Pv = new THREE.Vector3();
   const Sv = new THREE.Vector3(1, 1, 1);
   const EU = new THREE.Euler();
+  const SQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
 
   const seatXZ = (seat) => PROPS.SEAT[mode][seat] || [0, 0];
   const dropZ = () => trayZ + PROPS.DROP_Z[mode];
@@ -442,17 +460,44 @@ export function createTableProps(parent, opts = {}) {
       const px = c.from[0] + (c.to[0] - c.from[0]) * e;
       const pz = c.from[2] + (c.to[2] - c.from[2]) * e;
       const py = c.from[1] + (c.to[1] - c.from[1]) * e + Math.sin(Math.PI * t) * CH.LIFT;
+      c.shadow = [px, pz];
       /* 一串的姿態是立著的（繞 x 轉 90°），攤開的是躺平的。飛行途中線性補到目標姿態。 */
       EU.set(c.stand ? (Math.PI / 2) * e : 0, c.yaw, c.stand ? CH.STRING.tilt * e : 0);
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
       chips.setMatrixAt(n, M);
+      /* 得標堆只提亮本批 instance；其他錢仍留桌上給玩家比較高低。 */
+      if (chips.instanceColor) chips.setColorAt(n, c.winnerGlow ? chipGold : chipBaseColors[n]);
       n++;
     }
     chips.count = n;
     chips.visible = n > 0;
     if (n > 0) chips.instanceMatrix.needsUpdate = true;
+    if (chips.instanceColor) chips.instanceColor.needsUpdate = true;
+    writeContactShadows();
+  }
+
+  function writeContactShadows() {
+    let n = 0;
+    const put = (x, z, sx, sz) => {
+      if (n >= CHIP_N + 8) return;
+      Pv.set(x, trayY + 0.0011, z); Sv.set(sx, sz, 1); M.compose(Pv, SQ, Sv);
+      contactShadows.setMatrixAt(n++, M);
+    };
+    /* 一般出價每枚都有微影；128 枚全滿時，同一席同格的八枚改共用一張較寬的錢堆陰影。
+       這不是把陰影拿掉，而是讓「一疊錢」只投一塊接地陰影，避開 128 張透明 decal 的疊加填色成本。 */
+    const compactShadows = chipRec.length >= CHIP_N;
+    for (const c of chipRec) {
+      if (compactShadows && c.k !== 0) continue;
+      const p = c.shadow || c.to;
+      const stack = compactShadows ? 2.05 : 1.25;
+      put(p[0], p[1], CH.R * stack, CH.R * (compactShadows ? 1.10 : 0.84));
+    }
+    for (const r of tokRec) if (r.slot >= 0) put(r.to[0], r.to[2], TK.W * 1.18, TK.H * 0.94);
+    for (const r of relics) if (r) { const p = seatXZ(r.seat); put(p[0], p[1], 0.19, 0.12); }
+    contactShadows.count = n; contactShadows.visible = n > 0;
+    if (n) contactShadows.instanceMatrix.needsUpdate = true;
   }
 
   function writeTokens() {
@@ -471,11 +516,13 @@ export function createTableProps(parent, opts = {}) {
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
       tokens.setMatrixAt(n, M);
+      if (tokens.instanceColor) tokens.setColorAt(n, r.winnerGlow ? tokenWinner : tokenBase);
       n++;
     }
     tokens.count = n;
     tokens.visible = n > 0;
     if (n > 0) tokens.instanceMatrix.needsUpdate = true;
+    if (tokens.instanceColor) tokens.instanceColor.needsUpdate = true;
   }
 
   function placeRelics() {
@@ -487,6 +534,7 @@ export function createTableProps(parent, opts = {}) {
       r.mesh.rotation.y = Math.atan2(-x, -z) + [0.18, -0.12, 0.24, -0.24][i];
       r.mesh.scale.setScalar(PROPS.RELIC.SCALE * (mode === 'P' ? 0.72 : 1));
     }
+    writeContactShadows();
   }
 
   const api = {
@@ -532,6 +580,10 @@ export function createTableProps(parent, opts = {}) {
       }
       placeRelics();
     },
+    /** 托盤揭盅演出讀取的席位落點；僅是目前版面的幾何座標，沒有任何玩法資料。 */
+    seatPosition(seat) {
+      const p = seatXZ(seat | 0); return { x: p[0], y: trayY, z: p[1] };
+    },
     /** 出價：從 seat 的席位推 `amount` 枚到 slot 的托盤前（上限 8；超過改成一串）。純演出。 */
     bid(seat, slot, amount) {
       const s = seat | 0, k = slot | 0, amt = Math.max(0, amount | 0);
@@ -552,6 +604,8 @@ export function createTableProps(parent, opts = {}) {
       // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
       while (chipRec.length > CHIP_N) { chipRec.shift(); droppedChips++; }
       writeChips();
+      if (onBid) onBid(k);
+      if (onChange) onChange();
       return n;
     },
     /** 盯上：seat 的令牌重重拍在 slot 的托盤前。 */
@@ -565,25 +619,32 @@ export function createTableProps(parent, opts = {}) {
       writeTokens();
       return true;
     },
-    /** 開標結果：這一格得標的是 winnerSeat ⇒ 他的錢留在桌上，其餘各家的收回自己席位。 */
-    settle(slot, winnerSeat) {
+    /** 開標結果：錢堆留在托盤前並排比較，勝方金色高亮；不再把落標錢收回而破壞揭盅可讀性。 */
+    reveal(slot, winnerSeat, effect = {}) {
       const k = slot | 0, w = winnerSeat === null || winnerSeat === undefined ? -1 : winnerSeat | 0;
       for (const c of chipRec) {
-        if (c.slot !== k || c.seat === w || c.back) continue;
-        const [fx, fz] = seatXZ(c.seat);
-        c.from = [c.to[0], c.to[1], c.to[2]];
-        c.to = [fx, trayY + CH.T / 2, fz];
-        c.t = 0; c.delay = 0; c.back = true; c.stand = false;
+        if (c.slot !== k) continue;
+        c.winnerGlow = c.seat === w;
+      }
+      /* 勝者的血玉令牌即使本夜沒盯上，也在得標槽位亮一次；下夜 clearRound 會收掉。 */
+      if (w >= 0 && w < tokRec.length) {
+        const r = tokRec[w]; r.slot = k; r.t = 1; r.bounce = 0; r.done = true; r.hit = true; r.winnerGlow = 1;
+        r.to = [trayXS[k] + PROPS.SEAT_DX[w] * 0.5, trayY, dropZ() - 0.055];
+        r.yaw = [0.06, Math.PI + 0.06, -Math.PI / 2 + 0.1, Math.PI / 2 - 0.1][w];
       }
       writeChips();
+      if (onSettle) onSettle(k, w, effect);
     },
+    /* 舊接收端保持同名，避免 renderer 與既有治具要一起改。 */
+    settle(slot, winnerSeat, effect) { return api.reveal(slot, winnerSeat, effect); },
     /** 某一席某一格的舊籌碼清掉（同一席重複出價時不疊兩份） */
     clearBids(seat, slot) {
       for (let i = chipRec.length - 1; i >= 0; i--) {
         const c = chipRec[i];
-        if ((seat === undefined || c.seat === seat) && (slot === undefined || c.slot === slot)) chipRec.splice(i, 1);
+      if ((seat === undefined || c.seat === seat) && (slot === undefined || c.slot === slot)) chipRec.splice(i, 1);
       }
       writeChips();
+      if (onChange) onChange();
     },
     /** 換一夜：桌上的錢與令牌全收。**不動信物**（那是常駐的）。 */
     clearRound() {
@@ -591,6 +652,7 @@ export function createTableProps(parent, opts = {}) {
       droppedChips = 0;
       for (const r of tokRec) { r.slot = -1; r.t = 0; r.bounce = 0; }
       writeChips(); writeTokens();
+      if (onChange) onChange();
     },
     /** 治具／驗收出口（只讀）：現在桌上有幾枚錢、幾枚令牌、幾件信物，各花多少三角形。 */
     stats() {
@@ -611,6 +673,8 @@ export function createTableProps(parent, opts = {}) {
         names: group.children.map((o) => o.name),
       };
     },
+    /** 只給托盤選擇「高壓時的 hover 表現」用；不透露或改寫任何賽局資料。 */
+    chipCount() { return chipRec.length; },
     update(dt) {
       let live = false;
       for (const c of chipRec) {
@@ -631,6 +695,7 @@ export function createTableProps(parent, opts = {}) {
           }
         }
         if (r.bounce > 0) { r.bounce = Math.max(0, r.bounce - dt * TK.BOUNCE / TK.BOUNCE_MS); live = true; }
+        if (r.winnerGlow > 0) { r.winnerGlow = Math.max(0, r.winnerGlow - dt / 0.9); live = true; }
       }
       if (live) { writeChips(); writeTokens(); }
     },
@@ -639,6 +704,7 @@ export function createTableProps(parent, opts = {}) {
       chipG.geo.dispose(); chipG.mat.dispose();
       tokG.geo.dispose(); tokG.mat.dispose();
       chips.dispose(); tokens.dispose();
+      group.remove(contactShadows); shadowGeo.dispose(); shadowMat.dispose(); contactShadows.dispose();
       for (let i = 0; i < 4; i++) {
         if (!relics[i]) continue;
         group.remove(relics[i].mesh);
