@@ -3605,6 +3605,8 @@ function phaseText(round){
 /* 月相提示只讀既有單一事實來源：讓卡面、詳情與背包都回答同一個問題——這件現在買下來，本夜會不會立即吃到增幅。 */
 function moonBenefit(it,round){
   const ph=phaseFor(round), r=unitRow(it);
+  /* 舊制只算戰力：不能把紙紮夜戰專用的 HP 增幅偽裝成當夜可用策略。 */
+  if(!CFG.PAPERWAR_ON)return {ph,r,active:false,text:""};
   const active=!!(ph.fac&&r&&!r.curse&&r.fac===ph.fac);
   return {ph,r,active,text:active
     ?`${ph.icon} 今夜受惠｜${FAC[ph.fac].n}拍：全隊 HP +1`
@@ -5272,7 +5274,7 @@ function openSheet(i){
     <h3>${itemIcoInline(it)}${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
     ${/* 部隊預覽全文（招式名＋一句效果）改放這裡：卡面只留數字（覆審 HIGH-1 乙，使用者裁定） */""}
     ${unitRowText(it,ap,"full")}
-    ${it.curse?"":`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・它在第 ${moon.r.beat} 拍出手`:""}</div>`}
+    ${!it.curse&&CFG.PAPERWAR_ON?`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・它在第 ${moon.r.beat} 拍出手`:""}</div>`:""}
     <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?"":(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
