@@ -53,12 +53,16 @@ test('揭盅卡不撞夜況列，完整列出比價與結果', () => {
   assert.match(reveal, /r\.entries\.map/, '膠囊列必須由全部出價席位生成');
 });
 
-test('揭盅在宣布比標時同步觸發 3D 結果，並用近距離鏡頭看錢柱', () => {
+test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   const reveal = index.slice(index.indexOf('async function startReveal()'), index.indexOf('/* 本夜成交總覽 */'));
-  const bidAt = reveal.indexOf('const fz=$("flyzone")');
+  const slotAt = reveal.indexOf('fx3d("ys:reveal-slot"');
   const revealAt = reveal.indexOf('revealGlow(r)');
-  assert.ok(bidAt >= 0 && revealAt > bidAt, '揭盅 3D 事件必須在揭盅卡出現時觸發，而非等文字演出結束');
+  const cardAt = reveal.indexOf('id="revealCard"');
+  assert.ok(slotAt >= 0 && revealAt > slotAt && cardAt > revealAt, '錢柱特寫與法寶結算必須先於比價卡建立');
   assert.match(reveal, /if\(r\.winner\)\{ revealGlow\(r\); sfx\("gong"/, '闇市隱藏金額時也必須保留 3D 得標演出');
+  assert.match(reveal, /await sleep\(Math\.max\(900,CFG\.T\*1\.4\)\)/, '比價卡必須等法寶飛行完成後才出現');
+  assert.match(reveal, /await waitMain\(r!==rv\.reveal\[rv\.reveal\.length-1\]\?"下一件拍品 ▸":"查看成交總覽 ▸"\)/, '比價卡不得自動淡出，最後一件也須由玩家確認');
+  assert.match(reveal, /fx3d\("ys:reveal-card"/, '比價卡出現後才可命令鏡頭回到牌桌');
   assert.match(reveal, /sfx\("gong"/, '比標揭盅須有銅鑼回饋');
   assert.match(director, /dist:\s*1\.65,\s*tilt:\s*22/, '逐槽鏡頭必須切入微距俯衝');
   assert.match(props, /T:\s*0\.024/, '銅錢厚度必須升級');
