@@ -156,11 +156,38 @@ function init() {
    * 這裡的 listener 餵給 tray.setItems；3D 層不回頭讀 S、不耗亂數。
    * 對決時整組收掉（同一張桌子要讓給 8v8），ys:duel-end／ys:table 再放回來。 */
   const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director });
+  /* ★換夜的判準是 `detail.round`★（第二段）：`ys:market` 一夜會派兩次（盯上頁一次、出價頁一次），
+     拿「有沒有收到事件」當換夜的訊號的話，盯上頁拍下去的令牌會在切到出價頁的瞬間被清掉。
+     夜數是演出層本來就帶著的欄位（第一段就有），不必新增事件、也不必回頭讀 S。 */
+  let trayRound = -1;
   document.addEventListener('ys:market', (e) => {
     if (!TRAY_URL.on) return; // kill switch：版面照舊，桌上空的
     const d = (e && e.detail) || {};
+    const r = Number(d.round) || 0;
+    if (r !== trayRound) { trayRound = r; tray.props.clearRound(); } // 新的一夜：桌上的錢與令牌全收
     tray.setItems(Array.isArray(d.items) ? d.items : []);
+    if (Array.isArray(d.seats)) tray.props.setSeats(d.seats); // 四席信物：誰坐哪一席、是哪個角色
     tray.setVisible(true);
+  });
+  /* 競標的實體痕跡（第二段）。三個事件都是**純演出**：3D 層不知道什麼是壽命，
+     `amount` 只用來決定「推幾枚」，`slot`／`seat` 只用來決定「從哪推到哪」。 */
+  document.addEventListener('ys:bid', (e) => {
+    if (!TRAY_URL.on) return;
+    const d = (e && e.detail) || {};
+    tray.props.bid(d.seat, d.slot, d.amount);
+  });
+  document.addEventListener('ys:mark', (e) => {
+    if (!TRAY_URL.on) return;
+    const d = (e && e.detail) || {};
+    tray.props.mark(d.seat, d.slot);
+  });
+  /* 開標：這一格得標的是誰 ⇒ 他的錢留在桌上，其餘各家的收回自己席位。
+     `ys:reveal` 是第一段就有的事件（打亮得標者的燈籠），第二段只多讀它的 `slot` 欄位。 */
+  document.addEventListener('ys:reveal', (e) => {
+    if (!TRAY_URL.on) return;
+    const d = (e && e.detail) || {};
+    if (d.slot === undefined || d.slot === null) return;
+    tray.props.settle(d.slot, d.winner);
   });
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));

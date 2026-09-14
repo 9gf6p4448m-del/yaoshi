@@ -85,6 +85,16 @@
       tone(ctx, out, t0, { type: "sine", f: 180 + rnd * 20, fEnd: 60, dur: 0.22, peak: 0.7, a: 0.002 });
       noise(ctx, out, t0, { dur: 0.08, peak: 0.3, filter: { type: "lowpass", f: 1200 }, q: 0.5 });
     },
+    /* 木撞擊：血玉令牌重重拍在供桌上（v0.56b 上桌卷第二段）。
+       與 `stamp`（悶的一記蓋章）刻意不同型：那是布面上的軟印，這是**玉牌砸在老檜木上**——
+       所以多一層「木頭被敲出來的共鳴」（一顆很短的中低頻方波）＋一撮乾的高頻敲擊噪音，
+       尾巴壓到 0.26 秒就收（供桌是實心木，不會像鑼那樣拖）。 */
+    woodslam(ctx, out, t0, rnd) {
+      tone(ctx, out, t0, { type: "sine", f: 128 + rnd * 16, fEnd: 44, dur: 0.26, peak: 0.72, a: 0.001 }); // 撞擊的重
+      tone(ctx, out, t0, { type: "square", f: 320 + rnd * 30, fEnd: 190, dur: 0.11, peak: 0.16, a: 0.001 }); // 木頭共鳴
+      noise(ctx, out, t0, { dur: 0.045, peak: 0.42, a: 0.001, filter: { type: "bandpass", f: 1900 }, q: 1.1 }); // 玉敲木的乾響
+      noise(ctx, out, t0 + 0.004, { dur: 0.16, peak: 0.16, filter: { type: "lowpass", f: 520 }, q: 0.6 }); // 桌面被震到的悶尾
+    },
     /* 鈴：得標。亮、有泛音 */
     bell(ctx, out, t0, rnd) {
       const f = 1240 + rnd * 120;

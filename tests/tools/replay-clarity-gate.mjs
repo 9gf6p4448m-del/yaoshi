@@ -34,8 +34,9 @@ const browser = await chromium().launch();
 try {
   const context = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 });
   const page = await context.newPage();
-  await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${PORT}/index.html?table3d=1`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object"');
+  await page.waitForFunction('window.__yaoshi3d && window.__yaoshi3d.tray');
 
   const title = await page.locator('#titleScr').innerText();
   assert(!/風位玩家當夜戰力[＋+]/.test(title),
@@ -54,6 +55,14 @@ try {
     if (!state.disabled) await page.click('#mainbtn');
     else await page.waitForTimeout(15);
   }
+  await page.waitForTimeout(300);
+  const moonTable = await page.evaluate(() => {
+    const tray = window.__yaoshi3d.tray;
+    const mark = window.__yaoshi3d.scene.getObjectByName('tray-moon-benefit');
+    return { items: tray.items(), marks: mark ? mark.count : 0 };
+  });
+  assert(moonTable.items.some((item) => item.moon && item.fac === 'yinqi') && moonTable.marks > 0,
+    'RED: 本夜受惠的陰氣拍品沒有在 3D 桌上得到月相光標 ' + JSON.stringify(moonTable));
   await page.evaluate(() => openSheet(0));
   const detail = await page.locator('#sheetbox').innerText();
   assert(!/戰力 \+/.test(detail), 'RED: 拍品詳情仍把「戰力 +數字」當成主要購買資訊');
@@ -73,9 +82,27 @@ try {
     'RED: 袋子仍展示舊公式「同系件數平方」而不是實際紙紮共鳴效果');
   assert(/紙紮共鳴：陰氣×2[\s\S]*hp \+1/.test(bag),
     'RED: 袋子未展示目前啟用的紙紮共鳴效果');
+  assert(!/總戰力|舊公式/.test(bag),
+    'RED: 袋子仍展示不參與紙紮夜戰的舊戰力總計');
 
   const hud = await page.locator('#south').innerText();
   assert(!/戰力/.test(hud), 'RED: 預設紙紮夜戰的底列仍把舊戰力當主要資訊');
+  const felt = await page.locator('#feltHead').innerText();
+  assert(/🌑\s*朔月｜陰氣拍：全隊 HP \+1/.test(felt),
+    'RED: 局勢列沒有用玩家可行動的格式說清楚本夜月相增幅');
+
+  /* 紙紮夜戰是正式核心規則，網址參數不得再把玩家退回不相容的舊戰力制。 */
+  const permanent = await context.newPage();
+  await permanent.goto(`http://127.0.0.1:${PORT}/index.html?table3d=1&paperwar=0`, { waitUntil: 'load' });
+  await permanent.waitForFunction('typeof window.__yaoshi === "object"');
+  const permanentMoon = await permanent.evaluate(() => ({ on: CFG.PAPERWAR_ON, moon: moonBenefit({ n: '驗收陰氣', f: 'yinqi', p: 3 }, 1) }));
+  assert(permanentMoon.on && permanentMoon.moon.active && /HP \+1|今夜受惠/.test(permanentMoon.moon.text),
+    'RED: ?paperwar=0 仍能關掉正式紙紮夜戰 ' + JSON.stringify(permanentMoon));
+  await permanent.close();
+
+  await page.evaluate(() => showReview());
+  const review = await page.locator('#reviewbox').innerText();
+  assert(/下一局實驗/.test(review), 'RED: 局末回顧沒有可見的下一局實驗區塊');
   console.log('PASS replay clarity: intro and item detail describe the actual paper-war decision rule');
   await context.close();
 } finally {
