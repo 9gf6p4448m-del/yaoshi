@@ -41,6 +41,9 @@ const GATE = !!opt.gate;
 const PERF = !!opt.perf;
 const RUNS = Number(opt.runs || 5);
 const SEED = Number(opt.seed || 1);
+/* 預設保留舊 32 枚量測；`--coins=128` 才進使用者裁定的全合法格壓力情境。 */
+const COINS = Number(opt.coins || 32);
+if (![32, 128].includes(COINS)) throw new Error('--coins 只接受 32 或 128');
 
 function serve(root, port) {
   const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -136,8 +139,8 @@ async function perfSample(browser, url) {
     }
     if (!reached) throw new Error('沒走到第 1 夜出價頁（量測前提不成立，不得靜默放行）：' + url);
     await page.evaluate(`(async () => { const t=window.__yaoshi3d&&window.__yaoshi3d.tray; if(t&&t.loaded) await t.loaded(); })()`);
-    /* ★最壞情境要真的擺上桌★（上桌卷**第二段**凍結檔 U3）：
-       8 枚籌碼 × 4 席（＝籌碼池上限 32 枚）＋ 4 枚令牌 ＋ 四席信物（`ys:market` 進來時就掛好了）。
+    /* ★最壞情境要真的擺上桌★：預設 32 枚；`--coins=128` 是四席 × 四格 × 每格八枚。
+       都加四枚令牌與四席信物（`ys:market` 進來時就掛好了）。
        走的是產品自己的 `props.bid`／`props.mark`，不是直接去翻 instance 的 count
        （`02 §6.1` 第 3 條：替身不得取代決定成敗的那一段）。
        `?tray3d=0` 那條**不填**——它是對照組，桌上本來就該是空的。 */
@@ -145,7 +148,14 @@ async function perfSample(browser, url) {
       const Y3=window.__yaoshi3d; if(!Y3||!Y3.tray||!Y3.tray.props) return null;
       if(Y3.trayFlags && Y3.trayFlags.on===false) return 'kill-switch：不填';
       const P=Y3.tray.props;
-      for(let seat=0;seat<4;seat++){ P.bid(seat, seat, 8); P.mark(seat, seat); }
+      if(${COINS}===128){
+        for(let seat=0;seat<4;seat++){
+          for(let slot=0;slot<4;slot++){ P.bid(seat, slot, 8); }
+          P.mark(seat, seat);
+        }
+      }else{
+        for(let seat=0;seat<4;seat++){ P.bid(seat, seat, 8); P.mark(seat, seat); }
+      }
       return P.stats();
     })()`);
     await page.waitForTimeout(1100); // 等鏡頭補間、燈籠閃爍與道具落定
@@ -295,7 +305,7 @@ async function perfMain() {
       litePaired: pair(out['table3d=lite'].rendersPerSecAll),
     };
     await browser.close();
-    console.log(JSON.stringify({ mode: 'perf', runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out }, null, 1));
+    console.log(JSON.stringify({ mode: 'perf', coins: COINS, runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out }, null, 1));
     const errN = VAR.reduce((n, v) => n + out[v.tag].errors, 0);
     process.exit(errN === 0 ? 0 : 1);
   } finally { srv.kill(); }
