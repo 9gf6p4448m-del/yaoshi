@@ -5166,6 +5166,9 @@ function openSheet(i){
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeSheet()">確定</button>`;
   if(it.curse){$("shTgt").value=b.intent==="poison"?String(b.target):"destroy";}
   paintSheet();
+  /* 側欄卡與桌上模型共用 market index：不論玩家從哪裡進詳情，都要讓正在看的那件留在 3D 檢視態。
+     trayTap 已在模型入口做同樣的事；收斂在 openSheet 也涵蓋側欄這條入口。 */
+  try{ const Y3=window.__yaoshi3d; if(TABLE3D&&Y3&&Y3.tray) Y3.tray.setHover(i); }catch(e){}
   $("sheet").style.display="flex";
 }
 function bump(d){
