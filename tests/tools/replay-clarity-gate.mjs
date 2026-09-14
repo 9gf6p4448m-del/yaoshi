@@ -73,6 +73,9 @@ try {
     'RED: 袋子仍展示舊公式「同系件數平方」而不是實際紙紮共鳴效果');
   assert(/紙紮共鳴：陰氣×2[\s\S]*hp \+1/.test(bag),
     'RED: 袋子未展示目前啟用的紙紮共鳴效果');
+
+  const hud = await page.locator('#south').innerText();
+  assert(!/戰力/.test(hud), 'RED: 預設紙紮夜戰的底列仍把舊戰力當主要資訊');
   console.log('PASS replay clarity: intro and item detail describe the actual paper-war decision rule');
   await context.close();
 } finally {
