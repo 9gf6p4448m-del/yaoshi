@@ -60,7 +60,7 @@ test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   const cardAt = reveal.indexOf('id="revealCard"');
   assert.ok(slotAt >= 0 && revealAt > slotAt && cardAt > revealAt, '錢柱特寫與法寶結算必須先於比價卡建立');
   assert.match(reveal, /if\(r\.winner\)\{ revealGlow\(r\); sfx\("gong"/, '闇市隱藏金額時也必須保留 3D 得標演出');
-  assert.match(reveal, /await sleep\(Math\.max\(900,CFG\.T\*1\.4\)\)/, '比價卡必須等法寶飛行完成後才出現');
+  assert.match(reveal, /await sleep\(Math\.max\(0\.9\*1000,CFG\.T\*1\.4\)\)/, '比價卡必須等法寶飛行完成後才出現');
   assert.match(reveal, /await waitMain\(r!==rv\.reveal\[rv\.reveal\.length-1\]\?"下一件拍品 ▸":"查看成交總覽 ▸"\)/, '比價卡不得自動淡出，最後一件也須由玩家確認');
   assert.match(reveal, /fx3d\("ys:reveal-card"/, '比價卡出現後才可命令鏡頭回到牌桌');
   assert.match(reveal, /sfx\("gong"/, '比標揭盅須有銅鑼回饋');

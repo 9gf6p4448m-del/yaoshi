@@ -5456,7 +5456,7 @@ async function startReveal(){
     /* 無論金額是否公開，桌面結算都在特寫鏡頭裡先發生；闇市只藏數字，不藏演出。 */
     if(r.winner){ revealGlow(r); sfx("gong",{rnd:S.rngUi()}); }
     /* table-tray 的法寶拋物線為 0.86 秒；卡片必須晚於飛行，讓勝方金光與落標收回完整可讀。 */
-    await sleep(Math.max(900,CFG.T*1.4));
+    await sleep(Math.max(0.9*1000,CFG.T*1.4));
     stage.innerHTML=`<div class="revealRibbon anim-lantern-reveal" id="revealCard">
       <div class="big">${itemIcoInline(r.it)}${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
       <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
