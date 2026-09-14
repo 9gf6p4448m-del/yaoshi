@@ -20,3 +20,9 @@ test('從側欄查看拍品時，3D 桌上同一件也會進入檢視態', () =>
   assert.match(openSheet, /tray\.setHover\(i\)/,
     '側欄卡片與 3D 模型必須共享同一個拍品索引的檢視態');
 });
+
+test('首頁顯示可核對的版本與部署 commit', () => {
+  assert.match(page, /const VERSION="0\.57\.0"/, '本次公開版需遞增語意版本');
+  assert.match(page, /const BUILD="ea68c25"/, '公開版需帶可與 GitHub 核對的短 SHA');
+  assert.match(page, /v\$\{VERSION\} · \$\{BUILD\}/, '首頁版本列必須同時顯示版本與部署 commit');
+});
