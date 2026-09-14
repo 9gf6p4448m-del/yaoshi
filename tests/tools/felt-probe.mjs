@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 function loadChromium(){
-  const c=[path.join(ROOT,'tools/anyCreature/package.json'),path.resolve(ROOT,'../../../tools/anyCreature/package.json')];
+  const c=[path.join(ROOT,'tools/anyCreature/package.json'),path.resolve(ROOT,'../../tools/anyCreature/package.json'),path.resolve(ROOT,'../../../tools/anyCreature/package.json')];
   for(const x of c) if(fs.existsSync(x)) return createRequire(x)('playwright').chromium;
   throw new Error('找不到 playwright');
 }
