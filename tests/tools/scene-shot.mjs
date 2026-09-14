@@ -39,6 +39,7 @@ const GATE = !!opt.gate;
    （`02 §6.2`：先歸因再處置——歸到量測環境，處置是交錯與中位，不是加 retry 或拉長 timeout）。
    ★所有數字一律換算成「每幀」★：`info.reset()` 之後等**兩次** rAF ⇒ 讀到的是兩幀的和，要除以 2。 */
 const PERF = !!opt.perf;
+const GATE128 = !!opt.gate128;
 const RUNS = Number(opt.runs || 5);
 const SEED = Number(opt.seed || 1);
 /* 預設保留舊 32 枚量測；`--coins=128` 才進使用者裁定的全合法格壓力情境。 */
@@ -304,10 +305,23 @@ async function perfMain() {
       defaultOnHoverPaired: pair(out.default.onHover.rendersPerSecAll),
       litePaired: pair(out['table3d=lite'].rendersPerSecAll),
     };
-    await browser.close();
-    console.log(JSON.stringify({ mode: 'perf', coins: COINS, runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out }, null, 1));
     const errN = VAR.reduce((n, v) => n + out[v.tag].errors, 0);
-    process.exit(errN === 0 ? 0 : 1);
+    const hover = out.default.onHover;
+    const gate128 = {
+      enabled: GATE128,
+      pass: !GATE128 || (COINS === 128
+        && hover.props && hover.props.chips === 128 && hover.props.dropped === 0
+        && hover.callsPerFrame <= 140 && hover.trianglesPerFrame <= 42000
+        && hover.passesPerFrame === 1
+        && out.ratio.defaultOnHoverPaired.every((v) => v >= 0.40)
+        && errN === 0),
+      hover: { chips: hover.props && hover.props.chips, dropped: hover.props && hover.props.dropped,
+        calls: hover.callsPerFrame, triangles: hover.trianglesPerFrame, passes: hover.passesPerFrame,
+        pairedRatio: out.ratio.defaultOnHoverPaired },
+    };
+    await browser.close();
+    console.log(JSON.stringify({ mode: 'perf', coins: COINS, runs: RUNS, seed: SEED, viewport: `${W}x${H} dpr2`, out, gate128 }, null, 1));
+    process.exit(errN === 0 && gate128.pass ? 0 : 1);
   } finally { srv.kill(); }
 }
 
