@@ -55,9 +55,10 @@ test('揭盅卡不撞夜況列，完整列出比價與結果', () => {
 
 test('揭盅在宣布比標時同步觸發 3D 結果，並用近距離鏡頭看錢柱', () => {
   const reveal = index.slice(index.indexOf('async function startReveal()'), index.indexOf('/* 本夜成交總覽 */'));
-  const bidAt = reveal.indexOf('bidPills(r)');
+  const bidAt = reveal.indexOf('const fz=$("flyzone")');
   const revealAt = reveal.indexOf('revealGlow(r)');
-  assert.ok(bidAt >= 0 && revealAt > bidAt, '揭盅 3D 事件必須緊接比標膠囊，而非等文字演出結束');
+  assert.ok(bidAt >= 0 && revealAt > bidAt, '揭盅 3D 事件必須在揭盅卡出現時觸發，而非等文字演出結束');
+  assert.match(reveal, /if\(r\.winner\)\{ revealGlow\(r\); sfx\("gong"/, '闇市隱藏金額時也必須保留 3D 得標演出');
   assert.match(reveal, /sfx\("gong"/, '比標揭盅須有銅鑼回饋');
   assert.match(director, /dist:\s*1\.65,\s*tilt:\s*22/, '逐槽鏡頭必須切入微距俯衝');
   assert.match(props, /T:\s*0\.024/, '銅錢厚度必須升級');

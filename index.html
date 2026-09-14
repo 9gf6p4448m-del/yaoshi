@@ -410,8 +410,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .stageCard .big{font-size:15px;font-weight:bold}
-.revealRibbon{position:absolute;right:10px;top:-38px;width:min(270px,30%);max-height:76px;overflow:hidden;padding:4px 7px;color:var(--ink);text-align:center;font-size:10px;line-height:1.16;border:1px solid rgba(232,179,75,.72);border-radius:8px;background:linear-gradient(90deg,rgba(25,12,31,.82),rgba(69,20,20,.76),rgba(25,12,31,.82));box-shadow:0 3px 18px rgba(0,0,0,.45)}
-.revealRibbon .big{font-weight:bold;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.revealRibbon .mut{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:2px;padding:2px 5px;font-size:10px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:18px;overflow:hidden}.revealRibbon .outcome{margin-top:2px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:10px}
+.revealRibbon{position:absolute;right:10px;top:8px;width:min(360px,43%);min-height:118px;max-height:calc(100% - 18px);overflow:auto;padding:9px 10px;color:var(--ink);text-align:center;font-size:11px;line-height:1.3;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42)}
+.revealRibbon .big{font-weight:bold;font-size:12px}.revealRibbon .mut{font-size:10px;color:#cdb9ee}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:4px;padding:3px 6px;font-size:11px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:none;overflow:visible}.revealRibbon .outcome{margin-top:5px;white-space:normal;overflow:visible;font-size:11px}.bidPills{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px}.bidPill{padding:3px 6px;border:1px solid rgba(200,157,73,.48);border-radius:999px;background:rgba(7,6,14,.74);font-size:10px;line-height:1.2;white-space:nowrap}.bidPill.win{border-color:#ffe28b;background:linear-gradient(135deg,#7b5118,#d4a52f);color:#171007;font-weight:bold;box-shadow:0 0 10px rgba(255,203,72,.38)}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
   border-radius:8px;font-size:12px;animation:slidein .3s}
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
@@ -5434,6 +5434,7 @@ async function startReveal(){
   /* 開標前公告（2026-09-02 使用者裁定，回應「開標沒驚喜」）：先亮各件「幾人出價」再逐件開——
      密封標不變、金額不揭，但開之前有東西可猜可推。純呈現層，不動結算。 */
   const nBid=r=>r.entries.length?`${r.entries.length} 人出價`:"無人出價";
+  const bidPills=r=>`<div class="bidPills">${r.entries.map(e=>`<span class="bidPill${e===r.winner?" win":""}">${e.p.name}：${e.amt}🪙${e===r.winner?" 👑":""}</span>`).join("<span class=\"mut\">vs</span>")}</div>`;
   const meIn=r=>(S.mode!=="hotseat"&&r.entries.some(e=>!e.p.ai))?`<span class="mut" style="font-size:10px">（含你）</span>`:"";
   if(rv.showEntries){
     renderSeats();
@@ -5455,6 +5456,8 @@ async function startReveal(){
     </div>`;
     await sleep(CFG.T*0.8);
     const fz=$("flyzone");
+    /* 無論金額是否公開，得標的桌面結果都必須在揭盅卡出現的同一拍開始；闇市只藏數字，不藏演出。 */
+    if(r.winner){ revealGlow(r); sfx("gong",{rnd:S.rngUi()}); }
     if(!rv.showEntries){
       fz.innerHTML=`<div class="bidfly"><span>出價已被遮蔽</span><span>—</span></div>`;
       await sleep(CFG.T*0.7);
@@ -5462,8 +5465,8 @@ async function startReveal(){
       fz.innerHTML=`<div class="bidfly"><span>無人出價</span><span>—</span></div>`;
       await sleep(CFG.T*0.7);
     }else{
-      /* 錢堆已在桌上並排攤開；邊欄只說「正在比標」，避免又做出一張遮住托盤的 2D 收據。 */
-      fz.innerHTML=`<div class="bidfly"><span>⚖ ${r.entries.length} 人比標</span><span>看桌上銅錢</span></div>`;
+      /* 膠囊列給精確金額，3D 錢柱給瞬間的高低感：兩者互補而不互相遮擋。 */
+      fz.innerHTML=`<div class="bidfly"><span>⚖ ${r.entries.length} 人比標</span><span>銅錢已揭盅</span></div>${bidPills(r)}`;
       await sleep(CFG.T*0.65);
     }
     $("outzone").innerHTML=`<div class="outcome">${r.outcome}</div>`;
@@ -5497,7 +5500,6 @@ async function startReveal(){
       await sleep(CFG.T*0.6);
     }
     renderSeats();
-    revealGlow(r); /* 開標揭曉③④：得標者燈籠光、落標者壓暗（純 class，下一次 renderSeats 自然清掉） */
     /* 手動節奏：看夠了才按下一件（跳過中不停） */
     if(r!==rv.reveal[rv.reveal.length-1]) await waitMain("下一件拍品 ▸");
     else await sleep(CFG.T*0.8);

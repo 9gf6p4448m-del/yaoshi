@@ -291,7 +291,7 @@ export function createCameraDirector(camera, lanterns) {
     if (prefersReduced()) return;
     const d = (e && e.detail) || {}, slot = Math.max(0, Math.min(3, d.slot | 0));
     clearOrbitLean();
-    goto({ dist: 2.82, tilt: 27, yaw: [-16, -5, 5, 16][slot], lookY: 0.22 }, Number(d.ms) || 650);
+    goto({ dist: 1.65, tilt: 22, yaw: [-16, -5, 5, 16][slot], lookY: 0.22 }, Number(d.ms) || 650);
     setEmphasis(null);
   }
 

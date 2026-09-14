@@ -35,7 +35,7 @@ export const PROPS = {
        0.072 之後單枚約 17px、方孔看得出來，一疊八枚也還在「一小疊錢」的尺度內（不搶拍品）。 */
     R: 0.072, // 外緣半徑
     HOLE: 0.024, // 方孔半邊長
-    T: 0.011, // 錢厚
+    T: 0.024, // 錢厚：35° 俯角仍能讀出金屬側緣
     /* 牌桌機位一枚僅約 17px；8 段仍保住方孔、厚度與斜邊反光，卻把 128 枚壓力情境省下 4,096 tris。 */
     SEG: 8, // 外緣段數（64 tris／枚的來源）
     MAX: 8, // 一席一格最多推幾枚；**超過改成一串**（STRING）
@@ -44,7 +44,7 @@ export const PROPS = {
     POOL_MAX: 128,
     /* 古銅三階：錢面吃光、錢緣壓暗、方孔內壁最暗。第一版只給一個銅色，
        在暗紅布上讀成一顆顆橘點；分三階之後才看得出「這是一枚有厚度的錢」。 */
-    face: 0x9c7434, edge: 0x5a4119, hole: 0x3a2a10,
+    face: 0x9c7434, edge: 0x8c6929, edgeHi: 0xd8a948, hole: 0x3a2a10,
     patina: 0x4f7a5e, // 綠鏽：只在少數幾枚的 instanceColor 上帶一點
     FLY_MS: 0.42, // 從席位推到托盤前要多久
     GAP: 0.038, // 同一席相鄰兩枚的間距（攤開時）
@@ -56,7 +56,7 @@ export const PROPS = {
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
     /* 尺寸（自評 r3 放大一輪，理由同銅錢）：0.072×0.094 在成圖上是一塊看不出刻字的紅片。 */
-    W: 0.098, H: 0.128, T: 0.022, // 半寬／半高／厚
+    W: 0.098, H: 0.128, T: 0.045, BEVEL: 0.004, // 半寬／半高／厚與雙層微導角
     jade: 0x6d1220, jadeHi: 0x9c2434, jadeLo: 0x3c0810, // 暗紅玉三階
     carve: 0xc24a54, // 陽刻「盯」：比玉面亮，吃得到燈籠光
     SLAM_MS: 0.30, // 從席位拍下來要多久
@@ -153,21 +153,21 @@ function chipGeometry() {
     const P = (p, y) => [p[0], y, p[1]];
     b.quad(P(o0, yT), P(o1, yT), P(i1, yT), P(i0, yT), C.face); // 錢面（上）
     b.quad(P(i0, yB), P(i1, yB), P(o1, yB), P(o0, yB), C.edge); // 錢背（下，壓暗）
-    b.quad(P(o0, yB), P(o1, yB), P(o1, yT), P(o0, yT), C.edge); // 外緣
+    b.quad(P(o0, yB), P(o1, yB), P(o1, yT), P(o0, yT), C.edge, C.edge, C.edgeHi, C.edgeHi); // 外緣高光
     b.quad(P(i0, yT), P(i1, yT), P(i1, yB), P(i0, yB), C.hole); // 方孔內壁（最暗）
   }
   /* ★一點點自發光★（做法與理由同 `table-tray.js` 的 `tray-cloth`，也同第一段把 `RIM_BASE`
      從 1.3 拉到 2.9 的那一課）：桌面只吃得到四盞燈籠的一點邊光，不自己透光的小物在成圖上
      一律讀成「幾點雜物」（實測 `r3-bid3d.png`）。emissive 是 MeshStandardMaterial 本來就有的欄位，
      0 draw call、0 新 program、0 三角形。值壓在 bloom 門檻 0.7 以下（牌桌本來就不開 bloom）。 */
-  const m = b.build('chip', { roughness: 0.55, metalness: 0.55, emissive: new THREE.Color(0x2a1d08) });
+  const m = b.build('chip', { roughness: 0.38, metalness: 0.70, emissive: new THREE.Color(0x4a330d) });
   return { geo: m.geometry, mat: m.material, tris: b.count() / 3 };
 }
 
 /* ═══ 令牌幾何（圓角方牌＋陽刻「盯」）═════════════════════════════════ */
 function tokenGeometry() {
   const T = PROPS.TOKEN, b = vcBuilder();
-  const W = T.W, H = T.H, yT = T.T / 2, yB = -T.T / 2;
+  const W = T.W, H = T.H, yT = T.T / 2, yB = -T.T / 2, bevel = T.BEVEL;
   /* 圓角外框：每個角三個點，一圈共 12 點。頂面用 fan、側面用 quad 環。 */
   const R = 0.022;
   const ring = [];
@@ -178,12 +178,16 @@ function tokenGeometry() {
       ring.push([sx * (W - R) + Math.cos(a) * R, sz * (H - R) + Math.sin(a) * R]);
     }
   }
+  const insetRing = (inset) => ring.map(([x, z]) => [x - Math.sign(x) * inset, z - Math.sign(z) * inset]);
   const P = (p, y) => [p[0], y, p[1]];
+  const low = insetRing(bevel), high = insetRing(bevel);
   for (let i = 0; i < ring.length; i++) {
-    const a = ring[i], c = ring[(i + 1) % ring.length];
+    const a = ring[i], c = ring[(i + 1) % ring.length], la = low[i], lc = low[(i + 1) % ring.length], ha = high[i], hc = high[(i + 1) % ring.length];
     b.tri([0, yT, 0], P(a, yT), P(c, yT), T.jade, T.jadeHi, T.jadeHi); // 玉面：中央深、邊緣亮（拋過光的玉）
     b.tri([0, yB, 0], P(c, yB), P(a, yB), T.jadeLo);
-    b.quad(P(a, yB), P(c, yB), P(c, yT), P(a, yT), T.jadeLo, T.jadeLo, T.jade, T.jade); // 側緣
+    b.quad(P(a, yB), P(c, yB), P(lc, yB + bevel), P(la, yB + bevel), T.jadeLo, T.jadeLo, T.jade, T.jade); // 下導角
+    b.quad(P(la, yB + bevel), P(lc, yB + bevel), P(hc, yT - bevel), P(ha, yT - bevel), T.jadeLo, T.jade, T.jadeHi, T.jadeHi); // 厚實側緣
+    b.quad(P(ha, yT - bevel), P(hc, yT - bevel), P(c, yT), P(a, yT), T.jade, T.jadeHi, T.jadeHi, T.jade); // 上導角
   }
   /* 陽刻「盯」：七道凸起的短條（左「目」五道、右「丁」兩道）。
      ★不刻凹字★——凹進去在這個機位只有 2～3px，什麼都看不到；凸起才吃得到燈籠的邊光。
@@ -375,7 +379,7 @@ export function createTableProps(parent, opts = {}) {
   chips.frustumCulled = false;
   /* 逐枚一點點色差（有的偏綠鏽、有的磨得亮）。instanceColor 是乘上去的，
      所以這裡放的是倍率色而不是絕對色。0 新 draw call、0 新三角形。 */
-  const chipBaseColors = [], chipGold = new THREE.Color(0xffd36a), tokenBase = new THREE.Color(0xffffff), tokenWinner = new THREE.Color(0xff6f83);
+  const chipBaseColors = [], chipGold = new THREE.Color(0xffd36a), chipLoser = new THREE.Color(0x625e58), tokenBase = new THREE.Color(0xffffff), tokenWinner = new THREE.Color(0xff6f83);
   {
     const R = seedRnd(60613);
     const c = new THREE.Color(), pat = new THREE.Color(CH.patina);
@@ -434,15 +438,14 @@ export function createTableProps(parent, opts = {}) {
 
   const seatXZ = (seat) => PROPS.SEAT[mode][seat] || [0, 0];
   const dropZ = () => trayZ + PROPS.DROP_Z[mode];
-  /** 一枚籌碼在「攤開」姿態下的落點（第 k 枚，共 n 枚） */
+  /** 一枚籌碼在同席同格的垂直錢柱落點；微偏移保住手作感，但高度仍可一眼比較。 */
   function spreadAt(seat, slot, k, n) {
-    const gap = CH.GAP * (mode === 'P' ? 0.62 : 1);
-    const row = Math.min(4, n), col = k % row, rowI = Math.floor(k / row);
-    const w = (row - 1) * gap;
+    const compact = mode === 'P' ? 0.60 : 1;
+    const wobble = (seat + 1) * 31 + (slot + 1) * 17 + k * 13;
     return [
-      trayXS[slot] + PROPS.SEAT_DX[seat] * (mode === 'P' ? 0.6 : 1) - w / 2 + col * gap,
-      trayY + CH.T / 2 + rowI * CH.T * 1.05,
-      dropZ() + PROPS.SEAT_DZ[seat] * (mode === 'P' ? 0.6 : 1) + rowI * gap * 0.5,
+      trayXS[slot] + PROPS.SEAT_DX[seat] * compact + Math.sin(wobble) * 0.003,
+      trayY + CH.T / 2 + k * CH.T * 0.9,
+      dropZ() + PROPS.SEAT_DZ[seat] * compact + Math.cos(wobble) * 0.003,
     ];
   }
   /** 一串（>8 枚）：銅錢立起來沿一條短弧排——同一批 instance 換姿態，0 新幾何。 */
@@ -468,7 +471,7 @@ export function createTableProps(parent, opts = {}) {
       M.compose(Pv, Q, Sv);
       chips.setMatrixAt(n, M);
       /* 得標堆只提亮本批 instance；其他錢仍留桌上給玩家比較高低。 */
-      if (chips.instanceColor) chips.setColorAt(n, c.winnerGlow ? chipGold : chipBaseColors[n]);
+      if (chips.instanceColor) chips.setColorAt(n, c.winnerGlow ? chipGold : (c.loserDim ? chipLoser : chipBaseColors[n]));
       n++;
     }
     chips.count = n;
@@ -511,7 +514,7 @@ export function createTableProps(parent, opts = {}) {
       const px = from[0] + (to[0] - from[0]) * e;
       const pz = from[1] + (to[2] - from[1]) * e;
       const py = trayY + TK.T / 2 + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
-      EU.set(0, r.yaw, 0);
+      EU.set(0.08, r.yaw, 0); // 微翹：血玉不是貼紙，是有重量的實體
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
@@ -625,6 +628,7 @@ export function createTableProps(parent, opts = {}) {
       for (const c of chipRec) {
         if (c.slot !== k) continue;
         c.winnerGlow = c.seat === w;
+        c.loserDim = w >= 0 && c.seat !== w;
       }
       /* 勝者的血玉令牌即使本夜沒盯上，也在得標槽位亮一次；下夜 clearRound 會收掉。 */
       if (w >= 0 && w < tokRec.length) {
