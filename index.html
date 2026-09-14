@@ -838,10 +838,8 @@ const CFG = {
   RULE_NIGHTS:[3,7], /* 固定觸發夜（前一夜耳語預告）；刻意避開異事夜 4／8／11 與第 1 夜、末夜【試玩必調】 */
   RULE_FORCE:null,   /* 測試／模擬專用：非 null 時所有規則夜都出這個 id（rng 消耗與隨機排程相同）；正常遊戲恆 null */
   LUOPO_FRAC:1,      /* 落魄夜：落標付「出價 × 本值」（1＝全付；不含買路錢，買路錢照收）【試玩必調】 */
-  /* 《紙紮夜戰》三拍自動戰（卷 A，2026-09-03；驗收凍結見 scratchpad/acceptance-paperwar-A.md）
-     PAPERWAR_ON=false＝kill switch：完全走舊的「戰力比較」路徑，trace 與 fed244f 逐位元組相等。 */
-  PAPERWAR_ON: true, /* 2026-09-06 使用者裁定預設開（真機試玩 ?paperwar=1 後）。沿革：09-03 併入主線時預設關（卷 A 閘門 A4/A5/A6/A7 未過）；
-                         卷 D（09-04）8 過 3 未過（D-A4/A5 收斂未過、D-A7 主閘門 greedy 0.882<0.90 歸因為基準問題），未再重跑閘門即開——記錄在案。?paperwar=0 仍可關 */
+  /* 《紙紮夜戰》三拍自動戰是正式核心規則（2026-09-14 使用者裁定永久啟用）。 */
+  PAPERWAR_ON: true,
   PW_MAX: 8, PW_MIN: 2, /* 敗方扣壽命＝clamp(ceil(燒掉比例×PW_MAX), PW_MIN, PW_MAX)【使用者裁定，不得自調】 */
   /* 卷 D D1：AI 估值改讀紙紮邊際戰果後的換算尺（PAPERWAR_ON=false 時完全不讀這三個）。
      val＝PW_AI_BASE＋PW_AI_SCALE×(這件大概幫我省下幾點壽命)＋(有異能 +2)＋rnd(-2,2)，
@@ -881,13 +879,8 @@ const CFG = {
   INC_AI:{minLifeFrac:0.3, value:12},
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
 };
-/* 《紙紮夜戰》試玩開關（卷 C1，2026-09-04 使用者裁定）：?paperwar=1 開、?paperwar=0 關，
-   **只影響這一次載入**——刻意不寫 localStorage，關掉分頁就回到 CFG 的預設值（現在是 false）。
-   放在 CFG 定義的正下方，讓所有讀 CFG.PAPERWAR_ON 的程式碼（引擎與 UI）都吃到同一個值。
-   headless（tests/tools/load.mjs）的 location.search 是空字串，所以測試路徑上這段是空操作。 */
+/* 《紙紮夜戰》為永久規則；紙紮夜戰之外的診斷參數仍只影響這次載入。 */
 try{
-  const pwq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("paperwar");
-  if(pwq==="1") CFG.PAPERWAR_ON=true; else if(pwq==="0") CFG.PAPERWAR_ON=false;
   const rq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("res"); /* 共鳴接入候選：?res=0/1/2/3（設計卷 A 段，試玩與 Playwright 用） */
   if(rq!==null&&/^[0-3]$/.test(rq)) CFG.PW_RES_MODE=+rq;
   const lq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("legend"); /* 傳說三尊：?legend=0 關、1 開（第 4 卷試玩與 Playwright 用） */
