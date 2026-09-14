@@ -69,6 +69,16 @@ test('揭盅在宣布比標時同步觸發 3D 結果，並用近距離鏡頭看�
   assert.match(props, /0\.08/, '血玉令牌落桌需保有微翹角度');
 });
 
+test('逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤', () => {
+  const ribbon = index.slice(index.indexOf('.revealRibbon{'), index.indexOf('.bidfly{', index.indexOf('.revealRibbon{')));
+  assert.match(director, /lookX/, '鏡頭必須可將視線移到當前托盤槽位，而非永遠看桌心');
+  assert.match(director, /lookX:\s*\[-1\.35, -0\.45, 0\.45, 1\.35\]\[slot\]/, '逐槽鏡頭必須瞄準實際 tray x 座標');
+  assert.match(index, /ys:reveal-result/, '3D 結算需使用不會重設鏡頭的專用事件');
+  assert.match(renderer, /ys:reveal-result/, 'renderer 必須接收專用結算事件');
+  assert.match(ribbon, /right:-150px/, '比價卡要停在托盤外的右側安全區');
+  assert.match(index, /#felt\.hollow\{overflow:visible/, '右側比價卡不得被桌心容器裁掉');
+});
+
 test('局末只留一個進入完整回顧的入口，策略建議不以心願硬優先', () => {
   const endStart = index.indexOf('function endGame()');
   const end = index.slice(endStart, index.indexOf('function replayExperiment', endStart));
