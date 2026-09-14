@@ -6334,6 +6334,10 @@ function endGame(){
 const RV_COL={0:"var(--c-gold,#e8c860)",1:"var(--c-yinqi-light,#70b080)",2:"var(--c-curse-light,#9060d0)",3:"var(--c-danger,#e04040)"};
 const RV_TYPE={cons:"保守",yaming:"押命"};
 function replayExperiment(H,p){
+  if(!CFG.PAPERWAR_ON){
+    const life=Math.max(0,p.life|0);
+    return `你以 <b>${life} 壽命</b> 收局。下一局試著把壽命留給真正要搶的拍品，別為低價值競標耗盡籌碼。`;
+  }
   const failed=H.nights.flatMap(n=>n.wishes||[]).filter(w=>w.pid===p.id&&!w.done).length;
   const a=buildArmy(p.bag); let units=0,hp=0; a.teams.forEach(t=>t.units.forEach(u=>{units++;hp+=u.max|0;}));
   if(failed) return `這局有 <b>${failed}</b> 個心願沒完成。下一局試著先選一件能推進心願的拍品，再用剩餘壽命守住你的紙紮陣。`;
@@ -6401,7 +6405,7 @@ function showReview(){
     <div class="rvSec">逐夜得標</div>${nights}
     ${dawnRows?`<div class="rvSec">天亮回天（沒被請走的尊）</div>${dawnRows}`:""}
     <div class="rvSec">心願回顧</div>${wishes}
-    <div class="rvSec">下一局實驗</div><div class="rvExperiment">🎯 ${replayExperiment(H,P[0])}</div>`;
+    <div class="rvSec">下一局實驗</div>${P.filter(p=>!p.ai).map(p=>`<div class="rvExperiment">🎯 ${S.mode==="hotseat"?`<b>${DIRS[p.id]}家・${p.name}</b>：`:""}${replayExperiment(H,p)}</div>`).join("")}`;
   $("review").style.display="block"; $("review").scrollTop=0;
 }
 function closeReview(){ $("review").style.display="none"; }
