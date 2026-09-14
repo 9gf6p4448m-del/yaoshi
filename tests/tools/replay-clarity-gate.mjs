@@ -91,6 +91,15 @@ try {
   assert(/🌑\s*朔月｜陰氣拍：全隊 HP \+1/.test(felt),
     'RED: 局勢列沒有用玩家可行動的格式說清楚本夜月相增幅');
 
+  /* 關掉紙紮夜戰時，月相不參與舊制戰力結算；不能留下任何「HP +1」的假提示。 */
+  const legacy = await context.newPage();
+  await legacy.goto(`http://127.0.0.1:${PORT}/index.html?table3d=1&paperwar=0`, { waitUntil: 'load' });
+  await legacy.waitForFunction('typeof window.__yaoshi === "object"');
+  const legacyMoon = await legacy.evaluate(() => moonBenefit({ n: '驗收陰氣', f: 'yinqi', p: 3 }, 1));
+  assert(!legacyMoon.active && !/HP \+1|今夜受惠/.test(legacyMoon.text),
+    'RED: 關閉紙紮夜戰時仍把月相 HP 加成說成可用策略 ' + JSON.stringify(legacyMoon));
+  await legacy.close();
+
   await page.evaluate(() => showReview());
   const review = await page.locator('#reviewbox').innerText();
   assert(/下一局實驗/.test(review), 'RED: 局末回顧沒有可見的下一局實驗區塊');
