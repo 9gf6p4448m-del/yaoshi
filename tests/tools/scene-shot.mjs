@@ -45,6 +45,7 @@ const SEED = Number(opt.seed || 1);
 /* 預設保留舊 32 枚量測；`--coins=128` 才進使用者裁定的全合法格壓力情境。 */
 const COINS = Number(opt.coins || 32);
 if (![32, 128].includes(COINS)) throw new Error('--coins 只接受 32 或 128');
+if (GATE128 && !PERF) throw new Error('--gate128 必須搭配 --perf，否則不會量到 128 枚壓力情境');
 
 function serve(root, port) {
   const srv = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
@@ -307,14 +308,20 @@ async function perfMain() {
     };
     const errN = VAR.reduce((n, v) => n + out[v.tag].errors, 0);
     const hover = out.default.onHover;
+    const pressureSamples = samples.default.concat(samples['table3d=lite']);
+    const allPhysical = pressureSamples.every((s) => s.onHover.props
+      && s.onHover.props.chips === 128 && s.onHover.props.dropped === 0);
+    const allDefaultBudget = samples.default.every((s) => s.onHover.calls <= 140
+      && s.onHover.tris <= 42000 && s.onHover.passes === 1);
     const gate128 = {
       enabled: GATE128,
       pass: !GATE128 || (COINS === 128
-        && hover.props && hover.props.chips === 128 && hover.props.dropped === 0
-        && hover.callsPerFrame <= 140 && hover.trianglesPerFrame <= 42000
-        && hover.passesPerFrame === 1
+        && allPhysical && allDefaultBudget
         && out.ratio.defaultOnHoverPaired.every((v) => v >= 0.40)
         && errN === 0),
+      pressureSamples: pressureSamples.map((s) => ({ chips: s.onHover.props && s.onHover.props.chips,
+        dropped: s.onHover.props && s.onHover.props.dropped, calls: s.onHover.calls, triangles: s.onHover.tris,
+        passes: s.onHover.passes })),
       hover: { chips: hover.props && hover.props.chips, dropped: hover.props && hover.props.dropped,
         calls: hover.callsPerFrame, triangles: hover.trianglesPerFrame, passes: hover.passesPerFrame,
         pairedRatio: out.ratio.defaultOnHoverPaired },
