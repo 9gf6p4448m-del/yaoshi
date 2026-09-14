@@ -5138,7 +5138,7 @@ function mcardHTML(it,i){
   return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""} ${b.amt>0?"bided":""}" id="mc${i}" onclick="openSheet(${i})">
     ${badge}${markBadgeHTML(i)}${itemIcoHTML(it)}
     <div class="nm">${it.n}</div>
-    <div><span class="pw">${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
+    <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
     <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}${it.drain?`・每夜 -${it.drain} 血`:""}</div>
     ${/* 部隊預覽一行（請神 2.0）：出價前就看得到這件法寶會召出什麼、幾拍出手、招式是什麼——與袋子面板同一支 */""}
     ${unitRowText(it,S.players[ACTIVE])}
