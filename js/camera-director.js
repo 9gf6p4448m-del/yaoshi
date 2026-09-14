@@ -298,6 +298,14 @@ export function createCameraDirector(camera, lanterns) {
     setEmphasis(null);
   }
 
+  /* 法寶飛走、比價卡才出現：這時才回桌面，卡片雖固定留著仍不會搶走 3D 特寫的第一眼。 */
+  function onRevealCard(e) {
+    const winner = e && e.detail ? e.detail.winner : null;
+    clearOrbitLean();
+    goto(SHOTS.table);
+    setEmphasis(typeof winner === 'number' ? [winner] : null);
+  }
+
   function onDuel(e) {
     const d = (e && e.detail) || {};
     revealUntil = 0;
@@ -501,6 +509,7 @@ export function createCameraDirector(camera, lanterns) {
 
   document.addEventListener('ys:reveal', onReveal);
   document.addEventListener('ys:reveal-slot', onRevealSlot);
+  document.addEventListener('ys:reveal-card', onRevealCard);
   document.addEventListener('ys:duel', onDuel);
   document.addEventListener('ys:fx-punch', onPunch);
   document.addEventListener('ys:fx-trait', onTrait);
