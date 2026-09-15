@@ -1,0 +1,121 @@
+{
+  "syntheticFixture": true,
+  "naturalTiming": true,
+  "sourceIdentity": {
+    "responseUrl": "http://127.0.0.1:8994/",
+    "status": 200,
+    "htmlMatchesLocal": true,
+    "versions": {
+      "VERSION": "0.57.12",
+      "RELEASE_VERSION": "0.57.12"
+    }
+  },
+  "preview": [
+    {
+      "beat": 1,
+      "side": "A",
+      "actor": null,
+      "target": 0,
+      "kind": "curse",
+      "amount": 2,
+      "killed": false,
+      "trId": "curseLock"
+    },
+    {
+      "beat": 1,
+      "side": "A",
+      "actor": null,
+      "target": 1,
+      "kind": "curse",
+      "amount": 1,
+      "killed": false,
+      "trId": "curseWater"
+    }
+  ],
+  "fight": {
+    "a": 0,
+    "b": 1,
+    "curseEvents": [
+      {
+        "beat": 1,
+        "side": "A",
+        "actor": null,
+        "target": 0,
+        "kind": "curse",
+        "amount": 2,
+        "killed": false,
+        "trId": "curseLock"
+      },
+      {
+        "beat": 1,
+        "side": "A",
+        "actor": null,
+        "target": 1,
+        "kind": "curse",
+        "amount": 1,
+        "killed": false,
+        "trId": "curseWater"
+      }
+    ]
+  },
+  "captures": {
+    "lock": {
+      "item": "縛靈鎖",
+      "moveText": "持鎖水符者・縛靈鎖：纏身第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+      "moveClass": "f-curse side-A",
+      "moveRect": {
+        "left": 10.465316772460938,
+        "top": 315.7437438964844,
+        "right": 512.8002777099609,
+        "bottom": 342.4437561035156,
+        "width": 502.3349609375,
+        "height": 26.70001220703125
+      },
+      "floatText": "攻擊 −2",
+      "floatSide": "A",
+      "floatUnit": "0",
+      "floatKind": "curse",
+      "floatRect": {
+        "left": 225.1687469482422,
+        "top": 110,
+        "right": 348.83123779296875,
+        "bottom": 162,
+        "width": 123.66249084472656,
+        "height": 52
+      },
+      "file": "docs/experiments/2026-09-15-curse-migration/curse-feedback-final-r3/lock-holder-side.png"
+    },
+    "water": {
+      "item": "抓交替水符",
+      "moveText": "持鎖水符者・抓交替水符：纏身每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+      "moveClass": "f-curse side-A",
+      "moveRect": {
+        "left": 10.465316772460938,
+        "top": 315.7437438964844,
+        "right": 512.8002777099609,
+        "bottom": 342.4437561035156,
+        "width": 502.3349609375,
+        "height": 26.70001220703125
+      },
+      "floatText": "血量 −1",
+      "floatSide": "A",
+      "floatUnit": "1",
+      "floatKind": "curse",
+      "floatRect": {
+        "left": 273.16876220703125,
+        "top": 116,
+        "right": 396.8312683105469,
+        "bottom": 168,
+        "width": 123.66250610351562,
+        "height": 52
+      },
+      "file": "docs/experiments/2026-09-15-curse-migration/curse-feedback-final-r3/water-holder-side.png"
+    }
+  },
+  "checks": {
+    "exactEvents": true,
+    "holderSide": true,
+    "errors": true
+  },
+  "errors": []
+}
