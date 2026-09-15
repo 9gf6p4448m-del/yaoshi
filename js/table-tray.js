@@ -638,20 +638,17 @@ export function createTableTray(scene, camera, opts = {}) {
           s.fig.group.position.y = a.from.y + Math.sin(Math.PI * a.t) * 0.46 + (dst.y - a.from.y) * e;
           s.fig.setRim(TRAY.RIM_HOVER + 1.2 * (1 - a.t));
           s.fig.update(dt);
-          if (a.t >= 1) { s.fig.group.visible = false; s.award = null; }
         } else if (s.curseAward && s.pile) {
           const a = s.curseAward; a.t = Math.min(1, a.t + dt / 0.72);
           const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.target);
           s.pile.group.position.x = a.from.x + (dst.x - a.from.x) * e;
           s.pile.group.position.z = a.from.z + (dst.z - a.from.z) * e;
           s.pile.group.position.y = a.from.y + Math.sin(Math.PI * a.t) * 0.28 + (dst.y - a.from.y) * e;
-          if (a.t >= 1) { s.pile.group.visible = false; s.curseAward = null; }
         } else if (s.burn !== undefined && s.pile) {
           s.burn = Math.min(1, s.burn + dt / 0.62);
           const q = 1 - s.burn;
           s.pile.group.scale.setScalar((L.SCALE / TRAY.SCALE) * Math.max(0.04, q));
           s.pile.group.position.y = TRAY.Y + s.burn * 0.16;
-          if (s.burn >= 1) { s.pile.group.visible = false; s.burn = undefined; }
         } else if (s.fig) {
           s.fig.group.position.y = y;
           s.fig.group.rotation.y = s.spin;
@@ -664,6 +661,13 @@ export function createTableTray(scene, camera, opts = {}) {
           s.pile.group.rotation.y = s.spin;
           s.pile.update(dt);
         }
+        // Frame the final pose before lifecycle removal, including the exact
+        // terminal pose. The renderer supplies only screen geometry, never S.
+        const node = s.fig ? s.fig.group : s.pile?.group;
+        if (node?.visible && opts.frameSubject) opts.frameSubject(s.i, node, s.i === hover);
+        if (s.award?.t >= 1) { s.fig.group.visible = false; s.award = null; }
+        if (s.curseAward?.t >= 1) { s.pile.group.visible = false; s.curseAward = null; }
+        if (s.burn >= 1) { s.pile.group.visible = false; s.burn = undefined; }
       }
     },
     dispose() {

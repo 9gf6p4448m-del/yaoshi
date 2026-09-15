@@ -21,6 +21,7 @@ const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js
 const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
 const { createTableTray, TRAY } = await import('./table-tray.js' + V);
+const { fitSubject } = await import('./table-framing.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -155,7 +156,32 @@ function init() {
    * 資料流是**單向的**：演出層（index.html）在 showMarket／盯上頁派 `ys:market`，
    * 這裡的 listener 餵給 tray.setItems；3D 層不回頭讀 S、不耗亂數。
    * 對決時整組收掉（同一張桌子要讓給 8v8），ys:duel-end／ys:table 再放回來。 */
-  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director });
+  let revealSlot = -1;
+  const authoredPosition = camera.position.clone();
+  const framing = { active: false, fit: null };
+  const frameSubject = (slot, node) => {
+    if (slot !== revealSlot) return;
+    const felt = document.querySelector('#felt.hollow');
+    if (!felt || !felt.getClientRects().length || window.innerWidth <= window.innerHeight) return;
+    const r = felt.getBoundingClientRect();
+    const obstacles = ['#feltHead', '#helpBtn', '#skipbtn'].flatMap(selector => {
+      const el = document.querySelector(selector);
+      if (!el || !el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return [];
+      const b = el.getBoundingClientRect();
+      return b.width && b.height ? [{ left: b.left - 4, top: b.top - 4, right: b.right + 4, bottom: b.bottom + 4 }] : [];
+    });
+    const area = { left: Math.max(4, r.left + 4), top: Math.max(4, r.top + 4),
+      right: Math.min(innerWidth - 4, r.right - 4), bottom: Math.min(innerHeight - 4, r.bottom - 4) };
+    Object.assign(framing, fitSubject(node, camera, area, obstacles, innerWidth, innerHeight), { active: true, slot });
+  };
+  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubject });
+  document.addEventListener('ys:reveal-slot', e => {
+    const slot = Number(e.detail?.slot);
+    revealSlot = Number.isInteger(slot) && slot >= 0 && slot < 4 ? slot : -1;
+  });
+  for (const event of ['ys:reveal-card', 'ys:table', 'ys:market', 'ys:duel', 'ys:end']) {
+    document.addEventListener(event, () => { revealSlot = -1; });
+  }
   /* ★換夜的判準是 `detail.round`★（第二段）：`ys:market` 一夜會派兩次（盯上頁一次、出價頁一次），
      拿「有沒有收到事件」當換夜的訊號的話，盯上頁拍下去的令牌會在切到出價頁的瞬間被清掉。
      夜數是演出層本來就帶著的欄位（第一段就有），不必新增事件、也不必回頭讀 S。 */
@@ -253,7 +279,13 @@ function init() {
     elapsed += dt;
 
     // 運鏡與燈籠強調（開標打亮得標者、對決只留交手兩人）
+    // Restore the authored camera before advancing it: adaptive retreat is an
+    // overlay for this frame, not a new starting point that accumulates drift.
+    camera.position.copy(authoredPosition);
+    camera.clearViewOffset();
+    framing.active = false;
     const emphasis = director.update(dt, now);
+    authoredPosition.copy(camera.position);
 
     // 燈籠光微微閃爍，避免死板的固定光源；再乘上導演給的強調係數。
     // 基準亮度改讀 light.userData.baseIntensity（scene-env 的 LANTERNS 表，四盞各不相同），

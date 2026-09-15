@@ -49,9 +49,14 @@ export function projectSubject(node, camera, width, height) {
   let count = 0, clipped = false;
   node.traverseVisible(mesh => {
     if (!mesh.geometry || (!mesh.isMesh && !mesh.isPoints)) return;
-    if (mesh.isSkinnedMesh) mesh.computeBoundingBox();
-    else if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-    const box = mesh.isSkinnedMesh ? mesh.boundingBox : mesh.geometry.boundingBox;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    if (mesh.isSkinnedMesh) {
+      mesh.skeleton.update();
+      mesh.computeBoundingBox();
+    }
+    // Include both the current skin pose and its source bounds. This preserves
+    // the existing capture contract and gives animation a conservative envelope.
+    const box = mesh.isSkinnedMesh ? mesh.boundingBox.clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
     for (let k = 0; k < 8; k++) {
       point.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y,
