@@ -44,3 +44,21 @@ test('flight depth prevents approach magnification and projection counts only vi
   group.visible = false;
   assert.equal(projectSubject(group, camera, 852, 393), null);
 });
+
+test('adaptive camera retreats to fit HUD space without changing model scale', async () => {
+  const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
+  const { fitSubject, projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const camera = new THREE.PerspectiveCamera(50, 852 / 393, .01, 100);
+  camera.position.set(0, .6, 1.6); camera.lookAt(0, .4, .1); camera.updateMatrixWorld();
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(new THREE.BoxGeometry(.6, 1.2, .4), new THREE.MeshBasicMaterial()));
+  group.position.set(.2, .6, .1); group.scale.setScalar(.7);
+  const area = { left: 235, top: 160, right: 617, bottom: 302 };
+  const report = fitSubject(group, camera, area, [], 852, 393);
+  assert.equal(report.fit, true); assert.ok(report.retreat > 0);
+  const b = projectSubject(group, camera, 852, 393);
+  assert.ok(b.left >= area.left - 1e-6 && b.right <= area.right + 1e-6);
+  assert.ok(b.top >= area.top - 1e-6 && b.bottom <= area.bottom + 1e-6);
+  assert.deepEqual(group.scale.toArray(), [.7, .7, .7]);
+  assert.equal(camera.fov, 50);
+});
