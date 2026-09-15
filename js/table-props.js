@@ -56,9 +56,9 @@ export const PROPS = {
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
     /* 尺寸（自評 r3 放大一輪，理由同銅錢）：0.072×0.094 在成圖上是一塊看不出刻字的紅片。 */
-    W: 0.098, H: 0.128, T: 0.045, BEVEL: 0.004, PITCH: 0.22, // 半寬／半高／厚、雙層微導角與可讀的翹角
-    jade: 0x6d1220, jadeHi: 0x9c2434, jadeLo: 0x3c0810, // 暗紅玉三階
-    carve: 0xc24a54, // 陽刻「盯」：比玉面亮，吃得到燈籠光
+    W: 0.098, H: 0.128, T: 0.045, BEVEL: 0.004, PITCH: 0.70, STAND_LIFT: 0.085, // 半寬／半高／厚；仰立牌面與離桌高度
+    jade: 0x1a1215, jadeHi: 0x6a261a, jadeLo: 0x3d0a0e, // 墨黑玄玉、硃砂滾邊、暗紅底邊
+    carve: 0xd4a52f, // 金紅陽刻「盯」：遠景也能從暗紅托盤跳出
     SLAM_MS: 0.30, // 從席位拍下來要多久
     RISE: 0.34, // 途中先舉高多少（「重重拍」的蓄勢）
     BOUNCE: 0.055, // 落地回彈高度
@@ -193,7 +193,7 @@ function tokenGeometry() {
   /* 陽刻「盯」：七道凸起的短條（左「目」五道、右「丁」兩道）。
      ★不刻凹字★——凹進去在這個機位只有 2～3px，什麼都看不到；凸起才吃得到燈籠的邊光。
      每道＝頂面一個 quad ＋ 四個側面，10 三角形。 */
-  const e = 0.0075; // 凸起高度
+  const e = 0.018; // 凸起高度：遠景仍讀得到金紅「盯」字
   const K = T.W / 0.072; // 刻字跟著牌面一起放大（下面那組座標是 W=0.072 那一版量的）
   const bars = [
     // 目：外框兩豎＋三橫（x 往左為負）
@@ -203,7 +203,7 @@ function tokenGeometry() {
     [0.032, 0.038, 0.026, 0.006], [0.032, -0.006, 0.006, 0.038],
   ];
   for (const [cx, cz, hx, hz] of bars) box(b, [cx * K, yT + e / 2, -cz * K], [hx * K, e / 2, hz * K], T.carve, T.carve);
-  const m = b.build('mark-token', { roughness: 0.38, metalness: 0.08, emissive: new THREE.Color(0x2a0610) });
+  const m = b.build('mark-token', { roughness: 0.32, metalness: 0.18, emissive: new THREE.Color(0x3b1605) });
   return { geo: m.geometry, mat: m.material, tris: b.count() / 3 };
 }
 
@@ -520,8 +520,8 @@ export function createTableProps(parent, opts = {}) {
       const to = r.to;
       const px = from[0] + (to[0] - from[0]) * e;
       const pz = from[1] + (to[2] - from[1]) * e;
-      const py = trayY + TK.T / 2 + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
-      EU.set(TK.PITCH, r.yaw, 0); // 可讀的微翹：血玉不是貼紙，是有重量的實體
+      const py = trayY + TK.T / 2 + TK.STAND_LIFT + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
+      EU.set(TK.PITCH, r.yaw, 0); // 牌面仰立，且 yaw 固定朝南方主鏡頭；不再因北席反向插入桌面
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
@@ -625,7 +625,7 @@ export function createTableProps(parent, opts = {}) {
       const r = tokRec[s];
       r.slot = k; r.t = 0; r.bounce = 0; r.done = false; r.hit = false;
       r.to = [trayXS[k] + PROPS.SEAT_DX[s] * 0.5, trayY, dropZ() - 0.055];
-      r.yaw = [0.06, Math.PI + 0.06, -Math.PI / 2 + 0.1, Math.PI / 2 - 0.1][s];
+      r.yaw = 0; // 拍賣桌主鏡頭在南側：四席的「盯」牌統一面向玩家，遠景字面不側翻
       writeTokens();
       return true;
     },
@@ -647,7 +647,7 @@ export function createTableProps(parent, opts = {}) {
       if (w >= 0 && w < tokRec.length) {
         const r = tokRec[w]; r.slot = k; r.t = 1; r.bounce = 0; r.done = true; r.hit = true; r.winnerGlow = 1;
         r.to = [trayXS[k] + PROPS.SEAT_DX[w] * 0.5, trayY, dropZ() - 0.055];
-        r.yaw = [0.06, Math.PI + 0.06, -Math.PI / 2 + 0.1, Math.PI / 2 - 0.1][w];
+        r.yaw = 0;
       }
       writeChips();
       writeTokens();
