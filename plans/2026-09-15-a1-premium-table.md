@@ -2,7 +2,7 @@
 
 日期：2026-09-15｜主責：Astra｜基準：`eafec13039117a4ce8262430a073e0af994c4b96`（v0.57.10）
 
-狀態：**已開始執行；共同取景、頁籤連動、A 向介面與揭盅生命週期已實作，正在整合驗證。** 最新逐項證據見 [執行紀錄](../docs/experiments/2026-09-15-a1-opening/EXECUTION.md)，尚未宣告發布或真機最終驗收。
+狀態：**已開始執行；共同取景、頁籤連動、A 向介面與揭盅生命週期已實作，功能與完整幾何已通過，v0.57.11 試玩送達中；相對性能仍 RED。** 最新逐項證據見 [執行紀錄](../docs/experiments/2026-09-15-a1-opening/EXECUTION.md)，尚未宣告發布或真機最終驗收。
 
 入口：[總藍圖](../docs/MASTER_BLUEPRINT.md)｜[驗收凍結](../docs/experiments/2026-09-15-acceptance-a1-premium-table.md)｜[證據／進度](../docs/experiments/2026-09-15-a1-opening/README.md)
 

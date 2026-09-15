@@ -13,7 +13,7 @@
 
 ## 已有驗證／紅綠紀錄
 
-- 全部 tests/*.test.mjs：骨骼同步修正後 53/53 通過、0 跳過；若後續版本或程式改動需再驗受影響範圍。
+- 全部 tests/*.test.mjs：07124ed 骨骼包絡優化後 **55/55 通過**、0 跳過，完整輸出 `tests-07124ed.txt`；後續版本文字再驗受影響範圍。
 - 最新單元／原揭盅／UI／印籌組：骨骼同步前 19/19 通過；framing 新增 attached-skin 真實姿勢測試後 5/5。
 - tools options + perf128 + framing 組：當時 14/14 通過。
 - 原印籌 256 assignments：3/3 測試通過，全部分配保留。
@@ -27,12 +27,24 @@
 - market-focus-tabs-green（d86d9fc）：四個 rail tab 的 DOM 點擊都使 `tray.hover()` 等於各自 `data-slot`，四案 `JSON.stringify(S)` 前後相等；整體 pass=true、errors=[]。
 - `market-focus-visual.json` 與同 stem 五張 PNG：四個實際頁籤均切到對應卡片與 3D 外框，賽局狀態不變、四模型仍 visible；focus／256 種印籌分配全過。Astra 已開啟 focus／slot0／slot3 圖檢視，safe59 手機版保留完整卡與所屬木籌槽。
 - 骨骼當幀反例：`table-framing-balen-ab563b7.json` 桌機曾碰資訊欄 0.317px。Three 的 attached skin 矩陣在 `updateMatrixWorld` override 更新，原 helper 只呼叫 `updateWorldMatrix` 導致取景與渲染不同步。0601f31 修正後 `table-framing-balen-skinfix.json` 三尺寸全過，未修改斷言或再增加 padding。
+- **正式完整矩陣**：`node tests/tools/table-framing-check.mjs --all --out=docs/experiments/2026-09-15-a1-opening/table-framing-all-0601f31.json`，core 0601f3160c5436db1b07b5461b7991f6fec57c38、exit0。三視口合計 **1599/1599 通過**，caseLimit/caseMatch 均為 null、failures=[]、pageErrors=[]；包括每件普通法寶×四槽×四得主，以及共用詛咒模型在各詛咒標籤×四槽×四轉移對象／焚毀。保留 hidden 前終點與原時長，沒有用 null 判過。使用受控 rAF、真正 renderer callback/render，此報告只證明幾何與生命週期，並非 fps 證據。
 - 跳過原速／reduced：共同取景與最後 .3 秒釋放通過；reduced run 47 個 flight frames、0 unframed、viewOffsetRestored=true、errors=0。轉直式清除橫式投影、回橫式重新 fit 的 RED／GREEN 亦已保存。
 - `cam-unit` 原 gate 因 module 層漏 import `msOf` 在啟動前 exit1，已保留 RED，僅補 import（f559aa1）。以原 5f76adc camera-director 還原基準後實跑 `cam-unit-reduced-gate.json`：ALL_PASS=true、errors=0、A6/A9 reduced no-op 通過。
 - `natural-seed3-final/capture.json`：當前 core、CFG.T=650 前後不變、正常按鍵不跳過，四槽均按 slot→result→card；errors=[]。Astra 已開啟 slot2 push／gold 與 slot3 push 檢視，當前主體在 HUD 開口內；此時版本字仍 0.57.10，不冒稱公開 v0.57.11 證據。
 - `seed37-baseline-market-table.png`（完整 eafec13 archive）對 `seed37-final-market-table.png`：1280×720、同 seed37、--gate，Astra 實際開圖比較；席位與操作列已由紫轉漆木／紙色，原卡片陣營色與版面保留。
 
-## 尚待獨佔執行的正式性能命令
+## 正式性能：已完成，速度比未達門檻
+
+### 第一輪結果與優化（門檻維持）
+
+- `perf32-final.json`：五輪、94 calls／30281 triangles／1 pass 合格；最壞 hover 中位 107.2 renders/s，ratio=0.0987，低於 0.40。工具 exit0 只代表 errors=0，**此性能 gate 是 RED**。
+- `perf128-final.json`：五輪，128 枚實體與 dropped=0 的十個樣本全過，default 五輪預算全過；ratio=0.1729、五個 paired 均低於 .40，gate128.pass=false／exit1。沒有減少銅錢或模型。
+- 根因：陰陽眼銅錢含 13 個 skin mesh、13972 vertices，外框共用同幾何／骨架；原 helper 每幀對本體與外框約 27944 個頂點重算骨骼邊界。
+- 07124ed 改為 geometry WeakMap 預存每個骨骼影響頂點的 AABB，每幀轉換各盒八角；正權重的實際位置在這些盒的凸包內，非單位總重亦依 inverse-bind 平移校正，negative／morph 走 Three 精確 fallback。attrs 指標與 version 用於快取失效。模型、時長、draw calls 與原檢查不改。
+- `tests/skin-bounds.test.mjs`：全 27 GLB／所有 clips／五姿勢、root transform、多重與非單位 skin weights 包絡檢查 2/2；與 framing 合跑 7/7。獨立 code/JS 覆審未見 HIGH，非零 inverse-bind 平移診斷也包住 Three 原精確界。
+- `perf32-bone-diagnostic.json` 是優化中的 **單輪診斷**：399.2 renders/s、ratio=.3526；完整 eafec13 基準的 `perf32-baseline-diagnostic.json` 單輪為 391.9／.3549。兩者均未達 .40，不能以單輪判定正式通過或改變原門檻。
+- 最後 core 07124ed 的 `table-framing-all-07124ed.json` **1599/1599 全過**，failed=0、pageErrors=[]、caseLimit/caseMatch=null；原矩陣／時長／終點檢查未變。結束全停後再量五輪正式性能；必要時補基準五輪以分辨既有問題與新回歸。
+- 07124ed 最終呈現回歸：`market-focus-07124ed.json` 四真實頁籤／256 配置／HUD 取景全部通過；`natural-seed3-07124ed/capture.json` 四槽原速、CFG.T 前後650、errors=[]；normal／reduced skip 與 resize 另存 `*-07124ed.json`，均 pass=true。Astra 已開啟市場 focus、slot2 gold、slot3 push 最終 PNG 確認。
 
 以下兩支需在其他 Playwright／GPU browser 全停後依序執行。工具會自行用同一支 uncapped Chromium 交錯 `?tray3d=0`／預設／`?table3d=lite` 各五輪；`--w=844 --h=390` 配合 dpr=2，seed 1，第 1 夜出價頁。JSON 由 stdout 保存；每支執行後另記 `$LASTEXITCODE`。
 
@@ -68,4 +80,26 @@ node tests/tools/scene-shot.mjs docs/experiments/2026-09-15-a1-opening/perf128-f
 
 ## 待完成
 
-完整 1599 組幾何、上述獨占性能門檻、版本更新及正式送達。code/JS 有界覆審已覆蓋 market union／instance matrix／頁籤／骨骼同步，未有剩餘 HIGH；最終新增修改仍需按範圍覆核。真機逐項與歷史未過項另列。
+性能已完成且維持 RED；v0.57.11 版本與 55/55 測試、trace seeds 1–20 相等已完成，等待正式送達。code/JS 有界覆審已覆蓋 market union／instance matrix／頁籤／骨骼同步，以及 bcd84a0 配色與截圖工具，未有剩餘 HIGH；最終新增修改仍需按範圍覆核。真機逐項與歷史未過項另列。
+
+## 最終五輪對照（07124ed 與完整 eafec13 基準）
+
+同工具、844×390 DPR2、seed1、第一夜、各變體交錯五輪、獨占 GPU browser。原 .40 門檻未更改。
+
+| 報告 | 最壞 hover renders/s 中位數 | 空場中位數 | 比值 | paired ≥.40 | 結果 |
+|---|---:|---:|---:|---:|---|
+| perf32-07124ed.json | 401.0 | 1115.0 | .3596 | 0/5 | RED |
+| perf128-07124ed.json | 370.6 | 1101.2 | .3365 | 0/5 | RED |
+| perf32-baseline-five.json | 376.1 | 1034.6 | .3635 | 0/5 | RED |
+| perf128-baseline-five.json | 367.1 | 974.5 | .3767 | 1/5 | RED |
+
+兩版本 32 枚均 94 calls／30281 triangles／1 pass；128 枚均 79／30061／1，allPhysical 10/10、budget 5/5 通過。全部 errors=0。128 枚停用額外 mesh outline 為原版既有壓力行為，非本卷減少負載的改動。
+
+候選原始吞吐量已從第一輪 107.2 恢復至 401.0，但分母亦變化，不能因此宣告相對性能通過、統計非劣性或 Safari fps。基準亦失敗只作歸因，候選仍 RED；中位數與舊逐輪口徑均未過，不以規格文字差異改判。
+
+依持續發布授權交付試玩版；G6 相對速度、Safari 真機及歷史未過項保留，A1 不宣告最終驗收完成。
+
+## 發布版本驗證
+
+版本測試先 RED（de57e10），再同步 VERSION／RELEASE_VERSION 為 0.57.11。
+tests-release-0.57.11.txt：55/55、0 skip；trace-release-0.57.11.json：seeds 1–20、357285 bytes 相等。
