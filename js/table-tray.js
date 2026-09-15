@@ -606,6 +606,7 @@ export function createTableTray(scene, camera, opts = {}) {
       let runeDirty = false;
       for (let i = 0; i < N; i++) if (runePulse[i] > 0) { runePulse[i] = Math.max(0, runePulse[i] - dt / 0.72); runeDirty = true; }
       if (runeDirty) refreshMoonMarks();
+      const subjects = [];
       for (const s of slots) {
         const want = (s.i === hover) ? 1 : 0;
         if (s.hoverK !== want) {
@@ -664,7 +665,13 @@ export function createTableTray(scene, camera, opts = {}) {
         // Frame the final pose before lifecycle removal, including the exact
         // terminal pose. The renderer supplies only screen geometry, never S.
         const node = s.fig ? s.fig.group : s.pile?.group;
-        if (node?.visible && opts.frameSubject) opts.frameSubject(s.i, node, s.i === hover);
+        if (node?.visible && opts.frameSubjects) subjects.push({ slot: s.i, node, hovered: s.i === hover,
+          flying: !!(s.award || s.curseAward || s.burn !== undefined) });
+      }
+      // Skip can launch several awards in one frame. Frame their union after
+      // all poses are updated, then hide terminal subjects in this same frame.
+      if (subjects.length) opts.frameSubjects(subjects);
+      for (const s of slots) {
         if (s.award?.t >= 1) { s.fig.group.visible = false; s.award = null; }
         if (s.curseAward?.t >= 1) { s.pile.group.visible = false; s.curseAward = null; }
         if (s.burn >= 1) { s.pile.group.visible = false; s.burn = undefined; }

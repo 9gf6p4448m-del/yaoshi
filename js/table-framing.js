@@ -40,13 +40,14 @@ export function keepFlightDepth(node, from, camera) {
 
 /** Actual visible geometry, including animated transforms; hidden outlines do
  * not enlarge the subject. Null means absent geometry, never successful framing. */
-export function projectSubject(node, camera, width, height) {
+function subjectCorners(node) {
+  if (Array.isArray(node)) {
+    const groups = node.map(subjectCorners);
+    return groups.length && groups.every(Boolean) ? groups.flat() : null;
+  }
   for (let parent = node; parent; parent = parent.parent) if (!parent.visible) return null;
-  camera.updateMatrixWorld(true);
   node.updateWorldMatrix(true, true);
-  const point = node.position.clone();
-  const result = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
-  let count = 0, clipped = false;
+  const points = [];
   node.traverseVisible(mesh => {
     if (!mesh.geometry || (!mesh.isMesh && !mesh.isPoints)) return;
     if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
@@ -59,16 +60,30 @@ export function projectSubject(node, camera, width, height) {
     const box = mesh.isSkinnedMesh ? mesh.boundingBox.clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
     for (let k = 0; k < 8; k++) {
-      point.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y,
-        k & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld).project(camera);
-      if (!Number.isFinite(point.z) || point.z < -1 || point.z > 1) clipped = true;
-      const x = (point.x + 1) * width / 2, y = (1 - point.y) * height / 2;
-      result.left = Math.min(result.left, x); result.right = Math.max(result.right, x);
-      result.top = Math.min(result.top, y); result.bottom = Math.max(result.bottom, y);
-      count++;
+      points.push(node.position.clone().set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y,
+        k & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld));
     }
   });
-  return count && !clipped ? result : null;
+  return points.length ? points : null;
+}
+
+function projectCorners(points, camera, width, height) {
+  if (!points) return null;
+  camera.updateMatrixWorld(true);
+  const point = points[0].clone();
+  const result = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+  for (const world of points) {
+    point.copy(world).project(camera);
+    if (!Number.isFinite(point.z) || point.z < -1 || point.z > 1) return null;
+    const x = (point.x + 1) * width / 2, y = (1 - point.y) * height / 2;
+    result.left = Math.min(result.left, x); result.right = Math.max(result.right, x);
+    result.top = Math.min(result.top, y); result.bottom = Math.max(result.bottom, y);
+  }
+  return result;
+}
+
+export function projectSubject(node, camera, width, height) {
+  return projectCorners(subjectCorners(node), camera, width, height);
 }
 
 /** The authored shot is the closest allowed camera. Retreat only as much as
@@ -77,10 +92,13 @@ export function projectSubject(node, camera, width, height) {
 export function fitSubject(node, camera, area, obstacles, width, height) {
   const base = camera.position.clone();
   const axis = base.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
+  // Skinning and world transforms are sampled once; the retreat search only
+  // reprojects these points instead of recomputing every bone on every trial.
+  const corners = subjectCorners(node);
   camera.clearViewOffset();
   const evaluate = retreat => {
     camera.position.copy(base).addScaledVector(axis, retreat);
-    const bounds = projectSubject(node, camera, width, height);
+    const bounds = projectCorners(corners, camera, width, height);
     const shift = bounds && placeSubject(bounds, area, obstacles);
     return shift ? { bounds, shift } : null;
   };
@@ -98,5 +116,5 @@ export function fitSubject(node, camera, area, obstacles, width, height) {
   // Positive view offsets move the image left/up: use the inverse of the
   // desired screen displacement. The canvas and raycaster share this camera.
   camera.setViewOffset(width, height, -fit.shift.x, -fit.shift.y, width, height);
-  return { fit: true, retreat, shift: fit.shift, bounds: projectSubject(node, camera, width, height) };
+  return { fit: true, retreat, shift: fit.shift, bounds: projectCorners(corners, camera, width, height) };
 }

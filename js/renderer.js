@@ -159,28 +159,33 @@ function init() {
   let revealSlot = -1;
   const authoredPosition = camera.position.clone();
   const framing = { active: false, fit: null };
-  const frameSubject = (slot, node) => {
-    if (slot !== revealSlot) return;
+  let overlay = null, release = 1;
+  const frameSubjects = subjects => {
+    const targets = subjects.filter(s => s.slot === revealSlot || s.flying);
+    if (!targets.length) return;
     const felt = document.querySelector('#felt.hollow');
     if (!felt || !felt.getClientRects().length || window.innerWidth <= window.innerHeight) return;
     const r = felt.getBoundingClientRect();
-    const obstacles = ['#feltHead', '#helpBtn', '#skipbtn'].flatMap(selector => {
+    const obstacles = ['#feltHead', '#helpBtn', '#skipbtn', '#revealCard'].flatMap(selector => {
       const el = document.querySelector(selector);
       if (!el || !el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return [];
       const b = el.getBoundingClientRect();
-      return b.width && b.height ? [{ left: b.left - 4, top: b.top - 4, right: b.right + 4, bottom: b.bottom + 4 }] : [];
+      return b.width && b.height ? [{ left: b.left - 6, top: b.top - 6, right: b.right + 6, bottom: b.bottom + 6 }] : [];
     });
     const area = { left: Math.max(4, r.left + 4), top: Math.max(4, r.top + 4),
       right: Math.min(innerWidth - 4, r.right - 4), bottom: Math.min(innerHeight - 4, r.bottom - 4) };
-    Object.assign(framing, fitSubject(node, camera, area, obstacles, innerWidth, innerHeight), { active: true, slot });
+    Object.assign(framing, fitSubject(targets.map(s => s.node), camera, area, obstacles, innerWidth, innerHeight),
+      { active: true, slots: targets.map(s => s.slot) });
+    if (framing.fit) { overlay = { retreat: framing.retreat, shift: framing.shift }; release = 1; }
   };
-  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubject });
+  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubjects });
   document.addEventListener('ys:reveal-slot', e => {
     const slot = Number(e.detail?.slot);
     revealSlot = Number.isInteger(slot) && slot >= 0 && slot < 4 ? slot : -1;
   });
-  for (const event of ['ys:reveal-card', 'ys:table', 'ys:market', 'ys:duel', 'ys:end']) {
-    document.addEventListener(event, () => { revealSlot = -1; });
+  document.addEventListener('ys:reveal-card', () => { revealSlot = -1; });
+  for (const event of ['ys:table', 'ys:market', 'ys:duel', 'ys:end']) {
+    document.addEventListener(event, () => { revealSlot = -1; overlay = null; });
   }
   /* ★換夜的判準是 `detail.round`★（第二段）：`ys:market` 一夜會派兩次（盯上頁一次、出價頁一次），
      拿「有沒有收到事件」當換夜的訊號的話，盯上頁拍下去的令牌會在切到出價頁的瞬間被清掉。
@@ -260,7 +265,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, tray, TRAY, trayFlags: TRAY_URL, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, tray, TRAY, framing, trayFlags: TRAY_URL, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
     // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
     get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },
@@ -301,6 +306,15 @@ function init() {
     duelFigures.update(dt, now);
     traitFx.update(dt); // 骨骼 delta 要疊在 mixer 之後（duelFigures.update 裡），所以排在它後面
     tray.update(dt); // 桌心托盤：hover 浮空微旋與詛咒陰火（收起來時自己早退）
+    // Hold the terminal framing until its result card; release it smoothly
+    // only once no actual flight remains. Skip cannot cancel that lifecycle.
+    if (!framing.active && overlay) {
+      if (revealSlot < 0) release = Math.max(0, release - dt / .3);
+      const axis = camera.position.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
+      camera.position.addScaledVector(axis, overlay.retreat * release);
+      camera.setViewOffset(innerWidth, innerHeight, -overlay.shift.x * release, -overlay.shift.y * release, innerWidth, innerHeight);
+      if (release === 0) { overlay = null; camera.clearViewOffset(); }
+    }
     // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
     const kind = playerBridge.update(now);
