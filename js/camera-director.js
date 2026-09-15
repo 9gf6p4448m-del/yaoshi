@@ -200,6 +200,10 @@ export function createCameraDirector(camera, lanterns) {
   // 托盤逐件揭盅不是永遠看桌心：保留 X 軸視線才能真正鎖住當前的錢柱。
   let curLookX = base.lookX || 0;
   let curLookZ = base.lookZ || 0;
+  /* 微距不只要「看向」拍品；相機本身也得搬到那一格前方。
+     否則 dist 壓到 1.65 時仍繞著桌心，鏡頭會越過錢柱、撞到桌邊。 */
+  let curAnchorX = base.anchorX || 0;
+  let curAnchorZ = base.anchorZ || 0;
   const lookAt = new THREE.Vector3();
   // CINEMA 大招機位（v0.54）：與 focus 同型的一層包絡，只在 tier 3 的招式期間開。
   let cinemaOn = false, cinemaAt = 0, cinemaMs = 0, cinemaK = 0, cinemaK0 = 0, cinemaFall = false;
@@ -221,10 +225,10 @@ export function createCameraDirector(camera, lanterns) {
   const emphasisTarget = lanterns.map(() => 1);
 
   function startTween(src, shot, ms) {
-    from = { dist: src.dist, tilt: src.tilt, yaw: src.yaw, lookY: src.lookY, lookX: src.lookX || 0, lookZ: src.lookZ || 0 };
+    from = { dist: src.dist, tilt: src.tilt, yaw: src.yaw, lookY: src.lookY, lookX: src.lookX || 0, lookZ: src.lookZ || 0, anchorX: src.anchorX || 0, anchorZ: src.anchorZ || 0 };
     // 從目前的 yaw 走短邊到新 yaw：先把目標換算成「相對現在」的絕對角度
     const yaw = from.yaw + shortestDelta(from.yaw, shot.yaw);
-    target = { dist: shot.dist, tilt: shot.tilt, yaw, lookY: shot.lookY, lookX: shot.lookX || 0, lookZ: shot.lookZ || 0 };
+    target = { dist: shot.dist, tilt: shot.tilt, yaw, lookY: shot.lookY, lookX: shot.lookX || 0, lookZ: shot.lookZ || 0, anchorX: shot.anchorX || 0, anchorZ: shot.anchorZ || 0 };
     durMs = Math.max(1, ms || shot.ms || 700);
     t = 0;
   }
@@ -239,7 +243,7 @@ export function createCameraDirector(camera, lanterns) {
    *  代價：偏移全零且基座已停穩時，cur* 比 target 差「t 剛好到 1 那一幀沒寫」的 0.0024 度，
    *  傳到最終位置是 ~4e-9（A2 門檻 1e-6），實測 A2 仍是 0。 */
   function goto(shot, ms) {
-    startTween({ dist: curDist, tilt: curTilt, yaw: curYaw, lookY: curLookY, lookX: curLookX, lookZ: curLookZ }, shot, ms);
+    startTween({ dist: curDist, tilt: curTilt, yaw: curYaw, lookY: curLookY, lookX: curLookX, lookZ: curLookZ, anchorX: curAnchorX, anchorZ: curAnchorZ }, shot, ms);
   }
 
   function setEmphasis(list, dim) {
@@ -294,7 +298,7 @@ export function createCameraDirector(camera, lanterns) {
     if (prefersReduced()) return;
     const d = (e && e.detail) || {}, slot = Math.max(0, Math.min(3, d.slot | 0));
     clearOrbitLean();
-    goto({ dist: 1.65, tilt: 22, yaw: [-16, -5, 5, 16][slot], lookX: [-1.35, -0.45, 0.45, 1.35][slot], lookY: 0.22, lookZ: 0.55 }, Number(d.ms) || 650);
+    goto({ dist: 1.65, tilt: 22, yaw: [-16, -5, 5, 16][slot], anchorX: [-1.35, -0.45, 0.45, 1.35][slot], anchorZ: 0.55, lookX: [-1.35, -0.45, 0.45, 1.35][slot], lookY: 0.22, lookZ: 0.55 }, Number(d.ms) || 650);
     setEmphasis(null);
   }
 
@@ -574,6 +578,8 @@ export function createCameraDirector(camera, lanterns) {
       curLookY = from.lookY + (target.lookY - from.lookY) * k;
       curLookX = from.lookX + (target.lookX - from.lookX) * k;
       curLookZ = from.lookZ + (target.lookZ - from.lookZ) * k;
+      curAnchorX = from.anchorX + (target.anchorX - from.anchorX) * k;
+      curAnchorZ = from.anchorZ + (target.anchorZ - from.anchorZ) * k;
       // ⑤ focus（近景切鏡）：疊在①②③之後、punch 之前，只縮 dist／壓 tilt。
       //    **和 punch 一樣不記進 cur\***：cur* 是「補間起點」，把 focus 算進去的話，
       //    切鏡進行中收到 ys:fx-trait-cancel／ys:duel-end 時 clearOrbitLean 會把 2.6 當起點，
@@ -603,7 +609,7 @@ export function createCameraDirector(camera, lanterns) {
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
-      camera.position.set(Math.sin(yaw) * horiz + sx, Math.sin(tilt) * dist + sy, Math.cos(yaw) * horiz);
+      camera.position.set(curAnchorX + Math.sin(yaw) * horiz + sx, Math.sin(tilt) * dist + sy, curAnchorZ + Math.cos(yaw) * horiz);
       lookAt.set(curLookX, lookY, curLookZ);
       // focus：視線挪到交鋒中點（查不到那兩尊就維持桌心，不拋錯）
       if (focusK > 0 && aimAtFocus(focusPt)) lookAt.lerp(focusPt, focusK);

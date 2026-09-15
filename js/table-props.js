@@ -459,16 +459,22 @@ export function createTableProps(parent, opts = {}) {
   function writeChips() {
     let n = 0;
     for (const c of chipRec) {
+      if ((c.returnK || 0) >= 1) continue;
       const t = Math.min(1, c.t);
       const e = 1 - (1 - t) * (1 - t) * (1 - t); // easeOutCubic：推出去是「滑」不是「彈」
-      const px = c.from[0] + (c.to[0] - c.from[0]) * e;
-      const pz = c.from[2] + (c.to[2] - c.from[2]) * e;
-      const py = c.from[1] + (c.to[1] - c.from[1]) * e + Math.sin(Math.PI * t) * CH.LIFT;
+      const bx = c.from[0] + (c.to[0] - c.from[0]) * e;
+      const bz = c.from[2] + (c.to[2] - c.from[2]) * e;
+      const by = c.from[1] + (c.to[1] - c.from[1]) * e + Math.sin(Math.PI * t) * CH.LIFT;
+      /* 揭盅先留一瞬給玩家比高低；落標後才沿短拋物線退回原席，不能只是悄悄變灰。 */
+      const back = Math.min(1, c.returnK || 0), be = back * back * (3 - 2 * back);
+      const px = c.returnTo ? bx + (c.returnTo[0] - bx) * be : bx;
+      const pz = c.returnTo ? bz + (c.returnTo[2] - bz) * be : bz;
+      const py = c.returnTo ? by + (c.returnTo[1] - by) * be + Math.sin(Math.PI * back) * 0.10 : by;
       c.shadow = [px, pz];
       /* 一串的姿態是立著的（繞 x 轉 90°），攤開的是躺平的。飛行途中線性補到目標姿態。 */
       EU.set(c.stand ? (Math.PI / 2) * e : c.tilt * e, c.yaw, c.stand ? CH.STRING.tilt * e : 0);
       Q.setFromEuler(EU);
-      Pv.set(px, py, pz);
+      Pv.set(px, py, pz); Sv.setScalar(1 + (c.winnerPulse || 0) * 0.24);
       M.compose(Pv, Q, Sv);
       chips.setMatrixAt(n, M);
       /* 得標堆只提亮本批 instance；其他錢仍留桌上給玩家比較高低。 */
@@ -623,13 +629,19 @@ export function createTableProps(parent, opts = {}) {
       writeTokens();
       return true;
     },
-    /** 開標結果：錢堆留在托盤前並排比較，勝方金色高亮；不再把落標錢收回而破壞揭盅可讀性。 */
+    /** 開標結果：先讓錢柱並排可讀，再把落標錢沿拋物線收回；勝方金光留在桌上。 */
     reveal(slot, winnerSeat, effect = {}) {
       const k = slot | 0, w = winnerSeat === null || winnerSeat === undefined ? -1 : winnerSeat | 0;
       for (const c of chipRec) {
         if (c.slot !== k) continue;
         c.winnerGlow = c.seat === w;
         c.loserDim = w >= 0 && c.seat !== w;
+        if (c.winnerGlow) c.winnerPulse = 1;
+        if (c.loserDim) {
+          const [x, z] = seatXZ(c.seat);
+          c.returnDelay = 0.22; c.returnK = 0;
+          c.returnTo = [x, trayY + CH.T / 2, z];
+        }
       }
       /* 勝者的血玉令牌即使本夜沒盯上，也在得標槽位亮一次；下夜 clearRound 會收掉。 */
       if (w >= 0 && w < tokRec.length) {
@@ -638,6 +650,7 @@ export function createTableProps(parent, opts = {}) {
         r.yaw = [0.06, Math.PI + 0.06, -Math.PI / 2 + 0.1, Math.PI / 2 - 0.1][w];
       }
       writeChips();
+      writeTokens();
       if (onSettle) onSettle(k, w, effect);
     },
     /* 舊接收端保持同名，避免 renderer 與既有治具要一起改。 */
@@ -683,11 +696,16 @@ export function createTableProps(parent, opts = {}) {
     update(dt) {
       let live = false;
       for (const c of chipRec) {
-        if (c.t >= 1) continue;
-        if (c.delay > 0) { c.delay -= dt; live = true; continue; }
-        c.t = Math.min(1, c.t + dt / CH.FLY_MS);
-        live = true;
+        if (c.t < 1) {
+          if (c.delay > 0) { c.delay -= dt; live = true; continue; }
+          c.t = Math.min(1, c.t + dt / CH.FLY_MS);
+          live = true;
+        }
+        if (c.winnerPulse > 0) { c.winnerPulse = Math.max(0, c.winnerPulse - dt / 0.72); live = true; }
+        if (c.returnDelay > 0) { c.returnDelay -= dt; live = true; }
+        else if (c.returnK !== undefined && c.returnK < 1) { c.returnK = Math.min(1, c.returnK + dt / 0.42); live = true; }
       }
+      for (let i = chipRec.length - 1; i >= 0; i--) if ((chipRec[i].returnK || 0) >= 1) chipRec.splice(i, 1);
       for (const r of tokRec) {
         if (r.slot < 0) continue;
         if (r.t < 1) {
