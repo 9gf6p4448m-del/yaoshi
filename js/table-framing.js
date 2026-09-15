@@ -22,3 +22,46 @@ export function placeSubject(subject, area, obstacles) {
   }
   return best;
 }
+
+/** Keep the flight in the camera plane through its launch point. The destination
+ * still supplies its direction; it cannot bring the model into the near lens. */
+export function keepFlightDepth(node, from, camera) {
+  camera.updateMatrixWorld(true);
+  const start = node.position.clone().copy(from);
+  const position = node.position.clone();
+  if (node.parent) { node.parent.updateWorldMatrix(true, false); node.parent.localToWorld(start); node.parent.localToWorld(position); }
+  start.applyMatrix4(camera.matrixWorldInverse);
+  position.applyMatrix4(camera.matrixWorldInverse);
+  position.z = start.z;
+  position.applyMatrix4(camera.matrixWorld);
+  if (node.parent) node.parent.worldToLocal(position);
+  node.position.copy(position);
+}
+
+/** Actual visible geometry, including animated transforms; hidden outlines do
+ * not enlarge the subject. Null means absent geometry, never successful framing. */
+export function projectSubject(node, camera, width, height) {
+  for (let parent = node; parent; parent = parent.parent) if (!parent.visible) return null;
+  camera.updateMatrixWorld(true);
+  node.updateWorldMatrix(true, true);
+  const point = node.position.clone();
+  const result = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+  let count = 0, clipped = false;
+  node.traverseVisible(mesh => {
+    if (!mesh.geometry || (!mesh.isMesh && !mesh.isPoints)) return;
+    if (mesh.isSkinnedMesh) mesh.computeBoundingBox();
+    else if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const box = mesh.isSkinnedMesh ? mesh.boundingBox : mesh.geometry.boundingBox;
+    if (!box || box.isEmpty()) return;
+    for (let k = 0; k < 8; k++) {
+      point.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y,
+        k & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld).project(camera);
+      if (!Number.isFinite(point.z) || point.z < -1 || point.z > 1) clipped = true;
+      const x = (point.x + 1) * width / 2, y = (1 - point.y) * height / 2;
+      result.left = Math.min(result.left, x); result.right = Math.max(result.right, x);
+      result.top = Math.min(result.top, y); result.bottom = Math.max(result.bottom, y);
+      count++;
+    }
+  });
+  return count && !clipped ? result : null;
+}
