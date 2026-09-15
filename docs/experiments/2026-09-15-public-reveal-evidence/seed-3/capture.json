@@ -1,0 +1,133 @@
+{
+  "url": "https://9gf6p4448m-del.github.io/yaoshi/",
+  "version": {
+    "release": "0.57.8",
+    "legacy": "0.56e",
+    "timing": 650
+  },
+  "seed": 3,
+  "inputs": "newGame solo qingmian; normal main-button progression; pickMark(2); openSheet(0) and openSheet(2), bump(1) five times each, closeSheet(); all other bids zero; click reveal/next item, never skip",
+  "announcement": "🔔 開標前公告・各件出價人數\n白虎煞 🕸\n3 人出價（含你）\n虎爺印\n3 人出價\n王爺劍\n👁南北西東\n1 人出價（含你）\n巴冷公主珠鍊\n1 人出價",
+  "slots": [
+    {
+      "slot": 0,
+      "text": "白虎煞詛咒 　沖煞入宅\n3 人出價\n⚖ 3 人比標\n銅錢已揭盅\n青面攤主：5🪙 👑\nvs\n收驚婆：5🪙\nvs\n閭山法師：3🪙\n青面攤主 買下銷毀（自保）\n⚖ 平標！你靠風位／籤運壓過 收驚婆"
+    },
+    {
+      "slot": 1,
+      "text": "虎爺印香火 　✦ 被毒標塞中時，下手的人失 2 壽命\n3 人出價\n⚖ 3 人比標\n銅錢已揭盅\n收驚婆：2🪙\nvs\n閭山法師：5🪙 👑\nvs\n孝女白琴：2🪙\n閭山法師 入袋"
+    },
+    {
+      "slot": 2,
+      "text": "王爺劍香火 　✦ 你袋中詛咒品的負值減半\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n青面攤主：5🪙 👑\n青面攤主 入袋"
+    },
+    {
+      "slot": 3,
+      "text": "巴冷公主珠鍊祖靈 　人蛇之戀的琉璃信物\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n孝女白琴：3🪙 👑\n孝女白琴 入袋"
+    }
+  ],
+  "events": [
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 0,
+        "ms": 812.5
+      },
+      "t": 10927.900000000373
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 0,
+        "slot": 0,
+        "transferTarget": null,
+        "destroy": true
+      },
+      "t": 11742.299999998882
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 0
+      },
+      "t": 12657
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 1,
+        "ms": 812.5
+      },
+      "t": 14978.5
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 2,
+        "slot": 1,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 15798.799999998882
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 2
+      },
+      "t": 16719.299999998882
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 2,
+        "ms": 812.5
+      },
+      "t": 18708.900000000373
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 0,
+        "slot": 2,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 19523.299999998882
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 0
+      },
+      "t": 20439.900000000373
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 3,
+        "ms": 812.5
+      },
+      "t": 22409.099999999627
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 3,
+        "slot": 3,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 23222.199999999255
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 3
+      },
+      "t": 24133.799999998882
+    }
+  ],
+  "errors": [],
+  "timingAfter": 650
+}

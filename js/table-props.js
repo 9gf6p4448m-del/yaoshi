@@ -55,15 +55,15 @@ export const PROPS = {
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
-    /* 公開 v0.57.7 實玩：0.150×0.190／40° 的牌在主鏡頭僅剩紅黑細條，既看不出「盯」字也不像令牌。
-       改成更大的近直立方牌；仍沿用同一個四枚 InstancedMesh，沒有新增 draw call 或銅錢預算。 */
-    W: 0.230, H: 0.280, T: 0.050, BEVEL: 0.005, PITCH: 1.05, STAND_LIFT: 0.250, // 半寬／半高／厚；讓牌面朝主鏡頭，底緣仍保有桌面淨空
+    /* 2026-09-15 玩家選 B 中型：修復陰影縮放污染後，撤回補償性放大；保留正面近直立牌。 */
+    W: 0.150, H: 0.190, T: 0.050, BEVEL: 0.005, PITCH: 1.05, STAND_LIFT: 0.175, // 半寬／半高／厚，底緣保有桌面淨空
     jade: 0x1a1215, jadeHi: 0x6a261a, jadeLo: 0x3d0a0e, // 墨黑玄玉、硃砂滾邊、暗紅底邊
     carve: 0xffd875, // 高明度金紅陽刻「盯」：遠景也能從暗紅托盤跳出
     SLAM_MS: 0.30, // 從席位拍下來要多久
     RISE: 0.34, // 途中先舉高多少（「重重拍」的蓄勢）
     BOUNCE: 0.055, // 落地回彈高度
     BOUNCE_MS: 0.16,
+    GAP_X: 0.38, GAP_Z: 0.62, // 同槽兩列：保留整個牌面與金字，第三／四席另排到桌前一列。
   },
   /* ── 十席信物 ───────────────────────────────────────────────────────── */
   /* SCALE 1.0 → 1.75（自評 r3）：1.0 的信物在 844×390 牌桌機位上只有 20～28px，
@@ -511,6 +511,32 @@ export function createTableProps(parent, opts = {}) {
     if (n) contactShadows.instanceMatrix.needsUpdate = true;
   }
 
+  function layoutTokens() {
+    const lanes = [[], []];
+    for (let slot = 0; slot < trayXS.length; slot++) {
+      const rows = tokRec.filter(r => r.slot === slot);
+      const columns = Math.min(2, rows.length);
+      // 外側托盤只朝桌心展開，避免向外伸進兩側拍品資訊欄。
+      const edge = slot === 0 ? 1 : slot === trayXS.length - 1 ? -1 : 0;
+      const center = trayXS[slot] + edge * (columns - 1) * TK.GAP_X / 2;
+      rows.forEach((r, i) => {
+        const row = Math.floor(i / 2), count = Math.min(2, rows.length - row * 2);
+        // 前排更靠近相機，向桌心收以抵銷透視放大，避免外側牌伸入資訊欄。
+        r.to = [center * (row ? 0.72 : 1) + (i % 2 - (count - 1) / 2) * TK.GAP_X, trayY, dropZ() - 0.055 + row * TK.GAP_Z];
+        lanes[row].push(r);
+      });
+    }
+    // 留出兩側資訊欄；相鄰拍品的牌一起排，不能各自收進桌心後又互相重疊。
+    lanes.forEach((lane, row) => {
+      const limit = mode === 'P' ? 0.50 : row ? 0.85 : 1.10;
+      lane.sort((a, b) => a.to[0] - b.to[0] || a.seat - b.seat);
+      lane.forEach((r, i) => { r.to[0] = Math.max(-limit, r.to[0], i ? lane[i - 1].to[0] + TK.GAP_X : -limit); });
+      for (let i = lane.length - 1; i >= 0; i--) {
+        lane[i].to[0] = Math.min(lane[i].to[0], i === lane.length - 1 ? limit : lane[i + 1].to[0] - TK.GAP_X);
+      }
+    });
+  }
+
   function writeTokens() {
     let n = 0;
     for (const r of tokRec) {
@@ -525,6 +551,7 @@ export function createTableProps(parent, opts = {}) {
       EU.set(TK.PITCH, r.yaw, 0); // 牌面仰立，且 yaw 固定朝南方主鏡頭；不再因北席反向插入桌面
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
+      Sv.setScalar(1); // 共用暫存向量：不可沿用接觸陰影的非等比縮放，否則牌面會被壓成窄條。
       M.compose(Pv, Q, Sv);
       tokens.setMatrixAt(n, M);
       if (tokens.instanceColor) tokens.setColorAt(n, r.winnerGlow ? tokenWinner : tokenBase);
@@ -560,7 +587,7 @@ export function createTableProps(parent, opts = {}) {
         c.to = t;
         if (c.t >= 1) c.from = t.slice();
       }
-      for (const r of tokRec) if (r.slot >= 0) r.to = [trayXS[r.slot], trayY, dropZ()];
+      layoutTokens();
       placeRelics();
       writeChips(); writeTokens();
     },
@@ -625,7 +652,7 @@ export function createTableProps(parent, opts = {}) {
       if (!(s >= 0 && s < 4) || !(k >= 0 && k < trayXS.length)) return false;
       const r = tokRec[s];
       r.slot = k; r.t = 0; r.bounce = 0; r.done = false; r.hit = false;
-      r.to = [trayXS[k] + PROPS.SEAT_DX[s] * 0.5, trayY, dropZ() - 0.055];
+      layoutTokens();
       r.yaw = 0; // 拍賣桌主鏡頭在南側：四席的「盯」牌統一面向玩家，遠景字面不側翻
       writeTokens();
       return true;
@@ -647,7 +674,7 @@ export function createTableProps(parent, opts = {}) {
       /* 勝者的血玉令牌即使本夜沒盯上，也在得標槽位亮一次；下夜 clearRound 會收掉。 */
       if (w >= 0 && w < tokRec.length) {
         const r = tokRec[w]; r.slot = k; r.t = 1; r.bounce = 0; r.done = true; r.hit = true; r.winnerGlow = 1;
-        r.to = [trayXS[k] + PROPS.SEAT_DX[w] * 0.5, trayY, dropZ() - 0.055];
+        layoutTokens();
         r.yaw = 0;
       }
       writeChips();

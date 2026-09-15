@@ -916,7 +916,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
     const w = window.innerWidth;
     const h = window.innerHeight;
     if (!w || !h) return;
-    const dist = camera.position.length() || 4.2;
+    // 排陣不跟著 tier 1 的 0.10 微推縮回去；其他鏡頭的排法照舊。
+    const director = window.__yaoshi3d && window.__yaoshi3d.director;
+    const dist = (director && director.framingDistance ? director.framingDistance() : camera.position.length()) || 4.2;
     camStable = Math.abs(dist - lastDist) < 1e-3; lastDist = dist;
     const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * dist;
     const halfW = halfH * camera.aspect;

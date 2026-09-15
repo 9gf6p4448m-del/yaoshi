@@ -1,0 +1,2923 @@
+{
+  "seed": 1,
+  "done": true,
+  "policy": "scriptedBids; mark bid slot; no incense; event uses ai choice; presentation skip button",
+  "captures": [
+    {
+      "id": "bluff",
+      "hit": "seed-1-bluff-hit.png",
+      "after": "seed-1-bluff-removed.png",
+      "cls": "cutOverlay bluff",
+      "text": "誅心・得手盯上的貨，眾人讓路",
+      "round": 5,
+      "history": {
+        "life": [
+          [
+            52,
+            50,
+            52,
+            44
+          ],
+          [
+            45,
+            43,
+            43,
+            53
+          ],
+          [
+            38,
+            38,
+            38,
+            53
+          ],
+          [
+            24,
+            25,
+            39,
+            54
+          ],
+          [
+            19,
+            26,
+            32,
+            50
+          ]
+        ],
+        "nights": [
+          {
+            "round": 1,
+            "rule": null,
+            "event": null,
+            "marks": [
+              {
+                "pid": 0,
+                "item": "過陰咒"
+              },
+              {
+                "pid": 1,
+                "item": "過陰咒"
+              },
+              {
+                "pid": 2,
+                "item": "過陰咒"
+              },
+              {
+                "pid": 3,
+                "item": "過陰咒"
+              }
+            ],
+            "auction": [
+              {
+                "item": "陰陽眼銅錢",
+                "fac": "yinqi",
+                "p": 4,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 6
+                  }
+                ]
+              },
+              {
+                "item": "過陰咒",
+                "fac": "yinqi",
+                "p": 5,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 7,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 0,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 3
+                  },
+                  {
+                    "pid": 2,
+                    "amt": 7,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 8
+                  }
+                ]
+              },
+              {
+                "item": "飼鬼甕",
+                "fac": "yinqi",
+                "p": 3,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 7,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 7,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 8
+                  }
+                ]
+              },
+              {
+                "item": "魔神仔的芭樂",
+                "fac": "curse",
+                "p": 0,
+                "curse": true,
+                "winnerId": 2,
+                "amt": 4,
+                "type": "cons",
+                "intent": "poison",
+                "targetId": 0,
+                "bids": [
+                  {
+                    "pid": 2,
+                    "amt": 4,
+                    "type": "cons",
+                    "intent": "poison",
+                    "cost": 5
+                  }
+                ]
+              }
+            ],
+            "fights": [
+              {
+                "a": 0,
+                "b": 3,
+                "pa": 0,
+                "pb": 3,
+                "tie": false,
+                "w": 3,
+                "dmg": 8,
+                "war": {
+                  "ba": 1,
+                  "bb": 0,
+                  "ua": 1,
+                  "ub": 1
+                }
+              },
+              {
+                "a": 1,
+                "b": 2,
+                "pa": 11,
+                "pb": 5,
+                "tie": true,
+                "w": null,
+                "dmg": 0,
+                "war": {
+                  "ba": 0,
+                  "bb": 0,
+                  "ua": 4,
+                  "ub": 4
+                }
+              }
+            ],
+            "bye": null,
+            "wishes": [
+              {
+                "pid": 0,
+                "id": "wish_battle",
+                "done": false
+              },
+              {
+                "pid": 1,
+                "id": "wish_unscathed",
+                "done": true
+              },
+              {
+                "pid": 2,
+                "id": "wish_battle",
+                "done": false
+              },
+              {
+                "pid": 3,
+                "id": "wish_yaming",
+                "done": false
+              }
+            ],
+            "deaths": [],
+            "closed": true,
+            "shrine": {
+              "burn": [
+                {
+                  "pid": 1,
+                  "amt": 1,
+                  "h": 1
+                },
+                {
+                  "pid": 2,
+                  "amt": 1,
+                  "h": 1
+                },
+                {
+                  "pid": 3,
+                  "amt": 1,
+                  "h": 1
+                }
+              ],
+              "taken": []
+            }
+          },
+          {
+            "round": 2,
+            "rule": null,
+            "event": null,
+            "marks": [
+              {
+                "pid": 0,
+                "item": "獻祭刀"
+              },
+              {
+                "pid": 1,
+                "item": "獻祭刀"
+              },
+              {
+                "pid": 2,
+                "item": "椅仔姑竹椅"
+              },
+              {
+                "pid": 3,
+                "item": "獻祭刀"
+              }
+            ],
+            "auction": [
+              {
+                "item": "千里眼銅鈴",
+                "fac": "xianghuo",
+                "p": 5,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 5,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 2,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 6
+                  },
+                  {
+                    "pid": 3,
+                    "amt": 2,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 2
+                  }
+                ]
+              },
+              {
+                "item": "冥婚紅包",
+                "fac": "curse",
+                "p": -5,
+                "curse": true,
+                "winnerId": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "targetId": 3,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "poison",
+                    "cost": 6
+                  }
+                ]
+              },
+              {
+                "item": "獻祭刀",
+                "fac": "zuling",
+                "p": 6,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 7,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 0,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 3
+                  },
+                  {
+                    "pid": 1,
+                    "amt": 7,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 8
+                  },
+                  {
+                    "pid": 3,
+                    "amt": 2,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 2
+                  }
+                ]
+              },
+              {
+                "item": "椅仔姑竹椅",
+                "fac": "yinqi",
+                "p": 6,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 5,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 2,
+                    "amt": 5,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 6
+                  }
+                ]
+              }
+            ],
+            "fights": [
+              {
+                "a": 0,
+                "b": 1,
+                "pa": 3,
+                "pb": 17,
+                "tie": false,
+                "w": 1,
+                "dmg": 8,
+                "war": {
+                  "ba": 1,
+                  "bb": 0,
+                  "ua": 1,
+                  "ub": 5
+                }
+              },
+              {
+                "a": 2,
+                "b": 3,
+                "pa": 20,
+                "pb": -5,
+                "tie": false,
+                "w": 2,
+                "dmg": 8,
+                "war": {
+                  "ba": 0,
+                  "bb": 1,
+                  "ua": 9,
+                  "ub": 1
+                }
+              }
+            ],
+            "bye": null,
+            "wishes": [
+              {
+                "pid": 0,
+                "id": "wish_crowd",
+                "done": false
+              },
+              {
+                "pid": 1,
+                "id": "wish_poisonrival",
+                "done": true
+              },
+              {
+                "pid": 2,
+                "id": "wish_battle",
+                "done": true
+              },
+              {
+                "pid": 3,
+                "id": "wish_yaming",
+                "done": true
+              }
+            ],
+            "deaths": [],
+            "closed": true,
+            "shrine": {
+              "burn": [
+                {
+                  "pid": 1,
+                  "amt": 1,
+                  "h": 2
+                },
+                {
+                  "pid": 2,
+                  "amt": 1,
+                  "h": 2
+                },
+                {
+                  "pid": 3,
+                  "amt": 1,
+                  "h": 2
+                }
+              ],
+              "taken": []
+            }
+          },
+          {
+            "round": 3,
+            "rule": "落魄夜",
+            "event": null,
+            "marks": [
+              {
+                "pid": 0,
+                "item": "祖靈之眼"
+              },
+              {
+                "pid": 1,
+                "item": "水鬼浮標"
+              },
+              {
+                "pid": 2,
+                "item": "虎姑婆指甲"
+              },
+              {
+                "pid": 3,
+                "item": "水鬼浮標"
+              }
+            ],
+            "auction": [
+              {
+                "item": "祖靈之眼",
+                "fac": "zuling",
+                "p": 5,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 6,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 0,
+                    "amt": 5,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 6
+                  },
+                  {
+                    "pid": 1,
+                    "amt": 6,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 7
+                  }
+                ]
+              },
+              {
+                "item": "水鬼浮標",
+                "fac": "yinqi",
+                "p": 5,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 10,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 10,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 11
+                  }
+                ]
+              },
+              {
+                "item": "破軍旗",
+                "fac": "xianghuo",
+                "p": 2,
+                "curse": false,
+                "winnerId": null,
+                "amt": 0,
+                "type": null,
+                "intent": null,
+                "targetId": null,
+                "bids": []
+              },
+              {
+                "item": "虎姑婆指甲",
+                "fac": "yinqi",
+                "p": 4,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 2,
+                    "amt": 3,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 4
+                  }
+                ]
+              }
+            ],
+            "fights": [
+              {
+                "a": 0,
+                "b": 2,
+                "pa": 0,
+                "pb": 32,
+                "tie": false,
+                "w": 2,
+                "dmg": 8,
+                "war": {
+                  "ba": 1,
+                  "bb": 0,
+                  "ua": 1,
+                  "ub": 10
+                }
+              },
+              {
+                "a": 3,
+                "b": 1,
+                "pa": -5,
+                "pb": 43,
+                "tie": false,
+                "w": 1,
+                "dmg": 8,
+                "war": {
+                  "ba": 1,
+                  "bb": 0,
+                  "ua": 1,
+                  "ub": 11
+                }
+              }
+            ],
+            "bye": null,
+            "wishes": [
+              {
+                "pid": 0,
+                "id": "wish_frugal",
+                "done": false
+              },
+              {
+                "pid": 1,
+                "id": "wish_battle",
+                "done": true
+              },
+              {
+                "pid": 2,
+                "id": "wish_allin",
+                "done": true
+              },
+              {
+                "pid": 3,
+                "id": "wish_rival",
+                "done": true
+              }
+            ],
+            "deaths": [],
+            "closed": true,
+            "shrine": {
+              "burn": [
+                {
+                  "pid": 1,
+                  "amt": 1,
+                  "h": 3
+                },
+                {
+                  "pid": 2,
+                  "amt": 1,
+                  "h": 3
+                },
+                {
+                  "pid": 3,
+                  "amt": 1,
+                  "h": 3
+                }
+              ],
+              "taken": []
+            }
+          },
+          {
+            "round": 4,
+            "rule": null,
+            "event": "試膽大會",
+            "marks": [
+              {
+                "pid": 0,
+                "item": "百步蛇紋盾"
+              },
+              {
+                "pid": 1,
+                "item": "百步蛇紋盾"
+              },
+              {
+                "pid": 2,
+                "item": "百步蛇紋盾"
+              },
+              {
+                "pid": 3,
+                "item": "黃色小雨衣"
+              }
+            ],
+            "auction": [
+              {
+                "item": "山豬牙飾",
+                "fac": "zuling",
+                "p": 4,
+                "curse": false,
+                "winnerId": null,
+                "amt": 0,
+                "type": null,
+                "intent": null,
+                "targetId": null,
+                "bids": []
+              },
+              {
+                "item": "百步蛇紋盾",
+                "fac": "zuling",
+                "p": 6,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 5,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 0,
+                    "amt": 3,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 2
+                  },
+                  {
+                    "pid": 2,
+                    "amt": 5,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 6
+                  }
+                ]
+              },
+              {
+                "item": "黃色小雨衣",
+                "fac": "yinqi",
+                "p": 5,
+                "curse": false,
+                "winnerId": 3,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 3,
+                    "amt": 3,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 4
+                  }
+                ]
+              },
+              {
+                "item": "山神庇佑",
+                "fac": "zuling",
+                "p": 4,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 3,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 3,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 4
+                  },
+                  {
+                    "pid": 3,
+                    "amt": 2,
+                    "type": "cons",
+                    "intent": "keep",
+                    "cost": 2
+                  }
+                ]
+              }
+            ],
+            "fights": [
+              {
+                "a": 0,
+                "b": 3,
+                "pa": 0,
+                "pb": 0,
+                "tie": false,
+                "w": 3,
+                "dmg": 2,
+                "war": {
+                  "ba": 0,
+                  "bb": 0,
+                  "ua": 1,
+                  "ub": 4
+                }
+              },
+              {
+                "a": 1,
+                "b": 2,
+                "pa": 55,
+                "pb": 35,
+                "tie": false,
+                "w": 1,
+                "dmg": 4,
+                "war": {
+                  "ba": 2,
+                  "bb": 8,
+                  "ua": 13,
+                  "ub": 12
+                }
+              }
+            ],
+            "bye": null,
+            "wishes": [
+              {
+                "pid": 0,
+                "id": "wish_yamingwin",
+                "done": false
+              },
+              {
+                "pid": 1,
+                "id": "wish_frugal",
+                "done": true
+              },
+              {
+                "pid": 2,
+                "id": "wish_allin",
+                "done": true
+              },
+              {
+                "pid": 3,
+                "id": "wish_unscathed",
+                "done": true
+              }
+            ],
+            "deaths": [],
+            "closed": true,
+            "shrine": {
+              "burn": [
+                {
+                  "pid": 1,
+                  "amt": 1,
+                  "h": 4
+                },
+                {
+                  "pid": 2,
+                  "amt": 1,
+                  "h": 4
+                },
+                {
+                  "pid": 3,
+                  "amt": 1,
+                  "h": 4
+                }
+              ],
+              "taken": []
+            }
+          },
+          {
+            "round": 5,
+            "rule": null,
+            "event": null,
+            "marks": [
+              {
+                "pid": 0,
+                "item": "王爺劍"
+              },
+              {
+                "pid": 1,
+                "item": "虎姑婆指甲"
+              },
+              {
+                "pid": 2,
+                "item": "虎姑婆指甲"
+              },
+              {
+                "pid": 3,
+                "item": "虎姑婆指甲"
+              }
+            ],
+            "auction": [
+              {
+                "item": "虎姑婆指甲",
+                "fac": "yinqi",
+                "p": 4,
+                "curse": false,
+                "winnerId": 2,
+                "amt": 7,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 2,
+                    "amt": 7,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 8
+                  }
+                ]
+              },
+              {
+                "item": "王爺劍",
+                "fac": "xianghuo",
+                "p": 6,
+                "curse": false,
+                "winnerId": 0,
+                "amt": 3,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 0,
+                    "amt": 3,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 4
+                  }
+                ]
+              },
+              {
+                "item": "祖靈之眼",
+                "fac": "zuling",
+                "p": 5,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 2,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 2,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 3
+                  }
+                ]
+              },
+              {
+                "item": "破軍旗",
+                "fac": "xianghuo",
+                "p": 2,
+                "curse": false,
+                "winnerId": 1,
+                "amt": 2,
+                "type": "yaming",
+                "intent": "keep",
+                "targetId": null,
+                "bids": [
+                  {
+                    "pid": 1,
+                    "amt": 2,
+                    "type": "yaming",
+                    "intent": "keep",
+                    "cost": 3
+                  }
+                ]
+              }
+            ],
+            "fights": [],
+            "bye": null,
+            "wishes": [],
+            "deaths": [],
+            "closed": false
+          }
+        ]
+      }
+    }
+  ],
+  "steps": [
+    {
+      "round": 1,
+      "action": "mark",
+      "slot": 1
+    },
+    {
+      "round": 1,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 5,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 1
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 1,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 1
+    },
+    {
+      "round": 1,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 1
+    },
+    {
+      "round": 2,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 2,
+      "action": "mark",
+      "slot": 2
+    },
+    {
+      "round": 2,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 5,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 2
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 2,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 2
+    },
+    {
+      "round": 2,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 2
+    },
+    {
+      "round": 3,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 3,
+      "action": "mark",
+      "slot": 0
+    },
+    {
+      "round": 3,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 5,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 3
+    },
+    {
+      "round": 3,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 3
+    },
+    {
+      "round": 3,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 3
+    },
+    {
+      "round": 4,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 4,
+      "action": "event",
+      "value": "in"
+    },
+    {
+      "round": 4,
+      "action": "前往拍賣"
+    },
+    {
+      "round": 4,
+      "action": "mark",
+      "slot": 1
+    },
+    {
+      "round": 4,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 3,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 4
+    },
+    {
+      "round": 4,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 4
+    },
+    {
+      "round": 4,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 4
+    },
+    {
+      "round": 5,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 5,
+      "action": "mark",
+      "slot": 1
+    },
+    {
+      "round": 5,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 3,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 5
+    },
+    {
+      "round": 5,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 5
+    },
+    {
+      "round": 5,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 5
+    },
+    {
+      "round": 6,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 6,
+      "action": "mark",
+      "slot": 3
+    },
+    {
+      "round": 6,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 6
+    },
+    {
+      "round": 6,
+      "action": "🕯️ 請神"
+    },
+    {
+      "action": "skip presentation",
+      "round": 6
+    },
+    {
+      "round": 6,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 6
+    },
+    {
+      "round": 7,
+      "action": "進入下一夜"
+    },
+    {
+      "round": 7,
+      "action": "mark",
+      "slot": 0
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "action": "submit legal scripted bids",
+      "bids": [
+        {
+          "amt": 1,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        },
+        {
+          "amt": 0,
+          "type": "cons",
+          "intent": "keep",
+          "target": null
+        }
+      ]
+    },
+    {
+      "action": "skip presentation",
+      "round": 7
+    },
+    {
+      "round": 7,
+      "action": "🕯️ 請神"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "round": 7,
+      "action": "開戰"
+    },
+    {
+      "action": "skip presentation",
+      "round": 7
+    },
+    {
+      "round": 7,
+      "action": "看最終結果"
+    }
+  ],
+  "errors": [],
+  "final": {
+    "history": {
+      "life": [
+        [
+          52,
+          50,
+          52,
+          44
+        ],
+        [
+          45,
+          43,
+          43,
+          53
+        ],
+        [
+          38,
+          38,
+          38,
+          53
+        ],
+        [
+          24,
+          25,
+          39,
+          54
+        ],
+        [
+          19,
+          26,
+          32,
+          50
+        ],
+        [
+          11,
+          26,
+          29,
+          49
+        ],
+        [
+          6,
+          20,
+          23,
+          35
+        ],
+        [
+          0,
+          26,
+          23,
+          36
+        ]
+      ],
+      "nights": [
+        {
+          "round": 1,
+          "rule": null,
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "過陰咒"
+            },
+            {
+              "pid": 1,
+              "item": "過陰咒"
+            },
+            {
+              "pid": 2,
+              "item": "過陰咒"
+            },
+            {
+              "pid": 3,
+              "item": "過陰咒"
+            }
+          ],
+          "auction": [
+            {
+              "item": "陰陽眼銅錢",
+              "fac": "yinqi",
+              "p": 4,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 5,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 6
+                }
+              ]
+            },
+            {
+              "item": "過陰咒",
+              "fac": "yinqi",
+              "p": 5,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 7,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 3
+                },
+                {
+                  "pid": 2,
+                  "amt": 7,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 8
+                }
+              ]
+            },
+            {
+              "item": "飼鬼甕",
+              "fac": "yinqi",
+              "p": 3,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 7,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 7,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 8
+                }
+              ]
+            },
+            {
+              "item": "魔神仔的芭樂",
+              "fac": "curse",
+              "p": 0,
+              "curse": true,
+              "winnerId": 2,
+              "amt": 4,
+              "type": "cons",
+              "intent": "poison",
+              "targetId": 0,
+              "bids": [
+                {
+                  "pid": 2,
+                  "amt": 4,
+                  "type": "cons",
+                  "intent": "poison",
+                  "cost": 5
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 3,
+              "pa": 0,
+              "pb": 3,
+              "tie": false,
+              "w": 3,
+              "dmg": 8,
+              "war": {
+                "ba": 1,
+                "bb": 0,
+                "ua": 1,
+                "ub": 1
+              }
+            },
+            {
+              "a": 1,
+              "b": 2,
+              "pa": 11,
+              "pb": 5,
+              "tie": true,
+              "w": null,
+              "dmg": 0,
+              "war": {
+                "ba": 0,
+                "bb": 0,
+                "ua": 4,
+                "ub": 4
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_battle",
+              "done": false
+            },
+            {
+              "pid": 1,
+              "id": "wish_unscathed",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_battle",
+              "done": false
+            },
+            {
+              "pid": 3,
+              "id": "wish_yaming",
+              "done": false
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 1,
+                "amt": 1,
+                "h": 1
+              },
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 1
+              },
+              {
+                "pid": 3,
+                "amt": 1,
+                "h": 1
+              }
+            ],
+            "taken": []
+          }
+        },
+        {
+          "round": 2,
+          "rule": null,
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "獻祭刀"
+            },
+            {
+              "pid": 1,
+              "item": "獻祭刀"
+            },
+            {
+              "pid": 2,
+              "item": "椅仔姑竹椅"
+            },
+            {
+              "pid": 3,
+              "item": "獻祭刀"
+            }
+          ],
+          "auction": [
+            {
+              "item": "千里眼銅鈴",
+              "fac": "xianghuo",
+              "p": 5,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 5,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 2,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 6
+                },
+                {
+                  "pid": 3,
+                  "amt": 2,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 2
+                }
+              ]
+            },
+            {
+              "item": "冥婚紅包",
+              "fac": "curse",
+              "p": -5,
+              "curse": true,
+              "winnerId": 1,
+              "amt": 5,
+              "type": "cons",
+              "intent": "poison",
+              "targetId": 3,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "poison",
+                  "cost": 6
+                }
+              ]
+            },
+            {
+              "item": "獻祭刀",
+              "fac": "zuling",
+              "p": 6,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 7,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 3
+                },
+                {
+                  "pid": 1,
+                  "amt": 7,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 8
+                },
+                {
+                  "pid": 3,
+                  "amt": 2,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 2
+                }
+              ]
+            },
+            {
+              "item": "椅仔姑竹椅",
+              "fac": "yinqi",
+              "p": 6,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 5,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 2,
+                  "amt": 5,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 6
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 1,
+              "pa": 3,
+              "pb": 17,
+              "tie": false,
+              "w": 1,
+              "dmg": 8,
+              "war": {
+                "ba": 1,
+                "bb": 0,
+                "ua": 1,
+                "ub": 5
+              }
+            },
+            {
+              "a": 2,
+              "b": 3,
+              "pa": 20,
+              "pb": -5,
+              "tie": false,
+              "w": 2,
+              "dmg": 8,
+              "war": {
+                "ba": 0,
+                "bb": 1,
+                "ua": 9,
+                "ub": 1
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_crowd",
+              "done": false
+            },
+            {
+              "pid": 1,
+              "id": "wish_poisonrival",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_battle",
+              "done": true
+            },
+            {
+              "pid": 3,
+              "id": "wish_yaming",
+              "done": true
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 1,
+                "amt": 1,
+                "h": 2
+              },
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 2
+              },
+              {
+                "pid": 3,
+                "amt": 1,
+                "h": 2
+              }
+            ],
+            "taken": []
+          }
+        },
+        {
+          "round": 3,
+          "rule": "落魄夜",
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "祖靈之眼"
+            },
+            {
+              "pid": 1,
+              "item": "水鬼浮標"
+            },
+            {
+              "pid": 2,
+              "item": "虎姑婆指甲"
+            },
+            {
+              "pid": 3,
+              "item": "水鬼浮標"
+            }
+          ],
+          "auction": [
+            {
+              "item": "祖靈之眼",
+              "fac": "zuling",
+              "p": 5,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 6,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 5,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 6
+                },
+                {
+                  "pid": 1,
+                  "amt": 6,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 7
+                }
+              ]
+            },
+            {
+              "item": "水鬼浮標",
+              "fac": "yinqi",
+              "p": 5,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 10,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 10,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 11
+                }
+              ]
+            },
+            {
+              "item": "破軍旗",
+              "fac": "xianghuo",
+              "p": 2,
+              "curse": false,
+              "winnerId": null,
+              "amt": 0,
+              "type": null,
+              "intent": null,
+              "targetId": null,
+              "bids": []
+            },
+            {
+              "item": "虎姑婆指甲",
+              "fac": "yinqi",
+              "p": 4,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 3,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 2,
+                  "amt": 3,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 4
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 2,
+              "pa": 0,
+              "pb": 32,
+              "tie": false,
+              "w": 2,
+              "dmg": 8,
+              "war": {
+                "ba": 1,
+                "bb": 0,
+                "ua": 1,
+                "ub": 10
+              }
+            },
+            {
+              "a": 3,
+              "b": 1,
+              "pa": -5,
+              "pb": 43,
+              "tie": false,
+              "w": 1,
+              "dmg": 8,
+              "war": {
+                "ba": 1,
+                "bb": 0,
+                "ua": 1,
+                "ub": 11
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_frugal",
+              "done": false
+            },
+            {
+              "pid": 1,
+              "id": "wish_battle",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_allin",
+              "done": true
+            },
+            {
+              "pid": 3,
+              "id": "wish_rival",
+              "done": true
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 1,
+                "amt": 1,
+                "h": 3
+              },
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 3
+              },
+              {
+                "pid": 3,
+                "amt": 1,
+                "h": 3
+              }
+            ],
+            "taken": []
+          }
+        },
+        {
+          "round": 4,
+          "rule": null,
+          "event": "試膽大會",
+          "marks": [
+            {
+              "pid": 0,
+              "item": "百步蛇紋盾"
+            },
+            {
+              "pid": 1,
+              "item": "百步蛇紋盾"
+            },
+            {
+              "pid": 2,
+              "item": "百步蛇紋盾"
+            },
+            {
+              "pid": 3,
+              "item": "黃色小雨衣"
+            }
+          ],
+          "auction": [
+            {
+              "item": "山豬牙飾",
+              "fac": "zuling",
+              "p": 4,
+              "curse": false,
+              "winnerId": null,
+              "amt": 0,
+              "type": null,
+              "intent": null,
+              "targetId": null,
+              "bids": []
+            },
+            {
+              "item": "百步蛇紋盾",
+              "fac": "zuling",
+              "p": 6,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 5,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 3,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 2
+                },
+                {
+                  "pid": 2,
+                  "amt": 5,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 6
+                }
+              ]
+            },
+            {
+              "item": "黃色小雨衣",
+              "fac": "yinqi",
+              "p": 5,
+              "curse": false,
+              "winnerId": 3,
+              "amt": 3,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 3,
+                  "amt": 3,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 4
+                }
+              ]
+            },
+            {
+              "item": "山神庇佑",
+              "fac": "zuling",
+              "p": 4,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 3,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 3,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 4
+                },
+                {
+                  "pid": 3,
+                  "amt": 2,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 2
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 3,
+              "pa": 0,
+              "pb": 0,
+              "tie": false,
+              "w": 3,
+              "dmg": 2,
+              "war": {
+                "ba": 0,
+                "bb": 0,
+                "ua": 1,
+                "ub": 4
+              }
+            },
+            {
+              "a": 1,
+              "b": 2,
+              "pa": 55,
+              "pb": 35,
+              "tie": false,
+              "w": 1,
+              "dmg": 4,
+              "war": {
+                "ba": 2,
+                "bb": 8,
+                "ua": 13,
+                "ub": 12
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_yamingwin",
+              "done": false
+            },
+            {
+              "pid": 1,
+              "id": "wish_frugal",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_allin",
+              "done": true
+            },
+            {
+              "pid": 3,
+              "id": "wish_unscathed",
+              "done": true
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 1,
+                "amt": 1,
+                "h": 4
+              },
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 4
+              },
+              {
+                "pid": 3,
+                "amt": 1,
+                "h": 4
+              }
+            ],
+            "taken": []
+          }
+        },
+        {
+          "round": 5,
+          "rule": null,
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "王爺劍"
+            },
+            {
+              "pid": 1,
+              "item": "虎姑婆指甲"
+            },
+            {
+              "pid": 2,
+              "item": "虎姑婆指甲"
+            },
+            {
+              "pid": 3,
+              "item": "虎姑婆指甲"
+            }
+          ],
+          "auction": [
+            {
+              "item": "虎姑婆指甲",
+              "fac": "yinqi",
+              "p": 4,
+              "curse": false,
+              "winnerId": 2,
+              "amt": 7,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 2,
+                  "amt": 7,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 8
+                }
+              ]
+            },
+            {
+              "item": "王爺劍",
+              "fac": "xianghuo",
+              "p": 6,
+              "curse": false,
+              "winnerId": 0,
+              "amt": 3,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 3,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 4
+                }
+              ]
+            },
+            {
+              "item": "祖靈之眼",
+              "fac": "zuling",
+              "p": 5,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 2,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 2,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 3
+                }
+              ]
+            },
+            {
+              "item": "破軍旗",
+              "fac": "xianghuo",
+              "p": 2,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 2,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 2,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 3
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 1,
+              "pa": 6,
+              "pb": 67.8,
+              "tie": false,
+              "w": 1,
+              "dmg": 8,
+              "war": {
+                "ba": 1,
+                "bb": 0,
+                "ua": 1,
+                "ub": 16
+              }
+            },
+            {
+              "a": 2,
+              "b": 3,
+              "pa": 46,
+              "pb": 24,
+              "tie": false,
+              "w": 2,
+              "dmg": 8,
+              "war": {
+                "ba": 0,
+                "bb": 6,
+                "ua": 13,
+                "ub": 6
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_yamingwin",
+              "done": true
+            },
+            {
+              "pid": 1,
+              "id": "wish_bargain",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_yinqi",
+              "done": true
+            },
+            {
+              "pid": 3,
+              "id": "wish_nowin",
+              "done": true
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 1,
+                "amt": 1,
+                "h": 5
+              },
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 5
+              },
+              {
+                "pid": 3,
+                "amt": 1,
+                "h": 5
+              }
+            ],
+            "taken": [
+              {
+                "pid": 3,
+                "shrine": 2,
+                "h": 5
+              }
+            ]
+          }
+        },
+        {
+          "round": 6,
+          "rule": null,
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "魔神仔紅帽"
+            },
+            {
+              "pid": 1,
+              "item": "魔神仔紅帽"
+            },
+            {
+              "pid": 2,
+              "item": "魔神仔紅帽"
+            },
+            {
+              "pid": 3,
+              "item": "椅仔姑竹椅"
+            }
+          ],
+          "auction": [
+            {
+              "item": "送王船",
+              "fac": "xianghuo",
+              "p": 6,
+              "curse": false,
+              "winnerId": 1,
+              "amt": 6,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 6,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 7
+                },
+                {
+                  "pid": 3,
+                  "amt": 1,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 1
+                }
+              ]
+            },
+            {
+              "item": "魔神仔的芭樂",
+              "fac": "curse",
+              "p": 0,
+              "curse": true,
+              "winnerId": 1,
+              "amt": 5,
+              "type": "yaming",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 5,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 6
+                },
+                {
+                  "pid": 2,
+                  "amt": 5,
+                  "type": "yaming",
+                  "intent": "keep",
+                  "cost": 4
+                }
+              ]
+            },
+            {
+              "item": "椅仔姑竹椅",
+              "fac": "yinqi",
+              "p": 6,
+              "curse": false,
+              "winnerId": 3,
+              "amt": 3,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 3,
+                  "amt": 3,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 4
+                }
+              ]
+            },
+            {
+              "item": "魔神仔紅帽",
+              "fac": "yinqi",
+              "p": 7,
+              "curse": false,
+              "winnerId": 0,
+              "amt": 1,
+              "type": "cons",
+              "intent": "keep",
+              "targetId": null,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 1,
+                  "type": "cons",
+                  "intent": "keep",
+                  "cost": 2
+                }
+              ]
+            }
+          ],
+          "fights": [
+            {
+              "a": 0,
+              "b": 2,
+              "pa": 16,
+              "pb": 46,
+              "tie": false,
+              "w": 2,
+              "dmg": 8,
+              "war": {
+                "ba": 5,
+                "bb": 4,
+                "ua": 5,
+                "ub": 13
+              }
+            },
+            {
+              "a": 3,
+              "b": 1,
+              "pa": 34,
+              "pb": 85.4,
+              "tie": false,
+              "w": 1,
+              "dmg": 8,
+              "war": {
+                "ba": 9,
+                "bb": 0,
+                "ua": 9,
+                "ub": 18
+              }
+            }
+          ],
+          "bye": null,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_east",
+              "done": true
+            },
+            {
+              "pid": 1,
+              "id": "wish_xianghuo",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_crowd",
+              "done": false
+            },
+            {
+              "pid": 3,
+              "id": "wish_battle",
+              "done": false
+            }
+          ],
+          "deaths": [],
+          "closed": true,
+          "shrine": {
+            "burn": [
+              {
+                "pid": 2,
+                "amt": 1,
+                "h": 6
+              }
+            ],
+            "taken": []
+          }
+        },
+        {
+          "round": 7,
+          "rule": "收祟夜",
+          "event": null,
+          "marks": [
+            {
+              "pid": 0,
+              "item": "抓交替水符"
+            },
+            {
+              "pid": 1,
+              "item": "抓交替水符"
+            },
+            {
+              "pid": 2,
+              "item": "抓交替水符"
+            },
+            {
+              "pid": 3,
+              "item": "冥婚紅包"
+            }
+          ],
+          "auction": [
+            {
+              "item": "抓交替水符",
+              "fac": "curse",
+              "p": -4,
+              "curse": true,
+              "winnerId": 2,
+              "amt": 4,
+              "type": "yaming",
+              "intent": "poison",
+              "targetId": 1,
+              "bids": [
+                {
+                  "pid": 0,
+                  "amt": 1,
+                  "type": "cons",
+                  "intent": "poison",
+                  "cost": 2
+                },
+                {
+                  "pid": 2,
+                  "amt": 4,
+                  "type": "yaming",
+                  "intent": "poison",
+                  "cost": 5
+                }
+              ]
+            },
+            {
+              "item": "冥婚紅包",
+              "fac": "curse",
+              "p": -5,
+              "curse": true,
+              "winnerId": null,
+              "amt": 0,
+              "type": null,
+              "intent": null,
+              "targetId": null,
+              "bids": []
+            },
+            {
+              "item": "抓交替水符",
+              "fac": "curse",
+              "p": -4,
+              "curse": true,
+              "winnerId": 1,
+              "amt": 4,
+              "type": "yaming",
+              "intent": "poison",
+              "targetId": 2,
+              "bids": [
+                {
+                  "pid": 1,
+                  "amt": 4,
+                  "type": "yaming",
+                  "intent": "poison",
+                  "cost": 5
+                }
+              ]
+            },
+            {
+              "item": "縛靈鎖",
+              "fac": "curse",
+              "p": -6,
+              "curse": true,
+              "winnerId": null,
+              "amt": 0,
+              "type": null,
+              "intent": null,
+              "targetId": null,
+              "bids": []
+            }
+          ],
+          "fights": [
+            {
+              "a": 2,
+              "b": 3,
+              "pa": 61,
+              "pb": 34,
+              "tie": false,
+              "w": 2,
+              "dmg": 7,
+              "war": {
+                "ba": 1,
+                "bb": 7,
+                "ua": 13,
+                "ub": 9
+              }
+            }
+          ],
+          "bye": 1,
+          "wishes": [
+            {
+              "pid": 0,
+              "id": "wish_bargain",
+              "done": false
+            },
+            {
+              "pid": 1,
+              "id": "wish_east",
+              "done": true
+            },
+            {
+              "pid": 2,
+              "id": "wish_solo",
+              "done": false
+            },
+            {
+              "pid": 3,
+              "id": "wish_nowin",
+              "done": true
+            }
+          ],
+          "deaths": [],
+          "closed": true
+        }
+      ],
+      "shrineDawn": [
+        {
+          "pid": 1,
+          "h": 5,
+          "back": 3,
+          "gift": "山神庇佑"
+        },
+        {
+          "pid": 2,
+          "h": 6,
+          "back": 3,
+          "gift": "陰陽眼銅錢"
+        }
+      ]
+    },
+    "players": [
+      {
+        "id": 0,
+        "life": 0,
+        "alive": false
+      },
+      {
+        "id": 1,
+        "life": 26,
+        "alive": true
+      },
+      {
+        "id": 2,
+        "life": 23,
+        "alive": true
+      },
+      {
+        "id": 3,
+        "life": 36,
+        "alive": true
+      }
+    ],
+    "round": 7
+  }
+}

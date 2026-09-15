@@ -7,6 +7,18 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
+test('命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明', () => {
+  const source = index.slice(index.indexOf('const CUTS = ['), index.indexOf('function playCut('));
+  const S = { history: { life: [{ 0: 50 }, { 0: 4 }] } };
+  const cuts = new Function('S', 'CFG', source + '\nreturn CUTS;')(S, {});
+  const cut = cuts.find(c => c.id === 'death-edge');
+  assert.equal(cut.test({ rank: [{ id: 0, alive: true }] }), true);
+  assert.equal(cut.test({ rank: [{ id: 0, alive: false }] }), false);
+  assert.equal(cut.test({ rank: [] }), false);
+  S.history.life = [{ 0: 50 }, { 0: 6 }];
+  assert.equal(cut.test({ rank: [{ id: 0, alive: true }] }), false);
+});
+
 test('三種高光轉場由單一純讀取 CUTS 表定義', () => {
   assert.match(index, /const\s+CUTS\s*=\s*\[/, '高光轉場必須有單一 CUTS 表');
   const cuts = index.slice(index.indexOf('const CUTS = ['), index.indexOf('async function startReveal()'));

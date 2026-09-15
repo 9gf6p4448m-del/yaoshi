@@ -1,0 +1,133 @@
+{
+  "url": "https://9gf6p4448m-del.github.io/yaoshi/",
+  "version": {
+    "release": "0.57.8",
+    "legacy": "0.56e",
+    "timing": 650
+  },
+  "seed": 1,
+  "inputs": "newGame solo qingmian; normal main-button progression; pickMark(2); openSheet(2), bump(1) five times, closeSheet(); all other bids zero; click reveal/next item, never skip",
+  "announcement": "🔔 開標前公告・各件出價人數\n過陰咒\n👁西東\n1 人出價\n陰陽眼銅錢\n1 人出價\n虎姑婆指甲\n👁南\n1 人出價（含你）\n水鬼浮標\n👁北\n1 人出價",
+  "slots": [
+    {
+      "slot": 0,
+      "text": "過陰咒陰氣 　✦ 壽命低於 15 時，本夜共鳴效果加倍\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n大家樂組頭：3🪙 👑\n大家樂組頭 入袋"
+    },
+    {
+      "slot": 1,
+      "text": "陰陽眼銅錢陰氣 　貼上眼皮就看得見\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n陰間當鋪：5🪙 👑\n陰間當鋪 入袋"
+    },
+    {
+      "slot": 2,
+      "text": "虎姑婆指甲陰氣 　✦ 戰勝時回 1 壽命\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n青面攤主：5🪙 👑\n青面攤主 入袋"
+    },
+    {
+      "slot": 3,
+      "text": "水鬼浮標陰氣 　✦ 共鳴計算時，陰氣視為多 1 件\n1 人出價\n⚖ 1 人比標\n銅錢已揭盅\n陰間當鋪：11🪙 👑\n陰間當鋪 入袋"
+    }
+  ],
+  "events": [
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 0,
+        "ms": 812.5
+      },
+      "t": 10748.199999999255
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 3,
+        "slot": 0,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 11562.400000000373
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 3
+      },
+      "t": 12478
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 1,
+        "ms": 812.5
+      },
+      "t": 14452.5
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 1,
+        "slot": 1,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 15277.599999999627
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 1
+      },
+      "t": 16195.099999999627
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 2,
+        "ms": 812.5
+      },
+      "t": 18181.199999999255
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 0,
+        "slot": 2,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 18994.299999998882
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 0
+      },
+      "t": 19911.699999999255
+    },
+    {
+      "kind": "ys:reveal-slot",
+      "detail": {
+        "slot": 3,
+        "ms": 812.5
+      },
+      "t": 21898.299999998882
+    },
+    {
+      "kind": "ys:reveal-result",
+      "detail": {
+        "winner": 1,
+        "slot": 3,
+        "transferTarget": null,
+        "destroy": false
+      },
+      "t": 22711.599999999627
+    },
+    {
+      "kind": "ys:reveal-card",
+      "detail": {
+        "winner": 1
+      },
+      "t": 23623.900000000373
+    }
+  ],
+  "errors": [],
+  "timingAfter": 650
+}

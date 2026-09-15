@@ -29,6 +29,8 @@ const DUEL_SHOT = { dist: 4.2, tilt: 24, lookY: 0.35, ms: 700 }; // 對決：壓
  * 與沒有這段程式碼時逐項相同（加 0／減 0 不改浮點值），所以對決與開標的畫面一格不變。
  * 幅度刻意小：托盤在畫面中央，推太多會把側欄的卡片擠出視野。全部【試玩必調】。 */
 const TRAY_PUSH = { dist: 0.20, rate: 3.2 };
+// tier 1 主角：300ms 招式內進、回各半；只放大約 2.4%，不退暗、不改視線。
+const SHORT_PUSH = { dist: 0.10, cancelMs: 100 };
 
 // 座位 id → yaw。與 scene-env 的 SEAT_POS、bridge-players 的 SEAT_ORDER 同一套編號：
 // 0 南 1 北 2 西 3 東
@@ -184,6 +186,7 @@ export function createCameraDirector(camera, lanterns) {
   let leanMs = 1; // 這一次輕推的回位時間（一律取 ys:fx-trait 的 detail.ms；leanU 初值 1＝沒有偏移，這個初值不會被讀到）
   let trayK = 0; // 托盤 hover 微推的現值（0＝沒有偏移）
   let trayWant = 0; // 目標值（1＝手指停在某一格上）
+  let shortAt = 0, shortMs = 1, shortK = 0, shortK0 = 0, shortOn = false, shortFall = false;
   let forceWrite = false; // 偏移被「清零」的那一幀要補寫一次位置，見 clearOrbitLean
   // 折回段還沒跑完。寫入區塊的條件是 t < 1，所以「t 剛好到 1」的那一幀不會寫，補間會凍在
   // 前一步、離目標差約 0.001–0.0024 度（v0.34 每次 goto 都有的既有行為，一般看不出來）。
@@ -334,6 +337,7 @@ export function createCameraDirector(camera, lanterns) {
     punchAmp = 0;
     clearOrbitLean(); // orbit／lean 同理
     endFocus(); // focus 走它自己的回位段（220ms），與回牌桌的補間疊起來仍然連續
+    endShortPush();
     endCinema(); // R1 C1：對決收場時 CINEMA 一定要收，否則會壓著回牌桌的那一段
     goto(SHOTS.table);
     setEmphasis(null);
@@ -355,9 +359,15 @@ export function createCameraDirector(camera, lanterns) {
     const s = d.side === 'B' ? 1 : d.side === 'A' ? -1 : 0;
     if (!s) return;
     if (!Number.isFinite(d.ms) || d.ms <= 0) throw new Error('ys:fx-trait 缺 detail.ms（招式時長只能由 PW_FX.TRAIT_MS_BY_TIER 帶進來）');
-    leanSign = s;
-    leanMs = Math.max(1, Number(d.ms));
-    leanU = 0;
+    // 短招只讓該拍主角推一次，後續短招也不逐招左右晃。
+    if ((d.tier | 0) !== 1) {
+      leanSign = s;
+      leanMs = Math.max(1, Number(d.ms));
+      leanU = 0;
+    } else if (d.shortPush === true) {
+      shortAt = performance.now(); shortMs = d.ms; shortK0 = shortK;
+      shortOn = true; shortFall = false;
+    }
     // v0.54：tier 3（三尊大招）才切 CINEMA 機位。tier 1／2 一個 CINEMA 幀都不該有
     // （凍結檔 F5 的機械斷言量的就是這件事）。
     // R2 覆審 N5：?closeup=0（近景切鏡總開關）也要關掉 CINEMA——它是近景的一種，
@@ -440,6 +450,20 @@ export function createCameraDirector(camera, lanterns) {
     cinemaFall = true;
   }
 
+  function endShortPush() {
+    if (!shortOn || shortFall) return;
+    shortK0 = shortK; shortAt = performance.now(); shortFall = true;
+  }
+
+  function shortEnvelope(now) {
+    if (!shortOn) return 0;
+    const elapsed = Math.max(0, now - shortAt);
+    const u = elapsed / (shortFall ? SHORT_PUSH.cancelMs : shortMs);
+    if (u >= 1) { shortOn = false; shortFall = false; forceWrite = true; return 0; }
+    if (shortFall) return shortK0 * (1 - easeInOutCubic(u));
+    return u < 0.5 ? shortK0 + (1 - shortK0) * easeInOutCubic(u * 2) : 1 - easeInOutCubic((u - 0.5) * 2);
+  }
+
   /** 這一幀的 CINEMA 包絡：進（ease-out）→ 停到 ms → 回（ease-in-out）。回完就關掉。
    *  形狀照抄 focusEnvelope（同一套進／停／回），差別只在常數與「不追交鋒中點」。 */
   function cinemaEnvelope(now) {
@@ -483,6 +507,7 @@ export function createCameraDirector(camera, lanterns) {
   function onTraitCancel() {
     clearOrbitLean();
     endFocus();
+    endShortPush();
     endCinema(); // R1 C1：跳過大招時 CINEMA 也要收（不然貼地仰視會卡著延續到收場之後）
   }
 
@@ -498,6 +523,7 @@ export function createCameraDirector(camera, lanterns) {
   function onEnd() {
     revealUntil = 0;
     clearOrbitLean();
+    endShortPush();
     endCinema(); // R1 C1
     goto(SHOTS.end);
     setEmphasis(null);
@@ -506,6 +532,7 @@ export function createCameraDirector(camera, lanterns) {
   function onTable() {
     revealUntil = 0;
     clearOrbitLean();
+    endShortPush();
     endCinema(); // R1 C1
     goto(SHOTS.table);
     setEmphasis(null);
@@ -545,6 +572,7 @@ export function createCameraDirector(camera, lanterns) {
     // 回全景後 orbitU 從停下的地方繼續，不跳格。
     focusK = focusEnvelope(now);
     cinemaK = cinemaEnvelope(now);
+    shortK = shortEnvelope(now);
     if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
     if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
     // 托盤 hover 微推：往目標收斂；差距小到看不見就直接歸位，免得永遠有個 1e-9 的殘留讓寫入區塊每幀都跑
@@ -563,7 +591,7 @@ export function createCameraDirector(camera, lanterns) {
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
     // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn || trayK > 0) {
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn || shortOn || trayK > 0) {
       forceWrite = false;
       if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
@@ -594,7 +622,7 @@ export function createCameraDirector(camera, lanterns) {
       const fTilt = cinemaK > 0 ? fTilt0 + (CINEMA.tilt - fTilt0) * cinemaK : fTilt0;
       // ⑦ tray（托盤 hover 微推）：疊在 ⑥ 之後、punch 之前，只縮 dist。
       //    trayK=0 時與 fDist1 逐值相同（減 0），對決／開標／局末的畫面因此逐項不變。
-      const fDist = trayK > 0 ? fDist1 - TRAY_PUSH.dist * trayK : fDist1;
+      const fDist = (trayK > 0 ? fDist1 - TRAY_PUSH.dist * trayK : fDist1) - SHORT_PUSH.dist * shortK;
       const tilt = fTilt * DEG;
       const yaw = curYaw * DEG;
       const lookY = curLookY;
@@ -628,6 +656,9 @@ export function createCameraDirector(camera, lanterns) {
     /** 這一幀 CINEMA 有沒有在作用（凍結檔 F5：CINEMA 只准在 tier 3 出現）。純記錄，遊戲不讀。 */
     cinemaOn() { return cinemaOn || cinemaK > 0; },
     cinemaK() { return cinemaK; },
+    shortPushK() { return shortK; },
+    // 排陣只扣回短推的距離差，保留既有 punch／focus／cinema 行為。
+    framingDistance() { return camera.position.length() + SHORT_PUSH.dist * shortK; },
     /** 托盤 hover 微推開關（js/table-tray.js 的 setHover 呼叫；on=false 就自己收回去） */
     setTrayPush(on) { trayWant = on ? 1 : 0; },
     trayK() { return trayK; },
