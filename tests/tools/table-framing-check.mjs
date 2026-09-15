@@ -38,15 +38,25 @@ const pageMeasure = `async () => {
     });
     if(!xs.length) throw new Error('Visible award root had no mesh geometry');
     const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
-    return {lifecycle:'active',left,right,top,bottom,width:right-left,height:bottom-top,scale:root.scale.toArray()};
+    return {lifecycle:'active',geometry:true,meshVertices:xs.length,left,right,top,bottom,width:right-left,height:bottom-top,scale:root.scale.toArray()};
   };
+  let phase='push', flightDt=0, countFlightDt=false, terminalBeforeHide=null, terminalDt=null;
+  const update=tray.update.bind(tray);
+  tray.update=dt=>{if(countFlightDt)flightDt+=dt;return update(dt);};
+  let rootVisible=root.visible;
+  Object.defineProperty(root,'visible',{configurable:true,enumerable:true,get(){return rootVisible;},set(next){
+    if(rootVisible&&!next&&terminalBeforeHide===null){terminalBeforeHide=bounds();terminalDt=flightDt;}
+    rootVisible=next;
+  }});
   document.querySelector('#stage').replaceChildren(); // startReveal does this before ys:reveal-slot
+  const frames=[], t0=performance.now();
+  const observe=(until)=>new Promise(resolve=>{const tick=()=>{frames.push({phase,ms:performance.now()-t0,b:bounds()});if(until())requestAnimationFrame(tick);else resolve();};requestAnimationFrame(tick);});
   window.fx3d('ys:reveal-slot',{slot:2,ms:650});
-  await new Promise(r=>setTimeout(r,700));
+  await observe(()=>performance.now()-t0<700);
+  phase='flight'; countFlightDt=true;
   window.fx3d('ys:reveal-result',{slot:2,winner:0});
-  const frames=[];
-  await new Promise(resolve=>{const t0=performance.now();const tick=()=>{const b=bounds();frames.push({ms:performance.now()-t0,b});if(b.lifecycle==='active'&&performance.now()-t0<3000)requestAnimationFrame(tick);else resolve();};requestAnimationFrame(tick);});
-  return {rects:{felt:rect('#felt'),head:rect('#feltHead'),help:rect('#helpBtn'),skip:rect('#skipbtn'),north:rect('#north')},frames};
+  await observe(()=>root.visible&&performance.now()-t0<3000);
+  return {rects:{felt:rect('#felt'),head:rect('#feltHead'),help:rect('#helpBtn'),skip:rect('#skipbtn'),north:rect('#north')},frames,terminalBeforeHide,terminalDt};
 }`;
 
 async function toMark(page) {
@@ -81,10 +91,22 @@ try {
   const m=await page.evaluate(`(${pageMeasure})()`);
   const safe={left:m.rects.felt.left,right:m.rects.felt.right,top:Math.max(m.rects.felt.top,m.rects.head.bottom),bottom:m.rects.felt.bottom};
   safe.width=safe.right-safe.left;safe.height=safe.bottom-safe.top;
-  const active=m.frames.filter(x=>x.b.lifecycle==='active').map(x=>x.b);
-  const max=active.reduce((a,b)=>({width:Math.max(a.width,b.width),height:Math.max(a.height,b.height)}),{width:0,height:0});
-  const pass=max.width<=safe.width&&max.height<=safe.height&&errors.length===0;
-  console.log(JSON.stringify({fixture:'synthetic ys:reveal-slot(slot 2,650ms) then ys:reveal-result(slot 2,winner 0); stage cleared like startReveal',safeInsets:SAFE,north:m.rects.north,safe,max,scale:active[0]?.scale,terminal:m.frames.at(-1)?.b?.lifecycle,errors,pass},null,2));
+  const active=m.frames.filter(x=>x.b.lifecycle==='active');
+  const obstacles=Object.entries({head:m.rects.head,help:m.rects.help,skip:m.rects.skip}).filter(([,r])=>r&&r.display!=='none');
+  const overlaps=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top))>0;
+  const violations=active.flatMap(row=>{
+    const b=row.b, out=[];
+    if(!b.geometry||!b.meshVertices) out.push({phase:row.phase,ms:row.ms,kind:'no-geometry'});
+    if(b.left<safe.left||b.right>safe.right||b.top<safe.top||b.bottom>safe.bottom) out.push({phase:row.phase,ms:row.ms,kind:'outside-safe',box:b});
+    for(const [name,o] of obstacles)if(overlaps(b,o))out.push({phase:row.phase,ms:row.ms,kind:'hud-overlap',name,box:b});
+    return out;
+  });
+  const activeBoxes=active.map(x=>x.b);
+  const max=activeBoxes.reduce((a,b)=>({width:Math.max(a.width,b.width),height:Math.max(a.height,b.height)}),{width:0,height:0});
+  const pushFrames=active.filter(x=>x.phase==='push').length, flightFrames=active.filter(x=>x.phase==='flight').length;
+  const normalDurationKept=typeof m.terminalDt==='number'&&m.terminalDt>=.86&&m.terminalDt<.97;
+  const pass=pushFrames>0&&flightFrames>0&&violations.length===0&&m.terminalBeforeHide?.lifecycle==='active'&&normalDurationKept&&errors.length===0;
+  console.log(JSON.stringify({fixture:'synthetic ys:reveal-slot(slot 2,650ms) then ys:reveal-result(slot 2,winner 0); stage cleared like startReveal',safeInsets:SAFE,north:m.rects.north,safe,max,scale:activeBoxes[0]?.scale,frames:{push:pushFrames,flight:flightFrames},terminal:{after:m.frames.at(-1)?.b?.lifecycle,beforeHide:m.terminalBeforeHide,rendererDt:m.terminalDt,expectedSeconds:.86,kept:normalDurationKept},violations:violations.slice(0,8),violationCount:violations.length,errors,pass},null,2));
   if(!pass) process.exitCode=1;
   await ctx.close();
 } finally { await browser?.close(); server.kill(); }
