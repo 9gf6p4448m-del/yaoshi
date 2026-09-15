@@ -289,6 +289,8 @@ function init() {
     camera.position.copy(authoredPosition);
     camera.clearViewOffset();
     framing.active = false;
+    framing.fit = null;
+    if (overlay && (innerWidth <= innerHeight || !document.querySelector('#felt.hollow')?.getClientRects().length)) overlay = null;
     const emphasis = director.update(dt, now);
     authoredPosition.copy(camera.position);
 
