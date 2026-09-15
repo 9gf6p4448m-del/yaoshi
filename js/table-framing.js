@@ -59,9 +59,14 @@ function subjectCorners(node) {
     // the existing capture contract and gives animation a conservative envelope.
     const box = mesh.isSkinnedMesh ? mesh.boundingBox.clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
-    for (let k = 0; k < 8; k++) {
+    const matrices = mesh.isInstancedMesh ? Array.from({ length: mesh.count }, (_, i) => {
+      const instance = mesh.matrixWorld.clone();
+      mesh.getMatrixAt(i, instance);
+      return mesh.matrixWorld.clone().multiply(instance);
+    }) : [mesh.matrixWorld];
+    for (const matrix of matrices) for (let k = 0; k < 8; k++) {
       points.push(node.position.clone().set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y,
-        k & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld));
+        k & 4 ? box.max.z : box.min.z).applyMatrix4(matrix));
     }
   });
   return points.length ? points : null;

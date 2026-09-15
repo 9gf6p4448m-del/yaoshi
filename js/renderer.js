@@ -161,7 +161,8 @@ function init() {
   const framing = { active: false, fit: null };
   let overlay = null, release = 1;
   const frameSubjects = subjects => {
-    const targets = subjects.filter(s => s.slot === revealSlot || s.flying);
+    const marketFocus = revealSlot < 0 && !subjects.some(s => s.flying) && !document.getElementById('revealCard');
+    const targets = subjects.filter(s => s.slot === revealSlot || s.flying || (marketFocus && s.hovered));
     if (!targets.length) return;
     const felt = document.querySelector('#felt.hollow');
     if (!felt || !felt.getClientRects().length || window.innerWidth <= window.innerHeight) return;
@@ -172,10 +173,15 @@ function init() {
       const b = el.getBoundingClientRect();
       return b.width && b.height ? [{ left: b.left - 6, top: b.top - 6, right: b.right + 6, bottom: b.bottom + 6 }] : [];
     });
-    const area = { left: Math.max(4, r.left + 4), top: Math.max(4, r.top + 4),
-      right: Math.min(innerWidth - 4, r.right - 4), bottom: Math.min(innerHeight - 4, r.bottom - 4) };
-    Object.assign(framing, fitSubject(targets.map(s => s.node), camera, area, obstacles, innerWidth, innerHeight),
-      { active: true, slots: targets.map(s => s.slot) });
+    const area = { left: Math.max(6, r.left + 6), top: Math.max(6, r.top + 6),
+      right: Math.min(innerWidth - 6, r.right - 6), bottom: Math.min(innerHeight - 6, r.bottom - 6) };
+    const nodes = targets.map(s => s.node);
+    // Looking at a lot must not push its ownership stamps under the rails.
+    // Their actual instance matrices join the same framing calculation.
+    const stamps = tray.props.group.getObjectByName('prop-tokens');
+    if (marketFocus && stamps?.visible && stamps.count) nodes.push(stamps);
+    Object.assign(framing, fitSubject(nodes, camera, area, obstacles, innerWidth, innerHeight),
+      { active: true, stage: marketFocus ? 'market' : 'reveal', slots: targets.map(s => s.slot) });
     if (framing.fit) { overlay = { retreat: framing.retreat, shift: framing.shift }; release = 1; }
   };
   const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubjects });
