@@ -39,6 +39,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
    0.62 是最外圈的黑度【試玩必調】。 */
 #vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(ellipse 72% 78% at 50% 46%,rgba(0,0,0,0) 38%,rgba(0,0,0,.30) 72%,rgba(0,0,0,.62) 100%)}
+/* 高光轉場卷：純 DOM 疊層，蓋住牌桌但不建立 3D mesh／render pass。 */
+.cutOverlay{position:fixed;inset:0;z-index:48;pointer-events:none;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(25,16,30,.08),rgba(4,3,8,.72));backdrop-filter:grayscale(.92) contrast(1.35)}
+.cutOverlay .cutStamp{min-width:220px;padding:18px 24px;border:2px solid var(--red);background:rgba(25,10,16,.88);color:#ffe9cf;
+  text-align:center;font-weight:800;letter-spacing:.18em;text-shadow:0 2px 0 #26060b,0 0 18px rgba(214,58,61,.7);transform:rotate(-3deg)}
+.cutOverlay.bluff .cutStamp{border-color:var(--gold);color:#ffe59a}.cutOverlay.borrowed-blade .cutStamp{border-color:#b278e8}.cutOverlay.death-edge .cutStamp{border-color:#e05b5b}
+.cutOverlay .cutSub{display:block;margin-top:7px;color:var(--ink);font-size:12px;font-weight:600;letter-spacing:.04em;text-shadow:none}
+@media (prefers-reduced-motion: reduce){ .cutOverlay{backdrop-filter:none;background:rgba(8,5,12,.82)} .cutOverlay .cutStamp{transform:none} }
 #rotateHint{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
 #rotateHint .ic{font-size:52px;animation:rot 2s infinite}
@@ -5406,6 +5414,40 @@ function submitHumanBids(){
 }
 /* ================= 開標演出 ================= */
 function startRevealDirect(){ startReveal(); }
+/* 高光轉場：純呈現、只讀賽局紀錄。WeakMap 不寫入 S，trace／模擬迴圈不受影響。 */
+const playedCuts=new WeakMap();
+const CUTS = [
+  {id:'bluff',when:'reveal',title:'誅心・得手',sub:'盯上的貨，眾人讓路',test:({r,slot})=>
+    !!(r&&r.winner&&!r.winner.p.ai&&S.marks&&S.marks[r.winner.p.id]===slot
+      &&(r.entries.length===1||r.winner.amt<=CFG.WISH_T2.bargainAmt))},
+  {id:'borrowed-blade',when:'nightEnd',title:'因果・斃命',sub:'借刀落下，血債當夜清算',test:()=>{
+    const H=S.history&&S.history.nights[S.history.nights.length-1];
+    return !!(H&&H.auction&&H.deaths&&H.auction.some(a=>a.intent==='poison'&&H.deaths.includes(a.targetId)));
+  }},
+  {id:'death-edge',when:'gameEnd',title:'命懸一線・破曉',sub:'踏過鬼門，仍活到天明',test:({rank})=>{
+    const winner=rank&&rank[0];
+    return !!(winner&&S.history&&S.history.life.some(row=>row[winner.id]<=5));
+  }},
+];
+function playCut(when,data={}){
+  if(!S) return false;
+  const done=playedCuts.get(S)||new Set();
+  const cut=CUTS.find(c=>c.when===when&&!done.has(c.id)&&c.test(data));
+  if(!cut) return false;
+  done.add(cut.id); playedCuts.set(S,done);
+  const el=document.createElement('div');
+  el.className=`cutOverlay ${cut.id}`;
+  el.innerHTML=`<div class="cutStamp">${cut.title}<span class="cutSub">${cut.sub}</span></div>`;
+  document.body.appendChild(el);
+  if(pwReduced()){
+    setTimeout(()=>el.remove(),700);
+    return true;
+  }
+  const stamp=el.firstElementChild;
+  if(stamp&&stamp.animate) stamp.animate([{opacity:0,transform:'scale(.88) rotate(-3deg)'},{opacity:1,transform:'scale(1) rotate(-3deg)'},{opacity:1},{opacity:0,transform:'scale(1.04) rotate(-3deg)'}],{duration:1250,easing:'cubic-bezier(.22,1,.36,1)'});
+  setTimeout(()=>el.remove(),1280);
+  return true;
+}
 async function startReveal(){
   BIDS_OPEN=false;   /* 不論從哪條路進開標（交卷／人類全滅的 startRevealDirect），出價一律關閉 */
   $("mainbtn").disabled=true;
@@ -5503,6 +5545,7 @@ async function startReveal(){
       if(losers.length&&!r.winner.p.ai)sayFrom(losers[0].p.id,"lose");
       if(r.winner.intent==="poison")sayFrom(r.winner.target,"poisoned");
     }
+    playCut('reveal',{r,slot:revealSlot});
     for(const ev of r.events){
       /* 型態洩漏事件（typeLeak）按實付同規則過濾：真人的、或 viewer 有 showTypes（爐主）才顯示（覆核 F1） */
       if(ev.typeLeak && ev.pid!==undefined && S.players[ev.pid].ai && !rv.showTypes) continue;
@@ -6334,6 +6377,7 @@ async function startBattle(){
   for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
   for(const d of deaths){sfx("death");bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);await sleep(CFG.T*0.7);}
   if(bye===null&&!nightly.length&&!deaths.length)bz.innerHTML=`<div class="mut" style="padding:2px 0">本夜無其他異動</div>`;
+  playCut('nightEnd');
   /* 對決結果字串：《紙紮夜戰》改成「燒掉 x/y 隻」口徑——扣幾分自帶解釋（草案 §2.6） */
   const burnTxt=f=>{ if(!f.war) return ""; const lA=f.l===f.A;
     return `　🔥 ${f.l.name} 燒掉 ${lA?f.war.burnedA:f.war.burnedB}/${lA?f.war.unitsA:f.war.unitsB} 隻`
@@ -6444,6 +6488,7 @@ function endGame(){
     ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}</div>`:""}
     <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">看完整回顧</button>
   </div>`;
+  playCut('gameEnd',{rank});
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
 /* ================= 局末回顧場景（純呈現：只讀 S.history；局已結束故全揭露 AI 暗標與心願，2026-09-02 使用者裁定） ================= */

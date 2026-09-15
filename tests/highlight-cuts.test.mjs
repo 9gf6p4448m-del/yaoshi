@@ -9,7 +9,7 @@ const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 test('三種高光轉場由單一純讀取 CUTS 表定義', () => {
   assert.match(index, /const\s+CUTS\s*=\s*\[/, '高光轉場必須有單一 CUTS 表');
-  const cuts = index.slice(index.indexOf('const CUTS = ['), index.indexOf('/* ================= 開標演出 ================= */'));
+  const cuts = index.slice(index.indexOf('const CUTS = ['), index.indexOf('async function startReveal()'));
   assert.match(cuts, /id:\s*["']bluff["']/, '必須定義誅心轉場');
   assert.match(cuts, /id:\s*["']borrowed-blade["']/, '必須定義借刀轉場');
   assert.match(cuts, /id:\s*["']death-edge["']/, '必須定義命懸一線轉場');
@@ -27,7 +27,7 @@ test('轉場只能由真人演出點消費，且每局每種最多一次', () =>
 });
 
 test('高光轉場保持 reduced-motion 的靜態替代路徑', () => {
-  const cuts = index.slice(index.indexOf('const CUTS = ['), index.indexOf('/* ================= 開標演出 ================= */'));
+  const cuts = index.slice(index.indexOf('const CUTS = ['), index.indexOf('async function startReveal()'));
   assert.match(cuts, /pwReduced\(\)/, 'reduced-motion 時必須走靜態替代路徑');
   assert.match(index, /\.cutOverlay/, '必須有獨立 DOM 演出層，不得改 3D 場景或引擎');
   assert.match(index, /prefers-reduced-motion:\s*reduce[\s\S]*cutOverlay/, 'reduced-motion 樣式必須覆蓋轉場層');
