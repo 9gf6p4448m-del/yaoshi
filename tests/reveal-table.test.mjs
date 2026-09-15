@@ -68,7 +68,7 @@ test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   assert.match(reveal, /sfx\("gong"/, '比標揭盅須有銅鑼回饋');
   assert.match(director, /dist:\s*1\.65,\s*tilt:\s*22/, '逐槽鏡頭必須切入微距俯衝');
   assert.match(props, /T:\s*0\.024/, '銅錢厚度必須升級');
-  assert.match(props, /T:\s*0\.045/, '血玉令牌厚度必須升級');
+  assert.match(props, /T:\s*0\.050/, '血玉令牌厚度必須升級');
   assert.match(props, /CH\.T\s*\*\s*0\.9/, '同席出價必須按銅錢厚度垂直堆疊');
   assert.match(props, /loserDim/, '落標錢柱應退成低彩度，讓得標金光更清楚');
   assert.match(props, /BEVEL/, '血玉令牌需有微導角幾何');
@@ -109,9 +109,11 @@ test('揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保�
   assert.match(index, /translateX\(-50%\) translateY\(10px\) scale\(\.96\)/, '結果卡入場第一幀不得遺失水平置中');
   assert.match(index, /\.revealRibbon\.anim-lantern-reveal\{animation:ribbon-lantern-reveal/, '結果卡不得沿用會覆寫 transform 的通用動畫');
   assert.match(ribbon, /z-index:30/, '結果卡必須高於兩側拍品欄');
-  assert.match(index, /#table\.t3d \.rail \.mcard\{min-height:88px;height:auto;flex:1 1 0/, '受惠卡需在側欄可用高度內彈性均分，不可固定 88px');
+  assert.match(index, /#table\.t3d \.rail \.mcard\{min-height:88px;height:auto;flex:0 0 auto/, '受惠卡應依內容包住文字，不可被側欄撐成大片空白');
   assert.match(index, /\.moonCue\{[^}]*font-size:8\.5px[^}]*padding:0 3px/, '受惠徽章必須縮緊以保住底部部隊列');
   assert.match(props, /PITCH:\s*0\.70/, '盯牌必須以可見的仰立角度呈現');
+  assert.match(props, /W:\s*0\.150,\s*H:\s*0\.190/, '盯牌遠景牌面必須放大到能讀出輪廓與刻字');
+  assert.match(props, /STAND_LIFT:\s*0\.130/, '放大後的仰立牌必須完整抬離桌面');
   assert.match(props, /STAND_LIFT/, '仰立令牌必須抬離桌面，避免只剩穿模細線');
   assert.match(props, /const e = 0\.018/, '盯字凸起高度必須升級為遠景可讀');
   assert.match(props, /jade: 0x1a1215/, '令牌本體必須與紅布拉開明度對比');
