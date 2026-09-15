@@ -2112,6 +2112,10 @@ const CURSES = [
   {n:"縛靈鎖",f:"curse",p:-6,d:"鎖魂之鏈",curse:true},
   {n:"白虎煞",f:"curse",p:-3,d:"沖煞入宅",curse:true},
 ];
+/* 詛咒依物件身分分流；舊存檔與異事物也走同一張表。p 僅保留行情用途。 */
+const CURSE_KIND={"冥婚紅包":"wedding","魔神仔的芭樂":"guava","抓交替水符":"water","縛靈鎖":"lock","白虎煞":"tiger","王船煞":"boat"};
+function curseKind(it){ return it&&it.curse?(CURSE_KIND[it.n]||null):null; }
+function curseCount(p,kind){ return (p.bag||[]).filter(it=>curseKind(it)===kind).length; }
 const DIRS = {0:"南",1:"北",2:"西",3:"東"};
 /* 風位輪轉：東→南→西→北（席位 pid：東=3 南=0 西=2 北=1） */
 const WIND_SEQ=[3,0,2,1], WIND_NAMES=["東風","南風","西風","北風"];
@@ -2511,7 +2515,7 @@ let TRAY_PHASE=null;
    只讀 ab 的話那 4 件會靜默變成空槽。詛咒品兩個都沒有 ⇒ key null，3D 層擺占位的符紙堆。
    純讀取：不耗亂數、不寫任何賽局欄位（trace 因此與基準逐位元組相等）。 */
 function market3dItems(){
-  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, fac: it.f||null, moon: moonBenefit(it,S.round).active }));
+  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, curseKind:curseKind(it), fac: it.f||null, moon: moonBenefit(it,S.round).active }));
 }
 /* 四席各是誰（v0.56b 第二段：席角信物）。id＝DIRS 的 0..3，role＝ROLES 的 id。
    純讀取：不耗亂數、不寫任何賽局欄位——與 market3dItems 同一條紀律。
@@ -3714,7 +3718,7 @@ function unitRowText(it,owner,mode){
   /* 詛咒品那一行也要吃 `.stat`（卡面版一行到底、不換行；覆審二輪 3）。
      `full` 在下面才用 const 宣告，這裡直接判 `mode` 而不是提前引用它——避免 TDZ。 */
   if(r.curse) return `<div class="uline${mode==="full"?"":" stat"} mut">🕸 詛咒品不召喚${
-    (owner&&traitMax(owner,"curseWard",0)>0)?"（你已淨化，不扣攻擊）":"（只算纏身）"}</div>`;
+    (owner&&traitMax(owner,"curseWard",0)>0&&!["wedding","guava"].includes(curseKind(it)))?"（戰鬥詛咒已淨化）":"（只算纏身）"}</div>`;
   /* mode 'stat'（市集卡，預設）＝只印「隻數・攻・血・拍」一行；'full'（袋子面板、卡片詳情）＝連招式名與說明。
      沿革：覆審 HIGH-1 乙——市集卡塞完整招式會讓卡片變兩三行，844×390 下 #felt 直向溢出 47～77px、
      整行反而被裁掉看不到。使用者裁定：卡面留數字、招式移到點進去的卡片詳情，袋子面板保留全文。 */
@@ -3749,7 +3753,7 @@ function bagPreviewHTML(p){
     const r=unitRow(x);
     if(!r) return "";
     if(r.curse) return `<div class="bagit uprev mut"><span>${x.n}</span><span>🕸 不召喚${
-      traitMax(p,"curseWard",0)>0?"・已淨化，不扣紙紮攻擊":"・纏身"}<span class="umd">${curseEffectText(x,true)}</span></span></div>`;
+      traitMax(p,"curseWard",0)>0&&!["wedding","guava"].includes(curseKind(x))?"・戰鬥詛咒已淨化":"・纏身"}<span class="umd">${curseEffectText(x,true)}</span></span></div>`;
     /* 袋子面板保留全文（使用者裁定：卡面精簡、袋子完整） */
     const moon=moonBenefit(x,S.round);
     return `<div class="bagit uprev"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span>`
@@ -3823,7 +3827,21 @@ function pwBurn(u,sd,env){
   if(!u.alive) return false;
   u.alive=false; u.hp=0; u.pend=0; sd.burned++;
   if(env) pwRec(env,env.beat,sd.tag,null,u.id,"burn",0,true);
+  pwCurseWater(sd,env);
   return true;
+}
+/* 抓交替只在首次折損後牽連一次；先封住重入，直接傷害不觸發反傷或吸收。 */
+function pwCurseWater(sd,env){
+  if(!env||sd.curseWard||sd.curseWaterSpent) return;
+  const count=curseCount(sd.p,"water");
+  if(!count) return;
+  sd.curseWaterSpent=true;
+  const target=pwLowest(sd,false);
+  if(!target) return;
+  target.hp-=count;
+  pwRec(env,env.beat,sd.tag,null,target.id,"curse",count,false,"curseWater");
+  env.log.push(`💧 抓交替水符：${sd.p.name} 的另一隻紙紮受 ${count} 傷害`);
+  if(target.hp<=0) pwBurn(target,sd,env);
 }
 function pwLowest(sd,swarmOnly){
   let best=null;
@@ -3937,7 +3955,25 @@ function pwPrep(beat,fac,sd,env,phase){
   if(beat===2){ const aa=pwMax(sd,"atkAll"); if(aa&&pwHasAlive(sd)){ m+=aa;   /* 媽祖令旗：本方全體 atk+1（卷 E：該側全滅就沒有誰吃得到這個 atk） */
     pwFire(env,pwTrOf(sd,"atkAll"),`🚩 令旗改陣：${sd.p.name} 全體 atk+${aa}`,sd); } }
   if(beat===1&&sd.wind) m+=1;                       /* 風位方前鋒 atk+1（取代舊的 +3 戰力） */
-  if(!sd.curseWard) m-=sd.curses;                   /* 詛咒纏身（閭山法師的免疫在此生效；無 trait 者恆走扣分支） */
+  /* 不再按詛咒總件數共同扣攻。縛靈鎖只鎖首拍的一隻，次拍清除。 */
+  for(const u of sd.units) u.curseLock=0;
+  if(beat===1&&!sd.curseWard){
+    const locks=curseCount(sd.p,"lock");
+    const target=sd.units.filter(u=>u.alive&&pwFront(u)).reduce((a,u)=>!a||u.atk>a.atk?u:a,null);
+    if(locks&&target){
+      target.curseLock=2*locks;
+      pwRec(env,beat,sd.tag,null,target.id,"curse",target.curseLock,false,"curseLock");
+      env.log.push(`⛓ 縛靈鎖：${sd.p.name} 最強攻擊紙紮本拍攻擊 −${target.curseLock}`);
+    }
+    const boats=curseCount(sd.p,"boat");
+    const vessel=sd.units.filter(u=>u.alive).reduce((a,u)=>!a||u.hp>a.hp?u:a,null);
+    if(boats&&vessel){
+      const damage=Math.min(boats,Math.max(0,vessel.hp-1));
+      vessel.hp-=damage;
+      pwRec(env,beat,sd.tag,null,vessel.id,"curse",damage,false,"curseBoat");
+      env.log.push(`⛵ 王船煞：${sd.p.name} 血量最高紙紮失 ${damage} 血量`);
+    }
+  }
   sd.mod=m;
 }
 /* 取本方第一個帶某效果欄位的 trait（純查表、供 log 標名字用） */
@@ -4029,7 +4065,7 @@ function pwPass(sd,foe,beat,fac,phase,env){
     const aliveT=t.units.reduce((c,u)=>c+(u.alive?1:0),0);
     for(const u of t.units){
       if(!u.alive) continue;
-      let a=u.atk+sd.mod+(t.bonus||0);
+      let a=u.atk+sd.mod+(t.bonus||0)-(u.curseLock||0);
       if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`,sd); }
       if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
       if(a<=0) continue;
@@ -4063,7 +4099,7 @@ function pwSettle(sd,env){
   for(const u of sd.units){
     if(!u.alive){ u.pend=0; continue; }
     if(u.pend>0){ u.hp-=u.pend; u.pend=0;
-      if(u.hp<=0){ u.alive=false; u.hp=0; sd.burned++; if(env) pwRec(env,env.beat,sd.tag,null,u.id,"burn",0,true); } }
+      if(u.hp<=0) pwBurn(u,sd,env); }
   }
 }
 /* 拍末：飼鬼甕的餓鬼進食——對面本拍有紙紮被燒掉，本方全體 hp+1 */
@@ -4126,6 +4162,8 @@ function paperWar(A,B,ctx){
   /* 扣血：敗方燒掉比例 × PW_MAX，夾在 [PW_MIN, PW_MAX] */
   let dmg=Math.ceil((lose.n0?lose.burned/lose.n0:0)*CFG.PW_MAX);
   dmg=Math.max(CFG.PW_MIN,Math.min(CFG.PW_MAX,dmg));
+  const tiger=lose.curseWard?0:curseCount(lose.p,"tiger");
+  if(tiger){ dmg+=tiger; env.log.push(`🐯 白虎煞：${lose.p.name} 戰敗代價 +${tiger}（法寶減傷前）`); }
   const steal=pwAny(win,"steal")?pwMax(win,"steal"):0;   /* 偷命：三拍結束時敗方另 −1 */
   if(steal){ dmg+=steal; env.stats.steal+=steal; pwFire(env,pwTrOf(win,"steal"),`🪡 偷命：${lose.p.name} 另 −${steal}`,win); }
   return {
@@ -4256,6 +4294,11 @@ function resolveBattles(){
     if(drain){
       p.life-=drain;nightly.push(`🩸 ${p.name} 受詛咒侵蝕 -${drain}`);
       if(S.wishNight) S.wishNight.extLoss[p.id]=(S.wishNight.extLoss[p.id]||0)+drain; /* 東窗血光：非自願失血 */
+    }
+    const gift=S.wonAny&&S.wonAny.has(p.id)?curseCount(p,"wedding"):0;
+    if(gift){
+      p.life-=gift; nightly.push(`🧧 冥婚紅包：${p.name} 本夜有得標，付禮金 ${gift}`);
+      if(S.wishNight) S.wishNight.extLoss[p.id]=(S.wishNight.extLoss[p.id]||0)+gift;
     }
     applyHooks("onNightEnd",{p,log:nightly},p);
   });
@@ -5267,15 +5310,18 @@ function ybToggle(i){
   showMarket();
 }
 function curseEffectText(it,full=false){
-  const effect=CFG.PAPERWAR_ON
-    ?(full?"持有期間，每件詛咒使持有者可出手紙紮每拍攻擊 −1，可疊加；總攻擊 ≤0 時不出手":"每件：持有者紙紮攻擊 −1")
-    :`持有：基礎戰力 ${it.p>=0?"+":""}${it.p}${full?"（仍受法寶與角色效果調整）":""}`;
-  const drain=it.drain?`；每夜末另失 ${it.drain} 壽命`:"";
-  const immunity=full&&CFG.PAPERWAR_ON?"。免疫纏身者不受扣攻影響，但不免除持續失血":"";
-  return effect+drain+immunity;
+  const rules={
+    wedding:["每夜有得標：每件付 1 壽命禮金","本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢"],
+    guava:["每夜末：每件失 1 壽命","每夜末每件失 1 壽命，可累加"],
+    water:["每戰首次折損：牽連另一隻紙紮，每件傷害 1","每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效"],
+    lock:["第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2","第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復"],
+    tiger:["每次戰敗：每件額外失 1 壽命（减傷前）","每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效"],
+    boat:["第1拍：本方血量最高紙紮每件失 1 血，最低 1","第1拍本方目前血量最高的一隻紙紮，每件失 1 血量，最低留 1；同分先入陣，局末送出海"]
+  };
+  const kind=curseKind(it),rule=rules[kind];
+  if(!rule) return "詛咒效果未登錄";
+  return rule[full?1:0]+(full?(["wedding","guava"].includes(kind)?"。淨化不免除此壽命支出。":"。淨化免除此戰鬥詛咒；同名每件累加。"):"");
 }
-/* These hooks still affect power-based target selection. They do not alter
- * paper-war attack or curse counts; keep that distinction explicit in the UI. */
 function isPowerEstimateAbility(it){
   return ["sword","pojun","sigui","fushou"].includes(it.ab);
 }
@@ -5860,7 +5906,7 @@ function pwArmyView(p){
 function pwCompText(v){
   const t=Object.keys(PW_BODY).filter(b=>v.comp[b]).map(b=>`${PW_BODY[b].n}×${v.comp[b]}`).join("・");
   if(!v.curses) return t;
-  return t+`${t?"・":""}${v.curseWard?`詛咒已淨化 ${v.curses}`:`詛咒纏身 ${v.curses}`}`;
+  return t+`${t?"・":""}${v.curseWard?`戰鬥詛咒已淨化 ${v.curses}`:`詛咒纏身 ${v.curses}`}`;
 }
 /* 出手那一隻的系別（決定火星顏色）；作祟／賭注那類沒有 actor 的事件退回該側的主系 */
 function pwEvFac(f,b,views){
