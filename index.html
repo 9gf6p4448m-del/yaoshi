@@ -973,7 +973,7 @@ const ABILITIES = {
       if(!has(ctx.l,"hairpin")) return;
       ctx.w.life-=1; ctx.extra.push(`${ctx.l.name} 的髮簪回敬 ${ctx.w.name} -1`);
     } }},
-  chair:{id:"chair",name:"椅仔姑竹椅",desc:"你存活並持有時，牌桌顯示所有玩家的實際壽命", flags:["xrayLife"]},
+  chair:{id:"chair",name:"椅仔姑竹椅",desc:"你存活並持有時，牌桌顯示所有人的實際壽命（電腦對手持有不會公開）", flags:["xrayLife"]},
   raincoat:{id:"raincoat",name:"黃色小雨衣",desc:"你的押命標落標時免標額損失，買路錢照收",
     hooks:{ onBidSettle(ctx){
       if(ctx.isWinner || ctx.bid.type!=="yaming") return;
@@ -6671,7 +6671,7 @@ function showBag(pid){
         ?`<button class="tithebtn" title="供奉每夜 −${CFG.INC_TITHE} 壽命；送神回天之後不再扣，那一龕也不重開"
             onclick="giveUpLegend(${pid},'${x.n}')">🕯️ 送神回天</button>`:""}${
       x.legend?`<span class="mut" style="font-size:10.5px">・供奉每夜 −${CFG.INC_TITHE} 壽命</span>`:""}</span><b>${CFG.PAPERWAR_ON?"基礎戰力評估 ":"基礎戰力 "}${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜末失 ${x.drain} 壽命`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
-    ${CFG.PAPERWAR_ON&&p.bag.length?`<p class="mut" style="font-size:12px">戰力評估用於部分選敵效果；夜戰的紙紮攻擊、血量與招式見下方部隊。可出手紙紮每拍皆會攻擊；作祟不普攻。本隊＝單件法寶的隊伍；本方＝持有者所有隊伍；前鋒＝非作祟紙紮。同名持有效果不重複疊加，夜戰招式依各自說明。</p>`:""}
+    ${CFG.PAPERWAR_ON&&p.bag.length?`<p class="mut" style="font-size:12px">戰力評估用於部分選敵效果；夜戰的紙紮攻擊、血量與招式見下方部隊。可出手紙紮每拍皆會攻擊；作祟不普攻。本隊＝單件法寶的隊伍；本方＝持有者所有隊伍；前鋒＝非作祟紙紮。每件非詛咒法寶各自召喚一隊；招式能否疊加依個別說明。</p>`:""}
     ${bonus}
     ${/* 部隊預覽（請神 2.0）：使用者試玩「持兩尊仍 12/12 全燒、看不出為什麼輸」——袋子全是 atk 0 的作祟型與護法。
          逐件的隻數／攻／血／拍／招式與最上方的總計都走引擎同一支 buildArmy＋TRAITS，不另抄規則。 */""}

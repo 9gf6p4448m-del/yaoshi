@@ -12,8 +12,8 @@
 
 ────────────────────────────
 通過 8　失敗 0
-✔ tests\aistake.test.mjs (1779.7759ms)
-✔ 128 physical coins use the eight-sided square-hole geometry budget (1.2089ms)
+✔ tests\aistake.test.mjs (1761.7598ms)
+✔ 128 physical coins use the eight-sided square-hole geometry budget (1.1774ms)
 
 保守標上限伺服端夾 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -27,11 +27,11 @@
 
 ────────────────────────────
 通過 5　失敗 0
-✔ tests\conscap.test.mjs (1726.6327ms)
-✔ all five curse cards explain the actual attack penalty, including locked auctions (1.7939ms)
-✔ legacy combat describes base power instead of inventing a paper-war penalty (0.3886ms)
-✔ marking cards explain all curses before the player chooses a target (0.3031ms)
-✔ cards with no active auction ability describe their actual paper-war move (0.9027ms)
+✔ tests\conscap.test.mjs (1774.3683ms)
+✔ all five curse cards explain the actual attack penalty, including locked auctions (1.8787ms)
+✔ legacy combat describes base power instead of inventing a paper-war penalty (0.387ms)
+✔ marking cards explain all curses before the player chooses a target (0.2978ms)
+✔ cards with no active auction ability describe their actual paper-war move (0.9619ms)
 
 對決演出「沒兵仍出招／隻數不同步」行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -48,7 +48,7 @@
   PASS  hauntLost（魔神仔紅帽，三拍迷途）：全滅方不該再讓對面某隊三拍不出手
 
 結果：7 綠 ／ 0 紅
-✔ tests\duel-desync.test.mjs (265.8669ms)
+✔ tests\duel-desync.test.mjs (327.6125ms)
 徽記剪影互撞：30 個 kind ／ 435 對 ／ 同系門檻 0.8
   PASS  自我對照＝1.0（30/30）
   PASS  自我擾動（放大 1.5 倍）必須全部掉到 ≤0.50
@@ -81,7 +81,7 @@
    0.8000 drop      shade     同系 yinqi
 
 結果：9 綠 ／ 0 紅
-✔ tests\emblem-collision.test.mjs (338.668ms)
+✔ tests\emblem-collision.test.mjs (267.884ms)
 三級視覺分級 F1：目標檔 index.html
   PASS  fx-consts.mjs 與頁面 PW_FX 的三張表逐鍵相同
   PASS  頁面 PW_FX 就是 fx-consts 那三張表（走真的載進來的物件，不是 regex）
@@ -99,7 +99,7 @@
   PASS  TRAITS 的 tier 欄位只掛在三尊三招上（其餘 27 支不寫，讀作 1）
 
 結果：14 綠 ／ 0 紅
-✔ tests\fxtier.test.mjs (247.0943ms)
+✔ tests\fxtier.test.mjs (269.1869ms)
 語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
   PASS  FX_PAL 三系四色與文件第 1 節逐格相同
   PASS  BEAT 三級四段與文件第 2 節逐格相同
@@ -134,16 +134,17 @@
   PASS  腳下語彙是 stain 的系別，本體色的相對亮度必須低於桌面（§B3「暗斑」）
 
 結果：30 綠 ／ 0 紅
-✔ tests\fxvocab.test.mjs (321.0512ms)
-✔ 命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明 (1.6942ms)
-✔ 三種高光轉場由單一純讀取 CUTS 表定義 (1.2148ms)
-✔ 轉場只能由真人演出點消費，且每局每種最多一次 (2.6537ms)
-✔ 高光轉場保持 reduced-motion 的靜態替代路徑 (1.2025ms)
-✔ auction abilities state the fee and minimum-life-loss exceptions (1.6533ms)
-✔ battle details distinguish initiative ties, the winning side, and precise swap targets (0.9576ms)
-✔ damage copy covers ward fear and armor that triggers only above one remaining damage (0.4712ms)
-✔ health growth and sacrifice specify health limits, team scope and battle duration (0.4429ms)
-✔ full unit details explain resonance timing without implying a single attack beat (0.2435ms)
+✔ tests\fxvocab.test.mjs (332.7386ms)
+✔ 命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明 (1.7038ms)
+✔ 三種高光轉場由單一純讀取 CUTS 表定義 (1.0851ms)
+✔ 轉場只能由真人演出點消費，且每局每種最多一次 (2.215ms)
+✔ 高光轉場保持 reduced-motion 的靜態替代路徑 (1.0071ms)
+✔ auction abilities state the fee and minimum-life-loss exceptions (1.5072ms)
+✔ battle details distinguish initiative ties, the winning side, and precise swap targets (1.0845ms)
+✔ damage copy covers ward fear and armor that triggers only above one remaining damage (1.7291ms)
+✔ health growth and sacrifice specify health limits, team scope and battle duration (0.4059ms)
+✔ full unit details explain resonance timing without implying a single attack beat (0.2238ms)
+✔ chair disclosure explains the computer-holder exception (0.1604ms)
   PASS  H5①請神夜：香火**不綁尊**——燒在哪一格都算同一個池，第一個請神夜由池最高的人請神
   PASS  H5①同分：依「本夜風位起順時針」的第一個人請神（不是座位 0 恆贏）
   PASS  H5①已持有者不參加：他的香火再高也不得，該夜由「還沒請到的人」裡最高者請神
@@ -178,7 +179,7 @@
   PASS  決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎段零 Math.random
 
 32 過 / 0 失敗
-✔ tests\legend.test.mjs (2364.1062ms)
+✔ tests\legend.test.mjs (2357.5476ms)
 陣列卷 G1：目標檔 index.html
   PASS  fac 序列＝祖靈…→香火…→陰氣…（不是取得順序）
   PASS  id 指回 buildArmy 展開的同索引單位（body／fac／ab 逐項相同）
@@ -189,11 +190,11 @@
   PASS  紅暈側別：熱座兩位真人對打時**兩側都閃**（各自被打各自閃）
   PASS  紅暈側別：座位物件缺失時不當成真人（不會誤閃）
 結果：8 綠 ／ 0 紅
-✔ tests\lineup-order.test.mjs (191.7702ms)
-✔ 同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立 (94.8912ms)
-✔ 盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空 (8.5921ms)
-✔ 盯牌在陰影、出價、揭盅與換夜後仍保持原始牌面比例 (10.2402ms)
-✔ disposing the tray releases its moon-ring instance buffer (1.4356ms)
+✔ tests\lineup-order.test.mjs (211.6587ms)
+✔ 同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立 (70.5964ms)
+✔ 盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空 (5.3884ms)
+✔ 盯牌在陰影、出價、揭盅與換夜後仍保持原始牌面比例 (9.9552ms)
+✔ disposing the tray releases its moon-ring instance buffer (1.3104ms)
 
 今夜市集規則 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -219,22 +220,22 @@
   PASS  simulate() 與 playPolicyGame() 在規則開啟下 seeds 1..10 結果一致
 
 結果：16 綠 ／ 0 紅
-✔ tests\nightrules.test.mjs (1114.5222ms)
-✔ 128-coin perf mode fills every legal seat and market slot through product bids (2.3823ms)
-✔ 128-coin gate rejects a command that omits the required performance mode (616.4573ms)
-✔ 128-coin performance samples precompile the actual scene before timing (0.2321ms)
-✔ 128-coin speed gate uses the interleaved five-run median, not one scheduler outlier (0.2385ms)
-✔ 首頁、更新探針與資產快取使用相同發布版本 (0.9724ms)
-✔ 舊主畫面版本可以發現本次發布；同版與舊版不提示 (8.1172ms)
-✔ 揭盅維持 3D 牌桌可見，且不再用黑幕切換 (1.6917ms)
-✔ 托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態 (0.5693ms)
-✔ 道具層有廉價接觸陰影並能把開標錢堆並排保留 (0.4057ms)
-✔ 揭盅卡不撞夜況列，完整列出比價與結果 (0.8114ms)
-✔ 揭盅先播錢柱與法寶飛行，再顯示固定的比價卡 (1.791ms)
-✔ 逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤 (0.4793ms)
-✔ 逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作 (0.3006ms)
-✔ 揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀 (0.4147ms)
-✔ 局末只留一個進入完整回顧的入口，策略建議不以心願硬優先 (0.7731ms)
+✔ tests\nightrules.test.mjs (1075.7313ms)
+✔ 128-coin perf mode fills every legal seat and market slot through product bids (2.2293ms)
+✔ 128-coin gate rejects a command that omits the required performance mode (563.9165ms)
+✔ 128-coin performance samples precompile the actual scene before timing (0.2299ms)
+✔ 128-coin speed gate uses the interleaved five-run median, not one scheduler outlier (0.2283ms)
+✔ 首頁、更新探針與資產快取使用相同發布版本 (0.8402ms)
+✔ 舊主畫面版本可以發現本次發布；同版與舊版不提示 (6.6644ms)
+✔ 揭盅維持 3D 牌桌可見，且不再用黑幕切換 (1.5509ms)
+✔ 托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態 (0.3062ms)
+✔ 道具層有廉價接觸陰影並能把開標錢堆並排保留 (0.3934ms)
+✔ 揭盅卡不撞夜況列，完整列出比價與結果 (0.6364ms)
+✔ 揭盅先播錢柱與法寶飛行，再顯示固定的比價卡 (1.0808ms)
+✔ 逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤 (0.4642ms)
+✔ 逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作 (0.353ms)
+✔ 揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀 (0.4095ms)
+✔ 局末只留一個進入完整回顧的入口，策略建議不以心願硬優先 (0.696ms)
   PASS  seed 3：S.history 存在且形狀正確
   PASS  seed 3：壽命曲線長度 = 夜數+1，每筆 = 玩家數
   PASS  seed 3：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
@@ -266,7 +267,7 @@
   PASS  活性：三個種子合計有出價、有毒標、有死亡、有心願達成（不是空紀錄）
 ────────────────────────────
 通過 28　失敗 0
-✔ tests\review.test.mjs (1910.6523ms)
+✔ tests\review.test.mjs (1844.3182ms)
   PASS  斷手書生：同系 4 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）
   PASS  斷手書生：同系 4 件時整場紙紮夜戰的結果真的變好（不只是帳面戰力）
   PASS  斷手書生：不足 4 件時不生效（被動不是恆真式）
@@ -301,27 +302,27 @@
   PASS  紅衣婆婆 B：玩家座位的記仇換得到東西（對仇人主力陣營的拍品比價 +3）
 
 角色平衡卷單元測試：32 過 / 0 失敗
-✔ tests\roles-balance.test.mjs (1687.93ms)
-✔ posedBounds conservatively contains every POOL skin pose across every authored clip (1112.4258ms)
-✔ posedBounds covers mixed and non-normalized skin weights (2.032ms)
-✔ framing samples the same attached skin pose as the next render after moving its root (8.4228ms)
-✔ framing moves an intact projected subject away from HUD using the least displacement (2.1622ms)
-✔ flight depth prevents approach magnification and projection counts only visible geometry (8.4237ms)
-✔ adaptive camera retreats to fit HUD space without changing model scale (2.1994ms)
-✔ instanced stamps participate at their actual instance positions in a framing union (1.8127ms)
+✔ tests\roles-balance.test.mjs (1644.2858ms)
+✔ posedBounds conservatively contains every POOL skin pose across every authored clip (1056.3153ms)
+✔ posedBounds covers mixed and non-normalized skin weights (1.8234ms)
+✔ framing samples the same attached skin pose as the next render after moving its root (8.4986ms)
+✔ framing moves an intact projected subject away from HUD using the least displacement (2.1247ms)
+✔ flight depth prevents approach magnification and projection counts only visible geometry (3.3412ms)
+✔ adaptive camera retreats to fit HUD space without changing model scale (2.1714ms)
+✔ instanced stamps participate at their actual instance positions in a framing union (1.5345ms)
 tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat wiring PASS
-✔ tests\tier1-push.test.mjs (296.1621ms)
-✔ scene-shot only fixes the ordinary UI journey when --seed is explicit and reports it (2.8128ms)
-✔ market card capture accepts a repo-relative output and pins baseline git reads (0.7681ms)
-✔ iphone layout capture accepts a repo-relative output without changing its default (0.4771ms)
-✔ public reveal capture accepts URL and repo-relative output while keeping seed/defaults (0.4953ms)
-✔ tool option guards reject unsafe paths before starting a browser (1402.4147ms)
-✔ baseline and URL options reject invalid combinations before capture (1854.2976ms)
-✔ scene-shot rejects an invalid explicit seed before capture (591.6157ms)
-✔ scene-shot rejects an empty explicit seed instead of silently using seed 1 (710.9783ms)
-✔ 3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage (1.6118ms)
-✔ 從側欄查看拍品時，3D 桌上同一件也會進入檢視態 (0.4774ms)
-✔ 首頁顯示可核對的發布版本 (0.4559ms)
+✔ tests\tier1-push.test.mjs (213.5175ms)
+✔ scene-shot only fixes the ordinary UI journey when --seed is explicit and reports it (2.9747ms)
+✔ market card capture accepts a repo-relative output and pins baseline git reads (0.9115ms)
+✔ iphone layout capture accepts a repo-relative output without changing its default (0.4785ms)
+✔ public reveal capture accepts URL and repo-relative output while keeping seed/defaults (0.5882ms)
+✔ tool option guards reject unsafe paths before starting a browser (1319.4488ms)
+✔ baseline and URL options reject invalid combinations before capture (1196.6575ms)
+✔ scene-shot rejects an invalid explicit seed before capture (373.9377ms)
+✔ scene-shot rejects an empty explicit seed instead of silently using seed 1 (378.7638ms)
+✔ 3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage (2.5397ms)
+✔ 從側欄查看拍品時，3D 桌上同一件也會進入檢視態 (0.5139ms)
+✔ 首頁顯示可核對的發布版本 (0.5042ms)
 
 心願第二批 16 張 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -368,12 +369,12 @@ tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat
   PASS  禍水東引：市場無詛咒品 → 不發；有則發且鎖定壽命最高對手
 
 結果：PASS=36 FAIL=0
-✔ tests\wish16.test.mjs (2241.3173ms)
-ℹ tests 64
+✔ tests\wish16.test.mjs (2167.1271ms)
+ℹ tests 65
 ℹ suites 0
-ℹ pass 64
+ℹ pass 65
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 5364.944
+ℹ duration_ms 3908.3179
