@@ -46,7 +46,10 @@ function subjectCorners(node) {
     return groups.length && groups.every(Boolean) ? groups.flat() : null;
   }
   for (let parent = node; parent; parent = parent.parent) if (!parent.visible) return null;
-  node.updateWorldMatrix(true, true);
+  node.updateWorldMatrix(true, false);
+  // SkinnedMesh refreshes its attached bind matrix in updateMatrixWorld;
+  // updateWorldMatrix alone skips that override and samples the previous pose.
+  node.updateMatrixWorld(true);
   const points = [];
   node.traverseVisible(mesh => {
     if (!mesh.geometry || (!mesh.isMesh && !mesh.isPoints)) return;
