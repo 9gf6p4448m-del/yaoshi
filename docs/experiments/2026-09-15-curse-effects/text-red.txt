@@ -1,0 +1,46 @@
+✖ all five curse cards explain the actual attack penalty, including locked auctions (1.2563ms)
+✖ legacy combat describes base power instead of inventing a paper-war penalty (0.2337ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1609.1743
+
+✖ failing tests:
+
+test at tests\curse-effects.test.mjs:26:1
+✖ all five curse cards explain the actual attack penalty, including locked auctions (1.2563ms)
+  AssertionError [ERR_ASSERTION]: 冥婚紅包
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-effects.test.mjs:29:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '<div class="mcard  curse  " id="mc0" onclick="openSheet(0)">\n    \n    <div class="nm">冥婚紅包</div>\n    <div><span class="pw">詛咒・纏身</span><span class="fchip f-curse">詛咒</span></div>\n    <div class="ab">撿到就得娶</div>\n    \n    詛咒品不召喚（只算纏身）\n  </div>',
+    expected: /每件[^<]*紙紮攻擊\s*−1/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\curse-effects.test.mjs:36:1
+✖ legacy combat describes base power instead of inventing a paper-war penalty (0.2337ms)
+  AssertionError [ERR_ASSERTION]: 冥婚紅包
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-effects.test.mjs:39:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
