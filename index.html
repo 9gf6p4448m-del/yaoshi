@@ -927,7 +927,7 @@ const FACTIONS = Object.keys(FAC).filter(k=>FAC[k].resonate);
 const ABILITIES = {
   bow:{id:"bow",name:"射日神弓",desc:"戰勝時，對手額外 -2 壽命",order:10,
     hooks:{ onBattle(ctx){ if(has(ctx.w,"bow")) ctx.dmg+=2; } }},
-  shield:{id:"shield",name:"百步蛇紋盾",desc:"戰敗時，少失 2 壽命",order:20,
+  shield:{id:"shield",name:"百步蛇紋盾",desc:"戰敗時少失 2 壽命，最低仍失 1",order:20,
     hooks:{ onBattle(ctx){ if(has(ctx.l,"shield")) ctx.dmg=Math.max(1,ctx.dmg-2); } }},
   eye:{id:"eye",name:"祖靈之眼",desc:"整夜未得標任何拍品時，夜末回 2 壽命",
     hooks:{ onNightEnd(ctx){
@@ -937,13 +937,13 @@ const ABILITIES = {
     hooks:{ onFacCount(ctx){ if(ctx.faction==="zuling") ctx.count++; } }},
   boat:{id:"boat",name:"拼板舟",desc:"每夜末回 1 壽命",
     hooks:{ onNightEnd(ctx){ ctx.p.life+=1; ctx.log.push(`⛵ ${ctx.p.name} 的拼板舟渡來生息 +1`); } }},
-  flag:{id:"flag",name:"媽祖令旗",desc:"你的保守標上限提高 50%",
+  flag:{id:"flag",name:"媽祖令旗",desc:"你的保守標上限提高 50%（向下取整）",
     hooks:{ onBidCap(ctx){ ctx.cap=Math.floor(ctx.cap*1.5); } }},
-  sword:{id:"sword",name:"王爺劍",desc:"你袋中詛咒品的負值減半",
+  sword:{id:"sword",name:"王爺劍",desc:"袋中每件詛咒品的負戰力減半（剩餘負值絕對值向上取整）",
     hooks:{ onItemValue(ctx){
       if(ctx.item.curse && ctx.value<0) ctx.value=-Math.ceil(Math.abs(ctx.value)/2);
     } }},
-  wangchuan:{id:"wangchuan",name:"送王船",desc:"入手此物時，把你袋中一件詛咒品送給戰力最高的對手",
+  wangchuan:{id:"wangchuan",name:"送王船",desc:"親自得標入袋時，將自己基礎戰力最低的一件詛咒，送給戰力評估最高的存活對手",
     hooks:{ onWinItem(ctx){
       /* 現行行為＝只有「親自標下送王船並入袋」那一次才啟航（毒標塞人不算） */
       if(ctx.item.ab!=="wangchuan" || ctx.target) return;
@@ -966,15 +966,15 @@ const ABILITIES = {
       ctx.winner.life-=2;
       ctx.events.push({txt:`${ctx.target.name} 的虎爺印反咬，${ctx.winner.name} -2 壽命`});
     } }},
-  redhat:{id:"redhat",name:"魔神仔紅帽",desc:"你的毒標比價時視為 +2",
+  redhat:{id:"redhat",name:"魔神仔紅帽",desc:"你的毒標比價時視為 +2（實付不變）",
     hooks:{ onBidEff(ctx){ if(ctx.bid.intent==="poison") ctx.eff+=2; } }},
   hairpin:{id:"hairpin",name:"林投姐髮簪",desc:"戰敗時，勝者也失 1 壽命",order:30,
     hooks:{ onBattle(ctx){
       if(!has(ctx.l,"hairpin")) return;
       ctx.w.life-=1; ctx.extra.push(`${ctx.l.name} 的髮簪回敬 ${ctx.w.name} -1`);
     } }},
-  chair:{id:"chair",name:"椅仔姑竹椅",desc:"看穿所有對手的實際壽命", flags:["xrayLife"]},
-  raincoat:{id:"raincoat",name:"黃色小雨衣",desc:"押命標落標時不再失血",
+  chair:{id:"chair",name:"椅仔姑竹椅",desc:"你存活並持有時，牌桌顯示所有玩家的實際壽命", flags:["xrayLife"]},
+  raincoat:{id:"raincoat",name:"黃色小雨衣",desc:"你的押命標落標時免標額損失，買路錢照收",
     hooks:{ onBidSettle(ctx){
       if(ctx.isWinner || ctx.bid.type!=="yaming") return;
       /* 只降不升（覆核 N1）：典當等保命效果可能已把 cost 壓得更低，蓋回去會害死人 */
@@ -1015,7 +1015,7 @@ const ABILITIES = {
     } }},
   /* 主動轉換：出價階段可主動放血（UI 掛點靠 bloodlet flag，數值靠 traits） */
   xianji:{id:"xianji",name:"獻祭刀",
-    desc:`出價階段可放血：第 n 次花 ${CFG.BLOOD_COST}×n 壽命，所有對手各失 ${CFG.BLOOD_DRAIN} 壽命`,
+    desc:`出價階段可放血：第 n 次花 ${CFG.BLOOD_COST}×n 壽命，所有存活對手各失 ${CFG.BLOOD_DRAIN} 壽命（自己須至少留 1）`,
     flags:["bloodlet"], traits:{bloodCost:CFG.BLOOD_COST},
     hooks:{
       /* AI 的放血決策寫在這裡（不寫進 aiBids，引擎不得認得道具 id）。
@@ -2071,39 +2071,39 @@ const LEGENDS = [
 /* ★tier 是唯一的「非規則」欄位★（v0.54 三級視覺分級）：只有三尊三招標 tier:3，引擎一行都不讀它，
    讀它的只有演出層的 pwBeatTier。純演出欄位，不進 collectEffects／applyHooks，trace() 逐位元組不受影響。 */
 const TRAITS = {
-  wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"一拍：前鋒全體 hp+2",hpFront:2},
-  wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"一拍：全體 hp+1（含護法、作祟）",hpAll:1},
-  wardFirst:{id:"wardFirst",name:"祖靈先手",desc:"一拍：本方前鋒先結算",first:true},
-  wardAtkAll1:{id:"wardAtkAll1",name:"令旗改陣",desc:"二拍：本方全體 atk+1",atkAll:1},
-  wardAbsorb4:{id:"wardAbsorb4",name:"送王船",desc:"二拍：吸收對面本拍首 4 點傷害",absorb:4},
+  wardHpFront2:{id:"wardHpFront2",name:"鱗紋護體",desc:"第1拍開場：本方存活前鋒血量上限與目前值 +2（每件可疊加）",hpFront:2},
+  wardHpAll1:{id:"wardHpAll1",name:"山神庇佑",desc:"第1拍開場：本方全體存活紙紮血量上限與目前值 +1（含作祟；每件可疊加）",hpAll:1},
+  wardFirst:{id:"wardFirst",name:"祖靈先手",desc:"第1拍：僅本方有先手時，本方先結算攻擊；雙方都有則同時",first:true},
+  wardAtkAll1:{id:"wardAtkAll1",name:"令旗改陣",desc:"第2拍：本方可出手紙紮攻擊 +1（同名不疊加）",atkAll:1},
+  wardAbsorb4:{id:"wardAbsorb4",name:"送王船",desc:"第2拍：本方共用 4 點傷害吸收額度（陰陽眼攻擊無視；同名不疊加）",absorb:4},
   wardImmuneLost:{id:"wardImmuneLost",name:"千里眼",desc:"本方免疫迷途",immuneLost:true},
-  wardHpFirst:{id:"wardHpFirst",name:"香灰符",desc:"二拍：前鋒首隻 hp+1",hpFirst:1},
-  wardRegen1:{id:"wardRegen1",name:"福壽綿長",desc:"每拍回 1 hp 給最傷的一隻",regen:1},
-  boltGamble:{id:"boltGamble",name:"天雷",desc:"一拍開始 15% 燒掉對面 1 隻小兵",bolt:0.15},
-  biteGamble:{id:"biteGamble",name:"虎爺反咬",desc:"被擊中時 15% 反咬 3 點",bite:0.15,biteDmg:3},
-  hauntLost:{id:"hauntLost",name:"迷途",desc:"三拍：對面 1 隊不出手（對精英無效）",lost:true},
-  hauntSteal:{id:"hauntSteal",name:"偷命",desc:"三拍結束時敗方另 −1 壽命",steal:1},
-  hauntSee:{id:"hauntSee",name:"看穿",desc:"本方圍毆額外 +1",gang:1},
-  hauntDread1:{id:"hauntDread1",name:"恐懼",desc:"三拍：對面群體再 −1 atk",dread:1},
-  hauntSwap:{id:"hauntSwap",name:"抓交替",desc:"三拍：燒掉對面 1 隻小兵、本方也燒 1 隻",swap:true},
-  hauntFearX2:{id:"hauntFearX2",name:"恐懼加倍",desc:"三拍：恐懼倍率 ×2",fearMul:2},
+  wardHpFirst:{id:"wardHpFirst",name:"香灰符",desc:"第2拍：本方第一隻存活前鋒血量上限與目前值 +1（每件可疊加）",hpFirst:1},
+  wardRegen1:{id:"wardRegen1",name:"福壽綿長",desc:"每拍開場：本方缺血最多的一隻回 1 血量，不超過上限（同名不疊加）",regen:1},
+  boltGamble:{id:"boltGamble",name:"天雷",desc:"第1拍開場：本隊尚有存活紙紮時，15% 燒掉對面血量最低的 1 隻小兵",bolt:0.15},
+  biteGamble:{id:"biteGamble",name:"虎爺反咬",desc:"本隊每次遭攻擊時，15% 反傷攻擊者 3（傷害被吸收為 0 也會判定）",bite:0.15,biteDmg:3},
+  hauntLost:{id:"hauntLost",name:"迷途",desc:"第3拍：本方尚有存活紙紮時，令對面存活小兵最多的一隊本拍不出手（其他體型不受影響）",lost:true},
+  hauntSteal:{id:"hauntSteal",name:"偷命",desc:"三拍結束後：若本方獲勝，敗方額外失 1 壽命（另加於一般戰敗傷害；同名不疊加）",steal:1},
+  hauntSee:{id:"hauntSee",name:"看穿",desc:"本方小兵集火同一目標時，第 2、3 擊各額外 +1 傷害（同名不疊加）",gang:1},
+  hauntDread1:{id:"hauntDread1",name:"恐懼",desc:"第3拍：本方有存活作祟時，對面群體與護法攻擊額外 −1（同名不疊加）",dread:1},
+  hauntSwap:{id:"hauntSwap",name:"抓交替",desc:"第3拍：本方尚有存活紙紮且對面有小兵時，先燒對面血量最低的小兵，再燒本方血量最低的紙紮各 1 隻",swap:true},
+  hauntFearX2:{id:"hauntFearX2",name:"恐懼加倍",desc:"第3拍：本方有存活作祟時，對面的基本恐懼（依其存活小兵數）×2；不加倍額外恐懼",fearMul:2},
   /* 卷 D 新增：補齊「每件法寶一個招」（凍結檔 D2）。每個招觸發時都會進戰況 log（每場每招記一次） */
-  eliteOpenShot:{id:"eliteOpenShot",name:"射日",desc:"一拍開場：對面最壯的一隻 −1",openShot:1},
-  eliteArmor:{id:"eliteArmor",name:"琉璃護心",desc:"本隊每拍第一次受擊 −2（保底 1）",armor:2},
-  eliteSelfCut:{id:"eliteSelfCut",name:"割祭",desc:"一拍自傷 1，全場本隊 atk+2",selfCut:1,selfCutAtk:2},
-  eliteCleave:{id:"eliteCleave",name:"斬瘟",desc:"本隊精英的濺射改為全額",cleaveFull:true},
-  eliteVsSwarm:{id:"eliteVsSwarm",name:"咬手指",desc:"打群體目標額外 +2",vsSwarm:2},
-  swarmHalfSplash:{id:"swarmHalfSplash",name:"飛魚躍",desc:"本隊受到的濺射減半",halfSplash:true},
-  swarmThorn:{id:"swarmThorn",name:"獠牙反擊",desc:"本隊每拍第一次被擊中時反傷 2",thorn:2},
-  swarmRally:{id:"swarmRally",name:"五方調兵",desc:"二拍：本隊已有折損則全體 hp+1",rallyHp:1},
-  swarmLastStand:{id:"swarmLastStand",name:"殘旗插心",desc:"本隊只剩 1 隻時 atk+1",lastStand:1},
-  swarmPierce:{id:"swarmPierce",name:"陰陽眼",desc:"本隊攻擊無視吸收",pierce:true},
-  swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"拍末對面有紙紮被燒 → 本方全體 hp+1",feed:1},
+  eliteOpenShot:{id:"eliteOpenShot",name:"射日",desc:"第1拍開場：本隊尚有存活紙紮時，對面目前血量最高的一隻失 1 血量",openShot:1},
+  eliteArmor:{id:"eliteArmor",name:"琉璃護心",desc:"本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）",armor:2},
+  eliteSelfCut:{id:"eliteSelfCut",name:"割祭",desc:"第1拍開場：本隊每隻自傷 1（血量最低 1）；本隊本場攻擊 +2",selfCut:1,selfCutAtk:2},
+  eliteCleave:{id:"eliteCleave",name:"斬瘟",desc:"本隊精英的第二目標濺射，改為當次攻擊力全額",cleaveFull:true},
+  eliteVsSwarm:{id:"eliteVsSwarm",name:"咬手指",desc:"本隊直擊主目標為群體時，傷害 +2（不加在濺射）",vsSwarm:2},
+  swarmHalfSplash:{id:"swarmHalfSplash",name:"飛魚躍",desc:"本隊受到精英濺射時，傷害減半（向下取整）",halfSplash:true},
+  swarmThorn:{id:"swarmThorn",name:"獠牙反擊",desc:"本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發）",thorn:2},
+  swarmRally:{id:"swarmRally",name:"五方調兵",desc:"第2拍：本隊已有折損時，本隊存活紙紮血量上限與目前值 +1",rallyHp:1},
+  swarmLastStand:{id:"swarmLastStand",name:"殘旗插心",desc:"本隊只剩 1 隻存活紙紮時，該隻每次攻擊 +1",lastStand:1},
+  swarmPierce:{id:"swarmPierce",name:"陰陽眼",desc:"本隊攻擊無視送王船的傷害吸收",pierce:true},
+  swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"每拍結束時：對面當拍有紙紮被燒毀時，本方存活紙紮血量上限與目前值 +1（同名不疊加）",feed:1},
   /* 第 4 卷 傳說三尊：兩個新效果欄位（blindFront 在 pwBolt 段、curseHaunt 在 pwHaunt 段）＋一個沿用既有的 hpAll。
      blindFront 是「一拍開打前施加一次」的減攻（跟射日的 openShot 同時機），減下去的 atk 三拍都算。 */
-  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"一拍開打前：對面前鋒 atk −2（下限 0）",blindFront:2,tier:3},
-  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"該拍：本方全體 hp+2（含護法、作祟）",hpAll:2,tier:3},
-  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"三拍：對面每有一件詛咒品，多燒對面 1 隻",curseHaunt:1,tier:3},
+  eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"第1拍開場：本隊尚有存活紙紮時，對面存活前鋒攻擊 −2（最低 0），持續本場",blindFront:2,tier:3},
+  wardGuardAll:{id:"wardGuardAll",name:"普渡",desc:"第2拍開場：本方全體存活紙紮血量上限與目前值 +2（含作祟）",hpAll:2,tier:3},
+  hauntAnswer:{id:"hauntAnswer",name:"有求必應",desc:"第3拍：對面每有 1 件詛咒品，燒其血量最低的紙紮 1 隻（至多存活數）",curseHaunt:1,tier:3},
 };
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
@@ -2122,7 +2122,7 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.57.12", VERSION_NOTE="0.57.12：詛咒卡與出價詳情補齊實際效果、疊加與免疫說明；芭樂另列夜末失血。｜0.57.11：廟埕暗桌介面；法寶頁籤連動3D焦點；自動取景保留完整揭盅與盯印歸屬，跳過與轉向後鏡頭正常恢復。｜0.57.10：低矮橫屏法寶名稱切換完整閱讀、平放盯印與所屬盤位木籌槽。｜0.57.9：B 中型盯牌與同槽分列、tier 1 每拍短推、跨裝置安全區、主畫面效能開關、三種高光轉場；修正更新版本不一致。｜0.56e（紙紮夜戰永久啟用・月相策略提示・128 枚實體銅錢）｜0.56b（上桌卷第一段）：拍賣桌桌心紅布托盤把當夜拍品 3D 模型擺上桌（詛咒品冒陰火）、點模型浮空微旋＋鏡頭微推（手機點到即亮）、桌面木紋與桌角香灰符咒（頂點色）；?tray3d=0 一鍵關、?table3d=lite 降級；修 GLB 骨架貼圖洩漏（skeleton.dispose）；0.55.10：0.55.10（招式演出卷・陰氣系批 3 階段 A）：新積木 st.stain（腳下不規則水漬）、範本魔神仔紅帽正式演出（探＋卡頓三段跳＋紅帽戴到受招方＋迷途打轉）；三系檔 V054 退路表全部移除（?fxvocab=1 仍看 0.55 徽記版）；修 fx-contrast 在 HEAD exit 1 的既有缺陷；0.55.9：0.55.9（招式演出卷・祖靈批收尾）：道具 anchor 主道具／在場五條／逐尊覆蓋／foe 綁受擊者；打擊類 react 後不回流斷言；舞台座標唯一出口 st.stageVec（三系檔不再有世界軸位移）、六座位量測；香火 9 支增益逐尊送達、令旗掃到同伴、虎爺印碎片只往敵方；P4 盲讀 18 支三輪：5→6→10/18（8 支對象題記已知）；0.55.8：0.55.8（招式演出卷・祖靈系批 2 階段 B）：其餘 8 支祖靈招正式演出（靜→瞬發、骨牙石器／織紋珠／木器／日雷四家族、腳下光柱），道具 anchor 機械檢查（主道具、在場五條、逐尊覆蓋、邊距 0.18）；香火 9 支增益道具逐尊送達、王爺劍掃兩尊、虎爺印碎印；P4 盲讀 18 支第 2 輪 6/18（記已知，第 3 輪進行中）；0.55.7：0.55.7（招式演出卷・祖靈系批 2 階段 A）：三系共通「施招者／受招方身分可辨」語彙（施招姿態只有施招者有、腳下系別光蓄勢亮衝擊拍熄、受益反應與姿態不同型、姿態必在衝擊拍收回）；祖靈範本獻祭刀「割祭」正式演出（黑曜石刃＋紙血條＋自身升）；新積木 st.pillar／stance／groundMark；香火 9 支套上施招姿態並修「姿態永不收回把受益方畫成下沉」；0.55.6：0.55.6（招式演出卷・香火系批 1 階段 B）：其餘 8 支香火招改為正式演出（本體動作＋紙紮道具＋受招反應；增益道具落在受益方、增益招零跨場拖線、王爺劍斬弧掃兩尊、虎爺印拿掉印文改碎印）；朝向改相機相對、P2 因果三段進機械紅燈、solo 反應紅燈；P4 盲讀三輪未過（對象題＝施招者／受益者身分可辨，記已知，祖靈批前置）；0.55.5：0.55.5（三尊在場感小卷，遊玩回饋）：請神三尊固定站第二排中央、紙紮基座（日輪台／神轎座／骨堆）、傳說尺寸 1.35 且矮模型放大、一律實體有影、待機光效（餘暉盤／一炷香／鬼火群）、頭頂尊名牌、請神那夜進場一次低角度機位；滿編 8v8 殘日被前排遮擋 67%→0.7%、三尊頭部 0%；六讀者盲讀 2/3 對通過；0.55.4：0.55.4（招式演出卷・香火系批 1 階段 A）：虎爺印改為正式演出「撲咬＋落印＋金箔紙錢」（本體動作＋紙紮道具＋受招反應，短版 300ms／完整版 900ms；製作人簽字範本）；MOVE_SPEC 登記表、st.paperProps 群體紙紮道具積木、道具尺寸記錄治具；0.55 徽記版搬 ?fxvocab=1 的 V055 表；0.55.3：0.55.3：徽記尺寸防線 N11/N12 重寫（執行期鎖＋onAfterRender 世界縮放稽核＋內容指紋場景掃描；四輪覆審；N-5 簽為已知未涵蓋）——只影響 ?fxvocab=1 的徽記路徑與治具，預設演出零 diff；0.55.2：0.55.2（招式演出卷前置）：tier 1 短版 260→300ms（使用者裁定，fx-tiers 凍結檔 §2.1 修訂）、27 支短版時間軸改比例制（260 下逐位元組等價）、虎爺印演出原型 A–E 走 ?proto=tigerE（預設不啟用）；0.55.1：0.55.1 招式演出方向重定：四支示範招（獻祭刀／虎爺印／千里眼銅鈴／魔神仔紅帽）**預設退回 0.54 的演出**，0.55 的徽記剪影版本改掛 ?fxvocab=1 才看得到（?fxvocab=0 或不帶＝0.54）。原因：徽記剪影是平面單色 billboard，貼在紙紮 3D 上像剪貼畫、兩輪盲讀 0/3，製作人裁定這個方向做錯了，方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md；0.55 版本原地保留給治具與後續參考，另外 23 支招與引擎一行未動。｜招式可辨性卷 0.55 批 0（在 0.56a 之後合併，版序 0.54→0.55→0.56a/b 為刻意重排）：三系招式視覺語彙單一來源 js/trait-fx/vocab.js＋徽記剪影 emblems.js＋六個積木＋非加色材質 MAT_SOLID；四支示範招（獻祭刀 knife／虎爺印 seal／千里眼銅鈴 bell／魔神仔紅帽 hat）短版與完整版同函式換比例表；另外 23 支招逐函式 md5 一位元組未動、index.html 引擎零 diff、trace(1..20) 對 v0.56a 逐位元組相等。三輪對抗式覆審＋兩批修補：尺寸收斂 ICON.byKind／sizeOf（icon／mark 拒收外部尺寸）、L3 對比閘門量測位置對齊產品（bloom 0.7／手機視口 2x／seed）、盲讀材料治具改手機 CSS 視口＋DSF2（人偶固定像素高，2x 視口會腰斬佔比）。L4-pre 材料鑑別力三輪：虎姑婆指甲重現、射日神弓短版未重現→統計量改三對讀者取多數（§2.1 修訂三）待補第 3 對；六位讀者只穩定認出銅鈴，刀／印／帽三枚剪影列批 1 前置回修。｜拍賣桌整片掏空 0.56a 版面卷：出價頁與盯上頁的中央面板掏空露出 3D 桌面（桌面本身仍是平面，托盤／木紋是 0.56b），市集卡退到左右側欄 168px 與底列、直式維持原版面；?table3d=0 可關；規則夜不讓寬（第 7 夜三張待請卡尊名會被截，0.56b 處理）；觸控命中逐一 tap 回歸 177/177、熱座清場與面板遮擋新閘門｜招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.57.12", VERSION_NOTE="0.57.12：全面校對法寶與詛咒文字；補齊效果、觸發條件與作用對象，區分共鳴拍、紙紮攻擊與戰力評估；芭樂另列夜末失血。｜0.57.11：廟埕暗桌介面；法寶頁籤連動3D焦點；自動取景保留完整揭盅與盯印歸屬，跳過與轉向後鏡頭正常恢復。｜0.57.10：低矮橫屏法寶名稱切換完整閱讀、平放盯印與所屬盤位木籌槽。｜0.57.9：B 中型盯牌與同槽分列、tier 1 每拍短推、跨裝置安全區、主畫面效能開關、三種高光轉場；修正更新版本不一致。｜0.56e（紙紮夜戰永久啟用・月相策略提示・128 枚實體銅錢）｜0.56b（上桌卷第一段）：拍賣桌桌心紅布托盤把當夜拍品 3D 模型擺上桌（詛咒品冒陰火）、點模型浮空微旋＋鏡頭微推（手機點到即亮）、桌面木紋與桌角香灰符咒（頂點色）；?tray3d=0 一鍵關、?table3d=lite 降級；修 GLB 骨架貼圖洩漏（skeleton.dispose）；0.55.10：0.55.10（招式演出卷・陰氣系批 3 階段 A）：新積木 st.stain（腳下不規則水漬）、範本魔神仔紅帽正式演出（探＋卡頓三段跳＋紅帽戴到受招方＋迷途打轉）；三系檔 V054 退路表全部移除（?fxvocab=1 仍看 0.55 徽記版）；修 fx-contrast 在 HEAD exit 1 的既有缺陷；0.55.9：0.55.9（招式演出卷・祖靈批收尾）：道具 anchor 主道具／在場五條／逐尊覆蓋／foe 綁受擊者；打擊類 react 後不回流斷言；舞台座標唯一出口 st.stageVec（三系檔不再有世界軸位移）、六座位量測；香火 9 支增益逐尊送達、令旗掃到同伴、虎爺印碎片只往敵方；P4 盲讀 18 支三輪：5→6→10/18（8 支對象題記已知）；0.55.8：0.55.8（招式演出卷・祖靈系批 2 階段 B）：其餘 8 支祖靈招正式演出（靜→瞬發、骨牙石器／織紋珠／木器／日雷四家族、腳下光柱），道具 anchor 機械檢查（主道具、在場五條、逐尊覆蓋、邊距 0.18）；香火 9 支增益道具逐尊送達、王爺劍掃兩尊、虎爺印碎印；P4 盲讀 18 支第 2 輪 6/18（記已知，第 3 輪進行中）；0.55.7：0.55.7（招式演出卷・祖靈系批 2 階段 A）：三系共通「施招者／受招方身分可辨」語彙（施招姿態只有施招者有、腳下系別光蓄勢亮衝擊拍熄、受益反應與姿態不同型、姿態必在衝擊拍收回）；祖靈範本獻祭刀「割祭」正式演出（黑曜石刃＋紙血條＋自身升）；新積木 st.pillar／stance／groundMark；香火 9 支套上施招姿態並修「姿態永不收回把受益方畫成下沉」；0.55.6：0.55.6（招式演出卷・香火系批 1 階段 B）：其餘 8 支香火招改為正式演出（本體動作＋紙紮道具＋受招反應；增益道具落在受益方、增益招零跨場拖線、王爺劍斬弧掃兩尊、虎爺印拿掉印文改碎印）；朝向改相機相對、P2 因果三段進機械紅燈、solo 反應紅燈；P4 盲讀三輪未過（對象題＝施招者／受益者身分可辨，記已知，祖靈批前置）；0.55.5：0.55.5（三尊在場感小卷，遊玩回饋）：請神三尊固定站第二排中央、紙紮基座（日輪台／神轎座／骨堆）、傳說尺寸 1.35 且矮模型放大、一律實體有影、待機光效（餘暉盤／一炷香／鬼火群）、頭頂尊名牌、請神那夜進場一次低角度機位；滿編 8v8 殘日被前排遮擋 67%→0.7%、三尊頭部 0%；六讀者盲讀 2/3 對通過；0.55.4：0.55.4（招式演出卷・香火系批 1 階段 A）：虎爺印改為正式演出「撲咬＋落印＋金箔紙錢」（本體動作＋紙紮道具＋受招反應，短版 300ms／完整版 900ms；製作人簽字範本）；MOVE_SPEC 登記表、st.paperProps 群體紙紮道具積木、道具尺寸記錄治具；0.55 徽記版搬 ?fxvocab=1 的 V055 表；0.55.3：0.55.3：徽記尺寸防線 N11/N12 重寫（執行期鎖＋onAfterRender 世界縮放稽核＋內容指紋場景掃描；四輪覆審；N-5 簽為已知未涵蓋）——只影響 ?fxvocab=1 的徽記路徑與治具，預設演出零 diff；0.55.2：0.55.2（招式演出卷前置）：tier 1 短版 260→300ms（使用者裁定，fx-tiers 凍結檔 §2.1 修訂）、27 支短版時間軸改比例制（260 下逐位元組等價）、虎爺印演出原型 A–E 走 ?proto=tigerE（預設不啟用）；0.55.1：0.55.1 招式演出方向重定：四支示範招（獻祭刀／虎爺印／千里眼銅鈴／魔神仔紅帽）**預設退回 0.54 的演出**，0.55 的徽記剪影版本改掛 ?fxvocab=1 才看得到（?fxvocab=0 或不帶＝0.54）。原因：徽記剪影是平面單色 billboard，貼在紙紮 3D 上像剪貼畫、兩輪盲讀 0/3，製作人裁定這個方向做錯了，方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md；0.55 版本原地保留給治具與後續參考，另外 23 支招與引擎一行未動。｜招式可辨性卷 0.55 批 0（在 0.56a 之後合併，版序 0.54→0.55→0.56a/b 為刻意重排）：三系招式視覺語彙單一來源 js/trait-fx/vocab.js＋徽記剪影 emblems.js＋六個積木＋非加色材質 MAT_SOLID；四支示範招（獻祭刀 knife／虎爺印 seal／千里眼銅鈴 bell／魔神仔紅帽 hat）短版與完整版同函式換比例表；另外 23 支招逐函式 md5 一位元組未動、index.html 引擎零 diff、trace(1..20) 對 v0.56a 逐位元組相等。三輪對抗式覆審＋兩批修補：尺寸收斂 ICON.byKind／sizeOf（icon／mark 拒收外部尺寸）、L3 對比閘門量測位置對齊產品（bloom 0.7／手機視口 2x／seed）、盲讀材料治具改手機 CSS 視口＋DSF2（人偶固定像素高，2x 視口會腰斬佔比）。L4-pre 材料鑑別力三輪：虎姑婆指甲重現、射日神弓短版未重現→統計量改三對讀者取多數（§2.1 修訂三）待補第 3 對；六位讀者只穩定認出銅鈴，刀／印／帽三枚剪影列批 1 前置回修。｜拍賣桌整片掏空 0.56a 版面卷：出價頁與盯上頁的中央面板掏空露出 3D 桌面（桌面本身仍是平面，托盤／木紋是 0.56b），市集卡退到左右側欄 168px 與底列、直式維持原版面；?table3d=0 可關；規則夜不讓寬（第 7 夜三張待請卡尊名會被截，0.56b 處理）；觸控命中逐一 tap 回歸 177/177、熱座清場與面板遮擋新閘門｜招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
 const RELEASE_VERSION="0.57.12";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
@@ -3687,9 +3687,9 @@ function buildArmy(bag){
   return {teams,curses};
 }
 /* ===== 部隊預覽（請神 2.0 使用者裁定：袋子面板與市集法寶卡共用同一支）=====
-   一件法寶 → 隻數／atk／hp／出手拍／招式名＋一句效果。
+   一件法寶 → 隻數／atk／hp／共鳴拍／招式名＋一句效果。
    ★單一事實來源★：數值一律由引擎同一支 buildArmy 展開（不另抄 unit 欄位、不重寫 pwDefaultUnit 的推導），
-   招式名與說明一律取 TRAITS 表（不另抄文案）；出手拍取 BEAT_FAC 的表序（與 pwArmyView／paperWar 同一份）。
+   招式名與說明一律取 TRAITS 表（不另抄文案）；共鳴拍取 BEAT_FAC 的表序（與 pwArmyView／paperWar 同一份）。
    純函式：不讀 S、不寫任何欄位、不耗亂數，headless 測試可以直接呼叫。 */
 function unitRow(it){
   if(!it) return null;
@@ -3720,8 +3720,8 @@ function unitRowText(it,owner,mode){
      整行反而被裁掉看不到。使用者裁定：卡面留數字、招式移到點進去的卡片詳情，袋子面板保留全文。 */
   const full=(mode==="full");
   /* 卡面那一版加 .stat：一行到底、不換行（只有數字，換行等於白吃 #felt 的高度預算） */
-  return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・${full?"每隻基礎":""}攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
-    (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</div>`;
+  return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・${full?"每隻基礎":""}攻 ${r.atk}・血 ${r.hp}${r.beat?`・共鳴${r.beat}拍`:""}${
+    (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span><span class="umd">${r.body==="haunt"?"作祟不普攻，依招式條件生效":"可出手時每拍皆會攻擊"}。本隊＝這件法寶的隊伍；本方＝持有者所有隊伍；前鋒＝非作祟紙紮。</span>`:""}</div>`;
 }
 /* 玩家可見的夜戰判定口徑。開場教學與拍品詳情共用，避免 UI 又各自抄成兩套舊規則。 */
 function paperWarRuleText(){
@@ -3753,7 +3753,7 @@ function bagPreviewHTML(p){
     /* 袋子面板保留全文（使用者裁定：卡面精簡、袋子完整） */
     const moon=moonBenefit(x,S.round);
     return `<div class="bagit uprev"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span>`
-      +`<span class="uline">${r.bodyName}×${r.n}・每隻基礎攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
+      +`<span class="uline">${r.bodyName}×${r.n}・每隻基礎攻 ${r.atk}・血 ${r.hp}${r.beat?`・共鳴${r.beat}拍`:""}${
         moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}${r.move?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</span></div>`;
   }).join("");
   return head+rows;
@@ -4415,7 +4415,7 @@ function paperForceText(p){
 }
 function marketStatText(it){
   if(!CFG.PAPERWAR_ON) return `${it.curse?"":"戰力 "}${it.p>=0?"+":""}${it.p}`;
-  const r=unitRow(it); return it.curse?"詛咒・纏身":(r?`第 ${r.beat} 拍・${r.bodyName}×${r.n}`:"紙紮效果");
+  const r=unitRow(it); return it.curse?"詛咒・纏身":(r?`共鳴${r.beat}拍・${r.bodyName}×${r.n}`:"紙紮效果");
 }
 function renderSeats(hlIds){
   const hl=id=>hlIds&&hlIds.includes(id);
@@ -5352,7 +5352,7 @@ function openSheet(i){
     <h3>${itemIcoInline(it)}${it.n}<span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></h3>
     ${/* 部隊預覽全文（招式名＋一句效果）改放這裡：卡面只留數字（覆審 HIGH-1 乙，使用者裁定） */""}
     ${unitRowText(it,ap,"full")}
-    ${!it.curse&&CFG.PAPERWAR_ON?`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・它在第 ${moon.r.beat} 拍出手`:""}</div>`:""}
+    ${!it.curse&&CFG.PAPERWAR_ON?`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・增幅在第 ${moon.r.beat} 拍生效`:""}</div>`:""}
     <div class="desc">${it.ab?("✦ "+itemAbilityText(it)+"<br>"):""}${it.d}${it.curse?`<br><b>${curseEffectText(it,true)}</b>`:(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
@@ -6671,7 +6671,7 @@ function showBag(pid){
         ?`<button class="tithebtn" title="供奉每夜 −${CFG.INC_TITHE} 壽命；送神回天之後不再扣，那一龕也不重開"
             onclick="giveUpLegend(${pid},'${x.n}')">🕯️ 送神回天</button>`:""}${
       x.legend?`<span class="mut" style="font-size:10.5px">・供奉每夜 −${CFG.INC_TITHE} 壽命</span>`:""}</span><b>${CFG.PAPERWAR_ON?"基礎戰力評估 ":"基礎戰力 "}${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜末失 ${x.drain} 壽命`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
-    ${CFG.PAPERWAR_ON&&p.bag.length?`<p class="mut" style="font-size:12px">戰力評估用於部分選敵效果；夜戰的紙紮攻擊、血量與招式見下方部隊。</p>`:""}
+    ${CFG.PAPERWAR_ON&&p.bag.length?`<p class="mut" style="font-size:12px">戰力評估用於部分選敵效果；夜戰的紙紮攻擊、血量與招式見下方部隊。可出手紙紮每拍皆會攻擊；作祟不普攻。本隊＝單件法寶的隊伍；本方＝持有者所有隊伍；前鋒＝非作祟紙紮。同名持有效果不重複疊加，夜戰招式依各自說明。</p>`:""}
     ${bonus}
     ${/* 部隊預覽（請神 2.0）：使用者試玩「持兩尊仍 12/12 全燒、看不出為什麼輸」——袋子全是 atk 0 的作祟型與護法。
          逐件的隻數／攻／血／拍／招式與最上方的總計都走引擎同一支 buildArmy＋TRAITS，不另抄規則。 */""}
