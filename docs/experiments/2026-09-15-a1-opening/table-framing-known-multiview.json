@@ -1,0 +1,1118 @@
+{
+  "report": {
+    "tool": "tests/tools/table-framing-check.mjs",
+    "mode": "known",
+    "viewports": [
+      "desktop-1280x720",
+      "mobile-852x393-safe59",
+      "natural-844x390"
+    ],
+    "cases": 3,
+    "passed": 0,
+    "failed": 3,
+    "pageErrors": [],
+    "failures": [
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "known-normal-slot2-winner0",
+        "slot": 2,
+        "kind": "normal",
+        "terminal": {
+          "beforeHide": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 346.8373620319244,
+            "right": 918.0164661971235,
+            "top": 120.87725127610864,
+            "bottom": 636.9190499046175,
+            "width": 571.1791041651991,
+            "height": 516.0417986285089,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          },
+          "rendererDt": 0.8666000000000009,
+          "expectedSeconds": 0.86
+        },
+        "failures": [
+          {
+            "phase": "push",
+            "index": 13,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 542.8838191561765,
+              "right": 746.4206760103565,
+              "top": 120.99999999999997,
+              "bottom": 441.6774805400813,
+              "width": 203.53685685417997,
+              "height": 320.6774805400813,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 14,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 529.6623836905707,
+              "right": 741.9542295416766,
+              "top": 120.99999999999997,
+              "bottom": 452.1996328080165,
+              "width": 212.2918458511059,
+              "height": 331.19963280801653,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 15,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 517.3641574416165,
+              "right": 737.855524317858,
+              "top": 120.99999999999997,
+              "bottom": 461.7023593871901,
+              "width": 220.4913668762415,
+              "height": 340.7023593871901,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 17,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 496.22157225922734,
+              "right": 732.085295838936,
+              "top": 120.99999999999997,
+              "bottom": 477.3907262684476,
+              "width": 235.86372357970862,
+              "height": 356.3907262684477,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 21,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 468.3531102145132,
+              "right": 724.8852798986355,
+              "top": 120.99999999999997,
+              "bottom": 496.76579674487374,
+              "width": 256.5321696841223,
+              "height": 375.7657967448738,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 28,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 456.23008365377444,
+              "right": 721.6975074288109,
+              "top": 120.99999999999993,
+              "bottom": 504.9719026374539,
+              "width": 265.4674237750365,
+              "height": 383.971902637454,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "known-normal-slot2-winner0",
+        "slot": 2,
+        "kind": "normal",
+        "terminal": {
+          "beforeHide": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 258.5759749937601,
+            "right": 377.50763078165255,
+            "top": 159.9499690874955,
+            "bottom": 299.41266117235267,
+            "width": 118.93165578789245,
+            "height": 139.46269208485717,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          },
+          "rendererDt": 0.8666000000000001,
+          "expectedSeconds": 0.86
+        },
+        "failures": [
+          {
+            "phase": "push",
+            "index": 28,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 367.250672288614,
+              "right": 461.47251716548163,
+              "top": 159.99999999999997,
+              "bottom": 301.99869236396574,
+              "width": 94.22184487686764,
+              "height": 141.99869236396577,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "flight",
+            "index": 47,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 260.91817290314435,
+              "right": 378.06531128843,
+              "top": 159.97873587544788,
+              "bottom": 297.67099814347364,
+              "width": 117.14713838528564,
+              "height": 137.69226226802576,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "known-normal-slot2-winner0",
+        "slot": 2,
+        "kind": "normal",
+        "terminal": {
+          "beforeHide": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 181.3933436976069,
+            "right": 363.62625327452344,
+            "top": 121.05373325044205,
+            "bottom": 312.52739495905655,
+            "width": 182.23290957691654,
+            "height": 191.4736617086145,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          },
+          "rendererDt": 0.8666000000000003,
+          "expectedSeconds": 0.86
+        },
+        "failures": [
+          {
+            "phase": "push",
+            "index": 16,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 362.29127869897997,
+              "right": 477.2390184577114,
+              "top": 120.99999999999996,
+              "bottom": 300.3751078515028,
+              "width": 114.94773975873142,
+              "height": 179.37510785150283,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 17,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 355.66611780857164,
+              "right": 475.03003609227716,
+              "top": 120.99999999999996,
+              "bottom": 305.49741629513954,
+              "width": 119.36391828370552,
+              "height": 184.4974162951396,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 20,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 340.1348536436283,
+              "right": 470.3473622441287,
+              "top": 120.99999999999999,
+              "bottom": 315.9967985966983,
+              "width": 130.21250860050043,
+              "height": 194.99679859669828,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 22,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 335.39046196915956,
+              "right": 467.38405030197976,
+              "top": 120.99999999999996,
+              "bottom": 315.99577369365574,
+              "width": 131.9935883328202,
+              "height": 194.9957736936558,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 27,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 330.0792553029143,
+              "right": 464.18123866835543,
+              "top": 120.99999999999996,
+              "bottom": 315.99508448969635,
+              "width": 134.10198336544113,
+              "height": 194.9950844896964,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          },
+          {
+            "phase": "push",
+            "index": 28,
+            "kind": "hud-overlap",
+            "name": "#feltHead",
+            "box": {
+              "lifecycle": "active",
+              "geometry": true,
+              "meshVertices": 136,
+              "left": 329.7584716927217,
+              "right": 464.0061379060166,
+              "top": 120.99999999999996,
+              "bottom": 315.9993372056872,
+              "width": 134.2476662132949,
+              "height": 194.99933720568725,
+              "scale": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "fixture": "known-normal-slot2-winner0",
+      "slot": 2,
+      "kind": "normal",
+      "key": "__current__",
+      "winner": 0,
+      "rects": {
+        "felt": {
+          "left": 336,
+          "top": 64,
+          "right": 944,
+          "bottom": 650,
+          "width": 608,
+          "height": 586,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 348,
+          "top": 74,
+          "right": 932,
+          "bottom": 117,
+          "width": 584,
+          "height": 43,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 900,
+          "top": 72,
+          "right": 934,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 164,
+          "top": 4,
+          "right": 1116,
+          "bottom": 60,
+          "width": 952,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 340,
+        "top": 68,
+        "right": 940,
+        "bottom": 646
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 344,
+          "top": 70,
+          "right": 936,
+          "bottom": 121
+        },
+        "#helpBtn": {
+          "left": 896,
+          "top": 68,
+          "right": 938,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 42,
+        "flight": 46,
+        "maxWidth": 559.3935402988235,
+        "maxHeight": 513.1960280358142,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 672.3669938767162,
+          "right": 797.7356916209941,
+          "top": 170.32958382394557,
+          "bottom": 397.96819491018005,
+          "width": 125.36869774427794,
+          "height": 227.63861108623448,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 346.8373620319244,
+          "right": 918.0164661971235,
+          "top": 120.87725127610864,
+          "bottom": 636.9190499046175,
+          "width": 571.1791041651991,
+          "height": 516.0417986285089,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666000000000009,
+        "expectedSeconds": 0.86
+      },
+      "failures": [
+        {
+          "phase": "push",
+          "index": 13,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 542.8838191561765,
+            "right": 746.4206760103565,
+            "top": 120.99999999999997,
+            "bottom": 441.6774805400813,
+            "width": 203.53685685417997,
+            "height": 320.6774805400813,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 14,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 529.6623836905707,
+            "right": 741.9542295416766,
+            "top": 120.99999999999997,
+            "bottom": 452.1996328080165,
+            "width": 212.2918458511059,
+            "height": 331.19963280801653,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 15,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 517.3641574416165,
+            "right": 737.855524317858,
+            "top": 120.99999999999997,
+            "bottom": 461.7023593871901,
+            "width": 220.4913668762415,
+            "height": 340.7023593871901,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 17,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 496.22157225922734,
+            "right": 732.085295838936,
+            "top": 120.99999999999997,
+            "bottom": 477.3907262684476,
+            "width": 235.86372357970862,
+            "height": 356.3907262684477,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 21,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 468.3531102145132,
+            "right": 724.8852798986355,
+            "top": 120.99999999999997,
+            "bottom": 496.76579674487374,
+            "width": 256.5321696841223,
+            "height": 375.7657967448738,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 28,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 456.23008365377444,
+            "right": 721.6975074288109,
+            "top": 120.99999999999993,
+            "bottom": 504.9719026374539,
+            "width": 265.4674237750365,
+            "height": 383.971902637454,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        }
+      ],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": false,
+      "viewport": "desktop-1280x720"
+    },
+    {
+      "fixture": "known-normal-slot2-winner0",
+      "slot": 2,
+      "kind": "normal",
+      "key": "__current__",
+      "winner": 0,
+      "rects": {
+        "felt": {
+          "left": 231,
+          "top": 64,
+          "right": 621,
+          "bottom": 306,
+          "width": 390,
+          "height": 242,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 243,
+          "top": 74,
+          "right": 609,
+          "bottom": 156,
+          "width": 366,
+          "height": 82,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 577,
+          "top": 72,
+          "right": 611,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 59,
+          "top": 4,
+          "right": 793,
+          "bottom": 60,
+          "width": 734,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 235,
+        "top": 68,
+        "right": 617,
+        "bottom": 302
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 239,
+          "top": 70,
+          "right": 613,
+          "bottom": 160
+        },
+        "#helpBtn": {
+          "left": 573,
+          "top": 68,
+          "right": 615,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 43,
+        "flight": 49,
+        "maxWidth": 117.31774329105485,
+        "maxHeight": 141.9992171370934,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 444.6175077380799,
+          "right": 512.5114216826431,
+          "top": 160.1722049826563,
+          "bottom": 283.7525648728402,
+          "width": 67.89391394456322,
+          "height": 123.5803598901839,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 258.5759749937601,
+          "right": 377.50763078165255,
+          "top": 159.9499690874955,
+          "bottom": 299.41266117235267,
+          "width": 118.93165578789245,
+          "height": 139.46269208485717,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666000000000001,
+        "expectedSeconds": 0.86
+      },
+      "failures": [
+        {
+          "phase": "push",
+          "index": 28,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 367.250672288614,
+            "right": 461.47251716548163,
+            "top": 159.99999999999997,
+            "bottom": 301.99869236396574,
+            "width": 94.22184487686764,
+            "height": 141.99869236396577,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "flight",
+          "index": 47,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 260.91817290314435,
+            "right": 378.06531128843,
+            "top": 159.97873587544788,
+            "bottom": 297.67099814347364,
+            "width": 117.14713838528564,
+            "height": 137.69226226802576,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        }
+      ],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": false,
+      "viewport": "mobile-852x393-safe59"
+    },
+    {
+      "fixture": "known-normal-slot2-winner0",
+      "slot": 2,
+      "kind": "normal",
+      "key": "__current__",
+      "winner": 0,
+      "rects": {
+        "felt": {
+          "left": 176,
+          "top": 64,
+          "right": 668,
+          "bottom": 320,
+          "width": 492,
+          "height": 256,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 188,
+          "top": 74,
+          "right": 656,
+          "bottom": 117,
+          "width": 468,
+          "height": 43,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 624,
+          "top": 72,
+          "right": 658,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 4,
+          "top": 4,
+          "right": 840,
+          "bottom": 60,
+          "width": 836,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 180,
+        "top": 68,
+        "right": 664,
+        "bottom": 316
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 184,
+          "top": 70,
+          "right": 660,
+          "bottom": 121
+        },
+        "#helpBtn": {
+          "left": 620,
+          "top": 68,
+          "right": 662,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 43,
+        "flight": 51,
+        "maxWidth": 178.94234037145722,
+        "maxHeight": 194.99989581476365,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 439.53253707074106,
+          "right": 507.44057466777576,
+          "top": 121.18363346775307,
+          "bottom": 244.49638496638204,
+          "width": 67.9080375970347,
+          "height": 123.31275149862897,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 136,
+          "left": 181.3933436976069,
+          "right": 363.62625327452344,
+          "top": 121.05373325044205,
+          "bottom": 312.52739495905655,
+          "width": 182.23290957691654,
+          "height": 191.4736617086145,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666000000000003,
+        "expectedSeconds": 0.86
+      },
+      "failures": [
+        {
+          "phase": "push",
+          "index": 16,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 362.29127869897997,
+            "right": 477.2390184577114,
+            "top": 120.99999999999996,
+            "bottom": 300.3751078515028,
+            "width": 114.94773975873142,
+            "height": 179.37510785150283,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 17,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 355.66611780857164,
+            "right": 475.03003609227716,
+            "top": 120.99999999999996,
+            "bottom": 305.49741629513954,
+            "width": 119.36391828370552,
+            "height": 184.4974162951396,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 20,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 340.1348536436283,
+            "right": 470.3473622441287,
+            "top": 120.99999999999999,
+            "bottom": 315.9967985966983,
+            "width": 130.21250860050043,
+            "height": 194.99679859669828,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 22,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 335.39046196915956,
+            "right": 467.38405030197976,
+            "top": 120.99999999999996,
+            "bottom": 315.99577369365574,
+            "width": 131.9935883328202,
+            "height": 194.9957736936558,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 27,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 330.0792553029143,
+            "right": 464.18123866835543,
+            "top": 120.99999999999996,
+            "bottom": 315.99508448969635,
+            "width": 134.10198336544113,
+            "height": 194.9950844896964,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        },
+        {
+          "phase": "push",
+          "index": 28,
+          "kind": "hud-overlap",
+          "name": "#feltHead",
+          "box": {
+            "lifecycle": "active",
+            "geometry": true,
+            "meshVertices": 136,
+            "left": 329.7584716927217,
+            "right": 464.0061379060166,
+            "top": 120.99999999999996,
+            "bottom": 315.9993372056872,
+            "width": 134.2476662132949,
+            "height": 194.99933720568725,
+            "scale": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          }
+        }
+      ],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": false,
+      "viewport": "natural-844x390"
+    }
+  ]
+}

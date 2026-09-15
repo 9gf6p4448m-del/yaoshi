@@ -1,0 +1,179 @@
+{
+ "shots": [
+  "docs/experiments/2026-09-15-a1-opening/baseline-desktop-title.png",
+  "docs/experiments/2026-09-15-a1-opening/baseline-desktop-select.png",
+  "docs/experiments/2026-09-15-a1-opening/baseline-desktop-table.png",
+  "docs/experiments/2026-09-15-a1-opening/baseline-desktop-table3d.png",
+  "docs/experiments/2026-09-15-a1-opening/baseline-desktop-mid.png"
+ ],
+ "info": {
+  "fov": 50,
+  "toneMapping": 4,
+  "exposure": 1.1,
+  "colorSpace": "srgb",
+  "shadow": false,
+  "pixelRatio": 2,
+  "calls": 1,
+  "tris": 2,
+  "fog": "FogExp2",
+  "bg": "#1c1330",
+  "env": false,
+  "lights": [
+   {
+    "t": "AmbientLight",
+    "i": 0.5,
+    "c": "#3a2450",
+    "shadow": false
+   },
+   {
+    "t": "HemisphereLight",
+    "i": 1.8,
+    "c": "#6b6a96",
+    "sky": "#8a5626",
+    "shadow": false
+   },
+   {
+    "t": "PointLight",
+    "i": 15.75,
+    "c": "#ffa855",
+    "shadow": false
+   },
+   {
+    "t": "PointLight",
+    "i": 2.05,
+    "c": "#a8402a",
+    "shadow": false
+   },
+   {
+    "t": "PointLight",
+    "i": 3.61,
+    "c": "#ffc070",
+    "shadow": false
+   },
+   {
+    "t": "PointLight",
+    "i": 9.98,
+    "c": "#d8e8ff",
+    "shadow": false
+   },
+   {
+    "t": "SpotLight",
+    "i": 34,
+    "c": "#ffeacc",
+    "shadow": false
+   },
+   {
+    "t": "SpotLight",
+    "i": 7.5,
+    "c": "#5f86e0",
+    "shadow": false
+   },
+   {
+    "t": "SpotLight",
+    "i": 10,
+    "c": "#f0a840",
+    "shadow": false
+   }
+  ]
+ },
+ "gate": {
+  "table": {
+   "calls": 78,
+   "tris": 18274,
+   "callsWithoutNew": 72,
+   "trisWithoutNew": 17456,
+   "camera": {
+    "x": 0,
+    "y": 2.065,
+    "z": 2.949
+   },
+   "fogDensity": 0.055
+  },
+  "farTable": {
+   "kind": "table",
+   "fars": [
+    {
+     "name": "far-temple",
+     "visible": true,
+     "shown": true,
+     "box": {
+      "minx": -1.5347,
+      "miny": 0.7603,
+      "maxx": -0.4298,
+      "maxy": 1.1839,
+      "clipped": 0,
+      "total": 8
+     },
+     "onScreen": true
+    },
+    {
+     "name": "far-arch",
+     "visible": true,
+     "shown": true,
+     "box": {
+      "minx": 0.3085,
+      "miny": 0.8886,
+      "maxx": 0.9118,
+      "maxy": 1.2017,
+      "clipped": 0,
+      "total": 8
+     },
+     "onScreen": true
+    },
+    {
+     "name": "far-banyan",
+     "visible": true,
+     "shown": true,
+     "box": {
+      "minx": -1.991,
+      "miny": 0.605,
+      "maxx": -0.8086,
+      "maxy": 1.1421,
+      "clipped": 0,
+      "total": 8
+     },
+     "onScreen": true
+    },
+    {
+     "name": "far-eaves",
+     "visible": true,
+     "shown": true,
+     "box": {
+      "minx": 0.4505,
+      "miny": 0.7198,
+      "maxx": 1.6235,
+      "maxy": 1.1287,
+      "clipped": 0,
+      "total": 8
+     },
+     "onScreen": true
+    },
+    {
+     "name": "far-stalls",
+     "visible": true,
+     "shown": true,
+     "box": {
+      "minx": -0.9787,
+      "miny": 0.9159,
+      "maxx": 0.0703,
+      "maxy": 1.1677,
+      "clipped": 0,
+      "total": 8
+     },
+     "onScreen": true
+    }
+   ]
+  },
+  "vignette": {
+   "exists": true,
+   "pointerEvents": "none",
+   "zIndex": "-1",
+   "canvasZ": "-2",
+   "hudId": "felt",
+   "hudPosition": "relative",
+   "hudZ": "auto",
+   "hitAtCorner": "BODY"
+  }
+ },
+ "errors": []
+}

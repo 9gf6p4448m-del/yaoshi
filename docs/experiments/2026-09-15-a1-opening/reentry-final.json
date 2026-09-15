@@ -1,0 +1,304 @@
+{
+  "page": "index.html",
+  "seed": 1,
+  "errors": [],
+  "pageerrors": [],
+  "version": "0.57.10",
+  "incMax": 3,
+  "control": {
+    "seed": 1,
+    "bump2": false,
+    "path": [
+      "1|不盯任何一件",
+      "1|蓋牌開標",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|查看成交總覽 ▸",
+      "1|🕯️ 請神"
+    ],
+    "round": 1,
+    "livesAtBid": [
+      50,
+      50,
+      44,
+      50
+    ],
+    "incAmtBefore": 0,
+    "incBtns": 2,
+    "plus1": {
+      "ok": 1,
+      "n": 2
+    },
+    "incAmtAfter": 1,
+    "atSummary": {
+      "txt": "🕯️ 請神",
+      "lives": [
+        50,
+        31,
+        44,
+        46
+      ],
+      "ra": 1,
+      "incEnv": "{\"0\":{\"amt\":1}}",
+      "incBtns": 0,
+      "incPlusDisabled": null,
+      "hasMarket": false
+    },
+    "atBattle": {
+      "lives": [
+        49,
+        30,
+        43,
+        45
+      ],
+      "ra": 1,
+      "round": 1
+    },
+    "raNight1": 1
+  },
+  "bug": {
+    "seed": 1,
+    "bump2": true,
+    "path": [
+      "1|不盯任何一件",
+      "1|蓋牌開標",
+      "1|開標 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|查看成交總覽 ▸",
+      "1|🕯️ 請神"
+    ],
+    "round": 1,
+    "livesAtBid": [
+      50,
+      50,
+      44,
+      50
+    ],
+    "incAmtBefore": 0,
+    "incBtns": 2,
+    "plus1": {
+      "ok": 1,
+      "n": 2
+    },
+    "incAmtAfter": 1,
+    "atSummary": {
+      "txt": "🕯️ 請神",
+      "lives": [
+        50,
+        31,
+        44,
+        46
+      ],
+      "ra": 1,
+      "incEnv": "{\"0\":{\"amt\":1}}",
+      "incBtns": 0,
+      "incPlusDisabled": null,
+      "hasMarket": false
+    },
+    "plus2": {
+      "ok": 0,
+      "why": "no .incbar button",
+      "n": 0
+    },
+    "afterPlus2": {
+      "txt": "🕯️ 請神",
+      "dis": false,
+      "hasMarket": false,
+      "round": 1,
+      "lives": [
+        50,
+        31,
+        44,
+        46
+      ],
+      "incAmt": 1,
+      "ra": 1
+    },
+    "A1_rewound": false,
+    "forced": {
+      "before": {
+        "txt": "🕯️ 請神",
+        "inc": 1,
+        "ra": 1,
+        "round": 1,
+        "hasMarket": false
+      },
+      "after": {
+        "txt": "🕯️ 請神",
+        "inc": 1,
+        "ra": 1,
+        "round": 1,
+        "hasMarket": false
+      },
+      "err": {}
+    },
+    "atBattle": {
+      "lives": [
+        49,
+        30,
+        43,
+        45
+      ],
+      "ra": 1,
+      "round": 1
+    },
+    "raNight1": 1
+  },
+  "hotseat": {
+    "seed": 1,
+    "path": [
+      "1|不盯任何一件",
+      "1|蓋牌，交給下一位",
+      "1|不盯任何一件",
+      "1|蓋牌開標",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|開標 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|下一件拍品 ▸",
+      "1|查看成交總覽 ▸",
+      "1|🕯️ 請神"
+    ],
+    "seats": [
+      {
+        "seat": 0,
+        "active": "蓋牌，交給下一位",
+        "before": 0,
+        "after": 1,
+        "plus": {
+          "ok": 1,
+          "n": 2
+        }
+      },
+      {
+        "seat": 1,
+        "active": "蓋牌開標",
+        "before": 0,
+        "after": 1,
+        "plus": {
+          "ok": 1,
+          "n": 2
+        }
+      }
+    ],
+    "atSummary": {
+      "txt": "🕯️ 請神",
+      "lives": [
+        50,
+        50,
+        47,
+        36
+      ],
+      "ra": 1
+    },
+    "plusAtSummary": {
+      "ok": 0,
+      "why": "no .incbar button",
+      "n": 0
+    },
+    "afterPlusAtSummary": {
+      "txt": "🕯️ 請神",
+      "hasMarket": false
+    },
+    "atBattle": {
+      "lives": [
+        49,
+        49,
+        46,
+        35
+      ],
+      "ra": 1,
+      "round": 1
+    }
+  },
+  "checks": {
+    "A1_no_rewind": {
+      "pass": true,
+      "mainbtnAfterPlus": "🕯️ 請神",
+      "hasMarket": false
+    },
+    "A2_life_once": {
+      "pass": true,
+      "control": [
+        49,
+        30,
+        43,
+        45
+      ],
+      "bug": [
+        49,
+        30,
+        43,
+        45
+      ],
+      "humanDelta": 0
+    },
+    "A3_one_auction": {
+      "pass": true,
+      "resolveAuctionCalls": 1,
+      "controlCalls": 1
+    },
+    "A4_1_plus_works": {
+      "pass": true,
+      "before": 0,
+      "after": 1
+    },
+    "A4_2_incense_burns": {
+      "pass": true,
+      "lifeAtSummary": 50,
+      "lifeAfterShrine": 49
+    },
+    "A7_gate_holds": {
+      "pass": true,
+      "before": {
+        "txt": "🕯️ 請神",
+        "inc": 1,
+        "ra": 1,
+        "round": 1,
+        "hasMarket": false
+      },
+      "after": {
+        "txt": "🕯️ 請神",
+        "inc": 1,
+        "ra": 1,
+        "round": 1,
+        "hasMarket": false
+      },
+      "err": {}
+    },
+    "A6_hotseat": {
+      "pass": true,
+      "seats": [
+        "0→1",
+        "0→1"
+      ],
+      "afterPlus": {
+        "txt": "🕯️ 請神",
+        "hasMarket": false
+      },
+      "ra": 1,
+      "round": 1
+    },
+    "A8_no_stall": {
+      "pass": true,
+      "control": null,
+      "bug": null,
+      "hotseat": null
+    }
+  },
+  "pass": true
+}
