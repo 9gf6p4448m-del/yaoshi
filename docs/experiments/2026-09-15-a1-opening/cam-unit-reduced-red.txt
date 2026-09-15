@@ -1,0 +1,9 @@
+Command: node tests/tools/cam-unit.mjs docs/experiments/2026-09-15-a1-opening/cam-unit-reduced-gate.json
+
+Exit: 1
+
+file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/tools/cam-unit.mjs:41
+const TRAIT_MS = msOf(2); // 這支治具驗的是 lean 的既有行為（＝完整版 tier 2）
+                 ^
+
+ReferenceError: msOf is not defined
