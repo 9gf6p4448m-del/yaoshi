@@ -12,8 +12,8 @@
 
 ────────────────────────────
 通過 8　失敗 0
-✔ tests\aistake.test.mjs (1951.2982ms)
-✔ 128 physical coins use the eight-sided square-hole geometry budget (1.2407ms)
+✔ tests\aistake.test.mjs (2142.4718ms)
+✔ 128 physical coins use the eight-sided square-hole geometry budget (1.1328ms)
 
 保守標上限伺服端夾 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -27,9 +27,9 @@
 
 ────────────────────────────
 通過 5　失敗 0
-✔ tests\conscap.test.mjs (1896.6689ms)
-✔ all five curse cards explain the actual attack penalty, including locked auctions (1.845ms)
-✔ legacy combat describes base power instead of inventing a paper-war penalty (0.4757ms)
+✔ tests\conscap.test.mjs (2089.6601ms)
+✔ all five curse cards explain the actual attack penalty, including locked auctions (2.5119ms)
+✔ legacy combat describes base power instead of inventing a paper-war penalty (0.5955ms)
 
 對決演出「沒兵仍出招／隻數不同步」行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -46,7 +46,7 @@
   PASS  hauntLost（魔神仔紅帽，三拍迷途）：全滅方不該再讓對面某隊三拍不出手
 
 結果：7 綠 ／ 0 紅
-✔ tests\duel-desync.test.mjs (624.6757ms)
+✔ tests\duel-desync.test.mjs (842.9612ms)
 徽記剪影互撞：30 個 kind ／ 435 對 ／ 同系門檻 0.8
   PASS  自我對照＝1.0（30/30）
   PASS  自我擾動（放大 1.5 倍）必須全部掉到 ≤0.50
@@ -79,7 +79,7 @@
    0.8000 drop      shade     同系 yinqi
 
 結果：9 綠 ／ 0 紅
-✔ tests\emblem-collision.test.mjs (1098.4729ms)
+✔ tests\emblem-collision.test.mjs (816.7065ms)
 三級視覺分級 F1：目標檔 index.html
   PASS  fx-consts.mjs 與頁面 PW_FX 的三張表逐鍵相同
   PASS  頁面 PW_FX 就是 fx-consts 那三張表（走真的載進來的物件，不是 regex）
@@ -97,7 +97,7 @@
   PASS  TRAITS 的 tier 欄位只掛在三尊三招上（其餘 27 支不寫，讀作 1）
 
 結果：14 綠 ／ 0 紅
-✔ tests\fxtier.test.mjs (627.1356ms)
+✔ tests\fxtier.test.mjs (690.9499ms)
 語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
   PASS  FX_PAL 三系四色與文件第 1 節逐格相同
   PASS  BEAT 三級四段與文件第 2 節逐格相同
@@ -132,11 +132,11 @@
   PASS  腳下語彙是 stain 的系別，本體色的相對亮度必須低於桌面（§B3「暗斑」）
 
 結果：30 綠 ／ 0 紅
-✔ tests\fxvocab.test.mjs (828.7173ms)
-✔ 命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明 (1.9803ms)
-✔ 三種高光轉場由單一純讀取 CUTS 表定義 (1.42ms)
-✔ 轉場只能由真人演出點消費，且每局每種最多一次 (3.1174ms)
-✔ 高光轉場保持 reduced-motion 的靜態替代路徑 (1.2768ms)
+✔ tests\fxvocab.test.mjs (804.3409ms)
+✔ 命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明 (2.2122ms)
+✔ 三種高光轉場由單一純讀取 CUTS 表定義 (1.0408ms)
+✔ 轉場只能由真人演出點消費，且每局每種最多一次 (3.0072ms)
+✔ 高光轉場保持 reduced-motion 的靜態替代路徑 (1.0316ms)
   PASS  H5①請神夜：香火**不綁尊**——燒在哪一格都算同一個池，第一個請神夜由池最高的人請神
   PASS  H5①同分：依「本夜風位起順時針」的第一個人請神（不是座位 0 恆贏）
   PASS  H5①已持有者不參加：他的香火再高也不得，該夜由「還沒請到的人」裡最高者請神
@@ -171,7 +171,7 @@
   PASS  決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎段零 Math.random
 
 32 過 / 0 失敗
-✔ tests\legend.test.mjs (3990.0421ms)
+✔ tests\legend.test.mjs (4353.3917ms)
 陣列卷 G1：目標檔 index.html
   PASS  fac 序列＝祖靈…→香火…→陰氣…（不是取得順序）
   PASS  id 指回 buildArmy 展開的同索引單位（body／fac／ab 逐項相同）
@@ -182,11 +182,11 @@
   PASS  紅暈側別：熱座兩位真人對打時**兩側都閃**（各自被打各自閃）
   PASS  紅暈側別：座位物件缺失時不當成真人（不會誤閃）
 結果：8 綠 ／ 0 紅
-✔ tests\lineup-order.test.mjs (653.2622ms)
-✔ 同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立 (248.7472ms)
-✔ 盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空 (25.5187ms)
-✔ 盯牌在陰影、出價、揭盅與換夜後仍保持原始牌面比例 (48.2248ms)
-✔ disposing the tray releases its moon-ring instance buffer (2.3207ms)
+✔ tests\lineup-order.test.mjs (688.0779ms)
+✔ 同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立 (216.7283ms)
+✔ 盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空 (8.5382ms)
+✔ 盯牌在陰影、出價、揭盅與換夜後仍保持原始牌面比例 (53.2774ms)
+✔ disposing the tray releases its moon-ring instance buffer (1.3686ms)
 
 今夜市集規則 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -212,22 +212,22 @@
   PASS  simulate() 與 playPolicyGame() 在規則開啟下 seeds 1..10 結果一致
 
 結果：16 綠 ／ 0 紅
-✔ tests\nightrules.test.mjs (2409.0878ms)
-✔ 128-coin perf mode fills every legal seat and market slot through product bids (5.7219ms)
-✔ 128-coin gate rejects a command that omits the required performance mode (1306.9189ms)
-✔ 128-coin performance samples precompile the actual scene before timing (0.2348ms)
-✔ 128-coin speed gate uses the interleaved five-run median, not one scheduler outlier (0.2067ms)
-✔ 首頁、更新探針與資產快取使用相同發布版本 (3.9261ms)
-✔ 舊主畫面版本可以發現本次發布；同版與舊版不提示 (52.3913ms)
-✔ 揭盅維持 3D 牌桌可見，且不再用黑幕切換 (1.4261ms)
-✔ 托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態 (0.2701ms)
-✔ 道具層有廉價接觸陰影並能把開標錢堆並排保留 (0.3071ms)
-✔ 揭盅卡不撞夜況列，完整列出比價與結果 (0.5774ms)
-✔ 揭盅先播錢柱與法寶飛行，再顯示固定的比價卡 (0.9063ms)
-✔ 逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤 (0.4236ms)
-✔ 逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作 (0.267ms)
-✔ 揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀 (0.3844ms)
-✔ 局末只留一個進入完整回顧的入口，策略建議不以心願硬優先 (1.2146ms)
+✔ tests\nightrules.test.mjs (2784.0981ms)
+✔ 128-coin perf mode fills every legal seat and market slot through product bids (6.5892ms)
+✔ 128-coin gate rejects a command that omits the required performance mode (1526.4598ms)
+✔ 128-coin performance samples precompile the actual scene before timing (0.1818ms)
+✔ 128-coin speed gate uses the interleaved five-run median, not one scheduler outlier (0.2162ms)
+✔ 首頁、更新探針與資產快取使用相同發布版本 (0.9518ms)
+✔ 舊主畫面版本可以發現本次發布；同版與舊版不提示 (43.0725ms)
+✔ 揭盅維持 3D 牌桌可見，且不再用黑幕切換 (1.6467ms)
+✔ 托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態 (0.2612ms)
+✔ 道具層有廉價接觸陰影並能把開標錢堆並排保留 (0.3357ms)
+✔ 揭盅卡不撞夜況列，完整列出比價與結果 (0.6934ms)
+✔ 揭盅先播錢柱與法寶飛行，再顯示固定的比價卡 (5.2515ms)
+✔ 逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤 (0.7665ms)
+✔ 逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作 (0.3794ms)
+✔ 揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀 (1.1266ms)
+✔ 局末只留一個進入完整回顧的入口，策略建議不以心願硬優先 (1.1025ms)
   PASS  seed 3：S.history 存在且形狀正確
   PASS  seed 3：壽命曲線長度 = 夜數+1，每筆 = 玩家數
   PASS  seed 3：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
@@ -259,7 +259,7 @@
   PASS  活性：三個種子合計有出價、有毒標、有死亡、有心願達成（不是空紀錄）
 ────────────────────────────
 通過 28　失敗 0
-✔ tests\review.test.mjs (2727.1686ms)
+✔ tests\review.test.mjs (2548.7612ms)
   PASS  斷手書生：同系 4 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）
   PASS  斷手書生：同系 4 件時整場紙紮夜戰的結果真的變好（不只是帳面戰力）
   PASS  斷手書生：不足 4 件時不生效（被動不是恆真式）
@@ -294,27 +294,27 @@
   PASS  紅衣婆婆 B：玩家座位的記仇換得到東西（對仇人主力陣營的拍品比價 +3）
 
 角色平衡卷單元測試：32 過 / 0 失敗
-✔ tests\roles-balance.test.mjs (1995.3063ms)
-✔ posedBounds conservatively contains every POOL skin pose across every authored clip (2745.5151ms)
-✔ posedBounds covers mixed and non-normalized skin weights (2.9265ms)
-✔ framing samples the same attached skin pose as the next render after moving its root (15.2759ms)
-✔ framing moves an intact projected subject away from HUD using the least displacement (7.811ms)
-✔ flight depth prevents approach magnification and projection counts only visible geometry (18.0869ms)
-✔ adaptive camera retreats to fit HUD space without changing model scale (4.4443ms)
-✔ instanced stamps participate at their actual instance positions in a framing union (1.5674ms)
+✔ tests\roles-balance.test.mjs (2012.4606ms)
+✔ posedBounds conservatively contains every POOL skin pose across every authored clip (3288.7893ms)
+✔ posedBounds covers mixed and non-normalized skin weights (7.6497ms)
+✔ framing samples the same attached skin pose as the next render after moving its root (20.5863ms)
+✔ framing moves an intact projected subject away from HUD using the least displacement (2.8289ms)
+✔ flight depth prevents approach magnification and projection counts only visible geometry (19.6451ms)
+✔ adaptive camera retreats to fit HUD space without changing model scale (3.1104ms)
+✔ instanced stamps participate at their actual instance positions in a framing union (1.6547ms)
 tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat wiring PASS
-✔ tests\tier1-push.test.mjs (700.4688ms)
-✔ scene-shot only fixes the ordinary UI journey when --seed is explicit and reports it (3.3113ms)
-✔ market card capture accepts a repo-relative output and pins baseline git reads (1.2277ms)
-✔ iphone layout capture accepts a repo-relative output without changing its default (0.4671ms)
-✔ public reveal capture accepts URL and repo-relative output while keeping seed/defaults (0.4973ms)
-✔ tool option guards reject unsafe paths before starting a browser (2957.0772ms)
-✔ baseline and URL options reject invalid combinations before capture (2422.1177ms)
-✔ scene-shot rejects an invalid explicit seed before capture (786.455ms)
-✔ scene-shot rejects an empty explicit seed instead of silently using seed 1 (738.51ms)
-✔ 3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage (1.8128ms)
-✔ 從側欄查看拍品時，3D 桌上同一件也會進入檢視態 (0.4785ms)
-✔ 首頁顯示可核對的發布版本 (0.4184ms)
+✔ tests\tier1-push.test.mjs (689.0124ms)
+✔ scene-shot only fixes the ordinary UI journey when --seed is explicit and reports it (3.5197ms)
+✔ market card capture accepts a repo-relative output and pins baseline git reads (0.9694ms)
+✔ iphone layout capture accepts a repo-relative output without changing its default (0.5924ms)
+✔ public reveal capture accepts URL and repo-relative output while keeping seed/defaults (0.5895ms)
+✔ tool option guards reject unsafe paths before starting a browser (3257.4801ms)
+✔ baseline and URL options reject invalid combinations before capture (2480.9039ms)
+✔ scene-shot rejects an invalid explicit seed before capture (656.0945ms)
+✔ scene-shot rejects an empty explicit seed instead of silently using seed 1 (686.9728ms)
+✔ 3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage (11.5475ms)
+✔ 從側欄查看拍品時，3D 桌上同一件也會進入檢視態 (0.3973ms)
+✔ 首頁顯示可核對的發布版本 (8.2123ms)
 
 心願第二批 16 張 行為測試　目標檔：C:\Users\shung\OneDrive\桌面\妖市\index.html
 
@@ -361,7 +361,7 @@ tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat
   PASS  禍水東引：市場無詛咒品 → 不發；有則發且鎖定壽命最高對手
 
 結果：PASS=36 FAIL=0
-✔ tests\wish16.test.mjs (3133.8392ms)
+✔ tests\wish16.test.mjs (3263.387ms)
 ℹ tests 57
 ℹ suites 0
 ℹ pass 57
@@ -369,4 +369,4 @@ tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 8412.1943
+ℹ duration_ms 8778.8446
