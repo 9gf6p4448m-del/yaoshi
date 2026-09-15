@@ -45,7 +45,7 @@ try {
     const V = window.__yaoshi3d;
     const models = V.tray.group.children.filter(node => node.isObject3D && node.visible && !node.name);
     const baseline = new Map(models.map(node => [node.uuid, node.position.clone()]));
-    const log = { slots: [], skipAt: null, awards: [], frames: [], done: false };
+    const log = { slots: [], skipAt: null, awards: [], cards: [], frames: [], done: false };
     window.__tableFramingSkip = log;
     document.addEventListener('ys:reveal-slot', event => {
       log.slots.push({ slot: event.detail?.slot, t: performance.now() });
@@ -55,11 +55,14 @@ try {
       setTimeout(() => { log.skipAt = performance.now(); window.doSkip(); }, 120);
     });
     document.addEventListener('ys:reveal-result', event => log.awards.push({ slot: event.detail?.slot, t: performance.now() }));
+    document.addEventListener('ys:reveal-card', () => log.cards.push({ t: performance.now() }));
     const started = performance.now();
     const sample = () => {
       const moving = models.some(node => node.visible && node.position.distanceTo(baseline.get(node.uuid)) > .01);
-      if (log.skipAt !== null) log.frames.push({ t: performance.now() - log.skipAt, moving, framing: V.framing?.active === true });
-      if (log.skipAt === null || performance.now() - log.skipAt < 2200) requestAnimationFrame(sample); else log.done = true;
+      if (log.skipAt !== null) log.frames.push({ t: performance.now() - log.skipAt, moving,
+        active: V.framing?.active === true, fit: V.framing?.fit === true,
+        card: !!document.querySelector('#revealCard'), viewOffset: V.camera.view?.enabled === true });
+      if (log.skipAt === null || performance.now() - log.skipAt < 3600) requestAnimationFrame(sample); else log.done = true;
     };
     requestAnimationFrame(sample);
   });
@@ -75,9 +78,14 @@ try {
   await page.waitForFunction(() => window.__tableFramingSkip?.done, null, { timeout: 10000 });
   const result = await page.evaluate(() => window.__tableFramingSkip);
   const flight = result.frames.filter(row => row.moving);
-  const uncovered = flight.filter(row => !row.framing);
-  const pass = result.slots.length > 0 && result.skipAt !== null && result.awards.length > 0 && flight.length > 0 && uncovered.length === 0 && errors.length === 0;
-  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', slots: result.slots, skipAt: result.skipAt, awards: result.awards, frameCount: result.frames.length, flightFrames: flight.length, unframedFlightFrames: uncovered.length, firstUnframed: uncovered[0] || null, errors, pass }, null, 2));
+  const uncovered = flight.filter(row => !row.active || !row.fit);
+  const finalFlight = flight.at(-1)?.t;
+  // A skipped card can arrive before table-tray reaches terminal.  The camera
+  // may stay fitted through that real flight, then must release within 300ms.
+  const settledCard = Number.isFinite(finalFlight) ? result.frames.filter(row => row.t > finalFlight + 350) : [];
+  const restored = settledCard.length > 0 && settledCard.every(row => !row.viewOffset);
+  const pass = result.slots.length > 0 && result.skipAt !== null && result.awards.length > 0 && result.cards.length > 0 && flight.length > 0 && uncovered.length === 0 && restored && errors.length === 0;
+  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', slots: result.slots, skipAt: result.skipAt, awards: result.awards, cards: result.cards, frameCount: result.frames.length, flightFrames: flight.length, unframedFlightFrames: uncovered.length, firstUnframed: uncovered[0] || null, settledCardFrames: settledCard.length, viewOffsetRestored: restored, errors, pass }, null, 2));
   if (!pass) process.exitCode = 1;
   await ctx.close();
 } finally {
