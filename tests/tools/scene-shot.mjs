@@ -42,6 +42,7 @@ const PERF = !!opt.perf;
 const GATE128 = !!opt.gate128;
 const RUNS = Number(opt.runs || 5);
 const EXPLICIT_SEED = opt.seed !== undefined;
+if (EXPLICIT_SEED && (opt.seed === '' || opt.seed === true)) throw new Error('--seed 不得為空');
 const SEED = Number(opt.seed || 1);
 if (!Number.isFinite(SEED)) throw new Error('--seed 必須是數字');
 /* 預設保留舊 32 枚量測；`--coins=128` 才進使用者裁定的全合法格壓力情境。 */

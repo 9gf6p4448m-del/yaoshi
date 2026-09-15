@@ -30,6 +30,7 @@ if (baselineRef && !baseline) throw new Error('--baseline-ref 只可搭配 --bas
 if (baseline && !baselineRef) throw new Error('--baseline 必須指定 --baseline-ref=<SHA>，不得隨 HEAD 漂移');
 if (baselineRef && !/^[0-9a-f]{7,40}$/i.test(baselineRef))
   throw new Error('--baseline-ref 必須是 7–40 位十六進位 commit SHA');
+const BASELINE_PROVENANCE = { baselineScope: 'DOM/CSS-only' };
 fs.mkdirSync(out, { recursive: true });
 const server = await serve(root, 8978);
 let browser;
@@ -114,8 +115,9 @@ try {
   check('desktop shows four cards and no page buttons', (await page.locator('.rail .mcard:visible').count())===4 && (await page.locator('.railTabs:visible').count())===0);
   await page.screenshot({path:path.join(out,'desktop-four-cards.png'),scale:'css'});
   }
-  fs.writeFileSync(path.join(out, baseline?'baseline-result.json':'result.json'), JSON.stringify({ synthetic: true, baseline, baselineRef: baselineRef || null, errors, checks }, null, 2));
-  console.log(JSON.stringify({ out, baselineRef: baselineRef || null, errors, checks }));
+  const provenance = baseline ? BASELINE_PROVENANCE : {};
+  fs.writeFileSync(path.join(out, baseline?'baseline-result.json':'result.json'), JSON.stringify({ synthetic: true, baseline, baselineRef: baselineRef || null, ...provenance, errors, checks }, null, 2));
+  console.log(JSON.stringify({ out, baselineRef: baselineRef || null, ...provenance, errors, checks }));
   if (errors.length || checks.some(x => !x.pass)) process.exitCode = 1;
 } finally {
   try { await browser?.close(); } finally { server.kill(); }
