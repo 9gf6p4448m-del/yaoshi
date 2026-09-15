@@ -31,6 +31,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { msOf } from './fx-consts.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const req = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'));
