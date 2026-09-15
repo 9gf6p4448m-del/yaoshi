@@ -25,6 +25,7 @@ const requestedUrl = valueOf('url');
 if (requestedUrl && !['http:', 'https:'].includes(new URL(requestedUrl).protocol))
   throw new Error('--url 必須是 http(s) URL');
 const out = repoOutput(valueOf('out'), 'docs/experiments/2026-09-15-item-copy');
+const bagOnly = process.argv.includes('--bag-only');
 const targetUrl = requestedUrl || 'http://127.0.0.1:8995/';
 const localHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const normalizeCrLf = value => value.replace(/\r\n?/g, '\n');
@@ -187,10 +188,12 @@ try {
 
   for (const viewport of views) {
     await page.setViewportSize(viewport);
-    for (const item of inventory.auction) {
-      await renderCard(item, 'mark', viewport);
-      await renderCard(item, 'bid', viewport);
-      await inspectSheet(item, viewport);
+    if (!bagOnly) {
+      for (const item of inventory.auction) {
+        await renderCard(item, 'mark', viewport);
+        await renderCard(item, 'bid', viewport);
+        await inspectSheet(item, viewport);
+      }
     }
 
     await page.evaluate(() => {
@@ -214,7 +217,15 @@ try {
         const effect = row.querySelector('.umd') || row, range = document.createRange();
         range.selectNodeContents(effect);
         const rect = range.getBoundingClientRect(), box = element.getBoundingClientRect();
+        const name = row.matches('.uprev.mut') ? row.querySelector(':scope > span') : null;
+        const nameRange = document.createRange();
+        if (name) nameRange.selectNodeContents(name);
+        const nameRect = name ? nameRange.getBoundingClientRect() : null;
+        const nameStyle = name ? getComputedStyle(name) : null;
+        const lineHeight = name ? (parseFloat(nameStyle.lineHeight) || parseFloat(nameStyle.fontSize) * 1.2) : null;
         return { text: row.innerText, effectText: effect.textContent,
+          curseName: name ? { text: name.textContent, height: nameRect.height, lineHeight,
+            singleLine: Number.isFinite(lineHeight) && nameRect.height <= lineHeight * 1.5 } : null,
           readable: rect.width > 0 && rect.height > 0 && inside(box, rect) && inside(safe, rect) };
       };
       const primaryAll = [...element.querySelectorAll(':scope > .bagit:not(.bagsum):not(.uprev)')];
@@ -243,15 +254,17 @@ try {
     await page.evaluate(() => closeModal());
   }
 
-  await page.evaluate(() => openHelp());
-  await settle(page);
-  help = await page.locator('#modalbox').evaluate(element => ({
-    text: element.innerText,
-    visible: getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().width > 0
-      && element.getBoundingClientRect().height > 0,
-  }));
-  check('formal help uses market valuation language without combat power copy', help.visible && /行情/.test(help.text) && !/戰力/.test(help.text), help);
-  await page.evaluate(() => closeModal());
+  if (!bagOnly) {
+    await page.evaluate(() => openHelp());
+    await settle(page);
+    help = await page.locator('#modalbox').evaluate(element => ({
+      text: element.innerText,
+      visible: getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().width > 0
+        && element.getBoundingClientRect().height > 0,
+    }));
+    check('formal help uses market valuation language without combat power copy', help.visible && /行情/.test(help.text) && !/戰力/.test(help.text), help);
+    await page.evaluate(() => closeModal());
+  }
 
   const cardFailures = cards.filter(row => !row.visible || !row.readable || !row.summaryOK);
   const sheetFailures = sheets.filter(row => !row.copyOK || !row.valuationOK || !row.reachedBottom || row.ranges.some(range => !range.readable));
@@ -261,16 +274,19 @@ try {
     const ok = bag.primaryItemCount === 36 && bag.previewItemCount === 36
       && primary && preview && primary.text.includes(item.name) && preview.text.includes(item.name)
       && !/戰力/.test(primary.text) && preview.readable
+      && (!item.curse || preview.curseName?.singleLine)
       && (PURE_POWER.has(item.ab) ? !has(primary.text, item.abilityDesc) && !/戰力評估/.test(primary.text) : has(primary.text, item.abilityDesc))
       && (item.curse ? fullCurse(item.name, preview.text)
         : has(preview.text, item.move) && has(preview.text, item.traitDesc));
     if (!ok) bagFailures.push({ viewport: bag.viewport, item: item.name, primary, preview });
   });
-  check('all mark and bid card summaries are readable', cardFailures.length === 0, cardFailures);
-  check('all 32 auction sheets expose complete readable effects', sheetFailures.length === 0, sheetFailures);
+  if (!bagOnly) {
+    check('all mark and bid card summaries are readable', cardFailures.length === 0, cardFailures);
+    check('all 32 auction sheets expose complete readable effects', sheetFailures.length === 0, sheetFailures);
+  }
   check('all 36 bag items expose complete effects without retired power copy', bagFailures.length === 0, bagFailures);
 
-  const result = { syntheticFixture: true, naturalPlaythrough: false, eventCurseFixture: '王船煞 is render-only here and does not enter the auction market', url: targetUrl, sourceIdentity,
+  const result = { syntheticFixture: true, naturalPlaythrough: false, bagOnly, eventCurseFixture: '王船煞 is render-only here and does not enter the auction market', url: targetUrl, sourceIdentity,
     safeInsets: { top: 0, right: 59, bottom: 21, left: 59 }, views, errors, checks, cards, sheets, bags, help, captures,
     summary: { passed: checks.filter(row => row.pass).length, failed: checks.filter(row => !row.pass).length } };
   fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify(result, null, 2));
