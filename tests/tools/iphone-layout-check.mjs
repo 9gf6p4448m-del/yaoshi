@@ -8,7 +8,18 @@ import { serve } from './duel-drive.mjs';
 
 const root = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium, devices } = createRequire(path.join(root, 'tools/anyCreature/package.json'))('playwright');
-const out = path.join(root, 'docs/experiments/2026-09-15-iphone-standalone');
+const outArg = process.argv.slice(2).find(value => value.startsWith('--out='))?.slice('--out='.length);
+const repoOutput = (value, fallback) => {
+  if (value === undefined) return path.join(root, fallback);
+  if (!value || path.isAbsolute(value)) throw new Error('--out 必須是非空的 repo 相對路徑');
+  const resolved = path.resolve(root, value);
+  const relative = path.relative(root, resolved);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))
+    throw new Error('--out 不得離開 repo');
+  return resolved;
+};
+// --out=docs/... preserves the historical default captures.
+const out = repoOutput(outArg, 'docs/experiments/2026-09-15-iphone-standalone');
 fs.mkdirSync(out, { recursive: true });
 const server = await serve(root, 8974);
 let browser;
@@ -145,6 +156,6 @@ try {
     fixture: 'landscape 852x393, safe T/R/B/L=0/59/21/59; portrait 393x852,59/0/34/0; synthetic, not measured',
     checks, captures, errors };
   fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify(result, null, 2));
-  console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify({ out, ...result }, null, 2));
 }
 if (checks.some(c => !c.pass)) process.exitCode = 1;

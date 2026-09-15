@@ -41,7 +41,9 @@ const GATE = !!opt.gate;
 const PERF = !!opt.perf;
 const GATE128 = !!opt.gate128;
 const RUNS = Number(opt.runs || 5);
+const EXPLICIT_SEED = opt.seed !== undefined;
 const SEED = Number(opt.seed || 1);
+if (!Number.isFinite(SEED)) throw new Error('--seed 必須是數字');
 /* 預設保留舊 32 枚量測；`--coins=128` 才進使用者裁定的全合法格壓力情境。 */
 const COINS = Number(opt.coins || 32);
 if (![32, 128].includes(COINS)) throw new Error('--coins 只接受 32 或 128');
@@ -348,7 +350,8 @@ async function main() {
     const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2 });
     page.on('pageerror', (e) => errs.push('pageerror: ' + String(e)));
     page.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
-    await page.goto(`http://127.0.0.1:${PORT}/index.html?paperwar=1`, { waitUntil: 'load' });
+    const captureQuery = `paperwar=1${EXPLICIT_SEED ? '&fxcount=1&seed=' + encodeURIComponent(SEED) : ''}`;
+    await page.goto(`http://127.0.0.1:${PORT}/index.html?${captureQuery}`, { waitUntil: 'load' });
     await page.waitForTimeout(1500);
     await page.screenshot({ path: OUT + '-title.png' }); shots.push(OUT + '-title.png');
     await page.click('button:has-text("單人入市")');
@@ -466,13 +469,16 @@ async function main() {
       const Y3 = window.__yaoshi3d; if (!Y3) return null;
       const r = Y3.renderer; const cam = Y3.camera;
       return { fov: cam && cam.fov, toneMapping: r && r.toneMapping, exposure: r && r.toneMappingExposure, colorSpace: r && r.outputColorSpace,
+        gameSeed: window.__yaoshi && window.__yaoshi.S ? window.__yaoshi.S.seed : null,
         shadow: r && r.shadowMap && r.shadowMap.enabled, pixelRatio: r && r.getPixelRatio(), calls: r && r.info.render.calls, tris: r && r.info.render.triangles,
         fog: Y3.scene.fog ? (Y3.scene.fog.isFogExp2 ? 'FogExp2' : 'Fog') : null, bg: Y3.scene.background ? (Y3.scene.background.isColor ? '#' + Y3.scene.background.getHexString() : Y3.scene.background.type) : null,
         env: !!Y3.scene.environment,
         lights: (() => { const L = []; Y3.scene.traverse((o) => { if (o.isLight) L.push({ t: o.type, i: +o.intensity.toFixed(2), c: '#' + (o.color ? o.color.getHexString() : ''), sky: o.groundColor ? '#' + o.groundColor.getHexString() : undefined, shadow: !!o.castShadow }); }); return L; })() };
     });
     await browser.close();
-    console.log(JSON.stringify({ shots, info, gate: GATE ? gate : undefined, errors: errs }, null, 1));
+    console.log(JSON.stringify({ mode: 'capture', seed: info && info.gameSeed,
+      seedSource: EXPLICIT_SEED ? 'cli' : 'ui-random',
+      shots, info, gate: GATE ? gate : undefined, errors: errs }, null, 1));
     process.exit(errs.length === 0 ? 0 : 1);
   } finally { srv.kill(); }
 }

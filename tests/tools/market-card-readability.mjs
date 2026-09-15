@@ -8,8 +8,28 @@ import { execFileSync } from 'node:child_process';
 import { serve } from './duel-drive.mjs';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const { chromium } = createRequire(path.join(root, 'tools/anyCreature/package.json'))('playwright');
-const out = path.join(root, 'docs/experiments/2026-09-15-market-card-readability');
+const optionValue = name => {
+  const prefix = `--${name}=`;
+  const arg = process.argv.slice(2).find(value => value.startsWith(prefix));
+  return arg === undefined ? undefined : arg.slice(prefix.length);
+};
+const repoOutput = (value, fallback) => {
+  if (value === undefined) return path.join(root, fallback);
+  if (!value || path.isAbsolute(value)) throw new Error('--out 必須是非空的 repo 相對路徑');
+  const resolved = path.resolve(root, value);
+  const relative = path.relative(root, resolved);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))
+    throw new Error('--out 不得離開 repo');
+  return resolved;
+};
+// --out=docs/... keeps a new capture away from the historical default evidence.
+const out = repoOutput(optionValue('out'), 'docs/experiments/2026-09-15-market-card-readability');
 const baseline = process.argv.includes('--baseline');
+const baselineRef = optionValue('baseline-ref'); // --baseline-ref=<SHA>
+if (baselineRef && !baseline) throw new Error('--baseline-ref 只可搭配 --baseline');
+if (baseline && !baselineRef) throw new Error('--baseline 必須指定 --baseline-ref=<SHA>，不得隨 HEAD 漂移');
+if (baselineRef && !/^[0-9a-f]{7,40}$/i.test(baselineRef))
+  throw new Error('--baseline-ref 必須是 7–40 位十六進位 commit SHA');
 fs.mkdirSync(out, { recursive: true });
 const server = await serve(root, 8978);
 let browser;
@@ -19,8 +39,8 @@ try {
   browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 852, height: 393 }, hasTouch: true });
   if (baseline) {
-    const html=execFileSync('git',['show','HEAD:index.html'],{cwd:root,encoding:'utf8'});
-    const css=execFileSync('git',['show','HEAD:assets/safe-area.css'],{cwd:root,encoding:'utf8'});
+    const html=execFileSync('git',['show',`${baselineRef}:index.html`],{cwd:root,encoding:'utf8'});
+    const css=execFileSync('git',['show',`${baselineRef}:assets/safe-area.css`],{cwd:root,encoding:'utf8'});
     await page.route('http://127.0.0.1:8978/',route=>route.fulfill({body:html,contentType:'text/html'}));
     await page.route('**/assets/safe-area.css*',route=>route.fulfill({body:css,contentType:'text/css'}));
   }
@@ -94,8 +114,8 @@ try {
   check('desktop shows four cards and no page buttons', (await page.locator('.rail .mcard:visible').count())===4 && (await page.locator('.railTabs:visible').count())===0);
   await page.screenshot({path:path.join(out,'desktop-four-cards.png'),scale:'css'});
   }
-  fs.writeFileSync(path.join(out, baseline?'baseline-result.json':'result.json'), JSON.stringify({ synthetic: true, baseline, errors, checks }, null, 2));
-  console.log(JSON.stringify({ errors, checks }));
+  fs.writeFileSync(path.join(out, baseline?'baseline-result.json':'result.json'), JSON.stringify({ synthetic: true, baseline, baselineRef: baselineRef || null, errors, checks }, null, 2));
+  console.log(JSON.stringify({ out, baselineRef: baselineRef || null, errors, checks }));
   if (errors.length || checks.some(x => !x.pass)) process.exitCode = 1;
 } finally {
   try { await browser?.close(); } finally { server.kill(); }

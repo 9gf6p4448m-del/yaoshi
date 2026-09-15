@@ -4,9 +4,29 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../..', import.meta.url));
-const seed = Number(process.argv[2] || 1);
+const seed = Number(process.argv.slice(2).find(value => !value.startsWith('--')) || 1);
+if (!Number.isFinite(seed)) throw new Error('seed 必須是數字');
+const optionValue = name => {
+  const prefix = `--${name}=`;
+  const arg = process.argv.slice(2).find(value => value.startsWith(prefix));
+  return arg === undefined ? undefined : arg.slice(prefix.length);
+};
+const repoOutput = (value, fallback) => {
+  if (value === undefined) return path.join(root, fallback);
+  if (!value || path.isAbsolute(value)) throw new Error('--out 必須是非空的 repo 相對路徑');
+  const resolved = path.resolve(root, value);
+  const relative = path.relative(root, resolved);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))
+    throw new Error('--out 不得離開 repo');
+  return resolved;
+};
+const url = optionValue('url') || 'https://9gf6p4448m-del.github.io/yaoshi/'; // --url=http://127.0.0.1:PORT/
+let parsedUrl;
+try { parsedUrl = new URL(url); } catch { throw new Error('--url 必須是有效的 http(s) URL'); }
+if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('--url 只接受 http(s) URL');
 const { chromium } = createRequire(path.join(root, 'tools/anyCreature/package.json'))('playwright');
-const out = path.join(root, `docs/experiments/2026-09-15-public-reveal-evidence/seed-${seed}`);
+// --out=docs/... lets candidate runs coexist with the published evidence.
+const out = repoOutput(optionValue('out'), `docs/experiments/2026-09-15-public-reveal-evidence/seed-${seed}`);
 fs.mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
 try {
@@ -14,8 +34,8 @@ try {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  await page.goto('https://9gf6p4448m-del.github.io/yaoshi/', { waitUntil: 'networkidle' });
-  console.log('Public page loaded');
+  await page.goto(url, { waitUntil: 'networkidle' });
+  console.log(`Reveal page loaded: ${url}`);
   await page.waitForFunction('!!window.__yaoshi3d?.tray && !!window.__yaoshi', { timeout: 60000 });
   const version = await page.evaluate(() => ({ release: typeof RELEASE_VERSION === 'string' ? RELEASE_VERSION : null, legacy: VERSION, timing: CFG.T }));
   await page.evaluate(seed => {
