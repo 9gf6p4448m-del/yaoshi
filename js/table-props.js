@@ -55,10 +55,11 @@ export const PROPS = {
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
-    /* 尺寸（自評 r3 放大一輪，理由同銅錢）：0.072×0.094 在成圖上是一塊看不出刻字的紅片。 */
-    W: 0.150, H: 0.190, T: 0.050, BEVEL: 0.005, PITCH: 0.70, STAND_LIFT: 0.130, // 半寬／半高／厚；遠景可辨的仰立牌面與離桌高度
+    /* 公開 v0.57.7 實玩：0.150×0.190／40° 的牌在主鏡頭僅剩紅黑細條，既看不出「盯」字也不像令牌。
+       改成更大的近直立方牌；仍沿用同一個四枚 InstancedMesh，沒有新增 draw call 或銅錢預算。 */
+    W: 0.230, H: 0.280, T: 0.050, BEVEL: 0.005, PITCH: 1.05, STAND_LIFT: 0.250, // 半寬／半高／厚；讓牌面朝主鏡頭，底緣仍保有桌面淨空
     jade: 0x1a1215, jadeHi: 0x6a261a, jadeLo: 0x3d0a0e, // 墨黑玄玉、硃砂滾邊、暗紅底邊
-    carve: 0xd4a52f, // 金紅陽刻「盯」：遠景也能從暗紅托盤跳出
+    carve: 0xffd875, // 高明度金紅陽刻「盯」：遠景也能從暗紅托盤跳出
     SLAM_MS: 0.30, // 從席位拍下來要多久
     RISE: 0.34, // 途中先舉高多少（「重重拍」的蓄勢）
     BOUNCE: 0.055, // 落地回彈高度
@@ -193,7 +194,7 @@ function tokenGeometry() {
   /* 陽刻「盯」：七道凸起的短條（左「目」五道、右「丁」兩道）。
      ★不刻凹字★——凹進去在這個機位只有 2～3px，什麼都看不到；凸起才吃得到燈籠的邊光。
      每道＝頂面一個 quad ＋ 四個側面，10 三角形。 */
-  const e = 0.018; // 凸起高度：遠景仍讀得到金紅「盯」字
+  const e = 0.028; // 凸起高度：遠景仍讀得到金紅「盯」字
   const K = T.W / 0.072; // 刻字跟著牌面一起放大（下面那組座標是 W=0.072 那一版量的）
   const bars = [
     // 目：外框兩豎＋三橫（x 往左為負）
@@ -203,7 +204,7 @@ function tokenGeometry() {
     [0.032, 0.038, 0.026, 0.006], [0.032, -0.006, 0.006, 0.038],
   ];
   for (const [cx, cz, hx, hz] of bars) box(b, [cx * K, yT + e / 2, -cz * K], [hx * K, e / 2, hz * K], T.carve, T.carve);
-  const m = b.build('mark-token', { roughness: 0.32, metalness: 0.18, emissive: new THREE.Color(0x3b1605) });
+  const m = b.build('mark-token', { roughness: 0.30, metalness: 0.22, emissive: new THREE.Color(0x521208) });
   return { geo: m.geometry, mat: m.material, tris: b.count() / 3 };
 }
 
