@@ -1,0 +1,257 @@
+{
+  "syntheticMarket": true,
+  "url": "https://9gf6p4448m-del.github.io/yaoshi/",
+  "quick": true,
+  "safeInsets": {
+    "top": 0,
+    "right": 59,
+    "bottom": 21,
+    "left": 59
+  },
+  "sourceIdentity": {
+    "responseUrl": "https://9gf6p4448m-del.github.io/yaoshi/",
+    "status": 200,
+    "htmlMatchesLocal": true,
+    "VERSION": "0.57.12",
+    "RELEASE_VERSION": "0.57.12"
+  },
+  "mechanicsCoverage": {
+    "command": "node --test tests/curse-migration.test.mjs",
+    "expectedTests": 12,
+    "note": "Distinct mechanics are covered by the unit suite; this browser probe checks production DOM copy and interaction only."
+  },
+  "errors": [],
+  "checks": [
+    {
+      "name": "page.goto HTML matches local index.html",
+      "pass": true,
+      "details": {
+        "responseUrl": "https://9gf6p4448m-del.github.io/yaoshi/",
+        "status": 200,
+        "htmlMatchesLocal": true,
+        "VERSION": "0.57.12",
+        "RELEASE_VERSION": "0.57.12"
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 99.5,
+          "right": 639.578125,
+          "bottom": 133.296875,
+          "width": 429.578125,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 13.90625,
+              "right": 656,
+              "bottom": 358.09375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 298.09375,
+          "right": 642,
+          "bottom": 342.09375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet confirm closes",
+      "pass": true
+    }
+  ],
+  "captures": [
+    "docs/experiments/2026-09-15-curse-migration/published/852x393-normal-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/published/852x393-normal-縛靈鎖-sheet.png"
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0
+  }
+}

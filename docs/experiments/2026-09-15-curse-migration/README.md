@@ -1,6 +1,6 @@
 # v0.57.12 詛咒差異化、造型與取消戰力
 
-狀態：實作、獨立覆審與本機手機瀏覽器驗證完成，正在發布並核對公開送達。
+狀態：**v0.57.12 已公開**。發布提交 `b3ea547`；2026-09-15 19:01（台灣）確認 Pages 部署成功，公開 HTML 與 table-tray.js 僅正規化換行後與本機完全一致，見 [送達核對](published-delivery.json)。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/)。
 
 ## 玩家看到的改變
 
@@ -37,3 +37,7 @@
 ## 保留事項
 
 A1 相對效能仍 RED；P4、M-A1 與手機真機整局待回報，D2／D3／D5 未因本輪直接開工。正式 GPU 效能未重測，本輪沒有新增後製 pass。Claude Code 接手入口為根目錄 CLAUDE.md。
+
+## 公開站確認
+
+[公開 smoke](published/result.json)：9/9，HTTP 200、VERSION／RELEASE_VERSION 均 0.57.12，HTML 與本機同源、0 頁面錯誤；主責已開公開縛靈鎖詳情 PNG 確認效果／出價控制可見。此為公開站短驗證，本機全矩陣範圍見上文，未冒稱真機整局。
