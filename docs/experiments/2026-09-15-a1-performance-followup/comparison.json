@@ -1,0 +1,75 @@
+{
+  "status": "diagnostic-only",
+  "releaseGateUnchanged": true,
+  "productCore": "07124ed",
+  "fixture": {
+    "seed": 1,
+    "phase": "round-1 bid",
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 32,
+    "profiledSlot": 1,
+    "profileDurationMs": 5000,
+    "v8SamplingIntervalMicros": 500
+  },
+  "candidate": {
+    "version": "0.57.11",
+    "renderedFrames": 1631,
+    "elapsedMs": 5229.3,
+    "rendersPerSec": 311.9,
+    "frameInclusiveMsPerFrame": 2.7898,
+    "rendererInclusiveMsPerFrame": 2.2607,
+    "rendererWrapperMeanMsPerFrame": 2.3135,
+    "tableTrayUpdateInclusiveMsPerFrame": 0.3881,
+    "frameSubjectsInclusiveMsPerFrame": 0.3191,
+    "fitSubjectInclusiveMsPerFrame": 0.2645,
+    "subjectCornersInclusiveMsPerFrame": 0.2413,
+    "posedBoundsInclusiveMsPerFrame": 0.1338,
+    "getParametersSelfMsPerFrame": 0.1824,
+    "uploadSelfMsPerFrame": 0.1503,
+    "nativeTexSubImage2DSelfMsPerFrame": 0.1297
+  },
+  "baseline": {
+    "version": "0.57.10",
+    "renderedFrames": 1945,
+    "elapsedMs": 5308,
+    "rendersPerSec": 366.4,
+    "frameInclusiveMsPerFrame": 2.3477,
+    "rendererInclusiveMsPerFrame": 2.1698,
+    "rendererWrapperMeanMsPerFrame": 2.207,
+    "tableTrayUpdateInclusiveMsPerFrame": 0.0641,
+    "frameSubjectsInclusiveMsPerFrame": 0,
+    "fitSubjectInclusiveMsPerFrame": 0,
+    "subjectCornersInclusiveMsPerFrame": 0,
+    "posedBoundsInclusiveMsPerFrame": 0,
+    "getParametersSelfMsPerFrame": 0.1807,
+    "uploadSelfMsPerFrame": 0.1045,
+    "nativeTexSubImage2DSelfMsPerFrame": 0.1274
+  },
+  "observedDelta": {
+    "rendersPerSecPercent": -14.8745,
+    "frameInclusiveMsPerFrame": 0.4422,
+    "rendererInclusiveMsPerFrame": 0.0909,
+    "frameSubjectsInclusiveMsPerFrame": 0.3191
+  },
+  "hypothesisForNextPatch": "For stable market hover, reuse a framing result derived from a conservative all-animation envelope and invalidate it only when the hovered item, viewport, HUD obstacles, or market contents change, instead of calling fitSubject every frame.",
+  "requiredValidation": [
+    "all 1599 framing cases",
+    "original five-run 32-coin performance gate",
+    "original five-run 128-coin performance gate"
+  ],
+  "warnings": [
+    "Inclusive values overlap and must not be summed.",
+    "CPU self or inclusive time is not a percentage of frame time.",
+    "GPU and driver work may appear as idle or native time in a V8 CPU profile.",
+    "The profile is diagnostic and cannot make the existing performance gates pass."
+  ],
+  "architectureReview": {
+    "status": "hypothesis-needs-design-before-implementation",
+    "constraint": "Do not freeze the final camera from the proposed invalidation list. Local all-animation bounds do not alone cover hover world motion, parent transforms, authored camera or moving ownership tokens; sampled phases are not a proof over continuous time.",
+    "nextStep": "Separate reusable local geometry data from per-frame world projection and establish invalidation counterexamples before patching."
+  }
+}

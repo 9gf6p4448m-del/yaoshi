@@ -1,0 +1,661 @@
+{
+  "tag": "candidate",
+  "sourceRoot": ".",
+  "fixture": {
+    "seed": 1,
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 32,
+    "phase": "round-1 bid",
+    "browserFlags": [
+      "--use-gl=angle",
+      "--use-angle=d3d11",
+      "--ignore-gpu-blocklist",
+      "--disable-gpu-vsync",
+      "--disable-frame-rate-limit"
+    ]
+  },
+  "selection": {
+    "rule": "scene-shot worst hover: maximum triangles across slots 0..3",
+    "selectedSlot": 1,
+    "hoverSamples": [
+      {
+        "slot": 0,
+        "rendersPerSec": 367.9,
+        "callsPerFrame": 88,
+        "trianglesPerFrame": 26278,
+        "passesPerFrame": 1,
+        "models": [
+          {
+            "slot": 0,
+            "key": "guoyin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/guoyin.glb",
+            "visible": true,
+            "outlines": 7
+          },
+          {
+            "slot": 1,
+            "key": "yinyangcoin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/yinyangcoin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 2,
+            "key": "nail",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/nail.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 3,
+            "key": "buoy",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/buoy.glb",
+            "visible": true,
+            "outlines": 0
+          }
+        ]
+      },
+      {
+        "slot": 1,
+        "rendersPerSec": 362.3,
+        "callsPerFrame": 94,
+        "trianglesPerFrame": 30281,
+        "passesPerFrame": 1,
+        "models": [
+          {
+            "slot": 0,
+            "key": "guoyin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/guoyin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 1,
+            "key": "yinyangcoin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/yinyangcoin.glb",
+            "visible": true,
+            "outlines": 13
+          },
+          {
+            "slot": 2,
+            "key": "nail",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/nail.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 3,
+            "key": "buoy",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/buoy.glb",
+            "visible": true,
+            "outlines": 0
+          }
+        ]
+      },
+      {
+        "slot": 2,
+        "rendersPerSec": 364.4,
+        "callsPerFrame": 98,
+        "trianglesPerFrame": 28637,
+        "passesPerFrame": 1,
+        "models": [
+          {
+            "slot": 0,
+            "key": "guoyin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/guoyin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 1,
+            "key": "yinyangcoin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/yinyangcoin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 2,
+            "key": "nail",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/nail.glb",
+            "visible": true,
+            "outlines": 17
+          },
+          {
+            "slot": 3,
+            "key": "buoy",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/buoy.glb",
+            "visible": true,
+            "outlines": 0
+          }
+        ]
+      },
+      {
+        "slot": 3,
+        "rendersPerSec": 346.3,
+        "callsPerFrame": 89,
+        "trianglesPerFrame": 28075,
+        "passesPerFrame": 1,
+        "models": [
+          {
+            "slot": 0,
+            "key": "guoyin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/guoyin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 1,
+            "key": "yinyangcoin",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/yinyangcoin.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 2,
+            "key": "nail",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/nail.glb",
+            "visible": true,
+            "outlines": 0
+          },
+          {
+            "slot": 3,
+            "key": "buoy",
+            "curse": false,
+            "fac": "yinqi",
+            "moon": true,
+            "ready": true,
+            "glb": "assets/creatures/buoy.glb",
+            "visible": true,
+            "outlines": 8
+          }
+        ]
+      }
+    ]
+  },
+  "sample": {
+    "requestedDurationMs": 5000,
+    "elapsedMs": 5229.3,
+    "renderedFrames": 1631,
+    "rendersPerSec": 311.9,
+    "before": {
+      "frame": 2411,
+      "time": 15728.199999999255,
+      "hover": 1,
+      "framing": {
+        "active": true,
+        "fit": true,
+        "retreat": 0,
+        "shift": {
+          "x": 0,
+          "y": 45.37824469150476
+        },
+        "bounds": {
+          "left": 241.2449444771216,
+          "top": 122.99999999999997,
+          "right": 602.7550555228784,
+          "bottom": 287.0286502640539
+        },
+        "stage": "market",
+        "slots": [
+          1
+        ]
+      },
+      "models": [
+        {
+          "slot": 0,
+          "key": "guoyin",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/guoyin.glb",
+          "visible": true,
+          "outlines": 0
+        },
+        {
+          "slot": 1,
+          "key": "yinyangcoin",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/yinyangcoin.glb",
+          "visible": true,
+          "outlines": 13
+        },
+        {
+          "slot": 2,
+          "key": "nail",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/nail.glb",
+          "visible": true,
+          "outlines": 0
+        },
+        {
+          "slot": 3,
+          "key": "buoy",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/buoy.glb",
+          "visible": true,
+          "outlines": 0
+        }
+      ],
+      "glName": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "version": "0.57.11"
+    },
+    "after": {
+      "frame": 4042,
+      "time": 20957.5,
+      "hover": 1,
+      "framing": {
+        "active": true,
+        "fit": true,
+        "retreat": 0,
+        "shift": {
+          "x": 0,
+          "y": 44.96075938573789
+        },
+        "bounds": {
+          "left": 241.2449444771216,
+          "top": 123,
+          "right": 602.7550555228784,
+          "bottom": 286.6111649582871
+        },
+        "stage": "market",
+        "slots": [
+          1
+        ]
+      },
+      "models": [
+        {
+          "slot": 0,
+          "key": "guoyin",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/guoyin.glb",
+          "visible": true,
+          "outlines": 0
+        },
+        {
+          "slot": 1,
+          "key": "yinyangcoin",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/yinyangcoin.glb",
+          "visible": true,
+          "outlines": 13
+        },
+        {
+          "slot": 2,
+          "key": "nail",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/nail.glb",
+          "visible": true,
+          "outlines": 0
+        },
+        {
+          "slot": 3,
+          "key": "buoy",
+          "curse": false,
+          "fac": "yinqi",
+          "moon": true,
+          "ready": true,
+          "glb": "assets/creatures/buoy.glb",
+          "visible": true,
+          "outlines": 0
+        }
+      ],
+      "renderInstrumentation": {
+        "renderCalls": 1631,
+        "renderMs": 3773.3999998755753,
+        "renderMaxMs": 8.199999999254942
+      }
+    },
+    "performanceMetricDelta": {
+      "TaskDuration": 5.198365,
+      "ScriptDuration": 4.614439,
+      "LayoutDuration": 0,
+      "RecalcStyleDuration": 0,
+      "JSHeapUsedSize": 1765016
+    }
+  },
+  "cpuProfile": {
+    "durationMs": 5194.239,
+    "sampleCount": 4738,
+    "categoriesSelfMs": {
+      "idle": 622.382,
+      "framing": 219.237,
+      "skinAnimation": 0,
+      "threeRender": 600.345,
+      "gameFrame": 77.084,
+      "other": 3674.884
+    },
+    "topSelfTime": [
+      {
+        "functionName": "(program)",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "selfMs": 598.642,
+        "samples": 398
+      },
+      {
+        "functionName": "getParameters",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 20346,
+        "column": 24,
+        "selfMs": 297.453,
+        "samples": 282
+      },
+      {
+        "functionName": "upload",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 19083,
+        "column": 15,
+        "selfMs": 245.064,
+        "samples": 234
+      },
+      {
+        "functionName": "texSubImage2D",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "selfMs": 211.579,
+        "samples": 201
+      },
+      {
+        "functionName": "setProgram",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 29889,
+        "column": 22,
+        "selfMs": 211.374,
+        "samples": 194
+      },
+      {
+        "functionName": "WebGLRenderer.renderBufferDirect",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 28936,
+        "column": 38,
+        "selfMs": 161.685,
+        "samples": 155
+      },
+      {
+        "functionName": "multiplyMatrices",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 6236,
+        "column": 18,
+        "selfMs": 122.766,
+        "samples": 119
+      },
+      {
+        "functionName": "update",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 17891,
+        "column": 17,
+        "selfMs": 122.585,
+        "samples": 117
+      },
+      {
+        "functionName": "getProgram",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 29744,
+        "column": 22,
+        "selfMs": 92.108,
+        "samples": 87
+      },
+      {
+        "functionName": "getTextureCacheKey",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 24132,
+        "column": 29,
+        "selfMs": 86.049,
+        "samples": 80
+      },
+      {
+        "functionName": "bindVertexArray",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "selfMs": 77.087,
+        "samples": 70
+      },
+      {
+        "functionName": "refreshUniformsCommon",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 27359,
+        "column": 32,
+        "selfMs": 74.232,
+        "samples": 72
+      },
+      {
+        "functionName": "flatten",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 18041,
+        "column": 17,
+        "selfMs": 72.859,
+        "samples": 70
+      },
+      {
+        "functionName": "needsUpdate",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 15115,
+        "column": 22,
+        "selfMs": 66.043,
+        "samples": 62
+      },
+      {
+        "functionName": "refreshFogUniforms",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 27262,
+        "column": 29,
+        "selfMs": 63.134,
+        "samples": 60
+      },
+      {
+        "functionName": "renderObject",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 29713,
+        "column": 24,
+        "selfMs": 54.757,
+        "samples": 51
+      },
+      {
+        "functionName": "markUniformsLightsNeedsUpdate",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 30250,
+        "column": 41,
+        "selfMs": 53.049,
+        "samples": 51
+      },
+      {
+        "functionName": "setValueV3f",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 18171,
+        "column": 21,
+        "selfMs": 50.663,
+        "samples": 48
+      },
+      {
+        "functionName": "posedBounds",
+        "url": "http://127.0.0.1:8894/js/table-framing.js?v=0.57.11&fxvocab=0",
+        "line": 9,
+        "column": 28,
+        "selfMs": 50.014,
+        "samples": 48
+      },
+      {
+        "functionName": "setMaterial",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 23125,
+        "column": 22,
+        "selfMs": 48.487,
+        "samples": 46
+      },
+      {
+        "functionName": "uploadTexture",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 24411,
+        "column": 24,
+        "selfMs": 43.69,
+        "samples": 42
+      },
+      {
+        "functionName": "setValue",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 19067,
+        "column": 10,
+        "selfMs": 42.942,
+        "samples": 42
+      },
+      {
+        "functionName": "setValueV3f",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 18171,
+        "column": 21,
+        "selfMs": 41.11,
+        "samples": 39
+      },
+      {
+        "functionName": "updateMatrixWorld",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 31975,
+        "column": 19,
+        "selfMs": 40.864,
+        "samples": 39
+      },
+      {
+        "functionName": "projectObject",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 29438,
+        "column": 25,
+        "selfMs": 40.791,
+        "samples": 40
+      },
+      {
+        "functionName": "setValue",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 18957,
+        "column": 10,
+        "selfMs": 38.991,
+        "samples": 34
+      },
+      {
+        "functionName": "(anonymous)",
+        "url": "http://127.0.0.1:8894/js/table-framing.js?v=0.57.11&fxvocab=0",
+        "line": 118,
+        "column": 24,
+        "selfMs": 38.841,
+        "samples": 36
+      },
+      {
+        "functionName": "posedBounds",
+        "url": "http://127.0.0.1:8894/js/table-framing.js?v=0.57.11&fxvocab=0",
+        "line": 9,
+        "column": 28,
+        "selfMs": 33.229,
+        "samples": 31
+      },
+      {
+        "functionName": "update",
+        "url": "http://127.0.0.1:8894/js/particles.js?v=0.57.11&fxvocab=0",
+        "line": 83,
+        "column": 18,
+        "selfMs": 32.743,
+        "samples": 30
+      },
+      {
+        "functionName": "update",
+        "url": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "line": 13587,
+        "column": 17,
+        "selfMs": 31.963,
+        "samples": 30
+      }
+    ]
+  },
+  "errors": [],
+  "limitations": [
+    "This is one short CPU profile, not the five-run release gate.",
+    "V8 sampling attributes JavaScript self time; GPU execution and driver waits may appear as idle or native time.",
+    "renderer.render is wrapped only during the profile to record synchronous wall time; the wrapper adds small measurement overhead.",
+    "All four hovers are visited before profiling, matching scene-shot hover traversal and starting each model idle mixer."
+  ],
+  "profileFile": "docs/experiments/2026-09-15-a1-performance-followup/candidate-hover-slot1.cpuprofile"
+}
