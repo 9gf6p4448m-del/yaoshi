@@ -3714,13 +3714,13 @@ function unitRowText(it,owner,mode){
   /* 詛咒品那一行也要吃 `.stat`（卡面版一行到底、不換行；覆審二輪 3）。
      `full` 在下面才用 const 宣告，這裡直接判 `mode` 而不是提前引用它——避免 TDZ。 */
   if(r.curse) return `<div class="uline${mode==="full"?"":" stat"} mut">🕸 詛咒品不召喚${
-    (owner&&traitMax(owner,"curseWard",0)>0)?"（你已淨化，不扣戰力）":"（只算纏身）"}</div>`;
+    (owner&&traitMax(owner,"curseWard",0)>0)?"（你已淨化，不扣攻擊）":"（只算纏身）"}</div>`;
   /* mode 'stat'（市集卡，預設）＝只印「隻數・攻・血・拍」一行；'full'（袋子面板、卡片詳情）＝連招式名與說明。
      沿革：覆審 HIGH-1 乙——市集卡塞完整招式會讓卡片變兩三行，844×390 下 #felt 直向溢出 47～77px、
      整行反而被裁掉看不到。使用者裁定：卡面留數字、招式移到點進去的卡片詳情，袋子面板保留全文。 */
   const full=(mode==="full");
   /* 卡面那一版加 .stat：一行到底、不換行（只有數字，換行等於白吃 #felt 的高度預算） */
-  return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
+  return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・${full?"每隻基礎":""}攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
     (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</div>`;
 }
 /* 玩家可見的夜戰判定口徑。開場教學與拍品詳情共用，避免 UI 又各自抄成兩套舊規則。 */
@@ -3742,18 +3742,18 @@ function bagPreviewHTML(p){
   a.teams.forEach(t=>t.units.forEach(u=>{ n++; atk+=u.atk|0; hp+=u.max|0; }));
   const res=FACTIONS.map(f=>({f,lv:pwResLv(p,f)})).filter(x=>x.lv>0);
   const ph=phaseFor(S.round);
-  const head=`<div class="bagit bagsum"><span>🪖 <b>部隊</b>　${n} 隻・總攻 ${atk}・總血 ${hp}</span>`
+  const head=`<div class="bagit bagsum"><span>🪖 <b>部隊基礎值</b>　${n} 隻・總攻 ${atk}・總血 ${hp}</span>`
     +`<b>${res.length?res.map(x=>`${FAC[x.f].n}共鳴 該系那一拍 hp+${x.lv}`).join("・"):"無共鳴"}</b>`
     +`<span class="bagMoon">${phaseText(S.round)}${ph.fac?`・現在買${FAC[ph.fac].n}拍品會立刻吃到這一拍增幅`:""}</span></div>`;
   const rows=p.bag.map(x=>{
     const r=unitRow(x);
     if(!r) return "";
     if(r.curse) return `<div class="bagit uprev mut"><span>${x.n}</span><span>🕸 不召喚${
-      traitMax(p,"curseWard",0)>0?"・已淨化":"・纏身"}</span></div>`;
+      traitMax(p,"curseWard",0)>0?"・已淨化，不扣紙紮攻擊":"・纏身"}<span class="umd">${curseEffectText(x,true)}</span></span></div>`;
     /* 袋子面板保留全文（使用者裁定：卡面精簡、袋子完整） */
     const moon=moonBenefit(x,S.round);
     return `<div class="bagit uprev"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span>`
-      +`<span class="uline">${r.bodyName}×${r.n}・攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
+      +`<span class="uline">${r.bodyName}×${r.n}・每隻基礎攻 ${r.atk}・血 ${r.hp}${r.beat?`・${r.beat} 拍`:""}${
         moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}${r.move?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</span></div>`;
   }).join("");
   return head+rows;
@@ -5031,13 +5031,12 @@ function initIncense(){
   if(!openShrines().length) return;
   INC={amt:0};
 }
-/* 盯上頁的市集卡（掏空卷 v0.55a 從 showMarkUI 的樣板原樣抽出來，一字未改）：
-   抽出來的唯一理由是側欄卡列要用同一份卡片工廠（railHTML 的 cardFn），不是為了改視覺。 */
+/* 盯上與出價共用物品摘要，避免選擇盯印時仍只看到舊風味文字。 */
 function markCardHTML(it,i){
   return `<div class="mcard ${sysBg(it)} ${it.curse?"curse":""}" id="mc${i}" onclick="pickMark(${i})">
       ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
       <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
-      <div class="ab">${it.ab?("✦ "+abDesc(it.ab)):it.d}</div>
+      <div class="ab">${itemSummaryText(it)}</div>
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
 }
@@ -5272,13 +5271,31 @@ function curseEffectText(it,full=false){
     ?(full?"持有期間，每件詛咒使持有者可出手紙紮每拍攻擊 −1，可疊加；總攻擊 ≤0 時不出手":"每件：持有者紙紮攻擊 −1")
     :`持有：基礎戰力 ${it.p>=0?"+":""}${it.p}${full?"（仍受法寶與角色效果調整）":""}`;
   const drain=it.drain?`；每夜末另失 ${it.drain} 壽命`:"";
-  const immunity=full&&CFG.PAPERWAR_ON?"。免疫纏身者不受扣攻影響，持續失血仍照常生效":"";
+  const immunity=full&&CFG.PAPERWAR_ON?"。免疫纏身者不受扣攻影響，但不免除持續失血":"";
   return effect+drain+immunity;
+}
+/* These hooks still affect power-based target selection. They do not alter
+ * paper-war attack or curse counts; keep that distinction explicit in the UI. */
+function isPowerEstimateAbility(it){
+  return ["sword","pojun","sigui","fushou"].includes(it.ab);
+}
+function itemAbilityText(it){
+  const text=it.ab?abDesc(it.ab):"";
+  return text&&CFG.PAPERWAR_ON&&isPowerEstimateAbility(it)
+    ?`戰力評估：${text}（用於依戰力選敵，不改紙紮攻擊或詛咒纏身）`:text;
+}
+function itemSummaryText(it){
+  if(it.curse) return curseEffectText(it);
+  if(CFG.PAPERWAR_ON&&(!it.ab||isPowerEstimateAbility(it))){
+    const r=unitRow(it);
+    if(r&&r.desc) return `夜戰：${r.desc}`;
+  }
+  return (it.ab?"✦ "+itemAbilityText(it):it.d)+(it.drain?`・每夜末另失 ${it.drain} 壽命`:"");
 }
 function mcardHTML(it,i){
   const b=myBids[i];
   const moon=moonBenefit(it,S.round);
-  const effect=it.curse?curseEffectText(it):(it.ab?("✦ "+abDesc(it.ab)):it.d)+(it.drain?`・每夜 -${it.drain} 血`:"");
+  const effect=itemSummaryText(it);
   if(YB){
     /* 押寶夜：每件法寶一個勾選框；詛咒品該夜顯示「不開標」且點不動 */
     const off=it.curse;
@@ -5336,7 +5353,7 @@ function openSheet(i){
     ${/* 部隊預覽全文（招式名＋一句效果）改放這裡：卡面只留數字（覆審 HIGH-1 乙，使用者裁定） */""}
     ${unitRowText(it,ap,"full")}
     ${!it.curse&&CFG.PAPERWAR_ON?`<div class="moonDetail ${moon.active?"":"off"}">${moon.text}${moon.active&&moon.r?`・它在第 ${moon.r.beat} 拍出手`:""}</div>`:""}
-    <div class="desc">${it.ab?("✦ "+abDesc(it.ab)+"<br>"):""}${it.d}${it.curse?`<br><b>${curseEffectText(it,true)}</b>`:(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
+    <div class="desc">${it.ab?("✦ "+itemAbilityText(it)+"<br>"):""}${it.d}${it.curse?`<br><b>${curseEffectText(it,true)}</b>`:(CFG.PAPERWAR_ON?`<br>${pwHint}`:"・戰力 +"+it.p)}${syn}${noDest?`<br>🕸 <b style="color:var(--red)">收祟夜：本夜禁止買下銷毀</b>，只能毒標塞給別人；夜末沒人接手的會硬塞給<b>本夜沒出手、壽命最高的那位</b>`:""}</div>
     <div class="bidrow">
       <div class="stepper">
         <button onclick="bump(-1)">−</button><span class="amt" id="shAmt">${b.amt}</span><button onclick="bump(1)">＋</button>
@@ -5553,7 +5570,7 @@ async function startReveal(){
     await sleep(Math.max(0.9*1000,CFG.T*1.4));
     stage.innerHTML=`<div class="revealRibbon anim-lantern-reveal" id="revealCard">
       <div class="big">${itemIcoInline(r.it)}${r.it.n}<span class="fchip ${FAC[r.it.f].cls}">${FAC[r.it.f].n}</span>
-      <span class="mut" style="font-size:11px">　${r.it.ab?("✦ "+abDesc(r.it.ab)):r.it.d}</span></div>
+      <span class="mut" style="font-size:11px">　${itemSummaryText(r.it)}</span></div>
       <div class="mut" style="font-size:12px">${rv.showEntries?nBid(r):""}</div>
       <div id="flyzone"></div><div id="outzone"></div>
     </div>`;
@@ -6647,13 +6664,14 @@ function showBag(pid){
   }
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}（${faceLbl(p)}）</h2>
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
-      ${x.ab?`<span class="abtxt">✦ ${abDesc(x.ab)}</span>`:""}${
+      ${x.ab?`<span class="abtxt">✦ ${itemAbilityText(x)}</span>`:""}${
       /* 傳說：常駐「送神回天」鈕（請神 2.0 §二 6，使用者裁丙）——任何一夜都可以主動放手，
          當夜起不再供奉、那一龕也不會重開。只有自己（或熱座的當前席）看得到，AI 的袋子不長這顆鈕。 */
       (x.legend&&p.alive&&!p.ai&&pid===ACTIVE)
         ?`<button class="tithebtn" title="供奉每夜 −${CFG.INC_TITHE} 壽命；送神回天之後不再扣，那一龕也不重開"
             onclick="giveUpLegend(${pid},'${x.n}')">🕯️ 送神回天</button>`:""}${
-      x.legend?`<span class="mut" style="font-size:10.5px">・供奉每夜 −${CFG.INC_TITHE}</span>`:""}</span><b>${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜-${x.drain}`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
+      x.legend?`<span class="mut" style="font-size:10.5px">・供奉每夜 −${CFG.INC_TITHE} 壽命</span>`:""}</span><b>${CFG.PAPERWAR_ON?"基礎戰力評估 ":"基礎戰力 "}${x.p>=0?"+":""}${x.p}${x.drain?` / 每夜末失 ${x.drain} 壽命`:""}</b></div>`).join(""):`<p class="mut">空空如也</p>`}
+    ${CFG.PAPERWAR_ON&&p.bag.length?`<p class="mut" style="font-size:12px">戰力評估用於部分選敵效果；夜戰的紙紮攻擊、血量與招式見下方部隊。</p>`:""}
     ${bonus}
     ${/* 部隊預覽（請神 2.0）：使用者試玩「持兩尊仍 12/12 全燒、看不出為什麼輸」——袋子全是 atk 0 的作祟型與護法。
          逐件的隻數／攻／血／拍／招式與最上方的總計都走引擎同一支 buildArmy＋TRAITS，不另抄規則。 */""}
