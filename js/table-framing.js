@@ -1,4 +1,68 @@
 // Screen-space placement for the tabletop presentation; never changes world scale.
+const influenceCache = new WeakMap();
+const poseCache = new WeakMap();
+const component = (a, i, k) => k === 0 ? a.getX(i) : k === 1 ? a.getY(i) : k === 2 ? a.getZ(i) : a.getW(i);
+
+/** Conservative linear-skin bounds. A weighted vertex lies in the convex hull
+ * of its bone-transformed positions. Cache their source boxes once, then move
+ * eight corners per occupied bone instead of skinning every vertex each frame. */
+export function posedBounds(mesh) {
+  const geometry = mesh.geometry;
+  const attrs = [geometry.attributes.position, geometry.attributes.skinIndex, geometry.attributes.skinWeight];
+  const fallback = () => { mesh.skeleton.update(); mesh.computeBoundingBox(); return mesh.boundingBox; };
+  if (attrs.some(a => !a) || geometry.morphAttributes.position?.length) return fallback();
+  if (!geometry.boundingBox) geometry.computeBoundingBox();
+  const versions = attrs.map(a => a.version ?? a.data?.version ?? 0);
+  let cached = influenceCache.get(geometry);
+  if (!cached || attrs.some((a, i) => a !== cached.attrs[i] || versions[i] !== cached.versions[i])) {
+    const boxes = new Map(), point = mesh.position.clone();
+    let valid = true, minSum = Infinity, maxSum = -Infinity;
+    for (let i = 0; i < attrs[0].count; i++) {
+      point.fromBufferAttribute(attrs[0], i);
+      let sum = 0;
+      for (let k = 0; k < 4; k++) {
+        const weight = component(attrs[2], i, k), bone = component(attrs[1], i, k);
+        if (!Number.isFinite(weight) || weight < 0 || !Number.isInteger(bone) || bone < 0) valid = false;
+        sum += weight;
+        if (weight > 0) {
+          if (!boxes.has(bone)) boxes.set(bone, geometry.boundingBox.clone().makeEmpty());
+          boxes.get(bone).expandByPoint(point);
+        }
+      }
+      minSum = Math.min(minSum, sum); maxSum = Math.max(maxSum, sum);
+    }
+    cached = { attrs, versions, boxes, valid, minSum, maxSum };
+    influenceCache.set(geometry, cached);
+  }
+  // Negative weights are not a convex combination. Preserve Three's exact
+  // implementation for unusual geometry rather than returning an unsafe box.
+  if (!cached.valid || !cached.boxes.size) return fallback();
+  let scratch = poseCache.get(mesh);
+  if (!scratch) {
+    scratch = { box: geometry.boundingBox.clone(), boneBox: geometry.boundingBox.clone(), matrix: mesh.matrixWorld.clone() };
+    poseCache.set(mesh, scratch);
+  }
+  const { box, boneBox, matrix } = scratch;
+  box.makeEmpty();
+  for (const [index, source] of cached.boxes) {
+    const bone = mesh.skeleton.bones[index];
+    if (!bone) return fallback();
+    matrix.copy(mesh.bindMatrixInverse).multiply(bone.matrixWorld)
+      .multiply(mesh.skeleton.boneInverses[index]).multiply(mesh.bindMatrix);
+    box.union(boneBox.copy(source).applyMatrix4(matrix));
+  }
+  // Three also accepts non-unit sums: scale the convex envelope about the
+  // inverse-bind translation to include their unnormalised weighted positions.
+  for (const [axis, offset] of [['x', 12], ['y', 13], ['z', 14]]) {
+    const origin = mesh.bindMatrixInverse.elements[offset];
+    const lo = box.min[axis] - origin, hi = box.max[axis] - origin;
+    const values = [lo * cached.minSum, lo * cached.maxSum, hi * cached.minSum, hi * cached.maxSum];
+    box.min[axis] = origin + Math.min(...values);
+    box.max[axis] = origin + Math.max(...values);
+  }
+  return box;
+}
+
 export function placeSubject(subject, area, obstacles) {
   const valid = r => r && ['left', 'top', 'right', 'bottom'].every(k => Number.isFinite(r[k]))
     && r.right > r.left && r.bottom > r.top;
@@ -54,13 +118,9 @@ function subjectCorners(node) {
   node.traverseVisible(mesh => {
     if (!mesh.geometry || (!mesh.isMesh && !mesh.isPoints)) return;
     if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-    if (mesh.isSkinnedMesh) {
-      mesh.skeleton.update();
-      mesh.computeBoundingBox();
-    }
     // Include both the current skin pose and its source bounds. This preserves
     // the existing capture contract and gives animation a conservative envelope.
-    const box = mesh.isSkinnedMesh ? mesh.boundingBox.clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
+    const box = mesh.isSkinnedMesh ? posedBounds(mesh).clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
     const matrices = mesh.isInstancedMesh ? Array.from({ length: mesh.count }, (_, i) => {
       const instance = mesh.matrixWorld.clone();

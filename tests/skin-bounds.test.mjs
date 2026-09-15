@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import * as THREE from '../tools/anyCreature/node_modules/three/build/three.module.js';
 import { GLTFLoader } from '../tools/anyCreature/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
-const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PHASES = [0, .25, .5, .75, 1];
 
 async function framing() {
@@ -98,7 +99,7 @@ function weightedSkin(weights) {
   return { root, mesh };
 }
 
-test('posedBounds covers mixed weights and falls back safely for non-normalized skin weights', async () => {
+test('posedBounds covers mixed and non-normalized skin weights', async () => {
   const { posedBounds } = await framing();
   assert.equal(typeof posedBounds, 'function', 'table-framing must export posedBounds(mesh)');
   for (const [label, weights] of [['mixed-normalized', [.25, .75]], ['non-normalized', [2, 1]]]) {
