@@ -1315,7 +1315,7 @@ const ROLES = {
      規格的「囤詛咒品當肉盾」在現行引擎裡沒有「留在袋中」這條路（買下＝銷毀），
      故 AI 收祟＝一律買下銷毀（ARCH_SPEC §8.5 的字面實作 intent='keep'）。 */
   lvshan:{id:"lvshan",name:"閭山法師",av:"🧿",life0d:2,pool:true, /* life0d −8→−2（一版）→0（二版）→+2（二版 B1 第二輪，凍結檔 §2.1 第 8 條允許的「各一級」）：量法卷實測 1.08pp／點，−8 是這隻 −18.4pp 整包淨值裡最大的一塊 */
-    desc:"免疫流（起始 52）。被動：袋中詛咒品在紙紮夜戰不造成「詛咒纏身」減益、戰力一律視為 0（持續失血照舊）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
+    desc:"免疫流（起始 52）。被動：免疫水符、縛靈鎖、白虎煞與王船煞的戰鬥減益（芭樂侵蝕與冥婚禮金照付）；獨力出價買銷詛咒品時實付減半。AI 時主動收祟",
     ai:{aggr:0.8,spite:0.1,markReact:"ignore"}, /* ai 由 2026-09-07 角色平衡卷二版③重掃定出（aggr∈{.3,.45,.6,.8,1.0}×spite∈{.1,.25,.4}＋原值，n=2000 初掃 182 組、前 3 名 n=10000 決選；markReact 是角色性格的公開資訊，不進掃描、維持設計值）；值由掃描取得，不手填；前 3 名的決選差在 SE 內時照「取最高」機械選 */
     /* 2026-09-07 角色平衡卷：「袋中詛咒品戰力視為 0」原本只寫在 onItemValue（＝只進 power()），
        而紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數，與 power() 無關）⇒ 免疫在現行對決引擎裡
@@ -3663,7 +3663,7 @@ function moonBenefit(it,round){
     :`${ph.icon} ${ph.name}｜${ph.fac?`${FAC[ph.fac].n}拍受惠；這件本夜不加成`:"本夜三拍都沒有月相增幅"}`};
 }
 
-/* 袋子 → 紙紮陣。詛咒品不召喚、只記件數（每件讓本方前鋒全體 atk −1）；
+/* 袋子 → 紙紮陣。詛咒品不召喚、記件數供有應公判定；個別效果在拍首、折損、戰敗與夜末觸發；
    沒有任何可上場的紙紮（空袋／全詛咒）＝肉身 1 隻 atk1 hp3。 */
 /* 沒有 unit 欄位的法寶（測試治具、卷 B 還沒配數值的新貨）：由 p 推一組預設紙紮，
    讓引擎對任何資料都跑得動——不必每加一件內容就回頭改引擎（鐵則 2.4 的同一個理由）。
@@ -3827,7 +3827,7 @@ function pwBurn(u,sd,env){
   if(!u.alive) return false;
   u.alive=false; u.hp=0; u.pend=0; sd.burned++;
   if(env) pwRec(env,env.beat,sd.tag,null,u.id,"burn",0,true);
-  pwCurseWater(sd,env);
+  if(!sd.settling) pwCurseWater(sd,env);
   return true;
 }
 /* 抓交替只在首次折損後牽連一次；先封住重入，直接傷害不觸發反傷或吸收。 */
@@ -4096,11 +4096,15 @@ function pwPass(sd,foe,beat,fac,phase,env){
   }
 }
 function pwSettle(sd,env){
+  const before=sd.burned;
+  sd.settling=true;
   for(const u of sd.units){
     if(!u.alive){ u.pend=0; continue; }
     if(u.pend>0){ u.hp-=u.pend; u.pend=0;
       if(u.hp<=0) pwBurn(u,sd,env); }
   }
+  sd.settling=false;
+  if(sd.burned>before) pwCurseWater(sd,env);
 }
 /* 拍末：飼鬼甕的餓鬼進食——對面本拍有紙紮被燒掉，本方全體 hp+1 */
 function pwFeed(sd,foe,env,before){
@@ -4929,7 +4933,7 @@ function openHelp(){
       `每局從下面 ${Object.keys(NIGHTRULES).length} 條抽 ${rlNights.length} 條配夜——那一夜<b>拍賣規則本身</b>被改寫，平常算好的價目表當夜作廢。${rlRows}`):""}
     ${/* 2026-09-06 v0.38：PAPERWAR_ON 時改寫成紙紮夜戰口徑（口徑逐句對照 paperWar／buildArmy／pwPrep，數值只讀 CFG）；OFF 分支保留舊「比戰力扣血」文案一字不動 */""}
     ${sec("⚔ 結算戰",CFG.PAPERWAR_ON
-      ?`每夜輪抽一個對手，打一場<b>紙紮夜戰</b>（自動進行）：<br>・<b>召軍</b>：你袋裡每件法寶各出一隊紙紮。詛咒品不出兵，而且每有一件，你的前鋒每隻攻擊就 −1（兩件就 −2）；一隻都派不出就用肉身 1 隻硬撐。<br>・<b>三拍</b>：第一拍・撞（祖靈）→第二拍・護（香火）→第三拍・祟（陰氣）。當夜月相屬於哪一系，那一系的紙紮就在同名的那一拍每隻 hp+1（例：望月屬香火，香火紙紮在第二拍 hp+1）。風位家的前鋒在第一拍攻擊 +1。<br>・<b>勝負</b>：先比剩下的隻數，再比剩下的 hp，還平就風位家贏；仍平＝互不失血。<br>・<b>扣血</b>：輸家被燒掉的比例 × ${CFG.PW_MAX}，小數無條件進位，最少扣 ${CFG.PW_MIN}、最多扣 ${CFG.PW_MAX}（例：5 隻燒掉 2 隻 → 0.4×${CFG.PW_MAX}＝3.2 → 扣 4）。<br>桌上的「戰力」數字只是行情參考，不進紙紮夜戰、不決定勝負。<br>對決畫面兩側的小方塊＝各隻紙紮，<b>顏色是它的陣營</b>（祖靈棕／香火紅／陰氣綠，每隊前有系字），體型看形狀：大紙偶最大帶金邊、護法紙人空心、飄影半透明。`
+      ?`每夜輪抽一個對手，打一場<b>紙紮夜戰</b>（自動進行）：<br>・<b>召軍</b>：你袋裡每件法寶各出一隊紙紮。詛咒品不出兵，各有自己的負面效果，詳情會列出觸發時機與目標；一隻都派不出就用肉身 1 隻硬撐。<br>・<b>三拍</b>：第一拍・撞（祖靈）→第二拍・護（香火）→第三拍・祟（陰氣）。當夜月相屬於哪一系，那一系的紙紮就在同名的那一拍每隻 hp+1（例：望月屬香火，香火紙紮在第二拍 hp+1）。風位家的前鋒在第一拍攻擊 +1。<br>・<b>勝負</b>：先比剩下的隻數，再比剩下的 hp，還平就風位家贏；仍平＝互不失血。<br>・<b>扣血</b>：輸家被燒掉的比例 × ${CFG.PW_MAX}，小數無條件進位，最少扣 ${CFG.PW_MIN}、最多扣 ${CFG.PW_MAX}（例：5 隻燒掉 2 隻 → 0.4×${CFG.PW_MAX}＝3.2 → 扣 4）。<br>對決畫面兩側的小方塊＝各隻紙紮，<b>顏色是它的陣營</b>（祖靈棕／香火紅／陰氣綠，每隊前有系字），體型看形狀：大紙偶最大帶金邊、護法紙人空心、飄影半透明。`
       :`每夜輪抽對手比戰力：輸家扣 ${CFG.DMG_BASE}＋min(${CFG.DMG_MAX}, 戰力差÷${CFG.DMG_DIV} 取整) 壽命；平手互不失血。`)}
     ${sec("🀄 風位與共鳴",CFG.PAPERWAR_ON
       ?`風位每夜輪轉：風位家出價平手時優先，結算戰第一拍前鋒攻擊 +1、打平時獲勝。<b>共鳴</b>：同一系法寶集滿 ${CFG.SET_MIN} 件起，<b>該系那一拍</b>你那一系每隊每隻 hp +${CFG.PW_RES_MODE?'（件數−'+(CFG.SET_MIN-1)+'，最多 +'+CFG.PW_RES_CAP+'）':'0'}——例：3 件祖靈＝第一拍祖靈全隊 hp+2。過陰咒／山神庇佑的倍率照算。桌上「戰力」另加件數²（行情用）。`
@@ -5901,12 +5905,16 @@ function pwArmyView(p){
   /* curseWard：帶「詛咒免疫」的角色（閭山法師）袋裡雖然有詛咒品，pwMod 的 m-=sd.curses 不會扣它
      （index.html 的 pwMod），所以隻數牌不能再印「詛咒纏身 N」——那會讓玩家以為自己正在被扣。
      2026-09-07 角色平衡卷覆審 M6。純顯示，不進任何結算。 */
-  return {units,comp,curses:a.curses,curseWard:traitMax(p,"curseWard",0)>0};
+  return {units,comp,curses:a.curses,combatCurses:(p.bag||[]).filter(x=>["water","lock","tiger","boat"].includes(curseKind(x))).length,curseWard:traitMax(p,"curseWard",0)>0};
 }
 function pwCompText(v){
   const t=Object.keys(PW_BODY).filter(b=>v.comp[b]).map(b=>`${PW_BODY[b].n}×${v.comp[b]}`).join("・");
   if(!v.curses) return t;
-  return t+`${t?"・":""}${v.curseWard?`戰鬥詛咒已淨化 ${v.curses}`:`詛咒纏身 ${v.curses}`}`;
+  if(!v.curseWard) return t+`${t?"・":""}詛咒纏身 ${v.curses}`;
+  const parts=[];
+  if(v.combatCurses) parts.push(`戰鬥詛咒已淨化 ${v.combatCurses}`);
+  if(v.curses>v.combatCurses) parts.push(`禮金／侵蝕 ${v.curses-v.combatCurses}（不免除）`);
+  return t+`${t?"・":""}${parts.join("・")}`;
 }
 /* 出手那一隻的系別（決定火星顏色）；作祟／賭注那類沒有 actor 的事件退回該側的主系 */
 function pwEvFac(f,b,views){
@@ -6112,6 +6120,13 @@ function pwScreenOf(side,unitId){
    由於兩側 id 都是 0..n−1，查得到的是**出手方自己的一尊**，數字就冒在打人那一側的頭上。
    使用者回報「扣血的部分看不太出來」有一半是這個（批 2-a 修正，見報告 §3）。 */
 const pwFoe=s=>(s==="B"?"A":"B");
+/* 詛咒的 side 是受咒持有者；鎖降攻，不得演成對手失血。 */
+function pwCurseFeedback(b){
+  const known={curseLock:"縛靈鎖",curseWater:"抓交替水符",curseBoat:"王船煞"};
+  const name=known[b.trId]||"詛咒";
+  const healthLoss=b.trId==="curseWater"||b.trId==="curseBoat";
+  return {side:b.side,target:b.target,name,healthLoss,text:known[b.trId]?`${healthLoss?"血量":"攻擊"} −${b.amount|0}`:"效果未登錄"};
+}
 function pwDmgFloat(b,fac,killed){
   if(!pwCloseup()||SKIP) return;
   const tside=b.kind==="burn"?b.side:pwFoe(b.side);
@@ -6252,8 +6267,8 @@ async function pwPlayBeat(f,beat,list,views){
   await pwSleep(PW_FX.BANNER_MS);
 
   const burns=list.filter(b=>b.kind==="burn");
-  const keep=new Set(pwThin(list.filter(b=>b.kind!=="burn"&&b.kind!=="trait"),PW_FX.MAX_HITS));
-  const show=list.filter(b=>b.kind==="trait"||keep.has(b)); /* 保持引擎給的原始順序 */
+  const keep=new Set(pwThin(list.filter(b=>b.kind!=="burn"&&b.kind!=="trait"&&b.kind!=="curse"),PW_FX.MAX_HITS));
+  const show=list.filter(b=>b.kind==="trait"||b.kind==="curse"||keep.has(b)); /* 詛咒觸發必須可見；保持引擎原始順序 */
   /* 攤分公式與 v0.32 逐字相同（含招式一起分）：卷 C3 曾改成只在通用交鋒間攤分，同種子實測每場多 100–400ms
      超出凍結檔 T-6 的上限（交鋒每筆都拿到 260ms 上限），改回來——招式走 3D 舞台時等 TRAIT_MS，其餘照舊等 evMs */
   const evMs=show.length
@@ -6274,7 +6289,7 @@ async function pwPlayBeat(f,beat,list,views){
     const lastAt=new Map();
     /* 只認 amount>0 的那幾筆：被護法擋光（amount 0）的那一下不是「打死的那一下」，
        標成擊殺會讓一個 −0 的字放大 1.3 倍（覆審第二輪）。 */
-    show.forEach((x,i)=>{ if(x.kind!=="trait"&&(x.amount|0)>0) lastAt.set(`${pwFoe(x.side)}:${x.target}`,i); });
+    show.forEach((x,i)=>{ if(x.kind!=="trait"&&x.trId!=="curseLock"&&(x.amount|0)>0) lastAt.set(`${x.kind==="curse"?x.side:pwFoe(x.side)}:${x.target}`,i); });
     for(const b0 of burns){ const k=`${b0.side}:${b0.target}`; if(lastAt.has(k)) killIdx.add(lastAt.get(k)); }
   }
   let evIdx=-1;
@@ -6301,6 +6316,18 @@ async function pwPlayBeat(f,beat,list,views){
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
       if(staged){ await pwSleep(pwTierMs(mvTier)); continue; } /* 3D 舞台接了才等這一招 tier 的時長；fallback 照 v0.32 等 evMs */
+    }else if(b.kind==="curse"){
+      const cue=pwCurseFeedback(b),holder=b.side==="B"?f.B:f.A;
+      const item={n:cue.name,curse:true};
+      pwMoveCap(holder.name,cue.name,"纏身",curseEffectText(item,true),"curse",b.side);
+      if(pwCloseup()&&!SKIP){
+        pwFloat(cue.side,cue.target,cue.text,"",null,0,"curse");
+        if(cue.healthLoss&&(b.amount|0)>0){
+          fx3d("ys:fx-hit",{side:cue.side,unit:cue.target,ms:PW_FX.HIT_FLASH_MS});
+          if(pwMySides.indexOf(cue.side)>=0) pwHurtEdge();
+        }
+      }
+      sfx("stamp",{rnd:S.rngUi()});
     }else{
       const K=PW_KIND[b.kind]||PW_KIND.hit;
       const pw=fxPower(b.amount*2)*K.p;
@@ -7324,7 +7351,7 @@ function simulate(seed){
   return {seed:S.seed, nights};
 }
 function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate(s))}; }
-window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, get S(){return S;},
+window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedback, get S(){return S;},
   CFG, POOL, CURSES, ABILITIES, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
   collectEffects, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */

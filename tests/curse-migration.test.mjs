@@ -72,3 +72,8 @@ test('water waits for simultaneous damage settlement and cannot target an alread
  const war=g.paperWar(person(0,[unit('紙',0,1,2),c]),person(1,[unit('敵',3,99,2)]),{rng:()=>0.5});
  assert.equal(war.aliveA,0);assert.equal(war.beats.filter(x=>x.trId==='curseWater').length,0);
 });
+
+test('unregistered curse events cannot impersonate health damage',()=>{
+ const g=fresh(),f=g.pwCurseFeedback({kind:'curse',trId:'unknown',side:'A',target:0,amount:99});
+ assert.equal(f.healthLoss,false);assert.equal(f.text,'效果未登錄');
+});

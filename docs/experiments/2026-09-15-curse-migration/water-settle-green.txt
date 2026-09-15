@@ -1,0 +1,18 @@
+✔ non-lock curses no longer impose a shared attack penalty (25.3671ms)
+✔ lock affects one strongest front unit only on beat one, stacks, and is cleansed (22.1976ms)
+✔ white tiger adds defeat loss only, before item mitigation, and respects cleansing (9.701ms)
+✔ water talisman triggers once per battle, stacks damage without recursion (9.7993ms)
+✔ event boat curse weakens one unit without killing it or lowering all attack (14.478ms)
+✔ wedding gift is charged at night end only after winning an auction, guava is unconditional (39.2796ms)
+✔ cleansed army summary still discloses wedding and guava costs (10.0692ms)
+✔ white tiger does not penalize its holder for winning or drawing (11.6357ms)
+✔ curse feedback targets its holder and distinguishes attack reduction from health loss (11.9193ms)
+✔ water waits for simultaneous damage settlement and cannot target an already doomed last ally (11.13ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1773.8662

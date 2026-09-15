@@ -85,15 +85,16 @@ test('斷手書生：只有達標的那一系吃到（另一系不得跟著 ×1.
 /* 舊版「袋中詛咒品戰力視為 0」只寫在 onItemValue（＝只進 power()），
    紙紮夜戰的詛咒懲罰是 pwMod 的 m-=sd.curses（數件數）⇒ 舊版免疫根本不存在，
    這兩案紅在「帶詛咒品打同一場，閭山與沒被動的人結果一模一樣」。 */
-test('閭山法師：袋中帶詛咒品時，紙紮夜戰的「詛咒纏身」不再扣自己',()=>{
-  const bag=bagOfFac(G.BEAT_FAC[0],4).concat(cursesN(2));
-  const foe=()=>bagOfFac(G.BEAT_FAC[1],3);
-  const rLv=duel(player(0,'lvshan',bag),player(1,'human',foe()),1);
-  const rBase=duel(player(0,'human',bag.map(x=>({...x}))),player(1,'human',foe()),1);
-  const dLv=rLv.aliveA-rLv.aliveB, dBase=rBase.aliveA-rBase.aliveB;
-  ok(dLv>dBase||(dLv===dBase&&rLv.hpB<rBase.hpB),
-    `閭山帶 2 件詛咒品應打得比沒被動者好：閭山 alive ${rLv.aliveA}vs${rLv.aliveB}/hpB ${rLv.hpB}、`
-    +`無被動 alive ${rBase.aliveA}vs${rBase.aliveB}/hpB ${rBase.hpB}`);
+/* 2026-09-15 差異化：冥婚/芭樂不再扣攻。改用真正戰鬥詛咒縛靈鎖，鎖定首拍實際傷害。 */
+function lockDuel(role,locked){
+  const soldier={n:'首拍紙人',f:'zuling',p:3,unit:{body:'swarm',count:1,atk:6,hp:99}};
+  const target={n:'測試靶',f:'xianghuo',p:3,unit:{body:'swarm',count:1,atk:0,hp:999}};
+  return duel(player(0,role,[soldier,...(locked?[{...CURSES.find(x=>x.n==='縛靈鎖')}]:[])]),player(1,'human',[target]),1)
+    .beats.find(x=>x.side==='A'&&x.beat===1&&x.kind==='hit').amount;
+}
+test('閭山法師：縛靈鎖不降低自己的首拍攻擊',()=>{
+  eq(lockDuel('lvshan',true),lockDuel('lvshan',false),'淨化後與未受咒首拍相同');
+  eq(lockDuel('human',true),lockDuel('lvshan',true)-2,'非免疫者受同一把鎖扣攻2');
 });
 test('閭山法師：袋中沒有詛咒品時不生效（被動不是恆真式）',()=>{
   const bag=bagOfFac(G.BEAT_FAC[0],4);
@@ -104,14 +105,8 @@ test('閭山法師：袋中沒有詛咒品時不生效（被動不是恆真式�
      rBase.aliveA+'/'+rBase.hpA+'/'+rBase.aliveB+'/'+rBase.hpB,
      '沒有詛咒品時，閭山與無被動者的對決結果應完全相同');
 });
-test('閭山法師：免疫不外洩給別人（別的角色帶同樣的詛咒品仍照扣）',()=>{
-  const bag=bagOfFac(G.BEAT_FAC[0],4).concat(cursesN(2));
-  const clean=bagOfFac(G.BEAT_FAC[0],4);
-  const foe=()=>bagOfFac(G.BEAT_FAC[1],3);
-  const rCursed=duel(player(0,'zutou',bag),player(1,'human',foe()),1);
-  const rClean=duel(player(0,'zutou',clean),player(1,'human',foe()),1);
-  ok(rCursed.hpA<rClean.hpA||rCursed.aliveA<rClean.aliveA,
-    `沒有 curseWard 的角色帶詛咒品仍應被「詛咒纏身」拖累：帶咒 alive ${rCursed.aliveA}/hp ${rCursed.hpA}、乾淨 alive ${rClean.aliveA}/hp ${rClean.hpA}`);
+test('閭山法師：免疫不外洩給其他角色',()=>{
+  eq(lockDuel('zutou',true),lockDuel('zutou',false)-2,'其他角色仍受鎖的首拍扣攻');
 });
 
 /* ===================== ② 數值：起始壽命與兩個被動 ===================== */
@@ -302,7 +297,7 @@ test('收驚婆：ai 與 life0d 與基準相同（B2 不得動）',()=>{
    本檔其餘 22 案都是行為斷言紅。下面第二案（沒有免疫的角色仍要印「詛咒纏身」）是守衛：
    它擋掉「乾脆把這段字整個拆掉」這種假修法。 */
 test('閭山法師：袋中帶詛咒品時，隻數牌印「詛咒已淨化」而不是「詛咒纏身」',()=>{
-  const bag=bagOfFac(G.BEAT_FAC[0],2).concat(cursesN(2));
+  const bag=bagOfFac(G.BEAT_FAC[0],2).concat([CURSES.find(x=>x.n==='縛靈鎖'),CURSES.find(x=>x.n==='白虎煞')]);
   const v=G.pwArmyView(player(0,'lvshan',bag));
   ok(v.curses===2,`治具前提：袋中應有 2 件詛咒品，實際 ${v.curses}`);
   const txt=G.pwCompText?G.pwCompText(v):'（舊版沒有 pwCompText 出口——見本段檔頭的鑑別力說明）';

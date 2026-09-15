@@ -623,7 +623,7 @@ test('H11市集卡招式行：27 件法寶＋3 尊傳說——卡面只印數字
 test('H11詛咒品那一行看主人：一般人印「只算纏身」，帶 curseWard 的印「已淨化」',()=>{
   const G=loadGame(TARGET); const S=setup(G);
   G.CFG.PAPERWAR_ON=true;
-  const curse=G.CURSES[0];
+  const curse=G.CURSES.find(x=>x.n==='縛靈鎖'); /* 差異化後以戰鬥詛咒驗淨化，禮金不免 */
   const plain=S.players[1]; plain.roleId='human'; plain.bag=[];
   const txtPlain=(G.unitRowText||(()=>''))(curse,plain);
   ok(/纏身/.test(txtPlain)&&!/淨化/.test(txtPlain),`一般人看到的詛咒品說明：${txtPlain}`);
