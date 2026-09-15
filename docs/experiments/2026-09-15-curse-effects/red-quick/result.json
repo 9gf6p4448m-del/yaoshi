@@ -1,0 +1,255 @@
+{
+  "syntheticMarket": true,
+  "url": "http://127.0.0.1:8996/",
+  "quick": true,
+  "safeInsets": {
+    "top": 0,
+    "right": 59,
+    "bottom": 21,
+    "left": 59
+  },
+  "errors": [],
+  "checks": [
+    {
+      "name": "852x393-normal-縛靈鎖 card states attack penalty",
+      "pass": false,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n鎖魂之鏈\n🕸 詛咒品不召喚（只算纏身）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states per-item per-beat penalty",
+      "pass": false,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n鎖魂之鏈\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states stacking",
+      "pass": false,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n鎖魂之鏈\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states non-positive attack cannot act",
+      "pass": false,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n鎖魂之鏈\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states immunity scope",
+      "pass": false,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n鎖魂之鏈\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n鎖魂之鏈\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 295,
+        "scrollHeight": 295,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "every curse reduces holder attack by one",
+      "pass": true,
+      "details": {
+        "cleanHit": 9,
+        "perCurse": [
+          {
+            "name": "冥婚紅包",
+            "hit": 8
+          },
+          {
+            "name": "魔神仔的芭樂",
+            "hit": 8
+          },
+          {
+            "name": "抓交替水符",
+            "hit": 8
+          },
+          {
+            "name": "縛靈鎖",
+            "hit": 8
+          },
+          {
+            "name": "白虎煞",
+            "hit": 8
+          }
+        ],
+        "stackedHit": 7,
+        "wardHit": 9,
+        "lowAttackProducedHit": false,
+        "bananaDrain": 1,
+        "bananaLog": [
+          "🩸 青面攤主 受詛咒侵蝕 -1"
+        ]
+      }
+    },
+    {
+      "name": "curse attack penalty stacks per item",
+      "pass": true,
+      "details": {
+        "cleanHit": 9,
+        "perCurse": [
+          {
+            "name": "冥婚紅包",
+            "hit": 8
+          },
+          {
+            "name": "魔神仔的芭樂",
+            "hit": 8
+          },
+          {
+            "name": "抓交替水符",
+            "hit": 8
+          },
+          {
+            "name": "縛靈鎖",
+            "hit": 8
+          },
+          {
+            "name": "白虎煞",
+            "hit": 8
+          }
+        ],
+        "stackedHit": 7,
+        "wardHit": 9,
+        "lowAttackProducedHit": false,
+        "bananaDrain": 1,
+        "bananaLog": [
+          "🩸 青面攤主 受詛咒侵蝕 -1"
+        ]
+      }
+    },
+    {
+      "name": "attack at zero does not act",
+      "pass": true,
+      "details": {
+        "cleanHit": 9,
+        "perCurse": [
+          {
+            "name": "冥婚紅包",
+            "hit": 8
+          },
+          {
+            "name": "魔神仔的芭樂",
+            "hit": 8
+          },
+          {
+            "name": "抓交替水符",
+            "hit": 8
+          },
+          {
+            "name": "縛靈鎖",
+            "hit": 8
+          },
+          {
+            "name": "白虎煞",
+            "hit": 8
+          }
+        ],
+        "stackedHit": 7,
+        "wardHit": 9,
+        "lowAttackProducedHit": false,
+        "bananaDrain": 1,
+        "bananaLog": [
+          "🩸 青面攤主 受詛咒侵蝕 -1"
+        ]
+      }
+    },
+    {
+      "name": "curse ward prevents attack penalty",
+      "pass": true,
+      "details": {
+        "cleanHit": 9,
+        "perCurse": [
+          {
+            "name": "冥婚紅包",
+            "hit": 8
+          },
+          {
+            "name": "魔神仔的芭樂",
+            "hit": 8
+          },
+          {
+            "name": "抓交替水符",
+            "hit": 8
+          },
+          {
+            "name": "縛靈鎖",
+            "hit": 8
+          },
+          {
+            "name": "白虎煞",
+            "hit": 8
+          }
+        ],
+        "stackedHit": 7,
+        "wardHit": 9,
+        "lowAttackProducedHit": false,
+        "bananaDrain": 1,
+        "bananaLog": [
+          "🩸 青面攤主 受詛咒侵蝕 -1"
+        ]
+      }
+    },
+    {
+      "name": "banana drains one life at night end",
+      "pass": true,
+      "details": {
+        "cleanHit": 9,
+        "perCurse": [
+          {
+            "name": "冥婚紅包",
+            "hit": 8
+          },
+          {
+            "name": "魔神仔的芭樂",
+            "hit": 8
+          },
+          {
+            "name": "抓交替水符",
+            "hit": 8
+          },
+          {
+            "name": "縛靈鎖",
+            "hit": 8
+          },
+          {
+            "name": "白虎煞",
+            "hit": 8
+          }
+        ],
+        "stackedHit": 7,
+        "wardHit": 9,
+        "lowAttackProducedHit": false,
+        "bananaDrain": 1,
+        "bananaLog": [
+          "🩸 青面攤主 受詛咒侵蝕 -1"
+        ]
+      }
+    }
+  ],
+  "captures": [
+    "docs/experiments/2026-09-15-curse-effects/red-quick/852x393-normal-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-effects/red-quick/852x393-normal-縛靈鎖-sheet.png"
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 5
+  }
+}
