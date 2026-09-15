@@ -56,7 +56,7 @@ export const PROPS = {
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
     /* 尺寸（自評 r3 放大一輪，理由同銅錢）：0.072×0.094 在成圖上是一塊看不出刻字的紅片。 */
-    W: 0.098, H: 0.128, T: 0.045, BEVEL: 0.004, // 半寬／半高／厚與雙層微導角
+    W: 0.098, H: 0.128, T: 0.045, BEVEL: 0.004, PITCH: 0.22, // 半寬／半高／厚、雙層微導角與可讀的翹角
     jade: 0x6d1220, jadeHi: 0x9c2434, jadeLo: 0x3c0810, // 暗紅玉三階
     carve: 0xc24a54, // 陽刻「盯」：比玉面亮，吃得到燈籠光
     SLAM_MS: 0.30, // 從席位拍下來要多久
@@ -92,8 +92,9 @@ export const PROPS = {
      往前擺之後兩件事一起解決：離相機近 ⇒ 同樣的世界寬度佔的 NDC 變小、射線也落在命中盒的 z 之外。 */
   DROP_Z: { L: 0.52, P: 0.40 },
   /** 同一格四席各自的橫向讓位（避免四家的錢疊成一坨）。 */
-  SEAT_DX: [-0.075, 0.075, -0.075, 0.075],
-  SEAT_DZ: [0.055, -0.055, -0.005, 0.005],
+  /* 四席落在托盤前的四角，不能再把南／西、北／東各疊成一根。 */
+  SEAT_DX: [-0.15, 0.15, -0.15, 0.15],
+  SEAT_DZ: [0.10, -0.10, -0.10, 0.10],
 };
 
 /* ═══ 幾何小工具（本檔內共用，別處不要抄）═══════════════════════════════ */
@@ -443,9 +444,9 @@ export function createTableProps(parent, opts = {}) {
     const compact = mode === 'P' ? 0.60 : 1;
     const wobble = (seat + 1) * 31 + (slot + 1) * 17 + k * 13;
     return [
-      trayXS[slot] + PROPS.SEAT_DX[seat] * compact + Math.sin(wobble) * 0.003,
+      trayXS[slot] + PROPS.SEAT_DX[seat] * compact + Math.sin(wobble) * 0.010,
       trayY + CH.T / 2 + k * CH.T * 0.9,
-      dropZ() + PROPS.SEAT_DZ[seat] * compact + Math.cos(wobble) * 0.003,
+      dropZ() + PROPS.SEAT_DZ[seat] * compact + Math.cos(wobble) * 0.010,
     ];
   }
   /** 一串（>8 枚）：銅錢立起來沿一條短弧排——同一批 instance 換姿態，0 新幾何。 */
@@ -465,7 +466,7 @@ export function createTableProps(parent, opts = {}) {
       const py = c.from[1] + (c.to[1] - c.from[1]) * e + Math.sin(Math.PI * t) * CH.LIFT;
       c.shadow = [px, pz];
       /* 一串的姿態是立著的（繞 x 轉 90°），攤開的是躺平的。飛行途中線性補到目標姿態。 */
-      EU.set(c.stand ? (Math.PI / 2) * e : 0, c.yaw, c.stand ? CH.STRING.tilt * e : 0);
+      EU.set(c.stand ? (Math.PI / 2) * e : c.tilt * e, c.yaw, c.stand ? CH.STRING.tilt * e : 0);
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
@@ -514,7 +515,7 @@ export function createTableProps(parent, opts = {}) {
       const px = from[0] + (to[0] - from[0]) * e;
       const pz = from[1] + (to[2] - from[1]) * e;
       const py = trayY + TK.T / 2 + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
-      EU.set(0.08, r.yaw, 0); // 微翹：血玉不是貼紙，是有重量的實體
+      EU.set(TK.PITCH, r.yaw, 0); // 可讀的微翹：血玉不是貼紙，是有重量的實體
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       M.compose(Pv, Q, Sv);
@@ -601,7 +602,7 @@ export function createTableProps(parent, opts = {}) {
         chipRec.push({
           seat: s, slot: k, k: i, n, stand, amt,
           from: [fx, trayY + CH.T / 2, fz], to,
-          yaw: (i * 0.7) % (Math.PI * 2), t: 0, delay: i * 0.035,
+          yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: i * 0.035,
         });
       }
       // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
