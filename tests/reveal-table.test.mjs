@@ -10,6 +10,7 @@ const tray = fs.readFileSync(path.join(root, 'js', 'table-tray.js'), 'utf8');
 const props = fs.readFileSync(path.join(root, 'js', 'table-props.js'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'js', 'renderer.js'), 'utf8');
 const director = fs.readFileSync(path.join(root, 'js', 'camera-director.js'), 'utf8');
+const theme = fs.readFileSync(path.join(root, 'assets', 'theme.css'), 'utf8');
 
 test('揭盅維持 3D 牌桌可見，且不再用黑幕切換', () => {
   const reveal = index.slice(index.indexOf('async function startReveal()'), index.indexOf('/* 本夜成交總覽 */'));
@@ -100,6 +101,21 @@ test('逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動�
     '落標錢柱需要先保留短暫比較，再進入收回時間軸');
   assert.match(props, /returnTo/,
     '落標錢柱必須有明確回到原席位的終點，而非只降彩度');
+});
+
+test('揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀', () => {
+  const ribbon = index.slice(index.indexOf('.revealRibbon{'), index.indexOf('.bidfly{', index.indexOf('.revealRibbon{')));
+  assert.match(index, /@keyframes ribbon-lantern-reveal/, '置中的結果卡必須用保留 translateX 的專屬動畫');
+  assert.match(index, /translateX\(-50%\) translateY\(10px\) scale\(\.96\)/, '結果卡入場第一幀不得遺失水平置中');
+  assert.match(index, /\.revealRibbon\.anim-lantern-reveal\{animation:ribbon-lantern-reveal/, '結果卡不得沿用會覆寫 transform 的通用動畫');
+  assert.match(ribbon, /z-index:30/, '結果卡必須高於兩側拍品欄');
+  assert.match(index, /#table\.t3d \.rail \.mcard\{min-height:88px;height:auto;flex:1 1 0/, '受惠卡需在側欄可用高度內彈性均分，不可固定 88px');
+  assert.match(index, /\.moonCue\{[^}]*font-size:8\.5px[^}]*padding:0 3px/, '受惠徽章必須縮緊以保住底部部隊列');
+  assert.match(props, /PITCH:\s*0\.70/, '盯牌必須以可見的仰立角度呈現');
+  assert.match(props, /STAND_LIFT/, '仰立令牌必須抬離桌面，避免只剩穿模細線');
+  assert.match(props, /const e = 0\.018/, '盯字凸起高度必須升級為遠景可讀');
+  assert.match(props, /jade: 0x1a1215/, '令牌本體必須與紅布拉開明度對比');
+  assert.match(theme, /\.anim-lantern-reveal/, '通用燈籠動畫仍供其他元素使用，不可全域破壞');
 });
 
 test('局末只留一個進入完整回顧的入口，策略建議不以心願硬優先', () => {
