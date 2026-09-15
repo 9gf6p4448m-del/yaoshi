@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium, devices } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
 const PORT = 8994;
+const REDUCED = process.argv.includes('--reduced');
 
 async function toMark(page) {
   await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
@@ -35,6 +36,7 @@ try {
   const ctx = await browser.newContext({ ...devices['iPhone 14 Pro'], viewport: { width: 852, height: 393 } });
   await ctx.addInitScript(() => localStorage.setItem('yaoshi_intro_v1', '1'));
   const page = await ctx.newPage();
+  await page.emulateMedia({ reducedMotion: REDUCED ? 'reduce' : 'no-preference' });
   page.on('pageerror', error => errors.push(String(error)));
   page.on('console', message => { if (message.type() === 'error') errors.push('console: ' + message.text()); });
   await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
@@ -85,7 +87,7 @@ try {
   const settledCard = Number.isFinite(finalFlight) ? result.frames.filter(row => row.t > finalFlight + 350) : [];
   const restored = settledCard.length > 0 && settledCard.every(row => !row.viewOffset);
   const pass = result.slots.length > 0 && result.skipAt !== null && result.awards.length > 0 && result.cards.length > 0 && flight.length > 0 && uncovered.length === 0 && restored && errors.length === 0;
-  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', slots: result.slots, skipAt: result.skipAt, awards: result.awards, cards: result.cards, frameCount: result.frames.length, flightFrames: flight.length, unframedFlightFrames: uncovered.length, firstUnframed: uncovered[0] || null, settledCardFrames: settledCard.length, viewOffsetRestored: restored, errors, pass }, null, 2));
+  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', reducedMotion: REDUCED, slots: result.slots, skipAt: result.skipAt, awards: result.awards, cards: result.cards, frameCount: result.frames.length, flightFrames: flight.length, unframedFlightFrames: uncovered.length, firstUnframed: uncovered[0] || null, settledCardFrames: settledCard.length, viewOffsetRestored: restored, errors, pass }, null, 2));
   if (!pass) process.exitCode = 1;
   await ctx.close();
 } finally {
