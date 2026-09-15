@@ -1,0 +1,145 @@
+✖ formal target selection uses highest life and stable seat order (1.576ms)
+✖ Wangchuan sends the most recent curse to the highest-life foe (3.9966ms)
+✖ retired power abilities do not modify formal power accounting (0.7052ms)
+✖ hunter AI adds four only when pwTrial improves (2.3118ms)
+✖ hunter compares paper units and takes the largest non-curse troop team (0.5713ms)
+✖ formal simulation and policy game never invoke power() (22.1172ms)
+✖ formal battle records prebattle paper-unit counts without a raw-power context (1.4737ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 0
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1661.4242
+
+✖ failing tests:
+
+test at tests\power-retirement.test.mjs:20:1
+✖ formal target selection uses highest life and stable seat order (1.576ms)
+  TypeError: G.highestLifeFoe is not a function
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:23:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+
+test at tests\power-retirement.test.mjs:30:1
+✖ Wangchuan sends the most recent curse to the highest-life foe (3.9966ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(a.bag.includes(old))
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\power-retirement.test.mjs:41:1
+✖ retired power abilities do not modify formal power accounting (0.7052ms)
+  AssertionError [ERR_ASSERTION]: sword
+  
+  8 !== 6
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:46:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\power-retirement.test.mjs:54:1
+✖ hunter AI adds four only when pwTrial improves (2.3118ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  7 !== 11
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:63:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 7,
+    expected: 11,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\power-retirement.test.mjs:66:1
+✖ hunter compares paper units and takes the largest non-curse troop team (0.5713ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(hunter.bag.includes(large))
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:75:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\power-retirement.test.mjs:80:1
+✖ formal simulation and policy game never invoke power() (22.1172ms)
+  Error: formal power probe
+      at power (eval at loadGame (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/tools/load.mjs:14:12), <anonymous>:2209:26)
+      at eval (eval at loadGame (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/tools/load.mjs:14:12), <anonymous>:6539:91)
+      at Array.map (<anonymous>)
+      at snapPlayers (eval at loadGame (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/tools/load.mjs:14:12), <anonymous>:6539:20)
+      at Object.simulate (eval at loadGame (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/tools/load.mjs:14:12), <anonymous>:6549:15)
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:85:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+
+test at tests\power-retirement.test.mjs:90:1
+✖ formal battle records prebattle paper-unit counts without a raw-power context (1.4737ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  99 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:97:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 99,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
