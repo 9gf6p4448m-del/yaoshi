@@ -62,3 +62,15 @@ test('adaptive camera retreats to fit HUD space without changing model scale', a
   assert.deepEqual(group.scale.toArray(), [.7, .7, .7]);
   assert.equal(camera.fov, 50);
 });
+
+test('instanced stamps participate at their actual instance positions in a framing union', async () => {
+  const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
+  const { projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const camera = new THREE.PerspectiveCamera(50, 852 / 393, .01, 100);
+  camera.position.z = 3; camera.updateMatrixWorld();
+  const stamps = new THREE.InstancedMesh(new THREE.BoxGeometry(.2, .2, .1), new THREE.MeshBasicMaterial(), 2);
+  stamps.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-.5, 0, 0));
+  stamps.setMatrixAt(1, new THREE.Matrix4().makeTranslation(.5, 0, 0));
+  const b = projectSubject(stamps, camera, 852, 393);
+  assert.ok(b.right - b.left > 100, 'both real instances must be projected, not just an origin stamp');
+});
