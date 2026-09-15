@@ -1,0 +1,29 @@
+# 妖市：Claude Code 專案入口
+
+本檔是跨工具續接入口。使用者的最新指示優先；不要把 Codex 對話、子代理或尚未存檔的記憶當成已取得的上下文。
+
+## 開始時只讀必要入口
+
+1. `git status --short`、`git log -5 --oneline`，確認所在分支與既有修改。
+2. [當前 A1 交接](docs/handoffs/2026-09-15-a1-premium-table.md)：已裁事項、公開版本、未過項及下一步。
+3. [總藍圖](docs/MASTER_BLUEPRINT.md)：產品範圍與優先序；舊 Antigravity 內容已逐項整併，原文仍保留。
+4. 要改 A1 時讀 [凍結驗收 v1.1](docs/experiments/2026-09-15-acceptance-a1-premium-table.md)，再按問題讀相關原始證據，不整批讀 experiments。
+
+## 已裁邊界
+
+- A 方向「廟埕暗桌・紙紮顯靈」與依 HUD 空間自動退鏡已批准，不重問；FOV、模型世界尺寸、文字及演出時長仍依契約。
+- 延續 Astra 已定方向與構圖契約。Claude Code 可接實作、除錯、測試與紀錄；接手不代表重新選美術方向或推翻凍結標準。新的實質視覺／架構取捨依使用者與專案規範處理，不冒稱完成 Astra 覆審。
+- v0.57.11 已公開供試玩。功能／幾何通過不等於 A1 最終驗收；相對效能、手機真機與原 P4／M-A1 未過项保留。
+- D2 連鎖、D3 幽靈、D5 進度等未裁，不因總藍圖收錄而直接實作。
+- 持續發布授權有效：必要驗證後可正常提交、push 並核對公開送達。不要 force push；不能只有 push 成功就稱網站已更新。
+
+## 工作樹與工具
+
+- 不用 `git add -A`、reset 或 clean 處理既有 dirty files；具體清單見交接。避免兩個工具同時編輯同一工作樹；平行工作需各自 worktree 與明確檔案責任。
+- 搜尋限當前專案來源；排除 `.claude/worktrees/`、`.codex-worktrees/`、`scratchpad/`、`node_modules/`，除非正在查指定舊證據。
+- 靜態 HTML／JS 遊戲。快速檢查：`node --test tests/*.test.mjs`；純呈現改動另以同版基準跑 `tests/tools/trace-eq.mjs`。
+- 瀏覽器工具使用本機、未追蹤的 `tools/anyCreature/` 依賴。2026-09-15 實測 Node 24.16.0、Python 3.14.5、Playwright 1.62.1、Three 0.180.0。同機可沿用；換機需先確認依賴，Git 不包含這個目錄。
+- 效能診斷與正式 gate 分開；CPU profile 不能證明 Safari fps。正式性能量測獨占 GPU browser，不與截圖／矩陣同跑。
+- 有受影響的程式改動才跑必要檢查。未改產品時不用重跑 1599 矩陣；不能反覆重測直到挑到綠燈。
+
+Claude Code 的專案記憶機制參考：[官方文件](https://code.claude.com/docs/en/memory)。
