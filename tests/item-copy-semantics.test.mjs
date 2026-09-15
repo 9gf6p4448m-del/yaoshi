@@ -38,3 +38,7 @@ test('full unit details explain resonance timing without implying a single attac
   assert.match(detail('百步蛇紋盾'),/每拍皆會攻擊/);
   assert.match(detail('水鬼浮標'),/作祟不普攻/);
 });
+
+test('chair disclosure explains the computer-holder exception',()=>{
+  assert.match(game.ABILITIES.chair.desc,/電腦對手持有不會公開/);
+});
