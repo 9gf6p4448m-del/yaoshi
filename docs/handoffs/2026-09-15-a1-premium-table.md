@@ -20,7 +20,7 @@
 
 正式五輪：候選 32／128 速度比 .3596／.3365，基準 eafec13 為 .3635／.3767；全部低於 .40。候選 calls／triangles／passes 與實體數量通過，速度比仍 RED，不因基準同樣失敗而改判。詳細原始數據與性能修補見 EXECUTION。
 
-v0.57.11 兩處版本已同步、55 測試與 trace 通過，正在依持續授權發布試玩。A1 最終驗收未完成；手機真機、D2／D3／D5、原 P4／M-A1 與歷史性能未過項均保留。
+v0.57.11（aa7aa7b）已推送及公開；兩處版本、55 測試、trace、公開 HTML／四份資產及四槽原速揭盅實載均已驗證。A1 最終驗收未完成；手機真機、D2／D3／D5、原 P4／M-A1 與歷史性能未過項均保留。
 ## 工作樹保護
 
 開場既有的交接修改、iPhone standalone result、根目錄 props 圖、AGENTS.md、.codex-worktrees 和舊 published 證據保留；不要用全目錄 stage／reset／clean 混入或刪除。當前 A1 產品提交已保留 RED／GREEN 軌跡。

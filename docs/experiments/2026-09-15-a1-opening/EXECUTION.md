@@ -80,7 +80,7 @@ node tests/tools/scene-shot.mjs docs/experiments/2026-09-15-a1-opening/perf128-f
 
 ## 待完成
 
-性能已完成且維持 RED；v0.57.11 版本與 55/55 測試、trace seeds 1–20 相等已完成，等待正式送達。code/JS 有界覆審已覆蓋 market union／instance matrix／頁籤／骨骼同步，以及 bcd84a0 配色與截圖工具，未有剩餘 HIGH；最終新增修改仍需按範圍覆核。真機逐項與歷史未過項另列。
+性能已完成且維持 RED；v0.57.11 版本與 55/55 測試、trace seeds 1–20 相等已完成，正式送達已完成，見下方紀錄。code/JS 有界覆審已覆蓋 market union／instance matrix／頁籤／骨骼同步，以及 bcd84a0 配色與截圖工具，未有剩餘 HIGH；最終新增修改仍需按範圍覆核。真機逐項與歷史未過項另列。
 
 ## 最終五輪對照（07124ed 與完整 eafec13 基準）
 
@@ -103,3 +103,11 @@ node tests/tools/scene-shot.mjs docs/experiments/2026-09-15-a1-opening/perf128-f
 
 版本測試先 RED（de57e10），再同步 VERSION／RELEASE_VERSION 為 0.57.11。
 tests-release-0.57.11.txt：55/55、0 skip；trace-release-0.57.11.json：seeds 1–20、357285 bytes 相等。
+## 公開送達：2026-09-15
+
+- 產品提交 aa7aa7b6d8f9458bb6dfa7647d7417189896100f 已正常 push 至 origin/main；GitHub Pages run 34950499093 success。
+- 公開入口：https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.11
+- public-assets-0.57.11.json：HTTP200，index.html／safe-area.css／renderer.js／table-tray.js／table-framing.js 五檔與提交內容逐位元組一致，pass=true。
+- public-0.57.11/capture.json：公開 fresh browser 實載 VERSION 與 RELEASE_VERSION 均 0.57.11；seed3 四槽完整 slot→result→card，沒有 skip，CFG.T 前後650、errors=[]、exit0。
+- Astra 實際開啟公開 slot2-gold 與 slot3-push PNG：選中模型保留在 HUD 開口內，漆木／紙色資訊與原陣營色仍可辨識。
+- 交付的是可試玩的 A1 版本。相對性能門檻仍 RED、Safari 真機最終驗收仍待回報；此送達不消除原 P4／M-A1 或 D2／D3／D5。
