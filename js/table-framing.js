@@ -65,3 +65,33 @@ export function projectSubject(node, camera, width, height) {
   });
   return count && !clipped ? result : null;
 }
+
+/** The authored shot is the closest allowed camera. Retreat only as much as
+ * needed to fit the intact model, then shift the principal point into the HUD
+ * opening. Approved for A1 on 2026-09-15; fov and model scale stay unchanged. */
+export function fitSubject(node, camera, area, obstacles, width, height) {
+  const base = camera.position.clone();
+  const axis = base.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
+  camera.clearViewOffset();
+  const evaluate = retreat => {
+    camera.position.copy(base).addScaledVector(axis, retreat);
+    const bounds = projectSubject(node, camera, width, height);
+    const shift = bounds && placeSubject(bounds, area, obstacles);
+    return shift ? { bounds, shift } : null;
+  };
+  let retreat = 0, fit = evaluate(0);
+  if (!fit) {
+    let low = 0, high = .25;
+    while (high <= 32 && !evaluate(high)) { low = high; high *= 2; }
+    if (high > 32) { camera.position.copy(base); camera.updateMatrixWorld(true); return { fit: false, reason: 'no-safe-framing' }; }
+    for (let i = 0; i < 12; i++) {
+      const mid = (low + high) / 2;
+      if (evaluate(mid)) high = mid; else low = mid;
+    }
+    retreat = high; fit = evaluate(retreat);
+  }
+  // Positive view offsets move the image left/up: use the inverse of the
+  // desired screen displacement. The canvas and raycaster share this camera.
+  camera.setViewOffset(width, height, -fit.shift.x, -fit.shift.y, width, height);
+  return { fit: true, retreat, shift: fit.shift, bounds: projectSubject(node, camera, width, height) };
+}
