@@ -1,0 +1,30 @@
+✔ non-lock curses no longer impose a shared attack penalty (21.6986ms)
+✔ lock affects one strongest front unit only on beat one, stacks, and is cleansed (23.0997ms)
+✔ white tiger adds defeat loss only, before item mitigation, and respects cleansing (10.4993ms)
+✔ water talisman triggers once per battle, stacks damage without recursion (9.4067ms)
+✔ event boat curse weakens one unit without killing it or lowering all attack (10.4183ms)
+✔ wedding gift is charged at night end only after winning an auction, guava is unconditional (32.2942ms)
+✔ cleansed army summary still discloses wedding and guava costs (10.985ms)
+✔ white tiger does not penalize its holder for winning or drawing (10.0352ms)
+✖ curse feedback targets its holder and distinguishes attack reduction from health loss (10.7626ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1750.0419
+
+✖ failing tests:
+
+test at tests\curse-migration.test.mjs:63:1
+✖ curse feedback targets its holder and distinguishes attack reduction from health loss (10.7626ms)
+  TypeError: g.pwCurseFeedback is not a function
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-migration.test.mjs:65:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

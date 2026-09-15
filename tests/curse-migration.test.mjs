@@ -47,3 +47,22 @@ test('wedding gift is charged at night end only after winning an auction, guava 
  const run=(won,role='human')=>{const g=fresh();g.makeState('solo',1,['qingmian']);g.S.players.forEach((p,i)=>{p.alive=i===0;p.bag=[];});const p=g.S.players[0];p.roleId=role;p.life=20;p.bag=[curse(g,'冥婚紅包'),curse(g,'冥婚紅包'),curse(g,'魔神仔的芭樂')];g.CFG.NIGHT_REGEN=0;if(won)g.S.wonAny.add(p.id);const result=g.resolveBattles();return{life:p.life,result};};
  assert.equal(run(false).life,19);assert.equal(run(true).life,17);assert.equal(run(true,'lvshan').life,17);
 });
+
+test('cleansed army summary still discloses wedding and guava costs',()=>{
+ const g=fresh(),v=g.pwArmyView(person(0,[unit('兵'),curse(g,'冥婚紅包'),curse(g,'魔神仔的芭樂'),curse(g,'縛靈鎖')],'lvshan'));
+ const text=g.pwCompText(v);assert.match(text,/戰鬥詛咒已淨化 1/);assert.match(text,/禮金／侵蝕 2（不免除）/);
+});
+test('white tiger does not penalize its holder for winning or drawing',()=>{
+ const g=fresh(),c=curse(g,'白虎煞'),strong=unit('強',40,99),weak=unit('弱',1,2);
+ const clean=g.paperWar(person(0,[strong]),person(1,[weak]),{rng:()=>0.5});
+ const cursed=g.paperWar(person(0,[strong,c]),person(1,[weak]),{rng:()=>0.5});
+ assert.equal(cursed.winner.id,0);assert.equal(cursed.dmg,clean.dmg);
+ const draw=g.paperWar(person(0,[strong,c]),person(1,[strong]),{rng:()=>0.5});assert.equal(draw.dmg,0);
+});
+
+test('curse feedback targets its holder and distinguishes attack reduction from health loss',()=>{
+ const g=fresh();
+ const lock=g.pwCurseFeedback({kind:'curse',trId:'curseLock',side:'A',target:2,amount:4});
+ assert.equal(lock.side,'A');assert.equal(lock.healthLoss,false);assert.equal(lock.text,'攻擊 −4');
+ for(const trId of ['curseWater','curseBoat']){const f=g.pwCurseFeedback({kind:'curse',trId,side:'B',target:1,amount:2});assert.equal(f.side,'B');assert.equal(f.healthLoss,true);assert.equal(f.text,'血量 −2');}
+});
