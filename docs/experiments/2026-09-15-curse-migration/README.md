@@ -26,6 +26,8 @@
 - Power 改造與最後玩家說明由 a1_projection 獨立覆核；市場值誤称戰力問題已關閉。tray 由 gameplay_evidence 獨立 JS 覆核：單一雙面 mesh、既有火焰 Points，切換時釋放材質／幾何；kind 納入重用判斷。無未解 HIGH/MEDIUM。
 - [造型第二輪](curse-shapes-contact-sheet-r2.png) 已由主責實際開圖檢查：修正白虎背面遮紋、芭樂輪廓太方。可辨識不代表完成全部美術大作目標。
 - [300 幾何案例](curse-table-framing-300-final.json)：300/300、頁面錯誤 0、遺漏／錯誤實際 curseKind 0。這是受控影格下的取景檢查，不能宣稱真機 FPS。source／exit companion 同目錄。
+- 瀏覽器工具由 gameplay_evidence 獨立 JS 覆核，無 HIGH/MEDIUM：實際 DOM 文字 Range、安全區、祖先裁切、底部可捲動與加減按鈕均維持檢查；袋子改验真正部隊／效果與無戰力，符合最新批准。
+- [500 固定種子診斷](balance-diagnostic.json)：舊／新平均局長 9.672／9.38 夜、平均結束總壽命 50.868／45.99；拍賣成交率 68.78%／68.41%。整體傷害與淘汰有所增加，後續應看真人感受；此為規則變更診斷，不是平衡通過門檻或效果單因果證明。
 - 最終手機全文、卡面與演出證據待補。
 
 ## 保留事項

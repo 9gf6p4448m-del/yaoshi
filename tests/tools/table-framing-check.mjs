@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { chromium, devices } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
 const PORT = 8992, all = process.argv.includes('--all');
+const curseOnly = process.argv.includes('--curse-only');
+if (curseOnly && !all) throw new Error('--curse-only requires --all');
 const limitArg = process.argv.find(a => a.startsWith('--limit='));
 const limit = limitArg ? Number(limitArg.slice(8)) : null;
 const matchArg = process.argv.find(a => a.startsWith('--match='));
@@ -42,8 +44,8 @@ async function toMark(page) {
 // Executes in the page. Every actual rAF samples real mesh geometry after the
 // renderer has called tray.update and its framing callback. Green samples are
 // aggregated; every failed pose is retained for evidence.
-const measureCase = async ({ slot, kind, key, fac, winner, transferTarget, fixture }) => {
-  const {camera,scene,tray}=window.__yaoshi3d;
+const measureCase = async ({ slot, kind, key, fac, curseKind, winner, transferTarget, fixture }) => {
+  const {camera,scene,tray,renderer}=window.__yaoshi3d;
   const manual=window.__a1FramingClock;
   const rect=s=>{const e=document.querySelector(s),b=e?.getBoundingClientRect();return b&&{left:b.left,top:b.top,right:b.right,bottom:b.bottom,width:b.width,height:b.height,display:getComputedStyle(e).display,visibility:getComputedStyle(e).visibility,rects:e.getClientRects().length};};
   const visible=o=>{for(let p=o;p;p=p.parent)if(!p.visible)return false;return true;};
@@ -52,7 +54,7 @@ const measureCase = async ({ slot, kind, key, fac, winner, transferTarget, fixtu
   // Tray decorations have names; item figure/pile groups intentionally do not.
   const selectRoot=()=>tray.group.children.filter(o=>o.isObject3D&&o.visible&&!o.name&&meshCount(o)).reduce((best,o)=>!best||Math.abs(o.position.x-x)<Math.abs(best.position.x-x)?o:best,null);
   if(key!=='__current__'){
-    const item=kind==='normal'?{key,fac,curse:false}:{key:null,fac:'curse',curse:true};
+    const item=kind==='normal'?{key,fac,curse:false}:{key:null,fac:'curse',curse:true,curseKind};
     // Do not let a hidden terminal model be reused merely because the next
     // synthetic case has the same key. This also leaves no prior award root
     // available for the position selector.
@@ -62,7 +64,12 @@ const measureCase = async ({ slot, kind, key, fac, winner, transferTarget, fixtu
     if(manual){manual.step();manual.step();}
     else await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   }
+  // Four copies of this synthetic item are on the live tray. This is a
+  // renderer.info snapshot for draw-cost evidence, not a frame-rate sample.
   const root=selectRoot(); if(!root)throw new Error(`No visible tray subject for slot ${slot}: ${tray.group.children.map(o=>({name:o.name,visible:o.visible,x:o.position.x,meshes:meshCount(o)})).filter(o=>o.visible).map(o=>JSON.stringify(o)).join(';')}`);
+  const renderedCurseKind=root.userData.curseKind||null;
+  if(kind!=='normal'&&renderedCurseKind!==curseKind)throw new Error(`Curse factory mismatch for ${fixture}: expected ${curseKind}, rendered ${renderedCurseKind}`);
+  const fourSlotRender={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
   root.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&o.geometry&&!o.geometry.boundingBox)o.geometry.computeBoundingBox();});
   const point=new camera.position.constructor();
   const bounds=()=>{
@@ -94,7 +101,7 @@ const measureCase = async ({ slot, kind, key, fac, winner, transferTarget, fixtu
     document.querySelector('#stage').replaceChildren();window.fx3d('ys:reveal-slot',{slot,ms:650});await observe(manual?850:700,()=>true);
     phase='flight';countFlightDt=true;window.fx3d('ys:reveal-result',kind==='normal'?{slot,winner}:kind==='transfer'?{slot,winner:0,transferTarget}:{slot,winner:0,destroy:true});await observe(1000,()=>true);
   }finally{tray.update=update;if(visibleDescriptor)Object.defineProperty(root,'visible',{...visibleDescriptor,value:rootVisible});else delete root.visible;}
-  return {fixture,slot,kind,key,winner,transferTarget,rects:{felt,head:rect('#feltHead'),help:rect('#helpBtn'),skip:rect('#skipbtn'),north:rect('#north')},area,obstacles,summary,hiddenAfterObservation:!root.visible,terminal:{beforeHide:terminalBeforeHide,rendererDt:terminalDt,expectedSeconds:kind==='normal'?.86:kind==='transfer'?.72:.62},failures};
+  return {fixture,slot,kind,key,curseKind,renderedCurseKind,winner,transferTarget,fourSlotRender,rects:{felt,head:rect('#feltHead'),help:rect('#helpBtn'),skip:rect('#skipbtn'),north:rect('#north')},area,obstacles,summary,hiddenAfterObservation:!root.visible,terminal:{beforeHide:terminalBeforeHide,rendererDt:terminalDt,expectedSeconds:kind==='normal'?.86:kind==='transfer'?.72:.62},failures};
 };
 
 function verdict(row) {
@@ -110,7 +117,7 @@ function caseMatrix(pool,curses) {
   // an arbitrary member of POOL.
   const known={fixture:'known-normal-slot2-winner0',kind:'normal',key:'__current__',slot:2,winner:0};if(!all)return [known];
   const normal=pool.flatMap(it=>[0,1,2,3].flatMap(slot=>[0,1,2,3].map(winner=>({fixture:`normal:${it.key}:slot${slot}:winner${winner}`,kind:'normal',key:it.key,fac:it.fac,slot,winner}))));
-  const curse=curses.flatMap(c=>[0,1,2,3].flatMap(slot=>[0,1,2,3].map(transferTarget=>({fixture:`transfer:${c.name}:slot${slot}:target${transferTarget}`,kind:'transfer',slot,transferTarget})).concat({fixture:`burn:${c.name}:slot${slot}`,kind:'burn',slot})));
+  const curse=curses.flatMap(c=>[0,1,2,3].flatMap(slot=>[0,1,2,3].map(transferTarget=>({fixture:`transfer:${c.name}:slot${slot}:target${transferTarget}`,kind:'transfer',curseKind:c.curseKind,slot,transferTarget})).concat({fixture:`burn:${c.name}:slot${slot}`,kind:'burn',curseKind:c.curseKind,slot})));
   return [known,...normal,...curse];
 }
 
@@ -132,11 +139,14 @@ try{
       const clock={now:performance.now(),step:()=>{const callbacks=queue.splice(0);if(!callbacks.length)throw new Error('manual rAF queue empty');clock.now+=1000/60;for(const callback of callbacks)callback(clock.now);}};
       window.__a1FramingClock=clock;
     });
-    const assets=await page.evaluate(()=>({pool:POOL.map(it=>({key:it.ab||it.m,fac:it.f})),curses:CURSES.map(it=>({name:it.n}))}));
-    const selected=caseMatrix(assets.pool,assets.curses).filter(testCase=>!match||testCase.fixture.includes(match));for(const testCase of(limit===null?selected:selected.slice(0,limit))){const row=verdict(await page.evaluate(measureCase,testCase));row.viewport=view.id;results.push(row);if(!row.pass)console.error(`FAIL ${view.id} ${row.fixture}: geometry=${row.failures.length} terminal=${row.terminalOK} duration=${row.durationKept}`);}
+    const assets=await page.evaluate(()=>({pool:POOL.map(it=>({key:it.ab||it.m,fac:it.f})),curses:CURSES.map(it=>({name:it.n,curseKind:curseKind(it)}))}));
+    const validCurseKinds=new Set(['wedding','guava','water','lock','tiger','boat']);
+    const invalidCurseKinds=assets.curses.filter(item=>!item.curseKind||!validCurseKinds.has(item.curseKind));
+    if(invalidCurseKinds.length)throw new Error(`Missing or invalid curseKind assets: ${JSON.stringify(invalidCurseKinds)}`);
+    const selected=caseMatrix(assets.pool,assets.curses).filter(testCase=>(!curseOnly||testCase.kind!=='normal')&&(!match||testCase.fixture.includes(match)));for(const testCase of(limit===null?selected:selected.slice(0,limit))){const row=verdict(await page.evaluate(measureCase,testCase));row.viewport=view.id;results.push(row);if(!row.pass)console.error(`FAIL ${view.id} ${row.fixture}: geometry=${row.failures.length} terminal=${row.terminalOK} duration=${row.durationKept}`);}
     await context.close();
   }
 }finally{await browser?.close();server.kill();}
-const failures=results.filter(r=>!r.pass);const report={tool:'tests/tools/table-framing-check.mjs',mode:all?'all':'known',caseLimit:limit,caseMatch:match,simulatedClock:all?{stepMs:1000/60,pushObserveMs:850,note:'Runs the renderer frame callback and render through a controlled rAF queue; this is geometry coverage, not performance evidence.'}:null,viewports:VIEWPORTS.map(v=>v.id),cases:results.length,passed:results.length-failures.length,failed:failures.length,pageErrors,failures:failures.map(r=>({viewport:r.viewport,fixture:r.fixture,slot:r.slot,kind:r.kind,terminal:r.terminal,failureCount:r.failures.length,firstFailure:r.failures[0]||null}))};
+const failures=results.filter(r=>!r.pass);const report={tool:'tests/tools/table-framing-check.mjs',mode:all?'all':'known',curseOnly,caseLimit:limit,caseMatch:match,simulatedClock:all?{stepMs:1000/60,pushObserveMs:850,note:'Runs the renderer frame callback and render through a controlled rAF queue; this is geometry coverage, not performance evidence.'}:null,renderStats:{source:'renderer.info.render snapshot with four identical tray items; not FPS evidence',samples:results.filter(r=>r.curseKind).map(r=>({viewport:r.viewport,fixture:r.fixture,curseKind:r.curseKind,...r.fourSlotRender}))},viewports:VIEWPORTS.map(v=>v.id),cases:results.length,passed:results.length-failures.length,failed:failures.length,pageErrors,failures:failures.map(r=>({viewport:r.viewport,fixture:r.fixture,slot:r.slot,kind:r.kind,terminal:r.terminal,failureCount:r.failures.length,firstFailure:r.failures[0]||null}))};
 if(outFile){fs.mkdirSync(path.dirname(outFile),{recursive:true});fs.writeFileSync(outFile,JSON.stringify({report,results},null,2)+'\n');report.evidence=path.relative(ROOT,outFile).replaceAll('\\','/');}
 console.log(JSON.stringify(report,null,2));if(failures.length||pageErrors.length)process.exitCode=1;

@@ -1,0 +1,48 @@
+{
+  "purpose": "Descriptive fixed-seed migration diagnostic; common lifecycle/auction/life/curse metrics only. It intentionally excludes legacy power and paper-unit metrics and is not a balance gate or causal attribution.",
+  "seeds": {
+    "count": 500,
+    "first": 1,
+    "last": 500
+  },
+  "before": {
+    "source": "scratchpad/curse-before.html",
+    "games": 500,
+    "meanNights": 9.672,
+    "meanAliveAtEnd": 2.372,
+    "meanDeaths": 1.628,
+    "meanLifePerSeat": 12.717,
+    "meanTotalLifeAtEnd": 50.868,
+    "winnerSeatRate": [
+      0.172,
+      0.27,
+      0.266,
+      0.292
+    ],
+    "auctionSellRate": 0.6877715704531348,
+    "meanResolvedBattles": 16.884,
+    "meanBattleDamage": 6.835228618810708,
+    "meanFinalCurseItems": 5.272,
+    "sha256": "6f08769bd52d1e092d6e6fd6a368b81193097a884d8b5c4e08cf432c00385354"
+  },
+  "current": {
+    "source": "index.html",
+    "games": 500,
+    "meanNights": 9.38,
+    "meanAliveAtEnd": 2.2,
+    "meanDeaths": 1.8,
+    "meanLifePerSeat": 11.4975,
+    "meanTotalLifeAtEnd": 45.99,
+    "winnerSeatRate": [
+      0.134,
+      0.274,
+      0.286,
+      0.306
+    ],
+    "auctionSellRate": 0.6840618336886993,
+    "meanResolvedBattles": 16.318,
+    "meanBattleDamage": 7.376639294031131,
+    "meanFinalCurseItems": 5.19,
+    "sha256": "2b76d1b953d5b9679c974c300e153976f16bb2f93b57c874043b770ef327181b"
+  }
+}
