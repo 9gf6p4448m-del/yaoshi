@@ -3,6 +3,30 @@ import fs from 'node:fs';
 import test from 'node:test';
 import * as THREE from '../tools/anyCreature/node_modules/three/build/three.module.js';
 
+test('framing samples the same attached skin pose as the next render after moving its root', async () => {
+  const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
+  const { projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const camera = new THREE.PerspectiveCamera(50, 2, .01, 100);
+  camera.position.z = 4; camera.updateMatrixWorld();
+  const geometry = new THREE.BoxGeometry(.4, .8, .2);
+  const count = geometry.attributes.position.count;
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+  const weights = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) weights[i * 4] = 1;
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+  const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshBasicMaterial());
+  const bone = new THREE.Bone(); mesh.add(bone); mesh.bind(new THREE.Skeleton([bone]));
+  const root = new THREE.Group(); root.add(mesh); root.updateMatrixWorld(true);
+  root.position.set(.6, .7, .2); root.rotation.z = .3; bone.rotation.z = .2;
+  const beforeRender = projectSubject(root, camera, 800, 400);
+  root.updateMatrixWorld(true);
+  const afterRender = projectSubject(root, camera, 800, 400);
+  for (const edge of ['left', 'right', 'top', 'bottom']) {
+    assert.ok(Math.abs(beforeRender[edge] - afterRender[edge]) < 1e-8,
+      `${edge} must describe the pose rendered this frame`);
+  }
+});
+
 test('framing moves an intact projected subject away from HUD using the least displacement', async () => {
   const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
   const { placeSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
