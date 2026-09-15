@@ -59,6 +59,7 @@ test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   const revealAt = reveal.indexOf('revealGlow(r)');
   const cardAt = reveal.indexOf('id="revealCard"');
   assert.ok(slotAt >= 0 && revealAt > slotAt && cardAt > revealAt, '錢柱特寫與法寶結算必須先於比價卡建立');
+  assert.match(reveal, /await sleep\(Math\.max\(700,CFG\.T\*1\.25\)\)/, '結算不得早於微距鏡頭抵達槽位');
   assert.match(reveal, /if\(r\.winner\)\{ revealGlow\(r\); sfx\("gong"/, '闇市隱藏金額時也必須保留 3D 得標演出');
   assert.match(reveal, /await sleep\(Math\.max\(0\.9\*1000,CFG\.T\*1\.4\)\)/, '比價卡必須等法寶飛行完成後才出現');
   assert.match(reveal, /await waitMain\(r!==rv\.reveal\[rv\.reveal\.length-1\]\?"下一件拍品 ▸":"查看成交總覽 ▸"\)/, '比價卡不得自動淡出，最後一件也須由玩家確認');
@@ -80,8 +81,8 @@ test('逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住�
   assert.match(director, /lookZ:\s*0\.55/, '逐槽鏡頭必須瞄準托盤前的錢柱，而非拍品後方');
   assert.match(index, /ys:reveal-result/, '3D 結算需使用不會重設鏡頭的專用事件');
   assert.match(renderer, /ys:reveal-result/, 'renderer 必須接收專用結算事件');
-  assert.match(ribbon, /right:-150px/, '比價卡要停在托盤外的右側安全區');
-  assert.match(index, /#felt\.hollow\{overflow:visible/, '右側比價卡不得被桌心容器裁掉');
+  assert.match(ribbon, /left:50%/, '演出結束後的比價卡應回到中央供玩家閱讀');
+  assert.match(ribbon, /translateX\(-50%\)/, '中央比價卡需以自身寬度精準置中');
 });
 
 test('局末只留一個進入完整回顧的入口，策略建議不以心願硬優先', () => {
