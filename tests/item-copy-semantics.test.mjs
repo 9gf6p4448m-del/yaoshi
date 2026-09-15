@@ -32,3 +32,9 @@ test('health growth and sacrifice specify health limits, team scope and battle d
   assert.match(detail('獻祭刀'),/本隊.*本場.*攻擊 \+2/);
   assert.match(detail('獻祭刀'),/最低 1/);
 });
+
+test('full unit details explain resonance timing without implying a single attack beat',()=>{
+  assert.match(detail('百步蛇紋盾'),/共鳴/);
+  assert.match(detail('百步蛇紋盾'),/每拍皆會攻擊/);
+  assert.match(detail('水鬼浮標'),/作祟不普攻/);
+});

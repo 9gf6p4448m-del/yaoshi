@@ -1,0 +1,36 @@
+✔ auction abilities state the fee and minimum-life-loss exceptions (0.97ms)
+✔ battle details distinguish initiative ties, the winning side, and precise swap targets (0.4869ms)
+✔ damage copy covers ward fear and armor that triggers only above one remaining damage (0.2373ms)
+✔ health growth and sacrifice specify health limits, team scope and battle duration (0.2474ms)
+✖ full unit details explain resonance timing without implying a single attack beat (0.6366ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1609.0763
+
+✖ failing tests:
+
+test at tests\item-copy-semantics.test.mjs:36:1
+✖ full unit details explain resonance timing without implying a single attack beat (0.6366ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /共鳴/. Input:
+  
+  '<div class="uline">護法紙人×2・每隻基礎攻 1・血 7・1 拍<span class="umv">✦ 鱗紋護體</span><span class="umd">第1拍開場：本方存活前鋒血量上限與目前值 +2（每件可疊加）</span></div>'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/item-copy-semantics.test.mjs:37:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '<div class="uline">護法紙人×2・每隻基礎攻 1・血 7・1 拍<span class="umv">✦ 鱗紋護體</span><span class="umd">第1拍開場：本方存活前鋒血量上限與目前值 +2（每件可疊加）</span></div>',
+    expected: /共鳴/,
+    operator: 'match',
+    diff: 'simple'
+  }
