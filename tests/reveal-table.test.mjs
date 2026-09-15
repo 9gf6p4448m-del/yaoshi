@@ -71,7 +71,9 @@ test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   assert.match(props, /CH\.T\s*\*\s*0\.9/, '同席出價必須按銅錢厚度垂直堆疊');
   assert.match(props, /loserDim/, '落標錢柱應退成低彩度，讓得標金光更清楚');
   assert.match(props, /BEVEL/, '血玉令牌需有微導角幾何');
-  assert.match(props, /0\.08/, '血玉令牌落桌需保有微翹角度');
+  assert.match(props, /PITCH:\s*0\.22/, '血玉令牌需有肉眼可讀的翹角，而非 0.08 弧度的紙片');
+  assert.match(props, /Math\.sin\(wobble\)\s*\*\s*0\.010/, '錢柱每層必須有可見的偏心，不能堆成一根細條');
+  assert.match(props, /c\.tilt/, '每枚銅錢需有微翹，讓金屬側緣分層可見');
 });
 
 test('逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤', () => {
