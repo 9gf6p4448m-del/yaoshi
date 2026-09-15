@@ -1,0 +1,39 @@
+✔ formal target selection uses highest life and stable seat order (1.881ms)
+✔ Wangchuan sends the most recent curse to the highest-life foe (0.5788ms)
+✔ retired power abilities do not modify formal power accounting (1.5286ms)
+✔ hunter AI adds four only when pwTrial improves (3.3946ms)
+✔ hunter compares paper units and takes the largest non-curse troop team (0.4119ms)
+✔ formal simulation and policy game never invoke power() (103.3693ms)
+✔ formal battle records prebattle paper-unit counts without a raw-power context (3.3224ms)
+✖ active wishes and event descriptions use market prices rather than combat power (1.3548ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1661.6741
+
+✖ failing tests:
+
+test at tests\power-retirement.test.mjs:105:1
+✖ active wishes and event descriptions use market prices rather than combat power (1.3548ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /戰力/. Input:
+  
+  '本夜得標一件戰力 ≥6 的法寶入袋，＋4 壽命'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/power-retirement.test.mjs:106:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '本夜得標一件戰力 ≥6 的法寶入袋，＋4 壽命',
+    expected: /戰力/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }

@@ -101,3 +101,9 @@ test('formal battle records prebattle paper-unit counts without a raw-power cont
   const formal=body.slice(body.indexOf('if(CFG.PAPERWAR_ON)'),body.indexOf('}else{',body.indexOf('if(CFG.PAPERWAR_ON)')));
   assert.doesNotMatch(formal,/battlePower\(|power\(/);
 });
+
+test('active wishes and event descriptions use market prices rather than combat power',()=>{
+  assert.doesNotMatch(G.WISHES.wish_bigfish.desc,/戰力/);
+  assert.doesNotMatch(G.EVENTS.wind.desc(),/戰力/);
+  assert.doesNotMatch(source,/桌上「戰力」另加|行情（戰力值）|法寶的<b>戰力/);
+});
