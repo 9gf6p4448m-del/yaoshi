@@ -66,3 +66,9 @@ test('curse feedback targets its holder and distinguishes attack reduction from 
  assert.equal(lock.side,'A');assert.equal(lock.healthLoss,false);assert.equal(lock.text,'攻擊 −4');
  for(const trId of ['curseWater','curseBoat']){const f=g.pwCurseFeedback({kind:'curse',trId,side:'B',target:1,amount:2});assert.equal(f.side,'B');assert.equal(f.healthLoss,true);assert.equal(f.text,'血量 −2');}
 });
+
+test('water waits for simultaneous damage settlement and cannot target an already doomed last ally',()=>{
+ const g=fresh(),c=curse(g,'抓交替水符');
+ const war=g.paperWar(person(0,[unit('紙',0,1,2),c]),person(1,[unit('敵',3,99,2)]),{rng:()=>0.5});
+ assert.equal(war.aliveA,0);assert.equal(war.beats.filter(x=>x.trId==='curseWater').length,0);
+});

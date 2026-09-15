@@ -1,0 +1,41 @@
+✔ non-lock curses no longer impose a shared attack penalty (19.5692ms)
+✔ lock affects one strongest front unit only on beat one, stacks, and is cleansed (19.9977ms)
+✔ white tiger adds defeat loss only, before item mitigation, and respects cleansing (9.9658ms)
+✔ water talisman triggers once per battle, stacks damage without recursion (9.5912ms)
+✔ event boat curse weakens one unit without killing it or lowering all attack (10.7394ms)
+✔ wedding gift is charged at night end only after winning an auction, guava is unconditional (30.2853ms)
+✔ cleansed army summary still discloses wedding and guava costs (10.2705ms)
+✔ white tiger does not penalize its holder for winning or drawing (12.0252ms)
+✔ curse feedback targets its holder and distinguishes attack reduction from health loss (10.1429ms)
+✖ water waits for simultaneous damage settlement and cannot target an already doomed last ally (12.1714ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1745.7822
+
+✖ failing tests:
+
+test at tests\curse-migration.test.mjs:70:1
+✖ water waits for simultaneous damage settlement and cannot target an already doomed last ally (12.1714ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-migration.test.mjs:73:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
