@@ -89,6 +89,17 @@ test('逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住�
   assert.match(ribbon, /translateX\(-50%\)/, '中央比價卡需以自身寬度精準置中');
 });
 
+test('逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作', () => {
+  assert.match(director, /anchorX:\s*\[-1\.35, -0\.45, 0\.45, 1\.35\]\[slot\]/,
+    '微距不能只轉頭看槽位，攝影機座標也必須錨到該槽');
+  assert.match(director, /camera\.position\.set\(curAnchorX \+ Math\.sin\(yaw\)/,
+    '鏡頭位置必須以槽位錨點計算，不能仍以桌心計算');
+  assert.match(props, /returnDelay/,
+    '落標錢柱需要先保留短暫比較，再進入收回時間軸');
+  assert.match(props, /returnTo/,
+    '落標錢柱必須有明確回到原席位的終點，而非只降彩度');
+});
+
 test('局末只留一個進入完整回顧的入口，策略建議不以心願硬優先', () => {
   const endStart = index.indexOf('function endGame()');
   const end = index.slice(endStart, index.indexOf('function replayExperiment', endStart));
