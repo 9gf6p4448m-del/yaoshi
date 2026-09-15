@@ -2467,6 +2467,7 @@ let RAIL_PAGE={round:null,railW:0,railE:0};
 function selectRailPage(id,i){
   const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
   RAIL_PAGE[id]=i;
+  window.__yaoshi3d?.tray?.setHover(i);
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-pressed',String(Number(el.dataset.slot)===i)));
 }
