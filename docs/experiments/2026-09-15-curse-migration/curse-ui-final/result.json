@@ -1,0 +1,5743 @@
+{
+  "syntheticMarket": true,
+  "url": "http://127.0.0.1:8996/",
+  "quick": false,
+  "safeInsets": {
+    "top": 0,
+    "right": 59,
+    "bottom": 21,
+    "left": 59
+  },
+  "sourceIdentity": {
+    "responseUrl": "http://127.0.0.1:8996/",
+    "status": 200,
+    "htmlMatchesLocal": true,
+    "VERSION": "0.57.12",
+    "RELEASE_VERSION": "0.57.12"
+  },
+  "mechanicsCoverage": {
+    "command": "node --test tests/curse-migration.test.mjs",
+    "expectedTests": 12,
+    "note": "Distinct mechanics are covered by the unit suite; this browser probe checks production DOM copy and interaction only."
+  },
+  "errors": [],
+  "checks": [
+    {
+      "name": "page.goto HTML matches local index.html",
+      "pass": true,
+      "details": {
+        "responseUrl": "http://127.0.0.1:8996/",
+        "status": 200,
+        "htmlMatchesLocal": true,
+        "VERSION": "0.57.12",
+        "RELEASE_VERSION": "0.57.12"
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 206,
+          "top": 98,
+          "right": 637.484375,
+          "bottom": 131.796875,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 12.40625,
+              "right": 652,
+              "bottom": 356.59375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 296.59375,
+          "right": 638,
+          "bottom": 340.59375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-冥婚紅包 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 206,
+          "top": 106.390625,
+          "right": 505.484375,
+          "bottom": 123.390625,
+          "width": 299.484375,
+          "height": 17
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 20.796875,
+              "right": 652,
+              "bottom": 348.1875,
+              "width": 460,
+              "height": 327.390625
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 327,
+        "scrollHeight": 327,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 288.1875,
+          "right": 638,
+          "bottom": 332.1875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-魔神仔的芭樂 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-normal-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 638,
+          "bottom": 141.28125,
+          "width": 432,
+          "height": 50.59375
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 361,
+        "initialScrollTop": 0,
+        "maxScrollTop": 2,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 304.078125,
+          "right": 638,
+          "bottom": 348.078125,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-抓交替水符 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 98,
+          "right": 635.578125,
+          "bottom": 131.796875,
+          "width": 429.578125,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 12.40625,
+              "right": 652,
+              "bottom": 356.59375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 296.59375,
+          "right": 638,
+          "bottom": 340.59375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-縛靈鎖 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-normal-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 98,
+          "right": 637.484375,
+          "bottom": 131.796875,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 12.40625,
+              "right": 652,
+              "bottom": 356.59375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 296.59375,
+          "right": 638,
+          "bottom": 340.59375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-normal-白虎煞 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 637.484375,
+          "bottom": 124.484375,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 19,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 303.875,
+          "right": 638,
+          "bottom": 347.875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-冥婚紅包 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 505.484375,
+          "bottom": 107.6875,
+          "width": 299.484375,
+          "height": 17
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 361,
+        "initialScrollTop": 0,
+        "maxScrollTop": 2,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 304.078125,
+          "right": 638,
+          "bottom": 348.078125,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-魔神仔的芭樂 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 638,
+          "bottom": 141.28125,
+          "width": 432,
+          "height": 50.59375
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 395,
+        "initialScrollTop": 0,
+        "maxScrollTop": 36,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 303.671875,
+          "right": 638,
+          "bottom": 347.671875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-抓交替水符 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 635.578125,
+          "bottom": 124.484375,
+          "width": 429.578125,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 19,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 303.875,
+          "right": 638,
+          "bottom": 347.875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-縛靈鎖 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-shousui-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 206,
+          "top": 90.6875,
+          "right": 637.484375,
+          "bottom": 124.484375,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 192,
+              "top": 5.09375,
+              "right": 652,
+              "bottom": 363.890625,
+              "width": 460,
+              "height": 358.796875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 844,
+              "bottom": 390,
+              "width": 844,
+              "height": 390
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 359,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 19,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 206,
+          "top": 303.875,
+          "right": 638,
+          "bottom": 347.875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-shousui-白虎煞 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "844x390-yabao-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-冥婚紅包 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-魔神仔的芭樂 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-抓交替水符 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-縛靈鎖 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "844x390-yabao-白虎煞 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 303,
+          "width": 168,
+          "height": 189.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 785,
+          "bottom": 369
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 210,
+          "top": 99.5,
+          "right": 641.484375,
+          "bottom": 133.296875,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 13.90625,
+              "right": 656,
+              "bottom": 358.09375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 298.09375,
+          "right": 642,
+          "bottom": 342.09375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-冥婚紅包 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 210,
+          "top": 107.890625,
+          "right": 509.484375,
+          "bottom": 124.890625,
+          "width": 299.484375,
+          "height": 17
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 22.296875,
+              "right": 656,
+              "bottom": 349.6875,
+              "width": 460,
+              "height": 327.390625
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 327,
+        "scrollHeight": 327,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 289.6875,
+          "right": 642,
+          "bottom": 333.6875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-魔神仔的芭樂 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-normal-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 91.09375,
+          "right": 642,
+          "bottom": 141.6875,
+          "width": 432,
+          "height": 50.59375
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.5,
+              "right": 656,
+              "bottom": 366.484375,
+              "width": 460,
+              "height": 360.984375
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 361,
+        "scrollHeight": 361,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 306.484375,
+          "right": 642,
+          "bottom": 350.484375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-抓交替水符 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 99.5,
+          "right": 639.578125,
+          "bottom": 133.296875,
+          "width": 429.578125,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 13.90625,
+              "right": 656,
+              "bottom": 358.09375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 298.09375,
+          "right": 642,
+          "bottom": 342.09375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-縛靈鎖 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-normal-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 99.5,
+          "right": 641.484375,
+          "bottom": 133.296875,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 13.90625,
+              "right": 656,
+              "bottom": 358.09375,
+              "width": 460,
+              "height": 344.1875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n−\n0\n＋\n保守標\n買下銷毀（自保）\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 344,
+        "scrollHeight": 344,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 298.09375,
+          "right": 642,
+          "bottom": 342.09375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-normal-白虎煞 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜有得標：每件付 1 壽命禮金",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 197.859375,
+          "bottom": 226.125,
+          "width": 125.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 210,
+          "top": 90.8125,
+          "right": 641.484375,
+          "bottom": 124.609375,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.21875,
+              "right": 656,
+              "bottom": 366.765625,
+              "width": 460,
+              "height": 361.546875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "冥婚紅包詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 5・心願與盯印信譽依此判定，出價由你決定\n撿到就得娶\n本夜有得標時，夜末每件付 1 壽命禮金；沒有得標不收，不增加標額或買路錢。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 362,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 16,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 307,
+          "right": 642,
+          "bottom": 351,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-冥婚紅包 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每夜末：每件失 1 壽命",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 244.625,
+          "width": 158,
+          "height": 73.5
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 161.859375,
+          "bottom": 226.125,
+          "width": 89.859375,
+          "height": 13
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。",
+        "rect": {
+          "left": 210,
+          "top": 91.09375,
+          "right": 509.484375,
+          "bottom": 108.09375,
+          "width": 299.484375,
+          "height": 17
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.5,
+              "right": 656,
+              "bottom": 366.484375,
+              "width": 460,
+              "height": 360.984375
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "魔神仔的芭樂詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 1・心願與盯印信譽依此判定，出價由你決定\n每輪結束失血 1\n每夜末每件失 1 壽命，可累加。淨化不免除此壽命支出。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 361,
+        "scrollHeight": 361,
+        "initialScrollTop": 0,
+        "maxScrollTop": 0,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 306.484375,
+          "right": 642,
+          "bottom": 350.484375,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-魔神仔的芭樂 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207,
+          "bottom": 237.375,
+          "width": 135,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 90.8125,
+          "right": 642,
+          "bottom": 141.40625,
+          "width": 432,
+          "height": 50.59375
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.21875,
+              "right": 656,
+              "bottom": 366.765625,
+              "width": 460,
+              "height": 361.546875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "抓交替水符詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 4・心願與盯印信譽依此判定，出價由你決定\n水鬼的名冊\n每戰首次本方紙紮燒毀後，另一隻存活且血量最低的紙紮每件受 1 傷害；只牽連一次，不觸發反傷、吸收或再次牽連；沒有其他存活者則不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 362,
+        "scrollHeight": 395,
+        "initialScrollTop": 0,
+        "maxScrollTop": 33,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 306.796875,
+          "right": 642,
+          "bottom": 350.796875,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-抓交替水符 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 211.25,
+          "bottom": 237.375,
+          "width": 139.25,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 90.8125,
+          "right": 639.578125,
+          "bottom": 124.609375,
+          "width": 429.578125,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.21875,
+              "right": 656,
+              "bottom": 366.765625,
+              "width": 460,
+              "height": 361.546875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "縛靈鎖詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 6・心願與盯印信譽依此判定，出價由你決定\n鎖魂之鏈\n第1拍本方基礎攻擊最高的一隻前鋒，本拍每件攻擊 −2；同分先入陣，總攻擊 ≤0 不出手；第2拍恢復。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 362,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 16,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 307,
+          "right": 642,
+          "bottom": 351,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-縛靈鎖 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-shousui-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": false,
+        "onclick": "openSheet(0)",
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 206.859375,
+          "bottom": 237.375,
+          "width": 134.859375,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet curse effect range is readable through clipping ancestors",
+      "pass": true,
+      "details": {
+        "text": "每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。",
+        "rect": {
+          "left": 210,
+          "top": 90.8125,
+          "right": 641.484375,
+          "bottom": 124.609375,
+          "width": 431.484375,
+          "height": 33.796875
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "inSafeViewport": true,
+        "clippedBy": [
+          {
+            "tag": "DIV",
+            "id": "sheetbox",
+            "className": "",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "rect": {
+              "left": 196,
+              "top": 5.21875,
+              "right": 656,
+              "bottom": 366.765625,
+              "width": 460,
+              "height": 361.546875
+            },
+            "visible": true
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "className": "",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "className": "ys3d",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "rect": {
+              "left": 0,
+              "top": 0,
+              "right": 852,
+              "bottom": 393,
+              "width": 852,
+              "height": 393
+            },
+            "visible": true
+          }
+        ],
+        "readable": true
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet states complete distinct curse effect",
+      "pass": true,
+      "details": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定"
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet content reaches bottom",
+      "pass": true,
+      "details": {
+        "text": "白虎煞詛咒\n🕸 詛咒品不召喚（只算纏身）\n參考行情 3・心願與盯印信譽依此判定，出價由你決定\n沖煞入宅\n每次戰敗，每件在一般傷害上限外增加 1 壽命損失，再套用法寶減傷；獲勝或平手不生效。淨化免除此戰鬥詛咒；同名每件累加。\n🕸 收祟夜：本夜禁止買下銷毀，只能毒標塞給別人；夜末沒人接手的會硬塞給本夜沒出手、壽命最高的那位\n−\n0\n＋\n保守標\n毒標塞給 北家・陰間當鋪\n毒標塞給 西家・收驚婆\n毒標塞給 東家・大家樂組頭\n保守標：落標退還 75%（付 25%），上限 8。每筆有效標另付買路錢 1 壽命（不論輸贏）。本夜有效標 0/2 筆。\n確定",
+        "clientHeight": 362,
+        "scrollHeight": 378,
+        "initialScrollTop": 0,
+        "maxScrollTop": 16,
+        "reachedBottom": true
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet bid control works",
+      "pass": true,
+      "details": {
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 spirit-collection keeps destroy forbidden",
+      "pass": true,
+      "details": [
+        "毒標塞給 北家・陰間當鋪",
+        "毒標塞給 西家・收驚婆",
+        "毒標塞給 東家・大家樂組頭"
+      ]
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet confirm is visible in safe viewport at scroll bottom",
+      "pass": true,
+      "details": {
+        "rect": {
+          "left": 210,
+          "top": 307,
+          "right": 642,
+          "bottom": 351,
+          "width": 432,
+          "height": 44
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "reachedBottom": true,
+        "inSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-shousui-白虎煞 sheet confirm closes",
+      "pass": true
+    },
+    {
+      "name": "852x393-yabao-冥婚紅包 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-冥婚紅包 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-冥婚紅包 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n冥婚紅包\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜有得標：每件付 1 壽命禮金",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-魔神仔的芭樂 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-魔神仔的芭樂 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-魔神仔的芭樂 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n魔神仔的芭樂\n詛咒・纏身詛咒\n🚫 本夜不開標・每夜末：每件失 1 壽命\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每夜末：每件失 1 壽命",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 210.21875,
+          "bottom": 237.375,
+          "width": 138.21875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-抓交替水符 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-抓交替水符 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-抓交替水符 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n抓交替水符\n詛咒・纏身詛咒\n🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每戰首次折損：牽連另一隻紙紮，每件傷害 1",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-縛靈鎖 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-縛靈鎖 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-縛靈鎖 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n縛靈鎖\n詛咒・纏身詛咒\n🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 207.90625,
+          "bottom": 237.375,
+          "width": 135.90625,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-白虎煞 card effect is visible in card, rail and safe viewport",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-白虎煞 card states distinct curse effect",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    },
+    {
+      "name": "852x393-yabao-白虎煞 wager night keeps curse unavailable",
+      "pass": true,
+      "details": {
+        "text": "👁西東\n白虎煞\n詛咒・纏身詛咒\n🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）\n🕸 詛咒品不召喚（只算纏身）",
+        "effectText": "🚫 本夜不開標・每次戰敗：每件額外失 1 壽命（減傷前）",
+        "locked": true,
+        "onclick": null,
+        "visible": true,
+        "cardRect": {
+          "left": 64,
+          "top": 171.125,
+          "right": 222,
+          "bottom": 255.875,
+          "width": 158,
+          "height": 84.75
+        },
+        "railRect": {
+          "left": 59,
+          "top": 113.125,
+          "right": 227,
+          "bottom": 306,
+          "width": 168,
+          "height": 192.875
+        },
+        "effectRect": {
+          "left": 72,
+          "top": 213.125,
+          "right": 212.671875,
+          "bottom": 237.375,
+          "width": 140.671875,
+          "height": 24.25
+        },
+        "safeRect": {
+          "left": 59,
+          "top": 0,
+          "right": 793,
+          "bottom": 372
+        },
+        "effectInCard": true,
+        "effectInRail": true,
+        "effectInSafeViewport": true
+      }
+    }
+  ],
+  "captures": [
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-冥婚紅包-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-魔神仔的芭樂-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-抓交替水符-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-縛靈鎖-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-白虎煞-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-normal-白虎煞-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-冥婚紅包-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-魔神仔的芭樂-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-抓交替水符-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-縛靈鎖-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-白虎煞-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-shousui-白虎煞-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-yabao-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-yabao-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-yabao-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-yabao-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/844x390-yabao-白虎煞-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-冥婚紅包-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-魔神仔的芭樂-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-抓交替水符-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-縛靈鎖-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-白虎煞-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-normal-白虎煞-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-冥婚紅包-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-魔神仔的芭樂-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-抓交替水符-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-縛靈鎖-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-白虎煞-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-shousui-白虎煞-sheet.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-yabao-冥婚紅包-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-yabao-魔神仔的芭樂-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-yabao-抓交替水符-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-yabao-縛靈鎖-card.png",
+    "docs/experiments/2026-09-15-curse-migration/curse-ui-final/852x393-yabao-白虎煞-card.png"
+  ],
+  "summary": {
+    "passed": 201,
+    "failed": 0
+  }
+}

@@ -248,7 +248,7 @@ try {
     quick,
     safeInsets: { top: 0, right: 59, bottom: 21, left: 59 },
     sourceIdentity,
-    mechanicsCoverage: { command: 'node --test tests/curse-migration.test.mjs', expectedTests: 6,
+    mechanicsCoverage: { command: 'node --test tests/curse-migration.test.mjs', expectedTests: 12,
       note: 'Distinct mechanics are covered by the unit suite; this browser probe checks production DOM copy and interaction only.' },
     errors,
     checks,
