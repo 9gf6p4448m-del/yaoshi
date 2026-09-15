@@ -1,0 +1,27 @@
+✔ non-lock curses no longer impose a shared attack penalty (22.4181ms)
+✔ lock affects one strongest front unit only on beat one, stacks, and is cleansed (21.7654ms)
+✔ white tiger adds defeat loss only, before item mitigation, and respects cleansing (12.9097ms)
+✔ water talisman triggers once per battle, stacks damage without recursion (11.6609ms)
+✔ event boat curse weakens one unit without killing it or lowering all attack (13.0997ms)
+✔ wedding gift is charged at night end only after winning an auction, guava is unconditional (42.8112ms)
+✔ cleansed army summary still discloses wedding and guava costs (15.5791ms)
+✔ white tiger does not penalize its holder for winning or drawing (12.1181ms)
+✔ curse feedback targets its holder and distinguishes attack reduction from health loss (10.6685ms)
+✔ water waits for simultaneous damage settlement and cannot target an already doomed last ally (11.2406ms)
+✔ unregistered curse events cannot impersonate health damage (10.0737ms)
+✔ water selects the actual survivor after two allies die in one settlement batch (10.8283ms)
+✔ formal target selection uses highest life and stable seat order (1.6218ms)
+✔ Wangchuan sends the most recent curse to the highest-life foe (0.6047ms)
+✔ retired power abilities do not modify formal power accounting (1.4393ms)
+✔ hunter AI adds four only when pwTrial improves (3.0446ms)
+✔ hunter compares paper units and takes the largest non-curse troop team (0.401ms)
+✔ formal simulation and policy game never invoke power() (92.4281ms)
+✔ formal battle records prebattle paper-unit counts without a raw-power context (2.0204ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1808.6076
