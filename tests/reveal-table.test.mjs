@@ -87,6 +87,8 @@ test('逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住�
   assert.match(renderer, /ys:reveal-result/, 'renderer 必須接收專用結算事件');
   assert.match(ribbon, /left:50%/, '演出結束後的比價卡應回到中央供玩家閱讀');
   assert.match(ribbon, /translateX\(-50%\)/, '中央比價卡需以自身寬度精準置中');
+  assert.match(ribbon, /width:min\(430px,54vw\)/, '中央資訊卡應足夠寬，讓三家以上比價不用擠成窄欄');
+  assert.doesNotMatch(ribbon, /overflow:auto/, '資訊卡是玩家確認後才關閉，不得以內部捲軸裁掉結果');
 });
 
 test('逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作', () => {
