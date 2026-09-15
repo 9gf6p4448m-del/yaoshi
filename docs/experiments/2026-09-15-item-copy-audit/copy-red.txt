@@ -1,0 +1,50 @@
+✔ all five curse cards explain the actual attack penalty, including locked auctions (1.219ms)
+✔ legacy combat describes base power instead of inventing a paper-war penalty (0.2497ms)
+✖ marking cards explain all curses before the player chooses a target (0.584ms)
+✖ cards with no active auction ability describe their actual paper-war move (0.3636ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1635.802
+
+✖ failing tests:
+
+test at tests\curse-effects.test.mjs:46:1
+✖ marking cards explain all curses before the player chooses a target (0.584ms)
+  AssertionError [ERR_ASSERTION]: 冥婚紅包
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-effects.test.mjs:49:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '<div class="mcard  curse" id="mc0" onclick="pickMark(0)">\n      <div class="nm">冥婚紅包</div>\n      <div><span class="pw">詛咒・纏身</span><span class="fchip f-curse">curse</span></div>\n      <div class="ab">撿到就得娶</div>\n      詛咒品不召喚（只算纏身）\n    </div>',
+    expected: /每件[^<]*紙紮攻擊\s*−1/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\curse-effects.test.mjs:54:1
+✖ cards with no active auction ability describe their actual paper-war move (0.3636ms)
+  AssertionError [ERR_ASSERTION]: 巴冷公主珠鍊
+      at TestContext.<anonymous> (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tests/curse-effects.test.mjs:59:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
