@@ -41,6 +41,36 @@ async function reachMarkPhase(page) {
   throw new Error('seed 1 did not reach the normal mark phase');
 }
 
+async function measureRailSwitches(page) {
+  const buttons = page.locator('.railTabs button');
+  const count = await buttons.count();
+  if (count !== 4) throw new Error(`expected 4 real rail tab buttons, got ${count}`);
+  const cases = [];
+  for (let index = 0; index < count; index++) {
+    const button = buttons.nth(index);
+    const target = await button.evaluate(element => ({
+      slot: Number(element.dataset.slot),
+      rail: element.closest('[id^="rail"]')?.id || null,
+      text: element.textContent,
+    }));
+    const before = await page.evaluate(() => ({ state: JSON.stringify(S), hover: window.__yaoshi3d.tray.hover() }));
+    await button.click();
+    const after = await page.evaluate(({ rail, slot }) => {
+      const selected = rail ? document.querySelector(`#${rail} .railSelected`) : null;
+      const pressed = rail ? document.querySelector(`#${rail} .railTabs button[data-slot="${slot}"]`) : null;
+      return { state: JSON.stringify(S), hover: window.__yaoshi3d.tray.hover(),
+        selectedCard: selected?.id || null, ariaPressed: pressed?.getAttribute('aria-pressed') || null };
+    }, target);
+    const stateEqual = before.state === after.state;
+    const hoverMatches = after.hover === target.slot;
+    cases.push({ index, ...target, beforeHover: before.hover, afterHover: after.hover,
+      selectedCard: after.selectedCard, ariaPressed: after.ariaPressed,
+      stateEqual, stateBefore: before.state, stateAfter: after.state,
+      pass: hoverMatches && stateEqual && after.selectedCard === `mc${target.slot}` && after.ariaPressed === 'true' });
+  }
+  return { cases, pass: cases.length === 4 && cases.every(row => row.pass) };
+}
+
 const measure = async () => {
   const { camera, scene, tray } = window.__yaoshi3d;
   const V3 = camera.position.constructor;
@@ -169,6 +199,7 @@ const server = await serve(ROOT, PORT);
 let browser;
 const errors = [];
 let result;
+let railSwitches;
 try {
   browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   const context = await browser.newContext({ ...devices['iPhone 14 Pro'], viewport: { width: 852, height: 393 } });
@@ -192,6 +223,7 @@ try {
   });
   await page.waitForTimeout(1400);
   result = await page.evaluate(measure);
+  railSwitches = await measureRailSwitches(page);
   await context.close();
 } catch (error) {
   errors.push('fatal: ' + String(error?.stack || error));
@@ -199,8 +231,8 @@ try {
   try { await browser?.close(); } finally { server.kill(); }
 }
 
-const report = { tool: 'tests/tools/market-focus-check.mjs', port: PORT, errors, ...result };
-report.pass = !!result && result.focus.pass && result.marks.pass && errors.length === 0;
+const report = { tool: 'tests/tools/market-focus-check.mjs', port: PORT, errors, ...result, railSwitches };
+report.pass = !!result && result.focus.pass && result.marks.pass && railSwitches?.pass && errors.length === 0;
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
 fs.writeFileSync(outFile, JSON.stringify(report, null, 2) + '\n');
 const summary = { pass: report.pass, errors: errors.length,
@@ -208,6 +240,9 @@ const summary = { pass: report.pass, errors: errors.length,
     mesh: result.focus.bounds.mesh, bone: result.focus.bounds.bone, overlaps: result.focus.overlaps },
   marks: result && { pass: result.marks.pass, assignmentsChecked: result.marks.assignmentsChecked,
     failures: result.marks.failures.length, envelope: result.marks.envelope },
+  railSwitches: railSwitches && { pass: railSwitches.pass, cases: railSwitches.cases.map(row => ({
+    index: row.index, rail: row.rail, slot: row.slot, beforeHover: row.beforeHover, afterHover: row.afterHover,
+    selectedCard: row.selectedCard, ariaPressed: row.ariaPressed, stateEqual: row.stateEqual, pass: row.pass })), },
   evidence: relativeOut.replaceAll('\\', '/') };
 console.log(JSON.stringify(summary, null, 2));
 if (!report.pass) process.exitCode = 1;
