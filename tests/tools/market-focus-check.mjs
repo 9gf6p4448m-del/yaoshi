@@ -25,6 +25,14 @@ const outFile = path.resolve(ROOT, outArg ? outArg.slice('--out='.length)
 const relativeOut = path.relative(ROOT, outFile);
 if (!relativeOut || relativeOut === '..' || relativeOut.startsWith(`..${path.sep}`) || path.isAbsolute(relativeOut))
   throw new Error('--out must be a repository-relative file');
+const outExtension = path.extname(outFile);
+const outStem = outExtension ? outFile.slice(0, -outExtension.length) : outFile;
+fs.mkdirSync(path.dirname(outFile), { recursive: true });
+
+const relativeEvidencePath = file => path.relative(ROOT, file).replaceAll('\\', '/');
+const settleTwoFrames = page => page.evaluate(() => new Promise(resolve => {
+  requestAnimationFrame(() => requestAnimationFrame(resolve));
+}));
 
 async function reachMarkPhase(page) {
   await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
@@ -55,16 +63,21 @@ async function measureRailSwitches(page) {
     }));
     const before = await page.evaluate(() => ({ state: JSON.stringify(S), hover: window.__yaoshi3d.tray.hover() }));
     await button.click();
+    await settleTwoFrames(page);
+    const screenshotFile = `${outStem}-tab-${index}-slot-${target.slot}.png`;
+    await page.screenshot({ path: screenshotFile, scale: 'css' });
     const after = await page.evaluate(({ rail, slot }) => {
       const selected = rail ? document.querySelector(`#${rail} .railSelected`) : null;
       const pressed = rail ? document.querySelector(`#${rail} .railTabs button[data-slot="${slot}"]`) : null;
       return { state: JSON.stringify(S), hover: window.__yaoshi3d.tray.hover(),
-        selectedCard: selected?.id || null, ariaPressed: pressed?.getAttribute('aria-pressed') || null };
+        selectedCard: selected?.id || null, ariaPressed: pressed?.getAttribute('aria-pressed') || null,
+        models: window.__yaoshi3d.tray.items() };
     }, target);
     const stateEqual = before.state === after.state;
     const hoverMatches = after.hover === target.slot;
     cases.push({ index, ...target, beforeHover: before.hover, afterHover: after.hover,
       selectedCard: after.selectedCard, ariaPressed: after.ariaPressed,
+      models: after.models, screenshot: relativeEvidencePath(screenshotFile),
       stateEqual, stateBefore: before.state, stateAfter: after.state,
       pass: hoverMatches && stateEqual && after.selectedCard === `mc${target.slot}` && after.ariaPressed === 'true' });
   }
@@ -222,8 +235,14 @@ try {
     window.__yaoshi3d.tray.setHover(2);
   });
   await page.waitForTimeout(1400);
-  result = await page.evaluate(measure);
+  await settleTwoFrames(page);
+  const focusScreenshot = `${outStem}-focus.png`;
+  await page.screenshot({ path: focusScreenshot, scale: 'css' });
   railSwitches = await measureRailSwitches(page);
+  await page.evaluate(() => window.__yaoshi3d.tray.setHover(2));
+  await settleTwoFrames(page);
+  result = await page.evaluate(measure);
+  result.focus.screenshot = relativeEvidencePath(focusScreenshot);
   await context.close();
 } catch (error) {
   errors.push('fatal: ' + String(error?.stack || error));
@@ -233,7 +252,6 @@ try {
 
 const report = { tool: 'tests/tools/market-focus-check.mjs', port: PORT, errors, ...result, railSwitches };
 report.pass = !!result && result.focus.pass && result.marks.pass && railSwitches?.pass && errors.length === 0;
-fs.mkdirSync(path.dirname(outFile), { recursive: true });
 fs.writeFileSync(outFile, JSON.stringify(report, null, 2) + '\n');
 const summary = { pass: report.pass, errors: errors.length,
   focus: result && { pass: result.focus.pass, visible: result.focus.bounds.visible,
@@ -242,7 +260,9 @@ const summary = { pass: report.pass, errors: errors.length,
     failures: result.marks.failures.length, envelope: result.marks.envelope },
   railSwitches: railSwitches && { pass: railSwitches.pass, cases: railSwitches.cases.map(row => ({
     index: row.index, rail: row.rail, slot: row.slot, beforeHover: row.beforeHover, afterHover: row.afterHover,
-    selectedCard: row.selectedCard, ariaPressed: row.ariaPressed, stateEqual: row.stateEqual, pass: row.pass })), },
+    selectedCard: row.selectedCard, ariaPressed: row.ariaPressed, stateEqual: row.stateEqual,
+    visibleModels: row.models.filter(model => model.visible).map(model => ({ slot: model.slot, key: model.key,
+      outlines: model.outlines })), screenshot: row.screenshot, pass: row.pass })), },
   evidence: relativeOut.replaceAll('\\', '/') };
 console.log(JSON.stringify(summary, null, 2));
 if (!report.pass) process.exitCode = 1;
