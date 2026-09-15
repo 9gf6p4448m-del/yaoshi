@@ -176,39 +176,126 @@ function makeCloth(liteMode) {
   return mesh;
 }
 
-/* ── 詛咒品占位：一疊綑起來的舊符紙 ────────────────────────────────────
- * 計畫 §6 Q3：3–4 片小方 fin ＋ 紅細 curve 綑綁，墨黑＋血褐＋泛黃紙色頂點色。1 draw call。 */
-function makeCursePile(seed) {
+/* ── 詛咒品占位：紙紮實物（同一個頂點色 mesh，0 新 draw call）──────────
+ * `kind` 是 presentation-only：不帶就維持舊的符紙堆，避免舊事件資料少欄位時靜默空掉。
+ * 六種都守在 0.5×0.5、0.35 高的托盤占位內，不走 GLB／骨架／新 pass。 */
+function makeCursePile(seed, kind = null) {
   const b = vcBuilder();
   const R = rnd(seed);
   const C0 = TRAY.CURSE;
   const P = C0.paper;
   const W = C0.w, H = C0.h;
-  const n = 5;
-  for (let i = 0; i < n; i++) {
-    const y = C0.thick + i * C0.gap;
-    const rot = (R() - 0.5) * 1.15; // 參差：每張的轉角拉大，一疊才不像一塊方磚
-    const tilt = (R() - 0.5) * 0.30;
-    const cx = (R() - 0.5) * 0.07, cz = (R() - 0.5) * 0.07;
-    const co = Math.cos(rot), si = Math.sin(rot);
-    const pt = (u, v) => [cx + u * W * co - v * H * si, y + tilt * u, cz + u * W * si + v * H * co];
-    const face = P[i % P.length];
-    // 紙面：泛黃紙上兩條細墨帶（符文的簡寫；第一版一條粗帶讀成紙箱的膠帶）
-    b.quad(pt(-1, -1), pt(1, -1), pt(1, -0.30), pt(-1, -0.30), face);
-    b.quad(pt(-1, -0.30), pt(1, -0.30), pt(1, -0.20), pt(-1, -0.20), C0.ink);
-    b.quad(pt(-1, -0.20), pt(1, -0.20), pt(1, 0.16), pt(-1, 0.16), face);
-    b.quad(pt(-1, 0.16), pt(1, 0.16), pt(1, 0.26), pt(-1, 0.26), C0.ink);
-    b.quad(pt(-1, 0.26), pt(1, 0.26), pt(1, 1), pt(-1, 1), face);
-    // 厚度：紙的側邊一條窄 fin，讓一疊看得出是「疊」的
-    const drop = (p) => [p[0], p[1] - C0.thick, p[2]];
-    b.quad(pt(-1, 1), pt(1, 1), drop(pt(1, 1)), drop(pt(-1, 1)), P[2], P[2], C0.ink, C0.ink);
-  }
-  // 綑綁的血褐紅細線：橫過整疊的一條窄帶，兩端垂下
-  const yTop = C0.thick + (n - 1) * C0.gap + 0.008;
-  const hx = W * 1.25, hz = 0.022;
-  b.quad([-hx, yTop, -hz], [hx, yTop, -hz], [hx, yTop, hz], [-hx, yTop, hz], C0.cord);
-  b.quad([-hx, yTop, -hz], [-hx, yTop, hz], [-hx - 0.018, 0.0, hz], [-hx - 0.018, 0.0, -hz], C0.cord);
-  b.quad([hx, yTop, hz], [hx, yTop, -hz], [hx + 0.018, 0.0, -hz], [hx + 0.018, 0.0, hz], C0.cord);
+  const xz = (x0, z0, x1, z1, y, color) => b.quad([x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1], color);
+  const xy = (x0, y0, x1, y1, z, color) => b.quad([x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z], color);
+  const ring = (cx, cy, w, h, t, z, color) => {
+    xy(cx - w, cy - h, cx + w, cy - h + t, z, color); xy(cx - w, cy + h - t, cx + w, cy + h, z, color);
+    xy(cx - w, cy - h + t, cx - w + t, cy + h - t, z, color); xy(cx + w - t, cy - h + t, cx + w, cy + h - t, z, color);
+  };
+  const addGeneric = () => {
+    const n = 5;
+    for (let i = 0; i < n; i++) {
+      const y = C0.thick + i * C0.gap;
+      const rot = (R() - 0.5) * 1.15, tilt = (R() - 0.5) * 0.30;
+      const cx = (R() - 0.5) * 0.07, cz = (R() - 0.5) * 0.07;
+      const co = Math.cos(rot), si = Math.sin(rot);
+      const pt = (u, v) => [cx + u * W * co - v * H * si, y + tilt * u, cz + u * W * si + v * H * co];
+      const face = P[i % P.length];
+      b.quad(pt(-1, -1), pt(1, -1), pt(1, -0.30), pt(-1, -0.30), face);
+      b.quad(pt(-1, -0.30), pt(1, -0.30), pt(1, -0.20), pt(-1, -0.20), C0.ink);
+      b.quad(pt(-1, -0.20), pt(1, -0.20), pt(1, 0.16), pt(-1, 0.16), face);
+      b.quad(pt(-1, 0.16), pt(1, 0.16), pt(1, 0.26), pt(-1, 0.26), C0.ink);
+      b.quad(pt(-1, 0.26), pt(1, 0.26), pt(1, 1), pt(-1, 1), face);
+    }
+    const yTop = C0.thick + (n - 1) * C0.gap + 0.008, hx = W * 1.25, hz = 0.022;
+    xz(-hx, -hz, hx, hz, yTop, C0.cord);
+  };
+  const addWedding = () => {
+    const red = 0x9a2524, darkRed = 0x501417, seal = 0xd0a34a;
+    xz(-0.23, -0.12, 0.23, 0.12, 0.026, red); // 扁紅封：比符紙堆更橫、更低
+    xz(-0.18, -0.09, 0.18, 0.09, 0.034, darkRed);
+    xz(-0.042, -0.042, 0.042, 0.042, 0.040, seal); // 封印
+    xy(-0.23, 0.014, 0.23, 0.026, -0.12, darkRed);
+  };
+  const addGuava = () => {
+    /* 封閉的十角果體：鼓腹、肩收、頂／底封口，不能再讀成方袋。 */
+    const green = 0x798c3d, yellow = 0xb5a640, shade = 0x53632d, pale = 0x9e9b3f;
+    const rings = [[0.040, 0.080], [0.095, 0.142], [0.158, 0.155], [0.213, 0.112], [0.235, 0.045]];
+    const sides = 10;
+    const point = (r, i, y) => {
+      const a = (i / sides) * Math.PI * 2 + Math.PI / 10;
+      return [Math.cos(a) * r, y, Math.sin(a) * r];
+    };
+    for (let j = 0; j < rings.length - 1; j++) {
+      const [y0, r0] = rings[j], [y1, r1] = rings[j + 1];
+      for (let i = 0; i < sides; i++) {
+        const light = Math.sin((i / sides) * Math.PI * 2 + 0.5);
+        const c = light > 0.45 ? yellow : light < -0.45 ? shade : (j === 1 ? green : pale);
+        b.quad(point(r0, i, y0), point(r0, (i + 1) % sides, y0), point(r1, (i + 1) % sides, y1), point(r1, i, y1), c);
+      }
+    }
+    for (let i = 0; i < sides; i++) {
+      b.tri([0, 0.040, 0], point(rings[0][1], (i + 1) % sides, 0.040), point(rings[0][1], i, 0.040), shade);
+      b.tri([0, 0.238, 0], point(rings[rings.length - 1][1], i, 0.235), point(rings[rings.length - 1][1], (i + 1) % sides, 0.235), pale);
+    }
+    /* 短梗與從梗長出的兩片短葉；前後皆有摺面，轉向不會消失。 */
+    const stem = 0x5c4824, leaf = 0x31582b;
+    xz(-0.018, -0.018, 0.018, 0.018, 0.268, stem);
+    b.quad([-0.018, 0.235, -0.018], [0.018, 0.235, -0.018], [0.018, 0.268, -0.018], [-0.018, 0.268, -0.018], stem);
+    b.quad([-0.018, 0.235, 0.018], [-0.018, 0.268, 0.018], [0.018, 0.268, 0.018], [0.018, 0.235, 0.018], stem);
+    for (const z of [-0.016, 0.016]) {
+      b.quad([0, 0.258, z], [0.105, 0.272, z], [0.062, 0.294, z], [0.012, 0.272, z], leaf);
+      b.quad([0, 0.258, z], [-0.088, 0.270, z], [-0.052, 0.288, z], [-0.010, 0.271, z], leaf);
+    }
+  };
+  const addWater = () => {
+    const wet = 0x295a72, wetDark = 0x163446, inkBlue = 0x101d31;
+    /* 符面和藍墨都放正反兩面；托盤旋轉時仍讀得出狹長濕符與折尾。 */
+    for (const z of [-0.010, 0.010]) {
+      b.quad([-0.072, 0.02, z], [0.072, 0.02, z], [0.053, 0.23, z], [-0.053, 0.23, z], wet);
+      b.quad([-0.053, 0.23, z], [0.053, 0.23, z], [0.12, 0.31, z], [0.015, 0.275, z], wetDark); // 折彎尾
+    }
+    for (const z of [-0.016, 0.016]) {
+      xy(-0.048, 0.085, 0.048, 0.105, z, inkBlue); xy(-0.038, 0.145, 0.038, 0.163, z, inkBlue);
+      xy(-0.017, 0.058, 0.017, 0.184, z + (z > 0 ? 0.001 : -0.001), inkBlue);
+    }
+  };
+  const addLock = () => {
+    const iron = 0x514d43, ironLit = 0x8d7652, black = 0x1a1715;
+    for (const z of [-0.014, 0.014]) {
+      ring(-0.115, 0.17, 0.052, 0.065, 0.018, z, iron); ring(0, 0.19, 0.052, 0.065, 0.018, z, ironLit); ring(0.115, 0.17, 0.052, 0.065, 0.018, z, iron);
+      xy(-0.09, 0.025, 0.09, 0.135, z, ironLit); xy(-0.020, 0.055, 0.020, 0.095, z + (z > 0 ? 0.002 : -0.002), black); // 方鎖頭與鎖眼
+      xy(-0.069, 0.135, -0.048, 0.17, z, iron); xy(0.048, 0.135, 0.069, 0.17, z, iron); // 鏈環與鎖頭相扣
+    }
+  };
+  const addTiger = () => {
+    const paper = 0xd8d0b4, stripe = 0x1c1816, ear = 0xa8866e, eye = 0xb8782f;
+    /* 白虎紙煞是兩面可讀的尖耳面具：條紋、雙眼、鼻頭都浮在紙臉外。 */
+    for (const z of [-0.008, 0.008]) {
+      xy(-0.17, 0.04, 0.17, 0.25, z, paper);
+      b.quad([-0.17, 0.225, z], [-0.070, 0.225, z], [-0.135, 0.345, z], [-0.205, 0.285, z], ear);
+      b.quad([0.070, 0.225, z], [0.17, 0.225, z], [0.205, 0.285, z], [0.135, 0.345, z], ear);
+    }
+    for (const z of [-0.016, 0.016]) {
+      xy(-0.135, 0.178, -0.040, 0.202, z, stripe); xy(0.040, 0.178, 0.135, 0.202, z, stripe);
+      xy(-0.030, 0.080, 0.030, 0.225, z, stripe);
+      xy(-0.112, 0.128, -0.055, 0.153, z, eye); xy(0.055, 0.128, 0.112, 0.153, z, eye);
+      xy(-0.026, 0.098, 0.026, 0.123, z + (z > 0 ? 0.001 : -0.001), stripe); // 鼻頭
+    }
+  };
+  const addBoat = () => {
+    const paper = 0xa56b42, fold = 0x5d3728, salt = 0xb5ae8a;
+    b.quad([-0.23, 0.05, 0], [0.23, 0.05, 0], [0.14, 0.16, 0], [-0.14, 0.16, 0], paper); // 紙舟腹
+    b.quad([-0.23, 0.05, 0], [-0.14, 0.16, 0], [-0.19, 0.285, 0.022], [-0.25, 0.16, 0.022], fold); // 左翹首
+    b.quad([0.14, 0.16, 0], [0.23, 0.05, 0], [0.25, 0.16, 0.022], [0.19, 0.285, 0.022], fold); // 右翹首
+    xy(-0.11, 0.095, 0.11, 0.115, -0.007, salt);
+  };
+  if (kind === 'wedding') addWedding();
+  else if (kind === 'guava') addGuava();
+  else if (kind === 'water') addWater();
+  else if (kind === 'lock') addLock();
+  else if (kind === 'tiger') addTiger();
+  else if (kind === 'boat') addBoat();
+  else addGeneric();
   const mesh = b.build('tray-curse', { side: THREE.DoubleSide, roughness: 0.95 });
 
   // 紫黑陰火：小片粒子往上飄，飄到 rise 就重生。決定性種子，不用 Math.random。
@@ -234,6 +321,7 @@ function makeCursePile(seed) {
   fire.frustumCulled = false;
 
   const group = new THREE.Group();
+  group.userData.curseKind = kind || 'generic'; // 截圖／治具可讀，不參與規則
   group.add(mesh, fire);
   const fc = new THREE.Color(C.fire); // 每幀 new 一顆 Color 是白花的配置成本，提到迴圈外
   return {
@@ -281,7 +369,7 @@ export function createTableTray(scene, camera, opts = {}) {
   const N = TRAY.XS.length;
   /** 每一格的狀態。fig＝真 3D 妖（有 GLB）；pile＝詛咒占位；兩者互斥。 */
   const slots = TRAY.XS.map((x, i) => ({
-    i, key: null, curse: false, fac: null, moon: false,
+    i, key: null, curse: false, curseKind: null, fac: null, moon: false,
     fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, played: false,
     jolt: 0, bb: null,
   }));
@@ -409,7 +497,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile.dispose();
       s.pile = null;
     }
-    s.key = null; s.curse = false; s.fac = null; s.moon = false; s.ready = false; s.hoverK = 0; s.spin = 0;
+    s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.ready = false; s.hoverK = 0; s.spin = 0;
     s.rimK = -1; s.played = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
@@ -458,11 +546,12 @@ export function createTableTray(scene, camera, opts = {}) {
   function fillSlot(s, it) {
     s.key = it.key || null;
     s.curse = !!it.curse;
+    s.curseKind = it.curseKind || null;
     s.fac = it.fac || null;
     s.moon = !!it.moon;
     s.spin = TRAY.YAW[s.i] || 0;
     if (s.curse || !s.key) {
-      const p = makeCursePile(1301 + s.i * 37);
+      const p = makeCursePile(1301 + s.i * 37, s.curseKind);
       p.group.position.set(slotX(s.i), TRAY.Y, L.Z);
       p.group.scale.setScalar(L.SCALE / TRAY.SCALE);
       p.group.rotation.y = s.spin;
@@ -523,7 +612,7 @@ export function createTableTray(scene, camera, opts = {}) {
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
     slotXs() { return L.XS.slice(); },
-    /** 今夜的 4 件。list = [{key, curse, fac, moon}]；moon 是演出層算好的本夜受惠標記。 */
+    /** 今夜的 4 件。list = [{key, curse, curseKind, fac, moon}]；curseKind 是純呈現，moon 是本夜受惠標記。 */
     setItems(list) {
       const arr = Array.isArray(list) ? list : [];
       const jobs = [];
@@ -533,10 +622,11 @@ export function createTableTray(scene, camera, opts = {}) {
         if (!it) { if (s.key !== null || s.pile) clearSlot(s); continue; }
         const key = it.key || null;
         const curse = !!it.curse;
+        const curseKind = it.curseKind || null;
         const node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
-        if (s.key === key && s.curse === curse && node && node.visible && !s.award && !s.burn && !s.curseAward) { s.moon = !!it.moon; continue; } // 同一件才可重用
+        if (s.key === key && s.curse === curse && s.curseKind === curseKind && node && node.visible && !s.award && !s.burn && !s.curseAward) { s.moon = !!it.moon; continue; } // 同一件才可重用
         clearSlot(s);
-        jobs.push(fillSlot(s, { key, curse, fac: it.fac, moon: it.moon }));
+        jobs.push(fillSlot(s, { key, curse, curseKind, fac: it.fac, moon: it.moon }));
       }
       refreshMoonMarks();
       pending = Promise.all(jobs);
@@ -549,7 +639,7 @@ export function createTableTray(scene, camera, opts = {}) {
     /** 每一格現在掛的是什麼（T2 逐槽比對用；只讀，不給改） */
     items() {
       return slots.map((s) => ({
-        slot: s.i, key: s.key, curse: s.curse, fac: s.fac, moon: s.moon, ready: s.ready,
+        slot: s.i, key: s.key, curse: s.curse, curseKind: s.curseKind, fac: s.fac, moon: s.moon, ready: s.ready,
         glb: s.fig ? creatureGlbUrl(s.key) : null,
         visible: s.fig ? s.fig.group.visible : !!s.pile,
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,

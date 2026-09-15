@@ -77,3 +77,10 @@ test('unregistered curse events cannot impersonate health damage',()=>{
  const g=fresh(),f=g.pwCurseFeedback({kind:'curse',trId:'unknown',side:'A',target:0,amount:99});
  assert.equal(f.healthLoss,false);assert.equal(f.text,'效果未登錄');
 });
+
+test('water selects the actual survivor after two allies die in one settlement batch',()=>{
+ const g=fresh(),c=curse(g,'抓交替水符');
+ const enemy=unit('敵護法',3,999,2);enemy.unit.body='ward';
+ const war=g.paperWar(person(0,[unit('薄紙',0,1,2),unit('厚紙',0,99),c]),person(1,[enemy]),{rng:()=>0.5});
+ const events=war.beats.filter(x=>x.trId==='curseWater');assert.equal(events.length,1);assert.equal(events[0].target,2);assert.equal(events[0].amount,1);
+});
