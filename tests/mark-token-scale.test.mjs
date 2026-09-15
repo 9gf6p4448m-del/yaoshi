@@ -9,7 +9,10 @@ const asModule = source => 'data:text/javascript;base64,' + Buffer.from(source).
 const source = name => fs.readFileSync(new URL('../js/' + name, import.meta.url), 'utf8')
   .replace("from 'three'", `from '${threeURL}'`);
 const sceneURL = asModule(source('scene-env.js'));
-const propsURL = asModule(source('table-props.js')
+const propsSource = process.env.YAOSHI_PROPS_PATH
+  ? fs.readFileSync(process.env.YAOSHI_PROPS_PATH, 'utf8').replace("from 'three'", `from '${threeURL}'`)
+  : source('table-props.js');
+const propsURL = asModule(propsSource
   .replace("import('./scene-env.js' + V)", `import('${sceneURL}')`));
 const { createTableProps, PROPS } = await import(propsURL);
 
@@ -45,7 +48,7 @@ test('同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成�
     }
   };
   try {
-    assert.equal(PROPS.TOKEN.W, 0.150, '使用者已選 B 中型牌');
+    assert.equal(PROPS.TOKEN.PITCH, 0, '玩家改選桌面印籌，必須平放');
     // All 4^4 legal seat/slot combinations also catch adjacent groups colliding.
     for (let assignment = 0; assignment < 256; assignment++) {
       const slot = assignment & 3;
@@ -57,6 +60,30 @@ test('同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成�
       check();
       props.reveal(slot, 1); check();
     }
+  } finally { props.dispose(); }
+});
+
+test('盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空', () => {
+  const props = createTableProps(new THREE.Group());
+  const matrix = new THREE.Matrix4();
+  const position = i => {
+    props.group.getObjectByName('prop-tokens').getMatrixAt(i, matrix);
+    return new THREE.Vector3().setFromMatrixPosition(matrix);
+  };
+  try {
+    props.setLayout('L', [-1.35,-0.45,0.45,1.35], 0.152, 0.1, 1);
+    props.mark(0, 0); props.update(1);
+    const before = position(0);
+    props.mark(1, 1); props.mark(2, 1); props.mark(3, 1); props.update(1);
+    assert.deepEqual(position(0), before, '不同槽加入標記不應搬動既有印籌');
+    const zs = [0,1,2,3].map(i=>position(i).z);
+    assert.ok(zs.every(z=>Math.abs(z-zs[0])<1e-6), '不得第三四席另起前排');
+    const racks = props.group.getObjectByName('prop-mark-racks');
+    assert.equal(racks.count, 4, '兩個有盯槽各自有木籌槽與連接木舌');
+    props.clearRound();
+    assert.equal(racks.count, 0);
+    assert.equal(racks.visible, false);
+    assert.ok(props.stats().tokenTris <= 300);
   } finally { props.dispose(); }
 });
 

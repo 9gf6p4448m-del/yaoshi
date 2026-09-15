@@ -54,11 +54,13 @@ try {
   await page.evaluate(() => pickMark(2));
   await page.waitForTimeout(500);
   await snap('landscape-bid');
-  await page.locator('#west .rail').hover();
-  await page.mouse.wheel(0, 500);
-  await page.waitForTimeout(200);
-  check('market rail scroll reaches lower card', await page.locator('#west .rail').evaluate(el => el.scrollTop > 0));
-  await page.locator('#west .rail').evaluate(el => { el.scrollTop = 0; });
+  // User approved named pages in short landscape instead of clipped scroll rails.
+  await page.locator('#west .railTabs button').nth(1).click();
+  check('market name switch shows complete second card', await page.locator('#west .railPages .railSelected').evaluate(el => {
+    const r=el.getBoundingClientRect(), rail=el.closest('.rail').getBoundingClientRect();
+    return el.id==='mc1' && r.bottom<=rail.bottom+1;
+  }));
+  await page.locator('#west .railTabs button').nth(0).click();
   r = await rects(['#south', '#mainbtn']);
   for (const [id, box] of Object.entries(r)) check(`bid safe bounds ${id}`, inside(box), box);
   await page.evaluate(() => openSheet(0));

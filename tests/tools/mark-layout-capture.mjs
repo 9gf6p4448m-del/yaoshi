@@ -7,13 +7,14 @@ import { serve } from './duel-drive.mjs';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const { chromium } = createRequire(path.join(root, 'tools/anyCreature/package.json'))('playwright');
 const safe = process.argv.includes('--safe');
-const out = path.join(root, 'docs/experiments/2026-09-15-mark-b-layout', safe ? 'synthetic-safe' : '.');
+const outArg = process.argv.find(arg => arg.startsWith('--out='));
+const out = path.join(root, outArg ? outArg.slice(6) : 'docs/experiments/2026-09-15-mark-b-layout', safe ? 'synthetic-safe' : '.');
 fs.mkdirSync(out, { recursive: true });
 const port = 8995, server = await serve(root, port);
 let browser;
 const errors = [], samples = [];
 try {
-  browser = await chromium.launch();
+  browser = await chromium.launch({args:['--use-gl=angle','--use-angle=d3d11','--ignore-gpu-blocklist']});
   const page = await browser.newPage({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, hasTouch: true });
   await page.addInitScript(() => localStorage.setItem('yaoshi_intro_v1', '1'));
   page.on('pageerror', e => errors.push(String(e)));
@@ -51,7 +52,36 @@ try {
     if (samples.at(-1).stats.tokens !== 4) throw new Error('Missing stress tokens');
     await page.screenshot({ path: path.join(out, `four-at-${slot}.png`), scale: 'css' });
   }
-  fs.writeFileSync(path.join(out, 'capture.json'), JSON.stringify({ viewport: [852, 393], syntheticSafeInsets: safe ? [0, 59, 21, 59] : null, samples, errors }, null, 2));
+  for (const assignment of [[0,1,2,3], [0,0,1,1], [0,0,0,1]]) {
+    await page.evaluate(a => {
+      const p = window.__yaoshi3d.tray.props; p.clearRound();
+      a.forEach((slot, seat) => p.mark(seat, slot));
+    }, assignment);
+    await page.waitForTimeout(1000);
+    const stats = await page.evaluate(() => window.__yaoshi3d.tray.props.stats());
+    if (stats.tokens !== 4) throw new Error('Missing mixed-slot stamps');
+    samples.push({assignment,synthetic:true,stats});
+    await page.screenshot({path:path.join(out, `slots-${assignment.join('-')}.png`),scale:'css'});
+  }
+  const perf = await page.evaluate(async () => {
+    const y = window.__yaoshi3d;
+    const times = [];
+    await new Promise(resolve => {
+      const tick = t => { times.push(t); if (times.length === 121) resolve(); else requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+    const info = y.renderer.info, oldReset = info.autoReset;
+    let drawCalls, triangles;
+    try {
+      info.autoReset = false;
+      await new Promise(resolve => requestAnimationFrame(() => {
+        info.reset();
+        requestAnimationFrame(() => { drawCalls = info.render.calls; triangles = info.render.triangles; resolve(); });
+      }));
+    } finally { info.autoReset = oldReset; }
+    return { desktopOnly: true, fps: 1000 * (times.length - 1) / (times.at(-1) - times[0]), drawCalls, triangles, gpu: y.glName };
+  });
+  fs.writeFileSync(path.join(out, 'capture.json'), JSON.stringify({ viewport: [852, 393], syntheticSafeInsets: safe ? [0, 59, 21, 59] : null, samples, perf, errors }, null, 2));
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(JSON.stringify({ out, cases: samples.length, errors }));
-} finally { await browser?.close(); server.kill(); }
+} finally { try { await browser?.close(); } finally { server.kill(); } }

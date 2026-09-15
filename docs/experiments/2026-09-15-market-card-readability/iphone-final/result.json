@@ -1,0 +1,417 @@
+{
+  "browser": "Chromium mobile emulation; not Safari or physical iPhone",
+  "fixture": "landscape 852x393, safe T/R/B/L=0/59/21/59; portrait 393x852,59/0/34/0; synthetic, not measured",
+  "checks": [
+    {
+      "name": "safe bounds #north",
+      "pass": true,
+      "details": {
+        "x": 59,
+        "y": 4,
+        "right": 793,
+        "bottom": 60,
+        "width": 734,
+        "height": 56,
+        "scrollWidth": 734,
+        "clientWidth": 734,
+        "scrollHeight": 56,
+        "clientHeight": 56
+      }
+    },
+    {
+      "name": "safe bounds #west",
+      "pass": true,
+      "details": {
+        "x": 59,
+        "y": 64,
+        "right": 227,
+        "bottom": 306,
+        "width": 168,
+        "height": 242,
+        "scrollWidth": 191,
+        "clientWidth": 168,
+        "scrollHeight": 242,
+        "clientHeight": 242
+      }
+    },
+    {
+      "name": "safe bounds #east",
+      "pass": true,
+      "details": {
+        "x": 625,
+        "y": 64,
+        "right": 793,
+        "bottom": 306,
+        "width": 168,
+        "height": 242,
+        "scrollWidth": 168,
+        "clientWidth": 168,
+        "scrollHeight": 242,
+        "clientHeight": 242
+      }
+    },
+    {
+      "name": "safe bounds #south",
+      "pass": true,
+      "details": {
+        "x": 59,
+        "y": 310,
+        "right": 793,
+        "bottom": 372,
+        "width": 734,
+        "height": 62,
+        "scrollWidth": 732,
+        "clientWidth": 732,
+        "scrollHeight": 61,
+        "clientHeight": 60
+      }
+    },
+    {
+      "name": "safe bounds #mainbtn",
+      "pass": true,
+      "details": {
+        "x": 662.015625,
+        "y": 319,
+        "right": 780,
+        "bottom": 363,
+        "width": 117.984375,
+        "height": 44,
+        "scrollWidth": 118,
+        "clientWidth": 118,
+        "scrollHeight": 44,
+        "clientHeight": 44
+      }
+    },
+    {
+      "name": "market name switch shows complete second card",
+      "pass": true
+    },
+    {
+      "name": "bid safe bounds #south",
+      "pass": true,
+      "details": {
+        "x": 59,
+        "y": 310,
+        "right": 793,
+        "bottom": 372,
+        "width": 734,
+        "height": 62,
+        "scrollWidth": 732,
+        "clientWidth": 732,
+        "scrollHeight": 61,
+        "clientHeight": 60
+      }
+    },
+    {
+      "name": "bid safe bounds #mainbtn",
+      "pass": true,
+      "details": {
+        "x": 694.59375,
+        "y": 319,
+        "right": 780,
+        "bottom": 363,
+        "width": 85.40625,
+        "height": 44,
+        "scrollWidth": 85,
+        "clientWidth": 85,
+        "scrollHeight": 44,
+        "clientHeight": 44
+      }
+    },
+    {
+      "name": "bid sheet safe bounds",
+      "pass": true,
+      "details": {
+        "x": 196,
+        "y": 29.3125,
+        "right": 656,
+        "bottom": 342.6875,
+        "width": 460,
+        "height": 313.375,
+        "scrollWidth": 460,
+        "clientWidth": 460,
+        "scrollHeight": 313,
+        "clientHeight": 313
+      }
+    },
+    {
+      "name": "bid sheet scroll reaches bottom",
+      "pass": true,
+      "details": {
+        "top": 0,
+        "max": 0,
+        "overflow": "auto"
+      }
+    },
+    {
+      "name": "help safe bounds",
+      "pass": true,
+      "details": {
+        "x": 196,
+        "y": 13.078125,
+        "right": 656,
+        "bottom": 358.90625,
+        "width": 460,
+        "height": 345.828125,
+        "scrollWidth": 460,
+        "clientWidth": 460,
+        "scrollHeight": 3106,
+        "clientHeight": 346
+      }
+    },
+    {
+      "name": "help scroll responds to input",
+      "pass": true
+    },
+    {
+      "name": "FPS toggle off removes diagnostic",
+      "pass": true
+    },
+    {
+      "name": "FPS off stops sampler",
+      "pass": true
+    },
+    {
+      "name": "FPS toggle on starts sampler",
+      "pass": true
+    },
+    {
+      "name": "FPS toggle preserves current game without navigation",
+      "pass": true
+    },
+    {
+      "name": "diagnostic distinguishes browser mode",
+      "pass": true
+    },
+    {
+      "name": "FPS preference survives query-free cold start",
+      "pass": true
+    },
+    {
+      "name": "FPS preference survives reload",
+      "pass": true
+    },
+    {
+      "name": "FPS off preference survives reload",
+      "pass": true
+    },
+    {
+      "name": "portrait rotate hint",
+      "pass": true
+    },
+    {
+      "name": "rotate back resumes table",
+      "pass": true
+    },
+    {
+      "name": "desktop zero-inset bounds unchanged",
+      "pass": true,
+      "details": {
+        "zero": {
+          "#table": {
+            "x": 160,
+            "y": 0,
+            "right": 1120,
+            "bottom": 720,
+            "width": 960,
+            "height": 720,
+            "scrollWidth": 960,
+            "clientWidth": 960,
+            "scrollHeight": 720,
+            "clientHeight": 720
+          },
+          "#north": {
+            "x": 164,
+            "y": 4,
+            "right": 1116,
+            "bottom": 60,
+            "width": 952,
+            "height": 56,
+            "scrollWidth": 952,
+            "clientWidth": 952,
+            "scrollHeight": 56,
+            "clientHeight": 56
+          },
+          "#west": {
+            "x": 164,
+            "y": 64,
+            "right": 332,
+            "bottom": 650,
+            "width": 168,
+            "height": 586,
+            "scrollWidth": 191,
+            "clientWidth": 168,
+            "scrollHeight": 586,
+            "clientHeight": 586
+          },
+          "#east": {
+            "x": 948,
+            "y": 64,
+            "right": 1116,
+            "bottom": 650,
+            "width": 168,
+            "height": 586,
+            "scrollWidth": 168,
+            "clientWidth": 168,
+            "scrollHeight": 586,
+            "clientHeight": 586
+          },
+          "#south": {
+            "x": 164,
+            "y": 654,
+            "right": 1116,
+            "bottom": 716,
+            "width": 952,
+            "height": 62,
+            "scrollWidth": 950,
+            "clientWidth": 950,
+            "scrollHeight": 60,
+            "clientHeight": 60
+          },
+          "#mainbtn": {
+            "x": 999,
+            "y": 663,
+            "right": 1103,
+            "bottom": 707,
+            "width": 104,
+            "height": 44,
+            "scrollWidth": 104,
+            "clientWidth": 104,
+            "scrollHeight": 44,
+            "clientHeight": 44
+          }
+        },
+        "baseline": {
+          "#table": {
+            "x": 160,
+            "y": 0,
+            "right": 1120,
+            "bottom": 720,
+            "width": 960,
+            "height": 720,
+            "scrollWidth": 960,
+            "clientWidth": 960,
+            "scrollHeight": 720,
+            "clientHeight": 720
+          },
+          "#north": {
+            "x": 164,
+            "y": 4,
+            "right": 1116,
+            "bottom": 60,
+            "width": 952,
+            "height": 56,
+            "scrollWidth": 952,
+            "clientWidth": 952,
+            "scrollHeight": 56,
+            "clientHeight": 56
+          },
+          "#west": {
+            "x": 164,
+            "y": 64,
+            "right": 332,
+            "bottom": 650,
+            "width": 168,
+            "height": 586,
+            "scrollWidth": 191,
+            "clientWidth": 168,
+            "scrollHeight": 586,
+            "clientHeight": 586
+          },
+          "#east": {
+            "x": 948,
+            "y": 64,
+            "right": 1116,
+            "bottom": 650,
+            "width": 168,
+            "height": 586,
+            "scrollWidth": 168,
+            "clientWidth": 168,
+            "scrollHeight": 586,
+            "clientHeight": 586
+          },
+          "#south": {
+            "x": 164,
+            "y": 654,
+            "right": 1116,
+            "bottom": 716,
+            "width": 952,
+            "height": 62,
+            "scrollWidth": 950,
+            "clientWidth": 950,
+            "scrollHeight": 60,
+            "clientHeight": 60
+          },
+          "#mainbtn": {
+            "x": 999,
+            "y": 663,
+            "right": 1103,
+            "bottom": 707,
+            "width": 104,
+            "height": 44,
+            "scrollWidth": 104,
+            "clientWidth": 104,
+            "scrollHeight": 44,
+            "clientHeight": 44
+          }
+        }
+      }
+    },
+    {
+      "name": "red control detects original unsafe bounds",
+      "pass": true,
+      "details": {
+        "#west": {
+          "x": 4,
+          "y": 64,
+          "right": 172,
+          "bottom": 323,
+          "width": 168,
+          "height": 259,
+          "scrollWidth": 191,
+          "clientWidth": 168,
+          "scrollHeight": 259,
+          "clientHeight": 259
+        },
+        "#east": {
+          "x": 680,
+          "y": 64,
+          "right": 848,
+          "bottom": 323,
+          "width": 168,
+          "height": 259,
+          "scrollWidth": 168,
+          "clientWidth": 168,
+          "scrollHeight": 259,
+          "clientHeight": 259
+        },
+        "#south": {
+          "x": 4,
+          "y": 327,
+          "right": 848,
+          "bottom": 389,
+          "width": 844,
+          "height": 62,
+          "scrollWidth": 842,
+          "clientWidth": 842,
+          "scrollHeight": 61,
+          "clientHeight": 60
+        }
+      }
+    },
+    {
+      "name": "no page errors",
+      "pass": true,
+      "details": []
+    }
+  ],
+  "captures": [
+    "landscape-mark",
+    "landscape-bid",
+    "landscape-sheet",
+    "landscape-help",
+    "portrait-rotate",
+    "desktop-zero-inset"
+  ],
+  "errors": []
+}

@@ -12,8 +12,37 @@
     max(4px, var(--safe-bottom)) max(4px, var(--safe-left));
 }
 #west, #east, #felt { min-height: 0; }
+.railTabs { display: none; }
+.railPages { display: contents; }
 @media (orientation: landscape) {
   #table.t3d .rail { overflow-y: auto; }
+}
+/* Short landscape screens use the same horizontal seat summary as the north
+   seat. Reclaim portrait whitespace before spending space on market details. */
+@media (orientation: landscape) and (max-height: 500px) {
+  #table.t3d #west .seat, #table.t3d #east .seat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    text-align: left;
+    padding: 3px 7px;
+  }
+  #table.t3d #west .seat .av, #table.t3d #east .seat .av { flex: 0 0 38px; }
+  #table.t3d #west .seat .roleInfoBtn, #table.t3d #east .seat .roleInfoBtn { right: 3px; }
+  #table.t3d .rail { padding-top: 2px; overflow: visible; }
+  #table.t3d .railTabs { display: flex; flex: 0 0 auto; gap: 4px; }
+  #table.t3d .railTabs button {
+    flex: 1 1 0; min-width: 0; min-height: 44px; padding: 3px;
+    border: 1px solid var(--line); border-radius: 7px;
+    background: var(--panel); color: var(--ink); font-size: 11px;
+    white-space: normal; line-height: 1.2;
+  }
+  #table.t3d .railTabs button span { display: block; font-size: 10px; color: var(--dim); }
+  #table.t3d .railTabs button[aria-pressed="true"] { border-color: var(--gold); background: var(--panel2); }
+  #table.t3d .railPages { display: block; min-height: 0; overflow-y: auto; padding-top: 8px; }
+  #table.t3d .rail .mcard { min-height: 0; }
+  #table.t3d .railPages > .mcard:not(.railSelected) { display: none; }
 }
 .title {
   padding: max(22px, var(--safe-top)) max(20px, var(--safe-right))

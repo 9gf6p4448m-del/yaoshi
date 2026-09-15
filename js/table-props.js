@@ -2,7 +2,7 @@
 //
 // 這一支負責「競標這件事在桌上留下什麼實體痕跡」：
 //   ① 壽命銅錢籌碼：出價時從自己席位推出去的方孔銅錢（幾命幾枚，>8 改成一串）
-//   ② 血玉令牌：盯上時重重拍在目標托盤前的那一枚刻「盯」方牌
+//   ② 血玉印籌：盯上時重重拍在目標托盤所接木籌槽的「盯」字方印
 //   ③ 十席信物：十個角色各一件常駐桌角的紙紮小物
 //
 // ★為什麼不放進 table-tray.js★：那支檔頭寫的職責是「今夜這 4 件拍品在桌上長什麼樣、
@@ -16,7 +16,7 @@
 //   也不知道什麼是「壽命」——`bid(seat, slot, amount)` 只回答幾何問題「從哪推幾枚到哪」。
 //
 // 幾何預算（凍結檔 U3；每一件都要 ≤300 三角形）：
-//   銅錢 64／枚（8 段外緣＋方孔）、令牌 128／枚（圓角方牌＋七道陽刻）、信物 30～150／件。
+//   銅錢 64／枚（8 段外緣＋方孔）、令牌 192／枚（圓角方牌＋八道陽刻）、信物 30～150／件。
 //   ★籌碼與令牌走 InstancedMesh★：32 枚銅錢與 4 枚令牌各只花 **1 個 draw call**——
 //   逐枚一顆 Mesh 的話光籌碼就是 32 個 call，把第一段辛苦壓下來的預算整個吃掉。
 //
@@ -55,15 +55,15 @@ export const PROPS = {
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
-    /* 2026-09-15 玩家選 B 中型：修復陰影縮放污染後，撤回補償性放大；保留正面近直立牌。 */
-    W: 0.150, H: 0.190, T: 0.050, BEVEL: 0.005, PITCH: 1.05, STAND_LIFT: 0.175, // 半寬／半高／厚，底緣保有桌面淨空
+    /* 玩家要求桌面實體印籌：平放於同槽木籌槽，不再是近直立展示牌。 */
+    W: 0.075, H: 0.095, T: 0.050, BEVEL: 0.005, PITCH: 0, STAND_LIFT: 0.016, // 底面恰好貼住木籌槽頂面
     jade: 0x1a1215, jadeHi: 0x6a261a, jadeLo: 0x3d0a0e, // 墨黑玄玉、硃砂滾邊、暗紅底邊
     carve: 0xffd875, // 高明度金紅陽刻「盯」：遠景也能從暗紅托盤跳出
     SLAM_MS: 0.30, // 從席位拍下來要多久
     RISE: 0.34, // 途中先舉高多少（「重重拍」的蓄勢）
     BOUNCE: 0.055, // 落地回彈高度
     BOUNCE_MS: 0.16,
-    GAP_X: 0.38, GAP_Z: 0.62, // 同槽兩列：保留整個牌面與金字，第三／四席另排到桌前一列。
+    GAP_X: 0.22, // 同槽沿木籌槽排成一列；不跨槽搬牌。
   },
   /* ── 十席信物 ───────────────────────────────────────────────────────── */
   /* SCALE 1.0 → 1.75（自評 r3）：1.0 的信物在 844×390 牌桌機位上只有 20～28px，
@@ -191,15 +191,16 @@ function tokenGeometry() {
     b.quad(P(la, yB + bevel), P(lc, yB + bevel), P(hc, yT - bevel), P(ha, yT - bevel), T.jadeLo, T.jade, T.jadeHi, T.jadeHi); // 厚實側緣
     b.quad(P(ha, yT - bevel), P(hc, yT - bevel), P(c, yT), P(a, yT), T.jade, T.jadeHi, T.jadeHi, T.jade); // 上導角
   }
-  /* 陽刻「盯」：七道凸起的短條（左「目」五道、右「丁」兩道）。
+  /* 陽刻「盯」：八道凸起的短條（左「目」六道、右「丁」兩道）。
      ★不刻凹字★——凹進去在這個機位只有 2～3px，什麼都看不到；凸起才吃得到燈籠的邊光。
      每道＝頂面一個 quad ＋ 四個側面，10 三角形。 */
   const e = 0.028; // 凸起高度：遠景仍讀得到金紅「盯」字
   const K = T.W / 0.072; // 刻字跟著牌面一起放大（下面那組座標是 W=0.072 那一版量的）
   const bars = [
-    // 目：外框兩豎＋三橫（x 往左為負）
+    // 目：外框兩豎＋四橫（x 往左為負）
     [-0.036, 0.0, 0.006, 0.046], [-0.004, 0.0, 0.006, 0.046],
-    [-0.020, 0.042, 0.020, 0.005], [-0.020, 0.0, 0.020, 0.005], [-0.020, -0.042, 0.020, 0.005],
+    [-0.020, 0.042, 0.020, 0.005], [-0.020, 0.014, 0.020, 0.005],
+    [-0.020, -0.014, 0.020, 0.005], [-0.020, -0.042, 0.020, 0.005],
     // 丁：一橫一豎
     [0.032, 0.038, 0.026, 0.006], [0.032, -0.006, 0.006, 0.038],
   ];
@@ -419,6 +420,15 @@ export function createTableProps(parent, opts = {}) {
   if (tokens.instanceColor) tokens.instanceColor.needsUpdate = true;
   group.add(tokens);
 
+  // 每槽木籌槽與接回拍品盤心的木舌共用一個池，最多8塊、1 draw call。
+  const rackBuilder = vcBuilder();
+  box(rackBuilder, [0, 0, 0], [0.5, 0.5, 0.5], 0x392416, 0x97643b);
+  const rackShape = rackBuilder.build('mark-rack', { roughness: 0.82, metalness: 0.05, emissive: new THREE.Color(0x201006) });
+  const racks = new THREE.InstancedMesh(rackShape.geometry, rackShape.material, 8);
+  racks.name = 'prop-mark-racks'; racks.count = 0; racks.visible = false; racks.frustumCulled = false;
+  racks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  group.add(racks);
+
   // ── 狀態 ────────────────────────────────────────────────────────────
   let mode = 'L'; // 'L' 橫式／'P' 直式
   let trayXS = [0, 0, 0, 0], trayY = 0.152, trayZ = 0.10, trayScale = 1;
@@ -512,29 +522,30 @@ export function createTableProps(parent, opts = {}) {
   }
 
   function layoutTokens() {
-    const lanes = [[], []];
+    let rackCount = 0;
+    const putRack = (x, z, width, depth, yaw = 0) => {
+      Pv.set(x, trayY + 0.008, z); Sv.set(width, 0.016, depth);
+      EU.set(0, yaw, 0); Q.setFromEuler(EU); M.compose(Pv, Q, Sv);
+      racks.setMatrixAt(rackCount++, M);
+    };
     for (let slot = 0; slot < trayXS.length; slot++) {
       const rows = tokRec.filter(r => r.slot === slot);
-      const columns = Math.min(2, rows.length);
-      // 外側托盤只朝桌心展開，避免向外伸進兩側拍品資訊欄。
+      if (!rows.length) continue;
+      // 外盤的籌槽朝桌心展開，但仍由木舌連到該盤。不同槽不參與排隊。
       const edge = slot === 0 ? 1 : slot === trayXS.length - 1 ? -1 : 0;
-      const center = trayXS[slot] + edge * (columns - 1) * TK.GAP_X / 2;
+      const limit = mode === 'P' ? 0.50 : 1.10;
+      const anchor = Math.max(-limit, Math.min(limit, trayXS[slot]));
+      const center = anchor + edge * (rows.length - 1) * TK.GAP_X / 2;
+      const z = dropZ() - 0.055;
       rows.forEach((r, i) => {
-        const row = Math.floor(i / 2), count = Math.min(2, rows.length - row * 2);
-        // 前排更靠近相機，向桌心收以抵銷透視放大，避免外側牌伸入資訊欄。
-        r.to = [center * (row ? 0.72 : 1) + (i % 2 - (count - 1) / 2) * TK.GAP_X, trayY, dropZ() - 0.055 + row * TK.GAP_Z];
-        lanes[row].push(r);
+        r.to = [center + (i - (rows.length - 1) / 2) * TK.GAP_X, trayY, z];
       });
+      putRack(center, z, (rows.length - 1) * TK.GAP_X + TK.W * 2 + 0.05, TK.H * 2 + 0.055);
+      const dx = center - trayXS[slot], dz = z - trayZ;
+      putRack((center + trayXS[slot]) / 2, (z + trayZ) / 2, 0.055, Math.hypot(dx, dz), Math.atan2(dx, dz));
     }
-    // 留出兩側資訊欄；相鄰拍品的牌一起排，不能各自收進桌心後又互相重疊。
-    lanes.forEach((lane, row) => {
-      const limit = mode === 'P' ? 0.50 : row ? 0.85 : 1.10;
-      lane.sort((a, b) => a.to[0] - b.to[0] || a.seat - b.seat);
-      lane.forEach((r, i) => { r.to[0] = Math.max(-limit, r.to[0], i ? lane[i - 1].to[0] + TK.GAP_X : -limit); });
-      for (let i = lane.length - 1; i >= 0; i--) {
-        lane[i].to[0] = Math.min(lane[i].to[0], i === lane.length - 1 ? limit : lane[i + 1].to[0] - TK.GAP_X);
-      }
-    });
+    racks.count = rackCount; racks.visible = rackCount > 0;
+    if (rackCount) racks.instanceMatrix.needsUpdate = true;
   }
 
   function writeTokens() {
@@ -548,7 +559,7 @@ export function createTableProps(parent, opts = {}) {
       const px = from[0] + (to[0] - from[0]) * e;
       const pz = from[1] + (to[2] - from[1]) * e;
       const py = trayY + TK.T / 2 + TK.STAND_LIFT + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
-      EU.set(TK.PITCH, r.yaw, 0); // 牌面仰立，且 yaw 固定朝南方主鏡頭；不再因北席反向插入桌面
+      EU.set(TK.PITCH, r.yaw, 0); // 印面平放，字朝主鏡頭；保留幾何本身的厚度。
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
       Sv.setScalar(1); // 共用暫存向量：不可沿用接觸陰影的非等比縮放，否則牌面會被壓成窄條。
@@ -697,6 +708,7 @@ export function createTableProps(parent, opts = {}) {
       chipRec.length = 0;
       droppedChips = 0;
       for (const r of tokRec) { r.slot = -1; r.t = 0; r.bounce = 0; }
+      layoutTokens();
       writeChips(); writeTokens();
       if (onChange) onChange();
     },
@@ -751,7 +763,8 @@ export function createTableProps(parent, opts = {}) {
       if (live) { writeChips(); writeTokens(); }
     },
     dispose() {
-      group.remove(chips, tokens);
+      group.remove(chips, tokens, racks);
+      racks.dispose(); rackShape.geometry.dispose(); rackShape.material.dispose();
       chipG.geo.dispose(); chipG.mat.dispose();
       tokG.geo.dispose(); tokG.mat.dispose();
       chips.dispose(); tokens.dispose();

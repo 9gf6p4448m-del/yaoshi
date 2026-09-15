@@ -72,7 +72,7 @@ test('揭盅先播錢柱與法寶飛行，再顯示固定的比價卡', () => {
   assert.match(props, /CH\.T\s*\*\s*0\.9/, '同席出價必須按銅錢厚度垂直堆疊');
   assert.match(props, /loserDim/, '落標錢柱應退成低彩度，讓得標金光更清楚');
   assert.match(props, /BEVEL/, '血玉令牌需有微導角幾何');
-  assert.match(props, /PITCH:\s*1\.05/, '血玉令牌需以近直立姿態朝主鏡頭露出牌面，而非留在桌面的細條');
+  assert.match(props, /PITCH:\s*0\b/, '玩家要求桌面印籌，牌面平放於木籌槽');
   assert.match(props, /Math\.sin\(wobble\)\s*\*\s*0\.010/, '錢柱每層必須有可見的偏心，不能堆成一根細條');
   assert.match(props, /c\.tilt/, '每枚銅錢需有微翹，讓金屬側緣分層可見');
   assert.match(props, /SEAT_DX:\s*\[-0\.15,\s*0\.15,\s*-0\.15,\s*0\.15\]/, '四席錢柱必須拉開左右位置，不能兩兩重疊');
@@ -111,10 +111,10 @@ test('揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保�
   assert.match(ribbon, /z-index:30/, '結果卡必須高於兩側拍品欄');
   assert.match(index, /#table\.t3d \.rail \.mcard\{min-height:88px;height:auto;flex:0 0 auto/, '受惠卡應依內容包住文字，不可被側欄撐成大片空白');
   assert.match(index, /\.moonCue\{[^}]*font-size:8\.5px[^}]*padding:0 3px/, '受惠徽章必須縮緊以保住底部部隊列');
-  assert.match(props, /PITCH:\s*1\.05/, '盯牌必須更接近直立朝向主鏡頭，讓牌面不再縮成側邊細線');
-  assert.match(props, /W:\s*0\.150,\s*H:\s*0\.190/, '使用者選 B 中型：恢復正常比例後保留可讀字面並減少遮擋');
-  assert.match(props, /STAND_LIFT:\s*0\.175/, 'B 中型近直立牌底緣必須保有桌面淨空，不得穿入桌面');
-  assert.match(props, /STAND_LIFT/, '仰立令牌必須抬離桌面，避免只剩穿模細線');
+  assert.match(props, /PITCH:\s*0\b/, '盯印必須平放於木籌槽');
+  assert.match(props, /W:\s*0\.075,\s*H:\s*0\.095/, '玩家改選桌面印籌：同槽四枚同排且字面不疊');
+  assert.match(props, /STAND_LIFT:\s*0\.016/, '印籌底面貼合厚0.016木籌槽頂面');
+  assert.match(props, /STAND_LIFT/, '印籌必須坐在木籌槽上，不得穿模');
   assert.match(props, /const e = 0\.028/, '盯字凸起高度必須升級為遠景可讀');
   assert.match(props, /jade: 0x1a1215/, '令牌本體必須與紅布拉開明度對比');
   assert.match(theme, /\.anim-lantern-reveal/, '通用燈籠動畫仍供其他元素使用，不可全域破壞');
