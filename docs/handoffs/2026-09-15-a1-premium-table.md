@@ -79,3 +79,24 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 使用者「按照建議開工」並詢問造型。最新產品提交 `4311b8a`／v0.57.12；六種詛咒已各有單一效果與紙紮實物輪廓，正式模式不再呼叫舊 power()。35 固定庫加事件王船煞共 36 件，王船不是普通拍賣品。完整規格、各件文案、RED/GREEN 與造型證據見 [功能卷報告](../experiments/2026-09-15-curse-migration/README.md)。
 
 85/85 程式測試與 300/300 詛咒幾何通過；已隨 `b3ea547` 發布並確認公開 HTML／造型檔送達。201 手機詛咒、768 卡面、36 物品全說明、袋子名稱 RED→GREEN 及兩種夜戰同側回饋皆已完成；產品最後為 `86cd57f`。前面的中止發布是舊文案候選沿革，不能覆蓋本次最新批准。A1 原效能 RED、真機／P4／M-A1 及 D2／D3／D5 保留。Claude Code 接手先讀本節與功能卷，再讀必要原始證據。
+
+
+## 2026-09-17 Claude Code 接手：v0.57.13 取景鏈去重（A1 效能診斷第一個修補）
+
+沒有新的手機回饋，依交接順序接 A1 效能診斷。重析前輪 `candidate-hover-slot1.cpuprofile`：候選版獨有的每幀成本幾乎全在取景鏈（frameSubjects 319 µs/幀），其中 `posedBounds` 子樹 134 µs 對 13 顆本體＋13 顆可見描邊外殼各算一次，而外殼與本體共用 geometry／skeleton／bindMatrix，結果必然相同。單一修補：同一次取景內共用骨架的網格只算一次骨骼包絡（`js/table-framing.js`）。完整規格、RED／GREEN、矩陣、微基準、五輪與 profile 見 [本卷報告](../experiments/2026-09-17-a1-framing-dedupe/README.md) 與 [凍結驗收](../experiments/2026-09-17-a1-framing-dedupe/acceptance.md)。
+
+- 提交：`8960aeb`（凍結驗收＋微基準＋紅測試）→ `bc6359d`（修補、版本 0.57.13、工具、證據）→ 本交接。分支 `a1/framing-dedupe` 於 `.claude/worktrees/a1-framing-dedupe` 完成，快轉合入 main 後推送；公開送達核對見報告末段。
+- 驗證：87/87 測試（85 既有＋2 新增）、1599 取景矩陣修補前後各全過且差異落在同版重跑波動內、trace seeds 1–20 相等、Node 微基準交錯 5 次 −3.4%（結果 hash 相同）、瀏覽器 profile 取景鏈 319→246 µs/幀。
+- **正式五輪**：32 枚 ratio .3403 **仍 RED**（前輪 .3596，同一波動帶）；128 枚中位 .403 第一次過目前可執行的 gate（paired 3/5、09-14 逐輪口徑未過），但 128 模式描邊關閉、去重不生效，**不得歸功本修補**。`table3d=lite` 與預設比值幾乎相同，表示門檻卡在托盤 3D 場景的共同底成本。
+- 驗收 #3 依 `02 §2.1` 例外修正（矩陣工具本身逐次不確定，改為「差異不超過同版重跑」），理由與數字在報告。
+- 未動任何非本 session 的檔案與行程；主 checkout 的既有 dirty 檔（INDEX.md、兩份交接、iPhone result）保留，因 INDEX.md 在主 checkout 有未提交修改，本輪**沒有**改 INDEX.md，請 Codex 在提交自己的 INDEX 修改時補一列指向本節。
+- 本機記憶體吃緊（32 GB 剩約 1.2 GB；OneDrive 約 10 GB、約 19 組 session 的 MCP 伺服器約 8 GB），背景長跑會被看門狗中止；矩陣改以 `--match=slot0..3` 前景分塊。要不要清那些行程由使用者決定。
+
+### 下一步順序
+
+1. 有手機回饋先處理（規程同前段）。
+2. A1 效能下一個單一假設：修補後 profile 每幀仍有 `getParameters` ≈153 µs 與 `upload`／`texSubImage2D` ≈114／130 µs（基準也有）。先在真實頁面計數每幀 `getProgram` 次數與 `texSubImage2D` 的來源貼圖（骨骼貼圖或其他），確認是每幀重算／重傳再改；不得憑百分比直接動材質管線。
+3. 128 枚 gate 的規格文字差異（中位數 vs 逐輪）仍待使用者裁定，本輪不改判。
+4. D2／D3／D5、真機、P4／M-A1 照舊保留。
+
+續接：`/handoff 妖市：接 v0.57.13 A1 效能第二個假設（getProgram／texSubImage2D 每幀計數）或手機回饋；32 枚 gate 仍 RED，保留 D2／D3 與原門檻。`
