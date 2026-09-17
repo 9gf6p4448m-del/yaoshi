@@ -1,0 +1,448 @@
+{
+  "tool": "tests/tools/table-framing-check.mjs",
+  "mode": "all",
+  "curseOnly": true,
+  "caseLimit": null,
+  "caseMatch": "冥婚",
+  "simulatedClock": {
+    "stepMs": 16.666666666666668,
+    "pushObserveMs": 850,
+    "note": "Runs the renderer frame callback and render through a controlled rAF queue; this is geometry coverage, not performance evidence."
+  },
+  "renderStats": {
+    "source": "renderer.info.render snapshot with four identical tray items; not FPS evidence",
+    "samples": [
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2629
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2741
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2741
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2741
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2741
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 27,
+        "triangles": 2513
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2569
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2515
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2699
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2699
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2699
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2699
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2629
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2569
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2569
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2515
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2629
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2569
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2797
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2569
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2515
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2743
+      }
+    ]
+  },
+  "viewports": [
+    "desktop-1280x720",
+    "mobile-852x393-safe59",
+    "natural-844x390"
+  ],
+  "cases": 60,
+  "passed": 60,
+  "failed": 0,
+  "pageErrors": [],
+  "failures": [],
+  "evidence": "docs/experiments/2026-09-17-a2-wedding/framing-wedding-r2.json"
+}
