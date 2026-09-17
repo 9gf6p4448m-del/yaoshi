@@ -1,0 +1,122 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\a1-duel-draws",
+ "seed": "7",
+ "frames": 3,
+ "gap": 400,
+ "mark": "0x990099",
+ "tol": 24,
+ "minPx": 3000,
+ "head": 0.25,
+ "legends": {
+  "dashiye": {
+   "samples": [
+    {
+     "frame": 0,
+     "na": false,
+     "fullPx": 22648,
+     "visPx": 20771,
+     "occl": 0.0829,
+     "headFullPx": 4899,
+     "headVisPx": 4899,
+     "occlHead": 0,
+     "topY": 82,
+     "bottomY": 369,
+     "leftX": 501,
+     "rightX": 649,
+     "canvasW": 1688,
+     "canvasH": 780
+    },
+    {
+     "frame": 1,
+     "na": false,
+     "fullPx": 22730,
+     "visPx": 21019,
+     "occl": 0.0753,
+     "headFullPx": 4930,
+     "headVisPx": 4930,
+     "occlHead": 0,
+     "topY": 80,
+     "bottomY": 369,
+     "leftX": 501,
+     "rightX": 649,
+     "canvasW": 1688,
+     "canvasH": 780
+    },
+    {
+     "frame": 2,
+     "na": false,
+     "fullPx": 22466,
+     "visPx": 20533,
+     "occl": 0.086,
+     "headFullPx": 4939,
+     "headVisPx": 4939,
+     "occlHead": 0,
+     "topY": 80,
+     "bottomY": 369,
+     "leftX": 502,
+     "rightX": 650,
+     "canvasW": 1688,
+     "canvasH": 780
+    }
+   ],
+   "diag": {
+    "ab": "dashiye",
+    "skin": "creature",
+    "scale": 1.0664,
+    "y": 0.5979,
+    "x": -0.6591,
+    "z": 0.8922,
+    "shadowVisible": true,
+    "bodyMeshes": 12,
+    "others": 15
+   },
+   "setup": {
+    "rosterA": [
+     "dashiye",
+     "tiger_c",
+     "shanshen",
+     "redhat",
+     "sword",
+     "fushou",
+     "eye",
+     "wangchuan"
+    ],
+    "rosterB": [
+     "tiger_c",
+     "shanshen",
+     "redhat",
+     "sword",
+     "fushou",
+     "eye",
+     "wangchuan",
+     "bell"
+    ]
+   }
+  }
+ },
+ "verdict": {
+  "dashiye": {
+   "ok": true,
+   "liveFrames": 3,
+   "naFrames": 0,
+   "occlMax": 0.086,
+   "occlMin": 0.0753,
+   "occlHeadMax": 0,
+   "topYMin": 80,
+   "bottomYMax": 369,
+   "g2": true,
+   "diag": {
+    "ab": "dashiye",
+    "skin": "creature",
+    "scale": 1.0664,
+    "y": 0.5979,
+    "x": -0.6591,
+    "z": 0.8922,
+    "shadowVisible": true,
+    "bodyMeshes": 12,
+    "others": 15
+   }
+  }
+ },
+ "errors": []
+}
