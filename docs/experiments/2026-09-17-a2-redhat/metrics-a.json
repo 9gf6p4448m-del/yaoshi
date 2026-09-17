@@ -1,0 +1,103 @@
+{
+  "tool": "tests/tools/a2-sheet.mjs",
+  "key": "redhat",
+  "name": "a",
+  "glb": "assets/creatures/redhat_a.glb",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "errors": [],
+  "table": {
+    "calls": 95,
+    "tris": 16854,
+    "hoverSlot": 1,
+    "items": [
+      {
+        "key": "redhat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "redhat",
+        "ready": true,
+        "visible": true,
+        "outlines": 1
+      },
+      {
+        "key": "redhat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "redhat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      }
+    ],
+    "subjectBox": {
+      "left": 337.3,
+      "top": 123.7,
+      "right": 397.4,
+      "bottom": 236.2,
+      "width": 60.1,
+      "height": 112.5
+    },
+    "felt": {
+      "left": 176,
+      "top": 64,
+      "right": 668,
+      "bottom": 320
+    }
+  },
+  "duel": {
+    "drawCallsOver2Raf": 638,
+    "trianglesOver2Raf": 381700,
+    "visible": 16,
+    "total": 16,
+    "targets": [
+      {
+        "visible": true,
+        "box": {
+          "left": 291.7,
+          "top": 141.4,
+          "right": 357.4,
+          "bottom": 255.9,
+          "width": 65.7,
+          "height": 114.5
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 211.3,
+          "top": 142,
+          "right": 283.8,
+          "bottom": 256.4,
+          "width": 72.5,
+          "height": 114.5
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 298,
+          "top": 118.5,
+          "right": 352.5,
+          "bottom": 213.9,
+          "width": 54.5,
+          "height": 95.4
+        }
+      }
+    ],
+    "camera": [
+      -0.636,
+      1.708,
+      -3.784
+    ]
+  }
+}
