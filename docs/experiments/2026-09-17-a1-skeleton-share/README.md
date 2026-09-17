@@ -61,4 +61,4 @@
 
 ## 公開送達
 
-見 [published-delivery.json](published-delivery.json)。
+[published-delivery.json](published-delivery.json)：2026-09-17 05:25 UTC（台灣 13:25）核對，main `21f353b` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.14）、`js/creature-figures.js?v=0.57.14`、`js/skeleton-share.js?v=0.57.14` 均 HTTP 200，正規化換行後與本機逐位元組一致；GitHub Pages 部署 6496211708 對應 `21f353b`（05:24:34Z）。公開站短驗證，未冒稱真機整局。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.14)。
