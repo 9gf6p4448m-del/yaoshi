@@ -35,14 +35,15 @@
 | 7 | 分母交代 | 見下段 |
 | 8 | 發布與送達 | 見末段 |
 
-### #6 效能相對值（桌機 Chromium、844×390 DPR2、uncapped、同機獨佔、交錯）
+### #6 效能相對值（桌機 Chromium、844×390 DPR2、uncapped、同機獨佔）
 
-| 輪 | 修補後 renders/s | 修補前 renders/s（`--root` 指 e982638 基準樹） |
-|---|---:|---:|
-| 1 | 670.8 | 606.1 |
-| 2 | 741.2 | 528.4 |
+| 量法 | 修補後 | 修補前（`--root` 指 e982638 基準樹） | 判讀 |
+|---|---:|---:|---|
+| `gl-duel-probe.mjs` renders/s，交錯 3 輪（本卷 fixture：殘日＋5 隻 buoy） | 670.8／741.2／534.8 | 606.1／528.4／502.9 | 三輪皆修補後較快（+11%／+40%／+6%），但輪間波動比差值大，只當方向訊號 |
+| `duel-perf.mjs perf --uncap=1`（其 fixture 是傳說三尊＋5 隻重型，**沒有 buoy**、只有 1 片餘暉碟） | 728.9 renders/s、rAF 中位 151.5 fps、draw 982 | 732.8、149.3 fps、draw 984 | 差 −0.5%，在雜訊內；draw 剛好少 2＝那片餘暉碟在 2 趟 render 各省 1 次。這個 fixture 幾乎不含本修補的路徑，量不到是預期的，照實記 |
+| 牌桌 perf32 正式五輪（`scene-shot.mjs --perf --runs=5`，原口徑） | defaultOnHover **.6058**、paired 5/5（.5371–.6533）、calls 89／tris 29477 | 前卷 .6585（5/5） | **GREEN**（門檻 .40 不變）；牌桌路徑本來就不含本修補，與前卷同一區間 |
 
-（[duel-probe-rps-interleaved.json](duel-probe-rps-interleaved.json)，逐輪原始檔 dp-post-1／2、dp-pre-1／2）。兩輪修補後皆高於修補前，計數欄位兩邊穩定（修補前每 rAF getParameters 52／draw 503、修補後 0／477）。**只記錄不設門檻**，且**未跑完凍結的量**：原訂 3 輪交錯、`duel-perf.mjs perf --uncap=1` 前後各 1 輪、牌桌 perf32 五輪——第 3 輪起被 Claude Code 因系統記憶體不足中止（2026-09-17，本機當時只剩約 2 GB 可用），依指示不自行重跑。#6 的其餘項目**未完成**，因此 #8 的發布前提不成立，本卷尚未發布（見末段）。
+原始檔：[duel-probe-rps-interleaved.json](duel-probe-rps-interleaved.json)（dp-post-1～3、dp-pre-1～3）、[duel-perf-post.json](duel-perf-post.json)／[duel-perf-pre.json](duel-perf-pre.json)、[perf32-duel-singlepass.json](perf32-duel-singlepass.json)。前兩輪交錯與後三項之間曾被 Claude Code 因系統記憶體不足中止（OneDrive 占 12 GB），使用者重啟 OneDrive 後補跑，時序記在 interleaved.json 的 `order`。對決側只記錄不設門檻；這些都是桌機 Chromium 相對值，不等於 Safari fps。
 
 ### #7 分母交代（`grep -rn DoubleSide js/` 共 21 處，含本卷新加的 4 行註解）
 
@@ -64,4 +65,4 @@
 
 ## 公開送達
 
-**尚未發布。** #6 的 duel-perf 前後各 1 輪與牌桌 perf32 五輪被系統記憶體不足中止、未重跑；依凍結驗收 #8，#6 記錄完整前不發布。程式、測試、探針與本報告已提交在 `a1/framing-dedupe` 分支，待補跑 #6 後再快轉合入 main 推送並核對送達。
+（發布後補）

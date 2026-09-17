@@ -21,6 +21,6 @@
 
 - 紅燈：`tests/single-pass-duel.test.mjs` 兩條各紅在行為斷言 `false !== true`（水面那條紅在 `RingGeometry（blending=2）必須 forceSinglePass=true`、餘暉碟那條紅在 `餘暉碟必須 forceSinglePass=true`），結構斷言（5 片、幾何型別、混合模式、dashiye／youyinggong 對照）先過；加旗標後 2/2 綠。
 - #2 93/93、0 skip；#3 每 rAF getParameters 52→0、materialsCalled 26→0、draw 503→477、useProgram 106→55、texSubImage2D 2.8／0.4／0.2 不變、errors=[]；#4 三個取樣翻轉 0 相異（maxΔ 0）、同旗標重渲染 0、BackSide 對照 8.08–8.44%；#5 牌桌探針 getParameters 0、draw 89、4 槽 0 相異、trace-eq 相等（equal:true）；#7 21 處逐條列於 README。
-- #6：交錯 2 輪完成（修補後 670.8／741.2、修補前 606.1／528.4 renders/s）；第 3 輪、duel-perf 前後各 1 輪、perf32 五輪被系統記憶體不足中止（Claude Code 自動終止背景工作，指示不自行重跑）——**#6 未完成、#8 不發布**，等使用者裁定後補跑。
+- #6：交錯 3 輪修補後 670.8／741.2／534.8 vs 修補前 606.1／528.4／502.9 renders/s；duel-perf 728.9 vs 732.8（其 fixture 無 buoy，量不到是預期）；perf32 .6058、paired 5/5 GREEN。前兩輪與後三項之間被系統記憶體不足中止一次，使用者重啟 OneDrive 後補跑（同機獨佔）。#6 記錄完整。
 - 為了讓 #1 ② 在 Node 走真實建構，`makeLegendKit` 加 `export`（一個字，附註解）；`makeCreatureFigure` 本來就匯出。條文未動。
 - 版本守衛 `tests/ui-hierarchy.test.mjs` 依既有升版程序同步為 0.57.16；`CLAUDE.md` 加入口一行。
