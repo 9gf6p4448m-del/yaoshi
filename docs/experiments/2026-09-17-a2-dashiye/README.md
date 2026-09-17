@@ -139,3 +139,7 @@ node tests/tools/creature-shoot.mjs docs/experiments/2026-09-17-a2-dashiye/stage
 1. **護心鏡 0/6 未過**：簽收現況，或另開題（反光貼圖／自發光；動 claims＝另簽）。
 2. **鏡位胸前→腹前**（agent 超出派工範圍）：甲 維持改後版（0.57.21 已出貨供試玩）／乙 鏡退回胸前、橘球留肩上（鏡 tq share 回到 0）／丙 整組退回 `before/`。
 
+### 送達證明
+
+[published-delivery.json](published-delivery.json)：2026-09-18 台灣 00:29 核對，main `363812a` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.21）與 `assets/creatures/dashiye.glb` 與本機逐位元組一致。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.21)。
+
