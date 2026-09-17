@@ -50,4 +50,4 @@
 
 ## 公開送達
 
-見 [published-delivery.json](published-delivery.json)（推送後核對公開 `index.html`／`js/table-framing.js` 與本機一致）。
+[published-delivery.json](published-delivery.json)：2026-09-17 04:26 UTC（台灣 12:26）核對，main `a8afe07` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.13）與 `js/table-framing.js?v=0.57.13` 均 HTTP 200，正規化換行後與本機逐位元組一致；GitHub Pages 部署 6495578428 對應 `a8afe07`（04:25:25Z）。這是公開站短驗證，未冒稱真機整局。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.13)。
