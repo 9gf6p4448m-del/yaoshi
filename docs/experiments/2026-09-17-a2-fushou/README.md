@@ -230,3 +230,7 @@ claims 門檻與第 2 輪逐字相同（含已加嚴的 `shell_plate` 0.05），
 ### 本卷順帶
 - 凍結 #5 wardRegen1「我方單一」語彙修法（受益端胸口豎環、燈印放大）隨 0.57.19 出貨，P4 式重讀對象 5/18 未過（見上節），使用者裁定記已知。
 
+## 公開送達
+
+[published-delivery.json](published-delivery.json)：2026-09-17 台灣 22:20 核對，main `0ea76fd` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.19）、`assets/creatures/fushou.glb`、`js/trait-fx/xianghuo.js` 與本機逐位元組一致。第 3 輪版供試玩，盲讀狀態＝未過待簽字，不因發布改判。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.19)。
+
