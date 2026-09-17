@@ -61,4 +61,4 @@
 
 ## 公開送達
 
-（發布後補）
+[published-delivery.json](published-delivery.json)：2026-09-17 台灣 08:17 核對，main `00bf29e` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.17）與 `js/creature-figures.js?v=0.57.17` 均 HTTP 200，正規化換行後與本機逐位元組一致（index 於推送後約 2 分鐘上線）。GitHub Pages 部署 API 沒查（本機 gh 未登入），以公開內容比對為準。公開站短驗證，未冒稱真機整局。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.17)。
