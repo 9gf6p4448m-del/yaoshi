@@ -1,0 +1,444 @@
+{
+  "report": {
+    "tool": "tests/tools/table-framing-check.mjs",
+    "mode": "all",
+    "curseOnly": false,
+    "caseLimit": null,
+    "caseMatch": "normal:thunder:slot2:winner2",
+    "simulatedClock": {
+      "stepMs": 16.666666666666668,
+      "pushObserveMs": 850,
+      "note": "Runs the renderer frame callback and render through a controlled rAF queue; this is geometry coverage, not performance evidence."
+    },
+    "renderStats": {
+      "source": "renderer.info.render snapshot with four identical tray items; not FPS evidence",
+      "samples": []
+    },
+    "viewports": [
+      "desktop-1280x720",
+      "mobile-852x393-safe59",
+      "natural-844x390"
+    ],
+    "cases": 3,
+    "passed": 3,
+    "failed": 0,
+    "pageErrors": [],
+    "failures": []
+  },
+  "results": [
+    {
+      "fixture": "normal:thunder:slot2:winner2",
+      "slot": 2,
+      "kind": "normal",
+      "key": "thunder",
+      "renderedCurseKind": null,
+      "winner": 2,
+      "fourSlotRender": {
+        "calls": 98,
+        "triangles": 21633
+      },
+      "rects": {
+        "felt": {
+          "left": 336,
+          "top": 64,
+          "right": 944,
+          "bottom": 650,
+          "width": 608,
+          "height": 586,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 348,
+          "top": 74,
+          "right": 932,
+          "bottom": 117,
+          "width": 584,
+          "height": 43,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 900,
+          "top": 72,
+          "right": 934,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 164,
+          "top": 4,
+          "right": 1116,
+          "bottom": 60,
+          "width": 952,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 340,
+        "top": 68,
+        "right": 940,
+        "bottom": 646
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 344,
+          "top": 70,
+          "right": 936,
+          "bottom": 121
+        },
+        "#helpBtn": {
+          "left": 896,
+          "top": 68,
+          "right": 938,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 52,
+        "flight": 60,
+        "maxWidth": 592.6957391246644,
+        "maxHeight": 519.5408931286427,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 684.5587489945271,
+          "right": 827.2421114435283,
+          "top": 158.45906384512676,
+          "bottom": 363.6022697109839,
+          "width": 142.68336244900115,
+          "height": 205.1432058658571,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "hiddenAfterObservation": true,
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 344.8391130212069,
+          "right": 937.5984576362932,
+          "top": 123.09402447671263,
+          "bottom": 606.1369988023225,
+          "width": 592.7593446150863,
+          "height": 483.04297432560986,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666666666666814,
+        "expectedSeconds": 0.86
+      },
+      "failures": [],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": true,
+      "viewport": "desktop-1280x720"
+    },
+    {
+      "fixture": "normal:thunder:slot2:winner2",
+      "slot": 2,
+      "kind": "normal",
+      "key": "thunder",
+      "renderedCurseKind": null,
+      "winner": 2,
+      "fourSlotRender": {
+        "calls": 98,
+        "triangles": 21633
+      },
+      "rects": {
+        "felt": {
+          "left": 231,
+          "top": 64,
+          "right": 621,
+          "bottom": 306,
+          "width": 390,
+          "height": 242,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 243,
+          "top": 74,
+          "right": 609,
+          "bottom": 156,
+          "width": 366,
+          "height": 82,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 577,
+          "top": 72,
+          "right": 611,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 59,
+          "top": 4,
+          "right": 793,
+          "bottom": 60,
+          "width": 734,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 235,
+        "top": 68,
+        "right": 617,
+        "bottom": 302
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 239,
+          "top": 70,
+          "right": 613,
+          "bottom": 160
+        },
+        "#helpBtn": {
+          "left": 573,
+          "top": 68,
+          "right": 615,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 52,
+        "flight": 61,
+        "maxWidth": 136.08052624995722,
+        "maxHeight": 137.87052393157907,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 450.31801072683965,
+          "right": 528.2058050961151,
+          "top": 162.00551911855078,
+          "bottom": 273.9750641191656,
+          "width": 77.88779436927547,
+          "height": 111.96954500061483,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "hiddenAfterObservation": true,
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 237.8244449229057,
+          "right": 374.06460843629156,
+          "top": 162.13549675676748,
+          "bottom": 299.6576010920412,
+          "width": 136.24016351338585,
+          "height": 137.52210433527372,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666666666666581,
+        "expectedSeconds": 0.86
+      },
+      "failures": [],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": true,
+      "viewport": "mobile-852x393-safe59"
+    },
+    {
+      "fixture": "normal:thunder:slot2:winner2",
+      "slot": 2,
+      "kind": "normal",
+      "key": "thunder",
+      "renderedCurseKind": null,
+      "winner": 2,
+      "fourSlotRender": {
+        "calls": 98,
+        "triangles": 21633
+      },
+      "rects": {
+        "felt": {
+          "left": 176,
+          "top": 64,
+          "right": 668,
+          "bottom": 320,
+          "width": 492,
+          "height": 256,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "head": {
+          "left": 188,
+          "top": 74,
+          "right": 656,
+          "bottom": 117,
+          "width": 468,
+          "height": 43,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "help": {
+          "left": 624,
+          "top": 72,
+          "right": 658,
+          "bottom": 106,
+          "width": 34,
+          "height": 34,
+          "display": "block",
+          "visibility": "visible",
+          "rects": 1
+        },
+        "skip": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "visibility": "visible",
+          "rects": 0
+        },
+        "north": {
+          "left": 4,
+          "top": 4,
+          "right": 840,
+          "bottom": 60,
+          "width": 836,
+          "height": 56,
+          "display": "flex",
+          "visibility": "visible",
+          "rects": 1
+        }
+      },
+      "area": {
+        "left": 180,
+        "top": 68,
+        "right": 664,
+        "bottom": 316
+      },
+      "obstacles": {
+        "#feltHead": {
+          "left": 184,
+          "top": 70,
+          "right": 660,
+          "bottom": 121
+        },
+        "#helpBtn": {
+          "left": 620,
+          "top": 68,
+          "right": 662,
+          "bottom": 110
+        }
+      },
+      "summary": {
+        "push": 52,
+        "flight": 61,
+        "maxWidth": 206.34051975292408,
+        "maxHeight": 190.77010079602434,
+        "launch": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 446.13602072914244,
+          "right": 523.4227858157235,
+          "top": 123.00662025349224,
+          "bottom": 234.12589553476903,
+          "width": 77.28676508658106,
+          "height": 111.11927528127678,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        }
+      },
+      "hiddenAfterObservation": true,
+      "terminal": {
+        "beforeHide": {
+          "lifecycle": "active",
+          "geometry": true,
+          "meshVertices": 144,
+          "left": 183.13020834703647,
+          "right": 390.38843744589946,
+          "top": 123.01769782669577,
+          "bottom": 313.5485302976435,
+          "width": 207.25822909886298,
+          "height": 190.5308324709477,
+          "scale": [
+            0.7,
+            0.7,
+            0.7
+          ]
+        },
+        "rendererDt": 0.8666666666666581,
+        "expectedSeconds": 0.86
+      },
+      "failures": [],
+      "durationKept": true,
+      "terminalOK": true,
+      "scaleOK": true,
+      "pass": true,
+      "viewport": "natural-844x390"
+    }
+  ]
+}

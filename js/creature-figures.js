@@ -29,6 +29,7 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 // 預覽頁直接 import 本檔（沒帶 ?v）時 V 是空字串，行為不變。
 const V = new URL(import.meta.url).search;
 const { createImpactBurst, SPARK_COLOR } = await import('./particles.js' + V);
+const { shareSkeletons } = await import('./skeleton-share.js' + V);
 
 // 全部【試玩必調】。
 // look-dev 卷把邊光從「全身一圈細鑲邊」改成「偏向背光那一側的寬邊」：
@@ -570,6 +571,9 @@ export function makeCreatureFigure(opts = {}) {
 
   const readyPromise = loadGlb(opts.glbUrl).then((gltf) => {
     model = cloneSkinned(gltf.scene);
+    // clone 對每顆 SkinnedMesh 各重建一副骨架；同一組 Bone／boneInverses 的網格改共用一副，
+    // 每尊每幀只做一次 skeleton.update() 與一張骨骼貼圖上傳（A1 效能，見 js/skeleton-share.js）。
+    shareSkeletons(model);
     // 正規化前的原始包圍盒：dissolve 的 uBurnY 用的是 mesh 本地座標（shader 裡的 position），
     // 不受這裡的 model.scale／position 影響，所以要留原始值給它。
     const raw = new THREE.Box3().setFromObject(model);

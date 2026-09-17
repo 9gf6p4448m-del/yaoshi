@@ -1,0 +1,152 @@
+{
+  "tool": "tests/tools/gl-frame-probe.mjs",
+  "fixture": {
+    "seed": 1,
+    "phase": "round-1 bid",
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 128,
+    "hoverSlot": 1,
+    "frames": 120
+  },
+  "slot": 1,
+  "renderedFrames": 120,
+  "rendersPerSec": 611.6,
+  "programs": {
+    "before": 35,
+    "after": 35
+  },
+  "memory": {
+    "before": {
+      "geometries": 79,
+      "textures": 10
+    },
+    "after": {
+      "geometries": 79,
+      "textures": 10
+    }
+  },
+  "materialsInScene": 75,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 51,
+    "distinctSkeletons": 5,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 13,
+        "root": ""
+      },
+      {
+        "bones": 27,
+        "skeletons": 1,
+        "meshes": 17,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      }
+    ]
+  },
+  "glCallsPerFrame": {
+    "uniform3f": 107,
+    "bindVertexArray": 79,
+    "uniform1f": 72,
+    "uniformMatrix4fv": 55,
+    "drawElements": 55,
+    "uniform4fv": 50,
+    "useProgram": 25,
+    "pixelStorei": 20,
+    "texParameteri": 20,
+    "drawArrays": 17,
+    "uniformMatrix3fv": 16,
+    "frontFace": 12,
+    "bindTexture": 12,
+    "uniform2f": 6,
+    "texSubImage2D": 5,
+    "drawArraysInstanced": 5,
+    "bindBuffer": 4,
+    "bufferSubData": 4,
+    "disable": 4,
+    "depthMask": 4,
+    "enable": 4,
+    "blendFuncSeparate": 2,
+    "blendFunc": 2,
+    "drawElementsInstanced": 2,
+    "clear": 1
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 1
+  },
+  "models": [
+    {
+      "slot": 0,
+      "key": "guoyin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/guoyin.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 1,
+      "key": "yinyangcoin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/yinyangcoin.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 2,
+      "key": "nail",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/nail.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 3,
+      "key": "buoy",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/buoy.glb",
+      "visible": true,
+      "outlines": 0
+    }
+  ],
+  "errors": []
+}
