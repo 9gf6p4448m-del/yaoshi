@@ -1,0 +1,52 @@
+{
+  "preCases": 399,
+  "postCases": 399,
+  "prePassed": 399,
+  "postPassed": 399,
+  "differences": 2362,
+  "numeric": {
+    "count": 2362,
+    "maxAbs": 1,
+    "p50": 5.684341886080802e-14,
+    "p90": 1.7053025658242404e-13,
+    "p99": 0.007299979835408976,
+    "over0_5px": 2,
+    "over1px": 0,
+    "worst": [
+      {
+        "path": "mobile-852x393-safe59|normal:bow:slot0:winner1.summary.push",
+        "delta": 1
+      },
+      {
+        "path": "natural-844x390|normal:bow:slot0:winner1.summary.push",
+        "delta": 1
+      },
+      {
+        "path": "desktop-1280x720|normal:bow:slot0:winner0.summary.maxHeight",
+        "delta": 0.023542814941151846
+      },
+      {
+        "path": "desktop-1280x720|normal:bow:slot0:winner0.terminal.beforeHide.left",
+        "delta": 0.019992941226405492
+      },
+      {
+        "path": "natural-844x390|normal:bow:slot0:winner1.summary.launch.right",
+        "delta": 0.01742837821240073
+      }
+    ]
+  },
+  "nonNumericDifferences": 0,
+  "nonNumericSample": [],
+  "sample": [
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.maxWidth: 594.8233750573482 != 594.8334453958253",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.maxHeight: 519.3346433596869 != 519.358186174628",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.left: 342.8897475540717 != 342.8987881566158",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.right: 467.69667625167875 != 467.7000657151993",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.top: 186.2049273240718 != 186.2018164107683",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.bottom: 415.3197380853623 != 415.32166975461536",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.width: 124.80692869760708 != 124.80127755858348",
+    "desktop-1280x720|normal:bow:slot0:winner0.summary.launch.height: 229.1148107612905 != 229.11985334384707",
+    "desktop-1280x720|normal:bow:slot0:winner0.terminal.beforeHide.left: 342.1898619602075 != 342.1698690189811",
+    "desktop-1280x720|normal:bow:slot0:winner0.terminal.beforeHide.right: 937.03774295353 != 937.0278303447924"
+  ]
+}

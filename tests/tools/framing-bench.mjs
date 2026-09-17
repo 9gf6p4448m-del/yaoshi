@@ -16,8 +16,12 @@ const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const arg = (k, d) => { const a = process.argv.find(x => x.startsWith(`--${k}=`)); return a ? Number(a.slice(k.length + 3)) : d; };
 const FRAMES = arg('frames', 600), ROUNDS = arg('rounds', 5), JSON_OUT = process.argv.includes('--json');
 const DT = 1 / 60, W = 844, H = 390;
+// `--framing=<path>`：改量另一份 table-framing.js（例如 git show <sha>:js/table-framing.js 存出的修補前版本），
+// 讓修補前後能在同一台機器交錯量測；預設量 js/table-framing.js。
+const framingArg = process.argv.find(x => x.startsWith('--framing='));
+const FRAMING = framingArg ? path.resolve(framingArg.slice(10)) : path.join(ROOT, 'js/table-framing.js');
 
-const source = fs.readFileSync(path.join(ROOT, 'js/table-framing.js'), 'utf8');
+const source = fs.readFileSync(FRAMING, 'utf8');
 const { fitSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const bytes = await fs.promises.readFile(path.join(ROOT, 'assets/creatures/yinyangcoin.glb'));
 const gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
@@ -62,7 +66,7 @@ for (let r = 0; r < ROUNDS; r++) {
 }
 const median = a => { const s = [...a].sort((x, y) => x - y); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
 const out = {
-  tool: 'tests/tools/framing-bench.mjs', asset: 'assets/creatures/yinyangcoin.glb', three: THREE.REVISION,
+  tool: 'tests/tools/framing-bench.mjs', framing: path.relative(ROOT, FRAMING).replaceAll('\\', '/'), asset: 'assets/creatures/yinyangcoin.glb', three: THREE.REVISION,
   node: process.version, skinnedBodies: bodies.length, outlineShells: bodies.length, stamps: 32, frames: FRAMES, rounds: ROUNDS,
   usPerCallMedian: +median(rounds.map(x => x.usPerCall)).toFixed(2), boxTransformsPerFrame: rounds[0].boxTransformsPerFrame,
   hashesEqual: rounds.every(x => x.hash === rounds[0].hash), hash: rounds[0].hash, rounds,

@@ -5,21 +5,8 @@ const component = (a, i, k) => k === 0 ? a.getX(i) : k === 1 ? a.getY(i) : k ===
 
 /** Conservative linear-skin bounds. A weighted vertex lies in the convex hull
  * of its bone-transformed positions. Cache their source boxes once, then move
- * eight corners per occupied bone instead of skinning every vertex each frame.
- * `shared` is one Map per framing pass: an outline shell hangs under its body
- * with the same geometry, skeleton and bind matrices (creature-figures), so its
- * posed box is the body's box and is not transformed a second time. */
-export function posedBounds(mesh, shared) {
-  const geometry = mesh.geometry;
-  const reuse = shared?.get(geometry);
-  if (reuse && reuse.skeleton === mesh.skeleton && reuse.bindMatrix.equals(mesh.bindMatrix)
-    && reuse.bindMatrixInverse.equals(mesh.bindMatrixInverse)) return reuse.box;
-  const box = posedBoundsOf(mesh);
-  shared?.set(geometry, { skeleton: mesh.skeleton, bindMatrix: mesh.bindMatrix, bindMatrixInverse: mesh.bindMatrixInverse, box });
-  return box;
-}
-
-function posedBoundsOf(mesh) {
+ * eight corners per occupied bone instead of skinning every vertex each frame. */
+export function posedBounds(mesh) {
   const geometry = mesh.geometry;
   const attrs = [geometry.attributes.position, geometry.attributes.skinIndex, geometry.attributes.skinWeight];
   const fallback = () => { mesh.skeleton.update(); mesh.computeBoundingBox(); return mesh.boundingBox; };
@@ -117,9 +104,9 @@ export function keepFlightDepth(node, from, camera) {
 
 /** Actual visible geometry, including animated transforms; hidden outlines do
  * not enlarge the subject. Null means absent geometry, never successful framing. */
-function subjectCorners(node, shared = new Map()) {
+function subjectCorners(node) {
   if (Array.isArray(node)) {
-    const groups = node.map(n => subjectCorners(n, shared));
+    const groups = node.map(subjectCorners);
     return groups.length && groups.every(Boolean) ? groups.flat() : null;
   }
   for (let parent = node; parent; parent = parent.parent) if (!parent.visible) return null;
@@ -133,7 +120,7 @@ function subjectCorners(node, shared = new Map()) {
     if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
     // Include both the current skin pose and its source bounds. This preserves
     // the existing capture contract and gives animation a conservative envelope.
-    const box = mesh.isSkinnedMesh ? posedBounds(mesh, shared).clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
+    const box = mesh.isSkinnedMesh ? posedBounds(mesh).clone().union(mesh.geometry.boundingBox) : mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
     const matrices = mesh.isInstancedMesh ? Array.from({ length: mesh.count }, (_, i) => {
       const instance = mesh.matrixWorld.clone();
