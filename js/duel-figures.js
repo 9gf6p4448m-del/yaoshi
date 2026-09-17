@@ -459,8 +459,9 @@ const LEGEND_KIT = {
   fallback: { base: 'palanquin', paper: 0x5a4a38, ink: 0x1a1410, hot: 0xc0a070, cool: 0x60482e, edge: 0xc0a070, aura: 'afterglow' },
 };
 
-/** 建一尊傳說的整組配件（基座＋光效＋名牌），回傳 { group, update(now), dispose() }。 */
-function makeLegendKit(ab, sn) {
+/** 建一尊傳說的整組配件（基座＋光效＋名牌），回傳 { group, update(now), dispose() }。
+ *  匯出只給 tests/single-pass-duel.test.mjs 在 Node 建構餘暉碟斷言旗標（對決卷 2026-09-17）；產品端仍只由 update() 內部呼叫。 */
+export function makeLegendKit(ab, sn) {
   const K = LEGEND_KIT[ab] || LEGEND_KIT.fallback;
   const root = new THREE.Group();
   root.name = 'legend-kit';
@@ -512,8 +513,10 @@ function makeLegendKit(ab, sn) {
   const hex = (h, a) => `rgba(${(h >> 16) & 255},${(h >> 8) & 255},${h & 255},${a})`;
   if (K.aura === 'afterglow') {
     const tex = radialTex(hex(K.hot, 1), hex(K.cool, 0.85));
+    // forceSinglePass（A1 對決卷 2026-09-17）：平躺的 transparent＋DoubleSide 平片在 three 0.158 會分兩趟畫、兩次 needsUpdate；
+    // 單趟像素相同（真實對決同幀 A/B 見 docs/experiments/2026-09-17-a1-duel-singlepass），與 creature-figures 的水面同一修法
     const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.62, depthWrite: false,
-      blending: THREE.NormalBlending, toneMapped: false, fog: false, side: THREE.DoubleSide });
+      blending: THREE.NormalBlending, toneMapped: false, fog: false, side: THREE.DoubleSide, forceSinglePass: true });
     const geo = new THREE.PlaneGeometry(2.6, 2.6);
     const disc = new THREE.Mesh(geo, m);
     disc.rotation.x = -Math.PI / 2;

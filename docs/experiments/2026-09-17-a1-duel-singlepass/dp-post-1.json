@@ -1,0 +1,401 @@
+{
+  "tool": "tests/tools/gl-duel-probe.mjs",
+  "fixture": {
+    "url": "?paperwar=1&fxcount=1",
+    "duel": 2,
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "frames": 120,
+    "armies": {
+      "A": [
+        {
+          "ab": "canri",
+          "fac": "zuling",
+          "body": "elite",
+          "lg": true,
+          "sn": "殘日"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "fushou",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "ashcharm",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "wangchuan",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "boartusk",
+          "fac": "zuling",
+          "body": "elite"
+        }
+      ],
+      "B": [
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "shanshen",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "boat",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "balen",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "yinyangcoin",
+          "fac": "yinqi",
+          "body": "elite"
+        },
+        {
+          "ab": "boartusk",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "fushou",
+          "fac": "xianghuo",
+          "body": "elite"
+        }
+      ]
+    }
+  },
+  "setup": {
+    "loadMs": 883,
+    "figures": [
+      {
+        "ab": "canri",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": true
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "fushou",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "ashcharm",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "wangchuan",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boartusk",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "shanshen",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boat",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "balen",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "yinyangcoin",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boartusk",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "fushou",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      }
+    ],
+    "camera": {
+      "pos": [
+        -0.491,
+        1.708,
+        -3.805
+      ],
+      "pitchDeg": 19.49
+    }
+  },
+  "renderedFrames": 120,
+  "rafTicks": 24,
+  "passesPerRaf": 5,
+  "rendersPerSec": 670.8,
+  "perRaf": {
+    "getParameters": 0,
+    "draws": 477,
+    "useProgram": 56
+  },
+  "programs": {
+    "before": 54,
+    "after": 54
+  },
+  "memory": {
+    "before": {
+      "geometries": 259,
+      "textures": 31
+    },
+    "after": {
+      "geometries": 259,
+      "textures": 31
+    }
+  },
+  "materialsInScene": 296,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 405,
+    "distinctSkeletons": 17,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      },
+      {
+        "bones": 7,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 45,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      },
+      {
+        "bones": 45,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      },
+      {
+        "bones": 22,
+        "skeletons": 1,
+        "meshes": 38,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      },
+      {
+        "bones": 11,
+        "skeletons": 1,
+        "meshes": 18,
+        "root": ""
+      },
+      {
+        "bones": 34,
+        "skeletons": 1,
+        "meshes": 46,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 26,
+        "root": ""
+      },
+      {
+        "bones": 45,
+        "skeletons": 1,
+        "meshes": 28,
+        "root": ""
+      }
+    ]
+  },
+  "programChurn": {
+    "getParametersPerFrame": 0,
+    "materialsCalled": 0,
+    "materials": [],
+    "versionBumpStacks": []
+  },
+  "glCallsPerFrame": {
+    "bindVertexArray": 93.8,
+    "drawElements": 89.8,
+    "uniform1f": 52.44,
+    "uniform4fv": 41.4,
+    "uniformMatrix4fv": 30.56,
+    "uniform3f": 30.23,
+    "pixelStorei": 13.6,
+    "texParameteri": 13.6,
+    "useProgram": 11.2,
+    "bindBuffer": 8.8,
+    "bufferSubData": 8.8,
+    "bindTexture": 7.8,
+    "frontFace": 7.2,
+    "uniformMatrix3fv": 6.8,
+    "drawArrays": 5.6,
+    "uniform2f": 4.6,
+    "texSubImage2D": 3.4,
+    "depthMask": 2.4,
+    "disable": 2.2,
+    "enable": 2.2,
+    "uniform1i": 2,
+    "clear": 1.8,
+    "blendFunc": 1.64,
+    "blendFuncSeparate": 1.64,
+    "bindFramebuffer": 1,
+    "scissor": 0.6,
+    "clearColor": 0.4,
+    "viewport": 0.4
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 2.8,
+    "texSubImage2D 8x8 fmt=6408 type=5126 src=Float32Array": 0.4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 0.2
+  },
+  "errors": []
+}

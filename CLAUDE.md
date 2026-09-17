@@ -17,6 +17,7 @@
 - v0.57.13（2026-09-17，`bc6359d`）：A1 效能診斷第一個單一修補——牌桌取景對描邊外殼不再重複計算骨骼包絡，畫面／規則／時長不變；87 測試、1599 取景矩陣、trace 相等。32 枚正式 gate 仍 RED（.3403）；128 枚中位 .403 過目前可執行 gate 但與本修補無關、逐輪 3/5。先讀 [本卷報告](docs/experiments/2026-09-17-a1-framing-dedupe/README.md)。
 - v0.57.14（2026-09-17，`a53b99c`）：第二個單一修補——同一尊網格共用一副骨架，每幀骨骼貼圖上傳 51→5；89 測試、1599 矩陣、trace 相等。**A1 桌機相對效能 gate 首次全過**：perf32 .4270（paired 5/5）、perf128 .4660（5/5）。這是本機 Chromium 速度比，不是 Safari fps；真機仍待回報。先讀 [本卷報告](docs/experiments/2026-09-17-a1-skeleton-share/README.md) 與 [交接末段](docs/handoffs/2026-09-15-a1-premium-table.md)。
 - v0.57.15（2026-09-17）：第三個單一修補——桌面 decal（接觸陰影／硃砂符／月印）與招式特效模板加 `forceSinglePass`，Three 0.158 對 transparent＋DoubleSide 每幀分兩趟畫並兩次 needsUpdate；每幀 getParameters 10→0、draw 94→89，像素逐位元組相同；91 測試、矩陣 slot1、trace 相等；perf32 .6585／perf128 .6943（配對 5/5，分母偏低要打折看）。報告 [docs/experiments/2026-09-17-a1-program-churn](docs/experiments/2026-09-17-a1-program-churn/README.md)。
+- v0.57.16（2026-09-17，分支 `a1/framing-dedupe`，**尚未發布**）：第四個單一修補——對決畫面的浮標水面（圓盤／緣光／3 環）與殘日餘暉碟加 `forceSinglePass`，同一機制搬到對決側量：8v8 每 rAF getParameters 52→0、draw 503→477，三個取樣像素逐位元組相同；93 測試、牌桌探針不變、trace 相等；對決側只記錄相對值（交錯 2 輪修補後皆較快），duel-perf 與 perf32 重測被系統記憶體不足中止未補跑，依凍結 #8 未發布。報告 [docs/experiments/2026-09-17-a1-duel-singlepass](docs/experiments/2026-09-17-a1-duel-singlepass/README.md)。
 - D2 連鎖、D3 幽靈、D5 進度等未裁，不因總藍圖收錄而直接實作。
 - 持續發布授權有效：必要驗證後可正常提交、push 並核對公開送達。不要 force push；不能只有 push 成功就稱網站已更新。
 

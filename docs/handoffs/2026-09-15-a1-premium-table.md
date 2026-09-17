@@ -139,3 +139,22 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）連續兩卷兩者皆過，裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
 
 續接：`/handoff 妖市：接 v0.57.15 真機回饋；A1 桌機相對效能 gate 連兩卷全過（perf32 .6585、perf128 .6943），對決側 4 處 DoubleSide 透明材質為下一候選，保留 D2／D3 與原門檻。`
+
+## 2026-09-17 v0.57.16（未發布）：對決側兩趟繪製修補——8v8 每 rAF getParameters 52→0、draw 503→477
+
+使用者回報真機回饋可以後接上節第 2 點。前卷探針的三段頁面端函式抽到 `tests/tools/gl-probe-lib.mjs`（牌桌探針重跑數字不變），新工具 `tests/tools/gl-duel-probe.mjs` 走 `duel-drive` 到第 2 場對決、派隔離的合成 8v8（殘日＋5 隻 buoy）量：對決每 rAF 5 趟 render；26 顆 transparent＋DoubleSide 的 `MeshBasicMaterial`（5 隻 buoy × 5 片水面＋殘日餘暉碟）每 rAF 各重走 2 次 `getParameters`、多 1 次 draw，堆疊同樣落在 Three 0.158 `renderObject` 兩趟繪製。單一修補：`creature-figures.js` `makeWaterPool()` 的 `flat()` 與 `duel-figures.js` 餘暉碟材質加 `forceSinglePass: true`；`makeLegendKit` 加 `export` 給 Node 測試。規格、RED／GREEN、探針、像素 A/B、分母交代見 [本卷報告](../experiments/2026-09-17-a1-duel-singlepass/README.md) 與 [凍結驗收](../experiments/2026-09-17-a1-duel-singlepass/acceptance.md)。
+
+- 驗證：93/93（91＋2，`tests/single-pass-duel.test.mjs` 在 Node 真的建構水面與餘暉碟，修補前紅在行為斷言）；真實對決每 rAF getParameters 52→0、materialsCalled 26→0、draw 503→477（剛好少 26）、useProgram 106→55、骨骼貼圖上傳不變；**同幀像素 A/B 三個取樣翻轉旗標 0 相異像素**（BackSide 對照約 8%）；牌桌探針 getParameters 0／draw 89／4 槽 0 相異；trace seeds 1–20 相等。
+- 效能：對決側原無 gate，只記錄——交錯 2 輪修補後 670.8／741.2 vs 修補前 606.1／528.4 renders/s。**凍結 #6 的第 3 輪、duel-perf 前後各 1 輪、牌桌 perf32 五輪被 Claude Code 因系統記憶體不足中止（本機當時約 2 GB 可用），依指示未自行重跑**；#8 的發布前提不成立，**本卷未發布、未合入 main**，全部提交在 `a1/framing-dedupe`。
+- 分母交代：`grep DoubleSide` 21 處逐條列在報告。2D 貼片人形（邊光／地影）正式路徑走不到（`renderer.js:130` 只在缺 `ab` 時退回）、殘日基座 `paperMat` 只在淡出時暫時 transparent 且裂芒真的兩面重疊——兩者不修、理由在報告 #7。
+- 未動任何非本 session 的檔案與行程；主 checkout 的 dirty 檔（INDEX.md 等）保留。
+
+### 下一步順序
+
+1. **補跑凍結 #6 的餘項**（機器記憶體足夠時、獨佔 GPU）：`node tests/tools/gl-duel-probe.mjs --out=… --port=…` 修補後／`--root=.claude/tmp/base-e982638` 修補前再交錯 1 輪；`node tests/tools/duel-perf.mjs perf <out> --uncap=1 [--root=基準樹]` 前後各 1 輪；`node tests/tools/scene-shot.mjs <prefix> --perf --runs=5 --port=…` 一次。記錄後依 #8 以 0.57.16 快轉合入 main、推送、核對公開 `index.html`／`js/creature-figures.js`／`js/duel-figures.js` 送達。
+2. 有手機回饋先處理。
+3. 矩陣工具 `table-framing-check.mjs` 桌機視口的跑序依賴仍待修。
+4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
+
+續接：`/handoff 妖市：v0.57.16 對決側單趟修補在 a1/framing-dedupe 未發布，補跑凍結 #6（交錯第 3 輪／duel-perf／perf32）後合入 main 發布並核對送達。`
+

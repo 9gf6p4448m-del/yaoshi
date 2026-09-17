@@ -1,0 +1,63 @@
+{
+  "order": "post1,pre1,post2,pre2 交錯、同機獨佔；原訂 3 輪，第 3 輪與後續 duel-perf／perf32 被 Claude Code 因系統記憶體不足中止（2026-09-17），未重跑",
+  "tool": "tests/tools/gl-duel-probe.mjs（120 render，uncapped）",
+  "baseRoot": ".claude/tmp/base-e982638 (e982638)",
+  "runs": {
+    "post": [
+      {
+        "round": 1,
+        "rendersPerSec": 670.8,
+        "passesPerRaf": 5,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 477,
+          "useProgram": 56
+        },
+        "getParametersPerFrame": 0,
+        "materialsCalled": 0,
+        "errors": 0
+      },
+      {
+        "round": 2,
+        "rendersPerSec": 741.2,
+        "passesPerRaf": 5,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 477,
+          "useProgram": 55.46
+        },
+        "getParametersPerFrame": 0,
+        "materialsCalled": 0,
+        "errors": 0
+      }
+    ],
+    "pre": [
+      {
+        "round": 1,
+        "rendersPerSec": 606.1,
+        "passesPerRaf": 5,
+        "perRaf": {
+          "getParameters": 52,
+          "draws": 503,
+          "useProgram": 105
+        },
+        "getParametersPerFrame": 10.4,
+        "materialsCalled": 26,
+        "errors": 0
+      },
+      {
+        "round": 2,
+        "rendersPerSec": 528.4,
+        "passesPerRaf": 5,
+        "perRaf": {
+          "getParameters": 52,
+          "draws": 503,
+          "useProgram": 106
+        },
+        "getParametersPerFrame": 10.4,
+        "materialsCalled": 26,
+        "errors": 0
+      }
+    ]
+  }
+}

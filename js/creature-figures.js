@@ -888,9 +888,12 @@ export function makeCreatureFigure(opts = {}) {
 function makeWaterPool() {
   const g = new THREE.Group();
   g.name = 'ground-water';
+  // forceSinglePass（A1 對決卷 2026-09-17）：three 0.158 對 transparent＋DoubleSide 的材質每幀分 BackSide／FrontSide 兩趟畫、
+  // 每趟 needsUpdate=true（每片每 rAF 2 次 getParameters＋1 次多餘 draw；8v8 五隻 buoy 就是 25 片）。水面平躺桌面、只有正面朝相機，
+  // 單趟畫像素相同（真實對決同幀 A/B 見 docs/experiments/2026-09-17-a1-duel-singlepass）。DoubleSide 保留，剔除仍是關的。
   const flat = (color, opacity, additive) => new THREE.MeshBasicMaterial({
     color, transparent: true, opacity, depthWrite: false, fog: false, toneMapped: false,
-    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide, forceSinglePass: true,
   });
   const discMat = flat(WATER.color, WATER.opacity, false);
   const edgeMat = flat(WATER.edgeColor, WATER.edgeOpacity, true);
