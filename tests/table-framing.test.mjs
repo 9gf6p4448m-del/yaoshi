@@ -87,6 +87,66 @@ test('adaptive camera retreats to fit HUD space without changing model scale', a
   assert.equal(camera.fov, 50);
 });
 
+// 描邊外殼（creature-figures.js:609-625）掛在本體之下、共用 geometry／skeleton／bindMatrix，
+// attached bind 使兩者每幀的骨骼包絡完全相同；同一幀取景不該把同一副骨架算兩次。
+function skinnedBody(THREE, bones = 2) {
+  const geometry = new THREE.BoxGeometry(.4, .8, .2, 1, bones, 1);
+  const count = geometry.attributes.position.count;
+  const index = new Uint16Array(count * 4), weights = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) { index[i * 4] = geometry.attributes.position.getY(i) < 0 ? 0 : bones - 1; weights[i * 4] = 1; }
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(index, 4));
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+  return geometry;
+}
+function skinnedMesh(THREE, geometry, pose) {
+  const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshBasicMaterial());
+  const root = new THREE.Bone(), tip = new THREE.Bone(); root.add(tip); tip.position.y = .4;
+  mesh.add(root); mesh.bind(new THREE.Skeleton([root, tip]));
+  tip.rotation.z = pose;
+  return mesh;
+}
+function countBoxTransforms(THREE, run) {
+  const original = THREE.Box3.prototype.applyMatrix4; let calls = 0;
+  THREE.Box3.prototype.applyMatrix4 = function (m) { calls++; return original.call(this, m); };
+  try { return { result: run(), calls }; } finally { THREE.Box3.prototype.applyMatrix4 = original; }
+}
+
+test('an outline shell sharing geometry, skeleton and bind reuses the frame\'s posed bounds exactly', async () => {
+  const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
+  const { projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const camera = new THREE.PerspectiveCamera(50, 2, .01, 100);
+  camera.position.z = 4; camera.updateMatrixWorld();
+  const geometry = skinnedBody(THREE);
+  const body = skinnedMesh(THREE, geometry, .35);
+  const group = new THREE.Group(); group.add(body); group.position.set(.3, .1, 0); group.rotation.y = .4;
+  group.updateMatrixWorld(true);
+  const alone = countBoxTransforms(THREE, () => projectSubject(group, camera, 800, 400));
+  const shell = new THREE.SkinnedMesh(geometry, new THREE.MeshBasicMaterial());
+  shell.bindMode = body.bindMode; shell.bind(body.skeleton, body.bindMatrix); shell.name = 'outline';
+  body.add(shell);
+  const paired = countBoxTransforms(THREE, () => projectSubject(group, camera, 800, 400));
+  assert.ok(alone.calls > 0, 'the posed-bounds path must be exercised at all');
+  assert.equal(paired.calls, alone.calls, 'a shell that shares geometry, skeleton and bind must not transform every bone box a second time');
+  assert.deepEqual(paired.result, alone.result, 'reusing the shell bounds must not change the projected subject');
+});
+
+test('skinned meshes that only share geometry still get their own posed bounds', async () => {
+  const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
+  const { projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const camera = new THREE.PerspectiveCamera(50, 2, .01, 100);
+  camera.position.z = 4; camera.updateMatrixWorld();
+  const geometry = skinnedBody(THREE);
+  const a = skinnedMesh(THREE, geometry, .35), b = skinnedMesh(THREE, geometry, -1.1);
+  const ga = new THREE.Group(); ga.add(a); ga.position.x = -.6;
+  const gb = new THREE.Group(); gb.add(b); gb.position.x = .6;
+  ga.updateMatrixWorld(true); gb.updateMatrixWorld(true);
+  const single = countBoxTransforms(THREE, () => projectSubject(ga, camera, 800, 400));
+  const both = countBoxTransforms(THREE, () => projectSubject([ga, gb], camera, 800, 400));
+  assert.equal(both.calls, single.calls * 2, 'different skeletons must each be posed even when the geometry is shared');
+  assert.ok(both.result.right - both.result.left > single.result.right - single.result.left + 50,
+    'the second, differently posed mesh must widen the union with its own bounds');
+});
+
 test('instanced stamps participate at their actual instance positions in a framing union', async () => {
   const source = fs.readFileSync(new URL('../js/table-framing.js', import.meta.url), 'utf8');
   const { projectSubject } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
