@@ -1,6 +1,6 @@
 {
-  "name": "拼板舟 boat_pinbanzhou_ling (zuling/swarm)",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認（material 名＝部位名）。基底＝2026-09-04 量產卷批 1 出貨的同名檔；回修檢視卷（2026-09-04）相對於它的差異只有兩處，兩處都由凍結檔 docs/experiments/2026-09-04-acceptance-creature-review.md 的『boat → 回修：配色改白紅黑』直接要求，不是為了讓實作過關而動門檻：① 材質 gold（金舷條）改名 trim_red（橘紅舷條），share_hierarchy 的 tertiary 跟著換名，門檻一格未動；② style_dark（側視中位亮度 ≤90）換成 style_light（側視中位亮度 ≥95）——舊條是為『炭黑底』寫的，白底拼板舟在定義上不可能過，留著等於自相矛盾；新條同樣是**加嚴方向**的硬門檻：回修前的炭黑版側視中位亮度 34.2/255，套上新條會直接 BLOCK。saturation_area 的帶依 2026-09-04 凍結檔仍為 10%–60%，focal_contrast 的 min_ratio 仍為 3，share_hierarchy／focal_contrast 仍用 tq 視角，tri_budget 仍 1500–5000，一格未放寬。｜硬化批 2B（2026-09-04）：tri_budget 上限 5000→8000，唯一依據是凍結檔 2026-09-04 19:30 修訂（main 15a3a37）「GLB 上限改預算制——每隻 ≤1.5MB、三角形 ≤8,000（claims tri_budget 上限可改 8000）」。這是放寬，由凍結檔本身授權；其餘門檻一格未動。",
+  "name": "拼板舟 boat_a「拼板舟·划手」（zuling/swarm 候選甲）",
+  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。門檻沿用 assets/creatures/boat.claims.json 出貨版：style_light 側視中位亮度 ≥95、saturation_area tq 10%–60%、focal_contrast min_ratio 3、part_signature min_share 0.06／or_min_span 0.12 全部一格未動；唯一改動是 tri_budget 上限 8000 → 7093（＝現版 boat 的 5456 × 1.3，A2 派工當下訂的上限，方向是加嚴）。新增的是甲案自己的招牌條：人形划手（lash）與木槳（oar）必須存在且划手在側視看得見——這兩條是加嚴，多兩條要過。",
   "claims": [
     {
       "type": "part_exists",
@@ -10,27 +10,39 @@
     },
     {
       "type": "part_exists",
-      "part": "glow_prow",
+      "part": "trim_red",
       "stage": "MID",
-      "label": "船艏發光刃必須存在，且材質名必須正是 glow_prow（three.js 端靠這個名字掛 emissive）"
+      "label": "橘紅舷條必須存在——白／黑／橘紅三色裡的橘紅要有實體載體"
     },
     {
       "type": "part_exists",
       "part": "eye",
       "stage": "MID",
-      "label": "船眼（同心圓的橘紅圓心）必須存在，材質名必須正是 eye"
+      "label": "船眼（同心圓太陽紋的橘紅圓心）必須存在，材質名必須正是 eye"
     },
     {
       "type": "part_exists",
-      "part": "fin_fly",
+      "part": "glow_prow",
       "stage": "MID",
-      "label": "飛魚鰭必須存在（swarm 的招牌配件）"
+      "label": "尖翹舟艏必須存在，材質名必須正是 glow_prow（three.js 端靠這個名字掛 emissive）"
     },
     {
       "type": "part_exists",
-      "part": "trim_red",
+      "part": "lash",
       "stage": "MID",
-      "label": "橘紅舷條必須存在——白／黑／橘紅三色裡的橘紅要有實體載體，不能只靠色帶"
+      "label": "人形划手（與藤編橫樑同材質 lash）必須存在——甲案的招牌"
+    },
+    {
+      "type": "part_exists",
+      "part": "oar",
+      "stage": "MID",
+      "label": "木槳必須存在——「有人在划」的第二個證據"
+    },
+    {
+      "type": "part_exists",
+      "part": "bone",
+      "stage": "MID",
+      "label": "白色飾板（棋盤格菱片／雞羽飾／船眼外圈）必須存在"
     },
     {
       "type": "part_signature",
@@ -39,16 +51,32 @@
       "min_share": 0.06,
       "or_min_span": 0.12,
       "stage": "MID",
-      "label": "招牌部位（尖翹舟艏）在側視圖要撐得起面積或跨距其中一項"
+      "label": "招牌部位（尖翹舟艏）在側視要撐得起面積或跨距其中一項"
+    },
+    {
+      "type": "part_visible",
+      "part": "lash",
+      "view": "side",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "人形划手在側視至少要佔機體 3% 的像素——看不見的划手不算數"
+    },
+    {
+      "type": "part_visible",
+      "part": "oar",
+      "view": "side",
+      "min_share": 0.03,
+      "stage": "MID",
+      "label": "木槳在側視至少要佔機體 3% 的像素"
     },
     {
       "type": "focal_contrast",
       "a": "hull_body",
-      "b": "fin_fly",
+      "b": "lash",
       "view": "tq",
       "min_ratio": 3,
       "stage": "MID",
-      "label": "船身必須壓過飛魚鰭至少 3 倍——兩者等重就會讀成魚而不是舟"
+      "label": "船身必須壓過划手至少 3 倍——兩者等重就會讀成「人」而不是「舟」"
     },
     {
       "type": "share_hierarchy",
@@ -56,27 +84,27 @@
         "hull_body"
       ],
       "secondary": [
-        "fin_fly",
-        "glow_prow"
+        "lash",
+        "oar"
       ],
       "tertiary": [
         "trim_red",
         "bone",
-        "oar",
         "socket",
         "eye",
-        "lash"
+        "glow_prow",
+        "bead"
       ],
       "view": "tq",
       "stage": "MID",
-      "label": "6:3:1 階層：船身／（飛魚鰭＋船艏發光刃）／（橘紅舷條＋白棋盤菱片＋木槳＋黑眼圈＋船眼＋橫樑）"
+      "label": "6:3:1 階層：船身／（划手＋木槳）／（橘紅舷條＋白飾板＋黑紋＋船眼＋舟艏＋琉璃珠）"
     },
     {
       "type": "style_light",
       "view": "side",
       "min_median_lum": 95,
       "stage": "MID",
-      "label": "米白底：側視的機體中位亮度不得低於 95/255（回修前的炭黑版是 34.2，這條會直接擋下它）"
+      "label": "米白底：側視的機體中位亮度不得低於 95/255"
     },
     {
       "type": "rig_skinned",
@@ -99,14 +127,14 @@
       "min": 0.1,
       "max": 0.6,
       "stage": "HIGH",
-      "label": "高飽和面積落在 10%-60%（2026-09-04 凍結檔的帶）：管的是多少，不管在哪"
+      "label": "高飽和面積落在 10%-60%"
     },
     {
       "type": "tri_budget",
       "min": 1500,
-      "max": 8000,
+      "max": 7093,
       "stage": "LOW",
-      "label": "三角形預算（凍結檔 2026-09-04 19:30 修訂：預算制，每隻 ≤1.5MB／三角形 ≤8000）"
+      "label": "三角形預算 ≤7093（＝現版 boat 5456 × 1.3，A2 派工當下訂的上限）"
     }
   ]
 }
