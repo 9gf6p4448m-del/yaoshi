@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { glProbeInit, scanFrames, pixelABFrame } from './gl-probe-lib.mjs';
+import { glProbeInit, scanFrames, pixelABFrame, drawBudgetScan, shellABFrame } from './gl-probe-lib.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const argv = Object.fromEntries(process.argv.slice(2).map(a => { const m = a.match(/^--([^=]+)=(.*)$/); if (!m) throw new Error(`expected --key=value, got ${a}`); return [m[1], m[2]]; }));
@@ -64,6 +64,7 @@ try {
   await page.waitForTimeout(600);
 
   result = await page.evaluate(scanFrames, FRAMES);
+  if (argv.drawBudget) result.drawBudget = await page.evaluate(drawBudgetScan); // 對決卷二：場景那一趟的 draw 分佈（依物件名／型別）
   // `--disposeRounds=N`：C-1 回歸路徑——同一批拍品清空再擺回 N 輪，記錄每輪 renderer.info.memory；
   // 骨架共用後多出來的 Skeleton 若沒釋放乾淨，textures 會逐輪增加（原 C-1 實測每輪 +50）。
   const disposeRounds = Number(argv.disposeRounds || 0);
@@ -92,6 +93,11 @@ try {
       const r = await page.evaluate(pixelABFrame);
       result.pixelAB.push({ slot: sl, ...r });
     }
+  }
+  // `--shellAB=1`：外殼合併的同幀像素 A/B（對決卷二），hover slot0–3 各一次
+  if (argv.shellAB) {
+    result.shellAB = [];
+    for (const sl of [0, 1, 2, 3]) { await page.evaluate(v => window.__yaoshi3d.tray.setHover(v), sl); await page.waitForTimeout(600); result.shellAB.push({ slot: sl, ...(await page.evaluate(shellABFrame)) }); }
   }
   result = { tool: 'tests/tools/gl-frame-probe.mjs', fixture: { seed: 1, phase: 'round-1 bid', viewport: [844, 390], deviceScaleFactor: 2, coins: COINS, hoverSlot: slot, frames: FRAMES }, ...result, errors };
 } finally {

@@ -158,3 +158,21 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 5. 環境：本機 OneDrive 同步著妖市 40 多棵 worktree（曾漲到 12 GB），加上舊 session 殘留的 MCP 伺服器，會讓 Claude Code 砍背景工作。把 `.claude/worktrees`／`.codex-worktrees` 搬出 OneDrive 或清舊 worktree 要使用者裁定。
 
 續接：`/handoff 妖市：接 v0.57.16 真機回饋；A1 桌機 gate 連三卷全過，對決每 rAF 5 趟 render 為下一候選，保留 D2／D3 與原門檻。`
+
+## 2026-09-17 v0.57.17：描邊外殼合併——8v8 每 rAF draw 477→296
+
+玩家回報 **v0.57.16 真機通過**。接上節第 2 點先量再定假設：對決每 rAF 的 5 趟 render 是 `js/bloom.js` 自製 bloom 的最小配置（場景→RT、亮部、模糊 H／V、合成），不是缺陷；場景那一趟的 477 次 draw 用新掃描 `drawBudgetScan` 分佈，**197 次是描邊外殼**（每顆本體 mesh 一顆）。`shellMergeScan` 逐尊驗過合併前提（單骨架、單 bindMatrix、本地單位矩陣、同屬性集）後，`creature-figures.js` 改成一尊一顆殼（`mergeOutlineGeometry`，ghost 群組剔除，geometry 依 URL 快取，前提不符退回逐部件）。規格、RED／GREEN、像素 A/B、分母交代見 [本卷報告](../experiments/2026-09-17-a1-outline-merge/README.md) 與 [凍結驗收](../experiments/2026-09-17-a1-outline-merge/acceptance.md)。
+
+- 驗證：96/96；對決 16 尊外殼各 1、draw 477→296（剛好少 181）；合併殼 vs 探針臨時掛回的逐部件殼**同幀像素 0 相異**（對決 3 取樣、牌桌 4 槽），對照組關掉描邊 3.3–3.8%／0.24–0.50%；牌桌 hover 89→77、釋放 5 輪 geometries／textures 不變；trace 相等；perf32 .585／perf128 .6069（配對 5/5）GREEN；對決交錯 3 輪 +9～27%。
+- 凍結 #4 牌桌對照組門檻由 ≥1% 改記 ≥0.1%（描邊本來只佔畫面 0.3%，任何實作都到不了 1%；主判準未動，使用者「按照建議」）。
+- 環境：舊工作樹清理見 CLAUDE.md「工作樹與工具」；新樹一律開在 `C:/Users/shung/wt/yaoshi/`。
+
+### 下一步順序（使用者 2026-09-17 裁定「按照建議」）
+
+1. **停追效能**：A1 桌機相對 gate 已連四卷 GREEN（perf32 .43→.66→.61→.585 區間），再擠是邊際收益。
+2. **A1 最終驗收剩餘項**：P4 盲讀（招式施招者／受招方身分可辨，三輪未過）與 M-A1 傳說三尊美術簽字（`docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md` 最佳版待簽）——先把兩項的現況與可選做法整理成一輪問題。
+3. 同一輪整批問：A2 開卷（三系各一件標竿模型）要不要開、D2 連鎖／D3 幽靈／D5 熟練度三題怎麼裁（藍圖 §0 明寫收進藍圖≠批准）。
+4. 矩陣工具 `table-framing-check.mjs` 桌機視口跑序依賴、128 枚 gate 口徑（中位 vs 逐輪）照舊待裁。
+
+續接：`/handoff 妖市：v0.57.17 已發布、效能收工；整理 A1 最終驗收剩餘項（P4 盲讀、M-A1 簽字）與 A2／D2／D3／D5 成一輪問題。`
+

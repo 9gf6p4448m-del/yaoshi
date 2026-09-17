@@ -18,13 +18,14 @@
 - v0.57.14（2026-09-17，`a53b99c`）：第二個單一修補——同一尊網格共用一副骨架，每幀骨骼貼圖上傳 51→5；89 測試、1599 矩陣、trace 相等。**A1 桌機相對效能 gate 首次全過**：perf32 .4270（paired 5/5）、perf128 .4660（5/5）。這是本機 Chromium 速度比，不是 Safari fps；真機仍待回報。先讀 [本卷報告](docs/experiments/2026-09-17-a1-skeleton-share/README.md) 與 [交接末段](docs/handoffs/2026-09-15-a1-premium-table.md)。
 - v0.57.15（2026-09-17）：第三個單一修補——桌面 decal（接觸陰影／硃砂符／月印）與招式特效模板加 `forceSinglePass`，Three 0.158 對 transparent＋DoubleSide 每幀分兩趟畫並兩次 needsUpdate；每幀 getParameters 10→0、draw 94→89，像素逐位元組相同；91 測試、矩陣 slot1、trace 相等；perf32 .6585／perf128 .6943（配對 5/5，分母偏低要打折看）。報告 [docs/experiments/2026-09-17-a1-program-churn](docs/experiments/2026-09-17-a1-program-churn/README.md)。
 - v0.57.16（2026-09-17）：第四個單一修補——對決畫面的浮標水面（圓盤／緣光／3 環）與殘日餘暉碟加 `forceSinglePass`，同一機制搬到對決側量：8v8 每 rAF getParameters 52→0、draw 503→477，三個取樣像素逐位元組相同；93 測試、牌桌探針不變、trace 相等；對決側只記錄相對值（交錯 3 輪修補後皆較快，duel-perf 的 fixture 不含此路徑、差在雜訊內）；perf32 .6058（paired 5/5）GREEN。報告 [docs/experiments/2026-09-17-a1-duel-singlepass](docs/experiments/2026-09-17-a1-duel-singlepass/README.md)。
+- v0.57.17（2026-09-17）：第五個單一修補——紙紮妖的描邊外殼由「每個部件一顆」併成「一尊一顆」（geometry 依 GLB URL 快取、前提不符退回逐部件）；8v8 對決每 rAF draw 477→296、牌桌 hover 89→77，合併殼 vs 逐部件殼同幀像素 0 相異；96 測試、釋放 5 輪不漏、矩陣 slot1、trace 相等；perf32 .585／perf128 .6069（配對 5/5）GREEN。**使用者裁定：本卷後停追效能，轉向 A1 最終驗收剩餘項（P4 盲讀、M-A1 傳說美術簽字），再整批問 A2 開卷與 D2／D3／D5。** 報告 [docs/experiments/2026-09-17-a1-outline-merge](docs/experiments/2026-09-17-a1-outline-merge/README.md)。
 - D2 連鎖、D3 幽靈、D5 進度等未裁，不因總藍圖收錄而直接實作。
 - 持續發布授權有效：必要驗證後可正常提交、push 並核對公開送達。不要 force push；不能只有 push 成功就稱網站已更新。
 
 ## 工作樹與工具
 
 - 不用 `git add -A`、reset 或 clean 處理既有 dirty files；具體清單見交接。避免兩個工具同時編輯同一工作樹；平行工作需各自 worktree 與明確檔案責任。
-- 搜尋限當前專案來源；排除 `.claude/worktrees/`、`.codex-worktrees/`、`scratchpad/`、`node_modules/`，除非正在查指定舊證據。
+- 搜尋限當前專案來源；排除 `.claude/worktrees/`、`.codex-worktrees/`、`scratchpad/`、`node_modules/`，除非正在查指定舊證據。**2026-09-17 起工作樹一律開在 OneDrive 外的 `C:/Users/shung/wt/yaoshi/`**（OneDrive 同步 40 多棵樹曾吃掉 12 GB 記憶體）；舊樹已清，有未提交內容的四棵搬到 `wt/yaoshi/keep/`，Codex 的 table-ui-hierarchy 在 `wt/yaoshi/codex/`，其餘未追蹤檔歸檔在 `wt/yaoshi/archive/`。新樹裡沒有 `tools/`，用 junction 接主 repo：`cmd /c mklink /J tools <主repo>/tools`。
 - 靜態 HTML／JS 遊戲。快速檢查：`node --test tests/*.test.mjs`；純呈現改動另以同版基準跑 `tests/tools/trace-eq.mjs`。
 - 瀏覽器工具使用本機、未追蹤的 `tools/anyCreature/` 依賴。2026-09-15 實測 Node 24.16.0、Python 3.14.5、Playwright 1.62.1、本機測試套件 Three 0.180.0；遊戲 importmap 實際載入 Three 0.158.0，兩者不能混稱。同機可沿用；換機需先確認依賴，Git 不包含這個目錄。不因版本不同而擅自升級遊戲。
 - 效能診斷與正式 gate 分開；CPU profile 不能證明 Safari fps。正式性能量測獨占 GPU browser，不與截圖／矩陣同跑。

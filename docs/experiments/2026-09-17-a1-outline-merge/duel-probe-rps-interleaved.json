@@ -1,0 +1,71 @@
+{
+  "order": "post,pre ×3 交錯、同機獨佔",
+  "tool": "tests/tools/gl-duel-probe.mjs（120 render，uncapped）",
+  "baseRoot": ".claude/tmp/base-e5ed38e (e5ed38e)",
+  "runs": {
+    "post": [
+      {
+        "round": 1,
+        "rendersPerSec": 663.3,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 296,
+          "useProgram": 55.75
+        },
+        "errors": 0
+      },
+      {
+        "round": 2,
+        "rendersPerSec": 614.4,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 296,
+          "useProgram": 56
+        },
+        "errors": 0
+      },
+      {
+        "round": 3,
+        "rendersPerSec": 565,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 296,
+          "useProgram": 56
+        },
+        "errors": 0
+      }
+    ],
+    "pre": [
+      {
+        "round": 1,
+        "rendersPerSec": 521.1,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 477,
+          "useProgram": 56
+        },
+        "errors": 0
+      },
+      {
+        "round": 2,
+        "rendersPerSec": 495.9,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 477,
+          "useProgram": 56
+        },
+        "errors": 0
+      },
+      {
+        "round": 3,
+        "rendersPerSec": 518.6,
+        "perRaf": {
+          "getParameters": 0,
+          "draws": 477,
+          "useProgram": 56
+        },
+        "errors": 0
+      }
+    ]
+  }
+}

@@ -4,18 +4,18 @@
  * 規定「先在對決畫面量、做同幀像素 A/B，再加旗標，不得憑牌桌的結果直接套」。這支就是那個量法。
  * fixture：與 duel-perf.mjs perf 模式同一條路——真實頁面 ?paperwar=1 玩到第 2 場對決，隔離 ys: 事件後派一顆
  * 合成 ys:duel（A 側殘日帶傳說旗標＋3 隻 buoy＋4 隻重型；B 側 2 隻 buoy＋6 隻），等 detail.ready＋600ms 再量。
- * 跑法：node tests/tools/gl-duel-probe.mjs --out=<repo-relative json> [--frames=120] [--pixelAB=1] [--port=8897] [--root=<靜態根>]
+ * 跑法：node tests/tools/gl-duel-probe.mjs --out=<repo-relative json> [--frames=120] [--pixelAB=1] [--drawBudget=1] [--shellScan=1] [--shellAB=1] [--port=8897] [--root=<靜態根>]
  * 這是計數與像素證據，不是 fps 證據；fps 走 duel-perf.mjs perf。 */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { drive, serve, parseArgs } from './duel-drive.mjs';
-import { glProbeInit, scanFrames, pixelABFrame } from './gl-probe-lib.mjs';
+import { glProbeInit, scanFrames, pixelABFrame, drawBudgetScan, shellMergeScan, shellABFrame } from './gl-probe-lib.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const { pos, opt } = parseArgs(process.argv.slice(2));
-const KNOWN = ['out', 'frames', 'pixelAB', 'port', 'root'];
+const KNOWN = ['out', 'frames', 'pixelAB', 'port', 'root', 'drawBudget', 'shellScan', 'shellAB'];
 {
   const bad = Object.keys(opt).filter((k) => !KNOWN.includes(k));
   if (bad.length || pos.length) throw new Error(`gl-duel-probe 不吃這些參數：${bad.map((k) => '--' + k).concat(pos).join(' ')}（合法：${KNOWN.map((k) => '--' + k).join(' ')}）`);
@@ -77,7 +77,11 @@ try {
         pixelAB = [];
         for (let k = 0; k < 3; k++) { if (k) await pg.waitForTimeout(400); pixelAB.push({ sample: k, ...(await pg.evaluate(pixelABFrame)) }); }
       }
-      result = { setup, ...scan, pixelAB };
+      const drawBudget = opt.drawBudget ? await pg.evaluate(drawBudgetScan) : undefined;
+      const shellScan = opt.shellScan ? await pg.evaluate(shellMergeScan) : undefined;
+      let shellAB;
+      if (opt.shellAB) { shellAB = []; for (let k = 0; k < 3; k++) { if (k) await pg.waitForTimeout(400); shellAB.push({ sample: k, ...(await pg.evaluate(shellABFrame)) }); } }
+      result = { setup, ...scan, pixelAB, drawBudget, shellScan, shellAB };
     },
   });
   driveErrors = r.errors || [];

@@ -403,6 +403,85 @@ const OUTLINE_PX = { value: OUTLINE.px };
 export function setOutlineCrowd(on) { OUTLINE_PX.value = on ? OUTLINE.crowdPx : OUTLINE.px; }
 // 多材質 mesh 裡 ghost_* 那幾組的外殼材質：什麼都不寫（不寫色、不寫深度），等於那幾組沒有外殼。
 const OUTLINE_SKIP_MAT = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, depthTest: false });
+
+/* ── 外殼合併（A1 對決卷二，2026-09-17）────────────────────────────────────
+ * 對決 8v8 場景那一趟 477 次 draw 有 197 次是外殼（每顆本體 mesh 一顆）。同一尊的部件共用同一副骨架、
+ * 同一個 bindMatrix、本地矩陣全單位、屬性集相同（探針逐尊驗過），所以把它們的 geometry 併成一份、
+ * 綁同一副骨架、掛在部件的共同父節點上，一尊只剩一顆殼、一次 draw；像素逐位元組相同（殼是不透明
+ * BackSide、depthTest＋depthWrite，殼與殼之間順序無關）。ghost_* 部件與 ghost 材質群組照舊不描，
+ * 直接不併進去（不再需要 OUTLINE_SKIP_MAT 那種「畫但不寫」的空 draw）。
+ * 合併後的 geometry 以 GLB URL 為鍵快取：多個實例（SkeletonUtils.clone 共用同一份 geometry）共用一份，
+ * 與 glbCache 同生命週期，不逐尊生、不逐尊釋放（dispose 的 sweep 本來就不碰 geometry）。
+ * 任何一尊不滿足前提就退回逐部件外殼（掛殼那段的 else 分支），畫面一樣、只是 draw 多。 */
+const outlineGeoCache = new Map(); // url → BufferGeometry | null（null＝這隻不能併，別再算）
+
+/**
+ * 把多顆共用骨架的 SkinnedMesh 部件的 geometry 併成一份（只給外殼用）。
+ * @param parts   本體 mesh 陣列（同一尊、同一副骨架）
+ * @param isGhost (material) => boolean，true 的材質群組整段不併
+ * @returns BufferGeometry；任一部件沒有 index、缺 position/normal/skinIndex/skinWeight、屬性集或型別不一致、
+ *          或 interleaved 屬性 → 回 null（呼叫端退回逐部件外殼）
+ */
+export function mergeOutlineGeometry(parts, isGhost = () => false) {
+  const REQUIRED = ['position', 'normal', 'skinIndex', 'skinWeight'];
+  const segs = [];
+  let attrKey = null;
+  for (const o of parts) {
+    const g = o.geometry;
+    if (!g || !g.index) return null;
+    for (const k of REQUIRED) if (!g.attributes[k]) return null;
+    for (const a of Object.values(g.attributes)) if (a.isInterleavedBufferAttribute) return null;
+    const key = Object.keys(g.attributes).sort().join('+');
+    if (attrKey === null) attrKey = key; else if (key !== attrKey) return null;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const ranges = [];
+    if (Array.isArray(o.material)) {
+      for (const grp of g.groups) {
+        if (isGhost(mats[grp.materialIndex])) continue;
+        const count = grp.count === Infinity ? g.index.count - grp.start : grp.count;
+        if (count > 0) ranges.push([grp.start, count]);
+      }
+    } else if (!isGhost(mats[0])) ranges.push([0, g.index.count]);
+    if (ranges.length) segs.push({ g, ranges });
+  }
+  if (!segs.length) return null;
+  const out = new THREE.BufferGeometry();
+  for (const name of Object.keys(segs[0].g.attributes)) {
+    const first = segs[0].g.attributes[name];
+    const item = first.itemSize, Ctor = first.array.constructor;
+    let total = 0;
+    for (const sg of segs) { const a = sg.g.attributes[name]; if (a.itemSize !== item || a.array.constructor !== Ctor || a.normalized !== first.normalized) return null; total += a.count; }
+    const arr = new Ctor(total * item);
+    let off = 0;
+    for (const sg of segs) { const a = sg.g.attributes[name]; arr.set(a.array.subarray(0, a.count * item), off); off += a.count * item; }
+    out.setAttribute(name, new THREE.BufferAttribute(arr, item, first.normalized));
+  }
+  let idxTotal = 0, vTotal = 0;
+  for (const sg of segs) { vTotal += sg.g.attributes.position.count; for (const [, c] of sg.ranges) idxTotal += c; }
+  const idx = vTotal > 65535 ? new Uint32Array(idxTotal) : new Uint16Array(idxTotal);
+  let io = 0, vo = 0;
+  for (const sg of segs) {
+    const src = sg.g.index.array;
+    for (const [start, count] of sg.ranges) for (let i = 0; i < count; i++) idx[io++] = src[start + i] + vo;
+    vo += sg.g.attributes.position.count;
+  }
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.computeBoundingSphere();
+  return out;
+}
+
+/** 同一尊能不能併成一顆殼：全部是 SkinnedMesh、同骨架、同 bindMatrix、同父節點、本地矩陣單位。 */
+function canMergeOutline(parts) {
+  if (!parts.length) return false;
+  const ref = parts[0];
+  if (!ref.isSkinnedMesh) return false;
+  const id = new THREE.Matrix4();
+  for (const o of parts) {
+    if (!o.isSkinnedMesh || o.skeleton !== ref.skeleton || o.parent !== ref.parent) return false;
+    if (!o.bindMatrix.equals(ref.bindMatrix) || !o.matrix.equals(id)) return false;
+  }
+  return true;
+}
 const OUTLINE_RES = { value: new THREE.Vector2(1, 1) };
 function syncOutlineRes() {
   if (typeof window === 'undefined') return;
@@ -614,7 +693,23 @@ export function makeCreatureFigure(opts = {}) {
     if (OUTLINE_ON) {
       const shell = makeOutlineMaterial(outlineColorOf(opts.faction, opts.rimColor), burnY);
       shellU = shell.u;
-      bodyMeshes.forEach((o) => {
+      const isGhostMat = (m) => GHOST.test.test((m && m.name) || '');
+      // 合併殼（對決卷二）：同一尊一顆。geometry 依 URL 快取；算不出來（回 null）就走下面的逐部件退路。
+      let mergedGeo = null;
+      if (canMergeOutline(bodyMeshes)) {
+        const url = String(opts.glbUrl || '');
+        if (!outlineGeoCache.has(url)) outlineGeoCache.set(url, mergeOutlineGeometry(bodyMeshes, isGhostMat));
+        mergedGeo = outlineGeoCache.get(url);
+      }
+      if (mergedGeo) {
+        const ref = bodyMeshes[0];
+        const sh = new THREE.SkinnedMesh(mergedGeo, shell.mat);
+        sh.bindMode = ref.bindMode; sh.bind(ref.skeleton, ref.bindMatrix);
+        sh.name = 'outline';
+        sh.frustumCulled = false; // 同本體：蒙皮變形後 bounding sphere 不準
+        ref.parent.add(sh); // 部件的共同父節點（本地矩陣全單位 ⇒ matrixWorld 與掛在本體底下相同）
+        shells.push(sh);
+      } else bodyMeshes.forEach((o) => {
         // ghost_*（haunt 下半身半透明、depthWrite=false）不描邊：不透明外殼會整片蓋住半透明本體，
         // P-7 兩位讀者把它讀成「故障／掃描線特效」。多材質 mesh 只把 ghost 那幾組換成不畫的材質。
         const mats = Array.isArray(o.material) ? o.material : [o.material];

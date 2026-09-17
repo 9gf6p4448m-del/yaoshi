@@ -1,0 +1,852 @@
+{
+  "tool": "tests/tools/gl-frame-probe.mjs",
+  "fixture": {
+    "seed": 1,
+    "phase": "round-1 bid",
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 32,
+    "hoverSlot": 1,
+    "frames": 120
+  },
+  "slot": 1,
+  "renderedFrames": 120,
+  "rafTicks": 120,
+  "passesPerRaf": 1,
+  "rendersPerSec": 336.1,
+  "perRaf": {
+    "getParameters": 0,
+    "draws": 77,
+    "useProgram": 21
+  },
+  "programs": {
+    "before": 30,
+    "after": 30
+  },
+  "memory": {
+    "before": {
+      "geometries": 80,
+      "textures": 10
+    },
+    "after": {
+      "geometries": 80,
+      "textures": 10
+    }
+  },
+  "materialsInScene": 77,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 52,
+    "distinctSkeletons": 5,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 14,
+        "root": ""
+      },
+      {
+        "bones": 27,
+        "skeletons": 1,
+        "meshes": 17,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      }
+    ]
+  },
+  "programChurn": {
+    "getParametersPerFrame": 0,
+    "materialsCalled": 0,
+    "materials": [],
+    "versionBumpStacks": []
+  },
+  "glCallsPerFrame": {
+    "uniform3f": 111,
+    "bindVertexArray": 77,
+    "uniform1f": 74,
+    "drawElements": 54,
+    "uniformMatrix4fv": 52,
+    "uniform4fv": 50,
+    "useProgram": 21,
+    "pixelStorei": 20,
+    "texParameteri": 20,
+    "uniformMatrix3fv": 17,
+    "drawArrays": 17,
+    "bindTexture": 10,
+    "uniform2f": 8,
+    "disable": 7,
+    "enable": 7,
+    "frontFace": 6,
+    "texSubImage2D": 5,
+    "bindBuffer": 4,
+    "bufferSubData": 4,
+    "depthMask": 4,
+    "drawArraysInstanced": 4,
+    "blendFuncSeparate": 3,
+    "blendFunc": 3,
+    "uniform1i": 2,
+    "drawElementsInstanced": 2,
+    "clear": 1
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 1
+  },
+  "models": [
+    {
+      "slot": 0,
+      "key": "guoyin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/guoyin.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 1,
+      "key": "yinyangcoin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/yinyangcoin.glb",
+      "visible": true,
+      "outlines": 1
+    },
+    {
+      "slot": 2,
+      "key": "nail",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/nail.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 3,
+      "key": "buoy",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/buoy.glb",
+      "visible": true,
+      "outlines": 0
+    }
+  ],
+  "drawBudget": {
+    "visibleObjects": 77,
+    "drawsIfAllInFrustum": 77,
+    "drawsInFrustum": 77,
+    "byTop": [
+      {
+        "key": "table-tray",
+        "objects": 62,
+        "draws": 62,
+        "inFrustumDraws": 62,
+        "tris": 0
+      },
+      {
+        "key": "far",
+        "objects": 5,
+        "draws": 5,
+        "inFrustumDraws": 5,
+        "tris": 0
+      },
+      {
+        "key": "Group",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "Points",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "sky-dome",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table-decor",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "outline-warmup",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      }
+    ],
+    "byRoot": [
+      {
+        "key": "creature",
+        "objects": 51,
+        "draws": 51,
+        "inFrustumDraws": 51,
+        "tris": 0
+      },
+      {
+        "key": "(scene)",
+        "objects": 9,
+        "draws": 9,
+        "inFrustumDraws": 9,
+        "tris": 0
+      },
+      {
+        "key": "table-props",
+        "objects": 8,
+        "draws": 8,
+        "inFrustumDraws": 8,
+        "tris": 0
+      },
+      {
+        "key": "far",
+        "objects": 5,
+        "draws": 5,
+        "inFrustumDraws": 5,
+        "tris": 0
+      },
+      {
+        "key": "table-tray",
+        "objects": 3,
+        "draws": 3,
+        "inFrustumDraws": 3,
+        "tris": 0
+      },
+      {
+        "key": "outline-warmup",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      }
+    ],
+    "byName": [
+      {
+        "key": "creature_1[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_2[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_3[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_4[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_5[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_6[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_7[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_8[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_9[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "creature_10[skin]",
+        "objects": 4,
+        "draws": 4,
+        "inFrustumDraws": 4,
+        "tris": 0
+      },
+      {
+        "key": "Points",
+        "objects": 3,
+        "draws": 3,
+        "inFrustumDraws": 3,
+        "tris": 0
+      },
+      {
+        "key": "Mesh",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_11[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_12[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_13[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "sky-dome",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-temple",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-arch",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-banyan",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-eaves",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-stalls",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table-decor",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "Line",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "SkinnedMesh[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "tray-cloth",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "tray-cinnabar-runes[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "tray-moon-benefit[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "prop-chips[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "prop-contact-shadows[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "prop-tokens[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "prop-mark-racks[inst]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "relic-qingmian",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "relic-dangpu",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "relic-shoujing",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "relic-zutou",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "outline[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_14[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_15[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_16[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      }
+    ],
+    "byType": [
+      {
+        "key": "SkinnedMesh:MeshStandardMaterial",
+        "objects": 50,
+        "draws": 50,
+        "inFrustumDraws": 50,
+        "tris": 0
+      },
+      {
+        "key": "Mesh:MeshBasicMaterial",
+        "objects": 11,
+        "draws": 11,
+        "inFrustumDraws": 11,
+        "tris": 0
+      },
+      {
+        "key": "Mesh:MeshStandardMaterial",
+        "objects": 10,
+        "draws": 10,
+        "inFrustumDraws": 10,
+        "tris": 0
+      },
+      {
+        "key": "Points:PointsMaterial",
+        "objects": 3,
+        "draws": 3,
+        "inFrustumDraws": 3,
+        "tris": 0
+      },
+      {
+        "key": "SkinnedMesh:MeshBasicMaterial",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "Line:LineBasicMaterial",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      }
+    ]
+  },
+  "disposeRounds": [
+    {
+      "round": 0,
+      "geometries": 80,
+      "textures": 10
+    },
+    {
+      "round": 1,
+      "geometries": 80,
+      "textures": 10,
+      "ready": 4
+    },
+    {
+      "round": 2,
+      "geometries": 80,
+      "textures": 10,
+      "ready": 4
+    },
+    {
+      "round": 3,
+      "geometries": 80,
+      "textures": 10,
+      "ready": 4
+    },
+    {
+      "round": 4,
+      "geometries": 80,
+      "textures": 10,
+      "ready": 4
+    },
+    {
+      "round": 5,
+      "geometries": 80,
+      "textures": 10,
+      "ready": 4
+    }
+  ],
+  "pixelAB": [
+    {
+      "slot": 0,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27496,
+        "diffPct": 2.0883,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 1,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27853,
+        "diffPct": 2.1155,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 2,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27927,
+        "diffPct": 2.1211,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 3,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 28266,
+        "diffPct": 2.1468,
+        "maxChannelDelta": 154
+      }
+    }
+  ],
+  "shellAB": [
+    {
+      "slot": 0,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "mergedShells": 4,
+      "mergedVisible": 1,
+      "legacyShells": 7,
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "legacy": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "noShellControl": {
+        "diffPixels": 3211,
+        "diffPct": 0.2439,
+        "maxChannelDelta": 148
+      }
+    },
+    {
+      "slot": 1,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "mergedShells": 4,
+      "mergedVisible": 1,
+      "legacyShells": 13,
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "legacy": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "noShellControl": {
+        "diffPixels": 5120,
+        "diffPct": 0.3889,
+        "maxChannelDelta": 179
+      }
+    },
+    {
+      "slot": 2,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "mergedShells": 4,
+      "mergedVisible": 1,
+      "legacyShells": 17,
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "legacy": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "noShellControl": {
+        "diffPixels": 6534,
+        "diffPct": 0.4963,
+        "maxChannelDelta": 187
+      }
+    },
+    {
+      "slot": 3,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "mergedShells": 4,
+      "mergedVisible": 1,
+      "legacyShells": 8,
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "legacy": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "noShellControl": {
+        "diffPixels": 3887,
+        "diffPct": 0.2952,
+        "maxChannelDelta": 180
+      }
+    }
+  ],
+  "errors": []
+}
