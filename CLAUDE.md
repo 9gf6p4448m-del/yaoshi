@@ -20,6 +20,7 @@
 - v0.57.16（2026-09-17）：第四個單一修補——對決畫面的浮標水面（圓盤／緣光／3 環）與殘日餘暉碟加 `forceSinglePass`，同一機制搬到對決側量：8v8 每 rAF getParameters 52→0、draw 503→477，三個取樣像素逐位元組相同；93 測試、牌桌探針不變、trace 相等；對決側只記錄相對值（交錯 3 輪修補後皆較快，duel-perf 的 fixture 不含此路徑、差在雜訊內）；perf32 .6058（paired 5/5）GREEN。報告 [docs/experiments/2026-09-17-a1-duel-singlepass](docs/experiments/2026-09-17-a1-duel-singlepass/README.md)。
 - v0.57.17（2026-09-17）：第五個單一修補——紙紮妖的描邊外殼由「每個部件一顆」併成「一尊一顆」（geometry 依 GLB URL 快取、前提不符退回逐部件）；8v8 對決每 rAF draw 477→296、牌桌 hover 89→77，合併殼 vs 逐部件殼同幀像素 0 相異；96 測試、釋放 5 輪不漏、矩陣 slot1、trace 相等；perf32 .585／perf128 .6069（配對 5/5）GREEN。**使用者裁定：本卷後停追效能，轉向 A1 最終驗收剩餘項（P4 盲讀、M-A1 傳說美術簽字），再整批問 A2 開卷與 D2／D3／D5。** 報告 [docs/experiments/2026-09-17-a1-outline-merge](docs/experiments/2026-09-17-a1-outline-merge/README.md)。
 - **A1 已結案（2026-09-17，[結案卷](docs/experiments/2026-09-17-a1-closeout/README.md)）；A2 已開卷**（[計畫](plans/2026-09-17-a2-benchmarks.md)、[凍結 v0.1](docs/experiments/2026-09-17-acceptance-a2-benchmarks.md)）。v0.57.18：A2 第一件標竿拼板舟甲案（使用者挑）第 3 輪版入正式資產——概念 4/4、色系①4/4、桌面剪影 2/2、特徵 4/5，可愛／玩具 3/4 依凍結標**未過待簽**；硬指標全過。報告 [docs/experiments/2026-09-17-a2-boat](docs/experiments/2026-09-17-a2-boat/README.md)。下一件：福壽綿長＋「我方單一」語彙（S3）。
+- v0.57.19（2026-09-17）：A2 S3——福壽綿長甲案（使用者挑）第 3 輪版入正式資產：概念「龜」2/2、桌面色系 2/2，但「燈」三輪 0/6、可愛 1/2 → 依凍結標**未過待簽**；wardRegen1「我方單一」語彙修法出貨但重讀對象 5/18 未過（記已知）。報告 [docs/experiments/2026-09-17-a2-fushou](docs/experiments/2026-09-17-a2-fushou/README.md)。下一件：紅帽（S4）。
 - D2 連鎖、D3 幽靈、D5 進度等未裁，不因總藍圖收錄而直接實作。
 - 持續發布授權有效：必要驗證後可正常提交、push 並核對公開送達。不要 force push；不能只有 push 成功就稱網站已更新。
 
