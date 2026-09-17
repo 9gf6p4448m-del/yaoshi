@@ -1,0 +1,132 @@
+{
+ "name": "拼板舟 boat_b「載靈的舟形神轎」（zuling/swarm 候選乙）",
+ "_role": "anyCreature harness/judge.mjs 的機械檢查清單。門檻沿用 assets/creatures/boat.claims.json 出貨版（style_light ≥95、saturation_area 10%–60%、focal_contrast min_ratio 3 一格未動），tri_budget 上限 8000 → 7093（加嚴，A2 派工當下訂的上限）。乙案自己的招牌條是抬桿（oar）與藤編／轎底（lash）必須存在，且抬桿在側視的跨距 ≥0.55——橫貫前後的桿子是「神轎」最短的證據。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "hull_body",
+   "stage": "MID",
+   "label": "船身（立起來的拼板舟）必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "trim_red",
+   "stage": "MID",
+   "label": "橘紅舷條必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "船眼（同心圓太陽紋的橘紅圓心）必須存在，材質名必須正是 eye"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_prow",
+   "stage": "MID",
+   "label": "尖翹舟艏（轎頂飾件）必須存在，材質名必須正是 glow_prow"
+  },
+  {
+   "type": "part_exists",
+   "part": "oar",
+   "stage": "MID",
+   "label": "抬桿必須存在——乙案的招牌"
+  },
+  {
+   "type": "part_exists",
+   "part": "lash",
+   "stage": "MID",
+   "label": "轎底平板與藤編支架必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "bone",
+   "stage": "MID",
+   "label": "白色飾板（棋盤格菱片／雞羽飾／船眼外圈）必須存在"
+  },
+  {
+   "type": "part_signature",
+   "part": "oar",
+   "view": "side",
+   "min_share": 0.04,
+   "or_min_span": 0.55,
+   "stage": "MID",
+   "label": "招牌部位（抬桿）在側視要撐得起面積或跨距其中一項——跨距門檻 0.55 是因為它必須橫貫整座轎"
+  },
+  {
+   "type": "part_visible",
+   "part": "lash",
+   "view": "side",
+   "min_share": 0.04,
+   "stage": "MID",
+   "label": "轎底與藤編在側視至少要佔機體 4%"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "hull_body",
+   "b": "oar",
+   "view": "tq",
+   "min_ratio": 3,
+   "stage": "MID",
+   "label": "轎身必須壓過抬桿至少 3 倍——兩者等重就會讀成「一捆木頭」"
+  },
+  {
+   "type": "share_hierarchy",
+   "primary": [
+    "hull_body"
+   ],
+   "secondary": [
+    "lash",
+    "oar"
+   ],
+   "tertiary": [
+    "trim_red",
+    "bone",
+    "socket",
+    "eye",
+    "glow_prow",
+    "bead"
+   ],
+   "view": "tq",
+   "stage": "MID",
+   "label": "6:3:1 階層：轎身／（轎底藤編＋抬桿）／（橘紅舷條＋白飾板＋黑紋＋船眼＋舟艏＋琉璃珠）"
+  },
+  {
+   "type": "style_light",
+   "view": "side",
+   "min_median_lum": 95,
+   "stage": "MID",
+   "label": "米白底：側視的機體中位亮度不得低於 95/255"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%-60%"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1500,
+   "max": 7093,
+   "stage": "LOW",
+   "label": "三角形預算 ≤7093（＝現版 boat 5456 × 1.3）"
+  }
+ ]
+}

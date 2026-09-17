@@ -32,8 +32,8 @@ function buildOverlayRoot(glbPath) {
   fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
   const junction = (target, link) => { const r = spawnSync('cmd', ['/c', 'mklink', '/J', link, target], { stdio: 'ignore' }); if (r.status !== 0) throw new Error(`mklink /J 失敗：${link}`); };
   for (const ent of fs.readdirSync(ROOT, { withFileTypes: true })) {
-    if (ent.name === 'assets' || ent.name === 'scratchpad' || ent.name.startsWith('.')) continue;
-    if (ent.isDirectory()) junction(path.join(ROOT, ent.name), path.join(root, ent.name));
+    if (ent.name === 'assets' || ent.name === 'scratchpad' || ent.name === 'tools' || ent.name === 'node_modules' || ent.name.startsWith('.')) continue; // tools 在 worktree 是 junction、頁面也用不到
+    if (ent.isDirectory() || (ent.isSymbolicLink() && fs.statSync(path.join(ROOT, ent.name)).isDirectory())) junction(path.join(ROOT, ent.name), path.join(root, ent.name));
     else fs.copyFileSync(path.join(ROOT, ent.name), path.join(root, ent.name));
   }
   for (const ent of fs.readdirSync(path.join(ROOT, 'assets'), { withFileTypes: true })) {
