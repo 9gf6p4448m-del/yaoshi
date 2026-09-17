@@ -1444,12 +1444,15 @@ const MOVES = {
     // ── 受益方頭上的燈印 ──
     const seal2 = st.paperStamp(st.kind, dst, { anchor: 'ally', color: C.key, inkColor: C.hot,
       opacity: 0, depth: 0.18, warp: 0.16, tiltDeg: 14, yawDeg: -24, follow: hurt, at: 'top', off: camOff(st, 1) });
-    seal2.scale.setScalar(st.markSize * 1.0);
+    seal2.scale.setScalar(st.markSize * 1.3); // A2 S3：燈印放大（受益端主印）
 
     /* ① 燈焰暴漲（windup）：燈芯拉長、整尊低頭送出 */
     /* ★§A9 身分可辨★ 施招者腳下的系別光語彙（香火＝貼桌環）：蓄勢就亮、衝擊拍熄，亮滅的時間軸寫在積木裡，編舞給不出第二份。 */
     // ★腳下光語彙加亮加大（P4 r1 回修 B，理由同香灰符）★
-    st.groundMark(lamp, { r: 0.52, peak: 1.0 });
+    /* ★A2 S3「我方單一」回修（2026-09-17）★：施招者腳下光略收（0.52／1.0 → 0.44／0.85，仍是 §A9 的身分訊號），
+       受益端加一枚**胸口豎立光環**＋更大的燈印＋更強的爆點（下面 ③），讓衝擊拍之後畫面上只有受益那一尊在亮。
+       腳下光語彙不點在受益方（`st.groundMark` 會 throw，§A9 第 1 條），受益端的光環是豎立在胸口、與腳下環不同型。 */
+    st.groundMark(lamp, { r: 0.44, peak: 0.85 });
     st.phase('windup');
     st.tween({ ms: W, ease: 'out', update(t, e) {
       st.stance(lamp, '下沉', e); // §A9：施招姿態（與受益反應不同型），走 w.sta 獨立通道
@@ -1470,8 +1473,23 @@ const MOVES = {
         /* ★衝擊拍★：燈焰抵達＝那一尊同幀亮邊上抬＝燈印落定 */
         st.phase('react');
         st.punch(0.30);
-        st.burst(dst, { power: 0.8, n: 44, color: C.key });
+        st.burst(dst, { power: 1.1, n: 64, color: C.key });
       } });
+    /* ③-a 受益端胸口光環（A2 S3）：豎立、面向鏡頭、只掛在受益那一尊胸口，衝擊拍亮起、react 後段收掉。
+       用 `st.ring` 造型但改成豎立（不是腳下環）：位置＝受益方胸口，法線朝鏡頭。 */
+    const chestH = st.worldOf(hurt, 'Chest', new THREE.Vector3());
+    if (!chestH.lengthSq()) st.worldOf(hurt, null, chestH);
+    const halo = st.ring(chestH, st.markSize * 1.15, 0.05, { color: C.hot, opacity: 0 });
+    halo.position.copy(chestH).addScaledVector(st.camDir, 0.22);
+    halo.rotation.set(0, 0, 0); halo.lookAt(halo.position.clone().add(st.camDir));
+    halo.scale.setScalar(0.6);
+    st.fade(halo, { ms: RL * 0.25, delay: R0, from: 0, to: 0.95, ease: 'out' });
+    st.tween({ ms: RL * 0.8, delay: R0, ease: 'out', update(t, e) {
+      halo.scale.setScalar(0.6 + 0.9 * e);
+      st.worldOf(hurt, 'Chest', chestH); if (!chestH.lengthSq()) st.worldOf(hurt, null, chestH);
+      halo.position.copy(chestH).addScaledVector(st.camDir, 0.22); halo.position.y += 0.17 * Math.min(1, e / 0.85);
+    } });
+    st.fade(halo, { ms: RL * 0.4, delay: R0 + RL * 0.5, from: 0.95, to: 0, ease: 'in' });
     st.tween({ ms: TL, delay: T0, ease: 'linear', update(t, e) {
       const k = e < 0.56 ? 0.90 + 0.32 * (e / 0.56) : 1.22 - 0.30 * ((e - 0.56) / 0.44);
       flame.scale.setScalar(st.iconSize * k);
@@ -1484,11 +1502,11 @@ const MOVES = {
     /* ③ 受益（react）：那一尊上抬亮邊、頭上蓋燈印；燈焰化進印裡 */
     st.fade(flame, { ms: RL * 0.3, delay: R0, from: 1, to: 0 });
     st.fade(seal2, { ms: RL * 0.22, delay: R0, from: 0, to: 1 });
-    st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { seal2.scale.setScalar(st.markSize * (1.9 - 0.8 * e)); } });
+    st.tween({ ms: RL * 0.5, delay: R0, ease: 'back', update(t, e) { seal2.scale.setScalar(st.markSize * (2.3 - 1.0 * e)); } });
     st.fade(seal2, { ms: RL * 0.36, delay: R0 + RL * 0.6, from: 1, to: 0 });
     // ★受益方落地之後才升、幅度加大（P4 r1 回修 B）；施招者全程沒有受益反應
     st.tween({ ms: RL * 0.85, delay: R0, ease: 'pulse', update(t, e) {
-      st.move(hurt, 0, 0.17 * e, 0); st.rim(hurt, 1 + 3.2 * e); // P4 r3 (d)：受益反應拉到語彙上限
+      st.move(hurt, 0, 0.22 * e, 0); st.rim(hurt, 1 + 3.2 * e); // P4 r3 (d)：受益反應拉到語彙上限；A2 S3 升幅 0.17→0.22
     } });
 
     /* 收勢：抬頭、燈芯回位 */

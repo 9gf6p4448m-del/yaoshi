@@ -1,0 +1,94 @@
+{
+ "seed": 20260912,
+ "tiers": [
+  1,
+  2
+ ],
+ "dt": 16.666666666666668,
+ "shot": {
+  "width": 844,
+  "height": 390,
+  "deviceScaleFactor": 2
+ },
+ "cell": {
+  "w": 780,
+  "h": 360
+ },
+ "sheet": {
+  "w": 1560,
+  "h": 1080
+ },
+ "frameAt": [
+  {
+   "seg": "windup",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0
+  },
+  {
+   "seg": "travel",
+   "f": 0.5
+  },
+  {
+   "seg": "travel",
+   "f": 0.95
+  },
+  {
+   "seg": "react",
+   "f": 0.15
+  },
+  {
+   "seg": "react",
+   "f": 0.95
+  }
+ ],
+ "labelled": false,
+ "spec": {
+  "mateGap": "1.9",
+  "camdist": null,
+  "countOverride": 2,
+  "counts": {
+   "wardRegen1": 2
+  },
+  "foe": "bow:elite:zuling:1,raincoat:ward:yinqi:1",
+  "mate": null,
+  "fxvocab": false,
+  "proto": null
+ },
+ "mapping": [
+  {
+   "code": "a01",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 2,
+   "ms": 900,
+   "frames": [
+    9,
+    18,
+    26,
+    33,
+    35,
+    45
+   ],
+   "file": "docs/experiments/2026-09-17-a2-fushou/p4-wardRegen1/A-booth/a01.png"
+  },
+  {
+   "code": "a02",
+   "trait": "wardRegen1",
+   "ab": "fushou",
+   "tier": 1,
+   "ms": 300,
+   "frames": [
+    3,
+    6,
+    9,
+    12,
+    13,
+    16
+   ],
+   "file": "docs/experiments/2026-09-17-a2-fushou/p4-wardRegen1/A-booth/a02.png"
+  }
+ ]
+}

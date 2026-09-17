@@ -1,0 +1,196 @@
+{
+ "name": "福壽綿長 fushou_b「馱燈神龜」（xianghuo/ward 候選乙）",
+ "_role": "乙案「馱燈神龜」：硃紅燈龕塔用 lamp_bowl 材質、體積升到 primary，被它擠下去的 pot_body 降到 secondary——這是「龕是主體、龜是座」的機械化，不是放寬（三層名單的條目與基底完全相同，只換了兩個名字的位置）。\n\n（基底＝assets/creatures/fushou.claims.json；除 tri_budget 上限與 share_hierarchy 的分層名單外，每一條門檻逐字沿用，沒有一處放寬。識別視角仍是 front。）",
+ "_frozen_at": "本檔與 spec 由 build_fushou_variants.mjs 同一次執行寫出，寫在第一次 `judge.mjs` 之前，所以門檻不是照本案實測值挑的。tri_budget 上限 10218 ＝ 現版 fushou 實測 7860 × 1.3（A2 派工當下訂的上限，同 boat_a／boat_b 的 7093 寫法）；量產凍結檔另有每隻 ≤8000 的預算，兩者的落點見卷內 README 數字表。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "lamp_bowl",
+   "stage": "MID",
+   "label": "招牌部位：腹前的寬淺油燈碗必須存在（簡報 fushou 列指定的招牌剪影＝腹部油燈）"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_lamp",
+   "stage": "MID",
+   "label": "油面與火苗必須存在，且材質名必須正是 glow_lamp（簡報 fushou 列指定的第一個發光部位；three.js 端 js/creature-figures.js 靠 /^glow_/ 掛 emissive）"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "外突眼球必須存在，且材質名必須正是 eye（簡報指定的第二個發光部位，/^eye(_|$)/ 掛 emissive）"
+  },
+  {
+   "type": "part_exists",
+   "part": "shell_plate",
+   "stage": "MID",
+   "label": "真實參照特徵 2：龜甲上外凸的多邊形甲片必須存在（沒有它殼只是一個素面圓頂）"
+  },
+  {
+   "type": "part_exists",
+   "part": "shell_rim",
+   "stage": "MID",
+   "label": "真實參照特徵 1：甲緣往外翻的裙邊必須存在（也是 ward 正面寬的來源）"
+  },
+  {
+   "type": "part_exists",
+   "part": "lamp_lip",
+   "stage": "MID",
+   "label": "凍結檔／簡報指定的系別色帶：香火橘只落在燈碗這一處，該材質必須存在"
+  },
+  {
+   "type": "part_signature",
+   "part": "lamp_bowl",
+   "view": "front",
+   "min_share": 0.1,
+   "or_min_span": 0.3,
+   "stage": "MID",
+   "label": "招牌部位（腹前油燈碗）在識別視角要撐得起面積或跨距其中一項"
+  },
+  {
+   "type": "part_visible",
+   "part": "shell_dark",
+   "view": "front",
+   "min_share": 0.1,
+   "stage": "MID",
+   "label": "龜甲本體必須在識別視角看得見——被自己的燈碗與裙邊吞掉就等於沒有（ward 招牌掛在正面的專屬風險，同 flag 的 stone_head、ashcharm 的 ash_body）"
+  },
+  {
+   "type": "part_visible",
+   "part": "shell_plate",
+   "view": "front",
+   "min_share": 0.02,
+   "stage": "MID",
+   "label": "真實參照特徵 2 的機械化：外凸多邊形甲片在識別視角必須量得到（貼平了就只剩一顆素圓頂）"
+  },
+  {
+   "type": "part_visible",
+   "part": "shell_rim",
+   "view": "front",
+   "min_share": 0.02,
+   "stage": "MID",
+   "label": "真實參照特徵 1 的機械化：外翻裙邊在識別視角必須量得到"
+  },
+  {
+   "type": "part_visible",
+   "part": "lamp_lip",
+   "view": "front",
+   "min_share": 0.004,
+   "stage": "MID",
+   "label": "系別色帶的機械化：香火橘碗口在識別視角必須量得到（被碗壁與油面吃掉就只剩一片紅）"
+  },
+  {
+   "type": "part_visible",
+   "part": "glow_lamp",
+   "view": "front",
+   "min_share": 0.008,
+   "stage": "MID",
+   "label": "真實參照特徵 4／5 的機械化：琥珀油面與水滴火苗在識別視角必須量得到（埋進碗裡就等於沒做——ashcharm r3 實測踩過：share 0）"
+  },
+  {
+   "type": "part_visible",
+   "part": "eye",
+   "view": "front",
+   "min_share": 0.004,
+   "stage": "MID",
+   "label": "真實參照特徵 3 的機械化：兩顆外突眼球在識別視角必須量得到"
+  },
+  {
+   "type": "part_visible",
+   "part": "hi_white",
+   "view": "front",
+   "min_share": 0.002,
+   "stage": "MID",
+   "label": "眼球高光在識別視角必須量得到——眼睛的訊號是「有高光」不是「有瞳」（wangchuan ⑥-3），沒有高光的亮圓點會被讀成孔或徽章"
+  },
+  {
+   "type": "part_visible",
+   "part": "tusk",
+   "view": "front",
+   "min_share": 0.002,
+   "stage": "MID",
+   "label": "真實參照特徵 3 的機械化：橫裂大嘴裡那排方齒在識別視角必須量得到"
+  },
+  {
+   "type": "part_visible",
+   "part": "gold_trim",
+   "view": "front",
+   "min_share": 0.004,
+   "stage": "MID",
+   "label": "ART_BIBLE §1／§5 的香火鎏金必須看得見，且只集中在頂剎／眉稜／燈足三處"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "shell_dark",
+   "b": "glow_lamp",
+   "min_ratio": 3,
+   "view": "front",
+   "stage": "MID",
+   "label": "兩個焦點（龜甲／腹前的燈火）不得等重相爭"
+  },
+  {
+   "type": "share_hierarchy",
+   "primary": [
+    "shell_dark",
+    "lamp_bowl",
+    "shell_rim"
+   ],
+   "secondary": [
+    "shell_plate",
+    "hide",
+    "pot_body",
+    "lamp_lip",
+    "gold_trim",
+    "claw"
+   ],
+   "tertiary": [
+    "glow_lamp",
+    "eye",
+    "hi_white",
+    "tusk",
+    "socket"
+   ],
+   "view": "front",
+   "stage": "MID",
+   "label": "6:3:1 階層：龜甲與油壺身與裙邊／甲片與皮與碗與碗口與金飾與爪／燈火與眼與高光與齒與暗窩"
+  },
+  {
+   "type": "style_dark",
+   "view": "front",
+   "max_median_lum": 90,
+   "stage": "MID",
+   "label": "深底：在識別視角（正面）也要讀得出是暗的"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備（attack＝福壽綿長：燈火拉高）"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%-60%（凍結檔指定的帶）：管的是多少，不管在哪"
+  },
+  {
+   "type": "tri_budget",
+   "min": 2500,
+   "max": 10218,
+   "stage": "LOW",
+   "label": "三角形預算 ≤10218（＝現版 fushou 7860 × 1.3，A2 派工當下訂的上限）"
+  }
+ ]
+}
