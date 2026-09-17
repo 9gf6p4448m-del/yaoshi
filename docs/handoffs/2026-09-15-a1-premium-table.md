@@ -99,4 +99,24 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 3. 128 枚 gate 的規格文字差異（中位數 vs 逐輪）仍待使用者裁定，本輪不改判。
 4. D2／D3／D5、真機、P4／M-A1 照舊保留。
 
-續接：`/handoff 妖市：接 v0.57.13 A1 效能第二個假設（getProgram／texSubImage2D 每幀計數）或手機回饋；32 枚 gate 仍 RED，保留 D2／D3 與原門檻。`
+續接（已由下一節取代）：`/handoff 妖市：接 v0.57.13 A1 效能第二個假設（getProgram／texSubImage2D 每幀計數）或手機回饋；32 枚 gate 仍 RED，保留 D2／D3 與原門檻。`
+
+
+## 2026-09-17 v0.57.14：骨架共用——32／128 枚正式 gate 首次全過
+
+使用者「繼續下一步」後接上節第 2 點。新工具 `tests/tools/gl-frame-probe.mjs` 在真實頁面逐幀計數 WebGL 呼叫：每幀 51 次 16×16 float 骨骼貼圖上傳＝51 副 Skeleton，但只有 5 組不同的骨頭集合——`SkeletonUtils.clone` 逐 mesh 重建骨架（creature-figures.js:831 早有註記）。單一修補 `js/skeleton-share.js`＋`creature-figures.js` clone 後一行：同一尊 bone 陣列與 boneInverses 完全相同的網格共用一副 Skeleton。規格、RED／GREEN、探針、矩陣、五輪見 [本卷報告](../experiments/2026-09-17-a1-skeleton-share/README.md) 與 [凍結驗收](../experiments/2026-09-17-a1-skeleton-share/acceptance.md)。
+
+- 提交：`a53b99c`（修補、版本 0.57.14、測試、工具、證據）→ 本交接。快轉合入 main 後推送；送達核對見報告末段。
+- 驗證：89/89 測試（87＋2）；真實頁面上傳 51→5／幀、骨架 51→5、貼圖記憶體 56→10；1599 取景矩陣全過；trace seeds 1–20 相等；dispose 五輪貼圖固定；Node 端共用前後 fitSubject 逐位元組相同。
+- **正式五輪**：perf32 ratio **.4270、paired 5/5**；perf128 **.4660、paired 5/5、gate128 pass**。這是 A1 相對效能門檻第一次在中位數與 09-14 逐輪口徑下同時通過；分母（空場）與前幾輪相近，分子（hover）由 380–401 升到 500–544，落在修補命中的路徑。**這是本機桌機 Chromium 的相對速度比，不等於 Safari fps；真機仍待玩家回報。**
+- 驗收 #4 依 `02 §2.1` 例外修正：跨版本逐案分佈在此矩陣工具上無論實作對錯都不可能成立（桌機 launch／terminal 絕對值依賴跑序狀態；v0.57.13 前後就有 43 案 >1 px），改以同版重跑穩定＋受影響案例單獨跑相等＋Node 逐位元組相等判綠，理由與數字在報告與驗收檔，請使用者過目。矩陣工具的跑序依賴列為待修。
+- 未動任何非本 session 的檔案與行程；主 checkout 的 dirty 檔（INDEX.md 等）保留，INDEX.md 仍未改，請 Codex 提交自己的 INDEX 時補列。
+
+### 下一步順序
+
+1. 有手機回饋先處理。**建議玩家在 Safari 真機重測 v0.57.14 的牌桌流暢度與四槽揭盅**——這是本卷改善最需要的驗證。
+2. A1 效能 gate 已綠但只是相對速度比；若要繼續壓成本，下一個候選是每幀 `getParameters`（前輪 profile ≈150 µs，`setProgram` 仍每幀重走 getProgram 的原因未查明；本卷材質共用掃描沒發現 instanced／skinned 混用），先計數再改。
+3. 矩陣工具 `table-framing-check.mjs` 桌機視口的跑序依賴（launch／terminal 值隨前案狀態變）待修，修前不得拿跨版本逐案分佈當等價證據。
+4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）這次兩者皆過，裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
+
+續接：`/handoff 妖市：接 v0.57.14 真機回饋；A1 桌機相對效能 gate 已綠（32 枚 .427、128 枚 .466），保留 D2／D3 與原門檻。`
