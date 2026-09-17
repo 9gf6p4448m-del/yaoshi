@@ -151,7 +151,15 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 
 ### 下一步順序
 
-1. **補跑凍結 #6 的餘項**（機器記憶體足夠時、獨佔 GPU）：`node tests/tools/gl-duel-probe.mjs --out=… --port=…` 修補後／`--root=.claude/tmp/base-e982638` 修補前再交錯 1 輪；`node tests/tools/duel-perf.mjs perf <out> --uncap=1 [--root=基準樹]` 前後各 1 輪；`node tests/tools/scene-shot.mjs <prefix> --perf --runs=5 --port=…` 一次。記錄後依 #8 以 0.57.16 快轉合入 main、推送、核對公開 `index.html`／`js/creature-figures.js`／`js/duel-figures.js` 送達。
+1. **補跑凍結 #6 的餘項**（機器記憶體足夠時、獨佔 GPU，在 worktree `.claude/worktrees/a1-framing-dedupe` 逐條依序跑，`D=docs/experiments/2026-09-17-a1-duel-singlepass`）：
+   ```
+   node tests/tools/gl-duel-probe.mjs --out=$D/dp-post-3.json --port=8903
+   node tests/tools/gl-duel-probe.mjs --out=$D/dp-pre-3.json --root=.claude/tmp/base-e982638 --port=8913
+   node tests/tools/duel-perf.mjs perf $D/duel-perf-post.json --uncap=1 --port=8921
+   node tests/tools/duel-perf.mjs perf $D/duel-perf-pre.json --uncap=1 --root=.claude/tmp/base-e982638 --port=8922
+   node tests/tools/scene-shot.mjs scratchpad/perf32-duelsp --perf --runs=5 --port=9701 > $D/perf32-duel-singlepass.json
+   ```
+   （基準樹 `.claude/tmp/base-e982638` 是 e982638 的 detached worktree，沒有就 `git worktree add --detach .claude/tmp/base-e982638 e982638`。）把數字補進 `$D/duel-probe-rps-interleaved.json`、README #6 與 acceptance 執行紀錄，再依 #8 以 0.57.16 快轉合入 main、推送、核對公開 `index.html`／`js/creature-figures.js`／`js/duel-figures.js` 送達。
 2. 有手機回饋先處理。
 3. 矩陣工具 `table-framing-check.mjs` 桌機視口的跑序依賴仍待修。
 4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
