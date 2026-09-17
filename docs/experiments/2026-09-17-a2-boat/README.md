@@ -174,3 +174,7 @@ python docs/experiments/2026-09-17-a2-boat/specgen/sheet.py
 - 滿編遮擋率量法（legend-presence）未接進 `a2-sheet.mjs`，本卷只記三隻本件的螢幕框與 visible。
 - 划手人形感：若使用者簽字時要求保住「人」，下一版把藤盔壓低、加手臂與槳握把（動 joints 之外的 parts 即可）。
 
+## 公開送達
+
+[published-delivery.json](published-delivery.json)：2026-09-17 台灣 19:30 核對，main `2782b62` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.18）與 `assets/creatures/boat.glb` 與本機逐位元組一致。第 3 輪版供試玩，**盲讀狀態＝未過待簽字**，不因發布改判。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.18)。
+
