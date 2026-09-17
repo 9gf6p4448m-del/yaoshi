@@ -18,6 +18,7 @@ if (curseOnly && !all) throw new Error('--curse-only requires --all');
 const limitArg = process.argv.find(a => a.startsWith('--limit='));
 const limit = limitArg ? Number(limitArg.slice(8)) : null;
 const matchArg = process.argv.find(a => a.startsWith('--match='));
+const reverse=process.argv.includes('--reverse'); // 跑序依賴驗證：同組案例倒序跑，launch／terminal 應逐值相同（2026-09-17）
 const match = matchArg?.slice(8) || null;
 if (limit !== null && (!Number.isInteger(limit) || limit < 1)) throw new Error('--limit must be a positive integer');
 const outArg = process.argv.find(a => a.startsWith('--out='));
@@ -63,6 +64,19 @@ const measureCase = async ({ slot, kind, key, fac, curseKind, winner, transferTa
     await tray.loaded();
     if(manual){manual.step();manual.step();}
     else await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  }
+  // 跑序歸零（2026-09-17）：上一案 ys:reveal-slot 的推鏡與 ys:reveal-result 的殘留，靠 ys:market 回桌只是「開始回」，
+  // 兩步之後相機還在途中；launch／terminal 的絕對值於是隨前一案是誰而變（v0.57.13 前後 43 案 >1 px 就是這個）。
+  // 這裡跑到相機與托盤都靜止（連續 8 幀位置／姿態／hover 抬升不變）才開始量；上限 900 步（15 秒模擬時間）。
+  {
+    const snap=()=>[...camera.position.toArray(),...camera.quaternion.toArray(),...(tray.group.children.filter(o=>o.visible).map(o=>o.position.y))].map(v=>+v.toFixed(7)).join(',');
+    // 固定步數（不是「跑到靜止為止」）：步數若隨前案而變，紙紮待機動作的相位也跟著變，launch 一樣會漂。
+    // 240 步＝4 秒模擬時間，比鏡頭回桌的補間長；跑完再驗最後 8 步真的靜止，沒靜止就丟錯而不是默默量。
+    let last=snap(),stable=0,steps=0;const SETTLE=240;
+    const tick=()=>{const cur=snap();stable=cur===last?stable+1:0;last=cur;};
+    if(manual){while(steps++<SETTLE){manual.step();tick();}}
+    else{await new Promise(resolve=>{const loop=()=>{tick();if(steps++>=SETTLE)return resolve();requestAnimationFrame(loop);};requestAnimationFrame(loop);});}
+    if(stable<8)throw new Error(`camera did not settle before ${fixture} (${SETTLE} steps, stable ${stable})`);
   }
   // Four copies of this synthetic item are on the live tray. This is a
   // renderer.info snapshot for draw-cost evidence, not a frame-rate sample.
@@ -143,7 +157,7 @@ try{
     const validCurseKinds=new Set(['wedding','guava','water','lock','tiger','boat']);
     const invalidCurseKinds=assets.curses.filter(item=>!item.curseKind||!validCurseKinds.has(item.curseKind));
     if(invalidCurseKinds.length)throw new Error(`Missing or invalid curseKind assets: ${JSON.stringify(invalidCurseKinds)}`);
-    const selected=caseMatrix(assets.pool,assets.curses).filter(testCase=>(!curseOnly||testCase.kind!=='normal')&&(!match||testCase.fixture.includes(match)));for(const testCase of(limit===null?selected:selected.slice(0,limit))){const row=verdict(await page.evaluate(measureCase,testCase));row.viewport=view.id;results.push(row);if(!row.pass)console.error(`FAIL ${view.id} ${row.fixture}: geometry=${row.failures.length} terminal=${row.terminalOK} duration=${row.durationKept}`);}
+    const selected=caseMatrix(assets.pool,assets.curses).filter(testCase=>(!curseOnly||testCase.kind!=='normal')&&(!match||testCase.fixture.includes(match)));const ordered=limit===null?selected:selected.slice(0,limit);for(const testCase of(reverse?[...ordered].reverse():ordered)){const row=verdict(await page.evaluate(measureCase,testCase));row.viewport=view.id;results.push(row);if(!row.pass)console.error(`FAIL ${view.id} ${row.fixture}: geometry=${row.failures.length} terminal=${row.terminalOK} duration=${row.durationKept}`);}
     await context.close();
   }
 }finally{await browser?.close();server.kill();}

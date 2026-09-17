@@ -1,0 +1,117 @@
+{
+  "oldFwdVsRev": {
+    "cases": 81,
+    "launchDiff": 15,
+    "terminalDiff": 1,
+    "maxPx": 179.31900000000002,
+    "passA": 81,
+    "passB": 81,
+    "examples": [
+      {
+        "k": "desktop-1280x720|normal:sigui:slot1:winner0",
+        "dl": 143.03,
+        "dt": 0.17
+      },
+      {
+        "k": "desktop-1280x720|normal:guoyin:slot1:winner0",
+        "dl": 149.15,
+        "dt": 0.09
+      },
+      {
+        "k": "desktop-1280x720|normal:nail:slot1:winner0",
+        "dl": 134.69,
+        "dt": 0
+      }
+    ]
+  },
+  "newFwdVsRev": {
+    "cases": 81,
+    "launchDiff": 8,
+    "terminalDiff": 3,
+    "maxPx": 178.964,
+    "passA": 81,
+    "passB": 81,
+    "examples": [
+      {
+        "k": "desktop-1280x720|normal:sigui:slot1:winner0",
+        "dl": 143.03,
+        "dt": 0.14
+      },
+      {
+        "k": "desktop-1280x720|normal:guoyin:slot1:winner0",
+        "dl": 0.01,
+        "dt": 0.54
+      },
+      {
+        "k": "desktop-1280x720|normal:hairpin:slot1:winner0",
+        "dl": 0,
+        "dt": 0.94
+      }
+    ]
+  },
+  "newFwdVsFwd2": {
+    "cases": 81,
+    "launchDiff": 1,
+    "terminalDiff": 0,
+    "maxPx": 115.68200000000002,
+    "passA": 81,
+    "passB": 81,
+    "examples": [
+      {
+        "k": "desktop-1280x720|normal:shield:slot1:winner0",
+        "dl": 115.68,
+        "dt": 0
+      }
+    ]
+  },
+  "fixedFwdVsRev": {
+    "cases": 81,
+    "launchDiff": 13,
+    "terminalDiff": 1,
+    "maxPx": 177.79299999999995,
+    "passA": 81,
+    "passB": 81,
+    "examples": [
+      {
+        "k": "desktop-1280x720|normal:sigui:slot1:winner0",
+        "dl": 143.03,
+        "dt": 0.1
+      },
+      {
+        "k": "desktop-1280x720|normal:buoy:slot1:winner0",
+        "dl": 133.98,
+        "dt": 0.52
+      },
+      {
+        "k": "desktop-1280x720|normal:chair:slot1:winner0",
+        "dl": 142.96,
+        "dt": 0.17
+      }
+    ]
+  },
+  "fixedFwdVsFwd2": {
+    "cases": 81,
+    "launchDiff": 6,
+    "terminalDiff": 0,
+    "maxPx": 171.18399999999997,
+    "passA": 81,
+    "passB": 81,
+    "examples": [
+      {
+        "k": "desktop-1280x720|normal:balen:slot1:winner0",
+        "dl": 108.36,
+        "dt": 0
+      },
+      {
+        "k": "desktop-1280x720|normal:eye:slot1:winner0",
+        "dl": 107.99,
+        "dt": 0
+      },
+      {
+        "k": "desktop-1280x720|normal:sword:slot1:winner0",
+        "dl": 150.23,
+        "dt": 0
+      }
+    ]
+  }
+}
