@@ -184,7 +184,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
   let rigGoal = null; // 目前想把燈組移去哪（有招在演時）
 
   // 材質模板：clone 出來的 program cache key 相同，27 套怎麼用都只有這兩支 shader
-  const MAT_GLOW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false });
+  const MAT_GLOW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false, forceSinglePass: true });
   const MAT_LINE = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false });
   /* ★v0.55 第三支模板：非加色的實心材質★（凍結檔 Q10）
      盲讀「顏色分不出、全是白的」的機制成因：加色混合的東西一旦亮度越過 bloom 門檻（js/bloom.js:175
@@ -195,7 +195,7 @@ export function createTraitFx(scene, camera, duelFigures, opts = {}) {
      ★這句以前是從 three 的 cacheKey 規則推出來的，不是量出來的（覆審 r1 M3）★：
      下面的 `matPrograms()` 回報三支模板**實際拿到的 program id**（renderer.properties 的 currentProgram），
      `matTemplates` 也改成數陣列長度而不是寫死 3。凍結檔 Q10 寫「program 2→3」，實測值以 matPrograms() 為準。 */
-  const MAT_SOLID = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.NormalBlending, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false });
+  const MAT_SOLID = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, blending: THREE.NormalBlending, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, forceSinglePass: true });
   /** 三支材質模板的清單——`matTemplates` 與 `matPrograms()` 都數這一份，不另寫數字。 */
   const MAT_TEMPLATES = [['MAT_GLOW', MAT_GLOW], ['MAT_LINE', MAT_LINE], ['MAT_SOLID', MAT_SOLID]];
   /* ★徽記尺寸的收斂閘（覆審 r2 N1／N7）★

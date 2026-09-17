@@ -1,0 +1,277 @@
+{
+  "tool": "tests/tools/gl-frame-probe.mjs",
+  "fixture": {
+    "seed": 1,
+    "phase": "round-1 bid",
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 32,
+    "hoverSlot": 1,
+    "frames": 120
+  },
+  "slot": 1,
+  "renderedFrames": 120,
+  "rendersPerSec": 562.6,
+  "programs": {
+    "before": 30,
+    "after": 30
+  },
+  "memory": {
+    "before": {
+      "geometries": 79,
+      "textures": 10
+    },
+    "after": {
+      "geometries": 79,
+      "textures": 10
+    }
+  },
+  "materialsInScene": 77,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 64,
+    "distinctSkeletons": 5,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 26,
+        "root": ""
+      },
+      {
+        "bones": 27,
+        "skeletons": 1,
+        "meshes": 17,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      }
+    ]
+  },
+  "programChurn": {
+    "getParametersPerFrame": 0,
+    "materialsCalled": 0,
+    "materials": [],
+    "versionBumpStacks": []
+  },
+  "glCallsPerFrame": {
+    "uniform3f": 111,
+    "bindVertexArray": 89,
+    "uniform1f": 75,
+    "drawElements": 66,
+    "uniformMatrix4fv": 52,
+    "uniform4fv": 50,
+    "useProgram": 21,
+    "pixelStorei": 20,
+    "texParameteri": 20,
+    "uniformMatrix3fv": 17,
+    "drawArrays": 17,
+    "bindTexture": 10,
+    "uniform2f": 8,
+    "disable": 7,
+    "enable": 7,
+    "frontFace": 6,
+    "texSubImage2D": 5,
+    "bindBuffer": 4,
+    "bufferSubData": 4,
+    "depthMask": 4,
+    "drawArraysInstanced": 4,
+    "blendFuncSeparate": 3,
+    "blendFunc": 3,
+    "uniform1i": 2,
+    "drawElementsInstanced": 2,
+    "clear": 1
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 1
+  },
+  "models": [
+    {
+      "slot": 0,
+      "key": "guoyin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/guoyin.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 1,
+      "key": "yinyangcoin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/yinyangcoin.glb",
+      "visible": true,
+      "outlines": 13
+    },
+    {
+      "slot": 2,
+      "key": "nail",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/nail.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 3,
+      "key": "buoy",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/buoy.glb",
+      "visible": true,
+      "outlines": 0
+    }
+  ],
+  "pixelAB": [
+    {
+      "slot": 0,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27487,
+        "diffPct": 2.0877,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 1,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27782,
+        "diffPct": 2.1101,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 2,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27903,
+        "diffPct": 2.1193,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 3,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 28146,
+        "diffPct": 2.1377,
+        "maxChannelDelta": 154
+      }
+    }
+  ],
+  "errors": []
+}

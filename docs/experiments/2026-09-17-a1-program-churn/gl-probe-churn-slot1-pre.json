@@ -1,0 +1,1224 @@
+{
+  "tool": "tests/tools/gl-frame-probe.mjs",
+  "fixture": {
+    "seed": 1,
+    "phase": "round-1 bid",
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "coins": 32,
+    "hoverSlot": 1,
+    "frames": 120
+  },
+  "slot": 1,
+  "renderedFrames": 120,
+  "rendersPerSec": 587.9,
+  "programs": {
+    "before": 35,
+    "after": 35
+  },
+  "memory": {
+    "before": {
+      "geometries": 79,
+      "textures": 10
+    },
+    "after": {
+      "geometries": 79,
+      "textures": 10
+    }
+  },
+  "materialsInScene": 77,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 64,
+    "distinctSkeletons": 5,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 26,
+        "root": ""
+      },
+      {
+        "bones": 27,
+        "skeletons": 1,
+        "meshes": 17,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      }
+    ]
+  },
+  "programChurn": {
+    "getParametersPerFrame": 10,
+    "materialsCalled": 5,
+    "materials": [
+      {
+        "material": "MeshBasicMaterial",
+        "type": "MeshBasicMaterial",
+        "uuid": "51ec27dd",
+        "callsPerFrame": 2,
+        "changedBetweenCalls": [
+          "draw",
+          "materialVersion",
+          "program",
+          "side",
+          "__version",
+          "frame"
+        ],
+        "userCount": 1,
+        "users": [
+          "Mesh: path=Mesh<Group<Scene geo=PlaneGeometry:4 fog=false toneMapped=false"
+        ],
+        "snaps": [
+          {
+            "frame": 1026,
+            "draw": 71,
+            "materialVersion": 2047,
+            "program": 8,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2047,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          },
+          {
+            "frame": 1026,
+            "draw": 72,
+            "materialVersion": 2048,
+            "program": 7,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 0,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2048,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          },
+          {
+            "frame": 1027,
+            "draw": 71,
+            "materialVersion": 2049,
+            "program": 8,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2049,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "type": "MeshBasicMaterial",
+        "uuid": "491fbf99",
+        "callsPerFrame": 2,
+        "changedBetweenCalls": [
+          "draw",
+          "materialVersion",
+          "program",
+          "side",
+          "__version",
+          "frame"
+        ],
+        "userCount": 1,
+        "users": [
+          "Mesh: path=Mesh<Group<Scene geo=PlaneGeometry:4 fog=false toneMapped=false"
+        ],
+        "snaps": [
+          {
+            "frame": 1026,
+            "draw": 73,
+            "materialVersion": 2047,
+            "program": 8,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2047,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          },
+          {
+            "frame": 1026,
+            "draw": 74,
+            "materialVersion": 2048,
+            "program": 7,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 0,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2048,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          },
+          {
+            "frame": 1027,
+            "draw": 73,
+            "materialVersion": 2049,
+            "program": 8,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 1,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2049,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": false,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 0
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "type": "MeshBasicMaterial",
+        "uuid": "12d887e8",
+        "callsPerFrame": 2,
+        "changedBetweenCalls": [
+          "draw",
+          "materialVersion",
+          "program",
+          "side",
+          "__version",
+          "frame"
+        ],
+        "userCount": 1,
+        "users": [
+          "Mesh:prop-contact-shadows[inst] path=prop-contact-shadows<table-props<table-tray<Scene geo=CircleGeometry:14 fog=true toneMapped=true"
+        ],
+        "snaps": [
+          {
+            "frame": 1026,
+            "draw": 81,
+            "materialVersion": 2043,
+            "program": 27,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.34,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2043,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1026,
+            "draw": 82,
+            "materialVersion": 2044,
+            "program": 26,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.34,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 0,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2044,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1027,
+            "draw": 81,
+            "materialVersion": 2045,
+            "program": 27,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.34,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2045,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "type": "MeshBasicMaterial",
+        "uuid": "0cb856be",
+        "callsPerFrame": 2,
+        "changedBetweenCalls": [
+          "draw",
+          "materialVersion",
+          "program",
+          "side",
+          "__version",
+          "frame"
+        ],
+        "userCount": 1,
+        "users": [
+          "Mesh:tray-cinnabar-runes[inst] path=tray-cinnabar-runes<table-tray<Scene geo=BufferGeometry:144 fog=true toneMapped=true"
+        ],
+        "snaps": [
+          {
+            "frame": 1026,
+            "draw": 84,
+            "materialVersion": 2045,
+            "program": 29,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.78,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": true,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2045,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1026,
+            "draw": 85,
+            "materialVersion": 2046,
+            "program": 28,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.78,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": true,
+            "side": 0,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2046,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1027,
+            "draw": 84,
+            "materialVersion": 2047,
+            "program": 29,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.78,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": true,
+            "side": 1,
+            "blending": 1,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2047,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "type": "MeshBasicMaterial",
+        "uuid": "254d1f5d",
+        "callsPerFrame": 2,
+        "changedBetweenCalls": [
+          "draw",
+          "materialVersion",
+          "program",
+          "side",
+          "__version",
+          "frame"
+        ],
+        "userCount": 1,
+        "users": [
+          "Mesh:tray-moon-benefit[inst] path=tray-moon-benefit<table-tray<Scene geo=RingGeometry:34 fog=true toneMapped=true"
+        ],
+        "snaps": [
+          {
+            "frame": 1026,
+            "draw": 86,
+            "materialVersion": 2043,
+            "program": 27,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.7,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2043,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1026,
+            "draw": 87,
+            "materialVersion": 2044,
+            "program": 26,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.7,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 0,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2044,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          },
+          {
+            "frame": 1027,
+            "draw": 86,
+            "materialVersion": 2045,
+            "program": 27,
+            "alphaTest": 0,
+            "alphaHash": false,
+            "transparent": true,
+            "opacity": 0.7,
+            "map": null,
+            "alphaMap": false,
+            "vertexColors": false,
+            "side": 1,
+            "blending": 2,
+            "depthWrite": false,
+            "dithering": false,
+            "premultipliedAlpha": false,
+            "alphaToCoverage": false,
+            "envMap": null,
+            "fog": "fog",
+            "renderTarget": null,
+            "__version": 2045,
+            "lightsStateVersion": 0,
+            "outputColorSpace": "srgb",
+            "instancing": true,
+            "instancingColor": false,
+            "skinning": false,
+            "numClippingPlanes": 0,
+            "numIntersection": 0,
+            "vertexAlphas": false,
+            "vertexTangents": false,
+            "morphTargets": false,
+            "morphNormals": false,
+            "morphColors": false,
+            "morphTargetsCount": 0,
+            "toneMapping": 4
+          }
+        ]
+      }
+    ],
+    "versionBumpStacks": [
+      {
+        "material": "MeshBasicMaterial",
+        "uuid": "51ec27dd",
+        "stacks": [
+          {
+            "frame": 1146,
+            "draw": 71,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1146,
+            "draw": 72,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 71,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 72,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "uuid": "491fbf99",
+        "stacks": [
+          {
+            "frame": 1146,
+            "draw": 73,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1146,
+            "draw": 74,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 73,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 74,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "uuid": "12d887e8",
+        "stacks": [
+          {
+            "frame": 1146,
+            "draw": 81,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1146,
+            "draw": 82,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 81,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 82,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "uuid": "0cb856be",
+        "stacks": [
+          {
+            "frame": 1146,
+            "draw": 84,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1146,
+            "draw": 85,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 84,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 85,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          }
+        ]
+      },
+      {
+        "material": "MeshBasicMaterial",
+        "uuid": "254d1f5d",
+        "stacks": [
+          {
+            "frame": 1146,
+            "draw": 86,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1146,
+            "draw": 87,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 86,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29725:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          },
+          {
+            "frame": 1147,
+            "draw": 87,
+            "stack": [
+              "at MeshBasicMaterial.set [as version] (eval at evaluate (:311:30), <anonymous>:72:236)",
+              "at set needsUpdate (https://unpkg.com/three@0.158.0/build/three.module.js:9574:38)",
+              "at renderObject (https://unpkg.com/three@0.158.0/build/three.module.js:29729:26)",
+              "at renderObjects (https://unpkg.com/three@0.158.0/build/three.module.js:29705:6)",
+              "at renderScene (https://unpkg.com/three@0.158.0/build/three.module.js:29568:41)",
+              "at WebGLRenderer.render (https://unpkg.com/three@0.158.0/build/three.module.js:29384:5)",
+              "at frame (http://127.0.0.1:8897/js/renderer.js?v=0.57.14&fxvocab=0:368:16)"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "glCallsPerFrame": {
+    "uniform3f": 113,
+    "bindVertexArray": 94,
+    "uniform1f": 77,
+    "drawElements": 68,
+    "uniformMatrix4fv": 58,
+    "uniform4fv": 50,
+    "useProgram": 27,
+    "pixelStorei": 20,
+    "texParameteri": 20,
+    "uniformMatrix3fv": 17,
+    "drawArrays": 17,
+    "frontFace": 16,
+    "bindTexture": 10,
+    "uniform2f": 8,
+    "texSubImage2D": 5,
+    "drawArraysInstanced": 5,
+    "bindBuffer": 4,
+    "bufferSubData": 4,
+    "disable": 4,
+    "depthMask": 4,
+    "enable": 4,
+    "drawElementsInstanced": 4,
+    "blendFuncSeparate": 3,
+    "blendFunc": 3,
+    "uniform1i": 2,
+    "clear": 1
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 1
+  },
+  "models": [
+    {
+      "slot": 0,
+      "key": "guoyin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/guoyin.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 1,
+      "key": "yinyangcoin",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/yinyangcoin.glb",
+      "visible": true,
+      "outlines": 13
+    },
+    {
+      "slot": 2,
+      "key": "nail",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/nail.glb",
+      "visible": true,
+      "outlines": 0
+    },
+    {
+      "slot": 3,
+      "key": "buoy",
+      "curse": false,
+      "curseKind": null,
+      "fac": "yinqi",
+      "moon": true,
+      "ready": true,
+      "glb": "assets/creatures/buoy.glb",
+      "visible": true,
+      "outlines": 0
+    }
+  ],
+  "pixelAB": [
+    {
+      "slot": 0,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27513,
+        "diffPct": 2.0896,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 1,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27804,
+        "diffPct": 2.1117,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 2,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 27894,
+        "diffPct": 2.1186,
+        "maxChannelDelta": 154
+      }
+    },
+    {
+      "slot": 3,
+      "width": 1688,
+      "height": 780,
+      "nonZeroPixelsInA": 1316640,
+      "materials": 5,
+      "shippedForceSinglePass": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "selfRepeat": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "toggled": {
+        "diffPixels": 0,
+        "diffPct": 0,
+        "maxChannelDelta": 0
+      },
+      "backSideControl": {
+        "diffPixels": 28192,
+        "diffPct": 2.1412,
+        "maxChannelDelta": 154
+      }
+    }
+  ],
+  "errors": []
+}

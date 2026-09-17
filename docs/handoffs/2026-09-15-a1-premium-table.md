@@ -120,3 +120,22 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）這次兩者皆過，裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
 
 續接：`/handoff 妖市：接 v0.57.14 真機回饋；A1 桌機相對效能 gate 已綠（32 枚 .427、128 枚 .466），保留 D2／D3 與原門檻。`
+
+
+## 2026-09-17 v0.57.15：兩趟繪製修補——每幀 getParameters 10→0、draw call 94→89
+
+使用者「繼續處理」後接上節第 2 點（`getParameters` 每幀 ≈150 µs、原因未查明）。探針新增 program churn 掃描（包 `Material.prototype.customProgramCacheKey` 精確計數＋攔截 `version` 寫入抓堆疊）：每幀 10 次全來自 5 顆 transparent＋DoubleSide 的 `MeshBasicMaterial`，堆疊落在 Three 0.158 `renderObject`（three.module.js:29725／29729）——對這種材質**分 BackSide／FrontSide 兩趟畫、每趟 `needsUpdate = true`**。五顆是接觸陰影（`js/table-props.js:403`）、硃砂符與月印（`js/table-tray.js:407／412`）、招式特效模板 MAT_GLOW／MAT_SOLID（`js/trait-fx.js:187／198`）。單一修補：各加 `forceSinglePass: true`。規格、RED／GREEN、探針、像素 A/B、五輪與分母交代見 [本卷報告](../experiments/2026-09-17-a1-program-churn/README.md) 與 [凍結驗收](../experiments/2026-09-17-a1-program-churn/acceptance.md)。
+
+- 驗證：91/91 測試（89＋2，新測試經 `tests/tools/three-node-resolver.mjs` 在 Node 真的建構 tray／props／trait-fx 斷言旗標）；真實頁面 getParameters 10→0、draw 94→89、`useProgram` 27→21、program 35→30，骨骼貼圖上傳與 textures 不變；**同幀像素 A/B 四槽翻轉旗標 0 相異像素**（BackSide 負對照 2.1%、同旗標重渲染 0）；矩陣 slot1 399/399；trace seeds 1–20 相等。
+- **正式五輪**：perf32 ratio **.6585、paired 5/5**；perf128 **.6943、paired 5/5、gate128 pass**。calls／tris 下降（94→89、30281→29477）對應修補路徑；但這輪空場分母（844–984）比前卷（≈1170）低約 20%（本機有 Edge／WebView2 共 19 個行程），比值上升要打折，工具只認同支瀏覽器交錯配對的相對值。仍是桌機 Chromium 相對速度比，不等於 Safari fps。
+- 分母交代：`grep DoubleSide` 14 處逐條列在報告——桌面路徑 5 顆已修；水面／人形邊光／地影／餘暉 4 處是**對決專用**、同一機制、未修（下一個候選，需在對決畫面做同幀像素 A/B）；其餘為不透明 MeshStandard 或註解。
+- 未動任何非本 session 的檔案與行程；主 checkout 的 dirty 檔（INDEX.md 等）保留，INDEX.md 仍未改，請 Codex 提交自己的 INDEX 時補列。
+
+### 下一步順序
+
+1. 有手機回饋先處理。**建議玩家在 Safari 真機重測 v0.57.15**（兩卷效能修補疊加後的牌桌流暢度與四槽揭盅）。
+2. A1 效能下一個單一假設：對決畫面同一機制的 4 處 DoubleSide 透明材質（水面碟／緣光／漣漪、邊光、地影、餘暉）——先用 `duel-drive` 或同型治具到對決畫面跑 `pixelAB` 式同幀比對，再加旗標；不得憑牌桌的結果直接套。
+3. 矩陣工具 `table-framing-check.mjs` 桌機視口的跑序依賴（launch／terminal 值隨前案狀態變）仍待修，修前不得拿跨版本逐案分佈當等價證據。
+4. 128 枚 gate 的規格文字差異（中位 vs 逐輪）連續兩卷兩者皆過，裁定仍留給使用者。D2／D3／D5、真機、P4／M-A1 照舊保留。
+
+續接：`/handoff 妖市：接 v0.57.15 真機回饋；A1 桌機相對效能 gate 連兩卷全過（perf32 .6585、perf128 .6943），對決側 4 處 DoubleSide 透明材質為下一候選，保留 D2／D3 與原門檻。`

@@ -400,7 +400,7 @@ export function createTableProps(parent, opts = {}) {
   /* 接觸陰影不是即時燈光：一張共用的扁圓 decal 池，讓銅錢、令牌與桌角信物確實壓住木桌。
      140 個 instance 仍只多 1 draw call，且不開 shadow map／不碰 128 枚銅錢的主幾何預算。 */
   const shadowGeo = new THREE.CircleGeometry(1, 12);
-  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x08040a, transparent: true, opacity: 0.34, depthWrite: false, side: THREE.DoubleSide });
+  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x08040a, transparent: true, opacity: 0.34, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true });
   const contactShadows = new THREE.InstancedMesh(shadowGeo, shadowMat, CHIP_N + 8);
   contactShadows.name = 'prop-contact-shadows';
   contactShadows.count = 0; contactShadows.visible = false; contactShadows.frustumCulled = false;

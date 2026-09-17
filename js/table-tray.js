@@ -404,12 +404,12 @@ export function createTableTray(scene, camera, opts = {}) {
   runeGeo.setAttribute('position', new THREE.Float32BufferAttribute(runePos, 3));
   runeGeo.setAttribute('color', new THREE.Float32BufferAttribute(runeCol, 3));
   ringBase.dispose();
-  const runeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.78, side: THREE.DoubleSide, depthWrite: false });
+  const runeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.78, side: THREE.DoubleSide, depthWrite: false, forceSinglePass: true });
   const runes = new THREE.InstancedMesh(runeGeo, runeMat, N);
   runes.name = 'tray-cinnabar-runes'; runes.frustumCulled = false;
   group.add(runes);
   const moonGeo = new THREE.RingGeometry(0.17, 0.195, 16);
-  const moonMat = new THREE.MeshBasicMaterial({ color: 0xe8bd55, transparent: true, opacity: 0.70, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+  const moonMat = new THREE.MeshBasicMaterial({ color: 0xe8bd55, transparent: true, opacity: 0.70, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, forceSinglePass: true });
   const moonMarks = new THREE.InstancedMesh(moonGeo, moonMat, N);
   moonMarks.name = 'tray-moon-benefit';
   moonMarks.count = 0;
