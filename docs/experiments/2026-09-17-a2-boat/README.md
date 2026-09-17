@@ -178,3 +178,7 @@ python docs/experiments/2026-09-17-a2-boat/specgen/sheet.py
 
 [published-delivery.json](published-delivery.json)：2026-09-17 台灣 19:30 核對，main `2782b62` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.18）與 `assets/creatures/boat.glb` 與本機逐位元組一致。第 3 輪版供試玩，**盲讀狀態＝未過待簽字**，不因發布改判。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.18)。
 
+## 簽字
+
+2026-09-17 使用者「按照建議」：**簽字收 r3 現況**。拼板舟 A2 狀態＝未過（玩具 1/4）、已簽字；三輪紀錄與門檻不動。
+
