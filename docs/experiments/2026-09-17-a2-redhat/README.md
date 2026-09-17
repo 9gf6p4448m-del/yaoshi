@@ -190,3 +190,7 @@ git status --short -- js/ index.html
 | perf32 五輪 | .554（paired 5/5、0.515–0.593）GREEN | 門檻 .40 逐輪 |
 | console／page error | 0 | 所有治具 |
 
+## 公開送達
+
+[published-delivery.json](published-delivery.json)：2026-09-17 台灣 23:44 核對，main `74a09d7` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.20）與 `assets/creatures/redhat.glb` 與本機逐位元組一致。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.20)。
+
