@@ -1,0 +1,99 @@
+{
+ "name": "魔神仔紅帽 redhat_b「錯位的紅衣小孩」(yinqi/haunt 候選乙)",
+ "_role": "乙案「錯位的紅衣小孩」：小孩比例錯位（頭太低、手多一節且太長）＋紅衣紅帽＋濕透拖地的布；材質名一個未增未改名，ghost_skirt（拖地布幅）／ghost_wisp（滴水布角）原樣保留，6:3:1 的三層名單（霧裾群／帽／臉）與基底逐字相同。\n\n（基底＝assets/creatures/redhat.claims.json；除 tri_budget 上限外，每一條門檻逐字沿用，沒有一處放寬：saturation_area 仍 10%–70%、focal_contrast min_ratio 2、share_hierarchy tolerance 0.15、part_signature min_share 0.06 / or_min_span 0.12，五條 part_exists（hat／eye／mouth_glow／ghost_skirt／ghost_wisp）一條不少。識別視角仍是 side。）",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "hat",
+   "stage": "MID",
+   "label": "招牌部位：尖頂紅帽必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "發光眼必須存在，材質名必須正是 eye（three.js 端靠這個名字掛 emissive）"
+  },
+  {
+   "type": "part_exists",
+   "part": "mouth_glow",
+   "stage": "MID",
+   "label": "口內發光體必須存在，材質名必須正是 mouth_glow"
+  },
+  {
+   "type": "part_exists",
+   "part": "ghost_skirt",
+   "stage": "MID",
+   "label": "haunt 的下半身虛化：霧裾必須存在，材質名必須以 ghost_ 開頭（接線卷靠這個前綴掛半透明）"
+  },
+  {
+   "type": "part_exists",
+   "part": "ghost_wisp",
+   "stage": "MID",
+   "label": "haunt 的霧鬚必須存在，材質名必須以 ghost_ 開頭"
+  },
+  {
+   "type": "part_signature",
+   "part": "hat",
+   "view": "side",
+   "min_share": 0.06,
+   "or_min_span": 0.12,
+   "stage": "MID",
+   "label": "招牌部位（尖頂紅帽）在側視圖要撐得起面積或跨距其中一項"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "hat",
+   "b": "skin_head",
+   "min_ratio": 2,
+   "stage": "MID",
+   "label": "兩個焦點（紅帽／臉）不得等重：帽必須明確壓過臉，剪影才認得出是這一隻"
+  },
+  {
+   "type": "share_hierarchy",
+   "primary": [
+    "ghost_skirt",
+    "ghost_wisp"
+   ],
+   "secondary": [
+    "hat"
+   ],
+   "tertiary": [
+    "skin_head"
+   ],
+   "stage": "MID",
+   "label": "6:3:1 階層：霧裾／紅帽／臉"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.7,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%-70%（IP 色裁定放寬後的帶）：管的是多少，不管在哪"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1500,
+   "max": 4439,
+   "stage": "LOW",
+   "label": "三角形預算 ≤4439（＝現版 redhat 3415 × 1.3，A2 派工當下訂的上限）"
+  }
+ ],
+ "_frozen_at": "本檔與 spec 由 build_redhat_variants.mjs 同一次執行寫出，寫在第一次 `judge.mjs` 之前，所以門檻不是照本案實測值挑的。tri_budget 上限 4439 ＝ 現版 redhat 實測 3415 × 1.3（A2 派工當下訂的上限，同 boat_a／boat_b、fushou_a／fushou_b 的寫法）；下限 1500 與基底相同，未動。"
+}

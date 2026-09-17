@@ -1,0 +1,2631 @@
+{
+ "name": "redhat_b",
+ "_variant": "A2 標竿卷第三件 乙案「錯位的紅衣小孩」（redhat_b）。基底＝assets/creatures/redhat.json（出貨版）。改的六件事：① 小孩身形（軀幹短圓肩、頭小）但比例全錯——頸幾乎不抬只往前送，頭低到縮進肩線裡；② 兩條手臂各加一節關節（LElbow2／RElbow2，4 段 → 5 段），整條長到手垂過衣襬；③ 紅衣：robe／sleeve 換成吸飽水的暗紅（HSV S<0.5，刺眼的紅只留給帽），帽改成小孩圓帽＋垂帽簷；④ 猴形臉埋進帽簷陰影：skin_head／skin_jaw 壓暗、頭往帽下縮，只留兩顆紅眼；⑤ 下半身虛化成濕透拖地的布：霧裾改寬鐘形，加 3 片 ghost_skirt 布幅——一側長到及地、一側短一截（不對稱）；⑥ 霧鬚縮成 5 條滴水布角。動畫 clip 名沿用 idle／move／attack。",
+ "_ref": "民俗文獻五條特徵（ref-redhat.md）：① 矮小（約三尺，明顯非成人比例）② 猿猴臉、頂毛稀疏、雙耳上端尖銳、雙眼通紅 ③ 全身多毛／藏綠褐灰膚、指間有蹼 ④ 紅帽或紅衣 ⑤ 身軀四肢佈圓鱗狀斑紋。",
+ "_brief": "A child in a red coat, standing where no child should be. Small round shoulders and a small head — but the proportions are wrong: the neck does not lift, it only pushes FORWARD, so the head sits low and sunk between the shoulders, and both arms carry an EXTRA JOINT and hang far too long, the hands dangling past the hem. The coat and sleeves are a soaked, muddied dark red; the only clean shrill RED is the round CHILD CAP with its drooping brim, which throws the face into shadow so that only two RED pinpoints and the edge of an ape-like muzzle show under it. Below the waist there is no child at all: the coat widens into a soaked dragging CLOTH, three heavy panels of it, one long enough to pool on the ground and one cut a hand shorter — never level. Identity view = side.",
+ "_haunt_skeleton": "haunt 六隻共用：body 鏈由腰往上（Waist→Spine→Chest→NeckB→Neck2），mist 鏈由腰往下（MistRoot→Mist1→Mist2→MistTip）掛在 Waist、腰以下全部 ghost_* 材質；沒有腿鏈。飄浮＝(a) mist 底端 dome 停在 y≈0.06 不落地 (b) idle/move 位移放在 chain 根關節 Waist 的 ty (c) mist 三節各給小角度 rx/rz 讓霧裾滯後。",
+ "_ring_note": "★ compile.js:136 的 corner bevel-skip 會丟掉「距離路徑轉角 r·tan(θ/2)·1.2 以內」的環。body／mist／head／jaw 四條鏈的相鄰段夾角都壓在 10° 附近以內；hat 在 Hat1 刻意留 30° 的歪折（那裡半徑只有 0.046，skip 帶 0.015 < 一格 ring_step 的兩倍，實測沒掉環），兩條手臂的折角配大 ring_step。",
+ "_around_note": "★ 本卷實測（out/mkprobe.py 的八角探針，逐角讀 compiler 的 world normal）：直立的 head 鏈上 around 0=−X 側、90=−Z 背、180=+X 側、270=+Z **正面**。前一版把眼與眉板放在 around 70／74，也就是**後腦**——臉的零件長在頭後面。本版全部改到 240–290 帶。",
+ "_asymmetry": "陰氣＝不對稱、比例錯誤。本隻的不對稱來源：① 兩條手臂各自成鏈（不用 mirror），左臂長 0.35、右臂長 0.19 ② 帽子整體向 +X 傾 13°、帽尖再折 30° ③ 帽沿三片破口碎片長短角度各異、只掛在單側 ④ 濕毛條五根長短不一、非鏡射 ⑤ 頂毛三根非鏡射。頭／頸鏈的 side 一律 0——tiger_a 報告 ⑤-7：mirrored 與 type:eye 是世界座標鏡射，頭鏈只要帶 side 位移，遠側的眼與獠牙就會穿出臉。",
+ "_glow_materials": "eye／mouth_glow —— js/creature-figures.js:51 的 GLOW.test 認得這兩個前綴，會掛 emissive 給 bloom 吃。本版 eye 改成通紅（#ff2a18，文獻「雙眼通紅」），mouth_glow 改成暗血紅的細裂縫（不再是綠色大楔形——前一版六位讀者有兩位把它讀成史萊姆／黏液）。系別的苔綠全部退到霧裾與霧鬚。",
+ "_ghost_materials": "ghost_skirt／ghost_wisp 是 haunt 專用的半透明材質名（腰以下）。js/creature-figures.js 已在 76f6891 接上 /^ghost_/ 分支（opacity 0.62）。",
+ "_ip_colour": "紅帽是 IP 色，claims 的 saturation_area 帶維持 10–70%（2026-09-04 簡報主對話裁定第 2 條），本卷未動。帽本體 #bd1420、破口碎片同材質；紅眼與血紅口縫面積極小。",
+ "_paw_note": "buildPaw 的預設 offset 是 [0, H*0.45 − host[1], L*0.18]，第二項會把手掌的絕對 y 吸到地面。手不在地上，所以兩隻手都自己寫 offset。",
+ "palette": {
+  "robe": {
+   "color": "#6a3d38",
+   "rough": 0.97
+  },
+  "sleeve": {
+   "color": "#5e3733",
+   "rough": 0.97
+  },
+  "stump_arm": {
+   "color": "#5e3733",
+   "rough": 0.97
+  },
+  "hand": {
+   "color": "#6e6656",
+   "rough": 0.9
+  },
+  "claw": {
+   "color": "#9c9179",
+   "rough": 0.55
+  },
+  "skin_head": {
+   "color": "#2a2723",
+   "rough": 0.95
+  },
+  "skin_jaw": {
+   "color": "#33302a",
+   "rough": 0.93
+  },
+  "ear": {
+   "color": "#8f8878",
+   "rough": 0.9
+  },
+  "pelt": {
+   "color": "#464b43",
+   "rough": 0.98
+  },
+  "scale": {
+   "color": "#43503f",
+   "rough": 0.86
+  },
+  "hat": {
+   "color": "#c01824",
+   "rough": 0.7
+  },
+  "ghost_skirt": {
+   "color": "#55524a",
+   "rough": 0.95
+  },
+  "ghost_wisp": {
+   "color": "#5f5a50",
+   "rough": 0.85
+  },
+  "stripe": {
+   "color": "#181818",
+   "rough": 0.92
+  },
+  "fang": {
+   "color": "#a2957a",
+   "rough": 0.5
+  },
+  "eye": {
+   "color": "#ff2a18",
+   "rough": 0.1
+  },
+  "mouth_glow": {
+   "color": "#8f1a12",
+   "rough": 0.25
+  },
+  "ear_inner": {
+   "color": "#241f1a",
+   "rough": 0.95
+  }
+ },
+ "build": "rigid",
+ "shading": {
+  "gradient": {
+   "top": 0.3,
+   "bottom": -0.88
+  },
+  "noise": {
+   "size": 0.018,
+   "amount": 0.26
+  }
+ },
+ "smooth_angle": 26,
+ "joints": {
+  "Waist": [
+   0,
+   0.5,
+   0
+  ],
+  "Spine": {
+   "from": "Waist",
+   "up": 0.168,
+   "fwd": 0.006
+  },
+  "Chest": {
+   "from": "Spine",
+   "up": 0.142,
+   "fwd": 0.01
+  },
+  "NeckB": {
+   "from": "Chest",
+   "up": 0.03,
+   "fwd": 0.046
+  },
+  "Neck2": {
+   "from": "NeckB",
+   "up": 0.016,
+   "fwd": 0.04
+  },
+  "MistRoot": {
+   "from": "Waist",
+   "up": -0.02,
+   "fwd": 0.006
+  },
+  "Mist1": {
+   "from": "MistRoot",
+   "up": -0.158,
+   "fwd": 0.01
+  },
+  "Mist2": {
+   "from": "Mist1",
+   "up": -0.14,
+   "fwd": 0.02
+  },
+  "MistTip": {
+   "from": "Mist2",
+   "up": -0.112,
+   "fwd": 0.03
+  },
+  "HeadRoot": {
+   "from": "Neck2",
+   "up": -0.009,
+   "fwd": -0.023
+  },
+  "Skull": {
+   "from": "HeadRoot",
+   "up": 0.05,
+   "fwd": 0.034
+  },
+  "Brow": {
+   "from": "Skull",
+   "up": 0.03,
+   "fwd": 0.02
+  },
+  "Crown": {
+   "from": "Brow",
+   "up": 0.022,
+   "fwd": 0.002
+  },
+  "JawRoot": {
+   "from": "Skull",
+   "up": -0.02,
+   "fwd": 0.01
+  },
+  "Jaw1": {
+   "from": "JawRoot",
+   "up": -0.018,
+   "fwd": 0.058
+  },
+  "JawTip": {
+   "from": "Jaw1",
+   "up": -0.008,
+   "fwd": 0.036
+  },
+  "HatRoot": {
+   "from": "Brow",
+   "up": -0.026,
+   "fwd": -0.004
+  },
+  "Hat1": {
+   "from": "HatRoot",
+   "up": 0.064,
+   "side": 0.014,
+   "fwd": 0.002
+  },
+  "HatTip": {
+   "from": "Hat1",
+   "up": 0.042,
+   "side": 0.026,
+   "fwd": 0.006
+  },
+  "LArmRoot": {
+   "from": "Chest",
+   "side": 0.044,
+   "up": -0.026,
+   "fwd": 0.004
+  },
+  "LElbow": {
+   "from": "LArmRoot",
+   "side": 0.076,
+   "up": -0.13,
+   "fwd": 0.024
+  },
+  "LWrist": {
+   "from": "LElbow2",
+   "side": 0.012,
+   "up": -0.156,
+   "fwd": 0.03
+  },
+  "LHand": {
+   "from": "LWrist",
+   "side": 0.004,
+   "up": -0.078,
+   "fwd": 0.026
+  },
+  "RArmRoot": {
+   "from": "Chest",
+   "side": -0.03,
+   "up": -0.03,
+   "fwd": 0.01
+  },
+  "RElbow": {
+   "from": "RArmRoot",
+   "side": -0.088,
+   "up": -0.104,
+   "fwd": 0.008
+  },
+  "RWrist": {
+   "from": "RElbow2",
+   "side": 0.01,
+   "up": -0.104,
+   "fwd": 0.056
+  },
+  "RHand": {
+   "from": "RWrist",
+   "side": 0.008,
+   "up": -0.064,
+   "fwd": 0.022
+  },
+  "LElbow2": {
+   "from": "LElbow",
+   "side": 0.02,
+   "up": -0.112,
+   "fwd": 0.04
+  },
+  "RElbow2": {
+   "from": "RElbow",
+   "side": -0.026,
+   "up": -0.15,
+   "fwd": 0.03
+  }
+ },
+ "chains": {
+  "body": [
+   "Waist",
+   "Spine",
+   "Chest",
+   "NeckB",
+   "Neck2"
+  ],
+  "mist": [
+   "MistRoot",
+   "Mist1",
+   "Mist2",
+   "MistTip"
+  ],
+  "head": [
+   "HeadRoot",
+   "Skull",
+   "Brow",
+   "Crown"
+  ],
+  "jaw": [
+   "JawRoot",
+   "Jaw1",
+   "JawTip"
+  ],
+  "hat": [
+   "HatRoot",
+   "Hat1",
+   "HatTip"
+  ],
+  "LArm": [
+   "LArmRoot",
+   "LElbow",
+   "LElbow2",
+   "LWrist",
+   "LHand"
+  ],
+  "RArm": [
+   "RArmRoot",
+   "RElbow",
+   "RElbow2",
+   "RWrist",
+   "RHand"
+  ]
+ },
+ "attach": {
+  "mist": "Waist",
+  "head": "Neck2",
+  "jaw": "Skull",
+  "hat": "Brow",
+  "LArm": "Chest",
+  "RArm": "Chest"
+ },
+ "touch": [
+  [
+   "body",
+   "mist"
+  ],
+  [
+   "body",
+   "head"
+  ],
+  [
+   "head",
+   "jaw"
+  ],
+  [
+   "head",
+   "hat"
+  ],
+  [
+   "body",
+   "LArm"
+  ],
+  [
+   "body",
+   "RArm"
+  ]
+ ],
+ "volumes": [
+  {
+   "chain": "body",
+   "material": "robe",
+   "sides": 10,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.09,
+     0.082,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.3,
+     0.104,
+     0.094,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.64,
+     0.126,
+     0.104,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     0.8,
+     0.086,
+     0.07,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.92,
+     0.048,
+     0.042,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.042,
+     0.038,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "dome",
+    "none"
+   ],
+   "ring_step": 0.019,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 36,
+      "color": "#272e29"
+     },
+     {
+      "from": 72,
+      "to": 108,
+      "color": "#3c4a3f"
+     },
+     {
+      "from": 144,
+      "to": 180,
+      "color": "#272e29"
+     },
+     {
+      "from": 216,
+      "to": 252,
+      "color": "#3c4a3f"
+     },
+     {
+      "from": 288,
+      "to": 324,
+      "color": "#272e29"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "mist",
+   "material": "ghost_skirt",
+   "sides": 10,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.08,
+     0.074,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.18,
+     0.124,
+     0.11,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.34,
+     0.112,
+     0.098,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     0.52,
+     0.142,
+     0.124,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.68,
+     0.124,
+     0.106,
+     {
+      "exp": 5,
+      "sharp": true
+     }
+    ],
+    [
+     0.84,
+     0.1,
+     0.086,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.046,
+     0.04,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.014,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 40,
+      "color": "#3b3a34"
+     },
+     {
+      "from": 80,
+      "to": 120,
+      "color": "#46543f"
+     },
+     {
+      "from": 160,
+      "to": 200,
+      "color": "#3b3a34"
+     },
+     {
+      "from": 240,
+      "to": 280,
+      "color": "#46543f"
+     },
+     {
+      "from": 320,
+      "to": 360,
+      "color": "#3b3a34"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "head",
+   "material": "skin_head",
+   "sides": 9,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.026,
+     0.024,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.22,
+     0.056,
+     0.052,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.58,
+     0.06,
+     0.056,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.84,
+     0.046,
+     0.042,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.026,
+     0.024,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.013,
+   "colors": {
+    "arcs": [
+     {
+      "from": 240,
+      "to": 320,
+      "color": "#57503f"
+     },
+     {
+      "from": 80,
+      "to": 120,
+      "color": "#33302a"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "jaw",
+   "material": "skin_jaw",
+   "sides": 8,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.034,
+     0.03,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.46,
+     0.054,
+     0.038,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.78,
+     0.044,
+     0.028,
+     {
+      "exp": 4.8,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.024,
+     0.018,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.009,
+   "colors": {
+    "arcs": [
+     {
+      "from": 135,
+      "to": 225,
+      "color": "#2c2925"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "hat",
+   "material": "hat",
+   "sides": 12,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.04,
+     0.038,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.1,
+     0.086,
+     0.083,
+     {
+      "exp": 4
+     }
+    ],
+    [
+     0.24,
+     0.146,
+     0.141,
+     {
+      "exp": 3.4,
+      "sharp": true
+     }
+    ],
+    [
+     0.34,
+     0.12,
+     0.116,
+     {
+      "exp": 3.8,
+      "sharp": true
+     }
+    ],
+    [
+     0.56,
+     0.1,
+     0.096,
+     {
+      "exp": 4.6
+     }
+    ],
+    [
+     0.8,
+     0.08,
+     0.077,
+     {
+      "exp": 4.6,
+      "sharp": true
+     }
+    ],
+    [
+     1,
+     0.03,
+     0.029,
+     {
+      "exp": 4.6
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.016,
+   "colors": {
+    "arcs": [
+     {
+      "from": 0,
+      "to": 48,
+      "color": "#78101a"
+     },
+     {
+      "from": 144,
+      "to": 180,
+      "color": "#78101a"
+     }
+    ]
+   },
+   "faceted": true
+  },
+  {
+   "chain": "LArm",
+   "material": "sleeve",
+   "sides": 7,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.048,
+     0.052,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.34,
+     0.032,
+     0.035,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.7,
+     0.026,
+     0.028,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     1,
+     0.018,
+     0.017,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.032,
+   "faceted": true
+  },
+  {
+   "chain": "RArm",
+   "material": "stump_arm",
+   "sides": 7,
+   "smooth_angle": 26,
+   "profile": [
+    [
+     0,
+     0.032,
+     0.035,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.34,
+     0.029,
+     0.032,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     0.7,
+     0.024,
+     0.026,
+     {
+      "exp": 4.8
+     }
+    ],
+    [
+     1,
+     0.017,
+     0.016,
+     {
+      "exp": 4.8
+     }
+    ]
+   ],
+   "caps": [
+    "none",
+    "dome"
+   ],
+   "ring_step": 0.03,
+   "faceted": true
+  }
+ ],
+ "parts": [
+  {
+   "type": "eye",
+   "host": "Brow",
+   "material": "eye",
+   "size": 0.031,
+   "_note": "★ 不用 anchor：type:eye 帶 anchor 時第二顆是用 around→−around 生的，而直立鏈的 dir(θ)=(−cosθ,0,−sinθ)，−θ 只翻 z 不翻 x——兩顆眼會變成一前一後（前一版就是這樣，眼睛長在後腦，judge 量到 eye 側視 share = 0）。不帶 anchor 走 host+face/spread/height，side=+X，兩顆才真的左右對稱。",
+   "face": 0.048,
+   "spread": 0.032,
+   "height": -0.022
+  },
+  {
+   "type": "fin",
+   "host": "Brow",
+   "material": "stripe",
+   "thickness": 0.024,
+   "conform": false,
+   "anchor": {
+    "chain": "head",
+    "t": 0.8,
+    "around": 248
+   },
+   "udir": [
+    0.42,
+    0,
+    0.91
+   ],
+   "vdir": [
+    0.1,
+    0.99,
+    0
+   ],
+   "points": [
+    [
+     -0.034,
+     -0.004
+    ],
+    [
+     0.074,
+     -0.01
+    ],
+    [
+     0.082,
+     0.014
+    ],
+    [
+     -0.03,
+     0.02
+    ]
+   ],
+   "mirrored": true
+  },
+  {
+   "type": "curve",
+   "host": "Crown",
+   "material": "pelt",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.016,
+    -0.004,
+    0.014
+   ],
+   "dir": [
+    0.42,
+    0.62,
+    0.66
+   ],
+   "segments": [
+    {
+     "len": 0.036,
+     "r": 0.008
+    },
+    {
+     "len": 0.03,
+     "r": 0.002,
+     "rise": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Crown",
+   "material": "pelt",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.02,
+    -0.008,
+    0.006
+   ],
+   "dir": [
+    -0.52,
+    0.7,
+    0.48
+   ],
+   "segments": [
+    {
+     "len": 0.028,
+     "r": 0.007
+    },
+    {
+     "len": 0.024,
+     "r": 0.002,
+     "rise": 26,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Brow",
+   "material": "pelt",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.006,
+    0.014,
+    -0.04
+   ],
+   "dir": [
+    -0.12,
+    0.6,
+    -0.79
+   ],
+   "segments": [
+    {
+     "len": 0.042,
+     "r": 0.007
+    },
+    {
+     "len": 0.032,
+     "r": 0.002,
+     "rise": 14,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "spike",
+   "host": "Jaw1",
+   "material": "mouth_glow",
+   "sides": 6,
+   "offset": [
+    0,
+    -0.016,
+    0.022
+   ],
+   "dir": [
+    0,
+    -0.3,
+    1
+   ],
+   "segments": [
+    {
+     "len": 0.046,
+     "r": 0.026
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Jaw1",
+   "material": "fang",
+   "sides": 5,
+   "offset": [
+    0.02,
+    -0.006,
+    0.034
+   ],
+   "dir": [
+    0.16,
+    -1,
+    0.22
+   ],
+   "segments": [
+    {
+     "len": 0.036,
+     "r": 0.008
+    },
+    {
+     "len": 0.03,
+     "r": 0.002,
+     "behind": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "Jaw1",
+   "material": "fang",
+   "sides": 5,
+   "offset": [
+    -0.019,
+    -0.006,
+    0.03
+   ],
+   "dir": [
+    -0.14,
+    -1,
+    0.26
+   ],
+   "segments": [
+    {
+     "len": 0.023,
+     "r": 0.007
+    },
+    {
+     "len": 0.018,
+     "r": 0.002,
+     "behind": 16,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "LHand",
+   "material": "hand",
+   "size": [
+    0.062,
+    0.026,
+    0.072
+   ],
+   "offset": [
+    0,
+    -0.01,
+    0.026
+   ]
+  },
+  {
+   "type": "paw",
+   "host": "RHand",
+   "material": "hand",
+   "size": [
+    0.05,
+    0.022,
+    0.054
+   ],
+   "offset": [
+    0,
+    -0.008,
+    0.022
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "LHand",
+   "material": "hand",
+   "thickness": 0.006,
+   "conform": false,
+   "udir": [
+    0.1,
+    -0.1,
+    0.99
+   ],
+   "vdir": [
+    0.99,
+    0.06,
+    -0.1
+   ],
+   "offset": [
+    0,
+    -0.012,
+    0.026
+   ],
+   "points": [
+    [
+     -0.024,
+     -0.03
+    ],
+    [
+     0.048,
+     -0.038
+    ],
+    [
+     0.058,
+     0.002
+    ],
+    [
+     0.046,
+     0.04
+    ],
+    [
+     -0.024,
+     0.032
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "claw",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.012,
+    -0.012,
+    0.018
+   ],
+   "dir": [
+    0.3,
+    -0.34,
+    0.89
+   ],
+   "segments": [
+    {
+     "len": 0.0689,
+     "r": 0.0116
+    },
+    {
+     "len": 0.0574,
+     "r": 0.0029,
+     "fall": 22,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "claw",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.006,
+    -0.014,
+    0.02
+   ],
+   "dir": [
+    -0.06,
+    -0.4,
+    0.91
+   ],
+   "segments": [
+    {
+     "len": 0.082,
+     "r": 0.0116
+    },
+    {
+     "len": 0.0664,
+     "r": 0.0029,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "LHand",
+   "material": "claw",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    -0.02,
+    -0.01,
+    0.014
+   ],
+   "dir": [
+    -0.38,
+    -0.3,
+    0.87
+   ],
+   "segments": [
+    {
+     "len": 0.0599,
+     "r": 0.0101
+    },
+    {
+     "len": 0.0484,
+     "r": 0.0029,
+     "fall": 26,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "RHand",
+   "material": "claw",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.012,
+    -0.004,
+    0.016
+   ],
+   "dir": [
+    0.87,
+    -0.31,
+    0.38
+   ],
+   "segments": [
+    {
+     "len": 0.0238,
+     "r": 0.0101
+    },
+    {
+     "len": 0.0189,
+     "r": 0.0029,
+     "fall": 24,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "host": "RHand",
+   "material": "claw",
+   "sides": 4,
+   "smooth_angle": 26,
+   "offset": [
+    0.004,
+    -0.014,
+    0.014
+   ],
+   "dir": [
+    0.66,
+    -0.7,
+    0.28
+   ],
+   "segments": [
+    {
+     "len": 0.0279,
+     "r": 0.0101
+    },
+    {
+     "len": 0.023,
+     "r": 0.0029,
+     "fall": 20,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Hat1",
+   "material": "hat",
+   "thickness": 0.009,
+   "anchor": {
+    "chain": "hat",
+    "t": 0.25,
+    "around": 170
+   },
+   "udir": [
+    0.86,
+    -0.3,
+    0.42
+   ],
+   "vdir": [
+    0.2,
+    0.2,
+    -0.96
+   ],
+   "points": [
+    [
+     -0.0211,
+     -0.0138
+    ],
+    [
+     0.1652,
+     0.0069
+    ],
+    [
+     -0.0142,
+     0.0345
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Hat1",
+   "material": "hat",
+   "thickness": 0.009,
+   "anchor": {
+    "chain": "hat",
+    "t": 0.268,
+    "around": 218
+   },
+   "udir": [
+    0.24,
+    0.14,
+    0.96
+   ],
+   "vdir": [
+    0.94,
+    0.1,
+    -0.26
+   ],
+   "points": [
+    [
+     -0.0165,
+     -0.0115
+    ],
+    [
+     0.1238,
+     -0.0161
+    ],
+    [
+     0.0985,
+     0.0276
+    ],
+    [
+     -0.0119,
+     0.0299
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Hat1",
+   "material": "hat",
+   "thickness": 0.009,
+   "anchor": {
+    "chain": "hat",
+    "t": 0.286,
+    "around": 322
+   },
+   "udir": [
+    -0.9,
+    -0.16,
+    -0.4
+   ],
+   "vdir": [
+    -0.22,
+    0.18,
+    0.94
+   ],
+   "points": [
+    [
+     -0.0096,
+     -0.0092
+    ],
+    [
+     0.0801,
+     0.0046
+    ],
+    [
+     -0.005,
+     0.0253
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Skull",
+   "material": "ear",
+   "thickness": 0.017,
+   "conform": false,
+   "mirrored": true,
+   "anchor": {
+    "chain": "head",
+    "t": 0.5,
+    "around": 196
+   },
+   "udir": [
+    0.72,
+    0.69,
+    0
+   ],
+   "vdir": [
+    -0.69,
+    0.72,
+    0
+   ],
+   "points": [
+    [
+     -0.0187,
+     -0.0216
+    ],
+    [
+     0.0072,
+     -0.0403
+    ],
+    [
+     0.0446,
+     -0.036
+    ],
+    [
+     0.0893,
+     -0.0115
+    ],
+    [
+     0.1195,
+     0.0115
+    ],
+    [
+     0.0619,
+     0.0216
+    ],
+    [
+     0.0173,
+     0.0274
+    ],
+    [
+     -0.0144,
+     0.0187
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "host": "Skull",
+   "material": "ear_inner",
+   "thickness": 0.021,
+   "conform": false,
+   "mirrored": true,
+   "anchor": {
+    "chain": "head",
+    "t": 0.5,
+    "around": 196
+   },
+   "udir": [
+    0.72,
+    0.69,
+    0
+   ],
+   "vdir": [
+    -0.69,
+    0.72,
+    0
+   ],
+   "points": [
+    [
+     -0.0058,
+     -0.013
+    ],
+    [
+     0.0101,
+     -0.0259
+    ],
+    [
+     0.0418,
+     -0.0223
+    ],
+    [
+     0.0763,
+     -0.0072
+    ],
+    [
+     0.0936,
+     0.0065
+    ],
+    [
+     0.0518,
+     0.013
+    ],
+    [
+     0.0173,
+     0.0166
+    ],
+    [
+     -0.0043,
+     0.0108
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "soaked dragging cloth @Mist1",
+   "host": "Mist1",
+   "material": "ghost_skirt",
+   "thickness": 0.012,
+   "conform": false,
+   "smooth_angle": 26,
+   "udir": [
+    0.38,
+    0,
+    0.92
+   ],
+   "vdir": [
+    -0.37,
+    0.92,
+    -0.151
+   ],
+   "offset": [
+    0.118,
+    0.016,
+    0.048
+   ],
+   "points": [
+    [
+     -0.078,
+     0.032
+    ],
+    [
+     0.076,
+     0.026
+    ],
+    [
+     0.088,
+     -0.166
+    ],
+    [
+     0.012,
+     -0.25
+    ],
+    [
+     -0.086,
+     -0.146
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "soaked dragging cloth @Mist1",
+   "host": "Mist1",
+   "material": "ghost_skirt",
+   "thickness": 0.012,
+   "conform": false,
+   "smooth_angle": 26,
+   "udir": [
+    -0.92,
+    0,
+    0.39
+   ],
+   "vdir": [
+    0.387,
+    0.92,
+    0.1
+   ],
+   "offset": [
+    -0.124,
+    0.01,
+    -0.032
+   ],
+   "points": [
+    [
+     -0.07,
+     0.028
+    ],
+    [
+     0.068,
+     0.034
+    ],
+    [
+     0.08,
+     -0.068
+    ],
+    [
+     0.006,
+     -0.12
+    ],
+    [
+     -0.076,
+     -0.056
+    ]
+   ]
+  },
+  {
+   "type": "fin",
+   "_c": "soaked dragging cloth @Mist1",
+   "host": "Mist1",
+   "material": "ghost_skirt",
+   "thickness": 0.011,
+   "conform": false,
+   "smooth_angle": 26,
+   "udir": [
+    -0.3,
+    0,
+    -0.95
+   ],
+   "vdir": [
+    0.124,
+    0.92,
+    0.38
+   ],
+   "offset": [
+    -0.04,
+    0.02,
+    -0.122
+   ],
+   "points": [
+    [
+     -0.058,
+     0.03
+    ],
+    [
+     0.06,
+     0.022
+    ],
+    [
+     0.068,
+     -0.082
+    ],
+    [
+     -0.004,
+     -0.132
+    ],
+    [
+     -0.064,
+     -0.062
+    ]
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "drip of soaked cloth @Mist2",
+   "host": "Mist2",
+   "material": "ghost_wisp",
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    0.052,
+    0.008,
+    0.092
+   ],
+   "dir": [
+    0.09,
+    -0.98,
+    0.17
+   ],
+   "segments": [
+    {
+     "len": 0.052,
+     "r": 0.018
+    },
+    {
+     "len": 0.034,
+     "r": 0.008,
+     "fall": 14,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "drip of soaked cloth @Mist2",
+   "host": "Mist2",
+   "material": "ghost_wisp",
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    -0.07,
+    0.006,
+    0.062
+   ],
+   "dir": [
+    -0.11,
+    -0.98,
+    0.14
+   ],
+   "segments": [
+    {
+     "len": 0.04,
+     "r": 0.014
+    },
+    {
+     "len": 0.026,
+     "r": 0.006,
+     "fall": 16,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "drip of soaked cloth @Mist2",
+   "host": "Mist2",
+   "material": "ghost_wisp",
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    0.02,
+    0.004,
+    -0.098
+   ],
+   "dir": [
+    0.06,
+    -0.98,
+    -0.16
+   ],
+   "segments": [
+    {
+     "len": 0.058,
+     "r": 0.012
+    },
+    {
+     "len": 0.04,
+     "r": 0.006,
+     "fall": 10
+    },
+    {
+     "len": 0.024,
+     "r": 0.003,
+     "fall": 12,
+     "taper": true
+    }
+   ]
+  },
+  {
+   "type": "curve",
+   "_c": "drip of soaked cloth @Mist1",
+   "host": "Mist1",
+   "material": "ghost_wisp",
+   "sides": 5,
+   "smooth_angle": 26,
+   "offset": [
+    -0.118,
+    0.01,
+    0.034
+   ],
+   "dir": [
+    -0.17,
+    -0.98,
+    0.08
+   ],
+   "segments": [
+    {
+     "len": 0.112,
+     "r": 0.016
+    },
+    {
+     "len": 0.078,
+     "r": 0.006,
+     "fall": 18,
+     "taper": true
+    }
+   ]
+  }
+ ],
+ "animations": {
+  "idle": {
+   "duration": 3,
+   "loop": true,
+   "_note": "陰氣的節奏＝hold＋突跳（ART_BIBLE §3）。身體與頭是「停住很久、忽然跳一格、再停住」，霧裾則是連續平滑的漂移——兩種拍子錯開，看久了會覺得不對。",
+   "tracks": {
+    "Waist": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.34,
+       0.004
+      ],
+      [
+       0.38,
+       0.03
+      ],
+      [
+       0.62,
+       0.027
+      ],
+      [
+       0.66,
+       0.006
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       -1
+      ],
+      [
+       0.38,
+       -1
+      ],
+      [
+       0.42,
+       2.5
+      ],
+      [
+       0.8,
+       2
+      ],
+      [
+       0.84,
+       -1
+      ],
+      [
+       1,
+       -1
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       1.5
+      ],
+      [
+       0.36,
+       1.5
+      ],
+      [
+       0.4,
+       -3.5
+      ],
+      [
+       0.74,
+       -3
+      ],
+      [
+       0.78,
+       1.5
+      ],
+      [
+       1,
+       1.5
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.22,
+       0
+      ],
+      [
+       0.26,
+       13
+      ],
+      [
+       0.58,
+       12
+      ],
+      [
+       0.62,
+       -5
+      ],
+      [
+       0.9,
+       -5
+      ],
+      [
+       0.94,
+       0
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       2
+      ],
+      [
+       0.25,
+       2
+      ],
+      [
+       0.29,
+       -4
+      ],
+      [
+       0.88,
+       -4
+      ],
+      [
+       0.92,
+       2
+      ],
+      [
+       1,
+       2
+      ]
+     ]
+    },
+    "JawRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0
+      ],
+      [
+       0.54,
+       7
+      ],
+      [
+       0.63,
+       1
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "MistRoot": {
+     "rz": [
+      [
+       0,
+       1.5
+      ],
+      [
+       0.5,
+       -1.5
+      ],
+      [
+       1,
+       1.5
+      ]
+     ]
+    },
+    "Mist1": {
+     "rz": [
+      [
+       0,
+       -2.5
+      ],
+      [
+       0.35,
+       2.5
+      ],
+      [
+       0.7,
+       -1.5
+      ],
+      [
+       1,
+       -2.5
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       3.5
+      ],
+      [
+       0.5,
+       -3.5
+      ],
+      [
+       1,
+       3.5
+      ]
+     ]
+    },
+    "Mist2": {
+     "rz": [
+      [
+       0,
+       2.5
+      ],
+      [
+       0.5,
+       -3.5
+      ],
+      [
+       1,
+       2.5
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.44,
+       0
+      ],
+      [
+       0.48,
+       -6
+      ],
+      [
+       0.86,
+       -5
+      ],
+      [
+       0.9,
+       0
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LWrist": {
+     "rx": [
+      [
+       0,
+       2
+      ],
+      [
+       0.3,
+       2
+      ],
+      [
+       0.34,
+       -7
+      ],
+      [
+       0.7,
+       -6
+      ],
+      [
+       0.74,
+       2
+      ],
+      [
+       1,
+       2
+      ]
+     ]
+    },
+    "RArmRoot": {
+     "rx": [
+      [
+       0,
+       1
+      ],
+      [
+       0.55,
+       1
+      ],
+      [
+       0.59,
+       -4
+      ],
+      [
+       0.92,
+       -3
+      ],
+      [
+       0.96,
+       1
+      ],
+      [
+       1,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  "move": {
+   "duration": 1.1,
+   "loop": true,
+   "_note": "飄移：位移全放在 chain 根關節 Waist 的 ty/tz（放中段會 anim_integrity 撕皮）；上下半身的拍子刻意不同步。",
+   "tracks": {
+    "Waist": {
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.22,
+       0.044
+      ],
+      [
+       0.48,
+       0.008
+      ],
+      [
+       0.72,
+       0.042
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       0.028
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       3
+      ],
+      [
+       0.5,
+       -3
+      ],
+      [
+       1,
+       3
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       -3
+      ],
+      [
+       0.55,
+       3
+      ],
+      [
+       1,
+       -3
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "ry": [
+      [
+       0,
+       5
+      ],
+      [
+       0.42,
+       -6
+      ],
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    "MistRoot": {
+     "rx": [
+      [
+       0,
+       -6
+      ],
+      [
+       0.5,
+       5
+      ],
+      [
+       1,
+       -6
+      ]
+     ]
+    },
+    "Mist1": {
+     "rx": [
+      [
+       0,
+       8
+      ],
+      [
+       0.4,
+       -7
+      ],
+      [
+       0.8,
+       6
+      ],
+      [
+       1,
+       8
+      ]
+     ]
+    },
+    "Mist2": {
+     "rx": [
+      [
+       0,
+       -9
+      ],
+      [
+       0.5,
+       9
+      ],
+      [
+       1,
+       -9
+      ]
+     ],
+     "rz": [
+      [
+       0,
+       4
+      ],
+      [
+       0.5,
+       -4
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       -9
+      ],
+      [
+       0.5,
+       9
+      ],
+      [
+       1,
+       -9
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       6
+      ],
+      [
+       0.5,
+       -6
+      ],
+      [
+       1,
+       6
+      ]
+     ]
+    },
+    "RArmRoot": {
+     "rx": [
+      [
+       0,
+       6
+      ],
+      [
+       0.5,
+       -6
+      ],
+      [
+       1,
+       6
+      ]
+     ]
+    }
+   }
+  },
+  "attack": {
+   "duration": 0.85,
+   "loop": false,
+   "_note": "招式「迷途」：先有一拍靜止（0→0.18），再壓低帽沿前俯、頭繞向側邊，長臂整條往前撈。位移放在 Waist。",
+   "tracks": {
+    "Waist": {
+     "tz": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       -0.055
+      ],
+      [
+       0.6,
+       0.245
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ty": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       0.038
+      ],
+      [
+       0.6,
+       -0.02
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Spine": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       -7
+      ],
+      [
+       0.6,
+       11
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "NeckB": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       -8
+      ],
+      [
+       0.6,
+       15
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "HeadRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       -6
+      ],
+      [
+       0.6,
+       18
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       13
+      ],
+      [
+       0.7,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "JawRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       -4
+      ],
+      [
+       0.52,
+       21
+      ],
+      [
+       0.76,
+       5
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LArmRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       18
+      ],
+      [
+       0.58,
+       -29
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "ry": [
+      [
+       0,
+       0
+      ],
+      [
+       0.32,
+       -8
+      ],
+      [
+       0.58,
+       12
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "LElbow": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       14
+      ],
+      [
+       0.58,
+       -18
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "RArmRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.18,
+       0
+      ],
+      [
+       0.32,
+       10
+      ],
+      [
+       0.58,
+       -14
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "MistRoot": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.32,
+       9
+      ],
+      [
+       0.62,
+       -11
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Mist1": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.36,
+       -8
+      ],
+      [
+       0.66,
+       10
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    },
+    "Mist2": {
+     "rx": [
+      [
+       0,
+       0
+      ],
+      [
+       0.42,
+       8
+      ],
+      [
+       0.72,
+       -9
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "_harden3a": "硬化批 3A：faceted 全開＋ring_step ×0.8（hat 折角維持原值）；尖耳由 curve 小角改 fin 大板（ear 提亮 #443f36→#8f8878 ＋ ear_inner #241f1a 暗窩，法線朝前）；不對稱＝長臂前伸出袍外（0.347→約 0.46）、短臂縮到約 0.13，比 1.69×→約 3.5×。",
+ "_harden3a2": "回修 3A-2（使用者改裁甲＋乙）：短臂改橫過胸口。RArm 四節重排——根往前推到 fwd 0.064（仍在 robe 內，root_containment 未破）、前臂橫跨到 x=+0.042、臂軸 z≈0.17 比胸前面 z≈0.135 多出一個管徑；兩臂長度比 3.21×→ 2.53×（橫跨要有行程，這是代價）。短臂 volume 與 RHand paw 改新材質 stump_arm #9a9079（骨色殘肢）——共用 sleeve 時盲讀 2/2 都只讀到一隻手，換色後才有讀者寫出「雙手」。三輪六位仍無人說出「一長一短／一臂橫胸」→ 未達，報告：docs/experiments/2026-09-04-harden3A2-redhat-report.md。",
+ "_traps": [
+  "① checks.js:223 proportion：同一鍵上相鄰兩段的 min/max 比 > 0.923 就 BLOCK（dead rhythm），且兩段都要 ≥ 0.5×該鍵平均段長才會被檢。重排手臂時把上臂與前臂做成等長（各 0.0696）即遇 BLOCK；口徑寫「ai​m for ~0.62–0.85」但實際只擋 0.923 以上，舊版 RArm 的0.51 一直是過的。做法：任意兩相鄰段差 ≥ 8%。",
+  "② 完全落在躯幹剪影內、且與袖子同材質的手臂，盲讀讀者不會把它當成肢體（第 1 輪 2/2 只描述一隻手）；換成高明度材質後才被登記。但再加上可見胘彎（第 3 輪）就反而被讀成「肩上披的碎布」與「握著一顆蛋」——同 shield ⑧⑨：低多邊形無貼圖下，貼在躯幹上的淺色塊無法與「戴上去的東西」區分。"
+ ],
+ "_traps_a2": "A2 乙案新記：① 手臂加一節＝chains.LArm 由 4 個關節變 5 個，animations 的 tracks 只認名字，原有的 LArmRoot／LElbow／LWrist 都還在，所以三支 clip 一字不用改；但 proportion（checks.js:223）是逐對相鄰段檢查，段數變多＝要檢查的對數變多，五段的長度必須兩兩差 ≥8%（本案 0.062／0.151／0.120／0.159／0.083）。② 紅衣要過 saturation_area（tq ≤70%）就不能用純紅：吸飽水的暗紅 #6a3d38 的 HSV S＝0.472 < 0.50，judge.mjs:126 的門檻是 S≥0.50，所以大面積的衣不計入高飽和、刺眼的紅全留給帽——這同時就是 ART_BIBLE.md:41 「濕黑＋一點刺眼的紅」的做法，不是為了閃門檻。③ 拖地布幅用 host+offset+conform:false 的 fin：anchor 會把布壓平貼回霧裾表面、讀成貼紙；布幅的根要埋進霧裾半徑之內才過 part_attachment。"
+}
