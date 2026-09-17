@@ -143,3 +143,8 @@ node tests/tools/creature-shoot.mjs docs/experiments/2026-09-17-a2-dashiye/stage
 
 [published-delivery.json](published-delivery.json)：2026-09-18 台灣 00:29 核對，main `363812a` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.21）與 `assets/creatures/dashiye.glb` 與本機逐位元組一致。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.21)。
 
+### 使用者簽字（2026-09-18，原話「按照建議」）
+
+1. 護心鏡 0/6：**簽收現況**，不再追；「圓盤＝鏡」與「碗＝燈」同族，要讀出來需反光貼圖／自發光，列 S7 後續題。
+2. 鏡位胸前→腹前：**甲 維持改後版**（0.57.21 出貨版即定版）；`before/` 三檔留作紀錄。
+
