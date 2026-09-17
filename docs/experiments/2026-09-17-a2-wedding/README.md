@@ -260,3 +260,7 @@ python tests/tools/a2-curse-sheet.py docs/experiments/2026-09-17-a2-wedding/shee
 - `tests/curse-migration.test.mjs` 不載入 `js/table-tray.js`，對造型是零鑑別力（agent 查出）；造型的機械證據是取景矩陣 `--curse-only`。
 - `table-framing-check.mjs` 沒有 `--port` 參數（埠寫死 8992），未知旗標被靜默吃掉。
 
+### 送達證明
+
+[published-delivery.json](published-delivery.json)：2026-09-18 台灣 01:59 核對，main `1e09f7a` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.22）與本機逐位元組一致，`js/table-tray.js` 與 HEAD blob 逐位元組一致。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.22)。
+
