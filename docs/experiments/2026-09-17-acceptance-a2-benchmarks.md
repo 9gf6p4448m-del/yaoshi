@@ -20,4 +20,5 @@
 
 - **S0（2026-09-17，使用者「按照建議」）**：詛咒件＝冥婚紅包；拼板舟出甲（保留船形＋船首眼＋人形划手）、乙（直立化「載靈的舟形神轎」）兩案並排、丙（現版微修）當對照；「我方單一」增益語彙＝甲（只在受益那一尊腳下亮系色圈 `st.bodySpot`＋道具落到它手上）。#7 詛咒件由此填入即凍結。
 - **S1（2026-09-17）**：`tests/tools/a2-sheet.mjs`（實際桌面大小 844×390 hover＋滿編 8v8 兩情境截圖與硬指標；`--glb=` 用靜態覆蓋根換變體，不改產品碼）與 `tests/tools/a2-sheet.py`（hero／stage／table／duel 四列 × 方案欄 contact sheet）。現版拼板舟跑通：table calls 59／tris 29589、主體框 173×158 px、4 槽 ready；duel 8v8 三隻拼板舟 visible、兩 rAF draw 594、errors=[]（`docs/experiments/2026-09-17-a2-boat/metrics-base.json`）。
+- **S2 拼板舟（2026-09-17）**：#1 兩案 contact sheet＋使用者挑選原話「甲a好了 還不錯」→ 甲案入正式 `boat.*`；#2 硬指標全過（tris 4780、bounds h 1.005／minY 0、矩陣 48/48、96/96、trace 相等、8v8 兩 rAF draw 590、perf32 .5722（paired 5/5、0.534–0.779）GREEN、0 error）；#3 三輪：r1 可愛 0/2 但色系 1/4、r2 色系 4/4 但玩具 2/2、r3 除一位「像玩具模型」外全過 → **依凍結標「未過（玩具 1/4）」，最佳版＝r3，待使用者簽字**；#4 三情境：英雄視角命名 4/4、桌面系別 2/2、桌面剪影 2/2 過；#5 排 S3；#8 色票／時長未動、trace 相等。judge claims 的顏色門檻隨方案重寫（95→45→35、新增 style_dark），claims 不是凍結門檻（#2 只要求列出通過數），仍如實記。
 

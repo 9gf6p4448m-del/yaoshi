@@ -1,6 +1,6 @@
 {
- "name": "拼板舟 boat（A2 甲案出貨版·第 2 輪配色，zuling/swarm）",
- "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。門檻沿用 assets/creatures/boat.claims.json 出貨版：style_light 側視中位亮度 ≥95、saturation_area tq 10%–60%、focal_contrast min_ratio 3、part_signature min_share 0.06／or_min_span 0.12 全部一格未動；唯一改動是 tri_budget 上限 8000 → 7093（＝現版 boat 的 5456 × 1.3，A2 派工當下訂的上限，方向是加嚴）。新增的是甲案自己的招牌條：人形划手（lash）與木槳（oar）必須存在且划手在側視看得見——這兩條是加嚴，多兩條要過。 ｜ 第 2 輪只改色（2026-09-17）：style_light 的 95 是為米白殼寫的，大地褐在定義上不可能過，改成 ≥45 並**新增** style_dark ≤85，形成一條兩端都有鑑別力的帶（炭黑 34.2 紅、米白 97.6 紅）——這是多一條要過，不是放寬；其餘門檻與 part 條目一格未動。",
+ "name": "拼板舟 boat（A2 甲案出貨版·第 3 輪去玩具感，zuling/swarm）",
+ "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。門檻沿用 assets/creatures/boat.claims.json 出貨版：style_light 側視中位亮度 ≥95、saturation_area tq 10%–60%、focal_contrast min_ratio 3、part_signature min_share 0.06／or_min_span 0.12 全部一格未動；唯一改動是 tri_budget 上限 8000 → 7093（＝現版 boat 的 5456 × 1.3，A2 派工當下訂的上限，方向是加嚴）。新增的是甲案自己的招牌條：人形划手（lash）與木槳（oar）必須存在且划手在側視看得見——這兩條是加嚴，多兩條要過。 ｜ 第 2 輪只改色（2026-09-17）：style_light 的 95 是為米白殼寫的，大地褐在定義上不可能過，改成 ≥45 並**新增** style_dark ≤85，形成一條兩端都有鑑別力的帶（炭黑 34.2 紅、米白 97.6 紅）——這是多一條要過，不是放寬；其餘門檻與 part 條目一格未動。 ｜ 第 3 輪（2026-09-17）：老木比第 2 輪更深，style_light 由 45→35（炭黑版 34.2 仍紅）、style_dark 由 85→**75**（加嚴一格）；新增 part_exists bead，明寫「靛藍只剩首尾飾與細帶，但不得消失」。其餘門檻與 part 條目一格未動。",
  "claims": [
   {
    "type": "part_exists",
@@ -102,16 +102,16 @@
   {
    "type": "style_light",
    "view": "side",
-   "min_median_lum": 45,
+   "min_median_lum": 35,
    "stage": "MID",
-   "label": "風化木大地褐：側視的機體中位亮度不得低於 45/255（2026-09-04 的炭黑版 34.2 會被這條擋下）"
+   "label": "老風化木：側視中位亮度不得低於 35/255（2026-09-04 的炭黑版 34.2 仍會被擋下）"
   },
   {
    "type": "style_dark",
    "view": "side",
-   "max_median_lum": 85,
+   "max_median_lum": 75,
    "stage": "MID",
-   "label": "不得再是米白殼：側視中位亮度不得高於 85/255（第 1 輪被讀成香火的米白版是 97.6，會被這條擋下）"
+   "label": "不得再是米白殼：側視中位亮度不得高於 75/255（第 1 輪被讀成香火的米白版 97.6、第 2 輪 63.7）"
   },
   {
    "type": "rig_skinned",
@@ -142,6 +142,12 @@
    "max": 7093,
    "stage": "LOW",
    "label": "三角形預算 ≤7093（＝現版 boat 5456 × 1.3，A2 派工當下訂的上限）"
+  },
+  {
+   "type": "part_exists",
+   "part": "bead",
+   "stage": "MID",
+   "label": "靛藍第二色必須留有實體載體（首尾雞羽管）——縮面積不等於拿掉"
   }
  ]
 }
