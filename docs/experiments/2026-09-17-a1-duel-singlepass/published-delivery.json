@@ -1,0 +1,23 @@
+{
+  "checkedAtUtc": "2026-09-17T07:33:24Z",
+  "mainPushed": "b3f63b6",
+  "releaseVersion": "0.57.16",
+  "method": "curl 公開站三檔（index.html?nocache、js/creature-figures.js?v=0.57.16、js/duel-figures.js?v=0.57.16）HTTP 200，正規化換行後與本機逐位元組比對；index 於第 8 次輪詢（約 2 分鐘）看到 RELEASE_VERSION 0.57.16",
+  "files": {
+    "index.html": {
+      "identical": true,
+      "bytes": 417383
+    },
+    "js/creature-figures.js": {
+      "identical": true,
+      "bytes": 55806,
+      "hasForceSinglePass": true
+    },
+    "js/duel-figures.js": {
+      "identical": true,
+      "bytes": 60553,
+      "hasForceSinglePass": true
+    }
+  },
+  "pagesBuildApi": "未查（gh 未登入），以公開內容比對為準"
+}
