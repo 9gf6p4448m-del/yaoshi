@@ -65,4 +65,4 @@
 
 ## 公開送達
 
-見 [published-delivery.json](published-delivery.json)（發布後補）。
+[published-delivery.json](published-delivery.json)：2026-09-17 06:13 UTC（台灣 14:13）核對，main `1748edb` 已推送；公開 `index.html`（RELEASE_VERSION 0.57.15）、`js/table-props.js?v=0.57.15`、`js/table-tray.js?v=0.57.15`、`js/trait-fx.js?v=0.57.15` 均 HTTP 200，正規化換行後與本機逐位元組一致；GitHub Pages 部署 6496763204 對應 `1748edb`（2026-09-17T06:12:50Z）。公開站短驗證，未冒稱真機整局。[開啟試玩](https://9gf6p4448m-del.github.io/yaoshi/?v=0.57.15)。
