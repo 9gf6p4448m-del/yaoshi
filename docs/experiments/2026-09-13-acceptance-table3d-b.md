@@ -62,6 +62,7 @@ node tests/tools/legend-drive.mjs <out> --taps --tapsonly --tapbase=<f9dd83d 的
 **全部換算成每幀值**（`info.autoReset=false; info.reset();` 之後等**兩次** rAF ⇒ 讀到的是兩幀的和，**除以 2**）。
 - 預設（描邊開）：`draw calls` ≤ **135**、`triangles` ≤ **33000**、render `passes/frame` ＝ **1**
 - `renders/s` 比值（預設 ÷ `?tray3d=0`，同一頁交錯各 5 次取中位）≥ **0.40**
+  - **§2.1 修訂（2026-09-17，使用者裁定）**：口徑統一為 **逐輪配對**——同一頁交錯 5 次，**每一次**配對比值皆 ≥ 0.40（paired 5/5），與 `2026-09-14-acceptance-128-coin-budget.md` 的 128 枚條文一致；「取中位」口徑退場。這是**加嚴**（逐輪蘊含中位），非降標：改前／改後 v0.57.14–0.57.17 四卷兩口徑皆過（perf32 .4270／.6585／.6058／.585，paired 皆 5/5）。
 - `?table3d=lite`：draw calls **明顯下降**（記數字，與預設同表對照）
 - 對決頁 draw call 與基準 `f9dd83d` **持平（±5）**：基準值由 `duel-perf perf --uncap` 於 2026-09-13
   在 `f9dd83d` 量得（**基準 `drawCallsPerFrame` = 978**，`renderPassesPerFrame` = 2、`visible/total` = 16/16、
