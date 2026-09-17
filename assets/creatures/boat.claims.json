@@ -1,140 +1,147 @@
 {
-  "name": "拼板舟 boat_a「拼板舟·划手」（zuling/swarm 候選甲）",
-  "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。門檻沿用 assets/creatures/boat.claims.json 出貨版：style_light 側視中位亮度 ≥95、saturation_area tq 10%–60%、focal_contrast min_ratio 3、part_signature min_share 0.06／or_min_span 0.12 全部一格未動；唯一改動是 tri_budget 上限 8000 → 7093（＝現版 boat 的 5456 × 1.3，A2 派工當下訂的上限，方向是加嚴）。新增的是甲案自己的招牌條：人形划手（lash）與木槳（oar）必須存在且划手在側視看得見——這兩條是加嚴，多兩條要過。",
-  "claims": [
-    {
-      "type": "part_exists",
-      "part": "hull_body",
-      "stage": "MID",
-      "label": "船身（拼板舟的殼）必須存在"
-    },
-    {
-      "type": "part_exists",
-      "part": "trim_red",
-      "stage": "MID",
-      "label": "橘紅舷條必須存在——白／黑／橘紅三色裡的橘紅要有實體載體"
-    },
-    {
-      "type": "part_exists",
-      "part": "eye",
-      "stage": "MID",
-      "label": "船眼（同心圓太陽紋的橘紅圓心）必須存在，材質名必須正是 eye"
-    },
-    {
-      "type": "part_exists",
-      "part": "glow_prow",
-      "stage": "MID",
-      "label": "尖翹舟艏必須存在，材質名必須正是 glow_prow（three.js 端靠這個名字掛 emissive）"
-    },
-    {
-      "type": "part_exists",
-      "part": "lash",
-      "stage": "MID",
-      "label": "人形划手（與藤編橫樑同材質 lash）必須存在——甲案的招牌"
-    },
-    {
-      "type": "part_exists",
-      "part": "oar",
-      "stage": "MID",
-      "label": "木槳必須存在——「有人在划」的第二個證據"
-    },
-    {
-      "type": "part_exists",
-      "part": "bone",
-      "stage": "MID",
-      "label": "白色飾板（棋盤格菱片／雞羽飾／船眼外圈）必須存在"
-    },
-    {
-      "type": "part_signature",
-      "part": "glow_prow",
-      "view": "side",
-      "min_share": 0.06,
-      "or_min_span": 0.12,
-      "stage": "MID",
-      "label": "招牌部位（尖翹舟艏）在側視要撐得起面積或跨距其中一項"
-    },
-    {
-      "type": "part_visible",
-      "part": "lash",
-      "view": "side",
-      "min_share": 0.03,
-      "stage": "MID",
-      "label": "人形划手在側視至少要佔機體 3% 的像素——看不見的划手不算數"
-    },
-    {
-      "type": "part_visible",
-      "part": "oar",
-      "view": "side",
-      "min_share": 0.03,
-      "stage": "MID",
-      "label": "木槳在側視至少要佔機體 3% 的像素"
-    },
-    {
-      "type": "focal_contrast",
-      "a": "hull_body",
-      "b": "lash",
-      "view": "tq",
-      "min_ratio": 3,
-      "stage": "MID",
-      "label": "船身必須壓過划手至少 3 倍——兩者等重就會讀成「人」而不是「舟」"
-    },
-    {
-      "type": "share_hierarchy",
-      "primary": [
-        "hull_body"
-      ],
-      "secondary": [
-        "lash",
-        "oar"
-      ],
-      "tertiary": [
-        "trim_red",
-        "bone",
-        "socket",
-        "eye",
-        "glow_prow",
-        "bead"
-      ],
-      "view": "tq",
-      "stage": "MID",
-      "label": "6:3:1 階層：船身／（划手＋木槳）／（橘紅舷條＋白飾板＋黑紋＋船眼＋舟艏＋琉璃珠）"
-    },
-    {
-      "type": "style_light",
-      "view": "side",
-      "min_median_lum": 95,
-      "stage": "MID",
-      "label": "米白底：側視的機體中位亮度不得低於 95/255"
-    },
-    {
-      "type": "rig_skinned",
-      "stage": "HIGH",
-      "label": "必須是蒙皮模型"
-    },
-    {
-      "type": "anim_named",
-      "names": [
-        "idle",
-        "move",
-        "attack"
-      ],
-      "stage": "HIGH",
-      "label": "三支動畫齊備"
-    },
-    {
-      "type": "saturation_area",
-      "view": "tq",
-      "min": 0.1,
-      "max": 0.6,
-      "stage": "HIGH",
-      "label": "高飽和面積落在 10%-60%"
-    },
-    {
-      "type": "tri_budget",
-      "min": 1500,
-      "max": 7093,
-      "stage": "LOW",
-      "label": "三角形預算 ≤7093（＝現版 boat 5456 × 1.3，A2 派工當下訂的上限）"
-    }
-  ]
+ "name": "拼板舟 boat（A2 甲案出貨版·第 2 輪配色，zuling/swarm）",
+ "_role": "anyCreature harness/judge.mjs 的機械檢查清單。部位一律用 material 名指認。門檻沿用 assets/creatures/boat.claims.json 出貨版：style_light 側視中位亮度 ≥95、saturation_area tq 10%–60%、focal_contrast min_ratio 3、part_signature min_share 0.06／or_min_span 0.12 全部一格未動；唯一改動是 tri_budget 上限 8000 → 7093（＝現版 boat 的 5456 × 1.3，A2 派工當下訂的上限，方向是加嚴）。新增的是甲案自己的招牌條：人形划手（lash）與木槳（oar）必須存在且划手在側視看得見——這兩條是加嚴，多兩條要過。 ｜ 第 2 輪只改色（2026-09-17）：style_light 的 95 是為米白殼寫的，大地褐在定義上不可能過，改成 ≥45 並**新增** style_dark ≤85，形成一條兩端都有鑑別力的帶（炭黑 34.2 紅、米白 97.6 紅）——這是多一條要過，不是放寬；其餘門檻與 part 條目一格未動。",
+ "claims": [
+  {
+   "type": "part_exists",
+   "part": "hull_body",
+   "stage": "MID",
+   "label": "船身（拼板舟的殼）必須存在"
+  },
+  {
+   "type": "part_exists",
+   "part": "trim_red",
+   "stage": "MID",
+   "label": "橘紅舷條必須存在——白／黑／橘紅三色裡的橘紅要有實體載體"
+  },
+  {
+   "type": "part_exists",
+   "part": "eye",
+   "stage": "MID",
+   "label": "船眼（同心圓太陽紋的橘紅圓心）必須存在，材質名必須正是 eye"
+  },
+  {
+   "type": "part_exists",
+   "part": "glow_prow",
+   "stage": "MID",
+   "label": "尖翹舟艏必須存在，材質名必須正是 glow_prow（three.js 端靠這個名字掛 emissive）"
+  },
+  {
+   "type": "part_exists",
+   "part": "lash",
+   "stage": "MID",
+   "label": "人形划手（與藤編橫樑同材質 lash）必須存在——甲案的招牌"
+  },
+  {
+   "type": "part_exists",
+   "part": "oar",
+   "stage": "MID",
+   "label": "木槳必須存在——「有人在划」的第二個證據"
+  },
+  {
+   "type": "part_exists",
+   "part": "bone",
+   "stage": "MID",
+   "label": "白色飾板（棋盤格菱片／雞羽飾／船眼外圈）必須存在"
+  },
+  {
+   "type": "part_signature",
+   "part": "glow_prow",
+   "view": "side",
+   "min_share": 0.06,
+   "or_min_span": 0.12,
+   "stage": "MID",
+   "label": "招牌部位（尖翹舟艏）在側視要撐得起面積或跨距其中一項"
+  },
+  {
+   "type": "part_visible",
+   "part": "lash",
+   "view": "side",
+   "min_share": 0.03,
+   "stage": "MID",
+   "label": "人形划手在側視至少要佔機體 3% 的像素——看不見的划手不算數"
+  },
+  {
+   "type": "part_visible",
+   "part": "oar",
+   "view": "side",
+   "min_share": 0.03,
+   "stage": "MID",
+   "label": "木槳在側視至少要佔機體 3% 的像素"
+  },
+  {
+   "type": "focal_contrast",
+   "a": "hull_body",
+   "b": "lash",
+   "view": "tq",
+   "min_ratio": 3,
+   "stage": "MID",
+   "label": "船身必須壓過划手至少 3 倍——兩者等重就會讀成「人」而不是「舟」"
+  },
+  {
+   "type": "share_hierarchy",
+   "primary": [
+    "hull_body"
+   ],
+   "secondary": [
+    "lash",
+    "oar"
+   ],
+   "tertiary": [
+    "trim_red",
+    "bone",
+    "socket",
+    "eye",
+    "glow_prow",
+    "bead"
+   ],
+   "view": "tq",
+   "stage": "MID",
+   "label": "6:3:1 階層：船身／（划手＋木槳）／（橘紅舷條＋白飾板＋黑紋＋船眼＋舟艏＋琉璃珠）"
+  },
+  {
+   "type": "style_light",
+   "view": "side",
+   "min_median_lum": 45,
+   "stage": "MID",
+   "label": "風化木大地褐：側視的機體中位亮度不得低於 45/255（2026-09-04 的炭黑版 34.2 會被這條擋下）"
+  },
+  {
+   "type": "style_dark",
+   "view": "side",
+   "max_median_lum": 85,
+   "stage": "MID",
+   "label": "不得再是米白殼：側視中位亮度不得高於 85/255（第 1 輪被讀成香火的米白版是 97.6，會被這條擋下）"
+  },
+  {
+   "type": "rig_skinned",
+   "stage": "HIGH",
+   "label": "必須是蒙皮模型"
+  },
+  {
+   "type": "anim_named",
+   "names": [
+    "idle",
+    "move",
+    "attack"
+   ],
+   "stage": "HIGH",
+   "label": "三支動畫齊備"
+  },
+  {
+   "type": "saturation_area",
+   "view": "tq",
+   "min": 0.1,
+   "max": 0.6,
+   "stage": "HIGH",
+   "label": "高飽和面積落在 10%-60%"
+  },
+  {
+   "type": "tri_budget",
+   "min": 1500,
+   "max": 7093,
+   "stage": "LOW",
+   "label": "三角形預算 ≤7093（＝現版 boat 5456 × 1.3，A2 派工當下訂的上限）"
+  }
+ ]
 }
