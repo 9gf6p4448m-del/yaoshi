@@ -283,3 +283,9 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
   node tests/tools/sfx-render.mjs --names=gong,woodfish,cymbal,stamp,woodslam,bell,whoosh,hurt,dawn,death,babble,wind,chip,seal,reveal,curse --new=chip,seal,reveal,curse --gate
   ```
   接線測試 `tests/sfx-wiring.test.mjs`（凍結 #6①，headless 三整局，約 13 分鐘；`node --test tests/*.test.mjs` 會一起跑）；產品端 `?sfx=0` 本次靜音、按鈕 `data-sfx` 指定聲部。
+
+## `lines-material.mjs`／`lines-score.mjs`（A3 S4 角色台詞讀者題，凍結 #8）
+
+- `node tests/tools/lines-material.mjs <material.json> <key.json>`：從 seeds 1–20 的 policy game 抽 14 題（七鍵各 2、同角色最多 2），每題＝該夜公開事件清單（打亂）＋一句由 `lineFor` 生成的台詞；答案檔含 `acceptable`（同型＋同說話者的事件都算對——同一人同夜得標兩件，台詞分不出哪一件）。
+- `node tests/tools/lines-score.mjs <key.json> <reader-*.json ...> [--json]`：每題 ≥4/6 讀者答對才過；`--json` 另存 score 檔。讀者＝6 個沒有對話史的 fresh agent，只讀 material 檔、把答案寫成 `{"reader":n,"answers":{...}}`。
+- 機械面在 `tests/lines.test.mjs`（七鍵各 ≥2 句、evRef 對 history、無數字／心願／袋中物、同 seed 逐字相同、六類都量到）。

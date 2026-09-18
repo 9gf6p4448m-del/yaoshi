@@ -1,0 +1,69 @@
+{
+  "items": [
+    {
+      "id": "r1",
+      "type": "lose",
+      "role": "shoujing",
+      "correct": "4/6",
+      "votes": [
+        1,
+        1,
+        1,
+        1,
+        7,
+        10
+      ],
+      "acceptable": [
+        1,
+        2
+      ],
+      "pass": true
+    },
+    {
+      "id": "r2",
+      "type": "lose",
+      "role": "hunter",
+      "correct": "3/6",
+      "votes": [
+        4,
+        8,
+        8,
+        5,
+        4,
+        8
+      ],
+      "acceptable": [
+        8
+      ],
+      "pass": false
+    },
+    {
+      "id": "r3",
+      "type": "poisoned",
+      "role": "qingmian",
+      "correct": "6/6",
+      "votes": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "acceptable": [
+        4
+      ],
+      "pass": true
+    }
+  ],
+  "passItems": 2,
+  "total": 3,
+  "perReader": [
+    2,
+    3,
+    3,
+    2,
+    1,
+    2
+  ]
+}

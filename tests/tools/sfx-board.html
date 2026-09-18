@@ -112,7 +112,8 @@ const parsePairs=(s,fn)=>{ if(!s) return; s.split(',').forEach(p=>{ const i=p.in
 parsePairs(Q.get('map'),(k,v)=>{ const e=EVENTS.find(x=>x.key===k); if(e&&NAMES.includes(v)){ e.voice=v; STANDIN=true; } });
 /* 模式 D 的題目：預設四事件；?ab= 給不在四事件裡的鍵（如 hurt:hurt_a|hurt_b，凍結 #5 的「換」）就多加一題，不算替身 */
 const DKEYS=EVENTS.map(e=>({key:e.key,label:e.label}));
-parsePairs(Q.get('ab'),(k,v)=>{ const [a,b]=v.split('|'); if(!NAMES.includes(a)||!NAMES.includes(b)) return; if(AB[k]){ AB[k]={a,b}; STANDIN=true; } else { AB[k]={a,b}; DKEYS.push({key:k,label:k}); } });
+/* ?ab= 換掉某事件的甲乙候選是正式的「換案重挑」（例：落籌改銅錢 chip_c|chip_d），不算替身；只有 ?map= 才是替身 */
+parsePairs(Q.get('ab'),(k,v)=>{ const [a,b]=v.split('|'); if(!NAMES.includes(a)||!NAMES.includes(b)) return; if(AB[k]){ AB[k]={a,b}; } else { AB[k]={a,b}; DKEYS.push({key:k,label:k}); } });
 const has=(n)=>NAMES.includes(n);
 const missingEvents=()=>EVENTS.filter(e=>!has(e.voice)).map(e=>e.label+'='+e.voice);
 

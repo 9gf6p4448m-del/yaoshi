@@ -1,0 +1,172 @@
+[
+  {
+    "id": "q01",
+    "answer": 3,
+    "acceptable": [
+      3,
+      9
+    ],
+    "type": "win",
+    "label": "得標",
+    "role": "dangpu",
+    "seed": 1,
+    "round": 1
+  },
+  {
+    "id": "q02",
+    "answer": 7,
+    "acceptable": [
+      7
+    ],
+    "type": "win",
+    "label": "得標",
+    "role": "luzhu",
+    "seed": 1,
+    "round": 1
+  },
+  {
+    "id": "q03",
+    "answer": 8,
+    "acceptable": [
+      8
+    ],
+    "type": "poison",
+    "label": "毒標（塞人）",
+    "role": "luzhu",
+    "seed": 1,
+    "round": 1
+  },
+  {
+    "id": "q04",
+    "answer": 10,
+    "acceptable": [
+      10
+    ],
+    "type": "mark",
+    "label": "盯上宣告",
+    "role": "dangpu",
+    "seed": 1,
+    "round": 1
+  },
+  {
+    "id": "q05",
+    "answer": 2,
+    "acceptable": [
+      2
+    ],
+    "type": "mark",
+    "label": "盯上宣告",
+    "role": "shoujing",
+    "seed": 1,
+    "round": 1
+  },
+  {
+    "id": "q06",
+    "answer": 1,
+    "acceptable": [
+      1,
+      2
+    ],
+    "type": "lose",
+    "label": "落標",
+    "role": "shoujing",
+    "seed": 1,
+    "round": 2
+  },
+  {
+    "id": "q07",
+    "answer": 9,
+    "acceptable": [
+      9
+    ],
+    "type": "poison",
+    "label": "毒標（塞人）",
+    "role": "qingmian",
+    "seed": 2,
+    "round": 1
+  },
+  {
+    "id": "q08",
+    "answer": 8,
+    "acceptable": [
+      8
+    ],
+    "type": "lose",
+    "label": "落標",
+    "role": "hunter",
+    "seed": 2,
+    "round": 1
+  },
+  {
+    "id": "q09",
+    "answer": 4,
+    "acceptable": [
+      4
+    ],
+    "type": "poisoned",
+    "label": "被塞毒標",
+    "role": "qingmian",
+    "seed": 2,
+    "round": 3
+  },
+  {
+    "id": "q10",
+    "answer": 3,
+    "acceptable": [
+      3
+    ],
+    "type": "poisoned",
+    "label": "被塞毒標",
+    "role": "hunter",
+    "seed": 2,
+    "round": 5
+  },
+  {
+    "id": "q11",
+    "answer": 11,
+    "acceptable": [
+      11
+    ],
+    "type": "death",
+    "label": "出局",
+    "role": "xiaonv",
+    "seed": 3,
+    "round": 7
+  },
+  {
+    "id": "q12",
+    "answer": 9,
+    "acceptable": [
+      9
+    ],
+    "type": "death",
+    "label": "出局",
+    "role": "lvshan",
+    "seed": 3,
+    "round": 7
+  },
+  {
+    "id": "q13",
+    "answer": 4,
+    "acceptable": [
+      4
+    ],
+    "type": "shrine",
+    "label": "請神",
+    "role": "duanshou",
+    "seed": 6,
+    "round": 5
+  },
+  {
+    "id": "q14",
+    "answer": 9,
+    "acceptable": [
+      9
+    ],
+    "type": "shrine",
+    "label": "請神",
+    "role": "lvshan",
+    "seed": 7,
+    "round": 8
+  }
+]

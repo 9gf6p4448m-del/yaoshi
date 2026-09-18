@@ -233,6 +233,24 @@
       noise(ctx, out, t0, { dur: 0.06, peak: 0.2, a: 0.001, filter: { type: "bandpass", f: 4800 }, q: 1.5 });
       tone(ctx, out, t0 + 0.01, { type: "sine", f: 140 + rnd * 10, fEnd: 50, dur: 0.1, peak: 0.06, a: 0.002 });
     },
+    /* ===== 落籌換案（使用者 2026-09-18 真機後提議「出標按＋要不要是銅幣的聲音」）：桌上本來就是 128 枚實體銅錢 =====
+       約束同 #3（對其餘 11 支＋另外三支新音逐一比；chip_b 是對照組）。 */
+    /* 落籌丙：一枚銅錢落桌——方孔銅錢的金屬短鳴，兩個不諧和泛音，尾巴很快收 */
+    chip_c(ctx, out, t0, rnd) {
+      const f = 3100 + rnd * 200;
+      tone(ctx, out, t0, { type: "sine", f, fEnd: f * 0.97, dur: 0.24, peak: 0.45, a: 0.001 });
+      tone(ctx, out, t0, { type: "sine", f: f * 1.52, dur: 0.12, peak: 0.2, a: 0.001 });
+      noise(ctx, out, t0, { dur: 0.012, peak: 0.22, a: 0.001, filter: { type: "bandpass", f: 5200 }, q: 2 });
+    },
+    /* 落籌丁：銅錢落在錢堆上——兩枚相碰的雙聲，更亮更碎 */
+    chip_d(ctx, out, t0, rnd) {
+      const f = 4200 + rnd * 250;
+      tone(ctx, out, t0, { type: "sine", f, fEnd: f * 0.96, dur: 0.06, peak: 0.36, a: 0.001 });
+      noise(ctx, out, t0, { dur: 0.01, peak: 0.24, a: 0.001, filter: { type: "bandpass", f: 6500 }, q: 2 });
+      tone(ctx, out, t0 + 0.055, { type: "sine", f: f * 1.19, fEnd: f * 1.15, dur: 0.08, peak: 0.3, a: 0.001 });
+      tone(ctx, out, t0 + 0.055, { type: "sine", f: f * 1.19 * 1.47, dur: 0.05, peak: 0.12, a: 0.001 });
+      noise(ctx, out, t0 + 0.055, { dur: 0.01, peak: 0.18, a: 0.001, filter: { type: "bandpass", f: 7000 }, q: 2 });
+    },
     /* 受擊乙：深悶撞——更重更沉的一記，餘震拖到 0.4 秒，幾乎只剩低頻 */
     hurt_b(ctx, out, t0, rnd) {
       tone(ctx, out, t0, { type: "sine", f: 90 + rnd * 8, fEnd: 38, dur: 0.42, peak: 0.55, a: 0.003 });

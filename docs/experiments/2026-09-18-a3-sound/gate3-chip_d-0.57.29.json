@@ -1,0 +1,298 @@
+{
+  "at": "2026-09-18T04:53:06.744Z",
+  "sfxMd5": "f2b1ab0392ad953bf115cb362997f51a",
+  "rnd": 0.5,
+  "method": {
+    "sampleRate": 44100,
+    "channels": 1,
+    "effMs": "RMS over 10 ms windows (441 samples, no overlap); span from first to last window with RMS >= -40 dBFS",
+    "centroidHz": "sum over frames (N=2048 Hann, hop=1024, within effective span) of sum_k f_k*P_k / sum_k P_k; P = |FFT|^2",
+    "peakDb": "20*log10(max|x|)",
+    "rmsDb": "20*log10(RMS of the effective span)",
+    "gate": "pair passes if max/min effMs >= 1.5 or max/min centroidHz >= 2; peakDb of each new voice within [min,max] of existing voices"
+  },
+  "voices": [
+    {
+      "name": "gong",
+      "sec": 4,
+      "effMs": 1020,
+      "centroidHz": 106,
+      "peakDb": -1.41,
+      "rmsDb": -16.2,
+      "fnMd5": "29405f5854308b49cec95cee7a1b054a"
+    },
+    {
+      "name": "woodfish",
+      "sec": 4,
+      "effMs": 40,
+      "centroidHz": 784,
+      "peakDb": -4.84,
+      "rmsDb": -17.85,
+      "fnMd5": "fe127c99b64ecde3b2efc2b1547bff61"
+    },
+    {
+      "name": "cymbal",
+      "sec": 4,
+      "effMs": 350,
+      "centroidHz": 11653,
+      "peakDb": -0.33,
+      "rmsDb": -18.48,
+      "fnMd5": "5caf463a87812737ff2d6169c100b3af"
+    },
+    {
+      "name": "stamp",
+      "sec": 4,
+      "effMs": 100,
+      "centroidHz": 169,
+      "peakDb": -3.68,
+      "rmsDb": -14.93,
+      "fnMd5": "96bad00377808060e8b53331875c011d"
+    },
+    {
+      "name": "woodslam",
+      "sec": 4,
+      "effMs": 110,
+      "centroidHz": 132,
+      "peakDb": -1.49,
+      "rmsDb": -14.28,
+      "fnMd5": "fcd763b0a445d71d47efae9ef4c242eb"
+    },
+    {
+      "name": "bell",
+      "sec": 4,
+      "effMs": 550,
+      "centroidHz": 1520,
+      "peakDb": -6.04,
+      "rmsDb": -19.76,
+      "fnMd5": "f310eb3294486a1b52bf36b43f955bc5"
+    },
+    {
+      "name": "whoosh",
+      "sec": 4,
+      "effMs": 140,
+      "centroidHz": 1166,
+      "peakDb": -21.05,
+      "rmsDb": -34.09,
+      "fnMd5": "517080ec064f667984bdf6f4ec54cf8d"
+    },
+    {
+      "name": "hurt",
+      "sec": 4,
+      "effMs": 50,
+      "centroidHz": 4141,
+      "peakDb": -9.76,
+      "rmsDb": -24.22,
+      "fnMd5": null
+    },
+    {
+      "name": "dawn",
+      "sec": 4,
+      "effMs": 610,
+      "centroidHz": 510,
+      "peakDb": -9.25,
+      "rmsDb": -20.98,
+      "fnMd5": "c0ce2c973e0ff8fa4fbabb4f059578c4"
+    },
+    {
+      "name": "death",
+      "sec": 4,
+      "effMs": 760,
+      "centroidHz": 168,
+      "peakDb": -5.25,
+      "rmsDb": -17.52,
+      "fnMd5": "aa4b9c334a5cfbd20fc150e59c4e5da8"
+    },
+    {
+      "name": "babble",
+      "sec": 4,
+      "effMs": 440,
+      "centroidHz": 266,
+      "peakDb": -11.37,
+      "rmsDb": -27.39,
+      "fnMd5": "1f5af311590beba98d2cd613bd7f4407"
+    },
+    {
+      "name": "wind",
+      "sec": 9,
+      "effMs": 6430,
+      "centroidHz": 329,
+      "peakDb": -25.8,
+      "rmsDb": -38.81,
+      "fnMd5": "339ccd10255a26fcfd397b0737fa7a04"
+    },
+    {
+      "name": "seal",
+      "sec": 4,
+      "effMs": 250,
+      "centroidHz": 214,
+      "peakDb": -5.31,
+      "rmsDb": -22.05,
+      "fnMd5": null
+    },
+    {
+      "name": "reveal",
+      "sec": 4,
+      "effMs": 220,
+      "centroidHz": 3819,
+      "peakDb": -7.2,
+      "rmsDb": -23.83,
+      "fnMd5": null
+    },
+    {
+      "name": "curse",
+      "sec": 4,
+      "effMs": 1710,
+      "centroidHz": 69,
+      "peakDb": -7.52,
+      "rmsDb": -20.5,
+      "fnMd5": null
+    },
+    {
+      "name": "chip_d",
+      "sec": 4,
+      "effMs": 90,
+      "centroidHz": 5304,
+      "peakDb": -7.72,
+      "rmsDb": -22.32,
+      "fnMd5": "d5a1925987e58117b1fed27d55cb869a"
+    }
+  ],
+  "gate": {
+    "newNames": [
+      "chip_d"
+    ],
+    "pairs": [
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "gong",
+        "durRatio": 11.33,
+        "centRatio": 50.04,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "woodfish",
+        "durRatio": 2.25,
+        "centRatio": 6.77,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "cymbal",
+        "durRatio": 3.89,
+        "centRatio": 2.2,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "stamp",
+        "durRatio": 1.11,
+        "centRatio": 31.38,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "woodslam",
+        "durRatio": 1.22,
+        "centRatio": 40.18,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "bell",
+        "durRatio": 6.11,
+        "centRatio": 3.49,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "whoosh",
+        "durRatio": 1.56,
+        "centRatio": 4.55,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "hurt",
+        "durRatio": 1.8,
+        "centRatio": 1.28,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "dawn",
+        "durRatio": 6.78,
+        "centRatio": 10.4,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "death",
+        "durRatio": 8.44,
+        "centRatio": 31.57,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "babble",
+        "durRatio": 4.89,
+        "centRatio": 19.94,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "wind",
+        "durRatio": 71.44,
+        "centRatio": 16.12,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "seal",
+        "durRatio": 2.78,
+        "centRatio": 24.79,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "reveal",
+        "durRatio": 2.44,
+        "centRatio": 1.39,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "chip_d",
+        "b": "curse",
+        "durRatio": 19,
+        "centRatio": 76.87,
+        "pass": true
+      }
+    ],
+    "peakChecks": [
+      {
+        "name": "chip_d",
+        "peakDb": -7.72,
+        "min": -25.8,
+        "max": -0.33,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "errors": []
+}

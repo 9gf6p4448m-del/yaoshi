@@ -1,0 +1,42 @@
+[
+  {
+    "id": "r1",
+    "answer": 1,
+    "acceptable": [
+      1,
+      2
+    ],
+    "type": "lose",
+    "label": "落標",
+    "role": "shoujing",
+    "seed": 1,
+    "round": 2,
+    "from": "q06"
+  },
+  {
+    "id": "r2",
+    "answer": 8,
+    "acceptable": [
+      8
+    ],
+    "type": "lose",
+    "label": "落標",
+    "role": "hunter",
+    "seed": 2,
+    "round": 1,
+    "from": "q08"
+  },
+  {
+    "id": "r3",
+    "answer": 4,
+    "acceptable": [
+      4
+    ],
+    "type": "poisoned",
+    "label": "被塞毒標",
+    "role": "qingmian",
+    "seed": 2,
+    "round": 3,
+    "from": "q09"
+  }
+]
