@@ -77,15 +77,43 @@ try {
     const ta = document.getElementById('rvExport');
     return { shown: !!ta && getComputedStyle(ta).display !== 'none', equal: !!ta && ta.value === want, btn: document.getElementById('rvCopy').textContent };
   });
+  /* ③下載路徑（v0.57.34）：拿掉 navigator.share，按「下載本局紀錄」要觸發瀏覽器下載，檔名＝版本＋種子、內容 === JSON.stringify(replayExport(S)) */
+  let dlEvents = 0; page.on('download', () => { dlEvents++; });
+  await page.evaluate(() => { Object.defineProperty(navigator, 'share', { value: undefined, configurable: true }); Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true }); });
+  const [dlEv] = await Promise.all([page.waitForEvent('download', { timeout: 5000 }), page.click('#rvDl')]);
+  const dlPath = await dlEv.path();
+  const dlText = (await import('node:fs')).readFileSync(dlPath, 'utf8');
+  const dl = await page.evaluate((got) => {
+    const want = JSON.stringify(window.__yaoshi.replayExport(window.__yaoshi.S));
+    return { equal: got === want, len: got.length, wantName: `yaoshi-replay-v${RELEASE_VERSION}-seed${window.__yaoshi.S.seed}.json`, btn: document.getElementById('rvDl').textContent };
+  }, dlText);
+  dl.name = dlEv.suggestedFilename(); dl.nameOk = dl.name === dl.wantName; dl.events = dlEvents;
+  /* ④分享路徑：stub navigator.share／canShare，按一次要收到 1 個 File、內容相同、檔名相同，且不觸發下載 */
+  const dlBefore = dlEvents;
+  await page.evaluate(() => {
+    window.__shareGot = null;
+    Object.defineProperty(navigator, 'canShare', { value: (d) => !!(d && d.files && d.files.length), configurable: true });
+    Object.defineProperty(navigator, 'share', { value: async (d) => { const f = d.files[0]; window.__shareGot = { n: d.files.length, name: f.name, text: await f.text(), isFile: f instanceof File }; }, configurable: true });
+  });
+  await page.click('#rvDl');
+  await page.waitForTimeout(400);
+  const sh = await page.evaluate(() => {
+    const want = JSON.stringify(window.__yaoshi.replayExport(window.__yaoshi.S));
+    const g = window.__shareGot;
+    return { got: !!g, n: g && g.n, isFile: g && g.isFile, equal: !!g && g.text === want, name: g && g.name, nameOk: !!g && g.name === `yaoshi-replay-v${RELEASE_VERSION}-seed${window.__yaoshi.S.seed}.json`, btn: document.getElementById('rvDl').textContent };
+  });
+  sh.dlEventsDuringShare = dlEvents - dlBefore;
   const meta = await page.evaluate(() => {
     const E = window.__yaoshi.replayExport(window.__yaoshi.S);
     return { human: E.players.map((p) => p.human), nights: E.history.nights.length, ver: E.ver, page: RELEASE_VERSION, back: JSON.parse(JSON.stringify(E)).history.nights.length };
   });
   if (OUT) { await page.evaluate(() => { document.getElementById('review').scrollTop = 0; }); await page.screenshot({ path: OUT }); }
-  const out = { seed: SEED, clip, fallback: fb, meta, pageerrors: errors };
+  const out = { seed: SEED, clip, fallback: fb, download: dl, share: sh, meta, pageerrors: errors };
   console.log(JSON.stringify(out, null, 1));
   const ok = errors.length === 0 && clip.equal && clip.btn === '已複製 ✓' && !clip.taShown
     && fb.shown && fb.equal && fb.btn === '請長按全選複製'
+    && dl.equal && dl.nameOk && dl.events === 1 && dl.btn === '已下載 ✓'
+    && sh.got && sh.n === 1 && sh.isFile && sh.equal && sh.nameOk && sh.dlEventsDuringShare === 0 && sh.btn === '已分享 ✓'
     && JSON.stringify(meta.human) === JSON.stringify([true, false, false, false]) && meta.nights >= 1 && meta.ver === meta.page;
   if (!ok) process.exitCode = 1;
 } finally { await browser.close(); srv.kill(); }

@@ -58,3 +58,17 @@ test('回顧畫面只有一顆複製按鈕，copyReplay 不用會擋頁的對話
   assert.doesNotMatch(fn, /\b(alert|confirm|prompt)\s*\(/, 'copyReplay 不得用 alert／confirm／prompt');
   assert.ok(fn.includes('rvExport'), '剪貼簿不可用時要有文字框備援');
 });
+
+test('回顧畫面只有一顆下載按鈕，downloadReplay 走分享面板→下載、檔名決定性、不用對話框', () => {
+  const review = page.slice(page.indexOf('function showReview'), page.indexOf('function closeReview'));
+  assert.equal((review.match(/onclick="downloadReplay\(\)"/g) || []).length, 1, '回顧頁要有且只有一顆「下載本局紀錄」');
+  const fn = page.slice(page.indexOf('function downloadReplay'), page.indexOf('\n}', page.indexOf('function downloadReplay')) + 2);
+  assert.ok(fn.includes('JSON.stringify(replayExport(S))'), 'downloadReplay 必須用 replayExport 打包，不得另抄一份欄位');
+  assert.doesNotMatch(fn, /\b(alert|confirm|prompt)\s*\(/, 'downloadReplay 不得用 alert／confirm／prompt');
+  assert.ok(fn.includes('navigator.canShare') && fn.includes('navigator.share('), '手機要先試系統分享面板（帶 File）');
+  assert.ok(fn.includes('a.download=name'), '不支援分享時要有 <a download> 備援');
+  assert.ok(fn.includes('AbortError'), '使用者取消分享不得退到下載');
+  const nm = page.slice(page.indexOf('function replayFileName'), page.indexOf('\n', page.indexOf('function replayFileName')));
+  assert.ok(nm.includes('RELEASE_VERSION') && nm.includes('S.seed'), '檔名要含版本與種子');
+  assert.doesNotMatch(nm, /Date|Math\.random/, '檔名不得帶時間戳或亂數');
+});
