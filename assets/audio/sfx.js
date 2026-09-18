@@ -159,6 +159,72 @@
       src.connect(bq).connect(g).connect(out); src.start(t0); lfo.start(t0);
       src.stop(t0 + dur); lfo.stop(t0 + dur);
     },
+
+    /* ===== A3 S2（2026-09-18）四事件新音的甲／乙候選 =====
+       落籌 chip／封標 seal／揭盅 reveal／受咒 curse，各兩案讓使用者在聽板模式 D 挑（品味題不自定稿）。
+       設計約束（凍結 #3）：兩兩之間有效時長比 ≥1.5 或頻譜質心比 ≥2，且對既有 12 支逐一成立；
+       量測用 tests/tools/sfx-render.mjs。全部只走既有 tone／noise 與同一個 ctx（凍結 #7）。
+       產品接線（index.html）只呼叫挑定後的 chip／seal／reveal／curse 別名，落選案保留給治具。 */
+    /* 落籌甲：玉籌落桌——一記極短、亮而硬的玉石敲擊 */
+    chip_a(ctx, out, t0, rnd) {
+      const f = 2600 + rnd * 200;
+      tone(ctx, out, t0, { type: "sine", f, fEnd: f * 0.8, dur: 0.07, peak: 0.5, a: 0.001 });
+      tone(ctx, out, t0, { type: "sine", f: f * 1.9, dur: 0.04, peak: 0.2, a: 0.001 });
+      noise(ctx, out, t0, { dur: 0.02, peak: 0.3, a: 0.001, filter: { type: "bandpass", f: 4200 }, q: 2 });
+    },
+    /* 落籌乙：木籌三連落——三顆木籌先後落在桌上的短促滾響 */
+    chip_b(ctx, out, t0, rnd) {
+      [0, 0.11, 0.22].forEach((dt, i) => {
+        const f = 1050 + rnd * 80 - i * 60;
+        tone(ctx, out, t0 + dt, { type: "triangle", f, fEnd: f * 0.7, dur: 0.045, peak: 0.42 - i * 0.06, a: 0.001 });
+        noise(ctx, out, t0 + dt, { dur: 0.015, peak: 0.22, a: 0.001, filter: { type: "bandpass", f: 2600 }, q: 1.5 });
+      });
+    },
+    /* 封標甲：紙封＋落印——一段紙面摩擦掃過，接一記悶悶的落印 */
+    seal_a(ctx, out, t0, rnd) {
+      noise(ctx, out, t0, { dur: 0.22, peak: 0.25, a: 0.03, filter: { type: "bandpass", f: 2200 + rnd * 200 }, fEnd: 700, q: 1.2 });
+      tone(ctx, out, t0 + 0.2, { type: "sine", f: 140, fEnd: 55, dur: 0.14, peak: 0.6, a: 0.002 });
+      noise(ctx, out, t0 + 0.2, { dur: 0.05, peak: 0.25, filter: { type: "lowpass", f: 900 }, q: 0.5 });
+    },
+    /* 封標乙：摺紙＋壓印兩下——紙被摺起的碎響，再壓兩下悶印 */
+    seal_b(ctx, out, t0, rnd) {
+      noise(ctx, out, t0, { dur: 0.14, peak: 0.28, a: 0.01, filter: { type: "bandpass", f: 1400 + rnd * 150 }, q: 0.8 });
+      tone(ctx, out, t0 + 0.14, { type: "sine", f: 160, fEnd: 70, dur: 0.09, peak: 0.5, a: 0.002 });
+      tone(ctx, out, t0 + 0.2, { type: "sine", f: 150, fEnd: 65, dur: 0.09, peak: 0.42, a: 0.002 });
+      noise(ctx, out, t0 + 0.14, { dur: 0.04, peak: 0.18, filter: { type: "lowpass", f: 700 }, q: 0.5 });
+    },
+    /* 揭盅甲：陶盅揭蓋——瓷蓋滑開的擦聲，接一聲短亮的瓷鳴 */
+    reveal_a(ctx, out, t0, rnd) {
+      noise(ctx, out, t0, { dur: 0.16, peak: 0.2, a: 0.02, filter: { type: "bandpass", f: 1800 }, fEnd: 3600, q: 2 });
+      const f = 3500 + rnd * 200;
+      tone(ctx, out, t0 + 0.14, { type: "sine", f, dur: 0.22, peak: 0.35, a: 0.002 });
+      tone(ctx, out, t0 + 0.14, { type: "sine", f: f * 2.5, dur: 0.1, peak: 0.1, a: 0.002 });
+    },
+    /* 揭盅乙：瓷蓋輕碰兩下——蓋子擱回盅沿的兩聲清脆瓷碰 */
+    reveal_b(ctx, out, t0, rnd) {
+      const f = 2900 + rnd * 150;
+      tone(ctx, out, t0, { type: "sine", f, dur: 0.12, peak: 0.4, a: 0.001 });
+      noise(ctx, out, t0, { dur: 0.01, peak: 0.25, a: 0.001, filter: { type: "bandpass", f: 5000 }, q: 2 });
+      tone(ctx, out, t0 + 0.11, { type: "sine", f: f * 1.2, dur: 0.18, peak: 0.36, a: 0.001 });
+      noise(ctx, out, t0 + 0.11, { dur: 0.01, peak: 0.22, a: 0.001, filter: { type: "bandpass", f: 5200 }, q: 2 });
+    },
+    /* 受咒甲：陰氣下沉——低頻緩緩滑落，帶一口往下沉的氣音 */
+    curse_a(ctx, out, t0, rnd) {
+      tone(ctx, out, t0, { type: "sawtooth", f: 160 + rnd * 20, fEnd: 45, dur: 3.8, peak: 0.28, a: 0.05 });
+      tone(ctx, out, t0, { type: "sine", f: 80, fEnd: 30, dur: 3.9, peak: 0.35, a: 0.05 });
+      noise(ctx, out, t0, { dur: 2.6, peak: 0.18, a: 0.15, filter: { type: "lowpass", f: 900 }, fEnd: 200, q: 0.7 });
+    },
+    /* 受咒乙：陰氣滲入——低鳴帶顫抖（9Hz 抖音），上面一層往下墜的細音 */
+    curse_b(ctx, out, t0, rnd) {
+      /* 抖音掛在包絡之後的第二級增益（1 ± 0.5），不加進包絡本身——否則尾巴收不掉、stop 時會喀一聲 */
+      const o = ctx.createOscillator(), g = ctx.createGain(), trem = ctx.createGain(), lfo = ctx.createOscillator(), lfoG = ctx.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(58 + rnd * 6, t0);
+      trem.gain.value = 1; lfo.frequency.value = 9; lfoG.gain.value = 0.5; lfo.connect(lfoG).connect(trem.gain);
+      env(g, t0, 0.32, 0.06, 3.9);
+      o.connect(g).connect(trem).connect(out); o.start(t0); lfo.start(t0); o.stop(t0 + 3.95); lfo.stop(t0 + 3.95);
+      tone(ctx, out, t0 + 0.1, { type: "triangle", f: 240, fEnd: 60, dur: 1.4, peak: 0.14, a: 0.1 });
+      noise(ctx, out, t0, { dur: 2.8, peak: 0.14, a: 0.2, filter: { type: "lowpass", f: 320 }, q: 0.6 });
+    },
   };
 
   const SILENT_WAV = "data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA"; /* 0.05 秒無聲 WAV：只給 iOS 啟動音訊工作階段用 */
