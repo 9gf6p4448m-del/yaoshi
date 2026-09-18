@@ -1,0 +1,103 @@
+{
+  "tool": "tests/tools/a2-sheet.mjs",
+  "key": "boat",
+  "name": "base",
+  "glb": "assets/creatures/boat.glb",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "errors": [],
+  "table": {
+    "calls": 59,
+    "tris": 26209,
+    "hoverSlot": 1,
+    "items": [
+      {
+        "key": "boat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "boat",
+        "ready": true,
+        "visible": true,
+        "outlines": 1
+      },
+      {
+        "key": "boat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "boat",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      }
+    ],
+    "subjectBox": {
+      "left": 289.9,
+      "top": 123.6,
+      "right": 427,
+      "bottom": 284.5,
+      "width": 137.1,
+      "height": 160.9
+    },
+    "felt": {
+      "left": 176,
+      "top": 64,
+      "right": 668,
+      "bottom": 320
+    }
+  },
+  "duel": {
+    "drawCallsOver2Raf": 590,
+    "trianglesOver2Raf": 409024,
+    "visible": 16,
+    "total": 16,
+    "targets": [
+      {
+        "visible": true,
+        "box": {
+          "left": 254.7,
+          "top": 180.9,
+          "right": 372.3,
+          "bottom": 288.2,
+          "width": 117.5,
+          "height": 107.3
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 181,
+          "top": 180,
+          "right": 298.4,
+          "bottom": 287.2,
+          "width": 117.4,
+          "height": 107.2
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 267.5,
+          "top": 160.6,
+          "right": 365.3,
+          "bottom": 245.4,
+          "width": 97.8,
+          "height": 84.7
+        }
+      }
+    ],
+    "camera": [
+      -0.524,
+      1.708,
+      -3.801
+    ]
+  }
+}

@@ -1,0 +1,855 @@
+{
+  "tool": "tests/tools/gl-duel-probe.mjs",
+  "fixture": {
+    "url": "?paperwar=1&fxcount=1",
+    "duel": 2,
+    "viewport": [
+      844,
+      390
+    ],
+    "deviceScaleFactor": 2,
+    "frames": 60,
+    "armies": {
+      "A": [
+        {
+          "ab": "canri",
+          "fac": "zuling",
+          "body": "elite",
+          "lg": true,
+          "sn": "殘日"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "fushou",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "ashcharm",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "wangchuan",
+          "fac": "xianghuo",
+          "body": "elite"
+        },
+        {
+          "ab": "boartusk",
+          "fac": "zuling",
+          "body": "elite"
+        }
+      ],
+      "B": [
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "buoy",
+          "fac": "yinqi",
+          "body": "haunt"
+        },
+        {
+          "ab": "shanshen",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "boat",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "balen",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "yinyangcoin",
+          "fac": "yinqi",
+          "body": "elite"
+        },
+        {
+          "ab": "boartusk",
+          "fac": "zuling",
+          "body": "elite"
+        },
+        {
+          "ab": "fushou",
+          "fac": "xianghuo",
+          "body": "elite"
+        }
+      ]
+    }
+  },
+  "setup": {
+    "loadMs": 685,
+    "figures": [
+      {
+        "ab": "canri",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": true
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "fushou",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "ashcharm",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "wangchuan",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boartusk",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "buoy",
+        "skin": "creature",
+        "visible": true,
+        "water": true,
+        "legendKit": false
+      },
+      {
+        "ab": "shanshen",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boat",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "balen",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "yinyangcoin",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "boartusk",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      },
+      {
+        "ab": "fushou",
+        "skin": "creature",
+        "visible": true,
+        "water": false,
+        "legendKit": false
+      }
+    ],
+    "camera": {
+      "pos": [
+        -0.511,
+        1.708,
+        -3.803
+      ],
+      "pitchDeg": 19.49
+    }
+  },
+  "renderedFrames": 60,
+  "rafTicks": 12,
+  "passesPerRaf": 5,
+  "rendersPerSec": 886.3,
+  "perRaf": {
+    "getParameters": 0,
+    "draws": 296,
+    "useProgram": 55
+  },
+  "programs": {
+    "before": 54,
+    "after": 54
+  },
+  "memory": {
+    "before": {
+      "geometries": 301,
+      "textures": 36
+    },
+    "after": {
+      "geometries": 301,
+      "textures": 36
+    }
+  },
+  "materialsInScene": 296,
+  "sharedMaterialMismatch": [],
+  "skeletonScan": {
+    "visibleSkinnedMeshes": 224,
+    "distinctSkeletons": 17,
+    "identicalBoneSetGroups": [
+      {
+        "bones": 1,
+        "skeletons": 1,
+        "meshes": 1,
+        "root": ""
+      },
+      {
+        "bones": 7,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 11,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 11,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 11,
+        "root": ""
+      },
+      {
+        "bones": 49,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      },
+      {
+        "bones": 45,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      },
+      {
+        "bones": 22,
+        "skeletons": 1,
+        "meshes": 20,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 11,
+        "root": ""
+      },
+      {
+        "bones": 33,
+        "skeletons": 1,
+        "meshes": 11,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      },
+      {
+        "bones": 13,
+        "skeletons": 1,
+        "meshes": 10,
+        "root": ""
+      },
+      {
+        "bones": 34,
+        "skeletons": 1,
+        "meshes": 24,
+        "root": ""
+      },
+      {
+        "bones": 31,
+        "skeletons": 1,
+        "meshes": 14,
+        "root": ""
+      },
+      {
+        "bones": 26,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      },
+      {
+        "bones": 49,
+        "skeletons": 1,
+        "meshes": 15,
+        "root": ""
+      }
+    ]
+  },
+  "programChurn": {
+    "getParametersPerFrame": 0,
+    "materialsCalled": 0,
+    "materials": [],
+    "versionBumpStacks": []
+  },
+  "glCallsPerFrame": {
+    "bindVertexArray": 57.6,
+    "drawElements": 53.6,
+    "uniform1f": 52,
+    "uniform4fv": 41.4,
+    "uniform3f": 30.63,
+    "uniformMatrix4fv": 30.2,
+    "pixelStorei": 13.6,
+    "texParameteri": 13.6,
+    "useProgram": 11,
+    "uniformMatrix3fv": 9.2,
+    "bindBuffer": 8.8,
+    "bufferSubData": 8.8,
+    "bindTexture": 7.6,
+    "frontFace": 7.2,
+    "drawArrays": 5.6,
+    "uniform2f": 4.6,
+    "texSubImage2D": 3.4,
+    "depthMask": 2.4,
+    "disable": 2.2,
+    "enable": 2.2,
+    "blendFunc": 2,
+    "blendFuncSeparate": 2,
+    "clear": 1.8,
+    "uniform1i": 1.8,
+    "bindFramebuffer": 1,
+    "scissor": 0.6,
+    "clearColor": 0.4,
+    "viewport": 0.4
+  },
+  "textureUploadsPerFrame": {
+    "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 2.8,
+    "texSubImage2D 8x8 fmt=6408 type=5126 src=Float32Array": 0.4,
+    "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 0.2
+  },
+  "drawBudget": {
+    "visibleObjects": 297,
+    "drawsIfAllInFrustum": 297,
+    "drawsInFrustum": 292,
+    "byTop": [
+      {
+        "key": "Group",
+        "objects": 275,
+        "draws": 275,
+        "inFrustumDraws": 275,
+        "tris": 0
+      },
+      {
+        "key": "Mesh",
+        "objects": 11,
+        "draws": 11,
+        "inFrustumDraws": 11,
+        "tris": 0
+      },
+      {
+        "key": "Points",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "sky-dome",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table-decor",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "outline-warmup",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far",
+        "objects": 5,
+        "draws": 5,
+        "inFrustumDraws": 0,
+        "tris": 0
+      }
+    ],
+    "byRoot": [
+      {
+        "key": "creature",
+        "objects": 223,
+        "draws": 223,
+        "inFrustumDraws": 223,
+        "tris": 0
+      },
+      {
+        "key": "ground-water",
+        "objects": 25,
+        "draws": 25,
+        "inFrustumDraws": 25,
+        "tris": 0
+      },
+      {
+        "key": "(scene)",
+        "objects": 20,
+        "draws": 20,
+        "inFrustumDraws": 20,
+        "tris": 0
+      },
+      {
+        "key": "faction-fx-xianghuo",
+        "objects": 8,
+        "draws": 8,
+        "inFrustumDraws": 8,
+        "tris": 0
+      },
+      {
+        "key": "faction-fx-zuling",
+        "objects": 6,
+        "draws": 6,
+        "inFrustumDraws": 6,
+        "tris": 0
+      },
+      {
+        "key": "faction-fx-yinqi",
+        "objects": 6,
+        "draws": 6,
+        "inFrustumDraws": 6,
+        "tris": 0
+      },
+      {
+        "key": "outline-warmup",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "legend-base",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "legend-aura",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "legend-kit",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far",
+        "objects": 5,
+        "draws": 5,
+        "inFrustumDraws": 0,
+        "tris": 0
+      }
+    ],
+    "byName": [
+      {
+        "key": "Mesh",
+        "objects": 40,
+        "draws": 40,
+        "inFrustumDraws": 40,
+        "tris": 0
+      },
+      {
+        "key": "Points",
+        "objects": 23,
+        "draws": 23,
+        "inFrustumDraws": 23,
+        "tris": 0
+      },
+      {
+        "key": "creature_1[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_2[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_3[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_4[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_5[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_6[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_7[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_8[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_9[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "outline[skin]",
+        "objects": 16,
+        "draws": 16,
+        "inFrustumDraws": 16,
+        "tris": 0
+      },
+      {
+        "key": "creature_10[skin]",
+        "objects": 14,
+        "draws": 14,
+        "inFrustumDraws": 14,
+        "tris": 0
+      },
+      {
+        "key": "creature_11[skin]",
+        "objects": 9,
+        "draws": 9,
+        "inFrustumDraws": 9,
+        "tris": 0
+      },
+      {
+        "key": "creature_12[skin]",
+        "objects": 9,
+        "draws": 9,
+        "inFrustumDraws": 9,
+        "tris": 0
+      },
+      {
+        "key": "creature_13[skin]",
+        "objects": 9,
+        "draws": 9,
+        "inFrustumDraws": 9,
+        "tris": 0
+      },
+      {
+        "key": "creature_14[skin]",
+        "objects": 8,
+        "draws": 8,
+        "inFrustumDraws": 8,
+        "tris": 0
+      },
+      {
+        "key": "creature_15[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_16[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_17[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_18[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "creature_19[skin]",
+        "objects": 2,
+        "draws": 2,
+        "inFrustumDraws": 2,
+        "tris": 0
+      },
+      {
+        "key": "sky-dome",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "table-decor",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "Line",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "SkinnedMesh[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "legend-plate",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_20[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_21[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_22[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "creature_23[skin]",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "far-temple",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 0,
+        "tris": 0
+      },
+      {
+        "key": "far-arch",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 0,
+        "tris": 0
+      },
+      {
+        "key": "far-banyan",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 0,
+        "tris": 0
+      },
+      {
+        "key": "far-eaves",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 0,
+        "tris": 0
+      },
+      {
+        "key": "far-stalls",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 0,
+        "tris": 0
+      }
+    ],
+    "byType": [
+      {
+        "key": "SkinnedMesh:MeshStandardMaterial",
+        "objects": 207,
+        "draws": 207,
+        "inFrustumDraws": 207,
+        "tris": 0
+      },
+      {
+        "key": "Mesh:MeshBasicMaterial",
+        "objects": 45,
+        "draws": 45,
+        "inFrustumDraws": 40,
+        "tris": 0
+      },
+      {
+        "key": "Points:PointsMaterial",
+        "objects": 23,
+        "draws": 23,
+        "inFrustumDraws": 23,
+        "tris": 0
+      },
+      {
+        "key": "SkinnedMesh:MeshBasicMaterial",
+        "objects": 17,
+        "draws": 17,
+        "inFrustumDraws": 17,
+        "tris": 0
+      },
+      {
+        "key": "Mesh:MeshStandardMaterial",
+        "objects": 3,
+        "draws": 3,
+        "inFrustumDraws": 3,
+        "tris": 0
+      },
+      {
+        "key": "Line:LineBasicMaterial",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      },
+      {
+        "key": "Sprite:SpriteMaterial",
+        "objects": 1,
+        "draws": 1,
+        "inFrustumDraws": 1,
+        "tris": 0
+      }
+    ]
+  },
+  "errors": []
+}

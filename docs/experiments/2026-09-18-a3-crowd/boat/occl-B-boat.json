@@ -1,0 +1,287 @@
+{
+  "tool": "tests/tools/crowd-occl.mjs",
+  "key": "boat",
+  "name": "B",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "frames": 3,
+  "gap": 400,
+  "errors": [],
+  "setup": {
+    "rosterA": [
+      "boat",
+      "boat",
+      "boat",
+      "fushou",
+      "ashcharm",
+      "boartusk",
+      "shanshen",
+      "wangchuan"
+    ],
+    "rosterB": [
+      "balen",
+      "yinyangcoin",
+      "boartusk",
+      "fushou",
+      "ashcharm",
+      "shanshen",
+      "wangchuan",
+      "buoy"
+    ],
+    "body": "swarm",
+    "fac": "zuling"
+  },
+  "targets": [
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 15597,
+          "visPx": 15596,
+          "visSibPx": 15596,
+          "occl": 0.0001,
+          "occlSib": 0.0001,
+          "box": {
+            "left": 262.6,
+            "top": 200.1,
+            "right": 405,
+            "bottom": 312.8,
+            "width": 142.4,
+            "height": 112.7
+          },
+          "x": -0.53,
+          "z": -1.353,
+          "rotY": -1.151,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 15614,
+          "visPx": 15614,
+          "visSibPx": 15614,
+          "occl": 0,
+          "occlSib": 0,
+          "box": {
+            "left": 262.3,
+            "top": 198.8,
+            "right": 404.8,
+            "bottom": 311.9,
+            "width": 142.4,
+            "height": 113.2
+          },
+          "x": -0.53,
+          "z": -1.353,
+          "rotY": -1.151,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 15531,
+          "visPx": 15531,
+          "visSibPx": 15531,
+          "occl": 0,
+          "occlSib": 0,
+          "box": {
+            "left": 262.6,
+            "top": 200.6,
+            "right": 404.6,
+            "bottom": 314.4,
+            "width": 142,
+            "height": 113.8
+          },
+          "x": -0.53,
+          "z": -1.353,
+          "rotY": -1.151,
+          "scale": 0.5273
+        }
+      ]
+    },
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 8272,
+          "visPx": 4305,
+          "visSibPx": 6998,
+          "occl": 0.4796,
+          "occlSib": 0.154,
+          "box": {
+            "left": 218.2,
+            "top": 170.5,
+            "right": 324.2,
+            "bottom": 264.5,
+            "width": 106.1,
+            "height": 94.1
+          },
+          "x": 0.447,
+          "z": -1.308,
+          "rotY": -1.43,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 8253,
+          "visPx": 4267,
+          "visSibPx": 6962,
+          "occl": 0.483,
+          "occlSib": 0.1564,
+          "box": {
+            "left": 218.1,
+            "top": 170.1,
+            "right": 324.1,
+            "bottom": 264.5,
+            "width": 106,
+            "height": 94.5
+          },
+          "x": 0.447,
+          "z": -1.308,
+          "rotY": -1.43,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 8288,
+          "visPx": 4127,
+          "visSibPx": 7193,
+          "occl": 0.5021,
+          "occlSib": 0.1321,
+          "box": {
+            "left": 217.9,
+            "top": 169.2,
+            "right": 323.9,
+            "bottom": 264,
+            "width": 106,
+            "height": 94.9
+          },
+          "x": 0.447,
+          "z": -1.308,
+          "rotY": -1.43,
+          "scale": 0.5273
+        }
+      ]
+    },
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 7416,
+          "visPx": 5392,
+          "visSibPx": 6123,
+          "occl": 0.2729,
+          "occlSib": 0.1744,
+          "box": {
+            "left": 293.3,
+            "top": 168.2,
+            "right": 384.3,
+            "bottom": 268.1,
+            "width": 91,
+            "height": 99.9
+          },
+          "x": 0.025,
+          "z": -0.959,
+          "rotY": -1.709,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 7382,
+          "visPx": 5100,
+          "visSibPx": 5865,
+          "occl": 0.3091,
+          "occlSib": 0.2055,
+          "box": {
+            "left": 293.4,
+            "top": 168.8,
+            "right": 384.3,
+            "bottom": 269.2,
+            "width": 90.9,
+            "height": 100.4
+          },
+          "x": 0.025,
+          "z": -0.959,
+          "rotY": -1.709,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 7419,
+          "visPx": 5622,
+          "visSibPx": 6348,
+          "occl": 0.2422,
+          "occlSib": 0.1444,
+          "box": {
+            "left": 293.2,
+            "top": 166.9,
+            "right": 384.1,
+            "bottom": 267.6,
+            "width": 90.9,
+            "height": 100.7
+          },
+          "x": 0.025,
+          "z": -0.959,
+          "rotY": -1.709,
+          "scale": 0.5273
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "a": 0,
+      "b": 1,
+      "overlap": 0.0912
+    },
+    {
+      "a": 0,
+      "b": 2,
+      "overlap": 0.1002
+    },
+    {
+      "a": 1,
+      "b": 2,
+      "overlap": 0.0012
+    }
+  ],
+  "canvasW": 1688,
+  "canvasH": 780,
+  "summary": [
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.0001,
+      "occlSibMax": 0.0001,
+      "ok": true
+    },
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.5021,
+      "occlSibMax": 0.1564,
+      "ok": false
+    },
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.3091,
+      "occlSibMax": 0.2055,
+      "ok": false
+    }
+  ],
+  "allOk": false,
+  "pairOverlapMax": 0.1002
+}

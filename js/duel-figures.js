@@ -112,7 +112,39 @@ const FIG = {
   fitSteps: [1, 0.9, 0.8, 0.7, 0.6, 0.5], // 排數到上限仍塞不下 → 整側等比縮小（腳印跟著縮），逐級試
   rowMinStep: 0.55, // 同一排相鄰兩尊的最小中心距（塞得下才保證；step0 在 n=8 只有約 0.36）
   brickShift: 0.5, // 奇數排往外錯半格（×step），前後排的頭才不會疊在同一條線上
+  // A3 S6 滿編構圖（凍結 #10，2026-09-18）：同一側同型（同 ab）多隻的錯位。只動站位與朝向，不動模型與色票。
+  // 讀者材料量到的真因：8v8 每排 2 尊、同型三隻按體型排到前兩排同一欄，低仰角下前後框重疊（福壽四框互遮 66%、紅帽第三隻被同型擋 66%）。
+  dupSpread: 0.45, // 同排兩隻同型往內／往外各挪這麼多（×該排 step），把中間讓出來給後排那隻露臉
+  dupDepth: 0.16, // 同型相鄰兩隻前後交錯的深度（世界單位；+＝靠鏡頭）
+  dupTurnDeg: 16, // 同型各隻朝向偏移的級距（度）：三隻＝ −16／0／+16，剪影才不是同一張的三份影印
+  dupTurnBias: 0, // 同型整體再往鏡頭多轉幾度（正＝更正對鏡頭、側視的長軸縮短、剪影變窄）；0＝只做級距
 };
+
+/** 同一側名冊裡的同型群：回傳與 list 等長的陣列，同 ab ≥2 隻的給 {i: 群內序, n: 群大小}，其餘 null。
+ *  紙紮（沒有 ab）一律 null——它們走 makeLayeredFigure 那條皮，不在本卷範圍。純函式，測試在 tests/crowd-stagger.test.mjs。 */
+export function dupGroups(list) {
+  const byKey = new Map();
+  list.forEach((u, j) => { const k = u && u.ab; if (!k) return; if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(j); });
+  const out = new Array(list.length).fill(null);
+  for (const idx of byKey.values()) { if (idx.length < 2) continue; idx.forEach((j, i) => { out[j] = { i, n: idx.length }; }); }
+  return out;
+}
+/** 一隻同型成員的錯位分量（純函式）：d＝dupGroups 給的 {i,n}（null＝不是同型 ⇒ 全 0）、k＝排內由內往外第幾尊、m＝該排尊數、r＝第幾排。
+ *  棋盤式：以 (k+r) 的奇偶決定方向——偶＝往內（lane −1）且靠鏡頭（depth +1）、奇＝往外（+1）且退後（−1）。
+ *  為什麼要帶 r：第一版只看 k，前排 k0 與後排 k0 都往內挪，後排那隻仍正好躲在前排那隻正後方（紅帽 r1 量測：#2 框 321–378 對 #0 322–391）；
+ *  帶 r 之後後排的 k0 反向往外，落到前排兩隻的縫隙。yawDeg：群內對稱分佈（級距 dupTurnDeg）＋整體偏置 dupTurnBias。回傳的是倍率／度數，實際尺度在 FIG。 */
+export function dupStagger(d, k, m, rowsBehind = 0) {
+  if (!d || d.n < 2) return { lane: 0, depth: 0, yawDeg: 0 };
+  // r2 量測（棋盤式）：後排那隻不論往內／居中／往外都被前排一對或旁邊的重型擋住（紅帽 #2 .96、非同型）——
+  // 前兩排的橫向帶已被佔滿，唯一出口是深度：群組裡不在最前排的成員**帶到前排的深度再往前一點**，
+  // 橫向留在該排原位（第 1 排 k0 的原位＋brickShift 正好落在前排兩隻中間），三隻排成一條前線。
+  const yawDeg = FIG.dupTurnBias + (d.i - (d.n - 1) / 2) * FIG.dupTurnDeg;
+  // ≥4 隻的群（福壽：本件 ×3＋重型名單那隻）試過「後排 k 奇只帶一半成階梯」（r4）：.35／.96／.34／.82，比整排帶前（r3：.30／.94／.43／.47）更差，撤回。
+  // 四隻 220px 寬的龜在 300px 寬的帶裡，幾何上做不到每隻 ≤30%——機械閘以 r3 記未過，讀者判。
+  if (rowsBehind > 0) return { lane: 0, depth: 1, yawDeg };
+  // 群組最前排：k 偶＝往內、k 奇＝往外，深度不動（把中間讓給帶上來的那隻）
+  return { lane: k % 2 ? 1 : -1, depth: 0, yawDeg };
+}
 
 /** 這一尊的體型倍率：傳說一律走 `legend` 那一格（**不看 body**），其餘照 body（請神存在感卷 2026-09-13）。
  *  站位規劃（footBase）與主迴圈的 bs 共用這一支，不得各寫一套。 */
@@ -991,6 +1023,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         // 站位順序：小的前排、大的後排（依 bodyScale：群體 0.6 → 作祟 0.82 → 護法 0.86 → 精英 1.15），同體型保留名冊順序。
         // 只動站位不動名冊 j／unit id（beats 的 actor/target 與 DOM 隻數牌都靠 id），所以這裡是一個排列 order[slot]=j。
         const baseOrder = list.map((_, jj) => jj).sort((a, b) => (bodyScaleOf(list[a]) - bodyScaleOf(list[b])) || (a - b));
+        const dups = dupGroups(list); // A3 S6：同型群（沒有同型 ⇒ 全 null ⇒ 下面的錯位分量全 0，站位與 v0.57.31 逐項相同）
         // 傳說列（請神存在感卷 2026-09-13）：傳說**不參與**「小前大後」的體型排序——
         // 改前殘日（elite 1.15）被這條規則推到最後一排，8v8 下被擋掉 65–67%（基準見凍結檔）。
         // 改後三尊整排獨占第 LGROW 排並置中：前排留給群體，第二排中央最不被擋、也最靠鏡頭中軸。
@@ -1016,8 +1049,10 @@ export function createDuelFigures(scene, camera, opts = {}) {
           if (useLg) { let p = 0; for (let r = 0; r < rows; r++) { if (r === LGROW) order.push(...lgIdx); else for (let k = 0; k < sizes[r]; k++) order.push(plainIdx[p++]); } }
           else order.push(...baseOrder);
           const gap = rows > 1 ? Math.min(FIG.rowGap3d, FIG.rowSpanMax / (rows - 1)) : 0;
-          const P = { rows, sizes, gap, fit, crowd: crowdEff, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true };
+          const P = { rows, sizes, gap, fit, crowd: crowdEff, steps: [], centers: [], rowOf: new Array(n), idxOf: new Array(n), ok: true,
+            laneOff: new Array(n).fill(0), depthOff: new Array(n).fill(0), yaw: new Array(n).fill(0) }; // A3 S6 同型錯位（世界單位／度）
           let slot = 0;
+          const dupFront = new Map(); // A3 S6：同型群第一次出現的排（排由前往後掃，第一次遇到＝群組最前排）
           for (let r = 0; r < rows; r++) {
             const m = sizes[r];
             const fIn = footOf(order[slot]), fOut = footOf(order[slot + m - 1]); // k=0 最內、k=m−1 最外
@@ -1039,7 +1074,24 @@ export function createDuelFigures(scene, camera, opts = {}) {
             // 奇數排往外錯半格（塞得下才錯）。★傳說列不錯半格★——錯開就把它推離鏡頭中軸，那正是本卷要的東西
             if (r % 2 && !(useLg && r === LGROW)) c += Math.min(s * FIG.brickShift / 2, Math.max(0, hiOut - (c + need * s)));
             P.steps.push(s); P.centers.push(c);
-            for (let k = 0; k < m; k++) { const j0 = order[slot + k]; P.rowOf[j0] = r; P.idxOf[j0] = k; }
+            for (let k = 0; k < m; k++) {
+              const j0 = order[slot + k]; P.rowOf[j0] = r; P.idxOf[j0] = k;
+              // A3 S6 同型錯位：橫向挪動夾在這一排的可用區間內（腳印不壓中線、不出桌緣，與上面規劃同一條式子）
+              let rowsBehind = 0;
+              if (dups[j0]) { const key = list[j0].ab; if (!dupFront.has(key)) dupFront.set(key, r); rowsBehind = r - dupFront.get(key); }
+              const stg = dupStagger(dups[j0], k, m, rowsBehind);
+              if (stg.lane || stg.depth || stg.yawDeg || rowsBehind) {
+                const foot = footOf(j0), center = c + (k - need) * s;
+                const off = stg.lane * FIG.dupSpread * s;
+                P.laneOff[j0] = Math.max((lo + foot) - center, Math.min((hiOut - foot) - center, off));
+                // 深度偏移＝帶到群組最前排的深度（rowsBehind 排 × 排距）＋ 錯位分量；也守徑向上限（R-2：腳印外緣離桌心 ≤ rimMax）：
+                // |排深＋偏移| ≤ sqrt((rimMax−foot)²−橫向²)
+                const cx = center + P.laneOff[j0], rr = Math.max(0, hi - foot);
+                const maxD = Math.sqrt(Math.max(0, rr * rr - cx * cx));
+                P.depthOff[j0] = Math.max(-maxD - depthR, Math.min(maxD - depthR, rowsBehind * gap + stg.depth * FIG.dupDepth));
+                P.yaw[j0] = stg.yawDeg;
+              }
+            }
             slot += m;
           }
           return P;
@@ -1153,9 +1205,9 @@ export function createDuelFigures(scene, camera, opts = {}) {
         if (plan) {
           const r = plan.rowOf[j], k = plan.idxOf[j], m = plan.sizes[r], st = plan.steps[r];
           // 側向座標＝side×(排中心＋由內往外第 k 尊的偏移)，不再加 offset[i]（排中心已含欄位中心的意圖）
-          lane = side * (plan.centers[r] + (k - (m - 1) / 2) * st) - offset[i];
+          lane = side * (plan.centers[r] + (k - (m - 1) / 2) * st + plan.laneOff[j]) - offset[i]; // laneOff＝A3 S6 同型錯位（非同型為 0）
           // 一排時前後交錯用排內位置 k 的奇偶（不是名冊 j：體型排序後相鄰兩尊可能同 j 奇偶而站同一深度，實測 3v3 距離只剩 0.478）
-          depth = plan.rows === 1 ? (k % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * plan.gap; // 第 0 排最靠鏡頭
+          depth = (plan.rows === 1 ? (k % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : ((plan.rows - 1) / 2 - r) * plan.gap) + plan.depthOff[j]; // 第 0 排最靠鏡頭
         } else {
           lane = n <= 1 ? 0 : (j - (n - 1) / 2) * step;
           depth = n > 1 ? (j % 2 ? 1 : -1) * (is3d ? FIG.rowDepth3d : FIG.rowDepth) : 0;
@@ -1199,7 +1251,7 @@ export function createDuelFigures(scene, camera, opts = {}) {
         if (is3d) {
           // 3D 妖面向對手（模型正面＝+Z）：左邊的朝畫面右、右邊的朝畫面左，再往鏡頭轉 faceTurn3d 度
           // 讓臉看得見。被打中的那一方以腳底為樞紐歪出去；不加紙紮那個 lean（四足獸側傾像翻倒）。
-          const turn = THREE.MathUtils.degToRad(FIG.faceTurn3d);
+          const turn = THREE.MathUtils.degToRad(FIG.faceTurn3d + (plan ? plan.yaw[j] : 0)); // yaw＝A3 S6 同型各隻朝向偏移（非同型為 0）
           f.group.rotation.set(0, az - side * (Math.PI / 2 - turn), 0);
           if (dir === -1) f.group.rotateZ(THREE.MathUtils.degToRad(side * FIG.lungeSpinDeg * kick * hitPower));
           // 邊光在受擊瞬間爆一下（對 3D 皮 setRim 是倍率）；燒毀的亮滅由工廠的 burn() 自己演

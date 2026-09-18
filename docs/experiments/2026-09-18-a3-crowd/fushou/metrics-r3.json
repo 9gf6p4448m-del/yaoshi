@@ -1,0 +1,125 @@
+{
+  "tool": "tests/tools/a2-sheet.mjs",
+  "key": "fushou",
+  "name": "r3",
+  "glb": "assets/creatures/fushou.glb",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "errors": [],
+  "table": {
+    "calls": 79,
+    "tris": 37669,
+    "hoverSlot": 1,
+    "items": [
+      {
+        "key": "fushou",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "fushou",
+        "ready": true,
+        "visible": true,
+        "outlines": 1
+      },
+      {
+        "key": "fushou",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      },
+      {
+        "key": "fushou",
+        "ready": true,
+        "visible": true,
+        "outlines": 0
+      }
+    ],
+    "subjectBox": {
+      "left": 264.1,
+      "top": 123,
+      "right": 465,
+      "bottom": 313.2,
+      "width": 200.9,
+      "height": 190.2
+    },
+    "felt": {
+      "left": 176,
+      "top": 64,
+      "right": 668,
+      "bottom": 320
+    }
+  },
+  "duel": {
+    "drawCallsOver2Raf": 626,
+    "trianglesOver2Raf": 436528,
+    "visible": 16,
+    "total": 16,
+    "targets": [
+      {
+        "visible": true,
+        "box": {
+          "left": 229.1,
+          "top": 129.6,
+          "right": 426.9,
+          "bottom": 314.5,
+          "width": 197.8,
+          "height": 184.9
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 165.9,
+          "top": 129.8,
+          "right": 395.1,
+          "bottom": 326.8,
+          "width": 229.2,
+          "height": 196.9
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 167.9,
+          "top": 131,
+          "right": 406,
+          "bottom": 347.3,
+          "width": 238.1,
+          "height": 216.3
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 117.8,
+          "top": 131.4,
+          "right": 347.9,
+          "bottom": 344.2,
+          "width": 230.1,
+          "height": 212.8
+        }
+      },
+      {
+        "visible": true,
+        "box": {
+          "left": 394,
+          "top": 77.2,
+          "right": 604.2,
+          "bottom": 245.6,
+          "width": 210.2,
+          "height": 168.4
+        }
+      }
+    ],
+    "camera": [
+      -0.506,
+      1.708,
+      -3.803
+    ]
+  }
+}

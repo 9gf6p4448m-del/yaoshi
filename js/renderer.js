@@ -18,7 +18,7 @@ const { createCharacterBillboards } = await import('./characters-billboard.js' +
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
-const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd } = await import('./creature-figures.js' + V);
+const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd, MAIN_OUTLINE } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
 const { createTableTray, TRAY } = await import('./table-tray.js' + V);
 const { fitSubject } = await import('./table-framing.js' + V);
@@ -130,7 +130,8 @@ function init() {
       if (!u || !u.ab) return makeLayeredFigure();
       // faction 是給描邊用的（後處理卷 P-1：外殼描邊色＝該系 FACTION_RIM 的加深版，常駐）
       // normUp＝傳說三尊才放大到 NORM.maxH（請神存在感卷 2026-09-13；27 隻一律只縮不放）
-      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac, normUp: !!u.lg });
+      // outlineHex＝A3 S6 滿編構圖：MAIN_OUTLINE 那三件的描邊改該尊主色（只在對決端；拍賣桌不傳）
+      const f = makeCreatureFigure({ glbUrl: creatureGlbUrl(u.ab), ab: u.ab, rimColor: RIM_BY_FAC[u.fac], faction: u.fac, normUp: !!u.lg, outlineHex: MAIN_OUTLINE[u.ab] ? MAIN_OUTLINE[u.ab].hex : undefined });
       attachFactionFx(f, u.fac, { seed: fxSeed++ });
       return f;
     },

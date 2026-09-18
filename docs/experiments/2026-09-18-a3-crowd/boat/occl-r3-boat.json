@@ -1,0 +1,287 @@
+{
+  "tool": "tests/tools/crowd-occl.mjs",
+  "key": "boat",
+  "name": "r3",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "frames": 3,
+  "gap": 400,
+  "errors": [],
+  "setup": {
+    "rosterA": [
+      "boat",
+      "boat",
+      "boat",
+      "fushou",
+      "ashcharm",
+      "boartusk",
+      "shanshen",
+      "wangchuan"
+    ],
+    "rosterB": [
+      "balen",
+      "yinyangcoin",
+      "boartusk",
+      "fushou",
+      "ashcharm",
+      "shanshen",
+      "wangchuan",
+      "buoy"
+    ],
+    "body": "swarm",
+    "fac": "zuling"
+  },
+  "targets": [
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 12367,
+          "visPx": 11281,
+          "visSibPx": 11283,
+          "occl": 0.0878,
+          "occlSib": 0.0877,
+          "box": {
+            "left": 279.9,
+            "top": 183.9,
+            "right": 406.5,
+            "bottom": 282.3,
+            "width": 126.6,
+            "height": 98.3
+          },
+          "x": -0.327,
+          "z": -1.087,
+          "rotY": -1.117,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 12324,
+          "visPx": 11111,
+          "visSibPx": 11111,
+          "occl": 0.0984,
+          "occlSib": 0.0984,
+          "box": {
+            "left": 280.1,
+            "top": 185.1,
+            "right": 406.4,
+            "bottom": 284,
+            "width": 126.3,
+            "height": 98.9
+          },
+          "x": -0.327,
+          "z": -1.087,
+          "rotY": -1.117,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 12379,
+          "visPx": 11169,
+          "visSibPx": 11169,
+          "occl": 0.0977,
+          "occlSib": 0.0977,
+          "box": {
+            "left": 280,
+            "top": 184.6,
+            "right": 406.3,
+            "bottom": 283.7,
+            "width": 126.3,
+            "height": 99.1
+          },
+          "x": -0.327,
+          "z": -1.087,
+          "rotY": -1.117,
+          "scale": 0.5273
+        }
+      ]
+    },
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 10195,
+          "visPx": 7674,
+          "visSibPx": 8946,
+          "occl": 0.2473,
+          "occlSib": 0.1225,
+          "box": {
+            "left": 196.2,
+            "top": 180,
+            "right": 313.5,
+            "bottom": 287.4,
+            "width": 117.4,
+            "height": 107.4
+          },
+          "x": 0.156,
+          "z": -1.569,
+          "rotY": -1.397,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 10144,
+          "visPx": 7494,
+          "visSibPx": 8728,
+          "occl": 0.2612,
+          "occlSib": 0.1396,
+          "box": {
+            "left": 196.5,
+            "top": 181.4,
+            "right": 313.6,
+            "bottom": 289.4,
+            "width": 117.1,
+            "height": 108
+          },
+          "x": 0.156,
+          "z": -1.569,
+          "rotY": -1.397,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 10154,
+          "visPx": 7594,
+          "visSibPx": 8870,
+          "occl": 0.2521,
+          "occlSib": 0.1265,
+          "box": {
+            "left": 196.1,
+            "top": 179.4,
+            "right": 313.4,
+            "bottom": 287.5,
+            "width": 117.3,
+            "height": 108.1
+          },
+          "x": 0.156,
+          "z": -1.569,
+          "rotY": -1.397,
+          "scale": 0.5273
+        }
+      ]
+    },
+    {
+      "ab": "boat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 9294,
+          "visPx": 6750,
+          "visSibPx": 6758,
+          "occl": 0.2737,
+          "occlSib": 0.2729,
+          "box": {
+            "left": 241.4,
+            "top": 185.7,
+            "right": 342.2,
+            "bottom": 307,
+            "width": 100.9,
+            "height": 121.3
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.676,
+          "scale": 0.5273
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 9265,
+          "visPx": 6832,
+          "visSibPx": 6858,
+          "occl": 0.2626,
+          "occlSib": 0.2598,
+          "box": {
+            "left": 241,
+            "top": 183.4,
+            "right": 342,
+            "bottom": 305,
+            "width": 101,
+            "height": 121.6
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.676,
+          "scale": 0.5273
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 9303,
+          "visPx": 6793,
+          "visSibPx": 6800,
+          "occl": 0.2698,
+          "occlSib": 0.2691,
+          "box": {
+            "left": 241.1,
+            "top": 184.1,
+            "right": 342,
+            "bottom": 306,
+            "width": 100.9,
+            "height": 121.9
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.676,
+          "scale": 0.5273
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "a": 0,
+      "b": 1,
+      "overlap": 0
+    },
+    {
+      "a": 0,
+      "b": 2,
+      "overlap": 0.0633
+    },
+    {
+      "a": 1,
+      "b": 2,
+      "overlap": 0.3042
+    }
+  ],
+  "canvasW": 1688,
+  "canvasH": 780,
+  "summary": [
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.0984,
+      "occlSibMax": 0.0984,
+      "ok": true
+    },
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.2612,
+      "occlSibMax": 0.1396,
+      "ok": true
+    },
+    {
+      "ab": "boat",
+      "live": 3,
+      "occlMax": 0.2737,
+      "occlSibMax": 0.2729,
+      "ok": true
+    }
+  ],
+  "allOk": true,
+  "pairOverlapMax": 0.3042
+}

@@ -513,6 +513,23 @@ export function outlineColorOf(faction, fallbackHex) {
   return _oc.setHSL(h, Math.min(1, _ohsl.s * OUTLINE.satMul), OUTLINE.lum, THREE.SRGBColorSpace).getHex(THREE.SRGBColorSpace);
 }
 
+/** A3 S6 滿編構圖（凍結 #10，2026-09-18）：描邊改「該尊主色」的那三件。mat＝該尊 assets/creatures/<ab>.json palette 裡代表身分的部位，
+ *  hex＝那一格的 color（GLB 的材質 baseColor 全白、顏色烘在頂點色裡，runtime 讀不到 JSON，所以這裡快取一份；
+ *  tests/crowd-stagger.test.mjs 逐一對照 JSON，改了 JSON 沒改這裡會紅）。不在表裡的尊照舊走三系描邊（outlineColorOf）。
+ *  只有對決端（renderer.js 的 duelFigures 工廠）會傳 opts.outlineHex；拍賣桌（table-tray.js）不傳——A2 桌面色系／系別讀者是在桌面過的，本卷不動它。 */
+export const MAIN_OUTLINE = {
+  boat: { mat: 'hull_body', hex: 0x7d6044 }, // 拼板舟：船殼老木
+  fushou: { mat: 'shell_dark', hex: 0x5e4034 }, // 福壽綿長：龜甲底色
+  redhat: { mat: 'hat', hex: 0xad1420 }, // 魔神仔紅帽：紅斗笠（讀者把青綠描邊下的紅斗笠讀成青綠，就是這一件）
+};
+/** 主色 → 描邊色：色相照主色，飽和度與明度走 OUTLINE 同一套（satMul／lum；不套 hueShift——那是給三系色拉開色相差用的）。
+ *  明度壓在 bloom 門檻下的理由同 outlineColorOf。 */
+export function outlineColorFromHex(hex) {
+  _oc.setHex(hex);
+  _oc.getHSL(_ohsl, THREE.SRGBColorSpace);
+  return _oc.setHSL(_ohsl.h, Math.min(1, _ohsl.s * OUTLINE.satMul), OUTLINE.lum, THREE.SRGBColorSpace).getHex(THREE.SRGBColorSpace);
+}
+
 const OUTLINE_PARS = `
 uniform vec3 uOutlineColor;
 uniform float uDissolve;
@@ -691,7 +708,8 @@ export function makeCreatureFigure(opts = {}) {
     // 反轉外殼描邊（P-1）：整尊共用一顆材質（一支 program、一份 uniform），
     // 每顆本體 mesh 底下掛一顆同 geometry／同 skeleton／同 bindMatrix 的殼。
     if (OUTLINE_ON) {
-      const shell = makeOutlineMaterial(outlineColorOf(opts.faction, opts.rimColor), burnY);
+      // A3 S6：對決端對 MAIN_OUTLINE 那三件傳 opts.outlineHex（該尊主色）；沒傳＝三系描邊（與 v0.57.31 相同）
+      const shell = makeOutlineMaterial(opts.outlineHex !== undefined && opts.outlineHex !== null ? outlineColorFromHex(opts.outlineHex) : outlineColorOf(opts.faction, opts.rimColor), burnY);
       shellU = shell.u;
       const isGhostMat = (m) => GHOST.test.test((m && m.name) || '');
       // 合併殼（對決卷二）：同一尊一顆。geometry 依 URL 快取；算不出來（回 null）就走下面的逐部件退路。

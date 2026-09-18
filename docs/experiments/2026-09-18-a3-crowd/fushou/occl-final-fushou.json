@@ -1,0 +1,385 @@
+{
+  "tool": "tests/tools/crowd-occl.mjs",
+  "key": "fushou",
+  "name": "final",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "frames": 3,
+  "gap": 400,
+  "errors": [],
+  "setup": {
+    "rosterA": [
+      "fushou",
+      "fushou",
+      "fushou",
+      "fushou",
+      "ashcharm",
+      "boartusk",
+      "shanshen",
+      "wangchuan"
+    ],
+    "rosterB": [
+      "balen",
+      "yinyangcoin",
+      "boartusk",
+      "fushou",
+      "ashcharm",
+      "shanshen",
+      "wangchuan",
+      "buoy"
+    ],
+    "body": "ward",
+    "fac": "xianghuo"
+  },
+  "targets": [
+    {
+      "ab": "fushou",
+      "idx": 0,
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 52874,
+          "visPx": 36270,
+          "visSibPx": 36270,
+          "occl": 0.314,
+          "occlSib": 0.314,
+          "box": {
+            "left": 228.8,
+            "top": 128.5,
+            "right": 427,
+            "bottom": 313.3,
+            "width": 198.2,
+            "height": 184.8
+          },
+          "x": -0.254,
+          "z": -1.16,
+          "rotY": -0.977,
+          "scale": 0.7558
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 52688,
+          "visPx": 32798,
+          "visSibPx": 32798,
+          "occl": 0.3775,
+          "occlSib": 0.3775,
+          "box": {
+            "left": 229.5,
+            "top": 131.8,
+            "right": 427,
+            "bottom": 317,
+            "width": 197.5,
+            "height": 185.3
+          },
+          "x": -0.254,
+          "z": -1.16,
+          "rotY": -0.977,
+          "scale": 0.7558
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 52750,
+          "visPx": 35825,
+          "visSibPx": 35825,
+          "occl": 0.3209,
+          "occlSib": 0.3209,
+          "box": {
+            "left": 229,
+            "top": 129.2,
+            "right": 427,
+            "bottom": 314.1,
+            "width": 198,
+            "height": 184.9
+          },
+          "x": -0.254,
+          "z": -1.16,
+          "rotY": -0.977,
+          "scale": 0.7558
+        }
+      ]
+    },
+    {
+      "ab": "fushou",
+      "idx": 1,
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 56581,
+          "visPx": 4903,
+          "visSibPx": 4903,
+          "occl": 0.9133,
+          "occlSib": 0.9133,
+          "box": {
+            "left": 165.1,
+            "top": 127.2,
+            "right": 395.1,
+            "bottom": 323.6,
+            "width": 230,
+            "height": 196.4
+          },
+          "x": -0.006,
+          "z": -1.408,
+          "rotY": -1.257,
+          "scale": 0.7558
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 56375,
+          "visPx": 2323,
+          "visSibPx": 2323,
+          "occl": 0.9588,
+          "occlSib": 0.9588,
+          "box": {
+            "left": 165.6,
+            "top": 128.9,
+            "right": 395.1,
+            "bottom": 325.6,
+            "width": 229.6,
+            "height": 196.8
+          },
+          "x": -0.006,
+          "z": -1.408,
+          "rotY": -1.257,
+          "scale": 0.7558
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 56579,
+          "visPx": 5048,
+          "visSibPx": 5048,
+          "occl": 0.9108,
+          "occlSib": 0.9108,
+          "box": {
+            "left": 165.1,
+            "top": 127.2,
+            "right": 395.1,
+            "bottom": 323.7,
+            "width": 230,
+            "height": 196.4
+          },
+          "x": -0.006,
+          "z": -1.408,
+          "rotY": -1.257,
+          "scale": 0.7558
+        }
+      ]
+    },
+    {
+      "ab": "fushou",
+      "idx": 2,
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 65812,
+          "visPx": 37746,
+          "visSibPx": 37746,
+          "occl": 0.4265,
+          "occlSib": 0.4265,
+          "box": {
+            "left": 168.6,
+            "top": 133.5,
+            "right": 406.1,
+            "bottom": 350.5,
+            "width": 237.5,
+            "height": 216.9
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.536,
+          "scale": 0.7558
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 65987,
+          "visPx": 43180,
+          "visSibPx": 43180,
+          "occl": 0.3456,
+          "occlSib": 0.3456,
+          "box": {
+            "left": 167.8,
+            "top": 130.6,
+            "right": 406.1,
+            "bottom": 346.9,
+            "width": 238.3,
+            "height": 216.3
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.536,
+          "scale": 0.7558
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 65854,
+          "visPx": 38132,
+          "visSibPx": 38132,
+          "occl": 0.421,
+          "occlSib": 0.421,
+          "box": {
+            "left": 168.6,
+            "top": 133.6,
+            "right": 406.1,
+            "bottom": 350.5,
+            "width": 237.5,
+            "height": 216.9
+          },
+          "x": -0.169,
+          "z": -1.471,
+          "rotY": -1.536,
+          "scale": 0.7558
+        }
+      ]
+    },
+    {
+      "ab": "fushou",
+      "idx": 3,
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 71720,
+          "visPx": 37663,
+          "visSibPx": 37663,
+          "occl": 0.4749,
+          "occlSib": 0.4749,
+          "box": {
+            "left": 119,
+            "top": 134.2,
+            "right": 348.1,
+            "bottom": 347.6,
+            "width": 229.1,
+            "height": 213.4
+          },
+          "x": 0.083,
+          "z": -1.723,
+          "rotY": -1.815,
+          "scale": 0.7558
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 71571,
+          "visPx": 36758,
+          "visSibPx": 36758,
+          "occl": 0.4864,
+          "occlSib": 0.4864,
+          "box": {
+            "left": 118.9,
+            "top": 134.1,
+            "right": 348.1,
+            "bottom": 347.5,
+            "width": 229.2,
+            "height": 213.4
+          },
+          "x": 0.083,
+          "z": -1.723,
+          "rotY": -1.815,
+          "scale": 0.7558
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 71506,
+          "visPx": 37291,
+          "visSibPx": 37291,
+          "occl": 0.4785,
+          "occlSib": 0.4785,
+          "box": {
+            "left": 119.3,
+            "top": 134.9,
+            "right": 348.2,
+            "bottom": 348.5,
+            "width": 228.9,
+            "height": 213.6
+          },
+          "x": 0.083,
+          "z": -1.723,
+          "rotY": -1.815,
+          "scale": 0.7558
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "a": 0,
+      "b": 1,
+      "overlap": 0.5229
+    },
+    {
+      "a": 0,
+      "b": 2,
+      "overlap": 0.5745
+    },
+    {
+      "a": 0,
+      "b": 3,
+      "overlap": 0.2546
+    },
+    {
+      "a": 1,
+      "b": 2,
+      "overlap": 0.791
+    },
+    {
+      "a": 1,
+      "b": 3,
+      "overlap": 0.5947
+    },
+    {
+      "a": 2,
+      "b": 3,
+      "overlap": 0.5506
+    }
+  ],
+  "canvasW": 1688,
+  "canvasH": 780,
+  "summary": [
+    {
+      "ab": "fushou",
+      "idx": 0,
+      "live": 3,
+      "occlMax": 0.3775,
+      "occlSibMax": 0.3775,
+      "ok": false
+    },
+    {
+      "ab": "fushou",
+      "idx": 1,
+      "live": 3,
+      "occlMax": 0.9588,
+      "occlSibMax": 0.9588,
+      "ok": false
+    },
+    {
+      "ab": "fushou",
+      "idx": 2,
+      "live": 3,
+      "occlMax": 0.4265,
+      "occlSibMax": 0.4265,
+      "ok": false
+    },
+    {
+      "ab": "fushou",
+      "idx": 3,
+      "live": 3,
+      "occlMax": 0.4864,
+      "occlSibMax": 0.4864,
+      "ok": false
+    }
+  ],
+  "allOk": false,
+  "pairOverlapMax": 0.791
+}

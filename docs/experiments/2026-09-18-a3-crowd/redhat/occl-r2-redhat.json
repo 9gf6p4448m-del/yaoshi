@@ -1,0 +1,287 @@
+{
+  "tool": "tests/tools/crowd-occl.mjs",
+  "key": "redhat",
+  "name": "r2",
+  "viewport": [
+    844,
+    390
+  ],
+  "deviceScaleFactor": 2,
+  "frames": 3,
+  "gap": 400,
+  "errors": [],
+  "setup": {
+    "rosterA": [
+      "redhat",
+      "redhat",
+      "redhat",
+      "fushou",
+      "ashcharm",
+      "boartusk",
+      "shanshen",
+      "wangchuan"
+    ],
+    "rosterB": [
+      "balen",
+      "yinyangcoin",
+      "boartusk",
+      "fushou",
+      "ashcharm",
+      "shanshen",
+      "wangchuan",
+      "buoy"
+    ],
+    "body": "haunt",
+    "fac": "yinqi"
+  },
+  "targets": [
+    {
+      "ab": "redhat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 9186,
+          "visPx": 9186,
+          "visSibPx": 9186,
+          "occl": 0,
+          "occlSib": 0,
+          "box": {
+            "left": 317.5,
+            "top": 152.4,
+            "right": 385.2,
+            "bottom": 267.9,
+            "width": 67.8,
+            "height": 115.5
+          },
+          "x": -0.419,
+          "z": -1.221,
+          "rotY": -1.117,
+          "scale": 0.7206
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 9405,
+          "visPx": 9405,
+          "visSibPx": 9405,
+          "occl": 0,
+          "occlSib": 0,
+          "box": {
+            "left": 316.3,
+            "top": 142.5,
+            "right": 384,
+            "bottom": 258.8,
+            "width": 67.7,
+            "height": 116.3
+          },
+          "x": -0.419,
+          "z": -1.221,
+          "rotY": -1.117,
+          "scale": 0.7206
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 8927,
+          "visPx": 8927,
+          "visSibPx": 8927,
+          "occl": 0,
+          "occlSib": 0,
+          "box": {
+            "left": 316.3,
+            "top": 153.4,
+            "right": 380.8,
+            "bottom": 267.5,
+            "width": 64.5,
+            "height": 114.1
+          },
+          "x": -0.419,
+          "z": -1.221,
+          "rotY": -1.117,
+          "scale": 0.7206
+        }
+      ]
+    },
+    {
+      "ab": "redhat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 7994,
+          "visPx": 4047,
+          "visSibPx": 7994,
+          "occl": 0.4937,
+          "occlSib": 0,
+          "box": {
+            "left": 178.8,
+            "top": 135.5,
+            "right": 254.8,
+            "bottom": 241.1,
+            "width": 76,
+            "height": 105.6
+          },
+          "x": 0.546,
+          "z": -1.734,
+          "rotY": -1.396,
+          "scale": 0.7206
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 7937,
+          "visPx": 4153,
+          "visSibPx": 7937,
+          "occl": 0.4768,
+          "occlSib": 0,
+          "box": {
+            "left": 180,
+            "top": 142,
+            "right": 255.1,
+            "bottom": 247.1,
+            "width": 75.1,
+            "height": 105.1
+          },
+          "x": 0.546,
+          "z": -1.734,
+          "rotY": -1.396,
+          "scale": 0.7206
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 7982,
+          "visPx": 3981,
+          "visSibPx": 7982,
+          "occl": 0.5013,
+          "occlSib": 0,
+          "box": {
+            "left": 178,
+            "top": 140.2,
+            "right": 252.8,
+            "bottom": 244.4,
+            "width": 74.9,
+            "height": 104.1
+          },
+          "x": 0.546,
+          "z": -1.734,
+          "rotY": -1.396,
+          "scale": 0.7206
+        }
+      ]
+    },
+    {
+      "ab": "redhat",
+      "samples": [
+        {
+          "frame": 0,
+          "na": false,
+          "fullPx": 5109,
+          "visPx": 239,
+          "visSibPx": 5109,
+          "occl": 0.9532,
+          "occlSib": 0,
+          "box": {
+            "left": 268.6,
+            "top": 118.9,
+            "right": 322.9,
+            "bottom": 206.9,
+            "width": 54.3,
+            "height": 88
+          },
+          "x": 0.726,
+          "z": -0.971,
+          "rotY": -1.676,
+          "scale": 0.7206
+        },
+        {
+          "frame": 1,
+          "na": false,
+          "fullPx": 5041,
+          "visPx": 223,
+          "visSibPx": 5041,
+          "occl": 0.9558,
+          "occlSib": 0,
+          "box": {
+            "left": 269.3,
+            "top": 125.2,
+            "right": 323.1,
+            "bottom": 212.8,
+            "width": 53.8,
+            "height": 87.6
+          },
+          "x": 0.726,
+          "z": -0.971,
+          "rotY": -1.676,
+          "scale": 0.7206
+        },
+        {
+          "frame": 2,
+          "na": false,
+          "fullPx": 5142,
+          "visPx": 226,
+          "visSibPx": 5142,
+          "occl": 0.956,
+          "occlSib": 0,
+          "box": {
+            "left": 267.2,
+            "top": 119.4,
+            "right": 321.3,
+            "bottom": 206.5,
+            "width": 54,
+            "height": 87.1
+          },
+          "x": 0.726,
+          "z": -0.971,
+          "rotY": -1.676,
+          "scale": 0.7206
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "a": 0,
+      "b": 1,
+      "overlap": 0
+    },
+    {
+      "a": 0,
+      "b": 2,
+      "overlap": 0
+    },
+    {
+      "a": 1,
+      "b": 2,
+      "overlap": 0
+    }
+  ],
+  "canvasW": 1688,
+  "canvasH": 780,
+  "summary": [
+    {
+      "ab": "redhat",
+      "live": 3,
+      "occlMax": 0,
+      "occlSibMax": 0,
+      "ok": true
+    },
+    {
+      "ab": "redhat",
+      "live": 3,
+      "occlMax": 0.5013,
+      "occlSibMax": 0,
+      "ok": false
+    },
+    {
+      "ab": "redhat",
+      "live": 3,
+      "occlMax": 0.956,
+      "occlSibMax": 0,
+      "ok": false
+    }
+  ],
+  "allOk": false,
+  "pairOverlapMax": 0
+}
