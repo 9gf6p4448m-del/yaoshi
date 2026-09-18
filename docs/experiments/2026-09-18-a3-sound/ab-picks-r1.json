@@ -1,0 +1,565 @@
+{
+  "tool": "sfx-board",
+  "mode": "D",
+  "at": "2026-09-18T02:43:36.048Z",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1",
+  "href": "https://9gf6p4448m-del.github.io/yaoshi/tests/tools/sfx-board.html#D",
+  "rnd": 0.5,
+  "standin": false,
+  "map": {
+    "chip": "chip",
+    "seal": "seal",
+    "reveal": "reveal",
+    "curse": "curse"
+  },
+  "ab": {
+    "chip": {
+      "a": "chip_a",
+      "b": "chip_b"
+    },
+    "seal": {
+      "a": "seal_a",
+      "b": "seal_b"
+    },
+    "reveal": {
+      "a": "reveal_a",
+      "b": "reveal_b"
+    },
+    "curse": {
+      "a": "curse_a",
+      "b": "curse_b"
+    }
+  },
+  "sfxNames": [
+    "gong",
+    "woodfish",
+    "cymbal",
+    "stamp",
+    "woodslam",
+    "bell",
+    "whoosh",
+    "hurt",
+    "dawn",
+    "death",
+    "babble",
+    "wind",
+    "chip_a",
+    "chip_b",
+    "seal_a",
+    "seal_b",
+    "reveal_a",
+    "reveal_b",
+    "curse_a",
+    "curse_b"
+  ],
+  "picks": {
+    "chip": {
+      "label": "落籌",
+      "voiceA": "chip_a",
+      "voiceB": "chip_b",
+      "pick": "b",
+      "pickedVoice": "chip_b",
+      "note": "比較有落籌的感覺"
+    },
+    "seal": {
+      "label": "封標",
+      "voiceA": "seal_a",
+      "voiceB": "seal_b",
+      "pick": "a",
+      "pickedVoice": "seal_a",
+      "note": "單純的沈悶聲"
+    },
+    "reveal": {
+      "label": "揭盅",
+      "voiceA": "reveal_a",
+      "voiceB": "reveal_b",
+      "pick": null,
+      "pickedVoice": null,
+      "note": "有敲開鈴的感覺"
+    },
+    "curse": {
+      "label": "受咒",
+      "voiceA": "curse_a",
+      "voiceB": "curse_b",
+      "pick": null,
+      "pickedVoice": null,
+      "note": "感覺有debuff 的感覺"
+    }
+  },
+  "unanswered": [
+    "reveal",
+    "curse"
+  ],
+  "playLog": [
+    {
+      "t": 1789699119668,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699122485,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699124152,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699126304,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699128243,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699129038,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699131109,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699132025,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699133109,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699133660,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699134394,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699135094,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699135946,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699141500,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699142567,
+      "name": "reveal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699143433,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699146032,
+      "name": "curse_a",
+      "ok": true
+    },
+    {
+      "t": 1789699148550,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789699150034,
+      "name": "curse_a",
+      "ok": true
+    },
+    {
+      "t": 1789699150587,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789699151602,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789699152471,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789699154626,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699155426,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699182336,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699183066,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699215460,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699216355,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699217608,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699218121,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699219106,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699219709,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699220492,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699223197,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699225634,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699227266,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699228484,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699229818,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699230537,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699231470,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699237207,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699238368,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789699239411,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789699240231,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789699240366,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789699250351,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699251334,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699252002,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699252970,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699254400,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699289601,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699290127,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699291028,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699292780,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699294446,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789699295450,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699297065,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789699298343,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789699301289,
+      "name": "stamp",
+      "ok": true
+    },
+    {
+      "t": 1789699302511,
+      "name": "stamp",
+      "ok": true
+    },
+    {
+      "t": 1789699303795,
+      "name": "stamp",
+      "ok": true
+    },
+    {
+      "t": 1789699306213,
+      "name": "woodslam",
+      "ok": true
+    },
+    {
+      "t": 1789699307369,
+      "name": "woodslam",
+      "ok": true
+    },
+    {
+      "t": 1789699309595,
+      "name": "woodslam",
+      "ok": true
+    },
+    {
+      "t": 1789699315696,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699316630,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699317931,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699318798,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699319883,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699322720,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699323751,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699325286,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699326178,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699331379,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699333413,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699334365,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699335533,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699336516,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699338150,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699341786,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699342737,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789699347159,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789699361720,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699363493,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699364475,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699365076,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699379467,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699380824,
+      "name": "reveal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699381660,
+      "name": "reveal_b",
+      "ok": true
+    },
+    {
+      "t": 1789699382093,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699386584,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789699396839,
+      "name": "curse_a",
+      "ok": true
+    },
+    {
+      "t": 1789699398181,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789699399050,
+      "name": "curse_b",
+      "ok": true
+    }
+  ]
+}

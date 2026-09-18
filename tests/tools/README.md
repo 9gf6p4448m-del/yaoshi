@@ -278,3 +278,8 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
   node tests/tools/sfx-render.mjs --new=chip,seal,reveal,curse --gate  # 凍結 #3：新音互比 6 對＋每支對其餘既有支逐一比；時長比 ≥1.5 或質心比 ≥2；峰值落在既有 [min,max]；不過 exit 1
   ```
   任何 console error／pageerror 或找不到的聲部名 → exit 1。同 seed 重跑逐欄位相同（S1 實測 0 diff）。
+- **接線後（v0.57.25）**：四事件正式聲部名 `chip`／`seal`／`reveal`／`curse` 是 `VOICES` 裡指向挑定候選的別名（落籌乙／封標甲／揭盅甲／受咒乙，`docs/experiments/2026-09-18-a3-sound/ab-picks-r1.json`）。跑 #3 閘門要用 `--names=` 限定「既有 12 支＋正式四支」，否則落選候選與別名本尊會被當成既有支互比（比值 1 必紅）：
+  ```
+  node tests/tools/sfx-render.mjs --names=gong,woodfish,cymbal,stamp,woodslam,bell,whoosh,hurt,dawn,death,babble,wind,chip,seal,reveal,curse --new=chip,seal,reveal,curse --gate
+  ```
+  接線測試 `tests/sfx-wiring.test.mjs`（凍結 #6①，headless 三整局，約 13 分鐘；`node --test tests/*.test.mjs` 會一起跑）；產品端 `?sfx=0` 本次靜音、按鈕 `data-sfx` 指定聲部。
