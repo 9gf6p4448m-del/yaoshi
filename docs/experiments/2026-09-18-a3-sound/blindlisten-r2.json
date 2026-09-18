@@ -1,0 +1,242 @@
+{
+  "tool": "sfx-board",
+  "mode": "A",
+  "at": "2026-09-18T05:38:18.677Z",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1",
+  "href": "https://9gf6p4448m-del.github.io/yaoshi/tests/tools/sfx-board.html#A",
+  "rnd": 0.5,
+  "standin": false,
+  "map": {
+    "chip": "chip",
+    "seal": "seal",
+    "reveal": "reveal",
+    "curse": "curse"
+  },
+  "ab": {
+    "chip": {
+      "a": "chip_a",
+      "b": "chip_b"
+    },
+    "seal": {
+      "a": "seal_a",
+      "b": "seal_b"
+    },
+    "reveal": {
+      "a": "reveal_a",
+      "b": "reveal_b"
+    },
+    "curse": {
+      "a": "curse_a",
+      "b": "curse_b"
+    }
+  },
+  "sfxNames": [
+    "gong",
+    "woodfish",
+    "cymbal",
+    "stamp",
+    "woodslam",
+    "bell",
+    "whoosh",
+    "hurt_v0",
+    "dawn",
+    "death",
+    "babble",
+    "wind",
+    "chip_a",
+    "chip_b",
+    "seal_a",
+    "seal_b",
+    "reveal_a",
+    "reveal_b",
+    "curse_a",
+    "curse_b",
+    "hurt_a",
+    "chip_c",
+    "chip_d",
+    "hurt_b",
+    "chip",
+    "seal",
+    "reveal",
+    "curse",
+    "hurt"
+  ],
+  "seed": 20260918,
+  "startedAt": "2026-09-18T05:37:53.744Z",
+  "order": [
+    "chip",
+    "seal",
+    "curse",
+    "reveal",
+    "curse",
+    "reveal",
+    "chip",
+    "seal"
+  ],
+  "answers": [
+    {
+      "q": 0,
+      "truth": "chip",
+      "ans": "chip",
+      "correct": true,
+      "at": "2026-09-18T05:38:00.508Z"
+    },
+    {
+      "q": 1,
+      "truth": "seal",
+      "ans": "seal",
+      "correct": true,
+      "at": "2026-09-18T05:38:05.246Z"
+    },
+    {
+      "q": 2,
+      "truth": "curse",
+      "ans": "curse",
+      "correct": true,
+      "at": "2026-09-18T05:38:06.946Z"
+    },
+    {
+      "q": 3,
+      "truth": "reveal",
+      "ans": "reveal",
+      "correct": true,
+      "at": "2026-09-18T05:38:10.333Z"
+    },
+    {
+      "q": 4,
+      "truth": "curse",
+      "ans": "curse",
+      "correct": true,
+      "at": "2026-09-18T05:38:12.300Z"
+    },
+    {
+      "q": 5,
+      "truth": "reveal",
+      "ans": "reveal",
+      "correct": true,
+      "at": "2026-09-18T05:38:15.340Z"
+    },
+    {
+      "q": 6,
+      "truth": "chip",
+      "ans": "chip",
+      "correct": true,
+      "at": "2026-09-18T05:38:17.441Z"
+    },
+    {
+      "q": 7,
+      "truth": "seal",
+      "ans": "seal",
+      "correct": true,
+      "at": "2026-09-18T05:38:18.676Z"
+    }
+  ],
+  "replays": [
+    2,
+    3,
+    1,
+    2,
+    1,
+    1,
+    3,
+    1
+  ],
+  "score": 8,
+  "total": 8,
+  "perEvent": {
+    "chip": {
+      "label": "落籌",
+      "correct": 2,
+      "total": 2
+    },
+    "seal": {
+      "label": "封標",
+      "correct": 2,
+      "total": 2
+    },
+    "reveal": {
+      "label": "揭盅",
+      "correct": 2,
+      "total": 2
+    },
+    "curse": {
+      "label": "受咒",
+      "correct": 2,
+      "total": 2
+    }
+  },
+  "pass": true,
+  "threshold": ">=6/8 and each event >=1/2",
+  "playLog": [
+    {
+      "t": 1789709877135,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789709878728,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789709881944,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789709882994,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789709883995,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789709885763,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789709887362,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789709888832,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789709890832,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789709892718,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789709895841,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789709896543,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789709897009,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789709897826,
+      "name": "seal",
+      "ok": true
+    }
+  ]
+}
