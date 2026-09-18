@@ -307,3 +307,16 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 
 續接：`/handoff 妖市：A3 六題已裁，開 A3 計畫與凍結檔（聲音聆聽驗收先行）。`
 
+
+## 2026-09-18 早上：A3 開卷（計畫＋凍結檔，無程式碼改動）
+
+- 計畫 `plans/2026-09-18-a3-experience-slice.md`（§0 六題已裁與不裁、§1 S0–S8、§4 聲音盤點：12 支對照＋四缺口）；凍結 `docs/experiments/2026-09-18-acceptance-a3-experience-slice.md` #1–#12（#2–#7 聲音、#8 台詞、#9 因果、#10 滿編構圖、#11 再玩研究門檻已凍結：3 人各 2 局、兩指標各 ≥2/3 人）。藍圖 §5 A3 改「開卷」。
+- S0 事實：落籌／封標只有通用 woodfish、揭盅與開市鑼共用 gong（`index.html:5628`）、受咒無專屬音；`S.history`（`:2916`／`recordAuction :4388`）是台詞與因果敘事唯一准許的資料來源。
+- 工作樹 `C:/Users/shung/wt/yaoshi/a3`（分支 `a3/experience-slice`）。
+
+### 下一步順序
+1. S1 聽板治具 `tests/tools/sfx-board.html`（A 盲聽／B 逐支／C 序列／D 甲乙）＋ `tests/tools/sfx-render.mjs`（OfflineAudioContext 三特徵）。
+2. S2 四支新音甲／乙 → 使用者挑 → 凍結 #3 機械閘 → #6 接線 → bump VERSION。
+3. S3 使用者手機盲聽（#4）＋ 12 支留換（#5）。
+
+續接：`/handoff 妖市：A3 S1 聽板治具（凍結 #3/#4/#6）。`
