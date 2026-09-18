@@ -320,3 +320,14 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 3. S3 使用者手機盲聽（#4）＋ 12 支留換（#5）。
 
 續接：`/handoff 妖市：A3 S1 聽板治具（凍結 #3/#4/#6）。`
+
+## 2026-09-18 晚：A3 S5 因果短敘事（v0.57.31）
+
+- `ledgerNarrative(H,P)` 純函式（`index.html`，`reviewSummary` 之後）：只讀 `S.history`，本局回顧頂端「這一局的因果」3–6 句（天亮／分水嶺主因／勝者最大一注／毒標／出局名單／請神），夜次國字、句子無數字、每句 evRef。
+- **口徑只寫在 `tests/ledger.test.mjs`**（`winnerOf`／`mainCause`；材料工具 `LEDGER_IMPORT_ONLY=1` 動態 import）。細化：那一夜「那件事」先取實付最高、同額才看 `auction[]` 序號；沒付拍賣取輸掉的夜戰；補快照段記 `event`。
+- 機械 2/2、trace-eq equal、突變探針 8/20 紅、headless seed 3 回顧頁 6 句 pageerror 0。讀者 r1 **1/6**（三位都把「最狠的一手」毒標句當主因）→ 改措辭（主因句「這一局的分水嶺在第 n 夜：…」、毒標句「毒標也沒少：…」）→ r2 **6/6 過**。#9 過。報告 `docs/experiments/2026-09-18-a3-ledger/README.md`。
+- S4 遺留修掉：`lines-material.mjs` 毒標雙面紀錄合併（`txn`）。`tests/ui-hierarchy.test.mjs` 版本斷言隨 bump 改 0.57.31（每次發布都要改，慣例）。
+- 已知：`fight`／`event` 型主因 seeds 1–20 未自然出現（出價實付主導單夜跌幅）；請神句點名者常非勝者（r1 讀者提醒，勝者 18/18 未受影響）。
+- 全套 `node --test`：99 過；`sfx-wiring` 與本卷探針並行時 seed 3 停滯到 15 分鐘 timeout（既有 PW_WAKE 停滯），單獨重跑結果見下一行。
+
+續接：`/handoff 妖市：A3 S6 滿編構圖小卷（凍結 #10：8v8 同型錯位排列＋描邊改主色，三件重讀拼板舟／福壽綿長／紅帽 ≥4/6）。`

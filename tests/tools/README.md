@@ -289,3 +289,11 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 - `node tests/tools/lines-material.mjs <material.json> <key.json>`：從 seeds 1–20 的 policy game 抽 14 題（七鍵各 2、同角色最多 2），每題＝該夜公開事件清單（打亂）＋一句由 `lineFor` 生成的台詞；答案檔含 `acceptable`（同型＋同說話者的事件都算對——同一人同夜得標兩件，台詞分不出哪一件）。
 - `node tests/tools/lines-score.mjs <key.json> <reader-*.json ...> [--json]`：每題 ≥4/6 讀者答對才過；`--json` 另存 score 檔。讀者＝6 個沒有對話史的 fresh agent，只讀 material 檔、把答案寫成 `{"reader":n,"answers":{...}}`。
 - 機械面在 `tests/lines.test.mjs`（七鍵各 ≥2 句、evRef 對 history、無數字／心願／袋中物、同 seed 逐字相同、六類都量到）。
+
+## `ledger-material.mjs`／`ledger-score.mjs`／`ledger-probe.mjs`（A3 S5 因果短敘事，凍結 #9）
+
+- 口徑（勝者 `winnerOf`、主因 `mainCause`）**只寫在 `tests/ledger.test.mjs`**；材料工具以 `LEDGER_IMPORT_ONLY=1` 動態 import 同一支，不另抄。
+- `node tests/tools/ledger-material.mjs <material.json> <key.json> [--seeds=2,5,8,11,14,17]`：每題＝一局的 `ledgerNarrative` 句子＋四人名單＋四個候選主因（真主因＋同局其他公開事件），讀者答「誰贏」「主因第幾個」。
+- `node tests/tools/ledger-score.mjs <key.json> <reader-*.json ...> [--json]`：每題勝者與主因都對的讀者 ≥2/3 才過；讀者檔 `{answers:{g01:{winner,cause}}}`。
+- `node tests/tools/ledger-probe.mjs [seed] [out.png]`：headless 真實路徑打完一局、開「本局回顧」，量 `.rvLedger p` 句數 3–6、與純函式逐字相同、pageerror 0（port 9613，約 4 分鐘）。
+- `lines-material.mjs` 2026-09-18 起把毒標交易的塞人／被塞雙面紀錄合併成一條（`txn`），答案鍵兩面都算對。
