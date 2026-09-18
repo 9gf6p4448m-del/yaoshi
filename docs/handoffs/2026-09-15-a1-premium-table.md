@@ -328,6 +328,6 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 - 機械 2/2、trace-eq equal、突變探針 8/20 紅、headless seed 3 回顧頁 6 句 pageerror 0。讀者 r1 **1/6**（三位都把「最狠的一手」毒標句當主因）→ 改措辭（主因句「這一局的分水嶺在第 n 夜：…」、毒標句「毒標也沒少：…」）→ r2 **6/6 過**。#9 過。報告 `docs/experiments/2026-09-18-a3-ledger/README.md`。
 - S4 遺留修掉：`lines-material.mjs` 毒標雙面紀錄合併（`txn`）。`tests/ui-hierarchy.test.mjs` 版本斷言隨 bump 改 0.57.31（每次發布都要改，慣例）。
 - 已知：`fight`／`event` 型主因 seeds 1–20 未自然出現（出價實付主導單夜跌幅）；請神句點名者常非勝者（r1 讀者提醒，勝者 18/18 未受影響）。
-- 全套 `node --test`：99 過；`sfx-wiring` 與本卷探針並行時 seed 3 停滯到 15 分鐘 timeout（既有 PW_WAKE 停滯），單獨重跑結果見下一行。
+- 全套 `node --test`：99 過；`sfx-wiring` 與本卷探針並行時 seed 3 停滯到 15 分鐘 timeout（既有 PW_WAKE 停滯），單獨重跑 1/1 綠、seed 1–3 stalls []（歸因：同時跑本卷 `ledger-probe` seed 3 的環境時序，非受測物）。
 
 續接：`/handoff 妖市：A3 S6 滿編構圖小卷（凍結 #10：8v8 同型錯位排列＋描邊改主色，三件重讀拼板舟／福壽綿長／紅帽 ≥4/6）。`
