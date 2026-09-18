@@ -22,7 +22,7 @@
      為什麼要手動旗標而不是「抓抓看、失敗就算了」——瀏覽器會把 404 記成 console error，
      而「console 0 error」是這個專案的驗收條件之一（會遮住真正的錯誤）。
      旗標是 false 時這一層連 fetch 都不發，完全不碰網路。 */
-  const READY = { title: true, market: true, duel: true, review: true }; /* 2026-09-03 四首已安裝（Flow Music 生成，節錄 60 秒無縫環；備選 take 在 bgm/alt/，換曲改 TRACKS 路徑即可） */
+  const READY = { title: true, market: true, duel: true, review: true, home: true }; /* 2026-09-03 四首已安裝（Flow Music 生成，節錄 60 秒無縫環；備選 take 在 bgm/alt/，換曲改 TRACKS 路徑即可） */
 
   /* 場景 → 檔名。改這張表就等於換曲，不必動任何呼叫端 */
   const TRACKS = {
@@ -30,6 +30,7 @@
     market: "assets/audio/bgm/market.m4a",  /* 牌桌：盯上／出價／開標，全局常駐 */
     duel:   "assets/audio/bgm/duel.m4a",    /* 結算戰對決場景 */
     review: "assets/audio/bgm/review.m4a",  /* 局末回顧 */
+    home:   "assets/audio/bgm/alt/title-alt.m4a", /* 首頁專屬（使用者 2026-09-18 裁乙：Take 2 給首頁，選角畫面才切 title；首頁第一次點任何處就起，掛法在 index.html homeBgmArm） */
   };
 
   const FADE = 1.2;        /* 交叉淡入淡出秒數 */
