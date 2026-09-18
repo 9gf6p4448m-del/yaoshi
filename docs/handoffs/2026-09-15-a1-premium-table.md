@@ -335,7 +335,7 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 - 改法只用 #10 的兩條：①`js/duel-figures.js` 同型錯位（`dupGroups`／`dupStagger` 純函式；群組最前排一對 k0 往內／k1 往外、後排同型帶到前線再往前、朝向各 ±16°；沒有同型的名冊三分量全 0）②`js/creature-figures.js` `MAIN_OUTLINE`＋`outlineColorFromHex`（三件描邊改各自主色，只在對決端 `renderer.js` 傳，拍賣桌不動）。模型、色票、時長未動。
 - 新治具 `tests/tools/crowd-occl.mjs`（遮擋率，名冊同 a2-sheet、量法同 legend-presence）＋ `tests/crowd-stagger.test.mjs`（4/4，突變探針紅）。四輪站位＋一次四組參數掃描，逐輪數字在 [本卷報告](../experiments/2026-09-18-a3-crowd/README.md)。
 - 結果：遮擋率 拼板舟 .10／.26／.27 過、紅帽 .00／.10／.00 過、福壽 .38／.96／.43／.49 未過（四隻 220px 寬的龜在 300px 帶裡幾何上做不到）。讀者第 1 輪 **2/6 未過**（紅帽 2/2；拼板舟 0/2＝兩位都把敵方王船算進去；福壽 0/2＝燈碗被讀成香爐，但 opus 把四隻數出來了）。兩個敗因都不在 #10 的改法內。**第 2 輪未用**——提案 `dupTurnBias −12` 三件重讀，是否燒這一輪交使用者。
-- 硬指標：gl-duel-probe 8v8 draw 296（=A2 現值）、trace equal、矩陣三件 48/48、perf32 paired 5/5（最低 .548）、`node --test` 105 案 104 過、1 紅＝`sfx-wiring` seed 3 卡「開戰」（seed 1／2 全過；S2／S5 記過的 headless 停滯）。歸因：在改碼前 commit de33149 另開工作樹 `wt/yaoshi/s6base` 單跑同一測試——（結果見 README 補記）。
+- 硬指標：gl-duel-probe 8v8 draw 296（=A2 現值）、trace equal、矩陣三件 48/48、perf32 paired 5/5（最低 .548）、`node --test` 105 案 104 過、1 紅＝`sfx-wiring` seed 3 卡「開戰」（seed 1／2 全過；S2／S5 記過的 headless 停滯）。歸因：在改碼前 commit de33149 另開工作樹 `wt/yaoshi/s6base` 單跑同一測試——**同樣 seed 3 卡「開戰」、seed 1／2 全過且三種計數逐值相同** ⇒ 環境時序，非本卷改動（`02 §6.2`：seed 3 的訊號今天不可信，不當證據用）。
 - 教訓：①a2-sheet 輸出檔名不含 key，三件要各自子目錄（首拍互相覆蓋一次）②Playwright `evaluate` 吃字串只會求值不會呼叫，字串函式要先 `new Function('return ('+s+')')()`③錯位方向不能只看排內位置 k：前排 k0 與後排 k0 同向挪等於沒挪（r1 紅帽 #2 仍在 #0 正後方）④8v8 橫向帶已塞滿，同型只有「往前帶到前線」這條深度出口。
 - 待使用者裁定：(a) #10 第 2 輪要不要用（提案見上）(b) 若不用，#10 依凍結記未過簽字收現況（紅帽過、拼板舟／紅帽遮擋率過），進 S7 再玩研究（#11）。
 

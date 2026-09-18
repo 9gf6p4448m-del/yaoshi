@@ -41,7 +41,7 @@
 | trace seeds 1–20 | equal（346441 bytes 兩邊相同） | `node tests/tools/trace-eq.mjs scratchpad/s6/index-0.57.31.html index.html` |
 | 取景矩陣 `--all --match=<key>` | 拼板舟 48/48、福壽 48/48、紅帽 48/48 | `<key>/framing-<key>-r3.json` |
 | perf32 五輪逐輪 ≥ .40 | default paired **.756／.622／.561／.599／.548**（5/5 GREEN，最低 .548；onHover 5/5 最低 .523、lite 5/5 最低 .542） | [perf32-r3.json](perf32-r3.json) |
-| `node --test tests/*.test.mjs` | 105 案 **104 過、1 紅＝`sfx-wiring`**（seed 1／2 全過含三種計數；seed 3 卡在「開戰」＝S2／S5 記過的 headless 第 11 夜請神對決停滯）；單獨重跑仍紅（`scratchpad/s6/sfx-wiring.log`）；歸因：改碼前 commit de33149 另開工作樹單跑同一測試（見下方補記） | |
+| `node --test tests/*.test.mjs` | 105 案 **104 過、1 紅＝`sfx-wiring`**（seed 1／2 全過含三種計數；seed 3 卡在「開戰」＝S2／S5 記過的 headless 第 11 夜請神對決停滯）；單獨重跑仍紅（`scratchpad/s6/sfx-wiring.log`）；**歸因**：改碼前 commit de33149 另開工作樹 `wt/yaoshi/s6base` 單跑同一測試 → **同樣 seed 1／2 全過、seed 3 卡在「開戰」**（`scratchpad/s6/sfx-wiring-base.log`）；兩版 seed 1／2 的封標 9／9、揭盅 26／26、受咒 7／5 逐值相同。停滯來源＝headless 環境時序（受測物在有無本卷改動下行為相同），不是本卷改動；依 `02 §6.2` 這個訊號今天對 seed 3 不可信，不拿它當通過證據，也不構成本卷紅燈 | |
 | 純函式 `tests/crowd-stagger.test.mjs` | 4/4 綠 | |
 | console／pageerror | 全部治具 errors 0 | 各 JSON `errors` |
 
