@@ -1,0 +1,69 @@
+{
+  "items": [
+    {
+      "id": "s1",
+      "type": "win",
+      "role": "dangpu",
+      "correct": "6/6",
+      "votes": [
+        9,
+        3,
+        9,
+        9,
+        9,
+        9
+      ],
+      "acceptable": [
+        3,
+        9
+      ],
+      "pass": true
+    },
+    {
+      "id": "s2",
+      "type": "lose",
+      "role": "hunter",
+      "correct": "6/6",
+      "votes": [
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "acceptable": [
+        8
+      ],
+      "pass": true
+    },
+    {
+      "id": "s3",
+      "type": "poisoned",
+      "role": "hunter",
+      "correct": "2/6",
+      "votes": [
+        7,
+        7,
+        7,
+        3,
+        7,
+        3
+      ],
+      "acceptable": [
+        3
+      ],
+      "pass": false
+    }
+  ],
+  "passItems": 2,
+  "total": 3,
+  "perReader": [
+    2,
+    2,
+    2,
+    3,
+    2,
+    3
+  ]
+}

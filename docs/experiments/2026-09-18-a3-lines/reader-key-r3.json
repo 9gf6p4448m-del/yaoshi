@@ -1,0 +1,42 @@
+[
+  {
+    "id": "s1",
+    "answer": 3,
+    "acceptable": [
+      3,
+      9
+    ],
+    "type": "win",
+    "label": "得標",
+    "role": "dangpu",
+    "seed": 1,
+    "round": 1,
+    "from": "q01"
+  },
+  {
+    "id": "s2",
+    "answer": 8,
+    "acceptable": [
+      8
+    ],
+    "type": "lose",
+    "label": "落標",
+    "role": "hunter",
+    "seed": 2,
+    "round": 1,
+    "from": "q08"
+  },
+  {
+    "id": "s3",
+    "answer": 3,
+    "acceptable": [
+      3
+    ],
+    "type": "poisoned",
+    "label": "被塞毒標",
+    "role": "hunter",
+    "seed": 2,
+    "round": 5,
+    "from": "q10"
+  }
+]

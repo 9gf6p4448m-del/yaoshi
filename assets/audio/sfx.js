@@ -260,7 +260,7 @@
   };
   /* 四事件正式聲部＝使用者 2026-09-18 在聽板模式 D 挑定的候選（docs/experiments/2026-09-18-a3-sound/ab-picks-r1.json）：
      落籌乙、封標甲、揭盅甲、受咒乙。產品端只叫這四個名字；落選案留在 VOICES 供治具對照。 */
-  VOICES.chip = VOICES.chip_b;
+  VOICES.chip = VOICES.chip_c;   /* 2026-09-18 使用者真機後改銅錢：挑丙「一枚銅錢落桌」（木籌 chip_b 留作候選） */
   VOICES.seal = VOICES.seal_a;
   VOICES.reveal = VOICES.reveal_a;
   VOICES.curse = VOICES.curse_b;
