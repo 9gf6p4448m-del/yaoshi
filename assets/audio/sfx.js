@@ -107,7 +107,7 @@
       noise(ctx, out, t0, { dur: 0.45, peak: 0.35, a: 0.12, filter: { type: "bandpass", f: 300 + rnd * 100 }, fEnd: 2400, q: 1.5 });
     },
     /* 受傷：失血、被毒。低頻下墜 */
-    hurt(ctx, out, t0, rnd) {
+    hurt_v0(ctx, out, t0, rnd) {
       tone(ctx, out, t0, { type: "sawtooth", f: 220 + rnd * 30, fEnd: 70, dur: 0.35, peak: 0.3, a: 0.004 });
       noise(ctx, out, t0, { dur: 0.12, peak: 0.2, filter: { type: "lowpass", f: 800 }, q: 0.5 });
     },
@@ -246,6 +246,8 @@
   VOICES.seal = VOICES.seal_a;
   VOICES.reveal = VOICES.reveal_a;
   VOICES.curse = VOICES.curse_b;
+  /* S3 第 1 輪（#5）：使用者點名 hurt 要換，聽板挑甲「紙裂」（ab-picks-r2.json）；原版留作 hurt_v0 對照。 */
+  VOICES.hurt = VOICES.hurt_a;
 
   const SILENT_WAV = "data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA"; /* 0.05 秒無聲 WAV：只給 iOS 啟動音訊工作階段用 */
 
