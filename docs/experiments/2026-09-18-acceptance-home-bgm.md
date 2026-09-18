@@ -13,3 +13,4 @@
 
 ## 執行紀錄
 - **實作（2026-09-18，v0.57.28）**：`assets/audio/bgm.js` `TRACKS.home`＝`alt/title-alt.m4a`＋`READY.home`（四首路徑、`FADE`、`volume` diff 0 行）；`index.html` `homeBgmTap()` 掛 document click／touchend（只在 `scene` 為 null 或 home 時起，startEntry 同步切 title 後冒泡到此不覆蓋）、`backToTitle()` 回 `home`。headless（http.server＋autoplay 旗標）：點標題頁文字前 `scene:null` → 後 `scene:"home"`、`_cur.scene:"home"`、`playing:true`、`_buf:["home"]`（#1）；按單人入市 → `scene:"title"`（#2）；返回 → `scene:"home"`（#3）；pageerror／console error 0；trace seeds 1–20 equal；`node --test` 96 綠（#4／#5）。#6 待使用者真機原話。
+- **使用者真機（2026-09-18）**：原話「他不能進去就有聲音 要點一下才有嗎」——首頁點一下後有曲子（#6 首頁曲部分過）；「進頁就有聲」做不到：iOS Safari／主畫面 PWA 沒有使用者手勢不允許出聲（同 art-integration-guide §8.1 的 unlock 前提），本卷的做法已是最早的合法時點（點任何處，不限按鈕）。開局切換到選角那首使用者未明確提及，記「未確認」。
