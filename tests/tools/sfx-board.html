@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>妖市 聽板（A3）</title>
+<!--
+  A3 S1（2026-09-18）聽板治具：只載 assets/audio/sfx.js，不動產品碼、不是遊戲的一部分。
+  四模式（凍結 #4／#5／#6②／計畫 §0 甲乙挑選）：
+    A 盲聽四選一（固定種子，8 題＝四支新音各 2 次；輸出 JSON 含種子、順序、答案、重播次數、UA）
+    B 既有 12 支逐支「留／換／關」＋原話
+    C 一夜序列連播（落籌×3→封標→開市鑼→揭盅×3→受咒→受擊→天明），勾「哪兩聲糊在一起」
+    D 四支新音甲／乙挑選＋原話
+  網址參數（S2 接線前試治具用；用了就在 JSON 標 standin:true）：
+    ?map=chip:woodfish,seal:stamp,reveal:gong,curse:hurt   四事件暫用既有支
+    ?ab=chip:woodfish|stamp,seal:bell|cymbal                甲／乙候選暫用既有支
+    ?seed=20260918                                           A 模式種子（預設 20260918）
+    ?quiet=1                                                 sfx-render.mjs 載入用，不顯示喚醒提示
+  新音正式命名（S2）：chip／seal／reveal／curse；甲乙候選 chip_a／chip_b …。rnd 一律 0.5（與凍結 #3 同口徑）。
+-->
+<style>
+:root{--bg:#120826;--fg:#f0d9a0;--acc:#f0a840;--mut:#9a8;--line:#2a1a44;--btn:#2b1a4d;--ok:#6c6;--bad:#f66}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 "Microsoft JhengHei","PingFang TC",sans-serif;padding:0 0 60px;-webkit-tap-highlight-color:transparent}
+header{padding:10px 14px;border-bottom:1px solid var(--line)}
+header b{color:var(--acc);font-size:18px}
+header small{display:block;color:var(--mut);font-size:12px}
+#st{font-size:12px;color:var(--mut)}
+nav{display:flex;gap:4px;padding:8px 10px;position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--line)}
+nav button{flex:1;padding:10px 4px;font-size:14px}
+nav button.on{background:var(--acc);color:#120826;font-weight:bold}
+section{display:none;padding:10px 14px}
+section.on{display:block}
+button{background:var(--btn);color:var(--fg);border:1px solid #4a3a6d;border-radius:8px;padding:12px 14px;font-size:16px;cursor:pointer}
+button:disabled{opacity:.4}
+button.play{background:#3a2a5d}
+button.pick{min-width:64px}
+button.pick.sel{background:var(--acc);color:#120826;font-weight:bold}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.row .nm{min-width:90px;font-weight:bold;color:var(--acc)}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+textarea,input{width:100%;background:#1b1036;color:var(--fg);border:1px solid #4a3a6d;border-radius:6px;padding:8px;font:14px/1.4 inherit}
+input[type=number]{width:120px}
+.note{color:var(--mut);font-size:13px}
+.warn{background:#3a1a1a;color:#f99;padding:8px 10px;border-radius:6px;margin:8px 0;font-size:14px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.out{margin-top:12px}
+.out textarea{height:120px;font-size:12px}
+h2{font-size:17px;margin:6px 0 4px;color:var(--acc)}
+.big{font-size:22px;padding:16px 20px}
+.q{font-size:15px;margin:8px 0}
+.seq span{display:inline-block;padding:4px 8px;margin:2px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+.seq span.now{background:var(--acc);color:#120826}
+label.pair{display:inline-block;margin:4px 6px 4px 0;font-size:14px}
+</style>
+<body>
+<header><b>妖市 聽板</b> <span id="st">—</span><small>A3 聲音聆聽驗收治具（tests/tools/sfx-board.html）·不是遊戲的一部分·先點任一按鈕解鎖聲音</small></header>
+<nav>
+  <button data-tab="A">A 盲聽</button><button data-tab="B">B 逐支</button><button data-tab="C">C 序列</button><button data-tab="D">D 甲乙</button>
+</nav>
+
+<section id="A">
+  <h2>A 盲聽指認（凍結 #4）</h2>
+  <p class="note">8 題，每題播一支音、四選一或「都不像」。種子固定，順序由種子決定；重播次數會記進 JSON。門檻 ≥6/8 且每支 ≥1/2。</p>
+  <div id="A-missing"></div>
+  <div class="row"><label>種子 <input type="number" id="A-seed"></label><button id="A-start" class="play">開始</button></div>
+  <div id="A-quiz"></div>
+  <div id="A-result"></div>
+</section>
+
+<section id="B">
+  <h2>B 既有 12 支逐支留／換／關（凍結 #5）</h2>
+  <p class="note">逐支聽，選「留／換／關」，要換的請寫一句想怎麼換。</p>
+  <div id="B-list"></div>
+  <div class="row"><button id="B-export" class="play">輸出 JSON</button></div>
+  <div id="B-out"></div>
+</section>
+
+<section id="C">
+  <h2>C 一夜序列連播（凍結 #6②）</h2>
+  <p class="note">落籌×3 → 封標 → 開市鑼 → 揭盅×3 → 受咒 → 受擊 → 天明。播完勾「哪兩聲糊在一起」；門檻 0 對。</p>
+  <div id="C-missing"></div>
+  <div class="row"><label>間隔 ms <input type="number" id="C-gap" value="700" step="50" min="100"></label><button id="C-play" class="play">連播</button><button id="C-stop">停</button></div>
+  <div class="seq" id="C-seq"></div>
+  <div id="C-pairs"></div>
+  <div class="row"><button id="C-export" class="play">輸出 JSON</button></div>
+  <div id="C-out"></div>
+</section>
+
+<section id="D">
+  <h2>D 四支新音甲／乙挑選（計畫 §0）</h2>
+  <p class="note">每個事件聽甲、乙，挑一個，寫一句為什麼（原話會落檔）。挑定後才做盲聽。</p>
+  <div id="D-list"></div>
+  <div class="row"><button id="D-export" class="play">輸出 JSON</button></div>
+  <div id="D-out"></div>
+</section>
+
+<script src="../../assets/audio/sfx.js"></script>
+<script>
+(function(){
+"use strict";
+const $=(id)=>document.getElementById(id);
+const Q=new URLSearchParams(location.search);
+const SFX=window.YS_SFX;
+const NAMES=SFX?SFX.names.slice():[];
+const RND=0.5;
+
+/* ---- 事件 → 聲部對照（S2 正式名；?map= 暫代） ---- */
+const EVENTS=[{key:'chip',label:'落籌',voice:'chip'},{key:'seal',label:'封標',voice:'seal'},{key:'reveal',label:'揭盅',voice:'reveal'},{key:'curse',label:'受咒',voice:'curse'}];
+const AB={}; EVENTS.forEach(e=>{AB[e.key]={a:e.key+'_a',b:e.key+'_b'};});
+let STANDIN=false;
+const parsePairs=(s,fn)=>{ if(!s) return; s.split(',').forEach(p=>{ const i=p.indexOf(':'); if(i<0) return; fn(p.slice(0,i).trim(),p.slice(i+1).trim()); }); };
+parsePairs(Q.get('map'),(k,v)=>{ const e=EVENTS.find(x=>x.key===k); if(e&&NAMES.includes(v)){ e.voice=v; STANDIN=true; } });
+parsePairs(Q.get('ab'),(k,v)=>{ const [a,b]=v.split('|'); if(AB[k]&&NAMES.includes(a)&&NAMES.includes(b)){ AB[k]={a,b}; STANDIN=true; } });
+const has=(n)=>NAMES.includes(n);
+const missingEvents=()=>EVENTS.filter(e=>!has(e.voice)).map(e=>e.label+'='+e.voice);
+
+/* ---- 音訊：解鎖與播放（照產品 audioWake 的作法，不新開 ctx） ---- */
+const LOG=[];
+function wake(){ try{ if(SFX&&(!SFX.ctx||SFX.ctx.state!=='running')) SFX.unlock(); }catch(e){} }
+function release(){ try{ if(SFX) SFX.release(); }catch(e){} }
+document.addEventListener('touchend',wake,{passive:true});
+document.addEventListener('click',wake,{passive:true});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') wake(); else release(); });
+window.addEventListener('pagehide',release);
+function play(name){ wake(); const ok=SFX?SFX.play(name,{rnd:RND}):false; LOG.push({t:Date.now(),name,ok}); return ok; }
+function status(){ if(!SFX){ $('st').textContent='sfx.js 沒載到'; return; } const c=SFX.ctx; $('st').textContent=(c?('ctx '+c.state):'ctx 未建')+' · 播過 '+(SFX.plays||0)+(SFX.lastError?(' · 錯 '+SFX.lastError):''); }
+setInterval(status,500); status();
+
+/* ---- 共用：種子亂數、JSON 輸出 ---- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function base(mode){ return {tool:'sfx-board',mode,at:new Date().toISOString(),ua:navigator.userAgent,href:location.href,rnd:RND,standin:STANDIN,map:Object.fromEntries(EVENTS.map(e=>[e.key,e.voice])),ab:AB,sfxNames:NAMES}; }
+function emit(host,obj,fname){
+  const txt=JSON.stringify(obj,null,2);
+  host.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='out';
+  const ta=document.createElement('textarea'); ta.readOnly=true; ta.value=txt; ta.id=host.id+'-json';
+  const row=document.createElement('div'); row.className='row';
+  const dl=document.createElement('button'); dl.textContent='下載 '+fname;
+  dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'})); a.download=fname; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000); };
+  const cp=document.createElement('button'); cp.textContent='複製';
+  cp.onclick=()=>{ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>{cp.textContent='已複製';},()=>{ ta.select(); cp.textContent='請手動複製'; }); };
+  row.append(dl,cp); wrap.append(row,ta); host.append(wrap);
+  return obj;
+}
+
+/* ---- 分頁 ---- */
+const tabs=[...document.querySelectorAll('nav button')];
+function show(t){ tabs.forEach(b=>b.classList.toggle('on',b.dataset.tab===t)); ['A','B','C','D'].forEach(s=>$(s).classList.toggle('on',s===t)); try{ history.replaceState(null,'','#'+t);}catch(e){} }
+tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));
+show(['A','B','C','D'].includes(location.hash.slice(1))?location.hash.slice(1):'A');
+
+/* ================= A 盲聽 ================= */
+const A={seed:parseInt(Q.get('seed')||'20260918',10),order:null,answers:[],replays:[],i:0,startedAt:null};
+$('A-seed').value=A.seed;
+function aMissing(){ const m=missingEvents(); $('A-missing').innerHTML=m.length?'<div class="warn">缺聲部：'+m.join('、')+'（S2 接線後可用；試治具可帶 ?map=）</div>':''; $('A-start').disabled=m.length>0; }
+aMissing();
+$('A-start').onclick=()=>{
+  A.seed=parseInt($('A-seed').value,10)||20260918; const rng=mulberry32(A.seed);
+  const keys=[]; EVENTS.forEach(e=>{keys.push(e.key,e.key);});
+  for(let i=keys.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [keys[i],keys[j]]=[keys[j],keys[i]]; }
+  A.order=keys; A.answers=[]; A.replays=keys.map(()=>0); A.i=0; A.startedAt=new Date().toISOString(); $('A-result').innerHTML=''; $('A-start').disabled=true; $('A-seed').disabled=true;
+  aQuestion();
+};
+function aQuestion(){
+  const host=$('A-quiz'); host.innerHTML='';
+  if(A.i>=A.order.length){ aFinish(); return; }
+  const i=A.i, key=A.order[i], voice=EVENTS.find(e=>e.key===key).voice;
+  const q=document.createElement('div'); q.className='q'; q.textContent='第 '+(i+1)+'／'+A.order.length+' 題：這是哪個事件的聲音？';
+  const pb=document.createElement('button'); pb.className='play big'; pb.textContent='▶ 播放'; pb.dataset.q=i;
+  pb.onclick=()=>{ A.replays[i]++; play(voice); pb.textContent='▶ 再播（'+A.replays[i]+'）'; };
+  const opts=document.createElement('div'); opts.className='opts';
+  EVENTS.concat([{key:'none',label:'都不像'}]).forEach(o=>{
+    const b=document.createElement('button'); b.className='pick'; b.textContent=o.label; b.dataset.ans=o.key;
+    b.onclick=()=>{ A.answers.push({q:i,truth:key,ans:o.key,correct:o.key===key,at:new Date().toISOString()}); A.i++; aQuestion(); };
+    opts.append(b);
+  });
+  host.append(q,pb,opts);
+}
+function aFinish(){
+  const score=A.answers.filter(a=>a.correct).length;
+  const per={}; EVENTS.forEach(e=>{ const xs=A.answers.filter(a=>a.truth===e.key); per[e.key]={label:e.label,correct:xs.filter(a=>a.correct).length,total:xs.length}; });
+  const pass=score>=6&&EVENTS.every(e=>per[e.key].correct>=1);
+  const obj=Object.assign(base('A'),{seed:A.seed,startedAt:A.startedAt,order:A.order,answers:A.answers,replays:A.replays,score,total:A.order.length,perEvent:per,pass,threshold:'>=6/8 and each event >=1/2',playLog:LOG.slice()});
+  $('A-result').innerHTML='<p class="'+(pass?'ok':'bad')+'"><b>'+score+'／'+A.order.length+'</b>　'+EVENTS.map(e=>e.label+' '+per[e.key].correct+'/'+per[e.key].total).join('　')+'　→ '+(pass?'過':'未過')+'</p>';
+  emit($('A-result').appendChild(document.createElement('div')),obj,'blindlisten-seed'+A.seed+'.json');
+  $('A-start').disabled=false; $('A-seed').disabled=false; $('A-start').textContent='重來（新一輪）';
+  window.__lastA=obj;
+}
+
+/* ================= B 逐支 ================= */
+const B={};
+(function(){
+  const host=$('B-list');
+  NAMES.forEach(n=>{
+    B[n]={verdict:null,note:''};
+    const r=document.createElement('div'); r.className='row';
+    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=n;
+    const pb=document.createElement('button'); pb.className='play'; pb.textContent='▶'; pb.dataset.voice=n; pb.onclick=()=>play(n);
+    const picks=document.createElement('span');
+    [['keep','留'],['change','換'],['off','關']].forEach(([v,l])=>{ const b=document.createElement('button'); b.className='pick'; b.textContent=l; b.dataset.b=n+':'+v; b.onclick=()=>{ B[n].verdict=v; [...picks.children].forEach(c=>c.classList.toggle('sel',c===b)); }; picks.append(b); });
+    const ta=document.createElement('textarea'); ta.rows=1; ta.placeholder='原話（要換的寫怎麼換）'; ta.oninput=()=>{B[n].note=ta.value;};
+    r.append(nm,pb,picks,ta); host.append(r);
+  });
+})();
+$('B-export').onclick=()=>{ window.__lastB=emit($('B-out'),Object.assign(base('B'),{items:NAMES.map(n=>({name:n,verdict:B[n].verdict,note:B[n].note})),unanswered:NAMES.filter(n=>!B[n].verdict),playLog:LOG.slice()}),'voices-verdict.json'); };
+
+/* ================= C 序列 ================= */
+const SEQ=[['chip','落籌①'],['chip','落籌②'],['chip','落籌③'],['seal','封標'],['gong','開市鑼'],['reveal','揭盅①'],['reveal','揭盅②'],['reveal','揭盅③'],['curse','受咒'],['hurt','受擊'],['dawn','天明']];
+const seqVoice=(k)=>{ const e=EVENTS.find(x=>x.key===k); return e?e.voice:k; };
+const C={timer:null,blur:new Set(),played:0};
+(function(){
+  const host=$('C-seq'); SEQ.forEach((s,i)=>{ const sp=document.createElement('span'); sp.textContent=s[1]+' ('+seqVoice(s[0])+')'; sp.id='C-s'+i; host.append(sp); });
+  const ph=$('C-pairs'); const t=document.createElement('div'); t.className='note'; t.textContent='勾「糊在一起」的相鄰兩聲：'; ph.append(t);
+  for(let i=0;i<SEQ.length-1;i++){ const l=document.createElement('label'); l.className='pair'; const cb=document.createElement('input'); cb.type='checkbox'; cb.style.width='auto'; cb.dataset.pair=i; cb.onchange=()=>{ if(cb.checked) C.blur.add(i); else C.blur.delete(i); }; l.append(cb,' '+SEQ[i][1]+'→'+SEQ[i+1][1]); ph.append(l); }
+})();
+function cMissing(){ const m=SEQ.map(s=>seqVoice(s[0])).filter(v=>!has(v)); $('C-missing').innerHTML=m.length?'<div class="warn">缺聲部：'+[...new Set(m)].join('、')+'</div>':''; $('C-play').disabled=m.length>0; }
+cMissing();
+$('C-play').onclick=()=>{
+  clearTimeout(C.timer); const gap=Math.max(100,parseInt($('C-gap').value,10)||700); let i=0; C.played=0; C.startedAt=new Date().toISOString();
+  const step=()=>{ [...$('C-seq').children].forEach((c,j)=>c.classList.toggle('now',j===i)); if(i>=SEQ.length){ C.timer=null; return; } play(seqVoice(SEQ[i][0])); C.played++; i++; C.timer=setTimeout(step,gap); };
+  step();
+};
+$('C-stop').onclick=()=>{ clearTimeout(C.timer); C.timer=null; [...$('C-seq').children].forEach(c=>c.classList.remove('now')); };
+$('C-export').onclick=()=>{ const pairs=[...C.blur].sort((a,b)=>a-b).map(i=>[SEQ[i][1],SEQ[i+1][1]]); window.__lastC=emit($('C-out'),Object.assign(base('C'),{gapMs:parseInt($('C-gap').value,10)||700,sequence:SEQ.map(s=>({event:s[1],voice:seqVoice(s[0])})),played:C.played,startedAt:C.startedAt||null,blurredPairs:pairs,blurredCount:pairs.length,pass:pairs.length===0&&C.played===SEQ.length,playLog:LOG.slice()}),'sequence.json'); };
+
+/* ================= D 甲乙 ================= */
+const D={};
+(function(){
+  const host=$('D-list');
+  EVENTS.forEach(e=>{
+    D[e.key]={pick:null,note:''}; const {a,b}=AB[e.key];
+    const r=document.createElement('div'); r.className='row';
+    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=e.label;
+    const mk=(v,l,which)=>{ const pb=document.createElement('button'); pb.className='play'; pb.textContent='▶ '+l; pb.disabled=!has(v); pb.dataset.voice=v; pb.onclick=()=>play(v); const pk=document.createElement('button'); pk.className='pick'; pk.textContent=l; pk.dataset.d=e.key+':'+which; pk.disabled=!has(v); pk.onclick=()=>{ D[e.key].pick=which; r.querySelectorAll('.pick').forEach(c=>c.classList.toggle('sel',c===pk)); }; return [pb,pk]; };
+    const ta=document.createElement('textarea'); ta.rows=1; ta.placeholder='原話（為什麼挑這個）'; ta.oninput=()=>{D[e.key].note=ta.value;};
+    const miss=[a,b].filter(v=>!has(v));
+    r.append(nm,...mk(a,'甲','a'),...mk(b,'乙','b'),ta);
+    if(miss.length){ const w=document.createElement('span'); w.className='bad'; w.textContent='缺：'+miss.join('、'); r.append(w); }
+    host.append(r);
+  });
+})();
+$('D-export').onclick=()=>{ window.__lastD=emit($('D-out'),Object.assign(base('D'),{picks:Object.fromEntries(EVENTS.map(e=>[e.key,{label:e.label,voiceA:AB[e.key].a,voiceB:AB[e.key].b,pick:D[e.key].pick,pickedVoice:D[e.key].pick?AB[e.key][D[e.key].pick]:null,note:D[e.key].note}])),unanswered:EVENTS.filter(e=>!D[e.key].pick).map(e=>e.key),playLog:LOG.slice()}),'ab-picks.json'); };
+
+window.__board={EVENTS,AB,SEQ,NAMES,STANDIN,LOG,play};
+})();
+</script>
+</body>
+</html>

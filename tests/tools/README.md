@@ -267,3 +267,14 @@ python tests/tools/fx-contrast-metrics.py <outdir>      # 預期 pass 0、四支
 
 ### （0.55.9 r6 覆審記錄，祖靈批收尾）
 - （0.55.9 r6 覆審記錄）N1（MEDIUM）：世界軸掃描為逐行字串比對，可被 `// axis-ok:` 整行豁免、行內純變數名 `lat/side/fwd/perp/UP` 放行、`Vector3(` 跨行三種寫法繞過；接住它們的是回流斷言，但 `traitfx-drive` 預設只量 yaw 90，六座位掃描未進閘門腳本——待辦：把 `--camyaw` 六值進 P8 例行跑。N2（LOW）：`coverNeed=0`（受擊者站位分不出）時 `hurtHit` 要求靜默消失。
+
+## `sfx-board.html`／`sfx-render.mjs`（A3 聲音聆聽驗收，2026-09-18 S1）
+
+- `sfx-board.html`：靜態聽板，只載 `assets/audio/sfx.js`、不動產品碼。四模式：A 盲聽四選一（固定種子 8 題，凍結 #4）、B 既有 12 支逐支留／換／關（#5）、C 一夜序列連播勾「哪兩聲糊在一起」（#6②）、D 四支新音甲／乙挑選（計畫 §0）。每模式輸出 JSON（下載／複製），含種子、順序、答案、重播次數、UA、`playLog`。線上：`https://9gf6p4448m-del.github.io/yaoshi/tests/tools/sfx-board.html`。
+  新音正式名 `chip`／`seal`／`reveal`／`curse`、甲乙候選 `<key>_a`／`<key>_b`；接線前試治具用 `?map=chip:woodfish,…`、`?ab=chip:woodfish|woodslam,…`（JSON 會標 `standin:true`，**不得當驗收證據**）。`rnd` 固定 0.5。
+- `sfx-render.mjs`：headless Chromium 用 `YS_SFX.render()`（OfflineAudioContext）渲染每支音，量三特徵：有效時長（10ms 視窗 RMS ≥ −40 dBFS 首尾跨度）、頻譜質心（2048 Hann／hop 1024 功率譜 Σf·P／ΣP 跨幀累加）、峰值 dBFS；另附 `fnMd5`（VOICES 逐支函式原始碼 md5，#5 用）。
+  ```
+  node tests/tools/sfx-render.mjs --out=<json>                       # 全部 12 支（S1 基準：docs/experiments/2026-09-18-a3-sound/sfx-features-base-0.57.23.json）
+  node tests/tools/sfx-render.mjs --new=chip,seal,reveal,curse --gate  # 凍結 #3：新音互比 6 對＋每支對其餘既有支逐一比；時長比 ≥1.5 或質心比 ≥2；峰值落在既有 [min,max]；不過 exit 1
+  ```
+  任何 console error／pageerror 或找不到的聲部名 → exit 1。同 seed 重跑逐欄位相同（S1 實測 0 diff）。
