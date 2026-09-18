@@ -1,0 +1,332 @@
+{
+  "at": "2026-09-18T03:57:04.847Z",
+  "sfxMd5": "e5d7c45433d9098d0a47df71ec30ed10",
+  "rnd": 0.5,
+  "method": {
+    "sampleRate": 44100,
+    "channels": 1,
+    "effMs": "RMS over 10 ms windows (441 samples, no overlap); span from first to last window with RMS >= -40 dBFS",
+    "centroidHz": "sum over frames (N=2048 Hann, hop=1024, within effective span) of sum_k f_k*P_k / sum_k P_k; P = |FFT|^2",
+    "peakDb": "20*log10(max|x|)",
+    "rmsDb": "20*log10(RMS of the effective span)",
+    "gate": "pair passes if max/min effMs >= 1.5 or max/min centroidHz >= 2; peakDb of each new voice within [min,max] of existing voices"
+  },
+  "voices": [
+    {
+      "name": "gong",
+      "sec": 4,
+      "effMs": 1020,
+      "centroidHz": 106,
+      "peakDb": -1.41,
+      "rmsDb": -16.2,
+      "fnMd5": "8686c45377a322bcbf6d895c85a7f5b0"
+    },
+    {
+      "name": "woodfish",
+      "sec": 4,
+      "effMs": 40,
+      "centroidHz": 784,
+      "peakDb": -4.84,
+      "rmsDb": -17.85,
+      "fnMd5": "25fa5ec2f3b66048916f909aa36e7462"
+    },
+    {
+      "name": "cymbal",
+      "sec": 4,
+      "effMs": 350,
+      "centroidHz": 11653,
+      "peakDb": -0.33,
+      "rmsDb": -18.48,
+      "fnMd5": "ff7f4746dd7fd9ddaee9c0613dda205f"
+    },
+    {
+      "name": "stamp",
+      "sec": 4,
+      "effMs": 100,
+      "centroidHz": 169,
+      "peakDb": -3.68,
+      "rmsDb": -14.93,
+      "fnMd5": "156f1abc1344816e820c18f37692d7e9"
+    },
+    {
+      "name": "woodslam",
+      "sec": 4,
+      "effMs": 110,
+      "centroidHz": 132,
+      "peakDb": -1.49,
+      "rmsDb": -14.28,
+      "fnMd5": "3e3dfb69eb45e426c1421b9f15bb2610"
+    },
+    {
+      "name": "bell",
+      "sec": 4,
+      "effMs": 550,
+      "centroidHz": 1520,
+      "peakDb": -6.04,
+      "rmsDb": -19.76,
+      "fnMd5": "6e38a6990c4240c7d9eb78ac7ee73625"
+    },
+    {
+      "name": "whoosh",
+      "sec": 4,
+      "effMs": 140,
+      "centroidHz": 1166,
+      "peakDb": -21.05,
+      "rmsDb": -34.09,
+      "fnMd5": "32503b3d15e540a87200b46e75c17d5f"
+    },
+    {
+      "name": "dawn",
+      "sec": 4,
+      "effMs": 610,
+      "centroidHz": 510,
+      "peakDb": -9.25,
+      "rmsDb": -20.98,
+      "fnMd5": "3ce3ad9a3a52dd8f9c28ade3a630683b"
+    },
+    {
+      "name": "death",
+      "sec": 4,
+      "effMs": 760,
+      "centroidHz": 168,
+      "peakDb": -5.25,
+      "rmsDb": -17.52,
+      "fnMd5": "0d35734629c962e087b704e7b0a04951"
+    },
+    {
+      "name": "babble",
+      "sec": 4,
+      "effMs": 440,
+      "centroidHz": 266,
+      "peakDb": -11.37,
+      "rmsDb": -27.39,
+      "fnMd5": "b9459f6ec6c0c32ab9d32ee7cbe506a1"
+    },
+    {
+      "name": "wind",
+      "sec": 9,
+      "effMs": 6430,
+      "centroidHz": 329,
+      "peakDb": -25.8,
+      "rmsDb": -38.81,
+      "fnMd5": "8914a7f21f8f01ec1dd652f6d05b415d"
+    },
+    {
+      "name": "chip",
+      "sec": 4,
+      "effMs": 240,
+      "centroidHz": 1053,
+      "peakDb": -6.84,
+      "rmsDb": -27.71,
+      "fnMd5": null
+    },
+    {
+      "name": "seal",
+      "sec": 4,
+      "effMs": 250,
+      "centroidHz": 214,
+      "peakDb": -5.31,
+      "rmsDb": -22.05,
+      "fnMd5": null
+    },
+    {
+      "name": "reveal",
+      "sec": 4,
+      "effMs": 220,
+      "centroidHz": 3819,
+      "peakDb": -7.2,
+      "rmsDb": -23.83,
+      "fnMd5": null
+    },
+    {
+      "name": "curse",
+      "sec": 4,
+      "effMs": 1710,
+      "centroidHz": 69,
+      "peakDb": -7.52,
+      "rmsDb": -20.5,
+      "fnMd5": null
+    },
+    {
+      "name": "hurt_b",
+      "sec": 4,
+      "effMs": 180,
+      "centroidHz": 86,
+      "peakDb": -3.65,
+      "rmsDb": -16.43,
+      "fnMd5": "7576f2544b0e07af09e6bb307b8cb665"
+    },
+    {
+      "name": "hurt_a",
+      "sec": 4,
+      "effMs": 50,
+      "centroidHz": 4141,
+      "peakDb": -9.76,
+      "rmsDb": -24.22,
+      "fnMd5": "730c82e46b943f2ccfb817d983dfdffd"
+    },
+    {
+      "name": "hurt",
+      "sec": 4,
+      "effMs": 120,
+      "centroidHz": 650,
+      "peakDb": -10.07,
+      "rmsDb": -23.82,
+      "fnMd5": "9715cc7fae4f7c22e36e09b9bce848b9"
+    }
+  ],
+  "gate": {
+    "newNames": [
+      "hurt_b"
+    ],
+    "pairs": [
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "gong",
+        "durRatio": 5.67,
+        "centRatio": 1.23,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "woodfish",
+        "durRatio": 4.5,
+        "centRatio": 9.12,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "cymbal",
+        "durRatio": 1.94,
+        "centRatio": 135.5,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "stamp",
+        "durRatio": 1.8,
+        "centRatio": 1.97,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "woodslam",
+        "durRatio": 1.64,
+        "centRatio": 1.53,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "bell",
+        "durRatio": 3.06,
+        "centRatio": 17.67,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "whoosh",
+        "durRatio": 1.29,
+        "centRatio": 13.56,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "dawn",
+        "durRatio": 3.39,
+        "centRatio": 5.93,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "death",
+        "durRatio": 4.22,
+        "centRatio": 1.95,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "babble",
+        "durRatio": 2.44,
+        "centRatio": 3.09,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "wind",
+        "durRatio": 35.72,
+        "centRatio": 3.83,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "chip",
+        "durRatio": 1.33,
+        "centRatio": 12.24,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "seal",
+        "durRatio": 1.39,
+        "centRatio": 2.49,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "reveal",
+        "durRatio": 1.22,
+        "centRatio": 44.41,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "curse",
+        "durRatio": 9.5,
+        "centRatio": 1.25,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "hurt_a",
+        "durRatio": 3.6,
+        "centRatio": 48.15,
+        "pass": true
+      },
+      {
+        "kind": "new-existing",
+        "a": "hurt_b",
+        "b": "hurt",
+        "durRatio": 1.5,
+        "centRatio": 7.56,
+        "pass": true
+      }
+    ],
+    "peakChecks": [
+      {
+        "name": "hurt_b",
+        "peakDb": -3.65,
+        "min": -25.8,
+        "max": -0.33,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "errors": []
+}

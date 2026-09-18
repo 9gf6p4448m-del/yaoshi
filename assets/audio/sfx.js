@@ -225,6 +225,20 @@
       tone(ctx, out, t0 + 0.1, { type: "triangle", f: 240, fEnd: 60, dur: 1.4, peak: 0.14, a: 0.1 });
       noise(ctx, out, t0, { dur: 2.8, peak: 0.14, a: 0.2, filter: { type: "lowpass", f: 320 }, q: 0.6 });
     },
+    /* ===== S3 第 1 輪（凍結 #5）：使用者點名 hurt「感覺很不夠精緻的聲音」要換，出甲／乙兩案 =====
+       約束同上（#3 對其餘 11 支＋四支新音逐一比；hurt 原版是對照組不算既有支）。 */
+    /* 受擊甲：紙裂＋悶撞——紙紮身體被打到，紙面撕開一小口，接一記短悶的身體撞擊 */
+    hurt_a(ctx, out, t0, rnd) {
+      noise(ctx, out, t0, { dur: 0.15, peak: 0.45, a: 0.002, filter: { type: "bandpass", f: 3000 + rnd * 200 }, q: 0.8 });
+      noise(ctx, out, t0, { dur: 0.06, peak: 0.2, a: 0.001, filter: { type: "bandpass", f: 4800 }, q: 1.5 });
+      tone(ctx, out, t0 + 0.01, { type: "sine", f: 140 + rnd * 10, fEnd: 50, dur: 0.1, peak: 0.06, a: 0.002 });
+    },
+    /* 受擊乙：深悶撞——更重更沉的一記，餘震拖到 0.4 秒，幾乎只剩低頻 */
+    hurt_b(ctx, out, t0, rnd) {
+      tone(ctx, out, t0, { type: "sine", f: 90 + rnd * 8, fEnd: 38, dur: 0.42, peak: 0.55, a: 0.003 });
+      tone(ctx, out, t0, { type: "triangle", f: 60, fEnd: 30, dur: 0.3, peak: 0.18, a: 0.003 });
+      noise(ctx, out, t0, { dur: 0.09, peak: 0.16, a: 0.002, filter: { type: "lowpass", f: 200 }, q: 0.6 });
+    },
   };
   /* 四事件正式聲部＝使用者 2026-09-18 在聽板模式 D 挑定的候選（docs/experiments/2026-09-18-a3-sound/ab-picks-r1.json）：
      落籌乙、封標甲、揭盅甲、受咒乙。產品端只叫這四個名字；落選案留在 VOICES 供治具對照。 */

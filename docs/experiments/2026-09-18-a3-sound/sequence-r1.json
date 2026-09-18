@@ -1,0 +1,518 @@
+{
+  "tool": "sfx-board",
+  "mode": "C",
+  "at": "2026-09-18T03:51:45.738Z",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1",
+  "href": "https://9gf6p4448m-del.github.io/yaoshi/tests/tools/sfx-board.html#C",
+  "rnd": 0.5,
+  "standin": false,
+  "map": {
+    "chip": "chip",
+    "seal": "seal",
+    "reveal": "reveal",
+    "curse": "curse"
+  },
+  "ab": {
+    "chip": {
+      "a": "chip_a",
+      "b": "chip_b"
+    },
+    "seal": {
+      "a": "seal_a",
+      "b": "seal_b"
+    },
+    "reveal": {
+      "a": "reveal_a",
+      "b": "reveal_b"
+    },
+    "curse": {
+      "a": "curse_a",
+      "b": "curse_b"
+    }
+  },
+  "sfxNames": [
+    "gong",
+    "woodfish",
+    "cymbal",
+    "stamp",
+    "woodslam",
+    "bell",
+    "whoosh",
+    "hurt",
+    "dawn",
+    "death",
+    "babble",
+    "wind",
+    "chip_a",
+    "chip_b",
+    "seal_a",
+    "seal_b",
+    "reveal_a",
+    "reveal_b",
+    "curse_a",
+    "curse_b",
+    "chip",
+    "seal",
+    "reveal",
+    "curse"
+  ],
+  "gapMs": 700,
+  "sequence": [
+    {
+      "event": "落籌①",
+      "voice": "chip"
+    },
+    {
+      "event": "落籌②",
+      "voice": "chip"
+    },
+    {
+      "event": "落籌③",
+      "voice": "chip"
+    },
+    {
+      "event": "封標",
+      "voice": "seal"
+    },
+    {
+      "event": "開市鑼",
+      "voice": "gong"
+    },
+    {
+      "event": "揭盅①",
+      "voice": "reveal"
+    },
+    {
+      "event": "揭盅②",
+      "voice": "reveal"
+    },
+    {
+      "event": "揭盅③",
+      "voice": "reveal"
+    },
+    {
+      "event": "受咒",
+      "voice": "curse"
+    },
+    {
+      "event": "受擊",
+      "voice": "hurt"
+    },
+    {
+      "event": "天明",
+      "voice": "dawn"
+    }
+  ],
+  "played": 11,
+  "startedAt": "2026-09-18T03:51:14.457Z",
+  "blurredPairs": [],
+  "blurredCount": 0,
+  "pass": true,
+  "playLog": [
+    {
+      "t": 1789703300428,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703302405,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703310577,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703311710,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703314662,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703324936,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703327555,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703329840,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703332259,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703334274,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703335859,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703337493,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703338594,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703343749,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703345250,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703347903,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703349553,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703350838,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703365701,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789703367321,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789703368754,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789703370437,
+      "name": "woodfish",
+      "ok": true
+    },
+    {
+      "t": 1789703370808,
+      "name": "cymbal",
+      "ok": true
+    },
+    {
+      "t": 1789703371983,
+      "name": "stamp",
+      "ok": true
+    },
+    {
+      "t": 1789703372978,
+      "name": "woodslam",
+      "ok": true
+    },
+    {
+      "t": 1789703373895,
+      "name": "bell",
+      "ok": true
+    },
+    {
+      "t": 1789703375091,
+      "name": "whoosh",
+      "ok": true
+    },
+    {
+      "t": 1789703376501,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703377603,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703378235,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703396216,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703397886,
+      "name": "dawn",
+      "ok": true
+    },
+    {
+      "t": 1789703400653,
+      "name": "death",
+      "ok": true
+    },
+    {
+      "t": 1789703402203,
+      "name": "babble",
+      "ok": true
+    },
+    {
+      "t": 1789703403890,
+      "name": "babble",
+      "ok": true
+    },
+    {
+      "t": 1789703405078,
+      "name": "babble",
+      "ok": true
+    },
+    {
+      "t": 1789703406533,
+      "name": "wind",
+      "ok": true
+    },
+    {
+      "t": 1789703408222,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789703410036,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789703410504,
+      "name": "chip_b",
+      "ok": true
+    },
+    {
+      "t": 1789703412117,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789703413557,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789703414953,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789703416305,
+      "name": "reveal_b",
+      "ok": true
+    },
+    {
+      "t": 1789703417406,
+      "name": "reveal_b",
+      "ok": true
+    },
+    {
+      "t": 1789703418247,
+      "name": "curse_a",
+      "ok": true
+    },
+    {
+      "t": 1789703420315,
+      "name": "curse_b",
+      "ok": true
+    },
+    {
+      "t": 1789703422436,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703423578,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703425372,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703426756,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703461871,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703462573,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703463276,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703463978,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703464680,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789703465381,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703466083,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703466785,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703467487,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703468190,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703468892,
+      "name": "dawn",
+      "ok": true
+    },
+    {
+      "t": 1789703474460,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703475162,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703475865,
+      "name": "chip",
+      "ok": true
+    },
+    {
+      "t": 1789703476566,
+      "name": "seal",
+      "ok": true
+    },
+    {
+      "t": 1789703477268,
+      "name": "gong",
+      "ok": true
+    },
+    {
+      "t": 1789703477970,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703478672,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703479376,
+      "name": "reveal",
+      "ok": true
+    },
+    {
+      "t": 1789703480078,
+      "name": "curse",
+      "ok": true
+    },
+    {
+      "t": 1789703480780,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703481482,
+      "name": "dawn",
+      "ok": true
+    },
+    {
+      "t": 1789703491024,
+      "name": "reveal_a",
+      "ok": true
+    },
+    {
+      "t": 1789703491792,
+      "name": "seal_b",
+      "ok": true
+    },
+    {
+      "t": 1789703493426,
+      "name": "seal_a",
+      "ok": true
+    },
+    {
+      "t": 1789703496165,
+      "name": "chip_a",
+      "ok": true
+    },
+    {
+      "t": 1789703497117,
+      "name": "babble",
+      "ok": true
+    },
+    {
+      "t": 1789703500719,
+      "name": "hurt",
+      "ok": true
+    },
+    {
+      "t": 1789703501819,
+      "name": "dawn",
+      "ok": true
+    },
+    {
+      "t": 1789703502804,
+      "name": "death",
+      "ok": true
+    }
+  ]
+}

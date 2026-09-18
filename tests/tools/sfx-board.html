@@ -110,7 +110,9 @@ const AB={}; EVENTS.forEach(e=>{AB[e.key]={a:e.key+'_a',b:e.key+'_b'};});
 let STANDIN=false;
 const parsePairs=(s,fn)=>{ if(!s) return; s.split(',').forEach(p=>{ const i=p.indexOf(':'); if(i<0) return; fn(p.slice(0,i).trim(),p.slice(i+1).trim()); }); };
 parsePairs(Q.get('map'),(k,v)=>{ const e=EVENTS.find(x=>x.key===k); if(e&&NAMES.includes(v)){ e.voice=v; STANDIN=true; } });
-parsePairs(Q.get('ab'),(k,v)=>{ const [a,b]=v.split('|'); if(AB[k]&&NAMES.includes(a)&&NAMES.includes(b)){ AB[k]={a,b}; STANDIN=true; } });
+/* 模式 D 的題目：預設四事件；?ab= 給不在四事件裡的鍵（如 hurt:hurt_a|hurt_b，凍結 #5 的「換」）就多加一題，不算替身 */
+const DKEYS=EVENTS.map(e=>({key:e.key,label:e.label}));
+parsePairs(Q.get('ab'),(k,v)=>{ const [a,b]=v.split('|'); if(!NAMES.includes(a)||!NAMES.includes(b)) return; if(AB[k]){ AB[k]={a,b}; STANDIN=true; } else { AB[k]={a,b}; DKEYS.push({key:k,label:k}); } });
 const has=(n)=>NAMES.includes(n);
 const missingEvents=()=>EVENTS.filter(e=>!has(e.voice)).map(e=>e.label+'='+e.voice);
 
@@ -227,7 +229,7 @@ $('C-export').onclick=()=>{ const pairs=[...C.blur].sort((a,b)=>a-b).map(i=>[SEQ
 const D={};
 (function(){
   const host=$('D-list');
-  EVENTS.forEach(e=>{
+  DKEYS.forEach(e=>{
     D[e.key]={pick:null,note:''}; const {a,b}=AB[e.key];
     const r=document.createElement('div'); r.className='row';
     const nm=document.createElement('span'); nm.className='nm'; nm.textContent=e.label;
@@ -239,7 +241,7 @@ const D={};
     host.append(r);
   });
 })();
-$('D-export').onclick=()=>{ window.__lastD=emit($('D-out'),Object.assign(base('D'),{picks:Object.fromEntries(EVENTS.map(e=>[e.key,{label:e.label,voiceA:AB[e.key].a,voiceB:AB[e.key].b,pick:D[e.key].pick,pickedVoice:D[e.key].pick?AB[e.key][D[e.key].pick]:null,note:D[e.key].note}])),unanswered:EVENTS.filter(e=>!D[e.key].pick).map(e=>e.key),playLog:LOG.slice()}),'ab-picks.json'); };
+$('D-export').onclick=()=>{ window.__lastD=emit($('D-out'),Object.assign(base('D'),{picks:Object.fromEntries(DKEYS.map(e=>[e.key,{label:e.label,voiceA:AB[e.key].a,voiceB:AB[e.key].b,pick:D[e.key].pick,pickedVoice:D[e.key].pick?AB[e.key][D[e.key].pick]:null,note:D[e.key].note}])),unanswered:DKEYS.filter(e=>!D[e.key].pick).map(e=>e.key),playLog:LOG.slice()}),'ab-picks.json'); };
 
 window.__board={EVENTS,AB,SEQ,NAMES,STANDIN,LOG,play};
 })();
