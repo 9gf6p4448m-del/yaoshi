@@ -34,7 +34,7 @@
 
 - 音效：`assets/audio/sfx.js`（`VOICES` 12 支：gong／woodfish／cymbal／stamp／woodslam／bell／whoosh／hurt／dawn／death／babble／wind；`SFX.play(name,{rnd,…})`）；產品端包裝 `index.html:4810` `sfx()`、`:4809` `sfxOn()`；BGM `assets/audio/bgm.js`（`TRACKS` title／market／duel／review，`FADE` 1.2、`volume` 0.45）。iOS 喚醒與診斷：`art-integration-guide.md` §8.x、規則頁 `audioDiag()`。
 - 公開記錄層：`S.history`（`index.html:2916` 建立；`recordAuction` `:4388` 起每夜 push `{round, auction[{intent,targetId,…}], deaths, …}`；`life[]` 逐夜壽命快照；不變量 `life.length===nights.length+1` 由 `tests/review.test.mjs` 守）。三高光 `CUTS` `:5546`／`playCut` `:5559` 已示範「只從 `S.history` 判定」的寫法。
-- 角色台詞：`ROLES.*.lines`（`:1135` 起，現有 `win`／`lose`／`poisoned` 三類）；恩怨數值 `p.grudge`（`:1054–1174`，只在 hook 累加）。
+- 角色台詞：`ROLES.*.lines`（`:1135` 起，現有 `win`／`lose`／`poison`／`poisoned`／`bwin`／`blose` 六鍵；盯上宣告／淘汰／請神無對應鍵，S4 新增）；恩怨數值 `p.grudge`（`:1054–1174`，只在 hook 累加）。
 - 滿編：`tests/tools/duel-perf.mjs`、`gl-duel-probe.mjs --drawBudget=1`、`legend-presence.mjs`（遮擋率）、A2 讀者材料與規程 `docs/experiments/2026-09-17-a2-closeout/duel-readers/`。
 - 引擎不變證據：`tests/baseline-traces.json` seeds 1–20 trace-eq；`node --test`；perf32。
 - 歷史教訓（改音必讀）：09-03 iPhone 主畫面沒聲音六輪（根因 AudioContext 數量硬上限＋工作階段未釋放，`release()` 走 `ctx.close()`）——新音不得新開 AudioContext，一律走既有 `ctx`。
