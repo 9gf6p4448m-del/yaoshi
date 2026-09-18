@@ -340,3 +340,13 @@ Claude Code 接手先讀本節與該報告，再依最新手機回饋／A1 效�
 - 使用者裁定「不用」第 2 輪 ⇒ **#10 未過、簽字收現況**；未解項：拼板舟（敵方王船）、福壽（燈碗身分，材質卷候選）。
 
 續接：`/handoff 妖市：A3 S7 再玩研究（凍結 #11：使用者＋家人 3 人各 2 局、手機正式線上版、每局 S.history JSON＋兩題原話落 docs/experiments/2026-09-18-a3-replay/）。`
+
+## 2026-09-18 晚：A3 S7 再玩研究前置工程（v0.57.33，#11 未動）
+
+- 事實：v0.57.32 沒有匯出 `S.history` 的入口，#11 要的「每局 JSON 落檔、手機正式版」做不到 → 補純呈現出口：`replayExport(S)`＋回顧頁「複製本局紀錄」（剪貼簿／文字框備援，不用 alert）。引擎 trace seeds 1–20 equal。
+- 驗證：`tests/replay-export.test.mjs` 2/2（三個突變副本各紅在對的斷言）；`tests/tools/replay-export-probe.mjs` seed 3 兩路徑內容逐位元組相同、pageerror 0；全套 `node --test` 見本卷 README。
+- 工具：`node tests/tools/replay-judge.mjs <replay.json>…` 印口徑勝者／主因／因果句，主對話拿它對照玩家 Q1 原話。
+- 研究規程與逐人逐局表：[docs/experiments/2026-09-18-a3-replay/README.md](../experiments/2026-09-18-a3-replay/README.md)。Q1／Q2 判法細化已寫死，不因結果改。
+- **待使用者側**：手機開正式版確認 v0.57.33 → 本人＋兩位家人各 2 局 → 每局按「複製本局紀錄」貼回＋兩題原話 → 主對話逐局填表、判 #11。
+
+續接：`/handoff 妖市：A3 S7 再玩研究收件（凍結 #11：六局 JSON＋原話落 docs/experiments/2026-09-18-a3-replay/，跑 replay-judge 逐局填表）。`
