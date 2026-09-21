@@ -424,6 +424,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
 .revealRibbon .big{font-weight:bold;font-size:12px}.revealRibbon .mut{font-size:10px;color:#cdb9ee}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:4px;padding:3px 6px;font-size:11px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:none;overflow:visible}.revealRibbon .outcome{margin-top:5px;white-space:normal;overflow:visible;font-size:11px}.bidPills{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px}.bidPill{padding:3px 6px;border:1px solid rgba(200,157,73,.48);border-radius:999px;background:rgba(7,6,14,.74);font-size:10px;line-height:1.2;white-space:nowrap}.bidPill.win{border-color:#ffe28b;background:linear-gradient(135deg,#7b5118,#d4a52f);color:#171007;font-weight:bold;box-shadow:0 0 10px rgba(255,203,72,.38)}
+.chainHint,.chainStatus{display:block;color:#f8d994;font-size:11px;line-height:1.3}.chainStatus{padding:3px 5px;border-left:2px solid #c89d49;background:rgba(22,12,25,.7);margin:3px 0}.chainAwaken{display:flex;align-items:center;gap:8px;max-width:340px;margin:3px auto;padding:3px 8px;border:1px solid #d3ac5e;background:rgba(23,11,31,.88);color:#f7dfa5;font-size:11px;pointer-events:none}.chainAwaken b{white-space:nowrap}.chainAwaken span{animation:chainGather .65s ease-out both}.chainAwaken:before{content:"◇";font-size:19px;line-height:1;color:#e9c978;text-shadow:0 0 0 #e9c978,0 0 6px #e9c978;animation:chainSquare .7s ease-out both}@keyframes chainGather{from{letter-spacing:8px;opacity:.35}to{letter-spacing:0;opacity:1}}@keyframes chainSquare{from{transform:scale(.35);opacity:.25}to{transform:scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chainAwaken span,.chainAwaken:before{animation:none}}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
   border-radius:8px;font-size:12px;animation:slidein .3s}
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
@@ -2018,7 +2019,9 @@ const NIGHTRULES = {
 const HOOK_ORDER = { onNightEnd:"itemsFirst" };
 const CHAINS={
   water:{id:"water",name:"水陸偷渡",requirements:["boat","buoy"],
-    flags:["blockPoisonTransfer"]},
+    desc:"毒標轉入的詛咒在入袋前銷毀",aiBonus:2,flags:["blockPoisonTransfer"]},
+  eyes:{id:"eyes",name:"千眼神算",requirements:["eye","bell"],
+    desc:"明夜預告最多三件；整理上一夜已公開標額的第二高",aiBonus:2,traits:{preview:3}},
 };
 function activeChains(p){
   if(!p || !p.bag) return [];
@@ -2197,6 +2200,25 @@ const windPid=r=>WIND_SEQ[(r-1)%4];
 const windName=r=>WIND_NAMES[(r-1)%4];
 /* ================= 工具 ================= */
 let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
+let PRIVATE_PHASE="none", PUBLIC_REVEAL=null;
+const CHAIN_SEEN=new Set();
+function canViewPrivateBag(pid,viewer=ACTIVE,phase=PRIVATE_PHASE){
+  return !!S && phase==="market" && pid===viewer && !!S.players[pid] && !S.players[pid].ai && S.players[pid].alive;
+}
+function eyesSecondBid(p,result){
+  if(!activeChains(p).some(c=>c.id==="eyes") || !result || !result.showEntries || !Array.isArray(result.entries) || result.entries.length<2) return null;
+  return [...result.entries].map(e=>e.amt).sort((a,b)=>b-a)[1];
+}
+function chainStatusHTML(p){
+  return Object.values(CHAINS).map(c=>{
+    const owned=new Set(p.bag.filter(x=>!x.curse).map(x=>x.ab));
+    const missing=c.requirements.filter(ab=>!owned.has(ab));
+    return `<div class="chainStatus">${missing.length?"待補":"✦ 已生效"} ${c.name}・${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}${missing.length?`（缺 ${missing.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("、")}）`:""}</div>`;
+  }).join("");
+}
+function chainHintHTML(p,it){
+  return chainsCompletedBy(p,it).map(c=>`<span class="chainHint">✦ 補齊 ${c.name}</span>`).join("");
+}
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
@@ -3017,6 +3039,7 @@ function makeState(mode,seed,picks){
   return S;
 }
 function newGame(mode,seed,picks){
+  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none";
   makeState(mode,seed,picks);
   $("titleScr").style.display="none";
   $("table").classList.add("on");
@@ -3120,6 +3143,7 @@ function aiBids(p){
       const sig=x=>1/(1+Math.exp(-CFG.PW_AI_LOGIT*x));
       base=CFG.PW_AI_BASE+CFG.PW_AI_SCALE*CFG.PW_MAX*(sig(sWith)-sig(pwBase))+(it.ab?2:0);
     }else base=it.p+marginal+(it.ab?2:0);
+    base+=chainsCompletedBy(p,it).reduce((sum,chain)=>sum+(chain.aiBonus||0),0);
     /* hook 8.1：角色可改寫「這件在我心中值多少」 */
     const vc={p,item:it,val:base+rnd(-2,2)};
     applyHooks("onAiValue",vc,p);
@@ -5161,6 +5185,7 @@ function openHelp(){
       <b>資訊全公開</b>：四家的香火與下一個請神夜的倒數都攤在香火榜上（中央面板法寶卡上方），三尊的待請卡就在旁邊。<b>早請＝先挑、但供奉付得久；晚請＝便宜、卻沒得挑</b>——這個張力是對手造成的，不是骰子。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，<b>在共鳴計算裡算 2 件</b>（強化你同系的其他法寶）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
     ${sec("🧧 法寶疊加規則",`每件非詛咒法寶都會召出自己的<b>紙紮部隊</b>，重複法寶也會增加部隊。同系法寶可觸發共鳴；招式依各隊規則發動。法寶的夜末、減傷等能力是否累加，請看各件效果說明。詛咒物不召喚部隊，各自效果按件數累加。`)}
+    ${sec("✦ 連鎖配方",Object.values(CHAINS).map(c=>`<div class="descRow"><b>${c.name}</b>：${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}。${c.desc||""}；材料不消耗、重複不疊加，缺件失效。</div>`).join(""))}
     </div>
     <button class="bigbtn" style="margin-top:12px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
@@ -5289,11 +5314,13 @@ function markCardHTML(it,i){
       ${itemIcoHTML(it)}<div class="nm">${it.n}</div>
       <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span></div>
       <div class="ab">${itemSummaryText(it)}</div>
+      ${chainHintHTML(S.players[ACTIVE],it)}
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
 }
 /* 盯上宣告的選擇畫面：釘一件或不釘；AI 的釘法此時尚未揭露（同時宣告版），釘完才一起公開在拍品卡上 */
 function showMarkUI(){
+  PRIVATE_PHASE="market";
   SKIP=false; $("skipbtn").style.display="none";
   renderSeats();
   const ap=S.players[ACTIVE];
@@ -5314,7 +5341,11 @@ function showMarkUI(){
   /* 掏空卷 v0.55a（Q1 甲：盯上頁掏空）：預告框與香火榜搬進 #north 的兩塊空白、四張卡退到左右側欄，
      #stage 只留心願條 ⇒ 桌心乾淨。`?table3d=0` 走 else 那條，版面與 v0.53 逐像素相同。 */
   const hollow=TABLE3D;
-  $("stage").innerHTML=`${hollow?"":prev}
+  const awaken=newChains.map(c=>`<div class="chainAwaken" aria-live="polite"><span>${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("　✦　")}</span><b>${c.name}</b></div>`).join("");
+  const eyesInfo=PUBLIC_REVEAL&&activeChains(ap).some(c=>c.id==="eyes")
+    ? PUBLIC_REVEAL.map(r=>{const n=eyesSecondBid(ap,r);return n===null?"":`${r.name} 第二高 ${n}🪙`;}).filter(Boolean).join("・") : "";
+  const privateInfo=`${awaken}${eyesInfo?`<div class="chainStatus">👁 上一夜已公開標額：${eyesInfo}</div>`:""}`;
+  $("stage").innerHTML=`${privateInfo}${hollow?"":prev}
     ${hollow?"":wishBarHTML(ap)}
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
@@ -5371,6 +5402,8 @@ function isStakeNight(){ return hasFlag(null,"singleStake"); }
 function noDestroyNight(){ return hasFlag(null,"noDestroy"); }
 function noCurseNight(){ return hasFlag(null,"noCurseAuction"); }
 function showHandoff(pid, cont){
+  PRIVATE_PHASE="handoff";
+  closeModal();
   /* 雙保險：交棒遮罩本身是不透明全屏，但仍先把上一位的私有心願列從 stage 撤掉，
      避免任何遮罩失效情境（透明主題、截圖工具）漏出對方心願 */
   /* 燒香列自 2026-09-07 第二輪覆審起併進底列 #budget（在 #south），清場名單要跟著改，
@@ -5380,7 +5413,7 @@ function showHandoff(pid, cont){
      一顆都不再命中——實測熱座封一筆「押 2」交棒，上一位的徽章留在 #railW 上（基準是 0）。
      `#table` 一次涵蓋 #stage、兩條 rail 與北列兩塊，對 0.55b 的右側抽屜也免疫。
      這是「防線按危險的效果寫，不按已知的入口寫」：要清的是**牌桌上任何一顆私有徽章**，不是「#stage 裡的」。 */
-  document.querySelectorAll("#table .wishbar,#table .stakebar,#table .incbar,#table .mybid,#table .pickbox,#south .incbar").forEach(el=>el.remove());
+  document.querySelectorAll("#table .wishbar,#table .stakebar,#table .incbar,#table .mybid,#table .pickbox,#table .chainHint,#table .chainStatus,#table .chainAwaken,#south .incbar").forEach(el=>el.remove());
   clearBids3d(); /* v0.56b 第二段：桌上的銅錢也是私有出價（幾枚＝幾壽命），交棒前一起收 */
   hideBloodBtn(); /* 放血鈕現在在 #south、不在 #stage 裡——交棒時要另外收起來 */
   const p=S.players[pid];
@@ -5392,9 +5425,12 @@ function showHandoff(pid, cont){
 }
 function showMarket(){
   if(!BIDS_OPEN) return;   /* 交卷／開標之後不重畫出價畫面（否則 #mainbtn 會被重新綁回 submitHumanBids＝相位倒退） */
+  PRIVATE_PHASE="market";
   SKIP=false; $("skipbtn").style.display="none";
   renderSeats();
   const ap=S.players[ACTIVE];
+  const newChains=activeChains(ap).filter(c=>!CHAIN_SEEN.has(`${ap.id}:${c.id}`));
+  newChains.forEach(c=>CHAIN_SEEN.add(`${ap.id}:${c.id}`));
   const pv=S.nextMarket.slice(0,traitMax(ap,"preview",1));
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name} 出價中｜壽命 ${ap.life}】 `:"";
   const rl=S.nightRule;
@@ -5416,6 +5452,7 @@ function showMarket(){
     ${stakeHTML(ap)}
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
+  if(newChains.length) setTimeout(()=>document.querySelectorAll("#table .chainAwaken").forEach(el=>el.remove()),1500);
   setHollow(hollow);
   setFeltPrivateContext(ap,hollow);
   if(hollow){
@@ -5559,6 +5596,7 @@ function mcardHTML(it,i){
       <div class="nm">${it.n}</div>
       <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span>${moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}</div>
       <div class="ab">${off?"🚫 本夜不開標・":""}${effect}</div>
+      ${off?"":chainHintHTML(S.players[ACTIVE],it)}
       ${unitRowText(it,S.players[ACTIVE])}
     </div>`;
   }
@@ -5568,6 +5606,7 @@ function mcardHTML(it,i){
     <div class="nm">${it.n}</div>
     <div><span class="pw">${marketStatText(it)}</span><span class="fchip ${FAC[it.f].cls}">${FAC[it.f].n}</span>${moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}</div>
     <div class="ab">${effect}</div>
+    ${chainHintHTML(S.players[ACTIVE],it)}
     ${/* 部隊預覽一行（請神 2.0）：出價前就看得到這件法寶會召出什麼、幾拍出手、招式是什麼——與袋子面板同一支 */""}
     ${unitRowText(it,S.players[ACTIVE])}
   </div>`;
@@ -5773,6 +5812,9 @@ function playCut(when,data={}){
 }
 async function startReveal(){
   BIDS_OPEN=false;   /* 不論從哪條路進開標（交卷／人類全滅的 startRevealDirect），出價一律關閉 */
+  PRIVATE_PHASE="reveal";
+  closeModal();
+  document.querySelectorAll("#table .chainHint,#table .chainStatus,#table .chainAwaken").forEach(el=>el.remove());
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
   const reveal=resolveAuction();
@@ -5789,6 +5831,7 @@ async function startReveal(){
      任一位是爐主就顯示（同機同螢幕本來就藏不住，取聯集是誠實解——限制記錄於 roles-report.md）。 */
   const rv={reveal,viewerId:0,showEntries:true,showTypes:false};
   applyHooks("onReveal",rv,aliveHumans());
+  PUBLIC_REVEAL=rv.reveal.map(r=>({name:r.it.n,showEntries:!!rv.showEntries,entries:rv.showEntries?r.entries.map(e=>({amt:e.amt})):[]}));
   /* 落標實付的註記文字：規則夜可用 loseLabel 換掉（如落魄夜的「落標全付」），引擎不寫規則 id */
   const loseLbl=(S.nightRule&&S.nightRule.loseLabel)||"落標費";
   /* 揭盅就是讓玩家看 3D 錢堆比大小：保持托盤露出，絕不能再落黑幕。 */
@@ -6981,6 +7024,11 @@ function downloadReplay(){
 /* ================= 袋子檢視 ================= */
 function showBag(pid){
   const p=S.players[pid];
+  if(!canViewPrivateBag(pid)){
+    $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}</h2><p class="mut">袋中持有只供本人私下查看。</p><p>公開戰力：${Math.round(power(p))}</p><button class="bigbtn" style="width:100%" onclick="closeModal()">關閉</button>`;
+    $("modal").style.display="flex";
+    return;
+  }
   let bonus="";
   for(const f of FACTIONS){
     const c=facCount(p,f), lv=pwResLv(p,f);
@@ -6991,6 +7039,8 @@ function showBag(pid){
     bonus+=`<div class="bagit"><span>紙紮共鳴：${FAC[f].n}×${c}</span><b class="heal">${effect}</b></div>`;
   }
   $("modalbox").innerHTML=`<h2>${DIRS[pid]}家・${p.name}（${faceLbl(p)}）</h2>
+    ${chainStatusHTML(p)}
+    ${PUBLIC_REVEAL&&activeChains(p).some(c=>c.id==="eyes")?`<div class="chainStatus">👁 上一夜已公開標額：${PUBLIC_REVEAL.map(r=>{const n=eyesSecondBid(p,r);return n===null?"":`${r.name} 第二高 ${n}🪙`;}).filter(Boolean).join("・")||"無第二筆可整理"}</div>`:""}
     ${p.bag.length?p.bag.map(x=>`<div class="bagit"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span>
       ${x.ab&&itemAbilityText(x)?`<span class="abtxt">✦ ${itemAbilityText(x)}</span>`:""}${
       /* 傳說：常駐「送神回天」鈕（請神 2.0 §二 6，使用者裁丙）——任何一夜都可以主動放手，
@@ -7623,7 +7673,7 @@ function simulate(seed){
 function trace(seeds){ return {seeds:[...seeds], runs:[...seeds].map(s=>simulate(s))}; }
 window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedback, get S(){return S;},
   CFG, POOL, CURSES, ABILITIES, CHAINS, ROLES, WISHES, EVENTS, NIGHTRULES, MODES,
-  collectEffects, activeChains, chainsCompletedBy, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor, highestLifeFoe, topGrudge, strongestFoe,
+  collectEffects, activeChains, chainsCompletedBy, canViewPrivateBag, eyesSecondBid, applyHooks, hasFlag, traitMax, power, facCount, consCapFor, budgetFor, highestLifeFoe, topGrudge, strongestFoe,
   pwResLv, PW_RES_STAT, /* 共鳴接入候選（設計卷 A 段）測試出口 */
   /* 傳說三尊「請神 3.0 香火池」測試出口：資料表、結算、得主自選、回天、AI 啟發式、局末結清 */
   LEGENDS, resolveShrines, finishShrines, settleShrinesEnd, settleTithe, releaseLegend, aiIncense, incAiOf, shrineReward, mainFaction,
