@@ -1,0 +1,41 @@
+✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (24.9205ms)
+✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (23.1731ms)
+✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (13.6675ms)
+✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (12.5877ms)
+✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (30.1047ms)
+✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (14.8675ms)
+✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (966.1546ms)
+✔ 道具、連鎖、角色與心願的收集層順序固定 (14.6836ms)
+✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (15.2916ms)
+✖ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (14.6642ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2759.7015
+
+✖ failing tests:
+
+test at tests\chains.test.mjs:135:1
+✖ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (14.6642ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chains.test.mjs:142:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
