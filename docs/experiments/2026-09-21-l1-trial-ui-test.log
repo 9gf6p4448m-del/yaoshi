@@ -1,0 +1,22 @@
+✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (24.8305ms)
+✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (22.5363ms)
+✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (12.5389ms)
+✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (14.1824ms)
+✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (34.9195ms)
+✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (13.4353ms)
+✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (933.3249ms)
+✔ 道具、連鎖、角色與心願的收集層順序固定 (11.6334ms)
+✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (11.4295ms)
+✔ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (12.416ms)
+✔ water and eyes recipes, preview maximum, and duplicate completion (22.2513ms)
+✔ second bid counts tied raw entries and suppresses hidden or short reveal (23.1672ms)
+✔ viewer gate only permits active human at private market (14.7894ms)
+✔ AI bid reflects only a newly completed chain (58.8651ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2690.5035

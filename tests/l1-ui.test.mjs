@@ -33,3 +33,17 @@ test('viewer gate only permits active human at private market',()=>{
   assert.equal(g.canViewPrivateBag(0,0,'handoff'),false);
   assert.equal(g.canViewPrivateBag(0,0,'reveal'),false);
 });
+
+test('AI bid reflects only a newly completed chain',()=>{
+  const bidWith=(bonus,bag)=>{
+    const g=G();g.CFG.WISH_ON=false;g.CFG.EVENT_ON=false;g.CFG.RULE_ON=false;
+    g.makeState('solo',10);
+    const p=g.S.players[1];p.bag=bag.map(ab=>item(g,ab));p.life=80;p.ai={aggr:1,spite:0};p.roleId='human';
+    g.S.market=[item(g,'buoy')];g.S.players.forEach(q=>{q.bag=[];q.alive=true;});p.bag=bag.map(ab=>item(g,ab));
+    g.CFG.PAPERWAR_ON=false;g.CFG.MARK_ON=false;g.CFG.AI_THROTTLE=1;g.CFG.AI_IDLE_P=0;
+    g.CHAINS.water.aiBonus=bonus;
+    return g.aiBids(p)[0]?.amt||0;
+  };
+  assert.equal(bidWith(2,['boat'])-bidWith(0,['boat']),2);
+  assert.equal(bidWith(2,['boat','buoy']),bidWith(0,['boat','buoy']));
+});
