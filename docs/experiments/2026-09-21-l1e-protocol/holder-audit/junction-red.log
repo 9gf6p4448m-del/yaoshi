@@ -1,25 +1,49 @@
-file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:7
-import {auditRows, auditFile, assertOutputOutsidePilot, parseRaw, reportMarkdown} from './tools/l1-holder-audit.mjs';
-                              ^^^^^^^^^^^^^^^^^^^^^^^^
-SyntaxError: The requested module './tools/l1-holder-audit.mjs' does not provide an export named 'assertOutputOutsidePilot'
-    at #asyncInstantiate (node:internal/modules/esm/module_job:327:21)
-    at async ModuleJob.run (node:internal/modules/esm/module_job:431:5)
-    at async node:internal/modules/esm/loader:633:26
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
-
-Node.js v24.16.0
-✖ tests\l1-holder-audit.test.mjs (81.4423ms)
-ℹ tests 1
+✔ counts all four endpoint holders, including winners outside seat zero (1.7399ms)
+✔ normal and zero use their own denominator and zero denominator is null (0.8914ms)
+✔ raw parser requires valid JSON lines (0.5171ms)
+✔ rejects invalid arms and duplicate or missing arm seeds (0.5211ms)
+✔ rejects illegal winner and malformed four-seat chain data (0.424ms)
+✔ validates entire raw before any output and hashes original bytes (8.8531ms)
+✔ refuses an output directory inside the original pilot (1.7614ms)
+✖ refuses a junction that resolves into the original pilot (3.2464ms)
+ℹ tests 8
 ℹ suites 0
-ℹ pass 0
+ℹ pass 7
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 90.1152
+ℹ duration_ms 109.075
 
 ✖ failing tests:
 
-test at tests\l1-holder-audit.test.mjs:1:1
-✖ tests\l1-holder-audit.test.mjs (81.4423ms)
-  'test failed'
+test at tests\l1-holder-audit.test.mjs:101:1
+✖ refuses a junction that resolves into the original pilot (3.2464ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /overwrite pilot/. Input:
+  
+  'Error: invalid arm at row 1'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:109:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: invalid arm at row 1
+        at validateRows (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/tools/l1-holder-audit.mjs:27:64)
+        at auditRows (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/tools/l1-holder-audit.mjs:70:23)
+        at auditFile (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/tools/l1-holder-audit.mjs:123:15)
+        at file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:109:21
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:109:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1306:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:897:18),
+    expected: /overwrite pilot/,
+    operator: 'throws',
+    diff: 'simple'
+  }
