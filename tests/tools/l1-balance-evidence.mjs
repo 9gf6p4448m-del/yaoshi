@@ -17,12 +17,13 @@ function run(file,env={}){
   return spawnSync(process.execPath,['--test',file],{cwd:root,encoding:'utf8',env:{...process.env,...env}});
 }
 
-function mutant(name,oldText,newText){
+function tempSuite(name,source){
   const dir=path.join(temp,name);
   fs.mkdirSync(dir,{recursive:true});
-  const original=fs.readFileSync(src,'utf8');
-  if(!original.includes(oldText)) throw Error(`mutation anchor absent: ${name}`);
-  fs.writeFileSync(path.join(dir,'l1-balance.mjs'),original.replace(oldText,newText));
+  const rootAnchor="const ROOT=path.resolve(HERE,'../..');";
+  if(!source.includes(rootAnchor)) throw Error('temporary module ROOT anchor absent');
+  fs.writeFileSync(path.join(dir,'l1-balance.mjs'),
+    source.replace(rootAnchor,`const ROOT=${JSON.stringify(root)};`));
   fs.copyFileSync(loader,path.join(dir,'load.mjs'));
   const testText=fs.readFileSync(spec,'utf8')
     .replace("from './tools/load.mjs'",`from '${pathToFileURL(path.join(dir,'load.mjs')).href}'`)
@@ -32,15 +33,26 @@ function mutant(name,oldText,newText){
   fs.writeFileSync(testFile,testText);
   const result=run(testFile);
   fs.writeFileSync(path.join(out,`${name}.log`),result.stdout+result.stderr);
+  return result;
+}
+
+function mutant(name,oldText,newText,expectedTests){
+  const original=fs.readFileSync(src,'utf8');
+  if(!original.includes(oldText)) throw Error(`mutation anchor absent: ${name}`);
+  const result=tempSuite(name,original.replace(oldText,newText));
   if(result.status===0) throw Error(`${name} survived`);
-  if(/ERR_MODULE_NOT_FOUND|SyntaxError|ERR_INVALID_URL/.test(result.stdout+result.stderr))
+  if(/ERR_MODULE_NOT_FOUND|SyntaxError|ERR_INVALID_URL|fatal: not a git repository/.test(result.stdout+result.stderr))
     throw Error(`${name} failed for infrastructure rather than semantics`);
-  if(!/AssertionError/.test(result.stdout+result.stderr))
-    throw Error(`${name} did not trigger a semantic assertion`);
+  const failures=(result.stdout.split('✖ failing tests:')[1]||'')
+    .split(/(?=^✖ )/m).filter(x=>x.startsWith('✖ '));
+  const names=failures.map(x=>x.match(/^✖ (.+?) \(/m)?.[1]);
+  if(!failures.length||names.some(x=>!expectedTests.includes(x))||
+    failures.some(x=>!x.includes('AssertionError'))||!expectedTests.some(x=>names.includes(x)))
+    throw Error(`${name} has unexpected failures or lacks expected semantic assertion: ${names}`);
   return {name,exitCode:result.status,log:`${name}.log`};
 }
 
-function coveredBytes(entry,names){
+function coveredSourceUnits(entry,names){
   const core=entry.functions.filter(f=>names.includes(f.functionName));
   if(core.length<names.length) throw Error(`coverage functions missing: ${names.filter(n=>!core.some(f=>f.functionName===n))}`);
   const spans=core.map(f=>f.ranges[0]);
@@ -57,7 +69,9 @@ function coveredBytes(entry,names){
       if(narrow?.count>0) covered+=right-left;
     }
   }
-  return {coveredBytes:covered,instrumentedBytes:total,ratio:covered/total,functions:names};
+  return {coveredSourceUnits:covered,coreSourceUnits:total,ratio:covered/total,
+    unit:'V8 UTF-16 source offsets, including whitespace and comments; eight named core functions only',
+    exclusions:['parseCli','writeReport','CLI entrypoint'],functions:names};
 }
 
 try{
@@ -69,13 +83,19 @@ try{
     .flatMap(x=>JSON.parse(fs.readFileSync(path.join(coverageDir,x),'utf8')).result);
   const entry=entries.find(x=>x.url===pathToFileURL(src).href);
   if(!entry) throw Error('V8 coverage entry absent');
-  const coverage=coveredBytes(entry,['validateSeeds','createChaser','disableChainEffects','summarize',
+  const coverage=coveredSourceUnits(entry,['validateSeeds','createChaser','disableChainEffects','summarize',
     'keyed','comparePaired','gameRow','runExperiment']);
+  const tempBaseline=tempSuite('temp-baseline',fs.readFileSync(src,'utf8'));
+  if(tempBaseline.status!==0) throw Error('unmutated temporary suite failed');
   const mutants=[
-    mutant('mutant-no-chaser-boost','Math.max(2,original?.amt||0)+2','Math.max(2,original?.amt||0)'),
-    mutant('mutant-zero-removes-recipe',"for(const key of ['flags','traits','hooks','army'])","for(const key of ['flags','traits','hooks','army','requirements'])"),
+    mutant('mutant-no-chaser-boost','Math.max(2,original?.amt||0)+2','Math.max(2,original?.amt||0)',
+      ['one target per night: two missing materials and duplicate offers use first market index',
+        'chaser respects conservative cap, full fee budget and maximum bid count']),
+    mutant('mutant-zero-leaves-flags',"for(const key of ['flags','traits','hooks','army'])","for(const key of ['traits','hooks','army'])",
+      ['zero arm preserves recipe identity and bonus, removes only effects']),
   ];
-  const result={baseline:{exitCode:baseline.status,log:'test.log'},coverage,mutants,
+  const result={baseline:{exitCode:baseline.status,log:'test.log'},
+    tempBaseline:{exitCode:tempBaseline.status,log:'temp-baseline.log'},coverage,mutants,
     sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(src)).digest('hex')};
   fs.writeFileSync(path.join(out,'evidence.json'),JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify(result));

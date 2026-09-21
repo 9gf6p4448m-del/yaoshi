@@ -3,10 +3,20 @@
     "exitCode": 0,
     "log": "test.log"
   },
+  "tempBaseline": {
+    "exitCode": 0,
+    "log": "temp-baseline.log"
+  },
   "coverage": {
-    "coveredBytes": 5788,
-    "instrumentedBytes": 6142,
+    "coveredSourceUnits": 5788,
+    "coreSourceUnits": 6142,
     "ratio": 0.9423640507977857,
+    "unit": "V8 UTF-16 source offsets, including whitespace and comments; eight named core functions only",
+    "exclusions": [
+      "parseCli",
+      "writeReport",
+      "CLI entrypoint"
+    ],
     "functions": [
       "validateSeeds",
       "createChaser",
@@ -25,9 +35,9 @@
       "log": "mutant-no-chaser-boost.log"
     },
     {
-      "name": "mutant-zero-removes-recipe",
+      "name": "mutant-zero-leaves-flags",
       "exitCode": 1,
-      "log": "mutant-zero-removes-recipe.log"
+      "log": "mutant-zero-leaves-flags.log"
     }
   ],
   "sourceSha256": "788a2004604fdeb3e7b96c717bc7346d3e1c8da785f6967f9f3eb71a99f7bff0"

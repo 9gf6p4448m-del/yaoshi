@@ -1,0 +1,18 @@
+✔ chaser prefers completion, then missing material, keeps original bids by index (23.9886ms)
+✔ one target per night: two missing materials and duplicate offers use first market index (20.9856ms)
+✔ chaser leaves splitter untouched when complete or no material available (12.2876ms)
+✔ chaser respects conservative cap, full fee budget and maximum bid count (10.5008ms)
+✔ chaser cannot inspect private opponents or future market (10.4582ms)
+✔ zero arm preserves recipe identity and bonus, removes only effects (39.8837ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.3474ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.8709ms)
+✔ real engine seven arms replay identically and carry raw metadata (973.5314ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.5288ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2616.3908

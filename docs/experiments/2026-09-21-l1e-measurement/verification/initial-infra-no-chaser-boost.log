@@ -1,0 +1,98 @@
+fatal: not a git repository (or any of the parent directories): .git
+✔ chaser prefers completion, then missing material, keeps original bids by index (21.9095ms)
+✖ one target per night: two missing materials and duplicate offers use first market index (22.1472ms)
+✔ chaser leaves splitter untouched when complete or no material available (11.7219ms)
+✖ chaser respects conservative cap, full fee budget and maximum bid count (13.4648ms)
+✔ chaser cannot inspect private opponents or future market (10.8846ms)
+✔ zero arm preserves recipe identity and bonus, removes only effects (32.782ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.2614ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.6766ms)
+✖ real engine seven arms replay identically and carry raw metadata (552.8795ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.4875ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 7
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2151.8212
+
+✖ failing tests:
+
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:28:1
+✖ one target per night: two missing materials and duplicate offers use first market index (22.1472ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   4,
+      2,
+  +   2,
+      0
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:31:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 0 ],
+    expected: [ 4, 2, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:44:1
+✖ chaser respects conservative cap, full fee budget and maximum bid count (13.4648ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   3,
+      2,
+  +   2,
+      0
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 0 ],
+    expected: [ 3, 2, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:97:1
+✖ real engine seven arms replay identically and carry raw metadata (552.8795ms)
+  Error: Command failed: git rev-parse HEAD
+  fatal: not a git repository (or any of the parent directories): .git
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at runExperiment (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.mjs:142:13)
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:98:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19) {
+    status: 128,
+    signal: null,
+    output: [ null, '', 'fatal: not a git repository (or any of the parent directories): .git\n' ],
+    pid: 63420,
+    stdout: '',
+    stderr: 'fatal: not a git repository (or any of the parent directories): .git\n'
+  }

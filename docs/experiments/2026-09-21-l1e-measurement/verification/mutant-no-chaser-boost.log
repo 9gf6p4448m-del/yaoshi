@@ -1,27 +1,26 @@
-fatal: not a git repository (or any of the parent directories): .git
-✔ chaser prefers completion, then missing material, keeps original bids by index (21.9095ms)
-✖ one target per night: two missing materials and duplicate offers use first market index (22.1472ms)
-✔ chaser leaves splitter untouched when complete or no material available (11.7219ms)
-✖ chaser respects conservative cap, full fee budget and maximum bid count (13.4648ms)
-✔ chaser cannot inspect private opponents or future market (10.8846ms)
-✔ zero arm preserves recipe identity and bonus, removes only effects (32.782ms)
-✔ summary uses full-game and holder denominators, including null zero cases (0.2614ms)
-✔ matched pairs align by seed and reject duplicates or missing seeds (0.6766ms)
-✖ real engine seven arms replay identically and carry raw metadata (552.8795ms)
-✔ input and CLI reject nonpositive, duplicate or malformed samples (0.4875ms)
+✔ chaser prefers completion, then missing material, keeps original bids by index (20.3974ms)
+✖ one target per night: two missing materials and duplicate offers use first market index (20.223ms)
+✔ chaser leaves splitter untouched when complete or no material available (11.4859ms)
+✖ chaser respects conservative cap, full fee budget and maximum bid count (11.4823ms)
+✔ chaser cannot inspect private opponents or future market (11.1004ms)
+✔ zero arm preserves recipe identity and bonus, removes only effects (38.234ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.5641ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.9022ms)
+✔ real engine seven arms replay identically and carry raw metadata (949.1485ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.5121ms)
 ℹ tests 10
 ℹ suites 0
-ℹ pass 7
-ℹ fail 3
+ℹ pass 8
+ℹ fail 2
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2151.8212
+ℹ duration_ms 2595.5352
 
 ✖ failing tests:
 
-test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:28:1
-✖ one target per night: two missing materials and duplicate offers use first market index (22.1472ms)
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-0oKc05\mutant-no-chaser-boost\l1-balance.test.mjs:28:1
+✖ one target per night: two missing materials and duplicate offers use first market index (20.223ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
   
@@ -32,7 +31,7 @@ test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l
       0
     ]
   
-      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:31:10)
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-0oKc05/mutant-no-chaser-boost/l1-balance.test.mjs:31:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
@@ -47,8 +46,8 @@ test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l
     diff: 'simple'
   }
 
-test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:44:1
-✖ chaser respects conservative cap, full fee budget and maximum bid count (13.4648ms)
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-0oKc05\mutant-no-chaser-boost\l1-balance.test.mjs:44:1
+✖ chaser respects conservative cap, full fee budget and maximum bid count (11.4823ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
   
@@ -59,7 +58,7 @@ test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l
       0
     ]
   
-      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:51:10)
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-0oKc05/mutant-no-chaser-boost/l1-balance.test.mjs:51:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
@@ -72,27 +71,4 @@ test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l
     expected: [ 3, 2, 0 ],
     operator: 'deepStrictEqual',
     diff: 'simple'
-  }
-
-test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-no-chaser-boost\l1-balance.test.mjs:97:1
-✖ real engine seven arms replay identically and carry raw metadata (552.8795ms)
-  Error: Command failed: git rev-parse HEAD
-  fatal: not a git repository (or any of the parent directories): .git
-  
-      at genericNodeError (node:internal/errors:985:15)
-      at wrappedFn (node:internal/errors:539:14)
-      at checkExecSyncError (node:child_process:925:11)
-      at execFileSync (node:child_process:961:15)
-      at runExperiment (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.mjs:142:13)
-      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-no-chaser-boost/l1-balance.test.mjs:98:11)
-      at Test.runInAsyncScope (node:async_hooks:227:14)
-      at Test.run (node:internal/test_runner/test:1306:25)
-      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
-      at Test.postRun (node:internal/test_runner/test:1447:19) {
-    status: 128,
-    signal: null,
-    output: [ null, '', 'fatal: not a git repository (or any of the parent directories): .git\n' ],
-    pid: 63420,
-    stdout: '',
-    stderr: 'fatal: not a git repository (or any of the parent directories): .git\n'
   }
