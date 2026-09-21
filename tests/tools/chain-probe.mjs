@@ -31,6 +31,9 @@ try{
   window.chainSounds=[];
   const originalSfx=sfx;
   sfx=(name,options)=>{window.chainSounds.push(name);return originalSfx(name,options);};
+  window.chainLines=[];
+  const originalSay=sayFrom;
+  sayFrom=(pid,key,context)=>{window.chainLines.push({pid,key});return originalSay(pid,key,context);};
   document.getElementById('titleScr').style.display='none';
   document.getElementById('table').classList.add('on');
   startReveal().catch(e=>{window.chainRevealError=String(e);});
@@ -41,7 +44,7 @@ try{
  await page.waitForTimeout(1000); // Let the existing reveal-card CSS entrance settle before inspection.
  await page.screenshot({path:path.join(OUT,'reveal.png')});
  const reveal=await page.evaluate(()=>({text:document.getElementById('outzone').innerText,
-  receipts:window.chainReceipts,sounds:window.chainSounds,error:window.chainRevealError||null,
+  receipts:window.chainReceipts,sounds:window.chainSounds,lines:window.chainLines,error:window.chainRevealError||null,
   history:window.__yaoshi.S.history.nights[0].auction[0],bag:window.__yaoshi.S.players[1].bag.map(x=>x.n)}));
  await page.evaluate(()=>showReview());
  const poisonTile=await page.locator('.rvTile').filter({hasText:'毒標得手'}).innerText();
@@ -57,6 +60,7 @@ try{
  assert.equal(reveal.receipts[0].transferTarget,null);
  assert.equal(reveal.receipts[0].destroy,true);
  assert.equal(reveal.sounds.includes('curse'),false);
+ assert.equal(reveal.lines.some(x=>x.key==='poison'||x.key==='poisoned'),false);
  assert.match(reveal.text,/水陸偷渡/);
  assert.match(review,/阻|擋|銷毀/);
  assert.match(poisonTile,/沒有毒標得手/);
