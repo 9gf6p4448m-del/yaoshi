@@ -1,0 +1,34 @@
+✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (63.6806ms)
+✔ off/on game results are byte-identical after removing record field and RNG is unchanged (1341.4947ms)
+✔ recorder is detached from game state and reset for the next game (38.6303ms)
+✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (25.7058ms)
+✔ previews and lookalike players cannot create holdings (34.6491ms)
+✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (23.2584ms)
+✔ same-night completion then loss uses real hunter gain and ghost loss (24.1905ms)
+✔ real player identity guard rejects same-id preview mutated through a real hook (97.1724ms)
+✖ auction acquisition and poison transfer are observed before item hooks (20.796ms)
+✔ event gifts, transfers and forced curse use their real mutation entrances (141.2676ms)
+✔ hook transfer, pawn and wind observe each removal and receipt in order (102.4657ms)
+✔ shrine reward, award, release and actual endgame stripping are observed (104.2897ms)
+✔ off/on equivalence also holds with default event, rule, wish and shrine flags (156.9329ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3781.633
+
+✖ failing tests:
+
+test at tests\chain-holdings.test.mjs:137:1
+✖ auction acquisition and poison transfer are observed before item hooks (20.796ms)
+  TypeError: Cannot read properties of undefined (reading 'phase')
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:147:29)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

@@ -1,0 +1,191 @@
+✖ opt-in observes real acquisition immediately and preserves first time after same-night loss (65.1561ms)
+✔ off/on game results are byte-identical after removing record field and RNG is unchanged (1419.7952ms)
+✖ recorder is detached from game state and reset for the next game (34.7168ms)
+✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (35.2858ms)
+✔ previews and lookalike players cannot create holdings (66.1714ms)
+✖ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (28.4117ms)
+✖ same-night completion then loss uses real hunter gain and ghost loss (36.824ms)
+✔ real player identity guard rejects same-id preview mutated through a real hook (126.5618ms)
+✖ auction acquisition and poison transfer are observed before item hooks (13.9562ms)
+✖ event gifts, transfers and forced curse use their real mutation entrances (40.3487ms)
+✖ hook transfer, pawn and wind observe each removal and receipt in order (19.2762ms)
+✖ shrine reward, award, release and actual endgame stripping are observed (31.2451ms)
+✔ off/on equivalence also holds with default event, rule, wish and shrine flags (154.6987ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 5
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3687.1466
+
+✖ failing tests:
+
+test at tests\chain-holdings.test.mjs:24:1
+✖ opt-in observes real acquisition immediately and preserves first time after same-night loss (65.1561ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   mutationSequence: 2,
+  -   phase: 'battle.hunter.gain',
+  -   round: 1
+  - }
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { round: 1, phase: 'battle.hunter.gain', mutationSequence: 2 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\chain-holdings.test.mjs:51:1
+✖ recorder is detached from game state and reset for the next game (34.7168ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(first(one))
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:59:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\chain-holdings.test.mjs:93:1
+✖ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (28.4117ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   mutationSequence: 2,
+  -   phase: 'battle.hunter.gain',
+  -   round: 1
+  - }
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:106:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { round: 1, phase: 'battle.hunter.gain', mutationSequence: 2 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\chain-holdings.test.mjs:110:1
+✖ same-night completion then loss uses real hunter gain and ghost loss (36.824ms)
+  TypeError: Cannot read properties of undefined (reading 'phase')
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:120:29)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+
+test at tests\chain-holdings.test.mjs:137:1
+✖ auction acquisition and poison transfer are observed before item hooks (13.9562ms)
+  TypeError: Cannot read properties of undefined (reading 'phase')
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:147:29)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+
+test at tests\chain-holdings.test.mjs:151:1
+✖ event gifts, transfers and forced curse use their real mutation entrances (40.3487ms)
+  AssertionError [ERR_ASSERTION]: plague
+  + actual - expected
+  
+  + undefined
+  - 'event.plague.gain'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:161:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'event.plague.gain',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\chain-holdings.test.mjs:165:1
+✖ hook transfer, pawn and wind observe each removal and receipt in order (19.2762ms)
+  AssertionError [ERR_ASSERTION]: wangchuan
+  + actual - expected
+  
+  + undefined
+  - {
+  -   mutationSequence: 1,
+  -   phase: 'hook.wangchuan.lose',
+  -   round: 1
+  - }
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:188:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { round: 1, phase: 'hook.wangchuan.lose', mutationSequence: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\chain-holdings.test.mjs:192:1
+✖ shrine reward, award, release and actual endgame stripping are observed (31.2451ms)
+  AssertionError [ERR_ASSERTION]: reward
+  + actual - expected
+  
+  + undefined
+  - 'shrine.reward'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:200:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'shrine.reward',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

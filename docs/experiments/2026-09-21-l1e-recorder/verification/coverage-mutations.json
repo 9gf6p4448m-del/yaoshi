@@ -1,0 +1,45 @@
+{
+  "target": "index.html",
+  "test": "tests/chain-holdings.test.mjs",
+  "baseline": {
+    "exitCode": 0,
+    "passed": 13
+  },
+  "coverage": {
+    "method": "V8 innermost executed source ranges; non-whitespace units in new recorder core functions",
+    "functions": [
+      {
+        "name": "observeBagMutation",
+        "coveredSourceUnits": 326,
+        "totalSourceUnits": 333,
+        "rate": 0.978978978978979
+      },
+      {
+        "name": "chainHoldingsSnapshot",
+        "coveredSourceUnits": 344,
+        "totalSourceUnits": 354,
+        "rate": 0.9717514124293786
+      }
+    ],
+    "coveredSourceUnits": 670,
+    "totalSourceUnits": 687,
+    "rate": 0.975254730713246
+  },
+  "mutants": [
+    {
+      "name": "night-end-only",
+      "exitCode": 1,
+      "failedTests": 8
+    },
+    {
+      "name": "seat-zero-only",
+      "exitCode": 1,
+      "failedTests": 4
+    },
+    {
+      "name": "omit-auction-win",
+      "exitCode": 1,
+      "failedTests": 1
+    }
+  ]
+}

@@ -963,7 +963,9 @@ const ABILITIES = {
        const tgt=highestLifeFoe(ctx.winner);
        if(!tgt) return;
       ctx.winner.bag.splice(ctx.winner.bag.indexOf(worst),1);
+      observeBagMutation(ctx.winner,"hook.wangchuan.lose");
       tgt.bag.push(worst);
+      observeBagMutation(tgt,"hook.wangchuan.gain");
       ctx.events.push({txt:`送王船啟航——「${worst.n}」被送進 ${tgt.name} 的袋子`});
     } }},
   bell:{id:"bell",name:"千里眼銅鈴",desc:"明夜預告顯示兩件拍品", traits:{preview:2}},
@@ -1093,6 +1095,7 @@ function pawnNow(p){
   const lock=CURSES.find(x=>x.n==="縛靈鎖");
   p.pawned=true;
   p.bag.push({...lock});
+  observeBagMutation(p,"pawn.enter");
   return true;
 }
 
@@ -1303,7 +1306,9 @@ const ROLES = {
       let best=null,units=-1;
       for(const x of choices){ const n=buildArmy([x]).teams.reduce((sum,t)=>sum+t.units.length,0); if(n>units){best=x;units=n;} }
       bag.splice(bag.indexOf(best),1);
+      observeBagMutation(ctx.l,"battle.hunter.lose");
       ctx.w.bag.push(best);
+      observeBagMutation(ctx.w,"battle.hunter.gain");
       ctx.extra.push(`${ctx.w.name} 的獵人擊敗強敵 ${ctx.l.name}，奪走「${best.n}」`);
     } },
     lines:{win:["獵物到手。","這一箭，穩了。"],lose:["「{item}」……被{who}搶先了。","{who}，「{item}」快了我一步。"], /* 「這次…算你命大」r1 1/6 讀成得標；「獵物……被{who}搶先了」r2 3/6 被對到同夜盯上的另一件；使用者同意開第 3 輪、句子帶拍品名（凍結 #8） */
@@ -1752,6 +1757,7 @@ const EVENTS = {
           const top=tied.length>1?tied[Math.floor(S.rng()*tied.length)]:tied[0];
           if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
           const it=S.deck.pop(); top.bag.push(it);
+          observeBagMutation(top,"event.plague.gain");
           ctx.events.push({txt:`🎁 投入最多的 ${top.name}（${mx}）獲瘟王賞賜「${it.n}」`});
         }
       }else{
@@ -1808,7 +1814,7 @@ const EVENTS = {
         ctx.events.push({txt:`👹 ${v.name} 以 ${mx} 壽命自保，厲鬼悻然離去`});
       }else{
         const loot=v.bag.filter(x=>!x.curse).sort((a,b)=>(b.p||0)-(a.p||0))[0];
-        if(loot){ v.bag.splice(v.bag.indexOf(loot),1); w.bag.push(loot); }
+        if(loot){ v.bag.splice(v.bag.indexOf(loot),1); observeBagMutation(v,"event.ghost.lose"); w.bag.push(loot); observeBagMutation(w,"event.ghost.gain"); }
         ctx.events.push({txt:`👹 ${w.name} 以 ${mx} 壽命擋煞救下 ${v.name}${loot?`，取走其「${loot.n}」作酬`:"（其袋中無寶可取）"}`});
       }
     }},
@@ -1830,6 +1836,7 @@ const EVENTS = {
       act.forEach(p=>{ if(p!==w) p.life-=CFG.ZONGZI_TOUCH; });
       w.life+=mn;
       w.bag.push({n:"王船煞",f:"curse",p:CFG.ZONGZI_PW,d:"送王船沾上的煞，局末自動送出海",curse:true,endStrip:true});
+      observeBagMutation(w,"event.zongzi.gain");
       ctx.events.push({txt:`🏮 ${w.name} 以最低要價 ${mn} 當選捧粽——得 ${mn} 壽命、沾「王船煞」${act.length>1?`；其餘投標者沾穢各 -${CFG.ZONGZI_TOUCH}`:""}`});
     }},
   guan:{id:"guan",name:"觀落陰",icon:"🪞",input:"num",hint:"競標天眼，看穿全場壽命與心願",
@@ -1872,11 +1879,12 @@ const EVENTS = {
         }else if(circ.length>=2){
           const gifts=circ.map(p=>{
             const it=p.bag.filter(x=>!x.curse).sort((a,b)=>(a.p||0)-(b.p||0))[0];
-            p.bag.splice(p.bag.indexOf(it),1); return it;
+            p.bag.splice(p.bag.indexOf(it),1); observeBagMutation(p,"event.wind.lose"); return it;
           });
           circ.forEach((p,i)=>{
             const gi=(i+circ.length-1)%circ.length;
             p.bag.push(gifts[gi]);
+            observeBagMutation(p,"event.wind.gain");
             ctx.events.push({txt:`🌀 ${label}：${circ[gi].name} 的「${gifts[gi].n}」吹到 ${p.name} 袋中`});
           });
         }
@@ -1906,6 +1914,7 @@ const EVENTS = {
       w.life+=prize;
       if(!S.deck.length) S.deck=shuffle([...POOL].map(x=>({...x})));
       const it=S.deck.pop(); w.bag.push(it);
+      observeBagMutation(w,"event.poe.gain");
       ctx.events.push({txt:`🥤 ${w.name} 聖杯奪彩——得 ${prize} 壽命＋「${it.n}」`});
     }},
 };
@@ -1984,6 +1993,7 @@ const NIGHTRULES = {
         /* 下手者＝無：不跑 onWinItem（不觸發紅衣婆婆記仇）、不產生 typeLeak 事件 */
         for(const it of items){
           tgt.bag.push(it);
+          observeBagMutation(tgt,"rule.unsoldCurse.gain");
           ctx.log.push(fallback
             ? `🕸 收祟夜：流標的「${it.n}」沒人接手，全場都出過手——硬塞給壽命最高的 ${tgt.name}`
             : `🕸 收祟夜：流標的「${it.n}」沒人接手，硬塞給袖手旁觀又壽命最高的 ${tgt.name}`);
@@ -2030,6 +2040,26 @@ function activeChains(p){
   if(!p || !p.bag) return [];
   const owned=new Set(p.bag.filter(it=>!it.curse && it.ab).map(it=>it.ab));
   return Object.values(CHAINS).filter(chain=>chain.requirements.every(ab=>owned.has(ab)));
+}
+/* 僅供 opt-in headless 量測；不附著於玩家、狀態、歷史或規則設定。 */
+let chainHoldingsRecorder=null;
+function observeBagMutation(p,phase){
+  const rec=chainHoldingsRecorder;
+  if(!rec || rec.state!==S || !S.players.includes(p)) return;
+  const mutationSequence=++rec.mutationCount;
+  for(const chain of activeChains(p)){
+    const first=rec.first[chain.id]||(rec.first[chain.id]={});
+    if(first[p.id]===undefined) first[p.id]={round:S.round,phase,mutationSequence};
+  }
+}
+function chainHoldingsSnapshot(rec){
+  const first={},holders={};
+  for(const chainId of Object.keys(rec.first)){
+    first[chainId]={};
+    for(const seatId of Object.keys(rec.first[chainId])) first[chainId][seatId]={...rec.first[chainId][seatId]};
+    holders[chainId]=Object.keys(first[chainId]).map(Number).sort((a,b)=>a-b);
+  }
+  return {first,holders,mutationCount:rec.mutationCount};
 }
 function chainsCompletedBy(p,item){
   if(!p || !item || item.curse || !item.ab) return [];
@@ -2912,7 +2942,7 @@ function settleEvent(ctx,log){
   S.players.forEach(p=>{ if(p.alive&&p.life<=0){ p.alive=false; p.life=0; log.push(`💀 ${p.name} 沒能撐過「${ctx.ev.name}」，消失在妖市裡`); } });
 }
 /* 王船煞等「局末自動移除」道具：三條迴圈的終局各呼叫一次 */
-function stripEndgameItems(){ S.players.forEach(p=>{ p.bag=p.bag.filter(x=>!x.endStrip); }); }
+function stripEndgameItems(){ S.players.forEach(p=>{ const before=p.bag.length; p.bag=p.bag.filter(x=>!x.endStrip); if(p.bag.length<before) observeBagMutation(p,"endgame.strip"); }); }
 function runEventPhaseHeadless(){
   const ev=eventForRound(S.round); if(!ev) return null;
   const ctx=eventCtx(ev);
@@ -3392,6 +3422,7 @@ function resolveAuction(){
           target=null; /* 未入袋：被塞方的 onWinItem 不觸發，得標方仍保留 */
         }else{
           target.bag.push(it);
+          observeBagMutation(target,"auction.poison");
           S.wishNight.poisonHit[winner.p.id]=true; /* 心願統計：毒標命中 */
           (S.wishNight.poisonTargets[winner.p.id]=S.wishNight.poisonTargets[winner.p.id]||[]).push(target.id); /* 禍水東引：塞給了誰 */
           outcome=`${winner.p.name} 毒標得手 → 塞進 ${target.name} 的袋子`;
@@ -3401,6 +3432,7 @@ function resolveAuction(){
         outcome=`${winner.p.name} 買下銷毀（自保）`;
       }else{
         winner.p.bag.push(it);
+        observeBagMutation(winner.p,"auction.win");
         (S.wishNight.wonFacs[winner.p.id]=S.wishNight.wonFacs[winner.p.id]||[]).push(it.f); /* 心願統計：入袋陣營 */
         if(it.p>=CFG.WISH_T2.bigfishP) S.wishNight.bigWin[winner.p.id]=true;      /* 一擲千金 */
         if(winner.amt<=CFG.WISH_T2.bargainAmt) S.wishNight.cheapWin[winner.p.id]=true; /* 撿漏 */
@@ -3512,7 +3544,7 @@ function shrineReward(p,h,top,fac){
   const back=(h<2*P/3)?Math.ceil(h/3):Math.ceil(h/2);
   if(h>=2*P/3){
     const small=POOL.filter(x=>x.f===fac&&x.p<=CFG.INC_GIFT_P);
-    if(small.length){ gift={...small[Math.floor(S.rng()*small.length)]}; p.bag.push(gift); }
+    if(small.length){ gift={...small[Math.floor(S.rng()*small.length)]}; p.bag.push(gift); observeBagMutation(p,"shrine.reward"); }
   }
   p.life+=back;
   if(S.shrineStat){ S.shrineStat.rewards++; if(gift) S.shrineStat.gifts++; }
@@ -3545,6 +3577,7 @@ function awardLegend(out,win,idx){
   const h=S.incPool[win.id]|0;
   sh.open=false; sh.takenBy=win.id; sh.round=S.round;
   win.bag.push({...LEGENDS[sh.i]});
+  observeBagMutation(win,"shrine.award");
   out.taken.push({pid:win.id,shrine:sh.i,h});
   S.incPool[win.id]=0;
   if(S.shrineStat) S.shrineStat.taken++;
@@ -3641,6 +3674,7 @@ function releaseLegend(p,x,log,why,refund){
   const k=p.bag.indexOf(x);
   if(k<0) return false;
   p.bag.splice(k,1);
+  observeBagMutation(p,"shrine.release");
   if(refund){ p.life+=CFG.INC_TITHE|0; if(S.shrineStat) S.shrineStat.tithe-=CFG.INC_TITHE|0; }
   if(log) log.push(`🕯️ ${p.name} 送「${x.n}」回天${why?`（${why}）`:""}——袋中不再有這一尊，那一龕也不會重開`);
   if(S.shrineStat){
@@ -7331,8 +7365,12 @@ const POLICIES={ greedy:policyGreedy, hoarder:policyHoarder, splitter:policySpli
   incenseAi:policyIncenseAi };
 /* 無頭跑一整局，供 runMany 統計聚合用。不重用/不修改 simulate()，避免任何動到既有等價基準的風險——
    完全靠 makeState/resolveAuction/resolveBattles/power 這些既有唯讀引擎函式組成，邏輯零重寫。 */
-function playPolicyGame(seed,policies,picks){
+function playPolicyGame(seed,policies,picks,options){
+  if(chainHoldingsRecorder) throw new Error('chain holdings recorder does not allow nested playPolicyGame');
   makeState("solo",seed,picks);
+  const recordChainHoldings=options?.recordChainHoldings===true;
+  if(recordChainHoldings) chainHoldingsRecorder={state:S,first:{},mutationCount:0};
+  try{
   const deathRound={}; S.players.forEach(p=>deathRound[p.id]=null);
   const factionWinCounts={}, factionOffered={};
   Object.keys(FAC).forEach(f=>{ factionWinCounts[f]=0; factionOffered[f]=0; });
@@ -7412,7 +7450,9 @@ function playPolicyGame(seed,policies,picks){
     lifeByRound, factionWinCounts, factionOffered,
     poisonBids, totalBids, unsoldItems, drawnItems,
     ruleFired, ruleStat, markStat,
+    ...(recordChainHoldings?{chainHoldings:chainHoldingsSnapshot(chainHoldingsRecorder)}:{}),
   };
+  }finally{ if(recordChainHoldings) chainHoldingsRecorder=null; }
 }
 /* runMany({seeds:[...] 或 n:N, policies:{playerId:policyFn}}) → 統計聚合，見 docs 交付需求。
    policies 只覆寫非 AI 座位（solo 模式僅 id0 是人類），AI 座位一律照舊走 aiBids。 */
