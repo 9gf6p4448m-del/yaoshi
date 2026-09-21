@@ -30,6 +30,7 @@ const hashFile=file=>sha256(fs.readFileSync(file));
 const ownFile=fileURLToPath(import.meta.url);
 const dependencies={load:path.join(HERE,'load.mjs'),balance:path.join(HERE,'l1-balance.mjs'),
   information:path.join(HERE,'l1-information.mjs')};
+const rawHashes=new WeakMap();
 const isSeat=n=>Number.isInteger(n)&&n>=0&&n<=3;
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const pct=x=>x===null?'null':`${(100*x).toFixed(2)}%`;
@@ -211,7 +212,10 @@ export function aggregate(artifacts,{requiredSeeds=FORMAL_SEEDS}={}){
   return {schema:'l1-formal-summary-v1',design:'L1e fixed eight-arm formal measurement',
     sourceSha256:basis.sourceSha256,toolSha256:basis.toolSha256,
     dependenciesSha256:basis.dependenciesSha256,gitHead:basis.gitHead,cfg:basis.cfg,
-    seeds:requiredSeeds,arms:ARMS,armEffectiveChains:Object.fromEntries(ARMS.map(arm=>[arm,byArm.get(arm).effectiveChains??null])),
+    seeds:requiredSeeds,arms:ARMS,
+    rawFiles:Object.fromEntries(ARMS.filter(arm=>rawHashes.has(byArm.get(arm)))
+      .map(arm=>[arm,rawHashes.get(byArm.get(arm))])),
+    armEffectiveChains:Object.fromEntries(ARMS.map(arm=>[arm,byArm.get(arm).effectiveChains??null])),
     sampleComplete,h1,h9,overall:{status:overallStatus,releaseEligible:false,
       sixOfFour:{status:'incomplete',reason:'Full cross-night reachable states and all legal policy choices are not enumerated.'},
       eyesH9:{status:'incomplete',reason:'Original scriptedBids/AI table does not consume eyes information.'}},
@@ -256,7 +260,11 @@ export function writeArm(artifact,dir){
 export function readArms(dir){
   return ARMS.map(arm=>{
     const file=path.join(dir,`${arm}.json.gz`);
-    return JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString('utf8'));
+    const compressed=fs.readFileSync(file),decoded=zlib.gunzipSync(compressed);
+    const artifact=JSON.parse(decoded.toString('utf8'));
+    rawHashes.set(artifact,{file:path.basename(file),compressedSha256:sha256(compressed),
+      decodedSha256:sha256(decoded)});
+    return artifact;
   });
 }
 
@@ -266,6 +274,9 @@ export function reportMarkdown(summary){
     `Sample complete (all eight arms, seeds 1..10000): ${summary.sampleComplete}`,'',
     `Source SHA256: ${summary.sourceSha256}`,`Tool SHA256: ${summary.toolSha256}`,
     `Dependency SHA256: ${JSON.stringify(summary.dependenciesSha256)}`,`Git HEAD: ${summary.gitHead}`,'',
+    ...(Object.keys(summary.rawFiles).length?[
+      '| Raw arm | Compressed SHA256 | Decoded SHA256 |','|---|---|---|',
+      ...ARMS.map(arm=>`| ${arm} | ${summary.rawFiles[arm]?.compressedSha256??'missing'} | ${summary.rawFiles[arm]?.decodedSha256??'missing'} |`),'']:[]),
     '| H1 chain | Seat 0 wins | Splitter wins | Difference | Gate [-8,+5] |',
     '|---|---:|---:|---:|---|'];
   for(const id of CHAIN_IDS){const h=summary.h1[id];
@@ -278,7 +289,7 @@ export function reportMarkdown(summary){
     'H9 counts each game once if any of four seats ever held the chain; the winner must belong to that holder set. Normal and zero denominators differ, so their conditional difference is not causal.',
     'H9 eyes is diagnostic because the original table does not consume eyes information. Full cross-night six-of-four remains incomplete.',
     'The runner stops on seat 0 death. Seeds 1..200 overlap the earlier pilot; this run is not a holdout.');
-  return lines.join('\n')+'\n';
+  return lines.map(line=>line.trimEnd()).join('\n')+'\n';
 }
 
 export function writeAggregate(summary,dir){
