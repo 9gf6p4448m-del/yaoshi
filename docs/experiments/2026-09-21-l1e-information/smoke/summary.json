@@ -1,0 +1,255 @@
+{
+  "design": "eyes-informed-v1 versus increment-blind",
+  "formalH1Status": "incomplete",
+  "formalH9Status": "incomplete",
+  "formalReason": "Information experiment with three fixed arms and a development sample; formal H1/H9 and cross-night dominance gates remain pending.",
+  "limitations": {
+    "runnerEndpoint": "playPolicyGame stops when seat 0 dies; no AI-only continuation",
+    "zeroEffectScope": "shared eyes CHAINS effects disabled for all seats",
+    "conditionalHolderDiffIsCausal": false
+  },
+  "sourceSha256": "55046ee5df05e4b55ff137708ae99fbc089e7659ef865e217f35ac7faa7602aa",
+  "toolSha256": "fa1aa2d986229ab3c53426ca2564b8c4825141eee064177fa43ddea36b20f0a5",
+  "gitHead": "67d0ec09fa1cb403045ce395eeabed20a4366263",
+  "cfg": {
+    "LIFE": 50,
+    "ROUNDS": 12,
+    "MARKET": 4,
+    "PAWN_KEEP": 8,
+    "CURSE_PROB": 0.65,
+    "SET_MIN": 2,
+    "DMG_BASE": 3,
+    "DMG_DIV": 5,
+    "DMG_MAX": 6,
+    "CONS_CAP_DIV": 6,
+    "BID_FEE": 1,
+    "MAX_BIDS": 2,
+    "CONS_LOSE_FRAC": 0.25,
+    "WIND_POWER": 3,
+    "AI_DESTROY_P": 0.5,
+    "AI_IDLE_P": 0,
+    "AI_THROTTLE": 0.3,
+    "NIGHT_REGEN": 5,
+    "MARK_ON": true,
+    "MARK_TAX": 0,
+    "MARK_SCARE": 3,
+    "MARK_CONTEST": 3,
+    "MARK_OWN": 2,
+    "MARK_BLUFF_P": 0.3,
+    "MARK_CRED_ON": true,
+    "MARK_CRED_WIN": 4,
+    "MARK_REBATE": 0,
+    "BLOOD_COST": 2,
+    "BLOOD_DRAIN": 4,
+    "BLOOD_FLOOR": 1,
+    "AI_BLOOD_T": 15,
+    "AI_BLOOD_K": 1,
+    "WISH_ON": true,
+    "WISH_REWARD": {
+      "yinqi": 4,
+      "east": 5,
+      "nowin": 4,
+      "yaming": 5,
+      "poison": 4,
+      "battle": 3,
+      "frugal": 4,
+      "multi": 5
+    },
+    "WISH_T": {
+      "eastBleed": 4,
+      "yamingLost": 2,
+      "frugalMax": 3,
+      "multiWin": 2
+    },
+    "WISH_AI_YINQI": 4,
+    "WISH_AI_BATTLE": 2,
+    "WISH_AI_YAMING_CAP": 2,
+    "WISH_REWARD2": {
+      "zuling": 4,
+      "xianghuo": 4,
+      "trinity": 5,
+      "bigfish": 4,
+      "allin": 4,
+      "bargain": 4,
+      "yamingwin": 4,
+      "solo": 3,
+      "rival": 4,
+      "crowd": 5,
+      "poisonrival": 5,
+      "bloodbath": 4,
+      "unscathed": 3,
+      "crush": 4,
+      "comeback": 5,
+      "exorcise": 3
+    },
+    "WISH_T2": {
+      "bigfishP": 6,
+      "bargainAmt": 2,
+      "crowdBids": 3,
+      "rivalBleed": 4,
+      "bloodbathBleed": 3,
+      "bloodbathN": 2,
+      "crushDmg": 5,
+      "soloCheapP": 3,
+      "crowdHotP": 5
+    },
+    "WISH_AI2": {
+      "fac": 4,
+      "trinity": 8,
+      "bigfish": 4,
+      "solo": 3,
+      "crowd": 3,
+      "unscathed": 2,
+      "crush": 3,
+      "comeback": 3
+    },
+    "EVENT_ON": true,
+    "EVENT_NIGHTS": [
+      4,
+      8,
+      11
+    ],
+    "EVENT_INPUT_CAP": 12,
+    "PLAGUE_NEED": 12,
+    "PLAGUE_FAIL": 6,
+    "SHRINE_WIN": 6,
+    "SHRINE_LOSE": 3,
+    "SHRINE_TIE": 1,
+    "GHOST_DMG": 10,
+    "ZONGZI_FAIL": 5,
+    "ZONGZI_TOUCH": 1,
+    "ZONGZI_PW": -6,
+    "GUAN_LOSE_DIV": 2,
+    "LOAN_AMT": 10,
+    "LOAN_REPAY": {
+      "1": 8,
+      "2": 11,
+      "3": 14,
+      "4": 17
+    },
+    "LOAN_NIGHTS": 5,
+    "WIND_IDLE": 1,
+    "POE_CAP": 10,
+    "POE_CUT": 0.8,
+    "RULE_ON": true,
+    "RULE_NIGHTS": [
+      3,
+      7
+    ],
+    "RULE_FORCE": null,
+    "LUOPO_FRAC": 1,
+    "PAPERWAR_ON": true,
+    "PW_MAX": 8,
+    "PW_MIN": 2,
+    "PW_AI_BASE": 2,
+    "PW_AI_SCALE": 2,
+    "PW_AI_LOGIT": 0.5,
+    "PW_RES_MODE": 1,
+    "PW_RES_CAP": 3,
+    "LEGEND_ON": true,
+    "SHRINE_NIGHTS": [
+      5,
+      8,
+      11
+    ],
+    "INC_MAX": 3,
+    "INC_TITHE": 2,
+    "TITHE_WARN": 2,
+    "INC_GIFT_P": 4,
+    "INC_AI": {
+      "minLifeFrac": 0.3,
+      "value": 12
+    },
+    "T": 650
+  },
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "arms": [
+    "informed-normal",
+    "increment-blind-normal",
+    "informed-zero"
+  ],
+  "summary": {
+    "informed-normal": {
+      "arm": "informed-normal",
+      "games": 20,
+      "wins": 7,
+      "winRate": 0.35,
+      "everHeldGames": 9,
+      "everHeldWinnerGames": 7,
+      "everHeldWinnerRate": 0.7777777777777778
+    },
+    "increment-blind-normal": {
+      "arm": "increment-blind-normal",
+      "games": 20,
+      "wins": 7,
+      "winRate": 0.35,
+      "everHeldGames": 9,
+      "everHeldWinnerGames": 7,
+      "everHeldWinnerRate": 0.7777777777777778
+    },
+    "informed-zero": {
+      "arm": "informed-zero",
+      "games": 20,
+      "wins": 7,
+      "winRate": 0.35,
+      "everHeldGames": 9,
+      "everHeldWinnerGames": 7,
+      "everHeldWinnerRate": 0.7777777777777778
+    }
+  },
+  "decisionSummary": {
+    "informed-normal": {
+      "calls": 190,
+      "extraPreviewAvailable": 23,
+      "revealAvailable": 19,
+      "informedVsBlindDiff": 10
+    },
+    "increment-blind-normal": {
+      "calls": 190,
+      "extraPreviewAvailable": 23,
+      "revealAvailable": 19,
+      "informedVsBlindDiff": 0
+    },
+    "informed-zero": {
+      "calls": 190,
+      "extraPreviewAvailable": 0,
+      "revealAvailable": 0,
+      "informedVsBlindDiff": 0
+    }
+  },
+  "paired": {
+    "normalMinusBlind": {
+      "pairs": 20,
+      "winDiffPp": 0
+    },
+    "normalMinusZero": {
+      "pairs": 20,
+      "winDiffPp": 0
+    }
+  },
+  "conditionalHolderRateDiffPp": {
+    "normalMinusBlind": 0,
+    "normalMinusZero": 0
+  }
+}

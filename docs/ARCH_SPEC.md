@@ -405,3 +405,12 @@ cred        {pid: number[]}  盯上信譽（2026-09-03，GAME_DESIGN §5.8 規�
 私有recording scope必須finally清理；觀測期間不允許nested playPolicyGame破壞外局state。pure activeChains、chainsCompletedBy、buildArmy等查詢保持零記錄副作用。將來新增真實bag寫入必須同步更新觀測接點、[盤點表](experiments/2026-09-21-l1e-recorder/mutation-map.md)與測試。
 
 本契約只讓未來H9具備全席曾持有資料，不是正式平衡放行。門檻與剩餘情報／窮舉工作依[正式量測規格](experiments/2026-09-21-l1e-protocol/protocol.md)。
+
+
+## 11. L1e 合法情報觀測（2026-09-21）
+
+`playPolicyGame(seed, policies, picks, {policyInformation:true})` 才傳 `pol(p, context)`，預設仍只傳p且不額外執行揭盅觀測。context白名單為round、合法preview切片、basePreviewCount、previousReveal；全部純資料深拷貝／凍結，沒有對手物件或原始標單引用。這不將可自行閉包讀G的任意JS策略變成沙箱，具名策略的純決策只消費顯式輸入。
+
+揭盅後、請神／對決前按該席onReveal guard及當時能力投影第二高；第一夜previousReveal=null，凍結後下一夜提供，不因晚取得追溯或失去能力抹除已知資料。不借UI PUBLIC_REVEAL持久狀態，局間記憶隔離。
+
+eyes的publicSecondBid flag是第二高資訊開關；效果歸零移除flag及連攜preview trait，保留bell等原有預告能力。blind只遮連攜預告增量並清第二高記憶；basePreviewCount由collectEffects排除CHAINS.eyes同一物件後取其他來源最大值、至少1。其餘規格及固定啟發式見[執行前契約](experiments/2026-09-21-l1e-information/acceptance.md)。本API與曾持有記錄器可同時開啟，不代表正式H9或六之四完成。

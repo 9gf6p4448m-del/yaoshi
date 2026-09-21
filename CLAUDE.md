@@ -1,5 +1,7 @@
 # 妖市：Claude Code 專案入口
 
+**2026-09-21 L1e 情報續接**：[千眼情報策略卷](docs/experiments/2026-09-21-l1e-information/README.md)已接合法context、具名策略與increment-blind／zero；固定60局實際有10次情報出價差，但非正式平衡。新測試10+9通過、既有46通過、trace不變；策略漏初始RED commit的流程缺口如實保留。下一步正式策略池／各桌接線與完整六之四建模，A3六局仍暫緩，候選未發布。
+
 **2026-09-21 L1e 記錄器續接**：[曾持有記錄器](docs/experiments/2026-09-21-l1e-recorder/README.md)已實作 opt-in headless 取得歷史，19個真實bag接點、私有scope與首次成套snapshot；預設玩法／回傳形狀不變。下一步千眼合法情報策略與正式runner接線，仍未跑正式萬局或完成六之四，A3六局暫緩。候選仍v0.57.37，未發布。
 
 **2026-09-21 L1e 口徑續接**：[正式口徑與全席診斷](docs/experiments/2026-09-21-l1e-protocol/README.md)已完成。原 H9 是全席曾持有＋獨立預設桌，舊 raw 只有 endpoint，不能直接升格。新增診斷8/8測試通過，產品未改；下一個有界工程是曾持有 recorder（含同夜成套後失去、玩法 trace 不變），再補千眼情報策略。原六之四／正式平衡未過，A3 六局仍暫緩。
