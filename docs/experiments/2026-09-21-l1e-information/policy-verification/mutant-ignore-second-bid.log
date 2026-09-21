@@ -22,14 +22,14 @@ test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-second-
 ✖ highest noncurse market item wins tie by index, and a curse cannot be target (2.5312ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       2,
   +   2,
   -   4,
       0
     ]
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-efU03S/mutant-ignore-second-bid/l1-information.test.mjs:23:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -47,14 +47,14 @@ test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-second-
 ✖ largest legal second bid changes the next bid, bounded to base plus two and cap (1.1774ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       2,
   +   2,
   -   4,
       0
     ]
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-efU03S/mutant-ignore-second-bid/l1-information.test.mjs:29:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -73,9 +73,9 @@ test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-second-
 test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-second-bid\l1-information.test.mjs:66:1
 ✖ policy adapter still consumes information when recipe is already complete, without private reads (23.2325ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert.ok(a[1].amt>b[1].amt)
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-efU03S/mutant-ignore-second-bid/l1-information.test.mjs:79:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

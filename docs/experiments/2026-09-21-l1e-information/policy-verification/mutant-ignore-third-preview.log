@@ -22,14 +22,14 @@ test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-third-p
 ✖ third legal preview reserves two when its value exceeds tonight best (1.1385ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       2,
       2,
   +   1
   -   0
     ]
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-efU03S/mutant-ignore-third-preview/l1-information.test.mjs:37:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -49,14 +49,14 @@ test at ..\..\..\AppData\Local\Temp\l1e-information-efU03S\mutant-ignore-third-p
 ✖ blind adapter exposes only base preview and removes reveal, preserving original base count (0.5556ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       2,
       2,
   +   1
   -   0
     ]
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-efU03S/mutant-ignore-third-preview/l1-information.test.mjs:61:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

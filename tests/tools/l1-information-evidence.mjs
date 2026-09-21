@@ -11,6 +11,7 @@ const testFile=path.join(ROOT,'tests/l1-information.test.mjs');
 const output=path.join(ROOT,'docs/experiments/2026-09-21-l1e-information/policy-verification');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'l1e-information-'));
 fs.mkdirSync(output,{recursive:true});
+const cleanLog=log=>log.replace(/[ \t]+(?=\r?$)/gm,'');
 
 function run(file,env={}){
   return spawnSync(process.execPath,['--test',file],{cwd:ROOT,encoding:'utf8',env:{...process.env,...env}});
@@ -33,7 +34,7 @@ function temporarySuite(name,source){
   const spec=path.join(dir,'l1-information.test.mjs');
   fs.writeFileSync(spec,test);
   const result=run(spec);
-  fs.writeFileSync(path.join(output,`${name}.log`),result.stdout+result.stderr);
+  fs.writeFileSync(path.join(output,`${name}.log`),cleanLog(result.stdout+result.stderr));
   return result;
 }
 
@@ -75,7 +76,7 @@ function coveredSourceUnits(entry,names){
 try{
   const coverageDir=path.join(temp,'coverage');
   const baseline=run(testFile,{NODE_V8_COVERAGE:coverageDir});
-  fs.writeFileSync(path.join(output,'test.log'),baseline.stdout+baseline.stderr);
+  fs.writeFileSync(path.join(output,'test.log'),cleanLog(baseline.stdout+baseline.stderr));
   if(baseline.status!==0) throw Error('baseline tests failed');
   const entries=fs.readdirSync(coverageDir).filter(file=>file.endsWith('.json'))
     .flatMap(file=>JSON.parse(fs.readFileSync(path.join(coverageDir,file),'utf8')).result);
