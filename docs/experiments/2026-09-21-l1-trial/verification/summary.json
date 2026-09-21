@@ -1,0 +1,72 @@
+{
+  "base": "de471a2",
+  "head": "e105a181e40e7aa35522b5e0b22086eaf1ac3690",
+  "affectedTests": {
+    "exit": 0,
+    "passes": 15
+  },
+  "emptyChainsTrace": {
+    "seeds": "1..20",
+    "oldBytes": 495019,
+    "newBytes": 495019,
+    "exactEqual": true
+  },
+  "mutations": [
+    {
+      "name": "disable-poison-interception",
+      "exit": 1,
+      "failedTests": [
+        "毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中",
+        "同夜先補材料後毒標即擋；毒標先到不能追溯",
+        "阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標",
+        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+      ],
+      "caught": true
+    },
+    {
+      "name": "count-blocked-poison-as-hit",
+      "exit": 1,
+      "failedTests": [
+        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+      ],
+      "caught": true
+    }
+  ],
+  "coverage": {
+    "functions": [
+      {
+        "function": "activeChains",
+        "coveredBytes": 204,
+        "totalBytes": 204,
+        "rate": 1
+      },
+      {
+        "function": "chainsCompletedBy",
+        "coveredBytes": 215,
+        "totalBytes": 219,
+        "rate": 0.9817
+      },
+      {
+        "function": "canViewPrivateBag",
+        "coveredBytes": 168,
+        "totalBytes": 168,
+        "rate": 1
+      },
+      {
+        "function": "eyesSecondBid",
+        "coveredBytes": 234,
+        "totalBytes": 234,
+        "rate": 1
+      },
+      {
+        "function": "buildArmy",
+        "coveredBytes": 1310,
+        "totalBytes": 1347,
+        "rate": 0.9725
+      }
+    ],
+    "coveredBytes": 2131,
+    "totalBytes": 2172,
+    "rate": 0.9811
+  }
+}
