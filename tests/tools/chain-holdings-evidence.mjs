@@ -19,6 +19,7 @@ function run(file,env={}){
   const r=spawnSync(process.execPath,['--test',testFile],{cwd:root,env:{...process.env,...env,CHAIN_HOLDINGS_TARGET:file},encoding:'utf8',maxBuffer:8*1024*1024});
   return {exitCode:r.status,output:(r.stdout||'')+(r.stderr||'')};
 }
+const cleanLog=output=>output.replace(/[ \t]+(?=\r?$)/gm,'');
 function replaceOnce(from,to){
   const start=html.indexOf(from);
   if(start<0||html.indexOf(from,start+from.length)>=0) throw Error('Mutation anchor must occur exactly once: '+from);
@@ -43,7 +44,7 @@ function sourceCoverage(entry,name,start,end,delta){
 try{
   const coverageDir=path.join(tmp,'coverage');fs.mkdirSync(coverageDir);
   const baseline=run(target,{NODE_V8_COVERAGE:coverageDir});
-  fs.writeFileSync(path.join(outDir,'contract-test.log'),baseline.output);
+  fs.writeFileSync(path.join(outDir,'contract-test.log'),cleanLog(baseline.output));
   if(baseline.exitCode!==0) throw Error('Contract suite failed');
   const mutations=[
     {name:'night-end-only',from:'if(!rec || rec.state!==S || !S.players.includes(p)) return;',to:'if(!rec || rec.state!==S || !S.players.includes(p) || phase!=="endgame.strip") return;'},
@@ -55,7 +56,7 @@ try{
     const file=path.join(tmp,mutation.name+'.html');
     fs.writeFileSync(file,replaceOnce(mutation.from,mutation.to));
     const r=run(file);
-    fs.writeFileSync(path.join(outDir,mutation.name+'.log'),r.output);
+    fs.writeFileSync(path.join(outDir,mutation.name+'.log'),cleanLog(r.output));
     const failed=Number(r.output.match(/ℹ fail (\d+)/)?.[1]||0);
     if(r.exitCode===0||failed<1) throw Error('Mutant was not rejected: '+mutation.name);
     mutants.push({name:mutation.name,exitCode:r.exitCode,failedTests:failed});

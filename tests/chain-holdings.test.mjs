@@ -214,8 +214,8 @@ test('shrine reward, award, release and actual endgame stripping are observed',(
   assert.equal(first(stripped,'eyes',0)?.phase,'endgame.strip');
 });
 
-test('off/on equivalence also holds with default event, rule, wish and shrine flags',()=>{
-  for(const seed of [1,2,3]){
+test('off/on seeds 1..20 also match with default event, rule, wish and shrine flags',()=>{
+  for(let seed=1;seed<=20;seed++){
     const off=loadGame(TARGET),on=loadGame(TARGET);
     const a=off.playPolicyGame(seed,{});
     const b=on.playPolicyGame(seed,{},undefined,{recordChainHoldings:true});

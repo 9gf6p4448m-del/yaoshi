@@ -1,16 +1,16 @@
-✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (63.6806ms)
-✔ off/on game results are byte-identical after removing record field and RNG is unchanged (1341.4947ms)
-✔ recorder is detached from game state and reset for the next game (38.6303ms)
-✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (25.7058ms)
-✔ previews and lookalike players cannot create holdings (34.6491ms)
-✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (23.2584ms)
-✔ same-night completion then loss uses real hunter gain and ghost loss (24.1905ms)
-✔ real player identity guard rejects same-id preview mutated through a real hook (97.1724ms)
-✖ auction acquisition and poison transfer are observed before item hooks (20.796ms)
-✔ event gifts, transfers and forced curse use their real mutation entrances (141.2676ms)
-✔ hook transfer, pawn and wind observe each removal and receipt in order (102.4657ms)
-✔ shrine reward, award, release and actual endgame stripping are observed (104.2897ms)
-✔ off/on equivalence also holds with default event, rule, wish and shrine flags (156.9329ms)
+✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (70.951ms)
+✔ off/on game results are byte-identical after removing record field and RNG is unchanged (1425.4131ms)
+✔ recorder is detached from game state and reset for the next game (45.3656ms)
+✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (21.797ms)
+✔ previews and lookalike players cannot create holdings (36.073ms)
+✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (23.9988ms)
+✔ same-night completion then loss uses real hunter gain and ghost loss (27.2567ms)
+✔ real player identity guard rejects same-id preview mutated through a real hook (135.1565ms)
+✖ auction acquisition and poison transfer are observed before item hooks (13.2727ms)
+✔ event gifts, transfers and forced curse use their real mutation entrances (137.9532ms)
+✔ hook transfer, pawn and wind observe each removal and receipt in order (99.7886ms)
+✔ shrine reward, award, release and actual endgame stripping are observed (101.5923ms)
+✔ off/on seeds 1..20 also match with default event, rule, wish and shrine flags (1655.9876ms)
 ℹ tests 13
 ℹ suites 0
 ℹ pass 12
@@ -18,12 +18,12 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 3781.633
+ℹ duration_ms 5393.2422
 
 ✖ failing tests:
 
 test at tests\chain-holdings.test.mjs:137:1
-✖ auction acquisition and poison transfer are observed before item hooks (20.796ms)
+✖ auction acquisition and poison transfer are observed before item hooks (13.2727ms)
   TypeError: Cannot read properties of undefined (reading 'phase')
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chain-holdings.test.mjs:147:29)
       at Test.runInAsyncScope (node:async_hooks:227:14)

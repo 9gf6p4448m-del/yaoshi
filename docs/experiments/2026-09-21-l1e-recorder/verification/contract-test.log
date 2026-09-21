@@ -1,16 +1,16 @@
-✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (83.7325ms)
-✔ off/on game results are byte-identical after removing record field and RNG is unchanged (2154.4365ms)
-✔ recorder is detached from game state and reset for the next game (79.5524ms)
-✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (41.6797ms)
-✔ previews and lookalike players cannot create holdings (58.6625ms)
-✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (38.8162ms)
-✔ same-night completion then loss uses real hunter gain and ghost loss (36.8848ms)
-✔ real player identity guard rejects same-id preview mutated through a real hook (209.4418ms)
-✔ auction acquisition and poison transfer are observed before item hooks (15.3236ms)
-✔ event gifts, transfers and forced curse use their real mutation entrances (211.1028ms)
-✔ hook transfer, pawn and wind observe each removal and receipt in order (278.5068ms)
-✔ shrine reward, award, release and actual endgame stripping are observed (247.8679ms)
-✔ off/on equivalence also holds with default event, rule, wish and shrine flags (351.7281ms)
+✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (96.709ms)
+✔ off/on game results are byte-identical after removing record field and RNG is unchanged (2183.6552ms)
+✔ recorder is detached from game state and reset for the next game (83.2651ms)
+✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (42.416ms)
+✔ previews and lookalike players cannot create holdings (63.6297ms)
+✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (38.5022ms)
+✔ same-night completion then loss uses real hunter gain and ghost loss (42.7596ms)
+✔ real player identity guard rejects same-id preview mutated through a real hook (186.8089ms)
+✔ auction acquisition and poison transfer are observed before item hooks (18.8176ms)
+✔ event gifts, transfers and forced curse use their real mutation entrances (291.9381ms)
+✔ hook transfer, pawn and wind observe each removal and receipt in order (292.0356ms)
+✔ shrine reward, award, release and actual endgame stripping are observed (282.8224ms)
+✔ off/on seeds 1..20 also match with default event, rule, wish and shrine flags (3204.624ms)
 ℹ tests 13
 ℹ suites 0
 ℹ pass 13
@@ -18,4 +18,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 5410.057
+ℹ duration_ms 8406.3768
