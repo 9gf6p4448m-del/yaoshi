@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import {auditRows, auditFile, parseRaw, reportMarkdown} from './tools/l1-holder-audit.mjs';
+import {auditRows, auditFile, assertOutputOutsidePilot, parseRaw, reportMarkdown} from './tools/l1-holder-audit.mjs';
 
 const arms=['splitter','water-normal','water-zero','eyes-normal','eyes-zero','twinTiger-normal','twinTiger-zero'];
 const row=(arm,seed,bags=[[],[],[],[]],winnerId=0)=>({arm,seed,winnerId,endBagChainIds:bags});
@@ -96,4 +96,13 @@ test('refuses an output directory inside the original pilot',t=>{
   fs.writeFileSync(input,fixture().map(r=>JSON.stringify(r)).join('\n')+'\n');
   const pilot=path.resolve('docs/experiments/2026-09-21-l1e-measurement/pilot');
   assert.throws(()=>auditFile(input,path.join(pilot,'holder-audit')),/overwrite pilot/);
+});
+
+test('refuses a junction that resolves into the original pilot',t=>{
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'l1-holder-link-'));
+  t.after(()=>fs.rmSync(tmp,{recursive:true,force:true}));
+  const pilot=path.resolve('docs/experiments/2026-09-21-l1e-measurement/pilot');
+  const link=path.join(tmp,'pilot-link');
+  fs.symlinkSync(pilot,link,'junction');
+  assert.throws(()=>assertOutputOutsidePilot(path.join(link,'holder-audit')),/overwrite pilot/);
 });
