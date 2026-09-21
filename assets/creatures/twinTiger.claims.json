@@ -1,0 +1,15 @@
+{
+  "name": "雙虎滅煞 twinTiger — L1 試玩候選 v0.1",
+  "_role": "建模前凍結。新虛構融合獸，借用虎爺實物參照的造型語彙，並非宣稱新真實神祇或考據。黑金為雙虎原案獲准的香火主色例外；紅綬帶保留香火線索。基底 tiger_c 的骨架及 idle/move/attack 動畫沿用，不覆蓋原虎。",
+  "claims": [
+    {"type":"part_exists","part":"fur_body","stage":"MID","label":"長身四足虎本體"},
+    {"type":"part_exists","part":"stripe","stage":"MID","label":"金色捲雲虎紋"},
+    {"type":"part_exists","part":"shoulder_gold","stage":"MID","label":"寬肩金護片"},
+    {"type":"part_exists","part":"sash","stage":"MID","label":"香火紅綬帶"},
+    {"type":"part_exists","part":"fang","stage":"MID","label":"深臉上的白獠牙"},
+    {"type":"part_signature","part":"shoulder_gold","view":"side","min_share":0.012,"or_min_span":0.08,"stage":"MID","label":"肩護片在側視必須讀得出"},
+    {"type":"rig_skinned","stage":"HIGH","label":"沿用蒙皮骨架"},
+    {"type":"anim_named","names":["idle","move","attack"],"stage":"HIGH","label":"沿用三支動畫"},
+    {"type":"tri_budget","min":1500,"max":8000,"stage":"LOW","label":"L1 新模型三角形預算"}
+  ]
+}

@@ -1,0 +1,2583 @@
+{
+  "name": "twinTiger_l1",
+  "_variant": "雙虎滅煞 L1 試玩候選：虛構融合獸，非新真實神祇考據。黑金為已批准色例外，紅綬帶保留香火線索。",
+  "_paw_note": "buildPaw 的預設 offset 會把腳掌吸到地面（sole on ground）；抬起來的掌必須自己給 offset，否則掌會掉到 y=0.045 跟小腿脫節（part_attachment BLOCK 0.163）。本回修版四掌全部落地蹲踞，沒有抬起的掌。",
+  "_brief": "長身低伏的四足黑虎將；黑漆底、金色捲雲虎紋、寬肩金護片、深臉白牙、紅綬帶。威嚴鎮煞，不可圓潤可愛。",
+  "_exaggeration_vs_anchor": "wolf anchor W/H 1.41 -> ~2.0 (crouched, long and very low); leg_fraction 0.35 -> ~0.20 (folded, belly near the ground); the fur-trim tufts + fire ridge + tail flames push the silhouette's turn_count up so it never reads as a smooth toy.",
+  "_glow_materials": "eye / mouth_glow / glow_tail / glow_mane / glow_seal —— 材質名是給 three.js 接 emissive 用的（js/creature-figures.js:51 的 /^eye|^mouth_glow|^glow_/）。硬化批 2B 把額心金印與胸前金牌的材質從 seal 改名 glow_seal，戲台端的「神像感」（金印發光＋香煙＋金粉）才有掛點。",
+  "_ref_map": "ref-tiger 五條特徵的實體對應：①蹲踞低伏＝Hips y 0.400／leg_fraction 0.186；②橘金布罩＋黑捲雲紋＝fur_body #d98a24 ＋ 6 對 stripe 水滴板；③布罩邊緣白毛邊＝硬化批 2B 改法：body sides 48／head sides 36，暗銅金滾邊 #6e4f10（82.5–90）→ 香灰白帶 #f6f1e6（97.5–120）→ 腹黑 #1c1a17（127.5–180），三段各佔滿整面、交界是硬邊；原本的 5 對 trim 錐叢已移除（六位讀者裡四位讀成白爪／刺）；④深色臉＋咧嘴白獠牙＝fur_head #2e2b2a ＋ 2 對 fang；⑤頸繫紅綬帶＝sash #c22a1e 5 條。",
+  "palette": {
+    "fur_body": {
+      "color": "#171715",
+      "rough": 0.6
+    },
+    "fur_head": {
+      "color": "#1b1918",
+      "rough": 0.9
+    },
+    "fur_jaw": {
+      "color": "#29231e",
+      "rough": 0.85
+    },
+    "fur_tail": {
+      "color": "#1c1a18",
+      "rough": 0.92
+    },
+    "fur_leg": {
+      "color": "#24211d",
+      "rough": 0.92
+    },
+    "fur_paw": {
+      "color": "#1b1917",
+      "rough": 0.9
+    },
+    "trim": {
+      "color": "#ece4d4",
+      "rough": 0.95
+    },
+    "sash": {
+      "color": "#c22a1e",
+      "rough": 0.7
+    },
+    "fang": {
+      "color": "#f4eddc",
+      "rough": 0.3
+    },
+    "nose": {
+      "color": "#171515",
+      "rough": 0.55
+    },
+    "ear": {
+      "color": "#2b2827",
+      "rough": 0.92
+    },
+    "stripe": {
+      "color": "#c99b35",
+      "rough": 0.9
+    },
+    "eye": {
+      "color": "#ffe27a",
+      "rough": 0.12
+    },
+    "mouth_glow": {
+      "color": "#bb7223",
+      "rough": 0.2
+    },
+    "glow_tail": {
+      "color": "#d2aa48",
+      "rough": 0.2
+    },
+    "glow_mane": {
+      "color": "#b58b31",
+      "rough": 0.2
+    },
+    "glow_seal": {
+      "color": "#d6b657",
+      "rough": 0.25
+    },
+    "shoulder_gold": {
+      "color": "#cba748",
+      "rough": 0.38
+    }
+  },
+  "shading": {
+    "gradient": {
+      "top": 0.3,
+      "bottom": -0.68
+    },
+    "noise": {
+      "size": 0.018,
+      "amount": 0.12
+    }
+  },
+  "smooth_angle": 26,
+  "joints": {
+    "Hips": [
+      0,
+      0.4,
+      -0.34
+    ],
+    "Rump": {
+      "from": "Hips",
+      "up": -0.01,
+      "fwd": -0.23
+    },
+    "Spine": {
+      "from": "Hips",
+      "up": 0,
+      "fwd": 0.34
+    },
+    "Chest": {
+      "from": "Spine",
+      "up": 0.03,
+      "fwd": 0.26
+    },
+    "NeckB": {
+      "from": "Chest",
+      "up": 0.01,
+      "fwd": 0.17
+    },
+    "Neck2": {
+      "from": "NeckB",
+      "up": -0.02,
+      "fwd": 0.13
+    },
+    "HeadRoot": {
+      "from": "Neck2",
+      "up": -0.012,
+      "fwd": -0.118
+    },
+    "Skull": {
+      "from": "HeadRoot",
+      "up": 0.022,
+      "fwd": 0.178
+    },
+    "Brow": {
+      "from": "Skull",
+      "up": 0.005,
+      "fwd": 0.115
+    },
+    "Muzzle": {
+      "from": "Brow",
+      "up": -0.03,
+      "fwd": 0.08
+    },
+    "Nose": {
+      "from": "Muzzle",
+      "up": -0.03,
+      "fwd": 0.068
+    },
+    "JawRoot": {
+      "from": "Skull",
+      "up": -0.09,
+      "fwd": 0.05
+    },
+    "Jaw1": {
+      "from": "JawRoot",
+      "up": -0.205,
+      "fwd": 0.115
+    },
+    "JawTip": {
+      "from": "Jaw1",
+      "up": -0.02,
+      "fwd": 0.088
+    },
+    "TailRoot": {
+      "from": "Hips",
+      "up": 0.05,
+      "fwd": -0.15
+    },
+    "Tail1": {
+      "from": "TailRoot",
+      "side": 0.07,
+      "up": 0.05,
+      "fwd": -0.18
+    },
+    "Tail2": {
+      "from": "Tail1",
+      "side": 0.2,
+      "up": 0.1,
+      "fwd": -0.12
+    },
+    "TailTip": {
+      "from": "Tail2",
+      "side": 0.14,
+      "up": 0.15,
+      "fwd": 0.03
+    },
+    "LFrontRoot": {
+      "from": "Chest",
+      "side": 0.15,
+      "up": -0.02,
+      "fwd": 0
+    },
+    "LFrontElbow": {
+      "from": "LFrontRoot",
+      "side": 0.062,
+      "up": -0.165,
+      "fwd": 0.105
+    },
+    "LFrontWrist": {
+      "from": "LFrontElbow",
+      "side": 0.014,
+      "up": -0.17,
+      "fwd": -0.015
+    },
+    "LFrontToe": {
+      "from": "LFrontWrist",
+      "side": 0.004,
+      "fwd": 0.125,
+      "ground": 0.04
+    },
+    "RFrontRoot": {
+      "from": "Chest",
+      "side": -0.15,
+      "up": -0.02,
+      "fwd": 0
+    },
+    "RFrontElbow": {
+      "from": "RFrontRoot",
+      "side": -0.062,
+      "up": -0.165,
+      "fwd": 0.105
+    },
+    "RFrontWrist": {
+      "from": "RFrontElbow",
+      "side": -0.014,
+      "up": -0.17,
+      "fwd": -0.015
+    },
+    "RFrontToe": {
+      "from": "RFrontWrist",
+      "side": -0.004,
+      "fwd": 0.125,
+      "ground": 0.04
+    },
+    "LBackRoot": {
+      "from": "Hips",
+      "side": 0.125,
+      "up": 0.01,
+      "fwd": 0.02
+    },
+    "LBackKnee": {
+      "from": "LBackRoot",
+      "side": 0.058,
+      "up": -0.115,
+      "fwd": 0.132
+    },
+    "LBackHock": {
+      "from": "LBackKnee",
+      "side": 0.012,
+      "up": -0.176,
+      "fwd": -0.158
+    },
+    "LBackToe": {
+      "from": "LBackHock",
+      "side": 0.004,
+      "fwd": 0.148,
+      "ground": 0.04
+    }
+  },
+  "chains": {
+    "body": [
+      "Rump",
+      "Hips",
+      "Spine",
+      "Chest",
+      "NeckB",
+      "Neck2"
+    ],
+    "head": [
+      "HeadRoot",
+      "Skull",
+      "Brow",
+      "Muzzle",
+      "Nose"
+    ],
+    "jaw": [
+      "JawRoot",
+      "Jaw1",
+      "JawTip"
+    ],
+    "tail": [
+      "TailRoot",
+      "Tail1",
+      "Tail2",
+      "TailTip"
+    ],
+    "LFront": [
+      "LFrontRoot",
+      "LFrontElbow",
+      "LFrontWrist",
+      "LFrontToe"
+    ],
+    "RFront": [
+      "RFrontRoot",
+      "RFrontElbow",
+      "RFrontWrist",
+      "RFrontToe"
+    ],
+    "LBack": [
+      "LBackRoot",
+      "LBackKnee",
+      "LBackHock",
+      "LBackToe"
+    ]
+  },
+  "attach": {
+    "head": "Neck2",
+    "jaw": "Skull",
+    "tail": "Hips",
+    "LFront": "Chest",
+    "RFront": "Chest",
+    "LBack": "Hips"
+  },
+  "mirror": [
+    "LBack"
+  ],
+  "touch": [
+    [
+      "body",
+      "head"
+    ],
+    [
+      "head",
+      "jaw"
+    ],
+    [
+      "body",
+      "tail"
+    ]
+  ],
+  "volumes": [
+    {
+      "chain": "body",
+      "material": "fur_body",
+      "frame": "up",
+      "sides": 48,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.15,
+          0.146
+        ],
+        [
+          0.17,
+          0.276,
+          0.244,
+          {
+            "exp": 3.2,
+            "bias": -0.05,
+            "sharp": true
+          }
+        ],
+        [
+          0.42,
+          0.258,
+          0.21,
+          {
+            "exp": 3.2,
+            "bias": -0.1,
+            "sharp": true
+          }
+        ],
+        [
+          0.64,
+          0.288,
+          0.248,
+          {
+            "exp": 3.2,
+            "bias": -0.12
+          }
+        ],
+        [
+          0.8,
+          0.302,
+          0.286,
+          {
+            "exp": 3.2,
+            "bias": -0.06,
+            "sharp": true
+          }
+        ],
+        [
+          0.93,
+          0.206,
+          0.196
+        ],
+        [
+          1,
+          0.19,
+          0.186
+        ]
+      ],
+      "caps": [
+        "dome",
+        "dome"
+      ],
+      "ring_step": 0.06,
+      "colors": {
+        "arcs": [
+          {
+            "from": 0,
+            "to": 20,
+            "color": "#2a261d"
+          },
+          {
+            "from": 82.5,
+            "to": 90,
+            "color": "#8d6a2c"
+          },
+          {
+            "from": 97.5,
+            "to": 120,
+            "color": "#c7b89a"
+          },
+          {
+            "from": 127.5,
+            "to": 180,
+            "color": "#151412"
+          }
+        ]
+      },
+      "faceted": true
+    },
+    {
+      "chain": "head",
+      "material": "fur_head",
+      "frame": "up",
+      "sides": 36,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.168,
+          0.17
+        ],
+        [
+          0.24,
+          0.296,
+          0.262,
+          {
+            "exp": 3.4,
+            "sharp": true
+          }
+        ],
+        [
+          0.56,
+          0.278,
+          0.226,
+          {
+            "exp": 3.4,
+            "sharp": true
+          }
+        ],
+        [
+          0.68,
+          0.148,
+          0.132,
+          {
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.116,
+          0.104
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.085,
+      "colors": {
+        "arcs": [
+          {
+            "from": 0,
+            "to": 30,
+            "color": "#9c7420"
+          },
+          {
+            "from": 90,
+            "to": 100,
+            "color": "#6e4f10"
+          },
+          {
+            "from": 110,
+            "to": 130,
+            "color": "#f6f1e6"
+          },
+          {
+            "from": 140,
+            "to": 180,
+            "color": "#1c1a17"
+          }
+        ]
+      },
+      "faceted": true
+    },
+    {
+      "chain": "jaw",
+      "material": "fur_jaw",
+      "frame": "up",
+      "sides": 10,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.15,
+          0.092
+        ],
+        [
+          0.5,
+          0.142,
+          0.078,
+          {
+            "exp": 2.6,
+            "sharp": true
+          }
+        ],
+        [
+          1,
+          0.094,
+          0.046
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.055,
+      "colors": {
+        "arcs": [
+          {
+            "from": 0,
+            "to": 40,
+            "color": "#ff5a08"
+          }
+        ]
+      },
+      "faceted": true
+    },
+    {
+      "chain": "tail",
+      "material": "fur_tail",
+      "sides": 10,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.098,
+          0.098
+        ],
+        [
+          0.4,
+          0.108,
+          0.108
+        ],
+        [
+          0.8,
+          0.08,
+          0.08
+        ],
+        [
+          1,
+          0.05,
+          0.05
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.06,
+      "faceted": true
+    },
+    {
+      "chain": "LFront",
+      "material": "fur_leg",
+      "sides": 10,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.145,
+          0.155
+        ],
+        [
+          0.45,
+          0.118,
+          0.122
+        ],
+        [
+          0.85,
+          0.098,
+          0.098
+        ],
+        [
+          1,
+          0.092,
+          0.058
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.095,
+      "faceted": true
+    },
+    {
+      "chain": "RFront",
+      "material": "fur_leg",
+      "sides": 10,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.145,
+          0.155
+        ],
+        [
+          0.45,
+          0.118,
+          0.122
+        ],
+        [
+          0.85,
+          0.098,
+          0.098
+        ],
+        [
+          1,
+          0.092,
+          0.058
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.095,
+      "faceted": true
+    },
+    {
+      "chain": "LBack",
+      "material": "fur_leg",
+      "sides": 10,
+      "smooth_angle": 26,
+      "profile": [
+        [
+          0,
+          0.14,
+          0.162
+        ],
+        [
+          0.28,
+          0.132,
+          0.15,
+          {
+            "exp": 2.4,
+            "sharp": true
+          }
+        ],
+        [
+          0.55,
+          0.108,
+          0.118
+        ],
+        [
+          0.85,
+          0.092,
+          0.092
+        ],
+        [
+          1,
+          0.086,
+          0.055
+        ]
+      ],
+      "caps": [
+        "none",
+        "dome"
+      ],
+      "ring_step": 0.095,
+      "faceted": true
+    }
+  ],
+  "parts": [
+    {
+      "type": "fin",
+      "host": "Skull",
+      "material": "ear",
+      "thickness": 0.034,
+      "conform": false,
+      "anchor": {
+        "chain": "head",
+        "t": 0.34,
+        "around": 42
+      },
+      "udir": [
+        0.66,
+        0,
+        0.75
+      ],
+      "vdir": [
+        0.22,
+        1,
+        0
+      ],
+      "points": [
+        [
+          -0.062,
+          -0.03
+        ],
+        [
+          0.098,
+          0.006
+        ],
+        [
+          0.03,
+          0.165
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "eye",
+      "host": "Brow",
+      "material": "eye",
+      "size": 0.029,
+      "anchor": {
+        "chain": "head",
+        "t": 0.62,
+        "around": 58
+      }
+    },
+    {
+      "type": "fin",
+      "host": "Brow",
+      "material": "stripe",
+      "thickness": 0.02,
+      "conform": false,
+      "anchor": {
+        "chain": "head",
+        "t": 0.54,
+        "around": 50
+      },
+      "udir": [
+        0.28,
+        0,
+        0.96
+      ],
+      "vdir": [
+        0.3,
+        0.95,
+        0
+      ],
+      "points": [
+        [
+          -0.07,
+          -0.018
+        ],
+        [
+          0.128,
+          -0.052
+        ],
+        [
+          0.144,
+          0.022
+        ],
+        [
+          -0.07,
+          0.058
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "spike",
+      "host": "Nose",
+      "material": "nose",
+      "sides": 8,
+      "offset": [
+        0,
+        0.005,
+        0
+      ],
+      "dir": [
+        0,
+        -0.15,
+        1
+      ],
+      "segments": [
+        {
+          "len": 0.05,
+          "r": 0.045
+        }
+      ]
+    },
+    {
+      "type": "spike",
+      "host": "JawRoot",
+      "material": "mouth_glow",
+      "sides": 8,
+      "offset": [
+        0.01,
+        -0.03,
+        0.055
+      ],
+      "dir": [
+        0.04,
+        -0.34,
+        1
+      ],
+      "segments": [
+        {
+          "len": 0.175,
+          "r": 0.088
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Muzzle",
+      "material": "fang",
+      "mirrored": true,
+      "sides": 6,
+      "offset": [
+        0.078,
+        -0.058,
+        0.01
+      ],
+      "dir": [
+        0.05,
+        -1,
+        0.16
+      ],
+      "segments": [
+        {
+          "len": 0.082,
+          "r": 0.032
+        },
+        {
+          "len": 0.068,
+          "r": 0.014,
+          "behind": 18,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Jaw1",
+      "material": "fang",
+      "mirrored": true,
+      "sides": 6,
+      "offset": [
+        0.062,
+        0.032,
+        0
+      ],
+      "dir": [
+        0.05,
+        1,
+        0.16
+      ],
+      "segments": [
+        {
+          "len": 0.066,
+          "r": 0.024
+        },
+        {
+          "len": 0.052,
+          "r": 0.011,
+          "ahead": 16,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "fin",
+      "host": "Brow",
+      "material": "glow_seal",
+      "thickness": 0.02,
+      "anchor": {
+        "chain": "head",
+        "t": 0.5,
+        "around": 0
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.036,
+          -0.086
+        ],
+        [
+          0.036,
+          -0.086
+        ],
+        [
+          0.086,
+          -0.036
+        ],
+        [
+          0.086,
+          0.036
+        ],
+        [
+          0.036,
+          0.086
+        ],
+        [
+          -0.036,
+          0.086
+        ],
+        [
+          -0.086,
+          0.036
+        ],
+        [
+          -0.086,
+          -0.036
+        ]
+      ]
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "glow_seal",
+      "thickness": 0.022,
+      "anchor": {
+        "chain": "body",
+        "t": 0.84,
+        "around": 170
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.038,
+          -0.092
+        ],
+        [
+          0.038,
+          -0.092
+        ],
+        [
+          0.092,
+          -0.038
+        ],
+        [
+          0.092,
+          0.038
+        ],
+        [
+          0.038,
+          0.092
+        ],
+        [
+          -0.038,
+          0.092
+        ],
+        [
+          -0.092,
+          0.038
+        ],
+        [
+          -0.092,
+          -0.038
+        ]
+      ]
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "sash",
+      "thickness": 0.02,
+      "anchor": {
+        "chain": "body",
+        "t": 0.9,
+        "around": 30
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.072,
+          -0.032
+        ],
+        [
+          -0.02,
+          -0.08
+        ],
+        [
+          0.05,
+          -0.064
+        ],
+        [
+          0.072,
+          0.02
+        ],
+        [
+          0.014,
+          0.078
+        ],
+        [
+          -0.054,
+          0.054
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "sash",
+      "thickness": 0.02,
+      "anchor": {
+        "chain": "body",
+        "t": 0.9,
+        "around": 78
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.074,
+          -0.034
+        ],
+        [
+          -0.02,
+          -0.082
+        ],
+        [
+          0.052,
+          -0.066
+        ],
+        [
+          0.074,
+          0.02
+        ],
+        [
+          0.014,
+          0.08
+        ],
+        [
+          -0.056,
+          0.056
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "sash",
+      "thickness": 0.02,
+      "anchor": {
+        "chain": "body",
+        "t": 0.89,
+        "around": 126
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.074,
+          -0.034
+        ],
+        [
+          -0.02,
+          -0.082
+        ],
+        [
+          0.052,
+          -0.066
+        ],
+        [
+          0.074,
+          0.02
+        ],
+        [
+          0.014,
+          0.08
+        ],
+        [
+          -0.056,
+          0.056
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "sash",
+      "thickness": 0.02,
+      "anchor": {
+        "chain": "body",
+        "t": 0.88,
+        "around": 166
+      },
+      "udir": [
+        0,
+        0,
+        1
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.07,
+          -0.03
+        ],
+        [
+          -0.018,
+          -0.076
+        ],
+        [
+          0.048,
+          -0.06
+        ],
+        [
+          0.07,
+          0.018
+        ],
+        [
+          0.013,
+          0.074
+        ],
+        [
+          -0.052,
+          0.05
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "NeckB",
+      "material": "sash",
+      "thickness": 0.018,
+      "conform": false,
+      "anchor": {
+        "chain": "body",
+        "t": 0.86,
+        "around": 96
+      },
+      "udir": [
+        0.1,
+        -0.36,
+        -0.93
+      ],
+      "vdir": [
+        0.94,
+        0.3,
+        0.16
+      ],
+      "points": [
+        [
+          -0.03,
+          -0.056
+        ],
+        [
+          0.09,
+          -0.076
+        ],
+        [
+          0.19,
+          -0.058
+        ],
+        [
+          0.24,
+          0
+        ],
+        [
+          0.19,
+          0.058
+        ],
+        [
+          0.09,
+          0.076
+        ],
+        [
+          -0.03,
+          0.056
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "curve",
+      "host": "Neck2",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0,
+        0.15,
+        0.01
+      ],
+      "dir": [
+        0.1,
+        0.94,
+        -0.32
+      ],
+      "segments": [
+        {
+          "len": 0.0923,
+          "r": 0.052
+        },
+        {
+          "len": 0.0728,
+          "r": 0.03,
+          "rise": 16
+        },
+        {
+          "len": 0.0624,
+          "r": 0.01,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "NeckB",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0.055,
+        0.17,
+        0.01
+      ],
+      "dir": [
+        0.42,
+        0.86,
+        -0.3
+      ],
+      "segments": [
+        {
+          "len": 0.0806,
+          "r": 0.044
+        },
+        {
+          "len": 0.065,
+          "r": 0.026,
+          "rise": 16
+        },
+        {
+          "len": 0.0546,
+          "r": 0.009,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Chest",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0,
+        0.23,
+        -0.02
+      ],
+      "dir": [
+        0.06,
+        0.93,
+        -0.36
+      ],
+      "segments": [
+        {
+          "len": 0.1105,
+          "r": 0.06
+        },
+        {
+          "len": 0.0884,
+          "r": 0.034,
+          "rise": 16
+        },
+        {
+          "len": 0.0754,
+          "r": 0.011,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Chest",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0.075,
+        0.215,
+        -0.03
+      ],
+      "dir": [
+        0.46,
+        0.84,
+        -0.3
+      ],
+      "segments": [
+        {
+          "len": 0.0897,
+          "r": 0.048
+        },
+        {
+          "len": 0.0728,
+          "r": 0.028,
+          "rise": 16
+        },
+        {
+          "len": 0.0624,
+          "r": 0.01,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Spine",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0,
+        0.205,
+        -0.03
+      ],
+      "dir": [
+        0.04,
+        0.92,
+        -0.38
+      ],
+      "segments": [
+        {
+          "len": 0.0806,
+          "r": 0.046
+        },
+        {
+          "len": 0.065,
+          "r": 0.026,
+          "rise": 16
+        },
+        {
+          "len": 0.0546,
+          "r": 0.009,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "Spine",
+      "material": "glow_mane",
+      "sides": 6,
+      "offset": [
+        0.062,
+        0.19,
+        -0.04
+      ],
+      "dir": [
+        0.44,
+        0.85,
+        -0.3
+      ],
+      "segments": [
+        {
+          "len": 0.0689,
+          "r": 0.038
+        },
+        {
+          "len": 0.0559,
+          "r": 0.021,
+          "rise": 16
+        },
+        {
+          "len": 0.0468,
+          "r": 0.008,
+          "rise": 22,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "TailTip",
+      "material": "glow_tail",
+      "sides": 6,
+      "offset": [
+        0,
+        -0.018,
+        -0.012
+      ],
+      "dir": [
+        0.06,
+        0.92,
+        -0.38
+      ],
+      "segments": [
+        {
+          "len": 0.1,
+          "r": 0.056
+        },
+        {
+          "len": 0.082,
+          "r": 0.03,
+          "rise": 16
+        },
+        {
+          "len": 0.07,
+          "r": 0.01,
+          "rise": 20,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "TailTip",
+      "material": "glow_tail",
+      "sides": 6,
+      "offset": [
+        0.042,
+        -0.028,
+        -0.022
+      ],
+      "dir": [
+        0.52,
+        0.76,
+        -0.38
+      ],
+      "segments": [
+        {
+          "len": 0.078,
+          "r": 0.04
+        },
+        {
+          "len": 0.066,
+          "r": 0.022,
+          "rise": 14
+        },
+        {
+          "len": 0.056,
+          "r": 0.009,
+          "rise": 18,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "curve",
+      "host": "TailTip",
+      "material": "glow_tail",
+      "sides": 6,
+      "offset": [
+        -0.038,
+        -0.026,
+        -0.02
+      ],
+      "dir": [
+        -0.46,
+        0.8,
+        -0.38
+      ],
+      "segments": [
+        {
+          "len": 0.072,
+          "r": 0.036
+        },
+        {
+          "len": 0.06,
+          "r": 0.02,
+          "rise": 14
+        },
+        {
+          "len": 0.05,
+          "r": 0.008,
+          "rise": 18,
+          "taper": true
+        }
+      ]
+    },
+    {
+      "type": "fin",
+      "host": "Hips",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.26,
+        "around": 74
+      },
+      "udir": [
+        0,
+        0.42,
+        0.91
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.112,
+          -0.008
+        ],
+        [
+          -0.058,
+          -0.042
+        ],
+        [
+          0.008,
+          -0.052
+        ],
+        [
+          0.07,
+          -0.03
+        ],
+        [
+          0.1,
+          0.004
+        ],
+        [
+          0.062,
+          0.04
+        ],
+        [
+          -0.006,
+          0.05
+        ],
+        [
+          -0.064,
+          0.036
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Spine",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.44,
+        "around": 86
+      },
+      "udir": [
+        0,
+        -0.34,
+        0.94
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.118,
+          -0.008
+        ],
+        [
+          -0.061,
+          -0.044
+        ],
+        [
+          0.008,
+          -0.055
+        ],
+        [
+          0.074,
+          -0.032
+        ],
+        [
+          0.105,
+          0.004
+        ],
+        [
+          0.065,
+          0.042
+        ],
+        [
+          -0.006,
+          0.053
+        ],
+        [
+          -0.067,
+          0.038
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Chest",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.62,
+        "around": 70
+      },
+      "udir": [
+        0,
+        0.5,
+        0.87
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.11,
+          -0.008
+        ],
+        [
+          -0.057,
+          -0.041
+        ],
+        [
+          0.008,
+          -0.051
+        ],
+        [
+          0.069,
+          -0.029
+        ],
+        [
+          0.098,
+          0.004
+        ],
+        [
+          0.061,
+          0.039
+        ],
+        [
+          -0.006,
+          0.049
+        ],
+        [
+          -0.063,
+          0.035
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Chest",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.565,
+        "around": 52
+      },
+      "udir": [
+        0,
+        0.97,
+        0.26
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.072,
+          -0.006
+        ],
+        [
+          -0.037,
+          -0.027
+        ],
+        [
+          0.006,
+          -0.034
+        ],
+        [
+          0.045,
+          -0.019
+        ],
+        [
+          0.064,
+          0.003
+        ],
+        [
+          0.04,
+          0.026
+        ],
+        [
+          -0.004,
+          0.032
+        ],
+        [
+          -0.041,
+          0.023
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Spine",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.36,
+        "around": 30
+      },
+      "udir": [
+        1,
+        0,
+        0
+      ],
+      "vdir": [
+        0,
+        0.4,
+        0.92
+      ],
+      "points": [
+        [
+          -0.098,
+          -0.007
+        ],
+        [
+          -0.051,
+          -0.037
+        ],
+        [
+          0.007,
+          -0.046
+        ],
+        [
+          0.062,
+          -0.026
+        ],
+        [
+          0.088,
+          0.004
+        ],
+        [
+          0.055,
+          0.035
+        ],
+        [
+          -0.005,
+          0.044
+        ],
+        [
+          -0.056,
+          0.032
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Chest",
+      "material": "stripe",
+      "thickness": 0.013,
+      "anchor": {
+        "chain": "body",
+        "t": 0.7,
+        "around": 96
+      },
+      "udir": [
+        0,
+        -0.62,
+        0.78
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.096,
+          -0.007
+        ],
+        [
+          -0.05,
+          -0.036
+        ],
+        [
+          0.007,
+          -0.045
+        ],
+        [
+          0.061,
+          -0.026
+        ],
+        [
+          0.086,
+          0.004
+        ],
+        [
+          0.054,
+          0.034
+        ],
+        [
+          -0.005,
+          0.043
+        ],
+        [
+          -0.055,
+          0.031
+        ]
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "paw",
+      "host": "LFrontToe",
+      "material": "fur_paw",
+      "size": [
+        0.27,
+        0.21,
+        0.1
+      ]
+    },
+    {
+      "type": "paw",
+      "host": "RFrontToe",
+      "material": "fur_paw",
+      "size": [
+        0.27,
+        0.21,
+        0.1
+      ]
+    },
+    {
+      "type": "paw",
+      "host": "LBackToe",
+      "material": "fur_paw",
+      "size": [
+        0.26,
+        0.2,
+        0.1
+      ],
+      "mirrored": true
+    },
+    {
+      "type": "fin",
+      "host": "Chest",
+      "material": "shoulder_gold",
+      "thickness": 0.045,
+      "anchor": {
+        "chain": "body",
+        "t": 0.7,
+        "around": 63
+      },
+      "udir": [
+        0,
+        0.35,
+        0.94
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.19,
+          -0.12
+        ],
+        [
+          0.12,
+          -0.15
+        ],
+        [
+          0.26,
+          -0.07
+        ],
+        [
+          0.25,
+          0.11
+        ],
+        [
+          0.06,
+          0.19
+        ],
+        [
+          -0.19,
+          0.12
+        ]
+      ]
+    },
+    {
+      "type": "fin",
+      "host": "Chest",
+      "material": "shoulder_gold",
+      "thickness": 0.045,
+      "anchor": {
+        "chain": "body",
+        "t": 0.7,
+        "around": 117
+      },
+      "udir": [
+        0,
+        0.35,
+        0.94
+      ],
+      "vdir": [
+        1,
+        0,
+        0
+      ],
+      "points": [
+        [
+          -0.19,
+          -0.12
+        ],
+        [
+          0.12,
+          -0.15
+        ],
+        [
+          0.26,
+          -0.07
+        ],
+        [
+          0.25,
+          0.11
+        ],
+        [
+          0.06,
+          0.19
+        ],
+        [
+          -0.19,
+          0.12
+        ]
+      ]
+    }
+  ],
+  "animations": {
+    "idle": {
+      "duration": 2.8,
+      "loop": true,
+      "tracks": {
+        "NeckB": {
+          "rx": [
+            [
+              0,
+              -2
+            ],
+            [
+              0.5,
+              3
+            ],
+            [
+              1,
+              -2
+            ]
+          ]
+        },
+        "Skull": {
+          "rx": [
+            [
+              0,
+              2
+            ],
+            [
+              0.5,
+              -3
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        "JawRoot": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              5
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Tail1": {
+          "ry": [
+            [
+              0,
+              7
+            ],
+            [
+              0.5,
+              -7
+            ],
+            [
+              1,
+              7
+            ]
+          ]
+        },
+        "Tail2": {
+          "ry": [
+            [
+              0,
+              -5
+            ],
+            [
+              0.3,
+              6
+            ],
+            [
+              0.8,
+              -8
+            ],
+            [
+              1,
+              -5
+            ]
+          ]
+        },
+        "Chest": {
+          "rx": [
+            [
+              0,
+              -1
+            ],
+            [
+              0.5,
+              2
+            ],
+            [
+              1,
+              -1
+            ]
+          ]
+        },
+        "Hips": {
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.011
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        }
+      }
+    },
+    "move": {
+      "duration": 0.85,
+      "loop": true,
+      "mirror_phase": 0.5,
+      "tracks": {
+        "LFrontRoot": {
+          "rx": [
+            [
+              0,
+              -20
+            ],
+            [
+              0.5,
+              22
+            ],
+            [
+              1,
+              -20
+            ]
+          ]
+        },
+        "LFrontElbow": {
+          "rx": [
+            [
+              0,
+              8
+            ],
+            [
+              0.25,
+              19
+            ],
+            [
+              0.5,
+              -4
+            ],
+            [
+              1,
+              8
+            ]
+          ]
+        },
+        "LFrontWrist": {
+          "rx": [
+            [
+              0,
+              -8
+            ],
+            [
+              0.35,
+              -17
+            ],
+            [
+              0.6,
+              5
+            ],
+            [
+              1,
+              -8
+            ]
+          ]
+        },
+        "RFrontRoot": {
+          "rx": [
+            [
+              0,
+              22
+            ],
+            [
+              0.5,
+              -20
+            ],
+            [
+              1,
+              22
+            ]
+          ]
+        },
+        "RFrontElbow": {
+          "rx": [
+            [
+              0,
+              -4
+            ],
+            [
+              0.25,
+              8
+            ],
+            [
+              0.5,
+              19
+            ],
+            [
+              0.75,
+              -4
+            ],
+            [
+              1,
+              -4
+            ]
+          ]
+        },
+        "RFrontWrist": {
+          "rx": [
+            [
+              0,
+              5
+            ],
+            [
+              0.35,
+              -8
+            ],
+            [
+              0.6,
+              -17
+            ],
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        "LBackRoot": {
+          "rx": [
+            [
+              0,
+              18
+            ],
+            [
+              0.5,
+              -16
+            ],
+            [
+              1,
+              18
+            ]
+          ]
+        },
+        "LBackKnee": {
+          "rx": [
+            [
+              0,
+              -7
+            ],
+            [
+              0.3,
+              -18
+            ],
+            [
+              0.6,
+              6
+            ],
+            [
+              1,
+              -7
+            ]
+          ]
+        },
+        "LBackHock": {
+          "rx": [
+            [
+              0,
+              5
+            ],
+            [
+              0.4,
+              15
+            ],
+            [
+              0.7,
+              -4
+            ],
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        "Hips": {
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.25,
+              0.024
+            ],
+            [
+              0.5,
+              0
+            ],
+            [
+              0.75,
+              0.024
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "NeckB": {
+          "rx": [
+            [
+              0,
+              3
+            ],
+            [
+              0.5,
+              -3
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        "Tail1": {
+          "ry": [
+            [
+              0,
+              10
+            ],
+            [
+              0.5,
+              -10
+            ],
+            [
+              1,
+              10
+            ]
+          ]
+        }
+      }
+    },
+    "attack": {
+      "duration": 0.9,
+      "loop": false,
+      "tracks": {
+        "Rump": {
+          "tz": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              -0.13
+            ],
+            [
+              0.64,
+              0.58
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "ty": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              -0.04
+            ],
+            [
+              0.64,
+              0.11
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Spine": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              10
+            ],
+            [
+              0.64,
+              -12
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "NeckB": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              12
+            ],
+            [
+              0.64,
+              -15
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "JawRoot": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              -5
+            ],
+            [
+              0.58,
+              22
+            ],
+            [
+              0.78,
+              4
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "LFrontRoot": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              21
+            ],
+            [
+              0.64,
+              -27
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "LFrontElbow": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              16
+            ],
+            [
+              0.64,
+              -14
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RFrontRoot": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              24
+            ],
+            [
+              0.62,
+              -32
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "ry": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              -12
+            ],
+            [
+              0.62,
+              16
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "RFrontElbow": {
+          "rx": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              18
+            ],
+            [
+              0.62,
+              -16
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "Tail1": {
+          "ry": [
+            [
+              0,
+              0
+            ],
+            [
+              0.38,
+              16
+            ],
+            [
+              0.64,
+              -14
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "build": "rigid",
+  "_provenance": "由 assets/creatures/tiger_c.json 複製骨架、四足低伏比例及 idle/move/attack 動畫；新鍵獨立建模，不改原虎。"
+}
