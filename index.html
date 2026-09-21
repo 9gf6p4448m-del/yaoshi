@@ -425,6 +425,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
 .revealRibbon .big{font-weight:bold;font-size:12px}.revealRibbon .mut{font-size:10px;color:#cdb9ee}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:4px;padding:3px 6px;font-size:11px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:none;overflow:visible}.revealRibbon .outcome{margin-top:5px;white-space:normal;overflow:visible;font-size:11px}.bidPills{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px}.bidPill{padding:3px 6px;border:1px solid rgba(200,157,73,.48);border-radius:999px;background:rgba(7,6,14,.74);font-size:10px;line-height:1.2;white-space:nowrap}.bidPill.win{border-color:#ffe28b;background:linear-gradient(135deg,#7b5118,#d4a52f);color:#171007;font-weight:bold;box-shadow:0 0 10px rgba(255,203,72,.38)}
 .chainHint,.chainStatus{display:block;color:#f8d994;font-size:11px;line-height:1.3}.chainStatus{padding:3px 5px;border-left:2px solid #c89d49;background:rgba(22,12,25,.7);margin:3px 0}.chainAwaken{display:flex;align-items:center;gap:8px;max-width:340px;margin:3px auto;padding:3px 8px;border:1px solid #d3ac5e;background:rgba(23,11,31,.88);color:#f7dfa5;font-size:11px;pointer-events:none}.chainAwaken b{white-space:nowrap}.chainAwaken span{animation:chainGather .65s ease-out both}.chainAwaken:before{content:"◇";font-size:19px;line-height:1;color:#e9c978;text-shadow:0 0 0 #e9c978,0 0 6px #e9c978;animation:chainSquare .7s ease-out both}@keyframes chainGather{from{letter-spacing:8px;opacity:.35}to{letter-spacing:0;opacity:1}}@keyframes chainSquare{from{transform:scale(.35);opacity:.25}to{transform:scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chainAwaken span,.chainAwaken:before{animation:none}}
+@media(max-height:430px){.chainAwaken{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:90;width:max-content;max-width:calc(100vw - 24px)}}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
   border-radius:8px;font-size:12px;animation:slidein .3s}
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
@@ -5344,6 +5345,8 @@ function showMarkUI(){
   SKIP=false; $("skipbtn").style.display="none";
   renderSeats();
   const ap=S.players[ACTIVE];
+  const newChains=activeChains(ap).filter(c=>!CHAIN_SEEN.has(`${ap.id}:${c.id}`));
+  newChains.forEach(c=>CHAIN_SEEN.add(`${ap.id}:${c.id}`));
   const who=(S.mode==="hotseat")?`【${DIRS[ACTIVE]}家・${ap.name}】`:"";
   const rl=S.nightRule;
   /* 心願與今夜市集規則原本只畫在出價階段，盯上這一頁看不到（2026-09-03 試玩回饋：
@@ -5369,6 +5372,7 @@ function showMarkUI(){
     ${hollow?"":wishBarHTML(ap)}
     ${hollow?"":shrinesHTML()}
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>markCardHTML(it,i)).join("")}</div>`}`;
+  if(newChains.length) setTimeout(()=>document.querySelectorAll("#table .chainAwaken").forEach(el=>el.remove()),1500);
   setHollow(hollow);
   setFeltPrivateContext(ap,hollow);
   if(hollow){ fillRails(prev,shrinesHTML(),markCardHTML); TRAY_PHASE="mark"; pushMarket3d(); }
@@ -5467,7 +5471,11 @@ function showMarket(){
   /* 掏空卷 v0.55a（Q1 甲：出價頁掏空）：預告框與香火榜搬進 #north、四張卡退到左右側欄；
      #stage 只留心願條與押寶條（兩者都要能點，所以 #felt.hollow #stage 疊在 #tray 之上）。 */
   const hollow=TABLE3D;
-  $("stage").innerHTML=`${hollow?"":prev}
+  const awaken=newChains.map(c=>`<div class="chainAwaken" aria-live="polite"><span>${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("　✦　")}</span><b>${c.name}</b></div>`).join("");
+  const eyesInfo=PUBLIC_REVEAL&&activeChains(ap).some(c=>c.id==="eyes")
+    ? PUBLIC_REVEAL.map(r=>{const n=eyesSecondBid(ap,r);return n===null?"":`${r.name} 第二高 ${n}🪙`;}).filter(Boolean).join("・") : "";
+  const privateInfo=`${awaken}${eyesInfo?`<div class="chainStatus">👁 上一夜已公開標額：${eyesInfo}</div>`:""}`;
+  $("stage").innerHTML=`${privateInfo}${hollow?"":prev}
     ${hollow?"":wishBarHTML(ap)}
     ${stakeHTML(ap)}
     ${hollow?"":shrinesHTML()}
