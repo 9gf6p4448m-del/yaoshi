@@ -38,17 +38,19 @@ try{
  await page.waitForFunction(()=>!document.getElementById('mainbtn').disabled&&/開標/.test(document.getElementById('mainbtn').textContent));
  await page.click('#mainbtn');
  await page.waitForFunction(()=>!document.getElementById('mainbtn').disabled&&/查看成交總覽/.test(document.getElementById('mainbtn').textContent),null,{timeout:20000});
+ await page.waitForTimeout(1000); // Let the existing reveal-card CSS entrance settle before inspection.
  await page.screenshot({path:path.join(OUT,'reveal.png')});
  const reveal=await page.evaluate(()=>({text:document.getElementById('outzone').innerText,
   receipts:window.chainReceipts,sounds:window.chainSounds,error:window.chainRevealError||null,
   history:window.__yaoshi.S.history.nights[0].auction[0],bag:window.__yaoshi.S.players[1].bag.map(x=>x.n)}));
  await page.evaluate(()=>showReview());
+ const poisonTile=await page.locator('.rvTile').filter({hasText:'毒標得手'}).innerText();
  await page.locator('.rvNight').first().scrollIntoViewIfNeeded();
  await page.screenshot({path:path.join(OUT,'review.png')});
  const review=await page.locator('.rvNight').first().innerText();
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:path.join(OUT,'portrait.png')});
- const result={fixture:'seed1, one real auction, injected bags and bids',reveal,review,errors};
+ const result={fixture:'seed1, one real auction, injected bags and bids',reveal,review,poisonTile,errors};
  fs.writeFileSync(path.join(OUT,'result.json'),JSON.stringify(result,null,2));
  assert.equal(reveal.history.poisonBlocked,true);
  assert.equal(reveal.receipts.length,1);
@@ -57,6 +59,7 @@ try{
  assert.equal(reveal.sounds.includes('curse'),false);
  assert.match(reveal.text,/水陸偷渡/);
  assert.match(review,/阻|擋|銷毀/);
+ assert.match(poisonTile,/沒有毒標得手/);
  assert.equal(reveal.error,null);
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({ok:true,out:OUT}));
