@@ -1,0 +1,65 @@
+✖ counts all four endpoint holders, including winners outside seat zero (2.9586ms)
+✖ normal and zero use their own denominator and zero denominator is null (0.5874ms)
+✔ raw parser requires valid JSON lines (1.5433ms)
+✔ rejects invalid arms and duplicate or missing arm seeds (0.8298ms)
+✔ rejects illegal winner and malformed four-seat chain data (0.7054ms)
+✔ validates entire raw before any output and hashes original bytes (11.9195ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.0308
+
+✖ failing tests:
+
+test at tests\l1-holder-audit.test.mjs:18:1
+✖ counts all four endpoint holders, including winners outside seat zero (2.9586ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   1,
+      2,
+  +   2,
+      0,
+      0,
+  +   0
+  -   1
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 0, 0, 0 ],
+    expected: [ 1, 2, 0, 0, 1 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\l1-holder-audit.test.mjs:31:1
+✖ normal and zero use their own denominator and zero denominator is null (0.5874ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 3
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-holder-audit.test.mjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

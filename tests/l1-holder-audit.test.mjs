@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {auditRows, parseRaw} from './tools/l1-holder-audit.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {auditRows, auditFile, parseRaw, reportMarkdown} from './tools/l1-holder-audit.mjs';
 
 const arms=['splitter','water-normal','water-zero','eyes-normal','eyes-zero','twinTiger-normal','twinTiger-zero'];
 const row=(arm,seed,bags=[[],[],[],[]],winnerId=0)=>({arm,seed,winnerId,endBagChainIds:bags});
@@ -65,4 +69,30 @@ test('rejects illegal winner and malformed four-seat chain data',()=>{
     rows[0]={...rows[0],...change};
     assert.throws(()=>auditRows(rows,'abc'),pattern);
   }
+});
+
+test('validates entire raw before any output and hashes original bytes',t=>{
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'l1-holder-audit-'));
+  t.after(()=>fs.rmSync(tmp,{recursive:true,force:true}));
+  const input=path.join(tmp,'raw.jsonl'),out=path.join(tmp,'out');
+  const lines=fixture().map(r=>JSON.stringify(r));
+  fs.writeFileSync(input,[...lines,'{"arm":"bad"}'].join('\n')+'\n');
+  assert.throws(()=>auditFile(input,out),/arm/);
+  assert.equal(fs.existsSync(out),false);
+  const raw=lines.join('\n')+'\n';
+  fs.writeFileSync(input,raw);
+  assert.equal(auditFile(input,out),out);
+  const summary=JSON.parse(fs.readFileSync(path.join(out,'summary.json'),'utf8'));
+  assert.equal(summary.rawSha256,crypto.createHash('sha256').update(raw).digest('hex'));
+  assert.match(fs.readFileSync(path.join(out,'report.md'),'utf8'),/endpoint-holder diagnostic/);
+  assert.match(reportMarkdown(summary),/noncausal/);
+});
+
+test('refuses an output directory inside the original pilot',t=>{
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'l1-holder-guard-'));
+  t.after(()=>fs.rmSync(tmp,{recursive:true,force:true}));
+  const input=path.join(tmp,'raw.jsonl');
+  fs.writeFileSync(input,fixture().map(r=>JSON.stringify(r)).join('\n')+'\n');
+  const pilot=path.resolve('docs/experiments/2026-09-21-l1e-measurement/pilot');
+  assert.throws(()=>auditFile(input,path.join(pilot,'holder-audit')),/overwrite pilot/);
 });
