@@ -29,7 +29,29 @@
 
 ## 重跑
 
-工具與測試建置後的精確命令、實跑結果與覆審記錄會補於本節；不可把尚未產出的結果當作通過。
+```powershell
+node --test tests/l1-balance.test.mjs
+node tests/tools/l1-balance-evidence.mjs
+node tests/tools/l1-balance.mjs --n 200 --out docs/experiments/2026-09-21-l1e-measurement/pilot
+```
+
+測試 **11/11 通過**，相同暫存模組配置的健康基準亦 11/11 通過；移除追價 +2、保留歸零組 flags 的兩個語意突變均被指定斷言抓到。八個核心函式的 V8 UTF-16 source offsets 覆蓋 **6154/6515＝94.46%**（含空白／註解，不含 CLI、parseCli、writeReport；不是整個專案覆蓋率）。原先暫存 ROOT 錯誤的失敗紀錄保留在 verification/initial-infra-*.log，不計為有效突變證據。完整 [驗證資料](verification/evidence.json)、[Astra 覆審](review.md)。
+
+## 本輪固定樣本結果
+
+七臂各 seeds 1..200，共 **1,400 局**，只執行一批。詳見 [報表](pilot/report.md)、[摘要](pilot/summary.json)、[原始逐局紀錄](pilot/raw.jsonl)。
+
+| 目標 | 效果開啟勝率 | 效果歸零勝率 | 配對差 |
+|---|---:|---:|---:|
+| 水陸 | 31.0% | 30.5% | +0.5pp |
+| 千眼 | 36.5% | 36.5% | 0pp |
+| 雙虎 | 33.5% | 35.0% | −1.5pp |
+
+splitter 基準勝率 30.5%；基準沒有指定目標，其持有欄位是 N/A，不是取得率零。此小樣本不套正式門檻、不據此調整產品數值。千眼策略不使用情報，零差異不代表情報無價值。所有正式狀態保持 incomplete。
+
+原量測工具與 Git 版本保留在 summary 的 toolSha256/gitHead；後續只從同一份 raw 修正基準 N/A 標示，另記 reportToolSha256/reportGitHead。原報表保存在 [initial-report](pilot/initial-report/report.md)。重印前後 raw SHA256 完全一致：`cd42d3b3ecfcd1110dcc43f4073e0ef7d74cb977876dea6b653fd311c2b38911`；沒有重抽樣。
+
+本卷產品 index.html 相對 d746a87 無差異，試玩候選仍 v0.57.37，公開仍 v0.57.35。下一步先凍結正式策略池、H9 持有口徑與跨夜窮舉範圍，再跑正式 n≥10000；玩家試玩／美術盲讀仍待完成，A3 六局依使用者指示暫緩。
 
 引擎終點註記：playPolicyGame 在座位0死亡、只剩一位存活或達回合上限時停止，沒有續跑 AI 殘局。本卷「局末」是此 runner 終點；勝負仍只依 winnerId===0 計算，保留引擎全員死亡時的排序結果。局長／局末持有比例不能解讀為四席都玩到最後的取得率，亦非曾經持有。原引擎停止規則保持不變。
 
