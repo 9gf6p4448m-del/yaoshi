@@ -18,9 +18,9 @@
 test at tests\ledger-attribution.test.mjs:35:1
 ✖ an unrecorded terminal interval is not invented as a named event or numbered night (26.0992ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   2 !== null
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:39:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

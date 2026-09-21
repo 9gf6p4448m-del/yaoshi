@@ -18,9 +18,9 @@
 test at tests\ledger-attribution.test.mjs:13:1
 ✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (30.4093ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   16 !== 2
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:19:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -37,9 +37,9 @@ test at tests\ledger-attribution.test.mjs:13:1
 test at tests\ledger-attribution.test.mjs:62:1
 ✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (103.0566ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   16 !== 2
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:72:14)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
