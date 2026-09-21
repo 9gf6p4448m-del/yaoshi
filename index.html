@@ -2022,6 +2022,8 @@ const CHAINS={
     desc:"毒標轉入的詛咒在入袋前銷毀",aiBonus:2,flags:["blockPoisonTransfer"]},
   eyes:{id:"eyes",name:"千眼神算",requirements:["eye","bell"],
     desc:"明夜預告最多三件；整理上一夜已公開標額的第二高",aiBonus:2,traits:{preview:3}},
+  twinTiger:{id:"twinTiger",name:"雙虎滅煞",desc:"虎爺印與虎姑婆指甲合陣，金斑黑虎橫掃撕甲。",requirements:["tiger","nail"],aiBonus:2,
+    army:{name:"雙虎滅煞",f:"xianghuo",ab:"twinTiger",unit:{body:"elite",count:1,atk:9,hp:8,trait:"twinTigerSweep"}}},
 };
 function activeChains(p){
   if(!p || !p.bag) return [];
@@ -2169,6 +2171,7 @@ const TRAITS = {
   eliteArmor:{id:"eliteArmor",name:"琉璃護心",desc:"本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）",armor:2},
   eliteSelfCut:{id:"eliteSelfCut",name:"割祭",desc:"第1拍開場：本隊每隻自傷 1（血量最低 1）；本隊本場攻擊 +2",selfCut:1,selfCutAtk:2},
   eliteCleave:{id:"eliteCleave",name:"斬瘟",desc:"本隊精英的第二目標濺射，改為當次攻擊力全額",cleaveFull:true},
+  twinTigerSweep:{id:"twinTigerSweep",name:"橫掃・撕甲",desc:"本隊精英的第二目標濺射全額，攻擊忽略被擊隊伍的護甲減傷；送王船吸收仍有效",cleaveFull:true,armorPierce:true},
   eliteVsSwarm:{id:"eliteVsSwarm",name:"咬手指",desc:"本隊直擊主目標為群體時，傷害 +2（不加在濺射）",vsSwarm:2},
   swarmHalfSplash:{id:"swarmHalfSplash",name:"飛魚躍",desc:"本隊受到精英濺射時，傷害減半（向下取整）",halfSplash:true},
   swarmThorn:{id:"swarmThorn",name:"獠牙反擊",desc:"本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發）",thorn:2},
@@ -3775,8 +3778,19 @@ function pwDefaultUnit(it){
   return p>=6?{body:"elite",count:1,atk:p+2,hp:p+2}:{body:"ward",count:1,atk:0,hp:p+5};
 }
 function buildArmy(bag){
-  const teams=[]; let curses=0;
-  for(const x of (bag||[])){
+  const teams=[], sources=[]; let curses=0;
+  const items=bag||[], replacement=new Map(), skipped=new Set();
+  for(const chain of Object.values(CHAINS)){
+    if(!chain.army) continue;
+    const found=chain.requirements.map(ab=>items.findIndex((it,i)=>!skipped.has(i)&&!it.curse&&it.ab===ab));
+    if(found.some(i=>i<0)) continue;
+    const first=Math.min(...found);
+    replacement.set(first,{...chain.army,sourceItems:found.map(i=>items[i]),sourceIndices:found});
+    found.forEach(i=>skipped.add(i));
+  }
+  for(let pos=0;pos<items.length;pos++){
+    const x=replacement.get(pos)||items[pos];
+    if(skipped.has(pos)&&!replacement.has(pos)) continue;
     if(x.curse){ curses++; continue; }
     const u=x.unit||pwDefaultUnit(x); if(!u) continue;
     /* ab＝這隊的 3D 模型鍵（接線卷；純資料，引擎不讀）：POOL 的 ab 是「能力」鍵，四件沒能力的法寶另用 m 指定檔名（凍結檔：balen/boartusk/ashcharm/yinyangcoin） */
@@ -3784,13 +3798,14 @@ function buildArmy(bag){
     for(let i=0;i<(u.count|0);i++)
       t.units.push({t:t.idx,body:u.body,atk:u.atk|0,hp:u.hp|0,max:u.hp|0,pend:0,alive:true});
     teams.push(t);
+    sources.push(x.sourceItems?{name:x.name,items:x.sourceItems,indices:x.sourceIndices,army:x}:{item:x});
   }
   if(!teams.some(t=>t.units.length)){
     const t={idx:teams.length,fac:null,body:"swarm",ab:null,tr:null,units:[]};
     t.units.push({t:t.idx,body:"swarm",atk:1,hp:3,max:3,pend:0,alive:true});
     teams.push(t);
   }
-  return {teams,curses};
+  return {teams,curses,sources};
 }
 /* ===== 部隊預覽（請神 2.0 使用者裁定：袋子面板與市集法寶卡共用同一支）=====
    一件法寶 → 隻數／atk／hp／共鳴拍／招式名＋一句效果。
@@ -3851,14 +3866,17 @@ function bagPreviewHTML(p){
   const head=`<div class="bagit bagsum"><span>🪖 <b>部隊基礎值</b>　${n} 隻・總攻 ${atk}・總血 ${hp}</span>`
     +`<b>${res.length?res.map(x=>`${FAC[x.f].n}共鳴 該系那一拍 hp+${x.lv}`).join("・"):"無共鳴"}</b>`
     +`<span class="bagMoon">${phaseText(S.round)}${ph.fac?`・現在買${FAC[ph.fac].n}拍品會立刻吃到這一拍增幅`:""}</span></div>`;
-  const rows=p.bag.map(x=>{
-    const r=unitRow(x);
+  const fused=new Set(a.sources.flatMap(s=>s.indices||[]));
+  const rows=p.bag.map((x,i)=>{
+    const source=a.sources.find(s=>s.indices&&s.indices[0]===i);
+    if(fused.has(i)&&!source) return "";
+    const r=source?unitRow({...source.army,n:source.name}):unitRow(x);
     if(!r) return "";
     if(r.curse) return `<div class="bagit uprev mut"><span>${x.n}</span><span>🕸 不召喚${
       traitMax(p,"curseWard",0)>0&&!["wedding","guava"].includes(curseKind(x))?"・戰鬥詛咒已淨化":"・纏身"}<span class="umd">${curseEffectText(x,true)}</span></span></div>`;
     /* 袋子面板保留全文（使用者裁定：卡面精簡、袋子完整） */
-    const moon=moonBenefit(x,S.round);
-    return `<div class="bagit uprev"><span>${x.n}<span class="fchip ${FAC[x.f].cls}">${FAC[x.f].n}</span></span>`
+    const moon=moonBenefit(source?source.army:x,S.round);
+    return `<div class="bagit uprev"><span>${source?source.name:x.n}<span class="fchip ${FAC[source?source.army.f:x.f].cls}">${FAC[source?source.army.f:x.f].n}</span></span>`
       +`<span class="uline">${r.bodyName}×${r.n}・每隻基礎攻 ${r.atk}・血 ${r.hp}${r.beat?`・共鳴${r.beat}拍`:""}${
         moon.active?`<span class="moonCue">${moon.ph.icon} 今夜受惠</span>`:""}${r.move?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span>`:""}</span></div>`;
   }).join("");
@@ -3974,14 +3992,15 @@ function pwTopTwo(foe){
   return [a,b];
 }
 /* 傷害入帳（送王船：吸收對面本拍首 N 點；陰陽眼銅錢 pierce 無視吸收；巴冷珠鍊 armor 每次受擊減傷） */
-function pwDeal(tgt,foe,amt,env,pierce){
+function pwDeal(tgt,foe,amt,env,attack){
+  const pierce=!!(attack&&attack.pierce);
   if(amt<=0) return 0;
   if(foe.absorb>0&&!pierce){ const k=Math.min(foe.absorb,amt); foe.absorb-=k; amt-=k; }
   /* 琉璃護心：只護「珠鍊自己那一隊」，且每次受擊保底仍吃 1 點——
      全側減傷＋不保底的話，armor 1 對 atk 1 的群體＝完全免疫，一件 p6 就把「群體」從克制環裡刪掉
      （實測 D-A1 群體對精英 0%，全側版仍只回到 32.7%）。 */
   const at=foe.teams[tgt.t];
-  if(at&&at.tr&&at.tr.armor>0&&amt>1&&at.armorBeat!==(env&&env.beat)){
+  if(at&&at.tr&&at.tr.armor>0&&amt>1&&at.armorBeat!==(env&&env.beat)&&!(attack&&attack.armorPierce)){
     at.armorBeat=env&&env.beat;
     const k=Math.min(at.tr.armor,amt-1); amt-=k;
     if(env) pwFire(env,at.tr,`📿 琉璃護心：${foe.p.name} 本拍首次受擊 −${at.tr.armor}（保底 1）`,foe);
@@ -3990,8 +4009,8 @@ function pwDeal(tgt,foe,amt,env,pierce){
   tgt.pend+=amt; return amt;
 }
 /* 一次攻擊：入帳後判定虎爺印反咬（賭注，走 rng） */
-function pwStrike(att,sd,tgt,foe,amt,env,kind,pierce){
-  const done=pwDeal(tgt,foe,amt,env,pierce);
+function pwStrike(att,sd,tgt,foe,amt,env,kind,attack){
+  const done=pwDeal(tgt,foe,amt,env,attack);
   pwRec(env,env.beat,sd.tag,att?att.id:null,tgt.id,kind||"hit",done,false);
   const tt=foe.teams[tgt.t];
   if(tt.tr&&tt.tr.thorn&&att&&tt.thornBeat!==env.beat){ /* 獠牙反擊：每拍每隊只反一次（無亂數） */
@@ -4171,7 +4190,7 @@ function pwPass(sd,foe,beat,fac,phase,env){
       if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`,sd); }
       if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
       if(a<=0) continue;
-      const pierce=!!(t.tr&&t.tr.pierce);
+      const attack={pierce:!!(t.tr&&t.tr.pierce),armorPierce:!!(t.tr&&t.tr.armorPierce)};
       let t1,t2=null;
       if(t.body==="ward"){ t1=pwLowRem(foe); }
       else { const tt=pwTopTwo(foe); t1=tt[0]; t2=tt[1]; }
@@ -4184,15 +4203,16 @@ function pwPass(sd,foe,beat,fac,phase,env){
         if(k2===2||k2===3){ d+=gang; env.stats.gang++;   /* 對同一目標第 2、3 次攻擊各 +1 */
           if(seeTr) pwFire(env,seeTr,`🪑 看穿：圍毆額外 +${pwMax(sd,"gang")}`,sd); }
       }
-      if(pierce&&foe.absorb>0) pwFire(env,t.tr,`👁️ 陰陽眼：無視送王船的吸收`,sd);
-      pwStrike(u,sd,t1,foe,d,env,t.body==="ward"?"ward":"hit",pierce);
+      if(attack.pierce&&foe.absorb>0) pwFire(env,t.tr,`👁️ 陰陽眼：無視送王船的吸收`,sd);
+      if(attack.armorPierce) pwFire(env,t.tr,`🐯 ${t.tr.name}：無視目標護甲`,sd);
+      pwStrike(u,sd,t1,foe,d,env,t.body==="ward"?"ward":"hit",attack);
       if(t.body==="elite"&&t2){
         const st=foe.teams[t2.t];
         const full=!!(t.tr&&t.tr.cleaveFull);
-        if(full) pwFire(env,t.tr,`⚔️ 斬瘟：濺射全額`,sd);
+        if(full) pwFire(env,t.tr,`⚔️ ${t.tr.name}：濺射全額`,sd);
         let sp=full?a:Math.floor(a/2);
         if(st&&st.tr&&st.tr.halfSplash){ sp=Math.floor(sp/2); pwFire(env,st.tr,`🛶 飛魚躍：${foe.p.name} 濺射減半`,foe); }
-        pwStrike(u,sd,t2,foe,sp,env,"splash",pierce); env.stats.splash++;
+        pwStrike(u,sd,t2,foe,sp,env,"splash",attack); env.stats.splash++;
       }
     }
   }
@@ -6022,7 +6042,7 @@ async function startShrine(){
 
 /* trait id → 法寶名。POOL 是唯一事實來源（27 件各一個招，見 TRAITS 檔頭的說明），
    這裡只是把它反查成表，不另外維護一份對照（防分岔）。 */
-const TRAIT_ITEM=(()=>{ const m={}; for(const x of POOL) if(x.unit&&x.unit.trait) m[x.unit.trait]=x.n; return m; })();
+const TRAIT_ITEM=(()=>{ const m={}; for(const x of POOL) if(x.unit&&x.unit.trait) m[x.unit.trait]=x.n; for(const c of Object.values(CHAINS)) if(c.army&&c.army.unit.trait) m[c.army.unit.trait]=c.name; return m; })();
 /* 體型的看板名。三種體型要在「一眼看得出」的層次分開：多／大／飄（草案 §2.3）。 */
 const PW_BODY={ swarm:{n:"小紙人"}, elite:{n:"大紙偶"}, ward:{n:"護法紙人"}, haunt:{n:"飄影"} };
 /* 事件種類 → 力道倍率與音色。顏色不寫在這裡——三系色由出手那一隊自己的系別決定。 */
@@ -6140,12 +6160,11 @@ function pwArmyView(p){
   /* 這一隊是哪一件法寶（近景切鏡卷 v0.45 二版）：buildArmy 是照 bag 順序逐件展開的（詛咒品跳過、其餘一件一隊），
      所以第 idx 隊就是 bag 裡第 idx 件非詛咒品。**對位還要核 ab 才採用**——對不上就留空（出手卡不顯示），
      不猜。以前用 ab→名字的反查表會撞名：傳說三尊借既有模型鍵（殘日借 bow），反查回來會顯示「射日神弓」。 */
-  const src=(p.bag||[]).filter(x=>!x.curse);
-  const nameOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.n)?x.n:""; };
+  const nameOf=t=>{ const s=a.sources[t.idx]; if(s&&s.items) return s.name; const x=s&&s.item; return (x&&(x.ab||x.m||null)===t.ab&&x.n)?x.n:""; };
   /* 「這一隊是不是傳說」與它的頭頂短名（請神存在感卷 2026-09-13）。**純演出欄位**：引擎不讀、
      不進 buildArmy 的 teams（動 teams 會讓 trace 的等價斷言失去意義），只沿 nameOf 同一條對位
      （src[t.idx] 核 ab）從**袋子那件法寶自己的 legend／sn** 讀出來——不另外維護一份 ab 白名單。 */
-  const lgOf=t=>{ const x=src[t.idx]; return (x&&(x.ab||x.m||null)===t.ab&&x.legend)?x:null; };
+  const lgOf=t=>{ const s=a.sources[t.idx]; if(s&&s.items) return null; const x=s&&s.item; return (x&&(x.ab||x.m||null)===t.ab&&x.legend)?x:null; };
   /* t＝隊序（同一件法寶的紙紮同隊）：只給 DOM 隻數牌分隊畫徽章用，送 3D 的 armies 是逐欄位挑的，不會帶出去 */
   a.teams.forEach(t=>{ const nm=nameOf(t), L=lgOf(t); t.units.forEach(()=>units.push({body:t.body,fac:t.fac,ab:t.ab||null,nm,t:t.idx,lg:!!L,sn:L?(L.sn||L.n||""):""})); });
   units.forEach((u,i)=>{ u.id=i; });
@@ -7691,7 +7710,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedba
   SELECT_ON, aiBids, resolveAuction, resolveBattles,
   ruleForRound, drawMarketFor, toSingleStake,
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
-  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
+  paperWar, duelBags, phaseFor, phaseText, TRAITS, PHASES, CHAINS, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
   PW_FX, TRAIT_FX, TRAIT_ITEM,
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */
