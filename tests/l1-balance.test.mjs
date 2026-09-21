@@ -73,7 +73,7 @@ test('zero arm preserves recipe identity and bonus, removes only effects',()=>{
 
 test('summary uses full-game and holder denominators, including null zero cases',()=>{
   const rows=[{seed:1,winnerId:0,holder:true},{seed:2,winnerId:1,holder:false}];
-  assert.deepEqual(summarize(rows,'water'),{id:'water',games:2,wins:1,winRate:0.5,holders:1,holderWins:1,holderWinRate:1});
+  assert.deepEqual(summarize(rows,'water'),{id:'water',targetChain:'water',games:2,wins:1,winRate:0.5,holders:1,holderWins:1,holderWinRate:1});
   assert.equal(summarize([{seed:1,winnerId:1,holder:false}],'water').holderWinRate,null);
   assert.equal(summarize([],'water').winRate,null);
 });

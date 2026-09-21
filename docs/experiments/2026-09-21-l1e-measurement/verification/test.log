@@ -1,18 +1,19 @@
-✔ chaser prefers completion, then missing material, keeps original bids by index (25.3631ms)
-✔ one target per night: two missing materials and duplicate offers use first market index (24.1222ms)
-✔ chaser leaves splitter untouched when complete or no material available (11.4703ms)
-✔ chaser respects conservative cap, full fee budget and maximum bid count (12.5351ms)
-✔ chaser cannot inspect private opponents or future market (12.0485ms)
-✔ zero arm preserves recipe identity and bonus, removes only effects (36.2998ms)
-✔ summary uses full-game and holder denominators, including null zero cases (0.3795ms)
-✔ matched pairs align by seed and reject duplicates or missing seeds (1.1105ms)
-✔ real engine seven arms replay identically and carry raw metadata (1319.2931ms)
-✔ input and CLI reject nonpositive, duplicate or malformed samples (0.4958ms)
-ℹ tests 10
+✔ chaser prefers completion, then missing material, keeps original bids by index (20.4448ms)
+✔ one target per night: two missing materials and duplicate offers use first market index (19.0318ms)
+✔ chaser leaves splitter untouched when complete or no material available (12.9519ms)
+✔ chaser respects conservative cap, full fee budget and maximum bid count (10.728ms)
+✔ chaser cannot inspect private opponents or future market (10.5284ms)
+✔ zero arm preserves recipe identity and bonus, removes only effects (31.7799ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.315ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.8461ms)
+✔ real engine seven arms replay identically and carry raw metadata (1160.274ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.5866ms)
+✔ untargeted splitter holder fields are not measured, never zero attainment (0.1605ms)
+ℹ tests 11
 ℹ suites 0
-ℹ pass 10
+ℹ pass 11
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2964.658
+ℹ duration_ms 2796.7334

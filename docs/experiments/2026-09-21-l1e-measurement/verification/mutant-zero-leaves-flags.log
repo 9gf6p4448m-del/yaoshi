@@ -1,26 +1,27 @@
-✔ chaser prefers completion, then missing material, keeps original bids by index (24.7566ms)
-✔ one target per night: two missing materials and duplicate offers use first market index (20.0656ms)
-✔ chaser leaves splitter untouched when complete or no material available (11.8303ms)
-✔ chaser respects conservative cap, full fee budget and maximum bid count (11.1084ms)
-✔ chaser cannot inspect private opponents or future market (11.8831ms)
-✖ zero arm preserves recipe identity and bonus, removes only effects (13.369ms)
-✔ summary uses full-game and holder denominators, including null zero cases (0.3901ms)
-✔ matched pairs align by seed and reject duplicates or missing seeds (0.698ms)
-✔ real engine seven arms replay identically and carry raw metadata (939.6452ms)
-✔ input and CLI reject nonpositive, duplicate or malformed samples (0.5211ms)
-ℹ tests 10
+✔ chaser prefers completion, then missing material, keeps original bids by index (22.3795ms)
+✔ one target per night: two missing materials and duplicate offers use first market index (21.8583ms)
+✔ chaser leaves splitter untouched when complete or no material available (13.2706ms)
+✔ chaser respects conservative cap, full fee budget and maximum bid count (13.8311ms)
+✔ chaser cannot inspect private opponents or future market (12.0112ms)
+✖ zero arm preserves recipe identity and bonus, removes only effects (15.6338ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.2569ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.6517ms)
+✔ real engine seven arms replay identically and carry raw metadata (865.5225ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.6662ms)
+✔ untargeted splitter holder fields are not measured, never zero attainment (0.1938ms)
+ℹ tests 11
 ℹ suites 0
-ℹ pass 9
+ℹ pass 10
 ℹ fail 1
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2578.2343
+ℹ duration_ms 2506.5475
 
 ✖ failing tests:
 
-test at ..\..\..\AppData\Local\Temp\l1e-evidence-0oKc05\mutant-zero-leaves-flags\l1-balance.test.mjs:63:1
-✖ zero arm preserves recipe identity and bonus, removes only effects (13.369ms)
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PPjgkN\mutant-zero-leaves-flags\l1-balance.test.mjs:63:1
+✖ zero arm preserves recipe identity and bonus, removes only effects (15.6338ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
   
@@ -36,7 +37,7 @@ test at ..\..\..\AppData\Local\Temp\l1e-evidence-0oKc05\mutant-zero-leaves-flags
         'boat',
         'buoy'
   
-      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-0oKc05/mutant-zero-leaves-flags/l1-balance.test.mjs:68:12)
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PPjgkN/mutant-zero-leaves-flags/l1-balance.test.mjs:68:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:897:18)

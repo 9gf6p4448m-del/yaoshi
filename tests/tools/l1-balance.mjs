@@ -72,9 +72,11 @@ export function disableChainEffects(G,id){
 export function summarize(rows,id){
   const games=rows.length;
   const wins=rows.filter(r=>r.winnerId===0).length;
+  const targetChain=CHAIN_IDS.find(chain=>id===chain||id===`${chain}-normal`||id===`${chain}-zero`)||null;
+  if(!targetChain) return {id,targetChain:null,games,wins,winRate:games?wins/games:null,holders:null,holderWins:null,holderWinRate:null};
   const held=rows.filter(r=>r.holder===true);
   const holders=held.length,holderWins=held.filter(r=>r.winnerId===0).length;
-  return {id,games,wins,winRate:games?wins/games:null,holders,holderWins,
+  return {id,targetChain,games,wins,winRate:games?wins/games:null,holders,holderWins,
     holderWinRate:holders?holderWins/holders:null};
 }
 
@@ -166,13 +168,14 @@ export function writeReport(result,out){
   const {rows,...summary}=result;
   fs.writeFileSync(path.join(dir,'summary.json'),JSON.stringify(summary,null,2)+'\n');
   const lines=['# L1e exploratory measurement','','Formal status: incomplete — '+result.formalReason,'',
-    `Source SHA256: ${result.sourceSha256}`,`Tool SHA256: ${result.toolSha256}`,`Git HEAD: ${result.gitHead}`,'',
+    `Source SHA256: ${result.sourceSha256}`,`Measurement tool SHA256: ${result.toolSha256}`,`Measurement Git HEAD: ${result.gitHead}`,
+    ...(result.reportToolSha256?[`Report tool SHA256: ${result.reportToolSha256}`,`Raw SHA256: ${result.rawSha256}`,`Report Git HEAD: ${result.reportGitHead}`]:[]),'',
     '| Arm | Games | Wins | Win rate | End holders | Holder wins | Conditional holder win rate | Paired vs splitter (pp) |',
     '|---|---:|---:|---:|---:|---:|---:|---:|'];
   const pct=x=>x==null?'null':(100*x).toFixed(2)+'%';
   for(const arm of result.arms){
     const s=result.summary[arm];
-    lines.push(`| ${arm} | ${s.games} | ${s.wins} | ${pct(s.winRate)} | ${s.holders} | ${s.holderWins} | ${pct(s.holderWinRate)} | ${result.pairedVsSplitter[arm]?.winDiffPp??'null'} |`);
+    lines.push(`| ${arm} | ${s.games} | ${s.wins} | ${pct(s.winRate)} | ${s.holders??'N/A'} | ${s.holderWins??'N/A'} | ${s.targetChain?pct(s.holderWinRate):'N/A'} | ${result.pairedVsSplitter[arm]?.winDiffPp??'null'} |`);
   }
   lines.push('','| Chain | Normal − zero paired win difference (pp) | Conditional holder rate difference (pp; noncausal) |',
     '|---|---:|---:|');
@@ -180,7 +183,8 @@ export function writeReport(result,out){
     const pair=result.pairedNormalVsZero[id];
     lines.push(`| ${id} | ${pair.winDiffPp??'null'} | ${pair.conditionalHolderRateDiffPp??'null'} |`);
   }
-  lines.push('','The chaser target is min(conservative cap, max(original splitter amount, 2) + 2).',
+  lines.push('','Splitter has no target chain: its holder fields are not measured (N/A), not zero attainment.',
+    'The chaser target is min(conservative cap, max(original splitter amount, 2) + 2).',
     'The zero arm disables only the target chain effects through the shared CHAINS table, for all four seats. Its paired difference is not an isolated seat-0 ability effect.',
     'The ID-based eyesSecondBid UI helper remains available in the zero arm; this headless policy never uses it.',
     'The engine stops when the human seat dies; end bag and game length describe that runner endpoint, not a continued AI-only game.',
