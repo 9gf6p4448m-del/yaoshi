@@ -1,0 +1,34 @@
+{
+  "baseline": {
+    "exitCode": 0,
+    "log": "test.log"
+  },
+  "coverage": {
+    "coveredBytes": 5788,
+    "instrumentedBytes": 6142,
+    "ratio": 0.9423640507977857,
+    "functions": [
+      "validateSeeds",
+      "createChaser",
+      "disableChainEffects",
+      "summarize",
+      "keyed",
+      "comparePaired",
+      "gameRow",
+      "runExperiment"
+    ]
+  },
+  "mutants": [
+    {
+      "name": "mutant-no-chaser-boost",
+      "exitCode": 1,
+      "log": "mutant-no-chaser-boost.log"
+    },
+    {
+      "name": "mutant-zero-removes-recipe",
+      "exitCode": 1,
+      "log": "mutant-zero-removes-recipe.log"
+    }
+  ],
+  "sourceSha256": "788a2004604fdeb3e7b96c717bc7346d3e1c8da785f6967f9f3eb71a99f7bff0"
+}

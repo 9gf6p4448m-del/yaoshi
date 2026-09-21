@@ -1,0 +1,65 @@
+✔ chaser prefers completion, then missing material, keeps original bids by index (24.4685ms)
+✔ one target per night: two missing materials and duplicate offers use first market index (23.1494ms)
+✔ chaser leaves splitter untouched when complete or no material available (13.3261ms)
+✔ chaser respects conservative cap, full fee budget and maximum bid count (12.292ms)
+✔ chaser cannot inspect private opponents or future market (12.0621ms)
+✖ zero arm preserves recipe identity and bonus, removes only effects (14.2753ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.2423ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (0.7559ms)
+✖ real engine seven arms replay identically and carry raw metadata (195.8802ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.546ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 8
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1908.3303
+
+✖ failing tests:
+
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-zero-removes-recipe\l1-balance.test.mjs:63:1
+✖ zero arm preserves recipe identity and bonus, removes only effects (14.2753ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      aiBonus: 2,
+      desc: '毒標轉入的詛咒在入袋前銷毀',
+      id: 'water',
+      name: '水陸偷渡',
+  -   requirements: [
+  -     'boat',
+  -     'buoy'
+  -   ]
+    }
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/l1-balance.test.mjs:68:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { id: 'water', name: '水陸偷渡', desc: '毒標轉入的詛咒在入袋前銷毀', aiBonus: 2 },
+    expected: { id: 'water', name: '水陸偷渡', requirements: [ 'boat', 'buoy' ], desc: '毒標轉入的詛咒在入袋前銷毀', aiBonus: 2 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ..\..\..\AppData\Local\Temp\l1e-evidence-PZbblc\mutant-zero-removes-recipe\l1-balance.test.mjs:97:1
+✖ real engine seven arms replay identically and carry raw metadata (195.8802ms)
+  TypeError: Cannot read properties of undefined (reading 'every')
+      at eval (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:1262:65)
+      at Array.filter (<anonymous>)
+      at activeChains (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:1262:32)
+      at chains (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:1279:41)
+      at collectEffects (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:1280:82)
+      at applyHooks (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:1297:10)
+      at aiMark (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:2082:3)
+      at drawMarks (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:2088:62)
+      at Object.playPolicyGame (eval at loadGame (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/load.mjs:14:12), <anonymous>:6578:5)
+      at gameRow (file:///C:/Users/shung/AppData/Local/Temp/l1e-evidence-PZbblc/mutant-zero-removes-recipe/l1-balance.mjs:100:18)
