@@ -76,7 +76,7 @@ function configurePractice(key) {
 export function launch(key) {
   const ticket = ++sequence;
   const practice = CASES[key];
-  status.textContent = practice ? `練習：${practice.title}・預置局，非平衡結果` : '正常隨機局';
+  status.textContent = practice ? `練習・${practice.title}` : '正常隨機局';
   document.querySelector('#guide').textContent = practice ? `${practice.guide} 建議在第 1 件拍品出價 3。` : '正常隨機局使用原始設定與隨機市集。';
   panel.hidden = true;
   frame.onload = () => {
