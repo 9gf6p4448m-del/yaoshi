@@ -1,0 +1,69 @@
+{
+  "key": "tiger",
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "steps": [
+    {
+      "at": "market",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 50,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 46,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger"
+      ],
+      "market": [
+        "nail",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標",
+      "modal": "",
+      "duel": ""
+    }
+  ],
+  "errors": [],
+  "responses": [],
+  "metrics": {
+    "horizontalOverflow": false,
+    "htmlWidth": 844,
+    "clientWidth": 844,
+    "renderer": true,
+    "drawCalls": 17
+  },
+  "pass": true
+}

@@ -1,0 +1,70 @@
+{
+  "key": "eyes",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "steps": [
+    {
+      "at": "market",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 50,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 46,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "eye"
+      ],
+      "market": [
+        "bell",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「虎爺印」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標",
+      "modal": "",
+      "duel": ""
+    }
+  ],
+  "errors": [],
+  "responses": [],
+  "rotate": true,
+  "metrics": {
+    "horizontalOverflow": false,
+    "htmlWidth": 390,
+    "clientWidth": 390,
+    "renderer": true,
+    "drawCalls": 14
+  },
+  "pass": true
+}

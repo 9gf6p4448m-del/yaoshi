@@ -1,0 +1,170 @@
+{
+  "key": "normal",
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "steps": [
+    {
+      "at": "market",
+      "round": 1,
+      "roundLimit": 12,
+      "bag": [],
+      "market": [
+        "sigui",
+        "thunder",
+        "shanshen",
+        "wuying"
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "👁 盯上宣告：封標前公開釘一件「我盯上了」。🤝 你的信譽 1.00（還沒有紀錄）（近 4 次宣告；怎麼算看 ？）盯主標還是誘餌？看底列每隻對手的反應。",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "不盯任何一件"
+    },
+    {
+      "at": "bid3",
+      "round": 1,
+      "roundLimit": 12,
+      "bag": [],
+      "market": [
+        "sigui",
+        "thunder",
+        "shanshen",
+        "wuying"
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「虎姑婆指甲」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標"
+    },
+    {
+      "at": "reveal",
+      "round": 1,
+      "roundLimit": 12,
+      "bag": [
+        "sigui"
+      ],
+      "market": [
+        "sigui",
+        "thunder",
+        "shanshen",
+        "wuying"
+      ],
+      "history": [
+        [
+          {
+            "item": "飼鬼甕",
+            "fac": "yinqi",
+            "p": 3,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "雷女之火",
+            "fac": "zuling",
+            "p": 5,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 6,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 6,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 7
+              }
+            ]
+          },
+          {
+            "item": "山神庇佑",
+            "fac": "zuling",
+            "p": 4,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 6,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 6,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 7
+              }
+            ]
+          },
+          {
+            "item": "五營旗",
+            "fac": "xianghuo",
+            "p": 5,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "sigui",
+              "sigui"
+            ],
+            [
+              "wuying",
+              "wuying",
+              "wuying"
+            ]
+          ],
+          "time": 20101.5
+        }
+      ],
+      "preview": "",
+      "previewItems": 0,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "開戰"
+    }
+  ],
+  "errors": [],
+  "responses": [],
+  "pass": false,
+  "failure": "locator.waitFor: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#game').contentFrame().locator('#mainbtn').filter({ hasText: '進入下一夜' }) to be visible\u001b[22m\n\n    at C:\\Users\\shung\\wt\\yaoshi\\l1-water-chain\\tests\\tools\\l1-playtest-probe.mjs:78:63"
+}

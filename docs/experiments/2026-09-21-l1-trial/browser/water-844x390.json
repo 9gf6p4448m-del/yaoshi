@@ -1,0 +1,468 @@
+{
+  "key": "water",
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "steps": [
+    {
+      "at": "market",
+      "round": 1,
+      "bag": [
+        "boat"
+      ],
+      "market": [
+        "buoy",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "chain": "",
+      "phase": "蓋牌開標"
+    },
+    {
+      "at": "bid3",
+      "round": 1,
+      "bag": [
+        "boat"
+      ],
+      "market": [
+        "buoy",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "chain": "",
+      "phase": "蓋牌開標"
+    },
+    {
+      "at": "reveal",
+      "round": 1,
+      "bag": [
+        "boat",
+        "buoy"
+      ],
+      "market": [
+        "buoy",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "水鬼浮標",
+            "fac": "yinqi",
+            "p": 5,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 1
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "白虎煞",
+            "fac": "curse",
+            "p": -3,
+            "curse": true,
+            "winnerId": 1,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "poisonBlocked": true,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "chain": "",
+      "phase": "開戰"
+    },
+    {
+      "at": "battle-end",
+      "round": 1,
+      "bag": [
+        "boat",
+        "buoy"
+      ],
+      "market": [
+        "buoy",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "水鬼浮標",
+            "fac": "yinqi",
+            "p": 5,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 1
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "白虎煞",
+            "fac": "curse",
+            "p": -3,
+            "curse": true,
+            "winnerId": 1,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "poisonBlocked": true,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "boat",
+              "boat",
+              "boat",
+              "buoy",
+              "buoy",
+              "buoy",
+              "buoy"
+            ],
+            [
+              "bow",
+              "flag",
+              "flag"
+            ]
+          ],
+          "time": 16225.40000000596
+        },
+        {
+          "armies": [
+            [
+              null
+            ],
+            [
+              null
+            ]
+          ],
+          "time": 24555
+        }
+      ],
+      "preview": "",
+      "chain": "",
+      "phase": "進入下一夜"
+    },
+    {
+      "at": "second-night",
+      "round": 2,
+      "bag": [
+        "boat",
+        "buoy"
+      ],
+      "market": [
+        "fushou",
+        "hairpin",
+        "xianji",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "水鬼浮標",
+            "fac": "yinqi",
+            "p": 5,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 1
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "白虎煞",
+            "fac": "curse",
+            "p": -3,
+            "curse": true,
+            "winnerId": 1,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "poisonBlocked": true,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "boat",
+              "boat",
+              "boat",
+              "buoy",
+              "buoy",
+              "buoy",
+              "buoy"
+            ],
+            [
+              "bow",
+              "flag",
+              "flag"
+            ]
+          ],
+          "time": 16225.40000000596
+        },
+        {
+          "armies": [
+            [
+              null
+            ],
+            [
+              null
+            ]
+          ],
+          "time": 24555
+        }
+      ],
+      "preview": "🔮 明夜預告：「黃色小雨衣」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "chain": "",
+      "phase": "蓋牌開標"
+    }
+  ],
+  "errors": [],
+  "responses": [],
+  "metrics": {
+    "horizontalOverflow": false,
+    "htmlWidth": 844,
+    "clientWidth": 844,
+    "renderer": true,
+    "drawCalls": 66
+  },
+  "pass": true
+}

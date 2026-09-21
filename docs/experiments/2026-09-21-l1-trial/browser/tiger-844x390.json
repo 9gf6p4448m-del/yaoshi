@@ -1,0 +1,984 @@
+{
+  "key": "tiger",
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "steps": [
+    {
+      "at": "market",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 50,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 46,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger"
+      ],
+      "market": [
+        "nail",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標",
+      "modal": "",
+      "duel": ""
+    },
+    {
+      "at": "bid3",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 50,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 46,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 50,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger"
+      ],
+      "market": [
+        "nail",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標",
+      "modal": "",
+      "duel": ""
+    },
+    {
+      "at": "reveal",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 46,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 41,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 46,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 37,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger",
+        "nail",
+        null
+      ],
+      "market": [
+        "nail",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "虎姑婆指甲",
+            "fac": "yinqi",
+            "p": 4,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 1,
+            "type": "yaming",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 1,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "抓交替水符",
+            "fac": "curse",
+            "p": -4,
+            "curse": true,
+            "winnerId": 3,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 3
+              },
+              {
+                "pid": 3,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [],
+      "preview": "🔮 明夜預告：「福壽綿長」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "開戰",
+      "modal": "none",
+      "duel": ""
+    },
+    {
+      "at": "battle-end",
+      "seed": 20260921,
+      "round": 1,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 52,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 36,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 51,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 36,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger",
+        "nail",
+        null
+      ],
+      "market": [
+        "nail",
+        "bow",
+        "flag",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "虎姑婆指甲",
+            "fac": "yinqi",
+            "p": 4,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 1,
+            "type": "yaming",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 1,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "抓交替水符",
+            "fac": "curse",
+            "p": -4,
+            "curse": true,
+            "winnerId": 3,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 3
+              },
+              {
+                "pid": 3,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "twinTiger"
+            ],
+            [
+              "flag",
+              "flag"
+            ]
+          ],
+          "time": 17827.19999998808
+        },
+        {
+          "armies": [
+            [
+              null
+            ],
+            [
+              "bow"
+            ]
+          ],
+          "time": 23606.5
+        }
+      ],
+      "preview": "",
+      "previewItems": 0,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "進入下一夜",
+      "modal": "none",
+      "duel": "none"
+    },
+    {
+      "at": "second-night",
+      "seed": 20260921,
+      "round": 2,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 52,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 36,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 51,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 36,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger",
+        "nail",
+        null
+      ],
+      "market": [
+        "fushou",
+        "hairpin",
+        "xianji",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "虎姑婆指甲",
+            "fac": "yinqi",
+            "p": 4,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 1,
+            "type": "yaming",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 1,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "抓交替水符",
+            "fac": "curse",
+            "p": -4,
+            "curse": true,
+            "winnerId": 3,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 3
+              },
+              {
+                "pid": 3,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "twinTiger"
+            ],
+            [
+              "flag",
+              "flag"
+            ]
+          ],
+          "time": 17827.19999998808
+        },
+        {
+          "armies": [
+            [
+              null
+            ],
+            [
+              "bow"
+            ]
+          ],
+          "time": 23606.5
+        }
+      ],
+      "preview": "🔮 明夜預告：「黃色小雨衣」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "蓋牌開標",
+      "modal": "none",
+      "duel": "none"
+    },
+    {
+      "at": "test-only-nail-removed",
+      "bag": [
+        "tiger",
+        null
+      ],
+      "army": [
+        "tiger"
+      ]
+    },
+    {
+      "at": "restored-battle",
+      "seed": 20260921,
+      "round": 2,
+      "roundLimit": 3,
+      "players": [
+        {
+          "id": 0,
+          "alive": true,
+          "life": 57,
+          "ai": false
+        },
+        {
+          "id": 1,
+          "alive": true,
+          "life": 21,
+          "ai": true
+        },
+        {
+          "id": 2,
+          "alive": true,
+          "life": 43,
+          "ai": true
+        },
+        {
+          "id": 3,
+          "alive": true,
+          "life": 26,
+          "ai": true
+        }
+      ],
+      "bag": [
+        "tiger",
+        null,
+        null
+      ],
+      "market": [
+        "fushou",
+        "hairpin",
+        "xianji",
+        null
+      ],
+      "history": [
+        [
+          {
+            "item": "虎姑婆指甲",
+            "fac": "yinqi",
+            "p": 4,
+            "curse": false,
+            "winnerId": 0,
+            "amt": 3,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 0,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 4
+              }
+            ]
+          },
+          {
+            "item": "射日神弓",
+            "fac": "zuling",
+            "p": 7,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 1,
+            "type": "yaming",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 1,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "媽祖令旗",
+            "fac": "xianghuo",
+            "p": 7,
+            "curse": false,
+            "winnerId": 3,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              }
+            ]
+          },
+          {
+            "item": "抓交替水符",
+            "fac": "curse",
+            "p": -4,
+            "curse": true,
+            "winnerId": 3,
+            "amt": 5,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 3
+              },
+              {
+                "pid": 3,
+                "amt": 5,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 6
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "item": "福壽綿長",
+            "fac": "xianghuo",
+            "p": 3,
+            "curse": false,
+            "winnerId": null,
+            "amt": 0,
+            "type": null,
+            "intent": null,
+            "targetId": null,
+            "bids": []
+          },
+          {
+            "item": "林投姐髮簪",
+            "fac": "yinqi",
+            "p": 6,
+            "curse": false,
+            "winnerId": 2,
+            "amt": 10,
+            "type": "yaming",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 2,
+                "amt": 10,
+                "type": "yaming",
+                "intent": "keep",
+                "cost": 11
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "獻祭刀",
+            "fac": "zuling",
+            "p": 6,
+            "curse": false,
+            "winnerId": 1,
+            "amt": 4,
+            "type": "cons",
+            "intent": "keep",
+            "targetId": null,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 5
+              },
+              {
+                "pid": 3,
+                "amt": 4,
+                "type": "cons",
+                "intent": "keep",
+                "cost": 2
+              }
+            ]
+          },
+          {
+            "item": "白虎煞",
+            "fac": "curse",
+            "p": -3,
+            "curse": true,
+            "winnerId": 1,
+            "amt": 4,
+            "type": "cons",
+            "intent": "poison",
+            "targetId": 0,
+            "bids": [
+              {
+                "pid": 1,
+                "amt": 4,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 5
+              },
+              {
+                "pid": 2,
+                "amt": 3,
+                "type": "cons",
+                "intent": "poison",
+                "cost": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "duels": [
+        {
+          "armies": [
+            [
+              "twinTiger"
+            ],
+            [
+              "flag",
+              "flag"
+            ]
+          ],
+          "time": 17827.19999998808
+        },
+        {
+          "armies": [
+            [
+              null
+            ],
+            [
+              "bow"
+            ]
+          ],
+          "time": 23606.5
+        },
+        {
+          "armies": [
+            [
+              "tiger"
+            ],
+            [
+              "xianji"
+            ]
+          ],
+          "time": 45966.09999999404
+        }
+      ],
+      "preview": "🔮 明夜預告：「黃色小雨衣」　點拍品出價・每夜最多 2 筆・每筆買路錢 1",
+      "previewItems": 1,
+      "previewTrait": 1,
+      "chain": "",
+      "phase": "開戰",
+      "modal": "none",
+      "duel": "flex"
+    }
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:8898/assets/creatures/twinTiger.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8898/assets/creatures/tiger_c.glb",
+      "status": 200
+    }
+  ],
+  "testOnlyFixture": "After the complete first night, removed nail from the live player bag before night two; no game reset or product timer override.",
+  "restoredFigure": {
+    "ab": "tiger",
+    "ready": true,
+    "visible": true,
+    "meshes": [
+      "creature_1",
+      "creature_2",
+      "creature_3",
+      "creature_4",
+      "creature_5",
+      "creature_6",
+      "creature_7",
+      "creature_8",
+      "creature_9",
+      "creature_10",
+      "creature_11",
+      "creature_12",
+      "creature_13",
+      "creature_14",
+      "creature_15",
+      "creature_16",
+      "outline"
+    ],
+    "materials": [
+      "fur_body",
+      "fur_head",
+      "fur_jaw",
+      "fur_tail",
+      "fur_leg",
+      "ear",
+      "eye",
+      "stripe",
+      "nose",
+      "mouth_glow",
+      "fang",
+      "glow_seal",
+      "sash",
+      "glow_mane",
+      "glow_tail",
+      "fur_paw",
+      ""
+    ]
+  },
+  "metrics": {
+    "horizontalOverflow": false,
+    "htmlWidth": 844,
+    "clientWidth": 844,
+    "renderer": true,
+    "drawCalls": 1
+  },
+  "pass": true
+}
