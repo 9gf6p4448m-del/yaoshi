@@ -1,0 +1,7 @@
+GREEN evidence (2026-09-21)
+- node --test tests/chains.test.mjs tests/review.test.mjs tests/ledger.test.mjs tests/lines.test.mjs tests/replay-export.test.mjs: 18/18 top-level tests; review legacy 28/28.
+- de471a2:index.html vs current index.html with CHAINS={} in temp copy: trace seeds 1–20, both 346441 bytes, exact equal (trace-empty-water.json).
+- Mutation 1: force blockPoisonTransfer condition false; chains.test.mjs 4 failures at intercept, same-night and side-effect assertions.
+- Mutation 2: omit !poisonBlocked from reviewSummary; chains.test.mjs 1 failure at review hit assertion.
+- V8 precise coverage on chains.test.mjs: activeChains 224/224 bytes executed; chainsCompletedBy 241/245 bytes executed (98.4%), based on nested function ranges. Interception branch paths exercised in blocked/unblocked, same-night order, and own-purchase tests; whole 77k-line HTML coverage is not this denominator.
+- Browser probe owned separately by parent task.

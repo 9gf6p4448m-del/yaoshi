@@ -86,7 +86,7 @@ for(const seed of SEEDS){
   test(`seed ${seed}：reviewSummary 加總與原始紀錄一致`,()=>{
     const sm=G.reviewSummary();
     let burned=0, wins=0, poison=0, maxAmt=0;
-    H.nights.forEach(n=>{ n.auction.forEach(a=>{ a.bids.forEach(b=>{ burned+=b.cost; maxAmt=Math.max(maxAmt,b.amt); }); if(a.intent==='poison') poison++; }); n.fights.forEach(f=>{ if(f.w!=null) wins++; }); });
+    H.nights.forEach(n=>{ n.auction.forEach(a=>{ a.bids.forEach(b=>{ burned+=b.cost; maxAmt=Math.max(maxAmt,b.amt); }); if(a.intent==='poison'&&!a.poisonBlocked) poison++; }); n.fights.forEach(f=>{ if(f.w!=null) wins++; }); });
     eq(sm.burned,burned,'burned'); eq(sm.poison,poison,'poison'); eq(sm.nights,H.nights.length,'nights'); eq(sm.curveLen,H.life.length,'curveLen');
     eq(Object.values(sm.wins).reduce((s,v)=>s+v,0),wins,'wins 總和');
     eq(sm.maxBid?sm.maxBid.amt:0,maxAmt,'maxBid');

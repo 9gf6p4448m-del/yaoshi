@@ -63,7 +63,7 @@ function evExists(H, ev) {
   switch (ev.type) {
     case 'pay': { const a = n.auction[ev.idx]; return !!a && (a.bids || []).some((b) => b.pid === ev.who && (b.cost || 0) > 0); }
     case 'win': { const a = n.auction[ev.idx]; return !!a && a.winnerId === ev.who && a.intent !== 'poison'; }
-    case 'poison': { const a = n.auction[ev.idx]; return !!a && a.winnerId === ev.who && a.intent === 'poison' && a.targetId != null; }
+    case 'poison': { const a = n.auction[ev.idx]; return !!a && a.winnerId === ev.who && a.intent === 'poison' && !a.poisonBlocked && a.targetId != null; }
     case 'fight': return (n.fights || []).some((f) => (f.a === ev.who || f.b === ev.who) && f.w != null && f.w !== ev.who);
     case 'death': return (n.deaths || []).includes(ev.who);
     case 'shrine': return !!(n.shrine && (n.shrine.taken || []).some((t) => t.pid === ev.who));

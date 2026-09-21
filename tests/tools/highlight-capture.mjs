@@ -27,7 +27,7 @@ function hits(S){
  const rank=[...S.players].sort((a,b)=>Number(b.alive)-Number(a.alive)||b.life-a.life);
  return {
   bluff:S.history.nights.filter(n=>n.auction.some(a=>a.winnerId===0&&n.marks.some(m=>m.pid===0&&m.item===a.item)&&(a.bids.length===1||a.amt<=G.CFG.WISH_T2.bargainAmt))).map(n=>n.round),
-  'borrowed-blade':S.history.nights.filter(n=>n.auction.some(a=>a.intent==='poison'&&n.deaths.includes(a.targetId))).map(n=>n.round),
+  'borrowed-blade':S.history.nights.filter(n=>n.auction.some(a=>a.intent==='poison'&&!a.poisonBlocked&&n.deaths.includes(a.targetId))).map(n=>n.round),
   'death-edge':rank[0].alive&&S.history.life.some(r=>r[rank[0].id]<=5)?[S.round]:[],
  };
 }

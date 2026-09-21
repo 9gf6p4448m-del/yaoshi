@@ -44,7 +44,7 @@ for (const f of files) {
     const n = H.nights[best.k - 1];
     const paid = n ? n.auction.map((a, idx) => ({ a, idx, b: a.bids.find((b) => b.pid === h.id && (b.cost || 0) > 0) })).filter((x) => x.b).map((x) => `「${x.a.item}」付 ${x.b.cost}${x.a.winnerId === h.id ? '（得標）' : '（落標）'}`) : [];
     const lost = n ? n.fights.filter((ft) => ft.w != null && ft.w !== h.id && (ft.a === h.id || ft.b === h.id)).map((ft) => `夜戰敗給 ${nm(ft.w)} −${ft.dmg}`) : [];
-    const poisoned = n ? n.auction.filter((a) => a.intent === 'poison' && a.targetId === h.id).map((a) => `被 ${nm(a.winnerId)} 塞「${a.item}」`) : [];
+    const poisoned = n ? n.auction.filter((a) => a.intent === 'poison' && !a.poisonBlocked && a.targetId === h.id).map((a) => `被 ${nm(a.winnerId)} 塞「${a.item}」`) : [];
     console.log(`  補充：${nm(h.id)} 跌最多的一夜＝${n ? `第${CN[n.round]}夜` : '未記夜次的局末區間'}（淨減少 ${best.d}）：${[...paid, ...lost, ...poisoned].join('；') || (n ? '（未記錄拍賣支出、夜戰落敗或被塞毒標；不能推定無其他損失）' : '（逐項紀錄不足）')}`);
   }
   try {

@@ -25,7 +25,7 @@ function publicEvents(G, S) {
     for (const a of n.auction || []) {
       if (a.winnerId == null) continue;
       const base = { round: n.round, item: a.item, fac: G.FAC[a.fac] ? G.FAC[a.fac].n : '' };
-      const isPoison = a.intent === 'poison' && a.targetId != null;
+      const isPoison = a.intent === 'poison' && !a.poisonBlocked && a.targetId != null;
       out.push({ ...base, type: isPoison ? 'poison' : 'win', who: a.winnerId, you: isPoison ? nm(a.targetId) : '' });
       for (const b of a.bids || []) if (b.pid !== a.winnerId) out.push({ ...base, type: 'lose', who: b.pid, whoName: nm(a.winnerId) });
       if (isPoison) out.push({ ...base, type: 'poisoned', who: a.targetId, whoName: nm(a.winnerId) });
@@ -41,9 +41,9 @@ function publicEvents(G, S) {
 function evExists(G, S, ev) {
   const n = S.history.nights.find((x) => x.round === ev.round); if (!n) return false;
   switch (ev.type) {
-    case 'win': return (n.auction || []).some((a) => a.winnerId === ev.who && a.intent !== 'poison');
-    case 'poison': return (n.auction || []).some((a) => a.winnerId === ev.who && a.intent === 'poison');
-    case 'poisoned': return (n.auction || []).some((a) => a.intent === 'poison' && a.targetId === ev.who);
+    case 'win': return (n.auction || []).some((a) => a.winnerId === ev.who && (a.intent !== 'poison' || a.poisonBlocked));
+    case 'poison': return (n.auction || []).some((a) => a.winnerId === ev.who && a.intent === 'poison' && !a.poisonBlocked);
+    case 'poisoned': return (n.auction || []).some((a) => a.intent === 'poison' && !a.poisonBlocked && a.targetId === ev.who);
     case 'lose': return (n.auction || []).some((a) => a.winnerId != null && a.winnerId !== ev.who && (a.bids || []).some((b) => b.pid === ev.who));
     case 'mark': return (n.marks || []).some((m) => m.pid === ev.who);
     case 'death': return (n.deaths || []).includes(ev.who);

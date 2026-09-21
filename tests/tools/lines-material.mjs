@@ -17,7 +17,7 @@ for (let seed = 1; seed <= 20 && items.length < 14; seed++) {
     for (const a of n.auction || []) {
       if (a.winnerId == null) continue;
       const fac = G.FAC[a.fac] ? G.FAC[a.fac].n : '';
-      const poison = a.intent === 'poison' && a.targetId != null;
+      const poison = a.intent === 'poison' && !a.poisonBlocked && a.targetId != null;
       /* 毒標交易是「一件事的兩面」（塞人／被塞）：兩個事件物件共用 txn，清單只列一條、答案鍵兩面都算對
          （S4 r3 對照題 s3 的教訓：列成兩條時讀者選另一面被判錯，2026-09-18） */
       const txn = poison ? `${n.round}:${n.auction.indexOf(a)}` : null;

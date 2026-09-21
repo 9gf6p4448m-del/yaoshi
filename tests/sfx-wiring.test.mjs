@@ -110,7 +110,7 @@ test('凍結 #6①：封標／揭盅／受咒／落籌接線與 SKIP、?sfx=0 �
       await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
       await newGame(page, seed);
       await driveUntil(page, /看最終結果/);
-      const { log, nights } = await page.evaluate(() => ({ log: window.__sfxLog.slice(), nights: window.__yaoshi.S.history.nights.map((n) => ({ round: n.round, winners: n.auction.filter((a) => a.winnerId != null).length, poison: n.auction.filter((a) => a.intent === 'poison').length })) }));
+      const { log, nights } = await page.evaluate(() => ({ log: window.__sfxLog.slice(), nights: window.__yaoshi.S.history.nights.map((n) => ({ round: n.round, winners: n.auction.filter((a) => a.winnerId != null).length, poison: n.auction.filter((a) => a.intent === 'poison' && !a.poisonBlocked).length })) }));
       const c = summarize(log);
       const winners = nights.reduce((s, n) => s + n.winners, 0), poison = nights.reduce((s, n) => s + n.poison, 0);
       t.diagnostic(`seed ${seed}: nights ${nights.length} winners ${winners} poison ${poison} stalls ${JSON.stringify(stalls.splice(0))} → ${JSON.stringify(c)}`);

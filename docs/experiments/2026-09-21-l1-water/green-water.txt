@@ -1,0 +1,59 @@
+✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (30.3448ms)
+✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (27.1689ms)
+✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (16.5722ms)
+✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (15.2021ms)
+✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (30.2903ms)
+✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (14.8134ms)
+✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (1111.9146ms)
+✔ 道具、連鎖、角色與心願的收集層順序固定 (10.9801ms)
+✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (13.4062ms)
+✔ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (16.9055ms)
+✔ 凍結 #9 ①②③④：seeds 1–20 句數 3–6、evRef 對得上、無私有資訊、同 seed 逐字相同、cause 與口徑逐欄相等 (1121.7331ms)
+ℹ cause kinds: {"night":20,"interval":0,"none":0} evRef types: {"dawn":20,"night":20,"win":20,"poison":18,"death":20,"shrine":20} no-poison games: 2
+✔ 凍結 #9 ⑤：異事夜殺到剩一人（補快照路徑）、無毒標局、空局都 ≥1 句不 throw (40.7019ms)
+✔ 凍結 #8 ①：每個 AI 角色七個鍵各 ≥2 句，佔位只用公開欄位 (26.0704ms)
+✔ 凍結 #8 ②③④⑤：seeds 1–20 evRef 對得上、無私有資訊、同 seed 逐字相同、六類都量到 (1109.9587ms)
+ℹ events per type: {"win":347,"lose":222,"poison":57,"poisoned":37,"mark":462,"death":18,"shrine":28}
+✔ replayExport：seeds 1–10 打包→JSON→貼回，history 逐值相同、口徑相同、敘事相同、可重現 (646.305ms)
+✔ 回顧畫面只有一顆複製按鈕，copyReplay 不用會擋頁的對話框 (0.811ms)
+✔ 回顧畫面只有一顆下載按鈕，downloadReplay 走分享面板→下載、檔名決定性、不用對話框 (1.0479ms)
+  PASS  seed 3：S.history 存在且形狀正確
+  PASS  seed 3：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 3：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 3：末筆快照 = 局末各人壽命
+  PASS  seed 3：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 3：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 3：對決紀錄與死亡紀錄自洽
+  PASS  seed 3：reviewSummary 加總與原始紀錄一致
+  PASS  seed 3：finalizeHistory 冪等；壽命被改動後才補一筆
+  PASS  seed 7：S.history 存在且形狀正確
+  PASS  seed 7：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 7：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 7：末筆快照 = 局末各人壽命
+  PASS  seed 7：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 7：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 7：對決紀錄與死亡紀錄自洽
+  PASS  seed 7：reviewSummary 加總與原始紀錄一致
+  PASS  seed 7：finalizeHistory 冪等；壽命被改動後才補一筆
+  PASS  seed 11：S.history 存在且形狀正確
+  PASS  seed 11：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 11：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 11：末筆快照 = 局末各人壽命
+  PASS  seed 11：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 11：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 11：對決紀錄與死亡紀錄自洽
+  PASS  seed 11：reviewSummary 加總與原始紀錄一致
+  PASS  seed 11：finalizeHistory 冪等；壽命被改動後才補一筆
+        活性計數： {"bids":144,"poison":8,"deaths":7,"wishesDone":42}
+  PASS  活性：三個種子合計有出價、有毒標、有死亡、有心願達成（不是空紀錄）
+────────────────────────────
+通過 28　失敗 0
+✔ tests\review.test.mjs (1801.7149ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2922.4208
