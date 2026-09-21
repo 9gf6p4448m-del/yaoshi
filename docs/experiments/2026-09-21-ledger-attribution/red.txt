@@ -1,0 +1,120 @@
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (23.3105ms)
+✖ death later in the game is not described as death on the loss night (27.0042ms)
+✖ an unrecorded terminal interval is not invented as a named event or numbered night (14.2228ms)
+✖ equal losses select the later snapshot, then lower seat; missing causes remain unknown (16.0846ms)
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (52.2363ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1709.3685
+
+✖ failing tests:
+
+test at tests\ledger-attribution.test.mjs:13:1
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (23.3105ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'pay' !== 'night'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:17:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pay',
+    expected: 'night',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:27:1
+✖ death later in the game is not described as death on the loss night (27.0042ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /從此|出局|倒下/. Input:
+  
+  '這一局的分水嶺在第二夜：南家・甲 為「破軍旗」付出大半條命，從此再沒站起來。'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:31:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '這一局的分水嶺在第二夜：南家・甲 為「破軍旗」付出大半條命，從此再沒站起來。',
+    expected: /從此|出局|倒下/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:35:1
+✖ an unrecorded terminal interval is not invented as a named event or numbered night (14.2228ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'event'
+  - 'interval'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'event',
+    expected: 'interval',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:45:1
+✖ equal losses select the later snapshot, then lower seat; missing causes remain unknown (16.0846ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  
+  undefined !== []
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:50:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:56:1
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (52.2363ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'pay' !== 'night'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:60:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pay',
+    expected: 'night',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
