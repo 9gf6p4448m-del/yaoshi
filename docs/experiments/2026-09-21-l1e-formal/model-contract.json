@@ -1,0 +1,126 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v1",
+  "sourceCommit": "cb64f4e",
+  "status": "incomplete",
+  "implemented": false,
+  "scope": {
+    "game": "original solo four-seat finite extensive-form game",
+    "rounds": 12,
+    "termination": "playPolicyGame: stop when seat 0 is dead, at most one player remains alive, or round >= CFG.ROUNDS; an event may stop a night before auction",
+    "chainIds": ["water", "twinTiger", "eyes"],
+    "root": "all legal makeState('solo', seed-equivalent chance outcomes, picks) initializations under the frozen original CFG, with the complete support of every initialization random draw; seed 1..10000 is a measurement schedule, not the formal root universe",
+    "players": [0, 1, 2, 3],
+    "quantification": "all legal reachable histories, each player's legal observation-equivalent information sets, all legal contingent policies, and all positive-probability chance outcomes through original terminal settlement",
+    "exclusions": [
+      "fixed AI or scriptedBids profiles as a substitute for player action sets",
+      "10000 seeds or any random sample as a substitute for complete chance support",
+      "one-night snapshots or hand-picked bid amounts as a substitute for the complete cross-night game",
+      "UI animation and rendering as strategic actions",
+      "post-seat-0-death continuation absent from the original solo runner"
+    ]
+  },
+  "inventory": [
+    {
+      "id": "root.initialization",
+      "implemented": false,
+      "existingEvidence": ["index.html makeState:3016 initializes solo state, roster, decks, rule/event orders, markets and shrines", "index.html CFG:782 sets ROUNDS=12"],
+      "missingAdapter": "Enumerate every distinct legal initial roster and all weighted shuffle/draw outcomes, preserving their correlations and ordering; define a finite symbolic chance root rather than enumerating seed values.",
+      "nextAcceptance": "Every root branch reconstructs an original legal makeState outcome with its exact rational probability; summed root mass is one and branch multiplicity is accounted for.",
+      "exclusions": ["seed 1..10000", "a representative set of initial bags or markets"],
+      "blockingReason": "makeState consumes closure RNG during role selection and deck/order/market initialization; no complete-root enumeration adapter exists."
+    },
+    {
+      "id": "state.snapshotRestore",
+      "implemented": false,
+      "existingEvidence": ["index.html mulberry32:2789 keeps its mutable counter in a closure", "index.html makeState:3016 stores S.rng and S.rngUi closures, deck/cdeck, players and references"],
+      "missingAdapter": "Capture and restore RNG closure counters and all rule-relevant state with graph identity and aliases intact: S, players/items, bag/deck/cdeck/market/nextMarket order, sets, pending choices, debts, wish/event/rule/mark/incense/shrine state, reveal memory and hook-mutated fields. Restore must reproduce the next draw and transitions without calling makeState again.",
+      "nextAcceptance": "At each phase boundary, fork/restore and replay every legal action on both branches; original and restored state, next RNG outcome, observation and terminal trace are identical. Mutating one fork never changes another.",
+      "exclusions": ["JSON.stringify(S) as a complete snapshot", "seeds as a substitute for midgame RNG state"],
+      "blockingReason": "Current RNG functions have unexposed closure state; object identity and cross-references are not serialized."
+    },
+    {
+      "id": "decision.phasesAndSeats",
+      "implemented": false,
+      "existingEvidence": ["index.html playPolicyGame:7387 fixes phase order: rule/wish/mark/event, bids, reveal, shrines, battles, next night", "index.html runEventPhaseHeadless:2946 calls AI choices for human seats", "index.html resolveAuction:3276 uses humanBids for non-AI and aiBids for AI"],
+      "missingAdapter": "Expose a transition cursor at every actual decision in the original solo rules, including seats currently hardwired to AI in headless mode; preserve simultaneously sealed decisions as separate hidden commitments until reveal and use the original settlement order.",
+      "nextAcceptance": "For each decision phase and every living eligible seat, the adapter lists its legal actions and can advance one committed action or chance outcome; phase traces match original engine resolution.",
+      "exclusions": ["assuming the policy callback can choose for AI seats", "changing the original night or settlement order"],
+      "blockingReason": "The existing headless runner exposes only seat-0 policy bids/mark/incense and resolves other seats through AI."
+    },
+    {
+      "id": "actions.auction",
+      "implemented": false,
+      "existingEvidence": ["index.html CFG:794 BID_FEE=1 and MAX_BIDS=2", "index.html consCapFor:3124 computes an effective cap through hooks", "index.html resolveAuction:3276 handles bids, stake, night-rule conversion, fee, cap, poison and tie breaks"],
+      "missingAdapter": "For every market index enumerate null or each legal positive integer amount through the original budget/life bound, type cons/yaming, keep or poison intent where allowed, each legal living poison target, and exact fee and max-bid constraints. Include the single-stake night branch: legal positive integer stake, bid type and every legal nonempty item subset, with original one-fee/one-win semantics. Keep actions separate when their submitted fields or information differ even if settlement later clips or normalizes them; specify equivalence only after proof.",
+      "nextAcceptance": "Boundary and exhaustive small-state comparisons against original resolveAuction show no omitted legal submission, illegal accepted submission, budget/fee mismatch, target mismatch or stake-night mismatch.",
+      "exclusions": ["a coarse amount grid", "only chase/pass or +2/pass", "only two ordinary bids on a single-stake night"],
+      "blockingReason": "No legal-action enumerator or all-seat sealed bid injection exists."
+    },
+    {
+      "id": "actions.other",
+      "implemented": false,
+      "existingEvidence": ["index.html drawMarks/policyMarks:2886 supports mark or null", "index.html EVENTS:1740 and fillEventChoices:2935 implement event-specific options", "index.html resolveShrines:3588 clamps integer incense and has interactive shrine pick path", "index.html settleTithe:3698 and settleShrinesEnd:3733 handle return/end settlement"],
+      "missingAdapter": "Enumerate legal mark index or none; every event-specific choice including event bids, costs, targets and caps; integer incense 0..current original cap; eligible shrine winner's choice among open shrines; each legal return/continue choice and any other live human prompt that changes rules. Eligibility is evaluated at the exact original phase and current state.",
+      "nextAcceptance": "A phase-by-phase action inventory generated from each legal state agrees with original UI/rule acceptance at cap, zero, dead-seat, unavailable-shrine and no-event boundaries.",
+      "exclusions": ["AI default as the only event, shrine-pick or return action", "assuming every event has the same option list"],
+      "blockingReason": "Headless event choices and shrine pick/return paths currently choose defaults or AI behavior."
+    },
+    {
+      "id": "informationSets",
+      "implemented": false,
+      "existingEvidence": ["index.html policyInformationContext:7360 exposes a limited eyes preview and prior reveal", "index.html eyesSecondBid:2242 requires an active flag and visible entries", "docs/experiments/2026-09-21-l1e-information/acceptance.md defines the legal eyes information timing"],
+      "missingAdapter": "Derive each seat's observation history at every choice: own bag, role/life and private wish, public market/marks/results/chain activation and legal previews, plus seat-specific prior second bid only after reveal. Hidden opponent bags, unrevealed sealed bids/targets, deck order, future market and RNG state cannot distinguish that seat's information sets. Preserve recall of earlier legal observations and own actions.",
+      "nextAcceptance": "Paired histories with the same legal observations share one information-set key and accept the same action; changing opponent hidden bag or unrevealed bid cannot change it, while a legally revealed fact can.",
+      "exclusions": ["full S passed to a policy", "opponent bag contents before legal disclosure", "current-night sealed bids before reveal"],
+      "blockingReason": "The policy context protects one experimental seat-0 strategy; no all-seat observation-history or information-set adapter exists."
+    },
+    {
+      "id": "chance",
+      "implemented": false,
+      "existingEvidence": ["index.html mulberry32:2789 supplies deterministic seeded draws", "index.html resolveAuction:3276 uses RNG for residual bid ties", "index.html makeState:3016 shuffles decks and schedules"],
+      "missingAdapter": "At each random call enumerate its complete discrete outcome support and exact weight, including shuffled orders, draws, event/AI-independent game randomness, tie breaks and battle randomness. Retain correlation induced by without-replacement draws and current state. Integrate chance weights over all branches of every policy profile.",
+      "nextAcceptance": "Every chance node has nonnegative exact weights summing to one; small finite traces reproduce the engine's conditional distributions and all reachable outcomes are covered.",
+      "exclusions": ["seed sampling", "equal weights for unequal remaining draw multiplicities"],
+      "blockingReason": "The engine consumes a PRNG rather than exporting stochastic branch support and weights."
+    },
+    {
+      "id": "state.canonicalization",
+      "implemented": false,
+      "existingEvidence": ["index.html makeState:3016 stores ordered decks, market, nextMarket, event/rule orders, debts, incense pool and player bags", "index.html playPolicyGame:7387 stores prior eyes reveal outside S"],
+      "missingAdapter": "Construct a canonical key only after proving strategic and probabilistic equivalence. Include ordered bag and deck/cdeck/market/nextMarket where order can affect hooks or future draws, debts and due nights, incense and shrine ownership, role/hook memory, mark credibility, legal observation histories and RNG/chance continuation. Preserve identity-sensitive references or encode them by stable graph IDs.",
+      "nextAcceptance": "Deliberate collisions differing in bag/order, deck order, debt, incense, marks or legal information are rejected; equivalent alias-preserving states merge only with matching legal actions, observations, transitions and terminal values.",
+      "exclusions": ["sort all bag/deck arrays by item name without proof", "drop history because current visible values match"],
+      "blockingReason": "No state equivalence proof or canonicalization implementation exists."
+    },
+    {
+      "id": "terminalAndPayoff",
+      "implemented": "partial",
+      "existingEvidence": ["index.html playPolicyGame:7387 settles shrines, strips endgame items and sorts alive then life", "index.html stripEndgameItems:2945 removes endStrip items"],
+      "missingAdapter": "Reuse the exact original terminal order: stop, settleShrinesEnd, stripEndgameItems, stable rank by alive descending then life descending, with stable original seat order on equal keys. Define the candidate per-seat terminal utility as winner indicator and calculate its exact chance expectation for each complete policy profile. Separately recover the original event net-gain/payoff baseline and the meaning of freeLunch; do not infer it from positive winner probability.",
+      "nextAcceptance": "Terminal winner, rank, alive and life agree with original runner on tie, all-dead, shrine-settlement and strip cases; original net-gain unit and baseline are explicitly defined and independently tested before a freeLunch verdict is allowed.",
+      "exclusions": ["positive expected winner probability as proof of freeLunch", "arbitrary life-delta baseline", "post-terminal play"],
+      "blockingReason": "Winner indicator supports a candidate dominance utility only; original six-of-four freeLunch is based on positive event payoff/net gain and that cross-night baseline is not specified."
+    },
+    {
+      "id": "dominanceAndFreeLunch",
+      "implemented": false,
+      "existingEvidence": ["index.html analyzeEvent:7555 enumerates a static same-option matrix, reports dominant with strict:false even for identical payoffs, and freeLunch for a shared option with every payoff > 0", "docs/GAME_DESIGN.md six-of-four:389 requires all player choice combinations"],
+      "missingAdapter": "Enumerate each player's complete legal contingent policy over all of that player's information sets and every opponents' complete contingent policy profile. For candidate policy A, compare exact expected payoff against every own alternative B under every opponent profile; if A is never worse, report dominant even if all comparisons tie (strict:false). Separately evaluate freeLunch against a recovered original event-net-gain baseline and the formally mapped common-action condition, or leave that component incomplete.",
+      "nextAcceptance": "Static fixtures reproduce analyzeEvent dominant and strict:false behavior; cross-night fixtures detect a policy difference only at a later information set, hidden-information violations and a chance-dependent reversal. A sixOfFour PASS requires both dominance and freeLunch checks complete for each chain.",
+      "exclusions": ["fixed POLICIES/AI matrix", "requiring strict:true for a dominant finding", "calling a partial or unbounded timeout PASS"],
+      "blockingReason": "No extensive-form policy enumerator exists; freeLunch utility/baseline is not mapped."
+    }
+  ],
+  "nextEngineeringDeliverable": {
+    "name": "runnable contract auditor",
+    "implemented": false,
+    "requirements": ["load this contract and frozen source hash", "report adapter coverage and unmet acceptance by inventory id", "fail closed on missing adapter or net-gain baseline", "verify evidence with executable fixtures before any exhaustive verdict"],
+    "resultAllowedThisTurn": "inventory only; no sixOfFour PASS or exhaustive-game claim"
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "releaseEligible": false,
+    "blockingReason": "Complete cross-night extensive-form adapters and original freeLunch payoff baseline are absent. Formal n=10000 H1/H9 measurement is a separate gate and cannot close this model gap."
+  }
+}
