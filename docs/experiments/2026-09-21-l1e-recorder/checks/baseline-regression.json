@@ -1,0 +1,20 @@
+{
+  "baseline": "d2250a8",
+  "sourceSha256": "c6de98e38e6a0a28827c1e83526e9bdc53e44020accf0c72cb4787c79f501807",
+  "trace": {
+    "seeds": "1..20",
+    "bytesOld": 357496,
+    "bytesNew": 357496,
+    "equal": true
+  },
+  "regression": {
+    "command": "node --test tests/chains.test.mjs tests/l1-tiger.test.mjs tests/nightrules.test.mjs tests/legend.test.mjs tests/l1-ui.test.mjs",
+    "exitCode": 0,
+    "nodeTests": 17,
+    "pass": 17,
+    "fail": 0,
+    "embeddedLegendAssertions": 32,
+    "embeddedNightRuleAssertions": 16
+  },
+  "scope": "Initial recorder implementation before independent review; rerun only if relevant implementation changes."
+}

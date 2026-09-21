@@ -1,6 +1,6 @@
 # 真實袋子變更盤點
 
-Astra 對照 d2250a8 的 index.html；20個寫入statement、19個原始碼行。下列行號是改動前定位，不是改後永久行號。記錄器採 private closure、state與player identity檢查；activeChains／chainsCompletedBy／預覽／AI估值繼續純查詢。
+Astra 對照 d2250a8 的 index.html；19個寫入statement、18個原始碼行。下列行號是改動前定位，不是改後永久行號。記錄器採 private closure、state與player identity檢查；activeChains／chainsCompletedBy／預覽／AI估值繼續純查詢。
 
 | 原行 | 引擎入口 | 寫入次序 |
 |---|---|---|
@@ -23,3 +23,5 @@ Astra 對照 d2250a8 的 index.html；20個寫入statement、19個原始碼行�
 初始mkPlayer的空袋不是取得。預覽與試算用的spread bag／buildArmy／pwTrial不是上述真實mutation，不接記錄。即使傳入有相同id的副本，identity guard也拒絕。資料僅在量測scope結束後以detached snapshot返回；不可讓策略在局中讀取其他席取得紀錄。
 
 Astra 排除 Proxy：splice 的逐索引中間態、bag replacement需重裝以及淺拷貝預覽容易傳遞代理，都會增加漏記或誤記風險。顯式接點可逐條檢查，代價是將來新增真實bag寫入時必須同步接觀測並更新本表。
+
+盤點更正：初查曾誤報20個；Astra以基準逐statement核對，1300的 `const bag=ctx.l.bag` 是別名讀取，不是寫入。實際為19個；1305別名splice仍計入，1811同一行有兩次寫入。不為湊數新增觀測。
