@@ -9,7 +9,7 @@ const page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 test('3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage', () => {
   assert.match(page, /function setFeltPrivateContext\(p,hollow\)/);
-  assert.match(page, /\$\("stage"\)\.innerHTML=`\$\{hollow\?"":prev\}[\s\S]{0,250}\$\{hollow\?"":wishBarHTML\(ap\)\}/);
+  assert.match(page, /\$\("stage"\)\.innerHTML=`\$\{privateInfo\}\$\{hollow\?"":prev\}[\s\S]{0,250}\$\{hollow\?"":wishBarHTML\(ap\)\}/);
   assert.match(page, /setFeltPrivateContext\(ap,hollow\);/);
   assert.match(page, /#feltHead \.wishbar/);
 });
@@ -22,7 +22,7 @@ test('從側欄查看拍品時，3D 桌上同一件也會進入檢視態', () =>
 });
 
 test('首頁顯示可核對的發布版本', () => {
-  assert.match(page, /const RELEASE_VERSION="0.57.35"/, '本次公開版需遞增語意版本');
+  assert.match(page, /const RELEASE_VERSION="0.57.37"/, '本次公開版需遞增語意版本');
   assert.match(page, /v\$\{RELEASE_VERSION\}/, '首頁版本列必須顯示發布版本');
   assert.match(page, /renderer\.js\?v="\+RELEASE_VERSION/, '3D 模組快取鍵必須隨發布版本更新');
 });

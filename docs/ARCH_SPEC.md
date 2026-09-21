@@ -1,6 +1,6 @@
 # 妖市 架構規格 v1 — 資料表驅動 ＋ hook 分派
 
-> **2026-09-21 L1a/b 契約增補（使用者批准 D2 建議案）**：新增 CHAINS 資料表、activeChains／chainsCompletedBy 純查詢。一般 effect 來源固定為角色→袋中道具→有效連鎖→心願→夜規→異事；onNightEnd 的 itemsFirst 為道具→連鎖→角色→心願→夜規→異事，原 order 穩定排序不變。全域 hook 不收玩家連鎖。毒標接收前先讀接收者的連鎖防護；若阻擋，不入袋、不計命中心願，onWinItem.target=null，但得標方 hook 與成本仍執行。新增可選 poisonBlocked 公開結果以區分企圖與命中，未阻擋時不新增欄位。詳見 [水陸凍結](experiments/2026-09-21-l1-water/acceptance.md)。千眼 onReveal 擴充與雙虎部隊契約尚未在本段修改。
+> **2026-09-21 L1a/b 契約增補（使用者批准 D2 建議案）**：新增 CHAINS 資料表、activeChains／chainsCompletedBy 純查詢。一般 effect 來源固定為角色→袋中道具→有效連鎖→心願→夜規→異事；onNightEnd 的 itemsFirst 為道具→連鎖→角色→心願→夜規→異事，原 order 穩定排序不變。全域 hook 不收玩家連鎖。毒標接收前先讀接收者的連鎖防護；若阻擋，不入袋、不計命中心願，onWinItem.target=null，但得標方 hook 與成本仍執行。新增可選 poisonBlocked 公開結果以區分企圖與命中，未阻擋時不新增欄位。詳見 [水陸凍結](experiments/2026-09-21-l1-water/acceptance.md)。L1 三組試玩契約見 [試玩凍結](experiments/2026-09-21-l1-trial/acceptance.md)。千眼不擴張全域 onMarketDraw：traits.preview 取最大值 3；PUBLIC_REVEAL 僅保存已公開的 amt（showEntries=false 不保存），第二高按原標额排序第二筆、同價照算。UI 只於當前玩家 market/mark 私有階段顯示，交棒與開標清除。AI 用 chainsCompletedBy，每新組合加 2。雙虎透過 CHAINS.army 替換第一對有效材料，buildArmy.sources 對映原材料／融合名稱供預覽與夜戰共用；額外副本保留。twinTigerSweep 的 cleaveFull+armorPierce 忽略隊伍 armor、不忽略 absorb，反射不繼承。
 
 > 2026-09-15 最新物品轉換：正式紙紮模式取消戰力依賴，六詛咒各自效果取代共同扣攻；舊制敘述若有衝突，以 [本輪凍結規格](experiments/2026-09-15-curse-migration/acceptance.md) 與 [驗證報告](experiments/2026-09-15-curse-migration/README.md) 為準。
 
