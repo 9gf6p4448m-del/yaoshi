@@ -1,6 +1,6 @@
 # 妖市：Claude Code 專案入口
 
-**2026-09-21 L1 最新續接**：使用者「按照建議接著實作」已批准 D2。L1a/b 水陸偷渡已在 `feat/l1-water-chain` 實作（工作樹 `C:/Users/shung/wt/yaoshi/l1-water-chain`），候選 v0.57.36；公開仍 v0.57.35，未合併發布。相關測試18/18、空表trace1–20相等、browser開圖通過、核心覆審通過；見 [分支報告](https://github.com/9gf6p4448m-del/yaoshi/blob/feat/l1-water-chain/docs/experiments/2026-09-21-l1-water/README.md)。下一步依 L1c/d 補 UI／AI、千眼及雙虎；正式發布前仍需凍結連鎖平衡量測定義並完成原門檻，不能以本段測試代替。A3 六局仍暫緩。
+**2026-09-21 L1 最新續接**：使用者要求「繼續開工到完成需要試玩段落」。三組連攜候選 v0.57.37 在 `feat/l1-water-chain`（`C:/Users/shung/wt/yaoshi/l1-water-chain`），公開仍 v0.57.35。水陸／千眼／雙虎、私有補件提示、AI 加價、新黑金虎資產已整合；固定材料練習入口 `tests/tools/l1-playtest.html` 另提供正常隨機局。以 [L1 試玩報告](docs/experiments/2026-09-21-l1-trial/README.md) 的實際驗證與待辦為準，勿再重做水陸或把候選當正式發布。A3 六局仍暫緩；六之四／n≥10000 平衡與美術盲讀仍待完成。
 
 **2026-09-21 最新排程**：使用者要求「六局可以先跳過 開始依照進度下一步嗎」。[A3 工程收卷](docs/experiments/2026-09-21-a3-closeout/README.md)完成，S7 真人研究暫緩、不是通過；接續 [L1 法寶連鎖規格準備／D2 建議案](plans/2026-09-21-l1-chains.md)。D2 尚未批准新規則，先依計畫裁定資訊邊界；勿再把六局當成所有後續工作的阻塞。以下舊入口依本節更新。
 
