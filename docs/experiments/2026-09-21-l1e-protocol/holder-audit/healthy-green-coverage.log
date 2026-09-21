@@ -1,26 +1,27 @@
-✔ counts all four endpoint holders, including winners outside seat zero (3.2457ms)
-✔ normal and zero use their own denominator and zero denominator is null (0.3091ms)
-✔ raw parser requires valid JSON lines (0.7026ms)
-✔ rejects invalid arms and duplicate or missing arm seeds (0.3986ms)
-✔ rejects illegal winner and malformed four-seat chain data (0.3981ms)
-✔ validates entire raw before any output and hashes original bytes (10.133ms)
-✔ refuses an output directory inside the original pilot (1.8354ms)
-ℹ tests 7
+✔ counts all four endpoint holders, including winners outside seat zero (3.1474ms)
+✔ normal and zero use their own denominator and zero denominator is null (0.3069ms)
+✔ raw parser requires valid JSON lines (0.6294ms)
+✔ rejects invalid arms and duplicate or missing arm seeds (0.3754ms)
+✔ rejects illegal winner and malformed four-seat chain data (0.3495ms)
+✔ validates entire raw before any output and hashes original bytes (12.9957ms)
+✔ refuses an output directory inside the original pilot (4.543ms)
+✔ refuses a junction that resolves into the original pilot (4.6075ms)
+ℹ tests 8
 ℹ suites 0
-ℹ pass 7
+ℹ pass 8
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 133.0828
+ℹ duration_ms 142.4534
 ℹ start of coverage report
 ℹ ----------------------------------------------------------------------
 ℹ file                  | line % | branch % | funcs % | uncovered lines
 ℹ ----------------------------------------------------------------------
 ℹ tests                 |        |          |         | 
 ℹ  tools                |        |          |         | 
-ℹ   l1-holder-audit.mjs |  95.76 |    95.95 |  100.00 | 114-118
+ℹ   l1-holder-audit.mjs |  96.32 |    94.74 |  100.00 | 132-136
 ℹ ----------------------------------------------------------------------
-ℹ all files             |  95.76 |    95.95 |  100.00 | 
+ℹ all files             |  96.32 |    94.74 |  100.00 | 
 ℹ ----------------------------------------------------------------------
 ℹ end of coverage report
