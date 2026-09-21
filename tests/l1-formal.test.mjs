@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
+import crypto from 'node:crypto';
+import zlib from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {ARMS, ARM_CONFIG, runArm, aggregate, parseCli, writeArm, readArms,
   writeAggregate, reportMarkdown} from './tools/l1-formal.mjs';
@@ -178,9 +180,14 @@ test('gzip arm files round-trip; all writes are exclusive and report keeps table
   try{
     const xs=artifacts([1,2]);
     for(const a of xs) writeArm(a,temp);
-    assert.deepEqual(readArms(temp),xs);
+    const loaded=readArms(temp);
+    assert.deepEqual(loaded,xs);
     assert.throws(()=>writeArm(xs[0],temp),/EEXIST/i);
-    const summary=aggregatePrepared(xs,{requiredSeeds:[1,2]});
+    const summary=aggregatePrepared(loaded,{requiredSeeds:[1,2]});
+    const raw=fs.readFileSync(path.join(temp,'h1-water.json.gz'));
+    const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+    assert.deepEqual(summary.rawFiles['h1-water'],{
+      file:'h1-water.json.gz',compressedSha256:hash(raw),decodedSha256:hash(zlib.gunzipSync(raw))});
     const report=reportMarkdown(summary);
     assert.match(report,/H1.*qingmian/i);
     assert.match(report,/H9.*scriptedBids seat 0 and AI/i);
