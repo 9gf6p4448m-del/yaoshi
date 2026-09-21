@@ -37,10 +37,10 @@ test at tests\chains.test.mjs:37:1
 ✖ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (35.4203ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + undefined
   - true
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chains.test.mjs:44:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -71,10 +71,10 @@ test at tests\chains.test.mjs:74:1
 ✖ 同夜先補材料後毒標即擋；毒標先到不能追溯 (14.4136ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + undefined
   - true
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chains.test.mjs:81:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -93,9 +93,9 @@ test at tests\chains.test.mjs:74:1
 test at tests\chains.test.mjs:87:1
 ✖ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (15.2693ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   31 !== 35
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chains.test.mjs:93:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -149,10 +149,10 @@ test at tests\chains.test.mjs:135:1
 ✖ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (14.7812ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + undefined
   - true
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/chains.test.mjs:141:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
