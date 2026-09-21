@@ -1,0 +1,46 @@
+✔ highest noncurse market item wins tie by index, and a curse cannot be target (1.5609ms)
+✔ largest legal second bid changes the next bid, bounded to base plus two and cap (0.2392ms)
+✖ third legal preview reserves two when its value exceeds tonight best (1.6506ms)
+✔ fee, budget, max bids, empty market and null context are deterministic for both arms (0.2771ms)
+✔ blind adapter exposes only base preview and removes reveal, preserving original base count (0.2869ms)
+✔ policy adapter still consumes information when recipe is already complete, without private reads (20.7015ms)
+✔ paired whole-game and separate ever-held denominators remain distinct (0.6386ms)
+✔ real engine three arms replay, retain raw provenance and report incomplete status (492.5644ms)
+✔ CLI sample validation (0.4131ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2037.9434
+
+✖ failing tests:
+
+test at ..\..\..\AppData\Local\Temp\l1e-information-gkRFp9\mutant-ignore-third-preview\l1-information.test.mjs:34:1
+✖ third legal preview reserves two when its value exceeds tonight best (1.6506ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      2,
+      2,
+  +   1
+  -   0
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-gkRFp9/mutant-ignore-third-preview/l1-information.test.mjs:37:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 1 ],
+    expected: [ 2, 2, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,45 @@
+{
+  "baseline": {
+    "exitCode": 0,
+    "log": "test.log"
+  },
+  "tempBaseline": {
+    "exitCode": 0,
+    "log": "temp-baseline.log"
+  },
+  "coverage": {
+    "coveredSourceUnits": 6011,
+    "coreSourceUnits": 6679,
+    "ratio": 0.8999850276987573,
+    "unit": "V8 UTF-16 source offsets, including whitespace and comments",
+    "functions": [
+      "blindLegalContext",
+      "planEyesBids",
+      "createEyesPolicy",
+      "summarizeArm",
+      "comparePaired",
+      "gameRow",
+      "runExperiment"
+    ],
+    "exclusions": [
+      "parseCli",
+      "writeReport",
+      "CLI entrypoint"
+    ]
+  },
+  "mutants": [
+    {
+      "name": "mutant-ignore-second-bid",
+      "exitCode": 1,
+      "expectedTest": "largest legal second bid changes the next bid, bounded to base plus two and cap",
+      "log": "mutant-ignore-second-bid.log"
+    },
+    {
+      "name": "mutant-ignore-third-preview",
+      "exitCode": 1,
+      "expectedTest": "third legal preview reserves two when its value exceeds tonight best",
+      "log": "mutant-ignore-third-preview.log"
+    }
+  ],
+  "sourceSha256": "fa1aa2d986229ab3c53426ca2564b8c4825141eee064177fa43ddea36b20f0a5"
+}

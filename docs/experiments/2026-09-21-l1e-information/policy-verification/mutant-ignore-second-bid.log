@@ -1,0 +1,92 @@
+✖ highest noncurse market item wins tie by index, and a curse cannot be target (2.9889ms)
+✖ largest legal second bid changes the next bid, bounded to base plus two and cap (1.6209ms)
+✔ third legal preview reserves two when its value exceeds tonight best (0.5395ms)
+✔ fee, budget, max bids, empty market and null context are deterministic for both arms (0.3819ms)
+✔ blind adapter exposes only base preview and removes reveal, preserving original base count (0.4006ms)
+✖ policy adapter still consumes information when recipe is already complete, without private reads (25.2535ms)
+✔ paired whole-game and separate ever-held denominators remain distinct (0.6507ms)
+✔ real engine three arms replay, retain raw provenance and report incomplete status (473.5285ms)
+✔ CLI sample validation (0.4278ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 6
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2029.2282
+
+✖ failing tests:
+
+test at ..\..\..\AppData\Local\Temp\l1e-information-gkRFp9\mutant-ignore-second-bid\l1-information.test.mjs:17:1
+✖ highest noncurse market item wins tie by index, and a curse cannot be target (2.9889ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      2,
+  +   2,
+  -   4,
+      0
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-gkRFp9/mutant-ignore-second-bid/l1-information.test.mjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 0 ],
+    expected: [ 2, 4, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ..\..\..\AppData\Local\Temp\l1e-information-gkRFp9\mutant-ignore-second-bid\l1-information.test.mjs:26:1
+✖ largest legal second bid changes the next bid, bounded to base plus two and cap (1.6209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      2,
+  +   2,
+  -   4,
+      0
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-gkRFp9/mutant-ignore-second-bid/l1-information.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 2, 2, 0 ],
+    expected: [ 2, 4, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ..\..\..\AppData\Local\Temp\l1e-information-gkRFp9\mutant-ignore-second-bid\l1-information.test.mjs:63:1
+✖ policy adapter still consumes information when recipe is already complete, without private reads (25.2535ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(a[1].amt>b[1].amt)
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/AppData/Local/Temp/l1e-information-gkRFp9/mutant-ignore-second-bid/l1-information.test.mjs:76:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
