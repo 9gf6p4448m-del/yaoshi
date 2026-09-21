@@ -97,10 +97,27 @@ export function reportMarkdown(audit){
   return lines.join('\n')+'\n';
 }
 
-export function auditFile(rawPath=DEFAULT_RAW,outDir=DEFAULT_OUT){
-  const source=path.resolve(rawPath),out=path.resolve(outDir);
-  const relative=path.relative(PILOT,out);
+function canonicalTarget(target){
+  let existing=path.resolve(target);
+  const missing=[];
+  while(!fs.existsSync(existing)){
+    const parent=path.dirname(existing);
+    if(parent===existing) throw Error(`cannot resolve output path ${target}`);
+    missing.unshift(path.basename(existing));
+    existing=parent;
+  }
+  return path.resolve(fs.realpathSync(existing),...missing);
+}
+
+export function assertOutputOutsidePilot(outDir){
+  const out=path.resolve(outDir);
+  const relative=path.relative(fs.realpathSync(PILOT),canonicalTarget(out));
   if(relative===''||(!relative.startsWith('..')&&!path.isAbsolute(relative))) throw Error('output cannot overwrite pilot directory');
+  return out;
+}
+
+export function auditFile(rawPath=DEFAULT_RAW,outDir=DEFAULT_OUT){
+  const source=path.resolve(rawPath),out=assertOutputOutsidePilot(outDir);
   const raw=fs.readFileSync(source);
   const hash=crypto.createHash('sha256').update(raw).digest('hex');
   const audit=auditRows(parseRaw(raw.toString('utf8')),hash);
