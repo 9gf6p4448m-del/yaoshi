@@ -13,9 +13,11 @@
 - 引擎 RED `c1f5c87` → GREEN `548c83b`，證據摘要修訂 `b8fb2ba`。相關 Node 測試 **18/18**，其中舊回顧腳本內含 28/28；不是全套測試數。見 [GREEN 原始輸出](green-water.txt)、[證據摘要](green-evidence.txt)。
 - 空 CHAINS 對真正 de471a2 基準，seeds 1–20 trace **346441 bytes 完全相等**，見 [比對結果](trace-empty-water.json)。開啟連鎖會改規則，不能據此稱其與舊規則相等。
 - 關閉攔截突變被 4 條斷言抓到，忽略 blocked 的回顧統計突變被 1 條抓到。原始與可重現證據另附，未以改門檻使測試過。
+- 執行 `node tests/tools/chains-evidence.mjs` 可重生 [突變與覆蓋摘要](coverage-mutations.json)及原始日誌；新增查詢＋攔截區段 V8 source-range 覆蓋 **1170/1179 bytes（99.24%）**，不是全專案覆蓋率，也不是完整 branch coverage。兩種突變另提供行為鑑別力。
 - 瀏覽器用真實 resolveAuction→startReveal，僅注入背包與標書；是指定情境，不冒稱完整真人對局。基準缺攔截 RED `18b9c3b`，覆審發現「沒有人下毒」錯把全擋寫成無企圖，再現 RED `739d2dd`，改成「沒有毒標得手」後 GREEN。
 - [瀏覽器結果](browser-green/result.json)：單一銷毀 receipt、transferTarget=null、destroy=true、不呼叫 curse 音效、不呼叫 poison／poisoned 台詞、pageerror 0。截圖已由 Astra 實際開圖：[開標](browser-green/reveal.png)、[回顧](browser-green/review.png)、[直式](browser-green/portrait.png)。開標原先 outcome/event 同句重複，已拆為未入袋結果與單次銷毀事件；直式仍顯示既有轉橫提示。
 - 未重跑 A3 真人研究、聲音盲聽、滿編指認或效能矩陣。正式版既有全套 115/116 的 sfx-wiring seed3「開戰」停滯照舊列明，本段不宣稱全套全綠。
+- Astra 獨立核心 JS 覆審通過，未解 HIGH／MEDIUM 為 0；另獨立實跑相關測試與詛咒測試通過。證據工具覆審抓到指定 target 時 healthy 路徑可能讀錯版本，修正時保留工具 RED/GREEN 日誌；不能把工具覆審當作平衡驗收。
 
 ## 發布前尚缺的平衡定義
 
