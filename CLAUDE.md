@@ -1,5 +1,7 @@
 # 妖市：Claude Code 專案入口
 
+**2026-09-21 L1e 最新續接**：[探索量測交接](docs/handoffs/2026-09-21-l1e-measurement.md)。隔離分支已實作七臂工具與 1,400 局固定樣本、11 項測試／突變證據；產品數值未改，仍 v0.57.37 候選，正式平衡未通過。接手讀分支報告與 git 差異，下一步凍結正式策略／分母／窮舉域；A3 六局仍暫緩。
+
 **2026-09-21 最新：三組連攜試玩候選 v0.57.37**：使用者要求開工至需要試玩；工程在 `feat/l1-water-chain`／`C:/Users/shung/wt/yaoshi/l1-water-chain`，已備三組練習與正常局入口。讀 [最新交接](docs/handoffs/2026-09-21-l1-trial-ready.md) 與其分支報告／覆審，不重做先前水陸；正式站仍 v0.57.35，候選未發布。A3 六局暫緩；正式平衡與美術盲讀仍待。以下舊續接以本節更新。
 
 **2026-09-21 L1 最新續接**：使用者「按照建議接著實作」已批准 D2。L1a/b 水陸偷渡已在 `feat/l1-water-chain` 實作（工作樹 `C:/Users/shung/wt/yaoshi/l1-water-chain`），候選 v0.57.36；公開仍 v0.57.35，未合併發布。相關測試18/18、空表trace1–20相等、browser開圖通過、核心覆審通過；見 [分支報告](https://github.com/9gf6p4448m-del/yaoshi/blob/feat/l1-water-chain/docs/experiments/2026-09-21-l1-water/README.md)。下一步依 L1c/d 補 UI／AI、千眼及雙虎；正式發布前仍需凍結連鎖平衡量測定義並完成原門檻，不能以本段測試代替。A3 六局仍暫緩。
