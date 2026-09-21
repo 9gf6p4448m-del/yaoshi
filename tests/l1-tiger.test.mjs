@@ -6,12 +6,13 @@ const tiger=G.POOL.find(x=>x.ab==='tiger'), nail=G.POOL.find(x=>x.ab==='nail');
 const other=G.POOL.find(x=>x.unit&&x.ab!=='tiger'&&x.ab!=='nail');
 const team=a=>a.teams.map(t=>[t.ab,t.fac,t.units.length,t.units[0].atk,t.units[0].max,t.tr?.id]);
 for(const bag of [[tiger,nail],[nail,tiger]]){
+  const original=structuredClone(bag);
   const a=G.buildArmy(bag);
   assert.deepEqual(team(a),[['twinTiger','xianghuo',1,9,8,'twinTigerSweep']]);
   assert.equal(a.teams[0].tr.cleaveFull,true);
   assert.equal(a.teams[0].tr.armorPierce,true);
   assert.equal(G.pwArmyView({bag}).units[0].nm,'雙虎滅煞');
-  assert.deepEqual(bag,[bag[0],bag[1]]);
+  assert.deepEqual(bag,original);
 }
 assert.deepEqual(team(G.buildArmy([other,tiger,nail,tiger,nail])),
   [[other.ab,other.f,other.unit.count,other.unit.atk,other.unit.hp,other.unit.trait],
