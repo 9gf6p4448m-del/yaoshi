@@ -53,6 +53,12 @@ test('equal losses select the later snapshot, then lower seat; missing causes re
   assert.match(R.lines[1].text, /紀錄不足/);
 });
 
+test('a recorded defeat remains evidence when a survival hook reduces its damage to zero', () => {
+  const H = { life: [[40, 50, 30, 30], [30, 50, 30, 30]], nights: [night(1, [pay(10)], [{ a: 0, b: 1, w: 1, dmg: 0 }])] };
+  const R = loadGame(INDEX).ledgerNarrative(H, players);
+  for (const cause of [R.cause, mainCause(H)]) assert.deepEqual(cause.fights, [{ idx: 0, foe: 1, damage: 0 }]);
+});
+
 test('actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop', () => {
   for (const seed of [1, 2]) {
     const G = loadGame(INDEX); G.playPolicyGame(seed, { 0: G.POLICIES.splitter });

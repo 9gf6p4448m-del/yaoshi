@@ -21,30 +21,23 @@ for (const seed of SEEDS) {
   const R = G.ledgerNarrative(H, S.players);
   const w = winnerOf(H), mc = mainCause(H);
   if (!mc) { console.error(`seed ${seed} 沒有主因（全局無人跌過壽命），跳過`); continue; }
-  /* 候選主因：真主因＋三個干擾項（同局其他公開事件：別人付最多的拍賣、一件毒標、一場夜戰、勝者最大一注），描述用中性語氣、不抄敘事句 */
-  const describe = (c) => c.kind === 'pay' ? `${nm(c.pid)} 在第${CN[c.round]}夜為「${c.item}」付出壽命`
-    : c.kind === 'fight' ? `${nm(c.pid)} 在第${CN[c.round]}夜的夜戰敗給 ${nm(c.foe)}`
-      : c.kind === 'poison' ? `${nm(c.who)} 在第${CN[c.round]}夜把「${c.item}」塞給 ${nm(c.target)}`
-        : c.kind === 'win' ? `${nm(c.pid)} 在第${CN[c.round]}夜買下「${c.item}」`
-          : `${nm(c.pid)} 在第${CN[c.round]}夜撞上異事`;
-  const truth = { ...mc, sig: `${mc.kind}:${mc.pid}:${mc.round}:${mc.idx ?? ''}` };
+  /* 同局失血區間作候選；不把事件存在偷換成事件造成整夜損失。 */
+  const describe = c => `${nm(c.pid)} 在${c.round == null ? '最後兩筆紀錄之間' : `第${CN[c.round]}夜`}壽命減少`;
+  const truth = { ...mc, sig: `${mc.pid}:${mc.snapshotIndex}` };
   const cands = [];
-  const push = (c) => { const sig = `${c.kind}:${c.pid ?? c.who}:${c.round}:${c.idx ?? ''}`; if (sig !== truth.sig && !cands.some((x) => x.sig === sig)) cands.push({ ...c, sig }); };
-  /* 其他人付出最多的一次拍賣（每人一筆，排除真主因那個人） */
-  const bestPay = {};
-  H.nights.forEach((n) => n.auction.forEach((a, idx) => a.bids.forEach((b) => { if ((b.cost || 0) > 0 && (!bestPay[b.pid] || b.cost > bestPay[b.pid].cost)) bestPay[b.pid] = { kind: 'pay', pid: b.pid, round: n.round, idx, item: a.item, cost: b.cost }; })));
-  Object.values(bestPay).filter((c) => c.pid !== mc.pid && c.pid !== w).sort((a, b) => b.cost - a.cost).forEach(push);
-  H.nights.forEach((n) => n.auction.forEach((a, idx) => { if (a.intent === 'poison' && a.targetId != null) push({ kind: 'poison', pid: a.winnerId, who: a.winnerId, round: n.round, idx, item: a.item, target: a.targetId }); }));
-  H.nights.forEach((n) => n.fights.forEach((f) => { if (f.w != null && (f.dmg || 0) > 0) push({ kind: 'fight', pid: f.w === f.a ? f.b : f.a, round: n.round, foe: f.w }); }));
-  let buy = null; H.nights.forEach((n) => n.auction.forEach((a, idx) => { if (a.winnerId === w && a.intent !== 'poison' && (!buy || a.amt > buy.amt)) buy = { kind: 'win', pid: w, round: n.round, idx, item: a.item, amt: a.amt }; })); if (buy) push(buy);
+  for (let k = 1; k < H.life.length; k++) for (let pid = 0; pid < H.life[k].length; pid++) {
+    const drop = H.life[k - 1][pid] - H.life[k][pid];
+    const sig = `${pid}:${k}`;
+    if (drop > 0 && sig !== truth.sig) cands.push({ pid, snapshotIndex: k, round: H.nights[k - 1]?.round ?? null, sig });
+  }
   const rng = mul(seed * 7919);
   const pick = [truth, ...cands.slice(0, 3)];
   while (pick.length < 4 && cands.length > pick.length - 1) pick.push(cands[pick.length - 1]);
   for (let i = pick.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pick[i], pick[j]] = [pick[j], pick[i]]; }
   const id = `g${String(items.length + 1).padStart(2, '0')}`;
   items.push({ id, narrative: R.lines.map((l) => l.text), players: S.players.map((p) => nm(p.id)), causes: pick.map((c, i) => ({ n: i + 1, text: describe(c) })) });
-  key.push({ id, seed, winner: w, winnerName: nm(w), cause: pick.findIndex((c) => c.sig === truth.sig) + 1, causeText: describe(truth), mainCause: mc });
+  key.push({ id, seed, rubric: 'loss-interval-v2', winner: w, winnerName: nm(w), cause: pick.findIndex((c) => c.sig === truth.sig) + 1, causeText: describe(truth), mainCause: mc });
 }
-const material = { title: 'A3 S5 因果短敘事讀者題：只看每局的敘事，回答「誰活到天亮（贏）」與「這局的主因是哪一件事」', items };
+const material = { title: 'A3 S5 因果短敘事讀者題：只看每局的敘事，回答「誰活到天亮（贏）」與「敘事指出誰在哪一段失血最多」', items };
 fs.writeFileSync(outM, JSON.stringify(material, null, 2)); fs.writeFileSync(outK, JSON.stringify(key, null, 2));
 console.log(`items ${items.length}`, key.map((k) => `${k.id}:seed${k.seed} w=${k.winner} cause=${k.cause}`).join(' '));

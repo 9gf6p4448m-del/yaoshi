@@ -1,0 +1,45 @@
+✔ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (20.4072ms)
+✔ death later in the game is not described as death on the loss night (20.0967ms)
+✔ an unrecorded terminal interval is not invented as a named event or numbered night (10.9366ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (11.8038ms)
+✖ a recorded defeat remains evidence when a survival hook reduces its damage to zero (11.3393ms)
+✔ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (102.8585ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1768.1831
+
+✖ failing tests:
+
+test at tests\ledger-attribution.test.mjs:56:1
+✖ a recorded defeat remains evidence when a survival hook reduces its damage to zero (11.3393ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   {
+  -     damage: 0,
+  -     foe: 1,
+  -     idx: 0
+  -   }
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:59:55)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ { idx: 0, foe: 1, damage: 0 } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
