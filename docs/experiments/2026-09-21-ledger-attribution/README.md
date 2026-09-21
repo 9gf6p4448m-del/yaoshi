@@ -32,3 +32,7 @@ S7 對照工具列出原版本與修訂口徑 `loss-interval-v2`，區分單筆�
 ## 範圍與剩餘
 
 只改回顧敘事、研究材料／對照、版本與必要測試／規程。未改規則、RNG、3D、模型、鏡頭、音效、演出時長或 S6 簽收；不重跑 3D 矩陣／效能／盲聽。S7 真人六局 JSON／原話仍待提供，A3 尚未整卷結案。
+
+## 公開送達
+
+2026-09-21 12:25（台灣），[Pages 部署](https://github.com/9gf6p4448m-del/yaoshi/actions/runs/35560761304)成功（e2f6eca）；HTTP200、VERSION／RELEASE_VERSION 均0.57.35，公開 HTML 正規化換行後與本機 SHA-256 完全一致，見 [published-delivery.json](published-delivery.json)。部署未完成時的0.57.34快照留 [published-pending.json](published-pending.json)。測試輸出僅正規化行末空白，數據與失敗內容未改。

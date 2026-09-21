@@ -19,7 +19,7 @@ test at tests\ledger-attribution.test.mjs:56:1
 ✖ a recorded defeat remains evidence when a survival hook reduces its damage to zero (11.3393ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
   + []
   - [
   -   {
@@ -28,7 +28,7 @@ test at tests\ledger-attribution.test.mjs:56:1
   -     idx: 0
   -   }
   - ]
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:59:55)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

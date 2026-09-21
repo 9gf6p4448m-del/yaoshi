@@ -15,10 +15,10 @@ test at tests\ledger-tools.test.mjs:11:1
 ✖ reader materials retain six frozen seeds and describe loss intervals without inventing events (1906.2432ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + undefined
   - 'loss-interval-v2'
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-tools.test.mjs:20:14)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
@@ -35,7 +35,7 @@ test at tests\ledger-tools.test.mjs:11:1
 test at tests\ledger-tools.test.mjs:29:1
 ✖ research judge labels current reconstruction, preserves original version and lists separate costs (1660.2162ms)
   AssertionError [ERR_ASSERTION]: The input did not match the regular expression /loss-interval-v2/. Input:
-  
+
   '\n' +
     '== C:\\Users\\shung\\AppData\\Local\\Temp\\yaoshi-ledger-judge-ipPqn4\\replay.json\n' +
     '  版本 0.57.34  種子 1  模式 solo  夜數 5  快照 6\n' +
@@ -51,7 +51,7 @@ test at tests\ledger-tools.test.mjs:29:1
     '    ・毒標也沒少：第一夜 西家・普渡爐主 把「魔神仔的芭樂」塞給了 南家・閭山法師。\n' +
     '    ・南家・閭山法師 在第五夜出局，沒能等到天亮。\n' +
     '    ・東家・收驚婆 在第五夜請下了「大士爺紙尊」。\n'
-  
+
       at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-tools.test.mjs:36:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)
