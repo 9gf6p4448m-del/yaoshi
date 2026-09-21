@@ -52,8 +52,9 @@ function validateRows(rows){
 
 function measure(rows,id){
   const holderCountDistribution=[0,0,0,0,0];
-  let anyHolderGames=0,winnerHolderGames=0;
+  let games=0,anyHolderGames=0,winnerHolderGames=0;
   for(const row of rows){
+    games++;
     const holders=row.endBagChainIds.map((bag,seat)=>bag.includes(id)?seat:null).filter(seat=>seat!==null);
     holderCountDistribution[holders.length]++;
     if(holders.length){
@@ -61,7 +62,7 @@ function measure(rows,id){
       if(holders.includes(row.winnerId)) winnerHolderGames++;
     }
   }
-  return {games:rows.length,anyHolderGames,winnerHolderGames,
+  return {games,anyHolderGames,winnerHolderGames,
     winnerHolderRate:anyHolderGames?winnerHolderGames/anyHolderGames:null,holderCountDistribution};
 }
 
