@@ -1,0 +1,77 @@
+{
+  "target": "index.html",
+  "test": "tests/chains.test.mjs",
+  "original": {
+    "exitCode": 0,
+    "passed": 10,
+    "failed": 0
+  },
+  "mutations": [
+    {
+      "name": "disable-interception",
+      "exitCode": 1,
+      "failures": [
+        "毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中",
+        "同夜先補材料後毒標即擋；毒標先到不能追溯",
+        "阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標",
+        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+      ]
+    },
+    {
+      "name": "count-blocked-as-hit",
+      "exitCode": 1,
+      "failures": [
+        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "name": "activeChains",
+      "coveredBytes": 225,
+      "totalBytes": 225,
+      "rate": 1,
+      "coveredLines": 5,
+      "totalLines": 5,
+      "granularity": "V8 nested byte ranges; unreported branches inherit containing function count"
+    },
+    {
+      "name": "chainsCompletedBy",
+      "coveredBytes": 242,
+      "totalBytes": 246,
+      "rate": 0.983739837398374,
+      "coveredLines": 6,
+      "totalLines": 6,
+      "granularity": "V8 nested byte ranges; unreported branches inherit containing function count"
+    },
+    {
+      "name": "poison-transfer-interception",
+      "coveredBytes": 703,
+      "totalBytes": 708,
+      "rate": 0.9929378531073446,
+      "coveredLines": 12,
+      "totalLines": 12,
+      "granularity": "V8 nested byte ranges; unreported branches inherit containing function count"
+    },
+    {
+      "name": "blocked-reveal-result",
+      "coveredBytes": 88,
+      "totalBytes": 88,
+      "rate": 1,
+      "coveredLines": 1,
+      "totalLines": 1,
+      "granularity": "V8 nested byte ranges; unreported branches inherit containing function count"
+    }
+  ],
+  "scope": {
+    "names": [
+      "activeChains",
+      "chainsCompletedBy",
+      "poison-transfer-interception"
+    ],
+    "coveredBytes": 1170,
+    "totalBytes": 1179,
+    "rate": 0.9923664122137404
+  },
+  "method": "NODE_V8_COVERAGE on real chains.test.mjs; byte offsets calibrated to extracted inline game script. V8 byte coverage measures executed source spans, while mutations establish behavioral sensitivity."
+}

@@ -28,7 +28,7 @@ const summaries=[];
 try{
   const coverageDir=path.join(temp,'coverage');
   fs.mkdirSync(coverageDir);
-  const original=run({NODE_V8_COVERAGE:coverageDir});
+  const original=run({NODE_V8_COVERAGE:coverageDir,CHAIN_TARGET:target});
   fs.writeFileSync(path.join(path.dirname(output),'coverage-test.log'),original.output);
   if(original.exitCode!==0) throw new Error('Original chains test failed:\n'+original.output);
   const cases=[
@@ -106,5 +106,9 @@ try{
   fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify(result,null,2));
 }finally{
-  fs.rmSync(temp,{recursive:true,force:true});
+  const resolved=path.resolve(temp), relative=path.relative(path.resolve(os.tmpdir()),resolved);
+  if(!relative || relative.startsWith('..') || path.isAbsolute(relative) || relative.includes(path.sep)
+    || !path.basename(resolved).startsWith('yaoshi-water-evidence-'))
+    throw new Error('Refusing to remove an unexpected temporary directory: '+resolved);
+  fs.rmSync(resolved,{recursive:true,force:true});
 }
