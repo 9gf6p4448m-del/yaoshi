@@ -1,0 +1,22 @@
+{
+  "baseline": {
+    "winnerHolderGames": 2,
+    "differencePp": 50
+  },
+  "mutants": [
+    {
+      "name": "seat-zero-holder-instead-of-all-four",
+      "outcome": "killed",
+      "observedWinnerHolderGames": 0
+    },
+    {
+      "name": "invert-normal-minus-zero",
+      "outcome": "killed",
+      "observedDifferencePp": -50
+    }
+  ],
+  "requiredSeeds": [
+    1,
+    2
+  ]
+}

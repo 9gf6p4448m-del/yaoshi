@@ -1,0 +1,32 @@
+✔ frozen eight arms and table modes are explicit (2.4157ms)
+✔ real engine runs all eight tables with complete four-seat ever-held evidence (3269.6476ms)
+✔ H1 uses seat-zero paired win difference and inclusive -8 to +5 pp bounds (16.6653ms)
+✔ H9 counts any of four ever-holders, winner among them, separate denominators and 85% ceiling (1.9015ms)
+✔ H9 zero denominators are null/incomplete; blind eyes diagnostic cannot pass (1.2087ms)
+✔ H9 +3/+10 bounds and 85% ceiling are independently checked (24.0358ms)
+✔ formal status requires exactly seeds 1..10000 and a failing metric makes overall fail (1290.1295ms)
+✔ aggregate rejects absent arm/seed, duplicate, invalid winner/holders and mixed provenance (8.2991ms)
+✔ CLI requires explicit arm for run and positive n; aggregate is a separate mode (0.916ms)
+✔ gzip arm files round-trip; all writes are exclusive and report keeps table/limit labels (28.1354ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4853.3956
+ℹ start of coverage report
+ℹ ---------------------------------------------------------------------------------------------------------------
+ℹ file                 | line % | branch % | funcs % | uncovered lines
+ℹ ---------------------------------------------------------------------------------------------------------------
+ℹ tests                |        |          |         | 
+ℹ  tools               |        |          |         | 
+ℹ   l1-balance.mjs     |  41.18 |    72.09 |   59.09 | 73-81 83-91 94-99 101-110 113-146 149-162 165-196 199-204
+ℹ   l1-formal.mjs      |  96.05 |    82.80 |   94.87 | 236 294-304
+ℹ   l1-information.mjs |  44.28 |    69.23 |   54.17 | 79-84 87-99 101-111 114-145 148-160 163-193 196-201
+ℹ   load.mjs           | 100.00 |   100.00 |  100.00 | 
+ℹ ---------------------------------------------------------------------------------------------------------------
+ℹ all files            |  66.39 |    78.80 |   74.42 | 
+ℹ ---------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

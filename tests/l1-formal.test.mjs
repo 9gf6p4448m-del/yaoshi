@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {ARMS, ARM_CONFIG, runArm, aggregate, parseCli} from './tools/l1-formal.mjs';
+import {ARMS, ARM_CONFIG, runArm, aggregate, parseCli, writeArm, readArms,
+  writeAggregate, reportMarkdown} from './tools/l1-formal.mjs';
 
 const target=path.resolve(fileURLToPath(new URL('../index.html',import.meta.url)));
 const chainIds=['water','eyes','twinTiger'];
@@ -11,14 +14,28 @@ const first=()=>Object.fromEntries(chainIds.map(id=>[id,{}]));
 const provenance={schema:'l1-formal-arm-v1',sourceSha256:'a'.repeat(64),toolSha256:'b'.repeat(64),
   dependenciesSha256:{load:'c'.repeat(64),balance:'d'.repeat(64),information:'e'.repeat(64)},
   gitHead:'f'.repeat(40),cfg:{ROUNDS:10}};
+const baseChains=()=>Object.fromEntries(chainIds.map(id=>[id,{requirements:[id],aiBonus:2,
+  flags:[`${id}-effect`],traits:null,hooks:null,army:null}]));
 function row(arm,seed,{winnerId=1,holders=empty()}={}){
   return {arm,seed,roles:['qingmian','a','b','c'],winnerId,gameLength:3,alive0:true,
     holders,first:first()};
 }
 function artifacts(seeds=[1,2]){
-  return ARMS.map(arm=>({...structuredClone(provenance),arm,seeds:[...seeds],rows:seeds.map(seed=>row(arm,seed))}));
+  return ARMS.map(arm=>{
+    const effectiveChains=baseChains();
+    if(arm.startsWith('h9-zero-')) effectiveChains[arm.slice('h9-zero-'.length)].flags=null;
+    return {...structuredClone(provenance),arm,effectiveChains,seeds:[...seeds],
+      rows:seeds.map(seed=>row(arm,seed))};
+  });
 }
 const get=(xs,arm)=>xs.find(x=>x.arm===arm);
+function aggregatePrepared(xs,options){
+  for(const artifact of xs) for(const r of artifact.rows){
+    r.first=Object.fromEntries(chainIds.map(id=>[id,Object.fromEntries(r.holders[id].map(seat=>
+      [seat,{round:1,phase:'auction',mutationSequence:1}]))]));
+  }
+  return aggregate(xs,options);
+}
 
 test('frozen eight arms and table modes are explicit',()=>{
   assert.deepEqual(ARMS,['h1-splitter','h1-water','h1-twinTiger','h1-eyes',
@@ -40,7 +57,8 @@ test('real engine runs all eight tables with complete four-seat ever-held eviden
     for(const r of a.rows){
       assert.equal(r.arm,arm);
       assert.equal(r.roles.length,4);
-      assert.ok(r.gameLength>0&&r.roles[0]==='qingmian');
+      assert.ok(r.gameLength>0);
+      if(arm.startsWith('h1-')) assert.equal(r.roles[0],'qingmian');
       assert.deepEqual(Object.keys(r.holders).sort(),[...chainIds].sort());
       assert.deepEqual(Object.keys(r.first).sort(),[...chainIds].sort());
     }
@@ -54,13 +72,13 @@ test('H1 uses seat-zero paired win difference and inclusive -8 to +5 pp bounds',
   water.rows.forEach((r,i)=>r.winnerId=i<42?0:1);
   tiger.rows.forEach((r,i)=>r.winnerId=i<55?0:1);
   eyes.rows.forEach((r,i)=>r.winnerId=i<41?0:1);
-  const result=aggregate(xs,{requiredSeeds:base.seeds});
+  const result=aggregatePrepared(xs,{requiredSeeds:base.seeds});
   assert.equal(result.h1.water.differencePp,-8);
-  assert.equal(result.h1.water.status,'pass');
+  assert.equal(result.h1.water.thresholdStatus,'pass');
   assert.equal(result.h1.twinTiger.differencePp,5);
-  assert.equal(result.h1.twinTiger.status,'pass');
-  assert.equal(result.h1.eyes.status,'fail');
-  assert.equal(result.overall.status,'fail');
+  assert.equal(result.h1.twinTiger.thresholdStatus,'pass');
+  assert.equal(result.h1.eyes.thresholdStatus,'fail');
+  assert.equal(result.overall.status,'incomplete');
   assert.equal(result.overall.releaseEligible,false);
 });
 
@@ -72,7 +90,7 @@ test('H9 counts any of four ever-holders, winner among them, separate denominato
   normal.rows[2].winnerId=0;normal.rows[2].holders.water=[0,1,2,3];
   zero.rows[0].winnerId=2;zero.rows[0].holders.water=[1];
   zero.rows[1].winnerId=1;zero.rows[1].holders.water=[1];
-  const h=aggregate(xs,{requiredSeeds:[1,2,3,4]}).h9.water;
+  const h=aggregatePrepared(xs,{requiredSeeds:[1,2,3,4]}).h9.water;
   assert.equal(h.normal.anyHolderGames,3);
   assert.equal(h.normal.winnerHolderGames,2);
   assert.equal(h.zero.anyHolderGames,2);
@@ -84,7 +102,7 @@ test('H9 counts any of four ever-holders, winner among them, separate denominato
 
 test('H9 zero denominators are null/incomplete; blind eyes diagnostic cannot pass',()=>{
   const xs=artifacts([1,2]);
-  const h=aggregate(xs,{requiredSeeds:[1,2]});
+  const h=aggregatePrepared(xs,{requiredSeeds:[1,2]});
   assert.equal(h.h9.water.differencePp,null);
   assert.equal(h.h9.water.status,'incomplete');
   assert.equal(h.h9.eyes.status,'incomplete');
@@ -100,14 +118,28 @@ test('H9 +3/+10 bounds and 85% ceiling are independently checked',()=>{
     normal.rows.forEach((r,i)=>{r.holders[id]=[3];r.winnerId=i<85?3:1;});
     zero.rows.forEach((r,i)=>{r.holders[id]=[3];r.winnerId=i<82?3:1;});
   }
-  let h=aggregate(xs,{requiredSeeds:xs[0].seeds}).h9.water;
+  let h=aggregatePrepared(xs,{requiredSeeds:xs[0].seeds}).h9.water;
   assert.equal(h.differencePp,3);
-  assert.equal(h.status,'pass');
+  assert.equal(h.thresholdStatus,'pass');
   const normal=get(xs,'h9-normal');
   normal.rows[85].winnerId=3;
-  h=aggregate(xs,{requiredSeeds:xs[0].seeds}).h9.water;
+  h=aggregatePrepared(xs,{requiredSeeds:xs[0].seeds}).h9.water;
   assert.equal(h.absoluteCeilingPass,false);
-  assert.equal(h.status,'fail');
+  assert.equal(h.thresholdStatus,'fail');
+});
+
+test('formal status requires exactly seeds 1..10000 and a failing metric makes overall fail',()=>{
+  const xs=artifacts(Array.from({length:10000},(_,i)=>i+1));
+  get(xs,'h1-water').rows[0].winnerId=0;
+  let summary=aggregatePrepared(xs);
+  assert.equal(summary.sampleComplete,true);
+  assert.equal(summary.h1.water.status,'pass');
+  assert.equal(summary.overall.status,'incomplete');
+  for(let i=1;i<501;i++) get(xs,'h1-water').rows[i].winnerId=0;
+  summary=aggregatePrepared(xs);
+  assert.equal(summary.h1.water.status,'fail');
+  assert.equal(summary.overall.status,'fail');
+  assert.equal(summary.overall.releaseEligible,false);
 });
 
 test('aggregate rejects absent arm/seed, duplicate, invalid winner/holders and mixed provenance',()=>{
@@ -123,6 +155,12 @@ test('aggregate rejects absent arm/seed, duplicate, invalid winner/holders and m
   assert.throws(()=>aggregate(holder,{requiredSeeds:[1,2]}),/holder|seat/i);
   const prov=structuredClone(xs);prov[1].sourceSha256='0'.repeat(64);
   assert.throws(()=>aggregate(prov,{requiredSeeds:[1,2]}),/provenance|source/i);
+  const chains=structuredClone(xs);chains[1].effectiveChains.water.flags=null;
+  assert.throws(()=>aggregate(chains,{requiredSeeds:[1,2]}),/effective|chain/i);
+  const history=structuredClone(xs);history[0].rows[0].holders.water=[2];
+  assert.throws(()=>aggregate(history,{requiredSeeds:[1,2]}),/holder\/first/i);
+  const roles=structuredClone(xs);get(roles,'h1-water').rows[0].roles[1]='other';
+  assert.throws(()=>aggregate(roles,{requiredSeeds:[1,2]}),/roles mismatch/i);
   assert.throws(()=>aggregate(xs),/10000|seed/i);
 });
 
@@ -133,4 +171,23 @@ test('CLI requires explicit arm for run and positive n; aggregate is a separate 
   assert.throws(()=>parseCli(['--n','2']),/arm/i);
   assert.throws(()=>parseCli(['--arm','bad']),/arm/i);
   assert.throws(()=>parseCli(['--arm','h1-water','--n','0']),/positive/i);
+});
+
+test('gzip arm files round-trip; all writes are exclusive and report keeps table/limit labels',()=>{
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'yaoshi-l1-formal-'));
+  try{
+    const xs=artifacts([1,2]);
+    for(const a of xs) writeArm(a,temp);
+    assert.deepEqual(readArms(temp),xs);
+    assert.throws(()=>writeArm(xs[0],temp),/EEXIST/i);
+    const summary=aggregatePrepared(xs,{requiredSeeds:[1,2]});
+    const report=reportMarkdown(summary);
+    assert.match(report,/H1.*qingmian/i);
+    assert.match(report,/H9.*scriptedBids seat 0 and AI/i);
+    assert.match(report,/not a holdout/i);
+    const out=path.join(temp,'summary');
+    writeAggregate(summary,out);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(out,'summary.json'),'utf8')),summary);
+    assert.throws(()=>writeAggregate(summary,out),/already exists/i);
+  }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
