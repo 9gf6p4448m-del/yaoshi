@@ -119,3 +119,12 @@ test('input and CLI reject nonpositive, duplicate or malformed samples',()=>{
   assert.throws(()=>parseCli(['--n','foo']),/positive/i);
   assert.throws(()=>parseCli(['--bogus']),/unknown/i);
 });
+
+test('untargeted splitter holder fields are not measured, never zero attainment',()=>{
+  const s=summarize([{seed:1,winnerId:0,holder:null,endBagChainIds:[['water']]}],'splitter');
+  assert.equal(s.targetChain,null);
+  assert.equal(s.holders,null);
+  assert.equal(s.holderWins,null);
+  assert.equal(s.holderWinRate,null);
+  assert.equal(s.wins,1);
+});
