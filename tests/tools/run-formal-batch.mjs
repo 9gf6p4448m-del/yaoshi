@@ -105,11 +105,12 @@ export async function runFormalBatch({n=10000,concurrency=3,rawDir,aggDir}={}){
 
 if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(fileURLToPath(import.meta.url))){
   const args=process.argv.slice(2);
-  let n=10000;
+  let n=10000,concurrency=2;
   for(let i=0;i<args.length;i++){
     if(args[i]==='--n'&&args[i+1]) n=Number(args[++i]);
+    else if(args[i]==='--concurrency'&&args[i+1]) concurrency=Number(args[++i]);
   }
-  runFormalBatch({n}).catch(err=>{
+  runFormalBatch({n,concurrency}).catch(err=>{
     console.error(err);
     process.exitCode=1;
   });
