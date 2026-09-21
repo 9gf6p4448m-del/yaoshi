@@ -43,7 +43,8 @@ G.makeState('solo',1);
 const preview=G.bagPreviewHTML(P(0,[tiger,nail,tiger,nail]));
 assert.match(preview,/總攻 23・總血 16/);
 assert.equal((preview.match(/雙虎滅煞/g)||[]).length,1);
-console.log('L1 tiger RED/GREEN assertions passed');
 // Reverse material order must preserve the actual army order in the bag preview.
 const reversed=G.bagPreviewHTML(P(0,[nail,other,tiger]));
 assert.ok(reversed.indexOf('雙虎滅煞')<reversed.indexOf(other.n),'fusion preview belongs at earliest material');
+
+console.log('L1 tiger RED/GREEN assertions passed');

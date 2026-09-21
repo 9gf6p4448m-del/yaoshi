@@ -79,13 +79,30 @@ export function launch(key) {
   status.textContent = practice ? `練習・${practice.title}` : '正常隨機局';
   document.querySelector('#guide').textContent = practice ? `${practice.guide} 建議在第 1 件拍品出價 3。` : '正常隨機局使用原始設定與隨機市集。';
   panel.hidden = true;
+  status.hidden = true;
+  document.querySelector('#openMenu').hidden = true;
   frame.onload = () => {
     if (ticket !== sequence) return;
     try {
+      const w = frame.contentWindow;
+      const originalHelp = w.openHelp;
+      w.openHelp = function (...args) {
+        originalHelp.apply(w, args);
+        const entry = w.document.createElement('button');
+        entry.type = 'button';
+        entry.className = 'side';
+        entry.textContent = '返回連攜試玩選單';
+        entry.addEventListener('click', () => { w.closeModal(); panel.hidden = false; });
+        const label = w.document.createElement('p');
+        label.className = 'mut';
+        label.textContent = practice ? `練習：${practice.title}（預置局，非平衡結果）` : '正常隨機局（原始設定）';
+        w.document.querySelector('#modalbox').prepend(entry, label);
+      };
       if (practice) configurePractice(key);
       else frame.contentWindow.__yaoshi.newGame('solo');
     } catch (error) {
       panel.hidden = false;
+      status.hidden = false;
       status.textContent = `練習載入失敗：${error.message}`;
       console.error(error);
     }
