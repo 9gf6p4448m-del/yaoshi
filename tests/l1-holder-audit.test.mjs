@@ -22,6 +22,7 @@ test('counts all four endpoint holders, including winners outside seat zero',()=
   assert.equal(result.rawSha256,'abc');
   assert.deepEqual(normal.holderCountDistribution,[1,2,0,0,1]);
   assert.equal(normal.anyHolderGames,3);
+  assert.equal(normal.games,4);
   assert.equal(normal.winnerHolderGames,2);
   assert.equal(normal.winnerHolderRate,2/3);
   assert.equal(result.chains.water.differencePp,0);
