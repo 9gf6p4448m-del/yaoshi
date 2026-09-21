@@ -1,0 +1,48 @@
+{
+  "fixture": "seed1, one real auction, injected bags and bids",
+  "reveal": {
+    "text": "閭山法師 毒標得手 → 塞進 陰間當鋪 的袋子",
+    "receipts": [
+      {
+        "winner": 0,
+        "slot": 0,
+        "transferTarget": 1,
+        "destroy": false
+      }
+    ],
+    "sounds": [
+      "gong",
+      "reveal",
+      "curse",
+      "bell"
+    ],
+    "error": null,
+    "history": {
+      "item": "冥婚紅包",
+      "fac": "curse",
+      "p": -5,
+      "curse": true,
+      "winnerId": 0,
+      "amt": 4,
+      "type": "cons",
+      "intent": "poison",
+      "targetId": 1,
+      "bids": [
+        {
+          "pid": 0,
+          "amt": 4,
+          "type": "cons",
+          "intent": "poison",
+          "cost": 5
+        }
+      ]
+    },
+    "bag": [
+      "拼板舟",
+      "水鬼浮標",
+      "冥婚紅包"
+    ]
+  },
+  "review": "第 1 夜\n詛咒冥婚紅包 — 南・閭山法師 4 保守 毒標→北・陰間當鋪\n出價：南・閭山法師 4保守毒（付 5）",
+  "errors": []
+}
