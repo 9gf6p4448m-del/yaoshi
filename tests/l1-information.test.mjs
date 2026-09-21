@@ -56,8 +56,11 @@ test('blind adapter exposes only base preview and removes reveal, preserving ori
   assert.ok(ctx.previousReveal);
   const four={...ctx,basePreviewCount:4,preview:[market('A',1),market('B',2),market('C',3),market('D',99)],previousReveal:null};
   assert.equal(blindLegalContext(four).preview.length,4);
-  assert.deepEqual(planEyesBids(input({budget:8,maxBids:3,legalContext:four})).map(x=>x.amt),
-    planEyesBids(input({budget:8,maxBids:3,legalContext:blindLegalContext(four)})).map(x=>x.amt));
+  const informed=planEyesBids(input({budget:8,maxBids:3,legalContext:four})).map(x=>x.amt);
+  const blind=planEyesBids(input({budget:8,maxBids:3,legalContext:blindLegalContext(four)})).map(x=>x.amt);
+  assert.deepEqual(informed,[2,2,0]);
+  assert.deepEqual(blind,informed);
+  assert.deepEqual(planEyesBids(input({budget:8,maxBids:3,legalContext:{...four,preview:four.preview.slice(0,3)}})).map(x=>x.amt),[2,2,1]);
 });
 
 test('policy adapter still consumes information when recipe is already complete, without private reads',()=>{

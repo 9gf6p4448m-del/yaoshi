@@ -1,12 +1,12 @@
-✔ highest noncurse market item wins tie by index, and a curse cannot be target (1.6505ms)
-✔ largest legal second bid changes the next bid, bounded to base plus two and cap (1.1716ms)
-✔ third legal preview reserves two when its value exceeds tonight best (0.2998ms)
-✔ fee, budget, max bids, empty market and null context are deterministic for both arms (0.3726ms)
-✔ blind adapter exposes only base preview and removes reveal, preserving original base count (0.3059ms)
-✔ policy adapter still consumes information when recipe is already complete, without private reads (19.1473ms)
-✔ paired whole-game and separate ever-held denominators remain distinct (0.6408ms)
-✔ real engine three arms replay, retain raw provenance and report incomplete status (483.2657ms)
-✔ CLI sample validation (0.5115ms)
+✔ highest noncurse market item wins tie by index, and a curse cannot be target (1.8004ms)
+✔ largest legal second bid changes the next bid, bounded to base plus two and cap (0.9997ms)
+✔ third legal preview reserves two when its value exceeds tonight best (0.2791ms)
+✔ fee, budget, max bids, empty market and null context are deterministic for both arms (0.2398ms)
+✔ blind adapter exposes only base preview and removes reveal, preserving original base count (0.2736ms)
+✔ policy adapter still consumes information when recipe is already complete, without private reads (23.5171ms)
+✔ paired whole-game and separate ever-held denominators remain distinct (0.8144ms)
+✔ real engine three arms replay, retain raw provenance and report incomplete status (509.8257ms)
+✔ CLI sample validation (0.6204ms)
 ℹ tests 9
 ℹ suites 0
 ℹ pass 9
@@ -14,4 +14,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2057.5105
+ℹ duration_ms 2054.8691
