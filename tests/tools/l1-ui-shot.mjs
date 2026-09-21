@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
 
 const root=path.resolve(fileURLToPath(new URL('../..',import.meta.url)));
 const pack=[path.join(root,'tools/anyCreature/package.json'),path.resolve(root,'../../../tools/anyCreature/package.json')].find(existsSync);
@@ -27,7 +28,17 @@ try{
       await page.waitForTimeout(650);
       await page.screenshot({path:path.join(out,`market-${width}x${height}.png`)});
       const metrics=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,chainVisible:!!document.querySelector('.chainAwaken'),chainText:document.querySelector('.chainAwaken')?.textContent,chainRect:document.querySelector('.chainAwaken')?.getBoundingClientRect().toJSON()}));
-      console.log(width,height,metrics);
+      if(width===844){
+        const privacy=await page.evaluate(()=>{
+          const g=window.__yaoshi,s=g.S;
+          s.players[1].bag=[g.POOL.find(x=>x.ab==='boat')];
+          showBag(1);const opponent=$('modalbox').textContent,opponentHasBoat=opponent.includes('拼板舟');
+          closeModal();showBag(0);const own=$('modalbox').textContent,ownHasEye=own.includes('祖靈之眼');
+          showHandoff(0,()=>{});
+          return {opponentHasBoat,ownHasEye,modalHidden:$('modal').style.display==='none',privateMarks:document.querySelectorAll('#table .chainHint,#table .chainStatus,#table .chainAwaken').length};
+        });
+        assert.deepEqual(privacy,{opponentHasBoat:false,ownHasEye:true,modalHidden:true,privateMarks:0});
+      }
       if(metrics.scrollWidth>metrics.clientWidth) errors.push(`overflow ${width}: ${JSON.stringify(metrics)}`);
       await page.close();
     }
