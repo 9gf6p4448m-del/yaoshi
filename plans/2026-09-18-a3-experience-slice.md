@@ -1,5 +1,7 @@
 # A3 完整體驗切片：執行計畫（2026-09-18 開卷）
 
+> **2026-09-21 排程例外（使用者：「六局可以先跳過 開始依照進度下一步嗎」）**：S7 真人研究暫緩，S8 完成工程收卷與交接，允許接 L1 規格準備。#11 門檻不變、未執行不算通過；原段落退出限制不再阻塞本次後續工作。見 [收卷](../docs/experiments/2026-09-21-a3-closeout/README.md)。
+
 使用者 2026-09-18 對 A3 六題「按照建議」裁定（[交接信末節](../docs/handoffs/2026-09-15-a1-premium-table.md)）。範圍依 [總藍圖 §4 A04／A06／A07、§5 A3](../docs/MASTER_BLUEPRINT.md)：**聲音、角色反應、因果帳本、滿編構圖、再玩研究**五段，順序固定。凍結驗收：[2026-09-18-acceptance-a3-experience-slice.md](../docs/experiments/2026-09-18-acceptance-a3-experience-slice.md)。建立時基準：v0.57.23（main `997006b`）。
 
 ## 0. 已裁與不裁
