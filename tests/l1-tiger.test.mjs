@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {loadGame} from './tools/load.mjs';
 
-const G=loadGame(new URL('../index.html',import.meta.url).pathname.replace(/^\/(?=[A-Z]:)/,''));
+const G=loadGame(process.env.CHAIN_TARGET||new URL('../index.html',import.meta.url).pathname.replace(/^\/(?=[A-Z]:)/,''));
 const tiger=G.POOL.find(x=>x.ab==='tiger'), nail=G.POOL.find(x=>x.ab==='nail');
 const other=G.POOL.find(x=>x.unit&&x.ab!=='tiger'&&x.ab!=='nail');
 const team=a=>a.teams.map(t=>[t.ab,t.fac,t.units.length,t.units[0].atk,t.units[0].max,t.tr?.id]);

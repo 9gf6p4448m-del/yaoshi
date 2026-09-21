@@ -1,6 +1,6 @@
 {
   "base": "de471a2",
-  "head": "e105a181e40e7aa35522b5e0b22086eaf1ac3690",
+  "head": "f581918e3bf065d5809ca15926f17d5894585b8e",
   "affectedTests": {
     "exit": 0,
     "passes": 15
@@ -13,60 +13,58 @@
   },
   "mutations": [
     {
-      "name": "disable-poison-interception",
+      "name": "eyes-ignore-hidden-bids",
       "exit": 1,
       "failedTests": [
-        "毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中",
-        "同夜先補材料後毒標即擋；毒標先到不能追溯",
-        "阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標",
-        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+        "second bid counts tied raw entries and suppresses hidden or short reveal"
       ],
       "caught": true
     },
     {
-      "name": "count-blocked-poison-as-hit",
+      "name": "twin-tiger-armor-pierce-disabled",
       "exit": 1,
       "failedTests": [
-        "被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標"
+        "tests\\l1-tiger.test.mjs"
       ],
       "caught": true
     }
   ],
   "coverage": {
+    "unit": "non-whitespace UTF-16 source positions covered by V8 execution ranges",
     "functions": [
       {
         "function": "activeChains",
-        "coveredBytes": 204,
-        "totalBytes": 204,
+        "coveredSourceUnits": 204,
+        "totalSourceUnits": 204,
         "rate": 1
       },
       {
         "function": "chainsCompletedBy",
-        "coveredBytes": 215,
-        "totalBytes": 219,
+        "coveredSourceUnits": 215,
+        "totalSourceUnits": 219,
         "rate": 0.9817
       },
       {
         "function": "canViewPrivateBag",
-        "coveredBytes": 168,
-        "totalBytes": 168,
+        "coveredSourceUnits": 168,
+        "totalSourceUnits": 168,
         "rate": 1
       },
       {
         "function": "eyesSecondBid",
-        "coveredBytes": 234,
-        "totalBytes": 234,
+        "coveredSourceUnits": 234,
+        "totalSourceUnits": 234,
         "rate": 1
       },
       {
         "function": "buildArmy",
-        "coveredBytes": 1310,
-        "totalBytes": 1347,
+        "coveredSourceUnits": 1310,
+        "totalSourceUnits": 1347,
         "rate": 0.9725
       }
     ],
-    "coveredBytes": 2131,
-    "totalBytes": 2172,
+    "coveredSourceUnits": 2131,
+    "totalSourceUnits": 2172,
     "rate": 0.9811
   }
 }

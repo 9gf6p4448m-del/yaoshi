@@ -32,14 +32,14 @@ try{
   if(oldTrace!==newTrace){let at=0;while(at<oldTrace.length&&oldTrace[at]===newTrace[at])at++;summary.emptyChainsTrace.firstDiff=at;}
 
   const mutants=[
-    {name:'disable-poison-interception',from:'if(hasFlag(target,"blockPoisonTransfer")){',to:'if(false && hasFlag(target,"blockPoisonTransfer")){'},
-    {name:'count-blocked-poison-as-hit',from:'if(a.intent==="poison"&&!a.poisonBlocked){ poison++;',to:'if(a.intent==="poison"){ poison++;'},
+    {name:'eyes-ignore-hidden-bids',from:' || !result.showEntries || ',to:' || ',test:'tests/l1-ui.test.mjs'},
+    {name:'twin-tiger-armor-pierce-disabled',from:'&&!(attack&&attack.armorPierce)',to:'',test:'tests/l1-tiger.test.mjs'},
   ];
   summary.mutations=[];
   for(const m of mutants){
     if(!html.includes(m.from)) throw new Error(`Missing mutation anchor ${m.name}`);
     const p=path.join(temp,m.name+'.html');fs.writeFileSync(p,html.replace(m.from,m.to));
-    const r=run(['--test','tests/chains.test.mjs'],{CHAIN_TARGET:p});save(m.name+'.log',r);
+    const r=run(['--test',m.test],{CHAIN_TARGET:p});save(m.name+'.log',r);
     const failures=[...new Set([...((r.stdout||'')+(r.stderr||'')).matchAll(/^✖ (.+?) \(/gm)].map(x=>x[1]))];
     summary.mutations.push({name:m.name,exit:r.status,failedTests:failures,caught:r.status!==0&&failures.length>0});
   }
@@ -73,10 +73,10 @@ try{
       }
       if(hit)covered++;
     }
-    coverage.push({function:name,coveredBytes:covered,totalBytes:total,rate:Number((covered/total).toFixed(4))});
+    coverage.push({function:name,coveredSourceUnits:covered,totalSourceUnits:total,rate:Number((covered/total).toFixed(4))});
   }
-  summary.coverage={functions:coverage,coveredBytes:coverage.reduce((n,x)=>n+x.coveredBytes,0),totalBytes:coverage.reduce((n,x)=>n+x.totalBytes,0)};
-  summary.coverage.rate=Number((summary.coverage.coveredBytes/summary.coverage.totalBytes).toFixed(4));
+  summary.coverage={unit:'non-whitespace UTF-16 source positions covered by V8 execution ranges',functions:coverage,coveredSourceUnits:coverage.reduce((n,x)=>n+x.coveredSourceUnits,0),totalSourceUnits:coverage.reduce((n,x)=>n+x.totalSourceUnits,0)};
+  summary.coverage.rate=Number((summary.coverage.coveredSourceUnits/summary.coverage.totalSourceUnits).toFixed(4));
   fs.writeFileSync(path.join(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');
   console.log(JSON.stringify(summary,null,2));
   if(!summary.emptyChainsTrace.exactEqual||summary.mutations.some(x=>!x.caught)||summary.coverage.rate<.8)process.exitCode=1;

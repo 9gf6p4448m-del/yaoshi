@@ -1,0 +1,35 @@
+✔ water and eyes recipes, preview maximum, and duplicate completion (27.1061ms)
+✖ second bid counts tied raw entries and suppresses hidden or short reveal (25.6138ms)
+✔ viewer gate only permits active human at private market (14.2112ms)
+✔ AI bid reflects only a newly completed chain (231.1851ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1922.5775
+
+✖ failing tests:
+
+test at tests\l1-ui.test.mjs:20:1
+✖ second bid counts tied raw entries and suppresses hidden or short reveal (25.6138ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  5 !== null
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/l1-water-chain/tests/l1-ui.test.mjs:24:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 5,
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -4,7 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadGame} from './tools/load.mjs';
 
-const G=()=>loadGame(path.resolve(fileURLToPath(new URL('../index.html',import.meta.url))));
+const G=()=>loadGame(process.env.CHAIN_TARGET||path.resolve(fileURLToPath(new URL('../index.html',import.meta.url))));
 const item=(g,ab)=>({...g.POOL.find(x=>x.ab===ab)});
 
 test('water and eyes recipes, preview maximum, and duplicate completion',()=>{
@@ -35,15 +35,19 @@ test('viewer gate only permits active human at private market',()=>{
 });
 
 test('AI bid reflects only a newly completed chain',()=>{
-  const bidWith=(bonus,bag)=>{
+  const bidWith=(bonus,bag,paperwar=false,chain='water',next='buoy')=>{
     const g=G();g.CFG.WISH_ON=false;g.CFG.EVENT_ON=false;g.CFG.RULE_ON=false;
     g.makeState('solo',10);
     const p=g.S.players[1];p.bag=bag.map(ab=>item(g,ab));p.life=80;p.ai={aggr:1,spite:0};p.roleId='human';
-    g.S.market=[item(g,'buoy')];g.S.players.forEach(q=>{q.bag=[];q.alive=true;});p.bag=bag.map(ab=>item(g,ab));
-    g.CFG.PAPERWAR_ON=false;g.CFG.MARK_ON=false;g.CFG.AI_THROTTLE=1;g.CFG.AI_IDLE_P=0;
-    g.CHAINS.water.aiBonus=bonus;
+    g.S.market=[item(g,next)];g.S.players.forEach(q=>{q.bag=[];q.alive=true;});p.bag=bag.map(ab=>item(g,ab));
+    g.CFG.PAPERWAR_ON=paperwar;g.CFG.MARK_ON=false;g.CFG.AI_THROTTLE=1;g.CFG.AI_IDLE_P=0;
+    g.CHAINS[chain].aiBonus=bonus;
     return g.aiBids(p)[0]?.amt||0;
   };
   assert.equal(bidWith(2,['boat'])-bidWith(0,['boat']),2);
   assert.equal(bidWith(2,['boat','buoy']),bidWith(0,['boat','buoy']));
+  for(const [chain,first,next] of [['water','boat','buoy'],['eyes','eye','bell'],['twinTiger','tiger','nail']]){
+    assert.equal(bidWith(2,[first],true,chain,next)-bidWith(0,[first],true,chain,next),2,chain+' paperwar bonus');
+    assert.equal(bidWith(2,[first,next],true,chain,next),bidWith(0,[first,next],true,chain,next),chain+' duplicate');
+  }
 });

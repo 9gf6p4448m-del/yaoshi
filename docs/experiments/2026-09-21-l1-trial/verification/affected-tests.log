@@ -1,19 +1,19 @@
-✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (27.7823ms)
-✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (20.8874ms)
-✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (11.0137ms)
-✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (10.5439ms)
-✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (22.2738ms)
-✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (11.7882ms)
-✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (1320.6289ms)
-✔ 道具、連鎖、角色與心願的收集層順序固定 (10.832ms)
-✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (13.0954ms)
-✔ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (13.2295ms)
+✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (31.6272ms)
+✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (24.4289ms)
+✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (16.4275ms)
+✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (13.3772ms)
+✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (26.714ms)
+✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (11.8447ms)
+✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (1635.2334ms)
+✔ 道具、連鎖、角色與心願的收集層順序固定 (12.4134ms)
+✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (13.0681ms)
+✔ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (13.5663ms)
 L1 tiger RED/GREEN assertions passed
-✔ tests\l1-tiger.test.mjs (1626.5955ms)
-✔ water and eyes recipes, preview maximum, and duplicate completion (24.3804ms)
-✔ second bid counts tied raw entries and suppresses hidden or short reveal (20.0098ms)
-✔ viewer gate only permits active human at private market (12.4786ms)
-✔ AI bid reflects only a newly completed chain (46.361ms)
+✔ tests\l1-tiger.test.mjs (1622.7792ms)
+✔ water and eyes recipes, preview maximum, and duplicate completion (27.2304ms)
+✔ second bid counts tied raw entries and suppresses hidden or short reveal (21.1231ms)
+✔ viewer gate only permits active human at private market (13.9228ms)
+✔ AI bid reflects only a newly completed chain (231.6436ms)
 ℹ tests 15
 ℹ suites 0
 ℹ pass 15
@@ -21,4 +21,4 @@ L1 tiger RED/GREEN assertions passed
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 3104.5298
+ℹ duration_ms 3461.44
