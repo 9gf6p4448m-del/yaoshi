@@ -2032,7 +2032,7 @@ const CHAINS={
   water:{id:"water",name:"水陸偷渡",requirements:["boat","buoy"],
     desc:"毒標轉入的詛咒在入袋前銷毀",aiBonus:2,flags:["blockPoisonTransfer"]},
   eyes:{id:"eyes",name:"千眼神算",requirements:["eye","bell"],
-    desc:"明夜預告最多三件；整理上一夜已公開標額的第二高",aiBonus:2,traits:{preview:3}},
+    desc:"明夜預告最多三件；整理上一夜已公開標額的第二高",aiBonus:2,traits:{preview:3},flags:["publicSecondBid"]},
   twinTiger:{id:"twinTiger",name:"雙虎滅煞",desc:"虎爺印與虎姑婆指甲合陣，金斑黑虎橫掃撕甲。",requirements:["tiger","nail"],aiBonus:2,
     army:{name:"雙虎滅煞",f:"xianghuo",ab:"twinTiger",unit:{body:"elite",count:1,atk:9,hp:8,trait:"twinTigerSweep"}}},
 };
@@ -2240,7 +2240,7 @@ function canViewPrivateBag(pid,viewer=ACTIVE,phase=PRIVATE_PHASE){
   return !!S && phase==="market" && pid===viewer && !!S.players[pid] && !S.players[pid].ai && S.players[pid].alive;
 }
 function eyesSecondBid(p,result){
-  if(!activeChains(p).some(c=>c.id==="eyes") || !result || !result.showEntries || !Array.isArray(result.entries) || result.entries.length<2) return null;
+  if(!hasFlag(p,"publicSecondBid") || !result || !result.showEntries || !Array.isArray(result.entries) || result.entries.length<2) return null;
   return [...result.entries].map(e=>e.amt).sort((a,b)=>b-a)[1];
 }
 function chainStatusHTML(p){
@@ -7363,12 +7363,33 @@ const POLICIES={ greedy:policyGreedy, hoarder:policyHoarder, splitter:policySpli
   specialist:policySpecialist, minlegal:policyMinLegal, minlegal2:policyMinLegal2,
   feeaware:policyFeeAware, incenseMax:policyIncenseMax, incenseNever:policyIncenseNever,
   incenseAi:policyIncenseAi };
+/* 僅給 opt-in 政策的合法情報投影。資料在呼叫策略前複製與凍結，不能把 state/item/reveal 原參照交出去。 */
+function policyInformationContext(p,previousReveal){
+  const otherEffects=collectEffects(p).filter(e=>e!==CHAINS.eyes);
+  const basePreviewCount=otherEffects.reduce((n,e)=>Math.max(n,e.traits?.preview||0),1);
+  const preview=S.nextMarket.slice(0,traitMax(p,"preview",1)).map(it=>Object.freeze({
+    n:it.n,f:it.f,p:it.p,
+    ...(it.ab!==undefined?{ab:it.ab}:{}),
+    ...(it.curse!==undefined?{curse:it.curse}:{}),
+  }));
+  return Object.freeze({round:S.round,preview:Object.freeze(preview),basePreviewCount,previousReveal});
+}
+/* 必須在開標當刻做：之後請神、對決、下一夜都不能重新判定昨夜持有資格。 */
+function policyPreviousReveal(p,reveal){
+  if(!hasFlag(p,"publicSecondBid")) return null;
+  const rv={reveal,viewerId:p.id,showEntries:true,showTypes:false};
+  applyHooks("onReveal",rv,p);
+  const items=rv.reveal.map(r=>Object.freeze({name:r.it.n,secondBid:eyesSecondBid(p,{showEntries:rv.showEntries,entries:r.entries})}));
+  return Object.freeze({round:S.round,items:Object.freeze(items)});
+}
 /* 無頭跑一整局，供 runMany 統計聚合用。不重用/不修改 simulate()，避免任何動到既有等價基準的風險——
    完全靠 makeState/resolveAuction/resolveBattles/power 這些既有唯讀引擎函式組成，邏輯零重寫。 */
 function playPolicyGame(seed,policies,picks,options){
   if(chainHoldingsRecorder) throw new Error('chain holdings recorder does not allow nested playPolicyGame');
   makeState("solo",seed,picks);
   const recordChainHoldings=options?.recordChainHoldings===true;
+  const policyInformation=options?.policyInformation===true;
+  const previousReveal=policyInformation?[]:null;
   if(recordChainHoldings) chainHoldingsRecorder={state:S,first:{},mutationCount:0};
   try{
   const deathRound={}; S.players.forEach(p=>deathRound[p.id]=null);
@@ -7393,13 +7414,17 @@ function playPolicyGame(seed,policies,picks,options){
     S.humanBids={};
     if(CFG.LEGEND_ON) S.incense={};
     S.players.forEach(p=>{
-      if(!p.ai){ const pol=(policies&&policies[p.id])||scriptedBids; S.humanBids[p.id]=pol(p);
+      if(!p.ai){ const pol=(policies&&policies[p.id])||scriptedBids;
+        S.humanBids[p.id]=policyInformation?pol(p,policyInformationContext(p,previousReveal[p.id]||null)):pol(p);
         /* 請神：策略可掛一個 pol.inc(p)→{shrine,amt}|null 決定燒香（incenseMax／incenseNever）；
            沒掛就留 undefined，resolveShrines 會替它跑預設啟發式（＝跟 AI 同一支）。 */
         if(CFG.LEGEND_ON&&pol.inc) S.incense[p.id]=pol.inc(p); }
     });
     S.market.forEach(it=>{ factionOffered[it.f]=(factionOffered[it.f]||0)+1; drawnItems++; });
     const reveal=resolveAuction();
+    if(policyInformation) S.players.forEach(p=>{
+      if(!p.ai) previousReveal[p.id]=policyPreviousReveal(p,reveal);
+    });
     reveal.forEach(r=>{
       totalBids+=r.entries.length;
       if(r.winner){

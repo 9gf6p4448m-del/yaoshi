@@ -1,0 +1,44 @@
+{
+  "target": "tests/policy-information.test.mjs",
+  "baseline": {
+    "exitCode": 0,
+    "failedTests": 0
+  },
+  "coverage": {
+    "method": "V8 innermost executed ranges, non-whitespace source units of new core helpers",
+    "functions": [
+      {
+        "name": "policyInformationContext",
+        "coveredSourceUnits": 528,
+        "totalSourceUnits": 528,
+        "rate": 1
+      },
+      {
+        "name": "policyPreviousReveal",
+        "coveredSourceUnits": 361,
+        "totalSourceUnits": 372,
+        "rate": 0.9704301075268817
+      }
+    ],
+    "coveredSourceUnits": 889,
+    "totalSourceUnits": 900,
+    "rate": 0.9877777777777778
+  },
+  "mutations": [
+    {
+      "name": "eligibility-at-reveal",
+      "killed": true,
+      "failedTests": 1
+    },
+    {
+      "name": "hidden-bid-visibility",
+      "killed": true,
+      "failedTests": 1
+    },
+    {
+      "name": "preview-eye-exclusion",
+      "killed": true,
+      "failedTests": 1
+    }
+  ]
+}
