@@ -1,0 +1,19 @@
+✔ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (22.9108ms)
+✔ death later in the game is not described as death on the loss night (23.4492ms)
+✔ an unrecorded terminal interval is not invented as a named event or numbered night (17.0693ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (13.7126ms)
+✔ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (105.0162ms)
+✔ 凍結 #9 ①②③④：seeds 1–20 句數 3–6、evRef 對得上、無私有資訊、同 seed 逐字相同、cause 與口徑逐欄相等 (837.9595ms)
+ℹ cause kinds: {"night":20,"interval":0,"none":0} evRef types: {"dawn":20,"night":20,"win":20,"poison":18,"death":20,"shrine":20} no-poison games: 2
+✔ 凍結 #9 ⑤：異事夜殺到剩一人（補快照路徑）、無毒標局、空局都 ≥1 句不 throw (33.4276ms)
+✔ replayExport：seeds 1–10 打包→JSON→貼回，history 逐值相同、口徑相同、敘事相同、可重現 (510.476ms)
+✔ 回顧畫面只有一顆複製按鈕，copyReplay 不用會擋頁的對話框 (1.0845ms)
+✔ 回顧畫面只有一顆下載按鈕，downloadReplay 走分享面板→下載、檔名決定性、不用對話框 (1.1335ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2499.3528

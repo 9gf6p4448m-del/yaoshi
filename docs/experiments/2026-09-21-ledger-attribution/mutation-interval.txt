@@ -1,0 +1,37 @@
+✔ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (70.6291ms)
+✔ death later in the game is not described as death on the loss night (69.3989ms)
+✖ an unrecorded terminal interval is not invented as a named event or numbered night (26.0992ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (29.8223ms)
+✔ a recorded defeat remains evidence when a survival hook reduces its damage to zero (43.2357ms)
+✔ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (237.742ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2177.9841
+
+✖ failing tests:
+
+test at tests\ledger-attribution.test.mjs:35:1
+✖ an unrecorded terminal interval is not invented as a named event or numbered night (26.0992ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== null
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:39:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

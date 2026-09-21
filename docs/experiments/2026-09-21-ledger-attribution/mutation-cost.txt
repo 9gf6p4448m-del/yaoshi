@@ -1,0 +1,56 @@
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (30.4093ms)
+✔ death later in the game is not described as death on the loss night (34.3362ms)
+✔ an unrecorded terminal interval is not invented as a named event or numbered night (37.8472ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (22.1581ms)
+✔ a recorded defeat remains evidence when a survival hook reduces its damage to zero (47.9959ms)
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (103.0566ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1896.5295
+
+✖ failing tests:
+
+test at tests\ledger-attribution.test.mjs:13:1
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (30.4093ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  16 !== 2
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:19:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 16,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:62:1
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (103.0566ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  16 !== 2
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:72:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 16,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

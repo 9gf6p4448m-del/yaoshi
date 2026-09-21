@@ -1,0 +1,201 @@
+[
+  {
+    "id": "g01",
+    "seed": 2,
+    "rubric": "loss-interval-v2",
+    "winner": 3,
+    "winnerName": "東家・獵人",
+    "cause": 2,
+    "causeText": "西家・陰間當鋪 在第二夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 2,
+      "round": 2,
+      "snapshotIndex": 2,
+      "drop": 17,
+      "payments": [
+        {
+          "idx": 0,
+          "item": "過陰咒",
+          "cost": 9
+        },
+        {
+          "idx": 1,
+          "item": "百步蛇紋盾",
+          "cost": 12
+        }
+      ],
+      "fights": [
+        {
+          "idx": 1,
+          "foe": 3,
+          "damage": 4
+        }
+      ]
+    }
+  },
+  {
+    "id": "g02",
+    "seed": 5,
+    "rubric": "loss-interval-v2",
+    "winner": 3,
+    "winnerName": "東家・陰間當鋪",
+    "cause": 2,
+    "causeText": "北家・孝女白琴 在第六夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 1,
+      "round": 6,
+      "snapshotIndex": 6,
+      "drop": 20,
+      "payments": [
+        {
+          "idx": 0,
+          "item": "抓交替水符",
+          "cost": 6
+        },
+        {
+          "idx": 1,
+          "item": "林投姐髮簪",
+          "cost": 5
+        }
+      ],
+      "fights": [
+        {
+          "idx": 1,
+          "foe": 3,
+          "damage": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "g03",
+    "seed": 8,
+    "rubric": "loss-interval-v2",
+    "winner": 2,
+    "winnerName": "西家・斷手書生",
+    "cause": 2,
+    "causeText": "東家・青面攤主 在第五夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 3,
+      "round": 5,
+      "snapshotIndex": 5,
+      "drop": 19,
+      "payments": [
+        {
+          "idx": 1,
+          "item": "破軍旗",
+          "cost": 13
+        },
+        {
+          "idx": 3,
+          "item": "五營旗",
+          "cost": 10
+        }
+      ],
+      "fights": []
+    }
+  },
+  {
+    "id": "g04",
+    "seed": 11,
+    "rubric": "loss-interval-v2",
+    "winner": 3,
+    "winnerName": "東家・紅衣婆婆",
+    "cause": 3,
+    "causeText": "西家・大家樂組頭 在第七夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 2,
+      "round": 7,
+      "snapshotIndex": 7,
+      "drop": 23,
+      "payments": [
+        {
+          "idx": 1,
+          "item": "抓交替水符",
+          "cost": 4
+        },
+        {
+          "idx": 2,
+          "item": "縛靈鎖",
+          "cost": 2
+        }
+      ],
+      "fights": [
+        {
+          "idx": 1,
+          "foe": 1,
+          "damage": 10
+        }
+      ]
+    }
+  },
+  {
+    "id": "g05",
+    "seed": 14,
+    "rubric": "loss-interval-v2",
+    "winner": 3,
+    "winnerName": "東家・青面攤主",
+    "cause": 4,
+    "causeText": "北家・普渡爐主 在第八夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 1,
+      "round": 8,
+      "snapshotIndex": 8,
+      "drop": 17,
+      "payments": [
+        {
+          "idx": 3,
+          "item": "縛靈鎖",
+          "cost": 5
+        }
+      ],
+      "fights": [
+        {
+          "idx": 0,
+          "foe": 0,
+          "damage": 6
+        }
+      ]
+    }
+  },
+  {
+    "id": "g06",
+    "seed": 17,
+    "rubric": "loss-interval-v2",
+    "winner": 2,
+    "winnerName": "西家・孝女白琴",
+    "cause": 4,
+    "causeText": "南家・閭山法師 在第七夜壽命減少",
+    "mainCause": {
+      "kind": "night",
+      "pid": 0,
+      "round": 7,
+      "snapshotIndex": 7,
+      "drop": 14,
+      "payments": [
+        {
+          "idx": 1,
+          "item": "黃色小雨衣",
+          "cost": 3
+        },
+        {
+          "idx": 2,
+          "item": "送王船",
+          "cost": 3
+        }
+      ],
+      "fights": [
+        {
+          "idx": 0,
+          "foe": 3,
+          "damage": 9
+        }
+      ]
+    }
+  }
+]

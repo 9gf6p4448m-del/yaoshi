@@ -1,0 +1,77 @@
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (25.9488ms)
+✖ death later in the game is not described as death on the loss night (23.1539ms)
+✔ an unrecorded terminal interval is not invented as a named event or numbered night (23.0704ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (24.1376ms)
+✔ a recorded defeat remains evidence when a survival hook reduces its damage to zero (14.7332ms)
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (106.0598ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 3
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1792.7149
+
+✖ failing tests:
+
+test at tests\ledger-attribution.test.mjs:13:1
+✖ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (25.9488ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /為「破軍旗」付出大半條命|從此再沒站起來/. Input:
+  
+  '天亮了，北家・乙 還站在市集裡，元氣未傷。失血最多的一段在第五夜：南家・甲 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 北家・乙，不能把整夜損失都算在單一事件上。從此再沒站起來北家・乙 整局沒買下一件法寶，靠守住壽命撐到天亮。南家・甲 在第五夜出局，沒能等到天亮。'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '天亮了，北家・乙 還站在市集裡，元氣未傷。失血最多的一段在第五夜：南家・甲 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 北家・乙，不能把整夜損失都算在單一事件上。從此再沒站起來北家・乙 整局沒買下一件法寶，靠守住壽命撐到天亮。南家・甲 在第五夜出局，沒能等到天亮。',
+    expected: /為「破軍旗」付出大半條命|從此再沒站起來/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:27:1
+✖ death later in the game is not described as death on the loss night (23.1539ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /從此|出局|倒下/. Input:
+  
+  '失血最多的一段在第二夜：南家・甲 合計失去大半條命。同夜有拍賣支出，不能把整夜損失都算在單一事件上。從此再沒站起來'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:31:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '失血最多的一段在第二夜：南家・甲 合計失去大半條命。同夜有拍賣支出，不能把整夜損失都算在單一事件上。從此再沒站起來',
+    expected: /從此|出局|倒下/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests\ledger-attribution.test.mjs:62:1
+✖ actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop (106.0598ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /為「.+」付出|從此再沒站起來/. Input:
+  
+  '失血最多的一段在第五夜：南家・閭山法師 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 北家・陰間當鋪，不能把整夜損失都算在單一事件上。從此再沒站起來'
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/astra-ledger-fix/tests/ledger-attribution.test.mjs:69:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '失血最多的一段在第五夜：南家・閭山法師 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 北家・陰間當鋪，不能把整夜損失都算在單一事件上。從此再沒站起來',
+    expected: /為「.+」付出|從此再沒站起來/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }

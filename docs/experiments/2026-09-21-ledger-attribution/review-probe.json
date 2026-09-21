@@ -1,0 +1,57 @@
+{
+ "seed": 3,
+ "ps": [
+  "天亮了，北家・收驚婆 還站在市集裡，傷了些元氣。",
+  "失血最多的一段在第五夜：西家・閭山法師 合計失去一大截壽命。同夜有拍賣支出，也夜戰敗給 東家・孝女白琴，不能把整夜損失都算在單一事件上。",
+  "北家・收驚婆 最大的一注，是第七夜買下「椅仔姑竹椅」。",
+  "毒標也沒少：第一夜 東家・孝女白琴 把「白虎煞」塞給了 西家・閭山法師。",
+  "西家・閭山法師 在第十一夜出局，沒能等到天亮。",
+  "北家・收驚婆 在第十一夜請下了「有應公」。"
+ ],
+ "sameAsPure": true,
+ "winner": 1,
+ "cause": {
+  "kind": "night",
+  "pid": 2,
+  "round": 5,
+  "snapshotIndex": 5,
+  "drop": 15,
+  "payments": [
+   {
+    "idx": 1,
+    "item": "王爺劍",
+    "cost": 2
+   },
+   {
+    "idx": 2,
+    "item": "送王船",
+    "cost": 8
+   }
+  ],
+  "fights": [
+   {
+    "idx": 1,
+    "foe": 3,
+    "damage": 8
+   }
+  ]
+ },
+ "nights": 12,
+ "sectionTitle": "這一局的因果",
+ "version": "0.57.35",
+ "layouts": [
+  {
+   "width": 844,
+   "height": 390,
+   "textOverflow": false,
+   "inViewport": true
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "textOverflow": false,
+   "inViewport": true
+  }
+ ],
+ "pageerrors": []
+}

@@ -63,7 +63,24 @@ try {
     const first = document.querySelector('#reviewbox').children[1];
     return { ps, sameAsPure: JSON.stringify(ps) === JSON.stringify(R.lines.map((l) => l.text)), winner: R.winner, cause: R.cause, nights: window.__yaoshi.S.history.nights.length, sectionTitle: first ? first.textContent : null, version: RELEASE_VERSION };
   });
-  if (OUT) { await page.evaluate(() => { document.getElementById('review').scrollTop = 0; }); await page.screenshot({ path: OUT }); }
-  console.log(JSON.stringify({ seed: SEED, ...out, pageerrors: errors }, null, 1));
-  if (errors.length || out.ps.length < 3 || out.ps.length > 6 || !out.sameAsPure) process.exitCode = 1;
+  const layouts = [];
+  for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.evaluate(() => { document.getElementById('review').scrollTop = 0; });
+    const layout = await page.evaluate(() => {
+      const ledger = document.querySelector('#review .rvLedger');
+      const box = ledger.getBoundingClientRect();
+      const overflow = [...ledger.querySelectorAll('p')].some(p => {
+        const range = document.createRange(); range.selectNodeContents(p);
+        return [...range.getClientRects()].some(r => r.left < box.left - 1 || r.right > box.right + 1);
+      });
+      return { width: innerWidth, height: innerHeight, textOverflow: overflow,
+        inViewport: box.left >= 0 && box.right <= innerWidth };
+    });
+    layouts.push(layout);
+    if (OUT) await page.screenshot({ path: viewport.width === 844 ? OUT : OUT.replace(/\.png$/, '.portrait.png') });
+  }
+  console.log(JSON.stringify({ seed: SEED, ...out, layouts, pageerrors: errors }, null, 1));
+  if (errors.length || out.ps.length < 3 || out.ps.length > 6 || !out.sameAsPure
+      || layouts.some(l => l.textOverflow || !l.inViewport)) process.exitCode = 1;
 } finally { await browser.close(); srv.kill(); }

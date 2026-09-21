@@ -1,0 +1,38 @@
+{
+  "seed": 1,
+  "cause": {
+    "kind": "night",
+    "pid": 0,
+    "round": 5,
+    "snapshotIndex": 5,
+    "drop": 16,
+    "payments": [
+      {
+        "idx": 1,
+        "item": "破軍旗",
+        "cost": 2
+      },
+      {
+        "idx": 2,
+        "item": "百步蛇紋盾",
+        "cost": 2
+      }
+    ],
+    "fights": [
+      {
+        "idx": 0,
+        "foe": 1,
+        "damage": 8
+      }
+    ]
+  },
+  "line": {
+    "text": "失血最多的一段在第五夜：南家・閭山法師 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 北家・陰間當鋪，不能把整夜損失都算在單一事件上。",
+    "evRef": {
+      "round": 5,
+      "type": "night",
+      "who": 0,
+      "snapshotIndex": 5
+    }
+  }
+}
