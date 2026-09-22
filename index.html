@@ -2645,7 +2645,15 @@ let TRAY_PHASE=null;
    只讀 ab 的話那 4 件會靜默變成空槽。詛咒品兩個都沒有 ⇒ key null，3D 層擺占位的符紙堆。
    純讀取：不耗亂數、不寫任何賽局欄位（trace 因此與基準逐位元組相等）。 */
 function market3dItems(){
-  return (S&&S.market?S.market:[]).map(it=>({ key: it.curse?null:(it.ab||it.m||null), curse: !!it.curse, curseKind:curseKind(it), fac: it.f||null, moon: moonBenefit(it,S.round).active }));
+  const ap = (typeof S!=="undefined" && S && S.players && typeof ACTIVE!=="undefined" && S.players[ACTIVE] && !S.players[ACTIVE].ai) ? S.players[ACTIVE] : null;
+  return (S&&S.market?S.market:[]).map(it=>({
+    key: it.curse?null:(it.ab||it.m||null),
+    curse: !!it.curse,
+    curseKind: curseKind(it),
+    fac: it.f||null,
+    moon: moonBenefit(it,S.round).active,
+    chain: (ap && typeof chainsCompletedBy==="function") ? chainsCompletedBy(ap, it).length > 0 : false,
+  }));
 }
 /* 四席各是誰（v0.56b 第二段：席角信物）。id＝DIRS 的 0..3，role＝ROLES 的 id。
    純讀取：不耗亂數、不寫任何賽局欄位——與 market3dItems 同一條紀律。

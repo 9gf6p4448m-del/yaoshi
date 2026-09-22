@@ -448,7 +448,7 @@ export function createTableTray(scene, camera, opts = {}) {
   const N = TRAY.XS.length;
   /** 每一格的狀態。fig＝真 3D 妖（有 GLB）；pile＝詛咒占位；兩者互斥。 */
   const slots = TRAY.XS.map((x, i) => ({
-    i, key: null, curse: false, curseKind: null, fac: null, moon: false,
+    i, key: null, curse: false, curseKind: null, fac: null, moon: false, chain: false,
     fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, played: false,
     jolt: 0, bb: null,
   }));
@@ -494,10 +494,24 @@ export function createTableTray(scene, camera, opts = {}) {
   moonMarks.count = 0;
   moonMarks.visible = false;
   group.add(moonMarks);
+  /* 連鎖共鳴：內核硃砂靈印（半徑 0.045～0.095，居於月相外環 0.17～0.195 之內，一內一外不混淆）。
+     顏色為道壇硃砂紅 0xc8261e，帶微弱心跳呼吸脈動，僅對真人玩家私有呈現。 */
+  const chainGeo = new THREE.RingGeometry(0.045, 0.095, 16);
+  const chainMat = new THREE.MeshBasicMaterial({ color: 0xc8261e, transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, forceSinglePass: true });
+  const chainMarks = new THREE.InstancedMesh(chainGeo, chainMat, N);
+  chainMarks.name = 'tray-chain-resonance';
+  chainMarks.count = 0;
+  chainMarks.visible = false;
+  group.add(chainMarks);
   const moonV = new THREE.Vector3(), moonQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), moonS = new THREE.Vector3(), moonM = new THREE.Matrix4();
+  const chainV = new THREE.Vector3(), chainS = new THREE.Vector3(), chainM = new THREE.Matrix4();
+  let chainAnimTime = 0;
   const runePulse = [0, 0, 0, 0];
   function refreshMoonMarks() {
-    let n = 0;
+    let n = 0, nChain = 0;
+    const heart = Math.pow(Math.max(0, Math.sin((chainAnimTime * 2.2) % (Math.PI * 2))), 2.2);
+    chainMat.opacity = 0.42 + 0.48 * heart;
+
     for (const s of slots) {
       const k = L.mode === 'P' ? 0.62 : 1;
       const pulse = 1 + runePulse[s.i] * 0.15;
@@ -507,14 +521,23 @@ export function createTableTray(scene, camera, opts = {}) {
       runes.setMatrixAt(s.i, moonM);
       /* 滿 128 枚時卡面「今夜受惠」與整座硃砂法陣仍保留；只收掉額外一筆加色內環，
          避免它在透明錢堆壓力情境與接觸陰影競爭填色。 */
-      if (!s.moon || pressureOutlines) continue;
-      moonV.set(slotX(s.i), TRAY.Y + 0.011, L.Z); moonS.set(k * pulse, k * pulse, k); moonM.compose(moonV, moonQ, moonS);
-      moonMarks.setMatrixAt(n++, moonM);
+      if (s.moon && !pressureOutlines) {
+        moonV.set(slotX(s.i), TRAY.Y + 0.011, L.Z); moonS.set(k * pulse, k * pulse, k); moonM.compose(moonV, moonQ, moonS);
+        moonMarks.setMatrixAt(n++, moonM);
+      }
+      if (s.chain && !pressureOutlines) {
+        const sc = k * pulse * (1 + 0.06 * heart);
+        chainV.set(slotX(s.i), TRAY.Y + 0.012, L.Z); chainS.set(sc, sc, k); chainM.compose(chainV, moonQ, chainS);
+        chainMarks.setMatrixAt(nChain++, chainM);
+      }
     }
     runes.count = N; runes.visible = N > 0; runes.instanceMatrix.needsUpdate = true;
     moonMarks.count = n;
     moonMarks.visible = n > 0;
     if (n) moonMarks.instanceMatrix.needsUpdate = true;
+    chainMarks.count = nChain;
+    chainMarks.visible = nChain > 0;
+    if (nChain) chainMarks.instanceMatrix.needsUpdate = true;
   }
   function pulseRune(slot) { if (slot >= 0 && slot < N) runePulse[slot] = 1; refreshMoonMarks(); }
   /* 桌上道具層：掛在 `group` 裡面 ⇒ `setVisible(false)`（對決）一次收掉整組，不必逐支記得。
@@ -576,7 +599,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile.dispose();
       s.pile = null;
     }
-    s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.ready = false; s.hoverK = 0; s.spin = 0;
+    s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.chain = false; s.ready = false; s.hoverK = 0; s.spin = 0;
     s.rimK = -1; s.played = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
@@ -628,6 +651,7 @@ export function createTableTray(scene, camera, opts = {}) {
     s.curseKind = it.curseKind || null;
     s.fac = it.fac || null;
     s.moon = !!it.moon;
+    s.chain = !s.curse && !!it.chain;
     s.spin = TRAY.YAW[s.i] || 0;
     if (s.curse || !s.key) {
       const p = makeCursePile(1301 + s.i * 37, s.curseKind);
@@ -691,7 +715,7 @@ export function createTableTray(scene, camera, opts = {}) {
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
     slotXs() { return L.XS.slice(); },
-    /** 今夜的 4 件。list = [{key, curse, curseKind, fac, moon}]；curseKind 是純呈現，moon 是本夜受惠標記。 */
+    /** 今夜的 4 件。list = [{key, curse, curseKind, fac, moon, chain}]；curseKind 是純呈現，moon 是本夜受惠標記，chain 是連鎖共鳴。 */
     setItems(list) {
       const arr = Array.isArray(list) ? list : [];
       const jobs = [];
@@ -703,9 +727,13 @@ export function createTableTray(scene, camera, opts = {}) {
         const curse = !!it.curse;
         const curseKind = it.curseKind || null;
         const node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
-        if (s.key === key && s.curse === curse && s.curseKind === curseKind && node && node.visible && !s.award && !s.burn && !s.curseAward) { s.moon = !!it.moon; continue; } // 同一件才可重用
+        if (s.key === key && s.curse === curse && s.curseKind === curseKind && node && node.visible && !s.award && !s.burn && !s.curseAward) {
+          s.moon = !!it.moon;
+          s.chain = !s.curse && !!it.chain;
+          continue;
+        } // 同一件才可重用
         clearSlot(s);
-        jobs.push(fillSlot(s, { key, curse, curseKind, fac: it.fac, moon: it.moon }));
+        jobs.push(fillSlot(s, { key, curse, curseKind, fac: it.fac, moon: it.moon, chain: !!it.chain }));
       }
       refreshMoonMarks();
       pending = Promise.all(jobs);
@@ -718,7 +746,7 @@ export function createTableTray(scene, camera, opts = {}) {
     /** 每一格現在掛的是什麼（T2 逐槽比對用；只讀，不給改） */
     items() {
       return slots.map((s) => ({
-        slot: s.i, key: s.key, curse: s.curse, curseKind: s.curseKind, fac: s.fac, moon: s.moon, ready: s.ready,
+        slot: s.i, key: s.key, curse: s.curse, curseKind: s.curseKind, fac: s.fac, moon: s.moon, chain: s.chain, ready: s.ready,
         glb: s.fig ? creatureGlbUrl(s.key) : null,
         visible: s.fig ? s.fig.group.visible : !!s.pile,
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,
@@ -772,9 +800,11 @@ export function createTableTray(scene, camera, opts = {}) {
       const wantP = (camera.aspect || 1) < 1;
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
+      chainAnimTime += dt;
       let runeDirty = false;
       for (let i = 0; i < N; i++) if (runePulse[i] > 0) { runePulse[i] = Math.max(0, runePulse[i] - dt / 0.72); runeDirty = true; }
-      if (runeDirty) refreshMoonMarks();
+      const hasChain = slots.some((s) => s.chain);
+      if (hasChain || runeDirty) refreshMoonMarks();
       const subjects = [];
       for (const s of slots) {
         const want = (s.i === hover) ? 1 : 0;
@@ -849,8 +879,11 @@ export function createTableTray(scene, camera, opts = {}) {
     dispose() {
       slots.forEach(clearSlot);
       props.dispose();
+      group.remove(chainMarks);
       group.remove(moonMarks);
       group.remove(runes);
+      chainMarks.dispose();
+      chainGeo.dispose(); chainMat.dispose();
       moonMarks.dispose();
       moonGeo.dispose(); moonMat.dispose(); runeGeo.dispose(); runeMat.dispose(); runes.dispose();
       group.remove(cloth);
