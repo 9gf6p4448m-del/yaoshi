@@ -108,6 +108,14 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 放血治具將可與未封標草稿交錯的 UI 輸入正規化為放血步驟後再交複合標單；這只足以驗合法動作和壽命轉移，不能證明每一種草稿點擊順序都屬同一資訊集合。請神治具只覆蓋真人得主選尊，不覆蓋自動戰鬥、供奉、回天或終局。全遊戲仍 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；`index.html`、平衡值、H9 門檻都未變。
 
+## X：自動夜戰、夜末與終局治具（v6，2026-09-24）
+
+新增[模型契約 v6](../experiments/2026-09-23-destiny/model-contract-v6.md)。RED `37f423a` 後以凍結產品的 `resolveBattles`、`settleShrinesEnd`、`stripEndgameItems`、`finalizeHistory` 執行；adapter 不重寫戰鬥或夜末規則。四項測試通過，v2–v6／六鏈／天命／夜戰／資訊投影／模型盤點合跑 **101/101**。
+
+這批只證明三類具體路徑：天雷 `0.15` 門檻兩側、詛咒 drain 死亡與付不起神債回天／回血、局末神龕收攤與道具移除／名次快照。它沒有窮舉完整 chance tree、其他 battle hook 交叉組合、玩家供奉提示分支、跨相位 full recall、跨夜 snapshot、terminal utility 或 solver。曾因治具抽到普渡爐主被動而多扣出局者壽命；現固定無被動角色以隔離所測變數，產品未改。
+
+玩家體驗建議仍維持「先不動已上線規則與數值」：接下來量測事件夜盯印時序差、補跨相位回憶與完整 chance／snapshot，再以固定策略配對結果決定是否值得做任何體驗修正。即使局部 transition fixtures 綠燈，也不能推翻普通雙虎／血祭 H9 fail、千眼 H9 incomplete、焦點四鏈 fail／兩鏈 incomplete 的既有結果；`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 不變。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

@@ -4,6 +4,8 @@
 
 X v5 進度（2026-09-24）：[盯印／放血／選尊契約](../experiments/2026-09-23-destiny/model-contract-v5.md) RED `c099e06`／GREEN `85eff22`；新增 4/4，v2–v5 合跑 75/75。已定位事件夜「AI 開盅前盯印、真人開盅後盯印」但未量化，暫不改遊戲；戰鬥、夜末結算、跨階段 full recall 與 solver 仍缺，發布資格不變。
 
+X v6 進度（2026-09-24）：[夜戰／夜末／終局契約](../experiments/2026-09-23-destiny/model-contract-v6.md) RED `37f423a`；新測試 4/4，v2–v6、天命／資訊／模型盤點合跑 101/101。只覆蓋天雷門檻、選定死亡與神債回天、終局收尾，不等於完整 chance／full recall／跨夜模型；產品與平衡未改，發布資格仍 false。
+
 來源稽核追加（2026-09-24）：正式天命 raw 的 `gitHead=2eb164d` 不是產品來源證明；產品 SHA 對上後來候選 `5bd3817`，而 runner 未驗 `productBaseline`。舊 raw 保留不改；新實驗先鎖 commit/hash 並要求乾淨工作樹。稀疏密函輸入與交接後隱藏 DOM 殘留已修，局部回歸通過；平衡與發布關口仍未通過。長時 SFX 驗證追加：目前測試驅動版本三 seed 完整長測 1/1 通過；原始間歇卡點仍未定位。
 
 X fixtures 追加（2026-09-24）：[v2 六鏈／天命模型契約](../experiments/2026-09-23-destiny/model-contract-v2.md)固定 `d63f03e` 產品來源；TDD checkpoints `8e1af2b`／`d34dc99`。私函支持集、首次拍賣局部 restore、揭露前 replay 與逐席投影 fixtures 7/7 通過；與既有天命、資訊及舊契約盤點測試合計 61/61。局部 fixture 不等於完整 chance／snapshot／資訊集合，`sixOfFour=incomplete`、`releaseEligible=false`。下一個 X 工程是所有席位合法動作與 observation-history adapter；五人真人冷讀和 SFX 間歇原因仍待處理。
@@ -12,7 +14,7 @@ X 拍賣 adapter 追加（2026-09-24）：[v3 契約](../experiments/2026-09-23-
 
 | 日期 | 主題 | 目前狀態 | 下一句喚醒語 |
 |---|---|---|---|
-| 2026-09-24 | [六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md) | 規格凍結、候選實作、普通／真版 10k 對照、焦點比較、雙虎／血祭逐件配對與千眼知情補充各完成 10k 配對；另備千眼雙尺寸畫面與真人冷讀記分表。X v2 7/7、v3 6/6、v4 4/4、v5 4/4；最新合跑 75/75。事件夜盯印的 AI／真人輸入時序不一致，已記為待量測候選，未改產品。戰鬥、夜末／終局轉移、跨相位 full recall、chance／solver 仍缺。舊 H9 門檻不變；普通 H9 fail／incomplete、焦點四鏈 fail／兩鏈 incomplete、六之四 incomplete。SFX 間歇原因未定位；真人盲讀未做，不發布 | `/handoff 妖市：讀最終審視、v2–v5 契約與續作計畫；核量事件夜盯印時序，補戰鬥／結算與跨相位 full recall，維持產品不調值、releaseEligible=false；真人冷讀及 SFX 間歇復現依證據接續。` |
+| 2026-09-24 | [六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md) | 規格凍結、候選實作、普通／真版 10k 對照、焦點比較、雙虎／血祭逐件配對與千眼知情補充各完成 10k 配對；另備千眼雙尺寸畫面與真人冷讀記分表。X v2–v6 治具合跑 101/101；v6 只驗天雷門檻、選定死亡／神債回天、終局收尾，不算完整模型。事件夜盯印 AI／真人時序差已定位但未量化，未改產品。跨相位 full recall、完整 chance、跨夜 restore／canonicalization 與 solver 仍缺。普通 H9 雙虎／血祭 fail、千眼 incomplete；焦點四鏈 fail／兩鏈 incomplete。SFX 間歇原因未定位；真人盲讀未做，不發布 | `/handoff 妖市：讀最終審視、v2–v6 契約與續作計畫；量事件夜盯印時序，補 full recall／完整 chance／跨夜模型，維持產品不調值、releaseEligible=false；真人冷讀及 SFX 間歇復現依證據接續。` |
 | 2026-09-22 | [L1e 正式八臂量測工具與六之四模型契約](2026-09-21-l1e-formal.md) | 80,000 局長跑全數完成，H1 全過，使用者裁定選項甲（數值維持、H9 記已知診斷基線），本卷結案並發布 v0.57.37 | /handoff 妖市：v0.57.37 已發布，真機試玩三組連鎖手感。 |
 | 2026-09-15 | [v0.57.12 六詛咒／全物品文字](../experiments/2026-09-15-curse-migration/README.md) | 已批准並實作六種效果／實物造型與正式戰力退役；b3ea547 已公開並核對送達；85 測試、300 幾何、201 手機詛咒、768 卡面、36 全物品與袋子修補通過；A1 原未過項保留 | /handoff 妖市：接 v0.57.12 手機回饋與 A1；先讀 CLAUDE.md、最新功能卷，保留 D2／D3。 |
 | 2026-09-15 | [A1 v0.57.11 手機試玩](2026-09-15-a1-premium-table.md) | **最新交付**：aa7aa7b 已公開；根目錄 CLAUDE.md 與本卷已備跨工具續接；自動退鏡、頁籤與 3D 焦點及 A 向介面已實作。55 測試／1599 幾何通過；相對性能仍 RED、真機待回報 | /handoff 妖市：接 v0.57.11 A1 手機試玩；自動退鏡已批准，保留速度比未過與 D2／D3。 |

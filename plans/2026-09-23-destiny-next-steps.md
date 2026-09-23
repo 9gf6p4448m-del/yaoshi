@@ -14,6 +14,8 @@ X 第三批 fixtures 進度（2026-09-24；RED `ca7befd`、`c4319f2`、`431c31d`
 
 X 第四批 fixtures 進度（2026-09-24；RED `c099e06`／GREEN `85eff22`）：新增[版本化 v5 契約](../docs/experiments/2026-09-23-destiny/model-contract-v5.md)，補上盯印、獻祭放血和真人得主選尊的局部合法動作與轉移。盯印是 `null` 加上當前所有拍品槽；第一位 solo 真人 observation 只顯示哪些席位已落印，不洩漏 AI 目標或尚未出現在盯印頁的明夜預告。放血每次呼叫凍結 `bleed`，逐次扣全體對手壽命並在最低壽命前停手；請神三種仍開放的尊各用獨立 fixture 經原 `finishShrines` 落地。新測試 4/4，v2–v5、天命／資訊與盤點合跑 75/75 通過。另從來源確認真人在事件揭露後才選盯印，AI 卻於事件前 `drawMarks`；這是尚未量化的資訊時序差異，先列候選研究，不改產品或平衡。放血 v5 將可交錯的私有標單草稿正規化在複合標單之前，故只證明動作／轉移，不證明所有草稿順序下的 full information equivalence。戰鬥、夜末／終局 transition、跨階段 full recall、chance／snapshot／canonicalization 與 solver 仍未完成；`sixOfFour=incomplete`、`releaseEligible=false`。
 
+X 第五批 fixtures 進度（2026-09-24；RED `37f423a`）：新增[版本化 v6 契約](../docs/experiments/2026-09-23-destiny/model-contract-v6.md)，由凍結產品引擎執行自動夜戰／夜末結算及終局神龕回天、endStrip、歷史補列與存活／壽命名次。四項治具驗天雷 `<0.15`／`=0.15` 邊界、詛咒死線與神債回天／天明、終局收尾；新測試 4/4，v2–v6、天命／夜戰／資訊與模型盤點合跑 101/101。治具固定無被動角色避免「普渡爐主」干擾。只測選定狀態，沒有覆蓋完整機率樹、跨相位 full recall、跨夜 restore／canonicalization 或數值 payoff；產品及數值不變，`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。

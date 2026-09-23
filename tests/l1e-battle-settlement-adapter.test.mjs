@@ -8,6 +8,7 @@ function soloFixture(G, seed) {
   const state = G.makeState('solo', seed, ['qingmian'], privateDraws, 'original', false);
   state.players.forEach((player, index) => {
     player.ai = index !== 0;
+    player.roleId = 'human';
     player.alive = index < 2;
     player.life = 25;
     player.bag = [];
@@ -47,7 +48,7 @@ test('automatic battle follows both sides of the engine lightning chance thresho
     const state = soloFixture(G, seed);
     state.players[0].bag = [G.POOL.find((item) => item.ab === 'thunder')];
     state.players[1].bag = [dummy('單隻小兵', 'swarm', 1, 0, 1)];
-    const rolls = [firstRoll, 0.15, 0.15];
+    const rolls = [firstRoll];
     let calls = 0;
     state.rng = () => {
       if (calls >= rolls.length) throw new Error('battle consumed an unmodeled random draw');
@@ -60,8 +61,8 @@ test('automatic battle follows both sides of the engine lightning chance thresho
 
   const hit = run(1511, 0.149999);
   const miss = run(1511, 0.15);
-  assert.equal(hit.calls, 3);
-  assert.equal(miss.calls, 3);
+  assert.equal(hit.calls, 1);
+  assert.equal(miss.calls, 1);
   assert.equal(hit.transition.fights[0].battleStats.bolt, 1);
   assert.equal(miss.transition.fights[0].battleStats.bolt || 0, 0);
   assert.deepEqual(hit.transition.deaths, []);

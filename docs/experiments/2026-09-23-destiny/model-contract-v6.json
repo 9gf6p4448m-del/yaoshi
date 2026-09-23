@@ -1,0 +1,100 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v6",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v5.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v5",
+    "meaning": "Preserves destiny, auction, event, mark, sacrifice and human shrine-pick fixtures; this version adds automatic battle and terminal settlement transitions."
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for adapter fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "game": "original solo four-seat game with one human seat and three AI seats",
+    "automaticBattle": "Call the pinned resolveBattles engine for deterministic combat and supplied chance draws, then preserve its death sweep, night-end hooks, tithe, dawn recovery and history write.",
+    "terminalSettlement": "Call the pinned shrine-dawn settlement, endgame item strip and final history snapshot; expose stable alive/life ranking without assigning a numeric game-theoretic utility.",
+    "chanceBoundary": "Targeted fixture for both sides of the current 0.15 lightning threshold. This is not full-game chance enumeration.",
+    "deferred": [
+      "Cross-phase full recall across event, mark, auction, sacrifice and shrine selection",
+      "Complete chance support and branch probabilities across the full game",
+      "Cross-night snapshot restore and state canonicalization",
+      "Terminal utility mapping, policy enumeration and solver review",
+      "Measurement of event-night human/AI mark timing asymmetry"
+    ]
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-battle-settlement-adapter.test.mjs",
+    "runner": "node --test tests/l1e-battle-settlement-adapter.test.mjs",
+    "adapter": "tests/tools/l1e-battle-settlement-adapter.mjs",
+    "runtimeProvenance": ["sourceCommit", "sourceBlobOid", "sourceSha256", "adapterSha256", "fixtureSha256", "instrumentedSourceSha256"],
+    "fixtures": [
+      {
+        "id": "automatic.battle.lightningThreshold",
+        "status": "partial",
+        "proves": "The frozen automatic battle path distinguishes supplied uniform draws immediately below and exactly at the current 0.15 lightning threshold, and reports the resulting battle and night state.",
+        "doesNotProve": "All paper-war chance events, full chance-tree probabilities, or complete-game chance support."
+      },
+      {
+        "id": "automatic.settlement.deathAndTithe",
+        "status": "partial",
+        "proves": "The frozen battle/night-end path resolves curse drain death, unaffordable shrine tithe release, dawn recovery and the sealed night history snapshot in engine order.",
+        "doesNotProve": "Every cross-hook combination, every human tithe prompt branch, or all terminal stop conditions."
+      },
+      {
+        "id": "terminal.shrineDawnAndRanking",
+        "status": "partial",
+        "proves": "Terminal settlement calls the engine's shrine dawn settlement, endgame item strip and final history snapshot, then reports UI-consistent alive/life ranking.",
+        "doesNotProve": "A numeric solver payoff, all terminal paths, or cross-night restore equivalence."
+      }
+    ]
+  },
+  "inventory": {
+    "actions.auction": "partial",
+    "actions.event": "partial",
+    "actions.mark": "partial",
+    "actions.sacrifice": "partial",
+    "actions.shrinePick": "partial",
+    "actions.other": "incomplete",
+    "transitions.event": "partial",
+    "transitions.sacrifice": "partial",
+    "transitions.shrinePick": "partial",
+    "automatic.battle": "partial",
+    "automatic.settlement": "partial",
+    "terminalAndPayoff": "partial",
+    "information.auctionObservation": "partial",
+    "information.eventObservation": "partial",
+    "information.markObservation": "partial",
+    "information.sacrificeObservation": "partial",
+    "information.shrinePickObservation": "partial",
+    "information.fullRecall": "incomplete",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "incomplete",
+    "state.canonicalization": "incomplete",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "cross-phase full recall, chance coverage and cross-night restoration",
+    "implemented": false,
+    "requirements": [
+      "Carry each seat's observations and own action through event, mark, auction, sacrifice and shrine-pick phases; reject mixed-seat or hidden-state contamination.",
+      "Enumerate or otherwise prove all reachable random branches and their probabilities for a finite full-game state.",
+      "Restore cross-night snapshots with canonical engine state and matching gameplay/UI RNG streams.",
+      "Measure the event-night human-after-reveal versus AI-before-reveal mark difference on paired seeds before suggesting a product change.",
+      "Specify terminal payoff and a feasible policy/solver scope before any full-model pass claim."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Battle, night settlement and terminal fixtures cover selected paths only. Full recall, chance support, cross-night restoration, canonicalization, terminal utility, policy enumeration and independent solver review remain incomplete."
+  }
+}
