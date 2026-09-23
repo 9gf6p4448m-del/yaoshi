@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {auditContractData} from './tools/l1e-model-contract-audit.mjs';
+import {auditContractData,auditRepository} from './tools/l1e-model-contract-audit.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const CONTRACT_PATH=path.join(ROOT,'docs/experiments/2026-09-21-l1e-formal/model-contract.json');
@@ -62,4 +63,62 @@ test('rejects source evidence symbols absent from the pinned source',()=>{
   const result=auditContractData(stale,frozenSource,{sourceBlobOid,productScope});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.sourceReferences.missingSymbols.some(ref=>ref.symbol==='neverImplementedAdapter'));
+});
+
+test('reports malformed rows and incomplete provenance without throwing',()=>{
+  const malformed={schema:'wrong',sourceCommit:'not-a-commit',inventory:[null,
+    {id:'bad-item',implemented:'unknown',missingAdapter:'',nextAcceptance:''}],scope:{},gate:null};
+  const result=auditContractData(malformed,Buffer.alloc(0),{resolvedSourceCommit:'1234567'});
+  assert.equal(result.auditStatus,'invalid');
+  assert.ok(result.violations.some(message=>message.includes('unsupported model contract schema')));
+  assert.ok(result.violations.some(message=>message.includes('sourceCommit must be a git commit id')));
+  assert.ok(result.violations.some(message=>message.includes('resolved source commit')));
+  assert.ok(result.violations.some(message=>message.includes('inventory item has no id')));
+  assert.ok(result.violations.some(message=>message.includes('pinned index.html source is empty')));
+});
+
+test('recognizes a complete scope declaration without treating it as a solver result',()=>{
+  const expanded=structuredClone(contract);
+  expanded.scope.chainIds=[...productScope.chainIds];
+  expanded.scope.destinyModes=[...productScope.destinyModes];
+  const result=auditContractData(expanded,frozenSource,{sourceBlobOid,productScope});
+  assert.deepEqual(result.scope.missingCurrentChainIds,[]);
+  assert.equal(result.scope.destinyModesCovered,true);
+  assert.equal(result.sixOfFour,'incomplete');
+  assert.equal(result.releaseEligible,false);
+});
+
+test('loads the frozen git source, hashes it, and keeps the release gate closed',()=>{
+  const result=auditRepository({repoRoot:ROOT});
+  assert.equal(result.auditStatus,'valid');
+  assert.equal(result.source.commit,execFileSync('git',['rev-parse',`${contract.sourceCommit}^{commit}`],
+    {cwd:ROOT,encoding:'utf8'}).trim());
+  assert.equal(result.source.blobOid,sourceBlobOid);
+  assert.equal(result.currentProduct.indexSha256,
+    crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'index.html'))).digest('hex'));
+  assert.equal(result.sixOfFour,'incomplete');
+  assert.equal(result.releaseEligible,false);
+});
+
+test('CLI reports incomplete successfully and fails the explicit require-pass gate',()=>{
+  const tool=path.join(ROOT,'tests/tools/l1e-model-contract-audit.mjs');
+  const audit=spawnSync(process.execPath,[tool],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(audit.status,0,audit.stderr);
+  assert.equal(JSON.parse(audit.stdout).sixOfFour,'incomplete');
+  const strict=spawnSync(process.execPath,[tool,'--require-pass'],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(strict.status,2,strict.stderr);
+  assert.equal(JSON.parse(strict.stdout).releaseEligible,false);
+  const help=spawnSync(process.execPath,[tool,'--help'],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(help.status,0);
+  assert.match(help.stdout,/--require-pass/);
+  const explicit=spawnSync(process.execPath,[tool,'--repo',ROOT,'--contract',CONTRACT_PATH,
+    '--product-arms',ARMS_PATH],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(explicit.status,0,explicit.stderr);
+  assert.equal(JSON.parse(explicit.stdout).scope.missingCurrentChainIds.length,3);
+  const unknown=spawnSync(process.execPath,[tool,'--unknown'],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(unknown.status,1);
+  assert.match(unknown.stderr,/unknown argument/);
+  const missingValue=spawnSync(process.execPath,[tool,'--contract'],{cwd:ROOT,encoding:'utf8'});
+  assert.equal(missingValue.status,1);
+  assert.match(missingValue.stderr,/missing value/);
 });
