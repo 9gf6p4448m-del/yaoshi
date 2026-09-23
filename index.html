@@ -424,7 +424,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
 .revealRibbon .big{font-weight:bold;font-size:12px}.revealRibbon .mut{font-size:10px;color:#cdb9ee}.revealRibbon .bidfly{background:rgba(18,10,28,.52);margin-top:4px;padding:3px 6px;font-size:11px}.revealRibbon #flyzone,.revealRibbon #outzone{max-height:none;overflow:visible}.revealRibbon .outcome{margin-top:5px;white-space:normal;overflow:visible;font-size:11px}.bidPills{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px}.bidPill{padding:3px 6px;border:1px solid rgba(200,157,73,.48);border-radius:999px;background:rgba(7,6,14,.74);font-size:10px;line-height:1.2;white-space:nowrap}.bidPill.win{border-color:#ffe28b;background:linear-gradient(135deg,#7b5118,#d4a52f);color:#171007;font-weight:bold;box-shadow:0 0 10px rgba(255,203,72,.38)}
-.chainHint,.chainStatus{display:block;color:#f8d994;font-size:11px;line-height:1.3}.chainStatus{padding:3px 5px;border-left:2px solid #c89d49;background:rgba(22,12,25,.7);margin:3px 0}.chainAwaken{display:flex;align-items:center;gap:8px;max-width:340px;margin:3px auto;padding:3px 8px;border:1px solid #d3ac5e;background:rgba(23,11,31,.88);color:#f7dfa5;font-size:11px;pointer-events:none}.chainAwaken b{white-space:nowrap}.chainIngredients{display:flex;align-items:center;gap:4px}.chainIngredients>span{white-space:nowrap;animation:chainLeft .65s ease-out both}.chainIngredients>span:last-child{animation-name:chainRight}.chainSigil{position:relative;flex:0 0 20px;height:20px}.chainSigil:before,.chainSigil:after{content:"";position:absolute;inset:2px;border:1px solid #e9c978;transform:rotate(45deg);animation:chainSquare .7s ease-out both}.chainSigil:after{inset:6px;animation-delay:.08s}@keyframes chainLeft{from{transform:translateX(-12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainRight{from{transform:translateX(12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainSquare{from{transform:rotate(45deg) scale(.35);opacity:.25}to{transform:rotate(45deg) scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chainIngredients>span,.chainSigil:before,.chainSigil:after{animation:none}}
+.chainHint,.chainStatus{display:block;color:#f8d994;font-size:11px;line-height:1.3}.chainStatus{padding:3px 5px;border-left:2px solid #c89d49;background:rgba(22,12,25,.7);margin:3px 0}.chainAwaken{display:flex;align-items:center;gap:8px;max-width:340px;margin:3px auto;padding:3px 8px;border:1px solid #d3ac5e;background:rgba(23,11,31,.88);color:#f7dfa5;font-size:11px;pointer-events:none}.chainAwaken b{white-space:nowrap}.chainIngredients{display:flex;align-items:center;gap:4px}.chainIngredients>span{white-space:nowrap;animation:chainLeft .65s ease-out both}.chainIngredients>span:last-child{animation-name:chainRight}.chainSigil{position:relative;flex:0 0 20px;height:20px}.chainSigil:before,.chainSigil:after{content:"";position:absolute;inset:2px;border:1px solid #e9c978;transform:rotate(45deg);animation:chainSquare .7s ease-out both}.chainSigil:after{inset:6px;animation-delay:.08s}@keyframes chainLeft{from{transform:translateX(-12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainRight{from{transform:translateX(12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainSquare{from{transform:rotate(45deg) scale(.35);opacity:.25}to{transform:rotate(45deg) scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chainIngredients>span,.chainSigil:before,.chainSigil:after{animation:none}}.chainStatus.chainActive{border-left-color:#e8bd55;color:#f5e6a3}.chainDesc{display:block;font-size:10.5px;color:rgba(248,217,148,.7);margin-top:1px;padding-left:2px}.chainBanner{font-size:11.5px;color:#f5e088;padding:4px 6px 6px;border-bottom:1px solid rgba(232,189,85,.25);margin-bottom:4px;line-height:1.6}
 @media(max-height:430px){.chainAwaken{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:90;width:max-content;max-width:calc(100vw - 24px)}}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
   border-radius:8px;font-size:12px;animation:slidein .3s}
@@ -2251,7 +2251,8 @@ function chainStatusHTML(p){
   return Object.values(CHAINS).map(c=>{
     const owned=new Set(p.bag.filter(x=>!x.curse).map(x=>x.ab));
     const missing=c.requirements.filter(ab=>!owned.has(ab));
-    return `<div class="chainStatus">${missing.length?"待補":"✦ 已生效"} ${c.name}・${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}${missing.length?`（缺 ${missing.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("、")}）`:""}</div>`;
+    const active=!missing.length;
+    return `<div class="chainStatus${active?" chainActive":""}">${active?"✦ 已生效":"待補"} ${c.name}・${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}${missing.length?`（缺 ${missing.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("、")}）`:`<span class="chainDesc">${c.desc}</span>`}</div>`;
   }).join("");
 }
 function chainHintHTML(p,it){
@@ -6830,6 +6831,7 @@ async function playDuel(f){
 async function startBattle(){
   $("mainbtn").disabled=true;
   SKIP=false;$("skipbtn").style.display="block";
+  const chainLines=aliveHumans().flatMap(p=>activeChains(p).map(c=>`✦ ${S.mode==="hotseat"?p.name+"的":""}${c.name}：${c.desc}`));
   const {fights,bye,nightly,deaths}=resolveBattles();
   for(const f of fights){
     renderSeats([f.A.id,f.B.id]);
@@ -6840,7 +6842,7 @@ async function startBattle(){
   }
   setHollow(false);   /* 掏空卷 v0.55a */
   const stage=$("stage");
-  stage.innerHTML=`<div class="stageCard"><div class="big">⚔️ 第 ${S.round} 夜・戰況</div><div id="bz"></div></div>`;
+  stage.innerHTML=`<div class="stageCard"><div class="big">⚔️ 第 ${S.round} 夜・戰況</div>${chainLines.length?`<div class="chainBanner">${chainLines.join("<br>")}</div>`:""}<div id="bz"></div></div>`;
   const bz=$("bz");
   if(bye!==null)bz.insertAdjacentHTML("beforeend",`<div class="mut" style="padding:2px 0">🌙 ${S.players[bye].name} 本夜輪空</div>`);
   for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
