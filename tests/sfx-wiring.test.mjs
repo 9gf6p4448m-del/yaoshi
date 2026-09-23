@@ -40,12 +40,24 @@ const HOOK = `(() => {
 
 /* 推到「主鈕文字符合 re 且可按」為止；順手處理交棒／供奉視窗／請神挑尊／異事夜的 #stage 按鈕。
    opts.skipReveals：看到跳過鈕就按（驗 SKIP 期間 0 聲）。 */
-const stalls = []; /* 靠跳過鈕脫困的夜次（診斷用） */
+const wakeSignals = []; /* SKIP 確實叫醒 PW_WAKE 的夜次（診斷用） */
 async function driveUntil(page, re, opts = {}) {
-  const src = re.source; let idle = 0;
-  for (let i = 0; i < 4000; i++) {
-    await page.waitForTimeout(10);
-    const r = await page.evaluate(`(() => {
+  const src = re.source;
+  const timeoutMs = opts.timeoutMs ?? 5 * 60 * 1000;
+  const deadline = Date.now() + timeoutMs;
+  const skipAttempts = [];
+  const bounded = (promise, ms, label) => {
+    let timer;
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${label} 超時（${ms}ms）`)), ms); }),
+    ]).finally(() => clearTimeout(timer));
+  };
+  const evaluate = (expression) => bounded(page.evaluate(expression), 30 * 1000, 'Playwright page.evaluate');
+  let idleSince = null;
+  while (Date.now() < deadline) {
+    await bounded(page.waitForTimeout(10), 30 * 1000, 'Playwright page.waitForTimeout');
+    const r = await evaluate(`(() => {
       const re = new RegExp(${JSON.stringify(src)});
       const ho = document.getElementById('handoff');
       if (ho && getComputedStyle(ho).display !== 'none') { document.getElementById('hoBtn').click(); return { hit: 0 }; }
@@ -67,14 +79,56 @@ async function driveUntil(page, re, opts = {}) {
       }
       return { hit: 0, idle: 1 };
     })()`);
-    if (r.hit) return r.txt;
-    /* 對決演出在 headless 偶爾醒不來（實測 seed 3 第 11 夜請神對決 PW_WAKE 掛住 >8 秒）：
-       停滯 3 秒以上就按跳過鈕脫困。跳過只影響該夜對決的聲音，封標／揭盅／受咒都在對決之前已響；
-       SKIP 在下一夜出價開始時重設（index.html showMarket 那條 SKIP=false）。 */
-    idle = r.idle ? idle + 1 : 0;
-    if (idle > 300) { idle = 0; const skipped = await page.evaluate(() => { const sk = document.getElementById('skipbtn'); if (sk && sk.style.display === 'block' && !sk.disabled) { sk.click(); return true; } return false; }); if (skipped) stalls.push(await page.evaluate(() => window.__yaoshi.S.round)); }
+    if (r.hit) return { text: r.txt, skipAttempts };
+    /* 對決演出在 headless 偶爾醒不來。以真實經過時間量閒置，避免慢速頁面把「300 次輪詢」
+       拉成十幾秒；而且只在可見的對決層跳過，不能在開標揭盅等待時截斷揭盅音。 */
+    if (r.idle) idleSince ??= Date.now();
+    else idleSince = null;
+    if (idleSince !== null && Date.now() - idleSince >= 3000) {
+      idleSince = Date.now();
+      const before = await evaluate(() => {
+        const sk = document.getElementById('skipbtn');
+        const duel = document.getElementById('duel');
+        const duelVisible = duel && getComputedStyle(duel).display !== 'none' && duel.classList.contains('on');
+        if (!duelVisible || !sk || sk.style.display !== 'block' || sk.disabled) return null;
+        return {
+          round: window.__yaoshi.S.round, wakePending: typeof PW_WAKE === 'function',
+        };
+      });
+      if (before) {
+        const attempt = await evaluate(() => {
+          const sk = document.getElementById('skipbtn');
+          const duel = document.getElementById('duel');
+          const duelVisible = duel && getComputedStyle(duel).display !== 'none' && duel.classList.contains('on');
+          if (!duelVisible || !sk || sk.style.display !== 'block' || sk.disabled) return { clickAttempted: false };
+          const wakePending = typeof PW_WAKE === 'function';
+          sk.click();
+          return {
+            clickAttempted: true,
+            skipActivated: SKIP === true,
+            wakeSignaled: wakePending && typeof PW_WAKE !== 'function',
+          };
+        });
+        if (attempt.clickAttempted) {
+          const record = { round: before.round, ...attempt };
+          skipAttempts.push(record);
+          if (attempt.skipActivated && attempt.wakeSignaled) wakeSignals.push(before.round);
+        }
+      }
+    }
   }
-  throw new Error('driveUntil 卡住：' + await page.evaluate(() => document.getElementById('mainbtn') && document.getElementById('mainbtn').textContent));
+  const state = await evaluate(() => {
+    const b = document.getElementById('mainbtn'), sk = document.getElementById('skipbtn'), duel = document.getElementById('duel');
+    return {
+      text: b?.textContent, disabled: b?.disabled, pending: typeof PENDING === 'function',
+      skip: SKIP, skipDisplay: sk?.style.display, reveal: REVEAL_ANIMATING,
+      pwWake: typeof PW_WAKE === 'function', round: window.__yaoshi?.S?.round,
+      duel: { display: duel ? getComputedStyle(duel).display : null, classes: duel?.className },
+      modal: document.getElementById('modal') ? getComputedStyle(document.getElementById('modal')).display : null,
+      stage: document.getElementById('stage')?.textContent?.slice(0, 240),
+    };
+  });
+  throw new Error(`driveUntil 超時（${timeoutMs}ms）：${JSON.stringify({ state, skipAttempts, wakeSignals })}`);
 }
 
 async function newGame(page, seed, rounds) {
@@ -109,11 +163,11 @@ test('凍結 #6①：封標／揭盅／受咒／落籌接線與 SKIP、?sfx=0 �
     for (const seed of SEEDS) {
       await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
       await newGame(page, seed);
-      await driveUntil(page, /看最終結果/);
+      const drive = await driveUntil(page, /看最終結果/);
       const { log, nights } = await page.evaluate(() => ({ log: window.__sfxLog.slice(), nights: window.__yaoshi.S.history.nights.map((n) => ({ round: n.round, winners: n.auction.filter((a) => a.winnerId != null).length, poison: n.auction.filter((a) => a.intent === 'poison' && !a.poisonBlocked).length })) }));
       const c = summarize(log);
       const winners = nights.reduce((s, n) => s + n.winners, 0), poison = nights.reduce((s, n) => s + n.poison, 0);
-      t.diagnostic(`seed ${seed}: nights ${nights.length} winners ${winners} poison ${poison} stalls ${JSON.stringify(stalls.splice(0))} → ${JSON.stringify(c)}`);
+      t.diagnostic(`seed ${seed}: nights ${nights.length} winners ${winners} poison ${poison} skipAttempts ${JSON.stringify(drive.skipAttempts)} wakeSignals ${JSON.stringify(wakeSignals.splice(0))} → ${JSON.stringify(c)}`);
       assert.ok(nights.length > 0 && winners > 0, `seed ${seed} 活性：要有夜次與得標件`);
       for (const n of nights) assert.ok(log.some((e) => e.name === 'seal' && e.round === n.round), `seed ${seed} 第 ${n.round} 夜沒有封標音`);
       assert.equal(c.reveal || 0, winners, `seed ${seed} 揭盅音次數 ≠ 得標件數`);
