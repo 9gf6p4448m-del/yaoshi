@@ -2078,8 +2078,12 @@ function activeChains(p){
 function drawDestinies(n,privateDraws){
   const ids=Object.keys(CHAINS);
   if(privateDraws!==undefined){
-    if(!Array.isArray(privateDraws)||privateDraws.length!==n||privateDraws.some(id=>!ids.includes(id)))
+    if(!Array.isArray(privateDraws)||privateDraws.length!==n)
       throw Error("invalid private destiny draws");
+    for(let i=0;i<n;i++){
+      if(!Object.hasOwn(privateDraws,i)||!ids.includes(privateDraws[i]))
+        throw Error("invalid private destiny draws");
+    }
     return [...privateDraws];
   }
   /* 公開市場由 32-bit seed 決定，回放可反推該 seed；命函不可從它衍生。
@@ -7540,7 +7544,7 @@ function showBag(pid){
     <button class="bigbtn" style="margin-top:10px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
 }
-function closeModal(){$("modal").style.display="none";}
+function closeModal(){$("modal").style.display="none";$("modalbox").innerHTML="";}
 /* 角色被動說明的共用 HTML（選角畫面／座位卡「ⓘ」都呼叫這支，不得各自複製一份分句邏輯）：
    desc 慣例「X流（起始N）。被動：…。AI 時…」——首段做徽章、其餘按「。」各自成行，
    AI 行為是開發者資訊，一律過濾掉不顯示（2026-09-02 試玩回饋，見 IMPLEMENTATION_GUIDE §11.7／11.8）。 */

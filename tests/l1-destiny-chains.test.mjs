@@ -35,6 +35,11 @@ test('four letters draw independently with replacement without advancing market 
   assert.equal(s.rng(),0.1642689702566713);
 });
 
+test('rejects sparse explicit private destiny draws',()=>{
+  assert.throws(()=>game().makeState('solo',111,['qingmian'],new Array(4)),
+    /invalid private destiny draws/);
+});
+
 test('public seed and market cannot determine an unrevealed private letter',()=>{
   const a=game(),b=game();
   const sa=a.makeState('solo',321,['qingmian'],['water','eyes','godKing','bloodOath']);
