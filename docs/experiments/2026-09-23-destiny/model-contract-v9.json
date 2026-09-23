@@ -1,0 +1,128 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v9",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v8.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v8",
+    "meaning": "Pins selected player observations, event-reveal chronology and action binding; this version adds one resolved-night checkpoint transferable between pinned engine instances."
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for model fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "checkpoint": "Capture the four-seat solo state graph after one complete headless night and before the next night; include ordered collections, alias identity, private destinies, public game history, report accumulators, policy-information memory, and both gameplay/UI RNG counters.",
+    "restore": "Restore that in-memory checkpoint into a second engine instance loaded from the same pinned and instrumented product source. Replace only the destination engine state graph and RNG counters; preserve the destination engine's own RNG closures.",
+    "nextRound": "Call the frozen nextRound function, including its market carry-forward and next-market draw, then stop at an injected boundary immediately before DOM-bound beginRound work.",
+    "chance": "RNG stream state is checkpointed, but chance support and conditional weights are not enumerated. This fixture does not transform seeded draws into a complete stochastic game tree.",
+    "deferred": [
+      "Every legal decision and complete action profile after restore",
+      "Every public reveal and automatic transition between decisions",
+      "Complete chance support and exact conditional probabilities",
+      "Portable cross-process serialization, canonicalization and equivalence reduction",
+      "Terminal utility, feasible policy enumeration, solver and independent full-game review"
+    ]
+  },
+  "chanceInventory": [
+    {
+      "id": "initialization.rosterAndDecks",
+      "sourceSymbols": ["makeState", "rosterSeats", "shuffle"],
+      "status": "not-enumerated",
+      "knownDependency": "Role selection, item/cursed-item deck order, night-rule order, market draws and event order consume the gameplay RNG stream."
+    },
+    {
+      "id": "night.wishMarkAndEvents",
+      "sourceSymbols": ["drawWishes", "drawMarks", "runEventPhaseHeadless", "EVENTS"],
+      "status": "not-enumerated",
+      "knownDependency": "Wish draws, AI mark choices, event options and event effects have state-dependent supports and may consume a variable number of draws."
+    },
+    {
+      "id": "market.auctionAndTies",
+      "sourceSymbols": ["drawMarket", "aiBids", "resolveAuction"],
+      "status": "not-enumerated",
+      "knownDependency": "Curse placement, without-replacement deck state, stochastic AI actions and residual bid ties are not represented as exact weighted branches."
+    },
+    {
+      "id": "automatic.battleAndSettlement",
+      "sourceSymbols": ["paperWar", "resolveBattles", "settleShrinesEnd", "shrineReward"],
+      "status": "not-enumerated",
+      "knownDependency": "Battle randomness and conditional endgame rewards require exact support conditioned on the complete current state."
+    },
+    {
+      "id": "presentation.uiRng",
+      "sourceSymbols": ["S.rngUi", "mulberry32"],
+      "status": "checkpointed-excluded-from-payoff",
+      "knownDependency": "The separate UI stream is restored for replay fidelity; it must not be treated as strategic chance unless a proven gameplay dependency is found."
+    }
+  ],
+  "fixtureBatch": {
+    "path": "tests/l1e-cross-night-restore-v9.test.mjs",
+    "runner": "node --test tests/l1e-cross-night-restore-v9.test.mjs",
+    "adapter": "tests/tools/l1e-cross-night-restore-adapter-v9.mjs",
+    "status": "partial",
+    "proves": [
+      "The adapter verifies the frozen product commit, Git blob and SHA256 before loading an instrumented copy of the source.",
+      "A checkpoint is captured after the pinned playPolicyGame has completed one night, with private destiny, public history, runner accumulators and both RNG stream states.",
+      "The checkpoint omits engine closures while preserving object graph aliases and can be restored into an independent pinned engine instance with fresh RNG closures.",
+      "The restored state and original state remain mutation-independent.",
+      "The original and restored engine call the frozen nextRound function and produce identical round-2 market state and RNG counters before DOM-bound beginRound work."
+    ],
+    "doesNotProve": [
+      "The complete legal action tree, chance support or branch probabilities",
+      "A resumable full-game runner with every external continuation variable",
+      "All public and automatic transitions, all cross-night checkpoints, or cross-process snapshot compatibility",
+      "Canonical state equivalence, terminal utility, strategy enumeration or solver correctness",
+      "Game balance, six-chain completion, or release eligibility"
+    ],
+    "runtimeProvenance": [
+      "sourceCommit",
+      "sourceBlobOid",
+      "sourceSha256",
+      "adapterSha256",
+      "fixtureSha256",
+      "instrumentedSourceSha256"
+    ]
+  },
+  "inventory": {
+    "actions.auction": "partial",
+    "actions.event": "partial",
+    "actions.mark": "partial",
+    "actions.sacrifice": "partial",
+    "actions.shrinePick": "partial",
+    "actions.other": "incomplete",
+    "automatic.battle": "partial",
+    "automatic.settlement": "partial",
+    "history.publicTransitions": "partial",
+    "terminalAndPayoff": "partial",
+    "information.fullRecall": "partial",
+    "information.projectionProvenance": "partial",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "partial",
+    "state.canonicalization": "incomplete",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "complete chance support and resumable cross-night transition history",
+    "implemented": false,
+    "requirements": [
+      "Enumerate all random branches and exact conditional weights through initialization, event scheduling, auctions, battles, settlement and terminal rewards.",
+      "Resume from restored checkpoints with every game-relevant runner variable and policy-information history intact.",
+      "Record each sanitized public and automatic transition between decisions, including auction reveal, battle, settlement and night advance.",
+      "Prove canonical snapshot equivalence without dropping order, alias, private-destiny or RNG-continuation distinctions.",
+      "Define terminal utility and feasible policy/solver scope before any pass claim, then obtain independent review."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "V9 restores one in-memory post-night checkpoint into another pinned engine and verifies the next market schedule only. Complete chance, all transitions, resumable runner state, canonicalization, payoff, policy enumeration and independent solver review remain incomplete."
+  }
+}
