@@ -126,6 +126,19 @@ test('recomputes contract, arms, and source integrity inside the exported audito
   assert.equal(forgedSource.integrity.source,false);
 });
 
+test('uses one immutable contract snapshot for hashing and scope checks',()=>{
+  const contractProxy=new Proxy(contract,{get(target,key,receiver){
+    if(key==='scope') return {...target.scope,chainIds:[...productScope.chainIds],
+      destinyModes:[...productScope.destinyModes]};
+    return Reflect.get(target,key,receiver);
+  }});
+  const result=auditContractData(contractProxy,frozenSource,{sourceBlobOid,productArms,repoRoot:ROOT});
+  assert.equal(result.auditStatus,'valid');
+  assert.equal(result.integrity.modelContract,true);
+  assert.deepEqual(result.scope.missingCurrentChainIds,['bloodOath','godKing','eternalFlame']);
+  assert.equal(result.scope.destinyModesCovered,false);
+});
+
 test('requires a repository root before verifying document references',()=>{
   const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'invalid');
