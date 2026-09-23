@@ -74,6 +74,71 @@ test('a seat retains its own actions across event, mark, sacrifice, auction and 
   assert.notEqual(key, fullRecallInformationSetKey(history.slice(0, -1), phases.at(-1).observation));
 });
 
+test('full recall accepts immutable projections from the pinned phase adapters in one seat sequence', async () => {
+  const recall = await import(adapterModule);
+  const eventApi = await import('./tools/l1e-event-action-adapter.mjs');
+  const markApi = await import('./tools/l1e-remaining-player-action-adapter.mjs');
+  const { auctionObservationAfterEvents } = eventApi;
+  const { G } = eventApi.loadPinnedEventEngine();
+  const state = G.makeState('solo', 7201, ['qingmian'], ['water', 'eyes', 'twinTiger', 'bloodOath'], 'original', false);
+  state.players.forEach((player, index) => {
+    player.ai = index !== 0;
+    player.alive = true;
+    player.life = 25;
+    player.bag = [];
+  });
+  state.round = G.CFG.EVENT_NIGHTS[0];
+  state.eventOrder[0] = 'zongzi';
+
+  const eventDecision = eventApi.createEventDecision(G, state);
+  const eventObservation = eventApi.eventObservation(G, state, eventDecision, 0);
+  const eventChoice = [...eventApi.enumerateLegalEventChoices(eventDecision, 0)][0];
+  let history = recall.appendFullRecallDecision([], 'event', eventObservation, { choice: eventChoice });
+  for (const playerId of eventDecision.playerIds)
+    eventApi.commitEventChoice(eventDecision, playerId,
+      [...eventApi.enumerateLegalEventChoices(eventDecision, playerId)][0]);
+  const eventResult = eventApi.resolveEventSubmissions(G, state, eventDecision);
+
+  state.marks = {};
+  const markDecision = markApi.createMarkDecision(G, state, 0);
+  const markObs = markApi.markObservation(G, state, markDecision, [eventResult.publicReveal]);
+  history = recall.appendFullRecallDecision(history, 'mark', markObs, { choice: null });
+  markApi.commitMarkChoice(G, state, markDecision, null);
+
+  const sacrificeDecision = markApi.createSacrificeDecision(G, state, 0);
+  const sacrificeObs = markApi.sacrificeObservation(G, state, sacrificeDecision, [eventResult.publicReveal]);
+  history = recall.appendFullRecallDecision(history, 'sacrifice', sacrificeObs, { choice: 'continue' });
+  markApi.commitSacrificeChoice(G, state, sacrificeDecision, 'continue');
+
+  const auctionObs = auctionObservationAfterEvents(G, state, 0, [eventResult.publicReveal]);
+  history = recall.appendFullRecallDecision(history, 'auction', auctionObs, {
+    schema: 'yaoshi.auction-submission.v1', playerId: 0, bids: [], incense: 0,
+  });
+
+  const shrineApi = await import('./tools/l1e-remaining-player-action-adapter.mjs');
+  const { G: shrineG } = shrineApi.loadPinnedRemainingActionEngine();
+  const shrineState = shrineG.makeState('solo', 7202, ['qingmian'],
+    ['water', 'eyes', 'twinTiger', 'bloodOath'], 'original', false);
+  shrineState.players.forEach((player, index) => {
+    player.ai = index !== 0;
+    player.alive = true;
+    player.life = 25;
+    player.bag = [];
+  });
+  shrineState.round = shrineG.CFG.SHRINE_NIGHTS[0];
+  shrineState.incPool[0] = 12;
+  shrineState.incense = Object.fromEntries(shrineState.players.map((player) => [player.id, null]));
+  const pending = shrineApi.beginInteractiveShrineResolution(shrineG, shrineState);
+  assert.ok(pending.decision);
+  const shrineObs = shrineApi.shrinePickObservation(shrineG, shrineState, pending.decision);
+  const shrineChoice = shrineObs.choices[0].index;
+  history = recall.appendFullRecallDecision(history, 'shrine-pick', shrineObs, { choice: shrineChoice });
+
+  assert.equal(history.length, 5);
+  assert.deepEqual(history.map((record) => record.round), [4, 4, 4, 4, 5]);
+  assert.equal(recall.fullRecallInformationSetKey(history, shrineObs).includes('rngState'), false);
+});
+
 test('full recall rejects mixed-seat histories and cross-seat current observations', async () => {
   const { appendFullRecallDecision, fullRecallInformationSetKey } = await import(adapterModule);
   const first = phases[0];
