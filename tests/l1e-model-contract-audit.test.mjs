@@ -16,7 +16,10 @@ const productArms=JSON.parse(fs.readFileSync(ARMS_PATH,'utf8'));
 const frozenSource=execFileSync('git',['show',`${contract.sourceCommit}:index.html`],{cwd:ROOT});
 const sourceBlobOid=execFileSync('git',['rev-parse',`${contract.sourceCommit}:index.html`],
   {cwd:ROOT,encoding:'utf8'}).trim();
-const canonicalJsonSha256=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const canonicalJson=value=>Array.isArray(value)?`[${value.map(canonicalJson).join(',')}]`:
+  value&&typeof value==='object'?`{${Object.keys(value).sort()
+    .map(key=>`${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`:JSON.stringify(value);
+const canonicalJsonSha256=value=>crypto.createHash('sha256').update(canonicalJson(value)).digest('hex');
 const productScope={chainIds:productArms.chainIds,
   schema:productArms.schema,destinyModes:Object.keys(productArms.destinyGame.arms),
   destinyDraw:productArms.destinyGame.destinyDraw,
@@ -188,6 +191,18 @@ test('loads the frozen git source, hashes it, and keeps the release gate closed'
   assert.equal(result.productArms.integrityVerified,true);
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
+});
+
+test('pins JSON content independently of object key order',()=>{
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'yaoshi-model-key-order-'));
+  try{
+    const reordered=Object.fromEntries(Object.entries(productArms).reverse());
+    const reorderedPath=path.join(temp,'reordered-arms.json');
+    fs.writeFileSync(reorderedPath,JSON.stringify(reordered));
+    const result=auditRepository({repoRoot:ROOT,productArmsPath:reorderedPath});
+    assert.equal(result.productArms.integrityVerified,true);
+    assert.equal(result.auditStatus,'valid');
+  }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
 
 test('CLI reports incomplete successfully and fails the explicit require-pass gate',()=>{
