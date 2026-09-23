@@ -80,6 +80,14 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 **反例與限制**：這仍不是全遊戲解答。私函 1,296 組只覆蓋該 chance 節點，不涵蓋其餘初始化、事件、平標、夜戰等隨機分支；snapshot 僅涵蓋首次直接拍賣，沒有捕捉 `playPolicyGame` runner 的區域變數或任意跨夜狀態；公開 replay 投影不是 all-seat legal action／information-set adapter，也不是伺服器級保密。真效果平衡結果、H9 fail／incomplete、五人真人冷讀缺口都未改變。v2 契約保持 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；後續先做全席位合法行動與 observation-history adapter。
 
+## X：拍賣合法提交與觀察（v3，2026-09-24）
+
+依前項續作新增[模型契約 v3](../experiments/2026-09-23-destiny/model-contract-v3.md)，RED／GREEN checkpoint 為 `84f92f7`／`8091039`。它在凍結 `d63f03e` 引擎上，對每個存活席位逐一產生一般夜與押寶夜的完整小型合法提交集合，再將集合中的每個提交交給原 `resolveAuction` 結算。涵蓋整數標額、兩種標型、詛咒保留／所有活著毒標目標、零額欄位、買路錢、供香共用預算、一般標數上限，以及押寶夜全子集、最不利買路錢與「不套一般 MAX_BIDS」規則。iterator 為 lazy，避免一次佔滿記憶體；完整遍歷的分枝量仍可能非常大。
+
+逐席拍賣 observation 保留本席私有袋物／密函和玩家可見的公開摘要、已揭露回放與明夜已公開的小段預告，排除對手袋中內容、未揭密封標、RNG 和不可見的未來拍品。已新增測試證明隱藏密函／袋物／心願／密封標及未顯示未來拍品改動不會改變該席 observation；引擎回放中尚未到揭露時機的天命也仍被遮住。拍賣專用回憶鍵包含此前本席 observation 與提交，不涵蓋其他遊戲相位。
+
+本批新測試 **6/6**；與 v2、天命、資訊與 v1 模型盤點回歸合計 **67/67**。仍缺本夜異事決策結果的 observation、盯印／獻祭／請神選尊／戰鬥等動作與跨相位 full recall，亦未有全遊戲 decision cursor、state transition adapter 或 solver。產品檔與平衡值均未更動。故 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 維持；詳細範圍與可重現命令見 v3 契約。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

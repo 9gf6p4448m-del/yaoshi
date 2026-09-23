@@ -8,6 +8,8 @@ X 補進度（2026-09-24）：新增只讀的[六之四模型契約盤點器](..
 
 X 第一批 fixtures 進度（2026-09-24；RED `8e1af2b`／GREEN `d34dc99`）：新增[版本化 v2 契約](../docs/experiments/2026-09-23-destiny/model-contract-v2.md)與固定產品來源的測試 adapter。新測試 7/7 通過；與天命、資訊投影和舊契約盤點回歸合計 61/61 通過；adapter 行覆蓋 94.77%。已證明六鏈私函抽籤拒絕偏差尾值、每鏈 42 個 byte 前像及完整 1,296 個四席 tuple；初始直接拍賣 state-only restore 可重播同一結果、alias 與下一個 gameplay RNG；密封 replay 與逐席天命投影符合揭露界線。快照不含 runner 區域變數；抽籤 fixture 不涵蓋全遊戲 chance；沒有全席位合法動作或通用資訊集合 adapter。契約仍 `sixOfFour=incomplete`、`releaseEligible=false`，不碰產品規則、數值或發布資格。下一工程按 X 項先補全席位合法動作／observation adapter，再逐決策比較真引擎。
 
+X 第二批 fixtures 進度（2026-09-24；RED `84f92f7`／GREEN `8091039`）：新增[版本化 v3 契約](../docs/experiments/2026-09-23-destiny/model-contract-v3.md)，為任一存活席位 lazy-enumerate 一次密封拍賣提交，包括一般標單／毒標、零額欄位差異、逐件費用、供香共享預算、`MAX_BIDS`，以及押寶夜全部非空子集與單一注額。拍賣 observation 保留本席密函／袋子與已公開資料，剔除對手袋物、未揭標、RNG 和未顯示未來市場；拍賣回憶鍵含本席此前觀察與提交。新測試 6/6、與 v2、天命、資訊及 v1 盤點回歸合計 67/67 通過，所有一般夜／押寶夜小型列舉提交逐一交給凍結引擎結算。這仍**不含**本夜異事選擇結果、盯印／獻祭、請神選尊、戰鬥及終局決策，也沒有全遊戲 transition cursor／跨階段 full recall；`sixOfFour=incomplete`、`releaseEligible=false` 不變。產品 `index.html` 未改、沒有調平衡值。下一步接其餘相位與公開結果，再證明全遊戲 observation equivalence。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。
