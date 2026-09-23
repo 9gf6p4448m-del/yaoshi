@@ -8,14 +8,96 @@ const HERE=path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT=path.resolve(HERE,'../..');
 const DEFAULT_CONTRACT='docs/experiments/2026-09-21-l1e-formal/model-contract.json';
 const DEFAULT_ARMS='docs/experiments/2026-09-23-destiny/arms.json';
+const REQUIRED_CHAIN_IDS=Object.freeze(['water','eyes','twinTiger','bloodOath','godKing','eternalFlame']);
+const REQUIRED_DESTINY_MODES=Object.freeze(['ordinary-ai-off','original-ai-off','candidate-ai-off',
+  'ordinary-ai-on','original-ai-on','candidate-ai-on']);
+const REQUIRED_DESTINY_DRAW='four independent secure private draws per seed, recorded once and reused across all six arms; never derived from public game seed';
+const EXPECTED_CONTRACT_CANONICAL_SHA256='a2a5bbf07bc46d2330ad4a8b7a2e4296bddda5231f0b1df9227faf6e43af92c3';
+const EXPECTED_ARMS_CANONICAL_SHA256='d84ea77460a5d7fc3d1aabb2b5eb1118fd5316e40d90932e9114bb02d10110a4';
+const EXPECTED_SOURCE_COMMIT='cb64f4ef1cc7c128d28d3f928e832624e4889596';
+const EXPECTED_SOURCE_SHA256='13b0bf220588f8bbca6f2c7352f0e9125894cb8c271225f79f347019880af5b9';
+const EXPECTED_SOURCE_BLOB_OID='f18a2ffc9770115db8cd60fefbb45726176b9874';
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const isRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
+
+function canonicalJson(value,ancestors=new Set()){
+  if(value===null) return 'null';
+  if(typeof value==='string'||typeof value==='boolean') return JSON.stringify(value);
+  if(typeof value==='number'){
+    if(!Number.isFinite(value)) throw new TypeError('canonical JSON requires finite numbers');
+    return Object.is(value,-0)?'-0':JSON.stringify(value);
+  }
+  if(Array.isArray(value)){
+    if(Object.getPrototypeOf(value)!==Array.prototype||
+      Reflect.ownKeys(value).length!==value.length+1)
+      throw new TypeError('canonical JSON requires plain dense arrays');
+    if(ancestors.has(value)) throw new TypeError('canonical JSON cannot contain cycles');
+    ancestors.add(value);
+    const values=[];
+    for(let i=0;i<value.length;i++){
+      if(!Object.hasOwn(value,i)) throw new TypeError('canonical JSON cannot contain sparse arrays');
+      const descriptor=Object.getOwnPropertyDescriptor(value,String(i));
+      if(!descriptor?.enumerable||!Object.hasOwn(descriptor,'value'))
+        throw new TypeError('canonical JSON requires plain array data');
+      values.push(canonicalJson(descriptor.value,ancestors));
+    }
+    ancestors.delete(value);
+    return `[${values.join(',')}]`;
+  }
+  if(value&&typeof value==='object'){
+    const prototype=Object.getPrototypeOf(value);
+    if(prototype!==Object.prototype&&prototype!==null)
+      throw new TypeError('canonical JSON requires plain objects');
+    if(ancestors.has(value)) throw new TypeError('canonical JSON cannot contain cycles');
+    ancestors.add(value);
+    const keys=Reflect.ownKeys(value);
+    if(keys.some(key=>typeof key!=='string'))
+      throw new TypeError('canonical JSON cannot contain symbol keys');
+    const values=keys.sort().map(key=>{
+      const descriptor=Object.getOwnPropertyDescriptor(value,key);
+      if(!descriptor?.enumerable||!Object.hasOwn(descriptor,'value'))
+        throw new TypeError('canonical JSON requires plain data properties');
+      return `${JSON.stringify(key)}:${canonicalJson(descriptor.value,ancestors)}`;
+    });
+    ancestors.delete(value);
+    return `{${values.join(',')}}`;
+  }
+  throw new TypeError('value is not JSON-compatible');
+}
+
+function canonicalJsonHash(value){
+  return canonicalJsonSnapshot(value).sha256;
+}
+
+function canonicalJsonSnapshot(value){
+  try{
+    const serialized=canonicalJson(value);
+    if(typeof serialized!=='string') return {valid:false,value:null,sha256:null};
+    return {valid:true,value:JSON.parse(serialized),
+      sha256:hash(Buffer.from(serialized,'utf8'))};
+  }catch{return {valid:false,value:null,sha256:null};}
+}
+
+function gitBlobOid(bytes){
+  const header=Buffer.from(`blob ${bytes.length}\0`,'utf8');
+  return crypto.createHash('sha1').update(header).update(bytes).digest('hex');
+}
+
+function isContainedPath(root,target){
+  const relative=path.relative(root,target);
+  return relative!==''&&relative!=='..'&&!relative.startsWith(`..${path.sep}`)&&
+    !path.isAbsolute(relative);
+}
 
 function parseIndexEvidence(entry){
   if(typeof entry!=='string') return null;
   const match=entry.match(/(?:^|\s)index\.html\s+([^:\s]+):(\d+)\b/);
   if(!match) return null;
-  return {symbols:match[1].split('/').filter(Boolean),line:Number(match[2])};
+  const symbols=match[1].split('/');
+  const line=Number(match[2]);
+  if(!symbols.length||symbols.some(symbol=>!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(symbol))||
+    !Number.isSafeInteger(line)||line<1) return null;
+  return {symbols,line};
 }
 
 function hasSymbol(source,symbol){
@@ -46,14 +128,21 @@ function findReferences(contract,sourceText,repoRoot){
         if(repoRoot){
           const root=path.resolve(repoRoot);
           const absolute=path.resolve(root,doc[1]);
-          const relative=path.relative(root,absolute);
-          const contained=relative!==''&&!relative.startsWith(`..${path.sep}`)&&
-            relative!=='..'&&!path.isAbsolute(relative);
-          exists=contained&&fs.existsSync(absolute);
+          if(isContainedPath(root,absolute)){
+            try{
+              const realRoot=fs.realpathSync(root);
+              const realDocument=fs.realpathSync(absolute);
+              exists=isContainedPath(realRoot,realDocument)&&fs.statSync(realDocument).isFile();
+            }catch{exists=false;}
+          }else exists=false;
         }
         const row={inventoryId:item?.id??null,path:doc[1],exists};
         documentationReferences.push(row);
         if(exists===false) missingDocuments.push(row);
+        continue;
+      }
+      if(ref.line>lines.length){
+        unrecognizedEvidence.push({inventoryId:item?.id??null,entry});
         continue;
       }
       for(const symbol of ref.symbols){
@@ -77,9 +166,12 @@ function validationErrors(contract,{sourceText,resolvedSourceCommit}){
     errors.push('unsupported model contract schema');
   if(!/^[a-f0-9]{7,40}$/i.test(contract?.sourceCommit??''))
     errors.push('sourceCommit must be a git commit id');
-  if(resolvedSourceCommit&&contract?.sourceCommit&&
-    !resolvedSourceCommit.startsWith(contract.sourceCommit.toLowerCase()))
-    errors.push('resolved source commit does not match the contract sourceCommit');
+  if(resolvedSourceCommit!==undefined){
+    if(typeof resolvedSourceCommit!=='string'||!/^([a-f0-9]{40})$/i.test(resolvedSourceCommit))
+      errors.push('resolved source commit must be a full git commit id');
+    else if(resolvedSourceCommit.toLowerCase()!==EXPECTED_SOURCE_COMMIT)
+      errors.push('resolved source commit does not match the pinned source commit');
+  }
   if(!Array.isArray(contract?.inventory)||contract.inventory.length===0)
     errors.push('inventory must be a non-empty array');
   if(!isRecord(contract?.scope)||!Array.isArray(contract.scope.chainIds))
@@ -118,20 +210,68 @@ function validationErrors(contract,{sourceText,resolvedSourceCommit}){
 }
 
 export function auditContractData(contract,sourceBytes,metadata={}){
-  const sourceBuffer=Buffer.isBuffer(sourceBytes)?sourceBytes:Buffer.from(sourceBytes??'');
+  const contractSnapshot=canonicalJsonSnapshot(contract);
+  const metadataSnapshot=canonicalJsonSnapshot(metadata);
+  contract=contractSnapshot.valid?contractSnapshot.value:null;
+  const metadataValid=metadataSnapshot.valid&&isRecord(metadataSnapshot.value);
+  metadata=metadataValid?metadataSnapshot.value:{};
+  const sourceBuffer=Buffer.from(sourceBytes??'');
   const sourceText=sourceBuffer.toString('utf8');
+  const sourceSha256=hash(sourceBuffer);
+  const sourceBlobOid=gitBlobOid(sourceBuffer);
+  const sourceIntegrityVerified=sourceSha256===EXPECTED_SOURCE_SHA256&&
+    sourceBlobOid===EXPECTED_SOURCE_BLOB_OID;
+  const contractCanonicalSha256=contractSnapshot.sha256;
+  const contractIntegrityVerified=contractSnapshot.valid&&
+    contractCanonicalSha256===EXPECTED_CONTRACT_CANONICAL_SHA256;
+  const productArms=metadata.productArms;
+  const productArmsCanonicalSha256=canonicalJsonHash(productArms);
+  const destinyArms=productArms?.destinyGame?.arms;
+  const productScope=isRecord(productArms)?{
+    schema:productArms.schema,
+    chainIds:productArms.chainIds,
+    destinyModes:isRecord(destinyArms)?Object.keys(destinyArms):[],
+    destinyDraw:productArms?.destinyGame?.destinyDraw,
+    manifestSha256:productArmsCanonicalSha256
+  }:null;
   const errors=validationErrors(contract,{sourceText,
     resolvedSourceCommit:metadata.resolvedSourceCommit});
-  if(metadata.productScope!==undefined&&(!isRecord(metadata.productScope)||
-    metadata.productScope.schema!=='yaoshi.destiny.acceptance.arms.v1'||
-    !Array.isArray(metadata.productScope.chainIds)||metadata.productScope.chainIds.length===0||
-    metadata.productScope.chainIds.some(id=>typeof id!=='string'||!id)||
-    new Set(metadata.productScope.chainIds).size!==metadata.productScope.chainIds.length||
-    !Array.isArray(metadata.productScope.destinyModes)||metadata.productScope.destinyModes.length===0||
-    metadata.productScope.destinyModes.some(mode=>typeof mode!=='string'||!mode)||
-    new Set(metadata.productScope.destinyModes).size!==metadata.productScope.destinyModes.length||
-    typeof metadata.productScope.destinyDraw!=='string'||!metadata.productScope.destinyDraw))
-    errors.push('productScope schema, non-empty chainIds, destinyModes, and destinyDraw are required');
+  if(!contractSnapshot.valid)
+    errors.push('model contract is not valid canonical JSON data');
+  if(!metadataValid)
+    errors.push('audit metadata is not valid canonical JSON object data');
+  if(!contractIntegrityVerified)
+    errors.push('model contract does not match its pinned semantic hash');
+  if(metadata.contractCanonicalSha256!==undefined&&
+    metadata.contractCanonicalSha256!==contractCanonicalSha256)
+    errors.push('contract hash metadata does not match the supplied contract content');
+  if(metadata.productScope!==undefined)
+    errors.push('productScope projections are not accepted; pass the complete productArms object');
+  if(!sourceIntegrityVerified)
+    errors.push('pinned index.html content does not match its expected SHA256 and Git blob');
+  if(metadata.sourceBlobOid!==undefined&&metadata.sourceBlobOid!==sourceBlobOid)
+    errors.push('source blob metadata does not match the supplied source bytes');
+  const productScopeShapeValid=isRecord(productScope)&&
+    productScope.schema==='yaoshi.destiny.acceptance.arms.v1'&&
+    Array.isArray(productScope.chainIds)&&productScope.chainIds.length>0&&
+    productScope.chainIds.every(id=>typeof id==='string'&&id.length>0)&&
+    new Set(productScope.chainIds).size===productScope.chainIds.length&&
+    Array.isArray(productScope.destinyModes)&&productScope.destinyModes.length>0&&
+    productScope.destinyModes.every(mode=>typeof mode==='string'&&mode.length>0)&&
+    new Set(productScope.destinyModes).size===productScope.destinyModes.length&&
+    typeof productScope.destinyDraw==='string'&&productScope.destinyDraw.length>0&&
+    /^[a-f0-9]{64}$/i.test(productScope.manifestSha256??'');
+  if(!productScopeShapeValid)
+    errors.push('productArms schema, non-empty chainIds, destiny modes, private destinyDraw, and parseable JSON are required');
+  const productScopeMatchesFull=productScopeShapeValid&&
+    productScope.chainIds.length===REQUIRED_CHAIN_IDS.length&&
+    REQUIRED_CHAIN_IDS.every(id=>productScope.chainIds.includes(id))&&
+    productScope.destinyModes.length===REQUIRED_DESTINY_MODES.length&&
+    REQUIRED_DESTINY_MODES.every(mode=>productScope.destinyModes.includes(mode))&&
+    productScope.destinyDraw===REQUIRED_DESTINY_DRAW&&
+    productScope.manifestSha256===EXPECTED_ARMS_CANONICAL_SHA256;
+  if(productScopeShapeValid&&!productScopeMatchesFull)
+    errors.push('productArms must match the frozen full required product set, private draw declaration, and arms manifest hash');
   const sourceReferences=Array.isArray(contract?.inventory)?
     findReferences(contract,sourceText,metadata.repoRoot):{checked:[],missingSymbols:[],
       staleLineHints:[],documentationReferences:[],missingDocuments:[],unrecognizedEvidence:[]};
@@ -140,6 +280,8 @@ export function auditContractData(contract,sourceBytes,metadata={}){
   }
   if(sourceReferences.missingDocuments.length)
     errors.push(`${sourceReferences.missingDocuments.length} documentation evidence path(s) are missing or outside the repository`);
+  if(sourceReferences.documentationReferences.some(row=>row.exists===null))
+    errors.push('repoRoot is required to verify documentation evidence paths');
   if(sourceReferences.unrecognizedEvidence.length)
     errors.push(`${sourceReferences.unrecognizedEvidence.length} existingEvidence reference(s) are unrecognized`);
 
@@ -147,33 +289,41 @@ export function auditContractData(contract,sourceBytes,metadata={}){
   const fullyImplemented=inventory.filter(item=>item?.implemented===true).length;
   const partiallyImplemented=inventory.filter(item=>item?.implemented==='partial').length;
   const missingAdapters=inventory.filter(item=>item?.implemented===false).length;
-  const productChainIds=Array.isArray(metadata.productScope?.chainIds)?metadata.productScope.chainIds:[];
-  const contractChainIds=contract?.scope?.chainIds??[];
-  const missingCurrentChainIds=productChainIds.filter(id=>!contractChainIds.includes(id));
-  const destinyModes=Array.isArray(metadata.productScope?.destinyModes)?metadata.productScope.destinyModes:[];
+  const productChainIds=Array.isArray(productScope?.chainIds)?productScope.chainIds:[];
+  const contractChainIds=Array.isArray(contract?.scope?.chainIds)?contract.scope.chainIds:[];
+  const missingCurrentChainIds=REQUIRED_CHAIN_IDS.filter(id=>!contractIntegrityVerified||
+    !contractChainIds.includes(id));
+  const destinyModes=Array.isArray(productScope?.destinyModes)?productScope.destinyModes:[];
   const contractDestinyModes=Array.isArray(contract?.scope?.destinyModes)?contract.scope.destinyModes:[];
-  const destinyModesCovered=destinyModes.length>0&&contractDestinyModes.length>0&&
-    destinyModes.every(mode=>contractDestinyModes.includes(mode));
+  const destinyModesCovered=contractIntegrityVerified&&productScopeMatchesFull&&contractDestinyModes.length>0&&
+    REQUIRED_DESTINY_MODES.every(mode=>contractDestinyModes.includes(mode));
 
   const blockingReasons=[];
   if(missingAdapters||partiallyImplemented)
     blockingReasons.push(`adapter inventory has ${missingAdapters} missing and ${partiallyImplemented} partial item(s)`);
   if(contract?.nextEngineeringDeliverable?.implemented!==true)
     blockingReasons.push('runnable contract auditor/adapter verification is not declared complete');
+  if(!contractIntegrityVerified)
+    blockingReasons.push('model contract content does not match the pinned frozen contract');
   if(missingCurrentChainIds.length)
     blockingReasons.push(`model scope omits current chain(s): ${missingCurrentChainIds.join(', ')}`);
-  if(destinyModes.length&&!destinyModesCovered)
+  if(!productScopeMatchesFull)
+    blockingReasons.push('product scope does not match the independently pinned full product scope');
+  if(!destinyModesCovered)
     blockingReasons.push('model scope does not cover private destiny draws, effects, and information sets');
   if(contract?.gate?.sixOfFour!=='pass')
     blockingReasons.push(`contract gate is ${contract?.gate?.sixOfFour??'missing'}`);
   if(contract?.gate?.formalStatus!=='pass')
     blockingReasons.push(`formal status is ${contract?.gate?.formalStatus??'missing'}`);
 
-  const unresolved=blockingReasons.length>0;
   const passClaim=contract?.gate?.sixOfFour==='pass'||
     contract?.gate?.formalStatus==='pass'||contract?.gate?.releaseEligible===true||
     contract?.status==='pass'||contract?.implemented===true;
   if(passClaim) errors.push('unsupported pass claim: this inventory auditor does not verify exhaustive solver evidence');
+  const resolvedCommitVerified=typeof metadata.resolvedSourceCommit==='string'&&
+    metadata.resolvedSourceCommit.toLowerCase()===EXPECTED_SOURCE_COMMIT;
+  const sourceCommit=metadata.resolvedSourceCommit===undefined?
+    contract?.sourceCommit??null:resolvedCommitVerified?metadata.resolvedSourceCommit.toLowerCase():null;
 
   return {
     schema:'yaoshi.l1e.modelContractAudit.v1',
@@ -182,10 +332,15 @@ export function auditContractData(contract,sourceBytes,metadata={}){
     releaseEligible:false,
     auditor:{capability:'contract-inventory-only',adapterFixturesExecuted:false,
       solverEvidenceValidated:false,supportedVerdict:'incomplete'},
-    source:{commit:metadata.resolvedSourceCommit??contract?.sourceCommit??null,
-      blobOid:metadata.sourceBlobOid??null,sha256:hash(sourceBuffer)},
-    scope:{contractChainIds,productChainIds,missingCurrentChainIds,
-      destinyModes,contractDestinyModes,destinyModesCovered},
+    integrity:{modelContract:contractIntegrityVerified,productArms:productScopeMatchesFull,
+      source:sourceIntegrityVerified},
+    source:{commit:sourceCommit,commitVerified:resolvedCommitVerified,
+      blobOid:sourceBlobOid,sha256:sourceSha256,integrityVerified:sourceIntegrityVerified},
+    scope:{contractChainIds,productChainIds,requiredChainIds:[...REQUIRED_CHAIN_IDS],
+      missingCurrentChainIds,destinyModes,requiredDestinyModes:[...REQUIRED_DESTINY_MODES],
+      contractDestinyModes,contractIntegrityVerified,
+      productScopeIntegrityVerified:productScopeMatchesFull,
+      destinyModesCovered},
     summary:{inventoryItems:inventory.length,fullyImplemented,partiallyImplemented,
       missingAdapters,sourceReferencesChecked:sourceReferences.checked.length,
       documentationReferences:sourceReferences.documentationReferences.length,
@@ -212,7 +367,10 @@ export function auditRepository({repoRoot=DEFAULT_ROOT,contractPath,
   const armsFile=path.resolve(repoRoot,productArmsPath??path.join(repoRoot,DEFAULT_ARMS));
   const contractBytes=fs.readFileSync(contractFile);
   const contract=JSON.parse(contractBytes.toString('utf8'));
-  const arms=JSON.parse(fs.readFileSync(armsFile,'utf8'));
+  const armsBytes=fs.readFileSync(armsFile);
+  const arms=JSON.parse(armsBytes.toString('utf8'));
+  const contractCanonicalSha256=canonicalJsonHash(contract);
+  const armsCanonicalSha256=canonicalJsonHash(arms);
   if(!/^[a-f0-9]{7,40}$/i.test(contract?.sourceCommit??''))
     throw new Error('contract sourceCommit must be a git commit id');
   const commit=git(repoRoot,['rev-parse','--verify',`${contract.sourceCommit}^{commit}`]).trim();
@@ -221,11 +379,13 @@ export function auditRepository({repoRoot=DEFAULT_ROOT,contractPath,
   const currentSourceBytes=fs.readFileSync(path.join(repoRoot,'index.html'));
   const currentHead=git(repoRoot,['rev-parse','HEAD']).trim();
   const report=auditContractData(contract,sourceBytes,{resolvedSourceCommit:commit,
-    sourceBlobOid,repoRoot,productScope:{schema:arms.schema,chainIds:arms.chainIds,
-      destinyModes:Object.keys(arms.destinyGame?.arms??{}),
-      destinyDraw:arms.destinyGame?.destinyDraw}});
+    sourceBlobOid,repoRoot,contractCanonicalSha256,productArms:arms});
   report.contract={path:path.relative(repoRoot,contractFile).replaceAll(path.sep,'/'),
-    sha256:hash(contractBytes)};
+    sha256:hash(contractBytes),canonicalSha256:contractCanonicalSha256,
+    integrityVerified:report.integrity.modelContract};
+  report.productArms={path:path.relative(repoRoot,armsFile).replaceAll(path.sep,'/'),
+    sha256:hash(armsBytes),canonicalSha256:armsCanonicalSha256,
+    integrityVerified:report.integrity.productArms};
   report.currentProduct={head:currentHead,indexSha256:hash(currentSourceBytes)};
   report.source.sha256=hash(sourceBytes);
   return report;
