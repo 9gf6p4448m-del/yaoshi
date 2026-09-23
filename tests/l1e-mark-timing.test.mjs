@@ -14,6 +14,18 @@ test('mark timing protocol freezes matched arms, event equality and 10,000 paire
   assert.equal(protocol.releaseGate, false);
 });
 
+test('formal cohort label requires the exact ordered protocol seed range', async () => {
+  const { isFormalSeedCohort } = await import(modulePath);
+  const range = { start: 1, endInclusive: 10000 };
+  const seeds = Array.from({ length: 10000 }, (_, index) => index + 1);
+  assert.equal(isFormalSeedCohort(seeds, range), true);
+  seeds[5000] = 10001;
+  assert.equal(isFormalSeedCohort(seeds, range), false);
+  seeds[5000] = 5001;
+  [seeds[2500], seeds[2501]] = [seeds[2501], seeds[2500]];
+  assert.equal(isFormalSeedCohort(seeds, range), false);
+});
+
 test('paired trial reproduces a small seed cohort and requires first-event equality', async () => {
   const { runMarkTimingComparison } = await import(modulePath);
   const seeds = Array.from({ length: 12 }, (_, index) => index + 1);
@@ -21,8 +33,14 @@ test('paired trial reproduces a small seed cohort and requires first-event equal
   const second = runMarkTimingComparison({ seeds });
   assert.equal(first.formalCohort, false);
   assert.equal(first.games, seeds.length);
-  assert.equal(first.firstEventMismatchCount, 0);
-  assert.equal(first.firstEventMatchedCount, first.firstEventEligibleGames);
+  assert.equal(first.firstEvent.eventResultMismatchCount, 0);
+  assert.equal(first.firstEvent.eventResultMatchedGames, first.firstEvent.eligibleGames);
+  assert.ok(first.firstEvent.eligibleGames > 0);
+  assert.ok(first.firstEvent.gamesWithSurvivingAiComparison <= first.firstEvent.eligibleGames);
+  assert.ok(first.firstEvent.gamesWithAnyAiMarkChange <= first.firstEvent.gamesWithSurvivingAiComparison);
+  for (const seat of Object.values(first.firstEvent.bySeat))
+    assert.ok(seat.comparisons <= first.firstEvent.eligibleGames);
+  assert.ok(first.firstEvent.humanComparisons <= first.firstEvent.eligibleGames);
   assert.deepEqual(first.outcomes, second.outcomes);
   assert.deepEqual(first.firstEvent, second.firstEvent);
   assert.equal(first.releaseGate, false);
