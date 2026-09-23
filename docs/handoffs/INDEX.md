@@ -2,6 +2,8 @@
 
 **最新入口（2026-09-24）**：[六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md)及[續作計畫](../../plans/2026-09-23-destiny-next-steps.md)。隔離分支 `feat/l1-water-chain` 已有候選提交 `5bd3817`、量測歷史驗證提交 `3640120`；產品字串仍為 v0.57.40，**v0.57.41 尚未發布**。普通 H1/H9 各七臂、真版六臂均固定 10,000 局；雙虎／血祭活動及逐件配對診斷也各完成 10,000 組，三臂端點吻合舊 raw。千眼知情策略補充已完成三臂各 10,000 局：知情策略改變 18.69% 對局的至少一次出價，座位 0 對盲策略勝率差 −0.18pp（95% 配對 bootstrap −0.44..+0.08），不能改變正式千眼 H9 `incomplete`。本輪另完成千眼公告、私函、四件預告的 844×390／1280×720 六張畫面覆核：手機私函可捲動但關閉鈕在首屏下方，四件預告未標示額外第四件；[報告](../experiments/2026-09-24-eyes-informed-supplement/report.md)與[真人冷讀記分表](../experiments/2026-09-24-eyes-informed-supplement/blindread-scorecard.md)已備妥，至少五位真人尚未實測。普通正式 H9 仍是雙虎／血祭 fail、千眼 incomplete；真版焦點四鏈 fail、兩鏈 incomplete。下一步是真人盲讀、六之四跨夜模型及長時音效間歇診斷；不發布。逐局 raw 留在忽略版控 `scratchpad/`，本補充 raw SHA256 `968a767b1f7088014e8c47a47efc129b7dd85778bca849b578177549496bc908`。
 
+來源稽核追加（2026-09-24）：正式天命 raw 的 `gitHead=2eb164d` 不是產品來源證明；產品 SHA 對上後來候選 `5bd3817`，而 runner 未驗 `productBaseline`。舊 raw 保留不改；新實驗先鎖 commit/hash 並要求乾淨工作樹。稀疏密函輸入與交接後隱藏 DOM 殘留已修，局部回歸通過；平衡與發布關口仍未通過。
+
 | 日期 | 主題 | 目前狀態 | 下一句喚醒語 |
 |---|---|---|---|
 | 2026-09-24 | [六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md) | 規格凍結、候選實作、普通／真版 10k 對照、焦點比較、雙虎／血祭逐件配對與千眼知情補充各完成 10k 配對；另備千眼六張雙尺寸畫面與真人冷讀記分表。X 盤點器已跑，舊契約仍只有三鏈、9 個 adapter 缺漏及 1 項部分完成。舊 H9 門檻不變。快測 266/266，長時音效仍有未定位間歇卡點。普通 H9 fail／incomplete、焦點四鏈 fail／兩鏈 incomplete、六之四 incomplete；真人盲讀未做，不發布 | `/handoff 妖市：讀最終審視與續作計畫；接真人冷讀、六鏈／天命模型 adapter、長時音效診斷；保留原案、失敗 raw 與 releaseEligible=false。` |
