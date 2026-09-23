@@ -25,6 +25,7 @@ const BOUNDARY_KINDS = new Set([
 const ENGINE_METADATA = new WeakMap();
 const STATE_ENGINE = new WeakMap();
 const SNAPSHOT_METADATA = new WeakMap();
+const VERIFIED_BOUNDARIES = new WeakMap();
 const hash = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
 
 export function readCrossNightContractV9() {
@@ -72,22 +73,10 @@ function cloneMutableGraph(value, seen = new WeakMap()) {
   if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return value;
   if (typeof value === 'function') return value;
   if (seen.has(value)) return seen.get(value);
-  if (value instanceof Date) {
-    const copy = new Date(value.getTime());
-    seen.set(value, copy);
-    return copy;
-  }
   if (value instanceof Set) {
     const copy = new Set();
     seen.set(value, copy);
     for (const entry of value) copy.add(cloneMutableGraph(entry, seen));
-    return copy;
-  }
-  if (value instanceof Map) {
-    const copy = new Map();
-    seen.set(value, copy);
-    for (const [key, entry] of value)
-      copy.set(cloneMutableGraph(key, seen), cloneMutableGraph(entry, seen));
     return copy;
   }
   if (Array.isArray(value)) {
@@ -132,11 +121,6 @@ function assertNoFunctions(value, seen = new WeakSet()) {
   seen.add(value);
   if (value instanceof Set) {
     for (const entry of value) assertNoFunctions(entry, seen);
-  } else if (value instanceof Map) {
-    for (const [key, entry] of value) {
-      assertNoFunctions(key, seen);
-      assertNoFunctions(entry, seen);
-    }
   }
   for (const key of Reflect.ownKeys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
@@ -149,11 +133,6 @@ function deepFreezeGraph(value, seen = new WeakSet()) {
   seen.add(value);
   if (value instanceof Set) {
     for (const entry of value) deepFreezeGraph(entry, seen);
-  } else if (value instanceof Map) {
-    for (const [key, entry] of value) {
-      deepFreezeGraph(key, seen);
-      deepFreezeGraph(entry, seen);
-    }
   }
   for (const key of Reflect.ownKeys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
@@ -267,6 +246,11 @@ function assertValidSnapshot(snapshot) {
 export function captureCrossNightSnapshotV9(engine, state, runnerContext, {
   boundaryKind = 'afterNightResolution.beforeNextRound',
 } = {}) {
+  const metadata = assertOwnedCurrentState(engine, state);
+  const ticket = VERIFIED_BOUNDARIES.get(state);
+  if (!ticket || ticket.engine !== metadata.G || ticket.kind !== boundaryKind)
+    throw new TypeError('snapshot capture requires a fresh boundary from the pinned engine');
+  VERIFIED_BOUNDARIES.delete(state);
   return buildSnapshot(engine, state, runnerContext, boundaryKind);
 }
 
@@ -324,6 +308,10 @@ export function runToFirstNightBoundaryV9(engine, {
   const stop = Object.freeze({ stop: 'v9-first-night-boundary' });
   metadata.storage.__modelV9NightBoundary = (state, runnerFrame) => {
     registerState(engine, state);
+    VERIFIED_BOUNDARIES.set(state, {
+      engine: metadata.G,
+      kind: 'afterNightResolution.beforeNextRound',
+    });
     const runnerContext = {
       ...runnerFrame,
       policyInformation,
@@ -332,7 +320,7 @@ export function runToFirstNightBoundaryV9(engine, {
       destinyAiChase: destinyAiChase === true,
       recordDestinyEvidence: recordDestinyEvidence === true,
     };
-    snapshot = buildSnapshot(engine, state, runnerContext, 'afterNightResolution.beforeNextRound');
+    snapshot = captureCrossNightSnapshotV9(engine, state, runnerContext);
     throw stop;
   };
   try {
@@ -432,8 +420,13 @@ export function advanceNextRoundMarketV9(engine, inputSnapshot) {
   const stop = Object.freeze({ stop: 'v9-after-next-round-market' });
   metadata.storage.__modelV9AfterRoundAdvance = (state) => {
     registerState(engine, state);
-    nextSnapshot = buildSnapshot(engine, state, snapshot.runnerContext,
-      'afterNextRoundMarketSchedule.beforeBeginRound');
+    VERIFIED_BOUNDARIES.set(state, {
+      engine: metadata.G,
+      kind: 'afterNextRoundMarketSchedule.beforeBeginRound',
+    });
+    nextSnapshot = captureCrossNightSnapshotV9(engine, state, snapshot.runnerContext, {
+      boundaryKind: 'afterNextRoundMarketSchedule.beforeBeginRound',
+    });
     throw stop;
   };
   try {

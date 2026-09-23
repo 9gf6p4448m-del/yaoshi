@@ -20,6 +20,8 @@ X 第六批 fixtures 進度（2026-09-24；RED `52187eb`／GREEN `b10af04`）：
 
 X 第七批 fixtures 進度（2026-09-24；v8 RED 9d63efd）：新增[版本化 v8 契約](../docs/experiments/2026-09-23-destiny/model-contract-v8.md)，為凍結來源投影加私有 provenance、狀態根／輪次／版本綁定、事件揭露 transition 與決策節點動作綁定。專項 22/22，v2–v8 與相鄰 adapter／盤點 suite 合跑 72/72。複核先後抓到跨決策物件的事件選擇衝突、同輪未揭露／未提交卻前進、盯印或拍賣先記錄後才開事件、舊事件過期後仍可結算、同輪重開事件、重複事件／神龕結算、過期提交及重複放血；目前已補跨物件提交選擇核對、事件決策版本與先後檢查、事件揭露與盯印／放血／選尊實際提交門檻、同輪狀態版本前進、單次解析／提交鎖與回歸測試。拍賣只參與相位順序索引，action/state 結算仍未建模；其餘自動轉移、完整 chance、跨夜 restore／canonicalization、payoff／solver 也仍未完成。sixOfFour=incomplete、solverStatus=not-run、releaseEligible=false。產品 index.html、玩法與平衡值未改。
 
+X 第八批 fixtures 進度（v9，2026-09-24；RED `3aef689`／GREEN `8096b1c`）：新增[跨夜 checkpoint 契約](../docs/experiments/2026-09-23-destiny/model-contract-v9.md)與凍結 `d63f03e` 引擎治具。真實 `playPolicyGame` 第一夜完成拍賣、異事、請神及戰鬥後，擷取四席狀態、runner 記憶、玩法／UI RNG 游標；在另一引擎恢復，呼叫凍結 `nextRound` 並比較第二夜市場與摘要。補測明確斷言夜末含拍賣和戰鬥、袋子／市場共享物件 alias 保留且不跨污染來源引擎，並拒絕重用票據、錯誤 runner 身分、畸形私函、狀態漂移及重複推進。新測試 6/6，v2–v9 相鄰契約 suite 74/74；adapter 行覆蓋 100%、分支 81.94%、函式 91.67%。兩次獨立 JS 審查未發現可操作缺陷。快照仍是同程序測試物件；完整 chance 權重、所有公開／自動轉移、跨程序 canonicalization、terminal payoff 與 solver 未完成，`sixOfFour=incomplete`、`releaseEligible=false`；產品、效果與平衡值未改。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。

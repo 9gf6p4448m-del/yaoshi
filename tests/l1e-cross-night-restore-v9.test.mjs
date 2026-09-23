@@ -36,6 +36,10 @@ test('the cross-night checkpoint comes from a frozen-engine night and captures b
   assert.equal(snapshot.boundary.round, 1);
   assert.equal(snapshot.state.round, 1);
   assert.equal(snapshot.state.history.nights.length, 1);
+  assert.ok(snapshot.state.history.nights[0].auction.length > 0,
+    'the captured night must include a resolved auction');
+  assert.ok(snapshot.state.history.nights[0].fights.length > 0,
+    'the captured night must include resolved combat');
   assert.deepEqual(snapshot.state.players.map((player) => player.destiny), PRIVATE_DRAWS);
   assert.ok(Number.isInteger(snapshot.rng.gameplay));
   assert.ok(Number.isInteger(snapshot.rng.ui));
@@ -70,6 +74,17 @@ test('a separate pinned engine restores the graph and follows the frozen next-ro
   assert.doesNotThrow(() => assertCrossNightSnapshotCurrentV9(restoredEngine, firstNight));
   assert.deepEqual(restored.state.players.map((player) => player.destiny), PRIVATE_DRAWS);
   assert.deepEqual(restored.state.history, firstNight.state.history);
+
+  const sourceSharedMarketItem = sourceEngine.G.S.players
+    .flatMap((player) => player.bag)
+    .find((item) => sourceEngine.G.S.market.includes(item));
+  const restoredSharedMarketItem = restored.state.players
+    .flatMap((player) => player.bag)
+    .find((item) => restored.state.market.includes(item));
+  assert.ok(sourceSharedMarketItem, 'fixture must contain a real bag-to-market object alias');
+  assert.ok(restoredSharedMarketItem, 'restore must preserve the bag-to-market alias');
+  assert.notStrictEqual(restoredSharedMarketItem, sourceSharedMarketItem,
+    'restored graph aliases must not point back into the source engine');
 
   const sourceNextNight = advanceNextRoundMarketV9(sourceEngine, firstNight);
   const restoredNextNight = advanceNextRoundMarketV9(restoredEngine, firstNight);
@@ -108,4 +123,73 @@ test('snapshot restore rejects mutated payloads and state roots not created by i
   snapshot.state.wonAny.add('tampered');
   assert.throws(() => restoreCrossNightSnapshotV9(target, snapshot), /snapshot integrity/);
   assert.throws(() => captureCrossNightSnapshotV9(engine, {}, {}), /registered pinned engine state/);
+  assert.throws(() => captureCrossNightSnapshotV9(engine, engine.G.S, snapshot.runnerContext),
+    /fresh boundary from the pinned engine/);
+});
+
+test('v9 rejects incomplete runner identity, malformed private draws, and unregistered engines', async () => {
+  const {
+    loadCrossNightRestoreEngineV9,
+    runToFirstNightBoundaryV9,
+    restoreCrossNightSnapshotV9,
+    assertCrossNightSnapshotCurrentV9,
+  } = await import(adapterModule);
+  const engine = loadCrossNightRestoreEngineV9();
+
+  assert.throws(() => runToFirstNightBoundaryV9(engine, {
+    seed: 1.5,
+    privateDestinyDraws: PRIVATE_DRAWS,
+  }), /fixed seed and four explicit private destiny draws/);
+  assert.throws(() => runToFirstNightBoundaryV9(engine, {
+    seed: 1,
+    privateDestinyDraws: [...PRIVATE_DRAWS.slice(0, 3), 'unknown'],
+  }), /fixed seed and four explicit private destiny draws/);
+  assert.throws(() => runToFirstNightBoundaryV9(engine, {
+    seed: 1,
+    privateDestinyDraws: PRIVATE_DRAWS,
+    policyInformation: false,
+  }), /identified information policy profile/);
+  assert.throws(() => runToFirstNightBoundaryV9(engine, {
+    seed: 1,
+    privateDestinyDraws: PRIVATE_DRAWS,
+    policyProfileId: '',
+  }), /identified information policy profile/);
+  assert.throws(() => runToFirstNightBoundaryV9(engine, {
+    seed: 1,
+    privateDestinyDraws: PRIVATE_DRAWS,
+    trueEffects: 'unknown',
+  }), /identified information policy profile/);
+  assert.throws(() => restoreCrossNightSnapshotV9(engine, {}), /snapshot produced by the v9 pinned adapter/);
+  assert.throws(() => assertCrossNightSnapshotCurrentV9({}, {}), /registered v9 pinned engine/);
+});
+
+test('v9 detects live state drift and refuses to advance from a market boundary twice', async () => {
+  const {
+    loadCrossNightRestoreEngineV9,
+    runToFirstNightBoundaryV9,
+    advanceNextRoundMarketV9,
+    assertCrossNightSnapshotCurrentV9,
+  } = await import(adapterModule);
+  const engine = loadCrossNightRestoreEngineV9();
+  const snapshot = runToFirstNightBoundaryV9(engine, {
+    seed: 345,
+    picks: ['qingmian'],
+    privateDestinyDraws: PRIVATE_DRAWS,
+    policyInformation: true,
+  });
+
+  engine.G.S.players[0].life -= 1;
+  assert.throws(() => assertCrossNightSnapshotCurrentV9(engine, snapshot), /state differs/);
+
+  const cleanEngine = loadCrossNightRestoreEngineV9();
+  const cleanSnapshot = runToFirstNightBoundaryV9(cleanEngine, {
+    seed: 345,
+    picks: ['qingmian'],
+    privateDestinyDraws: PRIVATE_DRAWS,
+    policyInformation: true,
+  });
+  const afterMarket = advanceNextRoundMarketV9(cleanEngine, cleanSnapshot);
+  assert.throws(() => advanceNextRoundMarketV9(cleanEngine, cleanSnapshot), /state differs/,
+    'the consumed night-end snapshot must be stale after the engine advances');
+  assert.throws(() => advanceNextRoundMarketV9(cleanEngine, afterMarket), /resolved-night boundary/);
 });

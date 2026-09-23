@@ -134,6 +134,12 @@ RED `52187eb`／GREEN `b10af04`。v7 把凍結 adapters 輸出的 event、mark�
 
 最新複核在 v8 找到四類時間線缺口：不同事件決策物件可在一席提交後補寫相反歷史；未有事件揭露或前一個盯印／放血／選尊提交，歷史仍能進入後續階段；狀態版本前進後，舊事件決策仍可結算，或新事件決策在同輪後續版本替換待揭選擇；若盯印或拍賣先在另一段歷史記錄，之後仍能在同輪才開啟異事。測試 adapter 現在以狀態根／輪次／版本綁事件決策，拒絕先後倒置與舊決策結算，核對同節點已提交選擇，並要求事件揭露及受支援動作提交後才能推進歷史。v8 專項 22/22、v2–v8 與相鄰 adapter／契約盤點 suite 72/72。拍賣只參與相位順序索引，action/state 結算仍未建模。此改動只在測試模型，不動產品、玩法或平衡；其餘自動轉移、完整 chance、跨夜 restore、terminal payoff 與 solver 仍未完成，`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`。
 
+## X：跨夜模型 checkpoint（v9，2026-09-24）
+
+v9 把真實第一夜的夜末狀態送進另一個凍結引擎，再透過原始 `nextRound` 接續到下一市場排程。fixture 斷言該夜確實有拍賣與戰鬥，並比較四席狀態、私有天命、公開歷史、runner 統計欄位、兩條 RNG 游標及第二夜市場；bag／market 間的共享物件參照也在還原後保留，還原圖不與來源引擎互相污染。fresh boundary 票據、source pin、digest、新舊狀態一致性與失敗輸入均有拒絕測試。
+
+v9 專項 **6/6**；v2–v9 相鄰模型契約 suite **74/74**。adapter 行覆蓋 **100%**、分支覆蓋 **81.94%**、函式覆蓋 **91.67%**；兩次獨立 JS 覆審沒有可操作 finding。它仍只證明同一凍結來源、同一程序中的一個跨夜 checkpoint 與下一市場轉移；不證明所有自動／公開轉移、chance support／權重、跨程序 canonicalization、terminal payoff 或 solver。契約狀態維持 `chance.fullGame=incomplete`、`state.canonicalization=incomplete`、`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`。沒有改產品 `index.html`、遊戲規則或平衡值。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。
