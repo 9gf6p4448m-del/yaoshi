@@ -116,6 +116,14 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 玩家體驗建議仍維持「先不動已上線規則與數值」：接下來量測事件夜盯印時序差、補跨相位回憶與完整 chance／snapshot，再以固定策略配對結果決定是否值得做任何體驗修正。即使局部 transition fixtures 綠燈，也不能推翻普通雙虎／血祭 H9 fail、千眼 H9 incomplete、焦點四鏈 fail／兩鏈 incomplete 的既有結果；`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 不變。
 
+## X：單席跨相位回憶 envelope（v7，2026-09-24）
+
+RED `52187eb`／GREEN `b10af04`。v7 把凍結 adapters 輸出的 event、mark、sacrifice、auction、shrine-pick observation 與己方動作接成有序回憶；含實際 adapter 跨夜序列，v7 測試 **6/6**、v2–v7／天命／資訊／模型盤點合跑 **107/107**。
+
+這是回憶容器，不是完整資訊集合證明：它不產生投影、沒有來源標記可阻止呼叫者偽造凍結 schema 物件，也未把決策間公開揭露和自動轉移納入 record。只有已知原始狀態欄位會被拒絕，不能宣稱伺服器級保密。機器契約因此只將 `information.fullRecall` 提到 **partial**；完整 chance、跨夜 restore、canonicalization、terminal payoff 和 solver 仍 incomplete。沒有改 `index.html`、天命規則、平衡或 H9 判準。
+
+此刻最重要的體驗裁定仍是保留既有玩法，不因單人 UI 的資訊時序立刻削弱玩家，也不把資訊優勢當免費 buff：先用配對種子量測 AI／真人盯印時序、實際盯中率／稅費／勝率，再決定改善 UI 解釋、調整時序或保持原樣。當前遊戲平衡結果依舊是普通 H9 雙虎／血祭 fail、千眼 incomplete，焦點四鏈 fail／兩鏈 incomplete；全局 release gate false。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

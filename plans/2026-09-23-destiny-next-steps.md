@@ -16,6 +16,8 @@ X 第四批 fixtures 進度（2026-09-24；RED `c099e06`／GREEN `85eff22`）：
 
 X 第五批 fixtures 進度（2026-09-24；RED `37f423a`／GREEN `ad7cd83`）：新增[版本化 v6 契約](../docs/experiments/2026-09-23-destiny/model-contract-v6.md)，由凍結產品引擎執行自動夜戰／夜末結算及終局神龕回天、endStrip、歷史補列與存活／壽命名次。四項治具驗天雷 `<0.15`／`=0.15` 邊界、詛咒死線與神債回天／天明、終局收尾；新測試 4/4，v2–v6、天命／夜戰／資訊與模型盤點合跑 101/101。治具固定無被動角色避免「普渡爐主」干擾。只測選定狀態，沒有覆蓋完整機率樹、跨相位 full recall、跨夜 restore／canonicalization 或數值 payoff；產品及數值不變，`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`。
 
+X 第六批 fixtures 進度（2026-09-24；RED `52187eb`／GREEN `b10af04`）：新增[版本化 v7 契約](../docs/experiments/2026-09-23-destiny/model-contract-v7.md)，將同一席位的凍結 event／mark／sacrifice／auction／shrine-pick observation 與己方動作納入排序回憶，實際 adapter 跨 round sequence 通過。驗混席、schema／phase 錯配、事件／盯印／放血／選尊非法動作及常見原始 RNG／牌堆欄位拒絕。新測試 6/6，v2–v7 與相關 suite 合跑 107/107。回憶 envelope 不產生 observation，不保存決策間公開轉移，也未證明 schema 物件必來自可信投影；故 full recall 仍 partial。完整 chance、跨夜 restore／canonicalization、payoff／solver 仍缺，產品／平衡未變，`releaseEligible=false`。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。
