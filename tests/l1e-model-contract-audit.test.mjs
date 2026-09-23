@@ -184,6 +184,8 @@ test('loads the frozen git source, hashes it, and keeps the release gate closed'
   assert.equal(result.source.blobOid,sourceBlobOid);
   assert.equal(result.currentProduct.indexSha256,
     crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'index.html'))).digest('hex'));
+  assert.equal(result.contract.integrityVerified,true);
+  assert.equal(result.productArms.integrityVerified,true);
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
 });
@@ -230,5 +232,15 @@ test('CLI reports incomplete successfully and fails the explicit require-pass ga
       '--product-arms',changedRulesPath],{cwd:ROOT,encoding:'utf8'});
     assert.equal(altered.status,1,altered.stderr);
     assert.equal(JSON.parse(altered.stdout).auditStatus,'invalid');
+
+    const rewrittenContract=structuredClone(contract);
+    rewrittenContract.inventory=rewrittenContract.inventory.map(item=>({...item,implemented:true}));
+    rewrittenContract.nextEngineeringDeliverable.implemented=true;
+    const rewrittenContractPath=path.join(temp,'rewritten-contract.json');
+    fs.writeFileSync(rewrittenContractPath,JSON.stringify(rewrittenContract));
+    const rewritten=spawnSync(process.execPath,[tool,'--repo',ROOT,'--contract',rewrittenContractPath,
+      '--product-arms',ARMS_PATH],{cwd:ROOT,encoding:'utf8'});
+    assert.equal(rewritten.status,1,rewritten.stderr);
+    assert.equal(JSON.parse(rewritten.stdout).auditStatus,'invalid');
   }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
