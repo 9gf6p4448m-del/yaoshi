@@ -2,6 +2,8 @@
 
 **最新入口（2026-09-24）**：[六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md)及[續作計畫](../../plans/2026-09-23-destiny-next-steps.md)。隔離分支 `feat/l1-water-chain` 已有候選提交 `5bd3817`、量測歷史驗證提交 `3640120`；產品字串仍為 v0.57.40，**v0.57.41 尚未發布**。普通 H1/H9 各七臂、真版六臂均固定 10,000 局；雙虎／血祭活動及逐件配對診斷也各完成 10,000 組，三臂端點吻合舊 raw。千眼知情策略補充已完成三臂各 10,000 局：知情策略改變 18.69% 對局的至少一次出價，座位 0 對盲策略勝率差 −0.18pp（95% 配對 bootstrap −0.44..+0.08），不能改變正式千眼 H9 `incomplete`。本輪另完成千眼公告、私函、四件預告的 844×390／1280×720 六張畫面覆核：手機私函可捲動但關閉鈕在首屏下方，四件預告未標示額外第四件；[報告](../experiments/2026-09-24-eyes-informed-supplement/report.md)與[真人冷讀記分表](../experiments/2026-09-24-eyes-informed-supplement/blindread-scorecard.md)已備妥，至少五位真人尚未實測。長時 SFX 原測曾卡於「下一件拍品」；修正測試驅動後完整 `sfx-wiring` 長測通過一次（1/1、403.7 秒），但原始間歇原因仍未定位。普通正式 H9 仍是雙虎／血祭 fail、千眼 incomplete；真版焦點四鏈 fail、兩鏈 incomplete。下一步是真人盲讀、六之四跨夜模型及長時 SFX 間歇復現診斷；不發布。逐局 raw 留在忽略版控 `scratchpad/`，本補充 raw SHA256 `968a767b1f7088014e8c47a47efc129b7dd85778bca849b578177549496bc908`。
 
+X v5 進度（2026-09-24）：[盯印／放血／選尊契約](../experiments/2026-09-23-destiny/model-contract-v5.md) RED `c099e06`／GREEN `85eff22`；新增 4/4，v2–v5 合跑 75/75。已定位事件夜「AI 開盅前盯印、真人開盅後盯印」但未量化，暫不改遊戲；戰鬥、夜末結算、跨階段 full recall 與 solver 仍缺，發布資格不變。
+
 來源稽核追加（2026-09-24）：正式天命 raw 的 `gitHead=2eb164d` 不是產品來源證明；產品 SHA 對上後來候選 `5bd3817`，而 runner 未驗 `productBaseline`。舊 raw 保留不改；新實驗先鎖 commit/hash 並要求乾淨工作樹。稀疏密函輸入與交接後隱藏 DOM 殘留已修，局部回歸通過；平衡與發布關口仍未通過。長時 SFX 驗證追加：目前測試驅動版本三 seed 完整長測 1/1 通過；原始間歇卡點仍未定位。
 
 X fixtures 追加（2026-09-24）：[v2 六鏈／天命模型契約](../experiments/2026-09-23-destiny/model-contract-v2.md)固定 `d63f03e` 產品來源；TDD checkpoints `8e1af2b`／`d34dc99`。私函支持集、首次拍賣局部 restore、揭露前 replay 與逐席投影 fixtures 7/7 通過；與既有天命、資訊及舊契約盤點測試合計 61/61。局部 fixture 不等於完整 chance／snapshot／資訊集合，`sixOfFour=incomplete`、`releaseEligible=false`。下一個 X 工程是所有席位合法動作與 observation-history adapter；五人真人冷讀和 SFX 間歇原因仍待處理。
@@ -10,7 +12,7 @@ X 拍賣 adapter 追加（2026-09-24）：[v3 契約](../experiments/2026-09-23-
 
 | 日期 | 主題 | 目前狀態 | 下一句喚醒語 |
 |---|---|---|---|
-| 2026-09-24 | [六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md) | 規格凍結、候選實作、普通／真版 10k 對照、焦點比較、雙虎／血祭逐件配對與千眼知情補充各完成 10k 配對；另備千眼雙尺寸畫面與真人冷讀記分表。X v2 7/7、v3 6/6、v4 4/4；最新合跑 71/71。v4 只完成八種異事的動作／局部揭露 fixtures；盯印、獻祭、請神選尊、夜戰、跨相位 full recall、全局 chance／solver 仍缺。舊 H9 門檻不變；普通 H9 fail／incomplete、焦點四鏈 fail／兩鏈 incomplete、六之四 incomplete。SFX 間歇原因未定位；真人盲讀未做，不發布 | `/handoff 妖市：讀最終審視、v2–v4 契約與續作計畫；補盯印、獻祭、請神選尊、夜戰和跨相位 full recall，維持產品不調值、releaseEligible=false；真人冷讀及 SFX 間歇復現依證據接續。` |
+| 2026-09-24 | [六連鎖、天命與發布 Premortem](../reviews/2026-09-23-destiny-final-review.md) | 規格凍結、候選實作、普通／真版 10k 對照、焦點比較、雙虎／血祭逐件配對與千眼知情補充各完成 10k 配對；另備千眼雙尺寸畫面與真人冷讀記分表。X v2 7/7、v3 6/6、v4 4/4、v5 4/4；最新合跑 75/75。事件夜盯印的 AI／真人輸入時序不一致，已記為待量測候選，未改產品。戰鬥、夜末／終局轉移、跨相位 full recall、chance／solver 仍缺。舊 H9 門檻不變；普通 H9 fail／incomplete、焦點四鏈 fail／兩鏈 incomplete、六之四 incomplete。SFX 間歇原因未定位；真人盲讀未做，不發布 | `/handoff 妖市：讀最終審視、v2–v5 契約與續作計畫；核量事件夜盯印時序，補戰鬥／結算與跨相位 full recall，維持產品不調值、releaseEligible=false；真人冷讀及 SFX 間歇復現依證據接續。` |
 | 2026-09-22 | [L1e 正式八臂量測工具與六之四模型契約](2026-09-21-l1e-formal.md) | 80,000 局長跑全數完成，H1 全過，使用者裁定選項甲（數值維持、H9 記已知診斷基線），本卷結案並發布 v0.57.37 | /handoff 妖市：v0.57.37 已發布，真機試玩三組連鎖手感。 |
 | 2026-09-15 | [v0.57.12 六詛咒／全物品文字](../experiments/2026-09-15-curse-migration/README.md) | 已批准並實作六種效果／實物造型與正式戰力退役；b3ea547 已公開並核對送達；85 測試、300 幾何、201 手機詛咒、768 卡面、36 全物品與袋子修補通過；A1 原未過項保留 | /handoff 妖市：接 v0.57.12 手機回饋與 A1；先讀 CLAUDE.md、最新功能卷，保留 D2／D3。 |
 | 2026-09-15 | [A1 v0.57.11 手機試玩](2026-09-15-a1-premium-table.md) | **最新交付**：aa7aa7b 已公開；根目錄 CLAUDE.md 與本卷已備跨工具續接；自動退鏡、頁籤與 3D 焦點及 A 向介面已實作。55 測試／1599 幾何通過；相對性能仍 RED、真機待回報 | /handoff 妖市：接 v0.57.11 A1 手機試玩；自動退鏡已批准，保留速度比未過與 D2／D3。 |

@@ -12,6 +12,8 @@ X 第二批 fixtures 進度（2026-09-24；RED `84f92f7`／GREEN `8091039`）：
 
 X 第三批 fixtures 進度（2026-09-24；RED `ca7befd`、`c4319f2`、`431c31d`／GREEN `67db039`）：新增[版本化 v4 契約](../docs/experiments/2026-09-23-destiny/model-contract-v4.md)，以凍結引擎定義逐席枚舉八種異事選項、一次性密封提交和全席結算；每種事件各驗一組合法 profile，不宣稱窮舉事件聯合分枝。異事 observation 遮蔽密封選擇、袋物、市場與 RNG，拒絕跨席回憶；異事後拍賣只接納白名單的同夜公開結果欄位，移除任意附加欄位並拒絕錯夜揭露。v4 測試 4/4，與 v2、v3、天命、資訊和盤點合跑 71/71 通過。過程中兩個資訊邊界缺口先以 RED 重現，再修正；產品 `index.html`／平衡值未改。仍未完成盯印、獻祭、請神選尊、夜戰／終局、跨相位 full recall、全局 chance、跨夜 restore、canonicalization 或 solver；`sixOfFour=incomplete`、`releaseEligible=false`。下一步接剩餘決策與轉移，真人冷讀和音效間歇診斷也未結。
 
+X 第四批 fixtures 進度（2026-09-24；RED `c099e06`／GREEN `85eff22`）：新增[版本化 v5 契約](../docs/experiments/2026-09-23-destiny/model-contract-v5.md)，補上盯印、獻祭放血和真人得主選尊的局部合法動作與轉移。盯印是 `null` 加上當前所有拍品槽；第一位 solo 真人 observation 只顯示哪些席位已落印，不洩漏 AI 目標或尚未出現在盯印頁的明夜預告。放血每次呼叫凍結 `bleed`，逐次扣全體對手壽命並在最低壽命前停手；請神三種仍開放的尊各用獨立 fixture 經原 `finishShrines` 落地。新測試 4/4，v2–v5、天命／資訊與盤點合跑 75/75 通過。另從來源確認真人在事件揭露後才選盯印，AI 卻於事件前 `drawMarks`；這是尚未量化的資訊時序差異，先列候選研究，不改產品或平衡。放血 v5 將可交錯的私有標單草稿正規化在複合標單之前，故只證明動作／轉移，不證明所有草稿順序下的 full information equivalence。戰鬥、夜末／終局 transition、跨階段 full recall、chance／snapshot／canonicalization 與 solver 仍未完成；`sixOfFour=incomplete`、`releaseEligible=false`。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。

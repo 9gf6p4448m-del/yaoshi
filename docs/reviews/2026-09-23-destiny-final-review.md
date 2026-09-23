@@ -96,6 +96,18 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 此進度不證明天命平衡、玩家可讀性或全遊戲模型正確，也沒有改動 `index.html`、效果數值、H9 判準或發布資格。異事與拍賣仍是分相位 history；盯印、獻祭、請神選尊、戰鬥、終局、全局 chance、跨夜快照／canonicalization、策略枚舉與 solver 均未完成。`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 維持。
 
+## X：盯印、放血與請神選尊（v5，2026-09-24）
+
+新增[模型契約 v5](../experiments/2026-09-23-destiny/model-contract-v5.md)與凍結引擎治具；TDD RED／GREEN 為 `c099e06`／`85eff22`。盯印逐一驗「不盯」與當夜每個拍品槽，確認第一位 solo 真人 observation 不洩漏 AI 落印目標，並未提前提供盯印頁看不到的明夜預告；放血每次都呼叫原 `bleed`，逐次成本並在壽命地板前停止；真人贏得請神資格時，仍開著的三尊都各自通過原 `finishShrines`。新測試 **4/4**，v2–v5／天命／資訊投影／契約盤點合跑 **75/75**。
+
+### 發現：事件夜的盯印資訊時序不對稱
+
+現行程式在 `beginRoundCore` 先呼叫 `drawMarks()`，再進入事件輸入；headless 策略迴圈也先 `drawMarks()` 再 `runEventPhaseHeadless()`。但真人的 `showMarkUI()` 是 `startBidUI()` 遇到未盯席位才呼叫，所以事件夜真人先看完整開盅結果、才選盯印，AI 已在開盅前選好。瘟王可能改變袋物，其他事件可能改變各席壽命；因此兩方的盯印可依不同狀態做決定。這是**已由呼叫順序確認的差異**，但尚未量化勝率或是否有害；單人遊戲也可能有意讓真人得到事後資訊，不能據此直接改時序。
+
+建議把「AI 盯印改在事件後」設為獨立候選，用固定種子同時記錄標印變更率、盯印拍品被標率、費用／避標、完整局勝率差與事件分層樣本；預先固定門檻，避免把可能的玩家補償直接當 bug 修。驗證前保留目前產品體驗與所有數值。原始依據位於 `index.html` 的 `beginRoundCore`／`startBidUI` 與 `playPolicyGame`；這輪沒有修改產品檔。
+
+放血治具將可與未封標草稿交錯的 UI 輸入正規化為放血步驟後再交複合標單；這只足以驗合法動作和壽命轉移，不能證明每一種草稿點擊順序都屬同一資訊集合。請神治具只覆蓋真人得主選尊，不覆蓋自動戰鬥、供奉、回天或終局。全遊戲仍 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；`index.html`、平衡值、H9 門檻都未變。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。
