@@ -12,6 +12,7 @@ const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const isRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 
 function parseIndexEvidence(entry){
+  if(typeof entry!=='string') return null;
   const match=entry.match(/(?:^|\s)index\.html\s+([^:\s]+):(\d+)\b/);
   if(!match) return null;
   return {symbols:match[1].split('/').filter(Boolean),line:Number(match[2])};
@@ -22,15 +23,39 @@ function hasSymbol(source,symbol){
   return new RegExp(`\\b${escaped}\\b`).test(source);
 }
 
-function findReferences(contract,sourceText){
+function findReferences(contract,sourceText,repoRoot){
   const lines=sourceText.split(/\r?\n/);
   const checked=[];
   const missingSymbols=[];
   const staleLineHints=[];
+  const documentationReferences=[];
+  const missingDocuments=[];
+  const unrecognizedEvidence=[];
   for(const item of contract.inventory){
-    for(const entry of item?.existingEvidence??[]){
+    const evidence=Array.isArray(item?.existingEvidence)?item.existingEvidence:[];
+    for(const entry of evidence){
+      if(typeof entry!=='string'){
+        unrecognizedEvidence.push({inventoryId:item?.id??null,entry});
+        continue;
+      }
       const ref=parseIndexEvidence(entry);
-      if(!ref) continue;
+      if(!ref){
+        const doc=entry.match(/^((?:docs|tests)\/[A-Za-z0-9._/-]+\.(?:md|json|mjs|html))(?:\s|$)/);
+        if(!doc){unrecognizedEvidence.push({inventoryId:item?.id??null,entry});continue;}
+        let exists=null;
+        if(repoRoot){
+          const root=path.resolve(repoRoot);
+          const absolute=path.resolve(root,doc[1]);
+          const relative=path.relative(root,absolute);
+          const contained=relative!==''&&!relative.startsWith(`..${path.sep}`)&&
+            relative!=='..'&&!path.isAbsolute(relative);
+          exists=contained&&fs.existsSync(absolute);
+        }
+        const row={inventoryId:item?.id??null,path:doc[1],exists};
+        documentationReferences.push(row);
+        if(exists===false) missingDocuments.push(row);
+        continue;
+      }
       for(const symbol of ref.symbols){
         const present=hasSymbol(sourceText,symbol);
         const lineText=lines[ref.line-1]??'';
@@ -42,7 +67,8 @@ function findReferences(contract,sourceText){
       }
     }
   }
-  return {checked,missingSymbols,staleLineHints};
+  return {checked,missingSymbols,staleLineHints,documentationReferences,
+    missingDocuments,unrecognizedEvidence};
 }
 
 function validationErrors(contract,{sourceText,resolvedSourceCommit}){
@@ -58,6 +84,14 @@ function validationErrors(contract,{sourceText,resolvedSourceCommit}){
     errors.push('inventory must be a non-empty array');
   if(!isRecord(contract?.scope)||!Array.isArray(contract.scope.chainIds))
     errors.push('scope.chainIds must be present');
+  else if(contract.scope.chainIds.some(id=>typeof id!=='string'||!id))
+    errors.push('scope.chainIds must contain non-empty strings');
+  else if(new Set(contract.scope.chainIds).size!==contract.scope.chainIds.length)
+    errors.push('scope.chainIds must be unique');
+  if(contract?.scope?.destinyModes!==undefined&&(!Array.isArray(contract.scope.destinyModes)||
+    contract.scope.destinyModes.some(mode=>typeof mode!=='string'||!mode)||
+    new Set(contract.scope.destinyModes).size!==contract.scope.destinyModes.length))
+    errors.push('scope.destinyModes must be a unique string array');
   if(!isRecord(contract?.gate)) errors.push('gate must be present');
   if(typeof sourceText!=='string'||sourceText.length===0)
     errors.push('pinned index.html source is empty');
@@ -76,6 +110,9 @@ function validationErrors(contract,{sourceText,resolvedSourceCommit}){
       errors.push(`missingAdapter detail absent for ${item.id}`);
     if(typeof item.nextAcceptance!=='string'||!item.nextAcceptance)
       errors.push(`nextAcceptance detail absent for ${item.id}`);
+    if(!Array.isArray(item.existingEvidence)||item.existingEvidence.length===0||
+      item.existingEvidence.some(entry=>typeof entry!=='string'||!entry))
+      errors.push(`existingEvidence must be a non-empty array of strings for ${item.id}`);
   }
   return errors;
 }
@@ -85,22 +122,38 @@ export function auditContractData(contract,sourceBytes,metadata={}){
   const sourceText=sourceBuffer.toString('utf8');
   const errors=validationErrors(contract,{sourceText,
     resolvedSourceCommit:metadata.resolvedSourceCommit});
+  if(metadata.productScope!==undefined&&(!isRecord(metadata.productScope)||
+    metadata.productScope.schema!=='yaoshi.destiny.acceptance.arms.v1'||
+    !Array.isArray(metadata.productScope.chainIds)||metadata.productScope.chainIds.length===0||
+    metadata.productScope.chainIds.some(id=>typeof id!=='string'||!id)||
+    new Set(metadata.productScope.chainIds).size!==metadata.productScope.chainIds.length||
+    !Array.isArray(metadata.productScope.destinyModes)||metadata.productScope.destinyModes.length===0||
+    metadata.productScope.destinyModes.some(mode=>typeof mode!=='string'||!mode)||
+    new Set(metadata.productScope.destinyModes).size!==metadata.productScope.destinyModes.length||
+    typeof metadata.productScope.destinyDraw!=='string'||!metadata.productScope.destinyDraw))
+    errors.push('productScope schema, non-empty chainIds, destinyModes, and destinyDraw are required');
   const sourceReferences=Array.isArray(contract?.inventory)?
-    findReferences(contract,sourceText):{checked:[],missingSymbols:[],staleLineHints:[]};
+    findReferences(contract,sourceText,metadata.repoRoot):{checked:[],missingSymbols:[],
+      staleLineHints:[],documentationReferences:[],missingDocuments:[],unrecognizedEvidence:[]};
   if(sourceReferences.missingSymbols.length){
     errors.push(`${sourceReferences.missingSymbols.length} source evidence symbol(s) absent from pinned index.html`);
   }
+  if(sourceReferences.missingDocuments.length)
+    errors.push(`${sourceReferences.missingDocuments.length} documentation evidence path(s) are missing or outside the repository`);
+  if(sourceReferences.unrecognizedEvidence.length)
+    errors.push(`${sourceReferences.unrecognizedEvidence.length} existingEvidence reference(s) are unrecognized`);
 
   const inventory=Array.isArray(contract?.inventory)?contract.inventory:[];
   const fullyImplemented=inventory.filter(item=>item?.implemented===true).length;
   const partiallyImplemented=inventory.filter(item=>item?.implemented==='partial').length;
   const missingAdapters=inventory.filter(item=>item?.implemented===false).length;
-  const productChainIds=metadata.productScope?.chainIds??[];
+  const productChainIds=Array.isArray(metadata.productScope?.chainIds)?metadata.productScope.chainIds:[];
   const contractChainIds=contract?.scope?.chainIds??[];
   const missingCurrentChainIds=productChainIds.filter(id=>!contractChainIds.includes(id));
-  const destinyModes=metadata.productScope?.destinyModes??[];
-  const destinyModesCovered=destinyModes.length>0&&
-    destinyModes.every(mode=>(contract?.scope?.destinyModes??[]).includes(mode));
+  const destinyModes=Array.isArray(metadata.productScope?.destinyModes)?metadata.productScope.destinyModes:[];
+  const contractDestinyModes=Array.isArray(contract?.scope?.destinyModes)?contract.scope.destinyModes:[];
+  const destinyModesCovered=destinyModes.length>0&&contractDestinyModes.length>0&&
+    destinyModes.every(mode=>contractDestinyModes.includes(mode));
 
   const blockingReasons=[];
   if(missingAdapters||partiallyImplemented)
@@ -132,10 +185,13 @@ export function auditContractData(contract,sourceBytes,metadata={}){
     source:{commit:metadata.resolvedSourceCommit??contract?.sourceCommit??null,
       blobOid:metadata.sourceBlobOid??null,sha256:hash(sourceBuffer)},
     scope:{contractChainIds,productChainIds,missingCurrentChainIds,
-      destinyModes,contractDestinyModes:contract?.scope?.destinyModes??[],destinyModesCovered},
+      destinyModes,contractDestinyModes,destinyModesCovered},
     summary:{inventoryItems:inventory.length,fullyImplemented,partiallyImplemented,
       missingAdapters,sourceReferencesChecked:sourceReferences.checked.length,
+      documentationReferences:sourceReferences.documentationReferences.length,
       sourceSymbolsMissing:sourceReferences.missingSymbols.length,
+      missingDocuments:sourceReferences.missingDocuments.length,
+      unrecognizedEvidence:sourceReferences.unrecognizedEvidence.length,
       staleLineHints:sourceReferences.staleLineHints.length},
     inventory:inventory.map(item=>({id:item?.id??null,implemented:item?.implemented??null,
       adapterEvidence:[],missingAdapter:item?.missingAdapter??null,
@@ -165,8 +221,9 @@ export function auditRepository({repoRoot=DEFAULT_ROOT,contractPath,
   const currentSourceBytes=fs.readFileSync(path.join(repoRoot,'index.html'));
   const currentHead=git(repoRoot,['rev-parse','HEAD']).trim();
   const report=auditContractData(contract,sourceBytes,{resolvedSourceCommit:commit,
-    sourceBlobOid,productScope:{chainIds:arms.chainIds,
-      destinyModes:Object.keys(arms.destinyGame?.arms??{})}});
+    sourceBlobOid,repoRoot,productScope:{schema:arms.schema,chainIds:arms.chainIds,
+      destinyModes:Object.keys(arms.destinyGame?.arms??{}),
+      destinyDraw:arms.destinyGame?.destinyDraw}});
   report.contract={path:path.relative(repoRoot,contractFile).replaceAll(path.sep,'/'),
     sha256:hash(contractBytes)};
   report.currentProduct={head:currentHead,indexSha256:hash(currentSourceBytes)};

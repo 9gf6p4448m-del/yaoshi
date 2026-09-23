@@ -16,7 +16,8 @@ const frozenSource=execFileSync('git',['show',`${contract.sourceCommit}:index.ht
 const sourceBlobOid=execFileSync('git',['rev-parse',`${contract.sourceCommit}:index.html`],
   {cwd:ROOT,encoding:'utf8'}).trim();
 const productScope={chainIds:productArms.chainIds,
-  destinyModes:Object.keys(productArms.destinyGame.arms)};
+  schema:productArms.schema,destinyModes:Object.keys(productArms.destinyGame.arms),
+  destinyDraw:productArms.destinyGame.destinyDraw};
 
 test('audits frozen source references and exposes legacy-scope and missing-adapter gaps',()=>{
   const result=auditContractData(contract,frozenSource,{sourceBlobOid,productScope});
@@ -93,6 +94,50 @@ test('reports malformed rows and incomplete provenance without throwing',()=>{
   assert.ok(result.violations.some(message=>message.includes('resolved source commit')));
   assert.ok(result.violations.some(message=>message.includes('inventory item has no id')));
   assert.ok(result.violations.some(message=>message.includes('pinned index.html source is empty')));
+});
+
+test('fails closed on malformed source-reference and product-scope collections',()=>{
+  const malformed=structuredClone(contract);
+  malformed.inventory[0].existingEvidence=[null];
+  const result=auditContractData(malformed,frozenSource,{sourceBlobOid,
+    productScope:{chainIds:'not-an-array',destinyModes:'not-an-array'}});
+  assert.equal(result.auditStatus,'invalid');
+  assert.ok(result.violations.some(message=>message.includes('existingEvidence')));
+});
+
+test('rejects empty or unparseable source evidence instead of counting zero checks as valid',()=>{
+  const empty=structuredClone(contract);
+  empty.inventory.forEach(item=>{item.existingEvidence=[];});
+  const emptyResult=auditContractData(empty,frozenSource,{sourceBlobOid,productScope});
+  assert.equal(emptyResult.auditStatus,'invalid');
+  assert.ok(emptyResult.violations.some(message=>message.includes('existingEvidence')));
+
+  const unparseable=structuredClone(contract);
+  unparseable.inventory[0].existingEvidence=['this is not a source or document reference'];
+  const unknownResult=auditContractData(unparseable,frozenSource,{sourceBlobOid,productScope});
+  assert.equal(unknownResult.auditStatus,'invalid');
+  assert.ok(unknownResult.sourceReferences.unrecognizedEvidence.length>0);
+});
+
+test('requires valid non-empty chain and destiny scope arrays',()=>{
+  const malformed=structuredClone(contract);
+  malformed.scope.destinyModes=productScope.destinyModes.join('|');
+  const contractResult=auditContractData(malformed,frozenSource,{sourceBlobOid,productScope});
+  assert.equal(contractResult.auditStatus,'invalid');
+  assert.equal(contractResult.scope.destinyModesCovered,false);
+
+  const productResult=auditContractData(contract,frozenSource,{sourceBlobOid,
+    productScope:{schema:productScope.schema,chainIds:[],destinyModes:[],destinyDraw:''}});
+  assert.equal(productResult.auditStatus,'invalid');
+  assert.ok(productResult.violations.some(message=>message.includes('productScope')));
+});
+
+test('rejects documentation evidence paths missing from the repository',()=>{
+  const missingDoc=structuredClone(contract);
+  missingDoc.inventory[0].existingEvidence.push('docs/not-present/model.md missing');
+  const result=auditContractData(missingDoc,frozenSource,{sourceBlobOid,productScope,repoRoot:ROOT});
+  assert.equal(result.auditStatus,'invalid');
+  assert.ok(result.sourceReferences.missingDocuments.some(item=>item.path==='docs/not-present/model.md'));
 });
 
 test('recognizes a complete scope declaration without treating it as a solver result',()=>{
