@@ -1,0 +1,98 @@
+{
+  "schema": "yaoshi.destiny.acceptance.arms.v1",
+  "status": "predeclared-frozen-awaiting-runner",
+  "productBaseline": "2eb164d",
+  "seeds": {
+    "initialStart": 10001,
+    "initialEndInclusive": 20000,
+    "extensionEndInclusive": 110000,
+    "blockSize": 10000,
+    "extensionCondition": "ordinary-ai-off pre-effect first-completion count below 300 for any assigned chain; never use win rates to decide extension"
+  },
+  "bootstrap": { "resamples": 10000, "seed": 20260923, "cluster": "game seed" },
+  "chainIds": ["water", "eyes", "twinTiger", "bloodOath", "godKing", "eternalFlame"],
+  "engine": {
+    "mode": "solo",
+    "rounds": "unchanged CFG.ROUNDS=12",
+    "end": "playPolicyGame stops when seat 0 dies, at most one seat alive, or round 12; then original winnerId settlement",
+    "otherRules": "original CFG, roles, night rules, item decks, AI personality and base RNG calls unchanged",
+    "freshLoadPerArm": true,
+    "maxNodeProcesses": 3
+  },
+  "ordinaryH1": {
+    "picks": ["qingmian"],
+    "seat0Role": "qingmian",
+    "seats1to3": "original AI and original random role selection",
+    "destinyDraw": false,
+    "aiDestinyBonus": false,
+    "trueEffects": "off",
+    "splitter": { "arm": "h1-splitter", "seat0Policy": "POLICIES.splitter", "ordinaryEffects": "all" },
+    "chasers": {
+      "water": { "arm": "h1-water", "seat0Policy": "createChaser(target-chaser-v1, water)" },
+      "eyes": { "arm": "h1-eyes", "seat0Policy": "createEyesPolicy(eyes-informed-v1, informed)", "recordPolicyInformation": true },
+      "twinTiger": { "arm": "h1-twinTiger", "seat0Policy": "createChaser(target-chaser-v1, twinTiger)" },
+      "bloodOath": { "arm": "h1-bloodOath", "seat0Policy": "createChaser(target-chaser-v1, bloodOath)" },
+      "godKing": { "arm": "h1-godKing", "seat0Policy": "createChaser(target-chaser-v1, godKing)" },
+      "eternalFlame": { "arm": "h1-eternalFlame", "seat0Policy": "createChaser(target-chaser-v1, eternalFlame)" }
+    }
+  },
+  "ordinaryH9": {
+    "picks": null,
+    "seat0Policy": "original scriptedBids via policies={}",
+    "seats1to3": "original AI and original random role selection",
+    "destinyDraw": false,
+    "aiDestinyBonus": false,
+    "trueEffects": "off",
+    "normalArm": "h9-normal",
+    "zeroArms": {
+      "water": "h9-zero-water",
+      "eyes": "h9-zero-eyes",
+      "twinTiger": "h9-zero-twinTiger",
+      "bloodOath": "h9-zero-bloodOath",
+      "godKing": "h9-zero-godKing",
+      "eternalFlame": "h9-zero-eternalFlame"
+    },
+    "zeroEffectDefinition": "delete only that CHAINS entry's flags, traits, hooks and army; keep id, recipe and aiBonus",
+    "holderDenominator": "for each arm separately, games where any of four seats ever acquired the complete specified recipe",
+    "holderNumerator": "winnerId belongs to that arm's holder set"
+  },
+  "destinyGame": {
+    "picks": ["qingmian"],
+    "seat0Role": "qingmian",
+    "seat0Policy": "destiny-chaser-v1: read only own assigned destiny; use createEyesPolicy(informed) for eyes and otherwise createChaser(target-chaser-v1, assigned chain); same policy in every destiny arm",
+    "policyInformation": true,
+    "recordChainHoldings": true,
+    "informationLivenessChecks": ["eyes informed policy receives its own legal preview and prior second bid", "ordinary eyes sees three previews while true eyes sees four", "informedVsBlindDiff is reported and cannot be silently zero from missing context"],
+    "seats1to3": "original AI with aiDestinyBonus factor only",
+    "destinyDraw": "four independent secure private draws per seed, recorded once and reused across all six arms; never derived from public game seed",
+    "ordinaryEffects": "all six unchanged",
+    "arms": {
+      "ordinary-ai-off": { "trueEffects": "off", "aiDestinyBonus": false },
+      "original-ai-off": { "trueEffects": "R2 original", "aiDestinyBonus": false },
+      "candidate-ai-off": { "trueEffects": "Premortem candidate", "aiDestinyBonus": false },
+      "ordinary-ai-on": { "trueEffects": "off", "aiDestinyBonus": true },
+      "original-ai-on": { "trueEffects": "R2 original", "aiDestinyBonus": true },
+      "candidate-ai-on": { "trueEffects": "Premortem candidate", "aiDestinyBonus": true }
+    },
+    "pairedComparisons": {
+      "pureOriginalEffect": ["original-ai-off", "ordinary-ai-off"],
+      "pureCandidateEffect": ["candidate-ai-off", "ordinary-ai-off"],
+      "originalEffectWithAi": ["original-ai-on", "ordinary-ai-on"],
+      "candidateEffectWithAi": ["candidate-ai-on", "ordinary-ai-on"],
+      "aiPursuitOnly": ["ordinary-ai-on", "ordinary-ai-off"],
+      "originalProductBundle": ["original-ai-on", "ordinary-ai-off"],
+      "candidateProductBundle": ["candidate-ai-on", "ordinary-ai-off"]
+    }
+  },
+  "checkpointCohort": {
+    "sourceArm": "ordinary-ai-off",
+    "phase": "first actual auction insertion that completes that seat's assigned recipe, before applying any true effect",
+    "fork": "exact full game state, object identity and RNG state; same seat, same future legal policy",
+    "focusSeat": "the seat whose assigned recipe just completed; evaluate this seat's terminal winner indicator",
+    "effectToggle": "enable the focus seat's assigned true chain only in the treatment fork; its true effect is off in control; all other seats' true effects are off in both forks",
+    "minimumPerChain": 300,
+    "missingForkResult": "incomplete, never a post-treatment holder comparison"
+  },
+  "provenance": ["productSha256", "runnerSha256", "acceptanceSha256", "configSha256", "privateDrawTableSha256", "gitHead", "cfg", "policyVersions", "seedList"],
+  "formalReleaseRequires": ["original-H1-H9-gates-resolved-or-new-user-ruling", "ordinary-six-H1-H9-and-counterfactual-audit", "destiny-balance-and-readability", "six-of-four-cross-night-pass-or-new-user-ruling"]
+}

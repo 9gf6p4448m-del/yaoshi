@@ -59,16 +59,27 @@ test('a recorded defeat remains evidence when a survival hook reduces its damage
   for (const cause of [R.cause, mainCause(H)]) assert.deepEqual(cause.fights, [{ idx: 0, foe: 1, damage: 0 }]);
 });
 
-test('actual seeds 1 and 2 retain exact payment evidence and do not claim purchase caused the whole drop', () => {
-  for (const seed of [1, 2]) {
+test('current seeds 1 and 2 reconstruct a loss interval from snapshots and retain exact payment evidence', () => {
+  // The historical 2-paid/16-lost seed-1 replay is covered by the fixed fixture
+  // above. Later game rules changed seeded outcomes; these are current-engine cases.
+  const current = [
+    { seed: 1, pid: 2, round: 4, drop: 13, payments: [['百步蛇紋盾', 4], ['山神庇佑', 4]] },
+    { seed: 2, pid: 2, round: 2, drop: 17, payments: [['過陰咒', 9], ['百步蛇紋盾', 12]] },
+  ];
+  for (const { seed, pid, round, drop, payments } of current) {
     const G = loadGame(INDEX); G.playPolicyGame(seed, { 0: G.POLICIES.splitter });
-    const R = G.ledgerNarrative(G.S.history, G.S.players);
+    const H = G.S.history, R = G.ledgerNarrative(H, G.S.players);
     assert.equal(R.cause.kind, 'night');
-    assert.equal(R.cause.round, seed === 1 ? 5 : 2);
-    assert.equal(R.cause.drop, seed === 1 ? 16 : 17);
+    assert.equal(R.cause.pid, pid);
+    assert.equal(R.cause.round, round);
+    assert.equal(R.cause.drop, drop);
+    assert.equal(H.nights[R.cause.snapshotIndex - 1].round, round);
+    assert.equal(H.life[R.cause.snapshotIndex - 1][pid] - H.life[R.cause.snapshotIndex][pid], drop);
+    assert.deepEqual(R.cause.payments.map(p => [p.item, p.cost]), payments);
+    assert.notEqual(payments.reduce((sum, [, cost]) => sum + cost, 0), drop);
     assert.doesNotMatch(R.lines[1].text, /為「.+」付出|從此再沒站起來/);
     for (const p of R.cause.payments) {
-      const n = G.S.history.nights.find(n => n.round === R.cause.round);
+      const n = H.nights.find(n => n.round === R.cause.round);
       assert.equal(p.cost, n.auction[p.idx].bids.find(b => b.pid === R.cause.pid).cost);
     }
   }

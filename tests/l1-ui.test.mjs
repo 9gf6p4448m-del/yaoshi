@@ -43,7 +43,7 @@ test('viewer gate only permits active human at private market',()=>{
 test('AI bid reflects only a newly completed chain',()=>{
   const bidWith=(bonus,bag,paperwar=false,chain='water',next='buoy')=>{
     const g=G();g.CFG.WISH_ON=false;g.CFG.EVENT_ON=false;g.CFG.RULE_ON=false;
-    g.makeState('solo',10);
+    g.makeState('solo',10,undefined,undefined,'off',false);
     const p=g.S.players[1];p.bag=bag.map(ab=>item(g,ab));p.life=80;p.ai={aggr:1,spite:0};p.roleId='human';
     g.S.market=[item(g,next)];g.S.players.forEach(q=>{q.bag=[];q.alive=true;});p.bag=bag.map(ab=>item(g,ab));
     g.CFG.PAPERWAR_ON=paperwar;g.CFG.MARK_ON=false;g.CFG.AI_THROTTLE=1;g.CFG.AI_IDLE_P=0;
