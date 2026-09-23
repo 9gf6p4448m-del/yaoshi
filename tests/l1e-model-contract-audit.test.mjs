@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -15,9 +16,11 @@ const productArms=JSON.parse(fs.readFileSync(ARMS_PATH,'utf8'));
 const frozenSource=execFileSync('git',['show',`${contract.sourceCommit}:index.html`],{cwd:ROOT});
 const sourceBlobOid=execFileSync('git',['rev-parse',`${contract.sourceCommit}:index.html`],
   {cwd:ROOT,encoding:'utf8'}).trim();
+const canonicalJsonSha256=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const productScope={chainIds:productArms.chainIds,
   schema:productArms.schema,destinyModes:Object.keys(productArms.destinyGame.arms),
-  destinyDraw:productArms.destinyGame.destinyDraw};
+  destinyDraw:productArms.destinyGame.destinyDraw,
+  manifestSha256:canonicalJsonSha256(productArms)};
 
 test('audits frozen source references and exposes legacy-scope and missing-adapter gaps',()=>{
   const result=auditContractData(contract,frozenSource,{sourceBlobOid,productScope});
@@ -82,6 +85,16 @@ test('rejects source evidence symbols absent from the pinned source',()=>{
   const result=auditContractData(stale,frozenSource,{sourceBlobOid,productScope});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.sourceReferences.missingSymbols.some(ref=>ref.symbol==='neverImplementedAdapter'));
+
+  const emptySymbol=structuredClone(contract);
+  const sourceLineCount=frozenSource.toString('utf8').split(/\r?\n/).length;
+  for(const reference of ['index.html /:1 empty symbol list','index.html resolveAuction:0 zero line',
+    `index.html resolveAuction:${sourceLineCount+1} out of range`]){
+    emptySymbol.inventory[0].existingEvidence=[reference];
+    const emptyResult=auditContractData(emptySymbol,frozenSource,{sourceBlobOid,productScope});
+    assert.equal(emptyResult.auditStatus,'invalid',reference);
+    assert.ok(emptyResult.sourceReferences.unrecognizedEvidence.length>0,reference);
+  }
 });
 
 test('reports malformed rows and incomplete provenance without throwing',()=>{
@@ -130,6 +143,18 @@ test('requires valid non-empty chain and destiny scope arrays',()=>{
     productScope:{schema:productScope.schema,chainIds:[],destinyModes:[],destinyDraw:''}});
   assert.equal(productResult.auditStatus,'invalid');
   assert.ok(productResult.violations.some(message=>message.includes('productScope')));
+
+  const truncatedScope={...productScope,chainIds:['water'],destinyModes:['ordinary-ai-off']};
+  const truncatedResult=auditContractData(contract,frozenSource,{sourceBlobOid,
+    productScope:truncatedScope});
+  assert.equal(truncatedResult.auditStatus,'invalid');
+  assert.ok(truncatedResult.violations.some(message=>message.includes('full required product set')));
+
+  const alteredDraw={...productScope,destinyDraw:'four public-seed-derived draws'};
+  const alteredDrawResult=auditContractData(contract,frozenSource,{sourceBlobOid,
+    productScope:alteredDraw});
+  assert.equal(alteredDrawResult.auditStatus,'invalid');
+  assert.ok(alteredDrawResult.violations.some(message=>message.includes('frozen full required product set')));
 });
 
 test('rejects documentation evidence paths missing from the repository',()=>{
@@ -184,4 +209,26 @@ test('CLI reports incomplete successfully and fails the explicit require-pass ga
   const missingValue=spawnSync(process.execPath,[tool,'--contract'],{cwd:ROOT,encoding:'utf8'});
   assert.equal(missingValue.status,1);
   assert.match(missingValue.stderr,/missing value/);
+
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'yaoshi-model-arms-'));
+  try{
+    const truncated=structuredClone(productArms);
+    truncated.chainIds=['water'];
+    truncated.destinyGame.arms={'ordinary-ai-off':truncated.destinyGame.arms['ordinary-ai-off']};
+    const truncatedPath=path.join(temp,'arms.json');
+    fs.writeFileSync(truncatedPath,JSON.stringify(truncated));
+    const subset=spawnSync(process.execPath,[tool,'--repo',ROOT,'--contract',CONTRACT_PATH,
+      '--product-arms',truncatedPath],{cwd:ROOT,encoding:'utf8'});
+    assert.equal(subset.status,1,subset.stderr);
+    assert.equal(JSON.parse(subset.stdout).auditStatus,'invalid');
+
+    const changedRules=structuredClone(productArms);
+    changedRules.destinyGame.arms['ordinary-ai-off'].trueEffects='unreviewed effect';
+    const changedRulesPath=path.join(temp,'changed-rules.json');
+    fs.writeFileSync(changedRulesPath,JSON.stringify(changedRules));
+    const altered=spawnSync(process.execPath,[tool,'--repo',ROOT,'--contract',CONTRACT_PATH,
+      '--product-arms',changedRulesPath],{cwd:ROOT,encoding:'utf8'});
+    assert.equal(altered.status,1,altered.stderr);
+    assert.equal(JSON.parse(altered.stdout).auditStatus,'invalid');
+  }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
