@@ -1,0 +1,103 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v8",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v7.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v7",
+    "meaning": "Retains selected action schemas and one-seat full-recall envelopes across five decision phases."
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for model fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "history": "A same-seat sequence can combine event, mark, sacrifice and auction decisions with pinned event-reveal transitions from one state root; shrine-pick is accepted from its own pinned fixture, and cross-root history is rejected.",
+    "projectionProvenance": "Observation objects are accepted only when the v8 wrapper registered the exact deeply immutable object returned by the corresponding pinned-source adapter function in this process, retaining engine and state-root identity; event-reveal inputs to later projections must be registered same-engine, same-state v8 transitions.",
+    "publicTransitions": "Only the sanitized event-reveal result returned by the pinned event resolver is represented as an intervening public transition.",
+    "chronology": "Rounds cannot move backward; within a round, supported decisions follow event, reveal, mark, sacrifice, auction and shrine-pick order and must advance to a later tracked state revision. Before history or a current key advances, the prior event must have its matching reveal and prior mark, sacrifice or shrine-pick actions must have been committed. Recorded later-phase loci, including auction records across separate histories, block opening or settling an earlier event phase; the same state-round event phase cannot reopen at a later revision.",
+    "freshness": "A private per-state revision invalidates projections after v8-wrapped event resolution, mark commitment, sacrifice commitment, shrine resolution start or shrine-pick commitment; commits also reject decision loci whose revision is no longer current. Event decisions are bound to their creation state, round and revision; observation, commitment and settlement reject stale decisions. The same state-round event phase cannot reopen at a later revision, and opening or settling it after a later phase action is rejected. Mutations outside these wrappers and unmodeled automatic transitions are not revision-tracked.",
+    "actionStateBinding": "Each state/phase/round/viewer/revision decision locus binds to one canonical action across histories and decision objects; late appends must match an already committed choice even when they use another event decision object. Conflicts, stale commits and repeated commits at one locus are rejected. Repeated sacrifice requires a new decision/observation/history record at the new revision. History progression requires prior supported mark, sacrifice and shrine-pick actions to be committed. Auction action/state reconciliation is not covered.",
+    "markTiming": "Paired event-night mark-timing diagnostic is complete for its declared deterministic AI fixture; it does not establish human fairness or general win-rate equivalence.",
+    "deferred": [
+      "Every public and automatic transition other than the selected event reveal",
+      "Complete chance support and conditional branch probabilities through combat, settlement, market and event scheduling",
+      "Cross-night state restoration and canonicalization with matching gameplay/UI RNG streams, history and private destiny",
+      "Terminal utility, policy enumeration and feasible solver scope",
+      "Independent full-game information-set and solver review"
+    ]
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-full-recall-v8.test.mjs",
+    "runner": "node --test tests/l1e-full-recall-v8.test.mjs",
+    "adapter": "tests/tools/l1e-full-recall-adapter-v8.mjs",
+    "status": "partial",
+    "proves": [
+      "The v8 engine wrapper verifies the frozen product-source pin before loading its combined adapter API.",
+      "All five accepted phase observations were returned by their pinned adapter projection calls and are associated with private in-process provenance.",
+      "A schema-shaped frozen copy without that provenance is rejected.",
+      "An event transition is rejected unless the seat's recorded sealed choice matches the pinned resolver's public reveal.",
+      "Decision-locus action binding rejects conflicting histories even when distinct decision objects represent the same state, phase, round, seat and revision; a late event record is also compared with the committed state-locus choice.",
+      "An event decision is bound to its creation state, round and revision; stale settlement, later-phase-first event creation (including an auction action recorded in another history) and event reopening at a later revision are rejected.",
+      "Later projections reject caller-shaped reveal payloads and repeated same-event transition inputs.",
+      "A pinned sanitized event reveal can be appended between decisions, is required before the history advances beyond that event, affects the information-set key, and cannot be duplicated or replaced by a copied object.",
+      "History and current projections from different state roots are rejected even when they share the same engine instance.",
+      "Stale projections and commits are rejected after event resolution, mark or sacrifice commitment, shrine resolution start, and shrine-pick commitment through supported v8 wrappers; current observations cannot regress behind recorded history.",
+      "Single-seat, supported within-round phase order, unique single-use phase and nondecreasing-round guards apply to supported sequence records; event settlement and shrine resolution start are each single-use per state and round, and each recorded action binding is consumed at most once."
+    ],
+    "doesNotProve": [
+      "Complete game decision or transition coverage",
+      "Exhaustive public-transition support, chance probabilities or full information-set equivalence",
+      "Cross-night restoration, canonicalization, payoff completeness or solver correctness"
+    ],
+    "runtimeProvenance": [
+      "sourceCommit",
+      "sourceBlobOid",
+      "sourceSha256",
+      "adapterSha256",
+      "fixtureSha256",
+      "instrumentedSourceSha256"
+    ]
+  },
+  "inventory": {
+    "actions.auction": "partial",
+    "actions.event": "partial",
+    "actions.mark": "partial",
+    "actions.sacrifice": "partial",
+    "actions.shrinePick": "partial",
+    "actions.other": "incomplete",
+    "automatic.battle": "partial",
+    "automatic.settlement": "partial",
+    "history.publicTransitions": "partial",
+    "terminalAndPayoff": "partial",
+    "information.fullRecall": "partial",
+    "information.projectionProvenance": "partial",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "incomplete",
+    "state.canonicalization": "incomplete",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "complete chance and cross-night restore contract",
+    "implemented": false,
+    "requirements": [
+      "Enumerate all random branches with conditional probabilities through automatic battle, settlement and cross-night market/event scheduling.",
+      "Restore canonical cross-night snapshots with matching gameplay and UI RNG streams, public history and private destiny state.",
+      "Represent every sanitized public and automatic transition between decisions.",
+      "Define terminal utility and a feasible policy/solver scope before any pass claim.",
+      "Retain an independent review of the complete model against the frozen product source."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "V8 binds selected observations to pinned in-process projections and records only event reveal transitions. Complete chance, remaining public transitions, cross-night restore, canonicalization, terminal payoff, policy enumeration and independent solver review remain incomplete."
+  }
+}

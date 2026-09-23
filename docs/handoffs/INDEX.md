@@ -7,6 +7,7 @@ X v5 進度（2026-09-24）：[盯印／放血／選尊契約](../experiments/20
 X v6 進度（2026-09-24）：[夜戰／夜末／終局契約](../experiments/2026-09-23-destiny/model-contract-v6.md) RED `37f423a`／GREEN `ad7cd83`；新測試 4/4，v2–v6、天命／資訊／模型盤點合跑 101/101。只覆蓋天雷門檻、選定死亡與神債回天、終局收尾，不等於完整 chance／full recall／跨夜模型；產品與平衡未改，發布資格仍 false。
 
 X v7 進度（2026-09-24）：[跨相位回憶契約](../experiments/2026-09-23-destiny/model-contract-v7.md) RED `52187eb`／GREEN `b10af04`；新測試 6/6，v2–v7 與相關 suite 107/107。實際凍結 adapters 產出的五階段 observation/action 已串成單席歷史；未含 decision 間公開轉移，也未證 projection provenance。full recall 僅 partial，產品與數值未改。
+X v8 進度（2026-09-24）：[投影來源與公開轉移契約](../experiments/2026-09-23-destiny/model-contract-v8.md)目前工作樹專項 22/22、v2–v8 與相鄰 adapter／盤點 suite 72/72；複核找到並修正跨決策物件事件選擇衝突、歷史未揭露／未提交卻前進、盯印或拍賣先記錄後才開事件，以及舊事件過期仍可結算／同輪重開。已補事件決策版本及先後綁定、決策節點動作綁定、事件揭露與先前動作提交檢查、單次解析／提交鎖與 freshness 回歸。拍賣只參與相位順序索引；其 action/state、完整 chance、其餘自動轉移、跨夜 restore／canonicalization、solver 未完成。產品與平衡未改，releaseEligible=false。
 
 事件夜盯印時序補測（2026-09-24）：[配對診斷報告](../experiments/2026-09-24-mark-timing/report.md)，凍結來源下在乾淨 worktree 跑 10,000 組；首事件 9,999/9,999 相同，AI 至少一席換標 1,110/9,999 局；座位 0 勝率差 −0.06pp（95% −0.30..+0.18）。保留現行時序與係數，勝率方向不明，不作發布依據。正式 raw SHA256 `394e5ae656ec003bad45bebe273a35b06a43e83587067229681af412d9cd377b` 存於忽略版控 scratchpad。
 

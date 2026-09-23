@@ -18,6 +18,8 @@ X 第五批 fixtures 進度（2026-09-24；RED `37f423a`／GREEN `ad7cd83`）：
 
 X 第六批 fixtures 進度（2026-09-24；RED `52187eb`／GREEN `b10af04`）：新增[版本化 v7 契約](../docs/experiments/2026-09-23-destiny/model-contract-v7.md)，將同一席位的凍結 event／mark／sacrifice／auction／shrine-pick observation 與己方動作納入排序回憶，實際 adapter 跨 round sequence 通過。驗混席、schema／phase 錯配、事件／盯印／放血／選尊非法動作及常見原始 RNG／牌堆欄位拒絕。新測試 6/6，v2–v7 與相關 suite 合跑 107/107。回憶 envelope 不產生 observation，不保存決策間公開轉移，也未證明 schema 物件必來自可信投影；故 full recall 仍 partial。完整 chance、跨夜 restore／canonicalization、payoff／solver 仍缺，產品／平衡未變，`releaseEligible=false`。
 
+X 第七批 fixtures 進度（2026-09-24；v8 RED 9d63efd）：新增[版本化 v8 契約](../docs/experiments/2026-09-23-destiny/model-contract-v8.md)，為凍結來源投影加私有 provenance、狀態根／輪次／版本綁定、事件揭露 transition 與決策節點動作綁定。專項 22/22，v2–v8 與相鄰 adapter／盤點 suite 合跑 72/72。複核先後抓到跨決策物件的事件選擇衝突、同輪未揭露／未提交卻前進、盯印或拍賣先記錄後才開事件、舊事件過期後仍可結算、同輪重開事件、重複事件／神龕結算、過期提交及重複放血；目前已補跨物件提交選擇核對、事件決策版本與先後檢查、事件揭露與盯印／放血／選尊實際提交門檻、同輪狀態版本前進、單次解析／提交鎖與回歸測試。拍賣只參與相位順序索引，action/state 結算仍未建模；其餘自動轉移、完整 chance、跨夜 restore／canonicalization、payoff／solver 也仍未完成。sixOfFour=incomplete、solverStatus=not-run、releaseEligible=false。產品 index.html、玩法與平衡值未改。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。
