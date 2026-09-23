@@ -94,7 +94,7 @@ test('sacrifice actions apply one engine bleed at a time and stop at the life fl
   assert.deepEqual([...enumerateLegalSacrificeActions(decision)], ['continue']);
   const stopped = commitSacrificeChoice(G, state, decision, 'continue');
   assert.equal(stopped.phase, 'auction');
-  assert.throws(() => enumerateLegalSacrificeActions(decision), /already continued/);
+  assert.throws(() => [...enumerateLegalSacrificeActions(decision)], /already continued/);
 });
 
 test('interactive shrine winner can choose any open legend and settlement uses the engine path', async () => {
