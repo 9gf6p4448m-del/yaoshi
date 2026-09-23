@@ -1,0 +1,42 @@
+{
+  "schema": "yaoshi.mark-timing.pairedProtocol.v1",
+  "status": "predeclared",
+  "source": {
+    "productCommit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "productBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "productSha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d"
+  },
+  "question": "Does letting AI seats mark after event resolution, matching the solo human's current event-night information timing, materially change mark targets or seat-0 outcomes?",
+  "arms": {
+    "uiTiming": "AI marks before the event; the human seat marks after the event result.",
+    "allAfterEvent": "All living seats mark after the event result."
+  },
+  "controlledConditions": {
+    "game": "Frozen original solo four-seat engine, seats and all other rules unchanged.",
+    "seedRange": { "start": 1, "endInclusive": 10000 },
+    "seat0Role": "qingmian",
+    "seat0BidPolicy": "original scriptedBids",
+    "seat0MarkPolicy": "deterministic highest legal non-curse mark using the current visible market and own bag; same policy in both arms",
+    "privateDestinyDraws": ["water", "eyes", "twinTiger", "bloodOath"],
+    "trueEffects": "off",
+    "aiMarkBluffRandomness": "Use an independent uniform keyed by (game seed, round, seat) so paired arms receive the same bluff draw and mark timing does not shift event RNG. Keep the frozen configured bluff probability.",
+    "eventOutcomeControl": "First event round must have identical event id, sealed choices, life deltas and public logs in both arms; abort the formal batch on any mismatch.",
+    "productChanges": "none"
+  },
+  "outcomes": {
+    "primary": "Seat-0 terminal winner indicator; report paired risk difference and 95% game-seed bootstrap interval.",
+    "secondary": [
+      "At first event, AI seats with changed mark slot and changed marked item name",
+      "Marked-item and mark-response counters from engine S.markStat",
+      "Virtual-mark tax, average game length, survival nights and final life",
+      "First-event exact paired equality and eligible seed denominator"
+    ]
+  },
+  "bootstrap": { "resamples": 10000, "seed": 20260924, "cluster": "game seed", "interval": "percentile 95%" },
+  "interpretationLimits": [
+    "One seat-0 marking and bidding policy is a diagnostic, not a population estimate of human play.",
+    "After the first changed mark, downstream AI bids can change later RNG consumption and event outcomes; this is part of the paired whole-game treatment path.",
+    "The result can support retaining the current timing or a separate candidate; it cannot alone establish balance or release readiness."
+  ],
+  "releaseGate": false
+}
