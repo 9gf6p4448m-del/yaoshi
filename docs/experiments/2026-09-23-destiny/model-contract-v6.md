@@ -6,7 +6,7 @@
 
 機器契約：[model-contract-v6.json](model-contract-v6.json)。測試：[l1e-battle-settlement-adapter.test.mjs](../../../../tests/l1e-battle-settlement-adapter.test.mjs)，adapter：[l1e-battle-settlement-adapter.mjs](../../../../tests/tools/l1e-battle-settlement-adapter.mjs)。載入器驗證產品來源 commit `d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a`、blob `8ba772b9d960eff8b9c42eac77040433f809c57d`、SHA256 `8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d`，並拒絕工作樹 `index.html` 偏離該來源。
 
-TDD checkpoints：RED `37f423a`，GREEN 待提交。測試直接呼叫凍結版 `resolveBattles`、`settleShrinesEnd`、`stripEndgameItems` 與 `finalizeHistory`；adapter 只包裝結果投影，沒有重寫戰鬥或結算規則。
+TDD checkpoints：RED `37f423a`／GREEN `ad7cd83`。測試直接呼叫凍結版 `resolveBattles`、`settleShrinesEnd`、`stripEndgameItems` 與 `finalizeHistory`；adapter 只包裝結果投影，沒有重寫戰鬥或結算規則。
 
 ## 已驗證範圍
 

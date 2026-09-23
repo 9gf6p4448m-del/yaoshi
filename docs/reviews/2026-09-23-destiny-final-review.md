@@ -110,7 +110,7 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 ## X：自動夜戰、夜末與終局治具（v6，2026-09-24）
 
-新增[模型契約 v6](../experiments/2026-09-23-destiny/model-contract-v6.md)。RED `37f423a` 後以凍結產品的 `resolveBattles`、`settleShrinesEnd`、`stripEndgameItems`、`finalizeHistory` 執行；adapter 不重寫戰鬥或夜末規則。四項測試通過，v2–v6／六鏈／天命／夜戰／資訊投影／模型盤點合跑 **101/101**。
+新增[模型契約 v6](../experiments/2026-09-23-destiny/model-contract-v6.md)。RED `37f423a`／GREEN `ad7cd83` 後以凍結產品的 `resolveBattles`、`settleShrinesEnd`、`stripEndgameItems`、`finalizeHistory` 執行；adapter 不重寫戰鬥或夜末規則。四項測試通過，v2–v6／六鏈／天命／夜戰／資訊投影／模型盤點合跑 **101/101**。
 
 這批只證明三類具體路徑：天雷 `0.15` 門檻兩側、詛咒 drain 死亡與付不起神債回天／回血、局末神龕收攤與道具移除／名次快照。它沒有窮舉完整 chance tree、其他 battle hook 交叉組合、玩家供奉提示分支、跨相位 full recall、跨夜 snapshot、terminal utility 或 solver。曾因治具抽到普渡爐主被動而多扣出局者壽命；現固定無被動角色以隔離所測變數，產品未改。
 

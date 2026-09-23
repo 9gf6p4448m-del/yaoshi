@@ -4,7 +4,7 @@
 
 X v5 進度（2026-09-24）：[盯印／放血／選尊契約](../experiments/2026-09-23-destiny/model-contract-v5.md) RED `c099e06`／GREEN `85eff22`；新增 4/4，v2–v5 合跑 75/75。已定位事件夜「AI 開盅前盯印、真人開盅後盯印」但未量化，暫不改遊戲；戰鬥、夜末結算、跨階段 full recall 與 solver 仍缺，發布資格不變。
 
-X v6 進度（2026-09-24）：[夜戰／夜末／終局契約](../experiments/2026-09-23-destiny/model-contract-v6.md) RED `37f423a`；新測試 4/4，v2–v6、天命／資訊／模型盤點合跑 101/101。只覆蓋天雷門檻、選定死亡與神債回天、終局收尾，不等於完整 chance／full recall／跨夜模型；產品與平衡未改，發布資格仍 false。
+X v6 進度（2026-09-24）：[夜戰／夜末／終局契約](../experiments/2026-09-23-destiny/model-contract-v6.md) RED `37f423a`／GREEN `ad7cd83`；新測試 4/4，v2–v6、天命／資訊／模型盤點合跑 101/101。只覆蓋天雷門檻、選定死亡與神債回天、終局收尾，不等於完整 chance／full recall／跨夜模型；產品與平衡未改，發布資格仍 false。
 
 來源稽核追加（2026-09-24）：正式天命 raw 的 `gitHead=2eb164d` 不是產品來源證明；產品 SHA 對上後來候選 `5bd3817`，而 runner 未驗 `productBaseline`。舊 raw 保留不改；新實驗先鎖 commit/hash 並要求乾淨工作樹。稀疏密函輸入與交接後隱藏 DOM 殘留已修，局部回歸通過；平衡與發布關口仍未通過。長時 SFX 驗證追加：目前測試驅動版本三 seed 完整長測 1/1 通過；原始間歇卡點仍未定位。
 
