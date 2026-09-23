@@ -61,13 +61,19 @@ test('v2 contract pins the current product and keeps six-of-four and release gat
   assert.deepEqual(contract.scope.destiny.aiChase, [false, true]);
   assert.equal(contract.scope.destiny.seats, 4);
   assert.equal(contract.scope.destiny.withReplacement, true);
-  assert.equal(contract.scope.destiny.jointOutcomeCount, 1296);
+  assert.equal(contract.scope.destiny.secureDraw.jointOutcomeCount, 1296);
+  assert.deepEqual(contract.fixtureBatch.runtimeProvenance,
+    ['sourceCommit', 'sourceBlobOid', 'sourceSha256', 'adapterSha256', 'fixtureSha256', 'instrumentedSourceSha256']);
   assert.equal(contract.gate.sixOfFour, 'incomplete');
   assert.equal(contract.gate.releaseEligible, false);
   assert.equal(source.commit, 'd63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a');
   assert.equal(source.blobOid, '8ba772b9d960eff8b9c42eac77040433f809c57d');
   assert.equal(source.sha256, '8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d');
   assert.equal(source.currentWorktreeMatches, true);
+  const { provenance } = adapter.loadPinnedFixtureEngine();
+  assert.match(provenance.adapterSha256, /^[a-f0-9]{64}$/);
+  assert.match(provenance.fixtureSha256, /^[a-f0-9]{64}$/);
+  assert.match(provenance.instrumentedSourceSha256, /^[a-f0-9]{64}$/);
 });
 
 test('secure private-destiny draw covers all 252 accepted bytes and rejects modulo-biased tail bytes', async () => {
@@ -82,7 +88,7 @@ test('secure private-destiny draw covers all 252 accepted bytes and rejects modu
     assert.equal(calls(), 252);
   });
 
-  withSecureBytes([252, 0, 253, 42, 254, 84, 255, 126], (calls) => {
+  withSecureBytes([252, 0, 253, 1, 254, 2, 255, 3], (calls) => {
     assert.deepEqual(G.drawDestinies(4), ['water', 'eyes', 'twinTiger', 'bloodOath']);
     assert.equal(calls(), 8, '252–255 must each be rejected before accepting the next byte');
   });
@@ -95,7 +101,7 @@ test('four independent private draws expose all 1296 joint tuples, including col
   for (let tuple = 0; tuple < 6 ** 4; tuple++) {
     let value = tuple;
     for (let seat = 0; seat < 4; seat++) {
-      bytes.push((value % 6) * 42);
+      bytes.push(value % 6);
       value = Math.floor(value / 6);
     }
   }
@@ -209,8 +215,10 @@ test('seat-specific destiny projection is invariant to hidden opponents until a 
   left.players.forEach((player) => { player.ai = null; });
   right.players.forEach((player) => { player.ai = null; });
 
-  assert.deepEqual(a.destinyProjection(left.players[0], { viewer: 0, phase: 'market' }),
-    b.destinyProjection(right.players[0], { viewer: 0, phase: 'market' }));
+  const ownLeft = a.destinyProjection(left.players[0], { viewer: 0, phase: 'market' });
+  const ownRight = b.destinyProjection(right.players[0], { viewer: 0, phase: 'market' });
+  assert.deepEqual(ownLeft, { chainId: 'water', awakened: false, private: true });
+  assert.deepEqual(ownRight, ownLeft);
   assert.equal(a.destinyProjection(left.players[1], { viewer: 0, phase: 'market' }).chainId, null);
   assert.equal(b.destinyProjection(right.players[1], { viewer: 0, phase: 'market' }).chainId, null);
   assert.deepEqual(a.replayExport(left), b.replayExport(right));

@@ -1,0 +1,126 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v2",
+  "status": "incomplete",
+  "implemented": false,
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen source for adapter fixtures only; this pin is not a release or balance verdict."
+  },
+  "scope": {
+    "game": "original solo four-seat finite extensive-form game",
+    "rounds": 12,
+    "termination": "Original playPolicyGame termination and settlement order; not fully adapted by this fixture batch.",
+    "players": [0, 1, 2, 3],
+    "chainIds": ["water", "eyes", "twinTiger", "bloodOath", "godKing", "eternalFlame"],
+    "ordinaryChains": "All six ordinary chains remain in scope for the eventual solver.",
+    "destiny": {
+      "seats": 4,
+      "chainIds": ["water", "eyes", "twinTiger", "bloodOath", "godKing", "eternalFlame"],
+      "withReplacement": true,
+      "independentPerSeat": true,
+      "effectModes": ["ordinary", "original", "candidate"],
+      "aiChase": [false, true],
+      "experimentalArms": [
+        "ordinary-ai-off",
+        "original-ai-off",
+        "candidate-ai-off",
+        "ordinary-ai-on",
+        "original-ai-on",
+        "candidate-ai-on"
+      ],
+      "secureDraw": {
+        "api": "globalThis.crypto.getRandomValues(new Uint8Array(1))",
+        "acceptedRawBytes": [0, 251],
+        "rejectedRawBytes": [252, 255],
+        "acceptedPreimagesPerChain": 42,
+        "jointOutcomeCount": 1296,
+        "exactJointProbability": "1/1296, conditional on independent uniform secure bytes"
+      },
+      "privacy": "Each seat sees its own private letter; opponents remain hidden until the actual public reveal. This is a local UI/data projection, not server-grade secrecy."
+    },
+    "root": "All legal makeState initializations and exact chance support remain required; this fixture batch only checks the private destiny draw component.",
+    "quantification": "All legal reachable histories, each player's legal observation-equivalent information sets, every legal contingent policy and every positive-probability chance outcome through original terminal settlement.",
+    "exclusions": [
+      "fixed AI or scriptedBids profiles as a substitute for player action sets",
+      "random seeds or sampled outcomes as a substitute for complete chance support",
+      "one-night state snapshots as a substitute for complete cross-night restore",
+      "public replay projection as a substitute for a generic all-seat observation adapter",
+      "single-machine UI privacy as server-grade secrecy"
+    ]
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-destiny-adapter-fixtures.test.mjs",
+    "runner": "node --test tests/l1e-destiny-adapter-fixtures.test.mjs",
+    "adapter": "tests/tools/l1e-destiny-adapter-fixtures.mjs",
+    "runtimeProvenance": ["sourceCommit", "sourceBlobOid", "sourceSha256", "adapterSha256", "fixtureSha256", "instrumentedSourceSha256"],
+    "fixtures": [
+      {
+        "id": "source.currentCandidatePin",
+        "status": "complete",
+        "proves": "The exact committed index.html source, Git blob and SHA256 are pinned; the worktree product file matches that source.",
+        "doesNotProve": "The pinned product is balanced, release-ready, or exhaustively modeled."
+      },
+      {
+        "id": "chance.privateDestinyDrawSupport",
+        "status": "partial",
+        "proves": "The engine maps each of 252 accepted byte values to six IDs with 42 preimages each, rejects 252 through 255, and can produce all 1296 four-seat tuples with collisions.",
+        "doesNotProve": "Complete chance support or exact probabilities for initialization, auctions, battles, events, or any other game RNG node."
+      },
+      {
+        "id": "state.snapshotRestore.initialAuction",
+        "status": "partial",
+        "proves": "A graph-preserving state-only snapshot at makeState-to-first-resolveAuction replays the same auction, preserves aliases and restores the next gameplay RNG output.",
+        "doesNotProve": "Runner-local variables, arbitrary decision boundaries, cross-night continuation, or a complete extensive-form state adapter."
+      },
+      {
+        "id": "actions.sealedBidPublicReplay",
+        "status": "partial",
+        "proves": "Different hidden bid profiles produce the same public replay until the relevant auction result is explicitly revealed.",
+        "doesNotProve": "A complete legal action enumerator, hidden-commitment transition API, or observation history for all seats."
+      },
+      {
+        "id": "information.destinyProjection",
+        "status": "partial",
+        "proves": "A seat's destiny projection is unchanged by opponent private draws and an opponent letter appears only after publishDestinyReveal.",
+        "doesNotProve": "Generic information-set keys, full recall, or observation equivalence for every game decision."
+      }
+    ]
+  },
+  "inventory": [
+    { "id": "root.initialization", "implemented": false, "blockingReason": "No complete legal initialization enumerator with exact correlated shuffle/draw weights." },
+    { "id": "state.snapshotRestore.initialAuction", "implemented": "partial", "blockingReason": "Fixture covers only engine-resident state and RNG at the initial auction boundary; runner-local state is not captured." },
+    { "id": "state.snapshotRestore.crossNight", "implemented": false, "blockingReason": "Arbitrary phase and runner-local cross-night state restore are not adapted." },
+    { "id": "decision.phasesAndSeats", "implemented": false, "blockingReason": "No all-seat legal decision cursor or commit/advance API." },
+    { "id": "actions.auction", "implemented": false, "blockingReason": "No exhaustive legal bid, target, type, intent, cap, or stake action enumeration." },
+    { "id": "actions.other", "implemented": false, "blockingReason": "Event, mark, incense, shrine-pick, and other live human choices are not enumerated." },
+    { "id": "actions.sealedBidPublicReplay", "implemented": "partial", "blockingReason": "Public replay privacy is fixture-tested; a generic simultaneous sealed commitment adapter is absent." },
+    { "id": "information.destinyProjection", "implemented": "partial", "blockingReason": "Destiny projection is fixture-tested; all-seat observation histories and information-set keys are absent." },
+    { "id": "chance.privateDestinyDrawSupport", "implemented": "partial", "blockingReason": "The four private destiny draws are exhaustively fixture-tested; every other game chance node remains uncovered." },
+    { "id": "chance.fullGame", "implemented": false, "blockingReason": "No complete discrete chance support and exact conditional weights for the original game." },
+    { "id": "state.canonicalization", "implemented": false, "blockingReason": "No proven strategic/probabilistic equivalence key for state merging." },
+    { "id": "terminalAndPayoff", "implemented": "partial", "blockingReason": "Original terminal value, rank ties, and freeLunch net-gain baseline are not completely mapped." },
+    { "id": "policyEnumeration", "implemented": false, "blockingReason": "No complete contingent policy enumeration over all legal information sets." },
+    { "id": "sixOfFourSolver", "implemented": false, "blockingReason": "No exhaustive cross-night result or independent solver review." }
+  ],
+  "nextEngineeringDeliverable": {
+    "name": "all-seat legal action and observation adapter",
+    "implemented": false,
+    "requirements": [
+      "Expose every legal action at each original human decision without changing settlement order.",
+      "Keep simultaneous sealed bids hidden until the original reveal point.",
+      "Derive observation histories without opponent hidden bags, unrevealed bids, future market, or RNG state.",
+      "Bind each adapter fixture to the frozen product source and compare it with the original engine."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Full-game actions, observations, chance, cross-night restore, canonicalization, policy enumeration, terminal/payoff mapping, and independent review remain incomplete. H9 failures and incomplete groups remain separate gates."
+  }
+}
