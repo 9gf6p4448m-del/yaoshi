@@ -26,7 +26,7 @@ const productScope={chainIds:productArms.chainIds,
   manifestSha256:canonicalJsonSha256(productArms)};
 
 test('audits frozen source references and exposes legacy-scope and missing-adapter gaps',()=>{
-  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms});
+  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms,repoRoot:ROOT});
   assert.equal(result.auditStatus,'valid');
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
@@ -39,6 +39,7 @@ test('audits frozen source references and exposes legacy-scope and missing-adapt
   assert.equal(result.summary.partiallyImplemented,1);
   assert.equal(result.summary.missingAdapters,9);
   assert.equal(result.sourceReferences.missingSymbols.length,0);
+  assert.deepEqual(result.integrity,{modelContract:true,productArms:true,source:true});
   assert.ok(result.blockingReasons.some(reason=>reason.includes('private destiny')));
 });
 
@@ -125,6 +126,21 @@ test('recomputes contract, arms, and source integrity inside the exported audito
   assert.equal(forgedSource.integrity.source,false);
 });
 
+test('requires a repository root before verifying document references',()=>{
+  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms});
+  assert.equal(result.auditStatus,'invalid');
+  assert.ok(result.sourceReferences.documentationReferences.some(row=>row.exists===null));
+  assert.ok(result.violations.some(message=>message.includes('repoRoot is required')));
+});
+
+test('rejects forged resolved source commit labels',()=>{
+  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms,repoRoot:ROOT,
+    resolvedSourceCommit:`${contract.sourceCommit}-not-a-git-sha`});
+  assert.equal(result.auditStatus,'invalid');
+  assert.equal(result.source.commit,null);
+  assert.ok(result.violations.some(message=>message.includes('full git commit id')));
+});
+
 test('reports malformed rows and incomplete provenance without throwing',()=>{
   const malformed={schema:'wrong',sourceCommit:'not-a-commit',inventory:[null,
     {id:'bad-item',implemented:'unknown',missingAdapter:'',nextAcceptance:''}],scope:{},gate:null};
@@ -174,7 +190,7 @@ test('requires valid non-empty chain and destiny scope arrays',()=>{
     productArms:{...productArms,chainIds:[],destinyGame:{...productArms.destinyGame,
       arms:{},destinyDraw:''}}});
   assert.equal(productResult.auditStatus,'invalid');
-  assert.ok(productResult.violations.some(message=>message.includes('productScope')));
+  assert.ok(productResult.violations.some(message=>message.includes('productArms')));
 
   const truncatedArms=structuredClone(productArms);
   truncatedArms.chainIds=['water'];
@@ -218,13 +234,15 @@ test('does not accept documentation reached through an external junction',()=>{
   }finally{fs.rmSync(sandbox,{recursive:true,force:true});}
 });
 
-test('recognizes a complete scope declaration without treating it as a solver result',()=>{
+test('does not let an edited contract fabricate complete six-chain and destiny coverage',()=>{
   const expanded=structuredClone(contract);
   expanded.scope.chainIds=[...productScope.chainIds];
   expanded.scope.destinyModes=[...productScope.destinyModes];
   const result=auditContractData(expanded,frozenSource,{sourceBlobOid,productArms});
-  assert.deepEqual(result.scope.missingCurrentChainIds,[]);
-  assert.equal(result.scope.destinyModesCovered,true);
+  assert.equal(result.auditStatus,'invalid');
+  assert.equal(result.integrity.modelContract,false);
+  assert.deepEqual(result.scope.missingCurrentChainIds,productScope.chainIds);
+  assert.equal(result.scope.destinyModesCovered,false);
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
 });
@@ -249,8 +267,13 @@ test('pins JSON content independently of object key order',()=>{
     const reordered=Object.fromEntries(Object.entries(productArms).reverse());
     const reorderedPath=path.join(temp,'reordered-arms.json');
     fs.writeFileSync(reorderedPath,JSON.stringify(reordered));
-    const result=auditRepository({repoRoot:ROOT,productArmsPath:reorderedPath});
+    const reorderedContract=Object.fromEntries(Object.entries(contract).reverse());
+    const reorderedContractPath=path.join(temp,'reordered-contract.json');
+    fs.writeFileSync(reorderedContractPath,JSON.stringify(reorderedContract));
+    const result=auditRepository({repoRoot:ROOT,contractPath:reorderedContractPath,
+      productArmsPath:reorderedPath});
     assert.equal(result.productArms.integrityVerified,true);
+    assert.equal(result.contract.integrityVerified,true);
     assert.equal(result.auditStatus,'valid');
   }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
@@ -297,6 +320,15 @@ test('CLI reports incomplete successfully and fails the explicit require-pass ga
       '--product-arms',changedRulesPath],{cwd:ROOT,encoding:'utf8'});
     assert.equal(altered.status,1,altered.stderr);
     assert.equal(JSON.parse(altered.stdout).auditStatus,'invalid');
+
+    const armsText=fs.readFileSync(ARMS_PATH,'utf8');
+    const nonFiniteArmsPath=path.join(temp,'non-finite-arms.json');
+    fs.writeFileSync(nonFiniteArmsPath,armsText.replace('"picks": null','"picks": 1e999'));
+    const nonFinite=spawnSync(process.execPath,[tool,'--repo',ROOT,'--contract',CONTRACT_PATH,
+      '--product-arms',nonFiniteArmsPath],{cwd:ROOT,encoding:'utf8'});
+    assert.equal(nonFinite.status,1,nonFinite.stderr);
+    assert.equal(JSON.parse(nonFinite.stdout).productArms.integrityVerified,false);
+    assert.equal(JSON.parse(nonFinite.stdout).auditStatus,'invalid');
 
     const rewrittenContract=structuredClone(contract);
     rewrittenContract.inventory=rewrittenContract.inventory.map(item=>({...item,implemented:true}));
