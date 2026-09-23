@@ -26,12 +26,18 @@ test('second bid counts tied raw entries and suppresses hidden or short reveal',
 });
 
 test('viewer gate only permits active human at private market',()=>{
+  /* hotseat: phase lock applies */
   const g=G();g.makeState('hotseat',1);const s=g.S;
   s.players[0].ai=null;s.players[1].ai=null;
   assert.equal(g.canViewPrivateBag(0,0,'market'),true);
   assert.equal(g.canViewPrivateBag(1,0,'market'),false);
   assert.equal(g.canViewPrivateBag(0,0,'handoff'),false);
   assert.equal(g.canViewPrivateBag(0,0,'reveal'),false);
+  /* solo: own bag visible at any phase */
+  const g2=G();g2.makeState('solo',1);g2.S.players[0].ai=null;
+  assert.equal(g2.canViewPrivateBag(0,0,'none'),true,'solo player blocked outside market — bug');
+  assert.equal(g2.canViewPrivateBag(0,0,'reveal'),true,'solo player blocked at reveal — bug');
+  assert.equal(g2.canViewPrivateBag(0,0,'market'),true);
 });
 
 test('AI bid reflects only a newly completed chain',()=>{

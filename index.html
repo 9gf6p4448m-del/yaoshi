@@ -2237,7 +2237,11 @@ let S=null, myBids=[], SKIP=false, ACTIVE=0, PENDING=null;
 let PRIVATE_PHASE="none", PUBLIC_REVEAL=null;
 const CHAIN_SEEN=new Set();
 function canViewPrivateBag(pid,viewer=ACTIVE,phase=PRIVATE_PHASE){
-  return !!S && phase==="market" && pid===viewer && !!S.players[pid] && !S.players[pid].ai && S.players[pid].alive;
+  if(!S||!S.players[pid]||!S.players[pid].alive||S.players[pid].ai) return false;
+  if(pid!==viewer) return false;
+  /* hotseat needs phase lock; solo: any phase ok for own bag */
+  if(S.mode!=="hotseat") return true;
+  return phase==="market";
 }
 function eyesSecondBid(p,result){
   if(!hasFlag(p,"publicSecondBid") || !result || !result.showEntries || !Array.isArray(result.entries) || result.entries.length<2) return null;
