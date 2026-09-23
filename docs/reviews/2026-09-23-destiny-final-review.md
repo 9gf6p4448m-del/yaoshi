@@ -88,6 +88,14 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 本批新測試 **6/6**；與 v2、天命、資訊與 v1 模型盤點回歸合計 **67/67**。仍缺本夜異事決策結果的 observation、盯印／獻祭／請神選尊／戰鬥等動作與跨相位 full recall，亦未有全遊戲 decision cursor、state transition adapter 或 solver。產品檔與平衡值均未更動。故 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 維持；詳細範圍與可重現命令見 v3 契約。
 
+## X：異事密封選擇與揭露（v4，2026-09-24）
+
+新增[模型契約 v4](../experiments/2026-09-23-destiny/model-contract-v4.md)與固定 `d63f03e` 產品來源的異事 adapter；TDD RED／GREEN checkpoints 為 `ca7befd`、`c4319f2`、`431c31d`／`67db039`。八種事件各逐席對照引擎定義的完整單席選項；每種事件用一個全席合法 profile 經凍結 `settleEvent` 結算。這是合法動作與單一 profile 的 fixture，不是事件所有聯合出價、tie break 或 RNG chance 的窮舉。
+
+異事 observation 保留當前事件可見資料與本席私人資料，隱去密封提交、袋物、市場及 RNG；送肉粽 `null` 不投標與 `0` 元保留為不同動作。覆查也找到兩個模型邊界缺口並修正：異事歷史不得混入別席資訊；拍賣 observation 只收同夜公開揭露欄位，剔除呼叫端額外注入欄位並拒絕錯夜資料。異事新測試 **4/4**；合併 v2／v3、天命、資訊投影與盤點回歸 **71/71**。`node --check`、契約 JSON parse 與 `git diff --check` 通過。
+
+此進度不證明天命平衡、玩家可讀性或全遊戲模型正確，也沒有改動 `index.html`、效果數值、H9 判準或發布資格。異事與拍賣仍是分相位 history；盯印、獻祭、請神選尊、戰鬥、終局、全局 chance、跨夜快照／canonicalization、策略枚舉與 solver 均未完成。`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 維持。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

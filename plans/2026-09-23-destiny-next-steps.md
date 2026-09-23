@@ -10,6 +10,8 @@ X 第一批 fixtures 進度（2026-09-24；RED `8e1af2b`／GREEN `d34dc99`）：
 
 X 第二批 fixtures 進度（2026-09-24；RED `84f92f7`／GREEN `8091039`）：新增[版本化 v3 契約](../docs/experiments/2026-09-23-destiny/model-contract-v3.md)，為任一存活席位 lazy-enumerate 一次密封拍賣提交，包括一般標單／毒標、零額欄位差異、逐件費用、供香共享預算、`MAX_BIDS`，以及押寶夜全部非空子集與單一注額。拍賣 observation 保留本席密函／袋子與已公開資料，剔除對手袋物、未揭標、RNG 和未顯示未來市場；拍賣回憶鍵含本席此前觀察與提交。新測試 6/6、與 v2、天命、資訊及 v1 盤點回歸合計 67/67 通過，所有一般夜／押寶夜小型列舉提交逐一交給凍結引擎結算。這仍**不含**本夜異事選擇結果、盯印／獻祭、請神選尊、戰鬥及終局決策，也沒有全遊戲 transition cursor／跨階段 full recall；`sixOfFour=incomplete`、`releaseEligible=false` 不變。產品 `index.html` 未改、沒有調平衡值。下一步接其餘相位與公開結果，再證明全遊戲 observation equivalence。
 
+X 第三批 fixtures 進度（2026-09-24；RED `ca7befd`、`c4319f2`、`431c31d`／GREEN `67db039`）：新增[版本化 v4 契約](../docs/experiments/2026-09-23-destiny/model-contract-v4.md)，以凍結引擎定義逐席枚舉八種異事選項、一次性密封提交和全席結算；每種事件各驗一組合法 profile，不宣稱窮舉事件聯合分枝。異事 observation 遮蔽密封選擇、袋物、市場與 RNG，拒絕跨席回憶；異事後拍賣只接納白名單的同夜公開結果欄位，移除任意附加欄位並拒絕錯夜揭露。v4 測試 4/4，與 v2、v3、天命、資訊和盤點合跑 71/71 通過。過程中兩個資訊邊界缺口先以 RED 重現，再修正；產品 `index.html`／平衡值未改。仍未完成盯印、獻祭、請神選尊、夜戰／終局、跨相位 full recall、全局 chance、跨夜 restore、canonicalization 或 solver；`sixOfFour=incomplete`、`releaseEligible=false`。下一步接剩餘決策與轉移，真人冷讀和音效間歇診斷也未結。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。
