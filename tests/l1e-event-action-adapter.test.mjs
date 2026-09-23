@@ -111,6 +111,13 @@ test('event observations hide every sealed choice and market state, then reveal 
   assert.ok(Object.hasOwn(result.publicReveal, 'lifeDelta'));
   const afterEvent = auctionObservationAfterEvents(G, state, 0, [result.publicReveal]);
   assert.deepEqual(afterEvent.precedingPublicEvents, [result.publicReveal]);
+  const pollutedReveal = { ...result.publicReveal, hiddenOpponentDestiny: 'water' };
+  const sanitizedAfterEvent = auctionObservationAfterEvents(G, state, 0, [pollutedReveal]);
+  assert.deepEqual(sanitizedAfterEvent.precedingPublicEvents, [result.publicReveal]);
+  assert.equal(JSON.stringify(sanitizedAfterEvent).includes('hiddenOpponentDestiny'), false);
+  assert.throws(() => auctionObservationAfterEvents(G, state, 0, [
+    { ...result.publicReveal, round: result.publicReveal.round - 1 },
+  ]), /current round/);
 
   const ownChoice = Array.isArray(before.options) ? before.options[0].value : before.options.min;
   const alternateChoice = Array.isArray(before.options)
