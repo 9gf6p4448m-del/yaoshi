@@ -1,0 +1,103 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v3",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v2.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v2",
+    "meaning": "Preserves the v2 chance, state, replay and destiny projection fixtures; this version adds only auction action and observation fixtures."
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for adapter fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "game": "original solo four-seat finite extensive-form game",
+    "rounds": 12,
+    "players": [0, 1, 2, 3],
+    "chainIds": ["water", "eyes", "twinTiger", "bloodOath", "godKing", "eternalFlame"],
+    "auctionDecision": "One compound sealed submission at the start of the auction input phase for each living seat.",
+    "simultaneousCommitments": "Each seat's observation omits every opponent's uncommitted or sealed bids until the original engine reveal.",
+    "knownFutureInformation": "Only the next-market preview and next event/rule that the current UI shows to this seat are included; the rest of nextMarket is excluded.",
+    "excludedDecisionPhases": ["mark", "event", "sacrifice", "shrine-pick", "battle", "settlement"]
+  },
+  "fixtureBatches": [
+    {
+      "path": "tests/l1e-destiny-adapter-fixtures.test.mjs",
+      "runner": "node --test tests/l1e-destiny-adapter-fixtures.test.mjs",
+      "adapter": "tests/tools/l1e-destiny-adapter-fixtures.mjs",
+      "status": "partial",
+      "covers": ["pinned source", "private destiny draw support", "initial auction state restore", "redacted replay", "destiny projection"]
+    },
+    {
+      "path": "tests/l1e-auction-action-adapter.test.mjs",
+      "runner": "node --test tests/l1e-auction-action-adapter.test.mjs",
+      "adapter": "tests/tools/l1e-auction-action-adapter.mjs",
+      "runtimeProvenance": ["sourceCommit", "sourceBlobOid", "sourceSha256", "adapterSha256", "fixtureSha256", "instrumentedSourceSha256"],
+      "status": "partial",
+      "fixtures": [
+        {
+          "id": "actions.auction.normalSubmission",
+          "status": "partial",
+          "proves": "The lazy iterator emits integer bid amounts, types, curse intents/targets, fees, contribution amounts, max-bid limits and shared budget bounds for the original sealed auction input.",
+          "doesNotProve": "A complete action tree for earlier/later decision phases or a solved extensive-form model."
+        },
+        {
+          "id": "actions.auction.singleStake",
+          "status": "partial",
+          "proves": "The iterator enumerates every non-empty eligible market subset with the shared stake, original type cap, one-fee budget reservation and at-most-one-win settlement semantics.",
+          "doesNotProve": "All game actions, arbitrary transition boundaries, or cross-night continuation."
+        },
+        {
+          "id": "information.auctionObservation",
+          "status": "partial",
+          "proves": "The auction projection includes this seat's private bag/destiny and UI-visible state while omitting opponent bag contents, unrevealed bids, RNG state and unshown future market entries; hidden recorded destiny reveals are filtered by the pinned replay projection.",
+          "doesNotProve": "Information equivalence at non-auction decisions, complete observation histories, or server-grade secrecy."
+        },
+        {
+          "id": "information.auctionRecallKey",
+          "status": "partial",
+          "proves": "The auction-only key distinguishes this seat's own prior observed decisions and submissions.",
+          "doesNotProve": "Full recall across omitted phases or a complete information-set key for the game."
+        }
+      ]
+    }
+  ],
+  "inventory": {
+    "root.initialization": "incomplete",
+    "actions.auction": "partial",
+    "actions.other": "incomplete",
+    "decision.phasesAndSeats": "incomplete",
+    "information.auctionObservation": "partial",
+    "information.fullRecall": "incomplete",
+    "chance.privateDestinyDrawSupport": "partial",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.initialAuction": "partial",
+    "state.snapshotRestore.crossNight": "incomplete",
+    "state.canonicalization": "incomplete",
+    "terminalAndPayoff": "partial",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "complete phase transitions and observation-action history for every seat",
+    "implemented": false,
+    "requirements": [
+      "Enumerate mark, event, sacrifice, shrine-pick, battle and settlement choices at their actual boundaries.",
+      "Add a hidden commitment/advance interface without revealing earlier sealed submissions.",
+      "Connect every observation and own action into a full-recall history and prove observation equivalence against the original UI/policy context.",
+      "Continue binding fixtures to the pinned product source and compare every adapter transition with the original engine."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Auction-only actions and observations are partial. Other decision phases, complete chance support, cross-night restore, canonicalization, full recall, complete policy enumeration, terminal/payoff mapping and independent solver review remain incomplete."
+  }
+}

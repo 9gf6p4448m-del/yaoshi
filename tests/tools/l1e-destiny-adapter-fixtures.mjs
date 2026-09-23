@@ -68,9 +68,18 @@ function instrumentGameplayRng(sourceText) {
     .replace(ending, '  };\n  rng.getState=()=>a>>>0;\n  rng.setState=value=>{a=value|0;};\n  return rng;\n}\n$1');
 }
 
+function instrumentFixtureApi(sourceText) {
+  const anchor = 'window.__yaoshi={ newGame,';
+  if ((sourceText.match(/window\.__yaoshi=\{ newGame,/g) || []).length !== 1)
+    throw new Error('fixture API instrumentation anchor mismatch');
+  return sourceText.replace(anchor,
+    'window.__yaoshi={ feeForBid, stakeFeeRange, isStakeNight, noCurseNight, noDestroyNight, '
+    + 'chairSeen, guanSeen, faceLbl, showPow, eventForRound, newGame,');
+}
+
 export function loadPinnedFixtureEngine() {
   const pinned = verifyPinnedProductSource();
-  const instrumentedSource = instrumentGameplayRng(pinned.sourceText);
+  const instrumentedSource = instrumentFixtureApi(instrumentGameplayRng(pinned.sourceText));
   const G = loadGame(PRODUCT, { sourceText: instrumentedSource });
   return {
     G,
