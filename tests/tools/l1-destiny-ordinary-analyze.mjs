@@ -2,10 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {armIds,loadDestinyProtocol,validateRawBatch,verifyProvenance} from './l1-destiny-formal.mjs';
+import {armIds,loadDestinyProtocol,validateRawBatch} from './l1-destiny-formal.mjs';
+import {currentValidationProvenance} from './l1-destiny-historical.mjs';
 
 const ROOT=path.resolve(fileURLToPath(new URL('../..',import.meta.url)));
 const OWN=fileURLToPath(import.meta.url);
+const HISTORICAL=fileURLToPath(new URL('./l1-destiny-historical.mjs',import.meta.url));
 const CHAINS=['water','eyes','twinTiger','bloodOath','godKing','eternalFlame'];
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const round=n=>Math.round(n*1e4)/1e4;
@@ -44,8 +46,10 @@ function checkGroup(artifacts,group,protocol,paths,seeds){
   if(artifacts.length!==arms.length) throw Error(`${group}: missing arms`);
   const base=artifacts.find(a=>a.arm===arms[0]);
   if(!base) throw Error(`${group}: missing baseline`);
-  const provenance=base.provenance;
-  verifyProvenance(provenance,paths);
+  const originalHead=base.provenance?.gitHead;
+  if(artifacts.some(a=>a.provenance?.gitHead!==originalHead))
+    throw Error(`${group}: mixed raw Git HEADs`);
+  const provenance=currentValidationProvenance(base.provenance,paths);
   const normalized=artifacts.map(artifact=>{
     const expected=group==='ordinaryH1'?
       artifact.arm==='h1-splitter'?'POLICIES.splitter':
@@ -53,8 +57,9 @@ function checkGroup(artifacts,group,protocol,paths,seeds){
       'original-scriptedBids';
     if(artifact.provenance?.policyVersions?.seat0!==expected)
       throw Error(`${artifact.arm}: wrong declared seat0 policy`);
-    verifyProvenance(artifact.provenance,paths);
+    currentValidationProvenance(artifact.provenance,paths);
     const comparable={...artifact.provenance,
+      gitHead:provenance.gitHead,
       policyVersions:{...artifact.provenance.policyVersions,seat0:provenance.policyVersions.seat0}};
     if(JSON.stringify(comparable)!==JSON.stringify(provenance))
       throw Error(`${artifact.arm}: incompatible provenance`);
@@ -121,6 +126,8 @@ export function analyzeOrdinaryArtifacts({h1,h9}){
     runner:path.join(ROOT,'tests/tools/l1-destiny-run.mjs'),
     acceptance:path.join(ROOT,'docs/experiments/2026-09-23-destiny/acceptance.md'),
     config:path.join(ROOT,'docs/experiments/2026-09-23-destiny/arms.json')};
+  if(h1[0]?.provenance?.gitHead!==h9[0]?.provenance?.gitHead)
+    throw Error('H1 and H9 original raw Git HEADs differ');
   const h1Validation=checkGroup(h1,'ordinaryH1',protocol,paths,seeds);
   const h9Validation=checkGroup(h9,'ordinaryH9',protocol,paths,seeds);
   const comparable=provenance=>({...provenance,
@@ -175,7 +182,9 @@ export function analyzeOrdinaryArtifacts({h1,h9}){
   }));
   const raw=[...h1,...h9];
   return {schema:'yaoshi.destiny.ordinary-summary.v1',
-    provenance:{...h9[0].provenance,analysisSha256:sha(fs.readFileSync(OWN))},
+    provenance:{...h9[0].provenance,analysisSha256:sha(fs.readFileSync(OWN)),
+      historicalAdapterSha256:sha(fs.readFileSync(HISTORICAL)),
+      validatedAgainstGitHead:currentValidationProvenance(h9[0].provenance,paths).gitHead},
     rawContentSha256:Object.fromEntries(raw.map(a=>[a.arm,sha(JSON.stringify(a))])),
     sampleComplete:h1Validation.seedCoverageComplete&&h9Validation.seedCoverageComplete,
     gamesPerArm:seeds.length,bootstrap:{resamples:protocol.bootstrap.resamples,

@@ -3,10 +3,12 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {armIds,loadDestinyProtocol,validateRawBatch} from './l1-destiny-formal.mjs';
+import {currentValidationProvenance} from './l1-destiny-historical.mjs';
 
 const ROOT=path.resolve(fileURLToPath(new URL('../..',import.meta.url)));
 const SCRATCH=path.join(ROOT,'scratchpad');
 const OWN=fileURLToPath(import.meta.url);
+const HISTORICAL=fileURLToPath(new URL('./l1-destiny-historical.mjs',import.meta.url));
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const hashText=value=>crypto.createHash('sha256').update(value).digest('hex');
 const rounded=x=>Math.round(x*1e4)/1e4;
@@ -125,8 +127,14 @@ export function analyzeDestinyArtifacts(artifacts,{privateDrawTable,seeds}={}){
     acceptance:path.join(ROOT,'docs/experiments/2026-09-23-destiny/acceptance.md'),
     config:path.join(ROOT,'docs/experiments/2026-09-23-destiny/arms.json'),
     privateDrawTable:requirePrivate(privateDrawTable)};
-  const validated=validateRawBatch(artifacts,{protocol,group:'destiny',requiredSeeds:seeds,
-    expectedProvenance:artifacts[0]?.provenance,paths});
+  const originalHead=artifacts[0]?.provenance?.gitHead;
+  if(artifacts.some(a=>a.provenance?.gitHead!==originalHead))
+    throw Error('mixed raw Git HEADs');
+  const expectedProvenance=currentValidationProvenance(artifacts[0]?.provenance,paths);
+  const validationCopies=artifacts.map(a=>({...a,provenance:
+    {...a.provenance,gitHead:expectedProvenance.gitHead}}));
+  const validated=validateRawBatch(validationCopies,{protocol,group:'destiny',requiredSeeds:seeds,
+    expectedProvenance,paths});
   const byArm=new Map(artifacts.map(artifact=>[artifact.arm,
     [...artifact.rows].sort((a,b)=>a.seed-b.seed)]));
   const summaries=Object.fromEntries(arms.map(arm=>[arm,armSummary(byArm.get(arm))]));
@@ -141,7 +149,9 @@ export function analyzeDestinyArtifacts(artifacts,{privateDrawTable,seeds}={}){
     {sampleComplete:validated.seedCoverageComplete,
       activeTreatmentArms:new Set(active.filter(arm=>!zeroTrueEvents.includes(arm)))});
   return {schema:'yaoshi.destiny.formal-summary.v1',
-    provenance:{...artifacts[0].provenance,analysisSha256:hash(OWN)},
+    provenance:{...artifacts[0].provenance,analysisSha256:hash(OWN),
+      historicalAdapterSha256:hash(HISTORICAL),
+      validatedAgainstGitHead:expectedProvenance.gitHead},
     rawContentSha256:Object.fromEntries(artifacts.map(a=>[a.arm,hashText(JSON.stringify(a))])),
     sampleComplete:validated.seedCoverageComplete,
     sampleGames:seeds.length,arms:summaries,paired,zeroTrueEvents,
