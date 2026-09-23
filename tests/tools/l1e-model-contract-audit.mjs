@@ -117,16 +117,18 @@ export function auditContractData(contract,sourceBytes,metadata={}){
     blockingReasons.push(`formal status is ${contract?.gate?.formalStatus??'missing'}`);
 
   const unresolved=blockingReasons.length>0;
-  const falsePass=unresolved&&(contract?.gate?.sixOfFour==='pass'||
+  const passClaim=contract?.gate?.sixOfFour==='pass'||
     contract?.gate?.formalStatus==='pass'||contract?.gate?.releaseEligible===true||
-    contract?.status==='pass'||contract?.implemented===true);
-  if(falsePass) errors.push('unsupported pass claim while required adapters or model scope remain incomplete');
+    contract?.status==='pass'||contract?.implemented===true;
+  if(passClaim) errors.push('unsupported pass claim: this inventory auditor does not verify exhaustive solver evidence');
 
   return {
     schema:'yaoshi.l1e.modelContractAudit.v1',
     auditStatus:errors.length?'invalid':'valid',
     sixOfFour:'incomplete',
     releaseEligible:false,
+    auditor:{capability:'contract-inventory-only',adapterFixturesExecuted:false,
+      solverEvidenceValidated:false,supportedVerdict:'incomplete'},
     source:{commit:metadata.resolvedSourceCommit??contract?.sourceCommit??null,
       blobOid:metadata.sourceBlobOid??null,sha256:hash(sourceBuffer)},
     scope:{contractChainIds,productChainIds,missingCurrentChainIds,

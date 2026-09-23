@@ -57,6 +57,24 @@ test('rejects a pass claim while required adapters and payoff mappings remain mi
   assert.ok(result.violations.some(message=>message.includes('unsupported pass claim')));
 });
 
+test('does not accept a self-declared pass without exhaustive solver evidence',()=>{
+  const selfDeclared=structuredClone(contract);
+  selfDeclared.status='pass';
+  selfDeclared.implemented=true;
+  selfDeclared.inventory=selfDeclared.inventory.map(item=>({...item,implemented:true}));
+  selfDeclared.scope.chainIds=[...productScope.chainIds];
+  selfDeclared.scope.destinyModes=[...productScope.destinyModes];
+  selfDeclared.nextEngineeringDeliverable.implemented=true;
+  selfDeclared.gate.sixOfFour='pass';
+  selfDeclared.gate.formalStatus='pass';
+  selfDeclared.gate.releaseEligible=true;
+  const result=auditContractData(selfDeclared,frozenSource,{sourceBlobOid,productScope});
+  assert.equal(result.auditStatus,'invalid');
+  assert.equal(result.sixOfFour,'incomplete');
+  assert.equal(result.releaseEligible,false);
+  assert.ok(result.violations.some(message=>message.includes('exhaustive solver evidence')));
+});
+
 test('rejects source evidence symbols absent from the pinned source',()=>{
   const stale=structuredClone(contract);
   stale.inventory[0].existingEvidence.push('index.html neverImplementedAdapter:1 stale reference');
