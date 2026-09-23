@@ -102,9 +102,9 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 ### 發現：事件夜的盯印資訊時序不對稱
 
-現行程式在 `beginRoundCore` 先呼叫 `drawMarks()`，再進入事件輸入；headless 策略迴圈也先 `drawMarks()` 再 `runEventPhaseHeadless()`。但真人的 `showMarkUI()` 是 `startBidUI()` 遇到未盯席位才呼叫，所以事件夜真人先看完整開盅結果、才選盯印，AI 已在開盅前選好。瘟王可能改變袋物，其他事件可能改變各席壽命；因此兩方的盯印可依不同狀態做決定。這是**已由呼叫順序確認的差異**，但尚未量化勝率或是否有害；單人遊戲也可能有意讓真人得到事後資訊，不能據此直接改時序。
+現行程式在 `beginRoundCore` 先呼叫 `drawMarks()`，再進入事件輸入；headless 策略迴圈也先 `drawMarks()` 再 `runEventPhaseHeadless()`。但真人的 `showMarkUI()` 是 `startBidUI()` 遇到未盯席位才呼叫，所以事件夜真人先看完整開盅結果、才選盯印，AI 已在開盅前選好。瘟王可能改變袋物，其他事件可能改變各席壽命；因此兩方的盯印可依不同狀態做決定。這個時序差異已做[10,000 組配對診斷](../experiments/2026-09-24-mark-timing/report.md)：首事件 9,999/9,999 配對一致，AI 事件後標記有 1,110/9,999 局至少一席改標；固定座位 0 策略的配對勝率差 −0.06pp（95% 區間 −0.30..+0.18）。時序會改變部分 AI 盯印決策，但目前不能判定勝率方向或真人公平性，不能直接改時序。
 
-建議把「AI 盯印改在事件後」設為獨立候選，用固定種子同時記錄標印變更率、盯印拍品被標率、費用／避標、完整局勝率差與事件分層樣本；預先固定門檻，避免把可能的玩家補償直接當 bug 修。驗證前保留目前產品體驗與所有數值。原始依據位於 `index.html` 的 `beginRoundCore`／`startBidUI` 與 `playPolicyGame`；這輪沒有修改產品檔。
+最佳保守候選是先保留現行時序和效果數值。真人盲讀／實測若確認玩家不懂為何事件後才盯印，再開「所有存活席位事件後標記」獨立候選；同時固定策略、記標記變更率、費用／避標與勝率區間，將 keyed-RNG 隔離條件和非真人策略限制寫明。原始依據位於 `index.html` 的 `beginRoundCore`／`startBidUI` 與 `playPolicyGame`；量測仍未修改產品檔。
 
 放血治具將可與未封標草稿交錯的 UI 輸入正規化為放血步驟後再交複合標單；這只足以驗合法動作和壽命轉移，不能證明每一種草稿點擊順序都屬同一資訊集合。請神治具只覆蓋真人得主選尊，不覆蓋自動戰鬥、供奉、回天或終局。全遊戲仍 `sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；`index.html`、平衡值、H9 門檻都未變。
 
@@ -114,7 +114,7 @@ Antigravity 完成了六組**普通連鎖**，沒有完成其後宣稱啟動的�
 
 這批只證明三類具體路徑：天雷 `0.15` 門檻兩側、詛咒 drain 死亡與付不起神債回天／回血、局末神龕收攤與道具移除／名次快照。它沒有窮舉完整 chance tree、其他 battle hook 交叉組合、玩家供奉提示分支、跨相位 full recall、跨夜 snapshot、terminal utility 或 solver。曾因治具抽到普渡爐主被動而多扣出局者壽命；現固定無被動角色以隔離所測變數，產品未改。
 
-玩家體驗建議仍維持「先不動已上線規則與數值」：接下來量測事件夜盯印時序差、補跨相位回憶與完整 chance／snapshot，再以固定策略配對結果決定是否值得做任何體驗修正。即使局部 transition fixtures 綠燈，也不能推翻普通雙虎／血祭 H9 fail、千眼 H9 incomplete、焦點四鏈 fail／兩鏈 incomplete 的既有結果；`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 不變。
+玩家體驗建議仍維持「先不動已上線規則與數值」：事件夜時序已完成固定策略配對診斷；接下來補跨相位回憶與完整 chance／snapshot，並以真人盲讀決定是否值得做任何體驗修正。即使局部 transition fixtures 綠燈，也不能推翻普通雙虎／血祭 H9 fail、千眼 H9 incomplete、焦點四鏈 fail／兩鏈 incomplete 的既有結果；`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false` 不變。
 
 ## X：單席跨相位回憶 envelope（v7，2026-09-24）
 
@@ -122,7 +122,13 @@ RED `52187eb`／GREEN `b10af04`。v7 把凍結 adapters 輸出的 event、mark�
 
 這是回憶容器，不是完整資訊集合證明：它不產生投影、沒有來源標記可阻止呼叫者偽造凍結 schema 物件，也未把決策間公開揭露和自動轉移納入 record。只有已知原始狀態欄位會被拒絕，不能宣稱伺服器級保密。機器契約因此只將 `information.fullRecall` 提到 **partial**；完整 chance、跨夜 restore、canonicalization、terminal payoff 和 solver 仍 incomplete。沒有改 `index.html`、天命規則、平衡或 H9 判準。
 
-此刻最重要的體驗裁定仍是保留既有玩法，不因單人 UI 的資訊時序立刻削弱玩家，也不把資訊優勢當免費 buff：先用配對種子量測 AI／真人盯印時序、實際盯中率／稅費／勝率，再決定改善 UI 解釋、調整時序或保持原樣。當前遊戲平衡結果依舊是普通 H9 雙虎／血祭 fail、千眼 incomplete，焦點四鏈 fail／兩鏈 incomplete；全局 release gate false。
+目前體驗裁定仍是保留既有玩法，不因時序不對稱直接削弱玩家，也不把資訊優勢當免費 buff：配對診斷顯示 AI 標記目標會變，但固定座位 0 勝率差方向不明；先改善資訊可讀性，是否調整時序等真人盲讀／實測再決定。當前平衡結果依舊是普通 H9 雙虎／血祭 fail、千眼 incomplete，焦點四鏈 fail／兩鏈 incomplete；全局 release gate false。
+
+## X：事件夜盯印時序配對診斷（2026-09-24）
+
+[事前協定與結果報告](../experiments/2026-09-24-mark-timing/report.md)已完成。正式 10,000 個固定 seed 在乾淨 detached worktree 執行，產品來源、protocol 與 runner hash 均吻合；首事件 9,999/9,999 完全配對。AI 事件後標記相對事件前標記，有 1,110/9,999 局（11.10%）至少一席改變目標；座位 0 勝場 1,732 對 1,726，配對差 −0.06pp（95% seed bootstrap −0.30..+0.18），69 局改勝、75 局改負。資訊時點確實會改變部分 AI 盯印選擇，但此固定策略下的勝率差方向不明；不能據此判公平或等價。
+
+這是 keyed-RNG 隔離下的診斷，不是原版亂數流逐局重播，也不是真人分布。現行人類／AI 時序不對稱已量化，**暫時保留時序與所有遊戲係數**；只有真人冷讀或實測確認理解／公平問題後，才另開全席事件後標記候選並重做盲讀與配對測試。正式 H9 fail／incomplete 與 `releaseEligible=false` 均不變。
 
 ## 發布裁定
 
