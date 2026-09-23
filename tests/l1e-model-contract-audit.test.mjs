@@ -26,7 +26,7 @@ const productScope={chainIds:productArms.chainIds,
   manifestSha256:canonicalJsonSha256(productArms)};
 
 test('audits frozen source references and exposes legacy-scope and missing-adapter gaps',()=>{
-  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(contract,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'valid');
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
@@ -45,7 +45,7 @@ test('audits frozen source references and exposes legacy-scope and missing-adapt
 test('rejects duplicate inventory ids instead of silently overwriting coverage',()=>{
   const duplicate=structuredClone(contract);
   duplicate.inventory.push(structuredClone(duplicate.inventory[0]));
-  const result=auditContractData(duplicate,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(duplicate,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.violations.some(message=>message.includes('duplicate inventory id')));
 });
@@ -57,7 +57,7 @@ test('rejects a pass claim while required adapters and payoff mappings remain mi
   falsePass.gate.sixOfFour='pass';
   falsePass.gate.formalStatus='pass';
   falsePass.gate.releaseEligible=true;
-  const result=auditContractData(falsePass,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(falsePass,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'invalid');
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
@@ -75,7 +75,7 @@ test('does not accept a self-declared pass without exhaustive solver evidence',(
   selfDeclared.gate.sixOfFour='pass';
   selfDeclared.gate.formalStatus='pass';
   selfDeclared.gate.releaseEligible=true;
-  const result=auditContractData(selfDeclared,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(selfDeclared,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'invalid');
   assert.equal(result.sixOfFour,'incomplete');
   assert.equal(result.releaseEligible,false);
@@ -85,7 +85,7 @@ test('does not accept a self-declared pass without exhaustive solver evidence',(
 test('rejects source evidence symbols absent from the pinned source',()=>{
   const stale=structuredClone(contract);
   stale.inventory[0].existingEvidence.push('index.html neverImplementedAdapter:1 stale reference');
-  const result=auditContractData(stale,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(stale,frozenSource,{sourceBlobOid,productArms});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.sourceReferences.missingSymbols.some(ref=>ref.symbol==='neverImplementedAdapter'));
 
@@ -94,10 +94,35 @@ test('rejects source evidence symbols absent from the pinned source',()=>{
   for(const reference of ['index.html /:1 empty symbol list','index.html resolveAuction:0 zero line',
     `index.html resolveAuction:${sourceLineCount+1} out of range`]){
     emptySymbol.inventory[0].existingEvidence=[reference];
-    const emptyResult=auditContractData(emptySymbol,frozenSource,{sourceBlobOid,productScope});
+    const emptyResult=auditContractData(emptySymbol,frozenSource,{sourceBlobOid,productArms});
     assert.equal(emptyResult.auditStatus,'invalid',reference);
     assert.ok(emptyResult.sourceReferences.unrecognizedEvidence.length>0,reference);
   }
+});
+
+test('recomputes contract, arms, and source integrity inside the exported auditor',()=>{
+  const alteredContract=structuredClone(contract);
+  alteredContract.scope.chainIds=[...productScope.chainIds];
+  alteredContract.scope.destinyModes=[...productScope.destinyModes];
+  const forgedContract=auditContractData(alteredContract,frozenSource,{sourceBlobOid,productArms,
+    productScope:{...productScope,manifestSha256:canonicalJsonSha256(productArms)},
+    contractCanonicalSha256:canonicalJsonSha256(contract)});
+  assert.equal(forgedContract.auditStatus,'invalid');
+  assert.equal(forgedContract.integrity.modelContract,false);
+  assert.equal(forgedContract.scope.destinyModesCovered,false);
+  assert.deepEqual(forgedContract.scope.missingCurrentChainIds,productScope.chainIds);
+
+  const alteredArms=structuredClone(productArms);
+  alteredArms.destinyGame.arms['ordinary-ai-off'].trueEffects='unreviewed effect';
+  const forgedArms=auditContractData(contract,frozenSource,{sourceBlobOid,productArms:alteredArms,
+    productScope:{...productScope,manifestSha256:canonicalJsonSha256(productArms)}});
+  assert.equal(forgedArms.auditStatus,'invalid');
+  assert.equal(forgedArms.integrity.productArms,false);
+
+  const changedSource=Buffer.concat([frozenSource,Buffer.from('\n// altered source')]);
+  const forgedSource=auditContractData(contract,changedSource,{sourceBlobOid,productArms});
+  assert.equal(forgedSource.auditStatus,'invalid');
+  assert.equal(forgedSource.integrity.source,false);
 });
 
 test('reports malformed rows and incomplete provenance without throwing',()=>{
@@ -115,8 +140,11 @@ test('reports malformed rows and incomplete provenance without throwing',()=>{
 test('fails closed on malformed source-reference and product-scope collections',()=>{
   const malformed=structuredClone(contract);
   malformed.inventory[0].existingEvidence=[null];
+  const malformedArms=structuredClone(productArms);
+  malformedArms.chainIds='not-an-array';
+  malformedArms.destinyGame.arms='not-an-array';
   const result=auditContractData(malformed,frozenSource,{sourceBlobOid,
-    productScope:{chainIds:'not-an-array',destinyModes:'not-an-array'}});
+    productArms:malformedArms});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.violations.some(message=>message.includes('existingEvidence')));
 });
@@ -124,13 +152,13 @@ test('fails closed on malformed source-reference and product-scope collections',
 test('rejects empty or unparseable source evidence instead of counting zero checks as valid',()=>{
   const empty=structuredClone(contract);
   empty.inventory.forEach(item=>{item.existingEvidence=[];});
-  const emptyResult=auditContractData(empty,frozenSource,{sourceBlobOid,productScope});
+  const emptyResult=auditContractData(empty,frozenSource,{sourceBlobOid,productArms});
   assert.equal(emptyResult.auditStatus,'invalid');
   assert.ok(emptyResult.violations.some(message=>message.includes('existingEvidence')));
 
   const unparseable=structuredClone(contract);
   unparseable.inventory[0].existingEvidence=['this is not a source or document reference'];
-  const unknownResult=auditContractData(unparseable,frozenSource,{sourceBlobOid,productScope});
+  const unknownResult=auditContractData(unparseable,frozenSource,{sourceBlobOid,productArms});
   assert.equal(unknownResult.auditStatus,'invalid');
   assert.ok(unknownResult.sourceReferences.unrecognizedEvidence.length>0);
 });
@@ -138,24 +166,28 @@ test('rejects empty or unparseable source evidence instead of counting zero chec
 test('requires valid non-empty chain and destiny scope arrays',()=>{
   const malformed=structuredClone(contract);
   malformed.scope.destinyModes=productScope.destinyModes.join('|');
-  const contractResult=auditContractData(malformed,frozenSource,{sourceBlobOid,productScope});
+  const contractResult=auditContractData(malformed,frozenSource,{sourceBlobOid,productArms});
   assert.equal(contractResult.auditStatus,'invalid');
   assert.equal(contractResult.scope.destinyModesCovered,false);
 
   const productResult=auditContractData(contract,frozenSource,{sourceBlobOid,
-    productScope:{schema:productScope.schema,chainIds:[],destinyModes:[],destinyDraw:''}});
+    productArms:{...productArms,chainIds:[],destinyGame:{...productArms.destinyGame,
+      arms:{},destinyDraw:''}}});
   assert.equal(productResult.auditStatus,'invalid');
   assert.ok(productResult.violations.some(message=>message.includes('productScope')));
 
-  const truncatedScope={...productScope,chainIds:['water'],destinyModes:['ordinary-ai-off']};
+  const truncatedArms=structuredClone(productArms);
+  truncatedArms.chainIds=['water'];
+  truncatedArms.destinyGame.arms={'ordinary-ai-off':truncatedArms.destinyGame.arms['ordinary-ai-off']};
   const truncatedResult=auditContractData(contract,frozenSource,{sourceBlobOid,
-    productScope:truncatedScope});
+    productArms:truncatedArms});
   assert.equal(truncatedResult.auditStatus,'invalid');
   assert.ok(truncatedResult.violations.some(message=>message.includes('full required product set')));
 
-  const alteredDraw={...productScope,destinyDraw:'four public-seed-derived draws'};
+  const alteredDraw=structuredClone(productArms);
+  alteredDraw.destinyGame.destinyDraw='four public-seed-derived draws';
   const alteredDrawResult=auditContractData(contract,frozenSource,{sourceBlobOid,
-    productScope:alteredDraw});
+    productArms:alteredDraw});
   assert.equal(alteredDrawResult.auditStatus,'invalid');
   assert.ok(alteredDrawResult.violations.some(message=>message.includes('frozen full required product set')));
 });
@@ -163,16 +195,34 @@ test('requires valid non-empty chain and destiny scope arrays',()=>{
 test('rejects documentation evidence paths missing from the repository',()=>{
   const missingDoc=structuredClone(contract);
   missingDoc.inventory[0].existingEvidence.push('docs/not-present/model.md missing');
-  const result=auditContractData(missingDoc,frozenSource,{sourceBlobOid,productScope,repoRoot:ROOT});
+  const result=auditContractData(missingDoc,frozenSource,{sourceBlobOid,productArms,repoRoot:ROOT});
   assert.equal(result.auditStatus,'invalid');
   assert.ok(result.sourceReferences.missingDocuments.some(item=>item.path==='docs/not-present/model.md'));
+});
+
+test('does not accept documentation reached through an external junction',()=>{
+  const sandbox=fs.mkdtempSync(path.join(os.tmpdir(),'yaoshi-doc-junction-'));
+  const repoRoot=path.join(sandbox,'repo');
+  const outside=path.join(sandbox,'outside');
+  fs.mkdirSync(repoRoot);
+  fs.mkdirSync(outside);
+  fs.writeFileSync(path.join(outside,'evidence.md'),'external evidence');
+  fs.symlinkSync(outside,path.join(repoRoot,'docs'),'junction');
+  try{
+    const linked=structuredClone(contract);
+    linked.inventory[0].existingEvidence.push('docs/evidence.md linked outside the repository');
+    const result=auditContractData(linked,frozenSource,{sourceBlobOid,productArms,repoRoot});
+    assert.equal(result.auditStatus,'invalid');
+    assert.ok(result.sourceReferences.missingDocuments.some(row=>
+      row.path==='docs/evidence.md'&&row.exists===false));
+  }finally{fs.rmSync(sandbox,{recursive:true,force:true});}
 });
 
 test('recognizes a complete scope declaration without treating it as a solver result',()=>{
   const expanded=structuredClone(contract);
   expanded.scope.chainIds=[...productScope.chainIds];
   expanded.scope.destinyModes=[...productScope.destinyModes];
-  const result=auditContractData(expanded,frozenSource,{sourceBlobOid,productScope});
+  const result=auditContractData(expanded,frozenSource,{sourceBlobOid,productArms});
   assert.deepEqual(result.scope.missingCurrentChainIds,[]);
   assert.equal(result.scope.destinyModesCovered,true);
   assert.equal(result.sixOfFour,'incomplete');
