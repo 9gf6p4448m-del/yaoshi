@@ -31,7 +31,7 @@ X 新發布裁定提案（2026-09-24）：[提案](../experiments/2026-09-23-des
 
 真版改善第一批（2026-09-24）：使用者要求改善已知限制。[真長明吸收量](../experiments/2026-09-24-eternal-absorb/report.md)：原案每覺醒局吸收 2.96 點、盾量利用率 25%。[試跑](../experiments/2026-09-24-true-boost/report.md)後產品 `1f59b10` 改為真長明護盾 +3、白天壽命最低回 +2，真神王請神回 +7；[正式驗收](../experiments/2026-09-24-true-boost/formal-report.md)：**真長明焦點 +5.23 pass、真神王 +6.63 pass**，普通 H1／H9 逐位不變，5 項舊數值斷言經使用者同意更新，全測 383/383。真版焦點仍 fail：水陸、千眼、雙虎、血祭（依裁定為已知限制）。下一步依使用者順序：普通雙虎買路錢試跑；千眼交真人冷讀。`releaseEligible=false`。
 
-普通雙虎買路錢試跑（2026-09-24）：[凍結規則](../experiments/2026-09-24-tiger-toll/acceptance.md)（`eaca840`，候選 +2／+3，判準普通 H9＋H1，避標只記錄）。[結果](../experiments/2026-09-24-tiger-toll/report.md)（種子 30001+，10 臂各 10k）：H9 差 現行 +0.70／+2 為 +1.25／+3 為 +1.98，**兩候選皆不符**，依規則停手、`index.html` 未改；H1 皆過；對手在雙虎盯品上的出價率 36.78%→34.59%→32.27%（避標隨稅加深）。待使用者裁：雙虎維持已知基線，或開新一輪（更大稅額／換旋鈕）。`releaseEligible=false`。
+普通雙虎買路錢試跑（2026-09-24）：[凍結規則](../experiments/2026-09-24-tiger-toll/acceptance.md)（`eaca840`，候選 +2／+3，判準普通 H9＋H1，避標只記錄）。[結果](../experiments/2026-09-24-tiger-toll/report.md)（種子 30001+，10 臂各 10k）：H9 差 現行 +0.70／+2 為 +1.25／+3 為 +1.98，**兩候選皆不符**，依規則停手、`index.html` 未改；H1 皆過；對手在雙虎盯品上的出價率 36.78%→34.59%→32.27%（避標隨稅加深）。使用者 2026-09-24 **裁定 A：雙虎維持已知基線**（買路錢維持 +1，普通 H9 雙虎照發布裁定①列已知限制，不再開加值輪），下一步轉千眼真人冷讀。`releaseEligible=false`。
 
 X fixtures 追加（2026-09-24）：[v2 六鏈／天命模型契約](../experiments/2026-09-23-destiny/model-contract-v2.md)固定 `d63f03e` 產品來源；TDD checkpoints `8e1af2b`／`d34dc99`。私函支持集、首次拍賣局部 restore、揭露前 replay 與逐席投影 fixtures 7/7 通過；與既有天命、資訊及舊契約盤點測試合計 61/61。局部 fixture 不等於完整 chance／snapshot／資訊集合，`sixOfFour=incomplete`、`releaseEligible=false`。下一個 X 工程是所有席位合法動作與 observation-history adapter；五人真人冷讀和 SFX 間歇原因仍待處理。
 
