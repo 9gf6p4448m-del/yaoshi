@@ -74,3 +74,7 @@ X 繼續 `incomplete`，v0.57.41 以後的每個版本都會卡在這裡，除�
 - **甲／乙**：先落一份凍結驗收檔（局面、網格、收益單位、pass 定義），再做 RED→GREEN。結果照實回報，可能 pass、fail 或 incomplete。只有 pass 才把契約的 `sixOfFour` 改掉，而且要在契約裡明寫是「單夜子賽局口徑」。
 - **丙**：停止 X 工程，改做 §6 的工程項（建議先做 SFX 診斷）。
 - **丁**：在契約與 INDEX 明記 X 為非阻塞已知項及其理由，`sixOfFour` 保持 `incomplete`，不改寫成 pass。
+
+## 8. 裁定紀錄（2026-09-24）
+
+使用者選**甲**。凍結驗收見 [`2026-09-24-x-local-subgame/acceptance.md`](../2026-09-24-x-local-subgame/acceptance.md)。§7.1 正對照（得標免費）在精確支配與 ε＝1 近似支配下都不報警；依事先寫定的修訂 1，甲終止，**現行為丁**：X 改列非阻塞已知項，`sixOfFour=incomplete` 不變。證據見[終止報告](../2026-09-24-x-local-subgame/report.md)。

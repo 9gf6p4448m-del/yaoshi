@@ -27,3 +27,7 @@
 `index.html` 的 `makeState`、`resolveAuction`、`resolveShrines`、`resolveBattles`、`playPolicyGame` 提供真規則與比對 trace；現有 `analyzeEvent({players,options,payoff})` 只枚舉所有席**共用靜態選項**的單次 payoff 表，且拒絕超過 2,000,000 個組合。它不是跨夜有限擴展式求解器。`playPolicyGame` 的真人策略只覆寫座位 0；其他席走 AI，headless 異事及請神也有預設決策。現有千眼 `policyInformationContext` 是一席實驗策略的有限白名單，尚非四席資訊集合 API。`model-contract.json` 對每一項標明 `implemented`、`existingEvidence`、`missingAdapter`、`nextAcceptance`、`exclusions` 與 `blockingReason`；其中 terminal 部分既有規則可重用，完整模型整體仍未實作。
 
 下一個工程交付是**可跑的 contract auditor**：載入凍結來源與本契約，逐項以真引擎治具檢查 adapter 覆蓋，對缺相位、缺 chance 權重、錯誤資訊集合、無法重現的 state 或未定收益基準一律 fail closed／回 incomplete。之後才有資格執行整個所聲稱範圍的窮舉並提交三組各自的六之四結果。正式萬局 H1/H9 是另一閘門，樣本量不能補這個模型缺口；本輪沒有縮小原六之四範圍，也沒有提出正式 PASS。
+
+## 2026-09-24 狀態追記
+
+依使用者對[新發布裁定提案](../2026-09-23-destiny/release-decision-proposal-x.md)的裁定（甲，因正對照不報警而依事先規則轉丁），本契約描述的完整跨夜模型改列**非阻塞已知項**。`sixOfFour` 仍為 `incomplete`，未改寫成 pass；證據見[終止報告](../2026-09-24-x-local-subgame/report.md)。本文其餘內容保持原樣。
