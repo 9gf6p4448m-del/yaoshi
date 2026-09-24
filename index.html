@@ -666,7 +666,13 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 .nwSt.ok{color:var(--green)} .nwSt.lock{color:var(--dim)}
 .nwBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .nwBtns .bigbtn{height:36px;font-size:13px;padding:0 14px}
-#nwScr .stageCard.nwBig{max-width:560px;text-align:left;padding:12px 14px;animation:none}
+#nwScr .stageCard.nwBig{max-width:560px;text-align:left;padding:12px 14px 0;animation:none;
+  max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+/* 卡片自己捲（與 #modalbox 同慣例：max-height＋overflow-y:auto；28px＝#nwScr 上下 padding）；按鈕列比照 .stickyClose 黏在卡片可視區底緣，
+   844×390 橫式卡片比視口高時「選角入市」「收起殘卷」不必先捲到底 */
+#nwScr .stageCard.nwBig>.nwBtns{position:sticky;bottom:0;z-index:1;background:var(--panel);margin:8px -14px 0;
+  padding:8px 14px 10px;border-radius:0 0 13px 13px;box-shadow:0 -10px 12px var(--panel)}
+#nwScr[data-view="intro"],#nwScr[data-view="scroll"]{overflow-y:hidden}
 .nwH{font-size:20px;color:var(--gold);letter-spacing:3px;margin:2px 0 6px}
 .nwBossRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}
 .nwIntro p{font-size:14px;line-height:1.75;margin:5px 0;overflow-wrap:anywhere}
@@ -679,6 +685,7 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 .nwEnd .nwVerdict{font-size:19px;font-weight:bold;letter-spacing:2px;margin-top:2px}
 .nwEnd.pass .nwVerdict{color:var(--gold)} .nwEnd.fail .nwVerdict{color:var(--red)}
 .nwQuote{font-size:13px;color:var(--ink);margin-top:3px;line-height:1.6}
+.nwOpenQuote{margin:0 0 4px;padding:3px 8px;border-radius:8px;background:rgba(239,232,216,.08)}
 /* 2026-09-03 使用者要求：被動說明要像 v0.11 手機上那樣大（v0.11 的大字是瀏覽器文字自動放大的副作用，行數變少就失效）；改成固定 clamp，844 寬≈16px */
 #selDesc{flex:1;font-size:clamp(13px,1.9vw,17px);color:var(--dim);line-height:1.5;min-width:0}
 #selDesc b{color:var(--ink)}
@@ -3283,7 +3290,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
-  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false;
+  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null;
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
     const select=$("selectScr"),title=$("titleScr"),message=$("verLine");
@@ -5763,19 +5770,17 @@ function revealEventUI(){
 }
 function startBidUI(){
   BIDS_OPEN=true;
-  /* 夜行錄：章節局第 1 夜第一個畫面由主角說 feud.open（rngUi）；那一夜盯上台詞讓位。常規局這行恆 false、一行不走 */
-  const nwOpen=!!(S.chapter&&S.round===1&&!NW_OPEN_SAID);
-  if(nwOpen){ NW_OPEN_SAID=true; MARK_SAID_ROUND=S.round; }
-  const nwOpenLine=nwOpen?nwFeudPick("open"):null;
+  /* 夜行錄：章節局第 1 夜由主角說 feud.open——在 showMarket 尾端（出價畫面座位重畫之後）才說，見 nwBidScreenBubble；
+     那一夜盯上台詞讓位。常規局這行恆 false、一行不走 */
+  if(S.chapter&&S.round===1&&!NW_OPEN_SAID) MARK_SAID_ROUND=S.round;
   sayMarkOne(); /* A3 S4：出價畫面出現時一位有盯的 AI 說盯上台詞（純演出、rngUi） */   /* 本席的密封標從這裡開始收（盯上宣告也算在內：pickMark 之後要回得到市場） */
   /* 盯上宣告（§5.8）：真人先釘再出價；已釘過（熱座交棒回來）就直接進市場 */
-  if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); nwSpeak(nwOpenLine); return; }
+  if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); return; }
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   /* 押寶夜（singleStake）：一注 X ＋ 勾選要壓哪幾件，交卷時才展開成 myBids */
   YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   initIncense();
   showMarket();
-  nwSpeak(nwOpenLine); /* 座位卡剛由 showMarkUI／showMarket 重畫，對話泡要在這之後掛 */
 }
 /* 燒香（請神 3.0）：**不選尊**，只決定這一夜往自己的香火池投多少，預設 0（＝不燒）。
    三尊都被請走（或 LEGEND_ON=false）就是 null＝出價面板不長那一列——再燒也換不到東西，
@@ -5951,6 +5956,7 @@ function showMarket(){
   $("mainbtn").onclick=submitHumanBids;   /* 封標音由 initSfx 的委派認 onclick===submitHumanBids 播 seal，不掛屬性 */
   renderBloodBtn(ap);   /* 放血鈕在底部列，跟著出價畫面一起重繪 */
   updateBudget();
+  nwBidScreenBubble();   /* 夜行錄：第 1 夜出價畫面第一次畫好（startBidUI 或盯上後 pickMark 兩條路都到這裡）才說開局台詞，之後每次重畫期限內補回；常規局立即返回 */
 }
 /* 獻祭放血：只有持有 bloodlet flag（目前＝獻祭刀）的出價者看得到。
    它本來是牌桌上獨立的 .bloodbar 一整列，2026-09-02 改掛到底部 #south（袋子／ⓘ 旁）——
@@ -7807,6 +7813,30 @@ function nwFeudPick(key){
 }
 function nwSpeak(line){ if(!line) return; say(line.pid,line.text); babble(S.players[line.pid],line.text); }
 let NW_OPEN_SAID=false;
+/* 開局台詞泡：一般 say() 2.3 秒後收、而且出價畫面每次加減價都會 renderSeats 把泡清掉；
+   開局這句改成「NW_OPEN_MS 內每次出價畫面重畫都補回」，到期才收。 */
+const NW_OPEN_MS=6000;
+let NW_BUBBLE=null;
+function nwBubbleRestore(){
+  if(!NW_BUBBLE) return;
+  if(Date.now()>=NW_BUBBLE.until){ NW_BUBBLE=null; return; }
+  const b=$("bub"+NW_BUBBLE.pid); if(!b) return;
+  b.textContent=NW_BUBBLE.text; b.classList.add("show");
+}
+function nwBidScreenBubble(){
+  if(!S||!S.chapter) return;
+  if(S.round===1&&!NW_OPEN_SAID){ NW_OPEN_SAID=true; nwShowOpen(); return; }
+  nwBubbleRestore();
+}
+function nwShowOpen(){
+  const line=nwFeudPick("open"); if(!line) return null;
+  const until=Date.now()+NW_OPEN_MS;
+  NW_BUBBLE={...line,until};
+  nwBubbleRestore();
+  babble(S.players[line.pid],line.text);
+  setTimeout(()=>{ if(NW_BUBBLE&&NW_BUBBLE.until===until){ const b=$("bub"+line.pid); if(b) b.classList.remove("show"); NW_BUBBLE=null; } },NW_OPEN_MS);
+  return line;
+}
 /* ===== 介面：#nwScr 一層畫章節選單／引言卡／殘卷卡（與 #selectScr 同層、同語彙） ===== */
 let NW_VIEW={v:"menu",n:null,back:null};
 function nwMenuHTML(st){
@@ -7830,6 +7860,7 @@ function nwIntroHTML(c){
     <div class="nwNo">夜行錄・第${NW_CN[c.n]}章</div>
     <h2 class="nwH">${c.title}</h2>
     <div class="nwBossRow"><span class="nwAv sm">${roleAvHTML(R)}</span><b>${R.name}</b><span class="mut">本章主角，坐北</span></div>
+    <div class="nwQuote nwOpenQuote">${R.name}：「${c.feud.open[0]}」</div>
     <div class="nwIntro">${c.intro.map(t=>`<p>${t}</p>`).join("")}</div>
     <div class="nwTeach"><div class="nwTeachH">本章新規則</div><ul>${c.teach.map(t=>`<li>${t}</li>`).join("")}</ul></div>
     <div class="nwBtns"><button class="bigbtn" id="nwGo" onclick="nwBegin(${c.n})">選角入市</button><button class="bigbtn alt" onclick="nwRender('menu')">返回章節</button></div>

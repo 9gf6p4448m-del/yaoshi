@@ -67,10 +67,17 @@ async function driveUntil(page, re, log) {
   throw new Error('driveUntil 卡住：' + await page.evaluate(() => document.getElementById('mainbtn') && document.getElementById('mainbtn').textContent));
 }
 
-const layoutOf = (page) => page.evaluate(() => {
+/* 版面量測：卡片（cardSel）完整顯示＝框在視口內且內容沒被自己裁掉；否則要有可捲的一層（卡片本身或最近的可捲祖先）。 */
+const layoutOf = (page, cardSel) => page.evaluate((cardSel) => {
   const s = document.getElementById('nwScr');
-  const card = s && s.querySelector('.stageCard, .nwGrid');
+  const card = document.querySelector(cardSel);
   const r = card ? card.getBoundingClientRect() : null;
+  let sc = null;
+  for (let e = card; e && e !== document.body; e = e.parentElement) {
+    const oy = getComputedStyle(e).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && e.scrollHeight > e.clientHeight + 1) { sc = e; break; }
+  }
+  const fully = !!r && r.top >= -0.5 && r.left >= -0.5 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5 && card.scrollHeight <= card.clientHeight + 1;
   return {
     viewport: [innerWidth, innerHeight],
     docScrollWidth: document.documentElement.scrollWidth,
@@ -78,30 +85,56 @@ const layoutOf = (page) => page.evaluate(() => {
     nwScrollWidth: s ? s.scrollWidth : null, nwClientWidth: s ? s.clientWidth : null,
     nwScrollHeight: s ? s.scrollHeight : null, nwClientHeight: s ? s.clientHeight : null,
     nwOverflowY: s ? getComputedStyle(s).overflowY : null,
-    cardRect: r ? [Math.round(r.left), Math.round(r.right)] : null,
+    cardRect: r ? [r.left, r.top, r.right, r.bottom].map(Math.round) : null,
+    cardScroll: card ? [card.scrollHeight, card.clientHeight, getComputedStyle(card).overflowY] : null,
+    fully, scroller: sc ? (sc === card ? 'card' : '#' + sc.id + '.' + String(sc.className).slice(0, 30)) : null,
     view: s ? s.dataset.view : null,
   };
+}, cardSel);
+/* 按鈕捲得到：scrollIntoView 之後框在視口內，且框中心點命中的就是它（或它的子元素）＝可點 */
+const reach = (page, sels) => page.evaluate((sels) => sels.map((sel) => {
+  const el = document.querySelector(sel);
+  if (!el) return { sel, found: false, ok: false };
+  el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const r = el.getBoundingClientRect();
+  const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  const inView = r.width > 0 && r.height > 0 && r.top >= -0.5 && r.left >= -0.5 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5;
+  const clickable = !!hit && (hit === el || el.contains(hit));
+  return { sel, found: true, rect: [r.left, r.top, r.right, r.bottom].map(Math.round), inView, clickable, hit: hit ? hit.tagName + '#' + hit.id : null, ok: inView && clickable };
+}), sels);
+const resetScroll = (page) => page.evaluate(() => {
+  for (const q of ['#nwScr', '#nwScr .stageCard', '#felt', '#stage', '#stage .stageCard']) { const e = document.querySelector(q); if (e) e.scrollTop = 0; }
 });
 
-async function shoot(page, name, evid) {
+/* 直式 390×844（暫時隱藏 #rotateHint）＋橫式 844×390 各量一次、各拍一張；橫式卡片沒有完整顯示時，另拍一張「捲到按鈕後」 */
+async function shoot(page, name, evid, cardSel, btnSels) {
   const hide = await page.addStyleTag({ content: '#rotateHint{display:none!important}' });
   await page.waitForTimeout(120);
-  const portrait = await layoutOf(page);
+  await resetScroll(page);
+  const portrait = await layoutOf(page, cardSel);
   await page.screenshot({ path: path.join(OUT, `probe-${name}-390x844.png`) });
+  const portraitBtns = await reach(page, btnSels);
   await hide.evaluate((el) => el.remove());
   await page.setViewportSize({ width: H, height: W });
-  await page.waitForTimeout(200);
-  const landscape = await layoutOf(page);
-  await page.screenshot({ path: path.join(OUT, `probe-${name}-844x390.png`) });
+  await page.waitForTimeout(250);
+  await resetScroll(page);
+  const landscape = await layoutOf(page, cardSel);
+  const files = [`probe-${name}-390x844.png`, `probe-${name}-844x390.png`];
+  await page.screenshot({ path: path.join(OUT, files[1]) });
+  const landscapeBtns = await reach(page, btnSels);
+  if (!landscape.fully) { files.push(`probe-${name}-844x390-btn.png`); await page.screenshot({ path: path.join(OUT, files[2]) }); }
   await page.setViewportSize({ width: W, height: H });
   await page.waitForTimeout(200);
-  /* 凍結 #12 的判準是 documentElement.scrollWidth ≤ 390；另加夜行錄這一層（#nwScr 與卡片）不超寬。
+  await resetScroll(page);
+  /* 凍結 #12 的判準是 documentElement.scrollWidth ≤ 390；另加夜行錄這一層（#nwScr 與卡片）不超寬、卡片完整或可捲、按鈕捲得到且可點。
      body.scrollWidth 只記錄不判：局末北家對話泡（既有 .bubble，white-space:nowrap）在直式會把 body 撐到 522，
-     基準 3a0d971 常規局同樣 522（body 是 position:fixed＋overflow:hidden，頁面不會橫捲；直式本來就被 #rotateHint 蓋住）。 */
-  const ok = portrait.docScrollWidth <= W && portrait.nwScrollWidth <= W
-    && portrait.cardRect[0] >= 0 && portrait.cardRect[1] <= W
-    && (portrait.nwScrollHeight <= portrait.nwClientHeight || portrait.nwOverflowY === 'auto' || portrait.nwOverflowY === 'scroll');
-  evid.shots[name] = { portrait, landscape, ok, files: [`probe-${name}-390x844.png`, `probe-${name}-844x390.png`] };
+     基準 3a0d971 常規局同樣 522（body 是 position:fixed＋overflow:hidden，頁面不會橫捲；直式本來就被 #rotateHint 蓋住）。
+     橫式 844×390（協調者加嚴）：documentElement.scrollWidth ≤ 844、卡片完整或可捲、按鈕 scrollIntoView 後在視口內且可點。 */
+  const ok = portrait.docScrollWidth <= W && (portrait.nwScrollWidth || 0) <= W
+    && !!portrait.cardRect && portrait.cardRect[0] >= 0 && portrait.cardRect[2] <= W
+    && (portrait.fully || !!portrait.scroller) && portraitBtns.every((b) => b.ok);
+  const okLandscape = landscape.docScrollWidth <= H && (landscape.fully || !!landscape.scroller) && landscapeBtns.every((b) => b.ok);
+  evid.shots[name] = { portrait, portraitBtns, landscape, landscapeBtns, ok, okLandscape, files };
 }
 
 /* 額外畫面（不在凍結三張內）：直式隱藏 #rotateHint 一張＋橫式一張 */
@@ -117,6 +150,39 @@ async function shootExtra(page, name, evid) {
   await page.setViewportSize({ width: W, height: H });
   await page.waitForTimeout(200);
   evid.extraShots[name] = { files: [`probe-${name}-390x844.png`, `probe-${name}-844x390.png`], landscapeDocScrollWidth: docScrollWidth };
+}
+
+/* 第 1 夜：推進到出價畫面（盯上畫面按主鈕「不盯任何一件」），在出價畫面取樣對話泡；取樣 3 次後再呼叫一次 showMarket()
+   （加減價時產品走的同一支重畫）確認泡還在。盯上畫面上的泡也記下來（只記錄不判）。 */
+const BUBBLES_FN = `[...document.querySelectorAll('.bubble.show')].map((e) => ({ id: e.id, text: e.textContent }))`;
+async function reachBidAndSample(page, feudOpen) {
+  const out = { markScreen: [], bid: [], afterRerender: null, reached: false };
+  for (let i = 0; i < 400; i++) {
+    await page.waitForTimeout(50);
+    const st = await page.evaluate(`(() => { const b = document.getElementById('mainbtn');
+      return { round: window.__yaoshi.S.round, txt: b.textContent, dis: b.disabled, bubbles: ${BUBBLES_FN} }; })()`);
+    if (st.round !== 1) break;
+    if (/^蓋牌/.test(st.txt)) {
+      out.reached = true;
+      out.bid.push(st.bubbles);
+      if (out.bid.length >= 3) {
+        out.afterRerender = await page.evaluate(`(() => { showMarket(); return ${BUBBLES_FN}; })()`);
+        break;
+      }
+      continue;
+    }
+    out.markScreen.push(st.bubbles);
+    await page.evaluate(() => {
+      const b = document.getElementById('mainbtn');
+      if (b && !b.disabled) { b.click(); return; }
+      const sb = [...document.querySelectorAll('#stage button')].find((e) => !e.disabled); if (sb) sb.click();
+    });
+  }
+  const has = (arr) => arr.some((b) => b.text.includes(feudOpen));
+  out.hitOnBid = out.bid.some(has);
+  out.hitAfterRerender = !!out.afterRerender && has(out.afterRerender);
+  out.seenOnMarkScreen = out.markScreen.some(has);
+  return out;
 }
 async function runPath(browser, mode, evid) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2 });
@@ -143,13 +209,13 @@ async function runPath(browser, mode, evid) {
     await page.waitForFunction(() => document.getElementById('nwScr').classList.contains('on') && document.getElementById('nwScr').dataset.view === 'menu');
     P.menu = await page.evaluate(() => [...document.querySelectorAll('#nwScr .nwCard')].map((c) => ({ ch: c.dataset.ch, cls: c.className, text: c.innerText.replace(/\s+/g, ' ').trim(), avatarSvg: !!c.querySelector('.nwAv svg') })));
     await scan(page, P.scan, 'menu');
-    if (mode === 'fail') await shoot(page, 'menu', evid);
+    if (mode === 'fail') await shoot(page, 'menu', evid, '#nwScr .nwGrid', ['#nwScr .nwCard[data-ch="1"] .nwBtns button']);
     /* 第 1 章 → 引言卡 */
     await page.evaluate(() => document.querySelector('#nwScr .nwCard[data-ch="1"] .nwBtns button').click());
     await page.waitForFunction(() => document.getElementById('nwScr').dataset.view === 'intro');
     P.intro = await page.evaluate(() => document.querySelector('#nwScr .stageCard').innerText);
     await scan(page, P.scan, 'intro');
-    if (mode === 'fail') await shoot(page, 'intro', evid);
+    if (mode === 'fail') await shoot(page, 'intro', evid, '#nwScr .stageCard', ['#nwGo']);
     /* 選角（排除主角） */
     await page.evaluate(() => document.getElementById('nwGo').click());
     await page.waitForFunction(() => document.getElementById('selectScr').classList.contains('on') && document.querySelectorAll('#selGrid .rcard').length > 0);
@@ -159,9 +225,9 @@ async function runPath(browser, mode, evid) {
     await page.evaluate(() => document.getElementById('selBtn').click());
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.chapter === 1);
     P.game = await page.evaluate(() => { const S = window.__yaoshi.S; return { seed: S.seed, chapter: S.chapter, chainsOff: S.chainsOff, destinyEffectMode: S.destinyEffectMode, destinyAiChase: S.destinyAiChase, seats: S.players.map((p) => ({ role: p.roleId, human: !p.ai })) }; });
-    /* 第 1 夜主角台詞（對話泡） */
-    await page.waitForFunction(() => { const b = document.getElementById('bub1'); return b && b.classList.contains('show') && b.textContent; }, null, { timeout: 15000 }).catch(() => {});
-    P.openLine = await page.evaluate(() => { const b = document.getElementById('bub1'); return b ? b.textContent : null; });
+    /* 第 1 夜主角開局台詞：出價畫面階段 DOM 內要有含 feud.open 的對話泡（重畫後仍在） */
+    P.feudOpen = await page.evaluate(() => window.__yaoshi.nwChapter(1).feud.open[0]);
+    P.openBubble = await reachBidAndSample(page, P.feudOpen);
     /* 局中主動打開袋子（自己／北家主角）與規則頁各掃一次 */
     for (const [label, fn] of [['bag-self', 'showBag(0)'], ['bag-boss', 'showBag(1)'], ['help', 'openHelp()']]) {
       await page.evaluate(fn);
@@ -198,13 +264,13 @@ async function runPath(browser, mode, evid) {
       feud: window.__yaoshi.nwChapter(1).feud,
     }));
     await scan(page, P.scan, 'end');
-    await shootExtra(page, 'end-' + mode, evid);
+    await shoot(page, 'end-' + mode, evid, '#stage .stageCard', [mode === 'pass' ? '#nwReadScroll' : '#nwRetry', '#mainbtn']);
     if (mode === 'pass') {
       await page.evaluate(() => document.getElementById('nwReadScroll').click());
       await page.waitForFunction(() => document.getElementById('nwScr').classList.contains('on') && document.getElementById('nwScr').dataset.view === 'scroll');
       P.scroll = await page.evaluate(() => document.querySelector('#nwScr .stageCard').innerText);
       await scan(page, P.scan, 'scroll');
-      await shoot(page, 'scroll', evid);
+      await shoot(page, 'scroll', evid, '#nwScr .stageCard', ['#nwScrollClose']);
       await page.evaluate(() => document.getElementById('nwScrollClose').click());
       P.scrollClosed = await page.evaluate(() => !document.getElementById('nwScr').classList.contains('on') && /回章節選單/.test(document.getElementById('mainbtn').textContent));
       /* 回章節選單（重載 ?nw=menu）→ 第 1 章已通關、第 2 章可挑戰、第 3 章仍鎖 */
@@ -243,7 +309,9 @@ const checks = {
   failVerdict: /未過關/.test(F.end.verdict || '') && F.end.verdict.includes(boss) && F.end.retry && !F.end.readScroll && F.end.saved === null,
   passVerdict: /過關/.test(Pp.end.verdict || '') && !/未過關/.test(Pp.end.verdict) && Pp.end.verdict.includes(boss) && Pp.end.readScroll && !Pp.end.retry && Pp.end.saved === '{"v":1,"cleared":[1]}',
   bossLines: F.end.bubble === F.end.feud.bossWin[0] && Pp.end.bubble === Pp.end.feud.bossLose[0] && (F.end.quote || '').includes(F.end.feud.bossWin[0]) && (Pp.end.quote || '').includes(Pp.end.feud.bossLose[0]),
-  openLine: F.openLine === F.end.feud.open[0] && Pp.openLine === Pp.end.feud.open[0],
+  openBubbleOnBid: [F, Pp].every((x) => x.openBubble.reached && x.openBubble.hitOnBid && x.openBubble.hitAfterRerender),
+  introQuote: [F, Pp].every((x) => x.intro.includes(x.feudOpen)),
+  landscape844: ['menu', 'intro', 'scroll', 'end-fail', 'end-pass'].every((k) => evid.shots[k] && evid.shots[k].okLandscape),
   oneReviewButton: F.end.reviewButtons === 1 && Pp.end.reviewButtons === 1,
   selectExcludesBoss: F.select.cards.length === 9 && !F.select.cards.includes(boss) && F.regularSelectCards === 10,
   bossSeat: F.game.seats.filter((s) => s.role === 'qingmian').length === 1 && F.game.seats[1].role === 'qingmian' && !F.game.seats[1].human && F.game.chainsOff === true && F.game.destinyEffectMode === 'off',
@@ -251,7 +319,7 @@ const checks = {
   menuAfterPass: !!Pp.afterMenu && Pp.afterMenu.cards[0].st === '已通關 ✓' && Pp.afterMenu.cards[1].st === '可挑戰' && /locked/.test(Pp.afterMenu.cards[2].cls),
   scrollClosed: Pp.scrollClosed === true,
   screenshots3: ['menu', 'intro', 'scroll'].every((k) => evid.shots[k] && evid.shots[k].files.every((f) => fs.existsSync(path.join(OUT, f)))),
-  scrollWidth390: ['menu', 'intro', 'scroll'].every((k) => evid.shots[k] && evid.shots[k].ok),
+  scrollWidth390: ['menu', 'intro', 'scroll'].every((k) => evid.shots[k] && evid.shots[k].ok), /* 局末卡直式不在凍結 #12 三張內：只記錄 */
 };
 evid.checks = checks;
 evid.allPass = Object.values(checks).every(Boolean);
@@ -262,6 +330,8 @@ evid.notes = [
 ];
 fs.writeFileSync(path.join(OUT, 'probe-result.json'), JSON.stringify(evid, null, 1), 'utf8');
 console.log(JSON.stringify({ checks, allPass: evid.allPass,
+  openBubble: { fail: F.openBubble, pass: Pp.openBubble },
+  landscape: Object.fromEntries(Object.entries(evid.shots).map(([k, v]) => [k, { okLandscape: v.okLandscape, fully: v.landscape.fully, scroller: v.landscape.scroller, docW: v.landscape.docScrollWidth, btns: v.landscapeBtns.map((b) => [b.sel, b.ok, b.rect]) }])),
   fail: { seed: F.game.seed, natural: F.force.natural, verdict: F.end.verdict, pageerrors: F.pageerrors, consoleErrors: F.consoleErrors, scan: { samples: F.scan.samples, hits: F.scan.hits } },
   pass: { seed: Pp.game.seed, natural: Pp.force.natural, verdict: Pp.end.verdict, pageerrors: Pp.pageerrors, consoleErrors: Pp.consoleErrors, scan: { samples: Pp.scan.samples, hits: Pp.scan.hits } },
   rotateHintShownInPortrait: F.rotateHintShownInPortrait, out: OUT }, null, 1));
