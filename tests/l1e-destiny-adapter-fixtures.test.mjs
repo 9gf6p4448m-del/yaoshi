@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const adapterModule = './tools/l1e-destiny-adapter-fixtures.mjs';
 const CHAIN_IDS = ['water', 'eyes', 'twinTiger', 'bloodOath', 'godKing', 'eternalFlame'];
@@ -69,7 +71,10 @@ test('v2 contract pins the current product and keeps six-of-four and release gat
   assert.equal(source.commit, 'd63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a');
   assert.equal(source.blobOid, '8ba772b9d960eff8b9c42eac77040433f809c57d');
   assert.equal(source.sha256, '8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d');
-  assert.equal(source.currentWorktreeMatches, true);
+  /* 2026-09-24 起工作樹可與 pin 不同（血祭 blood-L）；欄位須照實反映 git diff。 */
+  const worktreeDiff = spawnSync('git', ['diff', '--quiet', source.commit, '--', 'index.html'],
+    { cwd: fileURLToPath(new URL('..', import.meta.url)) });
+  assert.equal(source.currentWorktreeMatches, worktreeDiff.status === 0);
   const { provenance } = adapter.loadPinnedFixtureEngine();
   assert.match(provenance.adapterSha256, /^[a-f0-9]{64}$/);
   assert.match(provenance.fixtureSha256, /^[a-f0-9]{64}$/);

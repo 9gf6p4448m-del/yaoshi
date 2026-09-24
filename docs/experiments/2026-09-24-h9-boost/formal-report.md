@@ -19,3 +19,8 @@
 - 改動後：312/383；**71 項失敗全部是** `worktree index.html differs from the product source pinned by the v2 contract`（`tests/tools/l1e-destiny-adapter-fixtures.mjs:50`），分佈在 X 模型 v2–v11 的 11 個測試檔。其他測試無新失敗。
 - 另：`tests/tools/l1-destiny-h9-activity.mjs`、`l1-destiny-h9-choice-impact.mjs` 以舊字面值做替換，與新產品不相容（診斷工具，非測試）。
 - 處理方式待使用者裁定。
+
+## X 模型鎖定處理（使用者 2026-09-24 裁定）
+
+- X 模型 v2–v11 仍從 git 讀 `d63f03e` 版 `index.html` 並核對雜湊；不再要求工作樹等於該版（`tests/tools/l1e-destiny-adapter-fixtures.mjs` 改為照實回報 `currentWorktreeMatches`，`l1e-cross-night-restore-adapter-v9.mjs` 拿掉工作樹一致條件）。模型描述的是 `d63f03e` 版產品，不是含 blood-L 的現行產品。
+- 回歸：修改後 383/383 通過。鑑別：把欄位寫死回 `true` 時 `tests/l1e-destiny-adapter-fixtures.test.mjs` 1 項失敗（actual `true`），還原後 7/7。

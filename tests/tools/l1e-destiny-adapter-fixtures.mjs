@@ -44,17 +44,19 @@ export function verifyPinnedProductSource() {
   if (sourceSha256 !== pin.sha256 || blobOid !== pin.gitBlobOid)
     throw new Error('pinned product source hash or Git blob does not match the v2 contract');
 
+  /* 模型描述的是 pin 版產品（上面已從 git 讀出並核對雜湊），不是現行工作樹。現行產品可另行演進
+     （2026-09-24 使用者裁定：血祭 blood-L 改值後不再要求工作樹等於 pin），這裡只照實回報是否一致。 */
   const diff = spawnSync('git', ['diff', '--quiet', pin.commit, '--', 'index.html'], { cwd: ROOT });
   if (diff.error) throw diff.error;
-  if (diff.status !== 0)
-    throw new Error('worktree index.html differs from the product source pinned by the v2 contract');
+  if (diff.status !== 0 && diff.status !== 1)
+    throw new Error(`git diff against the pinned product failed with status ${diff.status}`);
 
   return {
     commit: pin.commit,
     blobOid,
     sha256: sourceSha256,
     sourceText,
-    currentWorktreeMatches: true,
+    currentWorktreeMatches: diff.status === 0,
   };
 }
 

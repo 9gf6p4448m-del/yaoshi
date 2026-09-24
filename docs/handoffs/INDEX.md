@@ -23,6 +23,8 @@ X 新發布裁定提案（2026-09-24）：[提案](../experiments/2026-09-23-des
 
 長時 SFX 間歇診斷（2026-09-24）：[診斷報告](../experiments/2026-09-24-sfx-stall/report.md)。歷史「driveUntil 卡住：下一件拍品／開戰」是舊測試驅動的**輪詢次數預算（4000 次）耗盡**，不是產品卡死：上限低於該局所需時判卡、無上限續推 3/3 局都打完（其中 2 局 0 跳過）；一局 seed 3 共需 4066 次，原 4000 上限下也會誤判。`998f2fc` 改牆鐘預算才是實際修正，產品未改。限制：判卡方向只完成 3/5 局（兩度遭系統記憶體不足中止）、未回舊產品版重跑；新驅動幾乎每夜跳過對決，故 SFX 長測不覆蓋對決音效，5 分鐘預算在慢機可能再度吃緊。使用者 2026-09-24 裁定：**SFX 間歇移出發布阻擋項**，發布前仍照計畫跑一次含長時 SFX 的全套測試；H9／焦點／真人冷讀仍擋，`releaseEligible=false`。
 
+普通版 H9 血祭數值修正（2026-09-24）：使用者裁定加強數值。[試跑](../experiments/2026-09-24-h9-boost/report.md)（種子 30001+，每臂 10k）：雙虎部隊 10／10、11／12 的 H9 −0.71／−0.03，加強部隊無效，**雙虎列已知診斷基線**；血祭 ≤20 +1／+2 為 +1.40／+2.85，第二輪 ≤25 +2 為 +3.14。產品 `0592512` 改為「殘血（≤25）全隊 atk +2」，[正式驗收](../experiments/2026-09-24-h9-boost/formal-report.md)（種子 10001..20000，14 臂各 10k）：**血祭 H9 +3.57 pass、H1 +2.57 pass**，其他鏈無 pass→fail（水陸 H1 +4.84 仍貼近上限）。X 模型 v2–v11 改為只核對 `d63f03e` pin、不再要求工作樹一致（使用者裁定），全測 383/383。仍擋發布：雙虎（已知基線，需新發布裁定）、千眼 incomplete、焦點四鏈、真人冷讀；`releaseEligible=false`。
+
 X fixtures 追加（2026-09-24）：[v2 六鏈／天命模型契約](../experiments/2026-09-23-destiny/model-contract-v2.md)固定 `d63f03e` 產品來源；TDD checkpoints `8e1af2b`／`d34dc99`。私函支持集、首次拍賣局部 restore、揭露前 replay 與逐席投影 fixtures 7/7 通過；與既有天命、資訊及舊契約盤點測試合計 61/61。局部 fixture 不等於完整 chance／snapshot／資訊集合，`sixOfFour=incomplete`、`releaseEligible=false`。下一個 X 工程是所有席位合法動作與 observation-history adapter；五人真人冷讀和 SFX 間歇原因仍待處理。
 
 X 拍賣 adapter 追加（2026-09-24）：[v3 契約](../experiments/2026-09-23-destiny/model-contract-v3.md)；TDD checkpoints `84f92f7`／`8091039`。任一存活席位一般夜與押寶夜的密封提交可 lazy-enumerate，並以凍結 `resolveAuction` 結算小型 fixture；逐席拍賣 observation／本席歷史鍵遮蔽未揭資訊。新測試 6/6，合併 v2、天命、資訊和 v1 盤點回歸 67/67。其餘相位、異事選擇結果、跨階段 full recall、solver 均未完成；產品和平衡沒有變更，仍不發布。

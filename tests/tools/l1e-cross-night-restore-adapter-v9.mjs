@@ -260,8 +260,7 @@ export function loadCrossNightRestoreEngineV9() {
   if (contract.previousContract?.schema !== 'yaoshi.l1e.sixOfFour.modelContract.v8' ||
       contract.source?.commit !== PRODUCT_PIN.commit || contract.source?.gitBlobOid !== PRODUCT_PIN.gitBlobOid ||
       contract.source?.sha256 !== PRODUCT_PIN.sha256 || pinned.commit !== PRODUCT_PIN.commit ||
-      pinned.blobOid !== PRODUCT_PIN.gitBlobOid || pinned.sha256 !== PRODUCT_PIN.sha256 ||
-      pinned.currentWorktreeMatches !== true)
+      pinned.blobOid !== PRODUCT_PIN.gitBlobOid || pinned.sha256 !== PRODUCT_PIN.sha256)
     throw new Error('v9 frozen product source verification failed');
 
   const storage = { getItem() { return null; }, setItem() {} };
