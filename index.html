@@ -2049,7 +2049,7 @@ const CHAINS={
     flags:["markTax"],
     army:{name:"雙虎滅煞",f:"xianghuo",ab:"twinTiger",unit:{body:"elite",count:1,atk:9,hp:8,trait:"twinTigerSweep"}}},
   bloodOath:{id:"bloodOath",name:"血祭過陰",requirements:["xianji","guoyin"],
-    desc:"押命標比價 eff +1；殘血（≤15）全隊 atk +1，首拍自傷反噬敵前鋒 1 血",aiBonus:2,
+    desc:"押命標比價 eff +1；殘血（≤25）全隊 atk +2，首拍自傷反噬敵前鋒 1 血",aiBonus:2,
     flags:["yamingEffBonus","bloodSacrifice"],
     hooks:{onBidEff(ctx){ if(ctx.bid&&ctx.bid.type==="yaming") ctx.eff+=1; }}},
   godKing:{id:"godKing",name:"神王破煞",requirements:["bow","sword"],
@@ -4532,7 +4532,7 @@ function pwPass(sd,foe,beat,fac,phase,env){
       let a=u.atk+sd.mod+(t.bonus||0)-(u.curseLock||0)-(u.destinyTigerWeaken||0);
       if(sd.trueGodKingBonus&&(S?.destinyEffectMode!=="candidate"||beat===1)) a++;
       if(beat===1&&hasFlag(foe.p,"beat1WeakenFront")&&pwFront(u)) a=Math.max(0,a-2);
-      if(hasFlag(sd.p,"bloodSacrifice")&&sd.p.life<=15) a+=1;
+      if(hasFlag(sd.p,"bloodSacrifice")&&sd.p.life<=25) a+=2;
       if(t.tr&&t.tr.lastStand&&aliveT===1){ a+=t.tr.lastStand; pwFire(env,t.tr,`🏴 殘旗插心：atk+${t.tr.lastStand}`,sd); }
       if(fear) a-=(u.body==="elite")?Math.floor(fear.f/2):(fear.f+fear.dread);
       if(a<=0) continue;
