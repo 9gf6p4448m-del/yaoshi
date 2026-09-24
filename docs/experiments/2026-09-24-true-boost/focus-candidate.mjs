@@ -33,13 +33,15 @@ const R={
   shield:['u.destinyShield=(u.destinyShield||0)+2;','u.destinyShield=(u.destinyShield||0)+3;'],
   dayLife:['const p=S.players[pid];p.life+=1;','const p=S.players[pid];p.life+=2;'],
   kingLife:['win.life+=3;','win.life+=5;'],
+  kingLife7:['win.life+=3;','win.life+=7;'],
   smite:['if(sd.trueGodKingBonus&&(S?.destinyEffectMode!=="candidate"||beat===1)) a++;',
     'if(sd.trueGodKingBonus&&(S?.destinyEffectMode!=="candidate"||beat===1)) a+=2;']
 };
 export const VARIANTS={
   base:[],
   S:[R.shield,R.kingLife],                       // flame-S + king-S
-  M:[R.shield,R.dayLife,R.kingLife,R.smite]      // flame-M + king-M
+  M:[R.shield,R.dayLife,R.kingLife,R.smite],     // flame-M + king-M
+  L:[R.shield,R.dayLife,R.kingLife7]             // flame-M + king-L（第二輪）
 };
 export function candidateProduct(productText,variant){
   const list=VARIANTS[variant];
