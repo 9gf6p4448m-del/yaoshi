@@ -27,6 +27,8 @@ X 新發布裁定提案（2026-09-24）：[提案](../experiments/2026-09-23-des
 
 發布裁定（使用者 2026-09-24）：①普通版 H9 雙虎（+0.57pp，fail）**不擋發布**，數字與失敗 raw 照實保留、列已知限制；②普通版 H9 千眼 `incomplete` **不擋發布**，列已知限制（原 H9 桌不消費情報；知情補充座位 0 差 −0.18pp）；③真版焦點：先用 `0592512` 新值重跑血祭焦點對照（舊 −0.24pp 用舊值、已過期），再決定「真版先關再發布」或「開新一輪真版調值」；④五人真人冷讀**維持發布前必要條件**，記分表加雙虎／血祭兩題。仍擋：真版焦點（G）、真人冷讀、真長明吸收量、版本字串；`releaseEligible=false`。
 
+真版焦點重跑與裁定（2026-09-24）：[重跑報告](../experiments/2026-09-24-h9-boost/focus-rerun-report.md)在現行產品上血祭仍 fail（0.00pp），神王候選 incomplete→fail，六鏈無 pass；多數屬「真版幾乎不改變勝負」而非過強。使用者裁定：**真版維持開啟、列已知限制**，發布條件 G 的真版焦點平衡由此裁定豁免，發布說明須明寫「真版平衡尚未達設計目標」。仍擋發布：五人真人冷讀（記分表已加雙虎／血祭題，改用含 `0592512` 的建置）、真長明吸收量、版本字串統一 0.57.41；`releaseEligible=false`。
+
 X fixtures 追加（2026-09-24）：[v2 六鏈／天命模型契約](../experiments/2026-09-23-destiny/model-contract-v2.md)固定 `d63f03e` 產品來源；TDD checkpoints `8e1af2b`／`d34dc99`。私函支持集、首次拍賣局部 restore、揭露前 replay 與逐席投影 fixtures 7/7 通過；與既有天命、資訊及舊契約盤點測試合計 61/61。局部 fixture 不等於完整 chance／snapshot／資訊集合，`sixOfFour=incomplete`、`releaseEligible=false`。下一個 X 工程是所有席位合法動作與 observation-history adapter；五人真人冷讀和 SFX 間歇原因仍待處理。
 
 X 拍賣 adapter 追加（2026-09-24）：[v3 契約](../experiments/2026-09-23-destiny/model-contract-v3.md)；TDD checkpoints `84f92f7`／`8091039`。任一存活席位一般夜與押寶夜的密封提交可 lazy-enumerate，並以凍結 `resolveAuction` 結算小型 fixture；逐席拍賣 observation／本席歷史鍵遮蔽未揭資訊。新測試 6/6，合併 v2、天命、資訊和 v1 盤點回歸 67/67。其餘相位、異事選擇結果、跨階段 full recall、solver 均未完成；產品和平衡沒有變更，仍不發布。
