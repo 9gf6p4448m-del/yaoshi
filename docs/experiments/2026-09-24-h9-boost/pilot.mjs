@@ -21,6 +21,7 @@ export const CANDIDATES={
   'tiger-M':[[TIGER,'atk:11,hp:12,trait:"twinTigerSweep"']],
   'blood-S':[[BLOOD,'hasFlag(sd.p,"bloodSacrifice")&&sd.p.life<=20) a+=1;']],
   'blood-M':[[BLOOD,'hasFlag(sd.p,"bloodSacrifice")&&sd.p.life<=20) a+=2;']],
+  'blood-L':[[BLOOD,'hasFlag(sd.p,"bloodSacrifice")&&sd.p.life<=25) a+=2;']],
 };
 
 export function candidateSource(cand){
