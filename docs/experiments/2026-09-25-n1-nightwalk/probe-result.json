@@ -16,10 +16,35 @@
     "nwOverflowY": "auto",
     "cardRect": [
      12,
-     378
+     90,
+     378,
+     450
     ],
+    "cardScroll": [
+     360,
+     360,
+     "visible"
+    ],
+    "fully": true,
+    "scroller": null,
     "view": "menu"
    },
+   "portraitBtns": [
+    {
+     "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+     "found": true,
+     "rect": [
+      85,
+      188,
+      139,
+      224
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#",
+     "ok": true
+    }
+   ],
    "landscape": {
     "viewport": [
      844,
@@ -34,11 +59,37 @@
     "nwOverflowY": "auto",
     "cardRect": [
      12,
-     832
+     71,
+     832,
+     215
     ],
+    "cardScroll": [
+     144,
+     144,
+     "visible"
+    ],
+    "fully": true,
+    "scroller": null,
     "view": "menu"
    },
+   "landscapeBtns": [
+    {
+     "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+     "found": true,
+     "rect": [
+      85,
+      169,
+      139,
+      205
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#",
+     "ok": true
+    }
+   ],
    "ok": true,
+   "okLandscape": true,
    "files": [
     "probe-menu-390x844.png",
     "probe-menu-844x390.png"
@@ -56,13 +107,38 @@
     "nwClientWidth": 390,
     "nwScrollHeight": 844,
     "nwClientHeight": 844,
-    "nwOverflowY": "auto",
+    "nwOverflowY": "hidden",
     "cardRect": [
      12,
-     378
+     10,
+     378,
+     572
     ],
+    "cardScroll": [
+     560,
+     560,
+     "auto"
+    ],
+    "fully": true,
+    "scroller": null,
     "view": "intro"
    },
+   "portraitBtns": [
+    {
+     "sel": "#nwGo",
+     "found": true,
+     "rect": [
+      27,
+      525,
+      107,
+      561
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwGo",
+     "ok": true
+    }
+   ],
    "landscape": {
     "viewport": [
      844,
@@ -72,19 +148,292 @@
     "bodyScrollWidth": 844,
     "nwScrollWidth": 844,
     "nwClientWidth": 844,
-    "nwScrollHeight": 461,
+    "nwScrollHeight": 390,
     "nwClientHeight": 390,
-    "nwOverflowY": "auto",
+    "nwOverflowY": "hidden",
     "cardRect": [
      142,
-     702
+     10,
+     702,
+     372
     ],
+    "cardScroll": [
+     468,
+     360,
+     "auto"
+    ],
+    "fully": false,
+    "scroller": "card",
     "view": "intro"
    },
+   "landscapeBtns": [
+    {
+     "sel": "#nwGo",
+     "found": true,
+     "rect": [
+      157,
+      325,
+      237,
+      361
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwGo",
+     "ok": true
+    }
+   ],
    "ok": true,
+   "okLandscape": true,
    "files": [
     "probe-intro-390x844.png",
-    "probe-intro-844x390.png"
+    "probe-intro-844x390.png",
+    "probe-intro-844x390-btn.png"
+   ]
+  },
+  "end-fail": {
+   "portrait": {
+    "viewport": [
+     390,
+     844
+    ],
+    "docScrollWidth": 390,
+    "bodyScrollWidth": 522,
+    "nwScrollWidth": 0,
+    "nwClientWidth": 0,
+    "nwScrollHeight": 0,
+    "nwClientHeight": 0,
+    "nwOverflowY": "hidden",
+    "cardRect": [
+     140,
+     165,
+     250,
+     1251
+    ],
+    "cardScroll": [
+     1084,
+     1084,
+     "visible"
+    ],
+    "fully": false,
+    "scroller": "#felt.",
+    "view": "intro"
+   },
+   "portraitBtns": [
+    {
+     "sel": "#nwRetry",
+     "found": true,
+     "rect": [
+      153,
+      734,
+      237,
+      772
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwRetry",
+     "ok": true
+    },
+    {
+     "sel": "#mainbtn",
+     "found": true,
+     "rect": [
+      314,
+      787,
+      373,
+      831
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#mainbtn",
+     "ok": true
+    }
+   ],
+   "landscape": {
+    "viewport": [
+     844,
+     390
+    ],
+    "docScrollWidth": 844,
+    "bodyScrollWidth": 844,
+    "nwScrollWidth": 0,
+    "nwClientWidth": 0,
+    "nwScrollHeight": 0,
+    "nwClientHeight": 0,
+    "nwOverflowY": "hidden",
+    "cardRect": [
+     192,
+     94,
+     652,
+     571
+    ],
+    "cardScroll": [
+     475,
+     475,
+     "visible"
+    ],
+    "fully": false,
+    "scroller": "#felt.",
+    "view": "intro"
+   },
+   "landscapeBtns": [
+    {
+     "sel": "#nwRetry",
+     "found": true,
+     "rect": [
+      205,
+      280,
+      639,
+      318
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwRetry",
+     "ok": true
+    },
+    {
+     "sel": "#mainbtn",
+     "found": true,
+     "rect": [
+      708,
+      333,
+      827,
+      377
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#mainbtn",
+     "ok": true
+    }
+   ],
+   "ok": true,
+   "okLandscape": true,
+   "files": [
+    "probe-end-fail-390x844.png",
+    "probe-end-fail-844x390.png",
+    "probe-end-fail-844x390-btn.png"
+   ]
+  },
+  "end-pass": {
+   "portrait": {
+    "viewport": [
+     390,
+     844
+    ],
+    "docScrollWidth": 390,
+    "bodyScrollWidth": 522,
+    "nwScrollWidth": 0,
+    "nwClientWidth": 0,
+    "nwScrollHeight": 0,
+    "nwClientHeight": 0,
+    "nwOverflowY": "hidden",
+    "cardRect": [
+     140,
+     165,
+     250,
+     1251
+    ],
+    "cardScroll": [
+     1084,
+     1084,
+     "visible"
+    ],
+    "fully": false,
+    "scroller": "#felt.",
+    "view": "intro"
+   },
+   "portraitBtns": [
+    {
+     "sel": "#nwReadScroll",
+     "found": true,
+     "rect": [
+      153,
+      734,
+      237,
+      772
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwReadScroll",
+     "ok": true
+    },
+    {
+     "sel": "#mainbtn",
+     "found": true,
+     "rect": [
+      312,
+      787,
+      373,
+      831
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#mainbtn",
+     "ok": true
+    }
+   ],
+   "landscape": {
+    "viewport": [
+     844,
+     390
+    ],
+    "docScrollWidth": 844,
+    "bodyScrollWidth": 844,
+    "nwScrollWidth": 0,
+    "nwClientWidth": 0,
+    "nwScrollHeight": 0,
+    "nwClientHeight": 0,
+    "nwOverflowY": "hidden",
+    "cardRect": [
+     192,
+     94,
+     652,
+     571
+    ],
+    "cardScroll": [
+     475,
+     475,
+     "visible"
+    ],
+    "fully": false,
+    "scroller": "#felt.",
+    "view": "intro"
+   },
+   "landscapeBtns": [
+    {
+     "sel": "#nwReadScroll",
+     "found": true,
+     "rect": [
+      205,
+      280,
+      639,
+      318
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwReadScroll",
+     "ok": true
+    },
+    {
+     "sel": "#mainbtn",
+     "found": true,
+     "rect": [
+      708,
+      333,
+      827,
+      377
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#mainbtn",
+     "ok": true
+    }
+   ],
+   "ok": true,
+   "okLandscape": true,
+   "files": [
+    "probe-end-pass-390x844.png",
+    "probe-end-pass-844x390.png",
+    "probe-end-pass-844x390-btn.png"
    ]
   },
   "scroll": {
@@ -99,13 +448,38 @@
     "nwClientWidth": 390,
     "nwScrollHeight": 844,
     "nwClientHeight": 844,
-    "nwOverflowY": "auto",
+    "nwOverflowY": "hidden",
     "cardRect": [
      12,
-     378
+     10,
+     378,
+     432
     ],
+    "cardScroll": [
+     420,
+     420,
+     "auto"
+    ],
+    "fully": true,
+    "scroller": null,
     "view": "scroll"
    },
+   "portraitBtns": [
+    {
+     "sel": "#nwScrollClose",
+     "found": true,
+     "rect": [
+      27,
+      385,
+      109,
+      421
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwScrollClose",
+     "ok": true
+    }
+   ],
    "landscape": {
     "viewport": [
      844,
@@ -117,14 +491,40 @@
     "nwClientWidth": 844,
     "nwScrollHeight": 390,
     "nwClientHeight": 390,
-    "nwOverflowY": "auto",
+    "nwOverflowY": "hidden",
     "cardRect": [
      142,
-     702
+     10,
+     702,
+     315
     ],
+    "cardScroll": [
+     303,
+     303,
+     "auto"
+    ],
+    "fully": true,
+    "scroller": null,
     "view": "scroll"
    },
+   "landscapeBtns": [
+    {
+     "sel": "#nwScrollClose",
+     "found": true,
+     "rect": [
+      157,
+      268,
+      239,
+      304
+     ],
+     "inView": true,
+     "clickable": true,
+     "hit": "BUTTON#nwScrollClose",
+     "ok": true
+    }
+   ],
    "ok": true,
+   "okLandscape": true,
    "files": [
     "probe-scroll-390x844.png",
     "probe-scroll-844x390.png"
@@ -136,20 +536,6 @@
    "files": [
     "probe-title-390x844.png",
     "probe-title-844x390.png"
-   ],
-   "landscapeDocScrollWidth": 844
-  },
-  "end-fail": {
-   "files": [
-    "probe-end-fail-390x844.png",
-    "probe-end-fail-844x390.png"
-   ],
-   "landscapeDocScrollWidth": 844
-  },
-  "end-pass": {
-   "files": [
-    "probe-end-pass-390x844.png",
-    "probe-end-pass-844x390.png"
    ],
    "landscapeDocScrollWidth": 844
   },
@@ -167,8 +553,8 @@
    "pageerrors": [],
    "consoleErrors": [],
    "scan": {
-    "samples": 171,
-    "chars": 810004,
+    "samples": 175,
+    "chars": 848221,
     "hits": []
    },
    "rotateHintShownInPortrait": true,
@@ -198,7 +584,7 @@
      "avatarSvg": true
     }
    ],
-   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
+   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n青面攤主：「少年仔，你今暗買啥，我就搶啥。」\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
    "select": {
     "title": "第一章・破廟逢青面——選一個角色入市（9 選 1；青面攤主坐北，另 2 位對手從其餘隨機抽）",
     "cards": [
@@ -214,7 +600,7 @@
     ]
    },
    "game": {
-    "seed": 3566354813,
+    "seed": 3567835645,
     "chapter": 1,
     "chainsOff": true,
     "destinyEffectMode": "off",
@@ -229,16 +615,51 @@
       "human": false
      },
      {
-      "role": "duanshou",
+      "role": "xiaonv",
       "human": false
      },
      {
-      "role": "zutou",
+      "role": "shoujing",
       "human": false
      }
     ]
    },
-   "openLine": "少年仔，你今暗買啥，我就搶啥。",
+   "feudOpen": "少年仔，你今暗買啥，我就搶啥。",
+   "openBubble": {
+    "markScreen": [
+     []
+    ],
+    "bid": [
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ],
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ],
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ]
+    ],
+    "afterRerender": [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    "reached": true,
+    "hitOnBid": true,
+    "hitAfterRerender": true,
+    "seenOnMarkScreen": false
+   },
    "helpSections": [
     "🏮 目標",
     "🌙 每夜流程",
@@ -261,15 +682,15 @@
       0
      ],
      "boss": [
-      true,
-      12
+      false,
+      0
      ],
      "round": 9
     },
     "forced": "fail"
    },
    "end": {
-    "card": "夜行錄・第一章・破廟逢青面\n未過關・沒能勝過青面攤主\n青面攤主：「命留佇遮，你就免落山矣。」\n🏮\n你是第 4 名\n1. 東家・大家樂組頭 — 壽命 19（12 隻・血 81）\n2. 西家・斷手書生 — 壽命 15（14 隻・血 67）\n3. 北家・青面攤主 — 壽命 12（16 隻・血 90）\n4. 南家・紅衣婆婆 — 出局（1 隻・血 3）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n再挑戰 看完整回顧",
+    "card": "夜行錄・第一章・破廟逢青面\n未過關・沒能勝過青面攤主\n青面攤主：「命留佇遮，你就免落山矣。」\n🏮\n你是第 3 名\n1. 東家・收驚婆 — 壽命 23（12 隻・血 78）\n2. 西家・孝女白琴 — 壽命 13（20 隻・血 128）\n3. 南家・紅衣婆婆 — 出局（1 隻・血 3）\n4. 北家・青面攤主 — 出局（13 隻・血 70）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n再挑戰 看完整回顧",
     "verdict": "未過關・沒能勝過青面攤主",
     "quote": "青面攤主：「命留佇遮，你就免落山矣。」",
     "bubble": "命留佇遮，你就免落山矣。",
@@ -310,8 +731,8 @@
    "pageerrors": [],
    "consoleErrors": [],
    "scan": {
-    "samples": 154,
-    "chars": 737016,
+    "samples": 168,
+    "chars": 798244,
     "hits": []
    },
    "rotateHintShownInPortrait": true,
@@ -341,7 +762,7 @@
      "avatarSvg": true
     }
    ],
-   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
+   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n青面攤主：「少年仔，你今暗買啥，我就搶啥。」\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
    "select": {
     "title": "第一章・破廟逢青面——選一個角色入市（9 選 1；青面攤主坐北，另 2 位對手從其餘隨機抽）",
     "cards": [
@@ -357,7 +778,7 @@
     ]
    },
    "game": {
-    "seed": 3566573070,
+    "seed": 3568035413,
     "chapter": 1,
     "chainsOff": true,
     "destinyEffectMode": "off",
@@ -372,16 +793,51 @@
       "human": false
      },
      {
-      "role": "luzhu",
+      "role": "zutou",
       "human": false
      },
      {
-      "role": "dangpu",
+      "role": "luzhu",
       "human": false
      }
     ]
    },
-   "openLine": "少年仔，你今暗買啥，我就搶啥。",
+   "feudOpen": "少年仔，你今暗買啥，我就搶啥。",
+   "openBubble": {
+    "markScreen": [
+     []
+    ],
+    "bid": [
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ],
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ],
+     [
+      {
+       "id": "bub1",
+       "text": "少年仔，你今暗買啥，我就搶啥。"
+      }
+     ]
+    ],
+    "afterRerender": [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    "reached": true,
+    "hitOnBid": true,
+    "hitAfterRerender": true,
+    "seenOnMarkScreen": false
+   },
    "helpSections": [
     "🏮 目標",
     "🌙 每夜流程",
@@ -405,14 +861,14 @@
      ],
      "boss": [
       true,
-      19
+      9
      ],
      "round": 9
     },
     "forced": "pass"
    },
    "end": {
-    "card": "夜行錄・第一章・破廟逢青面\n過關・勝過青面攤主\n青面攤主：「好膽……這間廟，予你過。」\n🏮\n你是第 2 名\n1. 西家・普渡爐主 — 壽命 14（12 隻・血 61）\n2. 南家・孝女白琴 — 壽命 5（1 隻・血 3）\n3. 北家・青面攤主 — 出局（19 隻・血 80）\n4. 東家・陰間當鋪 — 出局（9 隻・血 49）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n讀殘卷 看完整回顧",
+    "card": "夜行錄・第一章・破廟逢青面\n過關・勝過青面攤主\n青面攤主：「好膽……這間廟，予你過。」\n🏮\n你是第 2 名\n1. 東家・普渡爐主 — 壽命 8（16 隻・血 77）\n2. 南家・孝女白琴 — 壽命 5（1 隻・血 3）\n3. 北家・青面攤主 — 出局（18 隻・血 99）\n4. 西家・大家樂組頭 — 出局（6 隻・血 36）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n讀殘卷 看完整回顧",
     "verdict": "過關・勝過青面攤主",
     "quote": "青面攤主：「好膽……這間廟，予你過。」",
     "bubble": "好膽……這間廟，予你過。",
@@ -474,7 +930,9 @@
   "failVerdict": true,
   "passVerdict": true,
   "bossLines": true,
-  "openLine": true,
+  "openBubbleOnBid": true,
+  "introQuote": true,
+  "landscape844": true,
   "oneReviewButton": true,
   "selectExcludesBoss": true,
   "bossSeat": true,
