@@ -1,0 +1,718 @@
+{
+  "schema": "yaoshi.destiny.focus-summary.v1",
+  "variant": "L",
+  "sampleSeeds": 10000,
+  "checkpointEvents": 4883,
+  "byChain": {
+    "water": {
+      "checkpoints": 811,
+      "segments": {
+        "early": {
+          "checkpoints": 125,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 386,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 300,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 0.36991368680641185,
+          "ci95Pp": [
+            -0.24691358024691357,
+            0.9913258983890955
+          ],
+          "meanFinalLifeDifference": 0.187422934648582,
+          "trueEvents": 601,
+          "activations": 168955,
+          "phases": {
+            "early": {
+              "checkpoints": 125,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -2.4,
+                  2.4
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 386,
+              "paired": {
+                "differencePp": 0.7772020725388601,
+                "ci95Pp": [
+                  -0.2597402597402597,
+                  2.0671834625322996
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 300,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  0,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 0.4932182490752158,
+          "ci95Pp": [
+            0,
+            1.1111111111111112
+          ],
+          "meanFinalLifeDifference": 0.17509247842170161,
+          "trueEvents": 530,
+          "activations": 169086,
+          "phases": {
+            "early": {
+              "checkpoints": 125,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -2.4,
+                  2.4
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 386,
+              "paired": {
+                "differencePp": 1.0362694300518134,
+                "ci95Pp": [
+                  0.25839793281653745,
+                  2.0779220779220777
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 300,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  0,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        }
+      }
+    },
+    "eyes": {
+      "checkpoints": 825,
+      "segments": {
+        "early": {
+          "checkpoints": 129,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 366,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 330,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 0,
+          "ci95Pp": [
+            -0.847457627118644,
+            0.847457627118644
+          ],
+          "meanFinalLifeDifference": 0.04606060606060606,
+          "trueEvents": 503,
+          "activations": 204702,
+          "phases": {
+            "early": {
+              "checkpoints": 129,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -3.10077519379845,
+                  3.10077519379845
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 366,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -1.6304347826086956,
+                  1.36986301369863
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 330,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  0,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 0,
+          "ci95Pp": [
+            -0.847457627118644,
+            0.847457627118644
+          ],
+          "meanFinalLifeDifference": 0.04606060606060606,
+          "trueEvents": 503,
+          "activations": 204702,
+          "phases": {
+            "early": {
+              "checkpoints": 129,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -3.10077519379845,
+                  3.10077519379845
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 366,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  -1.6304347826086956,
+                  1.36986301369863
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 330,
+              "paired": {
+                "differencePp": 0,
+                "ci95Pp": [
+                  0,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        }
+      }
+    },
+    "twinTiger": {
+      "checkpoints": 827,
+      "segments": {
+        "early": {
+          "checkpoints": 142,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 362,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 323,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 0.4836759371221282,
+          "ci95Pp": [
+            -0.36319612590799033,
+            1.3349514563106797
+          ],
+          "meanFinalLifeDifference": 0.12817412333736397,
+          "trueEvents": 2906,
+          "activations": 143602,
+          "phases": {
+            "early": {
+              "checkpoints": 142,
+              "paired": {
+                "differencePp": 2.816901408450704,
+                "ci95Pp": [
+                  -0.704225352112676,
+                  7.042253521126761
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 362,
+              "paired": {
+                "differencePp": -0.27624309392265195,
+                "ci95Pp": [
+                  -1.3850415512465375,
+                  0.8310249307479224
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 323,
+              "paired": {
+                "differencePp": 0.30959752321981426,
+                "ci95Pp": [
+                  0,
+                  0.9287925696594427
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 0.36275695284159615,
+          "ci95Pp": [
+            -0.4836759371221282,
+            1.2106537530266344
+          ],
+          "meanFinalLifeDifference": 0.12817412333736397,
+          "trueEvents": 2857,
+          "activations": 143595,
+          "phases": {
+            "early": {
+              "checkpoints": 142,
+              "paired": {
+                "differencePp": 2.112676056338028,
+                "ci95Pp": [
+                  -1.408450704225352,
+                  5.633802816901408
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 362,
+              "paired": {
+                "differencePp": -0.27624309392265195,
+                "ci95Pp": [
+                  -1.3850415512465375,
+                  0.8310249307479224
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 323,
+              "paired": {
+                "differencePp": 0.30959752321981426,
+                "ci95Pp": [
+                  0,
+                  0.9287925696594427
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        }
+      }
+    },
+    "bloodOath": {
+      "checkpoints": 826,
+      "segments": {
+        "early": {
+          "checkpoints": 134,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 343,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 349,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 0,
+          "ci95Pp": [
+            -0.850546780072904,
+            0.8495145631067961
+          ],
+          "meanFinalLifeDifference": 0.039951573849878935,
+          "trueEvents": 2925,
+          "activations": 152467,
+          "phases": {
+            "early": {
+              "checkpoints": 134,
+              "paired": {
+                "differencePp": 0.746268656716418,
+                "ci95Pp": [
+                  -2.2388059701492535,
+                  4.477611940298507
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 343,
+              "paired": {
+                "differencePp": 0.5830903790087464,
+                "ci95Pp": [
+                  -0.8746355685131195,
+                  2.046783625730994
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 349,
+              "paired": {
+                "differencePp": -0.8595988538681948,
+                "ci95Pp": [
+                  -2.005730659025788,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 0,
+          "ci95Pp": [
+            -0.850546780072904,
+            0.8495145631067961
+          ],
+          "meanFinalLifeDifference": 0.039951573849878935,
+          "trueEvents": 2919,
+          "activations": 152467,
+          "phases": {
+            "early": {
+              "checkpoints": 134,
+              "paired": {
+                "differencePp": 0.746268656716418,
+                "ci95Pp": [
+                  -2.2388059701492535,
+                  4.477611940298507
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 343,
+              "paired": {
+                "differencePp": 0.5830903790087464,
+                "ci95Pp": [
+                  -0.8746355685131195,
+                  2.046783625730994
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 349,
+              "paired": {
+                "differencePp": -0.8595988538681948,
+                "ci95Pp": [
+                  -2.005730659025788,
+                  0
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "fail",
+          "minimum": 300
+        }
+      }
+    },
+    "godKing": {
+      "checkpoints": 829,
+      "segments": {
+        "early": {
+          "checkpoints": 113,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 344,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 372,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 6.634499396863691,
+          "ci95Pp": [
+            4.778972520908005,
+            8.57487922705314
+          ],
+          "meanFinalLifeDifference": 3.6248492159227985,
+          "trueEvents": 491,
+          "activations": 151954,
+          "phases": {
+            "early": {
+              "checkpoints": 113,
+              "paired": {
+                "differencePp": 9.734513274336283,
+                "ci95Pp": [
+                  3.5398230088495577,
+                  15.929203539823009
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 344,
+              "paired": {
+                "differencePp": 10.174418604651162,
+                "ci95Pp": [
+                  6.6473988439306355,
+                  13.994169096209912
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 372,
+              "paired": {
+                "differencePp": 2.4193548387096775,
+                "ci95Pp": [
+                  1.0638297872340425,
+                  4.054054054054054
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "pass",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 4.2219541616405305,
+          "ci95Pp": [
+            2.536231884057971,
+            6.016847172081829
+          ],
+          "meanFinalLifeDifference": 2.689987937273824,
+          "trueEvents": 491,
+          "activations": 151752,
+          "phases": {
+            "early": {
+              "checkpoints": 113,
+              "paired": {
+                "differencePp": 7.964601769911504,
+                "ci95Pp": [
+                  1.7699115044247788,
+                  14.15929203539823
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 344,
+              "paired": {
+                "differencePp": 6.104651162790698,
+                "ci95Pp": [
+                  2.881844380403458,
+                  9.620991253644315
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 372,
+              "paired": {
+                "differencePp": 1.3440860215053763,
+                "ci95Pp": [
+                  0.26881720430107525,
+                  2.680965147453083
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "incomplete",
+          "minimum": 300
+        }
+      }
+    },
+    "eternalFlame": {
+      "checkpoints": 765,
+      "segments": {
+        "early": {
+          "checkpoints": 139,
+          "estimable": true
+        },
+        "middle": {
+          "checkpoints": 318,
+          "estimable": true
+        },
+        "late": {
+          "checkpoints": 308,
+          "estimable": true
+        }
+      },
+      "modes": {
+        "original": {
+          "differencePp": 5.228758169934641,
+          "ci95Pp": [
+            3.3942558746736293,
+            7.189542483660131
+          ],
+          "meanFinalLifeDifference": 1.7398692810457517,
+          "trueEvents": 5590,
+          "activations": 170552,
+          "phases": {
+            "early": {
+              "checkpoints": 139,
+              "paired": {
+                "differencePp": 7.913669064748201,
+                "ci95Pp": [
+                  2.158273381294964,
+                  13.66906474820144
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 318,
+              "paired": {
+                "differencePp": 5.031446540880503,
+                "ci95Pp": [
+                  1.8987341772151898,
+                  8.176100628930818
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 308,
+              "paired": {
+                "differencePp": 4.220779220779221,
+                "ci95Pp": [
+                  2.2580645161290325,
+                  6.5359477124183005
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "pass",
+          "minimum": 300
+        },
+        "candidate": {
+          "differencePp": 4.444444444444445,
+          "ci95Pp": [
+            2.7379400260756195,
+            6.282722513089006
+          ],
+          "meanFinalLifeDifference": 1.4784313725490197,
+          "trueEvents": 2692,
+          "activations": 169120,
+          "phases": {
+            "early": {
+              "checkpoints": 139,
+              "paired": {
+                "differencePp": 5.755395683453237,
+                "ci95Pp": [
+                  0.7194244604316546,
+                  10.79136690647482
+                ]
+              },
+              "status": "descriptive"
+            },
+            "middle": {
+              "checkpoints": 318,
+              "paired": {
+                "differencePp": 4.716981132075472,
+                "ci95Pp": [
+                  1.8808777429467085,
+                  7.8125
+                ]
+              },
+              "status": "descriptive"
+            },
+            "late": {
+              "checkpoints": 308,
+              "paired": {
+                "differencePp": 3.5714285714285716,
+                "ci95Pp": [
+                  1.6233766233766234,
+                  5.8441558441558445
+                ]
+              },
+              "status": "descriptive"
+            }
+          },
+          "status": "incomplete",
+          "minimum": 300
+        }
+      }
+    }
+  },
+  "releaseEligible": false,
+  "provenance": {
+    "gitHead": "89ecd4982bf84d32aa7d673c7e3144ffed04d2a4",
+    "variant": "L",
+    "replacements": [
+      [
+        "u.destinyShield=(u.destinyShield||0)+2;",
+        "u.destinyShield=(u.destinyShield||0)+3;"
+      ],
+      [
+        "const p=S.players[pid];p.life+=1;",
+        "const p=S.players[pid];p.life+=2;"
+      ],
+      [
+        "win.life+=3;",
+        "win.life+=7;"
+      ]
+    ],
+    "productSha256": "8da0a4f49eff089b704a1b63c35d3da485df2df53da7ed878e8b16f802b02197",
+    "candidateProductSha256": "c4dd9af01308e3a2da1500a9586bfd5acb5a95efb4d919b3bf73e69c279ef85f",
+    "focusSourceSha256": "a044709c02fecca152a8ac05f40161a225f0fec361222817a2fae7667c426183",
+    "focusRunnerSha256": "77140a4f774dafc59dc66377ceca90e21602028ad2f5802a23e5c197249d12be",
+    "wrapperSha256": "55b92ed467f8ca8cf3d34a9eb117f92bf52bed3ffa8fa0330bfd40c999605a1a",
+    "acceptanceSha256": "89a298deab21b3c6cc9383714ec33d1802aec8d7144a7552738a735900600f09",
+    "configSha256": "f5e9f1b9bf1bce1dc8fcaaf5b85cacf30e036068fba272efaed7dde91b1aa527",
+    "privateDrawTableSha256": "f0ef8da06e9270dd684177e248e2522e508bf4e296f5586829032499702cbee4",
+    "baselineRawSha256": "741894a18e4bed777a8e2880c9e698e9ca440a2a5d4a1519844edfdb0b94b14a",
+    "sourceArm": "ordinary-ai-off",
+    "policy": "destiny-chaser-v1",
+    "focusIsolation": "only matching pid and chain true effect",
+    "checkpoint": "deterministic ordinary replay, exact full checkpoint match, then focus intervention"
+  }
+}
