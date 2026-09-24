@@ -1,0 +1,254 @@
+{
+ "checks": {
+  "pageerrors0": true,
+  "consoleErrors0": true,
+  "domScan0": true,
+  "scanLive": true,
+  "failVerdict": true,
+  "passVerdict": true,
+  "bossLines": true,
+  "openBubbleOnBid": true,
+  "introQuote": true,
+  "landscape844": true,
+  "oneReviewButton": true,
+  "selectExcludesBoss": true,
+  "bossSeat": true,
+  "retryLandsIntro": true,
+  "menuAfterPass": true,
+  "scrollClosed": true,
+  "screenshots3": true,
+  "scrollWidth390": true
+ },
+ "allPass": true,
+ "openBubble": {
+  "fail": {
+   "markScreen": [
+    []
+   ],
+   "bid": [
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ]
+   ],
+   "afterRerender": [
+    {
+     "id": "bub1",
+     "text": "少年仔，你今暗買啥，我就搶啥。"
+    }
+   ],
+   "reached": true,
+   "hitOnBid": true,
+   "hitAfterRerender": true,
+   "seenOnMarkScreen": false
+  },
+  "pass": {
+   "markScreen": [
+    []
+   ],
+   "bid": [
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ],
+    [
+     {
+      "id": "bub1",
+      "text": "少年仔，你今暗買啥，我就搶啥。"
+     }
+    ]
+   ],
+   "afterRerender": [
+    {
+     "id": "bub1",
+     "text": "少年仔，你今暗買啥，我就搶啥。"
+    }
+   ],
+   "reached": true,
+   "hitOnBid": true,
+   "hitAfterRerender": true,
+   "seenOnMarkScreen": false
+  }
+ },
+ "landscape": {
+  "menu": {
+   "okLandscape": true,
+   "fully": true,
+   "scroller": null,
+   "docW": 844,
+   "btns": [
+    [
+     "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+     true,
+     [
+      85,
+      169,
+      139,
+      205
+     ]
+    ]
+   ]
+  },
+  "intro": {
+   "okLandscape": true,
+   "fully": false,
+   "scroller": "card",
+   "docW": 844,
+   "btns": [
+    [
+     "#nwGo",
+     true,
+     [
+      157,
+      325,
+      237,
+      361
+     ]
+    ]
+   ]
+  },
+  "end-fail": {
+   "okLandscape": true,
+   "fully": false,
+   "scroller": "#felt.",
+   "docW": 844,
+   "btns": [
+    [
+     "#nwRetry",
+     true,
+     [
+      205,
+      280,
+      639,
+      318
+     ]
+    ],
+    [
+     "#mainbtn",
+     true,
+     [
+      708,
+      333,
+      827,
+      377
+     ]
+    ]
+   ]
+  },
+  "end-pass": {
+   "okLandscape": true,
+   "fully": false,
+   "scroller": "#felt.",
+   "docW": 844,
+   "btns": [
+    [
+     "#nwReadScroll",
+     true,
+     [
+      205,
+      280,
+      639,
+      318
+     ]
+    ],
+    [
+     "#mainbtn",
+     true,
+     [
+      708,
+      333,
+      827,
+      377
+     ]
+    ]
+   ]
+  },
+  "scroll": {
+   "okLandscape": true,
+   "fully": true,
+   "scroller": null,
+   "docW": 844,
+   "btns": [
+    [
+     "#nwScrollClose",
+     true,
+     [
+      157,
+      268,
+      239,
+      304
+     ]
+    ]
+   ]
+  }
+ },
+ "fail": {
+  "seed": 3569305241,
+  "natural": {
+   "pass": false,
+   "me": [
+    false,
+    0
+   ],
+   "boss": [
+    true,
+    7
+   ],
+   "round": 11
+  },
+  "verdict": "未過關・沒能勝過青面攤主",
+  "pageerrors": [],
+  "consoleErrors": [],
+  "scan": {
+   "samples": 187,
+   "hits": []
+  }
+ },
+ "pass": {
+  "seed": 3569528826,
+  "natural": {
+   "pass": false,
+   "me": [
+    true,
+    5
+   ],
+   "boss": [
+    true,
+    9
+   ],
+   "round": 12
+  },
+  "verdict": "過關・勝過青面攤主",
+  "pageerrors": [],
+  "consoleErrors": [],
+  "scan": {
+   "samples": 244,
+   "hits": []
+  }
+ },
+ "rotateHintShownInPortrait": true,
+ "out": "C:\\Users\\shung\\wt\\yaoshi\\n1\\docs\\experiments\\2026-09-25-n1-nightwalk"
+}
+probe exit=0

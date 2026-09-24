@@ -339,3 +339,23 @@ test('#8 不含簡體字：內建字表 ≥100 字（正對照抓得到），文
   assert.ok(ui.length > 2000, '介面字串掃描範圍太小（活性）');
   assert.deepEqual(simpHits(ui), [], '夜行錄介面字串不得含簡體字');
 });
+
+/* ---------------- 覆審 MEDIUM：開局台詞泡不得漏到第 2 夜 ---------------- */
+test('開局台詞泡：第 1 夜重畫補回（正對照）、第 2 夜不補回、常規局不動作', () => {
+  const inj = `
+  const __fake={textContent:'',shown:false,classList:{add(){__fake.shown=true;},remove(){}}};
+  document.getElementById=(id)=>id==='bub1'?__fake:null;
+  window.__yaoshi.__nwBub={
+    run(s,bub,said){ S=s; NW_BUBBLE=bub; NW_OPEN_SAID=said; __fake.shown=false; __fake.textContent=''; nwBidScreenBubble(); return {shown:__fake.shown,text:__fake.textContent}; },
+  };`;
+  const src = fs.readFileSync(TARGET, 'utf8').replace(/<script>[\s\S]*?<\/script>/, (m) => m.replace('</script>', inj + '\n</script>'));
+  const H = loadGame(null, { sourceText: src }).__nwBub;
+  assert.ok(H, '測試掛點注入失敗');
+  const bub = () => ({ pid: 1, text: '開局台詞', until: Date.now() + 60000 });
+  const r1 = H.run({ chapter: 1, round: 1 }, bub(), true);
+  assert.deepEqual(r1, { shown: true, text: '開局台詞' }, '正對照：第 1 夜重畫後要補回');
+  const r2 = H.run({ chapter: 1, round: 2 }, bub(), true);
+  assert.equal(r2.shown, false, '第 2 夜不得補回第 1 夜的開局台詞');
+  const r0 = H.run({ round: 1 }, bub(), true);
+  assert.equal(r0.shown, false, '常規局（無 S.chapter）不得動作');
+});

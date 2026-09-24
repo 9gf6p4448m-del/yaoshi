@@ -7826,6 +7826,7 @@ function nwBubbleRestore(){
 function nwBidScreenBubble(){
   if(!S||!S.chapter) return;
   if(S.round===1&&!NW_OPEN_SAID){ NW_OPEN_SAID=true; nwShowOpen(); return; }
+  if(S.round!==1){ NW_BUBBLE=null; return; } /* 開局台詞只屬於第 1 夜：6 秒內就進第 2 夜也不補回 */
   nwBubbleRestore();
 }
 function nwShowOpen(){
