@@ -74,5 +74,10 @@
 
 **#13 程式碼審查**：fresh 代理（無對話史）審 `3a0d971..HEAD` 的產品 diff；CRITICAL／HIGH 全修或經使用者簽准；修後依 `02 §6.1` 附則送一次三態覆審（有 CRITICAL／HIGH 時才需要）。
 
+## 修訂紀錄
+
+- **2026-09-25 #1 更正（`02 §2.1` 例外：原條文無論實作對錯都不可能照字面通過）**：原文「`--mutate` 必須 exit 1」照抄了 `tests/tools/trace-eq.mjs` 檔頭註解，但腳本實際是「抓到突變＝`differs:true` 且 exit 0」（`trace-eq.mjs:33`）。本條意圖是「比對腳本抓得到引擎差異」，更正為：`--mutate` 輸出 `differs:true`；另以一般比對模式對同一突變副本（`CFG.ROUNDS` 12→11）須 `equal:false`、exit 1。此更正不影響對實作的判定（`--mutate` 只驗腳本鑑別力，與本卷程式無關）。
+- **2026-09-25 #12 加嚴**：本遊戲直式時整頁被 `#rotateHint` 蓋住要求轉橫，玩家實際看到的是橫式。#12 除原 390×844 外，另在 **844×390** 檢查章節選單、引言卡、殘卷卡、局末卡：`documentElement.scrollWidth ≤ 844`，卡片完整顯示或卡片本身可捲動，且開局／收起按鈕捲得到。原條件照舊保留。
+
 **#14 送達**：`RELEASE_VERSION`／`VERSION`／ui-hierarchy 釘同步 `0.58.0`；快轉推 `origin/main`（非 force）；Pages 建置完成後 `curl` 線上 `index.html` 含 `RELEASE_VERSION="0.58.0"` 與 `NIGHTWALK`。
 - 變紅：只 push 沒建置、線上仍舊版。
