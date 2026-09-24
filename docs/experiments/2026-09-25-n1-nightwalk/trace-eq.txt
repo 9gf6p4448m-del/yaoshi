@@ -1,0 +1,10 @@
+# HEAD f7f14c6
+$ node tests/tools/trace-eq.mjs C:/Users/shung/wt/yaoshi/n1-evidence/index-3a0d971.html index.html
+{"old":"C:/Users/shung/wt/yaoshi/n1-evidence/index-3a0d971.html","new":"index.html","seeds":"1..20","bytesOld":353154,"bytesNew":353154,"equal":true}
+exit=0
+$ node tests/tools/trace-eq.mjs index.html --mutate
+{"mode":"mutate","src":"index.html","mutant":"C:\\Users\\shung\\AppData\\Local\\Temp\\trace-eq-mutant-27516.html","mutation":"CFG.ROUNDS 12 -> 11","bytesSrc":353154,"bytesMutant":347905,"differs":true,"verdict":"突變驗紅 ✅（這支腳本抓得到引擎差異）"}
+exit=0  (腳本慣例：突變抓到＝differs:true 且 exit 0；凍結字面寫 exit 1，見回報)
+$ node tests/tools/trace-eq.mjs index.html <暫存副本 CFG.ROUNDS 12->11>   # 補充：同一突變用一般比對模式
+{"old":"index.html","new":"C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/2cfca1eb-21c8-40c7-9ca3-a14190af8b72/scratchpad/mutant-rounds.html","seeds":"1..20","bytesOld":353154,"bytesNew":347905,"equal":false}
+exit=1

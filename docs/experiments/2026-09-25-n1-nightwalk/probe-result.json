@@ -1,0 +1,493 @@
+{
+ "viewport": "390x844",
+ "shots": {
+  "menu": {
+   "portrait": {
+    "viewport": [
+     390,
+     844
+    ],
+    "docScrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "nwScrollWidth": 390,
+    "nwClientWidth": 390,
+    "nwScrollHeight": 844,
+    "nwClientHeight": 844,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     12,
+     378
+    ],
+    "view": "menu"
+   },
+   "landscape": {
+    "viewport": [
+     844,
+     390
+    ],
+    "docScrollWidth": 844,
+    "bodyScrollWidth": 844,
+    "nwScrollWidth": 844,
+    "nwClientWidth": 844,
+    "nwScrollHeight": 390,
+    "nwClientHeight": 390,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     12,
+     832
+    ],
+    "view": "menu"
+   },
+   "ok": true,
+   "files": [
+    "probe-menu-390x844.png",
+    "probe-menu-844x390.png"
+   ]
+  },
+  "intro": {
+   "portrait": {
+    "viewport": [
+     390,
+     844
+    ],
+    "docScrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "nwScrollWidth": 390,
+    "nwClientWidth": 390,
+    "nwScrollHeight": 844,
+    "nwClientHeight": 844,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     12,
+     378
+    ],
+    "view": "intro"
+   },
+   "landscape": {
+    "viewport": [
+     844,
+     390
+    ],
+    "docScrollWidth": 844,
+    "bodyScrollWidth": 844,
+    "nwScrollWidth": 844,
+    "nwClientWidth": 844,
+    "nwScrollHeight": 461,
+    "nwClientHeight": 390,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     142,
+     702
+    ],
+    "view": "intro"
+   },
+   "ok": true,
+   "files": [
+    "probe-intro-390x844.png",
+    "probe-intro-844x390.png"
+   ]
+  },
+  "scroll": {
+   "portrait": {
+    "viewport": [
+     390,
+     844
+    ],
+    "docScrollWidth": 390,
+    "bodyScrollWidth": 522,
+    "nwScrollWidth": 390,
+    "nwClientWidth": 390,
+    "nwScrollHeight": 844,
+    "nwClientHeight": 844,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     12,
+     378
+    ],
+    "view": "scroll"
+   },
+   "landscape": {
+    "viewport": [
+     844,
+     390
+    ],
+    "docScrollWidth": 844,
+    "bodyScrollWidth": 844,
+    "nwScrollWidth": 844,
+    "nwClientWidth": 844,
+    "nwScrollHeight": 390,
+    "nwClientHeight": 390,
+    "nwOverflowY": "auto",
+    "cardRect": [
+     142,
+     702
+    ],
+    "view": "scroll"
+   },
+   "ok": true,
+   "files": [
+    "probe-scroll-390x844.png",
+    "probe-scroll-844x390.png"
+   ]
+  }
+ },
+ "extraShots": {
+  "title": {
+   "files": [
+    "probe-title-390x844.png",
+    "probe-title-844x390.png"
+   ],
+   "landscapeDocScrollWidth": 844
+  },
+  "end-fail": {
+   "files": [
+    "probe-end-fail-390x844.png",
+    "probe-end-fail-844x390.png"
+   ],
+   "landscapeDocScrollWidth": 844
+  },
+  "end-pass": {
+   "files": [
+    "probe-end-pass-390x844.png",
+    "probe-end-pass-844x390.png"
+   ],
+   "landscapeDocScrollWidth": 844
+  },
+  "menu-after-pass": {
+   "files": [
+    "probe-menu-after-pass-390x844.png",
+    "probe-menu-after-pass-844x390.png"
+   ],
+   "landscapeDocScrollWidth": 844
+  }
+ },
+ "paths": {
+  "fail": {
+   "mode": "fail",
+   "pageerrors": [],
+   "consoleErrors": [],
+   "scan": {
+    "samples": 171,
+    "chars": 810004,
+    "hits": []
+   },
+   "rotateHintShownInPortrait": true,
+   "regularSelectCards": 10,
+   "titleButtons": [
+    "單人入市",
+    "雙人熱座",
+    "夜行錄"
+   ],
+   "menu": [
+    {
+     "ch": "1",
+     "cls": "nwCard",
+     "text": "第一章 破廟逢青面 主角：青面攤主 可挑戰 挑戰",
+     "avatarSvg": true
+    },
+    {
+     "ch": "2",
+     "cls": "nwCard locked",
+     "text": "第二章 招魂嶺收驚婆 主角：收驚婆 🔒 通過前一章後開放",
+     "avatarSvg": true
+    },
+    {
+     "ch": "3",
+     "cls": "nwCard locked",
+     "text": "第三章 荒塚紅衣婆婆 主角：紅衣婆婆 🔒 通過前一章後開放",
+     "avatarSvg": true
+    }
+   ],
+   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
+   "select": {
+    "title": "第一章・破廟逢青面——選一個角色入市（9 選 1；青面攤主坐北，另 2 位對手從其餘隨機抽）",
+    "cards": [
+     "紅衣婆婆",
+     "斷手書生",
+     "收驚婆",
+     "獵人",
+     "孝女白琴",
+     "閭山法師",
+     "大家樂組頭",
+     "陰間當鋪",
+     "普渡爐主"
+    ]
+   },
+   "game": {
+    "seed": 3566354813,
+    "chapter": 1,
+    "chainsOff": true,
+    "destinyEffectMode": "off",
+    "destinyAiChase": false,
+    "seats": [
+     {
+      "role": "hongyi",
+      "human": true
+     },
+     {
+      "role": "qingmian",
+      "human": false
+     },
+     {
+      "role": "duanshou",
+      "human": false
+     },
+     {
+      "role": "zutou",
+      "human": false
+     }
+    ]
+   },
+   "openLine": "少年仔，你今暗買啥，我就搶啥。",
+   "helpSections": [
+    "🏮 目標",
+    "🌙 每夜流程",
+    "👁 盯上宣告",
+    "🤝 盯上信譽",
+    "🪙 出價與費用",
+    "🌒 今夜心願",
+    "⛩ 妖市異事（第 4／8／11 夜，前夜耳語預告）",
+    "🏮 今夜市集規則（第 3／7 夜，前夜耳語預告）",
+    "⚔ 結算戰",
+    "🀄 風位與共鳴",
+    "🕯️ 請神（傳說三尊）",
+    "🧧 法寶疊加規則"
+   ],
+   "force": {
+    "natural": {
+     "pass": false,
+     "me": [
+      false,
+      0
+     ],
+     "boss": [
+      true,
+      12
+     ],
+     "round": 9
+    },
+    "forced": "fail"
+   },
+   "end": {
+    "card": "夜行錄・第一章・破廟逢青面\n未過關・沒能勝過青面攤主\n青面攤主：「命留佇遮，你就免落山矣。」\n🏮\n你是第 4 名\n1. 東家・大家樂組頭 — 壽命 19（12 隻・血 81）\n2. 西家・斷手書生 — 壽命 15（14 隻・血 67）\n3. 北家・青面攤主 — 壽命 12（16 隻・血 90）\n4. 南家・紅衣婆婆 — 出局（1 隻・血 3）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n再挑戰 看完整回顧",
+    "verdict": "未過關・沒能勝過青面攤主",
+    "quote": "青面攤主：「命留佇遮，你就免落山矣。」",
+    "bubble": "命留佇遮，你就免落山矣。",
+    "readScroll": false,
+    "retry": true,
+    "mainbtn": "回章節選單",
+    "reviewButtons": 1,
+    "saved": null,
+    "feud": {
+     "open": [
+      "少年仔，你今暗買啥，我就搶啥。"
+     ],
+     "bossLose": [
+      "好膽……這間廟，予你過。"
+     ],
+     "bossWin": [
+      "命留佇遮，你就免落山矣。"
+     ]
+    }
+   },
+   "afterRetry": {
+    "url": "",
+    "view": "intro",
+    "title": "破廟逢青面"
+   },
+   "scannerPositive": [
+    "水陸偷渡",
+    "千眼神算",
+    "雙虎滅煞",
+    "血祭過陰",
+    "神王破煞",
+    "長明渡幽",
+    "天命"
+   ]
+  },
+  "pass": {
+   "mode": "pass",
+   "pageerrors": [],
+   "consoleErrors": [],
+   "scan": {
+    "samples": 154,
+    "chars": 737016,
+    "hits": []
+   },
+   "rotateHintShownInPortrait": true,
+   "regularSelectCards": 10,
+   "titleButtons": [
+    "單人入市",
+    "雙人熱座",
+    "夜行錄"
+   ],
+   "menu": [
+    {
+     "ch": "1",
+     "cls": "nwCard",
+     "text": "第一章 破廟逢青面 主角：青面攤主 可挑戰 挑戰",
+     "avatarSvg": true
+    },
+    {
+     "ch": "2",
+     "cls": "nwCard locked",
+     "text": "第二章 招魂嶺收驚婆 主角：收驚婆 🔒 通過前一章後開放",
+     "avatarSvg": true
+    },
+    {
+     "ch": "3",
+     "cls": "nwCard locked",
+     "text": "第三章 荒塚紅衣婆婆 主角：紅衣婆婆 🔒 通過前一章後開放",
+     "avatarSvg": true
+    }
+   ],
+   "intro": "夜行錄・第一章\n破廟逢青面\n青面攤主\n本章主角，坐北\n\n你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。\n\n廟埕的燈籠一盞一盞自己點起來——妖市開市了。\n\n攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」\n\n你看中哪一系的貨，他就偏偏跟你搶哪一系。\n\n撐到天光，壽命比他多，他才肯放你下山。\n\n本章新規則\n壽命是錢包也是血條：出價花壽命，挨打也掉壽命。\n密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。\n得標的法寶會召出紙紮，每夜輪一個對手打結算戰。\n青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。\n選角入市\n返回章節",
+   "select": {
+    "title": "第一章・破廟逢青面——選一個角色入市（9 選 1；青面攤主坐北，另 2 位對手從其餘隨機抽）",
+    "cards": [
+     "紅衣婆婆",
+     "斷手書生",
+     "收驚婆",
+     "獵人",
+     "孝女白琴",
+     "閭山法師",
+     "大家樂組頭",
+     "陰間當鋪",
+     "普渡爐主"
+    ]
+   },
+   "game": {
+    "seed": 3566573070,
+    "chapter": 1,
+    "chainsOff": true,
+    "destinyEffectMode": "off",
+    "destinyAiChase": false,
+    "seats": [
+     {
+      "role": "xiaonv",
+      "human": true
+     },
+     {
+      "role": "qingmian",
+      "human": false
+     },
+     {
+      "role": "luzhu",
+      "human": false
+     },
+     {
+      "role": "dangpu",
+      "human": false
+     }
+    ]
+   },
+   "openLine": "少年仔，你今暗買啥，我就搶啥。",
+   "helpSections": [
+    "🏮 目標",
+    "🌙 每夜流程",
+    "👁 盯上宣告",
+    "🤝 盯上信譽",
+    "🪙 出價與費用",
+    "🌒 今夜心願",
+    "⛩ 妖市異事（第 4／8／11 夜，前夜耳語預告）",
+    "🏮 今夜市集規則（第 3／7 夜，前夜耳語預告）",
+    "⚔ 結算戰",
+    "🀄 風位與共鳴",
+    "🕯️ 請神（傳說三尊）",
+    "🧧 法寶疊加規則"
+   ],
+   "force": {
+    "natural": {
+     "pass": false,
+     "me": [
+      false,
+      0
+     ],
+     "boss": [
+      true,
+      19
+     ],
+     "round": 9
+    },
+    "forced": "pass"
+   },
+   "end": {
+    "card": "夜行錄・第一章・破廟逢青面\n過關・勝過青面攤主\n青面攤主：「好膽……這間廟，予你過。」\n🏮\n你是第 2 名\n1. 西家・普渡爐主 — 壽命 14（12 隻・血 61）\n2. 南家・孝女白琴 — 壽命 5（1 隻・血 3）\n3. 北家・青面攤主 — 出局（19 隻・血 80）\n4. 東家・陰間當鋪 — 出局（9 隻・血 49）\n🎯 下一局實驗\n你最後只有 1 隻紙紮。下一局先補不同拍序的紙紮，別把所有壽命壓在單一件大貨。\n讀殘卷 看完整回顧",
+    "verdict": "過關・勝過青面攤主",
+    "quote": "青面攤主：「好膽……這間廟，予你過。」",
+    "bubble": "好膽……這間廟，予你過。",
+    "readScroll": true,
+    "retry": false,
+    "mainbtn": "回章節選單",
+    "reviewButtons": 1,
+    "saved": "{\"v\":1,\"cleared\":[1]}",
+    "feud": {
+     "open": [
+      "少年仔，你今暗買啥，我就搶啥。"
+     ],
+     "bossLose": [
+      "好膽……這間廟，予你過。"
+     ],
+     "bossWin": [
+      "命留佇遮，你就免落山矣。"
+     ]
+    }
+   },
+   "scroll": "殘卷・第一章\n青面攤\n老一輩講，這座廟以前香火真旺，廟口有個賣香燭的攤仔，秤頭總是短人三分。有一年大水沖斷山路，廟裡的人走光了，只有他不肯收攤，說貨還沒賣完。後來上山的樵夫看見他還坐在廟埕，臉色青得像泡過水的銅錢，攤上擺的已經不是香燭，是一盞一盞別人的壽命。他專看客人手上握什麼，便搶什麼，搶到了也不用，只是擺著。那一夜你沒讓他搶走，他收起秤，第一次把秤頭擺平。從此山下的人說，破廟的燈若只亮一盞，就是他在等下一個不讓的客人。\n收起殘卷",
+   "scrollClosed": true,
+   "afterMenu": {
+    "url": "",
+    "cards": [
+     {
+      "ch": "1",
+      "cls": "nwCard cleared",
+      "st": "已通關 ✓"
+     },
+     {
+      "ch": "2",
+      "cls": "nwCard",
+      "st": "可挑戰"
+     },
+     {
+      "ch": "3",
+      "cls": "nwCard locked",
+      "st": "🔒 通過前一章後開放"
+     }
+    ]
+   },
+   "scannerPositive": [
+    "水陸偷渡",
+    "千眼神算",
+    "雙虎滅煞",
+    "血祭過陰",
+    "神王破煞",
+    "長明渡幽",
+    "天命"
+   ]
+  }
+ },
+ "checks": {
+  "pageerrors0": true,
+  "consoleErrors0": true,
+  "domScan0": true,
+  "scanLive": true,
+  "failVerdict": true,
+  "passVerdict": true,
+  "bossLines": true,
+  "openLine": true,
+  "oneReviewButton": true,
+  "selectExcludesBoss": true,
+  "bossSeat": true,
+  "retryLandsIntro": true,
+  "menuAfterPass": true,
+  "scrollClosed": true,
+  "screenshots3": true,
+  "scrollWidth390": true
+ },
+ "allPass": true,
+ "notes": [
+  "直式 390×844 整頁被既有 #rotateHint 蓋住（要求轉橫）；-390x844.png 是治具暫時隱藏 #rotateHint 拍的底下版面，probe-portrait-raw.png 是原貌，-844x390.png 是玩家實際方向。",
+  "shots.*.portrait.bodyScrollWidth 只記錄：局末北家對話泡（既有 .bubble nowrap）直式撐到 522，基準 3a0d971 常規局同為 522；documentElement.scrollWidth 恆 390（凍結 #12 判準）。",
+  "局末結果由掛點改 S 的存活欄位決定（fail：真人出局；pass：主角出局）；force.natural 記錄改之前的自然結果。"
+ ]
+}

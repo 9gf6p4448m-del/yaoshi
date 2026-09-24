@@ -1,0 +1,48 @@
+{
+ "source": "index.html",
+ "sourceUnchanged": true,
+ "results": [
+  {
+   "id": "M3-chainsOff",
+   "frozen": "#3",
+   "what": "拿掉 activeChains 的連鎖關閉判斷（擋點 G1）",
+   "exit": 1,
+   "failedTests": [
+    "#3 第 1 章：六組連鎖注入 activeChains／chainsCompletedBy 皆空（常規局同注入非空＝正對照）"
+   ],
+   "assertionMessages": [
+    "第 1 章 water activeChains 應為 []"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M4-gte",
+   "frozen": "#4",
+   "what": "nightwalkPass 的 `>` 改 `>=`",
+   "exit": 1,
+   "failedTests": [
+    "#4 nightwalkPass 表格：只比真人與主角；平手、真人出局皆未過",
+    "#5 過關寫入 {\"v\":1,\"cleared\":[…]}、讀回一致、重複通關不重複、未過關不寫"
+   ],
+   "assertionMessages": [
+    "皆活＋壽命相等 → 未過",
+    "Expected values to be strictly equal:"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M4-noAlive",
+   "frozen": "#4",
+   "what": "拿掉「真人須活著」",
+   "exit": 1,
+   "failedTests": [
+    "#4 nightwalkPass 表格：只比真人與主角；平手、真人出局皆未過"
+   ],
+   "assertionMessages": [
+    "真人出局＋主角出局 → 未過"
+   ],
+   "redAsExpected": true
+  }
+ ],
+ "allRed": true
+}
