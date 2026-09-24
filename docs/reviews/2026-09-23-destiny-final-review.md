@@ -146,6 +146,12 @@ v10 在同一凍結產品來源下，完整列舉 `drawWishes` 的當前四席�
 
 此機率假設不等於實際有限 32-bit `mulberry32` seed-space 分布。四席完整聯合支持有列舉，但產品映射檢查是逐席逐選項，沒有重播每一個聯合分枝；目前凍結 wish 表至少含一項不帶 `canDraw` 的心願，故全表回退分支不可達且未由 fixture 觸發。其他 chance、轉移與完整 runner、跨程序 canonicalization、terminal payoff 及 solver 都未完成。模型仍 partial，`chance.fullGame=incomplete`、`sixOfFour=incomplete`、`releaseEligible=false`；沒有更動產品、遊戲規則或平衡值，這不是發布證據。
 
+## X：市場生成 chance 節點（v11，2026-09-24）
+
+v11 在同一凍結來源下列舉 `drawMarket`：無補洗時支持集為詛咒 Bernoulli(`CURSE_PROB`)×四件 Fisher–Yates，48 分枝精確權重總和為一；cdeck 空仍耗詛咒判定那次 RNG。每分枝交凍結 `drawMarketFor` 重播並比對市場、牌堆順序與 RNG 消耗；收祟夜不需補洗時精確列舉，POOL／CURSES 補洗與未知掛鉤 fail closed。專項 **15/15**、l1e suite **108/108**，adapter 覆蓋 **100%／86.93%／100%**。第一輪獨立對抗覆審未發現模型與引擎不一致，但找出 2 HIGH（收祟夜疊加掛鉤未測、`draws` 區間未驗）與 2 MEDIUM（兩個差一邊界）鑑別力缺口，補測試後各對應突變轉紅。修補後第二輪三態覆審 5 項皆「真的修好」；殘留 1 項 LOW：若收祟掛鉤排在其他掛鉤之後（凍結 `collectEffects` 只收 [nightRule, event]，正常遊戲不可達），`hooks[hooks.length-1]` 型突變不會被測出，記錄不修。
+
+補洗分枝（27! 級）未建模，只要一般分枝需補洗整個節點就拒絕；只驗 seed 123 fixture；仍是 iid 抽象而非有限 seed 模型。其他 chance、runner、canonicalization、payoff、solver 未完成，`sixOfFour=incomplete`、`releaseEligible=false`；沒有更動產品或平衡值。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

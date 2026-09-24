@@ -13,6 +13,8 @@ X v9 進度（2026-09-24）：[跨夜 checkpoint 契約](../experiments/2026-09-
 
 X v10 進度（2026-09-24）：[狀態條件心願 chance 契約](../experiments/2026-09-23-destiny/model-contract-v10.md)專項 12/12、v2–v10 模型 suite 93/93；adapter 行／分支／函式覆蓋 100%／81.94%／96.67%。固定引擎來源下完整列舉 `drawWishes` 四席聯合支持；抽象 iid 均勻 RNG-call 權重精確，但不等於有限 32-bit seed PRNG。支持純度、來源 provenance、兩條 RNG 還原、座位／設定及契約範圍 fail-closed 已測；未逐一將所有聯合分枝重播到產品函式。最終獨立覆審未發現可操作問題；其他 chance、轉移、runner、canonicalization、payoff、solver 仍未完成；產品及平衡不變，`releaseEligible=false`。
 
+X v11 進度（2026-09-24）：[市場生成 chance 契約](../experiments/2026-09-23-destiny/model-contract-v11.md) RED `61cb5c5`／GREEN `c7e4e4d`／加嚴 `47147d4`；專項 15/15、`tests/l1e-*.test.mjs` 108/108；adapter 行／分支／函式覆蓋 100%／86.93%／100%。無補洗狀態下完整列舉 `drawMarket` 48 分枝（詛咒 Bernoulli(CURSE_PROB) 精確有理值 × Fisher–Yates 1/24，cdeck 空仍耗一次 RNG），逐分枝交凍結 `drawMarketFor` 重播；收祟夜不需補洗時精確列舉；POOL／CURSES 補洗與未知掛鉤 fail closed。獨立對抗覆審找出 2 HIGH／2 MEDIUM 鑑別力缺口（額外掛鉤、`draws` 區間未驗、兩個差一邊界），已補測試且各對應突變實跑轉紅。仍只是 iid 抽象下的單一節點；補洗、其他 chance、runner、canonicalization、payoff、solver 未完成，`releaseEligible=false`，產品未改。
+
 事件夜盯印時序補測（2026-09-24）：[配對診斷報告](../experiments/2026-09-24-mark-timing/report.md)，凍結來源下在乾淨 worktree 跑 10,000 組；首事件 9,999/9,999 相同，AI 至少一席換標 1,110/9,999 局；座位 0 勝率差 −0.06pp（95% −0.30..+0.18）。保留現行時序與係數，勝率方向不明，不作發布依據。正式 raw SHA256 `394e5ae656ec003bad45bebe273a35b06a43e83587067229681af412d9cd377b` 存於忽略版控 scratchpad。
 
 來源稽核追加（2026-09-24）：正式天命 raw 的 `gitHead=2eb164d` 不是產品來源證明；產品 SHA 對上後來候選 `5bd3817`，而 runner 未驗 `productBaseline`。舊 raw 保留不改；新實驗先鎖 commit/hash 並要求乾淨工作樹。稀疏密函輸入與交接後隱藏 DOM 殘留已修，局部回歸通過；平衡與發布關口仍未通過。長時 SFX 驗證追加：目前測試驅動版本三 seed 完整長測 1/1 通過；原始間歇卡點仍未定位。

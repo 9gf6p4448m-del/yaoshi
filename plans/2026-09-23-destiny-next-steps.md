@@ -24,6 +24,8 @@ X 第八批 fixtures 進度（v9，2026-09-24；RED `3aef689`／GREEN `8096b1c`�
 
 X 第九批 fixtures 進度（v10，2026-09-24；RED `6fa957c`）：新增[狀態條件心願抽籤契約](../docs/experiments/2026-09-23-destiny/model-contract-v10.md)，按固定 `drawWishes`／`WISHES` 建立完整四席聯合支持並以共同分母列舉。凍結來源至少有一張無 `canDraw` 的心願，所以全表回退在此版本不可達，fixture 沒有偽造來源規則來觸發它；被替換的規則與 accessors 會 fail closed。v10 專項 12/12；v2–v10 模型 suite 93/93；adapter 行／分支／函式覆蓋 100%／81.94%／96.67%。獨立覆審找到並促成修正來源 provenance、閉包 RNG 偵測與復原、契約語義及有限 seed／完整遊戲限制文字核對；最終覆審未發現可操作問題。權重只在明示 iid 均勻 RNG 呼叫抽象下精確，不等於有限 32-bit `mulberry32` seed-space 分布；完整聯合支持已列舉，凍結引擎映射則逐席遍歷每個選項，沒有對所有聯合分枝逐一重播。其他 chance、轉移、runner、canonicalization、payoff、solver 仍待完成；契約維持 `sixOfFour=incomplete`、`releaseEligible=false`，產品與平衡未改。
 
+X 第十批 fixtures 進度（v11，2026-09-24；RED `61cb5c5`／GREEN `c7e4e4d`／加嚴 `47147d4`）：新增[市場生成 chance 契約](../docs/experiments/2026-09-23-destiny/model-contract-v11.md)。凍結 `drawMarket` 在無補洗時為 1 次詛咒判定＋3 次 Fisher–Yates：列舉 48 分枝、權重以 0.65 的 double 精確有理值計、總和精確為 1；cdeck 空時仍耗該次 RNG、分枝併為 24。每分枝以宣告區間內的 u 序列重播凍結 `drawMarketFor`，比對市場物件、deck／cdeck 順序與 RNG 呼叫數。收祟夜掛鉤確定性、不需補洗時精確列舉；POOL（27 件，27! 級）與 CURSES 補洗、未知或被替換掛鉤一律 fail closed。專項 15/15、l1e suite 108/108；對抗覆審的 4 項鑑別力缺口已補並以突變驗紅。未涵蓋：補洗分枝、拍賣／結算與其他 chance、runner、canonicalization、payoff、solver；只驗 seed 123 fixture；`sixOfFour=incomplete`、`releaseEligible=false`，產品與平衡未改。
+
 ## 不變的產品決策與待驗證取捨
 
 - 六組**普通**跨系連鎖對所有席位開放。四席各自秘密抽 **一封**天命，有放回、允許撞籤；只有自己的指定配方在拍賣桌成型，才覺醒相應真效果。此處沿用使用者已選的 `1.B`，不在實作途中改成排他抽籤或兩封擇一。
