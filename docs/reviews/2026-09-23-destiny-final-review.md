@@ -140,6 +140,12 @@ v9 把真實第一夜的夜末狀態送進另一個凍結引擎，再透過原�
 
 v9 專項 **6/6**；v2–v9 相鄰模型契約 suite **74/74**。adapter 行覆蓋 **100%**、分支覆蓋 **81.94%**、函式覆蓋 **91.67%**；兩次獨立 JS 覆審沒有可操作 finding。它仍只證明同一凍結來源、同一程序中的一個跨夜 checkpoint 與下一市場轉移；不證明所有自動／公開轉移、chance support／權重、跨程序 canonicalization、terminal payoff 或 solver。契約狀態維持 `chance.fullGame=incomplete`、`state.canonicalization=incomplete`、`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`。沒有改產品 `index.html`、遊戲規則或平衡值。
 
+## X：狀態條件心願 chance 節點（v10，2026-09-24）
+
+v10 在同一凍結產品來源下，完整列舉 `drawWishes` 的當前四席聯合支持集：依每席 pre-draw state 套用 `canDraw`、死人／停用 no-op 和確定性 target；共同分母權重在 iid 均勻 RNG 呼叫抽象下總和為一。獨立覆審先後找出可變 `WISHES` 函式／accessor、閉包捕捉 RNG 未攔截或未復原，以及契約語義和限制聲明未 fail closed；修訂已固定心願表與規則函式 provenance、捕捉閉包 RNG 後檢測並復原兩條游標，並精確核對 mapping、support、weight、RNG 消耗及有限 seed／全遊戲未建模的限制文字。v10 專項 **12/12**；adapter 行／分支／函式覆蓋 **100%／81.94%／96.67%**；最後一輪獨立覆審未發現可操作問題。
+
+此機率假設不等於實際有限 32-bit `mulberry32` seed-space 分布。四席完整聯合支持有列舉，但產品映射檢查是逐席逐選項，沒有重播每一個聯合分枝；目前凍結 wish 表至少含一項不帶 `canDraw` 的心願，故全表回退分支不可達且未由 fixture 觸發。其他 chance、轉移與完整 runner、跨程序 canonicalization、terminal payoff 及 solver 都未完成。模型仍 partial，`chance.fullGame=incomplete`、`sixOfFour=incomplete`、`releaseEligible=false`；沒有更動產品、遊戲規則或平衡值，這不是發布證據。
+
 ## 發布裁定
 
 `releaseEligible=false`。下一個可審核版本須先完成：修正或獨立裁定普通雙虎／血祭 H9 與千眼情報口徑；針對焦點比較四鏈 fail、兩鏈 incomplete 設新候選與驗收；記錄真長明吸收量與神王早醒壓力；做真人盲讀與音效長測診斷；處理六之四跨夜模型或就具體計算缺口取得新的發布裁定。滿足後再談 `0.57.41`、合入 `main`、推遠端及線上核驗。

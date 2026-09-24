@@ -30,10 +30,55 @@ test('v10 pins the wish-draw chance abstraction without claiming full-game chanc
   assert.equal(contract.inventory['chance.night.drawWishes'], 'partial');
   assert.equal(contract.inventory['chance.fullGame'], 'incomplete');
   assert.equal(contract.chanceAbstraction.law, 'iid-uniform-rng-call-v1');
-  assert.match(contract.chanceAbstraction.limitation, /finite 32-bit seed distribution/);
+  assert.equal(contract.chanceAbstraction.limitation,
+    'Weights are exact for this abstract chance-call law, not for the finite 32-bit seed distribution or correlations of the concrete mulberry32 stream. Full chance remains incomplete until that modeling boundary is accepted or replaced by an exact seed-space model.');
   assert.equal(contract.gate.sixOfFour, 'incomplete');
   assert.equal(contract.gate.solverStatus, 'not-run');
   assert.equal(contract.gate.releaseEligible, false);
+  assert.equal(contract.chanceAbstraction.draw,
+    'Each gameplay S.rng() call is an independent U[0,1) chance draw conditional on the current game state.');
+  assert.equal(contract.chanceAbstraction.mapping,
+    'The pinned drawWishes maps each draw to floor(u * eligiblePool.length).');
+  assert.equal(contract.chanceNodes[0].support,
+    'For each living seat, use the pinned WISHES insertion order and the options whose canDraw(player) is true; if that support is empty, the engine falls back to all wishes. Dead seats receive wish=null and consume no draw. If wishes are disabled or the table is empty, the draw node is a no-op.');
+  assert.equal(contract.chanceNodes[0].outcome,
+    'The chosen wish id and any deterministic target(player) result; done starts false.');
+  assert.equal(contract.chanceNodes[0].weight,
+    'The joint profile has exact weight product_i(1 / supportSize_i), conditional on the frozen pre-draw state and iid-uniform-rng-call-v1.');
+  assert.equal(contract.chanceNodes[0].rngConsumption,
+    'Exactly one gameplay draw per living seat when wishes are enabled and the wish table is non-empty.');
+});
+
+test('v10 rejects engine-shaped objects that were not loaded by its pinned engine loader', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  setup(engine);
+
+  assert.throws(() => buildWishChanceNodeV10({ ...engine }), /live engine loaded from the v10 pinned product source/);
+});
+
+test('v10 fails closed when a chance contract description diverges from the enumerator', async () => {
+  const { readWishChanceContractV10, validateWishChanceContractV10 } = await import(adapterModule);
+  const contract = readWishChanceContractV10();
+  const badContracts = [
+    { ...contract, chanceAbstraction: { ...contract.chanceAbstraction, mapping: 'uniform by modulo' } },
+    { ...contract, chanceAbstraction: { ...contract.chanceAbstraction, limitation: 'exact finite-seed and full-game probabilities' } },
+    { ...contract, chanceNodes: [{ ...contract.chanceNodes[0], support: 'all wishes for every seat' }] },
+    { ...contract, chanceNodes: [{ ...contract.chanceNodes[0], weight: 'uniform joint weight' }] },
+    { ...contract, chanceNodes: [{ ...contract.chanceNodes[0], rngConsumption: 'one draw for the table' }] },
+  ];
+  for (const candidate of badContracts)
+    assert.throws(() => validateWishChanceContractV10(candidate), /lineage or scope mismatch/);
+});
+
+test('v10 enumerator accepts only immutable nodes produced by its pinned state inspector', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10, enumerateWishProfilesV10 } =
+    await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  setup(engine);
+  const node = buildWishChanceNodeV10(engine);
+  assert.equal(Object.isFrozen(node), true);
+  assert.throws(() => [...enumerateWishProfilesV10({ ...node })], /v10 wish chance node/);
 });
 
 test('the frozen wish node enumerates its entire state-conditioned joint support with exact abstract weights', async () => {
@@ -48,7 +93,11 @@ test('the frozen wish node enumerates its entire state-conditioned joint support
   const node = buildWishChanceNodeV10(engine);
 
   assert.equal(node.schema, 'yaoshi.l1e.wishChanceNode.v10');
-  assert.deepEqual(node.source, PINNED_SOURCE);
+  assert.deepEqual(node.source, {
+    path: 'index.html',
+    ...PINNED_SOURCE,
+    productVersion: '0.57.40',
+  });
   assert.equal(node.enabled, true);
   assert.equal(node.round, state.round);
   assert.equal(node.drawCount, state.players.filter((player) => player.alive).length);
@@ -189,4 +238,115 @@ test('dead seats, disabled wishes and state changes alter draw count or support 
   }
   assert.equal(calls, 0);
   assert.deepEqual(state.players.map((player) => player.wish && { ...player.wish }), priorWishes);
+});
+
+test('v10 rejects ambiguous config and malformed seat identities before assigning chance weights', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  const state = setup(engine);
+  const wishToggle = engine.G.CFG.WISH_ON;
+  const playerId = state.players[1].id;
+  try {
+    engine.G.CFG.WISH_ON = 1;
+    assert.throws(() => buildWishChanceNodeV10(engine), /boolean/);
+    engine.G.CFG.WISH_ON = true;
+    state.players[1].id = state.players[0].id;
+    assert.throws(() => buildWishChanceNodeV10(engine), /unique non-negative integer/);
+  } finally {
+    engine.G.CFG.WISH_ON = wishToggle;
+    state.players[1].id = playerId;
+  }
+});
+
+test('wish support table identities fail closed if a pinned rule is replaced', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  setup(engine);
+  const wishes = Object.values(engine.G.WISHES);
+  assert.ok(wishes.some((entry) => typeof entry.canDraw !== 'function'),
+    'the frozen table has an unconditional option, so an empty pool is unreachable in this version');
+  const replacements = [
+    [wishes.find((entry) => typeof entry.canDraw === 'function'), 'canDraw'],
+    [wishes.find((entry) => typeof entry.target === 'function'), 'target'],
+  ];
+  for (const [wish, field] of replacements) {
+    const saved = Object.getOwnPropertyDescriptor(wish, field);
+    try {
+      wish[field] = () => true;
+      assert.throws(() => buildWishChanceNodeV10(engine), /pinned wish id, eligibility rule or target function has changed/);
+    } finally {
+      Object.defineProperty(wish, field, saved);
+    }
+  }
+});
+
+test('wish table accessors cannot swap a mutated definition into a pinned chance node', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  setup(engine, { market: [{ n: '木牌', f: 'wood', p: 3, curse: false }] });
+  const table = engine.G.WISHES;
+  const key = 'wish_yinqi';
+  const originalDescriptor = Object.getOwnPropertyDescriptor(table, key);
+  const changedWish = { ...originalDescriptor.value, canDraw: () => true };
+  let reads = 0;
+
+  try {
+    Object.defineProperty(table, key, {
+      configurable: originalDescriptor.configurable,
+      enumerable: originalDescriptor.enumerable,
+      get() { return ++reads === 1 ? originalDescriptor.value : changedWish; },
+    });
+    assert.throws(() => buildWishChanceNodeV10(engine), /pinned wish table entry descriptor has changed/);
+  } finally {
+    Object.defineProperty(table, key, originalDescriptor);
+  }
+});
+
+test('the exported WISHES property itself cannot be replaced with an alternating accessor', async () => {
+  const { loadWishChanceEngineV10, buildWishChanceNodeV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  setup(engine);
+  const game = engine.G;
+  const descriptor = Object.getOwnPropertyDescriptor(game, 'WISHES');
+  const replacement = { ...descriptor.value, wish_yinqi: { ...descriptor.value.wish_yinqi, canDraw: () => true } };
+  let reads = 0;
+
+  try {
+    Object.defineProperty(game, 'WISHES', {
+      configurable: descriptor.configurable,
+      enumerable: descriptor.enumerable,
+      get() { return ++reads === 1 ? descriptor.value : replacement; },
+    });
+    assert.throws(() => buildWishChanceNodeV10(engine), /pinned game function or property descriptors have changed/);
+  } finally {
+    Object.defineProperty(game, 'WISHES', descriptor);
+  }
+});
+
+test('purity inspection catches captured RNG closures and restores their streams after rejection', async () => {
+  const { loadWishChanceEngineV10, inspectWishSupportPureV10 } = await import(adapterModule);
+  const engine = loadWishChanceEngineV10();
+  const state = setup(engine);
+  const rng = state.rng;
+  const rngUi = state.rngUi;
+  const gameState = rng.getState();
+  const uiState = rngUi.getState();
+  const capturedGameRng = rng;
+  const capturedUiRng = rngUi;
+  const capturedUiSetter = rngUi.setState;
+
+  assert.throws(() => inspectWishSupportPureV10(engine, () => state.rng()), /must not consume RNG/);
+  assert.equal(state.rng, rng, 'the guarded live RNG reference is restored');
+  assert.throws(() => inspectWishSupportPureV10(engine, () => capturedUiRng()), /must be RNG-pure/);
+  assert.equal(state.rng, rng);
+  assert.equal(state.rngUi, rngUi);
+  assert.equal(rng.getState(), gameState);
+  assert.equal(rngUi.getState(), uiState);
+  assert.throws(() => inspectWishSupportPureV10(engine, () => capturedGameRng()), /must be RNG-pure/);
+  assert.equal(rng.getState(), gameState, 'gameplay RNG is restored after a captured function is called');
+  assert.throws(() => inspectWishSupportPureV10(engine, () => capturedUiSetter(uiState + 1)), /must be RNG-pure/);
+  assert.equal(rngUi.getState(), uiState, 'UI RNG is restored after a captured setter changes its cursor');
+  assert.throws(() => inspectWishSupportPureV10(engine, () => { throw new Error('inspection failure'); }), /inspection failure/);
+  assert.equal(rng.getState(), gameState);
+  assert.equal(rngUi.getState(), uiState);
 });
