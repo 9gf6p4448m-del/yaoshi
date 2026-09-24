@@ -36,7 +36,7 @@ function h1(chase,splitter){
   return {chaserWins:w(chase),splitterWins:w(splitter),diffPp:round(diff),pass:diff>=-8&&diff<=5};
 }
 
-const plan={twinTiger:['tiger-S','tiger-M'],bloodOath:['blood-S','blood-M']};
+const plan={twinTiger:['tiger-S','tiger-M'],bloodOath:['blood-S','blood-M','blood-L']}; /* blood-L：第二輪，見 acceptance.md */
 const out={};
 for(const [id,cands] of Object.entries(plan)){
   const zero=load('base',`h9-zero-${id}`).rows;

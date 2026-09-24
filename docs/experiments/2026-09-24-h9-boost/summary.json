@@ -94,9 +94,31 @@
           "pass": true
         },
         "eligible": false
+      },
+      {
+        "cand": "blood-L",
+        "h9": {
+          "normalHolderGames": 2483,
+          "normalRate": 54.13,
+          "zeroHolderGames": 2471,
+          "zeroRate": 50.99,
+          "diffPp": 3.14,
+          "ci95Pp": [
+            2.01,
+            4.28
+          ],
+          "pass": true
+        },
+        "h1": {
+          "chaserWins": 3237,
+          "splitterWins": 3013,
+          "diffPp": 2.24,
+          "pass": true
+        },
+        "eligible": true
       }
     ],
-    "selected": null,
-    "action": "兩個幅度都不符合，停手回報使用者"
+    "selected": "blood-L",
+    "action": "進入正式驗收：blood-L"
   }
 }
