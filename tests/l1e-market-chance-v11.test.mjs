@@ -75,6 +75,41 @@ function scriptFor(branch, { p, cdeckEmpty, marketSize }) {
   })];
 }
 
+const ratOf = (bound) => {
+  assert.ok(/^\d+$/.test(bound.numerator) && /^[1-9]\d*$/.test(bound.denominator), 'interval bound must be an exact rational');
+  return frac(BigInt(bound.numerator), BigInt(bound.denominator));
+};
+const sameRat = (x, y) => x.n * y.d === y.n * x.d;
+function drawMidpoint(draw) {
+  if (draw.kind === 'curseCheck') {
+    const lower = ratOf(draw.lower);
+    const upper = ratOf(draw.upper);
+    return (Number(lower.n) / Number(lower.d) + Number(upper.n) / Number(upper.d)) / 2;
+  }
+  assert.equal(draw.kind, 'shuffle');
+  return (draw.index + 0.5) / draw.size;
+}
+function assertDraws(branch, { p, cdeckEmpty, marketSize }, label) {
+  const exactP = exactDouble(p);
+  const zero = frac(0n, 1n);
+  const one = frac(1n, 1n);
+  const [lower, upper] = cdeckEmpty ? [zero, one] : branch.curse ? [zero, exactP] : [exactP, one];
+  assert.equal(branch.draws.length, marketSize, `${label}: one declared draw per rng call`);
+  const [check, ...shuffles] = branch.draws;
+  assert.equal(check.kind, 'curseCheck', `${label}: first draw is the curse check`);
+  assert.ok(sameRat(ratOf(check.lower), lower) && sameRat(ratOf(check.upper), upper),
+    `${label}: curse-check interval ${check.lower.numerator}/${check.lower.denominator}..${check.upper.numerator}/${check.upper.denominator} must equal ${lower.n}/${lower.d}..${upper.n}/${upper.d}`);
+  const u = drawMidpoint(check);
+  assert.ok(u >= 0 && u < 1, `${label}: curse-check midpoint in [0,1)`);
+  if (!cdeckEmpty) assert.equal(u < p, branch.curse, `${label}: curse-check midpoint must select this branch in the engine`);
+  shuffles.forEach((draw, k) => {
+    assert.equal(draw.kind, 'shuffle', `${label}: draw ${k + 1} kind`);
+    assert.equal(draw.size, marketSize - k, `${label}: Fisher-Yates size at draw ${k + 1}`);
+    assert.equal(draw.index, branch.swaps[k], `${label}: Fisher-Yates index at draw ${k + 1}`);
+    assert.equal(Math.floor(drawMidpoint(draw) * draw.size), draw.index, `${label}: shuffle midpoint maps to its index`);
+  });
+}
+
 function assertSameItems(actual, expected, label) {
   assert.equal(actual.length, expected.length, `${label}: length`);
   assert.deepEqual(actual.map((item) => item.n), expected.map((item) => item.n), `${label}: item id sequence`);
@@ -107,6 +142,18 @@ function replayEveryBranch(engine, node, { forRound, cdeckEmpty }) {
       assert.equal(state.nextMarket, nextBefore);
       assertSameItems(state.market, marketItems, `${label} S.market untouched`);
       assertSameItems(state.nextMarket, nextItems, `${label} S.nextMarket untouched`);
+
+      // The declared per-draw intervals must match an independent derivation, and a
+      // replay that samples inside those declared intervals must reach the same outcome.
+      assertDraws(branch, { p, cdeckEmpty, marketSize }, label);
+      restoreDecks(state, saved);
+      const declaredScript = branch.draws.map(drawMidpoint);
+      const declared = replay(engine, forRound, declaredScript);
+      assert.equal(declared.calls, node.rngCalls, `${label}: declared-interval replay rng calls`);
+      assert.equal(declared.calls, branch.draws.length, `${label}: one declared draw per engine rng call`);
+      assertSameItems(declared.market, branch.market, `${label} declared-interval market`);
+      assertSameItems(state.deck, branch.deckAfter, `${label} declared-interval deck`);
+      assertSameItems(state.cdeck, branch.cdeckAfter, `${label} declared-interval cdeck`);
       replayed++;
     }
   } finally {
@@ -161,6 +208,10 @@ test('v11 pins the market-draw chance abstraction without claiming full-game cha
   assert.match(contract.chanceNodes[0].weight, /CURSE_PROB/);
   assert.match(contract.chanceNodes[0].rngConsumption, /even when S\.cdeck is empty/);
   assert.match(contract.chanceNodes[0].failClosed, /refill/);
+  assert.equal(contract.chanceNodes[0].support,
+    "When S.deck holds at least CFG.MARKET items: a curse branch (only if S.cdeck is non-empty) that pops CFG.MARKET-1 deck items and one cdeck item, and a plain branch that pops CFG.MARKET deck items; each branch is crossed with all CFG.MARKET! Fisher-Yates swap sequences. If the global effects that drawMarketFor sees (the target round's night rule plus the current S.event, not the target round's event) carry the pinned shousui onMarketDraw hook, each branch is followed by that deterministic hook provided the hook needs no CURSES refill.");
+  assert.equal(contract.chanceNodes[0].failClosed,
+    "The node throws instead of enumerating when S.deck has fewer than CFG.MARKET items (POOL refill shuffle), when the shousui hook would need a CURSES refill shuffle, or when any other onMarketDraw hook is present in those effects (the target round's night rule or the current S.event).");
 });
 
 test('v11 fails closed when the contract diverges from the enumerator or claims more than partial scope', async () => {
@@ -355,4 +406,68 @@ test('market purity inspection rejects RNG use or deck mutation and restores the
   assert.equal(state.rngUi.getState(), uiState);
   assert.throws(() => inspectMarketSupportPureV11(engine, () => { state.deck.pop(); }), /must not mutate/);
   assertSameItems(state.deck, deckItems, 'deck restored after rejected mutation');
+});
+
+test('shousui plus any additional onMarketDraw hook fails closed instead of modelling only shousui', async () => {
+  const { loadMarketChanceEngineV11, buildMarketChanceNodeV11 } = await import(adapterModule);
+  const engine = loadMarketChanceEngineV11();
+  const state = setup(engine);
+  assert.equal(engine.G.ruleForRound(SHOUSUI_ROUND)?.id, 'shousui');
+  const savedEvent = state.event;
+  const saved = saveDecks(state);
+  try {
+    state.event = { id: 'fakeEvent', hooks: { onMarketDraw(ctx) { ctx.market = []; } } };
+    assert.throws(() => buildMarketChanceNodeV11(engine, { forRound: SHOUSUI_ROUND }), (error) => {
+      assert.ok(!(error instanceof TypeError), `expected a fail-closed Error, got ${error}`);
+      assert.match(error.message, /unsupported onMarketDraw hook/);
+      return true;
+    });
+    const { market } = replay(engine, SHOUSUI_ROUND, [0.1, 0.1, 0.1, 0.1]);
+    assert.equal(market.length, 0, 'the extra hook really changes the frozen engine outcome');
+  } finally {
+    state.event = savedEvent;
+    restoreDecks(state, saved);
+  }
+});
+
+test('shousui with exactly MARKET-1 cdeck items fails closed with a CURSES refill error', async () => {
+  const { loadMarketChanceEngineV11, buildMarketChanceNodeV11 } = await import(adapterModule);
+  const engine = loadMarketChanceEngineV11();
+  const state = setup(engine);
+  const n = engine.G.CFG.MARKET;
+  const p = engine.G.CFG.CURSE_PROB;
+  const saved = saveDecks(state);
+  try {
+    state.cdeck.splice(0, state.cdeck.length - (n - 1));
+    assert.equal(state.cdeck.length, n - 1);
+    let failure;
+    try { buildMarketChanceNodeV11(engine, { forRound: SHOUSUI_ROUND }); } catch (error) { failure = error; }
+    assert.ok(failure instanceof Error, 'the node must fail closed at the MARKET-1 cdeck boundary');
+    assert.ok(!(failure instanceof TypeError), `fail-closed error must not be a TypeError: ${failure}`);
+    assert.match(failure.message, /CURSES refill/);
+    const { calls } = replay(engine, SHOUSUI_ROUND, [p / 2]);
+    assert.ok(calls > n, `shousui with MARKET-1 cdeck items must reshuffle CURSES (calls=${calls})`);
+  } finally {
+    restoreDecks(state, saved);
+  }
+});
+
+test('a deck holding exactly MARKET items needs no refill and every branch replays exactly', async () => {
+  const { loadMarketChanceEngineV11, buildMarketChanceNodeV11 } = await import(adapterModule);
+  const engine = loadMarketChanceEngineV11();
+  const state = setup(engine);
+  const n = engine.G.CFG.MARKET;
+  const saved = saveDecks(state);
+  try {
+    state.deck.splice(0, state.deck.length - n);
+    assert.equal(state.deck.length, n);
+    let node;
+    assert.doesNotThrow(() => { node = buildMarketChanceNodeV11(engine, { forRound: PLAIN_ROUND }); },
+      'a deck with exactly MARKET items must be enumerated, not failed closed');
+    assertSupport(engine, node, { cdeckEmpty: false });
+    assert.equal(node.branches.length, 2 * factorial(n));
+    assert.equal(replayEveryBranch(engine, node, { forRound: PLAIN_ROUND, cdeckEmpty: false }), node.branches.length);
+  } finally {
+    restoreDecks(state, saved);
+  }
 });

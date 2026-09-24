@@ -27,11 +27,11 @@
       "entryPoint": "drawMarketFor(forRound)",
       "sourceSymbols": ["drawMarket", "drawMarketFor", "shuffle", "NIGHTRULES.shousui.hooks.onMarketDraw"],
       "stateConditioned": true,
-      "support": "When S.deck holds at least CFG.MARKET items: a curse branch (only if S.cdeck is non-empty) that pops CFG.MARKET-1 deck items and one cdeck item, and a plain branch that pops CFG.MARKET deck items; each branch is crossed with all CFG.MARKET! Fisher-Yates swap sequences. If the target round's global effects carry the pinned shousui onMarketDraw hook, each branch is followed by that deterministic hook provided the hook needs no CURSES refill.",
+      "support": "When S.deck holds at least CFG.MARKET items: a curse branch (only if S.cdeck is non-empty) that pops CFG.MARKET-1 deck items and one cdeck item, and a plain branch that pops CFG.MARKET deck items; each branch is crossed with all CFG.MARKET! Fisher-Yates swap sequences. If the global effects that drawMarketFor sees (the target round's night rule plus the current S.event, not the target round's event) carry the pinned shousui onMarketDraw hook, each branch is followed by that deterministic hook provided the hook needs no CURSES refill.",
       "outcome": "The ordered market item objects returned by drawMarketFor plus the resulting S.deck and S.cdeck contents and order.",
       "weight": "Curse branch CURSE_PROB / CFG.MARKET!, plain branch (1 - CURSE_PROB) / CFG.MARKET!; when S.cdeck is empty the curse mass merges into the plain branch (1 / CFG.MARKET!). Weights are exact rationals that sum to 1.",
       "rngConsumption": "Exactly CFG.MARKET gameplay draws: one curse check (consumed even when S.cdeck is empty) plus CFG.MARKET - 1 Fisher-Yates swaps; the shousui hook consumes none when it needs no refill.",
-      "failClosed": "The node throws instead of enumerating when S.deck has fewer than CFG.MARKET items (POOL refill shuffle), when the shousui hook would need a CURSES refill shuffle, or when any other onMarketDraw hook is active for the target round.",
+      "failClosed": "The node throws instead of enumerating when S.deck has fewer than CFG.MARKET items (POOL refill shuffle), when the shousui hook would need a CURSES refill shuffle, or when any other onMarketDraw hook is present in those effects (the target round's night rule or the current S.event).",
       "notCovered": ["POOL deck refill shuffles", "CURSES refill inside the shousui hook", "Unknown onMarketDraw hooks", "Auctions, market consumption and night resolution", "Other chance nodes and whole-game chance"]
     }
   ],

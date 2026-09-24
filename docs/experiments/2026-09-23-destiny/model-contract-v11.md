@@ -15,18 +15,18 @@
 - 詛咒分枝（僅 `S.cdeck` 非空）：deck 抽 `MARKET−1` 件、cdeck 抽 1 件，權重 `CURSE_PROB / MARKET!`；
 - 一般分枝：deck 抽 `MARKET` 件，權重 `(1 − CURSE_PROB) / MARKET!`；cdeck 空時詛咒機率質量併入此分枝，權重 `1 / MARKET!`；
 - 每個分枝乘上全部 `MARKET!` 個 Fisher–Yates swap 序列（凍結版 `MARKET=4` → 24 種）；
-- 目標夜的全域 effect 若帶有被固定的收祟夜 `onMarketDraw`：每個分枝後接該確定性掛鉤（被換下的牌各回牌堆底、再從 cdeck 頂抽 `MARKET` 件），前提是掛鉤不需補洗 CURSES；
+- `drawMarketFor` 看得到的全域 effect（目標夜的夜規則＋**當下**的 `S.event`，不是目標夜的異事）若帶有被固定的收祟夜 `onMarketDraw`：每個分枝後接該確定性掛鉤（被換下的牌各回牌堆底、再從 cdeck 頂抽 `MARKET` 件），前提是掛鉤不需補洗 CURSES；
 - 消耗恆為 `MARKET` 次玩法 RNG（1 次詛咒判定＋`MARKET−1` 次 swap），收祟夜掛鉤不另耗。
 
 每個分枝輸出市場物件序列（身分與品名）、`drawMarketFor` 之後的 `S.deck`／`S.cdeck` 內容與順序、各次抽樣所屬區間。
 
-**Fail closed**：`S.deck` 不足 `MARKET`（會 `shuffle([...POOL])` 補洗，凍結版 POOL 為 27 件、補洗是 27! 級支持集）、收祟夜掛鉤需要補洗 CURSES、或目標夜出現任何其他／被替換的 `onMarketDraw` 掛鉤時，節點直接丟錯，不產出支持集。只要一般分枝需補洗就整個節點 fail closed（即使詛咒分枝本身不需要）。
+**Fail closed**：`S.deck` 不足 `MARKET`（會 `shuffle([...POOL])` 補洗，凍結版 POOL 為 27 件、補洗是 27! 級支持集）、收祟夜掛鉤需要補洗 CURSES、或上述全域 effect 中出現任何其他／被替換的 `onMarketDraw` 掛鉤時（含收祟夜同時帶有額外掛鉤），節點直接丟錯，不產出支持集。只要一般分枝需補洗就整個節點 fail closed（即使詛咒分枝本身不需要）。
 
 建構節點在攔截玩法與 UI RNG 的純度檢查內進行；若檢查期間 RNG 游標、`deck`／`cdeck`／`market`／`nextMarket` 或 `nightRule` 改變，會還原並丟錯。節點不可變，列舉器拒絕自行拼出的節點並核對權重總和。這些約束只保護此測試適配器的模型輸入，不是產品安全邊界。
 
 ## 已驗證範圍
 
-測試 `tests/l1e-market-chance-v11.test.mjs`（12 項）：契約語義與 gate 的 fail-closed 核對；無補洗狀態（規則夜 3＝押寶夜、無掛鉤）48 分枝的精確權重與總和＝1（測試以 DataView 位元獨立換算 `CURSE_PROB` 的有理值）；**每個列舉分枝**以落在該分枝區間內的腳本化 u 序列交回凍結 `drawMarketFor`，逐一比對市場品名序列與物件身分、之後的 deck／cdeck 內容與順序、實際 RNG 呼叫數＝節點宣告消耗、`S.market`／`S.nextMarket` 未動；cdeck 空（首抽刻意落在 `u < CURSE_PROB` 區仍走一般分枝、仍耗 1 次）；收祟夜（第 7 夜）48 分枝全詛咒市場的逐分枝重播；deck 剩 `MARKET−1`／0 件與收祟夜 cdeck 過短兩種補洗狀態的 fail closed，並實跑凍結引擎證明該狀態確實多耗 RNG；未知／被替換掛鉤的 fail closed；建構節點前後 RNG 與四個牌陣列不變。
+測試 `tests/l1e-market-chance-v11.test.mjs`（15 項）：契約語義與 gate 的 fail-closed 核對；無補洗狀態（規則夜 3＝押寶夜、無掛鉤）48 分枝的精確權重與總和＝1（測試以 DataView 位元獨立換算 `CURSE_PROB` 的有理值）；**每個列舉分枝**以落在該分枝區間內的腳本化 u 序列交回凍結 `drawMarketFor`，逐一比對市場品名序列與物件身分；每分枝宣告的 `draws`（詛咒判定區間與 Fisher–Yates size／index）先與測試端獨立推得的值精確比對，再以各宣告區間的中點產生第二組 u 序列重播，結果須相同、之後的 deck／cdeck 內容與順序、實際 RNG 呼叫數＝節點宣告消耗、`S.market`／`S.nextMarket` 未動；cdeck 空（首抽刻意落在 `u < CURSE_PROB` 區仍走一般分枝、仍耗 1 次）；收祟夜（第 7 夜）48 分枝全詛咒市場的逐分枝重播；deck 恰為 `MARKET` 件的邊界照常列舉 48 分枝並逐分枝重播；deck 剩 `MARKET−1`／0 件與收祟夜 cdeck 過短（含恰為 `MARKET−1` 件的邊界，須丟 CURSES refill 錯誤而非 TypeError）兩種補洗狀態的 fail closed，並實跑凍結引擎證明該狀態確實多耗 RNG；未知／被替換掛鉤與收祟夜＋額外掛鉤的 fail closed；建構節點前後 RNG 與四個牌陣列不變。
 
 ## 未涵蓋與限制
 
@@ -43,4 +43,4 @@ node --test tests/l1e-*.test.mjs
 node --experimental-test-coverage --test tests/l1e-market-chance-v11.test.mjs
 ```
 
-v11 專項 **12/12**；l1e 全套 **105/105**；適配器行／分支／函式覆蓋 **100%／86.93%／100%**。`chance.fullGame=incomplete`、`state.canonicalization=incomplete`、`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；inventory `chance.night.drawMarket=partial`。沒有修改 `index.html`、遊戲規則、效果係數或發布狀態。機器契約見 [model-contract-v11.json](model-contract-v11.json)。局部通過不得升格為全遊戲通過。
+v11 專項 **15/15**；l1e 全套 **108/108**；適配器行／分支／函式覆蓋 **100%／86.93%／100%**。對抗覆審發現 4 個測試鑑別力缺口（`draws` 區間／size 未驗、收祟夜＋額外掛鉤、收祟夜 cdeck 恰 `MARKET−1`、deck 恰 `MARKET` 邊界），已補測試並以對應突變逐一驗紅（皆為 AssertionError）；契約 `support`／`failClosed` 改為如實描述 `S.event` 取當下值。`chance.fullGame=incomplete`、`state.canonicalization=incomplete`、`sixOfFour=incomplete`、`solverStatus=not-run`、`releaseEligible=false`；inventory `chance.night.drawMarket=partial`。沒有修改 `index.html`、遊戲規則、效果係數或發布狀態。機器契約見 [model-contract-v11.json](model-contract-v11.json)。局部通過不得升格為全遊戲通過。
