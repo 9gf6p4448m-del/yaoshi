@@ -2066,9 +2066,9 @@ const TRUE_DESTINY_RULES={
   twinTiger:{day:"盯上拍品讓對手的保守標落標付 35%",night:"敵方首位前鋒本場攻擊 −1"},
   water:{day:"本夜有效出價卻一件未得，回 1 壽命",night:"抓交替成功後，本方小兵血量上限與現值 +1"},
   eyes:{day:"明夜私看 4 件；買下曾看過的拍品省 1 壽命，實付至少 1",night:"首拍本方攻擊穿透敵方護甲"},
-  godKing:{day:"請下傳說尊立刻回 3 壽命，當夜免供奉",night:"神王天誅擊毀敵紙紮後，本方本場攻擊 +1"},
+  godKing:{day:"請下傳說尊立刻回 7 壽命，當夜免供奉",night:"神王天誅擊毀敵紙紮後，本方本場攻擊 +1"},
   bloodOath:{day:"押命標落標付 35%（落魄夜及免傷法寶照原優先序）",night:"首拍割祭反噬敵前鋒 2 血；重複刀真加成只發一次"},
-  eternalFlame:{day:"開標後生命全桌最低者額外回 1；並列各得",night:"餓鬼進食後給本方最低血紙紮 2 點護盾，可累積到場終"},
+  eternalFlame:{day:"開標後生命全桌最低者額外回 2；並列各得",night:"餓鬼進食後給本方最低血紙紮 3 點護盾，可累積到場終"},
 };
 function activeChains(p){
   if(!p || !p.bag) return [];
@@ -3682,9 +3682,9 @@ function resolveAuction(){
     ?[shrineWindOrder(S.round).find(pid=>eligible.some(p=>p.id===pid))]
     :eligible.map(p=>p.id);
   chosen.forEach(pid=>{
-    const p=S.players[pid];p.life+=1;
-    S.destinyDayEvents.push({pid,chainId:"eternalFlame",kind:"lowestRelief",amount:1});
-    if(reveal.length) reveal.at(-1).events.push({txt:`🕯️ ${p.name} 壽命居末，濟貧添香 +1 壽命`});
+    const p=S.players[pid];p.life+=2;
+    S.destinyDayEvents.push({pid,chainId:"eternalFlame",kind:"lowestRelief",amount:2});
+    if(reveal.length) reveal.at(-1).events.push({txt:`🕯️ ${p.name} 壽命居末，濟貧添香 +2 壽命`});
   });
   recordAuction(reveal); /* 局末回顧：純記錄 */
   /* 本夜流標的詛咒品（無人得標＝無人毒標得手）：供市集規則的夜末後效取用；沒有規則時沒有人讀它 */
@@ -3825,10 +3825,10 @@ function awardLegend(out,win,idx){
   S.incPool[win.id]=0;
   if(S.shrineStat) S.shrineStat.taken++;
   if(activeTrueDestiny(win,"godKing")){
-    win.life+=3;
+    win.life+=7;
     if(S.destinyEffectMode==="original") win.destinyTitheExemptRound=S.round;
     (S.destinyDayEvents=S.destinyDayEvents||[]).push({pid:win.id,chainId:"godKing",
-      kind:"legendGrace",amount:3,exempt:S.destinyEffectMode==="original"});
+      kind:"legendGrace",amount:7,exempt:S.destinyEffectMode==="original"});
   }
   return sh;
 }
@@ -4593,12 +4593,12 @@ function pwFeed(sd,foe,env,before){
     (S?.destinyEffectMode!=="candidate"||sourceAlive)){
     const u=pwLowest(sd,false);
     if(u){
-      u.destinyShield=(u.destinyShield||0)+2;
+      u.destinyShield=(u.destinyShield||0)+3;
       if(S?.destinyEffectMode==="candidate"){
         u.destinyShield=Math.min(2,u.destinyShield);
         u.destinyShieldExpiry=env.beat+1;
       }
-      pwFire(env,{id:"trueEternalShield",name:"長明渡幽"},`🕯️ 餓鬼進食：${sd.p.name} 最低血紙紮獲護盾 2`,sd);
+      pwFire(env,{id:"trueEternalShield",name:"長明渡幽"},`🕯️ 餓鬼進食：${sd.p.name} 最低血紙紮獲護盾 ${S?.destinyEffectMode==="candidate"?2:3}`,sd);
     }
   }
 }
