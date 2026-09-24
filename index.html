@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
   font-size:14px;position:fixed;inset:0;width:100%;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 *{touch-action:manipulation} /* 連點任何位置都不觸發 double-tap zoom（試玩回饋：視窗上跳）；下行捲動容器另開 pan-y */
-#felt,#sheetbox,#modalbox,#review,#selGrid{touch-action:pan-y}
+#felt,#sheetbox,#modalbox,#review,#selGrid,#nwScr{touch-action:pan-y}
 /* 暈角（美術甲卷 v0.46，凍結檔 A5）：CSS 覆蓋層，不進 shader——手機上多一趟全畫面 fill 太貴，
    而且暈角本來就是「疊在畫面最上面」的東西，用 DOM 做最便宜也最好調。
    疊層：3D canvas 是 z-index:−2（renderer.js 設的），這層 −1，兩個都在 in-flow 的 UI 之下，
@@ -67,7 +67,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 .title{text-align:center;padding:22px 20px;height:100%;display:flex;flex-direction:column;justify-content:center}
 .title h1{font-size:38px;color:var(--gold);letter-spacing:12px;margin-bottom:6px}
 .title p{color:var(--dim);font-size:13px;line-height:1.7}
-.title .btns{display:flex;gap:12px;justify-content:center;margin-top:14px}
+.title .btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:14px}
 #table{display:none;height:100%;height:100dvh;max-width:960px;margin:0 auto;
   grid-template-areas:"north north north" "west felt east" "south south south";
   grid-template-rows:56px 1fr 62px;grid-template-columns:120px 1fr 120px;gap:4px;padding:4px}
@@ -641,6 +641,44 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 .rcard.taken{opacity:.28;pointer-events:none}
 #selFoot{display:flex;align-items:center;gap:10px;min-height:52px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+/* 夜行錄（N1）：章節選單／引言卡／殘卷卡同一層 #nwScr（與 #selectScr 同層級、同底色；整層可捲，
+   卡片沿用 .stageCard／.bigbtn／.selback 語彙；grid 在 844 橫式排三欄、390 直式自動落成一欄，不橫向溢出） */
+#nwScr{display:none;position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;padding:10px 12px 18px}
+#nwScr.on{display:block}
+#nwScr .nwHead{display:flex;align-items:center;gap:10px;max-width:820px;margin:0 auto 4px}
+#nwScr .nwHead h2{flex:1;margin:0;font-size:18px;color:var(--gold);letter-spacing:6px}
+#nwScr .nwLead{max-width:820px;margin:0 auto 8px;color:var(--dim);font-size:12px;line-height:1.6}
+.nwGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;max-width:820px;margin:0 auto}
+.nwCard{display:flex;gap:10px;align-items:flex-start;min-width:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:9px 10px}
+.nwCard.cleared{border-color:var(--gold);box-shadow:inset 0 0 0 1px rgba(232,200,96,.18)}
+.nwCard.locked{opacity:.55}
+.nwAv{flex:0 0 auto;width:52px;height:52px;font-size:34px;line-height:52px;text-align:center}
+.nwAv svg{width:52px;height:52px;display:block}
+.nwAv.sm{width:34px;height:34px;font-size:24px;line-height:34px;display:inline-block;vertical-align:middle}
+.nwAv.sm svg{width:34px;height:34px}
+.nwInfo{flex:1;min-width:0}
+.nwNo{font-size:11px;color:var(--dim);letter-spacing:2px}
+.nwTt{font-size:16px;font-weight:bold;color:var(--ink);margin:1px 0}
+.nwBoss{font-size:12px;color:var(--dim)}
+.nwSt{display:inline-block;margin-top:4px;font-size:12px;color:var(--gold)}
+.nwSt.ok{color:var(--green)} .nwSt.lock{color:var(--dim)}
+.nwBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.nwBtns .bigbtn{height:36px;font-size:13px;padding:0 14px}
+#nwScr .stageCard.nwBig{max-width:560px;text-align:left;padding:12px 14px;animation:none}
+.nwH{font-size:20px;color:var(--gold);letter-spacing:3px;margin:2px 0 6px}
+.nwBossRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}
+.nwIntro p{font-size:14px;line-height:1.75;margin:5px 0;overflow-wrap:anywhere}
+.nwTeach{margin-top:10px;border-left:2px solid var(--gold);padding:2px 0 2px 10px}
+.nwTeachH{font-size:13px;font-weight:bold;color:var(--gold);margin-bottom:2px}
+.nwTeach ul{margin:0;padding-left:18px}
+.nwTeach li{font-size:13px;line-height:1.65;margin:2px 0;overflow-wrap:anywhere}
+.nwScroll{font-size:15px;line-height:1.95;overflow-wrap:anywhere;text-indent:2em}
+.nwEnd{margin-bottom:6px;padding-bottom:6px;border-bottom:1px dashed var(--line)}
+.nwEnd .nwVerdict{font-size:19px;font-weight:bold;letter-spacing:2px;margin-top:2px}
+.nwEnd.pass .nwVerdict{color:var(--gold)} .nwEnd.fail .nwVerdict{color:var(--red)}
+.nwQuote{font-size:13px;color:var(--ink);margin-top:3px;line-height:1.6}
 /* 2026-09-03 使用者要求：被動說明要像 v0.11 手機上那樣大（v0.11 的大字是瀏覽器文字自動放大的副作用，行數變少就失效）；改成固定 clamp，844 寬≈16px */
 #selDesc{flex:1;font-size:clamp(13px,1.9vw,17px);color:var(--dim);line-height:1.5;min-width:0}
 #selDesc b{color:var(--ink)}
@@ -735,6 +773,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <div class="btns">
     <button class="bigbtn" onclick="startEntry('solo')">單人入市</button>
     <button class="bigbtn alt" onclick="startEntry('hotseat')">雙人熱座</button>
+    <button class="bigbtn alt" id="nwEntry" onclick="startEntry('nightwalk')">夜行錄</button>
   </div>
   <p id="verLine" style="margin-top:10px;color:var(--gold);font-size:11px"></p>
 </div>
@@ -786,6 +825,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   <div id="selGrid"></div>
   <div id="selFoot"><div id="selDesc">點一個角色，看被動與起始壽命</div><button class="bigbtn" id="selBtn" disabled onclick="confirmRole()">入市</button></div>
 </div>
+<div id="nwScr"><div id="nwBody"></div></div>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div id="sheetbox"></div></div>
 <div id="modal" onclick="if(event.target===this)closeModal()"><div id="modalbox"></div></div>
 <div id="review"><div id="reviewbox"></div></div>
@@ -2075,6 +2115,7 @@ const TRUE_DESTINY_RULES={
   eternalFlame:{day:"開標後生命全桌最低者額外回 2；並列各得",night:"餓鬼進食後給本方最低血紙紮 3 點護盾，可累積到場終"},
 };
 function activeChains(p){
+  if(S&&S.chainsOff) return []; /* 夜行錄第 1 章關連鎖：源頭擋點 G1（分母表 docs/experiments/2026-09-25-n1-nightwalk/chain-gate-sites.md） */
   if(!p || !p.bag) return [];
   const owned=new Set(p.bag.filter(it=>!it.curse && it.ab).map(it=>it.ab));
   return Object.values(CHAINS).filter(chain=>chain.requirements.every(ab=>owned.has(ab)));
@@ -2126,7 +2167,10 @@ function activeTrueDestiny(p,id){
     p.destiny===id&&destinyRecipeHeld(p));
 }
 /* 只有真實拍賣入袋可呼叫。身分覺醒永久，後續真效果仍須確認配方在袋中。 */
+/* 夜行錄：天命關的章節局（第 1、2 章）。只認「章節局＋off」，常規 headless 的 off（simulate／量測）不受影響。 */
+function nwDestinyHidden(){ return !!(S&&S.chapter&&S.destinyEffectMode==="off"); }
 function awakenDestinyOnAuction(p,it,wasHeld){
+  if(nwDestinyHidden()) return null; /* 擋點 G5：第 2 章連鎖開、天命關，不得覺醒與公告 */
   if(!p||!it||it.curse||!it.ab||wasHeld||p.destinyAwakened||
     !CHAINS[p.destiny]?.requirements.includes(it.ab)||!destinyRecipeHeld(p)) return null;
   p.destinyAwakened=true;
@@ -2345,6 +2389,7 @@ function destinyProjection(p,{viewer=ACTIVE,phase=PRIVATE_PHASE}={}){
   return {chainId:(published||own)?p.destiny:null,awakened:published,private:own};
 }
 function destinyLetterHTML(p,view){
+  if(nwDestinyHidden()) return ""; /* 擋點 G6 */
   const d=destinyProjection(p,view);
   if(!d.chainId) return '<div class="chainStatus">📜 天命密函：？？？（隱密未揭）</div>';
   const c=CHAINS[d.chainId];
@@ -2385,9 +2430,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.57.42", VERSION_NOTE="0.57.42：千眼可讀性——手機橫式打開袋子／私函時「關閉」固定在視窗底緣，不必先捲到最下面；真千眼覺醒後，明夜預告多看到的第四件標上「千眼多看」（純介面，規則與數值不變）。｜0.57.41：天命正式上桌——開局每席私抽一張命函（只有自己看得到），湊齊命函指定的連鎖即覺醒真版效果並全桌公告；普通版血祭殘血（≤25）全隊攻 +2；真長明護盾 3 點、開標後全桌最低者額外回 2；真神王請下傳說尊立刻回 7 壽命；交棒時清除上一席的私函殘留。已知限制：真版平衡尚未達設計目標（水陸、千眼、雙虎、血祭四組真版幾乎不改變勝負）；普通版雙虎對勝率的貢獻偏低，千眼尚未完整量測。｜0.57.40：補齊六組跨系連鎖機制——血祭過陰、神王破煞、長明渡幽與對稱特權落地；仍為測試候選，平衡與玩家體驗待驗收。｜0.57.39：三連鎖平衡機制重構——雙虎盯上加收買路錢；水陸免買路錢、水鬼免損、全隊濺射減半；千眼預告拍品折讓 1 命、首拍全隊先手且敵前鋒 −2 攻；出價面板專屬標籤提示；剔除舊第二高標額資訊。｜0.57.38：3D 托盤連鎖共鳴特效——桌上可補齊連鎖的拍品腳下顯示硃砂紅內核靈印（心跳呼吸脈動），與月相金環一內一外、一紅一金、一動一靜；僅真人玩家私有可見，AI 與非出價席位不顯示（純演出，規則與時長不變）。｜0.57.37：L1 三組連攜試玩候選——補件提示、千眼三件預告與公開標額整理、雙虎融合及黑金虎將。平衡與玩家驗收待試玩，尚非正式發布。｜0.57.36：L1 水陸偷渡連鎖——同持拼板舟與水鬼浮標可銷毀毒標轉入的詛咒；配方查詢與拍賣回顧記錄同步接線。｜0.57.35：因果回顧修正——整夜失血與單筆拍賣分開，並列可確認事件；不再把局末死亡寫成當夜出局，紀錄不足時明示。研究對照採相同修訂口徑（規則與演出時長不變）。｜0.57.34：A3 再玩研究卷 S7——本局回顧新增「下載本局紀錄」，把這一局的公開紀錄存成 .json 檔（手機走系統分享面板可存到「檔案」或傳 LINE 當附件，不支援就一般下載；檔名＝版本＋種子），文字複製經 LINE 轉貼會被截斷、檔案不會；「複製本局紀錄」保留（純呈現，規則、演出與時長不變）。｜0.57.33：A3 再玩研究卷 S7 前置——本局回顧新增「複製本局紀錄」，把這一局的公開紀錄（版本、種子、四家身分、逐夜拍賣／夜戰／請神紀錄）打包成文字複製到剪貼簿，剪貼簿不可用時攤開文字框讓你長按複製（純呈現，規則、演出與時長不變）。｜0.57.32：A3 滿編構圖卷 S6——對決 8v8 同一側同型紙紮錯位排列（前排一對內外分開、後排同型帶到前線、朝向各異），拼板舟／福壽綿長／魔神仔紅帽三件在對決中的描邊改為各自主色（純演出，規則、拍賣桌與時長不變）。｜0.57.31：A3 因果卷 S5——本局回顧開頭新增「這一局的因果」三到六句短敘事（誰活到天亮、誰在哪一夜為哪件事付出最多、勝者最大的一注、最狠的毒標、出局名單、請神），只從局末紀錄生成，不帶任何密封金額（規則、演出時長不變）。｜0.57.30：落籌音換成使用者挑定的銅錢丙案「一枚銅錢落桌」；獵人落標台詞改帶拍品名（規則、演出時長不變）。｜0.57.29：A3 台詞卷 S4——十個 AI 角色依公開事件回一句：既有得標／落標／毒標台詞補齊，新增盯上宣告、出局、請神三類；句子只帶公開資訊。另附落籌「銅錢」候選丙／丁供聽板挑選，遊戲仍用木籌（規則、演出時長不變）。｜0.57.28：首頁 BGM——標題頁第一次點任何地方就起首頁專屬曲（備選 Take 2），按開局後切到選角畫面那首（規則、演出與時長不變）。｜0.57.27：A3 聲音卷 S3——受擊音 hurt 換成使用者挑定的甲案「紙裂」（原版留作 hurt_v0），規則、演出與時長不變。｜0.57.26：A3 聲音卷 S3——受擊音 hurt 依使用者聆聽意見出甲（紙裂）／乙（深悶撞）兩案候選進聽板挑選，遊戲仍用原版 hurt（規則、演出與時長不變）。｜0.57.25：A3 聲音卷 S2 接線——落籌（出價「＋」）、封標（蓋牌交卷）、揭盅（每件得標，與開市鑼分開）、受咒（毒標塞入）四事件各自有專屬音，聲部由使用者在聽板挑定（落籌乙／封標甲／揭盅甲／受咒乙）；?sfx=0 本次靜音（規則與時長不變）。｜0.57.24：A3 聲音卷 S2——sfx.js 新增四事件各甲乙兩案候選音，只供聽板挑選。｜0.57.23：福壽綿長腹部長明燈補上原本沒被畫出來的碗內壁（碗口封板），碗身煤黑、碗沿與碗底黃銅、火苗加高（純美術，規則與時長不變）。｜0.57.22：拍賣桌詛咒品「冥婚紅包」換成 A2 標竿甲案「綑屍紅包」——薄扁亮紅紅包＋金印、白麻布綑綁垂尾、血黑漬與一束黑髮（純美術，規則與時長不變）。｜0.57.21：大士爺紙尊的橘色香爐火從腹前移到右肩旗面、護心鏡下移腹前改亮鎏金（純美術，規則與時長不變）。｜0.57.20：魔神仔紅帽換成 A2 標竿甲案「紅帽猴精」——猴吻尖耳紅眼、紅斗笠、寬濕毛片、下半身改榕樹氣根般垂條（純美術，規則與時長不變）。｜0.57.19：福壽綿長換成 A2 標竿甲案（腹部長明燈整組前推、硃紅燈龕背板＋鎏金龕柱、緣盾裙邊、贔屭龍角）；福壽綿長的增益招在受益方胸口加豎立紅環、燈印放大（純美術與演出，規則與時長不變）。｜0.57.18：拼板舟換成 A2 標竿甲案——拿掉飛魚鰭、艙內兩名木雕划手持槳、船眼放大、舷側白紅黑波浪紋、首尾更高翹（純美術，規則與時長不變）。｜0.57.17：紙紮妖的描邊外殼由「每個部件一顆」併成「一尊一顆」，8v8 對決每幀少 181 次 draw call（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.16：對決畫面的腳下水面（浮標的圓盤／緣光／漣漪）與殘日餘暉碟改單趟繪製，8v8 每幀少 26 次 draw call 與 52 次 shader 參數重算（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.15：桌面平貼 decal（接觸陰影、硃砂符、月印）與招式特效模板改單趟繪製，每幀少 5 次 draw call 與 10 次 shader 參數重算（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.14：紙紮同一尊的網格共用一副骨架，每幀骨骼貼圖上傳由 51 次降到 5 次（純效能，畫面、規則與時長不變）。｜0.57.13：牌桌取景不再對描邊外殼重複計算骨骼包絡（純 CPU 成本，畫面、規則與時長不變）。｜0.57.12：六種詛咒各有獨立效果與造型，取消共同扣攻；正式玩法移除舊戰力依賴，法寶說明以紙紮與實際能力為準。｜0.57.11：廟埕暗桌介面；法寶頁籤連動3D焦點；自動取景保留完整揭盅與盯印歸屬，跳過與轉向後鏡頭正常恢復。｜0.57.10：低矮橫屏法寶名稱切換完整閱讀、平放盯印與所屬盤位木籌槽。｜0.57.9：B 中型盯牌與同槽分列、tier 1 每拍短推、跨裝置安全區、主畫面效能開關、三種高光轉場；修正更新版本不一致。｜0.56e（紙紮夜戰永久啟用・月相策略提示・128 枚實體銅錢）｜0.56b（上桌卷第一段）：拍賣桌桌心紅布托盤把當夜拍品 3D 模型擺上桌（詛咒品冒陰火）、點模型浮空微旋＋鏡頭微推（手機點到即亮）、桌面木紋與桌角香灰符咒（頂點色）；?tray3d=0 一鍵關、?table3d=lite 降級；修 GLB 骨架貼圖洩漏（skeleton.dispose）；0.55.10：0.55.10（招式演出卷・陰氣系批 3 階段 A）：新積木 st.stain（腳下不規則水漬）、範本魔神仔紅帽正式演出（探＋卡頓三段跳＋紅帽戴到受招方＋迷途打轉）；三系檔 V054 退路表全部移除（?fxvocab=1 仍看 0.55 徽記版）；修 fx-contrast 在 HEAD exit 1 的既有缺陷；0.55.9：0.55.9（招式演出卷・祖靈批收尾）：道具 anchor 主道具／在場五條／逐尊覆蓋／foe 綁受擊者；打擊類 react 後不回流斷言；舞台座標唯一出口 st.stageVec（三系檔不再有世界軸位移）、六座位量測；香火 9 支增益逐尊送達、令旗掃到同伴、虎爺印碎片只往敵方；P4 盲讀 18 支三輪：5→6→10/18（8 支對象題記已知）；0.55.8：0.55.8（招式演出卷・祖靈系批 2 階段 B）：其餘 8 支祖靈招正式演出（靜→瞬發、骨牙石器／織紋珠／木器／日雷四家族、腳下光柱），道具 anchor 機械檢查（主道具、在場五條、逐尊覆蓋、邊距 0.18）；香火 9 支增益道具逐尊送達、王爺劍掃兩尊、虎爺印碎印；P4 盲讀 18 支第 2 輪 6/18（記已知，第 3 輪進行中）；0.55.7：0.55.7（招式演出卷・祖靈系批 2 階段 A）：三系共通「施招者／受招方身分可辨」語彙（施招姿態只有施招者有、腳下系別光蓄勢亮衝擊拍熄、受益反應與姿態不同型、姿態必在衝擊拍收回）；祖靈範本獻祭刀「割祭」正式演出（黑曜石刃＋紙血條＋自身升）；新積木 st.pillar／stance／groundMark；香火 9 支套上施招姿態並修「姿態永不收回把受益方畫成下沉」；0.55.6：0.55.6（招式演出卷・香火系批 1 階段 B）：其餘 8 支香火招改為正式演出（本體動作＋紙紮道具＋受招反應；增益道具落在受益方、增益招零跨場拖線、王爺劍斬弧掃兩尊、虎爺印拿掉印文改碎印）；朝向改相機相對、P2 因果三段進機械紅燈、solo 反應紅燈；P4 盲讀三輪未過（對象題＝施招者／受益者身分可辨，記已知，祖靈批前置）；0.55.5：0.55.5（三尊在場感小卷，遊玩回饋）：請神三尊固定站第二排中央、紙紮基座（日輪台／神轎座／骨堆）、傳說尺寸 1.35 且矮模型放大、一律實體有影、待機光效（餘暉盤／一炷香／鬼火群）、頭頂尊名牌、請神那夜進場一次低角度機位；滿編 8v8 殘日被前排遮擋 67%→0.7%、三尊頭部 0%；六讀者盲讀 2/3 對通過；0.55.4：0.55.4（招式演出卷・香火系批 1 階段 A）：虎爺印改為正式演出「撲咬＋落印＋金箔紙錢」（本體動作＋紙紮道具＋受招反應，短版 300ms／完整版 900ms；製作人簽字範本）；MOVE_SPEC 登記表、st.paperProps 群體紙紮道具積木、道具尺寸記錄治具；0.55 徽記版搬 ?fxvocab=1 的 V055 表；0.55.3：0.55.3：徽記尺寸防線 N11/N12 重寫（執行期鎖＋onAfterRender 世界縮放稽核＋內容指紋場景掃描；四輪覆審；N-5 簽為已知未涵蓋）——只影響 ?fxvocab=1 的徽記路徑與治具，預設演出零 diff；0.55.2：0.55.2（招式演出卷前置）：tier 1 短版 260→300ms（使用者裁定，fx-tiers 凍結檔 §2.1 修訂）、27 支短版時間軸改比例制（260 下逐位元組等價）、虎爺印演出原型 A–E 走 ?proto=tigerE（預設不啟用）；0.55.1：0.55.1 招式演出方向重定：四支示範招（獻祭刀／虎爺印／千里眼銅鈴／魔神仔紅帽）**預設退回 0.54 的演出**，0.55 的徽記剪影版本改掛 ?fxvocab=1 才看得到（?fxvocab=0 或不帶＝0.54）。原因：徽記剪影是平面單色 billboard，貼在紙紮 3D 上像剪貼畫、兩輪盲讀 0/3，製作人裁定這個方向做錯了，方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md；0.55 版本原地保留給治具與後續參考，另外 23 支招與引擎一行未動。｜招式可辨性卷 0.55 批 0（在 0.56a 之後合併，版序 0.54→0.55→0.56a/b 為刻意重排）：三系招式視覺語彙單一來源 js/trait-fx/vocab.js＋徽記剪影 emblems.js＋六個積木＋非加色材質 MAT_SOLID；四支示範招（獻祭刀 knife／虎爺印 seal／千里眼銅鈴 bell／魔神仔紅帽 hat）短版與完整版同函式換比例表；另外 23 支招逐函式 md5 一位元組未動、index.html 引擎零 diff、trace(1..20) 對 v0.56a 逐位元組相等。三輪對抗式覆審＋兩批修補：尺寸收斂 ICON.byKind／sizeOf（icon／mark 拒收外部尺寸）、L3 對比閘門量測位置對齊產品（bloom 0.7／手機視口 2x／seed）、盲讀材料治具改手機 CSS 視口＋DSF2（人偶固定像素高，2x 視口會腰斬佔比）。L4-pre 材料鑑別力三輪：虎姑婆指甲重現、射日神弓短版未重現→統計量改三對讀者取多數（§2.1 修訂三）待補第 3 對；六位讀者只穩定認出銅鈴，刀／印／帽三枚剪影列批 1 前置回修。｜拍賣桌整片掏空 0.56a 版面卷：出價頁與盯上頁的中央面板掏空露出 3D 桌面（桌面本身仍是平面，托盤／木紋是 0.56b），市集卡退到左右側欄 168px 與底列、直式維持原版面；?table3d=0 可關；規則夜不讓寬（第 7 夜三張待請卡尊名會被截，0.56b 處理）；觸控命中逐一 tap 回歸 177/177、熱座清場與面板遮擋新閘門｜招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
+const VERSION="0.58.0", VERSION_NOTE="0.58.0：夜行錄首 3 章——首頁新增單人章節「夜行錄」（破廟逢青面、招魂嶺收驚婆、荒塚紅衣婆婆；第 1 章關天命與連鎖、第 2 章開連鎖、第 3 章全規則），依序開放、勝過該章主角即過關並解鎖殘卷，競技模式的規則、數值與角色全開不變。｜0.57.42：千眼可讀性——手機橫式打開袋子／私函時「關閉」固定在視窗底緣，不必先捲到最下面；真千眼覺醒後，明夜預告多看到的第四件標上「千眼多看」（純介面，規則與數值不變）。｜0.57.41：天命正式上桌——開局每席私抽一張命函（只有自己看得到），湊齊命函指定的連鎖即覺醒真版效果並全桌公告；普通版血祭殘血（≤25）全隊攻 +2；真長明護盾 3 點、開標後全桌最低者額外回 2；真神王請下傳說尊立刻回 7 壽命；交棒時清除上一席的私函殘留。已知限制：真版平衡尚未達設計目標（水陸、千眼、雙虎、血祭四組真版幾乎不改變勝負）；普通版雙虎對勝率的貢獻偏低，千眼尚未完整量測。｜0.57.40：補齊六組跨系連鎖機制——血祭過陰、神王破煞、長明渡幽與對稱特權落地；仍為測試候選，平衡與玩家體驗待驗收。｜0.57.39：三連鎖平衡機制重構——雙虎盯上加收買路錢；水陸免買路錢、水鬼免損、全隊濺射減半；千眼預告拍品折讓 1 命、首拍全隊先手且敵前鋒 −2 攻；出價面板專屬標籤提示；剔除舊第二高標額資訊。｜0.57.38：3D 托盤連鎖共鳴特效——桌上可補齊連鎖的拍品腳下顯示硃砂紅內核靈印（心跳呼吸脈動），與月相金環一內一外、一紅一金、一動一靜；僅真人玩家私有可見，AI 與非出價席位不顯示（純演出，規則與時長不變）。｜0.57.37：L1 三組連攜試玩候選——補件提示、千眼三件預告與公開標額整理、雙虎融合及黑金虎將。平衡與玩家驗收待試玩，尚非正式發布。｜0.57.36：L1 水陸偷渡連鎖——同持拼板舟與水鬼浮標可銷毀毒標轉入的詛咒；配方查詢與拍賣回顧記錄同步接線。｜0.57.35：因果回顧修正——整夜失血與單筆拍賣分開，並列可確認事件；不再把局末死亡寫成當夜出局，紀錄不足時明示。研究對照採相同修訂口徑（規則與演出時長不變）。｜0.57.34：A3 再玩研究卷 S7——本局回顧新增「下載本局紀錄」，把這一局的公開紀錄存成 .json 檔（手機走系統分享面板可存到「檔案」或傳 LINE 當附件，不支援就一般下載；檔名＝版本＋種子），文字複製經 LINE 轉貼會被截斷、檔案不會；「複製本局紀錄」保留（純呈現，規則、演出與時長不變）。｜0.57.33：A3 再玩研究卷 S7 前置——本局回顧新增「複製本局紀錄」，把這一局的公開紀錄（版本、種子、四家身分、逐夜拍賣／夜戰／請神紀錄）打包成文字複製到剪貼簿，剪貼簿不可用時攤開文字框讓你長按複製（純呈現，規則、演出與時長不變）。｜0.57.32：A3 滿編構圖卷 S6——對決 8v8 同一側同型紙紮錯位排列（前排一對內外分開、後排同型帶到前線、朝向各異），拼板舟／福壽綿長／魔神仔紅帽三件在對決中的描邊改為各自主色（純演出，規則、拍賣桌與時長不變）。｜0.57.31：A3 因果卷 S5——本局回顧開頭新增「這一局的因果」三到六句短敘事（誰活到天亮、誰在哪一夜為哪件事付出最多、勝者最大的一注、最狠的毒標、出局名單、請神），只從局末紀錄生成，不帶任何密封金額（規則、演出時長不變）。｜0.57.30：落籌音換成使用者挑定的銅錢丙案「一枚銅錢落桌」；獵人落標台詞改帶拍品名（規則、演出時長不變）。｜0.57.29：A3 台詞卷 S4——十個 AI 角色依公開事件回一句：既有得標／落標／毒標台詞補齊，新增盯上宣告、出局、請神三類；句子只帶公開資訊。另附落籌「銅錢」候選丙／丁供聽板挑選，遊戲仍用木籌（規則、演出時長不變）。｜0.57.28：首頁 BGM——標題頁第一次點任何地方就起首頁專屬曲（備選 Take 2），按開局後切到選角畫面那首（規則、演出與時長不變）。｜0.57.27：A3 聲音卷 S3——受擊音 hurt 換成使用者挑定的甲案「紙裂」（原版留作 hurt_v0），規則、演出與時長不變。｜0.57.26：A3 聲音卷 S3——受擊音 hurt 依使用者聆聽意見出甲（紙裂）／乙（深悶撞）兩案候選進聽板挑選，遊戲仍用原版 hurt（規則、演出與時長不變）。｜0.57.25：A3 聲音卷 S2 接線——落籌（出價「＋」）、封標（蓋牌交卷）、揭盅（每件得標，與開市鑼分開）、受咒（毒標塞入）四事件各自有專屬音，聲部由使用者在聽板挑定（落籌乙／封標甲／揭盅甲／受咒乙）；?sfx=0 本次靜音（規則與時長不變）。｜0.57.24：A3 聲音卷 S2——sfx.js 新增四事件各甲乙兩案候選音，只供聽板挑選。｜0.57.23：福壽綿長腹部長明燈補上原本沒被畫出來的碗內壁（碗口封板），碗身煤黑、碗沿與碗底黃銅、火苗加高（純美術，規則與時長不變）。｜0.57.22：拍賣桌詛咒品「冥婚紅包」換成 A2 標竿甲案「綑屍紅包」——薄扁亮紅紅包＋金印、白麻布綑綁垂尾、血黑漬與一束黑髮（純美術，規則與時長不變）。｜0.57.21：大士爺紙尊的橘色香爐火從腹前移到右肩旗面、護心鏡下移腹前改亮鎏金（純美術，規則與時長不變）。｜0.57.20：魔神仔紅帽換成 A2 標竿甲案「紅帽猴精」——猴吻尖耳紅眼、紅斗笠、寬濕毛片、下半身改榕樹氣根般垂條（純美術，規則與時長不變）。｜0.57.19：福壽綿長換成 A2 標竿甲案（腹部長明燈整組前推、硃紅燈龕背板＋鎏金龕柱、緣盾裙邊、贔屭龍角）；福壽綿長的增益招在受益方胸口加豎立紅環、燈印放大（純美術與演出，規則與時長不變）。｜0.57.18：拼板舟換成 A2 標竿甲案——拿掉飛魚鰭、艙內兩名木雕划手持槳、船眼放大、舷側白紅黑波浪紋、首尾更高翹（純美術，規則與時長不變）。｜0.57.17：紙紮妖的描邊外殼由「每個部件一顆」併成「一尊一顆」，8v8 對決每幀少 181 次 draw call（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.16：對決畫面的腳下水面（浮標的圓盤／緣光／漣漪）與殘日餘暉碟改單趟繪製，8v8 每幀少 26 次 draw call 與 52 次 shader 參數重算（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.15：桌面平貼 decal（接觸陰影、硃砂符、月印）與招式特效模板改單趟繪製，每幀少 5 次 draw call 與 10 次 shader 參數重算（純效能，畫面逐像素相同，規則與時長不變）。｜0.57.14：紙紮同一尊的網格共用一副骨架，每幀骨骼貼圖上傳由 51 次降到 5 次（純效能，畫面、規則與時長不變）。｜0.57.13：牌桌取景不再對描邊外殼重複計算骨骼包絡（純 CPU 成本，畫面、規則與時長不變）。｜0.57.12：六種詛咒各有獨立效果與造型，取消共同扣攻；正式玩法移除舊戰力依賴，法寶說明以紙紮與實際能力為準。｜0.57.11：廟埕暗桌介面；法寶頁籤連動3D焦點；自動取景保留完整揭盅與盯印歸屬，跳過與轉向後鏡頭正常恢復。｜0.57.10：低矮橫屏法寶名稱切換完整閱讀、平放盯印與所屬盤位木籌槽。｜0.57.9：B 中型盯牌與同槽分列、tier 1 每拍短推、跨裝置安全區、主畫面效能開關、三種高光轉場；修正更新版本不一致。｜0.56e（紙紮夜戰永久啟用・月相策略提示・128 枚實體銅錢）｜0.56b（上桌卷第一段）：拍賣桌桌心紅布托盤把當夜拍品 3D 模型擺上桌（詛咒品冒陰火）、點模型浮空微旋＋鏡頭微推（手機點到即亮）、桌面木紋與桌角香灰符咒（頂點色）；?tray3d=0 一鍵關、?table3d=lite 降級；修 GLB 骨架貼圖洩漏（skeleton.dispose）；0.55.10：0.55.10（招式演出卷・陰氣系批 3 階段 A）：新積木 st.stain（腳下不規則水漬）、範本魔神仔紅帽正式演出（探＋卡頓三段跳＋紅帽戴到受招方＋迷途打轉）；三系檔 V054 退路表全部移除（?fxvocab=1 仍看 0.55 徽記版）；修 fx-contrast 在 HEAD exit 1 的既有缺陷；0.55.9：0.55.9（招式演出卷・祖靈批收尾）：道具 anchor 主道具／在場五條／逐尊覆蓋／foe 綁受擊者；打擊類 react 後不回流斷言；舞台座標唯一出口 st.stageVec（三系檔不再有世界軸位移）、六座位量測；香火 9 支增益逐尊送達、令旗掃到同伴、虎爺印碎片只往敵方；P4 盲讀 18 支三輪：5→6→10/18（8 支對象題記已知）；0.55.8：0.55.8（招式演出卷・祖靈系批 2 階段 B）：其餘 8 支祖靈招正式演出（靜→瞬發、骨牙石器／織紋珠／木器／日雷四家族、腳下光柱），道具 anchor 機械檢查（主道具、在場五條、逐尊覆蓋、邊距 0.18）；香火 9 支增益道具逐尊送達、王爺劍掃兩尊、虎爺印碎印；P4 盲讀 18 支第 2 輪 6/18（記已知，第 3 輪進行中）；0.55.7：0.55.7（招式演出卷・祖靈系批 2 階段 A）：三系共通「施招者／受招方身分可辨」語彙（施招姿態只有施招者有、腳下系別光蓄勢亮衝擊拍熄、受益反應與姿態不同型、姿態必在衝擊拍收回）；祖靈範本獻祭刀「割祭」正式演出（黑曜石刃＋紙血條＋自身升）；新積木 st.pillar／stance／groundMark；香火 9 支套上施招姿態並修「姿態永不收回把受益方畫成下沉」；0.55.6：0.55.6（招式演出卷・香火系批 1 階段 B）：其餘 8 支香火招改為正式演出（本體動作＋紙紮道具＋受招反應；增益道具落在受益方、增益招零跨場拖線、王爺劍斬弧掃兩尊、虎爺印拿掉印文改碎印）；朝向改相機相對、P2 因果三段進機械紅燈、solo 反應紅燈；P4 盲讀三輪未過（對象題＝施招者／受益者身分可辨，記已知，祖靈批前置）；0.55.5：0.55.5（三尊在場感小卷，遊玩回饋）：請神三尊固定站第二排中央、紙紮基座（日輪台／神轎座／骨堆）、傳說尺寸 1.35 且矮模型放大、一律實體有影、待機光效（餘暉盤／一炷香／鬼火群）、頭頂尊名牌、請神那夜進場一次低角度機位；滿編 8v8 殘日被前排遮擋 67%→0.7%、三尊頭部 0%；六讀者盲讀 2/3 對通過；0.55.4：0.55.4（招式演出卷・香火系批 1 階段 A）：虎爺印改為正式演出「撲咬＋落印＋金箔紙錢」（本體動作＋紙紮道具＋受招反應，短版 300ms／完整版 900ms；製作人簽字範本）；MOVE_SPEC 登記表、st.paperProps 群體紙紮道具積木、道具尺寸記錄治具；0.55 徽記版搬 ?fxvocab=1 的 V055 表；0.55.3：0.55.3：徽記尺寸防線 N11/N12 重寫（執行期鎖＋onAfterRender 世界縮放稽核＋內容指紋場景掃描；四輪覆審；N-5 簽為已知未涵蓋）——只影響 ?fxvocab=1 的徽記路徑與治具，預設演出零 diff；0.55.2：0.55.2（招式演出卷前置）：tier 1 短版 260→300ms（使用者裁定，fx-tiers 凍結檔 §2.1 修訂）、27 支短版時間軸改比例制（260 下逐位元組等價）、虎爺印演出原型 A–E 走 ?proto=tigerE（預設不啟用）；0.55.1：0.55.1 招式演出方向重定：四支示範招（獻祭刀／虎爺印／千里眼銅鈴／魔神仔紅帽）**預設退回 0.54 的演出**，0.55 的徽記剪影版本改掛 ?fxvocab=1 才看得到（?fxvocab=0 或不帶＝0.54）。原因：徽記剪影是平面單色 billboard，貼在紙紮 3D 上像剪貼畫、兩輪盲讀 0/3，製作人裁定這個方向做錯了，方向重定見 docs/proposals/2026-09-12-plan-fx-performance.md；0.55 版本原地保留給治具與後續參考，另外 23 支招與引擎一行未動。｜招式可辨性卷 0.55 批 0（在 0.56a 之後合併，版序 0.54→0.55→0.56a/b 為刻意重排）：三系招式視覺語彙單一來源 js/trait-fx/vocab.js＋徽記剪影 emblems.js＋六個積木＋非加色材質 MAT_SOLID；四支示範招（獻祭刀 knife／虎爺印 seal／千里眼銅鈴 bell／魔神仔紅帽 hat）短版與完整版同函式換比例表；另外 23 支招逐函式 md5 一位元組未動、index.html 引擎零 diff、trace(1..20) 對 v0.56a 逐位元組相等。三輪對抗式覆審＋兩批修補：尺寸收斂 ICON.byKind／sizeOf（icon／mark 拒收外部尺寸）、L3 對比閘門量測位置對齊產品（bloom 0.7／手機視口 2x／seed）、盲讀材料治具改手機 CSS 視口＋DSF2（人偶固定像素高，2x 視口會腰斬佔比）。L4-pre 材料鑑別力三輪：虎姑婆指甲重現、射日神弓短版未重現→統計量改三對讀者取多數（§2.1 修訂三）待補第 3 對；六位讀者只穩定認出銅鈴，刀／印／帽三枚剪影列批 1 前置回修。｜拍賣桌整片掏空 0.56a 版面卷：出價頁與盯上頁的中央面板掏空露出 3D 桌面（桌面本身仍是平面，托盤／木紋是 0.56b），市集卡退到左右側欄 168px 與底列、直式維持原版面；?table3d=0 可關；規則夜不讓寬（第 7 夜三張待請卡尊名會被截，0.56b 處理）；觸控命中逐一 tap 回歸 177/177、熱座清場與面板遮擋新閘門｜招式三級視覺分級：一般拍（含一般擊殺拍）走 27 支**專屬 260ms 短版**時間軸（每支保住該招的辨識元素）、決定勝負的最後一拍與「燒掉傳說尊」那一拍留 900ms 完整版、三尊大招 1400ms ＋ CINEMA 低角度仰視機位（同拍的普通招不跟著演大招；黑條 letterbox 經五輪覆審後由使用者裁定移出本卷，留給招式可辨性卷連同對決版面安全區重做）；拍末等待同步依 tier（300／900／1400）。招式時長收斂成 PW_FX.TRAIT_MS_BY_TIER 單一來源，trait-fx 與 camera-director 的 `||900` 退路刪除、事件沒帶 ms 就 throw，治具改讀 tests/tools/fx-consts.mjs。?fxtier=0 一鍵回到 v0.53 行為。純演出：引擎 trace(1..20) 與 v0.53 逐位元組相等，TRAITS 只多一個 tier 欄位（引擎不讀）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call｜首頁只顯示版本號（更新說明移出首頁）｜修「同一顆按鈕**原地**改語意」的連點盲點兩件：①獻祭放血連按兩下會放兩次——第一下之後鈕上的價錢就地從「自損 2」變成「自損 4」，但 id／class／onclick 三項一格沒變，相位閘的簽名看不到 ⇒ 第二下用你沒看過的新價錢又放一次（自己再扣、所有對手再各扣 4，直接改壽命、不可逆）。②熱座同一夜兩人都跨過供奉門檻時，連按兩下「要，繼續供奉」會替下一位把他唯一一次「送神回天」答掉（同一尊只問一次）——按鈕三項與文字逐位元組相同，只有題目換了人。修法按效果寫、走同一道偵測：相位閘的簽名補上「這一點下去會做的事」——元素**自己的文字**（抓原地改價）＋疊在上面那個**問句**的內容雜湊（只認 #modal，不認持續編輯的 #sheet）。連按燒香「＋」與出價視窗「＋」照常逐下生效（文字恆為「＋」，變的是旁邊的數字）。賽局規則與數值一格未動（trace 1..20 對 v0.53.4 逐位元組相等）｜修三件玩家真的會撞到的事：①「壽命危急，繼續供奉？」的視窗點到背景會讓那個 promise 永遠不 resolve、**整局永久卡死**只能重載——補上 showLegendPick 早就有的那道背景保險（關掉＝「要，繼續供奉」，與 headless 預設同一條路）。②連按兩下「🕯️ 請神」，第二下會打在剛開出來的選尊視窗背景上、被迫放棄自選尊退回 AI 規則。③熱座連按兩下交棒鈕，第二下會落在底下的法寶卡上、替玩家公開宣告一件他沒選的盯上。②③的共因是「第二下是依座標落地的」，而 v0.53.3 的守衛只掛在主鈕上——改成**相位閘**：一個 document 上的 capture 監聽，量「使用者手指那個點現在能做什麼有沒有變」，變了就武裝 MAIN_GUARD_MS=500，期間**整個互動層**吸收點擊（用按下時刻 e.timeStamp 判定，被吞掉的那一下仍補叫 audioWake，不影響 iOS 解鎖音訊）。任何入口只要同步換掉手指下那塊互動面就自動吃到，不必逐一列舉。賽局規則與數值一格未動（trace 1..20 對 v0.53.3 逐位元組相等）｜修：主鈕在相位切換的那一下被快按兩下時，第二下會落在使用者還沒看過的動作上——「進入下一夜」的第二下把盯上宣告整個跳過、「不盯任何一件」的第二下 0 出價 0 燒香直接交卷開標（整夜白費）、「看最終結果」的第二下整頁重載（局直接沒了）。加主鈕連點守衛 MAIN_GUARD_MS=500：一次點擊若在自己的同步執行裡把 #mainbtn 換了手，接下來 500ms 內不收點擊；閘設在唯一的派送點（遮蔽 onclick 屬性、自家 listener 派送），4 個入口一次涵蓋。開標演出那串「下一件拍品 ▸」的換手在 await 之後、不在同步堆疊裡，連點推進照舊。賽局規則與數值一格未動（trace 1..20 對 v0.53.2 逐位元組相等）｜修：開標之後再按燒香的「＋」會讓畫面退回出價、同一夜被結算第二次（壽命扣兩次）——燒香列在底列 #south，不像 #stage 會被開標演出重畫，那兩顆鈕活過了開標；加出價相位閘 BIDS_OPEN（交卷／開標即關，關著時 showMarket 不重畫、submitHumanBids 不收），並比照交棒清場移除 #south .incbar。賽局規則與數值一格未動（trace 1..20 對 v0.53 逐位元組相等）。｜請神 3.0「香火池」取代 2.0 神債暗標：燒香**不再選尊**（燒進自己的香火池），第 5／8／11 夜各結算一次、一夜只出一尊——還沒請到的人裡香火最高者請神，同分依本夜風位起順時針，**得主自己從還沒被請走的尊裡挑一尊**；落空的香火**原封保留**到下一個請神夜（請神夜不再發階段獎勵），沒人有資格的那一夜不結算、三尊都留著，最後一個請神夜（第 11 夜）結算後未請走者回天；局末剩餘香火照舊結清退壽命／小法寶。神龕列換成「香火榜一行＋三尊待請卡」。尊→夜洗牌整支移除（ON 路徑少消耗一次 rng），策略數值：使用者 09-10 裁甲——供奉 INC_TITHE 1→2、請神夜 4／7／10→5／8／11（第一輪閘門 H1 +9.88pp／H3 中位 9 夜紅，歸因與改前改後見凍結檔 §2.1 修訂一）。｜出價視窗的部隊敘述不再截斷（招式說明完整顯示）｜傷害可讀性：跳字放大分色＋描邊、被打的尊閃紅（貼片也閃）、量表紅殘影＋真人受擊紅暈、燒毀「−1 隻」；傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜請神 2.0「神債暗標」：第 4／7／10 夜開標比香火、一人一尊、供奉每夜 −1（袋子可送神回天）；神龕搬進中央面板、燒香列併進底列出價行，袋子與市集卡加部隊預覽｜傳說三尊美術卷：殘日／大士爺紙尊／有應公從此有專屬 3D（assets/creatures/{canri,dashiye,youyinggong}），不再借射日神弓／送王船／魔神仔紅帽的模型；三招演出 eliteBlind 餘暉灼目／wardGuardAll 普渡／hauntAnswer 有求必應 上線；只動 3D 與治具，賽局規則與數值一格未動（trace 1..20 與 v0.48 逐位元組相等）。M-A1 盲讀三輪未過、交最佳版待簽字（見 docs/experiments/2026-09-07-legend-art-evidence/blindread-v2.md）。｜角色平衡 B：斷手書生的 AI 只對「湊成套的那一件」加價（原本鎖定系 ×1.6／其餘 ×0.7 的低估自傷拿掉）、紅衣婆婆的記仇改掛比價 hook，玩家與 AI 共用（對仇人主力陣營 +3，數值不變）；角色平衡：斷手／閭山的被動改接紙紮夜戰真正吃的那條路，閭山與當鋪起始壽命上調、當鋪典當保 8 命、大家樂拿掉槓龜罰、紅衣被毒時自己回血，四隻的 AI 出價風格由治具重掃定值；夜市燈火：全域 ACES 色調映射、四盞燈籠不同色溫、漸層夜空＋遠景剪影、畫面暈角；近景切鏡批 1（?closeup=0 可關）；請神預設開，?legend=0 可關；?fps=1 在規則頁看 fps／draw call";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.57.42";
+const RELEASE_VERSION="0.58.0";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3150,16 +3195,31 @@ function rosterSeats(md,picks,rng){
   while(seats.length<4) seats.push({role:rest[seats.length-humanN]});
   return seats;
 }
+/* 夜行錄章節局的座位表（rosterSeats 常規分支一行不動）：真人一席（picks 裡第一個「不是本章主角」的池角色；
+   選了主角或沒選＝從其餘池角色以種子抽），主角固定坐北（第 1 席、AI），東西兩席從剩下的池角色以種子洗牌抽。 */
+function nightwalkSeats(ch,picks,rng){
+  const pool=Object.keys(ROLES).filter(k=>ROLES[k].pool&&k!==ch.boss);
+  let me=(picks||[]).find(k=>pool.includes(k));
+  if(!me) me=pool[Math.floor(rng()*pool.length)];
+  const rest=pool.filter(k=>k!==me);
+  for(let i=rest.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [rest[i],rest[j]]=[rest[j],rest[i]]; }
+  return [{role:me,human:true},{role:ch.boss},{role:rest[0]},{role:rest[1]}];
+}
 /* 只建狀態、不碰 DOM——讓 headless 模擬能重用同一份初始化。
    picks＝真人選的角色 id 陣列（solo 1 個、hotseat 2 個）；SELECT_ON=false 時忽略、走 MODES 寫死表。 */
-function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="original",destinyAiChase=destinyEffectMode!=="off"){
+function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="original",destinyAiChase=destinyEffectMode!=="off",opts){
+  /* 夜行錄（N1）：opts.chapter 有值才是章節局。章節規則覆寫天命兩參數（第 1、2 章關、第 3 章與常規單人局同為 original），
+     並只在章節局加 S.chapter／S.chainsOff——常規局走不到這幾行，S 的形狀與亂數流不變（凍結 #1）。 */
+  const ch=(opts&&opts.chapter!=null)?nwChapter(opts.chapter):null;
+  if(opts&&opts.chapter!=null&&!ch) throw Error("invalid nightwalk chapter");
+  if(ch){ destinyEffectMode=ch.rules.destiny?"original":"off"; destinyAiChase=!!ch.rules.destiny; }
   if(!["off","original","candidate"].includes(destinyEffectMode))
     throw Error("invalid destiny effect mode");
   const sd=(seed===undefined||seed===null)?(Date.now()>>>0):(seed>>>0);
-  const md=mode||"solo";
+  const md=ch?"solo":(mode||"solo");
   const rng=mulberry32(sd);
   /* 注意順序：選角抽取在牌堆洗牌之前消耗 rng（SELECT_ON=false 時零消耗，亂數流與 v0.5 相同） */
-  const seats=SELECT_ON?rosterSeats(md,picks,rng):(MODES[md]||MODES.solo).seats;
+  const seats=ch?nightwalkSeats(ch,picks,rng):SELECT_ON?rosterSeats(md,picks,rng):(MODES[md]||MODES.solo).seats;
   S={
     mode:md, round:1,
     seed:sd, rng, rngUi:mulberry32((sd^0x9e3779b9)>>>0),
@@ -3169,6 +3229,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
     /* lastWon：上一夜各家得標的陣營（青面攤主跟標用），每夜由 resolveAuction 覆蓋。
        （原本這裡還有 bidWinner 過渡全域，2026-09-03 已改成 onBidSettle 的 ctx.winner 欄位） */
     lastWon:{}, nightRule:null, event:null, bleedLog:[],
+    ...(ch?{chapter:ch.n,chainsOff:!ch.rules.chains}:{}),
   };
   const destinyDraws=privateDestinyDraws===undefined
     ?privateDestinyDrawsForSeed(sd,S.players.length)
@@ -3221,9 +3282,9 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   }
   return S;
 }
-function newGame(mode,seed,picks){
-  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false;
-  try{makeState(mode,seed,picks);}catch(e){
+function newGame(mode,seed,picks,opts){
+  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false;
+  try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
     const select=$("selectScr"),title=$("titleScr"),message=$("verLine");
     if(select) select.classList.remove("on");
@@ -4088,6 +4149,7 @@ function buildArmy(bag){
   const teams=[], sources=[]; let curses=0;
   const items=bag||[], replacement=new Map(), skipped=new Set();
   for(const chain of Object.values(CHAINS)){
+    if(S&&S.chainsOff) break; /* 擋點 G2：合陣不經 activeChains，夜行錄第 1 章在這裡另擋 */
     if(!chain.army) continue;
     const found=chain.requirements.map(ab=>items.findIndex((it,i)=>!skipped.has(i)&&!it.curse&&it.ab===ab));
     if(found.some(i=>i<0)) continue;
@@ -5597,8 +5659,8 @@ function openHelp(){
       <b>資訊全公開</b>：四家的香火與下一個請神夜的倒數都攤在香火榜上（中央面板法寶卡上方），三尊的待請卡就在旁邊。<b>早請＝先挑、但供奉付得久；晚請＝便宜、卻沒得挑</b>——這個張力是對手造成的，不是骰子。<br>
       <b>請到之後</b>：那一尊就是袋裡的一件法寶，<b>在共鳴計算裡算 2 件</b>（強化你同系的其他法寶）、進紙紮夜戰召一隊、主人出局就消失。<br>${LEGENDS.map(L=>`「${L.n}」${FAC[L.f].n}・${(TRAITS[L.unit.trait]||{}).name||""}：${(TRAITS[L.unit.trait]||{}).desc||""}`).join("<br>")}`):""}
     ${sec("🧧 法寶疊加規則",`每件非詛咒法寶都會召出自己的<b>紙紮部隊</b>，重複法寶也會增加部隊。同系法寶可觸發共鳴；招式依各隊規則發動。法寶的夜末、減傷等能力是否累加，請看各件效果說明。詛咒物不召喚部隊，各自效果按件數累加。`)}
-    ${sec("✦ 連鎖配方",Object.values(CHAINS).map(c=>`<div class="descRow"><b>${c.name}</b>：${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}。${c.desc||""}；材料不消耗、重複不疊加，缺件失效。</div>`).join(""))}
-    ${sec("🌟 天命密函",`開局每席私抽一封，可抽到相同連鎖。只有你的指定配方在拍賣入袋時補齊，才公開覺醒；材料離袋後真效果暫停，補回便恢復。普通連鎖仍可由所有人使用。<br>${Object.entries(TRUE_DESTINY_RULES).map(([id,r])=>`<div class="descRow"><b>真・${CHAINS[id].name}</b>：白天 ${r.day}；夜戰 ${r.night}。</div>`).join("")}`)}
+    ${(S.chainsOff)?"":/* 擋點 G4 */sec("✦ 連鎖配方",Object.values(CHAINS).map(c=>`<div class="descRow"><b>${c.name}</b>：${c.requirements.map(ab=>POOL.find(x=>x.ab===ab)?.n||ab).join("＋")}。${c.desc||""}；材料不消耗、重複不疊加，缺件失效。</div>`).join(""))}
+    ${nwDestinyHidden()?"":/* 擋點 G7 */sec("🌟 天命密函",`開局每席私抽一封，可抽到相同連鎖。只有你的指定配方在拍賣入袋時補齊，才公開覺醒；材料離袋後真效果暫停，補回便恢復。普通連鎖仍可由所有人使用。<br>${Object.entries(TRUE_DESTINY_RULES).map(([id,r])=>`<div class="descRow"><b>真・${CHAINS[id].name}</b>：白天 ${r.day}；夜戰 ${r.night}。</div>`).join("")}`)}
     </div>
     <button class="bigbtn" style="margin-top:12px;width:100%" onclick="closeModal()">關閉</button>`;
   $("modal").style.display="flex";
@@ -5701,14 +5763,19 @@ function revealEventUI(){
 }
 function startBidUI(){
   BIDS_OPEN=true;
+  /* 夜行錄：章節局第 1 夜第一個畫面由主角說 feud.open（rngUi）；那一夜盯上台詞讓位。常規局這行恆 false、一行不走 */
+  const nwOpen=!!(S.chapter&&S.round===1&&!NW_OPEN_SAID);
+  if(nwOpen){ NW_OPEN_SAID=true; MARK_SAID_ROUND=S.round; }
+  const nwOpenLine=nwOpen?nwFeudPick("open"):null;
   sayMarkOne(); /* A3 S4：出價畫面出現時一位有盯的 AI 說盯上台詞（純演出、rngUi） */   /* 本席的密封標從這裡開始收（盯上宣告也算在內：pickMark 之後要回得到市場） */
   /* 盯上宣告（§5.8）：真人先釘再出價；已釘過（熱座交棒回來）就直接進市場 */
-  if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); return; }
+  if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); nwSpeak(nwOpenLine); return; }
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   /* 押寶夜（singleStake）：一注 X ＋ 勾選要壓哪幾件，交卷時才展開成 myBids */
   YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
   initIncense();
   showMarket();
+  nwSpeak(nwOpenLine); /* 座位卡剛由 showMarkUI／showMarket 重畫，對話泡要在這之後掛 */
 }
 /* 燒香（請神 3.0）：**不選尊**，只決定這一夜往自己的香火池投多少，預設 0（＝不燒）。
    三尊都被請走（或 LEGEND_ON=false）就是 null＝出價面板不長那一列——再燒也換不到東西，
@@ -7346,6 +7413,8 @@ function endGame(){
   stripEndgameItems();
   finalizeHistory();
   const rank=[...S.players].sort((a,b)=>(b.alive?1:0)-(a.alive?1:0)||b.life-a.life);
+  /* 夜行錄：章節局在這裡判定過關（純讀 S）並只在過關時存檔；主角台詞用 rngUi 先挑好再畫卡。常規局 nw＝null、一行不走 */
+  const nw=S.chapter?nwRecord(S):null, nwLine=nw?nwFeudPick(nw.pass?"bossLose":"bossWin"):null;
   renderSeats();
   let head;
   if(S.mode==="hotseat"){
@@ -7357,13 +7426,16 @@ function endGame(){
   }
   setHollow(false);   /* 掏空卷 v0.55a */
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
+    ${nw?nwEndHeadHTML(nw,nwLine):""}
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
     ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}${CFG.PAPERWAR_ON?`（${paperForceText(p)}）`:`（戰力 ${showPow(p)}）`}</div>`).join("")}
     ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}</div>`:""}
+    ${nw?nwEndBtnHTML(nw):""}
     <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">看完整回顧</button>
   </div>`;
   playCut('gameEnd',{rank});
+  if(nw){ nwSpeak(nwLine); $("mainbtn").textContent="回章節選單";$("mainbtn").onclick=()=>nwGo("menu");$("mainbtn").disabled=false; return; }
   $("mainbtn").textContent="再入妖市";$("mainbtn").onclick=()=>location.reload();$("mainbtn").disabled=false;
 }
 /* ================= 局末回顧場景（純呈現：只讀 S.history；局已結束故全揭露 AI 暗標與心願，2026-09-02 使用者裁定） ================= */
@@ -7484,6 +7556,7 @@ function replayFileName(S){
   return `yaoshi-replay-v${RELEASE_VERSION}-seed${seed}.json`;
 }
 function chainStatusDisclosureHTML(p){
+  if(S&&S.chainsOff) return ""; /* 擋點 G3：chainStatusHTML 直接列舉六組連鎖名 */
   const active=activeChains(p).length;
   return `<details class="chainDetails"><summary>普通連鎖進度・已生效 ${active}/6（點開查看）</summary>${chainStatusHTML(p)}</details>`;
 }
@@ -7597,24 +7670,28 @@ async function startEntry(mode){
   initSfx(); /* 音效與音樂：在這個使用者手勢裡解鎖 AudioContext（art-integration-guide §8.1） */
   bgm("title"); /* 標題層：選角畫面。首頁那首是 home（homeBgmTap），這裡交叉淡入到選角那首 */
   await preloadArt(); /* 頭像 SVG 在這個使用者手勢裡一次抓齊；抓不到（file:／離線）退回 emoji，不擋開局 */
+  if(mode==="nightwalk"){ openNightwalk("menu"); return; } /* 夜行錄：先進章節選單，選角在引言卡之後 */
   if(SELECT_ON) openSelect(mode);
   else newGame(mode); /* kill switch：退回 v0.5 固定座位直接開局 */
 }
-function openSelect(mode){
-  SEL={mode,picks:[],cur:null};
+function openSelect(mode,chapter){
+  SEL={mode,picks:[],cur:null,chapter:chapter??null}; /* chapter：夜行錄章號（常規＝null） */
   $("titleScr").style.display="none";
   $("selectScr").classList.add("on");
   renderSelect();
 }
 function backToTitle(){
   $("selectScr").classList.remove("on");
+  if(SEL.chapter){ openNightwalk("intro",SEL.chapter); return; } /* 夜行錄選角的「返回」回到該章引言卡 */
   $("titleScr").style.display="flex";
   bgm("home"); /* 退回首頁就回首頁那首（手勢已經有過） */
 }
 function renderSelect(){
-  const pool=Object.keys(ROLES).filter(k=>ROLES[k].pool);
+  const pool=selectPool(SEL.chapter); /* 常規＝全池；夜行錄章節局去掉該章主角 */
   const who=SEL.mode==="hotseat"?`玩家${["一","二"][SEL.picks.length]}`:"你";
-  $("selTitle").textContent=`${who}是誰？——選一個角色入市（${pool.length} 選 1${SEL.mode==="hotseat"?"，兩人不可相同":"，對手從其餘 9 個隨機抽 3 個"}）`;
+  const nc=SEL.chapter?nwChapter(SEL.chapter):null;
+  $("selTitle").textContent=nc?`第${NW_CN[nc.n]}章・${nc.title}——選一個角色入市（${pool.length} 選 1；${ROLES[nc.boss].name}坐北，另 2 位對手從其餘隨機抽）`
+    :`${who}是誰？——選一個角色入市（${pool.length} 選 1${SEL.mode==="hotseat"?"，兩人不可相同":"，對手從其餘 9 個隨機抽 3 個"}）`;
   $("selGrid").innerHTML=pool.map(k=>{
     const R=ROLES[k];
     const taken=SEL.picks.includes(k);
@@ -7633,6 +7710,7 @@ function renderSelect(){
 }
 function pickRole(k){
   if(SEL.picks.includes(k)) return;
+  if(SEL.chapter&&!selectPool(SEL.chapter).includes(k)) return; /* 夜行錄：該章主角不可選 */
   SEL.cur=k;
   renderSelect();
 }
@@ -7642,7 +7720,182 @@ function confirmRole(){
   SEL.cur=null;
   if(SEL.mode==="hotseat"&&SEL.picks.length<2){ renderSelect(); return; }
   $("selectScr").classList.remove("on");
+  if(SEL.chapter){ newGame("solo",FX_SEED,SEL.picks,{chapter:SEL.chapter}); return; } /* 夜行錄章節局：每次挑戰新種子（FX_SEED 正式頁恆 undefined） */
   newGame(SEL.mode,FX_SEED,SEL.picks); /* FX_SEED 只在 ?fxcount=1&seed=N 的治具頁有值，正式頁恆為 undefined（卷 C3 T-6 逐場比對） */
+}
+/* ================= 夜行錄（N1，2026-09-25）：首 3 章單人章節 =================
+   計畫 plans/2026-09-25-n1-nightwalk.md；驗收凍結 docs/experiments/2026-09-25-acceptance-n1-nightwalk.md。
+   文案逐字取自 docs/experiments/2026-09-25-n1-nightwalk/copy-r1.json（讀者 r1 驗收過，tests/nightwalk.test.mjs 逐字比對）；
+   擴到 10 章只加資料、不改流程。rules.chains＝普通連鎖（false→S.chainsOff）、rules.destiny＝天命（false→destinyEffectMode "off"）。
+   引擎掛鉤：makeState 第 7 參數 {chapter}（常規呼叫者不帶＝一行不走）、nightwalkSeats、擋點 G1–G7（分母表在證據目錄 chain-gate-sites.md）。
+   本段的亂數只有恩怨台詞用 S.rngUi；S.rng 一次都不碰。存檔讀寫全包 try/catch，壞資料一律當空進度。 */
+const NIGHTWALK=[
+  {n:1,title:"破廟逢青面",boss:"qingmian",rules:{chains:false,destiny:false},
+   intro:["你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。","廟埕的燈籠一盞一盞自己點起來——妖市開市了。","攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」","你看中哪一系的貨，他就偏偏跟你搶哪一系。","撐到天光，壽命比他多，他才肯放你下山。"],
+   teach:["壽命是錢包也是血條：出價花壽命，挨打也掉壽命。","密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。","得標的法寶會召出紙紮，每夜輪一個對手打結算戰。","青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。"],
+   feud:{open:["少年仔，你今暗買啥，我就搶啥。"],bossLose:["好膽……這間廟，予你過。"],bossWin:["命留佇遮，你就免落山矣。"]},
+   scroll:{title:"青面攤",text:"老一輩講，這座廟以前香火真旺，廟口有個賣香燭的攤仔，秤頭總是短人三分。有一年大水沖斷山路，廟裡的人走光了，只有他不肯收攤，說貨還沒賣完。後來上山的樵夫看見他還坐在廟埕，臉色青得像泡過水的銅錢，攤上擺的已經不是香燭，是一盞一盞別人的壽命。他專看客人手上握什麼，便搶什麼，搶到了也不用，只是擺著。那一夜你沒讓他搶走，他收起秤，第一次把秤頭擺平。從此山下的人說，破廟的燈若只亮一盞，就是他在等下一個不讓的客人。"}},
+  {n:2,title:"招魂嶺收驚婆",boss:"shoujing",rules:{chains:true,destiny:false},
+   intro:["下了山，路卻往更高的嶺上彎，霧裡有人一聲一聲在喊名字。","一個老婆婆捧著米碗與舊衫，坐在嶺頭的石頭上收驚，她不看攤上的貨，只看你。","「囡仔，你的魂驚甲走一半矣，」她說，「先坐落來，莫急。」","她整夜不出手，等到大貨上桌才一口氣收走；這一夜的妖市，貨會兩件兩件地認主。"],
+   teach:["連鎖：湊齊公開配方的兩件法寶，連鎖就會生效，多一層效果。","收驚婆沒大貨就整夜不出價；她落標或不出手的夜晚還會回壽命。","她按兵不動的夜晚，是你便宜收貨、湊連鎖的時候。"],
+   feud:{open:["驚啥？妖市的驚，阮收慣矣。"],bossLose:["好，你的魂家己收轉來矣。"],bossWin:["魂收無轉來，就留佇嶺頂陪我。"]},
+   scroll:{title:"收驚婆",text:"招魂嶺上本來沒有路，是走失的人一步一步踩出來的。嶺頭住著一個收驚婆，一碗米、一件舊衫、三炷香，專替山下受驚的囡仔喊魂。她喊一次，米就少一粒；喊到米甕見底的那年，她自己的魂也被喊散了，只剩那副嗓子還在霧裡唸：「某某人，轉來喔。」從此她上妖市不為買貨，只為把走失的魂一件一件湊回來——兩件湊成一副，才算收齊。你那夜把該湊的都湊齊了，她把米碗推到你面前，裡面只剩一粒米。她說：「這粒留予你，下擺驚著，家己喊。」"}},
+  {n:3,title:"荒塚紅衣婆婆",boss:"hongyi",rules:{chains:true,destiny:true},
+   intro:["最後一段路穿過荒塚，墓碑上的名字都被雨洗平了。","一個穿紅衣的婆婆蹲在墳頭數東西，數的是誰欠她什麼。","「你一路搶人的貨、塞人的咒，阮攏記咧。」她抬起頭，嘴角是紅的。","今夜的妖市一樣不少：天命、連鎖、毒標都在桌上，你怎麼對她，她就怎麼還你。"],
+   teach:["毒標：對詛咒品出價，得標後可以把它硬塞給指定的對手。","天命密函：開局每人私下拿到一組連鎖當天命，親手標齊就會覺醒，效果更強。","紅衣婆婆記仇：搶她的標、毒她、打敗她都會記帳；被毒標塞中時，下手的人扣 2 壽命、她自己加 2。"],
+   feud:{open:["這條帳，今暗算清楚。"],bossLose:["這筆帳……算你清矣。"],bossWin:["欠阮的，一滴都袂少。"]},
+   scroll:{title:"紅衣記",text:"荒塚邊有一口無名墳，墳前年年有人放一件紅衣。傳說墳裡的婆婆生前替人縫壽衣，縫到最後一件是給自己的，偏偏被人偷去換了錢。她死的那晚穿不到壽衣，只好穿著出嫁時的紅衫下葬，從此記性比活人還好：誰踩過她的墳、誰欠她一針一線，她全記在衣角上。上妖市的人若搶了她的貨，衣角就多一道紅線；若敢把咒塞給她，那道線會原封不動縫回你身上。那一夜你沒欠她，天亮前她把紅衫脫下來，疊得方方正正放在墳頭，說：「帳清了，這件留予下一個不欠的人。」"}},
+];
+const NW_KEY="yaoshi_nightwalk_v1";
+const NW_CN=["零","一","二","三","四","五","六","七","八","九","十"];
+const NW_ALL=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("nwall")==="1"; }catch(e){ return false; } })();
+function nwChapter(n){ return NIGHTWALK.find(c=>c.n===Number(n))||null; }
+/* 過關（凍結 #4）：真人活著，且（主角出局，或真人壽命嚴格大於主角）。平手＝未過；真人出局＝未過。純函式，只讀傳入的狀態。 */
+function nightwalkPass(st,ch){
+  const me=st.players.find(p=>!p.ai), boss=st.players.find(p=>p.ai&&p.roleId===ch.boss);
+  if(!me||!boss) return false;
+  if(!me.alive) return false;
+  return !boss.alive||me.life>boss.life;
+}
+/* 存檔（凍結 #5）：{"v":1,"cleared":[章號…]}，只記已通關章節。 */
+function nwLoad(){
+  const empty={v:1,cleared:[]};
+  try{
+    const raw=localStorage.getItem(NW_KEY);
+    if(!raw) return empty;
+    const o=JSON.parse(raw);
+    if(!o||typeof o!=="object"||o.v!==1||!Array.isArray(o.cleared)) return empty;
+    return {v:1,cleared:[...new Set(o.cleared.filter(n=>Number.isInteger(n)&&nwChapter(n)))].sort((a,b)=>a-b)};
+  }catch(e){ return empty; }
+}
+function nwSave(n){
+  const st=nwLoad();
+  if(!nwChapter(n)) return st;
+  if(!st.cleared.includes(n)){ st.cleared.push(n); st.cleared.sort((a,b)=>a-b); }
+  try{ localStorage.setItem(NW_KEY,JSON.stringify({v:1,cleared:st.cleared})); }catch(e){}
+  return st;
+}
+/* 局末判定＋過關才存檔（未過關不寫入）。endGame 只呼叫這一支；回 {ch,pass,boss}。 */
+function nwRecord(st){
+  const ch=nwChapter(st.chapter); if(!ch) return null;
+  const pass=nightwalkPass(st,ch);
+  if(pass) nwSave(ch.n);
+  return {ch,pass,boss:st.players.find(p=>p.ai&&p.roleId===ch.boss)||null};
+}
+/* 章節開放（凍結 #6）：第一章恆開；通過前一章才開下一章；已通關的章也開；?nwall=1 全開。 */
+function nwChapterOpen(n,cleared,all=NW_ALL){
+  const c=nwChapter(n); if(!c) return false;
+  if(all||cleared.includes(c.n)) return true;
+  const i=NIGHTWALK.indexOf(c);
+  return i===0||cleared.includes(NIGHTWALK[i-1].n);
+}
+function nwMenuModel(cleared,all=NW_ALL){
+  return NIGHTWALK.map(c=>({n:c.n,cleared:cleared.includes(c.n),open:nwChapterOpen(c.n,cleared,all)}));
+}
+/* 選角清單：常規模式＝全池（與改動前同一行 filter）；章節局＝全池去掉該章主角。 */
+function selectPool(chapterN){
+  const pool=Object.keys(ROLES).filter(k=>ROLES[k].pool);
+  const c=chapterN!=null?nwChapter(chapterN):null;
+  return c?pool.filter(k=>k!==c.boss):pool;
+}
+/* 恩怨台詞：只用 S.rngUi 挑句（S.rng 不碰）；pick 與 speak 分開，局末卡要先拿到句子再畫。 */
+function nwFeudPick(key){
+  const ch=S&&nwChapter(S.chapter); if(!ch) return null;
+  const arr=ch.feud[key], boss=S.players.find(p=>p.ai&&p.roleId===ch.boss);
+  if(!arr||!arr.length||!boss) return null;
+  return {pid:boss.id,key,text:arr[Math.floor(S.rngUi()*arr.length)]};
+}
+function nwSpeak(line){ if(!line) return; say(line.pid,line.text); babble(S.players[line.pid],line.text); }
+let NW_OPEN_SAID=false;
+/* ===== 介面：#nwScr 一層畫章節選單／引言卡／殘卷卡（與 #selectScr 同層、同語彙） ===== */
+let NW_VIEW={v:"menu",n:null,back:null};
+function nwMenuHTML(st){
+  const cards=nwMenuModel(st.cleared).map(m=>{
+    const c=nwChapter(m.n), R=ROLES[c.boss];
+    const status=m.cleared?`<span class="nwSt ok">已通關 ✓</span>`:m.open?`<span class="nwSt">可挑戰</span>`:`<span class="nwSt lock">🔒 通過前一章後開放</span>`;
+    const btns=m.open?`<button class="bigbtn" onclick="nwRender('intro',${c.n})">${m.cleared?"再挑戰":"挑戰"}</button>`
+      +(m.cleared?`<button class="bigbtn alt" onclick="nwRender('scroll',${c.n},'menu')">讀殘卷</button>`:""):"";
+    return `<div class="nwCard${m.cleared?" cleared":m.open?"":" locked"}" data-ch="${c.n}">
+      <div class="nwAv">${roleAvHTML(R)}</div>
+      <div class="nwInfo"><div class="nwNo">第${NW_CN[c.n]}章</div><div class="nwTt">${c.title}</div>
+        <div class="nwBoss">主角：${R.name}</div>${status}${btns?`<div class="nwBtns">${btns}</div>`:""}</div></div>`;
+  }).join("");
+  return `<div class="nwHead"><h2>夜行錄</h2><button class="selback" onclick="nwBackToTitle()">返回</button></div>
+    <p class="nwLead">依序挑戰；終局時你還活著，且壽命高過該章主角（或主角先出局），就算過關。</p>
+    <div class="nwGrid">${cards}</div>`;
+}
+function nwIntroHTML(c){
+  const R=ROLES[c.boss];
+  return `<div class="stageCard nwBig">
+    <div class="nwNo">夜行錄・第${NW_CN[c.n]}章</div>
+    <h2 class="nwH">${c.title}</h2>
+    <div class="nwBossRow"><span class="nwAv sm">${roleAvHTML(R)}</span><b>${R.name}</b><span class="mut">本章主角，坐北</span></div>
+    <div class="nwIntro">${c.intro.map(t=>`<p>${t}</p>`).join("")}</div>
+    <div class="nwTeach"><div class="nwTeachH">本章新規則</div><ul>${c.teach.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+    <div class="nwBtns"><button class="bigbtn" id="nwGo" onclick="nwBegin(${c.n})">選角入市</button><button class="bigbtn alt" onclick="nwRender('menu')">返回章節</button></div>
+  </div>`;
+}
+function nwScrollHTML(c,back){
+  return `<div class="stageCard nwBig nwScrollCard">
+    <div class="nwNo">殘卷・第${NW_CN[c.n]}章</div>
+    <h2 class="nwH">${c.scroll.title}</h2>
+    <div class="nwScroll">${c.scroll.text}</div>
+    <div class="nwBtns">${back==="end"?`<button class="bigbtn alt" id="nwScrollClose" onclick="nwClose()">收起殘卷</button>`
+      :`<button class="bigbtn alt" id="nwScrollClose" onclick="nwRender('menu')">返回章節</button>`}</div>
+  </div>`;
+}
+function nwRender(v,n,back){
+  const st=nwLoad(), c=n!=null?nwChapter(n):null;
+  let html;
+  if(v==="intro"&&c&&nwChapterOpen(c.n,st.cleared)){ NW_VIEW={v,n:c.n,back:null}; html=nwIntroHTML(c); }
+  else if(v==="scroll"&&c&&st.cleared.includes(c.n)){ NW_VIEW={v,n:c.n,back:back||"menu"}; html=nwScrollHTML(c,back); }
+  else { NW_VIEW={v:"menu",n:null,back:null}; html=nwMenuHTML(st); }
+  const b=$("nwBody"); if(b) b.innerHTML=html;
+  const scr=$("nwScr"); if(scr){ scr.dataset.view=NW_VIEW.v; scr.scrollTop=0; }
+}
+function openNightwalk(v,n,back){
+  $("titleScr").style.display="none";
+  $("selectScr").classList.remove("on");
+  $("nwScr").classList.add("on");
+  nwRender(v||"menu",n,back);
+}
+function nwClose(){ $("nwScr").classList.remove("on"); $("nwBody").innerHTML=""; }
+function nwBackToTitle(){ nwClose(); $("titleScr").style.display="flex"; bgm("home"); }
+/* 引言卡「選角入市」＝這一下就是使用者手勢：跟 startEntry 一樣先解鎖音訊、預抓頭像，再進既有選角畫面（排除主角）。 */
+async function nwBegin(n){
+  if(!nwChapterOpen(n,nwLoad().cleared)){ nwRender("menu"); return; }
+  initSfx(); bgm("title"); await preloadArt();
+  nwClose();
+  openSelect("solo",n);
+}
+/* 局末「再挑戰」「回章節選單」：跟常規「再入妖市」一樣整頁重載（3D 與局內狀態不在頁內重設），
+   用 ?nw=章號／menu 回到夜行錄；載入後立刻把 nw 從網址拿掉，其他參數（?nwall=1、?sfx=0…）保留。 */
+function nwGo(target){
+  try{
+    const q=new URLSearchParams(location.search||"");
+    q.set("nw",String(target));
+    location.href=location.pathname+"?"+q.toString();
+  }catch(e){ location.reload(); }
+}
+function nwBoot(){
+  let q; try{ q=new URLSearchParams(location.search||""); }catch(e){ return; }
+  const t=q.get("nw"); if(t===null) return;
+  q.delete("nw");
+  try{ history.replaceState(null,"",location.pathname+(q.toString()?"?"+q.toString():"")+location.hash); }catch(e){}
+  openNightwalk("intro",t==="menu"?null:Number(t)); /* 不是可進的章號就落回選單 */
+  preloadArt().then(()=>{ const s=$("nwScr"); if(s&&s.classList.contains("on")) nwRender(NW_VIEW.v,NW_VIEW.n,NW_VIEW.back); });
+}
+/* 局末卡的章節段（endGame 只呼叫這兩支；「看完整回顧」仍只在 endGame 裡一顆）。 */
+function nwEndHeadHTML(nw,line){
+  const R=ROLES[nw.ch.boss];
+  return `<div class="nwEnd ${nw.pass?"pass":"fail"}"><div class="nwNo">夜行錄・第${NW_CN[nw.ch.n]}章・${nw.ch.title}</div>
+    <div class="nwVerdict">${nw.pass?`過關・勝過${R.name}`:`未過關・沒能勝過${R.name}`}</div>
+    ${line?`<div class="nwQuote">${R.name}：「${line.text}」</div>`:""}</div>`;
+}
+function nwEndBtnHTML(nw){
+  return nw.pass
+    ?`<button class="bigbtn" id="nwReadScroll" style="margin-top:8px;width:100%;height:38px" onclick="openNightwalk('scroll',${nw.ch.n},'end')">讀殘卷</button>`
+    :`<button class="bigbtn" id="nwRetry" style="margin-top:8px;width:100%;height:38px" onclick="nwGo(${nw.ch.n})">再挑戰</button>`;
 }
 /* ================= 測試出口：headless 模擬（不碰 DOM） ================= */
 /* 固定腳本策略：每夜對 market 中 p 值最高的一件出保守標，金額 = min(保守標上限, 5)，
@@ -8232,6 +8485,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedba
   drawMarks, aiMark, policyMarks, MARK_REACT_TXT, /* 盯上宣告（§5.8）測試出口 */
   lineFor, LINE_CTX_KEYS, FAC, /* A3 S4 角色台詞（凍結 #8）測試出口 */
   replayExport, /* A3 S7 再玩研究（凍結 #11）：一局紀錄打包，測試與判主因工具共用 */
+  NIGHTWALK, NW_KEY, nwChapter, nightwalkPass, nightwalkSeats, nwLoad, nwSave, nwRecord, nwChapterOpen, nwMenuModel, selectPool, nwDestinyHidden, nwFeudPick, /* 夜行錄 N1（凍結 #3–#6、#8）測試出口 */
   credOf, recordCred, /* 盯上信譽（2026-09-03）測試出口 */
   scriptedBids, policyGreedy, policyHoarder, policySplitter,
   /* 選角系統（2026-09-02）：總開關、AI 出價與結算入口（驗收量測用） */
@@ -8304,13 +8558,14 @@ else{ document.title=`妖市 v${VERSION}`; const vl=document.getElementById("ver
      紙紮夜戰只在被關掉（?paperwar=0）時才標，正常狀態不佔字。 */
   if(vl) vl.textContent=`v${RELEASE_VERSION}${CFG.PAPERWAR_ON?"":"・紙紮夜戰：關"}`; }
 /* 固定視窗：頁面本體不許被手勢拖動，只有可捲容器內放行（iOS 防拉走）——sim 工具頁需要自由捲動，跳過
-   放行名單＝本檔所有 overflow-y:auto 容器（2026-09-03 grep 分母 5 個：#felt #selGrid #sheetbox #modalbox #review）；
+   放行名單＝本檔所有 overflow-y:auto 容器（2026-09-03 grep 分母 5 個：#felt #selGrid #sheetbox #modalbox #review；2026-09-25 夜行錄加 #nwScr＝6 個）；
    新增捲動容器要一併加進這裡與上方 touch-action:pan-y 那行——v0.13 回顧場景漏加，手機上整份回顧捲不動 */
 if(!SIM_MODE){
   document.addEventListener("touchmove",e=>{
-    if(!e.target.closest("#felt,#sheetbox,#modalbox,#review,#selGrid")) e.preventDefault();
+    if(!e.target.closest("#felt,#sheetbox,#modalbox,#review,#selGrid,#nwScr")) e.preventDefault();
   },{passive:false});
   document.addEventListener("gesturestart",e=>e.preventDefault()); /* 防雙指縮放 */
+  nwBoot(); /* 夜行錄：局末「再挑戰」「回章節選單」帶 ?nw= 重載後直接回到夜行錄（沒帶就什麼都不做） */
 }
 </script>
 <!-- 音效合成器：放在主 script 之後（tests/tools/load.mjs 只抓第一個 <script>）；不自動播任何聲音 -->
