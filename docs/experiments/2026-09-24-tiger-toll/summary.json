@@ -1,0 +1,108 @@
+{
+  "candidates": [
+    {
+      "cand": "base",
+      "h9": {
+        "normalHolderGames": 1649,
+        "normalRate": 50.39,
+        "zeroHolderGames": 1777,
+        "zeroRate": 49.69,
+        "diffPp": 0.7,
+        "ci95Pp": [
+          -1.22,
+          2.83
+        ],
+        "pass": false
+      },
+      "h1": {
+        "chaserWins": 3157,
+        "splitterWins": 3013,
+        "diffPp": 1.44,
+        "pass": true
+      },
+      "avoidance": {
+        "h9Normal": {
+          "opportunities": 10376,
+          "bids": 3816,
+          "bidRatePct": 36.78
+        },
+        "h1Splitter": {
+          "opportunities": 7555,
+          "bids": 4214,
+          "bidRatePct": 55.78
+        }
+      },
+      "eligible": false
+    },
+    {
+      "cand": "toll-S",
+      "h9": {
+        "normalHolderGames": 1649,
+        "normalRate": 50.94,
+        "zeroHolderGames": 1777,
+        "zeroRate": 49.69,
+        "diffPp": 1.25,
+        "ci95Pp": [
+          -0.62,
+          3.32
+        ],
+        "pass": false
+      },
+      "h1": {
+        "chaserWins": 3147,
+        "splitterWins": 2989,
+        "diffPp": 1.58,
+        "pass": true
+      },
+      "avoidance": {
+        "h9Normal": {
+          "opportunities": 10107,
+          "bids": 3496,
+          "bidRatePct": 34.59
+        },
+        "h1Splitter": {
+          "opportunities": 7212,
+          "bids": 3856,
+          "bidRatePct": 53.47
+        }
+      },
+      "eligible": false
+    },
+    {
+      "cand": "toll-M",
+      "h9": {
+        "normalHolderGames": 1649,
+        "normalRate": 51.67,
+        "zeroHolderGames": 1777,
+        "zeroRate": 49.69,
+        "diffPp": 1.98,
+        "ci95Pp": [
+          -0.06,
+          4.07
+        ],
+        "pass": false
+      },
+      "h1": {
+        "chaserWins": 3145,
+        "splitterWins": 2969,
+        "diffPp": 1.76,
+        "pass": true
+      },
+      "avoidance": {
+        "h9Normal": {
+          "opportunities": 9719,
+          "bids": 3136,
+          "bidRatePct": 32.27
+        },
+        "h1Splitter": {
+          "opportunities": 6914,
+          "bids": 3475,
+          "bidRatePct": 50.26
+        }
+      },
+      "eligible": false
+    }
+  ],
+  "selected": null,
+  "action": "兩個幅度都不符合，停手回報使用者"
+}

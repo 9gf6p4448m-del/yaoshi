@@ -61,12 +61,14 @@ test('chaser cannot inspect private opponents or future market',()=>{
 });
 
 test('zero arm preserves recipe identity and bonus, removes only effects',()=>{
-  for(const id of ['water','eyes','twinTiger']){
-    const G=game();const before=structuredClone(G.CHAINS);
+  for(const id of Object.keys(game().CHAINS)){
+    const G=game();
+    // Chain hooks are functions; snapshot the entries without trying to clone code.
+    const before=Object.fromEntries(Object.entries(G.CHAINS).map(([key,chain])=>[key,{...chain}]));
     disableChainEffects(G,id);
     const {traits,flags,hooks,army,...expected}=before[id];
     assert.deepEqual(G.CHAINS[id],expected);
-    for(const other of ['water','eyes','twinTiger'].filter(x=>x!==id))
+    for(const other of Object.keys(before).filter(x=>x!==id))
       assert.deepEqual(G.CHAINS[other],before[other]);
   }
 });

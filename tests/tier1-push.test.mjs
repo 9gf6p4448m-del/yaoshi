@@ -52,7 +52,7 @@ const stage = {
   Date, Set, Map, Math, Promise, SKIP: false, S: { rngUi: () => 0 },
   FXC: { tiers: {}, beats: {}, traits: {}, beat: 0, trait: 0 },
   PHASES: {}, BEAT_FAC: [], BEAT_NAME: ['一', '二'], PW_BEAT_SFX: [],
-  PW_FX: {}, PW_BEAT_LOG: null, TRAIT_ITEM: {}, TRAITS: {},
+  PW_FX: {}, PW_BEAT_LOG: null, TRAIT_ITEM: {}, TRAITS: {}, TRUE_DESTINY_MOVES: {},
   pwBeatTier: () => 1, pwThin: x => x, pwCloseup: () => true,
   pwEvFac: () => 'x', pwMoveTier: () => 1, pwTierMs: msOf, pwBeatMinMs: msOf,
   pwTraitFx: (id, ctx) => { events.push(ctx.shortPush); return true; },

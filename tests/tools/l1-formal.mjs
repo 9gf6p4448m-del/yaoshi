@@ -37,11 +37,25 @@ const pct=x=>x===null?'null':`${(100*x).toFixed(2)}%`;
 const pp=x=>x===null?'null':`${x.toFixed(4)} pp`;
 const rounded=x=>Math.round(x*1e10)/1e10;
 
+// Effect hooks contain functions. Keep a stable source fingerprint in raw
+// provenance rather than passing live VM functions to structuredClone/JSON.
+export function snapshotRuntimeValue(value,seen=new WeakSet()){
+  if(typeof value==='function') return {functionSha256:sha256(Function.prototype.toString.call(value))};
+  if(value===null||typeof value!=='object') return value??null;
+  if(seen.has(value)) throw Error('cyclic runtime effect snapshot');
+  seen.add(value);
+  const copy=Array.isArray(value)?value.map(x=>snapshotRuntimeValue(x,seen)):
+    Object.fromEntries(Object.entries(value).map(([key,item])=>[key,snapshotRuntimeValue(item,seen)]));
+  seen.delete(value);
+  return copy;
+}
+
 function effectiveChains(G){
   return Object.fromEntries(CHAIN_IDS.map(id=>{
     const c=G.CHAINS[id];
     return [id,{requirements:[...c.requirements],aiBonus:c.aiBonus??null,
-      flags:c.flags??null,traits:c.traits??null,hooks:c.hooks??null,army:c.army??null}];
+      flags:snapshotRuntimeValue(c.flags),traits:snapshotRuntimeValue(c.traits),
+      hooks:snapshotRuntimeValue(c.hooks),army:snapshotRuntimeValue(c.army)}];
   }));
 }
 
@@ -59,7 +73,7 @@ export function runArm(arm,{seeds=FORMAL_SEEDS,target=DEFAULT_TARGET,onProgress=
   const G=loadGame(absolute),spec=ARM_CONFIG[arm];
   const cfg=structuredClone(G.CFG);
   if(spec.zeroEffect) disableChainEffects(G,spec.targetChain);
-  const chains=structuredClone(effectiveChains(G));
+  const chains=effectiveChains(G);
   const decisions=arm==='h1-eyes'?{calls:0,extraPreviewAvailable:0,revealAvailable:0,informedVsBlindDiff:0}:null;
   const policies=spec.table==='H1 chaser'?{0:spec.policy==='splitter'?G.POLICIES.splitter:
     spec.policy==='eyes-informed-v1'?createEyesPolicy(G,'informed',decisions):

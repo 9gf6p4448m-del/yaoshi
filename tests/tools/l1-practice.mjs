@@ -2,6 +2,7 @@ const CASES = {
   water: { title: '水陸偷渡', first: 'boat', second: 'buoy', guide: '袋中先有拼板舟；首夜標下水鬼浮標。另一件詛咒將由練習 AI 毒標給你，觀察連鎖如何銷毀轉入的詛咒。' },
   eyes: { title: '千眼神算', first: 'eye', second: 'bell', guide: '袋中先有祖靈之眼；首夜標下千里眼銅鈴。查看明夜三件預告，揭盅後再看上一夜已公開標額的第二高提示。' },
   tiger: { title: '雙虎滅煞', first: 'tiger', second: 'nail', guide: '袋中先有虎爺印；首夜標下虎姑婆指甲。夜戰可看金斑黑虎、橫掃與撕甲。' },
+  eyesDestiny: { title: '冷讀測試局', first: 'eye', second: 'bell', destiny: 'eyes', guide: '冷讀主持用：玩家 1 的私密天命為千眼神算，袋中先有祖靈之眼；首夜標下千里眼銅鈴即覺醒。不要把本說明給受試者看。' },
 };
 
 const frame = document.querySelector('#game');
@@ -14,8 +15,11 @@ function configurePractice(key) {
   const y = w.__yaoshi;
   const cfg = y.CFG;
   Object.assign(cfg, { MARK_ON: false, WISH_ON: false, EVENT_ON: false, RULE_ON: false, LEGEND_ON: false, ROUNDS: 3 });
-  const state = y.makeState('solo', 20260921);
   const recipe = CASES[key];
+  // 天命情境：玩家 1 指定私密天命，其餘三席固定為其他鏈；其他情境維持原本的 makeState 呼叫。
+  const state = recipe.destiny
+    ? y.makeState('solo', 20260921, undefined, [recipe.destiny, 'water', 'twinTiger', 'bloodOath'], 'original')
+    : y.makeState('solo', 20260921);
   state.practice = { kind: 'l1-chain-trial', case: key, preset: true };
   const originalReplay = w.replayExport;
   w.replayExport = function (run) {
@@ -31,7 +35,7 @@ function configurePractice(key) {
   state.market[1] = { ...y.POOL.find(item => item.ab !== recipe.first && item.ab !== recipe.second && item.unit) };
   state.market[2] = { ...y.POOL.find(item => item.ab !== recipe.first && item.ab !== recipe.second && item.unit && item.f === 'xianghuo') };
   if (key === 'water') state.market[3] = { ...y.CURSES.find(item => item.n === '白虎煞') };
-  if (key === 'eyes') {
+  if (key === 'eyes' || key === 'eyesDestiny') {
     state.nextMarket[0] = { ...find('tiger') };
     state.nextMarket[1] = { ...find('boat') };
     state.nextMarket[2] = { ...find('nail') };

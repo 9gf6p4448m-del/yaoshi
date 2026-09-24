@@ -19,6 +19,7 @@ const render = new Function('it', 'paperwar', 'locked', 'G', 'mark', 'full', `
   const moonBenefit=()=>({active:false}), sysBg=()=>'', markBadgeHTML=()=>'', itemIcoHTML=()=>'';
   const marketStatText=()=> '詛咒・纏身', unitRowText=()=> '詛咒品不召喚（只算纏身）';
   const abDesc=ab=>G.ABILITIES[ab]?.desc||'', unitRow=it=>G.unitRow(it);
+  const chainHintHTML=()=>'';
   const curseKind=it=>({"冥婚紅包":"wedding","魔神仔的芭樂":"guava","抓交替水符":"water","縛靈鎖":"lock","白虎煞":"tiger","王船煞":"boat"})[it.n]||null;
   ${effectCode}
   ${cardCode}

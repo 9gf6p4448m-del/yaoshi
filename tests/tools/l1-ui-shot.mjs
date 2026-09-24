@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 const root=path.resolve(fileURLToPath(new URL('../..',import.meta.url)));
 const pack=[path.join(root,'tools/anyCreature/package.json'),path.resolve(root,'../../../tools/anyCreature/package.json')].find(existsSync);
 const {chromium}=createRequire(pack)('playwright');
-const out=path.join(root,'docs/experiments/2026-09-21-l1-trial-ui');mkdirSync(out,{recursive:true});
+const out=process.env.YAOSHI_UI_SHOT_OUT||path.join(root,'docs/experiments/2026-09-21-l1-trial-ui');mkdirSync(out,{recursive:true});
 const server=spawn('python',['-m','http.server','8897','--bind','127.0.0.1'],{cwd:root,stdio:'ignore'});
 await new Promise(r=>setTimeout(r,900));
 const errors=[];
@@ -35,9 +35,9 @@ try{
           showBag(1);const opponent=$('modalbox').textContent,opponentHasBoat=opponent.includes('拼板舟');
           closeModal();showBag(0);const own=$('modalbox').textContent,ownHasEye=own.includes('祖靈之眼');
           showHandoff(0,()=>{});
-          return {opponentHasBoat,ownHasEye,modalHidden:$('modal').style.display==='none',privateMarks:document.querySelectorAll('#table .chainHint,#table .chainStatus,#table .chainAwaken').length};
+          return {opponentHasBoat,ownHasEye,modalHidden:$('modal').style.display==='none',modalContentCleared:$('modalbox').innerHTML==='',privateMarks:document.querySelectorAll('#table .chainHint,#table .chainStatus,#table .chainAwaken').length};
         });
-        assert.deepEqual(privacy,{opponentHasBoat:false,ownHasEye:true,modalHidden:true,privateMarks:0});
+        assert.deepEqual(privacy,{opponentHasBoat:false,ownHasEye:true,modalHidden:true,modalContentCleared:true,privateMarks:0});
       }
       if(metrics.scrollWidth>metrics.clientWidth) errors.push(`overflow ${width}: ${JSON.stringify(metrics)}`);
       await page.close();

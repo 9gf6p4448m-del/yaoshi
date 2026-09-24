@@ -1,0 +1,85 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v4",
+  "status": "partial",
+  "implemented": false,
+  "previousContracts": [
+    { "path": "model-contract-v2.json", "schema": "yaoshi.l1e.sixOfFour.modelContract.v2" },
+    { "path": "model-contract-v3.json", "schema": "yaoshi.l1e.sixOfFour.modelContract.v3" }
+  ],
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for adapter fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "game": "original solo four-seat finite extensive-form game",
+    "eventIds": ["plague", "shrine", "ghost", "zongzi", "guan", "loan", "wind", "poe"],
+    "eventDecision": "One sealed choice per living seat for the current event. Each commitment is private until the original event reveal.",
+    "eventReveal": "All submitted values, life deltas and public event logs are returned only after the pinned engine settles the full profile.",
+    "excludedDecisionPhases": ["mark", "sacrifice", "shrine-pick", "battle", "settlement"]
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-event-action-adapter.test.mjs",
+    "runner": "node --test tests/l1e-event-action-adapter.test.mjs",
+    "adapter": "tests/tools/l1e-event-action-adapter.mjs",
+    "runtimeProvenance": ["sourceCommit", "sourceBlobOid", "sourceSha256", "adapterSha256", "fixtureSha256", "instrumentedSourceSha256"],
+    "fixtures": [
+      {
+        "id": "actions.event.allCurrentInputChoices",
+        "status": "partial",
+        "proves": "All eight current events enumerate the exact pick values or every integer 0..cap plus an explicit null pass where supported; committed choices cannot be revised.",
+        "doesNotProve": "All other decision phases, full chance support, or exhaustive joint event outcome chance branches."
+      },
+      {
+        "id": "transitions.event.engineSettlement",
+        "status": "partial",
+        "proves": "Complete sealed event profiles pass through the frozen engine settleEvent function and expose the same public choice, life-delta and log data that the event reveal shows.",
+        "doesNotProve": "Cross-phase snapshots, complete full-game transitions, or an exhaustive event chance tree."
+      },
+      {
+        "id": "information.eventSealedObservation",
+        "status": "partial",
+        "proves": "The event-screen projection excludes all sealed choices, market and future-market contents, RNG and opponent bag items. Event recall rejects mixed-seat histories. The subsequent auction projection accepts only same-round public event result fields, strips arbitrary extra fields and rejects stale-round reveals.",
+        "doesNotProve": "Observation equivalence for omitted phases or complete full recall across event and auction histories."
+      }
+    ]
+  },
+  "inventory": {
+    "actions.auction": "partial",
+    "actions.event": "partial",
+    "transitions.event": "partial",
+    "actions.mark": "incomplete",
+    "actions.sacrifice": "incomplete",
+    "actions.shrinePick": "incomplete",
+    "actions.other": "incomplete",
+    "information.auctionObservation": "partial",
+    "information.eventObservation": "partial",
+    "information.fullRecall": "incomplete",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "incomplete",
+    "state.canonicalization": "incomplete",
+    "terminalAndPayoff": "partial",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "complete remaining player decision phases and cross-phase history",
+    "implemented": false,
+    "requirements": [
+      "Enumerate public mark, sacrifice and shrine-pick actions at their true input boundaries.",
+      "Carry event reveal data, previous sealed commitments and each seat's own action through a full-recall history without exposing hidden state.",
+      "Adapt automatic battle, chance and settlement transitions and compare them with the frozen engine.",
+      "Prove complete chance support, cross-night state restoration, canonicalization, terminal/payoff mapping and a feasible solver scope before any pass claim."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Auction and event decisions are partial. Mark, sacrifice, shrine-pick and remaining transitions, chance, cross-night restore, canonicalization, full recall, policy enumeration, terminal/payoff mapping and independent solver review remain incomplete."
+  }
+}

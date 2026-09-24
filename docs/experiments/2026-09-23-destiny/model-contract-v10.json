@@ -1,0 +1,63 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v10",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v9.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v9"
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40"
+  },
+  "chanceAbstraction": {
+    "law": "iid-uniform-rng-call-v1",
+    "draw": "Each gameplay S.rng() call is an independent U[0,1) chance draw conditional on the current game state.",
+    "mapping": "The pinned drawWishes maps each draw to floor(u * eligiblePool.length).",
+    "limitation": "Weights are exact for this abstract chance-call law, not for the finite 32-bit seed distribution or correlations of the concrete mulberry32 stream. Full chance remains incomplete until that modeling boundary is accepted or replaced by an exact seed-space model."
+  },
+  "chanceNodes": [
+    {
+      "id": "night.drawWishes",
+      "status": "partial",
+      "sourceSymbols": ["drawWishes", "WISHES"],
+      "stateConditioned": true,
+      "support": "For each living seat, use the pinned WISHES insertion order and the options whose canDraw(player) is true; if that support is empty, the engine falls back to all wishes. Dead seats receive wish=null and consume no draw. If wishes are disabled or the table is empty, the draw node is a no-op.",
+      "outcome": "The chosen wish id and any deterministic target(player) result; done starts false.",
+      "weight": "The joint profile has exact weight product_i(1 / supportSize_i), conditional on the frozen pre-draw state and iid-uniform-rng-call-v1.",
+      "rngConsumption": "Exactly one gameplay draw per living seat when wishes are enabled and the wish table is non-empty.",
+      "notCovered": ["Wish completion and reward resolution", "AI mark choices", "Event schedule and event choices", "Other chance nodes and whole-game chance" ]
+    }
+  ],
+  "inventory": {
+    "chance.night.drawWishes": "partial",
+    "chance.night.marksAndEvents": "incomplete",
+    "chance.initialization": "incomplete",
+    "chance.marketAndAuctions": "incomplete",
+    "chance.battleAndSettlement": "incomplete",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "partial",
+    "state.canonicalization": "incomplete",
+    "information.fullRecall": "partial",
+    "terminalAndPayoff": "partial",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-wish-chance-v10.test.mjs",
+    "runner": "node --test tests/l1e-wish-chance-v10.test.mjs",
+    "adapter": "tests/tools/l1e-wish-chance-adapter-v10.mjs",
+    "status": "partial",
+    "implemented": false
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Only the state-conditioned wish-draw node is in scope. Other chance nodes, all transitions, resumable runner state, cross-process canonicalization, terminal payoff, policy enumeration and solver review remain incomplete; the iid RNG-call law also does not match the exact finite seeded PRNG law."
+  }
+}

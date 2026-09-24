@@ -1,0 +1,93 @@
+{
+  "schema": "yaoshi.l1e.sixOfFour.modelContract.v5",
+  "status": "partial",
+  "implemented": false,
+  "previousContract": {
+    "path": "model-contract-v4.json",
+    "schema": "yaoshi.l1e.sixOfFour.modelContract.v4",
+    "meaning": "Preserves the sealed event decision and reveal fixtures; this version adds mark, blood-sacrifice and human shrine-pick actions."
+  },
+  "source": {
+    "path": "index.html",
+    "commit": "d63f03ecc6f9cb4ed2bbd6dd03c87757aec3bf7a",
+    "gitBlobOid": "8ba772b9d960eff8b9c42eac77040433f809c57d",
+    "sha256": "8ac04722a9e77f4ca6a2f28695080c74f793e393031c4fdbd533917f777fe23d",
+    "productVersion": "0.57.40",
+    "meaning": "Frozen product source for adapter fixtures only; not a balance or release verdict."
+  },
+  "scope": {
+    "game": "original solo four-seat game with one human seat and three AI seats",
+    "markTiming": "AI marks are generated before the event; the human mark input appears after the event reveal in the current UI.",
+    "markAction": "One human declaration: null or one current market index.",
+    "sacrificeAction": "Repeated one-at-a-time bleed decisions before the compound sealed auction submission, bounded by the engine life floor.",
+    "shrinePickAction": "If a human is the eligible shrine winner, choose one currently open legend index after the engine computes the pending result."
+  },
+  "fixtureBatch": {
+    "path": "tests/l1e-remaining-player-action-adapter.test.mjs",
+    "runner": "node --test tests/l1e-remaining-player-action-adapter.test.mjs",
+    "adapter": "tests/tools/l1e-remaining-player-action-adapter.mjs",
+    "runtimeProvenance": ["sourceCommit", "sourceBlobOid", "sourceSha256", "adapterSha256", "fixtureSha256", "instrumentedSourceSha256"],
+    "fixtures": [
+      {
+        "id": "actions.mark",
+        "status": "partial",
+        "proves": "The legal human actions are no mark or any current market slot; the first solo human observation shows mark participation indicators without exposing AI target slots and omits the not-yet-visible next-market preview.",
+        "doesNotProve": "Multi-human hotseat mark observations or event-night human/AI timing parity."
+      },
+      {
+        "id": "actions.sacrifice",
+        "status": "partial",
+        "proves": "Repeated bleed/continue actions are bounded by the engine bloodlet flag, escalating cost and life floor; each bleed transition uses the frozen engine bleed function and records public life deltas.",
+        "doesNotProve": "Arbitrary interleaving with private bid drafts or a complete joint sacrifice-and-auction action tree."
+      },
+      {
+        "id": "actions.shrinePick",
+        "status": "partial",
+        "proves": "An eligible human shrine winner can select exactly any currently open legend; the original finishShrines path applies the selection and awards the legend.",
+        "doesNotProve": "All automatic shrine, tithe, endgame, chance or night-transition branches."
+      }
+    ]
+  },
+  "inventory": {
+    "actions.auction": "partial",
+    "actions.event": "partial",
+    "actions.mark": "partial",
+    "actions.sacrifice": "partial",
+    "actions.shrinePick": "partial",
+    "actions.other": "incomplete",
+    "transitions.event": "partial",
+    "transitions.sacrifice": "partial",
+    "transitions.shrinePick": "partial",
+    "information.auctionObservation": "partial",
+    "information.eventObservation": "partial",
+    "information.markObservation": "partial",
+    "information.sacrificeObservation": "partial",
+    "information.shrinePickObservation": "partial",
+    "information.fullRecall": "incomplete",
+    "chance.fullGame": "incomplete",
+    "state.snapshotRestore.crossNight": "incomplete",
+    "state.canonicalization": "incomplete",
+    "automatic.battle": "incomplete",
+    "automatic.settlement": "incomplete",
+    "terminalAndPayoff": "partial",
+    "policyEnumeration": "incomplete",
+    "sixOfFourSolver": "not-run"
+  },
+  "nextEngineeringDeliverable": {
+    "name": "adapt automatic battle, settlement and cross-phase history",
+    "implemented": false,
+    "requirements": [
+      "Compare automatic battle and settlement transitions with the frozen engine, including death sweeps, tithe, shrine release and endgame closure.",
+      "Carry each seat's prior observations and own actions across event, mark, auction, sacrifice and shrine-pick phases without exposing hidden state.",
+      "Represent the product UI's event-night mark timing explicitly and quantify its difference from the headless policy order before proposing any product change.",
+      "Prove complete chance support, cross-night state restoration, canonicalization, terminal/payoff mapping and a feasible solver scope before any pass claim."
+    ]
+  },
+  "gate": {
+    "sixOfFour": "incomplete",
+    "formalStatus": "incomplete",
+    "solverStatus": "not-run",
+    "releaseEligible": false,
+    "blockingReason": "Mark, sacrifice and shrine-pick fixtures are partial. Other decision phases, automatic transitions, full recall, complete chance, cross-night restore, canonicalization, policy enumeration, terminal/payoff mapping and independent solver review remain incomplete."
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "twinTiger": {
+    "candidates": [
+      {
+        "cand": "tiger-S",
+        "h9": {
+          "normalHolderGames": 1713,
+          "normalRate": 48.98,
+          "zeroHolderGames": 1773,
+          "zeroRate": 49.69,
+          "diffPp": -0.71,
+          "ci95Pp": [
+            -2.45,
+            1.27
+          ],
+          "pass": false
+        },
+        "h1": {
+          "chaserWins": 3183,
+          "splitterWins": 3031,
+          "diffPp": 1.52,
+          "pass": true
+        },
+        "eligible": false
+      },
+      {
+        "cand": "tiger-M",
+        "h9": {
+          "normalHolderGames": 1774,
+          "normalRate": 49.66,
+          "zeroHolderGames": 1773,
+          "zeroRate": 49.69,
+          "diffPp": -0.03,
+          "ci95Pp": [
+            -1.84,
+            1.88
+          ],
+          "pass": false
+        },
+        "h1": {
+          "chaserWins": 3230,
+          "splitterWins": 3035,
+          "diffPp": 1.95,
+          "pass": true
+        },
+        "eligible": false
+      }
+    ],
+    "selected": null,
+    "action": "兩個幅度都不符合，停手回報使用者"
+  },
+  "bloodOath": {
+    "candidates": [
+      {
+        "cand": "blood-S",
+        "h9": {
+          "normalHolderGames": 2483,
+          "normalRate": 52.4,
+          "zeroHolderGames": 2471,
+          "zeroRate": 50.99,
+          "diffPp": 1.4,
+          "ci95Pp": [
+            0.4,
+            2.38
+          ],
+          "pass": false
+        },
+        "h1": {
+          "chaserWins": 3209,
+          "splitterWins": 3034,
+          "diffPp": 1.75,
+          "pass": true
+        },
+        "eligible": false
+      },
+      {
+        "cand": "blood-M",
+        "h9": {
+          "normalHolderGames": 2483,
+          "normalRate": 53.85,
+          "zeroHolderGames": 2471,
+          "zeroRate": 50.99,
+          "diffPp": 2.85,
+          "ci95Pp": [
+            1.75,
+            4
+          ],
+          "pass": false
+        },
+        "h1": {
+          "chaserWins": 3228,
+          "splitterWins": 3011,
+          "diffPp": 2.17,
+          "pass": true
+        },
+        "eligible": false
+      },
+      {
+        "cand": "blood-L",
+        "h9": {
+          "normalHolderGames": 2483,
+          "normalRate": 54.13,
+          "zeroHolderGames": 2471,
+          "zeroRate": 50.99,
+          "diffPp": 3.14,
+          "ci95Pp": [
+            2.01,
+            4.28
+          ],
+          "pass": true
+        },
+        "h1": {
+          "chaserWins": 3237,
+          "splitterWins": 3013,
+          "diffPp": 2.24,
+          "pass": true
+        },
+        "eligible": true
+      }
+    ],
+    "selected": "blood-L",
+    "action": "進入正式驗收：blood-L"
+  }
+}

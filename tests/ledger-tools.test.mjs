@@ -30,14 +30,21 @@ test('research judge labels current reconstruction, preserves original version a
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yaoshi-ledger-judge-'));
   try {
     const G = loadGame(path.join(ROOT, 'index.html')); G.playPolicyGame(1, { 0: G.POLICIES.splitter });
+    const cause = G.ledgerNarrative(G.S.history, G.S.players).cause;
+    assert.equal(cause.round, 4);
+    assert.equal(cause.drop, 13);
+    assert.deepEqual(cause.payments.map(p => [p.item, p.cost]), [['百步蛇紋盾', 4], ['山神庇佑', 4]]);
+    // Deliberately vary replay metadata to verify the judge reports the input
+    // version, while the reconstructed narrative remains clearly labeled.
     const E = G.replayExport(G.S); E.ver = '0.57.34';
     const f = path.join(dir, 'replay.json'); fs.writeFileSync(f, JSON.stringify(E));
     const out = execFileSync(process.execPath, ['tests/tools/replay-judge.mjs', f], { cwd: ROOT, encoding: 'utf8' });
     assert.match(out, /loss-interval-v2/);
     assert.match(out, /原始版本.*0\.57\.34/);
     assert.match(out, /目前版本重建.*非玩家當時所見/);
-    assert.match(out, /破軍旗.*實付 2/);
-    assert.match(out, /淨減少 16/);
+    assert.match(out, /百步蛇紋盾.*實付 4/);
+    assert.match(out, /山神庇佑.*實付 4/);
+    assert.match(out, /淨減少 13/);
     assert.doesNotMatch(out, /玩家在回顧頁看到的句子|撞上異事/);
     assert.equal(fs.readFileSync(f, 'utf8'), JSON.stringify(E));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
