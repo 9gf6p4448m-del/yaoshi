@@ -206,7 +206,7 @@ test('true eyes preview distinguishes duplicate copies of the same named item',(
     'seeing the first copy cannot discount an unseen fourth copy');
 });
 
-test('true god king returns three life on shrine award and original waives this night tithe',()=>{
+test('true god king returns seven life on shrine award and original waives this night tithe',()=>{
   const run=mode=>{
     const g=dayGame(415,['godKing','water','eyes','water'],mode),p=g.S.players[0];
     p.bag=[item(g,'bow'),item(g,'sword')];p.destinyAwakened=true;p.life=20;
@@ -216,8 +216,8 @@ test('true god king returns three life on shrine award and original waives this 
     return {awarded,after:p.life,paid};
   };
   const base=run('off'),original=run('original'),candidate=run('candidate');
-  assert.equal(original.awarded,base.awarded+3);
-  assert.equal(candidate.awarded,base.awarded+3);
+  assert.equal(original.awarded,base.awarded+7);
+  assert.equal(candidate.awarded,base.awarded+7);
   assert.equal(original.after,original.awarded);
   assert.equal(original.paid.destinyExempt,true);
   assert.equal(candidate.after,candidate.awarded-2);
@@ -233,7 +233,7 @@ test('true eternal flame grants the lowest life after auction before death sweep
   };
   const base=run('off'),original=run('original');
   assert.equal(base.life,0);assert.equal(base.alive,false);
-  assert.equal(original.life,1);assert.equal(original.alive,true);
+  assert.equal(original.life,2);assert.equal(original.alive,true);
   assert.equal(original.events.some(e=>e.kind==='lowestRelief'),true);
   const g=dayGame(417,['eternalFlame','eyes','water','godKing'],'candidate'),p=g.S.players[0];
   p.bag=[item(g,'fushou'),item(g,'sigui')];p.destinyAwakened=true;p.life=2;

@@ -125,7 +125,7 @@ test('true eternal shield follows successful feeding, and candidate needs its so
     return {x,e};
   };
   assert.equal(run('off').x.units.some(u=>u.destinyShield),false);
-  assert.equal(run('original').x.units.some(u=>u.destinyShield===2),true);
+  assert.equal(run('original').x.units.some(u=>u.destinyShield===3),true);
   assert.equal(run('candidate').x.units.some(u=>u.destinyShield),false);
 });
 
@@ -137,14 +137,14 @@ test('candidate eternal shield expires after the next beat, while original shiel
     const x=g.pwSide(a,'A'),y=g.pwSide(b,'B');
     const e={...env(),beat:1};
     y.burned=1;g.pwFeed(x,y,e,0);
-    const holder=x.units.find(u=>u.destinyShield===2);
+    const holder=x.units.find(u=>u.destinyShield===(mode==='candidate'?2:3));
     assert.ok(holder);
     e.beat=2;y.burned=1;
     g.pwClash(2,0,x,y,null,e);
     return holder.destinyShield;
   };
   assert.equal(run('candidate'),0);
-  assert.equal(run('original'),2);
+  assert.equal(run('original'),3);
 });
 
 test('duplicate urns produce one true shield per successful feed beat',()=>{
@@ -154,7 +154,7 @@ test('duplicate urns produce one true shield per successful feed beat',()=>{
   const x=g.pwSide(a,'A'),y=g.pwSide(b,'B'),e={...env(),beat:1};
   y.burned=1;g.pwFeed(x,y,e,0);
   assert.equal(e.stats.tr.trueEternalShield,1);
-  assert.equal(x.units.reduce((sum,u)=>sum+(u.destinyShield||0),0),2);
+  assert.equal(x.units.reduce((sum,u)=>sum+(u.destinyShield||0),0),3);
 });
 
 test('personal shield absorbs after boat and before armor; pierce skips boat only',()=>{
