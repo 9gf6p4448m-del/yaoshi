@@ -41,3 +41,7 @@ Chromium 無法模擬 `env(safe-area-inset-*)`；`assets/safe-area.css` 的 `--s
 **#6 橫向鎖定**：依查證事實分兩層報告，不混稱——(a) 能真正鎖定的平台（實作並說明生效條件）(b) 不能鎖定的平台（iPhone Safari 等）的處理方式由使用者裁定後實作。使用者真機確認允許暫緩，暫緩＝未通過。
 
 **#7 送達**：版本 bump、快轉推 main、Pages built、線上 curl 核對版本。
+
+## 修訂紀錄
+
+- **2026-09-25 #6 使用者裁定「維持轉向提示＋補強」**（查證：iOS Safari 分頁與主畫面 web app 均不支援 `screen.orientation.lock()`，manifest `orientation` iOS 不遵守；Android 在全螢幕或已安裝 PWA 下支援）。#6 細化為：(a) 開局手勢時呼叫 `screen.orientation.lock('landscape')`，不支援／被拒時靜默、不影響遊戲；(b) 直式（393×852）下 `#rotateHint` 在本檔畫面清單每一格都位於最上層（`elementFromPoint` 取畫面中心與四角命中提示層）；(c) 提示顯示期間盤點會自動推進遊戲的計時器，若有則列出並處理或照實記錄。
