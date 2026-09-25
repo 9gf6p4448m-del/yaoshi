@@ -1,0 +1,82 @@
+[text-fit] solo done 363s
+[text-fit] hot done 426s
+[text-fit] nw1 done 374s
+[text-fit] nw2 done 51s
+[text-fit] nw3 done 50s
+{
+ "tag": "head-polish",
+ "cells": 875,
+ "cellsRed": 215,
+ "byVp": {
+  "V1": {
+   "cells": 175,
+   "red": 57,
+   "redScrollOnly": 57
+  },
+  "V2": {
+   "cells": 175,
+   "red": 37,
+   "redScrollOnly": 37
+  },
+  "V3": {
+   "cells": 175,
+   "red": 57,
+   "redScrollOnly": 57
+  },
+  "V4": {
+   "cells": 175,
+   "red": 60,
+   "redScrollOnly": 60
+  },
+  "V5": {
+   "cells": 175,
+   "red": 4,
+   "redScrollOnly": 3
+  }
+ },
+ "items": 8,
+ "lost": [
+  "solo|shrine-run lost8",
+  "hot|shrine-run lost9",
+  "nw1|shrine-run lost8",
+  "nw2|shrine-run lost1",
+  "nw3|shrine-run lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ },
+ "guard": {
+  "cells": 239,
+  "spill": {
+   "#northPrev > div.preview": "237 格，例 solo|mark|n1@V5 409/409 29/27",
+   "#northPrev": "26 格，例 hot|bid|n2@V4 242/242 62/56"
+  },
+  "overlap": {}
+ },
+ "strips": [
+  "#feltHead n788 minOwn 0 minEff 0 低於.85且無字影 0 ",
+  "#feltHead > span.headCompact n788 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead > div.wishbar n375 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#northPrev > div.preview n570 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#revealCard n21 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
+  "#stage > div.stageCard n388 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n15 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#bub3 n1 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#bub1 n18 minOwn 1 minEff 1 低於.85且無字影 0 "
+ ],
+ "itemList": [
+  "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」→「？ 妖市規則 🔧 音訊診斷：sfx v0.58」",
+  "#duel ×1 「一拍・撞 北家 收驚婆 0 隻 大紙偶×1 香 」→「一拍・撞 北家 收驚婆 0 隻 大紙偶×1 香V」",
+  "[scroll reach 138/138] #felt ×138 「北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧」→「北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧」",
+  "[scroll reach 38/38] #railW > div.railPages ×38 「山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠」→「山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠」",
+  "[scroll reach 54/54] #railE > div.railPages ×54 「👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈\ud83c」→「👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈\ud83c」",
+  "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
+  "[scroll reach 3/3] #nwScr ×3 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
+  "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」"
+ ]
+}
+EXIT 0

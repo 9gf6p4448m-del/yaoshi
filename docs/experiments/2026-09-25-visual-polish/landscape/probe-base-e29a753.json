@@ -1,0 +1,9274 @@
+{
+ "tag": "base-e29a753",
+ "base": "e29a753",
+ "seed": 3,
+ "viewports": {
+  "V1": {
+   "w": 852,
+   "h": 393,
+   "safe": [
+    0,
+    59,
+    21,
+    59
+   ]
+  },
+  "V2": {
+   "w": 932,
+   "h": 430,
+   "safe": [
+    0,
+    59,
+    21,
+    59
+   ]
+  },
+  "V3": {
+   "w": 844,
+   "h": 390,
+   "safe": [
+    0,
+    47,
+    21,
+    47
+   ]
+  },
+  "V4": {
+   "w": 667,
+   "h": 375,
+   "safe": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "V5": {
+   "w": 1280,
+   "h": 720,
+   "safe": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "P": {
+   "w": 393,
+   "h": 852,
+   "safe": [
+    59,
+    0,
+    34,
+    0
+   ]
+  }
+ },
+ "matrix": {
+  "title": {
+   "cls": "title",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 6,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#titleScr .btns button",
+       "found": true,
+       "rect": [
+        264,
+        231,
+        368,
+        275
+       ],
+       "hit": "#titleScr > button.bigbtn 「單人入市」",
+       "ok": true
+      },
+      {
+       "sel": "#nwEntry",
+       "found": true,
+       "rect": [
+        498,
+        231,
+        589,
+        275
+       ],
+       "hit": "#titleScr > button#nwEntry.bigbtn.alt 「夜行錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "title-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 6,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#titleScr .btns button",
+       "found": true,
+       "rect": [
+        304,
+        249,
+        408,
+        293
+       ],
+       "hit": "#titleScr > button.bigbtn 「單人入市」",
+       "ok": true
+      },
+      {
+       "sel": "#nwEntry",
+       "found": true,
+       "rect": [
+        538,
+        249,
+        629,
+        293
+       ],
+       "hit": "#titleScr > button#nwEntry.bigbtn.alt 「夜行錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 6,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#titleScr .btns button",
+       "found": true,
+       "rect": [
+        260,
+        229,
+        364,
+        273
+       ],
+       "hit": "#titleScr > button.bigbtn 「單人入市」",
+       "ok": true
+      },
+      {
+       "sel": "#nwEntry",
+       "found": true,
+       "rect": [
+        494,
+        229,
+        585,
+        273
+       ],
+       "hit": "#titleScr > button#nwEntry.bigbtn.alt 「夜行錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 6,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#titleScr .btns button",
+       "found": true,
+       "rect": [
+        171,
+        222,
+        275,
+        266
+       ],
+       "hit": "#titleScr > button.bigbtn 「單人入市」",
+       "ok": true
+      },
+      {
+       "sel": "#nwEntry",
+       "found": true,
+       "rect": [
+        405,
+        222,
+        496,
+        266
+       ],
+       "hit": "#titleScr > button#nwEntry.bigbtn.alt 「夜行錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 6,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#titleScr .btns button",
+       "found": true,
+       "rect": [
+        478,
+        394,
+        582,
+        438
+       ],
+       "hit": "#titleScr > button.bigbtn 「單人入市」",
+       "ok": true
+      },
+      {
+       "sel": "#nwEntry",
+       "found": true,
+       "rect": [
+        712,
+        394,
+        803,
+        438
+       ],
+       "hit": "#titleScr > button#nwEntry.bigbtn.alt 「夜行錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "select": {
+   "cls": "select",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        708,
+        316,
+        782,
+        360
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        743,
+        8,
+        793,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "select-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        788,
+        352,
+        862,
+        396
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        823,
+        8,
+        873,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        712,
+        314,
+        786,
+        358
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        747,
+        8,
+        797,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        570,
+        315,
+        644,
+        359
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        605,
+        8,
+        655,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        1183,
+        655,
+        1257,
+        699
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        1218,
+        8,
+        1268,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "mark": {
+   "cls": "mark",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        663,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "mark-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        730,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        664,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        544,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        969,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "bid": {
+   "cls": "bid",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        695,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "bid-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        768,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        698,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        571,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 82,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        999,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "bag": {
+   "cls": "modal:南家・青面攤主（",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 88,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [
+       "div#modal 「南家・青面攤主（氣色紅潤） 📜 天命密函：【雙」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn, #sheetbox button.bigbtn",
+       "found": true,
+       "rect": [
+        210,
+        277,
+        642,
+        321
+       ],
+       "hit": "#modal #modalbox > button.bigbtn.stickyClose 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "bag-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 88,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [
+       "div#modal 「南家・青面攤主（氣色紅潤） 📜 天命密函：【雙」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn, #sheetbox button.bigbtn",
+       "found": true,
+       "rect": [
+        250,
+        295,
+        682,
+        339
+       ],
+       "hit": "#modal #modalbox > button.bigbtn.stickyClose 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 88,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [
+       "div#modal 「南家・青面攤主（氣色紅潤） 📜 天命密函：【雙」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn, #sheetbox button.bigbtn",
+       "found": true,
+       "rect": [
+        206,
+        275,
+        638,
+        319
+       ],
+       "hit": "#modal #modalbox > button.bigbtn.stickyClose 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 88,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [
+       "div#modal 「南家・青面攤主（氣色紅潤） 📜 天命密函：【雙」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn, #sheetbox button.bigbtn",
+       "found": true,
+       "rect": [
+        118,
+        278,
+        550,
+        322
+       ],
+       "hit": "#modal #modalbox > button.bigbtn.stickyClose 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 92,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [
+       "div#modal 「南家・青面攤主（氣色紅潤） 📜 天命密函：【雙」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn, #sheetbox button.bigbtn",
+       "found": true,
+       "rect": [
+        424,
+        451,
+        856,
+        495
+       ],
+       "hit": "#modal #modalbox > button.bigbtn.stickyClose 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "modal:role": {
+   "cls": "modal:北家・收驚婆",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [
+       "div#modal 「北家・收驚婆 收驚婆 節奏流 起始壽命 44 被」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        210,
+        231,
+        642,
+        275
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "modal_role-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [
+       "div#modal 「北家・收驚婆 收驚婆 節奏流 起始壽命 44 被」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        250,
+        249,
+        682,
+        293
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [
+       "div#modal 「北家・收驚婆 收驚婆 節奏流 起始壽命 44 被」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        206,
+        229,
+        638,
+        273
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [
+       "div#modal 「北家・收驚婆 收驚婆 節奏流 起始壽命 44 被」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        118,
+        232,
+        550,
+        276
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 91,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [
+       "div#modal 「北家・收驚婆 收驚婆 節奏流 起始壽命 44 被」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        424,
+        405,
+        856,
+        449
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "modal:help": {
+   "cls": "modal:？ 妖市規則",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 224,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [
+       "div#modal 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        210,
+        315,
+        642,
+        359
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "modal_help-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 224,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [
+       "div#modal 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        250,
+        349,
+        682,
+        393
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 224,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [
+       "div#modal 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        206,
+        312,
+        638,
+        356
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 224,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [
+       "div#modal 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        118,
+        309,
+        550,
+        353
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 228,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [
+       "div#modal 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」"
+      ],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#modalbox button.bigbtn",
+       "found": true,
+       "rect": [
+        424,
+        632,
+        856,
+        676
+       ],
+       "hit": "#modal #modalbox > button.bigbtn 「關閉」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "reveal": {
+   "cls": "reveal",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 84,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        649,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「下一件拍品 ▸」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "reveal-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 84,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        723,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「下一件拍品 ▸」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 84,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        650,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「下一件拍品 ▸」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 84,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        533,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「下一件拍品 ▸」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 88,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        966,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「下一件拍品 ▸」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "shrine": {
+   "cls": "shrine",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 80,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        681,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「🕯️ 請神」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "shrine-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 80,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        761,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「🕯️ 請神」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 80,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        685,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「🕯️ 請神」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 80,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        560,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「🕯️ 請神」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 84,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        1004,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「🕯️ 請神」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "shrine-run": {
+   "cls": "shrine-run",
+   "cells": {},
+   "lost": 8
+  },
+  "reveal-result": {
+   "cls": "reveal-result",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 38,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        706,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「開戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "reveal-result-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 38,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        786,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「開戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 38,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        710,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「開戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 38,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        579,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「開戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 38,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        1029,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「開戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "duel": {
+   "cls": "duel",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 15,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok1": true,
+     "ok2": true,
+     "shot": "duel-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 16,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 18,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 39,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 14,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "night-end": {
+   "cls": "night-end",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 40,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        664,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「進入下一夜」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "night-end-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 40,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        741,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「進入下一夜」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 40,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        665,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「進入下一夜」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 40,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        545,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「進入下一夜」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 40,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        984,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「進入下一夜」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "event": {
+   "cls": "event",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#stage button",
+       "found": true,
+       "rect": [
+        256,
+        260,
+        421,
+        304
+       ],
+       "hit": "#table #felt #stage > button.bigbtn 「借 10 壽命」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "event-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#stage button",
+       "found": true,
+       "rect": [
+        256,
+        271,
+        461,
+        315
+       ],
+       "hit": "#table #felt #stage > button.bigbtn 「借 10 壽命」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#stage button",
+       "found": true,
+       "rect": [
+        244,
+        257,
+        417,
+        301
+       ],
+       "hit": "#table #felt #stage > button.bigbtn 「借 10 壽命」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#stage button",
+       "found": true,
+       "rect": [
+        201,
+        259,
+        329,
+        303
+       ],
+       "hit": "#table #felt #stage > button.bigbtn 「借 10 壽命」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 37,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#stage button",
+       "found": true,
+       "rect": [
+        423,
+        255,
+        635,
+        299
+       ],
+       "hit": "#table #felt #stage > button.bigbtn 「借 10 壽命」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "event-result": {
+   "cls": "event-result",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 47,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        676,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「前往拍賣」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "event-result-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 47,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        756,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「前往拍賣」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 47,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        680,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「前往拍賣」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 47,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        556,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「前往拍賣」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 47,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        999,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「前往拍賣」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "end": {
+   "cls": "end",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        682,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "end-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        756,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        684,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        560,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        999,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "review": {
+   "cls": "review",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 375,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#rvCopy",
+       "found": true,
+       "rect": [
+        512,
+        15,
+        628,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvCopy.bigbtn.alt 「複製本局紀錄」",
+       "ok": true
+      },
+      {
+       "sel": "#rvDl",
+       "found": true,
+       "rect": [
+        392,
+        15,
+        506,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvDl.bigbtn 「下載本局紀錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "review-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 375,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#rvCopy",
+       "found": true,
+       "rect": [
+        552,
+        15,
+        668,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvCopy.bigbtn.alt 「複製本局紀錄」",
+       "ok": true
+      },
+      {
+       "sel": "#rvDl",
+       "found": true,
+       "rect": [
+        432,
+        15,
+        546,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvDl.bigbtn 「下載本局紀錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 375,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#rvCopy",
+       "found": true,
+       "rect": [
+        508,
+        15,
+        624,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvCopy.bigbtn.alt 「複製本局紀錄」",
+       "ok": true
+      },
+      {
+       "sel": "#rvDl",
+       "found": true,
+       "rect": [
+        388,
+        15,
+        502,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvDl.bigbtn 「下載本局紀錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 375,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#rvCopy",
+       "found": true,
+       "rect": [
+        420,
+        15,
+        536,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvCopy.bigbtn.alt 「複製本局紀錄」",
+       "ok": true
+      },
+      {
+       "sel": "#rvDl",
+       "found": true,
+       "rect": [
+        300,
+        15,
+        414,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvDl.bigbtn 「下載本局紀錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 375,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#rvCopy",
+       "found": true,
+       "rect": [
+        726,
+        15,
+        842,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvCopy.bigbtn.alt 「複製本局紀錄」",
+       "ok": true
+      },
+      {
+       "sel": "#rvDl",
+       "found": true,
+       "rect": [
+        606,
+        15,
+        720,
+        49
+       ],
+       "hit": "#review #reviewbox > button#rvDl.bigbtn 「下載本局紀錄」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw-menu": {
+   "cls": "nw-menu",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 19,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+       "found": true,
+       "rect": [
+        132,
+        169,
+        186,
+        205
+       ],
+       "hit": "#nwScr #nwBody > button.bigbtn 「挑戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw-menu-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 19,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+       "found": true,
+       "rect": [
+        132,
+        169,
+        186,
+        205
+       ],
+       "hit": "#nwScr #nwBody > button.bigbtn 「挑戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 19,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+       "found": true,
+       "rect": [
+        120,
+        169,
+        174,
+        205
+       ],
+       "hit": "#nwScr #nwBody > button.bigbtn 「挑戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 19,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+       "found": true,
+       "rect": [
+        85,
+        169,
+        139,
+        205
+       ],
+       "hit": "#nwScr #nwBody > button.bigbtn 「挑戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 19,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScr .nwCard[data-ch=\"1\"] .nwBtns button",
+       "found": true,
+       "rect": [
+        303,
+        169,
+        357,
+        205
+       ],
+       "hit": "#nwScr #nwBody > button.bigbtn 「挑戰」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw-intro": {
+   "cls": "nw-intro",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        161,
+        325,
+        241,
+        361
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw-intro-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        201,
+        362,
+        281,
+        398
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        157,
+        322,
+        237,
+        358
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        69,
+        310,
+        149,
+        346
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        375,
+        433,
+        455,
+        469
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw:select": {
+   "cls": "select",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 34,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        708,
+        304,
+        782,
+        348
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        743,
+        8,
+        793,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw_select-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 34,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        788,
+        340,
+        862,
+        384
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        823,
+        8,
+        873,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 34,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        712,
+        302,
+        786,
+        346
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        747,
+        8,
+        797,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 34,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        570,
+        306,
+        644,
+        350
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        605,
+        14,
+        655,
+        44
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 34,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#selBtn",
+       "found": true,
+       "rect": [
+        1183,
+        643,
+        1257,
+        687
+       ],
+       "hit": "#selectScr #selFoot > button#selBtn.bigbtn 「入市」",
+       "ok": true
+      },
+      {
+       "sel": "#selHead .selback",
+       "found": true,
+       "rect": [
+        1218,
+        8,
+        1268,
+        38
+       ],
+       "hit": "#selectScr #selHead > button.selback 「返回」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw:mark": {
+   "cls": "mark",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        656,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw_mark-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        726,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        657,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 83,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        538,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 87,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        969,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「不盯任何一件」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw:bid": {
+   "cls": "bid",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 79,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        695,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw_bid-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 79,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        768,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 79,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        698,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 79,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        571,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 85,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        999,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw:end": {
+   "cls": "end",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 46,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        664,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「回章節選單」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw_end-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 46,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        741,
+        356,
+        860,
+        400
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「回章節選單」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 46,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        665,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「回章節選單」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 46,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        545,
+        318,
+        650,
+        362
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「回章節選單」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 45,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        984,
+        663,
+        1103,
+        707
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「回章節選單」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  },
+  "nw-scroll": {
+   "cls": "nw-scroll",
+   "cells": {
+    "V1": {
+     "m1": {
+      "ok": true,
+      "n": 49,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScrollClose",
+       "found": true,
+       "rect": [
+        161,
+        268,
+        243,
+        304
+       ],
+       "hit": "#nwScr #nwBody > button#nwScrollClose.bigbtn.alt 「收起殘卷」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true,
+     "shot": "nw-scroll-V1.png"
+    },
+    "V2": {
+     "m1": {
+      "ok": true,
+      "n": 49,
+      "clippedSkipped": 0,
+      "docScrollWidth": 932,
+      "innerWidth": 932,
+      "innerHeight": 430,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 470px 168px",
+       "rect": [
+        0,
+        932
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScrollClose",
+       "found": true,
+       "rect": [
+        201,
+        268,
+        283,
+        304
+       ],
+       "hit": "#nwScr #nwBody > button#nwScrollClose.bigbtn.alt 「收起殘卷」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V3": {
+     "m1": {
+      "ok": true,
+      "n": 49,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScrollClose",
+       "found": true,
+       "rect": [
+        157,
+        268,
+        239,
+        304
+       ],
+       "hit": "#nwScr #nwBody > button#nwScrollClose.bigbtn.alt 「收起殘卷」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V4": {
+     "m1": {
+      "ok": true,
+      "n": 49,
+      "clippedSkipped": 0,
+      "docScrollWidth": 667,
+      "innerWidth": 667,
+      "innerHeight": 375,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 315px 168px",
+       "rect": [
+        0,
+        667
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScrollClose",
+       "found": true,
+       "rect": [
+        69,
+        268,
+        151,
+        304
+       ],
+       "hit": "#nwScr #nwBody > button#nwScrollClose.bigbtn.alt 「收起殘卷」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "V5": {
+     "m1": {
+      "ok": true,
+      "n": 49,
+      "clippedSkipped": 0,
+      "docScrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 720,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 608px 168px",
+       "rect": [
+        160,
+        1120
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwScrollClose",
+       "found": true,
+       "rect": [
+        375,
+        268,
+        457,
+        304
+       ],
+       "hit": "#nwScr #nwBody > button#nwScrollClose.bigbtn.alt 「收起殘卷」",
+       "ok": true
+      }
+     ],
+     "ok1": true,
+     "ok2": true
+    },
+    "P": {
+     "rotate": {
+      "ok": true,
+      "hits": [
+       {
+        "p": [
+         196.5,
+         426
+        ],
+        "ok": true,
+        "hit": "#rotateHint > div.ic 「📱」"
+       },
+       {
+        "p": [
+         2,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         2
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         2,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       },
+       {
+        "p": [
+         390,
+         849
+        ],
+        "ok": true,
+        "hit": "div#rotateHint 「📱 請把手機轉橫進入妖市 深夜牌桌需要寬一點的」"
+       }
+      ]
+     },
+     "ok6": true
+    }
+   }
+  }
+ },
+ "transitions": [
+  {
+   "mode": "solo",
+   "cls": "title",
+   "ok": true,
+   "n": 6,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": null
+  },
+  {
+   "mode": "solo",
+   "cls": "select",
+   "ok": true,
+   "n": 37,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": null
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 78,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "modal:南家・青面攤主（",
+   "ok": true,
+   "n": 88,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "modal:北家・收驚婆",
+   "ok": true,
+   "n": 87,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "modal:？ 妖市規則",
+   "ok": true,
+   "n": 224,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 78,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 72,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 71,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 73,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 31,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 37,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 86,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 77,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event-result",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 77,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 41,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 41,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 41,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 45,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 77,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 43,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 44,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 45,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 46,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 73,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 31,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 37,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 37,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 90,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 94,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 79,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 78,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 36,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 20,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event-result",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 78,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 77,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 34,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 73,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 82,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 46,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "event-result",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 87,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 35,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 36,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 46,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "mark",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "bid",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 86,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "shrine",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "duel",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "night-end",
+   "ok": true,
+   "n": 47,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "end",
+   "ok": true,
+   "n": 41,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "solo",
+   "cls": "review",
+   "ok": true,
+   "n": 375,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "nw-menu",
+   "ok": true,
+   "n": 19,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": null
+  },
+  {
+   "mode": "nw",
+   "cls": "nw-intro",
+   "ok": true,
+   "n": 17,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": null
+  },
+  {
+   "mode": "nw",
+   "cls": "select",
+   "ok": true,
+   "n": 34,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": null
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 79,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 72,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 71,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 80,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 73,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 31,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 37,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 30,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 87,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 91,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 40,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event-result",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 78,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 77,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 44,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 39,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 44,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 30,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 34,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 91,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 89,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 82,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 36,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 36,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 49,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event-result",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 33,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 38,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 79,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 73,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 72,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 31,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 35,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 41,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 81,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 82,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 87,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 85,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "night-end",
+   "ok": true,
+   "n": 43,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "event-result",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 82,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine-run",
+   "ok": true,
+   "n": 32,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 36,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "mark",
+   "ok": true,
+   "n": 82,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "bid",
+   "ok": true,
+   "n": 76,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal",
+   "ok": true,
+   "n": 75,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "shrine",
+   "ok": true,
+   "n": 74,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "reveal-result",
+   "ok": true,
+   "n": 83,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "duel",
+   "ok": true,
+   "n": 84,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "end",
+   "ok": true,
+   "n": 46,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  },
+  {
+   "mode": "nw",
+   "cls": "nw-scroll",
+   "ok": true,
+   "n": 49,
+   "bad": [],
+   "docScrollWidth": 852,
+   "grid": {
+    "cols": "168px 390px 168px",
+    "rect": [
+     0,
+     852
+    ]
+   }
+  }
+ ],
+ "switches": [
+  {
+   "key": "bid",
+   "cls": "bid",
+   "steps": [
+    {
+     "from": "P",
+     "to": "V1",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 852,
+       "h": 393,
+       "bw": 852,
+       "bh": 393,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        695,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    },
+    {
+     "from": "V1",
+     "to": "V3",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 844,
+       "h": 390,
+       "bw": 844,
+       "bh": 390,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 78,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        698,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「蓋牌開標」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "key": "duel",
+   "cls": "duel",
+   "steps": [
+    {
+     "from": "P",
+     "to": "V1",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 852,
+       "h": 393,
+       "bw": 852,
+       "bh": 393,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 15,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok": true
+    },
+    {
+     "from": "V1",
+     "to": "V3",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 844,
+       "h": 390,
+       "bw": 844,
+       "bh": 390,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 55,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [],
+     "ok": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "key": "end",
+   "cls": "end",
+   "steps": [
+    {
+     "from": "P",
+     "to": "V1",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 852,
+       "h": 393,
+       "bw": 852,
+       "bh": 393,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 390px 168px",
+       "rect": [
+        0,
+        852
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        682,
+        319,
+        780,
+        363
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    },
+    {
+     "from": "V1",
+     "to": "V3",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 844,
+       "h": 390,
+       "bw": 844,
+       "bh": 390,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 41,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": {
+       "cols": "168px 406px 168px",
+       "rect": [
+        0,
+        844
+       ]
+      },
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#mainbtn",
+       "found": true,
+       "rect": [
+        684,
+        316,
+        784,
+        360
+       ],
+       "hit": "#table #south > button#mainbtn.bigbtn 「再入妖市」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "key": "nw-intro",
+   "cls": "nw-intro",
+   "steps": [
+    {
+     "from": "P",
+     "to": "V1",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 852,
+       "h": 393,
+       "bw": 852,
+       "bh": 393,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 852,
+      "innerWidth": 852,
+      "innerHeight": 393,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        161,
+        325,
+        241,
+        361
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    },
+    {
+     "from": "V1",
+     "to": "V3",
+     "sameScreen": true,
+     "ok1": true,
+     "ok2": true,
+     "canvasOk": true,
+     "canvases": [
+      {
+       "el": "canvas",
+       "w": 844,
+       "h": 390,
+       "bw": 844,
+       "bh": 390,
+       "big": true
+      }
+     ],
+     "m1": {
+      "ok": true,
+      "n": 17,
+      "clippedSkipped": 0,
+      "docScrollWidth": 844,
+      "innerWidth": 844,
+      "innerHeight": 390,
+      "t3d": true,
+      "grid": null,
+      "backdrops": [],
+      "bad": []
+     },
+     "m2": [
+      {
+       "sel": "#nwGo",
+       "found": true,
+       "rect": [
+        157,
+        322,
+        237,
+        358
+       ],
+       "hit": "#nwScr #nwBody > button#nwGo.bigbtn 「選角入市」",
+       "ok": true
+      }
+     ],
+     "ok": true
+    }
+   ],
+   "ok": true
+  }
+ ],
+ "notes": [],
+ "lostSwitches": 1,
+ "soloSeed": 3,
+ "soloPageErrors": [],
+ "nwForce": {
+  "natural": true,
+  "seed": 3659688798
+ },
+ "nwPageErrors": [],
+ "servedFromBase": [
+  "/index.html",
+  "/assets/theme.css",
+  "/assets/safe-area.css",
+  "/assets/audio/sfx.js",
+  "/assets/audio/bgm.js",
+  "/js/renderer.js",
+  "/js/bloom.js",
+  "/js/scene-env.js",
+  "/js/particles.js",
+  "/js/characters-billboard.js",
+  "/js/bridge-players.js",
+  "/js/camera-director.js",
+  "/js/duel-figures.js",
+  "/js/creature-figures.js",
+  "/js/skeleton-share.js",
+  "/js/trait-fx.js",
+  "/js/trait-fx/vocab.js",
+  "/js/trait-fx/emblems.js",
+  "/js/trait-fx/zuling.js",
+  "/js/trait-fx/xianghuo.js",
+  "/js/trait-fx/yinqi.js",
+  "/js/table-tray.js",
+  "/js/table-props.js",
+  "/js/table-framing.js",
+  "/assets/characters/human.svg",
+  "/assets/characters/qingmian.svg",
+  "/assets/characters/hongyi.svg",
+  "/assets/characters/duanshou.svg",
+  "/assets/characters/shoujing.svg",
+  "/assets/characters/dangpu.svg",
+  "/assets/characters/lieren.svg",
+  "/assets/characters/xiaonu.svg",
+  "/assets/characters/lushan.svg",
+  "/assets/characters/zuhe.svg",
+  "/assets/characters/pud.svg",
+  "/assets/ui/night-indicator.svg",
+  "/assets/audio/bgm/title.m4a",
+  "/assets/creatures/tiger_c.glb",
+  "/assets/creatures/sword.glb",
+  "/assets/creatures/balen.glb",
+  "/assets/audio/bgm/market.m4a",
+  "/assets/ui/mark-stamp.svg",
+  "/assets/items/huyeyin.svg",
+  "/assets/audio/bgm/duel.m4a",
+  "/assets/creatures/thunder.glb",
+  "/assets/creatures/shanshen.glb",
+  "/assets/creatures/wangchuan.glb",
+  "/assets/creatures/nail.glb",
+  "/assets/items/shanshen.svg",
+  "/assets/items/wangchuan.svg",
+  "/assets/creatures/sigui.glb",
+  "/assets/creatures/bell.glb",
+  "/assets/items/sigui.svg",
+  "/assets/creatures/raincoat.glb",
+  "/assets/creatures/xianji.glb",
+  "/assets/creatures/shield.glb",
+  "/assets/creatures/buoy.glb",
+  "/assets/items/yuyi.svg",
+  "/assets/items/xianji.svg",
+  "/assets/creatures/boartusk.glb",
+  "/assets/creatures/bow.glb",
+  "/assets/creatures/canri.glb",
+  "/assets/creatures/redhat.glb",
+  "/assets/creatures/chair.glb",
+  "/assets/creatures/flag.glb",
+  "/assets/items/zhuyigu.svg",
+  "/assets/creatures/twinTiger.glb",
+  "/assets/creatures/ashcharm.glb",
+  "/assets/creatures/fushou.glb",
+  "/assets/creatures/hairpin.glb",
+  "/assets/items/fushou.svg",
+  "/assets/creatures/dashiye.glb",
+  "/assets/creatures/guoyin.glb",
+  "/assets/creatures/wuying.glb",
+  "/assets/items/guoyin.svg",
+  "/assets/creatures/yinyangcoin.glb",
+  "/assets/creatures/boat.glb",
+  "/assets/creatures/youyinggong.glb",
+  "/assets/audio/bgm/review.m4a",
+  "/assets/creatures/eye.glb",
+  "/assets/creatures/pojun.glb",
+  "/assets/items/pojun.svg"
+ ],
+ "summary": {
+  "cells": 105,
+  "pass1": 105,
+  "pass2": 105,
+  "pass12": 105,
+  "portrait": 21,
+  "pass6": 21,
+  "missing": [],
+  "red": [],
+  "passStrict": 96,
+  "extraScreens": [
+   {
+    "k": "shrine-run",
+    "ok": true
+   },
+   {
+    "k": "event-result",
+    "ok": true
+   },
+   {
+    "k": "nw:select",
+    "ok": true
+   }
+  ],
+  "transitions": {
+   "n": 210,
+   "pass": 210,
+   "red": []
+  },
+  "switches": [
+   {
+    "key": "bid",
+    "ok": true,
+    "steps": [
+     {
+      "P->V1": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "852x393"
+       ]
+      }
+     },
+     {
+      "V1->V3": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "844x390"
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "key": "duel",
+    "ok": true,
+    "steps": [
+     {
+      "P->V1": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "852x393"
+       ]
+      }
+     },
+     {
+      "V1->V3": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "844x390"
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "key": "end",
+    "ok": true,
+    "steps": [
+     {
+      "P->V1": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "852x393"
+       ]
+      }
+     },
+     {
+      "V1->V3": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "844x390"
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "key": "nw-intro",
+    "ok": true,
+    "steps": [
+     {
+      "P->V1": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "852x393"
+       ]
+      }
+     },
+     {
+      "V1->V3": {
+       "same": true,
+       "ok1": true,
+       "ok2": true,
+       "canvas": true,
+       "cv": [
+        "844x390"
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "pageErrors": {
+   "solo": [],
+   "nw": []
+  }
+ }
+}

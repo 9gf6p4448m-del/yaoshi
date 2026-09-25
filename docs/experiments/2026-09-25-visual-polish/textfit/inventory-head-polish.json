@@ -1,0 +1,1002 @@
+{
+ "src": "probe-head-polish.json",
+ "tag": "head-polish",
+ "cells": {
+  "total": 875,
+  "byVp": {
+   "V1": 175,
+   "V2": 175,
+   "V3": 175,
+   "V4": 175,
+   "V5": 175
+  }
+ },
+ "cellsWithInfoTrunc": {
+  "total": 1,
+  "byVp": {
+   "V5": 1
+  }
+ },
+ "itemCount": 8,
+ "byClass": {
+  "可縮寫類（可捲動）": 7,
+  "資訊類": 1
+ },
+ "items": [
+  {
+   "sel": "#modalbox",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "規則／角色說明視窗，overflow-y:auto",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 5,
+   "examples": [
+    {
+     "full": "？ 妖市規則 🔧 音訊診斷：sfx v0.58.3 | ctx running 48000Hz | 音效 開 聲部 29 播過 10 次 最後 wind | 喚醒 resume 叫 0 回 0・kick 0・歸還 0 | 音樂 開 scene market playing true 缺曲 無 | audioSession 無此API | UA Windows NT 10.0; Win64; x64 standalone false 顯示效能資訊 🏮 目標 壽命＝錢包＋血條。撐過 12 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。每夜天明，存活者回 5 壽命。 🌙",
+     "shown": "？ 妖市規則 🔧 音訊診斷：sfx v0.58.3 | ctx running 48000Hz | 音效 開 聲部 29 播過 10 次 最後 wind | 喚醒 resume 叫 0 回 0・kick 0・歸還 0 | 音樂 開 scene market playing true 缺曲 無 | audioSession 無此API | UA Windows NT 10.0; Win64; x64 standalone false顯示效能資訊 🏮 目標壽命＝錢包＋血條。撐過 12 夜，活到最後或天亮時壽命最高者勝。壽命歸零出局（夜末心願回血可救回）。每夜天明，存活者回 5 壽命。 🌙 每",
+     "hiddenChars": 3818,
+     "sw": 460,
+     "cw": 460,
+     "sh": 3759,
+     "ch": 346,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|modal:？ 妖市規則@V1"
+    }
+   ],
+   "where": [
+    "solo|modal:？ 妖市規則@V1",
+    "solo|modal:？ 妖市規則@V2",
+    "solo|modal:？ 妖市規則@V3",
+    "solo|modal:？ 妖市規則@V4",
+    "solo|modal:？ 妖市規則@V5"
+   ],
+   "screens": {
+    "solo|modal:？ 妖市規則": [
+     "V1",
+     "V2",
+     "V3",
+     "V4",
+     "V5"
+    ]
+   },
+   "reach": {
+    "n": 5,
+    "ok": 5
+   }
+  },
+  {
+   "sel": "#duel",
+   "scrollable": false,
+   "cls": "資訊類",
+   "why": "紙紮夜戰字幕（拍數、名字、隻數、招式、結果）；#duel 本身 overflow:hidden，整欄比視口高時上下各被切",
+   "fullAt": null,
+   "count": 1,
+   "examples": [
+    {
+     "full": "一拍・撞 北家 收驚婆 0 隻 大紙偶×1 香 VS 西家 閭山法師 0 隻 大紙偶×1・戰鬥詛咒已淨化 1 香 −1 隻 −1 隻",
+     "shown": "一拍・撞 北家 收驚婆 0 隻 大紙偶×1 香VS 西家 閭山法師 0 隻 大紙偶×1・戰鬥詛咒已淨化 1 香",
+     "hiddenChars": 0,
+     "sw": 1663,
+     "cw": 1280,
+     "sh": 720,
+     "ch": 720,
+     "overflow": "hidden/hidden",
+     "ellipsis": false,
+     "at": "solo|duel@V5"
+    }
+   ],
+   "where": [
+    "solo|duel@V5"
+   ],
+   "screens": {
+    "solo|duel": [
+     "V5"
+    ]
+   },
+   "reach": {
+    "n": 0,
+    "ok": 0
+   }
+  },
+  {
+   "sel": "#felt",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "牌桌中央面板（非掏空頁：揭盅結果、夜末戰況、異事、局末）＝overflow-y:auto，內容比面板高時可捲",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 138,
+   "examples": [
+    {
+     "full": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ 🧧 陰間放貸 陰間錢莊今夜放貸：可密封借 10 壽命（互相看不到誰借了）。開盅才知幾人借——借的人越多利息越高：1 人共還 8、2 人各還 11、3 人各 14、4 人各 17，自下一夜起分 5 夜攤還（身故勾銷） 借 10 壽命 不借",
+     "shown": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ 🧧陰間放貸 陰間錢莊今夜放貸：可密封借 10 壽命（互相看不到誰借了）。開盅才知幾人借——借的人越多利息越高：1 人共還 8、2 人各還 11、3 人各 14、4 人各 17，自下一夜起分 5 夜攤還（身故勾銷）",
+     "hiddenChars": 7,
+     "sw": 386,
+     "cw": 386,
+     "sh": 287,
+     "ch": 238,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|event|n4@V1"
+    },
+    {
+     "full": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ 🧧 陰間放貸・開盅 南家・青面攤主：借 10 壽命 +10 北家・收驚婆：不借 ±0 西家・閭山法師：不借 ±0 東家・孝女白琴：不借 ±0 🧧 青面攤主 各借 10——1 人擠兌，每人共還 8（分 5 夜）",
+     "shown": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ 🧧陰間放貸・開盅 南家・青面攤主：借 10 壽命 +10北家・收驚婆：不借 ±0西家・閭山法師：不借 ±0東家・孝女白琴：不借 ±0 🧧 青面攤主 各借 10——1 人擠兌，每人共還 8（分 5",
+     "hiddenChars": 2,
+     "sw": 386,
+     "cw": 386,
+     "sh": 287,
+     "ch": 238,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|event-result|n4@V1"
+    },
+    {
+     "full": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ ⚔️ 第 4 夜・戰況 🌒 你的心願「夜訪陰氣」未能達成 🌒 閭山法師 的心願達成 +4 🌒 孝女白琴 的心願達成 +3 🌅 天明回血：存活者各 +5 🧧 青面攤主 攤還陰間貸款 -2（餘 6） ⚔ 孝女白琴 勝 青面攤主（−8） 🔥 青面攤主 燒掉 1/1 隻・孝女白琴 燒掉 0/9 隻 ⛰️ 山神庇佑：孝女白琴 全體 hp+1 🔪 割祭：孝女白琴 自傷 1 換 atk+2 ⛵ 送王船：吸收本拍首 4 點 ⚔ 閭山法師 勝 收驚婆（−8） 🔥 收驚婆 燒掉 5/5 隻・閭山法師 燒掉 0/3 隻 🛡️ 鱗紋護體：",
+     "shown": "北風・🌓 上弦｜祖靈拍：全隊 HP +1・🧧陰間放貸 ？ ⚔️ 第 4 夜・戰況🌒 你的心願「夜訪陰氣」未能達成🌒 閭山法師 的心願達成 +4🌒 孝女白琴 的心願達成 +3🌅 天明回血：存活者各 +5🧧 青面攤主 攤還陰間貸款 -2（餘 6）⚔ 孝女白琴 勝 青面攤主（−8） 🔥 青面攤主 燒掉 1/1 隻・孝女白琴 燒掉 0/9 隻⛰️ 山神庇佑：孝女白琴 全體 hp+1 🔪 割祭：孝女白琴 自傷 1 換",
+     "hiddenChars": 93,
+     "sw": 386,
+     "cw": 386,
+     "sh": 350,
+     "ch": 238,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|night-end|n4@V1"
+    },
+    {
+     "full": "西風・🌕 望月｜香火拍：全隊 HP +1・🎲押寶夜 ？ ⚔️ 第 7 夜・戰況 🕯️ 收驚婆 這夜落標未得，收驚安神 +3 🌒 你的心願「大獲全勝」未能達成 🌒 收驚婆 的心願達成 +4 🌒 閭山法師 的心願達成 +5 🌒 孝女白琴 的心願達成 +5 🕯️ 閭山法師 供奉「殘日」-2 壽命 🌅 天明回血：存活者各 +5 🧧 青面攤主 攤還陰間貸款 -1（餘 1） 🎲 押寶夜：一注多押，每人最多只得一件 🔮 夜市耳語——明夜「大風吹」將至：選風向結圈，圈內法寶輪轉易主 ⚔ 孝女白琴 勝 青面攤主（−8） 🔥 青面攤主 燒掉 1/1 隻・孝女白琴 燒掉 0/10 隻 ⛰️",
+     "shown": "西風・🌕 望月｜香火拍：全隊 HP +1・🎲押寶夜 ？ ⚔️ 第 7 夜・戰況🕯️ 收驚婆 這夜落標未得，收驚安神 +3🌒 你的心願「大獲全勝」未能達成🌒 收驚婆 的心願達成 +4🌒 閭山法師 的心願達成 +5🌒 孝女白琴 的心願達成 +5🕯️ 閭山法師 供奉「殘日」-2 壽命🌅 天明回血：存活者各 +5🧧 青面攤主 攤還陰間貸款 -1（餘 1）",
+     "hiddenChars": 311,
+     "sw": 386,
+     "cw": 386,
+     "sh": 536,
+     "ch": 238,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|night-end|n7@V1"
+    },
+    {
+     "full": "北風・🌕 望月｜香火拍：全隊 HP +1・🌀大風吹 ？ 🌀 大風吹 妖風起，法寶易主。密封選乘哪道風：同風向者結圈，圈內每人把袋中行情最低的法寶順向傳給下一位；單人成圈＝空轉 -1。無法寶者空手陪風，不給不收 乘東風 乘西風",
+     "shown": "北風・🌕 望月｜香火拍：全隊 HP +1・🌀大風吹 ？ 🌀大風吹 妖風起，法寶易主。密封選乘哪道風：同風向者結圈，圈內每人把袋中行情最低的法寶順向傳給下一位；單人成圈＝空轉 -1。無法寶者空手陪風，不給不收 乘東風乘西風",
+     "hiddenChars": 0,
+     "sw": 386,
+     "cw": 386,
+     "sh": 266,
+     "ch": 238,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|event|n8@V1"
+    }
+   ],
+   "where": [
+    "solo|event|n4@V1",
+    "solo|event|n4@V3",
+    "solo|event|n4@V4",
+    "solo|event-result|n4@V1",
+    "solo|event-result|n4@V3",
+    "solo|event-result|n4@V4",
+    "solo|night-end|n4@V1",
+    "solo|night-end|n4@V2",
+    "solo|night-end|n4@V3",
+    "solo|night-end|n4@V4",
+    "solo|night-end|n7@V1",
+    "solo|night-end|n7@V2",
+    "solo|night-end|n7@V3",
+    "solo|night-end|n7@V4",
+    "solo|event|n8@V1",
+    "solo|event|n8@V3",
+    "solo|event|n8@V4",
+    "solo|event-result|n8@V1",
+    "solo|event-result|n8@V2",
+    "solo|event-result|n8@V3",
+    "solo|event-result|n8@V4",
+    "solo|night-end|n9@V1",
+    "solo|night-end|n9@V2",
+    "solo|night-end|n9@V3",
+    "solo|night-end|n9@V4",
+    "solo|end@V1",
+    "solo|end@V2",
+    "solo|end@V3",
+    "solo|end@V4",
+    "solo|review@V1",
+    "solo|review@V2",
+    "solo|review@V3",
+    "solo|review@V4",
+    "hot|night-end|n3@V1",
+    "hot|night-end|n3@V2",
+    "hot|night-end|n3@V3",
+    "hot|night-end|n3@V4",
+    "hot|event|n4@V1",
+    "hot|event|n4@V2",
+    "hot|event|n4@V3",
+    "hot|event|n4@V4",
+    "hot|event-result|n4@V1",
+    "hot|event-result|n4@V3",
+    "hot|event-result|n4@V4",
+    "hot|night-end|n4@V1",
+    "hot|night-end|n4@V2",
+    "hot|night-end|n4@V3",
+    "hot|night-end|n4@V4",
+    "hot|night-end|n5@V1",
+    "hot|night-end|n5@V2",
+    "hot|night-end|n5@V3",
+    "hot|night-end|n5@V4",
+    "hot|night-end|n6@V1",
+    "hot|night-end|n6@V2",
+    "hot|night-end|n6@V3",
+    "hot|night-end|n6@V4",
+    "hot|night-end|n7@V1",
+    "hot|night-end|n7@V2",
+    "hot|night-end|n7@V3",
+    "hot|night-end|n7@V4",
+    "hot|event|n8@V1",
+    "hot|event|n8@V3",
+    "hot|event|n8@V4",
+    "hot|event-result|n8@V1",
+    "hot|event-result|n8@V3",
+    "hot|event-result|n8@V4",
+    "hot|event|n11@V1",
+    "hot|event|n11@V2",
+    "hot|event|n11@V3",
+    "hot|event|n11@V4",
+    "hot|event-result|n11@V1",
+    "hot|event-result|n11@V3",
+    "hot|event-result|n11@V4",
+    "hot|night-end|n11@V1",
+    "hot|night-end|n11@V2",
+    "hot|night-end|n11@V3",
+    "hot|night-end|n11@V4",
+    "hot|night-end|n12@V1",
+    "hot|night-end|n12@V2",
+    "hot|night-end|n12@V3",
+    "hot|night-end|n12@V4",
+    "hot|end@V1",
+    "hot|end@V2",
+    "hot|end@V3",
+    "hot|end@V4",
+    "hot|review@V1",
+    "hot|review@V2",
+    "hot|review@V3",
+    "hot|review@V4",
+    "nw1|night-end|n2@V1",
+    "nw1|night-end|n2@V2",
+    "nw1|night-end|n2@V3",
+    "nw1|night-end|n2@V4",
+    "nw1|night-end|n3@V1",
+    "nw1|night-end|n3@V2",
+    "nw1|night-end|n3@V3",
+    "nw1|night-end|n3@V4",
+    "nw1|event|n4@V1",
+    "nw1|event|n4@V2",
+    "nw1|event|n4@V3",
+    "nw1|event|n4@V4",
+    "nw1|event-result|n4@V1",
+    "nw1|event-result|n4@V3",
+    "nw1|event-result|n4@V4",
+    "nw1|night-end|n4@V1",
+    "nw1|night-end|n4@V2",
+    "nw1|night-end|n4@V3",
+    "nw1|night-end|n4@V4",
+    "nw1|night-end|n5@V1",
+    "nw1|night-end|n5@V2",
+    "nw1|night-end|n5@V3",
+    "nw1|night-end|n5@V4",
+    "nw1|night-end|n7@V1",
+    "nw1|night-end|n7@V2",
+    "nw1|night-end|n7@V3",
+    "nw1|night-end|n7@V4",
+    "nw1|event|n8@V1",
+    "nw1|event|n8@V2",
+    "nw1|event|n8@V3",
+    "nw1|event|n8@V4",
+    "nw1|event-result|n8@V1",
+    "nw1|event-result|n8@V3",
+    "nw1|event-result|n8@V4",
+    "nw1|event|n11@V1",
+    "nw1|event|n11@V2",
+    "nw1|event|n11@V3",
+    "nw1|event|n11@V4",
+    "nw1|event-result|n11@V1",
+    "nw1|event-result|n11@V3",
+    "nw1|event-result|n11@V4",
+    "nw1|end@V1",
+    "nw1|end@V2",
+    "nw1|end@V3",
+    "nw1|end@V4",
+    "nw1|nw-scroll@V1",
+    "nw1|nw-scroll@V2",
+    "nw1|nw-scroll@V3",
+    "nw1|nw-scroll@V4"
+   ],
+   "screens": {
+    "solo|event": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "solo|event-result": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "solo|night-end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "solo|end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "solo|review": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|night-end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|event": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|event-result": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "hot|end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|review": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|night-end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|event": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|event-result": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "nw1|end": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|nw-scroll": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ]
+   },
+   "reach": {
+    "n": 138,
+    "ok": 138
+   }
+  },
+  {
+   "sel": "#railW > div.railPages",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "側欄拍品卡列，overflow:auto（卡角徽章外掛 3px 產生的橫向可捲量）",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 38,
+   "examples": [
+    {
+     "full": "山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠 夜戰：本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發） 小紙人×1・攻 2・血 2・共鳴1拍",
+     "shown": "山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠 夜戰：本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發） 小紙人×1・攻 2・血 2・共鳴1拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n5@V1"
+    },
+    {
+     "full": "黃色小雨衣 共鳴3拍・飄影×4陰氣 ✦ 你的押命標落標時免標額損失，買路錢照收 飄影×4・攻 0・血 5・共鳴3拍",
+     "shown": "黃色小雨衣 共鳴3拍・飄影×4陰氣 ✦ 你的押命標落標時免標額損失，買路錢照收 飄影×4・攻 0・血 5・共鳴3拍",
+     "hiddenChars": 0,
+     "sw": 161,
+     "cw": 158,
+     "sh": 129,
+     "ch": 129,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n7@V1"
+    },
+    {
+     "full": "👁東 香灰符 共鳴2拍・護法紙人×2香火🌕 今夜受惠 夜戰：第2拍：本方第一隻存活前鋒血量上限與目前值 +1（每件可疊加） 護法紙人×2・攻 1・血 5・共鳴2拍",
+     "shown": "👁東 香灰符 共鳴2拍・護法紙人×2香火🌕 今夜受惠 夜戰：第2拍：本方第一隻存活前鋒血量上限與目前值 +1（每件可疊加） 護法紙人×2・攻 1・血 5・共鳴2拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n8@V1"
+    },
+    {
+     "full": "👁東 魔神仔紅帽 共鳴3拍・飄影×4陰氣 ✦ 你的毒標比價時視為 +2（實付不變） 飄影×4・攻 0・血 7・共鳴3拍",
+     "shown": "👁東 魔神仔紅帽 共鳴3拍・飄影×4陰氣 ✦ 你的毒標比價時視為 +2（實付不變） 飄影×4・攻 0・血 7・共鳴3拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "hot|bid|n5@V1"
+    },
+    {
+     "full": "👁北西 獻祭刀 共鳴1拍・大紙偶×1祖靈🌓 今夜受惠 ✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1） 大紙偶×1・攻 9・血 7・共鳴1拍",
+     "shown": "👁北西 獻祭刀 共鳴1拍・大紙偶×1祖靈🌓 今夜受惠 ✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1） 大紙偶×1・攻 9・血 7・共鳴1拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "nw1|bid|n2@V1"
+    }
+   ],
+   "where": [
+    "solo|bid|n5@V1",
+    "solo|bid|n5@V3",
+    "solo|bid|n5@V4",
+    "solo|shrine|n5@V1",
+    "solo|shrine|n5@V3",
+    "solo|shrine|n5@V4",
+    "solo|bid|n7@V1",
+    "solo|bid|n7@V2",
+    "solo|bid|n7@V3",
+    "solo|bid|n7@V4",
+    "solo|shrine|n7@V1",
+    "solo|shrine|n7@V2",
+    "solo|shrine|n7@V3",
+    "solo|shrine|n7@V4",
+    "solo|bid|n8@V1",
+    "solo|bid|n8@V3",
+    "solo|bid|n8@V4",
+    "solo|shrine|n8@V1",
+    "solo|shrine|n8@V3",
+    "solo|shrine|n8@V4",
+    "hot|bid|n5@V1",
+    "hot|bid|n5@V3",
+    "hot|bid|n5@V4",
+    "hot|shrine|n5@V1",
+    "hot|shrine|n5@V3",
+    "hot|shrine|n5@V4",
+    "nw1|bid|n2@V1",
+    "nw1|bid|n2@V3",
+    "nw1|bid|n2@V4",
+    "nw1|shrine|n2@V1",
+    "nw1|shrine|n2@V3",
+    "nw1|shrine|n2@V4",
+    "nw1|bid|n4@V1",
+    "nw1|bid|n4@V3",
+    "nw1|bid|n4@V4",
+    "nw1|shrine|n4@V1",
+    "nw1|shrine|n4@V3",
+    "nw1|shrine|n4@V4"
+   ],
+   "screens": {
+    "solo|bid": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "solo|shrine": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|bid": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "hot|shrine": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "nw1|bid": [
+     "V1",
+     "V3",
+     "V4"
+    ],
+    "nw1|shrine": [
+     "V1",
+     "V3",
+     "V4"
+    ]
+   },
+   "reach": {
+    "n": 38,
+    "ok": 38
+   }
+  },
+  {
+   "sel": "#railE > div.railPages",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "側欄拍品卡列，overflow:auto（卡角徽章外掛 3px 產生的橫向可捲量）",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 54,
+   "examples": [
+    {
+     "full": "👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈🌓 今夜受惠 ✦ 戰勝時，對手額外 -2 壽命 大紙偶×1・攻 10・血 8・共鳴1拍",
+     "shown": "👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈🌓 今夜受惠 ✦ 戰勝時，對手額外 -2 壽命 大紙偶×1・攻 10・血 8・共鳴1拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n5@V1"
+    },
+    {
+     "full": "👁北西東 媽祖令旗 共鳴2拍・護法紙人×2香火🌕 今夜受惠 ✦ 你的保守標上限提高 50%（向下取整） 護法紙人×2・攻 1・血 8・共鳴2拍",
+     "shown": "👁北西東 媽祖令旗 共鳴2拍・護法紙人×2香火🌕 今夜受惠 ✦ 你的保守標上限提高 50%（向下取整） 護法紙人×2・攻 1・血 8・共鳴2拍",
+     "hiddenChars": 0,
+     "sw": 161,
+     "cw": 158,
+     "sh": 129,
+     "ch": 129,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n7@V1"
+    },
+    {
+     "full": "福壽綿長 共鳴2拍・護法紙人×2香火🌕 今夜受惠 夜戰：每拍開場：本方缺血最多的一隻回 1 血量，不超過上限（同名不疊加） 護法紙人×2・攻 1・血 4・共鳴2拍",
+     "shown": "福壽綿長 共鳴2拍・護法紙人×2香火🌕 今夜受惠 夜戰：每拍開場：本方缺血最多的一隻回 1 血量，不超過上限（同名不疊加） 護法紙人×2・攻 1・血 4・共鳴2拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|bid|n8@V1"
+    },
+    {
+     "full": "山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠 夜戰：本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發） 小紙人×1・攻 2・血 2・共鳴1拍",
+     "shown": "山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠 夜戰：本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發） 小紙人×1・攻 2・血 2・共鳴1拍",
+     "hiddenChars": 0,
+     "sw": 158,
+     "cw": 158,
+     "sh": 142,
+     "ch": 140,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "hot|bid|n5@V1"
+    },
+    {
+     "full": "👁西 過陰咒 共鳴3拍・飄影×4陰氣 ✦ 壽命低於 15 時，本夜共鳴效果加倍 飄影×4・攻 0・血 5・共鳴3拍",
+     "shown": "👁西 過陰咒 共鳴3拍・飄影×4陰氣 ✦ 壽命低於 15 時，本夜共鳴效果加倍 飄影×4・攻 0・血 5・共鳴3拍",
+     "hiddenChars": 0,
+     "sw": 161,
+     "cw": 158,
+     "sh": 97,
+     "ch": 97,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "hot|bid|n7@V1"
+    }
+   ],
+   "where": [
+    "solo|bid|n5@V1",
+    "solo|bid|n5@V3",
+    "solo|bid|n5@V4",
+    "solo|shrine|n5@V1",
+    "solo|shrine|n5@V3",
+    "solo|shrine|n5@V4",
+    "solo|bid|n7@V1",
+    "solo|bid|n7@V2",
+    "solo|bid|n7@V3",
+    "solo|bid|n7@V4",
+    "solo|shrine|n7@V1",
+    "solo|shrine|n7@V2",
+    "solo|shrine|n7@V3",
+    "solo|shrine|n7@V4",
+    "solo|bid|n8@V1",
+    "solo|bid|n8@V3",
+    "solo|bid|n8@V4",
+    "solo|shrine|n8@V1",
+    "solo|shrine|n8@V3",
+    "solo|shrine|n8@V4",
+    "hot|bid|n5@V1",
+    "hot|bid|n5@V3",
+    "hot|bid|n5@V4",
+    "hot|shrine|n5@V1",
+    "hot|shrine|n5@V3",
+    "hot|shrine|n5@V4",
+    "hot|bid|n7@V1",
+    "hot|bid|n7@V2",
+    "hot|bid|n7@V3",
+    "hot|bid|n7@V4",
+    "hot|shrine|n7@V1",
+    "hot|shrine|n7@V2",
+    "hot|shrine|n7@V3",
+    "hot|shrine|n7@V4",
+    "nw1|bid|n2@V1",
+    "nw1|bid|n2@V3",
+    "nw1|bid|n2@V4",
+    "nw1|shrine|n2@V1",
+    "nw1|shrine|n2@V3",
+    "nw1|shrine|n2@V4",
+    "nw1|bid|n3@V1",
+    "nw1|bid|n3@V2",
+    "nw1|bid|n3@V3",
+    "nw1|bid|n3@V4",
+    "nw1|shrine|n3@V1",
+    "nw1|shrine|n3@V2",
+    "nw1|shrine|n3@V3",
+    "nw1|shrine|n3@V4",
+    "nw1|bid|n4@V1",
+    "nw1|bid|n4@V3",
+    "nw1|bid|n4@V4",
+    "nw1|shrine|n4@V1",
+    "nw1|shrine|n4@V3",
+    "nw1|shrine|n4@V4"
+   ],
+   "screens": {
+    "solo|bid": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "solo|shrine": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|bid": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "hot|shrine": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|bid": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw1|shrine": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ]
+   },
+   "reach": {
+    "n": 54,
+    "ok": 54
+   }
+  },
+  {
+   "sel": "#review",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "本局回顧整頁，overflow-y:auto",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 10,
+   "examples": [
+    {
+     "full": "本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一局的因果 天亮了，北家・收驚婆 還站在市集裡，傷了些元氣。 失血最多的一段在第八夜：西家・閭山法師 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 東家・孝女白琴，不能把整夜損失都算在單一事件上。 北家・收驚婆 最大的一注，是第九夜買下「抓交替水符」。 毒標也沒少：第一夜 東家・孝女白琴 把「白虎煞」塞給了 西家・閭山法師。 南家・青面攤主 在第九夜出局，沒能等到天亮。 西家・閭山法師 在第五夜請下了「殘日」。 最大單筆出價 9 西・閭山法師・第 4 夜「百步蛇紋盾」 毒標得手 1 最多：東・孝女白琴 1 次 對決勝場最多 9 東・孝女白琴 出價總",
+     "shown": "本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因果天亮了，北家・收驚婆 還站在市集裡，傷了些元氣。失血最多的一段在第八夜：西家・閭山法師 合計失去大半條命。同夜有拍賣支出，也夜戰敗給 東家・孝女白琴，不能把整夜損失都算在單一事件上。北家・收驚婆 最大的一注，是第九夜買下「抓交替水符」。毒標也沒少：第一夜 東家・孝女白琴 把「白虎煞」塞給了 西家・閭山法師。南家・青面攤主 在第九夜出局，沒能等到天亮。西家・閭山法師 在第五夜請下了「殘日」。 最大單筆出價9西・閭山法師・第 4 夜「百步蛇紋盾」毒標得手1最多：東・孝女白琴 1 次對決勝場最多9東・孝女白琴出價總支出175四家合計壽命 壽命曲線（9",
+     "hiddenChars": 3000,
+     "sw": 852,
+     "cw": 852,
+     "sh": 3781,
+     "ch": 393,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "solo|review@V1"
+    },
+    {
+     "full": "本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一局的因果 天亮了，東家・閭山法師 還站在市集裡，傷了些元氣。 失血最多的一段在第五夜：西家・普渡爐主 合計失去一大截壽命。同夜有拍賣支出，也夜戰敗給 東家・閭山法師，不能把整夜損失都算在單一事件上。 東家・閭山法師 最大的一注，是第一夜買下「百步蛇紋盾」。 毒標也沒少：第九夜 西家・普渡爐主 把「白虎煞」塞給了 北家・玩家二・紅衣婆婆。 南家・玩家一・青面攤主 在第十夜出局、北家・玩家二・紅衣婆婆 在第十二夜出局，沒能等到天亮。 東家・閭山法師 在第五夜請下了「殘日」。 最大單筆出價 9 東・閭山法師・第 1 夜「百步蛇紋盾」 毒標得手 2 最多",
+     "shown": "本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因果天亮了，東家・閭山法師 還站在市集裡，傷了些元氣。失血最多的一段在第五夜：西家・普渡爐主 合計失去一大截壽命。同夜有拍賣支出，也夜戰敗給 東家・閭山法師，不能把整夜損失都算在單一事件上。東家・閭山法師 最大的一注，是第一夜買下「百步蛇紋盾」。毒標也沒少：第九夜 西家・普渡爐主 把「白虎煞」塞給了 北家・玩家二・紅衣婆婆。南家・玩家一・青面攤主 在第十夜出局、北家・玩家二・紅衣婆婆 在第十二夜出局，沒能等到天亮。東家・閭山法師 在第五夜請下了「殘日」。 最大單筆出價9東・閭山法師・第 1 夜「百步蛇紋盾」毒標得手2最多：西・普渡爐主 2 次對決勝",
+     "hiddenChars": 3363,
+     "sw": 852,
+     "cw": 852,
+     "sh": 4524,
+     "ch": 393,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "hot|review@V1"
+    }
+   ],
+   "where": [
+    "solo|review@V1",
+    "solo|review@V2",
+    "solo|review@V3",
+    "solo|review@V4",
+    "solo|review@V5",
+    "hot|review@V1",
+    "hot|review@V2",
+    "hot|review@V3",
+    "hot|review@V4",
+    "hot|review@V5"
+   ],
+   "screens": {
+    "solo|review": [
+     "V1",
+     "V2",
+     "V3",
+     "V4",
+     "V5"
+    ],
+    "hot|review": [
+     "V1",
+     "V2",
+     "V3",
+     "V4",
+     "V5"
+    ]
+   },
+   "reach": {
+    "n": 10,
+    "ok": 10
+   }
+  },
+  {
+   "sel": "#nwScr",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "夜行錄章節選單整層 overflow-y:auto（SE 667×375 三張章節卡排成兩列）",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 3,
+   "examples": [
+    {
+     "full": "夜行錄 返回 依序挑戰；終局時你還活著，且壽命高過該章主角（或主角先出局），就算過關。 第一章 破廟逢青面 主角：青面攤主 可挑戰 挑戰 第二章 招魂嶺收驚婆 主角：收驚婆 可挑戰 挑戰 第三章 荒塚紅衣婆婆 主角：紅衣婆婆 可挑戰 挑戰",
+     "shown": "夜行錄返回 依序挑戰；終局時你還活著，且壽命高過該章主角（或主角先出局），就算過關。 第一章破廟逢青面 主角：青面攤主可挑戰挑戰 第二章招魂嶺收驚婆 主角：收驚婆可挑戰挑戰 第三章荒塚紅衣婆婆 主角：紅衣婆婆可挑戰挑戰",
+     "hiddenChars": 0,
+     "sw": 667,
+     "cw": 667,
+     "sh": 393,
+     "ch": 375,
+     "overflow": "hidden/auto",
+     "ellipsis": false,
+     "at": "nw1|nw-menu@V4"
+    }
+   ],
+   "where": [
+    "nw1|nw-menu@V4",
+    "nw2|nw-menu@V4",
+    "nw3|nw-menu@V4"
+   ],
+   "screens": {
+    "nw1|nw-menu": [
+     "V4"
+    ],
+    "nw2|nw-menu": [
+     "V4"
+    ],
+    "nw3|nw-menu": [
+     "V4"
+    ]
+   },
+   "reach": {
+    "n": 3,
+    "ok": 3
+   }
+  },
+  {
+   "sel": "#nwBody > div.stageCard.nwBig",
+   "scrollable": true,
+   "cls": "可縮寫類（可捲動）",
+   "why": "夜行錄引言卡／殘卷卡本身 overflow-y:auto（按鈕列 sticky 在卡底）",
+   "fullAt": "同一容器捲動即見全文（治具 reach：逐字捲過一遍，全部字都曾落在可視框內）",
+   "count": 12,
+   "examples": [
+    {
+     "full": "夜行錄・第一章 破廟逢青面 青面攤主 本章主角，坐北 青面攤主：「少年仔，你今暗買啥，我就搶啥。」 你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。 廟埕的燈籠一盞一盞自己點起來——妖市開市了。 攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」 你看中哪一系的貨，他就偏偏跟你搶哪一系。 撐到天光，壽命比他多，他才肯放你下山。 本章新規則 壽命是錢包也是血條：出價花壽命，挨打也掉壽命。 密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。 得標的法寶會召出紙紮，每夜輪一個對手打結算戰。 青面攤主專跟你的標：你上一夜買哪一系，他就搶哪一系。 ",
+     "shown": "夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐北 青面攤主：「少年仔，你今暗買啥，我就搶啥。」 你在山路上迷了方向，雨停的時候，眼前只剩一座沒有香火的破廟。廟埕的燈籠一盞一盞自己點起來——妖市開市了。攤主的臉青得像生了苔的石碑，笑著說：「少年仔，來遮毋免錢，用命來買就好。」你看中哪一系的貨，他就偏偏跟你搶哪一系。撐到天光，壽命比他多，他才肯放你下山。 本章新規則壽命是錢包也是血條：出價花壽命，挨打也掉壽命。密封出價、價高者得：保守標落標退回大半，押命標沒有上限但落標仍失一半。 選角入市返回章節",
+     "hiddenChars": 49,
+     "sw": 558,
+     "cw": 558,
+     "sh": 472,
+     "ch": 360,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "nw1|nw-intro@V1"
+    },
+    {
+     "full": "夜行錄・第二章 招魂嶺收驚婆 收驚婆 本章主角，坐北 收驚婆：「驚啥？妖市的驚，阮收慣矣。」 下了山，路卻往更高的嶺上彎，霧裡有人一聲一聲在喊名字。 一個老婆婆捧著米碗與舊衫，坐在嶺頭的石頭上收驚，她不看攤上的貨，只看你。 「囡仔，你的魂驚甲走一半矣，」她說，「先坐落來，莫急。」 她整夜不出手，等到大貨上桌才一口氣收走；這一夜的妖市，貨會兩件兩件地認主。 本章新規則 連鎖：湊齊公開配方的兩件法寶，連鎖就會生效，多一層效果。 收驚婆沒大貨就整夜不出價；她落標或不出手的夜晚還會回壽命。 她按兵不動的夜晚，是你便宜收貨、湊連鎖的時候。 選角入市 返回章節",
+     "shown": "夜行錄・第二章 招魂嶺收驚婆 收驚婆本章主角，坐北 收驚婆：「驚啥？妖市的驚，阮收慣矣。」 下了山，路卻往更高的嶺上彎，霧裡有人一聲一聲在喊名字。一個老婆婆捧著米碗與舊衫，坐在嶺頭的石頭上收驚，她不看攤上的貨，只看你。「囡仔，你的魂驚甲走一半矣，」她說，「先坐落來，莫急。」她整夜不出手，等到大貨上桌才一口氣收走；這一夜的妖市，貨會兩件兩件地認主。 本章新規則連鎖：湊齊公開配方的兩件法寶，連鎖就會生效，多一層效果。收驚婆沒大貨就整夜不出價；她落標或不出手的夜晚還會回壽命。她按兵不動的夜晚，是你便宜收貨、湊連鎖的時候。 選角入市返回章節",
+     "hiddenChars": 0,
+     "sw": 558,
+     "cw": 558,
+     "sh": 419,
+     "ch": 360,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "nw2|nw-intro@V1"
+    },
+    {
+     "full": "夜行錄・第三章 荒塚紅衣婆婆 紅衣婆婆 本章主角，坐北 紅衣婆婆：「這條帳，今暗算清楚。」 最後一段路穿過荒塚，墓碑上的名字都被雨洗平了。 一個穿紅衣的婆婆蹲在墳頭數東西，數的是誰欠她什麼。 「你一路搶人的貨、塞人的咒，阮攏記咧。」她抬起頭，嘴角是紅的。 今夜的妖市一樣不少：天命、連鎖、毒標都在桌上，你怎麼對她，她就怎麼還你。 本章新規則 毒標：對詛咒品出價，得標後可以把它硬塞給指定的對手。 天命密函：開局每人私下拿到一組連鎖當天命，親手標齊就會覺醒，效果更強。 紅衣婆婆記仇：搶她的標、毒她、打敗她都會記帳；被毒標塞中時，下手的人扣 2 壽命、她自己加 2。 選角入市 返回章節",
+     "shown": "夜行錄・第三章 荒塚紅衣婆婆 紅衣婆婆本章主角，坐北 紅衣婆婆：「這條帳，今暗算清楚。」 最後一段路穿過荒塚，墓碑上的名字都被雨洗平了。一個穿紅衣的婆婆蹲在墳頭數東西，數的是誰欠她什麼。「你一路搶人的貨、塞人的咒，阮攏記咧。」她抬起頭，嘴角是紅的。今夜的妖市一樣不少：天命、連鎖、毒標都在桌上，你怎麼對她，她就怎麼還你。 本章新規則毒標：對詛咒品出價，得標後可以把它硬塞給指定的對手。天命密函：開局每人私下拿到一組連鎖當天命，親手標齊就會覺醒，效果更強。紅衣婆婆記仇：搶她的標、毒她、打敗她都會記帳；被毒標塞中時，下手的人扣 2 壽命、她自己加 2。 選角入市返回章節",
+     "hiddenChars": 0,
+     "sw": 558,
+     "cw": 558,
+     "sh": 441,
+     "ch": 360,
+     "overflow": "auto/auto",
+     "ellipsis": false,
+     "at": "nw3|nw-intro@V1"
+    }
+   ],
+   "where": [
+    "nw1|nw-intro@V1",
+    "nw1|nw-intro@V2",
+    "nw1|nw-intro@V3",
+    "nw1|nw-intro@V4",
+    "nw2|nw-intro@V1",
+    "nw2|nw-intro@V2",
+    "nw2|nw-intro@V3",
+    "nw2|nw-intro@V4",
+    "nw3|nw-intro@V1",
+    "nw3|nw-intro@V2",
+    "nw3|nw-intro@V3",
+    "nw3|nw-intro@V4"
+   ],
+   "screens": {
+    "nw1|nw-intro": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw2|nw-intro": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ],
+    "nw3|nw-intro": [
+     "V1",
+     "V2",
+     "V3",
+     "V4"
+    ]
+   },
+   "reach": {
+    "n": 12,
+    "ok": 12
+   }
+  }
+ ],
+ "strips": {
+  "#feltHead": {
+   "n": 788,
+   "minOwn": 0,
+   "minEff": 0,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "東風・🌑 朔月｜陰氣拍：全隊 HP +1 🌒 今夜心願（僅你可見）：驅邪｜本"
+  },
+  "#feltHead > span.headCompact": {
+   "n": 788,
+   "minOwn": 0.9,
+   "minEff": 0.9,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "東風・🌑 朔月｜陰氣拍：全隊 HP +1"
+  },
+  "#feltHead > div.wishbar": {
+   "n": 375,
+   "minOwn": 0.9,
+   "minEff": 0.9,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "🌒 今夜心願（僅你可見）：驅邪｜本夜買下銷毀一件詛咒品，＋3 壽命"
+  },
+  "#northPrev > div.preview": {
+   "n": 570,
+   "minOwn": 0.9,
+   "minEff": 0.9,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "👁 盯上宣告：封標前公開釘一件「我盯上了」。🤝 你的信譽 1.00（還沒有紀"
+  },
+  "#revealCard": {
+   "n": 21,
+   "minOwn": 0.88,
+   "minEff": 0.88,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "白虎煞詛咒 每次戰敗：每件額外失 1 壽命（減傷前） 3 人出價 ⚖ 3 人比標"
+  },
+  "#stage > div.stageCard": {
+   "n": 388,
+   "minOwn": 1,
+   "minEff": 1,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "🏮 本夜成交總覽 白虎煞 🕸 孝女白琴 毒標得手 → 塞進 閭山法師 的袋子"
+  },
+  "#stage > div.stakebar": {
+   "n": 15,
+   "minOwn": 0.9,
+   "minEff": 0.9,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "🎲 押寶夜・今夜這一注 − 0 ＋ 保守標 已勾 0 件・勾幾件都同一個數字、"
+  },
+  "#bub3": {
+   "n": 1,
+   "minOwn": 1,
+   "minEff": 1,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "妖邪退散。"
+  },
+  "#bub1": {
+   "n": 18,
+   "minOwn": 1,
+   "minEff": 1,
+   "noShadowLowAlpha": 0,
+   "screens": [],
+   "text": "少年仔，你今暗買啥，我就搶啥。"
+  }
+ },
+ "lost": [
+  "solo|shrine-run lost8",
+  "hot|shrine-run lost9",
+  "nw1|shrine-run lost8",
+  "nw2|shrine-run lost1",
+  "nw3|shrine-run lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ }
+}

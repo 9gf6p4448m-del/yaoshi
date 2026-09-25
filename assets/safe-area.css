@@ -98,3 +98,73 @@
 #modalbox {
   max-height: min(88vh, calc(100dvh - var(--safe-top) - var(--safe-bottom)));
 }
+/* ===== v0.58.3 畫面細修（凍結 docs/experiments/2026-09-25-acceptance-visual-polish.md #1–#6；只動呈現）=====
+   量測：tests/tools/visual-polish-probe.mjs；逐項理由見 docs/experiments/2026-09-25-visual-polish/README.md。 */
+/* #1 短標籤不在詞中斷行。.nob＝「這一段不准拆」（底列名字／數值列、局末排名的數值段），只准在段與段之間（「・」後、「（」前）換行。
+   主鈕、揭盅列的拍品名、熱座的氣色字用 keep-all：中文詞不拆，要換行只能在標點或空白。 */
+.nob { white-space: nowrap; }
+#mainbtn, .bidfly > span, #south .life { word-break: keep-all; }
+#south button.side { white-space: nowrap; flex-shrink: 0; }
+/* #5 觸控目標 ≥40×40：底列 side 鈕高 38→40、ⓘ 寬 38→40（可見尺寸本來就接近，直接放大）；
+   其餘小鈕維持原本的樣子，用透明 ::after 把可點範圍往外延（按下去的是同一顆鈕，elementFromPoint 命中自己）。 */
+#south button.side { height: 40px; min-width: 40px; }
+#south button.side.roleInfoBtn { width: 40px; }
+/* 底列不准擠窄 side 鈕與主鈕之後，要把寬度還給 #budget（燒香列＋AI 提示）：間距 10→6、side 鈕左右內距 12→8、主鈕 22→10、燒香列右外距 8→0（SE 667 寬實測燒香列差 3px 就會蓋到 🔊 鈕） */
+#table.t3d #south { gap: 6px; }
+#table.t3d #south button.side { padding: 0 8px; }
+#table.t3d #south button.side.roleInfoBtn { padding: 0; }
+#table.t3d #mainbtn { padding: 0 10px; }
+#table.t3d #budget .incbar { margin-right: 0; }
+.nwBtns .bigbtn { height: 40px; }
+#helpBtn::after, .incbar button::after, .stakebar .stepper button::after, .stakebar .typebtn::after,
+#skipbtn::after, .selback::after, #rvDl::after, #rvCopy::after, .rvTopBtns .bigbtn::after, #fpsToggle::after,
+.seat .roleInfoBtn::after {
+  content: ""; position: absolute; inset: var(--hit-t, 0) var(--hit-x, 0) var(--hit-b, 0) var(--hit-x, 0);
+}
+.incbar button, .stakebar .stepper button, .stakebar .typebtn, .selback, #rvDl, #rvCopy, .rvTopBtns .bigbtn, #fpsToggle { position: relative; }
+#helpBtn { --hit-t: -4px; --hit-b: -4px; --hit-x: -4px; }
+.incbar button { --hit-t: -11px; --hit-b: -11px; --hit-x: -11px; }
+.stakebar .stepper button { flex: 0 0 auto; --hit-t: -6px; --hit-b: -6px; --hit-x: -6px; }
+.stakebar .typebtn { --hit-t: -6px; --hit-b: -6px; }
+.stakebar .stepper { overflow: visible; }   /* 通用 .stepper 的 overflow:hidden 會把延伸的命中範圍切掉 */
+#skipbtn { --hit-t: -10px; --hit-b: -10px; }
+.selback { --hit-t: -6px; --hit-b: -6px; }
+#rvDl, #rvCopy, .rvTopBtns .bigbtn { --hit-t: -4px; --hit-b: -4px; }
+#fpsToggle { --hit-t: -11px; --hit-b: -11px; }
+/* 座位卡的 ⓘ 貼著卡底：命中範圍只往上、往兩側延（往下會蓋到下一列的拍品頁籤） */
+.seat .roleInfoBtn { --hit-t: -24px; --hit-b: -1px; --hit-x: -10px; }
+.rvTile .w { word-break: keep-all; }
+/* #3 字級下限 10px（北列除外，見 README「北列」一節）：側座位卡狀態列、拍品卡說明／部隊列／系別 chip／盯上徽章／今夜受惠、
+   選角卡壽命、揭盅卡 chip。只放大字，不改字型、顏色與措辭。
+   夜戰籌碼列的系字徽（.pwfac，12px 色圓裡一個字）列為裝飾例外、維持 9px：系別由圓的底色承載（與拍品卡系別 chip 同一組系色）；
+   放到 10px 字會超出 12px 圓，圓加大又會把 844×390 的夜戰欄撐高 3px（text-fit #1 實測）。 */
+#table.t3d #west .seat .st, #table.t3d #east .seat .st { font-size: 10px; }
+.fchip, #table.t3d .rail .mcard .fchip { font-size: 10px; }
+#table.t3d .rail .mcard .ab, #table.t3d .rail .mcard .uline { font-size: 10px; }
+/* 字放大到 10px 後，側欄卡的部隊列在 SE 寬放不下一行（原本 nowrap＋省略號會吃掉「共鳴N拍」）：側欄改成可換行，只在「・」後換（.nob 分段） */
+#table.t3d .rail .mcard .uline.stat { white-space: normal; max-height: none; text-overflow: clip; overflow-wrap: normal; }
+.markb { font-size: 10px; line-height: 13px; }
+.moonCue { font-size: 10px; }
+.rcard .rlf { font-size: 10px; }
+/* #4 對比（WCAG 4.5:1／大字 3:1，底色取字底下實際像素）：
+   詛咒 chip 白字在淺紫底 4.4 → 底色壓暗 10%；「返回」鈕字色提亮；出局座位卡原本整張 opacity .35（字 2:1）→ .85＋去色
+   （風位金章上的深色字要 ≥4.5；出局另有 💀 與「出局」字樣）；已請走的尊（.5）與本夜不開標的拍品卡（.5）改成去色表示，不再整張變淡；
+   開標演出壓暗底列（#south.dimmed）時主鈕不跟著暗——它是當下唯一要按的鈕（原本 2.9:1）。 */
+.f-curse { background: color-mix(in srgb, var(--curse) 90%, #000); }
+.selback { color: color-mix(in srgb, var(--dim) 75%, #fff); }
+.seat.dead { opacity: .85; filter: grayscale(.6); }
+.shcard.gone { opacity: .9; filter: grayscale(.85); }   /* 已請走：去色表示，不再靠整張變淡（chip 上的深色字會掉到 3:1） */
+.mcard.locked { opacity: 1; filter: grayscale(.6); }   /* 本夜不開標：去色表示（卡上另有「🚫 本夜不開標」），不再整張變淡 */
+/* 揭盅得標藥丸：漸層深端 #7b5118 上的深色字只有 2.7:1 → 漸層兩端提亮（仍是同一組金） */
+.bidPill.win { background: linear-gradient(135deg, #b07a24, #e0b441); }
+#south.dimmed { opacity: 1; filter: none; }
+#south.dimmed > :not(#mainbtn) { opacity: .42; filter: grayscale(.55); }
+/* 底列總計（出價合計／壽命／本夜標）原本一整行 nowrap：side 鈕不再被擠窄後，SE 寬會從左邊蓋到 🔊 鈕。
+   改成分段（.nob）可換行，只在「／」「　」前換。 */
+#table.t3d #budget .bsum { white-space: normal; text-align: right; }
+#skipbtn { background: var(--strip-bg); }   /* 「跳過」疊在 3D 燈光上 4.46:1，底色換成桌面文字條同一個 */
+/* 夜戰：隻數單位與部隊列（--dim）疊在 3D 紙紮與燈光上只剩 3.5～3.9:1 → 字色提亮；
+   家別小字（金）在燈籠亮處 2.7:1 → 墊一層與桌面文字條同一個 --strip-bg 底 */
+.pwunit, .pwbody { color: color-mix(in srgb, var(--dim) 60%, #fff); }
+.vsbig { color: color-mix(in srgb, var(--dim) 50%, #fff); }   /* 「VS」疊在火光上 2.2:1（大字門檻 3） */
+.fighter .fdir { width: fit-content; margin-left: auto; margin-right: auto; background: var(--strip-bg); border-radius: 6px; padding: 0 6px; }   /* 仍是 block、不加高 */

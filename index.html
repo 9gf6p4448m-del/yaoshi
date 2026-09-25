@@ -2482,9 +2482,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.58.2", VERSION_NOTE="0.58.2：文字不再被截斷、心願條不被 3D 壓字——頂列風位月相、香火榜請神倒數與三尊尊名改為換行完整顯示；浮在桌面上的心願條、預告框底色加深";
+const VERSION="0.58.3", VERSION_NOTE="0.58.3：畫面細修：斷字、溢框、字級、對比、點擊區";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.58.2";
+const RELEASE_VERSION="0.58.3";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2830,7 +2830,20 @@ function selectRailPage(id,i){
   window.__yaoshi3d?.tray?.setHover(i);
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-pressed',String(Number(el.dataset.slot)===i)));
+  equalizeRailCards();
 }
+/* v0.58.3 畫面細修（凍結 visual-polish #6 左右拍品卡同高）：左欄第 i 張可見卡與右欄第 i 張取較高者當 min-height，
+   內容長短不同也不會一高一矮。純呈現：只寫 style.minHeight，不讀寫任何賽局欄位；換頁、重畫、視窗改尺寸都重算。 */
+function equalizeRailCards(){
+  if(typeof document==="undefined"||!document.querySelectorAll) return;   /* headless（tests/tools/load.mjs）沒有版面 */
+  const vis=id=>[...document.querySelectorAll(`#${id} .railPages > .mcard`)].filter(c=>{ if(!c.style||!c.getClientRects) return false; c.style.minHeight=""; return c.getClientRects().length>0; });
+  const W=vis("railW"), E=vis("railE");
+  for(let i=0;i<Math.min(W.length,E.length);i++){
+    const h=Math.max(W[i].getBoundingClientRect().height,E[i].getBoundingClientRect().height);
+    W[i].style.minHeight=E[i].style.minHeight=h+"px";
+  }
+}
+if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>equalizeRailCards());
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
   const chosen=idxs.includes(RAIL_PAGE[id])?RAIL_PAGE[id]:idxs[0];
@@ -2858,6 +2871,7 @@ function fillRails(prevHTML,shrHTML,cardFn){
   const wide=!!(shr&&shr.querySelector&&shr.querySelector("#shrines.wide"));
   const hasRule=!!(pv&&pv.querySelector&&pv.querySelector(".rulein"));
   if(n) n.classList.toggle("shwide", wide&&!hasRule);
+  equalizeRailCards();
 }
 /* ===== 桌心托盤的輸入端與資料推送（v0.56b 上桌卷）=====
    ★Raycaster 的輸入端在演出層，不在 3D 層★（計畫 §6 Q3）：canvas 是 pointer-events:none 且 z −2，
@@ -4262,6 +4276,8 @@ function unitRowText(it,owner,mode){
      整行反而被裁掉看不到。使用者裁定：卡面留數字、招式移到點進去的卡片詳情，袋子面板保留全文。 */
   const full=(mode==="full");
   /* 卡面那一版加 .stat：一行到底、不換行（只有數字，換行等於白吃 #felt 的高度預算） */
+  /* v0.58.3 畫面細修：卡面那一行分段包 .nob（側欄窄卡放不下一行時只准在「・」後換行，不拆「攻 9」「共鳴2拍」）；字與順序不變 */
+  if(!full) return `<div class="uline stat"><span class="nob">${r.bodyName}×${r.n}・</span><span class="nob">攻 ${r.atk}・</span><span class="nob">血 ${r.hp}</span>${r.beat?`<span class="nob">・共鳴${r.beat}拍</span>`:""}</div>`;
   return `<div class="uline${full?"":" stat"}">${r.bodyName}×${r.n}・${full?"每隻基礎":""}攻 ${r.atk}・血 ${r.hp}${r.beat?`・共鳴${r.beat}拍`:""}${
     (full&&r.move)?`<span class="umv">✦ ${r.move}</span><span class="umd">${r.desc}</span><span class="umd">${r.body==="haunt"?"作祟不普攻，依招式條件生效":"可出手時每拍皆會攻擊"}。本隊＝這件法寶的隊伍；本方＝持有者所有隊伍；前鋒＝非作祟紙紮。</span>`:""}</div>`;
 }
@@ -5196,14 +5212,16 @@ function renderSeats(hlIds){
   const me=revealSeatPlayers()[0];
   $("myAv").innerHTML=avHTML(me)+markStampHTML(0);
   $("south").classList.remove("dimmed","anim-lantern-reveal"); /* #south 不重建，開標演出加上的 class 要在這裡清 */
-  $("myDir").textContent=`南・${me.name}${windPid(S.round)===0?"（"+windName(S.round)+"）":""}`;
+  /* v0.58.3 畫面細修：底列名字與數值列只准在「・」或「（」前換行（原本會拆成「紅衣婆／婆」「攻／1」）。
+     每段包 .nob（white-space:nowrap），textContent 與改前逐字相同。 */
+  $("myDir").innerHTML=`<span class="nob">南・${me.name}</span>${windPid(S.round)===0?`<span class="nob">（${windName(S.round)}）</span>`:""}`;
   $("myLife").textContent=(S.mode==="hotseat")?faceLbl(me).replace("氣色","").replace("面色",""):me.life;
   $("myLife").className="life"+(me.life<=CFG.LIFE/3?" low":"");
   if(CFG.PAPERWAR_ON){
     const army=buildArmy(me.bag); let units=0,atk=0,hp=0;
     army.teams.forEach(t=>t.units.forEach(u=>{units++;atk+=u.atk|0;hp+=u.max|0;}));
-    $("myPow").innerHTML=`部隊 <b style="color:var(--gold)">${units} 隻</b>・攻 ${atk}・血 ${hp}${me.alive?"":"・💀出局"}`;
-  }else $("myPow").innerHTML=`戰力 <b style="color:var(--gold)">${showPow(me)}</b>・袋 ${me.bag.length} 件${me.alive?"":"・💀出局"}`;
+    $("myPow").innerHTML=`<span class="nob">部隊 <b style="color:var(--gold)">${units} 隻</b>・</span><span class="nob">攻 ${atk}・</span><span class="nob">血 ${hp}</span>${me.alive?"":`<span class="nob">・💀出局</span>`}`;
+  }else $("myPow").innerHTML=`<span class="nob">戰力 <b style="color:var(--gold)">${showPow(me)}</b>・</span><span class="nob">袋 ${me.bag.length} 件</span>${me.alive?"":`<span class="nob">・💀出局</span>`}`;
   /* 夜份：有預抓到月相就用 12 格圖示取代「第 N/12 夜」文字，沒抓到退回文字（美術層 §4）。
      兩者都與風位資訊同一列——#felt 高度預算零餘裕，不得新增一列。 */
   const nb=NIGHTSVG.svg||"";
@@ -6069,7 +6087,7 @@ function stakeHTML(ap){
   const worst=stakeWorstCost(ap,YB.pick,YB.amt,YB.type);
   return `<div class="stakebar">
     <div class="stakerow">
-      <span style="font-size:11px">🎲 <b style="color:var(--gold)">押寶夜</b>・今夜這一注</span>
+      <span style="font-size:11px"><span class="nob">🎲 <b style="color:var(--gold)">押寶夜</b>・</span><span class="nob">今夜這一注</span></span>
       <div class="stepper"><button onclick="ybBump(-1)">−</button><span class="amt" id="ybAmt">${YB.amt}</span><button onclick="ybBump(1)" data-sfx="chip">＋</button></div>
       <button class="typebtn${YB.type==="yaming"?" yaming":""}" onclick="ybFlip()">${YB.type==="cons"?"保守標":"押命標"}</button>
       <span class="mut" style="font-size:10.5px;text-align:left;line-height:1.35">已勾 <b style="color:var(--gold)">${n}</b> 件・勾幾件都同一個數字、<b>最多得一件</b>${YB.type==="cons"?`・上限 ${cap}`:""}<br>${n>0&&YB.amt>0?`全落標預留最多 ${worst}（買路錢 ${stakeFeeLabel(fee)}）`:n>0?"尚未下注＝今夜不出手":"未勾任何拍品＝今夜不出手"}・詛咒品不開標</span>
@@ -6296,7 +6314,7 @@ function updateBudget(){
     const tot=(hasBid?YB.amt+fee.max:0)+(INC?INC.amt:0);
     const cap=budgetFor(ap);
     const el=$("budget");
-    el.innerHTML=`${incbarHTML(ap)}<span class="bsum">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}這一注合計 <b>${tot}</b>${hasBid?`（買路錢 ${stakeFeeLabel(fee)}${fee.min!==fee.max?"，按最高額預留":""}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}　🎲 已勾 ${n} 件</span>`;
+    el.innerHTML=`${incbarHTML(ap)}<span class="bsum"><span class="nob">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}這一注合計 <b>${tot}</b></span>${hasBid?`<span class="nob">（買路錢 ${stakeFeeLabel(fee)}${fee.min!==fee.max?"，按最高額預留":""}）</span>`:""} <span class="nob">／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}</span>　<span class="nob">🎲 已勾 ${n} 件</span></span>`;
     el.className=tot>cap?"over":"";
     $("mainbtn").disabled=tot>cap;
     return;
@@ -6310,7 +6328,7 @@ function updateBudget(){
   const cap=budgetFor(ap);
   /* 燒香列併進這一行（2026-09-07 第二輪覆審 3）：同一行同時給「封了幾件・出價合計・香火幾點」。
      它在 #south，不吃 #felt 的高度預算。 */
-  el.innerHTML=`${incbarHTML(ap)}<span class="bsum">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含買路錢 ${fees}）`:""}${inc>0?`（含香火 ${inc}）`:""} ／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}${CFG.MAX_BIDS>0?`　🏷 本夜標 ${nb}/${CFG.MAX_BIDS}`:""}</span>`;
+  el.innerHTML=`${incbarHTML(ap)}<span class="bsum"><span class="nob">${S.mode==="hotseat"?DIRS[ACTIVE]+"家 ":""}出價合計 <b>${tot}</b>${fees>0?`（含買路錢 ${fees}）`:""}${inc>0?`（含香火 ${inc}）`:""}</span> <span class="nob">／ 壽命 ${ap.life}${S.debts&&S.debts[ap.id]?`<span style="color:#ff8484">（欠${S.debts[ap.id].left}）</span>`:""}</span>${CFG.MAX_BIDS>0?`　<span class="nob">🏷 本夜標 ${nb}/${CFG.MAX_BIDS}</span>`:""}</span>`;
   el.className=tot>cap?"over":"";
   $("mainbtn").disabled=tot>cap;
 }
@@ -6507,7 +6525,7 @@ async function startReveal(){
   setHollow(true);
   $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
     <div class="big">🏮 本夜成交總覽</div>
-    ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・實付 ${r.winner.cost}`:""}）`:""}</span></div>`).join("")}
+    ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・<span class="nob">實付 ${r.winner.cost}</span>`:""}）`:""}</span></div>`).join("")}
   </div>`;
   /* 請神（第 4 卷）插在開標與開戰之間——三條迴圈的順序一致：resolveAuction → resolveShrines → resolveBattles */
   if(CFG.LEGEND_ON&&S.shrines){ $("mainbtn").textContent="🕯️ 請神"; $("mainbtn").onclick=startShrine; }
@@ -7481,10 +7499,10 @@ function endGame(){
     ${nw?nwEndHeadHTML(nw,nwLine):""}
     <div style="font-size:34px">${rank[0].ai?"🏮":"🏆"}</div>
     <h2 style="font-size:18px">${head}</h2>
-    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`壽命 ${p.life}`:"出局"}${CFG.PAPERWAR_ON?`（${paperForceText(p)}）`:`（戰力 ${showPow(p)}）`}</div>`).join("")}
+    ${rank.map((p,i)=>`<div class="endrank">${i+1}. ${DIRS[p.id]}家・${p.name} — ${p.alive?`<span class="nob">壽命 ${p.life}</span>`:"出局"}${CFG.PAPERWAR_ON?`（<span class="nob">${paperForceText(p)}</span>）`:`（<span class="nob">戰力 ${showPow(p)}</span>）`}</div>`).join("")}
     ${CFG.PAPERWAR_ON&&S.history?`<div class="rvExperiment" style="margin-top:8px;text-align:left"><b>🎯 下一局實驗</b><br>${replayExperiment(S.history,S.players[0])}</div>`:""}
     ${nw?nwEndBtnHTML(nw):""}
-    <button class="bigbtn alt" style="margin-top:8px;width:100%;height:38px" onclick="showReview()">看完整回顧</button>
+    <button class="bigbtn alt" style="margin-top:8px;width:100%;height:40px" onclick="showReview()">看完整回顧</button>
   </div>`;
   playCut('gameEnd',{rank});
   if(nw){ nwSpeak(nwLine); $("mainbtn").textContent="回章節選單";$("mainbtn").onclick=()=>nwGo("menu");$("mainbtn").disabled=false; return; }
@@ -7548,8 +7566,8 @@ function showReview(){
   const topWin=Object.keys(sm.wins).sort((a,b)=>sm.wins[b]-sm.wins[a])[0];
   const topPoison=Object.keys(sm.poisonBy).sort((a,b)=>sm.poisonBy[b]-sm.poisonBy[a])[0];
   const tiles=[
-    {k:"最大單筆出價",v:sm.maxBid?sm.maxBid.amt:"—",w:sm.maxBid?`${short(sm.maxBid.pid)}・第 ${sm.maxBid.round} 夜「${sm.maxBid.item}」`:"無人出價"},
-    {k:"毒標得手",v:sm.poison,w:topPoison!=null?`最多：${short(+topPoison)} ${sm.poisonBy[topPoison]} 次`:"沒有毒標得手"},
+    {k:"最大單筆出價",v:sm.maxBid?sm.maxBid.amt:"—",w:sm.maxBid?`${short(sm.maxBid.pid)}・<span class="nob">第 ${sm.maxBid.round} 夜</span>「${sm.maxBid.item}」`:"無人出價"},
+    {k:"毒標得手",v:sm.poison,w:topPoison!=null?`最多：<span class="nob">${short(+topPoison)} ${sm.poisonBy[topPoison]} 次</span>`:"沒有毒標得手"},
     {k:"對決勝場最多",v:topWin!=null?sm.wins[topWin]:"—",w:topWin!=null?short(+topWin):"沒有對決"},
     {k:"出價總支出",v:sm.burned,w:"四家合計壽命"},
   ].map(t=>`<div class="rvTile"><div class="k">${t.k}</div><div class="v">${t.v}</div><div class="w">${t.w}</div></div>`).join("");
@@ -7979,8 +7997,8 @@ function nwEndHeadHTML(nw,line){
 }
 function nwEndBtnHTML(nw){
   return nw.pass
-    ?`<button class="bigbtn" id="nwReadScroll" style="margin-top:8px;width:100%;height:38px" onclick="openNightwalk('scroll',${nw.ch.n},'end')">讀殘卷</button>`
-    :`<button class="bigbtn" id="nwRetry" style="margin-top:8px;width:100%;height:38px" onclick="nwGo(${nw.ch.n})">再挑戰</button>`;
+    ?`<button class="bigbtn" id="nwReadScroll" style="margin-top:8px;width:100%;height:40px" onclick="openNightwalk('scroll',${nw.ch.n},'end')">讀殘卷</button>`
+    :`<button class="bigbtn" id="nwRetry" style="margin-top:8px;width:100%;height:40px" onclick="nwGo(${nw.ch.n})">再挑戰</button>`;
 }
 /* ================= 測試出口：headless 模擬（不碰 DOM） ================= */
 /* 固定腳本策略：每夜對 market 中 p 值最高的一件出保守標，金額 = min(保守標上限, 5)，
