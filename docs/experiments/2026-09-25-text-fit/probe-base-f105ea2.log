@@ -1,0 +1,107 @@
+[text-fit] solo done 547s
+[text-fit] hot done 433s
+[text-fit] nw1 done 467s
+[text-fit] nw2 done 58s
+[text-fit] nw3 done 53s
+{
+ "tag": "base-f105ea2",
+ "cells": 950,
+ "cellsRed": 794,
+ "byVp": {
+  "V1": {
+   "cells": 190,
+   "red": 179,
+   "redScrollOnly": 0
+  },
+  "V2": {
+   "cells": 190,
+   "red": 159,
+   "redScrollOnly": 19
+  },
+  "V3": {
+   "cells": 190,
+   "red": 179,
+   "redScrollOnly": 0
+  },
+  "V4": {
+   "cells": 190,
+   "red": 182,
+   "redScrollOnly": 6
+  },
+  "V5": {
+   "cells": 190,
+   "red": 95,
+   "redScrollOnly": 3
+  }
+ },
+ "items": 21,
+ "lost": [
+  "solo|shrine-run lost9",
+  "hot|shrine-run lost9",
+  "nw1|shrine-run lost7",
+  "nw2|shrine-run lost1",
+  "nw3|shrine-run lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ },
+ "guard": {
+  "cells": 759,
+  "spill": {
+   "#shrines > div.incboard > span.ibgap": "252 格，例 solo|mark|n1@V1 39/33 12/12",
+   "#shrines > div.incboard > span.ibwhen": "252 格，例 solo|mark|n1@V1 81/69 12/12",
+   "div.shcards > div.shcard.fac-xianghuo > span.shname > span.shn": "282 格，例 solo|mark|n1@V1 40/26 12/12",
+   "#feltHead > span.headCompact": "713 格，例 solo|mark|n1@V1 167/114 15/15",
+   "div.shcards > div.shcard.fac-yinqi > span.shname > span.shn": "120 格，例 solo|mark|n1@V4 24/15 12/12",
+   "#northPrev > div.preview": "264 格，例 solo|mark|n1@V5 409/409 29/27",
+   "div.shcards > div.shcard.fac-zuling > span.shname > span.shn": "18 格，例 solo|mark|n4@V4 16/7 12/12",
+   "#shrines > div.shcards > div.shcard.fac-zuling > span.shmove": "18 格，例 solo|mark|n4@V4 32/25 12/12",
+   "#shrines > div.shcards > div.shcard.fac-xianghuo > span.shmove": "51 格，例 solo|mark|n4@V4 16/11 12/12",
+   "#shrines > div.shcards > div.shcard.fac-yinqi > span.shmove": "57 格，例 solo|mark|n4@V4 32/23 12/12",
+   "#shrines > div.shcards > div.shcard.gone > span.shname": "111 格，例 solo|mark|n6@V1 25/22 12/12",
+   "div.shcards > div.shcard.gone > span.shname > span.shn": "414 格，例 solo|mark|n6@V1 16/0 12/12",
+   "#shrines > div.shcards > div.shcard.gone > span.shtaken": "414 格，例 solo|mark|n6@V1 48/25 12/12",
+   "#shrines > div.shcards > div.shcard.fac-yinqi > span.shname": "3 格，例 solo|mark|n7@V4 25/22 12/12",
+   "#northPrev": "24 格，例 hot|bid|n2@V4 242/242 62/56"
+  },
+  "overlap": {}
+ },
+ "strips": [
+  "#feltHead n861 minOwn 0 minEff 0 低於.85且無字影 231 solo|reveal-result@V1,solo|reveal-result@V2,solo|reveal-result@V3,solo|reveal-result@V4,solo|reveal-result@V5,solo|duel@V3",
+  "#feltHead > span.headCompact n861 minOwn 0 minEff 0 低於.85且無字影 231 solo|reveal-result@V1,solo|reveal-result@V2,solo|reveal-result@V3,solo|reveal-result@V4,solo|reveal-result@V5,solo|duel@V3",
+  "#feltHead > div.wishbar n415 minOwn 0.62 minEff 0.62 低於.85且無字影 415 solo|mark@V1,solo|mark@V2,solo|mark@V3,solo|mark@V4,solo|mark@V5,solo|bid@V1",
+  "#northPrev > div.preview n630 minOwn 0.25 minEff 0.25 低於.85且無字影 630 solo|mark@V1,solo|mark@V2,solo|mark@V3,solo|mark@V4,solo|mark@V5,solo|bid@V1",
+  "#revealCard n17 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
+  "#stage > div.stageCard n421 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n15 minOwn 0.62 minEff 0.62 低於.85且無字影 15 solo|bid@V1,solo|bid@V2,solo|bid@V3,solo|bid@V4,solo|bid@V5,hot|bid@V1",
+  "#bub1 n18 minOwn 1 minEff 1 低於.85且無字影 0 "
+ ],
+ "itemList": [
+  "#shrines > div.incboard > span.ibgap ×252 「你 0・平手」→「你 0・平…」",
+  "#shrines > div.incboard > span.ibwhen ×252 「第 5 夜請神・倒數 4 夜」→「第 5 夜請神・倒數…」",
+  "div.shcards > div.shcard.fac-xianghuo > span.shname > span.shn ×282 「大士爺紙尊」→「大士爺…」",
+  "#feltHead > span.headCompact ×713 「東風・🌑 朔月｜陰氣拍：全隊 HP +1」→「東風・🌑 朔月｜陰氣拍…」",
+  "div.shcards > div.shcard.fac-yinqi > span.shname > span.shn ×117 「有應公」→「有應…」",
+  "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」→「？ 妖市規則 🔧 音訊診斷：sfx v0.58」",
+  "#duel ×10 「一拍・撞 南家 青面攤主 0 隻 小紙人×1 肉」→「一拍・撞 南家 青面攤主 0 隻 小紙人×1 肉」",
+  "[scroll reach 125/139] #felt ×139 「東風・🌑 朔月｜陰氣拍：全隊 HP +1 ？ 」→「東風・🌑 朔月｜陰氣拍：全隊 HP +1 ？ 」",
+  "div.shcards > div.shcard.fac-zuling > span.shname > span.shn ×18 「殘日」→「殘…」",
+  "#shrines > div.shcards > div.shcard.fac-zuling > span.shmove ×18 「餘暉灼目」→「餘暉灼…」",
+  "#shrines > div.shcards > div.shcard.fac-xianghuo > span.shmove ×51 「普渡」→「普…」",
+  "#shrines > div.shcards > div.shcard.fac-yinqi > span.shmove ×57 「有求必應」→「有求必…」",
+  "#shrines > div.shcards > div.shcard.gone > span.shname ×111 「殘日 祖靈」→「殘日祖靈…」",
+  "#shrines > div.shcards > div.shcard.gone > span.shtaken ×414 「已請走：西家」→「已請走…」",
+  "div.shcards > div.shcard.gone > span.shname > span.shn ×282 「殘日」→「…」",
+  "#shrines > div.shcards > div.shcard.fac-yinqi > span.shname ×3 「有應公 陰氣」→「有應陰氣…」",
+  "[scroll reach 24/24] #railE > div.railPages ×24 「虎姑婆指甲 共鳴3拍・大紙偶×1陰氣 ✦ 戰勝時」→「虎姑婆指甲 共鳴3拍・大紙偶×1陰氣 ✦ 戰勝時」",
+  "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
+  "[scroll reach 3/3] #nwScr ×12 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
+  "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」",
+  "[scroll reach 8/8] #railW > div.railPages ×8 「虎爺印 共鳴2拍・大紙偶×1香火🌕 今夜受惠 」→「虎爺印 共鳴2拍・大紙偶×1香火🌕 今夜受惠 」"
+ ]
+}
+EXIT 0

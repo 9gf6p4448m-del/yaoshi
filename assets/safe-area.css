@@ -79,6 +79,12 @@
   padding: max(10px, var(--safe-top)) max(12px, var(--safe-right))
     max(18px, var(--safe-bottom)) max(12px, var(--safe-left));
 }
+/* v0.58.2（文字完整顯示卷）：引言卡／殘卷卡的最大高原本扣固定 28px（10＋18），瀏海機底部安全區 21px 時上下 padding 是 31px，
+   卡片比 #nwScr 可視區高 3px（#nwScr 在 intro／scroll 是 overflow-y:hidden ⇒ 卡底被切）。改成扣實際的上下 padding。 */
+#nwScr .stageCard.nwBig {
+  max-height: calc(100vh - max(10px, var(--safe-top)) - max(18px, var(--safe-bottom)));
+  max-height: calc(100dvh - max(10px, var(--safe-top)) - max(18px, var(--safe-bottom)));
+}
 #selectScr {
   padding: max(8px, var(--safe-top)) max(12px, var(--safe-right))
     max(8px, var(--safe-bottom)) max(12px, var(--safe-left));
