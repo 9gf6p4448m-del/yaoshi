@@ -1,6 +1,6 @@
 # N1 夜行錄（首 3 章）：卷報告
 
-2026-09-25｜分支 `n1/nightwalk`（worktree `C:/Users/shung/wt/yaoshi/n1`）｜基準 `3a0d971 / v0.57.42`｜候選 `v0.58.0`｜**狀態：工程完成、待發布**（推 main 被 Claude Code 權限分類器擋下，等使用者決定）
+2026-09-25｜分支 `n1/nightwalk`（worktree `C:/Users/shung/wt/yaoshi/n1`）｜基準 `3a0d971 / v0.57.42`｜候選 `v0.58.0`｜**狀態：已發布**（使用者「推」→ main `3a0d971..0e632ff` 快轉，Pages 00:28:58Z built，線上 curl `RELEASE_VERSION="0.58.0"`、含 `NIGHTWALK`、首頁 `startEntry('nightwalk')`）
 
 使用者：「六局跳過 我現在不想繼續玩感覺是藍圖還沒完全做完」→ 選 N1 →「全部照建議開工」。計畫 [plans/2026-09-25-n1-nightwalk.md](../../../plans/2026-09-25-n1-nightwalk.md)；凍結 [acceptance](../2026-09-25-acceptance-n1-nightwalk.md)（`484fbc6`，早於產品改動；修訂 `34b3485`）。
 
@@ -28,7 +28,7 @@
 | 11 使用者實機第 1 章 | **暫緩** | 未執行、不算通過 |
 | 12 版面 | 過 | 390×844 三張＋844×390 四畫面（加嚴）：scrollWidth ≤ 視寬、卡片可捲、按鈕捲得到 |
 | 13 程式碼審查 | 過 | fresh code-reviewer：CRITICAL 0／HIGH 0／MEDIUM 1（第 1 夜台詞泡 6 秒內可能漏到第 2 夜）→ 已修＋回歸測試（修復前紅在「第 2 夜不得補回」、修後綠），`7c1becd` |
-| 14 送達 | **未執行** | 推 main 被權限分類器擋下（Production Deploy），等使用者決定 |
+| 14 送達 | 過 | 第一次推送被權限分類器擋下，使用者回「推」後快轉推 main `0e632ff`；Pages built 2026-09-25T00:28:58Z；線上 curl 版本 0.58.0＋NIGHTWALK |
 
 ## 已知限制
 
