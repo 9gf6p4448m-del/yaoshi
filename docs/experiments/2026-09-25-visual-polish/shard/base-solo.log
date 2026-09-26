@@ -1,0 +1,280 @@
+[visual-polish] solo|title 13.4s
+[visual-polish] solo|select 13.3s
+[visual-polish] solo|mark|n1 43.0s
+[visual-polish] solo|bid|n1 34.9s
+[visual-polish] solo|modal:南家・青面攤主（ 35.0s
+[visual-polish] solo|modal:北家・收驚婆 29.0s
+[visual-polish] solo|modal:？ 妖市規則 43.8s
+[visual-polish] solo|reveal 37.2s
+[visual-polish] solo|shrine|n1 18.6s
+[visual-polish] solo|shrine-run 1.3s
+[visual-polish] solo|reveal-result 17.2s
+[visual-polish] solo|duel 8.5s
+[visual-polish] solo|night-end|n1 20.8s
+[visual-polish] solo|mark|n2 42.3s
+[visual-polish] solo|bid|n2 30.7s
+[visual-polish] solo|shrine|n2 19.7s
+[visual-polish] solo|shrine-run 1.2s
+[visual-polish] solo|duel 14.7s
+[visual-polish] solo|night-end|n2 23.1s
+[visual-polish] solo|mark|n3 22.3s
+[visual-polish] solo|bid|n3 29.4s
+[visual-polish] solo|shrine|n3 19.7s
+[visual-polish] solo|shrine-run 0.8s
+[visual-polish] solo|duel 14.8s
+[visual-polish] solo|night-end|n3 23.3s
+[visual-polish] solo|event|n4 27.7s
+[visual-polish] solo|event-result|n4 28.0s
+[visual-polish] solo|mark|n4 36.8s
+[visual-polish] solo|bid|n4 29.2s
+[visual-polish] solo|shrine|n4 15.8s
+[visual-polish] solo|shrine-run 0.8s
+[visual-polish] solo|duel 31.4s
+[visual-polish] solo|night-end|n4 20.5s
+[visual-polish] solo|mark|n5 32.6s
+[visual-polish] solo|bid|n5 34.4s
+[visual-polish] solo|shrine|n5 21.7s
+[visual-polish] solo|shrine-run 0.9s
+[visual-polish] solo|duel 28.9s
+[visual-polish] solo|mark|n6 30.2s
+[visual-polish] solo|bid|n6 32.5s
+[visual-polish] solo|shrine|n6 26.7s
+[visual-polish] solo|shrine-run 1.1s
+[visual-polish] solo|mark|n7 28.5s
+[visual-polish] solo|bid|n7 30.9s
+[visual-polish] solo|shrine|n7 30.2s
+[visual-polish] solo|shrine-run 1.5s
+[visual-polish] solo|event|n8 24.3s
+[visual-polish] solo|event-result|n8 19.1s
+[visual-polish] solo|mark|n8 40.2s
+[visual-polish] solo|bid|n8 36.6s
+[visual-polish] solo|shrine|n8 21.3s
+[visual-polish] solo|shrine-run 0.9s
+[visual-polish] solo|mark|n9 46.8s
+[visual-polish] solo|bid|n9 49.6s
+[visual-polish] solo|shrine|n9 32.6s
+[visual-polish] solo|end 24.6s
+[visual-polish] solo|review 17.5s
+[visual-polish] solo done 1951s
+{
+ "tag": "base-solo",
+ "cells": 225,
+ "lost": [
+  "solo|shrine-run lost8",
+  "solo|duel lost4"
+ ],
+ "pageErrors": {
+  "solo": 0
+ },
+ "breaks": {
+  "byVp": {
+   "V1": "38/45 格紅（含例外 39）",
+   "V2": "23/45 格紅（含例外 25）",
+   "V3": "38/45 格紅（含例外 39）",
+   "V4": "42/45 格紅（含例外 42）",
+   "V5": "13/45 格紅（含例外 24）"
+  },
+  "items": 41,
+  "list": [
+   "#south > button.side「袋子」袋|子 ×150 「袋 ／ 子」",
+   "#myPow「部隊 1 隻・攻 1・血 3」攻|1 ×59 「部隊 1 隻・攻 ／ 1・血 3」",
+   "#myDir「南・青面攤主」攤|主 ×56 「南・青面攤 ／ 主」",
+   "#myDir「南・青面攤主」面|攤 ×50 「南・青面 ／ 攤主」",
+   "#myPow「部隊 1 隻・攻 1・血 3」血|3 ×41 「部隊 1 隻・攻 1・血 ／ 3」",
+   "#mainbtn「蓋牌開標」牌|開 [例外] ×40 「蓋牌 ／ 開標」",
+   "#mc0 > div.ab「每次戰敗：每件額外失 1 壽命（」減|傷 [句子] ×35 「每次戰敗：每件額外失 1 壽命（減 ／ 傷前）」",
+   "#mainbtn「🕯️ 請神」請|神 ×21 「🕯️ 請 ／ 神」",
+   "#mainbtn「蓋牌開標」開|標 ×20 「蓋牌開 ／ 標」",
+   "#mainbtn「不盯任何一件」何|一 ×18 「不盯任何 ／ 一件」",
+   "#myDir「南・青面攤主」青|面 ×17 「南・青 ／ 面攤主」",
+   "#mainbtn「不盯任何一件」一|件 ×16 「不盯任何一 ／ 件」",
+   "#mainbtn「進入下一夜」一|夜 ×15 「進入下一 ／ 夜」",
+   "#mc2 > div.ab「✦ 你的毒標比價時視為 +2（實」不|變 [句子] ×15 「✦ 你的毒標比價時視為 +2（實付不 ／ 變）」",
+   "#mc1 > div.ab「✦ 被毒標塞中時，下手的人失 2」壽|命 [句子] ×10 「✦ 被毒標塞中時，下手的人失 2 壽 ／ 命」",
+   "#myDir「南・青面攤主（南風）」南|風 ×9 「南・青面攤主（南 ／ 風）」",
+   "#mainbtn「再入妖市」妖|市 ×6 「再入妖 ／ 市」",
+   "#mainbtn「前往拍賣」拍|賣 ×5 「前往拍 ／ 賣」",
+   "#reviewbox > div.rvTiles > div.rvTile > div.w「最多：東・孝女白琴 2 次」2|次 ×5 「最多：東・孝女白琴 2 ／ 次」",
+   "#mainbtn「進入下一夜」下|一 ×3 「進入下 ／ 一夜」",
+   "#mc1 > div.ab「✦ 你的保守標上限提高 50%（」下|取 [句子] ×3 「✦ 你的保守標上限提高 50%（向下 ／ 取整）」",
+   "#mc1 > div.ab「✦ 你的毒標比價時視為 +2（實」不|變 [句子] ×3 「✦ 你的毒標比價時視為 +2（實付不 ／ 變）」",
+   "#mainbtn「不盯任何一件」任|何 ×2 「不盯任 ／ 何一件」",
+   "#myDir「南・青面攤主（南風）」攤|主 ×2 「南・青面攤 ／ 主（南風）」",
+   "#mc3 > div.ab「🚫 本夜不開標・每夜有得標：每」件|付 [句子] ×2 「🚫 本夜不開標・每夜有得標：每件 ／ 付 1 壽命禮金」",
+   "#myPow「部隊 1 隻・攻 1・血 3・\ud83d」💀|出 ×2 「部隊 1 隻・攻 1・血 3・💀 ／ 出局」",
+   "#myPow「部隊 1 隻・攻 1・血 3・\ud83d」出|局 ×2 「部隊 1 隻・攻 1・血 3・💀出 ／ 局」",
+   "#stage > div.stageCard > div.endrank「1. 東家・孝女白琴 — 壽命 」血|1 ×2 「1. 東家・孝女白琴 — 壽命 27（16 隻・血 ／ 111）」",
+   "#stage > div.stageCard > div.endrank「2. 北家・收驚婆 — 壽命 1」血|9 ×2 「2. 北家・收驚婆 — 壽命 14（18 隻・血 ／ 90）」",
+   "#mainbtn「下一件拍品 ▸」拍|品 ×1 「下一件拍 ／ 品 ▸」",
+   "#stage > div.stageCard > div.bidfly > span「白虎煞 🕸」虎|煞 ×1 「白虎 ／ 煞 🕸」",
+   "#mainbtn「開戰」開|戰 ×1 「開 ／ 戰」",
+   "#myPow「部隊 1 隻・攻 1・血 3」1|隻 ×1 「部隊 1 ／ 隻・攻 1・ ／ 血 3」",
+   "#stage > div.stageCard > div.bidfly > span「魔神仔的芭樂 🕸」的|芭 ×1 「魔神仔的 ／ 芭樂 🕸」",
+   "#stage > div.stakebar > div.stakerow > span「🎲 押寶夜・今夜這一注」今|夜 ×1 「🎲 押寶夜・今 ／ 夜這一注」",
+   "#stage > div.stakebar > div.stakerow > span「🎲 押寶夜・今夜這一注」寶|夜 ×1 「🎲 押寶 ／ 夜・今夜 ／ 這一注」",
+   "#stage > div.stakebar > div.stakerow > span「🎲 押寶夜・今夜這一注」夜|這 ×1 「🎲 押寶 ／ 夜・今夜 ／ 這一注」",
+   "#stage > div.stakebar > div.stakerow > span「🎲 押寶夜・今夜這一注」一|注 ×1 「🎲 押寶夜・今夜這一 ／ 注」",
+   "#stage > div.stageCard > div.bidfly > span「孝女白琴 毒標得手 → 塞進 收」實|付 ×1 「孝女白琴 毒標得手 → 塞進 收驚婆 的袋子（3・實 ／ 付 4）」",
+   "#stage > div.stageCard > div.bidfly > span「抓交替水符 🕸」水|符 ×1 「抓交替水 ／ 符 🕸」"
+  ]
+ },
+ "spill": {
+  "byVp": {
+   "V1": "31/45 格紅（含例外 31）",
+   "V2": "31/45 格紅（含例外 31）",
+   "V3": "31/45 格紅（含例外 31）",
+   "V4": "31/45 格紅（含例外 31）",
+   "V5": "31/45 格紅（含例外 31）"
+  },
+  "items": 8,
+  "list": [
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.mut ×139 0px",
+   "#northPrev > div.preview ⊃ div.preview > span.credin > b > span.mut ×43 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview ×36 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.rulein > span.mut ×20 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > b ×14 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin ×14 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin > b ×14 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin > span.mut ×1 0px"
+  ]
+ },
+ "font": {
+  "byVp": {
+   "V1": "44/45 格紅（含例外 44）",
+   "V2": "44/45 格紅（含例外 44）",
+   "V3": "44/45 格紅（含例外 44）",
+   "V4": "44/45 格紅（含例外 44）",
+   "V5": "43/45 格紅（含例外 43）"
+  },
+  "items": 55,
+  "list": [
+   "div.shcards > div.shcard > span.shname > span.shn 8px ×390",
+   "div.shcards > div.shcard > span.shname > span.shfac 8px ×390",
+   "#shrines > div.incboard > span.ibh > span 7.5px ×335",
+   "div.incboard > span.ibh > span > b 7.5px ×335",
+   "#shrines > div.incboard > span.ibh > span.on 7.5px ×285",
+   "div.incboard > span.ibh > span.on > b 7.5px ×285",
+   "#seat2 > div > div.st 9px ×210",
+   "#seat3 > div > div.st 9px ×210",
+   "#shrines > div.incboard > span.ibgap 8px ×155",
+   "#mc0 > div.ab 9px ×155",
+   "#mc0 > div.uline.stat 9px ×155",
+   "#mc2 > div.ab 9px ×155",
+   "#mc2 > div.uline.stat 9px ×155",
+   "#shrines > div.shcards > div.shcard > span.shmove 8px ×150",
+   "#shrines > div.incboard > span.ibwhen 8px ×125",
+   "#mc2 > div > span.fchip.f-xianghuo 8.5px ×110",
+   "#northPrev > div.preview 8.5px ×110",
+   "#mc0 > div > span.fchip.f-yinqi 8.5px ×75",
+   "div.shcards > div.shcard.gone > span.shname > span.shn 8px ×75",
+   "div.shcards > div.shcard.gone > span.shname > span.shfac 8px ×75",
+   "#shrines > div.shcards > div.shcard.gone > span.shtaken 8px ×75",
+   "#mc2 > span.markb 9.5px ×60",
+   "#selGrid > div.rcard > div.rlf 9px ×45",
+   "#northPrev > div.preview > b 8.5px ×45",
+   "#northPrev > div.preview > span.credin > b 8.5px ×45",
+   "#northPrev > div.preview > span.rulein > b 8.5px ×45",
+   "#mc0 > div > span.fchip.f-curse 8.5px ×35",
+   "#mc1 > div.ab 9px ×31",
+   "#mc1 > div.uline.stat 9px ×31",
+   "#mc3 > div.ab 9px ×31",
+   "#mc3 > div.uline.stat 9px ×31",
+   "#mc0 > div > span.fchip.f-zuling 8.5px ×30",
+   "#mc2 > div > span.moonCue 8.5px ×30",
+   "#shrines > div.incboard > span.ibwhen > b 8px ×30",
+   "#mc0 > span.markb 9.5px ×20",
+   "#mc0 > div > span.moonCue 8.5px ×20",
+   "#mc1 > div > span.fchip.f-xianghuo 8.5px ×16",
+   "#mc2 > div > span.fchip.f-zuling 8.5px ×15",
+   "#mc2 > div > span.fchip.f-yinqi 8.5px ×15",
+   "#mc0 > div > span.fchip.f-xianghuo 8.5px ×15"
+  ]
+ },
+ "contrast": {
+  "byVp": {
+   "V1": "17/45 格紅（含例外 20）",
+   "V2": "17/45 格紅（含例外 20）",
+   "V3": "17/45 格紅（含例外 20）",
+   "V4": "17/45 格紅（含例外 19）",
+   "V5": "17/45 格紅（含例外 20）"
+  },
+  "items": 15,
+  "list": [
+   "div.shcards > div.shcard.gone > span.shname > span.shfac ×75 1.71/4.5",
+   "#shrines > div.shcards > div.shcard.gone > span.shtaken ×75 3.46/4.5",
+   "#mc0 > div > span.fchip.f-curse ×20 4.4/4.5",
+   "#mc2 > div > span.fchip.f-curse ×15 4.4/4.5",
+   "#mainbtn [inactive] ×10 1.62/3",
+   "#mc3 > div > span.fchip.f-curse ×6 3.87/4.5",
+   "#selHead > button.selback ×5 4.26/4.5",
+   "#pwch-A > i.pwfac [transient] ×5 1/4.5",
+   "#pwch-B > i.pwfac [transient] ×5 1.01/4.5",
+   "div.shcards > div.shcard.gone > span.shname > span.shn ×3 3.33/4.5",
+   "#mc3 > div.nm ×2 4.43/4.5",
+   "#mc3 > div > span.pw ×2 3.55/4.5",
+   "#mc3 > div.ab ×2 2.89/4.5",
+   "#mc3 > div.uline.stat ×2 2.9/4.5",
+   "#duelArena > div.vsbig [transient] ×1 2.96/3"
+  ]
+ },
+ "target": {
+  "byVp": {
+   "V1": "41/45 格紅（含例外 41）",
+   "V2": "41/45 格紅（含例外 41）",
+   "V3": "41/45 格紅（含例外 41）",
+   "V4": "41/45 格紅（含例外 41）",
+   "V5": "41/45 格紅（含例外 41）"
+  },
+  "items": 17,
+  "list": [
+   "#seat1 > span.roleInfoBtn ×190 24x18",
+   "#seat2 > span.roleInfoBtn ×190 24x18",
+   "#helpBtn ×190 34x34",
+   "#seat3 > span.roleInfoBtn ×190 24x18",
+   "#south > button.side ×190 46x38",
+   "#south > button.side.roleInfoBtn ×190 32x38",
+   "#sfxBtn ×174 43x38",
+   "#budget > span.incbar > button ×90 20x20",
+   "div.stakebar > div.stakerow > div.stepper > button ×10 16x30",
+   "#selHead > button.selback ×5 50x30",
+   "#fpsToggle ×5 84x22",
+   "#skipbtn ×5 58x22",
+   "#stage > div.stakebar > div.stakerow > button.typebtn ×5 58x30",
+   "#rvDl ×5 114x34",
+   "#rvCopy ×5 116x34",
+   "#reviewbox > div.rvTop > div.rvTopBtns > button.bigbtn.alt ×5 60x34",
+   "#stage > div.stageCard > button.bigbtn.alt ×1 121x38"
+  ]
+ },
+ "align": {
+  "byVp": {
+   "V1": "31/45 格紅（含例外 31）",
+   "V2": "31/45 格紅（含例外 31）",
+   "V3": "31/45 格紅（含例外 31）",
+   "V4": "31/45 格紅（含例外 31）",
+   "V5": "31/45 格紅（含例外 31）"
+  },
+  "items": 3,
+  "list": [
+   "north ×155 dt20.2 db20.2 dh40.3",
+   "railCards ×113 dt0 db42.5 dh42.5",
+   "railCards2 ×29 dt28 db48 dh20"
+  ]
+ },
+ "north": {
+  "byVp": {
+   "V1": "0/45 格紅（含例外 0）",
+   "V2": "0/45 格紅（含例外 0）",
+   "V3": "0/45 格紅（含例外 0）",
+   "V4": "0/45 格紅（含例外 0）",
+   "V5": "0/45 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "northOpen": {
+  "openedCells": 0,
+  "srcItemsChecked": 0
+ }
+}
+EXIT 0

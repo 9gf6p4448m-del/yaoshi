@@ -1,45 +1,44 @@
-[text-fit] solo done 380s
-[text-fit] hot done 428s
-[text-fit] nw1 done 304s
-[text-fit] nw2 done 53s
-[text-fit] nw3 done 52s
+[text-fit] solo done 1128s
+[text-fit] hot done 1073s
+[text-fit] nw1 done 1048s
+[text-fit] nw2 done 64s
+[text-fit] nw3 done 74s
 {
  "tag": "head",
- "cells": 790,
- "cellsRed": 138,
+ "cells": 905,
+ "cellsRed": 213,
  "byVp": {
   "V1": {
-   "cells": 158,
-   "red": 36,
-   "redScrollOnly": 36
+   "cells": 181,
+   "red": 56,
+   "redScrollOnly": 56
   },
   "V2": {
-   "cells": 158,
-   "red": 24,
-   "redScrollOnly": 24
+   "cells": 181,
+   "red": 37,
+   "redScrollOnly": 37
   },
   "V3": {
-   "cells": 158,
-   "red": 36,
-   "redScrollOnly": 36
+   "cells": 181,
+   "red": 56,
+   "redScrollOnly": 56
   },
   "V4": {
-   "cells": 158,
-   "red": 39,
-   "redScrollOnly": 39
+   "cells": 181,
+   "red": 60,
+   "redScrollOnly": 59
   },
   "V5": {
-   "cells": 158,
-   "red": 3,
-   "redScrollOnly": 3
+   "cells": 181,
+   "red": 4,
+   "redScrollOnly": 4
   }
  },
- "items": 7,
+ "items": 8,
  "lost": [
   "solo|shrine-run lost8",
-  "solo|duel lost1",
-  "hot|shrine-run lost9",
-  "nw1|shrine-run lost8",
+  "hot|shrine-run lost8",
+  "nw1|shrine-run lost9",
   "nw2|shrine-run lost1",
   "nw3|shrine-run lost1"
  ],
@@ -51,31 +50,28 @@
   "nw3": []
  },
  "guard": {
-  "cells": 227,
-  "spill": {
-   "#northPrev > div.preview": "225 格，例 solo|mark|n1@V5 409/409 29/27",
-   "#northPrev": "26 格，例 hot|bid|n2@V4 242/242 62/56"
-  },
+  "cells": 0,
+  "spill": {},
   "overlap": {}
  },
  "strips": [
-  "#feltHead n701 minOwn 0 minEff 0 低於.85且無字影 0 ",
-  "#feltHead > span.headCompact n701 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
-  "#feltHead > div.wishbar n355 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
-  "#northPrev > div.preview n540 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead n818 minOwn 0 minEff 0 低於.85且無字影 0 ",
+  "#feltHead > span.headCompact n818 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead > div.wishbar n385 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#northPrev > button.nsum n585 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
   "#revealCard n21 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
-  "#stage > div.stageCard n321 minOwn 1 minEff 1 低於.85且無字影 0 ",
-  "#stage > div.stakebar n15 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
-  "#bub1 n18 minOwn 1 minEff 1 低於.85且無字影 0 "
+  "#stage > div.stageCard n408 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n10 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#bub1 n17 minOwn 1 minEff 1 低於.85且無字影 0 "
  ],
  "itemList": [
   "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 🔧 音訊診斷：sfx v0.58」→「？ 妖市規則 🔧 音訊診斷：sfx v0.58」",
-  "[scroll reach 92/92] #felt ×92 「東風・🌑 朔月｜陰氣拍：全隊 HP +1 ？ 」→「東風・🌑 朔月｜陰氣拍：全隊 HP +1 ？ 」",
-  "[scroll reach 16/16] #railW > div.railPages ×16 「虎姑婆指甲 共鳴3拍・大紙偶×1陰氣 ✦ 戰勝時」→「虎姑婆指甲 共鳴3拍・大紙偶×1陰氣 ✦ 戰勝時」",
-  "[scroll reach 24/24] #railE > div.railPages ×24 「千里眼銅鈴 共鳴2拍・護法紙人×2香火🌕 今夜」→「千里眼銅鈴 共鳴2拍・護法紙人×2香火🌕 今夜」",
+  "#duel ×1 「二拍・護 北家 收驚婆 0 隻 大紙偶×1 香 」→「北家 收驚婆 0 隻 大紙偶×1 香VS 西家 」",
+  "[scroll reach 150/150] #felt ×150 「南風・🌓 上弦｜祖靈拍：全隊 HP +1 ？ 」→「南風・🌓 上弦｜祖靈拍：全隊 HP +1 ？ 」",
+  "[scroll reach 32/32] #railW > div.railPages ×32 「山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠」→「山豬牙飾 共鳴1拍・小紙人×1祖靈🌓 今夜受惠」",
+  "[scroll reach 40/40] #railE > div.railPages ×40 「👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈\ud83c」→「👁北西東 射日神弓 共鳴1拍・大紙偶×1祖靈\ud83c」",
   "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
   "[scroll reach 3/3] #nwScr ×3 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
   "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」"
  ]
 }
-EXIT 0

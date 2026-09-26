@@ -804,7 +804,9 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css">
+<link rel="stylesheet" href="assets/safe-area.css?v=0.58.3"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+  不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
+  挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
 {
   "imports": {
@@ -2814,6 +2816,7 @@ function setHollow(on){
   f.classList.toggle("hollow",hollow);
   if(!hollow){
     ["railW","railE","northPrev","northShr"].forEach(id=>{ const e=$(id); if(e) e.innerHTML=""; });
+    toggleNorth(false);
     const n=$("north"); if(n) n.classList.remove("shwide"); /* 讓寬只在掏空頁的 wide 兩夜生效 */
     /* v0.56b：非掏空頁桌心沒有托盤可點，相位歸零並把 3D 層的 hover 收掉——
        這四個容器與這個相位的生命週期全由這一支在管（收斂，不逐頁補清空）。 */
@@ -2852,12 +2855,30 @@ function railHTML(idxs,cardFn,id){
 }
 /* 掏空頁的三塊搬家：預告框→#northPrev、香火榜→#northShr、市集卡→#railW／#railE（前半／後半）。
    四張卡的左右分配用 S.market.length 算，不寫死 4——CFG.MARKET 改了這裡自動跟上。 */
-function fillRails(prevHTML,shrHTML,cardFn){
+/* v0.58.3 北列收合（使用者裁定 B「收成一行摘要，點開看全文」；凍結 visual-polish 修訂 (a)–(d)）：
+   北列兩格各只放一顆一行摘要鈕（.nsum），原本的預告框／香火榜整份原樣包進 .nfull，收合時不顯示、
+   點任一顆摘要鈕兩塊一起往下展開（#north.nopen），點面板或面板以外任何地方就收起（點擊照常落到底下的元件）。
+   北列高度、#felt 大小都不變 ⇒ 3D 取景的輸入不變。摘要字是純讀取（不耗亂數、不寫賽局欄位）。 */
+function northCellHTML(sum,full){
+  return full?`<button type="button" class="nsum" aria-expanded="false" onclick="toggleNorth()">${sum}<span class="nsumArr" aria-hidden="true">▾</span></button><div class="nfull" onclick="toggleNorth(false)">${full}</div>`:"";
+}
+function toggleNorth(open){
+  const n=$("north"); if(!n||!n.classList) return;
+  const on=(open==null)?!n.classList.contains("nopen"):!!open;
+  n.classList.toggle("nopen",on);
+  n.querySelectorAll(".nsum").forEach(b=>b.setAttribute("aria-expanded",String(on)));
+}
+if(typeof document!=="undefined"&&document.addEventListener) document.addEventListener("pointerdown",e=>{
+  const n=typeof $==="function"?$("north"):null;
+  if(n&&n.classList&&n.classList.contains("nopen")&&!n.contains(e.target)) toggleNorth(false);
+},true);
+function fillRails(prevHTML,shrHTML,cardFn,sum){
   if(RAIL_PAGE.round!==S.round) RAIL_PAGE={round:S.round,railW:0,railE:0};
   const set=(id,h)=>{ const e=$(id); if(e) e.innerHTML=h; };
   const idx=S.market.map((_,i)=>i), half=Math.ceil(idx.length/2);
-  set("northPrev",prevHTML);
-  set("northShr",shrHTML);
+  toggleNorth(false);
+  set("northPrev",northCellHTML((sum&&sum.prev)||"🔮 預告",prevHTML));
+  set("northShr",northCellHTML(shrinesSumText(),shrHTML));
   set("railW",railHTML(idx.slice(0,half),cardFn,"railW"));
   set("railE",railHTML(idx.slice(half),cardFn,"railE"));
   /* 請神夜前一夜與當夜（香火榜是 wide）給北列掛 `.shwide`，CSS 才知道要把預告框的寬讓給香火榜
@@ -5239,8 +5260,8 @@ function renderSeats(hlIds){
    一條榜＝四家香火池＋你領先／落後＋下一個請神夜倒數；三張卡＝三尊的陣營與招式，被請走時標「已請走：X 家」。
    版面：整組放在中央面板（#stage）的法寶卡正上方，北席因此回到頂端正中。
    高度預算（覆審 HIGH-1 甲）：平常 slim＝榜與三卡擠成**一列**；請神夜前一夜與當夜 wide＝拆成兩列、卡上多印招式。 */
-function shrinesHTML(){
-  if(!CFG.LEGEND_ON||!S||!S.shrines) return "";
+/* 香火榜的「你 N・領先／落後」與請神倒數：shrinesHTML 與北列摘要（shrinesSumText）共用這一份（v0.58.3 抽出，算式未改） */
+function shrineStatus(){
   const me=S.players[typeof ACTIVE==="number"?ACTIVE:0];
   const mine=me?(S.incPool[me.id]|0):0;
   /* 領先＝**還沒請到的人**裡他人最高（持有者不參加開標，把他們算進去會讓玩家誤判自己落後） */
@@ -5248,6 +5269,18 @@ function shrinesHTML(){
   const gap=mine-lead;
   const nxt=(CFG.SHRINE_NIGHTS||[]).find(n=>n>=S.round);
   const left=nxt==null?null:nxt-S.round;
+  const standing=(me&&hasLegend(me))?"已請到":(gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手"));
+  return {me,mine,gap,nxt,left,standing};
+}
+function shrinesSumText(){
+  if(!CFG.LEGEND_ON||!S||!S.shrines) return "";
+  const st=shrineStatus();
+  const when=st.nxt==null?"請神已過":(st.left>0?`倒數 ${st.left} 夜`:"今夜請神");
+  return `<span class="nob">🕯️ 你 ${st.mine}・${st.standing}</span><span class="nob">｜${when}</span>`;
+}
+function shrinesHTML(){
+  if(!CFG.LEGEND_ON||!S||!S.shrines) return "";
+  const {mine,nxt,left,standing}=shrineStatus();
   const wide=(left!=null&&left<=1);
   const cells=S.players.map(p=>{
     const h=S.incPool[p.id]|0, got=hasLegend(p);
@@ -5257,7 +5290,7 @@ function shrinesHTML(){
     :(left>0?`第 ${nxt} 夜請神・倒數 ${left} 夜`:"<b>今夜請神</b>");
   const board=`<div class="incboard" title="香火不綁尊：請神夜由「還沒請到的人」裡香火最高者請神、自選一尊；同分依本夜風位起順時針。落空的香火原封留到下一個請神夜。">
     🕯️<span class="ibh">${cells}</span>
-    <span class="ibgap">你 ${mine}・${(me&&hasLegend(me))?"已請到":(gap>0?`領先 ${gap}`:(gap<0?`落後 ${-gap}`:"平手"))}</span>
+    <span class="ibgap">你 ${mine}・${standing}</span>
     <span class="ibwhen">${when}</span></div>`;
   const cards=S.shrines.map(sh=>{
     const L=LEGENDS[sh.i], f=FAC[sh.fac]||{n:"？"}, tr=(TRAITS[L.unit.trait]||{name:"",desc:""});
@@ -5901,7 +5934,7 @@ function showMarkUI(){
   if(newChains.length) setTimeout(()=>document.querySelectorAll("#table .chainAwaken").forEach(el=>el.remove()),1500);
   setHollow(hollow);
   setFeltPrivateContext(ap,hollow);
-  if(hollow){ fillRails(prev,shrinesHTML(),markCardHTML); TRAY_PHASE="mark"; pushMarket3d(); }
+  if(hollow){ fillRails(prev,shrinesHTML(),markCardHTML,{prev:`<span class="nob">👁 盯上宣告</span>${rl?`<span class="nob">｜${rl.icon}${rl.name}</span>`:""}`}); TRAY_PHASE="mark"; pushMarket3d(); }
   /* 對手反應提示放底列 #budget（盯上階段那格是空的；出價階段 updateBudget 會整個覆蓋掉）：
      牌桌 #felt 在規則夜已無高度預算（收祟夜實測放進預告框會溢出 28px），底列就在「不盯任何一件」旁，正是做決定的位置。 */
   const bd=$("budget"); bd.innerHTML=markHintHTML(ap); bd.className="";
@@ -6009,7 +6042,7 @@ function showMarket(){
   setHollow(hollow);
   setFeltPrivateContext(ap,hollow);
   if(hollow){
-    fillRails(prev,shrinesHTML(),mcardHTML);
+    fillRails(prev,shrinesHTML(),mcardHTML,{prev:`<span class="nob">🔮 明夜${pv.length?`「${pv[0].n}」`:"預告"}</span>${(rl&&!stake)?`<span class="nob">｜${rl.icon}${rl.name}</span>`:""}`});
     TRAY_PHASE="bid";
     pushMarket3d();
     pushMarks3d();

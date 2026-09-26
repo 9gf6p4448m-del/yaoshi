@@ -22,7 +22,9 @@ const OUT = path.resolve(arg('--out', path.join(ROOT, 'docs/experiments/2026-09-
 const TAG = arg('--tag', BASE ? 'base-' + BASE : 'head');
 const SEED = Number(arg('--seed', 3));
 const MODES = arg('--modes', 'solo,hot,nw1,nw2,nw3').split(',');
-const PORT = 9645;
+const PORT = Number(arg('--port', 9645));
+/* --merge a.json,b.json：不跑瀏覽器，把按模式分片跑的結果（各自 --tag）合併成一份再彙總（格鍵不得重複） */
+const MERGE = arg('--merge', null);
 const SHOTS = path.join(OUT, 'shots-' + TAG);
 fs.mkdirSync(SHOTS, { recursive: true });
 
@@ -97,6 +99,7 @@ window.__vp = {
     const out = [], tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     for (let n = tw.nextNode(); n; n = tw.nextNode()) {
       const p = n.parentElement; if (!p || (!keepBlank && !/\S/.test(n.textContent)) || this.skip(p) || !__tf.vis(p)) continue;
+      if (this.__only && !this.__only.contains(p)) continue;   /* 展開量測只量北列 */
       out.push(n);
     }
     return out;
@@ -149,6 +152,7 @@ window.__vp = {
     const cands = [];
     for (const el of document.body.querySelectorAll('*')) {
       if (this.skip(el) || !__tf.vis(el)) continue;
+      if (this.__only && !this.__only.contains(el)) continue;
       const txt = (el.innerText || '').replace(/\s+/g, ''); if (!txt || txt.length > 24) continue;
       const btn = el.tagName === 'BUTTON' || el.hasAttribute('onclick') || el.getAttribute('role') === 'tab';
       if (!btn && this.isInlineDisp(el)) continue;
@@ -319,6 +323,45 @@ window.__vp = {
   effOp(p){ let op = 1; for (let a = p; a; a = a.parentElement) op *= parseFloat(getComputedStyle(a).opacity); return op; },
   /* 量測前先記一次每個文字父元素的有效 opacity；對比量到時若已改變（淡入淡出中）＝暫態 */
   snapOp(){ this.__op0 = new WeakMap(); for (const n of this.textNodes(document.body)) if (!this.__op0.has(n.parentElement)) this.__op0.set(n.parentElement, this.effOp(n.parentElement)); },
+  /* ===== 北列收合（凍結修訂 (a)–(d)）=====
+     collapsed()：北列高 ≤56px；每顆摘要鈕只有一行；北列以外的可點元素中心沒有被北列任何元素蓋住。
+     opened()：展開後 #mainbtn 中心仍命中自己；面板可見的文字項目 ⊇ 原北列項目（fillRails 收到的兩段 HTML 逐文字節點，多重集合比對）。
+     收起測試在主程式：北列以外送一個 pointerdown，面板要收起。 */
+  srcItems(html){ const d = document.createElement('div'); d.innerHTML = html || ''; const o = []; const tw = document.createTreeWalker(d, NodeFilter.SHOW_TEXT); for (let n = tw.nextNode(); n; n = tw.nextNode()) { const t = n.textContent.replace(/\s+/g, ' ').trim(); if (t) o.push(t); } return o; },
+  northItems(){ const s = window.__northSrc; return s ? { prev: this.srcItems(s.prev), shr: this.srcItems(s.shr) } : null; },
+  collapsed(){
+    const out = [], N = document.getElementById('north'); if (!N || !__tf.vis(N) || !document.querySelector('#north .nsum')) return out;
+    const nr = N.getBoundingClientRect(); if (nr.height > 56.5) out.push({ kind: 'height', sel: '#north', px: +nr.height.toFixed(1) });
+    for (const b of document.querySelectorAll('#north .nsum')) {
+      if (!__tf.vis(b)) continue;
+      const tops = []; for (const c of this.chars(b)) if (!c.space) tops.push(c.t);
+      tops.sort((a, b2) => a - b2); let lines = tops.length ? 1 : 0; for (let i = 1; i < tops.length; i++) if (tops[i] - tops[i - 1] > 5) lines++;
+      if (lines > 1) out.push({ kind: 'lines', sel: __tf.sel(b), text: b.innerText.replace(/\s+/g, ' ').trim(), lines });
+    }
+    for (const el of document.body.querySelectorAll('button, a[href], input:not([type=hidden]), select, [onclick], [role=button], [role=tab], label[for]')) {
+      if (N.contains(el) || this.skip(el) || !__tf.vis(el)) continue;
+      const r = el.getBoundingClientRect(); if (r.width < 1 || r.height < 1) continue;
+      const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2; if (cx < 0 || cy < 0 || cx >= innerWidth || cy >= innerHeight) continue;
+      const h = document.elementFromPoint(cx, cy); if (h && N.contains(h)) out.push({ kind: 'block', sel: __tf.sel(el), by: __tf.sel(h) });
+    }
+    return out;
+  },
+  opened(){
+    const out = [], N = document.getElementById('north');
+    if (!N.classList.contains('nopen')) { out.push({ kind: 'openFail', sel: '#north' }); return out; }
+    const mb = document.getElementById('mainbtn');
+    if (mb && __tf.vis(mb)) { const r = mb.getBoundingClientRect(); const h = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2); if (h && N.contains(h)) out.push({ kind: 'openBlocksMain', sel: '#mainbtn', by: h ? __tf.sel(h) : null }); }
+    const src = this.northItems(); if (!src) { out.push({ kind: 'noSrc', sel: '#north' }); return out; }
+    let n = 0;
+    for (const [part, id] of [['prev', 'northPrev'], ['shr', 'northShr']]) {
+      const panel = document.querySelector('#' + id + ' .nfull'); const have = [];
+      if (panel) { const tw = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT); for (let t0 = tw.nextNode(); t0; t0 = tw.nextNode()) { const t = t0.textContent.replace(/\s+/g, ' ').trim(); if (!t || !t0.parentElement || !__tf.vis(t0.parentElement)) continue; const q = t0.parentElement.getBoundingClientRect(); if (q.width < 0.5 || q.height < 0.5) continue; have.push(t); } }
+      const pool = have.slice();
+      for (const t of src[part]) { n++; const i = pool.indexOf(t); if (i >= 0) pool.splice(i, 1); else out.push({ kind: 'missing', sel: '#' + id, text: t.slice(0, 40) }); }
+    }
+    window.__vpItemN = n;
+    return out;
+  },
   /* ===== #5 觸控目標 ===== 可點＝button、a[href]、input、select、[onclick]、[role=button|tab]、label[for]；中心被蓋住（不可點）者不計。 */
   targets(){
     this.__clip = new Map();
@@ -326,6 +369,7 @@ window.__vp = {
     const hit = (el, x, y) => { if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false; const h = document.elementFromPoint(x, y); return !!h && (h === el || el.contains(h)); };
     for (const el of document.body.querySelectorAll('button, a[href], input:not([type=hidden]), select, [onclick], [role=button], [role=tab], label[for]')) {
       if (this.skip(el) || !__tf.vis(el)) continue;
+      if (this.__only && !this.__only.contains(el)) continue;
       if (el.parentElement && el.parentElement.closest('button')) continue; /* 按鈕內的子元素不另計（巢狀在 onclick 卡片裡的獨立 onclick，例如座位卡的 ⓘ，照計） */
       const r = el.getBoundingClientRect(); if (r.width < 1 || r.height < 1) continue;
       const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
@@ -387,11 +431,20 @@ window.__vp = {
     return out;
   },
 };`;
-const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
-const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
-await new Promise((r) => setTimeout(r, 900));
-const browser = await chromium.launch();
 const R = { tag: TAG, base: BASE, seed: SEED, viewports: VP, cells: {}, transitions: [], notes: [], pageErrors: {} };
+let chromium = null, srv = null, browser = null;
+if (MERGE) {
+  for (const f of MERGE.split(',')) {
+    const P = JSON.parse(fs.readFileSync(path.resolve(f), 'utf8'));
+    for (const [k, C] of Object.entries(P.cells)) { if (R.cells[k]) throw new Error('merge: 重複格鍵 ' + k); R.cells[k] = C; }
+    Object.assign(R.pageErrors, P.pageErrors); R.notes.push('merged from ' + path.basename(f) + ' (' + Object.keys(P.cells).length + ' keys)');
+  }
+} else {
+  ({ chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright'));
+  srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+  await new Promise((r) => setTimeout(r, 900));
+  browser = await chromium.launch();
+}
 
 async function setVP(page, name) {
   const v = VP[name];
@@ -418,6 +471,25 @@ async function measure(page) {
   await page.evaluate(() => document.getElementById('__vpHide').remove());
   b.contrast = await page.evaluate(([s, d]) => __vp.contrast(s, d, window.__vpAnim), [bgPng.toString('base64'), 1]);
   b.dbgPrev = await page.evaluate(() => __vp.dbgPrev());
+  b.north = await page.evaluate(() => __vp.collapsed());
+  b.northItems = await page.evaluate(() => __vp.northItems());
+  /* 展開量測：有摘要鈕才做。展開 → 只量北列的 #1–#5 ＋ (b)(d) → 在北列外送 pointerdown → 要收起 */
+  if (await page.evaluate(() => { const x = document.querySelector('#north .nsum'); return !!x && __tf.vis(x); })) {
+    await page.evaluate(() => document.querySelector('#north .nsum').click());
+    await page.waitForTimeout(150);
+    await page.evaluate(() => { window.__vpAnim = document.getAnimations().filter((a) => a.playState === 'running' && a.effect && a.effect.target).map((a) => a.effect.target); __vp.snapOp(); __vp.__only = document.getElementById('north'); });
+    const o = await page.evaluate(() => ({ breaks: __vp.breaks(), spill: __vp.spill(), font: __vp.fonts(), target: __vp.targets(), north: __vp.opened(), itemN: window.__vpItemN || 0 }));
+    await page.evaluate(() => { const st = document.createElement('style'); st.id = '__vpHide'; st.textContent = '*{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;caret-color:transparent!important}'; document.head.appendChild(st); });
+    const oBg = await page.screenshot();
+    await page.evaluate(() => document.getElementById('__vpHide').remove());
+    o.contrast = await page.evaluate(([s, d]) => __vp.contrast(s, d, window.__vpAnim), [oBg.toString('base64'), 1]);
+    b.openShot = await page.screenshot();
+    await page.evaluate(() => { __vp.__only = null; const t = document.getElementById('helpBtn') || document.body; t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); });
+    await page.waitForTimeout(60);
+    if (await page.evaluate(() => document.getElementById('north').classList.contains('nopen'))) { o.north.push({ kind: 'closeFail', sel: '#north' }); await page.evaluate(() => toggleNorth(false)); }
+    for (const k of ['breaks', 'spill', 'font', 'target', 'contrast', 'north']) for (const x of o[k]) { x.open = true; (b[k] = b[k] || []).push(x); }
+    b.opened = true; b.itemN = o.itemN;
+  }
   return { m: b, png };
 }
 
@@ -434,7 +506,8 @@ async function cellsFor(page, mode, cls) {
     if (await scr(page) !== cls) { C.lost = (C.lost || 0) + 1; break; }
     const { m, png } = await measure(page);
     if (await scr(page) !== cls) { C.lost = (C.lost || 0) + 1; break; }
-    if (v === LAND[0]) { m.shot = `${key.replace(/[|:]/g, '_')}-${v}.png`; fs.writeFileSync(path.join(SHOTS, m.shot), png); }
+    if (v === LAND[0]) { m.shot = `${key.replace(/[|:]/g, '_')}-${v}.png`; fs.writeFileSync(path.join(SHOTS, m.shot), png); if (m.openShot) fs.writeFileSync(path.join(SHOTS, m.shot.replace('.png', '-open.png')), m.openShot); }
+    delete m.openShot;
     C.vp[v] = m;
   }
   await setVP(page, LAND[0]);
@@ -521,6 +594,8 @@ async function newCtx(q = '') {
   await page.goto(`http://127.0.0.1:${PORT}/index.html${q}`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object" && !!window.__tf', null, { timeout: 30000 });
   await page.evaluate(() => { CFG.T = 1; const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1; });
+  /* 北列項目清單的來源：包一層 fillRails（治具端，不改產品碼），記下它收到的兩段 HTML（基準與修後同一組呼叫點） */
+  await page.evaluate(() => { const f = window.fillRails; if (typeof f === 'function' && !f.__vp) { const w = function (a, b, ...r) { window.__northSrc = { prev: a, shr: b }; return f.call(this, a, b, ...r); }; w.__vp = 1; window.fillRails = w; } });
   await setVP(page, 'V1');
   return { ctx, page, errs };
 }
@@ -585,7 +660,7 @@ async function runNw(ch, full) {
   } finally { R.pageErrors[mode] = errs; await ctx.close(); }
 }
 
-try {
+if (!MERGE) try {
   for (const m of MODES) {
     const t0 = Date.now();
     if (m === 'solo' || m === 'hot') await runRegular(m);
@@ -597,15 +672,17 @@ try {
 } finally { await browser.close(); srv.kill(); }
 
 /* 彙總：一格＝(畫面鍵, 視口)；每條件按「項」歸併（選擇器＋文字/組名），記錄出現的畫面×視口 */
-const K = ['breaks', 'spill', 'font', 'contrast', 'target', 'align'];
+const K = ['breaks', 'spill', 'font', 'contrast', 'target', 'align', 'north'];
 const itemKey = {
   breaks: (x) => `${x.sel}「${x.full.slice(0, 16)}」${x.at}${x.exc ? ' [例外]' : ''}${x.sentence ? ' [句子]' : ''}`,
   spill: (x) => `${x.box} ⊃ ${x.sel}`,
   font: (x) => `${x.sel} ${x.px}px`,
   contrast: (x) => `${x.sel}${x.inactive ? ' [inactive]' : ''}${x.transient ? ' [transient]' : ''}${x.burnt ? ' [burnt]' : ''}`,
   align: (x) => x.g + (x.transient ? ' [transient]' : ''),
-  target: (x) => x.sel,
+  target: (x) => x.sel + (x.open ? ' [展開]' : ''),
+  north: (x) => `${x.kind} ${x.sel}${x.text ? '「' + x.text.slice(0, 20) + '」' : ''}${x.by ? ' ← ' + x.by : ''}`,
 };
+for (const k of ['breaks', 'spill', 'font', 'contrast']) { const f = itemKey[k]; itemKey[k] = (x) => f(x) + (x.open ? ' [展開]' : ''); }
 const sum = { cells: 0, lost: [], byCond: {} };
 for (const k of K) sum.byCond[k] = { byVp: {}, items: {} };
 for (const [key, C] of Object.entries(R.cells)) {
@@ -647,4 +724,6 @@ for (const k of K) {
   brief[k] = { byVp: Object.fromEntries(Object.entries(S.byVp).map(([v, b]) => [v, `${b.redCellsNoExc}/${b.cells} 格紅（含例外 ${b.redCells}）`])), items: Object.keys(S.items).length,
     list: Object.values(S.items).sort((a, b) => b.n - a.n).slice(0, 40).map((I) => `${I.key} ×${I.n}` + (k === 'contrast' ? ` ${I.ex.ratio}/${I.ex.need}` : k === 'target' ? ` ${I.ex.w}x${I.ex.h}` : k === 'spill' ? ` ${I.ex.px}px${I.ex.side}` : k === 'align' ? ` dt${I.ex.dt} db${I.ex.db} dh${I.ex.dh}` : k === 'breaks' ? ` 「${I.ex.lines}」` : '')) };
 }
+{ let opened = 0, items = 0; for (const C of Object.values(R.cells)) for (const m of Object.values(C.vp)) if (m.opened) { opened++; items += m.itemN || 0; } brief.northOpen = { openedCells: opened, srcItemsChecked: items }; R.summary.northOpen = brief.northOpen; }
+fs.writeFileSync(path.join(OUT, `probe-${TAG}.json`), JSON.stringify(R, null, 1), 'utf8');
 console.log(JSON.stringify(brief, null, 1));

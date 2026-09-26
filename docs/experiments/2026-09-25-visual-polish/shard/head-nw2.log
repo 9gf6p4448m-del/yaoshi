@@ -1,0 +1,115 @@
+[visual-polish] nw2|nw-menu 11.1s
+[visual-polish] nw2|nw-intro 15.2s
+[visual-polish] nw2|select 17.4s
+[visual-polish] nw2|mark|n1 111.1s
+[visual-polish] nw2|bid|n1 89.1s
+[visual-polish] nw2|reveal 74.6s
+[visual-polish] nw2|shrine|n1 65.0s
+[visual-polish] nw2|shrine-run 1.8s
+[visual-polish] nw2|reveal-result 31.0s
+[visual-polish] nw2|duel 21.9s
+[visual-polish] nw2|night-end|n1 26.5s
+[visual-polish] nw2|mark|n2 85.4s
+[visual-polish] nw2|bid|n2 81.3s
+[visual-polish] nw2 done 685s
+{
+ "tag": "head-nw2",
+ "cells": 56,
+ "lost": [
+  "nw2|shrine-run lost1",
+  "nw2|duel lost1"
+ ],
+ "pageErrors": {
+  "nw2": 0
+ },
+ "breaks": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 4）",
+   "V2": "0/11 格紅（含例外 4）",
+   "V3": "0/11 格紅（含例外 4）",
+   "V4": "0/11 格紅（含例外 4）",
+   "V5": "0/11 格紅（含例外 4）"
+  },
+  "items": 2,
+  "list": [
+   "#mc0 > div.ab「✦ 壽命 30 以上時，共鳴加成」額|外 [句子] ×20 「✦ 壽命 30 以上時，共鳴加成額 ／ 外 +50%」",
+   "#mc2 > div.ab「夜戰：本隊只剩 1 隻存活紙紮時」紮|時 [句子] ×20 「夜戰：本隊只剩 1 隻存活紙紮 ／ 時，該隻每次攻擊 +1」"
+  ]
+ },
+ "spill": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 0）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "font": {
+  "byVp": {
+   "V1": "1/12 格紅（含例外 1）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 2,
+  "list": [
+   "#pwch-A > i.pwfac 9px ×1",
+   "#pwch-B > i.pwfac 9px ×1"
+  ]
+ },
+ "contrast": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 1）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 2,
+  "list": [
+   "#pwch-A > i.pwfac [transient] ×1 1.04/4.5",
+   "#pwch-B > i.pwfac [transient] ×1 1.04/4.5"
+  ]
+ },
+ "target": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 0）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "align": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 0）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "north": {
+  "byVp": {
+   "V1": "0/12 格紅（含例外 0）",
+   "V2": "0/11 格紅（含例外 0）",
+   "V3": "0/11 格紅（含例外 0）",
+   "V4": "0/11 格紅（含例外 0）",
+   "V5": "0/11 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "northOpen": {
+  "openedCells": 30,
+  "srcItemsChecked": 625
+ }
+}

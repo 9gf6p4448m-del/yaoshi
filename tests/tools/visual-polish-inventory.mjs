@@ -7,7 +7,7 @@ const [src, prefix] = process.argv.slice(2);
 const R = JSON.parse(fs.readFileSync(src, 'utf8'));
 const dir = path.dirname(path.resolve(src));
 const S = R.summary;
-const NAME = { breaks: '#1 斷行位置', spill: '#2 文字不越框', font: '#3 字級 ≥10px', contrast: '#4 對比', target: '#5 觸控目標 ≥40×40', align: '#6 同列對齊 ≤2px' };
+const NAME = { breaks: '#1 斷行位置', spill: '#2 文字不越框', font: '#3 字級 ≥10px', contrast: '#4 對比', target: '#5 觸控目標 ≥40×40', align: '#6 同列對齊 ≤2px', north: '北列收合 (c)(d)＋(b) 項目' };
 const VPS = ['V1', 'V2', 'V3', 'V4', 'V5'];
 const exFmt = {
   breaks: (x) => `「${x.lines}」 斷在 ${x.at}${x.exc ? '（凍結點名例外）' : ''}${x.sentence ? '（句子，非短標籤，不計）' : ''}`,
@@ -15,6 +15,7 @@ const exFmt = {
   font: (x) => `${x.px}px「${x.text}」`,
   contrast: (x) => `${x.ratio}:1 < ${x.need}（字 rgb(${x.fg}) 底 rgb(${x.bg})${x.op < 1 ? ` opacity ${x.op}` : ''}）「${x.text}」${x.inactive ? '〔disabled，WCAG 豁免〕' : ''}${x.transient ? '〔演出暫態〕' : ''}${x.burnt ? '〔已燒毀籌碼〕' : ''}`,
   target: (x) => `命中 ${x.w}×${x.h}（框 ${x.box.join('×')}）「${x.text}」`,
+  north: (x) => `${x.kind}${x.px ? ' ' + x.px + 'px' : ''}${x.lines ? ' ' + x.lines + ' 行' : ''}${x.text ? '「' + x.text + '」' : ''}${x.by ? ' 被 ' + x.by + ' 蓋住' : ''}`,
   align: (x) => `${x.transient ? '〔演出暫態〕' : ''}上緣差 ${x.dt}・下緣差 ${x.db}・高度差 ${x.dh}｜${x.els.join('；')}`,
 };
 const out = { src: path.basename(src), tag: R.tag, cells: S.cells, lost: S.lost, pageErrors: R.pageErrors, cond: {} };
@@ -23,6 +24,7 @@ md += '| 條件 | ' + VPS.join(' | ') + ' | 項數 |\n|---|' + VPS.map(() => '--
 for (const [k, c] of Object.entries(S.byCond)) {
   md += `| ${NAME[k]} | ` + VPS.map((v) => c.byVp[v] ? `${c.byVp[v].redCellsNoExc}/${c.byVp[v].cells}` : '—').join(' | ') + ` | ${Object.keys(c.items).length} |\n`;
 }
+if (S.northOpen) md += `\n北列展開量測：${S.northOpen.openedCells} 格展開（各視口），逐項比對原北列文字項目 ${S.northOpen.srcItemsChecked} 項。「[展開]」標記的項目是展開狀態量到的。\n`;
 md += '\n格數＝「含非例外紅項的格／總格」（例外＝凍結點名的刻意兩行、句子（說明文）、disabled 元件、演出暫態；照列於下但不計紅）。\n';
 if (S.spillDiag) md += `\n#2 判定採加嚴版（字的 content area 對容器框線內緣 >1px；嚴於字面版）。字面版（em 框對容器外框 >1px）對照格數：` + VPS.map((v) => S.spillDiag.byVp[v] ? `${v} ${S.spillDiag.byVp[v].redCells}/${S.spillDiag.byVp[v].cells}` : '').join('、') + '\n';
 for (const [k, c] of Object.entries(S.byCond)) {

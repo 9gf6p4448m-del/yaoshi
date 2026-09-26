@@ -1,0 +1,189 @@
+[visual-polish] nw3|nw-menu 20.4s
+[visual-polish] nw3|nw-intro 11.8s
+[visual-polish] nw3|select 11.0s
+[visual-polish] nw3|mark|n1 45.7s
+[visual-polish] nw3|bid|n1 49.9s
+[visual-polish] nw3|reveal 36.6s
+[visual-polish] nw3|shrine|n1 30.6s
+[visual-polish] nw3|shrine-run 1.5s
+[visual-polish] nw3|reveal-result 29.3s
+[visual-polish] nw3|duel 15.8s
+[visual-polish] nw3|mark|n2 48.5s
+[visual-polish] nw3|bid|n2 47.7s
+[visual-polish] nw3 done 516s
+{
+ "tag": "base-nw3",
+ "cells": 50,
+ "lost": [
+  "nw3|shrine-run lost1",
+  "nw3|duel lost1"
+ ],
+ "pageErrors": {
+  "nw3": 0
+ },
+ "breaks": {
+  "byVp": {
+   "V1": "5/10 格紅（含例外 5）",
+   "V2": "3/10 格紅（含例外 3）",
+   "V3": "5/10 格紅（含例外 5）",
+   "V4": "7/10 格紅（含例外 7）",
+   "V5": "2/10 格紅（含例外 6）"
+  },
+  "items": 19,
+  "list": [
+   "#south > button.side「袋子」袋|子 ×22 「袋 ／ 子」",
+   "#mc2 > div.ab「✦ 被毒標塞中時，下手的人失 2」壽|命 [句子] ×10 「✦ 被毒標塞中時，下手的人失 2 壽 ／ 命」",
+   "#myPow「部隊 1 隻・攻 1・血 3」攻|1 ×9 「部隊 1 隻・攻 ／ 1・血 3」",
+   "#myDir「南・青面攤主」攤|主 ×7 「南・青面攤 ／ 主」",
+   "#myPow「部隊 1 隻・攻 1・血 3」血|3 ×6 「部隊 1 隻・攻 1・血 ／ 3」",
+   "#mainbtn「蓋牌開標」牌|開 [例外] ×6 「蓋牌 ／ 開標」",
+   "#myDir「南・青面攤主」面|攤 ×5 「南・青面 ／ 攤主」",
+   "#mainbtn「不盯任何一件」一|件 ×4 「不盯任何一 ／ 件」",
+   "#mc1 > div.ab「第1拍：本方最高基礎攻擊紙紮，每」每|件 [句子] ×4 「第1拍：本方最高基礎攻擊紙紮，每 ／ 件攻擊 −2」",
+   "#mainbtn「蓋牌開標」開|標 ×4 「蓋牌開 ／ 標」",
+   "#mainbtn「不盯任何一件」何|一 ×3 「不盯任何 ／ 一件」",
+   "#myDir「南・青面攤主（南風）」南|風 ×3 「南・青面攤主（南 ／ 風）」",
+   "#mc1 > div.ab「✦ 你的毒標比價時視為 +2（實」不|變 [句子] ×2 「✦ 你的毒標比價時視為 +2（實付不 ／ 變）」",
+   "#myDir「南・青面攤主」青|面 ×1 「南・青 ／ 面攤主」",
+   "#mainbtn「下一件拍品 ▸」拍|品 ×1 「下一件拍 ／ 品 ▸」",
+   "#stage > div.stageCard > div.bidfly > span「閭山法師 買下銷毀（自保）（5・」付|4 ×1 「閭山法師 買下銷毀（自保）（5・實付 ／ 4）」",
+   "#mainbtn「🕯️ 請神」請|神 ×1 「🕯️ 請 ／ 神」",
+   "#mainbtn「開戰」開|戰 ×1 「開 ／ 戰」",
+   "#myDir「南・青面攤主（南風）」攤|主 ×1 「南・青面攤 ／ 主（南風）」"
+  ]
+ },
+ "spill": {
+  "byVp": {
+   "V1": "6/10 格紅（含例外 6）",
+   "V2": "6/10 格紅（含例外 6）",
+   "V3": "6/10 格紅（含例外 6）",
+   "V4": "6/10 格紅（含例外 6）",
+   "V5": "6/10 格紅（含例外 6）"
+  },
+  "items": 7,
+  "list": [
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.mut ×30 0px",
+   "#northPrev > div.preview ⊃ div.preview > span.credin > b > span.mut ×8 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview ×4 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > b ×2 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin ×2 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin > b ×2 0px",
+   "#northPrev > div.preview ⊃ #northPrev > div.preview > span.credin > span.mut ×1 0px"
+  ]
+ },
+ "font": {
+  "byVp": {
+   "V1": "8/10 格紅（含例外 8）",
+   "V2": "8/10 格紅（含例外 8）",
+   "V3": "8/10 格紅（含例外 8）",
+   "V4": "8/10 格紅（含例外 8）",
+   "V5": "8/10 格紅（含例外 8）"
+  },
+  "items": 31,
+  "list": [
+   "#shrines > div.incboard > span.ibh > span 7.5px ×90",
+   "div.incboard > span.ibh > span > b 7.5px ×90",
+   "div.shcards > div.shcard > span.shname > span.shn 8px ×90",
+   "div.shcards > div.shcard > span.shname > span.shfac 8px ×90",
+   "#selGrid > div.rcard > div.rlf 9px ×40",
+   "#seat2 > div > div.st 9px ×35",
+   "#seat3 > div > div.st 9px ×35",
+   "#shrines > div.incboard > span.ibgap 8px ×30",
+   "#shrines > div.incboard > span.ibwhen 8px ×30",
+   "#mc0 > div > span.fchip.f-xianghuo 8.5px ×30",
+   "#mc0 > div.ab 9px ×30",
+   "#mc0 > div.uline.stat 9px ×30",
+   "#mc2 > div > span.fchip.f-xianghuo 8.5px ×30",
+   "#mc2 > div.ab 9px ×30",
+   "#mc2 > div.uline.stat 9px ×30",
+   "#shrines > div.incboard > span.ibh > span.on 7.5px ×30",
+   "div.incboard > span.ibh > span.on > b 7.5px ×30",
+   "#northPrev > div.preview 8.5px ×20",
+   "#mc2 > span.markb 9.5px ×20",
+   "#northPrev > div.preview > b 8.5px ×10",
+   "#northPrev > div.preview > span.credin > b 8.5px ×10",
+   "#mc1 > div.ab 9px ×6",
+   "#mc1 > div.uline.stat 9px ×6",
+   "#mc3 > div > span.fchip.f-xianghuo 8.5px ×6",
+   "#mc3 > div.ab 9px ×6",
+   "#mc3 > div.uline.stat 9px ×6",
+   "#selGrid > div.rcard.sel > div.rlf 9px ×5",
+   "#revealCard > div.big > span.fchip.f-xianghuo 9px ×5",
+   "#mc0 > span.markb 9.5px ×5",
+   "#mc1 > div > span.fchip.f-curse 8.5px ×4",
+   "#mc1 > div > span.fchip.f-yinqi 8.5px ×2"
+  ]
+ },
+ "contrast": {
+  "byVp": {
+   "V1": "2/10 格紅（含例外 2）",
+   "V2": "2/10 格紅（含例外 2）",
+   "V3": "2/10 格紅（含例外 2）",
+   "V4": "2/10 格紅（含例外 2）",
+   "V5": "6/10 格紅（含例外 6）"
+  },
+  "items": 3,
+  "list": [
+   "#nwBody > div.nwHead > button.selback ×5 4.26/4.5",
+   "#selHead > button.selback ×5 4.26/4.5",
+   "#mc1 > div > span.fchip.f-curse ×4 4.4/4.5"
+  ]
+ },
+ "target": {
+  "byVp": {
+   "V1": "10/10 格紅（含例外 10）",
+   "V2": "10/10 格紅（含例外 10）",
+   "V3": "10/10 格紅（含例外 10）",
+   "V4": "10/10 格紅（含例外 10）",
+   "V5": "10/10 格紅（含例外 10）"
+  },
+  "items": 14,
+  "list": [
+   "#seat1 > span.roleInfoBtn ×35 24x18",
+   "#seat2 > span.roleInfoBtn ×35 24x18",
+   "#helpBtn ×35 34x34",
+   "#seat3 > span.roleInfoBtn ×35 24x18",
+   "#south > button.side ×35 48x38",
+   "#south > button.side.roleInfoBtn ×35 35x38",
+   "#sfxBtn ×34 44x38",
+   "#budget > span.incbar > button ×20 20x20",
+   "div.nwCard > div.nwInfo > div.nwBtns > button.bigbtn ×15 54x36",
+   "#nwBody > div.nwHead > button.selback ×5 50x30",
+   "#nwGo ×5 80x36",
+   "#nwBody > div.stageCard.nwBig > div.nwBtns > button.bigbtn.alt ×5 82x36",
+   "#selHead > button.selback ×5 50x30",
+   "#skipbtn ×5 58x22"
+  ]
+ },
+ "align": {
+  "byVp": {
+   "V1": "6/10 格紅（含例外 6）",
+   "V2": "6/10 格紅（含例外 6）",
+   "V3": "6/10 格紅（含例外 6）",
+   "V4": "6/10 格紅（含例外 6）",
+   "V5": "6/10 格紅（含例外 6）"
+  },
+  "items": 3,
+  "list": [
+   "north ×30 dt20.2 db20.2 dh40.3",
+   "railCards ×20 dt0 db11.3 dh11.3",
+   "railCards2 ×6 dt8 db8 dh0"
+  ]
+ },
+ "north": {
+  "byVp": {
+   "V1": "0/10 格紅（含例外 0）",
+   "V2": "0/10 格紅（含例外 0）",
+   "V3": "0/10 格紅（含例外 0）",
+   "V4": "0/10 格紅（含例外 0）",
+   "V5": "0/10 格紅（含例外 0）"
+  },
+  "items": 0,
+  "list": []
+ },
+ "northOpen": {
+  "openedCells": 0,
+  "srcItemsChecked": 0
+ }
+}
+EXIT 0

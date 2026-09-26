@@ -134,7 +134,7 @@
 /* 座位卡的 ⓘ 貼著卡底：命中範圍只往上、往兩側延（往下會蓋到下一列的拍品頁籤） */
 .seat .roleInfoBtn { --hit-t: -24px; --hit-b: -1px; --hit-x: -10px; }
 .rvTile .w { word-break: keep-all; }
-/* #3 字級下限 10px（北列除外，見 README「北列」一節）：側座位卡狀態列、拍品卡說明／部隊列／系別 chip／盯上徽章／今夜受惠、
+/* #3 字級下限 10px（北列另見檔尾「北列收合」一段）：側座位卡狀態列、拍品卡說明／部隊列／系別 chip／盯上徽章／今夜受惠、
    選角卡壽命、揭盅卡 chip。只放大字，不改字型、顏色與措辭。
    夜戰籌碼列的系字徽（.pwfac，12px 色圓裡一個字）列為裝飾例外、維持 9px：系別由圓的底色承載（與拍品卡系別 chip 同一組系色）；
    放到 10px 字會超出 12px 圓，圓加大又會把 844×390 的夜戰欄撐高 3px（text-fit #1 實測）。 */
@@ -147,12 +147,12 @@
 .moonCue { font-size: 10px; }
 .rcard .rlf { font-size: 10px; }
 /* #4 對比（WCAG 4.5:1／大字 3:1，底色取字底下實際像素）：
-   詛咒 chip 白字在淺紫底 4.4 → 底色壓暗 10%；「返回」鈕字色提亮；出局座位卡原本整張 opacity .35（字 2:1）→ .85＋去色
-   （風位金章上的深色字要 ≥4.5；出局另有 💀 與「出局」字樣）；已請走的尊（.5）與本夜不開標的拍品卡（.5）改成去色表示，不再整張變淡；
+   詛咒 chip 白字在淺紫底 4.4 → 底色壓暗 10%；「返回」鈕字色提亮；出局座位卡原本整張 opacity .35（字 2:1）→ 不變淡、只去色
+   （出局另有 💀 與「出局」字樣）；已請走的尊（.5）與本夜不開標的拍品卡（.5）改成去色表示，不再整張變淡；
    開標演出壓暗底列（#south.dimmed）時主鈕不跟著暗——它是當下唯一要按的鈕（原本 2.9:1）。 */
 .f-curse { background: color-mix(in srgb, var(--curse) 90%, #000); }
 .selback { color: color-mix(in srgb, var(--dim) 75%, #fff); }
-.seat.dead { opacity: .85; filter: grayscale(.6); }
+.seat.dead { opacity: 1; filter: grayscale(.85); }   /* 出局：只去色、不變淡（.85 時疊在半透明座位卡後的 3D 上，狀態字 V3／V5 實測 3.9–4.1:1） */
 .shcard.gone { opacity: .9; filter: grayscale(.85); }   /* 已請走：去色表示，不再靠整張變淡（chip 上的深色字會掉到 3:1） */
 .mcard.locked { opacity: 1; filter: grayscale(.6); }   /* 本夜不開標：去色表示（卡上另有「🚫 本夜不開標」），不再整張變淡 */
 /* 揭盅得標藥丸：漸層深端 #7b5118 上的深色字只有 2.7:1 → 漸層兩端提亮（仍是同一組金） */
@@ -167,4 +167,38 @@
    家別小字（金）在燈籠亮處 2.7:1 → 墊一層與桌面文字條同一個 --strip-bg 底 */
 .pwunit, .pwbody { color: color-mix(in srgb, var(--dim) 60%, #fff); }
 .vsbig { color: color-mix(in srgb, var(--dim) 50%, #fff); }   /* 「VS」疊在火光上 2.2:1（大字門檻 3） */
-.fighter .fdir { width: fit-content; margin-left: auto; margin-right: auto; background: var(--strip-bg); border-radius: 6px; padding: 0 6px; }   /* 仍是 block、不加高 */
+.fighter .fdir, .fighter .fnm { width: fit-content; margin-left: auto; margin-right: auto; background: var(--strip-bg); border-radius: 6px; padding: 0 6px; }   /* 仍是 block、不加高；名字疊在淺色 3D 紙紮上 SE 寬實測 3.3:1 */
+.fighter .pwcnt, .fighter .pwunit { background: var(--strip-bg); padding: 0 3px; }   /* 隻數疊在 3D 上 2.7:1；inline 底色不改行高（#duel 在 844×390 沒有高度餘裕） */
+/* ===== v0.58.3 北列收合（使用者裁定 B：一行摘要，點開看全文；凍結 visual-polish 修訂 (a)–(d)）=====
+   收合：兩格各一顆摘要鈕，與北席卡同高（#6 三格對齊）、字 10px 一行；原本的預告框／香火榜在 .nfull 裡不顯示。
+   展開（#north.nopen）：兩塊 .nfull 從各自的格往下掛（絕對定位，不改北列高度、不改 #felt ⇒ 3D 取景輸入不變），字 ≥10px。
+   兩格等寬（原本請神夜前後的 .shwide 讓寬是給 8px 小字排版用的，收合後不需要）。 */
+#table.t3d #north #northPrev, #table.t3d #north #northShr,
+#table.t3d #north.shwide #northPrev, #table.t3d #north.shwide #northShr { flex: 1 1 0; min-width: 0; position: relative; align-items: stretch; }
+#table.t3d #north .nsum {
+  width: 100%; height: 100%; min-height: 40px; margin: 0; padding: 0 17px 0 8px; position: relative;
+  display: flex; align-items: center; flex-wrap: wrap; align-content: center; column-gap: 0;
+  background: var(--strip-bg); border: 1px dashed var(--gold); border-radius: 10px;
+  color: var(--ink); font-size: 10px; line-height: 1.3; text-align: left; cursor: pointer; font-family: inherit;   /* 10px＝凍結下限；11px 時 SE 寬最長一句（「魔神仔的芭樂」＋規則夜）會折成兩行 */
+}
+#table.t3d #north .nsum .nsumArr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 11px; }
+#table.t3d #north.nopen .nsum .nsumArr { transform: translateY(-50%) rotate(180deg); }
+#table.t3d #north .nfull { display: none; }
+#table.t3d #north.nopen { position: relative; z-index: 15; }
+#table.t3d #north.nopen .nfull {
+  display: block; position: absolute; top: calc(100% + 4px); width: max(100%, 250px); max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 8px);
+  max-height: calc(100dvh - 140px); overflow-y: auto;
+  background: var(--strip-bg); border: 1px solid var(--gold); border-radius: 10px; padding: 6px 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .6);
+}
+#table.t3d #north.nopen #northPrev .nfull { left: 0; }
+#table.t3d #north.nopen #northShr .nfull { right: 0; }
+#table.t3d #north .nfull > * { width: auto; }
+#table.t3d #north .nfull .preview { font-size: 11px; line-height: 1.45; padding: 0; border: 0; background: none; }
+#table.t3d #north .nfull .preview > .credin, #table.t3d #north .nfull .preview > .rulein { display: block; margin-top: 3px; }
+#table.t3d #north .nfull .incboard, #table.t3d #north .nfull .incboard .ibh,
+#table.t3d #north .nfull .shname, #table.t3d #north .nfull .shfac,
+#table.t3d #north .nfull .shmove, #table.t3d #north .nfull .shtaken { font-size: 10.5px; line-height: 1.4; }
+#table.t3d #north .nfull .shcards { row-gap: 4px; column-gap: 4px; }
+#table.t3d #north .nfull #shrines { gap: 5px; }
+#table.t3d #north .nfull .shcard { padding: 2px 6px; }

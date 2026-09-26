@@ -25,4 +25,6 @@ test('首頁顯示可核對的發布版本', () => {
   assert.match(page, /const RELEASE_VERSION="0.58.3"/, '本次公開版需遞增語意版本');
   assert.match(page, /v\$\{RELEASE_VERSION\}/, '首頁版本列必須顯示發布版本');
   assert.match(page, /renderer\.js\?v="\+RELEASE_VERSION/, '3D 模組快取鍵必須隨發布版本更新');
+  const rel = page.match(/const RELEASE_VERSION="([^"]+)"/)[1];
+  assert.ok(page.includes(`assets/safe-area.css?v=${rel}"`), '安全區樣式檔的快取鍵必須等於發布版本（v0.58.3 送達補強）');
 });
