@@ -1,0 +1,897 @@
+{
+ "base": "14ac1f2",
+ "seed": 3,
+ "sameContent": {
+  "end": false,
+  "reviewTextLen": [
+   2596,
+   2539
+  ]
+ },
+ "cmp": {
+  "select": {
+   "keys": 4,
+   "maxDelta": 0.2,
+   "over2": []
+  },
+  "nw-menu": {
+   "keys": 2,
+   "maxDelta": 0,
+   "over2": []
+  },
+  "nw-intro": {
+   "keys": 2,
+   "maxDelta": 0,
+   "over2": []
+  },
+  "end": {
+   "keys": 23,
+   "maxDelta": 1.9,
+   "over2": []
+  },
+  "review": {
+   "keys": 23,
+   "maxDelta": 3.1,
+   "over2": [
+    {
+     "k": "#review > div#reviewbox:1",
+     "d": 3.1,
+     "base": [
+      146,
+      0,
+      560,
+      2543.4
+     ],
+     "head": [
+      146,
+      0,
+      560,
+      2540.3
+     ]
+    },
+    {
+     "k": "#reviewbox",
+     "d": 3.1,
+     "base": [
+      146,
+      0,
+      560,
+      2543.4
+     ],
+     "head": [
+      146,
+      0,
+      560,
+      2540.3
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvNight:5",
+     "d": 2.5,
+     "base": [
+      158,
+      1842.1,
+      536,
+      309.6
+     ],
+     "head": [
+      158,
+      1839.6,
+      536,
+      309
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvSec:4",
+     "d": 3.1,
+     "base": [
+      158,
+      2163.7,
+      536,
+      24
+     ],
+     "head": [
+      158,
+      2160.6,
+      536,
+      24
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvLine:1",
+     "d": 3.1,
+     "base": [
+      158,
+      2193.7,
+      536,
+      42
+     ],
+     "head": [
+      158,
+      2190.6,
+      536,
+      42
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvLine:2",
+     "d": 3.1,
+     "base": [
+      158,
+      2235.7,
+      536,
+      42
+     ],
+     "head": [
+      158,
+      2232.6,
+      536,
+      42
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvLine:3",
+     "d": 3.1,
+     "base": [
+      158,
+      2277.7,
+      536,
+      42
+     ],
+     "head": [
+      158,
+      2274.6,
+      536,
+      42
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvLine:4",
+     "d": 3.1,
+     "base": [
+      158,
+      2319.7,
+      536,
+      42
+     ],
+     "head": [
+      158,
+      2316.6,
+      536,
+      42
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvLine:5",
+     "d": 3.1,
+     "base": [
+      158,
+      2361.7,
+      536,
+      42
+     ],
+     "head": [
+      158,
+      2358.6,
+      536,
+      42
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvSec:5",
+     "d": 3.1,
+     "base": [
+      158,
+      2415.7,
+      536,
+      24
+     ],
+     "head": [
+      158,
+      2412.6,
+      536,
+      24
+     ]
+    },
+    {
+     "k": "#reviewbox > div.rvExperiment:1",
+     "d": 3.1,
+     "base": [
+      158,
+      2445.7,
+      536,
+      57.7
+     ],
+     "head": [
+      158,
+      2442.6,
+      536,
+      57.7
+     ]
+    }
+   ]
+  }
+ },
+ "errs": {
+  "base": [],
+  "head": []
+ },
+ "raw": {
+  "base": {
+   "select": {
+    "#selectScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#selectScr > div#selHead:1": [
+     59,
+     8,
+     734,
+     30
+    ],
+    "#selectScr > div#selGrid:1": [
+     59,
+     44,
+     734,
+     254.9
+    ],
+    "#selectScr > div#selFoot:1": [
+     59,
+     304.9,
+     734,
+     67.1
+    ]
+   },
+   "nw-menu": {
+    "#nwScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#nwScr > div#nwBody:1": [
+     59,
+     10,
+     734,
+     209.2
+    ]
+   },
+   "nw-intro": {
+    "#nwScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#nwScr > div#nwBody:1": [
+     59,
+     10,
+     734,
+     362
+    ]
+   },
+   "end": {
+    "#stage > .stageCard": [
+     243,
+     112,
+     366,
+     351.5
+    ],
+    "#stage > .stageCard > div:1": [
+     256,
+     121,
+     340,
+     49
+    ],
+    "#stage > .stageCard > h2:1": [
+     256,
+     172,
+     340,
+     26
+    ],
+    "#stage > .stageCard > div.endrank:1": [
+     256,
+     206,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:2": [
+     256,
+     235,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:3": [
+     256,
+     264,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:4": [
+     256,
+     293,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.rvExperiment:1": [
+     256,
+     330,
+     340,
+     76.5
+    ],
+    "#stage > .stageCard > button.alt.bigbtn:1": [
+     256,
+     414.5,
+     340,
+     40
+    ],
+    "#south": [
+     59,
+     310,
+     734,
+     62
+    ],
+    "#south > span#myAv.av:1": [
+     72,
+     320,
+     42,
+     42
+    ],
+    "#south > div:1": [
+     120,
+     322.5,
+     77,
+     37
+    ],
+    "#south > div#myPow.mut:1": [
+     203,
+     332.9,
+     176.1,
+     16.2
+    ],
+    "#south > button.side:1": [
+     385.1,
+     321,
+     42,
+     40
+    ],
+    "#south > button.roleInfoBtn.side:1": [
+     433.1,
+     321,
+     40,
+     40
+    ],
+    "#south > button#sfxBtn.side:1": [
+     479.1,
+     321,
+     40,
+     40
+    ],
+    "#south > button#mainbtn.bigbtn:1": [
+     700,
+     319,
+     80,
+     44
+    ],
+    "#felt": [
+     231,
+     64,
+     390,
+     242
+    ],
+    "#felt > div#feltHead:1": [
+     243,
+     74,
+     366,
+     33
+    ],
+    "#felt > div#stage:1": [
+     243,
+     112,
+     366,
+     351.5
+    ],
+    "#north": [
+     59,
+     4,
+     734,
+     56
+    ],
+    "#north > div#northPrev:1": [
+     59,
+     4,
+     248,
+     56
+    ],
+    "#north > div#northShr:1": [
+     545,
+     4,
+     248,
+     56
+    ]
+   },
+   "endText": "🏮 你是第 4 名 1. 北家・陰間當鋪 — 壽命 30（8 隻・血 38） 2. 東家・閭山法師 — 壽命 17（3 隻・血 22） 3. 西家・孝女白琴 — 壽命 16（7 隻・血 38） 4. 南家・大家樂組頭 — 出局（4 隻・血 20） 🎯 下一局實驗 你的部隊已成形（4 隻／總血 20），但還沒吃到月相",
+   "review": {
+    "#review": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#review > div#reviewbox:1": [
+     146,
+     0,
+     560,
+     2543.4
+    ],
+    "#reviewbox": [
+     146,
+     0,
+     560,
+     2543.4
+    ],
+    "#reviewbox > div.rvTop:1": [
+     158,
+     8,
+     536,
+     50
+    ],
+    "#reviewbox > div.rvSec:1": [
+     158,
+     70,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvLedger:1": [
+     158,
+     100,
+     536,
+     174.6
+    ],
+    "#reviewbox > div.rvTiles:1": [
+     158,
+     278.6,
+     536,
+     81.5
+    ],
+    "#reviewbox > div.rvSec:2": [
+     158,
+     372.1,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvChart:1": [
+     158,
+     402.1,
+     536,
+     253.5
+    ],
+    "#reviewbox > div.rvSec:3": [
+     158,
+     667.6,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvNight:1": [
+     158,
+     697.6,
+     536,
+     288.6
+    ],
+    "#reviewbox > div.rvNight:2": [
+     158,
+     992.2,
+     536,
+     288.6
+    ],
+    "#reviewbox > div.rvNight:3": [
+     158,
+     1286.8,
+     536,
+     271.6
+    ],
+    "#reviewbox > div.rvNight:4": [
+     158,
+     1564.5,
+     536,
+     271.6
+    ],
+    "#reviewbox > div.rvNight:5": [
+     158,
+     1842.1,
+     536,
+     309.6
+    ],
+    "#reviewbox > div.rvSec:4": [
+     158,
+     2163.7,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvLine:1": [
+     158,
+     2193.7,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:2": [
+     158,
+     2235.7,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:3": [
+     158,
+     2277.7,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:4": [
+     158,
+     2319.7,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:5": [
+     158,
+     2361.7,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvSec:5": [
+     158,
+     2415.7,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvExperiment:1": [
+     158,
+     2445.7,
+     536,
+     57.7
+    ]
+   },
+   "reviewText": 2596
+  },
+  "head": {
+   "select": {
+    "#selectScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#selectScr > div#selHead:1": [
+     59,
+     8,
+     734,
+     30
+    ],
+    "#selectScr > div#selGrid:1": [
+     59,
+     44,
+     734,
+     255.1
+    ],
+    "#selectScr > div#selFoot:1": [
+     59,
+     305.1,
+     734,
+     66.9
+    ]
+   },
+   "nw-menu": {
+    "#nwScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#nwScr > div#nwBody:1": [
+     59,
+     10,
+     734,
+     209.2
+    ]
+   },
+   "nw-intro": {
+    "#nwScr": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#nwScr > div#nwBody:1": [
+     59,
+     10,
+     734,
+     362
+    ]
+   },
+   "end": {
+    "#stage > .stageCard": [
+     243,
+     112,
+     366,
+     351.5
+    ],
+    "#stage > .stageCard > div:1": [
+     256,
+     121,
+     340,
+     49
+    ],
+    "#stage > .stageCard > h2:1": [
+     256,
+     172,
+     340,
+     26
+    ],
+    "#stage > .stageCard > div.endrank:1": [
+     256,
+     206,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:2": [
+     256,
+     235,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:3": [
+     256,
+     264,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.endrank:4": [
+     256,
+     293,
+     340,
+     29
+    ],
+    "#stage > .stageCard > div.rvExperiment:1": [
+     256,
+     330,
+     340,
+     76.5
+    ],
+    "#stage > .stageCard > button.alt.bigbtn:1": [
+     256,
+     414.5,
+     340,
+     40
+    ],
+    "#south": [
+     59,
+     310,
+     734,
+     62
+    ],
+    "#south > span#myAv.av:1": [
+     72,
+     320,
+     42,
+     42
+    ],
+    "#south > div:1": [
+     120,
+     322.5,
+     77,
+     37
+    ],
+    "#south > div#myPow.mut:1": [
+     203,
+     332.9,
+     174.2,
+     16.2
+    ],
+    "#south > button.side:1": [
+     383.2,
+     321,
+     42,
+     40
+    ],
+    "#south > button.roleInfoBtn.side:1": [
+     431.2,
+     321,
+     40,
+     40
+    ],
+    "#south > button#sfxBtn.side:1": [
+     477.2,
+     321,
+     40,
+     40
+    ],
+    "#south > button#mainbtn.bigbtn:1": [
+     700,
+     319,
+     80,
+     44
+    ],
+    "#felt": [
+     231,
+     64,
+     390,
+     242
+    ],
+    "#felt > div#feltHead:1": [
+     243,
+     74,
+     366,
+     33
+    ],
+    "#felt > div#stage:1": [
+     243,
+     112,
+     366,
+     351.5
+    ],
+    "#north": [
+     59,
+     4,
+     734,
+     56
+    ],
+    "#north > div#northPrev:1": [
+     59,
+     4,
+     248,
+     56
+    ],
+    "#north > div#northShr:1": [
+     545,
+     4,
+     248,
+     56
+    ]
+   },
+   "endText": "你是第 4 名 1. 北家・陰間當鋪 — 壽命 30（8 隻・血 38） 2. 東家・閭山法師 — 壽命 17（3 隻・血 22） 3. 西家・孝女白琴 — 壽命 16（7 隻・血 38） 4. 南家・大家樂組頭 — 出局（4 隻・血 20） 下一局實驗 你的部隊已成形（4 隻／總血 20），但還沒吃到月相受惠拍。下一",
+   "review": {
+    "#review": [
+     0,
+     0,
+     852,
+     393
+    ],
+    "#review > div#reviewbox:1": [
+     146,
+     0,
+     560,
+     2540.3
+    ],
+    "#reviewbox": [
+     146,
+     0,
+     560,
+     2540.3
+    ],
+    "#reviewbox > div.rvTop:1": [
+     158,
+     8,
+     536,
+     50
+    ],
+    "#reviewbox > div.rvSec:1": [
+     158,
+     70,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvLedger:1": [
+     158,
+     100,
+     536,
+     174.6
+    ],
+    "#reviewbox > div.rvTiles:1": [
+     158,
+     278.6,
+     536,
+     81.5
+    ],
+    "#reviewbox > div.rvSec:2": [
+     158,
+     372.1,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvChart:1": [
+     158,
+     402.1,
+     536,
+     253.5
+    ],
+    "#reviewbox > div.rvSec:3": [
+     158,
+     667.6,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvNight:1": [
+     158,
+     697.6,
+     536,
+     288
+    ],
+    "#reviewbox > div.rvNight:2": [
+     158,
+     991.6,
+     536,
+     288
+    ],
+    "#reviewbox > div.rvNight:3": [
+     158,
+     1285.6,
+     536,
+     271
+    ],
+    "#reviewbox > div.rvNight:4": [
+     158,
+     1562.6,
+     536,
+     271
+    ],
+    "#reviewbox > div.rvNight:5": [
+     158,
+     1839.6,
+     536,
+     309
+    ],
+    "#reviewbox > div.rvSec:4": [
+     158,
+     2160.6,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvLine:1": [
+     158,
+     2190.6,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:2": [
+     158,
+     2232.6,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:3": [
+     158,
+     2274.6,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:4": [
+     158,
+     2316.6,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvLine:5": [
+     158,
+     2358.6,
+     536,
+     42
+    ],
+    "#reviewbox > div.rvSec:5": [
+     158,
+     2412.6,
+     536,
+     24
+    ],
+    "#reviewbox > div.rvExperiment:1": [
+     158,
+     2442.6,
+     536,
+     57.7
+    ]
+   },
+   "reviewText": 2539
+  }
+ }
+}

@@ -1,0 +1,770 @@
+{
+ "baseFile": "docs/experiments/2026-09-26-visual-polish-p2/probe/probe-base-merged.json",
+ "headFile": "docs/experiments/2026-09-26-visual-polish-p2/probe/probe-head-merged.json",
+ "brief": {
+  "#1": true,
+  "#2": false,
+  "#3": true,
+  "#4": true,
+  "#5": true,
+  "#6": true,
+  "#7a": true,
+  "#8": false,
+  "#9-phase1": false
+ },
+ "detail": {
+  "#1": {
+   "pass": true,
+   "baseRed": true,
+   "base": {
+    "cellsWithEmoji": 850,
+    "byVp": {
+     "V1": 170,
+     "V2": 170,
+     "V3": 170,
+     "V4": 170,
+     "V5": 170
+    },
+    "chars": {
+     "👁": 721,
+     "😊": 1215,
+     "🕯": 1262,
+     "🕸": 445,
+     "🌑": 222,
+     "🌒": 770,
+     "🔊": 846,
+     "🧿": 165,
+     "⚰": 45,
+     "💡": 180,
+     "🔮": 440,
+     "🏷": 590,
+     "📜": 5,
+     "🪖": 5,
+     "🤝": 10,
+     "🔧": 5,
+     "🏮": 305,
+     "🌙": 25,
+     "🪙": 110,
+     "⛩": 100,
+     "👹": 60,
+     "🪞": 95,
+     "🧧": 100,
+     "🌀": 55,
+     "🥤": 5,
+     "🎲": 172,
+     "⚔": 515,
+     "🀄": 5,
+     "🌟": 5,
+     "⚖": 25,
+     "👑": 30,
+     "🌓": 388,
+     "🌅": 135,
+     "🔥": 230,
+     "❤": 180,
+     "😰": 748,
+     "⛰": 65,
+     "📿": 20,
+     "⛵": 75,
+     "🔪": 90,
+     "🛡": 105,
+     "🌧": 65,
+     "🏹": 40,
+     "🌇": 35,
+     "🐯": 20,
+     "🌕": 247,
+     "🥀": 405,
+     "🌗": 165,
+     "🎯": 45,
+     "💀": 250,
+     "☠": 15,
+     "🍂": 5,
+     "✔": 205,
+     "🧑": 5,
+     "🍚": 140,
+     "🚩": 65,
+     "🏺": 15,
+     "🚫": 20,
+     "🩸": 15,
+     "🕳": 20,
+     "💧": 5,
+     "⚡": 5,
+     "⛓": 35,
+     "🎏": 25,
+     "🏆": 10,
+     "👵": 10
+    },
+    "cells": 926
+   },
+   "head": {
+    "cellsWithEmoji": 0,
+    "byVp": {},
+    "chars": {},
+    "cells": 986
+   },
+   "headList": []
+  },
+  "#2": {
+   "pass": false,
+   "cells": 390,
+   "tabs": 1560,
+   "expanded": 1560,
+   "baseCompareSkippedDiffGame": 67,
+   "factionsSeen": [
+    "curse",
+    "xianghuo",
+    "zuling",
+    "yinqi"
+   ],
+   "bad": [
+    "solo|bid|n5@V1 mc1 對基準缺 [\"西東\"]",
+    "solo|bid|n5@V1 mc2 對基準缺 [\"北\"]",
+    "solo|bid|n5@V2 mc1 對基準缺 [\"西東\"]",
+    "solo|bid|n5@V2 mc2 對基準缺 [\"北\"]",
+    "solo|bid|n5@V3 mc1 對基準缺 [\"西東\"]",
+    "solo|bid|n5@V3 mc2 對基準缺 [\"北\"]",
+    "solo|bid|n5@V4 mc1 對基準缺 [\"西東\"]",
+    "solo|bid|n5@V4 mc2 對基準缺 [\"北\"]"
+   ],
+   "badN": 8,
+   "base": {
+    "cells": 360,
+    "redCells": 360
+   }
+  },
+  "#3": {
+   "pass": true,
+   "cells": 210,
+   "baseCompared": 145,
+   "baseCompareSkippedDiffGame": 50,
+   "baseDiffInfo": [
+    "solo|shrine|n4@V1 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\"]",
+    "solo|shrine|n4@V2 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\"]",
+    "solo|shrine|n4@V3 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\"]",
+    "solo|shrine|n4@V4 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\"]",
+    "solo|shrine|n5@V1 與基準同格內容不同 [\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（5・\",\"實付 6\",\"閭山法師 入袋（9・\",\"實付 10\"]",
+    "solo|shrine|n5@V2 與基準同格內容不同 [\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（5・\",\"實付 6\",\"閭山法師 入袋（9・\",\"實付 10\"]",
+    "solo|shrine|n5@V3 與基準同格內容不同 [\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（5・\",\"實付 6\",\"閭山法師 入袋（9・\",\"實付 10\"]",
+    "solo|shrine|n5@V4 與基準同格內容不同 [\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（5・\",\"實付 6\",\"閭山法師 入袋（9・\",\"實付 10\"]",
+    "hot|shrine|n9@V1 與基準同格內容不同 [\"閭山法師 入袋（1・\",\"實付 2\",\"）\"]",
+    "hot|shrine|n9@V2 與基準同格內容不同 [\"閭山法師 入袋（1・\",\"實付 2\",\"）\"]",
+    "hot|shrine|n9@V3 與基準同格內容不同 [\"閭山法師 入袋（1・\",\"實付 2\",\"）\"]",
+    "hot|shrine|n9@V4 與基準同格內容不同 [\"閭山法師 入袋（1・\",\"實付 2\",\"）\"]",
+    "hot|shrine|n12@V1 與基準同格內容不同 [\"閭山法師 入袋（4・\",\"實付 5\"]",
+    "hot|shrine|n12@V2 與基準同格內容不同 [\"閭山法師 入袋（4・\",\"實付 5\"]",
+    "hot|shrine|n12@V3 與基準同格內容不同 [\"閭山法師 入袋（4・\",\"實付 5\"]",
+    "hot|shrine|n12@V4 與基準同格內容不同 [\"閭山法師 入袋（4・\",\"實付 5\"]"
+   ],
+   "baseDiffN": 16,
+   "gapRange": [
+    2,
+    2
+   ],
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "cells": 195,
+    "gapRange": [
+     -3,
+     477
+    ]
+   }
+  },
+  "#4": {
+   "pass": true,
+   "bars": {
+    "curse": "rgb(144, 96, 208)",
+    "xianghuo": "rgb(240, 128, 96)",
+    "zuling": "rgb(139, 96, 64)",
+    "yinqi": "rgb(112, 176, 128)"
+   },
+   "line": "rgb(201, 168, 98)",
+   "zulingVsGold": 35.7,
+   "zulingVsLine": 26.4,
+   "pairwise": {
+    "curse-xianghuo": 41.1,
+    "curse-zuling": 40.8,
+    "curse-yinqi": 46.8,
+    "xianghuo-zuling": 23.8,
+    "xianghuo-yinqi": 49.4,
+    "zuling-yinqi": 39
+   },
+   "base": {
+    "note": "基準沒有系色條；下列為基準的祖靈 token（--zuling）對 --gold 與四系 token 兩兩",
+    "zulingTokenVsGold": 12.7,
+    "pairwise": {
+     "--zuling|--xianghuo": 19.4,
+     "--zuling|--yinqi": 29.4,
+     "--zuling|--curse": 51.6,
+     "--xianghuo|--yinqi": 49.4,
+     "--xianghuo|--curse": 41.1,
+     "--yinqi|--curse": 46.8
+    }
+   }
+  },
+  "#5": {
+   "pass": true,
+   "cells": 615,
+   "fontMin": 11,
+   "contrastMin": 10.04,
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "fontMin": 10,
+    "contrastMin": 13.81
+   }
+  },
+  "#6": {
+   "pass": true,
+   "serif": {
+    "#titleScr h1": [
+     "Noto Serif TC"
+    ],
+    "#titleScr .bigbtn": [
+     "Noto Serif TC"
+    ],
+    ".stageCard .big": [
+     "Noto Serif TC"
+    ],
+    "#stage h2": [
+     "Noto Serif TC"
+    ],
+    "#review h2": [
+     "Noto Serif TC"
+    ],
+    ".mcard .nm": "無資料",
+    ".railTabs button": [
+     "Noto Serif TC"
+    ],
+    ".rcard .rnm": [
+     "Noto Serif TC"
+    ],
+    ".seat .nm": [
+     "Noto Serif TC"
+    ],
+    "#myDir": [
+     "Noto Serif TC"
+    ],
+    "#myLife": [
+     "Noto Serif TC"
+    ],
+    "#myPow": [
+     "Noto Serif TC"
+    ],
+    ".stakebar .amt": [
+     "Noto Serif TC"
+    ],
+    ".incamt": [
+     "Noto Serif TC"
+    ],
+    "#mainbtn": [
+     "Noto Serif TC"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "Noto Serif TC"
+    ],
+    ".endrank": [
+     "Noto Serif TC"
+    ]
+   },
+   "sans": {
+    "#titleScr p:not(#verLine)": [
+     "Noto Sans TC"
+    ],
+    ".mcard .ab": "無資料",
+    ".mcard .uline": "無資料",
+    ".seat .st": [
+     "Noto Sans TC"
+    ],
+    ".bsum": [
+     "Noto Sans TC"
+    ],
+    ".nsum": [
+     "Noto Sans TC"
+    ],
+    ".bidfly": [
+     "Noto Sans TC"
+    ],
+    "#shz > div": [
+     "Noto Sans TC"
+    ],
+    ".nwCard": [
+     "Noto Sans TC"
+    ]
+   },
+   "loadedFaces": [
+    "Noto Sans TC 400",
+    "Noto Serif TC 900",
+    "Noto Sans TC 700",
+    "Noto Serif TC 400",
+    "Noto Sans TC 900"
+   ],
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "#titleScr h1": [
+     "Noto Serif TC"
+    ],
+    "#titleScr .bigbtn": [
+     "Arial"
+    ],
+    ".stageCard .big": [
+     "Noto Serif TC"
+    ],
+    "#stage h2": [
+     "Noto Serif TC"
+    ],
+    "#review h2": [
+     "Noto Serif TC"
+    ],
+    ".mcard .nm": [
+     "Noto Serif TC"
+    ],
+    ".railTabs button": [
+     "Arial"
+    ],
+    ".rcard .rnm": [
+     "Noto Serif TC"
+    ],
+    ".seat .nm": [
+     "Noto Serif TC"
+    ],
+    "#myDir": [
+     "Noto Serif TC"
+    ],
+    "#myLife": [
+     "Noto Sans TC"
+    ],
+    "#myPow": [
+     "Noto Serif TC"
+    ],
+    ".stakebar .amt": [
+     "Noto Sans TC"
+    ],
+    ".incamt": [
+     "Noto Serif TC"
+    ],
+    "#mainbtn": [
+     "Arial"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "Noto Serif TC"
+    ],
+    ".endrank": [
+     "Noto Serif TC"
+    ],
+    "#titleScr p:not(#verLine)": [
+     "Noto Serif TC"
+    ],
+    ".mcard .ab": [
+     "Noto Serif TC"
+    ],
+    ".mcard .uline": [
+     "Noto Serif TC"
+    ],
+    ".seat .st": [
+     "Noto Serif TC"
+    ],
+    ".bsum": [
+     "Noto Serif TC"
+    ],
+    ".nsum": [
+     "Noto Serif TC"
+    ],
+    ".bidfly": [
+     "Noto Serif TC"
+    ],
+    "#shz > div": [
+     "Noto Serif TC"
+    ],
+    ".nwCard": [
+     "Noto Serif TC"
+    ]
+   }
+  },
+  "#7a": {
+   "pass": true,
+   "rows": [
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.62,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.653,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.617,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.658,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.822,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.62,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.653,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.617,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.658,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.822,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.0"
+    }
+   ],
+   "bad": [],
+   "base": [
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.5,
+     "cy": 0.5
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.5,
+     "cy": 0.5
+    }
+   ]
+  },
+  "#8": {
+   "pass": false,
+   "perScreen": {
+    "select": {
+     "cells": 5,
+     "keys": 20,
+     "maxDelta": 0.2,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "duel": {
+     "cells": 4,
+     "keys": 21,
+     "maxDelta": 2.2,
+     "noBase": 0,
+     "onlyBase": [
+      "#duel > div#duelMove.f-curse.side-B:1",
+      "#duel > div#flashfx.flashfx.on:1",
+      "#duel > div#actorCard.fac-xianghuo.on.side-A:1",
+      "#duel > div#flashfx.flashfx.on:1"
+     ],
+     "onlyHead": [
+      "#duel > div#duelResult:1",
+      "#duel > div#duelBeat:1"
+     ]
+    },
+    "end": {
+     "cells": 3,
+     "keys": 77,
+     "maxDelta": 6.4,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "review": {
+     "cells": 2,
+     "keys": 4,
+     "maxDelta": 744.4,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-menu": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-intro": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    }
+   },
+   "bad": [
+    "solo|duel #duel > div#duelBeat:1 差 2.2px 基準[321.2,9,209.6,21] 改後[322.3,9.9,207.4,21]",
+    "solo|end #south > div#budget:1 差 6.4px 基準[516,333,178,16] 改後[509.6,333,184.4,16]",
+    "solo|review #review > div#reviewbox:1 差 744.4px 基準[146,0,560,3777] 改後[146,0,560,4521.4]",
+    "hot|review #review > div#reviewbox:1 差 24.5px 基準[146,0,560,4520.3] 改後[146,0,560,4495.8]"
+   ],
+   "badN": 4
+  },
+  "#9-phase1": {
+   "pass": false,
+   "base": {
+    "breaks": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "spill": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "font": {
+     "V1": 4,
+     "V2": 3,
+     "V3": 3,
+     "V4": 3,
+     "V5": 3
+    },
+    "contrast": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "target": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "align": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "north": {
+     "V1": 31,
+     "V2": 31,
+     "V3": 31,
+     "V4": 31,
+     "V5": 31
+    }
+   },
+   "head": {
+    "breaks": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "spill": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "font": {
+     "V1": 4,
+     "V2": 3,
+     "V3": 3,
+     "V4": 3,
+     "V5": 3
+    },
+    "contrast": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "target": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "align": {
+     "V1": 123,
+     "V2": 123,
+     "V3": 123,
+     "V4": 123,
+     "V5": 123
+    },
+    "north": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    }
+   },
+   "worse": [
+    "align@V1 0→123",
+    "align@V2 0→123",
+    "align@V3 0→123",
+    "align@V4 0→123",
+    "align@V5 0→123"
+   ],
+   "newItems": {
+    "align railTabs": {
+     "n": 615,
+     "ex": [
+      "solo|mark|n1@V1",
+      "solo|mark|n1@V2",
+      "solo|mark|n1@V3",
+      "solo|mark|n1@V4"
+     ]
+    }
+   },
+   "cells": {
+    "base": 926,
+    "head": 986
+   }
+  }
+ }
+}

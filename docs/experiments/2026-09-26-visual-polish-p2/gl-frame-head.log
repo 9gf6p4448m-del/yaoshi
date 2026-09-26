@@ -1,0 +1,121 @@
+{
+ "renderedFrames": 120,
+ "rendersPerSec": 230.1,
+ "programs": {
+  "before": 31,
+  "after": 31
+ },
+ "sharedMaterialMismatch": [],
+ "programChurn": {
+  "getParametersPerFrame": 0,
+  "materialsCalled": 0,
+  "top": []
+ },
+ "textureUploadsPerFrame": {
+  "texSubImage2D 16x16 fmt=6408 type=5126 src=Float32Array": 4,
+  "texSubImage2D 4x4 fmt=6408 type=5126 src=Float32Array": 1
+ },
+ "topCalls": [
+  [
+   "uniform3f",
+   133
+  ],
+  [
+   "uniformMatrix4fv",
+   85
+  ],
+  [
+   "bindVertexArray",
+   77
+  ],
+  [
+   "uniform1f",
+   74
+  ],
+  [
+   "uniformMatrix3fv",
+   62
+  ],
+  [
+   "drawElements",
+   54
+  ],
+  [
+   "uniform4fv",
+   50
+  ],
+  [
+   "pixelStorei",
+   20
+  ],
+  [
+   "texParameteri",
+   20
+  ],
+  [
+   "useProgram",
+   19
+  ],
+  [
+   "drawArrays",
+   17
+  ],
+  [
+   "bindTexture",
+   8
+  ],
+  [
+   "uniform2f",
+   8
+  ],
+  [
+   "frontFace",
+   6
+  ],
+  [
+   "disable",
+   6
+  ],
+  [
+   "enable",
+   6
+  ],
+  [
+   "texSubImage2D",
+   5
+  ],
+  [
+   "bindBuffer",
+   4
+  ],
+  [
+   "bufferSubData",
+   4
+  ],
+  [
+   "depthMask",
+   4
+  ],
+  [
+   "drawArraysInstanced",
+   4
+  ],
+  [
+   "uniform1i",
+   2
+  ],
+  [
+   "blendFunc",
+   2
+  ],
+  [
+   "blendFuncSeparate",
+   2
+  ],
+  [
+   "drawElementsInstanced",
+   2
+  ]
+ ],
+ "errors": []
+}

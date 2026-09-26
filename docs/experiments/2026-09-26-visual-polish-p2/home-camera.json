@@ -1,0 +1,1298 @@
+{
+ "base": "14ac1f2",
+ "b_homeDiffersFromTable": {
+  "pos": true,
+  "dir": true,
+  "fov": false
+ },
+ "b_tableCameraEqualsBase": {
+  "fov": true,
+  "aspect": true,
+  "view": true,
+  "pos": true,
+  "dir": true,
+  "basePoseStill": true,
+  "headPoseStill": true
+ },
+ "b_selectCameraEqualsBaseTableShot": {
+  "pos": true,
+  "dir": true
+ },
+ "c_tableLightsEqualBase": true,
+ "c_homeLightsEqualBase": true,
+ "c_poolOnTable": {
+  "visible": false,
+  "opacity": 0
+ },
+ "c_poolOnHome": {
+  "visible": true,
+  "opacity": 0.619989
+ },
+ "drawCallsPerFrame": {
+  "baseHome": [
+   17,
+   17,
+   17,
+   17,
+   17
+  ],
+  "headHome": [
+   18,
+   18,
+   18,
+   18,
+   18
+  ],
+  "baseTable": [
+   84,
+   84,
+   84,
+   84,
+   84
+  ],
+  "headTable": [
+   84,
+   84,
+   84,
+   84,
+   84
+  ]
+ },
+ "errs": {
+  "base": [],
+  "head": []
+ },
+ "raw": {
+  "base": {
+   "home": {
+    "pos": [
+     0,
+     2.064875,
+     2.948947
+    ],
+    "dir": [
+     0,
+     -0.554487,
+     -0.832192
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": null,
+    "canvasOpacity": "0.38",
+    "drawCalls": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ]
+   },
+   "select": {
+    "pos": [
+     0,
+     2.064875,
+     2.948947
+    ],
+    "dir": [
+     0,
+     -0.554487,
+     -0.832192
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": null,
+    "canvasOpacity": "0.38"
+   },
+   "table": {
+    "pos": [
+     0,
+     2.064875,
+     2.948947
+    ],
+    "dir": [
+     0,
+     -0.554487,
+     -0.832192
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": null,
+    "canvasOpacity": "1",
+    "poseStill": true,
+    "drawCalls": [
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84
+    ]
+   },
+   "errs": []
+  },
+  "head": {
+   "home": {
+    "pos": [
+     -0.268795,
+     1.545114,
+     2.557415
+    ],
+    "dir": [
+     -0.04477,
+     -0.486284,
+     -0.872653
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": {
+     "visible": true,
+     "opacity": 0.619989
+    },
+    "canvasOpacity": "0.62",
+    "drawCalls": [
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18,
+     18
+    ]
+   },
+   "select": {
+    "pos": [
+     0,
+     2.064875,
+     2.948947
+    ],
+    "dir": [
+     0,
+     -0.554487,
+     -0.832192
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": {
+     "visible": true,
+     "opacity": 0.123814
+    },
+    "canvasOpacity": "0.38"
+   },
+   "table": {
+    "pos": [
+     0,
+     2.064875,
+     2.948947
+    ],
+    "dir": [
+     0,
+     -0.554487,
+     -0.832192
+    ],
+    "fov": 50,
+    "aspect": 2.167939,
+    "view": null,
+    "lights": [
+     {
+      "type": "AmbientLight",
+      "name": "",
+      "color": "3a2450",
+      "ground": null,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "HemisphereLight",
+      "name": "",
+      "color": "6b6a96",
+      "ground": "8a5626",
+      "pos": [
+       0,
+       6,
+       0
+      ],
+      "distance": null,
+      "decay": null,
+      "angle": null,
+      "penumbra": null,
+      "base": null,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffa855",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 7,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "a8402a",
+      "ground": null,
+      "pos": [
+       0,
+       1.5,
+       -2.6
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 3.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "ffc070",
+      "ground": null,
+      "pos": [
+       -2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5.6,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "PointLight",
+      "name": "",
+      "color": "d8e8ff",
+      "ground": null,
+      "pos": [
+       2.6,
+       1.5,
+       0
+      ],
+      "distance": 10,
+      "decay": 2,
+      "angle": null,
+      "penumbra": null,
+      "base": 5,
+      "visible": true,
+      "parent": "Scene"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "ffeacc",
+      "ground": null,
+      "pos": [
+       -3.57,
+       3.485,
+       3.145
+      ],
+      "distance": 11.9,
+      "decay": 1.4,
+      "angle": 0.32,
+      "penumbra": 0.7,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "5f86e0",
+      "ground": null,
+      "pos": [
+       2.635,
+       1.615,
+       -0.425
+      ],
+      "distance": 7.6499999999999995,
+      "decay": 1.4,
+      "angle": 0.85,
+      "penumbra": 0.9,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     },
+     {
+      "type": "SpotLight",
+      "name": "",
+      "color": "f0a840",
+      "ground": null,
+      "pos": [
+       0.85,
+       2.754,
+       -2.465
+      ],
+      "distance": 7.14,
+      "decay": 1.4,
+      "angle": 0.52,
+      "penumbra": 0.65,
+      "base": null,
+      "visible": true,
+      "parent": "Group"
+     }
+    ],
+    "pool": {
+     "visible": false,
+     "opacity": 0
+    },
+    "canvasOpacity": "1",
+    "poseStill": true,
+    "drawCalls": [
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84,
+     84
+    ]
+   },
+   "errs": []
+  }
+ }
+}
