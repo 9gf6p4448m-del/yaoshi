@@ -47,9 +47,9 @@
   #table.t3d .rail { padding-top: 2px; overflow: visible; }
   /* v0.59.0：頁籤＋單卡改成「拍品窄籤＋點開浮出」，規則在 index.html 橫向段（所有橫向高度一體適用） */
 }
-.title {
+.title {   /* v0.59.0 首頁「甲」：內容收在左下，下緣與左緣各留一段呼吸 */
   padding: max(22px, var(--safe-top)) max(20px, var(--safe-right))
-    max(22px, var(--safe-bottom)) max(20px, var(--safe-left));
+    calc(var(--safe-bottom) + 30px) calc(var(--safe-left) + 28px);
 }
 #handoff {
   padding: max(24px, var(--safe-top)) max(24px, var(--safe-right))

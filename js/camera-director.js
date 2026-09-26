@@ -20,6 +20,9 @@ const SHOTS = {
   table: { dist: 3.6, tilt: 35, yaw: 0, lookY: 0.1, ms: 900 },
   reveal: { dist: 3.2, tilt: 30, yaw: 0, lookY: 0.3, ms: 550 }, // 開標：往桌心壓進去（幅度小，畫面別被裁掉）
   end: { dist: 6.4, tilt: 56, yaw: 0, lookY: 0.0, ms: 1400 }, // 局末：拉遠俯瞰整桌
+  // 首頁（v0.59.0 畫面精美度第二階段「甲・讓桌」，凍結 p2 #7）：只在首頁用——推近桌面、視線往左偏一點，
+  // 讓桌心落在標題（左下）的右上方。離開首頁一律「原樣」回到上面的 table 機位（見 setHome）。【試玩必調】
+  home: { dist: 3.0, tilt: 31, yaw: -6, lookY: 0.12, lookX: -0.4, ms: 1200 },
 };
 
 const DUEL_SHOT = { dist: 4.2, tilt: 24, lookY: 0.35, ms: 700 }; // 對決：壓低但仍看得到桌面，太低只會看到夜空
@@ -226,6 +229,30 @@ export function createCameraDirector(camera, lanterns) {
   // 「強調」變成「關燈」。要的是對比，不是把場景關掉。
   const emphasis = lanterns.map(() => 1);
   const emphasisTarget = lanterns.map(() => 1);
+
+  /* 首頁機位（凍結 p2 #7(b)）：牌桌相機要與沒有首頁機位的版本逐值相同。
+     建立導演那一刻相機就是 scene-env 擺好的牌桌初始姿勢（＝SHOTS.table）——把它原樣存下來，
+     離開首頁時整組狀態（相機位置／朝向＋補間狀態 cur*／from／target）一次還原成建立當下的樣子，
+     不走補間：補間最後一幀不寫入（見 foldWrite 註解），走補間回來會留 1e-9 級的尾巴。
+     首頁之後一定是全螢幕不透明的選角／章節畫面，所以這一下切換玩家看不到。 */
+  const table0 = { p: camera.position.clone(), q: camera.quaternion.clone() };
+  let homeOn = false;
+  function setHome(on, instant) {
+    if (!!on === homeOn) return;
+    homeOn = !!on;
+    if (homeOn) {
+      goto(SHOTS.home, SHOTS.home.ms);
+      // 開頁那一次直接就位：補間進度設為 1、強制寫一幀（k＝1 ⇒ 位置＝目標）。
+      // 不用「1ms 補間」：第一幀的 rAF 時間戳可能早於建立導演時的 performance.now()，dt 為負會把進度推成負值、k 爆掉。
+      if (instant) { t = 1; forceWrite = true; }
+      return;
+    }
+    from = { ...base }; target = { ...base }; t = 1; forceWrite = false; foldWrite = false;
+    curDist = base.dist; curTilt = base.tilt; curYaw = base.yaw; curLookY = base.lookY;
+    curLookX = base.lookX || 0; curLookZ = base.lookZ || 0; curAnchorX = base.anchorX || 0; curAnchorZ = base.anchorZ || 0;
+    camera.position.copy(table0.p);
+    camera.quaternion.copy(table0.q);
+  }
 
   function startTween(src, shot, ms) {
     from = { dist: src.dist, tilt: src.tilt, yaw: src.yaw, lookY: src.lookY, lookX: src.lookX || 0, lookZ: src.lookZ || 0, anchorX: src.anchorX || 0, anchorZ: src.anchorZ || 0 };
@@ -661,6 +688,9 @@ export function createCameraDirector(camera, lanterns) {
     framingDistance() { return camera.position.length() + SHORT_PUSH.dist * shortK; },
     /** 托盤 hover 微推開關（js/table-tray.js 的 setHover 呼叫；on=false 就自己收回去） */
     setTrayPush(on) { trayWant = on ? 1 : 0; },
+    /** 首頁機位開關（js/renderer.js 每幀依 #titleScr 是否顯示呼叫；只有狀態改變時才動作） */
+    setHome,
+    homeOn() { return homeOn; },
     trayK() { return trayK; },
   };
 }

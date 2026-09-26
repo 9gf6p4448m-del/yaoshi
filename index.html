@@ -73,10 +73,17 @@ h1,h2,h3,.big,.bigbtn,#mainbtn,.mcard .nm,.seat .nm,#myDir,.rcard .rnm,.nwTt,.nw
   #table.t3d #north .seat .roleInfoBtn{bottom:1px}
   #table.t3d #north .bubble{left:calc(100% + 6px);top:50%;bottom:auto;transform:translateY(-50%)}
 }
-.title{text-align:center;padding:22px 20px;height:100%;display:flex;flex-direction:column;justify-content:center}
-.title h1{font-size:38px;color:var(--gold);letter-spacing:12px;margin-bottom:6px}
-.title p{color:var(--dim);font-size:13px;line-height:1.7}
-.title .btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:14px}
+/* 首頁（v0.59.0 畫面精美度第二階段「甲・讓桌」，凍結 p2 #7）：面板退場，標題、說明、三顆入口與版本號收到左下，
+   桌面當主角——推近的首頁機位與桌心聚光在 js/renderer.js（3D，不是 CSS 放大），只在首頁生效。 */
+.title{text-align:left;padding:22px 20px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
+.title h1{font-size:46px;color:var(--gold);letter-spacing:18px;margin-bottom:0;text-shadow:0 0 24px rgba(232,120,40,.55),0 2px 3px #000}
+.title p{color:var(--dim);font-size:11px;line-height:1.6;max-width:440px;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.9)}
+.title .btns{display:flex;flex-wrap:wrap;gap:22px;justify-content:flex-start;margin-top:10px}
+#titleScr .bigbtn{height:40px;padding:0 2px;background:transparent;border:0;border-bottom:1px solid var(--line-gold-soft);border-radius:0;
+  color:var(--gold);text-shadow:0 1px 3px #000}
+#titleScr .bigbtn:not(.alt){border-bottom:2px solid var(--gold);font-size:17px}
+/* 首頁的暈角：四周壓暗、光留給桌心（左下壓得最深，標題字才讀得到） */
+html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba(0,0,0,0) 30%,rgba(0,0,0,.42) 70%,rgba(0,0,0,.82) 100%)}
 #table{display:none;height:100%;height:100dvh;max-width:960px;margin:0 auto;
   grid-template-areas:"north north north" "west felt east" "south south south";
   grid-template-rows:56px 1fr 62px;grid-template-columns:120px 1fr 120px;gap:4px;padding:4px}

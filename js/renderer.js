@@ -153,6 +153,29 @@ function init() {
   scene.add(createOutlineWarmup());
   let stageOn = 0;
 
+  /* ── 首頁聚光（v0.59.0「甲・讓桌」，凍結 p2 #7(c)）────────────────────
+   * 桌心一圈暖光，**只在首頁存在**。刻意不用 THREE.SpotLight：three 的 program cache key 含燈數，
+   * 加一盞燈（或進出首頁時開關它）會讓全場材質重編，而且牌桌的燈光清單就不再與前一版相同。
+   * 這裡是一片貼在桌面上的加法混色光池（自發光貼圖、不寫深度、不吃燈光）：
+   * 離開首頁 visible=false（不畫、不佔 draw call），牌桌的燈光清單與參數一格不動。【試玩必調】 */
+  const HOME_POOL = { radius: 2.3, y: 0.162, opacity: 0.62, fadeRate: 3.5, canvasOpacity: 0.62 };
+  const homePool = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'), grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(255,196,120,0.95)'); grd.addColorStop(0.35, 'rgba(240,150,80,0.55)');
+    grd.addColorStop(0.7, 'rgba(160,70,40,0.16)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(new THREE.CircleGeometry(HOME_POOL.radius, 48),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    m.rotation.x = -Math.PI / 2; m.position.y = HOME_POOL.y; m.renderOrder = 1; m.name = 'home-pool'; m.visible = false;
+    return m;
+  })();
+  scene.add(homePool);
+  const titleEl = document.getElementById('titleScr');
+  const onTitle = () => !!titleEl && titleEl.style.display !== 'none' && getComputedStyle(titleEl).display !== 'none';
+  let homeK = 0, homeSeen = false;
+
   /* ── 桌心托盤（v0.56b）──────────────────────────────────────────────
    * 資料流是**單向的**：演出層（index.html）在 showMarket／盯上頁派 `ys:market`，
    * 這裡的 listener 餵給 tray.setItems；3D 層不回頭讀 S、不耗亂數。
@@ -298,6 +321,9 @@ function init() {
     framing.active = false;
     framing.fit = null;
     if (overlay && (innerWidth <= innerHeight || !document.querySelector('#felt.hollow')?.getClientRects().length)) overlay = null;
+    // 首頁機位：只在首頁顯示時開；第一次（開頁）直接就位，之後回首頁才推近。離開首頁由導演原樣還原牌桌機位。
+    const home = !lastKind && onTitle();
+    if (home !== director.homeOn()) { director.setHome(home, !homeSeen); homeSeen = true; }
     const emphasis = director.update(dt, now);
     authoredPosition.copy(camera.position);
 
@@ -339,10 +365,19 @@ function init() {
       const o = ENV.FAR_OPACITY + (ENV.FAR_DUEL_OPACITY - ENV.FAR_OPACITY) * stageOn;
       far.children.forEach((m) => { m.material.opacity = o; });
     }
-    if (kind !== lastKind) {
+    // 首頁光池淡入淡出；歸零就整片不畫（visible=false），牌桌的 draw call 不變
+    homeK += ((home ? 1 : 0) - homeK) * Math.min(1, dt * HOME_POOL.fadeRate);
+    if (!home && homeK < 0.01) homeK = 0;
+    homePool.visible = homeK > 0;
+    homePool.material.opacity = HOME_POOL.opacity * homeK;
+    const homeView = !kind && home;
+    if (kind !== lastKind || homeView !== canvas.__home) {
       lastKind = kind;
-      canvas.style.opacity = kind ? '1' : '0.38';
+      canvas.__home = homeView;
+      // 首頁（甲・讓桌）：桌面是主角，畫布不壓那麼暗；其餘全螢幕場景照舊 0.38
+      canvas.style.opacity = kind ? '1' : homeView ? String(HOME_POOL.canvasOpacity) : '0.38';
       canvas.style.transition = 'opacity .5s';
+      document.documentElement.classList.toggle('ysHome', homeView);
     }
 
     // 夜霧在兩段密度之間補間：對決濃、其餘淡（切場景時 0.4 秒收斂，不會突然一片灰）
