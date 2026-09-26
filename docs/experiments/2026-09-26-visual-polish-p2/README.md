@@ -64,3 +64,33 @@
 ## 重跑
 
 `node tests/tools/visual-polish-probe.mjs [--base 14ac1f2] --modes <m> --tag <t> --out probe --port <p>`（按模式分 5 片並行，約 1 小時）→ `--merge a.json,b.json,… --tag base-merged|head-merged` → `node tests/tools/visual-polish-p2-judge.mjs probe/probe-base-merged.json probe/probe-head-merged.json --out judge.json`。原始 probe JSON（每份 9MB）與截圖留在工作樹本機，沒有提交。
+
+## 補充（2026-09-27，主對話指示；凍結檔未動）
+
+### #9 對齊：railTabs 分組改「左欄第 i 枚 vs 右欄第 i 枚」
+
+主對話依 02 §2.1 例外條裁定：原分組把左右欄所有頁籤當成同一列，使用者選的直排窄籤在這種分組下不論實作對錯都必紅。
+新分組只比同一列的兩枚（左 i／右 i）的上緣、下緣、高度差是否 ≤2px。**沒有重跑矩陣**，用既有原始 JSON（`probe-base-merged.json`／`probe-head-merged.json` 的 `p2.tabs[].rect`，0.1px）重算：`tests/tools/rail-tabs-align-recalc.mjs`。
+
+| | V1 | V2 | V3 | V4 | V5 |
+|---|---|---|---|---|---|
+| 基準（對齊紅格／格，比了幾對） | 0/186（228 對） | 0/185（228） | 0/185（228） | 0/185（228） | 0/185（基準 V5 沒有頁籤） |
+| 改後 | 0/198（246） | 0/197（246） | 0/197（246） | 0/197（246） | 0/197（246） |
+| 突變：每格右欄第 1 枚下移 5px（`--mutate`） | — | — | — | — | 改後 123/197 格全紅（dt 5.0） |
+
+原分組的數字（123 格／視口）保留在上面 #9 表裡，供對照。證據：`align-railtabs-recalc.json`、`align-railtabs-recalc-mutate.json`。
+
+### #8 夜戰：靜止幀
+
+量測時點：`tests/tools/duel-still-rects.mjs`。PW_FX 的 *_MS 都設 1，只把 END_MS 設成 10 分鐘，讓 solo seed 3 第 1 夜第一場夜戰停在「三拍演完、勝負行與燒毀行已寫上」的最後一幀；等動畫跑完、字型載完（連三次）才量。同一幀隔 0.5s 再量一次，逐值相同（selfStable）。V1。
+
+- 基準對基準（5 次、10 對）：最大差 **0.0px**（雜訊底線 0）。
+- 改後對基準（5×5）：最大 **2.8px**。
+  - 超過 2px 的有三個容器，都是置中、寬度由內容撐開的文字框變窄（位置與高度不變）：
+    - `.vsbig`「VS」寬 38.7→35.9（Latin 從明體變黑體）
+    - `#duelResult` 寬 254.6→252.3（內文黑體）
+    - `#duelSub` 寬 309→306.9（內文黑體，🔥 換成比 emoji 窄的圖示）
+  - `#duelBeat`（87d310f 改明體的拍首字幕）差 1.8px，在 2px 內，不是超標的來源，所以沒有另量 revert 版本。
+  - 其餘容器（#duel、#duelArena、左右 fighter、#beatLamps、#dmgLayer）0–1.4px。
+
+證據：`duel-still/base.json`、`duel-still/head.json`，比對腳本 `duel-still-cmp.mjs`。
