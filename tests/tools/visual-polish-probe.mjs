@@ -118,9 +118,22 @@ window.__vp = {
     return x;
   },
   /* 逐字（以 code point 為單位）取字框；回傳可見字的 {n,i,ch,l,t,r,b} */
+  /* v0.59.0 起介面 emoji 由 js/ui-icons.js 換成 <svg class="ic">（原字留在 display:none 的 .icT 裡）。
+     圖示在版面上佔的就是原本那個 emoji 的位置：這裡把可見的 svg.ic 當成一個「非字母、非數字」的字（U+FFFC）
+     按文件順序插進字序列——與基準版把 emoji 當成一個非字母字元的處理相同（基準版沒有 svg.ic，數字不受影響）。 */
+  icT(n){ const p = n.parentElement; if (!p || !p.classList || !p.classList.contains('icT')) return false; const s = p.previousElementSibling; return !!s && s.tagName.toLowerCase() === 'svg' && s.classList.contains('ic') && __tf.vis(s) && s.getBoundingClientRect().width > 0; },
   chars(root){
     const out = [], rg = document.createRange();
-    for (const n of this.textNodes(root, true)) {   /* 含純空白節點：段與段之間的空白也是斷點 */
+    const nodes = this.textNodes(root, true);
+    if (root.querySelectorAll) for (const s of root.querySelectorAll('svg.ic')) if (__tf.vis(s) && !(this.__only && !this.__only.contains(s))) nodes.push(s);
+    nodes.sort((a, b) => (a === b ? 0 : (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1));
+    for (const n of nodes) {   /* 含純空白節點：段與段之間的空白也是斷點 */
+      if (n.nodeType === 1) {
+        const q = n.getBoundingClientRect(), clip = this.clipOf(n.parentElement);
+        const cy = (q.top + q.bottom) / 2, cx = (q.left + q.right) / 2;
+        if (q.width >= 0.1 && cx >= clip.l - 1 && cx <= clip.r + 1 && cy >= clip.t && cy <= clip.b) out.push({ n, i: 0, ch: '￼', l: q.left, t: q.top, r: q.right, b: q.bottom });
+        continue;
+      }
       const t = n.textContent, clip = this.clipOf(n.parentElement);
       for (let i = 0; i < t.length;) {
         const cp = t.codePointAt(i), len = cp > 0xffff ? 2 : 1, ch = t.slice(i, i + len);
@@ -329,7 +342,9 @@ window.__vp = {
      collapsed()：北列高 ≤56px；每顆摘要鈕只有一行；北列以外的可點元素中心沒有被北列任何元素蓋住。
      opened()：展開後 #mainbtn 中心仍命中自己；面板可見的文字項目 ⊇ 原北列項目（fillRails 收到的兩段 HTML 逐文字節點，多重集合比對）。
      收起測試在主程式：北列以外送一個 pointerdown，面板要收起。 */
-  srcItems(html){ const d = document.createElement('div'); d.innerHTML = html || ''; const o = []; const tw = document.createTreeWalker(d, NodeFilter.SHOW_TEXT); for (let n = tw.nextNode(); n; n = tw.nextNode()) { const t = n.textContent.replace(/\s+/g, ' ').trim(); if (t) o.push(t); } return o; },
+  srcItems(html){ const d = document.createElement('div'); d.innerHTML = html || ''; const o = []; const tw = document.createTreeWalker(d, NodeFilter.SHOW_TEXT); for (let n = tw.nextNode(); n; n = tw.nextNode()) { const t = n.textContent.replace(/\s+/g, ' ').trim(); if (t) o.push(...this.epSplit(t)); } return o; },
+  /* 原始 HTML 的一段字若含 emoji，畫面上會被 js/ui-icons.js 拆成「圖示（原字）＋其餘文字」幾個節點：比對前按同一個方式拆開 */
+  epSplit(t){ return t.split(/(\p{Extended_Pictographic}️?)/u).map((s) => s.trim()).filter(Boolean); },
   northItems(){ const s = window.__northSrc; return s ? { prev: this.srcItems(s.prev), shr: this.srcItems(s.shr) } : null; },
   collapsed(){
     const out = [], N = document.getElementById('north'); if (!N || !__tf.vis(N) || !document.querySelector('#north .nsum')) return out;
@@ -357,7 +372,7 @@ window.__vp = {
     let n = 0;
     for (const [part, id] of [['prev', 'northPrev'], ['shr', 'northShr']]) {
       const panel = document.querySelector('#' + id + ' .nfull'); const have = [];
-      if (panel) { const tw = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT); for (let t0 = tw.nextNode(); t0; t0 = tw.nextNode()) { const t = t0.textContent.replace(/\s+/g, ' ').trim(); if (!t || !t0.parentElement || !__tf.vis(t0.parentElement)) continue; const q = t0.parentElement.getBoundingClientRect(); if (q.width < 0.5 || q.height < 0.5) continue; have.push(t); } }
+      if (panel) { const tw = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT); for (let t0 = tw.nextNode(); t0; t0 = tw.nextNode()) { const t = t0.textContent.replace(/\s+/g, ' ').trim(); if (!t || !t0.parentElement) continue; if (__vp.icT(t0)) { have.push(t); continue; } if (!__tf.vis(t0.parentElement)) continue; const q = t0.parentElement.getBoundingClientRect(); if (q.width < 0.5 || q.height < 0.5) continue; have.push(t); } }
       const pool = have.slice();
       for (const t of src[part]) { n++; const i = pool.indexOf(t); if (i >= 0) pool.splice(i, 1); else out.push({ kind: 'missing', sel: '#' + id, text: t.slice(0, 40) }); }
     }
@@ -508,7 +523,7 @@ window.__p2 = {
     for (let n = tw.nextNode(); n; n = tw.nextNode()) {
       const t = n.textContent.replace(/\s+/g, ' ').trim(); if (!t) continue;
       if (vis) {
-        const p = n.parentElement; if (!p || !__tf.vis(p)) continue;
+        const p = n.parentElement; if (__vp.icT(n)) { o.push(t); continue; } if (!p || !__tf.vis(p)) continue;
         const rg = document.createRange(); rg.selectNodeContents(n); const q = rg.getBoundingClientRect(); if (q.width < 0.5 || q.height < 0.5) continue;
         const c = __vp.clipOf0(p); const cx = (q.left + q.right) / 2, cy = (q.top + q.bottom) / 2; if (cx < c.l - 1 || cx > c.r + 1 || cy < c.t - 1 || cy > c.b + 1) continue;
       }
