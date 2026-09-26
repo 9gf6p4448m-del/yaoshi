@@ -9,13 +9,13 @@
 
 /* A1 — lacquered wood and old paper around the existing cinnabar tray.
    Faction colours and all text sizes keep their existing meaning. */
-#table.t3d {
-  --panel: #201916;
-  --panel2: #352720;
-  --line: #71573b;
+#table.t3d {   /* v0.59.0 戊「朱印一套」：近黑底＋金細線（原 A1 漆木色 #201916／#352720／#71573b） */
+  --panel: #0b0908;
+  --panel2: #1c1712;
+  --line: rgba(201, 168, 98, .5);
   --ink: #f0e8d8;
   --dim: #beab8e;
-  --glass: color-mix(in srgb, var(--panel) 88%, transparent);
+  --glass: color-mix(in srgb, var(--panel) 90%, transparent);
 }
 #table.t3d .seat, #table.t3d #south {
   box-shadow: inset 0 1px rgba(232, 200, 96, .12), 0 3px 12px rgba(0, 0, 0, .2);
@@ -163,8 +163,8 @@
 #table.t3d #north .nsum {
   width: 100%; height: 100%; min-height: 40px; margin: 0; padding: 0 17px 0 8px; position: relative;
   display: flex; align-items: center; flex-wrap: wrap; align-content: center; column-gap: 0;
-  background: var(--strip-bg); border: 1px dashed var(--gold); border-radius: 10px;
-  color: var(--ink); font-size: 10px; line-height: 1.3; text-align: left; cursor: pointer; font-family: inherit;   /* 10px＝凍結下限；11px 時 SE 寬最長一句（「魔神仔的芭樂」＋規則夜）會折成兩行 */
+  background: var(--strip-bg); border: 1px solid var(--line-gold-soft); border-radius: var(--r-panel);
+  color: var(--gold); font-size: 11px; line-height: 1.3; text-align: left; cursor: pointer; font-family: inherit;   /* v0.59.0（凍結 p2 #5）：11px、亮金；框線改金細線 */   /* 10px＝凍結下限；11px 時 SE 寬最長一句（「魔神仔的芭樂」＋規則夜）會折成兩行 */
 }
 #table.t3d #north .nsum .nsumArr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 11px; }
 #table.t3d #north.nopen .nsum .nsumArr { transform: translateY(-50%) rotate(180deg); }
@@ -173,7 +173,7 @@
 #table.t3d #north.nopen .nfull {
   display: block; position: absolute; top: calc(100% + 4px); width: max(100%, 250px); max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 8px);
   max-height: calc(100dvh - 140px); overflow-y: auto;
-  background: var(--strip-bg); border: 1px solid var(--gold); border-radius: 10px; padding: 6px 8px;
+  background: var(--strip-bg); border: 1px solid var(--line-gold-soft); border-radius: var(--r-panel); padding: 6px 8px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .6);
 }
 #table.t3d #north.nopen #northPrev .nfull { left: 0; }

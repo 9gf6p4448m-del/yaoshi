@@ -454,7 +454,7 @@ window.__p2 = {
     return out;
   },
   /* #6 字體：各類元素第一個可見者的計算 font-family（整串）；另記 web font 是否已載入 */
-  FAM: ['#titleScr h1', '#titleScr .bigbtn', '#titleScr p:not(#verLine)', '#verLine', '.stageCard .big', '#stage h2', '#review h2', '#review h3', '.mcard .nm', '.mcard .pw', '.mcard .ab', '.mcard .uline', '.railTabs button', '.rcard .nm', '.rcard', '.seat .nm', '.seat .st', '#myDir', '#myLife', '#myPow', '.bsum', '.stakebar .amt', '.incamt', '#mainbtn', '#south button.side', '.fighter .fpw', '.nsum', '.nfull .preview', '.bidfly', '#shz > div', '.nwCard', '.nwCard h3', '#nwScr h2', '.endrank', '#feltHead', '.mut', '#modalbox', '#sheetbox'],
+  FAM: ['#titleScr h1', '#titleScr .bigbtn', '#titleScr p:not(#verLine)', '#verLine', '.stageCard .big', '#stage h2', '#review h2', '#review h3', '.mcard .nm', '.mcard .pw', '.mcard .ab', '.mcard .uline', '.railTabs button', '.rcard .nm', '.rcard .rnm', '.rcard', '.seat .nm', '.seat .st', '#myDir', '#myLife', '#myPow', '.bsum', '.stakebar .amt', '.incamt', '#mainbtn', '#south button.side', '.fighter .fpw', '.nsum', '.nfull .preview', '.bidfly', '#shz > div', '.nwCard', '.nwCard h3', '#nwScr h2', '.endrank', '#feltHead', '.mut', '#modalbox', '#sheetbox'],
   fam(){
     const o = {};
     for (const s of this.FAM) { const e = [...document.querySelectorAll(s)].find((x) => __tf.vis(x) && x.getBoundingClientRect().width > 0 && /\S/.test(x.textContent || '')); if (e) o[s] = getComputedStyle(e).fontFamily; }

@@ -263,14 +263,14 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    線香煙從後面透出來。透明度的單一事實來源＝下面三個變數，要調就改這裡，不要各處硬寫 rgba。
    每條都先寫不透明的舊值當 fallback：不支援 color-mix 的瀏覽器退回原樣，不會破版。 */
 /* --strip-bg：浮在 3D 桌面上的文字條底色（v0.58.2 文字完整顯示卷，凍結 #3 門檻 ≥.85） */
-:root{--strip-bg:rgba(8,5,16,.9)}
+:root{--strip-bg:rgba(11,9,8,.9)}   /* v0.59.0 戊：近黑（原 rgba(8,5,16,.9) 紫黑），不透明度不變 */
 :root{--glass:color-mix(in srgb,var(--panel) 60%,transparent);
   --glass-felt:color-mix(in srgb,var(--table) 52%,transparent);
   --glass-felt2:color-mix(in srgb,var(--table2) 52%,transparent);
   --glass-blur:blur(7px)}
 .seat{position:relative;background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border:1px solid var(--line);border-radius:12px;
+  border:1px solid var(--line);border-radius:var(--r-panel);
   padding:5px 8px;cursor:pointer;transition:box-shadow .3s;width:100%}
 .seat.hl{box-shadow:0 0 12px var(--gold);border-color:var(--gold)}
 .seat.dead{opacity:.35}
@@ -288,7 +288,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .incboard{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;
   background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;
+  border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r-panel);
   padding:0 6px;line-height:1.55;font-size:9.5px;white-space:nowrap;overflow:hidden}
 .incboard .ibh{display:flex;gap:5px;font-size:8.5px;color:var(--dim)}
 .incboard .ibh span.on{color:var(--gold)}
@@ -303,7 +303,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #shrines.slim .incboard{flex:1 1 0}
 .shcard{flex:1 1 0;min-width:0;background:var(--panel);background:var(--glass);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border:1px solid var(--line);border-left:3px solid var(--pwf,#8a8a8a);border-radius:10px;
+  border:1px solid var(--line);border-left:3px solid var(--pwf,#8a8a8a);border-radius:var(--r-panel);
   padding:0 6px;display:flex;align-items:center;gap:4px;line-height:1.55;overflow:hidden}
 .shcard.gone{opacity:.5}
 .shname{font-size:9.5px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
@@ -314,7 +314,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .legendPicks{display:flex;flex-direction:column;gap:7px;margin-top:9px}
 .legendPick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;
   background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--pwf,#8a8a8a);
-  border-radius:10px;padding:7px 10px;cursor:pointer;font-family:inherit}
+  border-radius:var(--r-panel);padding:7px 10px;cursor:pointer;font-family:inherit}
 .legendPick:hover{border-color:var(--gold)}
 .legendPick .lpn{font-size:14px;font-weight:bold}
 .legendPick .lpm{font-size:11.5px;color:var(--gold);line-height:1.5;white-space:normal}
@@ -387,12 +387,12 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    翻到左側之後放大也還在桌內；西席本來就在左緣，印章在右側不會凸出，不必動。 */
 #east .mark-stamp{right:auto;left:-6px}
 .seat .dir{position:absolute;top:-7px;left:8px;background:var(--table2);border:1px solid var(--line);
-  border-radius:6px;font-size:10px;padding:0 5px;color:var(--gold)}
-.windb{position:absolute;top:-7px;right:8px;background:var(--gold);color:#14101f;border-radius:6px;
+  border-radius:1px;font-size:10px;padding:0 5px;color:var(--gold)}
+.windb{position:absolute;top:-7px;right:8px;background:var(--c-zhu);color:var(--c-zhu-ink);border-radius:1px;
   font-size:10px;padding:0 5px;font-weight:bold}
 /* 座位卡「角色資訊」ⓘ 鈕（2026-09-02 試玩回饋：進遊戲後看不到角色被動）——純呈現，見 IMPLEMENTATION_GUIDE §11.7 慣例 */
 .seat .roleInfoBtn{position:absolute;bottom:-7px;right:8px;background:var(--panel2);border:1px solid var(--gold);
-  color:var(--gold);border-radius:6px;font-size:11px;padding:0 5px;line-height:15px;z-index:3;cursor:pointer}
+  color:var(--gold);border-radius:1px;font-size:11px;padding:0 5px;line-height:15px;z-index:3;cursor:pointer}
 #south button.side.roleInfoBtn{width:38px;padding:0;font-size:14px}
 .bubble{position:absolute;z-index:9;background:#efe8d8;color:#2a2142;border-radius:10px;padding:4px 9px;
   font-size:12px;white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;
@@ -403,10 +403,10 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #felt{grid-area:felt;background:radial-gradient(ellipse at 50% 35%,var(--table2),var(--table));
   background:radial-gradient(ellipse at 50% 35%,var(--glass-felt2),var(--glass-felt));
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow-y:auto}
+  border:2px solid transparent;border-radius:var(--r-panel);padding:8px 10px;position:relative;overflow-y:auto}
 /* 夜份列：12 格月相與風位資訊**同一列**（美術層 §4）。#felt 高度預算零餘裕，不得新增一列。 */
 #feltHead{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;
-  text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px}
+  text-align:center;font-size:12px;color:var(--gold);margin-bottom:5px;font-family:var(--font-display)}
 .headCompact{display:none}
 @media (orientation:landscape) and (max-width:1400px){
   #feltHead{flex-wrap:nowrap;justify-content:flex-start;padding-right:115px;font-size:10px}
@@ -421,7 +421,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   /* v0.58.2（文字完整顯示卷，使用者 iPhone 截圖「東風・朔月｜陰氣…」）：縮寫列不再 ellipsis。
      flex-basis 改 auto（＝整句的寬）：放得進月相格右邊就同一列，放不進就整句落到下一列用滿寬度，
      還放不下才在 .hcs 段落（「・」「｜」）之間換行（每段 inline-block，段內不斷字）。實測比較見 docs/experiments/2026-09-25-text-fit/README.md。 */
-  #table #feltHead .headCompact{flex:1 1 auto;background:var(--strip-bg);border-radius:8px;padding:1px 8px}   /* 與心願條同一個底：落到第二列時正好壓在 3D 拍品上方（燈籠火光會吃掉字影） */
+  #table #feltHead .headCompact{flex:1 1 auto;background:var(--strip-bg);border-radius:0;padding:1px 8px;box-shadow:inset 0 1px 0 var(--line-gold-soft),inset 0 -1px 0 var(--line-gold-soft)}   /* 與心願條同一個底：落到第二列時正好壓在 3D 拍品上方（燈籠火光會吃掉字影） */
   #table #feltHead .headCompact .hcs{display:inline-block}
   #table #feltHead .wishbar{flex:2 1 0;min-width:140px}
 }
@@ -435,19 +435,19 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   border:1px solid var(--gold);border-radius:20px;padding:6px 14px;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.6);cursor:pointer;white-space:nowrap}
 #updBar.on{display:block;animation:pop .25s ease-out}
 #helpBtn{display:none;position:absolute;top:6px;right:8px;z-index:25;width:34px;height:34px;border-radius:50%;
-  background:#2a2344;color:var(--gold);border:1px solid var(--gold);font-size:16px;line-height:1}
+  background:var(--c-ink-bg);color:var(--gold);border:1px solid var(--line-gold);font-size:16px;line-height:1;font-family:var(--font-display)}
 #stage{min-height:40px}
-.preview{background:rgba(0,0,0,.25);border:1px dashed var(--gold);border-radius:10px;padding:4px 10px;
+.preview{background:rgba(0,0,0,.25);border:1px dashed var(--gold);border-radius:var(--r-panel);padding:4px 10px;
   font-size:11px;color:var(--gold);margin-bottom:6px;text-align:center}
-.wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:10px;padding:4px 10px;
+.wishbar{background:rgba(0,0,0,.25);border:1px solid #7a5ea8;border-radius:var(--r-panel);padding:4px 10px;
   font-size:11px;color:#cdb9ee;margin-bottom:6px;text-align:center}
 .wishbar b{color:var(--gold)}
 /* 3D 桌面時，心願是玩家的私人局勢資訊，不是另一張中央面板：收進夜份／風位列，
    讓桌心只服務「看拍品、選拍品、出價」。保留完整文案與醒目的邊框，不把資訊縮成提示字。 */
 #feltHead .wishbar{flex:0 1 auto;max-width:min(100%,520px);margin:0;padding:2px 8px;font-size:10px;
-  background:var(--strip-bg);border-color:rgba(122,94,168,.78);text-shadow:none}
+  background:var(--strip-bg);border-color:rgba(122,94,168,.78);text-shadow:none;border-radius:0}
 /* 盯上徽章掛在卡角外側左上（與右上的 .mybid 對稱），不壓品名（v0.11 修正：原本 left:4px;top:4px 蓋住 .nm） */
-.markb{position:absolute;left:-4px;top:-7px;font-size:9.5px;line-height:12px;background:var(--panel2);border:1px solid #c9a24a;border-radius:8px;padding:0 5px;color:#ffd97a;z-index:2;white-space:nowrap}
+.markb{position:absolute;left:-4px;top:-7px;font-size:9.5px;line-height:12px;background:var(--panel2);border:1px solid #c9a24a;border-radius:1px;padding:0 5px;color:#ffd97a;z-index:2;white-space:nowrap}
 /* 今夜市集規則：說明併在 .preview（明夜預告／hint）框內的那一段＋押寶夜的「一注」輸入條 */
 .rulein{color:#ffd9d0;margin-left:6px}
 .rulein b{color:var(--gold)}
@@ -458,15 +458,15 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .aihint .sep{color:var(--dim);margin:0 4px}
 .aihint b{color:var(--gold)}
 .credin b{color:var(--gold)}
-.stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:9px;
+.stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:var(--r-panel);
   padding:3px 9px;text-align:center}
 .stakerow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:nowrap}
 .stakebar .stepper{display:flex;align-items:center}
-.stakebar .stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+.stakebar .stepper button{width:30px;height:30px;border-radius:var(--r-panel);border:1px solid var(--line);
   background:var(--panel2);color:var(--ink);font-size:16px}
 .stakebar .amt{width:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:var(--gold);font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
 .stakebar .typebtn{height:30px;font-size:12px;padding:0 10px;white-space:nowrap}
-.pickbox{position:absolute;top:-8px;right:-4px;width:22px;height:22px;border-radius:7px;z-index:2;
+.pickbox{position:absolute;top:-8px;right:-4px;width:22px;height:22px;border-radius:1px;z-index:2;
   border:1px solid var(--gold);background:var(--panel2);color:var(--gold);
   font-size:13px;font-weight:bold;line-height:20px;text-align:center}
 .pickbox.on{background:var(--gold);color:#14101f}
@@ -482,7 +482,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    牌桌在直式本來就被 #rotateHint 整片蓋住、玩家看不到，所以照 #shrines 的做法直接收起來，轉橫就回來；
    蓋板本身（#rotateHint 的顯示條件與文案）一字未動。 */
 @media (orientation:portrait){ #market{display:none} }
-.mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:11px;padding:7px;cursor:pointer;
+.mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:var(--r-panel);padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
 .mcard:active{transform:scale(.97)}
 .mcard.curse{border-color:var(--curse)}
@@ -498,17 +498,17 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .mcard>div{position:relative;z-index:1}
 .iico{width:17px;height:17px;vertical-align:-3px;margin-right:4px}
 .bico{width:11px;height:11px;vertical-align:-1px;margin-right:4px;opacity:.9}
-.mybid{position:absolute;top:-8px;right:-4px;background:var(--gold);color:#14101f;border-radius:8px;
+.mybid{position:absolute;top:-8px;right:-4px;background:var(--gold);color:#14101f;border-radius:1px;
   font-size:11px;font-weight:bold;padding:1px 7px;z-index:2}
 .mybid.poison{background:var(--curse);color:#fff}
-.fchip{display:inline-block;font-size:9px;border-radius:5px;padding:0 4px;margin-left:3px;color:#14101f;font-weight:bold}
+.fchip{display:inline-block;font-size:9px;border-radius:1px;padding:0 4px;margin-left:3px;color:#14101f;font-weight:bold}
 .f-zuling{background:var(--zuling)} .f-xianghuo{background:var(--xianghuo)}
 .f-yinqi{background:var(--yinqi)} .f-curse{background:var(--curse);color:#fff}
 .moonCue{display:inline-block;margin-left:3px;font-size:8.5px;padding:0 3px;border-radius:5px;background:rgba(162,145,255,.28);color:#e2d9ff;font-weight:bold;white-space:nowrap}
 .moonDetail{margin:4px 0 7px;padding:6px 8px;border:1px solid rgba(189,174,255,.72);border-radius:8px;background:linear-gradient(90deg,rgba(82,58,145,.34),rgba(27,18,53,.45));color:#e5deff;font-size:12px;line-height:1.35}
 .moonDetail.off{border-color:var(--line);background:rgba(255,255,255,.035);color:var(--dim)}
 .bagMoon{font-size:11px;color:#e5deff;padding-top:3px}
-.stageCard{background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:8px 12px;
+.stageCard{background:var(--panel);border:1px solid var(--line-gold-soft);border-radius:var(--r-panel);padding:8px 12px;
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .stageCard .big{font-size:15px;font-weight:bold}
@@ -520,13 +520,13 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .chainHint,.chainStatus{display:block;color:#f8d994;font-size:11px;line-height:1.3}.chainStatus{padding:3px 5px;border-left:2px solid #c89d49;background:rgba(22,12,25,.7);margin:3px 0}.chainAwaken{display:flex;align-items:center;gap:8px;max-width:340px;margin:3px auto;padding:3px 8px;border:1px solid #d3ac5e;background:rgba(23,11,31,.88);color:#f7dfa5;font-size:11px;pointer-events:none}.chainAwaken b{white-space:nowrap}.chainIngredients{display:flex;align-items:center;gap:4px}.chainIngredients>span{white-space:nowrap;animation:chainLeft .65s ease-out both}.chainIngredients>span:last-child{animation-name:chainRight}.chainSigil{position:relative;flex:0 0 20px;height:20px}.chainSigil:before,.chainSigil:after{content:"";position:absolute;inset:2px;border:1px solid #e9c978;transform:rotate(45deg);animation:chainSquare .7s ease-out both}.chainSigil:after{inset:6px;animation-delay:.08s}@keyframes chainLeft{from{transform:translateX(-12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainRight{from{transform:translateX(12px);opacity:.35}to{transform:translateX(0);opacity:1}}@keyframes chainSquare{from{transform:rotate(45deg) scale(.35);opacity:.25}to{transform:rotate(45deg) scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chainIngredients>span,.chainSigil:before,.chainSigil:after{animation:none}}.chainStatus.chainActive{border-left-color:#e8bd55;color:#f5e6a3}.chainDesc{display:block;font-size:10.5px;color:rgba(248,217,148,.7);margin-top:1px;padding-left:2px}.chainBanner{font-size:11.5px;color:#f5e088;padding:4px 6px 6px;border-bottom:1px solid rgba(232,189,85,.25);margin-bottom:4px;line-height:1.6}
 @media(max-height:430px){.chainAwaken{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:90;width:max-content;max-width:calc(100vw - 24px)}}
 .bidfly{display:flex;justify-content:space-between;padding:3px 10px;margin-top:5px;background:var(--panel2);
-  border-radius:8px;font-size:12px;animation:slidein .3s}
+  border-radius:var(--r-panel);font-size:12px;animation:slidein .3s}
 @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 .bidfly.win{background:var(--gold);color:#14101f;font-weight:bold}
 .outcome{margin-top:6px;color:var(--gold);font-size:12px;animation:pop .3s}
 #south{grid-area:south;display:flex;align-items:center;gap:10px;background:var(--panel);
   background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border:1px solid var(--line);border-radius:12px;padding:5px 12px;position:relative}
+  border:1px solid var(--line);border-radius:var(--r-panel);padding:5px 12px;position:relative}
 #south .dir{color:var(--gold);font-size:11px}
 #south .av{font-size:28px}
 #south .life{font-size:21px;font-weight:bold;color:var(--green);line-height:1;font-family:var(--font-display,sans-serif);font-variant-numeric:tabular-nums}
@@ -534,14 +534,14 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #south .mut{line-height:1.35}
 #budget{font-size:11px;color:var(--dim);margin-left:auto;text-align:right}
 #budget.over{color:var(--red);font-weight:bold}
-#south button.side{height:38px;border-radius:8px;border:1px solid var(--line);
-  background:var(--panel2);color:var(--ink);padding:0 12px;font-size:12px}
-.bigbtn{height:44px;border-radius:10px;border:none;background:var(--gold);color:#14101f;
-  font-size:15px;font-weight:bold;padding:0 22px}
+#south button.side{height:38px;border-radius:20px;border:1px solid var(--line-gold-soft);
+  background:rgba(201,168,98,.06);color:var(--gold);padding:0 12px;font-size:12px}   /* 戊：次要鈕去掉實底、留一圈可見的底圓（主次靠主鈕的朱印拉開） */
+.bigbtn{height:44px;border-radius:var(--r-panel);border:none;background:var(--c-zhu);color:var(--c-zhu-ink);
+  font-size:15px;font-weight:bold;padding:0 22px;letter-spacing:.06em;box-shadow:inset 0 0 0 2px var(--c-zhu),inset 0 0 0 3px rgba(246,234,210,.7)}   /* 戊：主要動作＝朱印 */
 .bigbtn.alt{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 .bigbtn:disabled{opacity:.4}
 #skipbtn{position:absolute;top:6px;right:50px;background:rgba(0,0,0,.3);border:1px solid var(--line);
-  color:var(--dim);border-radius:8px;padding:2px 10px;font-size:11px;display:none;z-index:5}
+  color:var(--dim);border-radius:var(--r-panel);padding:2px 10px;font-size:11px;display:none;z-index:5}
 /* 對決場景 */
 /* 背景半透明：對決時鏡頭已切到貼桌面的低角度，這裡讓那個畫面透出來當舞台。
    兩層都留：不支援 color-mix 的瀏覽器退回原本的不透明漸層，不會變成看不清楚。 */
@@ -721,11 +721,11 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 #selectScr.on{display:flex}
 #selHead{display:flex;align-items:center;gap:10px}
 #selHead h2{margin:0;flex:1;font-size:15px}
-.selback{height:30px;border-radius:8px;border:1px solid var(--line);
+.selback{height:30px;border-radius:var(--r-panel);border:1px solid var(--line);
   background:var(--panel2);color:var(--dim);padding:0 12px;font-size:12px}
 #selGrid{flex:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:1fr;
   gap:6px;overflow-y:auto;min-height:0}
-.rcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px 4px;
+.rcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:3px 4px;
   text-align:center;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:1px;
   transition:box-shadow .2s;min-width:0}
 .rcard .rav{font-size:23px;line-height:1.15}
@@ -734,7 +734,7 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 .rcard.sel{border-color:var(--gold);box-shadow:0 0 8px var(--gold)}
 .rcard.taken{opacity:.28;pointer-events:none}
 #selFoot{display:flex;align-items:center;gap:10px;min-height:52px;background:var(--panel);
-  border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+  border:1px solid var(--line);border-radius:var(--r-panel);padding:6px 10px}
 /* 夜行錄（N1）：章節選單／引言卡／殘卷卡同一層 #nwScr（與 #selectScr 同層級、同底色；整層可捲，
    卡片沿用 .stageCard／.bigbtn／.selback 語彙；grid 在 844 橫式排三欄、390 直式自動落成一欄，不橫向溢出） */
 #nwScr{display:none;position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;overflow-x:hidden;
@@ -745,7 +745,7 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 #nwScr .nwLead{max-width:820px;margin:0 auto 8px;color:var(--dim);font-size:12px;line-height:1.6}
 .nwGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;max-width:820px;margin:0 auto}
 .nwCard{display:flex;gap:10px;align-items:flex-start;min-width:0;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:9px 10px}
+  border-radius:var(--r-panel);padding:9px 10px}
 .nwCard.cleared{border-color:var(--gold);box-shadow:inset 0 0 0 1px rgba(232,200,96,.18)}
 .nwCard.locked{opacity:.55}
 .nwAv{flex:0 0 auto;width:52px;height:52px;font-size:34px;line-height:52px;text-align:center}
@@ -765,7 +765,7 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 /* 卡片自己捲（與 #modalbox 同慣例：max-height＋overflow-y:auto；28px＝#nwScr 上下 padding）；按鈕列比照 .stickyClose 黏在卡片可視區底緣，
    844×390 橫式卡片比視口高時「選角入市」「收起殘卷」不必先捲到底 */
 #nwScr .stageCard.nwBig>.nwBtns{position:sticky;bottom:0;z-index:1;background:var(--panel);margin:8px -14px 0;
-  padding:8px 14px 10px;border-radius:0 0 13px 13px;box-shadow:0 -10px 12px var(--panel)}
+  padding:8px 14px 10px;border-radius:0;box-shadow:0 -10px 12px var(--panel)}
 #nwScr[data-view="intro"],#nwScr[data-view="scroll"]{overflow-y:hidden}
 .nwH{font-size:20px;color:var(--gold);letter-spacing:3px;margin:2px 0 6px}
 .nwBossRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}
@@ -784,31 +784,31 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 #selDesc{flex:1;font-size:clamp(13px,1.9vw,17px);color:var(--dim);line-height:1.5;min-width:0}
 #selDesc b{color:var(--ink)}
 .descHead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.descTag{border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:0 6px;font-size:.8em}
+.descTag{border:1px solid var(--gold);color:var(--gold);border-radius:1px;padding:0 6px;font-size:.8em}
 .descRow{margin-top:2px;padding-left:10px;position:relative}
 .descRow::before{content:"‣";position:absolute;left:0;color:var(--gold)}
 /* 抽屜 / modal */
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:30;display:none;align-items:center;justify-content:center}
-#sheetbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;padding:14px 14px 16px;max-height:92vh;overflow-y:auto}
+#sheetbox{background:var(--panel);border:1px solid var(--line-gold-soft);border-radius:var(--r-panel);width:94%;max-width:460px;padding:14px 14px 16px;max-height:92vh;overflow-y:auto}
 #sheetbox h3{font-size:15px;margin-bottom:2px}
 #sheetbox .desc{font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.4}
 /* 出價視窗的部隊敘述（full 模式）不夾高：.uline 全域的 overflow:hidden;max-height:2.8em 是給市集卡省 #felt 高度用的，
    在這裡會把第二行截掉（2026-09-10 使用者截圖回報：福壽綿長／雷女之火的招式說明只剩半行）。 */
 #sheetbox .uline{max-height:none;overflow:visible;font-size:12px}
 .bidrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.stepper{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stepper{display:flex;border:1px solid var(--line);border-radius:var(--r-panel);overflow:hidden}
 .stepper button{width:50px;height:46px;background:var(--panel2);color:var(--ink);border:none;font-size:22px}
 .stepper .amt{width:54px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:bold;color:var(--gold)}
-.typebtn,.tgtsel{height:46px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);
+.typebtn,.tgtsel{height:46px;border-radius:var(--r-panel);border:1px solid var(--line);background:var(--panel2);
   color:var(--ink);padding:0 12px;font-size:13px}
 .typebtn.yaming{border-color:var(--red);color:var(--red)}
 .capnote{font-size:11px;color:var(--dim);width:100%}
 /* 獻祭放血鈕：牌桌上不再占一列，改成 #south 底部列的一顆緊湊鈕（C2） */
-#south button.side.bloodbtn{border-color:var(--red);color:var(--red);font-size:11px;
+#south button.side.bloodbtn{border-color:var(--red);color:var(--red);font-size:11px;border-radius:20px;
   padding:0 9px;white-space:nowrap;line-height:1.25}
 #south button.side.bloodbtn:disabled{opacity:.4}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;display:none;align-items:center;justify-content:center}
-#modalbox{background:var(--panel);border-radius:16px;width:94%;max-width:460px;max-height:88vh;overflow-y:auto;padding:14px}
+#modalbox{background:var(--panel);border:1px solid var(--line-gold-soft);border-radius:var(--r-panel);width:94%;max-width:460px;max-height:88vh;overflow-y:auto;padding:14px}
 /* 袋子／私函的「關閉」黏在捲動區底緣：手機橫式私函很長，不捲就要看得到返回（千眼補充報告 §44） */
 #modalbox .stickyClose{position:sticky;bottom:0;z-index:1;box-shadow:0 -10px 12px var(--panel)}
 /* 真千眼多看的第四件預告（千眼補充報告 §45）：只標出額外那一件，不改預告內容 */
@@ -830,15 +830,15 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 #rvExport{display:none;width:100%;height:96px;margin:4px 0 8px;font:11px/1.3 monospace;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;box-sizing:border-box}
 .rvTiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 8px}
 @media(max-width:480px){.rvTiles{grid-template-columns:repeat(2,1fr)}}
-.rvTile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 6px;text-align:center;min-width:0}
+.rvTile{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:5px 6px;text-align:center;min-width:0}
 .rvTile .v{font-size:18px;font-weight:bold;color:var(--gold)} .rvTile .k{font-size:11px;color:var(--dim)} .rvTile .w{font-size:11px;line-height:1.25;overflow-wrap:anywhere}
 .rvSec{color:var(--gold);font-size:14px;margin:12px 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
-.rvChart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
+.rvChart{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:6px}
 .rvChart svg{width:100%;height:auto;display:block}
 .rvLegend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;margin:0 0 6px}
 .rvChart .rvEnd{paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
 .rvLegend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px}
-.rvNight{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;overflow-wrap:anywhere}
+.rvNight{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:6px 8px;margin-bottom:6px;font-size:13px;overflow-wrap:anywhere}
 .rvHead{color:var(--gold);font-weight:bold;margin-bottom:3px}
 .rvItem{padding:3px 0;border-top:1px dashed var(--line)}
 .rvBids{font-size:11px;color:var(--dim);margin-top:1px}
@@ -847,7 +847,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .rvLedger{font-size:13px;line-height:1.6;padding:4px 10px;border-left:2px solid var(--gold)}
 .rvLedger p{margin:3px 0}
 .rvWish{display:inline-block;margin:1px 8px 1px 0;font-size:12px}
-.rvExperiment{background:linear-gradient(135deg,rgba(83,53,126,.65),rgba(25,15,45,.82));border:1px solid var(--gold);border-radius:11px;padding:9px 10px;font-size:13px;line-height:1.45}
+.rvExperiment{background:linear-gradient(135deg,rgba(83,53,126,.65),rgba(25,15,45,.82));border:1px solid var(--gold);border-radius:var(--r-panel);padding:9px 10px;font-size:13px;line-height:1.45}
 .rvExperiment b{color:var(--gold)}
 .rvWish.ok{color:var(--green)} .rvWish.no{color:var(--dim)}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
