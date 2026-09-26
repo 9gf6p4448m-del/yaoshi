@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body,"Microsof
 /* 字體分工（v0.59.0，凍結 p2 #6）：body 是內文黑體（--font-body）；標題、卡名、數字一律同一明體（--font-display）。
    數字另有幾處原本就寫 var(--font-display)（壽命、押寶金額、隻數、跳字），token 換成明體後自動跟上。 */
 h1,h2,h3,.big,.bigbtn,#mainbtn,.mcard .nm,.seat .nm,#myDir,#myPow,.rcard .rnm,.nwTt,.nwH,.fighter .fnm,.railTabs button,
-.shname,.legendPick .lpn,.rvTile .v,.endrank,.mybid,.incamt,.windb{font-family:var(--font-display)}
+.shname,.legendPick .lpn,.rvTile .v,.endrank,.mybid,.incamt,.windb,#duelBeat{font-family:var(--font-display)}
 /* 介面圖示（v0.59.0，凍結 p2 #1）：系統 emoji 由 js/ui-icons.js 在顯示端換成單色線條圖示（資料字串不動，trace 不變）。
    圖示跟著字色與字級走；.icT 是換下來的原字（display:none，只為了讓 textContent 與換之前逐字相同）。 */
 .ic{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.18em;margin:0 .06em;fill:none;stroke:currentColor;
