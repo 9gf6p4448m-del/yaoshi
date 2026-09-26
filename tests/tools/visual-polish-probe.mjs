@@ -166,7 +166,7 @@ window.__vp = {
     for (const el of document.body.querySelectorAll('*')) {
       if (this.skip(el) || !__tf.vis(el)) continue;
       if (this.__only && !this.__only.contains(el)) continue;
-      const txt = (el.innerText || '').replace(/\s+/g, ''); if (!txt || txt.length > 24) continue;
+      const txt = (el.innerText || '').replace(/\s+/g, '') + [...el.querySelectorAll('.icT')].filter((t) => t.firstChild && this.icT(t.firstChild)).map((t) => t.textContent).join(''); if (!txt || txt.length > 24) continue;   /* 圖示換下來的原字（.icT）照基準版算進字數：候選與否不因 emoji 換成圖示而改變 */
       const btn = el.tagName === 'BUTTON' || el.hasAttribute('onclick') || el.getAttribute('role') === 'tab';
       if (!btn && this.isInlineDisp(el)) continue;
       /* 加速：內容高 < 1.6 倍字級＝一定只有一行，不會有斷點 */
