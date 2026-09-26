@@ -786,7 +786,9 @@ async function runNw(ch, full) {
     await page.evaluate(() => document.getElementById('nwGo').click());
     await pickFirstRole(page);
     await cellsFor(page, mode, 'select');
-    await page.evaluate(() => document.getElementById('selBtn').click());
+    /* 章節局固定種子（p2 起）：正式頁的「入市」鈕給章節局的是 Date.now() 種子，每跑一次就是不同的一局，
+       基準與改後、分片與序列都比不到同一局。照 runRegular 的做法：與 confirmRole 同一條章節路徑，只把種子換成 --seed。 */
+    await page.evaluate((sd) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame('solo', sd, SEL.picks, { chapter: SEL.chapter }); }, SEED);
     await page.waitForFunction((c) => window.__yaoshi.S && window.__yaoshi.S.chapter === c, ch);
     if (!full) { await drive(page, mode, (cls, n) => cls === 'bid' && n >= 2); return; }
     await drive(page, mode);
