@@ -125,6 +125,20 @@ h1,h2,h3,.big,.bigbtn,#mainbtn,.mcard .nm,.seat .nm,#myDir,.rcard .rnm,.nwTt,.nw
   #table.t3d #railE.open .railPages{left:auto;right:calc(100% + 4px)}
   #table.t3d .rail.open .railPages>.mcard{min-height:0;box-shadow:0 6px 18px rgba(0,0,0,.6)}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
+  /* 揭盅結果窄條（v0.59.0，凍結 p2 #3）：本夜成交總覽與請神結果不再蓋在桌心，改成貼在底列上緣的一條窄條
+     （下緣距底列 2px：#felt 下緣＝底列上緣−4px 的格線間距，窄條往下伸 2px）。內容與原卡逐項相同、字級不變（15／12px）。
+     窄條那一頁 #felt 不畫玻璃、不裁切（請神結果走的是非掏空頁），3D 桌面整片露出來。 */
+  #table.t3d #felt:has(.resultStrip){overflow:visible;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-color:transparent}
+  #table.t3d #felt #stage:has(>.resultStrip){position:static}
+  #table.t3d .stageCard.resultStrip{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);z-index:3;
+    width:min(640px,calc(100vw - var(--safe-left) - var(--safe-right) - 16px));max-width:none;margin:0;animation:none;
+    display:flex;flex-wrap:wrap;align-items:baseline;column-gap:14px;row-gap:0;padding:6px 16px 7px;text-align:left;
+    background:var(--c-ink-bg2);border:0;border-top:1px solid var(--line-gold);border-radius:0;box-shadow:0 -6px 18px rgba(0,0,0,.45)}
+  #table.t3d .resultStrip .big{flex:0 0 auto;letter-spacing:.08em}
+  #table.t3d .resultStrip #shz{display:contents}
+  #table.t3d .resultStrip #shz>div{flex:0 1 auto;line-height:1.6}
+  #table.t3d .resultStrip #shz>div.outcome{flex-basis:100%;margin:0}
+  #table.t3d .resultStrip .bidfly{flex:1 1 calc(50% - 14px);min-width:0;margin-top:3px;gap:8px}
   /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
      `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
   #table.t3d .rail .mcard .nm{font-size:11.5px}
@@ -491,6 +505,7 @@ h1,h2,h3,.big,.bigbtn,#mainbtn,.mcard .nm,.seat .nm,#myDir,.rcard .rnm,.nwTt,.nw
   text-align:center;animation:pop .3s;max-width:420px;margin:0 auto}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .stageCard .big{font-size:15px;font-weight:bold}
+.stageCard.resultStrip{max-width:460px}   /* 揭盅結果（本夜成交總覽／請神）：直式與 ?table3d=0 維持原卡；橫式牌桌見下方「揭盅結果窄條」 */
 .revealRibbon{position:absolute;left:50%;top:8px;z-index:30;transform:translateX(-50%);width:min(430px,54vw);min-height:132px;overflow:visible;padding:10px 12px;color:var(--ink);text-align:center;font-size:11px;line-height:1.35;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42);pointer-events:none}
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
@@ -6596,7 +6611,7 @@ async function startReveal(){
   REVEAL_ANIMATING=false;
   renderSeats();
   setHollow(true);
-  $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">
+  $("stage").innerHTML=`<div class="stageCard resultStrip">
     <div class="big">🏮 本夜成交總覽</div>
     ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・<span class="nob">實付 ${r.winner.cost}</span>`:""}）`:""}</span></div>`).join("")}
   </div>`;
@@ -6666,7 +6681,7 @@ async function startShrine(){
     out.dawn.forEach(d=>rows.push(`<div style="font-size:12px;padding:2px 0;color:var(--dim)">🌫️ 最後一個請神夜結束，「${nm(d.shrine)}」<b>回天</b>，本局不再出現</div>`));
     if(!rows.length) rows.push('<div class="mut" style="font-size:12px">今夜沒有動靜</div>');
     setHollow(false);   /* 掏空卷 v0.55a */
-    $("stage").innerHTML=`<div class="stageCard" style="max-width:460px"><div class="big">🕯️ 第 ${S.round} 夜・請神</div><div id="shz"></div></div>`;
+    $("stage").innerHTML=`<div class="stageCard resultStrip"><div class="big">🕯️ 第 ${S.round} 夜・請神</div><div id="shz"></div></div>`;
     const z=$("shz");
     for(const r of rows){ z.insertAdjacentHTML("beforeend",r); if(!SKIP) await sleep(CFG.T*0.45); }
     out.taken.forEach(t=>sayFrom(t.pid,"shrine",{legend:nm(t.shrine)})); /* 請神得主開口（A3 S4；真人座位 sayFrom 自己會略過） */
