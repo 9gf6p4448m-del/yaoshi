@@ -306,6 +306,8 @@ window.__vp = {
       /* op < 0.1＝淡入前／淡出後，字實際上看不到 */
       /* op0 == null＝量測前這個元素還不存在（兩張截圖之間被重畫出來的）；op < 0.1＝淡入前／淡出後 */
       const transient = this.__anim.some((a) => a === p || a.contains(p)) || op0 == null || Math.abs(op0 - op) > 0.02 || op < 0.1;
+      /* p2 #5：北列摘要字的實際對比（不論過或不過都記） */
+      if (p.closest('#north .nsum')) (this.__kept = this.__kept || []).push({ sel: __tf.sel(p), text: t.trim().slice(0, 30), ratio: +ratio.toFixed(2), need, fs: fsz, fg: fg.map(Math.round), bg: med, transient });
       if (ratio < need) {
         const s = __tf.sel(p) + '「' + t.trim().slice(0, 12) + '」'; if (seen.has(s)) continue; seen.add(s);
         out.push({ sel: __tf.sel(p), text: t.trim().slice(0, 30), ratio: +ratio.toFixed(2), need, fg: fg.map(Math.round), bg: med, op: +op.toFixed(2), inactive, transient, burnt });
@@ -430,7 +432,114 @@ window.__vp = {
     }
     return out;
   },
-};`;
+};
+/* ===== 第二階段（凍結 2026-09-26-acceptance-visual-polish-p2.md）原始量測 =====
+   只收原始數字，判定在 tests/tools/visual-polish-p2-judge.mjs（基準與改後同一支治具、同一套欄位）。 */
+window.__p2 = {
+  EPG: /\p{Extended_Pictographic}/gu,
+  /* #1 可見文字裡的 Extended_Pictographic：文字節點、::before/::after 的 content、title（tooltip）、placeholder、input 值 */
+  emoji(){
+    const out = [], EP = /\p{Extended_Pictographic}/u;
+    for (const n of __vp.textNodes(document.body)) {
+      const m = n.textContent.match(this.EPG); if (!m) continue;
+      const p = n.parentElement, r = p.getBoundingClientRect(); if (r.width < 0.5 && r.height < 0.5) continue;
+      out.push({ where: 'text', sel: __tf.sel(p), ch: [...new Set(m)].join(''), text: n.textContent.trim().slice(0, 30) });
+    }
+    for (const el of document.body.querySelectorAll('*')) {
+      if (__vp.skip(el) || !__tf.vis(el)) continue;
+      for (const ps of ['::before', '::after']) { const c = getComputedStyle(el, ps).content; if (c && c !== 'none' && c !== 'normal' && EP.test(c)) out.push({ where: ps, sel: __tf.sel(el), ch: (c.match(this.EPG) || []).join(''), text: c.slice(0, 30) }); }
+      for (const a of ['title', 'placeholder']) { const v = el.getAttribute(a); if (v && EP.test(v)) out.push({ where: '@' + a, sel: __tf.sel(el), ch: (v.match(this.EPG) || []).join(''), text: v.slice(0, 30) }); }
+      if ((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && EP.test(el.value || '')) out.push({ where: 'value', sel: __tf.sel(el), ch: (el.value.match(this.EPG) || []).join(''), text: el.value.slice(0, 30) });
+    }
+    return out;
+  },
+  /* #6 字體：各類元素第一個可見者的計算 font-family（整串）；另記 web font 是否已載入 */
+  FAM: ['#titleScr h1', '#titleScr .bigbtn', '#titleScr p:not(#verLine)', '#verLine', '.stageCard .big', '#stage h2', '#review h2', '#review h3', '.mcard .nm', '.mcard .pw', '.mcard .ab', '.mcard .uline', '.railTabs button', '.rcard .nm', '.rcard', '.seat .nm', '.seat .st', '#myDir', '#myLife', '#myPow', '.bsum', '.stakebar .amt', '.incamt', '#mainbtn', '#south button.side', '.fighter .fpw', '.nsum', '.nfull .preview', '.bidfly', '#shz > div', '.nwCard', '.nwCard h3', '#nwScr h2', '.endrank', '#feltHead', '.mut', '#modalbox', '#sheetbox'],
+  fam(){
+    const o = {};
+    for (const s of this.FAM) { const e = [...document.querySelectorAll(s)].find((x) => __tf.vis(x) && x.getBoundingClientRect().width > 0 && /\S/.test(x.textContent || '')); if (e) o[s] = getComputedStyle(e).fontFamily; }
+    const fc = (f) => { try { return document.fonts.check('14px "' + f + '"', '妖市'); } catch (e) { return null; } };
+    const faces = []; try { document.fonts.forEach((f) => { if (f.status === 'loaded') faces.push(f.family + ' ' + f.weight); }); } catch (e) {}
+    return { fam: o, loaded: [...new Set(faces)], check: { serif: fc('Noto Serif TC'), sans: fc('Noto Sans TC') } };
+  },
+  rect(e){ const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map((v) => +v.toFixed(1)); },
+  /* #8 主要容器矩形：畫面根＋直接子元素（可見、有面積） */
+  ROOTS: { select: ['#selectScr'], 'nw-menu': ['#nwScr'], 'nw-intro': ['#nwScr'], 'nw-scroll': ['#nwScr'], review: ['#review'], duel: ['#duel'], end: ['#stage > .stageCard', '#south', '#felt', '#north'] },
+  rects(cls){
+    const roots = this.ROOTS[cls]; if (!roots) return null;
+    const o = {};
+    for (const s of roots) {
+      const r = document.querySelector(s); if (!r || !__tf.vis(r)) continue;
+      o[s] = this.rect(r);
+      const seen = {};
+      for (const c of r.children) {
+        if (!__tf.vis(c)) continue; const q = c.getBoundingClientRect(); if (q.width < 1 || q.height < 1) continue;
+        const k = c.tagName.toLowerCase() + (c.id ? '#' + c.id : '') + (typeof c.className === 'string' && c.className.trim() ? '.' + c.className.trim().split(/\s+/).sort().join('.') : '');
+        seen[k] = (seen[k] || 0) + 1; o[s + ' > ' + k + ':' + seen[k]] = this.rect(c);
+      }
+    }
+    return o;
+  },
+  /* #2 拍品籤 */
+  tabs(){
+    const S = window.__yaoshi && window.__yaoshi.S; const out = [];
+    for (const b of document.querySelectorAll('.rail .railTabs button')) {
+      if (!__tf.vis(b)) continue;
+      const slot = Number(b.dataset.slot), it = S && S.market && S.market[slot];
+      const cs = getComputedStyle(b), rail = b.closest('.rail');
+      const side = parseFloat(cs.borderLeftWidth) >= parseFloat(cs.borderRightWidth) ? 'Left' : 'Right';
+      const rg = document.createRange(); rg.selectNodeContents(b); const tr = rg.getBoundingClientRect(), br = b.getBoundingClientRect();
+      let ell = false; for (const e of [b, ...b.querySelectorAll('*')]) { const c = getComputedStyle(e); if (c.textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 0.5) ell = true; }
+      out.push({ rail: rail && rail.id, slot, text: b.innerText.replace(/\s+/g, ' ').trim(), name: it ? it.n : null, fac: it ? it.f : null, curse: !!(it && it.curse),
+        rect: this.rect(b), textRect: [tr.left, tr.top, tr.right, tr.bottom].map((v) => +v.toFixed(1)), overX: +Math.max(0, br.left - tr.left, tr.right - br.right).toFixed(1), scrollOver: b.scrollWidth - b.clientWidth, ell,
+        bar: { side, w: parseFloat(cs['border' + side + 'Width']), color: cs['border' + side + 'Color'] }, line: cs.borderTopColor, lineW: parseFloat(cs.borderTopWidth), bg: cs.backgroundColor });
+    }
+    const cards = [...document.querySelectorAll('.rail .mcard')];
+    const tok = {}; const rs = getComputedStyle(document.documentElement);
+    const probe = document.createElement('i'); document.body.appendChild(probe);
+    for (const t of ['--gold', '--zuling', '--xianghuo', '--yinqi', '--curse', '--c-zuli', '--sys-zuling', '--sys-xianghuo', '--sys-yinqi', '--sys-curse', '--line-gold']) { const v = rs.getPropertyValue(t).trim(); if (!v) continue; probe.style.color = ''; probe.style.color = 'var(' + t + ')'; tok[t] = getComputedStyle(probe).color; }
+    probe.remove();
+    const items = {}; for (const c of cards) items[c.id] = this.items(c);
+    return { tabs: out, cardsVisible: cards.filter((c) => __tf.vis(c) && c.getBoundingClientRect().height > 1).map((c) => c.id), cardItems: items, tok };
+  },
+  /* 一個容器內的文字項目（逐文字節點，空白正規化）；vis＝只收看得到的（父元素可見、有面積、落在祖先裁切框內） */
+  items(root, vis){
+    const o = [], tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+      const t = n.textContent.replace(/\s+/g, ' ').trim(); if (!t) continue;
+      if (vis) {
+        const p = n.parentElement; if (!p || !__tf.vis(p)) continue;
+        const rg = document.createRange(); rg.selectNodeContents(n); const q = rg.getBoundingClientRect(); if (q.width < 0.5 || q.height < 0.5) continue;
+        const c = __vp.clipOf0(p); const cx = (q.left + q.right) / 2, cy = (q.top + q.bottom) / 2; if (cx < c.l - 1 || cx > c.r + 1 || cy < c.t - 1 || cy > c.b + 1) continue;
+      }
+      o.push(t);
+    }
+    return o;
+  },
+  /* #3 結果條 */
+  stage(){
+    const c = document.querySelector('#stage > .stageCard'); if (!c || !__tf.vis(c)) return null;
+    const so = document.getElementById('south'), sr = so.getBoundingClientRect(), r = c.getBoundingClientRect();
+    const fsz = (s) => [...c.querySelectorAll(s)].filter((e) => __tf.vis(e)).map((e) => parseFloat(getComputedStyle(e).fontSize));
+    return { cls: c.className, rect: this.rect(c), south: this.rect(so), gap: +(sr.top - r.bottom).toFixed(1), overlapSouth: r.bottom > sr.top + 0.5 && r.right > sr.left && r.left < sr.right,
+      big: fsz('.big'), rows: fsz('#shz > div, .bidfly'), all: this.items(c), shown: this.items(c, true) };
+  },
+  /* #5 北列摘要 */
+  nsum(){ return [...document.querySelectorAll('#north .nsum')].filter((b) => __tf.vis(b)).map((b) => { const cs = getComputedStyle(b); return { text: b.innerText.replace(/\s+/g, ' ').trim(), fs: parseFloat(cs.fontSize), color: cs.color, rect: this.rect(b), kids: [...b.querySelectorAll('*')].filter((e) => __tf.vis(e) && /\S/.test(e.textContent)).map((e) => parseFloat(getComputedStyle(e).fontSize)) }; }); },
+  /* #7(a) 首頁 */
+  home(){
+    const t = document.getElementById('titleScr'); if (!t || getComputedStyle(t).display === 'none') return null;
+    const parts = [...t.querySelectorAll('h1, p, .btns')].filter((e) => __tf.vis(e));
+    let u = null; for (const e of parts) { const r = e.getBoundingClientRect(); u = u ? { l: Math.min(u.l, r.left), t: Math.min(u.t, r.top), r: Math.max(u.r, r.right), b: Math.max(u.b, r.bottom) } : { l: r.left, t: r.top, r: r.right, b: r.bottom }; }
+    const hit = (el, x, y) => { if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false; const h = document.elementFromPoint(x, y); return !!h && (h === el || el.contains(h)); };
+    const btns = [...t.querySelectorAll('.btns button')].map((b) => { const r = b.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2; let l = 0, rr = 0, uu = 0, d = 0; while (l < 60 && hit(b, cx - l - 1, cy)) l++; while (rr < 60 && hit(b, cx + rr + 1, cy)) rr++; while (uu < 60 && hit(b, cx, cy - uu - 1)) uu++; while (d < 60 && hit(b, cx, cy + d + 1)) d++; return { text: b.innerText.trim(), vis: __tf.vis(b) && hit(b, cx, cy), hitW: l + rr + 1, hitH: uu + d + 1, rect: this.rect(b) }; });
+    const v = document.getElementById('verLine'), vr = v.getBoundingClientRect();
+    return { block: u && [u.l, u.t, u.r - u.l, u.b - u.t].map((x) => +x.toFixed(1)), center: u && [+((u.l + u.r) / 2).toFixed(1), +((u.t + u.b) / 2).toFixed(1)], vw: innerWidth, vh: innerHeight, h1: this.rect(t.querySelector('h1')), btns,
+      ver: { text: v.textContent.trim(), vis: __tf.vis(v) && vr.width > 0 && vr.bottom <= innerHeight && vr.top >= 0 && vr.left >= 0 && vr.right <= innerWidth, rect: this.rect(v) } };
+  },
+  collect(cls){ return { emoji: this.emoji(), fam: this.fam(), rects: this.rects(cls), tabs: this.tabs(), stage: this.stage(), nsum: this.nsum(), home: this.home() }; },
+};
+`;
 const R = { tag: TAG, base: BASE, seed: SEED, viewports: VP, cells: {}, transitions: [], notes: [], pageErrors: {} };
 let chromium = null, srv = null, browser = null;
 if (MERGE) {
@@ -461,7 +570,7 @@ const scr = (page) => page.evaluate(() => window.__tf.screen());
 const round = (page) => page.evaluate(() => (window.__yaoshi && window.__yaoshi.S && window.__yaoshi.S.round) || 0);
 const PER_NIGHT = /^(bid|mark|event|event-result|shrine|night-end)$/;
 
-async function measure(page) {
+async function measure(page, cls) {
   await page.evaluate(() => { window.__vpAnim = document.getAnimations().filter((a) => a.playState === 'running' && a.effect && a.effect.target).map((a) => a.effect.target); __vp.snapOp(); });
   const b = await page.evaluate(() => ({ breaks: __vp.breaks(), spill: __vp.spill(), font: __vp.fonts(), target: __vp.targets(), align: __vp.align() }));
   const png = await page.screenshot();
@@ -470,7 +579,29 @@ async function measure(page) {
   const bgPng = await page.screenshot();   /* 不用 animations:'disabled'：它會把進場動畫快轉／取消，夜戰籌碼的系字徽因此整顆不見 */
   await page.evaluate(() => document.getElementById('__vpHide').remove());
   b.contrast = await page.evaluate(([s, d]) => __vp.contrast(s, d, window.__vpAnim), [bgPng.toString('base64'), 1]);
+  b.nsumContrast = await page.evaluate(() => { const k = __vp.__kept || []; __vp.__kept = []; return k; });
   b.dbgPrev = await page.evaluate(() => __vp.dbgPrev());
+  b.p2 = await page.evaluate((c) => __p2.collect(c), cls);
+  /* p2 #2 點籤展開：預設沒有任何拍品卡可見（窄籤模式）時才做——逐籤點開、收看得到的文字項目、再點一次收起 */
+  if (b.p2.tabs.tabs.length && !b.p2.tabs.cardsVisible.length) {
+    const ex = [];
+    for (const t of b.p2.tabs.tabs) {
+      await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
+      await page.waitForTimeout(150);
+      ex.push(await page.evaluate(([r, s]) => {
+        const c = document.getElementById('mc' + s), all = c ? __p2.items(c) : [], shown = c ? __p2.items(c, true) : [];
+        const pool = shown.slice(), missing = []; for (const x of all) { const i = pool.indexOf(x); if (i >= 0) pool.splice(i, 1); else missing.push(x); }
+        const b = document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]');
+        const q = c && c.getBoundingClientRect(); const inView = !!q && q.left >= -0.5 && q.top >= -0.5 && q.right <= innerWidth + 0.5 && q.bottom <= innerHeight + 0.5;
+        return { rail: r, slot: s, shown: !!c && __tf.vis(c), inView, total: all.length, missing, rect: c ? __p2.rect(c) : null, expanded: b && b.getAttribute('aria-expanded'), otherCards: [...document.querySelectorAll('.rail .mcard')].filter((x) => x !== c && __tf.vis(x)).map((x) => x.id) };
+      }, [t.rail, t.slot]));
+      await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
+      await page.waitForTimeout(80);
+    }
+    b.p2.expand = ex;
+    b.p2.afterCollapse = await page.evaluate(() => [...document.querySelectorAll('.rail .mcard')].filter((c) => __tf.vis(c) && c.getBoundingClientRect().height > 1).map((c) => c.id));
+    await page.waitForTimeout(1200);   /* 3D hover 微推回位 */
+  }
   b.north = await page.evaluate(() => __vp.collapsed());
   b.northItems = await page.evaluate(() => __vp.northItems());
   /* 展開量測：有摘要鈕才做。展開 → 只量北列的 #1–#5 ＋ (b)(d) → 在北列外送 pointerdown → 要收起 */
@@ -504,7 +635,7 @@ async function cellsFor(page, mode, cls) {
   for (const v of todo) {
     await setVP(page, v);
     if (await scr(page) !== cls) { C.lost = (C.lost || 0) + 1; break; }
-    const { m, png } = await measure(page);
+    const { m, png } = await measure(page, cls);
     if (await scr(page) !== cls) { C.lost = (C.lost || 0) + 1; break; }
     if (v === LAND[0]) { m.shot = `${key.replace(/[|:]/g, '_')}-${v}.png`; fs.writeFileSync(path.join(SHOTS, m.shot), png); if (m.openShot) fs.writeFileSync(path.join(SHOTS, m.shot.replace('.png', '-open.png')), m.openShot); }
     delete m.openShot;
