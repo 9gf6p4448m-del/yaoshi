@@ -47,6 +47,20 @@
   --font-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;  /* 內文：說明、狀態、提示、敘述 */
   --font-display: 'Noto Serif TC', 'Songti TC', serif;   /* 標題、卡名、數字（壽命、出價、隻數） */
 
+  /* --- 戊「朱印一套」（v0.59.0 畫面精美度第二階段）：近黑底＋金細線；朱紅印章是唯一強調色 --- */
+  --c-ink-bg: rgba(11,9,8,.9);    /* 近黑面板底（半透明：牌桌上仍透一點 3D） */
+  --c-ink-bg2: rgba(20,17,14,.94);/* 近黑・浮起一階（拍品卡、展開中的籤） */
+  --line-gold: #c9a862;           /* 金細線（不透明）。與祖靈主色 --c-zuli 的 CIEDE2000 ΔE＝26 */
+  --line-gold-soft: rgba(201,168,98,.5);  /* 面板框線（疊在近黑上） */
+  --c-zhu: #bf3522;               /* 朱印：主鈕、風位章、按下的籤 */
+  --c-zhu-ink: #f6ead2;           /* 朱印上的字 */
+  --r-panel: 2px;                 /* 面板圓角 */
+  /* 系色條（拍品窄籤、頂列小色塊）。祖靈用主色（淺色 --c-zuli-light 與金線 ΔE 只有 5，分不開，凍結 p2 #4） */
+  --sys-zuling: var(--c-zuli);
+  --sys-xianghuo: var(--c-xianghu-light);
+  --sys-yinqi: var(--c-yinqi-light);
+  --sys-curse: var(--c-curse-light);
+
   /* --- 圓角與陰影 --- */
   --r-card: 8px;
   --r-btn: 4px;

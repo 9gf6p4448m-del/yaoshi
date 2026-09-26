@@ -105,8 +105,26 @@ h1,h2,h3,.big,.bigbtn,#mainbtn,.mcard .nm,.seat .nm,#myDir,.rcard .rnm,.nwTt,.nw
   /* padding 的理由與 #market{padding:0 5px} 完全同一條（請神 2.0 凍結檔 G6）：`.markb`（left:-4px）與
      `.mybid`／`.pickbox`（right:-4px／top:-8px）本來就掛在卡角**外側**，不留位置的話卡列會被撐出 3px 橫向溢出
      （實測 #railW／#railE 各 3px），最上面那張卡的徽章還會壓到座位卡。留了之後徽章落在卡列內，徽章本身的視覺一格不動。 */
-  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;padding:8px 5px 0}
+  #table.t3d .rail{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;padding:8px 5px 0;position:relative}
   #table.t3d .rail .mcard{min-height:88px;height:auto;flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-start;padding:5px 7px} /* 內容決定高度，受惠徽章多一行也不穿底框或被撐成空卡 */
+  /* 拍品窄籤（v0.59.0，凍結 p2 #2）：每件一枚，全名、高 40、左緣（東欄右緣）一條系色條＋系色小方塊；
+     完整卡平時收起，點籤才在桌心那一側浮出（不佔側欄高度、不推擠座位卡）。 */
+  #table.t3d .railTabs{display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:0 0 auto}
+  #table.t3d #railE .railTabs{align-items:flex-end}
+  #table.t3d .railTabs button{height:40px;min-width:96px;max-width:100%;padding:0 10px 0 8px;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:12px;font-weight:700;letter-spacing:.04em;line-height:1;
+    color:var(--ink);background:var(--c-ink-bg);border:1px solid var(--line-gold);border-left:3px solid var(--sys,var(--line-gold));border-radius:var(--r-panel);cursor:pointer}
+  #table.t3d #railE .railTabs button{flex-direction:row-reverse;padding:0 8px 0 10px;border-left:1px solid var(--line-gold);border-right:3px solid var(--sys,var(--line-gold))}
+  #table.t3d .railTabs button::before{content:"";width:8px;height:8px;border-radius:1px;background:var(--sys,var(--line-gold));flex:0 0 auto}
+  #table.t3d .railTabs button[aria-expanded="true"]{background:var(--c-ink-bg2);box-shadow:inset 0 -2px 0 var(--c-zhu)}
+  .railTabs button.sys-zuling{--sys:var(--sys-zuling)} .railTabs button.sys-xianghuo{--sys:var(--sys-xianghuo)}
+  .railTabs button.sys-yinqi{--sys:var(--sys-yinqi)} .railTabs button.sys-curse{--sys:var(--sys-curse)}
+  #table.t3d .railPages{display:none}
+  #table.t3d .rail.open{z-index:20}
+  #table.t3d .rail.open .railPages{display:block;position:absolute;top:0;left:calc(100% + 4px);width:188px}
+  #table.t3d #railE.open .railPages{left:auto;right:calc(100% + 4px)}
+  #table.t3d .rail.open .railPages>.mcard{min-height:0;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
   /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
      `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
   #table.t3d .rail .mcard .nm{font-size:11.5px}
@@ -2833,17 +2851,31 @@ function setHollow(on){
     try{ const Y3=window.__yaoshi3d; if(Y3&&Y3.tray) Y3.tray.setHover(-1); }catch(e){}
   }
 }
-/* 低矮橫屏用完整名稱切換單卡，大屏並列；卡片工廠及點擊行為仍共用。
-   RAIL_PAGE 只記閱讀位置，不寫盯牌/出價；同夜重畫保留，換夜回第一張。 */
+/* 拍品窄籤（v0.59.0 畫面精美度第二階段「戊」，凍結 p2 #2）：側欄平時只有每件拍品一枚邊緣窄籤（全名＋系色條），
+   完整拍品卡收起；點籤就在桌心那一側展開那一張原卡（同一支卡片工廠、同一個 onclick），再點一次或點別處就收起。
+   RAIL_PAGE 只記閱讀位置，不寫盯牌/出價；換夜回第一張。展開狀態不跨重畫（出價、盯上之後卡列重畫即收起）。 */
 let RAIL_PAGE={round:null,railW:0,railE:0};
+function railCardOpen(id,i){
+  const rail=$(id); if(!rail) return;
+  const on=i!=null&&!!rail.querySelector(`#mc${i}`);
+  if(on) RAIL_PAGE[id]=i;
+  rail.classList.toggle('open',on);
+  rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',on&&el.id===`mc${i}`));
+  rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-expanded',String(on&&Number(el.dataset.slot)===i)));
+}
 function selectRailPage(id,i){
   const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
-  RAIL_PAGE[id]=i;
-  window.__yaoshi3d?.tray?.setHover(i);
-  rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',el.id===`mc${i}`));
-  rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-pressed',String(Number(el.dataset.slot)===i)));
+  const on=!(rail.classList.contains('open')&&RAIL_PAGE[id]===i);   /* 點同一枚籤＝收起 */
+  ["railW","railE"].forEach(r=>{ if(r!==id) railCardOpen(r,null); });
+  railCardOpen(id,on?i:null);
+  window.__yaoshi3d?.tray?.setHover(on?i:-1);
   equalizeRailCards();
 }
+/* 點側欄以外的地方就收起展開的卡（與北列面板同一種收法；點擊照常落到底下的元件） */
+if(typeof document!=="undefined"&&document.addEventListener) document.addEventListener("pointerdown",e=>{
+  ["railW","railE"].forEach(id=>{ const r=typeof $==="function"?$(id):null;
+    if(r&&r.classList&&r.classList.contains("open")&&!r.contains(e.target)){ railCardOpen(id,null); try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(err){} } });
+},true);
 /* v0.58.3 畫面細修（凍結 visual-polish #6 左右拍品卡同高）：左欄第 i 張可見卡與右欄第 i 張取較高者當 min-height，
    內容長短不同也不會一高一矮。純呈現：只寫 style.minHeight，不讀寫任何賽局欄位；換頁、重畫、視窗改尺寸都重算。 */
 function equalizeRailCards(){
@@ -2858,9 +2890,8 @@ function equalizeRailCards(){
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>equalizeRailCards());
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
-  const chosen=idxs.includes(RAIL_PAGE[id])?RAIL_PAGE[id]:idxs[0];
-  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map((i,j)=>`<button type="button" data-slot="${i}" aria-pressed="${i===chosen}" onclick="selectRailPage('${id}',${i})"><span>${j+1}/${idxs.length}</span>${S.market[i].n}</button>`).join('')}</div>`;
-  return nav+`<div class="railPages">${idxs.map(i=>fn(S.market[i],i).replace('class="mcard ',`class="mcard ${i===chosen?'railSelected ':''}`)).join("")}</div>`;
+  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="selectRailPage('${id}',${i})">${S.market[i].n}</button>`).join('')}</div>`;
+  return nav+`<div class="railPages">${idxs.map(i=>fn(S.market[i],i)).join("")}</div>`;
 }
 /* 掏空頁的三塊搬家：預告框→#northPrev、香火榜→#northShr、市集卡→#railW／#railE（前半／後半）。
    四張卡的左右分配用 S.market.length 算，不寫死 4——CFG.MARKET 改了這裡自動跟上。 */
