@@ -1,8 +1,6 @@
 // v0.59.1 開卡停靠卷，凍結 docs/experiments/2026-09-27-acceptance-card-dock-font.md #1/#2/#8。
-// 範圍（誠實聲明，非窮盡矩陣）：V1–V5 × solo 模式，出價／盯上兩個有拍品可點的畫面，每一夜逐籤展開。
-// 沒有跑 hot/nw1/nw2/nw3——這幾個模式的拍品卡展開機制與 solo 相同（同一支 selectRailPage／railHTML），
-// 差別只在牌桌相機取景角度，不影響「卡在心願條那一帶」這個 CSS 定位邏輯；但沒有實測，回報會照實寫「未跑」。
-// 用法：node tests/tools/card-dock-probe.mjs [--vps V1,V2,V3,V4,V5] [--seed 3] [--out <dir>]
+// 全模式矩陣：V1–V5 × solo/hot/nw1/nw2/nw3，出價／盯上兩態，每一夜逐籤展開。
+// 用法：node tests/tools/card-dock-probe.mjs [--vps V1,V2,V3,V4,V5] [--modes solo,hot,nw1,nw2,nw3] [--seed 3] [--out <dir>] [--port N]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -15,6 +13,7 @@ const OUT = path.resolve(arg('--out', path.join(ROOT, 'docs/experiments/2026-09-
 const SEED = Number(arg('--seed', 3));
 const PORT = Number(arg('--port', 9664));
 const VPS = arg('--vps', 'V1,V2,V3,V4,V5').split(',');
+const MODES = arg('--modes', 'solo,hot,nw1,nw2,nw3').split(',');
 fs.mkdirSync(OUT, { recursive: true });
 
 const VP = {
@@ -35,6 +34,7 @@ window.__tf = {
     if (on('sheet')) return 'bag';
     if (on('modal')) return 'modal';
     if (on('handoff')) return 'handoff';
+    const nw = $('nwScr'); if (nw && nw.classList.contains('on')) return 'nw-' + nw.dataset.view;
     const sel = $('selectScr'); if (sel && sel.classList.contains('on')) return 'select';
     if (on('titleScr')) return 'title';
     if (!on('table')) return 'none';
@@ -79,7 +79,7 @@ const DRIVE_STEP = `(() => {
   return 1;
 })()`;
 
-async function newCtx(vp) {
+async function newCtx(vp, query = '') {
   const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1 });
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   await ctx.addInitScript(PAGE_LIB);
@@ -91,7 +91,7 @@ async function newCtx(vp) {
     });
   }, vp.safe);
   const page = await ctx.newPage();
-  await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${PORT}/index.html${query}`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object" && !!window.__tf', null, { timeout: 30000 });
   await page.evaluate(() => { CFG.T = 1; const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1; });
   return { ctx, page };
@@ -101,8 +101,8 @@ const pickFirstRole = async (page) => {
   await page.evaluate(() => document.querySelectorAll('#selGrid .rcard:not(.taken)')[0].click());
   await page.waitForTimeout(80);
 };
-async function driveToFirst(page, targetSet) {
-  for (let i = 0; i < 4000; i++) {
+async function driveToFirst(page, targetSet, cap = 4000) {
+  for (let i = 0; i < cap; i++) {
     await page.waitForTimeout(8);
     const cls = await scr(page);
     if (targetSet.has(cls)) return cls;
@@ -112,85 +112,113 @@ async function driveToFirst(page, targetSet) {
   return null;
 }
 
-const results = { vps: {}, notes: [] };
+/* 逐夜跑到 bid/mark 後在那一格量測 #1/#2/#8：安全區、四個錨點矩形、逐籤開卡的卡矩形／3D 投影框重疊、
+   關閉鈕命中區、卡內容 vs mcardHTML() 參考版、以及 8×8 像素噪音底線 vs 開卡後像素差（#8 亮一下）。 */
+async function testDockAtScreen(page, vp, vname, mode, round, results) {
+  await page.waitForFunction(() => window.__yaoshi3d && window.__yaoshi3d.tray, null, { timeout: 10000 }).catch(() => { results.notes.push(`${mode}|${vname} round${round} __yaoshi3d.tray 逾時未就緒`); });
+  const safePx = await page.evaluate(() => {
+    const cs = getComputedStyle(document.documentElement);
+    const n = (v) => parseFloat(v) || 0;
+    return { top: n(cs.getPropertyValue('--safe-top')), right: n(cs.getPropertyValue('--safe-right')), bottom: n(cs.getPropertyValue('--safe-bottom')), left: n(cs.getPropertyValue('--safe-left')) };
+  });
+  const anchorRects = await page.evaluate(() => {
+    const R = (sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return r.width > 0 || r.height > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null; };
+    return { north: R('#north'), westSeat: R('#westSeat'), eastSeat: R('#eastSeat'), south: R('#south'), helpBtn: R('#helpBtn') };
+  });
+  const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
+  if (!tabs.length) { results.notes.push(`${mode}|${vname} round${round} 沒有窄籤可點（市集空）`); return; }
+  const allSlots = await page.evaluate(() => window.__yaoshi3d.tray.items().filter((it) => it.visible).map((it) => it.slot));
+  const clipOf = (bbox) => { if (!bbox) return null; const x = Math.max(0, Math.floor(bbox.left)), y = Math.max(0, Math.floor(bbox.top)); const w = Math.max(1, Math.ceil(bbox.right) - x), h = Math.max(1, Math.ceil(bbox.bottom) - y); return { x, y, width: Math.min(w, vp.w - x), height: Math.min(h, vp.h - y) }; };
+  const shotAll = async () => { const out = {}; for (const i of allSlots) { const bb = await page.evaluate((i) => window.__yaoshi3d.tray.bboxScreen(i), i); const c = clipOf(bb); if (c && c.width > 0 && c.height > 0) out[i] = await page.screenshot({ clip: c }); } return out; };
+  const noise0 = await shotAll(); await page.waitForTimeout(250); const noise1 = await shotAll();
+  const noiseDiff = {}; for (const i of allSlots) if (noise0[i] && noise1[i]) noiseDiff[i] = !noise0[i].equals(noise1[i]);
+  for (const t of tabs) {
+    const before = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), bbox: window.__yaoshi3d.tray.bboxScreen(Number(s)), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines }), [t.rail, t.slot]);
+    const beforeShots = await shotAll();
+    await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
+    await page.waitForTimeout(500);
+    const afterShots = await shotAll();
+    const pixelDiff = {}; for (const i of allSlots) if (beforeShots[i] && afterShots[i]) pixelDiff[i] = !beforeShots[i].equals(afterShots[i]);
+    const after = await page.evaluate(([r, s]) => {
+      const card = document.querySelector('#' + r + ' .railPages');
+      const cr = card ? card.getBoundingClientRect() : null;
+      const close = card ? card.querySelector('.railCardClose') : null;
+      const cbtn = close ? close.getBoundingClientRect() : null;
+      const bbox = window.__yaoshi3d.tray.bboxScreen(Number(s));
+      const hover = window.__yaoshi3d.tray.hover();
+      const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
+      let refTxt = null, refErr = null;
+      try { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
+      const cardMcard = card ? card.querySelector('.railSelected') : null;
+      const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
+      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
+    }, [t.rail, t.slot]);
+    if (vname === 'V1' && mode === 'solo' && round === 0 && t === tabs[0]) {
+      fs.writeFileSync(path.join(OUT, 'contact-bid-open-head-V1.png'), await page.screenshot());
+    }
+    await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
+    await page.waitForTimeout(200);
+    const afterClose = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, cardGone: !document.querySelector('#' + r + '.open') }), [t.rail, t.slot]);
+    results.rows.push({ mode, vp: vname, round, rail: t.rail, slot: t.slot, before, after, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
+  }
+}
 
-for (const vname of VPS) {
-  const vp = VP[vname];
+async function runRegular(mode, vname, vp, results) {
   const { ctx, page } = await newCtx(vp);
-  const rowsForVp = [];
   try {
-    await page.evaluate((m) => startEntry(m), 'solo');
+    await page.evaluate((m) => startEntry(m), mode === 'hot' ? 'hotseat' : 'solo');
     await pickFirstRole(page);
-    await page.evaluate(([sd, md]) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame(md, sd, SEL.picks); }, [SEED, 'solo']);
+    if (mode === 'hot') { await page.evaluate(() => { SEL.picks.push(SEL.cur); SEL.cur = null; renderSelect(); }); await pickFirstRole(page); }
+    await page.evaluate(([sd, md]) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame(md, sd, SEL.picks); }, [SEED, mode === 'hot' ? 'hotseat' : 'solo']);
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1);
-    // 逐夜跑到 bid 與 mark 各測一次（第 1、2 夜），涵蓋出價／盯上兩態
     for (let round = 0; round < 2; round++) {
       const cls = await driveToFirst(page, new Set(['bid', 'mark']));
-      if (!cls) { results.notes.push(`${vname} round${round} 沒進到 bid/mark（局提早結束）`); break; }
-      // __yaoshi3d 是 renderer 模組非同步初始化，畫面切到 bid/mark 那一刻不保證已經掛上（GLB 還在載）
-      await page.waitForFunction(() => window.__yaoshi3d && window.__yaoshi3d.tray, null, { timeout: 10000 }).catch(() => { results.notes.push(`${vname} round${round} __yaoshi3d.tray 逾時未就緒`); });
-      // 量安全區實際 px（viewport 尺寸換算，供越界檢查）
-      const safePx = await page.evaluate(() => {
-        const cs = getComputedStyle(document.documentElement);
-        const n = (v) => parseFloat(v) || 0;
-        return { top: n(cs.getPropertyValue('--safe-top')), right: n(cs.getPropertyValue('--safe-right')), bottom: n(cs.getPropertyValue('--safe-bottom')), left: n(cs.getPropertyValue('--safe-left')) };
-      });
-      const anchorRects = await page.evaluate(() => {
-        const R = (sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return r.width > 0 || r.height > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null; };
-        return { north: R('#north'), westSeat: R('#westSeat'), eastSeat: R('#eastSeat'), south: R('#south'), helpBtn: R('#helpBtn') };
-      });
-      const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-      const allSlots = await page.evaluate(() => window.__yaoshi3d.tray.items().filter((it) => it.visible).map((it) => it.slot));
-      const clipOf = (bbox) => { if (!bbox) return null; const x = Math.max(0, Math.floor(bbox.left)), y = Math.max(0, Math.floor(bbox.top)); const w = Math.max(1, Math.ceil(bbox.right) - x), h = Math.max(1, Math.ceil(bbox.bottom) - y); return { x, y, width: Math.min(w, vp.w - x), height: Math.min(h, vp.h - y) }; };
-      const shotAll = async () => { const out = {}; for (const i of allSlots) { const bb = await page.evaluate((i) => window.__yaoshi3d.tray.bboxScreen(i), i); const c = clipOf(bb); if (c && c.width > 0 && c.height > 0) out[i] = await page.screenshot({ clip: c }); } return out; };
-      // 噪音底線：兩張間隔 250ms、沒點任何東西的截圖，逐格 buffer 比較
-      const noise0 = await shotAll(); await page.waitForTimeout(250); const noise1 = await shotAll();
-      const noiseDiff = {}; for (const i of allSlots) if (noise0[i] && noise1[i]) noiseDiff[i] = !noise0[i].equals(noise1[i]);
-      for (const t of tabs) {
-        const before = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), bbox: window.__yaoshi3d.tray.bboxScreen(Number(s)), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines }), [t.rail, t.slot]);
-        const beforeShots = await shotAll();
-        // 開卡
-        await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
-        await page.waitForTimeout(500); // hover 抬升/旋轉、CSS 定位穩定
-        const afterShots = await shotAll();
-        const pixelDiff = {}; for (const i of allSlots) if (beforeShots[i] && afterShots[i]) pixelDiff[i] = !beforeShots[i].equals(afterShots[i]);
-        const after = await page.evaluate(([r, s]) => {
-          const card = document.querySelector('#' + r + ' .railPages');
-          const cr = card ? card.getBoundingClientRect() : null;
-          const close = card ? card.querySelector('.railCardClose') : null;
-          const cbtn = close ? close.getBoundingClientRect() : null;
-          const bbox = window.__yaoshi3d.tray.bboxScreen(Number(s));
-          const hover = window.__yaoshi3d.tray.hover();
-          const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
-          // 卡內資訊與 mcardHTML(S.market[i],i) 直接產生的參考版逐項等價（文字內容比對）
-          // mcardHTML 內部讀的 b（押注／盯上狀態）不是純參數，靠呼叫當下的畫面模式決定；
-          // 直接在 page.evaluate 裡呼叫可能撞到與目前畫面不同步的分支（例如 mark 態內部仍讀 bid 態欄位）而丟例外，
-          // 這是治具呼叫方式的限制，不是產品 bug——包 try/catch，refTxt 拿不到就跳過這格的逐項比對，不讓整支探針中斷。
-          let refTxt = null, refErr = null;
-          try { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
-          const cardMcard = card ? card.querySelector('.railSelected') : null;
-          const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
-          return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
-        }, [t.rail, t.slot]);
-        // #6 對照用：V1、round0、第一枚籤，開卡當下存一張全頁截圖
-        if (vname === 'V1' && round === 0 && t === tabs[0]) {
-          fs.writeFileSync(path.join(OUT, 'contact-bid-open-head-V1.png'), await page.screenshot());
-        }
-        // 收起（點同一枚籤）
-        await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
-        await page.waitForTimeout(200);
-        const afterClose = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, cardGone: !document.querySelector('#' + r + '.open') }), [t.rail, t.slot]);
-        rowsForVp.push({ mode: 'solo', vp: vname, round, rail: t.rail, slot: t.slot, before, after, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
-      }
+      if (!cls) { results.notes.push(`${mode}|${vname} round${round} 沒進到 bid/mark（局提早結束）`); break; }
+      await testDockAtScreen(page, vp, vname, mode, round, results);
     }
-  } catch (e) {
-    results.notes.push(`${vname} 例外：${e.message}`);
-  } finally { await ctx.close(); }
-  results.vps[vname] = rowsForVp;
-  console.error('[card-dock]', vname, 'rows=', rowsForVp.length);
+  } catch (e) { results.notes.push(`${mode}|${vname} 例外：${e.message}`); }
+  finally { await ctx.close().catch(() => {}); }
+}
+
+async function runNw(ch, vname, vp, results) {
+  // ?nwall=1：章節開放預設「第一章恆開、通過前一章才開下一章」（凍結 #6），治具沒有真的破關過，
+  // 不加這個查詢參數 nw2/nw3 一律鎖住點不到（同 visual-polish-probe.mjs 的 runNw 用法）。
+  // 進場流程照 visual-polish-probe.mjs runNw 的既有走法：點章節卡的按鈕進「intro」畫面 → 點 #nwGo
+  // →（跟常規局一樣）選角 → newGame(...,{chapter}) —— 不是點 .nwCard 本身就會開局。
+  const { ctx, page } = await newCtx(vp, '?nwall=1');
+  try {
+    await page.evaluate(() => startEntry('nightwalk'));
+    await page.waitForFunction(() => document.getElementById('nwScr').classList.contains('on') && document.getElementById('nwScr').dataset.view === 'menu');
+    await page.waitForTimeout(150);
+    const ok = await page.evaluate((c) => { const b = document.querySelector(`#nwScr .nwCard[data-ch="${c}"] .nwBtns button`); if (b) { b.click(); return true; } return false; }, ch);
+    if (!ok) { results.notes.push(`nw${ch}|${vname} 章節鎖住或找不到，跳過`); return; }
+    await page.waitForFunction(() => document.getElementById('nwScr').dataset.view === 'intro', null, { timeout: 15000 });
+    await page.waitForTimeout(150);
+    await page.evaluate(() => document.getElementById('nwGo').click());
+    await pickFirstRole(page);
+    await page.evaluate((sd) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame('solo', sd, SEL.picks, { chapter: SEL.chapter }); }, SEED);
+    await page.waitForFunction((c) => window.__yaoshi.S && window.__yaoshi.S.chapter === c, ch);
+    for (let round = 0; round < 2; round++) {
+      const cls = await driveToFirst(page, new Set(['bid', 'mark']));
+      if (!cls) { results.notes.push(`nw${ch}|${vname} round${round} 沒進到 bid/mark（章節提早結束或無市集）`); break; }
+      await testDockAtScreen(page, vp, vname, 'nw' + ch, round, results);
+    }
+  } catch (e) { results.notes.push(`nw${ch}|${vname} 例外：${e.message}`); }
+  finally { await ctx.close().catch(() => {}); }
+}
+
+const results = { rows: [], notes: [] };
+for (const mode of MODES) {
+  for (const vname of VPS) {
+    const vp = VP[vname];
+    const before = results.rows.length;
+    if (mode === 'solo' || mode === 'hot') await runRegular(mode, vname, vp, results);
+    else { const ch = Number(mode.replace('nw', '')); await runNw(ch, vname, vp, results); }
+    console.error('[card-dock]', mode, vname, 'rows+=', results.rows.length - before);
+  }
 }
 
 await browser.close();
 srv.kill();
 fs.writeFileSync(path.join(OUT, 'card-dock-raw.json'), JSON.stringify(results, null, 1));
-console.log('寫入', path.join(OUT, 'card-dock-raw.json'));
+console.log('寫入', path.join(OUT, 'card-dock-raw.json'), '總格數', results.rows.length, 'notes', results.notes.length);
