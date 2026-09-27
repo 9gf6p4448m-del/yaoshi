@@ -59,6 +59,10 @@ export const TRAY = {
    *  拉它 **0 draw call、0 三角形**——正好補回外殼讓出來的那 11k 個三角形。 */
   RIM_BASE: 2.9,
   RIM_HOVER: 4.2,
+  /** v0.59.1 開卡停靠卷（凍結 #1／#8 二次裁定）：滑鼠指標停在拍品上＝原本的抬升＋自轉＋RIM_HOVER，
+   *  不動；點窄籤開卡＝改用這個「只亮不動」態——比滑鼠 hover 更亮一階，但不抬升、不自轉，
+   *  位置與旋轉在整段開卡期間跟關卡前逐值相同（見 setHover 的 `still` 參數）。 */
+  RIM_STILL: 5.6,
   HOVER_MS: 0.16,
   /** 詛咒品占位：一疊綑起來的舊符紙＋紫黑陰火（ART_BIBLE §4「詛咒＝有作者的惡意、是物不是靈」） */
   /* 詛咒占位（自評 r1 E／F：第一版讀成「紙箱」、陰火是方塊像素）：
@@ -449,7 +453,7 @@ export function createTableTray(scene, camera, opts = {}) {
   /** 每一格的狀態。fig＝真 3D 妖（有 GLB）；pile＝詛咒占位；兩者互斥。 */
   const slots = TRAY.XS.map((x, i) => ({
     i, key: null, curse: false, curseKind: null, fac: null, moon: false, chain: false,
-    fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, played: false,
+    fig: null, pile: null, hoverK: 0, spin: 0, ready: false, rimK: -1, rimStillWas: false, played: false,
     jolt: 0, bb: null,
   }));
   /** 命中代理盒：**刻意不加進 scene**（不畫、不佔 draw call），只給 Raycaster 用。
@@ -557,6 +561,7 @@ export function createTableTray(scene, camera, opts = {}) {
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
+  let hoverStill = false; // true＝目前 hover 是「開卡只亮不動」，不是滑鼠指標停在上面
   let visible = true;
   let pending = Promise.resolve();
   const ray = new THREE.Raycaster();
@@ -760,21 +765,33 @@ export function createTableTray(scene, camera, opts = {}) {
       const hits = ray.intersectObjects(proxies, false);
       return hits.length ? proxies.indexOf(hits[0].object) : -1;
     },
-    /** −1 ＝ 無 */
-    setHover(i) {
+    /** −1 ＝ 無。opts.still＝true 時是「開卡只亮不動」（凍結 #1／#8 二次裁定）：
+     *  不抬升、不自轉、不推鏡頭，只加強 RIM 與描邊；滑鼠指標的呼叫不傳 opts，行為完全不變。 */
+    setHover(i, opts) {
       const k = (i >= 0 && i < N) ? i : -1;
-      if (k === hover) return;
+      const still = !!(opts && opts.still);
+      if (k === hover && still === hoverStill) return;
       const prev = hover;
       hover = k;
+      hoverStill = still;
+      // 換成 still 態的那一格：位置／旋轉立刻歸零到基準朝向，不留一絲滑鼠 hover 殘留的抬升／自轉
+      if (k >= 0 && hoverStill) {
+        const s = slots[k];
+        s.spin = TRAY.YAW[k] || 0;
+        if (s.fig) { s.fig.group.position.y = TRAY.Y; s.fig.group.rotation.y = s.spin; }
+        else if (s.pile) { s.pile.group.position.y = TRAY.Y; s.pile.group.rotation.y = s.spin; }
+      }
       // 描邊只跟著 hover 走：舊的那一格卸下、新的那一格掛上（兩格都只是切 visible）
       if (prev >= 0) applyOutline(slots[prev]);
       if (k >= 0) applyOutline(slots[k]);
       /* 被看的那一格才醒過來播 idle：整桌四尊都跑 mixer 是純粹浪費（牌桌是玩家 80% 的時間），
-         hover 才播既省又是「它注意到你在看」的演出。播過就留著，不另寫停播路徑。 */
-      if (k >= 0 && slots[k].fig && !slots[k].played && slots[k].ready) {
+         hover 才播既省又是「它注意到你在看」的演出。播過就留著，不另寫停播路徑。
+         still 態不播——那是「滑鼠停在上面」的專屬演出，開卡只要亮，不要多一段動作。 */
+      if (k >= 0 && !hoverStill && slots[k].fig && !slots[k].played && slots[k].ready) {
         slots[k].played = !!slots[k].fig.play('idle', { fade: 0.25 });
       }
-      if (director && director.setTrayPush) director.setTrayPush(k >= 0);
+      // 鏡頭微推同理只在滑鼠 hover 時做；開卡 still 態鏡頭不動（不然桌面縮放本身也會改投影框，等於變相沒解決 #1）。
+      if (director && director.setTrayPush) director.setTrayPush(k >= 0 && !hoverStill);
     },
     hover() { return hover; },
     /** 螢幕座標（px，相對視窗左上）。canvas 是 fixed 0,0 滿版，所以視窗座標＝canvas 座標。 */
@@ -832,8 +849,9 @@ export function createTableTray(scene, camera, opts = {}) {
           s.hoverK = want > s.hoverK ? Math.min(1, s.hoverK + step) : Math.max(0, s.hoverK - step);
         }
         const ease = s.hoverK * s.hoverK * (3 - 2 * s.hoverK);
-        if (s.i === hover) s.spin += TRAY.HOVER_SPIN * dt;
-        else if (s.hoverK > 0) {
+        const still = s.i === hover && hoverStill;
+        if (s.i === hover && !hoverStill) s.spin += TRAY.HOVER_SPIN * dt;
+        else if (s.hoverK > 0 && !still) {
           // 放開之後轉回基準朝向（走短邊，不整圈倒帶）
           const base = TRAY.YAW[s.i] || 0;
           let d = (s.spin - base) % (Math.PI * 2);
@@ -848,7 +866,7 @@ export function createTableTray(scene, camera, opts = {}) {
           s.jolt = Math.max(0, s.jolt - dt / 0.35);
           shake = -Math.sin((1 - s.jolt) * Math.PI * 3.2) * 0.030 * s.jolt;
         }
-        const y = TRAY.Y + TRAY.HOVER_LIFT * ease + shake;
+        const y = TRAY.Y + (still ? 0 : TRAY.HOVER_LIFT * ease) + shake;
         if (s.award && s.fig) {
           const a = s.award; a.t = Math.min(1, a.t + dt / 0.86);
           const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.winner);
@@ -873,7 +891,8 @@ export function createTableTray(scene, camera, opts = {}) {
           s.fig.group.rotation.y = s.spin;
           // 量化到 1/20 再寫：setRim 會把整尊每一支材質的 uniform 重寫一遍，沒變就不該付這個錢
           const q = Math.round(ease * 20) / 20;
-          if (q !== s.rimK) { s.rimK = q; s.fig.setRim(TRAY.RIM_BASE + (TRAY.RIM_HOVER - TRAY.RIM_BASE) * q); }
+          const rimTop = still ? TRAY.RIM_STILL : TRAY.RIM_HOVER;
+          if (q !== s.rimK || still !== s.rimStillWas) { s.rimK = q; s.rimStillWas = still; s.fig.setRim(TRAY.RIM_BASE + (rimTop - TRAY.RIM_BASE) * q); }
           s.fig.update(dt);
         } else if (s.pile) {
           s.pile.group.position.y = y;
