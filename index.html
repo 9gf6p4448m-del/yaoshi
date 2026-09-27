@@ -136,11 +136,17 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
      剛好落在心願條那一列（#feltHead），可以蓋住心願條／頂列風位條，但落不到北列（#north）。
      寬度與高度都用 min()/calc() 夾在安全區內，超出內容用卡片自己的捲動（見 .railCardClose 旁的 overflow-y）。 */
   #table.t3d .rail.open .railPages{display:block;position:fixed;z-index:21;
-    left:50%;right:auto;transform:translateX(-50%);
-    top:calc(max(4px,var(--safe-top)) + 56px + 4px + 8px);
+    left:50%;right:auto;transform:translate(calc(-50% - 21px),0);
+    top:calc(max(4px,var(--safe-top)) + 56px);
     width:min(240px,calc(100vw - var(--safe-left) - var(--safe-right) - 96px));
     max-height:min(320px,calc(100dvh - max(4px,var(--safe-top)) - max(4px,var(--safe-bottom)) - 150px));
     overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.65)}
+  /* 水平置中往左偏 21px（#helpBtn 半個身位，34px 寬）：#helpBtn 只掛在 #felt 右上角、
+     不是左右對稱的東西，寬窄卡（V4=667px）滿版置中會剛好啃到 #helpBtn 左緣 6–8px（實測案例）；
+     往左讓開，右側留白換左側留白，不影響「置中在心願條那一帶」的視覺意圖。
+     top 拿掉原本再加的 grid-gap(4px)/#felt 內距(8px)：實測拍品 hover 抬升＋自轉後投影框最高可達
+     y≈124px（V5），卡片底緣壓在 y≈147–159 太近，先把卡往上頂到北列正下方，儘量拉開跟法寶的垂直間距
+     （見 docs/experiments/2026-09-27-card-dock-font/card-dock-raw.json 的量測與 README 的已知殘留重疊）。 */
   #table.t3d #railE.open .railPages{left:50%;right:auto}
   #table.t3d .rail.open .railPages>.mcard{min-height:0;box-shadow:0 6px 18px rgba(0,0,0,.6)}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
