@@ -133,7 +133,7 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
   const noise0 = await shotAll(); await page.waitForTimeout(250); const noise1 = await shotAll();
   const noiseDiff = {}; for (const i of allSlots) if (noise0[i] && noise1[i]) noiseDiff[i] = !noise0[i].equals(noise1[i]);
   for (const t of tabs) {
-    const before = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), bbox: window.__yaoshi3d.tray.bboxScreen(Number(s)), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines }), [t.rail, t.slot]);
+    const before = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), bbox: window.__yaoshi3d.tray.bboxScreen(Number(s)), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, pose: window.__yaoshi3d.tray.pose(Number(s)) }), [t.rail, t.slot]);
     const beforeShots = await shotAll();
     await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
     await page.waitForTimeout(500);
@@ -147,19 +147,24 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
       const bbox = window.__yaoshi3d.tray.bboxScreen(Number(s));
       const hover = window.__yaoshi3d.tray.hover();
       const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
+      const pose = window.__yaoshi3d.tray.pose(Number(s));
       let refTxt = null, refErr = null;
       try { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
       const cardMcard = card ? card.querySelector('.railSelected') : null;
       const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
-      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
+      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, pose, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
     }, [t.rail, t.slot]);
     if (vname === 'V1' && mode === 'solo' && round === 0 && t === tabs[0]) {
       fs.writeFileSync(path.join(OUT, 'contact-bid-open-head-V1.png'), await page.screenshot());
     }
+    // #8 二次裁定：「整段開卡期間」不只驗開卡那一刻，多等一段（另外 800ms）再量一次姿態，
+    // 確認真的是「只亮不動」而不是恰好在取樣瞬間經過基準姿態。
+    await page.waitForTimeout(800);
+    const poseHold = await page.evaluate(([r, s]) => window.__yaoshi3d.tray.pose(Number(s)), [t.rail, t.slot]);
     await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
     await page.waitForTimeout(200);
     const afterClose = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, cardGone: !document.querySelector('#' + r + '.open') }), [t.rail, t.slot]);
-    results.rows.push({ mode, vp: vname, round, rail: t.rail, slot: t.slot, before, after, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
+    results.rows.push({ mode, vp: vname, round, rail: t.rail, slot: t.slot, before, after, poseHold, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
   }
 }
 
