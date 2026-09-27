@@ -91,8 +91,13 @@ async function newCtx(vp, query = '') {
     });
   }, vp.safe);
   const page = await ctx.newPage();
+  page.__errs = []; page.on('pageerror', (e) => page.__errs.push('pageerror ' + e.message)); page.on('console', (m) => { if (m.type() === 'error') page.__errs.push('console ' + m.text().slice(0, 160)); }); page.on('requestfailed', (r) => page.__errs.push('reqfail ' + r.url().slice(-60) + ' ' + (r.failure() || {}).errorText));
   await page.goto(`http://127.0.0.1:${PORT}/index.html${query}`, { waitUntil: 'load' });
   await page.waitForFunction('typeof window.__yaoshi === "object" && !!window.__tf', null, { timeout: 30000 });
+  /* 先等 3D 模組掛好再開局（真人一定是先看到首頁／選角才開局）：治具把時序壓到 1ms，
+     開局比 3D 模組載入還快時，第一批 ys:market 在 renderer 掛 listener 之前就派完，整局桌上空的——那是治具時序，不是產品行為
+     （2026-09-27 正常速度 V4／V1 實測拍品都會上桌）。 */
+  await page.waitForFunction(() => window.__yaoshi3d && window.__yaoshi3d.tray, null, { timeout: 90000 }).catch(() => {});
   await page.evaluate(() => { CFG.T = 1; const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1; });
   return { ctx, page };
 }
@@ -127,7 +132,10 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
   });
   /* 3D 拍品模型要全部到位才量（否則投影框／姿態全是 null，#1 會因「沒有可比的框」而靜默通過）。 */
   const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 90000 }).then(() => true).catch(() => false);   /* 90s：同機另有 session 跑瀏覽器時 GLB 載入實測超過 30s（量不到一律判紅，放寬等待不會讓壞實作過） */
-  if (!ready) results.notes.push(`${mode}|${vname} round${round} 3D 拍品 90s 內未全部就緒`);
+  if (!ready) {
+    const diag = await page.evaluate(() => { const t = window.__yaoshi3d.tray; return { n: window.__yaoshi.S.market.length, ready: t.readyCount(), pending: t.loaded(), items: t.items().map((it) => [it.slot, it.key, it.ready, it.visible]), phase: typeof TRAY_PHASE !== 'undefined' ? TRAY_PHASE : null }; }).catch((e) => 'diag err ' + e.message);
+    results.notes.push(`${mode}|${vname} round${round} 3D 拍品 90s 內未全部就緒 ${JSON.stringify(diag)} errs=${JSON.stringify(page.__errs.slice(-6))}`);
+  }
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
   if (!tabs.length) { results.notes.push(`${mode}|${vname} round${round} 沒有窄籤可點（市集空）`); return; }
   const allSlots = await page.evaluate(() => window.__yaoshi3d.tray.items().filter((it) => it.visible).map((it) => it.slot));
@@ -152,6 +160,14 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
       const hover = window.__yaoshi3d.tray.hover();
       const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
       const glow = window.__yaoshi3d.tray.items()[Number(s)].glow;
+      /* 卡片邊緣露出半截字（使用者 09-27）：卡外的可見文字，只要矩形與卡片相交就記下（卡片是不透明的，相交＝被切掉一部分）。 */
+      const cut = [];
+      if (cr) { const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+        const el = n.parentElement; if (!el || !/\S/.test(n.textContent) || (card && card.contains(el))) continue;
+        const st = getComputedStyle(el); if (st.visibility !== 'visible' || st.display === 'none' || Number(st.opacity) === 0) continue;
+        const rg = document.createRange(); rg.selectNodeContents(n);
+        for (const q of rg.getClientRects()) { if (q.width < 0.5 || q.height < 0.5) continue;
+          if (Math.min(q.right, cr.right) - Math.max(q.left, cr.left) > 0.5 && Math.min(q.bottom, cr.bottom) - Math.max(q.top, cr.top) > 0.5) { cut.push(n.textContent.trim().slice(0, 20)); break; } } } }
       const pose = window.__yaoshi3d.tray.pose(Number(s));
       const otherBoxes = {}; for (const it of window.__yaoshi3d.tray.items()) if (it.visible && it.slot !== Number(s)) otherBoxes[it.slot] = window.__yaoshi3d.tray.bboxScreen(it.slot);
       const otherOutlines = {}; for (const it of window.__yaoshi3d.tray.items()) if (it.slot !== Number(s)) otherOutlines[it.slot] = it.outlines + (it.glow > 1 ? 1 : 0);
@@ -164,7 +180,7 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
       finally { if (tmpBid) delete myBids[si]; }
       const cardMcard = card ? card.querySelector('.railSelected') : null;
       const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
-      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, otherBoxes, otherOutlines, hover, outlines, glow, pose, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
+      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, otherBoxes, otherOutlines, hover, outlines, glow, cut, pose, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
     }, [t.rail, t.slot]);
     if (process.env.CD_SHOT === mode && t === tabs[0]) fs.writeFileSync(path.join(OUT, `shot-${mode}-${vname}-r${round}.png`), await page.screenshot());
     if (vname === 'V1' && mode === 'solo' && round === 0 && t === tabs[0]) {

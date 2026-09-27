@@ -30,6 +30,7 @@ for (const r of rows) {
     for (const [n, rc] of Object.entries(r.anchorRects || {})) if (area(card, rc) > 0) fails.c2.push(`${k} 壓到 ${n}`);
   }
   if (!a.closeBtnRect || a.closeBtnRect.w < 40 || a.closeBtnRect.h < 40) fails.c2.push(`${k} 關閉鈕 <40`);
+  if (!Array.isArray(a.cut)) fails.c2.push(`${k} 半截字量不到`); else if (a.cut.length) fails.c2.push(`${k} 卡片邊緣露出半截字：${a.cut.slice(0, 3).join('／')}`);
   if (a.refTxt == null) fails.c2.push(`${k} 參考文字量不到：${a.refErr}`);
   else if (a.refTxt !== a.liveTxt) fails.c2.push(`${k} 內容不等價`);
   if (!r.afterClose || !r.afterClose.cardGone) fails.c2.push(`${k} 關閉後卡未消失`);

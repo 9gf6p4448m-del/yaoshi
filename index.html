@@ -128,6 +128,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   .railTabs button.sys-yinqi{--sys:var(--sys-yinqi)} .railTabs button.sys-curse{--sys:var(--sys-curse)}
   #table.t3d .railPages{display:none}
   #table.t3d .rail.open{z-index:20}
+  #table.t3d.cardOpen #feltHead{visibility:hidden}
   /* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2，使用者裁 A）：原本貼著側欄浮出、會蓋住 3D 法寶本體；
      改成 position:fixed 釘在畫面上方中央——.rail／#west／#east 都沒有 filter/transform/backdrop-filter，
      fixed 的容器就是 viewport，left:50% 直接對齊 #table 的水平中心（#table margin:0 auto 置中、
@@ -2908,6 +2909,9 @@ function railCardOpen(id,i){
   const on=i!=null&&!!rail.querySelector(`#mc${i}`);
   if(on) RAIL_PAGE[id]=i;
   rail.classList.toggle('open',on);
+  /* 開卡時整條頂列（月相／風位／心願條，#feltHead）先藏起來，關卡恢復（使用者 09-27：卡片後面露出半截字影響閱讀）。
+     只切 visibility，不動版面；renderer 取景會把 visibility:hidden 的 #feltHead 排除在障礙物外。 */
+  const tb=$("table"); if(tb&&tb.classList) tb.classList.toggle("cardOpen",!!document.querySelector("#railW.open,#railE.open"));
   if(!on){ const pg=rail.querySelector('.railPages'); if(pg) pg.style.cssText=""; }   /* 清掉 dockRailCard 寫的避讓位置 */
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',on&&el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-expanded',String(on&&Number(el.dataset.slot)===i)));
