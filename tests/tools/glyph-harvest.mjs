@@ -123,10 +123,11 @@ const pickFirstRole = async (page) => {
 async function drive(page, stopAtEnd) {
   let last = null;
   for (let i = 0; i < 20000; i++) {
-    await page.waitForTimeout(6);
+    await page.waitForTimeout(15);
     const cls = await scr(page);
     if (cls !== last) {
       last = cls;
+      console.error('[glyph]   ', cls);
       if (!/^busy|^none/.test(cls)) await harvestScreen(page);
       if (cls === 'bid') {
         for (const fn of ['showBag(0)', 'showRoleInfo(1)', 'openHelp()']) {
@@ -159,7 +160,7 @@ async function runSolo(seed) {
     await harvestScreen(page);
     await page.evaluate(() => showReview()); await page.waitForTimeout(150);
     await harvestScreen(page);
-  } finally { await ctx.close(); }
+  } finally { await ctx.close().catch(() => {}); }
 }
 
 async function runNw(ch) {
@@ -175,13 +176,26 @@ async function runNw(ch) {
     await harvestScreen(page);
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1, null, { timeout: 15000 }).catch(() => {});
     await drive(page);
-  } finally { await ctx.close(); }
+  } finally { await ctx.close().catch(() => {}); }
 }
 
-for (const sd of SEEDS) { console.error('[glyph] solo seed', sd); await runSolo(sd); }
-for (const ch of [1, 2, 3]) { console.error('[glyph] nw', ch); await runNw(ch).catch((e) => console.error('nw' + ch + ' 失敗（不阻斷）：', e.message)); }
+/* 這台機器同時有別的 session 在跑 WebGL（排球夢 direct-play-browser.mjs），GPU 共用資源，
+   偶爾整個分頁被系統判死（page.evaluate 拋 "Target crashed"），不是本腳本邏輯錯。
+   每個 seed／章節最多重試 2 次；重試後仍失敗就跳過並記進 failed，不讓單一崩潰拖垮整批收字。 */
+const failed = [];
+async function withRetry(label, fn, tries = 3) {
+  for (let a = 1; a <= tries; a++) {
+    try { await fn(); return; } catch (e) {
+      console.error(`[glyph] ${label} 第 ${a}/${tries} 次失敗：${e.message}`);
+      if (a === tries) failed.push(label);
+    }
+  }
+}
+for (const sd of SEEDS) { console.error('[glyph] solo seed', sd); await withRetry('solo seed ' + sd, () => runSolo(sd)); }
+for (const ch of [1, 2, 3]) { console.error('[glyph] nw', ch); await withRetry('nw' + ch, () => runNw(ch)); }
 
 await browser.close();
+if (failed.length) console.error('[glyph] 失敗清單（缺這些畫面的字沒收到，需人工判斷是否影響 #4）：', failed);
 srv.kill();
 
 // (B) 靜態資料 grep：從原始碼直接抓會進入這 17 類角色的字面字串池。
@@ -196,5 +210,5 @@ while ((m = rnRe.exec(src))) harvest('static rn:"..."', m[1]);
 const nwTitleRe = /title:"([^"]*)"/g;
 while ((m = nwTitleRe.exec(src))) harvest('static nw title:"..."', m[1]);
 
-fs.writeFileSync(path.join(OUT, 'glyph-chars.json'), JSON.stringify({ n: chars.size, chars: [...chars], samples }, null, 1));
-console.log('字元數', chars.size, '→', path.join(OUT, 'glyph-chars.json'));
+fs.writeFileSync(path.join(OUT, 'glyph-chars.json'), JSON.stringify({ n: chars.size, chars: [...chars], samples, failed }, null, 1));
+console.log('字元數', chars.size, '→', path.join(OUT, 'glyph-chars.json'), failed.length ? `（失敗清單：${failed.join(', ')}，缺字結果不完整）` : '（全部畫面都收到了）');

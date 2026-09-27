@@ -127,6 +127,8 @@ for (const vname of VPS) {
     for (let round = 0; round < 2; round++) {
       const cls = await driveToFirst(page, new Set(['bid', 'mark']));
       if (!cls) { results.notes.push(`${vname} round${round} 沒進到 bid/mark（局提早結束）`); break; }
+      // __yaoshi3d 是 renderer 模組非同步初始化，畫面切到 bid/mark 那一刻不保證已經掛上（GLB 還在載）
+      await page.waitForFunction(() => window.__yaoshi3d && window.__yaoshi3d.tray, null, { timeout: 10000 }).catch(() => { results.notes.push(`${vname} round${round} __yaoshi3d.tray 逾時未就緒`); });
       // 量安全區實際 px（viewport 尺寸換算，供越界檢查）
       const safePx = await page.evaluate(() => {
         const cs = getComputedStyle(document.documentElement);
@@ -161,10 +163,14 @@ for (const vname of VPS) {
           const hover = window.__yaoshi3d.tray.hover();
           const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
           // 卡內資訊與 mcardHTML(S.market[i],i) 直接產生的參考版逐項等價（文字內容比對）
-          const refTxt = (() => { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); return (tmp.textContent || '').replace(/\s+/g, ''); })();
+          // mcardHTML 內部讀的 b（押注／盯上狀態）不是純參數，靠呼叫當下的畫面模式決定；
+          // 直接在 page.evaluate 裡呼叫可能撞到與目前畫面不同步的分支（例如 mark 態內部仍讀 bid 態欄位）而丟例外，
+          // 這是治具呼叫方式的限制，不是產品 bug——包 try/catch，refTxt 拿不到就跳過這格的逐項比對，不讓整支探針中斷。
+          let refTxt = null, refErr = null;
+          try { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
           const cardMcard = card ? card.querySelector('.railSelected') : null;
           const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
-          return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, refTxt, liveTxt, textMatch: refTxt === liveTxt };
+          return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
         }, [t.rail, t.slot]);
         // #6 對照用：V1、round0、第一枚籤，開卡當下存一張全頁截圖
         if (vname === 'V1' && round === 0 && t === tabs[0]) {
