@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.59.0"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.59.1"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -128,10 +128,24 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   .railTabs button.sys-yinqi{--sys:var(--sys-yinqi)} .railTabs button.sys-curse{--sys:var(--sys-curse)}
   #table.t3d .railPages{display:none}
   #table.t3d .rail.open{z-index:20}
-  #table.t3d .rail.open .railPages{display:block;position:absolute;top:0;left:calc(100% + 4px);width:188px}
-  #table.t3d #railE.open .railPages{left:auto;right:calc(100% + 4px)}
+  /* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2，使用者裁 A）：原本貼著側欄浮出、會蓋住 3D 法寶本體；
+     改成 position:fixed 釘在畫面上方中央——.rail／#west／#east 都沒有 filter/transform/backdrop-filter，
+     fixed 的容器就是 viewport，left:50% 直接對齊 #table 的水平中心（#table margin:0 auto 置中、
+     東西兩欄同寬 168px，viewport 中心＝桌心 #felt 的水平中心，不必量 #felt 的 rect）。
+     top 用安全區＋北列列高（56px）＋grid gap（4px）＋#felt 自己的上內距（8px）算出來，
+     剛好落在心願條那一列（#feltHead），可以蓋住心願條／頂列風位條，但落不到北列（#north）。
+     寬度與高度都用 min()/calc() 夾在安全區內，超出內容用卡片自己的捲動（見 .railCardClose 旁的 overflow-y）。 */
+  #table.t3d .rail.open .railPages{display:block;position:fixed;z-index:21;
+    left:50%;right:auto;transform:translateX(-50%);
+    top:calc(max(4px,var(--safe-top)) + 56px + 4px + 8px);
+    width:min(240px,calc(100vw - var(--safe-left) - var(--safe-right) - 96px));
+    max-height:min(320px,calc(100dvh - max(4px,var(--safe-top)) - max(4px,var(--safe-bottom)) - 150px));
+    overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.65)}
+  #table.t3d #railE.open .railPages{left:50%;right:auto}
   #table.t3d .rail.open .railPages>.mcard{min-height:0;box-shadow:0 6px 18px rgba(0,0,0,.6)}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
+  /* 關閉鈕：右上角常駐、命中區 40×40（視覺圖示較小，padding 撐滿點擊區）；平時（非停靠狀態）display:none。 */
+  #table.t3d .rail.open .railPages .railCardClose{display:flex}
   /* 揭盅結果窄條（v0.59.0，凍結 p2 #3）：本夜成交總覽與請神結果不再蓋在桌心，改成貼在底列上緣的一條窄條
      （下緣距底列 2px：#felt 下緣＝底列上緣−4px 的格線間距，窄條往下伸 2px）。內容與原卡逐項相同、字級不變（15／12px）。
      窄條那一頁 #felt 不畫玻璃、不裁切（請神結果走的是非掏空頁），3D 桌面整片露出來。 */
@@ -485,6 +499,11 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 @media (orientation:portrait){ #market{display:none} }
 .mcard{background:var(--bg-sys,var(--panel));border:1px solid var(--line);border-radius:var(--r-panel);padding:7px;cursor:pointer;
   position:relative;transition:transform .15s}
+/* 開卡停靠關閉鈕（v0.59.1，凍結 card-dock-font #2：點擊區 ≥40×40）：平時不出現（只有
+   #table.t3d .rail.open .railPages 裡才 display:flex，見上方 media 規則）。 */
+.railCardClose{display:none;position:absolute;top:-4px;right:-4px;width:40px;height:40px;box-sizing:border-box;
+  align-items:center;justify-content:center;border-radius:50%;
+  background:var(--c-ink-bg2);color:var(--gold);border:1px solid var(--line-gold);font-size:18px;line-height:1;cursor:pointer;z-index:2}
 .mcard:active{transform:scale(.97)}
 .mcard.curse{border-color:var(--curse)}
 .mcard.bided{border-color:var(--gold)}
@@ -854,7 +873,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.59.0"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.59.1"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -2534,9 +2553,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.59.0", VERSION_NOTE="0.59.0：畫面精美度第二階段：首頁讓桌、牌桌朱印一套（拍品窄籤、結果窄條、線條圖示、明體／黑體分工）";
+const VERSION="0.59.1", VERSION_NOTE="0.59.1：開卡停靠改到心願條上方＋標題／卡名／按鈕／數字換 Yuji Boku 毛筆體＋展開時對應法寶亮一下";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.59.0";
+const RELEASE_VERSION="0.59.1";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2894,10 +2913,15 @@ function selectRailPage(id,i){
   window.__yaoshi3d?.tray?.setHover(on?i:-1);
   equalizeRailCards();
 }
+/* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2）：明確的關閉鈕，給右上角×鈕與點卡外用同一支收法。 */
+function closeRailCard(id){
+  railCardOpen(id,null);
+  try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(e){}
+}
 /* 點側欄以外的地方就收起展開的卡（與北列面板同一種收法；點擊照常落到底下的元件） */
 if(typeof document!=="undefined"&&document.addEventListener) document.addEventListener("pointerdown",e=>{
   ["railW","railE"].forEach(id=>{ const r=typeof $==="function"?$(id):null;
-    if(r&&r.classList&&r.classList.contains("open")&&!r.contains(e.target)){ railCardOpen(id,null); try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(err){} } });
+    if(r&&r.classList&&r.classList.contains("open")&&!r.contains(e.target)){ closeRailCard(id); } });
 },true);
 /* v0.58.3 畫面細修（凍結 visual-polish #6 左右拍品卡同高）：左欄第 i 張可見卡與右欄第 i 張取較高者當 min-height，
    內容長短不同也不會一高一矮。純呈現：只寫 style.minHeight，不讀寫任何賽局欄位；換頁、重畫、視窗改尺寸都重算。 */
@@ -2914,7 +2938,10 @@ if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
   const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="selectRailPage('${id}',${i})">${S.market[i].n}</button>`).join('')}</div>`;
-  return nav+`<div class="railPages">${idxs.map(i=>fn(S.market[i],i)).join("")}</div>`;
+  /* .railCardClose 只在 3D 牌桌開卡停靠時顯示（見 assets/theme.css），其餘版面（#market 內嵌卡列、portrait fallback）
+     不受影響——按鈕平時是 display:none。 */
+  const close=`<button type="button" class="railCardClose" aria-label="關閉法寶卡" onclick="closeRailCard('${id}')">×</button>`;
+  return nav+`<div class="railPages">${close}${idxs.map(i=>fn(S.market[i],i)).join("")}</div>`;
 }
 /* 掏空頁的三塊搬家：預告框→#northPrev、香火榜→#northShr、市集卡→#railW／#railE（前半／後半）。
    四張卡的左右分配用 S.market.length 算，不寫死 4——CFG.MARKET 改了這裡自動跟上。 */

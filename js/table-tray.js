@@ -786,6 +786,25 @@ export function createTableTray(scene, camera, opts = {}) {
         y: (1 - (tmp.y * 0.5 + 0.5)) * (window.innerHeight || 390),
       };
     },
+    /** v0.59.1 開卡停靠驗收 #1：這一格 3D 模型（fig 或 pile）的世界包圍盒，取八角點投影後的螢幕外框（CSS px）。
+     *  沒有模型（空格）回 null。純幾何、只讀，不改任何狀態——治具與正式呼叫都可用。 */
+    bboxScreen(i) {
+      if (!(i >= 0 && i < N)) return null;
+      const s = slots[i], node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
+      if (!node || !node.visible) return null;
+      const box = new THREE.Box3().setFromObject(node);
+      if (box.isEmpty()) return null;
+      const W = window.innerWidth || 844, H = window.innerHeight || 390;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      const v = new THREE.Vector3();
+      for (let cx = 0; cx < 2; cx++) for (let cy = 0; cy < 2; cy++) for (let cz = 0; cz < 2; cz++) {
+        v.set(cx ? box.max.x : box.min.x, cy ? box.max.y : box.min.y, cz ? box.max.z : box.min.z).project(camera);
+        const px = (v.x * 0.5 + 0.5) * W, py = (1 - (v.y * 0.5 + 0.5)) * H;
+        if (px < minX) minX = px; if (px > maxX) maxX = px;
+        if (py < minY) minY = py; if (py > maxY) maxY = py;
+      }
+      return { left: minX, top: minY, right: maxX, bottom: maxY };
+    },
     /** 對決時整組收掉（對決舞台是同一張桌子，拍品要讓開，計畫 §6 Q3） */
     setVisible(v) {
       visible = !!v;

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Yuji+Boku&family=Noto+Sans+TC:wght@400;700;900&display=swap');
 
 /* ==========================================================================
    妖市 — 視覺主題變數（廟口版畫風／深夜市集）
@@ -42,11 +42,12 @@
   --c-text-dim: #a09070;      /* 暗淡文字 */
   --c-ink: #1a0a0a;           /* 墨色（版畫描邊、印章底） */
 
-  /* --- 字型（v0.59.0 畫面精美度第二階段「戊」：標題／卡名／數字＝同一明體，內文＝黑體）---
-     兩套都走檔頭的 Google Fonts（iOS Safari 下載得到）；抓不到字檔時才落到後面的系統字
-     （iOS 沒有內建繁中明體，明體那串會落到系統預設字）。 */
+  /* --- 字型（v0.59.1 開卡停靠＋Yuji Boku 卷：標題／卡名／數字＝Yuji Boku 毛筆體，內文＝黑體）---
+     兩套都走檔頭的 Google Fonts（iOS Safari 下載得到）；Yuji Boku 只有 400 這一個字重，抓不到字檔時
+     落到 Songti TC（iOS 沒有內建繁中明體時再落到系統預設字）。#4 缺字清單見
+     docs/experiments/2026-09-27-card-dock-font/glyph-coverage.json（凍結條件：缺字必須為 0）。 */
   --font-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;  /* 內文：說明、狀態、提示、敘述 */
-  --font-display: 'Noto Serif TC', 'Songti TC', serif;   /* 標題、卡名、數字（壽命、出價、隻數） */
+  --font-display: 'Yuji Boku', 'Songti TC', serif;   /* 標題、卡名、數字（壽命、出價、隻數） */
 
   /* --- 戊「朱印一套」（v0.59.0 畫面精美度第二階段）：近黑底＋金細線；朱紅印章是唯一強調色 --- */
   --c-ink-bg: rgba(11,9,8,.9);    /* 近黑面板底（半透明：牌桌上仍透一點 3D） */
