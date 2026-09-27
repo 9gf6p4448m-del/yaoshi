@@ -757,6 +757,14 @@ export function createTableTray(scene, camera, opts = {}) {
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,
       }));
     },
+    /** v0.59.1 開卡停靠卷，凍結 #8 二次裁定驗收用：這一格模型目前的世界 Y 與繞 Y 軸旋轉（`spin`），
+     *  純讀取。用來核對「開卡只亮不動」——開卡前後這兩個值要逐位元相同。 */
+    pose(i) {
+      if (!(i >= 0 && i < N)) return null;
+      const s = slots[i], node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
+      if (!node) return null;
+      return { y: node.position.y, rotY: node.rotation.y };
+    },
     /** NDC（x,y ∈ [-1,1]）→ 槽位 index，未命中回 −1。純幾何，不讀遊戲狀態。 */
     hitTest(u, v) {
       if (!visible) return -1;
