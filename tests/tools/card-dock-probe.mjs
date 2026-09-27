@@ -123,8 +123,11 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
   });
   const anchorRects = await page.evaluate(() => {
     const R = (sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return r.width > 0 || r.height > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null; };
-    return { north: R('#north'), westSeat: R('#westSeat'), eastSeat: R('#eastSeat'), south: R('#south'), helpBtn: R('#helpBtn') };
+    return { north: R('#north'), westSeat: R('#westSeat'), eastSeat: R('#eastSeat'), south: R('#south'), helpBtn: R('#helpBtn'), railTabsW: R('#railW .railTabs'), railTabsE: R('#railE .railTabs') };
   });
+  /* 3D 拍品模型要全部到位才量（否則投影框／姿態全是 null，#1 會因「沒有可比的框」而靜默通過）。 */
+  const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 90000 }).then(() => true).catch(() => false);   /* 90s：同機另有 session 跑瀏覽器時 GLB 載入實測超過 30s（量不到一律判紅，放寬等待不會讓壞實作過） */
+  if (!ready) results.notes.push(`${mode}|${vname} round${round} 3D 拍品 90s 內未全部就緒`);
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
   if (!tabs.length) { results.notes.push(`${mode}|${vname} round${round} 沒有窄籤可點（市集空）`); return; }
   const allSlots = await page.evaluate(() => window.__yaoshi3d.tray.items().filter((it) => it.visible).map((it) => it.slot));
@@ -134,6 +137,7 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
   const noiseDiff = {}; for (const i of allSlots) if (noise0[i] && noise1[i]) noiseDiff[i] = !noise0[i].equals(noise1[i]);
   for (const t of tabs) {
     const before = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), bbox: window.__yaoshi3d.tray.bboxScreen(Number(s)), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, pose: window.__yaoshi3d.tray.pose(Number(s)) }), [t.rail, t.slot]);
+    const headBefore = await page.evaluate(() => { const e = document.getElementById('feltHead'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; });
     const beforeShots = await shotAll();
     await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
     await page.waitForTimeout(500);
@@ -147,13 +151,22 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
       const bbox = window.__yaoshi3d.tray.bboxScreen(Number(s));
       const hover = window.__yaoshi3d.tray.hover();
       const outlines = window.__yaoshi3d.tray.items()[Number(s)].outlines;
+      const glow = window.__yaoshi3d.tray.items()[Number(s)].glow;
       const pose = window.__yaoshi3d.tray.pose(Number(s));
+      const otherBoxes = {}; for (const it of window.__yaoshi3d.tray.items()) if (it.visible && it.slot !== Number(s)) otherBoxes[it.slot] = window.__yaoshi3d.tray.bboxScreen(it.slot);
+      const otherOutlines = {}; for (const it of window.__yaoshi3d.tray.items()) if (it.slot !== Number(s)) otherOutlines[it.slot] = it.outlines + (it.glow > 1 ? 1 : 0);
       let refTxt = null, refErr = null;
-      try { const tmp = document.createElement('div'); tmp.innerHTML = mcardHTML(S.market[Number(s)], Number(s)); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
+      /* 盯上等階段 myBids 可能還沒為這一格建好（詛咒品曾因此丟例外、參考文字變 null 而沒被比對）：
+         暫補遊戲自己在開市時用的預設出價物件，算完即移除，不改遊戲狀態。 */
+      const si = Number(s), tmpBid = myBids[si] === undefined;
+      if (tmpBid) myBids[si] = { amt: 0, type: 'cons', intent: 'keep', target: null };
+      try { const tmp = document.createElement('div'); tmp.innerHTML = (TRAY_PHASE === 'mark' ? markCardHTML : mcardHTML)(S.market[si], si);   /* 與 fillRails 當階段用的同一支卡片函式：盯上階段是 markCardHTML（刻意不顯示 AI 盯了誰） */ refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) { refErr = e.message; }
+      finally { if (tmpBid) delete myBids[si]; }
       const cardMcard = card ? card.querySelector('.railSelected') : null;
       const liveTxt = cardMcard ? (cardMcard.textContent || '').replace(/\s+/g, '') : '';
-      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, hover, outlines, pose, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
+      return { cardRect: cr ? { left: cr.left, top: cr.top, right: cr.right, bottom: cr.bottom } : null, closeBtnRect: cbtn ? { w: cbtn.width, h: cbtn.height } : null, bbox, otherBoxes, otherOutlines, hover, outlines, glow, pose, refTxt, refErr, liveTxt, textMatch: refTxt == null ? null : refTxt === liveTxt };
     }, [t.rail, t.slot]);
+    if (process.env.CD_SHOT === mode && t === tabs[0]) fs.writeFileSync(path.join(OUT, `shot-${mode}-${vname}-r${round}.png`), await page.screenshot());
     if (vname === 'V1' && mode === 'solo' && round === 0 && t === tabs[0]) {
       fs.writeFileSync(path.join(OUT, 'contact-bid-open-head-V1.png'), await page.screenshot());
     }
@@ -163,8 +176,8 @@ async function testDockAtScreen(page, vp, vname, mode, round, results) {
     const poseHold = await page.evaluate(([r, s]) => window.__yaoshi3d.tray.pose(Number(s)), [t.rail, t.slot]);
     await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
     await page.waitForTimeout(200);
-    const afterClose = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, cardGone: !document.querySelector('#' + r + '.open') }), [t.rail, t.slot]);
-    results.rows.push({ mode, vp: vname, round, rail: t.rail, slot: t.slot, before, after, poseHold, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
+    const afterClose = await page.evaluate(([r, s]) => ({ hover: window.__yaoshi3d.tray.hover(), outlines: window.__yaoshi3d.tray.items()[Number(s)].outlines, cardGone: !document.querySelector('#' + r + '.open'), glow: window.__yaoshi3d.tray.items()[Number(s)].glow, head: (() => { const e = document.getElementById('feltHead'); if (!e) return null; const q = e.getBoundingClientRect(); return [q.left, q.top, q.right, q.bottom]; })() }), [t.rail, t.slot]);
+    results.rows.push({ mode, vp: vname, vpW: vp.w, vpH: vp.h, headBefore, round, rail: t.rail, slot: t.slot, before, after, poseHold, afterClose, anchorRects, safePx, pixelDiff, noiseDiff, allSlots });
   }
 }
 

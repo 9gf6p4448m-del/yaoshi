@@ -191,7 +191,8 @@ function init() {
     const felt = document.querySelector('#felt.hollow');
     if (!felt || !felt.getClientRects().length || window.innerWidth <= window.innerHeight) return;
     const r = felt.getBoundingClientRect();
-    const obstacles = ['#feltHead', '#helpBtn', '#skipbtn', '#revealCard'].flatMap(selector => {
+    // v0.59.1 開卡停靠：展開中的拍品卡也是障礙物——被看的那件要讓開卡片（凍結 card-dock-font #1 修訂）。
+    const obstacles = ['#feltHead', '#helpBtn', '#skipbtn', '#revealCard', '.rail.open .railPages'].flatMap(selector => {
       const el = document.querySelector(selector);
       if (!el || !el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return [];
       const b = el.getBoundingClientRect();

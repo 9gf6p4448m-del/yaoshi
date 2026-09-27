@@ -2908,6 +2908,7 @@ function railCardOpen(id,i){
   const on=i!=null&&!!rail.querySelector(`#mc${i}`);
   if(on) RAIL_PAGE[id]=i;
   rail.classList.toggle('open',on);
+  if(!on){ const pg=rail.querySelector('.railPages'); if(pg) pg.style.cssText=""; }   /* 清掉 dockRailCard 寫的避讓位置 */
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',on&&el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-expanded',String(on&&Number(el.dataset.slot)===i)));
 }
@@ -2920,10 +2921,46 @@ function selectRailPage(id,i){
      不該有抬升／自轉／鏡頭微推——那些會讓法寶的螢幕投影框在整段開卡期間持續變化、撞進卡片。 */
   window.__yaoshi3d?.tray?.setHover(on?i:-1,{still:true});
   equalizeRailCards();
+  if(on) dockRailCard(id,i);
+}
+/* 開卡避讓（v0.59.1，凍結 card-dock-font #1 修訂：使用者裁 A）：卡片預設在上方中央；若蓋到「正在看的那件」
+   的螢幕投影框，依序改試：往遠離那件的一側靠、另一側、遠側窄籤欄下方、同側窄籤欄下方。
+   每個候選都不得壓北列、座位、窄籤欄、底列、？鈕、不得出畫面；都不行就留重疊最小的那個。
+   只寫 .railPages 的 inline 位置，關卡時清掉；不讀寫賽局欄位。 */
+function dockRailCard(id,i){
+  const rail=$(id), pg=rail&&rail.querySelector(".railPages"), tray=window.__yaoshi3d?.tray;
+  if(!pg||!tray||!tray.bboxScreen) return;
+  pg.style.cssText="";
+  const bb=tray.bboxScreen(i); if(!bb) return;
+  const R=sel=>{ const e=document.querySelector(sel); if(!e) return null; const q=e.getBoundingClientRect(); return (q.width||q.height)?q:null; };
+  const ov=(a,b)=>(!a||!b)?0:Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+  const anchors=["#north","#westSeat","#eastSeat","#south","#helpBtn","#railW .railTabs","#railE .railTabs"].map(R).filter(Boolean);
+  const cs=getComputedStyle(document.documentElement), sv=k=>parseFloat(cs.getPropertyValue(k))||0;
+  const sl=Math.max(4,sv("--safe-left")), sr=Math.max(4,sv("--safe-right")), sb=Math.max(4,sv("--safe-bottom"));
+  const W=innerWidth, H=innerHeight, G=6;
+  const d=pg.getBoundingClientRect(), w=d.width, top=d.top;
+  const tW=R("#railW .railTabs"), tE=R("#railE .railTabs"), sW=R("#westSeat"), sE=R("#eastSeat"), hb=R("#helpBtn"), so=R("#south");
+  const Lx=Math.max(sW?sW.right:sl,tW?tW.right:sl)+G, Rx=Math.min(sE?sE.left:W-sr,tE?tE.left:W-sr,hb?hb.left:W-sr)-G;
+  const col=t=>t?{left:t.left,top:t.bottom+G,width:t.width,maxH:(so?so.top:H-sb)-G-(t.bottom+G)}:null;
+  const farRight=(bb.left+bb.right)/2<W/2;
+  const side=[{left:Lx,top,width:w},{left:Rx-w,top,width:w}]; if(farRight) side.reverse();
+  const cols=farRight?[col(tE),col(tW)]:[col(tW),col(tE)];
+  const cands=[null,...side,...cols.filter(Boolean)];
+  let best=null;
+  for(const c of cands){
+    pg.style.cssText=c?`left:${c.left}px;top:${c.top}px;width:${c.width}px;transform:none;${c.maxH?`max-height:${c.maxH}px;`:""}`:"";
+    const q=pg.getBoundingClientRect();
+    const bad=anchors.some(a=>ov(q,a)>0)||q.left<sl-0.5||q.right>W-sr+0.5||q.bottom>H-sb+0.5;
+    const own=ov(q,bb);
+    if(!bad&&own===0) return;
+    if(!bad&&(!best||own<best.own)) best={css:pg.style.cssText,own};
+  }
+  pg.style.cssText=best?best.css:"";
 }
 /* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2）：明確的關閉鈕，給右上角×鈕與點卡外用同一支收法。 */
 function closeRailCard(id){
   railCardOpen(id,null);
+  const pg=$(id)&&$(id).querySelector(".railPages"); if(pg) pg.style.cssText="";
   try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(e){}
 }
 /* 點側欄以外的地方就收起展開的卡（與北列面板同一種收法；點擊照常落到底下的元件） */

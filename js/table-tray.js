@@ -407,6 +407,9 @@ function makeCursePile(seed, kind = null) {
   group.userData.curseKind = kind || 'generic'; // 截圖／治具可讀，不參與規則
   group.add(mesh, fire);
   const fc = new THREE.Color(C.fire); // 每幀 new 一顆 Color 是白花的配置成本，提到迴圈外
+  /* 開卡「只亮不動」時詛咒品的強調（v0.59.1 凍結 card-dock-font #8）：牌堆沒有描邊外殼、原本的 hover 只有抬升，
+     改成不動後就什麼都不剩，所以讓陰火變亮、粒子放大。1＝平常。 */
+  let glow = 1;
   return {
     group,
     update(dt) {
@@ -417,10 +420,13 @@ function makeCursePile(seed, kind = null) {
         a.array[i * 3 + 1] = 0.05 + life[i] * C.rise;
         a.array[i * 3] += Math.sin((life[i] + i) * 6.1) * dt * 0.012;
         alpha[i] = Math.min(1, life[i] * 5) * (1 - life[i] * life[i]); // 冒出來→升高→淡掉
-        col.array[i * 3] = fc.r * alpha[i]; col.array[i * 3 + 1] = fc.g * alpha[i]; col.array[i * 3 + 2] = fc.b * alpha[i];
+        const k = alpha[i] * glow;
+        col.array[i * 3] = fc.r * k; col.array[i * 3 + 1] = fc.g * k; col.array[i * 3 + 2] = fc.b * k;
       }
       a.needsUpdate = true; col.needsUpdate = true;
     },
+    setGlow(v) { if (v === glow) return; glow = v; fire.material.size = C.size * (v > 1 ? 1.4 : 1); },
+    glow() { return glow; },
     dispose() {
       mesh.geometry.dispose(); mesh.material.dispose();
       g.dispose(); fire.material.dispose();
@@ -755,6 +761,7 @@ export function createTableTray(scene, camera, opts = {}) {
         glb: s.fig ? creatureGlbUrl(s.key) : null,
         visible: s.fig ? s.fig.group.visible : !!s.pile,
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,
+        glow: s.pile ? s.pile.glow() : 1,
       }));
     },
     /** v0.59.1 開卡停靠卷，凍結 #8 二次裁定驗收用：這一格模型目前的世界 Y 與繞 Y 軸旋轉（`spin`），
@@ -905,6 +912,7 @@ export function createTableTray(scene, camera, opts = {}) {
         } else if (s.pile) {
           s.pile.group.position.y = y;
           s.pile.group.rotation.y = s.spin;
+          s.pile.setGlow(s.i === hover && hoverStill ? 2.4 : 1);
           s.pile.update(dt);
         }
         // Frame the final pose before lifecycle removal, including the exact
