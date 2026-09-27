@@ -1,0 +1,811 @@
+{
+ "baseFile": "docs/experiments/2026-09-27-card-dock-font/run/probe/probe-base-merged.json",
+ "headFile": "docs/experiments/2026-09-27-card-dock-font/run/probe/probe-head-merged.json",
+ "brief": {
+  "#1": true,
+  "#2": false,
+  "#3": true,
+  "#4": true,
+  "#5": true,
+  "#6": false,
+  "#7a": true,
+  "#8": false,
+  "#9-phase1": false
+ },
+ "detail": {
+  "#1": {
+   "pass": true,
+   "baseRed": false,
+   "base": {
+    "cellsWithEmoji": 0,
+    "byVp": {},
+    "chars": {},
+    "cells": 871
+   },
+   "head": {
+    "cellsWithEmoji": 0,
+    "byVp": {},
+    "chars": {},
+    "cells": 931
+   },
+   "headList": []
+  },
+  "#2": {
+   "pass": false,
+   "cells": 360,
+   "tabs": 1440,
+   "expanded": 1440,
+   "baseCompareSkippedDiffGame": 120,
+   "factionsSeen": [
+    "zuling",
+    "curse",
+    "xianghuo",
+    "yinqi"
+   ],
+   "bad": [
+    "hot|mark|n2@V1 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|mark|n2@V3 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|mark|n2@V4 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|bid|n2@V1 展開 railW#1 shown=true inView=true missing=[\"大紙偶×1・\",\"攻 9・\",\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|bid|n2@V3 展開 railW#1 shown=true inView=true missing=[\"大紙偶×1・\",\"攻 9・\",\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|bid|n2@V3 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴1拍\"] others=",
+    "hot|bid|n2@V4 展開 railW#1 shown=true inView=true missing=[\"大紙偶×1・\",\"攻 9・\",\"血 7\",\"・共鳴1拍\"] others=",
+    "hot|bid|n4@V1 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n4@V3 展開 railW#1 shown=true inView=true missing=[\"護法紙人×2・\",\"攻 1・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n4@V4 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|mark|n5@V1 展開 railE#2 shown=true inView=true missing=[\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|mark|n5@V3 展開 railE#2 shown=true inView=true missing=[\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|mark|n5@V4 展開 railE#2 shown=true inView=true missing=[\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|bid|n5@V1 展開 railE#2 shown=true inView=true missing=[\"小紙人×1・\",\"攻 2・\",\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|bid|n5@V3 展開 railE#2 shown=true inView=true missing=[\"小紙人×1・\",\"攻 2・\",\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|bid|n5@V4 展開 railE#2 shown=true inView=true missing=[\"小紙人×1・\",\"攻 2・\",\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|mark|n6@V1 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|mark|n6@V3 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|mark|n6@V4 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|bid|n6@V1 展開 railW#1 shown=true inView=true missing=[\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|bid|n6@V3 展開 railW#1 shown=true inView=true missing=[\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|bid|n6@V4 展開 railW#0 shown=true inView=true missing=[\"血 8\",\"・共鳴2拍\"] others=",
+    "hot|bid|n6@V4 展開 railW#1 shown=true inView=true missing=[\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|mark|n7@V1 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|mark|n7@V3 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|mark|n7@V4 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|bid|n7@V1 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|bid|n7@V3 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|bid|n7@V4 展開 railW#1 shown=true inView=true missing=[\"小紙人×2・\",\"攻 1・\",\"血 1\",\"・共鳴3拍\"] others=",
+    "hot|mark|n9@V4 展開 railW#0 shown=true inView=true missing=[\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|bid|n9@V1 mc0 對基準缺 [\"👁\",\"西\"]",
+    "hot|bid|n9@V1 mc2 對基準缺 [\"東\"]",
+    "hot|bid|n9@V2 mc0 對基準缺 [\"👁\",\"西\"]",
+    "hot|bid|n9@V2 mc2 對基準缺 [\"東\"]",
+    "hot|bid|n9@V3 mc0 對基準缺 [\"👁\",\"西\"]",
+    "hot|bid|n9@V3 mc2 對基準缺 [\"東\"]",
+    "hot|bid|n9@V4 展開 railW#0 shown=true inView=true missing=[\"血 7\",\"・共鳴2拍\"] others=",
+    "hot|bid|n9@V4 mc0 對基準缺 [\"👁\",\"西\"]",
+    "hot|bid|n9@V4 mc2 對基準缺 [\"東\"]",
+    "hot|bid|n9@V5 mc0 對基準缺 [\"👁\",\"西\"]",
+    "hot|bid|n9@V5 mc2 對基準缺 [\"東\"]",
+    "hot|mark|n10@V1 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|mark|n10@V3 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|mark|n10@V4 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|bid|n10@V1 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|bid|n10@V3 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|bid|n10@V4 展開 railE#2 shown=true inView=true missing=[\"血 5\",\"・共鳴2拍\"] others=",
+    "hot|mark|n11@V1 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|mark|n11@V3 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|mark|n11@V4 展開 railW#0 shown=true inView=true missing=[\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|mark|n11@V4 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n11@V1 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n11@V3 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n11@V4 展開 railW#0 shown=true inView=true missing=[\"血 2\",\"・共鳴1拍\"] others=",
+    "hot|bid|n11@V4 展開 railW#1 shown=true inView=true missing=[\"血 6\",\"・共鳴1拍\"] others=",
+    "hot|bid|n12@V3 展開 railW#1 shown=true inView=true missing=[\"血 4\",\"・共鳴3拍\"] others=",
+    "hot|bid|n12@V3 展開 railE#2 shown=true inView=true missing=[\"飄影×4・\",\"攻 0・\",\"血 5\",\"・共鳴3拍\"] others=",
+    "hot|bid|n12@V4 展開 railW#0 shown=true inView=true missing=[\"血 3\",\"・共鳴3拍\"] others=",
+    "nw1|mark|n2@V1 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴1拍\"] others=",
+    "nw1|mark|n2@V3 展開 railW#1 shown=true inView=true missing=[\"血 7\",\"・共鳴1拍\"] others="
+   ],
+   "badN": 164,
+   "base": {
+    "cells": 350,
+    "redCells": 0
+   }
+  },
+  "#3": {
+   "pass": true,
+   "cells": 195,
+   "baseCompared": 125,
+   "baseCompareSkippedDiffGame": 65,
+   "baseDiffInfo": [
+    "hot|shrine|n2@V1 與基準同格內容不同 [\"閭山法師 入袋（9・\",\"流標\"]",
+    "hot|shrine|n2@V2 與基準同格內容不同 [\"閭山法師 入袋（9・\",\"流標\"]",
+    "hot|shrine|n2@V3 與基準同格內容不同 [\"閭山法師 入袋（9・\",\"流標\"]",
+    "hot|shrine|n2@V4 與基準同格內容不同 [\"閭山法師 入袋（9・\",\"流標\"]",
+    "hot|shrine|n2@V5 與基準同格內容不同 [\"閭山法師 入袋（9・\",\"流標\"]",
+    "hot|shrine|n9@V1 與基準同格內容不同 [\"閭山法師 入袋（7・\",\"實付 8\"]",
+    "hot|shrine|n9@V2 與基準同格內容不同 [\"閭山法師 入袋（7・\",\"實付 8\"]",
+    "hot|shrine|n9@V3 與基準同格內容不同 [\"閭山法師 入袋（7・\",\"實付 8\"]",
+    "hot|shrine|n9@V4 與基準同格內容不同 [\"閭山法師 入袋（7・\",\"實付 8\"]",
+    "hot|shrine|n9@V5 與基準同格內容不同 [\"閭山法師 入袋（7・\",\"實付 8\"]",
+    "solo|shrine|n3@V1 與基準同格內容不同 [\"孝女白琴 入袋（3・\",\"實付 4\"]",
+    "solo|shrine|n3@V2 與基準同格內容不同 [\"孝女白琴 入袋（3・\",\"實付 4\"]",
+    "solo|shrine|n3@V3 與基準同格內容不同 [\"孝女白琴 入袋（3・\",\"實付 4\"]",
+    "solo|shrine|n3@V4 與基準同格內容不同 [\"孝女白琴 入袋（3・\",\"實付 4\"]",
+    "solo|shrine|n3@V5 與基準同格內容不同 [\"孝女白琴 入袋（3・\",\"實付 4\"]",
+    "solo|shrine|n4@V1 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（2・\",\"實付 3\"]",
+    "solo|shrine|n4@V2 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（2・\",\"實付 3\"]",
+    "solo|shrine|n4@V3 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（2・\",\"實付 3\"]",
+    "solo|shrine|n4@V4 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（2・\",\"實付 3\"]",
+    "solo|shrine|n4@V5 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（6・\",\"實付 7\",\"收驚婆 入袋（2・\",\"實付 3\"]"
+   ],
+   "baseDiffN": 20,
+   "gapRange": [
+    2,
+    2
+   ],
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "cells": 190,
+    "gapRange": [
+     2,
+     2
+    ]
+   }
+  },
+  "#4": {
+   "pass": true,
+   "bars": {
+    "zuling": "rgb(139, 96, 64)",
+    "curse": "rgb(144, 96, 208)",
+    "xianghuo": "rgb(240, 128, 96)",
+    "yinqi": "rgb(112, 176, 128)"
+   },
+   "line": "rgb(201, 168, 98)",
+   "zulingVsGold": 35.7,
+   "zulingVsLine": 26.4,
+   "pairwise": {
+    "zuling-curse": 40.8,
+    "zuling-xianghuo": 23.8,
+    "zuling-yinqi": 39,
+    "curse-xianghuo": 41.1,
+    "curse-yinqi": 46.8,
+    "xianghuo-yinqi": 49.4
+   },
+   "base": {
+    "note": "基準沒有系色條；下列為基準的祖靈 token（--zuling）對 --gold 與四系 token 兩兩",
+    "zulingTokenVsGold": 12.7,
+    "pairwise": {
+     "--zuling|--xianghuo": 19.4,
+     "--zuling|--yinqi": 29.4,
+     "--zuling|--curse": 51.6,
+     "--xianghuo|--yinqi": 49.4,
+     "--xianghuo|--curse": 41.1,
+     "--yinqi|--curse": 46.8
+    }
+   }
+  },
+  "#5": {
+   "pass": true,
+   "cells": 570,
+   "fontMin": 11,
+   "contrastMin": 11.6,
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "fontMin": 11,
+    "contrastMin": 10.04
+   }
+  },
+  "#6": {
+   "pass": false,
+   "serif": {
+    "#titleScr h1": [
+     "LXGW WenKai TC"
+    ],
+    "#titleScr .bigbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".stageCard .big": [
+     "LXGW WenKai TC"
+    ],
+    "#stage h2": [
+     "LXGW WenKai TC"
+    ],
+    "#review h2": [
+     "LXGW WenKai TC"
+    ],
+    ".mcard .nm": "無資料",
+    ".railTabs button": [
+     "LXGW WenKai TC"
+    ],
+    ".rcard .rnm": [
+     "LXGW WenKai TC"
+    ],
+    ".seat .nm": [
+     "LXGW WenKai TC"
+    ],
+    "#myDir": [
+     "LXGW WenKai TC"
+    ],
+    "#myLife": [
+     "LXGW WenKai TC"
+    ],
+    "#myPow": [
+     "LXGW WenKai TC"
+    ],
+    ".stakebar .amt": [
+     "LXGW WenKai TC"
+    ],
+    ".incamt": [
+     "LXGW WenKai TC"
+    ],
+    "#mainbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "LXGW WenKai TC"
+    ],
+    ".endrank": [
+     "LXGW WenKai TC"
+    ]
+   },
+   "sans": {
+    "#titleScr p:not(#verLine)": [
+     "Noto Sans TC"
+    ],
+    ".mcard .ab": "無資料",
+    ".mcard .uline": "無資料",
+    ".seat .st": [
+     "Noto Sans TC"
+    ],
+    ".bsum": [
+     "Noto Sans TC"
+    ],
+    ".nsum": [
+     "Noto Sans TC"
+    ],
+    ".bidfly": [
+     "Noto Sans TC"
+    ],
+    "#shz > div": [
+     "Noto Sans TC"
+    ],
+    ".nwCard": [
+     "Noto Sans TC"
+    ]
+   },
+   "loadedFaces": [
+    "LXGW WenKai TC 700",
+    "Noto Sans TC 400",
+    "LXGW WenKai TC 400",
+    "Noto Sans TC 700",
+    "Noto Sans TC 900"
+   ],
+   "bad": [
+    "hot|title@V1 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V1 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V2 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V2 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V3 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V3 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V4 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V4 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V5 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|title@V5 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|select@V1 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|select@V2 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|select@V3 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|select@V4 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|select@V5 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|handoff@V1 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|handoff@V2 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|handoff@V3 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|handoff@V4 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|handoff@V5 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 .railTabs button → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 .seat .nm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 #myLife → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 #myPow → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V1 #mainbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V2 .railTabs button → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V2 .seat .nm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V2 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "hot|mark|n1@V2 #myLife → \"LXGW WenKai TC\", \"Songti TC\", serif"
+   ],
+   "badN": 5610,
+   "base": {
+    "#titleScr h1": [
+     "Noto Serif TC"
+    ],
+    "#titleScr .bigbtn": [
+     "Noto Serif TC"
+    ],
+    ".stageCard .big": [
+     "Noto Serif TC"
+    ],
+    "#stage h2": [
+     "Noto Serif TC"
+    ],
+    "#review h2": [
+     "Noto Serif TC"
+    ],
+    ".mcard .nm": "無資料",
+    ".railTabs button": [
+     "Noto Serif TC"
+    ],
+    ".rcard .rnm": [
+     "Noto Serif TC"
+    ],
+    ".seat .nm": [
+     "Noto Serif TC"
+    ],
+    "#myDir": [
+     "Noto Serif TC"
+    ],
+    "#myLife": [
+     "Noto Serif TC"
+    ],
+    "#myPow": [
+     "Noto Serif TC"
+    ],
+    ".stakebar .amt": [
+     "Noto Serif TC"
+    ],
+    ".incamt": [
+     "Noto Serif TC"
+    ],
+    "#mainbtn": [
+     "Noto Serif TC"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "Noto Serif TC"
+    ],
+    ".endrank": [
+     "Noto Serif TC"
+    ],
+    "#titleScr p:not(#verLine)": [
+     "Noto Sans TC"
+    ],
+    ".mcard .ab": "無資料",
+    ".mcard .uline": "無資料",
+    ".seat .st": [
+     "Noto Sans TC"
+    ],
+    ".bsum": [
+     "Noto Sans TC"
+    ],
+    ".nsum": [
+     "Noto Sans TC"
+    ],
+    ".bidfly": [
+     "Noto Sans TC"
+    ],
+    "#shz > div": [
+     "Noto Sans TC"
+    ],
+    ".nwCard": [
+     "Noto Sans TC"
+    ]
+   }
+  },
+  "#7a": {
+   "pass": true,
+   "rows": [
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.1"
+    }
+   ],
+   "bad": [],
+   "base": [
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.62
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.653
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.617
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.658
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.822
+    },
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.62
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.653
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.617
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.658
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.822
+    }
+   ]
+  },
+  "#8": {
+   "pass": false,
+   "perScreen": {
+    "select": {
+     "cells": 5,
+     "keys": 20,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "duel": {
+     "cells": 4,
+     "keys": 22,
+     "maxDelta": 135.8,
+     "noBase": 0,
+     "onlyBase": [
+      "#duel > div#flashfx.flashfx.on:1",
+      "#duel > div#duelMove.f-zuling.side-B:1",
+      "#duel > div#duelBeat:1"
+     ],
+     "onlyHead": [
+      "#duel > div#duelMove.f-xianghuo.side-A:1"
+     ]
+    },
+    "end": {
+     "cells": 3,
+     "keys": 77,
+     "maxDelta": 16.2,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "review": {
+     "cells": 2,
+     "keys": 4,
+     "maxDelta": 372.8,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-menu": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 1,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-intro": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    }
+   },
+   "bad": [
+    "hot|end #stage > .stageCard 差 10.0px 基準[243,112,366,351.5] 改後[243,110,366,341.5]",
+    "hot|end #stage > .stageCard > div.endrank:1 差 4.0px 基準[256,206,340,29] 改後[256,202,340,27]",
+    "hot|end #stage > .stageCard > div.endrank:2 差 6.0px 基準[256,235,340,29] 改後[256,229,340,27]",
+    "hot|end #stage > .stageCard > div.endrank:3 差 8.0px 基準[256,264,340,29] 改後[256,256,340,27]",
+    "hot|end #stage > .stageCard > div.endrank:4 差 10.0px 基準[256,293,340,29] 改後[256,283,340,27]",
+    "hot|end #stage > .stageCard > div.rvExperiment:1 差 12.0px 基準[256,330,340,76.5] 改後[256,318,340,76.5]",
+    "hot|end #stage > .stageCard > button.alt.bigbtn:1 差 12.0px 基準[256,414.5,340,40] 改後[256,402.5,340,40]",
+    "hot|end #south > div#myPow.mut:1 差 3.8px 基準[236,324.8,139.8,32.4] 改後[236,324.8,143.6,32.4]",
+    "hot|end #south > button.side:1 差 3.8px 基準[381.8,321,42,40] 改後[385.6,321,42,40]",
+    "hot|end #south > button.roleInfoBtn.side:1 差 3.8px 基準[429.8,321,40,40] 改後[433.6,321,40,40]",
+    "hot|end #south > button#sfxBtn.side:1 差 3.8px 基準[475.8,321,40,40] 改後[479.6,321,40,40]",
+    "hot|end #south > div#budget:1 差 3.8px 基準[521.8,325,172.2,32] 改後[525.6,325,168.4,32]",
+    "hot|end #felt > div#stage:1 差 10.0px 基準[243,112,366,351.5] 改後[243,110,366,341.5]",
+    "hot|review #review > div#reviewbox:1 差 372.8px 基準[146,0,560,4200] 改後[146,0,560,4572.8]",
+    "nw1|duel #duel > div#duelBeat:1 差 135.8px 基準[322.1,9,207.8,21] 改後[390,9,72,21]",
+    "nw1|end #stage > .stageCard 差 10.0px 基準[243,112,366,481.3] 改後[243,110,366,471.3]",
+    "nw1|end #stage > .stageCard > div.endrank:1 差 4.0px 基準[256,287.8,340,29] 改後[256,283.8,340,27]",
+    "nw1|end #stage > .stageCard > div.endrank:2 差 6.0px 基準[256,316.8,340,29] 改後[256,310.8,340,27]",
+    "nw1|end #stage > .stageCard > div.endrank:3 差 8.0px 基準[256,345.8,340,29] 改後[256,337.8,340,27]",
+    "nw1|end #stage > .stageCard > div.endrank:4 差 10.0px 基準[256,374.8,340,29] 改後[256,364.8,340,27]",
+    "nw1|end #stage > .stageCard > div.rvExperiment:1 差 12.0px 基準[256,411.8,340,76.5] 改後[256,399.8,340,76.5]",
+    "nw1|end #stage > .stageCard > button#nwReadScroll.bigbtn:1 差 12.0px 基準[256,496.3,340,40] 改後[256,484.3,340,40]",
+    "nw1|end #stage > .stageCard > button.alt.bigbtn:1 差 12.0px 基準[256,544.3,340,40] 改後[256,532.3,340,40]",
+    "nw1|end #south > div#myPow.mut:1 差 8.3px 基準[192,332.9,114.1,16.2] 改後[192,332.9,122.4,16.2]",
+    "nw1|end #south > button.side:1 差 8.3px 基準[312.1,321,42,40] 改後[320.4,321,42,40]",
+    "nw1|end #south > button.roleInfoBtn.side:1 差 8.3px 基準[360.1,321,40,40] 改後[368.4,321,40,40]",
+    "nw1|end #south > button#sfxBtn.side:1 差 8.3px 基準[406.1,321,40,40] 改後[414.4,321,40,40]",
+    "nw1|end #felt > div#stage:1 差 10.0px 基準[243,112,366,481.3] 改後[243,110,366,471.3]",
+    "solo|end #stage > .stageCard 差 10.0px 基準[243,112,366,351.5] 改後[243,110,366,341.5]",
+    "solo|end #stage > .stageCard > div.endrank:1 差 4.0px 基準[256,206,340,29] 改後[256,202,340,27]",
+    "solo|end #stage > .stageCard > div.endrank:2 差 6.0px 基準[256,235,340,29] 改後[256,229,340,27]",
+    "solo|end #stage > .stageCard > div.endrank:3 差 8.0px 基準[256,264,340,29] 改後[256,256,340,27]",
+    "solo|end #stage > .stageCard > div.endrank:4 差 10.0px 基準[256,293,340,29] 改後[256,283,340,27]",
+    "solo|end #stage > .stageCard > div.rvExperiment:1 差 12.0px 基準[256,330,340,76.5] 改後[256,318,340,76.5]",
+    "solo|end #stage > .stageCard > button.alt.bigbtn:1 差 12.0px 基準[256,414.5,340,40] 改後[256,402.5,340,40]",
+    "solo|end #south > div#myPow.mut:1 差 16.2px 基準[192,332.9,164.7,16.2] 改後[192,324.8,172.3,32.4]",
+    "solo|end #south > button.side:1 差 7.6px 基準[362.7,321,42,40] 改後[370.3,321,42,40]",
+    "solo|end #south > button.roleInfoBtn.side:1 差 7.6px 基準[410.7,321,40,40] 改後[418.3,321,40,40]",
+    "solo|end #south > button#sfxBtn.side:1 差 7.6px 基準[456.7,321,40,40] 改後[464.3,321,40,40]",
+    "solo|end #south > div#budget:1 差 16.0px 基準[509.6,333,184.4,16] 改後[510.3,325,183.7,32]"
+   ],
+   "badN": 42
+  },
+  "#9-phase1": {
+   "pass": false,
+   "base": {
+    "breaks": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "spill": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "font": {
+     "V1": 4,
+     "V2": 3,
+     "V3": 3,
+     "V4": 2,
+     "V5": 3
+    },
+    "contrast": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "target": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "align": {
+     "V1": 111,
+     "V2": 111,
+     "V3": 111,
+     "V4": 111,
+     "V5": 111
+    },
+    "north": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    }
+   },
+   "head": {
+    "breaks": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 2,
+     "V5": 0
+    },
+    "spill": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "font": {
+     "V1": 4,
+     "V2": 3,
+     "V3": 3,
+     "V4": 2,
+     "V5": 3
+    },
+    "contrast": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "target": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "align": {
+     "V1": 114,
+     "V2": 114,
+     "V3": 114,
+     "V4": 114,
+     "V5": 114
+    },
+    "north": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    }
+   },
+   "worse": [
+    "breaks@V4 0→2",
+    "align@V1 111→114",
+    "align@V2 111→114",
+    "align@V3 111→114",
+    "align@V4 111→114",
+    "align@V5 111→114"
+   ],
+   "newItems": {
+    "breaks #stage > div.stageCard > h2": {
+     "n": 2,
+     "ex": [
+      "hot|end@V4",
+      "hot|review@V4"
+     ]
+    }
+   },
+   "cells": {
+    "base": 871,
+    "head": 931
+   }
+  }
+ }
+}
