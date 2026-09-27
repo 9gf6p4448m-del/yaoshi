@@ -7661,7 +7661,7 @@ function endGame(){
   let head;
   if(S.mode==="hotseat"){
     const r1=rank.indexOf(S.players[0])+1, r2=rank.indexOf(S.players[1])+1;
-    head=`玩家一 第 ${r1} 名 ・ 玩家二 第 ${r2} 名`;
+    head=`<span class="nob">玩家一 第 ${r1} 名</span> ・ <span class="nob">玩家二 第 ${r2} 名</span>`;   /* 只准在「・」換行（v0.59.1 換霞鶩文楷後 V4 曾折成「第 4／名」） */
   }else{
     const myRank=rank.indexOf(S.players[0])+1;
     head=myRank===1?"你活到了天亮":"你是第 "+myRank+" 名";
