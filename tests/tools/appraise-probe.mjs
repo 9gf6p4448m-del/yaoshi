@@ -132,6 +132,29 @@ async function runCase(vname, mode) {
       const ov = (a, b) => (!a || !b) ? 0 : Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
       pr.bboxPanelOverlap = (bb && panelRect) ? ov(bb, panelRect) : (bb && !panelRect ? 'panel-not-found' : null);
       pr.panelSide = panelRect ? ((panelRect.left + panelRect.right) / 2 < W / 2 ? 'left' : 'right') : null;
+      // ── #2「側欄外的可見文字矩形不得與側欄相交」：沿用 card-dock-probe.mjs 同一支 cut 判定法
+      // （純幾何相交，不論遮住的元素是否半透明——側欄背景 var(--c-ink-bg2) 只有 94% 不透明，
+      //   底下牌桌列的字會隱約透出，但這條規則本來就沒有「透明可以放過」的例外，量到相交就算違規）。
+      const cut = await page.evaluate((r) => {
+        const pg = document.querySelector('#' + r + ' .railPages');
+        if (!pg || getComputedStyle(pg).display === 'none') return [];
+        const cr = pg.getBoundingClientRect();
+        const out = [];
+        const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+          const el = n.parentElement;
+          if (!el || !/\S/.test(n.textContent) || pg.contains(el)) continue;
+          const st = getComputedStyle(el);
+          if (st.visibility !== 'visible' || st.display === 'none' || Number(st.opacity) === 0) continue;
+          const rg = document.createRange(); rg.selectNodeContents(n);
+          for (const q of rg.getClientRects()) {
+            if (q.width < 0.5 || q.height < 0.5) continue;
+            if (Math.min(q.right, cr.right) - Math.max(q.left, cr.left) > 0.5 && Math.min(q.bottom, cr.bottom) - Math.max(q.top, cr.top) > 0.5) { out.push(n.textContent.trim().slice(0, 20)); break; }
+          }
+        }
+        return out;
+      }, pick.rail);
+      pr.cut = cut;
       pr.expectPanelSide = pick.rail === 'railW' ? 'left' : 'right';
       // ── #1(b) 暗糊：非焦點區域亮度 vs 參考幀（排除焦點 bbox 與側欄矩形） ──
       const afterShot = await page.screenshot();

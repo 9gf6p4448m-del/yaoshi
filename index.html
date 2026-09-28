@@ -145,6 +145,14 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   /* 關閉鈕：右上角常駐、命中區 40×40（視覺圖示較小，padding 撐滿點擊區）；平時（非鑑賞態）display:none。 */
   #table.t3d.appraising .rail.open .railPages .railCardClose{display:flex}
   #table.t3d.appraising .railTabs{position:relative;z-index:22}
+  /* 鑑賞態＝聚焦單一法寶：側欄跟正在讀的籤同側、幾乎佔滿那半邊安全區高度，勢必蓋到座位／底列 HUD
+     （北／西／東座位牌、南家底列的部隊摘要與主鈕、頂角？鈕）——這些元素在鑑賞中本來就點不到（要先點空白
+     返回牌桌才恢復互動），凍結 #2「側欄外的可見文字矩形不得與側欄相交」沒有給互動元件開例外，所以整批
+     一起藏起來（沿用 #feltHead 同一招 visibility:hidden，不動版面，返回時隨 .appraising 移除自動恢復）。
+     窄籤（.railTabs）本身不在此列——#4 要求鑑賞中仍可直接點別的籤切換，必須留著可見可點。 */
+  #table.t3d.appraising #northSeat,#table.t3d.appraising #northShr,#table.t3d.appraising #northPrev,
+  #table.t3d.appraising #westSeat,#table.t3d.appraising #eastSeat,
+  #table.t3d.appraising #south,#table.t3d.appraising #helpBtn,#table.t3d.appraising #skipbtn{visibility:hidden}
   /* 桌面壓暗層：挖洞在 JS（appraiseTick）逐幀畫，這裡只管開關與疊層順序（webgl canvas 在 -2、本層 19、
      說明欄與窄籤在 21/22）。非鑑賞態完全不吃事件、不擋任何既有點擊。 */
   #appraiseDim{position:fixed;inset:0;z-index:19;pointer-events:none;display:none}
@@ -3034,6 +3042,30 @@ function appraiseDimTick(){
     if(w>0&&h>0) cx.clearRect(x,y,w,h); /* 焦點法寶的投影框完全不壓暗 */
   }
 }
+/** 側欄避讓窄籤（09-28 覆審發現）：側欄固定在安全區邊緣、寬達 340px，本來的 CSS 定位會整段蓋過
+ *  同一側 .railTabs 那排窄籤（#4 要求鑑賞中仍可直接點別籤切換，籤必須留在畫面上、不能藏），
+ *  於是側欄矩形跟「側欄外的可見文字」（其他未展開的籤）相交，違反 #2。改法：每次開側欄／切換都
+ *  量一次那排籤實際渲染的寬度，側欄從籤的外緣再讓開一點才開始畫，籤所在的那一小條永遠留在側欄外面。
+ *  純版面計算，不讀寫賽局欄位、不影響 #1/#3 量到的鏡頭與姿態。 */
+function appraisePanelClamp(){
+  if(!APPR.on||!APPR.id) return;
+  const rail=$(APPR.id); if(!rail) return;
+  const tabs=rail.querySelector(".railTabs"), pages=rail.querySelector(".railPages");
+  if(!tabs||!pages) return;
+  /* 先清掉上一次的覆寫再量，拿到的是 CSS 預設（min(340px,50vw-10px)）那個矩形——setAppraise 的
+     運鏡是照這個預設寬度把法寶推到「側欄以外」那一半，所以只能從籤那一側收窄，另一側（貼近法寶
+     的那個邊）維持預設不動，不然側欄會反過來吃進法寶的畫面、變成新的 #1(a) 重疊。 */
+  pages.style.left=""; pages.style.right=""; pages.style.width="";
+  const base=pages.getBoundingClientRect();
+  const tr=tabs.getBoundingClientRect(), gap=6;
+  if(APPR.id==="railW"){
+    const left=Math.max(base.left,tr.right+gap);
+    pages.style.left=left+"px"; pages.style.width=Math.max(40,base.right-left)+"px";
+  }else{
+    const right=Math.min(base.right,tr.left-gap);
+    pages.style.left=base.left+"px"; pages.style.width=Math.max(40,right-base.left)+"px";
+  }
+}
 /** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態）。 */
 function openAppraise(id,i){
   if(!appraiseSupported()) return;
@@ -3044,12 +3076,13 @@ function openAppraise(id,i){
   APPR.on=true; APPR.id=id; APPR.i=i;
   try{ window.__yaoshi3d.tray.setAppraise(i, id==="railW"?"left":"right"); }catch(e){}
   if(!APPR.raf) APPR.raf=requestAnimationFrame(appraiseDimTick);
+  requestAnimationFrame(appraisePanelClamp);
 }
 function closeAppraise(){
   if(!APPR.on) return;
   const id=APPR.id;
   APPR.on=false; APPR.id=null; APPR.i=null;
-  if(id) railCardOpen(id,null);
+  if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.left=""; pg.style.right=""; pg.style.width=""; } }
   const tb=$("table"); if(tb&&tb.classList) tb.classList.remove("appraising");
   try{ window.__yaoshi3d?.tray?.setAppraise?.(-1); }catch(e){}
   const cv=$("appraiseDim"); if(cv){ const cx=cv.getContext&&cv.getContext("2d"); if(cx) cx.clearRect(0,0,cv.width,cv.height); }
