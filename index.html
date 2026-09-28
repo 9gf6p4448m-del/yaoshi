@@ -615,7 +615,10 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl .pnl-sec .pnl-row:has(.s2){border-left-color:var(--s2)}
 #pnl .pnl-sec .pnl-row:has(.s3){border-left-color:var(--s3)}
 #pnl .pnl-sec .pnl-row.me{background:linear-gradient(90deg,rgba(232,194,106,.32),rgba(232,194,106,.10));border-left-color:var(--s0)}
-#pnl .pnl-sec .pnl-who{order:1;display:flex;align-items:center;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* 凍結 #7「無截斷字」：對決列的姓名＋徽章＋⚔ 常常比 45%/162px 寬（實測「孝女白琴 勝⚔青面攤主 你」
+   168px＞151px），不能用 ellipsis 切字，改允許換行——列高本來就不是固定值（grid 沒設 row 高），
+   換行只會讓那一列變高，不影響其他列與可捲動性。 */
+#pnl .pnl-sec .pnl-who{order:1;display:flex;align-items:center;flex-wrap:wrap;white-space:normal;min-width:0;line-height:1.3}
 #pnl .pnl-sec .pnl-price{order:2;justify-self:center}
 #pnl .pnl-sec .pnl-what{order:3;display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
 #pnl .pnl-sec .pnl-free{display:block}
