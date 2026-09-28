@@ -16,7 +16,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing, bandDiff } from './appraise-c-lib.mjs';
+import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing, bandDiff, pauseSoon, waitSettled } from './appraise-c-lib.mjs';
 
 const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -57,13 +57,13 @@ const tabCenter = (page, rail, slot) => E(page, ([r, s]) => { const b = document
 /** 一次完整揭幕：點籤（真的滑鼠點）→ 0.9 秒逐幀 → 1.3 秒穩定態量測 → 旋轉／浮動／12 角度 → 點空白返回 → 逐值比對。 */
 async function fullRun(page, vp, pick, pr) {
   const W = vp.w, H = vp.h;
+  pr.settled = await waitSettled(page);
   pr.before = await E(page, () => window.__AC.snap());
   pr.drawsTable = await E(page, async () => { const o = []; for (let i = 0; i < 12; i++) { await new Promise((r) => requestAnimationFrame(r)); o.push(window.__AC.draws()); } return o; });
   const refShot = png(await page.screenshot());
   const tc = await tabCenter(page, pick.rail, pick.slot);
   if (!tc) { pr.err = '找不到窄籤'; return; }
-  const now = await E(page, () => Date.now());
-  await page.clock.pauseAt(now + 250); // 留 250ms：evaluate 回來到 pauseAt 生效之間時間仍在走，太近會「倒退」報錯
+  await pauseSoon(page);
   await page.mouse.click(tc.x, tc.y);
   // ── #11(a)：0.9 秒內逐幀 ──
   pr.burn = [];
@@ -135,8 +135,7 @@ async function fullRun(page, vp, pick, pr) {
 async function skipRun(page, vp, pick, pr) {
   const tc = await tabCenter(page, pick.rail, pick.slot);
   if (!tc) { pr.skip = { err: '找不到窄籤' }; return; }
-  const now = await E(page, () => Date.now());
-  await page.clock.pauseAt(now + 250);
+  await pauseSoon(page);
   await page.mouse.click(tc.x, tc.y);
   await page.clock.runFor(300);
   const mid = await frameInfo(page, pick.slot);

@@ -13,7 +13,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { VP, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing } from './appraise-c-lib.mjs';
+import { VP, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing, pauseSoon } from './appraise-c-lib.mjs';
 
 const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -63,7 +63,7 @@ async function afterSwitch(page, expectSlot, refImg, W, H) {
   const ring = tok && M ? findRing(img, M.cx, M.cy, tok.rgb, M.r * 0.9, M.r * 1.02) : null;
   await page.clock.resume(); await page.waitForTimeout(1100); // 題字淡入（CSS、真實時間）
   const panel = s.id ? await E(page, ([r, x]) => window.__AC.panel(r, x), [s.id, s.i]) : null;
-  const now = await E(page, () => Date.now()); await page.clock.pauseAt(now + 250);
+  await pauseSoon(page);
   return { expectSlot, frames, at1300: { on: s.on, i: s.i, rendered: s.rendered, ring: ring && { frac: ring.frac, dE: ring.dE } }, panel: panel && { side: (panel.rect.left + panel.rect.right) / 2 < W / 2 ? 'left' : 'right', content: panel.content, cut: panel.cut, trunc: panel.trunc } };
 }
 async function swipe(page, dir) {
@@ -89,7 +89,7 @@ async function runCase(vname, mode) {
     const refImg = png(await page.screenshot());
     const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
     if (tabs.length < 2) { results.notes.push(`${vname}|${mode} 籤數 <2（判紅）`); row.notready = true; return; }
-    const now = await E(page, () => Date.now()); await page.clock.pauseAt(now + 250);
+    await pauseSoon(page);
     // 先進第一枚、跳過揭幕到穩定
     let tc = await tabCenter(page, tabs[0].rail, tabs[0].slot); await page.mouse.click(tc.x, tc.y); await page.clock.runFor(1300);
     // ① 逐枚點籤（從第 2 枚起到最後，再回第 1 枚），每一枚都是「鑑賞中直接換」

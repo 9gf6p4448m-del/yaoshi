@@ -83,6 +83,24 @@ export async function openGame(browser, port, vp, mode, seed, { clock = true } =
 }
 export const waitTrayReady = (page) => page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 180000 }).then(() => true).catch(() => false);
 
+/** 暫停假時鐘在「現在稍後」：evaluate 取回頁內時間到 pauseAt 生效之間時間仍在走（本機負載高時可超過數百毫秒），
+ *  目標落到過去會報錯——重讀時間、加大餘裕重試（這是治具的時序問題，跟被測物無關）。 */
+export async function pauseSoon(page) {
+  for (const pad of [250, 800, 2000, 5000]) {
+    const now = await page.evaluate(() => Date.now());
+    try { await page.clock.pauseAt(now + pad); return; } catch (e) { if (!/past/.test(e.message)) throw e; }
+  }
+  throw new Error('pauseSoon：四次都趕不上');
+}
+/** 牌桌靜止：每件拍品的 y／rotY 連續兩次（間隔 200ms 真實時間）逐值相同才算。
+ *  出價／盯上一開始 AI 的令牌會落下、把那一格頓一下（onSlam 的 jolt，約 0.35 秒），在這之間拍「進場前」
+ *  會把一個跟鑑賞無關的動畫中間值當成基準（09-29 首跑 V2/V3/V5 hot bid 量到 slot3 y 差 0.004 即此）。 */
+export async function waitSettled(page, maxMs = 6000) {
+  const snap = () => page.evaluate(() => JSON.stringify(window.__yaoshi3d.tray.items().map((it) => window.__yaoshi3d.tray.pose(it.slot))));
+  let a = await snap();
+  for (let t = 0; t < maxMs; t += 200) { await page.waitForTimeout(200); const b = await snap(); if (a === b) return true; a = b; }
+  return false;
+}
 /* ── 頁內量測（注入一次，之後以 window.__AC 呼叫）───────────────────────────── */
 export const PAGE_LIB = `(() => {
   if (window.__AC) return;

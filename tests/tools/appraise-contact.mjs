@@ -80,7 +80,7 @@ if (!IS_BASE) {
   const blank = () => page.evaluate(() => { const W = innerWidth, H = innerHeight; for (let fy = 0.92; fy > 0.1; fy -= 0.06) for (const fx of [0.5, 0.45, 0.55, 0.4, 0.6]) { const e = document.elementFromPoint(W * fx, H * fy); if (e && e.id === 'appraiseDim') return { x: W * fx, y: H * fy }; } return null; });
   const FR = [0, 80, 160, 260, 360, 460, 560, 660, 760, 860, 960, 1060];
   const shoot = async (t, name) => {
-    const now = await page.evaluate(() => Date.now()); await page.clock.pauseAt(now + 250);
+    for (const pad of [250, 800, 2000, 5000]) { const now = await page.evaluate(() => Date.now()); try { await page.clock.pauseAt(now + pad); break; } catch (e) { if (!/past/.test(e.message)) throw e; } }
     const c = await tabAt(t); await page.mouse.click(c.x, c.y);
     let last = 0;
     if (name === 'west') for (const [k, ms] of FR.entries()) { await page.clock.runFor(ms - last); last = ms; await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-enter-f${String(k).padStart(2, '0')}-${ms}ms.png`) }); }

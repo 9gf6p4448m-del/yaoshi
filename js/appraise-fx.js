@@ -58,8 +58,8 @@ function drawBody(x, S) {
   const c = S / 2, R = c, F = APPR_FX.FACE;
   x.clearRect(0, 0, S, S);
   let g = x.createRadialGradient(c, c, R * (F - 0.02), c, c, R);
-  g.addColorStop(0, '#1e160a'); g.addColorStop(0.1, '#6a5329'); g.addColorStop(0.35, '#3d2f15');
-  g.addColorStop(0.7, '#5a4622'); g.addColorStop(0.9, '#7d6435'); g.addColorStop(1, '#150f06');
+  g.addColorStop(0, '#18110a'); g.addColorStop(0.1, '#58441f'); g.addColorStop(0.35, '#31260f');
+  g.addColorStop(0.7, '#4a3a1b'); g.addColorStop(0.9, '#68532b'); g.addColorStop(1, '#110c05');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R - 1, 0, Math.PI * 2); x.fill();
   const r = lcg(11);
   for (let k = 0; k < 160; k++) {
@@ -80,10 +80,10 @@ function drawBody(x, S) {
 function drawBagua(x, S) {
   const c = S / 2, R = c, r0 = R * APPR_FX.FACE, r1 = R * APPR_FX.BAGUA_OUT;
   x.clearRect(0, 0, S, S);
-  x.fillStyle = 'rgba(18,12,5,0.96)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
-  x.strokeStyle = '#a88a4c'; x.lineWidth = Math.max(2, S * 0.003);
+  x.fillStyle = 'rgba(12,8,3,0.97)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
+  x.strokeStyle = '#8c7240'; x.lineWidth = Math.max(2, S * 0.003);
   x.beginPath(); x.arc(c, c, r1 - x.lineWidth, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#b89a5a';
+  x.fillStyle = '#9c8250';
   const mid = (r0 + r1) / 2, band = r1 - r0;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 - Math.PI / 2, t = TRI[TRI_ORDER[k]];
@@ -185,7 +185,7 @@ void main(){
       acc = over(vec4(col * a, a) * uMirA, acc);
     }
     // 外圈柔光（加色）：系色，往外 0.35R 淡掉
-    float halo = exp(-max(r - L1, 0.0) * 16.0) * step(L1, r) * (0.10 + 0.03 * sin(uTime * 2.1));
+    float halo = exp(-max(r - L1, 0.0) * 16.0) * step(L1, r) * (0.06 + 0.02 * sin(uTime * 2.1));
     add += uGlow * halo * uMirA;
   }
   // ── 符紙 ──
@@ -214,7 +214,14 @@ void main(){
       add += vec3(1.0, 0.55, 0.14) * fl * (0.55 + 0.9 * lick);
       // 火光：以燒線中點為心的暖色光暈（凍結 #11(a)「燒符區平均亮度高於燒符前」）
       float dd = length((p - vec2(uPaper.x, frontY)) / (uPaper.z * vec2(1.6, 1.1)));
-      add += vec3(1.0, 0.62, 0.22) * exp(-dd * dd * 1.4) * 0.42;
+      add += vec3(1.0, 0.62, 0.22) * exp(-dd * dd * 1.4) * (0.42 + 0.3 * uBurn);
+      // 火盆光：以符紙中心為心、隨燒的進度變強的一團柔光（紙越燒越少，畫面中央不能跟著暗下去——凍結 #11(a)
+      // 整段燒符期間都要有火光）。刻意做成圓的柔光、不是紙形的色塊（紙形會讀成一塊發光的長方形）。
+      float dc = length((p - uPaper.xy) / (uPaper.zw * vec2(1.25, 0.62)));
+      add += vec3(1.0, 0.5, 0.16) * exp(-dc * dc * 1.1) * (0.18 + 0.5 * uBurn);
+      // 燒線下方一小段的餘燼火星（fbm 取亮點，隨時間往上飄）
+      float ash = step(e, 0.0) * (1.0 - smoothstep(0.0, 0.14, -e)) * step(ex.x, 0.5) * step(ex.y, 0.5);
+      add += vec3(1.0, 0.45, 0.1) * ash * smoothstep(0.55, 0.8, fbm(lp * vec2(22.0, 30.0) + vec2(0.0, uTime * 2.3))) * 0.9;
     }
   }
   if (uFlash > 0.0) {
