@@ -18,6 +18,9 @@ const VPS = arg('--vps', 'V1,V2,V3,V4,V5').split(',');
 const MODES = arg('--modes', 'solo,hot').split(',');
 const SEED = Number(arg('--seed', 3));
 const PA = Number(arg('--port', 9951)), PB = PA + 1;
+/* 兩邊預先寫進同一組私下天命（理由見 appraise-c-lib openGame）；首跑沒這一步，40 列全數只差 players[*].destiny、
+   而且同一版本連開兩次也不同＝抽籤雜訊，不是鑑賞頁改了賽局。 */
+const DESTINY = ['water', 'eyes', 'twinTiger', 'godKing'];
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 const { chromium } = createRequire(path.join(HERE, 'tools/anyCreature/package.json'))('playwright');
@@ -32,7 +35,7 @@ const SNAP = () => {
   return JSON.stringify(S, (k, v) => { if (typeof v === 'function') return undefined; if (v && typeof v === 'object') { if (seen.has(v)) return '[cyc]'; seen.add(v); } return v; });
 };
 async function one(port, vp, mode, tab, isBase) {
-  const { ctx, page } = await openGame(browser, port, VP[vp], mode, SEED, { clock: false });
+  const { ctx, page } = await openGame(browser, port, VP[vp], mode, SEED, { clock: false, destiny: DESTINY });
   try {
     const cls = await driveToFirst(page, new Set(['mark']));
     if (!cls) return { err: '沒進到盯上階段' };
@@ -42,7 +45,7 @@ async function one(port, vp, mode, tab, isBase) {
     const t = tabs[tab]; if (!t) return { none: true };
     if (isBase) await page.evaluate(([r, s]) => selectRailPage(r, s), [t.rail, t.slot]);
     else await page.evaluate(([r, s]) => railTabClick(r, s), [t.rail, t.slot]);
-    await page.waitForTimeout(isBase ? 500 : 2600); // 丙案：等揭幕（1.06 秒）與題字淡入跑完
+    await page.waitForTimeout(2600); // 兩邊等一樣久（丙案要等揭幕 1.06 秒＋題字淡入；基準也等同樣時間，避免「等待長短」本身造成差異）
     const sel = `#${t.rail} .railPages .railSelected`;
     const box = await page.evaluate((q) => { const e = document.querySelector(q); if (!e) return null; const r = e.getBoundingClientRect(); return r.width ? { x: (r.left + r.right) / 2, y: (r.top + r.bottom) / 2 } : null; }, sel);
     if (!box) return { err: '卡片不在畫面上', ...t };
@@ -64,7 +67,14 @@ try {
     if (a.err || b.err) row.err = `新版:${a.err || 'ok'} 基準:${b.err || 'ok'}`;
     else {
       row.equal = a.snap === b.snap;
-      if (!row.equal) { const A = JSON.parse(a.snap), B = JSON.parse(b.snap); row.diff = Object.keys({ ...A, ...B }).filter((k) => JSON.stringify(A[k]) !== JSON.stringify(B[k])).join(','); }
+      if (!row.equal) {
+        const A = JSON.parse(a.snap), B = JSON.parse(b.snap);
+        row.diff = Object.keys({ ...A, ...B }).filter((k) => JSON.stringify(A[k]) !== JSON.stringify(B[k])).join(',');
+        const paths = [];
+        const walk = (x, y, p) => { if (paths.length >= 12) return; if (JSON.stringify(x) === JSON.stringify(y)) return; if (x && y && typeof x === 'object' && typeof y === 'object') { for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) walk(x[k], y[k], p + '.' + k); } else paths.push(p + ' 新=' + JSON.stringify(x) + ' 基準=' + JSON.stringify(y)); };
+        walk(A, B, 'S');
+        row.paths = paths;
+      }
       row.len = a.snap.length;
       row.marked = JSON.parse(a.snap).marks;
     }

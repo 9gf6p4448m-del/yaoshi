@@ -13,7 +13,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { VP, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing, pauseSoon } from './appraise-c-lib.mjs';
+import { VP, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, meanLumOutside, paperCover, findRing, pauseSoon } from './appraise-c-lib.mjs';
 
 const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -37,7 +37,9 @@ async function state(page) {
   return E(page, () => {
     const AC = window.__AC, on = typeof APPR !== 'undefined' && APPR.on, i = on ? APPR.i : null;
     const n = i != null ? AC.node(i) : null;
-    return { on: !!on, id: on ? APPR.id : null, i, fx: AC.fx(), bbox: n ? AC.projBox(n) : null, rendered: n ? AC.rendered(n, AC.focusMask()) : null };
+    const others = window.__yaoshi3d.tray.items().filter((it) => it.slot !== i).map((it) => { const m = AC.node(it.slot); return m ? AC.rendered(m, AC.focusMask()) : null; });
+    const tabs = [...document.querySelectorAll('.railTabs button')].map((b) => { const r = b.getBoundingClientRect(); return { left: r.left - 2, top: r.top - 2, right: r.right + 2, bottom: r.bottom + 2 }; });
+    return { on: !!on, id: on ? APPR.id : null, i, fx: AC.fx(), bbox: n ? AC.projBox(n) : null, rendered: n ? AC.rendered(n, AC.focusMask()) : null, others, tabs };
   });
 }
 /** 切換之後的揭幕：逐幀記錄，1.3 秒量焦點與題字（題字淡入走真實時間，另等）。 */
@@ -50,10 +52,15 @@ async function afterSwitch(page, expectSlot, refImg, W, H) {
     const bb = s.bbox, c = bb ? { x: (bb.left + bb.right) / 2, y: (bb.top + bb.bottom) / 2 } : null;
     const pnl = await E(page, (id) => { const e = id && document.querySelector('#' + id + ' .railPages'); if (!e) return null; const r = e.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; }, s.id);
     const P = s.fx && s.fx.paper, pr = P && P.alpha > 0 ? { left: P.cx - P.w / 2, top: P.cy - P.h / 2, right: P.cx + P.w / 2, bottom: P.cy + P.h / 2 } : null;
-    const ex = [pnl, pr].filter(Boolean);
-    const full = { left: 0, top: 0, right: W, bottom: H };
+    /* 「中途不回牌桌」的像素量法（09-29 修正）：首版拿全畫面平均亮度比牌桌，燒符的火光本身就比牌桌亮，量到的是火光
+       不是牌桌（首跑 100 格全數誤判，其餘判準全過）。改量「鏡子外圈 1.6 倍半徑以外」扣掉題字欄與窄籤的區域——
+       火光到不了那裡，牌桌態那裡是桌面與廟埕；再加兩個結構量：其餘拍品一件都沒被畫、壓暗 uniform 維持全暗。 */
+    const M = s.fx && s.fx.mirror;
+    const ex = [pnl, pr, ...(s.tabs || [])].filter(Boolean);
+    const far = M ? meanLumOutside(img, M.cx, M.cy, M.r * 1.6, ex) : null, farRef = M ? meanLumOutside(refImg, M.cx, M.cy, M.r * 1.6, ex) : null;
     frames.push({ ms, on: s.on, i: s.i, rendered: s.rendered, paperAlpha: P ? P.alpha : null, paper: c ? paperCover(img, pr || bb, c.x, c.y) : null,
-      dimRatio: ms <= 700 ? meanLum(img, full, ex) / meanLum(refImg, full, ex) : null });
+      othersRendered: s.others, dimU: s.fx ? s.fx.dim : null,
+      farRatio: far && farRef && far.n > 200 && farRef.mean ? far.mean / farRef.mean : null, farN: far ? far.n : 0 });
   }
   await page.clock.runFor(1300 - last);
   const s = await state(page);
@@ -139,7 +146,9 @@ const judgeSwitch = (key, r) => {
   if (!r.frames || !r.frames.length) f.push('沒有逐幀資料');
   else {
     if (r.frames.some((q) => !q.on)) f.push('中途離開鑑賞態');
-    if (r.frames.some((q) => q.dimRatio != null && !(q.dimRatio <= 0.7))) f.push('中途畫面亮回牌桌（暗糊比 > 0.70）：' + r.frames.map((q) => q.dimRatio && q.dimRatio.toFixed(2)).join(','));
+    if (r.frames.some((q) => q.farRatio != null && !(q.farRatio <= 0.7))) f.push('中途鏡外畫面亮回牌桌（比 > 0.70）：' + r.frames.map((q) => q.farRatio && q.farRatio.toFixed(2)).join(','));
+    if (r.frames.some((q) => !q.othersRendered || q.othersRendered.some((x) => x !== false))) f.push('中途其餘拍品被畫出（回到牌桌態）');
+    if (r.frames.some((q) => !(q.dimU >= 0.99))) f.push('中途壓暗沒有維持全暗：' + r.frames.map((q) => q.dimU).join(','));
     if (!r.frames.some((q) => q.ms <= 900 && q.paper && q.paper.center && q.paper.center.yellow >= 0.25 && q.paper.center.paper >= 0.5 && q.paper.corners >= 3)) f.push('0.9 秒內沒有符紙蓋住新焦點框中心（沒重燒）');
     if (r.frames.some((q) => ((q.paperAlpha > 0) || (q.paper && q.paper.corners >= 3)) && q.rendered !== false)) f.push('符紙還在時新焦點已被畫出');
   }

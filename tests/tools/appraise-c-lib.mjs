@@ -52,9 +52,12 @@ export async function driveToFirst(page, targetSet, cap = 4000) {
   return null;
 }
 /** 新開一頁並把遊戲開到第 1 夜（solo／hot）。clock=true 時先裝 Playwright 假時鐘（時間照常流動，直到 pauseAt）。 */
-export async function openGame(browser, port, vp, mode, seed, { clock = true } = {}) {
+export async function openGame(browser, port, vp, mode, seed, { clock = true, destiny = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1 });
   if (clock) await ctx.clock.install();
+  /* 天命是「每顆種子私下抽一次、存在 localStorage」（index.html privateDestinyDrawsForSeed），每個新瀏覽器環境
+     都會重抽——跨版本逐欄位比對賽局狀態時兩邊要預先寫進同一組，不然比到的是抽籤雜訊。 */
+  if (destiny) await ctx.addInitScript(([k, v]) => { try { localStorage.setItem(k, v); } catch (e) {} }, ['yaoshi-private-destiny-v1:' + seed, JSON.stringify(destiny)]);
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   await ctx.addInitScript((safe) => {
     document.addEventListener('DOMContentLoaded', () => {
@@ -245,6 +248,16 @@ export function meanLum(img, rect, exclude = []) {
     const i = (y * img.width + x) * 4; s += (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3; n++;
   }
   return n ? s / n : null;
+}
+/** 圓外平均亮度：只算離 (cx,cy) 超過 R 的像素（再扣掉 exclude 矩形）。回 {mean, n}；n=0＝量不到。 */
+export function meanLumOutside(img, cx, cy, R, exclude = []) {
+  let s = 0, n = 0;
+  for (let y = 0; y < img.height; y += 2) for (let x = 0; x < img.width; x += 2) {
+    if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= R * R) continue;
+    if (exclude.some((e) => x >= e.left && x < e.right && y >= e.top && y < e.bottom)) continue;
+    const i = (y * img.width + x) * 4; s += (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3; n++;
+  }
+  return { mean: n ? s / n : null, n };
 }
 /** 符紙：黃表紙底（亮暖黃）或硃砂字（深紅）。回傳以 (cx,cy) 為中心 21×21 方塊裡黃紙像素、黃紙＋硃砂像素的比例。 */
 export function paperPatch(img, cx, cy) {
