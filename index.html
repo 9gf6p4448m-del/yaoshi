@@ -3077,7 +3077,7 @@ function appraisePanelClamp(){
   const rail=$(APPR.id); if(!rail) return;
   const pages=rail.querySelector(".railPages");
   if(!pages) return;
-  pages.style.top=""; pages.style.width="";
+  pages.style.top=""; pages.style.width=""; pages.style.overflowY="";
   const base=pages.getBoundingClientRect();
   const tr=railTabsRect(rail);
   if(tr) pages.style.top=Math.max(base.top,tr.bottom+8)+"px";
@@ -3091,6 +3091,8 @@ function appraisePanelClamp(){
   pages.style.width=best+"px";
   /* 內容仍放不下（欄高被頂角的籤吃掉一截、長能力文字）就再加寬到放得下為止——寧可鏡子小一點也不截字（凍結 #2／#11(c)）。 */
   for(let w=best+8;pages.scrollHeight>pages.clientHeight+1&&w<=Math.min(360,W*0.46);w+=8) pages.style.width=w+"px";
+  /* 加寬到上限還放不下（極小的橫式螢幕）：退回可捲動，至少讀得到（覆審 r2 M3）。 */
+  if(pages.scrollHeight>pages.clientHeight+1) pages.style.overflowY="auto";
 }
 /** 照妖鏡放哪（丙案，凍結 #1(a)／#11(b)）：題字欄朝畫面中央那一邊到另一側安全區邊緣、上下安全區之間的空地，
  *  扣掉另一側那排窄籤（收在上角）——在這塊空地裡找最大的圓（外半徑 r，含系色光線；外圈柔光允許溢出到籤底下）。
@@ -3121,10 +3123,15 @@ function appraiseReplayInk(){
   pg.style.animation="none"; void pg.offsetWidth; pg.style.animation="";
   /* 淡入完成前題字欄看不見，不能讓它吃點擊（09-29 冷讀覆審 H1：揭幕中點「空白」會打到隱形的卡片＝不可逆的盯上）。
      淡入結束（animationend）才開放；reduced-motion 沒有動畫就立刻開放；保險再掛一個計時器。 */
+  /* 每次重播都換一個序號、清掉上一次的保險計時器與監聽：快速換件時，上一次淡入的計時器不得把這一次提早解鎖（覆審 r2 H1）。 */
+  const seq=pg.__inkSeq=(pg.__inkSeq||0)+1;
+  clearTimeout(pg.__inkTimer);
+  if(pg.__inkDone) pg.removeEventListener("animationend",pg.__inkDone);
   pg.classList.add("inking");
-  const done=()=>{ pg.classList.remove("inking"); pg.removeEventListener("animationend",done); };
+  const done=e=>{ if(e&&e.target!==pg) return; if(pg.__inkSeq!==seq) return; pg.classList.remove("inking"); pg.removeEventListener("animationend",done); clearTimeout(pg.__inkTimer); };
+  pg.__inkDone=done;
   pg.addEventListener("animationend",done);
-  if(getComputedStyle(pg).animationName==="none") done(); else setTimeout(done,1400);
+  if(getComputedStyle(pg).animationName==="none") done(); else pg.__inkTimer=setTimeout(done,1400);
 }
 /** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態；修訂：每次切換都重燒）。 */
 function openAppraise(id,i){
@@ -3142,7 +3149,7 @@ function closeAppraise(){
   if(!APPR.on) return;
   const id=APPR.id;
   APPR.on=false; APPR.id=null; APPR.i=null;
-  if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.top=""; } }
+  if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.top=""; pg.style.width=""; pg.style.overflowY=""; } }
   const tb=$("table"); if(tb&&tb.classList) tb.classList.remove("appraising");
   try{ appraiseTray()?.setAppraise?.(-1); }catch(e){}
 }

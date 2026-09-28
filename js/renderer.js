@@ -345,13 +345,17 @@ function init() {
     tray.update(dt); // 桌心托盤：hover 浮空微旋與詛咒陰火（收起來時自己早退）
     // Hold the terminal framing until its result card; release it smoothly
     // only once no actual flight remains. Skip cannot cancel that lifecycle.
-    /* 法寶鑑賞頁（v0.59.2 丙案）開著時不疊揭盅運鏡：鑑賞的推近與平移在 tray.update 裡已經算好（覆審 M2） */
-    if (!framing.active && overlay && tray.appraise() < 0) {
+    if (!framing.active && overlay) {
       if (revealSlot < 0) release = Math.max(0, release - dt / .3);
-      const axis = camera.position.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
-      camera.position.addScaledVector(axis, overlay.retreat * release);
-      camera.setViewOffset(innerWidth, innerHeight, -overlay.shift.x * release, -overlay.shift.y * release, innerWidth, innerHeight);
-      if (release === 0) { overlay = null; camera.clearViewOffset(); }
+      /* 法寶鑑賞頁（v0.59.2 丙案）開著時照樣倒數 release，只是不疊到鏡頭上：鑑賞的推近與平移在 tray.update 裡
+         已經算好（覆審 M2）；關掉鑑賞那一刻接回來的是「已經倒數過」的值，不會跳一下（覆審 r2 LOW）。 */
+      if (tray.appraise() < 0) {
+        const axis = camera.position.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
+        camera.position.addScaledVector(axis, overlay.retreat * release);
+        camera.setViewOffset(innerWidth, innerHeight, -overlay.shift.x * release, -overlay.shift.y * release, innerWidth, innerHeight);
+        if (release === 0) camera.clearViewOffset();
+      }
+      if (release === 0) overlay = null;
     }
     // 牌桌與對決全亮（對決時網頁牌桌會淡出，3D 就是舞台）；標題頁與其他全螢幕場景壓暗，
     // 不然木桌會蓋掉標題文字的對比（實測 scratchpad b1-title.png）。
