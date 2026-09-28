@@ -210,6 +210,7 @@ function init() {
     if (framing.fit) { overlay = { retreat: framing.retreat, shift: framing.shift }; release = 1; }
   };
   const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubjects });
+  tray.warmAppraise(renderer); // 丙案疊層兩支 shader 開頁就編好，第一次點籤不卡
   document.addEventListener('ys:reveal-slot', e => {
     const slot = Number(e.detail?.slot);
     revealSlot = Number.isInteger(slot) && slot >= 0 && slot < 4 ? slot : -1;
@@ -403,6 +404,8 @@ function init() {
       bloom.render(scene, camera);
     } else {
       renderer.render(scene, camera);
+      /* 法寶鑑賞頁丙案（v0.59.2）：畫完世界再疊壓暗／照妖鏡／符紙，然後只畫焦點法寶一趟（不在鑑賞態時直接返回、零成本）。 */
+      tray.renderOverlay(renderer);
     }
     requestAnimationFrame(frame);
   }

@@ -129,32 +129,67 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d .railPages{display:none}
   #table.t3d .rail.open{z-index:20}
   #table.t3d.cardOpen #feltHead{visibility:hidden}
-  /* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4，使用者裁 A）：
-     取代 v0.59.1 的開卡停靠——不再貼著側欄浮出一張小卡，改成點窄籤進整段鑑賞態：說明欄固定在跟窄籤
-     同側、占畫面那一半（安全區內全高），鏡頭把法寶推到另一半（js/table-tray.js 的 setAppraise 負責運鏡與
-     自轉／浮動，這裡只管說明欄版面）。非鑑賞態（.appraising 不在）一律不顯示（沿用原本 blanket display:none）。 */
+  /* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4、修訂 #11 丙案）：
+     點窄籤進整段鑑賞態。丙案（使用者 09-28「燒符好帥 照妖鏡也是 合在一起吧」）：先燒符揭幕、再浮出照妖鏡，
+     法寶在鏡心轉——3D／疊層在 js/table-tray.js＋js/appraise-fx.js；這裡只管「鏡旁題字」（＝原拍品卡本身，
+     同一支卡片工廠、盯上等按鈕照舊可按，凍結 #2）。題字欄跟點的那枚籤同側、貼著籤排，寬度收窄把畫面讓給鏡子；
+     不再是一張實心卡，而是寫在暗處的一欄字：無外框、墨色淡底、朝鏡子那一側一條金細線。
+     字級一律 ≥13px（凍結 #11(c)；示意版 12px 在手機偏小）；橫書不斷句（示意甲直書會把長能力文字拆在句中）。
+     非鑑賞態（.appraising 不在）一律不顯示（沿用原本 blanket display:none）。 */
   #table.t3d.appraising .rail.open .railPages{display:flex;flex-direction:column;gap:8px;position:fixed;z-index:21;
     top:max(6px,var(--safe-top));bottom:max(6px,var(--safe-bottom));
-    width:min(340px,calc(50vw - 10px));overflow-y:auto;padding:10px;
-    background:var(--c-ink-bg2);border:1px solid var(--line-gold);border-radius:var(--r-panel);
-    box-shadow:0 8px 24px rgba(0,0,0,.65)}
+    width:clamp(150px,21vw,240px);overflow:hidden;padding:12px 14px 12px 10px;box-sizing:border-box;
+    background:linear-gradient(180deg,rgba(7,5,4,0),rgba(7,5,4,.62) 16%,rgba(7,5,4,.62) 84%,rgba(7,5,4,0));
+    border:0;border-radius:0;box-shadow:none;
+    animation:apprInk .42s .6s both cubic-bezier(.2,.7,.2,1)}
+  #table.t3d.appraising .rail.open .railPages::after{content:"";position:absolute;top:10%;bottom:10%;width:1px;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(216,184,104,.7) 18%,rgba(216,184,104,.7) 82%,transparent)}
   #table.t3d.appraising #railW.open .railPages{left:max(6px,var(--safe-left));right:auto}
-  #table.t3d.appraising #railE.open .railPages{right:max(6px,var(--safe-right));left:auto}
-  #table.t3d.appraising .rail.open .railPages>.mcard{min-height:0;box-shadow:none;flex:0 0 auto}
+  #table.t3d.appraising #railW.open .railPages::after{right:0}
+  #table.t3d.appraising #railE.open .railPages{right:max(6px,var(--safe-right));left:auto;padding:12px 10px 12px 14px}
+  #table.t3d.appraising #railE.open .railPages::after{left:0}
+  @keyframes apprInk{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
+  @media (prefers-reduced-motion:reduce){#table.t3d.appraising .rail.open .railPages{animation:none}}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
-  /* 關閉鈕：右上角常駐、命中區 40×40（視覺圖示較小，padding 撐滿點擊區）；平時（非鑑賞態）display:none。 */
-  #table.t3d.appraising .rail.open .railPages .railCardClose{display:flex}
-  #table.t3d.appraising .railTabs{position:relative;z-index:22}
+  /* 題字：卡片外殼拿掉（底色、框線、按下縮放），內容一字不動；系色只用在名字的光暈與數值色 */
+  #table.t3d.appraising .rail.open .railPages>.mcard{min-height:0;box-shadow:none;flex:0 0 auto;margin:auto 0;
+    background:none;border:0;border-radius:0;padding:10px 2px 6px;transform:none;--sysc:var(--line-gold)}
+  #table.t3d.appraising .rail.open .railPages>.mcard.bg-zuli{--sysc:var(--c-zuli-light)}
+  #table.t3d.appraising .rail.open .railPages>.mcard.bg-xianghu{--sysc:var(--sys-xianghuo)}
+  #table.t3d.appraising .rail.open .railPages>.mcard.bg-yinqi{--sysc:var(--sys-yinqi)}
+  #table.t3d.appraising .rail.open .railPages>.mcard.bg-curse{--sysc:var(--sys-curse)}
+  #table.t3d.appraising .rail.open .railPages .mcard,#table.t3d.appraising .rail.open .railPages .mcard *{font-size:13px;line-height:1.6}
+  #table.t3d.appraising .rail.open .railPages .mcard .nm{font-family:var(--font-display);font-size:24px;line-height:1.25;letter-spacing:.12em;
+    white-space:normal;overflow:visible;text-overflow:clip;color:#f2d78a;margin:6px 0 4px;
+    text-shadow:0 0 12px color-mix(in srgb,var(--sysc) 60%,transparent),0 0 2px rgba(0,0,0,.9)}
+  #table.t3d.appraising .rail.open .railPages .mcard .pw{font-size:14px;color:color-mix(in srgb,var(--sysc) 65%,#efe4cc);letter-spacing:.04em}
+  #table.t3d.appraising .rail.open .railPages .mcard .fchip{font-size:13px;padding:1px 6px;margin-left:6px;border-radius:2px;
+    box-shadow:inset 0 0 0 1px rgba(246,227,196,.55);transform:rotate(-3deg)}
+  #table.t3d.appraising .rail.open .railPages .mcard .ab{font-size:14px;line-height:1.7;color:#efe4cc;margin-top:8px;padding-top:8px;text-wrap:pretty;
+    border-top:1px solid rgba(216,184,104,.28)}
+  #table.t3d.appraising .rail.open .railPages .mcard .uline{color:#b8a888;max-height:none;white-space:normal;text-overflow:clip;overflow:visible}
+  #table.t3d.appraising .rail.open .railPages .mcard .mico{width:44px;height:44px;opacity:.18}
+  #table.t3d.appraising .rail.open .railPages .mcard .markb,#table.t3d.appraising .rail.open .railPages .mcard .mybid{position:static;display:inline-block;margin:0 6px 2px 0;line-height:1.4}
+  #table.t3d.appraising .rail.open .railPages .mcard:active{transform:none}
+  /* 關閉鈕：命中區 40×40；鑑賞態改成無底的金色 ×，不壓成一顆實心圓 */
+  #table.t3d.appraising .rail.open .railPages .railCardClose{display:flex;top:2px;background:none;border:0;font-size:22px;opacity:.8}
+  #table.t3d.appraising #railW.open .railPages .railCardClose{right:0}
+  #table.t3d.appraising #railE.open .railPages .railCardClose{right:auto;left:0}
+  /* 鑑賞中兩排窄籤收到畫面上方兩角（理由見 appraisePanelClamp）；題字欄由 JS 接在同側籤的正下方 */
+  #table.t3d.appraising .railTabs{position:fixed;z-index:22;top:max(6px,var(--safe-top))}
+  #table.t3d.appraising #railW .railTabs{left:max(6px,var(--safe-left))}
+  #table.t3d.appraising #railE .railTabs{right:max(6px,var(--safe-right))}
   /* 鑑賞態＝聚焦單一法寶：側欄跟正在讀的籤同側、幾乎佔滿那半邊安全區高度，勢必蓋到座位／底列 HUD
      （北／西／東座位牌、南家底列的部隊摘要與主鈕、頂角？鈕）——這些元素在鑑賞中本來就點不到（要先點空白
      返回牌桌才恢復互動），凍結 #2「側欄外的可見文字矩形不得與側欄相交」沒有給互動元件開例外，所以整批
      一起藏起來（沿用 #feltHead 同一招 visibility:hidden，不動版面，返回時隨 .appraising 移除自動恢復）。
-     窄籤（.railTabs）本身不在此列——#4 要求鑑賞中仍可直接點別的籤切換，必須留著可見可點。 */
+     窄籤（.railTabs）本身不在此列——#4 要求鑑賞中仍可直接點別的籤切換，必須留著可見可點。
+     丙案的壓暗改在 WebGL 疊層（DOM 不會被它壓到），桌心 #felt 裡的心願條／提示也一併收起。 */
   #table.t3d.appraising #northSeat,#table.t3d.appraising #northShr,#table.t3d.appraising #northPrev,
-  #table.t3d.appraising #westSeat,#table.t3d.appraising #eastSeat,
+  #table.t3d.appraising #westSeat,#table.t3d.appraising #eastSeat,#table.t3d.appraising #felt,
   #table.t3d.appraising #south,#table.t3d.appraising #helpBtn,#table.t3d.appraising #skipbtn{visibility:hidden}
-  /* 桌面壓暗層：挖洞在 JS（appraiseTick）逐幀畫，這裡只管開關與疊層順序（webgl canvas 在 -2、本層 19、
-     說明欄與窄籤在 21/22）。非鑑賞態完全不吃事件、不擋任何既有點擊。 */
+  /* 鑑賞層：透明的全螢幕輸入層（點空白＝跳過揭幕／返回、左右滑＝換件）。壓暗與鏡子都畫在 WebGL 疊層裡，
+     這一層不畫任何東西（丙案前的 2D 逐幀挖洞已退場）。疊層順序：webgl canvas -2、本層 19、題字欄與窄籤 21/22。 */
   #appraiseDim{position:fixed;inset:0;z-index:19;pointer-events:none;display:none}
   #table.t3d.appraising #appraiseDim{display:block;pointer-events:auto}
   /* 揭盅結果窄條（v0.59.0，凍結 p2 #3）：本夜成交總覽與請神結果不再蓋在桌心，改成貼在底列上緣的一條窄條
@@ -1015,7 +1050,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div id="veil"></div>
   </div>
   <div id="east"><div id="eastSeat"></div><div id="railE" class="rail"></div></div>
-  <!-- 法寶鑑賞頁（v0.59.2，凍結 appraise-panels）：桌面壓暗層，挖一個洞露出焦點法寶。純呈現，JS 每幀重繪。 -->
+  <!-- 法寶鑑賞頁（v0.59.2，凍結 appraise-panels 丙案）：鑑賞態的全螢幕透明輸入層（點空白／滑動）。壓暗與照妖鏡畫在 WebGL 疊層（js/appraise-fx.js）。 -->
   <canvas id="appraiseDim"></canvas>
   <div id="south">
     <span class="av" id="myAv">🧑</span>
@@ -3010,82 +3045,97 @@ function railCardOpen(id,i){
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',on&&el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-expanded',String(on&&Number(el.dataset.slot)===i)));
 }
-/* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4，使用者裁 A）：
+/* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4＋修訂 #11 丙案）：
    取代 v0.59.0 起的窄籤展開卡與 v0.59.1 的開卡停靠（dockRailCard 退場）。點籤直接進整段鑑賞態：
-   js/table-tray.js 的 setAppraise(i,side) 負責鏡頭推近＋自轉＋idle 上下輕浮（純 3D 層，不讀寫賽局欄位）；
-   這裡只管 DOM 開關（railCardOpen 沿用同一套 class 切換）、側欄版面（CSS，同上）、
-   背景壓暗（appraiseTick 逐幀畫 #appraiseDim）與輸入（籤／滑動／點空白處）。
-   APPR 是本卷唯一的鑑賞態事實來源：id＝哪一欄的側欄在顯示、i＝焦點法寶槽位、on＝是否在鑑賞態。 */
-let APPR={on:false,id:null,i:null,raf:0};
-function appraiseSupported(){ return TABLE3D&&!!(window.__yaoshi3d&&window.__yaoshi3d.tray&&window.__yaoshi3d.tray.setAppraise); }
+   js/table-tray.js 的 setAppraise(i,side,layout) 負責丙案的整段 3D 演出——燒符揭幕、照妖鏡浮現、
+   鏡頭推近把法寶框進鏡子內圈、自轉＋idle 上下輕浮（純 3D 層，不讀寫賽局欄位）；
+   這裡只管 DOM 開關（railCardOpen 沿用同一套 class 切換）、題字欄版面（CSS，同上）、
+   鏡子放在哪（appraiseLayout：題字欄與另一側窄籤之間的空地，量實際矩形）與輸入（籤／滑動／點空白處）。
+   APPR 是本卷唯一的鑑賞態事實來源：id＝哪一欄的題字在顯示、i＝焦點法寶槽位、on＝是否在鑑賞態。 */
+let APPR={on:false,id:null,i:null};
+function appraiseTray(){ return window.__yaoshi3d&&window.__yaoshi3d.tray; }
+function appraiseSupported(){ const t=appraiseTray(); return TABLE3D&&!!(t&&t.setAppraise); }
 function appraiseRailOf(slot){ const n=(S&&S.market?S.market.length:4), half=Math.ceil(n/2); return slot<half?"railW":"railE"; }
+/** 滑動換件的順序＝桌上還在的拍品（揭幕中暫藏的焦點也算在桌上，見 table-tray items().apprHide）。 */
 function appraiseSlots(){
-  try{ return window.__yaoshi3d.tray.items().filter(it=>it.visible).map(it=>it.slot).sort((a,b)=>a-b); }catch(e){ return []; }
+  try{ return appraiseTray().items().filter(it=>it.visible||it.apprHide).map(it=>it.slot).sort((a,b)=>a-b); }catch(e){ return []; }
 }
-function appraiseDimTick(){
-  APPR.raf = APPR.on?requestAnimationFrame(appraiseDimTick):0;
-  if(!APPR.on) return;
-  const cv=$("appraiseDim"); if(!cv) return;
-  const dpr=Math.min(window.devicePixelRatio||1,2), W=innerWidth, H=innerHeight;
-  const pw=Math.round(W*dpr), ph=Math.round(H*dpr);
-  if(cv.width!==pw||cv.height!==ph){ cv.width=pw; cv.height=ph; }
-  cv.style.width=W+"px"; cv.style.height=H+"px";
-  const cx=cv.getContext("2d"); if(!cx) return;
-  cx.setTransform(dpr,0,0,dpr,0,0);
-  cx.clearRect(0,0,W,H);
-  cx.fillStyle="rgba(4,3,2,0.55)"; /* #1(b)：非焦點區壓到參考亮度 ≤70%（實測 0.45 透黑對應約 45%，留餘裕） */
-  cx.fillRect(0,0,W,H);
-  const bb=window.__yaoshi3d?.tray?.bboxScreen?.(APPR.i);
-  if(bb){
-    const pad=8, x=Math.max(0,bb.left-pad), y=Math.max(0,bb.top-pad);
-    const w=Math.min(W,bb.right+pad)-x, h=Math.min(H,bb.bottom+pad)-y;
-    if(w>0&&h>0) cx.clearRect(x,y,w,h); /* 焦點法寶的投影框完全不壓暗 */
-  }
+/** 一排窄籤實際佔的矩形＝各枚按鈕矩形的聯集（.railTabs 容器本身比按鈕寬，拿容器量會白白讓出一截）。 */
+function railTabsRect(rail){
+  const bs=rail?[...rail.querySelectorAll(".railTabs button")].map(b=>b.getBoundingClientRect()).filter(r=>r.width&&r.height):[];
+  if(!bs.length) return null;
+  return {left:Math.min(...bs.map(r=>r.left)),right:Math.max(...bs.map(r=>r.right)),top:Math.min(...bs.map(r=>r.top)),bottom:Math.max(...bs.map(r=>r.bottom))};
 }
-/** 側欄避讓窄籤（09-28 覆審發現）：側欄固定在安全區邊緣、寬達 340px，本來的 CSS 定位會整段蓋過
- *  同一側 .railTabs 那排窄籤（#4 要求鑑賞中仍可直接點別籤切換，籤必須留在畫面上、不能藏），
- *  於是側欄矩形跟「側欄外的可見文字」（其他未展開的籤）相交，違反 #2。改法：每次開側欄／切換都
- *  量一次那排籤實際渲染的寬度，側欄從籤的外緣再讓開一點才開始畫，籤所在的那一小條永遠留在側欄外面。
- *  純版面計算，不讀寫賽局欄位、不影響 #1/#3 量到的鏡頭與姿態。 */
+/** 題字欄讓開同側那排窄籤（丙案版面）：鑑賞中兩排窄籤都收到畫面上方的兩個角（CSS），題字欄接在自己那排籤
+ *  的正下方、貼著安全區邊緣——籤跟題字欄上下錯開，凍結 #2 的 cut（題字欄外的可見文字不得與題字欄相交）
+ *  靠這個保證；#4 要的「鑑賞中仍可直接點別籤」籤也一直留在畫面上。
+ *  為什麼把籤收到角落：窄籤原本在左右兩側的中段，正好卡在照妖鏡最寬的那一條高度上，鏡子只能在兩排籤之間
+ *  縮成小圓；收到角落後鏡子能用上整個安全區高度（寬體法寶在鏡中才夠大，凍結 #1(a)）。純版面，不讀寫賽局欄位。 */
 function appraisePanelClamp(){
   if(!APPR.on||!APPR.id) return;
   const rail=$(APPR.id); if(!rail) return;
-  const tabs=rail.querySelector(".railTabs"), pages=rail.querySelector(".railPages");
-  if(!tabs||!pages) return;
-  /* 先清掉上一次的覆寫再量，拿到的是 CSS 預設（min(340px,50vw-10px)）那個矩形——setAppraise 的
-     運鏡是照這個預設寬度把法寶推到「側欄以外」那一半，所以只能從籤那一側收窄，另一側（貼近法寶
-     的那個邊）維持預設不動，不然側欄會反過來吃進法寶的畫面、變成新的 #1(a) 重疊。 */
-  pages.style.left=""; pages.style.right=""; pages.style.width="";
+  const pages=rail.querySelector(".railPages");
+  if(!pages) return;
+  pages.style.top=""; pages.style.width="";
   const base=pages.getBoundingClientRect();
-  const tr=tabs.getBoundingClientRect(), gap=6;
-  if(APPR.id==="railW"){
-    const left=Math.max(base.left,tr.right+gap);
-    pages.style.left=left+"px"; pages.style.width=Math.max(40,base.right-left)+"px";
-  }else{
-    const right=Math.min(base.right,tr.left-gap);
-    pages.style.left=base.left+"px"; pages.style.width=Math.max(40,right-base.left)+"px";
-  }
+  const tr=railTabsRect(rail);
+  if(tr) pages.style.top=Math.max(base.top,tr.bottom+8)+"px";
+  /* 題字欄寬度：在不讓照妖鏡變小的前提下盡量寬（字少斷行、不溢出）。鏡子多半被螢幕高度卡住，
+     橫向常有餘裕；從 CSS 下限（base.width）往上試，鏡子半徑一掉就停。 */
+  const W=innerWidth, isW=APPR.id==="railW";
+  const rectAt=w=>isW?{left:base.left,right:base.left+w}:{left:base.right-w,right:base.right};
+  const r0=appraiseLayout(rectAt(base.width)).r;
+  let best=base.width;
+  for(let w=base.width+8;w<=Math.min(300,W*0.4);w+=8){ if(appraiseLayout(rectAt(w)).r>=r0-0.5) best=w; else break; }
+  pages.style.width=best+"px";
 }
-/** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態）。 */
+/** 照妖鏡放哪（丙案，凍結 #1(a)／#11(b)）：題字欄朝畫面中央那一邊到另一側安全區邊緣、上下安全區之間的空地，
+ *  扣掉另一側那排窄籤（收在上角）——在這塊空地裡找最大的圓（外半徑 r，含系色光線；外圈柔光允許溢出到籤底下）。
+ *  鏡頭再把法寶的自轉包絡推進鏡子內圈（table-tray），所以「法寶框在安全區內、不壓題字欄」由這塊空地保證。 */
+function appraiseLayout(prOverride){
+  const W=innerWidth, H=innerHeight;
+  const cs=getComputedStyle(document.documentElement), sv=k=>parseFloat(cs.getPropertyValue(k))||0;
+  const sl=Math.max(6,sv("--safe-left")), sr=Math.max(6,sv("--safe-right")), st=Math.max(6,sv("--safe-top")), sb=Math.max(6,sv("--safe-bottom"));
+  const pg=$(APPR.id)&&$(APPR.id).querySelector(".railPages");
+  const pr=prOverride||(pg?pg.getBoundingClientRect():null), T=railTabsRect($(APPR.id==="railW"?"railE":"railW"));
+  const GAP=10;
+  const L=APPR.id==="railW"?(pr?pr.right:sl)+GAP:sl+2, R=APPR.id==="railW"?W-sr-2:(pr?pr.left:W-sr)-GAP;
+  /* 上下直接用安全區本身（不加 6px 的觸控邊距）：鏡子外緣可以貼齊安全區，法寶在內圈裡、離外緣還有一整圈鏡框 */
+  const top=sv("--safe-top"), bottom=H-sv("--safe-bottom");
+  let best={mx:(L+R)/2,my:(top+bottom)/2,r:0};
+  for(let a=0;a<=40;a++) for(let b=0;b<=8;b++){
+    const mx=L+(R-L)*a/40, my=top+(bottom-top)*(0.5+(b-4)*0.04);
+    let r=Math.min(mx-L,R-mx,my-top,bottom-my);
+    if(T){ const dx=Math.max(T.left-4-mx,0,mx-(T.right+4)), dy=Math.max(T.top-4-my,0,my-(T.bottom+4)); r=Math.min(r,Math.hypot(dx,dy)); }
+    if(r>best.r+0.5||(Math.abs(r-best.r)<=0.5&&Math.abs(mx-(L+R)/2)<Math.abs(best.mx-(L+R)/2))) best={mx,my,r};
+  }
+  best.r=Math.max(40,best.r);
+  return best;
+}
+/** 題字欄的淡入動畫每次換件重播（丙案每次切換都重燒，題字跟著重寫一次，凍結 #4 修訂）。 */
+function appraiseReplayInk(){
+  const pg=$(APPR.id)&&$(APPR.id).querySelector(".railPages"); if(!pg) return;
+  pg.style.animation="none"; void pg.offsetWidth; pg.style.animation="";
+}
+/** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態；修訂：每次切換都重燒）。 */
 function openAppraise(id,i){
   if(!appraiseSupported()) return;
   const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
-  ["railW","railE"].forEach(r=>{ if(r!==id) railCardOpen(r,null); });
+  ["railW","railE"].forEach(r=>{ if(r!==id){ railCardOpen(r,null); const pg=$(r)&&$(r).querySelector(".railPages"); if(pg){ pg.style.top=""; } } });
   railCardOpen(id,i);
   const tb=$("table"); if(tb&&tb.classList) tb.classList.add("appraising");
   APPR.on=true; APPR.id=id; APPR.i=i;
-  try{ window.__yaoshi3d.tray.setAppraise(i, id==="railW"?"left":"right"); }catch(e){}
-  if(!APPR.raf) APPR.raf=requestAnimationFrame(appraiseDimTick);
-  requestAnimationFrame(appraisePanelClamp);
+  appraisePanelClamp();
+  appraiseReplayInk();
+  try{ appraiseTray().setAppraise(i, id==="railW"?"left":"right", appraiseLayout()); }catch(e){}
 }
 function closeAppraise(){
   if(!APPR.on) return;
   const id=APPR.id;
   APPR.on=false; APPR.id=null; APPR.i=null;
-  if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.left=""; pg.style.right=""; pg.style.width=""; } }
+  if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.top=""; } }
   const tb=$("table"); if(tb&&tb.classList) tb.classList.remove("appraising");
-  try{ window.__yaoshi3d?.tray?.setAppraise?.(-1); }catch(e){}
-  const cv=$("appraiseDim"); if(cv){ const cx=cv.getContext&&cv.getContext("2d"); if(cx) cx.clearRect(0,0,cv.width,cv.height); }
+  try{ appraiseTray()?.setAppraise?.(-1); }catch(e){}
 }
 /** 窄籤點擊的入口（railHTML 的 onclick）：同一籤再點一次＝收起，別的籤＝直接換件（不落回牌桌態）。
  *  3D 不可用（?table3d=0 或托盤尚未掛上）時整個 .rail 本來就是 display:none，不會有機會呼叫到這裡。 */
@@ -3103,15 +3153,16 @@ function appraiseNudge(dir){
   const slot=list[next];
   openAppraise(appraiseRailOf(slot),slot);
 }
-/* 關閉鈕：右上角×鈕（railHTML）與點空白處共用同一支收法。 */
+/* 關閉鈕：題字欄角落的×鈕（railHTML）與點空白處共用同一支收法。 */
 function closeRailCard(id){
   if(APPR.on&&APPR.id===id){ closeAppraise(); return; }
   railCardOpen(id,null);
-  try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(e){}
+  try{ appraiseTray()?.setHover(-1); }catch(e){}
 }
-/* 鑑賞態的輸入：#appraiseDim 是鑑賞態才吃事件的全螢幕層（側欄／籤各自有更高 z-index，命中它們時
+/* 鑑賞態的輸入：#appraiseDim 是鑑賞態才吃事件的全螢幕透明層（題字欄／籤各自有更高 z-index，命中它們時
    e.target 不會是這片 canvas，照舊直接觸發各自的 onclick，不受這裡影響）。
-   純點按（位移 <12px）＝點空白處返回（凍結 #3，觸控區即整片鑑賞層，遠大於 40×40）；
+   純點按（位移 <12px）＝點空白處：揭幕（燒符＋鏡子浮現）還在跑＝跳過到穩定鑑賞態、不返回（凍結 #1 修訂）；
+   已穩定＝返回牌桌（凍結 #3，觸控區即整片鑑賞層，遠大於 40×40）。
    水平位移 >40px 且以水平為主＝滑動換件（凍結 #4）。 */
 (function(){
   let down=null;
@@ -3125,8 +3176,18 @@ function closeRailCard(id){
     if(!APPR.on) return;
     const dx=e.clientX-d.x, dy=e.clientY-d.y;
     if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5) appraiseNudge(dx<0?1:-1);
-    else if(Math.hypot(dx,dy)<12) closeAppraise();
+    else if(Math.hypot(dx,dy)<12){
+      const t=appraiseTray();
+      if(t&&t.appraiseIntro&&t.appraiseIntro()) t.skipAppraiseIntro();
+      else closeAppraise();
+    }
   },true);
+  /* 轉向／改視窗大小：題字欄重新避讓窄籤、鏡子重新找空地（不重燒）。 */
+  if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>{
+    if(!APPR.on) return;
+    appraisePanelClamp();
+    try{ appraiseTray().setAppraiseLayout(appraiseLayout()); }catch(e){}
+  });
 })();
 /* 非鑑賞態（appraiseSupported 為 false 時 .rail 根本不會開，這條防的是鑑賞態切換瞬間殘留的 .open）：
    點側欄以外的地方就收起展開的卡（點擊照常落到底下的元件）。 */

@@ -21,10 +21,8 @@ const { makeCreatureFigure, creatureGlbUrl, FACTION_RIM } = await import('./crea
 const { vcBuilder, seedRnd: rnd } = await import('./scene-env.js' + V);
 /* 桌上道具（v0.56b 第二段）：籌碼／令牌／信物。掛進本檔的 group ⇒ 對決時整組跟著收。 */
 const { createTableProps } = await import('./table-props.js' + V);
-/* 法寶鑑賞頁鏡頭（v0.59.2）：只借市集取景卷（A1）已經寫好的「螢幕矩形塞進安全區」這支純函式
-   （placeSubject）；世界包圍盒→螢幕投影框改用本檔自己的 projBox，理由見 updateAppraiseCamera 檔頭。
-   fitSubject 本身不能用（它只會後退避讓，鑑賞頁要的是主動推近），運鏡邏輯整支是本檔自己的。 */
-const { placeSubject } = await import('./table-framing.js' + V);
+/* 法寶鑑賞頁（v0.59.2）丙案（燒符揭幕＋照妖鏡）的螢幕空間疊層：一支 shader 畫壓暗／鏡子／符紙，理由見該檔檔頭。 */
+const { createAppraiseFx, APPR_FX } = await import('./appraise-fx.js' + V);
 
 /* POOL 的系名是 zuling/xianghuo/yinqi，FACTION_RIM 的鍵是 zuli/xianghu/yinqi（兩套拼法並存，
    與 renderer.js 的 RIM_BY_FAC 同一份對照）。 */
@@ -70,16 +68,22 @@ export const TRAY = {
   HOVER_MS: 0.16,
   /** v0.59.2 法寶鑑賞頁（凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1）：
    *  點窄籤推近＋自轉＋idle 上下輕浮，取代 v0.59.1 的「只亮不動」開卡停靠。節奏中等（使用者裁定）：
-   *  推近 0.35 秒、自轉 6 秒一圈、法寶約佔畫面高 40%（TARGET_H 取 0.42 留餘裕給 #1(a) 的 ≥35% 門檻）。
+   *  推近 0.35 秒、自轉 6 秒一圈（法寶大小改由照妖鏡內圈決定，見 FILL）。
    *  全部【試玩必調】。 */
   APPRAISE: {
     DOLLY_MS: 350,
-    TARGET_H: 0.42,
     SPIN_RAD_S: (Math.PI * 2) / 6,
     LIFT: 0.10,
     BOB_AMP: 0.028,
     BOB_HZ: 0.42,
     RIM: 6.4,
+    /* 丙案（v0.59.2 修訂，凍結 #11）：法寶框進鏡子內圈。取景不再抓「約佔畫面高 40%」，改用「自轉包絡」——
+     * 法寶繞 Y 軸轉一整圈、每個角度的投影框都要落在「鏡面半徑 × FILL」的圓內（寬體如虎爺印轉到側面也不出鏡）。 */
+    FILL: 0.99,
+    ENV_N: 48,       // 自轉包絡取樣角度數（7.5° 一格；取樣之間的框寬誤差 <0.5%，FILL 留 1% 蓋過）
+    MIN_H: 0.37,     // 這一幀框高低於畫面高的這個比例就再推近（寬體補償，見 updateAppraiseCamera；凍結 #1(a) 門檻 35%）
+    LAYER: 7,        // 焦點法寶所在圖層：第一趟（世界）不畫它，疊層之後單獨畫一趟
+    HIDE_LAYER: 8,   // 其餘拍品鑑賞中移到這一層（相機從不打開）＝不畫；返回時整份遮罩原樣還原
   },
   /** 詛咒品占位：一疊綑起來的舊符紙＋紫黑陰火（ART_BIBLE §4「詛咒＝有作者的惡意、是物不是靈」） */
   /* 詛咒占位（自評 r1 E／F：第一版讀成「紙箱」、陰火是方塊像素）：
@@ -602,6 +606,68 @@ export function createTableTray(scene, camera, opts = {}) {
   let apprK = 0;
   let apprCloseNode = null; // 收桌鏡頭回程要跟著的那一件（apprIdx 已經 −1 之後仍需要，直到 apprK 回 0）
   function nodeOf(i) { const s = slots[i]; return s ? (s.fig ? s.fig.group : (s.pile ? s.pile.group : null)) : null; }
+  /* ── 丙案「燒符揭幕＋照妖鏡」（v0.59.2 修訂，凍結 #1 修訂／#4 修訂／#11）─────────────────
+   *  apprMs＝這一件從點籤（或切換）起算的毫秒數，時間軸全部問它（APPR_FX）；切換＝歸零重燒。
+   *  apprLayout＝鏡子在螢幕上的位置（CSS px：mx,my＝鏡心，r＝外半徑），由 index.html 依題字欄與窄籤的
+   *  實際矩形算好傳進來（3D 層不量 DOM 版面）。apprEnv＝焦點法寶的自轉包絡（世界單位，相對模型原點）。
+   *  apprDim＝背景壓暗 0..1：只在「從牌桌進場」那一次淡入，切換時維持全暗（不回到牌桌態，凍結 #4）。
+   *  apprMasks＝鑑賞中被改過圖層的每個物件 → 原本的 layers.mask；返回時逐一寫回（凍結 #3／#11(d)）。 */
+  /* 疊層在第一次用到時才建（貼圖要 canvas 2D；headless 測試建托盤但從不進鑑賞，不該碰 DOM canvas） */
+  let fxObj = null;
+  const getFx = () => fxObj || (fxObj = createAppraiseFx());
+  let apprMs = 0;
+  let apprDim = 0;
+  let apprLayout = null;
+  let apprEnv = null;
+  let apprShown = false;
+  let apprGlowHex = '#c9a862';
+  const apprMasks = new Map();
+  const _v = new THREE.Vector3();
+  function stashMask(o, mask) { if (!apprMasks.has(o)) apprMasks.set(o, o.layers.mask); o.layers.mask = mask; }
+  function restoreMasks() { for (const [o, m] of apprMasks) o.layers.mask = m; apprMasks.clear(); }
+  /** 每幀重套一次（新掛上的子物件——例如 GLB 晚到——預設在第 0 層，會被第一趟畫到）：焦點法寶只在 LAYER，
+   *  其餘拍品只在 HIDE_LAYER，燈多開 LAYER 那一位（燈數不變 ⇒ 受光材質不重編）。遮罩原值第一次碰到時記下。 */
+  function applyAppraiseLayers(lightsToo) {
+    const A = TRAY.APPRAISE, focus = nodeOf(apprIdx);
+    for (const s of slots) {
+      const n = nodeOf(s.i); if (!n) continue;
+      const m = n === focus ? (1 << A.LAYER) : (1 << A.HIDE_LAYER);
+      n.traverse((o) => stashMask(o, m));
+    }
+    if (lightsToo) scene.traverse((o) => { if (o.isLight) stashMask(o, (apprMasks.get(o) ?? o.layers.mask) | (1 << A.LAYER)); });
+  }
+  /** 系別色 token（`--sys-zuling` 等，拍品窄籤上那條系色條同一組）→ '#rrggbb'。讀不到就退金線色。 */
+  function sysHex(s) {
+    const key = s.curse ? 'curse' : (s.fac || '');
+    let v = '';
+    try { v = getComputedStyle(document.documentElement).getPropertyValue('--sys-' + key).trim(); } catch (e) { /* headless 無 DOM */ }
+    if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+    const m = v.match(/rgba?\((\d+)\D+(\d+)\D+(\d+)/);
+    if (m) return '#' + [m[1], m[2], m[3]].map((x) => Number(x).toString(16).padStart(2, '0')).join('');
+    return '#c9a862';
+  }
+  /** 自轉包絡：把模型轉到一整圈 ENV_N 個角度，各量一次 Box3.setFromObject（跟 bboxScreen／驗收同一支量法），
+   *  存成「相對自轉軸原點」的世界盒。取景時逐一投影這些盒，要求每一個角度的投影框四角都在鏡子內圈裡
+   *  （凍結 #11(b) 量的正是「每個角度的投影框完全落在內圈圓內」）。只在進場／換件那一刻量一次；
+   *  上下輕浮只是平移，取景時用當下的原點加回去。 */
+  function computeEnv(node) {
+    const rot = node.rotation.y, N = TRAY.APPRAISE.ENV_N, boxes = [];
+    node.getWorldPosition(_v);
+    const o = _v.clone();
+    for (let k = 0; k < N; k++) {
+      node.rotation.y = (k / N) * Math.PI * 2; node.updateMatrixWorld(true);
+      const b = new THREE.Box3().setFromObject(node);
+      if (b.isEmpty()) continue;
+      boxes.push([b.min.x - o.x, b.min.y - o.y, b.min.z - o.z, b.max.x - o.x, b.max.y - o.y, b.max.z - o.z]);
+    }
+    node.rotation.y = rot; node.updateMatrixWorld(true);
+    return boxes.length ? boxes : null;
+  }
+  function showFocus(on) {
+    const s = slots[apprIdx]; const n = nodeOf(apprIdx);
+    if (!s || !n) return;
+    n.visible = on; s.apprHide = !on; apprShown = on;
+  }
 
   /** 這一格的描邊外殼該不該畫：`?table3d=lite` 一律不畫；否則只有 hover／鑑賞中的那一格畫。
    *  ★關法是 `visible=false`★——幾何與材質留著（記憶體不變），three 對不可見的物件直接跳過，
@@ -640,7 +706,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile = null;
     }
     s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.chain = false; s.ready = false; s.hoverK = 0; s.spin = 0;
-    s.rimK = -1; s.played = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
+    s.rimK = -1; s.played = false; s.apprHide = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
        在 GLB 載完之前命中盒還是符紙堆那個小盒——玩家點得到的範圍比看到的小一截。 */
@@ -685,32 +751,64 @@ export function createTableTray(scene, camera, opts = {}) {
     props.setLayout(L.mode, L.XS, TRAY.Y, L.Z, L.SCALE);
   }
 
-  /* 法寶鑑賞頁鏡頭（v0.59.2，凍結 #1(a)／#3）。運鏡策略跟 fitSubject（市集取景避讓）刻意不同——
-   *  那支只會後退到不重疊障礙物；這裡要**主動推近**到「投影框高度 ≥ 目標比例」，同時把它平移進
-   *  跟說明欄相反的那一半安全區（不用 obstacles 清單：左右對半分割本身就保證跟側欄零重疊）。
-   *  每幀重新二分搜尋（不快取上一幀的 d）：法寶本身在浮動／自轉，corners 是世界座標、跟相機無關，
-   *  重算成本只是幾次 8 角點投影，換來「鏡頭位置永遠精確對得上這一幀的姿態」。
-   *  apprK 從 renderer 的 frame() 已經把 camera.position 重置成 authoredPosition 之後才疊加：
+  /** 丙案時間軸 → 疊層 uniform（每幀只寫十幾個數字；燒符的逐像素工作全在 shader）。 */
+  function updateAppraiseFx(dt) {
+    const A = APPR_FX, U = getFx().U;
+    apprMs += dt * 1000;
+    apprDim = Math.min(1, apprDim + (dt * 1000) / A.DIM_MS);
+    applyAppraiseLayers(false);
+    const t = apprMs, burnEnd = A.BURN0 + A.BURN_MS;
+    if (!apprShown && t >= burnEnd) showFocus(true);
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+    const ease = (x) => 1 - Math.pow(1 - x, 3);
+    const lay = apprLayout || { mx: (window.innerWidth || 844) / 2, my: (window.innerHeight || 390) / 2, r: 120 };
+    U.uTime.value += dt;
+    U.uDim.value = ease(apprDim);
+    // 符紙：蓋在鏡心（法寶被推到的位置），高度≈鏡面直徑的 0.9，寬高比照黃表紙 0.42
+    const ph = lay.r * A.FACE * 1.8, pw = ph * 0.42;
+    U.uPaper.value.set(lay.mx, lay.my, pw, ph);
+    U.uPaperA.value = t < burnEnd ? ease(clamp01(t / A.PAPER_IN)) : 0;
+    U.uBurn.value = t < burnEnd ? clamp01((t - A.BURN0) / A.BURN_MS) : 1;
+    const ft = (t - burnEnd) / A.FLASH_MS;
+    U.uFlash.value = ft >= 0 && ft < 1 ? Math.pow(1 - ft, 2) : 0;
+    const mk = clamp01((t - A.MIRROR0) / A.MIRROR_MS), me = ease(mk);
+    U.uMirA.value = me;
+    U.uMirS.value = 0.84 + 0.16 * me;
+    U.uMir.value.set(lay.mx, lay.my, lay.r);
+    // 八卦環：浮現時快轉收住，之後慢轉（凍結 #11(b)「1 秒內 rotation 變化 > 0」量的就是這個角）
+    U.uBag.value = -U.uTime.value * A.BAGUA_SPIN - (1 - me) * 2.2;
+  }
+  /* 法寶鑑賞頁鏡頭（v0.59.2 丙案，凍結 #1(a)／#3／#11(b)）。推近與平移的目標是「照妖鏡的內圈」：
+   *  鏡子的螢幕位置（apprLayout，index.html 依題字欄與另一側窄籤的實際矩形算好）固定不動，
+   *  鏡頭沿視線推近到**自轉包絡**（一整圈 ENV_N 個角度的包圍盒，見 computeEnv）每一個的投影框四角
+   *  都落在「鏡面半徑×FILL」的圓內為止，再用 setViewOffset 把這些框的聯集中心平移到鏡心（純螢幕平移，不改大小）。
+   *  用包絡而不是這一幀的包圍盒：寬體法寶轉到側面時框最寬，用當下的框取景會在那幾個角度出鏡（示意乙的風險 ②）；
+   *  包絡跟角度無關 ⇒ 推近距離整圈不變、法寶在鏡中原地轉，不會跟著角度忽遠忽近。
+   *  每幀重算（法寶在上下輕浮，包絡跟著它的原點走）；成本約 20 次二分 × ENV_N×8 個角點投影。
    *  apprK===0 時這支函式完全不碰 camera（連 clearViewOffset 都不呼叫），是 #3「逐值相同」的保證來源。 */
-  const apprBox = new THREE.Box3();
   const apprV = new THREE.Vector3();
-  /** 世界包圍盒投影成螢幕矩形（CSS px）——**演算法跟 `bboxScreen(i)` 逐行同款**（Box3().setFromObject
-   *  ＋八角點投影），刻意不重用 table-framing.js 的 subjectCorners／projectCorners：那支是骨骼姿態的
-   *  保守包絡，跟 Box3().setFromObject 對同一尊模型量出來的世界框不逐位元組相同（實測可差到個位數 px）。
-   *  驗收讀的是 bboxScreen()，運鏡算的框跟它是兩套算法就會在安全區邊界上打架（曾經量到 798 vs 793 的
-   *  超框），所以這裡直接照抄同一套，兩邊天生就是同一個數字。 */
-  function projBox(node, W, H) {
-    apprBox.setFromObject(node);
-    if (apprBox.isEmpty()) return null;
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (let cx = 0; cx < 2; cx++) for (let cy = 0; cy < 2; cy++) for (let cz = 0; cz < 2; cz++) {
-      apprV.set(cx ? apprBox.max.x : apprBox.min.x, cy ? apprBox.max.y : apprBox.min.y, cz ? apprBox.max.z : apprBox.min.z).project(camera);
-      if (!Number.isFinite(apprV.z) || apprV.z < -1 || apprV.z > 1) return null;
-      const px = (apprV.x * 0.5 + 0.5) * W, py = (1 - (apprV.y * 0.5 + 0.5)) * H;
-      if (px < minX) minX = px; if (px > maxX) maxX = px;
-      if (py < minY) minY = py; if (py > maxY) maxY = py;
+  const apprBox = new THREE.Box3();
+  /** 在目前相機下，把包絡裡每一個角度的盒投影成螢幕矩形；回傳全部矩形的聯集中心，以及「以聯集中心為圓心時
+   *  最遠那個矩形角」的距離（＝要塞進鏡子內圈所需的半徑）。任一角點落到相機後面就回 null（太近）。 */
+  function envFit(pv, boxes, W, H) {
+    const rects = [];
+    let uL = Infinity, uT = Infinity, uR = -Infinity, uB = -Infinity;
+    for (const b of boxes) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let c = 0; c < 8; c++) {
+        apprV.set(pv.x + b[c & 1 ? 3 : 0], pv.y + b[c & 2 ? 4 : 1], pv.z + b[c & 4 ? 5 : 2]).project(camera);
+        if (!Number.isFinite(apprV.z) || apprV.z < -1 || apprV.z > 1) return null;
+        const px = (apprV.x * 0.5 + 0.5) * W, py = (1 - (apprV.y * 0.5 + 0.5)) * H;
+        if (px < minX) minX = px; if (px > maxX) maxX = px;
+        if (py < minY) minY = py; if (py > maxY) maxY = py;
+      }
+      rects.push([minX, minY, maxX, maxY]);
+      if (minX < uL) uL = minX; if (minY < uT) uT = minY; if (maxX > uR) uR = maxX; if (maxY > uB) uB = maxY;
     }
-    return { left: minX, top: minY, right: maxX, bottom: maxY };
+    const cx = (uL + uR) / 2, cy = (uT + uB) / 2;
+    let need = 0;
+    for (const [l, t, r, b] of rects) need = Math.max(need, Math.hypot(Math.max(cx - l, r - cx), Math.max(cy - t, b - cy)));
+    return { cx, cy, need };
   }
   function updateAppraiseCamera(dt) {
     const want = apprIdx >= 0 ? 1 : 0;
@@ -719,46 +817,68 @@ export function createTableTray(scene, camera, opts = {}) {
     else if (apprK > want) apprK = Math.max(want, apprK - rate);
     if (apprK <= 0) { apprK = 0; apprCloseNode = null; return; }
     const node = apprIdx >= 0 ? nodeOf(apprIdx) : apprCloseNode;
-    if (!node || !node.visible) return;
+    if (!node || !apprLayout) return;
+    if (!apprEnv) apprEnv = computeEnv(node);
+    if (!apprEnv) return;
     const base = camera.position.clone();
     const axis = base.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
     camera.clearViewOffset();
     const W = window.innerWidth || 844, H = window.innerHeight || 390;
-    const cs = getComputedStyle(document.documentElement), sv = (k) => parseFloat(cs.getPropertyValue(k)) || 0;
-    const sl = Math.max(6, sv('--safe-left')), sr = Math.max(6, sv('--safe-right')), st = Math.max(6, sv('--safe-top')), sb = Math.max(6, sv('--safe-bottom'));
-    const midX = W / 2, GAP = 8;
-    const half = apprSide === 'left' ? { left: midX + GAP, right: W - sr, top: st, bottom: H - sb } : { left: sl, right: midX - GAP, top: st, bottom: H - sb };
-    const availW = Math.max(1, half.right - half.left);
-    const targetH = TRAY.APPRAISE.TARGET_H * H;
-    const evalAt = (d) => { camera.position.copy(base).addScaledVector(axis, d); camera.updateMatrixWorld(true); return projBox(node, W, H); };
-    const b0 = evalAt(0);
-    if (!b0) { camera.position.copy(base); return; }
-    // 先按高度二分找 dHeight；法寶持續自轉，軸對齊投影框的寬度會隨角度擺動（45° 附近最寬，
-    // 最寬可達 √2 倍），只顧高度目標會在某些幀讓寬度衝出安全區的那一半（#1(a)）。
-    // 所以再按「寬度剛好等於這半邊可用寬」二分出 dWidth，取兩者中**較保守（較不逼近）**的那個——
-    // 寬度優先於「約 40%」這個抓大概的高度目標，畢竟高度只要求 ≥35%（有餘裕可讓），
-    // 但「整框在安全區內、與側欄零重疊」是 #1(a)／#2 的硬門檻，沒有讓的空間。
-    let dHeight = 0;
-    if ((b0.bottom - b0.top) < targetH) {
-      let lo = 0, hi = -0.6, bb = evalAt(hi), guard = 0;
-      while ((!bb || (bb.bottom - bb.top) < targetH) && hi > -6 && guard < 20) { lo = hi; hi *= 1.6; bb = evalAt(hi); guard++; }
-      for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; const q = evalAt(mid); if (q && (q.bottom - q.top) >= targetH) hi = mid; else lo = mid; }
-      dHeight = hi;
+    const pv = node.getWorldPosition(new THREE.Vector3());
+    const target = apprLayout.r * APPR_FX.FACE * TRAY.APPRAISE.FILL;
+    const evalAt = (d) => { camera.position.copy(base).addScaledVector(axis, d); camera.updateMatrixWorld(true); return envFit(pv, apprEnv, W, H); };
+    const fits = (q) => !!q && q.need <= target;
+    // d<0＝往前推近（框變大）。先找一個夾住「剛好塞滿」的區間，再二分；取塞得下的那一側。
+    let lo, hi;
+    if (fits(evalAt(0))) { lo = 0; hi = -0.25; let g = 0; while (fits(evalAt(hi)) && g < 24) { lo = hi; hi *= 1.5; g++; } }
+    else { hi = 0; lo = 0.25; let g = 0; while (!fits(evalAt(lo)) && g < 24) { hi = lo; lo *= 1.5; g++; } }
+    for (let k = 0; k < 16; k++) { const mid = (lo + hi) / 2; if (fits(evalAt(mid))) lo = mid; else hi = mid; }
+    /* 寬體補償：包絡取景是「最寬那個角度剛好塞滿鏡子」，轉到窄的角度時法寶就顯小；扁寬的（虎爺印、詛咒符紙堆）
+     * 在小螢幕上會小到框高不足凍結 #1(a) 的 35%。所以這一幀的真實包圍盒高度低於 MIN_H 時，再往前推，直到
+     * 高度達到 MIN_H、或這一幀的框碰到鏡子內圈為止。對準鏡心的點也從「包絡中心」漸漸移到「這一幀的框中心」
+     * （權重 lam 跟著高度缺口連續變化，不會一幀跳位）——偏心的法寶才推得進去。窄的法寶不會觸發。 */
+    let d = lo, qe = evalAt(lo), cx = qe ? qe.cx : 0, cy = qe ? qe.cy : 0;
+    const minH = TRAY.APPRAISE.MIN_H * H;
+    apprBox.setFromObject(node);
+    const cur = (dd) => {
+      camera.position.copy(base).addScaledVector(axis, dd); camera.updateMatrixWorld(true);
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let k = 0; k < 8; k++) {
+        apprV.set(k & 1 ? apprBox.max.x : apprBox.min.x, k & 2 ? apprBox.max.y : apprBox.min.y, k & 4 ? apprBox.max.z : apprBox.min.z).project(camera);
+        if (!Number.isFinite(apprV.z) || apprV.z < -1 || apprV.z > 1) return null;
+        const px = (apprV.x * 0.5 + 0.5) * W, py = (1 - (apprV.y * 0.5 + 0.5)) * H;
+        if (px < minX) minX = px; if (px > maxX) maxX = px; if (py < minY) minY = py; if (py > maxY) maxY = py;
+      }
+      return { l: minX, t: minY, r: maxX, b: maxY, h: maxY - minY };
+    };
+    const c0 = qe && !apprBox.isEmpty() ? cur(lo) : null;
+    if (c0 && c0.h < minH) {
+      const lam = Math.min(1, (minH - c0.h) / (0.04 * H));
+      const place = (dd) => {
+        const c = cur(dd), e = c && envFit(pv, apprEnv, W, H);
+        if (!c || !e) return null;
+        const px = e.cx + ((c.l + c.r) / 2 - e.cx) * lam, py = e.cy + ((c.t + c.b) / 2 - e.cy) * lam;
+        return { h: c.h, cx: px, cy: py, need: Math.hypot(Math.max(px - c.l, c.r - px), Math.max(py - c.t, c.b - py)) };
+      };
+      const ok = (dd) => { const p = place(dd); return !!(p && p.need <= target); };
+      let a = lo, b = lo - 0.1, g = 0;
+      if (ok(a)) {
+        while (ok(b) && g < 20) { a = b; b -= 0.1 * (1 + g); g++; }
+        for (let k = 0; k < 14; k++) { const m = (a + b) / 2; if (ok(m)) a = m; else b = m; }
+        // a＝這一幀的框剛好塞進內圈的最近距離；高度先到 MIN_H 就停在那裡
+        const pa = place(a);
+        if (pa && pa.h > minH) {
+          let u = lo, v = a;
+          for (let k = 0; k < 14; k++) { const m = (u + v) / 2; const c = cur(m); if (c && c.h >= minH) v = m; else u = m; }
+          d = v;
+        } else d = a;
+        const pd = place(d);
+        if (pd) { cx = pd.cx; cy = pd.cy; }
+      }
     }
-    let d = dHeight;
-    const atH = evalAt(dHeight);
-    if (atH && (atH.right - atH.left) > availW) {
-      let lo = 0, hi = dHeight;
-      // hi（dHeight）此刻寬度必然超界（上面剛驗過），lo=0 必然不超界；
-      // 二分找「寬度剛好等於 availW」那一點，取比它更保守（更靠近 0）的一側，寧可稍窄也不衝框。
-      for (let k = 0; k < 16; k++) { const mid = (lo + hi) / 2; const q = evalAt(mid); if (q && (q.right - q.left) <= availW) lo = mid; else hi = mid; }
-      d = lo;
-    }
-    const boundsAtD = evalAt(d);
-    const shift = boundsAtD && placeSubject(boundsAtD, half, []);
     camera.position.copy(base).addScaledVector(axis, d * apprK);
     camera.updateMatrixWorld(true);
-    if (shift) camera.setViewOffset(W, H, -shift.x * apprK, -shift.y * apprK, W, H);
+    if (qe) camera.setViewOffset(W, H, (cx - apprLayout.mx) * apprK, (cy - apprLayout.my) * apprK, W, H);
     else camera.clearViewOffset();
   }
 
@@ -844,7 +964,7 @@ export function createTableTray(scene, camera, opts = {}) {
         const curse = !!it.curse;
         const curseKind = it.curseKind || null;
         const node = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
-        if (s.key === key && s.curse === curse && s.curseKind === curseKind && node && node.visible && !s.award && !s.burn && !s.curseAward) {
+        if (s.key === key && s.curse === curse && s.curseKind === curseKind && node && (s.apprHide || node.visible && !s.award) && !s.award && !s.burn && !s.curseAward) { // apprHide：鑑賞揭幕中暫藏的焦點仍在桌上
           s.moon = !!it.moon;
           s.chain = !s.curse && !!it.chain;
           continue;
@@ -866,6 +986,8 @@ export function createTableTray(scene, camera, opts = {}) {
         slot: s.i, key: s.key, curse: s.curse, curseKind: s.curseKind, fac: s.fac, moon: s.moon, chain: s.chain, ready: s.ready,
         glb: s.fig ? creatureGlbUrl(s.key) : null,
         visible: s.fig ? s.fig.group.visible : !!s.pile,
+        /* 丙案（v0.59.2）：apprHide＝鑑賞揭幕中被暫藏的焦點（仍在桌上，滑動換件的順序要算它）。 */
+        apprHide: !!s.apprHide,
         outlines: s.fig ? s.fig.outlines().filter((sh) => sh.visible).length : 0,
         glow: s.pile ? s.pile.glow() : 1,
       }));
@@ -919,8 +1041,9 @@ export function createTableTray(scene, camera, opts = {}) {
      *  法寶本身會被鏡頭推到**另一半**。同一件重呼叫只更新 side（供之後可能的轉向切換用，目前呼叫端不會這樣用）。
      *  換件（凍結 #4：直接換、不回牌桌態）時，離開的那一格立刻歸位到基準朝向（#3 要求「過渡結束後…與進場前
      *  逐值相同」；相機那一半的「過渡」交給 updateAppraiseCamera 的 apprK 漸進，姿態這一半沒有動畫需求可以直接歸位）。 */
-    setAppraise(i, side) {
+    setAppraise(i, side, layout) {
       const k = (i >= 0 && i < N) ? i : -1;
+      if (layout && Number.isFinite(layout.mx) && Number.isFinite(layout.my) && layout.r > 0) apprLayout = { mx: layout.mx, my: layout.my, r: layout.r };
       if (k === apprIdx) { if (side) apprSide = side === 'left' ? 'left' : 'right'; return; }
       if (hover >= 0) api.setHover(-1);
       const prev = apprIdx;
@@ -929,18 +1052,82 @@ export function createTableTray(scene, camera, opts = {}) {
         s.spin = TRAY.YAW[prev] || 0;
         if (s.fig) { s.fig.group.position.y = TRAY.Y; s.fig.group.rotation.y = s.spin; s.fig.setRim(TRAY.RIM_BASE); s.rimK = -1; s.rimStillWas = false; }
         else if (s.pile) { s.pile.group.position.y = TRAY.Y; s.pile.group.rotation.y = s.spin; s.pile.setGlow(1); }
+        const n = nodeOf(prev); if (n && s.apprHide) { n.visible = true; s.apprHide = false; }
         applyOutline(s);
       }
+      /* 丙案圖層：換件＝先把所有遮罩寫回原值，再依新的焦點重套（焦點↔其餘的身分對調了） */
+      restoreMasks();
       apprIdx = k;
       if (k >= 0) {
+        if (prev < 0) apprDim = 0; // 從牌桌進場才淡入；切換時背景維持全暗（凍結 #4：中途不回到牌桌態）
         apprSide = side === 'left' ? 'left' : 'right';
         apprT = 0;
+        apprMs = 0;
+        apprEnv = null;
         apprCloseNode = nodeOf(k);
+        apprGlowHex = sysHex(slots[k]);
+        /* sRGB 位元組原樣進 shader（見 appraise-fx.js 檔頭「色彩」）：以 linear 標記寫入＝不做色彩空間換算 */
+        getFx().U.uGlow.value.setRGB(parseInt(apprGlowHex.slice(1, 3), 16) / 255, parseInt(apprGlowHex.slice(3, 5), 16) / 255, parseInt(apprGlowHex.slice(5, 7), 16) / 255, THREE.LinearSRGBColorSpace);
+        showFocus(false); // 燒符結束之前焦點法寶不可見（凍結 #11(a)）
+        applyAppraiseLayers(true);
         applyOutline(slots[k]);
         if (slots[k].fig && !slots[k].played && slots[k].ready) slots[k].played = !!slots[k].fig.play('idle', { fade: 0.25 });
+      } else {
+        apprShown = false;
       }
     },
     appraise() { return apprIdx; },
+    /** 丙案：揭幕（燒符→照妖鏡浮現）是否還在進行（凍結 #1 修訂：進行中點空白＝跳過，不返回）。 */
+    appraiseIntro() { return apprIdx >= 0 && apprMs < APPR_FX.STABLE; },
+    /** 跳過揭幕：直接到穩定鑑賞態（鏡頭推到位、符紙燒完、鏡子全亮、法寶現身）。凍結 #1 修訂要 0.1 秒內；
+     *  這裡同步改狀態，下一幀（≤1 個 rAF）畫出來。 */
+    skipAppraiseIntro() {
+      if (!(apprIdx >= 0) || apprMs >= APPR_FX.STABLE) return false;
+      apprMs = APPR_FX.STABLE; apprDim = 1; apprK = 1;
+      showFocus(true);
+      return true;
+    },
+    /** 視窗改尺寸時 index.html 重算鏡子位置後推進來（不重燒）。 */
+    setAppraiseLayout(layout) { if (layout && layout.r > 0) apprLayout = { mx: layout.mx, my: layout.my, r: layout.r }; },
+    /** 治具用唯讀出口：第 i 格的模型根節點（驗收自己拿 three 量包圍盒、讀 visible／layers，不經本檔換算）。 */
+    node(i) { return (i >= 0 && i < N) ? nodeOf(i) : null; },
+    /** 治具用唯讀出口：丙案疊層這一幀實際送進 shader 的值（鏡子幾何、符紙矩形、八卦角）＋兩個圖層編號。
+     *  鏡子／符紙的螢幕位置就是 shader 的 uniform 本身——量像素的判定器拿它決定取樣位置，再用像素驗證。 */
+    appraiseFx() {
+      const U = getFx().U, P = U.uPaper.value, M = U.uMir.value;
+      return {
+        idx: apprIdx, ms: apprMs, stable: apprIdx >= 0 && apprMs >= APPR_FX.STABLE, k: apprK, shown: apprShown,
+        layer: TRAY.APPRAISE.LAYER, hideLayer: TRAY.APPRAISE.HIDE_LAYER,
+        dim: U.uDim.value,
+        paper: { alpha: U.uPaperA.value, burn: U.uBurn.value, cx: P.x, cy: P.y, w: P.z, h: P.w },
+        mirror: { alpha: U.uMirA.value, scale: U.uMirS.value, cx: M.x, cy: M.y, r: M.z, face: APPR_FX.FACE, line: [APPR_FX.LINE0, APPR_FX.LINE1], glow: apprGlowHex, bagua: U.uBag.value },
+        flash: U.uFlash.value,
+      };
+    },
+    /** 開頁預先編譯疊層 shader（renderer.js init 呼叫一次）。 */
+    warmAppraise(renderer) { getFx().warm(renderer); },
+    /** renderer.js 在畫完世界那一趟之後呼叫：疊層（壓暗＋鏡子＋符紙）→ 清深度 → 只畫焦點法寶那一層 → 火星。
+     *  ★draw 計數★：renderer.info 預設每次 render() 開頭歸零，這裡暫時關掉 autoReset，讓這幾趟累加在世界那一趟
+     *  之後——`renderer.info.render.calls` 讀到的才是這一幀真正的總數（凍結 #8／#11(e) 量的就是它）。 */
+    renderOverlay(renderer) {
+      if (apprIdx < 0 || !visible || !apprLayout) return;
+      const info = renderer.info, ar = info.autoReset, ac = renderer.autoClear;
+      info.autoReset = false; renderer.autoClear = false;
+      const fx = getFx();
+      fx.U.uView.value.set(window.innerWidth || 844, window.innerHeight || 390);
+      fx.U.uDpr.value = renderer.getPixelRatio();
+      renderer.render(fx.scene, fx.cam);
+      if (apprShown) {
+        renderer.clearDepth();
+        const mask = camera.layers.mask, bg = scene.background;
+        camera.layers.set(TRAY.APPRAISE.LAYER); scene.background = null;
+        renderer.render(scene, camera);
+        camera.layers.mask = mask; scene.background = bg;
+      }
+      const b = fx.U.uBurn.value;
+      if (b > 0 && b < 1) renderer.render(fx.emberScene, fx.cam);
+      renderer.autoClear = ac; info.autoReset = ar;
+    },
     /** 螢幕座標（px，相對視窗左上）。canvas 是 fixed 0,0 滿版，所以視窗座標＝canvas 座標。 */
     slotScreen(i) {
       if (!(i >= 0 && i < N)) return null;
@@ -984,6 +1171,7 @@ export function createTableTray(scene, camera, opts = {}) {
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
       if (apprIdx >= 0) apprT += dt;
+      if (apprIdx >= 0) updateAppraiseFx(dt);
       chainAnimTime += dt;
       let runeDirty = false;
       for (let i = 0; i < N; i++) if (runePulse[i] > 0) { runePulse[i] = Math.max(0, runePulse[i] - dt / 0.72); runeDirty = true; }
