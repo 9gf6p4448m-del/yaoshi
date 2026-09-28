@@ -1,0 +1,131 @@
+{
+ "cases": [
+  {
+   "vp": "V1",
+   "mode": "solo",
+   "checks": {},
+   "picks": [
+    {
+     "rail": "railW",
+     "slot": 0,
+     "bboxHeightFrac": 0.11306669522614655,
+     "bboxInSafe": true,
+     "bboxPanelOverlap": 0,
+     "panelSide": "left",
+     "expectPanelSide": "left",
+     "refBrightness": 23.037892883993965,
+     "afterBrightness": 22.78083401769372,
+     "dimRatio": 0.9888419106905891,
+     "rotYChange1s": 0,
+     "posYBobRange2s": 0,
+     "othersRotChange1s": [
+      0,
+      0,
+      0
+     ],
+     "content": {
+      "liveTxt": "白虎煞詛咒・纏身詛咒每次戰敗：每件額外失1壽命（減傷前）🕸詛咒品不召喚（只算纏身）",
+      "refTxt": "白虎煞詛咒・纏身詛咒每次戰敗：每件額外失1壽命（減傷前）🕸詛咒品不召喚（只算纏身）",
+      "refErr": null,
+      "match": true,
+      "hasCard": true
+     },
+     "returnCamMatch": false,
+     "stillOpen": false
+    },
+    {
+     "rail": "railE",
+     "slot": 2,
+     "bboxHeightFrac": 0.3083594168961213,
+     "bboxInSafe": true,
+     "bboxPanelOverlap": 0,
+     "panelSide": "left",
+     "expectPanelSide": "right",
+     "refBrightness": 24.387800028368805,
+     "afterBrightness": 23.933369700378826,
+     "dimRatio": 0.9813664894963314,
+     "rotYChange1s": 0,
+     "posYBobRange2s": 0,
+     "othersRotChange1s": [
+      0,
+      0,
+      0
+     ],
+     "content": {
+      "liveTxt": "王爺劍共鳴2拍・大紙偶×1香火夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額大紙偶×1・攻9・血6・共鳴2拍",
+      "refTxt": "王爺劍共鳴2拍・大紙偶×1香火夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額大紙偶×1・攻9・血6・共鳴2拍",
+      "refErr": null,
+      "match": true,
+      "hasCard": true
+     },
+     "returnCamMatch": false,
+     "stillOpen": false
+    }
+   ]
+  },
+  {
+   "vp": "V3",
+   "mode": "hot",
+   "checks": {},
+   "picks": [
+    {
+     "rail": "railW",
+     "slot": 0,
+     "bboxHeightFrac": 0.35501834835280255,
+     "bboxInSafe": true,
+     "bboxPanelOverlap": 0,
+     "panelSide": "right",
+     "expectPanelSide": "left",
+     "refBrightness": 22.55756815230844,
+     "afterBrightness": 25.198923171374098,
+     "dimRatio": 1.1170939616022106,
+     "rotYChange1s": 0,
+     "posYBobRange2s": 0,
+     "othersRotChange1s": [
+      0,
+      0,
+      0
+     ],
+     "content": {
+      "liveTxt": "山神庇佑共鳴1拍・護法紙人×2祖靈✦壽命30以上時，共鳴加成額外+50%護法紙人×2・攻1・血5・共鳴1拍",
+      "refTxt": "山神庇佑共鳴1拍・護法紙人×2祖靈✦壽命30以上時，共鳴加成額外+50%護法紙人×2・攻1・血5・共鳴1拍",
+      "refErr": null,
+      "match": true,
+      "hasCard": true
+     },
+     "returnCamMatch": false,
+     "stillOpen": false
+    },
+    {
+     "rail": "railE",
+     "slot": 2,
+     "bboxHeightFrac": 0.2942207426862812,
+     "bboxInSafe": true,
+     "bboxPanelOverlap": 0,
+     "panelSide": "left",
+     "expectPanelSide": "right",
+     "refBrightness": 23.364156353849513,
+     "afterBrightness": 22.614154178162547,
+     "dimRatio": 0.9678994540043216,
+     "rotYChange1s": 0,
+     "posYBobRange2s": 0,
+     "othersRotChange1s": [
+      0,
+      0,
+      0
+     ],
+     "content": {
+      "liveTxt": "五營旗共鳴2拍・小紙人×3香火✦共鳴計算時，香火視為多1件小紙人×3・攻1・血3・共鳴2拍",
+      "refTxt": "五營旗共鳴2拍・小紙人×3香火✦共鳴計算時，香火視為多1件小紙人×3・攻1・血3・共鳴2拍",
+      "refErr": null,
+      "match": true,
+      "hasCard": true
+     },
+     "returnCamMatch": false,
+     "stillOpen": false
+    }
+   ]
+  }
+ ],
+ "notes": []
+}

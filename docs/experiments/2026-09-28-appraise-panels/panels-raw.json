@@ -1,0 +1,79 @@
+{
+ "runs": [
+  {
+   "mode": "solo",
+   "vp": "V1",
+   "nights": [
+    {
+     "n": 0,
+     "phase": "reveal",
+     "panelFound": true,
+     "safeOk": true,
+     "overflowBad": 0,
+     "panelRect": {
+      "left": 67,
+      "top": 185,
+      "right": 785,
+      "bottom": 308
+     },
+     "revealCheck": {
+      "missing": [],
+      "winCount": 4,
+      "feeCount": 2,
+      "poisonCount": 1,
+      "passCount": 0
+     }
+    },
+    {
+     "n": 0,
+     "phase": "nightend",
+     "panelFound": true,
+     "safeOk": true,
+     "overflowBad": 0,
+     "scrolledOk": "no-scroll-needed",
+     "nightendCheck": {
+      "missing": [],
+      "wishLines": 3,
+      "dawnLines": 1,
+      "fights": 2
+     }
+    },
+    {
+     "n": 1,
+     "phase": "reveal",
+     "panelFound": true,
+     "safeOk": true,
+     "overflowBad": 0,
+     "panelRect": {
+      "left": 67,
+      "top": 207,
+      "right": 785,
+      "bottom": 308
+     },
+     "revealCheck": {
+      "missing": [],
+      "winCount": 2,
+      "feeCount": 1,
+      "poisonCount": 0,
+      "passCount": 2
+     }
+    },
+    {
+     "n": 1,
+     "phase": "nightend",
+     "panelFound": true,
+     "safeOk": true,
+     "overflowBad": 0,
+     "scrolledOk": true,
+     "nightendCheck": {
+      "missing": [],
+      "wishLines": 3,
+      "dawnLines": 3,
+      "fights": 2
+     }
+    }
+   ]
+  }
+ ],
+ "notes": []
+}
