@@ -117,7 +117,7 @@ export function keepFlightDepth(node, from, camera) {
 
 /** Actual visible geometry, including animated transforms; hidden outlines do
  * not enlarge the subject. Null means absent geometry, never successful framing. */
-function subjectCorners(node, shared = new Map()) {
+export function subjectCorners(node, shared = new Map()) {
   if (Array.isArray(node)) {
     const groups = node.map(n => subjectCorners(n, shared));
     return groups.length && groups.every(Boolean) ? groups.flat() : null;
@@ -148,7 +148,7 @@ function subjectCorners(node, shared = new Map()) {
   return points.length ? points : null;
 }
 
-function projectCorners(points, camera, width, height) {
+export function projectCorners(points, camera, width, height) {
   if (!points) return null;
   camera.updateMatrixWorld(true);
   const point = points[0].clone();

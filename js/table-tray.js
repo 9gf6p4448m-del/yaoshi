@@ -21,6 +21,10 @@ const { makeCreatureFigure, creatureGlbUrl, FACTION_RIM } = await import('./crea
 const { vcBuilder, seedRnd: rnd } = await import('./scene-env.js' + V);
 /* 桌上道具（v0.56b 第二段）：籌碼／令牌／信物。掛進本檔的 group ⇒ 對決時整組跟著收。 */
 const { createTableProps } = await import('./table-props.js' + V);
+/* 法寶鑑賞頁鏡頭（v0.59.2）：只借市集取景卷（A1）已經寫好的「螢幕矩形塞進安全區」這支純函式
+   （placeSubject）；世界包圍盒→螢幕投影框改用本檔自己的 projBox，理由見 updateAppraiseCamera 檔頭。
+   fitSubject 本身不能用（它只會後退避讓，鑑賞頁要的是主動推近），運鏡邏輯整支是本檔自己的。 */
+const { placeSubject } = await import('./table-framing.js' + V);
 
 /* POOL 的系名是 zuling/xianghuo/yinqi，FACTION_RIM 的鍵是 zuli/xianghu/yinqi（兩套拼法並存，
    與 renderer.js 的 RIM_BY_FAC 同一份對照）。 */
@@ -64,6 +68,19 @@ export const TRAY = {
    *  位置與旋轉在整段開卡期間跟關卡前逐值相同（見 setHover 的 `still` 參數）。 */
   RIM_STILL: 5.6,
   HOVER_MS: 0.16,
+  /** v0.59.2 法寶鑑賞頁（凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1）：
+   *  點窄籤推近＋自轉＋idle 上下輕浮，取代 v0.59.1 的「只亮不動」開卡停靠。節奏中等（使用者裁定）：
+   *  推近 0.35 秒、自轉 6 秒一圈、法寶約佔畫面高 40%（TARGET_H 取 0.42 留餘裕給 #1(a) 的 ≥35% 門檻）。
+   *  全部【試玩必調】。 */
+  APPRAISE: {
+    DOLLY_MS: 350,
+    TARGET_H: 0.42,
+    SPIN_RAD_S: (Math.PI * 2) / 6,
+    LIFT: 0.10,
+    BOB_AMP: 0.028,
+    BOB_HZ: 0.42,
+    RIM: 6.4,
+  },
   /** 詛咒品占位：一疊綑起來的舊符紙＋紫黑陰火（ART_BIBLE §4「詛咒＝有作者的惡意、是物不是靈」） */
   /* 詛咒占位（自評 r1 E／F：第一版讀成「紙箱」、陰火是方塊像素）：
      紙張改薄、層距收窄、尺寸壓小，墨黑改成兩條細符文帶；陰火粒子縮小並隨高度淡出。 */
@@ -574,12 +591,24 @@ export function createTableTray(scene, camera, opts = {}) {
   const ndc = new THREE.Vector2();
   const tmp = new THREE.Vector3();
 
-  /** 這一格的描邊外殼該不該畫：`?table3d=lite` 一律不畫；否則只有 hover 的那一格畫。
+  /* ── 法寶鑑賞頁狀態（v0.59.2）───────────────────────────────────────
+   *  apprIdx＝鑑賞中的槽位（−1＝無）；apprSide＝說明欄在畫面哪一半（法寶被推到另一半）；
+   *  apprT＝進入鑑賞那一刻歸零、之後每幀累加的秒數（自轉角／浮動相位的唯一輸入）；
+   *  apprK＝鏡頭推近的 0..1 進度（線性，350ms 內線性到 1／回 0；回到剛好 0 時 update() 完全不碰相機，
+   *  #3「返回後鏡頭逐值相同」靠的就是這一格恰好等於 0，不是漸近趨近）。 */
+  let apprIdx = -1;
+  let apprSide = 'right';
+  let apprT = 0;
+  let apprK = 0;
+  let apprCloseNode = null; // 收桌鏡頭回程要跟著的那一件（apprIdx 已經 −1 之後仍需要，直到 apprK 回 0）
+  function nodeOf(i) { const s = slots[i]; return s ? (s.fig ? s.fig.group : (s.pile ? s.pile.group : null)) : null; }
+
+  /** 這一格的描邊外殼該不該畫：`?table3d=lite` 一律不畫；否則只有 hover／鑑賞中的那一格畫。
    *  ★關法是 `visible=false`★——幾何與材質留著（記憶體不變），three 對不可見的物件直接跳過，
    *  draw call 與三角形就都不算；掛回來是同一顆 mesh，不重建、不重編 shader。 */
   function applyOutline(s) {
     if (!s.fig) return;
-    const on = outlineOn && !pressureOutlines && s.i === hover;
+    const on = outlineOn && !pressureOutlines && (s.i === hover || s.i === apprIdx);
     s.fig.outlines().forEach((sh) => { sh.visible = on; });
   }
   /* 128 枚已是「四席同夜全格滿標」的性能壓力情境；此時 hover 留模型抬升、旋轉與 rim 光，
@@ -654,6 +683,83 @@ export function createTableTray(scene, camera, opts = {}) {
     }
     refreshMoonMarks();
     props.setLayout(L.mode, L.XS, TRAY.Y, L.Z, L.SCALE);
+  }
+
+  /* 法寶鑑賞頁鏡頭（v0.59.2，凍結 #1(a)／#3）。運鏡策略跟 fitSubject（市集取景避讓）刻意不同——
+   *  那支只會後退到不重疊障礙物；這裡要**主動推近**到「投影框高度 ≥ 目標比例」，同時把它平移進
+   *  跟說明欄相反的那一半安全區（不用 obstacles 清單：左右對半分割本身就保證跟側欄零重疊）。
+   *  每幀重新二分搜尋（不快取上一幀的 d）：法寶本身在浮動／自轉，corners 是世界座標、跟相機無關，
+   *  重算成本只是幾次 8 角點投影，換來「鏡頭位置永遠精確對得上這一幀的姿態」。
+   *  apprK 從 renderer 的 frame() 已經把 camera.position 重置成 authoredPosition 之後才疊加：
+   *  apprK===0 時這支函式完全不碰 camera（連 clearViewOffset 都不呼叫），是 #3「逐值相同」的保證來源。 */
+  const apprBox = new THREE.Box3();
+  const apprV = new THREE.Vector3();
+  /** 世界包圍盒投影成螢幕矩形（CSS px）——**演算法跟 `bboxScreen(i)` 逐行同款**（Box3().setFromObject
+   *  ＋八角點投影），刻意不重用 table-framing.js 的 subjectCorners／projectCorners：那支是骨骼姿態的
+   *  保守包絡，跟 Box3().setFromObject 對同一尊模型量出來的世界框不逐位元組相同（實測可差到個位數 px）。
+   *  驗收讀的是 bboxScreen()，運鏡算的框跟它是兩套算法就會在安全區邊界上打架（曾經量到 798 vs 793 的
+   *  超框），所以這裡直接照抄同一套，兩邊天生就是同一個數字。 */
+  function projBox(node, W, H) {
+    apprBox.setFromObject(node);
+    if (apprBox.isEmpty()) return null;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let cx = 0; cx < 2; cx++) for (let cy = 0; cy < 2; cy++) for (let cz = 0; cz < 2; cz++) {
+      apprV.set(cx ? apprBox.max.x : apprBox.min.x, cy ? apprBox.max.y : apprBox.min.y, cz ? apprBox.max.z : apprBox.min.z).project(camera);
+      if (!Number.isFinite(apprV.z) || apprV.z < -1 || apprV.z > 1) return null;
+      const px = (apprV.x * 0.5 + 0.5) * W, py = (1 - (apprV.y * 0.5 + 0.5)) * H;
+      if (px < minX) minX = px; if (px > maxX) maxX = px;
+      if (py < minY) minY = py; if (py > maxY) maxY = py;
+    }
+    return { left: minX, top: minY, right: maxX, bottom: maxY };
+  }
+  function updateAppraiseCamera(dt) {
+    const want = apprIdx >= 0 ? 1 : 0;
+    const rate = dt / (TRAY.APPRAISE.DOLLY_MS / 1000);
+    if (apprK < want) apprK = Math.min(want, apprK + rate);
+    else if (apprK > want) apprK = Math.max(want, apprK - rate);
+    if (apprK <= 0) { apprK = 0; apprCloseNode = null; return; }
+    const node = apprIdx >= 0 ? nodeOf(apprIdx) : apprCloseNode;
+    if (!node || !node.visible) return;
+    const base = camera.position.clone();
+    const axis = base.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
+    camera.clearViewOffset();
+    const W = window.innerWidth || 844, H = window.innerHeight || 390;
+    const cs = getComputedStyle(document.documentElement), sv = (k) => parseFloat(cs.getPropertyValue(k)) || 0;
+    const sl = Math.max(6, sv('--safe-left')), sr = Math.max(6, sv('--safe-right')), st = Math.max(6, sv('--safe-top')), sb = Math.max(6, sv('--safe-bottom'));
+    const midX = W / 2, GAP = 8;
+    const half = apprSide === 'left' ? { left: midX + GAP, right: W - sr, top: st, bottom: H - sb } : { left: sl, right: midX - GAP, top: st, bottom: H - sb };
+    const availW = Math.max(1, half.right - half.left);
+    const targetH = TRAY.APPRAISE.TARGET_H * H;
+    const evalAt = (d) => { camera.position.copy(base).addScaledVector(axis, d); camera.updateMatrixWorld(true); return projBox(node, W, H); };
+    const b0 = evalAt(0);
+    if (!b0) { camera.position.copy(base); return; }
+    // 先按高度二分找 dHeight；法寶持續自轉，軸對齊投影框的寬度會隨角度擺動（45° 附近最寬，
+    // 最寬可達 √2 倍），只顧高度目標會在某些幀讓寬度衝出安全區的那一半（#1(a)）。
+    // 所以再按「寬度剛好等於這半邊可用寬」二分出 dWidth，取兩者中**較保守（較不逼近）**的那個——
+    // 寬度優先於「約 40%」這個抓大概的高度目標，畢竟高度只要求 ≥35%（有餘裕可讓），
+    // 但「整框在安全區內、與側欄零重疊」是 #1(a)／#2 的硬門檻，沒有讓的空間。
+    let dHeight = 0;
+    if ((b0.bottom - b0.top) < targetH) {
+      let lo = 0, hi = -0.6, bb = evalAt(hi), guard = 0;
+      while ((!bb || (bb.bottom - bb.top) < targetH) && hi > -6 && guard < 20) { lo = hi; hi *= 1.6; bb = evalAt(hi); guard++; }
+      for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; const q = evalAt(mid); if (q && (q.bottom - q.top) >= targetH) hi = mid; else lo = mid; }
+      dHeight = hi;
+    }
+    let d = dHeight;
+    const atH = evalAt(dHeight);
+    if (atH && (atH.right - atH.left) > availW) {
+      let lo = 0, hi = dHeight;
+      // hi（dHeight）此刻寬度必然超界（上面剛驗過），lo=0 必然不超界；
+      // 二分找「寬度剛好等於 availW」那一點，取比它更保守（更靠近 0）的一側，寧可稍窄也不衝框。
+      for (let k = 0; k < 16; k++) { const mid = (lo + hi) / 2; const q = evalAt(mid); if (q && (q.right - q.left) <= availW) lo = mid; else hi = mid; }
+      d = lo;
+    }
+    const boundsAtD = evalAt(d);
+    const shift = boundsAtD && placeSubject(boundsAtD, half, []);
+    camera.position.copy(base).addScaledVector(axis, d * apprK);
+    camera.updateMatrixWorld(true);
+    if (shift) camera.setViewOffset(W, H, -shift.x * apprK, -shift.y * apprK, W, H);
+    else camera.clearViewOffset();
   }
 
   function fillSlot(s, it) {
@@ -809,6 +915,32 @@ export function createTableTray(scene, camera, opts = {}) {
       if (director && director.setTrayPush) director.setTrayPush(k >= 0 && !hoverStill);
     },
     hover() { return hover; },
+    /** 法寶鑑賞頁（v0.59.2，凍結 #1–#4）。i<0 收起。side＝説明欄在畫面哪一半（'left'／'right'）——
+     *  法寶本身會被鏡頭推到**另一半**。同一件重呼叫只更新 side（供之後可能的轉向切換用，目前呼叫端不會這樣用）。
+     *  換件（凍結 #4：直接換、不回牌桌態）時，離開的那一格立刻歸位到基準朝向（#3 要求「過渡結束後…與進場前
+     *  逐值相同」；相機那一半的「過渡」交給 updateAppraiseCamera 的 apprK 漸進，姿態這一半沒有動畫需求可以直接歸位）。 */
+    setAppraise(i, side) {
+      const k = (i >= 0 && i < N) ? i : -1;
+      if (k === apprIdx) { if (side) apprSide = side === 'left' ? 'left' : 'right'; return; }
+      if (hover >= 0) api.setHover(-1);
+      const prev = apprIdx;
+      if (prev >= 0 && prev !== k) {
+        const s = slots[prev];
+        s.spin = TRAY.YAW[prev] || 0;
+        if (s.fig) { s.fig.group.position.y = TRAY.Y; s.fig.group.rotation.y = s.spin; s.fig.setRim(TRAY.RIM_BASE); s.rimK = -1; s.rimStillWas = false; }
+        else if (s.pile) { s.pile.group.position.y = TRAY.Y; s.pile.group.rotation.y = s.spin; s.pile.setGlow(1); }
+        applyOutline(s);
+      }
+      apprIdx = k;
+      if (k >= 0) {
+        apprSide = side === 'left' ? 'left' : 'right';
+        apprT = 0;
+        apprCloseNode = nodeOf(k);
+        applyOutline(slots[k]);
+        if (slots[k].fig && !slots[k].played && slots[k].ready) slots[k].played = !!slots[k].fig.play('idle', { fade: 0.25 });
+      }
+    },
+    appraise() { return apprIdx; },
     /** 螢幕座標（px，相對視窗左上）。canvas 是 fixed 0,0 滿版，所以視窗座標＝canvas 座標。 */
     slotScreen(i) {
       if (!(i >= 0 && i < N)) return null;
@@ -851,6 +983,7 @@ export function createTableTray(scene, camera, opts = {}) {
       const wantP = (camera.aspect || 1) < 1;
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
+      if (apprIdx >= 0) apprT += dt;
       chainAnimTime += dt;
       let runeDirty = false;
       for (let i = 0; i < N; i++) if (runePulse[i] > 0) { runePulse[i] = Math.max(0, runePulse[i] - dt / 0.72); runeDirty = true; }
@@ -882,6 +1015,30 @@ export function createTableTray(scene, camera, opts = {}) {
           shake = -Math.sin((1 - s.jolt) * Math.PI * 3.2) * 0.030 * s.jolt;
         }
         const y = TRAY.Y + (still ? 0 : TRAY.HOVER_LIFT * ease) + shake;
+        /* 法寶鑑賞頁（v0.59.2，凍結 #1(c)(d)）：鑑賞中的那一件抬升＋連續自轉（6 秒一圈）＋上下輕浮，
+           其餘格子完全不受影響（不是 hover、不是 apprIdx ⇒ 照舊分支，spin 不動或照 hover 衰減邏輯收斂）。
+           award／curseAward／burn（飛出去、詛咒燒毀／轉移）優先於鑑賞姿態——那三件事本來就代表這一格
+           的生命週期已經在收尾，鑑賞頁不可能同時挑到正在飛走的那一件（selectRailPage 只點得到還在桌上的）。 */
+        if (s.i === apprIdx && !s.award && !s.curseAward && s.burn === undefined) {
+          const A = TRAY.APPRAISE;
+          s.spin += A.SPIN_RAD_S * dt;
+          const bob = Math.sin(apprT * Math.PI * 2 * A.BOB_HZ) * A.BOB_AMP;
+          const yy = TRAY.Y + A.LIFT + bob;
+          if (s.fig) {
+            s.fig.group.position.y = yy;
+            s.fig.group.rotation.y = s.spin;
+            if (s.rimK !== 1 || !s.rimStillWas) { s.rimK = 1; s.rimStillWas = true; s.fig.setRim(A.RIM); }
+            s.fig.update(dt);
+          } else if (s.pile) {
+            s.pile.group.position.y = yy;
+            s.pile.group.rotation.y = s.spin;
+            s.pile.setGlow(2.8);
+            s.pile.update(dt);
+          }
+          const node = s.fig ? s.fig.group : s.pile?.group;
+          if (node?.visible && opts.frameSubjects) subjects.push({ slot: s.i, node, hovered: false, flying: false });
+          continue;
+        }
         if (s.award && s.fig) {
           const a = s.award; a.t = Math.min(1, a.t + dt / 0.86);
           const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.winner);
@@ -924,6 +1081,7 @@ export function createTableTray(scene, camera, opts = {}) {
       // Skip can launch several awards in one frame. Frame their union after
       // all poses are updated, then hide terminal subjects in this same frame.
       if (subjects.length) opts.frameSubjects(subjects);
+      updateAppraiseCamera(dt);
       for (const s of slots) {
         if (s.award?.t >= 1) { s.fig.group.visible = false; s.award = null; }
         if (s.curseAward?.t >= 1) { s.pile.group.visible = false; s.curseAward = null; }

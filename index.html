@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.59.1"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.59.2"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -129,30 +129,26 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d .railPages{display:none}
   #table.t3d .rail.open{z-index:20}
   #table.t3d.cardOpen #feltHead{visibility:hidden}
-  /* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2，使用者裁 A）：原本貼著側欄浮出、會蓋住 3D 法寶本體；
-     改成 position:fixed 釘在畫面上方中央——.rail／#west／#east 都沒有 filter/transform/backdrop-filter，
-     fixed 的容器就是 viewport，left:50% 直接對齊 #table 的水平中心（#table margin:0 auto 置中、
-     東西兩欄同寬 168px，viewport 中心＝桌心 #felt 的水平中心，不必量 #felt 的 rect）。
-     top 用安全區＋北列列高（56px）＋grid gap（4px）＋#felt 自己的上內距（8px）算出來，
-     剛好落在心願條那一列（#feltHead），可以蓋住心願條／頂列風位條，但落不到北列（#north）。
-     寬度與高度都用 min()/calc() 夾在安全區內，超出內容用卡片自己的捲動（見 .railCardClose 旁的 overflow-y）。
-     ★#1 靠的是 js/table-tray.js 的 setHover(i,{still:true})，不是這裡的 top 留白★：
-     開卡時法寶「只亮不動」（不抬升、不自轉、鏡頭不推），投影框跟關卡前逐值相同，所以 top 用原本
-     的完整公式即可，不必犧牲跟北列的安全距離去閃一個已經不會發生的抬升。 */
-  #table.t3d .rail.open .railPages{display:block;position:fixed;z-index:21;
-    left:50%;right:auto;transform:translate(calc(-50% - 21px),0);
-    top:calc(max(4px,var(--safe-top)) + 56px + 4px + 8px);
-    width:min(240px,calc(100vw - var(--safe-left) - var(--safe-right) - 96px));
-    max-height:min(320px,calc(100dvh - max(4px,var(--safe-top)) - max(4px,var(--safe-bottom)) - 150px));
-    overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.65)}
-  /* 水平置中往左偏 21px（#helpBtn 半個身位，34px 寬）：#helpBtn 只掛在 #felt 右上角、
-     不是左右對稱的東西，寬窄卡（V4=667px）滿版置中會剛好啃到 #helpBtn 左緣 6–8px（實測案例）；
-     往左讓開，右側留白換左側留白，不影響「置中在心願條那一帶」的視覺意圖。這一處與抬升無關，保留。 */
-  #table.t3d #railE.open .railPages{left:50%;right:auto}
-  #table.t3d .rail.open .railPages>.mcard{min-height:0;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  /* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4，使用者裁 A）：
+     取代 v0.59.1 的開卡停靠——不再貼著側欄浮出一張小卡，改成點窄籤進整段鑑賞態：說明欄固定在跟窄籤
+     同側、占畫面那一半（安全區內全高），鏡頭把法寶推到另一半（js/table-tray.js 的 setAppraise 負責運鏡與
+     自轉／浮動，這裡只管說明欄版面）。非鑑賞態（.appraising 不在）一律不顯示（沿用原本 blanket display:none）。 */
+  #table.t3d.appraising .rail.open .railPages{display:flex;flex-direction:column;gap:8px;position:fixed;z-index:21;
+    top:max(6px,var(--safe-top));bottom:max(6px,var(--safe-bottom));
+    width:min(340px,calc(50vw - 10px));overflow-y:auto;padding:10px;
+    background:var(--c-ink-bg2);border:1px solid var(--line-gold);border-radius:var(--r-panel);
+    box-shadow:0 8px 24px rgba(0,0,0,.65)}
+  #table.t3d.appraising #railW.open .railPages{left:max(6px,var(--safe-left));right:auto}
+  #table.t3d.appraising #railE.open .railPages{right:max(6px,var(--safe-right));left:auto}
+  #table.t3d.appraising .rail.open .railPages>.mcard{min-height:0;box-shadow:none;flex:0 0 auto}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
-  /* 關閉鈕：右上角常駐、命中區 40×40（視覺圖示較小，padding 撐滿點擊區）；平時（非停靠狀態）display:none。 */
-  #table.t3d .rail.open .railPages .railCardClose{display:flex}
+  /* 關閉鈕：右上角常駐、命中區 40×40（視覺圖示較小，padding 撐滿點擊區）；平時（非鑑賞態）display:none。 */
+  #table.t3d.appraising .rail.open .railPages .railCardClose{display:flex}
+  #table.t3d.appraising .railTabs{position:relative;z-index:22}
+  /* 桌面壓暗層：挖洞在 JS（appraiseTick）逐幀畫，這裡只管開關與疊層順序（webgl canvas 在 -2、本層 19、
+     說明欄與窄籤在 21/22）。非鑑賞態完全不吃事件、不擋任何既有點擊。 */
+  #appraiseDim{position:fixed;inset:0;z-index:19;pointer-events:none;display:none}
+  #table.t3d.appraising #appraiseDim{display:block;pointer-events:auto}
   /* 揭盅結果窄條（v0.59.0，凍結 p2 #3）：本夜成交總覽與請神結果不再蓋在桌心，改成貼在底列上緣的一條窄條
      （下緣距底列 2px：#felt 下緣＝底列上緣−4px 的格線間距，窄條往下伸 2px）。內容與原卡逐項相同、字級不變（15／12px）。
      窄條那一頁 #felt 不畫玻璃、不裁切（請神結果走的是非掏空頁），3D 桌面整片露出來。 */
@@ -167,6 +163,10 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d .resultStrip #shz>div{flex:0 1 auto;line-height:1.6}
   #table.t3d .resultStrip #shz>div.outcome{flex-basis:100%;margin:0}
   #table.t3d .resultStrip .bidfly{flex:0 1 auto;min-width:0;max-width:100%;margin-top:3px;gap:10px}   /* 每件一段、按內容寬排，一列放得下幾件就放幾件（窄條不長高，不碰側欄的窄籤） */
+  /* 面板 Y（凍結 appraise-panels #7）：成交總覽沿用窄條寬度公式；戰況（非窄條）允許 #felt 溢出，
+     跟舊版 #shz 請神結果同一條規則（見上方 #table.t3d #felt:has(.resultStrip)），這裡另外補戰況那支。 */
+  #table.t3d #pnl.resultStrip{display:block;width:calc(100vw - var(--safe-left) - var(--safe-right) - 16px);padding:5px 10px 7px;bottom:-4px}
+  #table.t3d #felt:has(#pnl:not(.resultStrip)){overflow:visible}
   /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
      `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
   #table.t3d .rail .mcard .nm{font-size:11.5px}
@@ -540,6 +540,88 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .stageCard .big{font-size:15px;font-weight:bold}
 .stageCard.resultStrip{max-width:460px}   /* 揭盅結果（本夜成交總覽／請神）：直式與 ?table3d=0 維持原卡；橫式牌桌見下方「揭盅結果窄條」 */
+/* ===== 成交總覽／戰況面板 Y（v0.59.2，凍結 appraise-panels #5/#6）：靠左、表格化、語意色 =====
+   移植自使用者已裁定的示意稿 phase2-mock/panels-common.css＋panels-y.css（class 前綴 pmock→pnl，
+   函式在 index.html 的 revealPanelHTML／nightendPanelHTML）。#pnl 同時可能帶 .resultStrip
+   （成交總覽，沿用既有窄條定位）或不帶（戰況，浮動置中面板，見下方 #table.t3d 區塊）。 */
+#pnl{--pnl-up:#7bd88a;--pnl-down:#ff6b6b;--pnl-me:#e8c26a;--pnl-dim:rgba(236,226,206,.42);
+  --s0:#e8c26a;--s1:#6fa8dc;--s2:#d98c5f;--s3:#8fc07a;
+  text-align:left;font-family:var(--font-body);color:var(--ink);animation:none}
+#pnl .pnl-name{font-family:var(--font-display);font-weight:700;white-space:nowrap}
+#pnl .pnl-name.me{color:#fff3cf}
+#pnl .pnl-you{display:inline-block;font-family:var(--font-display);font-size:10.5px;line-height:14px;padding:0 4px;margin-left:3px;border-radius:3px;
+  background:var(--pnl-me);color:#1a1208;font-weight:700;vertical-align:1px}
+#pnl .pnl-seat{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:4px;border-radius:2px;
+  font-family:var(--font-display);font-size:11px;font-weight:700;border:1px solid rgba(201,168,98,.55);color:var(--gold);flex:0 0 auto}
+#pnl .pnl-seat.s0{background:var(--s0);color:#1a1208;border-color:var(--s0)}
+#pnl .pnl-seat.s1{background:var(--s1);color:#0c1620;border-color:var(--s1)}
+#pnl .pnl-seat.s2{background:var(--s2);color:#1e1008;border-color:var(--s2)}
+#pnl .pnl-seat.s3{background:var(--s3);color:#0e1a0a;border-color:var(--s3)}
+#pnl .pnl-chip{display:inline-block;min-width:30px;text-align:center;font-family:var(--font-display);font-variant-numeric:tabular-nums;
+  font-size:13.5px;line-height:18px;padding:0 5px;border-radius:9px;font-weight:700}
+#pnl .pnl-chip.up{color:var(--pnl-up);background:rgba(96,176,96,.16);border:1px solid rgba(123,216,138,.45)}
+#pnl .pnl-chip.down{color:var(--pnl-down);background:rgba(224,64,64,.16);border:1px solid rgba(255,107,107,.45)}
+#pnl .pnl-dash{color:var(--pnl-dim);display:inline-block;min-width:30px;text-align:center}
+#pnl .pnl-item{font-family:var(--font-display);font-weight:700;white-space:nowrap;color:var(--sys,var(--ink));display:inline-flex;align-items:center;gap:3px;min-width:0}
+#pnl .pnl-item .pnl-sw{width:8px;height:8px;border-radius:1px;background:var(--sys,var(--line-gold));flex:0 0 auto}
+#pnl .sys-zuling{--sys:var(--sys-zuling)} #pnl .sys-xianghuo{--sys:var(--sys-xianghuo)}
+#pnl .sys-yinqi{--sys:var(--sys-yinqi)} #pnl .sys-curse{--sys:var(--sys-curse)}
+#pnl .pnl-item.curse{color:#b58cf0}
+#pnl .pnl-skull{font-size:11px;color:#b58cf0}
+#pnl .pnl-poison{color:#b58cf0;font-weight:700;white-space:nowrap}
+#pnl .pnl-note{color:var(--pnl-dim);font-size:11px;white-space:nowrap}
+#pnl .pnl-num{font-family:var(--font-display);font-size:14px}
+#pnl .pnl-num.up{color:var(--pnl-up)} #pnl .pnl-num.down{color:var(--pnl-down)}
+#pnl .pnl-tag{font-size:11px;padding:0 5px;border-radius:3px;white-space:nowrap}
+#pnl .pnl-tag.ok{color:var(--pnl-up);border:1px solid rgba(123,216,138,.4)}
+#pnl .pnl-tag.miss{color:var(--pnl-dim);border:1px solid rgba(236,226,206,.2)}
+#pnl .pnl-wish{font-family:var(--font-display);margin-right:4px;white-space:nowrap}
+#pnl .pnl-vs{color:var(--gold);margin:0 5px;font-size:12px}
+#pnl .pnl-name.win{color:#fff;text-shadow:0 0 8px rgba(255,220,150,.45)}
+#pnl .pnl-name.lose{opacity:.4}
+#pnl .pnl-mark{font-size:10px;color:var(--gold);margin-left:2px;border:1px solid rgba(201,168,98,.6);border-radius:2px;padding:0 2px;line-height:13px;display:inline-block;vertical-align:1px}
+#pnl .pnl-l .pnl-you{opacity:.8}
+#pnl .pnl-burn{font-size:11.5px;white-space:nowrap} #pnl .pnl-burn b{font-family:var(--font-display);color:var(--pnl-down)}
+/* 成交總覽：底部橫條改成依買家分欄 */
+#pnl.resultStrip{display:block}
+#pnl .pnl-title{display:flex;align-items:baseline;gap:14px;margin-bottom:2px;line-height:18px}
+#pnl .pnl-title .big{font-size:15px;letter-spacing:.08em}
+#pnl .pnl-pass{font-size:11px;color:var(--pnl-dim);display:inline-flex;gap:4px;align-items:center}
+#pnl .pnl-pass .pnl-item{font-weight:400;opacity:.75}
+#pnl .pnl-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#pnl .pnl-cell{padding:3px 7px 4px;border-radius:3px;min-width:0;background:rgba(255,255,255,.045);border-left:4px solid var(--sc,var(--line-gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#pnl .pnl-cell.s0{--sc:var(--s0)} #pnl .pnl-cell.s1{--sc:var(--s1)} #pnl .pnl-cell.s2{--sc:var(--s2)} #pnl .pnl-cell.s3{--sc:var(--s3)}
+#pnl .pnl-cell.me{background:linear-gradient(180deg,rgba(232,194,106,.30),rgba(232,194,106,.14));box-shadow:0 0 0 1px rgba(232,194,106,.75),0 0 14px rgba(232,194,106,.25)}
+#pnl .pnl-head{display:flex;align-items:center;font-size:14px;margin-bottom:1px;white-space:nowrap}
+#pnl .pnl-cnt{margin-left:auto;font-size:10.5px;color:var(--pnl-dim)}
+#pnl .pnl-cell .pnl-row{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:13px;line-height:20px;padding-left:5px;border-left:3px solid var(--sys,transparent);margin:0 0 1px;background:rgba(0,0,0,.18)}
+#pnl .pnl-cell .pnl-row.pnl-fee,#pnl .pnl-cell .pnl-row.pnl-none{border-left-color:transparent;background:none}
+#pnl .pnl-cell .pnl-row:has(.sys-zuling){--sys:var(--sys-zuling)} #pnl .pnl-cell .pnl-row:has(.sys-xianghuo){--sys:var(--sys-xianghuo)}
+#pnl .pnl-cell .pnl-row:has(.sys-yinqi){--sys:var(--sys-yinqi)} #pnl .pnl-cell .pnl-row:has(.sys-curse){--sys:var(--sys-curse)}
+#pnl .pnl-cell .pnl-price{display:inline-flex;align-items:center;flex:0 0 auto}
+#pnl .pnl-how{font-size:10.5px;line-height:13px;margin:-1px 0 1px 11px}
+#pnl .pnl-none{color:var(--pnl-dim);font-size:11px;justify-content:flex-start!important}
+/* 戰況：心願／對決／天明三區，每列 誰｜數字｜說明 */
+#pnl:not(.resultStrip){position:fixed;left:50%;transform:translateX(-50%);top:8px;width:min(400px,92vw);max-width:none;max-height:min(320px,70vh);overflow-y:auto;overscroll-behavior:contain;margin:0;padding:8px 12px 8px;z-index:5}
+#pnl:not(.resultStrip) .pnl-title{margin-bottom:2px}
+#pnl:not(.resultStrip) .pnl-title .big{font-size:18px}
+#pnl .pnl-sec{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:3px 0;margin-top:1px}
+#pnl .pnl-lab{font-family:var(--font-display);font-size:13px;color:var(--gold);writing-mode:vertical-rl;letter-spacing:.2em;justify-self:center;align-self:stretch;
+  background:rgba(255,255,255,.05);border-radius:3px;padding:4px 0;text-align:center;display:flex;align-items:center;justify-content:center}
+#pnl .pnl-sec.wish .pnl-lab{color:#c7a6ff} #pnl .pnl-sec.duel .pnl-lab{color:#ff8a6b} #pnl .pnl-sec.dawn .pnl-lab{color:#9fe0a8}
+#pnl .pnl-sec .pnl-row{display:grid;grid-template-columns:min(45%,162px) 40px minmax(0,1fr);align-items:center;column-gap:8px;
+  font-size:13px;line-height:21px;padding:0 4px;border-radius:3px;background:rgba(255,255,255,.035);margin:1px 0;border-left:3px solid transparent}
+#pnl .pnl-sec .pnl-row:has(.s1){border-left-color:var(--s1)}
+#pnl .pnl-sec .pnl-row:has(.s2){border-left-color:var(--s2)}
+#pnl .pnl-sec .pnl-row:has(.s3){border-left-color:var(--s3)}
+#pnl .pnl-sec .pnl-row.me{background:linear-gradient(90deg,rgba(232,194,106,.32),rgba(232,194,106,.10));border-left-color:var(--s0)}
+#pnl .pnl-sec .pnl-who{order:1;display:flex;align-items:center;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#pnl .pnl-sec .pnl-price{order:2;justify-self:center}
+#pnl .pnl-sec .pnl-what{order:3;display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+#pnl .pnl-sec .pnl-free{display:block}
+#pnl .pnl-body{min-width:0}
+#pnl .pnl-sub{font-size:10.5px;color:var(--pnl-dim);padding:0 4px 1px 24px;line-height:14px;white-space:normal}
+#pnl .pnl-whisper{font-size:10.5px;line-height:14px;color:var(--pnl-dim);padding:2px 4px 0}
 .revealRibbon{position:absolute;left:50%;top:8px;z-index:30;transform:translateX(-50%);width:min(430px,54vw);min-height:132px;overflow:visible;padding:10px 12px;color:var(--ink);text-align:center;font-size:11px;line-height:1.35;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42);pointer-events:none}
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
@@ -880,7 +962,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.59.1"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.59.2"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -922,6 +1004,8 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
     <div id="veil"></div>
   </div>
   <div id="east"><div id="eastSeat"></div><div id="railE" class="rail"></div></div>
+  <!-- 法寶鑑賞頁（v0.59.2，凍結 appraise-panels）：桌面壓暗層，挖一個洞露出焦點法寶。純呈現，JS 每幀重繪。 -->
+  <canvas id="appraiseDim"></canvas>
   <div id="south">
     <span class="av" id="myAv">🧑</span>
     <div><div class="dir" id="myDir">南・你</div><div class="life" id="myLife"></div></div>
@@ -2560,9 +2644,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.59.1", VERSION_NOTE="0.59.1：開卡停靠改到心願條上方＋標題／卡名／按鈕／數字換霞鶩文楷（LXGW WenKai TC）＋展開時對應法寶亮一下";
+const VERSION="0.59.2", VERSION_NOTE="0.59.2：點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.59.1";
+const RELEASE_VERSION="0.59.2";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -2912,63 +2996,106 @@ function railCardOpen(id,i){
   /* 開卡時整條頂列（月相／風位／心願條，#feltHead）先藏起來，關卡恢復（使用者 09-27：卡片後面露出半截字影響閱讀）。
      只切 visibility，不動版面；renderer 取景會把 visibility:hidden 的 #feltHead 排除在障礙物外。 */
   const tb=$("table"); if(tb&&tb.classList) tb.classList.toggle("cardOpen",!!document.querySelector("#railW.open,#railE.open"));
-  if(!on){ const pg=rail.querySelector('.railPages'); if(pg) pg.style.cssText=""; }   /* 清掉 dockRailCard 寫的避讓位置 */
   rail.querySelectorAll('.mcard').forEach(el=>el.classList.toggle('railSelected',on&&el.id===`mc${i}`));
   rail.querySelectorAll('.railTabs button').forEach(el=>el.setAttribute('aria-expanded',String(on&&Number(el.dataset.slot)===i)));
 }
-function selectRailPage(id,i){
-  const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
-  const on=!(rail.classList.contains('open')&&RAIL_PAGE[id]===i);   /* 點同一枚籤＝收起 */
-  ["railW","railE"].forEach(r=>{ if(r!==id) railCardOpen(r,null); });
-  railCardOpen(id,on?i:null);
-  /* {still:true}＝只亮不動（凍結 card-dock-font #1/#8 二次裁定）：開卡不是滑鼠指標停在拍品上，
-     不該有抬升／自轉／鏡頭微推——那些會讓法寶的螢幕投影框在整段開卡期間持續變化、撞進卡片。 */
-  window.__yaoshi3d?.tray?.setHover(on?i:-1,{still:true});
-  equalizeRailCards();
-  if(on) dockRailCard(id,i);
+/* 法寶鑑賞頁（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4，使用者裁 A）：
+   取代 v0.59.0 起的窄籤展開卡與 v0.59.1 的開卡停靠（dockRailCard 退場）。點籤直接進整段鑑賞態：
+   js/table-tray.js 的 setAppraise(i,side) 負責鏡頭推近＋自轉＋idle 上下輕浮（純 3D 層，不讀寫賽局欄位）；
+   這裡只管 DOM 開關（railCardOpen 沿用同一套 class 切換）、側欄版面（CSS，同上）、
+   背景壓暗（appraiseTick 逐幀畫 #appraiseDim）與輸入（籤／滑動／點空白處）。
+   APPR 是本卷唯一的鑑賞態事實來源：id＝哪一欄的側欄在顯示、i＝焦點法寶槽位、on＝是否在鑑賞態。 */
+let APPR={on:false,id:null,i:null,raf:0};
+function appraiseSupported(){ return TABLE3D&&!!(window.__yaoshi3d&&window.__yaoshi3d.tray&&window.__yaoshi3d.tray.setAppraise); }
+function appraiseRailOf(slot){ const n=(S&&S.market?S.market.length:4), half=Math.ceil(n/2); return slot<half?"railW":"railE"; }
+function appraiseSlots(){
+  try{ return window.__yaoshi3d.tray.items().filter(it=>it.visible).map(it=>it.slot).sort((a,b)=>a-b); }catch(e){ return []; }
 }
-/* 開卡避讓（v0.59.1，凍結 card-dock-font #1 修訂：使用者裁 A）：卡片預設在上方中央；若蓋到「正在看的那件」
-   的螢幕投影框，依序改試：往遠離那件的一側靠、另一側、遠側窄籤欄下方、同側窄籤欄下方。
-   每個候選都不得壓北列、座位、窄籤欄、底列、？鈕、不得出畫面；都不行就留重疊最小的那個。
-   只寫 .railPages 的 inline 位置，關卡時清掉；不讀寫賽局欄位。 */
-function dockRailCard(id,i){
-  const rail=$(id), pg=rail&&rail.querySelector(".railPages"), tray=window.__yaoshi3d?.tray;
-  if(!pg||!tray||!tray.bboxScreen) return;
-  pg.style.cssText="";
-  const bb=tray.bboxScreen(i); if(!bb) return;
-  const R=sel=>{ const e=document.querySelector(sel); if(!e) return null; const q=e.getBoundingClientRect(); return (q.width||q.height)?q:null; };
-  const ov=(a,b)=>(!a||!b)?0:Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
-  const anchors=["#north","#westSeat","#eastSeat","#south","#helpBtn","#railW .railTabs","#railE .railTabs"].map(R).filter(Boolean);
-  const cs=getComputedStyle(document.documentElement), sv=k=>parseFloat(cs.getPropertyValue(k))||0;
-  const sl=Math.max(4,sv("--safe-left")), sr=Math.max(4,sv("--safe-right")), sb=Math.max(4,sv("--safe-bottom"));
-  const W=innerWidth, H=innerHeight, G=6;
-  const d=pg.getBoundingClientRect(), w=d.width, top=d.top;
-  const tW=R("#railW .railTabs"), tE=R("#railE .railTabs"), sW=R("#westSeat"), sE=R("#eastSeat"), hb=R("#helpBtn"), so=R("#south");
-  const Lx=Math.max(sW?sW.right:sl,tW?tW.right:sl)+G, Rx=Math.min(sE?sE.left:W-sr,tE?tE.left:W-sr,hb?hb.left:W-sr)-G;
-  const col=t=>t?{left:t.left,top:t.bottom+G,width:t.width,maxH:(so?so.top:H-sb)-G-(t.bottom+G)}:null;
-  const farRight=(bb.left+bb.right)/2<W/2;
-  const side=[{left:Lx,top,width:w},{left:Rx-w,top,width:w}]; if(farRight) side.reverse();
-  const cols=farRight?[col(tE),col(tW)]:[col(tW),col(tE)];
-  const cands=[null,...side,...cols.filter(Boolean)];
-  let best=null;
-  for(const c of cands){
-    pg.style.cssText=c?`left:${c.left}px;top:${c.top}px;width:${c.width}px;transform:none;${c.maxH?`max-height:${c.maxH}px;`:""}`:"";
-    const q=pg.getBoundingClientRect();
-    const bad=anchors.some(a=>ov(q,a)>0)||q.left<sl-0.5||q.right>W-sr+0.5||q.bottom>H-sb+0.5;
-    const own=ov(q,bb);
-    if(!bad&&own===0) return;
-    if(!bad&&(!best||own<best.own)) best={css:pg.style.cssText,own};
+function appraiseDimTick(){
+  APPR.raf = APPR.on?requestAnimationFrame(appraiseDimTick):0;
+  if(!APPR.on) return;
+  const cv=$("appraiseDim"); if(!cv) return;
+  const dpr=Math.min(window.devicePixelRatio||1,2), W=innerWidth, H=innerHeight;
+  const pw=Math.round(W*dpr), ph=Math.round(H*dpr);
+  if(cv.width!==pw||cv.height!==ph){ cv.width=pw; cv.height=ph; }
+  cv.style.width=W+"px"; cv.style.height=H+"px";
+  const cx=cv.getContext("2d"); if(!cx) return;
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  cx.clearRect(0,0,W,H);
+  cx.fillStyle="rgba(4,3,2,0.55)"; /* #1(b)：非焦點區壓到參考亮度 ≤70%（實測 0.45 透黑對應約 45%，留餘裕） */
+  cx.fillRect(0,0,W,H);
+  const bb=window.__yaoshi3d?.tray?.bboxScreen?.(APPR.i);
+  if(bb){
+    const pad=8, x=Math.max(0,bb.left-pad), y=Math.max(0,bb.top-pad);
+    const w=Math.min(W,bb.right+pad)-x, h=Math.min(H,bb.bottom+pad)-y;
+    if(w>0&&h>0) cx.clearRect(x,y,w,h); /* 焦點法寶的投影框完全不壓暗 */
   }
-  pg.style.cssText=best?best.css:"";
 }
-/* 開卡停靠（v0.59.1，凍結 card-dock-font #1/#2）：明確的關閉鈕，給右上角×鈕與點卡外用同一支收法。 */
+/** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態）。 */
+function openAppraise(id,i){
+  if(!appraiseSupported()) return;
+  const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
+  ["railW","railE"].forEach(r=>{ if(r!==id) railCardOpen(r,null); });
+  railCardOpen(id,i);
+  const tb=$("table"); if(tb&&tb.classList) tb.classList.add("appraising");
+  APPR.on=true; APPR.id=id; APPR.i=i;
+  try{ window.__yaoshi3d.tray.setAppraise(i, id==="railW"?"left":"right"); }catch(e){}
+  if(!APPR.raf) APPR.raf=requestAnimationFrame(appraiseDimTick);
+}
+function closeAppraise(){
+  if(!APPR.on) return;
+  const id=APPR.id;
+  APPR.on=false; APPR.id=null; APPR.i=null;
+  if(id) railCardOpen(id,null);
+  const tb=$("table"); if(tb&&tb.classList) tb.classList.remove("appraising");
+  try{ window.__yaoshi3d?.tray?.setAppraise?.(-1); }catch(e){}
+  const cv=$("appraiseDim"); if(cv){ const cx=cv.getContext&&cv.getContext("2d"); if(cx) cx.clearRect(0,0,cv.width,cv.height); }
+}
+/** 窄籤點擊的入口（railHTML 的 onclick）：同一籤再點一次＝收起，別的籤＝直接換件（不落回牌桌態）。
+ *  3D 不可用（?table3d=0 或托盤尚未掛上）時整個 .rail 本來就是 display:none，不會有機會呼叫到這裡。 */
+function railTabClick(id,i){
+  if(!appraiseSupported()) return;
+  if(APPR.on&&APPR.id===id&&APPR.i===i){ closeAppraise(); return; }
+  openAppraise(id,i);
+}
+/** 左右滑切換（凍結 #4）：dir=1 下一件（左滑）、dir=-1 上一件（右滑），到頭停住不循環。 */
+function appraiseNudge(dir){
+  if(!APPR.on) return;
+  const list=appraiseSlots(); if(!list.length) return;
+  const pos=list.indexOf(APPR.i); if(pos<0) return;
+  const next=pos+dir; if(next<0||next>=list.length) return;
+  const slot=list[next];
+  openAppraise(appraiseRailOf(slot),slot);
+}
+/* 關閉鈕：右上角×鈕（railHTML）與點空白處共用同一支收法。 */
 function closeRailCard(id){
+  if(APPR.on&&APPR.id===id){ closeAppraise(); return; }
   railCardOpen(id,null);
-  const pg=$(id)&&$(id).querySelector(".railPages"); if(pg) pg.style.cssText="";
   try{ window.__yaoshi3d?.tray?.setHover(-1); }catch(e){}
 }
-/* 點側欄以外的地方就收起展開的卡（與北列面板同一種收法；點擊照常落到底下的元件） */
+/* 鑑賞態的輸入：#appraiseDim 是鑑賞態才吃事件的全螢幕層（側欄／籤各自有更高 z-index，命中它們時
+   e.target 不會是這片 canvas，照舊直接觸發各自的 onclick，不受這裡影響）。
+   純點按（位移 <12px）＝點空白處返回（凍結 #3，觸控區即整片鑑賞層，遠大於 40×40）；
+   水平位移 >40px 且以水平為主＝滑動換件（凍結 #4）。 */
+(function(){
+  let down=null;
+  document.addEventListener("pointerdown",e=>{
+    if(!APPR.on) return;
+    const cv=$("appraiseDim"); if(!cv||e.target!==cv) return;
+    down={x:e.clientX,y:e.clientY};
+  },true);
+  document.addEventListener("pointerup",e=>{
+    if(!down) return; const d=down; down=null;
+    if(!APPR.on) return;
+    const dx=e.clientX-d.x, dy=e.clientY-d.y;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5) appraiseNudge(dx<0?1:-1);
+    else if(Math.hypot(dx,dy)<12) closeAppraise();
+  },true);
+})();
+/* 非鑑賞態（appraiseSupported 為 false 時 .rail 根本不會開，這條防的是鑑賞態切換瞬間殘留的 .open）：
+   點側欄以外的地方就收起展開的卡（點擊照常落到底下的元件）。 */
 if(typeof document!=="undefined"&&document.addEventListener) document.addEventListener("pointerdown",e=>{
+  if(APPR.on) return; /* 鑑賞態的關閉／滑動交給上面那組專屬監聽 */
   ["railW","railE"].forEach(id=>{ const r=typeof $==="function"?$(id):null;
     if(r&&r.classList&&r.classList.contains("open")&&!r.contains(e.target)){ closeRailCard(id); } });
 },true);
@@ -2986,7 +3113,7 @@ function equalizeRailCards(){
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>equalizeRailCards());
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
-  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="selectRailPage('${id}',${i})">${S.market[i].n}</button>`).join('')}</div>`;
+  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}</button>`).join('')}</div>`;
   /* .railCardClose 只在 3D 牌桌開卡停靠時顯示（見 assets/theme.css），其餘版面（#market 內嵌卡列、portrait fallback）
      不受影響——按鈕平時是 display:none。 */
   const close=`<button type="button" class="railCardClose" aria-label="關閉法寶卡" onclick="closeRailCard('${id}')">×</button>`;
@@ -3013,6 +3140,7 @@ if(typeof document!=="undefined"&&document.addEventListener) document.addEventLi
 },true);
 function fillRails(prevHTML,shrHTML,cardFn,sum){
   if(RAIL_PAGE.round!==S.round) RAIL_PAGE={round:S.round,railW:0,railE:0};
+  closeAppraise(); /* 展開狀態不跨重畫（既有設計，見 railCardOpen 檔頭註解）：卡列重建前先收起鑑賞態 */
   const set=(id,h)=>{ const e=$(id); if(e) e.innerHTML=h; };
   const idx=S.market.map((_,i)=>i), half=Math.ceil(idx.length/2);
   toggleNorth(false);
@@ -6569,6 +6697,98 @@ function playCut(when,data={}){
   setTimeout(()=>el.remove(),1280);
   return true;
 }
+/* ===== 成交總覽／戰況面板 Y（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #5/#6）=====
+   使用者裁 Y 強調（0.59.1 真機回饋②）：成交依買家分欄、方位牌、得標數、每件法寶系色＋壽命花費；
+   每欄陣營色邊、「你」欄金底；戰況分心願／對決／天明三段、段標題上色。純呈現：只讀
+   resolveAuction／resolveBattles 已經算好的回傳值與既有的 nightly 文字 log，不改結算、不耗亂數、
+   不重寫任何判定——跟 86e4676 的舊版（本夜成交總覽窄條／戰況列表）讀的是同一份資料，只是重排版面。 */
+function pnlEsc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function pnlMe(){ return S.players.find(p=>!p.ai)||S.players[0]; }
+function pnlIsMe(p,me){ return !!(p&&me&&p.id===me.id); }
+function pnlSeatTag(p){ return `<span class="pnl-seat s${p.id}">${DIRS[p.id]}</span>`; }
+function pnlYouTag(p,me){ return pnlIsMe(p,me)?'<span class="pnl-you">你</span>':''; }
+function pnlNameOf(p,me,cls){ return `<span class="pnl-name ${cls||''} ${pnlIsMe(p,me)?'me':''}">${pnlEsc(p.name)}</span>${pnlYouTag(p,me)}`; }
+function pnlChip(n,kind){ return `<b class="pnl-chip ${kind||(n>=0?'up':'down')}">${n>0?'+':n<0?'−':'±'}${Math.abs(n)}</b>`; }
+function pnlItem(it){ return `<span class="pnl-item sys-${it.f}${it.curse?' curse':''}"><i class="pnl-sw"></i>${it.curse?'<span class="pnl-skull">☠</span>':''}${pnlEsc(it.n)}</span>`; }
+/** 成交總覽 Y（凍結 #5）：依買家分欄（人數＝該局玩家數）；每欄含方位牌／名字／得標數／
+ *  每件法寶名＋系色標記＋壽命花費（含落標費／毒標）；每欄陣營色邊、「你」欄金底＋「你」標記。
+ *  資訊與 reveal（resolveAuction 的回傳值）逐筆等價：每筆成交、每筆毒標、每筆落標費都出現。 */
+function revealPanelHTML(reveal){
+  const P=S.players, ME=pnlMe();
+  const byP=new Map(P.map(p=>[p.id,{won:[],recv:[],fee:0}]));
+  const passed=[];
+  for(const r of reveal){
+    if(!r.winner){ passed.push(r.it); continue; }
+    const w=r.winner, paid=w.cost!==undefined?w.cost:w.amt;
+    let how='';
+    if(w.intent==="poison"&&w.target!=null) how=r.poisonBlocked?'<span class="pnl-note">被護符銷毀</span>':`<span class="pnl-poison">☠→ ${pnlIsMe(P[w.target],ME)?'<span class="pnl-you">你</span>':pnlEsc(P[w.target].name)}</span>`;
+    else if(r.it.curse) how='<span class="pnl-note">買下銷毀</span>';
+    byP.get(w.p.id).won.push({it:r.it,paid,how});
+    if(w.intent==="poison"&&w.target!=null&&!r.poisonBlocked) byP.get(w.target).recv.push({it:r.it,from:w.p});
+    for(const e of r.entries) if(e!==w&&e.cost) byP.get(e.p.id).fee+=e.cost;
+  }
+  const order=[ME,...P.filter(p=>p!==ME)];
+  const cells=order.map(p=>{
+    const d=byP.get(p.id);
+    const rows=d.won.map(x=>{ const sub=x.how;
+      return `<div class="pnl-row">${pnlItem(x.it)}<span class="pnl-price">${pnlChip(-x.paid)}</span></div>${sub?`<div class="pnl-how">${sub}</div>`:''}`; }).join('');
+    const fee=d.fee?`<div class="pnl-row pnl-fee"><span class="pnl-note">落標費</span><span class="pnl-price">${pnlChip(-d.fee)}</span></div>`:'';
+    const recv=d.recv.map(x=>`<div class="pnl-row pnl-recv">${pnlItem(x.it)}<span class="pnl-poison">← ${pnlEsc(x.from.name)} 塞</span></div>`).join('');
+    const none=(!d.won.length&&!d.recv.length)?'<div class="pnl-row pnl-none">— 沒拿到 —</div>':'';
+    return `<div class="pnl-cell ${pnlIsMe(p,ME)?'me':''} s${p.id}"><div class="pnl-head">${pnlSeatTag(p)}${pnlNameOf(p,ME)}<span class="pnl-cnt">得標 ${d.won.length}</span></div>${rows}${recv}${none}${fee}</div>`;
+  }).join('');
+  const pass=passed.length?`<span class="pnl-pass">流標：${passed.map(pnlItem).join('、')}</span>`:'';
+  return `<div class="stageCard resultStrip" id="pnl"><div class="pnl-title"><span class="big">🏮 本夜成交總覽</span>${pass}</div><div class="pnl-grid">${cells}</div></div>`;
+}
+/** 戰況 Y（凍結 #6）：心願／對決／天明三段且段標題上色；「你」相關列金底。nightly 是 judgeWish／
+ *  settleTithe／resolveBattles 等既有結算各自 push 的固定格式文字 log，這裡只依格式拆回結構化資料
+ *  重排版面——不改任何一支結算函式，逐項（每場對決、每項心願結算、每項天明結算）都照原樣出現。 */
+function nightendPanelHTML(fights,bye,nightly,deaths){
+  const P=S.players, ME=pnlMe();
+  const nameRe=new RegExp('('+['你的',...P.map(p=>p.name)].map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
+  const decorate=(t)=>{
+    let s=pnlEsc(t.replace(/^\S+\s/,''));
+    s=s.replace(/([+\-−])(\d+)/g,(m,sg,n)=>pnlChip(sg==='+'?+n:-n));
+    s=s.replace(nameRe,(m)=>{ const p=P.find(q=>q.name===m); return p?pnlNameOf(p,ME):'<span class="pnl-you">你</span>的'; });
+    return s;
+  };
+  const wish=[],dawn=[];
+  for(const t of nightly) (/心願/.test(t)?wish:dawn).push(t);
+  const wishRows=wish.map(t=>{
+    const m=t.match(/你的心願「(.+?)」(達成|未能達成)(?:\s*\+(\d+))?/)||t.match(/(\S+?) 的心願(達成|未能達成)(?:\s*\+(\d+))?/);
+    if(!m) return `<div class="pnl-row">${decorate(t)}</div>`;
+    const p=/^🌒 你的/.test(t)?ME:P.find(q=>q.name===m[1]);
+    if(!p) return `<div class="pnl-row">${decorate(t)}</div>`;
+    const wname=/^🌒 你的/.test(t)?`<span class="pnl-wish">「${pnlEsc(m[1])}」</span>`:'';
+    const ok=m[2]==="達成";
+    return `<div class="pnl-row ${pnlIsMe(p,ME)?'me':''}"><span class="pnl-who">${pnlSeatTag(p)}${pnlNameOf(p,ME)}</span><span class="pnl-what">${wname}<span class="pnl-tag ${ok?'ok':'miss'}">${ok?'達成':'未達成'}</span></span><span class="pnl-price">${ok&&m[3]?pnlChip(+m[3]):'<span class="pnl-dash">—</span>'}</span></div>`;
+  }).join('');
+  const fightRows=fights.map(f=>{
+    const mine=pnlIsMe(f.A,ME)||pnlIsMe(f.B,ME);
+    if(f.tie) return `<div class="pnl-row ${mine?'me':''}"><span class="pnl-who">${pnlNameOf(f.A,ME)} <span class="pnl-vs">⚔</span> ${pnlNameOf(f.B,ME)}</span><span class="pnl-what pnl-note">勢均力敵</span><span class="pnl-price"><span class="pnl-dash">—</span></span></div>`;
+    const lA=f.l===f.A, war=f.war;
+    const burnL=war?(lA?`${war.burnedA}/${war.unitsA}`:`${war.burnedB}/${war.unitsB}`):'';
+    const burnW=war?(lA?`${war.burnedB}/${war.unitsB}`:`${war.burnedA}/${war.unitsA}`):'';
+    const extra=`<div class="pnl-sub">${war?`勝方燒掉 ${burnW} 隻`:''}${f.extra&&f.extra.length?'　'+f.extra.map(pnlEsc).join('　'):''}</div>`;
+    return `<div class="pnl-row pnl-fight ${mine?'me':''}"><span class="pnl-who"><span class="pnl-w">${pnlNameOf(f.w,ME,'win')}<span class="pnl-mark">勝</span></span><span class="pnl-vs">⚔</span><span class="pnl-l">${pnlNameOf(f.l,ME,'lose')}</span></span><span class="pnl-what"><span class="pnl-burn">🔥 燒掉 <b>${burnL}</b> 隻</span></span><span class="pnl-price">${pnlChip(-f.dmg)}</span></div>${extra}`;
+  }).join('')+(bye!==null?`<div class="pnl-row"><span class="pnl-who">${pnlNameOf(P[bye],ME)}</span><span class="pnl-what pnl-note">本夜輪空</span></div>`:'');
+  const dawnRows=dawn.map(t=>{
+    const m=t.match(/天明回血：存活者各 \+(\d+)/);
+    if(m) return `<div class="pnl-row"><span class="pnl-who"><span class="pnl-note">🌅 存活者全員</span></span><span class="pnl-what">天明回血</span><span class="pnl-price">${pnlChip(+m[1])}</span></div>`;
+    if(/^🔮/.test(t)) return `<div class="pnl-whisper">${pnlEsc(t)}</div>`;
+    return `<div class="pnl-row pnl-free">${decorate(t)}</div>`;
+  }).join('');
+  const lifeRows=P.filter(p=>!p.ai).map(p=>{
+    const a=(NLIFE0&&NLIFE0[p.id]!==undefined)?NLIFE0[p.id]:p.life;
+    const d=p.life-a;
+    return `<div class="pnl-row pnl-life me"><span class="pnl-who">${pnlSeatTag(p)}${pnlNameOf(p,ME)}</span><span class="pnl-what">壽命 <b class="pnl-num">${a}</b> → <b class="pnl-num ${d>=0?'up':'down'}">${p.life}</b></span><span class="pnl-price">${pnlChip(d)}</span></div>`;
+  }).join('');
+  const deathRows=(deaths||[]).map(d=>`<div class="pnl-row"><span class="pnl-who">${pnlNameOf(d,ME)}</span><span class="pnl-what down">💀 壽命耗盡</span></div>`).join('');
+  const whisperRows=(dawnRows.match(/<div class="pnl-whisper">[\s\S]*?<\/div>/g)||[]).join('');
+  const dawnBody=dawnRows.replace(/<div class="pnl-whisper">[\s\S]*?<\/div>/g,'')+deathRows+lifeRows+whisperRows;
+  const sec=(cls,label,body)=>body?`<div class="pnl-sec ${cls}"><div class="pnl-lab">${label}</div><div class="pnl-body">${body}</div></div>`:'';
+  return `<div class="stageCard" id="pnl"><div class="pnl-title"><span class="big">⚔️ 第 ${S.round} 夜・戰況</span></div>${sec('wish','心願',wishRows)}${sec('duel','對決',fightRows)}${sec('dawn','天明',dawnBody)}</div>`;
+}
 async function startReveal(){
   BIDS_OPEN=false;   /* 不論從哪條路進開標（交卷／人類全滅的 startRevealDirect），出價一律關閉 */
   PRIVATE_PHASE="reveal";
@@ -6690,15 +6910,12 @@ async function startReveal(){
     /* 手動節奏：比價卡不會自行淡出；最後一件同樣由玩家決定何時進成交總覽。 */
     await waitMain(r!==rv.reveal[rv.reveal.length-1]?"下一件拍品 ▸":"查看成交總覽 ▸");
   }
-  /* 本夜成交總覽 */
+  /* 本夜成交總覽（v0.59.2 面板 Y，凍結 #5：依買家分欄，取代逐件一行的舊窄條） */
   SKIP=false;
   REVEAL_ANIMATING=false;
   renderSeats();
   setHollow(true);
-  $("stage").innerHTML=`<div class="stageCard resultStrip">
-    <div class="big">🏮 本夜成交總覽</div>
-    ${rv.reveal.map(r=>`<div class="bidfly" style="animation:none"><span>${r.it.n}${r.it.curse?" 🕸":""}</span><span>${r.outcome}${r.winner?`（${r.winner.amt}${r.winner.cost!==undefined&&r.winner.cost!==r.winner.amt?`・<span class="nob">實付 ${r.winner.cost}</span>`:""}）`:""}</span></div>`).join("")}
-  </div>`;
+  $("stage").innerHTML=revealPanelHTML(rv.reveal);
   /* 請神（第 4 卷）插在開標與開戰之間——三條迴圈的順序一致：resolveAuction → resolveShrines → resolveBattles */
   if(CFG.LEGEND_ON&&S.shrines){ $("mainbtn").textContent="🕯️ 請神"; $("mainbtn").onclick=startShrine; }
   else{ $("mainbtn").textContent="開戰"; $("mainbtn").onclick=startBattle; }
@@ -7543,29 +7760,12 @@ async function startBattle(){
   }
   setHollow(false);   /* 掏空卷 v0.55a */
   const stage=$("stage");
-  stage.innerHTML=`<div class="stageCard"><div class="big">⚔️ 第 ${S.round} 夜・戰況</div>${chainLines.length?`<div class="chainBanner">${chainLines.join("<br>")}</div>`:""}<div id="bz"></div></div>`;
-  const bz=$("bz");
-  if(bye!==null)bz.insertAdjacentHTML("beforeend",`<div class="mut" style="padding:2px 0">🌙 ${S.players[bye].name} 本夜輪空</div>`);
-  for(const t of nightly){bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">${t}</div>`);await sleep(CFG.T*0.4);}
-  for(const d of deaths){sfx("death");bz.insertAdjacentHTML("beforeend",`<div class="outcome">💀 ${d.name} 壽命耗盡，消失在妖市裡</div>`);sayFrom(d.id,"death",{});await sleep(CFG.T*0.7);}
-  if(bye===null&&!nightly.length&&!deaths.length)bz.innerHTML=`<div class="mut" style="padding:2px 0">本夜無其他異動</div>`;
+  /* 戰況（v0.59.2 面板 Y，凍結 #6：心願／對決／天明三段＋段標題上色，取代逐行流水帳）。
+     chainLines（連鎖共鳴現況）不在凍結範圍內，維持原本掛在面板上方的獨立橫幅，內容不受影響。 */
+  stage.innerHTML=(chainLines.length?`<div class="chainBanner">${chainLines.join("<br>")}</div>`:"")+nightendPanelHTML(fights,bye,nightly,deaths);
   playCut('nightEnd');
-  /* 對決結果字串：《紙紮夜戰》改成「燒掉 x/y 隻」口徑——扣幾分自帶解釋（草案 §2.6） */
-  const burnTxt=f=>{ if(!f.war) return ""; const lA=f.l===f.A;
-    return `　🔥 ${f.l.name} 燒掉 ${lA?f.war.burnedA:f.war.burnedB}/${lA?f.war.unitsA:f.war.unitsB} 隻`
-         + `・${f.w.name} 燒掉 ${lA?f.war.burnedB:f.war.burnedA}/${lA?f.war.unitsB:f.war.unitsA} 隻`; };
-  for(const f of fights){
-    bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:2px 0">⚔ ${f.tie?`${f.A.name} vs ${f.B.name}：勢均力敵`:`${f.w.name} 勝 ${f.l.name}（−${f.dmg}）${burnTxt(f)}`}</div>`);
-    /* ON 的招式 log 改掛在這裡（卷 C1）：對決畫面已經逐拍打過字幕，結尾那行放不下第二行，
-       所以完整的 war.log 落在戰況列表，資訊一條都沒少。OFF 沒有 f.war，這一段不會執行。 */
-    if(f.war&&f.extra&&f.extra.length)
-      bz.insertAdjacentHTML("beforeend",`<div class="mut" style="font-size:11px;padding:0 0 2px 14px">${f.extra.join("　")}</div>`);
-  }
-  if(NLIFE0) S.players.filter(p=>!p.ai).forEach(p=>{
-    const a=NLIFE0[p.id]; if(a===undefined) return;
-    const d=p.life-a;
-    bz.insertAdjacentHTML("beforeend",`<div style="font-size:12px;padding:3px 0;border-top:1px solid rgba(255,255,255,.08)">❤ ${S.mode==="hotseat"?p.name:"你的"}壽命 ${a} → <b style="color:${d>=0?"#8be08b":"#ff8484"}">${p.life}</b>（${d>=0?"+":""}${d}）</div>`);
-  });
+  /* 死亡音效與角色開口是純副作用，跟原本一樣逐位延遲，只是不再逐行插入 DOM（面板已一次畫完）。 */
+  for(const d of deaths){ sfx("death"); sayFrom(d.id,"death",{}); await sleep(CFG.T*0.7); }
   renderSeats();
   $("skipbtn").style.display="none";
   await showTitheAsk();  /* 供奉危急提示（同一尊只問一次；沒有待問就直接過去） */
