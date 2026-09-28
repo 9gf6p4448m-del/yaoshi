@@ -190,7 +190,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d.appraising #south,#table.t3d.appraising #helpBtn,#table.t3d.appraising #skipbtn{visibility:hidden}
   /* 鑑賞層：透明的全螢幕輸入層（點空白＝跳過揭幕／返回、左右滑＝換件）。壓暗與鏡子都畫在 WebGL 疊層裡，
      這一層不畫任何東西（丙案前的 2D 逐幀挖洞已退場）。疊層順序：webgl canvas -2、本層 19、題字欄與窄籤 21/22。 */
-  #appraiseDim{position:fixed;inset:0;z-index:19;pointer-events:none;display:none}
+  #appraiseDim{position:fixed;inset:0;width:100%;height:100%;z-index:19;pointer-events:none;display:none} /* canvas 是替換元素，inset 撐不開，要明寫寬高 */
   #table.t3d.appraising #appraiseDim{display:block;pointer-events:auto}
   /* 揭盅結果窄條（v0.59.0，凍結 p2 #3）：本夜成交總覽與請神結果不再蓋在桌心，改成貼在底列上緣的一條窄條
      （下緣距底列 2px：#felt 下緣＝底列上緣−4px 的格線間距，窄條往下伸 2px）。內容與原卡逐項相同、字級不變（15／12px）。

@@ -1053,11 +1053,13 @@ export function createTableTray(scene, camera, opts = {}) {
         if (s.fig) { s.fig.group.position.y = TRAY.Y; s.fig.group.rotation.y = s.spin; s.fig.setRim(TRAY.RIM_BASE); s.rimK = -1; s.rimStillWas = false; }
         else if (s.pile) { s.pile.group.position.y = TRAY.Y; s.pile.group.rotation.y = s.spin; s.pile.setGlow(1); }
         const n = nodeOf(prev); if (n && s.apprHide) { n.visible = true; s.apprHide = false; }
-        applyOutline(s);
       }
       /* 丙案圖層：換件＝先把所有遮罩寫回原值，再依新的焦點重套（焦點↔其餘的身分對調了） */
       restoreMasks();
       apprIdx = k;
+      /* 描邊要在 apprIdx 換掉之後才重算：applyOutline 看的是「是不是 hover／鑑賞中的那一格」，先算的話離開的
+         那一格還被當成鑑賞中、描邊留著（凍結 #3 返回後逐值相同，09-29 丙案治具抓到） */
+      if (prev >= 0 && prev !== k) applyOutline(slots[prev]);
       if (k >= 0) {
         if (prev < 0) apprDim = 0; // 從牌桌進場才淡入；切換時背景維持全暗（凍結 #4：中途不回到牌桌態）
         apprSide = side === 'left' ? 'left' : 'right';

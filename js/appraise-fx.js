@@ -32,10 +32,10 @@ export const APPR_FX = {
   MIRROR_MS: 340,    // 浮現長度
   STABLE: 1060,      // 揭幕結束＝穩定鑑賞態（MIRROR0+MIRROR_MS）
   DIM_MS: 220,       // 背景壓暗淡入
-  DIM: 0.86,         // 鏡外壓暗強度（凍結 #1(b) ≤70% 的量法排除焦點框與題字欄，鏡子本身算在「非焦點」裡）
+  DIM: 0.97,         // 鏡外壓暗強度（凍結 #1(b) ≤70% 的量法排除焦點框與題字欄，鏡子本身算在「非焦點」裡）
   FACE: 0.92,        // 鏡面（內圈）半徑／鏡子外半徑。凍結 #11(b) 的「鏡子內圈」就是這一圈。
   BAGUA_OUT: 0.958,  // 八卦環外緣
-  LINE0: 0.962,      // 系色光線內緣
+  LINE0: 0.972,      // 系色光線內緣
   LINE1: 0.99,       // 系色光線外緣（外面接一圈柔光，不再是純色）
   BAGUA_SPIN: 0.14,  // 八卦環穩定後的慢轉（rad/s）
 };
@@ -58,8 +58,8 @@ function drawBody(x, S) {
   const c = S / 2, R = c, F = APPR_FX.FACE;
   x.clearRect(0, 0, S, S);
   let g = x.createRadialGradient(c, c, R * (F - 0.02), c, c, R);
-  g.addColorStop(0, '#3a2c14'); g.addColorStop(0.1, '#b08c46'); g.addColorStop(0.35, '#6d5424');
-  g.addColorStop(0.7, '#9a7a3a'); g.addColorStop(0.9, '#c9a55a'); g.addColorStop(1, '#2a1d0a');
+  g.addColorStop(0, '#1e160a'); g.addColorStop(0.1, '#6a5329'); g.addColorStop(0.35, '#3d2f15');
+  g.addColorStop(0.7, '#5a4622'); g.addColorStop(0.9, '#7d6435'); g.addColorStop(1, '#150f06');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R - 1, 0, Math.PI * 2); x.fill();
   const r = lcg(11);
   for (let k = 0; k < 160; k++) {
@@ -68,22 +68,22 @@ function drawBody(x, S) {
   }
     // 鏡面：深色拋光青銅（左上略亮），法寶就站在這一圈前面
   g = x.createRadialGradient(c * 0.82, c * 0.76, 0, c, c, R * F);
-  g.addColorStop(0, '#3e3626'); g.addColorStop(0.5, '#211c12'); g.addColorStop(1, '#0b0906');
+  g.addColorStop(0, '#15120b'); g.addColorStop(0.5, '#0a0805'); g.addColorStop(1, '#030202');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.fill();
-  for (let k = 0; k < 36; k++) { x.strokeStyle = `rgba(210,188,138,${0.02 + r() * 0.035})`; x.lineWidth = 1; x.beginPath(); x.arc(c, c, R * F * (0.12 + r() * 0.86), r() * 6.28, r() * 6.28 + 0.8 + r() * 2); x.stroke(); }
+  for (let k = 0; k < 36; k++) { x.strokeStyle = `rgba(210,188,138,${0.012 + r() * 0.022})`; x.lineWidth = 1; x.beginPath(); x.arc(c, c, R * F * (0.12 + r() * 0.86), r() * 6.28, r() * 6.28 + 0.8 + r() * 2); x.stroke(); }
   g = x.createRadialGradient(c, c, R * F * 0.62, c, c, R * F);
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.55)');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.fill();
-  x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004); x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = '#a88a4c'; x.lineWidth = Math.max(2, S * 0.003); x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.stroke();
 }
 /* 八卦環（會慢轉）：只畫 FACE～BAGUA_OUT 這一圈，其餘透明。環很窄（鏡面要讓給法寶），只刻卦爻不寫卦名。 */
 function drawBagua(x, S) {
   const c = S / 2, R = c, r0 = R * APPR_FX.FACE, r1 = R * APPR_FX.BAGUA_OUT;
   x.clearRect(0, 0, S, S);
-  x.fillStyle = 'rgba(36,25,11,0.94)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
-  x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004);
+  x.fillStyle = 'rgba(18,12,5,0.96)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
+  x.strokeStyle = '#a88a4c'; x.lineWidth = Math.max(2, S * 0.003);
   x.beginPath(); x.arc(c, c, r1 - x.lineWidth, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#e4c67c';
+  x.fillStyle = '#b89a5a';
   const mid = (r0 + r1) / 2, band = r1 - r0;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 - Math.PI / 2, t = TRI[TRI_ORDER[k]];
@@ -154,7 +154,7 @@ void main(){
   // ── 壓暗：鏡外近黑、四角再暗一階；燒符時中央留一點暖光 ──
   vec2 q = (p - uView * 0.5) / uView;
   float vig = smoothstep(0.25, 0.75, length(q * vec2(1.0, 1.25)));
-  vec4 acc = vec4(vec3(0.010, 0.007, 0.005), 1.0) * (uDim * (${APPR_FX.DIM.toFixed(2)} + 0.1 * vig));
+  vec4 acc = vec4(vec3(0.010, 0.007, 0.005), 1.0) * (uDim * min(1.0, ${APPR_FX.DIM.toFixed(2)} + 0.06 * vig));
   vec3 add = vec3(0.0);
   // ── 照妖鏡 ──
   if (uMirA > 0.0) {
@@ -170,13 +170,13 @@ void main(){
       vec4 bag = texture2D(tBag, uvb);
       vec3 col = mix(body.rgb, bag.rgb, bag.a);
       // 鏡面內緣一圈系色反光（很淡，只是讓鏡子「認得」這一件）
-      col += uGlow * 0.22 * smoothstep(FACE - 0.16, FACE - 0.005, r) * step(r, FACE);
+      col += uGlow * 0.08 * smoothstep(FACE - 0.16, FACE - 0.005, r) * step(r, FACE);
       // 鏡中妖霧：系色的淡霧在鏡面裡慢慢翻湧（照妖鏡「照見」的東西），再加一道斜向的銅面反光
       if (r < FACE) {
         float mist = fbm(d * 2.4 + vec2(uTime * 0.05, -uTime * 0.08));
-        col += uGlow * 0.16 * smoothstep(0.45, 0.85, mist) * (1.0 - smoothstep(FACE * 0.55, FACE, r));
+        col += uGlow * 0.045 * smoothstep(0.45, 0.85, mist) * (1.0 - smoothstep(FACE * 0.55, FACE, r));
         float sh = abs(dot(d, vec2(0.7071, -0.7071)) + 0.22 + 0.04 * sin(uTime * 0.4));
-        col += vec3(0.11, 0.095, 0.07) * (1.0 - smoothstep(0.0, 0.16, sh)) * (1.0 - smoothstep(FACE * 0.6, FACE, r));
+        col += vec3(0.032, 0.027, 0.02) * (1.0 - smoothstep(0.0, 0.16, sh)) * (1.0 - smoothstep(FACE * 0.6, FACE, r));
       }
       // 系色光線：純色、不透明——凍結 #11(b) 在這一圈取樣
       float line = smoothstep(L0 - aa, L0, r) * (1.0 - smoothstep(L1 - aa, L1, r));
@@ -185,7 +185,7 @@ void main(){
       acc = over(vec4(col * a, a) * uMirA, acc);
     }
     // 外圈柔光（加色）：系色，往外 0.35R 淡掉
-    float halo = exp(-max(r - L1, 0.0) * 9.0) * step(L1, r) * (0.55 + 0.1 * sin(uTime * 2.1));
+    float halo = exp(-max(r - L1, 0.0) * 16.0) * step(L1, r) * (0.10 + 0.03 * sin(uTime * 2.1));
     add += uGlow * halo * uMirA;
   }
   // ── 符紙 ──
