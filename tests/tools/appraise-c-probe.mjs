@@ -87,7 +87,7 @@ async function fullRun(page, vp, pick, pr) {
   pr.at1300 = { fx: st.fx, draws: st.draws, bbox: st.bbox, focusRendered: st.rendered, apprOn: st.apprOn };
   pr.bboxScreen = await E(page, (s) => window.__yaoshi3d.tray.bboxScreen(s), pick.slot); // 產品自己的出口（跟判定器自算的應逐值相同）
   const shot1300 = await page.screenshot();
-  if (SHOTS) fs.writeFileSync(path.join(OUT, `${TAG}-${pr.vp}-${pr.mode}-${pr.phase}-${pick.rail}-s${pick.slot}.png`), shot1300);
+  if (SHOTS) { fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true }); fs.writeFileSync(path.join(OUT, 'shots', `${TAG}-${pr.vp}-${pr.mode}-${pr.phase}-${pick.rail}-s${pick.slot}.png`), shot1300); }
   const img1300 = png(shot1300);
   // 題字欄：CSS 淡入動畫走真實時間（假時鐘不管），真實等它跑完再量
   await page.waitForTimeout(1200);
