@@ -1,165 +1,168 @@
-// v0.59.2 法寶鑑賞頁「#4 切換」驗收，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #4。
-// 涵蓋：點別籤直接切換（不回牌桌態）、左右滑（真的派發 pointerdown/pointerup，不只呼叫 appraiseNudge）、
-// 到頭停住不循環、焦點法寶與側欄內容逐籤對應。矩陣：V1、V5 × solo/hot（凍結原文只要求「至少」這兩檔）。
-// 用法：node tests/tools/appraise-switch.mjs [--out <dir>] [--port N]
+// v0.59.2 法寶鑑賞頁「#4 切換」驗收，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #4（含修訂：
+// 每次切換都重燒；時限與跳過規則同修訂後 #1）。丙案版（09-29 改寫）：
+//   ① 鑑賞中真的滑鼠點另一枚籤 → 直接換到那件（每一幀都還在鑑賞態、背景一直壓暗＝中途不回牌桌），
+//      0.9 秒內符紙蓋住新焦點框中心、符紙在的時候新焦點不被畫、1.3 秒時焦點與題字都換成那件（逐籤對應）。
+//   ② 左右滑（真的滑鼠按下→拖→放開，不呼叫 appraiseNudge）：左滑＝下一件、右滑＝上一件，每一步同 ① 的檢查；
+//      到頭再滑一次停住不循環。
+//   ③ 切換後的揭幕中點空白＝跳過（0.1 秒內穩定、不返回）。
+// 用 Playwright 假時鐘逐幀推進（理由見 appraise-c-probe.mjs 檔頭）。
+// 矩陣：V1–V5 × solo/hot（凍結檔「未另註明者」的預設矩陣）；出價階段（盯上階段點卡片會直接宣告，換件流程相同）。
+// 用法：node tests/tools/appraise-switch.mjs [--root <repo>] [--out <dir>] [--port N] [--vps ...] [--modes ...]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { VP, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing } from './appraise-c-lib.mjs';
 
-const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const OUT = path.resolve(arg('--out', path.join(ROOT, 'docs/experiments/2026-09-28-appraise-panels')));
-const PORT = Number(arg('--port', 9760));
+const ROOT = path.resolve(arg('--root', HERE));
+const OUT = path.resolve(arg('--out', path.join(HERE, 'docs/experiments/2026-09-28-appraise-c')));
+const PORT = Number(arg('--port', 9961));
 const SEED = Number(arg('--seed', 3));
+const TAG = arg('--tag', 'head');
+const VPS = arg('--vps', 'V1,V2,V3,V4,V5').split(',');
+const MODES = arg('--modes', 'solo,hot').split(',');
 fs.mkdirSync(OUT, { recursive: true });
 
-const VP = { V1: { w: 852, h: 393, safe: [0, 59, 21, 59] }, V5: { w: 1280, h: 720, safe: [0, 0, 0, 0] } };
-const VPS = arg('--vps', 'V1,V5').split(',');
-const MODES = arg('--modes', 'solo,hot').split(',');
-const CASES = VPS.flatMap((vp) => MODES.map((mode) => ({ vp, mode })));
-
-const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
+const { chromium } = createRequire(path.join(HERE, 'tools/anyCreature/package.json'))('playwright');
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
+const E = (page, fn, a) => page.evaluate(fn, a);
+const STEPS = [50, 150, 300, 450, 600, 750, 900];
 
-const DRIVE_STEP = `(() => {
-  const b = document.getElementById('mainbtn');
-  const txt = b ? b.textContent : '', dis = b ? b.disabled : true;
-  if (b && /看最終結果/.test(txt) && !dis) return 2;
-  if (b && !dis) { b.click(); return 0; }
-  const m = document.getElementById('modal');
-  if (m && getComputedStyle(m).display !== 'none') {
-    const k = document.getElementById('titheKeep'); if (k) { k.click(); return 0; }
-    const bs = [...document.querySelectorAll('#modalbox .legendPick')]; if (bs.length) { bs[0].click(); return 0; }
-  }
-  if (b && dis) {
-    const els = [...document.querySelectorAll('#stage button')];
-    const sb = els.find((e) => /passEvent|pickEventOpt|confirmEventNum|__introNext/.test(e.getAttribute('onclick') || '')) || els.find((e) => !e.disabled);
-    if (sb) { sb.click(); return 0; }
-  }
-  return 1;
-})()`;
-const scr = (page) => page.evaluate(() => { const b = document.getElementById('mainbtn'); const t = b ? b.textContent : '', dis = b ? b.disabled : true; if (/不盯任何一件/.test(t)) return 'mark'; if (/^蓋牌/.test(t) && !dis) return 'bid'; return 'busy'; });
-async function driveToFirst(page, targetSet, cap = 4000) {
-  for (let i = 0; i < cap; i++) {
-    await page.waitForTimeout(8);
-    const cls = await scr(page);
-    if (targetSet.has(cls)) return cls;
-    const r = await page.evaluate(DRIVE_STEP);
-    if (r === 2) return null;
-  }
-  return null;
-}
-async function newCtx(vp) {
-  const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1 });
-  await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
-  await ctx.addInitScript((safe) => {
-    document.addEventListener('DOMContentLoaded', () => {
-      const s = document.createElement('style'); s.id = '__safe';
-      s.textContent = `:root{--safe-top:${safe[0]}px!important;--safe-right:${safe[1]}px!important;--safe-bottom:${safe[2]}px!important;--safe-left:${safe[3]}px!important}`;
-      document.head.appendChild(s);
-    });
-  }, vp.safe);
-  const page = await ctx.newPage();
-  await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
-  await page.waitForFunction('typeof window.__yaoshi === "object"', null, { timeout: 30000 });
-  await page.waitForFunction(() => window.__yaoshi3d && window.__yaoshi3d.tray, null, { timeout: 90000 }).catch(() => {});
-  await page.evaluate(() => { CFG.T = 1; const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1; });
-  return { ctx, page };
-}
-const pickFirstRole = async (page) => {
-  await page.waitForFunction(() => document.getElementById('selectScr').classList.contains('on') && document.querySelectorAll('#selGrid .rcard:not(.taken)').length > 0);
-  await page.evaluate(() => document.querySelectorAll('#selGrid .rcard:not(.taken)')[0].click());
-  await page.waitForTimeout(80);
-};
-// 焦點對應快照：APPR.i／側欄內容（跟 appraise-probe 同一支參考文字產生法）／目前露出來（未壓暗）那格的槽位
-async function snapshot(page) {
-  return page.evaluate(() => {
-    const id = APPR && APPR.on ? APPR.id : null, i = APPR ? APPR.i : null;
-    if (!id || i == null) return { on: false };
-    const si = Number(i);
-    const card = document.querySelector('#' + id + ' .railPages .railSelected');
-    const liveTxt = card ? (card.textContent || '').replace(/\s+/g, '') : '';
-    const tmpBid = typeof myBids !== 'undefined' && myBids[si] === undefined;
-    if (tmpBid) myBids[si] = { amt: 0, type: 'cons', intent: 'keep', target: null };
-    let refTxt = null;
-    try { const tmp = document.createElement('div'); tmp.innerHTML = (typeof TRAY_PHASE !== 'undefined' && TRAY_PHASE === 'mark' ? markCardHTML : mcardHTML)(S.market[si], si); refTxt = (tmp.textContent || '').replace(/\s+/g, ''); } catch (e) {}
-    finally { if (tmpBid) delete myBids[si]; }
-    return { on: true, id, i: si, contentMatch: refTxt != null && refTxt === liveTxt };
+async function state(page) {
+  return E(page, () => {
+    const AC = window.__AC, on = typeof APPR !== 'undefined' && APPR.on, i = on ? APPR.i : null;
+    const n = i != null ? AC.node(i) : null;
+    return { on: !!on, id: on ? APPR.id : null, i, fx: AC.fx(), bbox: n ? AC.projBox(n) : null, rendered: n ? AC.rendered(n, AC.focusMask()) : null };
   });
 }
-async function dispatchSwipe(page, dir) {
-  // dir=1（左滑＝下一件）：手指從右往左移；dir=-1（右滑＝上一件）：從左往右。真的派 pointerdown/pointerup，不呼叫 appraiseNudge。
-  const vp = page.viewportSize();
-  const y = vp.height / 2, x0 = vp.width / 2 + (dir === 1 ? 80 : -80), x1 = vp.width / 2 + (dir === 1 ? -80 : 80);
-  await page.evaluate(([x0, y]) => { const cv = document.getElementById('appraiseDim'); if (cv) cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: x0, clientY: y, bubbles: true })); }, [x0, y]);
-  await page.waitForTimeout(16);
-  await page.evaluate(([x1, y]) => { const cv = document.getElementById('appraiseDim'); if (cv) cv.dispatchEvent(new PointerEvent('pointerup', { clientX: x1, clientY: y, bubbles: true })); }, [x1, y]);
-  await page.waitForTimeout(350);
+/** 切換之後的揭幕：逐幀記錄，1.3 秒量焦點與題字（題字淡入走真實時間，另等）。 */
+async function afterSwitch(page, expectSlot, refImg, W, H) {
+  const frames = [];
+  let last = 0;
+  for (const ms of STEPS) {
+    await page.clock.runFor(ms - last); last = ms;
+    const s = await state(page), img = png(await page.screenshot());
+    const bb = s.bbox, c = bb ? { x: (bb.left + bb.right) / 2, y: (bb.top + bb.bottom) / 2 } : null;
+    const pnl = await E(page, (id) => { const e = id && document.querySelector('#' + id + ' .railPages'); if (!e) return null; const r = e.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; }, s.id);
+    const P = s.fx && s.fx.paper, pr = P && P.alpha > 0 ? { left: P.cx - P.w / 2, top: P.cy - P.h / 2, right: P.cx + P.w / 2, bottom: P.cy + P.h / 2 } : null;
+    const ex = [pnl, pr].filter(Boolean);
+    const full = { left: 0, top: 0, right: W, bottom: H };
+    frames.push({ ms, on: s.on, i: s.i, rendered: s.rendered, paperAlpha: P ? P.alpha : null, paper: c ? paperCover(img, pr || bb, c.x, c.y) : null,
+      dimRatio: ms <= 700 ? meanLum(img, full, ex) / meanLum(refImg, full, ex) : null });
+  }
+  await page.clock.runFor(1300 - last);
+  const s = await state(page);
+  const img = png(await page.screenshot());
+  const tok = s.i != null ? await E(page, (x) => window.__AC.token(x), s.i) : null;
+  const M = s.fx && s.fx.mirror;
+  const ring = tok && M ? findRing(img, M.cx, M.cy, tok.rgb, M.r * 0.9, M.r * 1.02) : null;
+  await page.clock.resume(); await page.waitForTimeout(1100); // 題字淡入（CSS、真實時間）
+  const panel = s.id ? await E(page, ([r, x]) => window.__AC.panel(r, x), [s.id, s.i]) : null;
+  const now = await E(page, () => Date.now()); await page.clock.pauseAt(now + 250);
+  return { expectSlot, frames, at1300: { on: s.on, i: s.i, rendered: s.rendered, ring: ring && { frac: ring.frac, dE: ring.dE } }, panel: panel && { side: (panel.rect.left + panel.rect.right) / 2 < W / 2 ? 'left' : 'right', content: panel.content, cut: panel.cut, trunc: panel.trunc } };
 }
+async function swipe(page, dir) {
+  const bp = await E(page, () => window.__AC.blankPoint());
+  if (!bp) return false;
+  const x1 = bp.x + (dir === 1 ? -90 : 90);
+  await page.mouse.move(bp.x, bp.y); await page.mouse.down(); await page.mouse.move((bp.x + x1) / 2, bp.y); await page.mouse.move(x1, bp.y); await page.mouse.up();
+  return true;
+}
+const tabCenter = (page, rail, slot) => E(page, ([r, s]) => { const b = document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]'); if (!b) return null; const q = b.getBoundingClientRect(); return q.width ? { x: (q.left + q.right) / 2, y: (q.top + q.bottom) / 2 } : null; }, [rail, slot]);
 
-const results = { cases: [], notes: [] };
+const results = { root: ROOT, cases: [], notes: [] };
 async function runCase(vname, mode) {
   const vp = VP[vname];
-  const { ctx, page } = await newCtx(vp);
+  const { ctx, page } = await openGame(browser, PORT, vp, mode, SEED);
   const row = { vp: vname, mode, tabClick: [], swipe: [] };
   try {
-    await page.evaluate((m) => startEntry(m), mode === 'hot' ? 'hotseat' : 'solo');
-    await pickFirstRole(page);
-    if (mode === 'hot') { await page.evaluate(() => { SEL.picks.push(SEL.cur); SEL.cur = null; renderSelect(); }); await pickFirstRole(page); }
-    await page.evaluate(([sd, md]) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame(md, sd, SEL.picks); }, [SEED, mode === 'hot' ? 'hotseat' : 'solo']);
-    await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1);
-    const cls = await driveToFirst(page, new Set(['bid', 'mark']));
-    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到 bid/mark`); return; }
-    const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 180000 }).then(() => true).catch(() => false);
-    if (!ready) { results.notes.push(`${vname}|${mode} 3D 未就緒（判紅）`); row.notready = true; return; }
+    await page.evaluate(PAGE_LIB); await page.evaluate(() => window.__AC.init());
+    const cls = await driveToFirst(page, new Set(['bid']));
+    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到出價階段（判紅）`); row.notready = true; return; }
+    if (!(await waitTrayReady(page))) { results.notes.push(`${vname}|${mode} 3D 未就緒（判紅）`); row.notready = true; return; }
+    await page.waitForTimeout(400);
+    const refImg = png(await page.screenshot());
     const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-    if (tabs.length < 2) { results.notes.push(`${vname}|${mode} 籤數 <2，切換與到頭停住量不到（判紅）`); row.notready = true; return; }
-    // ① 點別籤直接切換：開第一枚，再逐一點其餘每一枚，驗證每次都直接切到那件（中途沒有回到牌桌態）
-    await page.evaluate(([r, s]) => railTabClick(r, s), [tabs[0].rail, tabs[0].slot]);
-    await page.waitForTimeout(450);
-    for (const t of tabs) {
-      const beforeOn = await page.evaluate(() => !!(APPR && APPR.on));
-      await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
-      await page.waitForTimeout(450);
-      const snap = await snapshot(page);
-      row.tabClick.push({ rail: t.rail, slot: t.slot, stayedOn: beforeOn && snap.on, focusMatch: snap.on && snap.i === t.slot, contentMatch: snap.contentMatch === true });
+    if (tabs.length < 2) { results.notes.push(`${vname}|${mode} 籤數 <2（判紅）`); row.notready = true; return; }
+    const now = await E(page, () => Date.now()); await page.clock.pauseAt(now + 250);
+    // 先進第一枚、跳過揭幕到穩定
+    let tc = await tabCenter(page, tabs[0].rail, tabs[0].slot); await page.mouse.click(tc.x, tc.y); await page.clock.runFor(1300);
+    // ① 逐枚點籤（從第 2 枚起到最後，再回第 1 枚），每一枚都是「鑑賞中直接換」
+    for (const t of [...tabs.slice(1), tabs[0]]) {
+      tc = await tabCenter(page, t.rail, t.slot);
+      const wasOn = (await state(page)).on;
+      if (!tc) { row.tabClick.push({ ...t, err: '籤不在畫面上' }); continue; }
+      await page.mouse.click(tc.x, tc.y);
+      row.tabClick.push({ ...t, wasOn, ...(await afterSwitch(page, t.slot, refImg, vp.w, vp.h)) });
     }
-    // ② 左右滑：從目前所在位置，先一路左滑（dir=1，下一件）走到底，驗證順序＝appraiseSlots() 順序、到頭停住（多滑一次仍是同一件）
-    const order = await page.evaluate(() => { try { return window.__yaoshi3d.tray.items().filter((it) => it.visible).map((it) => it.slot).sort((a, b) => a - b); } catch (e) { return []; } });
-    // 回到序列第一件
-    const first = order[0];
-    const firstTab = tabs.find((t) => t.slot === first) || tabs[0];
-    await page.evaluate(([r, s]) => railTabClick(r, s), [firstTab.rail, firstTab.slot]);
-    await page.waitForTimeout(450);
-    for (let k = 0; k < order.length; k++) {
-      const snap = await snapshot(page);
-      row.swipe.push({ dir: 'next', expectSlot: order[k], actual: snap.i, focusMatch: snap.on && snap.i === order[k], contentMatch: snap.contentMatch === true });
-      await dispatchSwipe(page, 1);
-    }
-    // 多滑一次（超過最後一件）：應停在最後一件不循環
-    const afterEnd = await snapshot(page);
-    row.swipeEdgeNext = { expectSlot: order[order.length - 1], actual: afterEnd.i, stopped: afterEnd.on && afterEnd.i === order[order.length - 1] };
-    // 反向滑回去，驗證每一步對應，並在頭部再測一次到頭停住
-    for (let k = order.length - 1; k >= 0; k--) {
-      const snap = await snapshot(page);
-      row.swipe.push({ dir: 'prev', expectSlot: order[k], actual: snap.i, focusMatch: snap.on && snap.i === order[k], contentMatch: snap.contentMatch === true });
-      await dispatchSwipe(page, -1);
-    }
-    const afterStart = await snapshot(page);
-    row.swipeEdgePrev = { expectSlot: order[0], actual: afterStart.i, stopped: afterStart.on && afterStart.i === order[0] };
-    // 收尾：回到牌桌態
+    // ② 左右滑：從序列第一件開始一路左滑到底，再多滑一次；然後右滑回頭，再多滑一次
+    const order = await E(page, () => window.__yaoshi3d.tray.items().filter((it) => it.visible || it.apprHide).map((it) => it.slot).sort((a, b) => a - b));
+    row.order = order;
+    // 目前在 tabs[0]（上面最後一步）；若 tabs[0] 不是序列第一件，先點過去
+    if ((await state(page)).i !== order[0]) { const t0 = tabs.find((t) => t.slot === order[0]); tc = await tabCenter(page, t0.rail, t0.slot); await page.mouse.click(tc.x, tc.y); await page.clock.runFor(1300); }
+    for (let k = 1; k < order.length; k++) { const ok = await swipe(page, 1); row.swipe.push({ dir: 'next', ok, ...(await afterSwitch(page, order[k], refImg, vp.w, vp.h)) }); }
+    await swipe(page, 1); await page.clock.runFor(1300);
+    row.edgeNext = { expect: order[order.length - 1], got: (await state(page)).i, on: (await state(page)).on };
+    for (let k = order.length - 2; k >= 0; k--) { const ok = await swipe(page, -1); row.swipe.push({ dir: 'prev', ok, ...(await afterSwitch(page, order[k], refImg, vp.w, vp.h)) }); }
+    await swipe(page, -1); await page.clock.runFor(1300);
+    row.edgePrev = { expect: order[0], got: (await state(page)).i, on: (await state(page)).on };
+    // ③ 切換後的揭幕中點空白＝跳過
+    const t1 = tabs.find((t) => t.slot !== order[0]) || tabs[1];
+    tc = await tabCenter(page, t1.rail, t1.slot); await page.mouse.click(tc.x, tc.y);
+    await page.clock.runFor(300);
+    const bp = await E(page, () => window.__AC.blankPoint());
+    if (bp) await page.mouse.click(bp.x, bp.y);
+    await page.clock.runFor(100);
+    const sk = await state(page);
+    row.skipAfterSwitch = { blank: bp, on: sk.on, i: sk.i, expect: t1.slot, stable: !!(sk.fx && sk.fx.stable), rendered: sk.rendered };
+    await page.clock.resume();
     await page.evaluate(() => { try { closeAppraise(); } catch (e) {} });
   } catch (e) { results.notes.push(`${vname}|${mode} 例外：${e.message}\n${e.stack}`); }
-  finally { results.cases.push(row); await ctx.close().catch(() => {}); }
+  finally { results.cases.push(row); await ctx.close().catch(() => {}); console.log(vname, mode, 'done'); }
 }
 
-for (const c of CASES) await runCase(c.vp, c.mode);
-await browser.close();
-srv.kill();
-const outFile = path.join(OUT, 'appraise-switch-raw.json');
-fs.writeFileSync(outFile, JSON.stringify(results, null, 1));
-console.log('寫入', outFile, 'cases', results.cases.length, 'notes', results.notes.length);
+try { for (const vp of VPS) for (const mode of MODES) await runCase(vp, mode); }
+finally { await browser.close(); srv.kill(); }
+// ── 判定（同檔，量不到判紅）──
+const fails = [];
+let cells = 0;
+const judgeSwitch = (key, r) => {
+  cells++;
+  const f = [];
+  if (r.err) f.push(r.err);
+  if (r.wasOn === false) f.push('切換前不在鑑賞態');
+  if (!r.frames || !r.frames.length) f.push('沒有逐幀資料');
+  else {
+    if (r.frames.some((q) => !q.on)) f.push('中途離開鑑賞態');
+    if (r.frames.some((q) => q.dimRatio != null && !(q.dimRatio <= 0.7))) f.push('中途畫面亮回牌桌（暗糊比 > 0.70）：' + r.frames.map((q) => q.dimRatio && q.dimRatio.toFixed(2)).join(','));
+    if (!r.frames.some((q) => q.ms <= 900 && q.paper && q.paper.center && q.paper.center.yellow >= 0.25 && q.paper.center.paper >= 0.5 && q.paper.corners >= 3)) f.push('0.9 秒內沒有符紙蓋住新焦點框中心（沒重燒）');
+    if (r.frames.some((q) => ((q.paperAlpha > 0) || (q.paper && q.paper.corners >= 3)) && q.rendered !== false)) f.push('符紙還在時新焦點已被畫出');
+  }
+  if (!r.at1300 || !r.at1300.on || r.at1300.i !== r.expectSlot) f.push(`1.3 秒時焦點 ${r.at1300 && r.at1300.i} ≠ ${r.expectSlot}`);
+  else { if (r.at1300.rendered !== true) f.push('1.3 秒時焦點沒被畫'); if (!r.at1300.ring || !(r.at1300.ring.frac >= 0.5)) f.push('1.3 秒時沒有鏡子'); }
+  if (!r.panel || !r.panel.content || !r.panel.content.match) f.push('題字內容不是那一件');
+  if (r.panel && r.panel.cut && r.panel.cut.length) f.push('cut ' + r.panel.cut.join('|'));
+  if (f.length) fails.push(`${key} ${f.join('；')}`);
+};
+for (const row of results.cases) {
+  const k0 = `${row.vp}|${row.mode}`;
+  if (row.notready) { fails.push(`${k0} 量不到`); continue; }
+  row.tabClick.forEach((r) => judgeSwitch(`${k0}|點籤→${r.rail}#${r.slot}`, r));
+  row.swipe.forEach((r) => judgeSwitch(`${k0}|${r.dir === 'next' ? '左滑' : '右滑'}→${r.expectSlot}`, r));
+  cells += 3;
+  if (!row.edgeNext || !row.edgeNext.on || row.edgeNext.got !== row.edgeNext.expect) fails.push(`${k0} 左滑到底沒停住 ${JSON.stringify(row.edgeNext)}`);
+  if (!row.edgePrev || !row.edgePrev.on || row.edgePrev.got !== row.edgePrev.expect) fails.push(`${k0} 右滑到頭沒停住 ${JSON.stringify(row.edgePrev)}`);
+  const sk = row.skipAfterSwitch;
+  if (!sk || !sk.blank || !sk.on || sk.i !== sk.expect || !sk.stable || sk.rendered !== true) fails.push(`${k0} 切換後揭幕中點空白沒有跳到穩定態 ${JSON.stringify(sk)}`);
+}
+results.verdict = { cells, fail: fails.length, pass: fails.length === 0 && !results.cases.some((c) => c.notready) && results.cases.length === VPS.length * MODES.length };
+results.fails = fails;
+const outFile = path.join(OUT, `switch-${TAG}-raw.json`);
+fs.writeFileSync(outFile, JSON.stringify(results));
+console.log('寫入', outFile, JSON.stringify(results.verdict));
+for (const f of fails.slice(0, 20)) console.log('  ✗', f);

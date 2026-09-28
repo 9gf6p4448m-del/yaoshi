@@ -16,7 +16,9 @@ const TABLE_ONLY = process.argv.includes('--table-only'); // 基準（86e4676）
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
-const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+/* --root：服務別的工作樹（例如基準 86e4676 的 base592），治具本身仍用本 repo 這一份 */
+const SERVE = path.resolve(arg('--root', ROOT));
+const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SERVE, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 1 });

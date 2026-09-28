@@ -16,10 +16,13 @@ fs.mkdirSync(OUT, { recursive: true });
 const IS_BASE = TAG === 'base';
 
 const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
-const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+/* --root：服務別的工作樹（例如基準 86e4676 的 base592），治具本身仍用本 repo 這一份 */
+const SERVE = path.resolve(arg('--root', ROOT));
+const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SERVE, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 1 });
+if (!IS_BASE) await ctx.clock.install(); // 丙案：揭幕逐幀用假時鐘推進（時間照常流動，直到 pauseAt）
 await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
 const page = await ctx.newPage();
 await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
@@ -72,21 +75,24 @@ if (!IS_BASE) {
   // 鑑賞頁：西籤
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
   const west = tabs.find((t) => t.rail === 'railW'), east = tabs.find((t) => t.rail === 'railE');
-  // 連續截圖：進場到穩定（≥6 幀）
-  await page.evaluate(([r, s]) => railTabClick(r, s), [west.rail, west.slot]);
-  for (let i = 0; i < 8; i++) { await page.waitForTimeout(70); await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-enter-f${i}.png`) }); }
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-west.png`) });
-  await page.evaluate(() => { const cv = document.getElementById('appraiseDim'); cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: 5, clientY: 5, bubbles: true })); cv.dispatchEvent(new PointerEvent('pointerup', { clientX: 5, clientY: 5, bubbles: true })); });
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-return.png`) });
-  if (east) {
-    await page.evaluate(([r, s]) => railTabClick(r, s), [east.rail, east.slot]);
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-east.png`) });
-    await page.evaluate(() => { const cv = document.getElementById('appraiseDim'); cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: 5, clientY: 5, bubbles: true })); cv.dispatchEvent(new PointerEvent('pointerup', { clientX: 5, clientY: 5, bubbles: true })); });
-    await page.waitForTimeout(400);
-  }
+  // 丙案（09-29）：真的滑鼠點籤，假時鐘逐幀推進，拍燒符揭幕→照妖鏡浮現→穩定→點空白返回（凍結 #9 修訂：燒符揭幕連續 ≥6 幀）
+  const tabAt = (t) => page.evaluate(([r, s]) => { const b = document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]'); const q = b.getBoundingClientRect(); return { x: (q.left + q.right) / 2, y: (q.top + q.bottom) / 2 }; }, [t.rail, t.slot]);
+  const blank = () => page.evaluate(() => { const W = innerWidth, H = innerHeight; for (let fy = 0.92; fy > 0.1; fy -= 0.06) for (const fx of [0.5, 0.45, 0.55, 0.4, 0.6]) { const e = document.elementFromPoint(W * fx, H * fy); if (e && e.id === 'appraiseDim') return { x: W * fx, y: H * fy }; } return null; });
+  const FR = [0, 80, 160, 260, 360, 460, 560, 660, 760, 860, 960, 1060];
+  const shoot = async (t, name) => {
+    const now = await page.evaluate(() => Date.now()); await page.clock.pauseAt(now + 250);
+    const c = await tabAt(t); await page.mouse.click(c.x, c.y);
+    let last = 0;
+    if (name === 'west') for (const [k, ms] of FR.entries()) { await page.clock.runFor(ms - last); last = ms; await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-enter-f${String(k).padStart(2, '0')}-${ms}ms.png`) }); }
+    await page.clock.runFor(1300 - last);
+    await page.clock.resume(); await page.waitForTimeout(1200); // 題字淡入（CSS 真實時間）
+    await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-${name}.png`) });
+    const b = await blank(); if (b) await page.mouse.click(b.x, b.y);
+    await page.waitForTimeout(600);
+    if (name === 'west') await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-return.png`) });
+  };
+  await shoot(west, 'west');
+  if (east) await shoot(east, 'east');
 } else {
   // 基準 86e4676：開卡停靠（selectRailPage）西籤／東籤各一
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
