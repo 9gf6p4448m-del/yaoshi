@@ -148,6 +148,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d.appraising #railW.open .railPages::after{right:0}
   #table.t3d.appraising #railE.open .railPages{right:max(6px,var(--safe-right));left:auto;padding:12px 10px 12px 14px}
   #table.t3d.appraising #railE.open .railPages::after{left:0}
+  #table.t3d.appraising .rail.open .railPages.inking{pointer-events:none}
   @keyframes apprInk{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
   @media (prefers-reduced-motion:reduce){#table.t3d.appraising .rail.open .railPages{animation:none}}
   #table.t3d .rail .railPages>.mcard:not(.railSelected){display:none}
@@ -3088,6 +3089,8 @@ function appraisePanelClamp(){
   let best=base.width;
   for(let w=base.width+8;w<=Math.min(300,W*0.4);w+=8){ if(appraiseLayout(rectAt(w)).r>=r0-0.5) best=w; else break; }
   pages.style.width=best+"px";
+  /* 內容仍放不下（欄高被頂角的籤吃掉一截、長能力文字）就再加寬到放得下為止——寧可鏡子小一點也不截字（凍結 #2／#11(c)）。 */
+  for(let w=best+8;pages.scrollHeight>pages.clientHeight+1&&w<=Math.min(360,W*0.46);w+=8) pages.style.width=w+"px";
 }
 /** 照妖鏡放哪（丙案，凍結 #1(a)／#11(b)）：題字欄朝畫面中央那一邊到另一側安全區邊緣、上下安全區之間的空地，
  *  扣掉另一側那排窄籤（收在上角）——在這塊空地裡找最大的圓（外半徑 r，含系色光線；外圈柔光允許溢出到籤底下）。
@@ -3116,6 +3119,12 @@ function appraiseLayout(prOverride){
 function appraiseReplayInk(){
   const pg=$(APPR.id)&&$(APPR.id).querySelector(".railPages"); if(!pg) return;
   pg.style.animation="none"; void pg.offsetWidth; pg.style.animation="";
+  /* 淡入完成前題字欄看不見，不能讓它吃點擊（09-29 冷讀覆審 H1：揭幕中點「空白」會打到隱形的卡片＝不可逆的盯上）。
+     淡入結束（animationend）才開放；reduced-motion 沒有動畫就立刻開放；保險再掛一個計時器。 */
+  pg.classList.add("inking");
+  const done=()=>{ pg.classList.remove("inking"); pg.removeEventListener("animationend",done); };
+  pg.addEventListener("animationend",done);
+  if(getComputedStyle(pg).animationName==="none") done(); else setTimeout(done,1400);
 }
 /** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態；修訂：每次切換都重燒）。 */
 function openAppraise(id,i){
@@ -3185,6 +3194,7 @@ function closeRailCard(id){
   /* 轉向／改視窗大小：題字欄重新避讓窄籤、鏡子重新找空地（不重燒）。 */
   if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>{
     if(!APPR.on) return;
+    if(innerWidth<=innerHeight){ closeAppraise(); return; } /* 直式整個 3D 牌桌由轉向提示蓋住、輸入層也不在：直接收起（覆審 M1） */
     appraisePanelClamp();
     try{ appraiseTray().setAppraiseLayout(appraiseLayout()); }catch(e){}
   });

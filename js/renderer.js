@@ -345,7 +345,8 @@ function init() {
     tray.update(dt); // 桌心托盤：hover 浮空微旋與詛咒陰火（收起來時自己早退）
     // Hold the terminal framing until its result card; release it smoothly
     // only once no actual flight remains. Skip cannot cancel that lifecycle.
-    if (!framing.active && overlay) {
+    /* 法寶鑑賞頁（v0.59.2 丙案）開著時不疊揭盅運鏡：鑑賞的推近與平移在 tray.update 裡已經算好（覆審 M2） */
+    if (!framing.active && overlay && tray.appraise() < 0) {
       if (revealSlot < 0) release = Math.max(0, release - dt / .3);
       const axis = camera.position.clone().set(0, 0, 1).applyQuaternion(camera.quaternion);
       camera.position.addScaledVector(axis, overlay.retreat * release);

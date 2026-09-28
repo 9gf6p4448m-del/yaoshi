@@ -122,7 +122,6 @@ function drawPaper(x, w, h, font) {
 const VERT = /* glsl */`void main(){ gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`;
 /* 疊層 shader：輸出預乘 alpha（混合 ONE, ONE_MINUS_SRC_ALPHA），由下往上：壓暗 → 鏡子 → 符紙 → 火光／金光（加色）。 */
 const FRAG = /* glsl */`
-precision highp float;
 uniform vec2 uView;      // CSS px
 uniform float uDpr;
 uniform float uTime;
@@ -161,13 +160,14 @@ void main(){
     float R = uMir.z * uMirS;
     vec2 d = (p - uMir.xy) / R;
     float r = length(d);
+    // 取樣放在「逐像素分支」外面：有 mipmap 的貼圖在非一致分支裡取樣，隱式導數未定義（部分手機 GPU 會在鏡緣出現閃點）
+    vec2 uv = d * 0.5 + 0.5; uv.y = 1.0 - uv.y;
+    vec4 body = texture2D(tBody, uv);
+    float cs = cos(uBag), sn = sin(uBag);
+    vec2 dr = vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y);
+    vec2 uvb = dr * 0.5 + 0.5; uvb.y = 1.0 - uvb.y;
+    vec4 bag = texture2D(tBag, uvb);
     if (r < 1.0) {
-      vec2 uv = d * 0.5 + 0.5; uv.y = 1.0 - uv.y;
-      vec4 body = texture2D(tBody, uv);
-      float cs = cos(uBag), sn = sin(uBag);
-      vec2 dr = vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y);
-      vec2 uvb = dr * 0.5 + 0.5; uvb.y = 1.0 - uvb.y;
-      vec4 bag = texture2D(tBag, uvb);
       vec3 col = mix(body.rgb, bag.rgb, bag.a);
       // 鏡面內緣一圈系色反光（很淡，只是讓鏡子「認得」這一件）
       col += uGlow * 0.08 * smoothstep(FACE - 0.16, FACE - 0.005, r) * step(r, FACE);
@@ -196,8 +196,8 @@ void main(){
     float v = (1.0 - lp.y) * 0.80 + n * 0.30 - 0.05;        // 由下往上燒
     float e = v - uBurn;                                    // >0 未燒、<0 已燒
     float frontY = uPaper.y + uPaper.w * (0.5 - clamp(uBurn * 1.05, 0.0, 1.0));
+    vec4 t = texture2D(tPaper, vec2(lp.x, 1.0 - lp.y)); // 同上：分支外取樣
     if (ex.x < 0.5 && ex.y < 0.5 && lp.y < uPaperA) {
-      vec4 t = texture2D(tPaper, vec2(lp.x, 1.0 - lp.y));
       if (e >= 0.0) {
         vec3 c = t.rgb;
         if (uBurn > 0.0) {
@@ -240,7 +240,7 @@ void main(){
   gl_Position = vec4(p.x / uView.x * 2.0 - 1.0, 1.0 - p.y / uView.y * 2.0, 0.0, 1.0);
 }`;
 const EMBER_FRAG = /* glsl */`
-precision highp float; varying float vA;
+varying float vA;
 void main(){ float r = length(gl_PointCoord - 0.5); float a = vA * (1.0 - smoothstep(0.2, 0.5, r));
   gl_FragColor = vec4(vec3(1.0, 0.72, 0.3) * a, 0.0); }`;
 

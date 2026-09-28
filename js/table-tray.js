@@ -620,6 +620,7 @@ export function createTableTray(scene, camera, opts = {}) {
   let apprLayout = null;
   let apprEnv = null;
   let apprShown = false;
+  let apprLastD = null; // 上一幀推近距離（取景二分的起點）
   let apprGlowHex = '#c9a862';
   const apprMasks = new Map();
   const _v = new THREE.Vector3();
@@ -663,10 +664,22 @@ export function createTableTray(scene, camera, opts = {}) {
     node.rotation.y = rot; node.updateMatrixWorld(true);
     return boxes.length ? boxes : null;
   }
+  /** 揭幕前藏起焦點、燒完再讓它現身。只碰「進場那一刻本來就在桌上、而且沒有在飛／在燒」的那一件：
+   *  揭盅中已經飛走（visible=false）或正在飛／燒的拍品，visible 由它自己的生命週期管，這裡一律不動
+   *  （09-29 冷讀覆審 H2：否則已售出的法寶會在鏡子裡、甚至得標席位上重新出現）。 */
   function showFocus(on) {
     const s = slots[apprIdx]; const n = nodeOf(apprIdx);
-    if (!s || !n) return;
-    n.visible = on; s.apprHide = !on; apprShown = on;
+    apprShown = on;
+    if (!s || !n || s.apprNoFx) return;
+    n.visible = on; s.apprHide = !on;
+  }
+  /** 揭幕中暫藏的那一件突然要開始自己的生命週期（得標飛走、詛咒燒掉／轉移）：先把 visible 還給它，
+   *  之後不再代管（飛行本身在揭幕結束前一樣不會被畫，因為它在焦點圖層、疊層那一趟還沒開始畫法寶）。 */
+  function releaseFocus(s) {
+    if (!s || !s.apprHide) return;
+    const n = s.fig ? s.fig.group : (s.pile ? s.pile.group : null);
+    if (n) n.visible = true;
+    s.apprHide = false; s.apprNoFx = true;
   }
 
   /** 這一格的描邊外殼該不該畫：`?table3d=lite` 一律不畫；否則只有 hover／鑑賞中的那一格畫。
@@ -706,7 +719,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile = null;
     }
     s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.chain = false; s.ready = false; s.hoverK = 0; s.spin = 0;
-    s.rimK = -1; s.played = false; s.apprHide = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
+    s.rimK = -1; s.played = false; s.apprHide = false; s.apprNoFx = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
        在 GLB 載完之前命中盒還是符紙堆那個小盒——玩家點得到的範圍比看到的小一截。 */
@@ -790,8 +803,9 @@ export function createTableTray(scene, camera, opts = {}) {
   const apprBox = new THREE.Box3();
   /** 在目前相機下，把包絡裡每一個角度的盒投影成螢幕矩形；回傳全部矩形的聯集中心，以及「以聯集中心為圓心時
    *  最遠那個矩形角」的距離（＝要塞進鏡子內圈所需的半徑）。任一角點落到相機後面就回 null（太近）。 */
+  const envBuf = new Float64Array(TRAY.APPRAISE.ENV_N * 4); // 每幀重用，不配新陣列（手機 GC）
   function envFit(pv, boxes, W, H) {
-    const rects = [];
+    const rects = envBuf; let nr = 0;
     let uL = Infinity, uT = Infinity, uR = -Infinity, uB = -Infinity;
     for (const b of boxes) {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -802,12 +816,12 @@ export function createTableTray(scene, camera, opts = {}) {
         if (px < minX) minX = px; if (px > maxX) maxX = px;
         if (py < minY) minY = py; if (py > maxY) maxY = py;
       }
-      rects.push([minX, minY, maxX, maxY]);
+      rects[nr * 4] = minX; rects[nr * 4 + 1] = minY; rects[nr * 4 + 2] = maxX; rects[nr * 4 + 3] = maxY; nr++;
       if (minX < uL) uL = minX; if (minY < uT) uT = minY; if (maxX > uR) uR = maxX; if (maxY > uB) uB = maxY;
     }
     const cx = (uL + uR) / 2, cy = (uT + uB) / 2;
     let need = 0;
-    for (const [l, t, r, b] of rects) need = Math.max(need, Math.hypot(Math.max(cx - l, r - cx), Math.max(cy - t, b - cy)));
+    for (let q = 0; q < nr; q++) { const l = rects[q * 4], t = rects[q * 4 + 1], r = rects[q * 4 + 2], b = rects[q * 4 + 3]; need = Math.max(need, Math.hypot(Math.max(cx - l, r - cx), Math.max(cy - t, b - cy))); }
     return { cx, cy, need };
   }
   function updateAppraiseCamera(dt) {
@@ -818,6 +832,7 @@ export function createTableTray(scene, camera, opts = {}) {
     if (apprK <= 0) { apprK = 0; apprCloseNode = null; return; }
     const node = apprIdx >= 0 ? nodeOf(apprIdx) : apprCloseNode;
     if (!node || !apprLayout) return;
+    { const sl = apprIdx >= 0 ? slots[apprIdx] : null; if (sl && sl.apprNoFx && !node.visible) return; } // 揭盅中已經飛走的那一件：鏡頭不去追它
     if (!apprEnv) apprEnv = computeEnv(node);
     if (!apprEnv) return;
     const base = camera.position.clone();
@@ -829,10 +844,13 @@ export function createTableTray(scene, camera, opts = {}) {
     const evalAt = (d) => { camera.position.copy(base).addScaledVector(axis, d); camera.updateMatrixWorld(true); return envFit(pv, apprEnv, W, H); };
     const fits = (q) => !!q && q.need <= target;
     // d<0＝往前推近（框變大）。先找一個夾住「剛好塞滿」的區間，再二分；取塞得下的那一側。
+    // 上一幀的答案當起點（法寶只在輕浮與自轉，距離幾乎不變）：先用小步夾住，再二分——每幀約十來次包絡投影，手機 CPU 省。
     let lo, hi;
-    if (fits(evalAt(0))) { lo = 0; hi = -0.25; let g = 0; while (fits(evalAt(hi)) && g < 24) { lo = hi; hi *= 1.5; g++; } }
-    else { hi = 0; lo = 0.25; let g = 0; while (!fits(evalAt(lo)) && g < 24) { hi = lo; lo *= 1.5; g++; } }
-    for (let k = 0; k < 16; k++) { const mid = (lo + hi) / 2; if (fits(evalAt(mid))) lo = mid; else hi = mid; }
+    const d0 = apprLastD ?? 0, st0 = apprLastD == null ? 0.25 : 0.02;
+    if (fits(evalAt(d0))) { lo = d0; hi = d0 - st0; let g = 0, stp = st0; while (fits(evalAt(hi)) && g < 30) { lo = hi; stp *= 1.6; hi -= stp; g++; } }
+    else { hi = d0; lo = d0 + st0; let g = 0, stp = st0; while (!fits(evalAt(lo)) && g < 30) { hi = lo; stp *= 1.6; lo += stp; g++; } }
+    for (let k = 0; k < 10; k++) { const mid = (lo + hi) / 2; if (fits(evalAt(mid))) lo = mid; else hi = mid; }
+    apprLastD = lo;
     /* 寬體補償：包絡取景是「最寬那個角度剛好塞滿鏡子」，轉到窄的角度時法寶就顯小；扁寬的（虎爺印、詛咒符紙堆）
      * 在小螢幕上會小到框高不足凍結 #1(a) 的 35%。所以這一幀的真實包圍盒高度低於 MIN_H 時，再往前推，直到
      * 高度達到 MIN_H、或這一幀的框碰到鏡子內圈為止。對準鏡心的點也從「包絡中心」漸漸移到「這一幀的框中心」
@@ -931,15 +949,18 @@ export function createTableTray(scene, camera, opts = {}) {
 
   /* 得標不改拍賣資料：暫時移動現有的 3D 展示模型，落到席位後隱藏，下一夜 setItems 會照既有生命週期換貨。 */
   function playAward(slot, winner) {
+    releaseFocus(slots[slot]);
     const s = slots[slot]; if (!s || !s.fig || !s.fig.group.visible) return;
     s.award = { t: 0, from: { x: s.fig.group.position.x, y: s.fig.group.position.y, z: s.fig.group.position.z }, winner };
   }
   /* 詛咒品不飛入任何人的袋：符紙堆以黑紫色陰火縮成灰燼，仍完全停留在渲染層。 */
   function playCurseBurn(slot) {
+    releaseFocus(slots[slot]);
     const s = slots[slot]; if (!s || !s.pile) return;
     s.burn = 0.001;
   }
   function playCurseTransfer(slot, target) {
+    releaseFocus(slots[slot]);
     const s = slots[slot]; if (!s || !s.pile) return;
     s.curseAward = { t: 0, from: { x: s.pile.group.position.x, y: s.pile.group.position.y, z: s.pile.group.position.z }, target };
   }
@@ -1053,6 +1074,7 @@ export function createTableTray(scene, camera, opts = {}) {
         if (s.fig) { s.fig.group.position.y = TRAY.Y; s.fig.group.rotation.y = s.spin; s.fig.setRim(TRAY.RIM_BASE); s.rimK = -1; s.rimStillWas = false; }
         else if (s.pile) { s.pile.group.position.y = TRAY.Y; s.pile.group.rotation.y = s.spin; s.pile.setGlow(1); }
         const n = nodeOf(prev); if (n && s.apprHide) { n.visible = true; s.apprHide = false; }
+        s.apprNoFx = false;
       }
       /* 丙案圖層：換件＝先把所有遮罩寫回原值，再依新的焦點重套（焦點↔其餘的身分對調了） */
       restoreMasks();
@@ -1066,10 +1088,12 @@ export function createTableTray(scene, camera, opts = {}) {
         apprT = 0;
         apprMs = 0;
         apprEnv = null;
+        apprLastD = null;
         apprCloseNode = nodeOf(k);
         apprGlowHex = sysHex(slots[k]);
         /* sRGB 位元組原樣進 shader（見 appraise-fx.js 檔頭「色彩」）：以 linear 標記寫入＝不做色彩空間換算 */
         getFx().U.uGlow.value.setRGB(parseInt(apprGlowHex.slice(1, 3), 16) / 255, parseInt(apprGlowHex.slice(3, 5), 16) / 255, parseInt(apprGlowHex.slice(5, 7), 16) / 255, THREE.LinearSRGBColorSpace);
+        { const s = slots[k], n = nodeOf(k); s.apprNoFx = !n || !n.visible || !!(s.award || s.curseAward || s.burn !== undefined); }
         showFocus(false); // 燒符結束之前焦點法寶不可見（凍結 #11(a)）
         applyAppraiseLayers(true);
         applyOutline(slots[k]);
@@ -1090,7 +1114,7 @@ export function createTableTray(scene, camera, opts = {}) {
       return true;
     },
     /** 視窗改尺寸時 index.html 重算鏡子位置後推進來（不重燒）。 */
-    setAppraiseLayout(layout) { if (layout && layout.r > 0) apprLayout = { mx: layout.mx, my: layout.my, r: layout.r }; },
+    setAppraiseLayout(layout) { if (layout && layout.r > 0) apprLayout = { mx: layout.mx, my: layout.my, r: layout.r }; apprEnv = null; apprLastD = null; }, // 轉向重鋪會改模型縮放：包絡重量
     /** 治具用唯讀出口：第 i 格的模型根節點（驗收自己拿 three 量包圍盒、讀 visible／layers，不經本檔換算）。 */
     node(i) { return (i >= 0 && i < N) ? nodeOf(i) : null; },
     /** 治具用唯讀出口：丙案疊層這一幀實際送進 shader 的值（鏡子幾何、符紙矩形、八卦角）＋兩個圖層編號。
@@ -1114,21 +1138,24 @@ export function createTableTray(scene, camera, opts = {}) {
     renderOverlay(renderer) {
       if (apprIdx < 0 || !visible || !apprLayout) return;
       const info = renderer.info, ar = info.autoReset, ac = renderer.autoClear;
+      const mask = camera.layers.mask, bg = scene.background;
       info.autoReset = false; renderer.autoClear = false;
-      const fx = getFx();
-      fx.U.uView.value.set(window.innerWidth || 844, window.innerHeight || 390);
-      fx.U.uDpr.value = renderer.getPixelRatio();
-      renderer.render(fx.scene, fx.cam);
-      if (apprShown) {
-        renderer.clearDepth();
-        const mask = camera.layers.mask, bg = scene.background;
-        camera.layers.set(TRAY.APPRAISE.LAYER); scene.background = null;
-        renderer.render(scene, camera);
+      try { // 中途拋錯也要把 autoClear／autoReset／相機圖層／背景還回去，不然之後每一幀都帶著殘影與錯的計數
+        const fx = getFx();
+        fx.U.uView.value.set(window.innerWidth || 844, window.innerHeight || 390);
+        fx.U.uDpr.value = renderer.getPixelRatio();
+        renderer.render(fx.scene, fx.cam);
+        if (apprShown) {
+          renderer.clearDepth();
+          camera.layers.set(TRAY.APPRAISE.LAYER); scene.background = null;
+          renderer.render(scene, camera);
+        }
+        const b = fx.U.uBurn.value;
+        if (b > 0 && b < 1) renderer.render(fx.emberScene, fx.cam);
+      } finally {
         camera.layers.mask = mask; scene.background = bg;
+        renderer.autoClear = ac; info.autoReset = ar;
       }
-      const b = fx.U.uBurn.value;
-      if (b > 0 && b < 1) renderer.render(fx.emberScene, fx.cam);
-      renderer.autoClear = ac; info.autoReset = ar;
     },
     /** 螢幕座標（px，相對視窗左上）。canvas 是 fixed 0,0 滿版，所以視窗座標＝canvas 座標。 */
     slotScreen(i) {
