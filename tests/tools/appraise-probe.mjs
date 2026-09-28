@@ -1,6 +1,7 @@
 // v0.59.2 法寶鑑賞頁驗收，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md #1–#4。
-// 縮減矩陣（不是凍結檔要求的 V1–V5×solo/hot/nw1-3 全席）：V1/solo、V3/hot 各一夜，逐籤（西／東籤各一）。
+// 全矩陣（09-28 補齊缺口）：V1–V5 × solo/hot × 每一枚窄籤 × 出價與盯上兩個狀態。
 // 用法：node tests/tools/appraise-probe.mjs [--out <dir>] [--port N] [--base <index.html 路徑，判基準用>]
+//      [--vps V1,V2,...] [--modes solo,hot] [--tag <輸出檔名後綴，平行跑不同切片時避免互相覆寫>]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -16,8 +17,17 @@ const SEED = Number(arg('--seed', 3));
 const BASE_MODE = process.argv.includes('--base'); // true＝跑在基準（86e4676）上，判紅
 fs.mkdirSync(OUT, { recursive: true });
 
-const VP = { V1: { w: 852, h: 393, safe: [0, 59, 21, 59] }, V3: { w: 844, h: 390, safe: [0, 47, 21, 47] } };
-const CASES = [{ vp: 'V1', mode: 'solo' }, { vp: 'V3', mode: 'hot' }];
+const VP = {
+  V1: { w: 852, h: 393, safe: [0, 59, 21, 59] },
+  V2: { w: 932, h: 430, safe: [0, 59, 21, 59] },
+  V3: { w: 844, h: 390, safe: [0, 47, 21, 47] },
+  V4: { w: 667, h: 375, safe: [0, 0, 0, 0] },
+  V5: { w: 1280, h: 720, safe: [0, 0, 0, 0] },
+};
+const TAG = arg('--tag', '');
+const VPS = arg('--vps', 'V1,V2,V3,V4,V5').split(',');
+const MODES = arg('--modes', 'solo,hot').split(',');
+const CASES = VPS.flatMap((vp) => MODES.map((mode) => ({ vp, mode })));
 
 const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
@@ -98,18 +108,26 @@ async function runCase(vname, mode) {
     if (mode === 'hot') { await page.evaluate(() => { SEL.picks.push(SEL.cur); SEL.cur = null; renderSelect(); }); await pickFirstRole(page); }
     await page.evaluate(([sd, md]) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame(md, sd, SEL.picks); }, [SEED, mode === 'hot' ? 'hotseat' : 'solo']);
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1);
-    const cls = await driveToFirst(page, new Set(['bid', 'mark']));
-    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到 bid/mark（局提早結束）`); return; }
-    const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 90000 }).then(() => true).catch(() => false);
-    if (!ready) { results.notes.push(`${vname}|${mode} 3D 拍品 90s 未就緒，量不到（判紅）`); row.notready = true; results.cases.push(row); return; }
-    const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-    if (!tabs.length) { results.notes.push(`${vname}|${mode} 沒有窄籤（市集空），量不到（判紅）`); row.notready = true; results.cases.push(row); return; }
-    // 選一個西籤、一個東籤各測一次（沒有兩側各一籤時只測拿得到的那個）
-    const west = tabs.find((t) => t.rail === 'railW'); const east = tabs.find((t) => t.rail === 'railE');
-    const picks = [west, east].filter(Boolean);
     row.picks = [];
-    for (const pick of picks) {
-      const pr = { rail: pick.rail, slot: pick.slot };
+    // 出價與盯上兩個狀態都要測（凍結檔 #1–#4 要求）：一夜裡先出現盯上（若 CFG.MARK_ON），逐籤測完
+    // 再推進到出價、逐籤再測一次；MARK_ON=false 時沒有盯上階段，記一筆 note（不算違規，是設定使然）。
+    for (const phase of ['mark', 'bid']) {
+      const cls = await driveToFirst(page, new Set([phase]));
+      if (!cls) {
+        const markOn = await page.evaluate(() => typeof CFG !== 'undefined' && !!CFG.MARK_ON).catch(() => null);
+        if (phase === 'mark' && markOn === false) { results.notes.push(`${vname}|${mode}|mark CFG.MARK_ON=false，本局沒有盯上階段（非違規，設定使然）`); continue; }
+        results.notes.push(`${vname}|${mode}|${phase} 沒進到該狀態（局提早結束或量不到，判紅）`); row.notready = true; continue;
+      }
+      // 90s→180s（09-28）：本機同時掛著其他 session 的背景工作（實測 30+ node、10+ chrome 行程搶 CPU），
+      // 90s 在重載時連 90 秒都等不到模型 3D 就緒；起因已用 tasklist 核對是外部行程搶資源，不是被測物變慢
+      // （§6.2），純延長等待窗、判準本身（readyCount>=n）沒有放寬。
+      const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 180000 }).then(() => true).catch(() => false);
+      if (!ready) { results.notes.push(`${vname}|${mode}|${phase} 3D 拍品 90s 未就緒，量不到（判紅）`); row.notready = true; continue; }
+      const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
+      if (!tabs.length) { results.notes.push(`${vname}|${mode}|${phase} 沒有窄籤（市集空），量不到（判紅）`); row.notready = true; continue; }
+      // 每一枚窄籤都測（不只西/東各一），逐籤標記所在 phase
+      for (const pick of tabs) {
+      const pr = { rail: pick.rail, slot: pick.slot, phase };
       // ── 進場前參考幀（暗糊 #1(b) 的參考）／鏡頭快照（#3 返回比對的基準，必須是「點籤之前」，
       //    不是鑑賞中途——原本這裡的比較基準抓錯，見 docs/experiments/2026-09-28-appraise-panels 的修正記錄） ──
       const refShot = await page.screenshot();
@@ -217,6 +235,17 @@ async function runCase(vname, mode) {
         && JSON.stringify(beforeEnter.feltHead) === JSON.stringify(afterReturn.feltHead);
       pr.stillOpen = await page.evaluate((r) => document.getElementById(r).classList.contains('open'), pick.rail);
       row.picks.push(pr);
+      }
+      // 這個 phase 的每一枚籤都測完了：保險關掉鑑賞態，再往下一 phase 推進（mark→bid）
+      await page.evaluate(() => { try { closeAppraise(); } catch (e) {} });
+      if (phase === 'mark') {
+        for (let i = 0; i < 200; i++) {
+          const c = await scr(page);
+          if (c === 'bid') break;
+          await page.evaluate(DRIVE_STEP);
+          await page.waitForTimeout(8);
+        }
+      }
     }
   } catch (e) { results.notes.push(`${vname}|${mode} 例外：${e.message}\n${e.stack}`); }
   finally { results.cases.push(row); await ctx.close().catch(() => {}); }
@@ -225,6 +254,6 @@ async function runCase(vname, mode) {
 for (const c of CASES) await runCase(c.vp, c.mode);
 await browser.close();
 srv.kill();
-const outFile = path.join(OUT, (BASE_MODE ? 'base-' : 'head-') + 'appraise-raw.json');
+const outFile = path.join(OUT, (BASE_MODE ? 'base-' : 'head-') + 'appraise-raw' + (TAG ? '-' + TAG : '') + '.json');
 fs.writeFileSync(outFile, JSON.stringify(results, null, 1));
 console.log('寫入', outFile, 'cases', results.cases.length, 'notes', results.notes.length);
