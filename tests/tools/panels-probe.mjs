@@ -19,7 +19,13 @@ const MODES = arg('--modes', 'solo,hot').split(',');
 const VPS = arg('--vps', 'V1,V4').split(',');
 fs.mkdirSync(OUT, { recursive: true });
 
-const VP = { V1: { w: 852, h: 393, safe: [0, 59, 21, 59] }, V4: { w: 667, h: 375, safe: [0, 0, 0, 0] } };
+const VP = {
+  V1: { w: 852, h: 393, safe: [0, 59, 21, 59] },
+  V2: { w: 932, h: 430, safe: [0, 59, 21, 59] },
+  V3: { w: 844, h: 390, safe: [0, 47, 21, 47] },
+  V4: { w: 667, h: 375, safe: [0, 0, 0, 0] },
+  V5: { w: 1280, h: 720, safe: [0, 0, 0, 0] },
+};
 
 const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });

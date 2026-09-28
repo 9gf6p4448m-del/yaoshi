@@ -78,7 +78,7 @@ const pickFirstRole = async (page) => {
 // 焦點對應快照：APPR.i／側欄內容（跟 appraise-probe 同一支參考文字產生法）／目前露出來（未壓暗）那格的槽位
 async function snapshot(page) {
   return page.evaluate(() => {
-    const id = window.APPR && window.APPR.on ? window.APPR.id : null, i = window.APPR ? window.APPR.i : null;
+    const id = APPR && APPR.on ? APPR.id : null, i = APPR ? APPR.i : null;
     if (!id || i == null) return { on: false };
     const si = Number(i);
     const card = document.querySelector('#' + id + ' .railPages .railSelected');
@@ -113,16 +113,16 @@ async function runCase(vname, mode) {
     await page.evaluate(([sd, md]) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame(md, sd, SEL.picks); }, [SEED, mode === 'hot' ? 'hotseat' : 'solo']);
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1);
     const cls = await driveToFirst(page, new Set(['bid', 'mark']));
-    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到 bid/mark`); results.cases.push(row); return; }
+    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到 bid/mark`); return; }
     const ready = await page.waitForFunction(() => { const t = window.__yaoshi3d.tray, n = window.__yaoshi.S.market.length; return t.readyCount() >= n && t.items().filter((it) => it.visible).length >= n; }, null, { timeout: 180000 }).then(() => true).catch(() => false);
-    if (!ready) { results.notes.push(`${vname}|${mode} 3D 未就緒（判紅）`); row.notready = true; results.cases.push(row); return; }
+    if (!ready) { results.notes.push(`${vname}|${mode} 3D 未就緒（判紅）`); row.notready = true; return; }
     const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-    if (tabs.length < 2) { results.notes.push(`${vname}|${mode} 籤數 <2，切換與到頭停住量不到（判紅）`); row.notready = true; results.cases.push(row); return; }
+    if (tabs.length < 2) { results.notes.push(`${vname}|${mode} 籤數 <2，切換與到頭停住量不到（判紅）`); row.notready = true; return; }
     // ① 點別籤直接切換：開第一枚，再逐一點其餘每一枚，驗證每次都直接切到那件（中途沒有回到牌桌態）
     await page.evaluate(([r, s]) => railTabClick(r, s), [tabs[0].rail, tabs[0].slot]);
     await page.waitForTimeout(450);
     for (const t of tabs) {
-      const beforeOn = await page.evaluate(() => !!(window.APPR && window.APPR.on));
+      const beforeOn = await page.evaluate(() => !!(APPR && APPR.on));
       await page.evaluate(([r, s]) => document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]').click(), [t.rail, t.slot]);
       await page.waitForTimeout(450);
       const snap = await snapshot(page);
