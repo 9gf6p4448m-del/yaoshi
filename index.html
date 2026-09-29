@@ -635,17 +635,23 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl .pnl-title .big{font-size:15px;letter-spacing:.08em}
 #pnl .pnl-pass{font-size:11px;color:var(--pnl-dim);display:inline-flex;gap:4px;align-items:center}
 #pnl .pnl-pass .pnl-item{font-weight:400}
-#pnl .pnl-grid{display:grid;grid-template-columns:repeat(4,minmax(max-content,1fr));gap:4px}
+#pnl .pnl-grid{display:grid;grid-template-columns:repeat(4,auto);gap:4px}
 #pnl .pnl-cell{padding:1px 5px;border-radius:3px;min-width:0;background:rgba(255,255,255,.045);border-left:4px solid var(--sc,var(--line-gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 #pnl .pnl-cell.s0{--sc:var(--s0)} #pnl .pnl-cell.s1{--sc:var(--s1)} #pnl .pnl-cell.s2{--sc:var(--s2)} #pnl .pnl-cell.s3{--sc:var(--s3)}
 #pnl .pnl-cell.me{background:linear-gradient(180deg,rgba(232,194,106,.30),rgba(232,194,106,.14));box-shadow:0 0 0 1px rgba(232,194,106,.75),0 0 14px rgba(232,194,106,.25)}
-#pnl .pnl-head{display:flex;align-items:center;font-size:14px;line-height:17px;white-space:nowrap}
+#pnl .pnl-head{display:flex;flex-wrap:wrap;align-items:center;font-size:14px;line-height:17px;white-space:nowrap}
 #pnl .pnl-cnt{margin-left:auto;padding-left:6px;font-size:10.5px;color:var(--pnl-dim)}
 #pnl .pnl-cell .pnl-row{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:13px;line-height:18px;padding-left:5px;border-left:3px solid var(--sys,transparent);margin:0;background:rgba(0,0,0,.18)}
 #pnl .pnl-cell .pnl-row.pnl-fee,#pnl .pnl-cell .pnl-row.pnl-none{border-left-color:transparent;background:none}
 #pnl .pnl-cell .pnl-row:has(.sys-zuling){--sys:var(--sys-zuling)} #pnl .pnl-cell .pnl-row:has(.sys-xianghuo){--sys:var(--sys-xianghuo)}
 #pnl .pnl-cell .pnl-row:has(.sys-yinqi){--sys:var(--sys-yinqi)} #pnl .pnl-cell .pnl-row:has(.sys-curse){--sys:var(--sys-curse)}
 #pnl .pnl-cell .pnl-price{display:inline-flex;align-items:center;flex:0 0 auto}
+/* 欄寬 auto：放得下就是整行內容寬，放不下才收到最小內容寬——欄內能換行的地方——表頭的「得標 N」、被塞毒標那一列的「← 誰 塞」——
+   放不下就換到下一行，四欄加總永遠不超過面板寬（V4 667px 密集夜實測舊寫法橫向溢出 73px） */
+#pnl .pnl-cell .pnl-row.pnl-recv{flex-wrap:wrap}
+#pnl .pnl-cell .pnl-row.pnl-recv .pnl-poison{margin-left:auto}
+/* 成交總覽長高到側欄窄籤底下時，被蓋到的那幾枚窄籤先收起（見 pnlFitRails），面板完整不捲動 */
+#table.t3d:has(#pnl.resultStrip) .railTabs > .pnlUnder{visibility:hidden}
 #pnl .pnl-how{font-size:10.5px;line-height:12px;margin:-1px 0 0 11px}
 #pnl .pnl-none{color:var(--pnl-dim);font-size:11px;justify-content:flex-start!important}
 /* 戰況：心願／對決／天明三區，每列 誰｜數字｜說明 */
@@ -3280,6 +3286,7 @@ function fillRails(prevHTML,shrHTML,cardFn,sum){
   const hasRule=!!(pv&&pv.querySelector&&pv.querySelector(".rulein"));
   if(n) n.classList.toggle("shwide", wide&&!hasRule);
   equalizeRailCards();
+  pnlFitRails(); /* 窄籤重建了：成交總覽還在的話重新判斷哪幾枚被蓋到（見 pnlFitRails） */
 }
 /* ===== 桌心托盤的輸入端與資料推送（v0.56b 上桌卷）=====
    ★Raycaster 的輸入端在演出層，不在 3D 層★（計畫 §6 Q3）：canvas 是 pointer-events:none 且 z −2，
@@ -6862,16 +6869,16 @@ function revealPanelHTML(reveal){
 }
 /* 成交總覽窄條貼在底列上緣、往上長：買家多拿幾件時會長到側欄窄籤底下，把窄籤的命中範圍蓋掉一截
    （凍結 #8 第一階段 #5：0.59.1 的單行窄條從不長到那裡）。版面已壓到常見的夜（每欄 ≤4 列）放得下；
-   更高的夜這裡把最高高度收到窄籤下緣為止、改成面板內捲動（#7：捲到底看得到最後一列）。純呈現。 */
+   更密的夜（小螢幕、一欄 5 列以上）：被面板蓋到的那幾枚窄籤在成交總覽期間收起（visibility:hidden，
+   規則見 CSS .pnlUnder，面板一換掉就自動失效），面板本身完整顯示、不捲動（09-29 改：先前改成面板內捲動，
+   密集夜的最後一列要捲才看得到，text-fit 判截斷）。純呈現：只加減 class，不讀寫賽局。 */
 function pnlFitRails(){
   if(typeof document==="undefined"||!document.querySelector) return;
+  document.querySelectorAll(".railTabs > .pnlUnder").forEach(t=>t.classList.remove("pnlUnder"));
   const el=document.querySelector("#table.t3d #pnl.resultStrip"); if(!el||!el.getBoundingClientRect) return;
-  el.style.maxHeight=""; el.style.overflowY="";
   const r=el.getBoundingClientRect(); if(!r.height) return;
-  let lim=-Infinity;
   document.querySelectorAll("#railW .railTabs > *, #railE .railTabs > *").forEach(t=>{ const q=t.getBoundingClientRect();
-    if(q.width>0&&q.height>0&&q.left<r.right&&q.right>r.left&&q.bottom>r.top) lim=Math.max(lim,q.bottom); });
-  if(lim>-Infinity){ el.style.maxHeight=Math.max(48,Math.floor(r.bottom-lim-2))+"px"; el.style.overflowY="auto"; }
+    if(q.width>0&&q.height>0&&q.left<r.right&&q.right>r.left&&q.bottom>r.top-2&&q.top<r.bottom) t.classList.add("pnlUnder"); });
 }
 /* 改尺寸時窄籤／座位的版面要等這一輪排版與側欄重算（equalizeRailCards 等）完成才準，量兩個 rAF 之後的位置 */
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>requestAnimationFrame(()=>requestAnimationFrame(pnlFitRails)));
