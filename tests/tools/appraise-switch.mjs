@@ -42,7 +42,10 @@ async function state(page) {
     const n = i != null ? AC.node(i) : null;
     const others = window.__yaoshi3d.tray.items().filter((it) => it.slot !== i).map((it) => { const m = AC.node(it.slot); return m ? AC.rendered(m, AC.focusMask()) : null; });
     const tabs = [...document.querySelectorAll('.railTabs button')].map((b) => { const r = b.getBoundingClientRect(); return { left: r.left - 2, top: r.top - 2, right: r.right + 2, bottom: r.bottom + 2 }; });
-    return { on: !!on, id: on ? APPR.id : null, i, fx: AC.fx(), bbox: n ? AC.projBox(n) : null, rendered: n ? AC.rendered(n, AC.focusMask()) : null, others, tabs };
+    /* #11(g′)(1)：卷軸展開程度與標題（每次切換重新展開） */
+    const sc = on && AC.scroll ? AC.scroll(APPR.id) : null;
+    const scroll = sc ? { p: sc.p, opacity: sc.opacity, title: sc.title && sc.title.text, want: i != null && S.market[i] ? S.market[i].n : null } : null;
+    return { on: !!on, id: on ? APPR.id : null, i, fx: AC.fx(), bbox: n ? AC.projBox(n) : null, rendered: n ? AC.rendered(n, AC.focusMask()) : null, others, tabs, scroll };
   });
 }
 /** 切換之後的揭幕：逐幀記錄，1.3 秒量焦點與題字（題字淡入走真實時間，另等）。 */
@@ -62,7 +65,7 @@ async function afterSwitch(page, expectSlot, refImg, W, H) {
     const ex = [pnl, pr, ...(s.tabs || [])].filter(Boolean);
     const far = M ? meanLumOutside(img, M.cx, M.cy, M.r * 1.6, ex) : null, farRef = M ? meanLumOutside(refImg, M.cx, M.cy, M.r * 1.6, ex) : null;
     frames.push({ ms, on: s.on, i: s.i, rendered: s.rendered, paperAlpha: P ? P.alpha : null, paper: c ? paperCover(img, pr || bb, c.x, c.y) : null,
-      othersRendered: s.others, dimU: s.fx ? s.fx.dim : null,
+      othersRendered: s.others, dimU: s.fx ? s.fx.dim : null, scroll: s.scroll,
       farRatio: far && farRef && far.n > 200 && farRef.mean ? far.mean / farRef.mean : null, farN: far ? far.n : 0 });
   }
   await page.clock.runFor(1300 - last);
@@ -74,7 +77,7 @@ async function afterSwitch(page, expectSlot, refImg, W, H) {
   await page.clock.resume(); await page.waitForTimeout(1100); // 題字淡入（CSS、真實時間）
   const panel = s.id ? await E(page, ([r, x]) => window.__AC.panel(r, x), [s.id, s.i]) : null;
   await pauseSoon(page);
-  return { expectSlot, frames, at1300: { on: s.on, i: s.i, rendered: s.rendered, ring: ring && { frac: ring.frac, dE: ring.dE } }, panel: panel && { side: (panel.rect.left + panel.rect.right) / 2 < W / 2 ? 'left' : 'right', content: panel.content, cut: panel.cut, trunc: panel.trunc } };
+  return { expectSlot, frames, at1300: { on: s.on, i: s.i, rendered: s.rendered, ring: ring && { frac: ring.frac, dE: ring.dE }, scroll: s.scroll }, panel: panel && { side: (panel.rect.left + panel.rect.right) / 2 < W / 2 ? 'left' : 'right', content: panel.content, cut: panel.cut, trunc: panel.trunc } };
 }
 async function swipe(page, dir) {
   const bp = await E(page, () => window.__AC.blankPoint());
@@ -131,7 +134,7 @@ async function runCase(vname, mode, phase) {
     if (bp) await page.mouse.click(bp.x, bp.y);
     await page.clock.runFor(100);
     const sk = await state(page);
-    row.skipAfterSwitch = { blank: bp, on: sk.on, i: sk.i, expect: t1.slot, stable: !!(sk.fx && sk.fx.stable), rendered: sk.rendered };
+    row.skipAfterSwitch = { blank: bp, on: sk.on, i: sk.i, expect: t1.slot, stable: !!(sk.fx && sk.fx.stable), rendered: sk.rendered, scroll: sk.scroll };
     await page.clock.resume();
     await page.evaluate(() => { try { closeAppraise(); } catch (e) {} });
     if (phase === 'mark') { row.markBefore = markBefore; row.markAfter = await marks(); row.clsAfter = await E(page, () => { const b = document.getElementById('mainbtn'); return b ? b.textContent.trim() : null; }); }
@@ -161,6 +164,13 @@ const judgeSwitch = (key, r) => {
   if (!r.at1300 || !r.at1300.on || r.at1300.i !== r.expectSlot) f.push(`1.3 秒時焦點 ${r.at1300 && r.at1300.i} ≠ ${r.expectSlot}`);
   else { if (r.at1300.rendered !== true) f.push('1.3 秒時焦點沒被畫'); if (!r.at1300.ring || !(r.at1300.ring.frac >= 0.5)) f.push('1.3 秒時沒有鏡子'); }
   if (!r.panel || !r.panel.content || !r.panel.content.match) f.push('題字內容不是那一件');
+  /* #11(g′)(1) 每次切換卷軸重新展開：逐幀裡有捲起（p=0 或不透明度 0）與展開到一半的幀，1.3 秒時全開且標題是那一件 */
+  const fs2 = (r.frames || []).filter((q) => q.scroll);
+  if (!fs2.some((q) => q.scroll.p === 0 || q.scroll.opacity === 0)) f.push('切換後卷軸沒有從捲起開始（沒重新展開）');
+  if (!fs2.some((q) => q.scroll.p > 0 && q.scroll.p < 1)) f.push('切換後沒有展開到一半的幀');
+  const s13 = r.at1300 && r.at1300.scroll;
+  if (!s13 || !(s13.p === 1 && s13.opacity === 1)) f.push(`切換後 1.3 秒卷軸未全開（${s13 && s13.p}）`);
+  else if (s13.title !== s13.want) f.push(`卷軸標題「${s13.title}」不是那一件「${s13.want}」`);
   if (r.panel && r.panel.cut && r.panel.cut.length) f.push('cut ' + r.panel.cut.join('|'));
   if (f.length) fails.push(`${key} ${f.join('；')}`);
 };
@@ -173,6 +183,7 @@ for (const row of results.cases) {
   if (!row.edgeNext || !row.edgeNext.on || row.edgeNext.got !== row.edgeNext.expect) fails.push(`${k0} 左滑到底沒停住 ${JSON.stringify(row.edgeNext)}`);
   if (!row.edgePrev || !row.edgePrev.on || row.edgePrev.got !== row.edgePrev.expect) fails.push(`${k0} 右滑到頭沒停住 ${JSON.stringify(row.edgePrev)}`);
   const sk = row.skipAfterSwitch;
+  if (!sk || !sk.scroll || !(sk.scroll.p === 1 && sk.scroll.opacity === 1)) fails.push(`${k0} 切換後揭幕中點空白 0.1 秒卷軸未全開 ${JSON.stringify(sk && sk.scroll)}`);
   if (!sk || !sk.blank || !sk.on || sk.i !== sk.expect || !sk.stable || sk.rendered !== true) fails.push(`${k0} 切換後揭幕中點空白沒有跳到穩定態 ${JSON.stringify(sk)}`);
   if (row.phase === 'mark' && (row.markBefore == null || row.markBefore !== row.markAfter)) fails.push(`${k0} 盯上狀態在換件前後不同或量不到（治具不該宣告）${row.markBefore} → ${row.markAfter}`);
 }

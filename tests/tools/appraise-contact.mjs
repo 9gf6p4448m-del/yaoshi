@@ -74,7 +74,9 @@ await page.waitForTimeout(200);
 if (!IS_BASE) {
   // 鑑賞頁：西籤
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-  const west = tabs.find((t) => t.rail === 'railW'), east = tabs.find((t) => t.rail === 'railE');
+  /* --slots W,E：指定西籤／東籤的拍品槽位（#11(i) 對示意乙用 1,3＝虎爺印、巴冷公主珠鍊，同 phase2-mock/appraise/b-*.png）；不給＝各側第一枚 */
+  const SL = arg('--slots', null) ? arg('--slots').split(',').map(Number) : null;
+  const west = tabs.find((t) => t.rail === 'railW' && (!SL || t.slot === SL[0])), east = tabs.find((t) => t.rail === 'railE' && (!SL || t.slot === SL[1]));
   // 丙案（09-29）：真的滑鼠點籤，假時鐘逐幀推進，拍燒符揭幕→照妖鏡浮現→穩定→點空白返回（凍結 #9 修訂：燒符揭幕連續 ≥6 幀）
   const tabAt = (t) => page.evaluate(([r, s]) => { const b = document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]'); const q = b.getBoundingClientRect(); return { x: (q.left + q.right) / 2, y: (q.top + q.bottom) / 2 }; }, [t.rail, t.slot]);
   const blank = () => page.evaluate(() => { const W = innerWidth, H = innerHeight; for (let fy = 0.92; fy > 0.1; fy -= 0.06) for (const fx of [0.5, 0.45, 0.55, 0.4, 0.6]) { const e = document.elementFromPoint(W * fx, H * fy); if (e && e.id === 'appraiseDim') return { x: W * fx, y: H * fy }; } return null; });
@@ -96,7 +98,8 @@ if (!IS_BASE) {
 } else {
   // 基準 86e4676：開卡停靠（selectRailPage）西籤／東籤各一
   const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
-  const west = tabs.find((t) => t.rail === 'railW'), east = tabs.find((t) => t.rail === 'railE');
+  const SL = arg('--slots', null) ? arg('--slots').split(',').map(Number) : null; // 同上：改前也拍同一件
+  const west = tabs.find((t) => t.rail === 'railW' && (!SL || t.slot === SL[0])), east = tabs.find((t) => t.rail === 'railE' && (!SL || t.slot === SL[1]));
   await page.evaluate(([r, s]) => selectRailPage(r, s), [west.rail, west.slot]);
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(OUT, `${TAG}-appraise-west.png`) });

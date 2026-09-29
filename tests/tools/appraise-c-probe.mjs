@@ -75,7 +75,8 @@ async function fullRun(page, vp, pick, pr) {
     const bb = fi.bbox, c = bb ? { x: (bb.left + bb.right) / 2, y: (bb.top + bb.bottom) / 2 } : null;
     const P = fi.fx && fi.fx.paper, paperRect = P && P.alpha > 0 ? { left: P.cx - P.w / 2, top: P.cy - P.h / 2, right: P.cx + P.w / 2, bottom: P.cy + P.h / 2 } : null;
     const region = paperRect || bb; // 燒符區：有符紙用符紙矩形，沒有（舊版）就用法寶框
-    pr.burn.push({ ms, fxMs: fi.fx ? fi.fx.ms : null, draws: fi.draws, bbox: bb, focusRendered: fi.rendered, apprOn: fi.apprOn,
+    const scb = await E(page, (r) => { const s = window.__AC.scroll(r); return s && { p: s.p, opacity: s.opacity }; }, pick.rail);
+    pr.burn.push({ ms, scroll: scb, fxMs: fi.fx ? fi.fx.ms : null, draws: fi.draws, bbox: bb, focusRendered: fi.rendered, apprOn: fi.apprOn,
       paperApi: P ? { alpha: P.alpha, burn: P.burn, rect: paperRect } : null,
       paperCover: c ? paperCover(img, paperRect || bb, c.x, c.y) : null,
       paperRectHasCenter: !!(paperRect && c && c.x >= paperRect.left && c.x <= paperRect.right && c.y >= paperRect.top && c.y <= paperRect.bottom),
@@ -87,6 +88,7 @@ async function fullRun(page, vp, pick, pr) {
   pr.at1300 = { fx: st.fx, draws: st.draws, bbox: st.bbox, focusRendered: st.rendered, apprOn: st.apprOn };
   pr.bboxScreen = await E(page, (s) => window.__yaoshi3d.tray.bboxScreen(s), pick.slot); // 產品自己的出口（跟判定器自算的應逐值相同）
   const shot1300 = await page.screenshot();
+  pr.scroll = await E(page, (r) => window.__AC.scroll(r), pick.rail); // #11(g′)：1.3 秒時（假時鐘停住）卷軸的狀態
   if (SHOTS) { fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true }); fs.writeFileSync(path.join(OUT, 'shots', `${TAG}-${pr.vp}-${pr.mode}-${pr.phase}-${pick.rail}-s${pick.slot}.png`), shot1300); }
   const img1300 = png(shot1300);
   // 題字欄：CSS 淡入動畫走真實時間（假時鐘不管），真實等它跑完再量
@@ -136,6 +138,14 @@ async function fullRun(page, vp, pick, pr) {
   }
   pr.pose0 = p0;
   pr.poseEnd = await poseAll();
+  // ── #11(g′)(3)④：規則原文收成一行時，真的點「點開」那一行，全文攤開後再量一次題字欄（內容等價以點開後判）──
+  if (pr.scroll && pr.scroll.fold && pr.scroll.foldRect) {
+    const fr = pr.scroll.foldRect, fx = (fr.left + fr.right) / 2, fy = (fr.top + fr.bottom) / 2;
+    const hit = await E(page, ([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && !!e.closest('.asc-fold'); }, [fx, fy]);
+    await page.mouse.click(fx, fy);
+    await page.clock.runFor(100);
+    pr.unfold = { hit, panel: await E(page, ([r, s]) => window.__AC.panel(r, s), [pick.rail, pick.slot]), scroll: await E(page, (r) => window.__AC.scroll(r), pick.rail), fx: await E(page, () => window.__AC.fx()), bbox: (await frameInfo(page, pick.slot)).bbox, apprOn: await E(page, () => APPR.on) };
+  }
   // ── 返回（#3／#11(d)）：真的點空白處（最上層是鑑賞輸入層、40×40 範圍內都是）──
   const bp = await E(page, () => window.__AC.blankPoint());
   pr.blank = bp;
@@ -160,6 +170,7 @@ async function skipRun(page, vp, pick, pr) {
   const fi = await frameInfo(page, pick.slot);
   const img = png(await page.screenshot());
   out.after = { fx: fi.fx, bbox: fi.bbox, focusRendered: fi.rendered, apprOn: fi.apprOn, draws: fi.draws };
+  out.after.scroll = await E(page, (r) => window.__AC.scroll(r), pick.rail); // #11(g′)(1)：跳過後 0.1 秒卷軸全開
   const bb = fi.bbox, c = bb ? { x: (bb.left + bb.right) / 2, y: (bb.top + bb.bottom) / 2 } : null;
   const P2 = fi.fx && fi.fx.paper, pr2 = P2 ? { left: P2.cx - P2.w / 2, top: P2.cy - P2.h / 2, right: P2.cx + P2.w / 2, bottom: P2.cy + P2.h / 2 } : bb;
   out.after.paperCover = c ? paperCover(img, pr2, c.x, c.y) : null;

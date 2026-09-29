@@ -8,9 +8,9 @@ const RAW = process.argv[2];
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const { cases, notes, root, tag } = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const TAU = Math.PI * 2;
-const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [], c11f: [], c11h: [] };
+const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [], c11f: [], c11h: [], c11g: [] };
 const cnt = Object.fromEntries(Object.keys(fails).map((k) => [k, 0]));
-const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], bandMean: [], bandRatio: [], rimPeaks: [], rimMedian: [], sheenRatio: [], sheenPeak: [], dimEx: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
+const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], bandMean: [], bandRatio: [], rimPeaks: [], rimMedian: [], sheenRatio: [], sheenPeak: [], titleFs: [], scrollBlank: [], scrollBlankV5: [], dimEx: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
 const ov = (a, b) => (!a || !b) ? 0 : Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
 const inSafe = (r, s, W, H) => !!(r && s) && r.left >= s.left - 0.5 && r.top >= s.top - 0.5 && r.right <= W - s.right + 0.5 && r.bottom <= H - s.bottom + 0.5;
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -23,6 +23,18 @@ const MOCK = (() => { const M = MOCK_B_WEST, img = png(fs.readFileSync(MOCK_FILE
 /* #11(h) 示意基準（09-30 加嚴）：同一張 b-west.png——連珠環帶（0.9R..R 裡峰群最多那一圈）中位亮度、斜向反光帶最高格絕對亮度 */
 const MOCK_H = (() => { const img = png(fs.readFileSync(MOCK_FILE)), m = mockSheenRim(img); return { rimRadius: m.rim.radius, rimPeaks: m.rim.peaks, rimMedian: m.rim.median, sheenDeg: m.sheen.bestOblique && m.sheen.bestOblique.deg, sheenRatio: m.sheen.bestOblique && m.sheen.bestOblique.ratio, sheenPeak: m.sheen.bestOblique && m.sheen.bestOblique.peak, faceMedian: m.sheen.median }; })();
 let refCell = null, refCellH = null;
+/* #11(g′)(3)①：「標下它」白話句的簽收版（逐字；表格欄同 tests/tools/appraise-plain-check.mjs） */
+const SIGNED = (() => {
+  const md = fs.readFileSync(new URL('../../docs/experiments/2026-09-28-appraise-c/plain-copy-signed.md', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+  const sec = md.split('## 對照表')[1].split('## 對你而言提示句')[0], m = {};
+  for (const l of sec.split('\n')) if (/^\| \d+ \|/.test(l)) { const c = l.split('|').map((s) => s.trim()); m[c[2]] = c[6]; }
+  return m;
+})();
+const rgb = (s) => { const m = String(s || '').match(/(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)/); return m ? [+m[1], +m[2], +m[3]] : null; };
+const isGold = (c) => !!c && c[0] >= 200 && c[1] >= 160 && c[2] <= 170 && c[0] - c[2] >= 60;
+const isZhu = (c) => !!c && c[0] >= 120 && c[1] <= 90 && c[2] <= 90 && c[0] - c[1] >= 60;
+/** 矩形與圓（外半徑）重疊：圓心到矩形最近點的距離 < 半徑 */
+const rectCircle = (r, cx, cy, R) => { if (!r) return false; const dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - cy, 0, cy - r.bottom); return Math.hypot(dx, dy) < R - 0.5; };
 for (const row of cases) {
   if (row.notready) for (const k of Object.keys(fails)) fails[k].push(`${row.vp}|${row.mode} 有階段沒量到（見 notes）`);
   for (const p of row.picks || []) {
@@ -230,6 +242,77 @@ for (const row of cases) {
         if (!(so && so.peak >= 0.85 * MOCK_H.sheenPeak)) f.push(`斜向反光帶峰值 ${so && so.peak && so.peak.toFixed(1)} < 示意 ${MOCK_H.sheenPeak.toFixed(1)} 的 85%（${(0.85 * MOCK_H.sheenPeak).toFixed(1)}）`);
       }
       if (f.length) fails.c11h.push(`${key} ${f.join('；')}`);
+    }
+    // ── #11(g′) 卷軸題字（09-29 修訂；③「對你而言」依主對話 09-30 指示暫緩實作，不在此判定）──
+    {
+      const f = [], sc = p.scroll;
+      if (!sc) f.push('1.3 秒時沒有卷軸');
+      else {
+        // (1) 載體與展開
+        if (!(sc.p === 1 && sc.opacity === 1)) f.push(`1.3 秒時卷軸未全開（p=${sc.p}、opacity=${sc.opacity}）`);
+        if (!sc.rods || !sc.rods.top || !sc.rods.bot) f.push('上桿／下軸不在');
+        const B = (p.burn || []).filter((q) => q.scroll);
+        if (!B.length) f.push('揭幕逐幀量不到卷軸');
+        else {
+          const b0 = B.find((q) => q.ms === 0);
+          if (!b0 || !(b0.scroll.opacity === 0 || b0.scroll.p === 0)) f.push('點籤當下卷軸不是捲起的');
+          if (!B.some((q) => q.scroll.p > 0 && q.scroll.p < 1)) f.push('揭幕中沒有任何一幀是「展開到一半」（沒有展開過程）');
+        }
+        const ks = p.skip && p.skip.after && p.skip.after.scroll;
+        if (!ks || !(ks.p === 1 && ks.opacity === 1)) f.push(`燒符中點空白後 0.1 秒卷軸未全開（p=${ks && ks.p}）`);
+        // (2) 標題（B 案）
+        const ref = sc.ref;
+        if (!ref) f.push('卷軸對應不到拍品');
+        if (!sc.title || !sc.title.vis) f.push('沒有直書標題');
+        else {
+          stats.titleFs.push(sc.title.fs);
+          if (ref && sc.title.text !== ref.name) f.push(`標題「${sc.title.text}」≠ 法寶名「${ref && ref.name}」`);
+          if (sc.title.wm !== 'vertical-rl') f.push(`標題 writing-mode=${sc.title.wm}`);
+          if (!(sc.title.fs >= 24)) f.push(`標題字級 ${sc.title.fs} < 24`);
+          if (!isGold(rgb(sc.title.color))) f.push(`標題不是金色（${sc.title.color}）`);
+        }
+        if (!sc.seal || !sc.seal.vis) f.push('沒有朱印');
+        else {
+          if (ref && sc.seal.text !== ref.fac) f.push(`朱印「${sc.seal.text}」≠ 系別「${ref && ref.fac}」`);
+          if (!isZhu(rgb(sc.seal.bg))) f.push(`朱印底色不是紅（${sc.seal.bg}）`);
+        }
+        // (3)① 白話句逐字＝簽收版；② 數值標籤＝unitRow
+        if (!sc.gain || !sc.gain.vis) f.push('沒有「標下它」白話句');
+        else if (ref) {
+          if (sc.gain.text !== SIGNED[ref.name]) f.push(`白話句與簽收版不同：${JSON.stringify(sc.gain.text)}`);
+          if (sc.gain.label !== (ref.curse ? '注意' : '標下它')) f.push(`白話句標籤「${sc.gain.label}」`);
+        }
+        if (ref) {
+          const want = ref.curse ? ['詛咒品・不召喚'] : [`攻${ref.atk}`, `血${ref.hp}`, ...(ref.beat ? [`共鳴第${ref.beat}拍`] : [])];
+          if (JSON.stringify(sc.tags) !== JSON.stringify(want)) f.push(`數值標籤 ${JSON.stringify(sc.tags)} ≠ 拍品 ${JSON.stringify(want)}`);
+        }
+        // (3)④ 規則原文：放得下全文；收成一行時「規則原文 N 條・點開」，點開後全文可見且與原拍品卡逐字等價
+        if (sc.fold) {
+          if (sc.foldText !== `✦ 規則原文 ${sc.n} 條・點開` || !(sc.n > 0)) f.push(`收合列文字「${sc.foldText}」（N=${sc.n}）`);
+          if (sc.cardVisible) f.push('收合時卡片仍顯示');
+          const u = p.unfold;
+          if (!u) f.push('收合了但沒量到點開後');
+          else {
+            if (!u.hit) f.push('「點開」那一行點不到（被別的元素蓋住）');
+            if (!u.apprOn) f.push('點開後離開了鑑賞態');
+            const us = u.scroll, up = u.panel;
+            if (!us || us.fold || !us.cardVisible || !us.abVisible || (us.hasExtra && !us.extraVisible)) f.push('點開後規則原文沒有全部顯示');
+            if (!up || !up.content || !up.content.match) f.push('點開後內容與原拍品卡不等價');
+            if (up && (up.trunc.length || up.outside.length || up.cut.length)) f.push('點開後截斷／越框／cut：' + [...up.trunc, ...up.outside, ...up.cut].slice(0, 3).join('｜'));
+            if (up && !(up.fontMin >= 13)) f.push(`點開後字級 ${up.fontMin} < 13`);
+            const M2 = u.fx && u.fx.mirror;
+            if (us && M2 && rectCircle(us.rect, M2.cx, M2.cy, M2.r * M2.scale)) f.push('點開後卷軸與鏡子重疊');
+            if (us && u.bbox && ov(us.rect, u.bbox) > 0) f.push('點開後卷軸與法寶框重疊');
+          }
+        } else if (!sc.cardVisible || !sc.abVisible || (sc.hasExtra && !sc.extraVisible)) f.push('沒收合但規則原文沒全部顯示');
+        // (4) 版面：與鏡子（外圈）、焦點法寶投影框、窄籤重疊 0；卷面空白 ≤ 40%
+        if (M && rectCircle(sc.rect, M.cx, M.cy, M.r * M.scale)) f.push('卷軸與鏡子重疊');
+        if (bb && ov(sc.rect, bb) > 0) f.push(`卷軸與法寶框重疊 ${ov(sc.rect, bb).toFixed(1)}px²`);
+        for (const t of sc.tabs || []) if (ov(sc.rect, t) > 0) { f.push('卷軸與窄籤重疊'); break; }
+        if (sc.blank == null) f.push('卷面空白量不到');
+        else { stats.scrollBlank.push(sc.blank); if (p.vp === 'V5') stats.scrollBlankV5.push(sc.blank); if (!(sc.blank <= 0.4)) f.push(`卷面空白 ${(sc.blank * 100).toFixed(1)}% > 40%`); }
+      }
+      if (f.length) fails.c11g.push(`${key} ${f.join('；')}`);
     }
     // ── #11(c) 題字 ──
     {

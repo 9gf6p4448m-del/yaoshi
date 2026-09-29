@@ -46,7 +46,10 @@ async function one(port, vp, mode, tab, isBase) {
     if (isBase) await page.evaluate(([r, s]) => selectRailPage(r, s), [t.rail, t.slot]);
     else await page.evaluate(([r, s]) => railTabClick(r, s), [t.rail, t.slot]);
     await page.waitForTimeout(2600); // 兩邊等一樣久（丙案要等揭幕 1.06 秒＋題字淡入；基準也等同樣時間，避免「等待長短」本身造成差異）
-    const sel = `#${t.rail} .railPages .railSelected`;
+    /* 點的是「那張卡」：基準是展開卡本身；新版卷軸把卡片收進「規則原文」那一段，收成一行（卡片不顯示）時，
+       卷軸紙面就是那張卡的點擊區（index.html appraiseScrollBuild：點紙面＝card.click()），改點白話句那一行的中心。 */
+    let sel = `#${t.rail} .railPages .railSelected`;
+    if (!isBase) sel = await page.evaluate(([q, r]) => { const e = document.querySelector(q); const v = e && e.getBoundingClientRect().width > 0; return v ? q : `#${r} .railPages .asc .asc-gain`; }, [sel, t.rail]);
     const box = await page.evaluate((q) => { const e = document.querySelector(q); if (!e) return null; const r = e.getBoundingClientRect(); return r.width ? { x: (r.left + r.right) / 2, y: (r.top + r.bottom) / 2 } : null; }, sel);
     if (!box) return { err: '卡片不在畫面上', ...t };
     const top = await page.evaluate(([x, y, q]) => { const e = document.elementFromPoint(x, y); return !!e && !!e.closest(q); }, [box.x, box.y, sel]);

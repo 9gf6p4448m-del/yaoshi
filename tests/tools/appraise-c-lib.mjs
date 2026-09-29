@@ -218,6 +218,36 @@ export const PAGE_LIB = `(() => {
     if (out.fontMin === Infinity) out.fontMin = null;
     return out;
   };
+  /* #11(g′) 卷軸題字量測：展開程度（產品 dataset.p，另讀 opacity／clip-path）、卷軸各部件、標題與朱印的計算樣式、
+     白話句／標籤文字、規則原文收合狀態與卡片可見性、卷面空白比例（紙面高減掉可見內容的聯集高）；ref＝同一件用遊戲函式
+     （unitRow／FAC）重算的數值，判定器拿來比標籤。沒有卷軸回 null（判紅）。 */
+  AC.scroll = (railId) => {
+    const pg = railId && document.querySelector('#' + railId + ' .railPages'); const el = pg && pg.querySelector('.asc');
+    if (!el) return null;
+    const R = (e) => { if (!e) return null; const r = e.getBoundingClientRect(); return (r.width > 0 && r.height > 0) ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null; };
+    const st = (e) => e ? getComputedStyle(e) : null;
+    const vis = (e) => !!e && !!R(e) && e.checkVisibility({ visibilityProperty: true });
+    const nm = el.querySelector('.asc-nm'), seal = el.querySelector('.asc-seal'), gain = el.querySelector('.asc-gain'), lab = gain && gain.querySelector('.asc-lab');
+    const body = el.querySelector('.asc-body'), paper = el.querySelector('.asc-paper'), bR = R(body);
+    const kids = body ? [...body.querySelectorAll('*')].filter((c) => vis(c) && [...c.childNodes].some((n) => n.nodeType === 3 && /\\S/.test(n.textContent))).map(R).filter(Boolean) : [];
+    const used = kids.length ? Math.max(...kids.map((k) => k.bottom)) - Math.min(...kids.map((k) => k.top)) : 0;
+    const card = el.querySelector('.mcard'), extra = el.querySelector('.asc-extra'), fold = el.querySelector('.asc-fold');
+    const slot = card ? Number(card.id.slice(2)) : null, it = slot != null ? S.market[slot] : null, u = it && !it.curse ? unitRow(it) : null;
+    const ns = st(nm), ss = st(seal);
+    return {
+      p: Number(el.dataset.p), opacity: Number(st(el).opacity), clip: st(paper).clipPath,
+      rect: R(el), paper: R(paper), body: bR, blank: bR ? (bR.bottom - bR.top - used) / (bR.bottom - bR.top) : null,
+      rods: { top: vis(el.querySelector('.asc-rod.top')), bot: vis(el.querySelector('.asc-rod.bot')) },
+      title: nm ? { text: nm.textContent, wm: ns.writingMode, fs: parseFloat(ns.fontSize), color: ns.color, vis: vis(nm) } : null,
+      seal: seal ? { text: seal.textContent, bg: ss.backgroundColor, wm: ss.writingMode, vis: vis(seal) } : null,
+      gain: gain ? { label: lab ? lab.textContent : null, text: gain.textContent.slice(lab ? lab.textContent.length : 0), vis: vis(gain) } : null,
+      tags: [...el.querySelectorAll('.asc-tag')].filter(vis).map((t) => t.textContent.replace(/\\s+/g, '')),
+      fold: el.classList.contains('fold'), foldText: fold && vis(fold) ? fold.textContent : null, foldRect: fold ? R(fold) : null, n: Number(el.dataset.n),
+      cardVisible: vis(card), extraVisible: vis(extra), hasExtra: !!extra, abVisible: vis(card && card.querySelector('.ab')),
+      ref: it ? { slot, name: it.n, fac: FAC[it.f] && FAC[it.f].n, curse: !!it.curse, atk: u && u.atk, hp: u && u.hp, beat: u && u.beat } : null,
+      tabs: [...document.querySelectorAll('.railTabs button')].map(R).filter(Boolean),
+    };
+  };
   /* 空白處：最上層元素是鑑賞輸入層（#appraiseDim）、且以它為中心的 40×40 方塊 5×5 取樣全落在同一層的點。
      優先找畫面下緣中央附近（不在題字欄、不在窄籤）。找不到回 null（判紅）。 */
   AC.blankPoint = () => {
