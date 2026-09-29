@@ -224,7 +224,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   /* 收合後鏡子仍會被擠小時（appraiseFitScroll 掛 .tight）：行距、間距、內距再收；字級不動（最小仍 13px） */
   .asc.tight .asc-body{gap:2px;padding:4px 6px 3px} .asc.tight .asc-gain{font-size:1em;line-height:1.36}
   .asc.tight .asc-you{line-height:1.3;padding:1px 5px} .asc.tight .asc-fold{min-height:22px;padding:2px 0}
-  .asc.tight .asc-tag{padding:0 3px} .asc.tight .asc-rules{padding-top:2px} .asc.tight .asc-strip{padding:3px 0}
+  .asc.tight .asc-tag{padding:0 3px} .asc.tight .asc-rules{padding-top:2px} .asc.tight .asc-strip{padding:3px 0} .asc.tight{margin:1px 8px} .asc.tight .asc-paper{padding-top:2px;padding-bottom:1px}
   .asc-rules{border-top:1px solid rgba(163,40,26,.45);padding-top:.3em;color:var(--asc-ink2);line-height:1.42}
   .asc-rules>*+*{margin-top:2px}
   .asc-fold{display:none;font:inherit;color:var(--asc-zhu);background:none;border:0;padding:4px 0;margin:0;text-align:left;cursor:pointer;min-height:28px}
@@ -3283,8 +3283,9 @@ function appraiseScrollBuild(id,i){
 /** 放得下就全文；放不下（題字欄加寬會讓照妖鏡變小，或加到最寬仍放不下）才收成「規則原文 N 條・點開」。 */
 function appraiseFitScroll(){
   const sc=APPR_SC;
+  if(sc&&sc.open){ appraiseFitOpen(); return; }
   if(sc) sc.el.classList.remove("tight");
-  if(!sc||sc.open){ appraisePanelClamp(); return; }
+  if(!sc){ appraisePanelClamp(); return; }
   const pg=sc.el.parentNode;
   /* 鏡子的「現行」半徑＝題字欄照 CSS 基準寬度放時的半徑（appraisePanelClamp 同一個起點）；
      「對你而言」多出一行時，任何情況都不得把鏡子擠得比這個小（凍結修訂 #11(g′)(3)③）。 */
@@ -3307,8 +3308,17 @@ function appraiseFitScroll(){
 function appraiseUnfold(){
   const sc=APPR_SC; if(!sc||!APPR.on) return;
   sc.open=true; sc.el.classList.remove("fold");
-  appraisePanelClamp();
+  appraiseFitOpen();
   try{ appraiseTray().setAppraiseLayout(appraiseLayout()); }catch(e){}
+}
+/** 點開後全文要整段看得到、不捲動（凍結 #2 無截斷照舊）：先照常加寬；還放不下就收緊行距（.tight），
+ *  再放不下才准題字欄加寬到畫面 56%（鏡子跟著變小——使用者同意的「點開」代價）。 */
+function appraiseFitOpen(){
+  const sc=APPR_SC; if(!sc) return;
+  const pg=sc.el.parentNode;
+  sc.el.classList.remove("tight"); appraisePanelClamp();
+  if(pg.scrollHeight>pg.clientHeight+1){ sc.el.classList.add("tight"); appraisePanelClamp(); }
+  if(pg.scrollHeight>pg.clientHeight+1) appraisePanelClamp(true);
 }
 /** 每幀依 3D 揭幕的時鐘設卷軸的展開程度（捲起的卷軸淡入落下 → 下軸往下拉開、紙面跟著露出）；全開後停。 */
 function appraiseScrollTick(){
@@ -3348,7 +3358,7 @@ function railTabsRect(rail){
  *  靠這個保證；#4 要的「鑑賞中仍可直接點別籤」籤也一直留在畫面上。
  *  為什麼把籤收到角落：窄籤原本在左右兩側的中段，正好卡在照妖鏡最寬的那一條高度上，鏡子只能在兩排籤之間
  *  縮成小圓；收到角落後鏡子能用上整個安全區高度（寬體法寶在鏡中才夠大，凍結 #1(a)）。純版面，不讀寫賽局欄位。 */
-function appraisePanelClamp(){
+function appraisePanelClamp(wide){
   if(!APPR.on||!APPR.id) return;
   const rail=$(APPR.id); if(!rail) return;
   const pages=rail.querySelector(".railPages");
@@ -3366,7 +3376,8 @@ function appraisePanelClamp(){
   for(let w=base.width+8;w<=Math.min(300,W*0.4);w+=8){ if(appraiseLayout(rectAt(w)).r>=r0-0.5) best=w; else break; }
   pages.style.width=best+"px";
   /* 內容仍放不下（欄高被頂角的籤吃掉一截、長能力文字）就再加寬到放得下為止——寧可鏡子小一點也不截字（凍結 #2／#11(c)）。 */
-  for(let w=best+8;pages.scrollHeight>pages.clientHeight+1&&w<=Math.min(360,W*0.46);w+=8) pages.style.width=w+"px";
+  const cap=wide?Math.min(460,W*0.56):Math.min(360,W*0.46); /* wide：規則原文點開後（appraiseFitOpen） */
+  for(let w=best+8;pages.scrollHeight>pages.clientHeight+1&&w<=cap;w+=8) pages.style.width=w+"px";
   /* 加寬到上限還放不下（極小的橫式螢幕）：退回可捲動，至少讀得到（覆審 r2 M3）。 */
   if(pages.scrollHeight>pages.clientHeight+1) pages.style.overflowY="auto";
 }
