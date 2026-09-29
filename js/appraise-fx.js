@@ -36,10 +36,10 @@ export const APPR_FX = {
   FACE: 0.88,        // 鏡面（內圈）半徑／鏡子外半徑。凍結 #11(b) 的「鏡子內圈」就是這一圈。09-29 由 0.92 放寬八卦環（#11(f)）；
                      // 09-30 再由 0.90 讓出 0.02 給粗金框（#11(h)）。鏡子外半徑不變（使用者：鏡子不要變小）；法寶大小跟內圈走，
                      // 寬體件由 table-tray 的 MIN_H（0.37）再推近補償、推到碰內圈為止。試過 0.86：揭幕中跳過的白虎煞框高 0.347＜#1(a) 35%
-  BAGUA_OUT: 0.93,   // 八卦環外緣
-  FRAME0: 0.935,     // 粗金框內緣（BAGUA_OUT～FRAME0 一道暗縫，框與八卦環分得開）
-  BEAD: 0.96,        // 連珠圈半徑：金框中段一道凹槽，珠子嵌在槽裡（亮珠配暗槽，像素上一顆顆分得出來）
-  BEAD_R: 0.0075,    // 珠子半徑（倍數）
+  BAGUA_OUT: 0.94,   // 八卦環外緣
+  FRAME0: 0.945,     // 粗金框內緣（BAGUA_OUT～FRAME0 一道暗縫，框與八卦環分得開）
+  BEAD: 0.965,       // 連珠圈半徑：金框中段一道凹槽，珠子嵌在槽裡（亮珠配暗槽，像素上一顆顆分得出來）
+  BEAD_R: 0.0065,    // 珠子半徑（倍數）
   BEADS: 96,         // 連珠顆數
   LINE0: 0.985,      // 系色光線內緣（金框外緣）
   LINE1: 0.998,      // 系色光線外緣（外面接一圈柔光，不再是純色）
@@ -109,12 +109,12 @@ function drawBagua(x, S) {
   x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004);
   x.beginPath(); x.arc(c, c, r1 - x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
   x.beginPath(); x.arc(c, c, r0 + x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#ffe9b0';
+  x.fillStyle = '#fff3cc';
   const mid = (r0 + r1) / 2, band = r1 - r0;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 - Math.PI / 2, t = TRI[TRI_ORDER[k]];
     x.save(); x.translate(c + Math.cos(a) * mid, c + Math.sin(a) * mid); x.rotate(a + Math.PI / 2);
-    const L = band * 1.7, h = band * 0.24, gap = band * 0.3;
+    const L = band * 1.6, h = band * 0.28, gap = band * 0.32;
     for (let y = 0; y < 3; y++) {
       const yy = (y - 1) * gap;
       if (t[y]) x.fillRect(-L / 2, yy - h / 2, L, h);
