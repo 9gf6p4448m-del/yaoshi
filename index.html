@@ -176,6 +176,67 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d.appraising .rail.open .railPages .railCardClose{display:flex;top:2px;background:none;border:0;font-size:22px;opacity:.8}
   #table.t3d.appraising #railW.open .railPages .railCardClose{right:0}
   #table.t3d.appraising #railE.open .railPages .railCardClose{right:auto;left:0}
+  /* ===== 卷軸題字（09-29 使用者裁「B 的直書標題、C 的文字」；凍結修訂 #11(g′)，示意 phase2-mock/appraise-text/）=====
+     題字欄裡掛一卷古卷：上桿、深褐裱綾、舊宣紙、硃砂雙框、下軸兩端銅軸頭。靠鏡子那一側的裱綾上直書金字法寶名＋朱印（B），
+     紙面橫書（C）：「標下它」白話句（使用者簽收版逐字）、數值標籤、規則原文（放不下收成一行「點開」）。
+     原拍品卡（同一支卡片工廠、同一個 onclick，凍結 #2）整張搬進「規則原文」那一段，名字／系別／數值那兩行由標題與標籤代表
+     （CSS 收起、文字仍在卡裡）；卷軸展開由 appraiseScrollTick 跟 3D 揭幕同一條時鐘驅動。卷軸在時，欄本身不再畫淡底與金線。 */
+  #table.t3d.appraising .rail.open .railPages:has(>.asc){animation:none;background:none;padding:0;gap:0;justify-content:center}
+  #table.t3d.appraising .rail.open .railPages:has(>.asc)::after{display:none}
+  #table.t3d.appraising .rail.open .railPages:has(>.asc) .railCardClose{display:none}
+  .asc{position:relative;flex:0 0 auto;display:flex;flex-direction:column;margin:4px 8px;opacity:0;cursor:pointer;
+    --asc-ink:#20150d;--asc-ink2:#4b3a2a;--asc-zhu:#a3281a;--asc-paper:#e6d6b0;--asc-mount:#3b2116;
+    font-size:clamp(13px,2.05vh,16px)}
+  .asc-rod{position:relative;height:7px;border-radius:3px;z-index:2;background:linear-gradient(180deg,#6a4126,#3a2012 55%,#24130a);box-shadow:0 2px 3px rgba(0,0,0,.6)}
+  .asc-rod.top::before{content:"";position:absolute;left:50%;top:-5px;width:44%;height:6px;transform:translateX(-50%);
+    border:1px solid rgba(200,170,110,.55);border-bottom:0;border-radius:40% 40% 0 0}
+  .asc-rod.bot{height:11px;border-radius:6px;transform-origin:50% 0;background:linear-gradient(180deg,#7a4b2c,#442513 45%,#1f1008);box-shadow:0 3px 6px rgba(0,0,0,.7)}
+  .asc-rod.bot::before,.asc-rod.bot::after{content:"";position:absolute;top:-2px;width:8px;height:15px;border-radius:3px;background:linear-gradient(180deg,#e0c27a,#9a7433 50%,#5c4219)}
+  .asc-rod.bot::before{left:0} .asc-rod.bot::after{right:0}
+  .asc-paper{position:relative;display:flex;flex-direction:row;margin:0 4px;background:var(--asc-mount);padding:4px 0 3px;
+    box-shadow:inset 0 0 0 1px rgba(216,184,104,.35),0 6px 18px rgba(0,0,0,.55)}
+  .asc.west .asc-paper{flex-direction:row-reverse;padding-left:4px} .asc.east .asc-paper{padding-right:4px}
+  .asc-paper::before{content:"";position:absolute;top:0;height:9px;left:30%;right:30%;pointer-events:none;
+    background:linear-gradient(90deg,transparent 0 18%,rgba(216,184,104,.5) 18% 24%,transparent 24% 76%,rgba(216,184,104,.5) 76% 82%,transparent 82%)}
+  .asc-strip{flex:0 0 auto;width:2.9em;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
+  .asc-nm{writing-mode:vertical-rl;text-orientation:upright;font-family:var(--font-display);font-size:clamp(26px,4.4vh,36px);line-height:1.1;
+    letter-spacing:.03em;color:#f2d78a;font-weight:700;text-shadow:0 0 10px rgba(242,190,110,.45),0 0 2px rgba(0,0,0,.9)}
+  .asc-seal{writing-mode:vertical-rl;text-orientation:upright;padding:4px 1px;font-family:var(--font-display);font-size:13px;line-height:1.3;letter-spacing:.1em;
+    color:#f6e4c8;background:var(--asc-zhu);border-radius:2px;box-shadow:inset 0 0 0 1.5px rgba(246,228,200,.7);transform:rotate(-4deg);font-weight:700}
+  .asc-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.4em;padding:.55em .7em .5em;
+    color:var(--asc-ink);font-family:var(--font-body);line-height:1.5;
+    background:radial-gradient(120% 60% at 20% 10%,rgba(255,250,230,.35),transparent 60%),radial-gradient(80% 50% at 85% 90%,rgba(120,80,30,.18),transparent 70%),
+      repeating-linear-gradient(90deg,rgba(90,60,20,.035) 0 1px,transparent 1px 5px),var(--asc-paper);
+    box-shadow:inset 0 0 0 1px rgba(163,40,26,.55),inset 0 0 0 4px var(--asc-paper),inset 0 0 0 5px rgba(163,40,26,.35),inset 0 0 22px rgba(90,55,20,.35)}
+  .asc-gain{font-size:1.08em;line-height:1.5;font-weight:700;color:var(--asc-ink)}
+  .asc-lab{display:inline-block;margin-right:.45em;padding:0 .35em;font-size:max(13px,.92em);line-height:1.45;color:var(--asc-zhu);border:1px solid var(--asc-zhu);border-radius:2px;vertical-align:1px;font-weight:700}
+  .asc-tags{display:flex;flex-wrap:wrap;gap:4px 5px}
+  .asc-tag{display:inline-flex;align-items:baseline;gap:3px;padding:1px 6px;color:var(--asc-ink2);background:rgba(255,248,228,.55);border:1px solid rgba(75,58,42,.45);border-radius:2px;white-space:nowrap}
+  .asc-tag b{font-family:var(--font-display);font-size:1.3em;color:var(--asc-zhu);line-height:1.1}
+  .asc-tag.curse{color:#f6e4c8;background:#4a1d3f;border-color:#4a1d3f}
+  /* 「對你而言」硃砂批註（示意 phase2-mock/appraise-yi，使用者 09-30 簽收乙）：細硃砂框＋淡朱底、反白標籤（與「標下它」外框標籤區分）、深朱字；
+     有事才出現。為了在 V1 守住鏡子半徑，版面比示意 B 收緊（字級不動）：區塊間距 4px、標籤列內距縮小壓回一行、批註行高 1.42。 */
+  .asc-you{padding:2px 6px;border:1px solid rgba(163,40,26,.75);border-radius:2px;background:linear-gradient(90deg,rgba(163,40,26,.13),rgba(163,40,26,.05));
+    color:#6e1a10;line-height:1.42;font-weight:600}
+  .asc-yrow+.asc-yrow{margin-top:2px;padding-top:2px;border-top:1px dashed rgba(163,40,26,.45)}
+  .asc-lab.you{background:var(--asc-zhu);color:#f6e4c8;border-color:var(--asc-zhu)}
+  .asc-body{gap:4px} .asc-tags{gap:3px 4px} .asc-tag{padding:0 4px;gap:2px}
+  .asc-rules{border-top:1px solid rgba(163,40,26,.45);padding-top:.3em;color:var(--asc-ink2);line-height:1.42}
+  .asc-rules>*+*{margin-top:2px}
+  .asc-fold{display:none;font:inherit;color:var(--asc-zhu);background:none;border:0;padding:4px 0;margin:0;text-align:left;cursor:pointer;min-height:28px}
+  #table.t3d.appraising .rail.open .railPages .asc.fold .asc-fold{display:block}
+  #table.t3d.appraising .rail.open .railPages .asc.fold .asc-rules>.mcard,#table.t3d.appraising .rail.open .railPages .asc.fold .asc-extra{display:none}
+  .asc-extra{color:var(--asc-ink2)}
+  /* 原拍品卡在紙上：卡殼拿掉、墨色；名字／數值那一行與系別印由標題、標籤代表（凍結 #2 的逐字比對看的是卡片全文，不受顯示影響） */
+  #table.t3d.appraising .rail.open .railPages .asc .mcard{display:block;background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin:0;min-height:0;transform:none;color:var(--asc-ink2)}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard,#table.t3d.appraising .rail.open .railPages .asc .mcard *{font-size:inherit;line-height:1.42;color:var(--asc-ink2)}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .nm,#table.t3d.appraising .rail.open .railPages .asc .mcard .pw,
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .fchip,#table.t3d.appraising .rail.open .railPages .asc .mcard .mico{display:none}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .ab{margin:0;padding:0;border:0;text-wrap:pretty}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .uline{margin-top:2px;white-space:normal;overflow:visible;text-overflow:clip;max-height:none}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .chainHint{color:var(--asc-zhu);font-weight:700}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .markb,#table.t3d.appraising .rail.open .railPages .asc .mcard .mybid{position:static;display:inline-block;margin:0 6px 2px 0;line-height:1.4;color:#f6e4c8;background:var(--asc-zhu);padding:0 5px;border-radius:2px}
+  #table.t3d.appraising .rail.open .railPages .asc .mcard .moonCue{color:var(--asc-zhu)}
   /* 鑑賞中兩排窄籤收到畫面上方兩角（理由見 appraisePanelClamp）；題字欄由 JS 接在同側籤的正下方 */
   #table.t3d.appraising .railTabs{position:fixed;z-index:22;top:max(6px,var(--safe-top))}
   #table.t3d.appraising #railW .railTabs{left:max(6px,var(--safe-left))}
@@ -1723,12 +1784,12 @@ const ROLES = {
       death:["法印……散了……","貧道……歸山。"],
       shrine:["{legend}聽令，隨貧道收祟！","神將在此，妖邪勿近。"],
       bwin:["妖邪退散。"],blose:["今夜法力見底…"]}},
-  /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改壽命 1/2；夜末得標 ≥2 件 +2、0 件 −2。 */
+  /* 分散型（GAME_DESIGN 六之三 A）：保守標上限改一般上限的 1.5 倍（÷6 時＝壽命 1/4），與媽祖令旗疊乘；夜末得標 ≥2 件 +2、0 件 −2。 */
   zutou:{id:"zutou",name:"大家樂組頭",av:"🎲",pool:true,
-    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}）；夜末得標 ≥2 件回 2。AI 時亂槍——每夜對 3 件下小額標`,
+    desc:`分散流。被動：保守標上限放寬 1.5 倍（壽命的 1/${CFG.CONS_CAP_DIV/1.5}，一般為 1/${CFG.CONS_CAP_DIV}；持有媽祖令旗時再 ×1.5）；夜末得標 ≥2 件回 2。AI 時亂槍——每夜對 3 件下小額標`,
     ai:{aggr:0.65,spite:0.3,markReact:"contest"},
     hooks:{
-      onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/(CFG.CONS_CAP_DIV/1.5))); }, /* 「改為」一般上限的 1.5 倍（÷6 時＝壽命÷4），不與其他加成疊；跟著 CONS_CAP_DIV 走（2026-09-03 ÷3→÷6 時由寫死的 /2 改成相對比例） */
+      onBidCap(ctx){ ctx.cap=Math.max(1,Math.floor(ctx.p.life/(CFG.CONS_CAP_DIV/1.5))); }, /* 「改為」一般上限的 1.5 倍（÷6 時＝壽命÷4）；**會與媽祖令旗疊乘**：onBidCap 不在 HOOK_ORDER（index.html:2357），collectEffects 預設先收角色、再收法寶（index.html:2491），applyHooks 依 order 穩定排序、兩者都沒設 order（同為 100，index.html:2512），所以本 hook 先把上限改寫成壽命÷4，令旗再 ×1.5 向下取整（壽命 50：12→18）；跟著 CONS_CAP_DIV 走（2026-09-03 ÷3→÷6 時由寫死的 /2 改成相對比例） */
       onWinItem(ctx){                                /* 跨玩家 hook，認自己（本夜得標計數） */
         if(ctx.winner.roleId!=="zutou") return;
         const p=ctx.winner;
@@ -2627,9 +2688,9 @@ const TRAITS = {
   swarmHalfSplash:{id:"swarmHalfSplash",name:"飛魚躍",desc:"本隊受到精英濺射時，傷害減半（向下取整）",halfSplash:true},
   swarmThorn:{id:"swarmThorn",name:"獠牙反擊",desc:"本隊每拍首次遭攻擊時，反傷攻擊者 2（傷害被吸收為 0 也會觸發）",thorn:2},
   swarmRally:{id:"swarmRally",name:"五方調兵",desc:"第2拍：本隊已有折損時，本隊存活紙紮血量上限與目前值 +1",rallyHp:1},
-  swarmLastStand:{id:"swarmLastStand",name:"殘旗插心",desc:"本隊只剩 1 隻存活紙紮時，該隻每次攻擊 +1",lastStand:1},
+  swarmLastStand:{id:"swarmLastStand",name:"殘旗插心",desc:"本隊紙紮每次攻擊 +1",lastStand:1},
   swarmPierce:{id:"swarmPierce",name:"陰陽眼",desc:"本隊攻擊無視送王船的傷害吸收",pierce:true},
-  swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"每拍結束時：對面當拍有紙紮被燒毀時，本方存活紙紮血量上限與目前值 +1（同名不疊加）",feed:1},
+  swarmFeed1:{id:"swarmFeed1",name:"餓鬼進食",desc:"每拍交鋒結束時：對面在交鋒中有紙紮被燒毀時，本方存活紙紮血量上限與目前值 +1（開場天雷、射日、抓交替等交鋒前燒毀不算；同名不疊加）",feed:1},
   /* 第 4 卷 傳說三尊：兩個新效果欄位（blindFront 在 pwBolt 段、curseHaunt 在 pwHaunt 段）＋一個沿用既有的 hpAll。
      blindFront 是「一拍開打前施加一次」的減攻（跟射日的 openShot 同時機），減下去的 atk 三拍都算。 */
   eliteBlind:{id:"eliteBlind",name:"餘暉灼目",desc:"第1拍開場：本隊尚有存活紙紮時，對面存活前鋒攻擊 −2（最低 0），持續本場",blindFront:2,tier:3},
@@ -3075,6 +3136,184 @@ function railCardOpen(id,i){
    鏡子放在哪（appraiseLayout：題字欄與另一側窄籤之間的空地，量實際矩形）與輸入（籤／滑動／點空白處）。
    APPR 是本卷唯一的鑑賞態事實來源：id＝哪一欄的題字在顯示、i＝焦點法寶槽位、on＝是否在鑑賞態。 */
 let APPR={on:false,id:null,i:null};
+/* ===== 鑑賞頁卷軸題字（v0.59.2，凍結 docs/experiments/2026-09-28-acceptance-appraise-panels.md 修訂 #11(g′)(j)）=====
+   使用者 09-29 看三案示意（phase2-mock/appraise-text/）後裁「B 的直書標題、C 的文字」：題字寫在一卷古卷上，
+   靠鏡子那一側的裱綾直書金字法寶名＋朱印；紙面橫書「標下它」白話句、數值標籤、規則原文（放不下收成一行「點開」）。
+   原拍品卡（同一支卡片工廠、同一個 onclick，凍結 #2）整張搬進「規則原文」那一段；收成一行時卡片不顯示，
+   點卷軸紙面（「點開」那一行除外）＝點那張卡（盯上／開出價單，行為與 86e4676 展開卡同一支函式）。
+   純呈現：不讀寫賽局欄位、不耗亂數。 */
+/** 「標下它」白話句：逐字取自使用者簽收版 docs/experiments/2026-09-28-appraise-c/plain-copy-signed.md（32 件＝POOL 27＋CURSES 5）。
+ *  tests/tools/appraise-plain-check.mjs 逐字比對（#11(j) 差 0）；此後改字要重新簽收。 */
+const APPR_PLAIN={
+  "射日神弓":"1 隻大紙偶，開打先射對面最壯的一隻 1 血；夜戰打贏，對手多扣 2 壽命。",
+  "百步蛇紋盾":"2 隻護法紙人，開打時全隊前鋒血 +2；夜戰輸了少扣 2 壽命（至少扣 1）。",
+  "巴冷公主珠鍊":"1 隻耐打的大紙偶：每拍第一次挨 2 點以上的打，少扣 2 血（至少扣 1）。",
+  "祖靈之眼":"2 隻護法紙人，第 1 拍搶先出手；整夜沒標到東西（塞毒標、買下銷毀也算標到），收市回 2 壽命。",
+  "雷女之火":"1 隻大紙偶，開打有機率劈死對面一隻小紙人；湊祖靈共鳴時一件算兩件。",
+  "拼板舟":"3 隻小紙人，被大紙偶順手掃到只吃一半；每晚收市回 1 壽命。",
+  "山豬牙飾":"1 隻小紙人，每拍第一次挨打，一定反咬對方 2 點。",
+  "獻祭刀":"1 隻大紙偶，開打自割 1 血換整場攻擊 +2；出價時可放血，每放一次全桌對手扣 4。",
+  "山神庇佑":"2 隻護法紙人，開打時全隊血 +1；你壽命還有 30 以上時，共鳴加成約多五成。",
+  "媽祖令旗":"2 隻護法紙人，第 2 拍全隊攻擊 +1；保守標能喊的上限高五成。",
+  "王爺劍":"1 隻大紙偶，順手掃到的第二隻也吃滿額傷害。",
+  "送王船":"自己標下才啟航：把你最新一件詛咒送給壽命最高的對手；第 2 拍全隊先擋 4 點傷害。",
+  "千里眼銅鈴":"2 隻護法紙人，全隊不怕魔神仔迷途；明晚的拍品先偷看兩件。",
+  "五營旗":"3 隻小紙人，第 1 拍折了兵，第 2 拍剩下的血 +1；湊香火共鳴時一件算兩件。",
+  "虎爺印":"1 隻大紙偶，挨打有機率反咬；誰用毒標塞貨給你，誰扣 2 壽命。",
+  "香灰符":"2 隻護法紙人，第 2 拍替你排頭那隻紙紮補 1 血。",
+  "福壽綿長":"2 隻護法紙人，每拍開打替傷最重的一隻回 1 血。",
+  "破軍旗":"1 隻小紙人，孤旗一面，每次出手都多打 1。",
+  "魔神仔紅帽":"4 隻飄影，第 3 拍讓對面最大一群小紙人發呆；你的毒標比價多算 2。",
+  "林投姐髮簪":"4 隻飄影；夜戰贏了對手多扣 1，輸了也拖對手扣 1 壽命。",
+  "椅仔姑竹椅":"看得見全桌真實壽命；你的小紙人圍毆同一隻時，第 2、3 下各多打 1。",
+  "黃色小雨衣":"押命標沒標到不賠標金；第 3 拍對面小紙人與護法攻擊 −1。",
+  "水鬼浮標":"4 隻飄影，第 3 拍拖對面一隻小紙人下水，自己也賠掉血最少的那隻；湊陰氣共鳴時一件算兩件。",
+  "虎姑婆指甲":"1 隻大紙偶，專咬小紙人（多打 2）；夜戰打贏回 1 壽命。",
+  "陰陽眼銅錢":"2 隻小紙人，打得穿送王船的擋傷。",
+  "過陰咒":"4 隻飄影，第 3 拍對面有 N 隻小紙人，它們與護法攻擊 −2N、大紙偶 −N；你壽命不到 15 時共鳴加倍。",
+  "飼鬼甕":"2 隻小紙人，每拍交手燒掉對面一隻以上，全隊血 +1。",
+  "冥婚紅包":"詛咒：誰袋裡有它，哪晚有標到東西（塞毒標、買下銷毀也算），收市就付 1 壽命禮金。可買下銷毀，或毒標塞給對手。",
+  "魔神仔的芭樂":"詛咒：誰袋裡有它，每晚收市扣 1 壽命。可買下銷毀，或毒標塞給對手。",
+  "抓交替水符":"詛咒：持有者夜戰第一次折兵時，再拖一隻血最少的紙紮扣 1 血（每場一次）。可買下銷毀，或毒標塞給對手。",
+  "縛靈鎖":"詛咒：持有者夜戰第 1 拍，最能打的那隻攻擊 −2。可買下銷毀，或毒標塞給對手。",
+  "白虎煞":"詛咒：誰袋裡有它，每輸一場夜戰多扣 1 壽命。可買下銷毀，或毒標塞給對手。",
+};
+/** 卷軸時間軸（ms，跟丙案 3D 揭幕同一條時鐘：table-tray 的 appraiseFx().ms）。展開在鏡子浮現結束（APPR_FX.STABLE＝1060）
+ *  同一刻完成：點籤後 1.3 秒內全開；燒符中點空白＝3D 揭幕直接跳到 1060，卷軸同一幀全開（#11(g′)(1)）；切換＝重燒＝重開。 */
+const APPR_SCROLL={APPEAR0:420,APPEAR_MS:140,UNROLL0:560,UNROLL_MS:500};
+let APPR_SC=null; /* 目前這一卷：{el,card,home:{parent,next},raf,done} */
+function apprEsc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+/** 規則原文裡卡面沒印的那一條（逐字取自遊戲）：夜戰招式＝unitRow 的招式名＋說明（出自 TRAITS）；詛咒品＝curseEffectText 全文。
+ *  卡面 .ab 本來就是「夜戰：招式說明」的（itemSummaryText 同一條判斷）不重複。 */
+function apprExtraRule(it){
+  if(it.curse) return curseEffectText(it,true);
+  const r=unitRow(it); if(!r||!r.move) return "";
+  if(CFG.PAPERWAR_ON&&(!it.ab||isPowerEstimateAbility(it))) return "";
+  return `✦ ${r.move}：${r.desc}`;
+}
+/* ===== 「對你而言」（凍結修訂 #11(g′)(3)③；使用者 09-30 裁定乙：有事才出現，情況成立時必須出現）=====
+   只在三種情況出現、每種一行，優先序 連鎖＞共鳴＞盯上：
+   ① 連鎖：chainsCompletedBy(我,本件)（內部走 activeChains；夜行錄第 1 章 S.chainsOff 時回空＝不出）；
+      缺件名取 CHAINS[].requirements 對 POOL 的名稱。雙虎兩句用簽收版 plain-copy-signed.md 表後原句，其餘連鎖用通用樣板。
+   ② 共鳴啟動／升級：pwResLv(我,系) 與 pwResLv({...我,袋＋本件},系) 前後比較；件數＝facCount（含「視為多 1 件」），
+      第幾拍＝BEAT_FAC，系名＝FAC[系].n。
+   ③ 盯上：S.marks 裡有 ≥2 家（口徑同 markBadgeHTML：活著的；不算自己）盯本件。
+   樣板逐字＝使用者簽收版 2（docs/experiments/2026-09-28-appraise-c/plain-copy-signed-2.md），只代入 {…}；
+   tests/tools/appraise-plain-check.mjs 逐字比對。純讀取，不寫賽局欄位、不耗亂數。 */
+const APPR_YOU_TPL={
+  resOn:"{系}湊滿 {N} 件 → 第 {拍} 拍共鳴啟動：{系}紙紮每隻血 +{lv}。",
+  resUp:"{系}湊到 {N} 件 → 第 {拍} 拍共鳴升級：{系}紙紮每隻血 +{a}→+{b}。",
+  mark:"已有 {n} 家盯上這件：{甲家}、{乙家}。",
+  chain:"你已有 {缺件} → 湊齊成連鎖「{名}」。",
+};
+/** 雙虎合陣兩句（簽收版 plain-copy-signed.md「對你而言提示句（合陣）」，鍵＝鑑賞的法寶|袋中已有） */
+const APPR_TWIN={
+  "虎爺印|虎姑婆指甲":"你已有 虎姑婆指甲 → 湊齊會合成「雙虎滅煞」大紙偶（攻 9・血 8，橫掃撕甲），本招「虎爺反咬」消失。",
+  "虎姑婆指甲|虎爺印":"你已有 虎爺印 → 湊齊會合成「雙虎滅煞」大紙偶（攻 9・血 8，橫掃撕甲），本招「咬手指」消失。",
+};
+function apprFill(tpl,v){ return Object.entries(v).reduce((s,[k,x])=>s.split(`{${k}}`).join(String(x)),tpl); }
+/** 依優先序回傳所有成立的行（{k,t}）；顯示幾行由 apprYouMax 決定。 */
+function apprYouLines(it,i){
+  const me=S&&S.players?S.players[ACTIVE]:null, out=[];
+  if(!me||!it) return out;
+  if(!it.curse){
+    const done=chainsCompletedBy(me,it);
+    if(done.length){
+      const c=done[0], partners=c.requirements.filter(ab=>ab!==it.ab).map(ab=>(POOL.find(x=>x.ab===ab)||{}).n||ab).join("、");
+      out.push({k:"chain",t:APPR_TWIN[it.n+"|"+partners]||apprFill(APPR_YOU_TPL.chain,{"缺件":partners,"名":c.name})});
+    }
+    const after={...me,bag:[...(me.bag||[]),it]};
+    const l0=pwResLv(me,it.f), l1=pwResLv(after,it.f);
+    if(l1>l0){
+      const v={"系":FAC[it.f].n,"N":facCount(after,it.f),"拍":BEAT_FAC.indexOf(it.f)+1};
+      out.push({k:"res",t:l0===0?apprFill(APPR_YOU_TPL.resOn,{...v,lv:l1}):apprFill(APPR_YOU_TPL.resUp,{...v,a:l0,b:l1})});
+    }
+  }
+  if(CFG.MARK_ON&&S.marks){
+    const who=Object.keys(S.marks).filter(id=>S.marks[id]===i&&+id!==me.id&&S.players[+id]&&S.players[+id].alive).map(id=>`${DIRS[+id]}家`);
+    if(who.length>=2) out.push({k:"mark",t:apprFill(APPR_YOU_TPL.mark,{n:who.length}).replace("{甲家}、{乙家}",who.join("、"))});
+  }
+  return out;
+}
+/** 窄畫面（畫面高 < 500，V1–V4）只出優先序最高的一行，較寬最多兩行（凍結修訂 #11(g′)(3)③；鏡子半徑不得被擠小）。 */
+function apprYouMax(){ return (typeof innerHeight==="number"&&innerHeight>=500)?2:1; }
+function appraiseScrollHTML(it,side,i){
+  const r=it.curse?null:unitRow(it), fac=FAC[it.f]?FAC[it.f].n:"";
+  const you=apprYouLines(it,i).slice(0,apprYouMax());
+  const youH=you.length?`<div class="asc-you">${you.map((y,j)=>`<div class="asc-yrow ${y.k}">${j?"":`<span class="asc-lab you">對你而言</span>`}${apprEsc(y.t)}</div>`).join("")}</div>`:"";
+  /* 數值標籤：跟卡面同一支 unitRow（凍結 #11(g′)(3)② 與拍品卡數值相同） */
+  const tags=it.curse?`<span class="asc-tag curse">詛咒品・不召喚</span>`
+    :(r?`<span class="asc-tag">攻 <b>${r.atk}</b></span><span class="asc-tag">血 <b>${r.hp}</b></span>${r.beat?`<span class="asc-tag">共鳴 <b>第${r.beat}拍</b></span>`:""}`:"");
+  const plain=APPR_PLAIN[it.n], extra=apprExtraRule(it);
+  return `<div class="asc ${side}"><div class="asc-rod top"></div><div class="asc-paper">`+
+    `<div class="asc-strip"><div class="asc-nm">${apprEsc(it.n)}</div><div class="asc-seal">${apprEsc(fac)}</div></div>`+
+    `<div class="asc-body">${plain?`<div class="asc-gain"><span class="asc-lab">${it.curse?"注意":"標下它"}</span>${apprEsc(plain)}</div>`:""}`+
+    `${tags?`<div class="asc-tags">${tags}</div>`:""}${youH}`+
+    `<div class="asc-rules"><button type="button" class="asc-fold">✦ 規則原文 <b>0</b> 條・點開</button>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
+    `</div></div><div class="asc-rod bot"></div></div>`;
+}
+/** 收卷：卡片放回原位（fillRails 重畫前、關閉、換件都走這裡）。 */
+function appraiseScrollRemove(){
+  const sc=APPR_SC; APPR_SC=null; if(!sc) return;
+  if(sc.raf) cancelAnimationFrame(sc.raf);
+  if(sc.card&&sc.home.parent&&sc.home.parent.isConnected) sc.home.parent.insertBefore(sc.card,sc.home.next&&sc.home.next.parentNode===sc.home.parent?sc.home.next:null);
+  if(sc.el&&sc.el.remove) sc.el.remove();
+}
+function appraiseScrollBuild(id,i){
+  appraiseScrollRemove();
+  const pg=$(id)&&$(id).querySelector(".railPages"), card=pg&&pg.querySelector(`#mc${i}`);
+  if(!pg||!card||!S.market[i]||!pg.insertAdjacentHTML) return;
+  pg.insertAdjacentHTML("beforeend",appraiseScrollHTML(S.market[i],id==="railW"?"west":"east",i));
+  const el=pg.querySelector(".asc"); if(!el) return;
+  const home={parent:card.parentNode,next:card.nextSibling};
+  const rules=el.querySelector(".asc-rules"), extra=rules.querySelector(".asc-extra");
+  rules.insertBefore(card,extra);
+  /* 規則原文幾條＝收起時藏掉的條目：卡面能力（.ab）、連鎖補齊提示、卡面沒印的招式／詛咒全文 */
+  const n=[card.querySelector(".ab"),...card.querySelectorAll(".chainHint"),extra].filter(e=>e&&/\S/.test(e.textContent)).length;
+  el.dataset.n=String(n); rules.querySelector(".asc-fold b").textContent=String(n);
+  rules.querySelector(".asc-fold").addEventListener("click",e=>{ e.stopPropagation(); appraiseUnfold(); });
+  /* 點紙面＝點卡（卡片本身被點到時卡自己的 onclick 會跑，不再轉一次） */
+  el.addEventListener("click",e=>{ if(e.target&&e.target.closest&&e.target.closest(".mcard,.asc-fold")) return; card.click(); });
+  APPR_SC={el,card,home,raf:0,done:false,open:false};
+}
+/** 放得下就全文；放不下（題字欄加寬會讓照妖鏡變小，或加到最寬仍放不下）才收成「規則原文 N 條・點開」。 */
+function appraiseFitScroll(){
+  const sc=APPR_SC;
+  if(!sc||sc.open||sc.el.dataset.n==="0"){ appraisePanelClamp(); return; }
+  const pg=sc.el.parentNode;
+  sc.el.classList.remove("fold"); appraisePanelClamp();
+  const r1=appraiseLayout().r, over=pg.scrollHeight>pg.clientHeight+1;
+  sc.el.classList.add("fold"); appraisePanelClamp();
+  const r2=appraiseLayout().r;
+  if(!(r2>r1+0.5)&&!over){ sc.el.classList.remove("fold"); appraisePanelClamp(); }
+}
+/** 點開規則原文：全文攤開，題字欄照舊加寬到放得下（鏡子因此變小＝使用者同意的代價，凍結修訂 #11(g′)(3)④）。 */
+function appraiseUnfold(){
+  const sc=APPR_SC; if(!sc||!APPR.on) return;
+  sc.open=true; sc.el.classList.remove("fold");
+  appraisePanelClamp();
+  try{ appraiseTray().setAppraiseLayout(appraiseLayout()); }catch(e){}
+}
+/** 每幀依 3D 揭幕的時鐘設卷軸的展開程度（捲起的卷軸淡入落下 → 下軸往下拉開、紙面跟著露出）；全開後停。 */
+function appraiseScrollTick(){
+  const sc=APPR_SC; if(!sc) return;
+  sc.raf=0;
+  const t=appraiseTray(), f=t&&t.appraiseFx?t.appraiseFx():null;
+  const reduce=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ms=(!reduce&&f&&f.idx>=0)?f.ms:1e9, A=APPR_SCROLL, c01=x=>Math.min(1,Math.max(0,x));
+  const ap=c01((ms-A.APPEAR0)/A.APPEAR_MS), u=c01((ms-A.UNROLL0)/A.UNROLL_MS), up=1-Math.pow(1-u,3);
+  const paper=sc.el.querySelector(".asc-paper"), bot=sc.el.querySelector(".asc-rod.bot");
+  sc.el.style.opacity=String(ap);
+  sc.el.style.transform=ap<1?`translateY(${((1-ap)*-10).toFixed(1)}px)`:"";
+  if(up<1){
+    const H=paper.getBoundingClientRect().height;
+    paper.style.clipPath=`inset(0 0 ${((1-up)*100).toFixed(2)}% 0)`;
+    bot.style.transform=`translateY(${(-(1-up)*H).toFixed(1)}px) scaleY(${(1+0.35*(1-up)).toFixed(3)})`;
+  } else { paper.style.clipPath=""; bot.style.transform=""; }
+  sc.el.dataset.p=up.toFixed(3);
+  if(up>=1&&ap>=1){ sc.done=true; appraiseInkDone(); return; }
+  sc.raf=requestAnimationFrame(appraiseScrollTick);
+}
 function appraiseTray(){ return window.__yaoshi3d&&window.__yaoshi3d.tray; }
 function appraiseSupported(){ const t=appraiseTray(); return TABLE3D&&!!(t&&t.setAppraise); }
 function appraiseRailOf(slot){ const n=(S&&S.market?S.market.length:4), half=Math.ceil(n/2); return slot<half?"railW":"railE"; }
@@ -3138,37 +3377,40 @@ function appraiseLayout(prOverride){
   best.r=Math.max(40,best.r);
   return best;
 }
-/** 題字欄的淡入動畫每次換件重播（丙案每次切換都重燒，題字跟著重寫一次，凍結 #4 修訂）。 */
+/** 題字欄每次換件重新展開（丙案每次切換都重燒，卷軸跟著重開一次，凍結 #4 修訂、#11(g′)(1)）。
+ *  展開完成前題字欄不能吃點擊（09-29 冷讀覆審 H1：揭幕中點「空白」會打到還沒展開的卡片＝不可逆的盯上）：
+ *  卷軸全開那一幀（appraiseScrollTick → appraiseInkDone）才開放；保險再掛一個計時器。
+ *  每次重開都換一個序號、清掉上一次的保險計時器：快速換件時，上一次的計時器不得把這一次提早解鎖（覆審 r2 H1）。 */
 function appraiseReplayInk(){
   const pg=$(APPR.id)&&$(APPR.id).querySelector(".railPages"); if(!pg) return;
-  pg.style.animation="none"; void pg.offsetWidth; pg.style.animation="";
-  /* 淡入完成前題字欄看不見，不能讓它吃點擊（09-29 冷讀覆審 H1：揭幕中點「空白」會打到隱形的卡片＝不可逆的盯上）。
-     淡入結束（animationend）才開放；reduced-motion 沒有動畫就立刻開放；保險再掛一個計時器。 */
-  /* 每次重播都換一個序號、清掉上一次的保險計時器與監聽：快速換件時，上一次淡入的計時器不得把這一次提早解鎖（覆審 r2 H1）。 */
   const seq=pg.__inkSeq=(pg.__inkSeq||0)+1;
   clearTimeout(pg.__inkTimer);
-  if(pg.__inkDone) pg.removeEventListener("animationend",pg.__inkDone);
   pg.classList.add("inking");
-  const done=e=>{ if(e&&e.target!==pg) return; if(pg.__inkSeq!==seq) return; pg.classList.remove("inking"); pg.removeEventListener("animationend",done); clearTimeout(pg.__inkTimer); };
-  pg.__inkDone=done;
-  pg.addEventListener("animationend",done);
-  if(getComputedStyle(pg).animationName==="none") done(); else pg.__inkTimer=setTimeout(done,1400);
+  pg.__inkTimer=setTimeout(()=>{ if(pg.__inkSeq===seq) pg.classList.remove("inking"); },1400);
+}
+function appraiseInkDone(){
+  const pg=APPR.id&&$(APPR.id)&&$(APPR.id).querySelector(".railPages"); if(!pg) return;
+  clearTimeout(pg.__inkTimer); pg.classList.remove("inking");
 }
 /** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態；修訂：每次切換都重燒）。 */
 function openAppraise(id,i){
   if(!appraiseSupported()) return;
   const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
+  appraiseScrollRemove(); /* 上一卷先收（卡片放回原位），下面的 class 切換才看得到完整卡列 */
   ["railW","railE"].forEach(r=>{ if(r!==id){ railCardOpen(r,null); const pg=$(r)&&$(r).querySelector(".railPages"); if(pg){ pg.style.top=""; } } });
   railCardOpen(id,i);
   const tb=$("table"); if(tb&&tb.classList) tb.classList.add("appraising");
   APPR.on=true; APPR.id=id; APPR.i=i;
-  appraisePanelClamp();
+  appraiseScrollBuild(id,i);
+  appraiseFitScroll();
   appraiseReplayInk();
   try{ appraiseTray().setAppraise(i, id==="railW"?"left":"right", appraiseLayout()); }catch(e){}
+  appraiseScrollTick(); /* setAppraise 把揭幕時鐘歸零之後才開始，卷軸從捲起開始 */
 }
 function closeAppraise(){
   if(!APPR.on) return;
   const id=APPR.id;
+  appraiseScrollRemove();
   APPR.on=false; APPR.id=null; APPR.i=null;
   if(id){ railCardOpen(id,null); const pg=$(id)&&$(id).querySelector(".railPages"); if(pg){ pg.style.top=""; pg.style.width=""; pg.style.overflowY=""; } }
   const tb=$("table"); if(tb&&tb.classList) tb.classList.remove("appraising");
@@ -3215,7 +3457,7 @@ function closeRailCard(id){
     if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5) appraiseNudge(dx<0?1:-1);
     else if(Math.hypot(dx,dy)<12){
       const t=appraiseTray();
-      if(t&&t.appraiseIntro&&t.appraiseIntro()) t.skipAppraiseIntro();
+      if(t&&t.appraiseIntro&&t.appraiseIntro()){ t.skipAppraiseIntro(); appraiseScrollTick(); } /* 卷軸同一刻全開（#11(g′)(1)） */
       else closeAppraise();
     }
   },true);
@@ -3223,7 +3465,7 @@ function closeRailCard(id){
   if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>{
     if(!APPR.on) return;
     if(innerWidth<=innerHeight){ closeAppraise(); return; } /* 直式整個 3D 牌桌由轉向提示蓋住、輸入層也不在：直接收起（覆審 M1） */
-    appraisePanelClamp();
+    appraiseFitScroll();
     try{ appraiseTray().setAppraiseLayout(appraiseLayout()); }catch(e){}
   });
 })();
