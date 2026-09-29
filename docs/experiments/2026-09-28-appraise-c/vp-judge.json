@@ -1,0 +1,1116 @@
+{
+ "baseFile": "docs/experiments/2026-09-28-appraise-c/vp/probe-base.json",
+ "headFile": "docs/experiments/2026-09-28-appraise-c/vp/probe-head.json",
+ "brief": {
+  "#1": true,
+  "#2": false,
+  "#3": true,
+  "#4": true,
+  "#5": true,
+  "#6": false,
+  "#7a": true,
+  "#8": false,
+  "#9-phase1": false
+ },
+ "detail": {
+  "#1": {
+   "pass": true,
+   "baseRed": false,
+   "base": {
+    "cellsWithEmoji": 0,
+    "byVp": {},
+    "chars": {},
+    "cells": 890
+   },
+   "head": {
+    "cellsWithEmoji": 0,
+    "byVp": {},
+    "chars": {},
+    "cells": 906
+   },
+   "headList": []
+  },
+  "#2": {
+   "pass": false,
+   "cells": 360,
+   "tabs": 1440,
+   "expanded": 1440,
+   "baseCompareSkippedDiffGame": 55,
+   "factionsSeen": [
+    "curse",
+    "xianghuo",
+    "zuling",
+    "yinqi"
+   ],
+   "bad": [
+    "solo|mark|n1@V1 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|mark|n1@V1 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V1 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V1 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|mark|n1@V2 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|mark|n1@V2 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V2 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V2 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|mark|n1@V3 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|mark|n1@V3 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V3 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V3 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|mark|n1@V4 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|mark|n1@V4 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V4 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V4 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|mark|n1@V5 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|mark|n1@V5 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V5 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|mark|n1@V5 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|bid|n1@V1 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|bid|n1@V1 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V1 展開 railE#2 shown=false inView=true missing=[\"👁\",\"北西東\",\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V1 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|bid|n1@V2 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|bid|n1@V2 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V2 展開 railE#2 shown=false inView=true missing=[\"👁\",\"北西東\",\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V2 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|bid|n1@V3 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|bid|n1@V3 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V3 展開 railE#2 shown=false inView=true missing=[\"👁\",\"北西東\",\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V3 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|bid|n1@V4 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|bid|n1@V4 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V4 展開 railE#2 shown=false inView=true missing=[\"👁\",\"北西東\",\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V4 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|bid|n1@V5 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+    "solo|bid|n1@V5 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V5 展開 railE#2 shown=false inView=true missing=[\"👁\",\"北西東\",\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+    "solo|bid|n1@V5 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V1 展開 railW#0 shown=false inView=true missing=[\"雷女之火\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"✦ 共鳴計算時，祖靈視為多 1 件\",\"大紙偶×1・\",\"攻 8・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V1 展開 railW#1 shown=false inView=true missing=[\"山神庇佑\",\"共鳴1拍・護法紙人×2\",\"祖靈\",\"✦ 壽命 30 以上時，共鳴加成額外 +50%\",\"護法紙人×2・\",\"攻 1・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V1 展開 railE#2 shown=false inView=true missing=[\"送王船\",\"共鳴2拍・護法紙人×2\",\"香火\",\"✦ 親自得標入袋時，將最近入袋的一件詛咒送給壽命最高的存活對手\",\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "solo|mark|n2@V1 展開 railE#3 shown=false inView=true missing=[\"虎姑婆指甲\",\"共鳴3拍・大紙偶×1\",\"陰氣\",\"✦ 戰勝時回 1 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴3拍\"] others=",
+    "solo|mark|n2@V2 展開 railW#0 shown=false inView=true missing=[\"雷女之火\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"✦ 共鳴計算時，祖靈視為多 1 件\",\"大紙偶×1・\",\"攻 8・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V2 展開 railW#1 shown=false inView=true missing=[\"山神庇佑\",\"共鳴1拍・護法紙人×2\",\"祖靈\",\"✦ 壽命 30 以上時，共鳴加成額外 +50%\",\"護法紙人×2・\",\"攻 1・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V2 展開 railE#2 shown=false inView=true missing=[\"送王船\",\"共鳴2拍・護法紙人×2\",\"香火\",\"✦ 親自得標入袋時，將最近入袋的一件詛咒送給壽命最高的存活對手\",\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "solo|mark|n2@V2 展開 railE#3 shown=false inView=true missing=[\"虎姑婆指甲\",\"共鳴3拍・大紙偶×1\",\"陰氣\",\"✦ 戰勝時回 1 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴3拍\"] others=",
+    "solo|mark|n2@V3 展開 railW#0 shown=false inView=true missing=[\"雷女之火\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"✦ 共鳴計算時，祖靈視為多 1 件\",\"大紙偶×1・\",\"攻 8・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V3 展開 railW#1 shown=false inView=true missing=[\"山神庇佑\",\"共鳴1拍・護法紙人×2\",\"祖靈\",\"✦ 壽命 30 以上時，共鳴加成額外 +50%\",\"護法紙人×2・\",\"攻 1・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V3 展開 railE#2 shown=false inView=true missing=[\"送王船\",\"共鳴2拍・護法紙人×2\",\"香火\",\"✦ 親自得標入袋時，將最近入袋的一件詛咒送給壽命最高的存活對手\",\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "solo|mark|n2@V3 展開 railE#3 shown=false inView=true missing=[\"虎姑婆指甲\",\"共鳴3拍・大紙偶×1\",\"陰氣\",\"✦ 戰勝時回 1 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴3拍\"] others=",
+    "solo|mark|n2@V4 展開 railW#0 shown=false inView=true missing=[\"雷女之火\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"✦ 共鳴計算時，祖靈視為多 1 件\",\"大紙偶×1・\",\"攻 8・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V4 展開 railW#1 shown=false inView=true missing=[\"山神庇佑\",\"共鳴1拍・護法紙人×2\",\"祖靈\",\"✦ 壽命 30 以上時，共鳴加成額外 +50%\",\"護法紙人×2・\",\"攻 1・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V4 展開 railE#2 shown=false inView=true missing=[\"送王船\",\"共鳴2拍・護法紙人×2\",\"香火\",\"✦ 親自得標入袋時，將最近入袋的一件詛咒送給壽命最高的存活對手\",\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "solo|mark|n2@V4 展開 railE#3 shown=false inView=true missing=[\"虎姑婆指甲\",\"共鳴3拍・大紙偶×1\",\"陰氣\",\"✦ 戰勝時回 1 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴3拍\"] others=",
+    "solo|mark|n2@V5 展開 railW#0 shown=false inView=true missing=[\"雷女之火\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"✦ 共鳴計算時，祖靈視為多 1 件\",\"大紙偶×1・\",\"攻 8・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V5 展開 railW#1 shown=false inView=true missing=[\"山神庇佑\",\"共鳴1拍・護法紙人×2\",\"祖靈\",\"✦ 壽命 30 以上時，共鳴加成額外 +50%\",\"護法紙人×2・\",\"攻 1・\",\"血 5\",\"・共鳴1拍\"] others=",
+    "solo|mark|n2@V5 展開 railE#2 shown=false inView=true missing=[\"送王船\",\"共鳴2拍・護法紙人×2\",\"香火\",\"✦ 親自得標入袋時，將最近入袋的一件詛咒送給壽命最高的存活對手\",\"護法紙人×2・\",\"攻 1・\",\"血 7\",\"・共鳴2拍\"] others=",
+    "solo|mark|n2@V5 展開 railE#3 shown=false inView=true missing=[\"虎姑婆指甲\",\"共鳴3拍・大紙偶×1\",\"陰氣\",\"✦ 戰勝時回 1 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴3拍\"] others="
+   ],
+   "badN": 1440,
+   "base": {
+    "cells": 360,
+    "redCells": 0
+   }
+  },
+  "#3": {
+   "pass": true,
+   "cells": 195,
+   "baseCompared": 165,
+   "baseCompareSkippedDiffGame": 30,
+   "baseDiffInfo": [
+    "solo|shrine|n1@V1 與基準同格內容不同 [\"🕸\",\"孝女白琴 毒標得手 → 塞進 閭山法師 的袋子（5・\",\"實付 6\",\"）\",\"收驚婆 入袋（2・\",\"實付 3\",\"）\",\"閭山法師 入袋（8・\",\"實付 9\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\"]",
+    "solo|shrine|n1@V2 與基準同格內容不同 [\"🕸\",\"孝女白琴 毒標得手 → 塞進 閭山法師 的袋子（5・\",\"實付 6\",\"）\",\"收驚婆 入袋（2・\",\"實付 3\",\"）\",\"閭山法師 入袋（8・\",\"實付 9\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\"]",
+    "solo|shrine|n1@V3 與基準同格內容不同 [\"🕸\",\"孝女白琴 毒標得手 → 塞進 閭山法師 的袋子（5・\",\"實付 6\",\"）\",\"收驚婆 入袋（2・\",\"實付 3\",\"）\",\"閭山法師 入袋（8・\",\"實付 9\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\"]",
+    "solo|shrine|n1@V4 與基準同格內容不同 [\"🕸\",\"孝女白琴 毒標得手 → 塞進 閭山法師 的袋子（5・\",\"實付 6\",\"）\",\"收驚婆 入袋（2・\",\"實付 3\",\"）\",\"閭山法師 入袋（8・\",\"實付 9\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\"]",
+    "solo|shrine|n1@V5 與基準同格內容不同 [\"🕸\",\"孝女白琴 毒標得手 → 塞進 閭山法師 的袋子（5・\",\"實付 6\",\"）\",\"收驚婆 入袋（2・\",\"實付 3\",\"）\",\"閭山法師 入袋（8・\",\"實付 9\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\"]",
+    "solo|shrine|n2@V1 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"流標\"]",
+    "solo|shrine|n2@V2 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"流標\"]",
+    "solo|shrine|n2@V3 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"流標\"]",
+    "solo|shrine|n2@V4 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"流標\"]",
+    "solo|shrine|n2@V5 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"流標\"]",
+    "solo|shrine|n3@V1 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"流標\"]",
+    "solo|shrine|n3@V2 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"流標\"]",
+    "solo|shrine|n3@V3 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"流標\"]",
+    "solo|shrine|n3@V4 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"流標\"]",
+    "solo|shrine|n3@V5 與基準同格內容不同 [\"流標\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（5・\",\"實付 6\",\"）\",\"流標\"]",
+    "solo|shrine|n4@V1 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（3・\",\"實付 4\",\"）\",\"閭山法師 入袋（10・\",\"實付 11\",\"）\"]",
+    "solo|shrine|n4@V2 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（3・\",\"實付 4\",\"）\",\"閭山法師 入袋（10・\",\"實付 11\",\"）\"]",
+    "solo|shrine|n4@V3 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（3・\",\"實付 4\",\"）\",\"閭山法師 入袋（10・\",\"實付 11\",\"）\"]",
+    "solo|shrine|n4@V4 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（3・\",\"實付 4\",\"）\",\"閭山法師 入袋（10・\",\"實付 11\",\"）\"]",
+    "solo|shrine|n4@V5 與基準同格內容不同 [\"收驚婆 入袋（3・\",\"實付 4\",\"）\",\"孝女白琴 入袋（4・\",\"實付 5\",\"）\",\"孝女白琴 入袋（3・\",\"實付 4\",\"）\",\"閭山法師 入袋（10・\",\"實付 11\",\"）\"]"
+   ],
+   "baseDiffN": 140,
+   "gapRange": [
+    2,
+    2
+   ],
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "cells": 195,
+    "gapRange": [
+     2,
+     2
+    ]
+   }
+  },
+  "#4": {
+   "pass": true,
+   "bars": {
+    "curse": "rgb(144, 96, 208)",
+    "xianghuo": "rgb(240, 128, 96)",
+    "zuling": "rgb(139, 96, 64)",
+    "yinqi": "rgb(112, 176, 128)"
+   },
+   "line": "rgb(201, 168, 98)",
+   "zulingVsGold": 35.7,
+   "zulingVsLine": 26.4,
+   "pairwise": {
+    "curse-xianghuo": 41.1,
+    "curse-zuling": 40.8,
+    "curse-yinqi": 46.8,
+    "xianghuo-zuling": 23.8,
+    "xianghuo-yinqi": 49.4,
+    "zuling-yinqi": 39
+   },
+   "base": {
+    "note": "基準沒有系色條；下列為基準的祖靈 token（--zuling）對 --gold 與四系 token 兩兩",
+    "zulingTokenVsGold": 12.7,
+    "pairwise": {
+     "--zuling|--xianghuo": 19.4,
+     "--zuling|--yinqi": 29.4,
+     "--zuling|--curse": 51.6,
+     "--xianghuo|--yinqi": 49.4,
+     "--xianghuo|--curse": 41.1,
+     "--yinqi|--curse": 46.8
+    }
+   }
+  },
+  "#5": {
+   "pass": true,
+   "cells": 570,
+   "fontMin": 11,
+   "contrastMin": 10.04,
+   "bad": [],
+   "badN": 0,
+   "base": {
+    "fontMin": 11,
+    "contrastMin": 10.04
+   }
+  },
+  "#6": {
+   "pass": false,
+   "serif": {
+    "#titleScr h1": [
+     "LXGW WenKai TC"
+    ],
+    "#titleScr .bigbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".stageCard .big": [
+     "LXGW WenKai TC"
+    ],
+    "#stage h2": [
+     "LXGW WenKai TC"
+    ],
+    "#review h2": [
+     "LXGW WenKai TC"
+    ],
+    ".mcard .nm": "無資料",
+    ".railTabs button": [
+     "LXGW WenKai TC"
+    ],
+    ".rcard .rnm": [
+     "LXGW WenKai TC"
+    ],
+    ".seat .nm": [
+     "LXGW WenKai TC"
+    ],
+    "#myDir": [
+     "LXGW WenKai TC"
+    ],
+    "#myLife": [
+     "LXGW WenKai TC"
+    ],
+    "#myPow": [
+     "LXGW WenKai TC"
+    ],
+    ".stakebar .amt": [
+     "LXGW WenKai TC"
+    ],
+    ".incamt": [
+     "LXGW WenKai TC"
+    ],
+    "#mainbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "LXGW WenKai TC"
+    ],
+    ".endrank": [
+     "LXGW WenKai TC"
+    ]
+   },
+   "sans": {
+    "#titleScr p:not(#verLine)": [
+     "Noto Sans TC"
+    ],
+    ".mcard .ab": "無資料",
+    ".mcard .uline": "無資料",
+    ".seat .st": [
+     "Noto Sans TC"
+    ],
+    ".bsum": [
+     "Noto Sans TC"
+    ],
+    ".nsum": [
+     "Noto Sans TC"
+    ],
+    ".bidfly": [
+     "Noto Sans TC"
+    ],
+    "#shz > div": [
+     "Noto Sans TC"
+    ],
+    ".nwCard": [
+     "Noto Sans TC"
+    ]
+   },
+   "loadedFaces": [
+    "LXGW WenKai TC 400",
+    "LXGW WenKai TC 700",
+    "Noto Sans TC 400",
+    "Noto Sans TC 700",
+    "Noto Sans TC 900"
+   ],
+   "bad": [
+    "solo|title@V1 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V1 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V2 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V2 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V3 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V3 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V4 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V4 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V5 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|title@V5 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|select@V1 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|select@V2 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|select@V3 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|select@V4 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|select@V5 .rcard .rnm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 .railTabs button → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 .seat .nm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 #myLife → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 #myPow → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V1 #mainbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 .railTabs button → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 .seat .nm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 #myLife → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 #myPow → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V2 #mainbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V3 .railTabs button → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V3 .seat .nm → \"LXGW WenKai TC\", \"Songti TC\", serif",
+    "solo|mark|n1@V3 #myDir → \"LXGW WenKai TC\", \"Songti TC\", serif"
+   ],
+   "badN": 5460,
+   "base": {
+    "#titleScr h1": [
+     "LXGW WenKai TC"
+    ],
+    "#titleScr .bigbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".stageCard .big": [
+     "LXGW WenKai TC"
+    ],
+    "#stage h2": [
+     "LXGW WenKai TC"
+    ],
+    "#review h2": [
+     "LXGW WenKai TC"
+    ],
+    ".mcard .nm": "無資料",
+    ".railTabs button": [
+     "LXGW WenKai TC"
+    ],
+    ".rcard .rnm": [
+     "LXGW WenKai TC"
+    ],
+    ".seat .nm": [
+     "LXGW WenKai TC"
+    ],
+    "#myDir": [
+     "LXGW WenKai TC"
+    ],
+    "#myLife": [
+     "LXGW WenKai TC"
+    ],
+    "#myPow": [
+     "LXGW WenKai TC"
+    ],
+    ".stakebar .amt": [
+     "LXGW WenKai TC"
+    ],
+    ".incamt": [
+     "LXGW WenKai TC"
+    ],
+    "#mainbtn": [
+     "LXGW WenKai TC"
+    ],
+    ".nwCard h3": "無資料",
+    "#nwScr h2": [
+     "LXGW WenKai TC"
+    ],
+    ".endrank": [
+     "LXGW WenKai TC"
+    ],
+    "#titleScr p:not(#verLine)": [
+     "Noto Sans TC"
+    ],
+    ".mcard .ab": "無資料",
+    ".mcard .uline": "無資料",
+    ".seat .st": [
+     "Noto Sans TC"
+    ],
+    ".bsum": [
+     "Noto Sans TC"
+    ],
+    ".nsum": [
+     "Noto Sans TC"
+    ],
+    ".bidfly": [
+     "Noto Sans TC"
+    ],
+    "#shz > div": [
+     "Noto Sans TC"
+    ],
+    ".nwCard": [
+     "Noto Sans TC"
+    ]
+   }
+  },
+  "#7a": {
+   "pass": true,
+   "rows": [
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826,
+     "btns": [
+      "單人入市 72x40",
+      "雙人熱座 64x40",
+      "夜行錄 50x40"
+     ],
+     "ver": "v0.59.2"
+    }
+   ],
+   "bad": [],
+   "base": [
+    {
+     "k": "solo|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628
+    },
+    {
+     "k": "solo|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66
+    },
+    {
+     "k": "solo|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625
+    },
+    {
+     "k": "solo|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666
+    },
+    {
+     "k": "solo|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826
+    },
+    {
+     "k": "hot|title",
+     "v": "V1",
+     "cx": 0.347,
+     "cy": 0.628
+    },
+    {
+     "k": "hot|title",
+     "v": "V2",
+     "cx": 0.318,
+     "cy": 0.66
+    },
+    {
+     "k": "hot|title",
+     "v": "V3",
+     "cx": 0.336,
+     "cy": 0.625
+    },
+    {
+     "k": "hot|title",
+     "v": "V4",
+     "cx": 0.355,
+     "cy": 0.666
+    },
+    {
+     "k": "hot|title",
+     "v": "V5",
+     "cx": 0.185,
+     "cy": 0.826
+    }
+   ]
+  },
+  "#8": {
+   "pass": false,
+   "perScreen": {
+    "select": {
+     "cells": 5,
+     "keys": 20,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "duel": {
+     "cells": 5,
+     "keys": 29,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "end": {
+     "cells": 3,
+     "keys": 77,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "review": {
+     "cells": 2,
+     "keys": 4,
+     "maxDelta": 10.8,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-menu": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    },
+    "nw-intro": {
+     "cells": 3,
+     "keys": 6,
+     "maxDelta": 0,
+     "noBase": 0,
+     "onlyBase": [],
+     "onlyHead": []
+    }
+   },
+   "bad": [
+    "hot|review #review > div#reviewbox:1 差 10.8px 基準[146,0,560,4498] 改後[146,0,560,4508.8]"
+   ],
+   "badN": 1
+  },
+  "#9-phase1": {
+   "pass": false,
+   "base": {
+    "breaks": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "spill": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "font": {
+     "V1": 5,
+     "V2": 5,
+     "V3": 4,
+     "V4": 3,
+     "V5": 3
+    },
+    "contrast": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "target": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    },
+    "align": {
+     "V1": 114,
+     "V2": 114,
+     "V3": 114,
+     "V4": 114,
+     "V5": 114
+    },
+    "north": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    }
+   },
+   "head": {
+    "breaks": {
+     "V1": 22,
+     "V2": 22,
+     "V3": 22,
+     "V4": 22,
+     "V5": 22
+    },
+    "spill": {
+     "V1": 12,
+     "V2": 12,
+     "V3": 12,
+     "V4": 12,
+     "V5": 0
+    },
+    "font": {
+     "V1": 5,
+     "V2": 5,
+     "V3": 5,
+     "V4": 3,
+     "V5": 2
+    },
+    "contrast": {
+     "V1": 56,
+     "V2": 56,
+     "V3": 57,
+     "V4": 56,
+     "V5": 56
+    },
+    "target": {
+     "V1": 34,
+     "V2": 0,
+     "V3": 12,
+     "V4": 12,
+     "V5": 0
+    },
+    "align": {
+     "V1": 114,
+     "V2": 114,
+     "V3": 114,
+     "V4": 114,
+     "V5": 114
+    },
+    "north": {
+     "V1": 0,
+     "V2": 0,
+     "V3": 0,
+     "V4": 0,
+     "V5": 0
+    }
+   },
+   "worse": [
+    "breaks@V1 0→22",
+    "breaks@V2 0→22",
+    "breaks@V3 0→22",
+    "breaks@V4 0→22",
+    "breaks@V5 0→22",
+    "spill@V1 0→12",
+    "spill@V2 0→12",
+    "spill@V3 0→12",
+    "spill@V4 0→12",
+    "font@V3 4→5",
+    "contrast@V1 0→56",
+    "contrast@V2 0→56",
+    "contrast@V3 0→57",
+    "contrast@V4 0→56",
+    "contrast@V5 0→56",
+    "target@V1 0→34",
+    "target@V3 0→12",
+    "target@V4 0→12"
+   ],
+   "newItems": {
+    "breaks #pnl > div.pnl-sec.wish > div.pnl-lab": {
+     "n": 110,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "breaks #pnl > div.pnl-sec.duel > div.pnl-lab": {
+     "n": 110,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "breaks #pnl > div.pnl-sec.dawn > div.pnl-lab": {
+     "n": 49,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "spill div.pnl-grid > div.pnl-cell.me > div.pnl-head > span.pnl-cnt": {
+     "n": 48,
+     "ex": [
+      "hot|shrine|n1@V1",
+      "hot|shrine|n1@V2",
+      "hot|shrine|n1@V3",
+      "hot|shrine|n1@V4"
+     ]
+    },
+    "spill div.pnl-grid > div.pnl-cell.s1 > div.pnl-head > span.pnl-cnt": {
+     "n": 24,
+     "ex": [
+      "hot|shrine|n1@V1",
+      "hot|shrine|n1@V4",
+      "hot|shrine|n2@V1",
+      "hot|shrine|n2@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.me > div.pnl-head > span.pnl-cnt": {
+     "n": 134,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-grid > div.pnl-cell.me > div.pnl-row.pnl-none": {
+     "n": 160,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s1 > div.pnl-head > span.pnl-cnt": {
+     "n": 170,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s1 > div.pnl-row.pnl-fee > span.pnl-note": {
+     "n": 35,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s2 > div.pnl-head > span.pnl-cnt": {
+     "n": 170,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s2 > div.pnl-row.pnl-fee > span.pnl-note": {
+     "n": 70,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V2",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s3 > div.pnl-head > span.pnl-cnt": {
+     "n": 34,
+     "ex": [
+      "solo|shrine|n1@V5",
+      "solo|shrine|n2@V5",
+      "solo|shrine|n3@V5",
+      "solo|shrine|n4@V5"
+     ]
+    },
+    "contrast div.pnl-body > div.pnl-row.me > span.pnl-what > span.pnl-tag.miss": {
+     "n": 94,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast div.pnl-row.pnl-fight > span.pnl-who > span.pnl-l > span.pnl-name.lose": {
+     "n": 186,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast div.pnl-body > div.pnl-row.pnl-fight > span.pnl-price > b.pnl-chip.down": {
+     "n": 105,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-sec.duel > div.pnl-body > div.pnl-sub": {
+     "n": 704,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast div.pnl-sec.duel > div.pnl-body > div.pnl-row > span.pnl-what.pnl-note": {
+     "n": 20,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast div.pnl-body > div.pnl-row > span.pnl-who > span.pnl-note": {
+     "n": 44,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast div.pnl-body > div.pnl-row.pnl-life > span.pnl-price > b.pnl-chip.down": {
+     "n": 30,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n1@V2",
+      "solo|night-end|n1@V3",
+      "solo|night-end|n1@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-title > span.pnl-pass": {
+     "n": 140,
+     "ex": [
+      "solo|shrine|n2@V1",
+      "solo|shrine|n2@V2",
+      "solo|shrine|n2@V3",
+      "solo|shrine|n2@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-title > span.pnl-pass > span.pnl-item.sys-zuling": {
+     "n": 90,
+     "ex": [
+      "solo|shrine|n2@V1",
+      "solo|shrine|n2@V2",
+      "solo|shrine|n2@V3",
+      "solo|shrine|n2@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-grid > div.pnl-cell.s1 > div.pnl-row.pnl-none": {
+     "n": 80,
+     "ex": [
+      "solo|shrine|n2@V1",
+      "solo|shrine|n2@V2",
+      "solo|shrine|n2@V3",
+      "solo|shrine|n2@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-grid > div.pnl-cell.s2 > div.pnl-row.pnl-none": {
+     "n": 80,
+     "ex": [
+      "solo|shrine|n2@V1",
+      "solo|shrine|n2@V2",
+      "solo|shrine|n2@V3",
+      "solo|shrine|n2@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-title > span.pnl-pass > span.pnl-item.sys-xianghuo": {
+     "n": 70,
+     "ex": [
+      "solo|shrine|n5@V1",
+      "solo|shrine|n5@V2",
+      "solo|shrine|n5@V3",
+      "solo|shrine|n5@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s1 > div.pnl-row > span.pnl-item.sys-zuling": {
+     "n": 35,
+     "ex": [
+      "solo|shrine|n5@V1",
+      "solo|shrine|n5@V2",
+      "solo|shrine|n5@V3",
+      "solo|shrine|n5@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s2 > div.pnl-row > span.pnl-item.sys-zuling": {
+     "n": 20,
+     "ex": [
+      "solo|shrine|n5@V1",
+      "solo|shrine|n5@V2",
+      "solo|shrine|n5@V3",
+      "solo|shrine|n5@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s3 > div.pnl-row.pnl-fee > span.pnl-note": {
+     "n": 7,
+     "ex": [
+      "solo|shrine|n5@V2",
+      "solo|shrine|n8@V2",
+      "hot|shrine|n1@V2",
+      "hot|shrine|n10@V2"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s1 > div.pnl-how > span.pnl-note": {
+     "n": 5,
+     "ex": [
+      "solo|shrine|n8@V1",
+      "solo|shrine|n8@V2",
+      "solo|shrine|n8@V3",
+      "solo|shrine|n8@V4"
+     ]
+    },
+    "contrast div.pnl-grid > div.pnl-cell.s2 > div.pnl-how > span.pnl-note": {
+     "n": 5,
+     "ex": [
+      "hot|shrine|n1@V1",
+      "hot|shrine|n1@V2",
+      "hot|shrine|n1@V3",
+      "hot|shrine|n1@V4"
+     ]
+    },
+    "contrast div.pnl-body > div.pnl-row > span.pnl-what > span.pnl-tag.miss": {
+     "n": 25,
+     "ex": [
+      "hot|night-end|n1@V1",
+      "hot|night-end|n1@V2",
+      "hot|night-end|n1@V3",
+      "hot|night-end|n1@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-title > span.pnl-pass > span.pnl-item.sys-curse": {
+     "n": 14,
+     "ex": [
+      "hot|shrine|n3@V1",
+      "hot|shrine|n3@V3",
+      "hot|shrine|n3@V5",
+      "hot|shrine|n7@V5"
+     ]
+    },
+    "contrast div.pnl-sec.duel > div.pnl-body > div.pnl-row.me > span.pnl-what.pnl-note": {
+     "n": 5,
+     "ex": [
+      "hot|night-end|n5@V1",
+      "hot|night-end|n5@V2",
+      "hot|night-end|n5@V3",
+      "hot|night-end|n5@V4"
+     ]
+    },
+    "contrast #pnl > div.pnl-title > span.pnl-pass > span.pnl-item.sys-yinqi": {
+     "n": 1,
+     "ex": [
+      "nw1|shrine|n8@V3"
+     ]
+    },
+    "contrast #pwch-B > i.pwfac": {
+     "n": 1,
+     "ex": [
+      "nw2|duel@V3"
+     ]
+    },
+    "target #railW > div.railTabs > button.sys-xianghuo": {
+     "n": 6,
+     "ex": [
+      "solo|shrine|n1@V1",
+      "solo|shrine|n1@V3",
+      "solo|shrine|n1@V4",
+      "hot|shrine|n9@V1"
+     ]
+    },
+    "target #seat2 > span.roleInfoBtn": {
+     "n": 22,
+     "ex": [
+      "solo|night-end|n1@V1",
+      "solo|night-end|n2@V1",
+      "solo|night-end|n4@V1",
+      "solo|night-end|n5@V1"
+     ]
+    },
+    "target #railW > div.railTabs > button.sys-yinqi": {
+     "n": 6,
+     "ex": [
+      "solo|shrine|n8@V1",
+      "solo|shrine|n8@V3",
+      "solo|shrine|n8@V4",
+      "solo|shrine|n9@V1"
+     ]
+    },
+    "target #railW > div.railTabs > button.sys-curse": {
+     "n": 15,
+     "ex": [
+      "hot|shrine|n1@V1",
+      "hot|shrine|n1@V3",
+      "hot|shrine|n1@V4",
+      "nw1|shrine|n1@V1"
+     ]
+    },
+    "target #railW > div.railTabs > button.sys-zuling": {
+     "n": 9,
+     "ex": [
+      "hot|shrine|n2@V1",
+      "hot|shrine|n2@V3",
+      "hot|shrine|n2@V4",
+      "hot|shrine|n4@V1"
+     ]
+    }
+   },
+   "cells": {
+    "base": 890,
+    "head": 906
+   }
+  }
+ }
+}
