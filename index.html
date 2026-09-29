@@ -752,8 +752,8 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl.dense .pnl-title{margin-bottom:0}
 #pnl.dense .pnl-sec{padding:0;gap:4px}
 #pnl.dense .pnl-lab{padding:1px 0}
-#pnl.dense .pnl-sec .pnl-row{line-height:16px;margin:0}
-#pnl.dense .pnl-sec .pnl-who{line-height:1.15}
+#pnl.dense .pnl-sec .pnl-row{line-height:18px;margin:0}
+#pnl.dense.fight1 .pnl-sec .pnl-row.pnl-fight{grid-template-columns:minmax(0,1fr) 40px auto} /* 對決列勝負雙方擠回一行 */
 #pnl.dense .pnl-sub{line-height:12px;padding-bottom:0}
 .revealRibbon{position:absolute;left:50%;top:8px;z-index:30;transform:translateX(-50%);width:min(430px,54vw);min-height:132px;overflow:visible;padding:10px 12px;color:var(--ink);text-align:center;font-size:11px;line-height:1.35;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42);pointer-events:none}
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
@@ -7164,8 +7164,10 @@ if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener
 function pnlFitWar(){
   if(typeof document==="undefined"||!document.querySelector) return;
   const el=document.querySelector("#pnl:not(.resultStrip)"); if(!el||!el.classList) return;
-  el.classList.remove("dense");
+  el.classList.remove("dense","fight1");
   if(el.scrollHeight>el.clientHeight+1) el.classList.add("dense");
+  /* 還放不下：對決列勝負雙方擠回一行（窄面板反而讓右欄換行變高的話就不用） */
+  if(el.scrollHeight>el.clientHeight+1){ const h0=el.scrollHeight; el.classList.add("fight1"); if(el.scrollHeight>=h0) el.classList.remove("fight1"); }
 }
 /** 戰況 Y（凍結 #6）：心願／對決／天明三段且段標題上色；「你」相關列金底。nightly 是 judgeWish／
  *  settleTithe／resolveBattles 等既有結算各自 push 的固定格式文字 log，這裡只依格式拆回結構化資料
