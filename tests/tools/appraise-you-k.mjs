@@ -9,7 +9,7 @@
 //   另驗：照妖鏡半徑沒有被擠小（等於題字欄 CSS 基準寬度時的鏡子半徑；#11(g′)(3)③「任何情況鏡子半徑與現行相同」）。
 // ★重算不呼叫產品的 apprYouLines★：本檔自己深拷貝玩家、自己把拍品放進拷貝的袋子，直接叫遊戲規則函式
 // （activeChains／pwResLv／facCount／BEAT_FAC／FAC／CHAINS／POOL／S.marks），句子用本檔自己讀的簽收檔樣板代入。
-// 對局驅動：人類玩家每夜出價期對一件拍品下保守標上限（優先能補齊連鎖的、其次同系件數多的）——讓袋子裡真的有東西，
+// 對局驅動：人類玩家每夜出價期對一件拍品下保守標上限（優先能補齊連鎖的、其次連鎖材料、再其次同系件數多的）——讓袋子裡真的有東西，
 // 共鳴與連鎖才有機會成立；出價是玩家操作（寫 myBids，同出價面板），不改任何賽局規則。
 // 用法：node tests/tools/appraise-you-k.mjs [--out <json>] [--port N] [--seeds 1-20] [--configs V1:solo,V5:solo,V1:hot]
 import fs from 'node:fs';
@@ -101,13 +101,13 @@ const MEASURE = async ([TWIN, TPL]) => {
   }
   return rows;
 };
-/** 出價：補齊連鎖的優先，其次同系件數最多的非詛咒件；下保守標上限（同出價面板能填的最大值）。 */
+/** 出價：補齊連鎖的優先，其次連鎖材料，再其次同系件數最多的非詛咒件；下保守標上限（同出價面板能填的最大值）。 */
 const BID = () => {
   const me = S.players[ACTIVE]; if (!me || typeof myBids === 'undefined' || !myBids.length) return null;
   let best = -1, sc = -1;
   S.market.forEach((it, i) => {
     if (it.curse) return;
-    const s = (chainsCompletedBy(me, it).length ? 100 : 0) + facCount({ ...me, bag: [...me.bag, it] }, it.f) * 10 + (Object.values(CHAINS).some((c) => c.requirements.includes(it.ab)) ? 3 : 0);
+    const s = (chainsCompletedBy(me, it).length ? 100 : 0) + (Object.values(CHAINS).some((c) => c.requirements.includes(it.ab)) ? 30 : 0) + facCount({ ...me, bag: [...me.bag, it] }, it.f) * 10;
     if (s > sc) { sc = s; best = i; }
   });
   if (best < 0) return null;
