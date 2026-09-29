@@ -2,20 +2,25 @@
 // #1（修訂）／#2／#3／#8（鑑賞態 draw）／#11(a)–(e) 逐格判定。任何欄位量不到（null／缺）一律判紅。
 // 用法：node tests/tools/appraise-c-judge.mjs <raw.json> [--mark <mark-eq raw.json>] [--out <summary.json>]
 import fs from 'node:fs';
+import { png, bandStats, MOCK_B_WEST } from './appraise-c-lib.mjs';
 
 const RAW = process.argv[2];
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const { cases, notes, root, tag } = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const TAU = Math.PI * 2;
-const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [] };
+const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [], c11f: [] };
 const cnt = Object.fromEntries(Object.keys(fails).map((k) => [k, 0]));
-const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
+const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], bandMean: [], bandRatio: [], dimEx: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
 const ov = (a, b) => (!a || !b) ? 0 : Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
 const inSafe = (r, s, W, H) => !!(r && s) && r.left >= s.left - 0.5 && r.top >= s.top - 0.5 && r.right <= W - s.right + 0.5 && r.bottom <= H - s.bottom + 0.5;
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const angDiff = (a, b) => { let d = (b - a) % TAU; if (d < 0) d += TAU; return d; };
 const BURN_END_MS = 800; // 只用來挑「燒符中」那幾幀量火光；判定本身讀每幀的符紙像素
 
+/* #11(f) 示意基準：b-west.png 同一環帶（示意鏡面 0.73R 到外圈 R，幾何見 MOCK_B_WEST） */
+const MOCK_FILE = arg('--mock', new URL('../../docs/experiments/2026-09-28-appraise-c/mirror/b-west.png', import.meta.url));
+const MOCK = (() => { const M = MOCK_B_WEST, img = png(fs.readFileSync(MOCK_FILE)); const b = bandStats(img, M.cx, M.cy, M.R * M.face, M.R); return { mean: b.mean, peaks: b.peaks, median: b.median }; })();
+let refCell = null;
 for (const row of cases) {
   if (row.notready) for (const k of Object.keys(fails)) fails[k].push(`${row.vp}|${row.mode} 有階段沒量到（見 notes）`);
   for (const p of row.picks || []) {
@@ -45,8 +50,11 @@ for (const row of cases) {
           const pbs = p.bboxScreen;
           if (!pbs || Math.abs(pbs.left - bb.left) > 0.01 || Math.abs(pbs.bottom - bb.bottom) > 0.01) f.push('(a) 產品 bboxScreen 與判定器自算的框不一致');
         }
-        const dr = p.dim && p.dim.ref && p.dim.after != null ? p.dim.after / p.dim.ref : null;
-        if (dr == null) f.push('(b) 暗糊量不到'); else { stats.dim.push(dr); if (!(dr <= 0.70)) f.push(`(b) 暗糊比 ${dr.toFixed(3)} > 0.70`); }
+        /* (b)（09-29 修訂）：再排除照妖鏡外圈（含光暈）外接圓；有鏡子就一定用修訂量法（dimEx），沒有鏡子的舊版才退回原量法 */
+        const D = M ? p.dimEx : p.dim;
+        const dr = D && D.ref && D.after != null ? D.after / D.ref : null;
+        if (M && !p.dimEx) f.push('(b) 修訂量法（排除鏡子外接圓）量不到');
+        else if (dr == null) f.push('(b) 暗糊量不到'); else { stats.dim.push(dr); if (!(dr <= 0.70)) f.push(`(b) 暗糊比 ${dr.toFixed(3)} > 0.70`); }
         // (c)：spin[0..1] 是穩定後第 1 秒（p0→spin[1] 共 1000ms 遊戲時間）
         if (!p.pose0 || !p.spin || p.spin.length < 4 || !p.pose0.me) f.push('(c) 自轉／浮動量不到');
         else {
@@ -191,6 +199,21 @@ for (const row of cases) {
       }
       if (f.length) fails.c11b.push(`${key} ${f.join('；')}`);
     }
+    // ── #11(f) 鏡子亮度對齊示意（09-29 新增）──
+    {
+      const f = [];
+      if (!p.band || p.band.mean == null || p.nonFocus == null) f.push('鏡緣環帶量不到');
+      else {
+        const ratio = p.band.mean / p.nonFocus; stats.bandMean.push(p.band.mean); stats.bandRatio.push(ratio);
+        if (!(ratio >= 2)) f.push(`鏡緣環帶平均亮度 ${p.band.mean.toFixed(1)} < 焦點以外畫面 ${p.nonFocus.toFixed(1)} 的 2 倍（${ratio.toFixed(2)}）`);
+        if (p.vp === 'V1' && p.mode === 'solo' && p.phase === 'bid' && p.rail === 'railW' && p.name === '虎爺印') {
+          refCell = { key, mean: p.band.mean, peaks: p.band.peaks, median: p.band.median };
+          if (!(p.band.mean >= 0.85 * MOCK.mean)) f.push(`環帶平均亮度 ${p.band.mean.toFixed(1)} < 示意 ${MOCK.mean.toFixed(1)} 的 85%（${(0.85 * MOCK.mean).toFixed(1)}）`);
+          if (!(p.band.peaks >= 8)) f.push(`八卦紋峰群 ${p.band.peaks} < 8`);
+        }
+      }
+      if (f.length) fails.c11f.push(`${key} ${f.join('；')}`);
+    }
     // ── #11(c) 題字 ──
     {
       const f = [...panelFails];
@@ -221,9 +244,12 @@ const summary = {
   verdict: Object.fromEntries(Object.keys(fails).map((k) => [k, { pass: fails[k].length === 0 && cnt[k] > 0 && !cases.some((c) => c.notready), fail: fails[k].length, of: cnt[k] }])),
   stats: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, q(v)])),
   markEq,
+  c11f: { mock: MOCK, refCell },
   fails,
 };
 const out = arg('--out');
 if (out) fs.writeFileSync(out, JSON.stringify(summary, null, 1));
-console.log(JSON.stringify({ picks: summary.picks, verdict: summary.verdict, stats: summary.stats, markEq: markEq && { total: markEq.total, equal: markEq.equal }, notes }, null, 1));
+if (!refCell) fails.c11f.push('V1|solo|bid|railW 虎爺印 那一格量不到（#11(f) 對示意判紅）');
+summary.verdict.c11f = { pass: fails.c11f.length === 0 && cnt.c11f > 0, fail: fails.c11f.length, of: cnt.c11f };
+console.log(JSON.stringify({ picks: summary.picks, c11f: summary.c11f, verdict: summary.verdict, stats: summary.stats, markEq: markEq && { total: markEq.total, equal: markEq.equal }, notes }, null, 1));
 for (const [k, v] of Object.entries(fails)) if (v.length) console.log(`\n[${k}] ${v.length} 格不過，前 6：\n  ` + v.slice(0, 6).join('\n  '));

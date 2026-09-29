@@ -16,7 +16,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, paperCover, findRing, bandDiff, pauseSoon, waitSettled } from './appraise-c-lib.mjs';
+import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, meanLumEx, bandStats, paperCover, findRing, bandDiff, pauseSoon, waitSettled } from './appraise-c-lib.mjs';
 
 const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -104,6 +104,15 @@ async function fullRun(page, vp, pick, pr) {
   const mc = M ? { x: M.cx, y: M.cy } : (bb ? { x: (bb.left + bb.right) / 2, y: (bb.top + bb.bottom) / 2 } : null);
   pr.ring = tok && mc ? findRing(img1300, mc.x, mc.y, tok.rgb, 10, Math.max(W, H) / 2) : null;
   pr.ringCenter = mc;
+  /* #1(b)（09-29 修訂）：量測區再排除照妖鏡外圈（含鏡緣光暈）的外接圓。光暈半徑取產品回報的 mirror.halo（外半徑倍數）；
+     舊版沒回報：舊 shader 的外圈光暈 0.08·exp(-16(r−0.99)) 在 1.18R 外 < 1/255，取 1.2。
+     #11(f)：鏡緣環帶＝內圈（face）到外圈（1.0）之間；另量焦點法寶框以外整個畫面的平均亮度。 */
+  if (M) {
+    const Rm = M.r * M.scale, haloR = (M.halo || 1.2) * Rm, full = { left: 0, top: 0, right: W, bottom: H }, circ = [{ cx: M.cx, cy: M.cy, r: haloR }];
+    pr.dimEx = { ref: meanLumEx(refShot, full, exclude, circ), after: meanLumEx(img1300, full, exclude, circ), haloR, haloFromProduct: M.halo != null };
+    pr.band = bandStats(img1300, M.cx, M.cy, Rm * M.face, Rm);
+    pr.nonFocus = meanLum(img1300, full, bb ? [bb] : []);
+  }
   // 八卦環：1 秒後同一圈帶的像素差＋產品回報的角度差
   const bag0 = M ? M.bagua : null;
   await page.clock.runFor(1000);

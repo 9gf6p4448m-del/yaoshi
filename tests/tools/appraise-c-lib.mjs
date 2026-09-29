@@ -339,3 +339,32 @@ export function bandDiff(a, b, cx, cy, r0, r1) {
   }
   return n ? s / n : null;
 }
+/** #11(f) 鏡緣環帶（半徑 r0..r1 之間）：平均亮度＋沿圓周 360 點的亮度剖面（每 1° 取 r0..r1 每 1px 的平均），
+ *  峰群＝剖面上連續高於「剖面中位數 × k」的角度段（首尾相接算同一段）。亮度＝(R+G+B)/3，同 meanLum。 */
+export function bandStats(img, cx, cy, r0, r1, k = 1.3) {
+  let s = 0, n = 0; const prof = [];
+  for (let d = 0; d < 360; d++) {
+    const t = (d / 180) * Math.PI; let ps = 0, pn = 0;
+    for (let R = Math.ceil(r0); R <= Math.floor(r1); R++) { const p = px(img, cx + Math.cos(t) * R, cy + Math.sin(t) * R); if (!p) continue; const v = (p[0] + p[1] + p[2]) / 3; ps += v; pn++; s += v; n++; }
+    prof.push(pn ? ps / pn : null);
+  }
+  const v = prof.filter((x) => x != null).sort((a, b) => a - b), med = v.length ? v[v.length >> 1] : null;
+  const hi = prof.map((x) => x != null && med != null && x > med * k);
+  let groups = 0; for (let d = 0; d < 360; d++) if (hi[d] && !hi[(d + 359) % 360]) groups++;
+  if (groups === 0 && hi.every(Boolean)) groups = 1;
+  return { mean: n ? s / n : null, n, median: med, peaks: groups, profile: prof.map((x) => x == null ? null : Math.round(x)) };
+}
+/** 平均亮度，扣掉 exclude 矩形與 circles（{cx,cy,r}）內的像素。 */
+export function meanLumEx(img, rect, exclude = [], circles = []) {
+  const x0 = Math.max(0, Math.floor(rect.left)), y0 = Math.max(0, Math.floor(rect.top)), x1 = Math.min(img.width, Math.ceil(rect.right)), y1 = Math.min(img.height, Math.ceil(rect.bottom));
+  let s = 0, n = 0;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    if (exclude.some((e) => x >= e.left && x < e.right && y >= e.top && y < e.bottom)) continue;
+    if (circles.some((c) => (x - c.cx) * (x - c.cx) + (y - c.cy) * (y - c.cy) <= c.r * c.r)) continue;
+    const i = (y * img.width + x) * 4; s += (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3; n++;
+  }
+  return n ? s / n : null;
+}
+/** 示意 b-west.png（phase2-mock/appraise，V1 852×393、西籤虎爺印）的鏡子幾何：像素擬合（連珠紋那一圈 0.955R 半徑
+ *  132.5px、中心 527,189 ⇒ R＝138.74；鏡面 0.73R）。擬合疊圖見 docs/experiments/2026-09-28-appraise-c/mirror/mockfit.png。 */
+export const MOCK_B_WEST = { file: 'b-west.png', cx: 527, cy: 189, R: 138.74, face: 0.73 };

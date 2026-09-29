@@ -55,14 +55,20 @@ const DRIVE_STEP = `(() => {
   }
   return 1;
 })()`;
-const scr = (page) => page.evaluate(() => {
+/* 畫面分類（頁內函式，字串形式：drive 把「分類＋按鈕」放在同一次 evaluate 裡）。
+   09-29 修：①交棒遮罩可見時一律 busy——換夜後主鈕文字還留著「進入下一夜」而且沒 disabled，只是被遮罩蓋住；
+   ②分類與按鈕分兩次 evaluate 時有競態：分類完那一瞬主鈕剛好變成目標畫面，下一步就把它按掉，
+   直接跳過真正的夜末、量到下一夜的交棒畫面（熱座 hot|V1 夜0 實測：round 已是 2、handoff 可見）。 */
+const SCR_FN = `() => {
   const $ = (id) => document.getElementById(id);
+  const ho = $('handoff'); if (ho && getComputedStyle(ho).display !== 'none') return 'busy';
   const b = $('mainbtn'), t = b ? b.textContent : '', dis = b ? b.disabled : true;
   if (/請神/.test(t)) return dis ? 'shrine-run' : (document.querySelector('.resultStrip .big') && /成交總覽/.test(document.querySelector('.resultStrip .big').textContent) ? 'reveal-result' : 'shrine');
   if (/^開戰/.test(t) && !dis) return 'reveal-result';
   if (/進入下一夜|看最終結果/.test(t) && !dis) return 'night-end';
   return 'busy';
-});
+}`;
+const scr = (page) => page.evaluate(`(${SCR_FN})()`);
 /* 卡住時留下畫面狀態（主鈕文字／可按、交棒遮罩、彈窗）——「沒到 reveal-result」要能分辨是局提前結束還是治具不會按 */
 const STATE = `(() => { const $ = (id) => document.getElementById(id), vis = (e) => !!e && getComputedStyle(e).display !== 'none';
   const b = $('mainbtn'); return { main: b ? b.textContent.trim() : null, mainDis: b ? b.disabled : null, handoff: vis($('handoff')), hoBtn: $('hoBtn') ? $('hoBtn').textContent : null,
@@ -71,9 +77,8 @@ async function drive(page, want, cap = 20000) {
   let idle = 0;
   for (let i = 0; i < cap; i++) {
     await page.waitForTimeout(8);
-    const cls = await scr(page);
-    if (cls === want) return true;
-    const r = await page.evaluate(DRIVE_STEP);
+    const r = await page.evaluate(`(${SCR_FN})() === ${JSON.stringify(want)} ? 'hit' : ${DRIVE_STEP}`);
+    if (r === 'hit') return true;
     if (r === 2) { page.__stuck = { why: '看最終結果（局結束）', state: await page.evaluate(STATE) }; return false; }
     idle = r === 1 ? idle + 1 : 0;
     if (idle >= 1500) { page.__stuck = { why: '連續 1500 步沒有可按的東西', state: await page.evaluate(STATE) }; return false; }
