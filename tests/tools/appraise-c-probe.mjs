@@ -16,7 +16,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, meanLumEx, bandStats, paperCover, findRing, bandDiff, pauseSoon, waitSettled } from './appraise-c-lib.mjs';
+import { VP, DRIVE_STEP, scr, driveToFirst, openGame, waitTrayReady, PAGE_LIB, png, meanLum, meanLumEx, bandStats, paperCover, findRing, bandDiff, pauseSoon, waitSettled, rimPeaks, sheenStats } from './appraise-c-lib.mjs';
 
 const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -112,6 +112,11 @@ async function fullRun(page, vp, pick, pr) {
     pr.dimEx = { ref: meanLumEx(refShot, full, exclude, circ), after: meanLumEx(img1300, full, exclude, circ), haloR, haloFromProduct: M.halo != null };
     pr.band = bandStats(img1300, M.cx, M.cy, Rm * M.face, Rm);
     pr.nonFocus = meanLum(img1300, full, bb ? [bb] : []);
+    /* #11(h)（09-30 加嚴）：鏡框外緣環帶＝八卦環外緣（產品回報 baguaOut；舊版沒回報就從內圈 face 起算，範圍只會更寬、對舊版更寬鬆）
+       到外圈；鏡面＝內圈半徑 −4px（扣內圈金線）、扣焦點法寶投影框。量法同 mirror/c11h-finding.md。 */
+    const rimR0 = (M.baguaOut || M.face) * Rm;
+    pr.rim = { ...rimPeaks(img1300, M.cx, M.cy, rimR0, Rm), r0: rimR0, r1: Rm, fromProduct: M.baguaOut != null };
+    pr.sheen = sheenStats(img1300, M.cx, M.cy, M.face * Rm - 4, bb ? [bb] : []);
   }
   // 八卦環：1 秒後同一圈帶的像素差＋產品回報的角度差
   const bag0 = M ? M.bagua : null;

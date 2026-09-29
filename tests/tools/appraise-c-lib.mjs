@@ -367,7 +367,17 @@ export function meanLumEx(img, rect, exclude = [], circles = []) {
 }
 /** 示意 b-west.png（phase2-mock/appraise，V1 852×393、西籤虎爺印）的鏡子幾何：像素擬合（連珠紋那一圈 0.955R 半徑
  *  132.5px、中心 527,189 ⇒ R＝138.74；鏡面 0.73R）。擬合疊圖見 docs/experiments/2026-09-28-appraise-c/mirror/mockfit.png。 */
-export const MOCK_B_WEST = { file: 'b-west.png', cx: 527, cy: 189, R: 138.74, face: 0.73 };
+export const MOCK_B_WEST = { file: 'b-west.png', cx: 527, cy: 189, R: 138.74, face: 0.73,
+  /* #11(h)（09-30 加嚴）用：示意八卦環外緣＝0.9R（mock-b.js baguaTex r1＝R·0.9）；鏡框外緣環帶＝0.9R..R。
+     焦點法寶投影框＝示意自檢量到的 bb（phase2-mock/appraise/result-b.json west.bb）。 */
+  baguaOut: 0.9, bb: { left: 381, top: 121, right: 621, bottom: 277 } };
+/** #11(h) 示意基準：連珠環帶（rimPeaks 在 0.9R..R 挑中的那一圈）中位亮度、斜向反光帶最高格絕對亮度。 */
+export function mockSheenRim(img) {
+  const M = MOCK_B_WEST, R = M.R;
+  const rim = rimPeaks(img, M.cx, M.cy, R * M.baguaOut, R);
+  const sheen = sheenStats(img, M.cx, M.cy, R * M.face - 4, [M.bb]);
+  return { rim, sheen };
+}
 /** #11(h) 鏡面斜向反光：鏡面（半徑 rFace 內、扣掉 exclude 矩形）像素，沿方向 θ（0..175°，每 5°）的投影分 3px 一格求平均亮度，
  *  取每個 θ 的最高格／鏡面全體中位數。斜向＝θ 離 0°、90°、180° 都超過 15°。回 {median, best:{deg, ratio}, bestOblique:{deg, ratio}}。 */
 export function sheenStats(img, cx, cy, rFace, exclude = []) {
@@ -385,7 +395,7 @@ export function sheenStats(img, cx, cy, rFace, exclude = []) {
     const t = (deg * Math.PI) / 180, nx = Math.cos(t), ny = Math.sin(t), bins = new Map();
     for (const [dx, dy, v] of pts) { const k = Math.floor((dx * nx + dy * ny) / 3); const b = bins.get(k) || [0, 0]; b[0] += v; b[1]++; bins.set(k, b); }
     let peak = 0; for (const [, b] of bins) if (b[1] >= 12) peak = Math.max(peak, b[0] / b[1]);
-    const ratio = med > 0 ? peak / med : null, rec = { deg, ratio };
+    const ratio = med > 0 ? peak / med : null, rec = { deg, ratio, peak };
     if (!best || ratio > best.ratio) best = rec;
     const obl = Math.min(deg % 90, 90 - (deg % 90)) > 15;
     if (obl && (!bestO || ratio > bestO.ratio)) bestO = rec;

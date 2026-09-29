@@ -2,15 +2,15 @@
 // #1（修訂）／#2／#3／#8（鑑賞態 draw）／#11(a)–(e) 逐格判定。任何欄位量不到（null／缺）一律判紅。
 // 用法：node tests/tools/appraise-c-judge.mjs <raw.json> [--mark <mark-eq raw.json>] [--out <summary.json>]
 import fs from 'node:fs';
-import { png, bandStats, MOCK_B_WEST } from './appraise-c-lib.mjs';
+import { png, bandStats, MOCK_B_WEST, mockSheenRim } from './appraise-c-lib.mjs';
 
 const RAW = process.argv[2];
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const { cases, notes, root, tag } = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const TAU = Math.PI * 2;
-const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [], c11f: [] };
+const fails = { c1: [], c1skip: [], c2: [], c3: [], c8: [], c11a: [], c11b: [], c11c: [], c11d: [], c11e: [], c11f: [], c11h: [] };
 const cnt = Object.fromEntries(Object.keys(fails).map((k) => [k, 0]));
-const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], bandMean: [], bandRatio: [], dimEx: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
+const stats = { hFrac: [], hFracSkip: [], hFracSpinMin: [], dim: [], ringDE: [], ringFrac: [], bandMean: [], bandRatio: [], rimPeaks: [], rimMedian: [], sheenRatio: [], sheenPeak: [], dimEx: [], drawsTable: [], drawsAppr: [], drawsBurn: [], cornerMax: [], spinRate: [], fontMin: [] };
 const ov = (a, b) => (!a || !b) ? 0 : Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
 const inSafe = (r, s, W, H) => !!(r && s) && r.left >= s.left - 0.5 && r.top >= s.top - 0.5 && r.right <= W - s.right + 0.5 && r.bottom <= H - s.bottom + 0.5;
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -20,7 +20,9 @@ const BURN_END_MS = 800; // 只用來挑「燒符中」那幾幀量火光；判�
 /* #11(f) 示意基準：b-west.png 同一環帶（示意鏡面 0.73R 到外圈 R，幾何見 MOCK_B_WEST） */
 const MOCK_FILE = arg('--mock', new URL('../../docs/experiments/2026-09-28-appraise-c/mirror/b-west.png', import.meta.url));
 const MOCK = (() => { const M = MOCK_B_WEST, img = png(fs.readFileSync(MOCK_FILE)); const b = bandStats(img, M.cx, M.cy, M.R * M.face, M.R); return { mean: b.mean, peaks: b.peaks, median: b.median }; })();
-let refCell = null;
+/* #11(h) 示意基準（09-30 加嚴）：同一張 b-west.png——連珠環帶（0.9R..R 裡峰群最多那一圈）中位亮度、斜向反光帶最高格絕對亮度 */
+const MOCK_H = (() => { const img = png(fs.readFileSync(MOCK_FILE)), m = mockSheenRim(img); return { rimRadius: m.rim.radius, rimPeaks: m.rim.peaks, rimMedian: m.rim.median, sheenDeg: m.sheen.bestOblique && m.sheen.bestOblique.deg, sheenRatio: m.sheen.bestOblique && m.sheen.bestOblique.ratio, sheenPeak: m.sheen.bestOblique && m.sheen.bestOblique.peak, faceMedian: m.sheen.median }; })();
+let refCell = null, refCellH = null;
 for (const row of cases) {
   if (row.notready) for (const k of Object.keys(fails)) fails[k].push(`${row.vp}|${row.mode} 有階段沒量到（見 notes）`);
   for (const p of row.picks || []) {
@@ -214,6 +216,21 @@ for (const row of cases) {
       }
       if (f.length) fails.c11f.push(`${key} ${f.join('；')}`);
     }
+    // ── #11(h) 鏡框連珠與鏡面斜向反光（09-29 原條文＋09-30 加嚴）──
+    {
+      const f = [];
+      if (!p.rim || !p.rim.radius) f.push('鏡框外緣環帶量不到（或峰群 0）');
+      else { stats.rimPeaks.push(p.rim.peaks); stats.rimMedian.push(p.rim.median); if (!(p.rim.peaks >= 24)) f.push(`連珠峰群 ${p.rim.peaks} < 24（r=${p.rim.radius}）`); }
+      const so = p.sheen && p.sheen.bestOblique;
+      if (!so || so.ratio == null) f.push('鏡面斜向反光量不到');
+      else { stats.sheenRatio.push(so.ratio); stats.sheenPeak.push(so.peak); if (!(so.ratio >= 1.5)) f.push(`斜向反光比 ${so.ratio.toFixed(2)} < 1.5（${so.deg}°）`); }
+      if (p.vp === 'V1' && p.mode === 'solo' && p.phase === 'bid' && p.rail === 'railW' && p.name === '虎爺印') {
+        refCellH = { key, rimRadius: p.rim && p.rim.radius, rimPeaks: p.rim && p.rim.peaks, rimMedian: p.rim && p.rim.median, sheenDeg: so && so.deg, sheenRatio: so && so.ratio, sheenPeak: so && so.peak, faceMedian: p.sheen && p.sheen.median };
+        if (!(p.rim && p.rim.median >= 0.85 * MOCK_H.rimMedian)) f.push(`連珠環帶中位亮度 ${p.rim && p.rim.median && p.rim.median.toFixed(1)} < 示意 ${MOCK_H.rimMedian.toFixed(1)} 的 85%（${(0.85 * MOCK_H.rimMedian).toFixed(1)}）`);
+        if (!(so && so.peak >= 0.85 * MOCK_H.sheenPeak)) f.push(`斜向反光帶峰值 ${so && so.peak && so.peak.toFixed(1)} < 示意 ${MOCK_H.sheenPeak.toFixed(1)} 的 85%（${(0.85 * MOCK_H.sheenPeak).toFixed(1)}）`);
+      }
+      if (f.length) fails.c11h.push(`${key} ${f.join('；')}`);
+    }
     // ── #11(c) 題字 ──
     {
       const f = [...panelFails];
@@ -245,11 +262,13 @@ const summary = {
   stats: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, q(v)])),
   markEq,
   c11f: { mock: MOCK, refCell },
+  c11h: { mock: MOCK_H, refCell: refCellH },
   fails,
 };
+if (!refCell) fails.c11f.push('V1|solo|bid|railW 虎爺印 那一格量不到（#11(f) 對示意判紅）');
+if (!refCellH) fails.c11h.push('V1|solo|bid|railW 虎爺印 那一格量不到（#11(h) 對示意判紅）');
+for (const k of ['c11f', 'c11h']) summary.verdict[k] = { pass: fails[k].length === 0 && cnt[k] > 0 && !cases.some((c) => c.notready), fail: fails[k].length, of: cnt[k] };
 const out = arg('--out');
 if (out) fs.writeFileSync(out, JSON.stringify(summary, null, 1));
-if (!refCell) fails.c11f.push('V1|solo|bid|railW 虎爺印 那一格量不到（#11(f) 對示意判紅）');
-summary.verdict.c11f = { pass: fails.c11f.length === 0 && cnt.c11f > 0, fail: fails.c11f.length, of: cnt.c11f };
-console.log(JSON.stringify({ picks: summary.picks, c11f: summary.c11f, verdict: summary.verdict, stats: summary.stats, markEq: markEq && { total: markEq.total, equal: markEq.equal }, notes }, null, 1));
+console.log(JSON.stringify({ picks: summary.picks, c11f: summary.c11f, c11h: summary.c11h, verdict: summary.verdict, stats: summary.stats, markEq: markEq && { total: markEq.total, equal: markEq.equal }, notes }, null, 1));
 for (const [k, v] of Object.entries(fails)) if (v.length) console.log(`\n[${k}] ${v.length} 格不過，前 6：\n  ` + v.slice(0, 6).join('\n  '));
