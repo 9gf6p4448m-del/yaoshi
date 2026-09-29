@@ -1126,7 +1126,7 @@ export function createTableTray(scene, camera, opts = {}) {
         layer: TRAY.APPRAISE.LAYER, hideLayer: TRAY.APPRAISE.HIDE_LAYER,
         dim: U.uDim.value,
         paper: { alpha: U.uPaperA.value, burn: U.uBurn.value, cx: P.x, cy: P.y, w: P.z, h: P.w },
-        mirror: { alpha: U.uMirA.value, scale: U.uMirS.value, cx: M.x, cy: M.y, r: M.z, face: APPR_FX.FACE, line: [APPR_FX.LINE0, APPR_FX.LINE1], glow: apprGlowHex, bagua: U.uBag.value },
+        mirror: { alpha: U.uMirA.value, scale: U.uMirS.value, cx: M.x, cy: M.y, r: M.z, face: APPR_FX.FACE, line: [APPR_FX.LINE0, APPR_FX.LINE1], glow: apprGlowHex, bagua: U.uBag.value, halo: APPR_FX.HALO_R },
         flash: U.uFlash.value,
       };
     },

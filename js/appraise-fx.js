@@ -33,11 +33,13 @@ export const APPR_FX = {
   STABLE: 1060,      // 揭幕結束＝穩定鑑賞態（MIRROR0+MIRROR_MS）
   DIM_MS: 220,       // 背景壓暗淡入
   DIM: 0.97,         // 鏡外壓暗強度（凍結 #1(b) ≤70% 的量法排除焦點框與題字欄，鏡子本身算在「非焦點」裡）
-  FACE: 0.92,        // 鏡面（內圈）半徑／鏡子外半徑。凍結 #11(b) 的「鏡子內圈」就是這一圈。
-  BAGUA_OUT: 0.958,  // 八卦環外緣
-  LINE0: 0.972,      // 系色光線內緣
+  FACE: 0.90,        // 鏡面（內圈）半徑／鏡子外半徑。凍結 #11(b) 的「鏡子內圈」就是這一圈。09-29 由 0.92 放寬八卦環（#11(f)）：
+                     // 法寶大小跟內圈走，再小就壓到 #1(a) 框高 35%（寬體件實測 0.370，內圈 −2.2% ⇒ 約 0.362）
+  BAGUA_OUT: 0.962,  // 八卦環外緣
+  LINE0: 0.975,      // 系色光線內緣
   LINE1: 0.99,       // 系色光線外緣（外面接一圈柔光，不再是純色）
   BAGUA_SPIN: 0.14,  // 八卦環穩定後的慢轉（rad/s）
+  HALO_R: 1.35,      // 鏡緣光暈外半徑（倍數；超過這一圈光暈＝0）。凍結 #1(b) 修訂量測區排除到這一圈，產品在 fx().mirror.halo 回報
 };
 
 const TRI = [[1, 1, 1], [0, 0, 0], [0, 0, 1], [1, 1, 0], [0, 1, 0], [1, 0, 1], [1, 0, 0], [0, 1, 1]]; // 乾坤震巽坎離艮兌（1＝陽爻）
@@ -57,15 +59,20 @@ function canvasTex(w, h, draw) {
 function drawBody(x, S) {
   const c = S / 2, R = c, F = APPR_FX.FACE;
   x.clearRect(0, 0, S, S);
+  /* 09-29 使用者：鏡子要跟示意乙一樣亮（凍結 #11(f)）——外緣改用 mock-b.js 的亮青銅色標，並補上連珠紋 */
   let g = x.createRadialGradient(c, c, R * (F - 0.02), c, c, R);
-  g.addColorStop(0, '#18110a'); g.addColorStop(0.1, '#58441f'); g.addColorStop(0.35, '#31260f');
-  g.addColorStop(0.7, '#4a3a1b'); g.addColorStop(0.9, '#68532b'); g.addColorStop(1, '#110c05');
+  g.addColorStop(0, '#3a2c14'); g.addColorStop(0.2, '#b8944c'); g.addColorStop(0.45, '#8a6c32');
+  g.addColorStop(0.62, '#e0c27a'); g.addColorStop(0.85, '#c9a55a'); g.addColorStop(1, '#5b431c');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R - 1, 0, Math.PI * 2); x.fill();
   const r = lcg(11);
-  for (let k = 0; k < 160; k++) {
+  for (let k = 0; k < 90; k++) {
     const a = r() * Math.PI * 2, rr = R * (F + 0.02 + r() * (1 - F - 0.05));
-    x.fillStyle = `rgba(62,112,88,${0.08 + r() * 0.2})`; x.beginPath(); x.arc(c + Math.cos(a) * rr, c + Math.sin(a) * rr, 1.5 + r() * 7, 0, Math.PI * 2); x.fill();
+    x.fillStyle = `rgba(70,120,95,${0.06 + r() * 0.12})`; x.beginPath(); x.arc(c + Math.cos(a) * rr, c + Math.sin(a) * rr, 1 + r() * 3, 0, Math.PI * 2); x.fill();
   }
+  // 連珠紋：八卦環外緣與系色光線之間那一圈
+  const beadR = R * (APPR_FX.BAGUA_OUT + APPR_FX.LINE0) / 2, bead = Math.max(1.5, R * (APPR_FX.LINE0 - APPR_FX.BAGUA_OUT) * 0.42);
+  x.fillStyle = '#f2d78e';
+  for (let k = 0; k < 96; k++) { const a = (k / 96) * Math.PI * 2; x.beginPath(); x.arc(c + Math.cos(a) * beadR, c + Math.sin(a) * beadR, bead, 0, Math.PI * 2); x.fill(); }
     // 鏡面：深色拋光青銅（左上略亮），法寶就站在這一圈前面
   g = x.createRadialGradient(c * 0.82, c * 0.76, 0, c, c, R * F);
   g.addColorStop(0, '#15120b'); g.addColorStop(0.5, '#0a0805'); g.addColorStop(1, '#030202');
@@ -74,21 +81,22 @@ function drawBody(x, S) {
   g = x.createRadialGradient(c, c, R * F * 0.62, c, c, R * F);
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.55)');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.fill();
-  x.strokeStyle = '#a88a4c'; x.lineWidth = Math.max(2, S * 0.003); x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004); x.beginPath(); x.arc(c, c, R * F, 0, Math.PI * 2); x.stroke();
 }
 /* 八卦環（會慢轉）：只畫 FACE～BAGUA_OUT 這一圈，其餘透明。環很窄（鏡面要讓給法寶），只刻卦爻不寫卦名。 */
 function drawBagua(x, S) {
   const c = S / 2, R = c, r0 = R * APPR_FX.FACE, r1 = R * APPR_FX.BAGUA_OUT;
   x.clearRect(0, 0, S, S);
-  x.fillStyle = 'rgba(12,8,3,0.97)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
-  x.strokeStyle = '#8c7240'; x.lineWidth = Math.max(2, S * 0.003);
-  x.beginPath(); x.arc(c, c, r1 - x.lineWidth, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#9c8250';
+  x.fillStyle = 'rgba(24,16,7,0.97)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
+  x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004);
+  x.beginPath(); x.arc(c, c, r1 - x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
+  x.beginPath(); x.arc(c, c, r0 + x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
+  x.fillStyle = '#ffe39c';
   const mid = (r0 + r1) / 2, band = r1 - r0;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 - Math.PI / 2, t = TRI[TRI_ORDER[k]];
     x.save(); x.translate(c + Math.cos(a) * mid, c + Math.sin(a) * mid); x.rotate(a + Math.PI / 2);
-    const L = band * 1.5, h = band * 0.17, gap = band * 0.27;
+    const L = band * 1.9, h = band * 0.2, gap = band * 0.3;
     for (let y = 0; y < 3; y++) {
       const yy = (y - 1) * gap;
       if (t[y]) x.fillRect(-L / 2, yy - h / 2, L, h);
@@ -142,6 +150,7 @@ const float FACE = ${APPR_FX.FACE.toFixed(3)};
 const float BAG1 = ${APPR_FX.BAGUA_OUT.toFixed(3)};
 const float L0 = ${APPR_FX.LINE0.toFixed(3)};
 const float L1 = ${APPR_FX.LINE1.toFixed(3)};
+const float HALO = ${APPR_FX.HALO_R.toFixed(3)};
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
@@ -184,8 +193,9 @@ void main(){
       float a = body.a * (1.0 - smoothstep(1.0 - aa, 1.0, r));
       acc = over(vec4(col * a, a) * uMirA, acc);
     }
-    // 外圈柔光（加色）：系色，往外 0.35R 淡掉
-    float halo = exp(-max(r - L1, 0.0) * 16.0) * step(L1, r) * (0.06 + 0.02 * sin(uTime * 2.1));
+    // 鏡緣光（加色，示意乙的系色光環）：光線外側一圈系色柔光，到 HALO_R 歸零
+    float pulse = 0.85 + 0.15 * sin(uTime * 2.1);
+    float halo = (1.0 - smoothstep(L1, HALO, r)); halo = halo * halo * step(L1, r) * 0.55 * pulse;
     add += uGlow * halo * uMirA;
   }
   // ── 符紙 ──
