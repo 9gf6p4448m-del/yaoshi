@@ -209,8 +209,11 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d .resultStrip .bidfly{flex:0 1 auto;min-width:0;max-width:100%;margin-top:3px;gap:10px}   /* 每件一段、按內容寬排，一列放得下幾件就放幾件（窄條不長高，不碰側欄的窄籤） */
   /* 面板 Y（凍結 appraise-panels #7）：成交總覽沿用窄條寬度公式；戰況（非窄條）允許 #felt 溢出，
      跟舊版 #shz 請神結果同一條規則（見上方 #table.t3d #felt:has(.resultStrip)），這裡另外補戰況那支。 */
-  #table.t3d #pnl.resultStrip{display:block;width:calc(100vw - var(--safe-left) - var(--safe-right) - 16px);padding:5px 10px 7px;bottom:-4px}
+  #table.t3d #pnl.resultStrip{display:block;width:calc(100vw - var(--safe-left) - var(--safe-right) - 16px);padding:2px 8px;bottom:-4px}
   #table.t3d #felt:has(#pnl:not(.resultStrip)){overflow:visible}
+  /* 戰況面板的定位框是 #felt（它有 backdrop-filter）：寬不超過 #felt（V1 舊寬 400px 蓋到西座 ⓘ 的命中範圍、V4 蓋到東座卡），
+     高＝#felt 內（舊上限 70vh 在 V1–V4 會伸到底列後面，最後一列被底列蓋住又捲不到；V5 舊上限 320px 在 1280×720 也要捲）。 */
+  #table.t3d #pnl:not(.resultStrip){width:min(400px,calc(100% - 8px));max-height:calc(100% - 16px)}
   /* 卡片矮了 10px、寬了 24.7px ⇒ 字級要跟著收，否則第四行（部隊預覽）會被切掉（T3 的配套人眼：四樣都要完整可見）。
      `.uline` 與 `.ab` **維持同級**（請神 2.0 凍結檔 G11 明訂不得更小），兩個一起收。 */
   #table.t3d .rail .mcard .nm{font-size:11.5px}
@@ -588,7 +591,7 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    移植自使用者已裁定的示意稿 phase2-mock/panels-common.css＋panels-y.css（class 前綴 pmock→pnl，
    函式在 index.html 的 revealPanelHTML／nightendPanelHTML）。#pnl 同時可能帶 .resultStrip
    （成交總覽，沿用既有窄條定位）或不帶（戰況，浮動置中面板，見下方 #table.t3d 區塊）。 */
-#pnl{--pnl-up:#7bd88a;--pnl-down:#ff6b6b;--pnl-me:#e8c26a;--pnl-dim:rgba(236,226,206,.42);
+#pnl{--pnl-up:#7bd88a;--pnl-down:#ff8585;--pnl-me:#e8c26a;--pnl-dim:rgba(236,226,206,.76);
   --s0:#e8c26a;--s1:#6fa8dc;--s2:#d98c5f;--s3:#8fc07a;
   text-align:left;font-family:var(--font-body);color:var(--ink);animation:none}
 #pnl .pnl-name{font-family:var(--font-display);font-weight:700;white-space:nowrap}
@@ -606,13 +609,13 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl .pnl-chip.up{color:var(--pnl-up);background:rgba(96,176,96,.16);border:1px solid rgba(123,216,138,.45)}
 #pnl .pnl-chip.down{color:var(--pnl-down);background:rgba(224,64,64,.16);border:1px solid rgba(255,107,107,.45)}
 #pnl .pnl-dash{color:var(--pnl-dim);display:inline-block;min-width:30px;text-align:center}
-#pnl .pnl-item{font-family:var(--font-display);font-weight:700;white-space:nowrap;color:var(--sys,var(--ink));display:inline-flex;align-items:center;gap:3px;min-width:0}
+#pnl .pnl-item{font-family:var(--font-display);font-weight:700;white-space:nowrap;color:var(--ink);color:color-mix(in srgb,var(--sys,var(--ink)) 30%,var(--ink));display:inline-flex;align-items:center;gap:3px;min-width:0}
 #pnl .pnl-item .pnl-sw{width:8px;height:8px;border-radius:1px;background:var(--sys,var(--line-gold));flex:0 0 auto}
 #pnl .sys-zuling{--sys:var(--sys-zuling)} #pnl .sys-xianghuo{--sys:var(--sys-xianghuo)}
 #pnl .sys-yinqi{--sys:var(--sys-yinqi)} #pnl .sys-curse{--sys:var(--sys-curse)}
-#pnl .pnl-item.curse{color:#b58cf0}
-#pnl .pnl-skull{font-size:11px;color:#b58cf0}
-#pnl .pnl-poison{color:#b58cf0;font-weight:700;white-space:nowrap}
+#pnl .pnl-item.curse{color:#d9c2f7}
+#pnl .pnl-skull{font-size:11px;color:#c9a8f5}
+#pnl .pnl-poison{color:#c9a8f5;font-weight:700;white-space:nowrap}
 #pnl .pnl-note{color:var(--pnl-dim);font-size:11px;white-space:nowrap}
 #pnl .pnl-num{font-family:var(--font-display);font-size:14px}
 #pnl .pnl-num.up{color:var(--pnl-up)} #pnl .pnl-num.down{color:var(--pnl-down)}
@@ -622,39 +625,42 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl .pnl-wish{font-family:var(--font-display);margin-right:4px;white-space:nowrap}
 #pnl .pnl-vs{color:var(--gold);margin:0 5px;font-size:12px}
 #pnl .pnl-name.win{color:#fff;text-shadow:0 0 8px rgba(255,220,150,.45)}
-#pnl .pnl-name.lose{opacity:.4}
+#pnl .pnl-name.lose{color:var(--pnl-dim)}
 #pnl .pnl-mark{font-size:10px;color:var(--gold);margin-left:2px;border:1px solid rgba(201,168,98,.6);border-radius:2px;padding:0 2px;line-height:13px;display:inline-block;vertical-align:1px}
 #pnl .pnl-l .pnl-you{opacity:.8}
 #pnl .pnl-burn{font-size:11.5px;white-space:nowrap} #pnl .pnl-burn b{font-family:var(--font-display);color:var(--pnl-down)}
 /* 成交總覽：底部橫條改成依買家分欄 */
 #pnl.resultStrip{display:block}
-#pnl .pnl-title{display:flex;align-items:baseline;gap:14px;margin-bottom:2px;line-height:18px}
+#pnl .pnl-title{display:flex;align-items:baseline;gap:14px;margin-bottom:1px;line-height:16px}
 #pnl .pnl-title .big{font-size:15px;letter-spacing:.08em}
 #pnl .pnl-pass{font-size:11px;color:var(--pnl-dim);display:inline-flex;gap:4px;align-items:center}
-#pnl .pnl-pass .pnl-item{font-weight:400;opacity:.75}
-#pnl .pnl-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-#pnl .pnl-cell{padding:3px 7px 4px;border-radius:3px;min-width:0;background:rgba(255,255,255,.045);border-left:4px solid var(--sc,var(--line-gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#pnl .pnl-pass .pnl-item{font-weight:400}
+#pnl .pnl-grid{display:grid;grid-template-columns:repeat(4,minmax(max-content,1fr));gap:4px}
+#pnl .pnl-cell{padding:1px 5px;border-radius:3px;min-width:0;background:rgba(255,255,255,.045);border-left:4px solid var(--sc,var(--line-gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 #pnl .pnl-cell.s0{--sc:var(--s0)} #pnl .pnl-cell.s1{--sc:var(--s1)} #pnl .pnl-cell.s2{--sc:var(--s2)} #pnl .pnl-cell.s3{--sc:var(--s3)}
 #pnl .pnl-cell.me{background:linear-gradient(180deg,rgba(232,194,106,.30),rgba(232,194,106,.14));box-shadow:0 0 0 1px rgba(232,194,106,.75),0 0 14px rgba(232,194,106,.25)}
-#pnl .pnl-head{display:flex;align-items:center;font-size:14px;margin-bottom:1px;white-space:nowrap}
-#pnl .pnl-cnt{margin-left:auto;font-size:10.5px;color:var(--pnl-dim)}
-#pnl .pnl-cell .pnl-row{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:13px;line-height:20px;padding-left:5px;border-left:3px solid var(--sys,transparent);margin:0 0 1px;background:rgba(0,0,0,.18)}
+#pnl .pnl-head{display:flex;align-items:center;font-size:14px;line-height:17px;white-space:nowrap}
+#pnl .pnl-cnt{margin-left:auto;padding-left:6px;font-size:10.5px;color:var(--pnl-dim)}
+#pnl .pnl-cell .pnl-row{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:13px;line-height:18px;padding-left:5px;border-left:3px solid var(--sys,transparent);margin:0;background:rgba(0,0,0,.18)}
 #pnl .pnl-cell .pnl-row.pnl-fee,#pnl .pnl-cell .pnl-row.pnl-none{border-left-color:transparent;background:none}
 #pnl .pnl-cell .pnl-row:has(.sys-zuling){--sys:var(--sys-zuling)} #pnl .pnl-cell .pnl-row:has(.sys-xianghuo){--sys:var(--sys-xianghuo)}
 #pnl .pnl-cell .pnl-row:has(.sys-yinqi){--sys:var(--sys-yinqi)} #pnl .pnl-cell .pnl-row:has(.sys-curse){--sys:var(--sys-curse)}
 #pnl .pnl-cell .pnl-price{display:inline-flex;align-items:center;flex:0 0 auto}
-#pnl .pnl-how{font-size:10.5px;line-height:13px;margin:-1px 0 1px 11px}
+#pnl .pnl-how{font-size:10.5px;line-height:12px;margin:-1px 0 0 11px}
 #pnl .pnl-none{color:var(--pnl-dim);font-size:11px;justify-content:flex-start!important}
 /* 戰況：心願／對決／天明三區，每列 誰｜數字｜說明 */
-#pnl:not(.resultStrip){position:fixed;left:50%;transform:translateX(-50%);top:8px;width:min(400px,92vw);max-width:none;max-height:min(320px,70vh);overflow-y:auto;overscroll-behavior:contain;margin:0;padding:8px 12px 8px;z-index:5}
+#pnl:not(.resultStrip){position:fixed;left:50%;transform:translateX(-50%);top:8px;width:min(400px,92vw);max-width:none;max-height:min(320px,70vh);overflow-y:auto;overscroll-behavior:contain;margin:0;padding:6px 10px;z-index:5}
 #pnl:not(.resultStrip) .pnl-title{margin-bottom:2px}
 #pnl:not(.resultStrip) .pnl-title .big{font-size:18px}
-#pnl .pnl-sec{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:3px 0;margin-top:1px}
-#pnl .pnl-lab{font-family:var(--font-display);font-size:13px;color:var(--gold);writing-mode:vertical-rl;letter-spacing:.2em;justify-self:center;align-self:stretch;
-  background:rgba(255,255,255,.05);border-radius:3px;padding:4px 0;text-align:center;display:flex;align-items:center;justify-content:center}
+#pnl .pnl-sec{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:2px 0}
+/* 段標題直排：逐字一個區塊往下疊（視覺同 writing-mode:vertical-rl＋字距 .2em），不靠直排書寫模式——
+   直排時每個字都「換到下一行」，第一階段 #1 斷行判定會把「心｜願」當成詞中斷行（凍結 #8）；逐字分屬不同區塊＝刻意分行。 */
+#pnl .pnl-lab{font-family:var(--font-display);font-size:13px;line-height:1.2;color:var(--gold);justify-self:center;align-self:stretch;width:22px;
+  background:rgba(255,255,255,.05);border-radius:3px;padding:4px 0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2em}
+#pnl .pnl-lab>span{display:block}
 #pnl .pnl-sec.wish .pnl-lab{color:#c7a6ff} #pnl .pnl-sec.duel .pnl-lab{color:#ff8a6b} #pnl .pnl-sec.dawn .pnl-lab{color:#9fe0a8}
 #pnl .pnl-sec .pnl-row{display:grid;grid-template-columns:min(45%,162px) 40px minmax(0,1fr);align-items:center;column-gap:8px;
-  font-size:13px;line-height:21px;padding:0 4px;border-radius:3px;background:rgba(255,255,255,.035);margin:1px 0;border-left:3px solid transparent}
+  font-size:13px;line-height:19px;padding:0 4px;border-radius:3px;background:rgba(255,255,255,.035);margin:1px 0;border-left:3px solid transparent}
 #pnl .pnl-sec .pnl-row:has(.s1){border-left-color:var(--s1)}
 #pnl .pnl-sec .pnl-row:has(.s2){border-left-color:var(--s2)}
 #pnl .pnl-sec .pnl-row:has(.s3){border-left-color:var(--s3)}
@@ -664,10 +670,10 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    換行只會讓那一列變高，不影響其他列與可捲動性。 */
 #pnl .pnl-sec .pnl-who{order:1;display:flex;align-items:center;flex-wrap:wrap;white-space:normal;min-width:0;line-height:1.3}
 #pnl .pnl-sec .pnl-price{order:2;justify-self:center}
-#pnl .pnl-sec .pnl-what{order:3;display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+#pnl .pnl-sec .pnl-what{order:3;display:flex;flex-wrap:wrap;align-items:center;column-gap:4px;white-space:nowrap;min-width:0}
 #pnl .pnl-sec .pnl-free{display:block}
 #pnl .pnl-body{min-width:0}
-#pnl .pnl-sub{font-size:10.5px;color:var(--pnl-dim);padding:0 4px 1px 24px;line-height:14px;white-space:normal}
+#pnl .pnl-sub{font-size:10.5px;color:var(--pnl-dim);padding:0 4px 1px 24px;line-height:13px;white-space:normal}
 #pnl .pnl-whisper{font-size:10.5px;line-height:14px;color:var(--pnl-dim);padding:2px 4px 0}
 .revealRibbon{position:absolute;left:50%;top:8px;z-index:30;transform:translateX(-50%);width:min(430px,54vw);min-height:132px;overflow:visible;padding:10px 12px;color:var(--ink);text-align:center;font-size:11px;line-height:1.35;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42);pointer-events:none}
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
@@ -6854,6 +6860,21 @@ function revealPanelHTML(reveal){
   const pass=passed.length?`<span class="pnl-pass">流標：${passed.map(pnlItem).join('、')}</span>`:'';
   return `<div class="stageCard resultStrip" id="pnl"><div class="pnl-title"><span class="big">🏮 本夜成交總覽</span>${pass}</div><div class="pnl-grid">${cells}</div></div>`;
 }
+/* 成交總覽窄條貼在底列上緣、往上長：買家多拿幾件時會長到側欄窄籤底下，把窄籤的命中範圍蓋掉一截
+   （凍結 #8 第一階段 #5：0.59.1 的單行窄條從不長到那裡）。版面已壓到常見的夜（每欄 ≤4 列）放得下；
+   更高的夜這裡把最高高度收到窄籤下緣為止、改成面板內捲動（#7：捲到底看得到最後一列）。純呈現。 */
+function pnlFitRails(){
+  if(typeof document==="undefined"||!document.querySelector) return;
+  const el=document.querySelector("#table.t3d #pnl.resultStrip"); if(!el||!el.getBoundingClientRect) return;
+  el.style.maxHeight=""; el.style.overflowY="";
+  const r=el.getBoundingClientRect(); if(!r.height) return;
+  let lim=-Infinity;
+  document.querySelectorAll("#railW .railTabs > *, #railE .railTabs > *").forEach(t=>{ const q=t.getBoundingClientRect();
+    if(q.width>0&&q.height>0&&q.left<r.right&&q.right>r.left&&q.bottom>r.top) lim=Math.max(lim,q.bottom); });
+  if(lim>-Infinity){ el.style.maxHeight=Math.max(48,Math.floor(r.bottom-lim-2))+"px"; el.style.overflowY="auto"; }
+}
+/* 改尺寸時窄籤／座位的版面要等這一輪排版與側欄重算（equalizeRailCards 等）完成才準，量兩個 rAF 之後的位置 */
+if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>requestAnimationFrame(()=>requestAnimationFrame(pnlFitRails)));
 /** 戰況 Y（凍結 #6）：心願／對決／天明三段且段標題上色；「你」相關列金底。nightly 是 judgeWish／
  *  settleTithe／resolveBattles 等既有結算各自 push 的固定格式文字 log，這裡只依格式拆回結構化資料
  *  重排版面——不改任何一支結算函式，逐項（每場對決、每項心願結算、每項天明結算）都照原樣出現。 */
@@ -6867,7 +6888,7 @@ function nightendPanelHTML(fights,bye,nightly,deaths){
     return s;
   };
   const wish=[],dawn=[];
-  for(const t of nightly) (/心願/.test(t)?wish:dawn).push(t);
+  for(const t of nightly) (/心願/.test(t)&&!/^🔮/.test(t)?wish:dawn).push(t);
   const wishRows=wish.map(t=>{
     const m=t.match(/你的心願「(.+?)」(達成|未能達成)(?:\s*\+(\d+))?/)||t.match(/(\S+?) 的心願(達成|未能達成)(?:\s*\+(\d+))?/);
     if(!m) return `<div class="pnl-row">${decorate(t)}</div>`;
@@ -6900,7 +6921,7 @@ function nightendPanelHTML(fights,bye,nightly,deaths){
   const deathRows=(deaths||[]).map(d=>`<div class="pnl-row"><span class="pnl-who">${pnlNameOf(d,ME)}</span><span class="pnl-what down">💀 壽命耗盡</span></div>`).join('');
   const whisperRows=(dawnRows.match(/<div class="pnl-whisper">[\s\S]*?<\/div>/g)||[]).join('');
   const dawnBody=dawnRows.replace(/<div class="pnl-whisper">[\s\S]*?<\/div>/g,'')+deathRows+lifeRows+whisperRows;
-  const sec=(cls,label,body)=>body?`<div class="pnl-sec ${cls}"><div class="pnl-lab">${label}</div><div class="pnl-body">${body}</div></div>`:'';
+  const sec=(cls,label,body)=>body?`<div class="pnl-sec ${cls}"><div class="pnl-lab">${[...label].map(c=>`<span>${c}</span>`).join('')}</div><div class="pnl-body">${body}</div></div>`:'';
   return `<div class="stageCard" id="pnl"><div class="pnl-title"><span class="big">⚔️ 第 ${S.round} 夜・戰況</span></div>${sec('wish','心願',wishRows)}${sec('duel','對決',fightRows)}${sec('dawn','天明',dawnBody)}</div>`;
 }
 async function startReveal(){
@@ -7030,6 +7051,7 @@ async function startReveal(){
   renderSeats();
   setHollow(true);
   $("stage").innerHTML=revealPanelHTML(rv.reveal);
+  pnlFitRails(); if(typeof requestAnimationFrame==="function") requestAnimationFrame(()=>requestAnimationFrame(pnlFitRails));
   /* 請神（第 4 卷）插在開標與開戰之間——三條迴圈的順序一致：resolveAuction → resolveShrines → resolveBattles */
   if(CFG.LEGEND_ON&&S.shrines){ $("mainbtn").textContent="🕯️ 請神"; $("mainbtn").onclick=startShrine; }
   else{ $("mainbtn").textContent="開戰"; $("mainbtn").onclick=startBattle; }
