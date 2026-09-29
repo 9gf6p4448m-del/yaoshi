@@ -22,3 +22,18 @@
 - 判定器修正（皆在產出證據前）：①切換「中途不回牌桌」首版量全畫面亮度，燒符火光本身比牌桌亮，100 格全誤判→改量鏡外區＋兩個結構量；②盯上等價首跑 40 列只差 `players[*].destiny`（每個新瀏覽器環境重抽的私下天命），兩邊預寫同一組；③#3 首跑 3 格是 AI 令牌落下的頓一下還在跑時拍了基準（slot3 y 0.14816 vs 0.152），改成牌桌靜止後才拍。
 - 冷讀覆審（opus，3 輪）：H1 隱形題字吃點擊、H2 揭盅中已售法寶重現、M1–M3、L1–L3 已修；剩 1 條 LOW 記錄不修：揭盅鏡頭仍停在某件時關閉鑑賞，那一幀鏡頭會跳到揭盅取景。
 - 手機 fps 未量（本機 headless Chromium 數字）；真機待試玩。
+
+## 第三批（09-29，HEAD 751de320＝面板 Y 可讀性修補＋照妖鏡 #11(f)；`run-c.sh`，TAG=head3）
+
+| 條 | 判定 | 關鍵數字 | 檔案 |
+|---|---|---|---|
+| #1–#4、#11(a)–(f)（含 #1(b) 修訂） | 過 80/80 | 框高 0.370–0.680；暗糊比（排除鏡子外接圓）0.28–0.53；ΔE00 4.0–9.5；#11(f) 西籤虎爺印環帶 86.96（示意 93.83、門檻 79.76）峰群 11；全矩陣環帶／焦點外 3.21–4.97 倍；盯上等價 40/40 | `head3-judge.json`、`mark-eq-head3-raw.json` |
+| #11(f) 判紅 | 399b681b 紅在行為斷言 | 環帶 57.5 < 79.8、峰群 4 | `mirror/red399-judge.txt` |
+| #4（出價＋盯上） | 過 260/260 | 盯上階段 10 列、換件前後 S.marks 相同 | `switch-head3-raw.json` |
+| #5 #6 #7 | 過 100/100 | V1–V5 × solo/hot × 5 夜；missing 0、safeOk、overflowBad 0、最後一列不被蓋（加嚴） | `panels/panels-raw.json` |
+| #8 trace-eq／全套 | equal；402/402 | 全套在 CRLF 取出下跑（`suite-head3-crlf.txt`）；`suite-head3.txt` 的 395/396 是本卷工具以 LF 重寫 index.html 造成的 l1-destiny-focus 錨點不符，重新 checkout 後 7/7 | `trace-eq-head3.txt` |
+| #8 牌桌鏡頭／燈、draw | 鏡頭逐值相同、燈型別色相同；draw 83=83；鑑賞 19 | 燈強度是燭光閃爍瞬時值（兩次跑本來就不同）；86e46763..HEAD 沒有任何燈的程式行 | `perf-head3.json` |
+| #8 第一階段 #1–#6 | 共同格逐條不多於基準（見 `phase1-common-head3.txt`）；總格數 align V1–V5 114→122/123 | 多出的全在 head 才走到的畫面（solo 第 10–12 夜，base 沒走到），這類格兩版 100% 都紅；共同格另有 contrast@V3、target@V1 各 1（夜戰籌碼淡入時序、揭盅鏡頭時序，均丙類） | `vp-judge-head3.json`、`regress-classify.md` |
+| #8 text-fit | 共同 860 格 724→726；總數 785→732 | 總數差來自覆蓋（base 獨有 115 格）；共同格 1 格變紅（nw3 第 1 夜戰況 @V2 要捲）、3 格變綠 | `textfit-common-head3.txt` |
+| #8 landscape-fit | 105/105 = 105/105 | | `lf-head3.log` |
+| #11(h) | **未實作：條件對舊版恆過** | 399b681b 峰群 49、斜反光 1.97 皆過 | `mirror/c11h-finding.md` |

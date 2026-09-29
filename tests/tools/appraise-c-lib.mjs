@@ -368,3 +368,41 @@ export function meanLumEx(img, rect, exclude = [], circles = []) {
 /** 示意 b-west.png（phase2-mock/appraise，V1 852×393、西籤虎爺印）的鏡子幾何：像素擬合（連珠紋那一圈 0.955R 半徑
  *  132.5px、中心 527,189 ⇒ R＝138.74；鏡面 0.73R）。擬合疊圖見 docs/experiments/2026-09-28-appraise-c/mirror/mockfit.png。 */
 export const MOCK_B_WEST = { file: 'b-west.png', cx: 527, cy: 189, R: 138.74, face: 0.73 };
+/** #11(h) 鏡面斜向反光：鏡面（半徑 rFace 內、扣掉 exclude 矩形）像素，沿方向 θ（0..175°，每 5°）的投影分 3px 一格求平均亮度，
+ *  取每個 θ 的最高格／鏡面全體中位數。斜向＝θ 離 0°、90°、180° 都超過 15°。回 {median, best:{deg, ratio}, bestOblique:{deg, ratio}}。 */
+export function sheenStats(img, cx, cy, rFace, exclude = []) {
+  const pts = [];
+  const x0 = Math.max(0, Math.floor(cx - rFace)), x1 = Math.min(img.width - 1, Math.ceil(cx + rFace)), y0 = Math.max(0, Math.floor(cy - rFace)), y1 = Math.min(img.height - 1, Math.ceil(cy + rFace));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const dx = x - cx, dy = y - cy; if (dx * dx + dy * dy > rFace * rFace) continue;
+    if (exclude.some((e) => e && x >= e.left && x < e.right && y >= e.top && y < e.bottom)) continue;
+    const i = (y * img.width + x) * 4; pts.push([dx, dy, (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3]);
+  }
+  if (pts.length < 200) return { n: pts.length, median: null, best: null, bestOblique: null };
+  const L = pts.map((p) => p[2]).sort((a, b) => a - b), med = L[L.length >> 1];
+  let best = null, bestO = null;
+  for (let deg = 0; deg < 180; deg += 5) {
+    const t = (deg * Math.PI) / 180, nx = Math.cos(t), ny = Math.sin(t), bins = new Map();
+    for (const [dx, dy, v] of pts) { const k = Math.floor((dx * nx + dy * ny) / 3); const b = bins.get(k) || [0, 0]; b[0] += v; b[1]++; bins.set(k, b); }
+    let peak = 0; for (const [, b] of bins) if (b[1] >= 12) peak = Math.max(peak, b[0] / b[1]);
+    const ratio = med > 0 ? peak / med : null, rec = { deg, ratio };
+    if (!best || ratio > best.ratio) best = rec;
+    const obl = Math.min(deg % 90, 90 - (deg % 90)) > 15;
+    if (obl && (!bestO || ratio > bestO.ratio)) bestO = rec;
+  }
+  return { n: pts.length, median: med, best, bestOblique: bestO };
+}
+/** #11(h) 鏡框連珠：半徑 r0..r1 之間每 1px 一圈、每圈沿圓周 360 點取亮度，數高於「該圈中位數 × k」的峰群（首尾相接算同一群）；
+ *  回傳峰群最多的那一圈（連珠紋在哪個半徑由像素決定，判定器不問產品）。 */
+export function rimPeaks(img, cx, cy, r0, r1, k = 1.3) {
+  let best = { radius: null, peaks: 0 };
+  for (let R = Math.ceil(r0); R <= Math.floor(r1); R++) {
+    const prof = [];
+    for (let d = 0; d < 360; d++) { const t = (d / 180) * Math.PI, p = px(img, cx + Math.cos(t) * R, cy + Math.sin(t) * R); prof.push(p ? (p[0] + p[1] + p[2]) / 3 : null); }
+    const v = prof.filter((x) => x != null).sort((a, b) => a - b); if (v.length < 300) continue;
+    const med = v[v.length >> 1], hi = prof.map((x) => x != null && x > med * k);
+    let g = 0; for (let d = 0; d < 360; d++) if (hi[d] && !hi[(d + 359) % 360]) g++;
+    if (g > best.peaks) best = { radius: R, peaks: g, median: med };
+  }
+  return best;
+}
