@@ -2,16 +2,17 @@
 // 資料來源：包住 window.resolveAuction／resolveBattles（跟 phase2-mock/shoot-panels.mjs 同一種手法），
 // 把回傳值留一份給治具直接核對——不讀舊版渲染出來的 HTML 逐字比對（舊版已被取代），
 // 而是核對「resolveAuction／resolveBattles 算出來的每一筆，新版 #pnl 面板文字裡都找得到」。
-// 用法：node tests/tools/panels-probe.mjs [--out <dir>] [--port N] [--nights N] [--modes solo,hot] [--vps V1,V4]
+// 用法：node tests/tools/panels-probe.mjs [--root <受測工作樹>] [--out <dir>] [--port N] [--nights N] [--modes solo,hot] [--vps V1,V4]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const HERE = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const OUT = path.resolve(arg('--out', path.join(ROOT, 'docs/experiments/2026-09-28-appraise-panels')));
+const ROOT = path.resolve(arg('--root', HERE));   /* 受測版本的目錄（判紅用：指向舊版工作樹）；治具與 playwright 一律從本樹取 */
+const OUT = path.resolve(arg('--out', path.join(HERE, 'docs/experiments/2026-09-28-appraise-panels')));
 const PORT = Number(arg('--port', 9821));
 const SEED = Number(arg('--seed', 3));
 const NIGHTS = Number(arg('--nights', 3));
@@ -27,7 +28,7 @@ const VP = {
   V5: { w: 1280, h: 720, safe: [0, 0, 0, 0] },
 };
 
-const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
+const { chromium } = createRequire(path.join(HERE, 'tools/anyCreature/package.json'))('playwright');
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
@@ -159,6 +160,39 @@ function checkNightend(fights, bye, nightly, deaths, panelText, playersById) {
   return { missing, wishLines, dawnLines, fights: fights.length };
 }
 
+/* #7「捲到底能看到最後一列」加嚴（09-29，自行記錄）：舊量法只比最後一列的矩形在 #pnl 框內，
+   不管 #pnl 本身有沒有被底列 HUD 蓋住——舊版戰況面板高上限 70vh 在 V1–V4 會伸到底列後面，
+   最後一列被蓋住又不能捲（實測 V4 第 1 夜「壽命 50→47」那列）。改成：捲到底之後，每一個「最後一列」
+   （戰況＝最後一段的最後一列；成交總覽＝每一欄的最後一列）中心點的 elementFromPoint 必須落在該列裡面，
+   且整列在 #pnl 可視框內。不需要捲動的面板一樣要量。 */
+const LAST_VISIBLE = `(() => {
+  const el = document.getElementById('pnl'); if (!el) return null;
+  const scrollable = el.scrollHeight > el.clientHeight + 2;
+  if (scrollable) el.scrollTop = el.scrollHeight;
+  const lasts = el.classList.contains('resultStrip')
+    ? [...el.querySelectorAll('.pnl-cell')].map((c) => c.lastElementChild)
+    : [el.querySelector('.pnl-sec:last-child .pnl-body > :last-child')];
+  const pr = el.getBoundingClientRect(), bad = [];
+  for (const r0 of lasts) {
+    if (!r0) { bad.push('找不到最後一列'); continue; }
+    const r = r0.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+    /* 蓋在這一列上面的元素（elementsFromPoint 排在這一列之前的）只要有一個不透明（有底色／底圖／是圖片畫布）就算被蓋住；
+       透明的容器（例如 #railE 本身，只是一個會吃點擊的空框）不算擋住視線。 */
+    /* 整列都要看得到：列的上緣、中線、下緣（各內縮 1.5px）三個點都量 */
+    /* 底色透明度：rgb()＝1、rgba(r,g,b,a)＝a、color(srgb r g b / a)（color-mix 的計算值）＝斜線後的 a */
+    const bgAlpha = (s) => { if (!s || s === 'transparent') return 0; const i = s.indexOf('('), body = s.slice(i + 1, s.lastIndexOf(')')); if (body.includes('/')) return Number(body.split('/')[1]); const p = body.split(',').map(Number); return /^rgba/.test(s) && p.length > 3 ? p[3] : 1; };
+    const opaque = (e) => { const c = getComputedStyle(e); return bgAlpha(c.backgroundColor) > 0.1 || (c.backgroundImage && c.backgroundImage !== 'none') || (c.backdropFilter && c.backdropFilter !== 'none') || /^(IMG|CANVAS|VIDEO)$/.test(e.tagName); };
+    let cover = null, miss = false;
+    for (const y of [r.top + 1.5, cy, r.bottom - 1.5]) {
+      const stack = document.elementsFromPoint(cx, y), at = stack.findIndex((e) => e === r0 || r0.contains(e));
+      if (at < 0) { miss = true; cover = cover || stack[0] || null; continue; }
+      cover = cover || stack.slice(0, at).find((e) => !e.contains(r0) && opaque(e)) || null;
+    }
+    const inside = r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1;
+    if (!inside || miss || cover) bad.push((r0.textContent || '').trim().slice(0, 20) + ' 被 ' + (cover ? (cover.id || cover.className || cover.tagName) : '-') + ' 蓋住' + (inside ? '' : '／超出面板框'));
+  }
+  return { scrollable, ok: bad.length === 0, bad };
+})()`;
 const results = { runs: [], notes: [] };
 async function runOne(mode, vname) {
   const vp = VP[vname];
@@ -185,7 +219,8 @@ async function runOne(mode, vname) {
       const safeOk = await page.evaluate(() => { const el = document.getElementById('pnl'); if (!el) return null; const r = el.getBoundingClientRect(); const cs = getComputedStyle(document.documentElement); const sv = (k) => parseFloat(cs.getPropertyValue(k)) || 0; return r.left >= sv('--safe-left') - 1 && r.top >= sv('--safe-top') - 1 && r.right <= innerWidth - sv('--safe-right') + 1 && r.bottom <= innerHeight - sv('--safe-bottom') + 1; });
       const overflowBad = await page.evaluate(() => { const root = document.getElementById('pnl'); if (!root) return null; let bad = 0; for (const e of root.querySelectorAll('*')) { const st = getComputedStyle(e); if (e.scrollWidth > e.clientWidth + 1 && st.overflowX !== 'visible' && st.display !== 'none') bad++; } return bad; });
       const revealCheck = panelText ? checkReveal(revealData.reveal, panelText, playersById) : { missing: ['#pnl 找不到（reveal）'] };
-      run.nights.push({ n, phase: 'reveal', panelFound: !!panelText, safeOk, overflowBad, panelRect, revealCheck });
+      const lastVisible = await page.evaluate(LAST_VISIBLE);
+      run.nights.push({ n, phase: 'reveal', panelFound: !!panelText, safeOk, overflowBad, panelRect, lastVisible, revealCheck });
       const gotNightend = await drive(page, 'night-end');
       if (!gotNightend) { results.notes.push(`${mode}|${vname} 夜${n} 沒到 night-end：${JSON.stringify(page.__stuck)}`); break; }
       const battleData = await page.evaluate(() => ({
@@ -212,7 +247,8 @@ async function runOne(mode, vname) {
         return r.bottom <= pr.bottom + 2 && r.top >= pr.top - 2;
       });
       const nightendCheck = panelText2 ? checkNightend(battleData.fights, battleData.bye, battleData.nightly, battleData.deaths, panelText2, playersById2) : { missing: ['#pnl 找不到（nightend）'] };
-      run.nights.push({ n, phase: 'nightend', panelFound: !!panelText2, safeOk: safeOk2, overflowBad: overflowBad2, scrolledOk, nightendCheck });
+      const lastVisible2 = await page.evaluate(LAST_VISIBLE);
+      run.nights.push({ n, phase: 'nightend', panelFound: !!panelText2, safeOk: safeOk2, overflowBad: overflowBad2, scrolledOk, lastVisible: lastVisible2, nightendCheck });
     }
   } catch (e) { results.notes.push(`${mode}|${vname} 例外：${e.message}\n${e.stack}`); }
   finally { results.runs.push(run); await ctx.close().catch(() => {}); }
@@ -221,6 +257,27 @@ async function runOne(mode, vname) {
 for (const mode of MODES) for (const vname of VPS) await runOne(mode, vname);
 await browser.close();
 srv.kill();
+/* 逐格判定（#5 missing 0、#6 missing 0、#7 safeOk／overflowBad 0／最後一列看得到／需捲動時捲到底看得到）；量不到判紅 */
+const fails = []; let cells = 0;
+for (const r of results.runs) {
+  if (!r.nights.length) { fails.push(`${r.mode}|${r.vp} 量不到（0 夜）`); continue; }
+  for (const x of r.nights) {
+    cells++;
+    const k = `${r.mode}|${r.vp}|夜${x.n}|${x.phase}`, f = [];
+    const miss = (x.revealCheck || x.nightendCheck || { missing: ['無檢查'] }).missing;
+    if (!x.panelFound) f.push('#pnl 找不到');
+    if (miss.length) f.push('missing ' + miss.join('、'));
+    if (x.safeOk !== true) f.push('安全區外');
+    if (x.overflowBad !== 0) f.push('overflowBad ' + x.overflowBad);
+    if (x.phase === 'nightend' && x.scrolledOk === false) f.push('捲到底看不到最後一列');
+    if (!x.lastVisible || !x.lastVisible.ok) f.push('最後一列看不到 ' + JSON.stringify(x.lastVisible && x.lastVisible.bad));
+    if (f.length) fails.push(`${k} ${f.join('；')}`);
+  }
+}
+results.verdict = { cells, fail: fails.length, nightsPerRun: Object.fromEntries(results.runs.map((r) => [`${r.mode}|${r.vp}`, r.nights.length / 2])), pass: fails.length === 0 && results.runs.length === MODES.length * VPS.length };
+results.fails = fails;
 const outFile = path.join(OUT, 'panels-raw.json');
 fs.writeFileSync(outFile, JSON.stringify(results, null, 1));
-console.log('寫入', outFile, 'runs', results.runs.length, 'notes', results.notes.length);
+console.log('寫入', outFile, 'runs', results.runs.length, 'notes', results.notes.length, JSON.stringify(results.verdict));
+for (const f of fails.slice(0, 30)) console.log('  ✗', f);
+for (const n of results.notes) console.log('  note', n.slice(0, 300));

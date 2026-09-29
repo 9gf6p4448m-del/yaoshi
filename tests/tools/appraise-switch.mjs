@@ -6,8 +6,10 @@
 //      到頭再滑一次停住不循環。
 //   ③ 切換後的揭幕中點空白＝跳過（0.1 秒內穩定、不返回）。
 // 用 Playwright 假時鐘逐幀推進（理由見 appraise-c-probe.mjs 檔頭）。
-// 矩陣：V1–V5 × solo/hot（凍結檔「未另註明者」的預設矩陣）；出價階段（盯上階段點卡片會直接宣告，換件流程相同）。
-// 用法：node tests/tools/appraise-switch.mjs [--root <repo>] [--out <dir>] [--port N] [--vps ...] [--modes ...]
+// 矩陣：V1–V5 × solo/hot × 出價／盯上（凍結檔「未另註明者」的預設矩陣：出價與盯上狀態）。
+//   盯上階段點題字欄裡的卡片會直接宣告盯上——本治具換件只點窄籤與在空白處滑動，從不點題字欄內的卡片；
+//   盯上階段另比對整段前後的 S.marks，換件途中若宣告了盯上即判紅。（09-29 前只跑出價＝縮小案例集，依主對話指示補上盯上。）
+// 用法：node tests/tools/appraise-switch.mjs [--root <repo>] [--out <dir>] [--port N] [--vps ...] [--modes ...] [--phases bid,mark]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -24,6 +26,7 @@ const SEED = Number(arg('--seed', 3));
 const TAG = arg('--tag', 'head');
 const VPS = arg('--vps', 'V1,V2,V3,V4,V5').split(',');
 const MODES = arg('--modes', 'solo,hot').split(',');
+const PHASES = arg('--phases', 'bid,mark').split(',');
 fs.mkdirSync(OUT, { recursive: true });
 
 const { chromium } = createRequire(path.join(HERE, 'tools/anyCreature/package.json'))('playwright');
@@ -83,14 +86,16 @@ async function swipe(page, dir) {
 const tabCenter = (page, rail, slot) => E(page, ([r, s]) => { const b = document.querySelector('#' + r + ' .railTabs button[data-slot="' + s + '"]'); if (!b) return null; const q = b.getBoundingClientRect(); return q.width ? { x: (q.left + q.right) / 2, y: (q.top + q.bottom) / 2 } : null; }, [rail, slot]);
 
 const results = { root: ROOT, cases: [], notes: [] };
-async function runCase(vname, mode) {
+async function runCase(vname, mode, phase) {
   const vp = VP[vname];
   const { ctx, page } = await openGame(browser, PORT, vp, mode, SEED);
-  const row = { vp: vname, mode, tabClick: [], swipe: [] };
+  const row = { vp: vname, mode, phase, tabClick: [], swipe: [] };
   try {
     await page.evaluate(PAGE_LIB); await page.evaluate(() => window.__AC.init());
-    const cls = await driveToFirst(page, new Set(['bid']));
-    if (!cls) { results.notes.push(`${vname}|${mode} 沒進到出價階段（判紅）`); row.notready = true; return; }
+    const cls = await driveToFirst(page, new Set([phase]));
+    if (!cls) { results.notes.push(`${vname}|${mode}|${phase} 沒進到${phase === 'mark' ? '盯上' : '出價'}階段（判紅）`); row.notready = true; return; }
+    const marks = () => E(page, () => JSON.stringify((window.__yaoshi.S && window.__yaoshi.S.marks) || null));
+    const markBefore = phase === 'mark' ? await marks() : null;
     if (!(await waitTrayReady(page))) { results.notes.push(`${vname}|${mode} 3D 未就緒（判紅）`); row.notready = true; return; }
     await page.waitForTimeout(400);
     const refImg = png(await page.screenshot());
@@ -129,11 +134,12 @@ async function runCase(vname, mode) {
     row.skipAfterSwitch = { blank: bp, on: sk.on, i: sk.i, expect: t1.slot, stable: !!(sk.fx && sk.fx.stable), rendered: sk.rendered };
     await page.clock.resume();
     await page.evaluate(() => { try { closeAppraise(); } catch (e) {} });
+    if (phase === 'mark') { row.markBefore = markBefore; row.markAfter = await marks(); row.clsAfter = await E(page, () => { const b = document.getElementById('mainbtn'); return b ? b.textContent.trim() : null; }); }
   } catch (e) { results.notes.push(`${vname}|${mode} 例外：${e.message}\n${e.stack}`); }
-  finally { results.cases.push(row); await ctx.close().catch(() => {}); console.log(vname, mode, 'done'); }
+  finally { results.cases.push(row); await ctx.close().catch(() => {}); console.log(vname, mode, phase, 'done'); }
 }
 
-try { for (const vp of VPS) for (const mode of MODES) await runCase(vp, mode); }
+try { for (const phase of PHASES) for (const vp of VPS) for (const mode of MODES) await runCase(vp, mode, phase); }
 finally { await browser.close(); srv.kill(); }
 // ── 判定（同檔，量不到判紅）──
 const fails = [];
@@ -159,7 +165,7 @@ const judgeSwitch = (key, r) => {
   if (f.length) fails.push(`${key} ${f.join('；')}`);
 };
 for (const row of results.cases) {
-  const k0 = `${row.vp}|${row.mode}`;
+  const k0 = `${row.vp}|${row.mode}|${row.phase}`;
   if (row.notready) { fails.push(`${k0} 量不到`); continue; }
   row.tabClick.forEach((r) => judgeSwitch(`${k0}|點籤→${r.rail}#${r.slot}`, r));
   row.swipe.forEach((r) => judgeSwitch(`${k0}|${r.dir === 'next' ? '左滑' : '右滑'}→${r.expectSlot}`, r));
@@ -168,8 +174,9 @@ for (const row of results.cases) {
   if (!row.edgePrev || !row.edgePrev.on || row.edgePrev.got !== row.edgePrev.expect) fails.push(`${k0} 右滑到頭沒停住 ${JSON.stringify(row.edgePrev)}`);
   const sk = row.skipAfterSwitch;
   if (!sk || !sk.blank || !sk.on || sk.i !== sk.expect || !sk.stable || sk.rendered !== true) fails.push(`${k0} 切換後揭幕中點空白沒有跳到穩定態 ${JSON.stringify(sk)}`);
+  if (row.phase === 'mark' && (row.markBefore == null || row.markBefore !== row.markAfter)) fails.push(`${k0} 盯上狀態在換件前後不同或量不到（治具不該宣告）${row.markBefore} → ${row.markAfter}`);
 }
-results.verdict = { cells, fail: fails.length, pass: fails.length === 0 && !results.cases.some((c) => c.notready) && results.cases.length === VPS.length * MODES.length };
+results.verdict = { cells, fail: fails.length, pass: fails.length === 0 && !results.cases.some((c) => c.notready) && results.cases.length === VPS.length * MODES.length * PHASES.length };
 results.fails = fails;
 const outFile = path.join(OUT, `switch-${TAG}-raw.json`);
 fs.writeFileSync(outFile, JSON.stringify(results));
