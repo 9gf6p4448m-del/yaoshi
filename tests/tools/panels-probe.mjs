@@ -32,7 +32,12 @@ const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
 
+/* 熱座：換人時全屏交棒遮罩蓋在牌桌上，主鈕文字清空但沒有 disabled——不先按「開始出價」（#hoBtn）
+   會一直點到遮罩底下的空主鈕，永遠到不了揭盅（09-29 實測：卡在 round 1、handoff 可見、4 人都活著）。
+   與 text-fit-probe.mjs／landscape-fit-probe.mjs 的 DRIVE_STEP 同一寫法。 */
 const DRIVE_STEP = `(() => {
+  const ho = document.getElementById('handoff');
+  if (ho && getComputedStyle(ho).display !== 'none') { document.getElementById('hoBtn').click(); return 0; }
   const b = document.getElementById('mainbtn');
   const txt = b ? b.textContent : '', dis = b ? b.disabled : true;
   if (b && /看最終結果/.test(txt) && !dis) return 2;
@@ -57,14 +62,22 @@ const scr = (page) => page.evaluate(() => {
   if (/進入下一夜|看最終結果/.test(t) && !dis) return 'night-end';
   return 'busy';
 });
+/* 卡住時留下畫面狀態（主鈕文字／可按、交棒遮罩、彈窗）——「沒到 reveal-result」要能分辨是局提前結束還是治具不會按 */
+const STATE = `(() => { const $ = (id) => document.getElementById(id), vis = (e) => !!e && getComputedStyle(e).display !== 'none';
+  const b = $('mainbtn'); return { main: b ? b.textContent.trim() : null, mainDis: b ? b.disabled : null, handoff: vis($('handoff')), hoBtn: $('hoBtn') ? $('hoBtn').textContent : null,
+    modal: vis($('modal')), round: window.__yaoshi && window.__yaoshi.S ? window.__yaoshi.S.round : null, alive: window.__yaoshi && window.__yaoshi.S ? window.__yaoshi.S.players.filter((p) => p.alive !== false && !p.dead).length : null }; })()`;
 async function drive(page, want, cap = 20000) {
+  let idle = 0;
   for (let i = 0; i < cap; i++) {
     await page.waitForTimeout(8);
     const cls = await scr(page);
     if (cls === want) return true;
     const r = await page.evaluate(DRIVE_STEP);
-    if (r === 2) return false;
+    if (r === 2) { page.__stuck = { why: '看最終結果（局結束）', state: await page.evaluate(STATE) }; return false; }
+    idle = r === 1 ? idle + 1 : 0;
+    if (idle >= 1500) { page.__stuck = { why: '連續 1500 步沒有可按的東西', state: await page.evaluate(STATE) }; return false; }
   }
+  page.__stuck = { why: 'cap', state: await page.evaluate(STATE) };
   return false;
 }
 
@@ -159,7 +172,7 @@ async function runOne(mode, vname) {
     await page.waitForFunction(() => window.__yaoshi.S && window.__yaoshi.S.round >= 1);
     for (let n = 0; n < NIGHTS; n++) {
       const gotReveal = await drive(page, 'reveal-result');
-      if (!gotReveal) { results.notes.push(`${mode}|${vname} 夜${n} 沒到 reveal-result（局提前結束）`); break; }
+      if (!gotReveal) { results.notes.push(`${mode}|${vname} 夜${n} 沒到 reveal-result：${JSON.stringify(page.__stuck)}`); break; }
       const revealData = await page.evaluate(() => ({
         reveal: window.__pReveal.map((r) => ({ it: { n: r.it.n, f: r.it.f, curse: !!r.it.curse }, winner: r.winner ? { p: { id: r.winner.p.id }, amt: r.winner.amt, cost: r.winner.cost, intent: r.winner.intent, target: r.winner.target } : null, poisonBlocked: !!r.poisonBlocked, entries: r.entries.map((e) => ({ p: { id: e.p.id }, cost: e.cost })) })),
         players: window.__yaoshi.S.players.map((p) => ({ id: p.id, name: p.name })),
@@ -174,7 +187,7 @@ async function runOne(mode, vname) {
       const revealCheck = panelText ? checkReveal(revealData.reveal, panelText, playersById) : { missing: ['#pnl 找不到（reveal）'] };
       run.nights.push({ n, phase: 'reveal', panelFound: !!panelText, safeOk, overflowBad, panelRect, revealCheck });
       const gotNightend = await drive(page, 'night-end');
-      if (!gotNightend) { results.notes.push(`${mode}|${vname} 夜${n} 沒到 night-end`); break; }
+      if (!gotNightend) { results.notes.push(`${mode}|${vname} 夜${n} 沒到 night-end：${JSON.stringify(page.__stuck)}`); break; }
       const battleData = await page.evaluate(() => ({
         bye: window.__pBattle.bye,
         nightly: window.__pBattle.nightly,
