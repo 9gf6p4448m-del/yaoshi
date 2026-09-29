@@ -681,6 +681,15 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #pnl .pnl-body{min-width:0}
 #pnl .pnl-sub{font-size:10.5px;color:var(--pnl-dim);padding:0 4px 1px 24px;line-height:13px;white-space:normal}
 #pnl .pnl-whisper{font-size:10.5px;line-height:14px;color:var(--pnl-dim);padding:2px 4px 0}
+/* 戰況放不下 #felt（凍結 #8(b) 修訂：nw3 第 1 夜 @V2 面板要 305px、#felt 只有 257px）：pnlFitWar 量到會捲動才掛 .dense，
+   只收列高與間距、字級一律不動（第一階段 #3 字級、#7 無截斷照舊）；放得下的夜晚不掛，版面與前一版相同。 */
+#pnl.dense:not(.resultStrip){padding-top:3px;padding-bottom:3px}
+#pnl.dense .pnl-title{margin-bottom:0}
+#pnl.dense .pnl-sec{padding:0;gap:4px}
+#pnl.dense .pnl-lab{padding:1px 0}
+#pnl.dense .pnl-sec .pnl-row{line-height:16px;margin:0}
+#pnl.dense .pnl-sec .pnl-who{line-height:1.15}
+#pnl.dense .pnl-sub{line-height:12px;padding-bottom:0}
 .revealRibbon{position:absolute;left:50%;top:8px;z-index:30;transform:translateX(-50%);width:min(430px,54vw);min-height:132px;overflow:visible;padding:10px 12px;color:var(--ink);text-align:center;font-size:11px;line-height:1.35;border:1px solid rgba(232,179,75,.86);border-radius:10px;background:linear-gradient(135deg,rgba(5,4,9,.94),rgba(46,11,18,.88) 54%,rgba(7,5,12,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(0,0,0,.62),inset 0 0 0 1px rgba(151,38,31,.42);pointer-events:none}
 @keyframes ribbon-lantern-reveal{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.96)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .revealRibbon.anim-lantern-reveal{animation:ribbon-lantern-reveal 600ms cubic-bezier(.16,1,.3,1) both}
@@ -6881,7 +6890,14 @@ function pnlFitRails(){
     if(q.width>0&&q.height>0&&q.left<r.right&&q.right>r.left&&q.bottom>r.top-2&&q.top<r.bottom) t.classList.add("pnlUnder"); });
 }
 /* 改尺寸時窄籤／座位的版面要等這一輪排版與側欄重算（equalizeRailCards 等）完成才準，量兩個 rAF 之後的位置 */
-if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>requestAnimationFrame(()=>requestAnimationFrame(pnlFitRails)));
+if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ pnlFitRails(); pnlFitWar(); })));
+/** 戰況面板放不下（會捲動）才收緊列高（CSS #pnl.dense）；每次重畫與改視窗大小重判。純版面，不讀寫賽局欄位。 */
+function pnlFitWar(){
+  if(typeof document==="undefined"||!document.querySelector) return;
+  const el=document.querySelector("#pnl:not(.resultStrip)"); if(!el||!el.classList) return;
+  el.classList.remove("dense");
+  if(el.scrollHeight>el.clientHeight+1) el.classList.add("dense");
+}
 /** 戰況 Y（凍結 #6）：心願／對決／天明三段且段標題上色；「你」相關列金底。nightly 是 judgeWish／
  *  settleTithe／resolveBattles 等既有結算各自 push 的固定格式文字 log，這裡只依格式拆回結構化資料
  *  重排版面——不改任何一支結算函式，逐項（每場對決、每項心願結算、每項天明結算）都照原樣出現。 */
@@ -7906,6 +7922,7 @@ async function startBattle(){
   /* 戰況（v0.59.2 面板 Y，凍結 #6：心願／對決／天明三段＋段標題上色，取代逐行流水帳）。
      chainLines（連鎖共鳴現況）不在凍結範圍內，維持原本掛在面板上方的獨立橫幅，內容不受影響。 */
   stage.innerHTML=(chainLines.length?`<div class="chainBanner">${chainLines.join("<br>")}</div>`:"")+nightendPanelHTML(fights,bye,nightly,deaths);
+  pnlFitWar();
   playCut('nightEnd');
   /* 死亡音效與角色開口是純副作用，跟原本一樣逐位延遲，只是不再逐行插入 DOM（面板已一次畫完）。 */
   for(const d of deaths){ sfx("death"); sayFrom(d.id,"death",{}); await sleep(CFG.T*0.7); }
