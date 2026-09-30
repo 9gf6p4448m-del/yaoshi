@@ -1,0 +1,172 @@
+{
+ "brief": {
+  "#1": true,
+  "#2": false,
+  "#3": true,
+  "#4": true,
+  "#5": true,
+  "#6": false,
+  "#7a": true,
+  "#8": false,
+  "#9-phase1": false
+ },
+ "n1": {
+  "base": 0,
+  "head": 0,
+  "baseRed": false
+ },
+ "n2": {
+  "badN": 1485,
+  "cells": 360,
+  "tabs": 1440,
+  "fac": [
+   "curse",
+   "xianghuo",
+   "zuling",
+   "yinqi"
+  ],
+  "bad": [
+   "solo|mark|n1@V1 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+   "solo|mark|n1@V1 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+   "solo|mark|n1@V1 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+   "solo|mark|n1@V1 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others=",
+   "solo|mark|n1@V2 展開 railW#0 shown=false inView=true missing=[\"白虎煞\",\"詛咒・纏身\",\"詛咒\",\"每次戰敗：每件額外失 1 壽命（減傷前）\",\"🕸\",\"詛咒品不召喚（只算纏身）\"] others=",
+   "solo|mark|n1@V2 展開 railW#1 shown=false inView=true missing=[\"虎爺印\",\"共鳴2拍・大紙偶×1\",\"香火\",\"✦ 被毒標塞中時，下手的人失 2 壽命\",\"大紙偶×1・\",\"攻 7・\",\"血 4\",\"・共鳴2拍\"] others=",
+   "solo|mark|n1@V2 展開 railE#2 shown=false inView=true missing=[\"王爺劍\",\"共鳴2拍・大紙偶×1\",\"香火\",\"夜戰：本隊精英的第二目標濺射，改為當次攻擊力全額\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴2拍\"] others=",
+   "solo|mark|n1@V2 展開 railE#3 shown=false inView=true missing=[\"巴冷公主珠鍊\",\"共鳴1拍・大紙偶×1\",\"祖靈\",\"夜戰：本隊每拍首次在吸收後仍有 2 點以上傷害時，減傷 2（至少受 1）\",\"大紙偶×1・\",\"攻 9・\",\"血 6\",\"・共鳴1拍\"] others="
+  ],
+  "base": {
+   "cells": 390,
+   "redCells": 0
+  }
+ },
+ "n3": {
+  "badN": 0,
+  "gap": [
+   2,
+   2
+  ],
+  "base": {
+   "cells": 210,
+   "gapRange": [
+    2,
+    2
+   ]
+  },
+  "bad": []
+ },
+ "n4": {
+  "pass": true,
+  "bars": {
+   "curse": "rgb(144, 96, 208)",
+   "xianghuo": "rgb(240, 128, 96)",
+   "zuling": "rgb(139, 96, 64)",
+   "yinqi": "rgb(112, 176, 128)"
+  },
+  "line": "rgb(201, 168, 98)",
+  "zulingVsGold": 35.7,
+  "zulingVsLine": 26.4,
+  "pairwise": {
+   "curse-xianghuo": 41.1,
+   "curse-zuling": 40.8,
+   "curse-yinqi": 46.8,
+   "xianghuo-zuling": 23.8,
+   "xianghuo-yinqi": 49.4,
+   "zuling-yinqi": 39
+  },
+  "base": {
+   "note": "基準沒有系色條；下列為基準的祖靈 token（--zuling）對 --gold 與四系 token 兩兩",
+   "zulingTokenVsGold": 12.7,
+   "pairwise": {
+    "--zuling|--xianghuo": 19.4,
+    "--zuling|--yinqi": 29.4,
+    "--zuling|--curse": 51.6,
+    "--xianghuo|--yinqi": 49.4,
+    "--xianghuo|--curse": 41.1,
+    "--yinqi|--curse": 46.8
+   }
+  }
+ },
+ "n5": {
+  "font": 11,
+  "contrast": 10.04,
+  "base": {
+   "fontMin": 11,
+   "contrastMin": 10.04
+  },
+  "bad": []
+ },
+ "n6": {
+  "badN": 5496,
+  "bad": [
+   "solo|title@V1 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+   "solo|title@V1 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+   "solo|title@V2 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+   "solo|title@V2 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif",
+   "solo|title@V3 #titleScr h1 → \"LXGW WenKai TC\", \"Songti TC\", serif",
+   "solo|title@V3 #titleScr .bigbtn → \"LXGW WenKai TC\", \"Songti TC\", serif"
+  ],
+  "loaded": [
+   "LXGW WenKai TC 400",
+   "LXGW WenKai TC 700",
+   "Noto Sans TC 400",
+   "Noto Sans TC 700",
+   "Noto Sans TC 900"
+  ]
+ },
+ "n7a": [],
+ "n8": {
+  "per": {
+   "select": {
+    "cells": 5,
+    "keys": 20,
+    "maxDelta": 0,
+    "noBase": 0
+   },
+   "duel": {
+    "cells": 5,
+    "keys": 6,
+    "maxDelta": 0,
+    "noBase": 0
+   },
+   "end": {
+    "cells": 3,
+    "keys": 77,
+    "maxDelta": 0,
+    "noBase": 0
+   },
+   "review": {
+    "cells": 2,
+    "keys": 4,
+    "maxDelta": 818,
+    "noBase": 0
+   },
+   "nw-menu": {
+    "cells": 3,
+    "keys": 6,
+    "maxDelta": 0,
+    "noBase": 0
+   },
+   "nw-intro": {
+    "cells": 3,
+    "keys": 6,
+    "maxDelta": 0,
+    "noBase": 0
+   }
+  },
+  "bad": [
+   "solo|review #review > div#reviewbox:1 差 818.0px 基準[146,0,560,4619.4] 改後[146,0,560,3801.4]",
+   "hot|review #review > div#reviewbox:1 差 68.0px 基準[146,0,560,4559.8] 改後[146,0,560,4491.8]"
+  ]
+ },
+ "n9": {
+  "worse": [
+   "contrast@V3 0→1",
+   "contrast@V4 0→1"
+  ],
+  "newItems": [
+   "contrast #pwch-A > i.pwfac",
+   "contrast #pwch-B > i.pwfac"
+  ]
+ }
+}
