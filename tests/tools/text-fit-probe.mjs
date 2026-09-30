@@ -18,6 +18,9 @@ const OUT = path.resolve(arg('--out', path.join(ROOT, 'docs/experiments/2026-09-
 const TAG = arg('--tag', BASE ? 'base-' + BASE : 'head');
 const SEED = Number(arg('--seed', 3));
 const MODES = arg('--modes', 'solo,hot,nw1,nw2,nw3').split(',');
+/* 診斷用（09-30 雲端，#8 歸因）：--nw-seed N 讓夜行錄章節局改走 visual-polish-probe 的固定種子路徑（newGame('solo', N, picks, {chapter})），
+   base 與 head 走到同一局；不給＝原行為（正式頁「入市」鈕、每次新種子），正式 #8 量測照舊不帶此旗標。 */
+const NW_SEED = arg('--nw-seed', null) == null ? null : Number(arg('--nw-seed', null));
 const PORT = 9643;
 const SHOTS = path.join(OUT, 'shots-' + TAG);
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -209,7 +212,7 @@ const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.js
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 const browser = await chromium.launch();
-const R = { tag: TAG, base: BASE, seed: SEED, viewports: VP, cells: {}, transitions: [], notes: [], pageErrors: {} };
+const R = { tag: TAG, base: BASE, seed: SEED, nwSeed: NW_SEED, viewports: VP, cells: {}, transitions: [], notes: [], pageErrors: {} };
 
 async function setVP(page, name) {
   const v = VP[name];
@@ -376,7 +379,8 @@ async function runNw(ch, full) {
     await page.evaluate(() => document.getElementById('nwGo').click());
     await pickFirstRole(page);
     await cellsFor(page, mode, 'select');
-    await page.evaluate(() => document.getElementById('selBtn').click());
+    if (NW_SEED == null) await page.evaluate(() => document.getElementById('selBtn').click());
+    else await page.evaluate((sd) => { SEL.picks.push(SEL.cur); SEL.cur = null; document.getElementById('selectScr').classList.remove('on'); newGame('solo', sd, SEL.picks, { chapter: SEL.chapter }); }, NW_SEED);
     await page.waitForFunction((c) => window.__yaoshi.S && window.__yaoshi.S.chapter === c, ch);
     if (!full) { await drive(page, mode, (cls, n) => cls === 'bid' && n >= 2); return; }
     await drive(page, mode);

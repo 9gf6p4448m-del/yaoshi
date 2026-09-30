@@ -6,7 +6,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 D, OUT = sys.argv[1], sys.argv[2]
 def font(sz):
-    for f in ['C:/Windows/Fonts/msjh.ttc', 'C:/Windows/Fonts/msjhbd.ttc', 'C:/Windows/Fonts/mingliu.ttc']:
+    for f in ['C:/Windows/Fonts/msjh.ttc', 'C:/Windows/Fonts/msjhbd.ttc', 'C:/Windows/Fonts/mingliu.ttc',
+              # Linux（雲端）：Windows 字型不存在時用已安裝的 CJK 字型，避免簽收圖中文缺字（只影響圖上標籤字，不影響截圖本身）
+              '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc']:
         if os.path.exists(f): return ImageFont.truetype(f, sz)
     return ImageFont.load_default()
 F, FS = font(22), font(15)
