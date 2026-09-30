@@ -37,3 +37,27 @@
 | #8 text-fit | 共同 860 格 724→726；總數 785→732 | 總數差來自覆蓋（base 獨有 115 格）；共同格 1 格變紅（nw3 第 1 夜戰況 @V2 要捲）、3 格變綠 | `textfit-common-head3.txt` |
 | #8 landscape-fit | 105/105 = 105/105 | | `lf-head3.log` |
 | #11(h) | **未實作：條件對舊版恆過** | 399b681b 峰群 49、斜反光 1.97 皆過 | `mirror/c11h-finding.md` |
+
+## 第四批（09-30 雲端 Linux，HEAD `242165b8`＝產品 `197adfeb` 加雲端工具；`run-d-linux.sh`，TAG=cloud1）
+
+環境：Linux、Chromium 141（雲端預裝，別名成 Playwright 1.62.1 期待的路徑）、three 0.158.0 由 `tools/three158` 本地供應（unpkg 被網路政策擋）、Google 字型走磁碟快取（`tools/cloud-env/`，未追蹤）。基準 86e46763 在**同一環境重量**（tag `linuxbase`），不與 Windows 的 `probe-base.json` 逐格比。產品碼與凍結門檻未動；只改工具環境適配。
+
+| 驗收 | 結果 |
+|---|---|
+| 已簽文字 | 32/32、卡面 5/5、合陣 2/2、樣板 4/4，差 0 |
+| 面板 #5–#7 | 100/100（`panels-cloud1/`） |
+| 鑑賞 #1–#3、#11(a–h) | 80 格各項 fail 0；盯上等價 40/40（`cloud1-judge.json`） |
+| 切換 #4 | 260/260 |
+| 個人化 #11(k) | 960 格 fail 0；連鎖 11／共鳴 191／盯上 170／沒事 600 |
+| #8 牌桌 draw／鏡頭 | 82＝82；鏡頭逐值相同；鑑賞態 19 ≤ 牌桌 |
+| #8 trace-eq | equal（seeds 1..20） |
+| #8 landscape-fit | 105/105 = 105/105 |
+| #8 全套（CRLF 取出） | **400/402**：失敗 2 項＝`nightwalk.test.mjs` #1、#6 需要 `git show 3a0d971:index.html`，該提交不在雲端 clone（任何遠端分支都沒有）。環境缺件，非產品失敗，也未改測試；需在本機（有 3a0d971）補跑 |
+| #8 text-fit／第一階段共同畫面 | **不過（未修正原因，見下）** |
+| #11(i) 簽收圖 | `signoff-cloud1/` 已重產（中文字用 WenQuanYi），**待使用者簽收** |
+| #10 發布送達 | 未做，未發布 |
+
+### #8 兩格回退的歸因（`diag-cloud/`）
+- text-fit 紅格（本次 Linux：`nw1|event-result|n4@V2`、`n8@V3`、`n8@V4` 的 `#felt`；Windows：`n8@V2`）：**夜行錄局的正式量測不固定種子**，base／head 走到不同事件（例：base 第 8 夜厲鬼索命、head 大風吹），格名相同、內容不同。新增 opt-in `--nw-seed 3` 讓兩版走同一局：nw1 共同 235 格 base 203→head 203，**base 綠 head 紅 0**（`textfit-nw1-seed3-*.json`）。每次不固定種子重跑，紅格就換一批，也證實是內容差。
+- contrast 紅格（`#pwch-* > i.pwfac`，Windows nw2@V1、Linux nw1@V3／V4）：兩版對該元素的程式行差 0；`appraise-duel-freeze.mjs` 把夜戰停在同一拍，base＝head（肉 5.41、祖 8.57，≥ 4.5）。probe 是「藏字截圖」與「量測當下」兩個時刻拼的，夜戰演出中兩刻不同幀，量到的底色是暗場景。
+- **依凍結 #8(b) 字面，正式量法（不固定種子）仍判不過，我沒有改量法或放寬門檻。** 待使用者裁定：是否把「夜行錄局固定種子」與「夜戰量測停拍」列為 #8 的正式量法（改的是量測工具，不是門檻）。

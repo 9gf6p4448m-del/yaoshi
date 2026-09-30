@@ -1,1 +1,79 @@
 [text-fit] solo done 543s
+[text-fit] hot done 601s
+[text-fit] nw1 done 399s
+[text-fit] nw2 done 75s
+[text-fit] nw3 done 76s
+{
+ "tag": "cloud1",
+ "cells": 825,
+ "cellsRed": 150,
+ "byVp": {
+  "V1": {
+   "cells": 165,
+   "red": 38,
+   "redScrollOnly": 38
+  },
+  "V2": {
+   "cells": 165,
+   "red": 27,
+   "redScrollOnly": 27
+  },
+  "V3": {
+   "cells": 165,
+   "red": 39,
+   "redScrollOnly": 39
+  },
+  "V4": {
+   "cells": 165,
+   "red": 43,
+   "redScrollOnly": 43
+  },
+  "V5": {
+   "cells": 165,
+   "red": 3,
+   "redScrollOnly": 3
+  }
+ },
+ "items": 6,
+ "lost": [
+  "solo|shrine-run lost8",
+  "hot|shrine-run lost8",
+  "hot|duel lost1",
+  "nw1|shrine-run lost6",
+  "nw1|duel lost1",
+  "nw2|shrine-run lost1",
+  "nw3|shrine-run lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ },
+ "guard": {
+  "cells": 0,
+  "spill": {},
+  "overlap": {}
+ },
+ "strips": [
+  "#feltHead n734 minOwn 0 minEff 0 低於.85且無字影 0 ",
+  "#feltHead > span.headCompact n734 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead > div.wishbar n345 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#northPrev > button.nsum n525 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#revealCard n21 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
+  "#pnl n235 minOwn 0.94 minEff 0.94 低於.85且無字影 0 ",
+  "#stage > div.stageCard.resultStrip n29 minOwn 0.94 minEff 0.94 低於.85且無字影 0 ",
+  "#stage > div.stageCard n100 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n10 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#bub1 n17 minOwn 1 minEff 1 低於.85且無字影 0 "
+ ],
+ "itemList": [
+  "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 音訊診斷：sfx v0.59.2 」→「？ 妖市規則 音訊診斷：sfx v0.59.2 」",
+  "[scroll reach 59/59] #pnl ×59 「第 2 夜・戰況 心 願 南 青面攤主 你 「敗」→「第 2 夜・戰況心願南青面攤主你「敗軍之志」未達」",
+  "[scroll reach 69/69] #felt ×69 「北風・ 上弦｜祖靈拍：全隊 HP +1・陰間放貸」→「北風・ 上弦｜祖靈拍：全隊 HP +1・陰間放貸」",
+  "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
+  "[scroll reach 3/3] #nwScr ×3 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
+  "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」"
+ ]
+}
