@@ -74,7 +74,7 @@ function drawBody(x, S) {
   g.addColorStop(0, '#3a2c14'); g.addColorStop(t(A.BAGUA_OUT), '#2a1d0a'); g.addColorStop(t(A.FRAME0), '#5b431c');
   // 金框＝圓潤的一圈（內外兩道亮稜夾一道凹槽）：亮稜用 mock-b.js 外緣的亮金色標
   g.addColorStop(t(A.FRAME0 + 0.006), '#f0d48a'); g.addColorStop(t(A.BEAD - bw - 0.004), '#fff0bc');
-  g.addColorStop(t(A.BEAD - bw), '#a07c3c'); g.addColorStop(t(A.BEAD + bw), '#a07c3c');
+  g.addColorStop(t(A.BEAD - bw), '#b08c48'); g.addColorStop(t(A.BEAD + bw), '#b08c48');
   g.addColorStop(t(A.BEAD + bw + 0.004), '#fff0bc'); g.addColorStop(t(A.LINE0 - 0.008), '#e6c778');
   g.addColorStop(t(A.LINE0), '#6a4e20'); g.addColorStop(1, '#6a4e20');
   x.fillStyle = g; x.beginPath(); x.arc(c, c, R - 1, 0, Math.PI * 2); x.fill();
@@ -105,7 +105,7 @@ function drawBody(x, S) {
 function drawBagua(x, S) {
   const c = S / 2, R = c, r0 = R * APPR_FX.FACE, r1 = R * APPR_FX.BAGUA_OUT;
   x.clearRect(0, 0, S, S);
-  x.fillStyle = 'rgba(24,16,7,0.97)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
+  x.fillStyle = 'rgba(78,56,24,0.96)'; x.beginPath(); x.arc(c, c, r1, 0, Math.PI * 2); x.arc(c, c, r0, 0, Math.PI * 2, true); x.fill();
   x.strokeStyle = '#d8b868'; x.lineWidth = Math.max(2, S * 0.004);
   x.beginPath(); x.arc(c, c, r1 - x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
   x.beginPath(); x.arc(c, c, r0 + x.lineWidth / 2, 0, Math.PI * 2); x.stroke();
@@ -114,7 +114,7 @@ function drawBagua(x, S) {
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 - Math.PI / 2, t = TRI[TRI_ORDER[k]];
     x.save(); x.translate(c + Math.cos(a) * mid, c + Math.sin(a) * mid); x.rotate(a + Math.PI / 2);
-    const L = band * 1.6, h = band * 0.28, gap = band * 0.32;
+    const L = band * 1.7, h = band * 0.31, gap = band * 0.33;
     for (let y = 0; y < 3; y++) {
       const yy = (y - 1) * gap;
       if (t[y]) x.fillRect(-L / 2, yy - h / 2, L, h);
