@@ -9,11 +9,13 @@ const asModule = source => 'data:text/javascript;base64,' + Buffer.from(source).
 const source = name => fs.readFileSync(new URL('../js/' + name, import.meta.url), 'utf8')
   .replace("from 'three'", `from '${threeURL}'`);
 const sceneURL = asModule(source('scene-env.js'));
+const relicMotionURL = asModule(source('relic-motion.js'));
 const propsSource = process.env.YAOSHI_PROPS_PATH
   ? fs.readFileSync(process.env.YAOSHI_PROPS_PATH, 'utf8').replace("from 'three'", `from '${threeURL}'`)
   : source('table-props.js');
 const propsURL = asModule(propsSource
-  .replace("import('./scene-env.js' + V)", `import('${sceneURL}')`));
+  .replace("import('./scene-env.js' + V)", `import('${sceneURL}')`)
+  .replace("import('./relic-motion.js' + V)", `import('${relicMotionURL}')`));
 const { createTableProps, PROPS } = await import(propsURL);
 
 test('同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立', () => {
