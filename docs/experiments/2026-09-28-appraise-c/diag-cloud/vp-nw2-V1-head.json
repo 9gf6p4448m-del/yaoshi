@@ -1,0 +1,4120 @@
+{
+ "tag": "h",
+ "base": null,
+ "seed": 3,
+ "viewports": {
+  "V1": {
+   "w": 852,
+   "h": 393,
+   "safe": [
+    0,
+    59,
+    21,
+    59
+   ]
+  },
+  "V2": {
+   "w": 932,
+   "h": 430,
+   "safe": [
+    0,
+    59,
+    21,
+    59
+   ]
+  },
+  "V3": {
+   "w": 844,
+   "h": 390,
+   "safe": [
+    0,
+    47,
+    21,
+    47
+   ]
+  },
+  "V4": {
+   "w": 667,
+   "h": 375,
+   "safe": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "V5": {
+   "w": 1280,
+   "h": 720,
+   "safe": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "cells": {
+  "nw2|nw-menu": {
+   "mode": "nw2",
+   "cls": "nw-menu",
+   "night": null,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [],
+     "contrast": [],
+     "nsumContrast": [],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".nwCard": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#nwScr h2": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": {
+       "#nwScr": [
+        0,
+        0,
+        852,
+        393
+       ],
+       "#nwScr > div#nwBody:1": [
+        59,
+        10,
+        734,
+        208.2
+       ]
+      },
+      "tabs": {
+       "tabs": [],
+       "cardsVisible": [],
+       "cardItems": {},
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [],
+      "home": null
+     },
+     "north": [],
+     "northItems": null,
+     "shot": "nw2_nw-menu-V1.png"
+    }
+   }
+  },
+  "nw2|nw-intro": {
+   "mode": "nw2",
+   "cls": "nw-intro",
+   "night": null,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [],
+     "contrast": [],
+     "nsumContrast": [],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        "#nwScr h2": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": {
+       "#nwScr": [
+        0,
+        0,
+        852,
+        393
+       ],
+       "#nwScr > div#nwBody:1": [
+        59,
+        10,
+        734,
+        362
+       ]
+      },
+      "tabs": {
+       "tabs": [],
+       "cardsVisible": [],
+       "cardItems": {},
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [],
+      "home": null
+     },
+     "north": [],
+     "northItems": null,
+     "shot": "nw2_nw-intro-V1.png"
+    }
+   }
+  },
+  "nw2|select": {
+   "mode": "nw2",
+   "cls": "select",
+   "night": null,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [],
+     "contrast": [],
+     "nsumContrast": [],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".rcard .rnm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".rcard": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": {
+       "#selectScr": [
+        0,
+        0,
+        852,
+        393
+       ],
+       "#selectScr > div#selHead:1": [
+        59,
+        8,
+        734,
+        30
+       ],
+       "#selectScr > div#selGrid:1": [
+        59,
+        44,
+        734,
+        255.1
+       ],
+       "#selectScr > div#selFoot:1": [
+        59,
+        305.1,
+        734,
+        66.9
+       ]
+      },
+      "tabs": {
+       "tabs": [],
+       "cardsVisible": [],
+       "cardItems": {},
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [],
+      "home": null
+     },
+     "north": [],
+     "northItems": null,
+     "shot": "nw2_select-V1.png"
+    }
+   }
+  },
+  "nw2|mark|n1": {
+   "mode": "nw2",
+   "cls": "mark",
+   "night": 1,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-zuling 118-158",
+        "#railW > div.railTabs > button.sys-curse 162-202",
+        "#railE > div.railTabs > button.sys-xianghuo 118-158",
+        "#railE > div.railTabs > button.sys-zuling 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "盯上宣告",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "山神庇佑",
+         "name": "山神庇佑",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "魔神仔的芭樂",
+         "name": "魔神仔的芭樂",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          64,
+          161.9,
+          110.9,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          163.9,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "五營旗",
+         "name": "五營旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "百步蛇紋盾",
+         "name": "百步蛇紋盾",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          689.6,
+          161.9,
+          98.4,
+          40
+         ],
+         "textRect": [
+          700.6,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc1": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "mc2": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "mc3": [
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [
+       {
+        "text": "盯上宣告 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・平手 ｜倒數 4 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         84.1,
+         233.7,
+         183,
+         38.9
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "👁",
+       "盯上宣告",
+       "：封標前公開釘一件「我盯上了」。",
+       "🤝",
+       "你的信譽 1.00",
+       "（還沒有紀錄）",
+       "（近 4 次宣告；怎麼算看 ？）",
+       "盯主標還是誘餌？看底列每隻對手的反應。"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "0",
+       "西",
+       "0",
+       "東",
+       "0",
+       "你 0・平手",
+       "第 5 夜請神・倒數 4 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 25,
+     "shot": "nw2_mark_n1-V1.png"
+    }
+   }
+  },
+  "nw2|bid|n1": {
+   "mode": "nw2",
+   "cls": "bid",
+   "night": 1,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-zuling 118-158",
+        "#railW > div.railTabs > button.sys-curse 162-202",
+        "#railE > div.railTabs > button.sys-xianghuo 118-158",
+        "#railE > div.railTabs > button.sys-zuling 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "盯上宣告",
+       "ratio": 12.19,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 10.04,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        34,
+        31,
+        28
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 10.04,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        34,
+        31,
+        28
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".bsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        ".incamt": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "山神庇佑",
+         "name": "山神庇佑",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "魔神仔的芭樂",
+         "name": "魔神仔的芭樂",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          64,
+          161.9,
+          110.9,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          163.9,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "五營旗",
+         "name": "五營旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "百步蛇紋盾",
+         "name": "百步蛇紋盾",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          689.6,
+          161.9,
+          98.4,
+          40
+         ],
+         "textRect": [
+          700.6,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc1": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "mc2": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "mc3": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [
+       {
+        "text": "明夜「媽祖令旗」 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・平手 ｜倒數 4 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         84.1,
+         233.7,
+         183,
+         38.9
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 10,
+        "missing": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "🔮",
+       "明夜預告：「媽祖令旗」",
+       "點拍品出價・每夜最多 2 筆・每筆買路錢 1"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "0",
+       "西",
+       "0",
+       "東",
+       "0",
+       "你 0・平手",
+       "第 5 夜請神・倒數 4 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 20,
+     "shot": "nw2_bid_n1-V1.png"
+    }
+   }
+  },
+  "nw2|reveal": {
+   "mode": "nw2",
+   "cls": "reveal",
+   "night": 1,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-zuling 118-158",
+        "#railW > div.railTabs > button.sys-curse 162-202",
+        "#railE > div.railTabs > button.sys-xianghuo 118-158",
+        "#railE > div.railTabs > button.sys-zuling 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.19,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".bsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        ".bidfly": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "山神庇佑",
+         "name": "山神庇佑",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "魔神仔的芭樂",
+         "name": "魔神仔的芭樂",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          64,
+          161.9,
+          110.9,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          163.9,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "五營旗",
+         "name": "五營旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "百步蛇紋盾",
+         "name": "百步蛇紋盾",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          689.6,
+          161.9,
+          98.4,
+          40
+         ],
+         "textRect": [
+          700.6,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc1": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "mc2": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "mc3": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [
+       {
+        "text": "明夜「媽祖令旗」 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・平手 ｜倒數 4 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         84.1,
+         233.7,
+         183,
+         38.9
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 10,
+        "missing": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "🔮",
+       "明夜預告：「媽祖令旗」",
+       "點拍品出價・每夜最多 2 筆・每筆買路錢 1"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "0",
+       "西",
+       "0",
+       "東",
+       "0",
+       "你 0・平手",
+       "第 5 夜請神・倒數 4 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 20,
+     "shot": "nw2_reveal-V1.png"
+    }
+   }
+  },
+  "nw2|shrine|n1": {
+   "mode": "nw2",
+   "cls": "shrine",
+   "night": 1,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-zuling 118-158",
+        "#railW > div.railTabs > button.sys-curse 162-202",
+        "#railE > div.railTabs > button.sys-xianghuo 118-158",
+        "#railE > div.railTabs > button.sys-zuling 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.19,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".stageCard .big": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".bsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "山神庇佑",
+         "name": "山神庇佑",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "魔神仔的芭樂",
+         "name": "魔神仔的芭樂",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          64,
+          161.9,
+          110.9,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          163.9,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "五營旗",
+         "name": "五營旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "百步蛇紋盾",
+         "name": "百步蛇紋盾",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          689.6,
+          161.9,
+          98.4,
+          40
+         ],
+         "textRect": [
+          700.6,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc1": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "mc2": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "mc3": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": {
+       "cls": "stageCard resultStrip",
+       "rect": [
+        67,
+        214.2,
+        718,
+        93.8
+       ],
+       "south": [
+        59,
+        310,
+        734,
+        62
+       ],
+       "gap": 2,
+       "overlapSouth": false,
+       "big": [
+        15
+       ],
+       "rows": [],
+       "all": [
+        "🏮",
+        "本夜成交總覽",
+        "南",
+        "青面攤主",
+        "你",
+        "得標 0",
+        "— 沒拿到 —",
+        "北",
+        "收驚婆",
+        "得標 1",
+        "山神庇佑",
+        "−3",
+        "落標費",
+        "−2",
+        "西",
+        "普渡爐主",
+        "得標 1",
+        "五營旗",
+        "−8",
+        "落標費",
+        "−3",
+        "東",
+        "閭山法師",
+        "得標 2",
+        "☠",
+        "魔神仔的芭樂",
+        "−6",
+        "買下銷毀",
+        "百步蛇紋盾",
+        "−9"
+       ],
+       "shown": [
+        "🏮",
+        "本夜成交總覽",
+        "南",
+        "青面攤主",
+        "你",
+        "得標 0",
+        "— 沒拿到 —",
+        "北",
+        "收驚婆",
+        "得標 1",
+        "山神庇佑",
+        "−3",
+        "落標費",
+        "−2",
+        "西",
+        "普渡爐主",
+        "得標 1",
+        "五營旗",
+        "−8",
+        "落標費",
+        "−3",
+        "東",
+        "閭山法師",
+        "得標 2",
+        "☠",
+        "魔神仔的芭樂",
+        "−6",
+        "買下銷毀",
+        "百步蛇紋盾",
+        "−9"
+       ]
+      },
+      "nsum": [
+       {
+        "text": "明夜「媽祖令旗」 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・平手 ｜倒數 4 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "山神庇佑",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 壽命 30 以上時，共鳴加成額外 +50%",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "魔神仔的芭樂",
+         "詛咒・纏身",
+         "詛咒",
+         "每夜末：每件失 1 壽命",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         84.1,
+         233.7,
+         183,
+         38.9
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "五營旗",
+         "共鳴2拍・小紙人×3",
+         "香火",
+         "✦ 共鳴計算時，香火視為多 1 件",
+         "小紙人×3・",
+         "攻 1・",
+         "血 3",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 10,
+        "missing": [
+         "👁",
+         "北西東",
+         "百步蛇紋盾",
+         "共鳴1拍・護法紙人×2",
+         "祖靈",
+         "✦ 戰敗時少失 2 壽命，最低仍失 1",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "🔮",
+       "明夜預告：「媽祖令旗」",
+       "點拍品出價・每夜最多 2 筆・每筆買路錢 1"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "0",
+       "西",
+       "0",
+       "東",
+       "0",
+       "你 0・平手",
+       "第 5 夜請神・倒數 4 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 20,
+     "shot": "nw2_shrine_n1-V1.png"
+    }
+   }
+  },
+  "nw2|shrine-run": {
+   "mode": "nw2",
+   "cls": "shrine-run",
+   "night": 1,
+   "vp": {},
+   "lost": 1
+  },
+  "nw2|reveal-result": {
+   "mode": "nw2",
+   "cls": "reveal-result",
+   "night": 1,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「媽祖令旗」",
+       "ratio": 12.19,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・平手",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 4 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".stageCard .big": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".bsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        "#shz > div": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [],
+       "cardsVisible": [],
+       "cardItems": {},
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": {
+       "cls": "stageCard resultStrip",
+       "rect": [
+        106,
+        247.6,
+        640,
+        60.4
+       ],
+       "south": [
+        59,
+        310,
+        734,
+        62
+       ],
+       "gap": 2,
+       "overlapSouth": false,
+       "big": [
+        15
+       ],
+       "rows": [
+        12,
+        12,
+        12
+       ],
+       "all": [
+        "🕯️",
+        "第 1 夜・請神",
+        "🕯️",
+        "北家・收驚婆 燒了",
+        "1",
+        "壽命（香火累計 1）",
+        "🕯️",
+        "西家・普渡爐主 燒了",
+        "1",
+        "壽命（香火累計 1）",
+        "🕯️",
+        "東家・閭山法師 燒了",
+        "1",
+        "壽命（香火累計 1）"
+       ],
+       "shown": [
+        "🕯️",
+        "第 1 夜・請神",
+        "🕯️",
+        "北家・收驚婆 燒了",
+        "1",
+        "壽命（香火累計 1）",
+        "🕯️",
+        "西家・普渡爐主 燒了",
+        "1",
+        "壽命（香火累計 1）",
+        "🕯️",
+        "東家・閭山法師 燒了",
+        "1",
+        "壽命（香火累計 1）"
+       ]
+      },
+      "nsum": [],
+      "home": null
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "🔮",
+       "明夜預告：「媽祖令旗」",
+       "點拍品出價・每夜最多 2 筆・每筆買路錢 1"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "0",
+       "西",
+       "0",
+       "東",
+       "0",
+       "你 0・平手",
+       "第 5 夜請神・倒數 4 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "shot": "nw2_reveal-result-V1.png"
+    }
+   }
+  },
+  "nw2|duel": {
+   "mode": "nw2",
+   "cls": "duel",
+   "night": 1,
+   "vp": {},
+   "lost": 1
+  },
+  "nw2|mark|n2": {
+   "mode": "nw2",
+   "cls": "mark",
+   "night": 2,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-xianghuo 118-158",
+        "#railW > div.railTabs > button.sys-zuling 162-202",
+        "#railE > div.railTabs > button.sys-zuling 118-158",
+        "#railE > div.railTabs > button.sys-curse 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "盯上宣告",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・落後 1",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 3 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "媽祖令旗",
+         "name": "媽祖令旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "獻祭刀",
+         "name": "獻祭刀",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          161.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          126.5,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "雷女之火",
+         "name": "雷女之火",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          713.1,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "縛靈鎖",
+         "name": "縛靈鎖",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          692,
+          161.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "媽祖令旗",
+         "共鳴2拍・護法紙人×2",
+         "香火",
+         "✦ 你的保守標上限提高 50%（向下取整）",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 8",
+         "・共鳴2拍"
+        ],
+        "mc1": [
+         "獻祭刀",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1）",
+         "大紙偶×1・",
+         "攻 9・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "mc2": [
+         "雷女之火",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "✦ 共鳴計算時，祖靈視為多 1 件",
+         "大紙偶×1・",
+         "攻 8・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc3": [
+         "縛靈鎖",
+         "詛咒・纏身",
+         "詛咒",
+         "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [
+       {
+        "text": "盯上宣告 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・落後 1 ｜倒數 3 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "媽祖令旗",
+         "共鳴2拍・護法紙人×2",
+         "香火",
+         "✦ 你的保守標上限提高 50%（向下取整）",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 8",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         84.1,
+         215.3,
+         183,
+         75.8
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "獻祭刀",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1）",
+         "大紙偶×1・",
+         "攻 9・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 8,
+        "missing": [
+         "雷女之火",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "✦ 共鳴計算時，祖靈視為多 1 件",
+         "大紙偶×1・",
+         "攻 8・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "縛靈鎖",
+         "詛咒・纏身",
+         "詛咒",
+         "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "👁",
+       "盯上宣告",
+       "：公開釘一件",
+       "🤝",
+       "你的信譽 1.00",
+       "（還沒有紀錄）"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "1",
+       "西",
+       "1",
+       "東",
+       "1",
+       "你 0・落後 1",
+       "第 5 夜請神・倒數 3 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 23,
+     "shot": "nw2_mark_n2-V1.png"
+    }
+   }
+  },
+  "nw2|bid|n2": {
+   "mode": "nw2",
+   "cls": "bid",
+   "night": 2,
+   "vp": {
+    "V1": {
+     "breaks": [],
+     "spill": [],
+     "font": [],
+     "target": [],
+     "align": [
+      {
+       "g": "seats",
+       "n": 2,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#seat2 64-112",
+        "#seat3 64-112"
+       ]
+      },
+      {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-xianghuo 118-158",
+        "#railW > div.railTabs > button.sys-zuling 162-202",
+        "#railE > div.railTabs > button.sys-zuling 118-158",
+        "#railE > div.railTabs > button.sys-curse 162-202"
+       ]
+      },
+      {
+       "g": "north",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#northPrev（格內有框聯集） 4-60",
+        "#northSeat（格內有框聯集） 4-60",
+        "#northShr（格內有框聯集） 4-60"
+       ]
+      },
+      {
+       "g": "southSide",
+       "n": 3,
+       "dt": 0,
+       "db": 0,
+       "dh": 0,
+       "red": false,
+       "transient": false,
+       "els": [
+        "#south > button.side 321-361",
+        "#south > button.side.roleInfoBtn 321-361",
+        "#sfxBtn 321-361"
+       ]
+      }
+     ],
+     "contrast": [],
+     "nsumContrast": [
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "盯上宣告",
+       "ratio": 12.19,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・落後 1",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 3 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northPrev > button.nsum > span.nob",
+       "text": "明夜「冥婚紅包」",
+       "ratio": 12.18,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        13,
+        8,
+        10
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "你 0・落後 1",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        11
+       ],
+       "transient": false
+      },
+      {
+       "sel": "#northShr > button.nsum > span.nob",
+       "text": "｜倒數 3 夜",
+       "ratio": 12.14,
+       "need": 4.5,
+       "fs": 11,
+       "fg": [
+        232,
+        200,
+        96
+       ],
+       "bg": [
+        12,
+        9,
+        10
+       ],
+       "transient": false
+      }
+     ],
+     "dbgPrev": null,
+     "p2": {
+      "emoji": [],
+      "fam": {
+       "fam": {
+        ".railTabs button": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .nm": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".seat .st": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#myDir": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myLife": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#myPow": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".bsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        ".incamt": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#mainbtn": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        "#south button.side": "Arial",
+        ".nsum": "\"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif",
+        "#feltHead": "\"LXGW WenKai TC\", \"Songti TC\", serif",
+        ".mut": "\"LXGW WenKai TC\", \"Songti TC\", serif"
+       },
+       "loaded": [
+        "LXGW WenKai TC 400",
+        "LXGW WenKai TC 700",
+        "Noto Sans TC 400",
+        "Noto Sans TC 700"
+       ],
+       "check": {
+        "serif": true,
+        "sans": true
+       }
+      },
+      "rects": null,
+      "tabs": {
+       "tabs": [
+        {
+         "rail": "railW",
+         "slot": 0,
+         "text": "媽祖令旗",
+         "name": "媽祖令旗",
+         "fac": "xianghuo",
+         "curse": false,
+         "rect": [
+          64,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          129.9,
+          138.9,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(240, 128, 96)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railW",
+         "slot": 1,
+         "text": "獻祭刀",
+         "name": "獻祭刀",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          64,
+          161.9,
+          96,
+          40
+         ],
+         "textRect": [
+          89,
+          173.9,
+          126.5,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Left",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 2,
+         "text": "雷女之火",
+         "name": "雷女之火",
+         "fac": "zuling",
+         "curse": false,
+         "rect": [
+          692,
+          117.9,
+          96,
+          40
+         ],
+         "textRect": [
+          713.1,
+          129.9,
+          763,
+          144.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(139, 96, 64)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        },
+        {
+         "rail": "railE",
+         "slot": 3,
+         "text": "縛靈鎖",
+         "name": "縛靈鎖",
+         "fac": "curse",
+         "curse": true,
+         "rect": [
+          692,
+          161.9,
+          96,
+          40
+         ],
+         "textRect": [
+          725.5,
+          173.9,
+          763,
+          188.9
+         ],
+         "overX": 0,
+         "scrollOver": 0,
+         "ell": false,
+         "bar": {
+          "side": "Right",
+          "w": 3,
+          "color": "rgb(144, 96, 208)"
+         },
+         "line": "rgb(201, 168, 98)",
+         "lineW": 1,
+         "bg": "rgba(11, 9, 8, 0.9)"
+        }
+       ],
+       "cardsVisible": [],
+       "cardItems": {
+        "mc0": [
+         "👁",
+         "西",
+         "媽祖令旗",
+         "共鳴2拍・護法紙人×2",
+         "香火",
+         "✦ 你的保守標上限提高 50%（向下取整）",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 8",
+         "・共鳴2拍"
+        ],
+        "mc1": [
+         "👁",
+         "北東",
+         "獻祭刀",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "🌓",
+         "今夜受惠",
+         "✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1）",
+         "大紙偶×1・",
+         "攻 9・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "mc2": [
+         "雷女之火",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "🌓",
+         "今夜受惠",
+         "✦ 共鳴計算時，祖靈視為多 1 件",
+         "大紙偶×1・",
+         "攻 8・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "mc3": [
+         "縛靈鎖",
+         "詛咒・纏身",
+         "詛咒",
+         "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ]
+       },
+       "tok": {
+        "--gold": "rgb(232, 200, 96)",
+        "--zuling": "rgb(212, 168, 112)",
+        "--xianghuo": "rgb(240, 128, 96)",
+        "--yinqi": "rgb(112, 176, 128)",
+        "--curse": "rgb(144, 96, 208)",
+        "--c-zuli": "rgb(139, 96, 64)",
+        "--sys-zuling": "rgb(139, 96, 64)",
+        "--sys-xianghuo": "rgb(240, 128, 96)",
+        "--sys-yinqi": "rgb(112, 176, 128)",
+        "--sys-curse": "rgb(144, 96, 208)",
+        "--line-gold": "rgb(201, 168, 98)"
+       }
+      },
+      "stage": null,
+      "nsum": [
+       {
+        "text": "明夜「冥婚紅包」 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         59,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11
+        ]
+       },
+       {
+        "text": "你 0・落後 1 ｜倒數 3 夜 ▾",
+        "fs": 11,
+        "color": "rgb(232, 200, 96)",
+        "rect": [
+         545,
+         4,
+         248,
+         56
+        ],
+        "kids": [
+         11,
+         11,
+         11
+        ]
+       }
+      ],
+      "home": null,
+      "expand": [
+       {
+        "rail": "railW",
+        "slot": 0,
+        "shown": false,
+        "inView": true,
+        "total": 10,
+        "missing": [
+         "👁",
+         "西",
+         "媽祖令旗",
+         "共鳴2拍・護法紙人×2",
+         "香火",
+         "✦ 你的保守標上限提高 50%（向下取整）",
+         "護法紙人×2・",
+         "攻 1・",
+         "血 8",
+         "・共鳴2拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railW",
+        "slot": 1,
+        "shown": false,
+        "inView": true,
+        "total": 12,
+        "missing": [
+         "👁",
+         "北東",
+         "獻祭刀",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "🌓",
+         "今夜受惠",
+         "✦ 出價階段可放血：第 n 次花 2×n 壽命，所有存活對手各失 4 壽命（自己須至少留 1）",
+         "大紙偶×1・",
+         "攻 9・",
+         "血 7",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 2,
+        "shown": false,
+        "inView": true,
+        "total": 10,
+        "missing": [
+         "雷女之火",
+         "共鳴1拍・大紙偶×1",
+         "祖靈",
+         "🌓",
+         "今夜受惠",
+         "✦ 共鳴計算時，祖靈視為多 1 件",
+         "大紙偶×1・",
+         "攻 8・",
+         "血 5",
+         "・共鳴1拍"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       },
+       {
+        "rail": "railE",
+        "slot": 3,
+        "shown": false,
+        "inView": true,
+        "total": 6,
+        "missing": [
+         "縛靈鎖",
+         "詛咒・纏身",
+         "詛咒",
+         "第1拍：本方最高基礎攻擊紙紮，每件攻擊 −2",
+         "🕸",
+         "詛咒品不召喚（只算纏身）"
+        ],
+        "rect": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "expanded": "true",
+        "otherCards": []
+       }
+      ],
+      "afterCollapse": []
+     },
+     "north": [],
+     "northItems": {
+      "prev": [
+       "🔮",
+       "明夜預告：「冥婚紅包」＋",
+       "🕸",
+       "收祟夜",
+       "（四件全是詛咒品、禁止買下銷毀，流標的硬塞給沒出手的人裡壽命最高者）",
+       "點拍品出價・每夜最多 2 筆・每筆買路錢 1"
+      ],
+      "shr": [
+       "🕯️",
+       "南",
+       "0",
+       "北",
+       "1",
+       "西",
+       "1",
+       "東",
+       "1",
+       "你 0・落後 1",
+       "第 5 夜請神・倒數 3 夜",
+       "殘日",
+       "祖靈",
+       "大士爺紙尊",
+       "香火",
+       "有應公",
+       "陰氣"
+      ]
+     },
+     "opened": true,
+     "itemN": 23,
+     "shot": "nw2_bid_n2-V1.png"
+    }
+   }
+  }
+ },
+ "transitions": [
+  {
+   "mode": "nw2",
+   "cls": "mark",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "bid",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "reveal",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "shrine",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "shrine-run",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "reveal-result",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "duel",
+   "night": 1,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "mark",
+   "night": 2,
+   "n": 0,
+   "items": []
+  },
+  {
+   "mode": "nw2",
+   "cls": "bid",
+   "night": 2,
+   "n": 0,
+   "items": []
+  }
+ ],
+ "notes": [],
+ "pageErrors": {
+  "nw2": []
+ },
+ "summary": {
+  "cells": 10,
+  "lost": [
+   "nw2|shrine-run lost1",
+   "nw2|duel lost1"
+  ],
+  "byCond": {
+   "breaks": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   },
+   "spill": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   },
+   "font": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   },
+   "contrast": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   },
+   "target": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   },
+   "align": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 6,
+      "redItems": 6,
+      "redCellsNoExc": 6
+     }
+    },
+    "items": {
+     "railTabs": {
+      "key": "railTabs",
+      "ex": {
+       "g": "railTabs",
+       "n": 4,
+       "dt": 44,
+       "db": 44,
+       "dh": 0,
+       "red": true,
+       "transient": false,
+       "els": [
+        "#railW > div.railTabs > button.sys-zuling 118-158",
+        "#railW > div.railTabs > button.sys-curse 162-202",
+        "#railE > div.railTabs > button.sys-xianghuo 118-158",
+        "#railE > div.railTabs > button.sys-zuling 162-202"
+       ]
+      },
+      "where": [
+       "nw2|mark|n1@V1",
+       "nw2|bid|n1@V1",
+       "nw2|reveal@V1",
+       "nw2|shrine|n1@V1",
+       "nw2|mark|n2@V1",
+       "nw2|bid|n2@V1"
+      ],
+      "n": 6
+     }
+    }
+   },
+   "north": {
+    "byVp": {
+     "V1": {
+      "cells": 10,
+      "redCells": 0,
+      "redItems": 0,
+      "redCellsNoExc": 0
+     }
+    },
+    "items": {}
+   }
+  },
+  "spillDiag": {
+   "byVp": {
+    "V1": {
+     "cells": 10,
+     "redCells": 0
+    }
+   },
+   "items": {}
+  },
+  "northOpen": {
+   "openedCells": 6,
+   "srcItemsChecked": 131
+  }
+ }
+}

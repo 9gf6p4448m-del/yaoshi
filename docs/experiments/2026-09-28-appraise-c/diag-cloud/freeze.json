@@ -1,0 +1,184 @@
+{
+ "seed": 3,
+ "ch": 2,
+ "base": "86e46763",
+ "sameState": true,
+ "stable": [
+  true,
+  true
+ ],
+ "allSame": true,
+ "minRatio": 5.41,
+ "pair": [
+  {
+   "sel": "#pwch-A > i.pwfac",
+   "text": [
+    "肉",
+    "肉"
+   ],
+   "ratio": [
+    5.41,
+    5.41
+   ],
+   "bg": [
+    [
+     138,
+     138,
+     138
+    ],
+    [
+     138,
+     138,
+     138
+    ]
+   ],
+   "same": true
+  },
+  {
+   "sel": "#pwch-B > i.pwfac",
+   "text": [
+    "祖",
+    "祖"
+   ],
+   "ratio": [
+    8.57,
+    8.57
+   ],
+   "bg": [
+    [
+     212,
+     168,
+     112
+    ],
+    [
+     212,
+     168,
+     112
+    ]
+   ],
+   "same": true
+  }
+ ],
+ "raw": {
+  "base": {
+   "tag": "base",
+   "state": {
+    "round": 1,
+    "chapter": 2,
+    "seats": [
+     "qingmian",
+     "shoujing",
+     "luzhu",
+     "lvshan"
+    ],
+    "bags": [
+     "",
+     "山神庇佑",
+     "五營旗",
+     "百步蛇紋盾"
+    ]
+   },
+   "chips": [
+    {
+     "sel": "#pwch-A > i.pwfac",
+     "text": "肉",
+     "cls": "pwfac fac-none",
+     "ratio": 5.41,
+     "fg": [
+      20,
+      16,
+      31
+     ],
+     "bg": [
+      138,
+      138,
+      138
+     ],
+     "op": 1,
+     "bgCss": "rgb(138, 138, 138)"
+    },
+    {
+     "sel": "#pwch-B > i.pwfac",
+     "text": "祖",
+     "cls": "pwfac fac-zuling",
+     "ratio": 8.57,
+     "fg": [
+      20,
+      16,
+      31
+     ],
+     "bg": [
+      212,
+      168,
+      112
+     ],
+     "op": 1,
+     "bgCss": "rgb(212, 168, 112)"
+    }
+   ],
+   "stable": true,
+   "errs": [],
+   "shot": "freeze-base.png"
+  },
+  "head": {
+   "tag": "head",
+   "state": {
+    "round": 1,
+    "chapter": 2,
+    "seats": [
+     "qingmian",
+     "shoujing",
+     "luzhu",
+     "lvshan"
+    ],
+    "bags": [
+     "",
+     "山神庇佑",
+     "五營旗",
+     "百步蛇紋盾"
+    ]
+   },
+   "chips": [
+    {
+     "sel": "#pwch-A > i.pwfac",
+     "text": "肉",
+     "cls": "pwfac fac-none",
+     "ratio": 5.41,
+     "fg": [
+      20,
+      16,
+      31
+     ],
+     "bg": [
+      138,
+      138,
+      138
+     ],
+     "op": 1,
+     "bgCss": "rgb(138, 138, 138)"
+    },
+    {
+     "sel": "#pwch-B > i.pwfac",
+     "text": "祖",
+     "cls": "pwfac fac-zuling",
+     "ratio": 8.57,
+     "fg": [
+      20,
+      16,
+      31
+     ],
+     "bg": [
+      212,
+      168,
+      112
+     ],
+     "op": 1,
+     "bgCss": "rgb(212, 168, 112)"
+    }
+   ],
+   "stable": true,
+   "errs": [],
+   "shot": "freeze-head.png"
+  }
+ }
+}
