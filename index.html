@@ -483,6 +483,11 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    不給它 min-width:0 的話 flex 項目的最小尺寸＝內容寬度，直式（390px）會把 #south 整個撐開（實測 +225px）。 */
 #budget{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;min-width:0}
 #budget .bsum{white-space:nowrap}
+/* 燒香框不得比 #budget 寬（2026-09-30 試玩回饋：放血鈕與燒香框重疊）：#budget 是 justify-content:flex-end，
+   子項比它寬就往左溢出、壓到左邊的放血鈕。框可縮（min-width:0、不超過欄寬），框內「第 N 夜・你 x／敵 y」那段
+   空間不夠時截成省略號；− 數字 ＋ 三個控制不縮。完整文字仍在整列的 title。基準 86e4676 同樣重疊（舊問題）。 */
+.incbar{min-width:0;max-width:100%;box-sizing:border-box}
+.incbar>.mut{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* 直式收起來（**與 #shrines／#market 同一條慣例**）：直式整片被 #rotateHint 蓋住、牌桌看不到，
    而底列在 390px 寬只有幾十像素可用，行內的燒香列一定會把 #south 撐開。轉橫就回來。 */
 @media (orientation:portrait){ #budget .incbar{display:none} #budget .bsum{white-space:normal} }
@@ -534,6 +539,11 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #west .bubble{left:calc(100% + 6px);top:50%;transform:translateY(-50%)}
 #east .bubble{left:auto;right:calc(100% + 6px);top:50%;transform:translateY(-50%)}
 .bubble.show{opacity:1}
+/* 對白氣泡被擋（2026-09-30 試玩回饋）：西／北座位在 DOM 裡排在 #felt 前面，同為 z-index:auto 的定位元素後者在上，
+   氣泡（在座位層裡，z-index:9 只在座位自己的層內有效）整顆被 #felt／戰況面板／成交總覽蓋住（像素量測：西側可見 0.02、北側 0）。
+   座位層抬到 #felt 之上、仍低於 #modal(20)／.rail.open(20)／#review(30)／.cutOverlay(48)；座位與 #felt 在格線上不重疊，
+   所以只有往外伸的氣泡與 ⓘ 鈕的外緣受影響。基準 86e4676 同樣被擋（舊問題）。 */
+#table .seat{position:relative;z-index:19}
 #felt{grid-area:felt;background:radial-gradient(ellipse at 50% 35%,var(--table2),var(--table));
   background:radial-gradient(ellipse at 50% 35%,var(--glass-felt2),var(--glass-felt));
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);

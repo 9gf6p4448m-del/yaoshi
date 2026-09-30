@@ -1,0 +1,12 @@
+[text-fit] solo done 740s
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+browserContext.close: Target page, context or browser has been closed
+    at async runRegular (/home/user/yaoshi/tests/tools/text-fit-probe.mjs:364:42)
+    at async file:///home/user/yaoshi/tests/tools/text-fit-probe.mjs:406:38 {
+  log: []
+}
+
+Node.js v22.22.2

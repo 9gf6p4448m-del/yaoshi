@@ -1,2 +1,79 @@
 [text-fit] solo done 549s
 [text-fit] hot done 748s
+[text-fit] nw1 done 802s
+[text-fit] nw2 done 89s
+[text-fit] nw3 done 136s
+{
+ "tag": "seedbase",
+ "cells": 890,
+ "cellsRed": 172,
+ "byVp": {
+  "V1": {
+   "cells": 179,
+   "red": 44,
+   "redScrollOnly": 44
+  },
+  "V2": {
+   "cells": 179,
+   "red": 32,
+   "redScrollOnly": 32
+  },
+  "V3": {
+   "cells": 178,
+   "red": 45,
+   "redScrollOnly": 44
+  },
+  "V4": {
+   "cells": 177,
+   "red": 48,
+   "redScrollOnly": 48
+  },
+  "V5": {
+   "cells": 177,
+   "red": 3,
+   "redScrollOnly": 3
+  }
+ },
+ "items": 6,
+ "lost": [
+  "solo|shrine-run lost8",
+  "hot|shrine-run lost9",
+  "nw1|shrine-run lost9",
+  "nw1|duel lost1",
+  "nw2|shrine-run lost1",
+  "nw2|duel lost1",
+  "nw3|shrine-run lost1",
+  "nw3|duel lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ },
+ "guard": {
+  "cells": 0,
+  "spill": {},
+  "overlap": {}
+ },
+ "strips": [
+  "#feltHead n804 minOwn 0 minEff 0 低於.85且無字影 0 ",
+  "#feltHead > span.headCompact n804 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead > div.wishbar n375 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#northPrev > button.nsum n570 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#revealCard n22 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
+  "#stage > div.stageCard.resultStrip n199 minOwn 0.94 minEff 0.94 低於.85且無字影 0 ",
+  "#stage > div.stageCard n205 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n15 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#bub1 n9 minOwn 1 minEff 1 低於.85且無字影 0 "
+ ],
+ "itemList": [
+  "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 音訊診斷：sfx v0.59.1 」→「？ 妖市規則 音訊診斷：sfx v0.59.1 」",
+  "[scroll reach 149/149] #felt ×149 「西風・ 上弦｜祖靈拍：全隊 HP +1・落魄夜 」→「西風・ 上弦｜祖靈拍：全隊 HP +1・落魄夜 」",
+  "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
+  "#duel ×1 「三拍・祟 朔月・陰氣拍 hp+1 南家 玩家一・」→「三拍・祟 朔月・陰氣拍 hp+1 南家 玩家一・」",
+  "[scroll reach 3/3] #nwScr ×3 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
+  "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」"
+ ]
+}
