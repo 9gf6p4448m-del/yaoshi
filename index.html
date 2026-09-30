@@ -123,6 +123,11 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
     color:var(--ink);background:var(--c-ink-bg);border:1px solid var(--line-gold);border-left:3px solid var(--sys,var(--line-gold));border-radius:var(--r-panel);cursor:pointer}
   #table.t3d #railE .railTabs button{flex-direction:row-reverse;padding:0 8px 0 10px;border-left:1px solid var(--line-gold);border-right:3px solid var(--sys,var(--line-gold))}
   #table.t3d .railTabs button::before{content:"";width:8px;height:8px;border-radius:1px;background:var(--sys,var(--line-gold));flex:0 0 auto}
+  .tabpick{display:none}
+  #table.t3d .railTabs .tabpick{display:inline-flex;position:relative;align-items:center;justify-content:center;flex:0 0 auto;width:20px;height:20px;margin-left:auto;border:1.5px solid var(--gold);border-radius:2px;background:var(--panel2);color:var(--gold);font-size:14px;font-weight:700;line-height:1}
+  #table.t3d #railE .railTabs .tabpick{margin-left:0;margin-right:auto}
+  #table.t3d .railTabs .tabpick::after{content:"";position:absolute;inset:-10px -6px}
+  #table.t3d .railTabs .tabpick.on{background:var(--gold);color:#14101f}
   #table.t3d .railTabs button[aria-expanded="true"]{background:var(--c-ink-bg2);box-shadow:inset 0 -2px 0 var(--c-zhu)}
   .railTabs button.sys-zuling{--sys:var(--sys-zuling)} .railTabs button.sys-xianghuo{--sys:var(--sys-xianghuo)}
   .railTabs button.sys-yinqi{--sys:var(--sys-yinqi)} .railTabs button.sys-curse{--sys:var(--sys-curse)}
@@ -231,6 +236,10 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d.appraising .rail.open .railPages .asc.fold .asc-fold{display:block}
   #table.t3d.appraising .rail.open .railPages .asc.fold .asc-rules>.mcard,#table.t3d.appraising .rail.open .railPages .asc.fold .asc-extra{display:none}
   .asc-extra{color:var(--asc-ink2)}
+  .asc-pick{display:flex;align-items:center;gap:6px;align-self:flex-start;min-height:34px;padding:2px 8px 2px 4px;font:inherit;font-weight:700;color:var(--asc-ink);background:rgba(255,255,255,.35);border:1px solid var(--asc-zhu);border-radius:3px;cursor:pointer}
+  .asc-pickbox{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:1.5px solid var(--asc-zhu);border-radius:2px;background:#fff8;color:#fff;font-size:14px;line-height:1}
+  .asc-pick.on{background:rgba(163,40,26,.14)} .asc-pick.on .asc-pickbox{background:var(--asc-zhu)}
+  #table.t3d.appraising .rail.open .railPages .asc-rules .pickbox{display:none}
   /* 原拍品卡在紙上：卡殼拿掉、墨色；名字／數值那一行與系別印由標題、標籤代表（凍結 #2 的逐字比對看的是卡片全文，不受顯示影響） */
   #table.t3d.appraising .rail.open .railPages .asc .mcard{display:block;background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin:0;min-height:0;transform:none;color:var(--asc-ink2)}
   #table.t3d.appraising .rail.open .railPages .asc .mcard,#table.t3d.appraising .rail.open .railPages .asc .mcard *{font-size:inherit;line-height:1.42;color:var(--asc-ink2)}
@@ -3251,6 +3260,12 @@ function apprYouLines(it,i){
 }
 /** 窄畫面（畫面高 < 500，V1–V4）只出優先序最高的一行，較寬最多兩行（凍結修訂 #11(g′)(3)③；鏡子半徑不得被擠小）。 */
 function apprYouMax(){ return (typeof innerHeight==="number"&&innerHeight>=500)?2:1; }
+/* 押寶夜：卷軸內的勾選鈕（與窄籤尾端的勾選框同一支 ybToggle）；卡角原本的 .pickbox 在卷軸裡走樣成黑方塊，由 CSS 收起。 */
+function ascPickHTML(it,i){
+  if(typeof YB==="undefined"||!YB||it.curse) return "";
+  const on=!!YB.pick[i];
+  return `<button type="button" class="asc-pick ${on?"on":""}" role="checkbox" aria-checked="${on}" onclick="event.stopPropagation();ybToggle(${i})"><span class="asc-pickbox">${on?"✓":""}</span>${on?"已押這一件・點一下取消":"押這一件"}</button>`;
+}
 function appraiseScrollHTML(it,side,i){
   const r=it.curse?null:unitRow(it), fac=FAC[it.f]?FAC[it.f].n:"";
   const you=apprYouLines(it,i).slice(0,apprYouMax());
@@ -3262,7 +3277,7 @@ function appraiseScrollHTML(it,side,i){
   return `<div class="asc ${side}"><div class="asc-rod top"></div><div class="asc-paper">`+
     `<div class="asc-strip"><div class="asc-nm">${apprEsc(it.n)}</div><div class="asc-seal">${apprEsc(fac)}</div></div>`+
     `<div class="asc-body">${plain?`<div class="asc-gain"><span class="asc-lab">${it.curse?"注意":"標下它"}</span>${apprEsc(plain)}</div>`:""}`+
-    `${tags?`<div class="asc-tags">${tags}</div>`:""}${youH}`+
+    `${tags?`<div class="asc-tags">${tags}</div>`:""}${ascPickHTML(it,i)}${youH}`+
     `<div class="asc-rules"><button type="button" class="asc-fold">✦ 規則原文 <b>0</b> 條・點開</button>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
     `</div></div><div class="asc-rod bot"></div></div>`;
 }
@@ -3525,9 +3540,18 @@ function equalizeRailCards(){
   }
 }
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("resize",()=>equalizeRailCards());
+/* 押寶夜勾選（2026-09-30 試玩回饋「押寶夜勾選不見了」）：0.59.2 起點窄籤進鑑賞頁、取代展開卡，
+   原本勾選框掛在展開卡角落（mcardHTML 的 .pickbox），窄籤上沒有 ⇒ 押寶夜沒地方勾。
+   窄籤尾端補一個勾選框（點框＝ybToggle，不進鑑賞；點名字照舊進鑑賞）；詛咒品該夜不開標，不給框。
+   只在 YB 有值時才出；非押寶夜字串與 0.59.2 逐位元組相同。 */
+function tabPickHTML(i){
+  if(typeof YB==="undefined"||!YB||!S.market[i]||S.market[i].curse) return "";
+  const on=!!YB.pick[i];
+  return `<span class="tabpick ${on?"on":""}" role="checkbox" aria-checked="${on}" aria-label="押寶夜勾選：${S.market[i].n}" onclick="event.stopPropagation();ybToggle(${i})">${on?"✓":""}</span>`;
+}
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
-  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}</button>`).join('')}</div>`;
+  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}${tabPickHTML(i)}</button>`).join('')}</div>`;
   /* .railCardClose 只在 3D 牌桌開卡停靠時顯示（見 assets/theme.css），其餘版面（#market 內嵌卡列、portrait fallback）
      不受影響——按鈕平時是 display:none。 */
   const close=`<button type="button" class="railCardClose" aria-label="關閉法寶卡" onclick="closeRailCard('${id}')">×</button>`;
