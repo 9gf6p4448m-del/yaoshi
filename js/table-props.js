@@ -3,7 +3,7 @@
 // 這一支負責「競標這件事在桌上留下什麼實體痕跡」：
 //   ① 壽命銅錢籌碼：出價時從自己席位推出去的方孔銅錢（幾命幾枚，>8 改成一串）
 //   ② 血玉印籌：盯上時重重拍在目標托盤所接木籌槽的「盯」字方印
-//   ③ 十席信物：十個角色各一件常駐桌角的紙紮小物
+//   ③ 十席信物：十個角色各一件常駐桌角的紙紮小物（出價時整件做一個小動作，見 relic-motion.js）
 //
 // ★為什麼不放進 table-tray.js★：那支檔頭寫的職責是「今夜這 4 件拍品在桌上長什麼樣、
 // 點下去是哪一格」——它是**拍品**的家。籌碼／令牌／信物是**席位**的東西（誰出了價、誰盯了、誰坐在那），
@@ -26,6 +26,8 @@ import * as THREE from 'three';
 const V = new URL(import.meta.url).search;
 /* 頂點色建構器與決定性亂數收斂在 scene-env（環境幾何的家），本檔不另抄一份。 */
 const { vcBuilder, seedRnd } = await import('./scene-env.js' + V);
+/* 信物出價小動作（純函式，無 three 依賴，node 測試可直接載入）。 */
+const { relicPose, RELIC_MOVE_MS } = await import('./relic-motion.js' + V);
 
 /** 道具常數表（**全部【試玩必調】**）。橫式／直式兩套座標，直式分支的鍵一律掛在 `.P` 底下。 */
 export const PROPS = {
@@ -574,15 +576,19 @@ export function createTableProps(parent, opts = {}) {
     if (tokens.instanceColor) tokens.instanceColor.needsUpdate = true;
   }
 
+  /** 某一席信物的姿態＝原擺位＋動作偏移（動作結束時偏移為零，精確回到原擺位）。 */
+  function poseRelic(i) {
+    const r = relics[i]; if (!r) return;
+    const [x, z] = seatXZ(i);
+    const k = PROPS.RELIC.SCALE * (mode === 'P' ? 0.72 : 1);
+    const o = relicPose(r.role, r.move);
+    r.mesh.position.set(x, PROPS.RELIC.Y + o.dy * k, z);
+    /* 一律面向桌心（像是那一席的人自己擺出來的），並依席次微轉一點點，四件才不會排得像樣品。 */
+    r.mesh.rotation.set(o.rx, Math.atan2(-x, -z) + [0.18, -0.12, 0.24, -0.24][i] + o.ry, o.rz);
+    r.mesh.scale.set(k, k * o.sy, k);
+  }
   function placeRelics() {
-    for (let i = 0; i < 4; i++) {
-      const r = relics[i]; if (!r) continue;
-      const [x, z] = seatXZ(i);
-      r.mesh.position.set(x, PROPS.RELIC.Y, z);
-      /* 一律面向桌心（像是那一席的人自己擺出來的），並依席次微轉一點點，四件才不會排得像樣品。 */
-      r.mesh.rotation.y = Math.atan2(-x, -z) + [0.18, -0.12, 0.24, -0.24][i];
-      r.mesh.scale.setScalar(PROPS.RELIC.SCALE * (mode === 'P' ? 0.72 : 1));
-    }
+    for (let i = 0; i < 4; i++) poseRelic(i);
     writeContactShadows();
   }
 
@@ -625,7 +631,7 @@ export function createTableProps(parent, opts = {}) {
         const mesh = b.build('relic-' + want[i], { side: THREE.DoubleSide, roughness: 0.86, metalness: 0.05, emissive: new THREE.Color(0x1f1a14) });
         mesh.userData.tris = b.count() / 3;
         group.add(mesh);
-        relics[i] = { seat: i, role: want[i], mesh };
+        relics[i] = { seat: i, role: want[i], mesh, move: 1 }; // move＝小動作進度（1＝閒置）
       }
       placeRelics();
     },
@@ -652,6 +658,7 @@ export function createTableProps(parent, opts = {}) {
       }
       // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
       while (chipRec.length > CHIP_N) { chipRec.shift(); droppedChips++; }
+      const rl = relics[s]; if (rl && rl.move > 0.5) rl.move = 0; // 信物小動作：動作進行到一半以內的重複出價不重頭來，避免抖
       writeChips();
       if (onBid) onBid(k);
       if (onChange) onChange();
@@ -759,6 +766,12 @@ export function createTableProps(parent, opts = {}) {
         }
         if (r.bounce > 0) { r.bounce = Math.max(0, r.bounce - dt * TK.BOUNCE / TK.BOUNCE_MS); live = true; }
         if (r.winnerGlow > 0) { r.winnerGlow = Math.max(0, r.winnerGlow - dt / 0.9); live = true; }
+      }
+      for (let i = 0; i < 4; i++) { // 信物小動作：接地陰影以席位為準、不隨動作走，故不必重寫
+        const r = relics[i];
+        if (!r || r.move >= 1) continue;
+        r.move = Math.min(1, r.move + dt / RELIC_MOVE_MS);
+        poseRelic(i);
       }
       if (live) { writeChips(); writeTokens(); }
     },
