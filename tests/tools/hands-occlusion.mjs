@@ -118,7 +118,10 @@ try {
   runs.push(await scenario('推（四家同一格）', [], bids([[0, 2, 3], [1, 2, 6], [2, 2, 8], [3, 2, 12]]), 46));
   runs.push(await scenario('拍', [], [0, 1, 2, 3].map((s) => ['ys:mark', { seat: s, slot: (s + 1) % 4 }]), 56, six(54)));
   runs.push(await scenario('收', bids([[0, 1, 3], [1, 1, 6], [2, 1, 8], [3, 1, 5]]), [['ys:reveal-result', { slot: 1, winner: 3 }]], 62, six(60)));
-  runs.push(await scenario('AI 一次推多格', [], bids([1, 2, 3].flatMap((s) => [0, 1, 2, 3].map((k) => [s, k, 2 + ((s + k) % 6)]))), 46, six(44)));
+  /* 第四輪：一席推多格改排隊，整段演出最長 ≈1.56 秒——量測窗從 46 步（0.77 秒）拉到 100 步（1.67 秒），排隊後段也量到 */
+  runs.push(await scenario('AI 一次推多格', [], bids([1, 2, 3].flatMap((s) => [0, 1, 2, 3].map((k) => [s, k, 2 + ((s + k) % 6)]))), 100, six(98)));
+  const eight = (n) => [0, 1, 2, 3, 4, 5, 6, 7].map((k) => 1 + Math.round(k * (n - 1) / 7));
+  runs.push(await scenario('南席一次推四格', [], bids([0, 1, 2, 3].map((k) => [0, k, 3 + k])), 100, eight(96)));
   /* 熱座清場與跳過：前後各一幀 */
   /* 第三輪：西席起手／收錢特寫（裁出西席信物附近的畫面），看手與收驚婆香爐有沒有相交 */
   const westClip = await page.evaluate(() => { const Y = window.__yaoshi3d, p = Y.tray.props.seatPosition(2), v = Y.camera.position.clone().set(p.x, p.y, p.z).project(Y.camera);
@@ -159,7 +162,8 @@ try {
     await sheet('sheet-push.jpg', '推：6 幀等距（0～0.72 秒）', fr('推'), 3);
     await sheet('sheet-slam.jpg', '拍：6 幀等距（0～0.9 秒）', fr('拍'), 3);
     await sheet('sheet-rake.jpg', '收：6 幀等距（開標後 0～1.0 秒；東席得標）', fr('收'), 3);
-    await sheet('sheet-multi.jpg', 'AI 一次推多格（北／西／東各推四格）：6 幀等距', fr('AI 一次推多格'), 3);
+    await sheet('sheet-multi.jpg', 'AI 一次推多格（北／西／東各推四格，排隊）：6 幀等距（0～1.63 秒）', fr('AI 一次推多格'), 3);
+    await sheet('sheet-queue4.jpg', '南席一次推四格（排隊：0.42／+0.06+0.22×3）：8 幀等距（0～1.6 秒）', fr('南席一次推四格'), 4);
     await sheet('sheet-handoff-skip.jpg', '熱座清場／跳過：前後各一幀', special, 2);
     await sheet('sheet-duel.jpg', '進入對決：前後各一幀', duel, 2);
     await sheet('sheet-west-closeup.jpg', '西席起手／收錢特寫（收驚婆香爐附近）', west, 3);

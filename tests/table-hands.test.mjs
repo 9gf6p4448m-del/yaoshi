@@ -419,6 +419,52 @@ for (const layout of ['L', 'P']) {
   });
 }
 
+/* ═══ 第四輪：一席一次推多格＝排隊（方案甲）═══════════════════════════ */
+async function queueRun(seat, n, probe, slots) {
+  const r = await rig('L');
+  const ks = slots || [...Array(n).keys()];
+  for (const k of ks) ev.bid(r, seat, k, 3 + k);
+  const DTQ = 1 / 120, startAt = {}, arriveAt = {}; let t = 0, handEnd = null, landed = null;
+  for (let i = 0; i < 600; i++) {
+    ev.step(r, DTQ); t += DTQ;
+    for (const k of ks) { const st = r.props.stackAt(seat, k); if (st && startAt[k] === undefined && st.t > 0) startAt[k] = t - DTQ; if (st && arriveAt[k] === undefined && st.t >= 1) arriveAt[k] = t; }
+    if (probe) probe(r, t, startAt, arriveAt);
+    if (landed === null && Object.keys(arriveAt).length === n) landed = t;
+    if (handEnd === null && landed !== null && r.hands.stats().state[seat] === null) { handEnd = t; break; }
+  }
+  return { r, startAt, arriveAt, landed, handEnd };
+}
+test('第四輪排隊時序：一席同一幀推 4 格——各格依序起步 0／0.48／0.76／1.04 秒、落定 0.42／0.70／0.98／1.26 秒（±1.5 幀）；手動作 ≤1.6 秒結束', async () => {
+  const q = await queueRun(1, 4);
+  const tol = 1.5 / 120, S = [0, 0.48, 0.76, 1.04], A = [0.42, 0.70, 0.98, 1.26];
+  for (let k = 0; k < 4; k++) {
+    assert.ok(Math.abs(q.startAt[k] - S[k]) <= tol, `第 ${k + 1} 格起步 ${q.startAt[k]}（應 ${S[k]}）`);
+    assert.ok(Math.abs(q.arriveAt[k] - A[k]) <= tol, `第 ${k + 1} 格落定 ${q.arriveAt[k]}（應 ${A[k]}）`);
+  }
+  assert.ok(q.handEnd !== null && q.handEnd <= 1.6, `手動作結束 ${q.handEnd} 秒`);
+  q.r.hands.dispose(); q.r.props.dispose();
+});
+/* 南席推中間兩格（1、2）：0／3 兩格的路徑會經過西／東席信物、手要側移避讓（第三輪規則），離錢柱本來就會拉開，不拿來量。
+   只量排隊的第二格（2）：推它的時候，手要在它的錢柱旁，而且比離上一格（1）的錢柱近——「第二格起重新抓位置」。
+   （第一格不量：南席的手推到托盤前緣會被第二輪的伸入界線擋下、錢自己滑完，那是既定規則。） */
+test('第四輪排隊：排隊的第二格推的時候，同一隻手就在那一格的錢柱旁（重新抓這一格的位置），不是留在上一格', async () => {
+  let checks = 0; const bad = [];
+  const q = await queueRun(0, 2, (r) => {
+    const st = r.props.stackAt(0, 2), prev = r.props.stackAt(0, 1);
+    if (!st || !prev || st.t < 0.2 || st.t > 0.95) return;
+    const h = holders(r)[0]; if (!h.visible) return;
+    let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); mesh.skeleton.update();
+    let d = Infinity, dp = Infinity; const P = mesh.geometry.attributes.position;
+    for (let i = 0; i < P.count; i += 3) { mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld); d = Math.min(d, Math.hypot(v.x - st.x, v.z - st.z)); dp = Math.min(dp, Math.hypot(v.x - prev.x, v.z - prev.z)); }
+    checks++; if (!(d < st.r + 0.08 && d < dp)) bad.push([+d.toFixed(3), +dp.toFixed(3)]);
+  }, [1, 2]);
+  let meshes = 0; q.r.hands.group.traverse((o) => { if (o.isSkinnedMesh) meshes++; });
+  assert.equal(meshes, 4, '仍是四隻手（每席一隻）');
+  assert.ok(checks >= 8, `活性：取樣 ${checks}`);
+  assert.deepEqual(bad.slice(0, 4), [], '［離第二格, 離第一格］');
+  q.r.hands.dispose(); q.r.props.dispose();
+});
+
 /* ═══ 時序對齊（純函式常數 vs table-props） ═════════════════════════════ */
 test('時序：推＝籌碼飛行 0.42 秒；收＝0.22 秒延遲＋0.42 秒返回；拍跟著令牌（SLAM_MS 0.30）', () => {
   assert.equal(M.HAND.PUSH_MS, PROPS.CHIP.FLY_MS);

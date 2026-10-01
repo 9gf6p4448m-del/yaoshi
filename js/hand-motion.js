@@ -412,7 +412,8 @@ export function worldPoints(rig, frame, scale) {
  * 每席只有**一個**動作槽：同席新事件一律覆寫（同席同格重複出價＝覆寫，不會疊出兩隻手）。
  */
 export function createHandDirector(props, rig) {
-  const hands = [0, 1, 2, 3].map((seat) => ({ seat, act: null, last: null }));
+  /* queue：第四輪排隊——同一席一次推多格時，還沒輪到的格（依出價先後）。同席仍只有一隻手、一個動作槽。 */
+  const hands = [0, 1, 2, 3].map((seat) => ({ seat, act: null, last: null, queue: [] }));
   const scaleNow = () => HAND.SCALE * (props.mode() === 'P' ? HAND.SCALE_P : 1);
   const start = (seat, act) => { hands[seat].act = Object.assign({ t: 0 }, act); };
   const stop = (seat) => { hands[seat].act = null; hands[seat].last = null; };
@@ -511,7 +512,10 @@ export function createHandDirector(props, rig) {
       if (!st) return null;
       /* 第二輪：用指尖抵住錢柱靠席位那側往前推（原本是掌根壓在錢柱頂，手指就伸到拍品腳邊、擋住拍品）。 */
       const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw), off = st.r + HAND.PUSH_GAP;
-      return { pose: a.pose || 'curl', anchor: 'front', target: [st.x - dx * off, st.z - dz * off], yaw,
+      let target = [st.x - dx * off, st.z - dz * off];
+      /* 排隊的後格：等候間隔內從上一格的結束位置移到這一格錢柱後方（位置每幀重新抓這一格的錢柱）。 */
+      if (a.from && a.t < a.rep) { const k = smooth(clamp01(a.t / a.rep)); target = [a.from[0] + (target[0] - a.from[0]) * k, a.from[1] + (target[1] - a.from[1]) * k]; }
+      return { pose: a.pose || 'curl', anchor: 'front', target, yaw,
         fit: a.pitch === undefined ? { target: [st.tx - dx * off, st.tz - dz * off], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
     }
     if (a.kind === 'slam') {
@@ -555,6 +559,21 @@ export function createHandDirector(props, rig) {
     return null;
   }
 
+  /** 一格推完：佇列裡還有就直接接下一格（從上一格的結束位置在等候間隔內移過去，重新抓這一格的錢柱位置），否則回 false。 */
+  function nextQueued(h, from) {
+    while (h.queue.length) {
+      const k = h.queue.shift(), st = props.stackAt(h.seat, k);
+      if (!st) continue;
+      start(h.seat, { kind: 'push', slot: k, tx: st.tx, tz: st.tz, from, rep: Math.max(st.wait, 1e-3) });
+      return true;
+    }
+    return false;
+  }
+  /** 動作做完：推且佇列還有 ⇒ 接下一格；否則收手。 */
+  function finishAct(h) {
+    if (h.act && h.act.kind === 'push' && nextQueued(h, h.last ? h.last.spec.target : null)) return;
+    if (h.last) beginRetract(h); else stop(h.seat);
+  }
   function beginRetract(h) {
     const { frame, spec } = h.last;
     h.act = { kind: 'retract', t: 0, from: { yaw: frame.yaw, pitch: frame.pitch, pose: frame.pose.slice(), anchor: spec.anchor, ax: spec.target[0], az: spec.target[1], y: frame.root[1] } };
@@ -564,8 +583,13 @@ export function createHandDirector(props, rig) {
     /** 出價：amount>0＝推；amount≤0＝那一席那一格的錢收回——手若正對著那一格，立即收（熱座清場）。 */
     bid(seat, slot, amount) {
       const s = seat | 0, k = slot | 0; if (!(s >= 0 && s < 4)) return;
-      if (!((amount | 0) > 0)) { const a = hands[s].act; if (a && a.slot === k) stop(s); return; }
+      const h = hands[s];
+      h.queue = h.queue.filter((x) => x !== k); // 同格重複出價＝覆寫：排隊裡的舊那一筆拿掉
+      if (!((amount | 0) > 0)) { const a = h.act; if (a && a.slot === k) { stop(s); nextQueued(h, null); } return; }
       const st = props.stackAt(s, k); if (!st) return;
+      /* 排隊（第四輪方案甲）：這一席的手正在推別格、而這一格的錢被 props 排在後面等 ⇒ 進佇列，輪到再推。 */
+      const a = h.act;
+      if (a && a.kind === 'push' && a.slot !== k && st.wait > 0) { h.queue.push(k); return; }
       start(s, { kind: 'push', slot: k, tx: st.tx, tz: st.tz });
     },
     /** 盯上：手握著令牌跟著它舉高、拍下；落地那一幀的 `ys:mark-slam` 仍由令牌發（本檔不發任何事件）。 */
@@ -584,9 +608,9 @@ export function createHandDirector(props, rig) {
       }
     },
     /** 換一夜／熱座清場：四隻手立即收（不可見）。 */
-    clear() { for (let s = 0; s < 4; s++) stop(s); },
+    clear() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     /** 跳過：直接到結束姿態＝四隻手全收。 */
-    finish() { for (let s = 0; s < 4; s++) stop(s); },
+    finish() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     update(dt) {
       for (const h of hands) {
         const a = h.act; if (!a) continue;
@@ -620,9 +644,9 @@ export function createHandDirector(props, rig) {
         const memoKey = JSON.stringify([req.target, req.pose, req.yaw, req.pitch, req.minY, spec.lift || 0, a.kind, a.lead, obsSig(obs), obsSig(relics)]);
         if (h.memo && h.memo.key === memoKey) {
           const m = h.memo;
-          if (!m.fr) { if (a.kind === 'retract') stop(h.seat); else if (done(h)) { if (h.last) beginRetract(h); else stop(h.seat); } return null; }
+          if (!m.fr) { if (a.kind === 'retract') stop(h.seat); else if (done(h)) finishAct(h); return null; }
           spec = m.spec; h.last = { frame: m.fr, spec };
-          if (done(h)) beginRetract(h);
+          if (done(h)) finishAct(h);
           return m.fr;
         }
         const valid = (f) => reach(h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(f, s, relics));
@@ -678,7 +702,7 @@ export function createHandDirector(props, rig) {
             /* 這一幀不畫，但動作照常結算：做完就收（被擋住的收手直接結束），不然會卡在不可見的動作裡。 */
             if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (wasCurl) a.pose = fr.pose; } // 被擋的幀也定下俯角與捲指，不再每幀重掃
             h.memo = { key: memoKey, fr: null };
-            if (a.kind === 'retract') stop(h.seat); else if (done(h)) { if (h.last) beginRetract(h); else stop(h.seat); }
+            if (a.kind === 'retract') stop(h.seat); else if (done(h)) finishAct(h);
             return null;
           }
           fr = ok;
@@ -689,7 +713,7 @@ export function createHandDirector(props, rig) {
         if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (wasCurl) a.pose = fr.pose; }
         h.last = { frame: fr, spec };
         h.memo = { key: memoKey, fr, spec };
-        if (done(h)) beginRetract(h);
+        if (done(h)) finishAct(h);
         return fr;
       });
     },
@@ -699,7 +723,8 @@ export function createHandDirector(props, rig) {
 
   function done(h) {
     const a = h.act;
-    if (a.kind === 'push') return a.t >= HAND.PUSH_MS;
+    /* 推：這一格的錢落定才算完（第一格＝原速 0.42 秒；排隊的後格各自較短）。 */
+    if (a.kind === 'push') { const st = props.stackAt(h.seat, a.slot); return !st || (st.t >= 1 && !(st.wait > 0) && a.t > 0); }
     if (a.kind === 'slam') return a.sinceLand >= HAND.SLAM.SLAP_MS + HAND.SLAM.TREMBLE_MS + HAND.SLAM.HOLD_MS;
     if (a.kind === 'rake') { const st = props.stackAt(h.seat, a.slot); return !st || st.gone || a.t >= HAND.RAKE.DELAY + HAND.RAKE.BACK_MS; }
     if (a.kind === 'hold') return a.t >= HAND.HOLD.REACH_MS + HAND.HOLD.STAY_MS;

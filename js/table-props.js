@@ -54,6 +54,10 @@ export const PROPS = {
     /* 一串（>8 枚）：銅錢立起來沿著一條短弧排，讀起來就是「一串錢」。
        ★不另做幾何★——同一批 instance 換個姿態，0 新三角形、0 新 draw call。 */
     STRING: { n: 8, gap: 0.022, tilt: 0.22 },
+    /* 席位之手第四輪（使用者裁定方案甲）：同一席一次推多格＝排隊，同席只有一隻手一格一格推。
+       第一格原速 FLY_MS；之後每格 QUEUE_FLY 秒、格與格之間 QUEUE_GAP 秒（4 格錢最後落定約 1.26 秒）。只在手開著時。 */
+    QUEUE_FLY: 0.22,
+    QUEUE_GAP: 0.06,
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
@@ -660,6 +664,13 @@ export function createTableProps(parent, opts = {}) {
       const stand = amt > CH.MAX;
       const n = stand ? CH.STRING.n : Math.min(CH.MAX, amt);
       const [fx, fz] = seatXZ(s);
+      /* 排隊（手開著時）：這一席別格還有錢在路上（或還在等），這一格就排在它們後面、用較短的推送時間。 */
+      let qDelay = 0, qFly = CH.FLY_MS;
+      if (handPaths) {
+        let busy = 0;
+        for (const c of chipRec) if (c.seat === s && c.slot !== k && c.t < 1) busy = Math.max(busy, Math.max(0, c.delay) + (1 - c.t) * (c.fly || CH.FLY_MS));
+        if (busy > 0) { qDelay = busy + CH.QUEUE_GAP; qFly = CH.QUEUE_FLY; }
+      }
       const tos = [];
       for (let i = 0; i < n; i++) tos.push(stand ? stringAt(s, k, i) : spreadAt(s, k, i, n));
       /* 手推：整柱在席位就疊好，與終點同形、平移到席位，同時起步一起滑（不錯開、不拋起）。 */
@@ -669,7 +680,7 @@ export function createTableProps(parent, opts = {}) {
         chipRec.push({
           seat: s, slot: k, k: i, n, stand, amt,
           from: handPaths ? [to[0] + fx - cx, to[1], to[2] + fz - cz] : [fx, trayY + CH.T / 2, fz], to,
-          yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: handPaths ? 0 : i * 0.035,
+          yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: handPaths ? qDelay : i * 0.035, fly: qFly,
         });
       }
       // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
@@ -767,7 +778,7 @@ export function createTableProps(parent, opts = {}) {
     tableY() { return trayY; },
     /** 某席某格桌上那一柱錢的現況（null＝沒有）：中心、頂高、外接半徑、飛行進度、是否正在被收回、終點中心。 */
     stackAt(seat, slot) {
-      let n = 0, sx = 0, sz = 0, tx = 0, tz = 0, top = -Infinity, t = 1, returning = false, rk = 1;
+      let n = 0, sx = 0, sz = 0, tx = 0, tz = 0, top = -Infinity, t = 1, returning = false, rk = 1, wait = 0, fly = CH.FLY_MS;
       const pts = [];
       for (const c of chipRec) {
         if (c.seat !== seat || c.slot !== slot || (c.returnK || 0) >= 1) continue;
@@ -778,14 +789,14 @@ export function createTableProps(parent, opts = {}) {
         const k = 1 + (c.winnerPulse || 0) * 0.24;
         top = Math.max(top, p[1] + k * (c.stand ? CH.R + CH.T / 2 : CH.T / 2 + CH.R * Math.abs(Math.sin(c.tilt || 0))));
         rk = Math.max(rk, k);
-        t = Math.min(t, c.t);
+        t = Math.min(t, c.t); wait = Math.max(wait, Math.max(0, c.delay || 0)); fly = c.fly || CH.FLY_MS;
         if (c.returnTo) returning = true;
       }
       if (!n) return null;
       const x = sx / n, z = sz / n;
       let r = 0; for (const p of pts) r = Math.max(r, Math.hypot(p[0] - x, p[2] - z));
       /* 半徑多算半個錢厚：傾斜或立著的錢，錢緣的上下兩角會比 R 再往外突出最多 T/2。 */
-      return { x, z, top, r: r + (CH.R + CH.T / 2) * rk, n, t, returning, tx: tx / n, tz: tz / n };
+      return { x, z, top, r: r + (CH.R + CH.T / 2) * rk, n, t, returning, tx: tx / n, tz: tz / n, wait, fly };
     },
     /** 某席的令牌現況（null＝沒拍）：位置、頂高、拍下進度、是否已落地。 */
     tokenAt(seat) {
@@ -833,7 +844,7 @@ export function createTableProps(parent, opts = {}) {
       for (const c of chipRec) {
         if (c.t < 1) {
           if (c.delay > 0) { c.delay -= dt; live = true; continue; }
-          c.t = Math.min(1, c.t + dt / CH.FLY_MS);
+          c.t = Math.min(1, c.t + dt / (c.fly || CH.FLY_MS));
           live = true;
         }
         if (c.winnerPulse > 0) { c.winnerPulse = Math.max(0, c.winnerPulse - dt / 0.72); live = true; }

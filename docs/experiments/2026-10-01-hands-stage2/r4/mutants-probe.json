@@ -1,0 +1,173 @@
+{
+ "summary": {
+  "mutants": 9,
+  "allRed": true,
+  "baselinePass": true,
+  "baselineGates": {
+   "B1_drawCallDelta_le4": true,
+   "B1_trisPerHand_le2500": true,
+   "pipeline_creatureFigures": true,
+   "C1_noPenetration_realSkin": true,
+   "C1_hitTestUnchanged": true,
+   "C1_idleNotOverHUD": true,
+   "C6_slamFromToken": true,
+   "noPageErrors": true
+  },
+  "baselineOcclusionGates": {
+   "occlusion_le_10pct": true,
+   "handoffClears": true,
+   "skipClears": true,
+   "duelHides": true,
+   "noPageErrors": true
+  }
+ },
+ "results": [
+  {
+   "id": "hitTest-includesHands",
+   "gate": "C1_hitTestUnchanged",
+   "what": "tray.hitTest 的射線也打手（手進了命中代理）",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": true,
+    "C1_hitTestUnchanged": false,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "idleVisible",
+   "gate": "C1_idleNotOverHUD",
+   "what": "收手做完不歸零（閒置時手留在畫面上）",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": true,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": false,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "handEmitsSlam",
+   "gate": "C6_slamFromToken",
+   "what": "手自己派 ys:mark-slam",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": true,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": false,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "extraMeshPerHand",
+   "gate": "B1_drawCallDelta_le4",
+   "what": "每隻手多掛一顆同幾何網格（像描邊外殼那樣多 1 call）",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": false,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": true,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "floorIgnoresProps",
+   "gate": "C1_noPenetration_realSkin",
+   "what": "地板只看桌面、忽略錢柱與令牌",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": false,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "bypassCache",
+   "gate": "pipeline_creatureFigures",
+   "what": "每隻手各帶不同查詢字串（繞過 glbCache、抓四次）",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": false,
+    "C1_noPenetration_realSkin": true,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "relicNoAvoid",
+   "gate": "C1_noPenetration_realSkin",
+   "what": "第三輪：不避讓信物",
+   "red": true,
+   "gates": {
+    "B1_drawCallDelta_le4": true,
+    "B1_trisPerHand_le2500": true,
+    "pipeline_creatureFigures": true,
+    "C1_noPenetration_realSkin": false,
+    "C1_hitTestUnchanged": true,
+    "C1_idleNotOverHUD": true,
+    "C6_slamFromToken": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "occl-slamCarriesToken",
+   "gate": "occlusion_le_10pct",
+   "what": "拍：手又舉著令牌飛（飛行中就上場、掌心貼著令牌跟著舉高）",
+   "red": true,
+   "gates": {
+    "occlusion_le_10pct": false,
+    "handoffClears": true,
+    "skipClears": true,
+    "duelHides": true,
+    "noPageErrors": true
+   },
+   "err": null
+  },
+  {
+   "id": "occl-westNoFront",
+   "gate": "occlusion_le_10pct",
+   "what": "西席不限托盤前緣（手伸到最左那格拍品腳前）",
+   "red": true,
+   "gates": {
+    "occlusion_le_10pct": false,
+    "handoffClears": true,
+    "skipClears": true,
+    "duelHides": true,
+    "noPageErrors": true
+   },
+   "err": null
+  }
+ ]
+}
