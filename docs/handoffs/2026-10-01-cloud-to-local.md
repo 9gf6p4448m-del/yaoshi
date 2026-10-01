@@ -17,7 +17,11 @@
 - **窄畫面押寶面板修復**：V4（667×375）原本整列 nowrap 把 − 數字 ＋ 與「保守標」擠出面板外、只剩直排說明字（基準 86e4676 同樣，等於調不到押注）。現 `.stakerow` 可換行、說明字 `flex:1 1 140px`；面板高 334→101px。
 - **三件「共鳴多算一件」原文**（雷女之火／五營旗／水鬼浮標）：改為「共鳴計算時，這件算 2 件（只算○○共鳴）」。使用者說「改」；`appraise-plain-check` 不比對這欄，32/32 仍過。**若使用者要看過字串再定，可退回**。
 - 共鳴語意：看「同系法寶件數」不是紙紮隻數（`facCount`／`pwResLv`），五營旗等 3 件是 `onFacCount +1` 的特例，傳說三尊視為 2 件。
-- 雲端另在背景補跑：鑑賞主矩陣＋盯上等價＋切換（tag `cloud2`）、固定種子 text-fit（base＝`seedbase`、head＝`seedhead`）。結果在 `docs/experiments/2026-09-28-appraise-c/`（`cloud2-judge.json`、`switch-cloud2-raw.json`、`common-cells-seeded.txt`），完成後見 README 末段；若這些檔不存在表示尚未跑完，請本機重跑。
+- **雲端沒有完成任何補跑量測**（容器不定時重啟，長跑一再被中斷；`chunks/` 沒有任何 `.done`）。`cprobe-cloud2.log`、`shots/cloud2-*` 只是被中斷的殘片，**不要當證據**。以下三個量測全部要在本機跑，對象是 main `6805c936` 之後的 HEAD：
+  1. 鑑賞主矩陣＋盯上等價：`node tests/tools/appraise-c-probe.mjs --tag <t> --shots` → `appraise-mark-eq.mjs` → `appraise-c-judge.mjs <t>-raw.json --mark ...`（等同 `run-d.sh` 的 cprobe／markeq 步驟）。
+  2. 切換矩陣：`node tests/tools/appraise-switch.mjs --tag <t>`。
+  3. #8(b) 新量法：`text-fit-probe.mjs --base 86e46763 --nw-seed 3 --tag seedbase` 與 `--nw-seed 3 --tag seedhead`，再 `appraise-common-cells.mjs --tf-base ... --tf-head ...`。
+  （`run-e-linux.sh` 是雲端 Linux 專用的可續跑切塊版，本機 Windows 請用 `run-d.sh`。）
 
 ## 未完成／待辦
 1. **缺提交 `3a0d971`**：`tests/nightwalk.test.mjs` 的 #1、#6 要 `git show 3a0d971:index.html`，雲端複本沒有此提交 → 本機請補跑 `node --test tests/nightwalk.test.mjs`。
