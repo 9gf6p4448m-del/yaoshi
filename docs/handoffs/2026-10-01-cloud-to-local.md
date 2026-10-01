@@ -12,6 +12,13 @@
    - 對白氣泡被擋：`#table .seat{position:relative;z-index:19}`。基準 86e4676 也被擋（舊問題）。
    - 燒香框壓放血鈕：`.incbar` 可縮＋文字省略號。基準同樣（舊問題）。
 
+## 10-01 補充（main `88e4dd48`，Pages 已排入建置）
+- **押寶面板可收合**：`stakeHTML` 加 ▾ 收起鈕，收起成小標籤「🎲 押寶 N・已勾 M 件 ▴」（`YB_COLLAPSED`、`ybCollapse`，newGame 重設；`typeof` 保護是因為 `tests/l1-fee-budget.test.mjs` 以抽函式方式載入）。使用者原因：面板在桌心擋住點桌上法寶進鑑賞。
+- **窄畫面押寶面板修復**：V4（667×375）原本整列 nowrap 把 − 數字 ＋ 與「保守標」擠出面板外、只剩直排說明字（基準 86e4676 同樣，等於調不到押注）。現 `.stakerow` 可換行、說明字 `flex:1 1 140px`；面板高 334→101px。
+- **三件「共鳴多算一件」原文**（雷女之火／五營旗／水鬼浮標）：改為「共鳴計算時，這件算 2 件（只算○○共鳴）」。使用者說「改」；`appraise-plain-check` 不比對這欄，32/32 仍過。**若使用者要看過字串再定，可退回**。
+- 共鳴語意：看「同系法寶件數」不是紙紮隻數（`facCount`／`pwResLv`），五營旗等 3 件是 `onFacCount +1` 的特例，傳說三尊視為 2 件。
+- 雲端另在背景補跑：鑑賞主矩陣＋盯上等價＋切換（tag `cloud2`）、固定種子 text-fit（base＝`seedbase`、head＝`seedhead`）。結果在 `docs/experiments/2026-09-28-appraise-c/`（`cloud2-judge.json`、`switch-cloud2-raw.json`、`common-cells-seeded.txt`），完成後見 README 末段；若這些檔不存在表示尚未跑完，請本機重跑。
+
 ## 未完成／待辦
 1. **缺提交 `3a0d971`**：`tests/nightwalk.test.mjs` 的 #1、#6 要 `git show 3a0d971:index.html`，雲端複本沒有此提交 → 本機請補跑 `node --test tests/nightwalk.test.mjs`。
 2. **全套測試最終數字**：雲端 2026-10-01 補跑 402 項，398 過、4 失敗（`l1-destiny-focus` LF 假紅、nightwalk #1／#6 缺 `3a0d971`、`sfx-wiring` 子程序卡住 37 分鐘後被手動終止）。4 項皆為已知，無新回退；本機請在 CRLF、有 `3a0d971`、瀏覽器環境正確下重跑確認。（原記：容器重啟中斷。）已跑到的部分只有已知失敗：`l1-destiny-focus`（LF 工作樹假紅，需 CRLF 取出）、nightwalk 兩項（缺提交）。`sfx-wiring` 在缺瀏覽器環境時會假紅，環境正確時過。
