@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.59.3"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.59.4"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -497,6 +497,8 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
    空間不夠時截成省略號；− 數字 ＋ 三個控制不縮。完整文字仍在整列的 title。基準 86e4676 同樣重疊（舊問題）。 */
 .incbar{min-width:0;max-width:100%;box-sizing:border-box}
 .incbar>.mut{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* 窄橫式（667px 級）：「第 N 夜・」「局末結清・」前綴收掉只留「你 x／敵 y」（倒數已在頂列、完整文字在 title），框內間距略收；請神夜改以金框提示，其餘只留分數。 */
+@media (max-width:700px){ .incbar .incnx{display:none} .incbar{gap:2px;padding:1px 4px} .incbar.tonight{border:1px solid var(--gold)} }
 /* 直式收起來（**與 #shrines／#market 同一條慣例**）：直式整片被 #rotateHint 蓋住、牌桌看不到，
    而底列在 390px 寬只有幾十像素可用，行內的燒香列一定會把 #south 撐開。轉橫就回來。 */
 @media (orientation:portrait){ #budget .incbar{display:none} #budget .bsum{white-space:normal} }
@@ -1121,7 +1123,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.59.3"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.59.4"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -2803,9 +2805,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.59.3", VERSION_NOTE="0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
+const VERSION="0.59.4", VERSION_NOTE="0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.59.3";
+const RELEASE_VERSION="0.59.4";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -6816,10 +6818,10 @@ function incbarHTML(ap){
   const tipAll=`燒香：每夜 0～${CFG.INC_MAX} 壽命燒進**自己的香火**（不選尊），密封、當場扣、不退；最多 ${cap}${cap<CFG.INC_MAX?"（要留 1 點壽命）":""}。`
     +`${nxt==null?"請神夜都過了，香火局末結清。":(left>0?`第 ${nxt} 夜請神（倒數 ${left}）。`:"今夜請神。")}`
     +`你 ${h}／對手最高 ${lead}——請神夜由香火最高的人請神，並從還沒被請走的尊裡自選一尊。`;
-  return `<span class="incbar" title="${tipAll}">🕯️`
+  return `<span class="incbar${nxt!=null&&left<=0?" tonight":""}" title="${tipAll}">🕯️`
     +`<button onclick="incBump(-1)" ${INC.amt<=0?"disabled":""}>−</button><span class="incamt">${INC.amt}</span>`
     +`<button onclick="incBump(1)" ${INC.amt>=cap?"disabled":""}>＋</button>`
-    +`<span class="mut">${nxt==null?"局末結清":(left>0?`第 ${nxt} 夜`:"<b>今夜請神</b>")}・你 ${h}／敵 ${lead}</span></span>`;
+    +`<span class="mut">${nxt==null?"<span class=\"incnx\">局末結清・</span>":(left>0?`<span class="incnx">第 ${nxt} 夜・</span>`:`<b class="incnx">今夜請神・</b>`)}你 ${h}／敵 ${lead}</span></span>`;
 }
 /* ★閘也設在 mutator 這一端★（v0.53.1 覆審 F3）：showMarket 的閘擋的是「重畫」，
    但 incBump 是**先改 INC.amt 再重畫**——只擋 renderer 的話，封籤內容仍會被改。 */
