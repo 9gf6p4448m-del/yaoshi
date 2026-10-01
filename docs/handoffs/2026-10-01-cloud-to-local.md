@@ -14,7 +14,7 @@
 
 ## 未完成／待辦
 1. **缺提交 `3a0d971`**：`tests/nightwalk.test.mjs` 的 #1、#6 要 `git show 3a0d971:index.html`，雲端複本沒有此提交 → 本機請補跑 `node --test tests/nightwalk.test.mjs`。
-2. **全套測試最終數字**：雲端最後一輪被容器重啟中斷。已跑到的部分只有已知失敗：`l1-destiny-focus`（LF 工作樹假紅，需 CRLF 取出）、nightwalk 兩項（缺提交）。`sfx-wiring` 在缺瀏覽器環境時會假紅，環境正確時過。
+2. **全套測試最終數字**：雲端 2026-10-01 補跑 402 項，398 過、4 失敗（`l1-destiny-focus` LF 假紅、nightwalk #1／#6 缺 `3a0d971`、`sfx-wiring` 子程序卡住 37 分鐘後被手動終止）。4 項皆為已知，無新回退；本機請在 CRLF、有 `3a0d971`、瀏覽器環境正確下重跑確認。（原記：容器重啟中斷。）已跑到的部分只有已知失敗：`l1-destiny-focus`（LF 工作樹假紅，需 CRLF 取出）、nightwalk 兩項（缺提交）。`sfx-wiring` 在缺瀏覽器環境時會假紅，環境正確時過。
 3. **補跑量測**（押寶夜窄籤多了一個框）：鑑賞主矩陣 `appraise-c-probe`、切換 `appraise-switch`、`text-fit-probe`（建議 `--nw-seed 3` 兩版同一局）。
 4. **#8(b) 新量法正式數字**：`text-fit-probe --nw-seed 3` base／head 全模式＋`appraise-common-cells`；夜戰對比用 `appraise-duel-freeze.mjs`。
 5. **待使用者裁定**：押寶夜面板（`.stakebar`，在 #stage 桌心）在窄畫面（V4 667×375）被擠成又高又窄的一條、壓住桌心——**基準也如此**，非本版回退。方案：縮成單行／移到桌面下緣／可收合。
