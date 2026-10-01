@@ -1,0 +1,88 @@
+{
+ "info": {
+  "three": "158",
+  "skinnedMesh": true,
+  "bones": 24,
+  "tris": 1362,
+  "maps": 0,
+  "mats": [
+   {
+    "name": "skin",
+    "type": "MeshStandardMaterial",
+    "vertexColors": true
+   }
+  ],
+  "clips": [
+   "pose_push",
+   "pose_spread",
+   "pose_rake"
+  ]
+ },
+ "poses": {
+  "bind": {
+   "middleTip": [
+    0.03,
+    0.23,
+    1.73
+   ],
+   "ymin": 0.029
+  },
+  "push": {
+   "middleTip": [
+    0.03,
+    -0.166,
+    1.505
+   ],
+   "press": {
+    "stack": [
+     0.06,
+     0.15
+    ],
+    "fwdOfWrist": 0.15,
+    "stackTop": 0.26,
+    "gapPalmToStackTop": 0.009,
+    "vertsOverStack": 14,
+    "underPalmHeight": [
+     [
+      0.2,
+      0.303
+     ],
+     [
+      0.3,
+      0.281
+     ],
+     [
+      0.4,
+      0.341
+     ],
+     [
+      0.5,
+      0.349
+     ],
+     [
+      0.6,
+      0.349
+     ]
+    ]
+   },
+   "ymin": -0.166
+  },
+  "spread": {
+   "middleTip": [
+    0.03,
+    0.437,
+    1.721
+   ],
+   "ymin": 0.029
+  },
+  "rake": {
+   "middleTip": [
+    0.03,
+    -0.147,
+    1.246
+   ],
+   "ymin": -0.139
+  }
+ },
+ "errors": []
+}

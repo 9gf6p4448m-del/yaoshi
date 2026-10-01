@@ -1,0 +1,143 @@
+{
+ "glb": "tools/anyCreature/out/hand/hand_r.glb",
+ "bytes": 111968,
+ "triangles": 1362,
+ "primitives": [
+  {
+   "material": "skin",
+   "tris": 1362,
+   "attrs": [
+    "POSITION",
+    "NORMAL",
+    "COLOR_0",
+    "JOINTS_0",
+    "WEIGHTS_0"
+   ]
+  }
+ ],
+ "bones": 24,
+ "boneNames": [
+  "Elbow",
+  "Cuff",
+  "Wrist",
+  "Palm",
+  "IndexA",
+  "IndexB",
+  "IndexC",
+  "IndexTip",
+  "MiddleA",
+  "MiddleB",
+  "MiddleC",
+  "MiddleTip",
+  "RingA",
+  "RingB",
+  "RingC",
+  "RingTip",
+  "PinkyA",
+  "PinkyB",
+  "PinkyC",
+  "PinkyTip",
+  "ThumbA",
+  "ThumbB",
+  "ThumbC",
+  "ThumbTip"
+ ],
+ "images": 0,
+ "textures": 0,
+ "textureRefsInMaterials": 0,
+ "materials": [
+  {
+   "name": "skin",
+   "keys": [
+    "name",
+    "pbrMetallicRoughness"
+   ],
+   "pbr": [
+    "baseColorFactor",
+    "metallicFactor",
+    "roughnessFactor"
+   ]
+  }
+ ],
+ "animations": [
+  "pose_push",
+  "pose_spread",
+  "pose_rake"
+ ],
+ "proportions": {
+  "unit": "dm",
+  "palmLen_WristToMiddleMCP": 0.882,
+  "palmWidthAtMCP": 0.797,
+  "palmLenOverWidth": 1.106,
+  "fingers": {
+   "Index": {
+    "len": 0.78,
+    "segs": [
+     0.487,
+     0.282,
+     0.231
+    ],
+    "overPalm": 0.885
+   },
+   "Middle": {
+    "len": 0.85,
+    "segs": [
+     0.494,
+     0.282,
+     0.224
+    ],
+    "overPalm": 0.964
+   },
+   "Ring": {
+    "len": 0.82,
+    "segs": [
+     0.488,
+     0.28,
+     0.232
+    ],
+    "overPalm": 0.93
+   },
+   "Pinky": {
+    "len": 0.63,
+    "segs": [
+     0.492,
+     0.27,
+     0.238
+    ],
+    "overPalm": 0.715
+   }
+  },
+  "middleOverPalm": 0.964,
+  "thumb": {
+   "metacarpal": 0.46,
+   "proximal": 0.31,
+   "distal": 0.26,
+   "thenarMaxHalfWidth": 0.165,
+   "thenarBias": {
+    "bias": -0.25
+   }
+  },
+  "dorsalArchBiasRows": [
+   [
+    0.614,
+    0.15
+   ],
+   [
+    0.736,
+    0.25
+   ],
+   [
+    0.868,
+    0.25
+   ],
+   [
+    0.939,
+    0.22
+   ],
+   [
+    1,
+    0.1
+   ]
+  ]
+ }
+}
