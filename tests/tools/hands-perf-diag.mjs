@@ -11,7 +11,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z]+)=(.*)$/); if (m) opt[m[1]] = m[2]; }
 const RUNS = Number(opt.runs || 5), PORT = Number(opt.port || 8979);
 const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
-const server = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+const SRV = opt.root ? path.resolve(opt.root) : ROOT; // --root=<樹>：量別的版本（診斷對照用）
+const server = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SRV, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
 let browser;
 try {

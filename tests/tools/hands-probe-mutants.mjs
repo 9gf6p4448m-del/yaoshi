@@ -24,6 +24,8 @@ const MUTANTS = [
     from: '  let f = tableY;\n  for (const o of obstacles) {', to: '  let f = tableY;\n  for (const o of []) {' },
   { id: 'bypassCache', gate: 'pipeline_creatureFigures', file: 'js/table-hands.js', what: '每隻手各帶不同查詢字串（繞過 glbCache、抓四次）',
     from: 'Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url)))', to: 'Promise.all([0, 1, 2, 3].map((k) => cloneSkinnedGlb(url + "?h=" + k)))' },
+  { id: 'relicNoAvoid', gate: 'C1_noPenetration_realSkin', file: 'js/hand-motion.js', what: '第三輪：不避讓信物',
+    from: '        const relics = props.relicObstacles ? props.relicObstacles() : [];', to: '        const relics = [];' },
   /* 第二輪：遮擋判準（hands-occlusion.mjs）的突變 */
   { id: 'occl-slamCarriesToken', tool: 'occlusion', gate: 'occlusion_le_10pct', file: 'js/hand-motion.js', what: '拍：手又舉著令牌飛（飛行中就上場、掌心貼著令牌跟著舉高）',
     from: '      if (!landed) return { hidden: true };', to: '',

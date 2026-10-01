@@ -39,11 +39,15 @@ export function createTableHands(parent, props, opts = {}) {
       /* 蒙皮變形後 bounding sphere 不準（同 creature-figures 的理由），不讓 three 把整隻手剔掉。 */
       mesh.frustumCulled = false;
       /* 四隻手共用一份材質與一份幾何（同一支 program、同一份 uniform）。第二輪：袖子改上色——
-         幾何複製一份（不動 glbCache 那份）換成 RGBA 頂點色（dressColors），材質開 alphaHash：
-         袖布以抖色漸隱，仍走不透明那一趟（不排序、寫深度、不多 draw call）。 */
+         幾何複製一份（不動 glbCache 那份）換成 RGBA 頂點色（dressColors）。
+         第三輪（使用者：袖尾抖色有顆粒）：改真透明平滑淡出——transparent＋頂點 alpha 混色，仍是一隻手一個 draw call；
+         depthWrite 照開：手畫在透明那一趟（不透明物件已先畫好，混色正確），寫深度讓同一隻手的手指／掌不互相透；
+         alphaTest 0.01 丟掉完全隱去的袖布，那段不寫深度、不擋後面晚畫的透明物（接觸陰影、粒子）。 */
       if (!material) {
         material = mesh.material.clone();
-        material.alphaHash = true;
+        material.transparent = true;
+        material.depthWrite = true;
+        material.alphaTest = 0.01;
         dressedGeo = mesh.geometry.clone();
         const c = dressedGeo.attributes.color;
         dressedGeo.setAttribute('color', new THREE.BufferAttribute(dressColors(dressedGeo.attributes.position.array, c.array, c.itemSize), 4));
@@ -121,6 +125,8 @@ export function createTableHands(parent, props, opts = {}) {
         bones: hands.length ? hands[0].mesh.skeleton.bones.length : 0,
         skeletons: new Set(hands.map((h) => h.mesh.skeleton)).size,
         materials: new Set(hands.map((h) => h.mesh.material)).size,
+        /* 第三輪：袖尾淡出方式（治具／測試核對用） */
+        fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         shared, state: director ? director.state() : null, names: hands.map((h) => h.holder.name),
       };
     },

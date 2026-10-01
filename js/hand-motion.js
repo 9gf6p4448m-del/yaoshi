@@ -33,6 +33,7 @@ export const HAND = {
     CUFF_FROM: -0.08, // 這裡以後（往肘）是袖口邊
     CUFF_TO: -0.40, // 袖口邊到此為止（長 0.32＜0.46）
     FADE_TO: -0.95, // 袖布在這裡完全隱去
+    SEEN_TO: -0.80, // 漸隱到 alpha≈0.2 的位置（信物避讓與穿入取樣看到這裡）
     CUFF: [0.130, 0.045, 0.030], // 舊棗紅袖口（sRGB 約 #643b30）：和暗紅桌布／木色同一族，不是黑
     CLOTH: [0.060, 0.022, 0.016], // 漸隱段的袖布：比袖口暗一階，仍非純黑
   },
@@ -53,6 +54,8 @@ export const HAND = {
   SLAM: { SLAP_MS: 0.12, TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.10, TRAIL: 0.13, APPROACH: 0.25 },
   /** 推（第二輪）：指尖離錢柱外緣多遠。 */
   PUSH_GAP: 0.012,
+  /** 信物避讓（第三輪）：側移步長、最多幾步、離外接圓柱多留多少。 */
+  RELIC: { STEP: 0.03, STEPS: 22, MARGIN: 0.01 },
   /** 西／東席從側面水平進場（見 yawOf）。 */
   SIDE_YAW: false,
   /** 收（敗方）：沿用揭盅 0.22 秒延遲＋0.42 秒返回；延遲那段就是手伸過去扒住錢柱的時間。 */
@@ -161,7 +164,9 @@ export function buildRig(src) {
   const coarse = []; for (let v = 0; v < vc; v += 2) coarse.push(v);
   /* 看得見的部分（袖口邊以前）：伸入深度限制只看這些點，漸隱掉的袖布不算。 */
   const front = []; for (let v = 0; v < vc; v++) if (src.positions[v * 3 + 2] >= HAND.SLEEVE.CUFF_TO) front.push(v);
-  return { names: src.names.slice(), parents: src.parents.slice(), rest: src.rest.map((r) => r.slice()), idx, count: vc, wb, ww, wo, dom, tips, rakeTips, palm, coarse, front };
+  /* 第三輪：信物避讓看的點集＝袖布漸隱到 alpha 0.2 以前（SEEN_TO）的所有頂點。 */
+  const seen = []; for (let v = 0; v < vc; v++) if (src.positions[v * 3 + 2] >= HAND.SLEEVE.SEEN_TO) seen.push(v);
+  return { names: src.names.slice(), parents: src.parents.slice(), rest: src.rest.map((r) => r.slice()), idx, count: vc, wb, ww, wo, dom, tips, rakeTips, palm, coarse, front, seen };
 }
 
 /**
@@ -438,21 +443,57 @@ export function createHandDirector(props, rig) {
     if (seat === 3) return [{ n: [-1, 0], c: -HAND.REACH.MID }, front];
     return [];
   }
+  /** 障礙表的簡短指紋（記憶化用；同一幀內位置沒變＝同一組指紋）。 */
+  function obsSig(list) { let x = 0; for (let i = 0; i < list.length; i++) { const o = list[i]; x += (i + 1) * (o.x * 3.1 + o.z * 7.7 + o.top * 13.3 + (o.r || o.hx || 0) * 17.9); } return list.length + ':' + x.toFixed(9); }
+  /* 效能（第三輪）：同一姿勢／朝向／俯角的「相對根的世界偏移」只算一次（逐點 xform 是主要成本），
+     平移（側移、退回）只是加常數，不必重算。 */
+  const offCache = new Map();
+  function offsets(fr, s) {
+    const w = Math.round(clamp01(fr.pose[2]) * 32) / 32;
+    const key = fr.pose[0] + '|' + fr.pose[1] + '|' + w + '|' + fr.yaw + '|' + fr.pitch + '|' + s;
+    let o = offCache.get(key);
+    if (!o) {
+      const pts = prepare(rig, fr.pose, 'palm').pts, n = rig.seen.length, W = new Float64Array(n * 3);
+      for (let i = 0; i < n; i++) { const v = rig.seen[i], q = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s); W[i * 3] = q[0]; W[i * 3 + 1] = q[1]; W[i * 3 + 2] = q[2]; }
+      o = { W, ext: new Map() };
+      if (offCache.size > 256) offCache.clear();
+      offCache.set(key, o);
+    }
+    return o;
+  }
+  /** 看得見的部分（rig.seen：袖布漸隱過半以前）有沒有落進任一信物外接圓柱、且低於其頂（回撞到的那一件或 null）。 */
+  function relicHit(fr, s, relics) {
+    const { W } = offsets(fr, s), n = W.length / 3, [rx, ry, rz] = fr.root;
+    for (const o of relics) {
+      const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
+      for (let i = 0; i < n; i++) {
+        if (ry + W[i * 3 + 1] >= top) continue;
+        const dx = rx + W[i * 3] - o.x, dz = rz + W[i * 3 + 2] - o.z;
+        if (dx * dx + dz * dz < rr) return o;
+      }
+    }
+    return null;
+  }
   /** 這一幀看得見的部分（袖口邊以前）越線最多的那一條與越線量（over≤0＝沒越）。 */
   function reach(seat, fr, s, T) {
     const Ls = limitOf(seat, T); if (!Ls.length) return { over: 0, L: null };
-    const pts = prepare(rig, fr.pose, 'palm').pts;
+    const o = offsets(fr, s);
     let best = { over: -Infinity, L: null };
     for (const L of Ls) {
-      let m = -Infinity;
-      for (const v of rig.front) {
-        const w = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s);
-        const d = L.n[0] * (fr.root[0] + w[0]) + L.n[1] * (fr.root[2] + w[2]) - L.c;
-        if (d > m) m = d;
-      }
+      /* max over 點 of n·(root＋w) ＝ n·root ＋ max(n·w)；後者每個姿勢／朝向只算一次 */
+      const k = L.n[0] + ',' + L.n[1];
+      let mw = o.ext.get(k);
+      if (mw === undefined) { mw = -Infinity; const W = o.W; for (const i of frontIdx()) { const d = L.n[0] * W[i * 3] + L.n[1] * W[i * 3 + 2]; if (d > mw) mw = d; } o.ext.set(k, mw); }
+      const m = L.n[0] * fr.root[0] + L.n[1] * fr.root[2] + mw - L.c;
       if (m > best.over) best = { over: m, L };
     }
     return best;
+  }
+  /** rig.front 在 rig.seen 裡的索引（front ⊂ seen）。 */
+  let frontIdxCache = null;
+  function frontIdx() {
+    if (!frontIdxCache) { const pos = new Map(rig.seen.map((v, i) => [v, i])); frontIdxCache = rig.front.map((v) => pos.get(v)); }
+    return frontIdxCache;
   }
   /** 進場方向（第二輪）：西／東席改從側面水平伸進來（SIDE_YAW），不從拍品正前方往裡推——量測顯示西／東手從前方推時，
    *  指節與腕部剛好擋在左右兩格拍品的腳前。南／北仍朝目標。 */
@@ -572,8 +613,31 @@ export function createHandDirector(props, rig) {
         const req = { scale: s, pose: spec.pose, anchor: spec.anchor, target: spec.target, yaw: spec.yaw, minY: spec.minY, fit: spec.fit,
           pitch: a.kind === 'retract' ? spec.pitch : a.pitch };
         const obs = obstacles;
+        const wasCurl = spec.pose === 'curl'; // 下面修正後 spec.pose 會換成實際姿勢，要先記住（否則每幀重掃捲指）
+        const relics = props.relicObstacles ? props.relicObstacles() : [];
+        /* 效能（第三輪診斷）：同一隻手這一幀的輸入（目標、姿勢、俯角、障礙與信物）跟上一幀完全一樣就直接重用上一幀的解——
+           凍結或錢已落定時每幀 0 次解算。 */
+        const memoKey = JSON.stringify([req.target, req.pose, req.yaw, req.pitch, req.minY, spec.lift || 0, a.kind, a.lead, obsSig(obs), obsSig(relics)]);
+        if (h.memo && h.memo.key === memoKey) {
+          const m = h.memo;
+          if (!m.fr) { if (a.kind === 'retract') stop(h.seat); else if (done(h)) { if (h.last) beginRetract(h); else stop(h.seat); } return null; }
+          spec = m.spec; h.last = { frame: m.fr, spec };
+          if (done(h)) beginRetract(h);
+          return m.fr;
+        }
+        const valid = (f) => reach(h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(f, s, relics));
         let fr = solveHand(rig, req, obs, tableY);
+        /* 先試上一幀用過的修正量（並讓它每幀縮一點，需要的修正變小時手會平順地回到原路），可行就不必整套重算。 */
+        if (!valid(fr) && a.corr && !(a.kind === 'rake' && a.lead === undefined)) {
+          const base = req.target.slice();
+          for (const k of [0.85, 1]) {
+            const t2 = [base[0] + a.corr[0] * k, base[1] + a.corr[1] * k];
+            const f2 = solveHand(rig, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined }), obs, tableY);
+            if (valid(f2)) { fr = f2; req.target = t2; break; }
+          }
+        }
         /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
+        const desired = spec.target;
         let R = reach(h.seat, fr, s, T);
         if (R.over > 0 && a.kind === 'rake' && a.lead === undefined) {
           /* 收：錢柱遠側搆不到 ⇒ 這一整個動作改「從靠席位那側領著錢回來」，不越過錢柱頂、不跳位。 */
@@ -589,10 +653,42 @@ export function createHandDirector(props, rig) {
           req.pitch = fr.pitch; req.pose = fr.pose; req.fit = undefined;
           fr = solveHand(rig, req, obs, tableY); R = reach(h.seat, fr, s, T);
         }
+        /* 第三輪：信物避讓。看得見的部分（含漸隱前半段）若落進任一席信物的外接圓柱（低於其頂），
+           沿進場方向的垂直方向把入場錨點側移；只改手的位置，錢的出發點／終點不變。找不到可行側移，這一幀手不畫。 */
+        let rh = relics.length ? relicHit(fr, s, relics) : null;
+        if (rh) {
+          const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), px = dz, pz = -dx;
+          const side = Math.sign(px * (req.target[0] - rh.x) + pz * (req.target[1] - rh.z)) || 1;
+          const base = req.target.slice();
+          let ok = null;
+          /* 效能（第三輪診斷：每步都重解整隻手，四手近信物時每幀數十次解算，速度比掉到 .07）：
+             先只平移已解好的這一幀找最小可行側移（不重解，只做點對圓柱判定），找到才重解一次並複驗。 */
+          const shifted = (dxz) => ({ root: [fr.root[0] + dxz[0], fr.root[1], fr.root[2] + dxz[1]], yaw: fr.yaw, pitch: fr.pitch, pose: fr.pose });
+          for (let k = 1; k <= HAND.RELIC.STEPS && !ok; k++) {
+            for (const sg of [side, -side]) {
+              const d = [sg * px * k * HAND.RELIC.STEP, sg * pz * k * HAND.RELIC.STEP];
+              if (relicHit(shifted(d), s, relics) || reach(h.seat, shifted(d), s, T).over > 1e-3) continue;
+              const t2 = [base[0] + d[0], base[1] + d[1]];
+              /* 重解時根高度不低於平移試算的那一幀（高一點只會更離信物遠），所以平移試算可行＝重解後也可行，一次就好。 */
+              const f2 = solveHand(rig, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined, minY: Math.max(req.minY === undefined ? -Infinity : req.minY, fr.root[1]) }), obs, tableY);
+              if (!relicHit(f2, s, relics) && reach(h.seat, f2, s, T).over <= 1e-3) { ok = f2; req.target = t2; break; }
+            }
+          }
+          if (!ok) {
+            /* 這一幀不畫，但動作照常結算：做完就收（被擋住的收手直接結束），不然會卡在不可見的動作裡。 */
+            if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (wasCurl) a.pose = fr.pose; } // 被擋的幀也定下俯角與捲指，不再每幀重掃
+            h.memo = { key: memoKey, fr: null };
+            if (a.kind === 'retract') stop(h.seat); else if (done(h)) { if (h.last) beginRetract(h); else stop(h.seat); }
+            return null;
+          }
+          fr = ok;
+        }
+        a.corr = [req.target[0] - desired[0], req.target[1] - desired[1]];
         if (req.target !== spec.target) spec = Object.assign({}, spec, { target: req.target, pose: fr.pose });
         if (spec.lift) fr.root[1] += spec.lift; // 只往上加（微顫），不會往下穿
-        if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (spec.pose === 'curl') a.pose = fr.pose; }
+        if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (wasCurl) a.pose = fr.pose; }
         h.last = { frame: fr, spec };
+        h.memo = { key: memoKey, fr, spec };
         if (done(h)) beginRetract(h);
         return fr;
       });

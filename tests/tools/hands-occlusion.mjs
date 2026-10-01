@@ -79,7 +79,7 @@ try {
       items.forEach((ms) => ms.forEach((m) => { m.visible = false; }));
       const bright = new T.MeshBasicMaterial({ vertexColors: true, color: new T.Color(8, 8, 8), toneMapped: false, fog: false });
       const hm = hands.map((m) => [m, m.material]);
-      hands.forEach((m) => { bright.alphaHash = !!m.material.alphaHash; m.material = bright; m.visible = true; });
+      hands.forEach((m) => { bright.alphaHash = !!m.material.alphaHash; bright.transparent = !!m.material.transparent; bright.alphaTest = m.material.alphaTest || 0; m.material = bright; m.visible = true; });
       const handOnly = count();
       hm.forEach(([m, mat]) => { m.material = mat; });
       bright.dispose();
@@ -120,6 +120,15 @@ try {
   runs.push(await scenario('收', bids([[0, 1, 3], [1, 1, 6], [2, 1, 8], [3, 1, 5]]), [['ys:reveal-result', { slot: 1, winner: 3 }]], 62, six(60)));
   runs.push(await scenario('AI 一次推多格', [], bids([1, 2, 3].flatMap((s) => [0, 1, 2, 3].map((k) => [s, k, 2 + ((s + k) % 6)]))), 46, six(44)));
   /* 熱座清場與跳過：前後各一幀 */
+  /* 第三輪：西席起手／收錢特寫（裁出西席信物附近的畫面），看手與收驚婆香爐有沒有相交 */
+  const westClip = await page.evaluate(() => { const Y = window.__yaoshi3d, p = Y.tray.props.seatPosition(2), v = Y.camera.position.clone().set(p.x, p.y, p.z).project(Y.camera);
+    const x = (v.x + 1) * innerWidth / 2, y = (1 - v.y) * innerHeight / 2; return { x: Math.max(0, x - 150), y: Math.max(0, y - 110), width: 300, height: 190 }; });
+  const west = [];
+  const westShot = async (label) => west.push({ label, buf: await page.screenshot({ type: 'jpeg', quality: 80, scale: 'css', clip: westClip }) });
+  await page.evaluate(() => { const Y = window.__yaoshi3d; Y.tray.props.clearRound(); Y.tray.hands.clear && Y.tray.hands.clear(); window.__ho.ev('ys:bid', { seat: 2, slot: 1, amount: 8 }); });
+  for (let s = 1; s <= 18; s++) { await page.evaluate(() => window.__ho.clock.step()); if ([1, 4, 8, 12, 18].includes(s)) await westShot(`西席推 起手 t=${(s / 60).toFixed(2)}s`); }
+  await page.evaluate(() => { for (let i = 0; i < 60; i++) window.__ho.clock.step(); window.__ho.ev('ys:bid', { seat: 0, slot: 1, amount: 9 }); for (let i = 0; i < 60; i++) window.__ho.clock.step(); window.__ho.ev('ys:reveal-result', { slot: 1, winner: 0 }); });
+  for (let s = 1; s <= 40; s++) { await page.evaluate(() => window.__ho.clock.step()); if ([14, 26, 34, 40].includes(s)) await westShot(`西席收（錢拖回香爐旁）t=${(s / 60).toFixed(2)}s`); }
   const special = [];
   await page.evaluate(() => { const Y = window.__yaoshi3d; Y.tray.props.clearRound(); Y.tray.hands.clear && Y.tray.hands.clear(); });
   await page.evaluate(() => { for (const [s, k, a] of [[0, 1, 8], [1, 2, 5], [2, 0, 3], [3, 3, 6]]) window.__ho.ev('ys:bid', { seat: s, slot: k, amount: a }); for (let i = 0; i < 10; i++) window.__ho.clock.step(); });
@@ -153,6 +162,7 @@ try {
     await sheet('sheet-multi.jpg', 'AI 一次推多格（北／西／東各推四格）：6 幀等距', fr('AI 一次推多格'), 3);
     await sheet('sheet-handoff-skip.jpg', '熱座清場／跳過：前後各一幀', special, 2);
     await sheet('sheet-duel.jpg', '進入對決：前後各一幀', duel, 2);
+    await sheet('sheet-west-closeup.jpg', '西席起手／收錢特寫（收驚婆香爐附近）', west, 3);
   }
 } finally { await browser?.close(); server.kill(); }
 if (opt.out) fs.writeFileSync(path.resolve(HERE, opt.out), JSON.stringify(result, null, 1));

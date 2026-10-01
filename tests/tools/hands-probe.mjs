@@ -33,7 +33,7 @@ try {
 const L = report.layouts;
 const all = (fn) => Object.values(L).every(fn);
 report.gates = {
-  B1_drawCallDelta_le4: all((x) => x.drawCalls.delta <= 4 && x.drawCalls.delta >= 1),
+  B1_drawCallDelta_le4: all((x) => x.drawCalls.delta <= 4 && x.drawCalls.handsVisible === 4),
   B1_trisPerHand_le2500: all((x) => x.drawCalls.trisPerHand <= 2500),
   pipeline_creatureFigures: all((x) => x.pipeline.glbRequests === 1 && x.pipeline.glbCached === true && x.pipeline.shared !== null),
   C1_noPenetration_realSkin: all((x) => x.penetration.hits === 0 && x.penetration.framesWithHands > 20),
@@ -102,7 +102,14 @@ async function runLayout(lay) {
             : Math.abs(l.x) < W - EPS && Math.abs(l.z) < H - EPS && l.y > -TT / 2 + EPS && l.y < TT / 2 + 0.028 - EPS;
           if (inside) { hits++; if (where.length < 3) where.push([name, k]); break; }
         }
-        return { hits, where };
+        /* 第三輪：信物（各席 relic-* 網格的本地包圍盒）也納入取樣；只看手上看得見的頂點（bind z ≥ −0.80，袖布已隱去的不算） */
+        const relics = P.children.filter((o) => /^relic-/.test(o.name)).map((o) => { o.geometry.computeBoundingBox(); return [o.name, o.matrixWorld.clone().invert(), o.geometry.boundingBox]; });
+        let relicHits = 0;
+        for (const [name, mesh] of window.__hp.handMeshes()) {
+          const pos = mesh.geometry.attributes.position, vs = window.__hp.verts(mesh);
+          vs.forEach((p, i) => { if (pos.getZ(i) < -0.80) return; for (const [rn, inv, b] of relics) { if (b.containsPoint(p.clone().applyMatrix4(inv))) { relicHits++; if (where.length < 3) where.push([name, rn]); break; } } });
+        }
+        return { hits: hits + relicHits, relicHits, where };
       },
     };
   });
@@ -127,7 +134,9 @@ async function runLayout(lay) {
     const Y = window.__yaoshi3d, H = Y.tray.hands;
     Y.tray.props.clearRound(); H.clear();
     for (const [s, k, a] of [[0, 1, 8], [1, 2, 5], [2, 0, 3], [3, 3, 6]]) window.__hp.ev('ys:bid', { seat: s, slot: k, amount: a });
-    await window.__hp.frames(2); H.setFrozen(true);
+    /* 第三輪：起手時手避讓信物（錢一離開信物手才上場），所以等到四隻都在場才凍結 */
+    for (let i = 0; i < 60 && H.stats().visible.length < 4; i++) await window.__hp.frames(1);
+    H.setFrozen(true);
     await new Promise((r) => setTimeout(r, 900)); // 錢落定；手凍在推的姿勢（仍可見）
     const on = await window.__hp.calls(); const vis = H.stats().visible.length;
     H.finish(); await window.__hp.frames(2);
@@ -186,7 +195,8 @@ async function runLayout(lay) {
     const Y = window.__yaoshi3d, H = Y.tray.hands;
     Y.tray.props.clearRound(); H.clear();
     for (const [s, k, a] of [[0, 1, 8], [1, 2, 5], [2, 0, 3], [3, 3, 6]]) window.__hp.ev('ys:bid', { seat: s, slot: k, amount: a });
-    await window.__hp.frames(3); H.setFrozen(true); await window.__hp.frames(30);
+    for (let i = 0; i < 60 && H.stats().visible.length < 4; i++) await window.__hp.frames(1);
+    H.setFrozen(true); await window.__hp.frames(30);
     const pts = [];
     for (const [, mesh] of window.__hp.handMeshes()) {
       const b = window.__hp.screenBox(window.__hp.verts(mesh));

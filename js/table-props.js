@@ -808,6 +808,24 @@ export function createTableProps(parent, opts = {}) {
       for (const b of rackBoxes) out.push(b);
       return out;
     },
+    /** 席位之手第三輪：四席信物的外接圓柱（中心、半徑＝本地包圍盒八角水平距的最大值、頂高＋小動作餘量）。
+     *  手不把它當地板（那會讓手在起手時整隻抬到信物上方），而是側移避開（hand-motion）。 */
+    relicObstacles() {
+      const out = [], v = new THREE.Vector3();
+      for (const r of relics) {
+        if (!r) continue;
+        const g = r.mesh.geometry; if (!g.boundingBox) g.computeBoundingBox();
+        const b = g.boundingBox, [x, z] = seatXZ(r.seat);
+        r.mesh.updateMatrix();
+        let rad = 0, top = trayY;
+        for (let i = 0; i < 8; i++) {
+          v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(r.mesh.matrix);
+          rad = Math.max(rad, Math.hypot(v.x - x, v.z - z)); top = Math.max(top, v.y);
+        }
+        out.push({ seat: r.seat, x, z, r: rad, top: top + 0.03 });
+      }
+      return out;
+    },
     /** 跳過：錢與令牌直接到結束姿態（同一條 update 路徑快轉，令牌落地仍由 update 發 onSlam）。 */
     finish() { for (let i = 0; i < 4; i++) api.update(1e3); },
     update(dt) {

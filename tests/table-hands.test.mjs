@@ -179,7 +179,9 @@ test('#C1 收手後整隻不可見（閒置＝收在畫面外）：推／拍／�
     const check = (label, n = 90) => { for (let i = 0; i < n; i++) ev.step(r); assert.deepEqual(visibleSeats(r), [], `${layout} ${label} 之後仍有手可見`); };
     for (let s = 0; s < 4; s++) ev.bid(r, s, s, 6);
     assert.ok(visibleSeats(r).length === 0, '事件當下尚未 update：還沒擺（下一幀才出現）');
-    ev.step(r); assert.deepEqual(visibleSeats(r), [0, 1, 2, 3], '推的當幀四隻手都在場');
+    /* 第三輪：起手時錢柱還壓在自家信物上，手避讓信物，錢一離開信物手才上場——所以看「推的前 0.2 秒內四隻都出現過」 */
+    { const seen = new Set(); let first = -1; for (let i = 0; i < 12; i++) { ev.step(r); visibleSeats(r).forEach((x) => seen.add(x)); if (first < 0 && seen.size === 4) first = i; }
+      assert.equal(seen.size, 4, `推：四隻手在前 12 幀內都上場（實際 ${[...seen]}）`); }
     check('推');
     for (let s = 0; s < 4; s++) ev.mark(r, s, (s + 1) % 4);
     /* 第二輪：拍的手在令牌落地那一幀才上場（飛行時不上場），所以等到落地後再確認四隻都出現過 */
@@ -373,6 +375,49 @@ test('第二輪拍：令牌飛行中（t<1）手不上場，落地後才伸進�
   assert.equal(after.size, 4);
   r.hands.dispose(); r.props.dispose();
 });
+
+test('第三輪袖尾平滑淡出：四手共用材質為真透明（transparent、不用 alphaHash 抖色）、寫深度、alphaTest 丟掉完全隱去的袖布；頂點色帶 alpha', async () => {
+  const r = await rig('L');
+  const st = r.hands.stats();
+  assert.deepEqual(st.fade, { transparent: true, alphaHash: false, alphaTest: 0.01, depthWrite: true });
+  let mesh; r.hands.group.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
+  assert.equal(mesh.geometry.attributes.color.itemSize, 4, '頂點色要帶 alpha 才淡得出來');
+  r.hands.dispose(); r.props.dispose();
+});
+
+/* ═══ 第三輪：信物不相交（C1 取樣擴到信物）═══════════════════════════ */
+function relicHits(r) {
+  const relics = r.props.group.children.filter((o) => /^relic-/.test(o.name));
+  const boxes = relics.map((m) => { m.geometry.computeBoundingBox(); return { name: m.name, inv: new THREE.Matrix4().copy(m.matrixWorld).invert(), b: m.geometry.boundingBox }; });
+  const hits = [];
+  for (const h of holders(r)) {
+    if (!h.visible) continue;
+    let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); mesh.skeleton.update();
+    const P = mesh.geometry.attributes.position;
+    for (let i = 0; i < P.count; i++) {
+      if (P.getZ(i) < M.HAND.SLEEVE.SEEN_TO) continue; // 已隱去的袖布不算
+      mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld);
+      for (const bx of boxes) { l.copy(v).applyMatrix4(bx.inv); if (bx.b.containsPoint(l)) { hits.push([h.name, bx.name]); break; } }
+    }
+  }
+  return hits;
+}
+for (const layout of ['L', 'P']) {
+  test(`第三輪信物（${layout}）：推（起手錢柱壓在自家信物上）、拍、收（錢拖回信物旁）全程，看得見的手不進任何信物的本地包圍盒`, async () => {
+    const r = await rig(layout);
+    let hits = [], live = 0;
+    const run = (n) => { for (let i = 0; i < n && !hits.length; i++) { ev.step(r); if (visibleSeats(r).length) live++; hits = relicHits(r); } };
+    for (let slot = 0; slot < 4 && !hits.length; slot++) {
+      r.props.clearRound(); r.hands.clear();
+      for (let s = 0; s < 4; s++) ev.bid(r, s, (slot + s) % 4, 3 + s * 3); run(50);
+      for (let s = 0; s < 4; s++) ev.mark(r, s, (slot + s) % 4); run(50);
+      for (let k = 0; k < 4; k++) { ev.reveal(r, k, slot); run(70); }
+    }
+    assert.ok(live > 200, `活性：${live}`);
+    assert.deepEqual(hits.slice(0, 3), [], '手與信物相交');
+    r.hands.dispose(); r.props.dispose();
+  });
+}
 
 /* ═══ 時序對齊（純函式常數 vs table-props） ═════════════════════════════ */
 test('時序：推＝籌碼飛行 0.42 秒；收＝0.22 秒延遲＋0.42 秒返回；拍跟著令牌（SLAM_MS 0.30）', () => {
