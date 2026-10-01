@@ -21,6 +21,8 @@ const { makeCreatureFigure, creatureGlbUrl, FACTION_RIM } = await import('./crea
 const { vcBuilder, seedRnd: rnd } = await import('./scene-env.js' + V);
 /* 桌上道具（v0.56b 第二段）：籌碼／令牌／信物。掛進本檔的 group ⇒ 對決時整組跟著收。 */
 const { createTableProps } = await import('./table-props.js' + V);
+/* 席位之手（階段二 2a）：四席各一隻寫實右手，與 props 並列掛進本檔的 group（對決時整組收）；不進 hitTest 的 proxies。 */
+const { createTableHands } = await import('./table-hands.js' + V);
 /* 法寶鑑賞頁（v0.59.2）丙案（燒符揭幕＋照妖鏡）的螢幕空間疊層：一支 shader 畫壓暗／鏡子／符紙，理由見該檔檔頭。 */
 const { createAppraiseFx, APPR_FX } = await import('./appraise-fx.js' + V);
 
@@ -466,6 +468,8 @@ export function createTableTray(scene, camera, opts = {}) {
   group.name = 'table-tray';
   const outlineOn = opts.outline === undefined ? TRAY.OUTLINE : !!opts.outline;
   const liteMode = !!opts.lite; // ?table3d=lite：布面段數降一階、陰火粒子減半（覆審 M-1）
+  /* 席位之手：lite（弱機退路）與 `?hands=0`（kill switch）不建；關著時 props 的錢走原本的拋物線。 */
+  const handsOn = !liteMode && opts.hands !== false;
   const director = opts.director || null;
 
   const cloth = makeCloth(liteMode);
@@ -584,7 +588,9 @@ export function createTableTray(scene, camera, opts = {}) {
     if (s.curse && effect.destroy) playCurseBurn(slot);
     else if (s.curse && Number.isInteger(effect.transferTarget)) playCurseTransfer(slot, effect.transferTarget);
     else if (winner >= 0) playAward(slot, winner);
-  } });
+  }, handPaths: handsOn });
+  /* 空物件退路：關手時 renderer 那幾行呼叫照樣成立，不必到處判斷。 */
+  const hands = handsOn ? createTableHands(group, props) : { group: null, ready: () => Promise.resolve(), bid() {}, mark() {}, reveal() {}, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
@@ -969,6 +975,8 @@ export function createTableTray(scene, camera, opts = {}) {
     group,
     /** 桌上道具層（籌碼／令牌／信物）。治具與 renderer 的 listener 走這個出口。 */
     props,
+    /** 席位之手（table-hands.js）；renderer 在呼叫 props 的同一處呼叫它。 */
+    hands,
     /** 現在是橫式還是直式版面（'L'／'P'；治具驗直式分支用） */
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
@@ -1199,6 +1207,7 @@ export function createTableTray(scene, camera, opts = {}) {
       const wantP = (camera.aspect || 1) < 1;
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
+      hands.update(dt); // 手在 props 之後：讀到的是這一幀已更新的錢柱與令牌位置
       if (apprIdx >= 0) apprT += dt;
       if (apprIdx >= 0) updateAppraiseFx(dt);
       chainAnimTime += dt;
@@ -1307,6 +1316,7 @@ export function createTableTray(scene, camera, opts = {}) {
     },
     dispose() {
       slots.forEach(clearSlot);
+      hands.dispose();
       props.dispose();
       group.remove(chainMarks);
       group.remove(moonMarks);

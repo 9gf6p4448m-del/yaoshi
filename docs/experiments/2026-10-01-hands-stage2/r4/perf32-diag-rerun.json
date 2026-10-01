@@ -1,0 +1,690 @@
+{
+ "mode": "perf",
+ "coins": 32,
+ "runs": 5,
+ "seed": 1,
+ "viewport": "844x390 dpr2",
+ "out": {
+  "tray3d=0": {
+   "callsPerFrame": 17,
+   "trianglesPerFrame": 1895,
+   "passesPerFrame": 1,
+   "rendersPerSecMedian": 1111.3,
+   "rendersPerSecAll": [
+    1142,
+    1055.1,
+    1095.2,
+    1111.3,
+    1159.3
+   ],
+   "callsAll": [
+    17,
+    17,
+    17,
+    17,
+    17
+   ],
+   "budget": {
+    "夜空穹頂": 720,
+    "遠景剪影": 98,
+    "木紋桌面": 368,
+    "香灰＋符咒": 90,
+    "其他（既有）": 5,
+    "紅布托盤": 422,
+    "托盤拍品本體": 192
+   },
+   "onHover": {
+    "callsPerFrame": 17,
+    "trianglesPerFrame": 1895,
+    "passesPerFrame": 1,
+    "rendersPerSecMedian": 1564,
+    "rendersPerSecAll": [
+     1507.2,
+     1564,
+     1520.1,
+     1633.9,
+     1582.6
+    ],
+    "hoverSlot": 0,
+    "outlines": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "props": {
+     "chips": 0,
+     "chipTris": 64,
+     "chipsTotalTris": 0,
+     "chipPool": 128,
+     "chipMax": 8,
+     "chipStringN": 8,
+     "dropped": 0,
+     "bids": [],
+     "tokens": 0,
+     "tokenTris": 192,
+     "relics": [],
+     "mode": "L",
+     "names": [
+      "prop-chips",
+      "prop-contact-shadows",
+      "prop-tokens",
+      "prop-mark-racks"
+     ]
+    },
+    "budget": {
+     "夜空穹頂": 720,
+     "遠景剪影": 98,
+     "木紋桌面": 368,
+     "香灰＋符咒": 90,
+     "其他（既有）": 5,
+     "紅布托盤": 422,
+     "托盤拍品本體": 192
+    }
+   },
+   "geometries": 20,
+   "textures": 6,
+   "hollow": true,
+   "trayVisible": true,
+   "items": [
+    {
+     "slot": 0,
+     "key": null,
+     "curse": false,
+     "curseKind": null,
+     "fac": null,
+     "moon": false,
+     "chain": false,
+     "ready": false,
+     "glb": null,
+     "visible": false,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 1,
+     "key": null,
+     "curse": false,
+     "curseKind": null,
+     "fac": null,
+     "moon": false,
+     "chain": false,
+     "ready": false,
+     "glb": null,
+     "visible": false,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 2,
+     "key": null,
+     "curse": false,
+     "curseKind": null,
+     "fac": null,
+     "moon": false,
+     "chain": false,
+     "ready": false,
+     "glb": null,
+     "visible": false,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 3,
+     "key": null,
+     "curse": false,
+     "curseKind": null,
+     "fac": null,
+     "moon": false,
+     "chain": false,
+     "ready": false,
+     "glb": null,
+     "visible": false,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    }
+   ],
+   "errors": 0,
+   "errorSample": []
+  },
+  "default": {
+   "callsPerFrame": 76,
+   "trianglesPerFrame": 23753,
+   "passesPerFrame": 1,
+   "rendersPerSecMedian": 700.6,
+   "rendersPerSecAll": [
+    626.6,
+    719.7,
+    623.7,
+    700.6,
+    752.8
+   ],
+   "callsAll": [
+    76,
+    76,
+    76,
+    76,
+    76
+   ],
+   "budget": {
+    "夜空穹頂": 720,
+    "遠景剪影": 98,
+    "木紋桌面": 368,
+    "香灰＋符咒": 90,
+    "其他（既有）": 5,
+    "紅布托盤": 422,
+    "托盤拍品本體": 18868,
+    "壽命銅錢籌碼": 2048,
+    "血玉令牌": 768,
+    "席角信物": 366
+   },
+   "onHover": {
+    "callsPerFrame": 77,
+    "trianglesPerFrame": 29477,
+    "passesPerFrame": 1,
+    "rendersPerSecMedian": 701.3,
+    "rendersPerSecAll": [
+     701.3,
+     699.2,
+     598.3,
+     775.3,
+     718.4
+    ],
+    "hoverSlot": 1,
+    "outlines": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "props": {
+     "chips": 32,
+     "chipTris": 64,
+     "chipsTotalTris": 2048,
+     "chipPool": 128,
+     "chipMax": 8,
+     "chipStringN": 8,
+     "dropped": 0,
+     "bids": [
+      {
+       "seat": 0,
+       "slot": 0,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 1,
+       "slot": 1,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 2,
+       "slot": 2,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 3,
+       "slot": 3,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      }
+     ],
+     "tokens": 4,
+     "tokenTris": 192,
+     "relics": [
+      {
+       "seat": 0,
+       "role": "qingmian",
+       "name": "白骨骰子",
+       "tris": 44
+      },
+      {
+       "seat": 1,
+       "role": "dangpu",
+       "name": "算盤＋當票",
+       "tris": 148
+      },
+      {
+       "seat": 2,
+       "role": "shoujing",
+       "name": "白米香爐",
+       "tris": 114
+      },
+      {
+       "seat": 3,
+       "role": "zutou",
+       "name": "字花明牌",
+       "tris": 60
+      }
+     ],
+     "mode": "L",
+     "names": [
+      "prop-chips",
+      "prop-contact-shadows",
+      "prop-tokens",
+      "prop-mark-racks",
+      "relic-qingmian",
+      "relic-dangpu",
+      "relic-shoujing",
+      "relic-zutou"
+     ]
+    },
+    "budget": {
+     "夜空穹頂": 720,
+     "遠景剪影": 98,
+     "木紋桌面": 368,
+     "香灰＋符咒": 90,
+     "其他（既有）": 5,
+     "紅布托盤": 422,
+     "托盤拍品本體": 18868,
+     "壽命銅錢籌碼": 2048,
+     "血玉令牌": 768,
+     "席角信物": 366,
+     "托盤描邊外殼": 5724
+    }
+   },
+   "geometries": 80,
+   "textures": 13,
+   "hollow": true,
+   "trayVisible": true,
+   "items": [
+    {
+     "slot": 0,
+     "key": "guoyin",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/guoyin.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 1,
+     "key": "yinyangcoin",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/yinyangcoin.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 2,
+     "key": "nail",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/nail.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 3,
+     "key": "buoy",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/buoy.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    }
+   ],
+   "errors": 0,
+   "errorSample": []
+  },
+  "table3d=lite": {
+   "callsPerFrame": 75,
+   "trianglesPerFrame": 23371,
+   "passesPerFrame": 1,
+   "rendersPerSecMedian": 718.8,
+   "rendersPerSecAll": [
+    748.1,
+    742.6,
+    718.8,
+    690,
+    678.8
+   ],
+   "callsAll": [
+    75,
+    75,
+    75,
+    75,
+    75
+   ],
+   "budget": {
+    "夜空穹頂": 720,
+    "遠景剪影": 98,
+    "木紋桌面": 228,
+    "其他（既有）": 5,
+    "紅布托盤": 270,
+    "托盤拍品本體": 18868,
+    "壽命銅錢籌碼": 2048,
+    "血玉令牌": 768,
+    "席角信物": 366
+   },
+   "onHover": {
+    "callsPerFrame": 75,
+    "trianglesPerFrame": 23371,
+    "passesPerFrame": 1,
+    "rendersPerSecMedian": 783.3,
+    "rendersPerSecAll": [
+     781.9,
+     783.3,
+     790.5,
+     848.9,
+     773.6
+    ],
+    "hoverSlot": 0,
+    "outlines": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "props": {
+     "chips": 32,
+     "chipTris": 64,
+     "chipsTotalTris": 2048,
+     "chipPool": 128,
+     "chipMax": 8,
+     "chipStringN": 8,
+     "dropped": 0,
+     "bids": [
+      {
+       "seat": 0,
+       "slot": 0,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 1,
+       "slot": 1,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 2,
+       "slot": 2,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      },
+      {
+       "seat": 3,
+       "slot": 3,
+       "want": 8,
+       "on": 8,
+       "stand": false
+      }
+     ],
+     "tokens": 4,
+     "tokenTris": 192,
+     "relics": [
+      {
+       "seat": 0,
+       "role": "qingmian",
+       "name": "白骨骰子",
+       "tris": 44
+      },
+      {
+       "seat": 1,
+       "role": "dangpu",
+       "name": "算盤＋當票",
+       "tris": 148
+      },
+      {
+       "seat": 2,
+       "role": "shoujing",
+       "name": "白米香爐",
+       "tris": 114
+      },
+      {
+       "seat": 3,
+       "role": "zutou",
+       "name": "字花明牌",
+       "tris": 60
+      }
+     ],
+     "mode": "L",
+     "names": [
+      "prop-chips",
+      "prop-contact-shadows",
+      "prop-tokens",
+      "prop-mark-racks",
+      "relic-qingmian",
+      "relic-dangpu",
+      "relic-shoujing",
+      "relic-zutou"
+     ]
+    },
+    "budget": {
+     "夜空穹頂": 720,
+     "遠景剪影": 98,
+     "木紋桌面": 228,
+     "其他（既有）": 5,
+     "紅布托盤": 270,
+     "托盤拍品本體": 18868,
+     "壽命銅錢籌碼": 2048,
+     "血玉令牌": 768,
+     "席角信物": 366
+    }
+   },
+   "geometries": 78,
+   "textures": 10,
+   "hollow": true,
+   "trayVisible": true,
+   "items": [
+    {
+     "slot": 0,
+     "key": "guoyin",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/guoyin.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 1,
+     "key": "yinyangcoin",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/yinyangcoin.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 2,
+     "key": "nail",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/nail.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    },
+    {
+     "slot": 3,
+     "key": "buoy",
+     "curse": false,
+     "curseKind": null,
+     "fac": "yinqi",
+     "moon": true,
+     "chain": false,
+     "ready": true,
+     "glb": "assets/creatures/buoy.glb",
+     "visible": true,
+     "apprHide": false,
+     "outlines": 0,
+     "glow": 1
+    }
+   ],
+   "errors": 0,
+   "errorSample": []
+  },
+  "ratio": {
+   "default": 0.6304,
+   "defaultOnHover": 0.6311,
+   "lite": 0.6468,
+   "defaultPaired": [
+    0.5487,
+    0.6821,
+    0.5695,
+    0.6304,
+    0.6494
+   ],
+   "defaultOnHoverPaired": [
+    0.6141,
+    0.6627,
+    0.5463,
+    0.6977,
+    0.6197
+   ],
+   "litePaired": [
+    0.6551,
+    0.7038,
+    0.6563,
+    0.6209,
+    0.5855
+   ]
+  }
+ },
+ "gate128": {
+  "enabled": false,
+  "pass": true,
+  "pressureSamples": [
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 77,
+    "triangles": 29477,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 77,
+    "triangles": 29477,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 77,
+    "triangles": 29477,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 77,
+    "triangles": 29477,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 77,
+    "triangles": 29477,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 75,
+    "triangles": 23371,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 75,
+    "triangles": 23371,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 75,
+    "triangles": 23371,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 75,
+    "triangles": 23371,
+    "passes": 1
+   },
+   {
+    "chips": 32,
+    "dropped": 0,
+    "calls": 75,
+    "triangles": 23371,
+    "passes": 1
+   }
+  ],
+  "hover": {
+   "chips": 32,
+   "dropped": 0,
+   "calls": 77,
+   "triangles": 29477,
+   "passes": 1,
+   "pairedRatio": [
+    0.6141,
+    0.6627,
+    0.5463,
+    0.6977,
+    0.6197
+   ]
+  }
+ }
+}

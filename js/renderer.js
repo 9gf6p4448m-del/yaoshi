@@ -50,8 +50,8 @@ const EDGE_URL_ON = (() => {
 const TRAY_URL = (() => {
   try {
     const q = new URLSearchParams(typeof location !== 'undefined' ? (location.search || '') : '');
-    return { on: q.get('tray3d') !== '0', lite: q.get('table3d') === 'lite' };
-  } catch (e) { return { on: true, lite: false }; }
+    return { on: q.get('tray3d') !== '0', lite: q.get('table3d') === 'lite', hands: q.get('hands') !== '0' };
+  } catch (e) { return { on: true, lite: false, hands: true }; }
 })();
 
 /** 取得 GPU 名稱（拿不到就回空字串，當成「不是軟體 GL」照常開 bloom）。 */
@@ -209,7 +209,7 @@ function init() {
       { active: true, stage: marketFocus ? 'market' : 'reveal', slots: targets.map(s => s.slot) });
     if (framing.fit) { overlay = { retreat: framing.retreat, shift: framing.shift }; release = 1; }
   };
-  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, director, frameSubjects });
+  const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, hands: TRAY_URL.hands, director, frameSubjects });
   tray.warmAppraise(renderer); // 丙案疊層兩支 shader 開頁就編好，第一次點籤不卡
   document.addEventListener('ys:reveal-slot', e => {
     const slot = Number(e.detail?.slot);
@@ -227,7 +227,7 @@ function init() {
     if (!TRAY_URL.on) return; // kill switch：版面照舊，桌上空的
     const d = (e && e.detail) || {};
     const r = Number(d.round) || 0;
-    if (r !== trayRound) { trayRound = r; tray.props.clearRound(); } // 新的一夜：桌上的錢與令牌全收
+    if (r !== trayRound) { trayRound = r; tray.props.clearRound(); tray.hands.clear(); } // 新的一夜：桌上的錢與令牌全收、手也收
     tray.setItems(Array.isArray(d.items) ? d.items : []);
     if (Array.isArray(d.seats)) tray.props.setSeats(d.seats); // 四席信物：誰坐哪一席、是哪個角色
     tray.setVisible(true);
@@ -238,11 +238,13 @@ function init() {
     if (!TRAY_URL.on) return;
     const d = (e && e.detail) || {};
     tray.props.bid(d.seat, d.slot, d.amount);
+    tray.hands.bid(d.seat, d.slot, d.amount); // 席位之手：同一條路，props 先把錢擺好，手再去對準（amount 0＝熱座清場即收手）
   });
   document.addEventListener('ys:mark', (e) => {
     if (!TRAY_URL.on) return;
     const d = (e && e.detail) || {};
     tray.props.mark(d.seat, d.slot);
+    tray.hands.mark(d.seat, d.slot); // 手跟著令牌舉高拍下；ys:mark-slam 仍由令牌落地那一幀發
   });
   /* 開標結算：只收錢與送拍品，絕不能重送 `ys:reveal`，否則會把逐槽微距鏡頭拉回桌心。 */
   document.addEventListener('ys:reveal-result', (e) => {
@@ -250,7 +252,10 @@ function init() {
     const d = (e && e.detail) || {};
     if (d.slot === undefined || d.slot === null) return;
       tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy });
+    tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍
   });
+  /* 跳過（doSkip 既有派的 ys:fx-trait-cancel，不新增事件）：桌上的錢、令牌與手直接到結束姿態；結算本來就不經過 3D 層。 */
+  document.addEventListener('ys:fx-trait-cancel', () => { tray.props.finish(); tray.hands.finish(); });
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));
 

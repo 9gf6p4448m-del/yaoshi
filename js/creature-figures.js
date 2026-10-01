@@ -135,6 +135,22 @@ function loadGlb(url) {
   return glbCache.get(url);
 }
 
+/**
+ * 席位之手（階段二 2a，2026-10-01）：走同一條 GLB 管線——同一份 glbCache（四席同一顆 GLB 只抓一次）、
+ * SkeletonUtils.clone 各自一副骨架、shareSkeletons 合併同 root 內重複的骨架——但**不穿紙紮妖的戲服**：
+ * 不注入邊光／dissolve shader、不掛反轉外殼描邊（外殼會讓每隻手多 1 個 draw call，凍結 #B1 上限是手 ≤4）。
+ * 回 { model, shared }（shared＝shareSkeletons 的回報，治具用來證明真的走過這一步）。
+ */
+export function cloneSkinnedGlb(url) {
+  return loadGlb(url).then((gltf) => {
+    const model = cloneSkinned(gltf.scene);
+    const shared = shareSkeletons(model);
+    return { model, shared };
+  });
+}
+/** 治具出口（只讀）：這個 URL 是否已在 GLB 快取裡（證明席位之手與紙紮妖共用同一份 glbCache）。 */
+export function glbCached(url) { return glbCache.has(url); }
+
 /* ── 邊光 ＋ dissolve 的 shader 注入 ─────────────────────────────────────────
  * 不換材質、不寫第二支 pass：直接在 MeshStandardMaterial 的既有 shader 尾巴
  * 疊一段 fresnel emissive 與一段 dissolve discard。這樣 GLB 烘進 COLOR_0 的

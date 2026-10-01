@@ -54,6 +54,10 @@ export const PROPS = {
     /* 一串（>8 枚）：銅錢立起來沿著一條短弧排，讀起來就是「一串錢」。
        ★不另做幾何★——同一批 instance 換個姿態，0 新三角形、0 新 draw call。 */
     STRING: { n: 8, gap: 0.022, tilt: 0.22 },
+    /* 席位之手第四輪（使用者裁定方案甲）：同一席一次推多格＝排隊，同席只有一隻手一格一格推。
+       第一格原速 FLY_MS；之後每格 QUEUE_FLY 秒、格與格之間 QUEUE_GAP 秒（4 格錢最後落定約 1.26 秒）。只在手開著時。 */
+    QUEUE_FLY: 0.22,
+    QUEUE_GAP: 0.06,
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
@@ -371,6 +375,9 @@ export function createTableProps(parent, opts = {}) {
   const onSettle = opts.onSettle || null;
   const onBid = opts.onBid || null;
   const onChange = opts.onChange || null;
+  /* 席位之手（階段二 2a）：手開著時，出價的錢改成「整柱被手推著沿桌面滑」（取代拋物線，時長與終點不變），
+     落標的錢改成「整柱被扒回席位」（沿用 0.22 秒延遲＋0.42 秒返回，不再拋起）。手關著＝舊行為一字不差。 */
+  const handPaths = !!opts.handPaths;
 
   // ── 籌碼池：1 顆 InstancedMesh 管四席四格、最多 128 枚 ──────────────
   const CH = PROPS.CHIP;
@@ -442,6 +449,8 @@ export function createTableProps(parent, opts = {}) {
   /** 四席信物：{ seat, role, mesh } */
   const relics = [null, null, null, null];
   let seatRoles = [null, null, null, null];
+  /** 木籌槽／木舌的外框（席位之手的地板之一；layoutTokens 每次重寫）。 */
+  const rackBoxes = [];
 
   const M = new THREE.Matrix4();
   const Q = new THREE.Quaternion();
@@ -477,15 +486,17 @@ export function createTableProps(parent, opts = {}) {
       const e = 1 - (1 - t) * (1 - t) * (1 - t); // easeOutCubic：推出去是「滑」不是「彈」
       const bx = c.from[0] + (c.to[0] - c.from[0]) * e;
       const bz = c.from[2] + (c.to[2] - c.from[2]) * e;
-      const by = c.from[1] + (c.to[1] - c.from[1]) * e + Math.sin(Math.PI * t) * CH.LIFT;
+      const by = c.from[1] + (c.to[1] - c.from[1]) * e + (handPaths ? 0 : Math.sin(Math.PI * t) * CH.LIFT);
       /* 揭盅先留一瞬給玩家比高低；落標後才沿短拋物線退回原席，不能只是悄悄變灰。 */
       const back = Math.min(1, c.returnK || 0), be = back * back * (3 - 2 * back);
       const px = c.returnTo ? bx + (c.returnTo[0] - bx) * be : bx;
       const pz = c.returnTo ? bz + (c.returnTo[2] - bz) * be : bz;
-      const py = c.returnTo ? by + (c.returnTo[1] - by) * be + Math.sin(Math.PI * back) * 0.10 : by;
+      const py = c.returnTo ? by + (c.returnTo[1] - by) * be + (handPaths ? 0 : Math.sin(Math.PI * back) * 0.10) : by;
       c.shadow = [px, pz];
-      /* 一串的姿態是立著的（繞 x 轉 90°），攤開的是躺平的。飛行途中線性補到目標姿態。 */
-      EU.set(c.stand ? (Math.PI / 2) * e : c.tilt * e, c.yaw, c.stand ? CH.STRING.tilt * e : 0);
+      c.pos = [px, py, pz]; // 席位之手的唯讀出口（stackAt／handObstacles）讀這一份，不另算
+      /* 一串的姿態是立著的（繞 x 轉 90°），攤開的是躺平的。飛行途中線性補到目標姿態；手推的整柱一開始就是終點姿態。 */
+      const pe = handPaths ? 1 : e;
+      EU.set(c.stand ? (Math.PI / 2) * pe : c.tilt * pe, c.yaw, c.stand ? CH.STRING.tilt * pe : 0);
       Q.setFromEuler(EU);
       Pv.set(px, py, pz); Sv.setScalar(1 + (c.winnerPulse || 0) * 0.24);
       M.compose(Pv, Q, Sv);
@@ -525,7 +536,11 @@ export function createTableProps(parent, opts = {}) {
 
   function layoutTokens() {
     let rackCount = 0;
+    rackBoxes.length = 0;
     const putRack = (x, z, width, depth, yaw = 0) => {
+      /* 手的地板用軸對齊外框（斜擺的木舌取外接框：只會偏保守、不會讓手指穿進去）。 */
+      const c = Math.abs(Math.cos(yaw)), s = Math.abs(Math.sin(yaw));
+      rackBoxes.push({ x, z, hx: (width * c + depth * s) / 2, hz: (width * s + depth * c) / 2, top: trayY + 0.016 });
       Pv.set(x, trayY + 0.008, z); Sv.set(width, 0.016, depth);
       EU.set(0, yaw, 0); Q.setFromEuler(EU); M.compose(Pv, Q, Sv);
       racks.setMatrixAt(rackCount++, M);
@@ -564,6 +579,7 @@ export function createTableProps(parent, opts = {}) {
       EU.set(TK.PITCH, r.yaw, 0); // 印面平放，字朝主鏡頭；保留幾何本身的厚度。
       Q.setFromEuler(EU);
       Pv.set(px, py, pz);
+      r.pos = [px, py, pz]; // 席位之手的唯讀出口（tokenAt／handObstacles）
       Sv.setScalar(1); // 共用暫存向量：不可沿用接觸陰影的非等比縮放，否則牌面會被壓成窄條。
       M.compose(Pv, Q, Sv);
       tokens.setMatrixAt(n, M);
@@ -648,12 +664,23 @@ export function createTableProps(parent, opts = {}) {
       const stand = amt > CH.MAX;
       const n = stand ? CH.STRING.n : Math.min(CH.MAX, amt);
       const [fx, fz] = seatXZ(s);
+      /* 排隊（手開著時）：這一席別格還有錢在路上（或還在等），這一格就排在它們後面、用較短的推送時間。 */
+      let qDelay = 0, qFly = CH.FLY_MS;
+      if (handPaths) {
+        let busy = 0;
+        for (const c of chipRec) if (c.seat === s && c.slot !== k && c.t < 1) busy = Math.max(busy, Math.max(0, c.delay) + (1 - c.t) * (c.fly || CH.FLY_MS));
+        if (busy > 0) { qDelay = busy + CH.QUEUE_GAP; qFly = CH.QUEUE_FLY; }
+      }
+      const tos = [];
+      for (let i = 0; i < n; i++) tos.push(stand ? stringAt(s, k, i) : spreadAt(s, k, i, n));
+      /* 手推：整柱在席位就疊好，與終點同形、平移到席位，同時起步一起滑（不錯開、不拋起）。 */
+      const cx = tos.reduce((a, p) => a + p[0], 0) / n, cz = tos.reduce((a, p) => a + p[2], 0) / n;
       for (let i = 0; i < n; i++) {
-        const to = stand ? stringAt(s, k, i) : spreadAt(s, k, i, n);
+        const to = tos[i];
         chipRec.push({
           seat: s, slot: k, k: i, n, stand, amt,
-          from: [fx, trayY + CH.T / 2, fz], to,
-          yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: i * 0.035,
+          from: handPaths ? [to[0] + fx - cx, to[1], to[2] + fz - cz] : [fx, trayY + CH.T / 2, fz], to,
+          yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: handPaths ? qDelay : i * 0.035, fly: qFly,
         });
       }
       // 只在超過明示的 128 枚硬上限時才裁掉最舊的；合法四席四格局面不會走到這裡。
@@ -686,7 +713,12 @@ export function createTableProps(parent, opts = {}) {
         if (c.loserDim) {
           const [x, z] = seatXZ(c.seat);
           c.returnDelay = 0.22; c.returnK = 0;
-          c.returnTo = [x, trayY + CH.T / 2, z];
+          if (handPaths) {
+            /* 手扒回：整柱平移回席位（保住錢柱形狀，手指扒在後緣才拖得動），不拋起。 */
+            const mine = chipRec.filter((o) => o.seat === c.seat && o.slot === k);
+            const cx = mine.reduce((a, o) => a + o.to[0], 0) / mine.length, cz = mine.reduce((a, o) => a + o.to[2], 0) / mine.length;
+            c.returnTo = [c.to[0] + x - cx, c.to[1], c.to[2] + z - cz];
+          } else c.returnTo = [x, trayY + CH.T / 2, z];
         }
       }
       /* 勝者的血玉令牌即使本夜沒盯上，也在得標槽位亮一次；下夜 clearRound 會收掉。 */
@@ -740,12 +772,79 @@ export function createTableProps(parent, opts = {}) {
     },
     /** 只給托盤選擇「高壓時的 hover 表現」用；不透露或改寫任何賽局資料。 */
     chipCount() { return chipRec.length; },
+    /* ── 席位之手的唯讀出口（階段二 2a）：手只讀這幾支去「對準」錢與令牌，不寫任何東西回來。 ── */
+    mode() { return mode; },
+    trayZ() { return trayZ; },
+    tableY() { return trayY; },
+    /** 某席某格桌上那一柱錢的現況（null＝沒有）：中心、頂高、外接半徑、飛行進度、是否正在被收回、終點中心。 */
+    stackAt(seat, slot) {
+      let n = 0, sx = 0, sz = 0, tx = 0, tz = 0, top = -Infinity, t = 1, returning = false, rk = 1, wait = 0, fly = CH.FLY_MS;
+      const pts = [];
+      for (const c of chipRec) {
+        if (c.seat !== seat || c.slot !== slot || (c.returnK || 0) >= 1) continue;
+        const p = c.pos || c.from;
+        n++; sx += p[0]; sz += p[2]; tx += c.to[0]; tz += c.to[2]; pts.push(p);
+        /* 躺平的錢有一點傾斜（c.tilt），錢緣會比錢面中心高出 R·sin(tilt)；立著的一串最高點是錢緣 R。
+           得標那一下的脈衝會把錢放大（winnerPulse，writeChips 的 Sv），頂高與半徑都要跟著乘。 */
+        const k = 1 + (c.winnerPulse || 0) * 0.24;
+        top = Math.max(top, p[1] + k * (c.stand ? CH.R + CH.T / 2 : CH.T / 2 + CH.R * Math.abs(Math.sin(c.tilt || 0))));
+        rk = Math.max(rk, k);
+        t = Math.min(t, c.t); wait = Math.max(wait, Math.max(0, c.delay || 0)); fly = c.fly || CH.FLY_MS;
+        if (c.returnTo) returning = true;
+      }
+      if (!n) return null;
+      const x = sx / n, z = sz / n;
+      let r = 0; for (const p of pts) r = Math.max(r, Math.hypot(p[0] - x, p[2] - z));
+      /* 半徑多算半個錢厚：傾斜或立著的錢，錢緣的上下兩角會比 R 再往外突出最多 T/2。 */
+      return { x, z, top, r: r + (CH.R + CH.T / 2) * rk, n, t, returning, tx: tx / n, tz: tz / n, wait, fly };
+    },
+    /** 某席的令牌現況（null＝沒拍）：位置、頂高、拍下進度、是否已落地。 */
+    tokenAt(seat) {
+      const r = tokRec[seat | 0]; if (!r || r.slot < 0 || !r.pos) return null;
+      const lift = TK.T / 2 + 0.028; // 中心到陽刻頂
+      return { x: r.pos[0], y: r.pos[1], z: r.pos[2], top: r.pos[1] + lift, t: r.t, hit: !!r.hit, slot: r.slot, tx: r.to[0], tz: r.to[2],
+        landTop: trayY + TK.T / 2 + TK.STAND_LIFT + lift };
+    },
+    /** 這一格桌上有錢的席位（由小到大；決定性）。 */
+    stackSeats(slot) {
+      const set = new Set(); for (const c of chipRec) if (c.slot === slot && (c.returnK || 0) < 1) set.add(c.seat);
+      return [...set].sort((a, b) => a - b);
+    },
+    /** 手的地板：每柱錢一個圓柱、每枚令牌與木籌槽一個軸對齊盒（頂高＝該物件最高點）。 */
+    handObstacles() {
+      const out = [];
+      const keys = new Set(); for (const c of chipRec) if ((c.returnK || 0) < 1) keys.add(c.seat * 16 + c.slot);
+      for (const key of [...keys].sort((a, b) => a - b)) { const st = api.stackAt(key >> 4, key & 15); if (st) out.push({ x: st.x, z: st.z, r: st.r, top: st.top }); }
+      for (const r of tokRec) if (r.slot >= 0 && r.pos) out.push({ x: r.pos[0], z: r.pos[2], hx: TK.W, hz: TK.H, top: r.pos[1] + TK.T / 2 + 0.028, bottom: r.pos[1] - TK.T / 2 });
+      for (const b of rackBoxes) out.push(b);
+      return out;
+    },
+    /** 席位之手第三輪：四席信物的外接圓柱（中心、半徑＝本地包圍盒八角水平距的最大值、頂高＋小動作餘量）。
+     *  手不把它當地板（那會讓手在起手時整隻抬到信物上方），而是側移避開（hand-motion）。 */
+    relicObstacles() {
+      const out = [], v = new THREE.Vector3();
+      for (const r of relics) {
+        if (!r) continue;
+        const g = r.mesh.geometry; if (!g.boundingBox) g.computeBoundingBox();
+        const b = g.boundingBox, [x, z] = seatXZ(r.seat);
+        r.mesh.updateMatrix();
+        let rad = 0, top = trayY;
+        for (let i = 0; i < 8; i++) {
+          v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(r.mesh.matrix);
+          rad = Math.max(rad, Math.hypot(v.x - x, v.z - z)); top = Math.max(top, v.y);
+        }
+        out.push({ seat: r.seat, x, z, r: rad, top: top + 0.03 });
+      }
+      return out;
+    },
+    /** 跳過：錢與令牌直接到結束姿態（同一條 update 路徑快轉，令牌落地仍由 update 發 onSlam）。 */
+    finish() { for (let i = 0; i < 4; i++) api.update(1e3); },
     update(dt) {
       let live = false;
       for (const c of chipRec) {
         if (c.t < 1) {
           if (c.delay > 0) { c.delay -= dt; live = true; continue; }
-          c.t = Math.min(1, c.t + dt / CH.FLY_MS);
+          c.t = Math.min(1, c.t + dt / (c.fly || CH.FLY_MS));
           live = true;
         }
         if (c.winnerPulse > 0) { c.winnerPulse = Math.max(0, c.winnerPulse - dt / 0.72); live = true; }
