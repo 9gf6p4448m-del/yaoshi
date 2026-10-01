@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { THREE, M, ROOT, loadProps, loadHands, loadHandGltf, LAYOUTS } from './hand-fixture.mjs';
+import { THREE, M, ROOT, loadProps, loadHands, loadHandGltf, LAYOUTS, handRigSource as handRigSourceFx } from './hand-fixture.mjs';
 
 const { createTableProps, PROPS } = await loadProps();
 const { createTableHands, fetched } = await loadHands();
@@ -182,7 +182,9 @@ test('#C1 收手後整隻不可見（閒置＝收在畫面外）：推／拍／�
     ev.step(r); assert.deepEqual(visibleSeats(r), [0, 1, 2, 3], '推的當幀四隻手都在場');
     check('推');
     for (let s = 0; s < 4; s++) ev.mark(r, s, (s + 1) % 4);
-    ev.step(r); assert.equal(visibleSeats(r).length, 4);
+    /* 第二輪：拍的手在令牌落地那一幀才上場（飛行時不上場），所以等到落地後再確認四隻都出現過 */
+    const seenSlam = new Set(); for (let i = 0; i < 30; i++) { ev.step(r); visibleSeats(r).forEach((x) => seenSlam.add(x)); }
+    assert.equal(seenSlam.size, 4, '拍：四隻手都上場過');
     check('拍');
     ev.reveal(r, 0, 0);
     ev.step(r); assert.ok(visibleSeats(r).length >= 1);
@@ -321,11 +323,91 @@ test('#C6 落地事件只由令牌發：手的模組不派任何 DOM 事件；�
   } finally { globalThis.document = realDoc; globalThis.CustomEvent = realCE; }
 });
 
+/* ═══ 第二輪：伸入深度（北席不越過自己那側托盤前緣、西／東不越過托盤中線）═══════════ */
+test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（袖口邊以前的真實蒙皮頂點）——北席 z ≤ 托盤北緣＋NORTH_IN；西席 x ≤ −MID、東席 x ≥ MID；南／西／東 z ≥ 托盤前緣−SOUTH_IN', async () => {
+  const r = await rig('L');
+  const tz = LAYOUTS.L[3], hd = M.HAND.TRAY.L.hd, R = M.HAND.REACH;
+  const front = (p) => (tz + hd - R.SOUTH_IN) - p.z;
+  const lim = { 0: front, 1: (p) => p.z - (tz - hd + R.NORTH_IN), 2: (p) => Math.max(p.x + R.MID, front(p)), 3: (p) => Math.max(-p.x + R.MID, front(p)) };
+  let worst = -Infinity, where = null, live = { 0: 0, 1: 0, 2: 0, 3: 0 };
+  const check = () => {
+    for (const h of holders(r)) {
+      const seat = +h.name.split('-')[1]; if (!h.visible || !lim[seat]) continue;
+      live[seat]++;
+      let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); mesh.skeleton.update();
+      const P = mesh.geometry.attributes.position;
+      for (let i = 0; i < P.count; i++) {
+        if (P.getZ(i) < M.HAND.SLEEVE.CUFF_TO) continue; // 漸隱掉的袖布不算
+        mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld);
+        const d = lim[seat](v); if (d > worst) { worst = d; where = seat; }
+      }
+    }
+  };
+  for (let slot = 0; slot < 4; slot++) {
+    r.props.clearRound(); r.hands.clear();
+    for (let s = 0; s < 4; s++) ev.bid(r, s, slot, 6);
+    for (let i = 0; i < 50; i++) { ev.step(r); check(); }
+    for (let s = 0; s < 4; s++) ev.mark(r, s, slot);
+    for (let i = 0; i < 50; i++) { ev.step(r); check(); }
+    ev.reveal(r, slot, (slot + 1) % 4);
+    for (let i = 0; i < 70; i++) { ev.step(r); check(); }
+  }
+  assert.ok(live[0] > 50 && live[1] > 50 && live[2] > 50 && live[3] > 50, `活性：四席的手都上場過 ${JSON.stringify(live)}`);
+  assert.ok(worst <= 1e-3, `越線 ${worst}（席 ${where}）`);
+  r.hands.dispose(); r.props.dispose();
+});
+
+test('第二輪拍：令牌飛行中（t<1）手不上場，落地後才伸進來；令牌落地後四隻手都出現過', async () => {
+  const r = await rig('L');
+  for (let s = 0; s < 4; s++) ev.mark(r, s, (s + 2) % 4);
+  let flyingVisible = 0, flyingFrames = 0; const after = new Set();
+  for (let i = 0; i < 60; i++) {
+    ev.step(r);
+    for (let s = 0; s < 4; s++) {
+      const vis = holders(r)[s].visible, t = r.props.tokenAt(s).t;
+      if (t < 1) { flyingFrames++; if (vis) flyingVisible++; } else if (vis) after.add(s);
+    }
+  }
+  assert.ok(flyingFrames > 20, '活性：確實量到飛行中的幀');
+  assert.equal(flyingVisible, 0, '飛行中有手在場');
+  assert.equal(after.size, 4);
+  r.hands.dispose(); r.props.dispose();
+});
+
 /* ═══ 時序對齊（純函式常數 vs table-props） ═════════════════════════════ */
 test('時序：推＝籌碼飛行 0.42 秒；收＝0.22 秒延遲＋0.42 秒返回；拍跟著令牌（SLAM_MS 0.30）', () => {
   assert.equal(M.HAND.PUSH_MS, PROPS.CHIP.FLY_MS);
   assert.equal(M.HAND.RAKE.DELAY, 0.22);
   assert.equal(M.HAND.RAKE.BACK_MS, 0.42);
   assert.equal(PROPS.TOKEN.SLAM_MS, 0.30);
-  assert.equal(M.HAND.SCALE, 0.35);
+});
+
+/* 第二輪（使用者 2026-10-01：手太大、黑袖口成團）：原本這裡斷言 SCALE＝0.35（第一輪主對話的裁定），
+   使用者改裁「比 0.35 再降、掌寬≈錢柱直徑 2～2.5 倍」，所以換成量出來的比例判準。 */
+test('第二輪縮放：橫式掌寬（GLB Palm 主骨頂點 x 跨度 × SCALE）為錢柱直徑的 2～2.5 倍，且小於第一輪的 0.35', async () => {
+  const { src } = await handRigSourceFx();
+  const rig = M.buildRig(src);
+  let a = Infinity, b = -Infinity;
+  for (let v = 0; v < rig.count; v++) if (rig.names[rig.dom[v]] === 'Palm') { a = Math.min(a, src.positions[v * 3]); b = Math.max(b, src.positions[v * 3]); }
+  const ratio = (b - a) * M.HAND.SCALE / (2 * PROPS.CHIP.R);
+  assert.ok(ratio >= 2 && ratio <= 2.5, `掌寬／錢柱直徑＝${ratio}`);
+  assert.ok(M.HAND.SCALE < 0.35);
+});
+
+test('第二輪袖子：沒有成團黑塊——看得見（alpha≥0.5）的頂點都不是近黑；袖口以後漸隱；看得見的袖子長度 ≤ 前臂 1/5', async () => {
+  const { src, mesh } = await handRigSourceFx();
+  const c = mesh.geometry.attributes.color;
+  const rgba = M.dressColors(src.positions, c.array, c.itemSize);
+  const n = src.positions.length / 3;
+  const forearm = 2.3, wristZ = 0; // 腕骨 z＝0、肘骨 z＝−2.3（GLB bind）
+  let darkVisible = 0, minVisibleZ = Infinity, hiddenTail = 0, tail = 0;
+  for (let v = 0; v < n; v++) {
+    const z = src.positions[v * 3 + 2], r = rgba[v * 4], g = rgba[v * 4 + 1], b = rgba[v * 4 + 2], al = rgba[v * 4 + 3];
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    if (al >= 0.5) { if (lum < 0.03) darkVisible++; minVisibleZ = Math.min(minVisibleZ, z); }
+    if (z < -1.5) { tail++; if (al <= 0.01) hiddenTail++; }
+  }
+  assert.equal(darkVisible, 0, '看得見的近黑頂點');
+  assert.ok(wristZ - minVisibleZ <= forearm / 5 + 0.25, `看得見的部分延伸到腕後 ${wristZ - minVisibleZ} dm（袖口 ≤ ${forearm / 5}，再加漸隱前半段）`);
+  assert.ok(tail > 0 && hiddenTail === tail, `原本的黑袖段（z<−1.5）須全數隱去：${hiddenTail}/${tail}`);
 });

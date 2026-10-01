@@ -763,6 +763,7 @@ export function createTableProps(parent, opts = {}) {
     chipCount() { return chipRec.length; },
     /* ── 席位之手的唯讀出口（階段二 2a）：手只讀這幾支去「對準」錢與令牌，不寫任何東西回來。 ── */
     mode() { return mode; },
+    trayZ() { return trayZ; },
     tableY() { return trayY; },
     /** 某席某格桌上那一柱錢的現況（null＝沒有）：中心、頂高、外接半徑、飛行進度、是否正在被收回、終點中心。 */
     stackAt(seat, slot) {
@@ -803,7 +804,7 @@ export function createTableProps(parent, opts = {}) {
       const out = [];
       const keys = new Set(); for (const c of chipRec) if ((c.returnK || 0) < 1) keys.add(c.seat * 16 + c.slot);
       for (const key of [...keys].sort((a, b) => a - b)) { const st = api.stackAt(key >> 4, key & 15); if (st) out.push({ x: st.x, z: st.z, r: st.r, top: st.top }); }
-      for (const r of tokRec) if (r.slot >= 0 && r.pos) out.push({ x: r.pos[0], z: r.pos[2], hx: TK.W, hz: TK.H, top: r.pos[1] + TK.T / 2 + 0.028 });
+      for (const r of tokRec) if (r.slot >= 0 && r.pos) out.push({ x: r.pos[0], z: r.pos[2], hx: TK.W, hz: TK.H, top: r.pos[1] + TK.T / 2 + 0.028, bottom: r.pos[1] - TK.T / 2 });
       for (const b of rackBoxes) out.push(b);
       return out;
     },

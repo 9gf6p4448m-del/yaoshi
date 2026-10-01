@@ -24,6 +24,12 @@ const MUTANTS = [
     from: '  let f = tableY;\n  for (const o of obstacles) {', to: '  let f = tableY;\n  for (const o of []) {' },
   { id: 'bypassCache', gate: 'pipeline_creatureFigures', file: 'js/table-hands.js', what: '每隻手各帶不同查詢字串（繞過 glbCache、抓四次）',
     from: 'Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url)))', to: 'Promise.all([0, 1, 2, 3].map((k) => cloneSkinnedGlb(url + "?h=" + k)))' },
+  /* 第二輪：遮擋判準（hands-occlusion.mjs）的突變 */
+  { id: 'occl-slamCarriesToken', tool: 'occlusion', gate: 'occlusion_le_10pct', file: 'js/hand-motion.js', what: '拍：手又舉著令牌飛（飛行中就上場、掌心貼著令牌跟著舉高）',
+    from: '      if (!landed) return { hidden: true };', to: '',
+    and: [['      const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow() + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);', '      const back = 0;']] },
+  { id: 'occl-westNoFront', tool: 'occlusion', gate: 'occlusion_le_10pct', file: 'js/hand-motion.js', what: '西席不限托盤前緣（手伸到最左那格拍品腳前）',
+    from: '    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }, front];', to: '    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }];' },
 ];
 function buildTree(m) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hands-probe-' + m.id + '-'));
@@ -35,11 +41,17 @@ function buildTree(m) {
   const from = m.from.replace(/\n/g, eol), to = m.to.replace(/\n/g, eol);
   const n = src.split(from).length - 1;
   if (n !== 1) throw new Error(`${m.id}：錨點出現 ${n} 次`);
-  fs.writeFileSync(p, src.replace(from, to), 'utf8');
+  let out = src.replace(from, to);
+  for (const [f2, t2] of m.and || []) {
+    const ff = f2.replace(/\n/g, eol); const k = out.split(ff).length - 1;
+    if (k !== 1) throw new Error(`${m.id}：附加錨點出現 ${k} 次`);
+    out = out.replace(ff, t2.replace(/\n/g, eol));
+  }
+  fs.writeFileSync(p, out, 'utf8');
   return dir;
 }
-const probe = (root) => {
-  const args = [path.join(ROOT, 'tests/tools/hands-probe.mjs'), '--layouts=L', '--port=8978'];
+const probe = (root, tool) => {
+  const args = tool === 'occlusion' ? [path.join(ROOT, 'tests/tools/hands-occlusion.mjs'), '--port=8984'] : [path.join(ROOT, 'tests/tools/hands-probe.mjs'), '--layouts=L', '--port=8978'];
   if (root) args.push('--root=' + root);
   const r = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 << 20, timeout: 600000 });
   const txt = r.stdout || '';
@@ -50,15 +62,15 @@ for (const m of MUTANTS) {
   let dir = null;
   try {
     dir = buildTree(m);
-    const r = probe(dir);
+    const r = probe(dir, m.tool);
     const red = !!r.gates && r.gates[m.gate] === false;
     results.push({ id: m.id, gate: m.gate, what: m.what, red, gates: r.gates || null, err: r.parseError || null });
     console.log(`${red ? '紅 ✅' : '沒紅 ❌'} ${m.id} → ${m.gate}=${r.gates ? r.gates[m.gate] : '?'}`);
   } catch (e) { results.push({ id: m.id, gate: m.gate, error: String(e) }); console.log('錯誤', m.id, String(e)); }
   finally { if (dir) { try { fs.unlinkSync(path.join(dir, 'assets')); } catch (e) { /* junction 已不在 */ } fs.rmSync(dir, { recursive: true, force: true }); } }
 }
-const base = probe(null);
-const summary = { mutants: results.length, allRed: results.every((x) => x.red), baselinePass: !!base.pass, baselineGates: base.gates };
+const base = probe(null), baseOcc = probe(null, 'occlusion');
+const summary = { mutants: results.length, allRed: results.every((x) => x.red), baselinePass: !!base.pass && !!baseOcc.pass, baselineGates: base.gates, baselineOcclusionGates: baseOcc.gates };
 if (OUT) fs.writeFileSync(path.resolve(ROOT, OUT), JSON.stringify({ summary, results }, null, 1));
 console.log(JSON.stringify(summary));
 process.exit(summary.allRed && summary.baselinePass ? 0 : 1);

@@ -15,7 +15,7 @@ import * as THREE from 'three';
 
 const V = new URL(import.meta.url).search;
 const { cloneSkinnedGlb } = await import('./creature-figures.js' + V);
-const { HAND, buildRig, createHandDirector } = await import('./hand-motion.js' + V);
+const { HAND, buildRig, createHandDirector, dressColors } = await import('./hand-motion.js' + V);
 
 /**
  * @param parent  掛進去的 Group（table-tray 的 group）
@@ -28,7 +28,7 @@ export function createTableHands(parent, props, opts = {}) {
   parent.add(group);
   const url = opts.glbUrl || HAND.GLB;
   const hands = []; // { seat, holder, mesh, bones: {name: Bone} }
-  let rig = null, director = null, frozen = false, disposed = false, shared = null, material = null, loadError = null;
+  let rig = null, director = null, frozen = false, disposed = false, shared = null, material = null, loadError = null, dressedGeo = null;
 
   const ready = Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url))).then((clones) => {
     if (disposed) return;
@@ -38,8 +38,17 @@ export function createTableHands(parent, props, opts = {}) {
       if (!mesh) throw new Error('hand GLB 沒有 SkinnedMesh：' + url);
       /* 蒙皮變形後 bounding sphere 不準（同 creature-figures 的理由），不讓 three 把整隻手剔掉。 */
       mesh.frustumCulled = false;
-      /* 四隻手共用第一隻的材質：同一支 program、同一份 uniform（SkeletonUtils.clone 本來就共用，這裡明寫）。 */
-      if (!material) material = mesh.material; else mesh.material = material;
+      /* 四隻手共用一份材質與一份幾何（同一支 program、同一份 uniform）。第二輪：袖子改上色——
+         幾何複製一份（不動 glbCache 那份）換成 RGBA 頂點色（dressColors），材質開 alphaHash：
+         袖布以抖色漸隱，仍走不透明那一趟（不排序、寫深度、不多 draw call）。 */
+      if (!material) {
+        material = mesh.material.clone();
+        material.alphaHash = true;
+        dressedGeo = mesh.geometry.clone();
+        const c = dressedGeo.attributes.color;
+        dressedGeo.setAttribute('color', new THREE.BufferAttribute(dressColors(dressedGeo.attributes.position.array, c.array, c.itemSize), 4));
+      }
+      mesh.material = material; mesh.geometry = dressedGeo;
       const holder = new THREE.Group();
       holder.name = 'hand-' + seat;
       holder.rotation.order = 'YXZ'; // 與 hand-motion 的 xform 同序：先 yaw、再 pitch
@@ -118,8 +127,9 @@ export function createTableHands(parent, props, opts = {}) {
     dispose() {
       disposed = true;
       for (const h of hands) { group.remove(h.holder); if (h.mesh.skeleton) h.mesh.skeleton.dispose(); }
-      /* geometry／material 是 glbCache 那份 GLB 的（與 clone 共用），不在這裡 dispose（同 creature-figures 的規矩）。 */
+      /* 骨架是 clone 各自建的；glbCache 那份原始 geometry／material 不動（同 creature-figures 的規矩）。 */
       hands.length = 0; director = null;
+      if (dressedGeo) dressedGeo.dispose(); if (material) material.dispose(); // 這兩份是本檔複製的，可以放
       if (group.parent) group.parent.remove(group);
     },
   };

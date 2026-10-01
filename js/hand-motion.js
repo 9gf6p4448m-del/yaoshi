@@ -21,10 +21,26 @@
 
 /** 全部【試玩必調】；集中在這一張表，不在函式裡寫死數字。 */
 export const HAND = {
-  /** dm → 世界單位。0.35 為主對話裁定版（比例較協調；0.55 版太大）。 */
-  SCALE: 0.35,
-  /** 直式另乘的倍率：直式托盤只有橫式的 0.57 倍寬，同尺寸的手會蓋滿畫面；取信物在直式的同一個倍率 0.72（table-props poseRelic）。 */
-  SCALE_P: 0.72,
+  /** dm → 世界單位。第二輪（使用者：手太大）以「掌寬 ≈ 錢柱直徑 2～2.5 倍」為準：GLB 掌寬（Palm 主骨頂點的 x 跨度）
+   *  0.867 dm、錢柱直徑 2×CHIP.R＝0.144 ⇒ 縮放落在 0.332～0.415；取最小端附近 0.335（掌寬 0.290＝2.02 倍）。
+   *  真正讓手「看起來大」的是黑色長袖（整段前臂＋袖），見 SLEEVE。 */
+  SCALE: 0.335,
+  /** 直式另乘的倍率（使用者裁定只玩橫式；直式只保機械檢查，不做美術）：0.6。 */
+  SCALE_P: 0.6,
+  /** 袖子（第二輪）：整段黑袖拿掉，只留腕部一圈短袖口邊（≤前臂 1/5），其後的袖布由暗轉淡、以 alphaHash 抖色漸隱。
+   *  z 是手部局部座標（dm；腕骨 z＝0、肘骨 z＝−2.3，前臂長 2.3 ⇒ 1/5＝0.46）。顏色為線性 RGB（GLB 頂點色同一空間）。 */
+  SLEEVE: {
+    CUFF_FROM: -0.08, // 這裡以後（往肘）是袖口邊
+    CUFF_TO: -0.40, // 袖口邊到此為止（長 0.32＜0.46）
+    FADE_TO: -0.95, // 袖布在這裡完全隱去
+    CUFF: [0.130, 0.045, 0.030], // 舊棗紅袖口（sRGB 約 #643b30）：和暗紅桌布／木色同一族，不是黑
+    CLOTH: [0.060, 0.022, 0.016], // 漸隱段的袖布：比袖口暗一階，仍非純黑
+  },
+  /** 每席手能伸到哪（第二輪）：北席指尖不越過「自己那側的托盤前緣」再多 NORTH_IN；西／東席不越過托盤中線 x＝0（留 MID）。
+   *  南席（玩家自己）指尖不伸進托盤前緣以內超過 SOUTH_IN（量測：伸過去就擋在拍品腳前）。 */
+  REACH: { NORTH_IN: 0.05, MID: 0.06, SOUTH_IN: 0.02 },
+  /** 托盤布面半寬／半深（與 table-tray 的 TRAY.CLOTH、直式 CLOTH_SX／SZ 同值）：布有皺褶起伏，手指在布上要多留 CLOTH_TOP。 */
+  TRAY: { L: { hw: 1.8, hd: 0.46 }, P: { hw: 0.756, hd: 0.331 }, CLOTH_TOP: 0.012 },
   /** 正式資產（走 creature-figures.js 的 GLB 管線載入）。 */
   GLB: 'assets/creatures/hand_r.glb',
   /** 推：與籌碼飛行同長（table-props PROPS.CHIP.FLY_MS），錢的終點不變，只把拋物線換成「被手推著滑」。 */
@@ -34,7 +50,11 @@ export const HAND = {
   RETRACT_DIST: 1.0,
   RETRACT_LIFT: 0.12,
   /** 拍：令牌落地後的微顫（只往上抖，不會往下穿令牌）與停留。 */
-  SLAM: { TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.08 },
+  SLAM: { SLAP_MS: 0.12, TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.10, TRAIL: 0.13, APPROACH: 0.25 },
+  /** 推（第二輪）：指尖離錢柱外緣多遠。 */
+  PUSH_GAP: 0.012,
+  /** 西／東席從側面水平進場（見 yawOf）。 */
+  SIDE_YAW: false,
   /** 收（敗方）：沿用揭盅 0.22 秒延遲＋0.42 秒返回；延遲那段就是手伸過去扒住錢柱的時間。 */
   RAKE: { DELAY: 0.22, BACK_MS: 0.42, REACH_FROM: 0.45 },
   /** 收（勝方）：手停一拍——伸到自己的錢柱後方、掌心朝下按住桌面，停這麼久再收。 */
@@ -139,7 +159,31 @@ export function buildRig(src) {
   const tips = pick(FINGER_TIP_BONES), rakeTips = pick(RAKE_TIP_BONES), palm = pick(PALM_BONES);
   /* 掃描俯角用的精簡點集：每 2 個取 1（擺位最後一步仍用全部頂點解高度）。 */
   const coarse = []; for (let v = 0; v < vc; v += 2) coarse.push(v);
-  return { names: src.names.slice(), parents: src.parents.slice(), rest: src.rest.map((r) => r.slice()), idx, count: vc, wb, ww, wo, dom, tips, rakeTips, palm, coarse };
+  /* 看得見的部分（袖口邊以前）：伸入深度限制只看這些點，漸隱掉的袖布不算。 */
+  const front = []; for (let v = 0; v < vc; v++) if (src.positions[v * 3 + 2] >= HAND.SLEEVE.CUFF_TO) front.push(v);
+  return { names: src.names.slice(), parents: src.parents.slice(), rest: src.rest.map((r) => r.slice()), idx, count: vc, wb, ww, wo, dom, tips, rakeTips, palm, coarse, front };
+}
+
+/**
+ * 袖子上色（第二輪）：回一份 RGBA 頂點色（itemSize 4）。手掌與手指保留 GLB 原色；
+ * 腕後 CUFF_FROM～CUFF_TO 一圈袖口邊；其後袖布由袖口色暗到 CLOTH，alpha 由 1 漸到 0（FADE_TO）。
+ * @param positions 頂點 xyz（bind，手部局部 dm）  @param colors 原頂點色  @param itemSize 原色的分量數（3 或 4）
+ */
+export function dressColors(positions, colors, itemSize = 3) {
+  const S = HAND.SLEEVE, n = positions.length / 3, out = new Float32Array(n * 4);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  for (let v = 0; v < n; v++) {
+    const z = positions[v * 3 + 2];
+    let r = colors[v * itemSize], g = colors[v * itemSize + 1], b = colors[v * itemSize + 2], a = 1;
+    if (z < S.CUFF_FROM && z >= S.CUFF_TO) [r, g, b] = S.CUFF;
+    else if (z < S.CUFF_TO) {
+      const t = clamp01((S.CUFF_TO - z) / (S.CUFF_TO - S.FADE_TO));
+      r = lerp(S.CUFF[0], S.CLOTH[0], t); g = lerp(S.CUFF[1], S.CLOTH[1], t); b = lerp(S.CUFF[2], S.CLOTH[2], t);
+      a = 1 - smooth(t);
+    }
+    out[v * 4] = r; out[v * 4 + 1] = g; out[v * 4 + 2] = b; out[v * 4 + 3] = a;
+  }
+  return out;
 }
 
 /** 前向運動學：回每根骨在手部局部座標下的旋轉與位置。quats＝{骨名: 四元數}（沒給的＝bind）。 */
@@ -230,14 +274,32 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
     W[i * 3] = fx; W[i * 3 + 1] = w[1]; W[i * 3 + 2] = fz;
     if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (fz < z0) z0 = fz; if (fz > z1) z1 = fz;
   }
-  const near = obstacles.filter((o) => { const hx = o.r !== undefined ? o.r : o.hx, hz = o.r !== undefined ? o.r : o.hz;
-    return o.top > tableY && o.x + hx >= x0 && o.x - hx <= x1 && o.z + hz >= z0 && o.z - hz <= z1; });
+  const hit = (o) => { const hx = o.r !== undefined ? o.r : o.hx, hz = o.r !== undefined ? o.r : o.hz;
+    return o.top > tableY && o.x + hx >= x0 && o.x - hx <= x1 && o.z + hz >= z0 && o.z - hz <= z1; };
+  /* 落地的東西（錢柱、落地令牌、木籌槽、布面）是地板；飛在空中的令牌（bottom 高於桌面）是懸空的盒子：
+     手可以從它底下過，只有真的會撞上時才抬到它上面（第二輪：手不再跟著令牌舉高，四家同拍時別家的令牌會從手上方飛過）。 */
+  const near = obstacles.filter((o) => !(o.bottom > tableY + 0.03) && hit(o));
+  const air = obstacles.filter((o) => o.bottom > tableY + 0.03 && hit(o));
   const wp = new Array(set.length * 2);
   for (let i = 0; i < set.length; i++) {
     const fl = near.length ? floorAt(W[i * 3], W[i * 3 + 2], near, tableY) : tableY;
     wp[i * 2] = W[i * 3 + 1]; wp[i * 2 + 1] = fl;
     const need = fl + HAND.CLR - W[i * 3 + 1];
     if (need > ry) ry = need;
+  }
+  for (let pass = 0; pass < 4 && air.length; pass++) {
+    let lifted = false;
+    for (let i = 0; i < set.length; i++) {
+      const x = W[i * 3], y = W[i * 3 + 1] + ry, z = W[i * 3 + 2];
+      for (const o of air) {
+        if (y >= o.top + HAND.CLR || y <= o.bottom - HAND.CLR) continue;
+        const inside = o.r !== undefined ? (x - o.x) * (x - o.x) + (z - o.z) * (z - o.z) <= o.r * o.r : Math.abs(x - o.x) <= o.hx && Math.abs(z - o.z) <= o.hz;
+        if (!inside) continue;
+        ry = o.top + HAND.CLR - W[i * 3 + 1]; lifted = true;
+        if (o.top > wp[i * 2 + 1]) wp[i * 2 + 1] = o.top;
+      }
+    }
+    if (!lifted) break;
   }
   return { root: [rx, ry, rz], wp };
 }
@@ -364,6 +426,41 @@ export function createHandDirector(props, rig) {
   function moved(obstacles, x, z, nx, nz, top) {
     return obstacles.map((o) => (Math.abs(o.x - x) < 1e-9 && Math.abs(o.z - z) < 1e-9 ? Object.assign({}, o, { x: nx, z: nz }, top === undefined ? {} : { top }) : o));
   }
+  /** 某席的伸入界線：n·(x,z) ≤ c（null＝不限）。 */
+  /** 某席的伸入界線（可多條）：每條 n·(x,z) ≤ c。 */
+  function limitOf(seat, T) {
+    const tz = props.trayZ(), front = { n: [0, -1], c: -(tz + T.hd - HAND.REACH.SOUTH_IN) };
+    /* 南席：指尖不伸進托盤前緣以內 SOUTH_IN 以上——手指伸過去就擋在拍品腳前（量測）。 */
+    if (seat === 0) return [front];
+    if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + HAND.REACH.NORTH_IN }];
+    /* 西／東：不越過托盤中線，也不伸進托盤前緣以內（量測：伸進去就擋在最左／最右那格拍品的腳前）。 */
+    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }, front];
+    if (seat === 3) return [{ n: [-1, 0], c: -HAND.REACH.MID }, front];
+    return [];
+  }
+  /** 這一幀看得見的部分（袖口邊以前）越線最多的那一條與越線量（over≤0＝沒越）。 */
+  function reach(seat, fr, s, T) {
+    const Ls = limitOf(seat, T); if (!Ls.length) return { over: 0, L: null };
+    const pts = prepare(rig, fr.pose, 'palm').pts;
+    let best = { over: -Infinity, L: null };
+    for (const L of Ls) {
+      let m = -Infinity;
+      for (const v of rig.front) {
+        const w = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s);
+        const d = L.n[0] * (fr.root[0] + w[0]) + L.n[1] * (fr.root[2] + w[2]) - L.c;
+        if (d > m) m = d;
+      }
+      if (m > best.over) best = { over: m, L };
+    }
+    return best;
+  }
+  /** 進場方向（第二輪）：西／東席改從側面水平伸進來（SIDE_YAW），不從拍品正前方往裡推——量測顯示西／東手從前方推時，
+   *  指節與腕部剛好擋在左右兩格拍品的腳前。南／北仍朝目標。 */
+  function yawOf(seat, seatP, a) {
+    if (HAND.SIDE_YAW && seat === 2) return Math.PI / 2;
+    if (HAND.SIDE_YAW && seat === 3) return -Math.PI / 2;
+    return yawToward(seatP.x, seatP.z, a.tx, a.tz);
+  }
   function specOf(h, obstacles) {
     const a = h.act; if (!a) return null;
     const seatP = props.seatPosition(h.seat);
@@ -371,32 +468,45 @@ export function createHandDirector(props, rig) {
     if (a.kind === 'push') {
       const st = props.stackAt(h.seat, a.slot);
       if (!st) return null;
-      return { pose: a.pose || 'curl', anchor: 'heel', target: [st.x, st.z], yaw: yawToward(seatP.x, seatP.z, a.tx, a.tz),
-        fit: a.pitch === undefined ? { target: [st.tx, st.tz], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
+      /* 第二輪：用指尖抵住錢柱靠席位那側往前推（原本是掌根壓在錢柱頂，手指就伸到拍品腳邊、擋住拍品）。 */
+      const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw), off = st.r + HAND.PUSH_GAP;
+      return { pose: a.pose || 'curl', anchor: 'front', target: [st.x - dx * off, st.z - dz * off], yaw,
+        fit: a.pitch === undefined ? { target: [st.tx - dx * off, st.tz - dz * off], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
     }
     if (a.kind === 'slam') {
       const tk = props.tokenAt(h.seat);
       if (!tk) return null;
       const landed = tk.t >= 1;
       const after = landed ? a.sinceLand : 0;
-      const trem = landed && after < HAND.SLAM.TREMBLE_MS ? Math.abs(Math.sin(after / HAND.SLAM.TREMBLE_MS * Math.PI * 3)) * HAND.SLAM.TREMBLE_AMP * (1 - after / HAND.SLAM.TREMBLE_MS) : 0;
-      return { pose: ['push', 'spread', landed ? 1 : smooth(clamp01(tk.t))], anchor: 'palm', target: [tk.x, tk.z], yaw: yawToward(seatP.x, seatP.z, a.tx, a.tz), lift: trem,
+      /* 第二輪：手不再舉著令牌飛過拍品前方——令牌照舊自己舉高拍下（落地那一幀仍由令牌發 ys:mark-slam），
+         手壓低、跟在令牌靠席位那側的桌面上；令牌落地後 SLAP_MS 內掌心蓋上去，再微顫、收。 */
+      /* 第二輪：令牌飛行時手不上場（飛行路徑會經過拍品前方）；落地那一幀起從席位那側伸進來，SLAP_MS 內掌心蓋上去。 */
+      if (!landed) return { hidden: true };
+      const k = smooth(clamp01(after / HAND.SLAM.SLAP_MS));
+      const pose = ['push', 'spread', k];
+      const fa = prepare(rig, pose, 'front').anchor, pa = prepare(rig, pose, 'palm').anchor;
+      const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
+      const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow() + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);
+      const ta = after - HAND.SLAM.SLAP_MS;
+      const trem = landed && ta > 0 && ta < HAND.SLAM.TREMBLE_MS ? Math.abs(Math.sin(ta / HAND.SLAM.TREMBLE_MS * Math.PI * 3)) * HAND.SLAM.TREMBLE_AMP * (1 - ta / HAND.SLAM.TREMBLE_MS) : 0;
+      return { pose, anchor: 'palm', target: [tk.x - dx * back, tk.z - dz * back], yaw, lift: trem,
         fit: a.pitch === undefined ? { target: [tk.tx, tk.tz], pose: ['push', 'spread', 1], obstacles: moved(obstacles, tk.x, tk.z, tk.tx, tk.tz, tk.landTop) } : undefined };
     }
     if (a.kind === 'rake') {
       const st = props.stackAt(h.seat, a.slot);
       if (!st) return null;
-      const yaw = yawToward(seatP.x, seatP.z, a.tx, a.tz), dx = Math.sin(yaw), dz = Math.cos(yaw);
+      const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
       const off = st.r + HAND.RAKE_GAP;
       /* 指尖團落在錢柱「遠離席位」那一側（扒住後緣往回拖）；延遲那段從靠席位那側伸過去。 */
-      const reach = clamp01(a.t / HAND.RAKE.DELAY);
-      const k = smooth(reach), back = (1 - k) * HAND.RAKE.REACH_FROM;
-      return { pose: ['spread', 'rake', k], anchor: 'tips', target: [st.x + dx * (off - back), st.z + dz * (off - back)], yaw };
+      const k = smooth(clamp01(a.t / HAND.RAKE.DELAY)), back = (1 - k) * HAND.RAKE.REACH_FROM;
+      /* lead＝遠側搆不到（北／西／東席伸入深度限制）：指尖團落在錢柱靠席位那側，領著錢回來。 */
+      const along = a.lead ? -(off + back) : off - back;
+      return { pose: ['spread', 'rake', k], anchor: 'tips', target: [st.x + dx * along, st.z + dz * along], yaw };
     }
     if (a.kind === 'hold') {
       const st = props.stackAt(h.seat, a.slot);
       if (!st) return null;
-      const yaw = yawToward(seatP.x, seatP.z, a.tx, a.tz), dx = Math.sin(yaw), dz = Math.cos(yaw);
+      const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
       const k = smooth(clamp01(a.t / HAND.HOLD.REACH_MS));
       const off = st.r + HAND.HOLD.GAP + (1 - k) * 0.25;
       return { pose: ['push', 'spread', k], anchor: 'front', target: [st.x - dx * off, st.z - dz * off], yaw };
@@ -445,10 +555,13 @@ export function createHandDirector(props, rig) {
     },
     /** 這一幀四隻手的擺位（null＝不可見）。動作做完自動切到收手、收完歸零（閒置＝不可見＝收在畫面外）。 */
     frames() {
-      const obstacles = props.handObstacles(), tableY = props.tableY(), s = scaleNow();
+      const tableY = props.tableY(), s = scaleNow(), T = HAND.TRAY[props.mode()] || HAND.TRAY.L;
+      /* 托盤布面當一塊低地板：布有皺褶起伏（±0.01），手指在布上多留 CLOTH_TOP。 */
+      const obstacles = props.handObstacles().concat([{ x: 0, z: props.trayZ(), hx: T.hw, hz: T.hd + 0.035, top: tableY + HAND.TRAY.CLOTH_TOP }]);
       return hands.map((h) => {
         if (!h.act) return null;
         let spec = specOf(h, obstacles);
+        if (spec && spec.hidden) return null; // 還沒輪到手上場（拍：令牌飛行中）
         if (!spec) {
           /* 目標消失（錢被收走、令牌被清）：有上一幀就從那裡收手，沒有就直接不可見。 */
           if (h.act.kind !== 'retract' && h.last) { beginRetract(h); spec = specOf(h, obstacles); } else { stop(h.seat); return null; }
@@ -458,7 +571,25 @@ export function createHandDirector(props, rig) {
         /* 俯角每個動作只掃一次（動作開始那一幀），之後固定——掃描成本不進每幀，手也不會一路點頭。 */
         const req = { scale: s, pose: spec.pose, anchor: spec.anchor, target: spec.target, yaw: spec.yaw, minY: spec.minY, fit: spec.fit,
           pitch: a.kind === 'retract' ? spec.pitch : a.pitch };
-        const fr = solveHand(rig, req, obstacles, tableY);
+        const obs = obstacles;
+        let fr = solveHand(rig, req, obs, tableY);
+        /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
+        let R = reach(h.seat, fr, s, T);
+        if (R.over > 0 && a.kind === 'rake' && a.lead === undefined) {
+          /* 收：錢柱遠側搆不到 ⇒ 這一整個動作改「從靠席位那側領著錢回來」，不越過錢柱頂、不跳位。 */
+          a.lead = true; spec = specOf(h, obstacles); Object.assign(req, { target: spec.target, pose: spec.pose });
+          fr = solveHand(rig, req, obs, tableY); R = reach(h.seat, fr, s, T);
+        }
+        if (a.kind === 'rake' && a.lead === undefined) a.lead = false;
+        for (let i = 0; i < 6 && R.over > 1e-4; i++) {
+          const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), nd = R.L.n[0] * dx + R.L.n[1] * dz;
+          /* 沿進場方向退；若這條線跟進場方向幾乎平行（退不開），改沿線的法向直接推回線內。 */
+          const mx = nd >= 0.2 ? dx * R.over / nd : R.L.n[0] * R.over, mz = nd >= 0.2 ? dz * R.over / nd : R.L.n[1] * R.over;
+          req.target = [req.target[0] - mx, req.target[1] - mz];
+          req.pitch = fr.pitch; req.pose = fr.pose; req.fit = undefined;
+          fr = solveHand(rig, req, obs, tableY); R = reach(h.seat, fr, s, T);
+        }
+        if (req.target !== spec.target) spec = Object.assign({}, spec, { target: req.target, pose: fr.pose });
         if (spec.lift) fr.root[1] += spec.lift; // 只往上加（微顫），不會往下穿
         if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (spec.pose === 'curl') a.pose = fr.pose; }
         h.last = { frame: fr, spec };
@@ -473,7 +604,7 @@ export function createHandDirector(props, rig) {
   function done(h) {
     const a = h.act;
     if (a.kind === 'push') return a.t >= HAND.PUSH_MS;
-    if (a.kind === 'slam') return a.sinceLand >= HAND.SLAM.TREMBLE_MS + HAND.SLAM.HOLD_MS;
+    if (a.kind === 'slam') return a.sinceLand >= HAND.SLAM.SLAP_MS + HAND.SLAM.TREMBLE_MS + HAND.SLAM.HOLD_MS;
     if (a.kind === 'rake') { const st = props.stackAt(h.seat, a.slot); return !st || st.gone || a.t >= HAND.RAKE.DELAY + HAND.RAKE.BACK_MS; }
     if (a.kind === 'hold') return a.t >= HAND.HOLD.REACH_MS + HAND.HOLD.STAY_MS;
     return false;
