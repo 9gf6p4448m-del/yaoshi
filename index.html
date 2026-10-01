@@ -614,6 +614,13 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .stakebar{margin:0 0 5px;background:rgba(0,0,0,.25);border:1px solid var(--gold);border-radius:var(--r-panel);
   padding:3px 9px;text-align:center}
 .stakerow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:nowrap}
+/* 窄畫面（V4 667×375）：整列 nowrap 把步進器／按鈕擠出面板外、只剩一欄直排的說明字（基準 86e4676 同樣），
+   讓這一列可換行；說明字至少 140px 寬，放不下就掉到下一行。 */
+.stakebar .stakerow{flex-wrap:wrap;row-gap:4px}
+.stakebar .stakerow>.mut{flex:1 1 140px;min-width:0}
+.stakebar .stakeCol{flex:0 0 auto;width:30px;height:30px;margin-left:auto;border-radius:var(--r-panel);border:1px solid var(--line);background:var(--panel2);color:var(--gold);font-size:14px;cursor:pointer}
+.stakebar.collapsed{display:inline-flex;align-items:center;gap:8px;width:auto;max-width:100%;min-height:32px;padding:3px 10px;font:inherit;font-size:11.5px;color:var(--fg);cursor:pointer}
+.stakebar.collapsed .stakeArr{color:var(--gold)}
 .stakebar .stepper{display:flex;align-items:center}
 .stakebar .stepper button{width:30px;height:30px;border-radius:var(--r-panel);border:1px solid var(--line);
   background:var(--panel2);color:var(--ink);font-size:16px}
@@ -1362,7 +1369,7 @@ const ABILITIES = {
     hooks:{ onNightEnd(ctx){
       if(!S.wonAny.has(ctx.p.id)){ ctx.p.life+=2; ctx.log.push(`👁 ${ctx.p.name} 靜觀整夜，祖靈之眼回 +2`); }
     } }},
-  thunder:{id:"thunder",name:"雷女之火",desc:"共鳴計算時，祖靈視為多 1 件",
+  thunder:{id:"thunder",name:"雷女之火",desc:"共鳴計算時，這件算 2 件（只算祖靈共鳴）",
     hooks:{ onFacCount(ctx){ if(ctx.faction==="zuling") ctx.count++; } }},
   boat:{id:"boat",name:"拼板舟",desc:"每夜末回 1 壽命",
     hooks:{ onNightEnd(ctx){ ctx.p.life+=1; ctx.log.push(`⛵ ${ctx.p.name} 的拼板舟渡來生息 +1`); } }},
@@ -1389,7 +1396,7 @@ const ABILITIES = {
       ctx.events.push({txt:`送王船啟航——「${worst.n}」被送進 ${tgt.name} 的袋子`});
     } }},
   bell:{id:"bell",name:"千里眼銅鈴",desc:"明夜預告顯示兩件拍品", traits:{preview:2}},
-  wuying:{id:"wuying",name:"五營旗",desc:"共鳴計算時，香火視為多 1 件",
+  wuying:{id:"wuying",name:"五營旗",desc:"共鳴計算時，這件算 2 件（只算香火共鳴）",
     hooks:{ onFacCount(ctx){ if(ctx.faction==="xianghuo") ctx.count++; } }},
   tiger:{id:"tiger",name:"虎爺印",desc:"被毒標塞中時，下手的人失 2 壽命",
     hooks:{ onWinItem(ctx){
@@ -1418,7 +1425,7 @@ const ABILITIES = {
       if(!has(ctx.w,"nail")) return;
       ctx.w.life+=1; ctx.extra.push(`${ctx.w.name} 吸食勝利 +1`);
     } }},
-  buoy:{id:"buoy",name:"水鬼浮標",desc:"共鳴計算時，陰氣視為多 1 件",
+  buoy:{id:"buoy",name:"水鬼浮標",desc:"共鳴計算時，這件算 2 件（只算陰氣共鳴）",
     hooks:{ onFacCount(ctx){ if(ctx.faction==="yinqi") ctx.count++; } }},
 
   /* --- 命格道具（GAME_DESIGN §六之二）：壽命↔戰力連動，全部只掛 onPowerCalc --- */
@@ -4076,7 +4083,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
-  CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null;
+  YB_COLLAPSED=false; CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null;
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
     const select=$("selectScr"),title=$("titleScr"),message=$("verLine");
@@ -6818,10 +6825,15 @@ function incbarHTML(ap){
    但 incBump 是**先改 INC.amt 再重畫**——只擋 renderer 的話，封籤內容仍會被改。 */
 function incBump(d){ if(!BIDS_OPEN||!INC) return; const ap=S.players[ACTIVE]; INC.amt=Math.max(0,Math.min(CFG.INC_MAX,incCap(ap),INC.amt+d)); showMarket(); }
 /* 押寶夜的「一注」輸入條（非押寶夜回空字串，其餘夜的出價流程完全不變） */
+/* 押寶面板可收合（2026-10-01 使用者試玩：面板在桌心，擋住點桌上法寶進鑑賞）：收起後只剩一顆小標籤
+   （押的數字＋已勾幾件），點一下展開；狀態跟著這一局（newGame 清回展開）。基準 86e4676 也擋（舊版面）。 */
+let YB_COLLAPSED=false;
+function ybCollapse(v){ YB_COLLAPSED=!!v; showMarket(); }
 function stakeHTML(ap){
   if(!YB) return "";
   const cap=consCapFor(ap);
   const n=YB.pick.filter((picked,i)=>picked&&!S.market[i].curse).length;
+  if(typeof YB_COLLAPSED!=="undefined"&&YB_COLLAPSED) return `<button type="button" class="stakebar collapsed" aria-expanded="false" aria-label="展開押寶面板" onclick="ybCollapse(false)"><span>🎲 <b style="color:var(--gold)">押寶</b> ${YB.amt}・已勾 <b style="color:var(--gold)">${n}</b> 件</span><span class="stakeArr" aria-hidden="true">▴</span></button>`;
   const fee=stakeFeeRange(ap,YB.pick,YB.amt);
   const worst=stakeWorstCost(ap,YB.pick,YB.amt,YB.type);
   return `<div class="stakebar">
@@ -6829,6 +6841,7 @@ function stakeHTML(ap){
       <span style="font-size:11px"><span class="nob">🎲 <b style="color:var(--gold)">押寶夜</b>・</span><span class="nob">今夜這一注</span></span>
       <div class="stepper"><button onclick="ybBump(-1)">−</button><span class="amt" id="ybAmt">${YB.amt}</span><button onclick="ybBump(1)" data-sfx="chip">＋</button></div>
       <button class="typebtn${YB.type==="yaming"?" yaming":""}" onclick="ybFlip()">${YB.type==="cons"?"保守標":"押命標"}</button>
+      <button type="button" class="stakeCol" aria-label="收起押寶面板（讓出桌面）" aria-expanded="true" onclick="ybCollapse(true)">▾</button>
       <span class="mut" style="font-size:10.5px;text-align:left;line-height:1.35">已勾 <b style="color:var(--gold)">${n}</b> 件・勾幾件都同一個數字、<b>最多得一件</b>${YB.type==="cons"?`・上限 ${cap}`:""}<br>${n>0&&YB.amt>0?`全落標預留最多 ${worst}（買路錢 ${stakeFeeLabel(fee)}）`:n>0?"尚未下注＝今夜不出手":"未勾任何拍品＝今夜不出手"}・詛咒品不開標</span>
     </div>
   </div>`;
