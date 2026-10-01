@@ -229,7 +229,7 @@ function init() {
     const r = Number(d.round) || 0;
     if (r !== trayRound) { trayRound = r; tray.props.clearRound(); tray.hands.clear(); } // 新的一夜：桌上的錢與令牌全收、手也收
     tray.setItems(Array.isArray(d.items) ? d.items : []);
-    if (Array.isArray(d.seats)) tray.props.setSeats(d.seats); // 四席信物：誰坐哪一席、是哪個角色
+    if (Array.isArray(d.seats)) { tray.props.setSeats(d.seats); tray.hands.setSeats(d.seats); } // 四席信物：誰坐哪一席、是哪個角色
     tray.setVisible(true);
   });
   /* 競標的實體痕跡（第二段）。三個事件都是**純演出**：3D 層不知道什麼是壽命，

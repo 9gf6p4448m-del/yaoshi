@@ -174,8 +174,8 @@ export function buildRig(src) {
  * 腕後 CUFF_FROM～CUFF_TO 一圈袖口邊；其後袖布由袖口色暗到 CLOTH，alpha 由 1 漸到 0（FADE_TO）。
  * @param positions 頂點 xyz（bind，手部局部 dm）  @param colors 原頂點色  @param itemSize 原色的分量數（3 或 4）
  */
-export function dressColors(positions, colors, itemSize = 3) {
-  const S = HAND.SLEEVE, n = positions.length / 3, out = new Float32Array(n * 4);
+export function dressColors(positions, colors, itemSize = 3, palette = null) {
+  const S = palette ? { ...HAND.SLEEVE, ...palette } : HAND.SLEEVE, n = positions.length / 3, out = new Float32Array(n * 4);
   const lerp = (a, b, t) => a + (b - a) * t;
   for (let v = 0; v < n; v++) {
     const z = positions[v * 3 + 2];
@@ -189,6 +189,219 @@ export function dressColors(positions, colors, itemSize = 3) {
     out[v * 4] = r; out[v * 4 + 1] = g; out[v * 4 + 2] = b; out[v * 4 + 3] = a;
   }
   return out;
+}
+
+/* ═══ 角色變體（階段三；提案 §3.4、驗收 docs/experiments/2026-10-01-hands-stage3/acceptance-roles.md）═════════════
+ * 三個角色（收驚婆、當鋪、獵人）各有一隻不同的手；其餘角色／未知角色＝預設手（呼叫端拿到 null）。
+ * 做法：同一顆 GLB 幾何複製一份，只換頂點色（袖口主色一個部位＋收驚婆的膚色與手背紋理），再把小配件的幾何（紅線、
+ * 戒指、護腕、疤）接在同一份幾何後面，蒙皮權重抄最近的原頂點——仍是一隻手一個 SkinnedMesh、一份共用材質、一個 draw call。
+ * 純函式、不耗亂數（手背紋理用位置雜湊）、不依賴 three；只在 setSeats／建構時呼叫一次，不得每幀呼叫。 */
+export const ROLE_HAND = {
+  /** 環形配件的圓周分段數（面數旋鈕：三角形＝SEG×剖面邊數×2）。 */
+  SEG: 12,
+  /** 各角色：袖口邊（cuff）與其後漸隱袖布（cloth），線性 RGB。袖口主色只落在這一個部位。 */
+  ROLES: {
+    shoujing: { CUFF: [0.020, 0.030, 0.062], CLOTH: [0.012, 0.018, 0.040] }, // 靛藍舊布
+    dangpu: { CUFF: [0.018, 0.017, 0.021], CLOTH: [0.010, 0.010, 0.013] }, // 黑袖套
+    hunter: { CUFF: [0.110, 0.058, 0.026], CLOTH: [0.060, 0.034, 0.016] }, // 皮革褐
+  },
+  /** 收驚婆：較老的膚色（朝 TINT 混 MIX 並壓暗 DIM）、手背暗斑（雜湊 > SPOT_AT 的背面頂點乘 SPOT）、指節（B 骨）紋乘 KNUCKLE。 */
+  AGED: { TINT: [0.26, 0.20, 0.15], MIX: 0.68, DIM: 0.86, SPOT_AT: 0.62, SPOT: 0.45, KNUCKLE: 0.75 },
+  /** 紅線手繩：兩圈，離腕骨 z（dm）、線半徑／半寬、顏色。 */
+  THREAD: { Z: [0.05, 0.12], R: 0.036, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012] },
+  /** 當鋪：算盤珠色戒指——環在無名指近節（RingA→RingB 的 T 處），環厚 R、寬 W；珠＝環上方的菱形。 */
+  RING: { FROM: 'RingA', TO: 'RingB', T: 0.5, R: 0.046, W: 0.10, GAP: 0.004, COLOR: [0.085, 0.030, 0.013], BEAD: [0.10, 0.075, 0.10], BEAD_COLOR: [0.17, 0.062, 0.026] },
+  /** 獵人：皮護腕（套在袖口邊上，中心 z、半寬 W、厚 R、外加 GAP）、兩道縫線、一個扣；手背舊疤（手背 xz 兩端點，dm）。 */
+  BRACER: { Z: -0.24, W: 0.20, R: 0.026, GAP: 0.002, COLOR: [0.135, 0.070, 0.030], STRAP: [0.045, 0.024, 0.012], STRAP_Z: [-0.115, -0.365], BUCKLE: [0.05, 0.047, 0.043] },
+  SCAR: { A: [0.16, 0.28], B: [-0.12, 0.66], W: 0.034, LIFT: 0.014, N: 8, COLOR: [0.64, 0.40, 0.33] },
+};
+export const ROLE_KEYS = Object.keys(ROLE_HAND.ROLES);
+/** 角色 id → 變體鍵；不是三角色（含 null／非字串／原型鏈上的名字）一律 null＝預設手。 */
+export function roleVariantKey(role) {
+  return typeof role === 'string' && Object.prototype.hasOwnProperty.call(ROLE_HAND.ROLES, role) ? role : null;
+}
+
+const hash3 = (x, y, z) => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
+const v3sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const v3add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const v3mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const v3dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const v3cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const v3norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+
+/** 配件幾何收集器（頂點、法線、頂點色 RGBA、索引）。 */
+function accBuilder() {
+  const P = [], N = [], C = [], I = [];
+  const vert = (p, n, c) => { P.push(p[0], p[1], p[2]); const l = v3norm(n); N.push(l[0], l[1], l[2]); C.push(c[0], c[1], c[2], 1); return P.length / 3 - 1; };
+  return {
+    P, N, C, I, vert,
+    /** 環：沿 d 軸（單位）、剖面平面基底 a／b、橢圓中心線半徑 ra／rb、剖面徑向半厚 r、軸向半寬 w、剖面邊數 ts。 */
+    ring(c, d, a, b, ra, rb, r, w, color, seg = ROLE_HAND.SEG, ts = 4) {
+      const base = P.length / 3;
+      for (let i = 0; i < seg; i++) {
+        const th = (i / seg) * Math.PI * 2, ct = Math.cos(th), st = Math.sin(th);
+        const q = v3add(c, v3add(v3mul(a, ra * ct), v3mul(b, rb * st)));
+        const n0 = v3norm(v3add(v3mul(a, ct / ra), v3mul(b, st / rb)));
+        for (let j = 0; j < ts; j++) {
+          const ph = (j / ts) * Math.PI * 2 + Math.PI / ts, cp = Math.cos(ph), sp = Math.sin(ph);
+          vert(v3add(q, v3add(v3mul(n0, r * cp), v3mul(d, w * sp))), v3add(v3mul(n0, cp / r), v3mul(d, sp / w)), color);
+        }
+      }
+      for (let i = 0; i < seg; i++) for (let j = 0; j < ts; j++) {
+        const i2 = (i + 1) % seg, j2 = (j + 1) % ts;
+        const p00 = base + i * ts + j, p10 = base + i2 * ts + j, p11 = base + i2 * ts + j2, p01 = base + i * ts + j2;
+        I.push(p00, p01, p10, p10, p01, p11);
+      }
+    },
+    /** 軸對齊的菱形（八面體）：中心 c、三軸半長 s。 */
+    lozenge(c, s, color) {
+      const pts = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map((u) => [c[0] + u[0] * s[0], c[1] + u[1] * s[1], c[2] + u[2] * s[2]]);
+      for (const [i, j, k] of [[0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4], [2, 0, 5], [1, 2, 5], [3, 1, 5], [0, 3, 5]]) {
+        const n = v3cross(v3sub(pts[j], pts[i]), v3sub(pts[k], pts[i]));
+        const a = vert(pts[i], n, color), b = vert(pts[j], n, color), d = vert(pts[k], n, color); I.push(a, b, d);
+      }
+    },
+    /** 軸對齊的盒：中心 c、三軸半長 s。 */
+    box(c, s, color) {
+      const faces = [[[1, 0, 0], [0, 1, 0], [0, 0, 1]], [[-1, 0, 0], [0, 0, 1], [0, 1, 0]], [[0, 1, 0], [0, 0, 1], [1, 0, 0]], [[0, -1, 0], [1, 0, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0], [0, 1, 0]], [[0, 0, -1], [0, 1, 0], [1, 0, 0]]];
+      for (const [n, u, w] of faces) {
+        const at = (su, sw) => [c[0] + (n[0] + u[0] * su + w[0] * sw) * s[0], c[1] + (n[1] + u[1] * su + w[1] * sw) * s[1], c[2] + (n[2] + u[2] * su + w[2] * sw) * s[2]];
+        const q = [at(-1, -1), at(1, -1), at(1, 1), at(-1, 1)].map((p) => vert(p, n, color));
+        I.push(q[0], q[1], q[2], q[0], q[2], q[3]);
+      }
+    },
+    /** 平面條（疤）：沿折線 pts（每點 [x,y,z]）、寬 w（x 方向），法線朝上。 */
+    strip(pts, w, color) {
+      const ids = pts.map((p) => [vert([p[0] - w, p[1], p[2]], [0, 1, 0], color), vert([p[0] + w, p[1], p[2]], [0, 1, 0], color)]);
+      for (let k = 0; k + 1 < ids.length; k++) I.push(ids[k][0], ids[k + 1][0], ids[k][1], ids[k][1], ids[k + 1][0], ids[k + 1][1]);
+    },
+  };
+}
+
+/** 骨 bind 世界位置（bind 旋轉為單位，父座標位置累加）。 */
+function boneWorld(rig, name) {
+  let i = rig.idx[name], p = [0, 0, 0];
+  while (i >= 0) { p = v3add(p, rig.rest[i]); i = rig.parents[i]; }
+  return p;
+}
+/** 在軸 c 上、軸向 ±half 內的原頂點，投影到 a／b 平面：回包絡的中點（cx,cy）與半寬（ra,rb）。 */
+function crossSection(pos, c, d, a, b, half) {
+  let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9, hit = 0;
+  for (let v = 0; v < pos.length / 3; v++) {
+    const q = v3sub([pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]], c);
+    if (Math.abs(v3dot(q, d)) > half) continue;
+    const x = v3dot(q, a), y = v3dot(q, b);
+    if (x < a0) a0 = x; if (x > a1) a1 = x; if (y < b0) b0 = y; if (y > b1) b1 = y; hit++;
+  }
+  if (!hit) return null;
+  return { cx: (a0 + a1) / 2, cy: (b0 + b1) / 2, ra: (a1 - a0) / 2, rb: (b1 - b0) / 2 };
+}
+/** (x,z) 處原網格的最高表面 y（三角形投影到 xz 的重心座標；沒蓋到回 null）。 */
+function topAt(pos, idx, x, z) {
+  let best = null;
+  for (let t = 0; t < idx.length; t += 3) {
+    const A = idx[t] * 3, B = idx[t + 1] * 3, C = idx[t + 2] * 3;
+    const d = (pos[B + 2] - pos[C + 2]) * (pos[A] - pos[C]) + (pos[C] - pos[B]) * (pos[A + 2] - pos[C + 2]);
+    if (Math.abs(d) < 1e-12) continue;
+    const l1 = ((pos[B + 2] - pos[C + 2]) * (x - pos[C]) + (pos[C] - pos[B]) * (z - pos[C + 2])) / d;
+    const l2 = ((pos[C + 2] - pos[A + 2]) * (x - pos[C]) + (pos[A] - pos[C]) * (z - pos[C + 2])) / d;
+    const l3 = 1 - l1 - l2;
+    if (l1 < -1e-9 || l2 < -1e-9 || l3 < -1e-9) continue;
+    const y = l1 * pos[A + 1] + l2 * pos[B + 1] + l3 * pos[C + 1];
+    if (best === null || y > best) best = y;
+  }
+  return best;
+}
+
+/**
+ * 某角色的變體幾何（陣列版）。回 null＝預設手（呼叫端沿用共用的預設幾何）。
+ * @param rig   buildRig 的結果（要 names／idx／parents／rest）
+ * @param base  { position, normal, color(原頂點色), colorSize, skinIndex, skinWeight, index }——原 GLB 幾何的陣列
+ * @param role  角色 id
+ * @returns { key, position, normal, color(RGBA), skinIndex, skinWeight, index, baseCount, extraVerts, extraTris, recolored } | null
+ */
+export function buildRoleGeometry(rig, base, role) {
+  const key = roleVariantKey(role);
+  if (!key) return null;
+  const R = ROLE_HAND, def = R.ROLES[key], pos = base.position, n0 = pos.length / 3;
+  const color = dressColors(pos, base.color, base.colorSize, def);
+  const dressed = dressColors(pos, base.color, base.colorSize); // 預設手的顏色（算「專屬色頂點數」的參考）
+  const bonesOf = new Array(n0);
+  for (let v = 0; v < n0; v++) { let k = 0; for (let j = 1; j < 4; j++) if (base.skinWeight[v * 4 + j] > base.skinWeight[v * 4 + k]) k = j; bonesOf[v] = rig.names[base.skinIndex[v * 4 + k]]; }
+  const acc = accBuilder();
+  const S = HAND.SLEEVE;
+  const up = [0, 1, 0], zax = [0, 0, 1], xax = [1, 0, 0];
+
+  if (key === 'shoujing') {
+    const A = R.AGED;
+    for (let v = 0; v < n0; v++) {
+      const z = pos[v * 3 + 2];
+      if (z < S.CUFF_FROM) continue; // 袖口以後不動
+      for (let k = 0; k < 3; k++) color[v * 4 + k] = (color[v * 4 + k] + (A.TINT[k] - color[v * 4 + k]) * A.MIX) * A.DIM;
+      const back = base.normal[v * 3 + 1] > 0.3 && z > 0.1 && !/Tip$/.test(bonesOf[v]);
+      if (back && hash3(pos[v * 3], pos[v * 3 + 1], z) > A.SPOT_AT) for (let k = 0; k < 3; k++) color[v * 4 + k] *= A.SPOT;
+      if (/^(Index|Middle|Ring|Pinky|Thumb)B$/.test(bonesOf[v])) for (let k = 0; k < 3; k++) color[v * 4 + k] *= A.KNUCKLE;
+    }
+    const T = R.THREAD, w0 = boneWorld(rig, 'Wrist');
+    for (const z of T.Z) {
+      const c = [w0[0], w0[1], z], cs = crossSection(pos, c, zax, xax, up, 0.03);
+      if (cs) acc.ring([w0[0] + cs.cx, w0[1] + cs.cy, z], zax, xax, up, cs.ra + T.GAP, cs.rb + T.GAP, T.R, T.W, T.COLOR);
+    }
+  } else if (key === 'dangpu') {
+    const G = R.RING, a0 = boneWorld(rig, G.FROM), b0 = boneWorld(rig, G.TO);
+    const d = v3norm(v3sub(b0, a0)), c = v3add(a0, v3mul(v3sub(b0, a0), G.T));
+    const ax = v3norm(v3cross(up, d)), ay = v3cross(d, ax), cs = crossSection(pos, c, d, ax, ay, 0.07);
+    if (cs) {
+      const cc = v3add(c, v3add(v3mul(ax, cs.cx), v3mul(ay, cs.cy)));
+      acc.ring(cc, d, ax, ay, cs.ra + G.GAP, cs.rb + G.GAP, G.R, G.W, G.COLOR);
+      acc.lozenge(v3add(cc, v3mul(ay, cs.rb + G.GAP + G.R * 0.6)), G.BEAD, G.BEAD_COLOR);
+    }
+  } else if (key === 'hunter') {
+    const B = R.BRACER, w0 = boneWorld(rig, 'Wrist');
+    const cs = crossSection(pos, [w0[0], w0[1], B.Z], zax, xax, up, 0.05);
+    if (cs) {
+      const cc = [w0[0] + cs.cx, w0[1] + cs.cy, B.Z], ra = cs.ra + B.GAP, rb = cs.rb + B.GAP;
+      acc.ring(cc, zax, xax, up, ra, rb, B.R, B.W, B.COLOR, R.SEG, 6);
+      for (const z of B.STRAP_Z) acc.ring([cc[0], cc[1], z], zax, xax, up, ra + B.R * 0.5, rb + B.R * 0.5, B.R * 0.5, 0.018, B.STRAP);
+      acc.box([cc[0], cc[1] + rb + B.R * 0.9, B.Z], [0.05, 0.016, 0.065], B.BUCKLE);
+    }
+    const Sc = R.SCAR, pts = [];
+    for (let i = 0; i < Sc.N; i++) {
+      const t = i / (Sc.N - 1), x = Sc.A[0] + (Sc.B[0] - Sc.A[0]) * t, z = Sc.A[1] + (Sc.B[1] - Sc.A[1]) * t, y = topAt(pos, base.index, x, z);
+      if (y !== null) pts.push([x, y + Sc.LIFT, z]);
+    }
+    if (pts.length >= 2) {
+      acc.strip(pts, Sc.W, Sc.COLOR);
+      for (const i of [2, 4, 6]) if (pts[i]) acc.strip([[pts[i][0] - 0.07, pts[i][1] + 0.001, pts[i][2] - 0.012], [pts[i][0] + 0.07, pts[i][1] + 0.001, pts[i][2] + 0.012]], 0.012, Sc.COLOR);
+    }
+  }
+
+  /* 配件頂點的蒙皮權重＝抄最近的原頂點（配件跟著它貼著的那段骨走）。 */
+  const ne = acc.P.length / 3, m = n0 + ne;
+  const position = new Float32Array(m * 3), normal = new Float32Array(m * 3), col = new Float32Array(m * 4);
+  const skinIndex = new base.skinIndex.constructor(m * 4), skinWeight = new Float32Array(m * 4);
+  position.set(pos); normal.set(base.normal); col.set(color); skinIndex.set(base.skinIndex); skinWeight.set(base.skinWeight);
+  position.set(acc.P, n0 * 3); normal.set(acc.N, n0 * 3); col.set(acc.C, n0 * 4);
+  for (let e = 0; e < ne; e++) {
+    let best = 0, bd = Infinity;
+    for (let v = 0; v < n0; v++) {
+      const dx = pos[v * 3] - acc.P[e * 3], dy = pos[v * 3 + 1] - acc.P[e * 3 + 1], dz = pos[v * 3 + 2] - acc.P[e * 3 + 2], d = dx * dx + dy * dy + dz * dz;
+      if (d < bd) { bd = d; best = v; }
+    }
+    for (let j = 0; j < 4; j++) { skinIndex[(n0 + e) * 4 + j] = base.skinIndex[best * 4 + j]; skinWeight[(n0 + e) * 4 + j] = base.skinWeight[best * 4 + j]; }
+  }
+  /* 繞序統一：每個配件三角形的面法線必須與頂點法線同向（材質單面、朝內會被剔掉或看到內壁）。 */
+  for (let t = 0; t < acc.I.length; t += 3) {
+    const [ia, ib, ic] = [acc.I[t], acc.I[t + 1], acc.I[t + 2]];
+    const pa = [acc.P[ia * 3], acc.P[ia * 3 + 1], acc.P[ia * 3 + 2]];
+    const f = v3cross(v3sub([acc.P[ib * 3], acc.P[ib * 3 + 1], acc.P[ib * 3 + 2]], pa), v3sub([acc.P[ic * 3], acc.P[ic * 3 + 1], acc.P[ic * 3 + 2]], pa));
+    if (f[0] * acc.N[ia * 3] + f[1] * acc.N[ia * 3 + 1] + f[2] * acc.N[ia * 3 + 2] < 0) { acc.I[t + 1] = ic; acc.I[t + 2] = ib; }
+  }
+  const index = new base.index.constructor(base.index.length + acc.I.length);
+  index.set(base.index); for (let i = 0; i < acc.I.length; i++) index[base.index.length + i] = acc.I[i] + n0;
+  let recolored = 0;
+  for (let v = 0; v < n0; v++) if (Math.abs(color[v * 4] - dressed[v * 4]) + Math.abs(color[v * 4 + 1] - dressed[v * 4 + 1]) + Math.abs(color[v * 4 + 2] - dressed[v * 4 + 2]) > 1e-4) recolored++;
+  return { key, position, normal, color: col, skinIndex, skinWeight, index, baseCount: n0, extraVerts: ne, extraTris: acc.I.length / 3, recolored };
 }
 
 /** 前向運動學：回每根骨在手部局部座標下的旋轉與位置。quats＝{骨名: 四元數}（沒給的＝bind）。 */

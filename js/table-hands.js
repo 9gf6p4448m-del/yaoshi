@@ -15,7 +15,7 @@ import * as THREE from 'three';
 
 const V = new URL(import.meta.url).search;
 const { cloneSkinnedGlb } = await import('./creature-figures.js' + V);
-const { HAND, buildRig, createHandDirector, dressColors } = await import('./hand-motion.js' + V);
+const { HAND, buildRig, createHandDirector, dressColors, buildRoleGeometry, roleVariantKey } = await import('./hand-motion.js' + V);
 
 /**
  * @param parent  掛進去的 Group（table-tray 的 group）
@@ -29,6 +29,10 @@ export function createTableHands(parent, props, opts = {}) {
   const url = opts.glbUrl || HAND.GLB;
   const hands = []; // { seat, holder, mesh, bones: {name: Bone} }
   let rig = null, director = null, frozen = false, disposed = false, shared = null, material = null, loadError = null, dressedGeo = null;
+  /* 角色變體（階段三）：幾何只在 setSeats 時依角色建一次、以變體鍵快取；每幀（update／apply）絕不重算。variantBuilds 給測試與治具查。 */
+  let baseSrc = null, pendingSeats = null, variantBuilds = 0;
+  const variantGeos = new Map(); // 變體鍵 → BufferGeometry（本檔複製的，dispose 時放）
+  const seatKey = [null, null, null, null];
 
   const ready = Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url))).then((clones) => {
     if (disposed) return;
@@ -48,6 +52,8 @@ export function createTableHands(parent, props, opts = {}) {
         material.transparent = true;
         material.depthWrite = true;
         material.alphaTest = 0.01;
+        const g0 = mesh.geometry.attributes;
+        baseSrc = { position: g0.position.array, normal: g0.normal.array, color: g0.color.array, colorSize: g0.color.itemSize, skinIndex: g0.skinIndex.array, skinWeight: g0.skinWeight.array, index: mesh.geometry.index.array };
         dressedGeo = mesh.geometry.clone();
         const c = dressedGeo.attributes.color;
         dressedGeo.setAttribute('color', new THREE.BufferAttribute(dressColors(dressedGeo.attributes.position.array, c.array, c.itemSize), 4));
@@ -64,6 +70,7 @@ export function createTableHands(parent, props, opts = {}) {
     });
     rig = buildRig(rigSource(hands[0].mesh));
     director = createHandDirector(props, rig);
+    if (pendingSeats) { const p = pendingSeats; pendingSeats = null; setSeats(p); } // GLB 還沒好時收到的席位，現在補上
   }).catch((e) => {
     /* GLB 載不到（404、離線、node 測試沒有 fetch 相對路徑）：手整組不上場，props 照舊——純演出不得拖垮牌桌。 */
     loadError = String(e && e.message || e);
@@ -81,6 +88,36 @@ export function createTableHands(parent, props, opts = {}) {
       rest: bones.map((b) => b.position.toArray()),
       positions: g.position.array, skinIndex: g.skinIndex.array, skinWeight: g.skinWeight.array,
     };
+  }
+
+  /** 某變體鍵的幾何：沒有就建一次（buildRoleGeometry 用「預設」幾何的陣列算，手的解算 rig 不受配件影響）。 */
+  function variantGeo(key) {
+    let g = variantGeos.get(key);
+    if (g) return g;
+    const r = buildRoleGeometry(rig, baseSrc, key);
+    variantBuilds++;
+    g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(r.position, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(r.normal, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(r.color, 4));
+    g.setAttribute('skinIndex', new THREE.BufferAttribute(r.skinIndex, 4));
+    g.setAttribute('skinWeight', new THREE.BufferAttribute(r.skinWeight, 4));
+    g.setIndex(new THREE.BufferAttribute(r.index, 1));
+    g.userData.variant = { key, extraVerts: r.extraVerts, extraTris: r.extraTris, recolored: r.recolored };
+    variantGeos.set(key, g);
+    return g;
+  }
+
+  /** 角色 id 清單（與 props.setSeats 同一份資料：[{id, role}]）→ 四席各自的手。缺角色／未知角色／空清單＝預設手，不丟例外。 */
+  function setSeats(list) {
+    if (!hands.length || !rig) { pendingSeats = Array.isArray(list) ? list : []; return; }
+    const roleOf = [null, null, null, null];
+    if (Array.isArray(list)) for (const s of list) if (s && Number.isInteger(s.id) && s.id >= 0 && s.id < 4) roleOf[s.id] = s.role;
+    for (const h of hands) {
+      const key = roleVariantKey(roleOf[h.seat]);
+      seatKey[h.seat] = key;
+      h.mesh.geometry = key ? variantGeo(key) : dressedGeo;
+    }
   }
 
   function apply(frames) {
@@ -101,6 +138,7 @@ export function createTableHands(parent, props, opts = {}) {
 
   const api = {
     group,
+    setSeats,
     ready() { return ready; },
     bid(seat, slot, amount) { if (director) director.bid(seat, slot, amount); },
     mark(seat, slot) { if (director) director.mark(seat, slot); },
@@ -127,6 +165,11 @@ export function createTableHands(parent, props, opts = {}) {
         materials: new Set(hands.map((h) => h.mesh.material)).size,
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
+        /* 階段三：角色變體（只讀） */
+        variants: seatKey.slice(), variantBuilds,
+        trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
+        variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
+        geometries: new Set(hands.map((h) => h.mesh.geometry)).size,
         shared, state: director ? director.state() : null, names: hands.map((h) => h.holder.name),
       };
     },
@@ -135,6 +178,7 @@ export function createTableHands(parent, props, opts = {}) {
       for (const h of hands) { group.remove(h.holder); if (h.mesh.skeleton) h.mesh.skeleton.dispose(); }
       /* 骨架是 clone 各自建的；glbCache 那份原始 geometry／material 不動（同 creature-figures 的規矩）。 */
       hands.length = 0; director = null;
+      for (const g of variantGeos.values()) g.dispose(); variantGeos.clear();
       if (dressedGeo) dressedGeo.dispose(); if (material) material.dispose(); // 這兩份是本檔複製的，可以放
       if (group.parent) group.parent.remove(group);
     },
