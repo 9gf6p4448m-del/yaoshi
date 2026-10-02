@@ -61,7 +61,8 @@ try {
       const g = mesh.geometry, pos = g.attributes.position, col = g.attributes.color, idx = g.index.array;
       const world = (i) => { const v = new THREE.Vector3().fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); return v.applyMatrix4(mesh.matrixWorld); };
       const cams = { game: Y.camera };
-      if (cam) { const c = Y.camera.clone(); c.position.set(...cam.from); c.lookAt(...cam.at); c.updateMatrixWorld(true); c.updateProjectionMatrix(); cams.close = c; }
+      /* 特寫相機＝遊戲相機換位置與朝向（同 shoot.mjs：不重算投影矩陣——遊戲相機的投影矩陣不是只由 fov 決定，重算會變焦） */
+      if (cam) { const c = Y.camera.clone(); c.projectionMatrix.copy(Y.camera.projectionMatrix); c.projectionMatrixInverse.copy(Y.camera.projectionMatrixInverse); c.position.set(...cam.from); c.lookAt(...cam.at); c.updateMatrixWorld(true); cams.close = c; }
       const Wd = Y.renderer.domElement.clientWidth, Hd = Y.renderer.domElement.clientHeight;
       const hull = (pts) => { pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
         const lo = [], up = []; for (const p of pts) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
