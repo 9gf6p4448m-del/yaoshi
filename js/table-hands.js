@@ -130,16 +130,18 @@ export function createTableHands(parent, props, opts = {}) {
       seatKey[h.seat] = key;
       /* 所有角色（含預設手）都走寫實版：先取 v0.59.6 的配件幾何（變體或預設），再細分＋重塑成這種手的寫實幾何。 */
       const real = HR.realDef(key);
-      if (!realGeos.has(real.key)) {
+      /* 幾何快取鍵＝種類＋這一席的前臂抬升（南席與其他席的手臂彎法不同，見 hand-realism ARM.RISE） */
+      const rise = HR.ARM.RISE[h.seat], gk = real.key + '|' + rise;
+      if (!realGeos.has(gk)) {
         const src = key ? variantGeo(key) : dressedArr();
-        realGeos.set(real.key, HR.realGeometry(rig, src, baseSrc.position.length / 3, real.key, HAND.SCALE * userScale, key ? src.info : null));
+        realGeos.set(gk, HR.realGeometry(rig, src, baseSrc.position.length / 3, real.key, HAND.SCALE * userScale, key ? src.info : null, rise));
         if (!realMat) realMat = HR.makeSkinMaterial(material, HR.jointTable(rig));
         /* 碰撞取樣＝畫面上這隻手的全部頂點（細分＋重塑後的手、延長的前臂、配件），不是原 GLB 的 819 點。
            （試過只取原頂點＋配件以省一半成本：細分新增的邊中點會穿進錢柱，穿入測試轉紅，故全取。） */
-        const ga = realGeos.get(real.key).attributes;
-        realRigs.set(real.key, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array, skinIndex: ga.skinIndex.array, skinWeight: ga.skinWeight.array })));
+        const ga = realGeos.get(gk).attributes;
+        realRigs.set(gk, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array, skinIndex: ga.skinIndex.array, skinWeight: ga.skinWeight.array })));
       }
-      h.mesh.geometry = realGeos.get(real.key); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(real.key);
+      h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(gk);
     }
   }
 

@@ -39,11 +39,13 @@ export function realDef(key) {
 }
 const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
 
-/** 前臂（驗收條件 11）：手部局部 z（dm）＜ ZS 的原頂點是前臂／袖子。往後延長到「世界長度」ARM_WORLD（＝畫面外，
- *  量測見 tests/tools/hand-arm-continuity.mjs），每往後 1 dm 往上抬 RISE dm（手肘比手腕高，也不會壓到桌上的錢）。
- *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）；前臂只是一根布管，不細分省面數。 */
-export const ARM = { ZS: -0.5, ARM_WORLD: 2.6, RISE: 0.16, FINE_Z: -0.45, FADE: 0.8 };
-/* FADE：袖布在前臂世界長度的這個比例之後才平滑淡出（第三輪「平滑淡出」的做法保留，但移到畫面外的那一段）。 */
+/** 前臂（驗收條件 11：手連著手臂，畫面內看不到袖子後端）。原 GLB 的前臂袖布在 z＜CUT 的三角形整段不畫，
+ *  改接一根程式生成的袖管：從 Z0 起、截面＝原袖口截面外撐 PAD 的橢圓、SIDES 邊，往後延伸到世界長度 ARM_WORLD
+ *  （縮放改了也照樣接到畫面外），並往上彎：往後 b dm 抬 RISE·b²／(b＋BEND) dm（貼腕處平順、遠處接近斜率 RISE），
+ *  往肘方向略粗（WIDEN）。RISE 依席：南席手臂朝鏡頭下緣出畫面、只微抬；北席在低機位（揭盅特寫）時平伸的手臂末端
+ *  會留在畫面裡，所以抬到約 45°；西／東居中。袖管最後 1−FADE 段平滑淡出（在畫面外）。
+ *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 12, SEGS: 18, ARM_WORLD: 8.0, RISE: [0.16, 1.0, 0.4, 0.4], BEND: 1.5, WIDEN: 0.22, FINE_Z: -0.45, FADE: 0.85 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -325,7 +327,7 @@ const FRAG_ACC = /* glsl */`
 
 /** 把角色幾何轉成寫實版：手部細分＋重塑＋前臂延長＋aSkin／aAcc 屬性。回新的 BufferGeometry（呼叫端快取）。
  *  @param worldPerDm 這隻手在世界中 1 dm 有多長（HAND.SCALE × USER_SCALE）：前臂延長到 ARM.ARM_WORLD 世界單位，縮放改了也照樣接到畫面外。 */
-export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantInfo = null) {
+export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantInfo = null, rise = ARM.RISE[0]) {
   const { def, kind } = realDef(key === 'default' ? null : key);
   const d = loopSubdivide(srcGeo, n0, ARM.FINE_Z);
   reshape(rig, d, def);
@@ -336,27 +338,59 @@ export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantIn
     for (let v = 0; v < d.nBase; v++) { const dx = d.P[v * 3] - d.P[e * 3], dy = d.P[v * 3 + 1] - d.P[e * 3 + 1], dz = d.P[v * 3 + 2] - d.P[e * 3 + 2], dd = dx * dx + dy * dy + dz * dz; if (dd < bd) { bd = dd; best = v; } }
     for (let k = 0; k < 4; k++) { d.SI[e * 4 + k] = d.SI[best * 4 + k]; d.SW[e * 4 + k] = d.SW[best * 4 + k]; }
   }
-  /* 前臂延長（條件 11）：z < ZS 的原頂點沿 −z 拉長到世界長 ARM_WORLD，並往上抬；袖布全程不透明（不再漸隱）。 */
-  let zMin = 0; for (let v = 0; v < d.nBase; v++) zMin = Math.min(zMin, d.P[v * 3 + 2]);
-  const K = Math.max(1, (ARM.ARM_WORLD / worldPerDm) / Math.max(1e-6, ARM.ZS - zMin));
+  /* 袖口一圈的截面（原頂點、細分後）：中心與半寬，給袖管接續用；袖管頂點的蒙皮抄這一圈最靠近的頂點（跟前臂骨走）。 */
+  let cx = 0, cy = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, anchor = -1, ad = Infinity;
   for (let v = 0; v < d.nBase; v++) {
     const z = d.P[v * 3 + 2];
-    let a = 1;
-    if (z < ARM.ZS) {
-      const z2 = ARM.ZS + (z - ARM.ZS) * K; d.P[v * 3 + 2] = z2; d.P[v * 3 + 1] += (ARM.ZS - z2) * ARM.RISE;
-      const t = Math.min(1, Math.max(0, ((ARM.ZS - z2) * worldPerDm / ARM.ARM_WORLD - ARM.FADE) / (1 - ARM.FADE)));
-      a = 1 - t * t * (3 - 2 * t);
+    if (Math.abs(z - ARM.Z0) > 0.05) continue;
+    const x = d.P[v * 3], y = d.P[v * 3 + 1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  cx = (x0 + x1) / 2; cy = (y0 + y1) / 2;
+  const ra = (x1 - x0) / 2 + ARM.PAD, rb = (y1 - y0) / 2 + ARM.PAD;
+  for (let v = 0; v < d.nBase; v++) { const dz = d.P[v * 3 + 2] - ARM.Z0, dd = (d.P[v * 3] - cx) ** 2 + (d.P[v * 3 + 1] - cy) ** 2 + dz * dz; if (dd < ad) { ad = dd; anchor = v; } }
+  /* 留下來的原頂點（袖口以前）全不透明；z＜CUT 的原三角形之後整段丟掉 */
+  for (let v = 0; v < d.nBase; v++) if (d.cs === 4 && d.P[v * 3 + 2] >= ARM.CUT) d.C[v * 4 + 3] = 1;
+  const cut = (tri) => tri.every((v) => v < d.nBase && d.P[v * 3 + 2] < ARM.CUT);
+  /* 袖管 */
+  const L = ARM.ARM_WORLD / worldPerDm, tubeStart = d.P.length / 3, P2 = [], C2 = [], S2 = [], W2 = [], A2 = [], I2 = [];
+  const col = [d.C[anchor * d.cs], d.C[anchor * d.cs + 1], d.C[anchor * d.cs + 2]];
+  const at = (b) => [cx, cy + rise * b * b / (b + ARM.BEND), ARM.Z0 - b];
+  for (let i = 0; i <= ARM.SEGS; i++) {
+    const b = L * Math.pow(i / ARM.SEGS, 1.7), c = at(b), c2 = at(b + 0.05), t = [c2[0] - c[0], c2[1] - c[1], c2[2] - c[2]], tl = Math.hypot(...t);
+    const tn = [t[0] / tl, t[1] / tl, t[2] / tl], u = [1, 0, 0], w = [tn[1] * u[2] - tn[2] * u[1], tn[2] * u[0] - tn[0] * u[2], tn[0] * u[1] - tn[1] * u[0]];
+    const grow = 1 + ARM.WIDEN * Math.min(1, b / 4), f = Math.min(1, Math.max(0, (b / L - ARM.FADE) / (1 - ARM.FADE))), alpha = 1 - f * f * (3 - 2 * f);
+    for (let j = 0; j < ARM.SIDES; j++) {
+      const th = (j / ARM.SIDES) * Math.PI * 2, ct = Math.cos(th), st = Math.sin(th);
+      P2.push(c[0] + u[0] * ra * grow * ct + w[0] * rb * grow * st, c[1] + u[1] * ra * grow * ct + w[1] * rb * grow * st, c[2] + u[2] * ra * grow * ct + w[2] * rb * grow * st);
+      C2.push(col[0], col[1], col[2]); if (d.cs === 4) C2.push(alpha);
+      for (let k = 0; k < 4; k++) { S2.push(d.SI[anchor * 4 + k]); W2.push(d.SW[anchor * 4 + k]); }
+      A2.push(0, 0, 0);
     }
-    if (d.cs === 4) d.C[v * 4 + 3] = a;
+  }
+  for (let i = 0; i < ARM.SEGS; i++) for (let j = 0; j < ARM.SIDES; j++) {
+    const j2 = (j + 1) % ARM.SIDES, a = tubeStart + i * ARM.SIDES + j, b = tubeStart + i * ARM.SIDES + j2, c = a + ARM.SIDES, e = b + ARM.SIDES;
+    I2.push(a, b, c, b, e, c); // 外表面朝外（之後依法線檢查統一繞序）
+  }
+  const cat = (A, B, T) => { const o = new T(A.length + B.length); o.set(A); o.set(B, A.length); return o; };
+  d.P = cat(d.P, P2, Float32Array); d.C = cat(d.C, C2, Float32Array); d.SI = cat(d.SI, S2, Uint16Array); d.SW = cat(d.SW, W2, Float32Array); d.A = cat(d.A, A2, Float32Array);
+  /* 袖管繞序：面法線要朝外（離管軸）；不對就翻 */
+  for (let t = 0; t < I2.length; t += 3) {
+    const [a, b, c] = [I2[t], I2[t + 1], I2[t + 2]], pa = [d.P[a * 3], d.P[a * 3 + 1], d.P[a * 3 + 2]];
+    const ab = [d.P[b * 3] - pa[0], d.P[b * 3 + 1] - pa[1], d.P[b * 3 + 2] - pa[2]], ac = [d.P[c * 3] - pa[0], d.P[c * 3 + 1] - pa[1], d.P[c * 3 + 2] - pa[2]];
+    const n = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]];
+    const ring = Math.floor((a - tubeStart) / ARM.SIDES), cc = at(L * Math.pow(ring / ARM.SEGS, 1.7)), out = [pa[0] - cc[0], pa[1] - cc[1], pa[2] - cc[2]];
+    if (n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0) { I2[t + 1] = c; I2[t + 2] = b; }
   }
   /* 舊的頂點色疤條（獵人配件）由程式生成疤取代：那片配件頂點 alpha 設 0，整片三角形丟掉。 */
   for (let v = d.nBase; v < d.P.length / 3; v++) { const c = d.C.subarray(v * d.cs, v * d.cs + 3); if (Math.abs(c[0] - 0.74) + Math.abs(c[1] - 0.50) + Math.abs(c[2] - 0.42) < 1e-3 && d.cs === 4) d.C[v * d.cs + 3] = 0; }
   const keep = [];
   for (let t = 0; t < d.index.length; t += 3) {
     const tri = [d.index[t], d.index[t + 1], d.index[t + 2]];
+    if (cut(tri)) continue; // 原前臂（換成袖管）
     if (d.cs === 4 && tri.every((v) => d.C[v * 4 + 3] < 0.01)) continue; // 三點全透明＝畫不出來（alphaTest 0.01），不送 GPU
     keep.push(...tri);
   }
+  for (let t = 0; t < I2.length; t += 3) if (!(d.cs === 4 && [I2[t], I2[t + 1], I2[t + 2]].every((v) => d.C[v * 4 + 3] < 0.01))) keep.push(I2[t], I2[t + 1], I2[t + 2]);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(d.P, 3));
   g.setAttribute('color', new THREE.BufferAttribute(d.C, d.cs));
@@ -368,6 +402,6 @@ export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantIn
   g.setIndex(new THREE.BufferAttribute(new Uint32Array(keep), 1));
   g.computeVertexNormals();
   if (variantInfo) g.userData.variant = variantInfo; // 變體配件資訊照舊可查（治具／測試）
-  g.userData.real = { key, kind, verts: d.P.length / 3, tris: keep.length / 3, nBase: d.nBase, armStretch: +K.toFixed(3), armZ: [ARM.ZS, +(ARM.ZS + (zMin - ARM.ZS) * K).toFixed(3)] };
+  g.userData.real = { key, kind, rise, verts: d.P.length / 3, tris: keep.length / 3, nBase: d.nBase, arm: [tubeStart, d.P.length / 3], armWorld: ARM.ARM_WORLD };
   return g;
 }
