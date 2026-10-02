@@ -43,12 +43,12 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  外撐 PAD 的橢圓、SIDES 邊、SEGS 段）。**每一幀**（畫之前，onBeforeRender 拿到這一次真正在畫的相機）把袖管重新鋪成
  *  「袖口 → 最近的畫面邊緣」的最短路徑：手腕投影到畫面、取離它最近的那條邊，目標點在該邊外 MARGIN（NDC）處，
  *  深度取「過該點的視線與高 LIFT 的水平面」交點（交不到就取手腕到相機的距離）；路徑是從袖口沿前臂方向起步的二次曲線。
- *  袖管最後一段 DARK 起漸暗、FADE 起漸隱（都在畫面邊緣外側那一截）。袖管頂點全綁 Elbow 骨（姿勢從不轉它＝網格局部座標），
+ *  袖管 DARK 起漸暗（畫面邊緣前一段，收尾）、FADE 起漸隱（最後一圈，落在畫面邊緣外 MARGIN 處）。袖管頂點全綁 Elbow 骨（姿勢從不轉它＝網格局部座標），
  *  所以 CPU 寫進去的座標就是畫出來的座標，治具與測試讀頂點位置看到的就是畫面上那一根。
  *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
  *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.5, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 

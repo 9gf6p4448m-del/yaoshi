@@ -71,6 +71,7 @@ try {
       for (let i = 0; i < pos.count; i++) {
         if (col && col.itemSize === 4 && col.getW(i) < 0.5) continue;
         if (pos.getZ(i) < -0.5) continue; // 手＋袖口（前臂不算手）
+        const arm = mesh.geometry.userData.real && mesh.geometry.userData.real.arm; if (arm && i >= arm[0]) continue; // v0.59.7 袖管（每幀依相機重鋪的前臂）也不算手
         v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); add(hb, v);
       }
       /* 錢：托盤道具群裡的 prop-chips（InstancedMesh）全部 instance 的每個頂點 */
