@@ -3,7 +3,7 @@
 // 突變驗紅：tests/tools/hands-mutants.mjs（對本檔跑）。
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { THREE, M, loadProps, loadHands, handRigSource as handRigSourceFx, LAYOUTS } from './hand-fixture.mjs';
+import { THREE, M, loadProps, loadHands, loadRealism, handRigSource as handRigSourceFx, LAYOUTS } from './hand-fixture.mjs';
 
 const { createTableProps, PROPS } = await loadProps();
 const { createTableHands } = await loadHands();
@@ -122,7 +122,9 @@ test('V1 收驚婆：老膚色與手背暗斑是頂點色——手背有一批�
 });
 
 /* ═══ V2：缺角色／未知角色／空清單＝預設手，不丟例外；其餘 7 角色不受影響 ═════════════════════ */
-test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外；其餘 7 角色與斷手書生都拿預設手（同一份幾何物件）', async () => {
+/* v0.59.7 修訂 5（條件 16）：原「四席共用同一份幾何物件」改為每席一份——袖管每幀依相機重鋪、寫進幾何頂點，四席走向不同，不能共用。
+   以替代斷言守記憶體：寫實幾何份數＝（種類×席）且有上限，所有角色在四席輪過一遍之後份數不超過 4 種×4 席＝16，再輪一遍份數不增加（快取，不洩漏）。 */
+test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外；其餘 7 角色與斷手書生都拿寫實預設手；寫實幾何每席一份、份數有上限且不洩漏', async () => {
   const B = await baseSrc();
   const r = await rig('L', DEFAULT4);
   const dflt = meshOf(r, 0).geometry;
@@ -146,12 +148,19 @@ test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外
   assert.equal(accCount(meshOf(r, 0).geometry), 0, '預設手沒有配件');
   r.hands.setSeats(seatsOf(['hunter', 'qingmian', 'qingmian', 'qingmian']));
   assert.deepEqual(r.hands.stats().variants, ['hunter', null, null, null], '之後給三角色仍然正常');
+  assert.ok(r.hands.stats().geometries <= 4, `四席同時在用的幾何份數 ${r.hands.stats().geometries}（每席至多一份）`);
+  const all = ['shoujing', 'dangpu', 'hunter', ...OTHER7];
+  for (let k = 0; k < all.length; k++) r.hands.setSeats(seatsOf([0, 1, 2, 3].map((s) => all[(k + s) % all.length])));
+  const n1 = r.hands.stats().realGeoCount;
+  assert.ok(n1 <= 16, `所有角色輪過四席後寫實幾何份數 ${n1}（上限 4 種×4 席）`);
+  for (let k = 0; k < all.length; k++) r.hands.setSeats(seatsOf([0, 1, 2, 3].map((s) => all[(k + 2 * s) % all.length])));
+  assert.equal(r.hands.stats().realGeoCount, n1, '再輪一遍份數不增加（快取，不洩漏）');
   r.hands.dispose(); r.props.dispose();
 });
 
 /* ═══ V3：面數與 draw call ═══════════════════════════════════════════════════════════════ */
 for (const layout of ['L', 'P']) {
-  test(`V3 ${layout}：每隻手 ≤2500 面；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質）`, async () => {
+  test(`V3 ${layout}：每隻寫實手 ≤6,500 面、變體多於預設手、寫實皮膚；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質）`, async () => {
     const r = await rig(layout, ['shoujing', 'dangpu', 'hunter', 'qingmian']);
     const st = r.hands.stats();
     /* v0.59.7 修訂 4 改寫（原：每手 ≤2,500 面、變體 >1362）：上限改依驗收條件 6（≤6,500）；變體比預設手（第 4 席）多出配件面；
@@ -205,6 +214,15 @@ test('純演出：變體建構不耗亂數（props 自己的亂數不算：同 p
   const uuid = (await withSeed(() => new THREE.BufferGeometry())).calls;
   assert.ok(uuid > 0);
   assert.equal(withV.calls - without.calls, 0, `有變體 ${withV.calls} 次 vs 無變體 ${without.calls} 次（每份幾何的 three uuid 成本 ${uuid}）`);
+  /* 修訂 5（條件 16c）：寫實幾何建構本身也不得耗亂數——一次 realGeometry 只准有它 new 的那一份 BufferGeometry 的 uuid 成本 */
+  const HRm = await loadRealism();
+  assert.ok(HRm, '寫實模組存在');
+  const srcD = { position: B.arr.position, color: B.ref, colorSize: 4, skinIndex: B.arr.skinIndex, skinWeight: B.arr.skinWeight, index: B.arr.index };
+  for (const key of ['default', ...ROLES3]) {
+    const src = key === 'default' ? srcD : Object.assign(M.buildRoleGeometry(B.rig, B.arr, key), { colorSize: 4 });
+    const rg = await withSeed(() => HRm.realGeometry(B.rig, src, B.n0, key));
+    assert.equal(rg.calls, uuid, `realGeometry(${key}) 呼叫 Math.random ${rg.calls} 次（只准 ${uuid}＝一份幾何的 uuid）`);
+  }
   const pure = await withSeed(() => { for (const role of ROLES3) M.buildRoleGeometry(B.rig, B.arr, role); });
   assert.equal(pure.calls, 0, 'buildRoleGeometry 呼叫了 Math.random ' + pure.calls + ' 次');
   for (const role of ROLES3) {

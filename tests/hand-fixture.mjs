@@ -66,6 +66,12 @@ export function cloneSkinnedGlb(url) {
   return { ...mod, fetched: stubMod.fetched };
 }
 
+/** v0.59.7：寫實模組本身（給測試直接量 realGeometry 等純函式；95f621db 沒有這支 ⇒ null）。 */
+export async function loadRealism() {
+  if (!fs.existsSync(path.join(ROOT, 'js/hand-realism.js'))) return null;
+  return import(asModule(read('hand-realism.js')));
+}
+
 /** 兩套版面：與 table-tray 的 relayout 傳給 props.setLayout 的同一組值（TRAY.XS／Y／Z／SCALE 與 TRAY.P.*）。 */
 export const LAYOUTS = {
   L: ['L', [-1.35, -0.45, 0.45, 1.35], 0.152, 0.10, 0.70],

@@ -736,6 +736,22 @@ function anchorLocal(rig, pts, kind) {
   return n ? [sx / n, sy / n, sz / n] : [0, 0, 0];
 }
 
+/* v0.59.7 修訂 5 效能：同一組取樣點（prepare 快取的同一份 pts）在同一 yaw／pitch／縮放下的旋轉結果只算一次——
+   一幀裡為了避讓信物、伸入界線、俯角掃描會用同一姿勢反覆 placeAt，只差平移。快取的是同一個 xform 的輸出，數值逐位元相同。 */
+const rotCache = new WeakMap(), setIds = new WeakMap(); let setN = 0;
+function rotated(pts, set, yaw, pitch, s) {
+  let sid = setIds.get(set); if (sid === undefined) { sid = ++setN; setIds.set(set, sid); }
+  let m = rotCache.get(pts); if (!m) { m = new Map(); rotCache.set(pts, m); }
+  const key = sid + '|' + yaw + '|' + pitch + '|' + s;
+  let R = m.get(key);
+  if (!R) {
+    R = new Float64Array(set.length * 3);
+    for (let i = 0; i < set.length; i++) { const v = set[i], w = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], yaw, pitch, s); R[i * 3] = w[0]; R[i * 3 + 1] = w[1]; R[i * 3 + 2] = w[2]; }
+    if (m.size > 96) m.clear();
+    m.set(key, R);
+  }
+  return R;
+}
 /**
  * 在固定 yaw／pitch 下，讓 anchor 的 (x,z) 對準 target，並解出最低的根高度：
  * 每個取樣點都不得低於它正下方的地板＋CLR。回 { root, minLift, gaps }。
@@ -745,10 +761,10 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
   const rx = target[0] - a[0], rz = target[1] - a[1];
   let ry = minY === undefined ? -Infinity : minY;
   /* 先轉一遍、取手的水平外框，只留外框碰得到的障礙（每幀成本：逐點 × 附近幾件，而不是 × 全桌）。 */
-  const W = new Float64Array(set.length * 3);
+  const W = new Float64Array(set.length * 3), R = rotated(pts, set, yaw, pitch, s);
   let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
   for (let i = 0; i < set.length; i++) {
-    const v = set[i], w = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], yaw, pitch, s);
+    const w = [R[i * 3], R[i * 3 + 1], R[i * 3 + 2]];
     const fx = rx + w[0], fz = rz + w[2];
     W[i * 3] = fx; W[i * 3 + 1] = w[1]; W[i * 3 + 2] = fz;
     if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (fz < z0) z0 = fz; if (fz > z1) z1 = fz;
@@ -763,10 +779,14 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
   const near = obstacles.filter((o) => !(o.bottom > tableY + 0.03) && hit(o));
   const air = obstacles.filter((o) => o.bottom > tableY + 0.03 && hit(o));
   const wp = new Array(set.length * 2);
-  for (let i = 0; i < set.length; i++) {
-    const fl = near.length ? floorAt(W[i * 3], W[i * 3 + 2], near, tableY, pad) : tableY;
-    wp[i * 2] = W[i * 3 + 1]; wp[i * 2 + 1] = fl;
-    const need = fl + clr - W[i * 3 + 1];
+  /* 效能（修訂 5）：地板高 fl 只在「可能改變答案」的點才算——先用桌面當地板得到 ry 的下界，
+     某點就算站在最高障礙頂上也抬不過目前的 ry，就不必查它的地板（wp 的地板值改成要用時才算，見 flAt）。結果與逐點全算相同。 */
+  let maxTop = tableY; for (const o of near) if (o.top > maxTop) maxTop = o.top;
+  for (let i = 0; i < set.length; i++) { wp[i * 2] = W[i * 3 + 1]; wp[i * 2 + 1] = NaN; const need = tableY + clr - W[i * 3 + 1]; if (need > ry) ry = need; }
+  const flAt = (i) => { let f = wp[i * 2 + 1]; if (f !== f) { f = near.length ? floorAt(W[i * 3], W[i * 3 + 2], near, tableY, pad) : tableY; wp[i * 2 + 1] = f; } return f; };
+  if (maxTop > tableY) for (let i = 0; i < set.length; i++) {
+    if (maxTop + clr - W[i * 3 + 1] <= ry) continue;
+    const need = flAt(i) + clr - W[i * 3 + 1];
     if (need > ry) ry = need;
   }
   for (let pass = 0; pass < 4 && air.length; pass++) {
@@ -778,17 +798,17 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
         const inside = o.r !== undefined ? (x - o.x) * (x - o.x) + (z - o.z) * (z - o.z) <= (o.r + pad) * (o.r + pad) : Math.abs(x - o.x) <= o.hx + pad && Math.abs(z - o.z) <= o.hz + pad;
         if (!inside) continue;
         ry = o.top + clr - W[i * 3 + 1]; lifted = true;
-        if (o.top > wp[i * 2 + 1]) wp[i * 2 + 1] = o.top;
+        if (o.top > flAt(i)) wp[i * 2 + 1] = o.top;
       }
     }
     if (!lifted) break;
   }
-  return { root: [rx, ry, rz], wp };
+  return { root: [rx, ry, rz], wp, flAt };
 }
 /** 某點集在已解的根高度下，離其地板的最小間隙。 */
-function minGap(set, setIndexOf, wp, ry) {
+function minGap(set, setIndexOf, wp, ry, flAt) {
   let g = Infinity;
-  for (const v of set) { const i = setIndexOf.get(v); if (i === undefined) continue; const d = ry + wp[i * 2] - wp[i * 2 + 1]; if (d < g) g = d; }
+  for (const v of set) { const i = setIndexOf.get(v); if (i === undefined) continue; const d = ry + wp[i * 2] - flAt(i); if (d < g) g = d; }
   return g;
 }
 
@@ -858,8 +878,8 @@ function choosePitch(rig, pts, anchor, spec, s, obstacles, tableY) {
   for (let k = 0; k < HAND.PITCH_STEPS; k++) {
     const p = HAND.PITCH_MIN + (HAND.PITCH_MAX - HAND.PITCH_MIN) * k / (HAND.PITCH_STEPS - 1);
     const r = placeAt(rig, pts, rig.coarse, anchor, spec.yaw, p, s, spec.target, obstacles, tableY, spec.minY);
-    const tipGap = minGap(tipsC, ci, r.wp, r.root[1]);
-    const palmGap = minGap(palmC, ci, r.wp, r.root[1]);
+    const tipGap = minGap(tipsC, ci, r.wp, r.root[1], r.flAt);
+    const palmGap = minGap(palmC, ci, r.wp, r.root[1], r.flAt);
     const score = spec.anchor === 'tips' ? tipGap : tipGap + palmGap;
     if (score < bestScore - 1e-9) { bestScore = score; best = p; }
   }

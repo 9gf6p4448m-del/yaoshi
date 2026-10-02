@@ -67,7 +67,7 @@ function penetrations(r) {
 }
 
 /* ═══ #B1 面數＋管線 ═══════════════════════════════════════════════════ */
-test('#B1 每隻手 ≤2,500 三角形、單一 primitive、24 骨；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線）', async () => {
+test('#B1 GLB 資產 ≤2,500 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線）', async () => {
   const g = await loadHandGltf();
   const meshes = []; g.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
   assert.equal(meshes.length, 1, '單一 primitive');
