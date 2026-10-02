@@ -1,0 +1,32 @@
+{
+ "mode": "hands-perf-diag",
+ "runs": 5,
+ "rendersPerSec": {
+  "handsVisible": [
+   407.6,
+   469.3,
+   495.2,
+   483.9,
+   391.1
+  ],
+  "handsHidden": [
+   512.3,
+   655.7,
+   588.3,
+   571.5,
+   504.7
+  ]
+ },
+ "medianRatioVisibleOverHidden": 0.8212,
+ "paired": [
+  0.7956,
+  0.7157,
+  0.8417,
+  0.8467,
+  0.7748
+ ],
+ "lastFrameCalls": {
+  "on": 78,
+  "off": 74
+ }
+}

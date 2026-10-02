@@ -192,7 +192,7 @@
     "game": {
      "min": 0.9427,
      "median": 0.9702,
-     "max": 0.9723
+     "max": 0.9722
     },
     "diamSpread": [
      0,
@@ -232,7 +232,7 @@
       "diamWorld": 0.01574,
       "game": {
        "round": 0.9674,
-       "px": 4.09,
+       "px": 4.1,
        "hullN": 12
       },
       "close": {
@@ -245,7 +245,7 @@
       "verts": 42,
       "diamWorld": 0.01574,
       "game": {
-       "round": 0.9723,
+       "round": 0.9722,
        "px": 3.9,
        "hullN": 16
       },
@@ -274,7 +274,7 @@
       "diamWorld": 0.01574,
       "game": {
        "round": 0.9427,
-       "px": 3.56,
+       "px": 3.57,
        "hullN": 12
       },
       "close": {
@@ -288,14 +288,14 @@
    "buckle": {
     "n": 1,
     "close": {
-     "min": 0.8342,
-     "median": 0.8342,
-     "max": 0.8342
+     "min": 0.836,
+     "median": 0.836,
+     "max": 0.836
     },
     "game": {
-     "min": 0.8253,
-     "median": 0.8253,
-     "max": 0.8253
+     "min": 0.8305,
+     "median": 0.8305,
+     "max": 0.8305
     },
     "diamSpread": [
      0,
@@ -304,15 +304,15 @@
     "items": [
      {
       "verts": 8,
-      "diamWorld": 0.05602,
+      "diamWorld": 0.05614,
       "game": {
-       "round": 0.8253,
-       "px": 11.81,
+       "round": 0.8305,
+       "px": 11.97,
        "hullN": 6
       },
       "close": {
-       "round": 0.8342,
-       "px": 99.92,
+       "round": 0.836,
+       "px": 100.85,
        "hullN": 6
       }
      }
@@ -323,31 +323,31 @@
    "coin": {
     "n": 6,
     "close": {
-     "min": 0.4797,
-     "median": 0.8229,
-     "max": 0.9445
+     "min": 0.4749,
+     "median": 0.8211,
+     "max": 0.9452
     },
     "game": {
-     "min": 0.5983,
-     "median": 0.9244,
-     "max": 0.972
+     "min": 0.5861,
+     "median": 0.9204,
+     "max": 0.9784
     },
     "diamSpread": [
-     -0.005,
-     0.007
+     -0.001,
+     0
     ],
     "items": [
      {
       "verts": 40,
       "diamWorld": 0.03374,
       "game": {
-       "round": 0.972,
-       "px": 9.72,
+       "round": 0.9784,
+       "px": 9.94,
        "hullN": 18
       },
       "close": {
-       "round": 0.9093,
-       "px": 68.37,
+       "round": 0.8989,
+       "px": 69.47,
        "hullN": 18
       }
      },
@@ -355,69 +355,116 @@
       "verts": 40,
       "diamWorld": 0.03374,
       "game": {
-       "round": 0.954,
-       "px": 8.97,
+       "round": 0.958,
+       "px": 9.18,
        "hullN": 18
       },
       "close": {
-       "round": 0.7897,
-       "px": 54.48,
+       "round": 0.7799,
+       "px": 55.43,
        "hullN": 18
       }
      },
      {
       "verts": 40,
-      "diamWorld": 0.03379,
+      "diamWorld": 0.03374,
       "game": {
-       "round": 0.8889,
-       "px": 7.84,
+       "round": 0.8911,
+       "px": 8.04,
        "hullN": 18
       },
       "close": {
-       "round": 0.5277,
-       "px": 37.92,
+       "round": 0.5214,
+       "px": 38.48,
        "hullN": 18
       }
      },
      {
       "verts": 40,
-      "diamWorld": 0.03391,
+      "diamWorld": 0.03373,
       "game": {
-       "round": 0.6512,
-       "px": 5.98,
+       "round": 0.6566,
+       "px": 6.09,
        "hullN": 18
       },
       "close": {
-       "round": 0.4797,
-       "px": 33.25,
+       "round": 0.4749,
+       "px": 33.51,
        "hullN": 18
       }
      },
      {
       "verts": 40,
-      "diamWorld": 0.03413,
+      "diamWorld": 0.03372,
       "game": {
-       "round": 0.5983,
-       "px": 5.62,
+       "round": 0.5861,
+       "px": 5.6,
        "hullN": 18
       },
       "close": {
-       "round": 0.8229,
-       "px": 45.53,
+       "round": 0.8211,
+       "px": 45.55,
        "hullN": 18
       }
      },
      {
       "verts": 40,
-      "diamWorld": 0.03414,
+      "diamWorld": 0.03372,
       "game": {
-       "round": 0.9244,
+       "round": 0.9204,
        "px": 8.16,
        "hullN": 18
       },
       "close": {
-       "round": 0.9445,
-       "px": 50.94,
+       "round": 0.9452,
+       "px": 50.81,
+       "hullN": 18
+      }
+     }
+    ]
+   },
+   "goldTrim": {
+    "n": 2,
+    "close": {
+     "min": 0.4555,
+     "median": 0.748,
+     "max": 0.748
+    },
+    "game": {
+     "min": 0.7055,
+     "median": 0.7148,
+     "max": 0.7148
+    },
+    "diamSpread": [
+     0,
+     0
+    ],
+    "items": [
+     {
+      "verts": 64,
+      "diamWorld": 0.29309,
+      "game": {
+       "round": 0.7148,
+       "px": 56.57,
+       "hullN": 18
+      },
+      "close": {
+       "round": 0.4555,
+       "px": 219.01,
+       "hullN": 18
+      }
+     },
+     {
+      "verts": 64,
+      "diamWorld": 0.29309,
+      "game": {
+       "round": 0.7055,
+       "px": 57.02,
+       "hullN": 18
+      },
+      "close": {
+       "round": 0.748,
+       "px": 343.08,
        "hullN": 18
       }
      }

@@ -28,15 +28,15 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 126
+    "handsSeenFrames": 113
    },
    "drawCalls": {
     "handsVisible": 4,
     "callsWithHands": 78,
     "callsWithout": 74,
     "delta": 4,
-    "trisDelta": 22118,
-    "trisPerHand": 4889
+    "trisDelta": 21764,
+    "trisPerHand": 4777
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
@@ -57,15 +57,15 @@
       "label": "push",
       "hits": 0,
       "where": [],
-      "withHands": 45,
-      "hudOverlapFrames": 45
+      "withHands": 49,
+      "hudOverlapFrames": 49
      },
      {
       "label": "push-same-slot",
       "hits": 0,
       "where": [],
-      "withHands": 58,
-      "hudOverlapFrames": 58
+      "withHands": 55,
+      "hudOverlapFrames": 55
      },
      {
       "label": "slam",
@@ -78,8 +78,8 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 73,
-      "hudOverlapFrames": 73
+      "withHands": 72,
+      "hudOverlapFrames": 72
      }
     ]
    },
@@ -87,13 +87,13 @@
     "duringAction": [
      {
       "label": "push",
-      "framesWithHands": 45,
-      "framesOverlappingHUD": 45
+      "framesWithHands": 49,
+      "framesOverlappingHUD": 49
      },
      {
       "label": "push-same-slot",
-      "framesWithHands": 58,
-      "framesOverlappingHUD": 58
+      "framesWithHands": 55,
+      "framesOverlappingHUD": 55
      },
      {
       "label": "slam",
@@ -102,14 +102,14 @@
      },
      {
       "label": "rake",
-      "framesWithHands": 73,
-      "framesOverlappingHUD": 73
+      "framesWithHands": 72,
+      "framesOverlappingHUD": 72
      }
     ],
     "afterRetract": {
      "visibleHands": 0,
      "overlaps": 0,
-     "waitedMs": 25,
+     "waitedMs": 30,
      "statesIdle": true,
      "hudRects": [
       "#north",
@@ -124,7 +124,7 @@
     }
    },
    "hitTest": {
-    "samples": 21,
+    "samples": 126,
     "handsVisible": 4,
     "diffs": 0,
     "hitSlotsWithHands": [
@@ -161,15 +161,15 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 142
+    "handsSeenFrames": 103
    },
    "drawCalls": {
     "handsVisible": 4,
     "callsWithHands": 75,
     "callsWithout": 71,
     "delta": 4,
-    "trisDelta": 22118,
-    "trisPerHand": 4889
+    "trisDelta": 21764,
+    "trisPerHand": 4777
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
@@ -184,21 +184,21 @@
    },
    "penetration": {
     "hits": 0,
-    "framesWithHands": 189,
+    "framesWithHands": 176,
     "cycles": [
      {
       "label": "push",
       "hits": 0,
       "where": [],
-      "withHands": 51,
-      "hudOverlapFrames": 51
+      "withHands": 47,
+      "hudOverlapFrames": 47
      },
      {
       "label": "push-same-slot",
       "hits": 0,
       "where": [],
-      "withHands": 54,
-      "hudOverlapFrames": 54
+      "withHands": 52,
+      "hudOverlapFrames": 52
      },
      {
       "label": "slam",
@@ -211,8 +211,8 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 84,
-      "hudOverlapFrames": 70
+      "withHands": 77,
+      "hudOverlapFrames": 64
      }
     ]
    },
@@ -220,13 +220,13 @@
     "duringAction": [
      {
       "label": "push",
-      "framesWithHands": 51,
-      "framesOverlappingHUD": 51
+      "framesWithHands": 47,
+      "framesOverlappingHUD": 47
      },
      {
       "label": "push-same-slot",
-      "framesWithHands": 54,
-      "framesOverlappingHUD": 54
+      "framesWithHands": 52,
+      "framesOverlappingHUD": 52
      },
      {
       "label": "slam",
@@ -235,14 +235,14 @@
      },
      {
       "label": "rake",
-      "framesWithHands": 84,
-      "framesOverlappingHUD": 70
+      "framesWithHands": 77,
+      "framesOverlappingHUD": 64
      }
     ],
     "afterRetract": {
      "visibleHands": 0,
      "overlaps": 0,
-     "waitedMs": 26,
+     "waitedMs": 34,
      "statesIdle": true,
      "hudRects": [
       "#north",
@@ -253,14 +253,14 @@
     }
    },
    "hitTest": {
-    "samples": 38,
+    "samples": 144,
     "handsVisible": 4,
     "diffs": 0,
     "hitSlotsWithHands": [
      -1,
-     0,
      1,
-     2
+     2,
+     3
     ]
    }
   }

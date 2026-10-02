@@ -1,53 +1,53 @@
 {
  "gates": {
-  "occlusion_le_10pct": false,
+  "occlusion_le_10pct": true,
   "handoffClears": true,
   "skipClears": true,
   "duelHides": true,
   "noPageErrors": true
  },
- "pass": false,
+ "pass": true,
  "summary": {
   "推": {
    "occlMax": 0.0135,
    "occlMeanFrameMax": 0.0007,
-   "handShareMax": 0.1178,
-   "handShareMean": 0.097,
+   "handShareMax": 0.1026,
+   "handShareMean": 0.0892,
    "n": 20
   },
   "推（四家同一格）": {
-   "occlMax": 0.0063,
-   "occlMeanFrameMax": 0.0013,
-   "handShareMax": 0.1091,
-   "handShareMean": 0.0964,
+   "occlMax": 0.001,
+   "occlMeanFrameMax": 0,
+   "handShareMax": 0.0992,
+   "handShareMean": 0.0885,
    "n": 22
   },
   "拍": {
-   "occlMax": 0.007,
-   "occlMeanFrameMax": 0.0004,
-   "handShareMax": 0.1338,
-   "handShareMean": 0.1262,
+   "occlMax": 0.0023,
+   "occlMeanFrameMax": 0.0001,
+   "handShareMax": 0.1341,
+   "handShareMean": 0.1186,
    "n": 19
   },
   "收": {
-   "occlMax": 0.1638,
-   "occlMeanFrameMax": 0.0162,
-   "handShareMax": 0.1191,
-   "handShareMean": 0.0971,
+   "occlMax": 0,
+   "occlMeanFrameMax": 0,
+   "handShareMax": 0.1036,
+   "handShareMean": 0.0747,
    "n": 31
   },
   "AI 一次推多格": {
    "occlMax": 0.028,
-   "occlMeanFrameMax": 0.0061,
-   "handShareMax": 0.0937,
-   "handShareMean": 0.0795,
+   "occlMeanFrameMax": 0.0041,
+   "handShareMax": 0.0921,
+   "handShareMean": 0.0733,
    "n": 47
   },
   "南席一次推四格": {
    "occlMax": 0,
    "occlMeanFrameMax": 0,
-   "handShareMax": 0.0771,
-   "handShareMean": 0.0563,
+   "handShareMax": 0.0449,
+   "handShareMean": 0.0291,
    "n": 47
   }
  },
