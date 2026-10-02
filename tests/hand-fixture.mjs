@@ -59,7 +59,9 @@ export function cloneSkinnedGlb(url) {
   globalThis.__handGltf = loadHandGltf();
   const stubURL = asModule(stub);
   const src = process.env.YAOSHI_HANDS_PATH ? fs.readFileSync(process.env.YAOSHI_HANDS_PATH, 'utf8').replace("from 'three'", `from '${threeURL}'`) : read('table-hands.js');
-  const mod = await import(asModule(src.replace("import('./creature-figures.js' + V)", `import('${stubURL}')`).replace("import('./hand-motion.js' + V)", `import('${motionURL}')`)));
+  /* v0.59.7：table-hands 多載一支 hand-realism.js（寫實皮膚／幾何）；data: 模組沒有相對路徑，照其他模組換成 data: 載入。 */
+  const realismURL = asModule(read('hand-realism.js'));
+  const mod = await import(asModule(src.replace("import('./creature-figures.js' + V)", `import('${stubURL}')`).replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`)));
   const stubMod = await import(stubURL);
   return { ...mod, fetched: stubMod.fetched };
 }

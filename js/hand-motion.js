@@ -23,8 +23,13 @@
 export const HAND = {
   /** dm → 世界單位。第二輪（使用者：手太大）以「掌寬 ≈ 錢柱直徑 2～2.5 倍」為準：GLB 掌寬（Palm 主骨頂點的 x 跨度）
    *  0.867 dm、錢柱直徑 2×CHIP.R＝0.144 ⇒ 縮放落在 0.332～0.415；取最小端附近 0.335（掌寬 0.290＝2.02 倍）。
-   *  真正讓手「看起來大」的是黑色長袖（整段前臂＋袖），見 SLEEVE。 */
+   *  真正讓手「看起來大」的是黑色長袖（整段前臂＋袖），見 SLEEVE。
+   *  v0.59.7：本值不變；寫實卷的縮放改由下面 USER_SCALE 一處控制。 */
   SCALE: 0.335,
+  /** v0.59.7 全角色手的縮放倍率（使用者 2026-10-02：「先不用縮，試玩再調」⇒ 預設 1，本卷不得預設 ≠1）。
+   *  一處改、四席全角色生效；試玩可用網址 ?handscale=0.8 暫時覆寫（只影響畫面，table-hands 讀）。
+   *  擺位解算與前臂延長都吃同一個值（hand-realism.js ARM：縮小時前臂自動拉長，仍接到畫面外）。 */
+  USER_SCALE: 1,
   /** 直式另乘的倍率（使用者裁定只玩橫式；直式只保機械檢查，不做美術）：0.6。 */
   SCALE_P: 0.6,
   /** 袖子（第二輪）：整段黑袖拿掉，只留腕部一圈短袖口邊（≤前臂 1/5），其後的袖布由暗轉淡、以 alphaHash 抖色漸隱。
@@ -226,8 +231,13 @@ export const ROLE_HAND = {
   /** 收驚婆：較老的膚色（朝 TINT 混 MIX 並壓暗 DIM）、手背暗斑（粗格雜湊 > SPOT_AT 的背面頂點乘 SPOT；CELL＝格寬 dm，成片的大斑）、指節（B 骨）紋乘 KNUCKLE。 */
   AGED: { TINT: [0.26, 0.20, 0.15], MIX: 0.68, DIM: 0.86, SPOT_AT: 0.60, SPOT: 0.36, CELL: 0.30, KNUCKLE: 0.75 },
   /** 收驚婆：木佛珠（一圈 N 顆、深褐）與紅繩（一圈，COLOR 保持舊名；TASSEL＝繩結下垂的小穗）。離腕骨 z（dm）。 */
-  BEADS: { Z: 0.08, N: 11, ARC: Math.PI * 1.3, FROM: Math.PI * 0.15, /* 只繞手腕上半圈多（下緣貼桌，不繞滿） */ S: 0.062, COLOR: [0.055, 0.026, 0.012], OUT: 0.035 },
-  THREAD: { Z: [0.19], R: 0.040, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012] },
+  BEADS: { Z: 0.08, N: 11, ARC: Math.PI * 1.3, FROM: Math.PI * 0.15, /* 只繞手腕上半圈多（下緣貼桌，不繞滿） */ S: 0.062, COLOR: [0.055, 0.026, 0.012], OUT: 0.035,
+    /* v0.59.7 寫實（驗收條件 10b）：木珠改 UV 球（SEG 經線 × RINGS 緯帶），珠徑 ±VAR 不規則、每顆深淺不一（材質依位置低頻雜訊），串在一條細紅繩上（CORD 截面半徑，珠間看得到繩）。 */
+    SEG: 8, RINGS: 4, VAR: 0.13, CORD: 0.013 },
+  THREAD: { Z: [0.19], R: 0.040, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012],
+    /* v0.59.7 寫實（驗收條件 10a）：紅線改圓截面的繩（截面 SIDES 邊、半徑 ROPE），從 Z0 繞到 Z1 共 TURNS 圈的螺旋，
+       每圈 SEGS 段；圈距與鬆緊依位置雜湊微抖（JZ 軸向、JR 徑向比例），不是整齊的彈簧。 */
+    ROPE: 0.022, SIDES: 5, Z0: 0.135, Z1: 0.255, TURNS: 2.25, SEGS: 24, JZ: 0.008, JR: 0.03, SINK: 0.9 },
   /** 當鋪袖口滾邊（金，寬）與襯裡（暗紅，外翻露出）。第三輪：玉扳指拿掉（綠色兩邊都被讀成當鋪／獵人）。 */
   TRIM: { GOLD: C_GOLD, LINING: C_LINING, GOLD_W: 0.05, GOLD_Z: [-0.115, -0.395] },
   /** 當鋪：腕上一串金色方孔錢（第三輪）。貼在黑袖環外面、從頂上沿外側（−x）垂下；ANG＝各枚在袖環上的方位角（度，90＝正上）。
@@ -235,7 +245,9 @@ export const ROLE_HAND = {
   COIN: { COLOR: C_COIN, ANG: [96, 114, 132, 150, 168, 186], R: 0.050, HOLE: 0.017, T: 0.012, GAP: 0.003 },
   /** 獵人：皮護腕（縮成輔助）、兩道扣帶、鐵扣（第三輪：黃銅扣會和當鋪金撞色）；手背舊疤。
    *  第三輪拿掉指節髒麻布纏帶：遊戲視角它的像素比毛皮邊還多（毛皮要當最大色塊），且米白麻布易被讀成收驚婆的白袖。 */
-  BRACER: { Z: -0.165, W: 0.085, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.105, -0.232], STRAP_W: 0.03, BUCKLE: C_IRON, BUCKLE_S: [0.07, 0.03, 0.035] },
+  BRACER: { Z: -0.165, W: 0.085, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.105, -0.232], STRAP_W: 0.03, BUCKLE: C_IRON, BUCKLE_S: [0.07, 0.03, 0.035],
+    /* v0.59.7：圓頂鉚釘（半徑 R、法向壓扁 FLAT；鐵色比扣略亮，仍非黃銅） */
+    RIVET: { ANG: [28, 52, 76, 104, 128, 152], R: 0.024, FLAT: 0.6, COLOR: [0.24, 0.235, 0.23] } },
   /** 獵人：外翻一圈蓬鬆毛皮邊（第三輪，最大色塊）。袖環中心 Z、軸向半寬 W、外撐 PAD、毛厚 R（底下 BOTTOM 倍、免得壓到錢）、
    *  不規則邊（位置雜湊、不耗亂數）JIT；TUFTS＝邊緣一撮撮外翹的毛（尖錐），長 TUFT_L。COLORS＝毛皮色組（驗收 R3-3 取樣用）。 */
   FUR: { Z: -0.36, W: 0.13, PAD: 0.09, LOW: 0.0, R: 0.065, BOTTOM: 0.3, SEG: 18, TS: 6, JIT: 0.7, TUFTS: 26, TUFT_L: 0.06, TUFT_W: 0.042, COLOR: C_FUR, TIP: C_FUR_TIP, COLORS: [C_FUR, C_FUR_TIP] },
@@ -260,10 +272,57 @@ const v3norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0
 
 /** 配件幾何收集器（頂點、法線、頂點色 RGBA、索引）。 */
 function accBuilder() {
-  const P = [], N = [], C = [], I = [];
-  const vert = (p, n, c) => { P.push(p[0], p[1], p[2]); const l = v3norm(n); N.push(l[0], l[1], l[2]); C.push(c[0], c[1], c[2], 1); return P.length / 3 - 1; };
+  const P = [], N = [], C = [], I = [], A = [];
+  /* A＝每頂點 3 個數（v0.59.7 寫實材質用）：[材質類別, u, v]——0 布／其他、2 繩（u＝沿繩長 dm、v＝繞繩截面角）、3 木、4 金屬。 */
+  let cls = [0, 0, 0];
+  const vert = (p, n, c) => { P.push(p[0], p[1], p[2]); const l = v3norm(n); N.push(l[0], l[1], l[2]); C.push(c[0], c[1], c[2], 1); A.push(cls[0], cls[1], cls[2]); return P.length / 3 - 1; };
   return {
-    P, N, C, I, vert,
+    P, N, C, I, A, vert,
+    /** 之後加的頂點用這個材質類別（[類別, u, v]）。 */
+    setClass(k) { cls = [k, 0, 0]; },
+    /** 球（UV 球，seg 經線、rings 緯帶；兩極各一點）：中心 c、半徑 r、三軸伸縮 k（預設等比）。剪影＝多邊形近似圓。 */
+    sphere(c, r, color, seg = 8, rings = 4, k = [1, 1, 1], axis = [0, 1, 0]) {
+      const ax = v3norm(axis), u = v3norm(v3cross(Math.abs(ax[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], ax)), w = v3cross(ax, u);
+      const at = (x, y, z) => v3add(c, v3add(v3add(v3mul(u, x * r * k[0]), v3mul(ax, y * r * k[1])), v3mul(w, z * r * k[2])));
+      const nrm = (x, y, z) => v3add(v3add(v3mul(u, x / k[0]), v3mul(ax, y / k[1])), v3mul(w, z / k[2]));
+      const top = vert(at(0, 1, 0), nrm(0, 1, 0), color), bot = vert(at(0, -1, 0), nrm(0, -1, 0), color), ring = [];
+      for (let j = 1; j < rings; j++) {
+        const ph = (j / rings) * Math.PI, y = Math.cos(ph), rr = Math.sin(ph), row = [];
+        for (let i = 0; i < seg; i++) { const th = (i / seg) * Math.PI * 2, x = rr * Math.cos(th), z = rr * Math.sin(th); row.push(vert(at(x, y, z), nrm(x, y, z), color)); }
+        ring.push(row);
+      }
+      for (let i = 0; i < seg; i++) {
+        const i2 = (i + 1) % seg;
+        I.push(top, ring[0][i2], ring[0][i]);
+        for (let j = 0; j + 1 < ring.length; j++) I.push(ring[j][i], ring[j][i2], ring[j + 1][i], ring[j + 1][i], ring[j][i2], ring[j + 1][i2]);
+        I.push(bot, ring[ring.length - 1][i], ring[ring.length - 1][i2]);
+      }
+    },
+    /** 圓截面的管（繩）：沿折線 pts（每點 [x,y,z]），截面半徑 r（可為函式 r(i)）、sides 邊；兩端封口。
+     *  頂點的 A＝[2, 沿繩長, 截面角]：材質依此畫捻股（每股斜繞）與毛邊。 */
+    tube(pts, r, color, sides = 5, cl = 2) {
+      const rows = [];
+      let len = 0;
+      for (let i = 0; i < pts.length; i++) {
+        if (i) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]);
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], t = v3norm(v3sub(b, a));
+        const u = v3norm(v3cross(Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], t)), w = v3cross(t, u), rr = typeof r === 'function' ? r(i) : r, row = [];
+        for (let j = 0; j < sides; j++) {
+          const th = (j / sides) * Math.PI * 2, n = v3add(v3mul(u, Math.cos(th)), v3mul(w, Math.sin(th)));
+          cls = [cl, len, th]; row.push(vert(v3add(pts[i], v3mul(n, rr)), n, color));
+        }
+        rows.push(row);
+      }
+      for (let i = 0; i + 1 < rows.length; i++) for (let j = 0; j < sides; j++) {
+        const j2 = (j + 1) % sides; I.push(rows[i][j], rows[i + 1][j], rows[i][j2], rows[i][j2], rows[i + 1][j], rows[i + 1][j2]);
+      }
+      for (const [row, s] of [[rows[0], -1], [rows[rows.length - 1], 1]]) { // 兩端封口（扇形）
+        const i0 = s < 0 ? 0 : pts.length - 1, t = v3norm(v3mul(v3sub(pts[Math.min(pts.length - 1, i0 + 1)], pts[Math.max(0, i0 - 1)]), s));
+        const ids = row.map((v) => vert([P[v * 3], P[v * 3 + 1], P[v * 3 + 2]], t, color));
+        for (let j = 1; j + 1 < sides; j++) I.push(ids[0], ids[j], ids[j + 1]);
+      }
+      cls = [0, 0, 0];
+    },
     /** 環：沿 d 軸（單位）、剖面平面基底 a／b、橢圓中心線半徑 ra／rb、剖面徑向半厚 r、軸向半寬 w、剖面邊數 ts。 */
     ring(c, d, a, b, ra, rb, r, w, color, seg = ROLE_HAND.SEG, ts = 4) {
       const base = P.length / 3;
@@ -316,22 +375,25 @@ function accBuilder() {
       }
       const nb = v3mul(dir, -1), q = cs.map((x) => vert(x, nb, color)); I.push(q[0], q[1], q[2], q[0], q[2], q[3]);
     },
-    /** 方孔錢：中心 c、面法線 n、面內基底 u／v，外八角半徑 r、方孔半邊 h、厚 t。正反兩面＋外緣＋孔壁（各自的面法線）。 */
+    /** 方孔錢：中心 c、面法線 n、面內基底 u／v，外圓半徑 r（v0.59.7：外緣 OS 段，原 8 角）、方孔半邊 h、厚 t。正反兩面＋外緣＋孔壁（各自的面法線）。 */
     coin(c, n, u, v, r, h, t, color) {
+      const OS = 16, Q = OS / 4; // 外緣段數（4 的倍數：每個方孔邊對 Q 段外緣）
       const at = (x, y, z) => v3add(c, v3add(v3add(v3mul(u, x), v3mul(v, y)), v3mul(n, z)));
-      const out = (j) => { const th = (j / 8) * Math.PI * 2; return [r * Math.cos(th), r * Math.sin(th)]; };
+      const out = (j) => { const th = (j / OS) * Math.PI * 2; return [r * Math.cos(th), r * Math.sin(th)]; };
       const inn = (k) => { const th = Math.PI / 4 + (k / 4) * Math.PI * 2; return [h * Math.SQRT2 * Math.cos(th), h * Math.SQRT2 * Math.sin(th)]; };
       for (const s of [1, -1]) { // 正反兩面
         const nn = v3mul(n, s), O = [], In = [];
-        for (let j = 0; j < 8; j++) { const [x, y] = out(j); O.push(vert(at(x, y, s * t / 2), nn, color)); }
+        for (let j = 0; j < OS; j++) { const [x, y] = out(j); O.push(vert(at(x, y, s * t / 2), nn, color)); }
         for (let k = 0; k < 4; k++) { const [x, y] = inn(k); In.push(vert(at(x, y, s * t / 2), nn, color)); }
+        /* 方孔第 k 角在 45°+90°k；它和下一角之間的外緣是 j＝Q·k＋Q/2 … Q·(k+1)＋Q/2 */
         for (let k = 0; k < 4; k++) {
-          const o1 = O[(2 * k + 1) % 8], o2 = O[(2 * k + 2) % 8], o3 = O[(2 * k + 3) % 8], i0 = In[k], i1 = In[(k + 1) % 4];
-          I.push(i0, o1, o2, i0, o2, i1, i1, o2, o3);
+          const i0 = In[k], i1 = In[(k + 1) % 4], j0 = Q * k + Q / 2;
+          for (let q = 0; q < Q; q++) I.push(i0, O[(j0 + q) % OS], O[(j0 + q + 1) % OS]);
+          I.push(i0, O[(j0 + Q) % OS], i1);
         }
       }
       const wall = (p0, p1, nn) => { const q = [vert(at(p0[0], p0[1], t / 2), nn, color), vert(at(p1[0], p1[1], t / 2), nn, color), vert(at(p1[0], p1[1], -t / 2), nn, color), vert(at(p0[0], p0[1], -t / 2), nn, color)]; I.push(q[0], q[1], q[2], q[0], q[2], q[3]); };
-      for (let j = 0; j < 8; j++) { const p0 = out(j), p1 = out(j + 1), m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; wall(p0, p1, v3add(v3mul(u, m[0]), v3mul(v, m[1]))); } // 外緣朝外
+      for (let j = 0; j < OS; j++) { const p0 = out(j), p1 = out(j + 1), m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; wall(p0, p1, v3add(v3mul(u, m[0]), v3mul(v, m[1]))); } // 外緣朝外
       for (let k = 0; k < 4; k++) { const p0 = inn(k), p1 = inn(k + 1), m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; wall(p0, p1, v3add(v3mul(u, -m[0]), v3mul(v, -m[1]))); } // 孔壁朝孔心
     },
     /** 平面條（疤）：沿折線 pts（每點 [x,y,z]）、寬 w（x 方向），法線朝上。 */
@@ -420,13 +482,28 @@ export function buildRoleGeometry(rig, base, role) {
       cap(CB.FLARE_Z, CB.PAD + CB.FLARE);
     }
     const T = R.THREAD, Bd = R.BEADS, cs = crossSection(pos, [w0[0], w0[1], Bd.Z], zax, xax, up, 0.03);
-    if (cs) for (let i = 0; i < Bd.N; i++) { // 木佛珠一圈
-      const th = (i / (Bd.N - 1)) * Bd.ARC - Bd.FROM, c = [w0[0] + cs.cx + Math.cos(th) * (cs.ra + Bd.OUT), w0[1] + cs.cy + Math.sin(th) * (cs.rb + Bd.OUT), Bd.Z];
-      acc.lozenge(c, [Bd.S, Bd.S, Bd.S * 1.1], Bd.COLOR);
+    if (cs) { // 木佛珠一圈（v0.59.7：球形、大小與深淺不一，串在細紅繩上）
+      const at = (th) => [w0[0] + cs.cx + Math.cos(th) * (cs.ra + Bd.OUT), w0[1] + cs.cy + Math.sin(th) * (cs.rb + Bd.OUT), Bd.Z];
+      acc.setClass(3);
+      for (let i = 0; i < Bd.N; i++) {
+        const th = (i / (Bd.N - 1)) * Bd.ARC - Bd.FROM, k = 1 + Bd.VAR * (2 * hash3(i, 3, 11) - 1);
+        acc.sphere(at(th), Bd.S * k, Bd.COLOR, Bd.SEG, Bd.RINGS, [1, 1, 1], [-Math.sin(th), Math.cos(th), 0]); // 深淺不一由材質畫（頂點色保持識別色）
+      }
+      const cord = []; // 串珠的繩：沿同一條弧，兩端多出半顆珠
+      const a0 = -Bd.FROM - 0.12, a1 = Bd.ARC - Bd.FROM + 0.12;
+      for (let i = 0; i <= 22; i++) cord.push(at(a0 + (a1 - a0) * i / 22));
+      acc.tube(cord, Bd.CORD, T.COLOR, 4);
+      acc.setClass(0);
     }
-    for (const z of T.Z) { // 紅繩
-      const cs2 = crossSection(pos, [w0[0], w0[1], z], zax, xax, up, 0.03);
-      if (cs2) acc.ring([w0[0] + cs2.cx, w0[1] + cs2.cy, z], zax, xax, up, cs2.ra + T.GAP, cs2.rb + T.GAP, T.R, T.W, T.COLOR);
+    { // 紅繩（v0.59.7：圓截面繩，繞腕 TURNS 圈的不規則螺旋）
+      const n = Math.round(T.TURNS * T.SEGS), pts = [];
+      for (let i = 0; i <= n; i++) {
+        const u = i / n, th = u * T.TURNS * Math.PI * 2 + 0.6, z = T.Z0 + (T.Z1 - T.Z0) * u + T.JZ * (2 * hash3(i, 7, 3) - 1) * Math.sin(u * Math.PI);
+        const c2 = crossSection(pos, [w0[0], w0[1], z], zax, xax, up, 0.03); if (!c2) continue;
+        const slack = 1 + T.JR * (2 * hash3(Math.floor(i / 4), 9, 1) - 1) * 0.5, off = T.ROPE * (1 - T.SINK);
+        pts.push([w0[0] + c2.cx + Math.cos(th) * (c2.ra * slack + off), w0[1] + c2.cy + Math.sin(th) * (c2.rb * slack + off), z]);
+      }
+      if (pts.length > 2) acc.tube(pts, T.ROPE, T.COLOR, T.SIDES);
     }
   } else if (key === 'dangpu') {
     if (cuffCs) {
@@ -434,6 +511,7 @@ export function buildRoleGeometry(rig, base, role) {
       for (const z of R.TRIM.GOLD_Z) band(z, R.TRIM.GOLD_W, CB.R + 0.008, CB.PAD + 0.004, R.TRIM.GOLD); // 金滾邊（寬）
       band(CB.FLARE_Z, CB.FLARE_W, CB.R, CB.PAD + CB.FLARE, R.TRIM.LINING); // 外翻露出的暗紅襯裡
       cap(CB.FLARE_Z, CB.PAD + CB.FLARE);
+      acc.setClass(4); // v0.59.7：方孔錢＝金屬
       /* 方孔錢一串：貼在黑袖環的外面（環剖面是軸對齊矩形，外表面在中心線外 r·cos45°），錢面朝外、從頂上沿外側垂下。 */
       const Cn = R.COIN, ra = cuffCs.ra + CB.PAD, rb = cuffCs.rb + CB.PAD * R.PAD_Y, c0 = [cuffC[0], cuffC[1] + CB.LIFT, CB.Z];
       for (const deg of Cn.ANG) {
@@ -441,6 +519,7 @@ export function buildRoleGeometry(rig, base, role) {
         const q = v3add(c0, [ra * ct, rb * st, 0]), n = v3norm([ct / ra, st / rb, 0]);
         acc.coin(v3add(q, v3mul(n, CB.R * Math.SQRT1_2 + Cn.T / 2 + Cn.GAP)), n, zax, v3cross(n, zax), Cn.R, Cn.HOLE, Cn.T, Cn.COLOR);
       }
+      acc.setClass(0);
     }
   } else if (key === 'hunter') {
     const B = R.BRACER, F = R.FUR;
@@ -448,7 +527,16 @@ export function buildRoleGeometry(rig, base, role) {
     if (cuffCs) {
       band(B.Z, B.W, B.R, B.GAP + 0.024, B.COLOR);
       for (const z of B.STRAP_Z) band(z, B.STRAP_W, B.R * 0.6, B.GAP + 0.024 + B.R * 0.45, B.STRAP);
+      acc.setClass(4); // v0.59.7：鐵扣、鉚釘＝金屬
       acc.box([cuffC[0], cuffC[1] + CB.LIFT + cuffCs.rb + 0.024 * R.PAD_Y + B.R * 1.6, B.STRAP_Z[1]], B.BUCKLE_S, B.BUCKLE); // 鐵扣扣在後面那道帶子上
+      /* v0.59.7（驗收條件 10c）：護腕上一排圓頂鉚釘（扁球、一半埋進皮面），上半圈 RIVET.ANG 方位角。 */
+      const RV = B.RIVET, pad = B.GAP + 0.024, ra = cuffCs.ra + pad, rb = cuffCs.rb + pad * R.PAD_Y;
+      for (const deg of RV.ANG) {
+        const th = (deg / 180) * Math.PI, ct = Math.cos(th), st = Math.sin(th), nn = v3norm([ct / ra, st / rb, 0]);
+        const q = [cuffC[0] + ra * ct, cuffC[1] + CB.LIFT + rb * st, B.Z];
+        acc.sphere(v3add(q, v3mul(nn, B.R * Math.SQRT1_2)), RV.R, RV.COLOR, 8, 4, [1, RV.FLAT, 1], nn);
+      }
+      acc.setClass(0);
     }
     const fcs = crossSection(pos, [w0[0], w0[1], F.Z], zax, xax, up, 0.05);
     if (fcs) {
@@ -508,6 +596,7 @@ export function buildRoleGeometry(rig, base, role) {
   const skinIndex = new base.skinIndex.constructor(m * 4), skinWeight = new Float32Array(m * 4);
   position.set(pos); normal.set(base.normal); col.set(color); skinIndex.set(base.skinIndex); skinWeight.set(base.skinWeight);
   position.set(acc.P, n0 * 3); normal.set(acc.N, n0 * 3); col.set(acc.C, n0 * 4);
+  const accAttr = new Float32Array(m * 3); accAttr.set(acc.A, n0 * 3); // v0.59.7：配件材質類別（原頂點＝0）
   for (let e = 0; e < ne; e++) {
     let best = 0, bd = Infinity;
     for (let v = 0; v < n0; v++) {
@@ -527,7 +616,7 @@ export function buildRoleGeometry(rig, base, role) {
   index.set(base.index); for (let i = 0; i < acc.I.length; i++) index[base.index.length + i] = acc.I[i] + n0;
   let recolored = 0;
   for (let v = 0; v < n0; v++) if (Math.abs(color[v * 4] - dressed[v * 4]) + Math.abs(color[v * 4 + 1] - dressed[v * 4 + 1]) + Math.abs(color[v * 4 + 2] - dressed[v * 4 + 2]) > 1e-4) recolored++;
-  return { key, position, normal, color: col, skinIndex, skinWeight, index, baseCount: n0, extraVerts: ne, extraTris: acc.I.length / 3, recolored };
+  return { key, position, normal, color: col, skinIndex, skinWeight, index, baseCount: n0, extraVerts: ne, extraTris: acc.I.length / 3, recolored, accAttr };
 }
 
 /** 前向運動學：回每根骨在手部局部座標下的旋轉與位置。quats＝{骨名: 四元數}（沒給的＝bind）。 */
@@ -749,11 +838,17 @@ export function worldPoints(rig, frame, scale) {
  *   props.stackSeats(slot)    → 這一格桌上有錢的席位
  *   props.mode()              → 'L' | 'P'
  * 每席只有**一個**動作槽：同席新事件一律覆寫（同席同格重複出價＝覆寫，不會疊出兩隻手）。
+ * seatMul（可省）：seat → 該席手的角色縮放倍率（v0.59.7）；省略＝每席 1。
  */
-export function createHandDirector(props, rig) {
+export function createHandDirector(props, rig, per) {
   /* queue：第四輪排隊——同一席一次推多格時，還沒輪到的格（依出價先後）。同席仍只有一隻手、一個動作槽。 */
   const hands = [0, 1, 2, 3].map((seat) => ({ seat, act: null, last: null, queue: [] }));
-  const scaleNow = () => HAND.SCALE * (props.mode() === 'P' ? HAND.SCALE_P : 1);
+  /* v0.59.7 中等寫實：每席可有自己的縮放倍率（per.mul）與碰撞取樣骨架（per.rig＝該席寫實幾何的頂點，見 hand-realism.js）；
+     沒給＝1 與共用 rig。擺位解算用的是畫面上那一隻手的尺寸與頂點，所以縮小、變粗變細後照樣貼桌、不穿錢與令牌。 */
+  const scaleNow = (seat) => HAND.SCALE * (per && per.mul ? per.mul(seat) : 1) * (props.mode() === 'P' ? HAND.SCALE_P : 1);
+  const rigOf = (seat) => (per && per.rig && per.rig(seat)) || rig;
+  const rigId = new WeakMap(); let rigN = 0;
+  const idOf = (R) => { let k = rigId.get(R); if (k === undefined) { k = ++rigN; rigId.set(R, k); } return k; };
   const start = (seat, act) => { hands[seat].act = Object.assign({ t: 0 }, act); };
   const stop = (seat) => { hands[seat].act = null; hands[seat].last = null; };
 
@@ -788,13 +883,13 @@ export function createHandDirector(props, rig) {
   /* 效能（第三輪）：同一姿勢／朝向／俯角的「相對根的世界偏移」只算一次（逐點 xform 是主要成本），
      平移（側移、退回）只是加常數，不必重算。 */
   const offCache = new Map();
-  function offsets(fr, s) {
+  function offsets(R, fr, s) {
     const w = Math.round(clamp01(fr.pose[2]) * 32) / 32;
-    const key = fr.pose[0] + '|' + fr.pose[1] + '|' + w + '|' + fr.yaw + '|' + fr.pitch + '|' + s;
+    const key = idOf(R) + '|' + fr.pose[0] + '|' + fr.pose[1] + '|' + w + '|' + fr.yaw + '|' + fr.pitch + '|' + s;
     let o = offCache.get(key);
     if (!o) {
-      const pts = prepare(rig, fr.pose, 'palm').pts, n = rig.seen.length, W = new Float64Array(n * 3);
-      for (let i = 0; i < n; i++) { const v = rig.seen[i], q = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s); W[i * 3] = q[0]; W[i * 3 + 1] = q[1]; W[i * 3 + 2] = q[2]; }
+      const pts = prepare(R, fr.pose, 'palm').pts, n = R.seen.length, W = new Float64Array(n * 3);
+      for (let i = 0; i < n; i++) { const v = R.seen[i], q = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s); W[i * 3] = q[0]; W[i * 3 + 1] = q[1]; W[i * 3 + 2] = q[2]; }
       o = { W, ext: new Map() };
       if (offCache.size > 256) offCache.clear();
       offCache.set(key, o);
@@ -802,8 +897,8 @@ export function createHandDirector(props, rig) {
     return o;
   }
   /** 看得見的部分（rig.seen：袖布漸隱過半以前）有沒有落進任一信物外接圓柱、且低於其頂（回撞到的那一件或 null）。 */
-  function relicHit(fr, s, relics) {
-    const { W } = offsets(fr, s), n = W.length / 3, [rx, ry, rz] = fr.root;
+  function relicHit(R, fr, s, relics) {
+    const { W } = offsets(R, fr, s), n = W.length / 3, [rx, ry, rz] = fr.root;
     for (const o of relics) {
       const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
       for (let i = 0; i < n; i++) {
@@ -815,25 +910,25 @@ export function createHandDirector(props, rig) {
     return null;
   }
   /** 這一幀看得見的部分（袖口邊以前）越線最多的那一條與越線量（over≤0＝沒越）。 */
-  function reach(seat, fr, s, T) {
+  function reach(R, seat, fr, s, T) {
     const Ls = limitOf(seat, T); if (!Ls.length) return { over: 0, L: null };
-    const o = offsets(fr, s);
+    const o = offsets(R, fr, s);
     let best = { over: -Infinity, L: null };
     for (const L of Ls) {
       /* max over 點 of n·(root＋w) ＝ n·root ＋ max(n·w)；後者每個姿勢／朝向只算一次 */
       const k = L.n[0] + ',' + L.n[1];
       let mw = o.ext.get(k);
-      if (mw === undefined) { mw = -Infinity; const W = o.W; for (const i of frontIdx()) { const d = L.n[0] * W[i * 3] + L.n[1] * W[i * 3 + 2]; if (d > mw) mw = d; } o.ext.set(k, mw); }
+      if (mw === undefined) { mw = -Infinity; const W = o.W; for (const i of frontIdx(R)) { const d = L.n[0] * W[i * 3] + L.n[1] * W[i * 3 + 2]; if (d > mw) mw = d; } o.ext.set(k, mw); }
       const m = L.n[0] * fr.root[0] + L.n[1] * fr.root[2] + mw - L.c;
       if (m > best.over) best = { over: m, L };
     }
     return best;
   }
   /** rig.front 在 rig.seen 裡的索引（front ⊂ seen）。 */
-  let frontIdxCache = null;
-  function frontIdx() {
-    if (!frontIdxCache) { const pos = new Map(rig.seen.map((v, i) => [v, i])); frontIdxCache = rig.front.map((v) => pos.get(v)); }
-    return frontIdxCache;
+  const frontIdxCache = new WeakMap();
+  function frontIdx(R) {
+    if (!frontIdxCache.has(R)) { const pos = new Map(R.seen.map((v, i) => [v, i])); frontIdxCache.set(R, R.front.map((v) => pos.get(v))); }
+    return frontIdxCache.get(R);
   }
   /** 進場方向（第二輪）：西／東席改從側面水平伸進來（SIDE_YAW），不從拍品正前方往裡推——量測顯示西／東手從前方推時，
    *  指節與腕部剛好擋在左右兩格拍品的腳前。南／北仍朝目標。 */
@@ -868,9 +963,9 @@ export function createHandDirector(props, rig) {
       if (!landed) return { hidden: true };
       const k = smooth(clamp01(after / HAND.SLAM.SLAP_MS));
       const pose = ['push', 'spread', k];
-      const fa = prepare(rig, pose, 'front').anchor, pa = prepare(rig, pose, 'palm').anchor;
+      const Rg = rigOf(h.seat), fa = prepare(Rg, pose, 'front').anchor, pa = prepare(Rg, pose, 'palm').anchor;
       const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
-      const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow() + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);
+      const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow(h.seat) + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);
       const ta = after - HAND.SLAM.SLAP_MS;
       const trem = landed && ta > 0 && ta < HAND.SLAM.TREMBLE_MS ? Math.abs(Math.sin(ta / HAND.SLAM.TREMBLE_MS * Math.PI * 3)) * HAND.SLAM.TREMBLE_AMP * (1 - ta / HAND.SLAM.TREMBLE_MS) : 0;
       return { pose, anchor: 'palm', target: [tk.x - dx * back, tk.z - dz * back], yaw, lift: trem,
@@ -959,10 +1054,10 @@ export function createHandDirector(props, rig) {
     },
     /** 這一幀四隻手的擺位（null＝不可見）。動作做完自動切到收手、收完歸零（閒置＝不可見＝收在畫面外）。 */
     frames() {
-      const tableY = props.tableY(), s = scaleNow(), T = HAND.TRAY[props.mode()] || HAND.TRAY.L;
+      const tableY = props.tableY(), T = HAND.TRAY[props.mode()] || HAND.TRAY.L;
       /* 托盤布面當一塊低地板：布有皺褶起伏（±0.01），手指在布上多留 CLOTH_TOP。 */
       const obstacles = props.handObstacles().concat([{ x: 0, z: props.trayZ(), hx: T.hw, hz: T.hd + 0.035, top: tableY + HAND.TRAY.CLOTH_TOP }]);
-      return hands.map((h) => {
+      return hands.map((h) => { const s = scaleNow(h.seat), R0 = rigOf(h.seat);
         if (!h.act) return null;
         let spec = specOf(h, obstacles);
         if (spec && spec.hidden) return null; // 還沒輪到手上場（拍：令牌飛行中）
@@ -988,24 +1083,24 @@ export function createHandDirector(props, rig) {
           if (done(h)) finishAct(h);
           return m.fr;
         }
-        const valid = (f) => reach(h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(f, s, relics));
-        let fr = solveHand(rig, req, obs, tableY);
+        const valid = (f) => reach(R0, h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
+        let fr = solveHand(R0, req, obs, tableY);
         /* 先試上一幀用過的修正量（並讓它每幀縮一點，需要的修正變小時手會平順地回到原路），可行就不必整套重算。 */
         if (!valid(fr) && a.corr && !(a.kind === 'rake' && a.lead === undefined)) {
           const base = req.target.slice();
           for (const k of [0.85, 1]) {
             const t2 = [base[0] + a.corr[0] * k, base[1] + a.corr[1] * k];
-            const f2 = solveHand(rig, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined }), obs, tableY);
+            const f2 = solveHand(R0, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined }), obs, tableY);
             if (valid(f2)) { fr = f2; req.target = t2; break; }
           }
         }
         /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
         const desired = spec.target;
-        let R = reach(h.seat, fr, s, T);
+        let R = reach(R0, h.seat, fr, s, T);
         if (R.over > 0 && a.kind === 'rake' && a.lead === undefined) {
           /* 收：錢柱遠側搆不到 ⇒ 這一整個動作改「從靠席位那側領著錢回來」，不越過錢柱頂、不跳位。 */
           a.lead = true; spec = specOf(h, obstacles); Object.assign(req, { target: spec.target, pose: spec.pose });
-          fr = solveHand(rig, req, obs, tableY); R = reach(h.seat, fr, s, T);
+          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T);
         }
         if (a.kind === 'rake' && a.lead === undefined) a.lead = false;
         for (let i = 0; i < 6 && R.over > 1e-4; i++) {
@@ -1014,11 +1109,11 @@ export function createHandDirector(props, rig) {
           const mx = nd >= 0.2 ? dx * R.over / nd : R.L.n[0] * R.over, mz = nd >= 0.2 ? dz * R.over / nd : R.L.n[1] * R.over;
           req.target = [req.target[0] - mx, req.target[1] - mz];
           req.pitch = fr.pitch; req.pose = fr.pose; req.fit = undefined;
-          fr = solveHand(rig, req, obs, tableY); R = reach(h.seat, fr, s, T);
+          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T);
         }
         /* 第三輪：信物避讓。看得見的部分（含漸隱前半段）若落進任一席信物的外接圓柱（低於其頂），
            沿進場方向的垂直方向把入場錨點側移；只改手的位置，錢的出發點／終點不變。找不到可行側移，這一幀手不畫。 */
-        let rh = relics.length ? relicHit(fr, s, relics) : null;
+        let rh = relics.length ? relicHit(R0, fr, s, relics) : null;
         if (rh) {
           const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), px = dz, pz = -dx;
           const side = Math.sign(px * (req.target[0] - rh.x) + pz * (req.target[1] - rh.z)) || 1;
@@ -1030,11 +1125,11 @@ export function createHandDirector(props, rig) {
           for (let k = 1; k <= HAND.RELIC.STEPS && !ok; k++) {
             for (const sg of [side, -side]) {
               const d = [sg * px * k * HAND.RELIC.STEP, sg * pz * k * HAND.RELIC.STEP];
-              if (relicHit(shifted(d), s, relics) || reach(h.seat, shifted(d), s, T).over > 1e-3) continue;
+              if (relicHit(R0, shifted(d), s, relics) || reach(R0, h.seat, shifted(d), s, T).over > 1e-3) continue;
               const t2 = [base[0] + d[0], base[1] + d[1]];
               /* 重解時根高度不低於平移試算的那一幀（高一點只會更離信物遠），所以平移試算可行＝重解後也可行，一次就好。 */
-              const f2 = solveHand(rig, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined, minY: Math.max(req.minY === undefined ? -Infinity : req.minY, fr.root[1]) }), obs, tableY);
-              if (!relicHit(f2, s, relics) && reach(h.seat, f2, s, T).over <= 1e-3) { ok = f2; req.target = t2; break; }
+              const f2 = solveHand(R0, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined, minY: Math.max(req.minY === undefined ? -Infinity : req.minY, fr.root[1]) }), obs, tableY);
+              if (!relicHit(R0, f2, s, relics) && reach(R0, h.seat, f2, s, T).over <= 1e-3) { ok = f2; req.target = t2; break; }
             }
           }
           if (!ok) {
