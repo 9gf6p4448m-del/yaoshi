@@ -247,7 +247,7 @@ export const ROLE_HAND = {
    *  第三輪拿掉指節髒麻布纏帶：遊戲視角它的像素比毛皮邊還多（毛皮要當最大色塊），且米白麻布易被讀成收驚婆的白袖。 */
   BRACER: { Z: -0.165, W: 0.085, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.105, -0.232], STRAP_W: 0.03, BUCKLE: C_IRON, BUCKLE_S: [0.07, 0.03, 0.035],
     /* v0.59.7：圓頂鉚釘（半徑 R、法向壓扁 FLAT；鐵色比扣略亮，仍非黃銅） */
-    RIVET: { ANG: [28, 52, 76, 104, 128, 152], R: 0.024, FLAT: 0.6, COLOR: [0.24, 0.235, 0.23] } },
+    RIVET: { ANG: [28, 52, 76, 104, 128, 152], R: 0.024, FLAT: 0.75, SEG: 10, RINGS: 5, COLOR: [0.24, 0.235, 0.23] } },
   /** 獵人：外翻一圈蓬鬆毛皮邊（第三輪，最大色塊）。袖環中心 Z、軸向半寬 W、外撐 PAD、毛厚 R（底下 BOTTOM 倍、免得壓到錢）、
    *  不規則邊（位置雜湊、不耗亂數）JIT；TUFTS＝邊緣一撮撮外翹的毛（尖錐），長 TUFT_L。COLORS＝毛皮色組（驗收 R3-3 取樣用）。 */
   FUR: { Z: -0.36, W: 0.13, PAD: 0.09, LOW: 0.0, R: 0.065, BOTTOM: 0.3, SEG: 18, TS: 6, JIT: 0.7, TUFTS: 26, TUFT_L: 0.06, TUFT_W: 0.042, COLOR: C_FUR, TIP: C_FUR_TIP, COLORS: [C_FUR, C_FUR_TIP] },
@@ -534,7 +534,7 @@ export function buildRoleGeometry(rig, base, role) {
       for (const deg of RV.ANG) {
         const th = (deg / 180) * Math.PI, ct = Math.cos(th), st = Math.sin(th), nn = v3norm([ct / ra, st / rb, 0]);
         const q = [cuffC[0] + ra * ct, cuffC[1] + CB.LIFT + rb * st, B.Z];
-        acc.sphere(v3add(q, v3mul(nn, B.R * Math.SQRT1_2)), RV.R, RV.COLOR, 8, 4, [1, RV.FLAT, 1], nn);
+        acc.sphere(v3add(q, v3mul(nn, B.R * Math.SQRT1_2)), RV.R, RV.COLOR, RV.SEG, RV.RINGS, [1, RV.FLAT, 1], nn);
       }
       acc.setClass(0);
     }

@@ -333,10 +333,20 @@ export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantIn
   reshape(rig, d, def);
   /* 配件的蒙皮權重改抄「細分＋重塑後最近的手部頂點」（原本抄的是原 GLB 頂點；細分後那個點的權重已被平均過，
      配件會和它貼著的皮膚錯開）——配件就跟畫面上那塊皮膚走同一組骨。 */
-  for (let e = d.nBase, n = d.P.length / 3; e < n; e++) {
-    let best = 0, bd = Infinity;
-    for (let v = 0; v < d.nBase; v++) { const dx = d.P[v * 3] - d.P[e * 3], dy = d.P[v * 3 + 1] - d.P[e * 3 + 1], dz = d.P[v * 3 + 2] - d.P[e * 3 + 2], dd = dx * dx + dy * dy + dz * dz; if (dd < bd) { bd = dd; best = v; } }
-    for (let k = 0; k < 4; k++) { d.SI[e * 4 + k] = d.SI[best * 4 + k]; d.SW[e * 4 + k] = d.SW[best * 4 + k]; }
+  const nearestBase = (x, y, z) => { let best = 0, bd = Infinity; for (let v = 0; v < d.nBase; v++) { const dx = d.P[v * 3] - x, dy = d.P[v * 3 + 1] - y, dz = d.P[v * 3 + 2] - z, dd = dx * dx + dy * dy + dz * dz; if (dd < bd) { bd = dd; best = v; } } return best; };
+  const copyW = (e, b) => { for (let k = 0; k < 4; k++) { d.SI[e * 4 + k] = d.SI[b * 4 + k]; d.SW[e * 4 + k] = d.SW[b * 4 + k]; } };
+  /* 硬的配件（木珠、金屬：aAcc 類別 3／4）整顆一組權重（抄離「這一顆的重心」最近的手部頂點），手腕彎時珠子不會被拉成橢圓；
+     軟的（繩、布、毛）逐頂點抄，貼著皮膚走。 */
+  const nAll = d.P.length / 3, par = new Int32Array(nAll).map((_, i) => i);
+  const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  for (let t = 0; t < d.index.length; t += 3) { const a = d.index[t], b = d.index[t + 1], c = d.index[t + 2]; if (a >= d.nBase && b >= d.nBase && c >= d.nBase) { par[find(a)] = find(b); par[find(b)] = find(c); } }
+  const comp = new Map(); for (let e = d.nBase; e < nAll; e++) { const r = find(e); if (!comp.has(r)) comp.set(r, []); comp.get(r).push(e); }
+  for (const vs of comp.values()) {
+    const rigid = vs.every((e) => { const c = Math.round(d.A[e * 3]); return c === 3 || c === 4; });
+    if (rigid) {
+      let x = 0, y = 0, z = 0; for (const e of vs) { x += d.P[e * 3]; y += d.P[e * 3 + 1]; z += d.P[e * 3 + 2]; }
+      const b = nearestBase(x / vs.length, y / vs.length, z / vs.length); for (const e of vs) copyW(e, b);
+    } else for (const e of vs) copyW(e, nearestBase(d.P[e * 3], d.P[e * 3 + 1], d.P[e * 3 + 2]));
   }
   /* 袖口一圈的截面（原頂點、細分後）：中心與半寬，給袖管接續用；袖管頂點的蒙皮抄這一圈最靠近的頂點（跟前臂骨走）。 */
   let cx = 0, cy = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, anchor = -1, ad = Infinity;

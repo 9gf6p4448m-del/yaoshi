@@ -1,5 +1,5 @@
 /* 席位之手配件「剪影圓度」量測（v0.59.7 驗收條件 10b／10c）。
-   跑法：node tests/tools/hand-acc-roundness.mjs --root=<樹> --cam=<特寫相機 json> [--vp=1280x720] [--out=<json>] [--port=8994]
+   跑法：node tests/tools/hand-acc-roundness.mjs --root=<樹> --cam=auto|<特寫相機 json> [--vp=1280x720] [--out=<json>] [--port=8994]
    局面同 hand-realism-measure.mjs（南席推 8 枚、170ms 凍結）。對每個受測角色：
      依頂點色挑出配件頂點（木珠／鉚釘／寶石等，色表見 GROUPS），焊接同位置頂點後以三角形連通分量切成「一顆一顆」，
      每顆的蒙皮頂點投影到特寫相機（與示意圖同一台，--cam 給的 at／from）與遊戲相機，取投影點凸包——凸物件的剪影＝投影凸包——
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; }
 const ROOT = path.resolve(opt.root || HERE), [W, H] = String(opt.vp || '1280x720').split('x').map(Number), PORT = Number(opt.port || 8994);
-const CAM = opt.cam ? JSON.parse(fs.readFileSync(opt.cam, 'utf8')) : {};
+const CAM = opt.cam && opt.cam !== 'auto' ? JSON.parse(fs.readFileSync(opt.cam, 'utf8')) : {};
 /* 受測配件的頂點色（線性 RGB，GLB／hand-motion 同一空間）。舊版與新版各自的色寫在這裡；挑不到就回 0 顆（明列，不當成過）。 */
 const GROUPS = JSON.parse(opt.groups || JSON.stringify({
   shoujing: { bead: [[0.055, 0.026, 0.012]] },
@@ -60,9 +60,15 @@ try {
       holder.updateMatrixWorld(true); mesh.skeleton.update();
       const g = mesh.geometry, pos = g.attributes.position, col = g.attributes.color, idx = g.index.array;
       const world = (i) => { const v = new THREE.Vector3().fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); return v.applyMatrix4(mesh.matrixWorld); };
-      const cams = { game: Y.camera };
-      /* 特寫相機＝遊戲相機換位置與朝向（同 shoot.mjs：不重算投影矩陣——遊戲相機的投影矩陣不是只由 fov 決定，重算會變焦） */
-      if (cam) { const c = Y.camera.clone(); c.projectionMatrix.copy(Y.camera.projectionMatrix); c.projectionMatrixInverse.copy(Y.camera.projectionMatrixInverse); c.position.set(...cam.from); c.lookAt(...cam.at); c.updateMatrixWorld(true); cams.close = c; }
+      /* 特寫相機＝把遊戲相機本身搬到 cam.from、看 cam.at（與 shoot.mjs 拍特寫的做法逐字相同：遊戲相機掛在父節點下，
+         position 是父座標；複製一台無父節點的相機會變成另一台相機），投影完再放回原位。 */
+      const C0 = Y.camera, keep = { p: C0.position.clone(), q: C0.quaternion.clone() };
+      const snap = (c) => { c.updateMatrixWorld(true); const m = c.matrixWorldInverse.clone(), pm = c.projectionMatrix.clone(); return { project: (v) => v.applyMatrix4(m).applyMatrix4(pm) }; };
+      const cams = { game: snap(C0) };
+      /* cam＝'auto'：以這隻手的骨重心為準（同 shoot.mjs 沒給 --cam 時的算法：at＝重心、from＝重心＋[0.05, 0.42, 0.42]）——
+         手在世界中的落點會隨牌桌取景而變，固定世界座標的相機不一定拍得到手。 */
+      if (cam === 'auto') { const c = new THREE.Vector3(); let n = 0; holder.traverse((o) => { if (o.isBone) { c.add(o.getWorldPosition(new THREE.Vector3())); n++; } }); c.multiplyScalar(1 / n); cam = { at: c.toArray(), from: [c.x + 0.05, c.y + 0.42, c.z + 0.42] }; }
+      if (cam) { C0.position.set(...cam.from); C0.lookAt(...cam.at); cams.close = snap(C0); C0.position.copy(keep.p); C0.quaternion.copy(keep.q); C0.updateMatrixWorld(true); }
       const Wd = Y.renderer.domElement.clientWidth, Hd = Y.renderer.domElement.clientHeight;
       const hull = (pts) => { pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
         const lo = [], up = []; for (const p of pts) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
@@ -87,7 +93,7 @@ try {
           const W3 = verts.map(world); let diam = 0; for (const a of W3) for (const b of W3) diam = Math.max(diam, a.distanceTo(b));
           const row = { verts: verts.length, diamWorld: +diam.toFixed(5) };
           for (const [cn, c] of Object.entries(cams)) {
-            const P = W3.map((v) => { const q = v.clone().project(c); return [(q.x + 1) / 2 * Wd, (1 - q.y) / 2 * Hd]; });
+            const P = W3.map((v) => { const q = c.project(v.clone()); return [(q.x + 1) / 2 * Wd, (1 - q.y) / 2 * Hd]; });
             const h = hull(P); let A = 0, L = 0; for (let i = 0; i < h.length; i++) { const a = h[i], b = h[(i + 1) % h.length]; A += a[0] * b[1] - b[0] * a[1]; L += Math.hypot(b[0] - a[0], b[1] - a[1]); }
             A = Math.abs(A) / 2; row[cn] = { round: L ? +(4 * Math.PI * A / (L * L)).toFixed(4) : null, px: +Math.sqrt(A).toFixed(2), hullN: h.length };
           }
@@ -98,7 +104,7 @@ try {
         res[name] = { n: items.length, close: st('close'), game: st('game'), diamSpread: d.length ? [+(d[0] / dm - 1).toFixed(3), +(d[d.length - 1] / dm - 1).toFixed(3)] : null, items };
       }
       return res;
-    }, { groups: GROUPS[role], cam: CAM[role] || null });
+    }, { groups: GROUPS[role], cam: opt.cam === 'auto' ? 'auto' : (CAM[role] || null) });
     console.log(role, JSON.stringify(Object.fromEntries(Object.entries(out.roles[role]).map(([k, v]) => [k, { n: v.n, close: v.close, game: v.game, diamSpread: v.diamSpread }]))));
   }
   await ctx.close();
