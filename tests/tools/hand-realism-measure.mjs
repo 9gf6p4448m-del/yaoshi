@@ -1,11 +1,12 @@
 /* 席位之手「中等寫實」v0.59.7 驗收量測（docs/experiments/2026-10-02-hand-realism/acceptance.md 條件 1／2／4）。
-   跑法：node tests/tools/hand-realism-measure.mjs --root=<要服務的樹> [--vp=1280x720] [--out=<json>] [--port=8993]
+   跑法：node tests/tools/hand-realism-measure.mjs --root=<要服務的樹> [--vp=1280x720] [--out=<json>] [--port=8993] [--handscale=0.6]
    局面同示意圖（phase2-mock/hand-realism/shoot.mjs）：newGame('solo',1,['qingmian']) 第 1 夜，受測角色放南席（seat 0），
    派 ys:bid（seat 0、slot 1、8 枚）→ 170ms 後凍結手與錢 → 量：
      #1 指根骨距：IndexA–PinkyA 蒙皮骨的世界座標距離（世界單位）；基準 v0.59.6＝0.2014。
      #2 材質：該席 SkinnedMesh 的材質名、program 快取鍵、幾何有沒有 aSkin（寫實皮膚的遮罩屬性）。
         另查「實際開局」路徑：newGame 後 renderer 自己 setSeats 的四席材質名。
-     #4 投影高：手包圍盒（蒙皮頂點，只算 alpha>0.5）與那一疊錢（prop-chips 全部 instance 的頂點）在畫面上的 y 跨度（px）。
+     #4 投影高：手包圍盒（蒙皮頂點，只算 alpha>0.5 且綁定姿勢 z ≥ −0.5 dm＝手＋袖口；v0.59.7 前臂延長到畫面外，
+        不排除前臂的話包圍盒會把整條手臂算進去、條件 4 變成恆過——兩版同一條界線）與那一疊錢（prop-chips 全部 instance 的頂點）在畫面上的 y 跨度（px）。
    角色名單＝頁面上的 ROLES 表（Object.keys(ROLES)），外加空席（role 缺）——N 由頁面數出來，不寫死。
    不改產品、不耗遊戲亂數以外的狀態；量完即關。 */
 import fs from 'node:fs';
@@ -27,7 +28,7 @@ try {
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => out.errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') out.errs.push(m.text()); });
-  await page.goto(`http://127.0.0.1:${PORT}/index.html`);
+  await page.goto(`http://127.0.0.1:${PORT}/index.html${opt.handscale ? '?handscale=' + opt.handscale : ''}`);
   await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 60000 });
   await page.evaluate(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); });
   for (let i = 0; i < 400; i++) {
@@ -69,6 +70,7 @@ try {
       const pos = mesh.geometry.attributes.position, col = mesh.geometry.attributes.color, hb = box();
       for (let i = 0; i < pos.count; i++) {
         if (col && col.itemSize === 4 && col.getW(i) < 0.5) continue;
+        if (pos.getZ(i) < -0.5) continue; // 手＋袖口（前臂不算手）
         v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); add(hb, v);
       }
       /* 錢：托盤道具群裡的 prop-chips（InstancedMesh）全部 instance 的每個頂點 */
