@@ -1,0 +1,279 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hand-realism",
+ "layouts": {
+  "L": {
+   "viewport": {
+    "width": 852,
+    "height": 393
+   },
+   "errors": [],
+   "slam": {
+    "events": 4,
+    "log": [
+     {
+      "slot": 0,
+      "landed": 1
+     },
+     {
+      "slot": 1,
+      "landed": 2
+     },
+     {
+      "slot": 2,
+      "landed": 3
+     },
+     {
+      "slot": 3,
+      "landed": 4
+     }
+    ],
+    "eventsMatchLanding": true,
+    "handsSeenFrames": 126
+   },
+   "drawCalls": {
+    "handsVisible": 4,
+    "callsWithHands": 78,
+    "callsWithout": 74,
+    "delta": 4,
+    "trisDelta": 22118,
+    "trisPerHand": 4889
+   },
+   "pipeline": {
+    "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
+    "glbCached": true,
+    "shared": {
+     "skeletons": 1,
+     "merged": 0
+    },
+    "skeletons": 4,
+    "materials": 1,
+    "glbRequests": 1
+   },
+   "penetration": {
+    "hits": 0,
+    "framesWithHands": 176,
+    "cycles": [
+     {
+      "label": "push",
+      "hits": 0,
+      "where": [],
+      "withHands": 45,
+      "hudOverlapFrames": 45
+     },
+     {
+      "label": "push-same-slot",
+      "hits": 0,
+      "where": [],
+      "withHands": 58,
+      "hudOverlapFrames": 58
+     },
+     {
+      "label": "slam",
+      "hits": 0,
+      "where": [],
+      "withHands": 0,
+      "hudOverlapFrames": 0
+     },
+     {
+      "label": "rake",
+      "hits": 0,
+      "where": [],
+      "withHands": 73,
+      "hudOverlapFrames": 73
+     }
+    ]
+   },
+   "hud": {
+    "duringAction": [
+     {
+      "label": "push",
+      "framesWithHands": 45,
+      "framesOverlappingHUD": 45
+     },
+     {
+      "label": "push-same-slot",
+      "framesWithHands": 58,
+      "framesOverlappingHUD": 58
+     },
+     {
+      "label": "slam",
+      "framesWithHands": 0,
+      "framesOverlappingHUD": 0
+     },
+     {
+      "label": "rake",
+      "framesWithHands": 73,
+      "framesOverlappingHUD": 73
+     }
+    ],
+    "afterRetract": {
+     "visibleHands": 0,
+     "overlaps": 0,
+     "waitedMs": 25,
+     "statesIdle": true,
+     "hudRects": [
+      "#north",
+      "#westSeat",
+      "#eastSeat",
+      "#railW",
+      "#railE",
+      "#feltHead",
+      "#south",
+      "#helpBtn"
+     ]
+    }
+   },
+   "hitTest": {
+    "samples": 21,
+    "handsVisible": 4,
+    "diffs": 0,
+    "hitSlotsWithHands": [
+     -1,
+     1,
+     2
+    ]
+   }
+  },
+  "P": {
+   "viewport": {
+    "width": 393,
+    "height": 852
+   },
+   "errors": [],
+   "slam": {
+    "events": 4,
+    "log": [
+     {
+      "slot": 0,
+      "landed": 1
+     },
+     {
+      "slot": 1,
+      "landed": 2
+     },
+     {
+      "slot": 2,
+      "landed": 3
+     },
+     {
+      "slot": 3,
+      "landed": 4
+     }
+    ],
+    "eventsMatchLanding": true,
+    "handsSeenFrames": 142
+   },
+   "drawCalls": {
+    "handsVisible": 4,
+    "callsWithHands": 75,
+    "callsWithout": 71,
+    "delta": 4,
+    "trisDelta": 22118,
+    "trisPerHand": 4889
+   },
+   "pipeline": {
+    "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
+    "glbCached": true,
+    "shared": {
+     "skeletons": 1,
+     "merged": 0
+    },
+    "skeletons": 4,
+    "materials": 1,
+    "glbRequests": 1
+   },
+   "penetration": {
+    "hits": 0,
+    "framesWithHands": 189,
+    "cycles": [
+     {
+      "label": "push",
+      "hits": 0,
+      "where": [],
+      "withHands": 51,
+      "hudOverlapFrames": 51
+     },
+     {
+      "label": "push-same-slot",
+      "hits": 0,
+      "where": [],
+      "withHands": 54,
+      "hudOverlapFrames": 54
+     },
+     {
+      "label": "slam",
+      "hits": 0,
+      "where": [],
+      "withHands": 0,
+      "hudOverlapFrames": 0
+     },
+     {
+      "label": "rake",
+      "hits": 0,
+      "where": [],
+      "withHands": 84,
+      "hudOverlapFrames": 70
+     }
+    ]
+   },
+   "hud": {
+    "duringAction": [
+     {
+      "label": "push",
+      "framesWithHands": 51,
+      "framesOverlappingHUD": 51
+     },
+     {
+      "label": "push-same-slot",
+      "framesWithHands": 54,
+      "framesOverlappingHUD": 54
+     },
+     {
+      "label": "slam",
+      "framesWithHands": 0,
+      "framesOverlappingHUD": 0
+     },
+     {
+      "label": "rake",
+      "framesWithHands": 84,
+      "framesOverlappingHUD": 70
+     }
+    ],
+    "afterRetract": {
+     "visibleHands": 0,
+     "overlaps": 0,
+     "waitedMs": 26,
+     "statesIdle": true,
+     "hudRects": [
+      "#north",
+      "#feltHead",
+      "#south",
+      "#helpBtn"
+     ]
+    }
+   },
+   "hitTest": {
+    "samples": 38,
+    "handsVisible": 4,
+    "diffs": 0,
+    "hitSlotsWithHands": [
+     -1,
+     0,
+     1,
+     2
+    ]
+   }
+  }
+ },
+ "gates": {
+  "B1_drawCallDelta_le4": true,
+  "B1_trisPerHand_le2500": false,
+  "pipeline_creatureFigures": true,
+  "C1_noPenetration_realSkin": true,
+  "C1_hitTestUnchanged": true,
+  "C1_idleNotOverHUD": true,
+  "C6_slamFromToken": true,
+  "noPageErrors": true
+ },
+ "pass": false
+}

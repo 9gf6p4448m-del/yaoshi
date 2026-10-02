@@ -1,0 +1,378 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hand-realism",
+ "runs": [
+  {
+   "name": "推",
+   "samples": 23,
+   "samplesWithHands": 20,
+   "occlusionMax": 0.013513513513513514,
+   "occlusionMeanOfFrameMax": 0.0006756756756756757,
+   "handShareMax": 0.11779007377598927,
+   "handShareMean": 0.09696811823320878,
+   "worst": {
+    "hands": 4,
+    "items": 4,
+    "itemPx": [
+     902,
+     814,
+     964,
+     593
+    ],
+    "occl": [
+     0,
+     0.013513513513513514,
+     0,
+     0
+    ],
+    "perHand": [
+     {
+      "hand": "hand-0",
+      "occl": [
+       0,
+       0.0135,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-1",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-2",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-3",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    ],
+    "handShare": 0.11779007377598927,
+    "step": 14
+   }
+  },
+  {
+   "name": "推（四家同一格）",
+   "samples": 23,
+   "samplesWithHands": 22,
+   "occlusionMax": 0.0062827225130890054,
+   "occlusionMeanOfFrameMax": 0.001283775522997575,
+   "handShareMax": 0.10913097633419565,
+   "handShareMean": 0.09640309388800335,
+   "worst": {
+    "hands": 4,
+    "items": 4,
+    "itemPx": [
+     876,
+     816,
+     955,
+     579
+    ],
+    "occl": [
+     0,
+     0,
+     0.0062827225130890054,
+     0
+    ],
+    "perHand": [
+     {
+      "hand": "hand-0",
+      "occl": [
+       0,
+       0,
+       0.0063,
+       0
+      ]
+     },
+     {
+      "hand": "hand-1",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-2",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-3",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    ],
+    "handShare": 0.10663983903420524,
+    "step": 22
+   }
+  },
+  {
+   "name": "拍",
+   "samples": 28,
+   "samplesWithHands": 19,
+   "occlusionMax": 0.0069767441860465115,
+   "occlusionMeanOfFrameMax": 0.0003671970624235006,
+   "handShareMax": 0.13380281690140844,
+   "handShareMean": 0.1262052263455419,
+   "worst": {
+    "hands": 4,
+    "items": 4,
+    "itemPx": [
+     860,
+     814,
+     959,
+     579
+    ],
+    "occl": [
+     0.0069767441860465115,
+     0,
+     0,
+     0
+    ],
+    "perHand": [
+     {
+      "hand": "hand-0",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-1",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-2",
+      "occl": [
+       0.007,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-3",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    ],
+    "handShare": 0.125778480406247,
+    "step": 20
+   }
+  },
+  {
+   "name": "收",
+   "samples": 31,
+   "samplesWithHands": 31,
+   "occlusionMax": 0.16384915474642392,
+   "occlusionMeanOfFrameMax": 0.016164343301042026,
+   "handShareMax": 0.11909552553415732,
+   "handShareMean": 0.0970651095513171,
+   "worst": {
+    "hands": 4,
+    "items": 4,
+    "itemPx": [
+     866,
+     1538,
+     960,
+     589
+    ],
+    "occl": [
+     0,
+     0.16384915474642392,
+     0,
+     0
+    ],
+    "perHand": [
+     {
+      "hand": "hand-0",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-1",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-2",
+      "occl": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "hand": "hand-3",
+      "occl": [
+       0,
+       0.1638,
+       0,
+       0
+      ]
+     }
+    ],
+    "handShare": 0.1001365334866341,
+    "step": 48
+   }
+  },
+  {
+   "name": "AI 一次推多格",
+   "samples": 50,
+   "samplesWithHands": 47,
+   "occlusionMax": 0.028008298755186723,
+   "occlusionMeanOfFrameMax": 0.006074015130437083,
+   "handShareMax": 0.09374101753377408,
+   "handShareMean": 0.07945112417157456,
+   "worst": {
+    "hands": 3,
+    "items": 3,
+    "itemPx": [
+     895,
+     964,
+     591,
+     0
+    ],
+    "occl": [
+     0,
+     0.028008298755186723,
+     0,
+     null
+    ],
+    "perHand": [
+     {
+      "hand": "hand-1",
+      "occl": [
+       0,
+       0,
+       0,
+       null
+      ]
+     },
+     {
+      "hand": "hand-2",
+      "occl": [
+       0,
+       0,
+       0,
+       null
+      ]
+     },
+     {
+      "hand": "hand-3",
+      "occl": [
+       0,
+       0.028,
+       0,
+       null
+      ]
+     }
+    ],
+    "handShare": 0.09316613969531475,
+    "step": 38
+   }
+  },
+  {
+   "name": "南席一次推四格",
+   "samples": 50,
+   "samplesWithHands": 47,
+   "occlusionMax": 0,
+   "occlusionMeanOfFrameMax": 0,
+   "handShareMax": 0.07708153684008814,
+   "handShareMean": 0.05634363424722601,
+   "worst": {
+    "hands": 1,
+    "items": 3,
+    "itemPx": [
+     900,
+     957,
+     585,
+     0
+    ],
+    "occl": [
+     0,
+     0,
+     0,
+     null
+    ],
+    "perHand": [
+     {
+      "hand": "hand-0",
+      "occl": [
+       0,
+       0,
+       0,
+       null
+      ]
+     }
+    ],
+    "handShare": 0.05363131167960142,
+    "step": 2
+   }
+  }
+ ],
+ "handoff": {
+  "visibleAfter": 0
+ },
+ "skip": {
+  "visibleAfter": 0
+ },
+ "duel": {
+  "trayVisible": false,
+  "handsRendered": 0
+ },
+ "errors": [],
+ "gates": {
+  "occlusion_le_10pct": false,
+  "handoffClears": true,
+  "skipClears": true,
+  "duelHides": true,
+  "noPageErrors": true
+ },
+ "pass": false
+}
