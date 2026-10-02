@@ -47,9 +47,8 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  所以 CPU 寫進去的座標就是畫出來的座標，治具與測試讀頂點位置看到的就是畫面上那一根。
  *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
  *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
- *  修訂 5：多一條「沉入桌面」候選、穿信物／露出過長要罰、選邊遲滯（見 updateArm）。FOREARM_W＝舊手前臂看得到的那段世界長（袖口到漸隱一半，0.675 dm×0.335）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 1.0, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DIVE_BACK: 0.3, DIVE_DEPTH: 0.35, DIVE_ANG: [0, 35, -35, 70, -70], FOREARM_W: 0.226, LEN_MAX: 1.5, HYST: 5, HOLD: 15, SCAN: 4, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 1.0, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -421,10 +420,7 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
 function layTube(P, ring, p0, dir0, p2, N = null, arch = [0, 0, 0]) {
   const L = Math.hypot(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]) || 1, k = Math.min(L * 0.35, 3);
   /* 控制點：沿前臂方向起步，再往上拱 arch（世界朝上，換成網格局部）——袖管從袖口一離開就抬離桌面，不擦過錢柱與令牌 */
-  layTubeP(P, ring, p0, [p0[0] + dir0[0] * k + arch[0], p0[1] + dir0[1] * k + arch[1], p0[2] + dir0[2] * k + arch[2]], p2, N);
-}
-/** 二次曲線 p0→p1（控制點）→p2 鋪袖管各圈（網格局部座標）；N 給了就一併寫法線。 */
-function layTubeP(P, ring, p0, p1, p2, N = null) {
+  const p1 = [p0[0] + dir0[0] * k + arch[0], p0[1] + dir0[1] * k + arch[1], p0[2] + dir0[2] * k + arch[2]];
   let prevU = null;
   for (let i = 0; i <= ring.segs; i++) {
     const t = ring.ts[i], a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t;
@@ -445,16 +441,11 @@ function layTubeP(P, ring, p0, p1, p2, N = null) {
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _plane = new THREE.Plane(), _hit = new THREE.Vector3();
 /**
- * 每幀重鋪一隻手的袖管（修訂 4／5）。mesh＝該手的 SkinnedMesh（幾何是這一席自己的一份）。
- * env：{ items: 拍品畫面外框 [{x0,y0,x1,y1}]（NDC）, relics: [{ inv: Matrix4, box: Box3, s: 世界縮放 }]（信物本地包圍盒）, tableY }。
- * 候選五條：四條「袖口→最近畫面邊緣」（目標點在邊外 MARGIN、視線與手腕高＋LIFT 水平面的交點），
- * 加一條「沉入桌面」（沿前臂往後 DIVE_BACK、再往下沉到桌頂下 DIVE_DEPTH——大供桌是不透明的、相機一律在桌面之上，
- * 沉下去的那一段被桌面遮住；用在手伸到桌心、離每條邊都很遠的時候，例如熱座機位的東西兩席）。
- * 分數（越小越好）：穿信物 100、穿錢柱／令牌／木籌槽 100、迎向鏡頭 100、畫面內露出長度超過「舊手前臂投影長度 × LEN_MAX」每超 1 倍 40（連續）、
- * 壓過拍品每點 10、沉桌 +0.5。遲滯（修訂 5 條件 13）：上次那條沒有硬傷（<100）時，換過之後 HOLD 次重鋪內一律續用，之後不比最佳差 HYST 以上也續用。
- * 回 { edge, target, len, lenMax }（給治具查）。沒有相機＝不動。
+ * 每幀重鋪一隻手的袖管（修訂 4）：袖口 → 最近畫面邊緣的最短路徑。mesh＝該手的 SkinnedMesh（幾何是這一席自己的一份）。
+ * avoid（可省）：畫面上拍品外框 [{x0,y0,x1,y1}]（NDC），路徑跟它們相交就換下一近的邊。
+ * 回 { edge, target }（給治具查）。沒有相機＝不動（保留上一次或靜態形狀）。
  */
-export function updateArm(mesh, camera, env) {
+export function updateArm(mesh, camera, avoid) {
   const g = mesh.geometry, ring = g.userData.armRing; if (!ring || !camera) return null;
   const P = g.attributes.position.array;
   /* 袖口中心（蒙皮後、網格局部）：錨點頂點蒙皮後的位置＋它到截面中心的靜態偏移 */
@@ -465,83 +456,44 @@ export function updateArm(mesh, camera, env) {
   let same = true; const put = (i, x) => { if (sig[i] !== x) { same = false; sig[i] = x; } };
   for (let i = 0; i < 16; i++) { put(i, cw[i]); put(16 + i, mw[i]); } put(32, pm[0]); put(33, pm[5]); put(34, p0[0]); put(35, p0[1]); put(36, p0[2]);
   if (same && g.userData.armLast) return g.userData.armLast;
-  const items = (env && env.items) || [], relics = (env && env.relics) || [], obst = (env && env.obst) || [], tableY = env && env.tableY !== undefined ? env.tableY : 0.15;
-  const M = mesh.matrixWorld, scaleW = new THREE.Vector3().setFromMatrixScale(M).x, ringR = Math.max(ring.ra, ring.rb) * scaleW;
-  const wristW = new THREE.Vector3(p0[0], p0[1], p0[2]).applyMatrix4(M);
+  _w.set(p0[0], p0[1], p0[2]).applyMatrix4(mesh.matrixWorld); const wristW = _w.clone();
   const q = wristW.clone().project(camera);
-  const camW = camera.getWorldPosition(new THREE.Vector3()), dw = camW.distanceTo(wristW);
-  const px = (a, b) => Math.hypot((a.x - b.x) * 0.5, (a.y - b.y) * 0.5); // NDC 距離（換成畫面比例：半寬＝1）
-  /* 前臂方向（網格 −z）換到世界、取水平分量＝「往自己席位那邊」 */
-  const backW = new THREE.Vector3(0, 0, -1).transformDirection(M); backW.y = 0; if (backW.lengthSq() < 1e-8) backW.set(0, 0, 1); backW.normalize();
-  /* 舊手（v0.59.6）前臂看得到的那一段＝袖口到漸隱一半處，約 DIVE_BACK 世界長；投影成畫面長當基準 */
-  const lenRef = px(wristW.clone().project(camera), wristW.clone().addScaledVector(backW, ARM.FOREARM_W).project(camera)), lenMax = lenRef * ARM.LEN_MAX;
-  const toLocal = (w) => { const l = mesh.worldToLocal(w.clone()); return [l.x, l.y, l.z]; };
-  const archL = toLocal(wristW.clone().add(new THREE.Vector3(0, ARM.ARCH, 0))).map((x, i) => x - p0[i]);
-  const cands = [
+  const edges = [
     { e: 'left', d: q.x + 1, ndc: [-1 - ARM.MARGIN, q.y] }, { e: 'right', d: 1 - q.x, ndc: [1 + ARM.MARGIN, q.y] },
     { e: 'bottom', d: q.y + 1, ndc: [q.x, -1 - ARM.MARGIN] }, { e: 'top', d: 1 - q.y, ndc: [q.x, 1 + ARM.MARGIN] },
   ].sort((a, b) => a.d - b.d);
-  /* 沉桌候選：正後方與左右偏 35°／70°、往後 DIVE_BACK、一半或兩成（自己的信物常在正後方，要能繞開；手停在拍品與錢堆中間時，只能在袖口後一點點就沉下去） */
-  for (const ang of ARM.DIVE_ANG) for (const back of [ARM.DIVE_BACK, ARM.DIVE_BACK * 0.5, ARM.DIVE_BACK * 0.2]) cands.push({ e: 'dive', ang, back, d: 9 });
-  /* 效能（修訂 5 條件 15）：全部候選每 SCAN 次重鋪才全評一次；其餘幀只評「上次選的那條」，它沒有硬傷就照用（遲滯本來也會留它） */
-  const st = g.userData.armState || (g.userData.armState = { pick: null, n: 0, at: -1e9 }); st.n++;
-  const keyOf = (c) => c.e + (c.e === 'dive' ? c.ang + '/' + c.back : '');
-  const full = !st.pick || st.n % ARM.SCAN === 0;
-  const evalList = full ? cands : cands.filter((c) => keyOf(c) === st.pick);
-  for (const c of evalList) {
-    if (c.e === 'dive') {
-      const dir = backW.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), c.ang * Math.PI / 180);
-      const T = wristW.clone().addScaledVector(dir, c.back); T.y = tableY - ARM.DIVE_DEPTH;
-      const C1 = wristW.clone().addScaledVector(dir, c.back * 0.75); C1.y = Math.max(wristW.y, tableY + ARM.LIFT);
-      c.T = T; c.p1 = toLocal(C1);
-    } else {
-      _ndc.set(c.ndc[0], c.ndc[1]); _ray.setFromCamera(_ndc, camera); _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
-      let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null; if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3());
-      c.T = T;
-      const tl = toLocal(T), L = Math.hypot(tl[0] - p0[0], tl[1] - p0[1], tl[2] - p0[2]) || 1, k = Math.min(L * 0.35, 3);
-      c.p1 = [p0[0] + archL[0], p0[1] + archL[1], p0[2] - k + archL[2]];
+  /* 往上拱的量（世界 ARCH 換成網格局部向量） */
+  const archW = mesh.worldToLocal(wristW.clone().add(new THREE.Vector3(0, ARM.ARCH, 0))), arch = [archW.x - p0[0], archW.y - p0[1], archW.z - p0[2]];
+  /* 候選邊的目標點：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）或太遠就取手腕到相機的距離 */
+  const dw = camera.getWorldPosition(new THREE.Vector3()).distanceTo(wristW);
+  const targetOf = (c) => { _ndc.set(c.ndc[0], c.ndc[1]); _ray.setFromCamera(_ndc, camera); _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
+    let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null; if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3()); return T; };
+  /* 避開拍品（修訂 4）：把每條候選袖管實際的曲線（同 layTube 的二次曲線）取 16 點投影到畫面，數落在任一拍品外框（外擴 PAD_NDC）
+     內的點數；取點數最少的邊，同分取最近的邊。手常停在拍品腳邊、起點本來就在外框裡，所以比的是「壓過多少」，不是「有沒有碰」。 */
+  const cover = (T) => {
+    const tl = mesh.worldToLocal(T.clone()), L = Math.hypot(tl.x - p0[0], tl.y - p0[1], tl.z - p0[2]) || 1, k = Math.min(L * 0.35, 3), p1 = [p0[0] + arch[0], p0[1] + arch[1], p0[2] - k + arch[2]];
+    let n = 0; const e = ARM.PAD_NDC;
+    for (let i = 1; i <= 16; i++) {
+      const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, cc = t * t;
+      _v.set(a * p0[0] + b * p1[0] + cc * tl.x, a * p0[1] + b * p1[1] + cc * tl.y, a * p0[2] + b * p1[2] + cc * tl.z).applyMatrix4(mesh.matrixWorld).project(camera);
+      if (avoid.some((r) => _v.x > r.x0 - e && _v.x < r.x1 + e && _v.y > r.y0 - e && _v.y < r.y1 + e)) n++;
     }
-    c.p2 = toLocal(c.T);
-    /* 沿曲線取 20 點（世界）：信物、拍品、畫面內露出長度 */
-    let relicHit = 0, obstHit = 0, cover = 0, len = 0, prev = null;
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, cc = t * t;
-      _v.set(a * p0[0] + b * c.p1[0] + cc * c.p2[0], a * p0[1] + b * c.p1[1] + cc * c.p2[1], a * p0[2] + b * c.p1[2] + cc * c.p2[2]).applyMatrix4(M);
-      const wv = _v.clone();
-      if (i >= 1) for (const o of obst) { /* 錢柱（圓柱）、令牌與木籌槽（盒）：袖管不得穿過 */
-        if (wv.y - ringR > o.top || (o.bottom !== undefined && wv.y + ringR < o.bottom)) continue;
-        const inside = o.r !== undefined ? Math.hypot(wv.x - o.x, wv.z - o.z) < o.r + ringR : Math.abs(wv.x - o.x) < o.hx + ringR && Math.abs(wv.z - o.z) < o.hz + ringR;
-        if (inside) { obstHit++; break; } }
-      if (i >= 1) for (const r of relics) { const l = wv.clone().applyMatrix4(r.inv), m = ringR / r.s; if (l.x > r.box.min.x - m && l.x < r.box.max.x + m && l.y > r.box.min.y - m && l.y < r.box.max.y + m && l.z > r.box.min.z - m && l.z < r.box.max.z + m) { relicHit++; break; } }
-      const n = wv.clone().project(camera), onScr = Math.abs(n.x) <= 1 && Math.abs(n.y) <= 1 && n.z <= 1 && wv.y > tableY - 0.01;
-      if (i >= 2 && onScr && items.some((r) => n.x > r.x0 - ARM.PAD_NDC && n.x < r.x1 + ARM.PAD_NDC && n.y > r.y0 - ARM.PAD_NDC && n.y < r.y1 + ARM.PAD_NDC)) cover++;
-      if (prev && onScr && prev.on) len += px(prev.n, n);
-      prev = { n, on: onScr };
-    }
-    c.len = len; c.why = (relicHit ? 'R' : '') + (obstHit ? 'O' : '') + (cover ? 'C' + cover : '');
-    c.score = (relicHit ? 100 : 0) + (obstHit ? 100 : 0) + (c.e !== 'dive' && c.T.distanceTo(camW) < dw * 0.5 ? 100 : 0) + 40 * Math.max(0, len / lenMax - 1) + cover * 25 + (c.e === 'dive' ? 0.5 : 0);
-  }
-  if (!full && (!evalList.length || evalList[0].score >= 100)) { st.n = st.n - (st.n % ARM.SCAN) + ARM.SCAN - 1; return updateArmRescan(mesh, camera, env, g); } // 上次那條出現硬傷：立刻全評
-  const pool = full ? cands : evalList;
-  let best = pool[0]; for (const c of pool) if (c.score < best.score) best = c;
-  /* 遲滯 */
-  const prevC = st.pick && pool.find((c) => keyOf(c) === st.pick);
-  /* 剛被迫換過（HOLD 內）又得再換時，不回到剛離開的那條（A→B→A 來回＝畫面上一閃一閃） */
-  if (full && st.left && st.n - st.at < ARM.HOLD) { let b2 = null; for (const c of cands) if (keyOf(c) !== st.left && (!b2 || c.score < b2.score)) b2 = c; if (b2) best = b2; }
-  let pick = best;
-  /* 上次那條沒有硬傷（<100：不穿信物、錢、令牌、不迎鏡頭）時：剛換過 HOLD 次重鋪內一律續用；之後不比最佳差 HYST 以上也續用 */
-  if (prevC && prevC.score < 100 && (st.n - st.at < ARM.HOLD || prevC.score <= best.score + ARM.HYST)) pick = prevC;
-  if (!st.pick || keyOf(pick) !== st.pick) { st.left = st.pick; st.pick = keyOf(pick); st.at = st.n; }
-  let T = pick.T;
-  /* 鋪：邊——最後一圈不透明的截面要整圈落在畫面外，還在畫面內就沿同一視線推遠（最多 6 次）；沉桌——最後一圈在桌面下（被桌面遮住） */
-  const last = ring.segs - 1;
+    return n;
+  };
+  let pick = edges[0], T = null;
+  /* 另避「迎著鏡頭」：目標點比手腕近鏡頭一半以上（低機位特寫時往畫面下緣走＝衝向鏡頭，袖管會穿過近裁切面變成一道光錐）＝加重罰 */
+  const camW0 = camera.getWorldPosition(new THREE.Vector3());
+  { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = (avoid && avoid.length ? cover(Tc) : 0) + (Tc.distanceTo(camW0) < dw * 0.5 ? 100 : 0); if (k < best) { best = k; pick = c; T = Tc; } } }
+  if (!T) T = targetOf(pick);
+  /* 最後一圈不透明的截面要整圈落在畫面外（袖管迎向鏡頭時截面在畫面上很粗）：還有頂點在畫面內，就把目標點沿同一條視線推遠（畫面位置不變、
+     截面變小）再鋪一次，最多 6 次。 */
+  const camW = camera.getWorldPosition(new THREE.Vector3()), last = ring.segs - 1;
   for (let it = 0; it < 7; it++) {
-    const p2 = toLocal(T), p1 = pick.e === 'dive' ? pick.p1 : (() => { const L = Math.hypot(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]) || 1, k = Math.min(L * 0.35, 3); return [p0[0] + archL[0], p0[1] + archL[1], p0[2] - k + archL[2]]; })();
-    layTubeP(P, ring, p0, p1, p2, g.attributes.normal.array);
-    if (pick.e === 'dive') break;
+    const tl = mesh.worldToLocal(T.clone());
+    layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array, arch);
     let inside = false;
     for (let j = 0; j < ring.sides && !inside; j++) {
-      const o = (ring.start + last * ring.sides + j) * 3; _v.set(P[o], P[o + 1], P[o + 2]).applyMatrix4(M).project(camera);
+      const o = (ring.start + last * ring.sides + j) * 3; _v.set(P[o], P[o + 1], P[o + 2]).applyMatrix4(mesh.matrixWorld).project(camera);
       if (Math.abs(_v.x) <= 1 && Math.abs(_v.y) <= 1 && _v.z >= -1 && _v.z <= 1) inside = true;
     }
     if (!inside || it === 6) break;
@@ -549,8 +501,5 @@ export function updateArm(mesh, camera, env) {
   }
   /* 只重傳袖管那一段 */
   for (const at of [g.attributes.position, g.attributes.normal]) { at.updateRange.offset = ring.start * 3; at.updateRange.count = (ring.segs + 1) * ring.sides * 3; at.needsUpdate = true; }
-  return (g.userData.armLast = { edge: pick.e, target: T.toArray(), len: +pick.len.toFixed(4), lenMax: +lenMax.toFixed(4), score: pick.score, cands: pool.map((c) => keyOf(c) + ':' + c.score.toFixed(1) + c.why) });
+  return (g.userData.armLast = { edge: pick.e, target: T.toArray() });
 }
-
-/** 上次那條出現硬傷時：清掉重鋪快取簽名，立刻全評一次（st.n 已調到下一次就是全評）。 */
-function updateArmRescan(mesh, camera, env, g) { g.userData.armSig = null; g.userData.armLast = null; return updateArm(mesh, camera, env); }

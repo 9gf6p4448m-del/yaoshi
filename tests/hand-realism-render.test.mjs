@@ -55,6 +55,7 @@ test('寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；�
       const u = mesh.material.userData.realU, kind = mesh.geometry.userData.real && mesh.geometry.userData.real.kind;
       if (!u || kind === undefined) { window.requestAnimationFrame = raf0; return { noReal: true }; }
       R.setAnimationLoop(null); // 停掉遊戲的繪圖迴圈：量測期間畫面只由這裡畫
+      await grab(); await grab(); /* 暖身：相機換到特寫的第一兩張，袖管會依這台相機重鋪一次 */
       const img0 = await grab(); const img0b = await grab(); /* 量測本身：同一參數連畫兩張 */
       const y0 = u.uMarksA.value[kind].y; u.uMarksA.value[kind].y = 0; const img1 = await grab(); u.uMarksA.value[kind].y = y0; const img1c = await grab();
       const s0 = u.uSkinA.value[kind].clone(); u.uSkinA.value[kind].setRGB(0, 1, 0); const img2 = await grab(); u.uSkinA.value[kind].copy(s0); const img2c = await grab();
@@ -63,7 +64,9 @@ test('寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；�
     });
     console.log('RENDER', JSON.stringify(r));
     assert.ok(!r.noReal, '南席獵人手不是寫實手');
-    assert.equal(r.noise.px, 0, `同一畫面畫兩次要逐像素相同（量測本身穩定） ${JSON.stringify(r.noise)}`);
+    /* 量測本身：同參數連畫兩張，絕大多數像素要相同（袖管每次畫會依相機重鋪、場景有自己會動的小東西，所以不要求 0；差異由穩定像素遮罩排除） */
+    assert.ok(r.noise.px < 0.05 * r.noise.stable, `同參數連畫兩張的差異像素 ${JSON.stringify(r.noise)}（應 <5%）`);
+    assert.ok(r.scar.stable > 0.5 * r.noise.stable && r.skin.stable > 0.5 * r.noise.stable, '穩定像素足夠多');
     assert.ok(r.scarY > 0, '獵人疤強度 >0');
     assert.ok(r.scar.px >= 150, `疤強度歸零後應有疤的像素改變（≥150 px），實際 ${JSON.stringify(r.scar)}`);
     assert.ok(r.skin.px >= 3000, `膚色換純綠後手的像素應大量改變（≥3000 px），實際 ${JSON.stringify(r.skin)}`);

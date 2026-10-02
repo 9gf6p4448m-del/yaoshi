@@ -86,7 +86,7 @@ export function createTableHands(parent, props, opts = {}) {
       /* v0.59.7：每席的縮放倍率與碰撞取樣骨架（＝該種寫實手的原頂點＋配件，見 setSeats）。 */
       director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat] });
       /* 袖管：每一次真正要畫之前，用這一次的相機把袖管鋪到最近的畫面邊緣（避開拍品）。 */
-      for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { if (h.holder.visible && h.mesh.geometry.userData.armRing) h.arm = HR.updateArm(h.mesh, camera, armEnv(renderer, camera)); };
+      for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { if (h.holder.visible && h.mesh.geometry.userData.armRing) h.arm = HR.updateArm(h.mesh, camera, itemBoxes(renderer, camera)); };
       /* GLB 還沒好時收到的席位，現在補上；沒收到也先套預設寫實手（任何時候上場的手都是寫實版）。 */
       { const p = pendingSeats || []; pendingSeats = null; setSeats(p); }
     } else {
@@ -157,20 +157,6 @@ export function createTableHands(parent, props, opts = {}) {
       frameBoxes.push({ x0, y0, x1, y1 });
     }
     return frameBoxes;
-  }
-  /** 袖管選路要的環境：拍品畫面外框、四席信物的本地包圍盒（修訂 5：袖管不得穿信物）、桌頂高。 */
-  let relicEnv = null, relicNo = -1;
-  function armEnv(renderer, camera) {
-    const f = renderer.info.render.frame;
-    if (!relicEnv || f !== relicNo) { /* 信物出價時會晃（小動作），每幀重抓 */
-      relicNo = f; relicEnv = [];
-      const P = props.group;
-      if (P) for (const o of P.children) if (/^relic-/.test(o.name) && o.visible && o.geometry) {
-        if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
-        o.updateMatrixWorld(); relicEnv.push({ inv: o.matrixWorld.clone().invert(), box: o.geometry.boundingBox, s: new THREE.Vector3().setFromMatrixScale(o.matrixWorld).x || 1 });
-      }
-    }
-    return { items: itemBoxes(renderer, camera), relics: relicEnv, tableY: props.tableY(), obst: props.handObstacles() };
   }
 
   /** 角色 id 清單（與 props.setSeats 同一份資料：[{id, role}]）→ 四席各自的手。缺角色／未知角色／空清單＝預設手，不丟例外。 */
