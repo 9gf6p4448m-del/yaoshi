@@ -317,3 +317,82 @@ for (const layout of ['L', 'P']) for (const seed of [123456789, 987654321, 19283
     r.hands.dispose(); r.props.dispose();
   }, seed));
 }
+
+/* ═══ 第二輪（盲讀 #D 未過後重做）：acceptance-roles-r2.md R1a／R1b／R2／R3 ═══════════════════ */
+import fs from 'node:fs';
+import { blockArea } from './tools/hands-roles-area.mjs';
+const R2_BASE = JSON.parse(fs.readFileSync(new URL('../docs/experiments/2026-10-01-hands-stage3/r2/baseline-933f1de1.json', import.meta.url), 'utf8'));
+const srgb255 = (c) => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255;
+const colourHas = (col, n, c) => { for (let v = 0; v < n; v++) if (close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-3)) return true; return false; };
+
+test('R1a 腕部色塊面積（節點層、dm²）：收驚婆／當鋪 ≥ 基準×2、獵人 ≥ 基準×1.5；預設手＝0', async () => {
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+  const need = { shoujing: 2, dangpu: 2, hunter: 1.5 };
+  ROLES3.forEach((role, seat) => {
+    const a = blockArea(meshOf(r, seat).geometry, M.ROLE_HAND.ROLES[role].BLOCK);
+    const base = R2_BASE.blockArea_dm2[role];
+    assert.ok(a.area >= base * need[role], `${role} 色塊面積 ${a.area.toFixed(3)} < 基準 ${base.toFixed(3)} ×${need[role]}`);
+  });
+  assert.equal(blockArea(meshOf(r, 3).geometry, ROLES3.flatMap((k) => M.ROLE_HAND.ROLES[k].BLOCK)).area, 0, '預設手沒有任何角色色塊');
+  r.hands.dispose(); r.props.dispose();
+});
+
+test('R1b（色彩層）三角色色塊「面積加權平均色」sRGB 兩兩歐氏距離 ≥60（實拍層的距離在 hands-roles-shots --measure 另量）', async () => {
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+  const mean = ROLES3.map((role, seat) => {
+    const g = meshOf(r, seat).geometry, col = g.attributes.color.array, pos = g.attributes.position, idx = g.index.array, blk = M.ROLE_HAND.ROLES[role].BLOCK;
+    const isB = (v) => col[v * 4 + 3] > 0.5 && blk.some((c) => close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-3));
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(); const s = [0, 0, 0]; let W = 0;
+    for (let t = 0; t < idx.length; t += 3) {
+      const [i, j, k] = [idx[t], idx[t + 1], idx[t + 2]]; if (!(isB(i) && isB(j) && isB(k))) continue;
+      a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, j); c.fromBufferAttribute(pos, k);
+      const w = b.sub(a).cross(c.sub(a)).length() / 2; W += w;
+      for (let q = 0; q < 3; q++) s[q] += w * (srgb255(col[i * 4 + q]) + srgb255(col[j * 4 + q]) + srgb255(col[k * 4 + q])) / 3;
+    }
+    assert.ok(W > 0, `${role} 沒有色塊`);
+    return s.map((x) => x / W);
+  });
+  for (const [i, j] of [[0, 1], [0, 2], [1, 2]]) {
+    const d = Math.hypot(mean[i][0] - mean[j][0], mean[i][1] - mean[j][1], mean[i][2] - mean[j][2]);
+    assert.ok(d >= 60, `${ROLES3[i]} vs ${ROLES3[j]} 色塊平均色距離 ${d.toFixed(1)} < 60（${mean[i].map(Math.round)} vs ${mean[j].map(Math.round)}）`);
+  }
+  r.hands.dispose(); r.props.dispose();
+});
+
+test('R2 識別物互斥（各角色實際頂點色）：收驚婆有紅繩＋佛珠無玉；當鋪有玉無紅繩無佛珠；獵人有疤＋黃銅扣無玉無紅繩無佛珠；預設手皆無', async () => {
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+  const R = M.ROLE_HAND;
+  const marks = { red: [R.THREAD.COLOR], bead: [R.BEADS.COLOR], jade: [R.RING.COLOR, R.RING.BEAD_COLOR], scar: [R.SCAR.COLOR], brass: [R.BRACER.BUCKLE] };
+  const want = { shoujing: { red: 1, bead: 1, jade: 0, scar: 0, brass: 0 }, dangpu: { red: 0, bead: 0, jade: 1, scar: 0, brass: 0 },
+    hunter: { red: 0, bead: 0, jade: 0, scar: 1, brass: 1 }, qingmian: { red: 0, bead: 0, jade: 0, scar: 0, brass: 0 } };
+  ['shoujing', 'dangpu', 'hunter', 'qingmian'].forEach((role, seat) => {
+    const g = meshOf(r, seat).geometry, col = g.attributes.color.array, n = g.attributes.position.count;
+    for (const [k, cs] of Object.entries(marks)) {
+      const got = cs.every((c) => colourHas(col, n, c)) ? 1 : 0, any = cs.some((c) => colourHas(col, n, c)) ? 1 : 0;
+      assert.equal(want[role][k] ? got : any, want[role][k], `${role} 的「${k}」識別色：期望 ${want[role][k]}`);
+    }
+  });
+  r.hands.dispose(); r.props.dispose();
+});
+
+test('R3 動作中（推／拍）四席皮膚頂點 alpha 全為 1、material.opacity＝1；袖尾漸隱仍在（有頂點 alpha<1）；漸隱沒吃進膚色（z ≥ CUFF_FROM）', async () => {
+  const B = await baseSrc();
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'shoujing']);
+  const S = M.HAND.SLEEVE;
+  for (let s = 0; s < 4; s++) { ev.bid(r, s, 1, 8); }
+  for (let f = 0; f < 40; f++) ev.step(r);
+  let acting = 0;
+  for (let s = 0; s < 4; s++) {
+    const m = meshOf(r, s), g = m.geometry, col = g.attributes.color.array, pos = g.attributes.position;
+    assert.equal(m.material.opacity, 1, `席 ${s} material.opacity`);
+    let skin = 0, tailFade = 0;
+    for (let v = 0; v < B.n0; v++) {
+      const a = col[v * 4 + 3];
+      if (pos.getZ(v) >= S.CUFF_FROM) { skin++; assert.equal(a, 1, `席 ${s} 膚色頂點 ${v} alpha=${a}`); } else if (a < 1) tailFade++;
+    }
+    assert.ok(skin > 300 && tailFade > 20, `席 ${s} 取樣 skin=${skin} tailFade=${tailFade}（零鑑別力防線）`);
+    if (r.hands.stats().visible.includes(s)) acting++;
+  }
+  assert.ok(acting >= 3, `動作中可見的手 ${acting} 隻（否則沒有行使到動作）`);
+  r.hands.dispose(); r.props.dispose();
+});

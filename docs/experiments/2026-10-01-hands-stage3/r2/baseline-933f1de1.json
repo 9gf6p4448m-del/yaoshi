@@ -1,0 +1,14 @@
+{
+  "commit": "933f1de1",
+  "note": "基準＝933f1de1（上一輪、盲讀 #D 未過的版本）。色塊定義：三頂點色皆落在色塊色清單內且 alpha>0.5 的三角形，面積單位 dm²（手局部座標、靜止姿勢）。量測腳本 tests/tools/hands-roles-area.mjs（在 933f1de1 的 worktree 以 --block 給舊色塊色跑）；L 視角像素＝tests/tools/hands-roles-shots.mjs --measure（南席 seat 0、slam、slot 1、等 300ms，色塊遮罩渲染：非色塊頂點塗黑、MeshBasic 直出頂點色、無霧無背景）。",
+  "blockColours_linear": {
+    "shoujing": [[0.020, 0.030, 0.062], [0.012, 0.018, 0.040]],
+    "dangpu": [[0.018, 0.017, 0.021]],
+    "hunter": [[0.110, 0.058, 0.026], [0.135, 0.070, 0.030], [0.045, 0.024, 0.012], [0.050, 0.047, 0.043]]
+  },
+  "blockArea_dm2": { "shoujing": 0.3631321869387162, "dangpu": 0.4561870648890049, "hunter": 1.9210317583983514 },
+  "blockVerts": { "shoujing": 36, "dangpu": 41, "hunter": 226 },
+  "triangles": { "shoujing": 1554, "dangpu": 1466, "hunter": 1730, "default": 1362 },
+  "Lview_blockPixels": { "shoujing": 1363, "dangpu": 1355, "hunter": 1697 },
+  "briefNumbers_difference": "任務單寫的基準面積 0.334/0.334/1.921（頂點 34/34/226）：獵人 1.921／226 與本量測完全相同；收驚婆、當鋪我重量得 0.363/0.456（頂點 36/41），取較大者當基準（較嚴）。"
+}

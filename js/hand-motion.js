@@ -196,24 +196,40 @@ export function dressColors(positions, colors, itemSize = 3, palette = null) {
  * 做法：同一顆 GLB 幾何複製一份，只換頂點色（袖口主色一個部位＋收驚婆的膚色與手背紋理），再把小配件的幾何（紅線、
  * 戒指、護腕、疤）接在同一份幾何後面，蒙皮權重抄最近的原頂點——仍是一隻手一個 SkinnedMesh、一份共用材質、一個 draw call。
  * 純函式、不耗亂數（手背紋理用位置雜湊）、不依賴 three；只在 setSeats／建構時呼叫一次，不得每幀呼叫。 */
+const C_LINEN = [0.78, 0.70, 0.54], C_HEM = [0.52, 0.46, 0.34], C_BLACK = [0.014, 0.013, 0.016], C_GOLD = [0.40, 0.24, 0.03], C_LINING = [0.16, 0.006, 0.009], C_LEATHER = [0.62, 0.30, 0.12], C_STRAP = [0.30, 0.135, 0.050], C_BRASS = [0.62, 0.42, 0.09];
 export const ROLE_HAND = {
   /** 環形配件的圓周分段數（面數旋鈕：三角形＝SEG×剖面邊數×2）。 */
   SEG: 12,
-  /** 各角色：袖口邊（cuff）與其後漸隱袖布（cloth），線性 RGB。袖口主色只落在這一個部位。 */
+  /** 寬袖環上下（y）方向的外撐比例（<1＝橢圓、比寬更扁，免得下緣壓到桌面上的錢）。 */
+  PAD_Y: 0.4,
+  /** 各角色：袖口邊（cuff）與其後漸隱袖布（cloth），線性 RGB。袖口主色只落在這一個部位。
+   *  第二輪（辨識物重做）：遊戲視角手只有幾十像素寬，最大的辨識物＝袖口／護腕的大色塊，故 CUFF 同時是「腕部大色塊」主色
+   *  （原頂點的袖口一圈＋下面 CUFF_BAND 的寬袖環都用它）；BLOCK＝該角色腕部色塊全部顏色（主色＋滾邊／襯裡／縫線，驗收 R1 取樣用）。 */
   ROLES: {
-    shoujing: { CUFF: [0.020, 0.030, 0.062], CLOTH: [0.012, 0.018, 0.040] }, // 靛藍舊布
-    dangpu: { CUFF: [0.018, 0.017, 0.021], CLOTH: [0.010, 0.010, 0.013] }, // 黑袖套
-    hunter: { CUFF: [0.110, 0.058, 0.026], CLOTH: [0.060, 0.034, 0.016] }, // 皮革褐
+    shoujing: { CUFF: C_LINEN, CLOTH: [0.30, 0.27, 0.20], BLOCK: [C_LINEN, C_HEM] }, // 未染白麻
+    dangpu: { CUFF: C_BLACK, CLOTH: [0.010, 0.010, 0.013], BLOCK: [C_BLACK, C_GOLD, C_LINING] }, // 黑絲金邊＋暗紅襯
+    hunter: { CUFF: C_LEATHER, CLOTH: [0.18, 0.085, 0.032], BLOCK: [C_LEATHER, C_STRAP, C_BRASS] }, // 寬皮護腕
   },
-  /** 收驚婆：較老的膚色（朝 TINT 混 MIX 並壓暗 DIM）、手背暗斑（雜湊 > SPOT_AT 的背面頂點乘 SPOT）、指節（B 骨）紋乘 KNUCKLE。 */
-  AGED: { TINT: [0.26, 0.20, 0.15], MIX: 0.68, DIM: 0.86, SPOT_AT: 0.62, SPOT: 0.45, KNUCKLE: 0.75 },
-  /** 紅線手繩：兩圈，離腕骨 z（dm）、線半徑／半寬、顏色。 */
-  THREAD: { Z: [0.05, 0.12], R: 0.036, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012] },
-  /** 當鋪：算盤珠色戒指——環在無名指近節（RingA→RingB 的 T 處），環厚 R、寬 W；珠＝環上方的菱形。 */
-  RING: { FROM: 'RingA', TO: 'RingB', T: 0.5, R: 0.046, W: 0.10, GAP: 0.004, COLOR: [0.085, 0.030, 0.013], BEAD: [0.10, 0.075, 0.10], BEAD_COLOR: [0.17, 0.062, 0.026] },
-  /** 獵人：皮護腕（套在袖口邊上，中心 z、半寬 W、厚 R、外加 GAP）、兩道縫線、一個扣；手背舊疤（手背 xz 兩端點，dm）。 */
-  BRACER: { Z: -0.24, W: 0.20, R: 0.026, GAP: 0.002, COLOR: [0.135, 0.070, 0.030], STRAP: [0.045, 0.024, 0.012], STRAP_Z: [-0.115, -0.365], BUCKLE: [0.05, 0.047, 0.043] },
-  SCAR: { A: [0.16, 0.28], B: [-0.12, 0.66], W: 0.034, LIFT: 0.014, N: 8, COLOR: [0.64, 0.40, 0.33] },
+  /** 寬袖環（第二輪）：套在袖口邊外，中心 z、半寬 W、徑向半厚 R、橢圓外撐 PAD、尾端外翻 FLARE（加撐的小環）。 */
+  CUFF_BAND: {
+    shoujing: { Z: -0.25, LIFT: 0.01, W: 0.17, R: 0.05, PAD: 0.062, FLARE: 0.05, FLARE_Z: -0.43, FLARE_W: 0.035 },
+    dangpu: { Z: -0.25, LIFT: 0, W: 0.15, R: 0.05, PAD: 0.075, FLARE: 0.04, FLARE_Z: -0.43, FLARE_W: 0.025 },
+    hunter: { Z: -0.25, W: 0.20, R: 0.040, PAD: 0.040, LIFT: 0.03, FLARE: 0.0, FLARE_Z: -0.45, FLARE_W: 0 },
+  },
+  /** 收驚婆：較老的膚色（朝 TINT 混 MIX 並壓暗 DIM）、手背暗斑（粗格雜湊 > SPOT_AT 的背面頂點乘 SPOT；CELL＝格寬 dm，成片的大斑）、指節（B 骨）紋乘 KNUCKLE。 */
+  AGED: { TINT: [0.26, 0.20, 0.15], MIX: 0.68, DIM: 0.86, SPOT_AT: 0.60, SPOT: 0.36, CELL: 0.30, KNUCKLE: 0.75 },
+  /** 收驚婆：木佛珠（一圈 N 顆、深褐）與紅繩（一圈，COLOR 保持舊名；TASSEL＝繩結下垂的小穗）。離腕骨 z（dm）。 */
+  BEADS: { Z: 0.08, N: 11, ARC: Math.PI * 1.3, FROM: Math.PI * 0.15, /* 只繞手腕上半圈多（下緣貼桌，不繞滿） */ S: 0.062, COLOR: [0.055, 0.026, 0.012], OUT: 0.035 },
+  THREAD: { Z: [0.19], R: 0.040, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012] },
+  /** 當鋪：玉扳指——環在拇指近節（ThumbA→ThumbB 的 T 處），環厚 R、寬 W；外側（+x）一顆大玉面（菱形）。COLOR／BEAD_COLOR 沿用舊名（環／玉面）。 */
+  RING: { FROM: 'ThumbA', TO: 'ThumbB', T: 0.9, LIFT: 0.07, R: 0.030, W: 0.085, GAP: 0.004, COLOR: [0.030, 0.26, 0.13], BEAD: [0.085, 0.085, 0.085], BEAD_COLOR: [0.07, 0.52, 0.28] },
+  /** 當鋪袖口滾邊（金，寬）與襯裡（暗紅，外翻露出）。 */
+  TRIM: { GOLD: C_GOLD, LINING: C_LINING, GOLD_W: 0.05, GOLD_Z: [-0.115, -0.395] },
+  /** 獵人：皮護腕（寬）、兩道扣帶、黃銅扣、指節髒麻布纏帶；手背舊疤。BRACER.COLOR 與 CUFF 同色（大色塊）。 */
+  BRACER: { Z: -0.25, W: 0.27, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.115, -0.385], STRAP_W: 0.046, BUCKLE: C_BRASS, BUCKLE_S: [0.085, 0.03, 0.075] },
+  WRAP: { Z: 0.28, LIFT: 0.035, W: 0.11, R: 0.022, GAP: 0.002, COLOR: [0.30, 0.26, 0.19], SEAM: [0.18, 0.15, 0.11] },
+  TAN: [0.90, 0.78, 0.66],
+  SCAR: { A: [0.16, 0.28], B: [-0.12, 0.66], W: 0.045, LIFT: 0.014, N: 8, COLOR: [0.74, 0.50, 0.42] },
 };
 export const ROLE_KEYS = Object.keys(ROLE_HAND.ROLES);
 /** 角色 id → 變體鍵；不是三角色（含 null／非字串／原型鏈上的名字）一律 null＝預設手。 */
@@ -332,6 +348,12 @@ export function buildRoleGeometry(rig, base, role) {
   const S = HAND.SLEEVE;
   const up = [0, 1, 0], zax = [0, 0, 1], xax = [1, 0, 0];
 
+  /* 寬袖環（三角色共用做法）：以袖口帶中央的前臂剖面為準向外撐 PAD，主色＝該角色 CUFF；尾端再加一圈外翻的小環。 */
+  const w0 = boneWorld(rig, 'Wrist'), CB = R.CUFF_BAND[key];
+  const cuffCs = crossSection(pos, [w0[0], w0[1], CB.Z], zax, xax, up, 0.05);
+  const cuffC = cuffCs ? [w0[0] + cuffCs.cx, w0[1] + cuffCs.cy, CB.Z] : null;
+  const band = (z, w, r, pad, color, ts = 4) => acc.ring([cuffC[0], cuffC[1] + CB.LIFT, z], zax, xax, up, cuffCs.ra + pad, cuffCs.rb + pad * R.PAD_Y, r, w, color, 16, ts);
+
   if (key === 'shoujing') {
     const A = R.AGED;
     for (let v = 0; v < n0; v++) {
@@ -339,31 +361,50 @@ export function buildRoleGeometry(rig, base, role) {
       if (z < S.CUFF_FROM) continue; // 袖口以後不動
       for (let k = 0; k < 3; k++) color[v * 4 + k] = (color[v * 4 + k] + (A.TINT[k] - color[v * 4 + k]) * A.MIX) * A.DIM;
       const back = base.normal[v * 3 + 1] > 0.3 && z > 0.1 && !/Tip$/.test(bonesOf[v]);
-      if (back && hash3(pos[v * 3], pos[v * 3 + 1], z) > A.SPOT_AT) for (let k = 0; k < 3; k++) color[v * 4 + k] *= A.SPOT;
+      if (back && hash3(Math.floor(pos[v * 3] / A.CELL), 7, Math.floor(z / A.CELL)) > A.SPOT_AT) for (let k = 0; k < 3; k++) color[v * 4 + k] *= A.SPOT;
       if (/^(Index|Middle|Ring|Pinky|Thumb)B$/.test(bonesOf[v])) for (let k = 0; k < 3; k++) color[v * 4 + k] *= A.KNUCKLE;
     }
-    const T = R.THREAD, w0 = boneWorld(rig, 'Wrist');
-    for (const z of T.Z) {
-      const c = [w0[0], w0[1], z], cs = crossSection(pos, c, zax, xax, up, 0.03);
-      if (cs) acc.ring([w0[0] + cs.cx, w0[1] + cs.cy, z], zax, xax, up, cs.ra + T.GAP, cs.rb + T.GAP, T.R, T.W, T.COLOR);
+    if (cuffCs) {
+      band(CB.Z, CB.W, CB.R, CB.PAD, def.CUFF);
+      band(CB.FLARE_Z, CB.FLARE_W, CB.R, CB.PAD + CB.FLARE, C_HEM); // 外翻的毛邊一圈
+    }
+    const T = R.THREAD, Bd = R.BEADS, cs = crossSection(pos, [w0[0], w0[1], Bd.Z], zax, xax, up, 0.03);
+    if (cs) for (let i = 0; i < Bd.N; i++) { // 木佛珠一圈
+      const th = (i / (Bd.N - 1)) * Bd.ARC - Bd.FROM, c = [w0[0] + cs.cx + Math.cos(th) * (cs.ra + Bd.OUT), w0[1] + cs.cy + Math.sin(th) * (cs.rb + Bd.OUT), Bd.Z];
+      acc.lozenge(c, [Bd.S, Bd.S, Bd.S * 1.1], Bd.COLOR);
+    }
+    for (const z of T.Z) { // 紅繩
+      const cs2 = crossSection(pos, [w0[0], w0[1], z], zax, xax, up, 0.03);
+      if (cs2) acc.ring([w0[0] + cs2.cx, w0[1] + cs2.cy, z], zax, xax, up, cs2.ra + T.GAP, cs2.rb + T.GAP, T.R, T.W, T.COLOR);
     }
   } else if (key === 'dangpu') {
+    if (cuffCs) {
+      band(CB.Z, CB.W, CB.R, CB.PAD, def.CUFF);
+      for (const z of R.TRIM.GOLD_Z) band(z, R.TRIM.GOLD_W, CB.R + 0.008, CB.PAD + 0.004, R.TRIM.GOLD); // 金滾邊（寬）
+      band(CB.FLARE_Z, CB.FLARE_W, CB.R, CB.PAD + CB.FLARE, R.TRIM.LINING); // 外翻露出的暗紅襯裡
+    }
     const G = R.RING, a0 = boneWorld(rig, G.FROM), b0 = boneWorld(rig, G.TO);
     const d = v3norm(v3sub(b0, a0)), c = v3add(a0, v3mul(v3sub(b0, a0), G.T));
     const ax = v3norm(v3cross(up, d)), ay = v3cross(d, ax), cs = crossSection(pos, c, d, ax, ay, 0.07);
     if (cs) {
       const cc = v3add(c, v3add(v3mul(ax, cs.cx), v3mul(ay, cs.cy)));
-      acc.ring(cc, d, ax, ay, cs.ra + G.GAP, cs.rb + G.GAP, G.R, G.W, G.COLOR);
-      acc.lozenge(v3add(cc, v3mul(ay, cs.rb + G.GAP + G.R * 0.6)), G.BEAD, G.BEAD_COLOR);
+      acc.ring(v3add(cc, [0, G.LIFT, 0]), d, ax, ay, cs.ra + G.GAP, cs.rb + G.GAP, G.R, G.W, G.COLOR);
+      /* 大玉面放在環的「外側」（+x、手背看得到的那一面）：四個側向取 x 分量最大者 */
+      const dirs = [[ax, cs.ra], [v3mul(ax, -1), cs.ra], [ay, cs.rb], [v3mul(ay, -1), cs.rb]].sort((p, q) => q[0][0] - p[0][0]);
+      acc.lozenge(v3add(cc, v3mul(dirs[0][0], dirs[0][1] + G.GAP + G.R * 0.8)), G.BEAD, G.BEAD_COLOR);
     }
   } else if (key === 'hunter') {
-    const B = R.BRACER, w0 = boneWorld(rig, 'Wrist');
-    const cs = crossSection(pos, [w0[0], w0[1], B.Z], zax, xax, up, 0.05);
-    if (cs) {
-      const cc = [w0[0] + cs.cx, w0[1] + cs.cy, B.Z], ra = cs.ra + B.GAP, rb = cs.rb + B.GAP;
-      acc.ring(cc, zax, xax, up, ra, rb, B.R, B.W, B.COLOR, R.SEG, 6);
-      for (const z of B.STRAP_Z) acc.ring([cc[0], cc[1], z], zax, xax, up, ra + B.R * 0.5, rb + B.R * 0.5, B.R * 0.5, 0.018, B.STRAP);
-      acc.box([cc[0], cc[1] + rb + B.R * 0.9, B.Z], [0.05, 0.016, 0.065], B.BUCKLE);
+    const B = R.BRACER;
+    for (let v = 0; v < n0; v++) if (pos[v * 3 + 2] >= S.CUFF_FROM) for (let k = 0; k < 3; k++) color[v * 4 + k] *= R.TAN[k]; // 曬黑粗糙的皮膚
+    if (cuffCs) {
+      band(B.Z, B.W, B.R, B.GAP + 0.024, B.COLOR, 6);
+      for (const z of B.STRAP_Z) band(z, B.STRAP_W, B.R * 0.6, B.GAP + 0.024 + B.R * 0.9, B.STRAP);
+      acc.box([cuffC[0], cuffC[1] + CB.LIFT + cuffCs.rb + 0.024 * R.PAD_Y + B.R * 1.6, B.Z], B.BUCKLE_S, B.BUCKLE);
+    }
+    const Wr = R.WRAP, wcs = crossSection(pos, [w0[0], w0[1], Wr.Z], zax, xax, up, 0.04);
+    if (wcs) { // 指節髒麻布纏帶：一寬環＋一道斜縫色細環
+      acc.ring([w0[0] + wcs.cx, w0[1] + wcs.cy + Wr.LIFT, Wr.Z], zax, xax, up, wcs.ra + Wr.GAP, wcs.rb + Wr.GAP, Wr.R, Wr.W, Wr.COLOR, 14, 4);
+      acc.ring([w0[0] + wcs.cx, w0[1] + wcs.cy + Wr.LIFT, Wr.Z + Wr.W * 0.4], zax, xax, up, wcs.ra + Wr.GAP, wcs.rb + Wr.GAP, Wr.R + 0.004, 0.02, Wr.SEAM, 14, 4);
     }
     const Sc = R.SCAR, pts = [];
     for (let i = 0; i < Sc.N; i++) {
