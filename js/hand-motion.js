@@ -32,8 +32,6 @@ export const HAND = {
   USER_SCALE: 1,
   /** v0.59.7 修訂 4：寫實手總開關（false＝整套回 v0.59.6 的手；網址 ?handreal=0 同效）。 */
   REAL_ON: true,
-  /** 寫實手碰撞取樣的保守外擴（世界單位）：取樣只取原頂點＋配件，細分新增的邊中點靠這個量補（障礙水平外擴＋垂直間隙）。 */
-  REAL_PAD: 0.006,
   /** 直式另乘的倍率（使用者裁定只玩橫式；直式只保機械檢查，不做美術）：0.6。 */
   SCALE_P: 0.6,
   /** 袖子（第二輪）：整段黑袖拿掉，只留腕部一圈短袖口邊（≤前臂 1/5），其後的袖布由暗轉淡、以 alphaHash 抖色漸隱。
@@ -755,9 +753,9 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
     W[i * 3] = fx; W[i * 3 + 1] = w[1]; W[i * 3 + 2] = fz;
     if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (fz < z0) z0 = fz; if (fz > z1) z1 = fz;
   }
-  /* v0.59.7：rig.pad（世界單位）＝取樣點較稀時的保守外擴（寫實手只取原頂點＋配件，細分新增的邊中點不取；
-     障礙水平外擴 pad、垂直間隙多 pad，保證沒取到的點也不穿）。預設 0＝舊行為逐位元相同。 */
-  const pad = rig.pad || 0, clr = HAND.CLR + pad;
+  /* rig.padH／rig.pad（世界單位，可省）：取樣點較稀時的保守外擴（障礙水平外擴 padH、垂直間隙多 pad）。
+     預設 0＝舊行為逐位元相同；現行寫實手沒用（取全部頂點，見 table-hands），留給之後的效能卷。 */
+  const pad = rig.padH || 0, clr = HAND.CLR + (rig.pad || 0); // 水平外擴 padH、垂直間隙 pad
   const hit = (o) => { const hx = (o.r !== undefined ? o.r : o.hx) + pad, hz = (o.r !== undefined ? o.r : o.hz) + pad;
     return o.top > tableY && o.x + hx >= x0 && o.x - hx <= x1 && o.z + hz >= z0 && o.z - hz <= z1; };
   /* 落地的東西（錢柱、落地令牌、木籌槽、布面）是地板；飛在空中的令牌（bottom 高於桌面）是懸空的盒子：
@@ -951,7 +949,7 @@ export function createHandDirector(props, rig, per) {
   function relicHit(R, fr, s, relics) {
     const { W } = offsets(R, fr, s), n = W.length / 3, [rx, ry, rz] = fr.root;
     for (const o of relics) {
-      const rr = (o.r + HAND.RELIC.MARGIN + (R.pad || 0)) * (o.r + HAND.RELIC.MARGIN + (R.pad || 0)), top = o.top + HAND.CLR + (R.pad || 0);
+      const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
       for (let i = 0; i < n; i++) {
         if (ry + W[i * 3 + 1] >= top) continue;
         const dx = rx + W[i * 3] - o.x, dz = rz + W[i * 3 + 2] - o.z;
@@ -970,7 +968,7 @@ export function createHandDirector(props, rig, per) {
       const k = L.n[0] + ',' + L.n[1];
       let mw = o.ext.get(k);
       if (mw === undefined) { mw = -Infinity; const W = o.W; for (const i of frontIdx(R)) { const d = L.n[0] * W[i * 3] + L.n[1] * W[i * 3 + 2]; if (d > mw) mw = d; } o.ext.set(k, mw); }
-      const m = L.n[0] * fr.root[0] + L.n[1] * fr.root[2] + mw - L.c + (R.pad || 0); // v0.59.7：稀取樣的保守外擴
+      const m = L.n[0] * fr.root[0] + L.n[1] * fr.root[2] + mw - L.c;
       if (m > best.over) best = { over: m, L };
     }
     return best;

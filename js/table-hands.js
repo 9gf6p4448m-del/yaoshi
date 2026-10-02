@@ -175,12 +175,11 @@ export function createTableHands(parent, props, opts = {}) {
         if (!realMat) realMat = HR.makeSkinMaterial(material, HR.jointTable(rig));
       }
       if (!realRigs.has(real.key)) {
-        /* 碰撞取樣（修訂 4 效能）：原頂點（前 n0 個，已細分平滑＋重塑）＋配件；細分新增的邊中點不取，改以 pad 外擴保守補償
-           （HAND.REAL_PAD，見 hand-motion placeAt）；袖管每幀依相機重鋪、往畫面外走，不進取樣。 */
-        const rg = realGeos.get(gk), ga = rg.attributes, n0 = baseSrc.position.length / 3, nb = rg.userData.real.nBase, na = rg.userData.real.arm[0];
-        const pick = (arr, k) => { const out = new arr.constructor((n0 + na - nb) * k); out.set(arr.subarray(0, n0 * k)); out.set(arr.subarray(nb * k, na * k), n0 * k); return out; };
-        const r2 = buildRig(Object.assign({}, rigSrc0, { positions: pick(ga.position.array, 3), skinIndex: pick(ga.skinIndex.array, 4), skinWeight: pick(ga.skinWeight.array, 4) }));
-        r2.pad = HAND.REAL_PAD; realRigs.set(real.key, r2);
+        /* 碰撞取樣＝這種手畫面上的頂點（細分＋重塑後的手、配件），不是原 GLB 的 819 點；袖管每幀依相機重鋪、往畫面外走，不進取樣。
+           （修訂 4 試過只取原頂點＋配件、以外擴補細分邊中點：動作中 CPU p95 降到 4.1 ms，但外擴讓勝方「停一拍」的手墊高、
+           遮擋閘「收」升到 10.3–11.8%＞10%，條件 5 不放寬 ⇒ 撤回，取全部頂點；效能退路是 ?handreal=0。） */
+        const rg = realGeos.get(gk), ga = rg.attributes, na = rg.userData.real.arm[0];
+        realRigs.set(real.key, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array.slice(0, na * 3), skinIndex: ga.skinIndex.array.slice(0, na * 4), skinWeight: ga.skinWeight.array.slice(0, na * 4) })));
       }
       h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(real.key);
     }
@@ -232,7 +231,7 @@ export function createTableHands(parent, props, opts = {}) {
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         /* 階段三：角色變體（只讀） */
-        variants: seatKey.slice(), variantBuilds, real: realOn, arms: hands.map((h) => h.arm || null),
+        variants: seatKey.slice(), variantBuilds, real: realOn, arms: hands.map((h) => h.arm || null), itemBoxes: frameBoxes ? frameBoxes.slice() : null,
         trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
         variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
         /* v0.59.7：每席的寫實幾何資訊（種類、面數、前臂延長）、材質名與縮放倍率（只讀） */

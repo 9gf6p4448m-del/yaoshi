@@ -48,7 +48,7 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
  *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, LIFT: 0.06, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, PAD_NDC: 0.04, LIFT: 0.06, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -450,18 +450,25 @@ export function updateArm(mesh, camera, avoid) {
     { e: 'left', d: q.x + 1, ndc: [-1 - ARM.MARGIN, q.y] }, { e: 'right', d: 1 - q.x, ndc: [1 + ARM.MARGIN, q.y] },
     { e: 'bottom', d: q.y + 1, ndc: [q.x, -1 - ARM.MARGIN] }, { e: 'top', d: 1 - q.y, ndc: [q.x, 1 + ARM.MARGIN] },
   ].sort((a, b) => a.d - b.d);
-  const segHits = (a, b, r) => { // 畫面線段 a→b 與外框 r 相交（取樣 12 點，夠用）
-    for (let k = 0; k <= 12; k++) { const t = k / 12, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t; if (x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1) return true; }
-    return false;
-  };
-  let pick = edges[0];
-  if (avoid && avoid.length) pick = edges.find((c) => !avoid.some((r) => segHits([q.x, q.y], c.ndc, r))) || edges[0];
-  /* 目標深度：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）就取手腕到相機的距離 */
-  _ndc.set(pick.ndc[0], pick.ndc[1]); _ray.setFromCamera(_ndc, camera);
-  _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
-  let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null;
+  /* 候選邊的目標點：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）或太遠就取手腕到相機的距離 */
   const dw = camera.getWorldPosition(new THREE.Vector3()).distanceTo(wristW);
-  if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3());
+  const targetOf = (c) => { _ndc.set(c.ndc[0], c.ndc[1]); _ray.setFromCamera(_ndc, camera); _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
+    let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null; if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3()); return T; };
+  /* 避開拍品（修訂 4）：把每條候選袖管實際的曲線（同 layTube 的二次曲線）取 16 點投影到畫面，數落在任一拍品外框（外擴 PAD_NDC）
+     內的點數；取點數最少的邊，同分取最近的邊。手常停在拍品腳邊、起點本來就在外框裡，所以比的是「壓過多少」，不是「有沒有碰」。 */
+  const cover = (T) => {
+    const tl = mesh.worldToLocal(T.clone()), L = Math.hypot(tl.x - p0[0], tl.y - p0[1], tl.z - p0[2]) || 1, k = Math.min(L * 0.35, 3), p1 = [p0[0], p0[1], p0[2] - k];
+    let n = 0; const e = ARM.PAD_NDC;
+    for (let i = 1; i <= 16; i++) {
+      const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, cc = t * t;
+      _v.set(a * p0[0] + b * p1[0] + cc * tl.x, a * p0[1] + b * p1[1] + cc * tl.y, a * p0[2] + b * p1[2] + cc * tl.z).applyMatrix4(mesh.matrixWorld).project(camera);
+      if (avoid.some((r) => _v.x > r.x0 - e && _v.x < r.x1 + e && _v.y > r.y0 - e && _v.y < r.y1 + e)) n++;
+    }
+    return n;
+  };
+  let pick = edges[0], T = null;
+  if (avoid && avoid.length) { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = cover(Tc); if (k < best) { best = k; pick = c; T = Tc; } } }
+  if (!T) T = targetOf(pick);
   const tl = mesh.worldToLocal(T.clone());
   layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array);
   g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true;
