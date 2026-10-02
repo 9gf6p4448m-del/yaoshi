@@ -1,0 +1,139 @@
+{
+ "baseline": {
+  "node": {
+   "red": false,
+   "failing": []
+  },
+  "probe": {
+   "red": false,
+   "failed": []
+  }
+ },
+ "mutants": [
+  {
+   "id": "E1-trisOver",
+   "frozen": "E1 每尊 ≤200 三角形",
+   "what": "頭部球加密到 8×16（每尊超過 200 三角形）",
+   "via": "node",
+   "node": {
+    "red": true,
+    "failing": [
+     "E1 每尊 ≤200 三角形、共三尊、L／P 兩版都核"
+    ]
+   },
+   "red": true,
+   "redWhere": "E1 每尊 ≤200 三角形、共三尊、L／P 兩版都核",
+   "matchesExpected": true
+  },
+  {
+   "id": "U-mathRandom",
+   "frozen": "提案 §5 不耗亂數",
+   "what": "擺位 x 加 Math.random 抖動",
+   "via": "node",
+   "node": {
+    "red": true,
+    "failing": [
+     "純呈現：建構與換版面都不呼叫 Math.random，且兩次建構結果逐值相同（決定性）"
+    ]
+   },
+   "red": true,
+   "redWhere": "純呈現：建構與換版面都不呼叫 Math.random，且兩次建構結果逐值相同（決定性）",
+   "matchesExpected": true
+  },
+  {
+   "id": "E1-flat",
+   "frozen": "E1 非平面貼片",
+   "what": "整份幾何 z 方向壓扁成貼片",
+   "via": "node",
+   "node": {
+    "red": true,
+    "failing": [
+     "E1 有體積、非平面貼片：每尊至少三個可辨部位（頭／肩／身），高度帶分離且有厚度"
+    ]
+   },
+   "red": true,
+   "redWhere": "E1 有體積、非平面貼片：每尊至少三個可辨部位（頭／肩／身），高度帶分離且有厚度",
+   "matchesExpected": true
+  },
+  {
+   "id": "E2-noDuelHide",
+   "frozen": "對決隱藏",
+   "what": "人影不掛在 tray 的 group、改掛 scene（對決時不跟著收）",
+   "via": "both",
+   "node": {
+    "red": true,
+    "failing": [
+     "對決隱藏的接線：人影掛在 tray 的 group 之下（regex /createTableSilhouettes(group,/ 在突變副本上不成立）"
+    ]
+   },
+   "probe": {
+    "red": true,
+    "failed": [
+     "L-844x390:hiddenInDuel_shownAtTable",
+     "L-1280x720:hiddenInDuel_shownAtTable"
+    ],
+    "parsed": true,
+    "raw": ""
+   },
+   "red": true,
+   "redWhere": "對決隱藏的接線：人影掛在 tray 的 group 之下（regex /createTableSilhouettes(group,/ 在突變副本上不成立） | L-844x390:hiddenInDuel_shownAtTable | L-1280x720:hiddenInDuel_shownAtTable",
+   "matchesExpected": true
+  },
+  {
+   "id": "E2-outsideWindow",
+   "frozen": "落在掏空窗內",
+   "what": "北側那尊往後挪到 z=-3.4（螢幕上移出窗頂）",
+   "via": "probe",
+   "probe": {
+    "red": true,
+    "failed": [
+     "L-844x390:inWindow",
+     "L-1280x720:inWindow"
+    ],
+    "parsed": true,
+    "raw": ""
+   },
+   "red": true,
+   "redWhere": "L-844x390:inWindow | L-1280x720:inWindow",
+   "matchesExpected": true
+  },
+  {
+   "id": "E2-overItems",
+   "frozen": "不蓋拍品",
+   "what": "東側那尊往桌心挪到 x=1.1（螢幕上蓋住拍品格）",
+   "via": "probe",
+   "probe": {
+    "red": true,
+    "failed": [
+     "L-844x390:notOverItems",
+     "L-1280x720:notOverItems"
+    ],
+    "parsed": true,
+    "raw": ""
+   },
+   "red": true,
+   "redWhere": "L-844x390:notOverItems | L-1280x720:notOverItems",
+   "matchesExpected": true
+  },
+  {
+   "id": "B1-extraMesh",
+   "frozen": "B1 draw call 增量",
+   "what": "多掛 4 個空殼 mesh（淨增 draw call 超過上限 3）",
+   "via": "probe",
+   "probe": {
+    "red": true,
+    "failed": [
+     "L-844x390:drawCall_delta_le3",
+     "L-1280x720:drawCall_delta_le3"
+    ],
+    "parsed": true,
+    "raw": ""
+   },
+   "red": true,
+   "redWhere": "L-844x390:drawCall_delta_le3 | L-1280x720:drawCall_delta_le3",
+   "matchesExpected": true
+  }
+ ],
+ "allMutantsRedAsExpected": true,
+ "baselineGreen": true
+}

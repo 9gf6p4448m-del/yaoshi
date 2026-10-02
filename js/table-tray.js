@@ -23,6 +23,7 @@ const { vcBuilder, seedRnd: rnd } = await import('./scene-env.js' + V);
 const { createTableProps } = await import('./table-props.js' + V);
 /* 席位之手（階段二 2a）：四席各一隻寫實右手，與 props 並列掛進本檔的 group（對決時整組收）；不進 hitTest 的 proxies。 */
 const { createTableHands } = await import('./table-hands.js' + V);
+const { createTableSilhouettes } = await import('./table-silhouettes.js' + V);
 /* 法寶鑑賞頁（v0.59.2）丙案（燒符揭幕＋照妖鏡）的螢幕空間疊層：一支 shader 畫壓暗／鏡子／符紙，理由見該檔檔頭。 */
 const { createAppraiseFx, APPR_FX } = await import('./appraise-fx.js' + V);
 
@@ -591,6 +592,9 @@ export function createTableTray(scene, camera, opts = {}) {
   }, handPaths: handsOn });
   /* 空物件退路：關手時 renderer 那幾行呼叫照樣成立，不必到處判斷。 */
   const hands = handsOn ? createTableHands(group, props) : { group: null, ready: () => Promise.resolve(), setSeats() {}, bid() {}, mark() {}, reveal() {}, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
+  /* 後景人影（階段三 #E）：北／西／東三尊，一個 mesh＝1 draw call，靜態；lite（弱機退路）不建。掛進 group ⇒ 對決整組收。 */
+  const silOn = !liteMode && opts.silhouettes !== false;
+  const sil = silOn ? createTableSilhouettes(group, { mode: L.mode }) : { group: null, mesh: null, setLayout() {}, mode: () => null, stats: () => ({ off: true }), dispose() {} };
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
@@ -768,6 +772,7 @@ export function createTableTray(scene, camera, opts = {}) {
     }
     refreshMoonMarks();
     props.setLayout(L.mode, L.XS, TRAY.Y, L.Z, L.SCALE);
+    sil.setLayout(L.mode); // 只換幾何指標（兩版面各烘好一份），不重算
   }
 
   /** 丙案時間軸 → 疊層 uniform（每幀只寫十幾個數字；燒符的逐像素工作全在 shader）。 */
@@ -977,6 +982,8 @@ export function createTableTray(scene, camera, opts = {}) {
     props,
     /** 席位之手（table-hands.js）；renderer 在呼叫 props 的同一處呼叫它。 */
     hands,
+    /** 後景人影（table-silhouettes.js）：靜態、純呈現。 */
+    silhouettes: sil,
     /** 現在是橫式還是直式版面（'L'／'P'；治具驗直式分支用） */
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
@@ -1317,6 +1324,7 @@ export function createTableTray(scene, camera, opts = {}) {
     dispose() {
       slots.forEach(clearSlot);
       hands.dispose();
+      sil.dispose();
       props.dispose();
       group.remove(chainMarks);
       group.remove(moonMarks);
