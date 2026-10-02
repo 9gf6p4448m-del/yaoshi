@@ -48,7 +48,7 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
  *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.5, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 1.0, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -481,10 +481,24 @@ export function updateArm(mesh, camera, avoid) {
     return n;
   };
   let pick = edges[0], T = null;
-  if (avoid && avoid.length) { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = cover(Tc); if (k < best) { best = k; pick = c; T = Tc; } } }
+  /* 另避「迎著鏡頭」：目標點比手腕近鏡頭一半以上（低機位特寫時往畫面下緣走＝衝向鏡頭，袖管會穿過近裁切面變成一道光錐）＝加重罰 */
+  const camW0 = camera.getWorldPosition(new THREE.Vector3());
+  { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = (avoid && avoid.length ? cover(Tc) : 0) + (Tc.distanceTo(camW0) < dw * 0.5 ? 100 : 0); if (k < best) { best = k; pick = c; T = Tc; } } }
   if (!T) T = targetOf(pick);
-  const tl = mesh.worldToLocal(T.clone());
-  layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array, arch);
+  /* 最後一圈不透明的截面要整圈落在畫面外（袖管迎向鏡頭時截面在畫面上很粗）：還有頂點在畫面內，就把目標點沿同一條視線推遠（畫面位置不變、
+     截面變小）再鋪一次，最多 6 次。 */
+  const camW = camera.getWorldPosition(new THREE.Vector3()), last = ring.segs - 1;
+  for (let it = 0; it < 7; it++) {
+    const tl = mesh.worldToLocal(T.clone());
+    layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array, arch);
+    let inside = false;
+    for (let j = 0; j < ring.sides && !inside; j++) {
+      const o = (ring.start + last * ring.sides + j) * 3; _v.set(P[o], P[o + 1], P[o + 2]).applyMatrix4(mesh.matrixWorld).project(camera);
+      if (Math.abs(_v.x) <= 1 && Math.abs(_v.y) <= 1 && _v.z >= -1 && _v.z <= 1) inside = true;
+    }
+    if (!inside || it === 6) break;
+    T = camW.clone().addScaledVector(T.clone().sub(camW), 1.6);
+  }
   /* 只重傳袖管那一段 */
   for (const at of [g.attributes.position, g.attributes.normal]) { at.updateRange.offset = ring.start * 3; at.updateRange.count = (ring.segs + 1) * ring.sides * 3; at.needsUpdate = true; }
   return (g.userData.armLast = { edge: pick.e, target: T.toArray() });
