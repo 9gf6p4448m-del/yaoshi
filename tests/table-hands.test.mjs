@@ -76,7 +76,11 @@ test('#B1 每隻手 ≤2,500 三角形、單一 primitive、24 骨；四隻手�
   assert.equal(meshes[0].skeleton.bones.length, 24);
   const r = await rig('L');
   const st = r.hands.stats();
-  assert.equal(st.hands, 4); assert.equal(st.trisPerHand, tris); assert.equal(st.materials, 1);
+  /* v0.59.7 修訂 4 改寫（原：每手面數＝GLB 1362）：寫實手細分後每手面數上限改依驗收條件 6（≤6,500），
+     且每一隻手真的是寫實手（共用的那一份材質就是寫實皮膚程式）——舊手（v0.59.6）在這裡紅。 */
+  assert.equal(st.hands, 4); assert.equal(st.materials, 1);
+  assert.ok(st.trisByHand.every((t) => t > tris && t <= 6500), `每手面數 ${st.trisByHand}（寫實手：>GLB ${tris}、≤6,500）`);
+  r.hands.group.children.forEach((h) => h.traverse((o) => { if (o.isSkinnedMesh) assert.equal(o.material.customProgramCacheKey && o.material.customProgramCacheKey(), 'hand-real-v2', '寫實皮膚材質'); }));
   assert.equal(st.skeletons, 4, '每隻手各自一副骨架（各自擺姿勢）');
   assert.ok(st.shared && typeof st.shared.skeletons === 'number', 'shareSkeletons 有被呼叫（管線證據）');
   assert.deepEqual([...new Set(fetched)], [M.HAND.GLB], '四隻手只向管線要了同一個 URL');

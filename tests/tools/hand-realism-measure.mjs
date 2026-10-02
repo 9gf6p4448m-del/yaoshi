@@ -1,5 +1,5 @@
 /* 席位之手「中等寫實」v0.59.7 驗收量測（docs/experiments/2026-10-02-hand-realism/acceptance.md 條件 1／2／4）。
-   跑法：node tests/tools/hand-realism-measure.mjs --root=<要服務的樹> [--vp=1280x720] [--out=<json>] [--port=8993] [--handscale=0.6]
+   跑法：node tests/tools/hand-realism-measure.mjs --root=<要服務的樹> [--vp=1280x720] [--out=<json>] [--port=8993] [--handscale=0.6] [--handreal=0]
    局面同示意圖（phase2-mock/hand-realism/shoot.mjs）：newGame('solo',1,['qingmian']) 第 1 夜，受測角色放南席（seat 0），
    派 ys:bid（seat 0、slot 1、8 枚）→ 170ms 後凍結手與錢 → 量：
      #1 指根骨距：IndexA–PinkyA 蒙皮骨的世界座標距離（世界單位）；基準 v0.59.6＝0.2014。
@@ -28,7 +28,7 @@ try {
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => out.errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') out.errs.push(m.text()); });
-  await page.goto(`http://127.0.0.1:${PORT}/index.html${opt.handscale ? '?handscale=' + opt.handscale : ''}`);
+  await page.goto(`http://127.0.0.1:${PORT}/index.html${opt.handscale ? '?handscale=' + opt.handscale : ''}${opt.handreal !== undefined ? (opt.handscale ? '&' : '?') + 'handreal=' + opt.handreal : ''}`);
   await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 60000 });
   await page.evaluate(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); });
   for (let i = 0; i < 400; i++) {

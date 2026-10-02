@@ -83,6 +83,11 @@ try {
       const rearOf = (g) => {
         let r = rearCache.get(g); if (r) return r;
         const pos = g.attributes.position, col = g.attributes.color, nb = g.userData.real ? g.userData.real.nBase : 819;
+        const AR = g.userData.armRing;
+        if (AR) { /* 修訂 4：袖管每幀依相機重鋪，後端＝看得見（alpha≥0.5）的最後一圈 */
+          let last = 0; for (let i = 0; i <= AR.segs; i++) if (col.getW(AR.start + i * AR.sides) >= 0.5) last = i;
+          r = { zMin: null, idx: Array.from({ length: AR.sides }, (_, j) => AR.start + last * AR.sides + j), ring: last }; rearCache.set(g, r); return r;
+        }
         let zMin = Infinity; const vis = [], arm = g.userData.real && g.userData.real.arm; // v0.59.7：程式生成的袖管也是手臂
         const cand = []; for (let i = 0; i < Math.min(nb, pos.count); i++) cand.push(i); if (arm) for (let i = arm[0]; i < arm[1]; i++) cand.push(i);
         const used = new Set(g.index.array); // 只算有被畫的頂點（被換掉的原前臂不算）

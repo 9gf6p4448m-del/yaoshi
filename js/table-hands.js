@@ -143,8 +143,9 @@ export function createTableHands(parent, props, opts = {}) {
 
   /** 這一幀拍品在畫面上的外框（NDC），同一幀四隻手只算一次。 */
   function itemBoxes(renderer, camera) {
+    /* 拍品外框每 6 幀重算一次（拍品只有微晃與揭盅時移動；外框只拿來挑袖管走哪一邊） */
     const f = renderer.info.render.frame;
-    if (f === frameNo && frameBoxes) return frameBoxes;
+    if (frameBoxes && f - frameNo < 6 && f >= frameNo) return frameBoxes;
     frameNo = f; frameBoxes = [];
     const nodes = opts.itemNodes ? opts.itemNodes() : [];
     const box = new THREE.Box3(), v = new THREE.Vector3();

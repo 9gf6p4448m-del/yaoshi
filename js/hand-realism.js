@@ -343,6 +343,7 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   const nAll = d.P.length / 3, par = new Int32Array(nAll).map((_, i) => i);
   const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
   for (let t = 0; t < d.index.length; t += 3) { const a = d.index[t], b = d.index[t + 1], c = d.index[t + 2]; if (a >= d.nBase && b >= d.nBase && c >= d.nBase) { par[find(a)] = find(b); par[find(b)] = find(c); } }
+  { const at = new Map(); for (let e = d.nBase; e < nAll; e++) { const k = d.P[e * 3].toFixed(5) + ',' + d.P[e * 3 + 1].toFixed(5) + ',' + d.P[e * 3 + 2].toFixed(5); if (at.has(k)) par[find(e)] = find(at.get(k)); else at.set(k, e); } } // 同位置頂點（錢、扣的各面各自一份）焊成同一顆
   const comp = new Map(); for (let e = d.nBase; e < nAll; e++) { const r = find(e); if (!comp.has(r)) comp.set(r, []); comp.get(r).push(e); }
   for (const vs of comp.values()) {
     const rigid = vs.every((e) => { const c = Math.round(d.A[e * 3]); return c === 3 || c === 4; });
@@ -444,6 +445,11 @@ export function updateArm(mesh, camera, avoid) {
   /* 袖口中心（蒙皮後、網格局部）：錨點頂點蒙皮後的位置＋它到截面中心的靜態偏移 */
   _v.fromBufferAttribute(g.attributes.position, ring.anchor); mesh.applyBoneTransform(ring.anchor, _v);
   const p0 = [_v.x + ring.off[0], _v.y + ring.off[1], _v.z + ring.off[2]];
+  /* 效能：相機、這隻手的位置姿勢、袖口都沒變（凍結、停一拍、靜止鏡頭）就不重鋪、不重傳 */
+  const sig = g.userData.armSig || (g.userData.armSig = new Float64Array(16 + 16 + 2 + 3)), cw = camera.matrixWorld.elements, mw = mesh.matrixWorld.elements, pm = camera.projectionMatrix.elements;
+  let same = true; const put = (i, x) => { if (sig[i] !== x) { same = false; sig[i] = x; } };
+  for (let i = 0; i < 16; i++) { put(i, cw[i]); put(16 + i, mw[i]); } put(32, pm[0]); put(33, pm[5]); put(34, p0[0]); put(35, p0[1]); put(36, p0[2]);
+  if (same && g.userData.armLast) return g.userData.armLast;
   _w.set(p0[0], p0[1], p0[2]).applyMatrix4(mesh.matrixWorld); const wristW = _w.clone();
   const q = wristW.clone().project(camera);
   const edges = [
@@ -471,6 +477,7 @@ export function updateArm(mesh, camera, avoid) {
   if (!T) T = targetOf(pick);
   const tl = mesh.worldToLocal(T.clone());
   layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array);
-  g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true;
-  return { edge: pick.e, target: T.toArray() };
+  /* 只重傳袖管那一段 */
+  for (const at of [g.attributes.position, g.attributes.normal]) { at.updateRange.offset = ring.start * 3; at.updateRange.count = (ring.segs + 1) * ring.sides * 3; at.needsUpdate = true; }
+  return (g.userData.armLast = { edge: pick.e, target: T.toArray() });
 }

@@ -55,6 +55,10 @@ function recoloredCount(col, ref, n0) {
   for (let v = 0; v < n0; v++) if (Math.abs(col[v * 4] - ref[v * 4]) + Math.abs(col[v * 4 + 1] - ref[v * 4 + 1]) + Math.abs(col[v * 4 + 2] - ref[v * 4 + 2]) > 1e-4) k++;
   return k;
 }
+/** v0.59.7：寫實幾何的配件頂點數（細分後的原手在 [0,nBase)、配件在 [nBase, 袖管起點)）。舊手沒有這個資訊 ⇒ −1。 */
+const accCount = (g) => (g.userData.real ? g.userData.real.arm[0] - g.userData.real.nBase : -1);
+/** v0.59.7：這一席的手「畫出來的疤」強度＝共用寫實材質裡這種手的 uMarksA.y（疤改程式生成，畫在皮膚上；舊頂點色疤條不再畫）。舊手 ⇒ 0。 */
+const scarOf = (m) => { const u = m.material.userData.realU, real = m.geometry.userData.real; return u && real ? u.uMarksA.value[real.kind].y : 0; };
 const hashCol = (col, n) => { let h = 0; for (let i = 0; i < n * 4; i++) h = (h * 31 + Math.round(col[i] * 4096)) | 0; return h; };
 const close = (a, b, tol) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) < tol;
 
@@ -65,7 +69,8 @@ test('V1 三角色的手：專屬色區域頂點數 >0（預設手＝0）、配�
   const st = r.hands.stats();
   assert.deepEqual(st.variants, ['shoujing', 'dangpu', 'hunter', null]);
   const rc = [0, 1, 2, 3].map((s) => recoloredCount(colorOf(r, s), B.ref, B.n0));
-  const extra = [0, 1, 2, 3].map((s) => meshOf(r, s).geometry.attributes.position.count - B.n0);
+  /* v0.59.7 修訂 4 改寫（原：頂點總數－GLB 819＝配件數）：細分後頂點總數不再只多配件；改數寫實幾何的配件段。 */
+  const extra = [0, 1, 2, 3].map((s) => accCount(meshOf(r, s).geometry));
   assert.ok(rc[0] > 0 && rc[1] > 0 && rc[2] > 0, `專屬色頂點數 ${rc}`);
   assert.equal(rc[3], 0, '預設手專屬色頂點數必須是 0');
   assert.ok(extra[0] > 0 && extra[1] > 0 && extra[2] > 0, `配件頂點 ${extra}`);
@@ -91,7 +96,9 @@ test('V1 各角色的特徵色真的在手上：袖口主色、紅線、算盤�
     if (role === 'shoujing') assert.ok(has(R.THREAD.COLOR) > 0, '紅線頂點');
     // 第三輪（acceptance-roles-r3.md）：當鋪的玉扳指換成方孔錢＋金邊；獵人加毛皮邊與骨牙（護腕與疤仍在）
     if (role === 'dangpu') assert.ok(has(R.COIN.COLOR) > 0 && has(R.TRIM.GOLD) > 0, '方孔錢與金邊');
-    if (role === 'hunter') assert.ok(has(R.BRACER.COLOR) > 0 && has(R.SCAR.COLOR) > 0 && has(R.FUR.COLOR) > 0 && has(R.BONE.COLOR) > 0, '護腕、疤、毛皮、骨牙');
+    /* v0.59.7 修訂 4 改寫（原：疤條頂點色存在）：疤改由寫實材質程式生成，舊疤條三角形不再畫——頂點色檢查會空過；
+       改驗「這隻手畫出來的疤強度＞0」。 */
+    if (role === 'hunter') assert.ok(has(R.BRACER.COLOR) > 0 && scarOf(meshOf(r, seat)) > 0 && has(R.FUR.COLOR) > 0 && has(R.BONE.COLOR) > 0, '護腕、疤、毛皮、骨牙');
   });
   const cuffs = ROLES3.map((k) => R.ROLES[k].CUFF.join()); cuffs.push(S.CUFF.join());
   assert.equal(new Set(cuffs).size, 4, '三角色袖口主色兩兩不同、也不等於預設袖色');
@@ -124,16 +131,19 @@ test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外
     assert.doesNotThrow(() => r.hands.setSeats(list), JSON.stringify(list));
     const st = r.hands.stats();
     assert.deepEqual(st.variants, [null, null, null, null], JSON.stringify(list));
-    assert.equal(st.geometries, 1);
-    for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry, dflt, '預設手共用同一份幾何');
+    /* v0.59.7 修訂 4 改寫（原：四席共用同一份幾何物件）：寫實版每席一份幾何（袖管每幀依相機各自重鋪），改驗「四席都是預設種類、同一席不換物件」。 */
+    for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry.userData.real && meshOf(r, s).geometry.userData.real.key, 'default', '預設手');
+    assert.equal(meshOf(r, 0).geometry, dflt, '同一席的預設手沿用同一份幾何（不重建）');
   }
   for (const role of OTHER7) {
     r.hands.setSeats(seatsOf([role, role, role, role]));
-    for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry, dflt, role + ' ＝預設手');
+    for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry.userData.real && meshOf(r, s).geometry.userData.real.key, 'default', role + ' ＝預設手');
   }
   assert.equal(r.hands.stats().variantBuilds, 0, '沒有任何變體被建出來');
   assert.equal(recoloredCount(colorOf(r, 0), B.ref, B.n0), 0);
-  assert.equal(meshOf(r, 0).geometry.index.count / 3, 1362);
+  /* v0.59.7 修訂 4 改寫（原：預設手＝GLB 原樣 1362 面）：預設手＝寫實「預設」種類（細分、無配件）。 */
+  assert.equal(meshOf(r, 0).geometry.userData.real && meshOf(r, 0).geometry.userData.real.key, 'default', '其餘角色拿寫實預設手');
+  assert.equal(accCount(meshOf(r, 0).geometry), 0, '預設手沒有配件');
   r.hands.setSeats(seatsOf(['hunter', 'qingmian', 'qingmian', 'qingmian']));
   assert.deepEqual(r.hands.stats().variants, ['hunter', null, null, null], '之後給三角色仍然正常');
   r.hands.dispose(); r.props.dispose();
@@ -144,8 +154,11 @@ for (const layout of ['L', 'P']) {
   test(`V3 ${layout}：每隻手 ≤2500 面；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質）`, async () => {
     const r = await rig(layout, ['shoujing', 'dangpu', 'hunter', 'qingmian']);
     const st = r.hands.stats();
-    st.trisByHand.forEach((t, s) => assert.ok(t <= 2500, `席 ${s} ${t} 面`));
-    assert.ok(st.trisByHand.slice(0, 3).every((t) => t > 1362), '三個變體都比預設手多出配件面');
+    /* v0.59.7 修訂 4 改寫（原：每手 ≤2,500 面、變體 >1362）：上限改依驗收條件 6（≤6,500）；變體比預設手（第 4 席）多出配件面；
+       且四席真的是寫實手（共用材質是寫實皮膚程式）。 */
+    st.trisByHand.forEach((t, s) => assert.ok(t <= 6500, `席 ${s} ${t} 面`));
+    assert.ok(st.trisByHand.slice(0, 3).every((t) => t > st.trisByHand[3]), '三個變體都比預設手多出配件面');
+    assert.equal(meshOf(r, 0).material.customProgramCacheKey && meshOf(r, 0).material.customProgramCacheKey(), 'hand-real-v2', '寫實皮膚材質');
     assert.equal(st.materials, 1, '四席共用 1 份材質');
     const materials = new Set(); let meshes = 0;
     for (let s = 0; s < 4; s++) r.hands.group.children[s].traverse((o) => { if (o.isMesh) { meshes++; materials.add(o.material); } });
@@ -187,10 +200,11 @@ test('純演出：變體建構不耗亂數（props 自己的亂數不算：同 p
     r.hands.dispose(); r.props.dispose();
   });
   const withV = await scenario(['shoujing', 'dangpu', 'hunter', 'qingmian']), without = await scenario(DEFAULT4);
-  // 三份變體幾何各 new 一個 BufferGeometry，three 自己會用 Math.random 產 uuid——先量出一份幾何的 uuid 成本，差額必須剛好是 3 份
+  /* v0.59.7 修訂 4 改寫（原：差額＝3 份幾何的 uuid 成本）：寫實版每一席都建自己的一份幾何（袖管每幀依相機重鋪），
+     有變體、沒變體都是 4 份 ⇒ Math.random 次數必須完全相同（變體不多耗任何亂數）。v0.59.6 是「預設手共用、變體各一份」，差 3 份 ⇒ 紅。 */
   const uuid = (await withSeed(() => new THREE.BufferGeometry())).calls;
   assert.ok(uuid > 0);
-  assert.equal(withV.calls - without.calls, 3 * uuid, `有變體 ${withV.calls} 次 vs 無變體 ${without.calls} 次（每份幾何的 three uuid 成本 ${uuid}）`);
+  assert.equal(withV.calls - without.calls, 0, `有變體 ${withV.calls} 次 vs 無變體 ${without.calls} 次（每份幾何的 three uuid 成本 ${uuid}）`);
   const pure = await withSeed(() => { for (const role of ROLES3) M.buildRoleGeometry(B.rig, B.arr, role); });
   assert.equal(pure.calls, 0, 'buildRoleGeometry 呼叫了 Math.random ' + pure.calls + ' 次');
   for (const role of ROLES3) {
@@ -203,7 +217,11 @@ test('純演出：變體建構不耗亂數（props 自己的亂數不算：同 p
   }
 });
 
-test('純演出：同一串事件下，有變體與沒變體的手，整隻手的位置／朝向／各骨旋轉逐幀相同（動作曲線、避讓、排隊都不受變體影響）', async () => {
+/* v0.59.7 修訂 4 改寫（原：有變體與沒變體的手逐幀動作完全相同）：寫實版每種手用自己畫面上的手形做碰撞（變粗的獵人手、配件
+   都要不穿錢），所以手形不同動作就該不同；不變的是「動作只取決於自己這一席的手形」。改驗兩件事：
+   ①隔離：同一席同一種手，不論別席是什麼角色，逐幀位置／朝向／骨旋轉完全相同；②手形真的被用上：變體手與預設手至少有一幀不同。
+   v0.59.6 的變體只換外觀、不影響解算 ⇒ ②紅。 */
+test('純演出：同一串事件下，每席手的動作只取決於自己的手形（別席換角色不影響）；變體手形真的進了擺位解算', async () => {
   const run = async (handRoles) => (await withSeed(async () => {
     const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian'], handRoles); // props 同一份角色，只有手不同
     const trace = [];
@@ -221,25 +239,50 @@ test('純演出：同一串事件下，有變體與沒變體的手，整隻手�
     r.hands.dispose(); r.props.dispose();
     return trace;
   })).v;
-  const a = await run(['shoujing', 'dangpu', 'hunter', 'qingmian']), b = await run(DEFAULT4); // 手：有變體 vs 預設
+  const a = await run(['shoujing', 'dangpu', 'hunter', 'qingmian']), b = await run(['shoujing', 'hongyi', 'xiaonv', 'qingmian']), c = await run(DEFAULT4);
+  const seat = (t, s) => t.map((fr) => fr[s]);
   assert.ok(a.some((fr) => fr.some((h) => h[0])), '手真的上場過');
-  assert.deepEqual(a, b);
+  assert.deepEqual(seat(a, 0), seat(b, 0), '席 0 都是收驚婆：別席換角色，席 0 逐幀相同');
+  assert.deepEqual(seat(a, 3), seat(b, 3), '席 3 都是預設手：別席換角色，席 3 逐幀相同');
+  assert.notDeepEqual(seat(a, 2), seat(c, 2), '席 2 獵人（指粗 1.16）與預設手至少一幀不同＝手形真的進了解算');
 });
 
 /* ═══ 配件跟著骨頭走、法線朝外 ═════════════════════════════════════════════════════════════ */
-test('配件隨骨：推／拍整段動作每一幀，配件頂點與它最近的原頂點在蒙皮後的距離，不超過綁定距離（＋容差）——戴在哪段骨就跟哪段骨', async () => {
+/* v0.59.7 修訂 4 改寫（原：以 GLB 頂點數 819 為「原頂點／配件」分界，配件頂點離最近原頂點的拉開量 <0.01 dm）：細分後 819 之後是細分新增的手部頂點，
+   分界改用寫實幾何的配件段 [nBase, 袖管起點)；錨點仍是「最近的手部頂點」，但硬配件（木珠、鉚釘、方孔錢、鐵扣：aAcc 類別 3／4）整顆綁同一組權重、
+   錨點取「離這一顆重心最近的手部頂點」——並加驗：每一顆硬配件的所有頂點蒙皮權重完全相同（手腕彎時珠子不會被拉成橢圓）。
+   v0.59.6 的配件逐頂點各抄各的最近頂點 ⇒ 佛珠（八面體）六個頂點權重不同 ⇒ 紅。舊手沒有配件段資訊時以 GLB 819 為界、顏色找硬配件。 */
+test('配件隨骨：推／拍整段動作每一幀，配件頂點與它的錨點在蒙皮後的距離不超過綁定距離（＋容差）；硬配件整顆同一組權重（不被拉變形）', async () => {
   const B = await baseSrc();
+  const R0 = M.ROLE_HAND;
   const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
-  const near = [];
+  const near = [], rigidColors = [R0.BEADS.COLOR, R0.COIN.COLOR, (R0.BRACER.RIVET || {}).COLOR || [9, 9, 9], R0.BRACER.BUCKLE];
+  let rigidPieces = 0, rigidBad = 0;
   for (let s = 0; s < 3; s++) {
-    const pos = meshOf(r, s).geometry.attributes.position.array, n = meshOf(r, s).geometry.attributes.position.count, list = [];
-    for (let e = B.n0; e < n; e += 3) { // 每 3 顆取 1（效能）
-      let best = 0, bd = Infinity;
-      for (let v = 0; v < B.n0; v++) { const dx = pos[v * 3] - pos[e * 3], dy = pos[v * 3 + 1] - pos[e * 3 + 1], dz = pos[v * 3 + 2] - pos[e * 3 + 2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = v; } }
-      list.push([e, best, Math.sqrt(bd)]);
+    const g = meshOf(r, s).geometry, pos = g.attributes.position.array, col = g.attributes.color.array, SI = g.attributes.skinIndex.array, SW = g.attributes.skinWeight.array, idx = g.index.array;
+    const nb = g.userData.real ? g.userData.real.nBase : B.n0, ne = g.userData.real ? g.userData.real.arm[0] : g.attributes.position.count;
+    const nearest = (x, y, z) => { let best = 0, bd = Infinity; for (let v = 0; v < nb; v++) { const dx = pos[v * 3] - x, dy = pos[v * 3 + 1] - y, dz = pos[v * 3 + 2] - z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = v; } } return [best, Math.sqrt(bd)]; };
+    /* 硬配件：配件段裡顏色屬硬配件色的三角形連通塊 */
+    const par = new Int32Array(ne).map((_, i) => i), find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+    const rigidV = (v) => v >= nb && v < ne && rigidColors.some((c) => close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-3));
+    for (let t = 0; t < idx.length; t += 3) { const a = idx[t], b = idx[t + 1], c = idx[t + 2]; if (rigidV(a) && rigidV(b) && rigidV(c)) { par[find(a)] = find(b); par[find(b)] = find(c); } }
+    { const at = new Map(); for (let v = nb; v < ne; v++) { if (!rigidV(v)) continue; const k = pos[v * 3].toFixed(5) + ',' + pos[v * 3 + 1].toFixed(5) + ',' + pos[v * 3 + 2].toFixed(5); if (at.has(k)) par[find(v)] = find(at.get(k)); else at.set(k, v); } } // 同位置頂點（各面各自一份）焊成一塊
+    const comp = new Map(); for (let v = nb; v < ne; v++) if (rigidV(v)) { const k = find(v); if (!comp.has(k)) comp.set(k, []); comp.get(k).push(v); }
+    const list = [], inRigid = new Set();
+    for (const vs of comp.values()) {
+      if (vs.length < 4) continue;
+      rigidPieces++; vs.forEach((v) => inRigid.add(v));
+      const w0 = vs[0], same = vs.every((v) => [0, 1, 2, 3].every((k) => SI[v * 4 + k] === SI[w0 * 4 + k] && Math.abs(SW[v * 4 + k] - SW[w0 * 4 + k]) < 1e-6));
+      if (!same) rigidBad++;
+      let x = 0, y = 0, z = 0; for (const v of vs) { x += pos[v * 3]; y += pos[v * 3 + 1]; z += pos[v * 3 + 2]; }
+      const [a] = nearest(x / vs.length, y / vs.length, z / vs.length);
+      for (const v of vs) list.push([v, a, Math.hypot(pos[v * 3] - pos[a * 3], pos[v * 3 + 1] - pos[a * 3 + 1], pos[v * 3 + 2] - pos[a * 3 + 2])]);
     }
+    for (let e = nb; e < ne; e += 3) { if (inRigid.has(e)) continue; const [a, d] = nearest(pos[e * 3], pos[e * 3 + 1], pos[e * 3 + 2]); list.push([e, a, d]); }
     near.push(list);
   }
+  assert.ok(rigidPieces >= 11, `硬配件塊數 ${rigidPieces}（至少收驚婆 11 顆佛珠）`);
+  assert.equal(rigidBad, 0, `${rigidBad}/${rigidPieces} 顆硬配件的頂點權重不一致（會被手腕拉變形）`);
   const v1 = new THREE.Vector3(), v2 = new THREE.Vector3();
   let worst = -Infinity, checked = 0, frames = 0;
   for (let k = 0; k < 6; k++) {
@@ -253,7 +296,6 @@ test('配件隨骨：推／拍整段動作每一幀，配件頂點與它最近�
     }
   }
   assert.ok(checked > 3000 && frames > 50, `取樣 ${checked}／${frames}`);
-  /* 第三輪加嚴（0.12→0.01）：正確綁骨實測最大拉開 3.2e-9（164f50ca 版 1.6e-8）；配件全移到手腕後，「綁到第 0 個原頂點的骨」突變只拉開 0.117，舊容差 0.12 抓不到 */
   assert.ok(worst < 0.01, `配件頂點離它的錨點最多拉開 ${worst} dm（綁定距離＋容差）`);
   r.hands.dispose(); r.props.dispose();
 });
@@ -366,12 +408,14 @@ test('R2 識別物互斥（各角色實際頂點色；第三輪改版）：收�
   const R = M.ROLE_HAND;
   /* 第三輪（acceptance-roles-r3.md「舊測試細部被新規格取代」）：玉（jade）→方孔錢（coin）、黃銅扣（brass）→鐵扣（iron），另加毛皮（fur）、骨牙（bone）；
      仍是「該有的全有、不該有的一個都沒有」的雙向斷言。「無綠」「金只屬當鋪」另由 R3-2／R3-4 以更嚴的逐頂點判準檢查。 */
-  const marks = { red: [R.THREAD.COLOR], bead: [R.BEADS.COLOR], coin: [R.COIN.COLOR], scar: [R.SCAR.COLOR], iron: [R.BRACER.BUCKLE], fur: R.FUR.COLORS, bone: [R.BONE.COLOR] };
+  /* v0.59.7 修訂 4：疤不再是頂點色疤條（不畫了，頂點色檢查會空過），改看寫實材質裡這種手的疤強度（scarOf），見下方 scar 分支。 */
+  const marks = { red: [R.THREAD.COLOR], bead: [R.BEADS.COLOR], coin: [R.COIN.COLOR], scar: null, iron: [R.BRACER.BUCKLE], fur: R.FUR.COLORS, bone: [R.BONE.COLOR] };
   const want = { shoujing: { red: 1, bead: 1, coin: 0, scar: 0, iron: 0, fur: 0, bone: 0 }, dangpu: { red: 0, bead: 0, coin: 1, scar: 0, iron: 0, fur: 0, bone: 0 },
     hunter: { red: 0, bead: 0, coin: 0, scar: 1, iron: 1, fur: 1, bone: 1 }, qingmian: { red: 0, bead: 0, coin: 0, scar: 0, iron: 0, fur: 0, bone: 0 } };
   ['shoujing', 'dangpu', 'hunter', 'qingmian'].forEach((role, seat) => {
     const g = meshOf(r, seat).geometry, col = g.attributes.color.array, n = g.attributes.position.count;
     for (const [k, cs] of Object.entries(marks)) {
+      if (k === 'scar') { assert.equal(scarOf(meshOf(r, seat)) > 0 ? 1 : 0, want[role].scar, `${role} 的疤（畫出來的程式疤）：期望 ${want[role].scar}`); continue; }
       const got = cs.every((c) => colourHas(col, n, c)) ? 1 : 0, any = cs.some((c) => colourHas(col, n, c)) ? 1 : 0;
       assert.equal(want[role][k] ? got : any, want[role][k], `${role} 的「${k}」識別色：期望 ${want[role][k]}`);
     }
