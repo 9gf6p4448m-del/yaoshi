@@ -89,8 +89,9 @@ test('V1 各角色的特徵色真的在手上：袖口主色、紅線、算盤�
     const n = meshOf(r, seat).geometry.attributes.position.count;
     const has = (c) => { let k = 0; for (let v = B.n0; v < n; v++) if (close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-4)) k++; return k; };
     if (role === 'shoujing') assert.ok(has(R.THREAD.COLOR) > 0, '紅線頂點');
-    if (role === 'dangpu') assert.ok(has(R.RING.COLOR) > 0 && has(R.RING.BEAD_COLOR) > 0, '戒指環與珠');
-    if (role === 'hunter') assert.ok(has(R.BRACER.COLOR) > 0 && has(R.SCAR.COLOR) > 0, '護腕與疤');
+    // 第三輪（acceptance-roles-r3.md）：當鋪的玉扳指換成方孔錢＋金邊；獵人加毛皮邊與骨牙（護腕與疤仍在）
+    if (role === 'dangpu') assert.ok(has(R.COIN.COLOR) > 0 && has(R.TRIM.GOLD) > 0, '方孔錢與金邊');
+    if (role === 'hunter') assert.ok(has(R.BRACER.COLOR) > 0 && has(R.SCAR.COLOR) > 0 && has(R.FUR.COLOR) > 0 && has(R.BONE.COLOR) > 0, '護腕、疤、毛皮、骨牙');
   });
   const cuffs = ROLES3.map((k) => R.ROLES[k].CUFF.join()); cuffs.push(S.CUFF.join());
   assert.equal(new Set(cuffs).size, 4, '三角色袖口主色兩兩不同、也不等於預設袖色');
@@ -252,7 +253,8 @@ test('配件隨骨：推／拍整段動作每一幀，配件頂點與它最近�
     }
   }
   assert.ok(checked > 3000 && frames > 50, `取樣 ${checked}／${frames}`);
-  assert.ok(worst < 0.12, `配件頂點離它的錨點最多拉開 ${worst} dm（綁定距離＋容差）`);
+  /* 第三輪加嚴（0.12→0.01）：正確綁骨實測最大拉開 3.2e-9（164f50ca 版 1.6e-8）；配件全移到手腕後，「綁到第 0 個原頂點的骨」突變只拉開 0.117，舊容差 0.12 抓不到 */
+  assert.ok(worst < 0.01, `配件頂點離它的錨點最多拉開 ${worst} dm（綁定距離＋容差）`);
   r.hands.dispose(); r.props.dispose();
 });
 
@@ -359,12 +361,14 @@ test('R1b（色彩層）三角色色塊「面積加權平均色」sRGB 兩兩歐
   r.hands.dispose(); r.props.dispose();
 });
 
-test('R2 識別物互斥（各角色實際頂點色）：收驚婆有紅繩＋佛珠無玉；當鋪有玉無紅繩無佛珠；獵人有疤＋黃銅扣無玉無紅繩無佛珠；預設手皆無', async () => {
+test('R2 識別物互斥（各角色實際頂點色；第三輪改版）：收驚婆有紅繩＋佛珠、無錢無毛無骨；當鋪有方孔錢、無紅繩無佛珠無毛無骨；獵人有疤＋鐵扣＋毛皮＋骨牙、無錢無紅繩無佛珠；預設手皆無', async () => {
   const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
   const R = M.ROLE_HAND;
-  const marks = { red: [R.THREAD.COLOR], bead: [R.BEADS.COLOR], jade: [R.RING.COLOR, R.RING.BEAD_COLOR], scar: [R.SCAR.COLOR], brass: [R.BRACER.BUCKLE] };
-  const want = { shoujing: { red: 1, bead: 1, jade: 0, scar: 0, brass: 0 }, dangpu: { red: 0, bead: 0, jade: 1, scar: 0, brass: 0 },
-    hunter: { red: 0, bead: 0, jade: 0, scar: 1, brass: 1 }, qingmian: { red: 0, bead: 0, jade: 0, scar: 0, brass: 0 } };
+  /* 第三輪（acceptance-roles-r3.md「舊測試細部被新規格取代」）：玉（jade）→方孔錢（coin）、黃銅扣（brass）→鐵扣（iron），另加毛皮（fur）、骨牙（bone）；
+     仍是「該有的全有、不該有的一個都沒有」的雙向斷言。「無綠」「金只屬當鋪」另由 R3-2／R3-4 以更嚴的逐頂點判準檢查。 */
+  const marks = { red: [R.THREAD.COLOR], bead: [R.BEADS.COLOR], coin: [R.COIN.COLOR], scar: [R.SCAR.COLOR], iron: [R.BRACER.BUCKLE], fur: R.FUR.COLORS, bone: [R.BONE.COLOR] };
+  const want = { shoujing: { red: 1, bead: 1, coin: 0, scar: 0, iron: 0, fur: 0, bone: 0 }, dangpu: { red: 0, bead: 0, coin: 1, scar: 0, iron: 0, fur: 0, bone: 0 },
+    hunter: { red: 0, bead: 0, coin: 0, scar: 1, iron: 1, fur: 1, bone: 1 }, qingmian: { red: 0, bead: 0, coin: 0, scar: 0, iron: 0, fur: 0, bone: 0 } };
   ['shoujing', 'dangpu', 'hunter', 'qingmian'].forEach((role, seat) => {
     const g = meshOf(r, seat).geometry, col = g.attributes.color.array, n = g.attributes.position.count;
     for (const [k, cs] of Object.entries(marks)) {
@@ -396,3 +400,166 @@ test('R3 動作中（推／拍）四席皮膚頂點 alpha 全為 1、material.op
   assert.ok(acting >= 3, `動作中可見的手 ${acting} 隻（否則沒有行使到動作）`);
   r.hands.dispose(); r.props.dispose();
 });
+
+/* ═══ 第三輪（#D 獵人／當鋪互換、袖口空圓管）：acceptance-roles-r3.md R3-2～R3-5 ═══════════════════════════ */
+const srgb01 = (c) => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+/** 綠色主導（R3-2 凍結定義）：g−r>0.08 且 g−b>0.08（線性）。 */
+const isGreen = (r, g, b) => g - r > 0.08 && g - b > 0.08;
+/** 金色（R3-4 凍結定義）：sRGB HSV 色相 36°–62°、飽和 ≥0.55、明度 ≥0.45。 */
+function isGold(r, g, b) {
+  r = srgb01(r); g = srgb01(g); b = srgb01(b);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!(d > 0) || mx < 0.45 || d / mx < 0.55) return false;
+  let h = mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+  if (h < 0) h += 360;
+  return h >= 36 && h <= 62;
+}
+const roleGeo = async (role) => { const B = await baseSrc(); return { B, g: M.buildRoleGeometry(B.rig, B.arr, role) }; };
+const P3 = (a, i) => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]];
+const triNormal = (a, b, c) => { const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]; return [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]; };
+const triArea = (a, b, c) => Math.hypot(...triNormal(a, b, c)) / 2;
+/** Möller–Trumbore：直線 o+t·d 與三角形的交點參數 t（不限正負；沒交回 null）。 */
+function hitT(o, d, a, b, c) {
+  const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+  const p = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * p[0] + e1[1] * p[1] + e1[2] * p[2];
+  if (Math.abs(det) < 1e-12) return null;
+  const s = [o[0] - a[0], o[1] - a[1], o[2] - a[2]], u = (s[0] * p[0] + s[1] * p[1] + s[2] * p[2]) / det;
+  if (u < 0 || u > 1) return null;
+  const q = [s[1] * e1[2] - s[2] * e1[1], s[2] * e1[0] - s[0] * e1[2], s[0] * e1[1] - s[1] * e1[0]], v = (d[0] * q[0] + d[1] * q[1] + d[2] * q[2]) / det;
+  if (v < 0 || u + v > 1) return null;
+  return (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) / det;
+}
+/** 某顏色清單的配件三角形，依「位置焊接」（同座標＝同點）分連通塊；回 [[三角形起點 t, ...], ...]。 */
+function colourComponents(g, n0, colours) {
+  const col = g.color, pos = g.position, idx = g.index;
+  const isC = (v) => v >= n0 && colours.some((c) => close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-3));
+  const key = (v) => `${Math.round(pos[v * 3] * 1e5)},${Math.round(pos[v * 3 + 1] * 1e5)},${Math.round(pos[v * 3 + 2] * 1e5)}`;
+  const parent = new Map(), find = (k) => { while (parent.get(k) !== k) { parent.set(k, parent.get(parent.get(k))); k = parent.get(k); } return k; };
+  const tris = [];
+  for (let t = 0; t < idx.length; t += 3) {
+    const vs = [idx[t], idx[t + 1], idx[t + 2]]; if (!vs.every(isC)) continue;
+    const ks = vs.map(key); for (const k of ks) if (!parent.has(k)) parent.set(k, k);
+    parent.set(find(ks[1]), find(ks[0])); parent.set(find(ks[2]), find(ks[0])); tris.push([t, ks[0]]);
+  }
+  const groups = new Map(); for (const [t, k] of tris) { const r = find(k); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(t); }
+  return [...groups.values()];
+}
+
+test('R3-2 無綠：獵人與當鋪變體幾何的全部頂點（原頂點＋配件）綠色主導（g−r>0.08 且 g−b>0.08）＝0', async () => {
+  for (const role of ['hunter', 'dangpu']) {
+    const { g } = await roleGeo(role), n = g.position.length / 3;
+    let green = 0; for (let v = 0; v < n; v++) if (isGreen(g.color[v * 4], g.color[v * 4 + 1], g.color[v * 4 + 2])) green++;
+    assert.equal(green, 0, `${role} 綠色主導頂點 ${green}`);
+  }
+  /* 零鑑別力防線：同一判準對第二輪的翡翠色必須判綠 */
+  assert.ok(isGreen(0.030, 0.26, 0.13) && isGreen(0.07, 0.52, 0.28));
+});
+
+test('R3-4 金色只屬當鋪：當鋪金色頂點 >0；獵人、收驚婆全部頂點金色＝0', async () => {
+  const gold = {};
+  for (const role of ROLES3) { const { g } = await roleGeo(role), n = g.position.length / 3; let k = 0; for (let v = 0; v < n; v++) if (isGold(g.color[v * 4], g.color[v * 4 + 1], g.color[v * 4 + 2])) k++; gold[role] = k; }
+  assert.ok(gold.dangpu > 0, `當鋪金色頂點 ${gold.dangpu}`);
+  assert.equal(gold.hunter, 0, `獵人金色頂點 ${gold.hunter}`);
+  assert.equal(gold.shoujing, 0, `收驚婆金色頂點 ${gold.shoujing}`);
+  assert.ok(isGold(0.62, 0.42, 0.09), '零鑑別力防線：第二輪黃銅扣色必須判金');
+});
+
+test('R3-4 當鋪方孔錢：錢色連通塊 ≥5，每塊沿平均面法線過質心的射線不命中（有孔）、0.8×外半徑處命中（不是空的）', async () => {
+  const { B, g } = await roleGeo('dangpu');
+  const coin = M.ROLE_HAND.COIN && M.ROLE_HAND.COIN.COLOR;
+  assert.ok(coin, '當鋪沒有方孔錢的顏色定義（ROLE_HAND.COIN.COLOR）');
+  assert.ok(isGold(...coin), '錢色必須是金色');
+  const comps = colourComponents(g, B.n0, [coin]);
+  let rings = 0; const why = [];
+  for (const ts of comps) {
+    const vs = new Set(); ts.forEach((t) => { vs.add(g.index[t]); vs.add(g.index[t + 1]); vs.add(g.index[t + 2]); });
+    const cen = [0, 0, 0]; for (const v of vs) for (let a = 0; a < 3; a++) cen[a] += g.position[v * 3 + a] / vs.size;
+    let ref = null; const nrm = [0, 0, 0];
+    for (const t of ts) {
+      const f = triNormal(P3(g.position, g.index[t]), P3(g.position, g.index[t + 1]), P3(g.position, g.index[t + 2]));
+      if (!ref) ref = f; const sgn = f[0] * ref[0] + f[1] * ref[1] + f[2] * ref[2] < 0 ? -1 : 1;
+      for (let a = 0; a < 3; a++) nrm[a] += sgn * f[a];
+    }
+    const nl = Math.hypot(...nrm); for (let a = 0; a < 3; a++) nrm[a] /= nl;
+    let far = null, R = 0;
+    for (const v of vs) { const d = [g.position[v * 3] - cen[0], g.position[v * 3 + 1] - cen[1], g.position[v * 3 + 2] - cen[2]], k = d[0] * nrm[0] + d[1] * nrm[1] + d[2] * nrm[2], pl = [d[0] - k * nrm[0], d[1] - k * nrm[1], d[2] - k * nrm[2]], r = Math.hypot(...pl); if (r > R) { R = r; far = pl.map((x) => x / r); } }
+    const hits = (o) => ts.some((t) => hitT(o, nrm, P3(g.position, g.index[t]), P3(g.position, g.index[t + 1]), P3(g.position, g.index[t + 2])) !== null);
+    const centreHit = hits(cen), rimHit = hits([cen[0] + far[0] * 0.8 * R, cen[1] + far[1] * 0.8 * R, cen[2] + far[2] * 0.8 * R]);
+    if (!centreHit && rimHit) rings++; else why.push({ tris: ts.length, centreHit, rimHit });
+  }
+  assert.ok(rings >= 5, `環形方孔錢 ${rings} 枚（連通塊 ${comps.length}；不合格 ${JSON.stringify(why.slice(0, 3))}）`);
+});
+
+test('R3-3 獵人毛皮邊：毛皮色組面積 ≥ 任一其他配件色；毛皮平均色與當鋪金邊、收驚婆白袖口 sRGB 兩兩 ≥60；骨牙護符 ≥3 顆且是尖形', async () => {
+  const R = M.ROLE_HAND, F = R.FUR;
+  assert.ok(F && Array.isArray(F.COLORS) && F.COLORS.length, '獵人沒有毛皮色定義（ROLE_HAND.FUR.COLORS）');
+  const { B, g } = await roleGeo('hunter'), col = g.color, n0 = B.n0;
+  const ck = (v) => [col[v * 4], col[v * 4 + 1], col[v * 4 + 2]].map((x) => Math.round(x * 1e4)).join();
+  const isFur = (v) => F.COLORS.some((c) => close([col[v * 4], col[v * 4 + 1], col[v * 4 + 2]], c, 1e-3));
+  const areaBy = new Map(); let fur = 0; const furMean = [0, 0, 0];
+  for (let t = B.arr.index.length; t < g.index.length; t += 3) {
+    const [i, j, k] = [g.index[t], g.index[t + 1], g.index[t + 2]];
+    const a = triArea(P3(g.position, i), P3(g.position, j), P3(g.position, k));
+    if (isFur(i) && isFur(j) && isFur(k)) { fur += a; for (let q = 0; q < 3; q++) furMean[q] += a * (srgb255(col[i * 4 + q]) + srgb255(col[j * 4 + q]) + srgb255(col[k * 4 + q])) / 3; continue; }
+    if (ck(i) === ck(j) && ck(j) === ck(k)) areaBy.set(ck(i), (areaBy.get(ck(i)) || 0) + a);
+  }
+  assert.ok(fur > 0, '沒有毛皮三角形');
+  for (const [c, a] of areaBy) assert.ok(fur >= a, `毛皮面積 ${fur.toFixed(3)} < 配件色 ${c} 的 ${a.toFixed(3)}`);
+  assert.ok(areaBy.size >= 3, `其他配件色只有 ${areaBy.size} 種（零鑑別力防線）`);
+  const fm = furMean.map((x) => x / fur);
+  /* 對照色：當鋪金邊（TRIM.GOLD）、收驚婆白袖口（ROLES.shoujing.CUFF）——同一個 sRGB 換算 */
+  const gold = R.TRIM.GOLD.map(srgb255), linen = R.ROLES.shoujing.CUFF.map(srgb255), dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+  assert.ok(dist(fm, gold) >= 60, `毛皮 ${fm.map(Math.round)} vs 當鋪金 ${gold.map(Math.round)} 距離 ${dist(fm, gold).toFixed(1)}`);
+  assert.ok(dist(fm, linen) >= 60, `毛皮 vs 收驚婆白 距離 ${dist(fm, linen).toFixed(1)}`);
+  assert.ok(dist(gold, linen) >= 60, `當鋪金 vs 收驚婆白 距離 ${dist(gold, linen).toFixed(1)}`);
+  /* 骨牙護符：骨色連通塊 ≥3，每塊最長軸 ÷ 垂直於它的最大寬度 ≥1.5 */
+  assert.ok(R.BONE && R.BONE.COLOR, '獵人沒有骨牙護符定義（ROLE_HAND.BONE.COLOR）');
+  const comps = colourComponents(g, n0, [R.BONE.COLOR]);
+  let pointed = 0; const ratios = [];
+  for (const ts of comps) {
+    const vs = [...new Set(ts.flatMap((t) => [g.index[t], g.index[t + 1], g.index[t + 2]]))].map((v) => P3(g.position, v));
+    let L = 0, ax = null; for (const p of vs) for (const q of vs) { const d = Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); if (d > L) { L = d; ax = [(q[0] - p[0]) / d, (q[1] - p[1]) / d, (q[2] - p[2]) / d]; } }
+    const pr = vs.map((p) => { const k = p[0] * ax[0] + p[1] * ax[1] + p[2] * ax[2]; return [p[0] - k * ax[0], p[1] - k * ax[1], p[2] - k * ax[2]]; });
+    let Wd = 0; for (const p of pr) for (const q of pr) Wd = Math.max(Wd, Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]));
+    ratios.push(+(L / Wd).toFixed(2)); if (L / Wd >= 1.5) pointed++;
+  }
+  assert.ok(comps.length >= 3 && pointed >= 3, `骨牙連通塊 ${comps.length}、尖形 ${pointed}（長寬比 ${ratios}）`);
+});
+
+for (const role of ROLES3) {
+  test(`R3-5 ${role} 袖口封口：從袖口外側沿手臂軸往內看的每條射線，第一個會被畫出的命中（正面）必須存在、落在袖口區、且不透明`, async () => {
+    const { B, g } = await roleGeo(role), n = g.position.length / 3, n0 = B.n0, S = M.HAND.SLEEVE;
+    const zone = []; for (let v = n0; v < n; v++) { const z = g.position[v * 3 + 2]; if (z >= -0.60 && z <= -0.05) zone.push(v); }
+    assert.ok(zone.length > 30, `${role} 袖口區配件頂點 ${zone.length}`);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, zmin = Infinity, zmax = -Infinity;
+    for (const v of zone) { const [x, y, z] = P3(g.position, v); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); }
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, polar = (x, y) => [Math.atan2(y - cy, x - cx), Math.hypot(x - cx, y - cy)];
+    const angDiff = (a, b) => { const d = Math.abs(a - b) % (2 * Math.PI); return d > Math.PI ? 2 * Math.PI - d : d; };
+    const WIN = Math.PI / 12;
+    const arm = []; for (let v = 0; v < n0; v++) { const z = g.position[v * 3 + 2]; if (z >= S.CUFF_TO && z <= S.CUFF_FROM) arm.push(polar(g.position[v * 3], g.position[v * 3 + 1])); }
+    const zp = zone.map((v) => polar(g.position[v * 3], g.position[v * 3 + 1]));
+    const tris = []; for (let t = 0; t < g.index.length; t += 3) tris.push([g.index[t], g.index[t + 1], g.index[t + 2]]);
+    const dir = [0, 0, 1], bad = []; let rays = 0;
+    for (let k = 0; k < 24; k++) {
+      const th = (k / 24) * Math.PI * 2;
+      let armR = 0; for (const [a, r] of arm) if (angDiff(a, th) <= WIN && r > armR) armR = r;
+      let rin = Infinity; for (const [a, r] of zp) if (angDiff(a, th) <= WIN && r > armR + 0.005 && r < rin) rin = r;
+      assert.ok(Number.isFinite(rin), `${role} 方位 ${k} 找不到袖口環（臂半徑 ${armR.toFixed(3)}）`);
+      for (const f of [0, 0.25, 0.5, 0.75, 0.95]) {
+        if (f === 0 && k > 0) continue;
+        const o = [cx + Math.cos(th) * rin * f, cy + Math.sin(th) * rin * f, zmin - 0.05];
+        let best = null;
+        for (const [i, j, q] of tris) {
+          const a = P3(g.position, i), b = P3(g.position, j), c = P3(g.position, q), t = hitT(o, dir, a, b, c);
+          if (t === null || t <= 0) continue;
+          if (triNormal(a, b, c)[2] >= 0) continue; // FrontSide：面法線朝 −z（朝觀看者）才畫得出來
+          if (!best || t < best.t) best = { t, z: o[2] + t, alpha: Math.min(g.color[i * 4 + 3], g.color[j * 4 + 3], g.color[q * 4 + 3]) };
+        }
+        rays++;
+        if (!best || best.z > zmax + 1e-6 || best.alpha < 0.99) bad.push({ k, f, hit: best && { z: +best.z.toFixed(3), alpha: +best.alpha.toFixed(2) } });
+      }
+    }
+    assert.ok(rays >= 97, `射線 ${rays}`);
+    assert.deepEqual(bad.slice(0, 4), [], `${role}：${bad.length}/${rays} 條射線穿過袖口沒先命中不透明正面（空圓管）`);
+  });
+}

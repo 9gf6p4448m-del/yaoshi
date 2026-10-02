@@ -30,18 +30,21 @@ try {
     await page.waitForTimeout(20);
   }
   if (lay === 'P') await page.addStyleTag({ content: '#rotateHint{display:none !important}' });
-  if (opt.close) await page.addStyleTag({ content: 'body > *:not(canvas):not(#vignette){visibility:hidden !important}' });
+  if (opt.close || opt.nohud) await page.addStyleTag({ content: 'body > *:not(canvas):not(#vignette){visibility:hidden !important}' }); // 第三輪 --nohud：盲讀圖一律不帶 HUD（HUD 有角色名；r2 起量測後的圖本來就沒有 HUD，這裡讓第一張也一致）
   await page.evaluate(async () => { const t = window.__yaoshi3d.tray; await t.loaded(); await t.hands.ready(); t.props.clearRound(); t.hands.clear(); });
   const shoot = async (name, seats, fire, waitMs) => {
     await page.evaluate(async ({ seats, fire, waitMs }) => {
       const T = window.__yaoshi3d.tray, hp = (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d }));
       if (window.__raf0) { window.requestAnimationFrame = window.__raf0; const c = window.__held; window.__held = null; if (c) window.requestAnimationFrame(c); }
+      if (window.__propsUpd0) { T.props.update = window.__propsUpd0; window.__propsUpd0 = null; }
       T.hands.setFrozen(false); T.hands.finish(); T.props.clearRound(); T.hands.clear();
       T.props.setSeats(seats); T.hands.setSeats(seats);
       for (const [n, d] of fire.prep || []) hp(n, d);
       if ((fire.prep || []).length) await new Promise((r) => setTimeout(r, 1300));
       for (const [n, d] of fire.go) hp(n, d);
       await new Promise((r) => setTimeout(r, waitMs)); T.hands.setFrozen(true);
+      /* 第三輪：推錢的拍攝要連錢一起停（凍結手但錢繼續飛，錢一落地手就判「推完」轉收手，拍到的是收手起點、預檢不過）。治具專用，下一張開拍前還原。 */
+      if (fire.freezeProps) { window.__propsUpd0 = T.props.update; T.props.update = () => {}; }
       await new Promise((r) => { let k = 0; const f = () => (++k >= 3 ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
     }, { seats, fire, waitMs });
     if (opt.close) await page.evaluate(async ({ seat, d }) => {
@@ -182,13 +185,13 @@ try {
   const jobs = JSON.parse(opt.jobs || '[]'); // [[role, seat, 'push'|'slam', slot]]
   for (const [role, seat, act, slot, blindIdx] of jobs) {
     const seats = seatsFor(role === 'default' ? 'qingmian' : role, seat);
-    const fire = act === 'push' ? { go: [['ys:bid', { seat, slot, amount: 8 }]] } : { go: [['ys:mark', { seat, slot }]] };
+    const fire = act === 'push' ? { go: [['ys:bid', { seat, slot, amount: 8 }]], freezeProps: true } : { go: [['ys:mark', { seat, slot }]] };
     const nm = `${opt.prefix || 'shot'}-${role}-s${seat}-${act}`;
     /* 盲讀圖（R5）：--blind=<dir> 且該 job 帶第 5 欄編號時，預檢（手在畫面內／alpha=1／動作進行中／色塊像素夠）不過就換等待時間重拍，
        全過才存成 <dir>/blind-NN.jpg（檔名與圖上都不含角色名；對照表由人另寫在 answer-key）。最多重拍 8 次，仍不過＝回報失敗、不存圖。 */
     /* --tband=a,b：量測要在同一個動作進度（state.t）才可比（牆鐘等待會讓 t 在 0.2～0.41 間飄，手的朝向不同、色塊像素跟著變）；t 不在區間就重拍，最多 25 次。 */
     const band = opt.tband ? String(opt.tband).split(',').map(Number) : null;
-    const waits = band ? Array.from({ length: 25 }, (_, i) => 150 + ((i * 53) % 300)) : blindIdx ? [300, 260, 340, 220, 380, 180, 420, 140] : [Number(opt.wait) || (act === 'push' ? 170 : 300)];
+    const waits = band ? Array.from({ length: 25 }, (_, i) => 150 + ((i * 53) % 300)) : blindIdx ? (act === 'push' ? [90, 70, 110, 55, 130, 80, 100, 45] /* 第三輪：推錢只有 PUSH_MS 0.42 秒（含錢飛行），r2 的等待表只適用拍令牌 */ : [300, 260, 340, 220, 380, 180, 420, 140]) : [Number(opt.wait) || (act === 'push' ? 170 : 300)];
     let ok = false;
     for (const w of waits) {
       await shoot(nm, seats, fire, w);

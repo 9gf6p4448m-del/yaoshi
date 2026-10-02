@@ -196,7 +196,11 @@ export function dressColors(positions, colors, itemSize = 3, palette = null) {
  * 做法：同一顆 GLB 幾何複製一份，只換頂點色（袖口主色一個部位＋收驚婆的膚色與手背紋理），再把小配件的幾何（紅線、
  * 戒指、護腕、疤）接在同一份幾何後面，蒙皮權重抄最近的原頂點——仍是一隻手一個 SkinnedMesh、一份共用材質、一個 draw call。
  * 純函式、不耗亂數（手背紋理用位置雜湊）、不依賴 three；只在 setSeats／建構時呼叫一次，不得每幀呼叫。 */
-const C_LINEN = [0.78, 0.70, 0.54], C_HEM = [0.52, 0.46, 0.34], C_BLACK = [0.014, 0.013, 0.016], C_GOLD = [0.40, 0.24, 0.03], C_LINING = [0.16, 0.006, 0.009], C_LEATHER = [0.62, 0.30, 0.12], C_STRAP = [0.30, 0.135, 0.050], C_BRASS = [0.62, 0.42, 0.09];
+const C_LINEN = [0.78, 0.70, 0.54], C_HEM = [0.52, 0.46, 0.34], C_LINING = [0.16, 0.006, 0.009], C_LEATHER = [0.62, 0.30, 0.12], C_STRAP = [0.30, 0.135, 0.050];
+const C_BLACK = [0.014, 0.013, 0.016], C_GOLD = [0.80, 0.55, 0.08]; // 第三輪：金邊提亮（暗金在桌燈下會和獵人的棕毛撞色）
+/* 第三輪（acceptance-roles-r3.md）：手上一律無綠；金色只屬當鋪（方孔錢＋金邊）；獵人＝毛皮邊＋骨牙，扣改鐵色。 */
+const C_LINEN_IN = [0.42, 0.37, 0.28]; // 收驚婆袖口內襯（封口底蓋；比毛邊暗一階，不算進腕部色塊）
+const C_COIN = [0.86, 0.60, 0.10], C_FUR = [0.18, 0.142, 0.132], C_FUR_TIP = [0.41, 0.37, 0.35], C_HIDE = [0.22, 0.12, 0.06], C_IRON = [0.16, 0.16, 0.17], C_BONE = [0.80, 0.75, 0.62];
 export const ROLE_HAND = {
   /** 環形配件的圓周分段數（面數旋鈕：三角形＝SEG×剖面邊數×2）。 */
   SEG: 12,
@@ -207,9 +211,12 @@ export const ROLE_HAND = {
    *  （原頂點的袖口一圈＋下面 CUFF_BAND 的寬袖環都用它）；BLOCK＝該角色腕部色塊全部顏色（主色＋滾邊／襯裡／縫線，驗收 R1 取樣用）。 */
   ROLES: {
     shoujing: { CUFF: C_LINEN, CLOTH: [0.30, 0.27, 0.20], BLOCK: [C_LINEN, C_HEM] }, // 未染白麻
-    dangpu: { CUFF: C_BLACK, CLOTH: [0.010, 0.010, 0.013], BLOCK: [C_BLACK, C_GOLD, C_LINING] }, // 黑絲金邊＋暗紅襯
-    hunter: { CUFF: C_LEATHER, CLOTH: [0.18, 0.085, 0.032], BLOCK: [C_LEATHER, C_STRAP, C_BRASS] }, // 寬皮護腕
+    dangpu: { CUFF: C_BLACK, CLOTH: [0.010, 0.010, 0.013], BLOCK: [C_BLACK, C_GOLD, C_LINING, C_COIN] }, // 黑絲金邊＋暗紅襯＋方孔錢
+    hunter: { CUFF: C_LEATHER, CLOTH: [0.18, 0.085, 0.032], BLOCK: [C_FUR, C_FUR_TIP, C_HIDE, C_LEATHER, C_STRAP, C_IRON] }, // 毛皮邊＋皮護腕
   },
+  /** 袖口封口（第三輪：讀者說袖口像沒封口的空圓管、露黑洞）：最後面那圈環的中心線上鋪一片朝肘方向（−z）的底蓋，用各角色自己的襯裡色。
+   *  SEG＝底蓋圓周點數（扇形三角化、沒有中心點：三角形＝SEG−2）。 */
+  CAP: { SEG: 32, shoujing: C_LINEN_IN, dangpu: C_LINING, hunter: C_HIDE },
   /** 寬袖環（第二輪）：套在袖口邊外，中心 z、半寬 W、徑向半厚 R、橢圓外撐 PAD、尾端外翻 FLARE（加撐的小環）。 */
   CUFF_BAND: {
     shoujing: { Z: -0.25, LIFT: 0.01, W: 0.17, R: 0.05, PAD: 0.062, FLARE: 0.05, FLARE_Z: -0.43, FLARE_W: 0.035 },
@@ -221,13 +228,19 @@ export const ROLE_HAND = {
   /** 收驚婆：木佛珠（一圈 N 顆、深褐）與紅繩（一圈，COLOR 保持舊名；TASSEL＝繩結下垂的小穗）。離腕骨 z（dm）。 */
   BEADS: { Z: 0.08, N: 11, ARC: Math.PI * 1.3, FROM: Math.PI * 0.15, /* 只繞手腕上半圈多（下緣貼桌，不繞滿） */ S: 0.062, COLOR: [0.055, 0.026, 0.012], OUT: 0.035 },
   THREAD: { Z: [0.19], R: 0.040, W: 0.034, GAP: 0.012, COLOR: [0.46, 0.015, 0.012] },
-  /** 當鋪：玉扳指——環在拇指近節（ThumbA→ThumbB 的 T 處），環厚 R、寬 W；外側（+x）一顆大玉面（菱形）。COLOR／BEAD_COLOR 沿用舊名（環／玉面）。 */
-  RING: { FROM: 'ThumbA', TO: 'ThumbB', T: 0.9, LIFT: 0.07, R: 0.030, W: 0.085, GAP: 0.004, COLOR: [0.030, 0.26, 0.13], BEAD: [0.085, 0.085, 0.085], BEAD_COLOR: [0.07, 0.52, 0.28] },
-  /** 當鋪袖口滾邊（金，寬）與襯裡（暗紅，外翻露出）。 */
+  /** 當鋪袖口滾邊（金，寬）與襯裡（暗紅，外翻露出）。第三輪：玉扳指拿掉（綠色兩邊都被讀成當鋪／獵人）。 */
   TRIM: { GOLD: C_GOLD, LINING: C_LINING, GOLD_W: 0.05, GOLD_Z: [-0.115, -0.395] },
-  /** 獵人：皮護腕（寬）、兩道扣帶、黃銅扣、指節髒麻布纏帶；手背舊疤。BRACER.COLOR 與 CUFF 同色（大色塊）。 */
-  BRACER: { Z: -0.25, W: 0.27, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.115, -0.385], STRAP_W: 0.046, BUCKLE: C_BRASS, BUCKLE_S: [0.085, 0.03, 0.075] },
-  WRAP: { Z: 0.28, LIFT: 0.035, W: 0.11, R: 0.022, GAP: 0.002, COLOR: [0.30, 0.26, 0.19], SEAM: [0.18, 0.15, 0.11] },
+  /** 當鋪：腕上一串金色方孔錢（第三輪）。貼在黑袖環外面、從頂上沿外側（−x）垂下；ANG＝各枚在袖環上的方位角（度，90＝正上）。
+   *  每枚＝外八角、內方孔的環（外半徑 R、方孔半邊 HOLE、厚 T）。 */
+  COIN: { COLOR: C_COIN, ANG: [96, 114, 132, 150, 168, 186], R: 0.050, HOLE: 0.017, T: 0.012, GAP: 0.003 },
+  /** 獵人：皮護腕（縮成輔助）、兩道扣帶、鐵扣（第三輪：黃銅扣會和當鋪金撞色）；手背舊疤。
+   *  第三輪拿掉指節髒麻布纏帶：遊戲視角它的像素比毛皮邊還多（毛皮要當最大色塊），且米白麻布易被讀成收驚婆的白袖。 */
+  BRACER: { Z: -0.165, W: 0.085, R: 0.040, GAP: 0.002, COLOR: C_LEATHER, STRAP: C_STRAP, STRAP_Z: [-0.105, -0.232], STRAP_W: 0.03, BUCKLE: C_IRON, BUCKLE_S: [0.07, 0.03, 0.035] },
+  /** 獵人：外翻一圈蓬鬆毛皮邊（第三輪，最大色塊）。袖環中心 Z、軸向半寬 W、外撐 PAD、毛厚 R（底下 BOTTOM 倍、免得壓到錢）、
+   *  不規則邊（位置雜湊、不耗亂數）JIT；TUFTS＝邊緣一撮撮外翹的毛（尖錐），長 TUFT_L。COLORS＝毛皮色組（驗收 R3-3 取樣用）。 */
+  FUR: { Z: -0.36, W: 0.13, PAD: 0.09, LOW: 0.0, R: 0.065, BOTTOM: 0.3, SEG: 18, TS: 6, JIT: 0.7, TUFTS: 26, TUFT_L: 0.06, TUFT_W: 0.042, COLOR: C_FUR, TIP: C_FUR_TIP, COLORS: [C_FUR, C_FUR_TIP] },
+  /** 獵人：骨／獸牙護符——繞在皮護腕上（Z 處）的一圈細皮繩，上半圈 N 顆象牙白小尖牙往外翹。ANG＝方位角（度）。 */
+  BONE: { COLOR: C_BONE, CORD: C_STRAP, Z: -0.14, ANG: [52, 78, 104, 130], L: 0.11, W: 0.02, CORD_R: 0.012 },
   TAN: [0.90, 0.78, 0.66],
   SCAR: { A: [0.16, 0.28], B: [-0.12, 0.66], W: 0.045, LIFT: 0.014, N: 8, COLOR: [0.74, 0.50, 0.42] },
 };
@@ -285,6 +298,41 @@ function accBuilder() {
         const q = [at(-1, -1), at(1, -1), at(1, 1), at(-1, 1)].map((p) => vert(p, n, color));
         I.push(q[0], q[1], q[2], q[0], q[2], q[3]);
       }
+    },
+    /** 平面多邊形底蓋（第三輪袖口封口）：橢圓（中心 c、平面基底 a／b、半徑 ra／rb）seg 個點、法線 n；扇形三角化、無中心點。 */
+    disc(c, a, b, ra, rb, n, color, seg, rbLow = rb) {
+      const ids = [];
+      for (let i = 0; i < seg; i++) { const th = (i / seg) * Math.PI * 2, st = Math.sin(th); ids.push(vert(v3add(c, v3add(v3mul(a, ra * Math.cos(th)), v3mul(b, (st < 0 ? rbLow : rb) * st))), n, color)); }
+      for (let i = 1; i + 1 < seg; i++) I.push(ids[0], ids[i], ids[i + 1]);
+    },
+    /** 四角尖錐（骨牙、毛尖）：底心 p、指向 dir（單位）、長 len、底半寬 w；底面也封起來。 */
+    spike(p, dir, len, w, color) {
+      const u = v3norm(v3cross(Math.abs(dir[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], dir)), v = v3cross(dir, u);
+      const apex = v3add(p, v3mul(dir, len)), cs = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([s, t]) => v3add(p, v3add(v3mul(u, s * w), v3mul(v, t * w))));
+      for (let k = 0; k < 4; k++) {
+        const b0 = cs[k], b1 = cs[(k + 1) % 4], n = v3cross(v3sub(b1, b0), v3sub(apex, b0));
+        const nn = v3dot(n, v3sub(v3mul(v3add(b0, b1), 0.5), p)) < 0 ? v3mul(n, -1) : n;
+        I.push(vert(b0, nn, color), vert(b1, nn, color), vert(apex, nn, color));
+      }
+      const nb = v3mul(dir, -1), q = cs.map((x) => vert(x, nb, color)); I.push(q[0], q[1], q[2], q[0], q[2], q[3]);
+    },
+    /** 方孔錢：中心 c、面法線 n、面內基底 u／v，外八角半徑 r、方孔半邊 h、厚 t。正反兩面＋外緣＋孔壁（各自的面法線）。 */
+    coin(c, n, u, v, r, h, t, color) {
+      const at = (x, y, z) => v3add(c, v3add(v3add(v3mul(u, x), v3mul(v, y)), v3mul(n, z)));
+      const out = (j) => { const th = (j / 8) * Math.PI * 2; return [r * Math.cos(th), r * Math.sin(th)]; };
+      const inn = (k) => { const th = Math.PI / 4 + (k / 4) * Math.PI * 2; return [h * Math.SQRT2 * Math.cos(th), h * Math.SQRT2 * Math.sin(th)]; };
+      for (const s of [1, -1]) { // 正反兩面
+        const nn = v3mul(n, s), O = [], In = [];
+        for (let j = 0; j < 8; j++) { const [x, y] = out(j); O.push(vert(at(x, y, s * t / 2), nn, color)); }
+        for (let k = 0; k < 4; k++) { const [x, y] = inn(k); In.push(vert(at(x, y, s * t / 2), nn, color)); }
+        for (let k = 0; k < 4; k++) {
+          const o1 = O[(2 * k + 1) % 8], o2 = O[(2 * k + 2) % 8], o3 = O[(2 * k + 3) % 8], i0 = In[k], i1 = In[(k + 1) % 4];
+          I.push(i0, o1, o2, i0, o2, i1, i1, o2, o3);
+        }
+      }
+      const wall = (p0, p1, nn) => { const q = [vert(at(p0[0], p0[1], t / 2), nn, color), vert(at(p1[0], p1[1], t / 2), nn, color), vert(at(p1[0], p1[1], -t / 2), nn, color), vert(at(p0[0], p0[1], -t / 2), nn, color)]; I.push(q[0], q[1], q[2], q[0], q[2], q[3]); };
+      for (let j = 0; j < 8; j++) { const p0 = out(j), p1 = out(j + 1), m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; wall(p0, p1, v3add(v3mul(u, m[0]), v3mul(v, m[1]))); } // 外緣朝外
+      for (let k = 0; k < 4; k++) { const p0 = inn(k), p1 = inn(k + 1), m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; wall(p0, p1, v3add(v3mul(u, -m[0]), v3mul(v, -m[1]))); } // 孔壁朝孔心
     },
     /** 平面條（疤）：沿折線 pts（每點 [x,y,z]）、寬 w（x 方向），法線朝上。 */
     strip(pts, w, color) {
@@ -353,6 +401,8 @@ export function buildRoleGeometry(rig, base, role) {
   const cuffCs = crossSection(pos, [w0[0], w0[1], CB.Z], zax, xax, up, 0.05);
   const cuffC = cuffCs ? [w0[0] + cuffCs.cx, w0[1] + cuffCs.cy, CB.Z] : null;
   const band = (z, w, r, pad, color, ts = 4) => acc.ring([cuffC[0], cuffC[1] + CB.LIFT, z], zax, xax, up, cuffCs.ra + pad, cuffCs.rb + pad * R.PAD_Y, r, w, color, 16, ts);
+  /* 袖口封口（第三輪）：最後面那圈環的中心線上一片朝肘（−z）的底蓋——從手肘方向看進袖口，先看到襯裡色，不再是空圓管。 */
+  const cap = (z, pad, cs = cuffCs, c = cuffC, rbLow = undefined) => acc.disc([c[0], c[1] + CB.LIFT, z], xax, up, cs.ra + pad, cs.rb + pad * R.PAD_Y, [0, 0, -1], R.CAP[key], R.CAP.SEG, rbLow);
 
   if (key === 'shoujing') {
     const A = R.AGED;
@@ -367,6 +417,7 @@ export function buildRoleGeometry(rig, base, role) {
     if (cuffCs) {
       band(CB.Z, CB.W, CB.R, CB.PAD, def.CUFF);
       band(CB.FLARE_Z, CB.FLARE_W, CB.R, CB.PAD + CB.FLARE, C_HEM); // 外翻的毛邊一圈
+      cap(CB.FLARE_Z, CB.PAD + CB.FLARE);
     }
     const T = R.THREAD, Bd = R.BEADS, cs = crossSection(pos, [w0[0], w0[1], Bd.Z], zax, xax, up, 0.03);
     if (cs) for (let i = 0; i < Bd.N; i++) { // 木佛珠一圈
@@ -382,29 +433,63 @@ export function buildRoleGeometry(rig, base, role) {
       band(CB.Z, CB.W, CB.R, CB.PAD, def.CUFF);
       for (const z of R.TRIM.GOLD_Z) band(z, R.TRIM.GOLD_W, CB.R + 0.008, CB.PAD + 0.004, R.TRIM.GOLD); // 金滾邊（寬）
       band(CB.FLARE_Z, CB.FLARE_W, CB.R, CB.PAD + CB.FLARE, R.TRIM.LINING); // 外翻露出的暗紅襯裡
-    }
-    const G = R.RING, a0 = boneWorld(rig, G.FROM), b0 = boneWorld(rig, G.TO);
-    const d = v3norm(v3sub(b0, a0)), c = v3add(a0, v3mul(v3sub(b0, a0), G.T));
-    const ax = v3norm(v3cross(up, d)), ay = v3cross(d, ax), cs = crossSection(pos, c, d, ax, ay, 0.07);
-    if (cs) {
-      const cc = v3add(c, v3add(v3mul(ax, cs.cx), v3mul(ay, cs.cy)));
-      acc.ring(v3add(cc, [0, G.LIFT, 0]), d, ax, ay, cs.ra + G.GAP, cs.rb + G.GAP, G.R, G.W, G.COLOR);
-      /* 大玉面放在環的「外側」（+x、手背看得到的那一面）：四個側向取 x 分量最大者 */
-      const dirs = [[ax, cs.ra], [v3mul(ax, -1), cs.ra], [ay, cs.rb], [v3mul(ay, -1), cs.rb]].sort((p, q) => q[0][0] - p[0][0]);
-      acc.lozenge(v3add(cc, v3mul(dirs[0][0], dirs[0][1] + G.GAP + G.R * 0.8)), G.BEAD, G.BEAD_COLOR);
+      cap(CB.FLARE_Z, CB.PAD + CB.FLARE);
+      /* 方孔錢一串：貼在黑袖環的外面（環剖面是軸對齊矩形，外表面在中心線外 r·cos45°），錢面朝外、從頂上沿外側垂下。 */
+      const Cn = R.COIN, ra = cuffCs.ra + CB.PAD, rb = cuffCs.rb + CB.PAD * R.PAD_Y, c0 = [cuffC[0], cuffC[1] + CB.LIFT, CB.Z];
+      for (const deg of Cn.ANG) {
+        const th = (deg / 180) * Math.PI, ct = Math.cos(th), st = Math.sin(th);
+        const q = v3add(c0, [ra * ct, rb * st, 0]), n = v3norm([ct / ra, st / rb, 0]);
+        acc.coin(v3add(q, v3mul(n, CB.R * Math.SQRT1_2 + Cn.T / 2 + Cn.GAP)), n, zax, v3cross(n, zax), Cn.R, Cn.HOLE, Cn.T, Cn.COLOR);
+      }
     }
   } else if (key === 'hunter') {
-    const B = R.BRACER;
+    const B = R.BRACER, F = R.FUR;
     for (let v = 0; v < n0; v++) if (pos[v * 3 + 2] >= S.CUFF_FROM) for (let k = 0; k < 3; k++) color[v * 4 + k] *= R.TAN[k]; // 曬黑粗糙的皮膚
     if (cuffCs) {
-      band(B.Z, B.W, B.R, B.GAP + 0.024, B.COLOR, 6);
-      for (const z of B.STRAP_Z) band(z, B.STRAP_W, B.R * 0.6, B.GAP + 0.024 + B.R * 0.9, B.STRAP);
-      acc.box([cuffC[0], cuffC[1] + CB.LIFT + cuffCs.rb + 0.024 * R.PAD_Y + B.R * 1.6, B.Z], B.BUCKLE_S, B.BUCKLE);
+      band(B.Z, B.W, B.R, B.GAP + 0.024, B.COLOR);
+      for (const z of B.STRAP_Z) band(z, B.STRAP_W, B.R * 0.6, B.GAP + 0.024 + B.R * 0.45, B.STRAP);
+      acc.box([cuffC[0], cuffC[1] + CB.LIFT + cuffCs.rb + 0.024 * R.PAD_Y + B.R * 1.6, B.STRAP_Z[1]], B.BUCKLE_S, B.BUCKLE); // 鐵扣扣在後面那道帶子上
     }
-    const Wr = R.WRAP, wcs = crossSection(pos, [w0[0], w0[1], Wr.Z], zax, xax, up, 0.04);
-    if (wcs) { // 指節髒麻布纏帶：一寬環＋一道斜縫色細環
-      acc.ring([w0[0] + wcs.cx, w0[1] + wcs.cy + Wr.LIFT, Wr.Z], zax, xax, up, wcs.ra + Wr.GAP, wcs.rb + Wr.GAP, Wr.R, Wr.W, Wr.COLOR, 14, 4);
-      acc.ring([w0[0] + wcs.cx, w0[1] + wcs.cy + Wr.LIFT, Wr.Z + Wr.W * 0.4], zax, xax, up, wcs.ra + Wr.GAP, wcs.rb + Wr.GAP, Wr.R + 0.004, 0.02, Wr.SEAM, 14, 4);
+    const fcs = crossSection(pos, [w0[0], w0[1], F.Z], zax, xax, up, 0.05);
+    if (fcs) {
+      /* 毛皮邊：沿袖環一圈 SEG 段、剖面 TS 邊的管，毛厚上厚下薄（BOTTOM），外側頂點依位置雜湊往外蓬（不規則邊）；
+         外側且雜湊高的頂點用淺色毛尖。再沿上大半圈插 TUFTS 撮外翹的尖錐毛。全部決定性（hash3，不耗亂數）。 */
+      /* 下半圈貼著前臂（rbLow）：手壓在桌上時毛皮不往下擠進錢柱；蓬鬆的量都在上半圈與兩側。 */
+      const ra = fcs.ra + F.PAD, rb = fcs.rb + F.PAD * R.PAD_Y, rbLow = fcs.rb + F.LOW, fc = [w0[0] + fcs.cx, w0[1] + fcs.cy + CB.LIFT, F.Z], base = acc.P.length / 3;
+      const ell = (ct, st) => [ra * ct, (st < 0 ? rbLow : rb) * st];
+      const thick = (st) => F.R * (st < 0 ? F.BOTTOM + (1 - F.BOTTOM) * (1 + st) : 1);
+      for (let i = 0; i < F.SEG; i++) {
+        const th = (i / F.SEG) * Math.PI * 2, ct = Math.cos(th), st = Math.sin(th);
+        const e = ell(ct, st), q = v3add(fc, [e[0], e[1], 0]), n0r = v3norm([ct / ra, st / (st < 0 ? rbLow : rb), 0]), r = thick(st);
+        for (let j = 0; j < F.TS; j++) {
+          const ph = (j / F.TS) * Math.PI * 2, cp = Math.cos(ph), sp = Math.sin(ph), h = hash3(i, j, 5);
+          const puff = cp > 0 ? 1 + F.JIT * (h - 0.3) * cp : 1;
+          const p = v3add(q, v3add(v3mul(n0r, r * cp * puff), [0, 0, F.W * sp * (1 + 0.25 * (hash3(i, j, 9) - 0.5))]));
+          acc.vert(p, v3add(v3mul(n0r, cp / r), [0, 0, sp / F.W]), cp > 0.3 && h > 0.35 ? F.TIP : F.COLOR);
+        }
+      }
+      for (let i = 0; i < F.SEG; i++) for (let j = 0; j < F.TS; j++) {
+        const i2 = (i + 1) % F.SEG, j2 = (j + 1) % F.TS;
+        const p00 = base + i * F.TS + j, p10 = base + i2 * F.TS + j, p11 = base + i2 * F.TS + j2, p01 = base + i * F.TS + j2;
+        acc.I.push(p00, p01, p10, p10, p01, p11);
+      }
+      for (let k = 0; k < F.TUFTS; k++) { // 外翹毛尖：上大半圈（−30°～210°）
+        const th = (-30 + (240 * (k + 0.5 * hash3(k, 1, 2))) / F.TUFTS) * Math.PI / 180, ct = Math.cos(th), st = Math.sin(th);
+        const n0r = v3norm([ct / ra, st / (st < 0 ? rbLow : rb), 0]), zt = F.Z + F.W * (hash3(k, 3, 4) - 0.6), e = ell(ct, st);
+        const p = v3add([fc[0] + e[0], fc[1] + e[1], zt], v3mul(n0r, thick(st) * 0.7));
+        acc.spike(p, v3norm(v3add(v3mul(n0r, 0.5 + 0.5 * hash3(k, 7, 1)), [0, 0, -0.9])), F.TUFT_L * (0.7 + 0.6 * hash3(k, 2, 8)), F.TUFT_W, k % 2 ? F.TIP : F.COLOR);
+      }
+      cap(F.Z, F.PAD, fcs, [w0[0] + fcs.cx, w0[1] + fcs.cy], rbLow);
+    }
+    const Bn = R.BONE;
+    if (cuffCs) { // 骨牙護符：繞在皮護腕上的一圈皮繩＋上半圈幾顆往外翹的象牙白尖牙（從後上方的遊戲鏡頭看得到）
+      const pad = B.GAP + 0.024, ra = cuffCs.ra + pad + B.R * Math.SQRT1_2 + Bn.CORD_R, rb = cuffCs.rb + pad * R.PAD_Y + B.R * Math.SQRT1_2 + Bn.CORD_R;
+      const bc = [cuffC[0], cuffC[1] + CB.LIFT, Bn.Z];
+      acc.ring(bc, zax, xax, up, ra, rb, Bn.CORD_R, Bn.CORD_R, Bn.CORD, 12, 3);
+      for (const deg of Bn.ANG) {
+        const th = (deg / 180) * Math.PI, ct = Math.cos(th), st = Math.sin(th), n = v3norm([ct / ra, st / rb, 0]);
+        acc.spike(v3add([bc[0] + ra * ct, bc[1] + rb * st, Bn.Z], v3mul(n, Bn.CORD_R)), v3norm(v3add(n, [0, 0, -0.35])), Bn.L, Bn.W, Bn.COLOR);
+      }
     }
     const Sc = R.SCAR, pts = [];
     for (let i = 0; i < Sc.N; i++) {

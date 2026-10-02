@@ -1,0 +1,93 @@
+{
+ "L": {
+  "viewport": {
+   "width": 852,
+   "height": 393
+  },
+  "errors": [],
+  "wired": {
+   "variants": [
+    "shoujing",
+    "dangpu",
+    null,
+    null
+   ],
+   "roles": [
+    "shoujing",
+    "dangpu",
+    "duanshou",
+    "zutou"
+   ]
+  },
+  "handsVisible": 4,
+  "callsWithHands": 78,
+  "callsWithout": 74,
+  "delta": 4,
+  "trisDelta": 7662,
+  "trisByHand": [
+   1832,
+   2192,
+   2276,
+   1362
+  ],
+  "variants": [
+   "shoujing",
+   "dangpu",
+   "hunter",
+   null
+  ],
+  "materials": 1,
+  "geometries": 4,
+  "variantBuilds": 3
+ },
+ "P": {
+  "viewport": {
+   "width": 393,
+   "height": 852
+  },
+  "errors": [],
+  "wired": {
+   "variants": [
+    "hunter",
+    "dangpu",
+    null,
+    null
+   ],
+   "roles": [
+    "hunter",
+    "dangpu",
+    "duanshou",
+    "zutou"
+   ]
+  },
+  "handsVisible": 4,
+  "callsWithHands": 75,
+  "callsWithout": 71,
+  "delta": 4,
+  "trisDelta": 7662,
+  "trisByHand": [
+   1832,
+   2192,
+   2276,
+   1362
+  ],
+  "variants": [
+   "shoujing",
+   "dangpu",
+   "hunter",
+   null
+  ],
+  "materials": 1,
+  "geometries": 4,
+  "variantBuilds": 3
+ },
+ "gates": {
+  "V3_drawCallDelta_le4": true,
+  "V3_trisPerHand_le2500": true,
+  "V3_oneMaterial": true,
+  "V1_variantsLive": true,
+  "V2_wiredFromRealGame": true,
+  "noPageErrors": true
+ },
+ "pass": true
+}
