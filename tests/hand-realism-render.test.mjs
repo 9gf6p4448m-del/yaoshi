@@ -46,17 +46,22 @@ test('寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；�
       const raf0 = window.requestAnimationFrame; window.requestAnimationFrame = () => 0; // 停住遊戲迴圈，相機與手都不再動
       const holder = T.hands.group.children[0]; let mesh = null; holder.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
       const c = new THREE.Vector3(); let n = 0; holder.traverse((o) => { if (o.isBone) { c.add(o.getWorldPosition(new THREE.Vector3())); n++; } }); c.multiplyScalar(1 / n);
-      const C = Y.camera; C.position.set(c.x + 0.05, c.y + 0.42, c.z + 0.42); C.lookAt(c); C.updateMatrixWorld(true);
-      const grab = () => { R.render(Y.scene, C); const url = R.domElement.toDataURL('image/png'); return new Promise((res) => { const im = new Image(); im.onload = () => { const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; const g = cv.getContext('2d'); g.drawImage(im, 0, 0); res(g.getImageData(0, 0, im.width, im.height).data); }; im.src = url; }); };
-      const diff = (a, b) => { let px = 0, sum = 0; for (let i = 0; i < a.length; i += 4) { const d = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]); if (d > 12) px++; sum += d; } return { px, mean: sum / (a.length / 4) }; };
+      const C = Y.camera;
+      /* 遊戲迴圈（setAnimationLoop）仍會在 await 之間動相機與場景：每次畫之前重設相機、把整個場景的時間凍住（props／手已凍結） */
+      const grab = () => { C.position.set(c.x + 0.05, c.y + 0.42, c.z + 0.42); C.lookAt(c); C.updateMatrixWorld(true); R.render(Y.scene, C); const url = R.domElement.toDataURL('image/png'); return new Promise((res) => { const im = new Image(); im.onload = () => { const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; const g = cv.getContext('2d'); g.drawImage(im, 0, 0); res(g.getImageData(0, 0, im.width, im.height).data); }; im.src = url; }); };
+      /* 場景裡有自己會動的東西（粒子、燈籠閃爍）：只數「改參數前後兩張（A、C）一模一樣」的穩定像素裡，改參數那張（B）差很多的像素 */
+      const d3 = (a, b, i) => Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]);
+      const diff = (a, b, c = a) => { let px = 0, stable = 0; for (let i = 0; i < a.length; i += 4) { if (d3(a, c, i) > 0) continue; stable++; if (d3(a, b, i) > 12) px++; } return { px, stable }; };
       const u = mesh.material.userData.realU, kind = mesh.geometry.userData.real && mesh.geometry.userData.real.kind;
       if (!u || kind === undefined) { window.requestAnimationFrame = raf0; return { noReal: true }; }
-      const img0 = await grab(); const img0b = await grab();
-      const y0 = u.uMarksA.value[kind].y; u.uMarksA.value[kind].y = 0; const img1 = await grab(); u.uMarksA.value[kind].y = y0;
-      const s0 = u.uSkinA.value[kind].clone(); u.uSkinA.value[kind].setRGB(0, 1, 0); const img2 = await grab(); u.uSkinA.value[kind].copy(s0);
+      R.setAnimationLoop(null); // 停掉遊戲的繪圖迴圈：量測期間畫面只由這裡畫
+      const img0 = await grab(); const img0b = await grab(); /* 量測本身：同一參數連畫兩張 */
+      const y0 = u.uMarksA.value[kind].y; u.uMarksA.value[kind].y = 0; const img1 = await grab(); u.uMarksA.value[kind].y = y0; const img1c = await grab();
+      const s0 = u.uSkinA.value[kind].clone(); u.uSkinA.value[kind].setRGB(0, 1, 0); const img2 = await grab(); u.uSkinA.value[kind].copy(s0); const img2c = await grab();
       window.requestAnimationFrame = raf0;
-      return { kind, scarY: y0, noise: diff(img0, img0b), scar: diff(img0, img1), skin: diff(img0, img2), errs: [] };
+      return { kind, scarY: y0, noise: diff(img0, img0b), scar: diff(img0, img1, img1c), skin: diff(img1c, img2, img2c), errs: [] };
     });
+    console.log('RENDER', JSON.stringify(r));
     assert.ok(!r.noReal, '南席獵人手不是寫實手');
     assert.equal(r.noise.px, 0, `同一畫面畫兩次要逐像素相同（量測本身穩定） ${JSON.stringify(r.noise)}`);
     assert.ok(r.scarY > 0, '獵人疤強度 >0');

@@ -1,0 +1,26 @@
+RENDER {"kind":2,"scarY":1,"noise":{"px":0,"stable":921600},"scar":{"px":0,"stable":792588},"skin":{"px":0,"stable":921600},"errs":[]}
+✖ 寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；膚色換純綠⇒手的像素大量改變 (5745.6583ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5842.3077
+
+✖ failing tests:
+
+test at ..\hand-realism\tests\hand-realism-render.test.mjs:18:1
+✖ 寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；膚色換純綠⇒手的像素大量改變 (5745.6583ms)
+  AssertionError [ERR_ASSERTION]: 疤強度歸零後應有疤的像素改變（≥150 px），實際 {"px":0,"stable":792588}
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hand-realism/tests/hand-realism-render.test.mjs:68:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
