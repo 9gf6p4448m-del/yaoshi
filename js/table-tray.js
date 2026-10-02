@@ -590,7 +590,7 @@ export function createTableTray(scene, camera, opts = {}) {
     else if (winner >= 0) playAward(slot, winner);
   }, handPaths: handsOn });
   /* 空物件退路：關手時 renderer 那幾行呼叫照樣成立，不必到處判斷。 */
-  const hands = handsOn ? createTableHands(group, props) : { group: null, ready: () => Promise.resolve(), setSeats() {}, bid() {}, mark() {}, reveal() {}, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
+  const hands = handsOn ? createTableHands(group, props, { itemNodes: () => [0, 1, 2, 3].map((i) => nodeOf(i)) }) /* v0.59.7：袖管避開拍品 */ : { group: null, ready: () => Promise.resolve(), setSeats() {}, bid() {}, mark() {}, reveal() {}, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;

@@ -16,13 +16,13 @@ import * as THREE from 'three';
 const V = new URL(import.meta.url).search;
 const { cloneSkinnedGlb } = await import('./creature-figures.js' + V);
 const { HAND, buildRig, createHandDirector, dressColors, buildRoleGeometry, roleVariantKey } = await import('./hand-motion.js' + V);
-/* v0.59.7 中等寫實：每種手（預設＋三角色）換細分幾何＋程式生成皮膚材質，並乘各自的縮放倍率。 */
+/* v0.59.7 中等寫實：每種手（預設＋三角色）換細分幾何＋程式生成皮膚材質；總開關 HAND.REAL_ON／網址 ?handreal=0（關＝v0.59.6 原樣）。 */
 const HR = await import('./hand-realism.js' + V);
 
 /**
  * @param parent  掛進去的 Group（table-tray 的 group）
  * @param props   table-props 的 api（只用它的唯讀出口）
- * @param opts    { glbUrl }（治具可換資產路徑）
+ * @param opts    { glbUrl（治具可換資產路徑）, real（可省：強制開關寫實手）, itemNodes（可省：() => 拍品節點陣列，袖管避開拍品用） }
  */
 export function createTableHands(parent, props, opts = {}) {
   const group = new THREE.Group();
@@ -35,12 +35,16 @@ export function createTableHands(parent, props, opts = {}) {
   let baseSrc = null, pendingSeats = null, variantBuilds = 0;
   const variantGeos = new Map(); // 變體鍵 → 配件幾何陣列（buildRoleGeometry 的結果）
   const seatKey = [null, null, null, null];
-  /* v0.59.7：寫實幾何／材質依「種類鍵」（default／三角色）快取，setSeats 時建一次；seatMul＝四席各自的縮放倍率。 */
+  /* v0.59.7：寫實幾何依「種類＋席」快取（每席一份：袖管每幀依相機重鋪，各席各寫各的）；碰撞取樣依種類快取。 */
   const realGeos = new Map(), realRigs = new Map(), seatRig = [null, null, null, null];
   let rigSrc0 = null, realMat = null;
-  /* 全角色共用的縮放倍率（HAND.USER_SCALE，預設 1；網址 ?handscale= 可在試玩時暫時覆寫）。 */
-  const userScale = (() => { const q = Number(new URLSearchParams((globalThis.location && globalThis.location.search) || '').get('handscale')); return q > 0 && q <= 2 ? q : HAND.USER_SCALE; })();
+  const q0 = new URLSearchParams((globalThis.location && globalThis.location.search) || '');
+  /* 寫實總開關（修訂 4）：預設開；?handreal=0 或 HAND.REAL_ON=false ⇒ 整套回 v0.59.6 的手（幾何、材質、配件、縮放、解算逐項相同）。 */
+  const realOn = opts.real !== undefined ? !!opts.real : (HAND.REAL_ON !== false && q0.get('handreal') !== '0');
+  /* 全角色共用的縮放倍率（HAND.USER_SCALE，預設 1；網址 ?handscale= 可在試玩時暫時覆寫）。寫實關閉時固定 1。 */
+  const userScale = (() => { if (!realOn) return 1; const q = Number(q0.get('handscale')); return q > 0 && q <= 2 ? q : HAND.USER_SCALE; })();
   const seatMul = [userScale, userScale, userScale, userScale];
+  let frameBoxes = null, frameNo = -1; // 這一幀拍品在畫面上的外框（NDC），四隻手共用
 
   const ready = Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url))).then((clones) => {
     if (disposed) return;
@@ -78,10 +82,17 @@ export function createTableHands(parent, props, opts = {}) {
     });
     rigSrc0 = rigSource(hands[0].mesh);
     rig = buildRig(rigSrc0);
-    /* v0.59.7：每席的縮放倍率與碰撞取樣骨架（＝該席寫實幾何的原手頂點：細分＋變粗變細後的真實位置，不是原 GLB 的 819 點）。 */
-    director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat] });
-    /* GLB 還沒好時收到的席位，現在補上；沒收到也先套預設寫實手（v0.59.7：任何時候上場的手都是寫實版）。 */
-    { const p = pendingSeats || []; pendingSeats = null; setSeats(p); }
+    if (realOn) {
+      /* v0.59.7：每席的縮放倍率與碰撞取樣骨架（＝該種寫實手的原頂點＋配件，見 setSeats）。 */
+      director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat] });
+      /* 袖管：每一次真正要畫之前，用這一次的相機把袖管鋪到最近的畫面邊緣（避開拍品）。 */
+      for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { if (h.holder.visible && h.mesh.geometry.userData.armRing) h.arm = HR.updateArm(h.mesh, camera, itemBoxes(renderer, camera)); };
+      /* GLB 還沒好時收到的席位，現在補上；沒收到也先套預設寫實手（任何時候上場的手都是寫實版）。 */
+      { const p = pendingSeats || []; pendingSeats = null; setSeats(p); }
+    } else {
+      director = createHandDirector(props, rig);
+      if (pendingSeats) { const p = pendingSeats; pendingSeats = null; setSeats(p); } // GLB 還沒好時收到的席位，現在補上
+    }
   }).catch((e) => {
     /* GLB 載不到（404、離線、node 測試沒有 fetch 相對路徑）：手整組不上場，props 照舊——純演出不得拖垮牌桌。 */
     loadError = String(e && e.message || e);
@@ -101,15 +112,25 @@ export function createTableHands(parent, props, opts = {}) {
     };
   }
 
-  /** 某變體鍵的配件幾何（陣列版；buildRoleGeometry 用「預設」幾何的陣列算，手的解算 rig 不受配件影響）：沒有就建一次。
-   *  v0.59.7：不再 new BufferGeometry（畫面上用的是 hand-realism 細分後的那份），只留陣列給寫實幾何用。 */
+  /** 某變體鍵的配件幾何（buildRoleGeometry 用「預設」幾何的陣列算，手的解算 rig 不受配件影響）：沒有就建一次。
+   *  寫實開：只留陣列給 hand-realism 細分（不 new BufferGeometry）；寫實關：v0.59.6 原樣的 BufferGeometry。 */
   function variantGeo(key) {
     let r = variantGeos.get(key);
     if (r) return r;
-    r = buildRoleGeometry(rig, baseSrc, key);
+    const a = buildRoleGeometry(rig, baseSrc, key, { real: realOn });
     variantBuilds++;
-    r.colorSize = 4;
-    r.info = { key, extraVerts: r.extraVerts, extraTris: r.extraTris, recolored: r.recolored };
+    const info = { key, extraVerts: a.extraVerts, extraTris: a.extraTris, recolored: a.recolored };
+    if (realOn) { r = a; r.colorSize = 4; r.info = info; }
+    else {
+      r = new THREE.BufferGeometry();
+      r.setAttribute('position', new THREE.BufferAttribute(a.position, 3));
+      r.setAttribute('normal', new THREE.BufferAttribute(a.normal, 3));
+      r.setAttribute('color', new THREE.BufferAttribute(a.color, 4));
+      r.setAttribute('skinIndex', new THREE.BufferAttribute(a.skinIndex, 4));
+      r.setAttribute('skinWeight', new THREE.BufferAttribute(a.skinWeight, 4));
+      r.setIndex(new THREE.BufferAttribute(a.index, 1));
+      r.userData.variant = info;
+    }
     variantGeos.set(key, r);
     return r;
   }
@@ -120,6 +141,23 @@ export function createTableHands(parent, props, opts = {}) {
     return { position: a.position.array, color: a.color.array, colorSize: a.color.itemSize, skinIndex: a.skinIndex.array, skinWeight: a.skinWeight.array, index: dressedGeo.index.array };
   }
 
+  /** 這一幀拍品在畫面上的外框（NDC），同一幀四隻手只算一次。 */
+  function itemBoxes(renderer, camera) {
+    const f = renderer.info.render.frame;
+    if (f === frameNo && frameBoxes) return frameBoxes;
+    frameNo = f; frameBoxes = [];
+    const nodes = opts.itemNodes ? opts.itemNodes() : [];
+    const box = new THREE.Box3(), v = new THREE.Vector3();
+    for (const n of nodes) {
+      if (!n || !n.visible) continue;
+      box.setFromObject(n); if (box.isEmpty()) continue;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (let k = 0; k < 8; k++) { v.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y, k & 4 ? box.max.z : box.min.z).project(camera); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
+      frameBoxes.push({ x0, y0, x1, y1 });
+    }
+    return frameBoxes;
+  }
+
   /** 角色 id 清單（與 props.setSeats 同一份資料：[{id, role}]）→ 四席各自的手。缺角色／未知角色／空清單＝預設手，不丟例外。 */
   function setSeats(list) {
     if (!hands.length || !rig) { pendingSeats = Array.isArray(list) ? list : []; return; }
@@ -128,20 +166,23 @@ export function createTableHands(parent, props, opts = {}) {
     for (const h of hands) {
       const key = roleVariantKey(roleOf[h.seat]);
       seatKey[h.seat] = key;
-      /* 所有角色（含預設手）都走寫實版：先取 v0.59.6 的配件幾何（變體或預設），再細分＋重塑成這種手的寫實幾何。 */
-      const real = HR.realDef(key);
-      /* 幾何快取鍵＝種類＋這一席的前臂抬升（南席與其他席的手臂彎法不同，見 hand-realism ARM.RISE） */
-      const rise = HR.ARM.RISE[h.seat], gk = real.key + '|' + rise;
+      if (!realOn) { h.mesh.geometry = key ? variantGeo(key) : dressedGeo; continue; } // v0.59.6 原樣
+      /* 所有角色（含預設手）都走寫實版：先取配件幾何（變體或預設），再細分＋重塑成這種手的寫實幾何。 */
+      const real = HR.realDef(key), gk = real.key + '|' + h.seat;
       if (!realGeos.has(gk)) {
         const src = key ? variantGeo(key) : dressedArr();
-        realGeos.set(gk, HR.realGeometry(rig, src, baseSrc.position.length / 3, real.key, HAND.SCALE * userScale, key ? src.info : null, rise));
+        realGeos.set(gk, HR.realGeometry(rig, src, baseSrc.position.length / 3, real.key, key ? src.info : null));
         if (!realMat) realMat = HR.makeSkinMaterial(material, HR.jointTable(rig));
-        /* 碰撞取樣＝畫面上這隻手的全部頂點（細分＋重塑後的手、延長的前臂、配件），不是原 GLB 的 819 點。
-           （試過只取原頂點＋配件以省一半成本：細分新增的邊中點會穿進錢柱，穿入測試轉紅，故全取。） */
-        const ga = realGeos.get(gk).attributes;
-        realRigs.set(gk, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array, skinIndex: ga.skinIndex.array, skinWeight: ga.skinWeight.array })));
       }
-      h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(gk);
+      if (!realRigs.has(real.key)) {
+        /* 碰撞取樣（修訂 4 效能）：原頂點（前 n0 個，已細分平滑＋重塑）＋配件；細分新增的邊中點不取，改以 pad 外擴保守補償
+           （HAND.REAL_PAD，見 hand-motion placeAt）；袖管每幀依相機重鋪、往畫面外走，不進取樣。 */
+        const rg = realGeos.get(gk), ga = rg.attributes, n0 = baseSrc.position.length / 3, nb = rg.userData.real.nBase, na = rg.userData.real.arm[0];
+        const pick = (arr, k) => { const out = new arr.constructor((n0 + na - nb) * k); out.set(arr.subarray(0, n0 * k)); out.set(arr.subarray(nb * k, na * k), n0 * k); return out; };
+        const r2 = buildRig(Object.assign({}, rigSrc0, { positions: pick(ga.position.array, 3), skinIndex: pick(ga.skinIndex.array, 4), skinWeight: pick(ga.skinWeight.array, 4) }));
+        r2.pad = HAND.REAL_PAD; realRigs.set(real.key, r2);
+      }
+      h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(real.key);
     }
   }
 
@@ -191,7 +232,7 @@ export function createTableHands(parent, props, opts = {}) {
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         /* 階段三：角色變體（只讀） */
-        variants: seatKey.slice(), variantBuilds,
+        variants: seatKey.slice(), variantBuilds, real: realOn, arms: hands.map((h) => h.arm || null),
         trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
         variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
         /* v0.59.7：每席的寫實幾何資訊（種類、面數、前臂延長）、材質名與縮放倍率（只讀） */
@@ -206,7 +247,7 @@ export function createTableHands(parent, props, opts = {}) {
       for (const h of hands) { group.remove(h.holder); if (h.mesh.skeleton) h.mesh.skeleton.dispose(); }
       /* 骨架是 clone 各自建的；glbCache 那份原始 geometry／material 不動（同 creature-figures 的規矩）。 */
       hands.length = 0; director = null;
-      variantGeos.clear();
+      for (const g of variantGeos.values()) if (g.dispose) g.dispose(); variantGeos.clear();
       for (const g of realGeos.values()) g.dispose(); realGeos.clear();
       if (realMat) realMat.dispose();
       if (dressedGeo) dressedGeo.dispose(); if (material) material.dispose(); // 這兩份是本檔複製的，可以放

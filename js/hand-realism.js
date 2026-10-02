@@ -39,13 +39,16 @@ export function realDef(key) {
 }
 const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
 
-/** 前臂（驗收條件 11：手連著手臂，畫面內看不到袖子後端）。原 GLB 的前臂袖布在 z＜CUT 的三角形整段不畫，
- *  改接一根程式生成的袖管：從 Z0 起、截面＝原袖口截面外撐 PAD 的橢圓、SIDES 邊，往後延伸到世界長度 ARM_WORLD
- *  （縮放改了也照樣接到畫面外），並往上彎：往後 b dm 抬 RISE·b²／(b＋BEND) dm（貼腕處平順、遠處接近斜率 RISE），
- *  往肘方向略粗（WIDEN）。RISE 依席：南席手臂朝鏡頭下緣出畫面、只微抬；北席在低機位（揭盅特寫）時平伸的手臂末端
- *  會留在畫面裡，所以抬到約 45°；西／東居中。袖管最後 1−FADE 段平滑淡出（在畫面外）。
+/** 前臂（驗收條件 11＋修訂 4）：原 GLB 的前臂袖布在 z＜CUT 的三角形整段不畫，改接一根程式生成的袖管（截面＝原袖口截面
+ *  外撐 PAD 的橢圓、SIDES 邊、SEGS 段）。**每一幀**（畫之前，onBeforeRender 拿到這一次真正在畫的相機）把袖管重新鋪成
+ *  「袖口 → 最近的畫面邊緣」的最短路徑：手腕投影到畫面、取離它最近的那條邊，目標點在該邊外 MARGIN（NDC）處，
+ *  深度取「過該點的視線與高 LIFT 的水平面」交點（交不到就取手腕到相機的距離）；路徑是從袖口沿前臂方向起步的二次曲線。
+ *  袖管最後一段 DARK 起漸暗、FADE 起漸隱（都在畫面邊緣外側那一截）。袖管頂點全綁 Elbow 骨（姿勢從不轉它＝網格局部座標），
+ *  所以 CPU 寫進去的座標就是畫出來的座標，治具與測試讀頂點位置看到的就是畫面上那一根。
+ *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
+ *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 12, SEGS: 18, ARM_WORLD: 8.0, RISE: [0.16, 1.0, 0.4, 0.4], BEND: 1.5, WIDEN: 0.22, FINE_Z: -0.45, FADE: 0.85 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, LIFT: 0.06, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -326,8 +329,8 @@ const FRAG_ACC = /* glsl */`
 `;
 
 /** 把角色幾何轉成寫實版：手部細分＋重塑＋前臂延長＋aSkin／aAcc 屬性。回新的 BufferGeometry（呼叫端快取）。
- *  @param worldPerDm 這隻手在世界中 1 dm 有多長（HAND.SCALE × USER_SCALE）：前臂延長到 ARM.ARM_WORLD 世界單位，縮放改了也照樣接到畫面外。 */
-export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantInfo = null, rise = ARM.RISE[0]) {
+ *  袖管每幀由 updateArm 依相機重鋪（縮放改了也照樣接到畫面邊緣）。 */
+export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   const { def, kind } = realDef(key === 'default' ? null : key);
   const d = loopSubdivide(srcGeo, n0, ARM.FINE_Z);
   reshape(rig, d, def);
@@ -361,36 +364,26 @@ export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantIn
   /* 留下來的原頂點（袖口以前）全不透明；z＜CUT 的原三角形之後整段丟掉 */
   for (let v = 0; v < d.nBase; v++) if (d.cs === 4 && d.P[v * 3 + 2] >= ARM.CUT) d.C[v * 4 + 3] = 1;
   const cut = (tri) => tri.every((v) => v < d.nBase && d.P[v * 3 + 2] < ARM.CUT);
-  /* 袖管 */
-  const L = ARM.ARM_WORLD / worldPerDm, tubeStart = d.P.length / 3, P2 = [], C2 = [], S2 = [], W2 = [], A2 = [], I2 = [];
-  const col = [d.C[anchor * d.cs], d.C[anchor * d.cs + 1], d.C[anchor * d.cs + 2]];
-  const at = (b) => [cx, cy + rise * b * b / (b + ARM.BEND), ARM.Z0 - b];
+  /* 袖管：先鋪靜態形狀（往後 STATIC_DM、微抬），每幀由 updateArm 重鋪。頂點全綁 Elbow 骨（權重 1）。 */
+  const elbow = rig.idx.Elbow, tubeStart = d.P.length / 3, P2 = [], C2 = [], S2 = [], W2 = [], A2 = [], I2 = [];
+  const col = [d.C[anchor * d.cs], d.C[anchor * d.cs + 1], d.C[anchor * d.cs + 2]], ts = [];
   for (let i = 0; i <= ARM.SEGS; i++) {
-    const b = L * Math.pow(i / ARM.SEGS, 1.7), c = at(b), c2 = at(b + 0.05), t = [c2[0] - c[0], c2[1] - c[1], c2[2] - c[2]], tl = Math.hypot(...t);
-    const tn = [t[0] / tl, t[1] / tl, t[2] / tl], u = [1, 0, 0], w = [tn[1] * u[2] - tn[2] * u[1], tn[2] * u[0] - tn[0] * u[2], tn[0] * u[1] - tn[1] * u[0]];
-    const grow = 1 + ARM.WIDEN * Math.min(1, b / 4), f = Math.min(1, Math.max(0, (b / L - ARM.FADE) / (1 - ARM.FADE))), alpha = 1 - f * f * (3 - 2 * f);
+    const t = Math.pow(i / ARM.SEGS, 1.4); ts.push(t);
+    const f = Math.min(1, Math.max(0, (t - ARM.FADE) / (1 - ARM.FADE))), alpha = 1 - f * f * (3 - 2 * f);
+    const dk = Math.min(1, Math.max(0, (t - ARM.DARK) / (1 - ARM.DARK))), dim = 1 - 0.6 * dk * dk * (3 - 2 * dk);
     for (let j = 0; j < ARM.SIDES; j++) {
-      const th = (j / ARM.SIDES) * Math.PI * 2, ct = Math.cos(th), st = Math.sin(th);
-      P2.push(c[0] + u[0] * ra * grow * ct + w[0] * rb * grow * st, c[1] + u[1] * ra * grow * ct + w[1] * rb * grow * st, c[2] + u[2] * ra * grow * ct + w[2] * rb * grow * st);
-      C2.push(col[0], col[1], col[2]); if (d.cs === 4) C2.push(alpha);
-      for (let k = 0; k < 4; k++) { S2.push(d.SI[anchor * 4 + k]); W2.push(d.SW[anchor * 4 + k]); }
-      A2.push(0, 0, 0);
+      P2.push(0, 0, 0); C2.push(col[0] * dim, col[1] * dim, col[2] * dim); if (d.cs === 4) C2.push(alpha);
+      S2.push(elbow, 0, 0, 0); W2.push(1, 0, 0, 0); A2.push(0, 0, 0);
     }
   }
   for (let i = 0; i < ARM.SEGS; i++) for (let j = 0; j < ARM.SIDES; j++) {
     const j2 = (j + 1) % ARM.SIDES, a = tubeStart + i * ARM.SIDES + j, b = tubeStart + i * ARM.SIDES + j2, c = a + ARM.SIDES, e = b + ARM.SIDES;
-    I2.push(a, b, c, b, e, c); // 外表面朝外（之後依法線檢查統一繞序）
+    I2.push(a, c, b, b, c, e); // 環序見 layTube：j 逆時針繞 −z 方向的軸，這個繞序面法線朝外
   }
   const cat = (A, B, T) => { const o = new T(A.length + B.length); o.set(A); o.set(B, A.length); return o; };
   d.P = cat(d.P, P2, Float32Array); d.C = cat(d.C, C2, Float32Array); d.SI = cat(d.SI, S2, Uint16Array); d.SW = cat(d.SW, W2, Float32Array); d.A = cat(d.A, A2, Float32Array);
-  /* 袖管繞序：面法線要朝外（離管軸）；不對就翻 */
-  for (let t = 0; t < I2.length; t += 3) {
-    const [a, b, c] = [I2[t], I2[t + 1], I2[t + 2]], pa = [d.P[a * 3], d.P[a * 3 + 1], d.P[a * 3 + 2]];
-    const ab = [d.P[b * 3] - pa[0], d.P[b * 3 + 1] - pa[1], d.P[b * 3 + 2] - pa[2]], ac = [d.P[c * 3] - pa[0], d.P[c * 3 + 1] - pa[1], d.P[c * 3 + 2] - pa[2]];
-    const n = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]];
-    const ring = Math.floor((a - tubeStart) / ARM.SIDES), cc = at(L * Math.pow(ring / ARM.SEGS, 1.7)), out = [pa[0] - cc[0], pa[1] - cc[1], pa[2] - cc[2]];
-    if (n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0) { I2[t + 1] = c; I2[t + 2] = b; }
-  }
+  const ring = { start: tubeStart, sides: ARM.SIDES, segs: ARM.SEGS, ts, ra, rb, anchor, off: [cx - d.P[anchor * 3], cy - d.P[anchor * 3 + 1], ARM.Z0 - d.P[anchor * 3 + 2]] };
+  layTube(d.P, ring, [cx, cy, ARM.Z0], [0, 0, -1], [cx, cy + ARM.STATIC_RISE * ARM.STATIC_DM, ARM.Z0 - ARM.STATIC_DM]);
   /* 舊的頂點色疤條（獵人配件）由程式生成疤取代：那片配件頂點 alpha 設 0，整片三角形丟掉。 */
   for (let v = d.nBase; v < d.P.length / 3; v++) { const c = d.C.subarray(v * d.cs, v * d.cs + 3); if (Math.abs(c[0] - 0.74) + Math.abs(c[1] - 0.50) + Math.abs(c[2] - 0.42) < 1e-3 && d.cs === 4) d.C[v * d.cs + 3] = 0; }
   const keep = [];
@@ -412,6 +405,65 @@ export function realGeometry(rig, srcGeo, n0, key, worldPerDm = 0.335, variantIn
   g.setIndex(new THREE.BufferAttribute(new Uint32Array(keep), 1));
   g.computeVertexNormals();
   if (variantInfo) g.userData.variant = variantInfo; // 變體配件資訊照舊可查（治具／測試）
-  g.userData.real = { key, kind, rise, verts: d.P.length / 3, tris: keep.length / 3, nBase: d.nBase, arm: [tubeStart, d.P.length / 3], armWorld: ARM.ARM_WORLD };
+  g.userData.real = { key, kind, verts: d.P.length / 3, tris: keep.length / 3, nBase: d.nBase, arm: [tubeStart, d.P.length / 3] };
+  g.userData.armRing = ring;
   return g;
+}
+
+/** 依起點 p0、起步方向 dir0、終點 p2（都在網格局部座標）把袖管各圈鋪上二次曲線；寫進 P（Float32Array）。回每圈中心（測試用）。 */
+function layTube(P, ring, p0, dir0, p2, N = null) {
+  const L = Math.hypot(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]) || 1, k = Math.min(L * 0.35, 3);
+  const p1 = [p0[0] + dir0[0] * k, p0[1] + dir0[1] * k, p0[2] + dir0[2] * k];
+  let prevU = null;
+  for (let i = 0; i <= ring.segs; i++) {
+    const t = ring.ts[i], a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t;
+    const ctr = [a * p0[0] + b * p1[0] + c * p2[0], a * p0[1] + b * p1[1] + c * p2[1], a * p0[2] + b * p1[2] + c * p2[2]];
+    let tg = [2 * (1 - t) * (p1[0] - p0[0]) + 2 * t * (p2[0] - p1[0]), 2 * (1 - t) * (p1[1] - p0[1]) + 2 * t * (p2[1] - p1[1]), 2 * (1 - t) * (p1[2] - p0[2]) + 2 * t * (p2[2] - p1[2])];
+    const tl = Math.hypot(...tg) || 1; tg = [tg[0] / tl, tg[1] / tl, tg[2] / tl];
+    /* 截面基底：u 盡量維持網格的 x 軸（袖口橢圓的長軸），沿管平行移動，不扭 */
+    let u = prevU || [1, 0, 0]; const du = u[0] * tg[0] + u[1] * tg[1] + u[2] * tg[2];
+    u = [u[0] - tg[0] * du, u[1] - tg[1] * du, u[2] - tg[2] * du]; const ul = Math.hypot(...u) || 1; u = [u[0] / ul, u[1] / ul, u[2] / ul]; prevU = u;
+    const w = [u[1] * tg[2] - u[2] * tg[1], u[2] * tg[0] - u[0] * tg[2], u[0] * tg[1] - u[1] * tg[0]];
+    for (let j = 0; j < ring.sides; j++) {
+      const th = (j / ring.sides) * Math.PI * 2, ct = Math.cos(th) * ring.ra, st = Math.sin(th) * ring.rb, o = (ring.start + i * ring.sides + j) * 3;
+      P[o] = ctr[0] + u[0] * ct + w[0] * st; P[o + 1] = ctr[1] + u[1] * ct + w[1] * st; P[o + 2] = ctr[2] + u[2] * ct + w[2] * st;
+      if (N) { const nx = u[0] * Math.cos(th) / ring.ra + w[0] * Math.sin(th) / ring.rb, ny = u[1] * Math.cos(th) / ring.ra + w[1] * Math.sin(th) / ring.rb, nz = u[2] * Math.cos(th) / ring.ra + w[2] * Math.sin(th) / ring.rb, nl = Math.hypot(nx, ny, nz) || 1; N[o] = nx / nl; N[o + 1] = ny / nl; N[o + 2] = nz / nl; }
+    }
+  }
+}
+
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _plane = new THREE.Plane(), _hit = new THREE.Vector3();
+/**
+ * 每幀重鋪一隻手的袖管（修訂 4）：袖口 → 最近畫面邊緣的最短路徑。mesh＝該手的 SkinnedMesh（幾何是這一席自己的一份）。
+ * avoid（可省）：畫面上拍品外框 [{x0,y0,x1,y1}]（NDC），路徑跟它們相交就換下一近的邊。
+ * 回 { edge, target }（給治具查）。沒有相機＝不動（保留上一次或靜態形狀）。
+ */
+export function updateArm(mesh, camera, avoid) {
+  const g = mesh.geometry, ring = g.userData.armRing; if (!ring || !camera) return null;
+  const P = g.attributes.position.array;
+  /* 袖口中心（蒙皮後、網格局部）：錨點頂點蒙皮後的位置＋它到截面中心的靜態偏移 */
+  _v.fromBufferAttribute(g.attributes.position, ring.anchor); mesh.applyBoneTransform(ring.anchor, _v);
+  const p0 = [_v.x + ring.off[0], _v.y + ring.off[1], _v.z + ring.off[2]];
+  _w.set(p0[0], p0[1], p0[2]).applyMatrix4(mesh.matrixWorld); const wristW = _w.clone();
+  const q = wristW.clone().project(camera);
+  const edges = [
+    { e: 'left', d: q.x + 1, ndc: [-1 - ARM.MARGIN, q.y] }, { e: 'right', d: 1 - q.x, ndc: [1 + ARM.MARGIN, q.y] },
+    { e: 'bottom', d: q.y + 1, ndc: [q.x, -1 - ARM.MARGIN] }, { e: 'top', d: 1 - q.y, ndc: [q.x, 1 + ARM.MARGIN] },
+  ].sort((a, b) => a.d - b.d);
+  const segHits = (a, b, r) => { // 畫面線段 a→b 與外框 r 相交（取樣 12 點，夠用）
+    for (let k = 0; k <= 12; k++) { const t = k / 12, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t; if (x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1) return true; }
+    return false;
+  };
+  let pick = edges[0];
+  if (avoid && avoid.length) pick = edges.find((c) => !avoid.some((r) => segHits([q.x, q.y], c.ndc, r))) || edges[0];
+  /* 目標深度：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）就取手腕到相機的距離 */
+  _ndc.set(pick.ndc[0], pick.ndc[1]); _ray.setFromCamera(_ndc, camera);
+  _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
+  let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null;
+  const dw = camera.getWorldPosition(new THREE.Vector3()).distanceTo(wristW);
+  if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3());
+  const tl = mesh.worldToLocal(T.clone());
+  layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array);
+  g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true;
+  return { edge: pick.e, target: T.toArray() };
 }
