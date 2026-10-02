@@ -48,7 +48,7 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
  *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, PAD_NDC: 0.04, LIFT: 0.06, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 0.35, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.82, STATIC_DM: 8, STATIC_RISE: 0.16 };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -216,7 +216,7 @@ float hrHash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.
 float hrNoise(vec3 x){ vec3 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
   return mix(mix(mix(hrHash(i), hrHash(i+vec3(1,0,0)), f.x), mix(hrHash(i+vec3(0,1,0)), hrHash(i+vec3(1,1,0)), f.x), f.y),
              mix(mix(hrHash(i+vec3(0,0,1)), hrHash(i+vec3(1,0,1)), f.x), mix(hrHash(i+vec3(0,1,1)), hrHash(i+vec3(1,1,1)), f.x), f.y), f.z); }
-float hrFbm(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++){ s += a * hrNoise(p); p *= 2.03; a *= 0.5; } return s; }
+float hrFbm(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 3; i++){ s += a * hrNoise(p); p *= 2.03; a *= 0.5; } return s * 1.143; }
 float hrSeg(vec3 p, vec3 a, vec3 b, out float t){ vec3 ab = b - a; t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); return length(p - a - ab * t); }
 vec3 hrBump(vec3 sp, vec3 n, float h){ vec3 dx = dFdx(sp), dy = dFdy(sp); vec3 r1 = cross(dy, n), r2 = cross(n, dx); float det = dot(dx, r1);
   vec2 dh = vec2(dFdx(h), dFdy(h)); vec3 g = sign(det) * (dh.x * r1 + dh.y * r2); return normalize(abs(det) * n - g); }
@@ -256,8 +256,10 @@ const FRAG_COLOR = /* glsl */`
       tendon += exp(-pow(d / 0.03, 2.0)) * smoothstep(0.0, 0.25, t) * (1.0 - smoothstep(0.8, 1.0, t)); }
     tendon *= smoothstep(0.2, 0.7, dors) * (1.0 - onFinger);
     /* 靜脈：扭曲雜訊的細窄谷線，只在手背與腕 */
-    float vn = hrFbm(p * vec3(7.0, 7.0, 3.5) + hrNoise(p * 3.0) * 1.5);
-    float vein = (1.0 - smoothstep(0.0, 0.035, abs(vn - 0.5))) * smoothstep(0.3, 0.8, dors) * (1.0 - onFinger) * uAge.z;
+    /* 效能（修訂 4）：靜脈、老人斑、疤只在用得到的地方算（該種手強度＞0、手背、不在手指上）——同一隻手同一種，分支一致 */
+    float vein = 0.0;
+    if (uAge.z > 0.0 && dors > 0.3 && onFinger < 0.99) { float vn = hrFbm(p * vec3(7.0, 7.0, 3.5) + hrNoise(p * 3.0) * 1.5);
+      vein = (1.0 - smoothstep(0.0, 0.035, abs(vn - 0.5))) * smoothstep(0.3, 0.8, dors) * (1.0 - onFinger) * uAge.z; }
     /* 指甲 */
     float nailFrom = 2.28 - uMarks.w * 0.12;
     float nail = smoothstep(nailFrom, nailFrom + 0.05, bs) * smoothstep(0.30, 0.50, dors) * step(bd, 0.14);
@@ -266,20 +268,23 @@ const FRAG_COLOR = /* glsl */`
     /* 繭（獵人）：掌指關節背與指尖腹 */
     float callus = uMarks.x * clamp(knob * 1.3 + smoothstep(2.5, 2.95, bs) * smoothstep(0.0, -0.5, dors), 0.0, 1.0);
     /* 疤（獵人）：手背斜疤＋一道舊擦痕 */
-    float st; float sd = hrSeg(vec3(p.x, 0.0, p.z), vec3(uScar.x, 0.0, uScar.y), vec3(uScar.z, 0.0, uScar.w), st);
-    float scar = uMarks.y * (1.0 - smoothstep(0.006, 0.016 + 0.012 * hrNoise(p * 25.0), sd)) * smoothstep(0.2, 0.6, dors) * smoothstep(0.02, 0.1, st) * (1.0 - smoothstep(0.9, 1.0, st));
-    float scarRim = uMarks.y * (1.0 - smoothstep(0.03, 0.05, sd)) * smoothstep(0.2, 0.6, dors) * smoothstep(0.02, 0.1, st) * (1.0 - smoothstep(0.9, 1.0, st)) - scar;
+    float scar = 0.0, scarRim = 0.0;
+    if (uMarks.y > 0.0 && dors > 0.2) { float st; float sd = hrSeg(vec3(p.x, 0.0, p.z), vec3(uScar.x, 0.0, uScar.y), vec3(uScar.z, 0.0, uScar.w), st);
+      if (sd < 0.05) {
+        scar = uMarks.y * (1.0 - smoothstep(0.006, 0.016 + 0.012 * hrNoise(p * 25.0), sd)) * smoothstep(0.2, 0.6, dors) * smoothstep(0.02, 0.1, st) * (1.0 - smoothstep(0.9, 1.0, st));
+        scarRim = uMarks.y * (1.0 - smoothstep(0.03, 0.05, sd)) * smoothstep(0.2, 0.6, dors) * smoothstep(0.02, 0.1, st) * (1.0 - smoothstep(0.9, 1.0, st)) - scar; } }
     /* 老人斑 */
-    float spots = uAge.y * smoothstep(0.56, 0.64, hrFbm(p * 9.0 + 3.1)) * smoothstep(0.1, 0.5, dors);
+    float spots = 0.0;
+    if (uAge.y > 0.0 && dors > 0.1) spots = uAge.y * smoothstep(0.56, 0.64, hrFbm(p * 9.0 + 3.1)) * smoothstep(0.1, 0.5, dors);
     /* 皮膚底色：底色 → 關節／指尖泛紅 → 微雜訊 → 紙纖維 */
     float micro = hrNoise(p * 220.0), fiber = hrNoise(p * vec3(30.0, 30.0, 160.0));
     vec3 c = uSkin;
     float flush = clamp(gB * onFinger * 0.6 + gC * onFinger * 0.5 + smoothstep(2.6, 3.0, bs) * 0.6 + knob * 0.5, 0.0, 1.0);
     c = mix(c, uWarm, flush * 0.55);
-    c *= 0.90 + 0.10 * hrFbm(p * 14.0) + (fiber - 0.5) * 0.06 + (micro - 0.5) * 0.05 * (1.0 + uAge.w);
+    c *= 0.90 + 0.10 * (0.67 * hrNoise(p * 14.0) + 0.33 * hrNoise(p * 28.4)) + (fiber - 0.5) * 0.06 + (micro - 0.5) * 0.05 * (1.0 + uAge.w);
     c = mix(c, c * vec3(0.70, 0.64, 0.60), wrinkle * (0.35 + 0.45 * uAge.x));
     c = mix(c, c * vec3(0.72, 0.80, 1.08), vein * 0.6);
-    c = mix(c, vec3(0.30, 0.17, 0.08) * (0.8 + 0.4 * hrNoise(p * 20.0)), spots * 0.75);
+    if (spots > 0.0) c = mix(c, vec3(0.30, 0.17, 0.08) * (0.8 + 0.4 * hrNoise(p * 20.0)), spots * 0.75);
     c = mix(c, vec3(0.62, 0.50, 0.32), callus * 0.45);
     c = mix(c, vec3(0.55, 0.36, 0.30), scar * 0.85); c = mix(c, uWarm * 0.75, max(scarRim, 0.0) * 0.6);
     vec3 nc = mix(uNail * (0.9 + 0.2 * hrNoise(vec3(ax * 400.0, 0.0, 0.0))), uNail * 1.3 + 0.08, freeEdge);
@@ -412,9 +417,10 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
 }
 
 /** 依起點 p0、起步方向 dir0、終點 p2（都在網格局部座標）把袖管各圈鋪上二次曲線；寫進 P（Float32Array）。回每圈中心（測試用）。 */
-function layTube(P, ring, p0, dir0, p2, N = null) {
+function layTube(P, ring, p0, dir0, p2, N = null, arch = [0, 0, 0]) {
   const L = Math.hypot(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]) || 1, k = Math.min(L * 0.35, 3);
-  const p1 = [p0[0] + dir0[0] * k, p0[1] + dir0[1] * k, p0[2] + dir0[2] * k];
+  /* 控制點：沿前臂方向起步，再往上拱 arch（世界朝上，換成網格局部）——袖管從袖口一離開就抬離桌面，不擦過錢柱與令牌 */
+  const p1 = [p0[0] + dir0[0] * k + arch[0], p0[1] + dir0[1] * k + arch[1], p0[2] + dir0[2] * k + arch[2]];
   let prevU = null;
   for (let i = 0; i <= ring.segs; i++) {
     const t = ring.ts[i], a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t;
@@ -456,6 +462,8 @@ export function updateArm(mesh, camera, avoid) {
     { e: 'left', d: q.x + 1, ndc: [-1 - ARM.MARGIN, q.y] }, { e: 'right', d: 1 - q.x, ndc: [1 + ARM.MARGIN, q.y] },
     { e: 'bottom', d: q.y + 1, ndc: [q.x, -1 - ARM.MARGIN] }, { e: 'top', d: 1 - q.y, ndc: [q.x, 1 + ARM.MARGIN] },
   ].sort((a, b) => a.d - b.d);
+  /* 往上拱的量（世界 ARCH 換成網格局部向量） */
+  const archW = mesh.worldToLocal(wristW.clone().add(new THREE.Vector3(0, ARM.ARCH, 0))), arch = [archW.x - p0[0], archW.y - p0[1], archW.z - p0[2]];
   /* 候選邊的目標點：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）或太遠就取手腕到相機的距離 */
   const dw = camera.getWorldPosition(new THREE.Vector3()).distanceTo(wristW);
   const targetOf = (c) => { _ndc.set(c.ndc[0], c.ndc[1]); _ray.setFromCamera(_ndc, camera); _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
@@ -463,7 +471,7 @@ export function updateArm(mesh, camera, avoid) {
   /* 避開拍品（修訂 4）：把每條候選袖管實際的曲線（同 layTube 的二次曲線）取 16 點投影到畫面，數落在任一拍品外框（外擴 PAD_NDC）
      內的點數；取點數最少的邊，同分取最近的邊。手常停在拍品腳邊、起點本來就在外框裡，所以比的是「壓過多少」，不是「有沒有碰」。 */
   const cover = (T) => {
-    const tl = mesh.worldToLocal(T.clone()), L = Math.hypot(tl.x - p0[0], tl.y - p0[1], tl.z - p0[2]) || 1, k = Math.min(L * 0.35, 3), p1 = [p0[0], p0[1], p0[2] - k];
+    const tl = mesh.worldToLocal(T.clone()), L = Math.hypot(tl.x - p0[0], tl.y - p0[1], tl.z - p0[2]) || 1, k = Math.min(L * 0.35, 3), p1 = [p0[0] + arch[0], p0[1] + arch[1], p0[2] - k + arch[2]];
     let n = 0; const e = ARM.PAD_NDC;
     for (let i = 1; i <= 16; i++) {
       const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, cc = t * t;
@@ -476,7 +484,7 @@ export function updateArm(mesh, camera, avoid) {
   if (avoid && avoid.length) { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = cover(Tc); if (k < best) { best = k; pick = c; T = Tc; } } }
   if (!T) T = targetOf(pick);
   const tl = mesh.worldToLocal(T.clone());
-  layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array);
+  layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array, arch);
   /* 只重傳袖管那一段 */
   for (const at of [g.attributes.position, g.attributes.normal]) { at.updateRange.offset = ring.start * 3; at.updateRange.count = (ring.segs + 1) * ring.sides * 3; at.needsUpdate = true; }
   return (g.userData.armLast = { edge: pick.e, target: T.toArray() });
