@@ -223,41 +223,63 @@ function init() {
      拿「有沒有收到事件」當換夜的訊號的話，盯上頁拍下去的令牌會在切到出價頁的瞬間被清掉。
      夜數是演出層本來就帶著的欄位（第一段就有），不必新增事件、也不必回頭讀 S。 */
   let trayRound = -1;
-  document.addEventListener('ys:market', (e) => {
+  const onMarket = (d) => {
     if (!TRAY_URL.on) return; // kill switch：版面照舊，桌上空的
-    const d = (e && e.detail) || {};
     const r = Number(d.round) || 0;
     if (r !== trayRound) { trayRound = r; tray.props.clearRound(); tray.hands.clear(); } // 新的一夜：桌上的錢與令牌全收、手也收
     tray.setItems(Array.isArray(d.items) ? d.items : []);
     if (Array.isArray(d.seats)) { tray.props.setSeats(d.seats); tray.hands.setSeats(d.seats); } // 四席信物：誰坐哪一席、是哪個角色
     tray.setVisible(true);
-  });
+  };
+  document.addEventListener('ys:market', (e) => onMarket((e && e.detail) || {}));
   /* 競標的實體痕跡（第二段）。三個事件都是**純演出**：3D 層不知道什麼是壽命，
      `amount` 只用來決定「推幾枚」，`slot`／`seat` 只用來決定「從哪推到哪」。 */
-  document.addEventListener('ys:bid', (e) => {
+  const onBid = (d) => {
     if (!TRAY_URL.on) return;
-    const d = (e && e.detail) || {};
     tray.props.bid(d.seat, d.slot, d.amount);
     tray.hands.bid(d.seat, d.slot, d.amount); // 席位之手：同一條路，props 先把錢擺好，手再去對準（amount 0＝熱座清場即收手）
-  });
-  document.addEventListener('ys:mark', (e) => {
+  };
+  document.addEventListener('ys:bid', (e) => onBid((e && e.detail) || {}));
+  const onMark = (d) => {
     if (!TRAY_URL.on) return;
-    const d = (e && e.detail) || {};
     tray.props.mark(d.seat, d.slot);
     tray.hands.mark(d.seat, d.slot); // 手跟著令牌舉高拍下；ys:mark-slam 仍由令牌落地那一幀發
-  });
+  };
+  document.addEventListener('ys:mark', (e) => onMark((e && e.detail) || {}));
   /* 開標結算：只收錢與送拍品，絕不能重送 `ys:reveal`，否則會把逐槽微距鏡頭拉回桌心。 */
-  document.addEventListener('ys:reveal-result', (e) => {
+  const onRevealResult = (d) => {
     if (!TRAY_URL.on) return;
-    const d = (e && e.detail) || {};
     if (d.slot === undefined || d.slot === null) return;
       tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy });
     tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍
-  });
+  };
+  document.addEventListener('ys:reveal-result', (e) => onRevealResult((e && e.detail) || {}));
   /* 跳過（doSkip 既有派的 ys:fx-trait-cancel，不新增事件）：桌上的錢、令牌與手直接到結束姿態；結算本來就不經過 3D 層。 */
   document.addEventListener('ys:fx-trait-cancel', () => { tray.props.finish(); tray.hands.finish(); });
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));
+  /* ★補播（v0.59.10）★：上面這幾個 listener 要等整條 import 鏈（約 28 個模組）跑完才註冊，renderer 比開局晚到時
+     index.html 的 fx3d 早就派過 `ys:market`／`ys:bid`／`ys:mark`／`ys:reveal-result`（一次性事件、無人接）——
+     桌面全黑、錢與令牌也不在，要等下一次 `ys:market` 才補上（慢網下 45 秒內從未出現）。
+     fx3d 把這幾類「狀態型」事件記在 window.__ys3dJournal（每筆帶遞增 seq；同一夜內每個鍵只留最後一份，換夜即清）。
+     冪等的依據：註冊完成的此刻讀 seq 當 regSeq——只重播 seq <= regSeq（＝註冊前派的、這邊沒收到的）；
+     註冊後才派的事件 seq 一定 > regSeq，已由 listener 即時收下，不會重播。renderer 早到時 regSeq 與日誌同為 0，不重播任何東西。
+     直接呼叫上面的處理函式，不重派 DOM 事件（其他模組的 ys:market listener 不該被打第二次）。順序：市集（含換夜清桌）→其餘依 seq。 */
+  {
+    const J = window.__ys3dJournal, regSeq = (J && J.seq) || 0;
+    if (J && regSeq > 0) {
+      const missed = (x) => x && x.seq <= regSeq;
+      try {
+        if (missed(J.market)) onMarket(J.market.detail);
+        const rest = [];
+        for (const k in J.bids) if (missed(J.bids[k])) rest.push([J.bids[k].seq, () => onBid(J.bids[k].detail)]);
+        for (const k in J.marks) if (missed(J.marks[k])) rest.push([J.marks[k].seq, () => onMark(J.marks[k].detail)]);
+        for (const k in J.results) if (missed(J.results[k])) rest.push([J.results[k].seq, () => onRevealResult(J.results[k].detail)]);
+        rest.sort((a, b) => a[0] - b[0]).forEach((r) => r[1]());
+        if (missed(J.vis) && J.vis.visible === false) tray.setVisible(false); // 註冊前就已進對決：桌面維持收起，ys:duel-end 再放回來
+      } catch (err) { console.warn('[ys3d] 補播失敗', err); }
+    }
+  }
 
   // 後製鏈：對決時走 bloom，其餘直接 render（見檔頭 BLOOM 註解）
   const bloom = createBloom(renderer, BLOOM);

@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.59.9"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.59.10"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -823,6 +823,15 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 #duelLoad{display:none;font-size:12px;letter-spacing:3px;color:var(--gold);opacity:.8;margin-top:4px}
 #duelLoad.on{display:block;animation:pulse 1s ease-in-out infinite alternate}
 @keyframes pulse{from{opacity:.45}to{opacity:.95}}
+/* v0.59.10 開局載入畫面：3D 牌桌還沒就緒時蓋在桌心（#felt 內，pointer-events:none——永遠不擋點擊）；節點只在顯示期間存在於 DOM */
+#trayLoad{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;
+  max-width:92%;box-sizing:border-box;padding:8px 14px;border:1px solid var(--line-gold-soft,rgba(201,168,98,.5));border-radius:var(--r-panel,8px);
+  background:rgba(11,9,8,.72);color:var(--gold);font-size:13px;letter-spacing:2px;line-height:1.4;text-align:center}
+#trayLoad .tlTxt{animation:pulse 1s ease-in-out infinite alternate}
+#trayLoad .tlBar{display:block;width:120px;max-width:100%;height:3px;background:rgba(201,168,98,.25);border-radius:2px;overflow:hidden}
+#trayLoad .tlBar i{display:block;height:100%;width:0;background:var(--gold);transition:width .25s}
+#trayLoad.ind .tlBar i{width:40%;animation:tlslide 1.1s ease-in-out infinite alternate}
+@keyframes tlslide{from{transform:translateX(0)}to{transform:translateX(150%)}}
 .fighter{text-align:center;transition:transform .35s}
 .fighter .fav{font-size:74px;line-height:1.15;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
 .fighter .fnm{font-size:14px;margin-top:2px}
@@ -1123,7 +1132,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.59.9"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.59.10"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -2807,9 +2816,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.59.9", VERSION_NOTE="0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
+const VERSION="0.59.10", VERSION_NOTE="0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.59.9";
+const RELEASE_VERSION="0.59.10";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -3640,7 +3649,43 @@ function market3dItems(){
 function market3dSeats(){
   return (S&&S.players?S.players:[]).map(p=>({ id:p.id, role:p.roleId||null, alive:!!p.alive }));
 }
-function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dSeats(),round:S?S.round:0}); }
+function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dSeats(),round:S?S.round:0}); trayLoadWatch(); }
+/* ===== 開局載入畫面（v0.59.10）=====
+   新局第一次需要 3D 桌面（第一次 pushMarket3d）起算：300ms 後 tray 仍未全就緒才露出 #trayLoad「請神入座中…」（快取命中不閃），
+   tray 就緒（readyCount>=本夜件數）立即移除；上限 12 秒也移除（之後桌面晚到仍靠 renderer 補播補上，遊戲不等它）。
+   一個頁面生命週期只跑一次（之後每夜換件走既有路，不再顯示）；?table3d=0／?tray3d=0 不顯示。
+   renderer 尚未載入時沒有事件可聽，所以每 100ms 輪詢 window.__yaoshi3d.tray（只讀）。進度＝readyCount／本夜件數；tray 未定義時是不確定進度。 */
+const TRAYLOAD={SHOW_MS:300,MAX_MS:12000,state:"idle",el:null,showT:0,maxT:0,poll:0};
+function trayReady3d(){ try{ const Y=window.__yaoshi3d, n=S&&S.market?S.market.length:0; return !!(Y&&Y.tray&&n>0&&Y.tray.readyCount()>=n); }catch(e){ return false; } }
+function trayLoadPaint(){
+  const L=TRAYLOAD; if(!L.el) return;
+  try{
+    const Y=window.__yaoshi3d, n=S&&S.market?S.market.length:0, has=!!(Y&&Y.tray&&n>0), k=has?Math.min(n,Y.tray.readyCount()):0;
+    L.el.classList.toggle("ind",!has);
+    L.el.querySelector(".tlTxt").textContent=has?`請神入座中… ${k}/${n}`:"請神入座中…";
+    L.el.querySelector(".tlBar i").style.width=has?Math.round(k/n*100)+"%":"";
+  }catch(e){}
+}
+function trayLoadShow(){
+  const L=TRAYLOAD; if(L.state!=="wait"||L.el) return;
+  try{
+    const el=document.createElement("div"); el.id="trayLoad"; el.setAttribute("role","status"); el.setAttribute("aria-live","polite");
+    el.innerHTML='<span class="tlTxt">請神入座中…</span><span class="tlBar"><i></i></span>';
+    (document.getElementById("felt")||document.body).appendChild(el); L.el=el; trayLoadPaint();
+  }catch(e){}
+}
+function trayLoadEnd(){
+  const L=TRAYLOAD; if(L.state==="done") return; L.state="done";
+  clearTimeout(L.showT); clearTimeout(L.maxT); clearInterval(L.poll);
+  try{ if(L.el&&L.el.parentNode) L.el.parentNode.removeChild(L.el); }catch(e){} L.el=null;
+}
+function trayLoadWatch(){
+  const L=TRAYLOAD; if(L.state!=="idle"||typeof TABLE3D==="undefined"||!TABLE3D||!TRAY3D) return;
+  L.state="wait";
+  L.showT=setTimeout(trayLoadShow,L.SHOW_MS);
+  L.maxT=setTimeout(trayLoadEnd,L.MAX_MS);
+  L.poll=setInterval(()=>{ if(trayReady3d()) trayLoadEnd(); else trayLoadPaint(); },100);
+}
 /* ===== 競標的實體痕跡（v0.56b 上桌卷第二段）=====
    兩個新派發點都是**純演出**：不讀寫任何賽局欄位、不耗玩法亂數（`S.rng`），
    3D 層只拿 slot／seat 決定「從哪推到哪」、拿 amount 決定「推幾枚」。
@@ -6077,7 +6122,25 @@ function renderNights(cur){
 /* 3D 運鏡事件（v0.16）：只從演出層發，引擎函式一律不發——headless 測試的 document 是 stub、
    沒有 dispatchEvent，在引擎路徑上發事件會讓 playPolicyGame 直接炸。整包 try/catch，
    3D 層沒載入時這裡是完全的空操作。接收端＝js/camera-director.js。 */
-function fx3d(name,detail){ try{ document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
+/* ★狀態型事件日誌（v0.59.10）★：3D 層（js/renderer.js）要等整條 import 鏈載完才註冊 listener，晚到時這些一次性事件就丟了
+   （桌面全黑、錢與令牌不在，要等下一次 ys:market）。這裡把「晚到會造成桌面與遊戲狀態不一致」的幾類事件記下來，
+   renderer 註冊完後依 seq 補播（冪等判準見 renderer.js 補播段）：
+   ys:market（拍品＋席位＋夜數；換夜時清掉上一夜的 bid／mark／result）、ys:bid（每席每格最後一次）、
+   ys:mark（每席最後一次）、ys:reveal-result（每格最後一次）、ys:duel／ys:duel-end（桌面可見性）。
+   其餘（運鏡、特效、hitstop、reveal-slot 等一次性演出）晚到補了也沒意義，不記。純記錄：不讀寫賽局欄位、不耗亂數。 */
+function ys3dJournal(name,d){
+  const J=window.__ys3dJournal||(window.__ys3dJournal={seq:0,round:null,market:null,bids:{},marks:{},results:{},vis:null});
+  if(name==="ys:market"){
+    const r=Number(d&&d.round)||0;
+    if(J.round!==r){ J.round=r; J.bids={}; J.marks={}; J.results={}; }
+    J.market={seq:++J.seq,detail:d};
+  }else if(name==="ys:bid") J.bids[(d.seat|0)+":"+(d.slot|0)]={seq:++J.seq,detail:d};
+  else if(name==="ys:mark") J.marks[d.seat|0]={seq:++J.seq,detail:d};
+  else if(name==="ys:reveal-result"){ if(d.slot!==undefined&&d.slot!==null) J.results[d.slot|0]={seq:++J.seq,detail:d}; }
+  else if(name==="ys:duel") J.vis={seq:++J.seq,visible:false};
+  else if(name==="ys:duel-end") J.vis={seq:++J.seq,visible:true};
+}
+function fx3d(name,detail){ try{ ys3dJournal(name,detail); document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
 /* ═══════════ 演出積木（v0.27 批 1）═══════════
    這一段是「效果的零件庫」，不是對決專用的一段時間軸——每個 fx* 都可以在任何時點
    重複呼叫、彼此獨立、參數化力道與顏色。對決（playDuel）只是第一個組裝它們的地方；
@@ -6182,6 +6245,27 @@ try{
   const vq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("fxvocab");
   if(vq==="0") PW_FX.VOCAB_ON=false; else if(vq==="1") PW_FX.VOCAB_ON=true;
 }catch(e){}
+/* ===== 3D 載入優化（v0.59.10）：modulepreload 攤平 renderer 的 import 鏈 =====
+   renderer.js 以 top-level await 逐個 `await import()` 約 24 個自家模組（每一跳一個 RTT），冷快取慢網下是 renderer 就緒的主因（量測見
+   docs/experiments/2026-10-04-load-probe/README.md）。這裡在 head 補 <link rel=modulepreload>，讓整串並行下載。
+   ★網址必須與實際 import 的網址逐字相同（模組快取鍵＝完整網址，錯一字元就白抓兩份）★：版本與 fxvocab 後綴與下面 renderer.js 的
+   <script> 同一個算法（RELEASE_VERSION＋PW_FX.VOCAB_ON，來源只此一處）；three 的網址讀自 importmap，不另抄版本字串。
+   模組清單＝renderer 啟動鏈實際載入的檔（冷快取請求紀錄），新增模組時要同步補這裡（驗收見 docs/experiments/2026-10-04-load-fix）。
+   headless 測試的 document 是 stub（沒有 head／createElement），整段 try/catch＝空操作。 */
+(function pwPreloadRenderer(){
+  try{
+    const head=document.head; if(!head||typeof document.createElement!=="function") return;
+    const q="?v="+RELEASE_VERSION+"&fxvocab="+(PW_FX.VOCAB_ON?"1":"0");
+    const add=href=>{ const l=document.createElement("link"); l.rel="modulepreload"; l.href=href; head.appendChild(l); };
+    ["renderer","bloom","scene-env","particles","characters-billboard","bridge-players","camera-director","duel-figures","creature-figures","skeleton-share",
+     "trait-fx","trait-fx/vocab","trait-fx/emblems","trait-fx/zuling","trait-fx/xianghuo","trait-fx/yinqi","table-tray","table-props","relic-motion",
+     "table-hands","hand-motion","hand-realism","appraise-fx","table-framing"].forEach(m=>add("js/"+m+".js"+q));
+    add("js/trait-fx/vocab.js"); /* xianghuo.js 以不帶 ?v 的相對路徑靜態 import 它（既有行為），照實預載那一份 */
+    const im=JSON.parse(document.querySelector('script[type="importmap"]').textContent).imports;
+    add(im["three"]);
+    ["loaders/GLTFLoader.js","utils/SkeletonUtils.js","utils/BufferGeometryUtils.js"].forEach(f=>add(im["three/addons/"]+f));
+  }catch(e){}
+})();
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
    只有 ?fxcount=1 才掛到 window，正式頁面上不存在這個全域。 */
 /* burn＝燒毀演出被觸發的總次數（不論走 3D 人形自己的 burn() 還是退回 DOM 版 fxBurn），

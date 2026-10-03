@@ -44,7 +44,7 @@ export async function openPage(ctx, { url, net = 'none', cpu = 1, delayRenderer 
   if (delayRenderer > 0) await page.route(/\/js\/renderer\.js/, async (r) => { await new Promise((ok) => setTimeout(ok, delayRenderer)); try { await r.continue(); } catch (e) {} });
   if (hangRenderer === 'abort') await page.route(/\/js\/renderer\.js/, (r) => r.abort());
   if (hangRenderer === 'hang') await page.route(/\/js\/renderer\.js/, async (r) => { await new Promise((ok) => setTimeout(ok, 60000)); try { await r.continue(); } catch (e) {} });
-  await page.goto(url, { waitUntil: 'load', timeout: 180000 });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 180000 });
   await page.waitForFunction('typeof window.__yaoshi === "object"', null, { timeout: 180000 });
   return { page, cdp, reqs, errs, base: () => base };
 }
@@ -71,8 +71,9 @@ export const trayState = (page) => page.evaluate(() => { const Y = window.__yaos
 export const expectState = (page) => page.evaluate(() => ({ marketKeys: market3dItems().map((i) => i.key), curse: market3dItems().map((i) => i.curse), n: S.market.length, round: S.round, active: ACTIVE, myBids: (typeof myBids !== 'undefined' ? myBids.map((b) => b && b.amt) : null) }));
 export const lfDump = (page) => page.evaluate(() => JSON.parse(JSON.stringify(window.__lf)));
 export const median = (a) => { const s = [...a].sort((x, y) => x - y); const n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
-export async function withBrowser(fn, { width = 852, height = 393 } = {}) {
+export async function withBrowser(fn, { width = 852, height = 393, safe = null } = {}) {
   const browser = await chromium.launch(); const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
   await ctx.addInitScript(INIT);
+  if (safe) await ctx.addInitScript((sf) => { document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.id = '__safe'; st.textContent = `:root{--safe-top:${sf[0]}px!important;--safe-right:${sf[1]}px!important;--safe-bottom:${sf[2]}px!important;--safe-left:${sf[3]}px!important}`; document.head.appendChild(st); }); }, safe);
   try { return await fn(ctx, browser); } finally { await browser.close(); }
 }

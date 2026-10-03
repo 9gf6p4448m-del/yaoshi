@@ -48,3 +48,15 @@
 ## 已知詮釋（寫在凍結前，避免事後解讀）
 - 補播的狀態型事件範圍由實作判斷（`ys:market`、`ys:bid`、`ys:mark`、`ys:reveal-result`；對決可見性）；其餘（相機、特效、hitstop 等一次性演出）不補播。
 - 載入畫面的 t0 取「第一次 `ys:market`」（盯上頁與出價頁都是同一個「桌面該出現」的時刻；盯上頁是新局第一次需要 3D 桌面）。
+
+## 修訂記錄（凍結後；只修治具效度，判準數字與方向一律不動）
+凍結 commit `ee0aaa5b`。以下是實作期間發現「治具對同一份程式碼也量出不同結果（基準對基準非 0）」而補的量測修正，**都是對兩邊（BASE、NEW）同樣處理、都不讓通過機率上升**：
+1. `lf-lib.mjs openPage`：`goto` 等待條件由 `load` 改 `domcontentloaded`。原因：動態插入的 renderer module script 會延後 `load` 事件，導致「延遲 renderer 5 s」情境下 goto 回來時 renderer 已就緒，根本測不到「晚到」。
+2. 條件 5 的 `lf-pixel.mjs`，凍結檔寫「BASE 對 BASE 兩次差異像素＝0」，但擴大到第三次實跑即出現 102,757 個相異像素（前兩次相同是巧合）。逐一查出並鎖定的時間／狀態相依項（皆與本卷改動無關、兩邊同樣處理）：
+   a. 燈籠閃爍 `light.intensity = base*(1+sin(elapsed…))`（`js/renderer.js` lanterns.forEach）→ 鎖成 baseIntensity；
+   b. 首頁聚光 `home-pool` 指數衰減（離開首頁後要渲染到 homeK<0.01 才隱藏）→ 等它 `visible===false` 再暫停；
+   c. 拍品妖待機骨骼動畫（AnimationMixer，dt 累積）→ 開局前把 `AnimationMixer.prototype.update` 換成空操作；
+   d. 私下天命每顆種子在每個新瀏覽器環境重抽，影響 AI 盯上選擇 → 與 `tests/tools/appraise-c-lib.mjs` 同法預先寫入同一組 localStorage；
+   e. 令牌落地動畫不在 `tray.pose` 內 → 靜止判準改為「連續兩張實際截圖逐位元組相同」。
+   修正後 BASE×3 兩兩 0 差異（效度前提成立），再量 NEW。判準仍是 NEW 對 BASE 差異像素＝0。舊版治具的截圖（`pixel-base-run1/2.png`）保留為證據、不再作為判定依據。
+3. 條件 4(b) 的「實際點 #mainbtn」：Playwright 滑鼠點擊在 BASE 上同樣不會觸發 `#mainbtn`（實測：base、new 的 `BIDS_OPEN` 皆維持 true），改用治具慣用的 DOM `.click()`；「不被遮住」另由 `elementFromPoint`＋`pointer-events:none` 證明。「離開出價頁」判準改為 `BIDS_OPEN===false && S.humanBids[ACTIVE]` 已寫入（封標被收下；`#mainbtn` 文字在封標後本來就不變）。
