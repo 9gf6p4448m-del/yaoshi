@@ -39,16 +39,19 @@ export function realDef(key) {
 }
 const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
 
-/** 前臂（驗收條件 11＋修訂 4）：原 GLB 的前臂袖布在 z＜CUT 的三角形整段不畫，改接一根程式生成的袖管（截面＝原袖口截面
- *  外撐 PAD 的橢圓、SIDES 邊、SEGS 段）。**每一幀**（畫之前，onBeforeRender 拿到這一次真正在畫的相機）把袖管重新鋪成
- *  「袖口 → 最近的畫面邊緣」的最短路徑：手腕投影到畫面、取離它最近的那條邊，目標點在該邊外 MARGIN（NDC）處，
- *  深度取「過該點的視線與高 LIFT 的水平面」交點（交不到就取手腕到相機的距離）；路徑是從袖口沿前臂方向起步的二次曲線。
- *  袖管 DARK 起漸暗（畫面邊緣前一段，收尾）、FADE 起漸隱（最後一圈，落在畫面邊緣外 MARGIN 處）。袖管頂點全綁 Elbow 骨（姿勢從不轉它＝網格局部座標），
- *  所以 CPU 寫進去的座標就是畫出來的座標，治具與測試讀頂點位置看到的就是畫面上那一根。
- *  沒有相機時（node 測試）：往後 STATIC_DM、微抬 STATIC_RISE 的靜態袖管。
- *  AVOID：路徑與拍品在畫面上的外框相交時，改選下一近的邊（不得橫過拍品前方）。
+/** 前臂（驗收條件 11，修訂 6 B 案：方向固定、短、漸隱收尾）：原 GLB 的前臂袖布在 z＜CUT 的三角形整段不畫，改接一根程式生成的
+ *  袖管（截面＝原袖口截面外撐 PAD 的橢圓、SIDES 邊、SEGS 段），從袖口 Z0 沿前臂延長線（網格 −z，指回自己席位）筆直往後 LEN dm，
+ *  **建構時鋪好一次、之後不再動**（不依鏡頭選邊、不每幀重鋪）。各席方向由席位幾何決定：手從自己席位伸向桌心，前臂延長線指回
+ *  自己那邊——南席往畫面下、北席往畫面上、西席往左、東席往右。
+ *  漸隱：alpha 沿長度由 1 單調遞減到 0（smoothstep，末圈＝0，無硬邊），顏色同時壓暗到 DIM 倍。漸隱段長度 LEN＝0.60 dm，
+ *  下限＝舊版 v0.59.6 前臂漸隱段（HAND.SLEEVE.CUFF_TO −0.40 → FADE_TO −0.95＝0.55 dm）。 袖口 Z0～CUT 之間留下的原頂點包在
+ *  袖管裡面在 CUT 前淡到 0（不會在半透明袖管裡留一圈不透明的切邊）。
+ *  袖管頂點全綁 Elbow 骨（姿勢從不轉它＝網格局部座標），治具與測試讀頂點位置看到的就是畫面上那一根。
+ *  Z0＝−0.50：袖口的配件（收驚婆麻布袖口、獵人毛邊、當鋪金邊外翻，實測最遠到 z −0.486）都在袖管起點之前，袖管從配件後面接出去。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
-export const ARM = { CUT: -0.5, Z0: -0.40, PAD: 0.012, SIDES: 10, SEGS: 16, FINE_Z: -0.45, MARGIN: 1.0, PAD_NDC: 0.04, LIFT: 0.06, ARCH: 0.1, DARK: 0.6, FADE: 0.92, STATIC_DM: 8, STATIC_RISE: 0.16 };
+export const ARM = { CUT: -0.6, Z0: -0.50, PAD: 0.012, SIDES: 10, SEGS: 12, FINE_Z: -0.45, LEN: 0.60, OLD_FADE: 0.55, DIM: 0.6 };
+/** 袖管沿長度的 alpha（t＝離袖口的距離／LEN，0..1）：1 → 0 單調遞減。 */
+export const armAlpha = (t) => { const f = Math.min(1, Math.max(0, t)); return 1 - f * f * (3 - 2 * f); };
 
 const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
 
@@ -334,7 +337,7 @@ const FRAG_ACC = /* glsl */`
 `;
 
 /** 把角色幾何轉成寫實版：手部細分＋重塑＋前臂延長＋aSkin／aAcc 屬性。回新的 BufferGeometry（呼叫端快取）。
- *  袖管每幀由 updateArm 依相機重鋪（縮放改了也照樣接到畫面邊緣）。 */
+ *  袖管建構時鋪好一次（沿前臂延長線、漸隱收尾，見 ARM），之後不動。 */
 export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   const { def, kind } = realDef(key === 'default' ? null : key);
   const d = loopSubdivide(srcGeo, n0, ARM.FINE_Z);
@@ -367,16 +370,16 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   cx = (x0 + x1) / 2; cy = (y0 + y1) / 2;
   const ra = (x1 - x0) / 2 + ARM.PAD, rb = (y1 - y0) / 2 + ARM.PAD;
   for (let v = 0; v < d.nBase; v++) { const dz = d.P[v * 3 + 2] - ARM.Z0, dd = (d.P[v * 3] - cx) ** 2 + (d.P[v * 3 + 1] - cy) ** 2 + dz * dz; if (dd < ad) { ad = dd; anchor = v; } }
-  /* 留下來的原頂點（袖口以前）全不透明；z＜CUT 的原三角形之後整段丟掉 */
-  for (let v = 0; v < d.nBase; v++) if (d.cs === 4 && d.P[v * 3 + 2] >= ARM.CUT) d.C[v * 4 + 3] = 1;
+  /* 留下來的原頂點：袖口 Z0 以前全不透明；Z0～CUT 這一小段（包在袖管裡）在 CUT 前淡到 0——袖管是半透明的，裡面不能留一圈不透明的切邊；
+     z＜CUT 的原三角形之後整段丟掉 */
+  for (let v = 0; v < d.nBase; v++) if (d.cs === 4) { const z = d.P[v * 3 + 2]; d.C[v * 4 + 3] = z >= ARM.Z0 ? 1 : armAlpha((ARM.Z0 - z) / (ARM.Z0 - ARM.CUT)); }
   const cut = (tri) => tri.every((v) => v < d.nBase && d.P[v * 3 + 2] < ARM.CUT);
-  /* 袖管：先鋪靜態形狀（往後 STATIC_DM、微抬），每幀由 updateArm 重鋪。頂點全綁 Elbow 骨（權重 1）。 */
+  /* 袖管：建構時沿 −z 筆直鋪一次（之後不動）。頂點全綁 Elbow 骨（權重 1）。 */
   const elbow = rig.idx.Elbow, tubeStart = d.P.length / 3, P2 = [], C2 = [], S2 = [], W2 = [], A2 = [], I2 = [];
   const col = [d.C[anchor * d.cs], d.C[anchor * d.cs + 1], d.C[anchor * d.cs + 2]], ts = [];
   for (let i = 0; i <= ARM.SEGS; i++) {
-    const t = Math.pow(i / ARM.SEGS, 1.4); ts.push(t);
-    const f = Math.min(1, Math.max(0, (t - ARM.FADE) / (1 - ARM.FADE))), alpha = 1 - f * f * (3 - 2 * f);
-    const dk = Math.min(1, Math.max(0, (t - ARM.DARK) / (1 - ARM.DARK))), dim = 1 - 0.6 * dk * dk * (3 - 2 * dk);
+    const t = i / ARM.SEGS; ts.push(t);
+    const alpha = armAlpha(t), dim = 1 - (1 - ARM.DIM) * (1 - alpha);
     for (let j = 0; j < ARM.SIDES; j++) {
       P2.push(0, 0, 0); C2.push(col[0] * dim, col[1] * dim, col[2] * dim); if (d.cs === 4) C2.push(alpha);
       S2.push(elbow, 0, 0, 0); W2.push(1, 0, 0, 0); A2.push(0, 0, 0);
@@ -389,7 +392,7 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   const cat = (A, B, T) => { const o = new T(A.length + B.length); o.set(A); o.set(B, A.length); return o; };
   d.P = cat(d.P, P2, Float32Array); d.C = cat(d.C, C2, Float32Array); d.SI = cat(d.SI, S2, Uint16Array); d.SW = cat(d.SW, W2, Float32Array); d.A = cat(d.A, A2, Float32Array);
   const ring = { start: tubeStart, sides: ARM.SIDES, segs: ARM.SEGS, ts, ra, rb, anchor, off: [cx - d.P[anchor * 3], cy - d.P[anchor * 3 + 1], ARM.Z0 - d.P[anchor * 3 + 2]] };
-  layTube(d.P, ring, [cx, cy, ARM.Z0], [0, 0, -1], [cx, cy + ARM.STATIC_RISE * ARM.STATIC_DM, ARM.Z0 - ARM.STATIC_DM]);
+  layTube(d.P, ring, [cx, cy, ARM.Z0], [0, 0, -1], [cx, cy, ARM.Z0 - ARM.LEN]);
   /* 舊的頂點色疤條（獵人配件）由程式生成疤取代：那片配件頂點 alpha 設 0，整片三角形丟掉。 */
   for (let v = d.nBase; v < d.P.length / 3; v++) { const c = d.C.subarray(v * d.cs, v * d.cs + 3); if (Math.abs(c[0] - 0.74) + Math.abs(c[1] - 0.50) + Math.abs(c[2] - 0.42) < 1e-3 && d.cs === 4) d.C[v * d.cs + 3] = 0; }
   const keep = [];
@@ -437,69 +440,4 @@ function layTube(P, ring, p0, dir0, p2, N = null, arch = [0, 0, 0]) {
       if (N) { const nx = u[0] * Math.cos(th) / ring.ra + w[0] * Math.sin(th) / ring.rb, ny = u[1] * Math.cos(th) / ring.ra + w[1] * Math.sin(th) / ring.rb, nz = u[2] * Math.cos(th) / ring.ra + w[2] * Math.sin(th) / ring.rb, nl = Math.hypot(nx, ny, nz) || 1; N[o] = nx / nl; N[o + 1] = ny / nl; N[o + 2] = nz / nl; }
     }
   }
-}
-
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _plane = new THREE.Plane(), _hit = new THREE.Vector3();
-/**
- * 每幀重鋪一隻手的袖管（修訂 4）：袖口 → 最近畫面邊緣的最短路徑。mesh＝該手的 SkinnedMesh（幾何是這一席自己的一份）。
- * avoid（可省）：畫面上拍品外框 [{x0,y0,x1,y1}]（NDC），路徑跟它們相交就換下一近的邊。
- * 回 { edge, target }（給治具查）。沒有相機＝不動（保留上一次或靜態形狀）。
- */
-export function updateArm(mesh, camera, avoid) {
-  const g = mesh.geometry, ring = g.userData.armRing; if (!ring || !camera) return null;
-  const P = g.attributes.position.array;
-  /* 袖口中心（蒙皮後、網格局部）：錨點頂點蒙皮後的位置＋它到截面中心的靜態偏移 */
-  _v.fromBufferAttribute(g.attributes.position, ring.anchor); mesh.applyBoneTransform(ring.anchor, _v);
-  const p0 = [_v.x + ring.off[0], _v.y + ring.off[1], _v.z + ring.off[2]];
-  /* 效能：相機、這隻手的位置姿勢、袖口都沒變（凍結、停一拍、靜止鏡頭）就不重鋪、不重傳 */
-  const sig = g.userData.armSig || (g.userData.armSig = new Float64Array(16 + 16 + 2 + 3)), cw = camera.matrixWorld.elements, mw = mesh.matrixWorld.elements, pm = camera.projectionMatrix.elements;
-  let same = true; const put = (i, x) => { if (sig[i] !== x) { same = false; sig[i] = x; } };
-  for (let i = 0; i < 16; i++) { put(i, cw[i]); put(16 + i, mw[i]); } put(32, pm[0]); put(33, pm[5]); put(34, p0[0]); put(35, p0[1]); put(36, p0[2]);
-  if (same && g.userData.armLast) return g.userData.armLast;
-  _w.set(p0[0], p0[1], p0[2]).applyMatrix4(mesh.matrixWorld); const wristW = _w.clone();
-  const q = wristW.clone().project(camera);
-  const edges = [
-    { e: 'left', d: q.x + 1, ndc: [-1 - ARM.MARGIN, q.y] }, { e: 'right', d: 1 - q.x, ndc: [1 + ARM.MARGIN, q.y] },
-    { e: 'bottom', d: q.y + 1, ndc: [q.x, -1 - ARM.MARGIN] }, { e: 'top', d: 1 - q.y, ndc: [q.x, 1 + ARM.MARGIN] },
-  ].sort((a, b) => a.d - b.d);
-  /* 往上拱的量（世界 ARCH 換成網格局部向量） */
-  const archW = mesh.worldToLocal(wristW.clone().add(new THREE.Vector3(0, ARM.ARCH, 0))), arch = [archW.x - p0[0], archW.y - p0[1], archW.z - p0[2]];
-  /* 候選邊的目標點：過目標點的視線與「手腕高＋LIFT」的水平面交點；交不到（視線朝上）或太遠就取手腕到相機的距離 */
-  const dw = camera.getWorldPosition(new THREE.Vector3()).distanceTo(wristW);
-  const targetOf = (c) => { _ndc.set(c.ndc[0], c.ndc[1]); _ray.setFromCamera(_ndc, camera); _plane.set(new THREE.Vector3(0, 1, 0), -(wristW.y + ARM.LIFT));
-    let T = _ray.ray.intersectPlane(_plane, _hit) ? _hit.clone() : null; if (!T || T.distanceTo(wristW) > dw * 3) T = _ray.ray.at(dw, new THREE.Vector3()); return T; };
-  /* 避開拍品（修訂 4）：把每條候選袖管實際的曲線（同 layTube 的二次曲線）取 16 點投影到畫面，數落在任一拍品外框（外擴 PAD_NDC）
-     內的點數；取點數最少的邊，同分取最近的邊。手常停在拍品腳邊、起點本來就在外框裡，所以比的是「壓過多少」，不是「有沒有碰」。 */
-  const cover = (T) => {
-    const tl = mesh.worldToLocal(T.clone()), L = Math.hypot(tl.x - p0[0], tl.y - p0[1], tl.z - p0[2]) || 1, k = Math.min(L * 0.35, 3), p1 = [p0[0] + arch[0], p0[1] + arch[1], p0[2] - k + arch[2]];
-    let n = 0; const e = ARM.PAD_NDC;
-    for (let i = 1; i <= 16; i++) {
-      const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, cc = t * t;
-      _v.set(a * p0[0] + b * p1[0] + cc * tl.x, a * p0[1] + b * p1[1] + cc * tl.y, a * p0[2] + b * p1[2] + cc * tl.z).applyMatrix4(mesh.matrixWorld).project(camera);
-      if (avoid.some((r) => _v.x > r.x0 - e && _v.x < r.x1 + e && _v.y > r.y0 - e && _v.y < r.y1 + e)) n++;
-    }
-    return n;
-  };
-  let pick = edges[0], T = null;
-  /* 另避「迎著鏡頭」：目標點比手腕近鏡頭一半以上（低機位特寫時往畫面下緣走＝衝向鏡頭，袖管會穿過近裁切面變成一道光錐）＝加重罰 */
-  const camW0 = camera.getWorldPosition(new THREE.Vector3());
-  { let best = Infinity; for (const c of edges) { const Tc = targetOf(c), k = (avoid && avoid.length ? cover(Tc) : 0) + (Tc.distanceTo(camW0) < dw * 0.5 ? 100 : 0); if (k < best) { best = k; pick = c; T = Tc; } } }
-  if (!T) T = targetOf(pick);
-  /* 最後一圈不透明的截面要整圈落在畫面外（袖管迎向鏡頭時截面在畫面上很粗）：還有頂點在畫面內，就把目標點沿同一條視線推遠（畫面位置不變、
-     截面變小）再鋪一次，最多 6 次。 */
-  const camW = camera.getWorldPosition(new THREE.Vector3()), last = ring.segs - 1;
-  for (let it = 0; it < 7; it++) {
-    const tl = mesh.worldToLocal(T.clone());
-    layTube(P, ring, p0, [0, 0, -1], [tl.x, tl.y, tl.z], g.attributes.normal.array, arch);
-    let inside = false;
-    for (let j = 0; j < ring.sides && !inside; j++) {
-      const o = (ring.start + last * ring.sides + j) * 3; _v.set(P[o], P[o + 1], P[o + 2]).applyMatrix4(mesh.matrixWorld).project(camera);
-      if (Math.abs(_v.x) <= 1 && Math.abs(_v.y) <= 1 && _v.z >= -1 && _v.z <= 1) inside = true;
-    }
-    if (!inside || it === 6) break;
-    T = camW.clone().addScaledVector(T.clone().sub(camW), 1.6);
-  }
-  /* 只重傳袖管那一段 */
-  for (const at of [g.attributes.position, g.attributes.normal]) { at.updateRange.offset = ring.start * 3; at.updateRange.count = (ring.segs + 1) * ring.sides * 3; at.needsUpdate = true; }
-  return (g.userData.armLast = { edge: pick.e, target: T.toArray() });
 }

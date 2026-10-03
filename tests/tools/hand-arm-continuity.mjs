@@ -8,7 +8,13 @@
    （原手頂點＋v0.59.7 的袖管；不含配件）中，
    綁定姿勢 z 最小的那一圈（z ≤ zMin＋0.03 dm）。後端頂點投影到畫面：在畫面內（NDC |x|,|y|≤1、深度在視錐內）且
    不被深度遮住（另畫一張只含不透明物件的深度圖，該像素的線性深度比頂點近 0.01 以上才算被遮）＝看得到後端 ⇒ 該幀紅。
-   輸出逐幀列（幀號、夜、段、席、種類、後端點數、在畫面內數、未被遮數）＋彙總。 */
+   輸出逐幀列（幀號、夜、段、席、種類、後端點數、在畫面內數、未被遮數）＋彙總。
+   --crit=fade（修訂 6 的條件 11：袖管方向固定、漸隱收尾，不再要求延伸到畫面邊緣）：同樣兩段、同樣取樣，每隻可見手改量
+     ①漸隱曲線（讀這一幀實際送 GPU 的頂點色 alpha）：袖管第 0 圈 alpha≥0.99；沿長度單調不增；最後一圈 alpha＝0；
+       漸隱段長度（最後一圈 alpha≥0.99 → 第一圈 alpha＝0 的圈心距離，網格局部 dm）≥ 舊版 v0.59.6 漸隱段 0.55 dm
+       （HAND.SLEEVE.CUFF_TO −0.40 → FADE_TO −0.95）；任一不成立＝該幀紅（硬邊／不透明切面）。
+     ②空心開口：有被畫的三角形裡只屬於一個三角形的邊（開口邊），兩端 alpha 都 ≥0.5、都在袖口 Z0 之後（z＜袖管第 0 圈 −0.01）、
+       不是配件（aAcc 類別 0）＝開口頂點；開口頂點在畫面內且沒被不透明物擋住（同上深度圖判法）＝該幀紅。 */
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -18,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; }
 const ROOT = path.resolve(opt.root || HERE), [W, H] = String(opt.vp || '844x390').split('x').map(Number), PORT = Number(opt.port || 8995);
-const GAMES = Number(opt.games || 4), SEED = Number(opt.seed || 7);
+const GAMES = Number(opt.games || 4), SEED = Number(opt.seed || 7), CRIT = String(opt.crit || 'rear'), OLD_FADE = 0.55;
 const KINDS = ['shoujing', 'hunter', 'dangpu', 'qingmian']; // qingmian＝預設手
 const { chromium } = createRequire(path.join(HERE, 'tools/anyCreature/package.json'))('playwright');
 const server = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
@@ -66,7 +72,7 @@ try {
     await page.goto(`http://127.0.0.1:${PORT}/index.html${opt.handscale ? '?handscale=' + opt.handscale : ''}`);
     await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 60000 });
     const kinds = [0, 1, 2, 3].map((s) => KINDS[(s - g + 4) % 4]);
-    await page.evaluate(async ({ sd, kinds }) => {
+    await page.evaluate(async ({ sd, kinds, CRIT, OLD_FADE }) => {
       CFG.T = 1; const F = window.__yaoshi.PW_FX; if (F) for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
       window.__yaoshi.newGame('solo', sd, ['qingmian']);
       const T = window.__yaoshi3d.tray; await T.loaded(); await T.hands.ready();
@@ -84,6 +90,20 @@ try {
         let r = rearCache.get(g); if (r) return r;
         const pos = g.attributes.position, col = g.attributes.color, nb = g.userData.real ? g.userData.real.nBase : 819;
         const AR = g.userData.armRing;
+        if (AR && CRIT === 'fade') { /* 修訂 6：漸隱曲線＋開口邊 */
+          const al = []; for (let i = 0; i <= AR.segs; i++) { let m = 0; for (let j = 0; j < AR.sides; j++) m = Math.max(m, col.getW(AR.start + i * AR.sides + j)); al.push(m); }
+          const ctr = (i) => { const c = [0, 0, 0]; for (let j = 0; j < AR.sides; j++) { const k = AR.start + i * AR.sides + j; c[0] += pos.getX(k); c[1] += pos.getY(k); c[2] += pos.getZ(k); } return c.map((x) => x / AR.sides); };
+          let full = -1; for (let i = 0; i <= AR.segs; i++) if (al[i] >= 0.99) full = i;
+          const zero = al.findIndex((a) => a <= 1e-6);
+          const mono = al.every((a, i) => i === 0 || a <= al[i - 1] + 1e-6);
+          const fadeLen = full >= 0 && zero >= 0 ? Math.hypot(...ctr(zero).map((x, k) => x - ctr(full)[k])) : 0;
+          const prof = { a0: +al[0].toFixed(3), aEnd: +al[AR.segs].toFixed(4), mono, fadeLen: +fadeLen.toFixed(3), bad: !(al[0] >= 0.99 && mono && al[AR.segs] <= 1e-6 && fadeLen >= OLD_FADE) };
+          const z0 = ctr(0)[2], acc = g.attributes.aAcc, ix = g.index.array, cnt = new Map(), key = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
+          for (let t = 0; t < g.index.count; t += 3) for (const [a, b] of [[ix[t], ix[t + 1]], [ix[t + 1], ix[t + 2]], [ix[t + 2], ix[t]]]) { const k = key(a, b); cnt.set(k, (cnt.get(k) || 0) + 1); }
+          const open = new Set(), isOpenV = (i) => col.getW(i) >= 0.5 && pos.getZ(i) < z0 - 0.01 && (!acc || Math.round(acc.getX(i)) === 0);
+          for (const [k, n] of cnt) { if (n !== 1) continue; const [a, b] = k.split(',').map(Number); if (isOpenV(a) && isOpenV(b)) { open.add(a); open.add(b); } }
+          r = { zMin: null, idx: [...open], prof }; rearCache.set(g, r); return r;
+        }
         if (AR) { /* 修訂 4：袖管每幀依相機重鋪，後端＝看得見（alpha≥0.5）的最後一圈 */
           let last = 0; for (let i = 0; i <= AR.segs; i++) if (col.getW(AR.start + i * AR.sides) >= 0.5) last = i;
           r = { zMin: null, idx: Array.from({ length: AR.sides }, (_, j) => AR.start + last * AR.sides + j), ring: last }; rearCache.set(g, r); return r;
@@ -129,14 +149,16 @@ try {
               }
               const seat = +h.name.split('-')[1];
               if (unocc && A.shots.length < 4) { R.render(Y.scene, Y.camera); A.shots.push({ f: A.frame, seat, at: ex, url: R.domElement.toDataURL('image/png') }); } // 紅幀存證（只存前幾張）
-              A.rows.push({ f: A.frame, phase: A.phase, night: window.__yaoshi.S.round, seat, kind: seats[seat].role === 'qingmian' ? 'default' : seats[seat].role, rear: rear.idx.length, onScreen, unoccluded: unocc, at: ex });
+              const bad = unocc > 0 || !!(rear.prof && rear.prof.bad);
+              if (bad && !unocc && A.shots.length < 4) { R.render(Y.scene, Y.camera); A.shots.push({ f: A.frame, seat, at: ex, url: R.domElement.toDataURL('image/png') }); }
+              A.rows.push({ f: A.frame, phase: A.phase, night: window.__yaoshi.S.round, seat, kind: seats[seat].role === 'qingmian' ? 'default' : seats[seat].role, rear: rear.idx.length, onScreen, unoccluded: unocc, at: ex, prof: rear.prof || null, bad });
             }
           }
         }
         requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
-    }, { sd: SEED + g, kinds });
+    }, { sd: SEED + g, kinds, CRIT, OLD_FADE });
     /* ①腳本段：等到第 1 夜出價（主鈕可按）後派事件 */
     await driveUntil(page, /不盯任何一件/, 3000).catch(() => {});
     await page.evaluate(async () => {
@@ -160,11 +182,13 @@ try {
     out.games.push({ g, seed: SEED + g, kinds, ended, lastNight: res.night, rows: res.rows.length });
     for (const r of res.rows) out.rows.push({ g, ...r });
     await ctx.close();
-    console.log(JSON.stringify({ g, kinds, ended, lastNight: res.night, rows: res.rows.length, red: res.rows.filter((r) => r.unoccluded > 0).length }));
+    console.log(JSON.stringify({ g, kinds, ended, lastNight: res.night, rows: res.rows.length, red: res.rows.filter((r) => r.bad).length }));
   }
 } finally { await browser?.close(); server.kill(); }
-const red = out.rows.filter((r) => r.unoccluded > 0);
-const by = {}; for (const r of out.rows) { const k = r.kind + '@' + r.seat; by[k] = by[k] || { n: 0, red: 0, onScreen: 0 }; by[k].n++; if (r.unoccluded > 0) by[k].red++; if (r.onScreen > 0) by[k].onScreen++; }
+const red = out.rows.filter((r) => r.bad);
+const by = {}; for (const r of out.rows) { const k = r.kind + '@' + r.seat; by[k] = by[k] || { n: 0, red: 0, onScreen: 0 }; by[k].n++; if (r.bad) by[k].red++; if (r.onScreen > 0) by[k].onScreen++; }
+const profs = out.rows.map((r) => r.prof).filter(Boolean);
+out.fadeProfile = profs.length ? { rows: profs.length, minA0: Math.min(...profs.map((p) => p.a0)), maxAEnd: Math.max(...profs.map((p) => p.aEnd)), allMono: profs.every((p) => p.mono), minFadeLen: Math.min(...profs.map((p) => p.fadeLen)), oldFade: OLD_FADE, openVertsMax: Math.max(...out.rows.map((r) => r.rear)) } : null;
 out.summary = { samples: out.rows.length, redSamples: red.length, phases: [...new Set(out.rows.map((r) => r.phase))], nights: [...new Set(out.rows.map((r) => r.night))].sort((a, b) => a - b), byKindSeat: by, firstRed: red.slice(0, 10) };
 if (opt.out) { fs.mkdirSync(path.dirname(path.resolve(opt.out)), { recursive: true }); fs.writeFileSync(path.resolve(opt.out), JSON.stringify(out)); }
-console.log(JSON.stringify({ vp: out.vp, handscale: out.handscale, samples: out.summary.samples, redSamples: out.summary.redSamples, nights: out.summary.nights, errs: out.errs.slice(0, 3) }));
+console.log(JSON.stringify({ crit: CRIT, fadeProfile: out.fadeProfile, vp: out.vp, handscale: out.handscale, samples: out.summary.samples, redSamples: out.summary.redSamples, nights: out.summary.nights, errs: out.errs.slice(0, 3) }));

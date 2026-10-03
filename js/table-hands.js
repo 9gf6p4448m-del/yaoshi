@@ -45,6 +45,8 @@ export function createTableHands(parent, props, opts = {}) {
   const userScale = (() => { if (!realOn) return 1; const q = Number(q0.get('handscale')); return q > 0 && q <= 2 ? q : HAND.USER_SCALE; })();
   const seatMul = [userScale, userScale, userScale, userScale];
   let frameBoxes = null, frameNo = -1; // 這一幀拍品在畫面上的外框（NDC），四隻手共用
+  let lastView = null; // 最後一次畫手時的 renderer／相機（只給 stats() 量拍品外框）
+  const ARM_DIR = ['bottom', 'top', 'left', 'right']; // 各席袖管方向（南下、北上、西左、東右；固定）
 
   const ready = Promise.all([0, 1, 2, 3].map(() => cloneSkinnedGlb(url))).then((clones) => {
     if (disposed) return;
@@ -82,11 +84,13 @@ export function createTableHands(parent, props, opts = {}) {
     });
     rigSrc0 = rigSource(hands[0].mesh);
     rig = buildRig(rigSrc0);
+    for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { lastView = { renderer, camera }; }; // 只記相機給 stats()（開關兩邊都一樣，不影響畫面）
     if (realOn) {
       /* v0.59.7：每席的縮放倍率與碰撞取樣骨架（＝該種寫實手的原頂點＋配件，見 setSeats）。 */
       director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat] });
-      /* 袖管：每一次真正要畫之前，用這一次的相機把袖管鋪到最近的畫面邊緣（避開拍品）。 */
-      for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { if (h.holder.visible && h.mesh.geometry.userData.armRing) h.arm = HR.updateArm(h.mesh, camera, itemBoxes(renderer, camera)); };
+      /* 袖管（修訂 6）：建構時鋪好、方向固定（沿前臂延長線指回自己席位），不每幀重鋪。stats() 的拍品外框用上面記下的相機算
+         （治具量條件 14 用；遊戲本身不用）。 */
+      for (const h of hands) h.arm = { edge: ARM_DIR[h.seat], fixed: true };
       /* GLB 還沒好時收到的席位，現在補上；沒收到也先套預設寫實手（任何時候上場的手都是寫實版）。 */
       { const p = pendingSeats || []; pendingSeats = null; setSeats(p); }
     } else {
@@ -141,7 +145,7 @@ export function createTableHands(parent, props, opts = {}) {
     return { position: a.position.array, color: a.color.array, colorSize: a.color.itemSize, skinIndex: a.skinIndex.array, skinWeight: a.skinWeight.array, index: dressedGeo.index.array };
   }
 
-  /** 這一幀拍品在畫面上的外框（NDC），同一幀四隻手只算一次。 */
+  /** 拍品在畫面上的外框（NDC）。修訂 6 起只給 stats() 用（治具量袖管有沒有疊到拍品），遊戲每幀不算。 */
   function itemBoxes(renderer, camera) {
     /* 拍品外框每 6 幀重算一次（拍品只有微晃與揭盅時移動；外框只拿來挑袖管走哪一邊） */
     const f = renderer.info.render.frame;
@@ -176,10 +180,11 @@ export function createTableHands(parent, props, opts = {}) {
         if (!realMat) realMat = HR.makeSkinMaterial(material, HR.jointTable(rig));
       }
       if (!realRigs.has(real.key)) {
-        /* 碰撞取樣＝這種手畫面上的頂點（細分＋重塑後的手、配件），不是原 GLB 的 819 點；袖管每幀依相機重鋪、往畫面外走，不進取樣。
+        /* 碰撞取樣＝這種手畫面上的頂點（細分＋重塑後的手、配件），不是原 GLB 的 819 點；袖管（修訂 6 起固定不動）也進取樣。
            （修訂 4 試過只取原頂點＋配件、以外擴補細分邊中點：動作中 CPU p95 降到 4.1 ms，但外擴讓勝方「停一拍」的手墊高、
            遮擋閘「收」升到 10.3–11.8%＞10%，條件 5 不放寬 ⇒ 撤回，取全部頂點；效能退路是 ?handreal=0。） */
-        const rg = realGeos.get(gk), ga = rg.attributes, na = rg.userData.real.arm[0];
+        /* 修訂 6：袖管建構後就不動（跟著 Elbow 骨走），所以也進碰撞取樣——地板／錢柱／信物避讓都看得到它。 */
+        const rg = realGeos.get(gk), ga = rg.attributes, na = rg.userData.real.arm[1];
         realRigs.set(real.key, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array.slice(0, na * 3), skinIndex: ga.skinIndex.array.slice(0, na * 4), skinWeight: ga.skinWeight.array.slice(0, na * 4) })));
       }
       h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(real.key);
@@ -232,7 +237,7 @@ export function createTableHands(parent, props, opts = {}) {
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         /* 階段三：角色變體（只讀） */
-        variants: seatKey.slice(), variantBuilds, real: realOn, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: frameBoxes ? frameBoxes.slice() : null,
+        variants: seatKey.slice(), variantBuilds, real: realOn, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: lastView ? itemBoxes(lastView.renderer, lastView.camera).slice() : null,
         trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
         variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
         /* v0.59.7：每席的寫實幾何資訊（種類、面數、前臂延長）、材質名與縮放倍率（只讀） */

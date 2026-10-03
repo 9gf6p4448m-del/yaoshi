@@ -66,6 +66,7 @@ try {
     res.aba10 = [0, 0, 0, 0]; res.abaEx = []; const sw = [[], [], [], []]; // 每席換邊紀錄 [幀, 從, 到]
     res.len = { seats: [[], [], [], []], over: [0, 0, 0, 0], itemOverlap: [0, 0, 0, 0] }; res.relicFramesDetail = [];
     const Wpx = Y.renderer.domElement.clientWidth, Hpx = Y.renderer.domElement.clientHeight, tableY = T.props.tableY();
+    const opt_over = true; // 疊拍品的幀存證（每席最多隔 200 幀一張，總共 6 張；框＝拍品外框，點＝第一個疊到的袖管圈心）
     const sample = () => {
       if (res.stop) return; res.frames++;
       const st = Hd.stats();
@@ -90,16 +91,16 @@ try {
           const g = mesh.geometry, real = g.userData.real;
           /* ⑥ 投影長度：寫實＝袖管各圈中心（畫面內、桌面以上）折線長；舊手＝前臂看得到那段（alpha≥0.5、z≤袖口）從袖口圈到最後端的投影距離 */
           { const pos0 = g.attributes.position, col0 = g.attributes.color, toPx = (w) => { const n = w.clone().project(Y.camera); return { x: (n.x + 1) / 2 * Wpx, y: (1 - n.y) / 2 * Hpx, on: Math.abs(n.x) <= 1 && Math.abs(n.y) <= 1 && n.z <= 1, w }; };
-            let L = 0, over = false;
+            let L = 0, over = false, overAt = null;
             if (g.userData.armRing) { const AR = g.userData.armRing, boxes = (st.itemBoxes || []); let pv = null;
               for (let i = 0; i <= AR.segs; i++) { if (col0.getW(AR.start + i * AR.sides) < 0.5) break; const c = new THREE.Vector3(); for (let j = 0; j < AR.sides; j++) { v.fromBufferAttribute(pos0, AR.start + i * AR.sides + j); mesh.applyBoneTransform(AR.start + i * AR.sides + j, v); c.add(v); } c.multiplyScalar(1 / AR.sides).applyMatrix4(mesh.matrixWorld);
                 const pp = toPx(c), ok = pp.on && c.y > tableY - 0.01; if (pv && ok && pv.ok) L += Math.hypot(pp.x - pv.x, pp.y - pv.y);
-                if (ok && i >= 2) { const n = c.clone().project(Y.camera); if (boxes.some((r) => n.x > r.x0 && n.x < r.x1 && n.y > r.y0 && n.y < r.y1)) over = true; }
+                if (ok && i >= 2) { const n = c.clone().project(Y.camera); const bi = boxes.findIndex((r) => n.x > r.x0 && n.x < r.x1 && n.y > r.y0 && n.y < r.y1); if (bi >= 0) { over = true; overAt = overAt || { ring: i, ndc: [+n.x.toFixed(3), +n.y.toFixed(3)], box: boxes[bi] }; } }
                 pv = { x: pp.x, y: pp.y, ok }; } }
             else { let zA = -1e9, zB = 1e9; const vs = []; for (let i = 0; i < Math.min(819, pos0.count); i++) { if (col0.itemSize === 4 && col0.getW(i) < 0.5) continue; const z = pos0.getZ(i); if (z > -0.08) continue; vs.push(i); if (z > zA) zA = z; if (z < zB) zB = z; }
               const cen = (pick) => { const c = new THREE.Vector3(); let n = 0; for (const i of vs) if (pick(pos0.getZ(i))) { v.fromBufferAttribute(pos0, i); mesh.applyBoneTransform(i, v); c.add(v); n++; } return c.multiplyScalar(1 / (n || 1)).applyMatrix4(mesh.matrixWorld); };
-              if (vs.length) { const a = toPx(cen((z) => z >= zA - 0.04)), b = toPx(cen((z) => z <= zB + 0.04)); L = Math.hypot(a.x - b.x, a.y - b.y); } }
-            res.len.seats[seat].push(+L.toFixed(1)); if (over) res.len.itemOverlap[seat]++; }
+              if (vs.length) { const a = toPx(cen((z) => z >= zA - 0.04)), b = toPx(cen((z) => z <= zB + 0.04)); L = Math.hypot(a.x - b.x, a.y - b.y); /* 修訂 6：舊手前臂同一判準的疊拍品（看得見那段切 12 帶取帶心、略過最靠袖口 2 帶；拍品外框用同一算法自己算） */ const bx = st.itemBoxes || (T.nodeOf ? [0, 1, 2, 3].map((k) => T.nodeOf(k)).filter((n) => n && n.visible).map((n) => { box.setFromObject(n); let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (let k = 0; k < 8; k++) { const q = new THREE.Vector3(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y, k & 4 ? box.max.z : box.min.z).project(Y.camera); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); } return { x0, y0, x1, y1 }; }) : []); for (let k = 2; k < 12 && !over; k++) { const za = zA - (zA - zB) * k / 12, zb = zA - (zA - zB) * (k + 1) / 12; const c = cen((z) => z <= za && z >= zb); const pp = toPx(c); if (!(pp.on && c.y > tableY - 0.01)) continue; const n = c.clone().project(Y.camera); const bi = bx.findIndex((r) => n.x > r.x0 && n.x < r.x1 && n.y > r.y0 && n.y < r.y1); if (bi >= 0) { over = true; overAt = { ring: k, ndc: [+n.x.toFixed(3), +n.y.toFixed(3)], box: bx[bi] }; } } } }
+            res.len.seats[seat].push(+L.toFixed(1)); if (over) { res.len.itemOverlap[seat]++; res.overEx = res.overEx || []; if (res.overEx.length < 12) res.overEx.push({ f: res.frames, seat, night: window.__yaoshi.S.round, phase: res.phase, ...overAt }); res.overShots = res.overShots || []; if (opt_over && res.overShots.length < 6 && !res.overShots.some((o) => o.seat === seat && res.frames - o.f < 200)) { Y.renderer.render(Y.scene, Y.camera); const cv = document.createElement('canvas'); cv.width = Wpx; cv.height = Hpx; const g2 = cv.getContext('2d'); const im = new Image(); im.src = Y.renderer.domElement.toDataURL('image/png'); res.overShots.push({ f: res.frames, seat, im, boxes: (st.itemBoxes || []).slice(), at: overAt.ndc }); } } }
           if (!real) continue;
           const pos = g.attributes.position, col = g.attributes.color;
           mesh.skeleton.update();
@@ -140,7 +141,11 @@ try {
     res.phase = 'natural';
   });
   if (opt.natural) { out.naturalEnded = await driveUntil(page, /看最終結果/, 20000); }
-  out.geo = await page.evaluate(() => { window.__hole.stop = true; return window.__hole; });
+  out.geo = await page.evaluate(async () => { window.__hole.stop = true; const res = window.__hole;
+    if (res.overShots) res.overShots = await Promise.all(res.overShots.map(async (o) => { await new Promise((r) => (o.im.complete ? r() : (o.im.onload = r))); const cv = document.createElement('canvas'); cv.width = o.im.width; cv.height = o.im.height; const g = cv.getContext('2d'); g.drawImage(o.im, 0, 0);
+      const X = (x) => (x + 1) / 2 * cv.width, Yp = (y) => (1 - y) / 2 * cv.height; g.lineWidth = 2; g.strokeStyle = '#00ffff'; for (const b of o.boxes) g.strokeRect(X(b.x0), Yp(b.y1), X(b.x1) - X(b.x0), Yp(b.y0) - Yp(b.y1));
+      g.fillStyle = '#ff00ff'; g.beginPath(); g.arc(X(o.at[0]), Yp(o.at[1]), 5, 0, 7); g.fill(); return { f: o.f, seat: o.seat, url: cv.toDataURL('image/png') }; }));
+    return res; });
 
   /* ③ 效能：CPU 節流下同一段腳本，量 rAF 間隔與袖管重鋪耗時 */
   const cdp = await ctx.newCDPSession(page);
@@ -182,11 +187,12 @@ try {
 } catch (e) { out.fatal = String(e && e.stack || e); }
 finally { await browser?.close(); server.kill(); }
 if (out.geo && out.geo.relicShots) { out.geo.relicShots.forEach((u, i) => fs.writeFileSync(path.resolve(`${opt.shotprefix || 'relic-shot'}-${W}-${i}.png`), Buffer.from(u.split(',')[1], 'base64'))); out.geo.relicShots = out.geo.relicShots.length; }
+if (out.geo && out.geo.overShots) { out.geo.overShots.forEach((o, i) => fs.writeFileSync(path.resolve(`${opt.shotprefix || 'over-shot'}-over-${W}-seat${o.seat}-${i}.png`), Buffer.from(o.url.split(',')[1], 'base64'))); out.geo.overShots = out.geo.overShots.length; }
 if (out.geo && out.geo.len) { /* 逐幀長度太大，存摘要 */ }
 if (opt.out) fs.writeFileSync(path.resolve(opt.out), JSON.stringify(out, null, 1));
 const g = out.geo || {};
 const med = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[b.length >> 1] : null; }, p95 = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(b.length * 0.95)] : null; };
 const lenSum = g.len ? g.len.seats.map((a, i) => ({ seat: i, n: a.length, median: med(a), p95: p95(a), max: a.length ? Math.max(...a) : null, itemOverlapFrames: g.len.itemOverlap[i] })) : null;
 if (opt.out) { const o2 = JSON.parse(fs.readFileSync(path.resolve(opt.out), 'utf8')); o2.lenSummary = lenSum; fs.writeFileSync(path.resolve(opt.out), JSON.stringify(o2, null, 1)); }
-console.log(JSON.stringify({ aba10: g.aba10, abaEx: g.abaEx, lenSummary: lenSum, relicFramesDetail: (g.relicFramesDetail || []).slice(0, 5) }));
+console.log(JSON.stringify({ overEx: (g.overEx || []).slice(0, 6), aba10: g.aba10, abaEx: g.abaEx, lenSummary: lenSum, relicFramesDetail: (g.relicFramesDetail || []).slice(0, 5) }));
 console.log(JSON.stringify({ vp: out.vp, q: out.q, real: g.real, frames: g.frames, handFrames: g.handFrames, sleeveVerts: g.sleeveVerts, relicHitFrames: g.relicHitFrames, relicHitVerts: g.relicHitVerts, relicWhere: g.relicWhere, sleeveChipHitFrames: g.chipHitFrames, edgeFlips: g.edgeFlips, consecFlips: g.consecFlips, nearClipFrames: g.nearClipFrames, rearOnScreenFrames: g.rearOnScreenFrames, rearEx: g.rearOnScreenEx, nights: g.nights, naturalEnded: out.naturalEnded, edgeSeq: g.edgeSeq, perf: out.perf, mem0: out.mem0, mem: out.mem, errs: out.errs.slice(0, 3), fatal: out.fatal }));
