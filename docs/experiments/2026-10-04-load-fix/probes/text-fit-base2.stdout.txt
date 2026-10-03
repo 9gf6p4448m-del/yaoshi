@@ -1,0 +1,82 @@
+[text-fit] solo done 387s
+[text-fit] hot done 433s
+[text-fit] nw1 done 472s
+[text-fit] nw2 done 50s
+[text-fit] nw3 done 53s
+{
+ "tag": "text-fit-base2",
+ "cells": 890,
+ "cellsRed": 152,
+ "byVp": {
+  "V1": {
+   "cells": 178,
+   "red": 39,
+   "redScrollOnly": 39
+  },
+  "V2": {
+   "cells": 178,
+   "red": 26,
+   "redScrollOnly": 26
+  },
+  "V3": {
+   "cells": 178,
+   "red": 40,
+   "redScrollOnly": 40
+  },
+  "V4": {
+   "cells": 178,
+   "red": 44,
+   "redScrollOnly": 44
+  },
+  "V5": {
+   "cells": 178,
+   "red": 3,
+   "redScrollOnly": 3
+  }
+ },
+ "items": 6,
+ "lost": [
+  "solo|reveal lost1",
+  "solo|shrine-run lost8",
+  "hot|reveal lost1",
+  "hot|shrine-run lost8",
+  "nw1|reveal lost1",
+  "nw1|shrine-run lost9",
+  "nw2|reveal lost1",
+  "nw2|shrine-run lost1",
+  "nw3|reveal lost1",
+  "nw3|shrine-run lost1"
+ ],
+ "pageErrors": {
+  "solo": [],
+  "hot": [],
+  "nw1": [],
+  "nw2": [],
+  "nw3": []
+ },
+ "guard": {
+  "cells": 0,
+  "spill": {},
+  "overlap": {}
+ },
+ "strips": [
+  "#feltHead n802 minOwn 0 minEff 0 低於.85且無字影 0 ",
+  "#feltHead > span.headCompact n802 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#feltHead > div.wishbar n395 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#northPrev > button.nsum n585 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#revealCard n7 minOwn 0.88 minEff 0.88 低於.85且無字影 0 ",
+  "#pnl n250 minOwn 0.94 minEff 0.94 低於.85且無字影 0 ",
+  "#stage > div.stageCard.resultStrip n32 minOwn 0.94 minEff 0.94 低於.85且無字影 0 ",
+  "#stage > div.stageCard n110 minOwn 1 minEff 1 低於.85且無字影 0 ",
+  "#stage > div.stakebar n15 minOwn 0.9 minEff 0.9 低於.85且無字影 0 ",
+  "#bub1 n21 minOwn 1 minEff 1 低於.85且無字影 0 "
+ ],
+ "itemList": [
+  "[scroll reach 5/5] #modalbox ×5 「？ 妖市規則 音訊診斷：sfx v0.59.9 」→「？ 妖市規則 音訊診斷：sfx v0.59.9 」",
+  "[scroll reach 78/78] #felt ×78 「北風・ 上弦｜祖靈拍：全隊 HP +1・陰間放貸」→「北風・ 上弦｜祖靈拍：全隊 HP +1・陰間放貸」",
+  "[scroll reach 52/52] #pnl ×52 「第 4 夜・戰況 心 願 南 青面攤主 你 「東」→「第 4 夜・戰況心願南青面攤主你「東窗血光」未達」",
+  "[scroll reach 10/10] #review ×10 「本局回顧 下載本局紀錄 複製本局紀錄 關閉 這一」→「本局回顧下載本局紀錄複製本局紀錄關閉 這一局的因」",
+  "[scroll reach 3/3] #nwScr ×3 「夜行錄 返回 依序挑戰；終局時你還活著，且壽命高」→「夜行錄返回 依序挑戰；終局時你還活著，且壽命高過」",
+  "[scroll reach 12/12] #nwBody > div.stageCard.nwBig ×12 「夜行錄・第一章 破廟逢青面 青面攤主 本章主角，」→「夜行錄・第一章 破廟逢青面 青面攤主本章主角，坐」"
+ ]
+}
