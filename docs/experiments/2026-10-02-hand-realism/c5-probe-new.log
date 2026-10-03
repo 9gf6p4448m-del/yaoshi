@@ -17,12 +17,12 @@
     "callsWithHands": 78,
     "callsWithout": 74,
     "delta": 4,
-    "trisDelta": 21764,
-    "trisPerHand": 4777
+    "trisDelta": 21552,
+    "trisPerHand": 4724
    },
    "pen": {
     "hits": 0,
-    "framesWithHands": 193,
+    "framesWithHands": 192,
     "cycles": [
      {
       "label": "push",
@@ -49,24 +49,25 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 83,
-      "hudOverlapFrames": 83
+      "withHands": 82,
+      "hudOverlapFrames": 82
      }
     ]
    },
    "hit": {
-    "samples": 126,
+    "samples": 324,
     "handsVisible": 4,
     "diffs": 0,
     "hitSlotsWithHands": [
      -1,
+     1,
      2
     ]
    },
    "hud": {
     "visibleHands": 0,
     "overlaps": 0,
-    "waitedMs": 36,
+    "waitedMs": 28,
     "statesIdle": true,
     "hudRects": [
      "#north",
@@ -97,8 +98,8 @@
     },
     {
      "label": "rake",
-     "framesWithHands": 83,
-     "framesOverlappingHUD": 83
+     "framesWithHands": 82,
+     "framesOverlappingHUD": 82
     }
    ],
    "slam": {
@@ -122,7 +123,7 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 118
+    "handsSeenFrames": 162
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
@@ -143,26 +144,26 @@
     "callsWithHands": 75,
     "callsWithout": 71,
     "delta": 4,
-    "trisDelta": 21764,
-    "trisPerHand": 4777
+    "trisDelta": 21552,
+    "trisPerHand": 4724
    },
    "pen": {
     "hits": 0,
-    "framesWithHands": 190,
+    "framesWithHands": 165,
     "cycles": [
      {
       "label": "push",
       "hits": 0,
       "where": [],
-      "withHands": 52,
-      "hudOverlapFrames": 52
+      "withHands": 43,
+      "hudOverlapFrames": 38
      },
      {
       "label": "push-same-slot",
       "hits": 0,
       "where": [],
-      "withHands": 52,
-      "hudOverlapFrames": 52
+      "withHands": 42,
+      "hudOverlapFrames": 23
      },
      {
       "label": "slam",
@@ -175,13 +176,13 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 86,
-      "hudOverlapFrames": 73
+      "withHands": 80,
+      "hudOverlapFrames": 69
      }
     ]
    },
    "hit": {
-    "samples": 144,
+    "samples": 288,
     "handsVisible": 4,
     "diffs": 0,
     "hitSlotsWithHands": [
@@ -194,7 +195,7 @@
    "hud": {
     "visibleHands": 0,
     "overlaps": 0,
-    "waitedMs": 32,
+    "waitedMs": 24,
     "statesIdle": true,
     "hudRects": [
      "#north",
@@ -206,13 +207,13 @@
    "hudDuringAction": [
     {
      "label": "push",
-     "framesWithHands": 52,
-     "framesOverlappingHUD": 52
+     "framesWithHands": 43,
+     "framesOverlappingHUD": 38
     },
     {
      "label": "push-same-slot",
-     "framesWithHands": 52,
-     "framesOverlappingHUD": 52
+     "framesWithHands": 42,
+     "framesOverlappingHUD": 23
     },
     {
      "label": "slam",
@@ -221,8 +222,8 @@
     },
     {
      "label": "rake",
-     "framesWithHands": 86,
-     "framesOverlappingHUD": 73
+     "framesWithHands": 80,
+     "framesOverlappingHUD": 69
     }
    ],
    "slam": {
@@ -246,7 +247,7 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 114
+    "handsSeenFrames": 190
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
