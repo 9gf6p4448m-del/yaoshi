@@ -169,11 +169,12 @@
 #table.t3d #north .nsum .nsumArr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 11px; }
 #table.t3d #north.nopen .nsum .nsumArr { transform: translateY(-50%) rotate(180deg); }
 #table.t3d #north .nfull { display: none; }
-#table.t3d #north.nopen { position: relative; z-index: 15; }
+/* v0.59.9：展開面板要蓋過席位名牌（#table .seat z-index:19）與心願條；原 15 < 19，西／東席名牌畫在面板上面，字穿透交錯 */
+#table.t3d #north.nopen { position: relative; z-index: 21; }
 #table.t3d #north.nopen .nfull {
   display: block; position: absolute; top: calc(100% + 4px); width: max(100%, 250px); max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 8px);
   max-height: calc(100dvh - 140px); overflow-y: auto;
-  background: var(--strip-bg); border: 1px solid var(--line-gold-soft); border-radius: var(--r-panel); padding: 6px 8px;
+  background: var(--strip-bg-solid); border: 1px solid var(--line-gold-soft); border-radius: var(--r-panel); padding: 6px 8px;   /* v0.59.9：展開面板完全不透明（文字條 .9 仍透出底下的字） */
   box-shadow: 0 6px 18px rgba(0, 0, 0, .6);
 }
 #table.t3d #north.nopen #northPrev .nfull { left: 0; }
