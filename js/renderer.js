@@ -232,6 +232,7 @@ function init() {
     if (Array.isArray(d.seats)) { tray.props.setSeats(d.seats); tray.hands.setSeats(d.seats); } // 四席信物：誰坐哪一席、是哪個角色
     tray.setVisible(true);
   });
+  if ((window.__PROTO || []).indexOf('replay') >= 0 && window.__lastMarket3d) { try { document.dispatchEvent(new CustomEvent('ys:market', { detail: window.__lastMarket3d })); } catch (e) {} } // PROTOTYPE：renderer 晚到時補播最後一次 ys:market
   /* 競標的實體痕跡（第二段）。三個事件都是**純演出**：3D 層不知道什麼是壽命，
      `amount` 只用來決定「推幾枚」，`slot`／`seat` 只用來決定「從哪推到哪」。 */
   document.addEventListener('ys:bid', (e) => {

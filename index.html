@@ -1134,6 +1134,12 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   }
 }
 </script>
+<script>/* LOAD-PROBE PROTOTYPE（只為量測效益，非成品）：?proto=pre,replay,glb */
+(function(){var P=(new URLSearchParams(location.search).get("proto")||"").split(",");window.__PROTO=P;
+if(P.indexOf("pre")>=0){var V="?v=0.59.9&fxvocab=0";var L=["renderer", "bloom", "scene-env", "particles", "characters-billboard", "bridge-players", "camera-director", "duel-figures", "creature-figures", "skeleton-share", "trait-fx", "trait-fx/vocab", "trait-fx/emblems", "trait-fx/zuling", "trait-fx/xianghuo", "trait-fx/yinqi", "table-tray", "table-props", "relic-motion", "table-hands", "hand-motion", "hand-realism", "appraise-fx", "table-framing"];
+ L.forEach(function(m){var l=document.createElement("link");l.rel="modulepreload";l.href="js/"+m+".js"+V;document.head.appendChild(l);});
+ ["build/three.module.js","examples/jsm/loaders/GLTFLoader.js","examples/jsm/utils/SkeletonUtils.js","examples/jsm/utils/BufferGeometryUtils.js"].forEach(function(m){var l=document.createElement("link");l.rel="modulepreload";l.href="https://unpkg.com/three@0.158.0/"+m;document.head.appendChild(l);});}
+})();</script>
 </head>
 <body>
 <div id="vignette"></div>
@@ -6077,7 +6083,7 @@ function renderNights(cur){
 /* 3D 運鏡事件（v0.16）：只從演出層發，引擎函式一律不發——headless 測試的 document 是 stub、
    沒有 dispatchEvent，在引擎路徑上發事件會讓 playPolicyGame 直接炸。整包 try/catch，
    3D 層沒載入時這裡是完全的空操作。接收端＝js/camera-director.js。 */
-function fx3d(name,detail){ try{ document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
+function fx3d(name,detail){ try{ if(name==="ys:market"){ window.__lastMarket3d=detail; var P=window.__PROTO||[]; if(P.indexOf("glb")>=0&&!window.__yaoshi3d){ var seen=window.__glbSeen||(window.__glbSeen={}); var ks=["hand_r"].concat((detail.items||[]).map(function(i){return i.key?(i.key==="tiger"?"tiger_c":i.key):null;})); ks.forEach(function(k){ if(k&&!seen[k]){ seen[k]=1; fetch("assets/creatures/"+k+".glb"); } }); } } document.dispatchEvent(new CustomEvent(name,{detail})); }catch(e){} }
 /* ═══════════ 演出積木（v0.27 批 1）═══════════
    這一段是「效果的零件庫」，不是對決專用的一段時間軸——每個 fx* 都可以在任何時點
    重複呼叫、彼此獨立、參數化力道與顏色。對決（playDuel）只是第一個組裝它們的地方；
