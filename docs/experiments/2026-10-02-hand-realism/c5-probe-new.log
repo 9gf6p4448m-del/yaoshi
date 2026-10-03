@@ -22,21 +22,21 @@
    },
    "pen": {
     "hits": 0,
-    "framesWithHands": 176,
+    "framesWithHands": 193,
     "cycles": [
      {
       "label": "push",
       "hits": 0,
       "where": [],
-      "withHands": 49,
-      "hudOverlapFrames": 49
+      "withHands": 52,
+      "hudOverlapFrames": 52
      },
      {
       "label": "push-same-slot",
       "hits": 0,
       "where": [],
-      "withHands": 55,
-      "hudOverlapFrames": 55
+      "withHands": 58,
+      "hudOverlapFrames": 58
      },
      {
       "label": "slam",
@@ -49,8 +49,8 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 72,
-      "hudOverlapFrames": 72
+      "withHands": 83,
+      "hudOverlapFrames": 83
      }
     ]
    },
@@ -60,14 +60,13 @@
     "diffs": 0,
     "hitSlotsWithHands": [
      -1,
-     1,
      2
     ]
    },
    "hud": {
     "visibleHands": 0,
     "overlaps": 0,
-    "waitedMs": 30,
+    "waitedMs": 36,
     "statesIdle": true,
     "hudRects": [
      "#north",
@@ -83,13 +82,13 @@
    "hudDuringAction": [
     {
      "label": "push",
-     "framesWithHands": 49,
-     "framesOverlappingHUD": 49
+     "framesWithHands": 52,
+     "framesOverlappingHUD": 52
     },
     {
      "label": "push-same-slot",
-     "framesWithHands": 55,
-     "framesOverlappingHUD": 55
+     "framesWithHands": 58,
+     "framesOverlappingHUD": 58
     },
     {
      "label": "slam",
@@ -98,8 +97,8 @@
     },
     {
      "label": "rake",
-     "framesWithHands": 72,
-     "framesOverlappingHUD": 72
+     "framesWithHands": 83,
+     "framesOverlappingHUD": 83
     }
    ],
    "slam": {
@@ -123,7 +122,7 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 113
+    "handsSeenFrames": 118
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
@@ -149,14 +148,14 @@
    },
    "pen": {
     "hits": 0,
-    "framesWithHands": 176,
+    "framesWithHands": 190,
     "cycles": [
      {
       "label": "push",
       "hits": 0,
       "where": [],
-      "withHands": 47,
-      "hudOverlapFrames": 47
+      "withHands": 52,
+      "hudOverlapFrames": 52
      },
      {
       "label": "push-same-slot",
@@ -176,8 +175,8 @@
       "label": "rake",
       "hits": 0,
       "where": [],
-      "withHands": 77,
-      "hudOverlapFrames": 64
+      "withHands": 86,
+      "hudOverlapFrames": 73
      }
     ]
    },
@@ -195,7 +194,7 @@
    "hud": {
     "visibleHands": 0,
     "overlaps": 0,
-    "waitedMs": 34,
+    "waitedMs": 32,
     "statesIdle": true,
     "hudRects": [
      "#north",
@@ -207,8 +206,8 @@
    "hudDuringAction": [
     {
      "label": "push",
-     "framesWithHands": 47,
-     "framesOverlappingHUD": 47
+     "framesWithHands": 52,
+     "framesOverlappingHUD": 52
     },
     {
      "label": "push-same-slot",
@@ -222,8 +221,8 @@
     },
     {
      "label": "rake",
-     "framesWithHands": 77,
-     "framesOverlappingHUD": 64
+     "framesWithHands": 86,
+     "framesOverlappingHUD": 73
     }
    ],
    "slam": {
@@ -247,7 +246,7 @@
      }
     ],
     "eventsMatchLanding": true,
-    "handsSeenFrames": 103
+    "handsSeenFrames": 114
    },
    "pipeline": {
     "moduleUrl": "/js/creature-figures.js?v=0.59.7&fxvocab=0",
