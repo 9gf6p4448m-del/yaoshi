@@ -77,7 +77,8 @@ try {
     await setVP(page, v); await closeM(); await page.evaluate(() => toggleNorth(false)); await page.waitForTimeout(150);
     const st0 = await page.addStyleTag({ content: 'canvas{visibility:hidden!important}' });
     const nr = await page.evaluate(() => { const r = document.getElementById('north').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; });
-    await page.screenshot({ path: path.join(OUT, `${TAG}-${vn}-collapsed.png`), clip: nr });
+    await page.screenshot({ path: path.join(OUT, `${TAG}-${vn}-collapsed.png`), clip: nr, animations: 'disabled' });
+    R.peek ||= {}; R.peek[vn] = await page.evaluate((nr) => [[140,52],[590,52],[470,10],[470,45]].map(([x,y]) => document.elementsFromPoint(nr.x + x, nr.y + y).slice(0,4).map(e => (e.id ? '#' + e.id : e.tagName) + '.' + String(e.className).slice(0,25))), nr);
     await page.evaluate((e) => e.remove(), st0);
     const states = [['click-left', async () => page.click('#northPrev .nsum')], ['click-right', async () => page.click('#northShr .nsum')], ['both', async () => page.evaluate(() => toggleNorth(true))]];
     for (const [sn, act] of states) {
@@ -92,9 +93,9 @@ try {
       const c = st.left.rect; await page.mouse.click(c[0] + 3, c[1] + 3); await closeM(); await page.waitForTimeout(150);
       st.collapseByPanelClick = !(await page.evaluate(() => window.__pp.nopen()));
       if (!st.collapseByPanelClick) R.pass = false;
-      if (sn !== 'both') { await act(); await page.waitForTimeout(150); const was = await page.evaluate(() => window.__pp.nopen());
+      if (sn !== 'both') { await page.evaluate(() => { window.__clk = []; document.addEventListener('click', (e) => window.__clk.push((e.target.id || e.target.className || e.target.tagName) + '@' + e.clientX + ',' + e.clientY), true); }); st.fp = await page.evaluate((q) => { const e = document.querySelector(q); const r = e.getBoundingClientRect(); const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2), t ? (t.id || t.className || t.tagName) : null]; }, sn === 'click-left' ? '#northPrev .nsum' : '#northShr .nsum'); st.pre = await page.evaluate(() => window.__pp.nopen()); await page.waitForTimeout(700); await act(); await page.waitForTimeout(300); st.mid = await page.evaluate(() => window.__pp.nopen()); st.clk = await page.evaluate(() => window.__clk); const was = await page.evaluate(() => window.__pp.nopen());
         await page.click(sn === 'click-left' ? '#northPrev .nsum' : '#northShr .nsum'); await page.waitForTimeout(150);
-        st.collapseBySumClick = was && !(await page.evaluate(() => window.__pp.nopen())); if (!st.collapseBySumClick) R.pass = false; }
+        st.sumDbg = { was, after: await page.evaluate(() => window.__pp.nopen()) }; st.collapseBySumClick = was && !(await page.evaluate(() => window.__pp.nopen())); if (!st.collapseBySumClick) R.pass = false; }
       await page.evaluate(() => toggleNorth(false));
     }
   }

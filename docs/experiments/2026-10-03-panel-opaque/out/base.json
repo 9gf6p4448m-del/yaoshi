@@ -1,5 +1,5 @@
 {
- "tag": "base",
+ "tag": "basea",
  "base": "e19302f9",
  "states": [
   {
@@ -77,7 +77,21 @@
    },
    "pass": false,
    "collapseByPanelClick": true,
-   "collapseBySumClick": false
+   "fp": [
+    175,
+    32,
+    "nsum"
+   ],
+   "pre": false,
+   "mid": true,
+   "clk": [
+    "nsum@175,32"
+   ],
+   "sumDbg": {
+    "was": true,
+    "after": false
+   },
+   "collapseBySumClick": true
   },
   {
    "vp": "V3-844x390",
@@ -154,7 +168,22 @@
    },
    "pass": false,
    "collapseByPanelClick": true,
-   "collapseBySumClick": false
+   "fp": [
+    669,
+    32,
+    "nob"
+   ],
+   "pre": false,
+   "mid": true,
+   "clk": [
+    "nob@669,32",
+    "nob@669,32"
+   ],
+   "sumDbg": {
+    "was": true,
+    "after": false
+   },
+   "collapseBySumClick": true
   },
   {
    "vp": "V3-844x390",
@@ -307,7 +336,23 @@
    },
    "pass": false,
    "collapseByPanelClick": true,
-   "collapseBySumClick": false
+   "fp": [
+    183,
+    32,
+    "nsum"
+   ],
+   "pre": false,
+   "mid": true,
+   "clk": [
+    "nsum@183,32",
+    "nsum@183,32",
+    "nsum@183,32"
+   ],
+   "sumDbg": {
+    "was": true,
+    "after": false
+   },
+   "collapseBySumClick": true
   },
   {
    "vp": "V1-852x393-iphone",
@@ -384,7 +429,24 @@
    },
    "pass": false,
    "collapseByPanelClick": true,
-   "collapseBySumClick": false
+   "fp": [
+    669,
+    32,
+    "nob"
+   ],
+   "pre": false,
+   "mid": true,
+   "clk": [
+    "nob@669,32",
+    "nob@669,32",
+    "nob@669,32",
+    "nob@669,32"
+   ],
+   "sumDbg": {
+    "was": true,
+    "after": false
+   },
+   "collapseBySumClick": true
   },
   {
    "vp": "V1-852x393-iphone",
@@ -465,6 +527,60 @@
  ],
  "pass": false,
  "reachedPhase": "bid",
+ "peek": {
+  "V3-844x390": [
+   [
+    "BUTTON.nsum",
+    "#northPrev.",
+    "#north.",
+    "#table.t3d on"
+   ],
+   [
+    "BUTTON.nsum",
+    "#northShr.",
+    "#north.",
+    "#table.t3d on"
+   ],
+   [
+    "#seat1.seat  ",
+    "#north.",
+    "#table.t3d on",
+    "BODY."
+   ],
+   [
+    "SPAN.roleInfoBtn",
+    "#seat1.seat  ",
+    "#north.",
+    "#table.t3d on"
+   ]
+  ],
+  "V1-852x393-iphone": [
+   [
+    "BUTTON.nsum",
+    "#northPrev.",
+    "#north.",
+    "#table.t3d on"
+   ],
+   [
+    "BUTTON.nsum",
+    "#northShr.",
+    "#north.",
+    "#table.t3d on"
+   ],
+   [
+    "#seat1.seat  ",
+    "#north.",
+    "#table.t3d on",
+    "BODY."
+   ],
+   [
+    "SPAN.roleInfoBtn",
+    "#seat1.seat  ",
+    "#north.",
+    "#table.t3d on"
+   ]
+  ]
+ },
  "closedModals": [
   "西家・閭山法師\n 天命密函：？？？（隱密未揭）\n\n袋中持有只",
   "西家・閭山法師\n 天命密函：？？？（隱密未揭）\n\n袋中持有只",
