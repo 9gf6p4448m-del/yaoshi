@@ -245,15 +245,16 @@ export function judgeAward(run) {
   if (fin && moving >= 0) for (let i = fr.length - 1; i >= moving; i--) { const p = fr[i].item.pos; if (!p || Math.hypot(p[0] - fin[0], p[1] - fin[1], p[2] - fin[2]) > 0.002) { landed = fr[i + 1] ? fr[i + 1].tms : null; break; } }
   out.landedMs = landed; out.movedFromMs = moving >= 0 ? fr[moving].tms : null;
   out.timeOK = landed !== null && landed <= 1300;
-  /* 掙扎：從開始移動到落定，法寶相對得標手 Palm 骨的側向位移（側向＝席位→拍品水平方向的垂直）去均值後，正負峰交替 ≥2 且振幅 > 0.0015 */
+  /* 掙扎：從開始移動到落定，法寶（世界座標）相對「席位→法寶原位」這條直線的側向位移，扣掉頭尾連線（去掉平移）之後，
+     正負峰交替 ≥2 次且振幅 > 0.002。舊版拋物線沿直線飛 ⇒ 側向恆 0 ⇒ 紅；拿掉掙扎 ⇒ 只剩平滑路徑 ⇒ 紅。量不到（沒移動／沒落定）判紅。 */
   const [sx, sz] = SEAT_XZ[sc.seat]; const dx = p0[0] - sx, dz = p0[2] - sz, l = Math.hypot(dx, dz) || 1, lx = dz / l, lz = -dx / l;
   const rel = [];
-  if (moving >= 0 && landed !== null) for (const x of fr) { if (x.tms < fr[moving].tms || x.tms > landed) continue; const h = x.hands[sc.seat]; if (!h || !x.item.pos) { rel.push(null); continue; } rel.push((x.item.pos[0] - h.palm[0]) * lx + (x.item.pos[2] - h.palm[2]) * lz); }
+  if (moving >= 0 && landed !== null) for (const x of fr) { if (x.tms < fr[moving].tms || x.tms > landed) continue; if (!x.item.pos) { rel.push(null); continue; } rel.push((x.item.pos[0] - p0[0]) * lx + (x.item.pos[2] - p0[2]) * lz); }
   const ok = rel.filter((x) => x !== null);
   let peaks = 0, amp = 0;
   if (ok.length >= 5 && ok.length === rel.length) {
-    const mean = ok.reduce((a, b) => a + b, 0) / ok.length, d = ok.map((x) => x - mean); let sign = 0;
-    for (let i = 1; i < d.length - 1; i++) { const isMax = d[i] > d[i - 1] && d[i] >= d[i + 1], isMin = d[i] < d[i - 1] && d[i] <= d[i + 1]; if ((isMax || isMin) && Math.abs(d[i]) > 0.0015) { const sg = Math.sign(d[i]); if (sg !== sign) { peaks++; sign = sg; } amp = Math.max(amp, Math.abs(d[i])); } }
+    const n = ok.length - 1, d = ok.map((x, i) => x - (ok[0] + (ok[n] - ok[0]) * i / n)); let sign = 0;
+    for (let i = 1; i < d.length - 1; i++) { const isMax = d[i] > d[i - 1] && d[i] >= d[i + 1], isMin = d[i] < d[i - 1] && d[i] <= d[i + 1]; if ((isMax || isMin) && Math.abs(d[i]) > 0.002) { const sg = Math.sign(d[i]); if (sg !== sign) { peaks++; sign = sg; } amp = Math.max(amp, Math.abs(d[i])); } }
   }
   out.struggle = { samples: rel.length, missing: rel.length - ok.length, alternatingPeaks: peaks, amp: +amp.toFixed(4) };
   out.struggleOK = peaks >= 2 && amp > 0;

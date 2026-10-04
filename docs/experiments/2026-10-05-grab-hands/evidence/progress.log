@@ -1,0 +1,44 @@
+2026-10-05 03:17:03 === final run HEAD=ad725089 base=155a7e7f ===
+2026-10-05 03:17:03 BEGIN c1-trace :: node tests/tools/grab-trace-check.mjs C:/Users/shung/wt/yaoshi/grab-base/index.html --mutate
+2026-10-05 03:17:06 END c1-trace rc=0
+2026-10-05 03:17:06 BEGIN c5-legacy-eq :: node tests/tools/grab-legacy-eq.mjs --base=C:/Users/shung/wt/yaoshi/grab-base
+2026-10-05 03:17:17 END c5-legacy-eq rc=0
+2026-10-05 03:17:17 BEGIN c2348-head :: node tests/tools/grab-probe.mjs --modes=award,curse --shots --tag=head --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-head
+2026-10-05 03:18:27 END c2348-head rc=0
+2026-10-05 03:18:27 BEGIN c2348-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/grab-base --modes=award,curse --shots --tag=base --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-base
+2026-10-05 03:19:45 END c2348-base rc=0
+2026-10-05 03:19:45 BEGIN c6-skip-head :: node tests/tools/grab-probe.mjs --modes=skip --tag=head --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-head
+2026-10-05 03:21:10 END c6-skip-head rc=0
+2026-10-05 03:21:10 BEGIN c6-skip-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/grab-base --modes=skip --tag=base --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-base
+2026-10-05 03:22:38 END c6-skip-base rc=0
+2026-10-05 03:22:38 BEGIN c6-uiskip-head :: node tests/tools/table-framing-skip-check.mjs
+2026-10-05 03:22:58 END c6-uiskip-head rc=0
+2026-10-05 03:22:58 BEGIN c6-uiskip-base :: node tests/tools/tfsc-v060.mjs
+2026-10-05 03:23:21 END c6-uiskip-base rc=1
+2026-10-05 03:23:21 BEGIN c7-realflow-head :: node tests/tools/grab-realflow.mjs
+2026-10-05 03:23:51 END c7-realflow-head rc=0
+2026-10-05 03:23:51 BEGIN c7-realflow-grab0 :: node tests/tools/grab-realflow.mjs --q=grab=0
+2026-10-05 03:24:16 END c7-realflow-grab0 rc=1
+2026-10-05 03:24:16 BEGIN c7-realflow-base :: node tests/tools/grab-realflow-v060.mjs
+2026-10-05 03:24:41 END c7-realflow-base rc=1
+2026-10-05 03:24:41 BEGIN c3-hud-head :: node tests/tools/grab-probe.mjs --modes=hud --tag=head --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-head
+2026-10-05 03:28:04 END c3-hud-head rc=0
+2026-10-05 03:28:05 BEGIN c3-hud-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/grab-base --modes=hud --tag=base --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-base
+2026-10-05 03:31:54 END c3-hud-base rc=0
+2026-10-05 03:31:54 BEGIN c10-perf-head :: node tests/tools/grab-probe.mjs --modes=perf --rounds=5 --tag=head --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-head
+2026-10-05 03:33:04 END c10-perf-head rc=0
+2026-10-05 03:33:04 BEGIN c10-perf-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/grab-base --modes=perf --rounds=5 --tag=base --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/probe-base
+2026-10-05 03:34:59 END c10-perf-base rc=0
+2026-10-05 03:34:59 BEGIN c11-px-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/grab-base --modes=pixel --tag=base --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-base
+2026-10-05 03:35:42 END c11-px-base rc=0
+2026-10-05 03:35:42 BEGIN c11-px-grab0 :: node tests/tools/grab-probe.mjs --modes=pixel --q=grab=0 --tag=grab0 --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-grab0
+2026-10-05 03:36:15 END c11-px-grab0 rc=0
+2026-10-05 03:36:15 BEGIN c11-px-grab1 :: node tests/tools/grab-probe.mjs --modes=pixel --tag=grab1 --out=C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-grab1
+2026-10-05 03:36:51 END c11-px-grab1 rc=0
+2026-10-05 03:36:51 BEGIN c11-diff-grab0 :: python tests/tools/grab-pixel-diff.py C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-grab0/pixel C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-base/pixel
+2026-10-05 03:36:59 END c11-diff-grab0 rc=0
+2026-10-05 03:36:59 BEGIN c11-diff-grab1 :: python tests/tools/grab-pixel-diff.py C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-grab1/pixel C:/Users/shung/AppData/Local/Temp/claude/C--Users-shung/6d0fa9b9-5717-4e07-aa63-1f363a9e9b09/scratchpad/impl/final/px-base/pixel
+2026-10-05 03:37:04 END c11-diff-grab1 rc=0
+2026-10-05 03:37:17 BEGIN c12-suite :: bash -c node --test tests/*.test.mjs
+2026-10-05 03:48:56 END c12-suite rc=0
+2026-10-05 03:48:56 === final run done ===
