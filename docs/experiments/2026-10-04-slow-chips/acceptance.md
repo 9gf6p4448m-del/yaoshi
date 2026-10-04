@@ -1,0 +1,38 @@
+# 驗收條件（凍結）— 擺錢放慢 v0.59.11
+
+基準＝origin/main d29167b2（v0.59.10）。動機：使用者 iPhone 試玩，「蓋牌開標」後四席同時擺錢太快、看不到每個人的手；v0.59.8 已加「擺錢先、公告後」等待，但動作本身仍快。使用者裁定「本身飛行速度也一起放慢」，起點數字皆須可調、試玩後再改。
+補充裁定（2026-10-04，主對話轉述使用者）：**手的動作速度也要一起放慢**，不是只與錢同步。
+範圍：只動呈現層（動畫時長常數與必要同步銜接）。不改結算、不耗亂數。
+凍結後任何放寬照 02 §2.1：先寫原標準錯在哪，取得使用者針對該條的明確同意；加嚴自行記錄。既有凍結驗收（hand-realism 條件 5／12／13／14／15、table-framing 等）因放慢而不過＝停手回報，不得改條件。
+
+## 設計決策（動手前已讀碼確認）
+- 手的「推」動作時長不是獨立常數：`js/hand-motion.js` done() 以 `props.stackAt().t>=1` 判定推完，位置每幀追著錢柱，所以手與錢同步由建構保證；`HAND.PUSH_MS` 只是文件常數，`tests/table-hands.test.mjs` 斷言它等於 `CH.FLY_MS`，故同步改 0.70。
+- 手獨立於錢的只有「推完後的收手」`HAND.RETRACT_MS`（0.30s）：新增 `HAND.PACE = 0.70/0.42` 單一倍率，只用在「推之後的收手」（擺錢階段）。揭盅階段的扒回／停一拍／拍令牌不放慢（屬開標後動畫，使用者要的是擺錢階段；且 props 側 returnDelay 0.22／0.42 與測試斷言 `RAKE.BACK_MS===0.42` 綁在一起）。
+- 預期（這是預測、由下列量測決定成敗）：單格手總時長 0.42+0.30=0.72 → 0.70+0.50=1.20（×1.667）；兩格 1.00 → 1.66。
+
+## 條件（每條貼實測輸出；括號＝會讓它變紅的實作）
+量測治具一律放 `docs/experiments/2026-10-04-slow-chips/tools/`，以 `--root=<樹>` 或參數指定樹，基準樹＝d29167b2 的獨立 worktree（`C:/Users/shung/wt/yaoshi/slow-chips-base`）。
+
+1. **錢飛行時長**（node 固定步長 1/120 s，真的 table-props＋table-hands，handPaths 開；`tools/t1-timing.mjs`）：每席（0–3）單格推出，「第一格落定」＝stackAt.t 首次 ≥1 的時刻；新版 0.70±0.05；基準同治具量得 0.42±0.05。每席兩格同一幀推出，第二格落定＝讀自該樹 `CHIP.FLY_MS+QUEUE_GAP+QUEUE_FLY` 的公式值，實測與公式差 ≤0.02（新版應為 1.16）。鑑別力：把「新規格 0.70±0.05」套在基準必紅、新版綠；兩邊輸出各貼一次。（紅：只改 FLY_MS 不改 QUEUE_FLY；改常數但手路徑下仍走舊值。）
+2. **最後落定與等待**：
+   a. （node，`tools/t1-timing.mjs`）最壞合法情境＝四席同一幀各推 `CFG.MAX_BIDS`（自 index.html CFG 讀）格、每格 6 枚、含排隊，量 tL＝所有錢 t=1 與四隻手回到閒置（stats().state 全 null）兩者的最晚時刻；`CFG.CHIP_SETTLE_MS ≥ tL×1000 + 1000` 且為 100 的整數倍。
+   b. （瀏覽器 solo，`tools/t2-reveal-dom.mjs`）實按「蓋牌開標」流程：#stage 出現「開標前公告」的時刻 > 所有錢落定且所有手閒置的時刻，且兩者間隔 ≥ 0.95 s（0.05 s 為 rAF 取樣容差）。
+   鑑別力：把 CHIP_SETTLE_MS 還原為 2000，a 紅（2000 < tL×1000+1000）且 b 的間隔 <0.95 s 紅；兩邊輸出各貼一次（還原用改前備份，不用反向 sed）。
+3. **手的放慢與手錢同步**（node，同治具 `tools/t3-hand.mjs`，同一把固定步長）：
+   a. 手總時長＝從 hands.bid 起到該席手 state 回 null 的時間；每席單格推各量一次、每席兩格各量一次。新版／基準比值落在 (0.70/0.42)×(1±0.15)＝[1.417, 1.917]，四席全部。鑑別力：把此區間套在基準自己（比值 1.0）必紅。另量「伸出→到達」（bid 到推完）比值同區間。（紅：只放慢錢不放慢收手 ⇒ 單格總時長比值 1.39 ＜1.417。）
+   b. 手錢到達時刻差：「手到達」＝該席手網格（蒙皮頂點取每 3 點）與該格錢柱終點 (tx,tz) 的水平最近距離首次 ≤ 錢柱外接半徑＋`HAND.PUSH_GAP`＋0.02 的時刻；「錢落定」＝該格 t 首次 ≥1；差＝前者−後者。樣本＝版面 L、四席 × 四組格對 (0,1)(2,3)(1,2)(0,3) × 每格（≥12 個有效樣本）；整場從未到達者記 null、排除並計數，新版 null 數 ≤ 基準 null 數。新版每個差值落在「基準差值 min–max 再各外擴 0.10 s」內。基準與新版的完整差值分佈各貼一次。
+   c. 揭盅階段（扒回／停一拍／拍令牌／其後收手）不放慢：`git diff` 中 HAND.RAKE／HOLD／SLAM 與 props 的 returnDelay／0.42 返回常數 0 改動；同治具量一次 reveal 手時長新版＝基準 ±1 步。
+4. **既有凍結驗收不退步**（基準 d29167b2 與新版各跑同治具、同參數，數字並列；任一條新版更差到違反該條原門檻＝停手回報）：
+   a. 遮擋閘（hand-realism 條件 5）：`tests/tools/hands-occlusion.mjs`——「收」≤10%（原門檻），其餘各類不超過基準＋1.0 個百分點；`tests/tools/hands-probe.mjs` 穿入 0。
+   b. 1599 取景矩陣：`tests/tools/table-framing-check.mjs --all`，新版 1599/1599 或 0 新增紅格（對基準）。
+   c. 條件 12／13／14／15（`tests/tools/hand-arm-holes.mjs --natural=1 --throttle=4 --seed=101`，solo 844、solo 1280、熱座 844 各一次，另新版 `--q=handreal=0` 各一次）：條件 12 relicHitFrames＝0；條件 13 aba10 全 0；條件 14 疊拍品總幀數（四席加總）新版 ≤ 同樹 `?handreal=0` 同判準總幀數（並列揭露基準數字）；條件 15 腳本段口徑 perf.upd_p95 ≤35.2 ms、perf.dt_p95 ≤50.1 ms（整局口徑不設門檻，只列數字）。
+   （此治具腳本段固定 `wait(900)` 後就蓋令牌，新版放慢後手仍在推時重疊；這是量測口徑，不得改治具、不得改等待。）
+5. **跳過**（瀏覽器，`tools/t5-skip.mjs`）：按 doSkip 後 ≤0.1 s（取樣 rAF）所有錢 t≥1、手全 state null／不可見；公告（#stage 曾含「開標前公告」，用 MutationObserver 抓）出現在 doSkip 後 ≤0.5 s。兩種時機：①開標後約 0.3 s（settle 等待中）②約 1.0 s（錢飛行中）。基準同治具也跑一次並列。（紅：跳過後錢仍在飛／手仍在動。）
+6. **效能**：`docs/experiments/2026-10-02-hand-realism/tools/live-cost-real.mjs <樹根>`（hand-realism 條件 6 補充診斷的同一支，不改），基準與新版交錯各 5 輪，各取 p95 的中位數：新版 ≤ 基準×1.10。逐輪數字全貼。（量測位置＝本機 node 的 hands.update CPU，不代表 iPhone；iPhone 未驗。）
+7. **等價與全套**：`node tests/tools/trace-eq.mjs <基準 index.html> <新版 index.html>` equal:true（並附 `--mutate` 一次證明抓得到）；`node --test tests/*.test.mjs` 全綠；若有測試硬編舊值而失敗＝只列出、不改測試（回報）。
+8. **流程不壞**：solo、熱座、`?handreal=0` 皆走到成交總覽，console error／pageerror 皆空；`?hands=0` 也正常（錢仍飛、無手）。（`tools/t8-flows.mjs`）
+9. **版本升 0.59.11**：index.html 的 VERSION／VERSION_NOTE／RELEASE_VERSION、兩個 CSS 的 ?v=、tests/ui-hierarchy.test.mjs 的 RELEASE_VERSION 斷言（只改這一行）。
+10. **範圍**：`git diff --stat d29167b2..` 只含 js/table-props.js（時長常數）、index.html（CFG.CHIP_SETTLE_MS＋版本字串）、js/hand-motion.js（HAND.PACE／PUSH_MS／推後收手同步）、tests/ui-hierarchy.test.mjs 一行、docs/experiments/2026-10-04-slow-chips/*；逐檔一句對應哪條需求。
+
+## 起點數字（可調）
+CH.FLY_MS 0.42→0.70、CH.QUEUE_FLY 0.22→0.40、QUEUE_GAP 0.06 不動、HAND.PACE＝0.70/0.42、CFG.CHIP_SETTLE_MS＝依條件 2a 實測重定。
