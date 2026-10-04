@@ -9,6 +9,7 @@ try {
   await page.evaluate(() => window.__yaoshi3d.tray.hands.ready());
   const MAXB = await page.evaluate(() => CFG.MAX_BIDS);
   await toMarket(page, MAXB); await installProbe(page);
+  if (opt.mut) await page.evaluate(() => { const T = window.__yaoshi3d.tray; T.props.finish = () => {}; T.hands.finish = () => {}; }); // 突變：跳過不收錢與手（鑑別力驗紅）
   await page.evaluate((ms) => {
     document.getElementById('mainbtn').addEventListener('click', () => {
       setTimeout(() => {
@@ -19,11 +20,11 @@ try {
     }, true);
   }, at);
   await page.click('#mainbtn');
-  await page.waitForFunction(() => window.__probe.announceAt !== null && window.__probe.firstSettledAfterSkip !== null, null, { timeout: 8000 });
+  await page.waitForFunction(() => window.__probe.announceAt !== null && window.__probe.firstSettledAfterSkip !== null, null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(300);
   const P = await page.evaluate(() => window.__probe);
-  const settleS = (P.firstSettledAfterSkip - P.skipAt) / 1000, annS = (P.announceAt - P.skipAt) / 1000;
-  out = { root: opt.root, skipAtMs: at, busyAtSkip: P.busyAtSkip, settledAfterSkipS: +settleS.toFixed(3), announceAfterSkipS: +annS.toFixed(3), pass: settleS <= 0.1 && annS <= 0.5 && annS >= 0, errors: L.errors };
+  const settleS = P.firstSettledAfterSkip === null ? Infinity : (P.firstSettledAfterSkip - P.skipAt) / 1000, annS = P.announceAt === null ? Infinity : (P.announceAt - P.skipAt) / 1000;
+  out = { root: opt.root, skipAtMs: at, busyAtSkip: P.busyAtSkip, settledAfterSkipS: +settleS.toFixed(3), announceAfterSkipS: +annS.toFixed(3), mut: !!opt.mut, pass: settleS <= 0.1 && annS <= 0.5 && annS >= 0, errors: L.errors };
 } finally { await L.close(); }
 console.log(JSON.stringify(out)); if (opt.out) fs.writeFileSync(opt.out, JSON.stringify(out, null, 1));
 console.log('條件5:', out.pass ? 'PASS' : 'FAIL');

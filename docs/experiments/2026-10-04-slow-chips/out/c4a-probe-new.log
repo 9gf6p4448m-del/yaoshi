@@ -1,0 +1,266 @@
+{
+ "gates": {
+  "B1_drawCallDelta_le4": true,
+  "B1_trisPerHand_le2500": false,
+  "pipeline_creatureFigures": true,
+  "C1_noPenetration_realSkin": true,
+  "C1_hitTestUnchanged": true,
+  "C1_idleNotOverHUD": true,
+  "C6_slamFromToken": true,
+  "noPageErrors": true
+ },
+ "pass": false,
+ "summary": {
+  "L": {
+   "drawCalls": {
+    "handsVisible": 4,
+    "callsWithHands": 78,
+    "callsWithout": 74,
+    "delta": 4,
+    "trisDelta": 21552,
+    "trisPerHand": 4724
+   },
+   "pen": {
+    "hits": 0,
+    "framesWithHands": 302,
+    "cycles": [
+     {
+      "label": "push",
+      "hits": 0,
+      "where": [],
+      "withHands": 97,
+      "hudOverlapFrames": 97
+     },
+     {
+      "label": "push-same-slot",
+      "hits": 0,
+      "where": [],
+      "withHands": 112,
+      "hudOverlapFrames": 112
+     },
+     {
+      "label": "slam",
+      "hits": 0,
+      "where": [],
+      "withHands": 0,
+      "hudOverlapFrames": 0
+     },
+     {
+      "label": "rake",
+      "hits": 0,
+      "where": [],
+      "withHands": 93,
+      "hudOverlapFrames": 93
+     }
+    ]
+   },
+   "hit": {
+    "samples": 315,
+    "handsVisible": 4,
+    "diffs": 0,
+    "hitSlotsWithHands": [
+     -1,
+     2
+    ]
+   },
+   "hud": {
+    "visibleHands": 0,
+    "overlaps": 0,
+    "waitedMs": 31,
+    "statesIdle": true,
+    "hudRects": [
+     "#north",
+     "#westSeat",
+     "#eastSeat",
+     "#railW",
+     "#railE",
+     "#feltHead",
+     "#south",
+     "#helpBtn"
+    ]
+   },
+   "hudDuringAction": [
+    {
+     "label": "push",
+     "framesWithHands": 97,
+     "framesOverlappingHUD": 97
+    },
+    {
+     "label": "push-same-slot",
+     "framesWithHands": 112,
+     "framesOverlappingHUD": 112
+    },
+    {
+     "label": "slam",
+     "framesWithHands": 0,
+     "framesOverlappingHUD": 0
+    },
+    {
+     "label": "rake",
+     "framesWithHands": 93,
+     "framesOverlappingHUD": 93
+    }
+   ],
+   "slam": {
+    "events": 4,
+    "log": [
+     {
+      "slot": 0,
+      "landed": 1
+     },
+     {
+      "slot": 1,
+      "landed": 2
+     },
+     {
+      "slot": 2,
+      "landed": 3
+     },
+     {
+      "slot": 3,
+      "landed": 4
+     }
+    ],
+    "eventsMatchLanding": true,
+    "handsSeenFrames": 187
+   },
+   "pipeline": {
+    "moduleUrl": "/js/creature-figures.js?v=0.59.11&fxvocab=0",
+    "glbCached": true,
+    "shared": {
+     "skeletons": 1,
+     "merged": 0
+    },
+    "skeletons": 4,
+    "materials": 1,
+    "glbRequests": 1
+   },
+   "errors": []
+  },
+  "P": {
+   "drawCalls": {
+    "handsVisible": 4,
+    "callsWithHands": 75,
+    "callsWithout": 71,
+    "delta": 4,
+    "trisDelta": 21552,
+    "trisPerHand": 4724
+   },
+   "pen": {
+    "hits": 0,
+    "framesWithHands": 263,
+    "cycles": [
+     {
+      "label": "push",
+      "hits": 0,
+      "where": [],
+      "withHands": 85,
+      "hudOverlapFrames": 76
+     },
+     {
+      "label": "push-same-slot",
+      "hits": 0,
+      "where": [],
+      "withHands": 85,
+      "hudOverlapFrames": 82
+     },
+     {
+      "label": "slam",
+      "hits": 0,
+      "where": [],
+      "withHands": 0,
+      "hudOverlapFrames": 0
+     },
+     {
+      "label": "rake",
+      "hits": 0,
+      "where": [],
+      "withHands": 93,
+      "hudOverlapFrames": 79
+     }
+    ]
+   },
+   "hit": {
+    "samples": 288,
+    "handsVisible": 4,
+    "diffs": 0,
+    "hitSlotsWithHands": [
+     -1,
+     0,
+     1,
+     2,
+     3
+    ]
+   },
+   "hud": {
+    "visibleHands": 0,
+    "overlaps": 0,
+    "waitedMs": 35,
+    "statesIdle": true,
+    "hudRects": [
+     "#north",
+     "#feltHead",
+     "#south",
+     "#helpBtn"
+    ]
+   },
+   "hudDuringAction": [
+    {
+     "label": "push",
+     "framesWithHands": 85,
+     "framesOverlappingHUD": 76
+    },
+    {
+     "label": "push-same-slot",
+     "framesWithHands": 85,
+     "framesOverlappingHUD": 82
+    },
+    {
+     "label": "slam",
+     "framesWithHands": 0,
+     "framesOverlappingHUD": 0
+    },
+    {
+     "label": "rake",
+     "framesWithHands": 93,
+     "framesOverlappingHUD": 79
+    }
+   ],
+   "slam": {
+    "events": 4,
+    "log": [
+     {
+      "slot": 0,
+      "landed": 1
+     },
+     {
+      "slot": 1,
+      "landed": 2
+     },
+     {
+      "slot": 2,
+      "landed": 3
+     },
+     {
+      "slot": 3,
+      "landed": 4
+     }
+    ],
+    "eventsMatchLanding": true,
+    "handsSeenFrames": 206
+   },
+   "pipeline": {
+    "moduleUrl": "/js/creature-figures.js?v=0.59.11&fxvocab=0",
+    "glbCached": true,
+    "shared": {
+     "skeletons": 1,
+     "merged": 0
+    },
+    "skeletons": 4,
+    "materials": 1,
+    "glbRequests": 1
+   },
+   "errors": []
+  }
+ }
+}

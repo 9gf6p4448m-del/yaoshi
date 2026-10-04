@@ -1,0 +1,2128 @@
+{
+  "tool": "tests/tools/table-framing-check.mjs",
+  "mode": "all",
+  "curseOnly": false,
+  "caseLimit": null,
+  "caseMatch": null,
+  "simulatedClock": {
+    "stepMs": 16.666666666666668,
+    "pushObserveMs": 850,
+    "note": "Runs the renderer frame callback and render through a controlled rAF queue; this is geometry coverage, not performance evidence."
+  },
+  "renderStats": {
+    "source": "renderer.info.render snapshot with four identical tray items; not FPS evidence",
+    "samples": [
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 28,
+        "triangles": 2551
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2821
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2821
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2821
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2821
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 27,
+        "triangles": 2593
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2649
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2595
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2779
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2779
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2779
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 30,
+        "triangles": 2779
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target0",
+        "curseKind": "guava",
+        "calls": 27,
+        "triangles": 2493
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target1",
+        "curseKind": "guava",
+        "calls": 28,
+        "triangles": 2763
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target2",
+        "curseKind": "guava",
+        "calls": 28,
+        "triangles": 2763
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target3",
+        "curseKind": "guava",
+        "calls": 28,
+        "triangles": 2763
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:魔神仔的芭樂:slot0",
+        "curseKind": "guava",
+        "calls": 28,
+        "triangles": 2763
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target0",
+        "curseKind": "guava",
+        "calls": 26,
+        "triangles": 2535
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:魔神仔的芭樂:slot1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2705
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:魔神仔的芭樂:slot2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2651
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target1",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2721
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target2",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2721
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target3",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2721
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:魔神仔的芭樂:slot3",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2721
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot0:target0",
+        "curseKind": "water",
+        "calls": 28,
+        "triangles": 2231
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot0:target1",
+        "curseKind": "water",
+        "calls": 28,
+        "triangles": 2481
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot0:target2",
+        "curseKind": "water",
+        "calls": 28,
+        "triangles": 2481
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot0:target3",
+        "curseKind": "water",
+        "calls": 28,
+        "triangles": 2481
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:抓交替水符:slot0",
+        "curseKind": "water",
+        "calls": 28,
+        "triangles": 2481
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot1:target0",
+        "curseKind": "water",
+        "calls": 26,
+        "triangles": 2253
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot1:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot1:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot1:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:抓交替水符:slot1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot2:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2329
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot2:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot2:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot2:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:抓交替水符:slot2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot3:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2275
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot3:target1",
+        "curseKind": "water",
+        "calls": 30,
+        "triangles": 2459
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot3:target2",
+        "curseKind": "water",
+        "calls": 30,
+        "triangles": 2459
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:抓交替水符:slot3:target3",
+        "curseKind": "water",
+        "calls": 30,
+        "triangles": 2459
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:抓交替水符:slot3",
+        "curseKind": "water",
+        "calls": 30,
+        "triangles": 2459
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot0:target0",
+        "curseKind": "lock",
+        "calls": 28,
+        "triangles": 2407
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot0:target1",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2677
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot0:target2",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2677
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot0:target3",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2677
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:縛靈鎖:slot0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2677
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot1:target0",
+        "curseKind": "lock",
+        "calls": 27,
+        "triangles": 2449
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot1:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot1:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot1:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:縛靈鎖:slot1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot2:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2505
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot2:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot2:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot2:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:縛靈鎖:slot2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot3:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2451
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot3:target1",
+        "curseKind": "lock",
+        "calls": 30,
+        "triangles": 2635
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot3:target2",
+        "curseKind": "lock",
+        "calls": 30,
+        "triangles": 2635
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:縛靈鎖:slot3:target3",
+        "curseKind": "lock",
+        "calls": 30,
+        "triangles": 2635
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:縛靈鎖:slot3",
+        "curseKind": "lock",
+        "calls": 30,
+        "triangles": 2635
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot0:target0",
+        "curseKind": "tiger",
+        "calls": 28,
+        "triangles": 2295
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot0:target1",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2565
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot0:target2",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2565
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot0:target3",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2565
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:白虎煞:slot0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2565
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot1:target0",
+        "curseKind": "tiger",
+        "calls": 27,
+        "triangles": 2337
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot1:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot1:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot1:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:白虎煞:slot1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot2:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2393
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot2:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot2:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot2:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:白虎煞:slot2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot3:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2339
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot3:target1",
+        "curseKind": "tiger",
+        "calls": 30,
+        "triangles": 2523
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot3:target2",
+        "curseKind": "tiger",
+        "calls": 30,
+        "triangles": 2523
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "transfer:白虎煞:slot3:target3",
+        "curseKind": "tiger",
+        "calls": 30,
+        "triangles": 2523
+      },
+      {
+        "viewport": "desktop-1280x720",
+        "fixture": "burn:白虎煞:slot3",
+        "curseKind": "tiger",
+        "calls": 30,
+        "triangles": 2523
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2595
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2649
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2649
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2595
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2651
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:魔神仔的芭樂:slot0",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2705
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:魔神仔的芭樂:slot1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2705
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:魔神仔的芭樂:slot2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2651
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:魔神仔的芭樂:slot3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot0:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2275
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot0:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot0:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot0:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:抓交替水符:slot0",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot1:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2329
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot1:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot1:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot1:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:抓交替水符:slot1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot2:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2329
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot2:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot2:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot2:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:抓交替水符:slot2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot3:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2275
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot3:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot3:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:抓交替水符:slot3:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:抓交替水符:slot3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot0:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2451
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot0:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot0:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot0:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:縛靈鎖:slot0",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot1:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2505
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot1:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot1:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot1:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:縛靈鎖:slot1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot2:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2505
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot2:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot2:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot2:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:縛靈鎖:slot2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot3:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2451
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot3:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot3:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:縛靈鎖:slot3:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:縛靈鎖:slot3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot0:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2339
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot0:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot0:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot0:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:白虎煞:slot0",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot1:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2393
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot1:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot1:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot1:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:白虎煞:slot1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot2:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2393
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot2:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot2:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot2:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:白虎煞:slot2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot3:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2339
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot3:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot3:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "transfer:白虎煞:slot3:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "mobile-852x393-safe59",
+        "fixture": "burn:白虎煞:slot3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2595
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot0:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot0",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2649
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot1:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2877
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2649
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot2:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target0",
+        "curseKind": "wedding",
+        "calls": 29,
+        "triangles": 2595
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target1",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target2",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:冥婚紅包:slot3:target3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:冥婚紅包:slot3",
+        "curseKind": "wedding",
+        "calls": 31,
+        "triangles": 2823
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2651
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot0:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:魔神仔的芭樂:slot0",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2705
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot1:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:魔神仔的芭樂:slot1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2933
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2705
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot2:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:魔神仔的芭樂:slot2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target0",
+        "curseKind": "guava",
+        "calls": 29,
+        "triangles": 2651
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target1",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target2",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:魔神仔的芭樂:slot3:target3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:魔神仔的芭樂:slot3",
+        "curseKind": "guava",
+        "calls": 31,
+        "triangles": 2879
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot0:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2275
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot0:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot0:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot0:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:抓交替水符:slot0",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot1:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2329
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot1:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot1:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot1:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:抓交替水符:slot1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2557
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot2:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2329
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot2:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot2:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot2:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:抓交替水符:slot2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot3:target0",
+        "curseKind": "water",
+        "calls": 29,
+        "triangles": 2275
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot3:target1",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot3:target2",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:抓交替水符:slot3:target3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:抓交替水符:slot3",
+        "curseKind": "water",
+        "calls": 31,
+        "triangles": 2503
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot0:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2451
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot0:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot0:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot0:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:縛靈鎖:slot0",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot1:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2505
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot1:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot1:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot1:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:縛靈鎖:slot1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2733
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot2:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2505
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot2:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot2:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot2:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:縛靈鎖:slot2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot3:target0",
+        "curseKind": "lock",
+        "calls": 29,
+        "triangles": 2451
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot3:target1",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot3:target2",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:縛靈鎖:slot3:target3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:縛靈鎖:slot3",
+        "curseKind": "lock",
+        "calls": 31,
+        "triangles": 2679
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot0:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2339
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot0:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot0:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot0:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:白虎煞:slot0",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot1:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2393
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot1:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot1:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot1:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:白虎煞:slot1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2621
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot2:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2393
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot2:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot2:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot2:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:白虎煞:slot2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot3:target0",
+        "curseKind": "tiger",
+        "calls": 29,
+        "triangles": 2339
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot3:target1",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot3:target2",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "transfer:白虎煞:slot3:target3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      },
+      {
+        "viewport": "natural-844x390",
+        "fixture": "burn:白虎煞:slot3",
+        "curseKind": "tiger",
+        "calls": 31,
+        "triangles": 2567
+      }
+    ]
+  },
+  "viewports": [
+    "desktop-1280x720",
+    "mobile-852x393-safe59",
+    "natural-844x390"
+  ],
+  "cases": 1599,
+  "passed": 1599,
+  "failed": 0,
+  "pageErrors": [],
+  "failures": [],
+  "evidence": "c4b-framing-base.json"
+}

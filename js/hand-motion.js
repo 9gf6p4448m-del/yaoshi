@@ -51,8 +51,13 @@ export const HAND = {
   TRAY: { L: { hw: 1.8, hd: 0.46 }, P: { hw: 0.756, hd: 0.331 }, CLOTH_TOP: 0.012 },
   /** 正式資產（走 creature-figures.js 的 GLB 管線載入）。 */
   GLB: 'assets/creatures/hand_r.glb',
-  /** 推：與籌碼飛行同長（table-props PROPS.CHIP.FLY_MS），錢的終點不變，只把拋物線換成「被手推著滑」。 */
-  PUSH_MS: 0.42,
+  /** 推：與籌碼飛行同長（table-props PROPS.CHIP.FLY_MS），錢的終點不變，只把拋物線換成「被手推著滑」。
+   *  推的實際時長由錢柱落定（stackAt().t≥1）決定，本值只是文件常數（tests 斷言它等於 FLY_MS）。v0.59.11：0.42→0.70。 */
+  PUSH_MS: 0.70,
+  /** v0.59.11 擺錢放慢倍率（使用者：手的動作也要一起放慢）＝新推送時長／舊推送時長（0.70／0.42）。
+   *  推本身跟著錢柱走（同步由建構保證）；獨立於錢的只有「推完後的收手」，其時間以此倍率拉長。
+   *  只管擺錢階段；揭盅階段（扒回／停一拍／拍令牌／其後收手）不放慢。試玩調整：改這個值（1＝回舊速度）。 */
+  PACE: 0.70 / 0.42,
   /** 收手：沿進場方向退回去多遠（世界單位）、花多久；退完即不可見（閒置＝收在畫面外）。 */
   RETRACT_MS: 0.30,
   RETRACT_DIST: 1.0,
@@ -1079,7 +1084,8 @@ export function createHandDirector(props, rig, per) {
   }
   function beginRetract(h) {
     const { frame, spec } = h.last;
-    h.act = { kind: 'retract', t: 0, from: { yaw: frame.yaw, pitch: frame.pitch, pose: frame.pose.slice(), anchor: spec.anchor, ax: spec.target[0], az: spec.target[1], y: frame.root[1] } };
+    const pace = h.act && h.act.kind === 'push' ? HAND.PACE : undefined; // 只有擺錢（推）之後的收手放慢；揭盅後的收手照舊
+    h.act = { kind: 'retract', t: 0, pace, from: { yaw: frame.yaw, pitch: frame.pitch, pose: frame.pose.slice(), anchor: spec.anchor, ax: spec.target[0], az: spec.target[1], y: frame.root[1] } };
   }
 
   const api = {
@@ -1117,7 +1123,7 @@ export function createHandDirector(props, rig, per) {
     update(dt) {
       for (const h of hands) {
         const a = h.act; if (!a) continue;
-        a.t += dt;
+        a.t += a.pace ? dt / a.pace : dt; // 推完後的收手 pace＝HAND.PACE（時間軸拉長；其餘動作 undefined＝原速）
         if (a.kind === 'slam') { const tk = props.tokenAt(h.seat); if (tk && tk.t >= 1) a.sinceLand += dt; }
       }
     },

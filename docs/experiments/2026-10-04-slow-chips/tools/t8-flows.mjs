@@ -10,7 +10,7 @@ for (const [name, mode, q] of [['solo', 'solo', ''], ['hotseat', 'hotseat', ''],
     await page.waitForFunction(() => !!window.__yaoshi3d?.tray && !!window.__yaoshi, null, { timeout: 60000 });
     await page.evaluate(([m]) => window.__yaoshi.newGame(m, 7, m === 'hotseat' ? ['qingmian', 'shoujing'] : ['qingmian']), [mode]);
     let maxChips = 0;
-    for (let i = 0; i < 6000; i++) {
+    for (let i = 0; i < 30000; i++) {
       await page.waitForTimeout(10);
       const r = await page.evaluate(() => {
         const ho = document.getElementById('handoff'); if (ho && getComputedStyle(ho).display !== 'none') { document.getElementById('hoBtn').click(); return { s: 0, chips: 0 }; }

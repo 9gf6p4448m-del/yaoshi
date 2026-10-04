@@ -44,16 +44,16 @@ export async function installProbe(page) {
     new MutationObserver(() => { if (P.announceAt === null && /開標前公告/.test(stage.innerHTML)) P.announceAt = performance.now(); }).observe(stage, { childList: true, subtree: true, characterData: true });
     const Y = window.__yaoshi3d;
     const tick = () => {
-      const T = Y.tray; let busy = false, n = 0;
+      const T = Y.tray; let busy = false, n = 0, pbusy = false;
       try {
         n = T.props.chipCount(); if (n > P.maxChip) P.maxChip = n; if (n > 0) P.chipsSeen = true;
-        for (let s = 0; s < 4; s++) for (let k = 0; k < 4; k++) { const st = T.props.stackAt(s, k); if (st && (st.t < 1 || st.wait > 0)) busy = true; }
-        const hs = T.hands.stats().state; if (hs && hs.some((x) => x !== null)) busy = true;
+        for (let s = 0; s < 4; s++) for (let k = 0; k < 4; k++) { const st = T.props.stackAt(s, k); if (st && (st.t < 1 || st.wait > 0)) { busy = true; pbusy = true; } }
+        const hs = T.hands.stats().state; if (hs && hs.some((x) => x !== null)) busy = true; if (hs && hs.some((x) => x && x.kind === 'push')) pbusy = true;
       } catch (e) { P.errs.push(String(e)); }
       const now = performance.now(); P.frames++;
       if (P.t0 !== null && now - P.lastTl >= 100 && P.announceAt === null) { P.lastTl = now; let fl = 0, wt = 0; for (let s = 0; s < 4; s++) for (let k = 0; k < 4; k++) { const st = T.props.stackAt(s, k); if (st && st.t < 1) fl++; if (st && st.wait > 0) wt++; } P.timeline.push([+((now - P.t0) / 1000).toFixed(2), fl, wt, T.hands.stats().state.map((x) => (x ? x.kind[0] + x.slot : '-')).join(',')]); }
       if (P.t0 !== null && P.chipsSeen && P.announceAt === null && busy) P.lastBusy = now;
-      if (P.skipAt !== null && P.firstSettledAfterSkip === null && now >= P.skipAt && !busy) P.firstSettledAfterSkip = now;
+      if (P.skipAt !== null && P.firstSettledAfterSkip === null && now >= P.skipAt && !pbusy) P.firstSettledAfterSkip = now; /* 跳過後只看「擺錢動作」（錢飛行／排隊、手在推）；其後揭盅階段的手另當別論 */
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
