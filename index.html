@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.59.11"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.59.12"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -1132,7 +1132,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.59.11"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.59.12"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -1337,11 +1337,11 @@ const CFG = {
      個別角色可在 ROLES[*].ai.inc 覆寫其中任一鍵。 */
   INC_AI:{minLifeFrac:0.3, value:12},
   T: 650,            /* 演出基本節拍 ms【試玩必調】 */
-  CHIP_SETTLE_MS: 3600, /* v0.59.8 開標先看擺錢：按「蓋牌開標」後，錢一次推出，等這麼久才亮「開標前公告」大卡，玩家才看得到大家擺錢。
-                           v0.59.11 放慢後重定：真實流程最壞情境（solo 封籤先推真人那幾筆、開標整批重推，重推會覆寫並重新排隊；四席各 MAX_BIDS 格）
-                           手與錢最後停下 ≈2.58s（node 重建與瀏覽器實測 2.579s 相符）＋停頓 1.0s → 取整百 3600。
-                           改 CH.FLY_MS／QUEUE_FLY／HAND.PACE 時要跟著重算（docs/experiments/2026-10-04-slow-chips/tools/t1-timing.mjs 印建議值）。
-                           純呈現（不耗亂數、不碰結算）；「跳過」立即歸零；?table3d=0 不等【試玩必調】 */
+  CHIP_SETTLE_MS: 7000, /* v0.59.12 起是「上限值」（保險絲）：開標擺錢改由 chipSeqStart 一席一席依序推，實際公告時間＝最後一隻手收完＋CHIP_TAIL_MS；
+                           只有「卡住」（分頁在背景、rAF 停了）時才靠它強制往下。須 ≥ 依序擺法最壞約 5.1s（四席×MAX_BIDS 格）＋1s、且為 100 的整數倍
+                           （0.59.11 條件 2a：≥ tL×1000+1000）。改 CH.FLY_MS／QUEUE_FLY／HAND.PACE 要跟著重算。純呈現（不耗亂數、不碰結算）；「跳過」立即歸零【試玩必調】 */
+  CHIP_SEAT_STAGGER_MS: 150, /* v0.59.12 依序擺錢：上一席最後一柱落定後，等這麼久下一席才起跑（驗收 B：100–250ms）【試玩必調】 */
+  CHIP_TAIL_MS: 350,         /* v0.59.12 最後一隻手收完後，等這麼久才亮「開標前公告」（驗收 E：250–450ms）【試玩必調】 */
 };
 /* 《紙紮夜戰》為永久規則；紙紮夜戰之外的診斷參數仍只影響這次載入。 */
 try{
@@ -2819,9 +2819,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.59.11", VERSION_NOTE="0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
+const VERSION="0.59.12", VERSION_NOTE="0.59.12：開標擺錢一席一席依序——一次只有一隻手在推，每席推完（含多格）再換下一席，最後一隻手收完稍停一下才出現開標前公告（純演出，結算不變；可按「跳過」）；0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.59.11";
+const RELEASE_VERSION="0.59.12";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -7356,6 +7356,38 @@ function nightendPanelHTML(fights,bye,nightly,deaths){
   const sec=(cls,label,body)=>body?`<div class="pnl-sec ${cls}"><div class="pnl-lab">${[...label].map(c=>`<span>${c}</span>`).join('')}</div><div class="pnl-body">${body}</div></div>`:'';
   return `<div class="stageCard" id="pnl"><div class="pnl-title"><span class="big">⚔️ 第 ${S.round} 夜・戰況</span></div>${sec('wish','心願',wishRows)}${sec('duel','對決',fightRows)}${sec('dawn','天明',dawnBody)}</div>`;
 }
+/* v0.59.12 開標擺錢一席一席依序（使用者裁定方案 B：一次只有一隻手在推，公告前才不亂）。docs/experiments/2026-10-04-chips-sequential/acceptance.md
+   席序＝reveal 迭代中 entries 首次出現的席序；同席多柱維持 props／hands 現行排隊（FLY_MS／QUEUE_FLY／QUEUE_GAP 不變）。
+   下一席第一柱起跑＝上一席最後一柱落定＋CFG.CHIP_SEAT_STAGGER_MS；全部落定且手全閒置後再等 CFG.CHIP_TAIL_MS 才 resolve（公告）。
+   每席先把自己要擺的格清掉再推（避開真人封籤時推過的錢與重推交叉排隊）。純呈現：只讀 reveal、不寫回、不耗亂數。
+   回傳 {done:Promise, abort()}：abort＝把還沒推的席一次推完並結束等待（跳過、SKIP、非 3D）；CFG.CHIP_SETTLE_MS 是卡住時的保險上限。 */
+function chipSeqStart(reveal){
+  const plan=[];
+  reveal.forEach(r=>{ const i=S.market.indexOf(r.it); if(i<0) return;
+    r.entries.forEach(e=>{ let g=plan.find(x=>x.seat===e.p.id); if(!g){ g={seat:e.p.id,cols:[]}; plan.push(g); } g.cols.push({slot:i,amt:e.amt}); }); });
+  const pushSeat=g=>{ g.cols.forEach(c=>pushBid3d(g.seat,c.slot,0)); g.cols.forEach(c=>pushBid3d(g.seat,c.slot,c.amt)); };
+  let idx=0, fin=false, tm=null, resolve=null;
+  const done=new Promise(res=>{ resolve=res; });
+  const tray=TABLE3D?appraiseTray():null;
+  const stop=()=>{ if(fin) return; fin=true; clearInterval(tm); while(idx<plan.length) pushSeat(plan[idx++]); resolve(); };
+  if(!TABLE3D||!tray||!tray.props||!tray.props.stackAt){ plan.forEach(pushSeat); idx=plan.length; fin=true; if(TABLE3D) setTimeout(resolve,CFG.CHIP_TAIL_MS); else resolve(); return {done,abort(){ }}; }
+  const landed=g=>g.cols.every(c=>{ const st=tray.props.stackAt(g.seat,c.slot); return !st||st.t>=1; });
+  const handsIdle=()=>{ try{ return tray.hands.stats().state.every(x=>!x); }catch(e){ return true; } };
+  const T0=performance.now(); let landedAt=null, idleAt=null;
+  if(plan.length) pushSeat(plan[idx++]);
+  tm=setInterval(()=>{
+    if(fin) return;
+    const now=performance.now();
+    if(now-T0>=CFG.CHIP_SETTLE_MS) return stop();
+    if(idx<plan.length){
+      if(landed(plan[idx-1])){ if(landedAt===null) landedAt=now; if(now-landedAt>=CFG.CHIP_SEAT_STAGGER_MS){ pushSeat(plan[idx++]); landedAt=null; } }
+      else landedAt=null;
+      return;
+    }
+    if(plan.every(landed)&&handsIdle()){ if(idleAt===null) idleAt=now; if(now-idleAt>=CFG.CHIP_TAIL_MS) stop(); } else idleAt=null;
+  },16);
+  return {done,abort:stop};
+}
 async function startReveal(){
   BIDS_OPEN=false;   /* 不論從哪條路進開標（交卷／人類全滅的 startRevealDirect），出價一律關閉 */
   PRIVATE_PHASE="reveal";
@@ -7370,8 +7402,8 @@ async function startReveal(){
      純演出：讀的是 resolveAuction 回來的那份 reveal，不寫回、不耗亂數。 */
   /* ★推的是**每一筆**、不只 AI 那幾筆★：熱座交棒時桌上的錢被清過一輪（clearBids3d，防外洩），
      真人自己封的那幾筆到這裡才補回來；開標本來就是全部攤開的那一刻。 */
-  reveal.forEach(r=>{ const i=S.market.indexOf(r.it); if(i<0) return;
-    r.entries.forEach(e=>pushBid3d(e.p.id,i,e.amt)); });
+  /* v0.59.12：不再整批同時推——改由 chipSeqStart 一席一席依序推（第一席此刻同步推出），其餘席隨落定接續。 */
+  const CS=chipSeqStart(reveal);
   /* 開標渲染的可視程度交給 hook 決定。showTypes 預設 false（ARCH_SPEC §9 待辦 8：
      標書型態改為隱藏資訊，只有普渡爐主的 onReveal 會打開它）。
      viewer 傳「活著的真人」陣列：solo＝[南家]（與舊行為等價）；熱座＝兩位真人共看同一畫面，
@@ -7390,10 +7422,10 @@ async function startReveal(){
   if(TABLE3D&&!SKIP){
     stage.innerHTML="";
     await new Promise(res=>{
-      const tm=setTimeout(()=>{ PENDING=null; res(); },CFG.CHIP_SETTLE_MS);
-      PENDING=()=>{ PENDING=null; clearTimeout(tm); res(); };
+      PENDING=()=>{ PENDING=null; CS.abort(); res(); };   /* 跳過：剩下的席一次推完，再由 ys:fx-trait-cancel 收尾 */
+      CS.done.then(()=>{ PENDING=null; res(); });
     });
-  }
+  }else CS.abort();
   if(S.bleedLog&&S.bleedLog.length){
     renderSeats();
     stage.innerHTML=`<div class="revealRibbon">${S.bleedLog.map(t=>`<div class="big">${t}</div>`).join("")}</div>`;
