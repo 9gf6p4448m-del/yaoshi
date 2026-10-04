@@ -46,7 +46,7 @@ for (const n of [1, 2]) for (let s = 0; s < 4; s++) {
 /* b：到達差 */
 for (let s = 0; s < 4; s++) for (const pair of [[0], [1], [2], [3], [0, 1], [2, 3], [1, 2], [0, 3], [0, 2], [1, 3]]) { // 基準首跑只有 10 個有效樣本（<12），在看到新版數字前擴成 4 單格＋6 對
   const r = await rig(); for (const k of pair) { r.props.bid(s, k, 6); r.hands.bid(s, k, 6); }
-  const land = {}, arrive = {}, thr = {}, fly = {}; let t = 0;
+  const land = {}, arrive = {}, thr = {}, fly = {}, trace = {}; let t = 0;
   for (let i = 0; i < 1200; i++) {
     r.props.update(DT); r.hands.update(DT); t += DT;
     for (const k of pair) {
@@ -54,11 +54,13 @@ for (let s = 0; s < 4; s++) for (const pair of [[0], [1], [2], [3], [0, 1], [2, 
       if (land[k] === undefined && st.t >= 1) land[k] = +t.toFixed(4);
       /* 該格的手到達：只在輪到這一格推的期間算（手 state 的 slot＝k） */
       const hs = r.hands.stats().state[s];
-      if (arrive[k] === undefined && hs && hs.kind === 'push' && hs.slot === k) { thr[k] = st.r + PUSH_GAP + EXTRA; if (minDist(r, s, st.tx, st.tz) <= thr[k]) arrive[k] = +t.toFixed(4); }
+      if (hs && hs.kind === 'push' && hs.slot === k) { const dd = minDist(r, s, st.tx, st.tz); (trace[k] = trace[k] || []).push([t, dd]); if (arrive[k] === undefined) { thr[k] = st.r + PUSH_GAP + EXTRA; if (dd <= thr[k]) arrive[k] = +t.toFixed(4); } }
     }
     if (r.hands.stats().state[s] === null && Object.keys(land).length === pair.length) break;
   }
-  for (const k of pair) out.b.push({ seat: s, pair: pair.join(''), slot: k, fly: fly[k] ?? null, land: land[k] ?? null, arrive: arrive[k] ?? null, delta: land[k] != null && arrive[k] != null ? +(arrive[k] - land[k]).toFixed(4) : null, ratio: land[k] != null && arrive[k] != null && fly[k] ? +((arrive[k] - land[k]) / fly[k]).toFixed(4) : null });
+  /* 補強口徑（歸一化，不用絕對距離門檻）：手「到位」＝該格推的期間，手尖距終點第一次進到「這一段自己的最近距離＋0.02」內的時刻；比例同樣除以該格飛行時長 */
+  const alt = {}; for (const k of pair) { const tr = trace[k]; if (tr && tr.length) { const mn = Math.min(...tr.map((x) => x[1])); const hit = tr.find((x) => x[1] <= mn + 0.02); alt[k] = { arrive2: +hit[0].toFixed(4), minDist: +mn.toFixed(4) }; } }
+  for (const k of pair) out.b.push({ seat: s, pair: pair.join(''), slot: k, fly: fly[k] ?? null, land: land[k] ?? null, arrive: arrive[k] ?? null, delta: land[k] != null && arrive[k] != null ? +(arrive[k] - land[k]).toFixed(4) : null, ratio: land[k] != null && arrive[k] != null && fly[k] ? +((arrive[k] - land[k]) / fly[k]).toFixed(4) : null, minDist: alt[k] ? alt[k].minDist : null, ratio2: alt[k] && land[k] != null && fly[k] ? +((alt[k].arrive2 - land[k]) / fly[k]).toFixed(4) : null });
   r.hands.dispose(); r.props.dispose();
 }
 /* c：揭盅手時長（單格推完等手閒置後 reveal；seat 贏＝hold，別席贏＝rake） */

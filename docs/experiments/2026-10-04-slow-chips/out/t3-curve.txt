@@ -1,0 +1,79 @@
+slow-chips-base slots=2 fly 0.42 land 0.425 minDist 0.0842 thr 0.1253
+   phase 0.02 dist 0.8162 stackT 0.02
+   phase 0.079 dist 0.7206 stackT 0.079
+   phase 0.139 dist 0.5944 stackT 0.139
+   phase 0.198 dist 0.4817 stackT 0.198
+   phase 0.258 dist 0.4065 stackT 0.258
+   phase 0.317 dist 0.3375 stackT 0.317
+   phase 0.377 dist 0.282 stackT 0.377
+   phase 0.437 dist 0.239 stackT 0.437
+   phase 0.496 dist 0.2073 stackT 0.496
+   phase 0.556 dist 0.1852 stackT 0.556
+   phase 0.615 dist 0.1708 stackT 0.615
+   phase 0.675 dist 0.1619 stackT 0.675
+   phase 0.734 dist 0.1516 stackT 0.734
+   phase 0.794 dist 0.0879 stackT 0.794
+   phase 0.853 dist 0.0855 stackT 0.853
+   phase 0.913 dist 0.0845 stackT 0.913
+   phase 0.972 dist 0.0842 stackT 0.972
+   phase 0.992 dist 0.0842 stackT 0.992
+slow-chips slots=2 fly 0.7 land 0.708 minDist 0.3975 thr 0.1253
+   phase 0.012 dist 0.8349 stackT 0.012
+   phase 0.083 dist 0.7129 stackT 0.083
+   phase 0.155 dist 0.5716 stackT 0.155
+   phase 0.226 dist 0.4329 stackT 0.226
+   phase 0.298 dist 0.3977 stackT 0.298
+   phase 0.369 dist 0.3977 stackT 0.369
+   phase 0.44 dist 0.3977 stackT 0.44
+   phase 0.512 dist 0.3977 stackT 0.512
+   phase 0.583 dist 0.3977 stackT 0.583
+   phase 0.655 dist 0.3977 stackT 0.655
+   phase 0.726 dist 0.3977 stackT 0.726
+   phase 0.798 dist 0.3977 stackT 0.798
+   phase 0.869 dist 0.3977 stackT 0.869
+   phase 0.94 dist 0.3976 stackT 0.94
+   phase 1 dist 0.3976 stackT 1
+slow-chips-base slots=2,3 fly 0.42 land 0.425 minDist 0.0842 thr 0.1253
+   phase 0.02 dist 0.8162 stackT 0.02
+   phase 0.079 dist 0.7206 stackT 0.079
+   phase 0.139 dist 0.5944 stackT 0.139
+   phase 0.198 dist 0.4817 stackT 0.198
+   phase 0.258 dist 0.4065 stackT 0.258
+   phase 0.317 dist 0.3375 stackT 0.317
+   phase 0.377 dist 0.282 stackT 0.377
+   phase 0.437 dist 0.239 stackT 0.437
+   phase 0.496 dist 0.2073 stackT 0.496
+   phase 0.556 dist 0.1852 stackT 0.556
+   phase 0.615 dist 0.1708 stackT 0.615
+   phase 0.675 dist 0.1619 stackT 0.675
+   phase 0.734 dist 0.1516 stackT 0.734
+   phase 0.794 dist 0.0879 stackT 0.794
+   phase 0.853 dist 0.0855 stackT 0.853
+   phase 0.913 dist 0.0845 stackT 0.913
+   phase 0.972 dist 0.0842 stackT 0.972
+   phase 0.992 dist 0.0842 stackT 0.992
+slow-chips slots=2,3 fly 0.7 land 0.708 minDist 0.3975 thr 0.1253
+   phase 0.012 dist 0.8349 stackT 0.012
+   phase 0.083 dist 0.7129 stackT 0.083
+   phase 0.155 dist 0.5716 stackT 0.155
+   phase 0.226 dist 0.4329 stackT 0.226
+   phase 0.298 dist 0.3977 stackT 0.298
+   phase 0.369 dist 0.3977 stackT 0.369
+   phase 0.44 dist 0.3977 stackT 0.44
+   phase 0.512 dist 0.3977 stackT 0.512
+   phase 0.583 dist 0.3977 stackT 0.583
+   phase 0.655 dist 0.3977 stackT 0.655
+   phase 0.726 dist 0.3977 stackT 0.726
+   phase 0.798 dist 0.3977 stackT 0.798
+   phase 0.869 dist 0.3977 stackT 0.869
+   phase 0.94 dist 0.3976 stackT 0.94
+   phase 1 dist 0.3976 stackT 1
+## FLY_MS 掃描（seat3 slot2 單格；新版手動作碼）
+FLY=0.42 minDistEver 0.0842 thr 0.1253
+FLY=0.5 minDistEver 0.3975 thr 0.1253
+FLY=0.6 minDistEver 0.3975 thr 0.1253
+FLY=0.7 minDistEver 0.3975 thr 0.1253
+FLY=1.0 minDistEver 0.3974 thr 0.1253
+## 關閉信物避讓(norelic)
+slow-chips-base minDistEver 0.3975 [(0.02, 0.8162), (0.079, 0.6855), (0.139, 0.5718), (0.198, 0.4737), (0.258, 0.3977), (0.317, 0.3977), (0.377, 0.3977), (0.437, 0.3977), (0.496, 0.3977), (0.556, 0.3977), (0.615, 0.3977), (0.675, 0.3977), (0.734, 0.3977), (0.794, 0.3977), (0.853, 0.3977), (0.913, 0.3977), (0.972, 0.3975), (0.992, 0.3977)]
+slow-chips minDistEver 0.3975 [(0.012, 0.8349), (0.083, 0.6774), (0.155, 0.5443), (0.226, 0.4329), (0.298, 0.3977), (0.369, 0.3977), (0.44, 0.3977), (0.512, 0.3977), (0.583, 0.3977), (0.655, 0.3977), (0.726, 0.3977), (0.798, 0.3977), (0.869, 0.3977), (0.94, 0.3976), (1, 0.3976)]

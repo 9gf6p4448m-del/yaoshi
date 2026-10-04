@@ -71,5 +71,23 @@
   }
  }
 }
+{
+ "條件3b_補強_歸一化到位": {
+  "基準有效": 64,
+  "基準null": 0,
+  "新版有效": 64,
+  "新版null": 0,
+  "基準min": -1.2877,
+  "基準max": -0.2183,
+  "允許區間": [
+   -1.3877,
+   -0.1183
+  ],
+  "新版min": -1.146,
+  "新版max": -0.0119,
+  "區間外筆數": 11,
+  "pass": false
+ }
+}
 {"條件3c":{"rows":[{"seat":0,"role":"hold","base":1.025,"new":1.025,"diff":0},{"seat":0,"role":"rake","base":0.9417,"new":0.9417,"diff":0},{"seat":1,"role":"hold","base":1.025,"new":1.025,"diff":0},{"seat":1,"role":"rake","base":0.9417,"new":0.9417,"diff":0},{"seat":2,"role":"hold","base":1.025,"new":1.025,"diff":0},{"seat":2,"role":"rake","base":0.9417,"new":0.9417,"diff":0},{"seat":3,"role":"hold","base":1.025,"new":1.025,"diff":0},{"seat":3,"role":"rake","base":0.9417,"new":0.9417,"diff":0}],"pass":true}}
-條件3a: PASS | 3b: FAIL | 3c: PASS
+條件3a: PASS | 3b: FAIL | 3c: PASS | 3b補強: FAIL
