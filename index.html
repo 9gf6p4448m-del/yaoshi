@@ -1342,6 +1342,13 @@ const CFG = {
                            （0.59.11 條件 2a：≥ tL×1000+1000）。改 CH.FLY_MS／QUEUE_FLY／HAND.PACE 要跟著重算。純呈現（不耗亂數、不碰結算）；「跳過」立即歸零【試玩必調】 */
   CHIP_SEAT_STAGGER_MS: 150, /* v0.59.12 依序擺錢：上一席最後一柱落定後，等這麼久下一席才起跑（驗收 B：100–250ms）【試玩必調】 */
   CHIP_TAIL_MS: 350,         /* v0.59.12 最後一隻手收完後，等這麼久才亮「開標前公告」（驗收 E：250–450ms）【試玩必調】 */
+  /* v0.60.0 得標「手抓回」（docs/experiments/2026-10-05-grab-hands/acceptance.md D1–D7）。純呈現：不耗亂數、不碰結算。
+     GRAB_ON＝總開關（網址 ?grab=0 同效，回 v0.59.12 的 0.86 秒拋物線與毒標飛行）；
+     GRAB_MS＝抓住＋拿回（含掙扎）到法寶落定的時長，經 ys:reveal-result 的 grabMs 交給 3D 層，3D 時間軸全部依它等比縮放；
+     揭盅卡（ys:reveal-card）等 GRAB_MS＋GRAB_CARD_GAP_MS 才出，保證在法寶落定之後（取代寫死的 max(900,T×1.4)）【試玩必調】 */
+  GRAB_ON: true,
+  GRAB_MS: 1260,
+  GRAB_CARD_GAP_MS: 90,
 };
 /* 《紙紮夜戰》為永久規則；紙紮夜戰之外的診斷參數仍只影響這次載入。 */
 try{
@@ -1349,6 +1356,7 @@ try{
   if(rq!==null&&/^[0-3]$/.test(rq)) CFG.PW_RES_MODE=+rq;
   const lq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("legend"); /* 傳說三尊：?legend=0 關、1 開（第 4 卷試玩與 Playwright 用） */
   if(lq==="1") CFG.LEGEND_ON=true; else if(lq==="0") CFG.LEGEND_ON=false;
+  if(new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("grab")==="0") CFG.GRAB_ON=false; /* v0.60.0 得標抓回：?grab=0 關（試玩對照與 Playwright 用） */
 }catch(e){}
 /* ===== 選角系統總開關（等價性驗收用的 kill switch） =====
    true ＝玩家開局先選角（10 選 1），對手由 S.rng() 從剩下 9 個抽 3 個；
@@ -6355,7 +6363,8 @@ function revealGlow(r){
   const revealSlot=(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})();
   fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,
     transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked?r.winner.target:null,
-    destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked))}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持 */
+    destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked)),
+    grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, skip:!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
@@ -7454,8 +7463,10 @@ async function startReveal(){
     await sleep(Math.max(700,CFG.T*1.25));
     /* 無論金額是否公開，桌面結算都在特寫鏡頭裡先發生；闇市只藏數字，不藏演出。 */
     if(r.winner){ revealGlow(r); sfx("reveal",{rnd:S.rngUi()}); }   /* 揭盅音（v0.57.25 起與開市鑼 gong 分開） */
-    /* table-tray 的法寶拋物線為 0.86 秒；卡片必須晚於飛行，讓勝方金光與落標收回完整可讀。 */
-    await sleep(Math.max(0.9*1000,CFG.T*1.4));
+    /* 卡片必須晚於法寶落定，讓勝方金光與落標收回完整可讀。v0.60.0：手抓回時等 GRAB_MS＋GRAB_CARD_GAP_MS（由 GRAB_MS 推得）；
+       關抓取（GRAB_ON=false／?grab=0）或沒有 3D 牌桌時照舊（table-tray 的拋物線 0.86 秒 → max(900,T×1.4)）。 */
+    if(CFG.GRAB_ON&&TABLE3D) await sleep(CFG.GRAB_MS+CFG.GRAB_CARD_GAP_MS);
+    else await sleep(Math.max(0.9*1000,CFG.T*1.4));
     /* 受咒音：得標者意圖是毒標＝詛咒品已塞給對手（與 recordAuction 寫進 history 的 intent 同一判定）；
        晚揭盅音 0.9 秒才響，兩聲不糊在一起。 */
     if(r.winner&&r.winner.intent==="poison"&&!r.poisonBlocked) sfx("curse",{rnd:S.rngUi()});

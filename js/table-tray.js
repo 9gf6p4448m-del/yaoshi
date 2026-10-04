@@ -25,6 +25,10 @@ const { createTableProps } = await import('./table-props.js' + V);
 const { createTableHands } = await import('./table-hands.js' + V);
 /* 法寶鑑賞頁（v0.59.2）丙案（燒符揭幕＋照妖鏡）的螢幕空間疊層：一支 shader 畫壓暗／鏡子／符紙，理由見該檔檔頭。 */
 const { createAppraiseFx, APPR_FX } = await import('./appraise-fx.js' + V);
+/* v0.60.0 得標「手抓回」＋詛咒「推過去按住＋紙錢繩纏腕」的時間軸（純函式，見該檔檔頭）。
+   開關：index.html 的 CFG.GRAB_ON（經 ys:reveal-result 的 grabMs 帶進來；0＝舊拋物線）＋網址 `?grab=0`（本檔也認，兩道都關得掉）。 */
+const GM = await import('./grab-motion.js' + V);
+const GRAB_URL_OFF = new URLSearchParams((globalThis.location && globalThis.location.search) || '').get('grab') === '0';
 
 /* POOL 的系名是 zuling/xianghuo/yinqi，FACTION_RIM 的鍵是 zuli/xianghu/yinqi（兩套拼法並存，
    與 renderer.js 的 RIM_BY_FAC 同一份對照）。 */
@@ -121,6 +125,11 @@ export const TRAY = {
     CLOTH_SX: 0.42, CLOTH_SZ: 0.72,
     HITK: 0.56,
   },
+  /** 舊路徑（CFG.GRAB_ON=false／`?grab=0`／手沒載到）的飛行秒數：得標拋物線 0.86、毒標轉移 0.72（v0.60.0 起由寫死改成常數，值不變）。 */
+  AWARD_FLY_S: 0.86,
+  CURSE_FLY_S: 0.72,
+  /** v0.60.0 紙錢繩（詛咒 C，只在被按住階段出現）：管徑（世界單位；844 寬下視覺粗度須 ≥3px，驗收 #8）、繞腕半徑、圈數、直段長、紙錢張數與顏色。 */
+  ROPE: { R: 0.011, WRAP_R: 0.036, TURNS: 1.8, LEN: 0.18, PAPERS: 8, COLOR: 0xa8261a, EMISSIVE: 0x5c0c06, PAPER: 0xd8c08a },
 };
 
 /** 目前這個朝向要用哪一組版面常數。判準只問相機的長寬比（`resizeSceneEnv` 每次 resize 會更新它）。 */
@@ -586,11 +595,11 @@ export function createTableTray(scene, camera, opts = {}) {
     const s = slots[slot]; if (!s) return;
     pulseRune(slot);
     if (s.curse && effect.destroy) playCurseBurn(slot);
-    else if (s.curse && Number.isInteger(effect.transferTarget)) playCurseTransfer(slot, effect.transferTarget);
-    else if (winner >= 0) playAward(slot, winner);
+    else if (s.curse && Number.isInteger(effect.transferTarget)) playCurseTransfer(slot, effect.transferTarget, winner, effect);
+    else if (winner >= 0) playAward(slot, winner, effect);
   }, handPaths: handsOn });
   /* 空物件退路：關手時 renderer 那幾行呼叫照樣成立，不必到處判斷。 */
-  const hands = handsOn ? createTableHands(group, props, { itemNodes: () => [0, 1, 2, 3].map((i) => nodeOf(i)) }) /* v0.59.7：袖管避開拍品 */ : { group: null, ready: () => Promise.resolve(), setSeats() {}, bid() {}, mark() {}, reveal() {}, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
+  const hands = handsOn ? createTableHands(group, props, { itemNodes: () => [0, 1, 2, 3].map((i) => nodeOf(i)) }) /* v0.59.7：袖管避開拍品 */ : { group: null, ready: () => Promise.resolve(), setSeats() {}, bid() {}, mark() {}, reveal() {}, grab() {}, liftOf: () => 0, loaded: () => false, clear() {}, finish() {}, update() {}, setFrozen() {}, stats: () => ({ loaded: false, off: true }), dispose() {} };
   relayout(); // 第一次進場也走同一條路（命中盒的初值在這裡才寫進去，不在建構子裡各寫一份）
 
   let hover = -1;
@@ -725,6 +734,7 @@ export function createTableTray(scene, camera, opts = {}) {
       s.pile = null;
     }
     s.key = null; s.curse = false; s.curseKind = null; s.fac = null; s.moon = false; s.chain = false; s.ready = false; s.hoverK = 0; s.spin = 0;
+    endGrab(s); // v0.60.0：這一格的抓取／詛咒演出若還在跑，手先收、繩先藏
     s.rimK = -1; s.played = false; s.apprHide = false; s.apprNoFx = false; s.jolt = 0; s.award = null; s.burn = undefined; s.curseAward = null; s.bb = null;
     /* ★命中盒還原成預設★（外部覆審 L-1）：`fillSlot` 會依那一格掛的是妖還是符紙堆把代理盒收緊
        （詛咒占位物只有 0.32 高）。不還原的話，下一夜這一格換成一尊高 0.84 的妖時，
@@ -953,11 +963,13 @@ export function createTableTray(scene, camera, opts = {}) {
     }, () => { s.ready = true; /* GLB 404：這一格空著，但不擋整個托盤 */ });
   }
 
-  /* 得標不改拍賣資料：暫時移動現有的 3D 展示模型，落到席位後隱藏，下一夜 setItems 會照既有生命週期換貨。 */
-  function playAward(slot, winner) {
+  /* 得標不改拍賣資料：暫時移動現有的 3D 展示模型，落到席位後隱藏，下一夜 setItems 會照既有生命週期換貨。
+     v0.60.0：抓取開著（grabMs>0、沒 `?grab=0`、手已載好）時改由得標席的手抓住拿回（GM.makeAwardScript），否則照舊拋物線。 */
+  function playAward(slot, winner, effect = {}) {
     releaseFocus(slots[slot]);
     const s = slots[slot]; if (!s || !s.fig || !s.fig.group.visible) return;
     s.award = { t: 0, from: { x: s.fig.group.position.x, y: s.fig.group.position.y, z: s.fig.group.position.z }, winner };
+    if (grabWanted(effect)) startGrab(s, s.award, 'award', { w: winner }, effect);
   }
   /* 詛咒品不飛入任何人的袋：符紙堆以黑紫色陰火縮成灰燼，仍完全停留在渲染層。 */
   function playCurseBurn(slot) {
@@ -965,10 +977,146 @@ export function createTableTray(scene, camera, opts = {}) {
     const s = slots[slot]; if (!s || !s.pile) return;
     s.burn = 0.001;
   }
-  function playCurseTransfer(slot, target) {
+  function playCurseTransfer(slot, target, caster, effect = {}) {
     releaseFocus(slots[slot]);
     const s = slots[slot]; if (!s || !s.pile) return;
     s.curseAward = { t: 0, from: { x: s.pile.group.position.x, y: s.pile.group.position.y, z: s.pile.group.position.z }, target };
+    /* v0.60.0 詛咒 A＋C：施放者＝毒標得標席（renderer 傳進來的 winner），受害者＝transferTarget。 */
+    if (grabWanted(effect) && Number.isInteger(caster) && caster >= 0 && caster < 4 && caster !== target) startGrab(s, s.curseAward, 'curse', { c: caster, v: target }, effect);
+  }
+
+  /* ═══ v0.60.0 抓取／詛咒演出（純呈現：不讀寫賽局、不耗亂數；時間軸在 grab-motion.js）═══════════════ */
+  function grabWanted(effect) { return !GRAB_URL_OFF && handsOn && Number(effect && effect.grabMs) > 0 && hands.loaded(); }
+  /* 外接盒依「最後一次畫面」的姿勢重算（蒙皮件的 boundingBox 只在第一次被要時算一次，之後是舊姿勢）；每場演出開演時算一次。 */
+  const boxOf = (node) => { node.updateMatrixWorld(true); node.traverse((m) => { if (m.isSkinnedMesh) { m.skeleton.update(); m.computeBoundingBox(); } }); const b = new THREE.Box3().setFromObject(node); return { x0: b.min.x, x1: b.max.x, y0: b.min.y, y1: b.max.y, z0: b.min.z, z1: b.max.z }; };
+  /** 開演：算好靜止外接盒與「非被抓拍品」外接盒（抓取專用可達用）；同席還有別場在演就先把那場跳到終點（一隻手一次只做一件事）。 */
+  function startGrab(s, a, kind, seats, effect) {
+    const node = s.fig ? s.fig.group : s.pile.group, mine = Object.values(seats);
+    for (const o of slots) { const g = o.award?.grab || o.curseAward?.grab; if (o !== s && g && g.time < g.script.end && Object.values(g.seats).some((x) => mine.includes(x))) finishGrab(o); }
+    const box = boxOf(node), tableY = props.tableY(), ms = Number(effect.grabMs);
+    const others = slots.filter((o) => o !== s).map((o) => nodeOf(o.i)).filter((n) => n && n.visible).map(boxOf).map((b) => ({ x0: b.x0, x1: b.x1, z0: b.z0, z1: b.z1, top: b.y1 }));
+    const script = kind === 'award'
+      ? GM.makeAwardScript({ seat: props.seatPosition(seats.w), from: a.from, box, tableY, ms, style: (seats.w === 2 && box.x0 + box.x1 > 0) || (seats.w === 3 && box.x0 + box.x1 < 0) ? 'top' : 'side' }) // 西／東抓越中線那件＝從上方扣（驗收 #5）
+      : GM.makeCurseScript({ seatC: props.seatPosition(seats.c), seatV: props.seatPosition(seats.v), from: a.from, box, tableY, ms, victimIn: victimReach(props.seatPosition(seats.v), a.from, others), via: pushVia(a.from, box, props.seatPosition(seats.v), others) });
+    a.grab = { kind, seats, script, time: 0, others, top: box.y1, out: {}, landedAt: null, skipped: false, node, frame: null, proxy: null };
+    if (s.fig) s.fig.setRim(TRAY.RIM_HOVER);
+    grabLog.push({ ev: 'start', slot: s.i, kind, seats: Object.assign({}, seats), skip: !!effect.skip });
+    if (effect.skip) { finishGrab(s); return; } // 跳過中才開標的件（doSkip 之後的逐件結算）：直接到終態，手不上場
+    driveGrab(s, a.grab, 0);
+  }
+  /** 受害者的手伸多深：從 CURSE.VICTIM_IN 往席位收，直到「掌心錨點往前 0.48、往後 0.12、左右 0.20」那一片
+   *  不落進任何別件拍品外框、也不壓在桌上的錢柱／令牌上（外擴 0.04）——手要平放在空桌面上，不被墊高、不伸進別件腳下。 */
+  function victimReach(seat, from, others) {
+    const l = Math.hypot(from.x - seat.x, from.z - seat.z) || 1, dx = (from.x - seat.x) / l, dz = (from.z - seat.z) / l, tY = props.tableY();
+    const obs = props.handObstacles().filter((o) => o.top > tY + 0.02);
+    const hit = (x, z) => others.some((b) => x >= b.x0 - 0.04 && x <= b.x1 + 0.04 && z >= b.z0 - 0.04 && z <= b.z1 + 0.04)
+      || obs.some((o) => (o.r !== undefined ? Math.hypot(x - o.x, z - o.z) <= o.r + 0.04 : Math.abs(x - o.x) <= o.hx + 0.04 && Math.abs(z - o.z) <= o.hz + 0.04));
+    for (let k = GM.CURSE.VICTIM_IN; k > 0.12; k -= 0.02) {
+      const cx = seat.x + dx * k, cz = seat.z + dz * k;
+      let bad = false;
+      for (const f of [-0.12, 0, 0.1, 0.2, 0.3, 0.4, 0.48]) for (const s of [-0.2, -0.1, 0, 0.1, 0.2]) if (hit(cx + dx * f + dz * s, cz + dz * f - dx * s)) bad = true;
+      if (!bad) return k;
+    }
+    return 0.12;
+  }
+  /** 詛咒推送的折點：從原位直線推到受害者那側時，符紙堆外框會擦過別件拍品 ⇒ 先往桌前（＋z）拉到別件外框之外（再留手掌半寬）再推；不擦過＝null（直線）。 */
+  function pushVia(from, box, seatV, others) {
+    const hx = (box.x1 - box.x0) / 2, hz = (box.z1 - box.z0) / 2, cx = (box.x0 + box.x1) / 2 - from.x, cz = (box.z0 + box.z1) / 2 - from.z;
+    const to = { x: seatV.x + (from.x - seatV.x) * 0.6, z: seatV.z + (from.z - seatV.z) * 0.6 }; // 大約的終點方向（只拿來判斷會不會擦過）
+    const over = (x, z) => others.filter((b) => x + cx + hx >= b.x0 - 0.03 && x + cx - hx <= b.x1 + 0.03 && z + cz + hz >= b.z0 - 0.03 && z + cz - hz <= b.z1 + 0.03);
+    let zf = -Infinity;
+    for (let i = 1; i <= 12; i++) { const u = i / 12; for (const b of over(from.x + (to.x - from.x) * u, from.z + (to.z - from.z) * u)) zf = Math.max(zf, b.z1 + 0.26 + hz - cz); } // 0.26：堆外框之外再留施放者手掌的半寬（拇指側）
+    return zf > -Infinity ? [from.x, Math.max(from.z, zf)] : null;
+  }
+  /** 推進一場：時間 += dt，把這一刻各角色手的擺位交給 hands（腳本給 null＝收手）。 */
+  function driveGrab(s, g, dt) {
+    g.time = Math.min(g.script.end, g.time + dt);
+    const f = g.script.at(g.time); g.frame = f;
+    for (const role in g.seats) {
+      const h = f.hands[role], seat = g.seats[role];
+      if (h) {
+        hands.grab(seat, Object.assign({}, h, { cons: { boxes: g.others, foot: f.foot, midTop: g.top, carry: f.holder === role ? f.carry : null } }));
+        g.out[role] = true;
+      } else if (g.out[role]) { hands.grab(seat, null); g.out[role] = false; }
+    }
+  }
+  /** hands.update 之後：法寶寫到這一刻的位置（被抓著＝跟著那隻手被可達抬起的量）、繩、取景代理；時間到就收尾。 */
+  function applyGrab(s, g) {
+    const f = g.frame, node = g.node;
+    /* 被抓著＝跟著抓的那隻手被可達抬起的量；壓在受害者手背上（holder v）時取「壓上去那一刻」的抬升並固定——手在底下細顫，符紙堆不跟著抖。 */
+    let lift = f.holder ? hands.liftOf(g.seats[f.holder]) : 0;
+    if (f.holder === 'v') { if (g.vLift === undefined) g.vLift = lift; lift = g.vLift; }
+    node.position.set(f.item.x, f.item.y + lift, f.item.z);
+    node.rotation.set(f.item.rx, s.spin + f.item.ry, f.item.rz);
+    node.visible = f.visible;
+    if (f.landed && g.landedAt === null) { g.landedAt = g.time; grabLog.push({ ev: 'landed', slot: s.i, kind: g.kind, ms: Math.round(g.time * 1000) }); }
+    if (g.kind === 'curse') drawRope(f.rope, f.rope ? hands.liftOf(g.seats.v) : 0); // 繩纏在腕上：跟著腕細顫
+    const hr = f.holder && f.hands[f.holder];
+    g.proxy = hr ? placeProxy(hr.at, lift, hr.yaw) : null;
+    if (g.time >= g.script.end) finishGrab(s);
+  }
+  /** 跳到終態（跳過、或演完）：手收、繩藏、法寶停在終點並隱藏（終態同舊版 node.visible=false），下一幀既有收尾把 award 清掉。 */
+  function finishGrab(s) {
+    const a = s.award?.grab ? s.award : s.curseAward?.grab ? s.curseAward : null; if (!a) return;
+    const g = a.grab;
+    for (const role in g.seats) if (g.out[role]) { hands.grab(g.seats[role], null); g.out[role] = false; }
+    const d = g.script.dest;
+    g.node.position.set(d.x, d.y, d.z); g.node.rotation.set(0, s.spin, 0); g.node.visible = false;
+    if (g.kind === 'curse') drawRope(null, 0);
+    if (g.proxy) { g.proxy.visible = false; g.proxy = null; }
+    if (g.time < g.script.end) { g.skipped = true; grabLog.push({ ev: 'skip', slot: s.i, kind: g.kind, ms: Math.round(g.time * 1000) }); }
+    g.time = g.script.end; a.t = 1;
+  }
+  function endGrab(s) {
+    const g = s.award?.grab || s.curseAward?.grab; if (!g) return;
+    for (const role in g.seats) if (g.out[role]) { hands.grab(g.seats[role], null); g.out[role] = false; }
+    if (g.kind === 'curse') drawRope(null, 0);
+    if (g.proxy) { g.proxy.visible = false; g.proxy = null; }
+  }
+  const grabLog = [];
+  /* 取景代理：被抓著那隻手的掌心＋手指範圍（不可見材質＝0 draw call），讓取景把「手＋法寶」一起框進來（驗收 #7）。
+     不用手的 SkinnedMesh 本身：寫實手的手臂一路延伸到畫面外，框它鏡頭會退到底。 */
+  const proxyGeo = new THREE.BoxGeometry(0.30, 0.10, 0.34), proxyMat = new THREE.MeshBasicMaterial({ visible: false });
+  const proxies3 = [];
+  let proxyN = 0;
+  function placeProxy(at, lift, yaw) {
+    let m = proxies3[proxyN];
+    if (!m) { m = new THREE.Mesh(proxyGeo, proxyMat); m.name = 'grab-frame-proxy'; m.frustumCulled = false; group.add(m); proxies3.push(m); }
+    proxyN++;
+    m.position.set(at[0], at[1] + lift, at[2]); m.rotation.set(0, yaw, 0); m.visible = true;
+    return m;
+  }
+  /* 紙錢繩（詛咒 C）：管子與紙錢都是**建構一次**的固定幾何（D5：禁止每幀重建 tube），
+     局部座標＝腕在原點、前臂沿 −z（符紙堆在 +z 那頭）；每幀只改 group 的位置／朝向／縮放與 drawRange（長出來）。 */
+  let rope = null;
+  function ropeMesh() {
+    if (rope) return rope;
+    const R = TRAY.ROPE, pts = [];
+    /* 直段：從符紙堆（+z＝LEN）垂下到腕上方；再在腕周（垂直前臂的平面）繞 TURNS 圈、沿前臂往後 0.03 */
+    for (let i = 0; i <= 10; i++) { const u = i / 10; pts.push(new THREE.Vector3(Math.sin(u * 7) * 0.006, 0.03 + Math.sin(Math.PI * u) * 0.025 * (1 - u) + (R.WRAP_R * 0.78 + 0.012 - 0.03) * u, R.LEN * (1 - u))); }
+    const m = 28;
+    for (let i = 1; i <= m; i++) { const a = (i / m) * R.TURNS * Math.PI * 2; pts.push(new THREE.Vector3(Math.sin(a) * R.WRAP_R, Math.cos(a) * R.WRAP_R * 0.78 + 0.012, -0.03 * (i / m))); }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, R.R, 6, false), new THREE.MeshStandardMaterial({ color: R.COLOR, roughness: 0.85, emissive: R.EMISSIVE }));
+    tube.name = 'curse-rope'; tube.frustumCulled = false;
+    const paper = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.034, 0.046), new THREE.MeshStandardMaterial({ color: R.PAPER, roughness: 0.95, side: THREE.DoubleSide, emissive: 0x1f1a10 }), R.PAPERS);
+    paper.name = 'curse-rope-paper'; paper.frustumCulled = false;
+    const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1);
+    for (let i = 0; i < R.PAPERS; i++) { const p = curve.getPoint((i + 0.5) / R.PAPERS * 0.42); p.y -= 0.012; E.set(0.6 + i * 1.3, i * 2.1, 0.4 * Math.sin(i * 3.7)); Q.setFromEuler(E); M.compose(p, Q, one); paper.setMatrixAt(i, M); }
+    paper.instanceMatrix.needsUpdate = true;
+    const g = new THREE.Group(); g.name = 'curse-rope-group'; g.add(tube); g.add(paper); g.visible = false; group.add(g);
+    rope = { group: g, tube, paper, count: tube.geometry.index.count };
+    return rope;
+  }
+  function drawRope(r, lift) {
+    if (!r) { if (rope) rope.group.visible = false; return; }
+    const R = ropeMesh(), dx = r.pile[0] - r.wrist[0], dz = r.pile[2] - r.wrist[2];
+    R.group.position.set(r.wrist[0], r.wrist[1] + lift, r.wrist[2]);
+    R.group.rotation.set(0, Math.atan2(dx, dz), 0);
+    R.group.scale.setScalar(Math.max(0.6, Math.min(1.6, Math.hypot(dx, dz) / TRAY.ROPE.LEN)));
+    R.tube.geometry.setDrawRange(0, Math.max(6, Math.floor(R.count * r.grow / 6) * 6));
+    R.paper.count = Math.round(TRAY.ROPE.PAPERS * r.grow);
+    R.group.visible = r.grow > 0;
   }
 
   const api = {
@@ -977,6 +1125,12 @@ export function createTableTray(scene, camera, opts = {}) {
     props,
     /** 席位之手（table-hands.js）；renderer 在呼叫 props 的同一處呼叫它。 */
     hands,
+    /** v0.60.0 跳過（renderer 的 ys:fx-trait-cancel）：進行中的抓取／詛咒演出直接到終態（法寶在終點、手收）。 */
+    finishGrabs() { for (const s of slots) finishGrab(s); },
+    /** 治具出口（只讀）：抓取／詛咒演出的開演、落定（模擬毫秒）、跳過紀錄。 */
+    grabLog() { return grabLog.slice(); },
+    /** 治具出口（只讀）：進行中的演出 [{slot, kind, seats, t, end, landAt, hideAt, dest}]。 */
+    grabState() { return slots.map((s) => { const g = s.award?.grab || s.curseAward?.grab; return g && g.time < g.script.end ? { slot: s.i, kind: g.kind, seats: Object.assign({}, g.seats), t: g.time, end: g.script.end, landAt: g.script.landAt, hideAt: g.script.hideAt, dest: Object.assign({}, g.script.dest) } : null; }).filter(Boolean); },
     /** 現在是橫式還是直式版面（'L'／'P'；治具驗直式分支用） */
     mode() { return L.mode; },
     /** 這四格現在的槽位 x（直式是縮小版；治具不另抄一份常數表） */
@@ -1207,7 +1361,11 @@ export function createTableTray(scene, camera, opts = {}) {
       const wantP = (camera.aspect || 1) < 1;
       if (wantP !== (L.mode === 'P')) { L = layoutOf(wantP); relayout(); }
       props.update(dt);
+      for (const s of slots) { const g = s.award?.grab || s.curseAward?.grab; if (g && g.time < g.script.end) driveGrab(s, g, dt); } // v0.60.0 抓取演出：先把這一幀手的擺位交出去
       hands.update(dt); // 手在 props 之後：讀到的是這一幀已更新的錢柱與令牌位置
+      proxyN = 0;
+      for (const s of slots) { const g = s.award?.grab || s.curseAward?.grab; if (g && g.time < g.script.end) applyGrab(s, g); } // 手解完（含可達抬升）才放法寶
+      for (let i = proxyN; i < proxies3.length; i++) proxies3[i].visible = false;
       if (apprIdx >= 0) apprT += dt;
       if (apprIdx >= 0) updateAppraiseFx(dt);
       chainAnimTime += dt;
@@ -1265,8 +1423,13 @@ export function createTableTray(scene, camera, opts = {}) {
           if (node?.visible && opts.frameSubjects) subjects.push({ slot: s.i, node, hovered: false, flying: false });
           continue;
         }
-        if (s.award && s.fig) {
-          const a = s.award; a.t = Math.min(1, a.t + dt / 0.86);
+        if (s.award?.grab || s.curseAward?.grab) {
+          /* v0.60.0 抓取／詛咒演出：位置已在 applyGrab 寫好，這裡只推動畫；取景把被抓著的手（代理盒）一起框進來。 */
+          if (s.fig) s.fig.update(dt); else if (s.pile) s.pile.update(dt);
+          const g = s.award?.grab || s.curseAward.grab;
+          if (g.proxy && opts.frameSubjects) subjects.push({ slot: s.i, node: g.proxy, hovered: false, flying: true });
+        } else if (s.award && s.fig) {
+          const a = s.award; a.t = Math.min(1, a.t + dt / TRAY.AWARD_FLY_S);
           const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.winner);
           s.fig.group.position.x = a.from.x + (dst.x - a.from.x) * e;
           s.fig.group.position.z = a.from.z + (dst.z - a.from.z) * e;
@@ -1274,7 +1437,7 @@ export function createTableTray(scene, camera, opts = {}) {
           s.fig.setRim(TRAY.RIM_HOVER + 1.2 * (1 - a.t));
           s.fig.update(dt);
         } else if (s.curseAward && s.pile) {
-          const a = s.curseAward; a.t = Math.min(1, a.t + dt / 0.72);
+          const a = s.curseAward; a.t = Math.min(1, a.t + dt / TRAY.CURSE_FLY_S);
           const e = a.t * a.t * (3 - 2 * a.t), dst = props.seatPosition(a.target);
           s.pile.group.position.x = a.from.x + (dst.x - a.from.x) * e;
           s.pile.group.position.z = a.from.z + (dst.z - a.from.z) * e;

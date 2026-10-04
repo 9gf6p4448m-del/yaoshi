@@ -250,12 +250,12 @@ function init() {
   const onRevealResult = (d) => {
     if (!TRAY_URL.on) return;
     if (d.slot === undefined || d.slot === null) return;
-      tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy });
+      tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy, grabMs: d.grabMs, skip: !!d.skip }); // v0.60.0：grabMs＞0＝手抓回／詛咒推按（0＝舊拋物線），skip＝跳過中才開的件直接到終態
     tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍
   };
   document.addEventListener('ys:reveal-result', (e) => onRevealResult((e && e.detail) || {}));
   /* 跳過（doSkip 既有派的 ys:fx-trait-cancel，不新增事件）：桌上的錢、令牌與手直接到結束姿態；結算本來就不經過 3D 層。 */
-  document.addEventListener('ys:fx-trait-cancel', () => { tray.props.finish(); tray.hands.finish(); });
+  document.addEventListener('ys:fx-trait-cancel', () => { tray.props.finish(); tray.finishGrabs(); tray.hands.finish(); }); // v0.60.0：進行中的抓取演出也直接到終態
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));
   /* ★補播（v0.59.10）★：上面這幾個 listener 要等整條 import 鏈（約 28 個模組）跑完才註冊，renderer 比開局晚到時
