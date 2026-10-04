@@ -27,15 +27,16 @@ export const GRAB = {
      side＝預設：掌心貼在拍品靠席位那面的腰身（高 SIDE_H×身高），俯角 SIDE_PITCH，手臂低低地從自己席位那側伸來（不從天上伸下來）；
      top ＝西／東席抓越過托盤中線的那件（驗收 #5：越中線只准從拍品上方越過）：掌心扣在靠席位那側的上緣、手臂高過拍品頂。 */
   PITCH: 0.40, // top 扣法的俯角（仍不俯到 0.62）
-  SIDE_PITCH: 0.12,
-  SIDE_H: 0.55,
+  SIDE_PITCH: -0.20, // 指尖略朝上：手臂從低處（自己席位那側的桌緣）往上伸到拍品肩頸，不從天上伸下來
+  SIDE_H: 0.78, // 扣在肩頸高度：手的剪影落在拍品上半身與背景交界，盲讀 r1 扣腰身時手被身體吃掉
   EDGE: 0.55, // top：掌心錨點自中心往席位退「外框沿進場方向半寬×EDGE」
-  SIDE_EDGE: 0.50, // side：同上（掌心一半落在外框內，手指扣進身側）
+  SIDE_EDGE: 0.60, // side：掌心錨點自中心往席位退「半寬×SIDE_EDGE＋SIDE_GAP」——手掌留在拍品前面看得見，手指扣進身側
+  SIDE_GAP: 0.08,
   GRIP_Y: 0.012, // top：掌心錨點離拍品頂多高（手指往下扣住上緣）
   HOVER: 0.10, // 下爪前在扣點上方多高
   APPROACH: 0.75, // 從扣點沿進場方向往回多遠開始伸進來
   APPROACH_Y: 0.22,
-  LIFT: 0.24, // 抓起多高
+  LIFT: 0.32, // 抓起多高（盲讀 r1：抓起的位移要看得出來）
   ARC: 0.08, // 拿回途中的弧高
   ABOVE: 0.16, // 放下前在終點上方多高
   DEST_K: 0.25, // 放下點：席位 → 拍品方向走這麼多（0＝與舊拋物線同一終點＝席位；往桌心拉一點，不壓在信物上）
@@ -77,7 +78,7 @@ export function makeAwardScript({ seat, from, box, tableY, ms, style = 'side' })
   const cx = (box.x0 + box.x1) / 2, cz = (box.z0 + box.z1) / 2, top = box.y1;
   const [dx, dz] = norm2(cx - seat.x, cz - seat.z), yaw = Math.atan2(dx, dz), lx = dz, lz = -dx; // 進場方向與側向
   const isTop = style === 'top', PITCH = isTop ? GRAB.PITCH : GRAB.SIDE_PITCH;
-  const e = halfAlong(box, dx, dz) * (isTop ? GRAB.EDGE : GRAB.SIDE_EDGE);
+  const e = halfAlong(box, dx, dz) * (isTop ? GRAB.EDGE : GRAB.SIDE_EDGE) + (isTop ? 0 : GRAB.SIDE_GAP);
   const G = [cx - dx * e, isTop ? top + GRAB.GRIP_Y : from.y + (top - from.y) * GRAB.SIDE_H, cz - dz * e];
   const off = [G[0] - from.x, G[1] - from.y, G[2] - from.z]; // 扣住後掌心相對法寶原點的位移（拿回途中固定）
   const H = isTop ? [G[0] - dx * 0.05, G[1] + GRAB.HOVER, G[2] - dz * 0.05] : [G[0] - dx * 0.10, G[1] + 0.02, G[2] - dz * 0.10];

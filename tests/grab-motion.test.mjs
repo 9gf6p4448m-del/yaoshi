@@ -43,9 +43,10 @@ test('掙扎：抓起階段法寶相對掌心的側向位移正負交替 ≥2 �
   assert.deepEqual(GM.struggle(0), { rx: 0, rz: 0, ry: 0, lat: 0, dy: 0 });
 });
 
-test('D2：扣法——side 掌心在腰身高度、俯角 < 0.62；top（西／東越中線）扣上緣', () => {
+test('D2：扣法——side 扣肩頸（低於頂、指尖朝上＝手臂從下方伸來，不從天上伸下來）；top（西／東越中線）扣上緣；俯角都 < 0.62', () => {
   const side = award(1260, 'side').at(GM.GRAB.T.grip), top = award(1260, 'top').at(GM.GRAB.T.grip);
-  assert.ok(side.hands.w.at[1] < BOX.y1 - 0.2, '側扣不扣頭頂');
+  assert.ok(side.hands.w.at[1] < BOX.y1 - 0.05, '側扣不扣頭頂');
+  assert.ok(side.hands.w.pitch < 0, '側扣指尖朝上（手臂從低處伸來）');
   assert.ok(side.hands.w.pitch < 0.62 && top.hands.w.pitch < 0.62);
   assert.ok(top.hands.w.at[1] > BOX.y1, 'top 扣法掌心在拍品頂之上');
   assert.match(tray, /seats\.w === 2 && box\.x0 \+ box\.x1 > 0\) \|\| \(seats\.w === 3 && box\.x0 \+ box\.x1 < 0\) \? 'top' : 'side'/);

@@ -137,7 +137,7 @@ const PAGE_LIB = () => {
         }
         const palm = mesh.skeleton.bones.find((b) => b.name === 'Palm'); const pw = new THREE.Vector3(); if (palm) palm.getWorldPosition(pw);
         const pp = pw.clone().project(cam);
-        out.hands[seat] = { n, lift: +T.hands.liftOf(seat).toFixed(4), why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), palm: pw.toArray().map((x) => +x.toFixed(4)), palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
+        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), palm: pw.toArray().map((x) => +x.toFixed(4)), palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
       }
       let rope = null; T.group.traverse((o) => { if (o.name === 'curse-rope-group') rope = o; });
       if (rope) {

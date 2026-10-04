@@ -1,4 +1,4 @@
-# v0.60.0 抓取連拍條：python tests/tools/grab-strip.py <連拍目錄> <檔名前綴> <輸出.png> [每列張數=6] [縮放=0.5] [標題]
+# v0.60.0 抓取連拍條：python tests/tools/grab-strip.py <連拍目錄> <檔名前綴> <輸出.png> [每列張數=6] [縮放=0.5] [標題] [每幾張取一張=1]
 # 吃 grab-probe.mjs --shots 存的 <前綴><情境>-<序號>-<毫秒>ms.png，依序排成一張（每格左上標序號與毫秒）。
 import sys, glob, os, re
 from PIL import Image, ImageDraw, ImageFont
@@ -6,7 +6,8 @@ d, pre, out = sys.argv[1], sys.argv[2], sys.argv[3]
 cols = int(sys.argv[4]) if len(sys.argv) > 4 else 6
 sc = float(sys.argv[5]) if len(sys.argv) > 5 else 0.5
 title = sys.argv[6] if len(sys.argv) > 6 else ''
-fs = sorted(glob.glob(os.path.join(d, pre + '-[0-9][0-9]-*.png')))
+every = int(sys.argv[7]) if len(sys.argv) > 7 else 1
+fs = sorted(glob.glob(os.path.join(d, pre + '-[0-9][0-9]-*.png')))[::every]
 if not fs:
     sys.exit('沒有符合的連拍：' + os.path.join(d, pre + '-NN-*.png'))
 ims = [Image.open(f) for f in fs]
