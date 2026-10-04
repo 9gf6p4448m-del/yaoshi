@@ -1,0 +1,76 @@
+/* 條件 3：手的放慢與手錢同步（node 固定步長 1/120 s，真的 table-props＋table-hands＋hand-motion，版面 L）。
+   跑法：node t3-hand.mjs --root=<樹> --out=x.json     比較：node t3-check.mjs base.json new.json
+   a 數據：每席單格／兩格的「伸出→到達」（bid 到手 state 轉 retract）與「總時長」（bid 到 state 回 null）
+   b 數據：每席 × 四組格對 × 每格的「手到達」−「錢落定」（定義見 acceptance.md 條件 3b）
+   c 數據：每席揭盅（勝方停一拍／敗方扒回）從 reveal 呼叫到手回 null 的時間 */
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z]+)=(.*)$/); if (m) opt[m[1]] = m[2]; }
+const root = path.resolve(opt.root || process.cwd());
+const F = await import(pathToFileURL(root + '/tests/hand-fixture.mjs').href);
+const { THREE, LAYOUTS, M } = F;
+const { createTableProps } = await F.loadProps(); const { createTableHands } = await F.loadHands();
+const DT = 1 / 120, PUSH_GAP = M.HAND.PUSH_GAP, EXTRA = 0.02;
+async function rig() {
+  const parent = new THREE.Group();
+  const props = createTableProps(parent, { handPaths: true });
+  props.setLayout(...LAYOUTS.L);
+  props.setSeats(['qingmian', 'shoujing', 'hongyi', 'xiaonv'].map((role, id) => ({ id, role })));
+  const hands = createTableHands(parent, props); await hands.ready();
+  return { props, hands, parent };
+}
+const v = new THREE.Vector3();
+function minDist(r, seat, tx, tz) {
+  const h = r.hands.group.children[seat]; if (!h || !h.visible) return Infinity;
+  let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); if (!mesh) return Infinity;
+  r.parent.updateMatrixWorld(true); mesh.skeleton.update();
+  const P = mesh.geometry.attributes.position; let d = Infinity;
+  for (let i = 0; i < P.count; i += 3) { mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld); d = Math.min(d, Math.hypot(v.x - tx, v.z - tz)); }
+  return d;
+}
+const out = { root, DT, a: { single: [], double: [] }, b: [], c: [] };
+/* a：單格／兩格 */
+for (const n of [1, 2]) for (let s = 0; s < 4; s++) {
+  const r = await rig(); for (let k = 0; k < n; k++) { r.props.bid(s, k, 6); r.hands.bid(s, k, 6); }
+  let t = 0, pushEnd = null, idle = null, landed = null;
+  for (let i = 0; i < 1200; i++) {
+    r.props.update(DT); r.hands.update(DT); t += DT;
+    const st = r.hands.stats().state[s];
+    if (pushEnd === null && st && st.kind === 'retract') pushEnd = +t.toFixed(4);
+    if (idle === null && st === null) { idle = +t.toFixed(4); break; }
+  }
+  (n === 1 ? out.a.single : out.a.double).push({ seat: s, pushEnd, handTotal: idle });
+  r.hands.dispose(); r.props.dispose();
+}
+/* b：到達差 */
+for (let s = 0; s < 4; s++) for (const pair of [[0], [1], [2], [3], [0, 1], [2, 3], [1, 2], [0, 3], [0, 2], [1, 3]]) { // 基準首跑只有 10 個有效樣本（<12），在看到新版數字前擴成 4 單格＋6 對
+  const r = await rig(); for (const k of pair) { r.props.bid(s, k, 6); r.hands.bid(s, k, 6); }
+  const land = {}, arrive = {}, thr = {}; let t = 0;
+  for (let i = 0; i < 1200; i++) {
+    r.props.update(DT); r.hands.update(DT); t += DT;
+    for (const k of pair) {
+      const st = r.props.stackAt(s, k); if (!st) continue;
+      if (land[k] === undefined && st.t >= 1) land[k] = +t.toFixed(4);
+      /* 該格的手到達：只在輪到這一格推的期間算（手 state 的 slot＝k） */
+      const hs = r.hands.stats().state[s];
+      if (arrive[k] === undefined && hs && hs.kind === 'push' && hs.slot === k) { thr[k] = st.r + PUSH_GAP + EXTRA; if (minDist(r, s, st.tx, st.tz) <= thr[k]) arrive[k] = +t.toFixed(4); }
+    }
+    if (r.hands.stats().state[s] === null && Object.keys(land).length === pair.length) break;
+  }
+  for (const k of pair) out.b.push({ seat: s, pair: pair.join(''), slot: k, land: land[k] ?? null, arrive: arrive[k] ?? null, delta: land[k] != null && arrive[k] != null ? +(arrive[k] - land[k]).toFixed(4) : null });
+  r.hands.dispose(); r.props.dispose();
+}
+/* c：揭盅手時長（單格推完等手閒置後 reveal；seat 贏＝hold，別席贏＝rake） */
+for (let s = 0; s < 4; s++) for (const win of [true, false]) {
+  const r = await rig(); const k = s;
+  r.props.bid(s, k, 6); r.hands.bid(s, k, 6);
+  for (let i = 0; i < 1200; i++) { r.props.update(DT); r.hands.update(DT); if (r.hands.stats().state[s] === null) break; }
+  const w = win ? s : (s + 1) % 4; r.props.reveal(k, w); r.hands.reveal(k, w);
+  let t = 0, idle = null;
+  for (let i = 0; i < 1200; i++) { r.props.update(DT); r.hands.update(DT); t += DT; if (r.hands.stats().state[s] === null) { idle = +t.toFixed(4); break; } }
+  out.c.push({ seat: s, role: win ? 'hold' : 'rake', handTotal: idle });
+  r.hands.dispose(); r.props.dispose();
+}
+if (opt.out) fs.writeFileSync(path.resolve(opt.out), JSON.stringify(out, null, 1));
+console.log(JSON.stringify({ a: out.a, c: out.c, bValid: out.b.filter((x) => x.delta !== null).length, bNull: out.b.filter((x) => x.delta === null).length, bDeltas: out.b.map((x) => x.delta) }));
