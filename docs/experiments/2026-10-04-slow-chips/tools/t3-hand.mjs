@@ -46,11 +46,11 @@ for (const n of [1, 2]) for (let s = 0; s < 4; s++) {
 /* b：到達差 */
 for (let s = 0; s < 4; s++) for (const pair of [[0], [1], [2], [3], [0, 1], [2, 3], [1, 2], [0, 3], [0, 2], [1, 3]]) { // 基準首跑只有 10 個有效樣本（<12），在看到新版數字前擴成 4 單格＋6 對
   const r = await rig(); for (const k of pair) { r.props.bid(s, k, 6); r.hands.bid(s, k, 6); }
-  const land = {}, arrive = {}, thr = {}; let t = 0;
+  const land = {}, arrive = {}, thr = {}, fly = {}; let t = 0;
   for (let i = 0; i < 1200; i++) {
     r.props.update(DT); r.hands.update(DT); t += DT;
     for (const k of pair) {
-      const st = r.props.stackAt(s, k); if (!st) continue;
+      const st = r.props.stackAt(s, k); if (!st) continue; fly[k] = st.fly;
       if (land[k] === undefined && st.t >= 1) land[k] = +t.toFixed(4);
       /* 該格的手到達：只在輪到這一格推的期間算（手 state 的 slot＝k） */
       const hs = r.hands.stats().state[s];
@@ -58,7 +58,7 @@ for (let s = 0; s < 4; s++) for (const pair of [[0], [1], [2], [3], [0, 1], [2, 
     }
     if (r.hands.stats().state[s] === null && Object.keys(land).length === pair.length) break;
   }
-  for (const k of pair) out.b.push({ seat: s, pair: pair.join(''), slot: k, land: land[k] ?? null, arrive: arrive[k] ?? null, delta: land[k] != null && arrive[k] != null ? +(arrive[k] - land[k]).toFixed(4) : null });
+  for (const k of pair) out.b.push({ seat: s, pair: pair.join(''), slot: k, fly: fly[k] ?? null, land: land[k] ?? null, arrive: arrive[k] ?? null, delta: land[k] != null && arrive[k] != null ? +(arrive[k] - land[k]).toFixed(4) : null, ratio: land[k] != null && arrive[k] != null && fly[k] ? +((arrive[k] - land[k]) / fly[k]).toFixed(4) : null });
   r.hands.dispose(); r.props.dispose();
 }
 /* c：揭盅手時長（單格推完等手閒置後 reveal；seat 贏＝hold，別席贏＝rake） */

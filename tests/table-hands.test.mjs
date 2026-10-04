@@ -438,14 +438,14 @@ async function queueRun(seat, n, probe, slots) {
   }
   return { r, startAt, arriveAt, landed, handEnd };
 }
-test('第四輪排隊時序：一席同一幀推 4 格——各格依序起步 0／0.48／0.76／1.04 秒、落定 0.42／0.70／0.98／1.26 秒（±1.5 幀）；手動作 ≤1.6 秒結束', async () => {
+test('第四輪排隊時序：一席同一幀推 4 格——各格依序起步 0／0.76／1.22／1.68 秒、落定 0.70／1.16／1.62／2.08 秒（±1.5 幀）；手動作 ≤2.7 秒結束（v0.59.11 放慢：FLY_MS 0.70、QUEUE_FLY 0.40、推後收手 ×PACE）', async () => {
   const q = await queueRun(1, 4);
-  const tol = 1.5 / 120, S = [0, 0.48, 0.76, 1.04], A = [0.42, 0.70, 0.98, 1.26];
+  const tol = 1.5 / 120, S = [0, 0.76, 1.22, 1.68], A = [0.70, 1.16, 1.62, 2.08];
   for (let k = 0; k < 4; k++) {
     assert.ok(Math.abs(q.startAt[k] - S[k]) <= tol, `第 ${k + 1} 格起步 ${q.startAt[k]}（應 ${S[k]}）`);
     assert.ok(Math.abs(q.arriveAt[k] - A[k]) <= tol, `第 ${k + 1} 格落定 ${q.arriveAt[k]}（應 ${A[k]}）`);
   }
-  assert.ok(q.handEnd !== null && q.handEnd <= 1.6, `手動作結束 ${q.handEnd} 秒`);
+  assert.ok(q.handEnd !== null && q.handEnd <= 2.7, `手動作結束 ${q.handEnd} 秒`);
   q.r.hands.dispose(); q.r.props.dispose();
 });
 /* 南席推中間兩格（1、2）：0／3 兩格的路徑會經過西／東席信物、手要側移避讓（第三輪規則），離錢柱本來就會拉開，不拿來量。
