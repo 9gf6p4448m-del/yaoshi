@@ -60,3 +60,9 @@
    e. 令牌落地動畫不在 `tray.pose` 內 → 靜止判準改為「連續兩張實際截圖逐位元組相同」。
    修正後 BASE×3 兩兩 0 差異（效度前提成立），再量 NEW。判準仍是 NEW 對 BASE 差異像素＝0。舊版治具的截圖（`pixel-base-run1/2.png`）保留為證據、不再作為判定依據。
 3. 條件 4(b) 的「實際點 #mainbtn」：Playwright 滑鼠點擊在 BASE 上同樣不會觸發 `#mainbtn`（實測：base、new 的 `BIDS_OPEN` 皆維持 true），改用治具慣用的 DOM `.click()`；「不被遮住」另由 `elementFromPoint`＋`pointer-events:none` 證明。「離開出價頁」判準改為 `BIDS_OPEN===false && S.humanBids[ACTIVE]` 已寫入（封標被收下；`#mainbtn` 文字在封標後本來就不變）。
+
+## 修訂記錄 2（§2.1 移動及格線，**使用者明確同意**：回「同意」）
+- **原標準錯在哪、為什麼現在才知道**：4(a)(c) 的顯示門檻 300 ms 訂定時未實測就緒時間；實作後量得冷快取 4 個 GLB 下載＋解析 t0→tray 就緒約 850 ms（`raw/c4c-new.json` 舊版：t0＋468 ms 顯示、850 ms 就緒），300 ms 過緊，快速載入也會誤觸閃現，4(c) 在 300 ms 下不可能過。
+- **改動（只此一項門檻，12 s 上限不變）**：顯示門檻 300 ms → 1000 ms。4(a) 改為：add − t0 ≥ 1000 ms；t0＋1500 ms 時節點存在且含「請神入座」；tray 就緒到 remove ≤ 500 ms。4(c) 判準文字不變（add 次數＝0），須在新版綠。4(a)(b)(d)(e)、補播、冪等、像素等其餘條件一律未放寬。
+- 4(e) 補強（使用者要求）：除不截斷、不出界外，另量「顯示期間 `#trayLoad` 與可點元素重疊區中心點的 `elementFromPoint` 是否落在 `#trayLoad` 內」＝0 個。
+- text-fit「紅格不多於基準」：使用者接受現況（不動 tests/tools、不固定種子）。

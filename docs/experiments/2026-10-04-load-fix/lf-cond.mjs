@@ -77,8 +77,8 @@ try {
       await P.page.waitForFunction('window.__lf.allReadyAt !== null', null, { timeout: 120000, polling: 50 }); await sleep(800);
       const L = await lfNow(P.page); const add = L.ov.find((e) => e.ev === 'add'), rm = L.ov.find((e) => e.ev === 'rm');
       const t0 = L.marketAt;
-      Object.assign(result.detail, { t0, addAfterT0: add && add.t - t0, text: add && add.text, presentAt1s: !!add && add.t <= t0 + 1000 && (!rm || rm.t > t0 + 1000), rmAfterReady: rm && rm.t - L.allReadyAt, allReadyAt: L.allReadyAt, trayDefAt: L.trayDefAt, ov: L.ov, errs: P.errs, bidBeforeRenderer: t0 < L.trayDefAt });
-      result.pass = !!add && !!rm && add.t - t0 >= 300 && result.detail.presentAt1s && /請神入座/.test(add.text) && rm.t - L.allReadyAt <= 500 && rm.t >= L.allReadyAt - 1 && result.detail.bidBeforeRenderer;
+      Object.assign(result.detail, { t0, addAfterT0: add && add.t - t0, text: add && add.text, presentAt1s: !!add && add.t <= t0 + 1500 && (!rm || rm.t > t0 + 1500), rmAfterReady: rm && rm.t - L.allReadyAt, allReadyAt: L.allReadyAt, trayDefAt: L.trayDefAt, ov: L.ov, errs: P.errs, bidBeforeRenderer: t0 < L.trayDefAt });
+      result.pass = !!add && !!rm && add.t - t0 >= 1000 && result.detail.presentAt1s && /請神入座/.test(add.text) && rm.t - L.allReadyAt <= 500 && rm.t >= L.allReadyAt - 1 && result.detail.bidBeforeRenderer;
     });
   } else if (cond === 'c4b') {
     await withBrowser(async (ctx) => {
@@ -120,12 +120,12 @@ try {
           const el = document.getElementById('trayLoad'), r = el.getBoundingClientRect();
           const inside = r.left >= sf[3] && r.right <= vw - sf[1] && r.top >= sf[0] && r.bottom <= vh - sf[2];
           const kids = [el, ...el.querySelectorAll('*')].map((k) => ({ tag: k.tagName, cls: k.className, sw: k.scrollWidth, cw: k.clientWidth, sh: k.scrollHeight, ch: k.clientHeight, ok: k.scrollWidth <= k.clientWidth && k.scrollHeight <= k.clientHeight }));
-          return { rect: [r.left, r.top, r.right, r.bottom].map((x) => Math.round(x * 10) / 10), safeRect: [sf[3], sf[0], vw - sf[1], vh - sf[2]], inside, text: el.textContent, kids, noTrunc: kids.every((k) => k.ok), pe: getComputedStyle(el).pointerEvents };
+          return { rect: [r.left, r.top, r.right, r.bottom].map((x) => Math.round(x * 10) / 10), safeRect: [sf[3], sf[0], vw - sf[1], vh - sf[2]], inside, text: el.textContent, kids, noTrunc: kids.every((k) => k.ok), pe: getComputedStyle(el).pointerEvents, blocksClicks: [...document.querySelectorAll('button,[onclick],.mcard,#tray')].filter((b) => { const q = b.getBoundingClientRect(); if (!q.width || !q.height || getComputedStyle(b).visibility === 'hidden') return false; const x = Math.max(q.left, r.left) , y = Math.max(q.top, r.top); if (x >= Math.min(q.right, r.right) || y >= Math.min(q.bottom, r.bottom)) return false; const cx = (x + Math.min(q.right, r.right)) / 2, cy = (y + Math.min(q.bottom, r.bottom)) / 2; const e = document.elementFromPoint(cx, cy); return !!e && el.contains(e); }).length };
         }, [w, h, safe]);
         res[name].errs = P.errs;
       }, { width: w, height: h, safe });
     }
-    result.detail = res; result.pass = Object.values(res).every((r) => r.inside && r.noTrunc && r.errs.length === 0);
+    result.detail = res; result.pass = Object.values(res).every((r) => r.inside && r.noTrunc && r.blocksClicks === 0 && r.errs.length === 0);
   } else throw new Error('unknown cond ' + cond);
 } catch (e) { result.error = String(e.stack || e); }
 srv.close();

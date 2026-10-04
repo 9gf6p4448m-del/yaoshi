@@ -3651,11 +3651,11 @@ function market3dSeats(){
 }
 function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dSeats(),round:S?S.round:0}); trayLoadWatch(); }
 /* ===== 開局載入畫面（v0.59.10）=====
-   新局第一次需要 3D 桌面（第一次 pushMarket3d）起算：300ms 後 tray 仍未全就緒才露出 #trayLoad「請神入座中…」（快取命中不閃），
+   新局第一次需要 3D 桌面（第一次 pushMarket3d）起算：1000ms 後 tray 仍未全就緒才露出 #trayLoad「請神入座中…」（快取命中不閃），
    tray 就緒（readyCount>=本夜件數）立即移除；上限 12 秒也移除（之後桌面晚到仍靠 renderer 補播補上，遊戲不等它）。
    一個頁面生命週期只跑一次（之後每夜換件走既有路，不再顯示）；?table3d=0／?tray3d=0 不顯示。
    renderer 尚未載入時沒有事件可聽，所以每 100ms 輪詢 window.__yaoshi3d.tray（只讀）。進度＝readyCount／本夜件數；tray 未定義時是不確定進度。 */
-const TRAYLOAD={SHOW_MS:300,MAX_MS:12000,state:"idle",el:null,showT:0,maxT:0,poll:0};
+const TRAYLOAD={SHOW_MS:1000,MAX_MS:12000,state:"idle",el:null,showT:0,maxT:0,poll:0};
 function trayReady3d(){ try{ const Y=window.__yaoshi3d, n=S&&S.market?S.market.length:0; return !!(Y&&Y.tray&&n>0&&Y.tray.readyCount()>=n); }catch(e){ return false; } }
 function trayLoadPaint(){
   const L=TRAYLOAD; if(!L.el) return;
