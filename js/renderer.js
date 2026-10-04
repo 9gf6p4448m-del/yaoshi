@@ -251,7 +251,7 @@ function init() {
     if (!TRAY_URL.on) return;
     if (d.slot === undefined || d.slot === null) return;
       tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy, grabMs: d.grabMs, skip: !!d.skip }); // v0.60.0：grabMs＞0＝手抓回／詛咒推按（0＝舊拋物線），skip＝跳過中才開的件直接到終態
-    tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍
+    if (!d.skip) tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍（v0.60.0：跳過中才開的件手不上場——跳過＝手全收，驗收 #6）
   };
   document.addEventListener('ys:reveal-result', (e) => onRevealResult((e && e.detail) || {}));
   /* 跳過（doSkip 既有派的 ys:fx-trait-cancel，不新增事件）：桌上的錢、令牌與手直接到結束姿態；結算本來就不經過 3D 層。 */

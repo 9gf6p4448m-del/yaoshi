@@ -1,7 +1,8 @@
 /* A1 regression gate: use the real reveal UI, then press the real Skip button
- * while the first slot camera wait is pending.  Award flight duration is owned
- * by table-tray, so it must remain framed even though the presentation skips
- * its later DOM waits. */
+ * while the first slot camera wait is pending.
+ * v0.60.0（驗收 #6／#12 列名的終點姿態改寫）：舊版跳過後法寶仍飛完 0.86 秒拋物線、要求「飛行全程有框」；
+ * 新設計（手抓回）跳過＝直接到終態——跳過之後開的每一件 3D 都直接落在終點並隱藏、手全收，
+ * 所以改斷言：跳過後 0 幀法寶在動、0 幀有手可見，最後一張卡出現 350ms 後鏡頭位移已還原。 */
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -61,7 +62,7 @@ try {
     const started = performance.now();
     const sample = () => {
       const moving = models.some(node => node.visible && node.position.distanceTo(baseline.get(node.uuid)) > .01);
-      if (log.skipAt !== null) log.frames.push({ t: performance.now() - log.skipAt, moving,
+      if (log.skipAt !== null) log.frames.push({ t: performance.now() - log.skipAt, moving, hands: !!V.tray.hands.group && V.tray.hands.group.children.some(h => h.visible),
         active: V.framing?.active === true, fit: V.framing?.fit === true,
         card: !!document.querySelector('#revealCard'), viewOffset: V.camera.view?.enabled === true });
       if (log.skipAt === null || performance.now() - log.skipAt < 3600) requestAnimationFrame(sample); else log.done = true;
@@ -80,14 +81,12 @@ try {
   await page.waitForFunction(() => window.__tableFramingSkip?.done, null, { timeout: 10000 });
   const result = await page.evaluate(() => window.__tableFramingSkip);
   const flight = result.frames.filter(row => row.moving);
-  const uncovered = flight.filter(row => !row.active || !row.fit);
-  const finalFlight = flight.at(-1)?.t;
-  // A skipped card can arrive before table-tray reaches terminal.  The camera
-  // may stay fitted through that real flight, then must release within 300ms.
-  const settledCard = Number.isFinite(finalFlight) ? result.frames.filter(row => row.t > finalFlight + 350) : [];
+  const handFrames = result.frames.filter((row, i) => i > 0 && row.hands); // 跳過那一幀之後
+  const lastCard = result.cards.length ? result.cards.at(-1).t - result.skipAt : NaN;
+  const settledCard = Number.isFinite(lastCard) ? result.frames.filter(row => row.t > lastCard + 350) : [];
   const restored = settledCard.length > 0 && settledCard.every(row => !row.viewOffset);
-  const pass = result.slots.length > 0 && result.skipAt !== null && result.awards.length > 0 && result.cards.length > 0 && flight.length > 0 && uncovered.length === 0 && restored && errors.length === 0;
-  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', reducedMotion: REDUCED, slots: result.slots, skipAt: result.skipAt, awards: result.awards, cards: result.cards, frameCount: result.frames.length, flightFrames: flight.length, unframedFlightFrames: uncovered.length, firstUnframed: uncovered[0] || null, settledCardFrames: settledCard.length, viewOffsetRestored: restored, errors, pass }, null, 2));
+  const pass = result.slots.length > 0 && result.skipAt !== null && result.awards.length > 0 && result.cards.length > 0 && result.frames.length > 0 && flight.length === 0 && handFrames.length === 0 && restored && errors.length === 0;
+  console.log(JSON.stringify({ fixture: 'seed 1, normal UI reveal, doSkip 120ms after first ys:reveal-slot', reducedMotion: REDUCED, slots: result.slots, skipAt: result.skipAt, awards: result.awards, cards: result.cards, frameCount: result.frames.length, flightFrames: flight.length, firstFlight: flight[0] || null, handFrames: handFrames.length, settledCardFrames: settledCard.length, viewOffsetRestored: restored, errors, pass }, null, 2));
   if (!pass) process.exitCode = 1;
   await ctx.close();
 } finally {

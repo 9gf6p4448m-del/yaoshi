@@ -1076,12 +1076,13 @@ export function createTableTray(scene, camera, opts = {}) {
   const grabLog = [];
   /* 取景代理：被抓著那隻手的掌心＋手指範圍（不可見材質＝0 draw call），讓取景把「手＋法寶」一起框進來（驗收 #7）。
      不用手的 SkinnedMesh 本身：寫實手的手臂一路延伸到畫面外，框它鏡頭會退到底。 */
-  const proxyGeo = new THREE.BoxGeometry(0.30, 0.10, 0.34), proxyMat = new THREE.MeshBasicMaterial({ visible: false });
+  /* 延後到第一次要用才建：three 的 uuid 會吃 Math.random，關抓取（?grab=0）時一個都不建，與 155a7e7f 的亂數流逐位相同（驗收 #11）。 */
+  let proxyGeo = null, proxyMat = null;
   const proxies3 = [];
   let proxyN = 0;
   function placeProxy(at, lift, yaw) {
     let m = proxies3[proxyN];
-    if (!m) { m = new THREE.Mesh(proxyGeo, proxyMat); m.name = 'grab-frame-proxy'; m.frustumCulled = false; group.add(m); proxies3.push(m); }
+    if (!m) { if (!proxyGeo) { proxyGeo = new THREE.BoxGeometry(0.30, 0.10, 0.34); proxyMat = new THREE.MeshBasicMaterial({ visible: false }); } m = new THREE.Mesh(proxyGeo, proxyMat); m.name = 'grab-frame-proxy'; m.frustumCulled = false; group.add(m); proxies3.push(m); }
     proxyN++;
     m.position.set(at[0], at[1] + lift, at[2]); m.rotation.set(0, yaw, 0); m.visible = true;
     return m;

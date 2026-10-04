@@ -6364,7 +6364,7 @@ function revealGlow(r){
   fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,
     transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked?r.winner.target:null,
     destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked)),
-    grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, skip:!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
+    grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, skip:CFG.GRAB_ON&&!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }

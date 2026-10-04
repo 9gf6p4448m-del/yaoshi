@@ -22,7 +22,10 @@ test('揭盅維持 3D 牌桌可見，且不再用黑幕切換', () => {
 test('托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態', () => {
   assert.match(tray, /tray-cinnabar-runes/, '托盤需建立硃砂法陣層');
   assert.match(tray, /pulseRune/, '出價／盯上／揭盅需能脈衝法陣');
-  assert.match(tray, /playAward/, '得標拍品需能飛往勝者席位');
+  assert.match(tray, /playAward/, '得標拍品需能由得標席的手抓回（關抓取時沿用舊拋物線）');
+  /* v0.60.0 驗收 #12 列名的改寫：原斷言守「飛往勝者」的舊設計；新設計的終態＝法寶落在席前、停 HOLD_S 後隱藏（D1），
+     跳過／演完都直接到這個終態（法寶在終點、node.visible=false），與舊版終態同為隱藏。 */
+  assert.match(tray, /function finishGrab\(s\)[\s\S]*?g\.node\.position\.set\(d\.x, d\.y, d\.z\)[\s\S]*?g\.node\.visible = false/, '抓取終態：法寶停在終點並隱藏');
   assert.match(tray, /playCurseBurn/, '詛咒品需能在托盤焚毀');
   assert.match(tray, /playCurseTransfer/, '毒標詛咒品必須飛往承受者，不可誤燒');
   assert.match(tray, /node\.visible && !s\.award/, '已飛走／燒毀的同拍品下夜必須重建');
