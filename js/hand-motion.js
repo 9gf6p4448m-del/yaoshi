@@ -122,6 +122,14 @@ export function slerp(a, b, t) {
   const ra = Math.sin((1 - t) * ang) / sin, rb = Math.sin(t * ang) / sin;
   return [a[0] * ra + bx * rb, a[1] * ra + by * rb, a[2] * ra + bz * rb, a[3] * ra + bw * rb];
 }
+/* v0.60.0 抓取姿勢 claw：由 rake 每一節再捲 1.6 倍、拇指 1.8 倍往掌心收（爪形抓握，抓法寶上緣）。
+   模組載入時算一次（決定性、無亂數）；只有抓取類動作（grab）用到，推／拍／收／停一拍不受影響。 */
+function qpow(q, k) {
+  const w = Math.max(-1, Math.min(1, q[3])), a = Math.acos(w), sn = Math.sin(a);
+  if (sn < 1e-9) return QI.slice();
+  const ns = Math.sin(a * k) / sn; return [q[0] * ns, q[1] * ns, q[2] * ns, Math.cos(a * k)];
+}
+POSES.claw = Object.fromEntries(Object.entries(POSES.rake).map(([k, q]) => [k, k === 'Wrist' ? q.slice() : qpow(q, k.startsWith('Thumb') ? 1.8 : 1.6)]));
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 const easeInQuad = (t) => t * t;
 const smooth = (t) => t * t * (3 - 2 * t);
@@ -849,6 +857,48 @@ export function solveHand(rig, spec, obstacles, tableY) {
   const r = placeAt(rig, pr.pts, allIndex(rig), pr.anchor, spec.yaw, pitch, s, spec.target, obstacles, tableY, spec.minY);
   return { root: r.root, yaw: spec.yaw, pitch, quats: pr.quats, pose: pose.slice() };
 }
+/** v0.60.0 抓取：不經俯角掃描／伸入界線，讓 anchorKind 錨點正好落在 at（x,y,z）。高度下限另由 grabLift 補。 */
+export function posedFrame(rig, pose, anchorKind, at, yaw, pitch, scale) {
+  const pr = prepare(rig, pose, anchorKind), a = xform(pr.anchor, yaw, pitch, scale);
+  return { root: [at[0] - a[0], at[1] - a[1], at[2] - a[2]], yaw, pitch, quats: pr.quats, pose: pose.slice() };
+}
+/**
+ * v0.60.0 抓取專用可達（只作用於 grab 類動作；推／拍／收／停一拍的 REACH 與擺位一個字都不動）：
+ * 已擺好的抓取幀（posedFrame）只准**往上抬**，抬到下面四件事都成立的最小高度——
+ *   ① 每個取樣點 ≥ 其下方地板＋CLR（桌面、錢柱、令牌、木籌槽、布面：與 placeAt 同一張地板表）；
+ *   ② 每個取樣點落在「非被抓拍品」外接盒（boxes，水平外擴 GRAB_PAD）水平範圍內時，高於該盒頂＋GRAB_CLR（不穿別件拍品）；
+ *      （cons.relics 可另給信物外接圓柱，同理；現行 grab 不給——手臂本來就從自己信物那側伸出來，抬過信物會讓受害者的手浮在半空）
+ *   ③ 西／東席（seat 2／3）越過托盤中線 x=0 的點，除非落在被抓那件的水平外框（foot）內，否則高於 midTop＋CLR
+ *      （越中線只准從拍品上方越過；foot＝手指扣住的那件本身）；
+ *   ④ 被抓著的那件（carry：相對錨點 at 的外接盒）與任一非被抓拍品盒水平重疊時，盒底抬到該盒頂＋CLR 以上（搬運不穿別件）。
+ * 回傳要抬的量（≥0）。決定性：固定順序的 max，無掃描、無亂數。
+ */
+export const GRAB_PAD = 0.02;
+/** ②③④ 的垂直餘量：碰撞取樣（寫實手頂點＋袖管）之外，畫面上還有少數配件頂點（手環、珠串）沒進取樣，多留這麼多蓋過它們。 */
+export const GRAB_CLR = 0.02;
+export function grabLift(rig, fr, scale, cons, obstacles, tableY, seat) {
+  const pr = prepare(rig, fr.pose, 'palm'), set = allIndex(rig), R = rotated(pr.pts, set, fr.yaw, fr.pitch, scale);
+  const [rx, ry, rz] = fr.root, clr = HAND.CLR, pad = GRAB_PAD, oc = HAND.CLR + GRAB_CLR;
+  const boxes = (cons && cons.boxes) || [], relics = (cons && cons.relics) || [], foot = cons && cons.foot;
+  const mid = cons && cons.midTop !== undefined && (seat === 2 || seat === 3) ? cons.midTop : undefined;
+  const floors = obstacles.filter((o) => !(o.bottom > tableY + 0.03) && o.top > tableY);
+  let need = 0, why = null;
+  for (let i = 0; i < set.length; i++) {
+    const x = rx + R[i * 3], y = ry + R[i * 3 + 1], z = rz + R[i * 3 + 2];
+    let lo = (floors.length ? floorAt(x, z, floors, tableY) : tableY) + clr, rule = 'floor';
+    for (const b of boxes) if (x >= b.x0 - pad && x <= b.x1 + pad && z >= b.z0 - pad && z <= b.z1 + pad && b.top + oc > lo) { lo = b.top + oc; rule = 'box'; }
+    for (const o of relics) if ((x - o.x) * (x - o.x) + (z - o.z) * (z - o.z) <= (o.r + pad) * (o.r + pad) && o.top + clr > lo) { lo = o.top + clr; rule = 'relic'; }
+    if (mid !== undefined && (seat === 2 ? x > -pad : x < pad) && !(foot && x >= foot.x0 + pad && x <= foot.x1 - pad && z >= foot.z0 + pad && z <= foot.z1 - pad) && mid + oc > lo) { lo = mid + oc; rule = 'mid'; }
+    if (lo - y > need) { need = lo - y; why = { rule, p: [x, y, z] }; }
+  }
+  const c = cons && cons.carry;
+  if (c && cons.at) {
+    const x0 = cons.at[0] + c.x0, x1 = cons.at[0] + c.x1, z0 = cons.at[2] + c.z0, z1 = cons.at[2] + c.z1, y0 = cons.at[1] + c.y0;
+    for (const b of boxes) if (x1 >= b.x0 - pad && x0 <= b.x1 + pad && z1 >= b.z0 - pad && z0 <= b.z1 + pad && b.top + oc - y0 > need) { need = b.top + oc - y0; why = { rule: 'carry', p: [x0, y0, z0] }; }
+  }
+  grabLift.why = why; // 治具診斷用（只讀）：最近一次是哪一條規則、哪一點決定了抬升量
+  return need;
+}
 const prepCache = new WeakMap();
 /** 姿勢 → 骨旋轉＋全部取樣點（線性混合蒙皮）＋錨點。插值權重量化到 1/32（畫面上分不出，
  *  三支 three 骨頭吃的也是同一組量化後的旋轉，所以碰撞與畫面一致），同一姿勢每幀直接重用，不重算 819 點蒙皮。 */
@@ -1067,6 +1117,16 @@ export function createHandDirector(props, rig, per) {
     return null;
   }
 
+  /** v0.60.0 抓取類（grab）這一幀：腳本給的錨點擺位（posedFrame），再以 grabLift 只往上抬到合法高度。抬的量記在 h.lift（tray 讓被抓的法寶跟著抬）。 */
+  function grabFrame(h, s, R0, obstacles, tableY) {
+    const sp = h.act.spec, anchor = sp.anchor || 'palm';
+    const fr = posedFrame(R0, sp.pose, anchor, sp.at, sp.yaw, sp.pitch, s);
+    const cons = Object.assign({}, sp.cons || {}, { at: sp.at });
+    const lift = grabLift(R0, fr, s, cons, obstacles, tableY, h.seat);
+    fr.root[1] += lift; h.lift = lift; h.liftWhy = grabLift.why;
+    h.last = { frame: fr, spec: { anchor, target: [sp.at[0], sp.at[2]], pose: fr.pose } };
+    return fr;
+  }
   /** 一格推完：佇列裡還有就直接接下一格（從上一格的結束位置在等候間隔內移過去，重新抓這一格的錢柱位置），否則回 false。 */
   function nextQueued(h, from) {
     while (h.queue.length) {
@@ -1112,10 +1172,24 @@ export function createHandDirector(props, rig, per) {
       const k = slot | 0, w = winner === null || winner === undefined ? -1 : winner | 0;
       for (const s of props.stackSeats(k)) {
         const st = props.stackAt(s, k); if (!st) continue;
+        if (hands[s].act && hands[s].act.kind === 'grab') continue; // v0.60.0：正在抓取／詛咒演出的那一席不被扒回／停一拍蓋掉
         if (s === w) start(s, { kind: 'hold', slot: k, tx: st.x, tz: st.z });
         else if (st.returning) start(s, { kind: 'rake', slot: k, tx: st.x, tz: st.z });
       }
     },
+    /** v0.60.0 抓取類動作：spec＝{ pose:[a,b,w], anchor?, at:[x,y,z], yaw, pitch, cons? }（每幀由 table-tray 的抓取腳本給），null＝這一席的抓取結束（不可見）。
+     *  只有 grab 類用這條路；推／拍／收／停一拍照舊走 bid／mark／reveal。 */
+    grab(seat, spec) {
+      const s = seat | 0; if (!(s >= 0 && s < 4)) return;
+      const h = hands[s];
+      if (!spec) { if (h.act && h.act.kind === 'grab') stop(s); h.lift = 0; return; }
+      if (h.act && h.act.kind === 'grab') h.act.spec = spec;
+      else { h.queue.length = 0; start(s, { kind: 'grab', spec }); h.lift = 0; }
+    },
+    /** 這一席最近一幀抓取擺位被抬了多少（世界單位；非抓取＝0）。 */
+    liftOf(seat) { const h = hands[seat | 0]; return h && h.act && h.act.kind === 'grab' ? h.lift || 0 : 0; },
+    /** 治具出口（只讀）：這一席最近一幀抓取抬升由哪條規則決定（floor／box／mid／carry）。 */
+    liftWhy(seat) { const h = hands[seat | 0]; return h && h.act && h.act.kind === 'grab' ? h.liftWhy || null : null; },
     /** 換一夜／熱座清場：四隻手立即收（不可見）。 */
     clear() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     /** 跳過：直接到結束姿態＝四隻手全收。 */
@@ -1134,6 +1208,7 @@ export function createHandDirector(props, rig, per) {
       const obstacles = props.handObstacles().concat([{ x: 0, z: props.trayZ(), hx: T.hw, hz: T.hd + 0.035, top: tableY + HAND.TRAY.CLOTH_TOP }]);
       return hands.map((h) => { const s = scaleNow(h.seat), R0 = rigOf(h.seat);
         if (!h.act) return null;
+        if (h.act.kind === 'grab') return grabFrame(h, s, R0, obstacles, tableY); // v0.60.0 抓取類：腳本擺位＋抓取專用可達（不走下面的 REACH／俯角掃描）
         let spec = specOf(h, obstacles);
         if (spec && spec.hidden) return null; // 還沒輪到手上場（拍：令牌飛行中）
         if (!spec) {

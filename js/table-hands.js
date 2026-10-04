@@ -211,9 +211,17 @@ export function createTableHands(parent, props, opts = {}) {
     group,
     setSeats,
     ready() { return ready; },
+    /** 手已載好（director 在）＝抓取演出可上場；GLB 沒到或 404 時 false，table-tray 退回舊拋物線。 */
+    loaded() { return !!director; },
     bid(seat, slot, amount) { if (director) director.bid(seat, slot, amount); },
     mark(seat, slot) { if (director) director.mark(seat, slot); },
     reveal(slot, winner) { if (director) director.reveal(slot, winner); },
+    /** v0.60.0 抓取類動作（得標抓回／詛咒推按）：table-tray 的抓取腳本每幀給這一席的擺位規格；null＝這一席抓取結束（收、不可見）。 */
+    grab(seat, spec) { if (director) director.grab(seat, spec); },
+    /** 這一席最近一幀抓取擺位被抓取專用可達往上抬了多少（被抓的法寶跟著抬）；沒在抓＝0。 */
+    liftOf(seat) { return director ? director.liftOf(seat) : 0; },
+    /** 治具出口（只讀）：抓取抬升由哪條規則決定。 */
+    liftWhy(seat) { return director ? director.liftWhy(seat) : null; },
     /** 換一夜／熱座清場：立即收手。 */
     clear() { if (director) { director.clear(); apply([null, null, null, null]); } },
     /** 跳過：手直接到結束姿態（＝收回、不可見）。 */
