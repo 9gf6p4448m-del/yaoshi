@@ -218,10 +218,10 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
  *  兩趟：順向讓下降受 down 限（F[i]＝max(L[i], F[i−1]−down(i)·dt)），逆向讓上升受 up 限（S[i]＝max(F[i], S[i+1]−up·dt)）；
  *  up＝down 時等於 max_j（L[j] − slope·|i−j|·dt）。L 裡 −Infinity＝那一格手不在場（不提供約束）；結果不低於 0。 */
 export function liftEnvelope(L, dt, up = CURSE.LIFT_SLOPE, down = up) {
-  const n = L.length, F = new Array(n), S = new Array(n), dn = typeof down === 'function' ? down : () => down, upf = typeof up === 'function' ? up : () => up;
+  const n = L.length, F = new Array(n), B = new Array(n), dn = typeof down === 'function' ? down : () => down, upf = typeof up === 'function' ? up : () => up;
   for (let i = 0; i < n; i++) F[i] = i ? Math.max(L[i], F[i - 1] - dn(i) * dt) : L[i];
-  for (let i = n - 1; i >= 0; i--) S[i] = i < n - 1 ? Math.max(F[i], S[i + 1] - upf(i) * dt) : F[i];
-  return S.map((x) => (Number.isFinite(x) ? Math.max(0, x) : 0));
+  for (let i = n - 1; i >= 0; i--) B[i] = i < n - 1 ? Math.max(F[i], B[i + 1] - upf(i) * dt) : F[i];
+  return B.map((x) => (Number.isFinite(x) ? Math.max(0, x) : 0));
 }
 /**
  * v0.61.1 詛咒推按的抬升規劃（純函式；table-tray 開演時用可達預算每一格的需要量 Lc／Lv 後呼叫）。
