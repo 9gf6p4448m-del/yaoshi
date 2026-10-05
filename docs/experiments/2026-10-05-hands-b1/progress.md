@@ -11,6 +11,6 @@
 | A 效能第二輪 | 46f43171 | placeAt 快取統計＋relicHit 剔除（逐位元相同） |
 | ⑤ 測試改寫 | d0282ca9 | 使用者簽核清單內＋清單外兩處 |
 | ⑥ 版本 0.61.0 | 94e47f68 | 字串已改；送達（push／Pages）未做，推 main 前先告知使用者 |
-| 第二輪證據 | 見本檔所在 commit | README 第二輪段、rerun/、c10/r4*、c6/11–15、c5-roundness-facing-* |
+| 第二輪證據 | 6771ef83 | README 第二輪段、rerun/、c10/r4*、c6/11–15、c5-roundness-facing-* |
 
 基準樹：C:/Users/shung/wt/yaoshi/hands-b1-base（4691a7ce，detached）。未 push。
