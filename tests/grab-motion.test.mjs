@@ -52,11 +52,29 @@ test('D2：扣法——side 扣肩頸（低於頂、指尖朝上＝手臂從下�
   assert.match(tray, /seats\.w === 2 && box\.x0 \+ box\.x1 > 0\) \|\| \(seats\.w === 3 && box\.x0 \+ box\.x1 < 0\) \? 'top' : 'side'/);
 });
 
-test('詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定 ≤1300ms；繩只在按住階段、受害者顫抖', () => {
+/* v0.61.1（docs/experiments/2026-10-05-curse-slow/acceptance.md；使用者簽核改寫 v0.60 的「落定 ≤1300ms」）：
+   詛咒時長改由 CFG.CURSE_MS（預設 2000）單獨決定，與 GRAB_MS 脫鉤；落定＝CURSE_MS、推過桌心 ≥1.2s、按住 ≥0.6s。 */
+test('v0.61.1 CURSE_MS 單一來源：index.html CFG.CURSE_MS=2000 經 ys:reveal-result 的 curseMs 交給 3D；揭卡等到按住結束（CURSE_CARD_K＝CURSE.T.hold/T.press）', () => {
+  assert.match(index, /CURSE_MS: 2000,/);
+  assert.match(index, /curseMs:CFG\.GRAB_ON\?CFG\.CURSE_MS:0/);
+  assert.match(renderer, /curseMs: d\.curseMs/);
+  assert.match(tray, /ms = Number\(kind === 'curse' \? effect\.curseMs : effect\.grabMs\)/);
+  const K = Number((index.match(/CURSE_CARD_K: ([0-9.]+),/) || [])[1]);
+  assert.ok(Math.abs(K - GM.CURSE.T.hold / GM.CURSE.T.press) < 1e-9, `CURSE_CARD_K ${K} ≠ hold/press`);
+  assert.match(index, /await sleep\(Math\.max\(0,Math\.round\(CFG\.CURSE_MS\*CFG\.CURSE_CARD_K\)-CFG\.GRAB_MS\)\);\r?\n\s*if\(CFG\.GRAB_ON&&TABLE3D\) await sleep\(CFG\.GRAB_MS\+CFG\.GRAB_CARD_GAP_MS\);/);
+});
+
+test('詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定＝CURSE_MS（2000 → 1800–2200）、推 ≥1.2s、按住 ≥0.6s；繩只在按住階段、受害者顫抖', () => {
   assert.match(tray, /startGrab\(s, s\.curseAward, 'curse', \{ c: caster, v: target \}, effect\)/);
   assert.match(tray, /playCurseTransfer\(slot, effect\.transferTarget, winner, effect\)/);
-  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 1260 });
-  assert.ok(s.landAt <= 1.3);
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 2000 });
+  assert.ok(s.landAt >= 1.8 && s.landAt <= 2.2, `落定 ${s.landAt}`);
+  for (const ms of [1500, 2000, 2600]) { const x = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms }); assert.ok(Math.abs(x.landAt - ms / 1000) <= 0.1 * ms / 1000, `CURSE_MS=${ms} 落定 ${x.landAt}`); }
+  /* 推過桌心：法寶開始離開原位 → 落定 ≥1.2s；按住：落定 → 施放者手開始離開 ≥0.6s */
+  const p0 = s.at(0).item; let moved = null; for (let t = 0; t < s.landAt; t += 1 / 120) { const it = s.at(t).item; if (Math.hypot(it.x - p0.x, it.z - p0.z) > 1e-3) { moved = t; break; } }
+  assert.ok(moved !== null && s.landAt - moved >= 1.2, `推 ${moved === null ? '量不到' : (s.landAt - moved).toFixed(3)}s`);
+  const c0 = s.at(s.landAt + 0.15).hands.c.at; let off = null; for (let t = s.landAt + 0.15; t < s.end; t += 1 / 120) { const h = s.at(t).hands.c; if (!h || Math.hypot(h.at[0] - c0[0], h.at[1] - c0[1], h.at[2] - c0[2]) > 0.005) { off = t; break; } }
+  assert.ok(off !== null && off - s.landAt >= 0.6, `按住 ${off === null ? '量不到' : (off - s.landAt).toFixed(3)}s`);
   for (let t = 0; t < s.end; t += 1 / 120) {
     const f = s.at(t);
     if (f.rope) assert.ok(t >= s.holdFrom - 1e-9 && t < s.holdTo + 1e-9, `繩出現在按住階段外 t=${t}`);
@@ -67,7 +85,7 @@ test('詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；
 });
 
 test('v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance.md #2）：按住起到演完，符紙堆停在受害者席前（dest）不動；受害者的手不往席位縮（只抖）', () => {
-  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 1260 });
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 2000 });
   const v0 = s.at(s.holdFrom).hands.v.at, seatV = { x: 0, z: 1.22 }, dSeat0 = Math.hypot(v0[0] - seatV.x, v0[2] - seatV.z);
   for (let t = s.holdFrom; t <= s.end + 1e-9; t += 1 / 120) {
     const f = s.at(t);
@@ -75,6 +93,25 @@ test('v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance
     if (f.hands.v) assert.ok(dSeat0 - Math.hypot(f.hands.v.at[0] - seatV.x, f.hands.v.at[2] - seatV.z) < 0.012, `受害者的手往席位縮（拖回） t=${t.toFixed(3)}`);
   }
   assert.equal('DRAG' in GM.CURSE, false);
+});
+
+test('v0.61.1 抬升規劃：符紙堆與兩手的高度 ≥ 可達需要量（不穿）且每格變化 ≤ 斜率上限（不瞬移）；按住段受害者固定、施放者不提早抬', () => {
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 2000 });
+  const dt = 1 / 30, n = Math.ceil(s.end / dt) + 1, t = (i) => i * dt;
+  /* 需要量：中途一段越過別件要抬 0.7（舊版會一幀跳上去）、受害者在按住時於 0.11／0.185 兩解間跳 */
+  const Lc = [], Lv = [];
+  for (let i = 0; i < n; i++) { Lc.push(t(i) < s.T.appr || t(i) >= s.T.gone ? -Infinity : t(i) > 0.9 && t(i) < 1.3 ? 0.7 : 0); Lv.push(t(i) < 0.6 || t(i) >= s.T.gone ? -Infinity : t(i) >= s.T.press ? (i % 2 ? 0.185 : 0.11) : 0.11); }
+  const P = GM.planCurseLift(s, Lc, Lv, dt);
+  for (let i = 0; i < n; i++) {
+    if (Lc[i] > -Infinity) assert.ok(P.c[i] >= Lc[i] - 1e-9, `施放者低於需要量 i=${i}`);
+    if (Lv[i] > -Infinity) assert.ok(P.v[i] >= Lv[i] - 1e-9, `受害者低於需要量 i=${i}`);
+    if (i) for (const k of ['c', 'v', 'pile']) assert.ok(Math.abs(P[k][i] - P[k][i - 1]) <= Math.max(GM.CURSE.LIFT_SLOPE, GM.CURSE.LAND_SLOPE) * dt + 1e-9 || (k === 'c' && t(i) >= s.T.hold), `${k} 一格跳 ${(P[k][i] - P[k][i - 1]).toFixed(3)} i=${i}`);
+    if (t(i) >= s.T.press && t(i) < s.T.gone) assert.ok(Math.abs(P.v[i] - 0.185) < 1e-9 && Math.abs(P.pile[i] - 0.185) < 1e-9, `按住段受害者／堆不固定 i=${i}`);
+    if (t(i) >= s.T.press + 0.2 && t(i) < s.T.hold) assert.ok(Math.abs(P.c[i] - P.c[i - 1]) < 1e-9, `施放者在按住段移動 i=${i}`);
+  }
+  assert.ok(Math.abs(GM.planAt(P.pile, dt, s.landAt) - 0.185) < 1e-6, '落定時堆已在手背高度');
+  assert.match(tray, /if \(kind === 'curse' && !effect\.skip\) a\.grab\.plan = planCurse\(a\.grab\);/);
+  assert.match(motion, /Math\.max\(grabLift\(R0, fr, s, cons, obstacles, tableY, h\.seat\), sp\.minLift \|\| 0\)/);
 });
 
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
