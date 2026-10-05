@@ -1,0 +1,61 @@
+✖ #B1 GLB 資產 ≤2,500 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線） (118.6572ms)
+✔ #C1/#C2 L：推（四席×四格×1/8/12 枚）每幀的手部蒙皮頂點都不在任何一枚錢或令牌體內 (38186.6162ms)
+✔ #C1/#C2 L：拍（令牌舉高→拍下→微顫→收）與收（敗方扒回、勝方停一拍）每幀不穿錢柱與令牌 (8192.1585ms)
+✔ #C1/#C2 P：推（四席×四格×1/8/12 枚）每幀的手部蒙皮頂點都不在任何一枚錢或令牌體內 (37829.0634ms)
+✔ #C1/#C2 P：拍（令牌舉高→拍下→微顫→收）與收（敗方扒回、勝方停一拍）每幀不穿錢柱與令牌 (8358.8894ms)
+✔ #C1 手的地板外框蓋得住錢柱的真實幾何：每一幀 stackAt 的頂高／半徑 ≥ 該柱每枚錢實例頂點的實際最高點／最遠水平距離（含傾斜、一串立錢、得標脈衝） (49.6728ms)
+✔ #C1 收：勝方錢柱得標脈衝放大（×1.24）的那幾幀，旁邊扒錢的手也不穿入（實頁探針抓到的情境，細步進 1/400 秒） (13614.9791ms)
+✔ #C1 收手後整隻不可見（閒置＝收在畫面外）：推／拍／收各自做完，四隻手都回到不可見 (1140.2169ms)
+✔ #C2 直式的手比橫式小（SCALE_P），兩版面都以同一組常數換算 (163.3671ms)
+✔ #C3 縮時：同一事件序列以 1/120、1/60、1/20 秒步進，錢與令牌的終點逐位元相同、四隻手都已收；且與「不開手」的錢終點相同 (4084.5345ms)
+✔ #C3 跳過：動作進行到一半按跳過（props.finish＋hands.finish），手立刻全收、錢與令牌直接到終點，且終點與正常播完相同 (1639.5838ms)
+✔ #C4 決定性：整段事件序列 Math.random 呼叫 0 次；同一事件序列跑兩次，手勢序列（每幀擺位＋骨旋轉）逐值相同 (2082.9272ms)
+✔ #C5 同席同格重複出價＝覆寫：永遠只有一隻手、場上手的物件數不增加；amount 0（熱座清場）同一幀立即收 (165.7489ms)
+✔ #C6 落地事件只由令牌發：手的模組不派任何 DOM 事件；四枚令牌各一次 onSlam，且就在令牌 t 到 1 的那一幀 (209.3973ms)
+✔ 第二輪伸入深度（L）：推／拍／收全程，看得見的手（袖口邊以前的真實蒙皮頂點）——北席 z ≤ 托盤北緣＋NORTH_IN；西席 x ≤ −MID、東席 x ≥ MID；南／西／東 z ≥ 托盤前緣−SOUTH_IN (3391.9877ms)
+✔ 第二輪拍：令牌飛行中（t<1）手不上場，落地後才伸進來；令牌落地後四隻手都出現過 (220.1198ms)
+✔ 第三輪袖尾平滑淡出：四手共用材質為真透明（transparent、不用 alphaHash 抖色）、寫深度、alphaTest 丟掉完全隱去的袖布；頂點色帶 alpha (63.0274ms)
+✔ 第三輪信物（L）：推（起手錢柱壓在自家信物上）、拍、收（錢拖回信物旁）全程，看得見的手不進任何信物的本地包圍盒 (4421.8225ms)
+✔ 第三輪信物（P）：推（起手錢柱壓在自家信物上）、拍、收（錢拖回信物旁）全程，看得見的手不進任何信物的本地包圍盒 (4448.4761ms)
+✔ 第四輪排隊時序：一席同一幀推 4 格——各格依序起步 0／0.76／1.22／1.68 秒、落定 0.70／1.16／1.62／2.08 秒（±1.5 幀）；手動作 ≤2.7 秒結束（v0.59.11 放慢：FLY_MS 0.70、QUEUE_FLY 0.40、推後收手 ×PACE） (356.6942ms)
+✔ 第四輪排隊：排隊的第二格推的時候，同一隻手就在那一格的錢柱旁（重新抓這一格的位置），不是留在上一格 (262.8564ms)
+✔ 時序：推＝籌碼飛行 0.42 秒；收＝0.22 秒延遲＋0.42 秒返回；拍跟著令牌（SLAM_MS 0.30） (0.1756ms)
+✔ 第二輪縮放：橫式掌寬（GLB Palm 主骨頂點 x 跨度 × SCALE）為錢柱直徑的 2～2.5 倍，且小於第一輪的 0.35 (0.7963ms)
+✔ 第二輪袖子：沒有成團黑塊——看得見（alpha≥0.5）的頂點都不是近黑；袖口以後漸隱；看得見的袖子長度 ≤ 前臂 1/5 (0.7099ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 23
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129242.5643
+
+✖ failing tests:
+
+test at tests\table-hands.test.mjs:70:1
+✖ #B1 GLB 資產 ≤2,500 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線） (118.6572ms)
+  AssertionError [ERR_ASSERTION]: 寫實皮膚材質
+  + actual - expected
+  
+  + 'hand-real-b1'
+  - 'hand-real-v2'
+               ^
+  
+      at file:///C:/Users/shung/wt/yaoshi/hands-b1-impl/tests/table-hands.test.mjs:83:89
+      at SkinnedMesh.traverse (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tools/anyCreature/node_modules/three/build/three.core.js:14200:3)
+      at Group.traverse (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tools/anyCreature/node_modules/three/build/three.core.js:14206:18)
+      at Group.traverse (file:///C:/Users/shung/OneDrive/%E6%A1%8C%E9%9D%A2/%E5%A6%96%E5%B8%82/tools/anyCreature/node_modules/three/build/three.core.js:14206:18)
+      at file:///C:/Users/shung/wt/yaoshi/hands-b1-impl/tests/table-hands.test.mjs:83:43
+      at Array.forEach (<anonymous>)
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hands-b1-impl/tests/table-hands.test.mjs:83:26)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'hand-real-b1',
+    expected: 'hand-real-v2',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+EXIT 1

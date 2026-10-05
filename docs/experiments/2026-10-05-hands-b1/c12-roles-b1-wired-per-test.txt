@@ -1,0 +1,21 @@
+# 每條測試各自一個行程跑（整檔一起跑時 V2 的失敗斷言格式化巨大物件會讓整檔 V8 OOM）；YAOSHI_HANDS_PATH＝接上 hand-b1 的 table-hands 暫存副本；程式＝HEAD 05bf58f8
+L66	V1 三角色的手：專	ℹ pass 0 ℹ fail 1 	 AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:| actual: [ 'shoujing', 'dangpu', 'hunter', 'qingmian' ],| expected: [ 'shoujing', 'dangpu', 'hunter', null ],|
+L84	V1 各角色的特徵色	ℹ pass 1 ℹ fail 0 	
+L108	V1 收驚婆：老膚色	ℹ pass 1 ℹ fail 0 	
+L127	V2 未知／缺角色／	ℹ pass 0 ℹ fail 1 	 [RangeError: Array buffer allocation failed]|
+L163	V3 	ℹ pass 0 ℹ fail 2 	 AssertionError [ERR_ASSERTION]: 三個變體都比預設手多出配件面| actual: false,| expected: true,|
+L187	V4 變體幾何只在 se	ℹ pass 0 ℹ fail 1 	 AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:| actual: 4,| expected: 3,|
+L203	純演出：變體建構	ℹ pass 1 ℹ fail 0 	
+L242	純演出：同一串事	ℹ pass 1 ℹ fail 0 	
+L273	配件隨骨：推／拍	ℹ pass 1 ℹ fail 0 	
+L321	配件幾何：每個配	ℹ pass 1 ℹ fail 0 	
+L354	變體手 	ℹ pass 6 ℹ fail 0 	
+L390	R1a 腕部色塊面積�	ℹ pass 1 ℹ fail 0 	
+L402	R1b（色彩層）三角	ℹ pass 1 ℹ fail 0 	
+L424	R2 識別物互斥（各	ℹ pass 1 ℹ fail 0 	
+L444	R3 動作中（推／拍	ℹ pass 1 ℹ fail 0 	
+L510	R3-2 無綠：獵人與�	ℹ pass 1 ℹ fail 0 	
+L520	R3-4 金色只屬當鋪�	ℹ pass 1 ℹ fail 0 	
+L529	R3-4 當鋪方孔錢：�	ℹ pass 1 ℹ fail 0 	
+L555	R3-3 獵人毛皮邊：�	ℹ pass 1 ℹ fail 0 	
+L592	R3-5 	ℹ pass 3 ℹ fail 0 	

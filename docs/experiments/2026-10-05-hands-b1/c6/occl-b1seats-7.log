@@ -1,0 +1,65 @@
+{
+ "gates": {
+  "occlusion_le_10pct": true,
+  "handoffClears": true,
+  "skipClears": true,
+  "duelHides": true,
+  "noPageErrors": true
+ },
+ "pass": true,
+ "summary": {
+  "推": {
+   "occlMax": 0.0428,
+   "occlMeanFrameMax": 0.0106,
+   "handShareMax": 0.0465,
+   "handShareMean": 0.0427,
+   "n": 23
+  },
+  "推（四家同一格）": {
+   "occlMax": 0.0957,
+   "occlMeanFrameMax": 0.0393,
+   "handShareMax": 0.0609,
+   "handShareMean": 0.053,
+   "n": 23
+  },
+  "拍": {
+   "occlMax": 0.0123,
+   "occlMeanFrameMax": 0.0007,
+   "handShareMax": 0.0637,
+   "handShareMean": 0.043,
+   "n": 20
+  },
+  "收": {
+   "occlMax": 0.0265,
+   "occlMeanFrameMax": 0.0026,
+   "handShareMax": 0.0556,
+   "handShareMean": 0.0422,
+   "n": 31
+  },
+  "AI 一次推多格": {
+   "occlMax": 0.032,
+   "occlMeanFrameMax": 0.0145,
+   "handShareMax": 0.0521,
+   "handShareMean": 0.0323,
+   "n": 50
+  },
+  "南席一次推四格": {
+   "occlMax": 0,
+   "occlMeanFrameMax": 0,
+   "handShareMax": 0.0172,
+   "handShareMean": 0.0128,
+   "n": 50
+  }
+ },
+ "handoff": {
+  "visibleAfter": 0
+ },
+ "skip": {
+  "visibleAfter": 0
+ },
+ "duel": {
+  "trayVisible": false,
+  "handsRendered": 0
+ },
+ "errors": []
+}

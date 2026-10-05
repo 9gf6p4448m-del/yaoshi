@@ -1,0 +1,263 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hands-b1-impl",
+ "b1": false,
+ "b1Error": null,
+ "summary": {
+  "qingmian": "3/9",
+  "hongyi": "5/11",
+  "duanshou": "3/10",
+  "zutou": "4/10"
+ },
+ "pass": false,
+ "checks": {
+  "qingmian": [
+   {
+    "name": "這一席掛的是批 1 專屬幾何（variants＝角色鍵、材質 hand-real-b1）",
+    "pass": false,
+    "value": {
+     "variant": null,
+     "mat": "hand-real"
+    }
+   },
+   {
+    "name": "袖口（一處色）有畫出",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "長厚指甲 5 根（泛黃：甲根色 R≈G>B）",
+    "pass": false
+   },
+   {
+    "name": "腕銅錢 8 枚（每枚有畫出）",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "青灰斑（shader：斑點轉青黑 ext.z＞0、斑點變細 ext.w＞0）",
+    "pass": false,
+    "value": null
+   },
+   {
+    "name": "暗青袖口（袖口色 G,B＞R）",
+    "pass": false,
+    "value": []
+   },
+   {
+    "name": "無貼圖（material.map＝null）、無 UV 屬性",
+    "pass": true,
+    "value": {
+     "map": false,
+     "uv": false
+    }
+   },
+   {
+    "name": "手不縮放（seatMul＝1、HAND.USER_SCALE＝1）",
+    "pass": true,
+    "value": {
+     "seatMul": 1,
+     "USER_SCALE": 1
+    }
+   },
+   {
+    "name": "每手 ≤6,500 面",
+    "pass": true,
+    "value": 4724
+   }
+  ],
+  "hongyi": [
+   {
+    "name": "這一席掛的是批 1 專屬幾何（variants＝角色鍵、材質 hand-real-b1）",
+    "pass": false,
+    "value": {
+     "variant": null,
+     "mat": "hand-real"
+    }
+   },
+   {
+    "name": "袖口（一處色）有畫出",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "鉤狀長指甲 5 根（往下彎 CURL＞1 弧度）",
+    "pass": false
+   },
+   {
+    "name": "黑髮辮繞腕（有畫出、黑）",
+    "pass": false
+   },
+   {
+    "name": "垂髮（一綹黑髮垂過手背，有畫出）",
+    "pass": false
+   },
+   {
+    "name": "乾枯灰白（膚色 R,G,B 差 ≤0.02）",
+    "pass": true,
+    "value": [
+     0.215,
+     0.215,
+     0.205
+    ]
+   },
+   {
+    "name": "暗紅袖口",
+    "pass": false,
+    "value": []
+   },
+   {
+    "name": "無紅線手繩（腕部繩類頂點中偏紅者＝0）",
+    "pass": true,
+    "value": 0
+   },
+   {
+    "name": "無貼圖（material.map＝null）、無 UV 屬性",
+    "pass": true,
+    "value": {
+     "map": false,
+     "uv": false
+    }
+   },
+   {
+    "name": "手不縮放（seatMul＝1、HAND.USER_SCALE＝1）",
+    "pass": true,
+    "value": {
+     "seatMul": 1,
+     "USER_SCALE": 1
+    }
+   },
+   {
+    "name": "每手 ≤6,500 面",
+    "pass": true,
+    "value": 4724
+   }
+  ],
+  "duanshou": [
+   {
+    "name": "這一席掛的是批 1 專屬幾何（variants＝角色鍵、材質 hand-real-b1）",
+    "pass": false,
+    "value": {
+     "variant": null,
+     "mat": "hand-real"
+    }
+   },
+   {
+    "name": "袖口（一處色）有畫出",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "V4 斜切口（縫痕帶同一列 z 跨度 ≥ 1.5×OBL；垂直手臂的一圈＝0）",
+    "pass": false
+   },
+   {
+    "name": "V4 橫針（N 針，每針沿手臂方向跨過切口）",
+    "pass": false
+   },
+   {
+    "name": "手灰白、前臂偏青暗（shader ext2：模式 2、強度＞0）",
+    "pass": false,
+    "value": null
+   },
+   {
+    "name": "指尖墨漬（shader ext.x＞0）",
+    "pass": false,
+    "value": null
+   },
+   {
+    "name": "洗白青灰袖口（B≥G≥R）",
+    "pass": false,
+    "value": []
+   },
+   {
+    "name": "無貼圖（material.map＝null）、無 UV 屬性",
+    "pass": true,
+    "value": {
+     "map": false,
+     "uv": false
+    }
+   },
+   {
+    "name": "手不縮放（seatMul＝1、HAND.USER_SCALE＝1）",
+    "pass": true,
+    "value": {
+     "seatMul": 1,
+     "USER_SCALE": 1
+    }
+   },
+   {
+    "name": "每手 ≤6,500 面",
+    "pass": true,
+    "value": 4724
+   }
+  ],
+  "zutou": [
+   {
+    "name": "這一席掛的是批 1 專屬幾何（variants＝角色鍵、材質 hand-real-b1）",
+    "pass": false,
+    "value": {
+     "variant": null,
+     "mat": "hand-real"
+    }
+   },
+   {
+    "name": "袖口（一處色）有畫出",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "粗短（RADIAL＞1.15）",
+    "pass": true,
+    "value": 1.22
+   },
+   {
+    "name": "無名指＋小指粗金戒（兩枚有畫出）",
+    "pass": false,
+    "value": [
+     0,
+     0
+    ]
+   },
+   {
+    "name": "舊錶（錶帶／錶殼／錶面有畫出）",
+    "pass": false,
+    "value": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "手背數字（shader ext.y＞0）",
+    "pass": false,
+    "value": null
+   },
+   {
+    "name": "花襯衫袖（袖口頂點走花布類 aAcc＝6）",
+    "pass": false,
+    "value": 0
+   },
+   {
+    "name": "無貼圖（material.map＝null）、無 UV 屬性",
+    "pass": true,
+    "value": {
+     "map": false,
+     "uv": false
+    }
+   },
+   {
+    "name": "手不縮放（seatMul＝1、HAND.USER_SCALE＝1）",
+    "pass": true,
+    "value": {
+     "seatMul": 1,
+     "USER_SCALE": 1
+    }
+   },
+   {
+    "name": "每手 ≤6,500 面",
+    "pass": true,
+    "value": 4724
+   }
+  ]
+ }
+}

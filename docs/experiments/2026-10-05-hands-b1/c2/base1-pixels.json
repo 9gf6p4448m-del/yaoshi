@@ -1,0 +1,994 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hands-b1-base",
+ "q": "",
+ "vp": [
+  844,
+  390
+ ],
+ "safe": [
+  0,
+  47,
+  21,
+  47
+ ],
+ "clock0": 10000000,
+ "errs": [],
+ "results": [
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1794192102/1517778393",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4198,
+   "hiddenN": 74,
+   "sha256": "fa8965037b4ec71d650612b3b33753066807ab66fa81bd4084f5012a54ef5c71",
+   "file": "base1-default-s0-back.rgba"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-338518434/1865890880",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3576,
+   "hiddenN": 76,
+   "sha256": "857b701523f4c6144e979b9501863843b0a93770c7defb1300f3145e8e00355b",
+   "file": "base1-default-s0-claw.rgba"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "-2059166776/901714015",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1704,
+   "hiddenN": 74,
+   "sha256": "4eb3694108805f3fd48368aa14b6b6612b2c06ec00a8034e459c25454812a73f",
+   "file": "base1-default-s1-back.rgba"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-529411534/-2089915399",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1440,
+   "hiddenN": 76,
+   "sha256": "9c55b8e0769a0d8f0502c10ca04a6a399ad4ecc51ebd6e0ba493d7f5bce764aa",
+   "file": "base1-default-s1-claw.rgba"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "594162633/2130116468",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4802,
+   "hiddenN": 74,
+   "sha256": "78577222cd640b460fbdf8395599ea90952b7101d5c41eedc98c43bb64d6328d",
+   "file": "base1-shoujing-s0-back.rgba"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "1793313831/1110293860",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3377,
+   "hiddenN": 76,
+   "sha256": "e31195e42c963dca6a848152adefce2f14c4ca42b8dbe7a3967e0ecee8d7e4e2",
+   "file": "base1-shoujing-s0-claw.rgba"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "2015932809/-728525134",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1364,
+   "hiddenN": 74,
+   "sha256": "63128d224b88fd610d5225c2fe557e4a6ee088c3cdd3dcd2c96063851f2df597",
+   "file": "base1-shoujing-s1-back.rgba"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-507591843/-878590009",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1547,
+   "hiddenN": 76,
+   "sha256": "626088f66191bec1f6bbdc103bbc09a0f4264b3972150e203c6edb64712c44bb",
+   "file": "base1-shoujing-s1-claw.rgba"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1703191350/-1608422253",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4870,
+   "hiddenN": 74,
+   "sha256": "77b4edc3ea96221ed72caea669257b5bef0e6467bdd7a36d2eeba467e5b1d7fe",
+   "file": "base1-dangpu-s0-back.rgba"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "949049142/61710231",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3294,
+   "hiddenN": 76,
+   "sha256": "ce22dae7d70c597032239d51b8c8d0d9edad7b9b033a80d9c1b3f5288a7c92da",
+   "file": "base1-dangpu-s0-claw.rgba"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "742064377/1860101582",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1813,
+   "hiddenN": 74,
+   "sha256": "d6b598d6b5e5b6b8452e7667521da5eb59e02b793499abb8447f10bcd9740489",
+   "file": "base1-dangpu-s1-back.rgba"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-504440910/1572836708",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1484,
+   "hiddenN": 76,
+   "sha256": "8ab7707e8830e9594e569e18ca78bcca03374e94f179019d6747fad1046854d8",
+   "file": "base1-dangpu-s1-claw.rgba"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-135956687/1103892702",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 5253,
+   "hiddenN": 74,
+   "sha256": "290c827184f0e52e6955629aa0c0f8430e3f531d75d7791914e29ef1afb02fcc",
+   "file": "base1-hunter-s0-back.rgba"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1507632168/79171140",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3737,
+   "hiddenN": 76,
+   "sha256": "1e4bb0d2f97d255892d8d81bf0c5ab42224444f9dd9775d8c0daa7f1b11a2f6d",
+   "file": "base1-hunter-s0-claw.rgba"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "1924769429/-1786296079",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1964,
+   "hiddenN": 74,
+   "sha256": "909257eae707da85c192abcd38c794fde6bd3dc74e823f4aa2694086c2f5de29",
+   "file": "base1-hunter-s1-back.rgba"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-554383119/1921368488",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1644,
+   "hiddenN": 76,
+   "sha256": "fe53c41c6915e8f2590f4cf8e33df01ca903d2e7310dfcd94a297b5b148f9525",
+   "file": "base1-hunter-s1-claw.rgba"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "155582968/1831666805",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4687,
+   "hiddenN": 74,
+   "sha256": "b4121d2987dcc354e9e51ad1dda83c7f09fe3c53bec17ab0ed3cb8b9ffc0968f",
+   "file": "base1-qingmian-s0-back.rgba"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1627982662/6622002",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3271,
+   "hiddenN": 76,
+   "sha256": "e1fc24bcc47bf11a53b6bb4448c58cbff57128482982bdad549a6b4defd2c1c1",
+   "file": "base1-qingmian-s0-claw.rgba"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "-2059166776/901714015",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1704,
+   "hiddenN": 74,
+   "sha256": "4eb3694108805f3fd48368aa14b6b6612b2c06ec00a8034e459c25454812a73f",
+   "file": "base1-qingmian-s1-back.rgba"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-529411534/-2089915399",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1440,
+   "hiddenN": 76,
+   "sha256": "9c55b8e0769a0d8f0502c10ca04a6a399ad4ecc51ebd6e0ba493d7f5bce764aa",
+   "file": "base1-qingmian-s1-claw.rgba"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "728644597/1942922533",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4598,
+   "hiddenN": 74,
+   "sha256": "6deb8d7cca40364833f3100d32d1c0c49a47126dd50616bad5e4daf024a25e10",
+   "file": "base1-hongyi-s0-back.rgba"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1627982662/6622002",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3271,
+   "hiddenN": 76,
+   "sha256": "e1fc24bcc47bf11a53b6bb4448c58cbff57128482982bdad549a6b4defd2c1c1",
+   "file": "base1-hongyi-s0-claw.rgba"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "-2059166776/901714015",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1704,
+   "hiddenN": 74,
+   "sha256": "4eb3694108805f3fd48368aa14b6b6612b2c06ec00a8034e459c25454812a73f",
+   "file": "base1-hongyi-s1-back.rgba"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-529411534/-2089915399",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1440,
+   "hiddenN": 76,
+   "sha256": "9c55b8e0769a0d8f0502c10ca04a6a399ad4ecc51ebd6e0ba493d7f5bce764aa",
+   "file": "base1-hongyi-s1-claw.rgba"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-650932314/-824175658",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4941,
+   "hiddenN": 74,
+   "sha256": "b4cee05975a76845c36394576ffe4668891d81494346ff1c2e5d5b64d09e9f4d",
+   "file": "base1-duanshou-s0-back.rgba"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-1627982662/6622002",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3271,
+   "hiddenN": 76,
+   "sha256": "e1fc24bcc47bf11a53b6bb4448c58cbff57128482982bdad549a6b4defd2c1c1",
+   "file": "base1-duanshou-s0-claw.rgba"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "-2059166776/901714015",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1704,
+   "hiddenN": 74,
+   "sha256": "4eb3694108805f3fd48368aa14b6b6612b2c06ec00a8034e459c25454812a73f",
+   "file": "base1-duanshou-s1-back.rgba"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-529411534/-2089915399",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1440,
+   "hiddenN": 76,
+   "sha256": "9c55b8e0769a0d8f0502c10ca04a6a399ad4ecc51ebd6e0ba493d7f5bce764aa",
+   "file": "base1-duanshou-s1-claw.rgba"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 0,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-971678681/-1459647469",
+     "hidden",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 1,
+    "t": 0.466667
+   },
+   "visible": [
+    0
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 4105,
+   "hiddenN": 74,
+   "sha256": "bc1afa4c0497d9e7e1e6a9908211966e0cd6dd7d8094c70aab1c830f5d5bf6f5",
+   "file": "base1-zutou-s0-back.rgba"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 0,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-338518434/1865890880",
+     "-604134446/1665447410",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 1,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 3576,
+   "hiddenN": 76,
+   "sha256": "857b701523f4c6144e979b9501863843b0a93770c7defb1300f3145e8e00355b",
+   "file": "base1-zutou-s0-claw.rgba"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 1,
+   "pose": "back",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "hidden",
+     "-2059166776/901714015",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "push",
+    "slot": 2,
+    "t": 0.466667
+   },
+   "visible": [
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1704,
+   "hiddenN": 74,
+   "sha256": "4eb3694108805f3fd48368aa14b6b6612b2c06ec00a8034e459c25454812a73f",
+   "file": "base1-zutou-s1-back.rgba"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 1,
+   "pose": "claw",
+   "diag": {
+    "cam": "181317382/-252569644",
+    "hands": [
+     "-118997550/-1128974254",
+     "-529411534/-2089915399",
+     "hidden",
+     "hidden"
+    ]
+   },
+   "state": {
+    "kind": "rake",
+    "slot": 2,
+    "t": 0.2
+   },
+   "visible": [
+    0,
+    1
+   ],
+   "mat": "hand-real",
+   "w": 844,
+   "h": 390,
+   "handPx": 1440,
+   "hiddenN": 76,
+   "sha256": "9c55b8e0769a0d8f0502c10ca04a6a399ad4ecc51ebd6e0ba493d7f5bce764aa",
+   "file": "base1-zutou-s1-claw.rgba"
+  }
+ ]
+}

@@ -1,0 +1,2913 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hands-b1-impl",
+ "q": "",
+ "vp": [
+  844,
+  390
+ ],
+ "safe": [
+  0,
+  47,
+  21,
+  47
+ ],
+ "errs": [],
+ "results": [
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "tris": 4724,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "default",
+    "kind": 0,
+    "verts": 2623,
+    "tris": 4724,
+    "nBase": 2493,
+    "arm": [
+     2493,
+     2623
+    ]
+   },
+   "handBox": {
+    "x0": 287.8,
+    "y0": 220.4,
+    "w": 110.1,
+    "h": 76.8
+   },
+   "knucklePx": 32.4,
+   "pxPerDmHand": 55.7,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.602761676540563,
+    0.4672903229348967,
+    0.9446367725742771
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-default-back-game.png",
+   "nohud": "v061-s0-default-back-nohud.png",
+   "close": "v061-s0-default-back-close.png",
+   "sha256": "729a16d84609dc5efbdb91bf71605638f6d004ad708de51093ce91225fed1208"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "tris": 4724,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "default",
+    "kind": 0,
+    "verts": 2623,
+    "tris": 4724,
+    "nBase": 2493,
+    "arm": [
+     2493,
+     2623
+    ]
+   },
+   "handBox": {
+    "x0": 302.5,
+    "y0": 291.6,
+    "w": 101,
+    "h": 64.5
+   },
+   "knucklePx": 31,
+   "pxPerDmHand": 54.1,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.5721745807256293,
+    0.5135157093124302,
+    0.8194882982019983
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-default-claw-game.png",
+   "nohud": "v061-s0-default-claw-nohud.png",
+   "close": "v061-s0-default-claw-close.png",
+   "sha256": "9540ae9370970a4f9d11fc42744c603eb80cb51d80af7e1403764004062fe36b"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.483333
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "tris": 4724,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "default",
+    "kind": 0,
+    "verts": 2623,
+    "tris": 4724,
+    "nBase": 2493,
+    "arm": [
+     2493,
+     2623
+    ]
+   },
+   "handBox": {
+    "x0": 305.7,
+    "y0": 241.7,
+    "w": 107,
+    "h": 68.3
+   },
+   "knucklePx": 32.2,
+   "pxPerDmHand": 53.9,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.40250800702872,
+    0.25785137714881085,
+    0.9428299920561969
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-default-press-game.png",
+   "nohud": "v061-s0-default-press-nohud.png",
+   "close": "v061-s0-default-press-close.png",
+   "sha256": "cddf9dde758e0848915c2472b6b162dd0b907793a788c1919e8ea7f4aa4c1575"
+  },
+  {
+   "hand": "default",
+   "role": "xiaonv",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "tris": 4724,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "default",
+    "kind": 0,
+    "verts": 2623,
+    "tris": 4724,
+    "nBase": 2493,
+    "arm": [
+     2493,
+     2623
+    ]
+   },
+   "handBox": {
+    "x0": 420.5,
+    "y0": 99.8,
+    "w": 47.4,
+    "h": 68.8
+   },
+   "knucklePx": 22.1,
+   "pxPerDmHand": 36.4,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    0.1741572198910359,
+    0.36140297960072654,
+    -0.4536769618944425
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-default-back-game.png",
+   "nohud": "v061-s1-default-back-nohud.png",
+   "close": null,
+   "sha256": "c3cbe82806f576c58bc191b23dddfa1ab2c8e476eac1a5dbd12fc77866459a39"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "shoujing",
+    null,
+    null,
+    null
+   ],
+   "tris": 6358,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "shoujing",
+    "kind": 1,
+    "verts": 3505,
+    "tris": 6358,
+    "nBase": 2493,
+    "arm": [
+     3375,
+     3505
+    ]
+   },
+   "handBox": {
+    "x0": 279.6,
+    "y0": 247.5,
+    "w": 108,
+    "h": 80.5
+   },
+   "knucklePx": 32.9,
+   "pxPerDmHand": 56,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.6617228212471487,
+    0.3088443211418053,
+    1.0143521765511048
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-shoujing-back-game.png",
+   "nohud": "v061-s0-shoujing-back-nohud.png",
+   "close": "v061-s0-shoujing-back-close.png",
+   "sha256": "cefc061cbac892461e06940e5f5830889137dcd1095363ee0a9e2bc10e4f6aae"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "shoujing",
+    null,
+    null,
+    null
+   ],
+   "tris": 6358,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "shoujing",
+    "kind": 1,
+    "verts": 3505,
+    "tris": 6358,
+    "nBase": 2493,
+    "arm": [
+     3375,
+     3505
+    ]
+   },
+   "handBox": {
+    "x0": 338.7,
+    "y0": 191.4,
+    "w": 98.1,
+    "h": 53.7
+   },
+   "knucklePx": 28.1,
+   "pxPerDmHand": 52.3,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.37778383937981996,
+    0.504119560857482,
+    0.6590329443823744
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-shoujing-claw-game.png",
+   "nohud": "v061-s0-shoujing-claw-nohud.png",
+   "close": "v061-s0-shoujing-claw-close.png",
+   "sha256": "bc528955685423d18f326baa13bbf32816208f39d5e65fd4900a8dfdbea292c4"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.5
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "shoujing",
+    null,
+    null,
+    null
+   ],
+   "tris": 6358,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "shoujing",
+    "kind": 1,
+    "verts": 3505,
+    "tris": 6358,
+    "nBase": 2493,
+    "arm": [
+     3375,
+     3505
+    ]
+   },
+   "handBox": {
+    "x0": 287,
+    "y0": 223.5,
+    "w": 100.8,
+    "h": 53.1
+   },
+   "knucklePx": 31.7,
+   "pxPerDmHand": 53.7,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.5312402541817285,
+    0.3265085319305846,
+    0.8152361577619253
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-shoujing-press-game.png",
+   "nohud": "v061-s0-shoujing-press-nohud.png",
+   "close": "v061-s0-shoujing-press-close.png",
+   "sha256": "d68bbad1f0662c1257b52b3a9a8f5bdac7dc17952192b28bff4d79c42e88c5a3"
+  },
+  {
+   "hand": "shoujing",
+   "role": "shoujing",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "shoujing",
+    null,
+    null
+   ],
+   "tris": 6358,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "shoujing",
+    "kind": 1,
+    "verts": 3505,
+    "tris": 6358,
+    "nBase": 2493,
+    "arm": [
+     3375,
+     3505
+    ]
+   },
+   "handBox": {
+    "x0": 422.8,
+    "y0": 114.6,
+    "w": 48.9,
+    "h": 53.1
+   },
+   "knucklePx": 21.9,
+   "pxPerDmHand": 35.6,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    0.2143009960087742,
+    0.33660328274674467,
+    -0.46315486974094017
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-shoujing-back-game.png",
+   "nohud": "v061-s1-shoujing-back-nohud.png",
+   "close": null,
+   "sha256": "2102d3ea48e0818bc8df8b7ed83909ced4545dfb9d8f0fc23bd32be8846d78c1"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "dangpu",
+    null,
+    null,
+    null
+   ],
+   "tris": 5746,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "dangpu",
+    "kind": 3,
+    "verts": 3631,
+    "tris": 5746,
+    "nBase": 2493,
+    "arm": [
+     3501,
+     3631
+    ]
+   },
+   "handBox": {
+    "x0": 261.6,
+    "y0": 257.4,
+    "w": 110.5,
+    "h": 85.2
+   },
+   "knucklePx": 34.7,
+   "pxPerDmHand": 58,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.7389322917168544,
+    0.30879634383050025,
+    1.106457830550634
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-dangpu-back-game.png",
+   "nohud": "v061-s0-dangpu-back-nohud.png",
+   "close": "v061-s0-dangpu-back-close.png",
+   "sha256": "d4da596ae2b52bcb78f5ae93362435918dfcd861c1dc5a9e363b9e5db288e798"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "dangpu",
+    null,
+    null,
+    null
+   ],
+   "tris": 5746,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "dangpu",
+    "kind": 3,
+    "verts": 3631,
+    "tris": 5746,
+    "nBase": 2493,
+    "arm": [
+     3501,
+     3631
+    ]
+   },
+   "handBox": {
+    "x0": 342.2,
+    "y0": 192.6,
+    "w": 98.8,
+    "h": 56.5
+   },
+   "knucklePx": 27.9,
+   "pxPerDmHand": 52.4,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.3538393248584687,
+    0.49707869916547226,
+    0.6602901452301877
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-dangpu-claw-game.png",
+   "nohud": "v061-s0-dangpu-claw-nohud.png",
+   "close": "v061-s0-dangpu-claw-close.png",
+   "sha256": "8dfa134b647f5ae4c1108265c7e59a2cc215320df98d1be0fcb560c422619635"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.5
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "dangpu",
+    null,
+    null,
+    null
+   ],
+   "tris": 5746,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "dangpu",
+    "kind": 3,
+    "verts": 3631,
+    "tris": 5746,
+    "nBase": 2493,
+    "arm": [
+     3501,
+     3631
+    ]
+   },
+   "handBox": {
+    "x0": 344,
+    "y0": 216.6,
+    "w": 105.7,
+    "h": 57.7
+   },
+   "knucklePx": 30.2,
+   "pxPerDmHand": 53.6,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.19877978486884423,
+    0.348827827429274,
+    0.7722965120558758
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-dangpu-press-game.png",
+   "nohud": "v061-s0-dangpu-press-nohud.png",
+   "close": "v061-s0-dangpu-press-close.png",
+   "sha256": "43893401dbc59fd1513ced5555499ba1e183507bc938d62e7eb5bb7a43ddc2ed"
+  },
+  {
+   "hand": "dangpu",
+   "role": "dangpu",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "dangpu",
+    null,
+    null
+   ],
+   "tris": 5746,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "dangpu",
+    "kind": 3,
+    "verts": 3631,
+    "tris": 5746,
+    "nBase": 2493,
+    "arm": [
+     3501,
+     3631
+    ]
+   },
+   "handBox": {
+    "x0": 418.8,
+    "y0": 97.9,
+    "w": 48.8,
+    "h": 70.9
+   },
+   "knucklePx": 22.1,
+   "pxPerDmHand": 36,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    0.17396584113668545,
+    0.3668091812531886,
+    -0.44356962077610596
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-dangpu-back-game.png",
+   "nohud": "v061-s1-dangpu-back-nohud.png",
+   "close": null,
+   "sha256": "1c4f5138fe0d6f4283e08c17fa8789901623d6d7aa919c82aee7de124b1b57f5"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "hunter",
+    null,
+    null,
+    null
+   ],
+   "tris": 6098,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hunter",
+    "kind": 2,
+    "verts": 3775,
+    "tris": 6098,
+    "nBase": 2493,
+    "arm": [
+     3645,
+     3775
+    ]
+   },
+   "handBox": {
+    "x0": 296.7,
+    "y0": 252.4,
+    "w": 112.2,
+    "h": 84.5
+   },
+   "knucklePx": 32.9,
+   "pxPerDmHand": 57.8,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.5421435315415108,
+    0.3095642657257119,
+    1.0717098181689682
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hunter-back-game.png",
+   "nohud": "v061-s0-hunter-back-nohud.png",
+   "close": "v061-s0-hunter-back-close.png",
+   "sha256": "7116386626796f4bb5d470e5b248c385420803ab90ef22c879851d7624432f84"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "hunter",
+    null,
+    null,
+    null
+   ],
+   "tris": 6098,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hunter",
+    "kind": 2,
+    "verts": 3775,
+    "tris": 6098,
+    "nBase": 2493,
+    "arm": [
+     3645,
+     3775
+    ]
+   },
+   "handBox": {
+    "x0": 346.1,
+    "y0": 197.6,
+    "w": 100.5,
+    "h": 59.7
+   },
+   "knucklePx": 27.5,
+   "pxPerDmHand": 52.4,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.32093499870543196,
+    0.45189522134103455,
+    0.6694171976407733
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hunter-claw-game.png",
+   "nohud": "v061-s0-hunter-claw-nohud.png",
+   "close": "v061-s0-hunter-claw-close.png",
+   "sha256": "793fc39eb2c3ed36d9743f6ba35ed03a5a842c80ae55fdf8f610550292207bc0"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.483333
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "hunter",
+    null,
+    null,
+    null
+   ],
+   "tris": 6098,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hunter",
+    "kind": 2,
+    "verts": 3775,
+    "tris": 6098,
+    "nBase": 2493,
+    "arm": [
+     3645,
+     3775
+    ]
+   },
+   "handBox": {
+    "x0": 298.8,
+    "y0": 220.9,
+    "w": 105.3,
+    "h": 66.4
+   },
+   "knucklePx": 31.8,
+   "pxPerDmHand": 55.1,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    -0.45456344846925933,
+    0.3431578485224178,
+    0.8386576133674628
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hunter-press-game.png",
+   "nohud": "v061-s0-hunter-press-nohud.png",
+   "close": "v061-s0-hunter-press-close.png",
+   "sha256": "bd6657a82fa6f71d899ceb8b012356103da363b6137c46d2ec9ab58771ed4d57"
+  },
+  {
+   "hand": "hunter",
+   "role": "hunter",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "hunter",
+    null,
+    null
+   ],
+   "tris": 6098,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hunter",
+    "kind": 2,
+    "verts": 3775,
+    "tris": 6098,
+    "nBase": 2493,
+    "arm": [
+     3645,
+     3775
+    ]
+   },
+   "handBox": {
+    "x0": 418.1,
+    "y0": 99.2,
+    "w": 49.1,
+    "h": 69.7
+   },
+   "knucklePx": 22,
+   "pxPerDmHand": 35.7,
+   "parts": [],
+   "calls": 1,
+   "centroid": [
+    0.16347544344431916,
+    0.3576655164434395,
+    -0.46746694101095065
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-hunter-back-game.png",
+   "nohud": "v061-s1-hunter-back-nohud.png",
+   "close": null,
+   "sha256": "3824fd2fd6d8373f9acff737770ff584fe9e566fb50f691a274077d268a1af36"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "qingmian",
+    null,
+    null,
+    null
+   ],
+   "tris": 6214,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "qingmian",
+    "kind": 4,
+    "verts": 4103,
+    "tris": 6214,
+    "nBase": 2493,
+    "arm": [
+     3973,
+     4103
+    ]
+   },
+   "handBox": {
+    "x0": 309.6,
+    "y0": 204.4,
+    "w": 113.4,
+    "h": 76.5
+   },
+   "knucklePx": 29.6,
+   "pxPerDmHand": 53.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 45.4,
+     "h": 42.1,
+     "max": 45.4,
+     "pxPerDm": 57.6
+    },
+    {
+     "name": "長指甲",
+     "w": 47.8,
+     "h": 35.8,
+     "max": 47.8,
+     "pxPerDm": 50.5
+    },
+    {
+     "name": "銅錢1",
+     "w": 7.2,
+     "h": 6.2,
+     "max": 7.2,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "銅錢2",
+     "w": 4.7,
+     "h": 8.5,
+     "max": 8.5,
+     "pxPerDm": 57.7
+    },
+    {
+     "name": "銅錢3",
+     "w": 8.5,
+     "h": 8.7,
+     "max": 8.7,
+     "pxPerDm": 57.7
+    },
+    {
+     "name": "銅錢4",
+     "w": 8.5,
+     "h": 7,
+     "max": 8.5,
+     "pxPerDm": 57.1
+    },
+    {
+     "name": "銅錢5",
+     "w": 8,
+     "h": 7.2,
+     "max": 8,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "銅錢6",
+     "w": 7.7,
+     "h": 4.2,
+     "max": 7.7,
+     "pxPerDm": 55.8
+    },
+    {
+     "name": "銅錢7",
+     "w": 4.3,
+     "h": 7.6,
+     "max": 7.6,
+     "pxPerDm": 54.6
+    },
+    {
+     "name": "銅錢8",
+     "w": 7.7,
+     "h": 7.9,
+     "max": 7.9,
+     "pxPerDm": 53.9
+    },
+    {
+     "name": "穿錢繩",
+     "w": 27.3,
+     "h": 24.5,
+     "max": 27.3,
+     "pxPerDm": 56
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.4621116922511421,
+    0.4829408016882002,
+    0.8008466964967956
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-qingmian-back-game.png",
+   "nohud": "v061-s0-qingmian-back-nohud.png",
+   "close": "v061-s0-qingmian-back-close.png",
+   "sha256": "ceea0d64471fc0e249528b38d8580cd9c121b41d83853ff98a76be35e5ec8a2b"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "qingmian",
+    null,
+    null,
+    null
+   ],
+   "tris": 6214,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "qingmian",
+    "kind": 4,
+    "verts": 4103,
+    "tris": 6214,
+    "nBase": 2493,
+    "arm": [
+     3973,
+     4103
+    ]
+   },
+   "handBox": {
+    "x0": 306.4,
+    "y0": 193.8,
+    "w": 104.4,
+    "h": 62.2
+   },
+   "knucklePx": 30.4,
+   "pxPerDmHand": 54.6,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 47,
+     "h": 41.9,
+     "max": 47,
+     "pxPerDm": 58.9
+    },
+    {
+     "name": "長指甲",
+     "w": 50.7,
+     "h": 42.3,
+     "max": 50.7,
+     "pxPerDm": 51.2
+    },
+    {
+     "name": "銅錢1",
+     "w": 7.6,
+     "h": 6.2,
+     "max": 7.6,
+     "pxPerDm": 57.6
+    },
+    {
+     "name": "銅錢2",
+     "w": 4.3,
+     "h": 8.5,
+     "max": 8.5,
+     "pxPerDm": 58.7
+    },
+    {
+     "name": "銅錢3",
+     "w": 8.6,
+     "h": 8.8,
+     "max": 8.8,
+     "pxPerDm": 58.5
+    },
+    {
+     "name": "銅錢4",
+     "w": 8.3,
+     "h": 6.7,
+     "max": 8.3,
+     "pxPerDm": 57.9
+    },
+    {
+     "name": "銅錢5",
+     "w": 8.4,
+     "h": 6.5,
+     "max": 8.4,
+     "pxPerDm": 57.4
+    },
+    {
+     "name": "銅錢6",
+     "w": 7.9,
+     "h": 3.9,
+     "max": 7.9,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "銅錢7",
+     "w": 4.4,
+     "h": 7.6,
+     "max": 7.6,
+     "pxPerDm": 55.4
+    },
+    {
+     "name": "銅錢8",
+     "w": 7.7,
+     "h": 8.3,
+     "max": 8.3,
+     "pxPerDm": 54.8
+    },
+    {
+     "name": "穿錢繩",
+     "w": 27.3,
+     "h": 25.2,
+     "max": 27.3,
+     "pxPerDm": 56.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5317963812112187,
+    0.5550312887763306,
+    0.7732403994478948
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-qingmian-claw-game.png",
+   "nohud": "v061-s0-qingmian-claw-nohud.png",
+   "close": "v061-s0-qingmian-claw-close.png",
+   "sha256": "e9d22c04d66b43ba269f9bf218a37fc6e6a571b1618f758227b02eeb6e508093"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.483333
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "qingmian",
+    null,
+    null,
+    null
+   ],
+   "tris": 6214,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "qingmian",
+    "kind": 4,
+    "verts": 4103,
+    "tris": 6214,
+    "nBase": 2493,
+    "arm": [
+     3973,
+     4103
+    ]
+   },
+   "handBox": {
+    "x0": 294.1,
+    "y0": 221.8,
+    "w": 115.4,
+    "h": 73.3
+   },
+   "knucklePx": 32.1,
+   "pxPerDmHand": 54.7,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 52.1,
+     "h": 42,
+     "max": 52.1,
+     "pxPerDm": 60.6
+    },
+    {
+     "name": "長指甲",
+     "w": 81.1,
+     "h": 48.2,
+     "max": 81.1,
+     "pxPerDm": 50.5
+    },
+    {
+     "name": "銅錢1",
+     "w": 8.5,
+     "h": 5.4,
+     "max": 8.5,
+     "pxPerDm": 58.4
+    },
+    {
+     "name": "銅錢2",
+     "w": 2,
+     "h": 8.7,
+     "max": 8.7,
+     "pxPerDm": 58.9
+    },
+    {
+     "name": "銅錢3",
+     "w": 7.6,
+     "h": 8.9,
+     "max": 8.9,
+     "pxPerDm": 58.9
+    },
+    {
+     "name": "銅錢4",
+     "w": 8.1,
+     "h": 6.2,
+     "max": 8.1,
+     "pxPerDm": 58.4
+    },
+    {
+     "name": "銅錢5",
+     "w": 8.8,
+     "h": 6.4,
+     "max": 8.8,
+     "pxPerDm": 58.1
+    },
+    {
+     "name": "銅錢6",
+     "w": 7.8,
+     "h": 4.5,
+     "max": 7.8,
+     "pxPerDm": 57.4
+    },
+    {
+     "name": "銅錢7",
+     "w": 3.2,
+     "h": 8,
+     "max": 8,
+     "pxPerDm": 56.5
+    },
+    {
+     "name": "銅錢8",
+     "w": 6.6,
+     "h": 8.6,
+     "max": 8.6,
+     "pxPerDm": 55.9
+    },
+    {
+     "name": "穿錢繩",
+     "w": 33.1,
+     "h": 28.7,
+     "max": 33.1,
+     "pxPerDm": 57.7
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.42771196092728014,
+    0.3496395014261139,
+    0.8762295975670704
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-qingmian-press-game.png",
+   "nohud": "v061-s0-qingmian-press-nohud.png",
+   "close": "v061-s0-qingmian-press-close.png",
+   "sha256": "14e49bfddd56ddbaa52a469cd8c5b3d873fb4f2f8ad13a475944822d834bb2fd"
+  },
+  {
+   "hand": "qingmian",
+   "role": "qingmian",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "qingmian",
+    null,
+    null
+   ],
+   "tris": 6214,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "qingmian",
+    "kind": 4,
+    "verts": 4103,
+    "tris": 6214,
+    "nBase": 2493,
+    "arm": [
+     3973,
+     4103
+    ]
+   },
+   "handBox": {
+    "x0": 422.6,
+    "y0": 104.7,
+    "w": 51.1,
+    "h": 63.1
+   },
+   "knucklePx": 22.1,
+   "pxPerDmHand": 36,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 29.8,
+     "h": 22.1,
+     "max": 29.8,
+     "pxPerDm": 33.9
+    },
+    {
+     "name": "長指甲",
+     "w": 43.2,
+     "h": 25.1,
+     "max": 43.2,
+     "pxPerDm": 36.9
+    },
+    {
+     "name": "銅錢1",
+     "w": 3.2,
+     "h": 5.4,
+     "max": 5.4,
+     "pxPerDm": 34.7
+    },
+    {
+     "name": "銅錢2",
+     "w": 1,
+     "h": 5.2,
+     "max": 5.2,
+     "pxPerDm": 34.8
+    },
+    {
+     "name": "銅錢3",
+     "w": 4.4,
+     "h": 3.9,
+     "max": 4.4,
+     "pxPerDm": 35.1
+    },
+    {
+     "name": "銅錢4",
+     "w": 5.1,
+     "h": 3.5,
+     "max": 5.1,
+     "pxPerDm": 35.2
+    },
+    {
+     "name": "銅錢5",
+     "w": 5.1,
+     "h": 2.4,
+     "max": 5.1,
+     "pxPerDm": 35.2
+    },
+    {
+     "name": "銅錢6",
+     "w": 4.1,
+     "h": 4.8,
+     "max": 4.8,
+     "pxPerDm": 35.3
+    },
+    {
+     "name": "銅錢7",
+     "w": 1.1,
+     "h": 5.1,
+     "max": 5.1,
+     "pxPerDm": 35.2
+    },
+    {
+     "name": "銅錢8",
+     "w": 3.6,
+     "h": 4.6,
+     "max": 4.6,
+     "pxPerDm": 34.9
+    },
+    {
+     "name": "穿錢繩",
+     "w": 21.9,
+     "h": 11.9,
+     "max": 21.9,
+     "pxPerDm": 35
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.2008152368506786,
+    0.3917445173322127,
+    -0.4671363363216176
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-qingmian-back-game.png",
+   "nohud": "v061-s1-qingmian-back-nohud.png",
+   "close": null,
+   "sha256": "60693544352e9ddbdc92738a89f63a40308e76ecce8db0e05b162c603deaa1ee"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "hongyi",
+    null,
+    null,
+    null
+   ],
+   "tris": 6196,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hongyi",
+    "kind": 5,
+    "verts": 3732,
+    "tris": 6196,
+    "nBase": 2493,
+    "arm": [
+     3602,
+     3732
+    ]
+   },
+   "handBox": {
+    "x0": 356,
+    "y0": 208,
+    "w": 97.5,
+    "h": 55.9
+   },
+   "knucklePx": 26.9,
+   "pxPerDmHand": 50.6,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 45.2,
+     "h": 39.4,
+     "max": 45.2,
+     "pxPerDm": 54.2
+    },
+    {
+     "name": "長指甲",
+     "w": 42.9,
+     "h": 39.9,
+     "max": 42.9,
+     "pxPerDm": 47.9
+    },
+    {
+     "name": "黑髮辮",
+     "w": 30,
+     "h": 31.1,
+     "max": 31.1,
+     "pxPerDm": 53
+    },
+    {
+     "name": "垂過手背的一綹黑髮",
+     "w": 30.5,
+     "h": 14.1,
+     "max": 30.5,
+     "pxPerDm": 53.1
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.2748510897850909,
+    0.36843338660406005,
+    0.6587620576477464
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hongyi-back-game.png",
+   "nohud": "v061-s0-hongyi-back-nohud.png",
+   "close": "v061-s0-hongyi-back-close.png",
+   "sha256": "ee8e26b8f97565f203efc5326639968281d85e72560659681c4dc6694c084245"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "hongyi",
+    null,
+    null,
+    null
+   ],
+   "tris": 6196,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hongyi",
+    "kind": 5,
+    "verts": 3732,
+    "tris": 6196,
+    "nBase": 2493,
+    "arm": [
+     3602,
+     3732
+    ]
+   },
+   "handBox": {
+    "x0": 304.9,
+    "y0": 198,
+    "w": 103,
+    "h": 66
+   },
+   "knucklePx": 30.5,
+   "pxPerDmHand": 54.4,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 50.9,
+     "h": 42.7,
+     "max": 50.9,
+     "pxPerDm": 58.3
+    },
+    {
+     "name": "長指甲",
+     "w": 50.7,
+     "h": 42.7,
+     "max": 50.7,
+     "pxPerDm": 51.3
+    },
+    {
+     "name": "黑髮辮",
+     "w": 34.1,
+     "h": 32.8,
+     "max": 34.1,
+     "pxPerDm": 57.1
+    },
+    {
+     "name": "垂過手背的一綹黑髮",
+     "w": 31.6,
+     "h": 17.2,
+     "max": 31.6,
+     "pxPerDm": 57.3
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5493997353497514,
+    0.5341646202453116,
+    0.7899576596618674
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hongyi-claw-game.png",
+   "nohud": "v061-s0-hongyi-claw-nohud.png",
+   "close": "v061-s0-hongyi-claw-close.png",
+   "sha256": "c2dd258738a4855b7d494c5ab3ee3239dd1fc586102f08ffe860eaab795460a3"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.483333
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "hongyi",
+    null,
+    null,
+    null
+   ],
+   "tris": 6196,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hongyi",
+    "kind": 5,
+    "verts": 3732,
+    "tris": 6196,
+    "nBase": 2493,
+    "arm": [
+     3602,
+     3732
+    ]
+   },
+   "handBox": {
+    "x0": 304.2,
+    "y0": 219.8,
+    "w": 113.3,
+    "h": 71.9
+   },
+   "knucklePx": 32,
+   "pxPerDmHand": 54.7,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 55.3,
+     "h": 42.5,
+     "max": 55.3,
+     "pxPerDm": 60
+    },
+    {
+     "name": "長指甲",
+     "w": 77.1,
+     "h": 48.4,
+     "max": 77.1,
+     "pxPerDm": 50.6
+    },
+    {
+     "name": "黑髮辮",
+     "w": 38.2,
+     "h": 32.4,
+     "max": 38.2,
+     "pxPerDm": 58.2
+    },
+    {
+     "name": "垂過手背的一綹黑髮",
+     "w": 25.2,
+     "h": 16.4,
+     "max": 25.2,
+     "pxPerDm": 57.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.3844491711669261,
+    0.37000765960248283,
+    0.8715999908833321
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-hongyi-press-game.png",
+   "nohud": "v061-s0-hongyi-press-nohud.png",
+   "close": "v061-s0-hongyi-press-close.png",
+   "sha256": "619e8e0f0f800ee471e056c938b3ce2d2ad0c456329c348f4aacf37e2b1aa448"
+  },
+  {
+   "hand": "hongyi",
+   "role": "hongyi",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "hongyi",
+    null,
+    null
+   ],
+   "tris": 6196,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "hongyi",
+    "kind": 5,
+    "verts": 3732,
+    "tris": 6196,
+    "nBase": 2493,
+    "arm": [
+     3602,
+     3732
+    ]
+   },
+   "handBox": {
+    "x0": 422.1,
+    "y0": 97.1,
+    "w": 47.2,
+    "h": 68.1
+   },
+   "knucklePx": 22.2,
+   "pxPerDmHand": 36.2,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 31.8,
+     "h": 23.1,
+     "max": 31.8,
+     "pxPerDm": 35
+    },
+    {
+     "name": "長指甲",
+     "w": 41.7,
+     "h": 19.1,
+     "max": 41.7,
+     "pxPerDm": 36.4
+    },
+    {
+     "name": "黑髮辮",
+     "w": 24.8,
+     "h": 16.4,
+     "max": 24.8,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "垂過手背的一綹黑髮",
+     "w": 12.9,
+     "h": 13,
+     "max": 13,
+     "pxPerDm": 36
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.19679653902416852,
+    0.37700245647203995,
+    -0.4287650100008803
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-hongyi-back-game.png",
+   "nohud": "v061-s1-hongyi-back-nohud.png",
+   "close": null,
+   "sha256": "b3eb416277f45a1a273d9d137459cdc761c12fe7cffdc35d6ffeb6466b930f7b"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "duanshou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5590,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "duanshou",
+    "kind": 6,
+    "verts": 3263,
+    "tris": 5590,
+    "nBase": 2493,
+    "arm": [
+     3133,
+     3263
+    ]
+   },
+   "handBox": {
+    "x0": 266.2,
+    "y0": 255.1,
+    "w": 109.8,
+    "h": 83.8
+   },
+   "knucklePx": 34.3,
+   "pxPerDmHand": 57,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 53.2,
+     "h": 49.1,
+     "max": 53.2,
+     "pxPerDm": 61.6
+    },
+    {
+     "name": "縫痕帶",
+     "w": 35.3,
+     "h": 37.4,
+     "max": 37.4,
+     "pxPerDm": 59
+    },
+    {
+     "name": "針腳",
+     "w": 37.4,
+     "h": 37.4,
+     "max": 37.4,
+     "pxPerDm": 59
+    },
+    {
+     "name": "指尖墨漬（區域上界）",
+     "w": 19.4,
+     "h": 35.4,
+     "max": 35.4,
+     "pxPerDm": 54.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.7200093844963928,
+    0.3087003530629355,
+    1.0836604237376728
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-duanshou-back-game.png",
+   "nohud": "v061-s0-duanshou-back-nohud.png",
+   "close": "v061-s0-duanshou-back-close.png",
+   "sha256": "8fdc33cf1965374dca4a5717c03deef014980c9bf1b852c9d2dd7085476d0a0b"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "duanshou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5590,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "duanshou",
+    "kind": 6,
+    "verts": 3263,
+    "tris": 5590,
+    "nBase": 2493,
+    "arm": [
+     3133,
+     3263
+    ]
+   },
+   "handBox": {
+    "x0": 342.3,
+    "y0": 192.6,
+    "w": 98.7,
+    "h": 55.7
+   },
+   "knucklePx": 27.9,
+   "pxPerDmHand": 51.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 44.9,
+     "h": 40.8,
+     "max": 44.9,
+     "pxPerDm": 56.1
+    },
+    {
+     "name": "縫痕帶",
+     "w": 28.5,
+     "h": 31.9,
+     "max": 31.9,
+     "pxPerDm": 53.7
+    },
+    {
+     "name": "針腳",
+     "w": 30.3,
+     "h": 30.1,
+     "max": 30.3,
+     "pxPerDm": 53.6
+    },
+    {
+     "name": "指尖墨漬（區域上界）",
+     "w": 14,
+     "h": 26.8,
+     "max": 26.8,
+     "pxPerDm": 50.3
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.3546219829332173,
+    0.4969777548301603,
+    0.6596348691336846
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-duanshou-claw-game.png",
+   "nohud": "v061-s0-duanshou-claw-nohud.png",
+   "close": "v061-s0-duanshou-claw-close.png",
+   "sha256": "bcace046e260a7023feb08774b8669c0b49bab8624faae9127102c50be9ff6db"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.5
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "duanshou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5590,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "duanshou",
+    "kind": 6,
+    "verts": 3263,
+    "tris": 5590,
+    "nBase": 2493,
+    "arm": [
+     3133,
+     3263
+    ]
+   },
+   "handBox": {
+    "x0": 351.1,
+    "y0": 225.9,
+    "w": 104.3,
+    "h": 59
+   },
+   "knucklePx": 29.6,
+   "pxPerDmHand": 52,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 50.3,
+     "h": 40.5,
+     "max": 50.3,
+     "pxPerDm": 57.6
+    },
+    {
+     "name": "縫痕帶",
+     "w": 32.2,
+     "h": 32.7,
+     "max": 32.7,
+     "pxPerDm": 54.2
+    },
+    {
+     "name": "針腳",
+     "w": 34.6,
+     "h": 34.3,
+     "max": 34.6,
+     "pxPerDm": 54.1
+    },
+    {
+     "name": "指尖墨漬（區域上界）",
+     "w": 28,
+     "h": 38.5,
+     "max": 38.5,
+     "pxPerDm": 50
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.16393318786398464,
+    0.2672480319424275,
+    0.7721327898647916
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-duanshou-press-game.png",
+   "nohud": "v061-s0-duanshou-press-nohud.png",
+   "close": "v061-s0-duanshou-press-close.png",
+   "sha256": "a3dad0f8d338d83e8c1e8dc1651fef077c53fc85a0ba4eb620338ea445940b2f"
+  },
+  {
+   "hand": "duanshou",
+   "role": "duanshou",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "duanshou",
+    null,
+    null
+   ],
+   "tris": 5590,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "duanshou",
+    "kind": 6,
+    "verts": 3263,
+    "tris": 5590,
+    "nBase": 2493,
+    "arm": [
+     3133,
+     3263
+    ]
+   },
+   "handBox": {
+    "x0": 419.6,
+    "y0": 100,
+    "w": 48.2,
+    "h": 68.9
+   },
+   "knucklePx": 22.1,
+   "pxPerDmHand": 36.1,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 31.3,
+     "h": 23.2,
+     "max": 31.3,
+     "pxPerDm": 34.3
+    },
+    {
+     "name": "縫痕帶",
+     "w": 25.5,
+     "h": 12.6,
+     "max": 25.5,
+     "pxPerDm": 35.4
+    },
+    {
+     "name": "針腳",
+     "w": 26.6,
+     "h": 13.8,
+     "max": 26.6,
+     "pxPerDm": 35.6
+    },
+    {
+     "name": "指尖墨漬（區域上界）",
+     "w": 20.3,
+     "h": 23.8,
+     "max": 23.8,
+     "pxPerDm": 36.6
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.17629542483671565,
+    0.3614027074731859,
+    -0.44862365270168736
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-duanshou-back-game.png",
+   "nohud": "v061-s1-duanshou-back-nohud.png",
+   "close": null,
+   "sha256": "1fb346feb407ac46d928c9513cc5aa8a36f570ff33b081875f10a8024a938cbc"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.466667
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "zutou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5990,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "zutou",
+    "kind": 7,
+    "verts": 3359,
+    "tris": 5990,
+    "nBase": 2493,
+    "arm": [
+     3229,
+     3359
+    ]
+   },
+   "handBox": {
+    "x0": 290,
+    "y0": 216.7,
+    "w": 110.3,
+    "h": 77.6
+   },
+   "knucklePx": 32.2,
+   "pxPerDmHand": 56.1,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 49.5,
+     "h": 45,
+     "max": 49.5,
+     "pxPerDm": 60.4
+    },
+    {
+     "name": "金戒（無名指）",
+     "w": 12.7,
+     "h": 12.1,
+     "max": 12.7,
+     "pxPerDm": 54.2
+    },
+    {
+     "name": "金戒（小指）",
+     "w": 11.9,
+     "h": 10.6,
+     "max": 11.9,
+     "pxPerDm": 53.7
+    },
+    {
+     "name": "錶帶",
+     "w": 34.8,
+     "h": 24.6,
+     "max": 34.8,
+     "pxPerDm": 59.5
+    },
+    {
+     "name": "錶殼",
+     "w": 17.1,
+     "h": 13.8,
+     "max": 17.1,
+     "pxPerDm": 60.2
+    },
+    {
+     "name": "錶面",
+     "w": 14.4,
+     "h": 10.4,
+     "max": 14.4,
+     "pxPerDm": 60.2
+    },
+    {
+     "name": "手背數字（區域上界）",
+     "w": 11.4,
+     "h": 20.7,
+     "max": 20.7,
+     "pxPerDm": 57.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5903134316645972,
+    0.47479309173233053,
+    0.930866612855359
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-zutou-back-game.png",
+   "nohud": "v061-s0-zutou-back-nohud.png",
+   "close": "v061-s0-zutou-back-close.png",
+   "sha256": "96d8509f2e32195bdd171474ae05b7add5e9a0bab1bfebfa89e1b29e2df30e45"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.2
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.2
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "zutou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5990,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "zutou",
+    "kind": 7,
+    "verts": 3359,
+    "tris": 5990,
+    "nBase": 2493,
+    "arm": [
+     3229,
+     3359
+    ]
+   },
+   "handBox": {
+    "x0": 301.8,
+    "y0": 201,
+    "w": 101.7,
+    "h": 63.8
+   },
+   "knucklePx": 31.1,
+   "pxPerDmHand": 54.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 48.3,
+     "h": 43.4,
+     "max": 48.3,
+     "pxPerDm": 59.3
+    },
+    {
+     "name": "金戒（無名指）",
+     "w": 12.3,
+     "h": 12.1,
+     "max": 12.3,
+     "pxPerDm": 52.9
+    },
+    {
+     "name": "金戒（小指）",
+     "w": 11.5,
+     "h": 10.8,
+     "max": 11.5,
+     "pxPerDm": 52.5
+    },
+    {
+     "name": "錶帶",
+     "w": 34.4,
+     "h": 25.1,
+     "max": 34.4,
+     "pxPerDm": 58.4
+    },
+    {
+     "name": "錶殼",
+     "w": 16.8,
+     "h": 12.2,
+     "max": 16.8,
+     "pxPerDm": 59
+    },
+    {
+     "name": "錶面",
+     "w": 14,
+     "h": 8.9,
+     "max": 14,
+     "pxPerDm": 59
+    },
+    {
+     "name": "手背數字（區域上界）",
+     "w": 11.1,
+     "h": 20.3,
+     "max": 20.3,
+     "pxPerDm": 56.6
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5699093404455646,
+    0.5171437157484257,
+    0.8265917230811342
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-zutou-claw-game.png",
+   "nohud": "v061-s0-zutou-claw-nohud.png",
+   "close": "v061-s0-zutou-claw-close.png",
+   "sha256": "618fcb7898d7bf65065b532f047d627ee2c5a871a7fb8286c92ee39c5bf3c9dc"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 0,
+   "pose": "press",
+   "state": [
+    {
+     "kind": "slam",
+     "slot": 1,
+     "t": 0.5
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "zutou",
+    null,
+    null,
+    null
+   ],
+   "tris": 5990,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "zutou",
+    "kind": 7,
+    "verts": 3359,
+    "tris": 5990,
+    "nBase": 2493,
+    "arm": [
+     3229,
+     3359
+    ]
+   },
+   "handBox": {
+    "x0": 291.2,
+    "y0": 219.6,
+    "w": 103,
+    "h": 60.9
+   },
+   "knucklePx": 31.6,
+   "pxPerDmHand": 53.3,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 52.3,
+     "h": 41.1,
+     "max": 52.3,
+     "pxPerDm": 58.9
+    },
+    {
+     "name": "金戒（無名指）",
+     "w": 12.8,
+     "h": 11.8,
+     "max": 12.8,
+     "pxPerDm": 50.7
+    },
+    {
+     "name": "金戒（小指）",
+     "w": 11.6,
+     "h": 10.7,
+     "max": 11.6,
+     "pxPerDm": 50.7
+    },
+    {
+     "name": "錶帶",
+     "w": 28.1,
+     "h": 26.4,
+     "max": 28.1,
+     "pxPerDm": 56.7
+    },
+    {
+     "name": "錶殼",
+     "w": 16.4,
+     "h": 10.3,
+     "max": 16.4,
+     "pxPerDm": 57.8
+    },
+    {
+     "name": "錶面",
+     "w": 13.6,
+     "h": 7.2,
+     "max": 13.6,
+     "pxPerDm": 57.7
+    },
+    {
+     "name": "手背數字（區域上界）",
+     "w": 9.4,
+     "h": 21.6,
+     "max": 21.6,
+     "pxPerDm": 54.7
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5058404554134734,
+    0.34016389047616435,
+    0.8106015013867558
+   ],
+   "yaw": -2.5396293515134807,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s0-zutou-press-game.png",
+   "nohud": "v061-s0-zutou-press-nohud.png",
+   "close": "v061-s0-zutou-press-close.png",
+   "sha256": "23ecc61049da3e60e373678af03c23da90f5d0081c32b5a54b6595576c1b2621"
+  },
+  {
+   "hand": "zutou",
+   "role": "zutou",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.466667
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    null,
+    "zutou",
+    null,
+    null
+   ],
+   "tris": 5990,
+   "mats": [
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1",
+    "hand-real-b1"
+   ],
+   "real": {
+    "key": "zutou",
+    "kind": 7,
+    "verts": 3359,
+    "tris": 5990,
+    "nBase": 2493,
+    "arm": [
+     3229,
+     3359
+    ]
+   },
+   "handBox": {
+    "x0": 419.7,
+    "y0": 97.4,
+    "w": 48.1,
+    "h": 70.8
+   },
+   "knucklePx": 22.1,
+   "pxPerDmHand": 36.2,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 31.4,
+     "h": 22.6,
+     "max": 31.4,
+     "pxPerDm": 34.5
+    },
+    {
+     "name": "金戒（無名指）",
+     "w": 9.5,
+     "h": 8,
+     "max": 9.5,
+     "pxPerDm": 37.4
+    },
+    {
+     "name": "金戒（小指）",
+     "w": 8.5,
+     "h": 7.3,
+     "max": 8.5,
+     "pxPerDm": 37.2
+    },
+    {
+     "name": "錶帶",
+     "w": 21.4,
+     "h": 12.4,
+     "max": 21.4,
+     "pxPerDm": 35
+    },
+    {
+     "name": "錶殼",
+     "w": 10,
+     "h": 6.1,
+     "max": 10,
+     "pxPerDm": 35.4
+    },
+    {
+     "name": "錶面",
+     "w": 8.3,
+     "h": 4.2,
+     "max": 8.3,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "手背數字（區域上界）",
+     "w": 5.1,
+     "h": 7.8,
+     "max": 7.8,
+     "pxPerDm": 36.3
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.17276812080913415,
+    0.36680891793428394,
+    -0.454701767174881
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "v061-s1-zutou-back-game.png",
+   "nohud": "v061-s1-zutou-back-nohud.png",
+   "close": null,
+   "sha256": "7214bc65a9aef13c8e5f0804d4f3f5780e20ec0dad39b3291db4f890fd3a3cb3"
+  }
+ ]
+}
