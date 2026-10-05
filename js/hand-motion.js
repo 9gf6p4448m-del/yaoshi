@@ -928,8 +928,10 @@ function prepare(rig, pose, anchorKind) {
   return hit;
 }
 const allCache = new WeakMap();
+/** 碰撞取樣的全部點（placeAt／grabLift 用）。rig.collide（可省，v0.61.0 批 1 由 table-hands 給）＝去掉「位置與蒙皮權重完全相同」的重複頂點後的代表點：
+    兩處都是逐點取最大值（平手不換），重複點不改變答案，結果逐位元相同、只少算重複的點。沒給＝0..count−1（原樣）。 */
 function allIndex(rig) {
-  if (!allCache.has(rig)) { const a = new Array(rig.count); for (let i = 0; i < rig.count; i++) a[i] = i; allCache.set(rig, a); }
+  if (!allCache.has(rig)) { let a = rig.collide; if (!a) { a = new Array(rig.count); for (let i = 0; i < rig.count; i++) a[i] = i; } allCache.set(rig, a); }
   return allCache.get(rig);
 }
 const coarseIdxCache = new WeakMap();

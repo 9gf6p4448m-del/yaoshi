@@ -196,6 +196,11 @@ export function createTableHands(parent, props, opts = {}) {
             /* 長指甲：照樣進碰撞（不穿桌、不穿錢），但不當錨點——推／收對準的仍是指尖肉（不然收錢時錨點改由甲尖決定，南席手會往鏡頭移、被 HUD 擋住） */
             const cl = (rg.userData.b1parts || []).find((p) => p.name === '長指甲');
             if (cl) { const out = (v) => v < cl.from || v >= cl.to; R1.tips = R1.tips.filter(out); R1.rakeTips = R1.rakeTips.filter(out); }
+            /* 效能（條件 10）：配件的平面著色把同一位置的頂點複製多份（錢的正反面、管的封口……）。碰撞與信物／伸入檢查只取每組「位置＋蒙皮權重完全相同」的
+               第一個代表點——用到這些點集的地方（placeAt、grabLift、relicHit、reach）都是逐點取最大值或「有沒有任一點」，重複點不改變答案，擺位逐位元相同。
+               只給批 1 的手；既有四種手的取樣不動。俯角掃描（coarse）與錨點（tips／palm）的點集也不動。 */
+            { const rep = new Set(), seen = new Set(); for (let v = 0; v < na; v++) { const k = ga.position.array.slice(v * 3, v * 3 + 3).join(',') + '|' + ga.skinIndex.array.slice(v * 4, v * 4 + 4).join(',') + '|' + ga.skinWeight.array.slice(v * 4, v * 4 + 4).join(','); if (!seen.has(k)) { seen.add(k); rep.add(v); } }
+              R1.collide = [...rep]; R1.seen = R1.seen.filter((v) => rep.has(v)); R1.front = R1.front.filter((v) => rep.has(v)); }
             realRigs.set('b1:' + bk, R1);
           }
           h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get('b1:' + bk);
