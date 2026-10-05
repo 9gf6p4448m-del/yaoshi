@@ -775,6 +775,17 @@ function rotated(pts, set, yaw, pitch, s) {
   }
   return R;
 }
+/** v0.61.0：旋轉結果（rotated 的 R，每 3 個一點）的外框與最低點；每個 R 只算一次。 */
+const statCache = new WeakMap();
+function rStat(R) {
+  let st = statCache.get(R);
+  if (!st) {
+    const n = R.length / 3; let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, y0 = Infinity;
+    for (let i = 0; i < n; i++) { const x = R[i * 3], y = R[i * 3 + 1], z = R[i * 3 + 2]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; if (y < y0) y0 = y; }
+    st = { x0, x1, z0, z1, y0 }; statCache.set(R, st);
+  }
+  return st;
+}
 /**
  * 在固定 yaw／pitch 下，讓 anchor 的 (x,z) 對準 target，並解出最低的根高度：
  * 每個取樣點都不得低於它正下方的地板＋CLR。回 { root, minLift, gaps }。
@@ -784,14 +795,10 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
   const rx = target[0] - a[0], rz = target[1] - a[1];
   let ry = minY === undefined ? -Infinity : minY;
   /* 先轉一遍、取手的水平外框，只留外框碰得到的障礙（每幀成本：逐點 × 附近幾件，而不是 × 全桌）。 */
-  const W = new Float64Array(set.length * 3), R = rotated(pts, set, yaw, pitch, s);
-  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-  for (let i = 0; i < set.length; i++) {
-    const w = [R[i * 3], R[i * 3 + 1], R[i * 3 + 2]];
-    const fx = rx + w[0], fz = rz + w[2];
-    W[i * 3] = fx; W[i * 3 + 1] = w[1]; W[i * 3 + 2] = fz;
-    if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (fz < z0) z0 = fz; if (fz > z1) z1 = fz;
-  }
+  /* v0.61.0 效能（條件 10）：外框與最低點改用旋轉結果的快取統計（rStat）。浮點加減對常數是單調的（捨入不改大小順序），
+     所以 min(rx＋w)＝rx＋min(w)、max(c−y)＝c−min(y)，與逐點算逐位元相同；點的世界座標 rx＋R、rz＋R 要用時才算（同一個式子）。 */
+  const R = rotated(pts, set, yaw, pitch, s), st = rStat(R), n = set.length;
+  const x0 = rx + st.x0, x1 = rx + st.x1, z0 = rz + st.z0, z1 = rz + st.z1;
   /* rig.padH／rig.pad（世界單位，可省）：取樣點較稀時的保守外擴（障礙水平外擴 padH、垂直間隙多 pad）。
      預設 0＝舊行為逐位元相同；現行寫實手沒用（取全部頂點，見 table-hands），留給之後的效能卷。 */
   const pad = rig.padH || 0, clr = HAND.CLR + (rig.pad || 0); // 水平外擴 padH、垂直間隙 pad
@@ -801,26 +808,27 @@ function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY
      手可以從它底下過，只有真的會撞上時才抬到它上面（第二輪：手不再跟著令牌舉高，四家同拍時別家的令牌會從手上方飛過）。 */
   const near = obstacles.filter((o) => !(o.bottom > tableY + 0.03) && hit(o));
   const air = obstacles.filter((o) => o.bottom > tableY + 0.03 && hit(o));
-  const wp = new Array(set.length * 2);
+  const wp = new Array(n * 2);
   /* 效能（修訂 5）：地板高 fl 只在「可能改變答案」的點才算——先用桌面當地板得到 ry 的下界，
      某點就算站在最高障礙頂上也抬不過目前的 ry，就不必查它的地板（wp 的地板值改成要用時才算，見 flAt）。結果與逐點全算相同。 */
   let maxTop = tableY; for (const o of near) if (o.top > maxTop) maxTop = o.top;
-  for (let i = 0; i < set.length; i++) { wp[i * 2] = W[i * 3 + 1]; wp[i * 2 + 1] = NaN; const need = tableY + clr - W[i * 3 + 1]; if (need > ry) ry = need; }
-  const flAt = (i) => { let f = wp[i * 2 + 1]; if (f !== f) { f = near.length ? floorAt(W[i * 3], W[i * 3 + 2], near, tableY, pad) : tableY; wp[i * 2 + 1] = f; } return f; };
-  if (maxTop > tableY) for (let i = 0; i < set.length; i++) {
-    if (maxTop + clr - W[i * 3 + 1] <= ry) continue;
-    const need = flAt(i) + clr - W[i * 3 + 1];
+  for (let i = 0; i < n; i++) { wp[i * 2] = R[i * 3 + 1]; wp[i * 2 + 1] = NaN; }
+  { const need = tableY + clr - st.y0; if (need > ry) ry = need; }
+  const flAt = (i) => { let f = wp[i * 2 + 1]; if (f !== f) { f = near.length ? floorAt(rx + R[i * 3], rz + R[i * 3 + 2], near, tableY, pad) : tableY; wp[i * 2 + 1] = f; } return f; };
+  if (maxTop > tableY && maxTop + clr - st.y0 > ry) for (let i = 0; i < n; i++) { // 連最低點都抬不過 ry＝每點都會跳過（單調），整圈省掉
+    if (maxTop + clr - R[i * 3 + 1] <= ry) continue;
+    const need = flAt(i) + clr - R[i * 3 + 1];
     if (need > ry) ry = need;
   }
   for (let pass = 0; pass < 4 && air.length; pass++) {
     let lifted = false;
-    for (let i = 0; i < set.length; i++) {
-      const x = W[i * 3], y = W[i * 3 + 1] + ry, z = W[i * 3 + 2];
+    for (let i = 0; i < n; i++) {
+      const x = rx + R[i * 3], y = R[i * 3 + 1] + ry, z = rz + R[i * 3 + 2];
       for (const o of air) {
         if (y >= o.top + clr || y <= o.bottom - clr) continue;
         const inside = o.r !== undefined ? (x - o.x) * (x - o.x) + (z - o.z) * (z - o.z) <= (o.r + pad) * (o.r + pad) : Math.abs(x - o.x) <= o.hx + pad && Math.abs(z - o.z) <= o.hz + pad;
         if (!inside) continue;
-        ry = o.top + clr - W[i * 3 + 1]; lifted = true;
+        ry = o.top + clr - R[i * 3 + 1]; lifted = true;
         if (o.top > flAt(i)) wp[i * 2 + 1] = o.top;
       }
     }
@@ -1035,9 +1043,12 @@ export function createHandDirector(props, rig, per) {
   }
   /** 看得見的部分（rig.seen：袖布漸隱過半以前）有沒有落進任一信物外接圓柱、且低於其頂（回撞到的那一件或 null）。 */
   function relicHit(R, fr, s, relics) {
-    const { W } = offsets(R, fr, s), n = W.length / 3, [rx, ry, rz] = fr.root;
+    const off = offsets(R, fr, s), W = off.W, n = W.length / 3, [rx, ry, rz] = fr.root;
+    const b = off.box || (off.box = rStat(W)); // 外框與最低點（同 placeAt 的單調性論證：整件剔除只略過「不可能有點落進去」的信物）
     for (const o of relics) {
       const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
+      if (ry + b.y0 >= top) continue;
+      { const gx = Math.max(0, (rx + b.x0) - o.x, o.x - (rx + b.x1)), gz = Math.max(0, (rz + b.z0) - o.z, o.z - (rz + b.z1)); if (gx * gx + gz * gz >= rr) continue; }
       for (let i = 0; i < n; i++) {
         if (ry + W[i * 3 + 1] >= top) continue;
         const dx = rx + W[i * 3] - o.x, dz = rz + W[i * 3 + 2] - o.z;
