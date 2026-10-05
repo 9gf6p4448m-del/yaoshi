@@ -1,0 +1,18 @@
+✔ D3：GRAB_MS 單一來源——index.html CFG.GRAB_MS=1260 經 ys:reveal-result 的 grabMs 交給 3D；卡片等待由它推得 (1.995ms)
+✔ 一般得標：落定＝GRAB_MS、時間軸隨 GRAB_MS 等比縮放；落定後停 HOLD_S 才隱藏（D1） (1.5252ms)
+✔ 掙扎：抓起階段法寶相對掌心的側向位移正負交替 ≥2 次、振幅 >0（拿掉掙扎就紅） (1.2394ms)
+✔ D2：扣法——side 扣肩頸（低於頂、指尖朝上＝手臂從下方伸來，不從天上伸下來）；top（西／東越中線）扣上緣；俯角都 < 0.62 (0.2572ms)
+✔ 詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定 ≤1300ms；繩只在按住階段、受害者顫抖 (2.6546ms)
+✔ v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance.md #2）：按住起到演完，符紙堆停在受害者席前（dest）不動；受害者的手不往席位縮（只抖） (1.0625ms)
+✔ D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何 (0.381ms)
+✔ D6：純呈現——grab-motion 不碰亂數、不讀賽局；?grab=0 與 CFG.GRAB_ON 兩道開關都在 (0.4969ms)
+✔ D4：抓取專用可達只作用於 grab 類——frames() 在 REACH／俯角掃描之前分流；reveal 不覆寫抓取中的手 (0.2663ms)
+✔ 跳過：doSkip 的 ys:fx-trait-cancel 先把抓取演出跳到終態再收手；跳過中才開的件 3D 直接到終態 (0.3743ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.5413
