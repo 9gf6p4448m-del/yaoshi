@@ -895,7 +895,7 @@ export const GRAB_PAD = 0.02;
 /** ②③④ 的垂直餘量：碰撞取樣（寫實手頂點＋袖管）之外，畫面上還有少數配件頂點（手環、珠串）沒進取樣，多留這麼多蓋過它們。 */
 export const GRAB_CLR = 0.02;
 export function grabLift(rig, fr, scale, cons, obstacles, tableY, seat) {
-  const pr = prepare(rig, fr.pose, 'palm'), set = allIndex(rig), R = rotated(pr.pts, set, fr.yaw, fr.pitch, scale);
+  const pr = prepare(rig, fr.pose, 'palm'), set = cons && cons.seenOnly && rig.seen ? rig.seen : allIndex(rig), R = rotated(pr.pts, set, fr.yaw, fr.pitch, scale); // v0.61.1 r2：詛咒推按只算看得見的部分（rig.seen：袖布漸隱到 alpha≈0.2 以前），漸隱掉的袖尾不把整隻手抬上半空
   const [rx, ry, rz] = fr.root, clr = HAND.CLR, pad = GRAB_PAD, oc = HAND.CLR + GRAB_CLR;
   const boxes = (cons && cons.boxes) || [], relics = (cons && cons.relics) || [], foot = cons && cons.foot;
   const mid = cons && cons.midTop !== undefined && (seat === 2 || seat === 3) ? cons.midTop : undefined;

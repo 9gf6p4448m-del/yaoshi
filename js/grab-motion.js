@@ -137,8 +137,8 @@ export const CURSE = {
   PALM_ON: 0.03, // 施放者掌心離符紙堆頂
   C_PITCH: 0.06, // 施放者手掌蓋在堆頂、手腕略高於掌心（手臂往自己那側升起；指尖留在堆的外框內）
   PALM_BACK: 0.28, // 施放者掌心錨點從堆中心往自己那側退這麼多（指尖留在堆的外框內；驗收 #5 越中線只准從上方）
-  PRESS: 0.008, // 按住時往下壓的量（只壓在堆頂上，不穿）
-  PRESS_S: 0.12, // 按下去花多久（秒，CURSE_MS＝MS_REF 時）
+  PRESS: 0.014, // 按住時往下壓的量（只壓在堆頂上，不穿；r2 由 0.008 加深：按住時掌心貼實堆頂，acceptance 條件 15）
+  PRESS_S: 0.08, // 按下去花多久（秒，CURSE_MS＝MS_REF 時；r2 由 0.12 縮短）
   TREMBLE_LEAD: 0.08, // 受害者在落定前這麼久開始抖（秒，同上）
   FLINCH: 0.08,
   ROPE_GROW: 0.16, // 繩在按住開始後這麼久內長滿（秒，同上；seg 抽取，不重建幾何）
@@ -146,26 +146,92 @@ export const CURSE = {
   LIFT_SLOPE: 1.4, // v0.61.1：抬升包絡的最大升降速度（世界單位／秒，不隨 CURSE_MS 縮放）——可達的抬升不再一幀跳 0.7
   LAND_SLOPE: 3.0, // v0.61.1：落定前 RISE_S 那段（推上手背）允許的最大下降速度——越過別件後要在落定前降回手背高度
   WRIST: 0.13, // 手腕＝受害者掌心錨點往席位退這麼多（×手的縮放倍率由呼叫端換算前已含）
+  /* v0.61.1 r2（acceptance 條件 14–17：不再把符紙堆連同兩手抬到半空）：符紙堆貼桌繞過別件拍品走（planPath），
+     施放者的手臂若從自己席位伸來會橫越別件拍品，改從推的方向後方推（手臂留在符紙堆剛走過、已確定淨空的路上）。 */
+  ROUTE_PAD: 0.06, // 規劃路徑時，別件拍品外框再外擴「符紙堆半寬＋這麼多」
+  ARM_LEN: 0.9, ARM_R: 0.10, // 判斷「從席位伸來的手臂」會不會橫越別件拍品：掌心往後這麼長、這麼寬
+  YAW_RATE: 3.0, // 施放者手的朝向最多每秒轉這麼多弧度（換推法時不瞬轉）
 };
+
+/** 線段 p→q（xz）是否穿進 AABB o 的內部（Liang–Barsky；只碰邊不算）。 */
+function segHitsBox(p, q, o) {
+  let t0 = 0, t1 = 1; const dx = q[0] - p[0], dz = q[1] - p[1];
+  for (const [pp, d, lo, hi] of [[p[0], dx, o.x0, o.x1], [p[1], dz, o.z0, o.z1]]) {
+    if (Math.abs(d) < 1e-12) { if (pp <= lo || pp >= hi) return false; continue; }
+    let a = (lo - pp) / d, c = (hi - pp) / d; if (a > c) [a, c] = [c, a];
+    t0 = Math.max(t0, a); t1 = Math.min(t1, c); if (t0 >= t1 - 1e-9) return false;
+  }
+  return true;
+}
+/**
+ * 符紙堆貼桌的路徑（xz 折線，含頭尾）：別件拍品外框外擴 r 當障礙，可見性圖最短路（頂點＝外擴框四角）。
+ * 直線就不撞＝[a, b]；找不到＝null（呼叫端退回舊做法）。起點／終點若落在某個外擴框內，那個框不擋與它相連的邊。
+ * @param area 可走範圍 {x0,x1,z0,z1}（可省）
+ */
+export function planPath(a, b, boxes, r, area = null) {
+  const B = boxes.map((o) => ({ x0: o.x0 - r, x1: o.x1 + r, z0: o.z0 - r, z1: o.z1 + r }));
+  const inBox = (p, o) => p[0] > o.x0 && p[0] < o.x1 && p[1] > o.z0 && p[1] < o.z1;
+  const skipA = B.filter((o) => inBox(a, o)), skipB = B.filter((o) => inBox(b, o));
+  const blocked = (p, q) => B.some((o) => !((p === a || q === a) && skipA.includes(o)) && !((p === b || q === b) && skipB.includes(o)) && segHitsBox(p, q, o));
+  if (!blocked(a, b)) return [a, b];
+  const e = 0.02, nodes = [a, b];
+  for (const o of B) for (const c of [[o.x0 - e, o.z0 - e], [o.x1 + e, o.z0 - e], [o.x0 - e, o.z1 + e], [o.x1 + e, o.z1 + e]])
+    if (!B.some((x) => inBox(c, x)) && (!area || (c[0] >= area.x0 && c[0] <= area.x1 && c[1] >= area.z0 && c[1] <= area.z1))) nodes.push(c);
+  const n = nodes.length, dist = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
+  for (;;) {
+    let u = -1; for (let i = 0; i < n; i++) if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || u === 1) break; done[u] = true;
+    for (let v = 0; v < n; v++) { if (done[v] || v === u) continue; const d = dist[u] + Math.hypot(nodes[v][0] - nodes[u][0], nodes[v][1] - nodes[u][1]); if (d < dist[v] && !blocked(nodes[u], nodes[v])) { dist[v] = d; prev[v] = u; } }
+  }
+  if (!Number.isFinite(dist[1])) return null;
+  const out = []; for (let v = 1; v >= 0; v = prev[v]) out.unshift(nodes[v]);
+  return out;
+}
+/** 折線上弧長比例 u∈[0,1] 的點與切線方向。 */
+function polyAt(pts, u) {
+  const L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(l); tot += l; }
+  let s = clamp01(u) * tot;
+  for (let i = 0; i < L.length; i++) { if (s <= L[i] || i === L.length - 1) { const k = L[i] > 0 ? Math.min(1, s / L[i]) : 1, p = pts[i], q = pts[i + 1]; return { p: [p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k], d: norm2(q[0] - p[0], q[1] - p[1]) }; } s -= L[i]; }
+  return { p: pts[pts.length - 1].slice(), d: [0, 1] };
+}
 
 /**
  * 詛咒轉移 A（推過去按住）＋C（紙錢繩纏腕，只在按住階段）。
  * @param o { seatC（施放者＝毒標得標席）, seatV（受害者＝transferTarget）, from, box（符紙堆靜止外接盒）, tableY, ms }
  */
-export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null }) {
-  const k = (ms > 0 ? ms : CURSE.MS_REF) / CURSE.MS_REF, T = {}, VT = {}; // ms＝CURSE_MS（落定時長）；沒給＝MS_REF
+export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null, vdir = null, avoid = null }) {
+  const k = (Number.isFinite(ms) ? Math.max(ms, 1) : CURSE.MS_REF) / CURSE.MS_REF, T = {}, VT = {}; // ms＝CURSE_MS（落定時長）；沒給／非數字＝MS_REF；≤0＝瞬間（取 1ms，免除以零；與 index.html 揭卡等待的 max(0,CURSE_MS) 同口徑）
   for (const key in CURSE.T) T[key] = CURSE.T[key] * k;
   for (const key in CURSE.V) VT[key] = CURSE.V[key] * k;
   const pileH = box.y1 - from.y;
-  const [vx, vz] = norm2(from.x - seatV.x, from.z - seatV.z), vyaw = Math.atan2(vx, vz); // 受害者席 → 符紙堆
+  const [vx, vz] = vdir ? norm2(vdir[0], vdir[1]) : norm2(from.x - seatV.x, from.z - seatV.z), vyaw = Math.atan2(vx, vz); // 受害者席 → 符紙堆（r2：tray 可另給 vdir＝避開別件拍品的伸手方向）
   const Vp = [seatV.x + vx * victimIn, tableY + CURSE.VICTIM_Y, seatV.z + vz * victimIn]; // 受害者掌心（victimIn 由 tray 依別件拍品外框收短，手不伸進別件腳下）
-  const [cx, cz] = norm2(from.x - seatC.x, from.z - seatC.z), cyaw = Math.atan2(cx, cz); // 施放者席 → 符紙堆（手臂從自己那側來）
+  let [cx, cz] = norm2(from.x - seatC.x, from.z - seatC.z), cyaw = Math.atan2(cx, cz); // 施放者席 → 符紙堆（手臂從自己那側來）
   const P0 = [from.x, from.y, from.z];
   const P1 = [Vp[0] + vx * CURSE.KNUCKLE, tableY + CURSE.HAND_TOP, Vp[2] + vz * CURSE.KNUCKLE]; // 終點：壓在受害者手背
   const P1t = [P1[0], from.y, P1[2]];
-  const yawEnd = Math.atan2(P1[0] - seatC.x, P1[2] - seatC.z); // 推到底之後施放者手的朝向
+  /* r2：avoid（tray 給 {boxes, area}）＝貼桌繞行；施放者手的朝向逐時取（從自己席位伸來的手臂會橫越別件拍品時，改從推的方向後方推） */
+  let route = null, yawTab = null;
+  if (avoid) {
+    const r = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + CURSE.ROUTE_PAD;
+    route = planPath([P0[0], P0[2]], [P1[0], P1[2]], avoid.boxes, r, avoid.area);
+    const AB = avoid.boxes.map((o) => ({ x0: o.x0 - CURSE.ARM_R, x1: o.x1 + CURSE.ARM_R, z0: o.z0 - CURSE.ARM_R, z1: o.z1 + CURSE.ARM_R }));
+    const armClear = (p, yaw) => { const q = [p[0] - Math.sin(yaw) * CURSE.ARM_LEN, p[1] - Math.cos(yaw) * CURSE.ARM_LEN]; return !AB.some((o) => segHitsBox(p, q, o)); };
+    if (route) {
+      /* 整段同一種推法（不在半路換，換向時手臂會掃過別件）：從自己席位伸來的手臂全程都不橫越別件＝照舊；否則全程從推的方向後方推 */
+      const N = 96, Sy = [], Ty = [];
+      for (let i = 0; i <= N; i++) { const q = polyAt(route, smooth(i / N)); Sy.push([q.p, Math.atan2(q.p[0] - seatC.x, q.p[1] - seatC.z)]); Ty.push(Math.atan2(q.d[0], q.d[1])); }
+      yawTab = Sy.every(([p, y]) => armClear(p, y)) ? Sy.map((x) => x[1]) : Ty;
+      /* 轉向速度上限（雙向掃，取角度差的最短方向） */
+      const dmax = CURSE.YAW_RATE * (T.push - T.appr) / N, wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+      for (let pass = 0; pass < 2; pass++) for (let i = 1; i <= N; i++) { const j = pass ? N - i : i, k = pass ? j + 1 : j - 1, d = wrap(yawTab[j] - yawTab[k]); if (Math.abs(d) > dmax) yawTab[j] = yawTab[k] + Math.sign(d) * dmax; }
+    }
+  }
+  const yawAtU = (u) => { if (!yawTab) return null; const x = clamp01(u) * (yawTab.length - 1), i = Math.min(yawTab.length - 2, Math.floor(x)), f = x - i, a = yawTab[i], d = Math.atan2(Math.sin(yawTab[i + 1] - a), Math.cos(yawTab[i + 1] - a)); return a + d * f; };
+  const yawEnd = yawTab ? yawAtU(1) : Math.atan2(P1[0] - seatC.x, P1[2] - seatC.z); // 推到底之後施放者手的朝向
   const palmOn = pileH + CURSE.PALM_ON;
   const carry = { x0: box.x0 - from.x, x1: box.x1 - from.x, y0: box.y0 - from.y - palmOn, z0: box.z0 - from.z, z1: box.z1 - from.z };
+  if (yawTab) { cyaw = yawAtU(0); cx = Math.sin(cyaw); cz = Math.cos(cyaw); } // r2：蓋上時就從之後推的方向來
   const landAt = T.press, hideAt = T.end, end = T.end;
   const footAt = (p) => ({ x0: p[0] - from.x + box.x0, x1: p[0] - from.x + box.x1, z0: p[2] - from.z + box.z0, z1: p[2] - from.z + box.z1 });
   function victimPalm(t) {
@@ -186,11 +252,14 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       if (t < T.push) {
         /* via（tray 給，可省）：直線推會擦過別件拍品時，先貼桌往前拉到 via 再推過去（貼桌推，不從別件身上飛過） */
         const u = smooth(seg(t, T.appr, T.push)), V = via ? [via[0], from.y, via[1]] : null;
-        p = V ? (u < 0.4 ? lerp3(P0, V, u / 0.4) : lerp3(V, P1t, (u - 0.4) / 0.6)) : lerp3(P0, P1t, u); item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin(t * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
+        if (route) { const q = polyAt(route, u); p = [q.p[0], from.y, q.p[1]]; }
+        else p = V ? (u < 0.4 ? lerp3(P0, V, u / 0.4) : lerp3(V, P1t, (u - 0.4) / 0.6)) : lerp3(P0, P1t, u);
+        item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin(t * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
       else { const u = smooth(seg(t, T.push, T.press)); p = lerp3(P1t, P1, u); item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: 0, ry: 0 }; }
       holder = 'c'; carryNow = carry;
       /* 手掌蓋在堆頂推：手指朝向「自己席位 → 符紙堆現在的位置」（跟著堆轉，指尖不伸進別件拍品）。 */
-      hands.c = { pose: ['push', 'spread', t < T.push ? 0 : smooth(seg(t, T.push, T.press))], anchor: 'palm', at: [p[0], p[1] + palmOn, p[2]], yaw: Math.atan2(p[0] - seatC.x, p[2] - seatC.z), pitch: CURSE.C_PITCH }; // 推時五指併攏（拇指收著，不掃到別件），按上手背前張開
+      const cy = yawTab ? (t < T.push ? yawAtU(seg(t, T.appr, T.push)) : yawEnd) : Math.atan2(p[0] - seatC.x, p[2] - seatC.z);
+      hands.c = { pose: ['push', 'spread', t < T.push ? 0 : smooth(seg(t, T.push, T.press))], anchor: 'palm', at: [p[0], p[1] + palmOn, p[2]], yaw: cy, pitch: CURSE.C_PITCH }; // 推時五指併攏（拇指收著，不掃到別件），按上手背前張開
     } else {
       const vp = victimPalm(t); // 符紙堆壓在受害者手背上、停在席前不動（不跟著細顫，按住的那隻手壓著它；施放者收手後也不被拖回）
       item = { x: P1[0], y: P1[1], z: P1[2], rx: 0, rz: 0, ry: 0 };
@@ -205,13 +274,15 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       }
     }
     if (hands.c) hands.c.at = [hands.c.at[0] - Math.sin(hands.c.yaw) * CURSE.PALM_BACK, hands.c.at[1], hands.c.at[2] - Math.cos(hands.c.yaw) * CURSE.PALM_BACK];
+    /* r2：carry（符紙堆相對掌心錨點的外框，給可達判「堆會不會撞別件」）要跟著掌心往後退 PALM_BACK 一起換算——舊版沒換算，等於拿堆後方 0.28 的一塊去判，貼著別件推時會被誤抬 */
+    if (carryNow && hands.c) { const sx = Math.sin(hands.c.yaw) * CURSE.PALM_BACK, sz = Math.cos(hands.c.yaw) * CURSE.PALM_BACK; carryNow = { x0: carryNow.x0 + sx, x1: carryNow.x1 + sx, y0: carryNow.y0, z0: carryNow.z0 + sz, z1: carryNow.z1 + sz }; }
     /* 受害者：伸出平放、想縮又被逼回、被按住後抖（手留在符紙堆底下，不拖回） */
     if (t >= VT.reach0 && t < T.gone) hands.v = { pose: ['spread', 'rake', 0.15], anchor: 'palm', at: victimPalm(t), yaw: vyaw, pitch: 0.05 };
     for (const r of ['c', 'v']) if (!(r in hands)) hands[r] = null;
     return { hands, item, holder, carry: carryNow, foot: footAt([item.x, item.y, item.z]), rope, visible: t < hideAt, landed: t >= landAt };
   }
   return { kind: 'curse', landAt, hideAt, end, dest: { x: P1[0], y: P1[1], z: P1[2] }, roles: { c: true, v: true }, at,
-    holdFrom: T.press, holdTo: T.hold, T: Object.assign({}, T), riseFrom: T.press - CURSE.RISE_S * k };
+    holdFrom: T.press, holdTo: T.hold, T: Object.assign({}, T), riseFrom: T.press - CURSE.RISE_S * k, route };
 }
 
 /** 斜率上限的上包絡：S ≥ L（手永遠不低於可達要的高度＝不穿），往上每格最多 up·dt、往下每格最多 down(i)·dt（不瞬跳）。
