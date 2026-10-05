@@ -66,6 +66,9 @@ export const HAND = {
   RETRACT_LIFT: 0.12,
   /** 拍：令牌落地後的微顫（只往上抖，不會往下穿令牌）與停留。 */
   SLAM: { SLAP_MS: 0.12, TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.10, TRAIL: 0.13, APPROACH: 0.25 },
+  /** v0.61.0 拍令牌拇指收角（使用者 10-05 看示意裁定「外展角收小」）：拍令牌那一下的張開手（spread）拇指根 ThumbA 繞 y 的外展由 26° 收到 DEG。
+   *  只換拍令牌（slam）用的姿勢；推錢、收錢、勝方停一拍照舊用 spread。ON＝預設開；table-hands 另有網址 ?thumb=0 退回舊姿勢（寫實關閉時一律舊姿勢）。 */
+  SLAM_THUMB: { ON: true, DEG: 17 },
   /** 推（第二輪）：指尖離錢柱外緣多遠。 */
   PUSH_GAP: 0.012,
   /** 信物避讓（第三輪）：側移步長、最多幾步、離外接圓柱多留多少。 */
@@ -95,6 +98,8 @@ export const POSES = {
   spread: { Wrist: [-0.052336, 0, 0, 0.99863], IndexA: [0.034792, 0.078411, -0.002738, 0.99631], IndexB: [0.052336, 0, 0, 0.99863], IndexC: [0.034899, 0, 0, 0.999391], MiddleA: [0.043619, 0, 0, 0.999048], MiddleB: [0.061049, 0, 0, 0.998135], MiddleC: [0.034899, 0, 0, 0.999391], RingA: [0.052208, -0.069661, 0.003651, 0.996197], RingB: [0.061049, 0, 0, 0.998135], RingC: [0.043619, 0, 0, 0.999048], PinkyA: [0.051692, -0.15622, 0.008187, 0.986335], PinkyB: [0.069756, 0, 0, 0.997564], PinkyC: [0.052336, 0, 0, 0.99863], ThumbA: [0, 0.224951, 0, 0.97437], ThumbB: [-0.044881, -0.031196, 0.043341, 0.997564], ThumbC: [0.033673, 0.023405, -0.032517, 0.99863] },
   rake: { Wrist: [-0.087156, 0, 0, 0.996195], IndexA: [0.190744, -0.025696, -0.004995, 0.981291], IndexB: [0.515038, 0, 0, 0.857167], IndexC: [0.258819, 0, 0, 0.965926], MiddleA: [0.207912, 0, 0, 0.978148], MiddleB: [0.529919, 0, 0, 0.848048], MiddleC: [0.275637, 0, 0, 0.961262], RingA: [0.224917, 0.017005, 0.003926, 0.974222], RingB: [0.529919, 0, 0, 0.848048], RingC: [0.275637, 0, 0, 0.961262], PinkyA: [0.258464, 0.050553, 0.013546, 0.964602], PinkyB: [0.515038, 0, 0, 0.857167], PinkyC: [0.258819, 0, 0, 0.965926], ThumbA: [0.137059, -0.171958, 0.024167, 0.975224], ThumbB: [0.122766, 0.085332, -0.118554, 0.981627], ThumbC: [0.144733, 0.100601, -0.139767, 0.97437] },
 };
+/** v0.61.0：拍令牌專用的張開手——spread 只把拇指外展（ThumbA 繞 y）換成 HAND.SLAM_THUMB.DEG，其餘骨逐值相同。 */
+POSES.spreadT = Object.assign({}, POSES.spread, { ThumbA: [0, Math.sin((HAND.SLAM_THUMB.DEG * Math.PI) / 360), 0, Math.cos((HAND.SLAM_THUMB.DEG * Math.PI) / 360)] });
 
 /* ═══ 小工具（四元數／向量；本檔內共用）═══════════════════════════════ */
 const QI = [0, 0, 0, 1];
@@ -976,6 +981,7 @@ export function createHandDirector(props, rig, per) {
      沒給＝1 與共用 rig。擺位解算用的是畫面上那一隻手的尺寸與頂點，所以縮小、變粗變細後照樣貼桌、不穿錢與令牌。 */
   const scaleNow = (seat) => HAND.SCALE * (per && per.mul ? per.mul(seat) : 1) * (props.mode() === 'P' ? HAND.SCALE_P : 1);
   const rigOf = (seat) => (per && per.rig && per.rig(seat)) || rig;
+  const slamSpread = (per && per.slamPose) || 'spread'; // v0.61.0 拍令牌拇指收角（table-hands 給 'spreadT'）
   const rigId = new WeakMap(); let rigN = 0;
   const idOf = (R) => { let k = rigId.get(R); if (k === undefined) { k = ++rigN; rigId.set(R, k); } return k; };
   const start = (seat, act) => { hands[seat].act = Object.assign({ t: 0 }, act); };
@@ -1091,14 +1097,14 @@ export function createHandDirector(props, rig, per) {
       /* 第二輪：令牌飛行時手不上場（飛行路徑會經過拍品前方）；落地那一幀起從席位那側伸進來，SLAP_MS 內掌心蓋上去。 */
       if (!landed) return { hidden: true };
       const k = smooth(clamp01(after / HAND.SLAM.SLAP_MS));
-      const pose = ['push', 'spread', k];
+      const pose = ['push', slamSpread, k]; // v0.61.0：拍令牌的張開手（per.slamPose＝'spreadT' 拇指收角；沒給＝原 spread）
       const Rg = rigOf(h.seat), fa = prepare(Rg, pose, 'front').anchor, pa = prepare(Rg, pose, 'palm').anchor;
       const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
       const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow(h.seat) + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);
       const ta = after - HAND.SLAM.SLAP_MS;
       const trem = landed && ta > 0 && ta < HAND.SLAM.TREMBLE_MS ? Math.abs(Math.sin(ta / HAND.SLAM.TREMBLE_MS * Math.PI * 3)) * HAND.SLAM.TREMBLE_AMP * (1 - ta / HAND.SLAM.TREMBLE_MS) : 0;
       return { pose, anchor: 'palm', target: [tk.x - dx * back, tk.z - dz * back], yaw, lift: trem,
-        fit: a.pitch === undefined ? { target: [tk.tx, tk.tz], pose: ['push', 'spread', 1], obstacles: moved(obstacles, tk.x, tk.z, tk.tx, tk.tz, tk.landTop) } : undefined };
+        fit: a.pitch === undefined ? { target: [tk.tx, tk.tz], pose: ['push', slamSpread, 1], obstacles: moved(obstacles, tk.x, tk.z, tk.tx, tk.tz, tk.landTop) } : undefined };
     }
     if (a.kind === 'rake') {
       const st = props.stackAt(h.seat, a.slot);

@@ -48,6 +48,9 @@ export function createTableHands(parent, props, opts = {}) {
      不載入 hand-b1.js，整套與 v0.60.1 相同。 */
   const b1On = realOn && (opts.b1 !== undefined ? !!opts.b1 : (HAND.B1_ON !== false && q0.get('handb1') !== '0'));
   let B1 = null;
+  /* v0.61.0 拍令牌拇指收角（HAND.SLAM_THUMB）：寫實開著時預設啟用；?thumb=0（或 opts.thumb=false、HAND.SLAM_THUMB.ON=false）退回舊姿勢。
+     只換拍令牌的張開手（spreadT），推錢／收錢／停一拍不動。寫實關閉（?handreal=0）時一律舊姿勢（與 10-02 的舊手逐幀等價）。 */
+  const thumbOn = realOn && (opts.thumb !== undefined ? !!opts.thumb : (HAND.SLAM_THUMB.ON !== false && q0.get('thumb') !== '0'));
   let frameBoxes = null, frameNo = -1; // 這一幀拍品在畫面上的外框（NDC），四隻手共用
   let lastView = null; // 最後一次畫手時的 renderer／相機（只給 stats() 量拍品外框）
   const ARM_DIR = ['bottom', 'top', 'left', 'right']; // 各席袖管方向（南下、北上、西左、東右；固定）
@@ -95,7 +98,7 @@ export function createTableHands(parent, props, opts = {}) {
     for (const h of hands) h.mesh.onBeforeRender = (renderer, scene, camera) => { lastView = { renderer, camera }; }; // 只記相機給 stats()（開關兩邊都一樣，不影響畫面）
     if (realOn) {
       /* v0.59.7：每席的縮放倍率與碰撞取樣骨架（＝該種寫實手的原頂點＋配件，見 setSeats）。 */
-      director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat] });
+      director = createHandDirector(props, rig, { mul: (seat) => seatMul[seat], rig: (seat) => seatRig[seat], slamPose: thumbOn ? 'spreadT' : undefined });
       /* 袖管（修訂 6）：建構時鋪好、方向固定（沿前臂延長線指回自己席位），不每幀重鋪。stats() 的拍品外框用上面記下的相機算
          （治具量條件 14 用；遊戲本身不用）。 */
       for (const h of hands) h.arm = { edge: ARM_DIR[h.seat], fixed: true };
@@ -272,7 +275,7 @@ export function createTableHands(parent, props, opts = {}) {
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         /* 階段三：角色變體（只讀） */
-        variants: seatKey.slice(), variantBuilds, real: realOn, b1: !!B1, b1Error, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: lastView ? itemBoxes(lastView.renderer, lastView.camera).slice() : null,
+        variants: seatKey.slice(), variantBuilds, real: realOn, b1: !!B1, b1Error, thumb: thumbOn, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: lastView ? itemBoxes(lastView.renderer, lastView.camera).slice() : null,
         trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
         variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
         /* v0.59.7：每席的寫實幾何資訊（種類、面數、前臂延長）、材質名與縮放倍率（只讀） */
