@@ -1349,6 +1349,12 @@ const CFG = {
   GRAB_ON: true,
   GRAB_MS: 1260,
   GRAB_CARD_GAP_MS: 90,
+  /* v0.61.1 詛咒轉移放慢（docs/experiments/2026-10-05-curse-slow/acceptance.md；試玩「南塞西快到看不清」）：
+     CURSE_MS＝毒標得標者把詛咒品推過桌心、推上受害者手背到落定的時長，經 ys:reveal-result 的 curseMs 交給 3D 層
+     （grab-motion CURSE 時間軸依它等比縮放：推 ≈0.78、按住 0.35×CURSE_MS）。覺得拖或太快改這一個數字【試玩必調】。
+     揭盅卡等到按住結束：CURSE_MS×CURSE_CARD_K＋GRAB_CARD_GAP_MS（CURSE_CARD_K＝grab-motion CURSE.T.hold/CURSE.T.press，單元測試守兩邊相等）。 */
+  CURSE_MS: 2000,
+  CURSE_CARD_K: 1.35,
 };
 /* 《紙紮夜戰》為永久規則；紙紮夜戰之外的診斷參數仍只影響這次載入。 */
 try{
@@ -6364,7 +6370,7 @@ function revealGlow(r){
   fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,
     transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked?r.winner.target:null,
     destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked)),
-    grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, skip:CFG.GRAB_ON&&!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
+    grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, curseMs:CFG.GRAB_ON?CFG.CURSE_MS:0, skip:CFG.GRAB_ON&&!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
   const el=id=>document.getElementById("seat"+id)||(id===0?$("south"):null);
   const we=el(r.winner.p.id); if(we) we.classList.add("anim-lantern-reveal");
   for(const e of r.entries){ if(e===r.winner||!e.p.alive) continue; const le=el(e.p.id); if(le) le.classList.add("dimmed"); }
@@ -7465,6 +7471,8 @@ async function startReveal(){
     if(r.winner){ revealGlow(r); sfx("reveal",{rnd:S.rngUi()}); }   /* 揭盅音（v0.57.25 起與開市鑼 gong 分開） */
     /* 卡片必須晚於法寶落定，讓勝方金光與落標收回完整可讀。v0.60.0：手抓回時等 GRAB_MS＋GRAB_CARD_GAP_MS（由 GRAB_MS 推得）；
        關抓取（GRAB_ON=false／?grab=0）或沒有 3D 牌桌時照舊（table-tray 的拋物線 0.86 秒 → max(900,T×1.4)）。 */
+    /* v0.61.1：毒標轉移（詛咒推按）要等到按住結束才出卡（CURSE_MS 推得），先補足它比一般得標多的那段，下一行再等一般得標那段。 */
+    if(CFG.GRAB_ON&&TABLE3D&&r.winner&&r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked) await sleep(Math.max(0,Math.round(CFG.CURSE_MS*CFG.CURSE_CARD_K)-CFG.GRAB_MS));
     if(CFG.GRAB_ON&&TABLE3D) await sleep(CFG.GRAB_MS+CFG.GRAB_CARD_GAP_MS);
     else await sleep(Math.max(0.9*1000,CFG.T*1.4));
     /* 受咒音：得標者意圖是毒標＝詛咒品已塞給對手（與 recordAuction 寫進 history 的 intent 同一判定）；

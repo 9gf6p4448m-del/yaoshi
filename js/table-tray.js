@@ -993,7 +993,7 @@ export function createTableTray(scene, camera, opts = {}) {
   function startGrab(s, a, kind, seats, effect) {
     const node = s.fig ? s.fig.group : s.pile.group, mine = Object.values(seats);
     for (const o of slots) { const g = o.award?.grab || o.curseAward?.grab; if (o !== s && g && g.time < g.script.end && Object.values(g.seats).some((x) => mine.includes(x))) finishGrab(o); }
-    const box = boxOf(node), tableY = props.tableY(), ms = Number(effect.grabMs);
+    const box = boxOf(node), tableY = props.tableY(), ms = Number(kind === 'curse' ? effect.curseMs : effect.grabMs); // v0.61.1：詛咒的時長是 CURSE_MS（curseMs；沒帶＝grab-motion CURSE.MS_REF），與 GRAB_MS 脫鉤
     const others = slots.filter((o) => o !== s).map((o) => nodeOf(o.i)).filter((n) => n && n.visible).map(boxOf).map((b) => ({ x0: b.x0, x1: b.x1, z0: b.z0, z1: b.z1, top: b.y1 }));
     const script = kind === 'award'
       ? GM.makeAwardScript({ seat: props.seatPosition(seats.w), from: a.from, box, tableY, ms, style: (seats.w === 2 && box.x0 + box.x1 > 0) || (seats.w === 3 && box.x0 + box.x1 < 0) ? 'top' : 'side' }) // 西／東抓越中線那件＝從上方扣（驗收 #5）

@@ -250,7 +250,7 @@ function init() {
   const onRevealResult = (d) => {
     if (!TRAY_URL.on) return;
     if (d.slot === undefined || d.slot === null) return;
-      tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy, grabMs: d.grabMs, skip: !!d.skip }); // v0.60.0：grabMs＞0＝手抓回／詛咒推按（0＝舊拋物線），skip＝跳過中才開的件直接到終態
+      tray.props.settle(d.slot, d.winner, { transferTarget: d.transferTarget, destroy: !!d.destroy, grabMs: d.grabMs, curseMs: d.curseMs, skip: !!d.skip }); // v0.60.0：grabMs＞0＝手抓回／詛咒推按（0＝舊拋物線），skip＝跳過中才開的件直接到終態；v0.61.1：curseMs＝詛咒推按落定時長（CFG.CURSE_MS）
     if (!d.skip) tray.hands.reveal(d.slot, d.winner); // 敗方扒回、勝方停一拍（v0.60.0：跳過中才開的件手不上場——跳過＝手全收，驗收 #6）
   };
   document.addEventListener('ys:reveal-result', (e) => onRevealResult((e && e.detail) || {}));
