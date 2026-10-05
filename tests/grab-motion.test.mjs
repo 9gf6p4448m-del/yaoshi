@@ -61,7 +61,7 @@ test('v0.61.1 CURSE_MS 單一來源：index.html CFG.CURSE_MS=2000 經 ys:reveal
   assert.match(tray, /ms = Number\(kind === 'curse' \? effect\.curseMs : effect\.grabMs\)/);
   const K = Number((index.match(/CURSE_CARD_K: ([0-9.]+),/) || [])[1]);
   assert.ok(Math.abs(K - GM.CURSE.T.hold / GM.CURSE.T.press) < 1e-9, `CURSE_CARD_K ${K} ≠ hold/press`);
-  assert.match(index, /await sleep\(Math\.max\(0,Math\.round\(CFG\.CURSE_MS\*CFG\.CURSE_CARD_K\)-CFG\.GRAB_MS\)\);\r?\n\s*if\(CFG\.GRAB_ON&&TABLE3D\) await sleep\(CFG\.GRAB_MS\+CFG\.GRAB_CARD_GAP_MS\);/);
+  assert.match(index, /await pwSleep\(Math\.max\(0,Math\.round\(Math\.max\(0,CFG\.CURSE_MS\)\*CFG\.CURSE_CARD_K\)-CFG\.GRAB_MS\)\);[^\n]*\r?\n\s*if\(CFG\.GRAB_ON&&TABLE3D\) await sleep\(CFG\.GRAB_MS\+CFG\.GRAB_CARD_GAP_MS\);/); // r2 條件 19：多等的那段可被跳過叫醒
 });
 
 test('詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定＝CURSE_MS（2000 → 1800–2200）、推 ≥1.2s、按住 ≥0.6s；繩只在按住階段、受害者顫抖', () => {
@@ -110,8 +110,22 @@ test('v0.61.1 抬升規劃：符紙堆與兩手的高度 ≥ 可達需要量（�
     if (t(i) >= s.T.press + 0.2 && t(i) < s.T.hold) assert.ok(Math.abs(P.c[i] - P.c[i - 1]) < 1e-9, `施放者在按住段移動 i=${i}`);
   }
   assert.ok(Math.abs(GM.planAt(P.pile, dt, s.landAt) - 0.185) < 1e-6, '落定時堆已在手背高度');
-  assert.match(tray, /if \(kind === 'curse' && !effect\.skip\) a\.grab\.plan = planCurse\(a\.grab\);/);
+  assert.match(tray, /if \(kind === 'curse' && !effect\.skip\) \{ a\.grab\.planSt = planStart\(a\.grab\); planStep\(a\.grab, PLAN_FIRST\); \}/); // r2：規劃分攤到開演後數幀（條件 18）
   assert.match(motion, /Math\.max\(grabLift\(R0, fr, s, cons, obstacles, tableY, h\.seat\), sp\.minLift \|\| 0\)/);
+});
+
+test('v0.61.1 r2 貼桌繞行：planPath 的每一段都不穿進別件拍品外擴框；直線不撞就是直線；腳本照路徑走、符紙堆高度＝桌面；CURSE_MS≤0 不出 NaN', () => {
+  const boxes = [{ x0: -0.64, x1: -0.25, z0: 0.01, z1: 0.21 }, { x0: 0.12, x1: 0.61, z0: -0.02, z1: 0.69 }];
+  const r = 0.3, hit = (p, q) => boxes.some((o) => { for (let i = 1; i < 50; i++) { const u = i / 50, x = p[0] + (q[0] - p[0]) * u, z = p[1] + (q[1] - p[1]) * u; if (x > o.x0 - r + 1e-6 && x < o.x1 + r - 1e-6 && z > o.z0 - r + 1e-6 && z < o.z1 + r - 1e-6) return true; } return false; });
+  const path = GM.planPath([-1.35, 0.1], [1.1, 0.97], boxes, r, { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 });
+  assert.ok(path && path.length > 2, '要繞行');
+  for (let i = 1; i < path.length; i++) assert.ok(!hit(path[i - 1], path[i]), `第 ${i} 段穿進別件 ${JSON.stringify(path)}`);
+  assert.deepEqual(GM.planPath([0, -1], [0, -1.4], boxes, r), [[0, -1], [0, -1.4]]);
+  const box = { x0: -1.6, x1: -1.1, y0: 0.152, y1: 0.45, z0: -0.05, z1: 0.26 };
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: 1.22 }, seatV: { x: 1.36, z: 1.06 }, from: { x: -1.35, y: 0.152, z: 0.1 }, box, tableY: 0.152, ms: 2000, vdir: [-0.7, -0.7], avoid: { boxes, area: { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 } } });
+  assert.ok(s.route && s.route.length > 2);
+  for (let t = s.T.appr; t < s.T.push; t += 0.05) { const it = s.at(t).item; assert.equal(it.y, 0.152, `推的時候堆離桌 t=${t}`); }
+  for (const ms of [0, -5]) { const z = GM.makeCurseScript({ seatC: { x: 0, z: 1.22 }, seatV: { x: 1.36, z: 1.06 }, from: { x: -1.35, y: 0.152, z: 0.1 }, box, tableY: 0.152, ms }); assert.ok(Number.isFinite(z.landAt) && z.landAt <= 0.002 && Number.isFinite(z.at(0.0005).item.x)); }
 });
 
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {

@@ -488,6 +488,7 @@ async function main() {
           /* slow：12 組（＋extra）× 冥婚紅包；kinds：五種詛咒物 × --kc 指定的組（預設 cSW,cNS,cEW） */
           const vpName = opt.vp || 'V3';
           const { ctx, page, errs, vp } = await openPage(browser, vpName, EXTRA_Q);
+          if (opt.cursems !== undefined) await page.evaluate((v) => { CFG.CURSE_MS = v; }, Number(opt.cursems)); // 第二輪條件 19：掃 CURSE_MS（頁面 CFG，index.html 開標兩行 sleep 與 reveal-result 的 curseMs 都讀它）
           const only = opt.only ? String(opt.only).split(',') : null;
           let list = CURSE12.filter((x) => !only || only.includes(x.name));
           if (mode === 'kinds') { const kc = String(opt.kc || 'cSW,cNS,cEW').split(','); list = []; for (const kind of CURSE_KINDS) for (const n of kc) list.push(Object.assign({}, CURSE12.find((x) => x.name === n), { kind, name: n + '-' + kind })); }
@@ -514,6 +515,25 @@ async function main() {
             progress(`r2 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass] })}`);
           }
           results.modes.r2 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
+          await ctx.close();
+        } else if (mode === 'skipwait') {
+          /* 第二輪條件 19 後半：HTML 側跳過等待。照 index.html 開標那兩行（毒標轉移先 pwSleep 補差、再 sleep(GRAB_MS+GAP)）在頁內重放，
+             於 0..總長間 20 個時刻按 doSkip()，量「按下 → 兩段都等完」的毫秒；舊版（沒有第一行）同法量。真時鐘（setTimeout），不走治具的 rAF 時鐘。 */
+          const { ctx, page, errs } = await openPage(browser, 'V3', EXTRA_Q);
+          const rows = await page.evaluate(async () => {
+            const out = [], hasCurse = typeof CFG.CURSE_MS === 'number', extra = hasCurse ? Math.max(0, Math.round(Math.max(0, CFG.CURSE_MS) * CFG.CURSE_CARD_K) - CFG.GRAB_MS) : 0, total = extra + CFG.GRAB_MS + CFG.GRAB_CARD_GAP_MS;
+            for (let i = 0; i < 20; i++) {
+              const at = Math.round(total * i / 20); SKIP = false;
+              const t0 = performance.now(); let tSkip = null;
+              const run = (async () => { if (hasCurse) await pwSleep(extra); await sleep(CFG.GRAB_MS + CFG.GRAB_CARD_GAP_MS); })();
+              setTimeout(() => { tSkip = performance.now(); doSkip(); }, at);
+              await run; const t1 = performance.now();
+              out.push({ skipAt: at, afterSkipMs: tSkip === null ? 0 : Math.round(t1 - tSkip) });
+            }
+            SKIP = false; return { extra, total, rows: out, maxAfterSkip: Math.max(...out.map((r) => r.afterSkipMs)) };
+          });
+          results.modes.skipwait = { ...rows, errs };
+          progress(`skipwait max ${rows.maxAfterSkip} total ${rows.total}`);
           await ctx.close();
         } else if (mode === 'skip30') {
           const { ctx, page, errs, vp } = await openPage(browser, 'V3', EXTRA_Q);
