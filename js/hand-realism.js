@@ -208,7 +208,7 @@ export function makeSkinMaterial(base, joints) {
   return m;
 }
 
-const FRAG_PARS = /* glsl */`
+export const FRAG_PARS = /* glsl */`
 varying vec3 vRP; varying vec3 vRN; varying float vSkin; varying vec3 vAcc;
 uniform vec3 uJ[20]; uniform vec3 uWr; uniform vec3 uSkinA[4]; uniform vec3 uWarmA[4]; uniform vec3 uNailA[4]; uniform vec4 uAgeA[4]; uniform vec4 uMarksA[4]; uniform vec3 uSSSA[4]; uniform float uRoughA[4]; uniform vec4 uScar;
 float hrK = 0.0, hrA = 0.0, hrH = 0.0, hrRough = 0.7, hrMetal = 0.0; vec3 hrSSS = vec3(0.0);
@@ -225,7 +225,7 @@ vec3 hrBump(vec3 sp, vec3 n, float h){ vec3 dx = dFdx(sp), dy = dFdy(sp); vec3 r
   vec2 dh = vec2(dFdx(h), dFdy(h)); vec3 g = sign(det) * (dh.x * r1 + dh.y * r2); return normalize(abs(det) * n - g); }
 `;
 
-const FRAG_COLOR = /* glsl */`
+export const FRAG_COLOR = /* glsl */`
 {
   int hk = int(vSkin + 0.5) - 1;
   vec3 uSkin = hrPick3(uSkinA, hk), uWarm = hrPick3(uWarmA, hk), uNail = hrPick3(uNailA, hk), uSSS = hrPick3(uSSSA, hk);
@@ -305,7 +305,7 @@ const FRAG_COLOR = /* glsl */`
 `;
 
 /* 配件（aSkin＝0）：vAcc.x＝類別（2 繩、3 木、4 金屬），繩的 vAcc.y＝沿繩長（dm）、vAcc.z＝截面角。 */
-const FRAG_ACC = /* glsl */`
+export const FRAG_ACC = /* glsl */`
 {
   float cls = floor(vAcc.x + 0.5);
   if (vSkin < 0.5 && cls > 1.5) {
@@ -338,10 +338,12 @@ const FRAG_ACC = /* glsl */`
 
 /** 把角色幾何轉成寫實版：手部細分＋重塑＋前臂延長＋aSkin／aAcc 屬性。回新的 BufferGeometry（呼叫端快取）。
  *  袖管建構時鋪好一次（沿前臂延長線、漸隱收尾，見 ARM），之後不動。 */
-export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
-  const { def, kind } = realDef(key === 'default' ? null : key);
+export function realGeometry(rig, srcGeo, n0, key, variantInfo = null, ext = null) {
+  /* ext（v0.61.0 批 1 身分變體，js/hand-b1.js）：{ real: {def, kind}, accessorize(d) }——自備這種手的參數，重塑後再把配件接上去（戒指、指甲、縫線才貼得住變粗／變細後的手）。沒給＝原樣。 */
+  const { def, kind } = ext ? ext.real : realDef(key === 'default' ? null : key);
   const d = loopSubdivide(srcGeo, n0, ARM.FINE_Z);
   reshape(rig, d, def);
+  if (ext && ext.accessorize) ext.accessorize(d);
   /* 配件的蒙皮權重改抄「細分＋重塑後最近的手部頂點」（原本抄的是原 GLB 頂點；細分後那個點的權重已被平均過，
      配件會和它貼著的皮膚錯開）——配件就跟畫面上那塊皮膚走同一組骨。 */
   const nearestBase = (x, y, z) => { let best = 0, bd = Infinity; for (let v = 0; v < d.nBase; v++) { const dx = d.P[v * 3] - x, dy = d.P[v * 3 + 1] - y, dz = d.P[v * 3 + 2] - z, dd = dx * dx + dy * dy + dz * dz; if (dd < bd) { bd = dd; best = v; } } return best; };
@@ -416,6 +418,7 @@ export function realGeometry(rig, srcGeo, n0, key, variantInfo = null) {
   if (variantInfo) g.userData.variant = variantInfo; // 變體配件資訊照舊可查（治具／測試）
   g.userData.real = { key, kind, verts: d.P.length / 3, tris: keep.length / 3, nBase: d.nBase, arm: [tubeStart, d.P.length / 3] };
   g.userData.armRing = ring;
+  if (ext && d.parts) g.userData.b1parts = d.parts; // 批 1：各辨識物的頂點範圍（治具量投影尺寸、圓度用）
   return g;
 }
 

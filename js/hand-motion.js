@@ -32,6 +32,8 @@ export const HAND = {
   USER_SCALE: 1,
   /** v0.59.7 修訂 4：寫實手總開關（false＝整套回 v0.59.6 的手；網址 ?handreal=0 同效）。 */
   REAL_ON: true,
+  /** v0.61.0 批 1 身分變體總開關（青面攤主／紅衣婆婆／斷手書生／大家樂組頭的專屬手，js/hand-b1.js）：預設開；false 或網址 ?handb1=0＝四角色退回預設手（寫實關閉時一律關）。 */
+  B1_ON: true,
   /** 直式另乘的倍率（使用者裁定只玩橫式；直式只保機械檢查，不做美術）：0.6。 */
   SCALE_P: 0.6,
   /** 袖子（第二輪）：整段黑袖拿掉，只留腕部一圈短袖口邊（≤前臂 1/5），其後的袖布由暗轉淡、以 alphaHash 抖色漸隱。
@@ -436,6 +438,9 @@ function accBuilder() {
     },
   };
 }
+
+/** v0.61.0 批 1 身分變體（js/hand-b1.js）共用的配件工具出口；本檔行為不變。 */
+export const ROLE_PARTS = { accBuilder: () => accBuilder(), boneWorld: (rig, name) => boneWorld(rig, name), crossSection: (...a) => crossSection(...a) };
 
 /** 骨 bind 世界位置（bind 旋轉為單位，父座標位置累加）。 */
 function boneWorld(rig, name) {
