@@ -27,3 +27,6 @@
 12. 全套測試綠。**預期要改寫的舊斷言限於**：tests/table-hands-roles.test.mjs（第 19、21 行把四角色當預設手、V1／V2 斷言 variants 為 null 與 real.key 為 'default'、第 170 行快取鍵 'hand-real-v2'、第 203–227 行 realGeometry 的 Math.random 計數）、tests/table-hands.test.mjs:83（'hand-real-v2'）、tests/hand-realism-render.test.mjs（材質陣列 4 種→8 種）、tests/tools/hands-roles-*、hand-acc-roundness（角色清單與配件色表）。新斷言須對 4691a7ce 紅。清單外測試被迫改＝停手回報。★此清單的改寫需使用者簽核（§2.1：原斷言守的是「四角色用預設手」這個舊設計）；**簽核前不得做 ⑤ 測試改寫**★
 13. 版本 v0.61.0（VERSION／RELEASE_VERSION、各 ?v=）。送達：推 main 前先告知使用者；推後 curl 線上版本與 Pages built 時間。
 14. 範圍外（只記錄）：皮膚寫實度、斑點迷彩感、手尺寸、批 3 角色、北席縫痕、詛咒推按速度（v0.60.2 另卷）。
+
+## 修訂記錄
+- 2026-10-05（主對話，§2.1 例外：原條件恆假，自行修正、事後回報）：條件 11 字面「`?handb1=0` 退回時逐幀雜湊對 4691a7ce 190/190」與條件 4「拇指收角套用所有手」互斥——只帶 ?handb1=0 時拍令牌 40 幀必不等（agent 實測 150/190、不等幀全是拍令牌），任何實作都不可能同時通過。修正為：退回開關須同時關閉拇指（`?handb1=0&thumb=0`）時對 4691a7ce 逐幀 190/190（連跑 3 次）；且只帶 `?handb1=0` 時，不等的幀必須全落在拍令牌姿勢。判準：此修正不會讓壞掉的實作變通過（agent 已實測 12/12 次 190/190、且動到推錢／收錢者仍會紅）。
