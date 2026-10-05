@@ -1032,7 +1032,7 @@ export function createTableTray(scene, camera, opts = {}) {
   /** v0.61.1 詛咒推按的抬升規劃：開演時沿腳本每 PLAN_DT 秒問一次可達「這一格要抬多少」（不改手的狀態），
    *  交給 GM.planCurseLift 取斜率上限包絡——符紙堆與兩隻手的高度連續（不再一幀跳 0.1–0.7），且永遠不低於可達要的（不穿）。
    *  演出中桌上障礙若變高（錢被扒回途中），可達的即時值仍會蓋過規劃（minLift 只往上墊）。 */
-  const PLAN_DT = 1 / 30;
+  const PLAN_DT = 1 / 15; // 每 1/15 秒問一次（開演那一幀的成本有限）
   function planCurse(g) {
     const sc = g.script, n = Math.ceil(sc.end / PLAN_DT) + 1, L = { c: [], v: [] };
     for (let i = 0; i < n; i++) {
