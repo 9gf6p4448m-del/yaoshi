@@ -43,6 +43,17 @@ export const AWARD = [
   { name: 'Wfar', seat: 2, slot: 3, loser: 0, extra: true }, { name: 'Efar', seat: 3, slot: 0, loser: 1, extra: true },
 ];
 export const CURSE = [{ name: 'cNS', seat: 1, slot: 2, target: 0, loser: 3 }, { name: 'cWE', seat: 2, slot: 1, target: 3, loser: 0 }];
+/* v0.61.1 驗收（docs/experiments/2026-10-05-curse-slow/acceptance.md 條件 2–7）：施放者≠受害者的 12 個有序組合（席 0南 1北 2西 3東）。
+   槽位：每席三組分到不同槽、四槽各用 3 次（含遠距離與越中線：南塞西用槽 2、西塞東用槽 1、東塞西用槽 3…）；loser＝另一席同槽出價。
+   extra：使用者試玩那組「南塞西」另跑其餘三個槽（加嚴，不計入 12 組分母）。 */
+const SN = ['S', 'N', 'W', 'E'];
+const C12 = [[0, 1, 1], [0, 2, 2], [0, 3, 0], [1, 0, 2], [1, 2, 3], [1, 3, 0], [2, 0, 3], [2, 1, 2], [2, 3, 1], [3, 0, 0], [3, 1, 1], [3, 2, 3]];
+export const CURSE12 = [
+  ...C12.map(([c, v, slot]) => ({ name: 'c' + SN[c] + SN[v], seat: c, target: v, slot, loser: [0, 1, 2, 3].find((x) => x !== c && x !== v) })),
+  ...[0, 1, 3].map((slot) => ({ name: 'cSW' + slot, seat: 0, target: 2, slot, loser: 1, extra: true })),
+];
+/* 條件 10：五種詛咒物（冥婚紅包 wedding／魔神仔的芭樂 guava／抓交替水符 water／縛靈鎖 lock／白虎煞 tiger） */
+export const CURSE_KINDS = ['wedding', 'guava', 'water', 'lock', 'tiger'];
 
 const PAGE_LIB = () => {
   window.__gp = {
@@ -61,11 +72,11 @@ const PAGE_LIB = () => {
       window.__THREE = await import('three');
       window.__rnd = 0; const R0 = Math.random; Math.random = function () { window.__rnd++; return R0.call(Math); }; // 驗收 #1：演出期間 Math.random 呼叫數
     },
-    async reset(slot, curse) {
+    async reset(slot, curse, kind = 'wedding') {
       const T = window.__yaoshi3d.tray;
       T.hands.finish(); T.props.clearRound(); T.hands.clear(); T.setItems([]);
       const list = window.__base.map((x) => Object.assign({}, x));
-      if (curse) list[slot] = { key: null, curse: true, curseKind: 'wedding', fac: null };
+      if (curse) list[slot] = { key: null, curse: true, curseKind: kind, fac: null };
       T.setItems(list);
       document.getElementById('stage').innerHTML = '';
       document.dispatchEvent(new CustomEvent('ys:reveal-card', { detail: { winner: null } }));
@@ -77,8 +88,12 @@ const PAGE_LIB = () => {
       window.__rest = { top: b.max.y, pos: window.__nodes[slot].position.toArray() };
       return { found: window.__nodes.map(Boolean), rest: window.__rest };
     },
-    cardWaitMs() { return (typeof CFG !== 'undefined' && CFG.GRAB_ON && CFG.GRAB_MS) ? CFG.GRAB_MS + CFG.GRAB_CARD_GAP_MS : Math.max(900, CFG.T * 1.4); },
+    cardWaitMs(curse) { /* 同 index.html 開標那兩行 sleep（v0.61.1 起毒標轉移先補 CURSE_MS×CURSE_CARD_K−GRAB_MS；舊版沒有 CURSE_MS＝不補） */
+      const extra = curse && CFG.GRAB_ON && CFG.CURSE_MS ? Math.max(0, Math.round(CFG.CURSE_MS * CFG.CURSE_CARD_K) - CFG.GRAB_MS) : 0;
+      return (typeof CFG !== 'undefined' && CFG.GRAB_ON && CFG.GRAB_MS) ? extra + CFG.GRAB_MS + CFG.GRAB_CARD_GAP_MS : Math.max(900, CFG.T * 1.4); },
     grabMsDetail() { return (typeof CFG !== 'undefined' && CFG.GRAB_ON && CFG.GRAB_MS) ? CFG.GRAB_MS : 0; },
+    curseMsDetail() { return (typeof CFG !== 'undefined' && CFG.GRAB_ON && CFG.CURSE_MS) ? CFG.CURSE_MS : 0; },
+    cfgCurseMs() { return typeof CFG !== 'undefined' && Number.isFinite(CFG.CURSE_MS) ? CFG.CURSE_MS : null; },
     rect(sel) { const e = document.querySelector(sel); if (!e || !e.getClientRects().length || getComputedStyle(e).visibility === 'hidden' || getComputedStyle(e).display === 'none') return null; const r = e.getBoundingClientRect(); return r.width && r.height ? [r.left, r.top, r.right, r.bottom] : null; },
     measure(ctx) {
       const THREE = window.__THREE, Y = window.__yaoshi3d, T = Y.tray, cam = Y.camera, cw = innerWidth, ch = innerHeight;
@@ -198,17 +213,18 @@ export const ev = (page, n, d) => page.evaluate(([n, d]) => document.dispatchEve
 export const step = (page, n) => page.evaluate((n) => window.__step(n), n);
 
 /** 跑一個情境：擺錢 → 微距 → 結算 → 逐幀量（與可選連拍）。回 { frames, cardMs, landed… }。 */
-async function runScenario(page, vp, sc, isCurse, { shots = false, prefix = '', totalS = 2.0, perf = false, skipAt = null } = {}) {
-  const rs = await page.evaluate(([slot, c]) => window.__gp.reset(slot, c), [sc.slot, isCurse]);
+async function runScenario(page, vp, sc, isCurse, { shots = false, prefix = '', totalS = 2.0, perf = false, skipAt = null, shotDir = OUT } = {}) {
+  const rs = await page.evaluate(([slot, c, k]) => window.__gp.reset(slot, c, k), [sc.slot, isCurse, sc.kind || 'wedding']);
   await ev(page, 'ys:bid', { seat: sc.seat, slot: sc.slot, amount: 6 }); await step(page, 50);
   await ev(page, 'ys:bid', { seat: sc.loser, slot: sc.slot, amount: 4 }); await step(page, 70);
   if (isCurse) { await ev(page, 'ys:bid', { seat: sc.target, slot: (sc.slot + 2) % 4, amount: 3 }); await step(page, 70); }
   await ev(page, 'ys:reveal-slot', { slot: sc.slot, ms: 812 }); await step(page, 49);
-  const cardMs = await page.evaluate(() => window.__gp.cardWaitMs());
+  const cardMs = await page.evaluate((c) => window.__gp.cardWaitMs(c), isCurse);
   const grabMs = await page.evaluate(() => window.__gp.grabMsDetail());
+  const curseMs = await page.evaluate(() => window.__gp.curseMsDetail()), cfgCurseMs = await page.evaluate(() => window.__gp.cfgCurseMs());
   if (perf) await page.evaluate(() => { window.__tu = []; });
   const rnd0 = await page.evaluate(() => window.__rnd);
-  await ev(page, 'ys:reveal-result', { winner: sc.seat, slot: sc.slot, transferTarget: isCurse ? sc.target : null, destroy: false, grabMs, skip: false });
+  await ev(page, 'ys:reveal-result', { winner: sc.seat, slot: sc.slot, transferTarget: isCurse ? sc.target : null, destroy: false, grabMs, curseMs, skip: false });
   const frames = []; let cardSent = false, skipped = null; let fi = 0;
   const N = Math.round(totalS * 60);
   for (let f = 0; f <= N; f++) {
@@ -225,12 +241,12 @@ async function runScenario(page, vp, sc, isCurse, { shots = false, prefix = '', 
     if (!perf) {
       const m = await page.evaluate((safe) => window.__gp.measure({ safe }), vp.safe);
       frames.push({ f, tms, ...m });
-      if (shots && f % 6 === 0) { await page.screenshot({ path: path.join(OUT, `${prefix}${sc.name}-${String(fi).padStart(2, '0')}-${String(tms).padStart(4, '0')}ms.png`) }); fi++; }
+      if (shots && f % 6 === 0) { await page.screenshot({ path: path.join(shotDir, `${prefix}${sc.name}-${String(fi).padStart(2, '0')}-${String(tms).padStart(4, '0')}ms.png`) }); fi++; }
     }
   }
   const tu = perf ? await page.evaluate(() => { const a = window.__tu.slice(); window.__tu = null; return a; }) : null;
   const randomCalls = (await page.evaluate(() => window.__rnd)) - rnd0;
-  return { randomCalls, scenario: sc, isCurse, rest: rs.rest, found: rs.found, cardMs, grabMs, cardSentMs: cardSent, frames, skipped, tu };
+  return { randomCalls, scenario: sc, isCurse, rest: rs.rest, found: rs.found, cardMs, grabMs, curseMs, cfgCurseMs, cardSentMs: cardSent, frames, skipped, tu };
 }
 
 /* ── 判定器（純函式；量不到判紅）─────────────────────────────────── */
@@ -364,6 +380,39 @@ export function judgeCurseEnd(run, landed) {
   return { end2: o, pass2c: pass };
 }
 
+/* ── v0.61.1 詛咒放慢判定器（docs/experiments/2026-10-05-curse-slow/acceptance.md；量不到一律判紅）──────────
+   c2：落定（judgeCurse 的口徑：開始移動後第一次連續 6 幀位移 <2mm）落在頁面 CFG.CURSE_MS ±10%，且 CFG.CURSE_MS ∈ [1800,2200]；舊版沒有 CURSE_MS ⇒ 紅。
+   c3：推過桌心階段＝開始移動 → 落定，≥1200ms；該階段法寶螢幕外框（可見頂點投影）中心每 100ms（6 幀）位移的最大值 step100（與基準同組比 ≤0.6 倍在 curse-slow-compare.mjs 判）；
+       按住停留＝落定 → 施放者收手開始，≥600ms。收手開始＝落定＋150ms（按下去已停）那一幀施放者 Palm 骨位置為參考，之後第一幀偏離 >5mm 或施放者手消失。
+   c4：施放者＋受害者的手最低點 ≥ 桌面、頂點落進非被推拍品外接盒 0 點（judgeCommon pass4）。
+   c5：卡片時刻 ≥ 落定，且開始移動 → 落定每幀施放者 Palm 在 #felt 掏空窗內、法寶螢幕框不壓 HUD／不出畫面（judgeCommon pass7）。
+   c6：繩只在按住階段（outsideHold 0）、可見 ≥12 幀、844 寬 ≥3px、幾何 uuid 1 個；受害者手交替峰 ≥3（v0.60 是 ≥2，本卷加嚴）。 */
+export function judgeCurseSlow(run) {
+  const j = judgeCurse(run), fr = run.frames, sc = run.scenario, p0 = run.rest.pos, landed = j.landedMs;
+  const mi = fr.findIndex((x) => x.item && x.item.pos && Math.hypot(x.item.pos[0] - p0[0], x.item.pos[1] - p0[1], x.item.pos[2] - p0[2]) > 1e-3);
+  const movedFrom = mi >= 0 ? fr[mi].tms : null, cfg = run.cfgCurseMs;
+  const c2 = { cfgCurseMs: cfg, landedMs: landed, pass: cfg !== null && cfg >= 1800 && cfg <= 2200 && landed !== null && Math.abs(landed - cfg) <= 0.1 * cfg };
+  const push = movedFrom !== null && landed !== null ? fr.filter((x) => x.tms >= movedFrom && x.tms <= landed) : [];
+  const ctr = push.map((x) => (x.item && x.item.screen ? [(x.item.screen[0] + x.item.screen[2]) / 2, (x.item.screen[1] + x.item.screen[3]) / 2] : null));
+  let step100 = null; const missing = ctr.filter((c) => !c).length;
+  if (ctr.length > 6 && !missing) { step100 = 0; for (let i = 0; i + 6 < ctr.length; i++) step100 = Math.max(step100, Math.hypot(ctr[i + 6][0] - ctr[i][0], ctr[i + 6][1] - ctr[i][1])); step100 = +step100.toFixed(2); }
+  let retractAt = null; const refF = landed !== null ? fr.find((x) => x.tms >= landed + 150) : null, ref = refF && refF.hands[sc.seat] ? refF.hands[sc.seat].palm : null;
+  if (ref) for (const x of fr) { if (x.tms <= refF.tms) continue; const h = x.hands[sc.seat]; if (!h || Math.hypot(h.palm[0] - ref[0], h.palm[1] - ref[1], h.palm[2] - ref[2]) > 0.005) { retractAt = x.tms; break; } }
+  const c3 = { movedFromMs: movedFrom, pushMs: landed !== null && movedFrom !== null ? landed - movedFrom : null, step100, stepMissing: missing, retractAt, holdMs: retractAt !== null && landed !== null ? retractAt - landed : null };
+  c3.passAbs = c3.pushMs !== null && c3.pushMs >= 1200 && step100 !== null && c3.holdMs !== null && c3.holdMs >= 600;
+  const c4 = { hands: j.hands, pass: j.pass4 };
+  const c5 = { card: j.card, frame7: j.frame7, hudBad: j.hud.badFrames, pass: j.pass7 };
+  const c6 = { rope: j.rope, tremble: j.tremble, pass: j.ropeOK && j.tremble.peaks >= 3 && j.tremble.amp > 0 };
+  return { name: sc.name, caster: sc.seat, victim: sc.target, slot: sc.slot, kind: sc.kind || 'wedding', extra: !!sc.extra, pusher: j.pusher, casterOK: j.casterOK, pass2c: j.pass2c, c2, c3, c4, c5, c6, randomCalls: run.randomCalls };
+}
+/* 30 個跳過時刻（v0.60.0 skip 治具同法：跳過前量 dest、跳過＋1 幀後法寶在 dest、四手不可見）：前 12 個＝12 組各一次，其餘 18 個隨機組；時刻 mulberry32 固定種子 ∈ [50, 3000]ms。 */
+export function skip30() {
+  let a = 20261005; const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const core = CURSE12.filter((x) => !x.extra), out = [];
+  for (let i = 0; i < 30; i++) out.push([i < 12 ? core[i] : core[Math.floor(rnd() * 12)], 50 + Math.round(rnd() * 2950)]);
+  return out;
+}
+
 async function main() {
   progress(`start root=${ROOT} modes=${MODES} q=${EXTRA_Q}`);
   const results = { root: ROOT, tag: TAG, git: (() => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim(); } catch (e) { return null; } })(), dirty: (() => { try { return execFileSync('git', ['status', '--short', '--', 'js', 'index.html'], { cwd: ROOT }).toString(); } catch (e) { return null; } })(), modes: {} };
@@ -384,6 +433,38 @@ async function main() {
             progress(`${mode} ${sc.name} ${JSON.stringify({ landed: j.landedMs, p2: j.pass2, p3: j.pass3, p4: j.pass4, p5: j.pass5mid, p7: j.pass7, p8: j.pass8, p2c: j.pass2c })}`);
           }
           results.modes[mode + '-' + vpName] = { rows, errs };
+          await ctx.close();
+        } else if (mode === 'slow' || mode === 'kinds') {
+          /* slow：12 組（＋extra）× 冥婚紅包；kinds：五種詛咒物 × --kc 指定的組（預設 cSW,cNS,cEW） */
+          const vpName = opt.vp || 'V3';
+          const { ctx, page, errs, vp } = await openPage(browser, vpName, EXTRA_Q);
+          const only = opt.only ? String(opt.only).split(',') : null;
+          let list = CURSE12.filter((x) => !only || only.includes(x.name));
+          if (mode === 'kinds') { const kc = String(opt.kc || 'cSW,cNS,cEW').split(','); list = []; for (const kind of CURSE_KINDS) for (const n of kc) list.push(Object.assign({}, CURSE12.find((x) => x.name === n), { kind, name: n + '-' + kind })); }
+          const shotDir = opt.shotdir ? path.resolve(String(opt.shotdir)) : OUT; if (SHOTS) fs.mkdirSync(shotDir, { recursive: true });
+          const rows = [];
+          for (const sc of list) {
+            const run = await runScenario(page, vp, sc, true, { shots: SHOTS, prefix: mode + '-', totalS: Number(opt.totals || 3.4), shotDir });
+            const j = judgeCurseSlow(run); rows.push(j);
+            if (opt.raw) fs.writeFileSync(path.join(OUT, `raw-${mode}-${sc.name}.json`), JSON.stringify(run));
+            progress(`${mode} ${sc.name} ${JSON.stringify({ landed: j.c2.landedMs, c2: j.c2.pass, push: j.c3.pushMs, step: j.c3.step100, hold: j.c3.holdMs, c3: j.c3.passAbs, c4: j.c4.pass, c5: j.c5.pass, c6: j.c6.pass, pusher: j.pusher, rnd: j.randomCalls })}`);
+          }
+          results.modes[mode] = { rows, errs };
+          await ctx.close();
+        } else if (mode === 'skip30') {
+          const { ctx, page, errs, vp } = await openPage(browser, 'V3', EXTRA_Q);
+          const rows = [];
+          for (const [sc, at] of skip30()) {
+            const run = await runScenario(page, vp, sc, true, { skipAt: at, totalS: 3.4 });
+            const b = run.skipped && run.skipped.before, a = run.skipped && run.skipped.after;
+            const st = b && b.grabState && b.grabState.find((g) => g.slot === sc.slot);
+            const dest = st ? st.dest : null;
+            const atEnd = !!(a && dest && a.item && a.item.pos && Math.hypot(a.item.pos[0] - dest.x, a.item.pos[1] - dest.y, a.item.pos[2] - dest.z) < 1e-6);
+            const noHands = !!(a && a.handsVisible && a.handsVisible.length === 0);
+            rows.push({ name: sc.name, skipAtMs: at, dest, inShow: !!st, after: a ? { item: a.item, handsVisible: a.handsVisible } : null, atEnd, noHands, pass: atEnd && noHands });
+            progress(`skip30 ${sc.name}@${at} inShow=${!!st} pass=${atEnd && noHands}`);
+          }
+          results.modes.skip30 = { rows, errs, pass: rows.length === 30 && rows.every((r) => r.pass) };
           await ctx.close();
         } else if (mode === 'hud') {
           const rows = [];
@@ -418,12 +499,13 @@ async function main() {
           }
           results.modes.skip = { rows, errs, pass: rows.length > 0 && rows.every((r) => r.pass) };
           await ctx.close();
-        } else if (mode === 'perf') {
+        } else if (mode === 'perf' || mode === 'perf12') {
           const rounds = [];
           for (let r = 0; r < ROUNDS; r++) {
             const { ctx, page, vp } = await openPage(browser, 'V3', EXTRA_Q);
             const all = [];
-            for (const [list, isC] of [[AWARD.filter((x) => !x.extra), false], [CURSE, true]]) for (const sc of list) { const run = await runScenario(page, vp, sc, isC, { perf: true, totalS: 1.8 }); all.push(...run.tu); }
+            const cl = mode === 'perf12' ? CURSE12.filter((x) => !x.extra) : CURSE, cs = mode === 'perf12' ? 3.2 : 1.8; // perf12（v0.61.1 條件 9）：詛咒 12 組、各 3.2 秒
+            for (const [list, isC] of [[AWARD.filter((x) => !x.extra), false], [cl, true]]) for (const sc of list) { const run = await runScenario(page, vp, sc, isC, { perf: true, totalS: isC ? cs : 1.8 }); all.push(...run.tu); }
             all.sort((a, b) => a - b);
             rounds.push({ n: all.length, p50: all[Math.floor(all.length * 0.5)], p95: all[Math.floor(all.length * 0.95)], max: all[all.length - 1] });
             progress(`perf round ${r} ${JSON.stringify(rounds[r])}`);
