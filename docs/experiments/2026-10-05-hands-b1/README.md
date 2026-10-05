@@ -88,3 +88,37 @@ SHA 與分段見 `progress.md`。
 - 工具：`tools/`（b1-node.mjs、c1-random、c2-pixels＋c2_compare.py、c3-features、c11-handreal-off、eq-frames＋eq_compare.py、shoot／thumb／detail／perf／hands-occlusion 由示意卷複製、blind_set.py、contact_v061.py）。
 - 盲讀圖：`blind-c7-r1/`、`blind-c8/`；鍵與紀錄：`blind-key/`。
 - 給使用者看：`final/contact-v061.png`、`final/contact-v061-north.png`、`final/compare-{qingmian,hongyi,duanshou,zutou}.png`。
+
+---
+
+## 第二輪（2026-10-05，依 acceptance 修訂記錄 09a9ce7f：A 效能一輪、B 遮擋補跑、C 圓度新量法、D 測試改寫、E 版本、F 重跑）
+
+### 總表（第二輪後）
+| # | 結果 | 一句話證據 |
+|---|---|---|
+| 1 | 過 | 版本改 0.61.0 後重跑 `c1-trace-eq-v0610.txt` equal:true；`rerun/c1-random-new.json` 每幀 Math.random 0 |
+| 2 | 過 | `c2/r2new{1,2}-pixels.json`：既有手 16/16 對 4691a7ce 逐像素相同；批 1 正對照 0/16 相同；32/32 格與 17719639 版逐位元組相同（外觀未變） |
+| 3 | 過 | `rerun/c3-features-new.json` 40/40 |
+| 4 | 過 | `rerun/r2new-thumb.json`：拍令牌八種手 40.8°／39.8°，推錢／收錢角度不變；`?handb1=0` 不等幀只在 slam 段 |
+| 5 | 過（新量法） | `c5-roundness-facing-none.json`：銅錢朝向 ≤45° 的 3 枚 min 0.9757（特寫）／0.9644（遊戲）；金戒 0.956、錶殼 0.964、錶面 0.946（原量法原門檻）。正對照：正方形銅錢 `c5-roundness-facing-square.json` min 0.786＝紅；方塊 `c5-roundness-facing-box.json` 朝向 ≤45° 的 0 枚＝量不到＝紅 |
+| 6 | 過（附記） | 補跑 `c6/occl-b1seats-11..15.json`＋同名 .log（stderr 保留）：5/5 量到、最大 9.46–9.55% ≤10%、未再崩潰。如實記載：第一輪第 4 次曾崩潰一次，原因未查到，不以補跑抵銷 |
+| 7、8 | 過（沿用第 1 輪盲讀） | 外觀與 17719639 逐像素相同（條件 2 的 32/32），依指示不重讀 |
+| 9 | 過 | `rerun/r2new-detail.json`：髮辮南 3.4px／北 2.3px；縫痕帶 2.3px、針長 4.5px（同前） |
+| 10 | **過** | 三批交錯各 5 輪（`c10/r4{a,b,c}-*`）：批 1 席 p95 中位 5.5／5.8／5.7 ms ≤ 門檻 6.875（基準一般手 5.5×1.25）；既有手 5.3／5.1／5.4 ms。本機 Chromium；**iPhone 未驗** |
+| 11 | 過 | `rerun/r2-b1off-thumb0-{4000,10000000}-r{1,2,3}`：6/6 次 190/190；只帶 `?handb1=0` 150/190、不等幀全在 slam；`rerun/c11-handreal-off.json` 對 4691a7ce 逐幀相等 |
+| 12 | 過 | `c12-full-suite-final.txt` 472/472（fixture 已接上 hand-b1，新增的批 1 測試在綠燈中＝真的驗到批 1）；改寫後斷言放回 4691a7ce：`c12-rewritten-tests-on-4691a7ce.txt` 6 紅 |
+| 13 | 版本字串過；送達未做 | VERSION／RELEASE_VERSION／theme.css、safe-area.css `?v=0.61.0`（commit 94e47f68）；未 push |
+| 14 | 只記錄 | 同第一輪 |
+
+### A 效能（commit 46f43171）
+`placeAt` 的外框與最低點改用旋轉結果的快取統計（浮點加減對常數單調：min(rx＋w)＝rx＋min(w)、max(c−y)＝c−min(y)），「連最低點都抬不過」時整圈省掉；`relicHit` 以外框與最低點整件剔除不可能命中的信物。證明（同 05bf58f8 法）：node 4 段事件序列（L／P×兩種座位）雜湊改前改後相同；實頁 `rerun/r2-default-*` 對改前 `c11/eq-default-*` 190/190（兩個時鐘起點）；外觀 32/32 逐位元組相同。這段程式碼所有手共用，既有手同樣逐位元相同（條件 2）。
+
+### C 圓度新量法（`tools/hand-acc-roundness-facing.mjs`）
+由 10-02 治具原樣複製，凸包圓度、焊接連通分量、兩台相機都不動；只加「朝向角」：配件世界頂點的共變異矩陣最小特徵向量＝平面法線，與「配件中心→相機」夾角取 |cos|，≤45° 才計入（只套銅錢群組 `--facing=coin`）。朝向 ≤45° 的枚數為 0 ⇒ 量不到＝紅。
+
+### D 測試改寫（commit d0282ca9）
+- `tests/hand-fixture.mjs:64–72`：data: 模組把 `import('./hand-b1.js')` 也換掉（hand-b1 自己的 motion／realism 指向同一實例）；4691a7ce 沒有 hand-b1 ⇒ 不換。
+- `tests/table-hands.test.mjs:83–87`：材質鍵 `hand-real-b1`＋uniform 陣列 8 種。
+- `tests/table-hands-roles.test.mjs`：OTHER7 拆成 B1_4／OTHER3；V1、V3、V4 第 4 席預設手對照由青面改孝女白琴（只換輸入，斷言原意不變；這兩條在 4691a7ce 上仍綠，B1 行為由 V2 新增段與新測試把關）；V2 加「批 1 四角色各拿專屬手」、份數上限 4 種×4 席→8 種×4 席、幾何同一性改 `assert.ok(===)`（失敗時不格式化大幾何，避開 RangeError／OOM）；V3 材質鍵改 `hand-real-b1`；新增「批 1：…專屬手」測試（辨識物真的送進 GPU、≤6,500 面、無貼圖、每幀不重建）。
+- `tests/ui-hierarchy.test.mjs:25`：版本釘 0.61.0。
+- 4691a7ce 上紅的：#B1、V2、V3 L／P、批 1 新測試、版本釘（6 紅）；其餘清單外測試沒有被迫改。

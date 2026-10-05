@@ -1,0 +1,50 @@
+c2 r2new1 exit 0
+c2 r2new2 exit 0
+c4 exit 0
+c9 exit 0
+eq default 4000 exit 0
+eq b1off-thumb0 4000 r1 exit 0
+eq b1off-thumb0 4000 r2 exit 0
+eq b1off-thumb0 4000 r3 exit 0
+eq b1off 4000 exit 0
+eq default 10000000 exit 0
+eq b1off-thumb0 10000000 r1 exit 0
+eq b1off-thumb0 10000000 r2 exit 0
+eq b1off-thumb0 10000000 r3 exit 0
+eq b1off 10000000 exit 0
+perf a base 1 exit 0
+perf a new 1 exit 0
+perf a base 2 exit 0
+perf a new 2 exit 0
+perf a base 3 exit 0
+perf a new 3 exit 0
+perf a base 4 exit 0
+perf a new 4 exit 0
+perf a base 5 exit 0
+perf a new 5 exit 0
+perf b base 1 exit 0
+perf b new 1 exit 0
+perf b base 2 exit 0
+perf b new 2 exit 0
+perf b base 3 exit 0
+perf b new 3 exit 0
+perf b base 4 exit 0
+perf b new 4 exit 0
+perf b base 5 exit 0
+perf b new 5 exit 0
+perf c base 1 exit 0
+perf c new 1 exit 0
+perf c base 2 exit 0
+perf c new 2 exit 0
+perf c base 3 exit 0
+perf c new 3 exit 0
+perf c base 4 exit 0
+perf c new 4 exit 0
+perf c base 5 exit 0
+perf c new 5 exit 0
+occl 11 exit 0
+occl 12 exit 0
+occl 13 exit 0
+occl 14 exit 0
+occl 15 exit 0
+DONE
