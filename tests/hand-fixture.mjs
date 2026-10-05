@@ -61,7 +61,14 @@ export function cloneSkinnedGlb(url) {
   const src = process.env.YAOSHI_HANDS_PATH ? fs.readFileSync(process.env.YAOSHI_HANDS_PATH, 'utf8').replace("from 'three'", `from '${threeURL}'`) : read('table-hands.js');
   /* v0.59.7：table-hands 多載一支 hand-realism.js（寫實皮膚／幾何）；data: 模組沒有相對路徑，照其他模組換成 data: 載入。 */
   const realismURL = fs.existsSync(path.join(ROOT, 'js/hand-realism.js')) ? asModule(read('hand-realism.js')) : 'data:text/javascript,'; // 95f621db 沒有這支（突變對照用）
-  const mod = await import(asModule(src.replace("import('./creature-figures.js' + V)", `import('${stubURL}')`).replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`)));
+  /* v0.61.0：批 1 身分變體（js/hand-b1.js）同樣換成 data: 模組（它自己的 hand-motion／hand-realism 指向同一份實例），node 測試才驗得到批 1 的手；
+     4691a7ce 沒有這支（突變對照用）⇒ 不換，table-hands 也沒有這個 import。 */
+  const b1URL = fs.existsSync(path.join(ROOT, 'js/hand-b1.js'))
+    ? asModule(read('hand-b1.js').replace("const V = new URL(import.meta.url).search;", "const V = '';").replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`))
+    : null;
+  let hsrc = src.replace("import('./creature-figures.js' + V)", `import('${stubURL}')`).replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`);
+  if (b1URL) hsrc = hsrc.replace("import('./hand-b1.js' + V)", `import('${b1URL}')`);
+  const mod = await import(asModule(hsrc));
   const stubMod = await import(stubURL);
   return { ...mod, fetched: stubMod.fetched };
 }

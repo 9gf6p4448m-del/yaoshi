@@ -80,7 +80,11 @@ test('#B1 GLB 資產 ≤2,500 面、單一 primitive、24 骨；畫面上每隻�
      且每一隻手真的是寫實手（共用的那一份材質就是寫實皮膚程式）——舊手（v0.59.6）在這裡紅。 */
   assert.equal(st.hands, 4); assert.equal(st.materials, 1);
   assert.ok(st.trisByHand.every((t) => t > tris && t <= 6500), `每手面數 ${st.trisByHand}（寫實手：>GLB ${tris}、≤6,500）`);
-  r.hands.group.children.forEach((h) => h.traverse((o) => { if (o.isSkinnedMesh) assert.equal(o.material.customProgramCacheKey && o.material.customProgramCacheKey(), 'hand-real-v2', '寫實皮膚材質'); }));
+  /* v0.61.0 改寫（acceptance 條件 12，使用者 10-05 簽）：共用材質由 4 種手（'hand-real-v2'）換成 8 種手的批 1 材質（'hand-real-b1'，既有四種分支不變），
+     且 uniform 陣列真的是 8 種（批 1 的程式圖樣參數 uExtA 在）——4691a7ce 在這裡紅。 */
+  r.hands.group.children.forEach((h) => h.traverse((o) => { if (o.isSkinnedMesh) {
+    assert.equal(o.material.customProgramCacheKey && o.material.customProgramCacheKey(), 'hand-real-b1', '寫實皮膚材質（8 種手共用）');
+    const u = o.material.userData.realU; assert.ok(u && u.uExtA && u.uExtA.value.length === 8 && u.uSkinA.value.length === 8, '材質 uniform 陣列為 8 種手'); } }));
   assert.equal(st.skeletons, 4, '每隻手各自一副骨架（各自擺姿勢）');
   assert.ok(st.shared && typeof st.shared.skeletons === 'number', 'shareSkeletons 有被呼叫（管線證據）');
   assert.deepEqual([...new Set(fetched)], [M.HAND.GLB], '四隻手只向管線要了同一個 URL');

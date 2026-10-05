@@ -16,7 +16,10 @@ function withSeed(fn, seed = 123456789) {
   return Promise.resolve().then(fn).then((v) => done({ v, calls }), (e) => { done(); throw e; });
 }
 const ROLES3 = ['shoujing', 'dangpu', 'hunter'];
-const OTHER7 = ['zutou', 'qingmian', 'hongyi', 'duanshou', 'xiaonv', 'lvshan', 'luzhu'];
+/* v0.61.0 改寫（使用者 10-05 簽，acceptance 條件 12）：批 1 四角色（青面／紅衣婆婆／斷手書生／組頭）有了自己的手，不再是預設手；
+   原 OTHER7（7 角色＝預設手）拆成 B1_4（批 1 專屬手）與 OTHER3（批 3，仍是預設手）。 */
+const B1_4 = ['qingmian', 'hongyi', 'duanshou', 'zutou'];
+const OTHER3 = ['xiaonv', 'lvshan', 'luzhu'];
 const seatsOf = (roles) => roles.map((role, id) => ({ id, role }));
 const DEFAULT4 = ['qingmian', 'hongyi', 'xiaonv', 'zutou'];
 
@@ -65,7 +68,8 @@ const close = (a, b, tol) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Mat
 /* ═══ V1：三個角色的手與預設手不同，且彼此不同（頂點色區域＋配件） ═══════════════════════ */
 test('V1 三角色的手：專屬色區域頂點數 >0（預設手＝0）、配件頂點 >0（預設手＝0），三者兩兩不同', async () => {
   const B = await baseSrc();
-  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+  /* v0.61.0 改寫：第 4 席原放青面當「預設手」對照；青面現在有專屬手，改放孝女白琴（批 3，仍是預設手）。 */
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'xiaonv']);
   const st = r.hands.stats();
   assert.deepEqual(st.variants, ['shoujing', 'dangpu', 'hunter', null]);
   const rc = [0, 1, 2, 3].map((s) => recoloredCount(colorOf(r, s), B.ref, B.n0));
@@ -126,7 +130,8 @@ test('V1 收驚婆：老膚色與手背暗斑是頂點色——手背有一批�
    以替代斷言守記憶體：寫實幾何份數＝（種類×席）且有上限，所有角色在四席輪過一遍之後份數不超過 4 種×4 席＝16，再輪一遍份數不增加（快取，不洩漏）。 */
 test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外；其餘 7 角色與斷手書生都拿寫實預設手；寫實幾何每席一份、份數有上限且不洩漏', async () => {
   const B = await baseSrc();
-  const r = await rig('L', DEFAULT4);
+  /* v0.61.0 改寫：開局四席改放批 3 角色（都是預設手）；斷言訊息不放幾何物件（失敗時格式化大物件會 RangeError／OOM）。 */
+  const r = await rig('L', ['xiaonv', 'lvshan', 'luzhu', 'xiaonv']);
   const dflt = meshOf(r, 0).geometry;
   const bad = [[], undefined, null, 'x', 7, [null], [{}], [{ id: 0 }], [{ id: 0, role: 'nope' }], [{ id: 0, role: 'toString' }], [{ id: 0, role: '__proto__' }], [{ id: 0, role: 42 }], [{ id: 9, role: 'hunter' }], [{ id: -1, role: 'hunter' }], [{ id: 1.5, role: 'hunter' }]];
   for (const list of bad) {
@@ -135,9 +140,9 @@ test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外
     assert.deepEqual(st.variants, [null, null, null, null], JSON.stringify(list));
     /* v0.59.7 修訂 4 改寫（原：四席共用同一份幾何物件）：寫實版每席一份幾何（袖管每幀依相機各自重鋪），改驗「四席都是預設種類、同一席不換物件」。 */
     for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry.userData.real && meshOf(r, s).geometry.userData.real.key, 'default', '預設手');
-    assert.equal(meshOf(r, 0).geometry, dflt, '同一席的預設手沿用同一份幾何（不重建）');
+    assert.ok(meshOf(r, 0).geometry === dflt, '同一席的預設手沿用同一份幾何（不重建）');
   }
-  for (const role of OTHER7) {
+  for (const role of OTHER3) {
     r.hands.setSeats(seatsOf([role, role, role, role]));
     for (let s = 0; s < 4; s++) assert.equal(meshOf(r, s).geometry.userData.real && meshOf(r, s).geometry.userData.real.key, 'default', role + ' ＝預設手');
   }
@@ -146,13 +151,19 @@ test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外
   /* v0.59.7 修訂 4 改寫（原：預設手＝GLB 原樣 1362 面）：預設手＝寫實「預設」種類（細分、無配件）。 */
   assert.equal(meshOf(r, 0).geometry.userData.real && meshOf(r, 0).geometry.userData.real.key, 'default', '其餘角色拿寫實預設手');
   assert.equal(accCount(meshOf(r, 0).geometry), 0, '預設手沒有配件');
-  r.hands.setSeats(seatsOf(['hunter', 'qingmian', 'qingmian', 'qingmian']));
+  /* v0.61.0 新增：批 1 四角色各拿自己的專屬手（變體鍵＝角色、寫實種類＝角色、有批 1 辨識物），不是預設手 */
+  for (const role of B1_4) {
+    r.hands.setSeats(seatsOf([role, role, role, role]));
+    assert.deepEqual(r.hands.stats().variants, [role, role, role, role], role + ' 變體鍵');
+    for (let s = 0; s < 4; s++) { const g = meshOf(r, s).geometry; assert.ok(g.userData.real && g.userData.real.key === role && (g.userData.b1parts || []).length > 0, `${role} 席 ${s}：專屬手（real.key=${g.userData.real && g.userData.real.key}、辨識物 ${(g.userData.b1parts || []).length} 件）`); }
+  }
+  r.hands.setSeats(seatsOf(['hunter', 'xiaonv', 'xiaonv', 'xiaonv']));
   assert.deepEqual(r.hands.stats().variants, ['hunter', null, null, null], '之後給三角色仍然正常');
   assert.ok(r.hands.stats().geometries <= 4, `四席同時在用的幾何份數 ${r.hands.stats().geometries}（每席至多一份）`);
-  const all = ['shoujing', 'dangpu', 'hunter', ...OTHER7];
+  const all = ['shoujing', 'dangpu', 'hunter', ...B1_4, ...OTHER3];
   for (let k = 0; k < all.length; k++) r.hands.setSeats(seatsOf([0, 1, 2, 3].map((s) => all[(k + s) % all.length])));
   const n1 = r.hands.stats().realGeoCount;
-  assert.ok(n1 <= 16, `所有角色輪過四席後寫實幾何份數 ${n1}（上限 4 種×4 席）`);
+  assert.ok(n1 <= 32, `所有角色輪過四席後寫實幾何份數 ${n1}（v0.61.0：上限 8 種×4 席）`);
   for (let k = 0; k < all.length; k++) r.hands.setSeats(seatsOf([0, 1, 2, 3].map((s) => all[(k + 2 * s) % all.length])));
   assert.equal(r.hands.stats().realGeoCount, n1, '再輪一遍份數不增加（快取，不洩漏）');
   r.hands.dispose(); r.props.dispose();
@@ -161,13 +172,13 @@ test('V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外
 /* ═══ V3：面數與 draw call ═══════════════════════════════════════════════════════════════ */
 for (const layout of ['L', 'P']) {
   test(`V3 ${layout}：每隻寫實手 ≤6,500 面、變體多於預設手、寫實皮膚；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質）`, async () => {
-    const r = await rig(layout, ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+    const r = await rig(layout, ['shoujing', 'dangpu', 'hunter', 'xiaonv']); // v0.61.0：第 4 席預設手對照改孝女白琴（青面有專屬手了）
     const st = r.hands.stats();
     /* v0.59.7 修訂 4 改寫（原：每手 ≤2,500 面、變體 >1362）：上限改依驗收條件 6（≤6,500）；變體比預設手（第 4 席）多出配件面；
        且四席真的是寫實手（共用材質是寫實皮膚程式）。 */
     st.trisByHand.forEach((t, s) => assert.ok(t <= 6500, `席 ${s} ${t} 面`));
     assert.ok(st.trisByHand.slice(0, 3).every((t) => t > st.trisByHand[3]), '三個變體都比預設手多出配件面');
-    assert.equal(meshOf(r, 0).material.customProgramCacheKey && meshOf(r, 0).material.customProgramCacheKey(), 'hand-real-v2', '寫實皮膚材質');
+    assert.equal(meshOf(r, 0).material.customProgramCacheKey && meshOf(r, 0).material.customProgramCacheKey(), 'hand-real-b1', '寫實皮膚材質（v0.61.0：8 種手共用的批 1 材質）');
     assert.equal(st.materials, 1, '四席共用 1 份材質');
     const materials = new Set(); let meshes = 0;
     for (let s = 0; s < 4; s++) r.hands.group.children[s].traverse((o) => { if (o.isMesh) { meshes++; materials.add(o.material); } });
@@ -185,7 +196,7 @@ for (const layout of ['L', 'P']) {
 
 /* ═══ V4：只在 setSeats 決定，不每幀重算 ═══════════════════════════════════════════════════ */
 test('V4 變體幾何只在 setSeats 建一次（以角色鍵快取），整段動作／每幀 update 都不重建、幾何物件不換', async () => {
-  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'qingmian']);
+  const r = await rig('L', ['shoujing', 'dangpu', 'hunter', 'xiaonv']); // v0.61.0：第 4 席預設手對照改孝女白琴
   const geos = [0, 1, 2, 3].map((s) => meshOf(r, s).geometry);
   assert.equal(r.hands.stats().variantBuilds, 3);
   for (let s = 0; s < 4; s++) ev.bid(r, s, s, 8);
@@ -196,6 +207,36 @@ test('V4 變體幾何只在 setSeats 建一次（以角色鍵快取），整段�
   [0, 1, 2, 3].forEach((s) => assert.equal(meshOf(r, s).geometry, geos[s], '席 ' + s + ' 幾何物件沒換'));
   r.hands.setSeats(seatsOf(['hunter', 'hunter', 'shoujing', 'dangpu']));
   assert.equal(r.hands.stats().variantBuilds, 3, '換席不重建（鍵快取）');
+  r.hands.dispose(); r.props.dispose();
+});
+
+/* ═══ v0.61.0 批 1：四角色專屬手（acceptance 條件 3、9、12；使用者 10-05 簽）══════════════════════ */
+test('批 1：青面／紅衣婆婆／斷手書生／組頭各拿專屬手——變體鍵＝角色、辨識物齊全且真的畫出來、與預設手不同；共用 1 份材質；每幀 update 不重建、幾何物件不換', async () => {
+  const r = await rig('L', B1_4);
+  const st = r.hands.stats();
+  assert.deepEqual(st.variants, B1_4, '四席變體鍵＝角色');
+  assert.equal(st.materials, 1, '四席共用 1 份材質');
+  const WANT = { qingmian: ['袖口', '長指甲', '銅錢1', '銅錢8', '穿錢繩'], hongyi: ['袖口', '長指甲', '黑髮辮', '垂過手背的一綹黑髮'], duanshou: ['袖口', '縫痕帶', '針腳'], zutou: ['袖口', '金戒（無名指）', '金戒（小指）', '錶帶', '錶殼', '錶面'] };
+  const geos = [];
+  B1_4.forEach((role, s) => {
+    const g = meshOf(r, s).geometry, parts = g.userData.b1parts || [], idx = g.index.array; geos.push(g);
+    assert.ok(g.userData.real && g.userData.real.key === role, `${role}：寫實種類＝角色（實得 ${g.userData.real && g.userData.real.key}）`);
+    for (const nm of WANT[role]) {
+      const p = parts.find((x) => x.name === nm);
+      let drawn = 0; if (p) for (let t = 0; t < idx.length; t += 3) if (idx[t] >= p.from && idx[t] < p.to) drawn++;
+      assert.ok(drawn > 0, `${role}：「${nm}」有三角形送進 GPU（${drawn}）`);
+    }
+    assert.ok(g.index.count / 3 <= 6500, `${role}：${g.index.count / 3} 面 ≤6,500`);
+    assert.ok(!meshOf(r, s).material.map && !g.attributes.uv, `${role}：無貼圖、無 UV`);
+  });
+  const builds = st.variantBuilds;
+  assert.equal(builds, 4, '四種批 1 手各建一次');
+  for (let s = 0; s < 4; s++) ev.bid(r, s, s, 8);
+  for (let i = 0; i < 120; i++) ev.step(r);
+  for (let s = 0; s < 4; s++) ev.mark(r, s, (s + 1) % 4);
+  for (let i = 0; i < 200; i++) ev.step(r);
+  assert.equal(r.hands.stats().variantBuilds, builds, '動作期間沒有重建');
+  [0, 1, 2, 3].forEach((s) => assert.ok(meshOf(r, s).geometry === geos[s], '席 ' + s + ' 幾何物件沒換'));
   r.hands.dispose(); r.props.dispose();
 });
 
