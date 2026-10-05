@@ -120,7 +120,8 @@ export function makeAwardScript({ seat, from, box, tableY, ms, style = 'side' })
 
 /* 詛咒轉移（D5）的時間軸（秒，GRAB_MS＝1260 時）：
    施放者手掌蓋上符紙堆 → 貼桌推過桌心 → 推上受害者手背（落定）→ 按住（受害者抖、紙錢繩纏腕：只在此段）→ 施放者收手
-   → 受害者拖著符紙堆慢慢縮回 → 符紙堆隱藏（終態同舊版 visible=false）。 */
+   → 符紙堆留在受害者席前不動（受害者的手被壓著、仍在抖）→ 符紙堆隱藏（終態同舊版 visible=false）。
+   v0.60.1：拿掉「受害者拖著符紙堆縮回」（試玩與盲讀都讀成「被拿走」；docs/experiments/2026-10-05-curse-fix/acceptance.md #2）。 */
 export const CURSE = {
   T: { appr: 0.26, push: 0.86, press: 0.98, hold: 1.30, gone: 1.60, end: 1.62 },
   V: { reach0: 0.30, reach1: 0.52, flinch0: 0.62, flinch1: 0.80 }, // 受害者：伸出、想縮
@@ -132,7 +133,7 @@ export const CURSE = {
   C_PITCH: 0.06, // 施放者手掌蓋在堆頂、手腕略高於掌心（手臂往自己那側升起；指尖留在堆的外框內）
   PALM_BACK: 0.28, // 施放者掌心錨點從堆中心往自己那側退這麼多（指尖留在堆的外框內；驗收 #5 越中線只准從上方）
   PRESS: 0.008, // 按住時往下壓的量（只壓在堆頂上，不穿）
-  FLINCH: 0.08, DRAG: 0.10,
+  FLINCH: 0.08,
   ROPE_GROW: 0.08, // 繩在按住開始後這麼久內長滿（seg 抽取，不重建幾何）
   WRIST: 0.13, // 手腕＝受害者掌心錨點往席位退這麼多（×手的縮放倍率由呼叫端換算前已含）
 };
@@ -157,11 +158,10 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
   const carry = { x0: box.x0 - from.x, x1: box.x1 - from.x, y0: box.y0 - from.y - palmOn, z0: box.z0 - from.z, z1: box.z1 - from.z };
   const landAt = T.press, hideAt = T.end, end = T.end;
   const footAt = (p) => ({ x0: p[0] - from.x + box.x0, x1: p[0] - from.x + box.x1, z0: p[2] - from.z + box.z0, z1: p[2] - from.z + box.z1 });
-  function victimPalm(t, still) {
+  function victimPalm(t) {
     const u = easeOut(seg(t, VT.reach0, VT.reach1));
-    const back = 0.35 * (1 - u) + smooth(seg(t, VT.flinch0, VT.flinch1)) * CURSE.FLINCH - smooth(seg(t, VT.flinch1, T.push)) * CURSE.FLINCH
-      + smooth(seg(t, T.hold, T.gone)) * CURSE.DRAG;
-    const tr = still ? [0, 0, 0] : tremble(t, T.press - 0.04 * k, T.gone, 0.008);
+    const back = 0.35 * (1 - u) + smooth(seg(t, VT.flinch0, VT.flinch1)) * CURSE.FLINCH - smooth(seg(t, VT.flinch1, T.push)) * CURSE.FLINCH;
+    const tr = tremble(t, T.press - 0.04 * k, T.gone, 0.008);
     return [Vp[0] - vx * back + tr[0], Vp[1] + tr[1], Vp[2] - vz * back + tr[2]];
   }
   function at(t) {
@@ -182,9 +182,8 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       /* 手掌蓋在堆頂推：手指朝向「自己席位 → 符紙堆現在的位置」（跟著堆轉，指尖不伸進別件拍品）。 */
       hands.c = { pose: ['push', 'spread', t < T.push ? 0 : smooth(seg(t, T.push, T.press))], anchor: 'palm', at: [p[0], p[1] + palmOn, p[2]], yaw: Math.atan2(p[0] - seatC.x, p[2] - seatC.z), pitch: CURSE.C_PITCH }; // 推時五指併攏（拇指收著，不掃到別件），按上手背前張開
     } else {
-      const vp = victimPalm(t), vs = victimPalm(t, true); // 符紙堆被按在手背上：跟著手被拖回（不跟著細顫，按住的那隻手壓著它）
-      const drag = [vs[0] - Vp[0], vs[2] - Vp[2]];
-      item = { x: P1[0] + drag[0], y: P1[1], z: P1[2] + drag[1], rx: 0, rz: 0, ry: 0 };
+      const vp = victimPalm(t); // 符紙堆壓在受害者手背上、停在席前不動（不跟著細顫，按住的那隻手壓著它；施放者收手後也不被拖回）
+      item = { x: P1[0], y: P1[1], z: P1[2], rx: 0, rz: 0, ry: 0 };
       holder = 'v';
       if (t < T.hold) {
         const press = smooth(seg(t, T.press, T.press + 0.06 * k)) * CURSE.PRESS;
@@ -196,7 +195,7 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       }
     }
     if (hands.c) hands.c.at = [hands.c.at[0] - Math.sin(hands.c.yaw) * CURSE.PALM_BACK, hands.c.at[1], hands.c.at[2] - Math.cos(hands.c.yaw) * CURSE.PALM_BACK];
-    /* 受害者：伸出平放、想縮又被逼回、被按住後抖，最後拖著符紙堆縮回 */
+    /* 受害者：伸出平放、想縮又被逼回、被按住後抖（手留在符紙堆底下，不拖回） */
     if (t >= VT.reach0 && t < T.gone) hands.v = { pose: ['spread', 'rake', 0.15], anchor: 'palm', at: victimPalm(t), yaw: vyaw, pitch: 0.05 };
     for (const r of ['c', 'v']) if (!(r in hands)) hands[r] = null;
     return { hands, item, holder, carry: carryNow, foot: footAt([item.x, item.y, item.z]), rope, visible: t < hideAt, landed: t >= landAt };

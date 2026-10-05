@@ -330,7 +330,38 @@ export function judgeCurse(run) {
   out.ropeOK = ropeVis.length >= 12 && hold.length > 0 && outside.length === 0 && px.length > 0 && Math.min(...px) >= 3 && uuids.size === 1;
   Object.assign(out, judgeCommon(Object.assign({}, run, { scenario: Object.assign({}, sc) }), moving, landed));
   out.pass8 = out.timeOK && out.casterOK && out.trembleOK && out.ropeOK;
+  Object.assign(out, judgeCurseEnd(run, landed));
   return out;
+}
+/* v0.60.1 驗收 #2（docs/experiments/2026-10-05-curse-fix/acceptance.md，終點語意＝不准拖回）：
+   落定之後的整段時間序列（含隱藏後的終態幀），量兩個距離，都要「單調不增」（任一幀比此前最小值高 >0.01 ⇒ 回頭 ⇒ 紅）：
+     d(t)＝法寶到「受害者席前終點」（演出中 grabState 給的 dest＝推到受害者面前停住的那一點）的 3D 距離——拖回＝離開席前 ⇒ d 回升；
+     ds(t)＝法寶到受害者席點（SEAT_XZ）的水平距離——加嚴：往回推離受害者也算紅。
+   最終位置：最後一幀法寶到 dest 的**水平**距離 dh ≤ 0.002（既有終點容差：落定判定的 2mm）。
+     為何終點比水平：符紙堆壓在受害者手背上，手被可達抬起 ~0.05（v0.60.0 起即如此，applyGrab 的 vLift），
+     dest.y 不含這段抬升 ⇒ 3D 終點距離在任何「堆留在手背上」的實作都 ≈0.05、恆紅；3D 的 d 仍判單調不增（上下亂動也紅），終點 3D 值照實記錄。
+   量不到（沒落定／沒 dest／缺位置）判紅。 */
+export function judgeCurseEnd(run, landed) {
+  const fr = run.frames, sc = run.scenario, TOL = 0.01, END_TOL = 0.002;
+  const st = fr.map((x) => x.grabState && x.grabState.find((g) => g.slot === sc.slot)).find(Boolean);
+  const dest = st ? st.dest : null, [vx, vz] = SEAT_XZ[sc.target];
+  const after = landed !== null ? fr.filter((x) => x.tms >= landed) : [];
+  const o = { landedMs: landed, dest, frames: after.length, missing: 0, maxRise: null, maxRiseH: null, maxRiseSeat: null, firstRise: null, finalD: null, finalDH: null, lastVisibleD: null };
+  if (dest && after.length) {
+    let minD = Infinity, minH = Infinity, minS = Infinity, rise = 0, riseH = 0, riseS = 0;
+    for (const x of after) {
+      const p = x.item && x.item.pos; if (!p) { o.missing++; continue; }
+      const d = Math.hypot(p[0] - dest.x, p[1] - dest.y, p[2] - dest.z), dh = Math.hypot(p[0] - dest.x, p[2] - dest.z), ds = Math.hypot(p[0] - vx, p[2] - vz);
+      if (d - minD > rise) { rise = d - minD; if (rise > TOL && !o.firstRise) o.firstRise = { tms: x.tms, d: +d.toFixed(4), min: +minD.toFixed(4) }; }
+      if (dh - minH > riseH) riseH = dh - minH;
+      if (ds - minS > riseS) riseS = ds - minS;
+      minD = Math.min(minD, d); minH = Math.min(minH, dh); minS = Math.min(minS, ds);
+      o.finalD = +d.toFixed(5); o.finalDH = +dh.toFixed(5); if (!x.item.hidden) o.lastVisibleD = +d.toFixed(5);
+    }
+    o.maxRise = +rise.toFixed(4); o.maxRiseH = +riseH.toFixed(4); o.maxRiseSeat = +riseS.toFixed(4);
+  }
+  const pass = !!dest && after.length > 0 && o.missing === 0 && o.maxRise <= TOL && o.maxRiseH <= TOL && o.maxRiseSeat <= TOL && o.finalDH !== null && o.finalDH <= END_TOL;
+  return { end2: o, pass2c: pass };
 }
 
 async function main() {
@@ -350,7 +381,7 @@ async function main() {
             const j = mode === 'award' ? judgeAward(run) : judgeCurse(run);
             j.randomCalls = run.randomCalls;
             rows.push(j); fs.writeFileSync(path.join(OUT, `raw-${mode}-${vpName}-${sc.name}.json`), JSON.stringify(run));
-            progress(`${mode} ${sc.name} ${JSON.stringify({ landed: j.landedMs, p2: j.pass2, p3: j.pass3, p4: j.pass4, p5: j.pass5mid, p7: j.pass7, p8: j.pass8 })}`);
+            progress(`${mode} ${sc.name} ${JSON.stringify({ landed: j.landedMs, p2: j.pass2, p3: j.pass3, p4: j.pass4, p5: j.pass5mid, p7: j.pass7, p8: j.pass8, p2c: j.pass2c })}`);
           }
           results.modes[mode + '-' + vpName] = { rows, errs };
           await ctx.close();
@@ -429,7 +460,7 @@ async function main() {
   const brief = {};
   for (const k in results.modes) {
     const m = results.modes[k];
-    if (Array.isArray(m?.rows)) brief[k] = m.rows.map((r) => ({ rnd: r.randomCalls, n: r.name, landed: r.landedMs, p2: r.pass2, p3: r.pass3, p4: r.pass4, p5mid: r.pass5mid, p7: r.pass7, p8: r.pass8, strug: r.struggle, rope: r.rope, trem: r.tremble, pusher: r.pusher, hudBad: r.hud && r.hud.badFrames, inOther: r.hands && r.hands.inOtherItemBox, minY: r.hands && r.hands.minY, mid: r.mid && r.mid.belowTopPoints, card: r.card }));
+    if (Array.isArray(m?.rows)) brief[k] = m.rows.map((r) => ({ rnd: r.randomCalls, n: r.name, landed: r.landedMs, p2: r.pass2, p3: r.pass3, p4: r.pass4, p5mid: r.pass5mid, p7: r.pass7, p8: r.pass8, p2c: r.pass2c, end2: r.end2, strug: r.struggle, rope: r.rope, trem: r.tremble, pusher: r.pusher, hudBad: r.hud && r.hud.badFrames, inOther: r.hands && r.hands.inOtherItemBox, minY: r.hands && r.hands.minY, mid: r.mid && r.mid.belowTopPoints, card: r.card }));
     else brief[k] = m;
   }
   console.log(JSON.stringify(brief, null, 1));
