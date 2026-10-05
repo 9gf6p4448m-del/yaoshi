@@ -141,11 +141,11 @@ const PAGE_LIB = () => {
         const seat = +holder.name.split('-')[1]; let mesh = null; holder.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
         holder.updateMatrixWorld(true); mesh.skeleton.update();
         const pos = mesh.geometry.attributes.position, col = mesh.geometry.attributes.color;
-        let n = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, near = 1e9, sx = 0, sy = 0, sz = 0; const otherSlots = new Set();
+        let n = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, maxZ = -1e9, minZ = 1e9, near = 1e9, sx = 0, sy = 0, sz = 0; const otherSlots = new Set();
         for (let i = 0; i < pos.count; i++) {
           if (col && col.itemSize === 4 && col.getW(i) < 0.5) continue;
           v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); n++;
-          if (v.y < minY) minY = v.y; if (v.x > maxX) maxX = v.x; if (v.x < minX) minX = v.x; sx += v.x; sy += v.y; sz += v.z;
+          if (v.y < minY) minY = v.y; if (v.x > maxX) maxX = v.x; if (v.x < minX) minX = v.x; if (v.z > maxZ) maxZ = v.z; if (v.z < minZ) minZ = v.z; sx += v.x; sy += v.y; sz += v.z;
           if (vb) { const ex = Math.max(vb.min.x - v.x, 0, v.x - vb.max.x), ey = Math.max(vb.min.y - v.y, 0, v.y - vb.max.y), ez = Math.max(vb.min.z - v.z, 0, v.z - vb.max.z), dd = Math.hypot(ex, ey, ez); if (dd < near) near = dd; }
           others.forEach((b, k) => { if (b && b.containsPoint(v)) { inOther++; otherSlots.add(k); } });
           if ((seat === 2 && v.x > 0) || (seat === 3 && v.x < 0)) {
@@ -155,7 +155,7 @@ const PAGE_LIB = () => {
         }
         const palm = mesh.skeleton.bones.find((b) => b.name === 'Palm'); const pw = new THREE.Vector3(); if (palm) palm.getWorldPosition(pw);
         const pp = pw.clone().project(cam);
-        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
+        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), minZ: +minZ.toFixed(4), maxZ: +maxZ.toFixed(4), minXf: +minX.toFixed(4), maxXf: +maxX.toFixed(4), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
       }
       let rope = null; T.group.traverse((o) => { if (o.name === 'curse-rope-group') rope = o; });
       if (rope) {
@@ -428,10 +428,10 @@ export function skip30() {
 }
 
 /* ── 第二輪（acceptance.md 條件 14–17；量不到一律判紅）──────────────────────────────
-   14：符紙堆可見幀的包圍盒最高 y ≤ 同夜托盤拍品頂高（四槽靜止最高）＋0.05，全程。
+   14：符紙堆可見幀的包圍盒最高 y ≤ min(同夜托盤拍品頂高（四槽靜止最高）＋0.05, 0.85)，全程（acceptance 修訂 B）。
    15：按住階段＝落定＋50ms → 施放者收手開始（judgeCurseSlow 的 retractAt）；
        受害者手抬升（liftOf）≤ 0.215 且符紙堆抬升（堆節點 y − dest.y）≤ 0.215；施放者手離堆距離（nearItem）最大值 ≤ CASTER_NEAR_MAX（progress.md 凍結）。
-   16：落定那一幀（judgeCurse 口徑）堆水平中心距受害者 Palm 骨水平 ≤ 0.08，且堆包圍盒底 ≤ 受害者 Palm y＋0.05。
+   16：落定那一幀（judgeCurse 口徑）堆水平中心落在受害者可見手頂點的水平外框內，且堆包圍盒底 ≤ 受害者 Palm y＋0.05（acceptance 修訂 C）。
    17：符紙堆可見幀與其他槽拍品包圍盒、紙紮人貼片包圍盒重疊 0 幀（貼片找不到＝紅）。 */
 export const CASTER_NEAR_MAX = Number(process.env.CASTER_NEAR_MAX || NaN); // 凍結值見 docs/experiments/2026-10-05-curse-slow/progress.md
 export function judgeCurseR2(run) {
@@ -439,8 +439,8 @@ export function judgeCurseR2(run) {
   const vis = fr.filter((x) => x.item && !x.item.hidden && x.item.box);
   const trayTop = run.rest.trayTop;
   const pileMax = vis.length ? Math.max(...vis.map((x) => x.item.box[4])) : null;
-  const c14 = { trayTop, pileMax: pileMax === null ? null : +pileMax.toFixed(4), limit: trayTop === undefined ? null : +(trayTop + 0.05).toFixed(4) };
-  c14.pass = pileMax !== null && Number.isFinite(trayTop) && pileMax <= trayTop + 0.05;
+  const c14 = { trayTop, pileMax: pileMax === null ? null : +pileMax.toFixed(4), limit: trayTop === undefined ? null : +Math.min(trayTop + 0.05, 0.85).toFixed(4) }; // 修訂 B：min(拍品頂＋0.05, 0.85)
+  c14.pass = pileMax !== null && Number.isFinite(trayTop) && pileMax <= Math.min(trayTop + 0.05, 0.85);
   const st = fr.map((x) => x.grabState && x.grabState.find((g) => g.slot === sc.slot)).find(Boolean), dest = st ? st.dest : null;
   const hold = landed !== null && ret !== null ? fr.filter((x) => x.tms >= landed + 50 && x.tms < ret) : [];
   let vMax = null, pMax = null, nMax = null, miss = 0;
@@ -454,7 +454,9 @@ export function judgeCurseR2(run) {
   if (lf && vh && lf.item.box) { const cx = (lf.item.box[0] + lf.item.box[3]) / 2, cz = (lf.item.box[2] + lf.item.box[5]) / 2;
     c16.dh = +Math.hypot(cx - vh.palm[0], cz - vh.palm[2]).toFixed(4); c16.bottomOverPalm = +(lf.item.box[1] - vh.palm[1]).toFixed(4);
     if (vh.centroid) { c16.dhCentroid = +Math.hypot(cx - vh.centroid[0], cz - vh.centroid[2]).toFixed(4); c16.bottomOverCentroid = +(lf.item.box[1] - vh.centroid[1]).toFixed(4); } }
-  c16.pass = c16.dh !== undefined && c16.dh <= 0.08 && c16.bottomOverPalm <= 0.05 && s.c2.pass;
+  if (lf && vh && lf.item.box && vh.minXf !== undefined) { const cx = (lf.item.box[0] + lf.item.box[3]) / 2, cz = (lf.item.box[2] + lf.item.box[5]) / 2;
+    c16.inHandBox = cx >= vh.minXf && cx <= vh.maxXf && cz >= vh.minZ && cz <= vh.maxZ; c16.handBox = [vh.minXf, vh.maxXf, vh.minZ, vh.maxZ]; c16.pileCenter = [+cx.toFixed(4), +cz.toFixed(4)]; }
+  c16.pass = c16.inHandBox === true && c16.bottomOverPalm !== undefined && c16.bottomOverPalm <= 0.05 && landed !== null; // 原「停住」判定（landed 非 null）同時要過；修訂 C（原 0.08 距離門檻作廢，dh／dhCentroid 只記錄）
   const hits = vis.filter((x) => !x.pileHit || !x.pileHit.charsFound || x.pileHit.items + x.pileHit.chars > 0);
   const c17 = { visFrames: vis.length, hitFrames: hits.length, first: hits[0] ? { tms: hits[0].tms, which: hits[0].pileHit && hits[0].pileHit.which } : null };
   c17.pass = vis.length > 0 && hits.length === 0;

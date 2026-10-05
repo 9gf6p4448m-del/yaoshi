@@ -80,7 +80,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 0.6378,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -89,9 +89,9 @@
       "victimLiftMax": 0.0995,
       "pileLiftMax": 0.0972,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -99,7 +99,18 @@
       "bottomOverPalm": 0.039,
       "dhCentroid": 0.1188,
       "bottomOverCentroid": 0.0313,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.3793,
+       0.2344,
+       -1.7463,
+       -0.9251
+      ],
+      "pileCenter": [
+       -0.0992,
+       -1.4539
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -182,7 +193,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 0.5799,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -191,9 +202,9 @@
       "victimLiftMax": 0.0925,
       "pileLiftMax": 0.0903,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -201,7 +212,18 @@
       "bottomOverPalm": 0.0238,
       "dhCentroid": 0.0981,
       "bottomOverCentroid": 0.0257,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -1.3232,
+       -0.5038,
+       0.4061,
+       1.0142
+      ],
+      "pileCenter": [
+       -0.9545,
+       0.784
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -284,7 +306,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.23,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -293,9 +315,9 @@
       "victimLiftMax": 0.0859,
       "pileLiftMax": 0.0836,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -303,7 +325,18 @@
       "bottomOverPalm": 0.0224,
       "dhCentroid": 0.0921,
       "bottomOverCentroid": 0.0244,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       0.6699,
+       1.485,
+       0.6712,
+       1.2989
+      ],
+      "pileCenter": [
+       1.1094,
+       0.9767
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -391,7 +424,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 0.5978,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -400,9 +433,9 @@
       "victimLiftMax": 0.1854,
       "pileLiftMax": 0.1082,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -410,7 +443,18 @@
       "bottomOverPalm": 0.0305,
       "dhCentroid": 0.119,
       "bottomOverCentroid": 0.033,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.2452,
+       0.4256,
+       0.5407,
+       1.392
+      ],
+      "pileCenter": [
+       0.0728,
+       1.0514
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -492,7 +536,7 @@
      "c14": {
       "trayTop": 1.0028366302282363,
       "pileMax": 1.3454,
-      "limit": 1.0528,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -501,7 +545,7 @@
       "victimLiftMax": 0.0931,
       "pileLiftMax": 0.5274,
       "casterNearMax": 0.3877,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": false,
       "pass": false
      },
@@ -511,6 +555,17 @@
       "bottomOverPalm": 0.4609,
       "dhCentroid": 0.1007,
       "bottomOverCentroid": 0.4628,
+      "inHandBox": true,
+      "handBox": [
+       -1.4299,
+       -0.6033,
+       0.5059,
+       1.0866
+      ],
+      "pileCenter": [
+       -1.065,
+       0.8866
+      ],
       "pass": false
      },
      "c17": {
@@ -594,7 +649,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.3662,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -603,9 +658,9 @@
       "victimLiftMax": 0.0859,
       "pileLiftMax": 0.0836,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -613,7 +668,18 @@
       "bottomOverPalm": 0.0224,
       "dhCentroid": 0.0921,
       "bottomOverCentroid": 0.0244,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       0.6699,
+       1.485,
+       0.6712,
+       1.2989
+      ],
+      "pileCenter": [
+       1.1094,
+       0.9767
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -695,7 +761,7 @@
      "c14": {
       "trayTop": 1.0028366302282363,
       "pileMax": 1.4519,
-      "limit": 1.0528,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -704,7 +770,7 @@
       "victimLiftMax": 0.9371,
       "pileLiftMax": 0.9348,
       "casterNearMax": 0.4869,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": false,
       "pass": false
      },
@@ -714,7 +780,18 @@
       "bottomOverPalm": 0.0305,
       "dhCentroid": 0.1157,
       "bottomOverCentroid": 0.033,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.2169,
+       0.5843,
+       0.6943,
+       1.4009
+      ],
+      "pileCenter": [
+       0.1318,
+       1.1193
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -797,8 +874,8 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.0504,
-      "limit": 1.0777,
-      "pass": true
+      "limit": 0.85,
+      "pass": false
      },
      "c15": {
       "holdFrames": 18,
@@ -806,9 +883,9 @@
       "victimLiftMax": 0.0995,
       "pileLiftMax": 0.0972,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -816,7 +893,18 @@
       "bottomOverPalm": 0.039,
       "dhCentroid": 0.1167,
       "bottomOverCentroid": 0.0313,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.0441,
+       0.5169,
+       -1.7676,
+       -0.9391
+      ],
+      "pileCenter": [
+       0.1042,
+       -1.4536
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -898,7 +986,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.4467,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -907,7 +995,7 @@
       "victimLiftMax": 0.917,
       "pileLiftMax": 0.9061,
       "casterNearMax": 0.3811,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": false,
       "pass": false
      },
@@ -917,7 +1005,18 @@
       "bottomOverPalm": 0.0224,
       "dhCentroid": 0.0921,
       "bottomOverCentroid": 0.0244,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       0.6014,
+       1.4014,
+       0.5611,
+       1.1937
+      ],
+      "pileCenter": [
+       1.0361,
+       0.8939
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1000,7 +1099,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.3629,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -1009,9 +1108,9 @@
       "victimLiftMax": 0.1065,
       "pileLiftMax": 0.1042,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1019,7 +1118,18 @@
       "bottomOverPalm": 0.0305,
       "dhCentroid": 0.1224,
       "bottomOverCentroid": 0.033,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.8277,
+       -0.0441,
+       0.4996,
+       1.2371
+      ],
+      "pileCenter": [
+       -0.3578,
+       0.9268
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1102,8 +1212,8 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 1.0606,
-      "limit": 1.0777,
-      "pass": true
+      "limit": 0.85,
+      "pass": false
      },
      "c15": {
       "holdFrames": 18,
@@ -1111,9 +1221,9 @@
       "victimLiftMax": 0.0995,
       "pileLiftMax": 0.0972,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1121,7 +1231,18 @@
       "bottomOverPalm": 0.039,
       "dhCentroid": 0.1188,
       "bottomOverCentroid": 0.0313,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -0.3793,
+       0.2344,
+       -1.7463,
+       -0.9251
+      ],
+      "pileCenter": [
+       -0.0992,
+       -1.4539
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1204,7 +1325,7 @@
      "c14": {
       "trayTop": 1.0028366302282363,
       "pileMax": 0.6276,
-      "limit": 1.0528,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -1213,9 +1334,9 @@
       "victimLiftMax": 0.0925,
       "pileLiftMax": 0.0903,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1223,7 +1344,18 @@
       "bottomOverPalm": 0.0238,
       "dhCentroid": 0.0977,
       "bottomOverCentroid": 0.0257,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -1.4334,
+       -0.6069,
+       0.5056,
+       1.0863
+      ],
+      "pileCenter": [
+       -1.065,
+       0.8866
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1306,7 +1438,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 0.7323,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -1315,9 +1447,9 @@
       "victimLiftMax": 0.1958,
       "pileLiftMax": 0.1935,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1325,7 +1457,18 @@
       "bottomOverPalm": 0.0238,
       "dhCentroid": 0.1059,
       "bottomOverCentroid": 0.0257,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -1.7278,
+       -1.1391,
+       0.3316,
+       1.1553
+      ],
+      "pileCenter": [
+       -1.3703,
+       0.817
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1408,7 +1551,7 @@
      "c14": {
       "trayTop": 1.027681249706816,
       "pileMax": 0.6308,
-      "limit": 1.0777,
+      "limit": 0.85,
       "pass": true
      },
      "c15": {
@@ -1417,9 +1560,9 @@
       "victimLiftMax": 0.0925,
       "pileLiftMax": 0.0903,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1427,7 +1570,18 @@
       "bottomOverPalm": 0.0238,
       "dhCentroid": 0.1001,
       "bottomOverCentroid": 0.0257,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -1.5386,
+       -0.791,
+       0.4103,
+       1.115
+      ],
+      "pileCenter": [
+       -1.1954,
+       0.8155
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1510,7 +1664,7 @@
      "c14": {
       "trayTop": 1.0028366302282363,
       "pileMax": 1.0546,
-      "limit": 1.0528,
+      "limit": 0.85,
       "pass": false
      },
      "c15": {
@@ -1519,9 +1673,9 @@
       "victimLiftMax": 0.0925,
       "pileLiftMax": 0.0903,
       "casterNearMax": 0,
-      "casterLimit": null,
+      "casterLimit": 0.0126,
       "passHeight": true,
-      "pass": false
+      "pass": true
      },
      "c16": {
       "landedMs": 983,
@@ -1529,7 +1683,18 @@
       "bottomOverPalm": 0.0238,
       "dhCentroid": 0.0977,
       "bottomOverCentroid": 0.0257,
-      "pass": false
+      "inHandBox": true,
+      "handBox": [
+       -1.4334,
+       -0.6069,
+       0.5056,
+       1.0863
+      ],
+      "pileCenter": [
+       -1.065,
+       0.8866
+      ],
+      "pass": true
      },
      "c17": {
       "visFrames": 205,
@@ -1540,7 +1705,7 @@
     }
    ],
    "errs": [],
-   "casterNearMax": null
+   "casterNearMax": 0.0126
   }
  }
 }
