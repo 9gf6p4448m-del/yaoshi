@@ -9,3 +9,13 @@
 - 最終證據：HEAD 89a025ed，evidence/progress.log（2026-10-05 21:04–21:36，依序單一瀏覽器）
 - 證據與報告提交：見本檔下一個 commit（docs only）
 - 未 push
+
+## 第二輪（條件 14–24，f4b7aca6）
+- C 槽剩餘：開工前 478M（df，清掉本卷自己的 scratchpad 暫存後 881M），量完基準後 662M。暫存一律在 D:/yaoshi-scratch/curse-slow2/。
+- 判定器：tests/tools/grab-probe.mjs `--modes=r2`（judgeCurseR2），口徑寫在函式上方註解。條件 15「高度」讀作抬升量（受害者 liftOf、堆節點 y − dest.y），與 0.185 的出處（tests/grab-motion.test.mjs 抬升規劃斷言的 Lv）同一座標。條件 16「手背中心」兩種量法都記：Palm 骨（dh）與可見手頂點重心（dhCentroid）。
+- 條件 15 施放者貼堆距離上限（凍結）：覆審列為正常的 5 組（cSW、cSN、cSE、cNS、cEW）在 d147dbc1 的按住段施放者 nearItem 最大值＝0.0101（cSN）→ ×1.25 ＝ **CASTER_NEAR_MAX = 0.0126**。709e313a 同 5 組最大值 0。之後不改。
+- 基準量測（evidence-r2/baseline-r2-*.json）：**觸發條件 14 的停手條款**——覆審列為正常的組在基準判紅：
+  - 條件 14：cSE 堆最高 1.2305（d147）／1.23（709），上限 1.0777，兩邊都紅。
+  - 條件 16：正常 5 組堆中心距受害者手背 Palm 骨 0.19–0.28、距手頂點重心 0.088–0.121，兩種量法都 > 0.08，兩邊都紅（底高條件 ≤0.05 都過）。
+  - 條件 17：cSE 堆與槽 2 拍品包圍盒重疊 9 幀（d147）／3 幀（709）。
+- 依條件 14 停手，未動實作。

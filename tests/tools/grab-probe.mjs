@@ -86,6 +86,9 @@ const PAGE_LIB = () => {
       window.__slot = slot;
       const THREE = window.__THREE, b = new THREE.Box3().setFromObject(window.__nodes[slot]);
       window.__rest = { top: b.max.y, pos: window.__nodes[slot].position.toArray() };
+      /* 第二輪條件 14：同夜托盤拍品頂高＝四槽靜止包圍盒最高 y（含被推那件）；條件 17：紙紮人＝席位角色貼片（scene 底下全是 Sprite 的那一組） */
+      window.__rest.trayTop = Math.max(...window.__nodes.filter(Boolean).map((n) => new THREE.Box3().setFromObject(n).max.y));
+      window.__chars = window.__yaoshi3d.scene.children.find((g) => g.isGroup && g.children.length >= 4 && g.children.every((c) => c.isSprite)) || null;
       return { found: window.__nodes.map(Boolean), rest: window.__rest };
     },
     cardWaitMs(curse) { /* 同 index.html 開標那兩行 sleep（v0.61.1 起毒標轉移先補 CURSE_MS×CURSE_CARD_K−GRAB_MS；舊版沒有 CURSE_MS＝不補） */
@@ -138,11 +141,11 @@ const PAGE_LIB = () => {
         const seat = +holder.name.split('-')[1]; let mesh = null; holder.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
         holder.updateMatrixWorld(true); mesh.skeleton.update();
         const pos = mesh.geometry.attributes.position, col = mesh.geometry.attributes.color;
-        let n = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, near = 1e9; const otherSlots = new Set();
+        let n = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, near = 1e9, sx = 0, sy = 0, sz = 0; const otherSlots = new Set();
         for (let i = 0; i < pos.count; i++) {
           if (col && col.itemSize === 4 && col.getW(i) < 0.5) continue;
           v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); n++;
-          if (v.y < minY) minY = v.y; if (v.x > maxX) maxX = v.x; if (v.x < minX) minX = v.x;
+          if (v.y < minY) minY = v.y; if (v.x > maxX) maxX = v.x; if (v.x < minX) minX = v.x; sx += v.x; sy += v.y; sz += v.z;
           if (vb) { const ex = Math.max(vb.min.x - v.x, 0, v.x - vb.max.x), ey = Math.max(vb.min.y - v.y, 0, v.y - vb.max.y), ez = Math.max(vb.min.z - v.z, 0, v.z - vb.max.z), dd = Math.hypot(ex, ey, ez); if (dd < near) near = dd; }
           others.forEach((b, k) => { if (b && b.containsPoint(v)) { inOther++; otherSlots.add(k); } });
           if ((seat === 2 && v.x > 0) || (seat === 3 && v.x < 0)) {
@@ -152,7 +155,7 @@ const PAGE_LIB = () => {
         }
         const palm = mesh.skeleton.bones.find((b) => b.name === 'Palm'); const pw = new THREE.Vector3(); if (palm) palm.getWorldPosition(pw);
         const pp = pw.clone().project(cam);
-        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), palm: pw.toArray().map((x) => +x.toFixed(4)), palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
+        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
       }
       let rope = null; T.group.traverse((o) => { if (o.name === 'curse-rope-group') rope = o; });
       if (rope) {
@@ -174,6 +177,17 @@ const PAGE_LIB = () => {
       out.grabState = T.grabState ? T.grabState() : null;
       out.handsVisible = T.hands.group.children.filter((h) => h.visible).map((h) => +h.name.split('-')[1]);
       out.tableY = tableY;
+      /* 第二輪條件 17：符紙堆（被推那件，可見時）包圍盒與「其他槽拍品包圍盒」「紙紮人貼片包圍盒」的重疊 */
+      if (ib) {
+        let hitItems = 0, hitChars = 0; const hit = [];
+        others.forEach((o, k) => { if (o && o.intersectsBox(ib)) { hitItems++; hit.push('slot' + k); } });
+        const ch = window.__chars;
+        if (ch) ch.children.forEach((sp, k) => { let vis = sp.visible; for (let q = sp.parent; q; q = q.parent) vis = vis && q.visible; if (!vis) return;
+          const w = new THREE.Vector3(); sp.getWorldPosition(w); const sx = sp.scale.x / 2, sy = sp.scale.y / 2;
+          const cb = new THREE.Box3(new THREE.Vector3(w.x - sx, w.y - sy, w.z - sx), new THREE.Vector3(w.x + sx, w.y + sy, w.z + sx));
+          if (cb.intersectsBox(ib)) { hitChars++; hit.push('char' + k); } });
+        out.pileHit = { items: hitItems, chars: hitChars, charsFound: !!ch, which: hit };
+      }
       return out;
     },
   };
@@ -413,6 +427,40 @@ export function skip30() {
   return out;
 }
 
+/* ── 第二輪（acceptance.md 條件 14–17；量不到一律判紅）──────────────────────────────
+   14：符紙堆可見幀的包圍盒最高 y ≤ 同夜托盤拍品頂高（四槽靜止最高）＋0.05，全程。
+   15：按住階段＝落定＋50ms → 施放者收手開始（judgeCurseSlow 的 retractAt）；
+       受害者手抬升（liftOf）≤ 0.215 且符紙堆抬升（堆節點 y − dest.y）≤ 0.215；施放者手離堆距離（nearItem）最大值 ≤ CASTER_NEAR_MAX（progress.md 凍結）。
+   16：落定那一幀（judgeCurse 口徑）堆水平中心距受害者 Palm 骨水平 ≤ 0.08，且堆包圍盒底 ≤ 受害者 Palm y＋0.05。
+   17：符紙堆可見幀與其他槽拍品包圍盒、紙紮人貼片包圍盒重疊 0 幀（貼片找不到＝紅）。 */
+export const CASTER_NEAR_MAX = Number(process.env.CASTER_NEAR_MAX || NaN); // 凍結值見 docs/experiments/2026-10-05-curse-slow/progress.md
+export function judgeCurseR2(run) {
+  const s = judgeCurseSlow(run), fr = run.frames, sc = run.scenario, landed = s.c2.landedMs, ret = s.c3.retractAt;
+  const vis = fr.filter((x) => x.item && !x.item.hidden && x.item.box);
+  const trayTop = run.rest.trayTop;
+  const pileMax = vis.length ? Math.max(...vis.map((x) => x.item.box[4])) : null;
+  const c14 = { trayTop, pileMax: pileMax === null ? null : +pileMax.toFixed(4), limit: trayTop === undefined ? null : +(trayTop + 0.05).toFixed(4) };
+  c14.pass = pileMax !== null && Number.isFinite(trayTop) && pileMax <= trayTop + 0.05;
+  const st = fr.map((x) => x.grabState && x.grabState.find((g) => g.slot === sc.slot)).find(Boolean), dest = st ? st.dest : null;
+  const hold = landed !== null && ret !== null ? fr.filter((x) => x.tms >= landed + 50 && x.tms < ret) : [];
+  let vMax = null, pMax = null, nMax = null, miss = 0;
+  for (const x of hold) { const v = x.hands[sc.target], c = x.hands[sc.seat]; if (!v || !c || !x.item.pos || !dest) { miss++; continue; }
+    vMax = Math.max(vMax ?? -1e9, v.lift); pMax = Math.max(pMax ?? -1e9, x.item.pos[1] - dest.y); nMax = Math.max(nMax ?? -1e9, c.nearItem); }
+  const c15 = { holdFrames: hold.length, missing: miss, victimLiftMax: vMax === null ? null : +vMax.toFixed(4), pileLiftMax: pMax === null ? null : +pMax.toFixed(4), casterNearMax: nMax === null ? null : +nMax.toFixed(4), casterLimit: CASTER_NEAR_MAX };
+  c15.passHeight = hold.length >= 6 && !miss && vMax <= 0.215 && pMax <= 0.215;
+  c15.pass = c15.passHeight && Number.isFinite(CASTER_NEAR_MAX) && nMax <= CASTER_NEAR_MAX;
+  const lf = landed !== null ? fr.find((x) => x.tms === landed) : null, vh = lf && lf.hands[sc.target];
+  const c16 = { landedMs: landed };
+  if (lf && vh && lf.item.box) { const cx = (lf.item.box[0] + lf.item.box[3]) / 2, cz = (lf.item.box[2] + lf.item.box[5]) / 2;
+    c16.dh = +Math.hypot(cx - vh.palm[0], cz - vh.palm[2]).toFixed(4); c16.bottomOverPalm = +(lf.item.box[1] - vh.palm[1]).toFixed(4);
+    if (vh.centroid) { c16.dhCentroid = +Math.hypot(cx - vh.centroid[0], cz - vh.centroid[2]).toFixed(4); c16.bottomOverCentroid = +(lf.item.box[1] - vh.centroid[1]).toFixed(4); } }
+  c16.pass = c16.dh !== undefined && c16.dh <= 0.08 && c16.bottomOverPalm <= 0.05 && s.c2.pass;
+  const hits = vis.filter((x) => !x.pileHit || !x.pileHit.charsFound || x.pileHit.items + x.pileHit.chars > 0);
+  const c17 = { visFrames: vis.length, hitFrames: hits.length, first: hits[0] ? { tms: hits[0].tms, which: hits[0].pileHit && hits[0].pileHit.which } : null };
+  c17.pass = vis.length > 0 && hits.length === 0;
+  return Object.assign(s, { c14, c15, c16, c17 });
+}
+
 async function main() {
   progress(`start root=${ROOT} modes=${MODES} q=${EXTRA_Q}`);
   const results = { root: ROOT, tag: TAG, git: (() => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim(); } catch (e) { return null; } })(), dirty: (() => { try { return execFileSync('git', ['status', '--short', '--', 'js', 'index.html'], { cwd: ROOT }).toString(); } catch (e) { return null; } })(), modes: {} };
@@ -450,6 +498,20 @@ async function main() {
             progress(`${mode} ${sc.name} ${JSON.stringify({ landed: j.c2.landedMs, c2: j.c2.pass, push: j.c3.pushMs, step: j.c3.step100, hold: j.c3.holdMs, c3: j.c3.passAbs, c4: j.c4.pass, c5: j.c5.pass, c6: j.c6.pass, pusher: j.pusher, rnd: j.randomCalls })}`);
           }
           results.modes[mode] = { rows, errs };
+          await ctx.close();
+        } else if (mode === 'r2') {
+          /* 第二輪條件 14–17：12 組（＋extra）× 冥婚紅包，同 slow 的事件與時長 */
+          const { ctx, page, errs, vp } = await openPage(browser, opt.vp || 'V3', EXTRA_Q);
+          const only = opt.only ? String(opt.only).split(',') : null;
+          const shotDir = opt.shotdir ? path.resolve(String(opt.shotdir)) : OUT; if (SHOTS) fs.mkdirSync(shotDir, { recursive: true });
+          const rows = [];
+          for (const sc of CURSE12.filter((x) => !only || only.includes(x.name))) {
+            const run = await runScenario(page, vp, sc, true, { shots: SHOTS, prefix: 'r2-', totalS: Number(opt.totals || 3.4), shotDir });
+            const j = judgeCurseR2(run); rows.push(j);
+            if (opt.raw) fs.writeFileSync(path.join(OUT, `raw-r2-${sc.name}.json`), JSON.stringify(run));
+            progress(`r2 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass] })}`);
+          }
+          results.modes.r2 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
           await ctx.close();
         } else if (mode === 'skip30') {
           const { ctx, page, errs, vp } = await openPage(browser, 'V3', EXTRA_Q);
