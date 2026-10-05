@@ -1146,7 +1146,7 @@ export function createHandDirector(props, rig, per) {
     const sp = h.act.spec, anchor = sp.anchor || 'palm';
     const fr = posedFrame(R0, sp.pose, anchor, sp.at, sp.yaw, sp.pitch, s);
     const cons = Object.assign({}, sp.cons || {}, { at: sp.at });
-    const lift = grabLift(R0, fr, s, cons, obstacles, tableY, h.seat);
+    const lift = Math.max(grabLift(R0, fr, s, cons, obstacles, tableY, h.seat), sp.minLift || 0); // v0.61.1：minLift＝table-tray 預算的抬升包絡（詛咒推按；只會更高＝不穿，不瞬跳）
     fr.root[1] += lift; h.lift = lift; h.liftWhy = grabLift.why;
     h.last = { frame: fr, spec: { anchor, target: [sp.at[0], sp.at[2]], pose: fr.pose } };
     return fr;
@@ -1214,6 +1214,14 @@ export function createHandDirector(props, rig, per) {
     liftOf(seat) { const h = hands[seat | 0]; return h && h.act && h.act.kind === 'grab' ? h.lift || 0 : 0; },
     /** 治具出口（只讀）：這一席最近一幀抓取抬升由哪條規則決定（floor／box／mid／carry）。 */
     liftWhy(seat) { const h = hands[seat | 0]; return h && h.act && h.act.kind === 'grab' ? h.liftWhy || null : null; },
+    /** v0.61.1：不改任何狀態，只算「這一席照 spec 擺，抓取專用可達要抬多少」（與 grabFrame 同口徑、同一組障礙；table-tray 開演時預算詛咒推按的抬升包絡用）。 */
+    grabLiftFor(seat, spec) {
+      const s = seat | 0, tableY = props.tableY(), T = HAND.TRAY[props.mode()] || HAND.TRAY.L, R0 = rigOf(s), sc = scaleNow(s);
+      const obstacles = props.handObstacles().concat([{ x: 0, z: props.trayZ(), hx: T.hw, hz: T.hd + 0.035, top: tableY + HAND.TRAY.CLOTH_TOP }]);
+      const fr = posedFrame(R0, spec.pose, spec.anchor || 'palm', spec.at, spec.yaw, spec.pitch, sc);
+      const why = grabLift.why, v = grabLift(R0, fr, sc, Object.assign({}, spec.cons || {}, { at: spec.at }), obstacles, tableY, s);
+      grabLift.why = why; return v;
+    },
     /** 換一夜／熱座清場：四隻手立即收（不可見）。 */
     clear() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     /** 跳過：直接到結束姿態＝四隻手全收。 */

@@ -129,7 +129,7 @@ export const TRAY = {
   AWARD_FLY_S: 0.86,
   CURSE_FLY_S: 0.72,
   /** v0.60.0 紙錢繩（詛咒 C，只在被按住階段出現）：管徑（世界單位；844 寬下視覺粗度須 ≥3px，驗收 #8）、繞腕半徑、圈數、直段長、紙錢張數與顏色。 */
-  ROPE: { R: 0.011, WRAP_R: 0.036, TURNS: 1.8, LEN: 0.18, PAPERS: 8, COLOR: 0xa8261a, EMISSIVE: 0x5c0c06, PAPER: 0xd8c08a },
+  ROPE: { R: 0.0145, WRAP_R: 0.036, TURNS: 1.8, LEN: 0.18, PAPERS: 8, COLOR: 0xa8261a, EMISSIVE: 0x5c0c06, PAPER: 0xd8c08a },
 };
 
 /** 目前這個朝向要用哪一組版面常數。判準只問相機的長寬比（`resizeSceneEnv` 每次 resize 會更新它）。 */
@@ -999,6 +999,7 @@ export function createTableTray(scene, camera, opts = {}) {
       ? GM.makeAwardScript({ seat: props.seatPosition(seats.w), from: a.from, box, tableY, ms, style: (seats.w === 2 && box.x0 + box.x1 > 0) || (seats.w === 3 && box.x0 + box.x1 < 0) ? 'top' : 'side' }) // 西／東抓越中線那件＝從上方扣（驗收 #5）
       : GM.makeCurseScript({ seatC: props.seatPosition(seats.c), seatV: props.seatPosition(seats.v), from: a.from, box, tableY, ms, victimIn: victimReach(props.seatPosition(seats.v), a.from, others), via: pushVia(a.from, box, props.seatPosition(seats.v), others) });
     a.grab = { kind, seats, script, time: 0, others, top: box.y1, out: {}, landedAt: null, skipped: false, node, frame: null, proxy: null, env: grabEnvelope(box, a.from, script) };
+    if (kind === 'curse' && !effect.skip) a.grab.plan = planCurse(a.grab);
     if (s.fig) s.fig.setRim(TRAY.RIM_HOVER);
     grabLog.push({ ev: 'start', slot: s.i, kind, seats: Object.assign({}, seats), skip: !!effect.skip });
     if (effect.skip) { finishGrab(s); return; } // 跳過中才開標的件（doSkip 之後的逐件結算）：直接到終態，手不上場
@@ -1028,6 +1029,19 @@ export function createTableTray(scene, camera, opts = {}) {
     for (let i = 1; i <= 12; i++) { const u = i / 12; for (const b of over(from.x + (to.x - from.x) * u, from.z + (to.z - from.z) * u)) zf = Math.max(zf, b.z1 + 0.26 + hz - cz); } // 0.26：堆外框之外再留施放者手掌的半寬（拇指側）
     return zf > -Infinity ? [from.x, Math.max(from.z, zf)] : null;
   }
+  /** v0.61.1 詛咒推按的抬升規劃：開演時沿腳本每 PLAN_DT 秒問一次可達「這一格要抬多少」（不改手的狀態），
+   *  交給 GM.planCurseLift 取斜率上限包絡——符紙堆與兩隻手的高度連續（不再一幀跳 0.1–0.7），且永遠不低於可達要的（不穿）。
+   *  演出中桌上障礙若變高（錢被扒回途中），可達的即時值仍會蓋過規劃（minLift 只往上墊）。 */
+  const PLAN_DT = 1 / 30;
+  function planCurse(g) {
+    const sc = g.script, n = Math.ceil(sc.end / PLAN_DT) + 1, L = { c: [], v: [] };
+    for (let i = 0; i < n; i++) {
+      const f = sc.at(i * PLAN_DT);
+      for (const role of ['c', 'v']) { const h = f.hands[role];
+        L[role].push(h ? hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons: { boxes: g.others, foot: f.foot, midTop: g.top, carry: f.holder === role ? f.carry : null } })) : -Infinity); }
+    }
+    return GM.planCurseLift(sc, L.c, L.v, PLAN_DT);
+  }
   /** 推進一場：時間 += dt，把這一刻各角色手的擺位交給 hands（腳本給 null＝收手）。 */
   function driveGrab(s, g, dt) {
     g.time = Math.min(g.script.end, g.time + dt);
@@ -1035,7 +1049,7 @@ export function createTableTray(scene, camera, opts = {}) {
     for (const role in g.seats) {
       const h = f.hands[role], seat = g.seats[role];
       if (h) {
-        hands.grab(seat, Object.assign({}, h, { cons: { boxes: g.others, foot: f.foot, midTop: g.top, carry: f.holder === role ? f.carry : null } }));
+        hands.grab(seat, Object.assign({}, h, { cons: { boxes: g.others, foot: f.foot, midTop: g.top, carry: f.holder === role ? f.carry : null } }, g.plan ? { minLift: GM.planAt(g.plan[role], g.plan.dt, g.time) } : null));
         g.out[role] = true;
       } else if (g.out[role]) { hands.grab(seat, null); g.out[role] = false; }
     }
@@ -1046,6 +1060,7 @@ export function createTableTray(scene, camera, opts = {}) {
     /* 被抓著＝跟著抓的那隻手被可達抬起的量；壓在受害者手背上（holder v）時取「壓上去那一刻」的抬升並固定——手在底下細顫，符紙堆不跟著抖。 */
     let lift = f.holder ? hands.liftOf(g.seats[f.holder]) : 0;
     if (f.holder === 'v') { if (g.vLift === undefined) g.vLift = lift; lift = g.vLift; }
+    if (g.plan) lift = f.holder ? GM.planAt(g.plan.pile, g.plan.dt, g.time) : 0; // v0.61.1 詛咒推按：符紙堆照規劃的連續高度走（推上手背是爬上去；按住時固定、不隨細顫抖）
     node.position.set(f.item.x, f.item.y + lift, f.item.z);
     node.rotation.set(f.item.rx, s.spin + f.item.ry, f.item.rz);
     node.visible = f.visible;

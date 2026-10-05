@@ -257,6 +257,8 @@ export function createTableHands(parent, props, opts = {}) {
     liftOf(seat) { return director ? director.liftOf(seat) : 0; },
     /** 治具出口（只讀）：抓取抬升由哪條規則決定。 */
     liftWhy(seat) { return director ? director.liftWhy(seat) : null; },
+    /** v0.61.1：不改狀態，只算這一席照 spec 擺要被抬多少（詛咒推按開演時預算抬升包絡）；沒載好＝0。 */
+    grabLiftFor(seat, spec) { return director && director.grabLiftFor ? director.grabLiftFor(seat, spec) : 0; },
     /** 換一夜／熱座清場：立即收手。 */
     clear() { if (director) { director.clear(); apply([null, null, null, null]); } },
     /** 跳過：手直接到結束姿態（＝收回、不可見）。 */

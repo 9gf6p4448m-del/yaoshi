@@ -142,6 +142,9 @@ export const CURSE = {
   TREMBLE_LEAD: 0.08, // 受害者在落定前這麼久開始抖（秒，同上）
   FLINCH: 0.08,
   ROPE_GROW: 0.16, // 繩在按住開始後這麼久內長滿（秒，同上；seg 抽取，不重建幾何）
+  RISE_S: 0.40, // v0.61.1：符紙堆在落定前這麼久開始往受害者手背的高度爬（秒，同上；舊版在落定那一幀瞬間跳上去）
+  LIFT_SLOPE: 1.4, // v0.61.1：抬升包絡的最大升降速度（世界單位／秒，不隨 CURSE_MS 縮放）——可達的抬升不再一幀跳 0.7
+  LAND_SLOPE: 3.0, // v0.61.1：落定前 RISE_S 那段（推上手背）允許的最大下降速度——越過別件後要在落定前降回手背高度
   WRIST: 0.13, // 手腕＝受害者掌心錨點往席位退這麼多（×手的縮放倍率由呼叫端換算前已含）
 };
 
@@ -208,5 +211,45 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
     return { hands, item, holder, carry: carryNow, foot: footAt([item.x, item.y, item.z]), rope, visible: t < hideAt, landed: t >= landAt };
   }
   return { kind: 'curse', landAt, hideAt, end, dest: { x: P1[0], y: P1[1], z: P1[2] }, roles: { c: true, v: true }, at,
-    holdFrom: T.press, holdTo: T.hold };
+    holdFrom: T.press, holdTo: T.hold, T: Object.assign({}, T), riseFrom: T.press - CURSE.RISE_S * k };
+}
+
+/** 斜率上限的上包絡：S ≥ L（手永遠不低於可達要的高度＝不穿），往上每格最多 up·dt、往下每格最多 down(i)·dt（不瞬跳）。
+ *  兩趟：順向讓下降受 down 限（F[i]＝max(L[i], F[i−1]−down(i)·dt)），逆向讓上升受 up 限（S[i]＝max(F[i], S[i+1]−up·dt)）；
+ *  up＝down 時等於 max_j（L[j] − slope·|i−j|·dt）。L 裡 −Infinity＝那一格手不在場（不提供約束）；結果不低於 0。 */
+export function liftEnvelope(L, dt, up = CURSE.LIFT_SLOPE, down = up) {
+  const n = L.length, F = new Array(n), S = new Array(n), dn = typeof down === 'function' ? down : () => down, upf = typeof up === 'function' ? up : () => up;
+  for (let i = 0; i < n; i++) F[i] = i ? Math.max(L[i], F[i - 1] - dn(i) * dt) : L[i];
+  for (let i = n - 1; i >= 0; i--) S[i] = i < n - 1 ? Math.max(F[i], S[i + 1] - upf(i) * dt) : F[i];
+  return S.map((x) => (Number.isFinite(x) ? Math.max(0, x) : 0));
+}
+/**
+ * v0.61.1 詛咒推按的抬升規劃（純函式；table-tray 開演時用可達預算每一格的需要量 Lc／Lv 後呼叫）。
+ * 舊版：符紙堆的高度＝抓它那隻手「這一幀」被可達抬起的量，可達一換規則就整堆瞬移（越過別件、越中線、壓上手背都是一幀跳 0.1–0.7）。
+ * 新版：
+ *   v＝受害者：按住階段（落定 → 收手完）取該段需要量的最大值固定（不隨細顫在兩個解之間跳），再取斜率上限包絡；
+ *   pile＝符紙堆：落定前 RISE_S 起由施放者的包絡平滑過渡到受害者的（推上手背是爬上去，不是跳上去），再取包絡（這段下降上限放寬到 LAND_SLOPE，越過別件後來得及在落定前降回）；
+ *   c＝施放者：手掌蓋在堆頂的那段（蓋上 → 收手開始）至少跟堆一樣高（不陷進堆裡），再取包絡。
+ * @param s makeCurseScript 的回傳；Lc／Lv：每 dt 秒一格的需要量（−Infinity＝手不在場）
+ * @returns { dt, c, v, pile }（陣列，第 i 格＝時間 i·dt）
+ */
+export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CURSE.LAND_SLOPE) {
+  const n = Lc.length, T = s.T, tt = (i) => i * dt, down = (i) => (tt(i) >= s.riseFrom && tt(i) <= T.hold ? Math.max(slope, land) : slope);
+  const Lv2 = Lv.slice(); let vHold = -Infinity;
+  for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) vHold = Math.max(vHold, Lv[i]);
+  if (Number.isFinite(vHold)) for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) Lv2[i] = vHold;
+  const v = liftEnvelope(Lv2, dt, slope), c0 = liftEnvelope(Lc, dt, slope, down);
+  const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return v[i]; return lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); });
+  const pile = liftEnvelope(target, dt, slope, down);
+  const Lc2 = Lc.map((x, i) => (tt(i) >= T.appr && tt(i) < T.hold ? Math.max(x, pile[i]) : x));
+  /* 施放者按住那段（落定 → 收手開始）不為了收手時要越過別件而提早抬手（按住要按滿；收手那一刻才開始抬） */
+  const cUp = (i) => (tt(i) >= T.press && tt(i) < T.hold + dt ? Infinity : slope); // +dt：收手開始前最後一段內插也不抬
+  return { dt, c: liftEnvelope(Lc2, dt, cUp, down), v, pile };
+}
+/** 規劃表在時間 t 的值（線性內插；超出範圍取端點）。 */
+export function planAt(arr, dt, t) {
+  if (!arr || !arr.length) return 0;
+  const x = t / dt, i = Math.floor(x);
+  if (i < 0) return arr[0]; if (i >= arr.length - 1) return arr[arr.length - 1];
+  return arr[i] + (arr[i + 1] - arr[i]) * (x - i);
 }
