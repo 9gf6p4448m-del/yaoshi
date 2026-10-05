@@ -66,6 +66,17 @@ test('詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；
   assert.ok(Math.max(...ys) - Math.min(...ys) > 0.002, '受害者手要抖');
 });
 
+test('v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance.md #2）：按住起到演完，符紙堆停在受害者席前（dest）不動；受害者的手不往席位縮（只抖）', () => {
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 1260 });
+  const v0 = s.at(s.holdFrom).hands.v.at, seatV = { x: 0, z: 1.22 }, dSeat0 = Math.hypot(v0[0] - seatV.x, v0[2] - seatV.z);
+  for (let t = s.holdFrom; t <= s.end + 1e-9; t += 1 / 120) {
+    const f = s.at(t);
+    assert.ok(Math.hypot(f.item.x - s.dest.x, f.item.y - s.dest.y, f.item.z - s.dest.z) < 1e-9, `符紙堆離開席前 t=${t.toFixed(3)}`);
+    if (f.hands.v) assert.ok(dSeat0 - Math.hypot(f.hands.v.at[0] - seatV.x, f.hands.v.at[2] - seatV.z) < 0.012, `受害者的手往席位縮（拖回） t=${t.toFixed(3)}`);
+  }
+  assert.equal('DRAG' in GM.CURSE, false);
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);

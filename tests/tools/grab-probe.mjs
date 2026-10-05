@@ -404,7 +404,7 @@ async function main() {
           const rows = [];
           const cases = [];
           for (const sc of AWARD.filter((x) => !x.extra)) for (const at of [100, 400, 700, 1000, 1250, 1500]) cases.push([sc, false, at]);
-          for (const sc of CURSE) for (const at of [500 /* 推 */, 1100 /* 按住 */, 1450 /* 收手／拖回 */]) cases.push([sc, true, at]);
+          for (const sc of CURSE) for (const at of [500 /* 推 */, 1100 /* 按住 */, 1450 /* 收手（v0.60.1 起符紙堆停在席前，不再拖回） */]) cases.push([sc, true, at]);
           for (const [sc, isC, at] of cases) {
             const run = await runScenario(page, vp, sc, isC, { skipAt: at, totalS: 2.0 });
             const b = run.skipped && run.skipped.before, a = run.skipped && run.skipped.after;
