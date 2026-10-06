@@ -141,13 +141,13 @@ const PAGE_LIB = () => {
         const seat = +holder.name.split('-')[1]; let mesh = null; holder.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
         holder.updateMatrixWorld(true); mesh.skeleton.update();
         const pos = mesh.geometry.attributes.position, col = mesh.geometry.attributes.color;
-        let n = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, maxZ = -1e9, minZ = 1e9, near = 1e9, sx = 0, sy = 0, sz = 0; const otherSlots = new Set();
+        let n = 0, overOther = 0, minY = 1e9, inOther = 0, mid = 0, maxX = -1e9, minX = 1e9, maxZ = -1e9, minZ = 1e9, near = 1e9, sx = 0, sy = 0, sz = 0; const otherSlots = new Set();
         for (let i = 0; i < pos.count; i++) {
           if (col && col.itemSize === 4 && col.getW(i) < 0.5) continue;
           v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); n++;
           if (v.y < minY) minY = v.y; if (v.x > maxX) maxX = v.x; if (v.x < minX) minX = v.x; if (v.z > maxZ) maxZ = v.z; if (v.z < minZ) minZ = v.z; sx += v.x; sy += v.y; sz += v.z;
           if (vb) { const ex = Math.max(vb.min.x - v.x, 0, v.x - vb.max.x), ey = Math.max(vb.min.y - v.y, 0, v.y - vb.max.y), ez = Math.max(vb.min.z - v.z, 0, v.z - vb.max.z), dd = Math.hypot(ex, ey, ez); if (dd < near) near = dd; }
-          others.forEach((b, k) => { if (b && b.containsPoint(v)) { inOther++; otherSlots.add(k); } });
+          others.forEach((b, k) => { if (b && b.containsPoint(v)) { inOther++; otherSlots.add(k); } if (b && v.x >= b.min.x && v.x <= b.max.x && v.z >= b.min.z && v.z <= b.max.z) overOther++; }); // overOther：條件 36 越過段——頂點水平落在別件外框內（不論高低）
           if ((seat === 2 && v.x > 0) || (seat === 3 && v.x < 0)) {
             const inFoot = foot && v.x >= foot.x0 && v.x <= foot.x1 && v.z >= foot.z0 && v.z <= foot.z1;
             if (!inFoot && !(v.y > window.__rest.top)) mid++;
@@ -156,7 +156,7 @@ const PAGE_LIB = () => {
         const palm = mesh.skeleton.bones.find((b) => b.name === 'Palm'); const pw = new THREE.Vector3(); if (palm) palm.getWorldPosition(pw);
         const pp = pw.clone().project(cam);
         const elb = mesh.skeleton.bones.find((b) => b.name === 'Elbow'), ew = new THREE.Vector3(); if (elb) elb.getWorldPosition(ew); // 第二輪覆審後條件 25：手臂（Elbow→Palm）方向
-        out.hands[seat] = { elbow: elb ? ew.toArray().map((x) => +x.toFixed(4)) : null, n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), minZ: +minZ.toFixed(4), maxZ: +maxZ.toFixed(4), minXf: +minX.toFixed(4), maxXf: +maxX.toFixed(4), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
+        out.hands[seat] = { overOther, elbow: elb ? ew.toArray().map((x) => +x.toFixed(4)) : null, n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), minZ: +minZ.toFixed(4), maxZ: +maxZ.toFixed(4), minXf: +minX.toFixed(4), maxXf: +maxX.toFixed(4), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
       }
       let rope = null; T.group.traverse((o) => { if (o.name === 'curse-rope-group') rope = o; });
       if (rope) {
@@ -516,8 +516,22 @@ export function judgeCurseR3(run) {
   const t30 = fr.findIndex((x) => { const d = cd(x); return d !== null && d <= 0.03; });
   let n30 = 0, bad30 = 0, max30 = null, first30 = null;
   if (t30 >= 0 && landed !== null) for (const x of fr.slice(t30)) { if (x.tms > landed) break; n30++; const d = cd(x); if (d === null || d > 0.03) { bad30++; if (!first30) first30 = { tms: x.tms, d: d === null ? null : +d.toFixed(3) }; } if (d !== null) max30 = Math.max(max30 ?? 0, d); }
-  const c30 = { touchMs: t30 >= 0 ? fr[t30].tms : null, landedMs: landed, frames: n30, badFrames: bad30, maxGap: max30 === null ? null : +max30.toFixed(3), first: first30 };
-  c30.pass = t30 >= 0 && landed !== null && n30 > 0 && bad30 === 0;
+  /* 第四輪條件 36／37（使用者簽 A′）：「抬手段」＝觸堆 → 落定之間，施放者 Palm 到堆可見外框 >0.03 的連續幀。
+     某一段算「越過段」（條件 36 豁免條件 30）＝施放者是北席（seat 1）且該段內至少一幀施放者手有可見頂點水平落在別件外框內（measure 的 overOther＞0）。
+     越過段須滿足條件 37：(a) 段內（含段頭前一幀到段尾）符紙堆每幀位移 ≤0.002；(b) 段長 ≤0.8s；(c) 段後第一幀手已回到 ≤0.03（段的定義即此）且段內堆不動＝(a)；
+     (d) 不穿別件、不一幀跳由條件 4／17／31 全程量；(e) 手臂來向由條件 25 全程量。非越過段的抬手幀照條件 30 判紅。 */
+  const segs = []; let cur = null;
+  if (t30 >= 0 && landed !== null) for (let i = t30; i < fr.length && fr[i].tms <= landed; i++) { const d = cd(fr[i]); const off = d === null || d > 0.03;
+    if (off) { if (!cur) cur = { i0: i, i1: i, over: 0, missing: 0 }; cur.i1 = i; const h = fr[i].hands[sc.seat]; if (!h) cur.missing++; else if (h.overOther > 0) cur.over++; } else if (cur) { segs.push(cur); cur = null; } }
+  if (cur) segs.push(cur);
+  const seg36 = segs.map((g) => { const exempt = sc.seat === 1 && g.over > 0 && !g.missing; let maxMove = 0;
+    for (let i = Math.max(1, g.i0); i <= g.i1 + 1 && i < fr.length; i++) { const a = fr[i - 1].item.pos, b = fr[i].item.pos; if (a && b) maxMove = Math.max(maxMove, Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2])); }
+    const durMs = fr[g.i1].tms - fr[g.i0].tms + Math.round(1000 / 60);
+    return { fromMs: fr[g.i0].tms, toMs: fr[g.i1].tms, frames: g.i1 - g.i0 + 1, exempt, overFrames: g.over, pileMaxMove: +maxMove.toFixed(4), durMs, a: maxMove <= 0.002, b: durMs <= 800 }; });
+  const bad30x = seg36.filter((g) => !g.exempt).reduce((n, g) => n + g.frames, 0);
+  const c30 = { touchMs: t30 >= 0 ? fr[t30].tms : null, landedMs: landed, frames: n30, badFrames: bad30, badNonExempt: bad30x, maxGap: max30 === null ? null : +max30.toFixed(3), first: first30, segments: seg36 };
+  c30.pass = t30 >= 0 && landed !== null && n30 > 0 && bad30x === 0; // 條件 36：越過段不計入；其餘照原門檻
+  const c37 = { segments: seg36.filter((g) => g.exempt) }; c37.pass = c30.touchMs !== null && c37.segments.every((g) => g.a && g.b);
   /* 第四輪條件 31：不得一幀跳——符紙堆（可見、相鄰兩幀）與施放者／受害者手（相鄰兩幀都可見；Palm 骨）每幀垂直位移 ≤0.03、水平 ≤0.06；
      兩隻手的可見狀態不得單幀消失或單幀出現（前後幀同狀態、中間那幀相反）。全程（0 → 最後一幀）。 */
   const j31 = []; let nPairs = 0;
@@ -528,7 +542,7 @@ export function judgeCurseR3(run) {
       const c = fr[i + 1]; if (c && !!a.hands[s] === !!c.hands[s] && !!b.hands[s] !== !!a.hands[s]) j31.push({ who: 'blink' + s, tms: b.tms }); } }
   const c31 = { pairs: nPairs, bad: j31.length, first: j31.slice(0, 6) };
   c31.pass = nPairs > 0 && j31.length === 0;
-  return Object.assign(r, { c25, c26, c30, c31 });
+  return Object.assign(r, { c25, c26, c30, c31, c37 });
 }
 
 async function main() {
