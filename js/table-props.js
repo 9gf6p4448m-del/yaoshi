@@ -22,6 +22,8 @@
 //
 // 快取破除：本檔由 table-tray.js 以 `./table-props.js?v=<VERSION>` 載入（同 renderer.js 檔頭那段）。
 import * as THREE from 'three';
+/** v0.62.1 ?handslow=k：index.html 解析網址一次放在 window.YS_ANIM_SLOW（沒有／非正數＝1）。本檔不 import 別的模組（tests 以 data URL 載入），所以讀全域。 */
+const handSlow = () => { const v = globalThis.YS_ANIM_SLOW; return v && v.hand > 0 ? v.hand : 1; };
 
 const V = new URL(import.meta.url).search;
 /* 頂點色建構器與決定性亂數收斂在 scene-env（環境幾何的家），本檔不另抄一份。 */
@@ -823,6 +825,7 @@ export function createTableProps(parent, opts = {}) {
      *  正在被扒回的錢照 update 的規則（returnDelay 等完、returnK 每秒 +1/0.42、smoothstep）外推；到席位收掉的不列。唯讀，不改任何狀態。
      *  令牌與木籌槽取現況。ahead≤0 時等同 handObstacles 的錢柱（中心、半徑、頂高同 stackAt 的算法）。 */
     handObstaclesAhead(ahead) {
+      const hs = handSlow(); if (hs !== 1) ahead = ahead / hs; // v0.62.1：ahead 是真實秒數，換成 update 放慢後的時間（同 update 的除法）
       const out = [], groups = new Map();
       for (const c of chipRec) {
         let back = c.returnK || 0;
@@ -879,6 +882,7 @@ export function createTableProps(parent, opts = {}) {
     /** 跳過：錢與令牌直接到結束姿態（同一條 update 路徑快轉，令牌落地仍由 update 發 onSlam）。 */
     finish() { for (let i = 0; i < 4; i++) api.update(1e3); },
     update(dt) {
+      const hs = handSlow(); if (hs !== 1) dt = dt / hs; // v0.62.1 ?handslow=k：錢柱／令牌／信物的時間推進放慢 k 倍（與 hand-motion 同一個 k；k=1 不碰 dt）
       let live = false;
       for (const c of chipRec) {
         if (c.t < 1) {

@@ -14,6 +14,8 @@
 // 必須接力同一個查詢字串（同 renderer.js 檔頭那段），否則 creature-figures 會被載成兩份、
 // glbCache 分岔。
 import * as THREE from 'three';
+/** v0.62.1 ?handslow=k：index.html 解析網址一次放在 window.YS_ANIM_SLOW（沒有／非正數＝1）；只讀（詛咒推按規劃看扒回的錢時，時間窗跟著放慢）。 */
+const handSlow = () => { const v = globalThis.YS_ANIM_SLOW; return v && v.hand > 0 ? v.hand : 1; };
 
 const V = new URL(import.meta.url).search;
 const { makeCreatureFigure, creatureGlbUrl, FACTION_RIM } = await import('./creature-figures.js' + V);
@@ -1070,15 +1072,15 @@ export function createTableTray(scene, camera, opts = {}) {
   const relicBoxes = () => (props.relicBoxes ? props.relicBoxes() : props.relicObstacles ? props.relicObstacles() : []);
   /** r3：桌上不會被扒走、高過桌面 0.05 的錢柱／令牌外框（1.2 秒後還在的）與四席信物（給路徑規劃一起繞）。 */
   function staticProps() {
-    const tY = props.tableY(), obs = (props.handObstaclesAhead ? props.handObstaclesAhead(1.2) : props.handObstacles()).concat(relicBoxes());
+    const hs = handSlow(), tY = props.tableY(), obs = (props.handObstaclesAhead ? props.handObstaclesAhead(hs === 1 ? 1.2 : 1.2 * hs) : props.handObstacles()).concat(relicBoxes()); // v0.62.1：同 rakeClear，「1.2 秒後」隨 ?handslow 放慢
     return obs.filter((o) => o.top > tY + 0.05).map((o) => (o.r !== undefined ? { x0: o.x - o.r, x1: o.x + o.r, z0: o.z - o.r, z1: o.z + o.r } : { x0: o.x - o.hx, x1: o.x + o.hx, z0: o.z - o.hz, z1: o.z + o.hz }));
   }
   function rakeClear(box) {
     if (!props.handObstaclesAhead) return 0;
     const over = (o) => o.r !== undefined && hitRect(o, box.x0, box.x1, box.z0, box.z1, PILE_PAD);
-    const still = props.handObstaclesAhead(1.2).filter(over); let last = -1;
-    for (let i = 0; i <= 30; i++) { const t = i / 30; if (props.handObstaclesAhead(t).some((o) => over(o) && !still.some((e) => Math.hypot(e.x - o.x, e.z - o.z) < 0.01))) last = t; }
-    return last < 0 ? 0 : last + 0.1; // r4：多等 0.1 秒——堆在開推前小幅抬過自己的木舌時，扒回的錢已完全離開
+    const hs = handSlow(), still = props.handObstaclesAhead(hs === 1 ? 1.2 : 1.2 * hs).filter(over); let last = -1; // v0.62.1 ?handslow=k：扒回放慢 k 倍，看的時間窗（真實秒）跟著 ×k
+    for (let i = 0; i <= 30; i++) { const t = hs === 1 ? i / 30 : i / 30 * hs; if (props.handObstaclesAhead(t).some((o) => over(o) && !still.some((e) => Math.hypot(e.x - o.x, e.z - o.z) < 0.01))) last = t; }
+    return last < 0 ? 0 : last + (hs === 1 ? 0.1 : 0.1 * hs); // v0.62.1：多等的 0.1 秒也隨 ?handslow 放慢；r4：多等 0.1 秒——堆在開推前小幅抬過自己的木舌時，扒回的錢已完全離開
   }
   /** 受害者的手：從「席位→符紙堆」方向起，往「席位→桌心」那側每 5° 試（最多 90°，再試另一側 60°），每個方向深度從 VICTIM_IN 往席位收；
    *  要求手（掌心錨點往前 0.56、往後 0.40、左右 0.20，拇指那側在掌心後 0–0.25 處到 0.44，外擴 0.08＝手抖與手掌比格點寬的餘量）不落進別件拍品外框與錢柱／令牌，落點（掌心往前 KNUCKLE）離別件拍品外框 ≥ 符紙堆半寬＋ROUTE_PAD、且在桌面範圍內。 */

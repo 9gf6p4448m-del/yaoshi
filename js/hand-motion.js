@@ -19,6 +19,8 @@
 // 單位：手的骨架與頂點是 GLB 原生單位 dm（1＝10cm），遊戲世界以 HAND.SCALE 換算（0.35，主對話已裁）。
 // 手部局部座標：y 上、z 前（指尖方向）、+x＝拇指側（右手掌心朝下），與 tools/anyCreature/out/hand/build.mjs 同一組。
 
+/** v0.62.1 ?handslow=k：index.html 解析網址一次放在 window.YS_ANIM_SLOW（沒有／非正數＝1）；只讀。 */
+const handSlow = () => { const v = globalThis.YS_ANIM_SLOW; return v && v.hand > 0 ? v.hand : 1; };
 /** 全部【試玩必調】；集中在這一張表，不在函式裡寫死數字。 */
 export const HAND = {
   /** dm → 世界單位。第二輪（使用者：手太大）以「掌寬 ≈ 錢柱直徑 2～2.5 倍」為準：GLB 掌寬（Palm 主骨頂點的 x 跨度）
@@ -1244,6 +1246,7 @@ export function createHandDirector(props, rig, per) {
     /** 跳過：直接到結束姿態＝四隻手全收。 */
     finish() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     update(dt) {
+      const hs = handSlow(); if (hs !== 1) dt = dt / hs; // v0.62.1 ?handslow=k：手的時間推進放慢 k 倍（與 table-props 同一個 k；grab 類由 table-tray 腳本驅動、不吃這個 t）
       for (const h of hands) {
         const a = h.act; if (!a) continue;
         a.t += a.pace ? dt / a.pace : dt; // 推完後的收手 pace＝HAND.PACE（時間軸拉長；其餘動作 undefined＝原速）
