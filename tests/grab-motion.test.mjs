@@ -128,6 +128,26 @@ test('v0.61.1 r2 貼桌繞行：planPath 的每一段都不穿進別件拍品外
   for (const ms of [0, -5]) { const z = GM.makeCurseScript({ seatC: { x: 0, z: 1.22 }, seatV: { x: 1.36, z: 1.06 }, from: { x: -1.35, y: 0.152, z: 0.1 }, box, tableY: 0.152, ms }); assert.ok(Number.isFinite(z.landAt) && z.landAt <= 0.002 && Number.isFinite(z.at(0.0005).item.x)); }
 });
 
+test('v0.61.1 r3 手臂來向（acceptance 條件 25，覆審 H-2）：西塞南（槽 3 推給南席）推的整段施放者手臂朝向與「席位→符紙堆」夾角餘弦 ≥0.5、收手往自己席位退；北塞西鑽不過的那段手臂不偏、也不轉到推的方向後方', () => {
+  const others = [{ x0: -1.543, x1: -1.149, z0: -0.043, z1: 0.254, top: 0.99 }, { x0: -0.645, x1: -0.255, z0: 0.012, z1: 0.213, top: 0.993 }, { x0: 0.125, x1: 0.613, z0: -0.022, z1: 0.68, top: 0.996 }];
+  const area = { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 }, box = { x0: 1.106, x1: 1.596, y0: 0.152, y1: 0.475, z0: -0.048, z1: 0.263 }, from = { x: 1.35, y: 0.152, z: 0.1 };
+  const cases = [['cWS', { x: -1.38, z: 0.98 }, { x: 0, z: 1.22 }, [-0.34, -0.94], 0.18], ['cNW', { x: 0, z: -1.92 }, { x: -1.38, z: 0.98 }, [0.98, -0.2], 0.42]];
+  for (const [name, seatC, seatV, vdir, victimIn] of cases) {
+    const s = GM.makeCurseScript({ seatC, seatV, from, box, tableY: 0.152, ms: 2000, vdir, victimIn, avoid: { boxes: others, area } });
+    assert.ok(s.route, `${name} 要有繞行路徑`);
+    for (let t = 0.02; t < s.T.press; t += 0.02) {
+      const f = s.at(t), h = f.hands.c, d = [f.item.x - seatC.x, f.item.z - seatC.z], l = Math.hypot(d[0], d[1]);
+      const cos = (Math.sin(h.yaw) * d[0] + Math.cos(h.yaw) * d[1]) / l;
+      assert.ok(cos >= 0.5, `${name} 推的階段手臂不是從自己席位來 t=${t.toFixed(2)} cos=${cos.toFixed(2)}`);
+    }
+    for (let t = s.T.hold + 0.02; t < s.T.gone - 0.02; t += 0.02) {
+      const a = s.at(t).hands.c.at, b = s.at(t + 0.02).hands.c.at, m = [b[0] - a[0], b[2] - a[2]], w = [seatC.x - a[0], seatC.z - a[2]];
+      const cos = (m[0] * w[0] + m[1] * w[1]) / (Math.hypot(m[0], m[1]) * Math.hypot(w[0], w[1]) || 1);
+      assert.ok(cos >= 0.5, `${name} 收手不是往自己席位退 t=${t.toFixed(2)} cos=${cos.toFixed(2)}`);
+    }
+  }
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);

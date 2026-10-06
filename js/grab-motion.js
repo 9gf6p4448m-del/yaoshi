@@ -147,9 +147,13 @@ export const CURSE = {
   LAND_SLOPE: 3.0, // v0.61.1：落定前 RISE_S 那段（推上手背）允許的最大下降速度——越過別件後要在落定前降回手背高度
   WRIST: 0.13, // 手腕＝受害者掌心錨點往席位退這麼多（×手的縮放倍率由呼叫端換算前已含）
   /* v0.61.1 r2（acceptance 條件 14–17：不再把符紙堆連同兩手抬到半空）：符紙堆貼桌繞過別件拍品走（planPath），
-     施放者的手臂若從自己席位伸來會橫越別件拍品，改從推的方向後方推（手臂留在符紙堆剛走過、已確定淨空的路上）。 */
+     （r2 另有「施放者手臂會橫越別件時改從推的方向後方推」，覆審 H-2 西塞南因此像東席推來，r3 廢除，改成下面的 armYawTable。） */
   ROUTE_PAD: 0.06, // 規劃路徑時，別件拍品外框再外擴「符紙堆半寬＋這麼多」
-  ARM_LEN: 0.9, ARM_R: 0.10, // 判斷「從席位伸來的手臂」會不會橫越別件拍品：掌心往後這麼長、這麼寬
+  /* r3（acceptance 條件 25：手臂來向；覆審 H-2 西塞南手臂從東側進場）：施放者的手臂一律從自己席位那側來——
+     朝向＝「席位 → 符紙堆」的方向，最多偏 DEV_MAX 去鑽別件拍品之間的空隙；偏 DEV_MAX 還鑽不過的那一段就不偏，手臂從別件上方越過
+     （可達把手抬過別件頂；符紙堆不跟著抬，仍貼桌，見 planCurseLift 的 Lp）。 */
+  ARM_LEN: 0.62, ARM_R: 0.17, // 手臂看得見的部分（rig.seen，袖布 alpha≥0.2）從掌心往後最長 0.62、側向半寬實測 0.14–0.19（r3 量；舊值 0.9／0.10）
+  DEV_MAX: 45 * Math.PI / 180, // 手臂朝向最多偏離「席位 → 符紙堆」這麼多（cos 0.71；條件 25 門檻 cos 0.5，留餘量）
   YAW_RATE: 3.0, // 施放者手的朝向最多每秒轉這麼多弧度（換推法時不瞬轉）
 };
 
@@ -196,6 +200,25 @@ function polyAt(pts, u) {
 }
 
 /**
+ * r3 施放者手臂朝向表（acceptance 條件 25）：沿路徑 N＋1 個取樣（第 i 個＝推的階段 i/N 時刻的位置），朝向＝「施放者席位 → 符紙堆」＋偏角。
+ * 偏角：掌心（堆中心往席位退 PALM_BACK）往後 ARM_LEN、半寬 ARM_R 的手臂若橫越別件拍品，找 ±DEV_MAX 內最小的鑽得過的偏角；
+ *   整段固定偏同一側（兩側各算最大需要量取小的那側，不在半路換邊——換邊時手臂會掃過別件）；
+ *   一段連續需要偏的取樣裡只要有一個偏 DEV_MAX 還鑽不過，整段都不偏（手臂從上方越過，不在半路甩來甩去）；
+ *   偏角取「max_j（d_j − 轉速上限×|i−j|）」的包絡：該偏的地方一定偏到、前後以 YAW_RATE 漸變（不瞬轉）。
+ */
+export function armYawTable(route, seatC, boxes, pushS, N = 96) {
+  const AB = boxes.map((o) => ({ x0: o.x0 - CURSE.ARM_R, x1: o.x1 + CURSE.ARM_R, z0: o.z0 - CURSE.ARM_R, z1: o.z1 + CURSE.ARM_R }));
+  const clear = (p, y) => { const sx = Math.sin(y), sz = Math.cos(y), a = [p[0] - sx * CURSE.PALM_BACK, p[1] - sz * CURSE.PALM_BACK], b = [a[0] - sx * CURSE.ARM_LEN, a[1] - sz * CURSE.ARM_LEN]; return !AB.some((o) => segHitsBox(a, b, o)); };
+  const P = [], Y0 = [], need = { 1: [], [-1]: [] }, STEP = Math.PI / 90;
+  for (let i = 0; i <= N; i++) { const p = polyAt(route, smooth(i / N)).p, y0 = Math.atan2(p[0] - seatC.x, p[1] - seatC.z); P.push(p); Y0.push(y0);
+    for (const sg of [1, -1]) { let d = 0; while (d <= CURSE.DEV_MAX + 1e-9 && !clear(p, y0 + sg * d)) d += STEP; need[sg].push(d <= CURSE.DEV_MAX + 1e-9 ? d : Infinity); } }
+  const worst = (sg) => Math.max(...need[sg]), sg = worst(1) <= worst(-1) ? 1 : -1, d = need[sg].slice();
+  /* 鑽不過的那幾段（含與它相連、需要偏的取樣）整段不偏 */
+  for (let i = 0; i <= N; i++) if (d[i] === Infinity) { let a = i, b = i; while (a > 0 && d[a - 1] > 0) a--; while (b < N && d[b + 1] > 0) b++; for (let k = a; k <= b; k++) d[k] = 0; }
+  const rate = CURSE.YAW_RATE * pushS / N, env = d.map((_, i) => Math.max(0, ...d.map((x, j) => x - rate * Math.abs(i - j))));
+  return Y0.map((y, i) => y + sg * env[i]);
+}
+/**
  * 詛咒轉移 A（推過去按住）＋C（紙錢繩纏腕，只在按住階段）。
  * @param o { seatC（施放者＝毒標得標席）, seatV（受害者＝transferTarget）, from, box（符紙堆靜止外接盒）, tableY, ms }
  */
@@ -210,22 +233,12 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
   const P0 = [from.x, from.y, from.z];
   const P1 = [Vp[0] + vx * CURSE.KNUCKLE, tableY + CURSE.HAND_TOP, Vp[2] + vz * CURSE.KNUCKLE]; // 終點：壓在受害者手背
   const P1t = [P1[0], from.y, P1[2]];
-  /* r2：avoid（tray 給 {boxes, area}）＝貼桌繞行；施放者手的朝向逐時取（從自己席位伸來的手臂會橫越別件拍品時，改從推的方向後方推） */
+  /* r2：avoid（tray 給 {boxes, area}）＝貼桌繞行。r3：施放者手的朝向逐時取「自己席位 → 符紙堆」方向，必要時在 ±DEV_MAX 內偏去鑽空隙（條件 25） */
   let route = null, yawTab = null;
   if (avoid) {
     const r = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + CURSE.ROUTE_PAD;
     route = planPath([P0[0], P0[2]], [P1[0], P1[2]], avoid.boxes, r, avoid.area);
-    const AB = avoid.boxes.map((o) => ({ x0: o.x0 - CURSE.ARM_R, x1: o.x1 + CURSE.ARM_R, z0: o.z0 - CURSE.ARM_R, z1: o.z1 + CURSE.ARM_R }));
-    const armClear = (p, yaw) => { const q = [p[0] - Math.sin(yaw) * CURSE.ARM_LEN, p[1] - Math.cos(yaw) * CURSE.ARM_LEN]; return !AB.some((o) => segHitsBox(p, q, o)); };
-    if (route) {
-      /* 整段同一種推法（不在半路換，換向時手臂會掃過別件）：從自己席位伸來的手臂全程都不橫越別件＝照舊；否則全程從推的方向後方推 */
-      const N = 96, Sy = [], Ty = [];
-      for (let i = 0; i <= N; i++) { const q = polyAt(route, smooth(i / N)); Sy.push([q.p, Math.atan2(q.p[0] - seatC.x, q.p[1] - seatC.z)]); Ty.push(Math.atan2(q.d[0], q.d[1])); }
-      yawTab = Sy.every(([p, y]) => armClear(p, y)) ? Sy.map((x) => x[1]) : Ty;
-      /* 轉向速度上限（雙向掃，取角度差的最短方向） */
-      const dmax = CURSE.YAW_RATE * (T.push - T.appr) / N, wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-      for (let pass = 0; pass < 2; pass++) for (let i = 1; i <= N; i++) { const j = pass ? N - i : i, k = pass ? j + 1 : j - 1, d = wrap(yawTab[j] - yawTab[k]); if (Math.abs(d) > dmax) yawTab[j] = yawTab[k] + Math.sign(d) * dmax; }
-    }
+    if (route) yawTab = armYawTable(route, seatC, avoid.boxes, T.push - T.appr);
   }
   const yawAtU = (u) => { if (!yawTab) return null; const x = clamp01(u) * (yawTab.length - 1), i = Math.min(yawTab.length - 2, Math.floor(x)), f = x - i, a = yawTab[i], d = Math.atan2(Math.sin(yawTab[i + 1] - a), Math.cos(yawTab[i + 1] - a)); return a + d * f; };
   const yawEnd = yawTab ? yawAtU(1) : Math.atan2(P1[0] - seatC.x, P1[2] - seatC.z); // 推到底之後施放者手的朝向
