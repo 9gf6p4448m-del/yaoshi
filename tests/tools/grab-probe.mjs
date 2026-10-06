@@ -155,7 +155,8 @@ const PAGE_LIB = () => {
         }
         const palm = mesh.skeleton.bones.find((b) => b.name === 'Palm'); const pw = new THREE.Vector3(); if (palm) palm.getWorldPosition(pw);
         const pp = pw.clone().project(cam);
-        out.hands[seat] = { n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), minZ: +minZ.toFixed(4), maxZ: +maxZ.toFixed(4), minXf: +minX.toFixed(4), maxXf: +maxX.toFixed(4), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
+        const elb = mesh.skeleton.bones.find((b) => b.name === 'Elbow'), ew = new THREE.Vector3(); if (elb) elb.getWorldPosition(ew); // 第二輪覆審後條件 25：手臂（Elbow→Palm）方向
+        out.hands[seat] = { elbow: elb ? ew.toArray().map((x) => +x.toFixed(4)) : null, n, lift: T.hands.liftOf ? +T.hands.liftOf(seat).toFixed(4) : null, why: T.hands.liftWhy ? T.hands.liftWhy(seat) : null, nearItem: +near.toFixed(4), minY: +minY.toFixed(4), inOther, otherSlots: [...otherSlots], midBelowTop: mid, minX: +minX.toFixed(3), maxX: +maxX.toFixed(3), minZ: +minZ.toFixed(4), maxZ: +maxZ.toFixed(4), minXf: +minX.toFixed(4), maxXf: +maxX.toFixed(4), palm: pw.toArray().map((x) => +x.toFixed(4)), centroid: n ? [sx / n, sy / n, sz / n].map((x) => +x.toFixed(4)) : null, palmScreen: [Math.round((pp.x + 1) / 2 * cw), Math.round((1 - pp.y) / 2 * ch)] };
       }
       let rope = null; T.group.traverse((o) => { if (o.name === 'curse-rope-group') rope = o; });
       if (rope) {
@@ -187,6 +188,18 @@ const PAGE_LIB = () => {
           const cb = new THREE.Box3(new THREE.Vector3(w.x - sx, w.y - sy, w.z - sx), new THREE.Vector3(w.x + sx, w.y + sy, w.z + sx));
           if (cb.intersectsBox(ib)) { hitChars++; hit.push('char' + k); } });
         out.pileHit = { items: hitItems, chars: hitChars, charsFound: !!ch, which: hit };
+        /* 第二輪覆審後條件 26：符紙堆包圍盒與桌上道具（table-props 群組底下看得見的錢、令牌、木籌槽、信物；接觸陰影貼片除外）逐件包圍盒的重疊
+           （InstancedMesh 逐實例；三軸都要重疊超過 1mm 才算，只碰邊不算）。直接讀場景網格，不讀產品的 handObstacles。找不到道具群組＝propsFound false（判紅）。 */
+        let pg = null; T.group.traverse((o) => { if (!pg && o.name === 'table-props') pg = o; });
+        const props = [];
+        if (pg && pg.visible) { pg.updateMatrixWorld(true); const M = new THREE.Matrix4(), bb = new THREE.Box3();
+          for (const m of pg.children) { if (!m.isMesh || !m.visible || m.name === 'prop-contact-shadows' || !m.geometry) continue; if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+            const n = m.isInstancedMesh ? m.count : 1;
+            for (let q = 0; q < n; q++) { if (m.isInstancedMesh) { m.getMatrixAt(q, M); M.premultiply(m.matrixWorld); } else M.copy(m.matrixWorld);
+              bb.copy(m.geometry.boundingBox).applyMatrix4(M);
+              const ox = Math.min(bb.max.x, ib.max.x) - Math.max(bb.min.x, ib.min.x), oy = Math.min(bb.max.y, ib.max.y) - Math.max(bb.min.y, ib.min.y), oz = Math.min(bb.max.z, ib.max.z) - Math.max(bb.min.z, ib.min.z);
+              if (ox > 1e-3 && oy > 1e-3 && oz > 1e-3) props.push({ m: m.name, i: q, depth: +Math.min(ox, oz).toFixed(3), top: +bb.max.y.toFixed(3) }); } } }
+        out.pileProps = { propsFound: !!pg, hits: props };
       }
       return out;
     },
@@ -462,6 +475,41 @@ export function judgeCurseR2(run) {
   c17.pass = vis.length > 0 && hits.length === 0;
   return Object.assign(s, { c14, c15, c16, c17 });
 }
+/* ── 第二輪覆審後（acceptance.md 條件 25、26；量不到一律判紅）──────────────────────────────
+   25：手臂來向。推的階段＝施放者手第一次出現 → 落定（含蓋上）；收手階段＝收手開始（judgeCurseSlow 的 retractAt）→ 施放者手最後一幀。
+       每幀手臂方向 a＝Palm−Elbow（水平）與「施放者席位（SEAT_XZ）→ 符紙堆中心（可見包圍盒中心，隱藏時用節點位置）」的夾角餘弦 ≥0.5（兩段都量）；
+       收手階段另量「反向」：Palm 逐幀位移（>0.5mm 的幀）與「Palm → 施放者席位」的夾角餘弦 ≥0.5（往自己席位收）。
+       推的階段 <6 幀、收手階段 <3 幀、缺 Elbow ⇒ 量不到 ⇒ 紅。
+   26：符紙堆可見幀（離開原位 >1mm 起；原位除外，同條件 17）包圍盒與桌上道具逐件包圍盒（measure 的 pileProps，直接讀場景網格）重疊 0 幀；道具群組找不到＝紅。 */
+export const COS25 = 0.5;
+export function judgeCurseR3(run) {
+  const r = judgeCurseR2(run), fr = run.frames, sc = run.scenario, landed = r.c2.landedMs, ret = r.c3.retractAt, [sx, sz] = SEAT_XZ[sc.seat], p0 = run.rest.pos;
+  const pileC = (x) => (x.item && x.item.box ? [(x.item.box[0] + x.item.box[3]) / 2, (x.item.box[2] + x.item.box[5]) / 2] : x.item && x.item.pos ? [x.item.pos[0], x.item.pos[2]] : null);
+  const cosOf = (a, b) => { const l = Math.hypot(a[0], a[1]) * Math.hypot(b[0], b[1]); return l > 1e-9 ? (a[0] * b[0] + a[1] * b[1]) / l : null; };
+  const armCos = (x) => { const h = x.hands[sc.seat], c = pileC(x); if (!h || !h.elbow || !c) return null; return cosOf([h.palm[0] - h.elbow[0], h.palm[2] - h.elbow[2]], [c[0] - sx, c[1] - sz]); };
+  const first = fr.findIndex((x) => x.hands[sc.seat]);
+  const push = first >= 0 && landed !== null ? fr.filter((x, i) => i >= first && x.tms <= landed) : [];
+  let pushMin = null, pushBad = 0, pushMiss = 0, pushFirstBad = null;
+  for (const x of push) { const c = armCos(x); if (c === null) { pushMiss++; continue; } pushMin = Math.min(pushMin ?? 2, c); if (c < COS25) { pushBad++; if (!pushFirstBad) pushFirstBad = { tms: x.tms, cos: +c.toFixed(3) }; } }
+  let last = -1; for (let i = fr.length - 1; i >= 0; i--) if (fr[i].hands[sc.seat]) { last = i; break; }
+  const retr = ret !== null && last >= 0 ? fr.filter((x, i) => x.tms >= ret && i <= last) : [];
+  let retMin = null, retBad = 0, retMiss = 0, movMin = null, movBad = 0, movN = 0, retFirstBad = null;
+  for (let i = 0; i < retr.length; i++) { const x = retr[i], c = armCos(x); if (c === null) { retMiss++; continue; } retMin = Math.min(retMin ?? 2, c); if (c < COS25) { retBad++; if (!retFirstBad) retFirstBad = { tms: x.tms, cos: +c.toFixed(3), kind: 'arm' }; }
+    const prev = i ? retr[i - 1].hands[sc.seat] : null, h = x.hands[sc.seat];
+    if (prev && h) { const d = [h.palm[0] - prev.palm[0], h.palm[2] - prev.palm[2]]; if (Math.hypot(d[0], d[1]) > 0.0005) { movN++; const m = cosOf(d, [sx - prev.palm[0], sz - prev.palm[2]]); movMin = Math.min(movMin ?? 2, m); if (m < COS25) { movBad++; if (!retFirstBad) retFirstBad = { tms: x.tms, cos: +m.toFixed(3), kind: 'motion' }; } } } }
+  const r3 = (v) => (v === null ? null : +v.toFixed(3));
+  const c25 = { pushFrames: push.length, pushMissing: pushMiss, pushCosMin: r3(pushMin), pushBad, pushFirstBad, retractFrames: retr.length, retractMissing: retMiss, retractArmCosMin: r3(retMin), retractArmBad: retBad, retractMoveFrames: movN, retractMoveCosMin: r3(movMin), retractMoveBad: movBad, retractFirstBad: retFirstBad };
+  c25.pass = push.length >= 6 && !pushMiss && pushBad === 0 && retr.length >= 3 && !retMiss && retBad === 0 && movN >= 3 && movBad === 0;
+  const moved = fr.filter((x) => x.item && !x.item.hidden && x.item.box && x.item.pos && Math.hypot(x.item.pos[0] - p0[0], x.item.pos[1] - p0[1], x.item.pos[2] - p0[2]) > 1e-3);
+  const bad = moved.filter((x) => !x.pileProps || !x.pileProps.propsFound || x.pileProps.hits.length > 0);
+  let deepest = null; for (const x of bad) for (const h of (x.pileProps ? x.pileProps.hits : [])) if (!deepest || h.depth > deepest.depth) deepest = Object.assign({ tms: x.tms }, h);
+  /* 只記錄（不影響判定）：依道具種類分的命中幀數，與「高過桌面 ≥0.05 的道具」命中幀數（覆審 obst2 的口徑：只數 top>0.2 的錢柱／令牌），供與覆審數字對照 */
+  const byKind = {}; let tall = 0; const tY = fr[0] ? fr[0].tableY : null;
+  for (const x of bad) { const hs = x.pileProps ? x.pileProps.hits : []; for (const k of new Set(hs.map((h) => h.m))) byKind[k] = (byKind[k] || 0) + 1; if (tY !== null && hs.some((h) => h.top >= tY + 0.05)) tall++; }
+  const c26 = { movedFrames: moved.length, hitFrames: bad.length, byKind, tallHitFrames: tall, first: bad[0] ? { tms: bad[0].tms, hits: bad[0].pileProps ? bad[0].pileProps.hits.slice(0, 4) : 'no-props' } : null, deepest };
+  c26.pass = moved.length > 0 && bad.length === 0;
+  return Object.assign(r, { c25, c26 });
+}
 
 async function main() {
   progress(`start root=${ROOT} modes=${MODES} q=${EXTRA_Q}`);
@@ -515,6 +563,22 @@ async function main() {
             progress(`r2 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass] })}`);
           }
           results.modes.r2 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
+          await ctx.close();
+        } else if (mode === 'r3') {
+          /* 第二輪覆審後：條件 14–17＋25、26（judgeCurseR3）；--kinds＝五種詛咒物 × --kc 組（條件 27），否則 12 組（＋extra）× 冥婚紅包 */
+          const { ctx, page, errs, vp } = await openPage(browser, opt.vp || 'V3', EXTRA_Q);
+          const only = opt.only ? String(opt.only).split(',') : null;
+          let list = CURSE12.filter((x) => !only || only.includes(x.name));
+          if (opt.kinds) { const kc = String(opt.kc || 'cWS,cES,cNW').split(','); list = []; for (const kind of CURSE_KINDS) for (const n of kc) list.push(Object.assign({}, CURSE12.find((x) => x.name === n), { kind, name: n + '-' + kind })); }
+          const shotDir = opt.shotdir ? path.resolve(String(opt.shotdir)) : OUT; if (SHOTS) fs.mkdirSync(shotDir, { recursive: true });
+          const rows = [];
+          for (const sc of list) {
+            const run = await runScenario(page, vp, sc, true, { shots: SHOTS, prefix: 'r3-', totalS: Number(opt.totals || 3.4), shotDir });
+            const j = judgeCurseR3(run); rows.push(j);
+            if (opt.raw) fs.writeFileSync(path.join(OUT, `raw-r3-${sc.name}.json`), JSON.stringify(run));
+            progress(`r3 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass], c25: [j.c25.pushCosMin, j.c25.retractArmCosMin, j.c25.retractMoveCosMin, j.c25.pass], c26: [j.c26.hitFrames, j.c26.deepest && j.c26.deepest.depth, j.c26.pass] })}`);
+          }
+          results.modes.r3 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
           await ctx.close();
         } else if (mode === 'skipwait') {
           /* 第二輪條件 19 後半：HTML 側跳過等待。照 index.html 開標那兩行（毒標轉移先 pwSleep 補差、再 sleep(GRAB_MS+GAP)）在頁內重放，

@@ -24,3 +24,12 @@
 - 第二輪修復：0a11dee5（planPath 貼桌繞行、受害者另找空桌面、施放者改從後方推、規劃分攤、CURSE_MS≤0、跳過等待、VERSION_NOTE 實述）、158f5650（單元測試＋治具）。
 - 證據（evidence-r2/，於 158f5650 上 2026-10-06 00:03–00:45 依序單一瀏覽器跑完，progress.log）：條件 14–17 正常 4/4 過、原浮空 8 組全過（c14-17-summary.log）；條件 18 開演 p95 中位 20.0ms（基準 17.8ms，門檻 30）；條件 19 CURSE_MS 0/1500/2000/2600 與 skipwait；條件 11 全套 475/475。
 - **中斷（第二次）**：00:53 實作者在未提交狀態試改 js/table-tray.js（PLAN_DT 1/15→1/10、PLAN_PER_FRAME 8→0），未有任何證據覆蓋、且 session 結束。主對話（10-06）判定此為未完成實驗：已存 D:/yaoshi-scratch/curse-slow2/uncommitted-tabletray-0053.patch 後還原，驗證狀態＝158f5650。
+
+## 第二輪覆審後（條件 25–29，451a7130 起；暫存 D:/yaoshi-scratch/curse-slow3/）
+- ① 判定器補條件 25、26（tests/tools/grab-probe.mjs `--modes=r3`＝judgeCurseR3；摘要 tests/tools/curse-r3-summary.cjs）。口徑寫在 judgeCurseR3 上方註解：
+  - 25：推的階段（施放者手出現→落定）與收手階段（retractAt→手最後一幀）逐幀手臂 Palm−Elbow 對「施放者席位→堆中心」餘弦 ≥0.5；收手另量 Palm 逐幀位移對「Palm→席位」餘弦 ≥0.5。量不到判紅。
+  - 26：堆離開原位起逐幀，堆包圍盒與 table-props 群組底下所有看得見的網格（錢 prop-chips、令牌 prop-tokens、木籌槽 prop-mark-racks、四席信物 relic-*；接觸陰影貼片除外）逐件包圍盒三軸重疊 >1mm 即算一幀。直接讀場景，不讀產品 handObstacles。
+- 基準量測（evidence-r3/baseline-r3-*.json／-summary.log）：
+  - 158f5650：c25 紅 6/12（cWS 推／收手餘弦 −1、cNW、cNE、cWN、cEN、cSE），**西塞南判紅＝符合預期**；c26 嚴格口徑紅 12/12；**覆審口徑（只數高過桌面 ≥0.05 的道具，同 obst2 的 top>0.2）紅 9/12，三組綠 cSN、cWN、cEN＝與覆審 9/12 同一組**。
+  - 709e313a（雙邊對照）：c25 紅 0/12（舊版手臂都從自己席位來＝健康狀態判綠）；c26 嚴格 9/12、覆審口徑 8/12。
+  - 嚴格口徑比覆審多數的是 1.6cm 高的木籌槽（prop-mark-racks）與席位信物（relic-*，堆落在受害者席前時壓到信物外框）。依 §2.1 屬「加嚴」：判定以嚴格口徑為準，覆審口徑只另列對照（tallHitFrames）。
