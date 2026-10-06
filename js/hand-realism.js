@@ -50,7 +50,7 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  Z0＝−0.50：袖口的配件（收驚婆麻布袖口、獵人毛邊、當鋪金邊外翻，實測最遠到 z −0.486）都在袖管起點之前，袖管從配件後面接出去。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
 export const ARM = { CUT: -0.6, Z0: -0.50, PAD: 0.012, SIDES: 10, SEGS: 12, FINE_Z: -0.45, LEN: 0.60, OLD_FADE: 0.55, DIM: 0.6 };
-/** 新手模型（2026-10-07，Modly 生成後 Blender 整理，5,800 面）本身已平滑，不再 Loop 細分：原手三角形數 > 此值＝略過細分（畫面面數≈GLB 面數）。
+/** 新手模型（2026-10-07，Modly 生成後 Blender 整理，GLB 4,610 面）本身已平滑，不再 Loop 細分：原手三角形數 > 此值＝略過細分（畫面面數≈GLB 面數）。
  *  舊手（1,362 面）照舊細分。驗收凍結檔 acceptance-newhand.md 放寬記錄。 */
 export const SUBDIV_MAX_TRIS = 2500;
 /** 袖管沿長度的 alpha（t＝離袖口的距離／LEN，0..1）：1 → 0 單調遞減。 */
