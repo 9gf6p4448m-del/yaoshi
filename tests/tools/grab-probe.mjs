@@ -338,9 +338,11 @@ export function judgeCurse(run) {
   const fr = run.frames, sc = run.scenario, out = { name: sc.name, caster: sc.seat, victim: sc.target, slot: sc.slot };
   const p0 = run.rest.pos;
   const moving = fr.findIndex((x) => x.item && x.item.pos && Math.hypot(x.item.pos[0] - p0[0], x.item.pos[1] - p0[1], x.item.pos[2] - p0[2]) > 1e-3);
-  /* 落定＝符紙堆第一次到達「受害者手背上」並停住：從開始移動起，之後連續 6 幀位移 < 2mm 的最早一幀 */
+  /* 落定＝符紙堆第一次到達「受害者手背上」並停住：從開始移動起，之後連續 6 幀位移 < 2mm 的最早一幀。
+     第四輪條件 34（加固）：那一幀還要同時滿足條件 16——堆水平中心在受害者可見手的水平外框內、堆底 ≤ 受害者 Palm＋0.05（手蓋上後在原位等錢扒過去的靜止不算落定）。 */
+  const onHand = (x) => { const vh = x.hands[sc.target], b = x.item && x.item.box; if (!vh || !b || vh.minXf === undefined) return false; const cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2; return cx >= vh.minXf && cx <= vh.maxXf && cz >= vh.minZ && cz <= vh.maxZ && b[1] - vh.palm[1] <= 0.05; };
   let landed = null;
-  if (moving >= 0) for (let i = moving; i < fr.length - 6; i++) { const p = fr[i].item.pos; if (!p) continue; let still = true; for (let j = 1; j <= 6; j++) { const q = fr[i + j].item.pos; if (!q || Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > 0.002) { still = false; break; } } if (still) { landed = fr[i].tms; break; } }
+  if (moving >= 0) for (let i = moving; i < fr.length - 6; i++) { const p = fr[i].item.pos; if (!p || !onHand(fr[i])) continue; let still = true; for (let j = 1; j <= 6; j++) { const q = fr[i + j].item.pos; if (!q || Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > 0.002) { still = false; break; } } if (still) { landed = fr[i].tms; break; } }
   out.landedMs = landed; out.timeOK = landed !== null && landed <= 1300;
   /* 施放者＝推的那隻手：開始移動到落定之間，離法寶最近的可見手必須是毒標得標席 */
   const pushers = new Map();
@@ -508,7 +510,25 @@ export function judgeCurseR3(run) {
   for (const x of bad) { const hs = x.pileProps ? x.pileProps.hits : []; for (const k of new Set(hs.map((h) => h.m))) byKind[k] = (byKind[k] || 0) + 1; if (tY !== null && hs.some((h) => h.top >= tY + 0.05)) tall++; }
   const c26 = { movedFrames: moved.length, hitFrames: bad.length, byKind, tallHitFrames: tall, first: bad[0] ? { tms: bad[0].tms, hits: bad[0].pileProps ? bad[0].pileProps.hits.slice(0, 4) : 'no-props' } : null, deepest };
   c26.pass = moved.length > 0 && bad.length === 0;
-  return Object.assign(r, { c25, c26 });
+  /* 第四輪條件 30：推的階段施放者手蓋在堆上——施放者 Palm 骨到符紙堆可見外框（vbox）的距離，第一次 ≤0.03 起（觸堆）到落定，每幀 ≤0.03；量不到（沒觸堆、缺幀）＝紅。 */
+  const boxD = (p, b) => Math.hypot(Math.max(b[0] - p[0], 0, p[0] - b[3]), Math.max(b[1] - p[1], 0, p[1] - b[4]), Math.max(b[2] - p[2], 0, p[2] - b[5]));
+  const cd = (x) => { const h = x.hands[sc.seat]; return h && x.item && x.item.vbox ? boxD(h.palm, x.item.vbox) : null; };
+  const t30 = fr.findIndex((x) => { const d = cd(x); return d !== null && d <= 0.03; });
+  let n30 = 0, bad30 = 0, max30 = null, first30 = null;
+  if (t30 >= 0 && landed !== null) for (const x of fr.slice(t30)) { if (x.tms > landed) break; n30++; const d = cd(x); if (d === null || d > 0.03) { bad30++; if (!first30) first30 = { tms: x.tms, d: d === null ? null : +d.toFixed(3) }; } if (d !== null) max30 = Math.max(max30 ?? 0, d); }
+  const c30 = { touchMs: t30 >= 0 ? fr[t30].tms : null, landedMs: landed, frames: n30, badFrames: bad30, maxGap: max30 === null ? null : +max30.toFixed(3), first: first30 };
+  c30.pass = t30 >= 0 && landed !== null && n30 > 0 && bad30 === 0;
+  /* 第四輪條件 31：不得一幀跳——符紙堆（可見、相鄰兩幀）與施放者／受害者手（相鄰兩幀都可見；Palm 骨）每幀垂直位移 ≤0.03、水平 ≤0.06；
+     兩隻手的可見狀態不得單幀消失或單幀出現（前後幀同狀態、中間那幀相反）。全程（0 → 最後一幀）。 */
+  const j31 = []; let nPairs = 0;
+  for (let i = 1; i < fr.length; i++) { const a = fr[i - 1], b = fr[i];
+    if (a.item && b.item && a.item.pos && b.item.pos && !a.item.hidden && !b.item.hidden) { nPairs++; const dv = Math.abs(b.item.pos[1] - a.item.pos[1]), dh = Math.hypot(b.item.pos[0] - a.item.pos[0], b.item.pos[2] - a.item.pos[2]); if (dv > 0.03 || dh > 0.06) j31.push({ who: 'pile', tms: b.tms, dv: +dv.toFixed(3), dh: +dh.toFixed(3) }); }
+    for (const s of [sc.seat, sc.target]) { const ha = a.hands[s], hb = b.hands[s];
+      if (ha && hb) { nPairs++; const dv = Math.abs(hb.palm[1] - ha.palm[1]), dh = Math.hypot(hb.palm[0] - ha.palm[0], hb.palm[2] - ha.palm[2]); if (dv > 0.03 || dh > 0.06) j31.push({ who: 'hand' + s, tms: b.tms, dv: +dv.toFixed(3), dh: +dh.toFixed(3) }); }
+      const c = fr[i + 1]; if (c && !!a.hands[s] === !!c.hands[s] && !!b.hands[s] !== !!a.hands[s]) j31.push({ who: 'blink' + s, tms: b.tms }); } }
+  const c31 = { pairs: nPairs, bad: j31.length, first: j31.slice(0, 6) };
+  c31.pass = nPairs > 0 && j31.length === 0;
+  return Object.assign(r, { c25, c26, c30, c31 });
 }
 
 async function main() {
@@ -569,14 +589,14 @@ async function main() {
           const { ctx, page, errs, vp } = await openPage(browser, opt.vp || 'V3', EXTRA_Q);
           const only = opt.only ? String(opt.only).split(',') : null;
           let list = CURSE12.filter((x) => !only || only.includes(x.name));
-          if (opt.kinds) { const kc = String(opt.kc || 'cWS,cES,cNW').split(','); list = []; for (const kind of CURSE_KINDS) for (const n of kc) list.push(Object.assign({}, CURSE12.find((x) => x.name === n), { kind, name: n + '-' + kind })); }
+          if (opt.kinds) { const kc = String(opt.kc || 'cWS,cES,cNW,cNE').split(','); list = []; for (const kind of CURSE_KINDS) for (const n of kc) list.push(Object.assign({}, CURSE12.find((x) => x.name === n), { kind, name: n + '-' + kind })); }
           const shotDir = opt.shotdir ? path.resolve(String(opt.shotdir)) : OUT; if (SHOTS) fs.mkdirSync(shotDir, { recursive: true });
           const rows = [];
           for (const sc of list) {
             const run = await runScenario(page, vp, sc, true, { shots: SHOTS, prefix: 'r3-', totalS: Number(opt.totals || 3.4), shotDir });
             const j = judgeCurseR3(run); rows.push(j);
             if (opt.raw) fs.writeFileSync(path.join(OUT, `raw-r3-${sc.name}.json`), JSON.stringify(run));
-            progress(`r3 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass], c25: [j.c25.pushCosMin, j.c25.retractArmCosMin, j.c25.retractMoveCosMin, j.c25.pass], c26: [j.c26.hitFrames, j.c26.deepest && j.c26.deepest.depth, j.c26.pass] })}`);
+            progress(`r3 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass], c25: [j.c25.pushCosMin, j.c25.retractArmCosMin, j.c25.retractMoveCosMin, j.c25.pass], c26: [j.c26.hitFrames, j.c26.deepest && j.c26.deepest.depth, j.c26.pass], c30: [j.c30.maxGap, j.c30.badFrames, j.c30.pass], c31: [j.c31.bad, j.c31.pass] })}`);
           }
           results.modes.r3 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
           await ctx.close();

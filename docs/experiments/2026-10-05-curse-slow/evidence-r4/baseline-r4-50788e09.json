@@ -1,0 +1,2909 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\curse-slow",
+ "tag": "b507",
+ "git": "92f28c9f060a789b87275f1db4dcde25639a49ff",
+ "dirty": "",
+ "modes": {
+  "r3": {
+   "rows": [
+    {
+     "name": "cSN",
+     "caster": 0,
+     "victim": 1,
+     "slot": 1,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 5,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.2374,
+        "1": 0.156,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 3.26,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 493,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6373,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1001,
+      "pileLiftMax": 0.0952,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2785,
+      "bottomOverPalm": 0.0375,
+      "dhCentroid": 0.1173,
+      "bottomOverCentroid": 0.0298,
+      "inHandBox": true,
+      "handBox": [
+       -0.3746,
+       0.2392,
+       -1.7477,
+       -0.9264
+      ],
+      "pileCenter": [
+       -0.0992,
+       -1.4539
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.999,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.999,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 0,
+      "maxGap": 0.025,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 10,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0.001
+       },
+       {
+        "who": "hand0",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       },
+       {
+        "who": "hand0",
+        "tms": 2900,
+        "dv": 0.008,
+        "dh": 0.071
+       },
+       {
+        "who": "hand0",
+        "tms": 2917,
+        "dv": 0.009,
+        "dh": 0.077
+       },
+       {
+        "who": "hand0",
+        "tms": 2933,
+        "dv": 0.01,
+        "dh": 0.083
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cSW",
+     "caster": 0,
+     "victim": 2,
+     "slot": 2,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 31.8,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.2374,
+        "1": 0.156,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 5.48,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 486,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6065,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0931,
+      "pileLiftMax": 0.0931,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2273,
+      "bottomOverPalm": 0.0267,
+      "dhCentroid": 0.1012,
+      "bottomOverCentroid": 0.0285,
+      "inHandBox": true,
+      "handBox": [
+       -1.2893,
+       -0.4633,
+       0.4788,
+       1.0518
+      ],
+      "pileCenter": [
+       -0.9255,
+       0.8606
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.998,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.934,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 2,
+      "maxGap": 0.064,
+      "first": {
+       "tms": 283,
+       "d": 0.041
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 13,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cSE",
+     "caster": 0,
+     "victim": 3,
+     "slot": 0,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 38.08,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.2538,
+        "1": 0.156,
+        "3": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 3.46,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 478,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6833,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0864,
+      "pileLiftMax": 0.0853,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.1913,
+      "bottomOverPalm": 0.0246,
+      "dhCentroid": 0.0839,
+      "bottomOverCentroid": 0.0266,
+      "inHandBox": true,
+      "handBox": [
+       0.5135,
+       1.343,
+       0.912,
+       1.4769
+      ],
+      "pileCenter": [
+       0.9558,
+       1.1061
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.998,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.854,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 2,
+      "maxGap": 0.064,
+      "first": {
+       "tms": 283,
+       "d": 0.041
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 13,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 1100,
+        "dv": 0.03,
+        "dh": 0.044
+       },
+       {
+        "who": "hand0",
+        "tms": 1100,
+        "dv": 0.03,
+        "dh": 0.045
+       },
+       {
+        "who": "hand0",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cNS",
+     "caster": 1,
+     "victim": 0,
+     "slot": 2,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 1,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 23.26,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.2729,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 9.25,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 502,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6118,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1071,
+      "pileLiftMax": 0.107,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2396,
+      "bottomOverPalm": 0.0334,
+      "dhCentroid": 0.1215,
+      "bottomOverCentroid": 0.0359,
+      "inHandBox": true,
+      "handBox": [
+       -0.4732,
+       0.1225,
+       0.2764,
+       1.1446
+      ],
+      "pileCenter": [
+       -0.0587,
+       0.802
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.998,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 183,
+      "landedMs": 1967,
+      "frames": 108,
+      "badFrames": 0,
+      "maxGap": 0.024,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 10,
+      "first": [
+       {
+        "who": "hand1",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0
+       },
+       {
+        "who": "hand1",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       },
+       {
+        "who": "hand1",
+        "tms": 2900,
+        "dv": 0.009,
+        "dh": 0.071
+       },
+       {
+        "who": "hand1",
+        "tms": 2917,
+        "dv": 0.009,
+        "dh": 0.077
+       },
+       {
+        "who": "hand1",
+        "tms": 2933,
+        "dv": 0.01,
+        "dh": 0.083
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cNW",
+     "caster": 1,
+     "victim": 2,
+     "slot": 3,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 1,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 36.51,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.2729,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 587
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 48,
+       "outsideHold": 0,
+       "minPx": 3.56,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 48,
+       "peaks": 26,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 423,
+     "c14": {
+      "trayTop": 1.0028366302282363,
+      "pileMax": 0.7393,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0931,
+      "pileLiftMax": 0.0931,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2261,
+      "bottomOverPalm": 0.0267,
+      "dhCentroid": 0.1003,
+      "bottomOverCentroid": 0.0285,
+      "inHandBox": true,
+      "handBox": [
+       -1.2574,
+       -0.4313,
+       0.5953,
+       1.1658
+      ],
+      "pileCenter": [
+       -0.9096,
+       0.9643
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.743,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.988,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.958,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 183,
+      "landedMs": 1967,
+      "frames": 108,
+      "badFrames": 63,
+      "maxGap": 0.506,
+      "first": {
+       "tms": 300,
+       "d": 0.03
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 19,
+      "first": [
+       {
+        "who": "hand1",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.063,
+        "dh": 0.001
+       },
+       {
+        "who": "hand1",
+        "tms": 733,
+        "dv": 0.07,
+        "dh": 0.034
+       },
+       {
+        "who": "hand1",
+        "tms": 750,
+        "dv": 0.034,
+        "dh": 0.037
+       },
+       {
+        "who": "hand1",
+        "tms": 1183,
+        "dv": 0.033,
+        "dh": 0.046
+       },
+       {
+        "who": "hand1",
+        "tms": 1200,
+        "dv": 0.038,
+        "dh": 0.046
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cNE",
+     "caster": 1,
+     "victim": 3,
+     "slot": 0,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 1,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 36.17,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.2754,
+        "3": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 312
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 48,
+       "outsideHold": 0,
+       "minPx": 3.46,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 48,
+       "peaks": 26,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 475,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6832,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0864,
+      "pileLiftMax": 0.0853,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.1913,
+      "bottomOverPalm": 0.0246,
+      "dhCentroid": 0.0839,
+      "bottomOverCentroid": 0.0266,
+      "inHandBox": true,
+      "handBox": [
+       0.5135,
+       1.343,
+       0.912,
+       1.4769
+      ],
+      "pileCenter": [
+       0.9558,
+       1.1061
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.744,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.744,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.529,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 183,
+      "landedMs": 1967,
+      "frames": 108,
+      "badFrames": 44,
+      "maxGap": 0.504,
+      "first": {
+       "tms": 300,
+       "d": 0.03
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 24,
+      "first": [
+       {
+        "who": "hand1",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.063,
+        "dh": 0.001
+       },
+       {
+        "who": "hand1",
+        "tms": 1317,
+        "dv": 0.047,
+        "dh": 0.039
+       },
+       {
+        "who": "hand1",
+        "tms": 1350,
+        "dv": 0.072,
+        "dh": 0.038
+       },
+       {
+        "who": "hand1",
+        "tms": 1633,
+        "dv": 0.046,
+        "dh": 0.021
+       },
+       {
+        "who": "hand1",
+        "tms": 1683,
+        "dv": 0.05,
+        "dh": 0.017
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cWS",
+     "caster": 2,
+     "victim": 0,
+     "slot": 3,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 2,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 35.53,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.156,
+        "2": 0.3058
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 5.16,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 463,
+     "c14": {
+      "trayTop": 1.0028366302282363,
+      "pileMax": 0.7399,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1071,
+      "pileLiftMax": 0.107,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2397,
+      "bottomOverPalm": 0.0334,
+      "dhCentroid": 0.1207,
+      "bottomOverCentroid": 0.0359,
+      "inHandBox": true,
+      "handBox": [
+       -0.4999,
+       0.1287,
+       0.4998,
+       1.3636
+      ],
+      "pileCenter": [
+       -0.0765,
+       1.0113
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.837,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.995,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 217,
+      "landedMs": 1967,
+      "frames": 106,
+      "badFrames": 2,
+      "maxGap": 0.071,
+      "first": {
+       "tms": 283,
+       "d": 0.048
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 13,
+      "first": [
+       {
+        "who": "hand2",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand2",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand2",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand2",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cWN",
+     "caster": 2,
+     "victim": 1,
+     "slot": 2,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 2,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 4.61,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.156,
+        "2": 0.2894
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 3.25,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 452,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.5863,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1001,
+      "pileLiftMax": 0.0952,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2775,
+      "bottomOverPalm": 0.0375,
+      "dhCentroid": 0.1175,
+      "bottomOverCentroid": 0.0298,
+      "inHandBox": true,
+      "handBox": [
+       -0.0394,
+       0.5216,
+       -1.769,
+       -0.9405
+      ],
+      "pileCenter": [
+       0.1042,
+       -1.4536
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.932,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 217,
+      "landedMs": 1967,
+      "frames": 106,
+      "badFrames": 0,
+      "maxGap": 0.025,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 10,
+      "first": [
+       {
+        "who": "hand2",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0.001
+       },
+       {
+        "who": "hand2",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       },
+       {
+        "who": "hand2",
+        "tms": 2900,
+        "dv": 0.009,
+        "dh": 0.071
+       },
+       {
+        "who": "hand2",
+        "tms": 2917,
+        "dv": 0.009,
+        "dh": 0.077
+       },
+       {
+        "who": "hand2",
+        "tms": 2933,
+        "dv": 0.01,
+        "dh": 0.083
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cWE",
+     "caster": 2,
+     "victim": 3,
+     "slot": 1,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 2,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 40,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "2": 0.2894,
+        "3": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 48,
+       "outsideHold": 0,
+       "minPx": 5.51,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 48,
+       "peaks": 26,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 434,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.654,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0864,
+      "pileLiftMax": 0.0853,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.1917,
+      "bottomOverPalm": 0.0246,
+      "dhCentroid": 0.0842,
+      "bottomOverCentroid": 0.0266,
+      "inHandBox": true,
+      "handBox": [
+       0.4484,
+       1.274,
+       0.8061,
+       1.4037
+      ],
+      "pileCenter": [
+       0.8936,
+       1.0432
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.999,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 217,
+      "landedMs": 1967,
+      "frames": 106,
+      "badFrames": 0,
+      "maxGap": 0.026,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 16,
+      "first": [
+       {
+        "who": "hand2",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0.001
+       },
+       {
+        "who": "pile",
+        "tms": 1017,
+        "dv": 0.039,
+        "dh": 0.032
+       },
+       {
+        "who": "hand2",
+        "tms": 1017,
+        "dv": 0.039,
+        "dh": 0.032
+       },
+       {
+        "who": "hand2",
+        "tms": 2750,
+        "dv": 0.132,
+        "dh": 0.016
+       },
+       {
+        "who": "hand2",
+        "tms": 2767,
+        "dv": 0.132,
+        "dh": 0.022
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cES",
+     "caster": 3,
+     "victim": 0,
+     "slot": 0,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 3,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 28.02,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.156,
+        "3": 0.2909
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 6.32,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 438,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6523,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1071,
+      "pileLiftMax": 0.107,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2386,
+      "bottomOverPalm": 0.0334,
+      "dhCentroid": 0.1192,
+      "bottomOverCentroid": 0.0359,
+      "inHandBox": true,
+      "handBox": [
+       -0.823,
+       -0.0393,
+       0.4982,
+       1.2357
+      ],
+      "pileCenter": [
+       -0.3578,
+       0.9268
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.974,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 233,
+      "landedMs": 1967,
+      "frames": 105,
+      "badFrames": 2,
+      "maxGap": 0.073,
+      "first": {
+       "tms": 283,
+       "d": 0.05
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 13,
+      "first": [
+       {
+        "who": "hand3",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand3",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 700,
+        "dv": 0.03,
+        "dh": 0.015
+       },
+       {
+        "who": "hand3",
+        "tms": 700,
+        "dv": 0.03,
+        "dh": 0.015
+       },
+       {
+        "who": "hand3",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cEN",
+     "caster": 3,
+     "victim": 1,
+     "slot": 1,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 3,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 5,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "1": 0.156,
+        "3": 0.2909
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 3.26,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 471,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6373,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1001,
+      "pileLiftMax": 0.0952,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2785,
+      "bottomOverPalm": 0.0375,
+      "dhCentroid": 0.1173,
+      "bottomOverCentroid": 0.0298,
+      "inHandBox": true,
+      "handBox": [
+       -0.3746,
+       0.2392,
+       -1.7477,
+       -0.9264
+      ],
+      "pileCenter": [
+       -0.0992,
+       -1.4539
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.775,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.999,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 217,
+      "landedMs": 1967,
+      "frames": 106,
+      "badFrames": 0,
+      "maxGap": 0.027,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 10,
+      "first": [
+       {
+        "who": "hand3",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0.001
+       },
+       {
+        "who": "hand3",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       },
+       {
+        "who": "hand3",
+        "tms": 2900,
+        "dv": 0.009,
+        "dh": 0.071
+       },
+       {
+        "who": "hand3",
+        "tms": 2917,
+        "dv": 0.009,
+        "dh": 0.077
+       },
+       {
+        "who": "hand3",
+        "tms": 2933,
+        "dv": 0.01,
+        "dh": 0.083
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cEW",
+     "caster": 3,
+     "victim": 2,
+     "slot": 3,
+     "kind": "wedding",
+     "extra": false,
+     "pusher": 3,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 36.51,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.156,
+        "2": 0.156,
+        "3": 0.2909
+       },
+       "tableY": 0.152,
+       "legacyInOther": 587
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 57,
+       "outsideHold": 0,
+       "minPx": 3.56,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 57,
+       "peaks": 31,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 462,
+     "c14": {
+      "trayTop": 1.0028366302282363,
+      "pileMax": 0.7393,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0931,
+      "pileLiftMax": 0.0931,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2261,
+      "bottomOverPalm": 0.0267,
+      "dhCentroid": 0.1003,
+      "bottomOverCentroid": 0.0285,
+      "inHandBox": true,
+      "handBox": [
+       -1.2574,
+       -0.4313,
+       0.5953,
+       1.1658
+      ],
+      "pileCenter": [
+       -0.9096,
+       0.9643
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.997,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 1,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 217,
+      "landedMs": 1967,
+      "frames": 106,
+      "badFrames": 0,
+      "maxGap": 0.027,
+      "first": null,
+      "pass": true
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 14,
+      "first": [
+       {
+        "who": "hand3",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.031,
+        "dh": 0.001
+       },
+       {
+        "who": "pile",
+        "tms": 500,
+        "dv": 0.03,
+        "dh": 0.02
+       },
+       {
+        "who": "hand3",
+        "tms": 500,
+        "dv": 0.03,
+        "dh": 0.019
+       },
+       {
+        "who": "hand3",
+        "tms": 917,
+        "dv": 0.03,
+        "dh": 0.041
+       },
+       {
+        "who": "hand3",
+        "tms": 1450,
+        "dv": 0.03,
+        "dh": 0.036
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cSW0",
+     "caster": 0,
+     "victim": 2,
+     "slot": 0,
+     "kind": "wedding",
+     "extra": true,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 4.47,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.2173,
+       "minYBySeat": {
+        "0": 0.2538,
+        "1": 0.156,
+        "2": 0.2173
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 7.51,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 463,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.8165,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.1963,
+      "pileLiftMax": 0.194,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2348,
+      "bottomOverPalm": 0.0248,
+      "dhCentroid": 0.1066,
+      "bottomOverCentroid": 0.0267,
+      "inHandBox": true,
+      "handBox": [
+       -1.7231,
+       -1.1343,
+       0.3302,
+       1.154
+      ],
+      "pileCenter": [
+       -1.3703,
+       0.817
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.998,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.997,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 76,
+      "byKind": {
+       "relic-shoujing": 76
+      },
+      "tallHitFrames": 76,
+      "first": {
+       "tms": 1767,
+       "hits": [
+        {
+         "m": "relic-shoujing",
+         "i": 0,
+         "depth": 0.124,
+         "top": 0.425
+        }
+       ]
+      },
+      "deepest": {
+       "tms": 1833,
+       "m": "relic-shoujing",
+       "i": 0,
+       "depth": 0.128,
+       "top": 0.425
+      },
+      "pass": false
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 2,
+      "maxGap": 0.064,
+      "first": {
+       "tms": 283,
+       "d": 0.041
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 11,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 2883,
+        "dv": 0.008,
+        "dh": 0.065
+       },
+       {
+        "who": "hand0",
+        "tms": 2900,
+        "dv": 0.008,
+        "dh": 0.071
+       },
+       {
+        "who": "hand0",
+        "tms": 2917,
+        "dv": 0.009,
+        "dh": 0.077
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cSW1",
+     "caster": 0,
+     "victim": 2,
+     "slot": 1,
+     "kind": "wedding",
+     "extra": true,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 34.96,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.2443,
+        "1": 0.156,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 8.39,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 468,
+     "c14": {
+      "trayTop": 1.027681249706816,
+      "pileMax": 0.6544,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0931,
+      "pileLiftMax": 0.0931,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2221,
+      "bottomOverPalm": 0.0267,
+      "dhCentroid": 0.0958,
+      "bottomOverCentroid": 0.0285,
+      "inHandBox": true,
+      "handBox": [
+       -1.2722,
+       -0.4497,
+       0.7489,
+       1.3615
+      ],
+      "pileCenter": [
+       -0.9166,
+       1.0817
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.998,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.674,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 2,
+      "maxGap": 0.064,
+      "first": {
+       "tms": 283,
+       "d": 0.041
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 23,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 767,
+        "dv": 0.03,
+        "dh": 0.014
+       }
+      ],
+      "pass": false
+     }
+    },
+    {
+     "name": "cSW3",
+     "caster": 0,
+     "victim": 2,
+     "slot": 3,
+     "kind": "wedding",
+     "extra": true,
+     "pusher": 0,
+     "casterOK": true,
+     "pass2c": false,
+     "c2": {
+      "cfgCurseMs": 2000,
+      "landedMs": 1967,
+      "pass": true
+     },
+     "c3": {
+      "movedFromMs": 317,
+      "pushMs": 1650,
+      "step100": 39.01,
+      "stepMissing": 0,
+      "retractAt": 2683,
+      "holdMs": 716,
+      "passAbs": true
+     },
+     "c4": {
+      "hands": {
+       "grabHandFrames": 180,
+       "inOtherItemBox": 0,
+       "firstIn": null,
+       "minY": 0.156,
+       "minYBySeat": {
+        "0": 0.2374,
+        "1": 0.156,
+        "2": 0.156
+       },
+       "tableY": 0.152,
+       "legacyInOther": 0
+      },
+      "pass": true
+     },
+     "c5": {
+      "card": {
+       "cardMs": 2800,
+       "landedMs": 1967,
+       "ok": true
+      },
+      "frame7": {
+       "held": 100,
+       "palmOutsideFelt": 0,
+       "firstOut": null
+      },
+      "hudBad": 0,
+      "pass": true
+     },
+     "c6": {
+      "rope": {
+       "visibleFrames": 42,
+       "holdFrames": 58,
+       "outsideHold": 0,
+       "minPx": 3.56,
+       "geometries": 1
+      },
+      "tremble": {
+       "samples": 58,
+       "peaks": 32,
+       "amp": 0.0079,
+       "axis": 0
+      },
+      "pass": true
+     },
+     "randomCalls": 460,
+     "c14": {
+      "trayTop": 1.0028366302282363,
+      "pileMax": 0.7395,
+      "limit": 0.85,
+      "pass": true
+     },
+     "c15": {
+      "holdFrames": 40,
+      "missing": 0,
+      "victimLiftMax": 0.0931,
+      "pileLiftMax": 0.0931,
+      "casterNearMax": 0,
+      "casterLimit": 0.0126,
+      "passHeight": true,
+      "pass": true
+     },
+     "c16": {
+      "landedMs": 1967,
+      "dh": 0.2261,
+      "bottomOverPalm": 0.0267,
+      "dhCentroid": 0.1003,
+      "bottomOverCentroid": 0.0285,
+      "inHandBox": true,
+      "handBox": [
+       -1.2574,
+       -0.4313,
+       0.5953,
+       1.1658
+      ],
+      "pileCenter": [
+       -0.9096,
+       0.9643
+      ],
+      "pass": true
+     },
+     "c17": {
+      "visFrames": 182,
+      "hitFrames": 0,
+      "first": null,
+      "pass": true
+     },
+     "c25": {
+      "pushFrames": 118,
+      "pushMissing": 0,
+      "pushCosMin": 0.981,
+      "pushBad": 0,
+      "pushFirstBad": null,
+      "retractFrames": 20,
+      "retractMissing": 0,
+      "retractArmCosMin": 0.998,
+      "retractArmBad": 0,
+      "retractMoveFrames": 18,
+      "retractMoveCosMin": 0.803,
+      "retractMoveBad": 0,
+      "retractFirstBad": null,
+      "pass": true
+     },
+     "c26": {
+      "movedFrames": 163,
+      "hitFrames": 0,
+      "byKind": {},
+      "tallHitFrames": 0,
+      "first": null,
+      "deepest": null,
+      "pass": true
+     },
+     "c30": {
+      "touchMs": 200,
+      "landedMs": 1967,
+      "frames": 107,
+      "badFrames": 2,
+      "maxGap": 0.064,
+      "first": {
+       "tms": 283,
+       "d": 0.041
+      },
+      "pass": false
+     },
+     "c31": {
+      "pairs": 503,
+      "bad": 18,
+      "first": [
+       {
+        "who": "hand0",
+        "tms": 33,
+        "dv": 0.02,
+        "dh": 0.061
+       },
+       {
+        "who": "pile",
+        "tms": 317,
+        "dv": 0.108,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 317,
+        "dv": 0.047,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "hand0",
+        "tms": 400,
+        "dv": 0.04,
+        "dh": 0
+       },
+       {
+        "who": "pile",
+        "tms": 883,
+        "dv": 0.04,
+        "dh": 0.043
+       }
+      ],
+      "pass": false
+     }
+    }
+   ],
+   "errs": [],
+   "casterNearMax": 0.0126
+  }
+ }
+}

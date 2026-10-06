@@ -52,3 +52,7 @@
 - 給使用者看：strips-r3/contact-sheet.jpg、strips-r3/strip-<組>.jpg、strips-r3/kinds/；並排實速影片 D:/yaoshi-scratch/curse-slow3/video/{cWS,cES,cSW}-side-by-side.mp4（左 709e313a、右 50788e09，3.6s 60fps）。
 - 暫存樹（只讀用、跑單元測試對基準驗紅）：D:/yaoshi-scratch/curse-slow3/base158（158f5650）、base709（709e313a），git worktree，收工後可 `git worktree remove`。
 - 中斷接手：若證據沒跑完，於 HEAD 重跑 `bash D:/yaoshi-scratch/curse-slow3/final3.sh`；之後跑影片 D:/yaoshi-scratch/curse-slow3/video（shoot.mjs＋build.sh）與 tests/tools/curse-slow-sheet.py 產連拍。
+
+## 第四輪（條件 30–35，92f28c9f 起；產品基準 50788e09；暫存 D:/yaoshi-scratch/curse-slow4/）
+- ① 判定器：judgeCurseR3 加 c30（施放者 Palm 骨到堆可見外框距離，第一次 ≤0.03 起到落定每幀 ≤0.03）、c31（堆與施放者／受害者 Palm 每幀垂直 ≤0.03、水平 ≤0.06，兩手不得單幀消失／出現，全程）；judgeCurse 的落定加條件 16（c34，堆在受害者手外框內且堆底 ≤ Palm＋0.05）；--kinds 預設 cWS,cES,cNW,cNE；curse-r3-summary.cjs 不再濾掉延伸組（c33），另列 c2／c3 絕對量。
+- 基準 50788e09（evidence-r4/baseline-r4-*）：c30 紅 9/15（北塞西 0.506、北塞東 0.504＝預期；另南塞西／南塞東／西塞南／東塞南＋延伸三組在 283–300ms 0.064–0.073）、五物 16/20 紅；c31 紅 15/15＋五物 20/20：預期的 317ms 堆跳（南塞西等四組 0.108，其餘組 0.063）與北塞東五物 883ms 手跳 0.44–0.51 都在；**比預期多的紅**＝所有組第 1 幀手進場（33ms 水平 0.061）與收手末段（2883–3000ms 水平 0.065–0.108，CURSE.T 收手 0.3s 走 1.0、easeIn），以及北席收手時手越過別件的垂直跳。依條件 31 字面這些都是紅，本輪一併修（放慢進場／收手峰值速度），不改門檻。
