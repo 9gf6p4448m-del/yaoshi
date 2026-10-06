@@ -475,7 +475,7 @@ export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CU
   /* r6（條件 3：北塞南落定前堆先往下掉再爬上受害者被抬起的手，螢幕一跳）：推上手背那段從「riseFrom 那一刻堆的高度」單調內插到「受害者手的高度＋PRESS_DROP」（在 T.push 到位，之後才壓下去），仍不低於堆自己要抬的量 */
   const idx = (t) => Math.min(n - 1, Math.max(0, Math.round(t / dt))), vT = v[idx(T.press)] + CURSE.PRESS_DROP;
   let t0 = Math.max(T.go || T.appr, Math.min(s.riseFrom, T.push - (vT - c0[idx(s.riseFrom)]) / CURSE.CLIMB)); // 要爬得多就早一點開始爬（爬升速度 ≤ CLIMB 的平均）
-  for (let i = idx(s.riseFrom); i >= idx(Math.max(T.go || T.appr, s.riseFrom - CURSE.HOLD_UP_S)); i--) if (c0[i] >= vT - 0.03) { t0 = Math.min(t0, tt(i)); break; } // 堆在 riseFrom 前不久還抬著（越過錢柱）且夠高＝不先降下去再爬上受害者的手
+  for (let i = idx(s.riseFrom); i >= idx(Math.max(T.go || T.appr, s.riseFrom - CURSE.HOLD_UP_S)); i--) if (vT >= 0.06 && c0[i] >= 0.5 * vT) { t0 = Math.min(t0, tt(i)); break; } // 堆在 riseFrom 前不久還抬著（越過錢柱）且已有手背高度的一半以上＝不先降下去再爬上受害者的手
   const cS = c0[idx(t0)];
   /* T.push 之後照舊從手背上方 PRESS_DROP 壓到手背、落定那一刻到位 */
   const target = c0.map((x, i) => { const t = tt(i); if (t < t0) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; if (t < s.riseFrom && vT <= x) return x; const y = t >= T.push ? v[i] : Math.max(x, lerp(cS, Math.max(vT, x), smooth(seg(t, t0, T.push)))); return t >= T.push ? Math.max(y, v[i] + CURSE.PRESS_DROP * (1 - smooth(seg(t, T.push, T.press)))) : y; });
