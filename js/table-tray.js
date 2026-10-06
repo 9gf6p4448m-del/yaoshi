@@ -1035,7 +1035,7 @@ export function createTableTray(scene, camera, opts = {}) {
     const over = (o) => o.r !== undefined && hitRect(o, box.x0, box.x1, box.z0, box.z1, PILE_PAD);
     const still = props.handObstaclesAhead(1.2).filter(over); let last = -1;
     for (let i = 0; i <= 30; i++) { const t = i / 30; if (props.handObstaclesAhead(t).some((o) => over(o) && !still.some((e) => Math.hypot(e.x - o.x, e.z - o.z) < 0.01))) last = t; }
-    return last < 0 ? 0 : last + 1 / 30;
+    return last < 0 ? 0 : last + 0.1; // r4：多等 0.1 秒——堆在開推前小幅抬過自己的木舌時，扒回的錢已完全離開
   }
   /** 受害者的手：從「席位→符紙堆」方向起，往「席位→桌心」那側每 5° 試（最多 90°，再試另一側 60°），每個方向深度從 VICTIM_IN 往席位收；
    *  要求手（掌心錨點往前 0.56、往後 0.40、左右 0.20，拇指那側在掌心後 0–0.25 處到 0.44，外擴 0.08＝手抖與手掌比格點寬的餘量）不落進別件拍品外框與錢柱／令牌，落點（掌心往前 KNUCKLE）離別件拍品外框 ≥ 符紙堆半寬＋ROUTE_PAD、且在桌面範圍內。 */
@@ -1103,23 +1103,29 @@ export function createTableTray(scene, camera, opts = {}) {
   /* r3（條件 9／28 效能，覆審 H-1）：根因＝r2 每幀算 8 格（16 次 grabLiftFor，每次掃整隻手的可見頂點 ≈0.3ms），開演後 6 幀每幀多 5ms，
      12 組×6 幀＝72 幀全落進最慢 5%，把 p95 從 2.0 推到 2.8（profile：D:/yaoshi-scratch/curse-slow3/ps-*.log）。
      改成開演那幀 PLAN_FIRST 格、之後每幀 1 格：規劃仍以 4 倍速跑在演出前面（每幀推進 1/60 秒、規劃推進 1/15 秒），每幀只多 ≤2 次 grabLiftFor，且規劃用的取樣點稀疏 3 倍。 */
+  const PLAN_SWEEP = 0.12;
   const PLAN_FIRST = 3, PLAN_PER_FRAME = 1, PLAN_STRIDE = 3; // PLAN_STRIDE：規劃時手的取樣點每 3 個取 1 個（hand-motion strided；每幀擺手仍用全部點）
   function planStart(g) { const n = Math.ceil(g.script.end / PLAN_DT) + 1; return { n, i: 0, L: { c: new Array(n).fill(-Infinity), v: new Array(n).fill(-Infinity), p: new Array(n).fill(-Infinity) } }; }
   function planStep(g, k) {
     const st = g.planSt; if (!st || st.i >= st.n) return;
     for (const end = Math.min(st.n, st.i + k); st.i < end; st.i++) {
       const f = g.script.at(st.i * PLAN_DT);
-      for (const role of ['c', 'v']) { const h = f.hands[role]; if (h) st.L[role][st.i] = hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons: Object.assign(curseCons(g, f, role), { stride: PLAN_STRIDE }) })); }
-      if (f.holder === 'c') st.L.p[st.i] = pileNeed(g, f, st.i * PLAN_DT - g.time);
+      /* r4（條件 31）：施放者進場（蓋上前）與收手時手走得快（一格 1/15 秒最多走 0.2），格與格之間可能掃過別件外框、即時可達一幀把手抬 0.5；
+         這兩段規劃時別件外框水平外擴 PLAN_SWEEP，包絡提前把手抬好（推與按住那兩段不外擴，手要蓋在堆上，條件 30） */
+      const tt = st.i * PLAN_DT, T = g.script.T, sweep = tt < T.appr ? 1 - tt / T.appr : tt >= T.hold ? Math.min(1, (tt - T.hold) / Math.max(1e-6, T.gone - T.hold)) : 0; // 外擴量在蓋上那一刻與收手開始那一刻為 0，漸變（包絡不在交界一格跳）
+      for (const role of ['c', 'v']) { const h = f.hands[role]; if (!h) continue; const cons = Object.assign(curseCons(g, f, role), { stride: PLAN_STRIDE }); if (role === 'c' && sweep > 0) { const e = PLAN_SWEEP * sweep; cons.boxes = g.others.map((o) => ({ x0: o.x0 - e, x1: o.x1 + e, z0: o.z0 - e, z1: o.z1 + e, top: o.top })); } st.L[role][st.i] = hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons })); }
+      if (f.holder === 'c' && st.i * PLAN_DT >= g.script.T.go) st.L.p[st.i] = pileNeed(g, f, st.i * PLAN_DT - g.time, st.i * PLAN_DT); // r4（條件 31）：開推（T.go）前堆不動、不為從原位底下扒過的錢抬（原位不算穿模）；開推前只照包絡小幅預抬
     }
     g.plan = GM.planCurseLift(g.script, st.L.c, st.L.v, PLAN_DT, undefined, undefined, st.L.p);
   }
   /** r3（條件 26）：符紙堆被推著時自己要抬多少——堆外框（外擴 PILE_PAD）壓到的桌上道具（錢柱、令牌、木籌槽、信物）最高頂＋PILE_CLR − 堆底；沒壓到＝0。
    *  只看堆本身，不看手臂（手臂從別件上方越過時手抬、堆不跟著抬）。別件拍品不在這裡：路徑已繞開（planPath）。 */
-  const PILE_PAD = 0.09, RELIC_PAD = 0.04, PILE_CLR = 0.015; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
+  const PILE_PAD = 0.09, RELIC_PAD = 0.04, PILE_CLR = 0.015, PILE_HOP = 0.018; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
   /** ahead＝這一格比現在晚多少秒：落標的錢在開演後 0.22–0.64 秒被扒回席位，會從符紙堆前面橫過——取那一刻的位置（props.handObstaclesAhead 外推）。 */
-  function pileNeed(g, f, ahead = 0) {
-    const ft = f.foot, bottom = f.item.y + g.pileY0; let need = 0;
+  function pileNeed(g, f, ahead = 0, t = null) {
+    let ft = f.foot; const bottom = f.item.y + g.pileY0; let need = 0;
+    /* r4（條件 31）：規劃格（t 給了）用「前後各半格」掃過的外框聯集——格與格之間堆走 0.1 以上，只看格點會漏掉中間壓到的錢柱，即時保險就一幀跳上去 */
+    if (t !== null) for (const dt of [-PLAN_DT / 2, PLAN_DT / 2]) { const q = g.script.at(Math.max(0, t + dt)); if (q.holder === 'c' && q.foot) ft = { x0: Math.min(ft.x0, q.foot.x0), x1: Math.max(ft.x1, q.foot.x1), z0: Math.min(ft.z0, q.foot.z0), z1: Math.max(ft.z1, q.foot.z1) }; }
     const obs = props.handObstaclesAhead ? props.handObstaclesAhead(Math.max(0, ahead)) : props.handObstacles();
     for (const o of obs) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, PILE_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom);
     for (const o of relicBoxes()) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, RELIC_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom); // 信物不會動、外接盒已含 0.02 餘量
@@ -1140,7 +1146,7 @@ export function createTableTray(scene, camera, opts = {}) {
     g.time = Math.min(g.script.end, g.time + dt);
     const f = g.script.at(g.time); g.frame = f;
     /* r3：規劃格之間（1/15 秒）或外推不準時的保險——推著走時，堆壓到「這一幀」桌上道具要抬的量（props.update 已在本幀先跑）；堆與施放者都不低於它 */
-    g.rt = g.plan && f.holder === 'c' && g.time < g.script.riseFrom ? pileNeed(g, f, 0) : 0; // 推上手背那段（riseFrom 起）堆照規劃爬到受害者手背高度；落點附近的道具由 victimSpot 避開
+    g.rt = g.plan && f.holder === 'c' && g.time >= g.script.T.go && g.time < g.script.riseFrom ? pileNeed(g, f, 0) : 0; // 推上手背那段（riseFrom 起）堆照規劃爬到受害者手背高度；落點附近的道具由 victimSpot 避開
     for (const role in g.seats) {
       const h = f.hands[role], seat = g.seats[role];
       if (h) {
@@ -1155,7 +1161,10 @@ export function createTableTray(scene, camera, opts = {}) {
     /* 被抓著＝跟著抓的那隻手被可達抬起的量；壓在受害者手背上（holder v）時取「壓上去那一刻」的抬升並固定——手在底下細顫，符紙堆不跟著抖。 */
     let lift = f.holder ? hands.liftOf(g.seats[f.holder]) : 0;
     if (f.holder === 'v') { if (g.vLift === undefined) g.vLift = lift; lift = g.vLift; }
-    if (g.plan) lift = f.holder ? Math.max(GM.planAt(g.plan.pile, g.plan.dt, g.time), f.holder === 'c' ? g.rt || 0 : 0) : 0; // v0.61.1 詛咒推按：符紙堆照規劃的連續高度走（推上手背是爬上去；按住時固定、不隨細顫抖）
+    if (g.plan) lift = f.holder ? Math.max(GM.planAt(g.plan.pile, g.plan.dt, g.time), f.holder === 'c' ? g.rt || 0 : 0) : 0;
+    /* r4（條件 26、31）：開推前的預抬第一幀就抬到 PILE_HOP（1.8cm，過自己的木舌 1.6cm；一幀 ≤0.03）——包絡內插的頭幾幀只抬幾 mm，堆離開原位卻還壓在木舌上 */
+    if (g.plan && f.holder === 'c' && !g.hopDone && lift > 1e-4) { const pl = lift; lift = Math.max(lift, PILE_HOP); if (pl >= PILE_HOP) g.hopDone = true; }
+    // v0.61.1 詛咒推按：符紙堆照規劃的連續高度走（推上手背是爬上去；按住時固定、不隨細顫抖）
     node.position.set(f.item.x, f.item.y + lift, f.item.z);
     node.rotation.set(f.item.rx, s.spin + f.item.ry, f.item.rz);
     node.visible = f.visible;
