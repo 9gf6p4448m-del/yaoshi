@@ -530,8 +530,36 @@ export function judgeCurseR3(run) {
     return { fromMs: fr[g.i0].tms, toMs: fr[g.i1].tms, frames: g.i1 - g.i0 + 1, exempt, overFrames: g.over, pileMaxMove: +maxMove.toFixed(4), durMs, a: maxMove <= 0.002, b: durMs <= 800 }; });
   const bad30x = seg36.filter((g) => !g.exempt).reduce((n, g) => n + g.frames, 0);
   const c30 = { touchMs: t30 >= 0 ? fr[t30].tms : null, landedMs: landed, frames: n30, badFrames: bad30, badNonExempt: bad30x, maxGap: max30 === null ? null : +max30.toFixed(3), first: first30, segments: seg36 };
-  c30.pass = t30 >= 0 && landed !== null && n30 > 0 && bad30x === 0; // 條件 36：越過段不計入；其餘照原門檻
-  const c37 = { segments: seg36.filter((g) => g.exempt) }; c37.pass = c30.touchMs !== null && c37.segments.every((g) => g.a && g.b);
+  /* 第六輪條件 39：條件 36／37 作廢——條件 30 原門檻對所有組（含北席）全面適用：觸堆 → 落定每幀 ≤0.03，任何抬手幀都紅（badFrames）。
+     seg36／c37 只留作記錄（badNonExempt 為舊口徑），不再進判定。 */
+  c30.pass = t30 >= 0 && landed !== null && n30 > 0 && bad30 === 0;
+  const c37 = { segments: seg36.filter((g) => g.exempt), void: true }; c37.pass = c30.touchMs !== null && c37.segments.every((g) => g.a && g.b);
+  /* 第六輪條件 40（不停頓）：只判北席施放（seat 1）；其他席 applies=false、只記錄。
+     區間＝觸堆（c30 的 touchMs：施放者 Palm 第一次 ≤0.03 到堆可見外框）＋100ms → 落定（judgeCurse 的 landedMs）−200ms（兩端含）。
+     區間內每個 150ms 視窗（frames i 與 i+9，60fps 下相隔 150ms，兩幀都在區間內）符紙堆節點位置的水平淨位移（兩幀 xz 直線距離）≥0.03。
+     區間內湊不出任何視窗、視窗端點缺位置、沒觸堆／沒落定＝量不到＝紅。 */
+  const c40 = { applies: sc.seat === 1, fromMs: null, toMs: null, windows: 0, bad: 0, minMove: null, first: null };
+  if (t30 >= 0 && landed !== null) {
+    const a0 = fr[t30].tms + 100, a1 = landed - 200; c40.fromMs = a0; c40.toMs = a1;
+    const idx = []; for (let i = 0; i < fr.length; i++) if (fr[i].tms >= a0 && fr[i].tms <= a1) idx.push(i);
+    for (const i of idx) { const j = i + 9; if (j >= fr.length || fr[j].tms > a1) break; c40.windows++;
+      const p = fr[i].item && fr[i].item.pos, q = fr[j].item && fr[j].item.pos; const d = p && q ? Math.hypot(q[0] - p[0], q[2] - p[2]) : null;
+      if (d !== null) c40.minMove = Math.min(c40.minMove ?? 1e9, d);
+      if (d === null || d < 0.03) { c40.bad++; if (!c40.first) c40.first = { tms: fr[i].tms, toMs: fr[j].tms, move: d === null ? null : +d.toFixed(4) }; } }
+  }
+  if (c40.minMove !== null) c40.minMove = +c40.minMove.toFixed(4);
+  c40.ok = c40.windows > 0 && c40.bad === 0; c40.pass = !c40.applies || c40.ok;
+  /* 第六輪條件 41（不換邊）：只判北席施放；其他席只記錄。沿用條件 25 的量法與推的階段（push：施放者手第一次出現 → 落定）：
+     每幀偏角＝手臂（Palm−Elbow，水平）相對「施放者席位 → 堆中心」的帶號夾角（度，atan2(叉積, 內積)）。
+     |偏角|≥5° 的幀，符號必須全部相同；|偏角|<5° 的幀不計（在 ±5° 帶內來回不算翻轉）。從一側越過 ±5° 帶到另一側（例 −30°→+30°）＝翻轉＝紅。
+     推的階段 <6 幀、任一幀缺 Elbow／缺堆＝量不到＝紅。另記 |偏角| 最大值（對照條件 25 的 60°）。 */
+  const devOf = (x) => { const h = x.hands[sc.seat], c = pileC(x); if (!h || !h.elbow || !c) return null; const a = [h.palm[0] - h.elbow[0], h.palm[2] - h.elbow[2]], b = [c[0] - sx, c[1] - sz]; if (Math.hypot(a[0], a[1]) < 1e-9 || Math.hypot(b[0], b[1]) < 1e-9) return null; return Math.atan2(b[0] * a[1] - b[1] * a[0], b[0] * a[0] + b[1] * a[1]) * 180 / Math.PI; };
+  const c41 = { applies: sc.seat === 1, frames: push.length, missing: 0, pos: 0, neg: 0, maxAbs: null, flips: 0, firstFlip: null };
+  let sg41 = 0;
+  for (const x of push) { const d = devOf(x); if (d === null) { c41.missing++; continue; } c41.maxAbs = Math.max(c41.maxAbs ?? 0, Math.abs(d)); if (Math.abs(d) < 5) continue;
+    const s = Math.sign(d); if (s > 0) c41.pos++; else c41.neg++; if (sg41 && s !== sg41) { c41.flips++; if (!c41.firstFlip) c41.firstFlip = { tms: x.tms, dev: +d.toFixed(1) }; } sg41 = s; }
+  if (c41.maxAbs !== null) c41.maxAbs = +c41.maxAbs.toFixed(1);
+  c41.ok = push.length >= 6 && c41.missing === 0 && !(c41.pos > 0 && c41.neg > 0); c41.pass = !c41.applies || c41.ok;
   /* 第四輪條件 31：不得一幀跳——符紙堆（可見、相鄰兩幀）與施放者／受害者手（相鄰兩幀都可見；Palm 骨）每幀垂直位移 ≤0.03、水平 ≤0.06；
      兩隻手的可見狀態不得單幀消失或單幀出現（前後幀同狀態、中間那幀相反）。全程（0 → 最後一幀）。 */
   const j31 = []; let nPairs = 0;
@@ -542,7 +570,7 @@ export function judgeCurseR3(run) {
       const c = fr[i + 1]; if (c && !!a.hands[s] === !!c.hands[s] && !!b.hands[s] !== !!a.hands[s]) j31.push({ who: 'blink' + s, tms: b.tms }); } }
   const c31 = { pairs: nPairs, bad: j31.length, first: j31.slice(0, 6) };
   c31.pass = nPairs > 0 && j31.length === 0;
-  return Object.assign(r, { c25, c26, c30, c31, c37 });
+  return Object.assign(r, { c25, c26, c30, c31, c37, c40, c41 });
 }
 
 async function main() {
@@ -610,7 +638,7 @@ async function main() {
             const run = await runScenario(page, vp, sc, true, { shots: SHOTS, prefix: 'r3-', totalS: Number(opt.totals || 3.4), shotDir });
             const j = judgeCurseR3(run); rows.push(j);
             if (opt.raw) fs.writeFileSync(path.join(OUT, `raw-r3-${sc.name}.json`), JSON.stringify(run));
-            progress(`r3 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass], c25: [j.c25.pushCosMin, j.c25.retractArmCosMin, j.c25.retractMoveCosMin, j.c25.pass], c26: [j.c26.hitFrames, j.c26.deepest && j.c26.deepest.depth, j.c26.pass], c30: [j.c30.maxGap, j.c30.badFrames, j.c30.pass], c31: [j.c31.bad, j.c31.pass] })}`);
+            progress(`r3 ${sc.name} ${JSON.stringify({ c14: [j.c14.pileMax, j.c14.limit, j.c14.pass], c15: [j.c15.victimLiftMax, j.c15.pileLiftMax, j.c15.casterNearMax, j.c15.pass], c16: [j.c16.dh, j.c16.bottomOverPalm, j.c16.pass], c17: [j.c17.hitFrames, j.c17.pass], c25: [j.c25.pushCosMin, j.c25.retractArmCosMin, j.c25.retractMoveCosMin, j.c25.pass], c26: [j.c26.hitFrames, j.c26.deepest && j.c26.deepest.depth, j.c26.pass], c30: [j.c30.maxGap, j.c30.badFrames, j.c30.pass], c31: [j.c31.bad, j.c31.pass], c40: [j.c40.applies, j.c40.minMove, j.c40.bad, j.c40.pass], c41: [j.c41.applies, j.c41.pos, j.c41.neg, j.c41.maxAbs, j.c41.pass] })}`);
           }
           results.modes.r3 = { rows, errs, casterNearMax: CASTER_NEAR_MAX };
           await ctx.close();
