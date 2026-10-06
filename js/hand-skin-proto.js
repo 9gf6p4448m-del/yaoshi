@@ -1,5 +1,5 @@
 // 妖市 3D 環境層 — 席位之手「皮膚寫實度往上提一級」原型（skin-proto，不是產品；給使用者看圖挑方向）。
-// 只在網址 ?skin=a|b|c 時由 table-hands.js 載入；不帶參數＝不載入本檔，畫面與 v0.61.1 相同。
+// 由 table-hands.js 載入：v0.62.0 起不帶參數＝b（血管肌腱＋點狀小斑；青面攤主維持大塊斑、拇指不打指節紋）；?skin=a|b|c 指定原型方向；?skin=0／off＝不載入本檔（新手網格＋原本的 shader）。
 // 只動皮膚 shader／材質層：不改手的 mesh、骨架、hand_r.glb（幾何仍是 hand-realism／hand-b1 建的那一份；
 // 孝女白琴／閭山法師／普渡爐主三種新皮膚只是換 aSkin 屬性值＝材質選參數，頂點位置、索引不動）。
 // 不新增貼圖：全部 fragment 程式生成（rest 空間座標，同 hand-realism）。
@@ -379,11 +379,11 @@ function protoParts(dir) {
   color = sw(color, 'hrRough = mix(hrRough, 0.85, scar);', 'hrRough = mix(hrRough, 0.62, scar * 0.7); hrRough = mix(hrRough, 0.9, stitchM);\n    hrH += hrPH; hrRough = clamp(hrRough + hrPR, 0.22, 1.0);');
   if (dir === 'b' || dir === 'ab') { // 原本的雜訊靜脈、閾值斑、寬肌腱：關掉，改用 COLOR_B／COLOR_AB
     color = sw(color, 'if (uAge.z > 0.0 && dors > 0.3 && onFinger < 0.99)', 'if (false)');
-    /* AB：青面攤主（uExt.z）保留基準的大塊斑；其餘角色改用 AB 的點狀小斑 */
-    color = sw(color, 'if (uAge.y > 0.0 && dors > 0.1) spots =', dir === 'ab' ? 'if (uExt.z > 0.5 && uAge.y > 0.0 && dors > 0.1) spots =' : 'if (false) spots =');
+    /* v0.62.0：青面攤主（uExt.z）保留基準的大塊柔邊斑；其餘角色用 B／AB 的點狀小斑（B 的點狀斑本來就排除 uExt.z>=0.5） */
+    color = sw(color, 'if (uAge.y > 0.0 && dors > 0.1) spots =', 'if (uExt.z > 0.5 && uAge.y > 0.0 && dors > 0.1) spots =');
     color = sw(color, 'tendon * 0.005 * (0.4 + 1.2 * age)', 'tendon * 0.0012 * (0.4 + 1.2 * age)');
   }
-  if (dir === 'ab') color = sw(color, 'wrinkle = (gB + 0.7 * gC) * lines', 'wrinkle = (bf < 4 ? 1.0 : 0.0) * (gB + 0.7 * gC) * lines'); // AB：拇指不打基礎指節紋（新手網格上它落在拇指可見面、sin×230 疊出鋸齒細橫紋；不帶參數的基準保持原樣）
+  if (dir === 'b' || dir === 'ab') color = sw(color, 'wrinkle = (gB + 0.7 * gC) * lines', 'wrinkle = (bf < 4 ? 1.0 : 0.0) * (gB + 0.7 * gC) * lines'); // B／AB（v0.62.0 起 b 為預設）：拇指不打基礎指節紋（新手網格上它落在拇指可見面、sin×230 疊出鋸齒細橫紋；不帶參數的基準保持原樣）
   const add = dir === 'a' ? COLOR_A : dir === 'b' ? COLOR_B : dir === 'ab' ? abSrc() : COLOR_C;
   color = sw(color, '    if (uExt2.y > 0.0) {', add + '    if (uExt2.y > 0.0) {');
   return { pars, color, acc: S.acc };
