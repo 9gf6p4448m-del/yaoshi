@@ -1015,7 +1015,7 @@ export function createTableTray(scene, camera, opts = {}) {
   const CURSE_AREA = { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 };
   function curseScript(seats, from, box, tableY, ms, others) {
     const seatC = props.seatPosition(seats.c), seatV = props.seatPosition(seats.v);
-    const pileR = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + GM.CURSE.ROUTE_PAD;
+    const pileR = Math.max(Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + GM.CURSE.ROUTE_PAD, GM.CURSE.ROUTE_MIN ?? 0); // r3：與 grab-motion 路徑同一個外擴（ROUTE_MIN），落點才不會落在路徑規劃的外擴框裡
     const vs = victimSpot(seatV, from, others, pileR, box);
     if (vs) return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: vs.k, vdir: vs.dir, avoid: { boxes: others, props: staticProps(), area: CURSE_AREA }, goAt: rakeClear(box) });
     return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: victimReach(seatV, from, others), via: pushVia(from, box, seatV, others) });
@@ -1023,9 +1023,11 @@ export function createTableTray(scene, camera, opts = {}) {
   /** r3（條件 26）：落標的錢在開演後 0.22–0.64 秒被扒回席位，常從符紙堆原位底下橫過（709e313a 起都是這樣；原位不算穿模）。
    *  找最後一個「有正在扒回的錢壓在堆外框（外擴 PILE_PAD）裡」的時刻（props.handObstaclesAhead 外推；1.2 秒後還在原處的錢＝不動的，不算），
    *  施放者手蓋上後按著等到那之後才推——堆不在錢橫過時離開原位，免得一推就壓進錢柱或為了它一跳。 */
-  /** r3：桌上不會被扒走、高過桌面 0.05 的錢柱／令牌外框（1.2 秒後還在的；給路徑規劃一起繞）。 */
+  /** r3：信物外接盒（table-props.relicBoxes；舊版沒有就退回外接圓柱）。 */
+  const relicBoxes = () => (props.relicBoxes ? props.relicBoxes() : props.relicObstacles ? props.relicObstacles() : []);
+  /** r3：桌上不會被扒走、高過桌面 0.05 的錢柱／令牌外框（1.2 秒後還在的）與四席信物（給路徑規劃一起繞）。 */
   function staticProps() {
-    const tY = props.tableY(), obs = props.handObstaclesAhead ? props.handObstaclesAhead(1.2) : props.handObstacles();
+    const tY = props.tableY(), obs = (props.handObstaclesAhead ? props.handObstaclesAhead(1.2) : props.handObstacles()).concat(relicBoxes());
     return obs.filter((o) => o.top > tY + 0.05).map((o) => (o.r !== undefined ? { x0: o.x - o.r, x1: o.x + o.r, z0: o.z - o.r, z1: o.z + o.r } : { x0: o.x - o.hx, x1: o.x + o.hx, z0: o.z - o.hz, z1: o.z + o.hz }));
   }
   function rakeClear(box) {
@@ -1040,8 +1042,8 @@ export function createTableTray(scene, camera, opts = {}) {
   function victimSpot(seat, from, others, pileR, box) {
     const tY = props.tableY(), obs = props.handObstacles().filter((o) => o.top > tY + 0.02);
     /* r3：符紙堆落在受害者手背上，堆底≈桌面＋HAND_TOP＋受害者手被抬的量（12 組實測 0.086–0.107）；會被它壓到的＝高過桌面 0.04 的錢柱／令牌，
-       與頂高過「桌面＋HAND_TOP＋0.075」的信物（relicObstacles 的 top 含 +0.03 餘量，先扣回）。堆外框＝靜止外框相對原點的位移 */
-    const land = obs.filter((o) => o.top > tY + 0.04).concat((props.relicObstacles ? props.relicObstacles() : []).filter((o) => o.top - 0.03 > tY + GM.CURSE.HAND_TOP + 0.075));
+       與頂高過「桌面＋HAND_TOP＋0.075」的信物（relicBoxes 的 top 含 +0.03 餘量，先扣回）。堆外框＝靜止外框相對原點的位移 */
+    const land = obs.filter((o) => o.top > tY + 0.04).concat(relicBoxes().filter((o) => o.top - 0.03 > tY + GM.CURSE.HAND_TOP + 0.075));
     const fx0 = box.x0 - from.x, fx1 = box.x1 - from.x, fz0 = box.z0 - from.z, fz1 = box.z1 - from.z;
     const hit = (x, z) => others.some((b) => x >= b.x0 - 0.08 && x <= b.x1 + 0.08 && z >= b.z0 - 0.08 && z <= b.z1 + 0.08)
       || obs.some((o) => (o.r !== undefined ? Math.hypot(x - o.x, z - o.z) <= o.r + 0.08 : Math.abs(x - o.x) <= o.hx + 0.08 && Math.abs(z - o.z) <= o.hz + 0.08));
@@ -1059,7 +1061,7 @@ export function createTableTray(scene, camera, opts = {}) {
         const cx = seat.x + dx * k, cz = seat.z + dz * k, px = cx + dx * GM.CURSE.KNUCKLE, pz = cz + dz * GM.CURSE.KNUCKLE;
         if (px < A.x0 || px > A.x1 || pz < A.z0 || pz > A.z1) continue;
         if (others.some((b) => px > b.x0 - pileR && px < b.x1 + pileR && pz > b.z0 - pileR && pz < b.z1 + pileR)) continue;
-        if (strict && land.some((o) => hitRect(o, px + fx0, px + fx1, pz + fz0, pz + fz1, 0.04))) continue; // r3：落點的堆外框不壓信物／錢柱／令牌（條件 26）
+        if (strict && land.some((o) => hitRect(o, px + fx0, px + fx1, pz + fz0, pz + fz1, o.seat !== undefined ? 0.02 : 0.04))) continue; // r3：落點的堆外框不壓信物／錢柱／令牌（條件 26；信物外接盒本身已含 0.02）
         let bad = false;
         for (const f of FS) { for (const s of (f >= -0.25 && f <= 0 ? WIDE : NARROW)) if (hit(cx + dx * f + dz * s, cz + dz * f - dx * s)) { bad = true; break; } if (bad) break; }
         if (!bad) return { k, dir: [dx, dz] };
@@ -1114,12 +1116,13 @@ export function createTableTray(scene, camera, opts = {}) {
   }
   /** r3（條件 26）：符紙堆被推著時自己要抬多少——堆外框（外擴 PILE_PAD）壓到的桌上道具（錢柱、令牌、木籌槽、信物）最高頂＋PILE_CLR − 堆底；沒壓到＝0。
    *  只看堆本身，不看手臂（手臂從別件上方越過時手抬、堆不跟著抬）。別件拍品不在這裡：路徑已繞開（planPath）。 */
-  const PILE_PAD = 0.09, PILE_CLR = 0.015; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
+  const PILE_PAD = 0.09, RELIC_PAD = 0.04, PILE_CLR = 0.015; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
   /** ahead＝這一格比現在晚多少秒：落標的錢在開演後 0.22–0.64 秒被扒回席位，會從符紙堆前面橫過——取那一刻的位置（props.handObstaclesAhead 外推）。 */
   function pileNeed(g, f, ahead = 0) {
     const ft = f.foot, bottom = f.item.y + g.pileY0; let need = 0;
     const obs = props.handObstaclesAhead ? props.handObstaclesAhead(Math.max(0, ahead)) : props.handObstacles();
-    for (const o of obs.concat(props.relicObstacles ? props.relicObstacles() : [])) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, PILE_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom);
+    for (const o of obs) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, PILE_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom);
+    for (const o of relicBoxes()) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, RELIC_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom); // 信物不會動、外接盒已含 0.02 餘量
     return need;
   }
   /** 桌上道具（圓柱 {x,z,r} 或軸對齊盒 {x,z,hx,hz}）與矩形 [x0,x1]×[z0,z1]（外擴 pad）是否重疊。 */

@@ -862,6 +862,20 @@ export function createTableProps(parent, opts = {}) {
       }
       return out;
     },
+    /** v0.61.1 r3（詛咒推按的符紙堆，acceptance 條件 26）：四席信物的軸對齊外接盒（同 relicObstacles 的八角，水平外擴 0.02、頂高＋0.03 當小動作餘量）。
+     *  外接圓柱對扁長的信物太保守（席前的手與符紙堆會被它無謂地墊高）；唯讀。 */
+    relicBoxes() {
+      const out = [], v = new THREE.Vector3();
+      for (const r of relics) {
+        if (!r) continue;
+        const g = r.mesh.geometry; if (!g.boundingBox) g.computeBoundingBox();
+        const b = g.boundingBox; r.mesh.updateMatrix();
+        let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = trayY;
+        for (let i = 0; i < 8; i++) { v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(r.mesh.matrix); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); top = Math.max(top, v.y); }
+        out.push({ seat: r.seat, x: (x0 + x1) / 2, z: (z0 + z1) / 2, hx: (x1 - x0) / 2 + 0.02, hz: (z1 - z0) / 2 + 0.02, top: top + 0.03 });
+      }
+      return out;
+    },
     /** 跳過：錢與令牌直接到結束姿態（同一條 update 路徑快轉，令牌落地仍由 update 發 onSlam）。 */
     finish() { for (let i = 0; i < 4; i++) api.update(1e3); },
     update(dt) {
