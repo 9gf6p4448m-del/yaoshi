@@ -1,0 +1,67 @@
+/* 第六輪北席可行性：用產品自己的抓取可達（grabLiftFor；推的姿勢、掌心在堆後 PALM_BACK、carry＝堆、seenOnly）
+   沿候選路徑每個取樣掃偏角 −80…+80（2°），再對「固定一側」(+/−) 求最小所需 |偏角| 上限（DP：相鄰取樣偏角變化 ≤ maxStep、|偏角|<5° 兩側通用）。 */
+const PROBE = 'C:/Users/shung/wt/yaoshi/curse-slow/tests/tools/grab-probe.mjs';
+const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2]; }
+process.argv = [process.argv[0], '/x.mjs', '--root=' + (opt.root || 'C:/Users/shung/wt/yaoshi/curse-slow'), '--port=8997', '--out=D:/yaoshi-scratch/curse-slow5/feas/out'];
+const P = await import('file:///' + PROBE);
+const CFG = { N: Number(opt.n || 60), maxStep: Number(opt.maxstep || 6), areas: JSON.parse(opt.areas || '[1.1]'), straights: JSON.parse(opt.straights || '[0,0.35]'), pads: JSON.parse(opt.pads || '[0]'), lanes: JSON.parse(opt.lanes || '[]'), vias: JSON.parse(opt.vias || '[]'), diag: !!opt.diag, ends: JSON.parse(opt.ends || '[]') };
+await P.withServer(async () => { const b = await P.chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11'] }); try {
+  const { page } = await P.openPage(b, 'V3', '');
+  for (const n of (opt.names || 'cNW,cNE').split(',')) for (const kind of (opt.kinds || 'wedding').split(',')) {
+    const sc = P.CURSE12.find((x) => x.name === n);
+    await page.evaluate(([s, k]) => window.__gp.reset(s, true, k), [sc.slot, kind]);
+    await P.ev(page, 'ys:bid', { seat: sc.seat, slot: sc.slot, amount: 6 }); await P.step(page, 50);
+    await P.ev(page, 'ys:bid', { seat: sc.loser, slot: sc.slot, amount: 4 }); await P.step(page, 70);
+    await P.ev(page, 'ys:bid', { seat: sc.target, slot: (sc.slot + 2) % 4, amount: 3 }); await P.step(page, 70);
+    await P.ev(page, 'ys:reveal-slot', { slot: sc.slot, ms: 812 }); await P.step(page, 49);
+    await P.ev(page, 'ys:reveal-result', { winner: sc.seat, slot: sc.slot, transferTarget: sc.target, destroy: false, grabMs: 1260, curseMs: 2000, skip: false });
+    await P.step(page, 40);
+    const res = await page.evaluate(async ([cfg]) => {
+      const GM = await import('/js/grab-motion.js'); const THREE = window.__THREE, T = window.__yaoshi3d.tray, H = T.hands, C = GM.CURSE;
+      const slot = window.__slot, node = window.__nodes[slot];
+      const st = T.grabState().find((g) => g.slot === slot); const dest = st.dest;
+      const bx = (n) => { n.updateMatrixWorld(true); const B = new THREE.Box3().setFromObject(n); return { x0: B.min.x, x1: B.max.x, y0: B.min.y, y1: B.max.y, z0: B.min.z, z1: B.max.z, top: B.max.y }; };
+      const others = window.__nodes.map((nn, i) => (i === slot || !nn || !nn.visible ? null : bx(nn))).filter(Boolean);
+      const from = { x: window.__rest.pos[0], y: window.__rest.pos[1], z: window.__rest.pos[2] };
+      const p0 = node.position.clone(), r0 = node.rotation.clone(); node.position.set(from.x, from.y, from.z); node.rotation.set(0, r0.y, 0); node.updateMatrixWorld(true); const box = bx(node); box.y1 = window.__rest.top; node.position.copy(p0); node.rotation.copy(r0); node.updateMatrixWorld(true);
+      const seat = T.props.seatPosition(cfg.seat), seatC = { x: seat.x, z: seat.z };
+      const PB = C.PALM_BACK, palmOn = (box.y1 - from.y) + C.PALM_ON;
+      const carry0 = { x0: box.x0 - from.x, x1: box.x1 - from.x, y0: box.y0 - from.y - palmOn, z0: box.z0 - from.z, z1: box.z1 - from.z };
+      const carryAt = (yaw) => ({ x0: carry0.x0 + Math.sin(yaw) * PB, x1: carry0.x1 + Math.sin(yaw) * PB, y0: carry0.y0, z0: carry0.z0 + Math.cos(yaw) * PB, z1: carry0.z1 + Math.cos(yaw) * PB });
+      const footAt = (x, z) => ({ x0: x - from.x + box.x0, x1: x - from.x + box.x1, z0: z - from.z + box.z0, z1: z - from.z + box.z1 });
+      const need = (x, z, yaw) => H.grabLiftFor(cfg.seat, { pose: ['push', null, 0], anchor: 'palm', at: [x - Math.sin(yaw) * PB, from.y + palmOn, z - Math.cos(yaw) * PB], yaw, pitch: C.C_PITCH, cons: { boxes: others, foot: footAt(x, z), carry: carryAt(yaw), seenOnly: true } });
+      const r = Math.max(Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + C.ROUTE_PAD, C.ROUTE_MIN);
+      const S = [from.x, from.z];
+      const cands = [];
+      const add = (name, route) => { if (route && route.length >= 2) cands.push({ name, route }); };
+      const ends = cfg.ends.length ? cfg.ends : [[dest.x, dest.z]];
+      for (const E of ends) { const en = cfg.ends.length ? 'E' + E.map((x) => x.toFixed(2)).join('/') + '-' : '';
+        for (const z1 of cfg.areas) { const area = { x0: -1.75, x1: 1.75, z0: -1.55, z1 };
+          for (const d of cfg.straights) for (const rr of cfg.pads) { const w = [from.x, from.z + d]; const rest = GM.planPath(d > 0 ? w : S, E, others, r + rr, area); add(`${en}a${z1}-s${d}-p${rr}`, d > 0 && rest ? [S, ...rest] : rest); }
+          for (const zf of cfg.lanes) add(`${en}lane${zf}`, [S, [from.x, zf], [E[0] + (E[0] < from.x ? 0.3 : -0.3), zf], E]); }
+        for (const v of cfg.vias) add(en + 'via' + JSON.stringify(v), [S, ...v, E]); }
+      const N = cfg.N, DS = []; for (let d = -80; d <= 80; d += 2) DS.push(d);
+      const out = [];
+      for (const c of cands) {
+        const L = []; let tot = 0; for (let i = 1; i < c.route.length; i++) { const l = Math.hypot(c.route[i][0] - c.route[i - 1][0], c.route[i][1] - c.route[i - 1][1]); L.push(l); tot += l; }
+        const at = (u) => { let s = u * tot; for (let i = 0; i < L.length; i++) { if (s <= L[i] || i === L.length - 1) { const k = L[i] ? Math.min(1, s / L[i]) : 1; return [c.route[i][0] + (c.route[i + 1][0] - c.route[i][0]) * k, c.route[i][1] + (c.route[i + 1][1] - c.route[i][1]) * k]; } s -= L[i]; } };
+        const ok = [], Pq = [], Y0 = [];
+        for (let i = 0; i <= N; i++) { const q = at(i / N), y0 = Math.atan2(q[0] - seatC.x, q[1] - seatC.z); Pq.push(q); Y0.push(y0 * 180 / Math.PI); const raw = DS.map((d) => need(q[0], q[1], y0 + d * Math.PI / 180) <= 0.01); ok.push(raw.map((x, j) => x && (j === 0 || raw[j - 1]) && (j === raw.length - 1 || raw[j + 1]))); }
+        const best = {};
+        for (const sg of [1, -1]) { let bestD = null;
+          for (let D = 0; D <= 80 && bestD === null; D += 2) {
+            const allow = (i, j) => ok[i][j] && Math.abs(DS[j]) <= D && (Math.abs(DS[j]) < 5 || Math.sign(DS[j]) === sg);
+            let reach = DS.map((_, j) => allow(0, j));
+            for (let i = 1; i <= N && reach.some(Boolean); i++) reach = DS.map((d, j) => allow(i, j) && DS.some((dq, q) => reach[q] && Math.abs((Y0[i] + d) - (Y0[i - 1] + dq)) <= cfg.maxStep));
+            if (reach.some(Boolean)) bestD = D; }
+          best[sg > 0 ? 'pos' : 'neg'] = bestD; }
+        const rng = (row) => { const a = DS.filter((_, j) => row[j]); if (!a.length) return 'NONE'; const r = []; let s0 = a[0], p = a[0]; for (const x of a.slice(1)) { if (x !== p + 2) { r.push(s0 === p ? '' + s0 : s0 + '..' + p); s0 = x; } p = x; } r.push(s0 === p ? '' + s0 : s0 + '..' + p); return r.join(','); };
+        const dbg = { Y0: Y0.slice(0, 4).map((x) => +x.toFixed(2)), seatC, maxStep: cfg.maxStep };
+        out.push({ dbg, name: c.name, len: +tot.toFixed(3), route: c.route.map((p) => p.map((x) => +x.toFixed(3))), best, diag: cfg.diag ? ok.map((row, i) => i + ':' + Pq[i].map((x) => x.toFixed(2)).join(',') + ':' + rng(row)) : undefined });
+      }
+      return { dest, from, r, others: others.map((o) => [o.x0, o.x1, o.z0, o.z1, o.top].map((x) => +x.toFixed(3))), box: [box.x0, box.x1, box.z0, box.z1].map((x) => +x.toFixed(3)), out };
+    }, [Object.assign({ seat: sc.seat }, CFG)]);
+    console.log(`== ${n}-${kind} from ${JSON.stringify([res.from.x, res.from.z].map((x) => +x.toFixed(3)))} dest ${JSON.stringify([res.dest.x, res.dest.z].map((x) => +x.toFixed(3)))} r ${res.r.toFixed(3)} others ${JSON.stringify(res.others)} box ${JSON.stringify(res.box)}`);
+    for (const o of res.out.sort((a, b) => Math.min(a.best.pos ?? 99, a.best.neg ?? 99) - Math.min(b.best.pos ?? 99, b.best.neg ?? 99))) { console.log(`  ${o.name} len ${o.len} minDev pos ${o.best.pos} neg ${o.best.neg} route ${JSON.stringify(o.route)}`); if (o.diag) for (const d of o.diag) console.log('     ' + d); }
+  }
+} finally { await b.close(); } });

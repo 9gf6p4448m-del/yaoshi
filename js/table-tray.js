@@ -1101,7 +1101,9 @@ export function createTableTray(scene, camera, opts = {}) {
     const NARROW = [-0.2, -0.1, 0, 0.1, 0.2], WIDE = [-0.2, -0.1, 0, 0.1, 0.2, 0.32, 0.44], FS = [-0.4, -0.25, -0.12, 0, 0.1, 0.2, 0.3, 0.4, 0.48, 0.56];
     const ks0 = [], ks1 = []; for (let k = GM.CURSE.VICTIM_IN; k > 0.12; k -= 0.02) ks0.push(k); for (let k = GM.CURSE.VICTIM_IN + 0.02; k <= 0.66 + 1e-9; k += 0.02) ks1.push(k);
     /* r6（條件 26、32：延伸組 cSW0 西席受害者，席前自己的錢柱把三趟都擋掉 → 退回舊做法、符紙堆壓進信物 76–91 幀）：
-       第四趟＝落點仍不壓道具／信物，但受害者的手可以壓在矮的錢柱上（手被可達抬起 ≤ LOW_OBS，條件 15 手／堆抬升 ≤0.215） */
+       第四趟＝受害者的手可以壓在矮的錢柱上（手被可達抬起 ≤ LOW_OBS，條件 15 手／堆抬升 ≤0.215），落點仍不壓信物與高的道具，取離原位最近的 */
+    const land4 = land.filter((o) => o.seat !== undefined || o.top > tY + LOW_OBS); // 第四趟：堆壓在受害者被抬過矮錢柱的手上，堆底高過矮錢柱頂，只避信物與高的道具
+    let best4 = null;
     for (const [ks, strict, low] of [[ks0, true, false], [ks1, true, false], [ks0, false, false], [ks0.concat(ks1), true, true]]) for (const da of angs) {
       lowOK = low;
       const an = a0 + da * Math.PI / 180, dx = Math.sin(an), dz = Math.cos(an);
@@ -1109,13 +1111,16 @@ export function createTableTray(scene, camera, opts = {}) {
         const cx = seat.x + dx * k, cz = seat.z + dz * k, px = cx + dx * GM.CURSE.KNUCKLE, pz = cz + dz * GM.CURSE.KNUCKLE;
         if (px < A.x0 || px > A.x1 || pz < A.z0 || pz > A.z1) continue;
         if (others.some((b) => px > b.x0 - pileR && px < b.x1 + pileR && pz > b.z0 - pileR && pz < b.z1 + pileR)) continue;
-        if (strict && land.some((o) => hitRect(o, px + fx0, px + fx1, pz + fz0, pz + fz1, o.seat !== undefined ? 0.02 : 0.04))) continue; // r3：落點的堆外框不壓信物／錢柱／令牌（條件 26；信物外接盒本身已含 0.02）
+        if (strict && (low ? land4 : land).some((o) => hitRect(o, px + fx0, px + fx1, pz + fz0, pz + fz1, o.seat !== undefined ? 0.02 : 0.04))) continue; // r3：落點的堆外框不壓信物／錢柱／令牌（條件 26；信物外接盒本身已含 0.02）
         let bad = false;
         for (const f of FS) { for (const s of (f >= -0.25 && f <= 0 ? WIDE : NARROW)) if (hit(cx + dx * f + dz * s, cz + dz * f - dx * s)) { bad = true; break; } if (bad) break; }
-        if (!bad) return { k, dir: [dx, dz] };
+        if (bad) continue;
+        if (!low) return { k, dir: [dx, dz] };
+        /* 第四趟取離符紙堆原位最近的落點（推的路短＝推得慢，條件 3 螢幕位移對基準的比值；延伸組 cSW0 第一個找到的點推 0.87、比值 0.84） */
+        const dd = Math.hypot(px - from.x, pz - from.z); if (!best4 || dd < best4.dd) best4 = { k, dir: [dx, dz], dd };
       }
     }
-    return null;
+    return best4 ? { k: best4.k, dir: best4.dir } : null;
   }
   /** 受害者的手伸多深：從 CURSE.VICTIM_IN 往席位收，直到「掌心錨點往前 0.48、往後 0.12、左右 0.20」那一片
    *  不落進任何別件拍品外框、也不壓在桌上的錢柱／令牌上（外擴 0.04）——手要平放在空桌面上，不被墊高、不伸進別件腳下。 */
@@ -1166,13 +1171,13 @@ export function createTableTray(scene, camera, opts = {}) {
       if (f.holder === 'c' && st.i * PLAN_DT >= g.script.T.go) st.L.p[st.i] = pileNeed(g, f, st.i * PLAN_DT - g.time, st.i * PLAN_DT); // r4（條件 31）：開推（T.go）前堆不動、不為從原位底下扒過的錢抬（原位不算穿模）；開推前只照包絡小幅預抬
     }
     /* r6（條件 31）：受害者伸手（easeOut、一格走 0.1 以上）時，格與格之間就可能壓上席前的錢柱、即時可達一幀抬 0.046（延伸組 cSW0）——
-       受害者的需要量在時間上前後各擴 1 格（提早一格開始抬、晚一格才放），包絡照斜率上限爬 */
-    const Lv = st.L.v, Lvd = Lv.map((x, i) => Math.max(x, i > 0 ? Lv[i - 1] : -Infinity, i + 1 < Lv.length ? Lv[i + 1] : -Infinity));
+       受害者的需要量在時間上前後各擴 V_DIL 格（提早開始抬、晚才放）、要抬時多抬 V_PAD（規劃用稀疏取樣點，即時可達用全部點；延伸組 cSW0 受害者的手縮回時擦過錢柱邊 0.033），包絡照斜率上限爬 */
+    const Lv = st.L.v, Lvd = Lv.map((x, i) => { let m = x; for (let q = Math.max(0, i - V_DIL); q <= Math.min(Lv.length - 1, i + V_DIL); q++) m = Math.max(m, Lv[q]); return Number.isFinite(m) && m > 0 ? m + V_PAD : m; });
     g.plan = GM.planCurseLift(g.script, st.L.c, Lvd, PLAN_DT, undefined, undefined, st.L.p);
   }
   /** r3（條件 26）：符紙堆被推著時自己要抬多少——堆外框（外擴 PILE_PAD）壓到的桌上道具（錢柱、令牌、木籌槽、信物）最高頂＋PILE_CLR − 堆底；沒壓到＝0。
    *  只看堆本身，不看手臂（手臂從別件上方越過時手抬、堆不跟著抬）。別件拍品不在這裡：路徑已繞開（planPath）。 */
-  const RT_LOOK = 6, RT_SLOPE = GM.CURSE.PILE_SLOPE; // r6：即時保險往後看幾幀、升降斜率（世界單位／秒）
+  const RT_LOOK = 6, RT_SLOPE = GM.CURSE.PILE_SLOPE, V_DIL = 2, V_PAD = 0.012; // r6：即時保險往後看幾幀、升降斜率（世界單位／秒）
   const PILE_PAD = 0.09, RELIC_PAD = 0.04, PILE_CLR = 0.015, PILE_HOP = 0.018; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
   /** ahead＝這一格比現在晚多少秒：落標的錢在開演後 0.22–0.64 秒被扒回席位，會從符紙堆前面橫過——取那一刻的位置（props.handObstaclesAhead 外推）。 */
   function pileNeed(g, f, ahead = 0, t = null) {

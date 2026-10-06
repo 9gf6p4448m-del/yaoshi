@@ -1,0 +1,14 @@
+import fs from 'fs';
+const GM = await import('file:///C:/Users/shung/wt/yaoshi/curse-slow/js/grab-motion.js');
+const outline = (raw, C) => { const cells = new Map(); for (let i = 0; i < raw.length; i += 3) { const k = Math.round(raw[i] / C) + ',' + Math.round(raw[i + 2] / C), c = cells.get(k); if (!c || raw[i + 1] < c[1]) cells.set(k, [raw[i], raw[i + 1], raw[i + 2]]); }
+  const out = []; for (const [k, c] of cells) { const [a, b] = k.split(',').map(Number); if (!cells.has((a + 1) + ',' + b) || !cells.has((a - 1) + ',' + b) || !cells.has(a + ',' + (b + 1)) || !cells.has(a + ',' + (b - 1))) out.push(c[0], c[1], c[2]); } return new Float64Array(out); };
+for (const n of ['cNW', 'cNE']) { const r = JSON.parse(fs.readFileSync(n + '.json')); const fp = outline(r.fp, 0.03);
+  const from = n === 'cNE' ? [-1.35, 0.1] : [1.35, 0.1]; const E = [r.dest.x, r.dest.z]; const sx = Math.sign(E[0] - from[0]);
+  console.log(`== ${n} 起點 ${from} 落點 ${E.map((x) => x.toFixed(3))}；產品足跡（外緣格 0.03，${fp.length / 3} 點）、偏角上限放到 80° 求「整段一側的最小所需偏角」；錨點後退 0.28（舊）／0.30（產品）`);
+  const cand = [];
+  for (const [d, pad] of [[0, 0], [0.2, 0], [0.35, 0], [0.55, 0], [0.35, 0.05], [0.35, 0.1], [0.35, 0.15], [0.55, 0.15], [0.2, 0.15], [0.35, 0.2]]) for (const z1 of [1.1, 1.17]) {
+    const rest = GM.planPath(d > 0 ? [from[0], from[1] + d] : from, E, r.others, 0.309 + pad, { x0: -1.75, x1: 1.75, z0: -1.55, z1 }); cand.push([`往前推${d}+planPath外擴+${pad}(前緣${z1})`, rest ? (d > 0 ? [from, ...rest] : rest) : null]); }
+  for (const lane of [1.0, 1.05, 1.1, 1.13, 1.15, 1.17, 1.2]) for (const d of [0.2, 0.35, 0.55]) cand.push([`lane 往前推${d}→前排z${lane}`, [from, [from[0], from[1] + d], [from[0], lane], [E[0] - sx * 0.3, lane], E]]);
+  for (const [name, rt] of cand) { if (!rt) { console.log(`  ${name}: 無路`); continue; }
+    const res = [0.28, 0.30].map((back) => { const pl = GM.northYawPlan(rt, { x: 0, z: -1.92 }, r.others, fp, r.rest.top + 0.03, { prof: GM.northProf, back, lim: 80 * Math.PI / 180 }); return pl ? Math.round(pl.maxDev * 180 / Math.PI) + '°' : '>80°'; });
+    console.log(`  ${name}: 後退0.28 ${res[0]}｜後退0.30 ${res[1]}  路徑 ${JSON.stringify(rt.map((p) => p.map((x) => +x.toFixed(2))))}`); } }

@@ -155,6 +155,9 @@ export const CURSE = {
   ARM_LEN: 0.62, ARM_R: 0.17, // 手臂看得見的部分（rig.seen，袖布 alpha≥0.2）從掌心往後最長 0.62、側向半寬實測 0.14–0.19（r3 量；舊值 0.9／0.10）
   DEV_MAX: 45 * Math.PI / 180, // 手臂朝向最多偏離「席位 → 符紙堆」這麼多（cos 0.71；條件 25 門檻 cos 0.5，留餘量）
   YAW_RATE: 3.0, // 施放者手的朝向最多每秒轉這麼多弧度（換推法時不瞬轉）
+  /* r6（條件 3）：推上手背前，堆爬到受害者手背高度的平均速度上限 CLIMB（世界單位／秒；要爬得多就提早開始爬，螢幕上不一跳）；
+     HOLD_UP_S：往前找這麼久內堆已抬到夠高（越過錢柱）就不先降下再爬（北塞南：先降 0.11 再爬 0.15） */
+  CLIMB: 0.6, HOLD_UP_S: 0.6,
   PILE_SLOPE: 1.4, // 符紙堆小幅抬過桌上道具時的升降速度上限（世界單位／秒）。r3 曾降到 0.6（北塞南一跳、鏡頭甩）；r4 回到與手同速——0.6 時手的包絡比堆早抬、掌心離堆 >0.03（條件 30），且開推第一幀要抬過自己的木舌
   ROUTE_MIN: 0.30, // r3：路徑離別件外框至少這麼遠（略小於冥婚紅包的半寬＋ROUTE_PAD＝0.305，紅包不受影響）——小的詛咒物〔水符〕不鑽別件之間的縫（鑽縫時施放者的手臂一定得越過別件、整隻手被抬離符紙堆）
   APPR_Y: 0.06, // r4（條件 31）：施放者蓋上前從堆頂上方這麼高落下（舊 0.20；加上包絡下降一幀超過 0.03）
@@ -167,7 +170,7 @@ export const CURSE = {
      北席施放時，路徑＝先往受害者那側直推 NORTH_ROUTES[i][0]，再繞過別件（外擴多加 [1]）；每條候選路徑用施放者手的實際足跡（hand-motion grabFootprint）
      掃手臂偏角，求「整段固定一側、|偏角| 最小」的偏角表（northYawPlan）；第一條 |偏角| ≤ NORTH_DEV_OK 的就用，否則取最小且 ≤ NORTH_DEV 的；都不行退回舊做法。
      北席不等落標的錢扒過去：蓋上即推（條件 40：觸堆後 0.1s 起堆就要一直動）。 */
-  NORTH_ROUTES: [[0.35, 0.15], [0.35, 0.10]], // r6：候選壓到 lane＋兩條（條件 18：每條失敗的候選都要掃到偏角上限才知道失敗，開演那一幀的成本主要在這裡）
+  NORTH_ROUTES: [[0, 0], [0.35, 0.15], [0.35, 0.10]], // r6：候選壓到 lane＋三條（條件 18：每條失敗的候選都要掃到偏角上限才知道失敗，開演那一幀的成本主要在這裡）；[0,0]＝r3 原路徑（含繞錢柱，北塞南條件 3 靠它）
   NORTH_LANE: [0.35, 1.15], NORTH_LANE_END: 0.3, NORTH_FAR: 1.5, // lane 候選：先往前推 0.35、前排 z＝1.15、離受害者落點橫向 0.3 處開始斜推上手背；橫越 >1.5 才先試（第六輪實量：北塞西 52°、北塞東 52°）
   NORTH_AREA_Z1: 1.17, // 北席候選路徑可走到的最前緣（z；一般 CURSE_AREA 1.1）。第六輪實量：北塞西貼 1.10 走要 54–62°、貼 1.15 走 49–52°（evidence-r6/north-feasibility.log），故第一條候選就走 1.15
   NORTH_DEV: 58 * Math.PI / 180, // 北席偏角上限（條件 25 門檻 60°，留 2° 給手臂量法與堆中心的差）
@@ -357,7 +360,10 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
     for (const { d, pad } of cands) {
       let rt;
       if (pad === 'lane') rt = lane();
-      else { const w = [P0[0], P0[2] + sgz * d], rest = planPath(d > 0 ? w : a, E, avoid.boxes, r + pad, area); rt = rest ? (d > 0 ? [a, ...rest] : rest) : null; }
+      else { const w = [P0[0], P0[2] + sgz * d], st = d > 0 ? w : a, rest0 = planPath(st, E, avoid.boxes, r + pad, area);
+        /* 同 r3：錢柱／令牌也繞得開、且路比只繞別件的長不到 PROP_DETOUR 就一起繞（堆不必抬過去；北塞南條件 3 螢幕位移比值 0.68 → 繞） */
+        const rest1 = rest0 && avoid.props && avoid.props.length ? planPath(st, E, avoid.boxes.concat(avoid.props), r + pad, area) : null;
+        const rest = rest1 && polyLen(rest1) <= polyLen(rest0) + CURSE.PROP_DETOUR ? rest1 : rest0; rt = rest ? (d > 0 ? [a, ...rest] : rest) : null; }
       if (!rt) { tried.push({ d, pad, fail: 'path' }); continue; }
       const plan = northYawPlan(rt, seatC, avoid.boxes, north.fp, palmY, { prof: northProf, back: CURSE.PALM_BACK + CURSE.NORTH_BACK });
       tried.push({ d, pad, maxDeg: plan ? Math.round(plan.maxDev * 180 / Math.PI) : null });
@@ -466,7 +472,13 @@ export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CU
   const vKeep = Number.isFinite(vHold) ? Math.max(0, vHold) : 0;
   /* r3：推上手背的最後一段（push → press）堆一定從手背上方 PRESS_DROP 處往下壓到手背——堆在落定前為了越過受害者席前的信物已經抬到手背高度時，
      舊式子會讓堆在落定前 0.15 秒就停住不動（看起來提早落定、按住變短；五物東塞南芭樂，條件 3） */
-  const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; const y = lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); return t >= T.push ? Math.max(y, v[i] + CURSE.PRESS_DROP * (1 - smooth(seg(t, T.push, T.press)))) : y; });
+  /* r6（條件 3：北塞南落定前堆先往下掉再爬上受害者被抬起的手，螢幕一跳）：推上手背那段從「riseFrom 那一刻堆的高度」單調內插到「受害者手的高度＋PRESS_DROP」（在 T.push 到位，之後才壓下去），仍不低於堆自己要抬的量 */
+  const idx = (t) => Math.min(n - 1, Math.max(0, Math.round(t / dt))), vT = v[idx(T.press)] + CURSE.PRESS_DROP;
+  let t0 = Math.max(T.go || T.appr, Math.min(s.riseFrom, T.push - (vT - c0[idx(s.riseFrom)]) / CURSE.CLIMB)); // 要爬得多就早一點開始爬（爬升速度 ≤ CLIMB 的平均）
+  for (let i = idx(s.riseFrom); i >= idx(Math.max(T.go || T.appr, s.riseFrom - CURSE.HOLD_UP_S)); i--) if (c0[i] >= vT - 0.03) { t0 = Math.min(t0, tt(i)); break; } // 堆在 riseFrom 前不久還抬著（越過錢柱）且夠高＝不先降下去再爬上受害者的手
+  const cS = c0[idx(t0)];
+  /* T.push 之後照舊從手背上方 PRESS_DROP 壓到手背、落定那一刻到位 */
+  const target = c0.map((x, i) => { const t = tt(i); if (t < t0) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; if (t < s.riseFrom && vT <= x) return x; const y = t >= T.push ? v[i] : Math.max(x, lerp(cS, Math.max(vT, x), smooth(seg(t, t0, T.push)))); return t >= T.push ? Math.max(y, v[i] + CURSE.PRESS_DROP * (1 - smooth(seg(t, T.push, T.press)))) : y; });
   const pile = liftEnvelope(target, dt, slope, down);
   const Lc2 = Lc.map((x, i) => (tt(i) < T.hold && Number.isFinite(x) ? Math.max(x, pile[i]) : x)); // r6：蓋上前堆也可能已預抬（北席蓋上即推），手一路不低於堆
   /* 施放者按住那段（落定 → 收手開始）不為了收手時要越過別件而提早抬手（按住要按滿；收手那一刻才開始抬） */
