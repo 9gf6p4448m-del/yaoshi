@@ -1,0 +1,10 @@
+條件 8 ?grab=0 逐像素：final3（c8-diff-grab0.log）那一次新版對基準 222 幀各 109 像素不同；
+同一份程式（50788e09）另跑 6 次（pxchk、pxrep1–5）皆 0 幀 0 像素不同，基準側兩次之間 0 差。
+差異點全在 HUD（DOM）字形與小圖示處（如 (95,32)、(384,44)、(514,54)，見 D:/yaoshi-scratch/curse-slow3/pxdiff-S000.png），
+222 幀每幀同樣 109 點（含與詛咒無關的一般得標組），3D 畫面 0 差 ⇒ 歸因於量測環境（瀏覽器 DOM 字形點陣化一次性差異），非受測物。
+pxrep1 {"a": "D:/yaoshi-scratch/curse-slow3/pxrep1/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
+pxrep2 {"a": "D:/yaoshi-scratch/curse-slow3/pxrep2/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
+pxrep3 {"a": "D:/yaoshi-scratch/curse-slow3/pxrep3/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
+pxrep4 {"a": "D:/yaoshi-scratch/curse-slow3/pxrep4/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
+pxrep5 {"a": "D:/yaoshi-scratch/curse-slow3/pxrep5/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
+pxchk {"a": "D:/yaoshi-scratch/curse-slow3/pxchk/px-head/pixel", "b": "D:/yaoshi-scratch/curse-slow3/pxchk/px-base/pixel", "framesA": 222, "framesB": 222, "sameNames": true, "pairs": 222, "diffFrames": 0, "diffPixels": 0, "first": null}
