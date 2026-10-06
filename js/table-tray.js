@@ -988,6 +988,8 @@ export function createTableTray(scene, camera, opts = {}) {
   /* ═══ v0.60.0 抓取／詛咒演出（純呈現：不讀寫賽局、不耗亂數；時間軸在 grab-motion.js）═══════════════ */
   function grabWanted(effect) { return !GRAB_URL_OFF && handsOn && Number(effect && effect.grabMs) > 0 && hands.loaded(); }
   /* 外接盒依「最後一次畫面」的姿勢重算（蒙皮件的 boundingBox 只在第一次被要時算一次，之後是舊姿勢）；每場演出開演時算一次。 */
+  /** 節點看得見部分的最高點（traverseVisible；蒙皮件用這一幀的骨架重算）；量不到＝fallback。 */
+  const visTop = (node, fallback) => { let top = -Infinity; const b = new THREE.Box3(); node.updateMatrixWorld(true); node.traverseVisible((m) => { if (!m.isMesh || !m.geometry) return; if (m.isSkinnedMesh) { m.skeleton.update(); m.computeBoundingBox(); b.copy(m.boundingBox); } else { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); b.copy(m.geometry.boundingBox); } if (b.isEmpty()) return; b.applyMatrix4(m.matrixWorld); top = Math.max(top, b.max.y); }); return Number.isFinite(top) ? top : fallback; };
   const boxOf = (node) => { node.updateMatrixWorld(true); node.traverse((m) => { if (m.isSkinnedMesh) { m.skeleton.update(); m.computeBoundingBox(); } }); const b = new THREE.Box3().setFromObject(node); return { x0: b.min.x, x1: b.max.x, y0: b.min.y, y1: b.max.y, z0: b.min.z, z1: b.max.z }; };
   /** 開演：算好靜止外接盒與「非被抓拍品」外接盒（抓取專用可達用）；同席還有別場在演就先把那場跳到終點（一隻手一次只做一件事）。 */
   function startGrab(s, a, kind, seats, effect) {
@@ -997,7 +999,7 @@ export function createTableTray(scene, camera, opts = {}) {
     const others = slots.filter((o) => o !== s).map((o) => nodeOf(o.i)).filter((n) => n && n.visible).map(boxOf).map((b) => ({ x0: b.x0, x1: b.x1, z0: b.z0, z1: b.z1, top: b.y1 }));
     const script = kind === 'award'
       ? GM.makeAwardScript({ seat: props.seatPosition(seats.w), from: a.from, box, tableY, ms, style: (seats.w === 2 && box.x0 + box.x1 > 0) || (seats.w === 3 && box.x0 + box.x1 < 0) ? 'top' : 'side' }) // 西／東抓越中線那件＝從上方扣（驗收 #5）
-      : curseScript(seats, a.from, box, tableY, ms, others);
+      : curseScript(seats, a.from, Object.assign({}, box, { y1: visTop(node, box.y1) }), tableY, ms, others); // r3：施放者掌心蓋在「看得見的」堆頂（縛靈鎖的外框含隱藏網格，比看得見的頂高 2–5cm，掌心會懸空；條件 27 第二輪判定 15）
     a.grab = { kind, seats, script, time: 0, others, top: box.y1, out: {}, landedAt: null, skipped: false, node, frame: null, proxy: null, env: grabEnvelope(box, a.from, script), pileY0: box.y0 - a.from.y };
     if (kind === 'curse' && !effect.skip) { a.grab.planSt = planStart(a.grab); planStep(a.grab, PLAN_FIRST); }
     if (s.fig) s.fig.setRim(TRAY.RIM_HOVER);

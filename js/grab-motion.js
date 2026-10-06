@@ -231,7 +231,7 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
   const Vp = [seatV.x + vx * victimIn, tableY + CURSE.VICTIM_Y, seatV.z + vz * victimIn]; // 受害者掌心（victimIn 由 tray 依別件拍品外框收短，手不伸進別件腳下）
   let [cx, cz] = norm2(from.x - seatC.x, from.z - seatC.z), cyaw = Math.atan2(cx, cz); // 施放者席 → 符紙堆（手臂從自己那側來）
   const P0 = [from.x, from.y, from.z];
-  const P1 = [Vp[0] + vx * CURSE.KNUCKLE, tableY + CURSE.HAND_TOP, Vp[2] + vz * CURSE.KNUCKLE]; // 終點：壓在受害者手背
+  const P1 = [Vp[0] + vx * CURSE.KNUCKLE, tableY + CURSE.HAND_TOP - (box.y0 - from.y), Vp[2] + vz * CURSE.KNUCKLE]; // 終點：壓在受害者手背（r3：HAND_TOP 是「堆底」離桌高——外框底不在原點的詛咒物〔芭樂、水符、鎖、白虎〕扣回那段，條件 27 第二輪判定 16）
   const P1t = [P1[0], from.y, P1[2]];
   /* r2：avoid（tray 給 {boxes, area}）＝貼桌繞行。r3：施放者手的朝向逐時取「自己席位 → 符紙堆」方向，必要時在 ±DEV_MAX 內偏去鑽空隙（條件 25） */
   let route = null, yawTab = null;

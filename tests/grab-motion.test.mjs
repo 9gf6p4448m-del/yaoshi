@@ -166,6 +166,15 @@ test('v0.61.1 r3 符紙堆自己的抬升（acceptance 條件 26、14）：給 L
   }
 });
 
+test('v0.61.1 r3 五種詛咒物（acceptance 條件 27）：外框底不在原點的詛咒物，落定時「堆底」仍在桌面＋HAND_TOP（壓在手背上，不浮在手上方）；施放者掌心蓋在看得見的堆頂', () => {
+  for (const lift of [0, 0.024, 0.044]) {
+    const box = { x0: 0.2, x1: 0.7, y0: 0.152 + lift, y1: 0.45, z0: -0.02, z1: 0.24 };
+    const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box, tableY: 0.152, ms: 2000 });
+    assert.ok(Math.abs(s.dest.y + (box.y0 - 0.152) - (0.152 + GM.CURSE.HAND_TOP)) < 1e-9, `外框底高 ${lift}：落定堆底 ${(s.dest.y + box.y0 - 0.152).toFixed(3)}`);
+  }
+  assert.match(tray, /curseScript\(seats, a\.from, Object\.assign\(\{\}, box, \{ y1: visTop\(node, box\.y1\) \}\)/);
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);
