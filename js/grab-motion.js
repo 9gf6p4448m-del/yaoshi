@@ -163,7 +163,90 @@ export const CURSE = {
   PROP_DETOUR: 0.3, // r3：繞開錢柱的路最多比只繞別件的路長這麼多（世界單位；北塞南多 0.21 → 繞，西塞南多 0.86、北塞東多 1.14 → 抬過）
   GO_MIN: 0.1, // r4：手蓋上後至少按著這麼久才推（秒，同上）——堆開推前的小幅預抬落在手已蓋住之後（條件 30）
   GO_MAX: 0.36, // r3：手蓋上符紙堆後最多再按著等這麼久才推（秒，CURSE_MS＝MS_REF 時；等落標的錢從堆底下扒過去，條件 26）
+  /* r6（acceptance 條件 39–43；使用者裁「北席不停頓、不換邊，手全程蓋在堆上，先往前推再繞」）：
+     北席施放時，路徑＝先往受害者那側直推 NORTH_ROUTES[i][0]，再繞過別件（外擴多加 [1]）；每條候選路徑用施放者手的實際足跡（hand-motion grabFootprint）
+     掃手臂偏角，求「整段固定一側、|偏角| 最小」的偏角表（northYawPlan）；第一條 |偏角| ≤ NORTH_DEV_OK 的就用，否則取最小且 ≤ NORTH_DEV 的；都不行退回舊做法。
+     北席不等落標的錢扒過去：蓋上即推（條件 40：觸堆後 0.1s 起堆就要一直動）。 */
+  NORTH_ROUTES: [[0.35, 0.15], [0.35, 0.10]], // r6：候選壓到 lane＋兩條（條件 18：每條失敗的候選都要掃到偏角上限才知道失敗，開演那一幀的成本主要在這裡）
+  NORTH_LANE: [0.35, 1.15], NORTH_LANE_END: 0.3, NORTH_FAR: 1.5, // lane 候選：先往前推 0.35、前排 z＝1.15、離受害者落點橫向 0.3 處開始斜推上手背；橫越 >1.5 才先試（第六輪實量：北塞西 52°、北塞東 52°）
+  NORTH_AREA_Z1: 1.17, // 北席候選路徑可走到的最前緣（z；一般 CURSE_AREA 1.1）。第六輪實量：北塞西貼 1.10 走要 54–62°、貼 1.15 走 49–52°（evidence-r6/north-feasibility.log），故第一條候選就走 1.15
+  NORTH_DEV: 58 * Math.PI / 180, // 北席偏角上限（條件 25 門檻 60°，留 2° 給手臂量法與堆中心的差）
+  NORTH_DEV_OK: 54 * Math.PI / 180,
+  NORTH_LIN: 0.5,
+  NORTH_BACK: 0.02, // r6（條件 30）：北席的手（v0.61.0 手型）掌骨比別席多往前約 0.05，偏角大時壓不到窄的詛咒物（水符／鎖／白虎）——錨點多往席位退這麼多（再多手臂就鑽不過別件之間，偏角規劃做不到 ≤58°）
+  NORTH_PAD: 0.05, // 足跡對別件外框的水平外擴（抓取可達 GRAB_PAD 0.02＋規劃取樣之間的餘量）
+  /* r6（條件 43、31）：收手先抬後退——收手開始先往上抬 retLift（tray 用抓取可達算「退的路上要抬多少」），在 RET_UP 比例處抬完；
+     往席位退從 RET_BACK 比例處才開始；收手長度 ＝ max(RET_MIN, 抬升量×RET_PER_LIFT)，不隨 CURSE_MS 縮放（不影響落定時刻）。 */
+  RET_MIN: 0.55, RET_PER_LIFT: 2.4, RET_UP: 0.65, RET_BACK: 0.35, RET_EARLY: 0.15, // RET_EARLY：抬的同時先往席位挪這麼一成（手一開始就往自己那側收，不是原地垂直抬）
 };
+
+/** r6（條件 40）：北席推的進度曲線＝NORTH_LIN 份等速＋其餘 smoothstep——起步就有速度（smoothstep 起步太慢，短路徑〔北塞南〕觸堆後 0.25s 內堆走不到 0.03），峰值反而比 smoothstep 低。 */
+export const northProf = (x) => CURSE.NORTH_LIN * clamp01(x) + (1 - CURSE.NORTH_LIN) * smooth(x);
+/**
+ * r6 北席手臂偏角規劃（acceptance 條件 25、30、41）：沿路徑 N＋1 個取樣（第 i 個＝推的階段 i/N 時刻的位置，同 armYawTable），
+ * 每個取樣掃偏角（相對「施放者席位 → 堆」）−lim…lim（step 度），偏角 d 可行＝手（fp：grabFootprint 的點，掌心錨點在堆中心往席位退 PALM_BACK、高 palmY）
+ * 沒有一點水平落進別件外框（外擴 pad）且低於其頂；左右各 1 格也要可行（取樣之間的餘量）。
+ * 對兩側（+／−，|d|<5° 兩側通用）各求「最大 |d| 最小」、相鄰取樣朝向變化 ≤ maxStep 的路徑，再在該上限內取 Σ|d| 最小（手臂盡量朝席位）。
+ * @returns { yaw: number[]（弧度，N+1 個）, maxDev（弧度）, sign } 或 null（兩側都做不到 ≤ lim）
+ */
+export function northYawPlan(route, seatC, boxes, fp, palmY, { N = 40, lim = CURSE.NORTH_DEV, step = 2, pad = CURSE.NORTH_PAD, maxStep = 6, prof = smooth, back = CURSE.PALM_BACK } = {}) {
+  if (!route || !fp || !fp.length) return null;
+  const RAD = Math.PI / 180, L = Math.floor(lim / RAD / step), DS = []; for (let j = -L; j <= L; j++) DS.push(j * step);
+  const M = DS.length, W = Math.ceil(maxStep / step) + 1;
+  const B = boxes.map((o) => ({ x0: o.x0 - pad, x1: o.x1 + pad, z0: o.z0 - pad, z1: o.z1 + pad, top: o.top }));
+  /* 效能（條件 18）：足跡點由遠到近排（手臂末端先撞）、每個取樣只對搆得到的別件判、可行與否用到才算（記憶），偏角上限由 0 往上逐步放寬（容易的組只算 |d| 小的那幾格） */
+  const n = fp.length / 3, idx = Array.from({ length: n }, (_, k) => k).sort((a, b) => Math.hypot(fp[b * 3], fp[b * 3 + 2]) - Math.hypot(fp[a * 3], fp[a * 3 + 2]));
+  const F = new Float64Array(n * 3); idx.forEach((k, q) => { F[q * 3] = fp[k * 3]; F[q * 3 + 1] = fp[k * 3 + 1]; F[q * 3 + 2] = fp[k * 3 + 2]; });
+  let FR = 0; for (let k = 0; k < n; k++) FR = Math.max(FR, Math.hypot(F[k * 3], F[k * 3 + 2]));
+  const RK = new Float64Array(n); for (let k = 0; k < n; k++) RK[k] = Math.hypot(F[k * 3], F[k * 3 + 2]); // 由遠到近
+  const P = [], Y0 = [], NB = [], DM = [];
+  for (let i = 0; i <= N; i++) { const p = polyAt(route, prof(i / N)).p; P.push(p); Y0.push(Math.atan2(p[0] - seatC.x, p[1] - seatC.z) / RAD);
+    const nb = B.filter((b) => Math.max(b.x0 - p[0], 0, p[0] - b.x1) ** 2 + Math.max(b.z0 - p[1], 0, p[1] - b.z1) ** 2 <= (FR + back) ** 2); NB.push(nb);
+    /* 錨點離搆得到的別件最近距離的下界（錨點在以堆中心為圓心、半徑 back 的圓上）：足跡點離錨點比它近的，一定碰不到——由遠到近掃到那裡就停 */
+    DM.push(nb.length ? Math.max(0, Math.min(...nb.map((b) => Math.hypot(Math.max(b.x0 - p[0], 0, p[0] - b.x1), Math.max(b.z0 - p[1], 0, p[1] - b.z1)))) - back) : Infinity); }
+  const rawM = new Int8Array((N + 1) * M); // 0 未算、1 可行、2 不可行
+  const raw = (i, j) => { const key = i * M + j; let v = rawM[key]; if (v) return v === 1;
+    let okv = true; const nb = NB[i];
+    if (nb.length) { const p = P[i], y = (Y0[i] + DS[j]) * RAD, sy = Math.sin(y), cy = Math.cos(y), ax = p[0] - sy * back, az = p[1] - cy * back;
+      const dm = DM[i];
+      outer: for (let k = 0; k < n; k++) { if (RK[k] < dm) break; const lx = F[k * 3], lz = F[k * 3 + 2], x = ax + lx * cy + lz * sy, z = az - lx * sy + lz * cy, yy = palmY + F[k * 3 + 1];
+        for (const b of nb) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1 && yy < b.top) { okv = false; break outer; } } }
+    rawM[key] = okv ? 1 : 2; return okv; };
+  const ok = (i, j) => raw(i, j) && (j === 0 || raw(i, j - 1)) && (j === M - 1 || raw(i, j + 1)); // 左右各 1 格也要可行（取樣之間的餘量）
+  const run = (allow, cost0, edge) => { let cost = DS.map((d, j) => (allow(0, j) ? cost0(j) : Infinity)); const prv = [];
+    for (let i = 1; i <= N; i++) { const nx = new Array(M).fill(Infinity), pv = new Array(M).fill(-1), sh = Math.round((Y0[i] - Y0[i - 1]) / step);
+      for (let j = 0; j < M; j++) { let any = false; for (let q = Math.max(0, j + sh - W); q <= Math.min(M - 1, j + sh + W); q++) if (cost[q] < Infinity) { any = true; break; } if (!any || !allow(i, j)) continue;
+        for (let q = Math.max(0, j + sh - W); q <= Math.min(M - 1, j + sh + W); q++) { if (cost[q] === Infinity) continue; const dy = Math.abs(Y0[i] + DS[j] - Y0[i - 1] - DS[q]); if (dy > maxStep) continue; const c = edge(cost[q], i, j, dy); if (c < nx[j]) { nx[j] = c; pv[j] = q; } } }
+      prv.push(pv); cost = nx; if (cost.every((c) => c === Infinity)) return null; }
+    return { cost, prv }; };
+  /* 偏角上限 D：先試 0，再二分（整段走得通與否對 D 單調）；可達判斷用布林 DP，最後在 D 內兩側各跑一次成本 DP（Σ|d|＋轉動懲罰），取小的那側。 */
+  const A0 = new Uint8Array(M), A1 = new Uint8Array(M);
+  const reachable = (D, sg) => { let cur = A0, nxt = A1; for (let j = 0; j < M; j++) cur[j] = Math.abs(DS[j]) <= D && (Math.abs(DS[j]) < 5 || Math.sign(DS[j]) === sg) && ok(0, j) ? 1 : 0;
+    for (let i = 1; i <= N; i++) { const sh = Math.round((Y0[i] - Y0[i - 1]) / step); let any = false;
+      for (let j = 0; j < M; j++) { nxt[j] = 0; if (Math.abs(DS[j]) > D || (Math.abs(DS[j]) >= 5 && Math.sign(DS[j]) !== sg)) continue; let from = false;
+        for (let q = Math.max(0, j + sh - W); q <= Math.min(M - 1, j + sh + W); q++) if (cur[q] && Math.abs(Y0[i] + DS[j] - Y0[i - 1] - DS[q]) <= maxStep) { from = true; break; }
+        if (from && ok(i, j)) { nxt[j] = 1; any = true; } }
+      if (!any) return false; const t = cur; cur = nxt; nxt = t; }
+    return true; };
+  const feasible = (D) => reachable(D, 1) || reachable(D, -1);
+  let D = null;
+  if (feasible(0)) D = 0;
+  else if (feasible(L * step)) { let lo = 0, hi = L; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (feasible(mid * step)) hi = mid; else lo = mid; } D = hi * step; }
+  if (D === null) return null;
+  let best = null;
+  for (const sg of [1, -1]) {
+    if (!reachable(D, sg)) continue;
+    const allow = (i, j) => Math.abs(DS[j]) <= D && (Math.abs(DS[j]) < 5 || Math.sign(DS[j]) === sg) && ok(i, j);
+    const r = run(allow, (j) => Math.abs(DS[j]), (c, i, j, dy) => c + Math.abs(DS[j]) + dy * 0.5);
+    if (!r) continue;
+    let j = -1; for (let q = 0; q < M; q++) if (r.cost[q] < Infinity && (j < 0 || r.cost[q] < r.cost[j])) j = q;
+    const cj = r.cost[j]; if (best && cj >= best.c) continue;
+    const dev = new Array(N + 1); for (let i = N; i >= 0; i--) { dev[i] = DS[j]; if (i > 0) j = r.prv[i - 1][j]; }
+    best = { c: cj, dev, sign: sg };
+  }
+  if (best) { const maxDev = Math.max(...best.dev.map(Math.abs)); return { yaw: Y0.map((y, i) => (y + best.dev[i]) * RAD), dev: best.dev, maxDev: maxDev * RAD, sign: best.sign }; }
+  return null;
+}
 
 /** 線段 p→q（xz）是否穿進 AABB o 的內部（Liang–Barsky；只碰邊不算）。 */
 function segHitsBox(p, q, o) {
@@ -234,7 +317,7 @@ export function armYawTable(route, seatC, boxes, pushS, N = 96) {
  * @param o { seatC（施放者＝毒標得標席）, seatV（受害者＝transferTarget）, from, box（符紙堆靜止外接盒）, tableY, ms }
  *   r3：goAt（秒，可省）＝手蓋上後在原位按著、到這一刻才開始推（tray 給：落標的錢扒回時從堆底下橫過，等它過去；上限 GO_MAX×比例）
  */
-export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null, vdir = null, avoid = null, goAt = 0 }) {
+export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null, vdir = null, avoid = null, goAt = 0, north = null }) {
   const k = (Number.isFinite(ms) ? Math.max(ms, 1) : CURSE.MS_REF) / CURSE.MS_REF, T = {}, VT = {}; // ms＝CURSE_MS（落定時長）；沒給／非數字＝MS_REF；≤0＝瞬間（取 1ms，免除以零；與 index.html 揭卡等待的 max(0,CURSE_MS) 同口徑）
   for (const key in CURSE.T) T[key] = CURSE.T[key] * k;
   for (const key in CURSE.V) VT[key] = CURSE.V[key] * k;
@@ -257,12 +340,41 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
     if (r2 && polyLen(r2) <= polyLen(route) + CURSE.PROP_DETOUR) route = r2;
     if (route) yawTab = armYawTable(route, seatC, avoid.boxes, T.push - T.go);
   }
+  /* r6（條件 39–42）：北席施放——north＝{ fp（施放者手推的姿勢的足跡，hand-motion grabFootprint）}。候選路徑逐條用 northYawPlan 求偏角表，
+     先往前推 NORTH_ROUTES[i][0] 再繞（外擴多加 [1]）；用上了就蓋上即推（T.go＝T.appr）。都做不到＝northPlan.ok false，維持上面的舊做法。 */
+  let northPlan = null, prof = smooth, pb = CURSE.PALM_BACK; // pb：掌心錨點往席位退多少（北席多退 NORTH_BACK）
+  if (avoid && north && north.fp) {
+    const r = Math.max(Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + CURSE.ROUTE_PAD, CURSE.ROUTE_MIN), sgz = Math.sign(P1[2] - P0[2]) || 1;
+    const area = Object.assign({}, avoid.area || {}, { z1: Math.max(avoid.area ? avoid.area.z1 : -Infinity, CURSE.NORTH_AREA_Z1) });
+    const palmY = from.y + pileH + CURSE.PALM_ON, tried = []; let pick = null;
+    /* 候選：lane＝先往前推 NORTH_LANE[0]、再推到前排 z＝NORTH_LANE[1]、沿前排橫推到受害者那側、最後斜推上手背（遠距離橫越用：北塞西、北塞東）；
+       其餘＝先往前推 d 再 planPath 繞（外擴多 pad）。橫越距離 >NORTH_FAR 的先試 lane。 */
+    const a = [P0[0], P0[2]], E = [P1[0], P1[2]], R = avoid.boxes.map((o) => ({ x0: o.x0 - r, x1: o.x1 + r, z0: o.z0 - r, z1: o.z1 + r }));
+    const lane = () => { const [d, z] = CURSE.NORTH_LANE, sx = Math.sign(E[0] - a[0]) || 1, rt = [a, [a[0], a[1] + sgz * d], [a[0], z], [E[0] - sx * CURSE.NORTH_LANE_END, z], E];
+      return rt.every((p, i) => i === 0 || !R.some((o) => segHitsBox(rt[i - 1], p, o))) && rt.every((p) => p[1] <= area.z1 + 1e-9) ? rt : null; };
+    const cands = CURSE.NORTH_ROUTES.map(([d, pad]) => ({ d, pad }));
+    if (Math.abs(E[0] - a[0]) > CURSE.NORTH_FAR) cands.unshift({ d: CURSE.NORTH_LANE[0], pad: 'lane' });
+    for (const { d, pad } of cands) {
+      let rt;
+      if (pad === 'lane') rt = lane();
+      else { const w = [P0[0], P0[2] + sgz * d], rest = planPath(d > 0 ? w : a, E, avoid.boxes, r + pad, area); rt = rest ? (d > 0 ? [a, ...rest] : rest) : null; }
+      if (!rt) { tried.push({ d, pad, fail: 'path' }); continue; }
+      const plan = northYawPlan(rt, seatC, avoid.boxes, north.fp, palmY, { prof: northProf, back: CURSE.PALM_BACK + CURSE.NORTH_BACK });
+      tried.push({ d, pad, maxDeg: plan ? Math.round(plan.maxDev * 180 / Math.PI) : null });
+      if (plan && (!pick || plan.maxDev < pick.plan.maxDev)) pick = { rt, plan, d, pad };
+      if (plan && plan.maxDev <= CURSE.NORTH_DEV_OK + 1e-9) break;
+    }
+    northPlan = { ok: !!pick, tried, d: pick ? pick.d : null, pad: pick ? pick.pad : null, maxDeg: pick ? Math.round(pick.plan.maxDev * 180 / Math.PI) : null, sign: pick ? pick.plan.sign : null };
+    if (pick) { route = pick.rt; yawTab = pick.plan.yaw; T.go = T.appr; prof = northProf; pb = CURSE.PALM_BACK + CURSE.NORTH_BACK; }
+  }
   const yawAtU = (u) => { if (!yawTab) return null; const x = clamp01(u) * (yawTab.length - 1), i = Math.min(yawTab.length - 2, Math.floor(x)), f = x - i, a = yawTab[i], d = Math.atan2(Math.sin(yawTab[i + 1] - a), Math.cos(yawTab[i + 1] - a)); return a + d * f; };
   const yawEnd = yawTab ? yawAtU(1) : Math.atan2(P1[0] - seatC.x, P1[2] - seatC.z); // 推到底之後施放者手的朝向
   const palmOn = pileH + CURSE.PALM_ON;
   const carry = { x0: box.x0 - from.x, x1: box.x1 - from.x, y0: box.y0 - from.y - palmOn, z0: box.z0 - from.z, z1: box.z1 - from.z };
   if (yawTab) { cyaw = yawAtU(0); cx = Math.sin(cyaw); cz = Math.cos(cyaw); } // r2：蓋上時就從之後推的方向來
-  const landAt = T.press, hideAt = T.end, end = T.end;
+  /* r6（條件 43、31）：收手長度CURSE_MS ≥ MS_REF 時不縮放（較短時等比縮短，CURSE_MS＝0 仍是瞬間）、至少 RET_MIN；tray 量完「退的路上要抬多少」後呼叫 setRetract(lift) 再拉長（見回傳物件） */
+  let retLift = 0; const kr = Math.min(1, k); T.gone = T.hold + CURSE.RET_MIN * kr; T.end = T.gone + 0.02 * k;
+  const landAt = T.press;
   const footAt = (p) => ({ x0: p[0] - from.x + box.x0, x1: p[0] - from.x + box.x1, z0: p[2] - from.z + box.z0, z1: p[2] - from.z + box.z1 });
   function victimPalm(t) {
     const u = easeOut(seg(t, VT.reach0, VT.reach1));
@@ -281,7 +393,7 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       let p;
       if (t < T.push) {
         /* via（tray 給，可省）：直線推會擦過別件拍品時，先貼桌往前拉到 via 再推過去（貼桌推，不從別件身上飛過） */
-        const u = smooth(seg(t, T.go, T.push)), V = via ? [via[0], from.y, via[1]] : null;
+        const u = prof(seg(t, T.go, T.push)), V = via ? [via[0], from.y, via[1]] : null;
         if (route) { const q = polyAt(route, u); p = [q.p[0], from.y, q.p[1]]; }
         else p = V ? (u < 0.4 ? lerp3(P0, V, u / 0.4) : lerp3(V, P1t, (u - 0.4) / 0.6)) : lerp3(P0, P1t, u);
         item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin(t * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
@@ -299,20 +411,27 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
         hands.c = { pose: ['spread', null, 0], anchor: 'palm', at: [item.x, item.y + palmOn - press, item.z], yaw: yawEnd, pitch: CURSE.C_PITCH };
         rope = { grow: smooth(seg(t, T.press, T.press + CURSE.ROPE_GROW * k)), wrist: [vp[0] - vx * CURSE.WRIST, vp[1], vp[2] - vz * CURSE.WRIST], pile: [item.x, item.y, item.z], yaw: vyaw };
       } else if (t < T.gone) {
-        const u = smooth(seg(t, T.hold, T.gone)); // r4（條件 31）：舊版 easeIn 退 1.0，最後一幀走 0.108；改 smoothstep 退 RETRACT_DIST（峰值 ≤0.05／幀）；收手時五指併攏（張開的拇指側伸 0.4，西塞東收手時掃進槽 2 外框、可達一幀把手抬 0.5）
-        hands.c = { pose: ['spread', 'push', smooth(seg(t, T.hold, T.hold + 0.1 * k))], anchor: 'palm', at: [item.x - Math.sin(yawEnd) * CURSE.RETRACT_DIST * u, item.y + palmOn + GRAB.RETRACT_LIFT * u, item.z - Math.cos(yawEnd) * CURSE.RETRACT_DIST * u], yaw: yawEnd, pitch: CURSE.C_PITCH };
+        /* r6（條件 43、31、25）：先抬後退——往上抬（RETRACT_LIFT＋retLift）在收手的前 RET_UP 比例內完成，往自己席位退（掌心 → 席位的方向，不沿推的偏角斜退）
+           從 RET_BACK 比例處才開始；抬到位以後手臂朝向才轉回「席位 → 掌心」（轉的時候已高過別件）。r4：smoothstep、收手時五指併攏（拇指側伸 0.4 會掃進別件外框）。 */
+        const RD = T.gone - T.hold, fr = (t - T.hold) / RD, w = smooth(fr / CURSE.RET_UP), u = (1 - CURSE.RET_EARLY) * smooth((fr - CURSE.RET_BACK) / (1 - CURSE.RET_BACK)) + CURSE.RET_EARLY * smooth(fr), w2 = smooth((fr - CURSE.RET_UP * 0.6) / (1 - CURSE.RET_UP * 0.6));
+        const px = item.x - Math.sin(yawEnd) * pb, pz = item.z - Math.cos(yawEnd) * pb, [bx, bz] = norm2(seatC.x - px, seatC.z - pz), ys = Math.atan2(-bx, -bz);
+        const yaw = yawEnd + Math.atan2(Math.sin(ys - yawEnd), Math.cos(ys - yawEnd)) * w2, qx = px + bx * CURSE.RETRACT_DIST * u, qz = pz + bz * CURSE.RETRACT_DIST * u;
+        hands.c = { pose: ['spread', 'push', smooth(seg(t, T.hold, T.hold + 0.1 * k))], anchor: 'palm', at: [qx + Math.sin(yaw) * pb, item.y + palmOn + (GRAB.RETRACT_LIFT + retLift) * w, qz + Math.cos(yaw) * pb], yaw, pitch: CURSE.C_PITCH, retW: w };
       }
     }
-    if (hands.c) hands.c.at = [hands.c.at[0] - Math.sin(hands.c.yaw) * CURSE.PALM_BACK, hands.c.at[1], hands.c.at[2] - Math.cos(hands.c.yaw) * CURSE.PALM_BACK];
+    if (hands.c) hands.c.at = [hands.c.at[0] - Math.sin(hands.c.yaw) * pb, hands.c.at[1], hands.c.at[2] - Math.cos(hands.c.yaw) * pb];
     /* r2：carry（符紙堆相對掌心錨點的外框，給可達判「堆會不會撞別件」）要跟著掌心往後退 PALM_BACK 一起換算——舊版沒換算，等於拿堆後方 0.28 的一塊去判，貼著別件推時會被誤抬 */
-    if (carryNow && hands.c) { const sx = Math.sin(hands.c.yaw) * CURSE.PALM_BACK, sz = Math.cos(hands.c.yaw) * CURSE.PALM_BACK; carryNow = { x0: carryNow.x0 + sx, x1: carryNow.x1 + sx, y0: carryNow.y0, z0: carryNow.z0 + sz, z1: carryNow.z1 + sz }; }
+    if (carryNow && hands.c) { const sx = Math.sin(hands.c.yaw) * pb, sz = Math.cos(hands.c.yaw) * pb; carryNow = { x0: carryNow.x0 + sx, x1: carryNow.x1 + sx, y0: carryNow.y0, z0: carryNow.z0 + sz, z1: carryNow.z1 + sz }; }
     /* 受害者：伸出平放、想縮又被逼回、被按住後抖（手留在符紙堆底下，不拖回） */
     if (t >= VT.reach0 && t < T.gone) hands.v = { pose: ['spread', 'rake', 0.15], anchor: 'palm', at: victimPalm(t), yaw: vyaw, pitch: 0.05 };
     for (const r of ['c', 'v']) if (!(r in hands)) hands[r] = null;
-    return { hands, item, holder, carry: carryNow, foot: footAt([item.x, item.y, item.z]), rope, visible: t < hideAt, landed: t >= landAt };
+    return { hands, item, holder, carry: carryNow, foot: footAt([item.x, item.y, item.z]), rope, visible: t < T.end, landed: t >= landAt };
   }
-  return { kind: 'curse', landAt, hideAt, end, dest: { x: P1[0], y: P1[1], z: P1[2] }, roles: { c: true, v: true }, at,
-    holdFrom: T.press, holdTo: T.hold, T: Object.assign({}, T), riseFrom: T.press - CURSE.RISE_S * k, route };
+  const scr = { kind: 'curse', landAt, hideAt: T.end, end: T.end, dest: { x: P1[0], y: P1[1], z: P1[2] }, roles: { c: true, v: true }, at,
+    holdFrom: T.press, holdTo: T.hold, T: Object.assign({}, T), riseFrom: T.press - CURSE.RISE_S * k, route, northPlan, yawEnd,
+    /** r6：收手要越過別件時先抬 lift（世界單位，tray 用抓取可達量）；收手長度 ＝ max(RET_MIN, (RETRACT_LIFT＋lift)×RET_PER_LIFT)。開演時呼叫一次（規劃前）。 */
+    setRetract(lift) { retLift = Math.max(0, lift || 0); T.gone = T.hold + Math.max(CURSE.RET_MIN, (GRAB.RETRACT_LIFT + retLift) * CURSE.RET_PER_LIFT) * kr; T.end = T.gone + 0.02 * k; scr.T = Object.assign({}, T); scr.end = scr.hideAt = T.end; return scr; } };
+  return scr;
 }
 
 /** 斜率上限的上包絡：S ≥ L（手永遠不低於可達要的高度＝不穿），往上每格最多 up·dt、往下每格最多 down(i)·dt（不瞬跳）。
@@ -349,7 +468,7 @@ export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CU
      舊式子會讓堆在落定前 0.15 秒就停住不動（看起來提早落定、按住變短；五物東塞南芭樂，條件 3） */
   const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; const y = lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); return t >= T.push ? Math.max(y, v[i] + CURSE.PRESS_DROP * (1 - smooth(seg(t, T.push, T.press)))) : y; });
   const pile = liftEnvelope(target, dt, slope, down);
-  const Lc2 = Lc.map((x, i) => (tt(i) >= T.appr && tt(i) < T.hold ? Math.max(x, pile[i]) : x));
+  const Lc2 = Lc.map((x, i) => (tt(i) < T.hold && Number.isFinite(x) ? Math.max(x, pile[i]) : x)); // r6：蓋上前堆也可能已預抬（北席蓋上即推），手一路不低於堆
   /* 施放者按住那段（落定 → 收手開始）不為了收手時要越過別件而提早抬手（按住要按滿；收手那一刻才開始抬） */
   const cUp = (i) => (tt(i) >= T.press && tt(i) < T.hold ? Infinity : slope); // 按住段不為收手提早抬；r4：收手開始那一格起照斜率上限抬（舊版 +dt 讓收手第一格一口氣跳上去，條件 31）
   return { dt, c: liftEnvelope(Lc2, dt, cUp, down), v, pile };

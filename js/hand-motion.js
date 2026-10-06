@@ -1230,6 +1230,15 @@ export function createHandDirector(props, rig, per) {
       const why = grabLift.why, v = grabLift(R0, fr, sc, Object.assign({}, spec.cons || {}, { at: spec.at }), obstacles, tableY, s);
       grabLift.why = why; return v;
     },
+    /** v0.61.1 r6：抓取擺位「看得見的部分」相對掌心錨點的點（yaw＝0、給定俯角、這一席的手與縮放；每 stride 個取 1 個），不改任何狀態。
+     *  xform 的 yaw 最後才繞 y 轉 ⇒ 任一 yaw 的世界點＝at＋(x·cos yaw＋z·sin yaw, y, −x·sin yaw＋z·cos yaw)。
+     *  table-tray 北席詛咒推的手臂偏角規劃用（acceptance 條件 25、30、41）：開演時用它掃偏角，免得每個偏角都跑一次 grabLiftFor。回 Float64Array [x,y,z,…]。 */
+    grabFootprint(seat, pose, pitch, stride = 1) {
+      const s = seat | 0, R0 = rigOf(s), sc = scaleNow(s), pr = prepare(R0, pose, 'palm'), base = R0.seen || allIndex(R0), set = stride > 1 ? strided(base, stride) : base;
+      const R = rotated(pr.pts, set, 0, pitch, sc), a = xform(pr.anchor, 0, pitch, sc), out = new Float64Array(set.length * 3);
+      for (let i = 0; i < set.length; i++) { out[i * 3] = R[i * 3] - a[0]; out[i * 3 + 1] = R[i * 3 + 1] - a[1]; out[i * 3 + 2] = R[i * 3 + 2] - a[2]; }
+      return out;
+    },
     /** 換一夜／熱座清場：四隻手立即收（不可見）。 */
     clear() { for (let s = 0; s < 4; s++) { stop(s); hands[s].queue.length = 0; } },
     /** 跳過：直接到結束姿態＝四隻手全收。 */

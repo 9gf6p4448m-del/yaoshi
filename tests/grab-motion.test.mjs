@@ -189,6 +189,42 @@ test('v0.61.1 r3 錢柱（acceptance 條件 26、3）：手蓋上後等落標的
   for (let i = 1; i < n; i++) if (t(i) < s.riseFrom) assert.ok(Math.abs(P.pile[i] - P.pile[i - 1]) <= GM.CURSE.PILE_SLOPE * dt + 1e-9, `堆一格跳 ${(P.pile[i] - P.pile[i - 1]).toFixed(3)} i=${i}`);
 });
 
+test('v0.61.1 r6 北席（acceptance 條件 39–42）：北塞西用手的實際足跡規劃偏角——整段同一側、|偏角| ≤58°、手不進別件外框、蓋上即推且推的途中每 150ms 堆都在動', () => {
+  const F = JSON.parse(read('tests/north-hand-outline.json')), fp = new Float64Array(F.fp), seatC = { x: 0, z: -1.92 }, seatV = { x: -1.38, z: 0.98 };
+  const d = [F.dest[0] - seatV.x, F.dest[1] - seatV.z], L = Math.hypot(d[0], d[1]), box = { x0: 1.106, x1: 1.596, y0: 0.152, y1: F.pileTop, z0: -0.048, z1: 0.263 };
+  const s = GM.makeCurseScript({ seatC, seatV, from: { x: 1.35, y: 0.152, z: 0.1 }, box, tableY: 0.152, ms: 2000, vdir: [d[0] / L, d[1] / L], victimIn: L - GM.CURSE.KNUCKLE, avoid: { boxes: F.others, area: { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 } }, north: { fp } });
+  assert.ok(s.northPlan && s.northPlan.ok, `北塞西規劃失敗 ${JSON.stringify(s.northPlan)}`);
+  assert.ok(s.northPlan.maxDeg <= 58, `偏角 ${s.northPlan.maxDeg}° > 58°`);
+  assert.ok(Math.abs(s.T.go - s.T.appr) < 1e-9, `蓋上後還停 ${(s.T.go - s.T.appr).toFixed(2)}s 才推（條件 40）`);
+  let pos = 0, neg = 0;
+  for (let t = s.T.appr; t < s.T.press; t += 1 / 60) {
+    const f = s.at(t), h = f.hands.c, b = [f.item.x - seatC.x, f.item.z - seatC.z], a = [Math.sin(h.yaw), Math.cos(h.yaw)];
+    const dev = Math.atan2(b[0] * a[1] - b[1] * a[0], b[0] * a[0] + b[1] * a[1]) * 180 / Math.PI;
+    assert.ok(Math.abs(dev) <= 60, `偏角 ${dev.toFixed(1)}° t=${t.toFixed(2)}`);
+    if (dev >= 5) pos++; else if (dev <= -5) neg++;
+    const cy = Math.cos(h.yaw), sy = Math.sin(h.yaw);
+    for (let k = 0; k < fp.length; k += 3) { const x = h.at[0] + fp[k] * cy + fp[k + 2] * sy, z = h.at[2] - fp[k] * sy + fp[k + 2] * cy;
+      for (const o of F.others) assert.ok(!(x > o.x0 && x < o.x1 && z > o.z0 && z < o.z1), `手進別件外框 t=${t.toFixed(2)} (${x.toFixed(2)},${z.toFixed(2)})`); }
+  }
+  assert.ok(!(pos > 0 && neg > 0), `換邊 +${pos}/−${neg}（條件 41）`);
+  for (let t = s.T.appr; t + 0.15 <= s.T.press - 0.35; t += 1 / 60) { const a = s.at(t).item, b = s.at(t + 0.15).item; assert.ok(Math.hypot(b.x - a.x, b.z - a.z) >= 0.03, `堆停住 t=${t.toFixed(2)}（條件 40）`); }
+});
+
+test('v0.61.1 r6 收手（acceptance 條件 43、31）：先抬後退——setRetract(抬升量) 拉長收手、每 1/60 秒垂直 ≤0.03、水平 ≤0.06；抬到一半前退不到一成五；落定時刻不變', () => {
+  const others = [{ x0: -0.645, x1: -0.255, z0: 0.012, z1: 0.213, top: 0.993 }];
+  const s = GM.makeCurseScript({ seatC: { x: 1.36, z: 1.06 }, seatV: { x: 0, z: 1.22 }, from: { x: -1.35, y: 0.152, z: 0.1 }, box: { x0: -1.6, x1: -1.1, y0: 0.152, y1: 0.45, z0: -0.05, z1: 0.26 }, tableY: 0.152, ms: 2000, vdir: [-0.6, -0.8], avoid: { boxes: others, area: { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 } } });
+  const land = s.landAt; s.setRetract(0.6);
+  assert.equal(s.landAt, land);
+  assert.ok(s.T.gone - s.T.hold >= (GM.GRAB.RETRACT_LIFT + 0.6) * GM.CURSE.RET_PER_LIFT - 1e-9, `收手只有 ${(s.T.gone - s.T.hold).toFixed(2)}s`);
+  assert.ok(s.end >= s.T.gone);
+  let prev = null; const h0 = s.at(s.T.hold).hands.c.at;
+  for (let t = s.T.hold; t < s.T.gone; t += 1 / 60) {
+    const h = s.at(t).hands.c; if (prev) { assert.ok(Math.abs(h.at[1] - prev[1]) <= 0.03, `收手垂直一幀 ${(h.at[1] - prev[1]).toFixed(3)} t=${t.toFixed(2)}`); assert.ok(Math.hypot(h.at[0] - prev[0], h.at[2] - prev[2]) <= 0.06, `收手水平一幀 t=${t.toFixed(2)}`); }
+    const fr = (t - s.T.hold) / (s.T.gone - s.T.hold); if (fr <= GM.CURSE.RET_BACK) assert.ok(Math.hypot(h.at[0] - h0[0], h.at[2] - h0[2]) <= 0.15 * GM.CURSE.RETRACT_DIST + 1e-6, `還沒抬就退 t=${t.toFixed(2)}`);
+    prev = h.at;
+  }
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);

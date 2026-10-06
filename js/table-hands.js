@@ -259,6 +259,8 @@ export function createTableHands(parent, props, opts = {}) {
     liftWhy(seat) { return director ? director.liftWhy(seat) : null; },
     /** v0.61.1：不改狀態，只算這一席照 spec 擺要被抬多少（詛咒推按開演時預算抬升包絡）；沒載好＝0。 */
     grabLiftFor(seat, spec) { return director && director.grabLiftFor ? director.grabLiftFor(seat, spec) : 0; },
+    /** v0.61.1 r6：抓取擺位看得見部分相對掌心錨點的點（hand-motion grabFootprint；北席詛咒推的偏角規劃用）。 */
+    grabFootprint(seat, pose, pitch, stride) { return director && director.grabFootprint ? director.grabFootprint(seat, pose, pitch, stride) : null; },
     /** 換一夜／熱座清場：立即收手。 */
     clear() { if (director) { director.clear(); apply([null, null, null, null]); } },
     /** 跳過：手直接到結束姿態（＝收回、不可見）。 */
