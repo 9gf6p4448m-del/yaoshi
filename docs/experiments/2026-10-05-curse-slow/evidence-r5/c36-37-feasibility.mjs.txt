@@ -1,0 +1,28 @@
+/* 條件 36/37 可行性：北席每個路徑取樣，用產品自己的抓取可達（grabLiftFor，推的姿勢、掌心在堆後 PALM_BACK）掃偏角 −60…+60（2°），記可行（抬升 ≤0.01）的偏角集合。 */
+const PROBE = 'C:/Users/shung/wt/yaoshi/curse-slow/tests/tools/grab-probe.mjs';
+const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z0-9]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2]; }
+process.argv = [process.argv[0], '/x.mjs', '--root=C:/Users/shung/wt/yaoshi/curse-slow', '--port=8997', '--out=D:/yaoshi-scratch/curse-slow4/probe-out-x'];
+const P = await import('file:///' + PROBE);
+await P.withServer(async () => { const b = await P.chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11'] }); try {
+  const { page } = await P.openPage(b, 'V3', '');
+  for (const n of (opt.names || 'cNW,cNE').split(',')) for (const kind of (opt.kinds || 'wedding').split(',')) {
+    const sc = P.CURSE12.find((x) => x.name === n);
+    await page.evaluate(([s, k]) => { window.__dbgGrab = []; return window.__gp.reset(s, true, k); }, [sc.slot, kind]);
+    await P.ev(page, 'ys:bid', { seat: sc.seat, slot: sc.slot, amount: 6 }); await P.step(page, 50);
+    await P.ev(page, 'ys:bid', { seat: sc.loser, slot: sc.slot, amount: 4 }); await P.step(page, 70);
+    await P.ev(page, 'ys:bid', { seat: sc.target, slot: (sc.slot + 2) % 4, amount: 3 }); await P.step(page, 70);
+    await P.ev(page, 'ys:reveal-slot', { slot: sc.slot, ms: 812 }); await P.step(page, 49);
+    await P.ev(page, 'ys:reveal-result', { winner: sc.seat, slot: sc.slot, transferTarget: sc.target, destroy: false, grabMs: 1260, curseMs: 2000, skip: false });
+    await P.step(page, 2);
+    const res = await page.evaluate(() => { const D = window.__dbgGrab[0], g = D.g, H = window.__yaoshi3d.tray.hands, S = g.script, T = S.T, out = [];
+      const seat = { x: 0, z: -1.92 };
+      for (let i = 0; i <= 48; i++) { const t = T.go + (T.push - T.go) * i / 48, f = S.at(t), h = f.hands.c; if (!h) continue; const pile = [f.item.x, f.item.z], y0 = Math.atan2(pile[0] - seat.x, pile[1] - seat.z); const ok = [];
+        for (let d = -60; d <= 60; d += 2) { const y = y0 + d * Math.PI / 180, at = [pile[0] - Math.sin(y) * 0.28, h.at[1], pile[1] - Math.cos(y) * 0.28];
+          const cons = D.cons(g, f, 'c'); const v = H.grabLiftFor(g.seats.c, { pose: h.pose, anchor: 'palm', at, yaw: y, pitch: h.pitch, cons }); if (v <= 0.01) ok.push(d); }
+        out.push({ i, t: +t.toFixed(3), pile: pile.map((q) => +q.toFixed(2)), ok }); }
+      return { route: S.route, T, out }; });
+    const rng = (a) => { if (!a.length) return 'NONE'; const r = []; let s = a[0], p = a[0]; for (const x of a.slice(1)) { if (x !== p + 2) { r.push(s === p ? s : s + '..' + p); s = x; } p = x; } r.push(s === p ? s : s + '..' + p); return r.join(','); };
+    console.log(`== ${n}-${kind} route ${JSON.stringify(res.route && res.route.map((p) => p.map((q) => +q.toFixed(2))))} go ${res.T.go.toFixed(2)} push ${res.T.push.toFixed(2)}`);
+    for (const o of res.out) console.log(`  ${o.i} t=${o.t} pile=${o.pile} ok=${rng(o.ok)}`);
+  }
+} finally { await b.close(); } });
