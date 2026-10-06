@@ -148,6 +148,24 @@ test('v0.61.1 r3 手臂來向（acceptance 條件 25，覆審 H-2）：西塞南
   }
 });
 
+test('v0.61.1 r3 符紙堆自己的抬升（acceptance 條件 26、14）：給 Lp 時堆照 Lp 走（施放者手臂越過別件要抬 0.7，堆不跟著抬）、施放者仍不低於堆；落定後堆停在手背高度直到隱藏（不在最後幾幀往下沉）', () => {
+  const s = GM.makeCurseScript({ seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 2000 });
+  const dt = 1 / 15, n = Math.ceil(s.end / dt) + 1, t = (i) => i * dt, Lc = [], Lv = [], Lp = [];
+  for (let i = 0; i < n; i++) {
+    Lc.push(t(i) >= s.T.gone ? -Infinity : t(i) > 0.9 && t(i) < 1.3 ? 0.7 : 0);
+    Lv.push(t(i) < 0.6 || t(i) >= s.T.gone ? -Infinity : 0.1);
+    Lp.push(t(i) < s.T.appr || t(i) >= s.T.press ? -Infinity : t(i) > 0.5 && t(i) < 0.7 ? 0.11 : 0); // 推到半路壓過一柱錢（頂比桌高 0.11）
+  }
+  const P = GM.planCurseLift(s, Lc, Lv, dt, undefined, undefined, Lp);
+  for (let i = 0; i < n; i++) {
+    if (t(i) >= s.T.appr && t(i) < s.riseFrom) assert.ok(P.pile[i] <= 0.11 + 1e-9, `推的時候堆跟著手臂抬到 ${P.pile[i].toFixed(3)} i=${i}`);
+    if (Lp[i] > -Infinity) assert.ok(P.pile[i] >= Lp[i] - 1e-9, `堆低於自己要抬的量（壓進錢柱） i=${i}`);
+    if (Lc[i] > -Infinity) assert.ok(P.c[i] >= Lc[i] - 1e-9, `施放者低於需要量 i=${i}`);
+    if (t(i) >= s.T.appr && t(i) < s.T.hold) assert.ok(P.c[i] >= P.pile[i] - 1e-9, `施放者陷進堆裡 i=${i}`);
+    if (t(i) >= s.T.press && t(i) <= s.end + 1e-9) assert.ok(Math.abs(P.pile[i] - 0.1) < 1e-9, `落定後堆沒停在手背高度 i=${i} ${P.pile[i].toFixed(3)}`);
+  }
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);

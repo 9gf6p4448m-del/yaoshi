@@ -819,6 +819,31 @@ export function createTableProps(parent, opts = {}) {
       for (const b of rackBoxes) out.push(b);
       return out;
     },
+    /** v0.61.1 r3（詛咒推按的符紙堆抬升規劃，acceptance 條件 26）：同 handObstacles，但錢柱取「ahead 秒之後」的位置——
+     *  正在被扒回的錢照 update 的規則（returnDelay 等完、returnK 每秒 +1/0.42、smoothstep）外推；到席位收掉的不列。唯讀，不改任何狀態。
+     *  令牌與木籌槽取現況。ahead≤0 時等同 handObstacles 的錢柱（中心、半徑、頂高同 stackAt 的算法）。 */
+    handObstaclesAhead(ahead) {
+      const out = [], groups = new Map();
+      for (const c of chipRec) {
+        let back = c.returnK || 0;
+        if (back >= 1) continue;
+        if (c.returnTo && ahead > 0 && c.returnK !== undefined) back = Math.min(1, back + Math.max(0, ahead - Math.max(0, c.returnDelay || 0)) / 0.42);
+        if (back >= 1) continue;
+        const t = Math.min(1, c.t), e = 1 - (1 - t) * (1 - t) * (1 - t), be = back * back * (3 - 2 * back);
+        const bx = c.from[0] + (c.to[0] - c.from[0]) * e, bz = c.from[2] + (c.to[2] - c.from[2]) * e, by = c.from[1] + (c.to[1] - c.from[1]) * e + (handPaths ? 0 : Math.sin(Math.PI * t) * CH.LIFT);
+        const p = c.returnTo ? [bx + (c.returnTo[0] - bx) * be, by + (c.returnTo[1] - by) * be + (handPaths ? 0 : Math.sin(Math.PI * back) * 0.10), bz + (c.returnTo[2] - bz) * be] : [bx, by, bz];
+        const key = c.seat * 16 + c.slot; if (!groups.has(key)) groups.set(key, []); groups.get(key).push([c, p]);
+      }
+      for (const key of [...groups.keys()].sort((a, b) => a - b)) {
+        const g = groups.get(key); let sx = 0, sz = 0, top = -Infinity, rk = 1;
+        for (const [c, p] of g) { sx += p[0]; sz += p[2]; const k = 1 + (c.winnerPulse || 0) * 0.24; top = Math.max(top, p[1] + k * (c.stand ? CH.R + CH.T / 2 : CH.T / 2 + CH.R * Math.abs(Math.sin(c.tilt || 0)))); rk = Math.max(rk, k); }
+        const x = sx / g.length, z = sz / g.length; let r = 0; for (const [, p] of g) r = Math.max(r, Math.hypot(p[0] - x, p[2] - z));
+        out.push({ x, z, r: r + (CH.R + CH.T / 2) * rk, top });
+      }
+      for (const r of tokRec) if (r.slot >= 0 && r.pos) out.push({ x: r.pos[0], z: r.pos[2], hx: TK.W, hz: TK.H, top: r.pos[1] + TK.T / 2 + 0.028, bottom: r.pos[1] - TK.T / 2 });
+      for (const b of rackBoxes) out.push(b);
+      return out;
+    },
     /** 席位之手第三輪：四席信物的外接圓柱（中心、半徑＝本地包圍盒八角水平距的最大值、頂高＋小動作餘量）。
      *  手不把它當地板（那會讓手在起手時整隻抬到信物上方），而是側移避開（hand-motion）。 */
     relicObstacles() {

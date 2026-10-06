@@ -998,7 +998,7 @@ export function createTableTray(scene, camera, opts = {}) {
     const script = kind === 'award'
       ? GM.makeAwardScript({ seat: props.seatPosition(seats.w), from: a.from, box, tableY, ms, style: (seats.w === 2 && box.x0 + box.x1 > 0) || (seats.w === 3 && box.x0 + box.x1 < 0) ? 'top' : 'side' }) // 西／東抓越中線那件＝從上方扣（驗收 #5）
       : curseScript(seats, a.from, box, tableY, ms, others);
-    a.grab = { kind, seats, script, time: 0, others, top: box.y1, out: {}, landedAt: null, skipped: false, node, frame: null, proxy: null, env: grabEnvelope(box, a.from, script) };
+    a.grab = { kind, seats, script, time: 0, others, top: box.y1, out: {}, landedAt: null, skipped: false, node, frame: null, proxy: null, env: grabEnvelope(box, a.from, script), pileY0: box.y0 - a.from.y };
     if (kind === 'curse' && !effect.skip) { a.grab.planSt = planStart(a.grab); planStep(a.grab, PLAN_FIRST); }
     if (s.fig) s.fig.setRim(TRAY.RIM_HOVER);
     grabLog.push({ ev: 'start', slot: s.i, kind, seats: Object.assign({}, seats), skip: !!effect.skip });
@@ -1007,32 +1007,44 @@ export function createTableTray(scene, camera, opts = {}) {
   }
   /* v0.61.1 r2（acceptance 條件 14–17）：詛咒推按不再把符紙堆／兩手抬到半空——
      受害者伸手的方向與深度另找一塊「手和落點都碰不到別件拍品」的空桌面（victimSpot），符紙堆貼桌繞過別件拍品走（GM.planPath），
-     施放者手臂會橫越別件時改從推的方向後方推（grab-motion 的 avoid）。找不到空位／路＝退回 v0.61.1 的做法。 */
+     找不到空位／路＝退回 v0.61.1 的做法。
+     r3（條件 25、26）：施放者手臂一律從自己席位那側來（grab-motion armYawTable；r2 的「從推的方向後方推」廢除）；符紙堆壓到桌上道具時自己小幅抬過（pileNeed），
+     落點不壓到受害者席前的信物與錢柱／令牌（victimSpot）。 */
   const CURSE_AREA = { x0: -1.75, x1: 1.75, z0: -1.55, z1: 1.1 };
   function curseScript(seats, from, box, tableY, ms, others) {
     const seatC = props.seatPosition(seats.c), seatV = props.seatPosition(seats.v);
     const pileR = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + GM.CURSE.ROUTE_PAD;
-    const vs = victimSpot(seatV, from, others, pileR);
+    const vs = victimSpot(seatV, from, others, pileR, box);
     if (vs) return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: vs.k, vdir: vs.dir, avoid: { boxes: others, area: CURSE_AREA } });
     return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: victimReach(seatV, from, others), via: pushVia(from, box, seatV, others) });
   }
-  /** 受害者的手：從「席位→符紙堆」方向起，往「席位→桌心」那側每 10° 試（最多 90°，再試另一側），每個方向深度從 VICTIM_IN 往席位收；
-   *  要求手（掌心錨點往前 0.56、往後 0.40、左右 0.20，外擴 0.08＝手抖與手掌比格點寬的餘量）不落進別件拍品外框與錢柱／令牌，落點（掌心往前 KNUCKLE）離別件拍品外框 ≥ 符紙堆半寬＋ROUTE_PAD、且在桌面範圍內。 */
-  function victimSpot(seat, from, others, pileR) {
+  /** 受害者的手：從「席位→符紙堆」方向起，往「席位→桌心」那側每 5° 試（最多 90°，再試另一側 60°），每個方向深度從 VICTIM_IN 往席位收；
+   *  要求手（掌心錨點往前 0.56、往後 0.40、左右 0.20，拇指那側在掌心後 0–0.25 處到 0.44，外擴 0.08＝手抖與手掌比格點寬的餘量）不落進別件拍品外框與錢柱／令牌，落點（掌心往前 KNUCKLE）離別件拍品外框 ≥ 符紙堆半寬＋ROUTE_PAD、且在桌面範圍內。 */
+  function victimSpot(seat, from, others, pileR, box) {
     const tY = props.tableY(), obs = props.handObstacles().filter((o) => o.top > tY + 0.02);
+    /* r3：符紙堆落在受害者手背上，堆底≈桌面＋HAND_TOP＋受害者手被抬的量（12 組實測 0.086–0.107）；會被它壓到的＝高過桌面 0.04 的錢柱／令牌，
+       與頂高過「桌面＋HAND_TOP＋0.075」的信物（relicObstacles 的 top 含 +0.03 餘量，先扣回）。堆外框＝靜止外框相對原點的位移 */
+    const land = obs.filter((o) => o.top > tY + 0.04).concat((props.relicObstacles ? props.relicObstacles() : []).filter((o) => o.top - 0.03 > tY + GM.CURSE.HAND_TOP + 0.075));
+    const fx0 = box.x0 - from.x, fx1 = box.x1 - from.x, fz0 = box.z0 - from.z, fz1 = box.z1 - from.z;
     const hit = (x, z) => others.some((b) => x >= b.x0 - 0.08 && x <= b.x1 + 0.08 && z >= b.z0 - 0.08 && z <= b.z1 + 0.08)
       || obs.some((o) => (o.r !== undefined ? Math.hypot(x - o.x, z - o.z) <= o.r + 0.08 : Math.abs(x - o.x) <= o.hx + 0.08 && Math.abs(z - o.z) <= o.hz + 0.08));
     const A = CURSE_AREA, a0 = Math.atan2(from.x - seat.x, from.z - seat.z), ac = Math.atan2(0 - seat.x, 0.1 - seat.z);
     const sg = Math.sign(Math.atan2(Math.sin(ac - a0), Math.cos(ac - a0))) || 1, angs = [0];
-    for (let d = 10; d <= 90; d += 10) angs.push(sg * d); for (let d = 10; d <= 60; d += 10) angs.push(-sg * d);
-    for (const da of angs) {
+    for (let d = 5; d <= 90; d += 5) angs.push(sg * d); for (let d = 5; d <= 60; d += 5) angs.push(-sg * d); // r3：10° → 5° 一步（東席受害者的空位夾在別件、自己的錢與信物之間，10° 一步會跳過）
+    /* r3：三趟——①原深度（VICTIM_IN 往席位收）且落點不壓道具 ②伸更深（VICTIM_IN＋0.02…0.66，落點離席前信物遠一點）且不壓道具 ③原深度、不管道具（＝r2 的選法） */
+    /* r3：張開的手（spread＋rake）拇指在 Palm 骨後 0.1–0.2 處往一側（下面的 s＞0 那側）伸出 0.37–0.43，另一側 ≤0.13（r3 實測）。
+       r2 只量左右 ±0.2，西塞南的落點讓拇指壓進別件被抬 0.9。往前 0.56 維持（r3 試過縮到 0.4：掌心錨點在 Palm 骨後面，指尖其實到錨點前約 0.56，西塞南指尖壓進槽 1）。 */
+    const NARROW = [-0.2, -0.1, 0, 0.1, 0.2], WIDE = [-0.2, -0.1, 0, 0.1, 0.2, 0.32, 0.44], FS = [-0.4, -0.25, -0.12, 0, 0.1, 0.2, 0.3, 0.4, 0.48, 0.56];
+    const ks0 = [], ks1 = []; for (let k = GM.CURSE.VICTIM_IN; k > 0.12; k -= 0.02) ks0.push(k); for (let k = GM.CURSE.VICTIM_IN + 0.02; k <= 0.66 + 1e-9; k += 0.02) ks1.push(k);
+    for (const [ks, strict] of [[ks0, true], [ks1, true], [ks0, false]]) for (const da of angs) {
       const an = a0 + da * Math.PI / 180, dx = Math.sin(an), dz = Math.cos(an);
-      for (let k = GM.CURSE.VICTIM_IN; k > 0.12; k -= 0.02) {
+      for (const k of ks) {
         const cx = seat.x + dx * k, cz = seat.z + dz * k, px = cx + dx * GM.CURSE.KNUCKLE, pz = cz + dz * GM.CURSE.KNUCKLE;
         if (px < A.x0 || px > A.x1 || pz < A.z0 || pz > A.z1) continue;
         if (others.some((b) => px > b.x0 - pileR && px < b.x1 + pileR && pz > b.z0 - pileR && pz < b.z1 + pileR)) continue;
+        if (strict && land.some((o) => hitRect(o, px + fx0, px + fx1, pz + fz0, pz + fz1, 0.04))) continue; // r3：落點的堆外框不壓信物／錢柱／令牌（條件 26）
         let bad = false;
-        for (const f of [-0.4, -0.25, -0.12, 0, 0.1, 0.2, 0.3, 0.4, 0.48, 0.56]) { for (const s of [-0.2, -0.1, 0, 0.1, 0.2]) if (hit(cx + dx * f + dz * s, cz + dz * f - dx * s)) { bad = true; break; } if (bad) break; }
+        for (const f of FS) { for (const s of (f >= -0.25 && f <= 0 ? WIDE : NARROW)) if (hit(cx + dx * f + dz * s, cz + dz * f - dx * s)) { bad = true; break; } if (bad) break; }
         if (!bad) return { k, dir: [dx, dz] };
       }
     }
@@ -1073,14 +1085,30 @@ export function createTableTray(scene, camera, opts = {}) {
      12 組×6 幀＝72 幀全落進最慢 5%，把 p95 從 2.0 推到 2.8（profile：D:/yaoshi-scratch/curse-slow3/ps-*.log）。
      改成開演那幀 PLAN_FIRST 格、之後每幀 1 格：規劃仍以 4 倍速跑在演出前面（每幀推進 1/60 秒、規劃推進 1/15 秒），每幀只多 ≤2 次 grabLiftFor，且規劃用的取樣點稀疏 3 倍。 */
   const PLAN_FIRST = 3, PLAN_PER_FRAME = 1, PLAN_STRIDE = 3; // PLAN_STRIDE：規劃時手的取樣點每 3 個取 1 個（hand-motion strided；每幀擺手仍用全部點）
-  function planStart(g) { const n = Math.ceil(g.script.end / PLAN_DT) + 1; return { n, i: 0, L: { c: new Array(n).fill(-Infinity), v: new Array(n).fill(-Infinity) } }; }
+  function planStart(g) { const n = Math.ceil(g.script.end / PLAN_DT) + 1; return { n, i: 0, L: { c: new Array(n).fill(-Infinity), v: new Array(n).fill(-Infinity), p: new Array(n).fill(-Infinity) } }; }
   function planStep(g, k) {
     const st = g.planSt; if (!st || st.i >= st.n) return;
     for (const end = Math.min(st.n, st.i + k); st.i < end; st.i++) {
       const f = g.script.at(st.i * PLAN_DT);
       for (const role of ['c', 'v']) { const h = f.hands[role]; if (h) st.L[role][st.i] = hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons: Object.assign(curseCons(g, f, role), { stride: PLAN_STRIDE }) })); }
+      if (f.holder === 'c') st.L.p[st.i] = pileNeed(g, f, st.i * PLAN_DT - g.time);
     }
-    g.plan = GM.planCurseLift(g.script, st.L.c, st.L.v, PLAN_DT);
+    g.plan = GM.planCurseLift(g.script, st.L.c, st.L.v, PLAN_DT, undefined, undefined, st.L.p);
+  }
+  /** r3（條件 26）：符紙堆被推著時自己要抬多少——堆外框（外擴 PILE_PAD）壓到的桌上道具（錢柱、令牌、木籌槽、信物）最高頂＋PILE_CLR − 堆底；沒壓到＝0。
+   *  只看堆本身，不看手臂（手臂從別件上方越過時手抬、堆不跟著抬）。別件拍品不在這裡：路徑已繞開（planPath）。 */
+  const PILE_PAD = 0.09, PILE_CLR = 0.015; // PILE_PAD：推的時候堆會左右扭（ry ≤0.25 弧度，轉過的外框比靜止外框寬約 0.06），規劃格之間（1/15 秒）堆最多再走約 0.05
+  /** ahead＝這一格比現在晚多少秒：落標的錢在開演後 0.22–0.64 秒被扒回席位，會從符紙堆前面橫過——取那一刻的位置（props.handObstaclesAhead 外推）。 */
+  function pileNeed(g, f, ahead = 0) {
+    const ft = f.foot, bottom = f.item.y + g.pileY0; let need = 0;
+    const obs = props.handObstaclesAhead ? props.handObstaclesAhead(Math.max(0, ahead)) : props.handObstacles();
+    for (const o of obs.concat(props.relicObstacles ? props.relicObstacles() : [])) if (hitRect(o, ft.x0, ft.x1, ft.z0, ft.z1, PILE_PAD)) need = Math.max(need, o.top + PILE_CLR - bottom);
+    return need;
+  }
+  /** 桌上道具（圓柱 {x,z,r} 或軸對齊盒 {x,z,hx,hz}）與矩形 [x0,x1]×[z0,z1]（外擴 pad）是否重疊。 */
+  function hitRect(o, x0, x1, z0, z1, pad) {
+    if (o.r !== undefined) { const cx = Math.max(x0 - pad, Math.min(o.x, x1 + pad)), cz = Math.max(z0 - pad, Math.min(o.z, z1 + pad)); return Math.hypot(o.x - cx, o.z - cz) < o.r; }
+    return o.x + o.hx > x0 - pad && o.x - o.hx < x1 + pad && o.z + o.hz > z0 - pad && o.z - o.hz < z1 + pad;
   }
   /** 抓取專用可達的限制。v0.61.1 r2 詛咒推按：不套越中線規則（那條是得標從拍品旁掃過時的規則；推按時手掌本來就蓋在堆頂）、只算看得見的部分（seenOnly）。 */
   function curseCons(g, f, role) {
@@ -1091,10 +1119,12 @@ export function createTableTray(scene, camera, opts = {}) {
     if (g.planSt && dt > 0) planStep(g, PLAN_PER_FRAME);
     g.time = Math.min(g.script.end, g.time + dt);
     const f = g.script.at(g.time); g.frame = f;
+    /* r3：規劃格之間（1/15 秒）或外推不準時的保險——推著走時，堆壓到「這一幀」桌上道具要抬的量（props.update 已在本幀先跑）；堆與施放者都不低於它 */
+    g.rt = g.plan && f.holder === 'c' && g.time < g.script.riseFrom ? pileNeed(g, f, 0) : 0; // 推上手背那段（riseFrom 起）堆照規劃爬到受害者手背高度；落點附近的道具由 victimSpot 避開
     for (const role in g.seats) {
       const h = f.hands[role], seat = g.seats[role];
       if (h) {
-        hands.grab(seat, Object.assign({}, h, { cons: curseCons(g, f, role) }, g.plan ? { minLift: GM.planAt(g.plan[role], g.plan.dt, g.time) } : null));
+        hands.grab(seat, Object.assign({}, h, { cons: curseCons(g, f, role) }, g.plan ? { minLift: Math.max(GM.planAt(g.plan[role], g.plan.dt, g.time), f.holder === role ? g.rt : 0) } : null));
         g.out[role] = true;
       } else if (g.out[role]) { hands.grab(seat, null); g.out[role] = false; }
     }
@@ -1105,7 +1135,7 @@ export function createTableTray(scene, camera, opts = {}) {
     /* 被抓著＝跟著抓的那隻手被可達抬起的量；壓在受害者手背上（holder v）時取「壓上去那一刻」的抬升並固定——手在底下細顫，符紙堆不跟著抖。 */
     let lift = f.holder ? hands.liftOf(g.seats[f.holder]) : 0;
     if (f.holder === 'v') { if (g.vLift === undefined) g.vLift = lift; lift = g.vLift; }
-    if (g.plan) lift = f.holder ? GM.planAt(g.plan.pile, g.plan.dt, g.time) : 0; // v0.61.1 詛咒推按：符紙堆照規劃的連續高度走（推上手背是爬上去；按住時固定、不隨細顫抖）
+    if (g.plan) lift = f.holder ? Math.max(GM.planAt(g.plan.pile, g.plan.dt, g.time), f.holder === 'c' ? g.rt || 0 : 0) : 0; // v0.61.1 詛咒推按：符紙堆照規劃的連續高度走（推上手背是爬上去；按住時固定、不隨細顫抖）
     node.position.set(f.item.x, f.item.y + lift, f.item.z);
     node.rotation.set(f.item.rx, s.spin + f.item.ry, f.item.rz);
     node.visible = f.visible;

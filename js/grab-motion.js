@@ -314,16 +314,21 @@ export function liftEnvelope(L, dt, up = CURSE.LIFT_SLOPE, down = up) {
  *   v＝受害者：按住階段（落定 → 收手完）取該段需要量的最大值固定（不隨細顫在兩個解之間跳），再取斜率上限包絡；
  *   pile＝符紙堆：落定前 RISE_S 起由施放者的包絡平滑過渡到受害者的（推上手背是爬上去，不是跳上去），再取包絡（這段下降上限放寬到 LAND_SLOPE，越過別件後來得及在落定前降回）；
  *   c＝施放者：手掌蓋在堆頂的那段（蓋上 → 收手開始）至少跟堆一樣高（不陷進堆裡），再取包絡。
+ * r3（acceptance 條件 25、26）：Lp（可省）＝符紙堆「自己」要抬多少（堆底要高過壓到的錢柱／令牌／木籌槽；只看堆，不看手臂）。
+ *   給了 Lp 時，推的階段符紙堆照 Lp 的包絡走，不再跟施放者整隻手的需要量（手臂從別件上方越過時手抬、堆仍貼桌）；施放者仍 ≥ 堆（掌心不陷進堆）。
+ *   沒給＝r2 行為（堆跟施放者的包絡）。
  * @param s makeCurseScript 的回傳；Lc／Lv：每 dt 秒一格的需要量（−Infinity＝手不在場）
  * @returns { dt, c, v, pile }（陣列，第 i 格＝時間 i·dt）
  */
-export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CURSE.LAND_SLOPE) {
+export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CURSE.LAND_SLOPE, Lp = null) {
   const n = Lc.length, T = s.T, tt = (i) => i * dt, down = (i) => (tt(i) >= s.riseFrom && tt(i) <= T.hold ? Math.max(slope, land) : slope);
   const Lv2 = Lv.slice(); let vHold = -Infinity;
   for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) vHold = Math.max(vHold, Lv[i]);
   if (Number.isFinite(vHold)) for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) Lv2[i] = vHold;
-  const v = liftEnvelope(Lv2, dt, slope), c0 = liftEnvelope(Lc, dt, slope, down);
-  const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return v[i]; return lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); });
+  const v = liftEnvelope(Lv2, dt, slope), c0 = liftEnvelope(Lp || Lc, dt, slope, down);
+  /* r3：堆落定後一直停在受害者手背高度直到隱藏（舊版受害者的手在 gone 收走後包絡往下掉，最後兩三幀堆沉進席前信物；條件 26） */
+  const vKeep = Number.isFinite(vHold) ? Math.max(0, vHold) : 0;
+  const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; return lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); });
   const pile = liftEnvelope(target, dt, slope, down);
   const Lc2 = Lc.map((x, i) => (tt(i) >= T.appr && tt(i) < T.hold ? Math.max(x, pile[i]) : x));
   /* 施放者按住那段（落定 → 收手開始）不為了收手時要越過別件而提早抬手（按住要按滿；收手那一刻才開始抬） */
