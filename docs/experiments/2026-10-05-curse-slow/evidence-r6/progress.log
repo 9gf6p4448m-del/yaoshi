@@ -1,0 +1,82 @@
+2026-10-06 17:26:14 HEAD=8b1850c8c7e4f3d943270b4471d71e4d9010f675 dirty=[] base=709e313aeccf6f603fa2bad0c0d98ff6ac809a1f C-free=6.5G
+2026-10-06 17:26:14 BEGIN c1-trace :: node tests/tools/grab-trace-check.mjs C:/Users/shung/wt/yaoshi/curse-slow-base/index.html --mutate
+2026-10-06 17:26:18 END c1-trace rc=0
+2026-10-06 17:26:18 BEGIN r3-head :: node tests/tools/grab-probe.mjs --modes=r3 --totals=5.0 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/r3-head
+2026-10-06 17:28:03 END r3-head rc=0
+2026-10-06 17:28:03 BEGIN r3-summary :: node tests/tools/curse-r3-summary.cjs docs/experiments/2026-10-05-curse-slow/evidence-r6/result-r3-head.json
+2026-10-06 17:28:04 END r3-summary rc=0
+2026-10-06 17:28:04 BEGIN r3-kinds-head :: node tests/tools/grab-probe.mjs --modes=r3 --kinds --kc=cWS,cES,cNW,cNE --totals=5.0 --tag=kinds --out=D:/yaoshi-scratch/curse-slow5/final6/r3-kinds
+2026-10-06 17:30:15 END r3-kinds-head rc=0
+2026-10-06 17:30:15 BEGIN r3-kinds-summary :: node tests/tools/curse-r3-summary.cjs docs/experiments/2026-10-05-curse-slow/evidence-r6/result-r3-kinds-head.json
+2026-10-06 17:30:15 END r3-kinds-summary rc=0
+2026-10-06 17:30:15 BEGIN c2-slow-head :: node tests/tools/grab-probe.mjs --modes=slow --totals=4.4 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/slow-head --shots --shotdir=D:/yaoshi-scratch/curse-slow5/final6/shots
+2026-10-06 17:32:21 END c2-slow-head rc=0
+2026-10-06 17:32:21 BEGIN c2-slow-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=slow --totals=4.4 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/slow-base --shots --shotdir=D:/yaoshi-scratch/curse-slow5/final6/shots-base
+2026-10-06 17:34:19 END c2-slow-base rc=0
+2026-10-06 17:34:20 BEGIN c2-6-compare :: node tests/tools/curse-slow-compare.mjs docs/experiments/2026-10-05-curse-slow/evidence-r6/result-slow-head.json docs/experiments/2026-10-05-curse-slow/evidence-r6/result-slow-base.json
+2026-10-06 17:34:20 END c2-6-compare rc=0
+2026-10-06 17:34:20 BEGIN c10-kinds-head :: node tests/tools/grab-probe.mjs --modes=kinds --kc=cWS,cES,cNW,cNE --totals=4.4 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/kinds-head --shots --shotdir=D:/yaoshi-scratch/curse-slow5/final6/shots-kinds
+2026-10-06 17:37:05 END c10-kinds-head rc=0
+2026-10-06 17:37:05 BEGIN c7-skip30-head :: node tests/tools/grab-probe.mjs --modes=skip30 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/skip-head
+2026-10-06 17:38:19 END c7-skip30-head rc=0
+2026-10-06 17:38:19 BEGIN c8-award-hud-head :: node tests/tools/grab-probe.mjs --modes=award,hud --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/ah-head
+2026-10-06 17:41:30 END c8-award-hud-head rc=0
+2026-10-06 17:41:30 BEGIN c8-legacy-eq :: node tests/tools/grab-legacy-eq.mjs --base=C:/Users/shung/wt/yaoshi/curse-slow-base
+2026-10-06 17:41:41 END c8-legacy-eq rc=0
+2026-10-06 17:41:41 BEGIN c8-px-grab0-head :: node tests/tools/grab-probe.mjs --modes=pixel --q=grab=0 --tag=grab0 --out=D:/yaoshi-scratch/curse-slow5/final6/px-head
+2026-10-06 17:42:08 END c8-px-grab0-head rc=0
+2026-10-06 17:42:08 BEGIN c8-px-grab0-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=pixel --q=grab=0 --tag=basegrab0 --out=D:/yaoshi-scratch/curse-slow5/final6/px-base
+2026-10-06 17:42:40 END c8-px-grab0-base rc=0
+2026-10-06 17:42:40 BEGIN c8-diff-grab0 :: python tests/tools/grab-pixel-diff.py D:/yaoshi-scratch/curse-slow5/final6/px-head/pixel D:/yaoshi-scratch/curse-slow5/final6/px-base/pixel
+2026-10-06 17:42:47 END c8-diff-grab0 rc=0
+2026-10-06 17:42:47 BEGIN c5-realflow-head :: node tests/tools/grab-realflow.mjs
+2026-10-06 17:43:15 END c5-realflow-head rc=0
+2026-10-06 17:43:15 BEGIN c9-perf-head-1 :: node tests/tools/grab-probe.mjs --modes=perf12 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/perf-head-1 --rounds=1
+2026-10-06 17:43:47 END c9-perf-head-1 rc=0
+2026-10-06 17:43:47 BEGIN c9-perf-base-1 :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=perf12 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/perf-base-1 --rounds=1
+2026-10-06 17:44:17 END c9-perf-base-1 rc=0
+2026-10-06 17:44:17 BEGIN c9-perf-head-2 :: node tests/tools/grab-probe.mjs --modes=perf12 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/perf-head-2 --rounds=1
+2026-10-06 17:44:49 END c9-perf-head-2 rc=0
+2026-10-06 17:44:49 BEGIN c9-perf-base-2 :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=perf12 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/perf-base-2 --rounds=1
+2026-10-06 17:45:23 END c9-perf-base-2 rc=0
+2026-10-06 17:45:23 BEGIN c9-perf-head-3 :: node tests/tools/grab-probe.mjs --modes=perf12 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/perf-head-3 --rounds=1
+2026-10-06 17:45:55 END c9-perf-head-3 rc=0
+2026-10-06 17:45:55 BEGIN c9-perf-base-3 :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=perf12 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/perf-base-3 --rounds=1
+2026-10-06 17:46:25 END c9-perf-base-3 rc=0
+2026-10-06 17:46:25 BEGIN c9-perf-head-4 :: node tests/tools/grab-probe.mjs --modes=perf12 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/perf-head-4 --rounds=1
+2026-10-06 17:46:56 END c9-perf-head-4 rc=0
+2026-10-06 17:46:56 BEGIN c9-perf-base-4 :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=perf12 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/perf-base-4 --rounds=1
+2026-10-06 17:47:25 END c9-perf-base-4 rc=0
+2026-10-06 17:47:25 BEGIN c9-perf-head-5 :: node tests/tools/grab-probe.mjs --modes=perf12 --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/perf-head-5 --rounds=1
+2026-10-06 17:47:56 END c9-perf-head-5 rc=0
+2026-10-06 17:47:56 BEGIN c9-perf-base-5 :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=perf12 --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/perf-base-5 --rounds=1
+2026-10-06 17:48:27 END c9-perf-base-5 rc=0
+2026-10-06 17:48:27 BEGIN c18-plan-cost-head :: node tests/tools/curse-plan-cost.mjs --rounds=5
+2026-10-06 17:49:37 END c18-plan-cost-head rc=0
+2026-10-06 17:49:37 BEGIN c18-plan-cost-base :: node tests/tools/curse-plan-cost.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --rounds=5
+2026-10-06 17:50:37 END c18-plan-cost-base rc=0
+2026-10-06 17:50:37 BEGIN c19-skipwait-head :: node tests/tools/grab-probe.mjs --modes=skipwait --tag=head --out=D:/yaoshi-scratch/curse-slow5/final6/sw-head
+2026-10-06 17:51:16 END c19-skipwait-head rc=0
+2026-10-06 17:51:16 BEGIN c19-skipwait-base :: node tests/tools/grab-probe.mjs --root=C:/Users/shung/wt/yaoshi/curse-slow-base --modes=skipwait --tag=base --out=D:/yaoshi-scratch/curse-slow5/final6/sw-base
+2026-10-06 17:51:51 END c19-skipwait-base rc=0
+2026-10-06 17:51:51 BEGIN c19-cursems-0 :: node tests/tools/grab-probe.mjs --modes=slow --cursems=0 --totals=4.6 --tag=cm0 --out=D:/yaoshi-scratch/curse-slow5/final6/cm0
+2026-10-06 17:53:12 END c19-cursems-0 rc=0
+2026-10-06 17:53:12 BEGIN c19-cursems-1500 :: node tests/tools/grab-probe.mjs --modes=slow --cursems=1500 --totals=4.6 --tag=cm1500 --out=D:/yaoshi-scratch/curse-slow5/final6/cm1500
+2026-10-06 17:54:40 END c19-cursems-1500 rc=0
+2026-10-06 17:54:40 BEGIN c19-cursems-2000 :: node tests/tools/grab-probe.mjs --modes=slow --cursems=2000 --totals=4.6 --tag=cm2000 --out=D:/yaoshi-scratch/curse-slow5/final6/cm2000
+2026-10-06 17:56:12 END c19-cursems-2000 rc=0
+2026-10-06 17:56:12 BEGIN c19-cursems-2600 :: node tests/tools/grab-probe.mjs --modes=slow --cursems=2600 --totals=4.6 --tag=cm2600 --out=D:/yaoshi-scratch/curse-slow5/final6/cm2600
+2026-10-06 17:57:53 END c19-cursems-2600 rc=0
+2026-10-06 17:57:53 BEGIN c11-grab-motion-on-b-709
+2026-10-06 17:57:54 END c11-grab-motion-on-b-709 rc=0
+2026-10-06 17:57:54 BEGIN c11-grab-motion-on-b-fb89
+2026-10-06 17:57:54 END c11-grab-motion-on-b-fb89 rc=0
+2026-10-06 17:57:54 BEGIN c11-suite :: node --test tests/aistake.test.mjs tests/chain-holdings.test.mjs tests/chains.test.mjs tests/coin-geometry-budget.test.mjs tests/conscap.test.mjs tests/crowd-stagger.test.mjs tests/curse-effects.test.mjs tests/curse-migration.test.mjs tests/duel-desync.test.mjs tests/emblem-collision.test.mjs tests/fxtier.test.mjs tests/fxvocab.test.mjs tests/grab-motion.test.mjs tests/hand-realism-render.test.mjs tests/highlight-cuts.test.mjs tests/item-copy-semantics.test.mjs tests/l1-balance.test.mjs tests/l1-chains-rebalance.test.mjs tests/l1-destiny-ai.test.mjs tests/l1-destiny-chains.test.mjs tests/l1-destiny-focus.test.mjs tests/l1-destiny-historical.test.mjs tests/l1-destiny-measure.test.mjs tests/l1-destiny-night.test.mjs tests/l1-destiny-ordinary-analyze.test.mjs tests/l1-fee-budget.test.mjs tests/l1-formal.test.mjs tests/l1-holder-audit.test.mjs tests/l1-information.test.mjs tests/l1-tiger.test.mjs tests/l1-tray-chain.test.mjs tests/l1-ui.test.mjs tests/l1e-auction-action-adapter.test.mjs tests/l1e-battle-settlement-adapter.test.mjs tests/l1e-cross-night-restore-v9.test.mjs tests/l1e-destiny-adapter-fixtures.test.mjs tests/l1e-event-action-adapter.test.mjs tests/l1e-full-recall-adapter.test.mjs tests/l1e-full-recall-v8.test.mjs tests/l1e-mark-timing.test.mjs tests/l1e-market-chance-v11.test.mjs tests/l1e-model-contract-audit.test.mjs tests/l1e-remaining-player-action-adapter.test.mjs tests/l1e-wish-chance-v10.test.mjs tests/ledger-attribution.test.mjs tests/ledger-tools.test.mjs tests/ledger.test.mjs tests/legend.test.mjs tests/lines.test.mjs tests/lineup-order.test.mjs tests/mark-token-scale.test.mjs tests/moon-dispose.test.mjs tests/nightrules.test.mjs tests/nightwalk.test.mjs tests/outline-merge.test.mjs tests/perf128.test.mjs tests/policy-information.test.mjs tests/power-retirement.test.mjs tests/release-update.test.mjs tests/relic-motion.test.mjs tests/replay-export.test.mjs tests/reveal-table.test.mjs tests/review.test.mjs tests/roles-balance.test.mjs tests/sfx-wiring.test.mjs tests/single-pass-decals.test.mjs tests/single-pass-duel.test.mjs tests/skeleton-share.test.mjs tests/skin-bounds.test.mjs tests/table-framing.test.mjs tests/table-hands-roles.test.mjs tests/table-hands.test.mjs tests/tier1-push.test.mjs tests/tool-options.test.mjs tests/ui-hierarchy.test.mjs tests/wish16.test.mjs
+2026-10-06 18:08:58 END c11-suite rc=0
+2026-10-06 18:08:58 BEGIN sheets-head :: python tests/tools/curse-slow-sheet.py D:/yaoshi-scratch/curse-slow5/final6/shots slow- docs/experiments/2026-10-05-curse-slow/strips-r6
+2026-10-06 18:09:06 END sheets-head rc=0
+2026-10-06 18:09:06 BEGIN sheets-kinds :: python tests/tools/curse-slow-sheet.py D:/yaoshi-scratch/curse-slow5/final6/shots-kinds kinds- docs/experiments/2026-10-05-curse-slow/strips-r6/kinds
+2026-10-06 18:09:17 END sheets-kinds rc=0
+2026-10-06 18:09:17 BEGIN sheets-base :: python tests/tools/curse-slow-sheet.py D:/yaoshi-scratch/curse-slow5/final6/shots-base slow- D:/yaoshi-scratch/curse-slow5/final6/strips-base
+2026-10-06 18:09:25 END sheets-base rc=0
+2026-10-06 18:09:25 ALL DONE C-free=7.5G

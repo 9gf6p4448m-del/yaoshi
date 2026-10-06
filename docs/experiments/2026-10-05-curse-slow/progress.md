@@ -87,4 +87,7 @@
   - 中途實量（D:/yaoshi-scratch/curse-slow5/try14、try14k，未入 repo；正式證據見之後的 evidence-r6 final）：12＋延伸 15/15、五物 20/20 條件 2、3abs、14–17、25、26、30、31、40、41 全過；開演 p95 中位 24.3ms（3 輪試量）。
   - 上述修正 commit：9ff04732。第一次最終證據（final6）跑到條件 2–6 比對發現條件 3 新紅：北塞南 0.68（北席新路線＋蓋上即推）、延伸組 cSW0 0.84（第四趟落點離原位遠）；中途改檔，該次 final6 作廢、程序已依 PID 停掉，部分輸出留在 evidence-r6（會被重跑覆蓋）。
   - 條件 3 修正（下一個 commit）：北席非遠距離候選先試 r3 原路徑（[0,0]，含繞錢柱）、北席路徑也照 r3 繞錢柱；推上手背前的爬升提早開始且已抬高的堆不先降再爬（CLIMB／HOLD_UP_S）；victimSpot 第四趟取離原位最近、可壓矮錢柱；受害者規劃需要量前後擴 2 格＋0.012。快查：條件 2–6 12/12＋延伸組 3/3（cNS 0.39、cSW0 0.05）；r3 15/15、五物 20/20（cSW0 c31 修後 4 組複查過）。
+  - 8b1850c8：已抬高判準放寬（北塞南 0.44）。最終證據 evidence-r6（HEAD 8b1850c8，`bash D:/yaoshi-scratch/curse-slow5/final6.sh`，17:26–18:09，rc 全 0）；逐條表寫在 README.md 開頭。唯一紅：條件 19 在 CURSE_MS＝0（量不到，見表）；22／35／45 覆審待主對話派。
+  - 影片：D:/yaoshi-scratch/curse-slow5/video（shoot.mjs＋build.sh）。暫存基準樹 D:/yaoshi-scratch/curse-slow5/b-709、b-fb89、b-5078、b-mock（b-mock 有示意 patch 未提交改動，只供量測），不用時 `git worktree remove`。
+  - 中斷接手：證據沒跑完就在 HEAD 重跑 final6.sh（量測期間不可改 js；第一、二次 final6 就因中途改檔作廢）。
 
