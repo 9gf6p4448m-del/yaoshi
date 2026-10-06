@@ -15,7 +15,7 @@ const V = new URL(import.meta.url).search;
 const HR = await import('./hand-realism.js' + V);
 const B1 = await import('./hand-b1.js' + V);
 
-export const DIRS = ['a', 'b', 'c'];
+export const DIRS = ['a', 'b', 'c', 'ab'];
 /** 原本共用 REAL.DEFAULT 的三個角色：各給一組皮膚參數（材質陣列序 11..13 → aSkin 9..11）。 */
 export const EXTRA_KEYS = ['xiaonv', 'lvshan', 'luzhu'];
 export const EXTRA_REAL = {
@@ -225,6 +225,99 @@ const COLOR_B = /* glsl */`
     }
 `;
 
+/* ═══ 組合版 AB（使用者 10-07 裁定：A 皮膚質感＋B 血管肌腱，捨棄 C；青面攤主維持基準的大塊斑）═══
+   單一區塊（PP/QQ 只取一次），不是 A、B 兩段串疊。相對 A、B 單獨的調整【試玩必調】：
+   - A：毛孔／細紋網只在近距離依每像素 dm 數淡入（LOD 門檻收緊、幅度減半），去掉 A 自己的骨突黃白染色（與 B 的骨突染色重複＝指根亮霧帶），
+     皮脂亮區不再疊在骨突上；指節褶只在四指，拇指不打。
+   - B：靜脈隆起與青紫暈減輕、肌腱／骨突隆起減輕；皮下青紫透色與指根→手腕漸層保留；B 的點狀小斑只給非青面角色，且密度減半。 */
+const COLOR_AB = /* glsl */`
+    { /* skin-proto AB */
+      vec4 PP = hrPickP(uProtoPA, hk), QQ = hrPickP(uProtoQA, hk);
+      float px = length(fwidth(p));
+      float skinOnly = (1.0 - nail) * (1.0 - scar);
+      float back = smoothstep(0.15, 0.6, dors) * (1.0 - onFinger) * (1.0 - scar);
+      /* ── B：指根→手腕漸層 ── */
+      float tw = 1.0 - smoothstep(0.0, 0.85, p.z);
+      c *= mix(vec3(1.0), vec3(1.07, 1.05, 1.03), tw * (0.4 + 0.6 * PP.w) * smoothstep(-0.2, 0.4, dors));
+      c *= mix(vec3(1.0), vec3(0.96, 0.88, 0.85), (1.0 - tw) * PP.w * smoothstep(0.0, 0.5, dors) * (1.0 - nail));
+      /* ── B：靜脈網（減輕） ── */
+      float vr = 0.0, vh = 0.0;
+      if (back > 0.01) { vec2 q = p.xz + (vec2(hrNoise(p * 9.0), hrNoise(p * 9.0 + 5.1)) - 0.5) * 0.05;
+        for (int i = 0; i < ${VEINS.length}; i++) { float dv = hrSegD(q, HR_VSEG[i].xy, HR_VSEG[i].zw), w = HR_VW[i] * (0.85 + 0.3 * hrNoise(p * 20.0 + float(i)));
+          vr = max(vr, exp(-pow(dv / (w * 1.3), 2.0))); vh = max(vh, exp(-pow(dv / (w * 3.0), 2.0))); }
+        float dive = 0.20 + 0.80 * smoothstep(0.35, 0.70, hrNoise(p * 7.0 + 2.0)); vr *= back * dive * (0.35 + 0.65 * smoothstep(-0.1, 0.4, p.z + 0.1)); vh *= back * (0.5 + 0.5 * dive); }
+      c = mix(c, c * vec3(0.88, 0.91, 1.08), vh * QQ.y * AB_VH);
+      c = mix(c, c * vec3(1.00, 0.98, 1.03), vr * QQ.y * 0.20);
+      /* ── B：伸肌肌腱、骨突 ── */
+      float tr = 0.0;
+      if (back > 0.01) for (int f = 0; f < 4; f++) { float t; vec2 a = vec2(0.06 + (uJ[f*4].x - 0.06) * 0.30, 0.03), b = vec2(uJ[f*4].x, uJ[f*4].z - 0.07);
+        float dt = hrSegD(p.xz, a, b); vec2 ab = b - a; t = clamp(dot(p.xz - a, ab) / dot(ab, ab), 0.0, 1.0);
+        tr = max(tr, exp(-pow(dt / 0.016, 2.0)) * smoothstep(0.05, 0.35, t) * (1.0 - smoothstep(0.85, 1.0, t))); }
+      tr *= back * QQ.z;
+      c *= mix(vec3(1.0), vec3(1.04, 1.02, 0.97), tr * 0.35);
+      float kn = 0.0; for (int f = 0; f < 4; f++) kn = max(kn, exp(-pow(length(p.xz - uJ[f*4].xz + vec2(0.0, 0.02)) / 0.055, 2.0)));
+      kn *= smoothstep(0.2, 0.7, dors) * (1.0 - onFinger);
+      float sty = exp(-pow(length(p.xz - vec2(-0.25, 0.03)) / 0.06, 2.0)) * smoothstep(0.0, 0.6, dot(n, normalize(vec3(-0.6, 0.8, 0.0))));
+      c *= mix(vec3(1.0), vec3(1.05, 1.02, 0.95), (kn + sty) * 0.35);
+      /* ── B：點狀小斑（非青面；青面用基準的大塊斑） ── */
+      float sp = 0.0, halo = 0.0;
+      if (uAge.y > 0.0 && uExt.z < 0.5 && dors > 0.1) { float fq = 22.0;
+        vec2 qs = p.xz * fq + (vec2(hrNoise(p * 55.0), hrNoise(p * 55.0 + 3.3)) - 0.5) * 0.45;
+        vec3 ce = hrCell2(qs); float cl = smoothstep(0.30, 0.70, hrFbm(p * 5.0 + 1.3));
+        float pres = step(ce.y, uAge.y * (0.09 + 0.28 * cl));
+        float rad = mix(0.12, 0.40, fract(ce.z * 7.13)), dn = ce.x + (hrNoise(p * 150.0) - 0.5) * 0.14;
+        sp = pres * (1.0 - smoothstep(rad * 0.2, rad, dn)) * smoothstep(0.1, 0.5, dors) * (0.3 + 0.6 * fract(ce.z * 3.7)) * (1.0 - scar);
+        halo = pres * (1.0 - smoothstep(rad, rad * 2.0, dn)) * smoothstep(0.1, 0.5, dors) * (1.0 - scar); }
+      c = mix(c, c * vec3(0.92, 0.87, 0.84), halo * 0.35);
+      c = mix(c, c * vec3(0.66, 0.52, 0.40), sp * 0.70);
+      /* ── A：色相分佈（血色斑駁、指節泛紅、細碎色素）；骨突黃白不再疊 ── */
+      float hb = hrFbm(p * 15.0 + 7.7), mel = hrNoise(p * 48.0 + 2.2);
+      c *= mix(vec3(1.0), vec3(1.08, 0.95, 0.94), clamp((hb - 0.45) * 1.6, -0.6, 1.0) * 0.45);
+      c = mix(c, c * vec3(1.12, 0.90, 0.88), flush * 0.30);
+      c *= 1.0 + (mel - 0.5) * 0.05 * hrLOD(0.03, px);
+      /* ── A：毛孔、細紋網（近距離才淡入） ── */
+      vec3 an = abs(n); vec2 uvp = an.y > max(an.x, an.z) ? p.xz : (an.x > an.z ? p.yz : p.xy);
+      float pore = 0.0, fP = (1.0 - smoothstep(AB_PL0, AB_PL1, px)) * PP.z * skinOnly;
+      if (fP > 0.01) { vec3 ce = hrCell2(uvp * 160.0); pore = (1.0 - smoothstep(0.0, 0.16 + 0.12 * ce.z, ce.x)) * step(0.3, ce.y) * fP; }
+      float net = 0.0, fN = (1.0 - smoothstep(AB_NL0, AB_NL1, px)) * skinOnly * (0.25 + 0.75 * QQ.w) * smoothstep(-0.2, 0.4, dors);
+      if (fN > 0.01) { float wn = hrNoise(p * 30.0) * 0.9;
+        float l1 = abs(fract(dot(p.xz, vec2(0.82, -0.57)) * 46.0 + wn) - 0.5) * 2.0;
+        float l2 = abs(fract(dot(p.xz, vec2(0.82, 0.57)) * 51.0 + wn + 0.37) - 0.5) * 2.0;
+        net = min(1.0, (1.0 - smoothstep(0.0, 0.16, l1)) * (0.6 + 0.4 * hrNoise(p * 70.0)) + (1.0 - smoothstep(0.0, 0.16, l2)) * (0.6 + 0.4 * hrNoise(p * 70.0 + 9.0))) * fN; }
+      /* ── A：指節橫紋褶（四指；拇指不打）＋掌指關節鬆皮褶 ── */
+      float kc = 0.0, fK = hrLOD(0.012, px) * skinOnly;
+      if (bf < 4 && onFinger > 0.0 && dors > 0.0 && fK > 0.01) {
+        bool pip = bs < 1.5; vec3 jp = pip ? jB : jC; vec3 dv = p - jp; float al = dot(dv, axis);
+        vec3 sd = normalize(cross(axis, dorsDir)); float lat = dot(dv, sd);
+        float env = exp(-pow(al / (pip ? 0.040 : 0.026), 2.0)) * smoothstep(0.1, 0.6, dors);
+        float ph = (al - lat * lat * 5.0) / (pip ? 0.011 : 0.009) + hrNoise(p * 55.0) * 1.3;
+        kc = (1.0 - smoothstep(0.0, 0.42, abs(fract(ph) - 0.5) * 2.0)) * env * (0.45 + 0.55 * hrNoise(p * 35.0 + 2.0)) * fK * (0.55 + 0.45 * max(uAge.x, 0.3));
+      }
+      float mk = 0.0;
+      if (onFinger < 0.99 && dors > 0.2 && fK > 0.01) { float dk = 1e9; for (int f = 0; f < 4; f++) dk = min(dk, length(p.xz - uJ[f*4].xz - vec2(0.0, 0.01)));
+        mk = (1.0 - smoothstep(0.0, 0.45, abs(fract(dk / 0.016 + hrNoise(p * 40.0)) - 0.5) * 2.0)) * exp(-pow(dk / 0.085, 2.0)) * smoothstep(0.2, 0.7, dors) * (1.0 - onFinger) * fK * (0.4 + 0.6 * uAge.x); }
+      /* ── A：汗毛 ── */
+      float hair = 0.0, fH = PP.x * skinOnly * smoothstep(0.3, 0.7, dors) * (1.0 - smoothstep(1.1, 1.6, bs) * onFinger) * step(0.08, p.z);
+      if (fH > 0.01) { vec2 q = p.xz * 38.0 + vec2(0.0, hrNoise(p * 6.0) * 0.6); vec2 hc = floor(q), hf = fract(q); vec2 hh = hrH2(hc + 17.0);
+        if (hh.x < 0.55) { vec2 ctr = 0.5 + (hh - 0.5) * 0.25; float ang = -0.35 + (hh.y - 0.5) * 0.7; vec2 dir = vec2(sin(ang), cos(ang)); vec2 r = hf - ctr;
+          float a1 = dot(r, dir), la = dot(r, vec2(dir.y, -dir.x)) + a1 * a1 * 0.5;
+          float wpx = clamp(0.0011 / max(px, 1e-5), 0.0, 1.0);
+          hair = (1.0 - smoothstep(0.012, 0.03, abs(la))) * (1.0 - smoothstep(0.26, 0.34, abs(a1))) * wpx * fH * hrLOD(0.03, px); } }
+      c = mix(c, c * vec3(0.62, 0.58, 0.58), pore * AB_PC);
+      c = mix(c, c * vec3(0.84, 0.79, 0.77), net * AB_NC);
+      c = mix(c, c * vec3(0.68, 0.60, 0.58), kc * 0.45 + mk * 0.25);
+      c = mix(c, c * vec3(0.30, 0.25, 0.22), hair * 0.65);
+      /* 高度：A 細節＋B 結構（皆減輕） */
+      hrPH = -pore * 0.00012 - net * 0.00022 * (0.4 + uAge.x) - kc * 0.0009 - mk * 0.0004
+           + vr * AB_VR * QQ.x + tr * 0.0024 + kn * 0.0024 + sty * 0.0020 - sp * 0.0001;
+      /* 粗糙度：皮脂只在手背中央低頻區（不疊骨突），骨突／肌腱略亮，褶內與毛孔偏乾 */
+      float oil = hrFbm(p * 9.0 + 4.4);
+      hrPR = -PP.y * 0.12 * smoothstep(0.35, 0.75, oil) * (1.0 - kn) - 0.05 * (tr + kn) - 0.06 * vr * QQ.x + 0.08 * (kc + net * 0.5) + 0.10 * pore;
+    }
+`;
+const AB_K = { VH: 0.30, VR: 0.0020, PL0: 0.0008, PL1: 0.0028, NL0: 0.002, NL1: 0.007, PC: 0.15, NC: 0.12 }; // 【試玩必調】
+const abSrc = () => Object.entries(AB_K).reduce((s, [k, v]) => s.split('AB_' + k).join(glf(v)), COLOR_AB);
+
 /* ═══ 方向 C：次表面／遮蔽／接觸陰影／邊緣光／環境反射 ═══ */
 const COLOR_C = /* glsl */`
     { /* skin-proto C：薄度、指縫遮蔽、離桌面高度遮蔽（打光在 RE_Direct 與 opaque 前） */
@@ -275,7 +368,7 @@ function protoParts(dir) {
   let pars = S.pars.replace(/uniform (vec3|vec4|float) (\w+)\[8\]/g, `uniform $1 $2[${N}]`);
   pars = pars.replace(/vec3 hrPick3\(vec3 a\[8\][^\n]*/, PICK('vec3', 'hrPick3')).replace(/vec4 hrPick4\(vec4 a\[8\][^\n]*/, PICK('vec4', 'hrPick4')).replace(/float hrPick1\(float a\[8\][^\n]*/, PICK('float', 'hrPick1'));
   if (/\w+ a\[8\],|\w+A\[8\];/.test(pars)) throw new Error('hand-skin-proto: 還有 [8] 宣告沒換');
-  pars += PARS + PICK('vec4', 'hrPickP') + '\n' + (dir === 'b' ? PARS_B : '');
+  pars += PARS + PICK('vec4', 'hrPickP') + '\n' + (dir === 'b' || dir === 'ab' ? PARS_B : '');
   let color = S.color;
   /* 共用：疤 */
   const i0 = color.indexOf(SCAR_OLD_START), i1 = color.indexOf(SCAR_OLD_END);
@@ -284,12 +377,14 @@ function protoParts(dir) {
   color = sw(color, SCAR_COLOR_OLD, SCAR_COLOR_NEW);
   color = sw(color, '+ scar * 0.0006 +', '+ scarH +');
   color = sw(color, 'hrRough = mix(hrRough, 0.85, scar);', 'hrRough = mix(hrRough, 0.62, scar * 0.7); hrRough = mix(hrRough, 0.9, stitchM);\n    hrH += hrPH; hrRough = clamp(hrRough + hrPR, 0.22, 1.0);');
-  if (dir === 'b') { // 原本的雜訊靜脈、閾值斑、寬肌腱：關掉，改用 COLOR_B
+  if (dir === 'b' || dir === 'ab') { // 原本的雜訊靜脈、閾值斑、寬肌腱：關掉，改用 COLOR_B／COLOR_AB
     color = sw(color, 'if (uAge.z > 0.0 && dors > 0.3 && onFinger < 0.99)', 'if (false)');
-    color = sw(color, 'if (uAge.y > 0.0 && dors > 0.1) spots =', 'if (false) spots =');
+    /* AB：青面攤主（uExt.z）保留基準的大塊斑；其餘角色改用 AB 的點狀小斑 */
+    color = sw(color, 'if (uAge.y > 0.0 && dors > 0.1) spots =', dir === 'ab' ? 'if (uExt.z > 0.5 && uAge.y > 0.0 && dors > 0.1) spots =' : 'if (false) spots =');
     color = sw(color, 'tendon * 0.005 * (0.4 + 1.2 * age)', 'tendon * 0.0012 * (0.4 + 1.2 * age)');
   }
-  const add = dir === 'a' ? COLOR_A : dir === 'b' ? COLOR_B : COLOR_C;
+  if (dir === 'ab') color = sw(color, 'wrinkle = (gB + 0.7 * gC) * lines', 'wrinkle = (bf < 4 ? 1.0 : 0.0) * (gB + 0.7 * gC) * lines'); // AB：拇指不打基礎指節紋（新手網格上它落在拇指可見面、sin×230 疊出鋸齒細橫紋；不帶參數的基準保持原樣）
+  const add = dir === 'a' ? COLOR_A : dir === 'b' ? COLOR_B : dir === 'ab' ? abSrc() : COLOR_C;
   color = sw(color, '    if (uExt2.y > 0.0) {', add + '    if (uExt2.y > 0.0) {');
   return { pars, color, acc: S.acc };
 }

@@ -48,8 +48,8 @@ export function createTableHands(parent, props, opts = {}) {
      不載入 hand-b1.js，整套與 v0.60.1 相同。 */
   const b1On = realOn && (opts.b1 !== undefined ? !!opts.b1 : (HAND.B1_ON !== false && q0.get('handb1') !== '0'));
   let B1 = null;
-  /* skin-proto（原型，不是產品）：?skin=a|b|c 換皮膚 shader 方向（js/hand-skin-proto.js）；不帶參數＝不載入、與 v0.61.1 相同。只在批 1 開著時生效。 */
-  const skinDir = b1On && ['a', 'b', 'c'].includes(q0.get('skin')) ? q0.get('skin') : null;
+  /* skin-proto（原型，不是產品）：?skin=a|b|c|ab 換皮膚 shader 方向（ab＝A＋B 組合版）（js/hand-skin-proto.js）；不帶參數＝不載入、與 v0.61.1 相同。只在批 1 開著時生效。 */
+  const skinDir = b1On && ['a', 'b', 'c', 'ab'].includes(q0.get('skin')) ? q0.get('skin') : null;
   let SP = null, spShadow = null; const spV = new THREE.Vector3();
   /* v0.61.0 拍令牌拇指收角（HAND.SLAM_THUMB）：寫實開著時預設啟用；?thumb=0（或 opts.thumb=false、HAND.SLAM_THUMB.ON=false）退回舊姿勢。
      只換拍令牌的張開手（spreadT），推錢／收錢／停一拍不動。寫實關閉（?handreal=0）時一律舊姿勢（與 10-02 的舊手逐幀等價）。 */
