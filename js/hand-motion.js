@@ -891,11 +891,19 @@ export function posedFrame(rig, pose, anchorKind, at, yaw, pitch, scale) {
  *   ④ 被抓著的那件（carry：相對錨點 at 的外接盒）與任一非被抓拍品盒水平重疊時，盒底抬到該盒頂＋CLR 以上（搬運不穿別件）。
  * 回傳要抬的量（≥0）。決定性：固定順序的 max，無掃描、無亂數。
  */
+const strideCache = new WeakMap();
+/** v0.61.1 r3：取樣點每 k 個取 1 個（快取）。只給詛咒推按的「事前規劃」用（table-tray planStep；條件 9 效能）——
+ *  規劃只決定高度包絡的形狀，每一幀真正擺手時 grabLift 仍用全部取樣點（sp.minLift 只往上墊），稀疏取樣少算的那一點由即時值補上，不會穿。 */
+function strided(set, k) {
+  let m = strideCache.get(set); if (!m) { m = new Map(); strideCache.set(set, m); }
+  let a = m.get(k); if (!a) { a = set.filter((_, i) => i % k === 0); m.set(k, a); }
+  return a;
+}
 export const GRAB_PAD = 0.02;
 /** ②③④ 的垂直餘量：碰撞取樣（寫實手頂點＋袖管）之外，畫面上還有少數配件頂點（手環、珠串）沒進取樣，多留這麼多蓋過它們。 */
 export const GRAB_CLR = 0.02;
 export function grabLift(rig, fr, scale, cons, obstacles, tableY, seat) {
-  const pr = prepare(rig, fr.pose, 'palm'), set = cons && cons.seenOnly && rig.seen ? rig.seen : allIndex(rig), R = rotated(pr.pts, set, fr.yaw, fr.pitch, scale); // v0.61.1 r2：詛咒推按只算看得見的部分（rig.seen：袖布漸隱到 alpha≈0.2 以前），漸隱掉的袖尾不把整隻手抬上半空
+  const pr = prepare(rig, fr.pose, 'palm'), base = cons && cons.seenOnly && rig.seen ? rig.seen : allIndex(rig), set = cons && cons.stride > 1 ? strided(base, cons.stride) : base, R = rotated(pr.pts, set, fr.yaw, fr.pitch, scale); // v0.61.1 r2：詛咒推按只算看得見的部分（rig.seen：袖布漸隱到 alpha≈0.2 以前），漸隱掉的袖尾不把整隻手抬上半空
   const [rx, ry, rz] = fr.root, clr = HAND.CLR, pad = GRAB_PAD, oc = HAND.CLR + GRAB_CLR;
   const boxes = (cons && cons.boxes) || [], relics = (cons && cons.relics) || [], foot = cons && cons.foot;
   const mid = cons && cons.midTop !== undefined && (seat === 2 || seat === 3) ? cons.midTop : undefined;

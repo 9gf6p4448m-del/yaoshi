@@ -1069,13 +1069,16 @@ export function createTableTray(scene, camera, opts = {}) {
   /* v0.61.1 r2（acceptance 條件 18：揭曉那一幀 ≤30ms）：規劃分攤到開演後的前幾幀——開演那一幀只算前 PLAN_FIRST 格，
      之後每幀 PLAN_PER_FRAME 格（每幀推進 1/60 秒、規劃推進 PLAN_PER_FRAME/15 秒，永遠跑在演出前面）；還沒算到的格當「手不在場」，
      每算完一批重算一次包絡（O(n)）。按住段的受害者高度取按住段全部格的最大值——那段在開演後約 0.1 秒內就算完，遠早於落定 2.0 秒。 */
-  const PLAN_FIRST = 1, PLAN_PER_FRAME = 8;
+  /* r3（條件 9／28 效能，覆審 H-1）：根因＝r2 每幀算 8 格（16 次 grabLiftFor，每次掃整隻手的可見頂點 ≈0.3ms），開演後 6 幀每幀多 5ms，
+     12 組×6 幀＝72 幀全落進最慢 5%，把 p95 從 2.0 推到 2.8（profile：D:/yaoshi-scratch/curse-slow3/ps-*.log）。
+     改成開演那幀 PLAN_FIRST 格、之後每幀 1 格：規劃仍以 4 倍速跑在演出前面（每幀推進 1/60 秒、規劃推進 1/15 秒），每幀只多 ≤2 次 grabLiftFor，且規劃用的取樣點稀疏 3 倍。 */
+  const PLAN_FIRST = 3, PLAN_PER_FRAME = 1, PLAN_STRIDE = 3; // PLAN_STRIDE：規劃時手的取樣點每 3 個取 1 個（hand-motion strided；每幀擺手仍用全部點）
   function planStart(g) { const n = Math.ceil(g.script.end / PLAN_DT) + 1; return { n, i: 0, L: { c: new Array(n).fill(-Infinity), v: new Array(n).fill(-Infinity) } }; }
   function planStep(g, k) {
     const st = g.planSt; if (!st || st.i >= st.n) return;
     for (const end = Math.min(st.n, st.i + k); st.i < end; st.i++) {
       const f = g.script.at(st.i * PLAN_DT);
-      for (const role of ['c', 'v']) { const h = f.hands[role]; if (h) st.L[role][st.i] = hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons: curseCons(g, f, role) })); }
+      for (const role of ['c', 'v']) { const h = f.hands[role]; if (h) st.L[role][st.i] = hands.grabLiftFor(g.seats[role], Object.assign({}, h, { cons: Object.assign(curseCons(g, f, role), { stride: PLAN_STRIDE }) })); }
     }
     g.plan = GM.planCurseLift(g.script, st.L.c, st.L.v, PLAN_DT);
   }
