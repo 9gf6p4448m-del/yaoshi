@@ -175,6 +175,20 @@ test('v0.61.1 r3 五種詛咒物（acceptance 條件 27）：外框底不在原�
   assert.match(tray, /curseScript\(seats, a\.from, Object\.assign\(\{\}, box, \{ y1: visTop\(node, box\.y1\) \}\)/);
 });
 
+test('v0.61.1 r3 錢柱（acceptance 條件 26、3）：手蓋上後等落標的錢從堆底下扒過去才推（goAt，上限 GO_MAX）；堆抬過錢柱的升降速度 ≤ PILE_SLOPE（不一跳、鏡頭不甩）', () => {
+  const base = { seatC: { x: 0, z: -1.92 }, seatV: { x: 0, z: 1.22 }, from: { x: 0.45, y: 0.152, z: 0.1 }, box: { x0: 0.2, x1: 0.7, y0: 0.152, y1: 0.45, z0: -0.02, z1: 0.24 }, tableY: 0.152, ms: 2000 };
+  const s = GM.makeCurseScript(Object.assign({}, base, { goAt: 0.55 }));
+  for (let t = 0; t <= 0.55; t += 0.01) { const it = s.at(t).item; assert.ok(Math.hypot(it.x - 0.45, it.z - 0.1) < 1e-9, `等錢扒過之前堆就動了 t=${t.toFixed(2)}`); }
+  assert.ok(Math.hypot(s.at(0.7).item.x - 0.45, s.at(0.7).item.z - 0.1) > 1e-3, 'goAt 之後要推');
+  assert.ok(Math.abs(s.landAt - 2.0) < 1e-9, '落定時刻不變');
+  const cap = GM.makeCurseScript(Object.assign({}, base, { goAt: 5 }));
+  assert.ok(Math.abs(cap.T.go - (cap.T.appr + GM.CURSE.GO_MAX)) < 1e-9, '等待有上限');
+  const dt = 1 / 15, n = Math.ceil(s.end / dt) + 1, t = (i) => i * dt, Lc = [], Lv = [], Lp = [];
+  for (let i = 0; i < n; i++) { Lc.push(t(i) >= s.T.gone ? -Infinity : 0); Lv.push(t(i) < 0.6 || t(i) >= s.T.gone ? -Infinity : 0.1); Lp.push(t(i) < s.T.appr || t(i) >= s.T.press ? -Infinity : t(i) > 0.8 && t(i) < 1.1 ? 0.15 : 0); }
+  const P = GM.planCurseLift(s, Lc, Lv, dt, undefined, undefined, Lp);
+  for (let i = 1; i < n; i++) if (t(i) < s.riseFrom) assert.ok(Math.abs(P.pile[i] - P.pile[i - 1]) <= GM.CURSE.PILE_SLOPE * dt + 1e-9, `堆一格跳 ${(P.pile[i] - P.pile[i - 1]).toFixed(3)} i=${i}`);
+});
+
 test('D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何', () => {
   const hits = tray.match(/new THREE\.TubeGeometry/g) || [];
   assert.equal(hits.length, 1);

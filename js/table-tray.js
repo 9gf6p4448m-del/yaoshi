@@ -1017,8 +1017,23 @@ export function createTableTray(scene, camera, opts = {}) {
     const seatC = props.seatPosition(seats.c), seatV = props.seatPosition(seats.v);
     const pileR = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + GM.CURSE.ROUTE_PAD;
     const vs = victimSpot(seatV, from, others, pileR, box);
-    if (vs) return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: vs.k, vdir: vs.dir, avoid: { boxes: others, area: CURSE_AREA } });
+    if (vs) return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: vs.k, vdir: vs.dir, avoid: { boxes: others, props: staticProps(), area: CURSE_AREA }, goAt: rakeClear(box) });
     return GM.makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn: victimReach(seatV, from, others), via: pushVia(from, box, seatV, others) });
+  }
+  /** r3（條件 26）：落標的錢在開演後 0.22–0.64 秒被扒回席位，常從符紙堆原位底下橫過（709e313a 起都是這樣；原位不算穿模）。
+   *  找最後一個「有正在扒回的錢壓在堆外框（外擴 PILE_PAD）裡」的時刻（props.handObstaclesAhead 外推；1.2 秒後還在原處的錢＝不動的，不算），
+   *  施放者手蓋上後按著等到那之後才推——堆不在錢橫過時離開原位，免得一推就壓進錢柱或為了它一跳。 */
+  /** r3：桌上不會被扒走、高過桌面 0.05 的錢柱／令牌外框（1.2 秒後還在的；給路徑規劃一起繞）。 */
+  function staticProps() {
+    const tY = props.tableY(), obs = props.handObstaclesAhead ? props.handObstaclesAhead(1.2) : props.handObstacles();
+    return obs.filter((o) => o.top > tY + 0.05).map((o) => (o.r !== undefined ? { x0: o.x - o.r, x1: o.x + o.r, z0: o.z - o.r, z1: o.z + o.r } : { x0: o.x - o.hx, x1: o.x + o.hx, z0: o.z - o.hz, z1: o.z + o.hz }));
+  }
+  function rakeClear(box) {
+    if (!props.handObstaclesAhead) return 0;
+    const over = (o) => o.r !== undefined && hitRect(o, box.x0, box.x1, box.z0, box.z1, PILE_PAD);
+    const still = props.handObstaclesAhead(1.2).filter(over); let last = -1;
+    for (let i = 0; i <= 30; i++) { const t = i / 30; if (props.handObstaclesAhead(t).some((o) => over(o) && !still.some((e) => Math.hypot(e.x - o.x, e.z - o.z) < 0.01))) last = t; }
+    return last < 0 ? 0 : last + 1 / 30;
   }
   /** 受害者的手：從「席位→符紙堆」方向起，往「席位→桌心」那側每 5° 試（最多 90°，再試另一側 60°），每個方向深度從 VICTIM_IN 往席位收；
    *  要求手（掌心錨點往前 0.56、往後 0.40、左右 0.20，拇指那側在掌心後 0–0.25 處到 0.44，外擴 0.08＝手抖與手掌比格點寬的餘量）不落進別件拍品外框與錢柱／令牌，落點（掌心往前 KNUCKLE）離別件拍品外框 ≥ 符紙堆半寬＋ROUTE_PAD、且在桌面範圍內。 */

@@ -155,6 +155,9 @@ export const CURSE = {
   ARM_LEN: 0.62, ARM_R: 0.17, // 手臂看得見的部分（rig.seen，袖布 alpha≥0.2）從掌心往後最長 0.62、側向半寬實測 0.14–0.19（r3 量；舊值 0.9／0.10）
   DEV_MAX: 45 * Math.PI / 180, // 手臂朝向最多偏離「席位 → 符紙堆」這麼多（cos 0.71；條件 25 門檻 cos 0.5，留餘量）
   YAW_RATE: 3.0, // 施放者手的朝向最多每秒轉這麼多弧度（換推法時不瞬轉）
+  PILE_SLOPE: 0.6, // r3：符紙堆小幅抬過桌上錢柱時的升降速度上限（世界單位／秒；1.4 會讓堆一跳、鏡頭跟著甩，條件 3 北塞南 0.76）
+  PROP_DETOUR: 0.3, // r3：繞開錢柱的路最多比只繞別件的路長這麼多（世界單位；北塞南多 0.21 → 繞，西塞南多 0.86、北塞東多 1.14 → 抬過）
+  GO_MAX: 0.36, // r3：手蓋上符紙堆後最多再按著等這麼久才推（秒，CURSE_MS＝MS_REF 時；等落標的錢從堆底下扒過去，條件 26）
 };
 
 /** 線段 p→q（xz）是否穿進 AABB o 的內部（Liang–Barsky；只碰邊不算）。 */
@@ -191,6 +194,8 @@ export function planPath(a, b, boxes, r, area = null) {
   const out = []; for (let v = 1; v >= 0; v = prev[v]) out.unshift(nodes[v]);
   return out;
 }
+/** 折線總長。 */
+const polyLen = (pts) => { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; };
 /** 折線上弧長比例 u∈[0,1] 的點與切線方向。 */
 function polyAt(pts, u) {
   const L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(l); tot += l; }
@@ -221,11 +226,13 @@ export function armYawTable(route, seatC, boxes, pushS, N = 96) {
 /**
  * 詛咒轉移 A（推過去按住）＋C（紙錢繩纏腕，只在按住階段）。
  * @param o { seatC（施放者＝毒標得標席）, seatV（受害者＝transferTarget）, from, box（符紙堆靜止外接盒）, tableY, ms }
+ *   r3：goAt（秒，可省）＝手蓋上後在原位按著、到這一刻才開始推（tray 給：落標的錢扒回時從堆底下橫過，等它過去；上限 GO_MAX×比例）
  */
-export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null, vdir = null, avoid = null }) {
+export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn = CURSE.VICTIM_IN, via = null, vdir = null, avoid = null, goAt = 0 }) {
   const k = (Number.isFinite(ms) ? Math.max(ms, 1) : CURSE.MS_REF) / CURSE.MS_REF, T = {}, VT = {}; // ms＝CURSE_MS（落定時長）；沒給／非數字＝MS_REF；≤0＝瞬間（取 1ms，免除以零；與 index.html 揭卡等待的 max(0,CURSE_MS) 同口徑）
   for (const key in CURSE.T) T[key] = CURSE.T[key] * k;
   for (const key in CURSE.V) VT[key] = CURSE.V[key] * k;
+  T.go = Math.min(T.appr + CURSE.GO_MAX * k, Math.max(T.appr, Number.isFinite(goAt) ? goAt : 0)); // 開始推的時刻（r3）
   const pileH = box.y1 - from.y;
   const [vx, vz] = vdir ? norm2(vdir[0], vdir[1]) : norm2(from.x - seatV.x, from.z - seatV.z), vyaw = Math.atan2(vx, vz); // 受害者席 → 符紙堆（r2：tray 可另給 vdir＝避開別件拍品的伸手方向）
   const Vp = [seatV.x + vx * victimIn, tableY + CURSE.VICTIM_Y, seatV.z + vz * victimIn]; // 受害者掌心（victimIn 由 tray 依別件拍品外框收短，手不伸進別件腳下）
@@ -237,8 +244,12 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
   let route = null, yawTab = null;
   if (avoid) {
     const r = Math.max(box.x1 - box.x0, box.z1 - box.z0) / 2 + CURSE.ROUTE_PAD;
+    /* r3：avoid.props（tray 給：不會被扒走的錢柱／令牌外框）也繞得開、且路比只繞別件的長不到 PROP_DETOUR 就一起繞（堆不必抬過去、鏡頭不跟著跳）；
+       否則只繞別件拍品、錢柱由堆小幅抬過（繞太遠＝推得更快，條件 3 的螢幕位移變大） */
     route = planPath([P0[0], P0[2]], [P1[0], P1[2]], avoid.boxes, r, avoid.area);
-    if (route) yawTab = armYawTable(route, seatC, avoid.boxes, T.push - T.appr);
+    const r2 = route && avoid.props && avoid.props.length ? planPath([P0[0], P0[2]], [P1[0], P1[2]], avoid.boxes.concat(avoid.props), r, avoid.area) : null;
+    if (r2 && polyLen(r2) <= polyLen(route) + CURSE.PROP_DETOUR) route = r2;
+    if (route) yawTab = armYawTable(route, seatC, avoid.boxes, T.push - T.go);
   }
   const yawAtU = (u) => { if (!yawTab) return null; const x = clamp01(u) * (yawTab.length - 1), i = Math.min(yawTab.length - 2, Math.floor(x)), f = x - i, a = yawTab[i], d = Math.atan2(Math.sin(yawTab[i + 1] - a), Math.cos(yawTab[i + 1] - a)); return a + d * f; };
   const yawEnd = yawTab ? yawAtU(1) : Math.atan2(P1[0] - seatC.x, P1[2] - seatC.z); // 推到底之後施放者手的朝向
@@ -264,14 +275,14 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
       let p;
       if (t < T.push) {
         /* via（tray 給，可省）：直線推會擦過別件拍品時，先貼桌往前拉到 via 再推過去（貼桌推，不從別件身上飛過） */
-        const u = smooth(seg(t, T.appr, T.push)), V = via ? [via[0], from.y, via[1]] : null;
+        const u = smooth(seg(t, T.go, T.push)), V = via ? [via[0], from.y, via[1]] : null;
         if (route) { const q = polyAt(route, u); p = [q.p[0], from.y, q.p[1]]; }
         else p = V ? (u < 0.4 ? lerp3(P0, V, u / 0.4) : lerp3(V, P1t, (u - 0.4) / 0.6)) : lerp3(P0, P1t, u);
         item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin(t * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
       else { const u = smooth(seg(t, T.push, T.press)); p = lerp3(P1t, P1, u); item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: 0, ry: 0 }; }
       holder = 'c'; carryNow = carry;
       /* 手掌蓋在堆頂推：手指朝向「自己席位 → 符紙堆現在的位置」（跟著堆轉，指尖不伸進別件拍品）。 */
-      const cy = yawTab ? (t < T.push ? yawAtU(seg(t, T.appr, T.push)) : yawEnd) : Math.atan2(p[0] - seatC.x, p[2] - seatC.z);
+      const cy = yawTab ? (t < T.push ? yawAtU(seg(t, T.go, T.push)) : yawEnd) : Math.atan2(p[0] - seatC.x, p[2] - seatC.z);
       hands.c = { pose: ['push', 'spread', t < T.push ? 0 : smooth(seg(t, T.push, T.press))], anchor: 'palm', at: [p[0], p[1] + palmOn, p[2]], yaw: cy, pitch: CURSE.C_PITCH }; // 推時五指併攏（拇指收著，不掃到別件），按上手背前張開
     } else {
       const vp = victimPalm(t); // 符紙堆壓在受害者手背上、停在席前不動（不跟著細顫，按住的那隻手壓著它；施放者收手後也不被拖回）
@@ -325,7 +336,7 @@ export function planCurseLift(s, Lc, Lv, dt, slope = CURSE.LIFT_SLOPE, land = CU
   const Lv2 = Lv.slice(); let vHold = -Infinity;
   for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) vHold = Math.max(vHold, Lv[i]);
   if (Number.isFinite(vHold)) for (let i = 0; i < n; i++) if (tt(i) >= T.press && tt(i) < T.gone) Lv2[i] = vHold;
-  const v = liftEnvelope(Lv2, dt, slope), c0 = liftEnvelope(Lp || Lc, dt, slope, down);
+  const v = liftEnvelope(Lv2, dt, slope), c0 = Lp ? liftEnvelope(Lp, dt, Math.min(slope, CURSE.PILE_SLOPE), (i) => (tt(i) >= s.riseFrom ? down(i) : Math.min(slope, CURSE.PILE_SLOPE))) : liftEnvelope(Lc, dt, slope, down);
   /* r3：堆落定後一直停在受害者手背高度直到隱藏（舊版受害者的手在 gone 收走後包絡往下掉，最後兩三幀堆沉進席前信物；條件 26） */
   const vKeep = Number.isFinite(vHold) ? Math.max(0, vHold) : 0;
   const target = c0.map((x, i) => { const t = tt(i); if (t < s.riseFrom) return x; if (t >= T.press) return t >= T.gone ? Math.max(v[i], vKeep) : v[i]; return lerp(x, v[i], smooth(seg(t, s.riseFrom, T.press))); });
