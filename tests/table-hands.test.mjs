@@ -67,12 +67,13 @@ function penetrations(r) {
 }
 
 /* ═══ #B1 面數＋管線 ═══════════════════════════════════════════════════ */
-test('#B1 GLB 資產 ≤2,500 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線）', async () => {
+test('#B1 GLB 資產 ≤6,000 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線）', async () => {
   const g = await loadHandGltf();
   const meshes = []; g.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
   assert.equal(meshes.length, 1, '單一 primitive');
   const tris = meshes[0].geometry.index.count / 3;
-  assert.ok(tris <= 2500, `每隻手 ≤2,500（實際 ${tris}）`);
+  /* 2026-10-07 新手模型（acceptance-newhand.md 放寬記錄，使用者簽准）：GLB 上限 2,500→6,000；新手不再 Loop 細分，畫面每手 ≤6,500 不動（下面照驗）。 */
+  assert.ok(tris <= 6000, `每隻手 ≤6,000（實際 ${tris}）`);
   assert.equal(meshes[0].skeleton.bones.length, 24);
   const r = await rig('L');
   const st = r.hands.stats();

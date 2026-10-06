@@ -50,6 +50,9 @@ const kindDef = (i) => (i === 0 ? REAL.DEFAULT : REAL.ROLES[KINDS[i]]);
  *  Z0＝−0.50：袖口的配件（收驚婆麻布袖口、獵人毛邊、當鋪金邊外翻，實測最遠到 z −0.486）都在袖管起點之前，袖管從配件後面接出去。
  *  FINE_Z：z ≥ 此值的原三角形才細分（手＋袖口）。 */
 export const ARM = { CUT: -0.6, Z0: -0.50, PAD: 0.012, SIDES: 10, SEGS: 12, FINE_Z: -0.45, LEN: 0.60, OLD_FADE: 0.55, DIM: 0.6 };
+/** 新手模型（2026-10-07，Modly 生成後 Blender 整理，5,800 面）本身已平滑，不再 Loop 細分：原手三角形數 > 此值＝略過細分（畫面面數≈GLB 面數）。
+ *  舊手（1,362 面）照舊細分。驗收凍結檔 acceptance-newhand.md 放寬記錄。 */
+export const SUBDIV_MAX_TRIS = 2500;
 /** 袖管沿長度的 alpha（t＝離袖口的距離／LEN，0..1）：1 → 0 單調遞減。 */
 export const armAlpha = (t) => { const f = Math.min(1, Math.max(0, t)); return 1 - f * f * (3 - 2 * f); };
 
@@ -141,6 +144,15 @@ export function loopSubdivide(geo, n0, fineZ = -Infinity) {
   const accV = (v) => { let m = accMap.get(v); if (m === undefined) { m = out.P.length / 3; accMap.set(v, m); out.P.push(P[v * 3], P[v * 3 + 1], P[v * 3 + 2]); for (let i = 0; i < cs; i++) out.C.push(C[v * cs + i]); for (let k = 0; k < 4; k++) { out.SI.push(SI[v * 4 + k]); out.SW.push(SW[v * 4 + k]); } for (let k = 0; k < 3; k++) out.A.push(AA ? AA[v * 3 + k] : 0); } return m; };
   for (const [a, b, c] of accTris) idx.push(a < n0 ? a : accV(a), b < n0 ? b : accV(b), c < n0 ? c : accV(c));
   return { P: new Float32Array(out.P), C: new Float32Array(out.C), cs, SI: new Uint16Array(out.SI), SW: new Float32Array(out.SW), A: new Float32Array(out.A), index: new Uint32Array(idx), nBase };
+}
+
+/** 原手（頂點 < n0）三角形數。 */
+function baseTris(geo, n0) { let c = 0; const I = geo.index; for (let t = 0; t < I.length; t += 3) if (I[t] < n0 && I[t + 1] < n0 && I[t + 2] < n0) c++; return c; }
+/** 不細分：與 loopSubdivide 同一份輸出格式（前 n0 個＝原手頂點、配件接在後面原樣不動）。 */
+export function passThrough(geo, n0) {
+  const nAll = geo.position.length / 3, AA = geo.accAttr || null, A = new Float32Array(nAll * 3);
+  if (AA) for (let v = n0; v < nAll; v++) for (let k = 0; k < 3; k++) A[v * 3 + k] = AA[v * 3 + k];
+  return { P: Float32Array.from(geo.position), C: Float32Array.from(geo.color), cs: geo.colorSize, SI: Uint16Array.from(geo.skinIndex), SW: Float32Array.from(geo.skinWeight), A, index: Uint32Array.from(geo.index), nBase: n0 };
 }
 
 /** 依角色調手指粗細（繞骨軸徑向縮放）、指節腫、手背厚度；只動原手頂點（< nBase）。 */
@@ -341,7 +353,7 @@ export const FRAG_ACC = /* glsl */`
 export function realGeometry(rig, srcGeo, n0, key, variantInfo = null, ext = null) {
   /* ext（v0.61.0 批 1 身分變體，js/hand-b1.js）：{ real: {def, kind}, accessorize(d) }——自備這種手的參數，重塑後再把配件接上去（戒指、指甲、縫線才貼得住變粗／變細後的手）。沒給＝原樣。 */
   const { def, kind } = ext ? ext.real : realDef(key === 'default' ? null : key);
-  const d = loopSubdivide(srcGeo, n0, ARM.FINE_Z);
+  const d = baseTris(srcGeo, n0) > SUBDIV_MAX_TRIS ? passThrough(srcGeo, n0) : loopSubdivide(srcGeo, n0, ARM.FINE_Z);
   reshape(rig, d, def);
   if (ext && ext.accessorize) ext.accessorize(d);
   /* 配件的蒙皮權重改抄「細分＋重塑後最近的手部頂點」（原本抄的是原 GLB 頂點；細分後那個點的權重已被平均過，
