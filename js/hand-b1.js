@@ -353,7 +353,7 @@ const kd = (i) => (i === 0 ? HR.REAL.DEFAULT : i < HR.KINDS.length ? HR.REAL.ROL
 const glf = (x) => (Number.isInteger(x) ? x.toFixed(1) : String(+x.toFixed(4)));
 const PICK = (t, name) => `${t} ${name}(${t} a[8], int k){ return k == 1 ? a[1] : k == 2 ? a[2] : k == 3 ? a[3] : k == 4 ? a[4] : k == 5 ? a[5] : k == 6 ? a[6] : k == 7 ? a[7] : a[0]; }`;
 function swap(src, from, to) { if (!src.includes(from)) throw new Error('hand-b1: shader 片段找不到 ' + from.slice(0, 40)); return src.replace(from, to); }
-function shaderParts() {
+export function shaderParts() { // skin-proto：export 給 hand-skin-proto.js 重用（行為不變）
   let pars = HR.FRAG_PARS.replace(/uniform (vec3|vec4|float) (\w+)\[4\]/g, 'uniform $1 $2[8]');
   pars = pars.replace(/vec3 hrPick3\(vec3 a\[4\][^\n]*/, PICK('vec3', 'hrPick3')).replace(/vec4 hrPick4\(vec4 a\[4\][^\n]*/, PICK('vec4', 'hrPick4')).replace(/float hrPick1\(float a\[4\][^\n]*/, PICK('float', 'hrPick1'));
   if (/\w+ a\[4\],|\w+A\[4\];/.test(pars)) throw new Error('hand-b1: 還有 [4] 宣告沒換');

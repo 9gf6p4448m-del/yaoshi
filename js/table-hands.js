@@ -48,6 +48,9 @@ export function createTableHands(parent, props, opts = {}) {
      不載入 hand-b1.js，整套與 v0.60.1 相同。 */
   const b1On = realOn && (opts.b1 !== undefined ? !!opts.b1 : (HAND.B1_ON !== false && q0.get('handb1') !== '0'));
   let B1 = null;
+  /* skin-proto（原型，不是產品）：?skin=a|b|c 換皮膚 shader 方向（js/hand-skin-proto.js）；不帶參數＝不載入、與 v0.61.1 相同。只在批 1 開著時生效。 */
+  const skinDir = b1On && ['a', 'b', 'c'].includes(q0.get('skin')) ? q0.get('skin') : null;
+  let SP = null, spShadow = null; const spV = new THREE.Vector3();
   /* v0.61.0 拍令牌拇指收角（HAND.SLAM_THUMB）：寫實開著時預設啟用；?thumb=0（或 opts.thumb=false、HAND.SLAM_THUMB.ON=false）退回舊姿勢。
      只換拍令牌的張開手（spreadT），推錢／收錢／停一拍不動。寫實關閉（?handreal=0）時一律舊姿勢（與 10-02 的舊手逐幀等價）。 */
   const thumbOn = realOn && (opts.thumb !== undefined ? !!opts.thumb : (HAND.SLAM_THUMB.ON !== false && q0.get('thumb') !== '0'));
@@ -59,6 +62,7 @@ export function createTableHands(parent, props, opts = {}) {
   /* 批 1 模組載不到（離線、node 測試的 data: 模組無法解析相對路徑）＝四角色退回預設手、照常上場（純演出不得拖垮牌桌）；原因記在 stats().b1Error。 */
   let b1Error = null;
   if (b1On) loading = loading.then((clones) => import('./hand-b1.js' + V).then((m) => { B1 = m; return clones; }, (e) => { b1Error = String((e && e.message) || e); return clones; }));
+  if (skinDir) loading = loading.then((clones) => import('./hand-skin-proto.js' + V).then((m) => { SP = m; return clones; }, (e) => { b1Error = 'skin-proto: ' + String((e && e.message) || e); return clones; }));
   const ready = loading.then((clones) => {
     if (disposed) return;
     clones.forEach(({ model, shared: sh }, seat) => {
@@ -184,7 +188,8 @@ export function createTableHands(parent, props, opts = {}) {
       seatKey[h.seat] = key;
       if (!realOn) { h.mesh.geometry = key ? variantGeo(key) : dressedGeo; continue; } // v0.59.6 原樣
       if (B1) { // v0.61.0 批 1：所有席共用 8 種手的材質（既有四種手的分支與參數不變）；批 1 四角色換自己的幾何
-        if (!realMat) realMat = B1.makeMaterial(material, HR.jointTable(rig));
+        if (!realMat) realMat = SP ? SP.makeMaterial(material, HR.jointTable(rig), skinDir) : B1.makeMaterial(material, HR.jointTable(rig));
+        if (SP && skinDir === 'c' && !spShadow) spShadow = SP.createContactShadows(group);
         const bk = B1.keyOf(roleOf[h.seat]);
         if (bk) {
           seatKey[h.seat] = bk;
@@ -223,6 +228,12 @@ export function createTableHands(parent, props, opts = {}) {
         realRigs.set(real.key, buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array.slice(0, na * 3), skinIndex: ga.skinIndex.array.slice(0, na * 4), skinWeight: ga.skinWeight.array.slice(0, na * 4) })));
       }
       h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get(real.key);
+      /* skin-proto：孝女白琴／閭山法師／普渡爐主各換一組皮膚參數（只換 aSkin 屬性，頂點與索引共用同一份） */
+      if (SP && !key && SP.extraSkin(roleOf[h.seat]) > 0) {
+        const tk = 'sp:' + roleOf[h.seat] + '|' + h.seat;
+        if (!realGeos.has(tk)) realGeos.set(tk, SP.retag(realGeos.get(gk), SP.extraSkin(roleOf[h.seat])));
+        h.mesh.geometry = realGeos.get(tk); seatKey[h.seat] = roleOf[h.seat];
+      }
     }
   }
 
@@ -239,6 +250,12 @@ export function createTableHands(parent, props, opts = {}) {
         const q = fr.quats[name];
         if (q) h.bones[name].quaternion.set(q[0], q[1], q[2], q[3]); else h.bones[name].quaternion.identity();
       }
+    }
+    if (SP && realMat && realMat.userData.realU && realMat.userData.realU.uTableY) { // skin-proto C：桌面高（世界）與 1 dm 的世界長，給遮蔽用
+      const ty = props.tableY ? props.tableY() : 0; group.updateMatrixWorld();
+      realMat.userData.realU.uTableY.value = group.localToWorld(spV.set(0, ty, 0)).y;
+      if (hands.length) realMat.userData.realU.uDm.value = hands[0].holder.getWorldScale(spV).x;
+      if (spShadow) spShadow.update(hands, ty);
     }
   }
 
