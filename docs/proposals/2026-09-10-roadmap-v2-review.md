@@ -1,5 +1,7 @@
 # 《妖市》ROADMAP_V2 架構評審報告（Design & Architecture Review）
 
+> **2026-10-07 沿革標註**：本檔是 2026-09-10 對 ROADMAP_V2 的架構評審，已由 [總藍圖](../MASTER_BLUEPRINT.md) 逐項承接，現行範圍、優先序與裁定以總藍圖為準。文中的 Tier 1 改 500ms、鎖步同步等是當時建議，不是現行時長契約或已選網路路線（D3／D7 仍待裁）。整理來源見 [第二階段整理結果](../reviews/2026-10-07-blueprint-audit-phase2-result.md)。
+
 > 角色：主系統架構師與資深遊戲製作人。Plan Mode，不動任何程式碼。
 > 基準：線上 v0.53（`d400b33`，請神 3.0 香火池）。評審對象：`docs/ROADMAP_V2.md`（2026-09-09）七章。
 > 依據：`docs/GAME_DESIGN.md` 三支柱／§5.1／六之四閘門、`docs/ARCH_SPEC.md` §2–§5／§8、`index.html` 五張表與 `playDuelWar`、`js/`。

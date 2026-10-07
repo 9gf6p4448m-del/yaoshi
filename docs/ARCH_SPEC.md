@@ -110,6 +110,8 @@ function applyHooks(name, ctx, p) { /* 依序呼叫每個 effect 的 hooks[name]
 - 媽祖令旗：`ctx.cap = Math.floor(ctx.cap * 1.5)`
 - 大家樂組頭（角色）：`ctx.cap = Math.max(1, Math.floor(p.life / 2))`
 
+> **2026-10-07 現行口徑**：上一行 `/2` 是舊範例。2026-09-03 使用者裁定一般上限改為壽命 ÷`CFG.CONS_CAP_DIV`(6)。現行程式的組頭是「一般上限的 1.5 倍」＝`Math.max(1, Math.floor(p.life / (CFG.CONS_CAP_DIV / 1.5)))`（÷6 時＝壽命÷4；GAME_DESIGN §5.3 註 5、§六之三 A 組頭列）；但 [實驗報告](experiments/2026-09-03-conscap-div.md) §4 明記組頭同步 1.5 倍是**實作者假設**，未見使用者針對這一點的裁定，列待確認。本註記只同步文件，不改數值。
+
 ### 3.5 `onBudget(ctx)` — 一輪出價總額上限
 `ctx = { p, budget }`（預設 `budget = p.life`）　effect 改 `ctx.budget`
 - 陰間當鋪（角色）：`ctx.budget += 8`
@@ -128,6 +130,9 @@ function applyHooks(name, ctx, p) { /* 依序呼叫每個 effect 的 hooks[name]
 （預設：得標 `cost = bid.amt`；落標且押命標 `cost = ceil(amt/2)`；落標保守標 `cost = 0`）
 effect 改 `ctx.cost`，可 `ctx.events.push({txt})`
 - 黃色小雨衣：`if (!isWinner && bid.type === 'yaming') ctx.cost = 0`
+
+> **2026-10-07 現行口徑（只同步文件，不改程式或數值）**：上面的預設成本與雨衣範例是 v0.5 以前的寫法。v0.6（2026-09-02，GAME_DESIGN §5.3 與註 4）起：每筆有效標另付掛號費（玩家可見名稱「買路錢」，`CFG.BID_FEE`），保守標落標付 `ceil(amt × CFG.CONS_LOSE_FRAC)`（0.25）。現行 `resolveAuction` 先算 `fee` 與 `baseCost`（得標＝amt；押命落標＝ceil(amt/2)；保守落標＝ceil(amt×0.25)），hook 收到的是 `ctx.cost = baseCost + fee`，並另帶 `ctx.fee`。所以 hook 改 `cost` 時不能漏掉買路錢：現行黃色小雨衣是 `ctx.cost = Math.min(ctx.cost, ctx.fee)`（只降不升、買路錢照收）。下面的閭山法師範例同理：現行是 `ctx.cost = ctx.fee + Math.ceil((ctx.cost - ctx.fee) / 2)`，只把標額減半、買路錢不減，與 GAME_DESIGN §5.3「掛號費不論輸贏、唯一例外是典當保命」一致。天命、夜規、典當保命等另有覆寫，不在此列。
+
 - 閭山法師（角色）：詛咒品且為唯一 `keep` 出價者時 `ctx.cost = Math.ceil(ctx.cost/2)`
 - 落魄夜（市集規則）：`ctx.cost = bid.amt`（全付）
 
@@ -290,6 +295,10 @@ cred        {pid: number[]}  盯上信譽（2026-09-03，GAME_DESIGN §5.8 規�
 - 斷手書生：`ctx.val *= (item.f === p.spec) ? 1.6 : 0.7`
 - 紅衣婆婆：仇恨最高者的主力陣營 `ctx.val += 3`（阻擋）
 - 獵人：能追上第一名戰力的拍品 `ctx.val += 4`
+
+> **2026-10-07 現行口徑（獵人）**：上一行是舊戰力寫法。2026-09-15 [詛咒轉換凍結](experiments/2026-09-15-curse-migration/acceptance.md) 規定正式紙紮路徑不呼叫舊 `power()`（含獵人），現行 AI 改用紙紮對決試算（`pwTrialAvg`）評估，奪取對象也改以紙紮隻數判定。只同步文件，不改程式。
+
+> **2026-10-07 現行口徑**：上面斷手書生與紅衣婆婆兩條是舊範例，2026-09-07 角色平衡 B 小卷（[凍結檔](experiments/2026-09-07-acceptance-role-balance-b.md)）已改：斷手書生只對「能湊成套的那一件」×1.6，其餘照原估值，不再對其他拍品 ×0.7；紅衣婆婆的 +3 搬到人機共用的 `onBidEff`（比價有效值 +3、實付不變），不再放在 AI 專屬的 `onAiValue`。不要照舊範例恢復，否則會重新引入自傷估值、AI 專享或雙重增益（IMPLEMENTATION_GUIDE §11 角色平衡 B 段、GAME_DESIGN §六之三 A）。
 
 ### 8.2 `onAiPlan(ctx)` — 這夜要標幾件、要不要整夜不出手
 `ctx = { p, opts, maxPicks, skipAll }`（`opts` 已依 val 排序；預設 `maxPicks=2`、`skipAll=false`）

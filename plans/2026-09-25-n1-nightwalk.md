@@ -1,5 +1,7 @@
 # N1 夜行錄（首 3 章）：執行計畫（2026-09-25 開卷）
 
+> **2026-10-07 現況指路**：本計畫已執行，首 3 章於 2026-09-25 以 v0.58.0 發布（[卷報告](../docs/experiments/2026-09-25-n1-nightwalk/README.md)）：凍結 #1–#9、#12–#14 過；#10 使用者簽字文案與 #11 實機第 1 章暫緩，不是通過。第 4–10 章另開卷。整理來源見 [第二階段整理結果](../docs/reviews/2026-10-07-blueprint-audit-phase2-result.md)。
+
 使用者 2026-09-25 選 N1 並對開卷七題「全部照建議開工」。範圍依 [總藍圖 §3.4 N01–N03、§5 N1](../docs/MASTER_BLUEPRINT.md)；驗收以 [凍結檔](../docs/experiments/2026-09-25-acceptance-n1-nightwalk.md) 為準。基準 `main 3a0d971 / v0.57.42`，工作分支 `n1/nightwalk`（worktree `C:/Users/shung/wt/yaoshi/n1`）。
 
 ## 0. 已裁與不裁

@@ -1,4 +1,4 @@
-**2026-10-07 最新入口（以本段為準）**：Git 基準 `origin/main 85c38c6a`＝v0.62.5（2026-10-07 只確認 Git，未核對公開網站或 Safari 真機）。產品現況、已裁／待裁與已知未過項先讀 [總藍圖](docs/MASTER_BLUEPRINT.md) §0 與 §5.1；本次藍圖整理的逐項來源見 [整理結果](docs/reviews/2026-10-07-blueprint-audit-result.md)。已裁：D2 連鎖、D5 流派與進度；仍待裁：D3 幽靈、D6–D8、E1、P1/P2 形式、K01–K06。`push-follow@a4c217d1`（v0.62.6 候選）不屬正式狀態。
+**2026-10-07 最新入口（以本段為準）**：Git 基準 `origin/main 85c38c6a`＝v0.62.5（2026-10-07 只確認 Git，未核對公開網站或 Safari 真機）。產品現況、已裁／待裁與已知未過項先讀 [總藍圖](docs/MASTER_BLUEPRINT.md) §0 與 §5.1；本次藍圖整理的逐項來源見 [整理結果](docs/reviews/2026-10-07-blueprint-audit-result.md) 與 [第二階段整理結果](docs/reviews/2026-10-07-blueprint-audit-phase2-result.md)（GAME_DESIGN／ART_BIBLE 現行覆蓋註記、待查項）。已裁：D2 連鎖、D5 流派與進度；仍待裁：D3 幽靈、D6–D8、E1、P1/P2 形式、K01–K06。`push-follow@a4c217d1`（v0.62.6 候選）不屬正式狀態。
 
 **2026-10-01 雲端→本機接手（沿革，部分已被覆蓋）**：[雲端接手包](docs/handoffs/2026-10-01-cloud-to-local.md)。當時 main `f8bcd0cb`＝v0.59.3＋雲端 v0.59.2 鑑賞頁／面板 Y（#11(i) 已簽）＋押寶夜勾選、對白氣泡、燒香框三項熱修。仍待辦：三個補跑量測、#8(b) 新量法正式數字（缺 `3a0d971` 的 nightwalk 2 項已於 2026-10-07 本機補跑 nightwalk 單檔 18/18 通過；全套未重跑）。**押寶面板窄畫面版面已由 10-01 補充（`88e4dd48`，可收合＋窄畫面換行）處理**，不再列待裁；手機實機仍待驗。下方 09-30 舊入口以本節為準。
 
